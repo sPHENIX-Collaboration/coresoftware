@@ -2,23 +2,20 @@
 
 #include "PHG4CylinderGeom_Spacalv1.h"  // for PHG4CylinderGeom_Spacalv1
 
-#include <g4main/PHG4DisplayAction.h>   // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Utils.h>
 
 #include <TSystem.h>
 
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4String.hh>           // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4VisAttributes.hh>
 
 #include <iostream>
-#include <utility>                      // for pair
-
-using namespace std;
+#include <utility>  // for pair
 
 PHG4SpacalDisplayAction::PHG4SpacalDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
-  , m_Geom(nullptr)
 {
 }
 
@@ -31,10 +28,10 @@ PHG4SpacalDisplayAction::~PHG4SpacalDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
+void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
-  for (auto it : m_LogicalVolumeMap)
+  for (const auto &it : m_LogicalVolumeMap)
   {
     G4LogicalVolume *logvol = it.first;
     if (logvol->GetVisAttributes())
@@ -57,7 +54,7 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
     {
       visatt->SetColor(.3, .3, .3, .3);
       visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());
-      visatt->SetForceSolid(not m_Geom->is_virualize_fiber());
+      visatt->SetForceSolid(!m_Geom->is_virualize_fiber());
     }
     else if (it.second == "Divider")
     {
@@ -81,7 +78,7 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
       PHG4Utils::SetColour(visatt, m_MaterialMap["LightGuide"]);
       visatt->SetColor(.8, 1, .8, .3);
       visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());
-      visatt->SetForceSolid(not m_Geom->is_virualize_fiber());
+      visatt->SetForceSolid(!m_Geom->is_virualize_fiber());
     }
     else if (it.second == "Sector")
     {
@@ -93,7 +90,7 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
     else if (it.second == "SpacalCylinder")
     {
       PHG4Utils::SetColour(visatt, "W_Epoxy");
-      visatt->SetForceSolid((not m_Geom->is_virualize_fiber()) and (not m_Geom->is_azimuthal_seg_visible()));
+      visatt->SetForceSolid((!m_Geom->is_virualize_fiber()) && (!m_Geom->is_azimuthal_seg_visible()));
     }
     else if (it.second == "Wall")
     {
@@ -103,12 +100,12 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
     else if (it.second == "WallProj")
     {
       visatt->SetColor(.5, .9, .5, .2);
-      visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible() and (not m_Geom->is_virualize_fiber()));
+      visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible() && (!m_Geom->is_virualize_fiber()));
     }
     else
     {
-      cout << "did not assing color to " << it.first->GetName()
-           << " under " << it.second << endl;
+      std::cout << "did not assing color to " << it.first->GetName()
+                << " under " << it.second << std::endl;
       gSystem->Exit(1);
     }
     logvol->SetVisAttributes(visatt);

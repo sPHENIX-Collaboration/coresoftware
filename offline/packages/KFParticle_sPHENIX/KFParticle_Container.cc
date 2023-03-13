@@ -8,15 +8,13 @@
 
 #include "KFParticle_Container.h"
 
-#include <phool/PHObject.h>  // for PHObject
-
 #include <KFParticle.h>
 
+#include <cstdlib>
 #include <iterator>  // for reverse_iterator
 #include <map>       // for _Rb_tree_const_iterator, _Rb_tree_iterator
 #include <ostream>   // for operator<<, endl, ostream, basic_ostream, bas...
 #include <utility>   // for pair, make_pair
-
 
 KFParticle_Container::KFParticle_Container()
   : m_kfpmap()
@@ -90,7 +88,7 @@ KFParticle* KFParticle_Container::insert(const KFParticle* particle)
   unsigned int index = 0;
   if (!m_kfpmap.empty()) index = m_kfpmap.rbegin()->first + 1;
   m_kfpmap.insert(std::make_pair(index, dynamic_cast<KFParticle*>(particle->Clone())));
-  m_kfpmap[index]->SetId(index);
+  //m_kfpmap[index]->SetId(index);
   return m_kfpmap[index];
 }
 

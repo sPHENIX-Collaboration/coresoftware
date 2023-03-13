@@ -8,27 +8,27 @@
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
-
 #include <g4detectors/PHG4DetectorGroupSubsystem.h>  // for PHG4DetectorGrou...
 
-#include <g4main/PHG4DisplayAction.h>                // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4SteppingAction.h>               // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
-#include <phool/PHIODataNode.h>                      // for PHIODataNode
-#include <phool/PHNode.h>                            // for PHNode
-#include <phool/PHNodeIterator.h>                    // for PHNodeIterator
-#include <phool/PHObject.h>                          // for PHObject
-#include <phool/phool.h>                             // for PHWHERE
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
+#include <phool/getClass.h>
+#include <phool/phool.h>  // for PHWHERE
 
-#include <mvtx/SegmentationAlpide.h>                 // for Alpide constants
+#include <mvtx/SegmentationAlpide.h>  // for Alpide constants
 
-#include <iostream>                                  // for operator<<, basi...
-#include <set>                                       // for _Rb_tree_const_i...
+#include <cstdlib>   // for getenv
+#include <iostream>  // for operator<<, basi...
+#include <set>       // for _Rb_tree_const_i...
 #include <sstream>
-#include <utility>                                   // for pair
+#include <utility>  // for pair
 
 class PHG4Detector;
 
@@ -182,13 +182,13 @@ int PHG4MvtxSubsystem::process_event(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4MvtxSubsystem::GetDetector(void) const
+PHG4Detector* PHG4MvtxSubsystem::GetDetector() const
 {
   return m_Detector;
 }
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4MvtxSubsystem::GetSteppingAction(void) const
+PHG4SteppingAction* PHG4MvtxSubsystem::GetSteppingAction() const
 {
   return steppingAction_;
 }
@@ -213,13 +213,12 @@ void PHG4MvtxSubsystem::SetDefaultParameters()
   }
 
   set_default_string_param(GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
-  set_default_string_param(GLOBAL, "end_wheels_sideS",
-                           string(getenv("CALIBRATIONROOT")) + string("/Tracking/geometry/ITS_ibEndWheelSideA_mod_PEEK.gdml"));
-  set_default_string_param(GLOBAL, "end_wheels_sideN",
-                           string(getenv("CALIBRATIONROOT")) + string("/Tracking/geometry/ITS_ibEndWheelSideC_PEEK.gdml"));
-  /*
-  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_x", NAN);
-  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_z", NAN);
-  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_thickness", NAN);
-  */
+  char *calibrationsroot = getenv("CALIBRATIONROOT");
+  std::string end_wheels_sideS = "ITS_ibEndWheelSideA.gdml";
+  std::string end_wheels_sideN = "ITS_ibEndWheelSideC.gdml";
+  if (calibrationsroot != nullptr)
+  {
+    end_wheels_sideS =  string(calibrationsroot) + string("/Tracking/geometry/") + end_wheels_sideS;
+    end_wheels_sideN = string(calibrationsroot) + string("/Tracking/geometry/") + end_wheels_sideN;
+  }
 }

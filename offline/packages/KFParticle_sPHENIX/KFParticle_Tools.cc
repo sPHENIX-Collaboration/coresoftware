@@ -27,38 +27,41 @@
 
 #include "KFParticle_Tools.h"
 
-#include <phool/getClass.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
+#include <phool/getClass.h>
+
 //KFParticle stuff
-#include <KFPTrack.h>
 #include <KFParticle.h>
-#include <KFParticleDatabase.h>
 #include <KFVertex.h>
 
+#include <Rtypes.h>
+#include <TDatabasePDG.h>
 #include <TMatrixD.h>
+#include <TMatrixDfwd.h>  // for TMatrixD
+#include <TMatrixT.h>     // for TMatrixT, operator*
 
-#include <Eigen/Core>
 #include <Eigen/Dense>
 
-/// Create necessary objects
-typedef std::pair<int, float> particle_pair;
-KFParticle_particleList kfp_particleList;
-
-//Particle masses are in GeV
-std::map<std::string, particle_pair> particleMasses = kfp_particleList.getParticleList();
+#include <algorithm>  // for max, remove, minmax_el...
+#include <cmath>      // for sqrt, pow, M_PI
+#include <cstdlib>    // for abs, NULL
+#include <iostream>   // for operator<<, basic_ostream
+#include <iterator>   // for end
+#include <map>        // for _Rb_tree_iterator, map
+#include <memory>     // for allocator_traits<>::va...
 
 /// KFParticle constructor
 KFParticle_Tools::KFParticle_Tools()
   : m_has_intermediates(false)
   , m_min_mass(0)
   , m_max_mass(0)
-  , m_min_decayTime(-1*FLT_MAX)
+  , m_min_decayTime(-1 * FLT_MAX)
   , m_max_decayTime(FLT_MAX)
-  , m_min_decayLength(-1*FLT_MAX)
+  , m_min_decayLength(-1 * FLT_MAX)
   , m_max_decayLength(FLT_MAX)
   , m_track_pt(0.25)
   , m_track_ptchi2(FLT_MAX)
@@ -82,7 +85,7 @@ KFParticle_Tools::KFParticle_Tools()
 {
 }
 
-KFParticle KFParticle_Tools::makeVertex(PHCompositeNode */*topNode*/)
+KFParticle KFParticle_Tools::makeVertex(PHCompositeNode * /*topNode*/)
 {
   float f_vertexParameters[6] = {m_dst_vertex->get_x(),
                                  m_dst_vertex->get_y(),
@@ -109,7 +112,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
 {
   std::string vtxMN;
   if (vertexMapName.empty())
-   vtxMN  = m_vtx_map_node_name;
+    vtxMN = m_vtx_map_node_name;
   else
     vtxMN = vertexMapName;
 
@@ -129,7 +132,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
   return primaryVertices;
 }
 
-KFParticle KFParticle_Tools::makeParticle(PHCompositeNode */*topNode*/)  ///Return a KFPTrack from track vector and covariance matrix. No mass or vertex constraints
+KFParticle KFParticle_Tools::makeParticle(PHCompositeNode * /*topNode*/)  ///Return a KFPTrack from track vector and covariance matrix. No mass or vertex constraints
 {
   float f_trackParameters[6] = {m_dst_track->get_x(),
                                 m_dst_track->get_y(),
@@ -177,7 +180,7 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle v
 {
   std::string vtxMN;
   if (vertexMapName.empty())
-   vtxMN  = m_vtx_map_node_name;
+    vtxMN = m_vtx_map_node_name;
   else
     vtxMN = vertexMapName;
 
@@ -189,10 +192,10 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle v
   return associatedVertex->size_tracks();
 }
 
-/*const*/ bool KFParticle_Tools::isGoodTrack(KFParticle particle, const std::vector<KFParticle> primaryVertices)
+/*const*/ bool KFParticle_Tools::isGoodTrack(KFParticle particle, const std::vector<KFParticle> &primaryVertices)
 {
   bool goodTrack = false;
-  
+
   float min_ip = 0;
   float min_ipchi2 = 0;
 
@@ -202,16 +205,14 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle v
   float trackchi2ndof = particle.GetChi2() / particle.GetNDF();
   calcMinIP(particle, primaryVertices, min_ip, min_ipchi2);
 
-  if (pt >= m_track_pt && ptchi2 <= m_track_ptchi2 
-      && min_ip >= m_track_ip && min_ipchi2 >= m_track_ipchi2 
-      && trackchi2ndof <= m_track_chi2ndof) 
-        goodTrack = true;
+  if (pt >= m_track_pt && ptchi2 <= m_track_ptchi2 && min_ip >= m_track_ip && min_ipchi2 >= m_track_ipchi2 && trackchi2ndof <= m_track_chi2ndof)
+    goodTrack = true;
 
   return goodTrack;
 }
 
 int KFParticle_Tools::calcMinIP(KFParticle track, std::vector<KFParticle> PVs,
-                                float& minimumIP, float& minimumIPchi2)
+                                float &minimumIP, float &minimumIPchi2)
 {
   std::vector<float> ip, ipchi2;
 
@@ -282,9 +283,9 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
 }
 
 std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFParticle> daughterParticles,
-                                                  std::vector<int> goodTrackIndex,
-                                                  std::vector<std::vector<int>> goodTracksThatMeet,
-                                                  int nRequiredTracks, unsigned int nProngs)
+                                                            std::vector<int> goodTrackIndex,
+                                                            std::vector<std::vector<int>> goodTracksThatMeet,
+                                                            int nRequiredTracks, unsigned int nProngs)
 {
   unsigned int nGoodProngs = goodTracksThatMeet.size();
 
@@ -354,7 +355,7 @@ std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFPa
       std::vector<std::vector<int>> dummyTrackList;
       std::vector<int> dummyTrackID;  //I already have the track ids stored in goodTracksThatMeet[i]
       v_intermediateResonances.insert(end(v_intermediateResonances), daughterParticles[*i_it]);
-      for (unsigned int k = 0; k < v_intermediateResonances.size(); ++k) 
+      for (unsigned int k = 0; k < v_intermediateResonances.size(); ++k)
       {
         dummyTrackID.push_back(k);
       }
@@ -377,7 +378,7 @@ std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFPa
   {
     goodTracksThatMeet = findTwoProngs(daughterParticles, goodTrackIndex, num_remaining_tracks);
 
-    for (int p = 3; p <= num_remaining_tracks; ++p) 
+    for (int p = 3; p <= num_remaining_tracks; ++p)
     {
       goodTracksThatMeet = findNProngs(daughterParticles, goodTrackIndex, goodTracksThatMeet, num_remaining_tracks, p);
     }
@@ -387,16 +388,16 @@ std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFPa
       std::vector<KFParticle> v_intermediateResonances(intermediateResonances, intermediateResonances + m_num_intermediate_states);
       std::vector<std::vector<int>> dummyTrackList;
       std::vector<int> dummyTrackID;  //I already have the track ids stored in goodTracksThatMeet[i]
-      for (unsigned int j = 0; j < goodTracksThatMeet[i].size(); ++j) 
+      for (unsigned int j = 0; j < goodTracksThatMeet[i].size(); ++j)
       {
         v_intermediateResonances.push_back(daughterParticles[goodTracksThatMeet[i][j]]);
       }
-      for (unsigned int k = 0; k < v_intermediateResonances.size(); ++k) 
+      for (unsigned int k = 0; k < v_intermediateResonances.size(); ++k)
       {
         dummyTrackID.push_back(k);
       }
       dummyTrackList = findTwoProngs(v_intermediateResonances, dummyTrackID, (int) v_intermediateResonances.size());
-      for (unsigned int p = 3; p <= v_intermediateResonances.size(); ++p) 
+      for (unsigned int p = 3; p <= v_intermediateResonances.size(); ++p)
       {
         dummyTrackList = findNProngs(v_intermediateResonances, dummyTrackID, dummyTrackList, (int) v_intermediateResonances.size(), (int) p);
       }
@@ -432,7 +433,7 @@ float KFParticle_Tools::eventDIRA(KFParticle particle, KFParticle vertex)
   sizeOfFD = TMatrixD(flightVector, TMatrixD::kTransposeMult, flightVector);
   float f_sizeOfFD = sqrt(sizeOfFD(0, 0));
 
-  return f_momDotFD / (f_sizeOfMom * f_sizeOfFD); 
+  return f_momDotFD / (f_sizeOfMom * f_sizeOfFD);
 }
 
 float KFParticle_Tools::flightDistanceChi2(KFParticle particle, KFParticle vertex)
@@ -461,8 +462,8 @@ float KFParticle_Tools::flightDistanceChi2(KFParticle particle, KFParticle verte
   return m_chi2Value(0, 0);
 }
 
-std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters[], std::string daughterOrder[], 
-                                                           bool isIntermediate, int intermediateNumber, int nTracks, 
+std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters[], std::string daughterOrder[],
+                                                           bool isIntermediate, int intermediateNumber, int nTracks,
                                                            bool constrainMass, float required_vertexID)
 {
   KFParticle mother;
@@ -472,7 +473,6 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   bool daughterMassCheck = true;
   float unique_vertexID = 0;
-  float daughterMass = 0;
 
   //Figure out if the decay has reco. tracks mixed with resonances
   int num_tracks_used_by_intermediates = 0;
@@ -481,21 +481,22 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   for (int i = 0; i < nTracks; ++i)
   {
-    daughterMass = constrainMass ? particleMasses.find(daughterOrder[i].c_str())->second.second : vDaughters[i].GetMass();
-    if ((num_remaining_tracks > 0 && i >= m_num_intermediate_states) || isIntermediate) 
-    { 
-      daughterMass = particleMasses.find(daughterOrder[i].c_str())->second.second;
+    float daughterMass = 0;
+    daughterMass = constrainMass ? getParticleMass(daughterOrder[i].c_str()) : vDaughters[i].GetMass();
+    if ((num_remaining_tracks > 0 && i >= m_num_intermediate_states) || isIntermediate)
+    {
+      daughterMass = getParticleMass(daughterOrder[i].c_str());
     }
     inputTracks[i].Create(vDaughters[i].Parameters(),
                           vDaughters[i].CovarianceMatrix(),
                           (Int_t) vDaughters[i].GetQ(),
                           daughterMass);
     mother.AddDaughter(inputTracks[i]);
-    unique_vertexID += vDaughters[i].GetQ() * particleMasses.find(daughterOrder[i].c_str())->second.second;
+    unique_vertexID += vDaughters[i].GetQ() * getParticleMass(daughterOrder[i].c_str());
   }
 
-  if (isIntermediate) mother.SetPDG(particleMasses.find(m_intermediate_name[intermediateNumber].c_str())->second.first);
-  if (!isIntermediate && !m_mother_name_Tools.empty()) mother.SetPDG(particleMasses.find(m_mother_name_Tools.c_str())->second.first);
+  if (isIntermediate) mother.SetPDG(getParticleID(m_intermediate_name[intermediateNumber].c_str()));
+  if (!isIntermediate && !m_mother_name_Tools.empty()) mother.SetPDG(getParticleID(m_mother_name_Tools));
 
   bool chargeCheck;
   if (m_get_charge_conjugate)
@@ -503,7 +504,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
   else
     chargeCheck = unique_vertexID == required_vertexID ? 1 : 0;
 
-  for (int j = 0; j < nTracks; ++j) 
+  for (int j = 0; j < nTracks; ++j)
   {
     inputTracks[j].SetProductionVertex(mother);
     if (!m_allowZeroMassTracks)
@@ -526,15 +527,15 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     goodCandidate = true;
 
   // Check the requirements of an intermediate states against this mother and re-do goodCandidate
-  if (goodCandidate && m_has_intermediates && !isIntermediate) //The decay has intermediate states and we are now looking at the mother
+  if (goodCandidate && m_has_intermediates && !isIntermediate)  //The decay has intermediate states and we are now looking at the mother
   {
     for (int k = 0; k < m_num_intermediate_states; ++k)
     {
       float intermediate_DIRA = eventDIRA(vDaughters[k], mother);
       float intermediate_FDchi2 = flightDistanceChi2(vDaughters[k], mother);
-      if (intermediate_DIRA < m_intermediate_min_dira[k] || 
+      if (intermediate_DIRA < m_intermediate_min_dira[k] ||
           intermediate_FDchi2 < m_intermediate_min_fdchi2[k])
-          goodCandidate = false;
+        goodCandidate = false;
     }
   }
 
@@ -564,11 +565,8 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
   const float speed = 2.99792458e-1;
   calculated_decayTime /= speed;
 
-  if (calculated_fdchi2 >= m_fdchi2 && calculated_ipchi2 <= m_mother_ipchi2
-  && isInRange(m_dira_min, calculated_dira, m_dira_max)
-  && isInRange(m_min_decayTime, calculated_decayTime, m_max_decayTime)
-  && isInRange(m_min_decayLength, calculated_decayLength, m_max_decayLength))
-      goodCandidate = true;
+  if (calculated_fdchi2 >= m_fdchi2 && calculated_ipchi2 <= m_mother_ipchi2 && isInRange(m_dira_min, calculated_dira, m_dira_max) && isInRange(m_min_decayTime, calculated_decayTime, m_max_decayTime) && isInRange(m_min_decayLength, calculated_decayLength, m_max_decayLength))
+    goodCandidate = true;
 }
 
 std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaughters[], std::string daughterOrder[], KFParticle vertex, bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID)
@@ -694,6 +692,34 @@ void KFParticle_Tools::removeDuplicates(std::vector<std::vector<std::string>> &v
   v.erase(end, v.end());
 }
 
+bool KFParticle_Tools::findParticle(const std::string &particle)
+{
+  bool particleFound = true;
+  if (!TDatabasePDG::Instance()->GetParticle(particle.c_str()))
+  {
+    std::cout << "The particle, " << particle << " is not recognized" << std::endl;
+    std::cout << "Check TDatabasePDG for a list of available particles" << std::endl;
+    particleFound = false;
+  }
+
+  return particleFound;
+}
+
+int KFParticle_Tools::getParticleID(const std::string &particle)
+{
+  return TDatabasePDG::Instance()->GetParticle(particle.c_str())->PdgCode();
+}
+
+float KFParticle_Tools::getParticleMass(const std::string &particle)
+{
+  return TDatabasePDG::Instance()->GetParticle(particle.c_str())->Mass();
+}
+
+float KFParticle_Tools::getParticleMass(const int PDGID)
+{
+  return TDatabasePDG::Instance()->GetParticle(PDGID)->Mass();
+}
+
 void KFParticle_Tools::identify(KFParticle particle)
 {
   std::cout << "Track ID: " << particle.Id() << std::endl;
@@ -704,5 +730,5 @@ void KFParticle_Tools::identify(KFParticle particle)
   std::cout << "(x,y,z) = (" << particle.GetX() << " +/- " << sqrt(particle.GetCovariance(0, 0)) << ", ";
   std::cout << particle.GetY() << " +/- " << sqrt(particle.GetCovariance(1, 1)) << ", ";
   std::cout << particle.GetZ() << " +/- " << sqrt(particle.GetCovariance(2, 2)) << ") cm\n"
-       << std::endl;
+            << std::endl;
 }

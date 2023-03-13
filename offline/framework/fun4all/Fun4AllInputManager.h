@@ -56,6 +56,7 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int IsOpen() const { return m_IsOpen; }
   virtual int SkipForThisManager(const int /*nevents*/) { return 0; }
   virtual int HasSyncObject() const { return 0; }
+  virtual std::string GetString(const std::string &) const { return ""; }
 
  protected:
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
@@ -65,11 +66,11 @@ class Fun4AllInputManager : public Fun4AllBase
   Fun4AllSyncManager *MySyncManager() { return m_MySyncManager; }
 
  private:
-  Fun4AllSyncManager *m_MySyncManager;
-  int m_IsOpen;
-  int m_Repeat;
-  int m_MyRunNumber;
-  int m_InitRun;
+  Fun4AllSyncManager *m_MySyncManager = nullptr;
+  int m_IsOpen = 0;
+  int m_Repeat = 0;
+  int m_MyRunNumber = 0;
+  int m_InitRun = 0;
   std::vector<SubsysReco *> m_SubsystemsVector;
   std::string m_InputNode;
   std::string m_FileName;

@@ -1,13 +1,14 @@
 AUTOMAKE_OPTIONS = foreign
 
+AM_CXXFLAGS = `geant4-config --cflags`
+
 lib_LTLIBRARIES = \
   libg4mvtx.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include \
-  -I$(G4_MAIN)/include
+  -isystem$(ROOTSYS)/include
 
 
 AM_LDFLAGS = \
@@ -38,7 +39,10 @@ libg4mvtx_la_SOURCES = \
   PHG4EICMvtxSteppingAction.cc \
   PHG4MvtxSubsystem.cc \
   PHG4EICMvtxSubsystem.cc \
-  PHG4MvtxDigitizer.cc
+  PHG4MvtxDigitizer.cc \
+  PHG4MvtxCable.cc \
+  PHG4MvtxServiceStructure.cc \
+  PHG4MvtxSupport.cc
 
 ################################################
 # linking tests

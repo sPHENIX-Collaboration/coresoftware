@@ -11,30 +11,30 @@ class PHG4EnvelopeDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 
-class PHG4EnvelopeSteppingAction: public PHG4SteppingAction
+class PHG4EnvelopeSteppingAction : public PHG4SteppingAction
 {
-	public:
-		//Constructor
-		PHG4EnvelopeSteppingAction( PHG4EnvelopeDetector* );
-	
-		//Destructor
-		~PHG4EnvelopeSteppingAction() override
-		{}
-	
-		//Stepping Action
-		bool UserSteppingAction( const G4Step*, bool) override;
-	
-		//reimplemented from base class
-		void SetInterfacePointers( PHCompositeNode* ) override;
-	
-	private:
-		
-		//pointer to the detector
-		PHG4EnvelopeDetector* detector_;
-	
-		//pointer to hit container
-		PHG4HitContainer * hits_;
-		PHG4Hit *hit;	
+ public:
+  //Constructor
+  explicit PHG4EnvelopeSteppingAction(PHG4EnvelopeDetector*);
+
+  //Destructor
+  ~PHG4EnvelopeSteppingAction() override
+  {
+  }
+
+  //Stepping Action
+  bool UserSteppingAction(const G4Step*, bool) override;
+
+  //reimplemented from base class
+  void SetInterfacePointers(PHCompositeNode*) override;
+
+ private:
+  //pointer to the detector
+  PHG4EnvelopeDetector* detector_;
+
+  //pointer to hit container
+  PHG4HitContainer* hits_;
+  PHG4Hit* hit;
 };
 
-#endif //PHG4EnvelopeSteppingAction_h
+#endif  //PHG4EnvelopeSteppingAction_h

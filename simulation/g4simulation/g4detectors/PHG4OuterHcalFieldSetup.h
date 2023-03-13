@@ -1,6 +1,6 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-// $Id: $                                                                                             
+// $Id: $
 
 /*!
  * \file PHG4OuterHcalFieldSetup.h
@@ -15,6 +15,8 @@
 
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 
+#include <cmath>
+
 class G4ChordFinder;
 class G4FieldManager;
 class G4Mag_UsualEqRhs;
@@ -26,11 +28,14 @@ class G4MagneticField;
  */
 class PHG4OuterHcalFieldSetup
 {
-public:
+ public:
   PHG4OuterHcalFieldSetup(G4int steelPlates, G4double scintiGap,
-      G4double tiltAngle);
-  virtual
-    ~PHG4OuterHcalFieldSetup(){}
+                          G4double tiltAngle);
+  //! delete copy ctor and assignment opertor (cppcheck)
+  explicit PHG4OuterHcalFieldSetup(const PHG4OuterHcalFieldSetup&) = delete;
+  PHG4OuterHcalFieldSetup& operator=(const PHG4OuterHcalFieldSetup&) = delete;
+
+  virtual ~PHG4OuterHcalFieldSetup() {}
 
   G4FieldManager*
   get_Field_Manager_Gap() const
@@ -104,24 +109,23 @@ public:
     tilt_angle = tiltAngle;
   }
 
-private:
+ private:
+  G4FieldManager* fFieldManagerIron = nullptr;
+  G4FieldManager* fFieldManagerGap = nullptr;
+  G4Mag_UsualEqRhs* fEquationIron = nullptr;
+  G4Mag_UsualEqRhs* fEquationGap = nullptr;
+  G4ChordFinder* fChordFinderIron = nullptr;
+  G4ChordFinder* fChordFinderGap = nullptr;
+  G4MagneticField* fEMfieldIron = nullptr;
+  G4MagneticField* fEMfieldGap = nullptr;
+  G4MagIntegratorStepper* fStepperIron = nullptr;
+  G4MagIntegratorStepper* fStepperGap = nullptr;
 
-  G4FieldManager* fFieldManagerIron;
-  G4FieldManager* fFieldManagerGap;
-  G4Mag_UsualEqRhs* fEquationIron;
-  G4Mag_UsualEqRhs* fEquationGap;
-  G4ChordFinder* fChordFinderIron;
-  G4ChordFinder* fChordFinderGap;
-  G4MagneticField* fEMfieldIron;
-  G4MagneticField* fEMfieldGap;
-  G4MagIntegratorStepper* fStepperIron;
-  G4MagIntegratorStepper* fStepperGap;
+  G4double fMinStep = NAN;
 
-  G4double fMinStep;
-
-  G4int n_steel_plates;
-  G4double scinti_gap;
-  G4double tilt_angle;
+  G4int n_steel_plates = -1;
+  G4double scinti_gap = NAN;
+  G4double tilt_angle = NAN;
 };
 
 #endif /* PHG4OUTERHCALFIELDSETUP_H_ */

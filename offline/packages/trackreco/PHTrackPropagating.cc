@@ -1,13 +1,10 @@
 #include "PHTrackPropagating.h"
 
-#include "AssocInfoContainer.h"
-
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -22,14 +19,7 @@ using namespace std;
 
 PHTrackPropagating::PHTrackPropagating(const std::string& name)
   : SubsysReco(name)
-  , _cluster_map(nullptr)
-  , _hitsets(nullptr)
-  , _vertex_map(nullptr)
-  , _track_map(nullptr)
-  , _assoc_container(nullptr)
-  , _track_map_name("SvtxTrackMap")
-{
-}
+{}
 
 int PHTrackPropagating::InitRun(PHCompositeNode* topNode)
 {
@@ -72,14 +62,6 @@ int PHTrackPropagating::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if(!_hitsets)
-    {
-      cerr << PHWHERE << "No hitset container on node tree. Bailing."
-		<< endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
   _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!_vertex_map)
   {
@@ -91,13 +73,6 @@ int PHTrackPropagating::GetNodes(PHCompositeNode* topNode)
   if (!_track_map)
   {
     cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << _track_map_name << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
-  if (!_assoc_container)
-  {
-    cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

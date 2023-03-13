@@ -8,14 +8,14 @@
  * @brief Version 3 of class for associating clusters to the hits that went into them
  */
 
-#include "TrkrDefs.h"
 #include "TrkrClusterIterationMap.h"
+#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 /**
  * @brief Class for associating clusters to the hits that went into them
@@ -24,8 +24,7 @@
  */
 class TrkrClusterIterationMapv1 : public TrkrClusterIterationMap
 {
-  public:
-
+ public:
   TrkrClusterIterationMapv1() = default;
 
   void Reset() override;
@@ -38,11 +37,13 @@ class TrkrClusterIterationMapv1 : public TrkrClusterIterationMap
 
   unsigned int size(void) const override;
 
-private:
+  ConstIter begin() const override { return m_map.begin(); }
+  ConstIter end() const override { return m_map.end(); }
 
+ private:
   Map m_map;
 
   ClassDefOverride(TrkrClusterIterationMapv1, 1);
 };
 
-#endif // TRACKBASE_TRKRCLUSTERITERATIONV1_H
+#endif  // TRACKBASE_TRKRCLUSTERITERATIONV1_H

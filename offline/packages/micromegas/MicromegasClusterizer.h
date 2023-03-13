@@ -1,6 +1,3 @@
-// Tell emacs that this is a C++ source
-// -*- C++ -*-.
-
 #ifndef MICROMEGAS_MICROMEGASCLUSTERIZER_H
 #define MICROMEGAS_MICROMEGASCLUSTERIZER_H
 
@@ -10,11 +7,8 @@
  */
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
 
-#include <string>                // for string
+#include <string>        
 
 class PHCompositeNode;
 
@@ -24,10 +18,7 @@ class MicromegasClusterizer : public SubsysReco
  public:
 
   //! constructor
-  MicromegasClusterizer(
-    const std::string &name = "MicromegasClusterizer",
-    const std::string &detector = "MICROMEGAS"
-    );
+  MicromegasClusterizer( const std::string &name = "MicromegasClusterizer" );
 
   //! run initialization
   int InitRun(PHCompositeNode*) override;
@@ -35,11 +26,17 @@ class MicromegasClusterizer : public SubsysReco
   //! event processing
   int process_event(PHCompositeNode*) override;
 
+  //! cluster version
+  void set_cluster_version(int value) { m_cluster_version = value; }
+
+  //! read raw data 
+  /** not implemented for now */
+  void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
+
   private:
 
-  //! detector name
-  std::string m_detector;
-
+  bool do_read_raw = false;
+  int m_cluster_version = 4;
 };
 
 #endif

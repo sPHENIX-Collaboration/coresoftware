@@ -19,34 +19,24 @@ class TrkrCluster;
  */
 class TrkrClusterContainerv2 : public TrkrClusterContainer
 {
-  public:
-
+ public:
   TrkrClusterContainerv2() = default;
 
   void Reset() override;
 
-  void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
-  ConstIterator addCluster(TrkrCluster*) override;
-
-  ConstIterator addClusterSpecifyKey(const TrkrDefs::cluskey, TrkrCluster*) override;
+  void addClusterSpecifyKey(const TrkrDefs::cluskey, TrkrCluster*) override;
 
   void removeCluster(TrkrDefs::cluskey) override;
 
-  void removeCluster(TrkrCluster*) override;
-
-  Iterator findOrAddCluster(TrkrDefs::cluskey) override;
-
-  ConstRange getClusters(TrkrDefs::hitsetkey) const override;
-
-  Map* getClusterMap(TrkrDefs::hitsetkey) override;
+  ConstRange getClusters(TrkrDefs::hitsetkey) override;
 
   TrkrCluster* findCluster(TrkrDefs::cluskey) const override;
 
   unsigned int size() const override;
 
-  private:
-  
+ private:
   unsigned int max_layer = 57;
 
   unsigned int max_phisegment = 20;
@@ -56,7 +46,6 @@ class TrkrClusterContainerv2 : public TrkrClusterContainer
   Map m_clusmap[57][20][15];
 
   ClassDefOverride(TrkrClusterContainerv2, 1)
-
 };
 
-#endif //TRACKBASE_TrkrClusterContainerv2_H
+#endif  // TRACKBASE_TrkrClusterContainerv2_H

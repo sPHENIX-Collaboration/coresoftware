@@ -6,13 +6,14 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
+#include <tpc/TpcDistortionCorrection.h>
 
 #include <string>
 #include <vector>
 
 class PHCompositeNode;
-class SvtxTrackMap;
-class SvtxTrack;
+class TrackSeed;
+class TrackSeedContainer;
 class TrkrCluster;
 class TF1;
 class TrkrClusterContainer;
@@ -40,14 +41,20 @@ class PHTpcTrackSeedCircleFit : public SubsysReco
  private:
 
   int GetNodes(PHCompositeNode* topNode);
-  std::vector<TrkrCluster*> getTrackClusters(SvtxTrack *);
+
+  Acts::Vector3 getGlobalPosition( TrkrDefs::cluskey, TrkrCluster* cluster ) const;
 						    
   ActsSurfaceMaps *_surfmaps{nullptr};
   ActsTrackingGeometry *_tGeometry{nullptr};
-  SvtxTrackMap *_track_map{nullptr};
+  TrackSeedContainer *_track_map{nullptr};
   
   bool _use_truth_clusters = false;
   TrkrClusterContainer *_cluster_map = nullptr;
+  /// distortion correction container
+  TpcDistortionCorrectionContainer* _dcc = nullptr;
+ /// tpc distortion correction utility class
+  TpcDistortionCorrection _distortionCorrection;
+
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
 

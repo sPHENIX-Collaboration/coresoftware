@@ -15,7 +15,7 @@ dnl specific flags
    CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-c11-extensions -Wextra"
   ;;
   *g++)
-   CXXFLAGS="$CXXFLAGS -Wall -Wno-deprecated-declarations -Werror -pedantic -Wextra "
+   CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wextra "
   ;;
  esac
 

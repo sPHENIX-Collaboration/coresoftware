@@ -9,7 +9,6 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <g4main/PHG4Hit.h>
@@ -34,26 +33,6 @@ using namespace std;
 
 SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
   : _hiteval(topNode)
-  , _clustermap(nullptr)
-  , _hitsets(nullptr)
-  , _truthinfo(nullptr)
-  , _strict(false)
-  , _verbosity(0)
-  , _errors(0)
-  , _do_cache(true)
-  , _cache_all_truth_hits()
-  , _cache_all_truth_clusters()
-  , _cache_max_truth_hit_by_energy()
-  , _cache_max_truth_cluster_by_energy()
-  , _cache_all_truth_particles()
-  , _cache_max_truth_particle_by_energy()
-  , _cache_max_truth_particle_by_cluster_energy()
-  , _cache_all_clusters_from_particle()
-  , _cache_all_clusters_from_g4hit()
-  , _cache_best_cluster_from_g4hit()
-  , _cache_get_energy_contribution_g4particle()
-  , _cache_get_energy_contribution_g4hit()
-  , _cache_reco_cluster_from_truth_cluster()
 {
   get_node_pointers(topNode);
 }
@@ -91,22 +70,20 @@ void SvtxClusterEval::next_event(PHCompositeNode* topNode)
   get_node_pointers(topNode);
 } 
 
-std::set<std::shared_ptr<TrkrCluster> > SvtxClusterEval::all_truth_clusters(TrkrDefs::cluskey cluster_key)
+std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > SvtxClusterEval::all_truth_clusters(TrkrDefs::cluskey cluster_key)
 {
   if (_do_cache)
   {
-    std::map<TrkrDefs::cluskey, std::set<std::shared_ptr<TrkrCluster> > >::iterator iter =
-        _cache_all_truth_clusters.find(cluster_key);
+    const auto iter = _cache_all_truth_clusters.find(cluster_key);
     if (iter != _cache_all_truth_clusters.end())
     {
       return iter->second;
     }
   }
 
-  std::set<std::shared_ptr<TrkrCluster> > truth_clusters;
+  std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > truth_clusters;
 
   unsigned int cluster_layer = TrkrDefs::getLayer(cluster_key);
-
   std::set<PHG4Particle*> particles = all_truth_particles(cluster_key);
   for (std::set<PHG4Particle*>::iterator iter = particles.begin();
        iter != particles.end();
@@ -114,47 +91,39 @@ std::set<std::shared_ptr<TrkrCluster> > SvtxClusterEval::all_truth_clusters(Trkr
     {
       PHG4Particle* particle = *iter;
       
-      std::map<unsigned int, std::shared_ptr<TrkrCluster> > gclusters = get_truth_eval()->all_truth_clusters(particle);
-      for (std::map<unsigned int, std::shared_ptr<TrkrCluster> >::iterator citer = gclusters.begin();
-	   citer != gclusters.end();
-	   ++citer)
-	{
-	  if(citer->first == cluster_layer) 
-	    {
-	      truth_clusters.insert(citer->second);
-	    }
-	}
+      for( const auto& [ckey,cluster]:get_truth_eval()->all_truth_clusters(particle) )
+      {
+        if( TrkrDefs::getLayer(ckey) == cluster_layer )
+        { truth_clusters.insert(std::make_pair(ckey, cluster)); }
+      }
     }
   
-  return truth_clusters;
+    
+  return _cache_all_truth_clusters.insert(std::make_pair(cluster_key, truth_clusters)).first->second;
 }
 
-std::shared_ptr<TrkrCluster> SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey cluster_key)
+std::pair<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey cluster_key)
 {
   if (_do_cache)
   {
-    std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> >::iterator iter =
-        _cache_max_truth_cluster_by_energy.find(cluster_key);
+    const auto iter = _cache_max_truth_cluster_by_energy.find(cluster_key);
     if (iter != _cache_max_truth_cluster_by_energy.end())
     {
       return iter->second;
     }
   }
 
-  std::shared_ptr<TrkrCluster> truth_cluster = 0;
-
   unsigned int cluster_layer = TrkrDefs::getLayer(cluster_key);
 
   PHG4Particle* max_particle = max_truth_particle_by_cluster_energy(cluster_key);
-  if(!max_particle)
-    return truth_cluster;
+  if(!max_particle) return std::make_pair( 0, nullptr );
 
   if(_verbosity > 0) 
     cout << "         max truth particle by cluster energy has  trackID  " << max_particle->get_track_id() << endl;      
 
   TrkrCluster* reco_cluster = _clustermap->findCluster(cluster_key);
-  ActsTransformations transformer;
-  auto global = transformer.getGlobalPosition(reco_cluster,_surfmaps,_tgeometry);
+
+  auto global = getGlobalPosition(cluster_key, reco_cluster);
   double reco_x = global(0);
   double reco_y = global(1);
   double reco_z = global(2);
@@ -162,14 +131,10 @@ std::shared_ptr<TrkrCluster> SvtxClusterEval::max_truth_cluster_by_energy(TrkrDe
   //double reco_rphi = r*fast_approx_atan2(reco_y, reco_x);
   double reco_rphi = r*atan2(reco_y, reco_x);
   
-  std::map<unsigned int, std::shared_ptr<TrkrCluster> > gclusters = get_truth_eval()->all_truth_clusters(max_particle);
-  for (std::map<unsigned int, std::shared_ptr<TrkrCluster> >::iterator citer = gclusters.begin();
-       citer != gclusters.end();
-       ++citer)
-    {
-      if(citer->first == cluster_layer) 
-	{
-	  std::shared_ptr<TrkrCluster> candidate_truth_cluster = citer->second;
+  const std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > gclusters = get_truth_eval()->all_truth_clusters(max_particle);
+  for( const auto& [ckey,candidate_truth_cluster] : gclusters )
+  {
+    if(TrkrDefs::getLayer(ckey) != cluster_layer)  continue;
 
 	  double gx = candidate_truth_cluster->getX();
 	  double gy = candidate_truth_cluster->getY();
@@ -188,7 +153,7 @@ std::shared_ptr<TrkrCluster> SvtxClusterEval::max_truth_cluster_by_energy(TrkrDe
 	      if(fabs(drphi) < 4.0 * sig_tpc_rphi_inner &&
 		 fabs(dz) < 4.0 * sig_tpc_z)
 		{
-		  return candidate_truth_cluster;;
+		  return std::make_pair(ckey,candidate_truth_cluster);
 		}
 	    }
 	  if(cluster_layer > 22 && cluster_layer < 39)
@@ -196,7 +161,7 @@ std::shared_ptr<TrkrCluster> SvtxClusterEval::max_truth_cluster_by_energy(TrkrDe
 	      if(fabs(drphi) < 4.0 * sig_tpc_rphi_mid &&
 		 fabs(dz) < 4.0 * sig_tpc_z)
 		{
-		  return candidate_truth_cluster;;
+		  return std::make_pair(ckey,candidate_truth_cluster);
 		}
 	    }
 	  if(cluster_layer > 38 && cluster_layer < 55)
@@ -204,7 +169,7 @@ std::shared_ptr<TrkrCluster> SvtxClusterEval::max_truth_cluster_by_energy(TrkrDe
 	      if(fabs(drphi) < 4.0 * sig_tpc_rphi_outer &&
 		 fabs(dz) < 4.0 * sig_tpc_z)
 		{
-		  return candidate_truth_cluster;;
+		  return std::make_pair(ckey,candidate_truth_cluster);
 		}
 	    }
 	  else if(cluster_layer < 3)
@@ -212,21 +177,21 @@ std::shared_ptr<TrkrCluster> SvtxClusterEval::max_truth_cluster_by_energy(TrkrDe
 	      if(fabs(drphi) < 4.0 * sig_mvtx_rphi &&
 		 fabs(dz) < 4.0 * sig_mvtx_z)
 		{
-		  return candidate_truth_cluster;;
+		  return std::make_pair(ckey,candidate_truth_cluster);
 		}
 	    }
 	  else if(cluster_layer == 55)
 	    {
 	      if(fabs(drphi) < 4.0 * sig_mms_rphi_55)
 		{
-		  return candidate_truth_cluster;;
+		  return std::make_pair(ckey,candidate_truth_cluster);
 		}
 	    }
 	  else if(cluster_layer == 56)
 	    {
 	      if(fabs(dz) < 4.0 * sig_mms_z_56)
 		{
-		  return candidate_truth_cluster;;
+		  return std::make_pair(ckey,candidate_truth_cluster);
 		}
 	    }
 	  else
@@ -234,28 +199,26 @@ std::shared_ptr<TrkrCluster> SvtxClusterEval::max_truth_cluster_by_energy(TrkrDe
 	      if(fabs(drphi) < 4.0 * sig_intt_rphi &&
 		 fabs(dz) < range_intt_z)
 		{
-		  return candidate_truth_cluster;;
+		  return std::make_pair(ckey,candidate_truth_cluster);
 		}
 	    }
-	}
     }
   
-  return truth_cluster;
+		  return std::make_pair(0, nullptr);
 }
 
-TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(std::shared_ptr<TrkrCluster> gclus)
+std::pair<TrkrDefs::cluskey, TrkrCluster*> SvtxClusterEval::reco_cluster_from_truth_cluster(TrkrDefs::cluskey ckey, std::shared_ptr<TrkrCluster> gclus)
 {
   if (_do_cache)
   {
-    std::map<std::shared_ptr<TrkrCluster>, TrkrCluster* >::iterator iter =
-      _cache_reco_cluster_from_truth_cluster.find(gclus);
+    /* this does not work. Cache is not filled in the code below, so always remains empty */
+    const auto iter = _cache_reco_cluster_from_truth_cluster.find(gclus);
     if (iter != _cache_reco_cluster_from_truth_cluster.end())
     {
       return iter->second;
     }
   }
 
-  TrkrDefs::cluskey ckey = gclus->getClusKey();
   double gx = gclus->getX();
   double gy = gclus->getY();
   double gz = gclus->getZ();
@@ -264,7 +227,6 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(std::shared_ptr<Tr
   //double grphi = gr*fast_approx_atan2(gy, gx);
 
   unsigned int truth_layer = TrkrDefs::getLayer(ckey);
-  TrkrCluster *reco_cluster = 0;
 
   std::set<TrkrDefs::cluskey> reco_cluskeys;
   std::set<PHG4Hit*> contributing_hits =  get_truth_eval()->get_truth_hits_from_truth_cluster(ckey);
@@ -281,7 +243,6 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(std::shared_ptr<Tr
 	   ++iter)
 	{
 	  unsigned int clus_layer = TrkrDefs::getLayer(*iter);
-	  // discard if reco cluster is in the wrong layer
 	  if(clus_layer != truth_layer)  continue;
 	  
 	  reco_cluskeys.insert(*iter);
@@ -292,12 +253,11 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(std::shared_ptr<Tr
   if(nreco > 0)
     {
       // Find a matching reco cluster with position inside 4 sigmas, and replace reco_cluskey
-      ActsTransformations transform;
-      for(std::set<TrkrDefs::cluskey>::iterator it = reco_cluskeys.begin(); it != reco_cluskeys.end(); ++it)
+      for( const auto& this_ckey:reco_cluskeys )
 	{
 	  // get the cluster
-	  TrkrCluster* this_cluster = _clustermap->findCluster(*it);
-	  auto global = transform.getGlobalPosition(this_cluster,_surfmaps,_tgeometry);
+	  TrkrCluster* this_cluster = _clustermap->findCluster(this_ckey);
+	  auto global = getGlobalPosition(this_ckey,this_cluster);
 	  double this_x = global(0);
 	  double this_y = global(1);
 	  double this_z = global(2);
@@ -314,7 +274,7 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(std::shared_ptr<Tr
 	      if(fabs(drphi) < 4.0 * sig_tpc_rphi_inner &&
 		 fabs(dz) < 4.0 * sig_tpc_z)
 		{
-		  return this_cluster;;
+		  return std::make_pair( this_ckey, this_cluster);
 		}
 	    }
 	  if(truth_layer > 22 && truth_layer < 39)
@@ -322,7 +282,7 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(std::shared_ptr<Tr
 	      if(fabs(drphi) < 4.0 * sig_tpc_rphi_mid &&
 		 fabs(dz) < 4.0 * sig_tpc_z)
 		{
-		  return this_cluster;;
+		  return std::make_pair( this_ckey, this_cluster);
 		}
 	    }
 	  if(truth_layer > 38 && truth_layer < 55)
@@ -330,7 +290,7 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(std::shared_ptr<Tr
 	      if(fabs(drphi) < 4.0 * sig_tpc_rphi_outer &&
 		 fabs(dz) < 4.0 * sig_tpc_z)
 		{
-		  return this_cluster;;
+		  return std::make_pair( this_ckey, this_cluster);
 		}
 	    }
 	  else if(truth_layer < 3)
@@ -338,21 +298,21 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(std::shared_ptr<Tr
 	      if(fabs(drphi) < 4.0 * sig_mvtx_rphi &&
 		 fabs(dz) < 4.0 * sig_mvtx_z)
 		{
-		  return this_cluster;;
+		  return std::make_pair( this_ckey, this_cluster);
 		}
 	    }
 	  else if(truth_layer == 55)
 	    {
 	      if(fabs(drphi) < 4.0 * sig_mms_rphi_55)
 		{
-		  return this_cluster;;
+		  return std::make_pair( this_ckey, this_cluster);
 		}
 	    }
 	  else if(truth_layer == 56)
 	    {
 	      if(fabs(dz) < 4.0 * sig_mms_z_56)
 		{
-		  return this_cluster;;
+		  return std::make_pair( this_ckey, this_cluster);
 		}
 	    }
 	  else
@@ -360,13 +320,13 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(std::shared_ptr<Tr
 	      if(fabs(drphi) < 4.0 * sig_intt_rphi &&
 		 fabs(dz) < range_intt_z)
 		{
-		  return this_cluster;;
+		  return std::make_pair( this_ckey, this_cluster);
 		}
 	    }
 	}
     } 
       
-  return  reco_cluster;      
+  return std::make_pair(0, nullptr);      
 }
 
 std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key)
@@ -458,9 +418,8 @@ PHG4Hit* SvtxClusterEval::all_truth_hits_by_nhit(TrkrDefs::cluskey cluster_key)
 	}
     }
   */
-  ActsTransformations transformer;
   TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
-  auto glob = transformer.getGlobalPosition(cluster,_surfmaps,_tgeometry);
+  auto glob = getGlobalPosition(cluster_key, cluster);
   TVector3 cvec(glob(0), glob(1), glob(2));
   unsigned int layer = TrkrDefs::getLayer(cluster_key);
   std::set<PHG4Hit*> truth_hits;
@@ -580,10 +539,9 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
   std::pair<int, int> out_pair;
   out_pair.first = 0;
   out_pair.second = -1;
-  ActsTransformations transform;
 
   TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
-  auto global = transform.getGlobalPosition(cluster,_surfmaps,_tgeometry);
+  auto global = getGlobalPosition(cluster_key, cluster);
   TVector3 cvec(global(0), global(1), global(2));
   unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
@@ -604,6 +562,7 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
       // get all of the g4hits for this hitkey
       std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;    
       _hit_truth_map->getG4Hits(hitsetkey, hitkey, temp_map); 	  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
+    
       for(std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter =  temp_map.begin(); htiter != temp_map.end(); ++htiter) 
 	{
 	  // extract the g4 hit key here and add the hits to the set
@@ -814,13 +773,13 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_cluster_energy(TrkrDefs::cl
        ++iter)
     {
       PHG4Particle* particle = *iter;
-      std::map<unsigned int, std::shared_ptr<TrkrCluster> > truth_clus = get_truth_eval()->all_truth_clusters(particle);
-      for(auto it = truth_clus.begin(); it != truth_clus.end(); ++it)
+      std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > truth_clus = get_truth_eval()->all_truth_clusters(particle);
+      for( const auto& [ckey, cluster]:truth_clus )
 	{	
-	  if(it->first == layer)
+    if( TrkrDefs::getLayer(ckey) == layer)
 	    {
-	      float e = it->second->getError(0,0);
-	      if (e > max_e)
+	      float e = cluster->getError(0,0);
+        if (e > max_e)
 		{
 		  max_e = e;
 		  max_particle = particle;
@@ -921,11 +880,9 @@ void SvtxClusterEval::FillRecoClusterFromG4HitCache(){
 
   std::multimap<PHG4Particle*, TrkrDefs::cluskey> temp_clusters_from_particles;
   // loop over all the clusters
-  auto hitsetrange = _hitsets->getHitSets();
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _clustermap->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_clustermap->getHitSetKeys())
+  {
+    auto range = _clustermap->getClusters(hitsetkey);
     for( auto iter = range.first; iter != range.second; ++iter ){
       TrkrDefs::cluskey cluster_key = iter->first;
       
@@ -988,11 +945,9 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
       // get all reco clusters
       if(_verbosity > 1) cout << "all_clusters_from_g4hit: list all reco clusters " << endl;
     
-      auto hitsetrange = _hitsets->getHitSets();
-      for (auto hitsetitr = hitsetrange.first;
-	   hitsetitr != hitsetrange.second;
-	   ++hitsetitr){
-	auto range = _clustermap->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_clustermap->getHitSetKeys())
+  {
+    auto range = _clustermap->getClusters(hitsetkey);
 	for( auto iter = range.first; iter != range.second; ++iter ){
 	  TrkrDefs::cluskey cluster_key = iter->first;
 	  int layer = TrkrDefs::getLayer(cluster_key);
@@ -1108,19 +1063,19 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
     // get all reco clusters
     // cout << "cache size ==0" << endl;
     if(_verbosity > 1) cout << "all_clusters: found # " << _clustermap->size() << endl;
-    // loop over clusters and get all contributing hits
-    auto hitsetrange = _hitsets->getHitSets();
-    for (auto hitsetitr = hitsetrange.first;
-	 hitsetitr != hitsetrange.second;
-	 ++hitsetitr){
-      auto range = _clustermap->getClusters(hitsetitr->first);
+    
+  for(const auto& hitsetkey:_clustermap->getHitSetKeys())
+  {
+      auto range = _clustermap->getClusters(hitsetkey);
       for( auto iter = range.first; iter != range.second; ++iter ){
 	TrkrDefs::cluskey cluster_key = iter->first;
 	int layer_in = TrkrDefs::getLayer(cluster_key);
+
 	if(layer_in<0) continue;
 	// TrkrCluster *clus = iter->second;
 	
 	std::pair<int, int> gid_lay = gtrackid_and_layer_by_nhit(cluster_key);
+
 	//      std::map<std::pair<int, unsigned int>, TrkrDefs::cluskey>::iterator it_exists;
 	//      it_exists = 
 	if(_cache_best_cluster_from_gtrackid_layer.count(gid_lay)==0){
@@ -1135,6 +1090,7 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
     }
   }
   
+
   // get the clusters
   TrkrDefs::cluskey best_cluster = 0;
   //  PHG4Hit*, std::set<TrkrDefs::cluskey> >::iterator iter =
@@ -1144,6 +1100,7 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
     {
       return iter->second;
     }
+
   return best_cluster;
 }
 
@@ -1296,8 +1253,19 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode* topNode)
 {
   // need things off of the DST...
 
-  _clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  _clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+  if(!_clustermap) {
+    _clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  } 
+  else 
+    {
+      /// Need a catch for if the node corrected cluster node exists but hasn't been filled 
+      /// yet, in e.g. the case of truth track seeding
+      if(_clustermap->size() == 0)
+	_clustermap = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+    }
+  
+
   _cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   _hit_truth_map = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
@@ -1306,26 +1274,22 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode* topNode)
   _g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
   _g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
   _g4hits_mms = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
-  _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  _tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  _tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   
   return;
 }
 
 void SvtxClusterEval::fill_cluster_layer_map()
 {
-  ActsTransformations transformer;
   // loop over all the clusters
-  auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::inttId);
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _clustermap->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_clustermap->getHitSetKeys())
+  {
+    auto range = _clustermap->getClusters(hitsetkey);
     for( auto iter = range.first; iter != range.second; ++iter ){
       TrkrDefs::cluskey cluster_key = iter->first;
       unsigned int ilayer = TrkrDefs::getLayer(cluster_key);
       TrkrCluster *cluster = iter->second;
-      auto glob = transformer.getGlobalPosition(cluster, _surfmaps,_tgeometry);
+      auto glob = getGlobalPosition(cluster_key, cluster);
       float clus_phi = atan2(glob(1), glob(0));
       
       multimap<unsigned int, innerMap>::iterator it = _clusters_per_layer.find(ilayer);
@@ -1417,4 +1381,12 @@ float SvtxClusterEval::fast_approx_atan2(float z)
   const float n1 = 0.97239411f;
   const float n2 = -0.19194795f;
   return (n1 + n2 * z * z) * z;
+}
+
+Acts::Vector3 SvtxClusterEval::getGlobalPosition(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster)
+{
+  Acts::Vector3 glob;
+  glob = _tgeometry->getGlobalPosition(cluster_key, cluster);
+
+  return glob;
 }

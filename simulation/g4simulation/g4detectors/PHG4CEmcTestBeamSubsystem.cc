@@ -27,7 +27,7 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CEmcTestBeamSubsystem::PHG4CEmcTestBeamSubsystem(const std::string& name, const int lyr)
   : PHG4Subsystem(name)
-  , detector_(0)
+  , detector_(nullptr)
   , steppingAction_(nullptr)
   , eventAction_(nullptr)
   , place_in_x(0)
@@ -47,10 +47,10 @@ PHG4CEmcTestBeamSubsystem::PHG4CEmcTestBeamSubsystem(const std::string& name, co
   // for multiple layers
   ostringstream nam;
   nam << name << "_" << lyr;
-  Name(nam.str().c_str());
-  for (int i = 0; i < 3; i++)
+  Name(nam.str());
+  for (double& i : dimension)
   {
-    dimension[i] = 100.0 * cm;
+    i = 100.0 * cm;
   }
 }
 
@@ -83,10 +83,10 @@ int PHG4CEmcTestBeamSubsystem::Init(PHCompositeNode* topNode)
       nodename << "G4HIT_" << detector_type << "_" << layer;
     }
     // create hit list
-    PHG4HitContainer* block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    PHG4HitContainer* block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!block_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
     }
     if (absorberactive)
     {
@@ -100,10 +100,10 @@ int PHG4CEmcTestBeamSubsystem::Init(PHCompositeNode* topNode)
         nodename << "G4HIT_ABSORBER_" << detector_type << "_" << layer;
       }
     }
-    block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!block_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
     }
     // create stepping action
     steppingAction_ = new PHG4CEmcTestBeamSteppingAction(detector_);
@@ -130,13 +130,13 @@ int PHG4CEmcTestBeamSubsystem::process_event(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4CEmcTestBeamSubsystem::GetDetector(void) const
+PHG4Detector* PHG4CEmcTestBeamSubsystem::GetDetector() const
 {
   return detector_;
 }
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4CEmcTestBeamSubsystem::GetSteppingAction(void) const
+PHG4SteppingAction* PHG4CEmcTestBeamSubsystem::GetSteppingAction() const
 {
   return steppingAction_;
 }

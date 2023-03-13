@@ -9,11 +9,13 @@
 
 #include <Acts/Utilities/Helpers.hpp>
 
-#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/EventData/Trajectories.hpp>
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
-#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
 
-#include <boost/bimap.hpp>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#include <ActsExamples/TrackFitting/TrkrClusterFittingAlgorithm.hpp>
+#pragma GCC diagnostic pop
 
 class TTree;
 class TFile;
@@ -31,18 +33,13 @@ class SvtxEvaluator;
 #include <vector>
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
-using FitResult = Acts::KalmanFitterResult<SourceLink>;
-using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
-using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
-                                      Acts::BoundIndices,
-                                      Acts::eBoundLoc0,
-                                      Acts::eBoundLoc1>;
+using FitResult = Acts::KalmanFitterResult;
+using Trajectory = ActsExamples::Trajectories;
+using Measurement = Acts::Measurement<Acts::BoundIndices,2>;
 using Acts::VectorHelpers::eta;
 using Acts::VectorHelpers::perp;
 using Acts::VectorHelpers::phi;
 using Acts::VectorHelpers::theta;
-
-typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
 
 
 /**
@@ -80,16 +77,16 @@ class ActsEvaluator : public SubsysReco
 
   void fillFittedTrackParams(const Trajectory traj,
 			     const size_t &trackTip,
-			     const Acts::Vector3D vertex);
+			     const Acts::Vector3 vertex);
 
-  void visitTrackStates(const Trajectory traj,
+  void visitTrackStates(const Acts::MultiTrajectory& traj,
 			const size_t &trackTip, 
 			PHCompositeNode *topNode);
 
   void clearTrackVariables();
   
   void calculateDCA(const Acts::BoundTrackParameters param, 
-		    const Acts::Vector3D vertex);
+		    const Acts::Vector3 vertex);
 
   Surface getSurface(TrkrDefs::cluskey cluskey,TrkrDefs::subsurfkey surfkey);
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
@@ -97,7 +94,7 @@ class ActsEvaluator : public SubsysReco
   Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey);
 
 
-  Acts::Vector3D getGlobalTruthHit(PHCompositeNode *topNode, 
+  Acts::Vector3 getGlobalTruthHit(PHCompositeNode *topNode, 
 				   TrkrDefs::cluskey cluskey,
 				   float &_gt);
 
@@ -160,6 +157,7 @@ class ActsEvaluator : public SubsysReco
   std::vector<float> m_t_eQOP;    /// truth parameter eQOP
   std::vector<float> m_t_eT;      /// truth parameter eT
 
+  int m_nSharedHits{0};             /// number of shared hits in the track fit
   int m_nHoles{0};                  /// number of holes in the track fit
   int m_nOutliers{0};               /// number of outliers in the track fit
   int m_nStates{0};                 /// number of all states

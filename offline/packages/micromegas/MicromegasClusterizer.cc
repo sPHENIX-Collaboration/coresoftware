@@ -1,5 +1,5 @@
 /*!
- * \file MicromegasClusterizer.h
+ * \file MicromegasClusterizer.cc
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
@@ -10,15 +10,17 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 
-#include <trackbase/TrkrClusterContainerv3.h>        // for TrkrCluster
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrClusterContainerv4.h>        // for TrkrCluster
 #include <trackbase/TrkrClusterv3.h>
+#include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 
-#include <Acts/Utilities/Units.hpp>
+#include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -51,14 +53,14 @@ namespace
     inline constexpr T square( const T& x ) { return x*x; }
 
   // streamers
-  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector3D& vector )
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector3& vector )
   {
     out << "( " << vector[0] << "," << vector[1] << "," << vector[2] << ")";
     return out;
   }
 
   // streamers
-  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector2D& vector )
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector2& vector )
   {
     out << "( " << vector[0] << "," << vector[1] << ")";
     return out;
@@ -71,12 +73,18 @@ namespace
     return out;
   }
 
+  // streamers
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const TVector2& vector )
+  {
+    out << "( " << vector.X() << "," << vector.Y() << ")";
+    return out;
+  }
+
 }
 
 //_______________________________________________________________________________
-MicromegasClusterizer::MicromegasClusterizer(const std::string &name, const std::string& detector)
+MicromegasClusterizer::MicromegasClusterizer(const std::string &name )
   : SubsysReco(name)
-  , m_detector( detector )
 {}
 
 //_______________________________________________________________________________
@@ -100,7 +108,7 @@ int MicromegasClusterizer::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(trkrNode);
     }
 
-    trkrClusterContainer = new TrkrClusterContainerv3;
+    trkrClusterContainer = new TrkrClusterContainerv4;
     auto TrkrClusterContainerNode = new PHIODataNode<PHObject>(trkrClusterContainer, "TRKR_CLUSTER", "PHObject");
     trkrNode->addNode(TrkrClusterContainerNode);
   }
@@ -130,7 +138,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
   // geometry
   PHG4CylinderGeomContainer* geonode = nullptr;
-  for( const std::string& geonodename: {"CYLINDERGEOM_" + m_detector + "_FULL", "CYLINDERGEOM_" + m_detector } )
+  for( std::string geonodename: {"CYLINDERGEOM_MICROMEGAS_FULL", "CYLINDERGEOM_MICROMEGAS" } )
   { if(( geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str()) )) break; }
   assert(geonode);
 
@@ -147,12 +155,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   assert( trkrClusterHitAssoc );
 
   // geometry
-  auto acts_geometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  auto acts_geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   assert( acts_geometry );
-
-  // surface map
-  auto acts_surface_map = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  assert( acts_surface_map );
 
   // loop over micromegas hitsets
   const auto hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::micromegasId);
@@ -169,8 +173,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     assert(layergeom);
 
     // get micromegas acts surface
-    const auto acts_surface_iter = acts_surface_map->mmSurfaceMap.find( hitsetkey );
-    if( acts_surface_iter == acts_surface_map->mmSurfaceMap.end() )
+    const auto acts_surface = acts_geometry->maps().getMMSurface( hitsetkey);
+    if( !acts_surface )
     {
       std::cout
         << "MicromegasClusterizer::process_event -"
@@ -180,30 +184,14 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       continue;
     }
 
-    // surface, surface center and normal director
-    const auto acts_surface( acts_surface_iter->second );
-    Acts::Vector3D normal = acts_surface->normal(acts_geometry->geoContext);
-   
-    if( Verbosity() )
-    {
-      const auto geo_normal = layergeom->get_world_from_local_vect( tileid, {0, 1, 0} );
-      std::cout << "MicromegasClusterizer::process_event -"
-        << " layer: " << (int) layer
-        << " tile: " << (int) tileid
-        << " normal (acts): " << normal
-        << " geo: " << geo_normal
-        << std::endl;
-    }
-
     /*
      * get segmentation type, layer thickness, strip length and pitch.
      * They are used to calculate cluster errors
      */
     const auto segmentation_type = layergeom->get_segmentation_type();
-    const double thickness = layergeom->get_thickness();
     const double pitch = layergeom->get_pitch();
-    const double strip_length = layergeom->get_strip_length( tileid );
-
+    const double strip_length = layergeom->get_strip_length( tileid, acts_geometry );
+    
     // keep a list of ranges corresponding to each cluster
     using range_list_t = std::vector<TrkrHitSet::ConstRange>;
     range_list_t ranges;
@@ -254,17 +242,15 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
     // initialize cluster count
     int cluster_count = 0;
-
+    int strip_count = 0;
     // loop over found hit ranges and create clusters
     for( const auto& range : ranges )
     {
-
+      strip_count++;
       // create cluster key and corresponding cluster
-      const auto cluster_key = MicromegasDefs::genClusterKey( hitsetkey, cluster_count++ );
-      auto cluster = std::make_unique<TrkrClusterv3>();
-      cluster->setClusKey(cluster_key);
+      const auto ckey = TrkrDefs::genClusKey( hitsetkey, cluster_count++ );
 
-      TVector3 local_coordinates;
+      TVector2 local_coordinates;
       double weight_sum = 0;
 
       // needed for proper error calculation
@@ -274,16 +260,17 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       // also store adc value
       unsigned int adc_sum = 0;
-
+      strip_count = 0;
       // loop over constituting hits
       for( auto hit_it = range.first; hit_it != range.second; ++hit_it )
       {
+	strip_count++;
         // get hit key
         const auto hitkey = hit_it->first;
         const auto hit = hit_it->second;
 
         // associate cluster key to hit key
-        trkrClusterHitAssoc->addAssoc(cluster_key, hitkey );
+        trkrClusterHitAssoc->addAssoc(ckey, hitkey );
 
         // get strip number
         const auto strip = MicromegasDefs::getStrip( hitkey );
@@ -297,22 +284,22 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         adc_sum += hit->getAdc();
 
         // get strip local coordinate and update relevant sums
-        const auto strip_local_coordinate = layergeom->get_local_coordinates( tileid, strip );
+        const auto strip_local_coordinate = layergeom->get_local_coordinates( tileid, acts_geometry, strip );
         local_coordinates += strip_local_coordinate*weight;
         switch( segmentation_type )
         {
           case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
           {
 
-            coord_sum += strip_local_coordinate.x()*weight;
-            coordsquare_sum += square(strip_local_coordinate.x())*weight;
+            coord_sum += strip_local_coordinate.X()*weight;
+            coordsquare_sum += square(strip_local_coordinate.X())*weight;
             break;
           }
 
           case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
           {
-            coord_sum += strip_local_coordinate.z()*weight;
-            coordsquare_sum += square(strip_local_coordinate.z())*weight;
+            coord_sum += strip_local_coordinate.Y()*weight;
+            coordsquare_sum += square(strip_local_coordinate.Y())*weight;
             break;
           }
         }
@@ -322,49 +309,83 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       }
 
       local_coordinates *= (1./weight_sum);
-      const auto world_coordinates = layergeom->get_world_from_local_coords( tileid, local_coordinates);
-      cluster->setAdc( adc_sum );
 
       // dimension and error in r, rphi and z coordinates
       static const float invsqrt12 = 1./std::sqrt(12);
       static constexpr float error_scale_phi = 1.6;
       static constexpr float error_scale_z = 0.8;
 
-      using matrix_t = Eigen::Matrix<float, 3, 3>;
-      matrix_t error = matrix_t::Zero();
-
       auto coord_cov = coordsquare_sum/weight_sum - square( coord_sum/weight_sum );
       auto coord_error_sq = coord_cov/weight_sum;
+
+      // local errors (x is along rphi, y is along z)
+      double error_sq_x = 0;
+      double error_sq_y = 0;
       switch( segmentation_type )
       {
         case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-        if( coord_error_sq == 0 ) coord_error_sq = square(pitch)/12;
-        else coord_error_sq *= square(error_scale_phi);
-        error(0,0) = square(thickness*invsqrt12);
-        error(1,1) = coord_error_sq;
-        error(2,2) = square(strip_length*invsqrt12);
-        break;
-
+        {
+          if( coord_error_sq == 0 ) coord_error_sq = square(pitch)/12;
+          else coord_error_sq *= square(error_scale_phi);
+          error_sq_x = coord_error_sq;
+          error_sq_y = square(strip_length*invsqrt12);
+          break;
+        }
+        
         case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-        if( coord_error_sq == 0 ) coord_error_sq = square(pitch)/12;
-        else coord_error_sq *= square(error_scale_z);
-        error(0,0) = square(thickness*invsqrt12);
-        error(1,1) = square(strip_length*invsqrt12);
-        error(2,2) = coord_error_sq;
-        break;
+        {
+          if( coord_error_sq == 0 ) coord_error_sq = square(pitch)/12;
+          else coord_error_sq *= square(error_scale_z);
+          error_sq_x = square(strip_length*invsqrt12);
+          error_sq_y = coord_error_sq;
+          break;
+        }
       }
 
-      /// local_coordinates rdphi is sign opposite Acts definition
-      cluster->setLocalX(-1*local_coordinates[0]);
-      cluster->setLocalY(local_coordinates[2]);
       
-      cluster->setActsLocalError(0,0, error(1,1));
-      cluster->setActsLocalError(0,1, error(1,2));
-      cluster->setActsLocalError(1,0, error(2,1));
-      cluster->setActsLocalError(1,1,error(2,2));
-      
-      // add to container
-      trkrClusterContainer->addCluster( cluster.release() );
+      if(m_cluster_version==3)
+      {
+        auto cluster = std::make_unique<TrkrClusterv3>();
+        cluster->setAdc( adc_sum );
+        cluster->setLocalX(local_coordinates.X());
+        cluster->setLocalY(local_coordinates.Y());
+        
+        // assign errors
+        cluster->setActsLocalError(0,0, error_sq_x);
+        cluster->setActsLocalError(1,1, error_sq_y);
+        cluster->setActsLocalError(0,1, 0);
+        cluster->setActsLocalError(1,0, 0);
+
+        // add to container
+        trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
+
+      } else if(m_cluster_version==4) {
+
+        auto cluster = std::make_unique<TrkrClusterv4>();
+        cluster->setAdc( adc_sum );
+        cluster->setLocalX(local_coordinates.X());
+        cluster->setLocalY(local_coordinates.Y());
+
+        // store cluster size
+        switch( segmentation_type )
+        {
+          case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+          {
+            cluster->setPhiSize(strip_count);
+            cluster->setZSize(1);
+            break;
+          }
+
+          case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+          {
+            cluster->setPhiSize(1);
+            cluster->setZSize(strip_count);
+            break;
+          }
+        }
+        // add to container
+        trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
+      }
 
     }
 

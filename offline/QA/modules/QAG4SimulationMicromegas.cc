@@ -1,5 +1,5 @@
 #include "QAG4SimulationMicromegas.h"
-
+#include "QAG4Util.h"
 #include "QAHistManagerDef.h"
 
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
@@ -7,13 +7,16 @@
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4TruthInfoContainer.h>
 
 #include <micromegas/MicromegasDefs.h>  // for SegmentationType
 
 #include <trackbase_historic/ActsTransformations.h>
 
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -22,6 +25,10 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+
+#include <g4eval/SvtxClusterEval.h>  // for SvtxClusterEval
+#include <g4eval/SvtxEvalStack.h>
+#include <g4eval/SvtxTruthEval.h>  // for SvtxTruthEval
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -73,15 +80,15 @@ namespace
 
   //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
   template <double (interpolation_data_t::*accessor)() const>
-  double interpolate(const interpolation_data_t::list& hits, double y_extrap)
+  double interpolate(const interpolation_data_t::list& hits, double z_extrap)
   {
     // calculate all terms needed for the interpolation
     // need to use double everywhere here due to numerical divergences
     double sw = 0;
-    double swy = 0;
-    double swy2 = 0;
+    double swz = 0;
+    double swz2 = 0;
     double swx = 0;
-    double swyx = 0;
+    double swzx = 0;
 
     bool valid(false);
     for (const auto& hit : hits)
@@ -91,22 +98,22 @@ namespace
       if (w <= 0) continue;
 
       valid = true;
-      const double y = hit.y();
+      const double z = hit.z();
 
       sw += w;
-      swy += w * y;
-      swy2 += w * square(y);
+      swz += w * z;
+      swz2 += w * square(z);
       swx += w * x;
-      swyx += w * x * y;
+      swzx += w * x * z;
     }
 
     if (!valid) return NAN;
 
-    const auto alpha = (sw * swyx - swy * swx);
-    const auto beta = (swy2 * swx - swy * swyx);
-    const auto denom = (sw * swy2 - square(swy));
+    const auto alpha = (sw * swzx - swz * swx);
+    const auto beta = (swz2 * swx - swz * swzx);
+    const auto denom = (sw * swz2 - square(swz));
 
-    return (alpha * y_extrap + beta) / denom;
+    return (alpha * z_extrap + beta) / denom;
   }
 
 }  // namespace
@@ -114,6 +121,7 @@ namespace
 //________________________________________________________________________
 QAG4SimulationMicromegas::QAG4SimulationMicromegas(const std::string& name)
   : SubsysReco(name)
+  , m_truthContainer(nullptr)
 {
 }
 
@@ -132,6 +140,23 @@ int QAG4SimulationMicromegas::InitRun(PHCompositeNode* topNode)
   {
     std::cout << PHWHERE << " unable to find DST node CYLINDERGEOM_MICROMEGAS_FULL" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  if (!m_svtxEvalStack)
+  {
+    m_svtxEvalStack.reset(new SvtxEvalStack(topNode));
+    //    m_svtxEvalStack->set_strict(true);
+    m_svtxEvalStack->set_strict(false);
+    m_svtxEvalStack->set_verbosity(Verbosity());
+  }
+
+  m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode,
+                                                                "G4TruthInfo");
+  if (!m_truthContainer)
+  {
+    std::cout << "QAG4SimulationTpc::InitRun - Fatal Error - "
+              << "unable to find node G4TruthInfo" << std::endl;
+    assert(m_truthContainer);
   }
 
   // get layers from mvtx geometry
@@ -216,7 +241,7 @@ int QAG4SimulationMicromegas::process_event(PHCompositeNode* topNode)
   // load nodes
   auto res = load_nodes(topNode);
   if (res != Fun4AllReturnCodes::EVENT_OK) return res;
-
+  m_svtxEvalStack->next_event(topNode);
   // run evaluation
   evaluate_hits();
   evaluate_clusters();
@@ -232,15 +257,7 @@ std::string QAG4SimulationMicromegas::get_histo_prefix() const
 //________________________________________________________________________
 int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
 {
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  if (!m_surfmaps)
-  {
-    std::cout << PHWHERE << "Error: can't find Acts surface maps"
-              << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
     std::cout << PHWHERE << "No acts tracking geometry, exiting."
@@ -259,7 +276,6 @@ int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
   if (!m_hitsets)
   {
     std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
@@ -296,6 +312,9 @@ int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
 //________________________________________________________________________
 void QAG4SimulationMicromegas::evaluate_hits()
 {
+  // do nothing if hitsets are not there
+  if (!m_hitsets) return;
+
   // histogram manager
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -336,7 +355,8 @@ void QAG4SimulationMicromegas::evaluate_hits()
     for (auto hit_it = hitrange.first; hit_it != hitrange.second; ++hit_it)
     {
       // store ADC
-      auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
+      auto fill = [](TH1* h, float value)
+      { if( h ) h->Fill( value ); };
       fill(hiter->second.adc, hit_it->second->getAdc());
     }
   }
@@ -345,10 +365,13 @@ void QAG4SimulationMicromegas::evaluate_hits()
 //________________________________________________________________________
 void QAG4SimulationMicromegas::evaluate_clusters()
 {
+  SvtxTruthEval* trutheval = m_svtxEvalStack->get_truth_eval();
+  assert(trutheval);
+  SvtxClusterEval* clustereval = m_svtxEvalStack->get_cluster_eval();
+  assert(clustereval);
   // histogram manager
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-
   // load relevant histograms
   struct HistogramList
   {
@@ -372,58 +395,102 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
     histograms.insert(std::make_pair(layer, h));
   }
+  // get primary truth particles
 
-  ActsTransformations transformer;
+  PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();  // only from primary particles
 
-  // loop over hitsets
-  const auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::micromegasId);
-  for (auto hitsetiter = hitsetrange.first; hitsetiter != hitsetrange.second; ++hitsetiter)
+  for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
+       iter != range.second;
+       ++iter)
   {
-    // get hitsetkey, layer and tileid
-    const auto hitsetkey = hitsetiter->first;
+    PHG4Particle* g4particle = iter->second;
+    float gtrackID = g4particle->get_track_id();
+    float gflavor = g4particle->get_pid();
+    float gembed = trutheval->get_embed(g4particle);
+    float gprimary = trutheval->is_primary(g4particle);
 
-    // get layer
-    const auto layer = TrkrDefs::getLayer(hitsetkey);
+    if (Verbosity() > 0)
+      std::cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gembed " << gembed << " gflavor " << gflavor << " gprimary " << gprimary << std::endl;
+    const auto ckeyset = clustereval->all_clusters_from(g4particle);
+    // Get the truth clusters from this particle
+    const auto truth_clusters = trutheval->all_truth_clusters(g4particle);
 
-    // get tileid
-    const auto tileid = MicromegasDefs::getTileId(hitsetkey);
+    // get circle fit parameters first
+    TrackFitUtils::position_vector_t xy_pts;
+    TrackFitUtils::position_vector_t rz_pts;
 
-    // load geometry
-    const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geonode->GetLayerGeom(layer));
-    if (!layergeom) continue;
-
-    // get relevant histograms
-    const auto hiter = histograms.find(layer);
-    if (hiter == histograms.end()) continue;
-
-    // get associated clusters
-    const auto range = m_cluster_map->getClusters(hitsetkey);
-    for (auto clusterIter = range.first; clusterIter != range.second; ++clusterIter)
+    for (const auto& [gkey, gclus] : truth_clusters)
     {
-      // get cluster key
-      const auto& key = clusterIter->first;
+      const auto layer = TrkrDefs::getLayer(gkey);
+      if (layer < 7) continue;
+
+      float gx = gclus->getX();
+      float gy = gclus->getY();
+      float gz = gclus->getZ();
+
+      xy_pts.emplace_back(gx, gy);
+      rz_pts.emplace_back(std::sqrt(gx * gx + gy * gy), gz);
+    }
+
+    // fit a circle through x,y coordinates
+    const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin(xy_pts);
+    const auto [slope, intercept] = TrackFitUtils::line_fit(rz_pts);
+
+    // skip chain entirely if fit fails
+    if (std::isnan(R)) continue;
+
+    // process residuals and pulls
+    // get reco clusters
+
+    for (const auto ckey : ckeyset)
+    {
+      const auto layer = TrkrDefs::getLayer(ckey);
+      const auto detID = TrkrDefs::getTrkrId(ckey);
+      if (detID != TrkrDefs::TrkrId::micromegasId) continue;
+
+      // get tileid
+      const auto tileid = MicromegasDefs::getTileId(ckey);
+
+      // load geometry
+      const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geonode->GetLayerGeom(layer));
+      if (!layergeom) continue;
+
+      // get relevant histograms
+      const auto hiter = histograms.find(layer);
+      if (hiter == histograms.end()) continue;
 
       // get cluster
-      const auto& cluster = clusterIter->second;
-
-      const auto global = transformer.getGlobalPosition(cluster, m_surfmaps,
-                                                        m_tGeometry);
-
+      const auto cluster = m_cluster_map->findCluster(ckey);
+      const auto global = m_tGeometry->getGlobalPosition(ckey, cluster);
+      const auto cluster_r = QAG4Util::get_r(global(0), global(1));
       // get segmentation type
-      const auto segmentation_type = MicromegasDefs::getSegmentationType(key);
+      const auto segmentation_type = MicromegasDefs::getSegmentationType(ckey);
 
       // get relevant cluster information
-      const auto rphi_error = cluster->getRPhiError();
-      const auto z_error = cluster->getZError();
-
+      double rphi_error = 0;
+      double z_error = 0;
+      if (m_cluster_version == 3)
+      {
+        rphi_error = cluster->getRPhiError();
+        z_error = cluster->getZError();
+      }
+      else
+      {
+        float r = cluster_r;
+        double alpha = (r * r) / (2 * r * R);
+        double beta = slope;
+        auto para_errors = _ClusErrPara.get_cluster_error(cluster, ckey, alpha, beta);
+        rphi_error = sqrt(para_errors.first);
+        z_error = sqrt(para_errors.second);
+      }
       // convert cluster position to local tile coordinates
       const TVector3 cluster_world(global(0), global(1), global(2));
-      const TVector3 cluster_local = layergeom->get_local_from_world_coords(tileid, cluster_world);
+      const auto cluster_local = layergeom->get_local_from_world_coords(tileid, m_tGeometry, cluster_world);
 
       // find associated g4hits
-      const auto g4hits = find_g4hits(key);
-
+      const auto g4hits = find_g4hits(ckey);
       // convert hits to list of interpolation_data_t
+      /* TODO: should actually use the same code as in TrackEvaluation */
       interpolation_data_t::list hits;
       for (const auto& g4hit : g4hits)
       {
@@ -432,25 +499,26 @@ void QAG4SimulationMicromegas::evaluate_clusters()
         {
           // convert position to local
           TVector3 g4hit_world(g4hit->get_x(i), g4hit->get_y(i), g4hit->get_z(i));
-          TVector3 g4hit_local = layergeom->get_local_from_world_coords(tileid, g4hit_world);
+          TVector3 g4hit_local = layergeom->get_local_from_world_coords(tileid, m_tGeometry, g4hit_world);
 
           // convert momentum to local
           TVector3 momentum_world(g4hit->get_px(i), g4hit->get_py(i), g4hit->get_pz(i));
-          TVector3 momentum_local = layergeom->get_local_from_world_vect(tileid, momentum_world);
+          TVector3 momentum_local = layergeom->get_local_from_world_vect(tileid, m_tGeometry, momentum_world);
 
           hits.push_back({.position = g4hit_local, .momentum = momentum_local, .weight = weight});
         }
       }
 
-      // do position interpolation
-      const auto y_extrap = cluster_local.y();
+      // do position interpolation along z
+      const auto z_extrap = cluster_local.z();
       const TVector3 interpolation_local(
-          interpolate<&interpolation_data_t::x>(hits, y_extrap),
-          interpolate<&interpolation_data_t::y>(hits, y_extrap),
-          interpolate<&interpolation_data_t::z>(hits, y_extrap));
+          interpolate<&interpolation_data_t::x>(hits, z_extrap),
+          interpolate<&interpolation_data_t::y>(hits, z_extrap),
+          interpolate<&interpolation_data_t::z>(hits, z_extrap));
 
       // fill phi residuals, errors and pulls
-      auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
+      auto fill = [](TH1* h, float value)
+      { if( h ) h->Fill( value ); };
       switch (segmentation_type)
       {
       case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
@@ -464,7 +532,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
       case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
       {
-        const auto dz = cluster_local.z() - interpolation_local.z();
+        const auto dz = cluster_local.y() - interpolation_local.y();
         fill(hiter->second.residual, dz);
         fill(hiter->second.residual_error, z_error);
         fill(hiter->second.pulls, dz / z_error);
@@ -474,11 +542,12 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
       // cluster size
       // get associated hits
-      const auto hit_range = m_cluster_hit_map->getHits(key);
+      const auto hit_range = m_cluster_hit_map->getHits(ckey);
       fill(hiter->second.csize, std::distance(hit_range.first, hit_range.second));
     }
   }
 }
+
 //_____________________________________________________________________
 QAG4SimulationMicromegas::G4HitSet QAG4SimulationMicromegas::find_g4hits(TrkrDefs::cluskey cluster_key) const
 {

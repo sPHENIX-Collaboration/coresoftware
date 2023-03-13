@@ -15,12 +15,11 @@
 #include <g4main/PHG4Utils.h>
 
 #include <phparameter/PHParameters.h>
+
 #include <g4gdml/PHG4GDMLConfig.hh>
 #include <g4gdml/PHG4GDMLUtility.hh>
 
 #include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4GDMLParser.hh>
-#include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
@@ -31,6 +30,13 @@
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 #include <Geant4/G4VisAttributes.hh>
 
+// Xerces has shadowed variables
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <Geant4/G4GDMLParser.hh>
+#include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
+#pragma GCC diagnostic pop
+
 #include <CLHEP/Units/SystemOfUnits.h>  // for cm, degree
 
 #include <cassert>
@@ -38,8 +44,6 @@
 #include <iostream>  // for operator<<, basic_ostream
 #include <memory>
 #include <vector>  // for vector, vector<>::iterator
-
-using namespace std;
 
 PHG4GDMLDetector::PHG4GDMLDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam, PHParameters* parameters)
   : PHG4Detector(subsys, Node, dnam)
@@ -52,7 +56,6 @@ PHG4GDMLDetector::PHG4GDMLDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
   , m_rotationY(parameters->get_double_param("rot_y") * degree)
   , m_rotationZ(parameters->get_double_param("rot_z") * degree)
   , m_skipDSTGeometryExport(parameters->get_int_param("skip_DST_geometry_export"))
-  , gdml_config(nullptr)
 {
   if (m_skipDSTGeometryExport)
   {
@@ -61,30 +64,28 @@ PHG4GDMLDetector::PHG4GDMLDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
   }
 }
 
-PHG4GDMLDetector::~PHG4GDMLDetector()
-{
-}
+PHG4GDMLDetector::~PHG4GDMLDetector() = default;
 
 void
 
 PHG4GDMLDetector::Print(const std::string& /*what*/) const
 {
-  cout << "PHG4GDMLDetector::" << GetName() << " - import " << m_TopVolName << " from " << m_GDMPath << " with shift "
-       << m_placeX << ","
-       << m_placeY << ","
-       << m_placeZ << "cm and rotation "
-       << m_rotationX << ","
-       << m_rotationY << ","
-       << m_rotationZ << "rad" << endl;
+  std::cout << "PHG4GDMLDetector::" << GetName() << " - import " << m_TopVolName << " from " << m_GDMPath << " with shift "
+            << m_placeX << ","
+            << m_placeY << ","
+            << m_placeZ << "cm and rotation "
+            << m_rotationX << ","
+            << m_rotationY << ","
+            << m_rotationZ << "rad" << std::endl;
 }
 
 void PHG4GDMLDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   if (Verbosity() > 0)
   {
-    cout << " PHG4MapsDetector::Construct:";
+    std::cout << " PHG4MapsDetector::Construct:";
     Print();
-    //      cout << endl;
+    //      std::cout << std::endl;
   }
 
   //===================================
@@ -92,7 +93,7 @@ void PHG4GDMLDetector::ConstructMe(G4LogicalVolume* logicWorld)
   //===================================
 
   // import the staves from the gemetry file
-  unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
+  std::unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
   gdmlParser.SetOverlapCheck(OverlapCheck());
   //  gdmlParser.Read(m_GDMPath, false);
@@ -104,7 +105,7 @@ void PHG4GDMLDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   if (not vol)
   {
-    cout << "PHG4GDMLDetector::Construct - Fatal Error - failed to find G4LogicalVolume " << m_TopVolName << " - Print: ";
+    std::cout << "PHG4GDMLDetector::Construct - Fatal Error - failed to find G4LogicalVolume " << m_TopVolName << " - Print: ";
     Print();
     exit(121);
   }
@@ -122,7 +123,7 @@ void PHG4GDMLDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4PVPlacement* gdml_phys =
       new G4PVPlacement(rotm, placeVec,
                         vol,
-                        G4String(GetName().c_str()),
+                        G4String(GetName()),
                         logicWorld, false, 0, OverlapCheck());
   SetDisplayProperty(vol);
 
@@ -135,15 +136,15 @@ void PHG4GDMLDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
 void PHG4GDMLDetector::SetDisplayProperty(G4AssemblyVolume* av)
 {
-  //  cout <<"SetDisplayProperty - G4AssemblyVolume w/ TotalImprintedVolumes "<<av->TotalImprintedVolumes()
-  //   <<"/"<<av->GetImprintsCount()<<endl;
+  //  std::cout <<"SetDisplayProperty - G4AssemblyVolume w/ TotalImprintedVolumes "<<av->TotalImprintedVolumes()
+  //   <<"/"<<av->GetImprintsCount()<<std::endl;
 
   std::vector<G4VPhysicalVolume*>::iterator it = av->GetVolumesIterator();
 
   int nDaughters = av->TotalImprintedVolumes();
   for (int i = 0; i < nDaughters; ++i, ++it)
   {
-    //  cout <<"SetDisplayProperty - AV["<<i<<"] = "<<(*it)->GetName()<<endl;
+    //  std::cout <<"SetDisplayProperty - AV["<<i<<"] = "<<(*it)->GetName()<<std::endl;
     G4VPhysicalVolume* pv = (*it);
 
     G4LogicalVolume* worldLogical = pv->GetLogicalVolume();
@@ -153,12 +154,12 @@ void PHG4GDMLDetector::SetDisplayProperty(G4AssemblyVolume* av)
 
 void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
 {
-  string material_name(
+  std::string material_name(
       lv->GetMaterial()->GetName());
 
   if (Verbosity() >= 5)
-    cout << "SetDisplayProperty - LV " << lv->GetName() << " built with "
-         << material_name << endl;
+    std::cout << "SetDisplayProperty - LV " << lv->GetName() << " built with "
+              << material_name << std::endl;
 
   G4VisAttributes* matVis = new G4VisAttributes();
   if (material_name.find("SI") != std::string::npos)
@@ -167,7 +168,7 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
     matVis->SetVisibility(true);
     matVis->SetForceSolid(true);
     if (Verbosity() >= 5)
-      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_Si" << endl;
+      std::cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_Si" << std::endl;
   }
   else if (material_name.find("KAPTON") != std::string::npos)
   {
@@ -175,7 +176,7 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
     matVis->SetVisibility(true);
     matVis->SetForceSolid(true);
     if (Verbosity() >= 5)
-      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_KAPTON" << endl;
+      std::cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_KAPTON" << std::endl;
   }
   else if (material_name.find("ALUMINUM") != std::string::npos)
   {
@@ -183,7 +184,7 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
     matVis->SetVisibility(true);
     matVis->SetForceSolid(true);
     if (Verbosity() >= 5)
-      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_Al" << endl;
+      std::cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_Al" << std::endl;
   }
   else if (material_name.find("Carbon") != std::string::npos)
   {
@@ -191,7 +192,7 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
     matVis->SetVisibility(true);
     matVis->SetForceSolid(true);
     if (Verbosity() >= 5)
-      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with Gray" << endl;
+      std::cout << "SetDisplayProperty - LV " << lv->GetName() << " display with Gray" << std::endl;
   }
   else if (material_name.find("M60J3K") != std::string::npos)
   {
@@ -199,7 +200,7 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
     matVis->SetVisibility(true);
     matVis->SetForceSolid(true);
     if (Verbosity() >= 5)
-      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with Gray" << endl;
+      std::cout << "SetDisplayProperty - LV " << lv->GetName() << " display with Gray" << std::endl;
   }
   else if (material_name.find("WATER") != std::string::npos)
   {
@@ -207,7 +208,7 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
     matVis->SetVisibility(true);
     matVis->SetForceSolid(true);
     if (Verbosity() >= 5)
-      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with WATER" << endl;
+      std::cout << "SetDisplayProperty - LV " << lv->GetName() << " display with WATER" << std::endl;
   }
   else
   {
@@ -222,7 +223,7 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
   {
     G4VPhysicalVolume* pv = lv->GetDaughter(i);
 
-    // cout <<"SetDisplayProperty - PV["<<i<<"] = "<<pv->GetName()<<endl;
+    // std::cout <<"SetDisplayProperty - PV["<<i<<"] = "<<pv->GetName()<<std::endl;
 
     G4LogicalVolume* worldLogical = pv->GetLogicalVolume();
     SetDisplayProperty(worldLogical);

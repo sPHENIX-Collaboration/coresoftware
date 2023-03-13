@@ -5,11 +5,12 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>                // for string
+#include <cmath>
+#include <string>  // for string
 
 class PHCompositeNode;
 
-class PHG4GenHit: public SubsysReco
+class PHG4GenHit : public SubsysReco
 {
  public:
   PHG4GenHit(const std::string &name = "PHG4GenHit");
@@ -17,19 +18,18 @@ class PHG4GenHit: public SubsysReco
 
   int process_event(PHCompositeNode *topNode) override;
 
-  void set_phi(const double d) {phi = d;}
-  void set_theta(const double d) {theta = d;}
-  void set_eloss(const double d) {eloss = d;}
-  void set_layer(const int i) {layer = i;}
-  void Detector(const std::string &n) {detector = n;}
+  void set_phi(const double d) { phi = d; }
+  void set_theta(const double d) { theta = d; }
+  void set_eloss(const double d) { eloss = d; }
+  void set_layer(const int i) { layer = i; }
+  void Detector(const std::string &n) { detector = n; }
 
  protected:
-  double phi;
-  double theta;
-  double eloss;
-  int layer;
+  double phi = NAN;
+  double theta = NAN;
+  double eloss = NAN;
+  int layer = -9999;
   std::string detector;
-
 };
 
 #endif

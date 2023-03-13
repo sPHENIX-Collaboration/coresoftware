@@ -215,7 +215,7 @@ TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
       for(const auto& [param, key] : keyMap)
 	{
 	  std::cout << "Track ID : " << key << " Track position: (" 
-		    << param->position(m_tGeometry->geoContext).transpose()
+		    << param->position(m_tGeometry->getGeoContext()).transpose()
 		    << std::endl;
 	}
     }
@@ -286,7 +286,7 @@ VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
       VertexFinder finder(finderConfig, std::move(logger));
       
       typename VertexFinder::State state(m_tGeometry->magFieldContext);
-      VertexFinderOptions finderOptions(m_tGeometry->geoContext,
+      VertexFinderOptions finderOptions(m_tGeometry->getGeoContext(),
 					m_tGeometry->magFieldContext);
       
       auto result = finder.find(tracks, finderOptions, state);

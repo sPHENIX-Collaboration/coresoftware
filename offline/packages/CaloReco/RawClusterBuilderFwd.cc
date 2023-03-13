@@ -15,12 +15,12 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/getClass.h>
 #include <phool/phool.h>
 
 #include <cassert>
@@ -32,14 +32,12 @@
 #include <utility>
 #include <vector>
 
-using namespace std;
-
 class twrs_fwd
 {
  public:
-  twrs_fwd(RawTower *);
-  virtual ~twrs_fwd() {}
-  bool is_adjacent(twrs_fwd &);
+  explicit twrs_fwd(RawTower *);
+  virtual ~twrs_fwd() = default;
+  bool is_adjacent(const twrs_fwd &);
   void set_id(const int i)
   {
     id = i;
@@ -70,7 +68,7 @@ twrs_fwd::twrs_fwd(RawTower *rt)
   bin_k = rt->get_binphi();
 }
 
-bool twrs_fwd::is_adjacent(twrs_fwd &tower)
+bool twrs_fwd::is_adjacent(twrs_fwd const &tower)
 {
   if (bin_j - 1 <= tower.get_j_bin() && tower.get_j_bin() <= bin_j + 1)
   {
@@ -118,7 +116,7 @@ int RawClusterBuilderFwd::InitRun(PHCompositeNode *topNode)
 
 int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
 {
-  string towernodename = "TOWER_CALIB_" + detector;
+  std::string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
   RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode, towernodename);
   if (!towers)
@@ -126,11 +124,11 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << ": Could not find node " << towernodename << std::endl;
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
-  string towergeomnodename = "TOWERGEOM_" + detector;
+  std::string towergeomnodename = "TOWERGEOM_" + detector;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename);
   if (!towergeom)
   {
-    cout << PHWHERE << ": Could not find node " << towergeomnodename << endl;
+    std::cout << PHWHERE << ": Could not find node " << towergeomnodename << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   // make the list of towers above threshold
@@ -181,17 +179,17 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
   for (const auto &cluster_pair : _clusters->getClustersMap())
   {
     const RawClusterDefs::keytype clusterid = cluster_pair.first;
-    RawCluster *cluster = cluster_pair.second;
+    RawCluster *clusterA = cluster_pair.second;
 
-    assert(cluster);
-    assert(cluster->get_id() == clusterid);
+    assert(clusterA);
+    assert(clusterA->get_id() == clusterid);
 
     double sum_x(0);
     double sum_y(0);
     double sum_z(0);
     double sum_e(0);
 
-    for (const auto tower_pair : cluster->get_towermap())
+    for (const auto tower_pair : clusterA->get_towermap())
     {
       const RawTower *rawtower = towers->getTower(tower_pair.first);
       const RawTowerGeom *rawtowergeom = towergeom->get_tower_geometry(tower_pair.first);
@@ -208,9 +206,9 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
         sum_y += e * rawtowergeom->get_center_y();
         sum_z += e * rawtowergeom->get_center_z();
       }
-    }  //     for (const auto tower_pair : cluster->get_towermap())
+    }  //     for (const auto tower_pair : clusterA->get_towermap())
 
-    cluster->set_energy(sum_e);
+    clusterA->set_energy(sum_e);
 
     if (sum_e > 0)
     {
@@ -218,15 +216,15 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
       sum_y /= sum_e;
       sum_z /= sum_e;
 
-      cluster->set_r(sqrt(sum_y * sum_y + sum_x * sum_x));
-      cluster->set_phi(atan2(sum_y, sum_x));
-      cluster->set_z(sum_z);
+      clusterA->set_r(sqrt(sum_y * sum_y + sum_x * sum_x));
+      clusterA->set_phi(atan2(sum_y, sum_x));
+      clusterA->set_z(sum_z);
     }
 
     if (Verbosity() > 1)
     {
-      cout << "RawClusterBuilder constucted ";
-      cluster->identify();
+      std::cout << "RawClusterBuilder constucted ";
+      clusterA->identify();
     }
   }  //  for (const auto & cluster_pair : _clusters->getClustersMap())
   if (chkenergyconservation)
@@ -237,17 +235,17 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
     {
       if (fabs(etower - ecluster) / ecluster > 1e-9)
       {
-        cout << "energy conservation violation: ETower: " << etower
-             << " ECluster: " << ecluster
-             << " diff: " << etower - ecluster << endl;
+        std::cout << "energy conservation violation: ETower: " << etower
+                  << " ECluster: " << ecluster
+                  << " diff: " << etower - ecluster << std::endl;
       }
     }
     else
     {
       if (etower != 0)
       {
-        cout << "energy conservation violation: ETower: " << etower
-             << " ECluster: " << ecluster << endl;
+        std::cout << "energy conservation violation: ETower: " << etower
+                  << " ECluster: " << ecluster << std::endl;
       }
     }
   }
@@ -306,7 +304,7 @@ bool RawClusterBuilderFwd::CorrectPhi(RawCluster *cluster, RawTowerContainer *to
   return true;  // mean phi was corrected
 }
 
-int RawClusterBuilderFwd::End(PHCompositeNode */*topNode*/)
+int RawClusterBuilderFwd::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -1,7 +1,7 @@
 #include "BeamLineMagnetSteppingAction.h"
-#include "BeamLineMagnetDetector.h"
 
-#include <g4detectors/PHG4StepStatusDecode.h>
+#include "BeamLineMagnetDetector.h"
+#include "PHG4StepStatusDecode.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -307,7 +307,7 @@ void BeamLineMagnetSteppingAction::SetInterfacePointers(PHCompositeNode* topNode
   }
 }
 
-void BeamLineMagnetSteppingAction::SetHitNodeName(const std::string &type, const std::string &name)
+void BeamLineMagnetSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
 {
   if (type == "G4HIT")
   {

@@ -7,17 +7,15 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
-#include <intt/InttDefs.h>
-
 #include <trackbase_historic/ActsTransformations.h>
 
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
+#include <trackbase/InttDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for getTrkrId, getHit...
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -163,15 +161,7 @@ std::string QAG4SimulationIntt::get_histo_prefix() const
 //________________________________________________________________________
 int QAG4SimulationIntt::load_nodes(PHCompositeNode* topNode)
 {
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  if (!m_surfmaps)
-  {
-    std::cout << PHWHERE << "Error: can't find Acts surface maps"
-              << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
     std::cout << PHWHERE << "No acts tracking geometry, exiting."
@@ -179,12 +169,6 @@ int QAG4SimulationIntt::load_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (!m_hitsets)
-  {
-    std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_cluster_map)
   {
@@ -260,13 +244,9 @@ void QAG4SimulationIntt::evaluate_clusters()
     histograms.insert(std::make_pair(layer, h));
   }
 
-  ActsTransformations transformer;
-  auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::inttId);
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr)
+  for (const auto& hitsetkey : m_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::inttId))
   {
-    auto range = m_cluster_map->getClusters(hitsetitr->first);
+    auto range = m_cluster_map->getClusters(hitsetkey);
     for (auto clusterIter = range.first; clusterIter != range.second; ++clusterIter)
     {
       // get cluster key, detector id and check
@@ -274,15 +254,26 @@ void QAG4SimulationIntt::evaluate_clusters()
       // get cluster
       const auto& cluster = clusterIter->second;
 
-      const auto global = transformer.getGlobalPosition(cluster, m_surfmaps,
-                                                        m_tGeometry);
+      const auto global = m_tGeometry->getGlobalPosition(key, cluster);
 
       // get relevant cluster information
       const auto r_cluster = QAG4Util::get_r(global(0), global(1));
       const auto z_cluster = global(2);
       const auto phi_cluster = (float) std::atan2(global(1), global(0));
-      const auto phi_error = cluster->getRPhiError() / r_cluster;
-      const auto z_error = cluster->getZError();
+
+      double phi_error = 0;
+      double z_error = 0;
+      if (m_cluster_version == 3)
+      {
+        phi_error = cluster->getRPhiError() / r_cluster;
+        z_error = cluster->getZError();
+      }
+      else
+      {
+        auto para_errors = _ClusErrPara.get_si_cluster_error(cluster, key);
+        phi_error = sqrt(para_errors.first) / r_cluster;
+        z_error = sqrt(para_errors.second);
+      }
 
       // find associated g4hits
       const auto g4hits = find_g4hits(key);
@@ -302,7 +293,8 @@ void QAG4SimulationIntt::evaluate_clusters()
       if (hiter == histograms.end()) continue;
 
       // fill histograms
-      auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
+      auto fill = [](TH1* h, float value)
+      { if( h ) h->Fill( value ); };
       fill(hiter->second.drphi, r_cluster * dphi);
       fill(hiter->second.rphi_error, r_cluster * phi_error);
       fill(hiter->second.phi_pulls, dphi / phi_error);

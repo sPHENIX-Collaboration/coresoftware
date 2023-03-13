@@ -6,21 +6,27 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
+#include "TrackEvaluationContainerv1.h"
+
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ClusterErrorPara.h>
 
+#include <trackbase_historic/SvtxTrackState.h>
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
 
+class ActsGeometry;
+class PHG4TpcCylinderGeomContainer;
+class PHG4CylinderGeomContainer;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
 class SvtxTrack;
 class SvtxTrackMap;
-class TrackEvaluationContainerv1;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
@@ -74,6 +80,7 @@ class TrackEvaluation : public SubsysReco
   // get geant hits associated to a cluster
   using G4HitSet = std::set<PHG4Hit*>;
   G4HitSet find_g4hits( TrkrDefs::cluskey ) const;
+  G4HitSet find_g4hits( TrkrDefs::cluskey, int id ) const;
 
   //! get G4Particle id of max contributor to a given track
   std::pair<int,int> get_max_contributor( SvtxTrack* ) const;
@@ -81,11 +88,37 @@ class TrackEvaluation : public SubsysReco
   //! get embedded id for given g4track
   int get_embed(PHG4Particle*) const;
 
+  //! create cluster structure from cluster
+  TrackEvaluationContainerv1::ClusterStruct create_cluster( TrkrDefs::cluskey, TrkrCluster*,SvtxTrack* ) const;
+
+  //! add track information to a cluster
+  void add_trk_information( TrackEvaluationContainerv1::ClusterStruct&, SvtxTrackState* ) const;
+
+  //! add track information to a cluster for the micromegas case
+  /*!
+   * the difference between this and the generic method is that the track state to
+   * the tiles detector plane, and not to the same radius as the cluster
+   */
+  void add_trk_information_micromegas( TrackEvaluationContainerv1::ClusterStruct&, int /* tileid */, SvtxTrackState* ) const;
+
+  // add truth information
+  void add_truth_information( TrackEvaluationContainerv1::ClusterStruct&, std::set<PHG4Hit*> ) const;
+
+  // add truth information
+  /*!
+   * the difference between this and the generic method is that the track state to
+   * the tiles detector plane, and not to the same radius as the cluster
+   */
+  void add_truth_information_micromegas( TrackEvaluationContainerv1::ClusterStruct&, int /* tileid */, std::set<PHG4Hit*> ) const;
+
   //! evaluation node
   TrackEvaluationContainerv1* m_container = nullptr;
 
   //! flags
   int m_flags = EvalEvent | EvalClusters | EvalTracks;
+
+  /// Acts tracking geometry for surface lookup
+  ActsGeometry *m_tGeometry = nullptr;
 
   //! hits
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;
@@ -113,9 +146,16 @@ class TrackEvaluation : public SubsysReco
   //! truth information
   PHG4TruthInfoContainer* m_g4truthinfo = nullptr;
 
+  //! tpc geometry
+  PHG4TpcCylinderGeomContainer* m_tpc_geom_container = nullptr;
+
+  //! micromegas geometry
+  PHG4CylinderGeomContainer* m_micromegas_geom_container = nullptr;
+
   // map cluster keys to g4hits
   using G4HitMap = std::map<TrkrDefs::cluskey,G4HitSet>;
   mutable G4HitMap m_g4hit_map;
+  ClusterErrorPara _ClusErrPara;
 
 };
 

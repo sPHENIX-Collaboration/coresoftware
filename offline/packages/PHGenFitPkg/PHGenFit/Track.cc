@@ -594,12 +594,12 @@ int Track::updateOneMeasurementKalman(
       const genfit::MeasurementOnPlane& mOnPlane = **it;
       //const double weight = mOnPlane.getWeight();
 
-      const TVectorD& measurement(mOnPlane.getState());
+      const TVectorD& measurementA(mOnPlane.getState());
       const genfit::AbsHMatrix* H(mOnPlane.getHMatrix());
       // (weighted) cov
       const TMatrixDSym& V(mOnPlane.getCov());  //Covariance of measurement noise v_{k}
 
-      TVectorD res(measurement - H->Hv(stateVector));
+      TVectorD res(measurementA - H->Hv(stateVector));
 #ifdef _DEBUG_
       {
         std::cout << __LINE__ << std::endl;
@@ -663,7 +663,7 @@ int Track::updateOneMeasurementKalman(
 #endif
       }
 
-      TVectorD resNew(measurement - H->Hv(stateVector));
+      TVectorD resNew(measurementA - H->Hv(stateVector));
 
       // Calculate chi2
       TMatrixDSym HCHt(cov);  //C_{k|k}
@@ -684,7 +684,7 @@ int Track::updateOneMeasurementKalman(
       }
       chi2inc += HCHt.Similarity(resNew);
 
-      ndfInc += measurement.GetNrows();
+      ndfInc += measurementA.GetNrows();
 
 #ifdef _PRINT_MATRIX_
       std::cout << __LINE__ << ": V - HCHt:" << std::endl;

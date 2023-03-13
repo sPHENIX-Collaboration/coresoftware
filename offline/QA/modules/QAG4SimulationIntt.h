@@ -1,6 +1,7 @@
 #ifndef QA_QAG4SIMULATIONINTT_H
 #define QA_QAG4SIMULATIONINTT_H
 
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <fun4all/SubsysReco.h>
@@ -13,11 +14,8 @@ class PHG4Hit;
 class PHG4HitContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
-class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
-
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
+class ActsGeometry;
 
 /// \class QAG4SimulationIntt
 class QAG4SimulationIntt : public SubsysReco
@@ -28,6 +26,7 @@ class QAG4SimulationIntt : public SubsysReco
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
+  void set_cluster_version(int value) { m_cluster_version = value; }
 
  private:
   /// common prefix for QA histograms
@@ -46,20 +45,14 @@ class QAG4SimulationIntt : public SubsysReco
   /// true if histograms are initialized
   bool m_initialized = false;
 
-  /// Acts surface maps for surface lookup
-  ActsSurfaceMaps* m_surfmaps = nullptr;
-
   /// Acts tracking geometry for surface lookup
-  ActsTrackingGeometry* m_tGeometry = nullptr;
+  ActsGeometry* m_tGeometry = nullptr;
 
   /// cluster map
   TrkrClusterContainer* m_cluster_map = nullptr;
 
   /// clusters to hit association
   TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;
-
-  /// hitsets
-  TrkrHitSetContainer* m_hitsets = nullptr;
 
   /// hit to g4hit association
   TrkrHitTruthAssoc* m_hit_truth_map = nullptr;
@@ -70,6 +63,8 @@ class QAG4SimulationIntt : public SubsysReco
   /// list of relevant layers
   /* it is filled at Init stage. It should not change for the full run */
   std::set<int> m_layers;
+  ClusterErrorPara _ClusErrPara;
+  int m_cluster_version = 4;
 };
 
 #endif

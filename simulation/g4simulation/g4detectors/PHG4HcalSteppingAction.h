@@ -18,7 +18,7 @@ class PHG4HcalSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4HcalSteppingAction(PHG4HcalDetector*);
+  explicit PHG4HcalSteppingAction(PHG4HcalDetector*);
 
   //! destroctor
   ~PHG4HcalSteppingAction() override;

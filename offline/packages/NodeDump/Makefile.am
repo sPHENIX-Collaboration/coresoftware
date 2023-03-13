@@ -5,7 +5,7 @@ lib_LTLIBRARIES = libphnodedump.la
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
   Dumper.h \
@@ -14,15 +14,20 @@ pkginclude_HEADERS = \
 
 libphnodedump_la_SOURCES = \
   Dumper.cc \
-  DumpAssocInfoContainer.cc \
   DumpBbcVertexMap.cc \
   DumpCaloTriggerInfo.cc \
+  DumpCdbUrlSave.cc \
+  DumpCentralityInfo.cc \
+  DumpEpInfo.cc \
   DumpEventHeader.cc \
+  DumpFlagSave.cc \
   DumpGlobalVertexMap.cc \
+  DumpInttDeadMap.cc \
   DumpJetMap.cc \
   DumpParticleFlowElementContainer.cc \
   DumpPdbParameterMap.cc \
   DumpPdbParameterMapContainer.cc \
+  DumpPHFieldConfig.cc \
   DumpPHG4BlockGeomContainer.cc \
   DumpPHG4BlockCellGeomContainer.cc \
   DumpPHG4CellContainer.cc \
@@ -30,21 +35,28 @@ libphnodedump_la_SOURCES = \
   DumpPHG4CylinderCellGeomContainer.cc \
   DumpPHG4CylinderGeomContainer.cc \
   DumpPHG4HitContainer.cc \
+  DumpPHG4ParticleSvtxMap.cc \
   DumpPHG4ScintillatorSlatContainer.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
+  DumpPHGenIntegral.cc \
   DumpPHHepMCGenEventMap.cc \
   DumpRawClusterContainer.cc \
   DumpRawTowerContainer.cc \
   DumpRawTowerGeomContainer.cc \
   DumpRunHeader.cc \
+  DumpSvtxPHG4ParticleMap.cc \
   DumpSvtxTrackMap.cc \
   DumpSvtxVertexMap.cc \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
+  DumpTowerInfoContainer.cc \
+  DumpTpcSeedTrackMap.cc \
+  DumpTrackSeedContainer.cc \
   DumpTrkrClusterContainer.cc \
   DumpTrkrClusterHitAssoc.cc \
   DumpTrkrHitSetContainer.cc \
+  DumpTrkrClusterCrossingAssoc.cc \
   DumpTrkrHitTruthAssoc.cc \
   DumpVariableArray.cc \
   DumpObject.cc \
@@ -56,8 +68,10 @@ libphnodedump_la_LIBADD = \
   -lg4bbc_io \
   -lcalo_io \
   -lcalotrigger_io \
+  -leventplane_io \
   -lffaobjects \
   -lg4detectors_io \
+  -lphfield_io \
   -lg4jets_io \
   -lHepMC \
   -lparticleflow_io \

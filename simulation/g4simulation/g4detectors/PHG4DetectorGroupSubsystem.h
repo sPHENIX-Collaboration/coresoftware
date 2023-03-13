@@ -60,6 +60,9 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   void SetAbsorberActive(const int i = 1);
   void SetAbsorberTruth(const int detid, const int i);
   void SetAbsorberTruth(const int i = 1);
+  void SetSupportActive(const int detid, const int i = 1);
+  void SetSupportActive(const int i = 1);
+
   void BlackHole(const int detid, const int i);
   void BlackHole(const int i = 1);
   void SuperDetector(const std::string &name);
@@ -86,16 +89,16 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   void PrintMacroParams() const;
 
  private:
-  PHParametersContainer *m_ParamsContainer;
-  PHParametersContainer *m_ParamsContainerDefault;
-  PHCompositeNode *m_SaveTopNode;
-  bool m_OverlapCheckFlag;
-  int m_Layer;
-  int m_UseDBFlag;
-  int m_BeginRunExecutedFlag;
-  FILE_TYPE m_FileType;
-  std::string m_SuperDetector;
-  std::string m_CalibFileDir;
+  PHParametersContainer *m_ParamsContainer = nullptr;
+  PHParametersContainer *m_ParamsContainerDefault = nullptr;
+  PHCompositeNode *m_SaveTopNode = nullptr;
+  bool m_OverlapCheckFlag = false;
+  int m_Layer = 0;
+  int m_UseDBFlag = 0;
+  int m_BeginRunExecutedFlag = 0;
+  FILE_TYPE m_FileType = PHG4DetectorGroupSubsystem::none;
+  std::string m_SuperDetector = "NONE";
+  std::string m_CalibFileDir = "./";
 
   std::set<int> m_LayerSet;
 

@@ -12,7 +12,7 @@ AM_LDFLAGS = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
+  -isystem$(ROOTSYS)/include \
   -DHomogeneousField
 
 
@@ -22,7 +22,6 @@ pkginclude_HEADERS = \
   KFParticle_truthAndDetTools.h \
   KFParticle_nTuple.h \
   KFParticle_Tools.h \
-  KFParticle_particleList.h \
   KFParticle_MVA.h \
   KFParticle_eventReconstruction.h \
   KFParticle_sPHENIX.h
@@ -43,7 +42,6 @@ libkfparticle_sphenix_la_SOURCES = \
   KFParticle_truthAndDetTools.cc \
   KFParticle_nTuple.cc \
   KFParticle_Tools.cc \
-  KFParticle_particleList.cc \
   KFParticle_MVA.cc \
   KFParticle_eventReconstruction.cc \
   KFParticle_sPHENIX.cc

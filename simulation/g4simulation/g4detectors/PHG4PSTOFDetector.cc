@@ -8,7 +8,6 @@
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
 #include <Geant4/G4String.hh>          // for G4String
@@ -20,9 +19,8 @@
 #include <iostream>  // for operator<<, endl, bas...
 #include <utility>   // for pair
 
+class G4Material;
 class PHCompositeNode;
-
-using namespace std;
 
 PHG4PSTOFDetector::PHG4PSTOFDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParametersContainer *params, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -55,7 +53,7 @@ void PHG4PSTOFDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Material *Glass = GetDetectorMaterial("G4_GLASS_PLATE");
   G4Box *pstof_box = new G4Box("pstof_box", 0.8 * cm, 6 * cm, 5 * cm);
 
-  G4LogicalVolume *pstof_log_vol = new G4LogicalVolume(pstof_box, Glass, G4String("PSTOF_box"), 0, 0, 0);
+  G4LogicalVolume *pstof_log_vol = new G4LogicalVolume(pstof_box, Glass, G4String("PSTOF_box"), nullptr, nullptr, nullptr);
   G4VisAttributes *pstofVisAtt = new G4VisAttributes();
   pstofVisAtt->SetVisibility(true);
   pstofVisAtt->SetForceSolid(true);
@@ -109,10 +107,10 @@ void PHG4PSTOFDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
 void PHG4PSTOFDetector::Print(const std::string &what) const
 {
-  cout << "PSTOF Detector:" << endl;
+  std::cout << "PSTOF Detector:" << std::endl;
   if (what == "ALL" || what == "VOLUME")
   {
-    cout << "Version 0.1" << endl;
+    std::cout << "Version 0.1" << std::endl;
   }
   return;
 }

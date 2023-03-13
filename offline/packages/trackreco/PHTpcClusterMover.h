@@ -15,7 +15,13 @@
 #include <string>
 #include <vector>
 
+#include <trackbase/ActsGeometry.h>
+#include <trackbase_historic/ActsTransformations.h>
+#include <tpc/TpcDistortionCorrectionContainer.h>
+#include <tpc/TpcDistortionCorrection.h>
+
 class PHCompositeNode;
+class PHG4TpcCylinderGeomContainer;
 class SvtxTrack;
 class SvtxTrackMap;
 class TrkrCluster;
@@ -27,8 +33,6 @@ class PHTpcClusterMover : public SubsysReco
 
   PHTpcClusterMover(const std::string &name = "PHTpcClusterMover");
 
-  ~PHTpcClusterMover() override;
-
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
@@ -37,11 +41,13 @@ class PHTpcClusterMover : public SubsysReco
  private:
 
   int GetNodes(PHCompositeNode* topNode);
+  int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xref, double yref, double &x, double &y);
 
-  void CircleFitByTaubin (std::vector<TrkrCluster*> clusters, double &R, double &X0, double &Y0);
-  void circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus);
-  void  line_fit(std::vector<TrkrCluster*> clusters, double &a, double &b);
-int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xref, double yref, double &x, double &y);
+ /// acts transformation object
+  ActsTransformations _transformer;
+  
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection _distortionCorrection;
 
   double _z_start=0.0; 
   double _y_start=0.0; 
@@ -53,9 +59,14 @@ int get_circle_circle_intersection(double target_radius, double R, double X0, do
 
   // range of TPC layers to use in projection to micromegas
 
-SvtxTrackMap *_track_map{nullptr};
-SvtxTrack *_track{nullptr};
-TrkrClusterContainer *_cluster_map{nullptr};
+  PHG4TpcCylinderGeomContainer* _tpc_geom_container = nullptr;
+
+  SvtxTrackMap *_track_map{nullptr};
+  SvtxTrack *_track{nullptr};
+  TrkrClusterContainer *_cluster_map{nullptr};						    
+  TrkrClusterContainer *_corrected_cluster_map{nullptr};						    
+  ActsGeometry *_tGeometry{nullptr};
+  TpcDistortionCorrectionContainer* _dcc{nullptr};
 
   double layer_radius[48] = {0};
   double inner_tpc_min_radius = 30.0;

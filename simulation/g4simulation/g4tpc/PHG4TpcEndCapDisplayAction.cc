@@ -9,12 +9,7 @@
 #include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4VisAttributes.hh>
 
-#include <TSystem.h>
-
-#include <iostream>
 #include <utility>  // for pair
-
-using namespace std;
 
 PHG4TpcEndCapDisplayAction::PHG4TpcEndCapDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
@@ -30,7 +25,7 @@ PHG4TpcEndCapDisplayAction::~PHG4TpcEndCapDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4TpcEndCapDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
+void PHG4TpcEndCapDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
   for (auto it : m_LogicalVolumeMap)

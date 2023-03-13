@@ -16,11 +16,11 @@ class PHCompositeNode;
 class SvtxTrackMap;
 class PHG4Hit;
 class PHG4HitContainer;
-class TrkrHitSetContainer;
 class PHG4TruthInfoContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
+class SvtxVertexMap;
 
 /// \class QAG4SimulationTracking
 class QAG4SimulationTracking : public SubsysReco
@@ -54,10 +54,14 @@ class QAG4SimulationTracking : public SubsysReco
     m_uniqueTrackingMatch = b;
   }
 
+  void set_embed_id_cut(const int id) { m_embed_id_cut = id; }
+
  private:
   /// load nodes
   int load_nodes(PHCompositeNode *);
 
+  void get_dca(SvtxTrack *track, float &dca3dxy, float &dca3dz,
+               float &dca3dxysigma, float &dca3dzsigma);
   // get geant hits associated to a cluster
   using G4HitSet = std::set<PHG4Hit *>;
   G4HitSet find_g4hits(TrkrDefs::cluskey) const;
@@ -71,10 +75,13 @@ class QAG4SimulationTracking : public SubsysReco
   //! only count unique truth<->reco track pair in tracking efficiency
   bool m_uniqueTrackingMatch = true;
 
+  //! cut for selecting on foreground
+  int m_embed_id_cut = 0;
+
   PHG4TruthInfoContainer *m_truthContainer = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
+  SvtxVertexMap *m_vertexMap = nullptr;
 
-  TrkrHitSetContainer *m_hitsets = nullptr;
   TrkrClusterContainer *m_cluster_map = nullptr;
   TrkrClusterHitAssoc *m_cluster_hit_map = nullptr;
   TrkrHitTruthAssoc *m_hit_truth_map = nullptr;

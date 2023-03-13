@@ -29,15 +29,20 @@ class TrkrClusterv1 : public TrkrCluster
   TrkrClusterv1();
 
   //!dtor
-  ~TrkrClusterv1() override {}
+  ~TrkrClusterv1() override = default;
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override {}
   int isValid() const override;
   PHObject* CloneMe() const override { return new TrkrClusterv1(*this); }
+ 
+  //! copy content from base class
+  void CopyFrom( const TrkrCluster& ) override;
 
-  void setClusKey(TrkrDefs::cluskey id) override { m_cluskey = id; }
-  TrkrDefs::cluskey getClusKey() const override { return m_cluskey; }
+  //! copy content from base class
+  void CopyFrom( TrkrCluster* source ) override
+  { CopyFrom( *source ); }
+
   //
   // cluster position
   //
@@ -51,7 +56,7 @@ class TrkrClusterv1 : public TrkrCluster
   void setPosition(int coor, float xi) override { m_pos[coor] = xi; }
   void setGlobal() override { m_isGlobal = true; }
   void setLocal() override { m_isGlobal = false; }
-  bool isGlobal() override { return m_isGlobal; }
+  bool isGlobal() const override { return m_isGlobal; }
   //
   // cluster info
   //

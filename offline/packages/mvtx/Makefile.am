@@ -10,7 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -18,8 +18,8 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
-  MvtxDefs.h \
   MvtxClusterizer.h \
+  MvtxHitPruner.h \
   CylinderGeom_Mvtx.h \
   SegmentationAlpide.h
 
@@ -33,7 +33,8 @@ nobase_dist_pcm_DATA = \
 
 # sources for mvtx library
 libmvtx_la_SOURCES = \
-  MvtxClusterizer.cc
+  MvtxClusterizer.cc \
+ MvtxHitPruner.cc
 
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
@@ -45,7 +46,6 @@ libmvtx_la_LIBADD = \
 libmvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeom_Mvtx.cc \
-  MvtxDefs.cc \
   SegmentationAlpide.cc
 
 libmvtx_io_la_LIBADD = \

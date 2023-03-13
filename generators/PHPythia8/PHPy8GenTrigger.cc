@@ -23,7 +23,10 @@ std::vector<int> PHPy8GenTrigger::convertToInts(std::string s)
     if (ss.peek() == ',' ||
         ss.peek() == ' ' ||
         ss.peek() == ':' ||
-        ss.peek() == ';') ss.ignore();
+        ss.peek() == ';')
+    {
+      ss.ignore();
+    }
   }
 
   return theVec;

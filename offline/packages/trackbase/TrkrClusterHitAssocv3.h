@@ -8,14 +8,14 @@
  * @brief Version 3 of class for associating clusters to the hits that went into them
  */
 
-#include "TrkrDefs.h"
 #include "TrkrClusterHitAssoc.h"
+#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 /**
  * @brief Class for associating clusters to the hits that went into them
@@ -24,13 +24,12 @@
  */
 class TrkrClusterHitAssocv3 : public TrkrClusterHitAssoc
 {
-  public:
-
+ public:
   TrkrClusterHitAssocv3() = default;
 
   void Reset() override;
 
-  void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   void addAssoc(TrkrDefs::cluskey, unsigned int) override;
 
@@ -40,11 +39,10 @@ class TrkrClusterHitAssocv3 : public TrkrClusterHitAssoc
 
   unsigned int size(void) const override;
 
-private:
-
+ private:
   std::map<TrkrDefs::hitsetkey, Map> m_map;
 
   ClassDefOverride(TrkrClusterHitAssocv3, 1);
 };
 
-#endif // TRACKBASE_TRKRCLUSTERHITASSOC_H
+#endif  // TRACKBASE_TRKRCLUSTERHITASSOC_H

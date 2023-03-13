@@ -25,8 +25,10 @@
 class TrkrCluster : public PHObject
 {
  public:
+  
   //! dtor
-  ~TrkrCluster() override {}
+  ~TrkrCluster() override = default;
+
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override
   {
@@ -34,12 +36,19 @@ class TrkrCluster : public PHObject
   }
   void Reset() override {}
   int isValid() const override { return 0; }
-  //
-  // cluster id
-  //
-  virtual TrkrDefs::cluskey getClusKey() const { return TrkrDefs::CLUSKEYMAX; }
-  virtual void setClusKey(TrkrDefs::cluskey) {}
- 
+
+  
+  //! import PHObject CopyFrom, in order to avoid clang warning
+  using PHObject::CopyFrom;
+  
+  //! copy content from base class
+  virtual void CopyFrom( const TrkrCluster& ) 
+  {}
+
+  //! copy content from base class
+  virtual void CopyFrom( TrkrCluster* ) 
+  {}
+
   //
   // cluster position
   //
@@ -53,6 +62,9 @@ class TrkrCluster : public PHObject
   //
   virtual void setAdc(unsigned int) {}
   virtual unsigned int getAdc() const { return UINT_MAX; }
+
+  virtual void setTime(const float) {}
+  virtual float getTime() const { return NAN;}
 
   //
   // convenience interface
@@ -81,7 +93,7 @@ class TrkrCluster : public PHObject
   virtual void setPosition(int /*coor*/, float /*xi*/) {}
   virtual void setGlobal() {}
   virtual void setLocal() {}
-  virtual bool isGlobal() { return true; }
+  virtual bool isGlobal() const { return true; }
   virtual float getError(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
   virtual void setError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
   virtual float getSize(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }

@@ -39,8 +39,8 @@ class PHDataNode : public PHNode
 
 template <class T>
 PHDataNode<T>::PHDataNode(T* d,
-                          const std::string& name)
-  : PHNode(name)
+                          const std::string& n)
+  : PHNode(n)
 {
   type = "PHDataNode";
   setData(d);
@@ -48,9 +48,9 @@ PHDataNode<T>::PHDataNode(T* d,
 
 template <class T>
 PHDataNode<T>::PHDataNode(T* d,
-                          const std::string& name,
+                          const std::string& n,
                           const std::string& objtype)
-  : PHNode(name, objtype)
+  : PHNode(n, objtype)
 {
   type = "PHDataNode";
   setData(d);

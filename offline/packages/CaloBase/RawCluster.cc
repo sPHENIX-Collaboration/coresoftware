@@ -2,7 +2,7 @@
 
 /*!
  * \file RawCluster.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \author Francesco Vassalli <Francesco.Vassalli@colorado.edu>
  * \version $Revision: 2  $

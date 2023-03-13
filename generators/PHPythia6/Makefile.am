@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I`root-config --incdir`
+  -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = libPHPythia6.la
 
@@ -17,17 +17,15 @@ pkginclude_HEADERS = \
 libPHPythia6_la_LDFLAGS =  \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OPT_SPHENIX)/lib \
-  `root-config --libs`
+  `root-config --libs` \
+  `fastjet-config --libs`
 
 libPHPythia6_la_LIBADD = \
   -lSubsysReco \
   -lEGPythia6 \
   -lphhepmc \
   -lHepMC \
-  -lHepMCfio \
-  -lfastjet \
-  -lCGAL
+  -lHepMCfio
 
 libPHPythia6_la_SOURCES = \
   PHPythia6.cc \

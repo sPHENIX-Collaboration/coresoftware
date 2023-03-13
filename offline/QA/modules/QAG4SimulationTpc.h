@@ -3,6 +3,7 @@
 
 #include <g4eval/SvtxEvalStack.h>  // for SvtxEvalStack
 
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <fun4all/SubsysReco.h>
@@ -20,8 +21,7 @@ class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
 class SvtxEvalStack;
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
+class ActsGeometry;
 
 /// \class QAG4SimulationTpc
 class QAG4SimulationTpc : public SubsysReco
@@ -32,6 +32,7 @@ class QAG4SimulationTpc : public SubsysReco
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
+  void set_cluster_version(int value) { m_cluster_version = value; }
 
  private:
   /// common prefix for QA histograms
@@ -53,11 +54,8 @@ class QAG4SimulationTpc : public SubsysReco
   /// true if histograms are initialized
   bool m_initialized = false;
 
-  /// Acts surface maps for surface lookup
-  ActsSurfaceMaps* m_surfmaps = nullptr;
-
   /// Acts tracking geometry for surface lookup
-  ActsTrackingGeometry* m_tGeometry = nullptr;
+  ActsGeometry* m_tGeometry = nullptr;
 
   /// cluster map
   TrkrClusterContainer* m_cluster_map = nullptr;
@@ -75,6 +73,8 @@ class QAG4SimulationTpc : public SubsysReco
   /* it is filled at Init stage. It should not change for the full run */
   std::set<int> m_layers;
   std::multimap<int, int> m_layer_region_map;
+  ClusterErrorPara _ClusErrPara;
+  int m_cluster_version = 4;
 };
 
 #endif

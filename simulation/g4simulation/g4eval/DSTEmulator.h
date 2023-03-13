@@ -8,13 +8,16 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
+#include <TRandom.h>
+
+#include "DSTCompressor.h"
 
 class PHG4Hit;
 class PHG4HitContainer;
@@ -38,7 +41,10 @@ class DSTEmulator : public SubsysReco
 
   //! constructor
   DSTEmulator( const std::string& = "DSTEmulator",
-	       const std::string &filename = "DSTana.root" );
+               const std::string &filename = "DSTana.root",
+               int nBits = 8,
+               int sabotage = 0,
+               bool compress = true);
 
   //! global initialization
   int Init(PHCompositeNode*) override;
@@ -64,7 +70,7 @@ class DSTEmulator : public SubsysReco
   // get geant hits associated to a cluster
   using G4HitSet = std::set<PHG4Hit*>;
   G4HitSet find_g4hits( TrkrDefs::cluskey ) const;
-
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
   //! get G4Particle id of max contributor to a given track
   std::pair<int,int> get_max_contributor( SvtxTrack* ) const;
 
@@ -104,14 +110,25 @@ class DSTEmulator : public SubsysReco
   using G4HitMap = std::map<TrkrDefs::cluskey,G4HitSet>;
   mutable G4HitMap m_g4hit_map;
 
-  ActsSurfaceMaps *m_surfMaps = nullptr;
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
+  ActsTransformations m_transform;
 
   TNtuple *_dst_data;
 
   // output file
   std::string _filename;
   TFile *_tfile;
+
+  DSTCompressor* m_compressor;
+
+  // Number of bits for the integer representation after compression
+  int nBits = 8;
+  // replace the decompressed residuals by a large number
+  int sabotage = 0;
+  // random seed
+  TRandom rnd;
+  // switch to apply the compressed residuals to cluster positions
+  bool apply_compression = true;
 
 };
 

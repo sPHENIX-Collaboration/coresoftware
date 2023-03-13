@@ -4,33 +4,38 @@
 #ifndef G4TPC_PHG4TPCELECTRONDRIFT_H
 #define G4TPC_PHG4TPCELECTRONDRIFT_H
 
+#include <array>
+#include <cmath>
+#include <fstream>
 #include <fun4all/SubsysReco.h>
 #include <g4main/PHG4HitContainer.h>
-
-#include <phparameter/PHParameterInterface.h>
-#include <cmath>
-#include <memory>
-
 #include <gsl/gsl_rng.h>
-#include <string>  // for string
+#include <memory>
+#include <phparameter/PHParameterInterface.h>
+#include <string>
+#include <trackbase/ActsGeometry.h>
 
 class PHG4TpcPadPlane;
 class PHG4TpcDistortion;
 class PHCompositeNode;
 class TH1;
 class TH2;
-class TH3;
 class TNtuple;
 class TFile;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
+class TrkrTruthTrackContainer;
+class TrkrClusterContainer;
+class TrkrTruthTrack;
 class DistortedTrackContainer;
+class TpcClusterBuilder;
+class PHG4TpcCylinderGeomContainer;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
-  ~PHG4TpcElectronDrift() override = default;
+  ~PHG4TpcElectronDrift() override;
   int Init(PHCompositeNode *) override;
   int InitRun(PHCompositeNode *) override;
   int process_event(PHCompositeNode *) override;
@@ -58,21 +63,31 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
   //! setup readout plane
   void registerPadPlane(PHG4TpcPadPlane *padplane);
-  
+
  private:
   //! map a given x,y,z coordinates to plane hits
-  void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
+  /* TpcClusterBuilder MapToPadPlane(const double x, const double y, const */
+  /*     double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, */
+  /*     TNtuple *ntpad, TNtuple *nthit); */
+
+  std::ofstream f_out;
 
   TrkrHitSetContainer *hitsetcontainer = nullptr;
   TrkrHitTruthAssoc *hittruthassoc = nullptr;
+  TrkrTruthTrackContainer *truthtracks = nullptr;
+  TrkrTruthTrack *current_track = nullptr;
+  TrkrClusterContainer *truthclustercontainer = nullptr; // the TrkrClusterContainer for truth clusters
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<TrkrHitSetContainer> single_hitsetcontainer;
   std::unique_ptr<PHG4TpcPadPlane> padplane;
 
   std::unique_ptr<PHG4TpcDistortion> m_distortionMap;
+  ActsGeometry* m_tGeometry;
+  PHG4TpcCylinderGeomContainer *seggeo;
+
   int event_num = 0;
   bool do_ElectronDriftQAHistos = false;
-  
+
   ///@name evaluation histograms
   //@{
   TH1 *dlong = nullptr;
@@ -90,7 +105,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TH2 *deltarnodist = nullptr;
   TH2 *deltaz = nullptr;
   //@}
-  
+
   std::unique_ptr<TFile> m_outf;
   std::unique_ptr<TFile> EDrift_outf;
 
@@ -98,7 +113,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TNtuple *nthit = nullptr;
   TNtuple *ntfinalhit = nullptr;
   TNtuple *ntpad = nullptr;
-  
+
   std::string detector;
   std::string hitnodename;
   std::string seggeonodename;
@@ -114,6 +129,12 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double max_active_radius = NAN;
   double min_time = NAN;
   double max_time = NAN;
+
+
+  /* std::array<TpcClusterBuilder,55> layer_clusterers; // Generate TrkrClusterv4's for TrkrTruthTracks */
+  TpcClusterBuilder* truth_clusterer { nullptr };
+
+  /* void buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsigned int>&); */
 
   //! rng de-allocator
   class Deleter

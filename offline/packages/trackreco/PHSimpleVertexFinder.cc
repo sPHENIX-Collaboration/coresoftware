@@ -5,7 +5,6 @@
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TpcSeedTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -74,6 +73,8 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
   _vertex_covariance_map.clear();
   _vertex_set.clear();
   
+  _active_dcacut = _base_dcacut;
+
   // Find all instances where two tracks have a dca of < _dcacut,  and capture the pair details
   // Fills _track_pair_map and _track_pair_pca_map
   checkDCAs();
@@ -81,9 +82,12 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
   /// If we didn't find any matches, try again with a slightly larger DCA cut
   if(_track_pair_map.size() == 0)
     {
-      _dcacut *= 1.5;
+      _active_dcacut = 3.0 * _base_dcacut;
       checkDCAs();
     }
+
+  if(Verbosity() > 0)
+    {  std::cout << "track pair map size " << _track_pair_map.size() << std::endl; }
 
   // get all connected pairs of tracks by looping over the track_pair map
   std::vector<std::set<unsigned int>> connected_tracks = findConnectedTracks();
@@ -283,7 +287,11 @@ void PHSimpleVertexFinder::checkDCAs()
       if(_require_mvtx)
 	{
 	  unsigned int nmvtx = 0;
-	  for(auto clusit = tr1->begin_cluster_keys(); clusit != tr1->end_cluster_keys(); ++clusit)
+	  TrackSeed *siliconseed = tr1->get_silicon_seed();
+	  if(!siliconseed)
+	    { continue; }
+
+	  for(auto clusit = siliconseed->begin_cluster_keys(); clusit != siliconseed->end_cluster_keys(); ++clusit)
 	    {
 	      if(TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId )
 		{
@@ -292,7 +300,7 @@ void PHSimpleVertexFinder::checkDCAs()
 	      if(nmvtx >= _nmvtx_required) break;
 	    }
 	  if(nmvtx < _nmvtx_required) continue;
-	  if(Verbosity() > 3) std::cout << " tr1 has nmvtx at least " << nmvtx << std::endl;
+	  if(Verbosity() > 3) std::cout << " tr1 id "  << id1 << " has nmvtx at least " << nmvtx << std::endl;
 	}
       
       // look for close DCA matches with all other such tracks
@@ -304,7 +312,11 @@ void PHSimpleVertexFinder::checkDCAs()
 	  if(_require_mvtx)
 	    {
 	      unsigned int nmvtx = 0;
-	      for(auto clusit = tr2->begin_cluster_keys(); clusit != tr2->end_cluster_keys(); ++clusit)
+	      TrackSeed *siliconseed = tr2->get_silicon_seed();
+	      if(!siliconseed)
+		{ continue; }
+	     
+	      for(auto clusit = siliconseed->begin_cluster_keys(); clusit != siliconseed->end_cluster_keys(); ++clusit)
 		{
 		  if(TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId)
 		    {
@@ -313,7 +325,7 @@ void PHSimpleVertexFinder::checkDCAs()
 		  if(nmvtx >= _nmvtx_required) break;
 		}
 	      if(nmvtx < _nmvtx_required) continue;
-	      if(Verbosity() > 3)  std::cout << " tr2 has nmvtx at least " << nmvtx << std::endl;
+	      if(Verbosity() > 3)  std::cout << " tr2 id " << id2 << " has nmvtx at least " << nmvtx << std::endl;
 	    }
 	  
 	  // find DCA of these two tracks
@@ -346,8 +358,12 @@ void PHSimpleVertexFinder::findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2)
   Eigen::Vector3d PCA2(0,0,0);  
   double dca = dcaTwoLines(a1, b1, a2,  b2, PCA1, PCA2);
 
+  if(Verbosity() > 3) { std::cout <<  " pair dca is " << dca << " _active_dcacut is " << _active_dcacut
+				  << " PCA1.x " << PCA1.x() << " PCA1.y " << PCA1.y()
+				  << " PCA2.x " << PCA2.x() << " PCA2.y " << PCA2.y() << std::endl; }
+  
   // check dca cut is satisfied, and that PCA is close to beam line
-if( fabs(dca) < _dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut) )
+  if( fabs(dca) < _active_dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut) )
     {
       if(Verbosity() > 3)
 	{
@@ -556,7 +572,7 @@ void PHSimpleVertexFinder::removeOutlierTrackPairs()
       pca_median_x = getMedian(vx);
       pca_median_y = getMedian(vy);
       pca_median_z = getMedian(vz);
-      if(Verbosity() > 1) std::cout << "Median values: x " << pca_median_x << " y " << pca_median_y << std::endl;
+      if(Verbosity() > 1) std::cout << "Median values: x " << pca_median_x << " y " << pca_median_y << " z : " << pca_median_z << std::endl;
       
       // Make the average vertex position with outlier rejection wrt the median
       for (auto cit=ret.first; cit!=ret.second; ++cit)

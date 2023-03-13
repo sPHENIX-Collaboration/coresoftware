@@ -29,6 +29,7 @@ class PHG4BbcDetector : public PHG4Detector
 
   //! construct BBC/MBD
   void ConstructMe(G4LogicalVolume *world) override;
+  void ConstructSupport(G4LogicalVolume *world);
 
   void Print(const std::string &what = "ALL") const override;
 
@@ -48,6 +49,7 @@ class PHG4BbcDetector : public PHG4Detector
   int m_SupportActiveFlag = 0;
 
   float m_bbcz = NAN;  // z-location of mid-point of quartz ckov crystals
+  float front_bbcz = NAN;  // z-location of front of BBC housing
 
   std::set<G4LogicalVolume *> m_PhysLogicalVolSet;
   std::set<G4LogicalVolume *> m_SupportLogicalVolSet;

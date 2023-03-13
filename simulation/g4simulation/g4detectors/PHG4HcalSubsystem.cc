@@ -59,7 +59,7 @@ PHG4HcalSubsystem::PHG4HcalSubsystem(const std::string& na, const int lyr)
   // for multiple SVX layers
   ostringstream nam;
   nam << na << "_" << lyr;
-  Name(nam.str().c_str());
+  Name(nam.str());
 }
 
 //_______________________________________________________________________
@@ -152,13 +152,13 @@ int PHG4HcalSubsystem::process_event(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4HcalSubsystem::GetDetector(void) const
+PHG4Detector* PHG4HcalSubsystem::GetDetector() const
 {
   return detector_;
 }
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4HcalSubsystem::GetSteppingAction(void) const
+PHG4SteppingAction* PHG4HcalSubsystem::GetSteppingAction() const
 {
   return steppingAction_;
 }

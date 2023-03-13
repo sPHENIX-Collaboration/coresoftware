@@ -8,9 +8,12 @@
 #define TRACKRECO_PHTRUTHTRACKSEEDING_H
 
 #include "PHTrackSeeding.h"
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 #include <string>  // for string
 #include <vector>
+#include <memory>
+#include <gsl/gsl_rng.h>
 
 // forward declarations
 class PHCompositeNode;
@@ -18,10 +21,11 @@ class PHG4TruthInfoContainer;
 class PHG4HitContainer;
 class TrkrHitTruthAssoc;
 class TrkrClusterContainer;
+class TrkrClusterCrossingAssoc;
 class SvtxClusterEval;
-
-//class SvtxHitMap;
-//class PHG4CellContainer;
+class TrackSeed;
+class TrackSeedContainer;
+class PHG4Particle;
 
 /// \class PHTruthTrackSeeding
 ///
@@ -64,8 +68,7 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   {
     _min_momentum = m;
   }
-void helicalTrackFit(const bool helicalTrackFit)
-{m_helicalTrackFit = helicalTrackFit; }
+
  protected:
   int Setup(PHCompositeNode* topNode) override;
 
@@ -76,18 +79,18 @@ void helicalTrackFit(const bool helicalTrackFit)
  private:
   /// fetch node pointers
   int GetNodes(PHCompositeNode* topNode);
+  int CreateNodes(PHCompositeNode* topNode);
 
-  void circleFitSeed(std::vector<TrkrDefs::cluskey> clusters,
-		     double& x, double& y, double&z,
-		       double& px, double& py, double& pz, int charge);
-void circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clusters,
-			 double& R, double& X0, double& Y0);
-  void findRoot(const double& R, const double& X0, const double& Y0,
-		double& x, double& y);
-  void lineFit(std::vector<TrkrDefs::cluskey>& clusters,
-	       double& A, double& B);
-  PHG4TruthInfoContainer* _g4truth_container = nullptr;
+  void buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters, 
+		      PHG4Particle *g4particle, TrackSeedContainer* container);
+  PHG4TruthInfoContainer* m_g4truth_container = nullptr;
+
+  /// get crossing id from intt clusters associated to track
+  /* this is a copy of the code in PHTruthSiliconAssociation */
+  std::set<short int> getInttCrossings(TrackSeed*) const;
+
   TrkrClusterContainer *m_clusterMap = nullptr;
+  TrkrClusterCrossingAssoc *m_cluster_crossing_map = nullptr;
   PHG4HitContainer* phg4hits_tpc = nullptr;
   PHG4HitContainer* phg4hits_intt = nullptr;
   PHG4HitContainer* phg4hits_mvtx = nullptr;
@@ -100,12 +103,28 @@ void circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clusters,
   unsigned int _min_layer = 0;
   unsigned int _max_layer = 60;
 
-  /// Option to perform a helical track fit to get track parameters for
-  /// truth seeded track
-  bool m_helicalTrackFit = false;
-
   //! minimal truth momentum cut (GeV)
   double _min_momentum = 50e-3;
+
+  TrackSeedContainer *_track_map_silicon = nullptr;
+  TrackSeedContainer *_track_map_combined = nullptr;
+
+  ActsGeometry *tgeometry = nullptr;
+
+  bool _circle_fit_seed = false;
+
+  //! rng de-allocator
+  class Deleter
+  {
+    public:
+    //! deletion operator
+    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+  };
+
+  //! random generator that conform with sPHENIX standard
+  /*! using a unique_ptr with custom Deleter ensures that the structure is properly freed when parent object is destroyed */
+  std::unique_ptr<gsl_rng, Deleter> m_rng;
+
 };
 
 #endif

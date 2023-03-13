@@ -7,8 +7,8 @@
 #include <Geant4/G4VisAttributes.hh>
 
 #include <iostream>  // for operator<<, basic_ostream, endl
-#include <utility>   // for pair
 #include <string>
+#include <utility>  // for pair
 
 PHG4EPDDisplayAction::PHG4EPDDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
@@ -26,7 +26,7 @@ PHG4EPDDisplayAction::~PHG4EPDDisplayAction()
 
 void PHG4EPDDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
-  for (auto it : m_LogicalVolumeMap)
+  for (const auto &it : m_LogicalVolumeMap)
   {
     G4LogicalVolume *logvol = it.first;
     if (logvol->GetVisAttributes())

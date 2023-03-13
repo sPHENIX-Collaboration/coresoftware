@@ -1,3 +1,6 @@
+#ifndef TRACKRECO_PHGENFITTRKFITTER_H
+#define TRACKRECO_PHGENFITTRKFITTER_H
+
 /*!
  *  \file		PHGenFitTrkFitter.h
  *  \brief		Refit SvtxTracks with PHGenFit.
@@ -5,10 +8,11 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef TRACKRECO_PHGENFITTRKFITTER_H
-#define TRACKRECO_PHGENFITTRKFITTER_H
-
 #include <fun4all/SubsysReco.h>
+#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
+#include <trackbase/ClusterErrorPara.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #if defined(__CLING__)
 // needed, it crashes on Ubuntu using singularity with local cvmfs install
@@ -45,12 +49,16 @@ namespace PHGenFit
 class Fitter;
 } /* namespace PHGenFit */
 
+class ActsGeometry;
+class PHCompositeNode;
+class PHG4TruthInfoContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
 class SvtxVertex;
-class PHCompositeNode;
-class PHG4TruthInfoContainer;
+class TpcDistortionCorrectionContainer;
 class TrkrClusterContainer;
+class TrackSeedContainer;
+
 class TTree;
 
 //! \brief		Refit SvtxTracks with PHGenFit.
@@ -194,7 +202,6 @@ class PHGenFitTrkFitter : public SubsysReco
     _fit_min_pT = cutMinPT;
   }
 
-
   bool is_over_write_svtxtrackmap() const
   {
     return _over_write_svtxtrackmap;
@@ -224,7 +231,10 @@ class PHGenFitTrkFitter : public SubsysReco
   {
     _vertex_min_ndf = vertexMinPT;
   }
-  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+
+  /// cluster version
+  /* Note: this could be retrived automatically using dynamic casts from TrkrCluster objects */
+  void set_cluster_version(int value) { m_cluster_version = value; }
 
   //!@name disabled layers interface
   //@{
@@ -243,6 +253,13 @@ class PHGenFitTrkFitter : public SubsysReco
 
   //@}
 
+  /// fit only tracks with silicon+MM hits
+  void set_fit_silicon_mms( bool );
+
+  /// require micromegas in SiliconMM fits
+  void set_use_micromegas( bool value )
+  { m_use_micromegas = value; }
+
   private:
   //! Event counter
   int _event = 0;
@@ -252,6 +269,12 @@ class PHGenFitTrkFitter : public SubsysReco
 
   //!Create New nodes
   int CreateNodes(PHCompositeNode*);
+
+  /// get global position for a given cluster
+  /**
+   * uses ActsTransformation to convert cluster local position into global coordinates
+   */
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*, short int crossing);
 
   /*
    * fit track with SvtxTrack as input seed.
@@ -268,40 +291,12 @@ class PHGenFitTrkFitter : public SubsysReco
       const std::vector<genfit::GFRaveVertex*>& rave_vertices,
       const std::vector<genfit::Track*>& gf_tracks);
 
-  bool pos_cov_uvn_to_rz(
-      const TVector3& u,
-      const TVector3& v,
-      const TVector3& n,
-      const TMatrixF& pos_in,
-      const TMatrixF& cov_in,
-      TMatrixF& pos_out,
-      TMatrixF& cov_out) const;
-
-  bool get_vertex_error_uvn(
-      const TVector3& u,
-      const TVector3& v,
-      const TVector3& n,
-      const TMatrixF& cov_in,
-      TMatrixF& cov_out) const;
-
   bool pos_cov_XYZ_to_RZ(
       const TVector3& n,
       const TMatrixF& pos_in,
       const TMatrixF& cov_in,
       TMatrixF& pos_out,
       TMatrixF& cov_out) const;
-
-  /*!
-   * Get 3D Rotation Matrix that rotates frame (x,y,z) to (x',y',z')
-   * Default rotate local to global, or rotate vector in global to local representation
-   */
-  TMatrixF get_rotation_matrix(
-      const TVector3 x,
-      const TVector3 y,
-      const TVector3 z,
-      const TVector3 xp = TVector3(1., 0., 0.),
-      const TVector3 yp = TVector3(0., 1., 0.),
-      const TVector3 zp = TVector3(0., 0., 1.)) const;
 
   //bool _make_separate_nodes;
   OutPutMode _output_mode = PHGenFitTrkFitter::MakeNewNode;
@@ -316,7 +311,14 @@ class PHGenFitTrkFitter : public SubsysReco
   //! disabled layers
   /** clusters belonging to disabled layers are not included in track fit */
   std::set<int> _disabled_layers;
+  
+  /// Boolean to use normal tracking geometry navigator or the
+  /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
+  bool m_fit_silicon_mms = false;
 
+  /// requires micromegas present when fitting silicon-MM surfaces
+  bool m_use_micromegas = true;
+  
   //! KalmanFitterRefTrack, KalmanFitter, DafSimple, DafRef
   std::string _track_fitting_alg_name = "DafRef";
 
@@ -334,19 +336,42 @@ class PHGenFitTrkFitter : public SubsysReco
   //! https://rave.hepforge.org/trac/wiki/RaveMethods
   std::string _vertexing_method = "avr-smoothing:1-minweight:0.5-primcut:9-seccut:9";
 
-  //PHRaveVertexFactory* _vertex_finder;
-
+  /// acts geometry
+  ActsGeometry *m_tgeometry = nullptr;
+  
   //! Input Node pointers
   PHG4TruthInfoContainer* _truth_container = nullptr;
-  TrkrClusterContainer* _clustermap = nullptr;
-  SvtxTrackMap* _trackmap = nullptr;
-  std::string _track_map_name;
+  TrkrClusterContainer* m_clustermap = nullptr;
+  
+  // track seeds
+  TrackSeedContainer *m_seedMap = nullptr;
+  TrackSeedContainer *m_tpcSeeds = nullptr;
+  TrackSeedContainer *m_siliconSeeds = nullptr;
+
   SvtxVertexMap* _vertexmap = nullptr;
 
   //! Output Node pointers
-  SvtxTrackMap* _trackmap_refit = nullptr;
-  SvtxTrackMap* _primary_trackmap = nullptr;
-  SvtxVertexMap* _vertexmap_refit = nullptr;
+  SvtxTrackMap* m_trackMap = nullptr;
+  SvtxTrackMap* m_trackMap_refit = nullptr;
+  SvtxTrackMap* m_primary_trackMap = nullptr;
+  SvtxVertexMap* m_vertexMap_refit = nullptr;
+
+  // crossing z correction
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+  
+  // distortion corrections
+  TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
+
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection m_distortionCorrection;
+ 
+  /// cluster error parametrisation
+  ClusterErrorPara m_cluster_error_parametrization;
+  
+  /// cluster version
+  int m_cluster_version = 4;
 
   //! Evaluation
   //! switch eval out
@@ -362,7 +387,7 @@ class PHGenFitTrkFitter : public SubsysReco
   TClonesArray* _tca_vertexmap = nullptr;
   TClonesArray* _tca_trackmap_refit = nullptr;
   TClonesArray* _tca_primtrackmap = nullptr;
-  TClonesArray* _tca_vertexmap_refit = nullptr;
+  TClonesArray* _tcam_vertexMap_refit = nullptr;
 
   TTree* _cluster_eval_tree = nullptr;
   float _cluster_eval_tree_x = 0;

@@ -9,38 +9,36 @@
 #include "PHG4SectorConstructor.h"
 #include "PHG4SectorDisplayAction.h"
 
-#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
-#include <g4main/PHG4Subsystem.h>         // for PHG4Subsystem
 #include <g4main/PHG4Detector.h>
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>      // for PHG4Subsystem
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4DisplacedSolid.hh>     // for G4DisplacedSolid
-#include <Geant4/G4Exception.hh>  // for G4Exception
+#include <Geant4/G4Exception.hh>          // for G4Exception
 #include <Geant4/G4ExceptionSeverity.hh>  // for FatalException, JustWarning
 #include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
-#include <Geant4/G4MaterialTable.hh>  // for G4MaterialTable
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>  // for pi
 #include <Geant4/G4Sphere.hh>
+#include <Geant4/G4String.hh>
 #include <Geant4/G4SystemOfUnits.hh>  // for cm, um, perCent
 #include <Geant4/G4ThreeVector.hh>    // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>    // for G4Transform3D, G4RotateX3D
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4Types.hh>              // for G4int
+#include <Geant4/G4Types.hh>  // for G4int
 
 #include <algorithm>  // for max
 #include <cassert>
+#include <climits>
 #include <cmath>
 #include <iostream>
 #include <sstream>
-#include <climits>
 
-using namespace PHG4Sector;
-using namespace std;
+class G4Material;
 
-PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name, PHG4Subsystem *subsys)
+PHG4Sector::PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name, PHG4Subsystem *subsys)
   : overlapcheck_sector(false)
   , name_base(name)
   , m_DisplayAction(dynamic_cast<PHG4SectorDisplayAction *>(subsys->GetDisplayAction()))
@@ -48,13 +46,13 @@ PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name, PHG4Subsys
 {
 }
 
-void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
+void PHG4Sector::PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
 {
   // geometry checks
   if (geom.get_total_thickness() == 0)
   {
     G4Exception(
-        (string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(),
+        (std::string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(),
         __FILE__, FatalException,
         " detector configured with zero thickness!");
   }
@@ -62,13 +60,13 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
   if (geom.get_min_polar_angle() == geom.get_max_polar_angle())
   {
     G4Exception(
-        (string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(),
+        (std::string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(),
         __FILE__, FatalException, "min_polar_angle = max_polar_angle!");
   }
   if (geom.get_min_polar_angle() > geom.get_max_polar_angle())
   {
     G4Exception(
-        (string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(),
+        (std::string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(),
         __FILE__, JustWarning,
         "min and max polar angle got reversed. Correcting them.");
 
@@ -79,7 +77,7 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
   if ((geom.get_min_polar_edge() == Sector_Geometry::kFlatEdge or geom.get_max_polar_edge() == Sector_Geometry::kFlatEdge) and geom.get_N_Sector() <= 2)
   {
     G4Exception(
-        (string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(),
+        (std::string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(),
         __FILE__, FatalException,
         "can NOT use flat edge for single or double sector detector!");
   }
@@ -92,7 +90,7 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
 
   // during GDML export, numerical value may change at the large digit and go beyond the 0 or pi limit.
   // therefore recess 0/pi by a small amount to avoid such problem
-  static const double epsilon = numeric_limits<float>::epsilon();
+  static const double epsilon = std::numeric_limits<float>::epsilon();
   const double sph_min_polar_angle =
       (geom.get_min_polar_edge() == Sector_Geometry::kConeEdge) ? geom.get_min_polar_angle() : (0 + epsilon);
   const double sph_max_polar_angle =
@@ -122,7 +120,7 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
                                           geom.get_max_R(), (sph_min_polar_size + sph_max_polar_size) / 2,
                                           geom.get_total_thickness());
     G4VSolid *BoxBoundary_Det_Place = new G4DisplacedSolid(
-        "BoxBoundary_Det_Place", BoxBoundary_Det, 0,
+        "BoxBoundary_Det_Place", BoxBoundary_Det, nullptr,
         G4ThreeVector(0, (sph_max_polar_size - sph_min_polar_size) / 2, 0));
 
     Boundary_Det = new G4IntersectionSolid("Boundary_Det",
@@ -150,24 +148,20 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
   // construct layers
   double z_start = -geom.get_total_thickness() / 2;
 
-  for (Sector_Geometry::t_layer_list::const_iterator it =
-           geom.layer_list.begin();
-       it != geom.layer_list.end(); ++it)
+  for (const auto &l : geom.layer_list)
   {
-    const Layer &l = (*it);
-
-    if (l.percentage_filled > 100. or l.percentage_filled < 0)
+    if (l.percentage_filled > 100. || l.percentage_filled < 0)
     {
-      stringstream s;
-      s << name_base << " have invalid layer ";
-      s << l.name << " with percentage_filled =" << l.percentage_filled;
+      std::ostringstream strstr;
+      strstr << name_base << " have invalid layer ";
+      strstr << l.name << " with percentage_filled =" << l.percentage_filled;
 
       G4Exception(
-          (string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(), __FILE__, FatalException,
-          s.str().c_str());
+          (std::string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(), __FILE__, FatalException,
+          strstr.str().c_str());
     }
 
-    const string layer_name = name_base + "_" + l.name;
+    const std::string layer_name = name_base + "_" + l.name;
 
     G4VSolid *LayerSol_Det = Construct_Sectors_Plane(layer_name + "_Sol",
                                                      z_start, l.depth * l.percentage_filled * perCent, Boundary_Det);
@@ -177,45 +171,45 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
     RegisterLogicalVolume(LayerLog_Det);
 
     RegisterPhysicalVolume(
-        new G4PVPlacement(0, G4ThreeVector(), LayerLog_Det,
+        new G4PVPlacement(nullptr, G4ThreeVector(), LayerLog_Det,
                           layer_name + "_Physical", DetectorLog_Det, false, 0, overlapcheck_sector),
         l.active);
 
     z_start += l.depth;
   }
 
-  if (abs(z_start - geom.get_total_thickness() / 2) > 1 * um)
+  if (std::abs(z_start - geom.get_total_thickness() / 2) > 1 * um)
   {
-    stringstream s;
-    s << name_base << " - accumulated thickness = "
-      << (z_start + geom.get_total_thickness() / 2) / um
-      << " um expected thickness = " << geom.get_total_thickness() / um
-      << " um";
+    std::ostringstream strstr;
+    strstr << name_base << " - accumulated thickness = "
+           << (z_start + geom.get_total_thickness() / 2) / um
+           << " um expected thickness = " << geom.get_total_thickness() / um
+           << " um";
     G4Exception(
-        (string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(),
-        __FILE__, FatalException, s.str().c_str());
+        (std::string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(),
+        __FILE__, FatalException, strstr.str().c_str());
   }
 
   m_DisplayAction->AddVolume(DetectorLog_Det, "DetectorBox");
   if (Verbosity() > 1)
   {
     std::cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base
-	   << " - total thickness = " << geom.get_total_thickness() / cm << " cm"
-	   << std::endl;
+              << " - total thickness = " << geom.get_total_thickness() / cm << " cm"
+              << std::endl;
     std::cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base << " - "
-	   << map_log_vol.size() << " logical volume constructed" << std::endl;
+              << map_log_vol.size() << " logical volume constructed" << std::endl;
     std::cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base << " - "
-	   << map_phy_vol.size() << " physical volume constructed; "
-	   << map_active_phy_vol.size() << " is active." << std::endl;
+              << map_phy_vol.size() << " physical volume constructed; "
+              << map_active_phy_vol.size() << " is active." << std::endl;
   }
 }
 
 G4VSolid *
-PHG4SectorConstructor::Construct_Sectors_Plane(  //
-    const std::string &name,                     //
-    const double start_z,                        //
-    const double thickness,                      //
-    G4VSolid *SecConeBoundary_Det                //
+PHG4Sector::PHG4SectorConstructor::Construct_Sectors_Plane(  //
+    const std::string &name,                                 //
+    const double start_z,                                    //
+    const double thickness,                                  //
+    G4VSolid *SecConeBoundary_Det                            //
 )
 {
   assert(SecConeBoundary_Det);
@@ -228,17 +222,17 @@ PHG4SectorConstructor::Construct_Sectors_Plane(  //
                                  2 * pi             //      G4double pDPhi
   );
 
-  G4VSolid *Sol_Place = new G4DisplacedSolid(name + "_Place", Sol_Raw, 0,
+  G4VSolid *Sol_Place = new G4DisplacedSolid(name + "_Place", Sol_Raw, nullptr,
                                              G4ThreeVector(0, 0, start_z + thickness / 2));
 
-  G4VSolid *Sol = new G4IntersectionSolid(name.c_str(), Sol_Place,
+  G4VSolid *Sol = new G4IntersectionSolid(name, Sol_Place,
                                           SecConeBoundary_Det);
 
   return Sol;
   //  return Sol_Place;
 }
 
-void Sector_Geometry::SetDefault()
+void PHG4Sector::Sector_Geometry::SetDefault()
 {
   N_Sector = 8;
   material = "G4_AIR";
@@ -261,7 +255,7 @@ void Sector_Geometry::SetDefault()
 }
 
 G4LogicalVolume *
-PHG4SectorConstructor::RegisterLogicalVolume(G4LogicalVolume *v)
+PHG4Sector::PHG4SectorConstructor::RegisterLogicalVolume(G4LogicalVolume *v)
 {
   if (!v)
   {
@@ -273,7 +267,7 @@ PHG4SectorConstructor::RegisterLogicalVolume(G4LogicalVolume *v)
   if (map_log_vol.find(v->GetName()) != map_log_vol.end())
   {
     std::cout << "PHG4SectorConstructor::RegisterVolume - Warning - replacing "
-           << v->GetName() << std::endl;
+              << v->GetName() << std::endl;
   }
 
   map_log_vol[v->GetName()] = v;
@@ -282,8 +276,8 @@ PHG4SectorConstructor::RegisterLogicalVolume(G4LogicalVolume *v)
 }
 
 G4PVPlacement *
-PHG4SectorConstructor::RegisterPhysicalVolume(G4PVPlacement *v,
-                                              const bool active)
+PHG4Sector::PHG4SectorConstructor::RegisterPhysicalVolume(G4PVPlacement *v,
+                                                          const bool active)
 {
   if (!v)
   {
@@ -311,52 +305,51 @@ PHG4SectorConstructor::RegisterPhysicalVolume(G4PVPlacement *v,
 }
 
 double
-Sector_Geometry::get_total_thickness() const
+PHG4Sector::Sector_Geometry::get_total_thickness() const
 {
   double sum = 0;
-  for (t_layer_list::const_iterator it = layer_list.begin();
-       it != layer_list.end(); ++it)
+  for (const auto &it : layer_list)
   {
-    sum += (*it).depth;
+    sum += it.depth;
   }
   return sum;
 }
 
 double
-Sector_Geometry::get_max_R() const
+PHG4Sector::Sector_Geometry::get_max_R() const
 {
   // Geometry check
-  assert(abs(min_polar_angle - normal_polar_angle) < pi / 2);
-  assert(abs(max_polar_angle - normal_polar_angle) < pi / 2);
+  assert(std::abs(min_polar_angle - normal_polar_angle) < pi / 2);
+  assert(std::abs(max_polar_angle - normal_polar_angle) < pi / 2);
 
   if (N_Sector <= 2)
   {
     // Geometry check
     if (cos(min_polar_angle + normal_polar_angle) <= 0)
     {
-      stringstream s;
-      s << "Geometry check failed. " << endl;
-      s << "normal_polar_angle = " << normal_polar_angle << endl;
-      s << "min_polar_angle = " << min_polar_angle << endl;
-      s << "max_polar_angle = " << max_polar_angle << endl;
-      s << "cos(min_polar_angle + normal_polar_angle) = "
-        << cos(min_polar_angle + normal_polar_angle) << endl;
+      std::stringstream strstr;
+      strstr << "Geometry check failed. " << std::endl;
+      strstr << "normal_polar_angle = " << normal_polar_angle << std::endl;
+      strstr << "min_polar_angle = " << min_polar_angle << std::endl;
+      strstr << "max_polar_angle = " << max_polar_angle << std::endl;
+      strstr << "cos(min_polar_angle + normal_polar_angle) = "
+             << cos(min_polar_angle + normal_polar_angle) << std::endl;
 
       G4Exception("Sector_Geometry::get_max_R", __FILE__, FatalException,
-                  s.str().c_str());
+                  strstr.str().c_str());
     }
     if (cos(max_polar_angle + normal_polar_angle) <= 0)
     {
-      stringstream s;
-      s << "Geometry check failed. " << endl;
-      s << "normal_polar_angle = " << normal_polar_angle << endl;
-      s << "min_polar_angle = " << min_polar_angle << endl;
-      s << "max_polar_angle = " << max_polar_angle << endl;
-      s << "cos(max_polar_angle + normal_polar_angle) = "
-        << cos(max_polar_angle + normal_polar_angle) << endl;
+      std::stringstream strstr;
+      strstr << "Geometry check failed. " << std::endl;
+      strstr << "normal_polar_angle = " << normal_polar_angle << std::endl;
+      strstr << "min_polar_angle = " << min_polar_angle << std::endl;
+      strstr << "max_polar_angle = " << max_polar_angle << std::endl;
+      strstr << "cos(max_polar_angle + normal_polar_angle) = "
+             << cos(max_polar_angle + normal_polar_angle) << std::endl;
 
       G4Exception("Sector_Geometry::get_max_R", __FILE__, FatalException,
-                  s.str().c_str());
+                  strstr.str().c_str());
     }
 
     const double max_tan_angle = std::max(
@@ -378,7 +371,7 @@ Sector_Geometry::get_max_R() const
 //! add Entrace window and drift volume
 //! Ref: P. Abbon et al. The COMPASS experiment at CERN. Nucl. Instrum. Meth., A577:455
 //! 518, 2007. arXiv:hep-ex/0703049, doi:10.1016/j.nima.2007.03.026. 3
-void Sector_Geometry::AddLayers_DriftVol_COMPASS(const double drift_vol_thickness)
+void PHG4Sector::Sector_Geometry::AddLayers_DriftVol_COMPASS(const double drift_vol_thickness)
 {
   //  (drift chamber) is enclosed by two Mylarr [52] cathode foils of 25um thickness,
   //  coated with about 10um of graphite,
@@ -392,7 +385,7 @@ void Sector_Geometry::AddLayers_DriftVol_COMPASS(const double drift_vol_thicknes
 //! Ref: W. Anderson et al. Design, Construction, Operation and Performance of a Hadron
 //! Blind Detector for the PHENIX Experiment. Nucl. Instrum. Meth., A646:35 58, 2011.
 //! arXiv:1103.4277, doi:10.1016/j.nima.2011.04.015. 3.5.1
-void Sector_Geometry::AddLayers_HBD_GEM(const int n_GEM_layers)
+void PHG4Sector::Sector_Geometry::AddLayers_HBD_GEM(const int n_GEM_layers)
 {
   // Internal HBD structure
   // From doi:10.1016/j.nima.2011.04.015
@@ -407,7 +400,7 @@ void Sector_Geometry::AddLayers_HBD_GEM(const int n_GEM_layers)
 
   for (int gem = 1; gem <= n_GEM_layers; gem++)
   {
-    stringstream sid;
+    std::stringstream sid;
     sid << gem;
 
     //  GEM Copper 1.43 0.0005x6 64 0.134
@@ -446,7 +439,7 @@ void Sector_Geometry::AddLayers_HBD_GEM(const int n_GEM_layers)
 //! Ref: W. Anderson et al. Design, Construction, Operation and Performance of a Hadron
 //! Blind Detector for the PHENIX Experiment. Nucl. Instrum. Meth., A646:35 58, 2011.
 //! arXiv:1103.4277, doi:10.1016/j.nima.2011.04.015. 3.5.1
-void Sector_Geometry::AddLayers_HBD_Readout()
+void PHG4Sector::Sector_Geometry::AddLayers_HBD_Readout()
 {
   //  Readout
   //  Readout board FR4/copper 17.1/1.43 0.05/0.001 100 0.367
@@ -462,8 +455,8 @@ void Sector_Geometry::AddLayers_HBD_Readout()
 //! Ref: T. Iijima et al. A Novel type of proximity focusing RICH counter with multiple
 //! refractive index aerogel radiator. Nucl. Instrum. Meth., A548:383 390, 2005. arXiv:
 //! physics/0504220, doi:10.1016/j.nima.2005.05.030
-void Sector_Geometry::AddLayers_AeroGel_ePHENIX(const double radiator_length,
-                                                const double expansion_length, std::string radiator)
+void PHG4Sector::Sector_Geometry::AddLayers_AeroGel_ePHENIX(const double radiator_length,
+                                                            const double expansion_length, std::string radiator)
 {
   if (radiator == "Default")
   {

@@ -6,18 +6,17 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
+CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow"
 dnl leaving this here in case we want to play with different compiler 
 dnl specific flags
 case $CXX in
+ *analyzer)
+   CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
+ ;;
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
  ;;
  *g++)
-  if test `g++ -dumpversion | gawk '{print $1>=8.0?"1":"0"}'` = 1; then
    CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
-  else
-   CXXFLAGS="$CXXFLAGS"
-  fi
  ;;
 esac
 

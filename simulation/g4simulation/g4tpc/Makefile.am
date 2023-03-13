@@ -3,14 +3,15 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+AM_CXXFLAGS = `geant4-config --cflags`
+
 lib_LTLIBRARIES = \
   libg4tpc.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(G4_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -19,23 +20,27 @@ AM_LDFLAGS = \
 libg4tpc_la_LIBADD = \
   -lphool \
   -lg4detectors \
+  -lg4tracking_io \
   -lphg4hit \
   -lphparameter \
   -ltpc_io
 
 pkginclude_HEADERS = \
   PHG4TpcCentralMembrane.h \
+  TpcClusterBuilder.h \
   PHG4TpcDigitizer.h \
   PHG4TpcDirectLaser.h \
   PHG4TpcDistortion.h \
   PHG4TpcElectronDrift.h \
   PHG4TpcEndCapSubsystem.h \
+  PHG4TpcPadBaselineShift.h \
   PHG4TpcPadPlane.h \
   PHG4TpcPadPlaneReadout.h \
   PHG4TpcSubsystem.h 
 
 libg4tpc_la_SOURCES = \
   PHG4TpcCentralMembrane.cc \
+  TpcClusterBuilder.cc \
   PHG4TpcDetector.cc \
   PHG4TpcDigitizer.cc \
   PHG4TpcDirectLaser.cc \
@@ -46,6 +51,7 @@ libg4tpc_la_SOURCES = \
   PHG4TpcEndCapDisplayAction.cc \
   PHG4TpcEndCapSteppingAction.cc \
   PHG4TpcEndCapSubsystem.cc \
+  PHG4TpcPadBaselineShift.cc \
   PHG4TpcPadPlane.cc \
   PHG4TpcPadPlaneReadout.cc \
   PHG4TpcSteppingAction.cc \

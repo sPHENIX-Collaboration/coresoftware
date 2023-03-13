@@ -10,29 +10,38 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include
+  -I$(ROOTSYS)/include 
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64
+
 pkginclude_HEADERS = \
-  TpcDefs.h \
+  TpcClusterCleaner.h \
   TpcClusterizer.h \
-  TpcSpaceChargeCorrection.h \
-  TpcClusterCleaner.h
+  TpcClusterMover.h \
+  TpcClusterZCrossingCorrection.h \
+  TpcDistortionCorrection.h \
+  TpcDistortionCorrectionContainer.h \
+  TpcLoadDistortionCorrection.h \
+  TpcRawWriter.h \
+  TpcSimpleClusterizer.h
 
 pcmdir = $(libdir)
 
 # sources for tpc library
 libtpc_la_SOURCES = \
+  TpcClusterCleaner.cc \
   TpcClusterizer.cc \
-  TpcSpaceChargeCorrection.cc \
-  TpcClusterCleaner.cc
+  TpcLoadDistortionCorrection.cc \
+  TpcRawWriter.cc \
+  TpcSimpleClusterizer.cc
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
+  -lmicromegas_io \
   -lfun4all \
   -lSpectrum \
   -lpthread
@@ -40,7 +49,9 @@ libtpc_la_LIBADD = \
 # sources for io library
 libtpc_io_la_SOURCES = \
   $(ROOTDICTS) \
-  TpcDefs.cc
+  TpcDistortionCorrection.cc \
+  TpcClusterMover.cc \
+  TpcClusterZCrossingCorrection.cc
 
 libtpc_io_la_LIBADD = \
   -ltrack_io \

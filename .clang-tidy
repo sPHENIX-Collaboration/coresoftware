@@ -1,0 +1,16 @@
+Checks: 'modernize-use-using, modernize-loop-convert, modernize-use-nullptr, modernize-use-emplace, modernize-redundant-void-arg, modernize-use-bool-literals, modernize-use-equals-default, performance-*, -clang-analyzer*, misc-*, bugprone-*, hicpp-braces-around-statements, hicpp-*,-hicpp-use-auto, -hicpp-no-array-decay, -hicpp-avoid-c-arrays, -bugprone-narrowing-conversions'
+# use this to find C math functions which should be replaced by std::
+#Checks: 'performance-type-promotion-in-math-fn, -clang-analyzer*'
+# use this to optimize string searching
+#Checks: 'performance-faster-string-find, -clang-analyzer*'
+# working on this - not functional yet
+#Checks: 'modernize-*, -modernize-use-trailing-return-type, -modernize-use-auto, -modernize-pass-by-value, performance-*'
+#CheckOptions:
+#  - key: modernize-use-using
+#    value:           'true'
+#  - key: modernize-loop-convert
+#    value:           'true'
+#  - key: modernize-use-trailing-return-type
+#    value:           'false'
+#  - key: modernize-use-auto
+#    value:           '0'

@@ -6,20 +6,15 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
-dnl leaving this here in case we want to play with different compiler 
-dnl specific flags
-case $CXX in
- clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
- ;;
- *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
- ;;
-esac
-
+CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow"
 
 dnl  AM_CONDITIONAL(GCC_GE_48, test `g++ -dumpversion | awk '{print $1>=4.8?"1":"0"}'` = 1)
 
+case $CXX in
+  clang++)
+    CXXFLAGS="$CXXFLAGS -Wno-c11-extensions -Wno-deprecated-copy"
+  ;;
+esac
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)

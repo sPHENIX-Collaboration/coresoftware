@@ -22,8 +22,8 @@ void BEmcRecEEMC::LoadProfile(const std::string& fname)
 
 void BEmcRecEEMC::GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi)
 {
-  theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
-  phi = atan2(yg,xg);
+  theta = std::atan(std::sqrt(xg * xg + yg * yg) / std::fabs(zg - fVz));
+  phi = std::atan2(yg, xg);
 }
 
 /*
@@ -51,46 +51,44 @@ void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
   int C_ID = BEmcRec::GetCalotype();
   //  std::cout << "Success pass data(ID): " << C_ID << std::endl;
 
-  
-  if( (C_ID == RawTowerDefs::EEMC) || (C_ID == RawTowerDefs::EEMC_crystal) )
-    {
-      const float DZ = -0.5 * BEmcRec::GetScinSize();     // in cm, tower half length
-      const float D = -6.1;    // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
-      const float X0 = -0.91;  // in cm; obtained from GEANT (should be ~ rad length)      
+  if ((C_ID == RawTowerDefs::EEMC) || (C_ID == RawTowerDefs::EEMC_crystal))
+  {
+    const float DZ = -0.5 * BEmcRec::GetScinSize();  // in cm, tower half length
+    const float D = -6.1;                            // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
+    const float X0 = -0.91;                          // in cm; obtained from GEANT (should be ~ rad length)
 
-      //      std::cout << "Success pass data(size): " << DZ << std::endl << std::endl;
-      
-      float logE = log(0.1);
-      if (E > 0.1) logE = log(E);
-      float zV = zA - fVz;
-      float cosT = fabs(zV) / sqrt(xA * xA + yA * yA + zV * zV);
+    //      std::cout << "Success pass data(size): " << DZ << std::endl << std::endl;
 
-      zC = (zA - DZ) + (D + X0 * logE) * cosT;  //Only the shower depth corrected
-      //  zC = zA; // !!!!!
+    float logE = log(0.1);
+    if (E > 0.1) logE = std::log(E);
+    float zV = zA - fVz;
+    float cosT = std::fabs(zV) / std::sqrt(xA * xA + yA * yA + zV * zV);
 
-      xC = xA;  // Keep the x and y the same. The x and y correction is in another code
-      yC = yA;
-    }
-  else if( C_ID == RawTowerDefs::EEMC_glass )
-    {
-      const float DZ = -0.5 * BEmcRec::GetScinSize();     // in cm, tower half length
-      const float D = -15.25;    // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
-      const float X0 = -2.275;  // in cm; obtained from GEANT (should be ~ rad length)            
+    zC = (zA - DZ) + (D + X0 * logE) * cosT;  //Only the shower depth corrected
+    //  zC = zA; // !!!!!
 
-      //      std::cout << "Success pass data(size): " << DZ << std::endl << std::endl;
-      
-      float logE = log(0.1);
-      if (E > 0.1) logE = log(E);
-      float zV = zA - fVz;
-      float cosT = fabs(zV) / sqrt(xA * xA + yA * yA + zV * zV);
+    xC = xA;  // Keep the x and y the same. The x and y correction is in another code
+    yC = yA;
+  }
+  else if (C_ID == RawTowerDefs::EEMC_glass)
+  {
+    const float DZ = -0.5 * BEmcRec::GetScinSize();  // in cm, tower half length
+    const float D = -15.25;                          // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
+    const float X0 = -2.275;                         // in cm; obtained from GEANT (should be ~ rad length)
 
-      zC = (zA - DZ) + (D + X0 * logE) * cosT;  //Only the shower depth corrected
-      //  zC = zA; // !!!!!
+    //      std::cout << "Success pass data(size): " << DZ << std::endl << std::endl;
 
-      xC = xA;  // Keep the x and y the same. The x and y correction is in another code
-      yC = yA;
-    }
+    float logE = log(0.1);
+    if (E > 0.1) logE = std::log(E);
+    float zV = zA - fVz;
+    float cosT = std::fabs(zV) / std::sqrt(xA * xA + yA * yA + zV * zV);
 
+    zC = (zA - DZ) + (D + X0 * logE) * cosT;  //Only the shower depth corrected
+    //  zC = zA; // !!!!!
+
+    xC = xA;  // Keep the x and y the same. The x and y correction is in another code
+    yC = yA;
+  }
 }
 
 void BEmcRecEEMC::CorrectEnergy(float Energy, float /*x*/, float /*y*/,
@@ -150,8 +148,8 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   zA -= fVz;
   //  float sinTx = xA / sqrt(xA * xA + zA * zA);
   //  float sinTy = yA / sqrt(yA * yA + zA * zA);
-  float sinTy = xA / sqrt(xA * xA + zA * zA);  // x is second index in here
-  float sinTx = yA / sqrt(yA * yA + zA * zA);
+  float sinTy = xA / std::sqrt(xA * xA + zA * zA);  // x is second index in here
+  float sinTx = yA / std::sqrt(yA * yA + zA * zA);
   float sin2Tx = sinTx * sinTx;
   float sin2Ty = sinTy * sinTy;
 
@@ -167,16 +165,14 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
 
   yZero = -yZero;  // Because tower index in X decreases with increasing X in EEMC (y is actually x here!)
 
-  t = 0.98 + 0.98 * sqrt(Energy);
+  t = 0.98 + 0.98 * std::sqrt(Energy);
   t *= 0.7;  // Temp correction
-  bx = 0.20 - 0.009 * log(Energy) + t * sin2Tx;
-  by = 0.20 - 0.009 * log(Energy) + t * sin2Ty;
+  bx = 0.20 - 0.009 * std::log(Energy) + t * sin2Tx;
+  by = 0.20 - 0.009 * std::log(Energy) + t * sin2Ty;
 
   x0 = x + xZero;
   ix0 = EmcCluster::lowint(x0 + 0.5);
 
-
-  
   if (EmcCluster::ABS(x0 - ix0) <= 0.5)
   {
     x0 = (ix0 - xZero) + bx * asinh(2. * (x0 - ix0) * sinh(0.5 / bx));
@@ -186,7 +182,7 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   {
     xc = x;
     std::cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: x = "
-         << x << ", dx = " << x0 - ix0 << std::endl;
+              << x << ", dx = " << x0 - ix0 << std::endl;
   }
 
   y0 = y + yZero;
@@ -201,7 +197,6 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   {
     yc = y;
     std::cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: y = "
-         << y << ",  dy = " << y0 - iy0 << std::endl;
+              << y << ",  dy = " << y0 - iy0 << std::endl;
   }
-  
 }

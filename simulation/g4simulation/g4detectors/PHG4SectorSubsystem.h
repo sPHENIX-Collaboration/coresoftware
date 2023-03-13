@@ -7,7 +7,7 @@
 
 #include <g4main/PHG4Subsystem.h>
 
-#include <string>                   // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4Detector;
@@ -61,25 +61,25 @@ class PHG4SectorSubsystem : public PHG4Subsystem
 
   //! geometry manager PHG4Sector::Sector_Geometry
   void
-  set_geometry(const PHG4Sector::Sector_Geometry& g)
+  set_geometry(const PHG4Sector::Sector_Geometry& geo)
   {
-    geom = g;
+    geom = geo;
   }
 
  private:
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4SectorDetector* m_Detector;
+  PHG4SectorDetector* m_Detector = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction;
+  PHG4DisplayAction* m_DisplayAction = nullptr;
 
-  std::string superdetector;
+  std::string superdetector = "NONE";
 
   PHG4Sector::Sector_Geometry geom;
 };

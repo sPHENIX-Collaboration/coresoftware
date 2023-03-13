@@ -5,14 +5,14 @@ lib_LTLIBRARIES = \
   libg4detectors_io.la \
   libg4detectors.la
 
-AM_CXXFLAGS = `geant4-config --cflags  | sed s/-Woverloaded-virtual// | sed s/-pedantic// | sed s/-Wshadow// | sed s/-W\ //`
+AM_CXXFLAGS = `geant4-config --cflags`
 
 AM_CPPFLAGS = \
   -DCGAL_DISABLE_ROUNDING_MATH_CHECK \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I$(G4_MAIN)/include \
+  -isystem$(ROOTSYS)/include \
+  -isystem$(XERCESROOT)/include \
   -I$(OPT_SPHENIX)/include
 
 # set in configure.in to check if gcc version >= 4.8
@@ -22,20 +22,23 @@ AM_CPPFLAGS = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 libg4detectors_io_la_LIBADD = \
   -lphool \
   -lphparameter
 
 
+#libgmp comes in via CGAL which is now header only
 libg4detectors_la_LIBADD = \
   libg4detectors_io.la \
+  -lffamodules \
+  -lg4testbench \
+  -lgmp \
   -lphg4gdml \
   -lphool  \
-  -lCGAL \
-  -lSubsysReco \
-  -lg4testbench 
+  -lSubsysReco
 
 pkginclude_HEADERS = \
   BeamLineMagnetSubsystem.h \
@@ -89,6 +92,8 @@ pkginclude_HEADERS = \
   PHG4SectorSubsystem.h \
   PHG4SpacalSubsystem.h \
   PHG4StepStatusDecode.h \
+  PHG4TpcCylinderGeom.h \
+  PHG4TpcCylinderGeomContainer.h \
   PHG4ZDCDefs.h \
   PHG4ZDCSubsystem.h
 
@@ -120,7 +125,9 @@ ROOT_IO_DICTS = \
   PHG4CylinderCellGeomContainer_Dict.cc \
   PHG4ScintillatorSlat_Dict.cc \
   PHG4ScintillatorSlatv1_Dict.cc \
-  PHG4ScintillatorSlatContainer_Dict.cc
+  PHG4ScintillatorSlatContainer_Dict.cc \
+  PHG4TpcCylinderGeom_Dict.cc \
+  PHG4TpcCylinderGeomContainer_Dict.cc 
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
@@ -151,7 +158,9 @@ nobase_dist_pcm_DATA = \
   PHG4CylinderCellGeomContainer_Dict_rdict.pcm \
   PHG4ScintillatorSlat_Dict_rdict.pcm \
   PHG4ScintillatorSlatv1_Dict_rdict.pcm \
-  PHG4ScintillatorSlatContainer_Dict_rdict.pcm
+  PHG4ScintillatorSlatContainer_Dict_rdict.pcm \
+  PHG4TpcCylinderGeom_Dict_rdict.pcm \
+  PHG4TpcCylinderGeomContainer_Dict_rdict.pcm 
 
 libg4detectors_io_la_SOURCES = \
   $(ROOT_IO_DICTS) \
@@ -182,7 +191,10 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellGeomContainer.cc \
   PHG4ScintillatorSlatDefs.cc \
   PHG4ScintillatorSlatv1.cc \
-  PHG4ScintillatorSlatContainer.cc
+  PHG4ScintillatorSlatContainer.cc \
+  PHG4TpcCylinderGeom.cc \
+  PHG4TpcCylinderGeomContainer.cc 
+
 
 libg4detectors_la_SOURCES = \
   BeamLineMagnetDetector.cc \

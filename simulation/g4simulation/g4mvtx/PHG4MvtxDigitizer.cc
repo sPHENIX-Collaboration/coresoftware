@@ -4,7 +4,7 @@
 
 // Move to new storage containers
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHitv2.h>                      // for TrkrHit
+#include <trackbase/TrkrHit.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
@@ -13,18 +13,18 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                     // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNode.h>                           // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
-#include <phool/phool.h>                            // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
-#include <gsl/gsl_rng.h>                            // for gsl_rng_alloc
+#include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
-#include <cstdlib>                                 // for exit
+#include <cstdlib>  // for exit
 #include <iostream>
 #include <set>
 
@@ -72,17 +72,13 @@ int PHG4MvtxDigitizer::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     cout << "====================== PHG4MvtxDigitizer::InitRun() =====================" << endl;
-    for (std::map<int, unsigned short>::iterator iter = _max_adc.begin();
-         iter != _max_adc.end();
-         ++iter)
+    for (auto &miter : _max_adc)
     {
-      cout << " Max ADC in Layer #" << iter->first << " = " << iter->second << endl;
+      cout << " Max ADC in Layer #" << miter.first << " = " << miter.second << endl;
     }
-    for (std::map<int, float>::iterator iter = _energy_scale.begin();
-         iter != _energy_scale.end();
-         ++iter)
+    for (auto &miter : _energy_scale)
     {
-      cout << " Energy per ADC in Layer #" << iter->first << " = " << 1.0e6 * iter->second << " keV" << endl;
+      cout << " Energy per ADC in Layer #" << miter.first << " = " << 1.0e6 * miter.second << " keV" << endl;
     }
     cout << "===========================================================================" << endl;
   }
@@ -152,7 +148,7 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
     cout << "Could not locate TRKR_HITSET node, quit! " << endl;
     exit(1);
   }
-  
+
   // Get the TrkrHitTruthAssoc node
   auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
 
@@ -182,26 +178,28 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
 
       // Convert the signal value to an ADC value and write that to the hit
       //unsigned int adc = hit->getEnergy() / (TrkrDefs::MvtxEnergyScaleup *_energy_scale[layer]);
-      if (Verbosity() > 0) 
-	cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << " in layer " << layer << std::endl;
+      if (Verbosity() > 0)
+        cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << " in layer " << layer << std::endl;
       // Remove the hits with energy under threshold
       bool rm_hit = false;
-      if ( (hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup) < _energy_threshold) rm_hit = true;
-
-      unsigned short adc = (unsigned short) (hit->getEnergy() / (TrkrDefs::MvtxEnergyScaleup *_energy_scale[layer]));
+      if ((hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup) < _energy_threshold)
+      {
+        if (Verbosity() > 0) std::cout << "         remove hit, below energy threshold of " << _energy_threshold << std::endl;
+        rm_hit = true;
+      }
+      unsigned short adc = (unsigned short) (hit->getEnergy() / (TrkrDefs::MvtxEnergyScaleup * _energy_scale[layer]));
       if (adc > _max_adc[layer]) adc = _max_adc[layer];
       hit->setAdc(adc);
 
       if (rm_hit) hits_rm.insert(hit_iter->first);
     }
 
-    for( const auto& key:hits_rm )
-    { 
+    for (const auto &key : hits_rm)
+    {
       if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: remove hit with key: " << key << endl;
       hitset->removeHit(key);
-      if( hittruthassoc ) hittruthassoc->removeAssoc(hitsetkey, key);
-   }
-
+      if (hittruthassoc) hittruthassoc->removeAssoc(hitsetkey, key);
+    }
   }
 
   // end new containers

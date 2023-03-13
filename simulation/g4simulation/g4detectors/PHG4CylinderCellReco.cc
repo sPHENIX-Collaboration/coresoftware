@@ -40,15 +40,12 @@ using namespace std;
 PHG4CylinderCellReco::PHG4CylinderCellReco(const string &name)
   : SubsysReco(name)
   , PHParameterContainerInterface(name)
-  , chkenergyconservation(0)
-  , sum_energy_before_cuts(0.)
-  , sum_energy_g4hit(0.)
 {
   SetDefaultParameters();
   memset(nbins, 0, sizeof(nbins));
 }
 
-int PHG4CylinderCellReco::ResetEvent(PHCompositeNode */*topNode*/)
+int PHG4CylinderCellReco::ResetEvent(PHCompositeNode * /*topNode*/)
 {
   sum_energy_before_cuts = 0.;
   sum_energy_g4hit = 0.;
@@ -75,9 +72,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
   PHNodeIterator runiter(runNode);
-  PHCompositeNode *RunDetNode =
-      dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode",
-                                                        detector));
+  PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode", detector));
   if (!RunDetNode)
   {
     RunDetNode = new PHCompositeNode(detector);
@@ -85,7 +80,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
   }
 
   hitnodename = "G4HIT_" + detector;
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     cout << "Could not locate g4 hit node " << hitnodename << endl;
@@ -96,21 +91,19 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
   if (!cells)
   {
     PHNodeIterator dstiter(dstNode);
-    PHCompositeNode *DetNode =
-        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode",
-                                                          detector));
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", detector));
     if (!DetNode)
     {
       DetNode = new PHCompositeNode(detector);
       dstNode->addNode(DetNode);
     }
     cells = new PHG4CellContainer();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str(), "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename, "PHObject");
     DetNode->addNode(newNode);
   }
 
   geonodename = "CYLINDERGEOM_" + detector;
-  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
+  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
   if (!geo)
   {
     cout << "Could not locate geometry node " << geonodename << endl;
@@ -121,11 +114,11 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
     geo->identify();
   }
   seggeonodename = "CYLINDERCELLGEOM_" + outdetector;
-  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename.c_str());
+  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename);
   if (!seggeo)
   {
     seggeo = new PHG4CylinderCellGeomContainer();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str(), "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
     runNode->addNode(newNode);
   }
 
@@ -149,6 +142,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
     implemented_detid.insert(layer);
     set_size(layer, get_double_param(layer, "size_long"), get_double_param(layer, "size_perp"));
     tmin_max.insert(std::make_pair(layer, std::make_pair(get_double_param(layer, "tmin"), get_double_param(layer, "tmax"))));
+    m_DeltaTMap.insert(std::make_pair(layer,get_double_param(layer, "delta_t")));
     double circumference = layergeom->get_radius() * 2 * M_PI;
     double length_in_z = layergeom->get_zmax() - layergeom->get_zmin();
     sizeiter = cell_size.find(layer);
@@ -171,21 +165,21 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       zmin_max[layer] = make_pair(etamin, etamax);
       double etastepsize = (sizeiter->second).first;
       double d_etabins;
-// if the eta cell size is larger than the eta range, make one bin
+      // if the eta cell size is larger than the eta range, make one bin
       if (etastepsize > etamax - etamin)
       {
-	d_etabins = 1;
+        d_etabins = 1;
       }
       else
       {
-	// it is unlikely that the eta range is a multiple of the eta cell size
-	// then fract is 0, if not - add 1 bin which makes the
-	// cells a tiny bit smaller but makes them fit
-	double fract = modf((etamax - etamin) / etastepsize, &d_etabins);
-	if (fract != 0)
-	{
-	  d_etabins++;
-	}
+        // it is unlikely that the eta range is a multiple of the eta cell size
+        // then fract is 0, if not - add 1 bin which makes the
+        // cells a tiny bit smaller but makes them fit
+        double fract = modf((etamax - etamin) / etastepsize, &d_etabins);
+        if (fract != 0)
+        {
+          d_etabins++;
+        }
       }
       etastepsize = (etamax - etamin) / d_etabins;
       (sizeiter->second).first = etastepsize;
@@ -205,20 +199,20 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       double phimax = M_PI;
       double phistepsize = (sizeiter->second).second;
       double d_phibins;
-      if (phistepsize >= phimax-phimin)
+      if (phistepsize >= phimax - phimin)
       {
-	d_phibins = 1;
+        d_phibins = 1;
       }
       else
       {
-	// it is unlikely that the phi range is a multiple of the phi cell size
-	// then fract is 0, if not - add 1 bin which makes the
-	// cells a tiny bit smaller but makes them fit
-	double fract = modf((phimax - phimin) / phistepsize, &d_phibins);
-	if (fract != 0)
-	{
-	  d_phibins++;
-	}
+        // it is unlikely that the phi range is a multiple of the phi cell size
+        // then fract is 0, if not - add 1 bin which makes the
+        // cells a tiny bit smaller but makes them fit
+        double fract = modf((phimax - phimin) / phistepsize, &d_phibins);
+        if (fract != 0)
+        {
+          d_phibins++;
+        }
       }
       phistepsize = (phimax - phimin) / d_phibins;
       (sizeiter->second).second = phistepsize;
@@ -254,18 +248,18 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       // if the size is larger than circumference, make it one bin
       if (size_r >= circumference)
       {
-	bins_r = 1;
+        bins_r = 1;
       }
       else
       {
-	// unlikely but if the circumference is a multiple of the cell size
-	// use result of division, if not - add 1 bin which makes the
-	// cells a tiny bit smaller but makes them fit
-	double fract = modf(circumference / size_r, &bins_r);
-	if (fract != 0)
-	{
-	  bins_r++;
-	}
+        // unlikely but if the circumference is a multiple of the cell size
+        // use result of division, if not - add 1 bin which makes the
+        // cells a tiny bit smaller but makes them fit
+        double fract = modf(circumference / size_r, &bins_r);
+        if (fract != 0)
+        {
+          bins_r++;
+        }
       }
       nbins[0] = bins_r;
       size_r = circumference / bins_r;
@@ -286,18 +280,18 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       // if the size is larger than length, make it one bin
       if (size_z >= length_in_z)
       {
-	bins_r = 1;
+        bins_r = 1;
       }
       else
       {
-	// unlikely but if the length is a multiple of the cell size
-	// use result of division, if not - add 1 bin which makes the
-	// cells a tiny bit smaller but makes them fit
-	double fract = modf(length_in_z / size_z, &bins_r);
-	if (fract != 0)
-	{
-	  bins_r++;
-	}
+        // unlikely but if the length is a multiple of the cell size
+        // use result of division, if not - add 1 bin which makes the
+        // cells a tiny bit smaller but makes them fit
+        double fract = modf(length_in_z / size_z, &bins_r);
+        if (fract != 0)
+        {
+          bins_r++;
+        }
       }
       nbins[1] = bins_r;
       pair<int, int> phi_z_bin = make_pair(nbins[0], nbins[1]);
@@ -369,7 +363,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
 
 int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 {
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     cout << "Could not locate g4 hit node " << hitnodename << endl;
@@ -382,7 +376,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename.c_str());
+  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename);
   if (!seggeo)
   {
     cout << "could not locate geo node " << seggeonodename << endl;
@@ -420,6 +414,8 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         // checking ADC timing integration window cut
         if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
         if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
+	if (hiter->second->get_t(1) - hiter->second->get_t(0) > m_DeltaTMap[*layer]) continue;
+
 
         pair<double, double> etaphi[2];
         double phibin[2];
@@ -623,6 +619,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         // checking ADC timing integration window cut
         if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
         if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
+	if (hiter->second->get_t(1) - hiter->second->get_t(0) > 100) continue;
 
         double xinout[2];
         double yinout[2];
@@ -998,5 +995,6 @@ void PHG4CylinderCellReco::SetDefaultParameters()
   set_default_double_param("size_perp", NAN);
   set_default_double_param("tmax", 60.0);
   set_default_double_param("tmin", -20.0);  // collision has a timing spread around the triggered event. Accepting negative time too.
+  set_default_double_param("delta_t", 100.);
   return;
 }

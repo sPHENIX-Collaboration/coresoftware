@@ -6,15 +6,13 @@
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
-#include <Geant4/G4String.hh>          // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4VisAttributes.hh>
 
 #include <TSystem.h>
 
 #include <iostream>
-#include <utility>                     // for pair
-
-using namespace std;
+#include <utility>  // for pair
 
 PHG4SectorDisplayAction::PHG4SectorDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
@@ -30,10 +28,10 @@ PHG4SectorDisplayAction::~PHG4SectorDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4SectorDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
+void PHG4SectorDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
-  for (auto it : m_LogicalVolumeMap)
+  for (const auto &it : m_LogicalVolumeMap)
   {
     G4LogicalVolume *logvol = it.first;
     if (logvol->GetVisAttributes())
@@ -56,7 +54,7 @@ void PHG4SectorDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
     }
     else
     {
-      cout << "unknown logical volume " << it.second << endl;
+      std::cout << "unknown logical volume " << it.second << std::endl;
       gSystem->Exit(1);
     }
     logvol->SetVisAttributes(visatt);

@@ -1,9 +1,9 @@
 #include "BeamLineMagnetSubsystem.h"
+
 #include "BeamLineMagnetDetector.h"
 #include "BeamLineMagnetDisplayAction.h"
 #include "BeamLineMagnetSteppingAction.h"
-
-#include <g4detectors/PHG4DetectorSubsystem.h>  // for PHG4DetectorSubsystem
+#include "PHG4DetectorSubsystem.h"  // for PHG4DetectorSubsystem
 
 #include <phparameter/PHParameters.h>
 
@@ -49,9 +49,10 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->Verbosity(Verbosity());
-  std::set<std::string> nodes;
+
   if (GetParams()->get_int_param("active"))
   {
+    std::set<std::string> nodes;
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode *DetNode = dstNode;
     if (SuperDetector() != "NONE" || SuperDetector().empty())
@@ -79,7 +80,7 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     {
       nodes.insert(m_AbsorberNodeName);
     }
-    for (auto node : nodes)
+    for (const auto &node : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
       if (!g4_hits)
@@ -89,8 +90,8 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       }
     }
     m_SteppingAction = new BeamLineMagnetSteppingAction(m_Detector, GetParams());
-    m_SteppingAction->SetHitNodeName("G4HIT",m_HitNodeName);
-    m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER",m_AbsorberNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
   }
   else if (GetParams()->get_int_param("blackhole"))
   {
@@ -112,7 +113,7 @@ int BeamLineMagnetSubsystem::process_event(PHCompositeNode *topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector *BeamLineMagnetSubsystem::GetDetector(void) const
+PHG4Detector *BeamLineMagnetSubsystem::GetDetector() const
 {
   return m_Detector;
 }
@@ -142,7 +143,7 @@ void BeamLineMagnetSubsystem::SetDefaultParameters()
   set_default_double_param("rot_z", 0.);
   set_default_double_param("inner_radius", 4);
   set_default_double_param("outer_radius", 100);
-  set_default_double_param("skin_thickness",0.); // Fe thickness before tracks are terminated
+  set_default_double_param("skin_thickness", 0.);  // Fe thickness before tracks are terminated
 }
 
 void BeamLineMagnetSubsystem::Print(const std::string & /*what*/) const

@@ -1,6 +1,7 @@
 #ifndef QA_QAG4SIMULATIONMICROMEGAS_H
 #define QA_QAG4SIMULATIONMICROMEGAS_H
 
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <fun4all/SubsysReco.h>
@@ -8,17 +9,18 @@
 #include <set>
 #include <string>
 
+class ActsGeometry;
 class PHCompositeNode;
 class PHG4CylinderGeomContainer;
 class PHG4Hit;
+class PHG4Particle;
 class PHG4HitContainer;
 class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
-
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
+class PHG4TruthInfoContainer;
+class SvtxEvalStack;
 
 /// \class QAG4SimulationMicromegas
 class QAG4SimulationMicromegas : public SubsysReco
@@ -29,11 +31,12 @@ class QAG4SimulationMicromegas : public SubsysReco
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
+  void set_cluster_version(int value) { m_cluster_version = value; }
 
  private:
   /// common prefix for QA histograms
   std::string get_histo_prefix() const;
-
+  std::unique_ptr<SvtxEvalStack> m_svtxEvalStack;
   /// load nodes
   int load_nodes(PHCompositeNode*);
 
@@ -53,11 +56,8 @@ class QAG4SimulationMicromegas : public SubsysReco
   //! micromegas geometry
   PHG4CylinderGeomContainer* m_micromegas_geonode = nullptr;
 
-  /// Acts surface maps for surface lookup
-  ActsSurfaceMaps* m_surfmaps = nullptr;
-
   /// Acts tracking geometry for surface lookup
-  ActsTrackingGeometry* m_tGeometry = nullptr;
+  ActsGeometry* m_tGeometry = nullptr;
 
   /// cluster map
   TrkrClusterContainer* m_cluster_map = nullptr;
@@ -74,9 +74,12 @@ class QAG4SimulationMicromegas : public SubsysReco
   /// g4 hits
   PHG4HitContainer* m_g4hits_micromegas = nullptr;
 
+  PHG4TruthInfoContainer* m_truthContainer;
   /// list of relevant layers
   /* it is filled at Init stage. It should not change for the full run */
   std::set<int> m_layers;
+  ClusterErrorPara _ClusErrPara;
+  int m_cluster_version = 4;
 };
 
 #endif

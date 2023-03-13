@@ -7,7 +7,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -50,17 +50,13 @@ int TpcClusterCleaner::InitRun(PHCompositeNode *topNode)
 int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 {
 
+  if(m_cluster_version==4) return Fun4AllReturnCodes::EVENT_OK;
+
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
   {
     std::cout << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (!_hitsets)
-  {
-    std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
   }
 
   std::set<TrkrDefs::cluskey>  discard_set;
@@ -69,14 +65,11 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 
   // loop over all TPC clusters
   if(Verbosity() > 0) std::cout << std::endl << "original size of cluster map: " << _cluster_map->size() << std::endl;  
-  TrkrHitSetContainer::ConstRange hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
-  for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
-      hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    TrkrClusterContainer::ConstRange clusRange = _cluster_map->getClusters(hitsetitr->first);
-    TrkrClusterContainer::ConstIterator clusiter;
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
+  {
+    TrkrClusterContainer::ConstRange clusRange = _cluster_map->getClusters(hitsetkey);
     
-    for (clusiter = clusRange.first; 
+    for ( auto clusiter = clusRange.first; 
 	 clusiter != clusRange.second; ++clusiter)
       {
 	TrkrDefs::cluskey cluskey = clusiter->first;

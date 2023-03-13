@@ -7,8 +7,10 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
   libcalo_reco.la 
 
+#
 libcalo_reco_la_LDFLAGS = \
   -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib64 \
   -L$(OFFLINE_MAIN)/lib
 
 libcalo_reco_la_LIBADD = \
@@ -19,21 +21,27 @@ libcalo_reco_la_LIBADD = \
   -lgslcblas \
   -lg4vertex_io \
   -lcalo_io \
+  -lsph_onnx \
+  -lcaloCalibDBFile \
+  -lcdbobjects \
   -lphparameter
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include 
+  -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
+  CaloWaveformProcessing.h \
+  CaloTowerBuilder.h \
+  CaloTowerCalib.h \
   RawClusterBuilderFwd.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
   RawClusterPositionCorrection.h \
   RawTowerCalibration.h 
-  
+
 libcalo_reco_la_SOURCES = \
   BEmcCluster.cc \
   BEmcProfile.cc \
@@ -41,6 +49,9 @@ libcalo_reco_la_SOURCES = \
   BEmcRecCEMC.cc \
   BEmcRecFEMC.cc \
   BEmcRecEEMC.cc \
+  CaloWaveformProcessing.cc \
+  CaloTowerBuilder.cc \
+  CaloTowerCalib.cc \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \

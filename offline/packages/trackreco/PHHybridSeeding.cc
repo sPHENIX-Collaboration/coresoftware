@@ -14,7 +14,7 @@
 
 // trackbase_historic includes
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -24,8 +24,8 @@
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
 
 // sPHENIX Geant4 includes
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -99,8 +99,8 @@ PHHybridSeeding::PHHybridSeeding(
 
 int PHHybridSeeding::InitializeGeometry(PHCompositeNode *topNode)
 {
-  PHG4CylinderCellGeomContainer *cellgeos = findNode::getClass<
-      PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcCylinderGeomContainer *cellgeos = findNode::getClass<
+      PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   PHG4CylinderGeomContainer *laddergeos = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   PHG4CylinderGeomContainer *mapsladdergeos = findNode::getClass<
@@ -115,9 +115,9 @@ int PHHybridSeeding::InitializeGeometry(PHCompositeNode *topNode)
   _layer_ilayer_map_all.clear();
   if (cellgeos)
   {
-    PHG4CylinderCellGeomContainer::ConstRange layerrange =
+    PHG4TpcCylinderGeomContainer::ConstRange layerrange =
         cellgeos->get_begin_end();
-    for (PHG4CylinderCellGeomContainer::ConstIterator layeriter =
+    for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter =
              layerrange.first;
          layeriter != layerrange.second; ++layeriter)
     {
@@ -168,12 +168,12 @@ int PHHybridSeeding::InitializeGeometry(PHCompositeNode *topNode)
   }
   if (cellgeos)
   {
-    PHG4CylinderCellGeomContainer::ConstRange begin_end =
+    PHG4TpcCylinderGeomContainer::ConstRange begin_end =
         cellgeos->get_begin_end();
-    PHG4CylinderCellGeomContainer::ConstIterator miter = begin_end.first;
+    PHG4TpcCylinderGeomContainer::ConstIterator miter = begin_end.first;
     for (; miter != begin_end.second; ++miter)
     {
-      PHG4CylinderCellGeom *geo = miter->second;
+      PHG4TpcCylinderGeom *geo = miter->second;
       _radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
           geo->get_radius() + 0.5 * geo->get_thickness();
 
@@ -304,13 +304,13 @@ int PHHybridSeeding::Process(PHCompositeNode */*topNode*/)
       if(Verbosity()>1) cout << (int)TrkrDefs::getLayer(c) << endl;
     }
   }
-  vector<SvtxTrack_v2> seeds = fitter->ALICEKalmanFilter(clusterLists,false);
+  vector<SvtxTrack_v3> seeds = fitter->ALICEKalmanFilter(clusterLists,false);
   if(Verbosity()>0) cout << "nseeds: " << seeds.size() << "\n";
   publishSeeds(seeds);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHHybridSeeding::publishSeeds(vector<SvtxTrack_v2> seeds)
+void PHHybridSeeding::publishSeeds(vector<SvtxTrack_v3> seeds)
 {
   for(size_t i=0;i<seeds.size();i++)
   {

@@ -1,50 +1,15 @@
 #ifndef KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H
 #define KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H
 
-#include "KFParticle_Tools.h"
-
-#include <intt/InttDefs.h>
-#include <mvtx/MvtxDefs.h>
-#include <tpc/TpcDefs.h>
-
-#include <g4eval/SvtxClusterEval.h>
-#include <g4eval/SvtxEvalStack.h>
-#include <g4eval/SvtxHitEval.h>
-#include <g4eval/SvtxTrackEval.h>
-#include <g4eval/SvtxTruthEval.h>
-#include <g4eval/SvtxVertexEval.h>
-
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
-
-#include <phhepmc/PHHepMCGenEvent.h>
-#include <phhepmc/PHHepMCGenEventMap.h>
-#include <phool/getClass.h>
-
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrDefs.h>
-
-#include <TTree.h>
-#include <KFParticle.h>
-
-#include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>
-#include <HepMC/IteratorRange.h> 
-#include <HepMC/SimpleVector.h>
-
-#include <algorithm>
-#include <iterator>
 #include <string>
 #include <vector>
 
 class PHCompositeNode;
 class PHG4Particle;
 class PHG4VtxPoint;
+class PHG4TruthInfoContainer;
+class PHHepMCGenEvent;
+class PHHepMCGenEventMap;
 class SvtxClusterEval;
 class SvtxEvalStack;
 class SvtxHitEval;
@@ -59,6 +24,11 @@ class TrkrClusterContainer;
 class TTree;
 class KFParticle;
 
+namespace HepMC
+{
+  class GenParticle;
+}
+
 class KFParticle_truthAndDetTools
 {
  public:
@@ -72,6 +42,8 @@ class KFParticle_truthAndDetTools
 
   void initializeTruthBranches(TTree *m_tree, int daughter_id, std::string daughter_number, bool m_constrain_to_vertex_truthMatch);
   void fillTruthBranch(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id, KFParticle vertex, bool m_constrain_to_vertex_truthMatch);
+
+  void fillGeant4Branch(PHG4Particle *particle, int daughter_id);
   void fillHepMCBranch(HepMC::GenParticle *particle, int daughter_id);
   int getHepMCInfo(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id);
 
@@ -81,9 +53,9 @@ class KFParticle_truthAndDetTools
   void initializeDetectorBranches(TTree *m_tree, int daughter_id, std::string daughter_number);
   void initializeSubDetectorBranches(TTree *m_tree, std::string detectorName, int daughter_id, std::string daughter_number);
   void fillDetectorBranch(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id);
- 
-  void allPVInfo(PHCompositeNode *topNode, TTree *m_tree, 
-                 KFParticle motherParticle, 
+
+  void allPVInfo(PHCompositeNode *topNode, TTree *m_tree,
+                 KFParticle motherParticle,
                  std::vector<KFParticle> daughters,
                  std::vector<KFParticle> intermediates);
 
@@ -176,8 +148,9 @@ class KFParticle_truthAndDetTools
   std::vector<float> allPV_intermediates_IP[max_tracks];
   std::vector<float> allPV_intermediates_IPchi2[max_tracks];
 
-  PHHepMCGenEventMap *m_geneventmap = NULL;
-  PHHepMCGenEvent *m_genevt = NULL;
+  PHG4TruthInfoContainer *m_truthinfo = nullptr;
+  PHHepMCGenEventMap *m_geneventmap = nullptr;
+  PHHepMCGenEvent *m_genevt = nullptr;
 };
 
-#endif //KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H
+#endif  //KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H

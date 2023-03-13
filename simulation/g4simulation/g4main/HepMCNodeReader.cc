@@ -18,7 +18,10 @@
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
+#pragma GCC diagnostic pop
 #include <HepMC/GenParticle.h>
 #include <HepMC/GenVertex.h>
 #include <HepMC/IteratorRange.h>
@@ -141,7 +144,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
   float worldsizex = rc->get_FloatFlag("WorldSizex");
   float worldsizey = rc->get_FloatFlag("WorldSizey");
   float worldsizez = rc->get_FloatFlag("WorldSizez");
-  string worldshape = rc->get_CharFlag("WorldShape");
+  string worldshape = rc->get_StringFlag("WorldShape");
 
   enum
   {

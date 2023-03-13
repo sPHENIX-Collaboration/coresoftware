@@ -15,9 +15,11 @@
 #include "PHPointerListIterator.h"
 #include "phooldefs.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/algorithm/string.hpp>
+#pragma GCC diagnostic pop
 
-#include <utility> 
 #include <vector>
 
 PHNodeIterator::PHNodeIterator(PHCompositeNode* node)
@@ -69,7 +71,7 @@ PHNodeIterator::findFirst(const std::string& requiredType, const std::string& re
       }
     }
   }
-  return 0;
+  return nullptr;
 }
 
 PHNode*
@@ -96,7 +98,7 @@ PHNodeIterator::findFirst(const std::string& requiredName)
       }
     }
   }
-  return 0;
+  return nullptr;
 }
 
 bool PHNodeIterator::cd(const std::string& pathString)
@@ -116,10 +118,10 @@ bool PHNodeIterator::cd(const std::string& pathString)
     bool pathFound;
     PHNode* subNode;
     int i = 0;
-    for (std::vector<std::string>::const_iterator iter = splitpath.begin(); iter != splitpath.end(); ++iter)
+    for (const auto & iter : splitpath)
     {
       i++;
-      if (*iter == "..")
+      if (iter == "..")
       {
         if (currentNode->getParent())
         {
@@ -136,7 +138,7 @@ bool PHNodeIterator::cd(const std::string& pathString)
         pathFound = false;
         while ((subNode = subNodeIter()))
         {
-          if (subNode->getType() == "PHCompositeNode" && subNode->getName() == *iter)
+          if (subNode->getType() == "PHCompositeNode" && subNode->getName() == iter)
           {
             currentNode = static_cast<PHCompositeNode*>(subNode);
             pathFound = true;

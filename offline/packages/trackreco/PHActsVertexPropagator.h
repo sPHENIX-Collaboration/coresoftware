@@ -3,25 +3,30 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <Acts/Propagator/Propagator.hpp>
+#pragma GCC diagnostic pop
+
 #include <Acts/Utilities/Result.hpp>
 #include <Acts/Surfaces/CylinderSurface.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 
-#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/EventData/Trajectories.hpp>
 
 class SvtxTrackMap;
 class SvtxVertexMap;
 class SvtxTrack;
 
-using BoundTrackParamPtr = 
-  std::unique_ptr<const Acts::BoundTrackParameters>;
-using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
+using BoundTrackParam = 
+  const Acts::BoundTrackParameters;
+using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
-using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
+using Trajectory = ActsExamples::Trajectories;
 
 class PHActsVertexPropagator : public SubsysReco
 {
@@ -38,12 +43,14 @@ class PHActsVertexPropagator : public SubsysReco
 
   int getNodes(PHCompositeNode *topNode);
   void setTrackVertexTo0();
-  BoundTrackParamPtrResult propagateTrack(const Acts::BoundTrackParameters& params,
+  BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params,
 					  const unsigned int vtxid);
-  Acts::Vector3D getVertex(const unsigned int vtxid);
-  void updateSvtxTrack(SvtxTrack* track, const Acts::BoundTrackParameters& params);
-  void updateTrackDCA(SvtxTrack* track);
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  Acts::Vector3 getVertex(const unsigned int vtxid);
+  void updateSvtxTrack(SvtxTrack* track, 
+		       const Acts::BoundTrackParameters& params);
+  void setVtxChi2();
+  
+  ActsGeometry *m_tGeometry = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;

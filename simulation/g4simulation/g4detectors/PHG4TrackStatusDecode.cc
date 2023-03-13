@@ -7,14 +7,13 @@
 #include <iostream>
 #include <map>
 
-using namespace std;
-static map<int, string> trackstatus;
+static std::map<int, std::string> trackstatus;
 
-string PHG4TrackStatusDecode::GetTrackStatus(const int istatus)
+std::string PHG4TrackStatusDecode::GetTrackStatus(const int istatus)
 {
   if (trackstatus.empty())
   {
-    cout << "filling trackstatus map" << endl;
+    std::cout << "filling trackstatus map" << std::endl;
     trackstatus[fAlive] = "fAlive";
     trackstatus[fStopButAlive] = "fStopButAlive";
     trackstatus[fStopAndKill] = "fStopAndKill";
@@ -24,7 +23,7 @@ string PHG4TrackStatusDecode::GetTrackStatus(const int istatus)
   }
   if (trackstatus.find(istatus) == trackstatus.end())
   {
-    cout << "could not find status " << istatus << " in trackstatus map" << endl;
+    std::cout << "could not find status " << istatus << " in trackstatus map" << std::endl;
     gSystem->Exit(1);
   }
   return trackstatus[istatus];

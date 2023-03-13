@@ -1,7 +1,5 @@
 #include "PH3DVertexing.h"
 
-#include "AssocInfoContainer.h"
-
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
@@ -22,7 +20,6 @@ PH3DVertexing::PH3DVertexing(const std::string& name)
     //  , _cluster_map(nullptr)
   , _vertex_map(nullptr)
   , _track_map(nullptr)
-  , _assoc_container(nullptr)
 {
 }
 
@@ -69,13 +66,6 @@ int PH3DVertexing::GetNodes(PHCompositeNode* topNode)
   if (!_track_map)
   {
     cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
-  if (!_assoc_container)
-  {
-    cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

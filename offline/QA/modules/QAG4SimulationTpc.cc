@@ -2,19 +2,18 @@
 #include "QAG4Util.h"
 #include "QAHistManagerDef.h"
 
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
 #include <g4main/PHG4HitContainer.h>
 
-#include <tpc/TpcDefs.h>
-
 #include <trackbase_historic/ActsTransformations.h>
 
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/TpcDefs.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -77,9 +76,9 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
   }
 
   // find tpc geometry
-  PHG4CylinderCellGeomContainer* geom_container =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  //auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcCylinderGeomContainer* geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  // auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
   {
     std::cout << PHWHERE << " unable to find DST node CYLINDERCELLGEOM_SVTX" << std::endl;
@@ -226,15 +225,7 @@ int QAG4SimulationTpc::load_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  if (!m_surfmaps)
-  {
-    std::cout << PHWHERE << "Error: can't find Acts surface maps"
-              << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
     std::cout << PHWHERE << "No acts tracking geometry, exiting."
@@ -326,10 +317,8 @@ void QAG4SimulationTpc::evaluate_clusters()
   if (Verbosity() > 0)
     std::cout << PHWHERE << " get all truth clusters for primary particles " << std::endl;
 
-  //PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetParticleRange();  // all truth cluters
+  // PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetParticleRange();  // all truth cluters
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();  // only from primary particles
-
-  ActsTransformations transformer;
 
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
        iter != range.second;
@@ -346,14 +335,38 @@ void QAG4SimulationTpc::evaluate_clusters()
       std::cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gembed " << gembed << " gflavor " << gflavor << " gprimary " << gprimary << std::endl;
 
     // Get the truth clusters from this particle
-    std::map<unsigned int, std::shared_ptr<TrkrCluster> > truth_clusters = trutheval->all_truth_clusters(g4particle);
-    for (auto it = truth_clusters.begin(); it != truth_clusters.end(); ++it)
+    const auto truth_clusters = trutheval->all_truth_clusters(g4particle);
+
+    // get circle fit parameters first
+    TrackFitUtils::position_vector_t xy_pts;
+    TrackFitUtils::position_vector_t rz_pts;
+
+    for (const auto& [gkey, gclus] : truth_clusters)
     {
-      unsigned int layer = it->first;
-      std::shared_ptr<TrkrCluster> gclus = it->second;
-      const auto gkey = gclus->getClusKey();
+      const auto layer = TrkrDefs::getLayer(gkey);
+      if (layer < 7) continue;
+
+      float gx = gclus->getX();
+      float gy = gclus->getY();
+      float gz = gclus->getZ();
+
+      xy_pts.emplace_back(gx, gy);
+      rz_pts.emplace_back(std::sqrt(gx * gx + gy * gy), gz);
+    }
+
+    // fit a circle through x,y coordinates
+    const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin(xy_pts);
+    const auto [slope, intercept] = TrackFitUtils::line_fit(rz_pts);
+
+    // skip chain entirely if fit fails
+    if (std::isnan(R)) continue;
+
+    // process residuals and pulls
+    for (const auto& [gkey, gclus] : truth_clusters)
+    {
+      const auto layer = TrkrDefs::getLayer(gkey);
       const auto detID = TrkrDefs::getTrkrId(gkey);
-      //if (detID != TrkrDefs::tpcId) continue;
+      // if (detID != TrkrDefs::tpcId) continue;
       if (layer < 7) continue;
 
       float gx = gclus->getX();
@@ -375,22 +388,37 @@ void QAG4SimulationTpc::evaluate_clusters()
       h_eff0->Fill(layer);
 
       // find matching reco cluster histo
-      TrkrCluster* rclus = clustereval->reco_cluster_from_truth_cluster(gclus);
+      const auto [rkey, rclus] = clustereval->reco_cluster_from_truth_cluster(gkey, gclus);
       if (rclus)
       {
         // fill the matched cluster histo
         h_eff1->Fill(layer);
 
-        const auto global = transformer.getGlobalPosition(rclus, m_surfmaps,
-                                                          m_tGeometry);
+        const auto global = m_tGeometry->getGlobalPosition(rkey, rclus);
 
         // get relevant cluster information
-        const auto rkey = rclus->getClusKey();
         const auto r_cluster = QAG4Util::get_r(global(0), global(1));
         const auto z_cluster = global(2);
         const auto phi_cluster = (float) std::atan2(global(1), global(0));
-        const auto phi_error = rclus->getRPhiError() / r_cluster;
-        const auto z_error = rclus->getZError();
+
+        double phi_error = 0;
+        double z_error = 0;
+
+        if (m_cluster_version == 3)
+        {
+          phi_error = rclus->getRPhiError() / r_cluster;
+          z_error = rclus->getZError();
+        }
+        else
+        {
+          float r = r_cluster;
+          double alpha = (r * r) / (2 * r * R);
+          double beta = slope;
+
+          auto para_errors = _ClusErrPara.get_cluster_error(rclus, rkey, alpha, beta);
+          phi_error = sqrt(para_errors.first) / r_cluster;
+          z_error = sqrt(para_errors.second);
+        }
 
         const auto dphi = QAG4Util::delta_phi(phi_cluster, gphi);
         const auto dz = z_cluster - gz;
@@ -411,7 +439,8 @@ void QAG4SimulationTpc::evaluate_clusters()
         if (hiter == histograms.end()) continue;
 
         // fill phi residuals, errors and pulls
-        auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
+        auto fill = [](TH1* h, float value)
+        { if( h ) h->Fill( value ); };
         fill(hiter->second.drphi, r_cluster * dphi);
         fill(hiter->second.rphi_error, r_cluster * phi_error);
         fill(hiter->second.phi_pulls, dphi / phi_error);

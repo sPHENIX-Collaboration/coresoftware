@@ -10,7 +10,7 @@ class PHNode;
 class DumpPdbParameterMapContainer : public DumpObject
 {
  public:
-  DumpPdbParameterMapContainer(const std::string &NodeName);
+  explicit DumpPdbParameterMapContainer(const std::string &NodeName);
   ~DumpPdbParameterMapContainer() override {}
 
  protected:

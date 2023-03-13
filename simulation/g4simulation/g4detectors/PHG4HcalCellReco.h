@@ -25,15 +25,14 @@ class PHG4HcalCellReco : public SubsysReco, public PHParameterInterface
   //! event processing
   int process_event(PHCompositeNode *topNode) override;
 
-  //! end of process
-  int End(PHCompositeNode *topNode) override;
-
   void SetDefaultParameters() override;
 
   void Detector(const std::string &d) { detector = d; }
   void checkenergy(const int i = 1) { chkenergyconservation = i; }
 
   void set_timing_window(const double tmi, const double tma);
+
+  void set_fixed_energy(const double efix) { m_FixedEnergy = efix; }
 
  protected:
   int CheckEnergy(PHCompositeNode *topNode);
@@ -45,6 +44,8 @@ class PHG4HcalCellReco : public SubsysReco, public PHParameterInterface
 
   double tmin = NAN;
   double tmax = NAN;
+  double m_DeltaT = NAN;
+  double m_FixedEnergy = NAN;
 };
 
 #endif

@@ -10,7 +10,7 @@ class PHNode;
 class DumpPHG4TruthInfoContainer : public DumpObject
 {
  public:
-  DumpPHG4TruthInfoContainer(const std::string &NodeName);
+  explicit DumpPHG4TruthInfoContainer(const std::string &NodeName);
   ~DumpPHG4TruthInfoContainer() override {}
 
  protected:

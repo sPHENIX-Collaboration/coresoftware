@@ -10,8 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include \
-  -I$(OFFLINE_MAIN)/include/eigen3
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -19,7 +18,6 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
-  InttDefs.h \
   InttClusterizer.h \
   CylinderGeomIntt.h
 
@@ -43,8 +41,7 @@ libintt_la_LIBADD = \
 # sources for io library
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
-  CylinderGeomIntt.cc \
-  InttDefs.cc
+  CylinderGeomIntt.cc
 
 libintt_io_la_LIBADD = \
   -lCLHEP \

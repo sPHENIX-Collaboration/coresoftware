@@ -40,7 +40,7 @@ class SpacepointMeasurement : public Measurement
   void init(const TVector3& pos, const TMatrixDSym& cov);
 
   //!dtor
-  ~SpacepointMeasurement();
+  ~SpacepointMeasurement() override {}
 
  protected:
 };

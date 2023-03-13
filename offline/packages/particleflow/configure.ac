@@ -6,14 +6,9 @@ AC_PROG_CXX(CC g++)
 
 LT_INIT([disable-static])
 
-case $CXX in
- clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
- ;;
- *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
- ;;
-esac
+if test $ac_cv_prog_gxx = yes; then
+   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow -Woverloaded-virtual"
+fi
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)

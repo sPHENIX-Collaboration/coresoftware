@@ -64,7 +64,6 @@ TrkrClusterv2::TrkrClusterv2()
 void TrkrClusterv2::identify(std::ostream& os) const
 {
   os << "---TrkrClusterv2--------------------" << std::endl;
-  os << "clusid: " << getClusKey() << std::dec << std::endl;
 
   os << " (x,y,z) =  (" << getPosition(0);
   os << ", " << getPosition(1) << ", ";
@@ -131,6 +130,36 @@ int TrkrClusterv2::isValid() const
   return 1;
 }
 
+void TrkrClusterv2::CopyFrom( const TrkrCluster& source )
+{
+  // do nothing if copying onto oneself
+  if( this == &source ) return;
+ 
+  // parent class method
+  TrkrCluster::CopyFrom( source );
+
+  setX( source.getX() );
+  setY( source.getY() );
+  setZ( source.getZ() );
+  m_isGlobal = source.isGlobal();
+  setAdc( source.getAdc() );
+
+  for (int j = 0; j < 3; ++j)
+    for (int i = 0; i < 3; ++i)
+  {
+    setSize(i, j, source.getSize(i, j));
+    setError(i, j, source.getError(i, j));
+  }
+
+  setSubSurfKey( source.getSubSurfKey() );
+  setLocalX( source.getLocalX() );
+  setLocalY( source.getLocalY() );
+  
+  for (int j = 0; j < 2; ++j)
+    for (int i = 0; i < 2; ++i)
+  { setActsLocalError(i, j, source.getActsLocalError(i, j)); }
+}
+  
 void TrkrClusterv2::setSize(unsigned int i, unsigned int j, float value)
 {
   m_size[covarIndex(i, j)] = value;

@@ -4,17 +4,17 @@
 #include <fun4all/SubsysReco.h>
 
 #include <g4main/PHG4HitContainer.h>
+#include "TpcClusterBuilder.h"
 
 #include <phparameter/PHParameterInterface.h>
 
-#include <string>                              // for string
+#include <string>  // for string
 
-class PHG4CellContainer;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
 
 class PHCompositeNode;
-class PHG4CylinderCellGeomContainer;
+class PHG4TpcCylinderGeomContainer;
 class TNtuple;
 
 class PHG4TpcPadPlane : public SubsysReco, public PHParameterInterface
@@ -29,10 +29,11 @@ class PHG4TpcPadPlane : public SubsysReco, public PHParameterInterface
     return 0;
   }
   int InitRun(PHCompositeNode *topNode) override;
-  virtual int CreateReadoutGeometry(PHCompositeNode */*topNode*/, PHG4CylinderCellGeomContainer */*seggeo*/) { return 0; }
+  virtual void SetDriftVelocity(double /*vd*/) {return;}
+  virtual int CreateReadoutGeometry(PHCompositeNode * /*topNode*/, PHG4TpcCylinderGeomContainer * /*seggeo*/) { return 0; }
   virtual void UpdateInternalParameters() { return; }
-  virtual void MapToPadPlane(PHG4CellContainer */*g4cells*/, const double /*x_gem*/, const double /*y_gem*/, const double /*t_gem*/, PHG4HitContainer::ConstIterator /*hiter*/, TNtuple */*ntpad*/, TNtuple */*nthit*/) {}
-  virtual void MapToPadPlane(TrkrHitSetContainer */*single_hitsetcontainer*/, TrkrHitSetContainer */*hitsetcontainer*/, TrkrHitTruthAssoc * /*hittruthassoc*/, const double /*x_gem*/, const double /*y_gem*/, const double /*t_gem*/, PHG4HitContainer::ConstIterator /*hiter*/, TNtuple */*ntpad*/, TNtuple */*nthit*/) {}
+  //  virtual void MapToPadPlane(PHG4CellContainer * /*g4cells*/, const double /*x_gem*/, const double /*y_gem*/, const double /*t_gem*/, const unsigned int /*side*/, PHG4HitContainer::ConstIterator /*hiter*/, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) {}
+  virtual void MapToPadPlane(TpcClusterBuilder* /*builder*/, TrkrHitSetContainer * /*single_hitsetcontainer*/, TrkrHitSetContainer * /*hitsetcontainer*/, TrkrHitTruthAssoc * /*hittruthassoc*/, const double /*x_gem*/, const double /*y_gem*/, const double /*t_gem*/, const unsigned int /*side*/, PHG4HitContainer::ConstIterator /*hiter*/, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)=0;// { return {}; }
   void Detector(const std::string &name) { detector = name; }
 
  protected:

@@ -2,17 +2,17 @@
 #define TRACKRECO_PHTPCRESIDUALS_H
 
 #include <fun4all/SubsysReco.h>
+#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase_historic/ActsTransformations.h>
 
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
-
-#include <Acts/Utilities/Definitions.hpp>
-#include <Acts/Propagator/Propagator.hpp>
 #include <Acts/Utilities/Result.hpp>
-
 #include <Acts/EventData/TrackParameters.hpp>
-#include <ActsExamples/EventData/Track.hpp>
+
+#include <memory>
 
 class PHCompositeNode;
 class SvtxTrack;
@@ -21,12 +21,6 @@ class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 
-namespace ActsExamples
-{
-  class TrkrClusterSourceLink;
-}
-
-#include <memory>
 class TFile;
 class TH1;
 class TH2;
@@ -76,64 +70,72 @@ class PHTpcResiduals : public SubsysReco
   /// require micromegas to be present when extrapolating tracks to the TPC
   void setUseMicromegas( bool value )
   { m_useMicromegas = value; }
-  
- private:
 
-  using SourceLink = ActsExamples::TrkrClusterSourceLink;
-  using BoundTrackParamPtr = 
-    std::unique_ptr<const Acts::BoundTrackParameters>;
+  /// cluster version
+  /* Note: this could be retrived automatically using dynamic casts from TrkrCluster objects */
+  void setClusterVersion(int value) { m_cluster_version = value; }
+
+  private:
+
+  using BoundTrackParam = 
+    const Acts::BoundTrackParameters;
   
   /// pairs path length and track parameters
-  using BoundTrackParamPtrPair = std::pair<float,BoundTrackParamPtr>;
+  using BoundTrackParamPair = std::pair<float,BoundTrackParam>;
 
-  /// result of track extrapolation
-  using ExtrapolationResult = Acts::Result<BoundTrackParamPtrPair>;
-  
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 
+  /// get global position for a given cluster
+  /**
+   * uses ActsTransformation to convert cluster local position into global coordinates
+   */
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*, short int crossing) const;
+
   int processTracks(PHCompositeNode *topNode);
 
-  bool checkTrack(SvtxTrack* track);
+  bool checkTrack(SvtxTrack* track) const;
   void processTrack(SvtxTrack* track);
 
   /// fill track state from bound track parameters
   void addTrackState( SvtxTrack* track, float pathlength, const Acts::BoundTrackParameters& params );
   
-  /// Calculates TPC residuals given an Acts::Propagation result to
-  /// a TPC surface
-  void calculateTpcResiduals(const Acts::BoundTrackParameters& params, TrkrCluster* cluster);
-        
   /** \brief 
    * Propagates the silicon+MM track fit to the surface on which
    * an available source link in the TPC exists, added from the stub
    * matching propagation
    * returns the path lenght and the resulting parameters
    */
-  ExtrapolationResult propagateTrackState(
-  const Acts::BoundTrackParameters& params, 
-		     const SourceLink& sl);
+  BoundTrackParamPair propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surf ) const;
 
   /// Gets distortion cell for identifying bins in TPC
-  int getCell(const Acts::Vector3D& loc);
-  
-  void makeHistograms();
-  SourceLink makeSourceLink(TrkrCluster* cluster);
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
-  Surface getSurface(TrkrDefs::cluskey cluskey,
-		     TrkrDefs::subsurfkey);
-      
-  Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
-  Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey);
-  Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey);
+  int getCell(const Acts::Vector3& loc);
 
+  /// create histograms
+  void makeHistograms();
+  
+  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track) const;
+
+  /// actis transformation
+  ActsTransformations m_transformer;
+  
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
   SvtxTrackMap *m_trackMap = nullptr;
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
-  ActsSurfaceMaps *m_surfMaps = nullptr;
 
+  // crossing z correction
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+  
+  // distortion corrections
+  TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
+
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection m_distortionCorrection;
+  
   float m_maxTAlpha = 0.6;
   float m_maxResidualDrphi = 0.5; // cm
   float m_maxTBeta = 1.5;
@@ -151,6 +153,12 @@ class PHTpcResiduals : public SubsysReco
   static constexpr unsigned int m_nLayersTpc = 48;
   static constexpr float m_zMin = -105.5; // cm
   static constexpr float m_zMax = 105.5;  // cm
+ 
+  /// cluster error parametrisation
+  ClusterErrorPara m_cluster_error_parametrization;
+  
+  /// cluster version
+  int m_cluster_version = 4;
 
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
@@ -158,13 +166,22 @@ class PHTpcResiduals : public SubsysReco
   // TODO: check if needed
   int m_event = 0;
   
-  /// Counter for number of bad propagations from propagateTrackState()
-  int m_nBadProps = 0;
-
   /// require micromegas to be present when extrapolating tracks to the TPC
   bool m_useMicromegas = true;
 
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
+
+  /// running track crossing id
+  short int m_crossing = 0;
+  
+  ///@name counters
+  //@{
+  int m_total_tracks = 0;
+  int m_accepted_tracks = 0;
+
+  int m_total_clusters = 0;
+  int m_accepted_clusters = 0;
+  //@}
 
   /// Output root histograms
   bool m_savehistograms = false;
@@ -176,6 +193,18 @@ class PHTpcResiduals : public SubsysReco
   TH1 *h_index = nullptr;
   TH2 *h_alpha = nullptr;
   TH2 *h_beta = nullptr;
+  
+  //@name additional histograms that copy the per-cell data used to extract the distortions
+  //@{
+  using TH1_map_t = std::map<int,TH1*>;
+  using TH2_map_t = std::map<int,TH2*>;
+  
+  TH1_map_t h_drphi;
+  TH1_map_t h_dz;
+  TH2_map_t h_drphi_alpha;
+  TH2_map_t h_dz_beta;
+  //@}
+  
   TTree *residTup = nullptr;
 
   /// delta rphi vs layer number
@@ -203,7 +232,6 @@ class PHTpcResiduals : public SubsysReco
   double clusZErr = 0;
   double stateR = 0;
   TrkrDefs::cluskey cluskey = 0;
-
 };
 
 #endif

@@ -45,7 +45,10 @@
 #include <Geant4/G4VScoringMesh.hh>  // for G4VScoringMesh
 #include <Geant4/G4Version.hh>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/format.hpp>
+#pragma GCC diagnostic pop
 
 #include <cassert>
 #include <cmath>  // for fabs, M_PI
@@ -101,6 +104,8 @@ int PHG4ScoringManager::InitRun(PHCompositeNode */*topNode*/)
   int i = 1;
   h->GetXaxis()->SetBinLabel(i++, "Event count");
   h->GetXaxis()->SetBinLabel(i++, "Collision count");
+  h->GetXaxis()->SetBinLabel(i++, "Event count accepted");
+  h->GetXaxis()->SetBinLabel(i++, "Collision count accepted");
   //  h->GetXaxis()->SetBinLabel(i++, "G4Hit count");
   h->GetXaxis()->LabelsOption("v");
   hm->registerHisto(h);
@@ -111,7 +116,7 @@ int PHG4ScoringManager::InitRun(PHCompositeNode */*topNode*/)
 
   hm->registerHisto(new TH1D("hVertexZ",  //
                              "Vertex z distribution;z [cm];Count",
-                             1000, -200, 200));
+                             10000, m_vertexHistRange.first, m_vertexHistRange.second));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -157,8 +162,23 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
       const PHHepMCGenEvent *genevnt = genevntpair.second;
       assert(genevnt);
 
+      if (genevnt->get_collision_vertex().z() < m_vertexAcceptanceRange.first
+          or genevnt->get_collision_vertex().z() > m_vertexAcceptanceRange.second)
+      {
+        if (Verbosity() >= 2)
+        {
+          cout <<__PRETTY_FUNCTION__<<": get vertex "<<genevnt->get_collision_vertex().z()
+              <<" which is outside range "<<m_vertexAcceptanceRange.first <<" to "<<m_vertexAcceptanceRange.second<<" cm:";
+          genevnt->identify();
+        }
+
+        return Fun4AllReturnCodes::ABORTEVENT;
+      }
+
       hVertexZ->Fill(genevnt->get_collision_vertex().z());
     }
+
+    h_norm->Fill("Collision count accepted", geneventmap->size());
   }
 
   TH1D *hNChEta = dynamic_cast<TH1D *>(hm->getHisto("hNChEta"));
@@ -193,6 +213,8 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
       }
     }  //          if (_load_all_particle) else
   }
+
+  h_norm->Fill("Event count accepted", 1);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -3,23 +3,22 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4Detector.h>  // for PHG4Detector
-#include <g4main/PHG4DisplayAction.h>    // for PHG4DisplayAction
+#include <g4main/PHG4Detector.h>       // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
 #include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>   // for cm
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
 
-#include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, endl, basic_ostream
 #include <sstream>
 
+class G4Material;
 class G4VSolid;
 
 //_______________________________________________________________
@@ -60,36 +59,36 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4LogicalVolume *cone_logic = new G4LogicalVolume(cone_solid,
                                                     TrackerMaterial,
                                                     GetName() + "_LOGIC",
-                                                    0, 0, 0);
+                                                    nullptr, nullptr, nullptr);
   PHG4Subsystem *mysys = GetMySubsystem();
   mysys->SetLogicalVolume(cone_logic);
 
   G4RotationMatrix *rotm = new G4RotationMatrix();
 
   int nRotation(0);
-  if (m_Params->get_double_param("rot_x") !=0 )
+  if (m_Params->get_double_param("rot_x") != 0)
   {
-    ++ nRotation;
+    ++nRotation;
     rotm->rotateX(m_Params->get_double_param("rot_x") * deg);
   }
-  if (m_Params->get_double_param("rot_y") !=0 )
+  if (m_Params->get_double_param("rot_y") != 0)
   {
-    ++ nRotation;
+    ++nRotation;
     rotm->rotateY(m_Params->get_double_param("rot_y") * deg);
   }
-  if (m_Params->get_double_param("rot_z") !=0 )
+  if (m_Params->get_double_param("rot_z") != 0)
   {
-    ++ nRotation;
+    ++nRotation;
     rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
   }
 
-  if (nRotation>=2)
+  if (nRotation >= 2)
   {
-    std::cout <<__PRETTY_FUNCTION__<<": Warning : " <<GetName()<<" is configured with more than one of the x-y-z rotations of "
-        <<"("<<m_Params->get_double_param("rot_x")<<", "
-        <<m_Params->get_double_param("rot_x")<<", "
-        <<m_Params->get_double_param("rot_x")<<") degrees. "
-        <<"The rotation is instruction is ambiguous and they are performed in the order of X->Y->Z rotations with result rotation matrix of:";
+    std::cout << __PRETTY_FUNCTION__ << ": Warning : " << GetName() << " is configured with more than one of the x-y-z rotations of "
+              << "(" << m_Params->get_double_param("rot_x") << ", "
+              << m_Params->get_double_param("rot_x") << ", "
+              << m_Params->get_double_param("rot_x") << ") degrees. "
+              << "The rotation is instruction is ambiguous and they are performed in the order of X->Y->Z rotations with result rotation matrix of:";
     rotm->print(std::cout);
   }
 
@@ -99,6 +98,6 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
                                                   m_Params->get_double_param("place_z") * cm),
                                     cone_logic,
                                     GetName(),
-                                    logicWorld, 0, false, OverlapCheck());
+                                    logicWorld, false, false, OverlapCheck());
   m_DisplayAction->SetMyVolume(cone_logic);
 }
