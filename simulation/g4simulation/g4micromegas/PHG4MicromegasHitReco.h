@@ -89,7 +89,6 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   double m_added_smear_sigma_z = 0;
   double m_added_smear_sigma_rphi = 0;
 
-  
   //! rng de-allocator
   class Deleter
   {
