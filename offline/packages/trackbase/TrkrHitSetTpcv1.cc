@@ -95,11 +95,7 @@ TrkrHitSetTpcv1::addHitSpecificKey(const TrkrDefs::hitkey key, TrkrHit* hit)
   std::cout << __PRETTY_FUNCTION__
             << " : This function is deprecated! Please use getTpcADC(TrkrDefs::hitkey key)" << std::endl;
 
-  if (hit)
-  {
-    getTpcADC(key) = hit->getAdc();
-    delete hit;
-  }
+  exit(1);
 
   return TrkrHitSetTpc::addHitSpecificKey(key, hit);
 }
