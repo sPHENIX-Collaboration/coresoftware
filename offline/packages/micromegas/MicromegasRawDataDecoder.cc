@@ -4,6 +4,7 @@
  */
 
 #include "MicromegasRawDataDecoder.h"
+#include "MicromegasDefs.h"
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -15,8 +16,11 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 
+#include <trackbase/TrkrHitv2.h>
+#include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 
+#include <algorithm>
 #include <cassert>
 
 //_________________________________________________________
@@ -107,6 +111,7 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
   { std::cout << "MicromegasRawDataDecoder::process_event - n_waveforms: " << n_waveforms << std::endl; }
   for( int i=0; i<n_waveforms; ++i )
   {
+    
     auto channel = packet->iValue( i, "CHANNEL" );
     int fee = packet->iValue(i, "FEE" );
     int samples = packet->iValue( i, "SAMPLES" );
@@ -120,11 +125,77 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
         << " samples: " << samples
         << std::endl;
     }
+        
+    // get channel rms and pedestal from calibration data
+    const double pedestal = m_calibration_data.get_pedestal( fee, channel );
+    const double rms = m_calibration_data.get_rms( fee, channel );
     
-    // map fee and channel to physical hitsetid and physical strip
-    // process signal to get mean ADC
-    // save as hit
+    // a rms of zero means the calibration has failed. the data is unusable
+    if( rms <= 0 ) continue;
     
+    // loop over samples find maximum
+    std::vector<int> adc;
+    for( int is = std::max( m_sample_min,0 ); is < std::min( m_sample_max,samples ); ++ is )
+    { adc.push_back( packet->iValue( i, is ) ); }
+
+    if( adc.empty() ) continue;
+
+    // get max adc value in range
+    /* TODO: use more advanced signal processing */
+    auto max_adc = *std::max_element( adc.begin(), adc.end() );
+    
+    // subtract pedestal
+    max_adc -= pedestal;
+    
+    // compare to threshold
+    if( max_adc > m_n_sigma * rms ) 
+    {
+
+      // map fee and channel to physical hitsetid and physical strip
+      // get hitset key matching this fee
+      const TrkrDefs::hitsetkey hitsetkey = m_mapping.get_hitsetkey( fee );     
+      if( !hitsetkey ) continue;
+
+      // get matching physical strip
+      int strip = m_mapping.get_physical_strip( fee, channel );
+      if( strip < 0 ) continue;
+      
+      // get matching hitset
+      const auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
+
+      // generate hit key
+      const TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip);
+    
+      // find existing hit, or create
+      auto hit = hitset_it->second->getHit(hitkey);
+      if( hit ) 
+      {
+        std::cout << "MicromegasRawDataDecoder::process_event - duplicated hit, hitsetkey: " << hitsetkey << " strip: " << strip << std::endl;
+        continue;
+      }
+
+      // create hit, assign adc and insert in hitset
+      hit = new TrkrHitv2;
+      hit->setAdc( max_adc );
+      hitset_it->second->addHitSpecificKey(hitkey, hit);
+      
+      // increment counter
+      ++m_hitcounts[hitsetkey];
+      
+    }
+    
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//_____________________________________________________________________
+int MicromegasRawDataDecoder::End(PHCompositeNode* /*topNode*/ )
+{
+  // if( Verbosity() )
+  {
+    for( const auto& [hitsetkey, count]:m_hitcounts )
+    { std::cout << "MicromegasRawDataDecoder - hitsetkey: " << hitsetkey << ", count: " << count << std::endl; }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
