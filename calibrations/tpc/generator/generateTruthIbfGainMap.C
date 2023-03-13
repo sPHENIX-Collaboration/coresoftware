@@ -27,7 +27,7 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
   TFile *output=TFile::Open(outputFile,"RECREATE");
   //generate a histogram with the IBF + Primaries:
   TH3* hTotalCharge=nullptr;
-  hTotalCharge=static_cast<TH3*>hPrimaries->Clone("hTotalCharge");
+  hTotalCharge=static_cast<TH3*>(hPrimaries->Clone("hTotalCharge"));
   TH2* hFlatTotal=(TH2*)hTotalCharge->Project3D("xy");
   TH2* hFlatIbf=(TH2*)hIbf->Project3D("xy");
   
@@ -58,7 +58,7 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
 
   
   //project into 2D per rphi, and divide Ions by Adc to get the Ion/Adc gain.
-  TH2* hIonGain[2],hFlatAdc;
+  TH2* hIonGain[2],*hFlatAdc;
   hIonGain[0]=static_cast<TH2*>(hFlatTotal->Clone("hIonGain"));//with primaries
   hIonGain[1]=static_cast<TH2*>(hFlatIbf->Clone("hIbfGain"));//with only ibf
   hFlatAdc=static_cast<TH2*>(hAdc->Project3D("xy"));
