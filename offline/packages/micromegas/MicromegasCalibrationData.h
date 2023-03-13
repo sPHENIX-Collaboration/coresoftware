@@ -8,14 +8,12 @@
 
 #include <trackbase/TrkrDefs.h>
 
-#include <phool/PHObject.h>
-
 #include <array>
 #include <map>
 #include <string>
 
 /// micromegas calibration data
-class MicromegasCalibrationData: public PHObject
+class MicromegasCalibrationData
 {
   public:
 
@@ -42,10 +40,7 @@ class MicromegasCalibrationData: public PHObject
   
   /// write calibration to file
   void write( const std::string& /*filename*/ ) const;
-  
-  //! write calibration to file (binary format)
-  void write_binary( const std::string& /*filename*/ ) const;
-  
+    
   /// get pedestal for a given channel
   double get_pedestal( int /*fee*/, int /*channel*/ ) const;
  
@@ -53,16 +48,24 @@ class MicromegasCalibrationData: public PHObject
   double get_rms( int /*fee*/, int /*channel*/ ) const;
 
   //@}
-    
+   
+  private:
+   
   /// simple structure to store calibration data
   class calibration_data_t
   {
     public:    
+    
+    calibration_data_t() = default;
+    
+    calibration_data_t( double pedestal, double rms ):
+      m_pedestal( pedestal ),
+      m_rms( rms )
+    {}
+    
     double m_pedestal = 0;
     double m_rms = 0;
   };
-  
-  private:
 
   static constexpr int m_nchannels_fee = 256;
   using calibration_vector_t = std::array<calibration_data_t,m_nchannels_fee>;
@@ -70,9 +73,7 @@ class MicromegasCalibrationData: public PHObject
   /// map fee id to calibration vector
   using calibration_map_t = std::map<int, calibration_vector_t>;
   calibration_map_t m_calibration_map;
- 
-  ClassDefOverride(MicromegasCalibrationData, 1)
-   
+    
 };
 
 #endif
