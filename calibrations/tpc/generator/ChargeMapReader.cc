@@ -379,7 +379,7 @@ bool ChargeMapReader::ReadSourceAdc(TH3 *adcHist, TH2* gainHist, float axisScale
 
   for (i[0] = 1; i[0] <= nbins[0]; i[0]++) {  //phi
     for (i[1] = 1; i[1] <= nbins[1]; i[1]++) {  //r
-      int globalBin2D = hSourceCharge->GetBin(i[0], i[1]);
+      int globalBin2D = gainHist->GetBin(i[0], i[1]);
       float scalefactor=gainHist->GetBinContent(globalBin2D);
       for (i[2] = 1; i[2] <= nbins[2]; i[2]++) {  //z
 	int globalBin = hSourceCharge->GetBin(i[0], i[1], i[2]);
