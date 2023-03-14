@@ -28,12 +28,12 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
   //generate 2D histograms with the IBF, and IBF + Primaries, per side:
 
   int nSections=3;
-  TH2* hFlatTotal[nSections],hFlatIbf[nSections]; //flat charge sums in north and south
+  TH2 *hFlatTotal[nSections],*hFlatIbf[nSections]; //flat charge sums in north and south
   int zbins,neg,cm,pos;
   zbins=hAdc->GetZaxis()->GetNbins();
-  south=1;
+  neg=1;
   cm=zbins/2;
-  north=zbins;
+  pos=zbins;
 
   TString suffix[]={"","_negz","_posz"};
   int low[]={neg,neg,cm+1};
