@@ -58,10 +58,23 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   std::cout << "at run" << m_runNumber << std::endl;
   if (m_dettype == CaloTowerCalib::CEMC)
   {
+    recoConsts *rc = recoConsts::instance();
+    //place holder
+    rc->set_StringFlag("CDB_GLOBALTAG", "CEMCCalibTest");
+    ReadCalib *rb = new ReadCalib();
+    std::string calibdir = rb->getCalibrationFile("TestBeginValidity", m_runNumber);
     m_detector = "CEMC";
     m_DETECTOR = TowerInfoContainer::EMCAL;
     m_fieldname = "cemc_abscalib_mip";
-    cdbttree = new CDBTTree("/sphenix/user/shuhangli/DB/cemcDB.root");
+    if (calibdir[0] == '/')
+    {
+      cdbttree = new CDBTTree(calibdir.c_str());
+    }
+    else
+    {
+      std::cout << calibdir << std::endl;
+      exit(1);
+    }
   }
   else if (m_dettype == CaloTowerCalib::HCALIN)
   {
@@ -104,8 +117,24 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   }
   else if (m_dettype == CaloTowerCalib::EPD)
   {
+    recoConsts *rc = recoConsts::instance();
+    //place holder
+    rc->set_StringFlag("CDB_GLOBALTAG", "EPDCalibTest");
+    ReadCalib *rb = new ReadCalib();
+    std::string calibdir = rb->getCalibrationFile("TestBeginValidity", m_runNumber);
     m_detector = "EPD";
     m_DETECTOR = TowerInfoContainer::SEPD;
+    m_fieldname = "EPD_abscalib_mip";
+    if (calibdir[0] == '/')
+    {
+      cdbttree = new CDBTTree(calibdir.c_str());
+    }
+    else
+    {
+      std::cout << calibdir << std::endl;
+      exit(1);
+    }
+    
   }
 
   PHNodeIterator iter(topNode);
