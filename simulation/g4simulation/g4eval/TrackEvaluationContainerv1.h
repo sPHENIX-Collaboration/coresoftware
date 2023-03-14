@@ -96,7 +96,7 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
 
     //! cluster charge
     unsigned int adc = 0;
-
+    unsigned int max_adc = 0;
     //! cluster quality info
     int ovlp = 0;
     int edge = 0;
@@ -110,6 +110,8 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
     float phi = 0;
     float phi_error = 0;
     float z_error = 0;
+    float para_phi_error = 0;
+    float para_z_error = 0;
     //@}
 
     //!@name track position at cluster

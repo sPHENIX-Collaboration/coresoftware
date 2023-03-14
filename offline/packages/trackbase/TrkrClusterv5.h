@@ -1,11 +1,11 @@
 /**
- * @file trackbase/TrkrClusterv4.h
+ * @file trackbase/TrkrClusterv5.h
  * @author C. Roland
- * @date April 2022
- * @brief Version 4 of TrkrCluster
+ * @date March 2023
+ * @brief Version 5 of TrkrCluster
  */
-#ifndef TRACKBASE_TRKRCLUSTERV4_H
-#define TRACKBASE_TRKRCLUSTERV4_H
+#ifndef TRACKBASE_TRKRCLUSTERV5_H
+#define TRACKBASE_TRKRCLUSTERV5_H
 
 #include "TrkrCluster.h"
 #include "TrkrDefs.h"
@@ -14,27 +14,27 @@
 class PHObject;
 
 /**
- * @brief Version 4 of TrkrCluster
+ * @brief Version 5 of TrkrCluster
  *
- * This version of TrkrCluster is reduced to a minimal number of data members
+ * This version of TrkrCluster is blown up to contain a maximum of information
  */
 
-class TrkrClusterv4 : public TrkrCluster
+class TrkrClusterv5 : public TrkrCluster
 {
  public:
  
   //! ctor
-  TrkrClusterv4();
+  TrkrClusterv5();
 
   //!dtor
-  ~TrkrClusterv4() override = default;
+  ~TrkrClusterv5() override = default;
   
   // PHObject virtual overloads
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override {}
   int isValid() const override;
-  PHObject* CloneMe() const override { return new TrkrClusterv4(*this); }
+  PHObject* CloneMe() const override { return new TrkrClusterv5(*this); }
   
   //! import PHObject CopyFrom, in order to avoid clang warning
   using PHObject::CopyFrom;
@@ -45,6 +45,9 @@ class TrkrClusterv4 : public TrkrCluster
   //! copy content from base class
   void CopyFrom( TrkrCluster* source ) override
   { CopyFrom( *source ); }
+
+  //! copy content 
+  void CopyFrom( TrkrClusterv5* source );
 
   //
   // cluster position
@@ -69,34 +72,29 @@ class TrkrClusterv4 : public TrkrCluster
   }
 
   void setAdc(unsigned int adc) override {
-    uint16_t tmp =0;
-    if(adc>0xff)
-      tmp=0xff;
-    else
-     tmp = adc;
-    m_adc  |= tmp; 
+    m_adc = adc; 
   }
 
   unsigned int getMaxAdc() const { 
-    uint8_t tmp = (m_adc >> 8);
-    unsigned int out = 0;
-    out |= tmp;
-    return out; 
+    return m_maxadc; 
   }
 
   void setMaxAdc(uint16_t maxadc) {
-    if(maxadc>0xff)maxadc=0xff;
-    uint16_t tmp = (maxadc << 8);
-    m_adc |= tmp;
+    m_maxadc = maxadc;
   }
 
   //
   // convenience interface
   //
   float getRPhiError() const override
-  { std::cout << "Deprecated getRPhiError trkrcluster function!"<<std::endl; return NAN;}
+  { return m_phierr;}
   float getZError() const override
-  { std::cout << "Deprecated getZError trkrcluster function!"<<std::endl; return NAN;}
+  { return m_zerr;}
+
+  void setPhiError(float phierror)
+  { m_phierr = phierror;}
+  void setZError(float zerror)
+  { m_zerr = zerror;}
 
   /// deprecated global funtions with a warning
   float getX() const override 
@@ -146,13 +144,16 @@ class TrkrClusterv4 : public TrkrCluster
 
   float m_local[2];          //< 2D local position [cm] 2 * 32 64bit  - cumul 1*64
   TrkrDefs::subsurfkey m_subsurfkey; //< unique identifier for hitsetkey-surface maps 16 bit
+  float m_phierr;
+  float m_zerr;
   unsigned short int m_adc;           //< cluster sum adc 16
+  unsigned short int m_maxadc;           //< cluster sum adc 16
   char m_phisize; // 8bit
   char m_zsize;   // 8bit
   char m_overlap; // 8bit 
   char m_edge;    // 8bit - cumul 2*64
 
-  ClassDefOverride(TrkrClusterv4, 2)
+  ClassDefOverride(TrkrClusterv5, 2)
 };
 
-#endif //TRACKBASE_TRKRCLUSTERV4_H
+#endif //TRACKBASE_TRKRCLUSTERV5_H
