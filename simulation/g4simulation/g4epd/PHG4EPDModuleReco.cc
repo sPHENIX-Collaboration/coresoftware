@@ -46,7 +46,15 @@ int PHG4EPDModuleReco::InitRun(PHCompositeNode *topNode)
   m_EpdMpv = get_double_param("epdmpv");
 
   CreateNodes(topNode);
-
+  PHNodeIterator node_itr(topNode);
+  PHCompositeNode *dst_node = dynamic_cast<PHCompositeNode *>(node_itr.findFirst("PHCompositeNode", "DST"));
+  if (!dst_node) {
+      std::cout << "PHComposite node created: DST" << std::endl;
+      dst_node = new PHCompositeNode("DST");
+      topNode->addNode(dst_node);
+  }
+  PHIODataNode<PHObject> *epd_geom_node = new PHIODataNode<PHObject>(this->epd_geom, "EPD_Geometry", "PHObject");
+  dst_node->addNode(epd_geom_node);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

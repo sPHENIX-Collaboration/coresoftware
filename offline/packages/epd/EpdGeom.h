@@ -34,7 +34,7 @@ public:
   const unsigned int NUM_TILES = 31;
 
   EpdGeom();
-  ~EpdGeom();
+  ~EpdGeom() override;
 
   unsigned int side_r_phi_to_id(unsigned int side, unsigned int r_index, unsigned int phi_index);
   unsigned int side_sector_tile_to_id(unsigned int side, unsigned int sector, unsigned int tile);
