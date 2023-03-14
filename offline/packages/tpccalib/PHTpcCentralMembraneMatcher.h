@@ -26,7 +26,9 @@ class TF1;
 class TNtuple;
 class TFile;
 class TH1F;
+class TH1D;
 class TH2F;
+class TGraph;
 class TVector3;
 
 class PHTpcCentralMembraneMatcher : public SubsysReco
@@ -117,6 +119,21 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   TH2F *clust_r_phi;
   TH2F *clust_r_phi_pos;
   TH2F *clust_r_phi_neg;
+
+  TGraph *hit_r_phi_gr;
+
+  TGraph *clust_r_phi_gr;
+  TGraph *clust_r_phi_gr_pos;
+  TGraph *clust_r_phi_gr_neg;
+
+  TGraph *clust_r_phi_gr1;
+  TGraph *clust_r_phi_gr1_pos;
+  TGraph *clust_r_phi_gr1_neg;
+
+  TGraph *clust_r_phi_gr2;
+  TGraph *clust_r_phi_gr2_pos;
+  TGraph *clust_r_phi_gr2_neg;
+  
   
   std::string m_outputfile2 = "CM_r_phi_maps.root";
   std::unique_ptr<TFile> fout2;
@@ -134,13 +151,13 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   //@{
 
   /// distortion correction grid size along phi
-  int m_phibins = 40;
+  int m_phibins = 200;
 
   static constexpr float m_phiMin = 0;
   static constexpr float m_phiMax = 2.*M_PI;
 
   /// distortion correction grid size along r
-  int m_rbins = 26;
+  int m_rbins = 58;
 
   static constexpr float m_rMin = 20; // cm
   static constexpr float m_rMax = 78; // cm
@@ -219,9 +236,17 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
   //@}
 
+  double hitRotationTotal;
+  double hitRotation[4];
+  double clustRotation[3];
+  double clustRotation_pos[3];
+  double clustRotation_neg[3];
+
   std::vector<std::vector<double>> getPhiGaps(TH2F *r_phi);
 
   std::vector<double> getAverageRotation(std::vector<std::vector<double>> hit, std::vector<std::vector<double>> clust);
+
+  double getPhiRotation_smoothed( TH1D *hitHist, TH1D *clustHist );
 
   std::vector<double> getRPeaks(TH2F *r_phi);
 
