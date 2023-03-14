@@ -40,8 +40,10 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
   int high[]={pos,cm,pos};
 
   for (int i=0;i<nSections;i++){
-    hFlatTotal[i]=(TH2*)hPrimaries->Project3D(Form("xy%s",suffix[i].Data()),low[i],high[i]);
-    hFlatIbf[i]=(TH2*)hIbf->Project3D(Form("xy%s",suffix[i].Data()),low[i],high[i]);
+    hPrimaries->GetZaxis()->SetRange(low[i],high[i]);
+    hFlatTotal[i]=(TH2*)hPrimaries->Project3D(Form("xy%s",suffix[i].Data()));
+    hIbf->GetZaxis()->SetRange(low[i],high[i]);
+    hFlatIbf[i]=(TH2*)hIbf->Project3D(Form("xy%s",suffix[i].Data()));
     hFlatTotal[i]->Add(hFlatIbf[i]);
   }
   
@@ -77,6 +79,7 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
   for (int i=0;i<nSections;i++){
     hIonGain[i]=static_cast<TH2*>(hFlatTotal->Clone(Form("hIonGain%s",suffix[i].Data())));//with primaries
     hIbfGain[i]=static_cast<TH2*>(hFlatIbf->Clone(Form("hIbfGain%s",suffix[i].Data())));//with only ibf
+    hAdc->GetZaxis()->SetRange(low[i],high[i]);
     hFlatAdc=static_cast<TH2*>(hAdc->Project3D(Form("xy%s",suffix[i])));
 
     hIonGain[i]->Divide(hFlatAdc[i]);
