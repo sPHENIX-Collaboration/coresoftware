@@ -66,7 +66,7 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
     tpc->load_digital_current(hCharge,hGain[0],tpc_chargescale,spacecharge_cm_per_axis_unit,chargestring.Data());
     if (hasTwin) {
       hGain[1]=(TH2*)(gainfile->Get(gainHistName[1]));
-      Form("hIonGain%s",suffix)tpc->twin->load_digital_current(hCharge,hGain[1],tpc_chargescale,spacecharge_cm_per_axis_unit,chargestring.Data());
+      tpc->twin->load_digital_current(hCharge,hGain[1],tpc_chargescale,spacecharge_cm_per_axis_unit,chargestring.Data());
     }
   }
   //build the electric fieldmap from the chargemap
