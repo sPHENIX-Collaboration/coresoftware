@@ -28,6 +28,8 @@ CaloTowerCalib::CaloTowerCalib(const std::string &name)
   , m_dettype(CaloTowerCalib::HCALOUT)
   , m_detector("HCALOUT")
   , m_DETECTOR(TowerInfoContainer::HCAL)
+  , m_fieldname("")
+  , m_runNumber(-1)
 {
   std::cout << "CaloTowerCalib::CaloTowerCalib(const std::string &name) Calling ctor" << std::endl;
 }
