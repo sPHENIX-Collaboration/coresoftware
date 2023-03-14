@@ -5,7 +5,7 @@
 #include <trackbase_historic/SvtxVertex_v1.h>
 
 
-#include <trackbase/TrkrClusterContainerv4.h>
+#include <trackbase/TrkrClusterContainerv5.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase/ActsGeometry.h>
@@ -1102,7 +1102,7 @@ int PHTruthClustering::GetNodes(PHCompositeNode* topNode)
       dstNode->addNode(DetNode);
     }
 
-    trkrclusters = new TrkrClusterContainerv4;
+    trkrclusters = new TrkrClusterContainerv5;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
         new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER_TRUTH", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);

@@ -5,7 +5,7 @@
 #include <trackbase/InttDefs.h>
 #include <micromegas/MicromegasDefs.h>
 
-#include <trackbase/TrkrClusterContainerv4.h>
+#include <trackbase/TrkrClusterContainerv5.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
@@ -88,7 +88,7 @@ int TpcRawWriter::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    trkrclusters = new TrkrClusterContainerv4;
+    trkrclusters = new TrkrClusterContainerv5;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
         new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);

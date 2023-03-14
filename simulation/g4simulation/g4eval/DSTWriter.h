@@ -9,6 +9,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrClusterContainerv5.h>
 
 #include <map>
 #include <set>
@@ -97,6 +98,9 @@ class DSTWriter : public SubsysReco
 
   //! clusters
   TrkrClusterContainer* m_cluster_map = nullptr;
+
+  //! clusters in array
+  TrkrClusterContainerv5* m_cluster_map_arr = nullptr;
 
   //! cluster to hit association
   TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;

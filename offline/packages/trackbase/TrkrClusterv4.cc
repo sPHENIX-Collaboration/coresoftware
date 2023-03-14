@@ -71,3 +71,21 @@ void TrkrClusterv4::CopyFrom( const TrkrCluster& source )
   setAdc( source.getAdc() );
 }
 
+
+void TrkrClusterv4::CopyFromv4( TrkrClusterv4* source )
+{
+  // do nothing if copying onto oneself
+  if( this == source )
+    {
+      return;
+    }
+
+  setLocalX( source->getLocalX() );
+  setLocalY( source->getLocalY() );
+  setSubSurfKey( source->getSubSurfKey() );
+  setAdc( source->getAdc() );
+  setPhiSize(source->getPhiSize());
+  setZSize(source->getZSize());
+  setOverlap(source->getOverlap());
+  setEdge(source->getEdge());
+}

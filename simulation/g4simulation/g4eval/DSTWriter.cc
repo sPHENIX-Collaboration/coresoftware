@@ -23,6 +23,8 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrClusterContainer.h>
+// #include <trackbase/TrkrClusterContainerv5.h>
+#include <trackbase/TrkrClusterContainerv5.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
@@ -330,6 +332,9 @@ int DSTWriter::Init(PHCompositeNode* topNode )
   auto newNode = new PHIODataNode<PHObject>( new DSTContainerv3, "DSTContainer","PHObject");
   evalNode->addNode(newNode);
 
+  auto newClsNode = new PHIODataNode<PHObject>(new TrkrClusterContainerv5, "TRKR_CLUSTERV5", "PHObject");
+  evalNode->addNode(newClsNode);
+
   // TClonesArary
   // fcl = new TFile("dstcl.root", "recreate");
   // tcl = new TTree("tcl", "dst tree");
@@ -396,6 +401,7 @@ int DSTWriter::load_nodes( PHCompositeNode* topNode )
 
   // cluster map
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  m_cluster_map_arr = findNode::getClass<TrkrClusterContainerv5>(topNode, "TRKR_CLUSTERV5");
 
   // cluster hit association map
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
@@ -485,6 +491,7 @@ void DSTWriter::evaluate_clusters()
   TClonesArray& arrKeyDST = *m_container->arrKeyDST;
   arrKeyDST.Clear();
 
+  std::cout << "DSTWriter::evaluate_clusters  current clusters: " << m_cluster_map->size() << std::endl;
   Int_t iCluster = 0;
   // first loop over hitsets
   for( const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
@@ -520,6 +527,9 @@ void DSTWriter::evaluate_clusters()
       new(arDST[iCluster]) DSTContainerv3::ClusterStruct(hitsetkey, clusIn, key);
       // TrkrClusterv4* clsArr = (TrkrClusterv4*) trkrDST.ConstructedAt(iCluster);
       // clsArr->CopyFrom(cluster);
+      std::cout << "adding cluster to new container" << std::endl;
+
+      m_cluster_map_arr->addClusterSpecifyKey(key, cluster);
       ++iCluster;
     }
   }

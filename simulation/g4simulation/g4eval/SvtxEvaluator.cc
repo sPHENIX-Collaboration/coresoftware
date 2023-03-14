@@ -1766,11 +1766,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     if (clustermap && clusterhitmap && hitsets ){
+      int cluster_count = 0;
       for(const auto& hitsetkey:clustermap->getHitSetKeys())
       {
         int hitsetlayer = TrkrDefs::getLayer(hitsetkey);
 	auto range = clustermap->getClusters(hitsetkey);
 	for( auto iter = range.first; iter != range.second; ++iter ){
+    cluster_count++;
+    cout << "looping cluster " << cluster_count << "\n";
+
 	  TrkrDefs::cluskey cluster_key = iter->first;
 	  TrkrCluster *cluster = clustermap->findCluster(cluster_key);
 	  SvtxTrack* track = trackeval->best_track_from(cluster_key);
@@ -2024,7 +2028,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 				  nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
 	  
 	  _ntp_cluster->Fill(cluster_data);
-	}
+          cout << "filled cluster " << cluster_count << "\n";
+        }
       }
     }
   }

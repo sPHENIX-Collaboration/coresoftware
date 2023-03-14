@@ -23,14 +23,15 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterContainerv5.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack_v1.h>
 
 #include <algorithm>
 #include <bitset>
@@ -218,6 +219,7 @@ int DSTReader::load_nodes( PHCompositeNode* topNode )
 
   // cluster map
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  m_cluster_map_arr = findNode::getClass<TrkrClusterContainerv5>(topNode, "TRKR_CLUSTERV5");
 
   // cluster hit association map
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
@@ -271,9 +273,11 @@ void DSTReader::evaluate_clusters()
   // clear array
   // m_container->clearClusters();
 
-  std::cout << "DSTReader::evaluate_clusters - clusters: " << m_container->clusters().size() << std::endl;
+  std::cout << "DSTReader::evaluate_clusters - size:" << m_cluster_map->size() << "\n";
+
+  // std::cout << "DSTReader::evaluate_clusters - clusters: " << m_container->clusters().size() << std::endl;
   int nClusters = m_container->arrClsDST->GetEntries();
-  // int nClusters = m_container->trkrClsDST->GetEntries();
+  // int nClusters = m_container->m_cluster_map_arr->size();
   std::cout << "DSTReader::evaluate_clusters - clusters (arr): " << nClusters << std::endl;
   // debugging
   // showAll();
@@ -283,499 +287,590 @@ void DSTReader::evaluate_clusters()
     // m_cluster_map->Reset();
     std::cout << "DSTReader::evaluate_clusters - cleared. current clusters: " << m_cluster_map->size() << std::endl;
     // showMe();
-    showHitSet();
+    // showHitSet();
   }
 
   uint32_t id = 0;
   TrkrDefs::hitsetkey currentKey = 0;
-  for (auto i = 0; i < nClusters; ++i)
-  {
-    // DSTContainerv3::ClusterStruct clusStruct =
-    //   *((DSTContainerv3::ClusterStruct*) m_container->arrClsDST->At(i));
-    DSTContainerv3::ClusterStruct* clusStruct =
-      (DSTContainerv3::ClusterStruct*) m_container->arrClsDST->At(i);
-    // DSTContainerv3::ClusterKeyStruct clusKeyStruct =
-    //   *((DSTContainerv3::ClusterKeyStruct*) m_container->arrKeyDST->At(i));
-    // TrkrDefs::hitsetkey key = clusKeyStruct.hitsetkey;
-    // TrkrClusterv4* cluster = (TrkrClusterv4*) m_container->trkrClsDST->At(i);
-    // TrkrClusterv4* cluster = (TrkrClusterv4*) m_container->trkrClsDST->At(i);
-    // std::cout << "cluster " << (unsigned) id << "\n";
-    // TrkrCluster newCluster = recover_cluster(cluster);
 
-    // auto newCluster = clusStruct.cluster;
-    // auto key = clusStruct.hitsetkey;
-    // auto newCluster = &clusStruct->cluster;
-    auto newCluster = new TrkrClusterv4();
-    newCluster->CopyFrom(&clusStruct->cluster);
-
-    auto key = clusStruct->hitsetkey;
-    // auto newCluster = new TrkrClusterv4;
-    // newCluster->setLocalX(clusStruct.loc_x);
-    // newCluster->setLocalY(clusStruct.loc_y);
-    // // TrkrDefs::hitsetkey key = 0;
-    // // // std::cout << std::bitset<32>(key) << "\n";
-    // // // unsigned char z_unsigned = (unsigned) clusStruct.z_seg;
-    // // // key |= (z_unsigned << TrkrDefs::kBitShiftZElement);
-    // // key |= (clusStruct.z_seg << TrkrDefs::kBitShiftZElement);
-    // // // std::cout << std::bitset<32>(key) << "\n";
-    // // // unsigned char phi_unsigned = (unsigned) clusStruct.phi_seg;
-    // // // key |= (phi_unsigned << TrkrDefs::kBitShiftPhiElement);
-    // // key |= (clusStruct.phi_seg << TrkrDefs::kBitShiftPhiElement);
-    // // // std::cout << std::bitset<32>(key) << "\n";
-    // // // unsigned char layer_unsigned = (unsigned) clusStruct.layer;
-    // // // key |= (layer_unsigned << TrkrDefs::kBitShiftLayer);
-    // // key |= (clusStruct.layer << TrkrDefs::kBitShiftLayer);
-    // // // std::cout << std::bitset<32>(key) << "\n";
-    // // key |= (id << TrkrDefs::kBitShiftTrkrId);
-    // // // std::cout << std::bitset<32>(key) << "\n";
-    // // TrkrDefs::cluskey cluskey = key;
-    // // cluskey = (cluskey << TrkrDefs::kBitShiftClusId);
-    // // // std::cout << std::bitset<64>(cluskey) << "\n";
-
-
-    // // set size and error
-    // // for (int j = 0; j < 3; ++j) {
-    // //   for (int i = 0; i < 3; ++i) {
-    // //     newCluster->setSize(i, j, DSTContainerv3::covarIndex(i, j));
-    // //     newCluster->setError(i, j, DSTContainerv3::covarIndex(i, j));
-    // //   }
-    // // }
-
-    // int nLocal = 2;
-    // for (auto iLocal = 0; iLocal < nLocal; ++iLocal) {
-    //   for (auto jLocal = 0; jLocal < nLocal; ++jLocal) {
-    //     newCluster->setActsLocalError(iLocal, jLocal,
-    //                                  clusStruct.actsLocalError[iLocal][jLocal]);
-    //     // std::cout << "actslocalerror:" << newCluster->
-    //       // getActsLocalError(iLocal, jLocal) << "\n";
-    //   }
-    // }
-    // newCluster->setSubSurfKey(clusStruct.subSurfKey);
-    // // std::cout << "subsurfkey: " << newCluster->getSubSurfKey() << "\n";
-
-    // newCluster->setAdc(clusStruct.adc);
-    // // std::cout << "adc: " << newCluster->getAdc() << "\n";
-    // m_cluster_map->addClusterSpecifyKey(clusStruct.clusterKey, newCluster);
-
-    newCluster->identify();
-    // newCluster.identify();
-    std::cout << key << "\n";
-    if (key == currentKey) {
-      ++id;
-    } else {
-      id = 0;
-      currentKey = key;
-    }
-
-    // std::cout << "print" << "\n";
-    // printCluster(*newCluster);
-
-    // cluster->identify();
-    // generate cluster key
-    const auto ckey = TrkrDefs::genClusKey( key, id );
-    const auto ckeyarr = clusStruct->clusterKey;
-    std::cout << "id: " << id << ", ckey: " << ckey << ", ckeyarr: " << ckeyarr << "\n";
-    if (ckey != ckeyarr) {
-      std::cout << "[debug] key differs!" << "\n";
-    }
-
-    // m_cluster_map->addClusterSpecifyKey(clusStruct.clusterKey, newCluster);
-    // m_cluster_map->addClusterSpecifyKey(ckey, cluster);
-    if (!dryrun) {
-      if (generateKey) {
-        m_cluster_map->removeCluster(ckey);
-        m_cluster_map->addClusterSpecifyKey(ckey, newCluster);
-      } else {
-        m_cluster_map->removeCluster(ckeyarr);
-        m_cluster_map->addClusterSpecifyKey(ckeyarr, newCluster);
-      }
-    }
-    // ++id;
-  }
-
-  // showMe();
-  showHitSet();
-  // for (auto& clusStruct : m_container->clusters())
-  // {
-  //   std::cout << "cluster " << (unsigned) id << "\n";
-  //   // TrkrCluster newCluster = recover_cluster(cluster);
-
-  //   auto newCluster = new TrkrClusterv3;
-  //   newCluster->setLocalX(clusterStruct.loc_x);
-  //   newCluster->setLocalY(clusterStruct.loc_y);
-  //   TrkrDefs::hitsetkey key = 0;
-  //   // std::cout << std::bitset<32>(key) << "\n";
-  //   // unsigned char z_unsigned = (unsigned) clusterStruct.z_seg;
-  //   // key |= (z_unsigned << TrkrDefs::kBitShiftZElement);
-  //   key |= (clusterStruct.z_seg << TrkrDefs::kBitShiftZElement);
-  //   // std::cout << std::bitset<32>(key) << "\n";
-  //   // unsigned char phi_unsigned = (unsigned) clusterStruct.phi_seg;
-  //   // key |= (phi_unsigned << TrkrDefs::kBitShiftPhiElement);
-  //   key |= (clusterStruct.phi_seg << TrkrDefs::kBitShiftPhiElement);
-  //   // std::cout << std::bitset<32>(key) << "\n";
-  //   // unsigned char layer_unsigned = (unsigned) clusterStruct.layer;
-  //   // key |= (layer_unsigned << TrkrDefs::kBitShiftLayer);
-  //   key |= (clusterStruct.layer << TrkrDefs::kBitShiftLayer);
-  //   // std::cout << std::bitset<32>(key) << "\n";
-  //   key |= (id << TrkrDefs::kBitShiftTrkrId);
-  //   // std::cout << std::bitset<32>(key) << "\n";
-  //   TrkrDefs::cluskey cluskey = key;
-  //   cluskey = (cluskey << TrkrDefs::kBitShiftClusId);
-  //   // std::cout << std::bitset<64>(cluskey) << "\n";
-
-
-  //   // set size and error
-  //   // for (int j = 0; j < 3; ++j) {
-  //   //   for (int i = 0; i < 3; ++i) {
-  //   //     newCluster->setSize(i, j, DSTContainerv3::covarIndex(i, j));
-  //   //     newCluster->setError(i, j, DSTContainerv3::covarIndex(i, j));
-  //   //   }
-  //   // }
-
-  //   int nLocal = 2;
-  //   for (auto iLocal = 0; iLocal < nLocal; ++iLocal) {
-  //     for (auto jLocal = 0; jLocal < nLocal; ++jLocal) {
-  //       newCluster->setActsLocalError(iLocal, jLocal,
-  //                                    clusterStruct.actsLocalError[iLocal][jLocal]);
-  //       // std::cout << "actslocalerror:" << newCluster->
-  //         // getActsLocalError(iLocal, jLocal) << "\n";
-  //     }
-  //   }
-  //   newCluster->setSubSurfKey(clusterStruct.subSurfKey);
-  //   // std::cout << "subsurfkey: " << newCluster->getSubSurfKey() << "\n";
-
-  //   newCluster->setAdc(clusterStruct.adc);
-  //   // std::cout << "adc: " << newCluster->getAdc() << "\n";
-
-
-  //   // debugging
-  //   // std::cout << "key from clust: " << std::hex << clusterStruct.clusterKey << "\n";
-  //   // std::cout << "key by me: " << std::hex << cluskey << std::dec << "\n";
-  //   // for (auto iLocal = 0; iLocal < nLocal; ++iLocal) {
-  //   //   std::cout << "positions: " << newCluster->getPosition(iLocal) << "\n";
-  //   // }
-  //   // std::cout << "rphierror: " << newCluster->getRPhiError() << "\n";
-  //   // std::cout << "zerror: " << newCluster->getZError() << "\n";
-
-
-
-
-
-  //   // get hitsetkey from cluster
-  //   // const TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey( cluskey );
-  //   // // get cluster index in vector
-  //   // const auto index = TrkrDefs::getClusIndex( cluskey );
-  //   // std::cout << "index:" << index << "\n";
-
-  //   // m_cluster_map->addClusterSpecifyKey(cluskey, &newCluster);
-  //   m_cluster_map->addClusterSpecifyKey(clusterStruct.clusterKey, newCluster);
-  //   ++id;
-  //   std::cout << "DSTReader::evaluate_clusters - saved clusters: " << m_cluster_map->size() << std::endl;
-  //   showMe();
-  // }
-
-  std::cout << "DSTReader::evaluate_clusters - saved clusters: " << m_cluster_map->size() << std::endl;
-
-  // showAll();
-
-}
-
-//_____________________________________________________________________
-void DSTReader::evaluate_tracks()
-{
-  if( !( m_track_map && m_cluster_map && m_container ) ) return;
-
-  std::cout << "reading file" << "\n";
-
-  std::cout << "DSTReader: " << m_container->tracks().size() << std::endl;
-
-
-  // // clear array
-  // m_container->clearTracks();
-
-  // for( const auto& trackpair:*m_track_map )
-  // {
-
-  //   const auto track = trackpair.second;
-  //   auto track_struct = create_track( track );
-
-  //   // truth information
-  //   const auto [id,contributors] = get_max_contributor( track );
-  //   track_struct.contributors = contributors;
-
-  //   // get particle
-  //   auto particle = m_g4truthinfo->GetParticle(id);
-  //   track_struct.embed = get_embed(particle);
-  //   add_truth_information(track_struct, particle);
-
-  //   // running iterator over track states, used to match a given cluster to a track state
-  //   auto state_iter = track->begin_states();
-
-  //   // loop over clusters
-  //   for( auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter )
-  //   {
-
-  //     const auto& cluster_key = *key_iter;
-  //     auto cluster = m_cluster_map->findCluster( cluster_key );
-  //     if( !cluster )
-  //     {
-  //       std::cout << "DSTReader::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
-  //       continue;
-  //     }
-
-  //     // create new cluster struct
-  //     auto cluster_struct = create_cluster( cluster_key, cluster );
-  //     add_cluster_size( cluster_struct, cluster_key, m_cluster_hit_map );
-  //     add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, m_hitsetcontainer );
-
-  //     // truth information
-  //     const auto g4hits = find_g4hits( cluster_key );
-  //     add_truth_information( cluster_struct, g4hits );
-
-  //     // find track state that is the closest to cluster
-  //     // this assumes that both clusters and states are sorted along r
-  //     const auto radius( cluster_struct.r );
-  //     float dr_min = -1;
-  //     for( auto iter = state_iter; iter != track->end_states(); ++iter )
-  //     {
-  //       const auto dr = std::abs( radius - get_r( iter->second->get_x(), iter->second->get_y() ) );
-  //       if( dr_min < 0 || dr < dr_min )
-  //       {
-  //         state_iter = iter;
-  //         dr_min = dr;
-  //       } else break;
-  //     }
-
-  //     // store track state in cluster struct
-  //     add_trk_information( cluster_struct, state_iter->second );
-
-  //     // add to track
-  //     track_struct.clusters.push_back( cluster_struct );
-  //   }
-    // m_container->addTrack( track_struct );
-  // }
-
-  std::cout << "DSTReader::evaluate_tracks - tracks: " << m_container->tracks().size() << std::endl;
-  m_track_map->Reset();
-
-  for (auto trackStruct : m_container->tracks())
-  {
-    SvtxTrack_v1 track;
-    track.set_charge(trackStruct.charge);
-
-    track.set_chisq(trackStruct.chisquare);
-    track.set_ndf(trackStruct.ndf);
-
-    track.set_x(trackStruct.x);
-    track.set_y(trackStruct.y);
-    track.set_z(trackStruct.z);
-
-    track.set_px(trackStruct.px);
-    track.set_py(trackStruct.py);
-    track.set_pz(trackStruct.pz);
-
-    m_track_map->insert(&track);
-  }
-  std::cout << "DSTReader::evaluate_tracks - saved tracks: " << m_track_map->size() << std::endl;
-
-
-}
-
-//_____________________________________________________________________
-DSTReader::G4HitSet DSTReader::find_g4hits( TrkrDefs::cluskey cluster_key ) const
-{
-
-  // check maps
-  if( !( m_cluster_hit_map && m_hit_truth_map ) ) return G4HitSet();
-
-  // check if in map
-  auto map_iter = m_g4hit_map.lower_bound( cluster_key );
-  if( map_iter != m_g4hit_map.end() && cluster_key == map_iter->first )
-  { return map_iter->second; }
-
-  // find hitset associated to cluster
-  G4HitSet out;
-  const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-  for(const auto& [first,hit_key]:range_adaptor( m_cluster_hit_map->getHits(cluster_key)))
-  {
-
-    // store hits to g4hit associations
-    TrkrHitTruthAssoc::MMap g4hit_map;
-    m_hit_truth_map->getG4Hits( hitset_key, hit_key, g4hit_map );
-
-    // find corresponding g4 hist
-    for( auto truth_iter = g4hit_map.begin(); truth_iter != g4hit_map.end(); ++truth_iter )
-    {
-
-      const auto g4hit_key = truth_iter->second.second;
-      PHG4Hit* g4hit = nullptr;
-
-      switch( TrkrDefs::getTrkrId( hitset_key ) )
-      {
-        case TrkrDefs::mvtxId:
-        if( m_g4hits_mvtx ) g4hit = m_g4hits_mvtx->findHit( g4hit_key );
-        break;
-
-        case TrkrDefs::inttId:
-        if( m_g4hits_intt ) g4hit = m_g4hits_intt->findHit( g4hit_key );
-        break;
-
-        case TrkrDefs::tpcId:
-        if( m_g4hits_tpc ) g4hit = m_g4hits_tpc->findHit( g4hit_key );
-        break;
-
-        case TrkrDefs::micromegasId:
-        if( m_g4hits_micromegas ) g4hit = m_g4hits_micromegas->findHit( g4hit_key );
-        break;
-
-        default: break;
-      }
-
-      if( g4hit ) out.insert( g4hit );
-      else std::cout << "DSTReader::find_g4hits - g4hit not found " << g4hit_key << std::endl;
-
-    }
-  }
-
-  // insert in map and return
-  return m_g4hit_map.insert( map_iter, std::make_pair( cluster_key, std::move( out ) ) )->second;
-
-}
-
-//_____________________________________________________________________
-std::pair<int,int> DSTReader::get_max_contributor( SvtxTrack* track ) const
-{
-  if(!(m_track_map && m_cluster_map && m_g4truthinfo)) return {0,0};
-
-  // maps MC track id and number of matching g4hits
-  using IdMap = std::map<int,int>;
-  IdMap contributor_map;
-
-  // loop over clusters
-  for( auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter )
-  {
-    const auto& cluster_key = *key_iter;
-    for( const auto& hit:find_g4hits( cluster_key ) )
-    {
-      const int trkid = hit->get_trkid();
-      auto iter = contributor_map.lower_bound( trkid );
-      if( iter == contributor_map.end() || iter->first != trkid )
-      {
-        contributor_map.insert(iter, std::make_pair(trkid,1));
-      } else ++iter->second;
-    }
-  }
-
-  if( contributor_map.empty() ) return {0,0};
-  else return *std::max_element(
-    contributor_map.cbegin(), contributor_map.cend(),
-    []( const IdMap::value_type& first, const IdMap::value_type& second )
-    { return first.second < second.second; } );
-
-}
-
-// //! create svx track from struct
-// SvtxTrack DSTReader::recover_track(DSTContainerv3::TrackStruct trackStruct)
-// {
-//   SvtxTrack_v1 track;
-//   track.set_charge(trackStruct.charge);
-//   // trackStruct.nclusters = track->size_cluster_keys();
-//   // trackStruct.mask = get_mask( track );
-
-//   // track.insert_cluster_key();
-//   // trackStruct.nclusters_mvtx = get_clusters<TrkrDefs::mvtxId>( track );
-//   // trackStruct.nclusters_intt = get_clusters<TrkrDefs::inttId>( track );
-//   // trackStruct.nclusters_tpc = get_clusters<TrkrDefs::tpcId>( track );
-//   // trackStruct.nclusters_micromegas = get_clusters<TrkrDefs::micromegasId>( track );
-
-//   track.set_chisq(trackStruct.chisquare);
-//   track.set_ndf(trackStruct.ndf);
-
-//   track.set_x(trackStruct.x);
-//   track.set_y(trackStruct.y);
-//   track.set_z(trackStruct.z);
-
-//   track.set_px(trackStruct.px);
-//   track.set_py(trackStruct.py);
-//   track.set_pz(trackStruct.pz);
-
-//   return track;
-// }
-
-// TrkrCluster DSTReader::recover_cluster(DSTContainerv3::ClusterStruct clusterStruct)
-// {
-//   TrkrClusterv3 cluster;
-//   cluster.setLocalX(clusterStruct.loc_x);
-//   cluster.setLocalY(clusterStruct.loc_y);
-
-//   return cluster;
-// }
-
-//_____________________________________________________________________
-int DSTReader::get_embed( PHG4Particle* particle ) const
-{ return (m_g4truthinfo && particle) ? m_g4truthinfo->isEmbeded( particle->get_primary_id() ):0; }
-
-
-void DSTReader::printCluster(TrkrCluster& newCluster) const {
-    int nLocal = 2;
-    for (auto iLocal = 0; iLocal < nLocal; ++iLocal) {
-      for (auto jLocal = 0; jLocal < nLocal; ++jLocal) {
-        std::cout << "actslocalerror:" << newCluster.
-          getActsLocalError(iLocal, jLocal) << std::endl;
-      }
-    }
-    std::cout << "subsurfkey: " << newCluster.getSubSurfKey() << std::endl;
-    std::cout << "adc: " << newCluster.getAdc() << std::endl;
-    for (auto iLocal = 0; iLocal < nLocal; ++iLocal) {
-      std::cout << "positions: " << newCluster.getPosition(iLocal) << std::endl;
-    }
-    std::cout << "rphierror: " << newCluster.getRPhiError() << std::endl;
-    std::cout << "zerror: " << newCluster.getZError() << std::endl;
-}
-
-void DSTReader::showMe() const {
-  std::cout << "hitset size: " << m_hitsetcontainer->size() << std::endl;
-  for( const auto& [hitsetkey, hitset]:range_adaptor(m_hitsetcontainer->getHitSets())) {
-    std::cout << "looping over hitsetkey " << std::hex << hitsetkey << std::endl;
-    for( const auto& [key, cluster]:range_adaptor(m_cluster_map->getClusters(hitsetkey))) {
-      std::cout << "printCluster " << std::hex << key << std::dec << std::endl;
-      // printCluster(*cluster);
-      // std::cout << "cluster is valid " << cluster->isValid() << std::endl;
-      cluster->identify();
-      std::cout <<
-        "loc x: " << cluster->getLocalX() <<
-        ", loc y: " << cluster->getLocalY() <<
-        ", subsurfkey: " << cluster->getSubSurfKey() <<
-        ", adc: " << cluster->getAdc() <<
-        ", phisize: " << cluster->getPhiSize() <<
-        ", zsize: " << cluster->getZSize() <<
-        "\n";
-    }
-    // break;
-  }
-}
-
-void DSTReader::showHitSet() const
-{
-  std::cout << "hitset size: " << m_hitsetcontainer->size() << std::endl;
   for (const auto& [hitsetkey, hitset] : range_adaptor(m_hitsetcontainer->getHitSets()))
   {
-    std::cout << "looping over hitsetkey " << std::hex << hitsetkey <<
-      std::dec << std::endl;
-    // for (const auto& [key, cluster] : range_adaptor(m_cluster_map->getClusters(hitsetkey)))
-    // {
-  }
-}
+    // auto originalRange = m_cluster_map->getClusters(hitsetkey);
+    // auto iter = originalRange.first;
+    // std::cout << "original vector size:" << std::distance(originalRange.second, originalRange.first) << "\n";
 
-void DSTReader::showAll() const {
-  std::cout << "show all clusters of " << m_cluster_map->size() << std::endl;
-  for (const auto& hitset : m_cluster_map->getHitSetKeys()) {
-    for( const auto& [key, cluster]:range_adaptor(m_cluster_map->getClusters(hitset))) {
-      std::cout << "identify cluster with key " << std::hex << key << std::dec << std::endl;
-      std::cout << "cluster is valid? " << cluster->isValid() << std::endl;
-      cluster->identify();
-      std::cout << "our time" << "\n";
-      printCluster(*cluster);
+    for (const auto& [key, cluster] : range_adaptor(m_cluster_map_arr->getClusters(hitsetkey)))
+    {
+      // cluster->identify();
+      std::cout << "key: " << key << std::endl;
+      if (hitsetkey == currentKey)
+      {
+        ++id;
+      }
+      else
+      {
+        id = 0;
+        currentKey = hitsetkey;
+      }
+
+      // generate cluster key
+      // const auto ckey = TrkrDefs::genClusKey(key, id);
+      // const auto ckeyarr = clusStruct->clusterKey;
+      // std::cout << "id: " << id << ", ckey: " << ckey << ", ckeyarr: " << ckeyarr << "\n";
+      // std::cout << "id: " << id <<  ", current key: " << currentKey << "\n";
+
+      // if (ckey != ckeyarr)
+      // {
+      //   std::cout << "[debug] key differs!"
+      //             << "\n";
+      // }
+      // compare with the original cluster
+
+      auto originalRange = m_cluster_map->getClusters(hitsetkey);
+      auto iter = originalRange.first;
+      std::advance(iter, id);
+      // std::cout << "local x of cluster: " << cluster->getLocalX() << std::endl;
+      // std::cout << "local x of original: " << iter->second->getLocalX() << std::endl;
+      std::cout << "comparison" << std::endl;
+      if (cluster->getLocalX() != iter->second->getLocalX()) {
+        std::cout << "cluster id " << id << " differs!" << std::endl;
+        break;
+      }
+      // std::cout << "same" << std::endl;
+
+      if (!dryrun) {
+        // m_cluster_map->addClusterSpecifyKey(ckey, cluster);
+        m_cluster_map->removeCluster(key);
+        // std::cout << "removed key" << std::endl;
+        m_cluster_map->addClusterSpecifyKey(key, cluster);
+        // std::cout << "added key" << std::endl;
+      }
     }
+    // if (hitsetkey > 1712) {
+      break;
+    // }
   }
-}
+  std::cout << "DSTReader::evaluate_clusters - size:" << m_cluster_map->size() << "\n";
+  // for (const auto& [hitsetkey, hitset] : range_adaptor(m_hitsetcontainer->getHitSets()))
+  // {
+  //   std::cout << "looping over hitsetkey " << std::hex << (unsigned) hitsetkey << std::dec << std::endl;
+  //   for (const auto& [key, cluster] : range_adaptor(m_cluster_map_arr->getClusters(hitsetkey)))
+  //   {
+  //     cluster->identify();
+  //     std::cout << key << std::endl;
+  //     if (key == currentKey)
+  //     {
+  //       ++id;
+  //     }
+  //     else
+  //     {
+  //       id = 0;
+  //       currentKey = key;
+  //     }
+
+  //     // generate cluster key
+  //     // const auto ckey = TrkrDefs::genClusKey(key, id);
+  //     // const auto ckeyarr = clusStruct->clusterKey;
+  //     // std::cout << "id: " << id << ", ckey: " << ckey << ", ckeyarr: " << ckeyarr << "\n";
+  //     // if (ckey != ckeyarr)
+  //     // {
+  //     //   std::cout << "[debug] key differs!"
+  //     //             << "\n";
+  //     // }
+
+  //     if (!dryrun) {
+  //       // m_cluster_map->addClusterSpecifyKey(ckey, cluster);
+  //       // m_cluster_map->removeCluster(key);
+  //       m_cluster_map->addClusterSpecifyKey(key, cluster);
+  //     }
+  //   }
+  // }
+  // std::cout << "DSTReader::evaluate_clusters - size:" << m_cluster_map->size() << "\n";
+
+      // for (auto i = 0; i < nClusters; ++i)
+      // {
+      //   // DSTContainerv3::ClusterStruct clusStruct =
+      //   //   *((DSTContainerv3::ClusterStruct*) m_container->arrClsDST->At(i));
+      //   DSTContainerv3::ClusterStruct* clusStruct =
+      //     (DSTContainerv3::ClusterStruct*) m_container->arrClsDST->At(i);
+      //   // DSTContainerv3::ClusterKeyStruct clusKeyStruct =
+      //   //   *((DSTContainerv3::ClusterKeyStruct*) m_container->arrKeyDST->At(i));
+      //   // TrkrDefs::hitsetkey key = clusKeyStruct.hitsetkey;
+      //   // TrkrClusterv4* cluster = (TrkrClusterv4*) m_container->trkrClsDST->At(i);
+      //   // TrkrClusterv4* cluster = (TrkrClusterv4*) m_container->trkrClsDST->At(i);
+      //   // std::cout << "cluster " << (unsigned) id << "\n";
+      //   // TrkrCluster newCluster = recover_cluster(cluster);
+
+      //   // auto newCluster = clusStruct.cluster;
+      //   // auto key = clusStruct.hitsetkey;
+      //   // auto newCluster = &clusStruct->cluster;
+      //   auto newCluster = new TrkrClusterv4();
+      //   newCluster->CopyFrom(&clusStruct->cluster);
+
+      //   auto key = clusStruct->hitsetkey;
+      //   // auto newCluster = new TrkrClusterv4;
+      //   // newCluster->setLocalX(clusStruct.loc_x);
+      //   // newCluster->setLocalY(clusStruct.loc_y);
+      //   // // TrkrDefs::hitsetkey key = 0;
+      //   // // // std::cout << std::bitset<32>(key) << "\n";
+      //   // // // unsigned char z_unsigned = (unsigned) clusStruct.z_seg;
+      //   // // // key |= (z_unsigned << TrkrDefs::kBitShiftZElement);
+      //   // // key |= (clusStruct.z_seg << TrkrDefs::kBitShiftZElement);
+      //   // // // std::cout << std::bitset<32>(key) << "\n";
+      //   // // // unsigned char phi_unsigned = (unsigned) clusStruct.phi_seg;
+      //   // // // key |= (phi_unsigned << TrkrDefs::kBitShiftPhiElement);
+      //   // // key |= (clusStruct.phi_seg << TrkrDefs::kBitShiftPhiElement);
+      //   // // // std::cout << std::bitset<32>(key) << "\n";
+      //   // // // unsigned char layer_unsigned = (unsigned) clusStruct.layer;
+      //   // // // key |= (layer_unsigned << TrkrDefs::kBitShiftLayer);
+      //   // // key |= (clusStruct.layer << TrkrDefs::kBitShiftLayer);
+      //   // // // std::cout << std::bitset<32>(key) << "\n";
+      //   // // key |= (id << TrkrDefs::kBitShiftTrkrId);
+      //   // // // std::cout << std::bitset<32>(key) << "\n";
+      //   // // TrkrDefs::cluskey cluskey = key;
+      //   // // cluskey = (cluskey << TrkrDefs::kBitShiftClusId);
+      //   // // // std::cout << std::bitset<64>(cluskey) << "\n";
+
+      //   // // set size and error
+      //   // // for (int j = 0; j < 3; ++j) {
+      //   // //   for (int i = 0; i < 3; ++i) {
+      //   // //     newCluster->setSize(i, j, DSTContainerv3::covarIndex(i, j));
+      //   // //     newCluster->setError(i, j, DSTContainerv3::covarIndex(i, j));
+      //   // //   }
+      //   // // }
+
+      //   // int nLocal = 2;
+      //   // for (auto iLocal = 0; iLocal < nLocal; ++iLocal) {
+      //   //   for (auto jLocal = 0; jLocal < nLocal; ++jLocal) {
+      //   //     newCluster->setActsLocalError(iLocal, jLocal,
+      //   //                                  clusStruct.actsLocalError[iLocal][jLocal]);
+      //   //     // std::cout << "actslocalerror:" << newCluster->
+      //   //       // getActsLocalError(iLocal, jLocal) << "\n";
+      //   //   }
+      //   // }
+      //   // newCluster->setSubSurfKey(clusStruct.subSurfKey);
+      //   // // std::cout << "subsurfkey: " << newCluster->getSubSurfKey() << "\n";
+
+      //   // newCluster->setAdc(clusStruct.adc);
+      //   // // std::cout << "adc: " << newCluster->getAdc() << "\n";
+      //   // m_cluster_map->addClusterSpecifyKey(clusStruct.clusterKey, newCluster);
+
+      //   newCluster->identify();
+      //   // newCluster.identify();
+      //   std::cout << key << "\n";
+      //   if (key == currentKey) {
+      //     ++id;
+      //   } else {
+      //     id = 0;
+      //     currentKey = key;
+      //   }
+
+      //   // std::cout << "print" << "\n";
+      //   // printCluster(*newCluster);
+
+      //   // cluster->identify();
+      //   // generate cluster key
+      //   const auto ckey = TrkrDefs::genClusKey( key, id );
+      //   const auto ckeyarr = clusStruct->clusterKey;
+      //   std::cout << "id: " << id << ", ckey: " << ckey << ", ckeyarr: " << ckeyarr << "\n";
+      //   if (ckey != ckeyarr) {
+      //     std::cout << "[debug] key differs!" << "\n";
+      //   }
+
+      //   // m_cluster_map->addClusterSpecifyKey(clusStruct.clusterKey, newCluster);
+      //   // m_cluster_map->addClusterSpecifyKey(ckey, cluster);
+      //   if (!dryrun) {
+      //     if (generateKey) {
+      //       m_cluster_map->removeCluster(ckey);
+      //       m_cluster_map->addClusterSpecifyKey(ckey, newCluster);
+      //     } else {
+      //       m_cluster_map->removeCluster(ckeyarr);
+      //       m_cluster_map->addClusterSpecifyKey(ckeyarr, newCluster);
+      //     }
+      //   }
+      //   // ++id;
+      // }
+
+      // showMe();
+      // showHitSet();
+      // for (auto& clusStruct : m_container->clusters())
+      // {
+      //   std::cout << "cluster " << (unsigned) id << "\n";
+      //   // TrkrCluster newCluster = recover_cluster(cluster);
+
+      //   auto newCluster = new TrkrClusterv3;
+      //   newCluster->setLocalX(clusterStruct.loc_x);
+      //   newCluster->setLocalY(clusterStruct.loc_y);
+      //   TrkrDefs::hitsetkey key = 0;
+      //   // std::cout << std::bitset<32>(key) << "\n";
+      //   // unsigned char z_unsigned = (unsigned) clusterStruct.z_seg;
+      //   // key |= (z_unsigned << TrkrDefs::kBitShiftZElement);
+      //   key |= (clusterStruct.z_seg << TrkrDefs::kBitShiftZElement);
+      //   // std::cout << std::bitset<32>(key) << "\n";
+      //   // unsigned char phi_unsigned = (unsigned) clusterStruct.phi_seg;
+      //   // key |= (phi_unsigned << TrkrDefs::kBitShiftPhiElement);
+      //   key |= (clusterStruct.phi_seg << TrkrDefs::kBitShiftPhiElement);
+      //   // std::cout << std::bitset<32>(key) << "\n";
+      //   // unsigned char layer_unsigned = (unsigned) clusterStruct.layer;
+      //   // key |= (layer_unsigned << TrkrDefs::kBitShiftLayer);
+      //   key |= (clusterStruct.layer << TrkrDefs::kBitShiftLayer);
+      //   // std::cout << std::bitset<32>(key) << "\n";
+      //   key |= (id << TrkrDefs::kBitShiftTrkrId);
+      //   // std::cout << std::bitset<32>(key) << "\n";
+      //   TrkrDefs::cluskey cluskey = key;
+      //   cluskey = (cluskey << TrkrDefs::kBitShiftClusId);
+      //   // std::cout << std::bitset<64>(cluskey) << "\n";
+
+      //   // set size and error
+      //   // for (int j = 0; j < 3; ++j) {
+      //   //   for (int i = 0; i < 3; ++i) {
+      //   //     newCluster->setSize(i, j, DSTContainerv3::covarIndex(i, j));
+      //   //     newCluster->setError(i, j, DSTContainerv3::covarIndex(i, j));
+      //   //   }
+      //   // }
+
+      //   int nLocal = 2;
+      //   for (auto iLocal = 0; iLocal < nLocal; ++iLocal) {
+      //     for (auto jLocal = 0; jLocal < nLocal; ++jLocal) {
+      //       newCluster->setActsLocalError(iLocal, jLocal,
+      //                                    clusterStruct.actsLocalError[iLocal][jLocal]);
+      //       // std::cout << "actslocalerror:" << newCluster->
+      //         // getActsLocalError(iLocal, jLocal) << "\n";
+      //     }
+      //   }
+      //   newCluster->setSubSurfKey(clusterStruct.subSurfKey);
+      //   // std::cout << "subsurfkey: " << newCluster->getSubSurfKey() << "\n";
+
+      //   newCluster->setAdc(clusterStruct.adc);
+      //   // std::cout << "adc: " << newCluster->getAdc() << "\n";
+
+      //   // debugging
+      //   // std::cout << "key from clust: " << std::hex << clusterStruct.clusterKey << "\n";
+      //   // std::cout << "key by me: " << std::hex << cluskey << std::dec << "\n";
+      //   // for (auto iLocal = 0; iLocal < nLocal; ++iLocal) {
+      //   //   std::cout << "positions: " << newCluster->getPosition(iLocal) << "\n";
+      //   // }
+      //   // std::cout << "rphierror: " << newCluster->getRPhiError() << "\n";
+      //   // std::cout << "zerror: " << newCluster->getZError() << "\n";
+
+      //   // get hitsetkey from cluster
+      //   // const TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey( cluskey );
+      //   // // get cluster index in vector
+      //   // const auto index = TrkrDefs::getClusIndex( cluskey );
+      //   // std::cout << "index:" << index << "\n";
+
+      //   // m_cluster_map->addClusterSpecifyKey(cluskey, &newCluster);
+      //   m_cluster_map->addClusterSpecifyKey(clusterStruct.clusterKey, newCluster);
+      //   ++id;
+      //   std::cout << "DSTReader::evaluate_clusters - saved clusters: " << m_cluster_map->size() << std::endl;
+      //   showMe();
+      // }
+
+      std::cout << "DSTReader::evaluate_clusters - saved clusters: " << m_cluster_map->size() << std::endl;
+
+      // showAll();
+    }
+
+    //_____________________________________________________________________
+    void DSTReader::evaluate_tracks()
+    {
+      if (!(m_track_map && m_cluster_map && m_container)) return;
+
+      std::cout << "reading file"
+                << "\n";
+
+      std::cout << "DSTReader: " << m_container->tracks().size() << std::endl;
+
+      // // clear array
+      // m_container->clearTracks();
+
+      // for( const auto& trackpair:*m_track_map )
+      // {
+
+      //   const auto track = trackpair.second;
+      //   auto track_struct = create_track( track );
+
+      //   // truth information
+      //   const auto [id,contributors] = get_max_contributor( track );
+      //   track_struct.contributors = contributors;
+
+      //   // get particle
+      //   auto particle = m_g4truthinfo->GetParticle(id);
+      //   track_struct.embed = get_embed(particle);
+      //   add_truth_information(track_struct, particle);
+
+      //   // running iterator over track states, used to match a given cluster to a track state
+      //   auto state_iter = track->begin_states();
+
+      //   // loop over clusters
+      //   for( auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter )
+      //   {
+
+      //     const auto& cluster_key = *key_iter;
+      //     auto cluster = m_cluster_map->findCluster( cluster_key );
+      //     if( !cluster )
+      //     {
+      //       std::cout << "DSTReader::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
+      //       continue;
+      //     }
+
+      //     // create new cluster struct
+      //     auto cluster_struct = create_cluster( cluster_key, cluster );
+      //     add_cluster_size( cluster_struct, cluster_key, m_cluster_hit_map );
+      //     add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, m_hitsetcontainer );
+
+      //     // truth information
+      //     const auto g4hits = find_g4hits( cluster_key );
+      //     add_truth_information( cluster_struct, g4hits );
+
+      //     // find track state that is the closest to cluster
+      //     // this assumes that both clusters and states are sorted along r
+      //     const auto radius( cluster_struct.r );
+      //     float dr_min = -1;
+      //     for( auto iter = state_iter; iter != track->end_states(); ++iter )
+      //     {
+      //       const auto dr = std::abs( radius - get_r( iter->second->get_x(), iter->second->get_y() ) );
+      //       if( dr_min < 0 || dr < dr_min )
+      //       {
+      //         state_iter = iter;
+      //         dr_min = dr;
+      //       } else break;
+      //     }
+
+      //     // store track state in cluster struct
+      //     add_trk_information( cluster_struct, state_iter->second );
+
+      //     // add to track
+      //     track_struct.clusters.push_back( cluster_struct );
+      //   }
+      // m_container->addTrack( track_struct );
+      // }
+
+      std::cout << "DSTReader::evaluate_tracks - tracks: " << m_container->tracks().size() << std::endl;
+      m_track_map->Reset();
+
+      for (auto trackStruct : m_container->tracks())
+      {
+        SvtxTrack_v1 track;
+        track.set_charge(trackStruct.charge);
+
+        track.set_chisq(trackStruct.chisquare);
+        track.set_ndf(trackStruct.ndf);
+
+        track.set_x(trackStruct.x);
+        track.set_y(trackStruct.y);
+        track.set_z(trackStruct.z);
+
+        track.set_px(trackStruct.px);
+        track.set_py(trackStruct.py);
+        track.set_pz(trackStruct.pz);
+
+        m_track_map->insert(&track);
+      }
+      std::cout << "DSTReader::evaluate_tracks - saved tracks: " << m_track_map->size() << std::endl;
+    }
+
+    //_____________________________________________________________________
+    DSTReader::G4HitSet DSTReader::find_g4hits(TrkrDefs::cluskey cluster_key) const
+    {
+      // check maps
+      if (!(m_cluster_hit_map && m_hit_truth_map)) return G4HitSet();
+
+      // check if in map
+      auto map_iter = m_g4hit_map.lower_bound(cluster_key);
+      if (map_iter != m_g4hit_map.end() && cluster_key == map_iter->first)
+      {
+        return map_iter->second;
+      }
+
+      // find hitset associated to cluster
+      G4HitSet out;
+      const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+      for (const auto& [first, hit_key] : range_adaptor(m_cluster_hit_map->getHits(cluster_key)))
+      {
+        // store hits to g4hit associations
+        TrkrHitTruthAssoc::MMap g4hit_map;
+        m_hit_truth_map->getG4Hits(hitset_key, hit_key, g4hit_map);
+
+        // find corresponding g4 hist
+        for (auto truth_iter = g4hit_map.begin(); truth_iter != g4hit_map.end(); ++truth_iter)
+        {
+          const auto g4hit_key = truth_iter->second.second;
+          PHG4Hit* g4hit = nullptr;
+
+          switch (TrkrDefs::getTrkrId(hitset_key))
+          {
+          case TrkrDefs::mvtxId:
+            if (m_g4hits_mvtx) g4hit = m_g4hits_mvtx->findHit(g4hit_key);
+            break;
+
+          case TrkrDefs::inttId:
+            if (m_g4hits_intt) g4hit = m_g4hits_intt->findHit(g4hit_key);
+            break;
+
+          case TrkrDefs::tpcId:
+            if (m_g4hits_tpc) g4hit = m_g4hits_tpc->findHit(g4hit_key);
+            break;
+
+          case TrkrDefs::micromegasId:
+            if (m_g4hits_micromegas) g4hit = m_g4hits_micromegas->findHit(g4hit_key);
+            break;
+
+          default:
+            break;
+          }
+
+          if (g4hit)
+            out.insert(g4hit);
+          else
+            std::cout << "DSTReader::find_g4hits - g4hit not found " << g4hit_key << std::endl;
+        }
+      }
+
+      // insert in map and return
+      return m_g4hit_map.insert(map_iter, std::make_pair(cluster_key, std::move(out)))->second;
+    }
+
+    //_____________________________________________________________________
+    std::pair<int, int> DSTReader::get_max_contributor(SvtxTrack * track) const
+    {
+      if (!(m_track_map && m_cluster_map && m_g4truthinfo)) return {0, 0};
+
+      // maps MC track id and number of matching g4hits
+      using IdMap = std::map<int, int>;
+      IdMap contributor_map;
+
+      // loop over clusters
+      for (auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter)
+      {
+        const auto& cluster_key = *key_iter;
+        for (const auto& hit : find_g4hits(cluster_key))
+        {
+          const int trkid = hit->get_trkid();
+          auto iter = contributor_map.lower_bound(trkid);
+          if (iter == contributor_map.end() || iter->first != trkid)
+          {
+            contributor_map.insert(iter, std::make_pair(trkid, 1));
+          }
+          else
+            ++iter->second;
+        }
+      }
+
+      if (contributor_map.empty())
+        return {0, 0};
+      else
+        return *std::max_element(
+            contributor_map.cbegin(), contributor_map.cend(),
+            [](const IdMap::value_type& first, const IdMap::value_type& second)
+            { return first.second < second.second; });
+    }
+
+    // //! create svx track from struct
+    // SvtxTrack DSTReader::recover_track(DSTContainerv3::TrackStruct trackStruct)
+    // {
+    //   SvtxTrack_v1 track;
+    //   track.set_charge(trackStruct.charge);
+    //   // trackStruct.nclusters = track->size_cluster_keys();
+    //   // trackStruct.mask = get_mask( track );
+
+    //   // track.insert_cluster_key();
+    //   // trackStruct.nclusters_mvtx = get_clusters<TrkrDefs::mvtxId>( track );
+    //   // trackStruct.nclusters_intt = get_clusters<TrkrDefs::inttId>( track );
+    //   // trackStruct.nclusters_tpc = get_clusters<TrkrDefs::tpcId>( track );
+    //   // trackStruct.nclusters_micromegas = get_clusters<TrkrDefs::micromegasId>( track );
+
+    //   track.set_chisq(trackStruct.chisquare);
+    //   track.set_ndf(trackStruct.ndf);
+
+    //   track.set_x(trackStruct.x);
+    //   track.set_y(trackStruct.y);
+    //   track.set_z(trackStruct.z);
+
+    //   track.set_px(trackStruct.px);
+    //   track.set_py(trackStruct.py);
+    //   track.set_pz(trackStruct.pz);
+
+    //   return track;
+    // }
+
+    // TrkrCluster DSTReader::recover_cluster(DSTContainerv3::ClusterStruct clusterStruct)
+    // {
+    //   TrkrClusterv3 cluster;
+    //   cluster.setLocalX(clusterStruct.loc_x);
+    //   cluster.setLocalY(clusterStruct.loc_y);
+
+    //   return cluster;
+    // }
+
+    //_____________________________________________________________________
+    int DSTReader::get_embed(PHG4Particle * particle) const
+    {
+      return (m_g4truthinfo && particle) ? m_g4truthinfo->isEmbeded(particle->get_primary_id()) : 0;
+    }
+
+    void DSTReader::printCluster(TrkrCluster & newCluster) const
+    {
+      int nLocal = 2;
+      for (auto iLocal = 0; iLocal < nLocal; ++iLocal)
+      {
+        for (auto jLocal = 0; jLocal < nLocal; ++jLocal)
+        {
+          std::cout << "actslocalerror:" << newCluster.getActsLocalError(iLocal, jLocal) << std::endl;
+        }
+      }
+      std::cout << "subsurfkey: " << newCluster.getSubSurfKey() << std::endl;
+      std::cout << "adc: " << newCluster.getAdc() << std::endl;
+      for (auto iLocal = 0; iLocal < nLocal; ++iLocal)
+      {
+        std::cout << "positions: " << newCluster.getPosition(iLocal) << std::endl;
+      }
+      std::cout << "rphierror: " << newCluster.getRPhiError() << std::endl;
+      std::cout << "zerror: " << newCluster.getZError() << std::endl;
+    }
+
+    void DSTReader::showMe() const
+    {
+      std::cout << "hitset size: " << m_hitsetcontainer->size() << std::endl;
+      for (const auto& [hitsetkey, hitset] : range_adaptor(m_hitsetcontainer->getHitSets()))
+      {
+        std::cout << "looping over hitsetkey " << std::hex << hitsetkey << std::endl;
+        for (const auto& [key, cluster] : range_adaptor(m_cluster_map->getClusters(hitsetkey)))
+        {
+          std::cout << "printCluster " << std::hex << key << std::dec << std::endl;
+          // printCluster(*cluster);
+          // std::cout << "cluster is valid " << cluster->isValid() << std::endl;
+          cluster->identify();
+          std::cout << "loc x: " << cluster->getLocalX() << ", loc y: " << cluster->getLocalY() << ", subsurfkey: " << cluster->getSubSurfKey() << ", adc: " << cluster->getAdc() << ", phisize: " << cluster->getPhiSize() << ", zsize: " << cluster->getZSize() << "\n";
+        }
+        // break;
+      }
+    }
+
+    void DSTReader::showHitSet() const
+    {
+      std::cout << "hitset size: " << m_hitsetcontainer->size() << std::endl;
+      for (const auto& [hitsetkey, hitset] : range_adaptor(m_hitsetcontainer->getHitSets()))
+      {
+        std::cout << "looping over hitsetkey " << std::hex << hitsetkey << std::dec << std::endl;
+        // for (const auto& [key, cluster] : range_adaptor(m_cluster_map->getClusters(hitsetkey)))
+        // {
+      }
+    }
+
+    void DSTReader::showAll() const
+    {
+      std::cout << "show all clusters of " << m_cluster_map->size() << std::endl;
+      for (const auto& hitset : m_cluster_map->getHitSetKeys())
+      {
+        for (const auto& [key, cluster] : range_adaptor(m_cluster_map->getClusters(hitset)))
+        {
+          std::cout << "identify cluster with key " << std::hex << key << std::dec << std::endl;
+          std::cout << "cluster is valid? " << cluster->isValid() << std::endl;
+          cluster->identify();
+          std::cout << "our time"
+                    << "\n";
+          printCluster(*cluster);
+        }
+      }
+    }

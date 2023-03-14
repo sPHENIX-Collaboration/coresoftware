@@ -27,7 +27,7 @@
 #include <trackbase/TrkrClusterv4.h>
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterContainerv4.h>
+#include <trackbase/TrkrClusterContainerv5.h>
 
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
@@ -184,7 +184,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    truthclustercontainer = new TrkrClusterContainerv4;
+    truthclustercontainer = new TrkrClusterContainerv5;
     auto newNode = new PHIODataNode<PHObject>(truthclustercontainer, "TRKR_TRUTHCLUSTERCONTAINER", "PHObject");
     DetNode->addNode(newNode);
   }
