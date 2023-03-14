@@ -404,12 +404,7 @@ void QAG4SimulationTpc::evaluate_clusters()
         double phi_error = 0;
         double z_error = 0;
 
-        if (m_cluster_version == 3)
-        {
-          phi_error = rclus->getRPhiError() / r_cluster;
-          z_error = rclus->getZError();
-        }
-        else
+        if (m_cluster_version == 4)
         {
           float r = r_cluster;
           double alpha = (r * r) / (2 * r * R);
@@ -418,6 +413,11 @@ void QAG4SimulationTpc::evaluate_clusters()
           auto para_errors = _ClusErrPara.get_cluster_error(rclus, rkey, alpha, beta);
           phi_error = sqrt(para_errors.first) / r_cluster;
           z_error = sqrt(para_errors.second);
+        }
+        else
+        {
+          phi_error = rclus->getRPhiError() / r_cluster;
+          z_error = rclus->getZError();
         }
 
         const auto dphi = QAG4Util::delta_phi(phi_cluster, gphi);

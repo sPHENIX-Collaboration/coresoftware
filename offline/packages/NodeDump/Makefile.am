@@ -56,7 +56,6 @@ libphnodedump_la_SOURCES = \
   DumpTrkrClusterContainer.cc \
   DumpTrkrClusterHitAssoc.cc \
   DumpTrkrHitSetContainer.cc \
-  DumpTrkrHitTruthClusters.cc \
   DumpTrkrClusterCrossingAssoc.cc \
   DumpTrkrHitTruthAssoc.cc \
   DumpVariableArray.cc \

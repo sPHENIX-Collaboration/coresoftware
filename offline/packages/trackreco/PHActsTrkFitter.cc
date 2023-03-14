@@ -626,6 +626,16 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       TrkrDefs::cluskey cluskey = global_moved[i].first;
       Acts::Vector3 global = global_moved[i].second;
    
+      if(TrkrDefs::getLayer(cluskey) == m_ignoreLayer)
+	{
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << PHWHERE << "skipping cluster in layer " 
+			<< (unsigned int) TrkrDefs::getLayer(cluskey) << std::endl;
+	    }
+	  continue;
+	}
+
       auto cluster = m_clusterContainer->findCluster(cluskey);
       Surface surf = m_tGeometry->maps().getSurface(cluskey, cluster);
 
@@ -693,6 +703,11 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
 	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
 	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
+      }else if(m_cluster_version==5){
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = pow(cluster->getRPhiError(),2) * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = pow(cluster->getZError(),2) * Acts::UnitConstants::cm2;
       }
 
       ActsSourceLink::Index index = measurements.size();

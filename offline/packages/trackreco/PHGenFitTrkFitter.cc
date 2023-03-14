@@ -1171,7 +1171,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     // get cluster errors
     double cluster_rphi_error = 0;
     double cluster_z_error = 0;
-    if( m_cluster_version >= 4 )
+    if( m_cluster_version == 4 )
     {
       // get error from cluster error parametrization 
       // get cluster radius

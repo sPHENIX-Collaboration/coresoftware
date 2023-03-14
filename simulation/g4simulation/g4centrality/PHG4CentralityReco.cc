@@ -17,6 +17,7 @@
 #include <ffaobjects/EventHeaderv1.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+#include <epd/EPDDefs.h>
 
 #include <iostream>  // for operator<<, basic_ostream
 #include <map>       // for _Rb_tree_const_iterator
@@ -165,11 +166,14 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
       if ((it->second->get_t(0) > -50) && (it->second->get_t(1) < 50))
       {
         _epd_NS += it->second->get_edep();
-        int id = it->second->get_scint_id();
-        if ((id & 0x200) == 0)
-          _epd_N += it->second->get_edep();
-        else
-          _epd_S += it->second->get_edep();
+
+	int sim_tileid = (it->second->get_hit_id() >> PHG4HitDefs::hit_idbits);
+	int this_arm = EPDDefs::get_arm(sim_tileid);
+	
+	if (this_arm == 1)
+	  _epd_N += it->second->get_edep();
+	else
+	  _epd_S += it->second->get_edep();
       }
 
     if (Verbosity() >= 5)

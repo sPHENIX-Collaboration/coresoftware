@@ -3,7 +3,7 @@
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TpcDefs.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <trackbase/TrkrTruthTrack.h>
+#include <g4tracking/TrkrTruthTrack.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <algorithm>
 
@@ -14,7 +14,7 @@
 #include <map>  // for _Rb_tree_cons...
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrTruthTrackContainer.h>
+#include <g4tracking/TrkrTruthTrackContainer.h>
 
 /* class TpcClusterBuilder; */
 
@@ -242,9 +242,11 @@ void TpcClusterBuilder::reset(bool clear_hitsetkey_cnt) {
 void TpcClusterBuilder::print(
     TrkrTruthTrackContainer* truth_tracks, int nclusprint) {
   cout << " ------------- content of TrkrTruthTrackContainer ---------- " << endl;
-  auto& tracks = truth_tracks->getTruthTracks();
-  cout << " Number of tracks:  xyz db : " << tracks.size() << endl;
-  for (auto& track : tracks) {
+  auto& tmap = truth_tracks->getMap();
+  cout << " Number of tracks:  xyz db : " << tmap.size() << endl;
+  for (auto& _pair : tmap) {
+    auto& track = _pair.second;
+
     printf("id(%2i) phi:eta:pt(", (int)track->getTrackid());
     cout << "phi:eta:pt(";
     printf("%5.2f:%5.2f:%5.2f", track->getPhi(), track->getPseudoRapidity(), track->getPt());
@@ -275,9 +277,10 @@ void TpcClusterBuilder::print_file(
   ofstream fout;
   fout.open(ofile_name.c_str());
   fout << " ------------- content of TrkrTruthTrackContainer ---------- " << endl;
-  auto& tracks = truth_tracks->getTruthTracks();
-  fout << " Number of tracks: " << tracks.size() << endl;
-  for (auto& track : tracks) {
+  auto& tmap = truth_tracks->getMap();
+  fout << " Number of tracks: " << tmap.size() << endl;
+  for (auto& _pair : tmap) {
+    auto &track = _pair.second;
     fout << " id( " << track->getTrackid() << ")  phi:eta:pt("<<
       track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt() << ") nclusters(" 
       << track->getClusters().size() <<") ";
