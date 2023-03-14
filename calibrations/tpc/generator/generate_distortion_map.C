@@ -15,15 +15,6 @@ void TestSpotDistortion(AnnularFieldSim *t);
 void   SurveyFiles(TFileCollection* filelist);
 
 
-void generate_distortion_map(const char *inputname, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true){
-  //this is a legacy interface so that old macros can run unchanged even though I now ask for flags about the gain map
-  printf("generating single distortion map:  InputType=IBF+Primaries denominated in ions per voxel.\n");
-
-  generate_distortion_map(inputname, "", outputname, ibfName, primName, hasSpacecharge,false);
-
-  return;
-}
-
   
 void generate_distortion_map(const char *inputname, const char* gainName, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true, bool isAdc=false){
   printf("generating single distortion map.  Caution:  This is vastly less efficient than re-using the tpc model once it is set up\n");
@@ -92,6 +83,17 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
 
   return;
   
+}
+
+
+
+void generate_distortion_map(const char *inputname, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true){
+  //this is a legacy interface so that old macros can run unchanged even though I now ask for flags about the gain map
+  printf("generating single distortion map:  InputType=IBF+Primaries denominated in ions per voxel.\n");
+
+  generate_distortion_map(inputname, "", outputname, ibfName, primName, hasSpacecharge,false);
+
+  return;
 }
 
   
