@@ -6,70 +6,72 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
+#include "MicromegasCalibrationData.h"
+#include "MicromegasMapping.h"
+
 #include <fun4all/SubsysReco.h>
 
 #include <memory>
 #include <string>
 
 class PHCompositeNode;
-class TFile;
-class TH1;
-class TH2;
 
-//! micromegas raw data decoder
+/// micromegas raw data decoder
 class MicromegasRawDataDecoder : public SubsysReco
 {
   public:
 
-  //! constructor
+  /// constructor
   MicromegasRawDataDecoder( const std::string &name = "MicromegasRawDataDecoder" );
 
-  //! global initialization
+  /// global initialization
   int Init(PHCompositeNode*) override;
 
-  //! run initialization
+  /// run initialization
   int InitRun(PHCompositeNode*) override;
 
   /// event processing
   int process_event(PHCompositeNode*) override;
-
+  
   /// end of processing
   int End(PHCompositeNode*) override;
 
-  /// set to true to store evaluation histograms and ntuples
-  void set_save_histograms( bool value ) { m_savehistograms = value; }
+  /// calibration file
+  void set_calibration_file( const std::string& value ) { m_calibration_filename = value; }
 
-  /// output file name for evaluation histograms
-  void set_histogram_outputfile(const std::string &outputfile) {m_histogramfilename = outputfile;}
-
+  /// set number of RMS sigma used to defined static threshold on a given channel
+  void set_n_sigma( double value ) { m_n_sigma = value; }
+  
+  /// set min sample for noise estimation
+  void set_sample_min( int value ) { m_sample_min = value; }
+  
+  /// set min sample for noise estimation
+  void set_sample_max( int value ) { m_sample_max = value; }
+  
   private:
-
-  /// create evaluation histograms
-  void create_histograms();
-
-  static constexpr int m_nchannels_fee = 256;
-  static constexpr int m_nfee = 8;
-  static constexpr int m_nchannels_total = m_nfee*m_nchannels_fee;
-  static constexpr int m_max_adc = 1024;
-
-  //!@name evaluation histograms
-  //@{
-
-  /// Output root histograms
-  bool m_savehistograms = true;
-
-  /// histogram output file name
-  std::string m_histogramfilename = "MicromegasRawDataDecoder.root";
-  std::unique_ptr<TFile> m_histogramfile;
-
-  //! Fired FEE
-  TH1* m_h_fee_id = nullptr;
-
-  //! ADC distribution vs channel number
-  TH2* m_h_adc_channel = nullptr;
-
-  //@}
-
+  
+  //! calibration filename
+  std::string m_calibration_filename = "TPOT_Pedestal_000.root";
+    
+  //! calibration data
+  MicromegasCalibrationData m_calibration_data;
+ 
+  //! mapping
+  MicromegasMapping m_mapping;
+  
+  /// number of RMS sigma used to define threshold
+  double m_n_sigma = 5;
+  
+  /// min sample for signal 
+  int m_sample_min = 0;
+  
+  /// max sample for signal
+  int m_sample_max = 100;
+  
+  /// keep track of number of hits per hitsetid
+  using hitcountmap_t = std::map<TrkrDefs::hitsetkey,int>;
+  hitcountmap_t m_hitcounts;
+  
 };
 
 #endif

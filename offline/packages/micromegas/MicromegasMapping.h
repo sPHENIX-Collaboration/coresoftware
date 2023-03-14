@@ -12,26 +12,29 @@
 #include <string>
 #include <vector>
 
-//! micromegas mapping
+/// micromegas mapping
 class MicromegasMapping
 {
   public:
 
-  //! constructor
+  /// constructor
   MicromegasMapping();
 
-  //! get hitsetkey from fiber_id (fee_id)
+  /// get list of fee ids
+  std::vector<int> get_fee_id_list() const;
+  
+  /// get hitsetkey from fiber_id (fee_id)
   TrkrDefs::hitsetkey get_hitsetkey( int /*fee_id*/ ) const;
 
-  //! get detector name (saclay) from fiber_id (fee_id)
+  /// get detector name (saclay) from fiber_id (fee_id)
   /** saclay detector name are of type MxxP and MxxZ, with xx the module number */
   std::string get_detname_saclay( int /*fee_id*/) const;
 
-  //! get detector name (saclay) from fiber_id (fee_id)
+  /// get detector name (saclay) from fiber_id (fee_id)
   /** sphenix detector name are of type SWP, SWZ, etc. */
   std::string get_detname_sphenix( int /*fee_id*/) const;
 
-  //! get physical strip number from channel_id
+  /// get physical strip number from channel_id
   /**
    * physical strip number correspond to a position in the
    * detector's geant implementation, with increasing number corresponding to strips further away from the detector's edge,
@@ -41,7 +44,7 @@ class MicromegasMapping
 
   private:
 
-  //! contains all relevant detector information
+  /// contains all relevant detector information
   /** this effectively implements mapping between fee_id as defined in EDBC,    * detector names (in both Saclay and sPHENIX convention),
    * and hitsetkey which is the detector unique identifier
    */
@@ -49,7 +52,7 @@ class MicromegasMapping
   {
     public:
 
-    //! constructor
+    /// constructor
     DetectorId( int fee_id, TrkrDefs::hitsetkey hitsetkey, const std::string& detname_saclay, const std::string& detname_sphenix ):
       m_fee_id( fee_id ),
       m_hitsetkey( hitsetkey ),
@@ -57,23 +60,23 @@ class MicromegasMapping
       m_detname_sphenix( detname_sphenix )
     {}
 
-    //! fee_id
+    /// fee_id
     int m_fee_id = 0;
 
-    //! hitset key
+    /// hitset key
     TrkrDefs::hitsetkey m_hitsetkey = 0;
 
-    //! detector name
+    /// detector name
     std::string m_detname_saclay;
 
-    //! detector name
+    /// detector name
     std::string m_detname_sphenix;
   };
 
-  //! list of defined detectors
+  /// list of defined detectors
   std::vector<DetectorId> m_detectors;
 
-  //! map detector_id to fee_id
+  /// map detector_id to fee_id
   std::map<int, DetectorId> m_detector_map;
 
 };

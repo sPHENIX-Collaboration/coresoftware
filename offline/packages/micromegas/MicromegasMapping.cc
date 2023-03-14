@@ -6,6 +6,8 @@
 #include "MicromegasMapping.h"
 #include "MicromegasDefs.h"
 
+#include <algorithm>
+
 //____________________________________________________________________________________________________
 MicromegasMapping::MicromegasMapping():
 m_detectors( {
@@ -42,6 +44,14 @@ m_detectors( {
   /// fill detector map from vector
   for( const auto& detector_id:m_detectors )
   { m_detector_map.emplace( detector_id.m_fee_id, detector_id ); }
+}
+
+//____________________________________________________________________________________________________
+std::vector<int> MicromegasMapping::get_fee_id_list() const 
+{
+  std::vector<int> out;
+  std::transform( m_detectors.begin(), m_detectors.end(), std::back_inserter( out ), []( const DetectorId& det_id ){ return det_id.m_fee_id; } );
+  return out;  
 }
 
 //____________________________________________________________________________________________________
