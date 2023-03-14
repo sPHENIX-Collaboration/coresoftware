@@ -58,6 +58,7 @@ pkginclude_HEADERS = \
   TrkrClusterContainerv2.h \
   TrkrClusterContainerv3.h \
   TrkrClusterContainerv4.h \
+  TrkrClusterContainerv5.h \
   TrkrClusterCrossingAssoc.h \
   TrkrClusterCrossingAssocv1.h \
   TrkrClusterHitAssoc.h \
@@ -70,6 +71,7 @@ pkginclude_HEADERS = \
   TrkrClusterv2.h \
   TrkrClusterv3.h \
   TrkrClusterv4.h \
+  TrkrClusterv5.h \
   TrkrDefs.h \
   TrkrHit.h \
   TrkrHitSet.h \
@@ -109,6 +111,7 @@ ROOTDICTS = \
   TrkrClusterContainerv2_Dict.cc \
   TrkrClusterContainerv3_Dict.cc \
   TrkrClusterContainerv4_Dict.cc \
+  TrkrClusterContainerv5_Dict.cc \
   TrkrClusterCrossingAssoc_Dict.cc \
   TrkrClusterCrossingAssocv1_Dict.cc \
   TrkrClusterHitAssoc_Dict.cc \
@@ -122,6 +125,7 @@ ROOTDICTS = \
   TrkrClusterv2_Dict.cc \
   TrkrClusterv3_Dict.cc \
   TrkrClusterv4_Dict.cc \
+  TrkrClusterv5_Dict.cc \
   TrkrHitSetContainer_Dict.cc \
   TrkrHitSetContainerv1_Dict.cc \
   TrkrHitSetContainerv2_Dict.cc \
@@ -162,6 +166,7 @@ nobase_dist_pcm_DATA = \
   TrkrClusterContainerv2_Dict_rdict.pcm \
   TrkrClusterContainerv3_Dict_rdict.pcm \
   TrkrClusterContainerv4_Dict_rdict.pcm \
+  TrkrClusterContainerv5_Dict_rdict.pcm \
   TrkrClusterCrossingAssoc_Dict_rdict.pcm \
   TrkrClusterCrossingAssocv1_Dict_rdict.pcm \
   TrkrClusterHitAssoc_Dict_rdict.pcm \
@@ -175,6 +180,7 @@ nobase_dist_pcm_DATA = \
   TrkrClusterv2_Dict_rdict.pcm \
   TrkrClusterv3_Dict_rdict.pcm \
   TrkrClusterv4_Dict_rdict.pcm \
+  TrkrClusterv5_Dict_rdict.pcm \
   TrkrHitSetContainer_Dict_rdict.pcm \
   TrkrHitSetContainerv1_Dict_rdict.pcm \
   TrkrHitSetContainerv2_Dict_rdict.pcm \
@@ -219,6 +225,7 @@ libtrack_io_la_SOURCES = \
   TrkrClusterContainerv2.cc \
   TrkrClusterContainerv3.cc \
   TrkrClusterContainerv4.cc \
+  TrkrClusterContainerv5.cc \
   TrkrClusterCrossingAssoc.cc \
   TrkrClusterCrossingAssocv1.cc \
   TrkrClusterHitAssoc.cc \
@@ -231,6 +238,7 @@ libtrack_io_la_SOURCES = \
   TrkrClusterv2.cc \
   TrkrClusterv3.cc \
   TrkrClusterv4.cc \
+  TrkrClusterv5.cc \
   TrkrDefs.cc \
   TrkrHitSet.cc \
   TrkrHitSetContainer.cc \

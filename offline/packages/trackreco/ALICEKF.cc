@@ -82,6 +82,16 @@ double ALICEKF::getClusterError(TrkrCluster* c, TrkrDefs::cluskey key, Acts::Vec
 	localErr[2][0] = 0.;
 	localErr[2][1] = 0.;
 	localErr[2][2] = para_errors.second;
+      }else if(m_cluster_version==5){
+	localErr[0][0] = 0.;
+	localErr[0][1] = 0.;
+	localErr[0][2] = 0.;
+	localErr[1][0] = 0.;
+	localErr[1][1] = pow(c->getRPhiError(),2);
+	localErr[1][2] = 0.;
+	localErr[2][0] = 0.;
+	localErr[2][1] = 0.;
+	localErr[2][2] = pow(c->getZError(),2);
       }
       float clusphi = atan2(global(1), global(0));
       TMatrixF ROT(3,3);

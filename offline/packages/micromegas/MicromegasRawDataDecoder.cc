@@ -4,6 +4,7 @@
  */
 
 #include "MicromegasRawDataDecoder.h"
+#include "MicromegasDefs.h"
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -15,13 +16,11 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 
+#include <trackbase/TrkrHitv2.h>
+#include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 
-#include <TFile.h>
-#include <TH1.h>
-#include <TH2.h>
-#include <TProfile.h>
-
+#include <algorithm>
 #include <cassert>
 
 //_________________________________________________________
@@ -31,11 +30,10 @@ MicromegasRawDataDecoder::MicromegasRawDataDecoder( const std::string& name ):
 
 //_____________________________________________________________________
 int MicromegasRawDataDecoder::Init(PHCompositeNode* /*topNode*/ )
-{
-
-  // histogram evaluation
-  if( m_savehistograms ) create_histograms();
-  return Fun4AllReturnCodes::EVENT_OK;
+{ 
+  // read calibrations
+  m_calibration_data.read( m_calibration_filename );
+  return Fun4AllReturnCodes::EVENT_OK; 
 }
 
 //____________________________________________________________________________..
@@ -80,19 +78,6 @@ int MicromegasRawDataDecoder::InitRun(PHCompositeNode *topNode)
 int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
 {
 
-  // map fee id to detector index in histogram
-  using fee_map_t = std::map<int,int>;
-  fee_map_t fee_map = {
-    {2, 0},
-    {1, 1},
-    {3, 2},
-    {4, 3},
-    {8, 4},
-    {9, 5},
-    {7, 6},
-    {5, 7}
-  };
-
   // load relevant nodes
   // Get the TrkrHitSetContainer node
   auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -105,7 +90,6 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
   // check event type
   if(event->getEvtType() >= 8)
   { return Fun4AllReturnCodes::DISCARDEVENT; }
-
 
   // get TPOT packet number
   /*
@@ -127,6 +111,7 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
   { std::cout << "MicromegasRawDataDecoder::process_event - n_waveforms: " << n_waveforms << std::endl; }
   for( int i=0; i<n_waveforms; ++i )
   {
+    
     auto channel = packet->iValue( i, "CHANNEL" );
     int fee = packet->iValue(i, "FEE" );
     int samples = packet->iValue( i, "SAMPLES" );
@@ -140,26 +125,65 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
         << " samples: " << samples
         << std::endl;
     }
+        
+    // get channel rms and pedestal from calibration data
+    const double pedestal = m_calibration_data.get_pedestal( fee, channel );
+    const double rms = m_calibration_data.get_rms( fee, channel );
+    
+    // a rms of zero means the calibration has failed. the data is unusable
+    if( rms <= 0 ) continue;
+    
+    // loop over samples find maximum
+    std::vector<int> adc;
+    for( int is = std::max( m_sample_min,0 ); is < std::min( m_sample_max,samples ); ++ is )
+    { adc.push_back( packet->iValue( i, is ) ); }
 
-    if( m_savehistograms && m_h_fee_id ) m_h_fee_id->Fill(fee);
+    if( adc.empty() ) continue;
 
-    // find fee index from map
-    const auto iter = fee_map.find( fee );
-    if( iter == fee_map.end() )
+    // get max adc value in range
+    /* TODO: use more advanced signal processing */
+    auto max_adc = *std::max_element( adc.begin(), adc.end() );
+    
+    // subtract pedestal
+    max_adc -= pedestal;
+    
+    // compare to threshold
+    if( max_adc > m_n_sigma * rms ) 
     {
-      std::cout << "MicromegasRawDataDecoder::process_event - unable to find fee " << fee << " in map" << std::endl;
-      continue;
-    }
 
-    const auto fee_index = iter->second;
-    const auto channel_index = fee_index*m_nchannels_fee + channel;
+      // map fee and channel to physical hitsetid and physical strip
+      // get hitset key matching this fee
+      const TrkrDefs::hitsetkey hitsetkey = m_mapping.get_hitsetkey( fee );     
+      if( !hitsetkey ) continue;
 
-    // loop over samples
-    if( m_savehistograms && m_h_adc_channel )
-    {
-      for( int is = 0; is < samples; ++ is )
-      { m_h_adc_channel->Fill( channel_index, packet->iValue(i,is) ); }
+      // get matching physical strip
+      int strip = m_mapping.get_physical_strip( fee, channel );
+      if( strip < 0 ) continue;
+      
+      // get matching hitset
+      const auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
+
+      // generate hit key
+      const TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip);
+    
+      // find existing hit, or create
+      auto hit = hitset_it->second->getHit(hitkey);
+      if( hit ) 
+      {
+        std::cout << "MicromegasRawDataDecoder::process_event - duplicated hit, hitsetkey: " << hitsetkey << " strip: " << strip << std::endl;
+        continue;
+      }
+
+      // create hit, assign adc and insert in hitset
+      hit = new TrkrHitv2;
+      hit->setAdc( max_adc );
+      hitset_it->second->addHitSpecificKey(hitkey, hit);
+      
+      // increment counter
+      ++m_hitcounts[hitsetkey];
+      
     }
+    
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -168,36 +192,11 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
 //_____________________________________________________________________
 int MicromegasRawDataDecoder::End(PHCompositeNode* /*topNode*/ )
 {
-  // save histograms
-  if( m_savehistograms && m_histogramfile )
+  // if( Verbosity() )
   {
-    // create mean and rms histograms
-    auto profile = m_h_adc_channel->ProfileX("h_adc_channel_profx", 1, -1, "s" );
-    auto h_pedestal = new TH1F( "h_pedestal", "pedestal vs channel", m_nchannels_total, 0, m_nchannels_total );
-    auto h_rms = new TH1F( "h_rms", "rms vs channel", m_nchannels_total, 0, m_nchannels_total );
-    for( int i =0; i<m_nchannels_total; ++i )
-    {
-      h_pedestal->SetBinContent( i+1, profile->GetBinContent(i+1) );
-      h_rms->SetBinContent(i+1, profile->GetBinError(i+1) );
-    }
-
-    m_histogramfile->cd();
-    m_h_fee_id->Write();
-    m_h_adc_channel->Write();
-    h_pedestal->Write();
-    h_rms->Write();
-    m_histogramfile->Close();
+    for( const auto& [hitsetkey, count]:m_hitcounts )
+    { std::cout << "MicromegasRawDataDecoder - hitsetkey: " << hitsetkey << ", count: " << count << std::endl; }
   }
+
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//_____________________________________________________________________
-void MicromegasRawDataDecoder::create_histograms()
-{
-  std::cout << "MicromegasRawDataDecoder::create_histograms - writing evaluation histograms to: " << m_histogramfilename << std::endl;
-  m_histogramfile.reset( new TFile(m_histogramfilename.c_str(), "RECREATE") );
-  m_histogramfile->cd();
-
-  m_h_fee_id = new TH1I( "h_fee_id", "FEE id", 10, 0, 10 );
-  m_h_adc_channel = new TH2I( "h_adc_channel", "ADC vs channel", m_nchannels_total, 0, m_nchannels_total, m_max_adc, 0, m_max_adc );
 }

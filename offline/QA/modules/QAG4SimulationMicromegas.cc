@@ -469,12 +469,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
       // get relevant cluster information
       double rphi_error = 0;
       double z_error = 0;
-      if (m_cluster_version == 3)
-      {
-        rphi_error = cluster->getRPhiError();
-        z_error = cluster->getZError();
-      }
-      else
+      if (m_cluster_version == 4)
       {
         float r = cluster_r;
         double alpha = (r * r) / (2 * r * R);
@@ -482,6 +477,11 @@ void QAG4SimulationMicromegas::evaluate_clusters()
         auto para_errors = _ClusErrPara.get_cluster_error(cluster, ckey, alpha, beta);
         rphi_error = sqrt(para_errors.first);
         z_error = sqrt(para_errors.second);
+      }
+      else
+      {
+        rphi_error = cluster->getRPhiError();
+        z_error = cluster->getZError();
       }
       // convert cluster position to local tile coordinates
       const TVector3 cluster_world(global(0), global(1), global(2));
