@@ -12,7 +12,7 @@ R__LOAD_LIBRARY(build/.libs/libfieldsim)
 AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe=false, bool useSpacecharge=true);
 AnnularFieldSim *SetupDigitalCurrentSphenixTpc(bool twinMe=false, bool useSpacecharge=true);
 void TestSpotDistortion(AnnularFieldSim *t);
-void   SurveyFiles(TFileCollection* filelist);
+void SurveyFiles(TFileCollection* filelist);
 
 
   
@@ -20,7 +20,7 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   printf("generating single distortion map.  Caution:  This is vastly less efficient than re-using the tpc model once it is set up\n");
  
   bool hasTwin=true; //this flag prompts the code to build both a positive-half and a negative-half for the TPC, reusing as much of the calculations as possible.  It is more efficient to 'twin' one half of the TPC than to recalculate/store the greens functions for both.
-  TString gainHistName="hIbfGain";
+  TString gainHistName[2]={"hIbfGain_posz","hIbfGFain_negz"};
 
   //and some parameters of the files we're loading:
   bool usesChargeDensity=false; //true if source hists contain charge density per bin.  False if hists are charge per bin.
@@ -60,11 +60,14 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   }
   if (isAdc){ //load digital current using the scaling:
     gainfile=TFile::Open(gainName,"READ");
-    TH2* hGain=(TH2*)(gainfile->Get(gainHistName));
-    chargestring=Form("%s:(dc:%s g:%s:%s)",inputname,ibfName,gainName,gainHistName.Data());
-    tpc->load_digital_current(hCharge,hGain,tpc_chargescale,spacecharge_cm_per_axis_unit,chargestring.Data());
-    if (hasTwin) tpc->twin->load_digital_current(hCharge,hGain,tpc_chargescale,spacecharge_cm_per_axis_unit,chargestring.Data());
-
+    TH2* hGain[2];
+    hGain[0]=(TH2*)(gainfile->Get(gainHistName[0]));
+    chargestring=Form("%s:(dc:%s g:%s:%s)",inputname,ibfName,gainName,gainHistName[0].Data());
+    tpc->load_digital_current(hCharge,hGain[0],tpc_chargescale,spacecharge_cm_per_axis_unit,chargestring.Data());
+    if (hasTwin) {
+      hGain[1]=(TH2*)(gainfile->Get(gainHistName[1]));
+      Form("hIonGain%s",suffix)tpc->twin->load_digital_current(hCharge,hGain[1],tpc_chargescale,spacecharge_cm_per_axis_unit,chargestring.Data());
+    }
   }
   //build the electric fieldmap from the chargemap
   tpc->populate_fieldmap();

@@ -25,12 +25,25 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
   }
 
   TFile *output=TFile::Open(outputFile,"RECREATE");
-  //generate a histogram with the IBF + Primaries:
-  TH3* hTotalCharge=nullptr;
-  hTotalCharge=static_cast<TH3*>(hPrimaries->Clone("hTotalCharge"));
-  TH2* hFlatTotal=(TH2*)hTotalCharge->Project3D("xy");
-  TH2* hFlatIbf=(TH2*)hIbf->Project3D("xy");
-  hFlatTotal->Add(hFlatIbf);
+  //generate 2D histograms with the IBF, and IBF + Primaries, per side:
+
+  int nSections=3;
+  TH2* hFlatTotal[nSections],hFlatIbf[nSections]; //flat charge sums in north and south
+  int zbins,neg,cm,pos;
+  zbins=hAdc->GetZaxis()->GetNbins();
+  south=1;
+  cm=zbins/2;
+  north=zbins;
+
+  TString suffix[]={"","_negz","_posz"};
+  int low[]={neg,neg,cm+1};
+  int high[]={pos,cm,pos};
+
+  for (int i=0;i<nSections;i++){
+    hFlatTotal[i]=(TH2*)hPrimaries->Project3D(Form("xy%s",suffix[i]),low[i],high[i]);
+    hFlatIbf[i]=(TH2*)hIbf->Project3D(Form("xy%s",suffix[i]),low[i],high[i]);
+    hFlatTotal[i]->Add(hFlatIbf[i]);
+  }
   
   
   //sanity check that the bounds are the same
@@ -47,7 +60,7 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
 
 
   int nbins[3];
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 3; i++)//note these are dimensions, not sections.
   {
     nbins[i] = ax[i]->GetNbins();  //number of bins, not counting under and overflow.
     if (nbins[i]!=ax2[i]->GetNbins()){
@@ -59,17 +72,19 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
 
   
   //project into 2D per rphi, and divide Ions by Adc to get the Ion/Adc gain.
-  TH2* hIonGain[2],*hFlatAdc;
-  hIonGain[0]=static_cast<TH2*>(hFlatTotal->Clone("hIonGain"));//with primaries
-  hIonGain[1]=static_cast<TH2*>(hFlatIbf->Clone("hIbfGain"));//with only ibf
-  hFlatAdc=static_cast<TH2*>(hAdc->Project3D("xy"));
+  TH2* hIonGain[nSections], *hIbfGain[nSections],*hFlatAdc[nSections];
+  nSections
+  for (int i=0;i<nSections;i++){
+    hIonGain[i]=static_cast<TH2*>(hFlatTotal->Clone(Form("hIonGain%s",suffix[i])));//with primaries
+    hIbfGain[i]=static_cast<TH2*>(hFlatIbf->Clone(Form("hIbfGain%s",suffix[i])));//with only ibf
+    hFlatAdc=static_cast<TH2*>(hAdc->Project3D(Form("xy%s",suffix[i])));
 
-  
-  hIonGain[0]->Divide(hFlatAdc);
-  hIonGain[1]->Divide(hFlatAdc);
+    hIonGain[i]->Divide(hFlatAdc[i]);
+    hIbfGain[i]->Divide(hFlatAdc[i]);
 
-  hIonGain[0]->Write();
-  hIonGain[1]->Write();
+    hIonGain[i]->Write();
+    hIbfGain[i]->Write();
+  }
   
   //
   return;
