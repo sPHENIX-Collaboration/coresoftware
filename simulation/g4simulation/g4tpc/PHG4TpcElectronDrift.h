@@ -21,6 +21,7 @@ class PHCompositeNode;
 class TH1;
 class TH2;
 class TNtuple;
+class TTree;
 class TFile;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
