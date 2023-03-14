@@ -77,10 +77,10 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
   TH2* hIonGain[nSections], *hIbfGain[nSections],*hFlatAdc[nSections];
 
   for (int i=0;i<nSections;i++){
-    hIonGain[i]=static_cast<TH2*>(hFlatTotal->Clone(Form("hIonGain%s",suffix[i].Data())));//with primaries
-    hIbfGain[i]=static_cast<TH2*>(hFlatIbf->Clone(Form("hIbfGain%s",suffix[i].Data())));//with only ibf
+    hIonGain[i]=static_cast<TH2*>(hFlatTotal[i]->Clone(Form("hIonGain%s",suffix[i].Data())));//with primaries
+    hIbfGain[i]=static_cast<TH2*>(hFlatIbf[i]->Clone(Form("hIbfGain%s",suffix[i].Data())));//with only ibf
     hAdc->GetZaxis()->SetRange(low[i],high[i]);
-    hFlatAdc=static_cast<TH2*>(hAdc->Project3D(Form("xy%s",suffix[i])));
+    hFlatAdc[i]=static_cast<TH2*>(hAdc->Project3D(Form("xy%s",suffix[i].Data())));
 
     hIonGain[i]->Divide(hFlatAdc[i]);
     hIbfGain[i]->Divide(hFlatAdc[i]);
