@@ -14,6 +14,7 @@
 #include <trackbase/TrkrClusterContainerv4.h>        // for TrkrCluster
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterv4.h>
+#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHit.h>
@@ -260,6 +261,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       // also store adc value
       unsigned int adc_sum = 0;
+      unsigned int max_adc = 0;
       strip_count = 0;
       // loop over constituting hits
       for( auto hit_it = range.first; hit_it != range.second; ++hit_it )
@@ -281,6 +283,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         const double weight = double(hit->getAdc()) - pedestal;
 
         // increment cluster adc
+	if(hit->getAdc() > max_adc)
+	  max_adc = hit->getAdc();
         adc_sum += hit->getAdc();
 
         // get strip local coordinate and update relevant sums
@@ -366,6 +370,34 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         cluster->setLocalX(local_coordinates.X());
         cluster->setLocalY(local_coordinates.Y());
 
+        // store cluster size
+        switch( segmentation_type )
+        {
+          case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+          {
+            cluster->setPhiSize(strip_count);
+            cluster->setZSize(1);
+            break;
+          }
+
+          case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+          {
+            cluster->setPhiSize(1);
+            cluster->setZSize(strip_count);
+            break;
+          }
+        }
+        // add to container
+        trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
+      } else if(m_cluster_version==5) {
+
+        auto cluster = std::make_unique<TrkrClusterv5>();
+        cluster->setAdc( adc_sum );
+        cluster->setMaxAdc( max_adc );
+        cluster->setLocalX(local_coordinates.X());
+        cluster->setLocalY(local_coordinates.Y());
+        cluster->setPhiError(sqrt(error_sq_x));
+        cluster->setZError(sqrt(error_sq_y));
         // store cluster size
         switch( segmentation_type )
         {
