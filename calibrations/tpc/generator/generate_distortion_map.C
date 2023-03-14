@@ -20,6 +20,8 @@ void generate_distortion_map(const char *inputname, const char *outputname, cons
   printf("generating single distortion map:  InputType=IBF+Primaries denominated in ions per voxel.\n");
 
   generate_distortion_map(inputname, "", outputname, ibfName, primName, hasSpacecharge,false);
+
+  return;
 }
 
   
@@ -68,7 +70,7 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   if (isAdc){ //load digital current using the scaling:
     gainfile=TFile::Open(gainName,"READ");
     TH2* hGain=(TH2*)(gainfile->Get(gainHistName));
-    chargestring=Form("%s:(dc:%s g:%s:%s)",inputname,ibfName,gainName,gainHistName);
+    chargestring=Form("%s:(dc:%s g:%s:%s)",inputname,ibfName,gainName,gainHistName.Data());
     tpc->load_digital_current(hCharge,hGain,tpc_chargescale,spacecharge_cm_per_axis_unit,chargestring.Data());
     if (hasTwin) tpc->twin->load_digital_current(hCharge,hGain,tpc_chargescale,spacecharge_cm_per_axis_unit,chargestring.Data());
 
