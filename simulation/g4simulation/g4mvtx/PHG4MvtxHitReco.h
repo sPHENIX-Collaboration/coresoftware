@@ -25,7 +25,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
       const std::string &name = "PHG4MvtxHitReco",
       const std::string &detector = "MVTX");
 
-  ~PHG4MvtxHitReco() override {}
+  ~PHG4MvtxHitReco() override;
 
   //! module initialization
   int InitRun(PHCompositeNode *topNode) override;

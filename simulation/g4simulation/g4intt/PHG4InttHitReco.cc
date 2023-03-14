@@ -68,6 +68,7 @@ PHG4InttHitReco::~PHG4InttHitReco()
   gsl_vector_free(m_LocalOutVec);
   gsl_vector_free(m_PathVec);
   gsl_vector_free(m_SegmentVec);
+  delete m_truth_clusterer;
 }
 
 int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
@@ -207,14 +208,14 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(newNode);
   }
 
-  m_truth_clusterer = new TruthInttClusterBuilder(m_truthclusters, m_truthtracks);
+  m_truth_clusterer = new TruthInttClusterBuilder(m_truthclusters, 
+      m_truthtracks, Verbosity() );
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
 {
-  std::cout << PHWHERE << " FIXME " << std::endl;
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   if (!g4hit)
   {

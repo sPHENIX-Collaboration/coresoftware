@@ -70,6 +70,19 @@ using boost::undirectedS;
 using boost::adjacency_list;
 using boost::vecS;
 
+TruthInttClusterBuilder::TruthInttClusterBuilder(TrkrClusterContainer* _clusters,
+      TrkrTruthTrackContainer* _truth_tracks,
+      int _verbosity ) :
+    m_hits        { new TrkrHitSetContainerv1() },
+    m_clusters    { _clusters     },
+    m_truthtracks { _truth_tracks },
+    m_verbosity   { _verbosity    }
+{
+};
+
+TruthInttClusterBuilder::~TruthInttClusterBuilder() {
+  delete m_hits;
+};
 
 void TruthInttClusterBuilder::check_g4hit(PHG4Hit* hit) {
   int new_trkid = hit->get_trkid();
@@ -197,15 +210,7 @@ void TruthInttClusterBuilder::cluster_hits() {
     // loop over the cluster ID's and make the clusters from the connected hits
     for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter)
       {
-
-  auto hitsetkey = hitset->getHitSetKey();
-  if (hitsetkey_cnt.find(hitsetkey)==hitsetkey_cnt.end()) {
-    hitsetkey_cnt[hitsetkey] = 0;
-  } else {
-    hitsetkey_cnt[hitsetkey] +=1;
-  }
-	int clusid = hitsetkey_cnt[hitsetkey]; // the clusid here is related uniquely to the truth clusters in this event only
-  TrkrDefs::cluskey cluskey = TrkrDefs::genClusKey(hitsetkey, hitsetkey_cnt[hitsetkey]);
+	int clusid = *clusiter;
 	//cout << " intt clustering: add cluster number " << clusid << endl; 
 	// get all hits for this cluster ID only
 	pair<multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator,  
@@ -332,7 +337,6 @@ void TruthInttClusterBuilder::cluster_hits() {
 	/*     m_clusterlist->addClusterSpecifyKey(ckey, clus.release()); */
 	/* } */
 	/* if(m_cluster_version==4){ */
-	if(true){
 	  auto clus = std::make_unique<TrkrClusterv4>();
 	  // Fill the cluster fields
 	  clus->setAdc(clus_adc);
@@ -345,9 +349,20 @@ void TruthInttClusterBuilder::cluster_hits() {
 	  clus->setLocalY(cluslocalz);
 	  // 0
 	  clus->setSubSurfKey(0);
-   m_clusters->addClusterSpecifyKey(cluskey, clus.release());
-   track->addCluster(cluskey);
-	}
+
+    // add the cluster to the trkrclustercontainer
+    cout << PHWHERE << " w.w 0.0 " << endl;
+      auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
+      if (hitsetkey_cnt.find(hitsetkey)==hitsetkey_cnt.end()) {
+        hitsetkey_cnt[hitsetkey] = 0;
+      } else {
+        hitsetkey_cnt[hitsetkey] +=1;
+      }
+	    auto new_clusid = hitsetkey_cnt[hitsetkey]; 
+      auto new_ckey = TrkrDefs::genClusKey(hitsetkey, new_clusid);
+   m_clusters->addClusterSpecifyKey(new_ckey, clus.release());
+    cout << PHWHERE << " w.w 1.0 " << endl;
+   track->addCluster(new_ckey);
      } // end loop over cluster ID's
   }  // end loop over hitsets
   // end of code from offline/packages/intt/InttClusterizer.cc

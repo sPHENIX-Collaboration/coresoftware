@@ -60,7 +60,7 @@ class TruthInttClusterBuilder {
   PHG4TruthInfoContainer  *m_truthinfo {nullptr};
 
   // intermediary hits, used to cluster Truth hits
-  TrkrHitSetContainer     *m_hits {}; // save the hits as they come along
+  TrkrHitSetContainer     *m_hits { nullptr }; // save the hits as they come along
   std::map<TrkrDefs::hitsetkey,unsigned int> hitsetkey_cnt {}; // counter for filling the truthtracks
 
   //output nodes to fill
@@ -72,8 +72,10 @@ class TruthInttClusterBuilder {
   // member data required for clustering
 
   public:
-  TruthInttClusterBuilder(TrkrClusterContainer* _clusters, TrkrTruthTrackContainer* _truth_tracks) :
-    m_clusters {_clusters}, m_truthtracks {_truth_tracks} {};
+  TruthInttClusterBuilder(TrkrClusterContainer* _clusters, 
+      TrkrTruthTrackContainer* _truth_tracks,
+      int _verbosity );
+  ~TruthInttClusterBuilder();
 
   void set_truthinfo (PHG4TruthInfoContainer *_truthinfo) { m_truthinfo = _truthinfo; };
   void set_geom_container (PHG4CylinderGeomContainer *_geom_container) { m_geom_container = _geom_container; };
@@ -102,7 +104,6 @@ class TruthInttClusterBuilder {
   }
 
   // settings
-  // FIXME THIS
   float _fraction_of_mip;
   std::map<int, float> _thresholds_by_layer;  // layer->threshold
   std::map<int, bool> _make_z_clustering;     // layer->z_clustering_option

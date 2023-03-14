@@ -56,8 +56,10 @@ class TruthMvtxClusterBuilder {
   // member data required for clustering
 
   public:
-  TruthMvtxClusterBuilder(TrkrClusterContainer* _clusters, TrkrTruthTrackContainer* _truth_tracks) :
-    m_clusters {_clusters}, m_truthtracks {_truth_tracks} {};
+  TruthMvtxClusterBuilder(TrkrClusterContainer* _clusters, 
+      TrkrTruthTrackContainer* _truth_tracks,
+      int _verbosity);
+  ~TruthMvtxClusterBuilder(); 
 
   void set_truthinfo (PHG4TruthInfoContainer *_truthinfo) { m_truthinfo = _truthinfo; };
   void check_g4hit   (PHG4Hit                *hit);
@@ -67,16 +69,14 @@ class TruthMvtxClusterBuilder {
   void set_verbosity(int _verbosity) { m_verbosity = _verbosity; };
   void set_geom_container (PHG4CylinderGeomContainer *_geom_container) { m_geom_container = _geom_container; };
 
+  void print_clusters(int nclusters=-1);
+
   private:
   void cluster_hits();
   int m_verbosity {0};
   /* bool are_adjacent(RawHit* lhs, RawHit* rhs); */
   bool are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs);
   PHG4CylinderGeomContainer* m_geom_container;
-  /* bool GetZClustering() const */
-  /* { */
-  /*   return true; // m_makeZClustering; this is an option in MvtxClusterizer */
-  /* } */
 };
 
 #endif

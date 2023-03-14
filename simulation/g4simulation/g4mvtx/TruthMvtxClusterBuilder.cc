@@ -1,20 +1,21 @@
 #include "TruthMvtxClusterBuilder.h"
 
+#include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-#include <mvtx/CylinderGeom_Mvtx.h>
 #include <g4tracking/TrkrTruthTrack.h>
 #include <g4tracking/TrkrTruthTrackContainer.h>
+#include <mvtx/CylinderGeom_Mvtx.h>
+#include <phool/phool.h>  // for PHWHERE
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
+#include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrHit.h>  // // make iwyu happy
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
-#include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -52,6 +53,19 @@ using std::set;
 using std::map;
 using std::multimap;
 using std::vector;
+
+TruthMvtxClusterBuilder::TruthMvtxClusterBuilder(TrkrClusterContainer* _clusters, 
+    TrkrTruthTrackContainer* _truth_tracks,
+    int _verbosity) :
+    m_hits        { new TrkrHitSetContainerv1() },
+    m_clusters    { _clusters },
+    m_truthtracks { _truth_tracks },
+    m_verbosity   { _verbosity }
+{};
+
+TruthMvtxClusterBuilder::~TruthMvtxClusterBuilder() { 
+  delete m_hits; 
+};
 
 void TruthMvtxClusterBuilder::check_g4hit(PHG4Hit* hit) {
   int new_trkid = hit->get_trkid();
@@ -98,7 +112,6 @@ void TruthMvtxClusterBuilder::reset() {
 }
 
 void TruthMvtxClusterBuilder::cluster_hits() {
-  std::cout << " FIXME starting TruthMvtxClusterBuilder::cluster_hits" << std::endl;
   // logic taken from offline/packages/mvtx/MvtxClusterizer.cc starting about line 258
   if (m_verbosity > 0)
     cout << "Entering MvtxClusterizer::ClusterMvtx " << endl;
@@ -185,12 +198,10 @@ void TruthMvtxClusterBuilder::cluster_hits() {
 	  cluster_ids.insert(component[i]);
 	  clusters.insert(make_pair(component[i], hitvec[i]));
 	}
-      //    cout << "found cluster #: "<< clusters.size()<< endl;
       // loop over the componenets and make clusters
       for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter)
 	{
-	  /* int clusid = *clusiter; */
-	  int clusid = hitsetkey_cnt[hitset->getHitSetKey()]; // the clusid here is related uniquely to the truth clusters in this event only
+	  int clusid = *clusiter;
 	  auto clusrange = clusters.equal_range(clusid);
 	  
 	  if (m_verbosity > 2) cout << "Filling cluster id " << clusid << " of " << std::distance(cluster_ids.begin(),clusiter )<< endl;
@@ -245,11 +256,9 @@ void TruthMvtxClusterBuilder::cluster_hits() {
 	  // This is the local position
 	  locclusx = locxsum / nhits;
 	  locclusz = loczsum / nhits;
-	  
+
 	  const double pitch = layergeom->get_pixel_x();
-	  //	std::cout << " pitch: " <<  pitch << std::endl;
 	  const double length = layergeom->get_pixel_z();
-	  //	std::cout << " length: " << length << std::endl;
 	  const double phisize = phibins.size() * pitch;
 	  const double zsize = zbins.size() * length;
 	  
@@ -323,11 +332,21 @@ void TruthMvtxClusterBuilder::cluster_hits() {
 	    // So set subsurface key to 0
 	    clus->setSubSurfKey(0);
 	    
-	    if (m_verbosity > 2)
-	      clus->identify();
+      if (m_verbosity > 2) {
+        clus->identify();
+      }
 
-	    m_clusters->addClusterSpecifyKey(ckey, clus.release());
-      track->addCluster(ckey);
+      // update the key specific to this track
+      auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
+      if (hitsetkey_cnt.find(hitsetkey)==hitsetkey_cnt.end()) {
+        hitsetkey_cnt[hitsetkey] = 0;
+      } else {
+        hitsetkey_cnt[hitsetkey] +=1;
+      }
+	    auto new_clusid = hitsetkey_cnt[hitsetkey]; 
+      auto new_ckey = TrkrDefs::genClusKey(hitsetkey, new_clusid);
+      m_clusters->addClusterSpecifyKey(new_ckey, clus.release());
+      track->addCluster(new_ckey);
 	  /* } */
 	}  // clusitr loop
     }  // loop over hitsets
@@ -364,3 +383,34 @@ bool TruthMvtxClusterBuilder::are_adjacent(const std::pair<TrkrDefs::hitkey, Trk
 
   return false;
 }
+
+void TruthMvtxClusterBuilder::print_clusters(int nclusprint) {
+  cout << PHWHERE << ": content of clusters " << endl;
+  auto& tmap = m_truthtracks->getMap();
+  cout << " Number of tracks: " << tmap.size() << endl;
+  for (auto& _pair : tmap) {
+    auto& track = _pair.second;
+
+    printf("id(%2i) phi:eta:pt(", (int)track->getTrackid());
+    cout << "phi:eta:pt(";
+    printf("%5.2f:%5.2f:%5.2f", track->getPhi(), track->getPseudoRapidity(), track->getPt());
+      /* Form("%5.2:%5.2:%5.2", track->getPhi(), track->getPseudoRapidity(), track->getPt()) */
+      //<<track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt() 
+      cout << ") nclusters(" << track->getClusters().size() <<") ";
+    if (m_verbosity <= 10) { cout << endl; }
+    else {
+      int nclus = 0;
+      for (auto cluskey : track->getClusters()) {
+        cout << " " 
+          << ((int) TrkrDefs::getHitSetKeyFromClusKey(cluskey)) <<":index(" <<
+          ((int)  TrkrDefs::getClusIndex(cluskey)) << ")";
+        ++nclus;
+        if (nclusprint > 0 && nclus >= nclusprint) {
+          cout << " ... "; 
+          break;
+        }
+      }
+    }
+  }
+  cout << PHWHERE << " ----- end of clusters " << endl;
+};

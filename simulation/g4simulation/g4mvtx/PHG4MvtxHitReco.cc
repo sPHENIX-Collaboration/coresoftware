@@ -59,6 +59,7 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const std::string &name, const std::string &det
   , m_strobe_width(5.)
   , m_strobe_separation(0.)
 {
+    std::cout << "FIMXE b 1.0" << detector << std::endl;
   if (Verbosity())
   {
     std::cout << "Creating PHG4MvtxHitReco for detector = " << detector << std::endl;
@@ -176,14 +177,14 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
     auto newNode = new PHIODataNode<PHObject>(m_truthclusters, "TRKR_TRUTHCLUSTERCONTAINER", "PHObject");
     DetNode->addNode(newNode);
   }
-  m_truth_clusterer = new TruthMvtxClusterBuilder(m_truthclusters, m_truthtracks);
+  m_truth_clusterer = new TruthMvtxClusterBuilder(m_truthclusters, m_truthtracks, Verbosity());
+  m_truth_clusterer->set_verbosity(Verbosity());
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 {
-  //cout << PHWHERE << "Entering process_event for PHG4MvtxHitReco" << endl;
   ActsGeometry *tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!tgeometry)
   {
@@ -266,7 +267,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
       m_truth_clusterer->check_g4hit(g4hit);
 
-      //cout << "From PHG4MvtxHitReco: Call hit print method: " << endl;
+      //cout << "From PHG4MvtxHitReco: Call hit print method: " << std::endl;
       if (Verbosity() > 4)
         g4hit->print();
 
@@ -671,6 +672,9 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
     hitTruthAssoc->identify();
   }
 
+  // spit out the truth clusters
+  m_truth_clusterer->print_clusters();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -719,7 +723,7 @@ void PHG4MvtxHitReco::set_timing_window(const int detid, const double tmin, cons
 
 void PHG4MvtxHitReco::SetDefaultParameters()
 {
-  //cout << "PHG4MvtxHitReco: Setting Mvtx timing window defaults to tmin = -5000 and  tmax = 5000 ns" << endl;
+  //cout << "PHG4MvtxHitReco: Setting Mvtx timing window defaults to tmin = -5000 and  tmax = 5000 ns" << std::endl;
   set_default_double_param("mvtx_tmin", -5000);
   set_default_double_param("mvtx_tmax", 5000);
   set_default_double_param("mvtx_strobe_width", 5 * microsecond);
@@ -736,4 +740,8 @@ TrkrDefs::hitsetkey PHG4MvtxHitReco::zero_strobe_bits(TrkrDefs::hitsetkey hitset
   TrkrDefs::hitsetkey bare_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, 0);
 
   return bare_hitsetkey;
+}
+
+PHG4MvtxHitReco::~PHG4MvtxHitReco() {
+  delete m_truth_clusterer;
 }
