@@ -27,6 +27,7 @@ libg4eval_la_LIBADD = \
   -lg4detectors_io \
   -lg4jets_io \
   -lg4vertex_io \
+  -lg4tracking_io \
   -ltrackbase_historic_io \
   -ltrack_io \
   -ltpc_io \
@@ -46,6 +47,7 @@ pkginclude_HEADERS = \
   DSTCompressor.h \
   DSTEmulator.h \
   EventEvaluator.h \
+	FillTruthRecoMatchMap.h \
   JetEvalStack.h \
   JetEvaluator.h \
   JetRecoEval.h \
@@ -91,6 +93,7 @@ libg4eval_la_SOURCES = \
   CaloTruthEval.cc \
   DSTEmulator.cc \
   EventEvaluator.cc \
+  FillTruthRecoMatchMap.cc \
   JetEvalStack.cc \
   JetEvaluator.cc \
   JetRecoEval.cc \

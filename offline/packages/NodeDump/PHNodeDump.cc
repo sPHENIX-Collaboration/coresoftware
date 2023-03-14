@@ -45,7 +45,6 @@
 #include "DumpTrkrClusterHitAssoc.h"
 #include "DumpTrkrHitSetContainer.h"
 #include "DumpTrkrHitTruthAssoc.h"
-#include "DumpTrkrHitTruthClusters.h"
 #include "DumpVariableArray.h"
 
 #include <ffaobjects/EventHeader.h>
@@ -356,10 +355,6 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("TrkrHitTruthAssoc"))
       {
         newdump = new DumpTrkrHitTruthAssoc(NodeName);
-      }
-      else if (tmp->InheritsFrom("TrkrHitTruthClusters"))
-      {
-        newdump = new DumpTrkrHitTruthClusters(NodeName);
       }
       else if (tmp->InheritsFrom("VariableArray"))
       {

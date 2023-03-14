@@ -18,10 +18,10 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 
-#include <trackbase/TrkrTruthTrack.h>
-#include <trackbase/TrkrTruthTrackv1.h>
-#include <trackbase/TrkrTruthTrackContainer.h>
-#include <trackbase/TrkrTruthTrackContainerv1.h>
+#include <g4tracking/TrkrTruthTrack.h>
+#include <g4tracking/TrkrTruthTrackv1.h>
+#include <g4tracking/TrkrTruthTrackContainer.h>
+#include <g4tracking/TrkrTruthTrackContainerv1.h>
 
 #include <phool/phool.h>  // for PHWHERE
 

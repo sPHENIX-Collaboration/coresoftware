@@ -18,6 +18,7 @@ class PHObject;
  *
  * This version of TrkrCluster is reduced to a minimal number of data members
  */
+
 class TrkrClusterv4 : public TrkrCluster
 {
  public:
@@ -61,8 +62,33 @@ class TrkrClusterv4 : public TrkrCluster
   //
   // cluster info
   //
-  unsigned int getAdc() const override { return m_adc; }
-  void setAdc(unsigned int adc) override { m_adc = adc; }
+  unsigned int getAdc() const override { 
+    uint8_t tmp = m_adc;
+    return tmp ; 
+
+  }
+
+  void setAdc(unsigned int adc) override {
+    uint16_t tmp =0;
+    if(adc>0xff)
+      tmp=0xff;
+    else
+     tmp = adc;
+    m_adc  |= tmp; 
+  }
+
+  unsigned int getMaxAdc() const { 
+    uint8_t tmp = (m_adc >> 8);
+    unsigned int out = 0;
+    out |= tmp;
+    return out; 
+  }
+
+  void setMaxAdc(uint16_t maxadc) {
+    if(maxadc>0xff)maxadc=0xff;
+    uint16_t tmp = (maxadc << 8);
+    m_adc |= tmp;
+  }
 
   //
   // convenience interface
@@ -99,7 +125,7 @@ class TrkrClusterv4 : public TrkrCluster
  
    float getPhiSize() const override { return (float) m_phisize; }
    void setPhiSize(char phisize) { m_phisize = phisize; }
- 
+
    float getZSize() const override { return (float) m_zsize; }
    void setZSize(char zsize) { m_zsize = zsize; }
  

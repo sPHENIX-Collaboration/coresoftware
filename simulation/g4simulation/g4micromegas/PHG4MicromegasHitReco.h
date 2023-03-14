@@ -30,9 +30,7 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
 {
 
   public:
-  explicit PHG4MicromegasHitReco(
-    const std::string &name = "PHG4MicromegasHitReco",
-    const std::string &detector = "MICROMEGAS");
+  explicit PHG4MicromegasHitReco(const std::string &name = "PHG4MicromegasHitReco");
 
   //! run initialization
   int InitRun(PHCompositeNode*) override;
@@ -47,7 +45,7 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
 
   //! return full geo node name, that also contains tile information
   std::string full_geonodename() const
-  { return "CYLINDERGEOM_" + m_detector + "_FULL"; }
+  { return "CYLINDERGEOM_MICROMEGAS_FULL"; }
 
   //! get total number of electrons collected for a give g4hit
   /*! this accounts for the number of primary electrons, the detector gain, and fluctuations */
@@ -68,9 +66,6 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! acts geometry
   ActsGeometry* m_acts_geometry = nullptr;
   
-  //! detector name
-  std::string m_detector;
-
   //! timing window (ns)
   double m_tmin = -20;
 
@@ -94,7 +89,6 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   double m_added_smear_sigma_z = 0;
   double m_added_smear_sigma_rphi = 0;
 
-  
   //! rng de-allocator
   class Deleter
   {

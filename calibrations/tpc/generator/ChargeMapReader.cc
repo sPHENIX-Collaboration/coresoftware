@@ -5,6 +5,7 @@
 #include <TAxis.h>
 #include <TFile.h>
 #include <TH3.h>
+#include <TH2.h>
 
 #include <cassert>
 #include <cmath>
@@ -301,6 +302,7 @@ bool ChargeMapReader::ReadSourceCharge(const char* filename, const char* histnam
   inputFile->GetObject(histname, hSourceCharge);
   if (hSourceCharge == nullptr) return false;
   RegenerateDensity();
+  RegenerateCharge();
   inputFile->Close();
   //after this, the source histogram doesn't exist anymore.
   return true;
@@ -320,6 +322,85 @@ bool ChargeMapReader::ReadSourceCharge(TH3* sourceHist, float axisScale, float c
 
   return true;
 }
+
+
+
+bool ChargeMapReader::ReadSourceAdc(const char *adcfilename, const char* adchistname, const char* ibfgainfilename, const char* ibfgainhistname, float axisScale, float contentScale)
+{
+  //load the adc-per-bin data from the specified file.
+  TFile* adcInputFile = TFile::Open(adcfilename, "READ");
+  TH3* hAdc=nullptr;
+  adcInputFile->GetObject(adchistname, hAdc);
+  if (hSourceCharge == nullptr)  {
+    printf("Source Charge hist or file %s not found!\n",adcfilename);
+    return false;
+  }
+  //load the conversion factor from adc sum to ibf 
+  TFile* ibfGainInputFile = TFile::Open(ibfgainfilename, "READ");
+  TH2* hIbfGain=nullptr;
+  ibfGainInputFile->GetObject(ibfgainhistname,hIbfGain);
+  if (hIbfGain == nullptr) {
+    printf("IBF Gain hist or file %s not found!\n",ibfgainfilename);
+    return false;
+  }
+   
+  //and then hand the task off to the next function
+  bool ret=ReadSourceAdc(hAdc,hIbfGain,axisScale,contentScale);
+  adcInputFile->Close();
+  //after this, the source histograms don't exist anymore.
+  return ret;
+}
+
+bool ChargeMapReader::ReadSourceAdc(TH3 *adcHist, TH2* gainHist, float axisScale, float contentScale)
+{
+  if (DEBUG) printf("reading ADCs from %s, ibfGain from %s\n", adcHist->GetName(), gainHist->GetName());
+  inputAxisScale = axisScale;
+  inputChargeScale = contentScale;
+  hSourceCharge = adcHist;  //note that this means we don't own this histogram!  It may disappear.
+  if (hSourceCharge == nullptr) return false;
+
+  //scale the voxels of the sourcecharge by the gainhist data.
+
+  TAxis* ax[3] = {nullptr, nullptr, nullptr};
+  ax[0] = hSourceCharge->GetXaxis();
+  ax[1] = hSourceCharge->GetYaxis();
+  ax[2] = hSourceCharge->GetZaxis();
+
+  int nbins[3];
+  for (int i = 0; i < 3; i++)
+  {
+    nbins[i] = ax[i]->GetNbins();  //number of bins, not counting under and overflow.
+  }
+
+  //   0     1     2   ...   n-1    n    n+1
+  // under|first|   ..|  ..  |  .. |last| over
+  int i[3];
+ 
+
+  for (i[0] = 1; i[0] <= nbins[0]; i[0]++) {  //phi
+    for (i[1] = 1; i[1] <= nbins[1]; i[1]++) {  //r
+      int globalBin2D = gainHist->GetBin(i[0], i[1]);
+      float scalefactor=gainHist->GetBinContent(globalBin2D);
+      for (i[2] = 1; i[2] <= nbins[2]; i[2]++) {  //z
+	int globalBin = hSourceCharge->GetBin(i[0], i[1], i[2]);
+	float q = hSourceCharge->GetBinContent(globalBin);
+	hSourceCharge->SetBinContent(globalBin, q * scalefactor);
+	if (0){//deep debug statements.
+	  printf("applying gain to adc input:  iprz=(%d,%d,%d), glob3d=%d, glob2d=%d, adc=%f, scale=%f\n",i[0],i[1],i[2],globalBin, globalBin2D,q,scalefactor);
+	}
+      }//z
+    }//r
+  }//phi
+  if (DEBUG) printf("done converting adc hist to ions\n");
+    
+  RegenerateDensity();
+  RegenerateCharge();
+
+  if (DEBUG) printf("done converting ADCs from %s\n", adcHist->GetName());
+
+  return true;
+}
+
 
 bool ChargeMapReader::SetOutputParameters(int _nr, float _rmin, float _rmax, int _nphi, float _phimin, float _phimax, int _nz, float _zmin, float _zmax)
 {
