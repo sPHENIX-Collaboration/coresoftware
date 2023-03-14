@@ -1,8 +1,6 @@
 #ifndef TRACKBASE_EMBRECOMATCHCONTAINER_H
 #define TRACKBASE_EMBRECOMATCHCONTAINER_H
 
-/* #include "TrkrDefs.h" */
-
 #include <phool/PHObject.h>
 #include <vector>
 #include <climits>

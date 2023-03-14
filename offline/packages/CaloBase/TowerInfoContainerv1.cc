@@ -2,6 +2,7 @@
 #include "TowerInfov1.h"
 
 #include <phool/PHObject.h>
+#include <phool/phool.h>
 
 #include <TClonesArray.h>
 
@@ -143,6 +144,11 @@ unsigned int TowerInfoContainerv1::encode_emcal(unsigned int towerIndex)
   int etabinoffset[4] = {24,0,48,72};
   int supersectornumber = towerIndex / supersector;
   int packet = (towerIndex % supersector) / nchannelsperpacket;  // 0 = S small |eta|, 1 == S big |eta|, 2 == N small |eta|, 3 == N big |eta|
+  if (packet < 0 || packet > 3 )
+    {
+      std::cout << PHWHERE << "Attempting to access channel with invalid value in EMCal " << packet << std::endl;
+      exit(1);
+    }
   int interfaceboard = ((towerIndex % supersector) % nchannelsperpacket) / channels_per_sector;
   int interfaceboard_channel = ((towerIndex % supersector) % nchannelsperpacket) % channels_per_sector; 
   int localphibin = phimap[interfaceboard_channel];
@@ -184,6 +190,12 @@ unsigned int TowerInfoContainerv1::encode_hcal(unsigned int towerIndex)
   int phibinoffset[4] = {0,2,4,6};
   int supersectornumber = towerIndex / supersector;
   int packet = (towerIndex % supersector) / nchannelsperpacket;  // 0 = S small |eta|, 1 == S big |eta|, 2 == N small |eta|, 3 == N big |eta|
+  if (packet < 0 || packet > 3 )
+    {
+      std::cout << PHWHERE << "Attempting to access channel with invalid value ih HCAL " << packet << std::endl;
+      exit(1);
+    }
+
   int interfaceboard = ((towerIndex % supersector) % nchannelsperpacket) / channels_per_sector;
   int interfaceboard_channel = ((towerIndex % supersector) % nchannelsperpacket) % channels_per_sector;
   int localphibin = phimap[interfaceboard_channel] + phibinoffset[interfaceboard];
