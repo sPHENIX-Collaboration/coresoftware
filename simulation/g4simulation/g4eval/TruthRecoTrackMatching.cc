@@ -27,6 +27,10 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
+#include <TFile.h>
+#include <TTree.h>
+#include <TTree.h>
+
 #include <TSystem.h>
 
 #include <algorithm>
@@ -223,11 +227,22 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
     }
     cout << " --END--print-all-stored-matches----" << endl;
   }
+  if (m_write_diag) fill_tree();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TruthRecoTrackMatching::End(PHCompositeNode * /*topNode*/)
 {
+  if (m_write_diag) {
+    TFile *s_current = gDirectory->GetFile();
+    m_diag_file->cd();
+    m_diag_tree ->Write();
+    m_diag_file ->Save();
+    m_diag_file ->Close();
+    if (s_current != nullptr) s_current->cd();
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -359,7 +374,7 @@ TruthRecoTrackMatching::find_box_matches(float truth_phi, float truth_eta, float
 
   // if pt is specified, restrict pt_box to the given range
   RECO_pair_iter inner_box = outer_box;
-  const float _delta_outer_pt = delta_outer_pt(truth_pt);
+  const float _delta_outer_pt     = delta_outer_pt(truth_pt);
   const float _delta_inner_pt = delta_inner_pt(truth_pt);
   if (_delta_outer_pt > 0) {
     std::sort(outer_box.first, outer_box.second, CompRECOtoPt());
@@ -597,7 +612,7 @@ std::pair<bool, float> TruthRecoTrackMatching::compare_cluster_pair (
   , bool calc_sigma
 ) {
   auto layer = TrkrDefs::getLayer(hitsetkey);
-  if (layer <7 || layer > 55) {
+  if (layer > 55) {
     cout << " Error! Trying to compar cluster in layer < 7 or > 55, which is not programmed yet!" << endl;
     return {false, 0.};
   }
@@ -696,4 +711,171 @@ bool TruthRecoTrackMatching::at_nmax_id_reco(unsigned short id_reco) {
     return false;
   }
   return (*m_nmatched_id_reco)[id_reco] >= m_max_ntruth_per_reco;
+}
+
+void TruthRecoTrackMatching::set_diagnostic_file(std::string file_name) {
+  m_write_diag = true;
+  TFile *s_current = gDirectory->GetFile();
+  m_diag_file = new TFile(file_name.c_str(),"recreate");
+  m_diag_file->cd();
+  m_diag_tree = new TTree("clusters", "Tree of Reco and True Clusters");
+
+    m_diag_tree->Branch("trkid_reco_matched", &m_trkid_reco_matched);
+    m_diag_tree->Branch("i0_reco_matched", &m_i0_reco_matched );
+    m_diag_tree->Branch("i1_reco_matched", &m_i1_reco_matched );
+    m_diag_tree->Branch("layer_reco_matched", &m_layer_reco_matched );
+    m_diag_tree->Branch("x_reco_matched", &m_x_reco_matched );
+    m_diag_tree->Branch("y_reco_matched", &m_y_reco_matched );
+    m_diag_tree->Branch("z_reco_matched", &m_z_reco_matched );
+
+    m_diag_tree->Branch("trkid_reco_notmatched", &m_trkid_reco_notmatched );
+    m_diag_tree->Branch("i0_reco_notmatched", &m_i0_reco_notmatched );
+    m_diag_tree->Branch("i1_reco_notmatched", &m_i1_reco_notmatched );
+    m_diag_tree->Branch("layer_reco_notmatched", &m_layer_reco_notmatched );
+    m_diag_tree->Branch("x_reco_notmatched", &m_x_reco_notmatched );
+    m_diag_tree->Branch("y_reco_notmatched", &m_y_reco_notmatched );
+    m_diag_tree->Branch("z_reco_notmatched", &m_z_reco_notmatched );
+
+    m_diag_tree->Branch("trkid_true_matched", &m_trkid_true_matched );
+    m_diag_tree->Branch("i0_true_matched", &m_i0_true_matched );
+    m_diag_tree->Branch("i1_true_matched", &m_i1_true_matched );
+    m_diag_tree->Branch("layer_true_matched", &m_layer_true_matched );
+    m_diag_tree->Branch("x_true_matched", &m_x_true_matched );
+    m_diag_tree->Branch("y_true_matched", &m_y_true_matched );
+    m_diag_tree->Branch("z_true_matched", &m_z_true_matched );
+
+    m_diag_tree->Branch("trkid_true_notmatched", &m_trkid_true_notmatched );
+    m_diag_tree->Branch("i0_true_notmatched", &m_i0_true_notmatched );
+    m_diag_tree->Branch("i1_true_notmatched", &m_i1_true_notmatched );
+    m_diag_tree->Branch("layer_true_notmatched", &m_layer_true_notmatched );
+    m_diag_tree->Branch("x_true_notmatched", &m_x_true_notmatched );
+    m_diag_tree->Branch("y_true_notmatched", &m_y_true_notmatched );
+    m_diag_tree->Branch("z_true_notmatched", &m_z_true_notmatched );
+
+  if (s_current!=nullptr) s_current->cd();
+}
+
+void TruthRecoTrackMatching::clear_branch_vectors() {
+    m_trkid_reco_matched.clear();
+    m_i0_reco_matched .clear();
+    m_i1_reco_matched .clear();
+    m_layer_reco_matched .clear();
+    m_x_reco_matched .clear();
+    m_y_reco_matched .clear();
+    m_z_reco_matched .clear();
+
+m_trkid_reco_notmatched .clear();
+    m_i0_reco_notmatched .clear();
+    m_i1_reco_notmatched .clear();
+    m_layer_reco_notmatched .clear();
+    m_x_reco_notmatched .clear();
+    m_y_reco_notmatched .clear();
+    m_z_reco_notmatched .clear();
+
+    m_trkid_true_matched .clear();
+    m_i0_true_matched .clear();
+    m_i1_true_matched .clear();
+    m_layer_true_matched .clear();
+    m_x_true_matched .clear();
+    m_y_true_matched .clear();
+    m_z_true_matched .clear();
+
+    m_trkid_true_notmatched .clear();
+    m_i0_true_notmatched .clear();
+    m_i1_true_notmatched .clear();
+    m_layer_true_notmatched .clear();
+    m_x_true_notmatched .clear();
+    m_y_true_notmatched .clear();
+    m_z_true_notmatched .clear();
+
+}
+
+void TruthRecoTrackMatching::fill_tree() {
+  // fill clusters or un-matched truth tracks
+  int cnt = 0;
+  for (auto& trkid : m_EmbRecoMatchContainer->ids_TruthUnmatched()) {
+    m_trkid_true_notmatched.push_back(trkid);
+    m_i0_true_notmatched.push_back(cnt);
+    auto track = m_TrkrTruthTrackContainer->getTruthTrack(trkid);
+    for (auto& ckey : track->getClusters()) {
+      auto cluster = m_TruthClusterContainer->findCluster(ckey);
+      Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(ckey, cluster);
+      m_layer_true_notmatched .push_back(TrkrDefs::getLayer(ckey));
+      m_x_true_notmatched     .push_back(gloc[0]);
+      m_y_true_notmatched     .push_back(gloc[1]);
+      m_z_true_notmatched     .push_back(gloc[2]);
+      ++cnt;
+    }
+    m_i1_true_notmatched.push_back(cnt);
+  }
+
+  // fill clusters of matched truth tracks
+  cnt = 0;
+  for (auto& trkid : m_EmbRecoMatchContainer->ids_TruthMatched()) {
+    m_trkid_true_matched.push_back(trkid);
+    m_i0_true_matched.push_back(cnt);
+    auto track = m_TrkrTruthTrackContainer->getTruthTrack(trkid);
+    for (auto& ckey : track->getClusters()) {
+      auto cluster = m_TruthClusterContainer->findCluster(ckey);
+      Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(ckey, cluster);
+      m_layer_true_matched .push_back(TrkrDefs::getLayer(ckey));
+      m_x_true_matched     .push_back(gloc[0]);
+      m_y_true_matched     .push_back(gloc[1]);
+      m_z_true_matched     .push_back(gloc[2]);
+      ++cnt;
+    }
+    m_i1_true_matched.push_back(cnt);
+  }
+  
+  // fill clusters of matched reco tracks
+  std::set<unsigned int> set_reco_matched;
+  cnt = 0;
+  for (auto& trkid : m_EmbRecoMatchContainer->ids_RecoMatched()) {
+    set_reco_matched.insert(trkid);
+    m_trkid_reco_matched.push_back(trkid);
+    SvtxTrack* reco_track = m_SvtxTrackMap->get(trkid);
+    auto tpcseed = reco_track->get_tpc_seed();
+    m_i0_reco_matched.push_back(cnt);
+    /* auto track = m_TrkrTruthTrackContainer->getTruthTrack(trkid); */
+    for (auto ckey = tpcseed->begin_cluster_keys(); 
+        ckey!=tpcseed->end_cluster_keys(); ++ckey) 
+    {
+      auto cluster = m_RecoClusterContainer->findCluster(*ckey);
+      Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(*ckey, cluster);
+      m_layer_reco_matched .push_back(TrkrDefs::getLayer(*ckey));
+      m_x_reco_matched     .push_back(gloc[0]);
+      m_y_reco_matched     .push_back(gloc[1]);
+      m_z_reco_matched     .push_back(gloc[2]);
+      ++cnt;
+    }
+    m_i1_reco_matched.push_back(cnt);
+  }
+ 
+  // fill clusters of not matched reco tracks
+  cnt = 0;
+  for (auto reco = m_SvtxTrackMap->begin(); reco != m_SvtxTrackMap->end(); ++reco) {
+    auto trkid = reco->first;
+    if (set_reco_matched.count(trkid)) continue;
+    m_trkid_reco_notmatched.push_back(trkid);
+    SvtxTrack* reco_track = m_SvtxTrackMap->get(trkid);
+    auto tpcseed = reco_track->get_tpc_seed();
+    m_i0_reco_notmatched.push_back(cnt);
+    /* auto track = m_TrkrTruthTrackContainer->getTruthTrack(trkid); */
+    for (auto ckey = tpcseed->begin_cluster_keys(); 
+        ckey!=tpcseed->end_cluster_keys(); ++ckey) 
+    {
+      auto cluster = m_RecoClusterContainer->findCluster(*ckey);
+      Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(*ckey, cluster);
+      m_layer_reco_notmatched .push_back(TrkrDefs::getLayer(*ckey));
+      m_x_reco_notmatched     .push_back(gloc[0]);
+      m_y_reco_notmatched     .push_back(gloc[1]);
+      m_z_reco_notmatched     .push_back(gloc[2]);
+      ++cnt;
+    }
+    m_i1_reco_notmatched.push_back(cnt);
+  }
+  m_diag_tree->Fill();
+  clear_branch_vectors();
+  
+
 }

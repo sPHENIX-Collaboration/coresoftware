@@ -282,24 +282,24 @@ void TruthMvtxClusterBuilder::cluster_hits() {
 	  else if( phibins.size() == 3 && zbins.size() == 2 )  phierror*=scalefactors_phi[2];
 	  else if( phibins.size() == 3 && zbins.size() == 3 )  phierror*=scalefactors_phi[3];
 	  
-	  
 	  // scale factors (z direction)
 	  /*
 	    they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in z and phi
 	    other clusters, which are very few and pathological, get a scale factor of 1
 	  */
-	  static constexpr std::array<double, 4> scalefactors_z = {{ 0.47, 0.48, 0.71, 0.55 }};
-	  double zerror = length*invsqrt12;
-	  if( zbins.size() == 2 && phibins.size() == 2 ) zerror*=scalefactors_z[0];
-	  else if( zbins.size() == 2 && phibins.size() == 3 )  zerror*=scalefactors_z[1];
-	  else if( zbins.size() == 3 && phibins.size() == 2 )  zerror*=scalefactors_z[2];
-	  else if( zbins.size() == 3 && phibins.size() == 3 )  zerror*=scalefactors_z[3];
+	  /* static constexpr std::array<double, 4> scalefactors_z = {{ 0.47, 0.48, 0.71, 0.55 }}; */
+	  /* double zerror = length*invsqrt12; */
+	  /* if( zbins.size() == 2 && phibins.size() == 2 ) zerror*=scalefactors_z[0]; */
+	  /* else if( zbins.size() == 2 && phibins.size() == 3 )  zerror*=scalefactors_z[1]; */
+	  /* else if( zbins.size() == 3 && phibins.size() == 2 )  zerror*=scalefactors_z[2]; */
+	  /* else if( zbins.size() == 3 && phibins.size() == 3 )  zerror*=scalefactors_z[3]; */
 	  
-	  if(m_verbosity > 0)
+	  if(m_verbosity > 0) {
 	    cout << " MvtxClusterizer: cluskey " << ckey << " layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize 
 		 << " zbins " << zbins.size() << " length " << length << " zsize " << zsize 
 		 << " local x " << locclusx << " local y " << locclusz
 		 << endl;
+    }
 	  
 	  /* if(m_cluster_version==3){ */
 	  /*   auto clus = std::make_unique<TrkrClusterv3>(); */
@@ -321,32 +321,33 @@ void TruthMvtxClusterBuilder::cluster_hits() {
 	    
 	  /*   m_clusterlist->addClusterSpecifyKey(ckey, clus.release()); */
 	  /* }else if(m_cluster_version==4){ */
-	    auto clus = std::make_unique<TrkrClusterv4>();
-	    clus->setAdc(nhits);
-	    clus->setLocalX(locclusx);
-	    clus->setLocalY(locclusz);
-	    
-	    clus->setPhiSize(phibins.size());
-	    clus->setZSize(zbins.size());
-	    // All silicon surfaces have a 1-1 map to hitsetkey. 
-	    // So set subsurface key to 0
-	    clus->setSubSurfKey(0);
-	    
-      if (m_verbosity > 2) {
-        clus->identify();
-      }
 
-      // update the key specific to this track
-      auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
-      if (hitsetkey_cnt.find(hitsetkey)==hitsetkey_cnt.end()) {
-        hitsetkey_cnt[hitsetkey] = 0;
-      } else {
-        hitsetkey_cnt[hitsetkey] +=1;
-      }
-	    auto new_clusid = hitsetkey_cnt[hitsetkey]; 
-      auto new_ckey = TrkrDefs::genClusKey(hitsetkey, new_clusid);
-      m_clusters->addClusterSpecifyKey(new_ckey, clus.release());
-      track->addCluster(new_ckey);
+    auto clus = std::make_unique<TrkrClusterv4>();
+    clus->setAdc(nhits);
+    clus->setLocalX(locclusx);
+    clus->setLocalY(locclusz);
+
+    clus->setPhiSize(phibins.size());
+    clus->setZSize(zbins.size());
+    // All silicon surfaces have a 1-1 map to hitsetkey. 
+    // So set subsurface key to 0
+    clus->setSubSurfKey(0);
+
+    if (m_verbosity > 2) {
+      clus->identify();
+    }
+
+    // update the key specific to this track
+    auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
+    if (hitsetkey_cnt.find(hitsetkey)==hitsetkey_cnt.end()) {
+      hitsetkey_cnt[hitsetkey] = 0;
+    } else {
+      hitsetkey_cnt[hitsetkey] +=1;
+    }
+    auto new_clusid = hitsetkey_cnt[hitsetkey]; 
+    auto new_ckey = TrkrDefs::genClusKey(hitsetkey, new_clusid);
+    m_clusters->addClusterSpecifyKey(new_ckey, clus.release());
+    track->addCluster(new_ckey);
 	  /* } */
 	}  // clusitr loop
     }  // loop over hitsets
