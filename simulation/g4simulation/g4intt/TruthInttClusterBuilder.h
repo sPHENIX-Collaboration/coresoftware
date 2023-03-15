@@ -104,13 +104,13 @@ class TruthInttClusterBuilder {
   }
 
   // settings
-  float _fraction_of_mip;
+  /* float _fraction_of_mip; */
   std::map<int, float> _thresholds_by_layer;  // layer->threshold
   std::map<int, bool> _make_z_clustering;     // layer->z_clustering_option
   std::map<int, bool> _make_e_weights;        // layer->energy_weighting_option
-  bool do_hit_assoc = true;
-  bool do_read_raw = false;
-  int m_cluster_version = 4;
+  /* bool do_hit_assoc = true; */
+  /* bool do_read_raw = false; */
+  /* int m_cluster_version = 4; */
 };
 
 #endif

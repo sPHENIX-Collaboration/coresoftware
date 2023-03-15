@@ -62,8 +62,8 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 
   bool m_in_sphenix_srdo = false;
 
-  TrkrTruthTrackContainer* m_truthtracks { nullptr };
-  TrkrClusterContainer*    m_truthclusters { nullptr };
+  TrkrTruthTrackContainer* m_truthtracks     { nullptr };
+  TrkrClusterContainer*    m_truthclusters   { nullptr };
   TruthMvtxClusterBuilder* m_truth_clusterer { nullptr };
 
   class Deleter
