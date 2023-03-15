@@ -3,6 +3,8 @@
 #ifndef PHACTSTRACKPROPAGATOR_H
 #define PHACTSTRACKPROPAGATOR_H
 
+#include "ActsPropagator.h"
+
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -33,7 +35,7 @@ class PHActsTrackPropagator : public SubsysReco
  public:
   using BoundTrackParam =
       const Acts::BoundTrackParameters;
-  using BoundTrackParamResult = std::pair<float, BoundTrackParam>;
+  using BoundTrackParamResult = ActsPropagator::BoundTrackParamResult;
   using SurfacePtr = std::shared_ptr<const Acts::Surface>;
   using Trajectory = ActsExamples::Trajectories;
 
@@ -57,10 +59,9 @@ class PHActsTrackPropagator : public SubsysReco
   Acts::Vector3 getVertex(SvtxTrack *track);
   BoundTrackParamResult propagateTrack(
       const Acts::BoundTrackParameters &params);
-  int checkLayer();
   void convertsPHENIXLayerToActsLayer(unsigned int &actsvolume,
                                       unsigned int &actslayer);
-  void addTrackState(const BoundTrackParamResult &params,
+  void addTrackState(BoundTrackParamResult &params,
                      SvtxTrack *svtxTrack);
 
   /// Objects containing the Acts track fit results
@@ -70,8 +71,6 @@ class PHActsTrackPropagator : public SubsysReco
 
   unsigned int m_sphenixLayer = std::numeric_limits<unsigned int>::max();
 
-  unsigned int m_actslayer = std::numeric_limits<unsigned int>::max();
-  unsigned int m_actsvolume = std::numeric_limits<unsigned int>::max();
 };
 
 #endif  // PHACTSTRACKPROPAGATOR_H

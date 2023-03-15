@@ -7,6 +7,8 @@
 
 #include <trackbase/ActsGeometry.h>
 
+#include "ActsPropagator.h"
+
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 
@@ -34,7 +36,7 @@ class SvtxVertexMap;
 
 using BoundTrackParam =
     const Acts::BoundTrackParameters;
-using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
+using BoundTrackParamResult = ActsPropagator::BoundTrackParamResult;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
 using Trajectory = ActsExamples::Trajectories;
 
@@ -88,7 +90,7 @@ class PHActsTrackProjection : public SubsysReco
   int makeCaloSurfacePtrs(PHCompositeNode *topNode);
 
   /// Update the SvtxTrack object with the track-cluster match
-  void updateSvtxTrack(const Acts::BoundTrackParameters &params,
+  void updateSvtxTrack(const ActsPropagator::BoundTrackParamPair &params,
                        SvtxTrack *svtxTrack,
                        const int caloLayer);
 

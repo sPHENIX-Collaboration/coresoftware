@@ -183,11 +183,13 @@ Acts::Vector3 PHActsTrackProjection::getVertex(SvtxTrack* track)
 }
 
 void PHActsTrackProjection::updateSvtxTrack(
-    const Acts::BoundTrackParameters& params,
+    const ActsPropagator::BoundTrackParamPair& parameters,
     SvtxTrack* svtxTrack,
     const int caloLayer)
 {
-  float pathlength = m_caloRadii.find(m_caloTypes.at(caloLayer))->second;
+  float pathlength = parameters.first;
+  auto params = parameters.second;
+
   SvtxTrackState_v1 out(pathlength);
 
   auto projectionPos = params.position(m_tGeometry->geometry().getGeoContext());
@@ -288,55 +290,10 @@ BoundTrackParamResult PHActsTrackProjection::propagateTrack(
     const Acts::BoundTrackParameters& params,
     const SurfacePtr& targetSurf)
 {
-  if (Verbosity() > 1)
-  {
-    std::cout << "Propagating final track fit with momentum: "
-              << params.momentum() << " and position "
-              << params.position(m_tGeometry->geometry().getGeoContext())
-              << std::endl
-              << "track fit phi/eta "
-              << atan2(params.momentum()(1),
-                       params.momentum()(0))
-              << " and "
-              << atanh(params.momentum()(2) / params.momentum().norm())
-              << std::endl;
-  }
-
-  using Stepper = Acts::EigenStepper<>;
-  using Propagator = Acts::Propagator<Stepper>;
-
-  auto field = m_tGeometry->geometry().magField;
-
-  if (m_constField)
-  {
-    Acts::Vector3 fieldVec(0, 0, 1.4 * Acts::UnitConstants::T);
-    field = std::make_shared<Acts::ConstantBField>(fieldVec);
-  }
-
-  Stepper stepper(field);
-  Propagator propagator(stepper);
-
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
-  if (Verbosity() > 3)
-  {
-    logLevel = Acts::Logging::VERBOSE;
-  }
-
-  auto logger = Acts::getDefaultLogger("PHActsTrackProjection",
-                                       logLevel);
-
-  Acts::PropagatorOptions<> options(m_tGeometry->geometry().getGeoContext(),
-                                    m_tGeometry->geometry().magFieldContext,
-                                    Acts::LoggerWrapper{*logger});
-
-  auto result = propagator.propagate(params, *targetSurf,
-                                     options);
-  if(result.ok())
-    {
-      return Acts::Result<BoundTrackParam>::success(std::move((*result).endParameters.value()));
-    }
-
-  return result.error();
+ 
+  ActsPropagator propagator(m_tGeometry);
+  propagator.verbosity(Verbosity());
+  return propagator.propagateTrackFast(params,targetSurf);
   
 }
 
