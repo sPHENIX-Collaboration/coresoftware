@@ -1,9 +1,9 @@
 #include "helixResiduals.h"
 
+#include <trackbase/TrkrDefs.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-#include <trackbase/TrkrDefs.h>
 
 #include <TFile.h>
 #include <TNtuple.h>

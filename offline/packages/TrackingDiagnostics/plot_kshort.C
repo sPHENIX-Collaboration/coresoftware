@@ -7,11 +7,9 @@
 
 void plot_kshort()
 {
-  TFile fin("unidentified_eval_output/combined_ntp_mass_out.root");
-  //TFile fin("hijing_eval_output/combined_ntp_mass_out.root");
-  //TFile fin("old_combined_ntp_mass_out/feb15.root");
-  
+  TFile fin("mar3.root"); //input file for kshort reconstrution
 
+ 
   TNtuple *ntuple;
   fin.GetObject("ntp_reco_info",ntuple);
 
@@ -40,7 +38,6 @@ void plot_kshort()
   float invariant_pt;
   float quality1;
   float quality2;
-
   float dca3dxy1;
   float dca3dxy2;
   float dca3dz1;
@@ -71,21 +68,6 @@ void plot_kshort()
   ntuple->SetBranchAddress("dca3dz2",&dca3dz2);
 
 
-
-  //TH2D *decay_length = new TH2D("decay_length","",5000,-1,1,5000,0,10);
-  //kfparticle comaprison cuts
-  //TCut cut = "K0_mass>0.1&&track_1_IP_xy>0.02&&track_2_IP_xy>0.02&&abs(track_1_track_2_DCA)<0.05&&K0_pT>0.1&&abs(K0_x)>0.1&&abs(K0_y)>0.1"; 
-  //TCut cut = "abs(track_1_IP_xy)>0.02&&abs(track_2_IP_xy)>0.02&&abs(K0_decayLength)>0.2";
-  //TCut cut = "invariant_mass>0.1&&abs(dca3dxy1)>0.02&&abs(dca3dxy2)>0.02&&abs(dca3dz1)>0.02&&abs(dca3dz2)>0.02&&abs(pair_dca)<0.05&&invariant_pt>0.1&&abs(pathlength_x)>0.1&&abs(pathlength_y)>0.1"; 
-  //TCut cut = "invariant_mass>0.1&&abs(dca3dxy1)>0.02&&abs(dca3dxy2)>0.02&&abs(pair_dca)<0.05&&invariant_pt>0.1&&abs(projected_pathlength_x)>0.1&&abs(projected_pathlength_y)>0.1&&abs(projected_pathlength_z)>0.1"; 
-  //TCut cut = "invariant_mass>0.1&&abs(dca3dxy1)>0.025&&abs(dca3dxy2)>0.025&&abs(pair_dca)<0.05&&invariant_pt>0.1&&abs(projected_pathlength_x)>0.1&&abs(projected_pathlength_y)>0.1"; 
-  //TCut cut = "invariant_mass>0.1&&abs(dca3dxy1)>0.02&&abs(dca3dxy2)>0.02&&abs(dca3dz1)>0.02&&abs(dca3dz2)>0.02&&abs(pair_dca)<0.05&&invariant_pt>0.1&&abs(pathlength)>0.1"; 
-  //TCut cut = "invariant_mass>0.1&&dca3dxy1>0.02&&dca3dxy2>0.02&&dca3dz1>0.02&&dca3dz2>0.02&&abs(pair_dca)<0.05&&invariant_pt>0.1&& sqrt(pow(pathlength_x,2) + pow(pathlength_y,2))>0.4";
-  //TCut cut = "invariant_mass>0.1&&dca3dxy1>0.02&&dca3dxy2>0.02&&dca3dz1>0.02&&dca3dz2>0.02&&abs(pair_dca)<0.05&&invariant_pt>0.1"; 
-  //TCut cut2 = "tpcClusters_1>40&&tpcClusters_2>40";
-  //TCut kshort_cut = "invariant_mass > 0.485 && invariant_mass<0.515";
-
-
   int entries = ntuple->GetEntries();
 
   TH1D *invariant_mass_hist = new TH1D("invariant_mass_hist","Invariant Mass",1000,0.35,0.65);
@@ -114,7 +96,6 @@ void plot_kshort()
       //float radius = sqrt(pow(projected_pathlength_x,2) + pow(projected_pathlength_y,2))
       
       if(costheta < 0.9995) continue;
-      //if(abs(projected_pathlength_x) < 0.1 || abs(projected_pathlength_y) < 0.1) continue;
       if(abs(projected_pathlength_x) < pathlength_cut || abs(projected_pathlength_y) < pathlength_cut) continue;
       if(abs(projected_pair_dca) > 0.035) continue;
       if(invariant_pt < 0.1) continue;
@@ -136,7 +117,7 @@ void plot_kshort()
   f->SetParameter(4,0.0);
   
   invariant_mass_hist->Fit("f","R");
-  //invariant_mass_hist->DrawCopy();
+  invariant_mass_hist->DrawCopy();
 
   int binLow      = invariant_mass_hist->FindBin(0.48); 
   int binHigh     = invariant_mass_hist->FindBin(0.52);
@@ -164,50 +145,11 @@ void plot_kshort()
 
   
   TCanvas *c2 = new TCanvas("c2","",10,10,600,600); // path v path_z
-  //pathlengthpathlengthz->DrawCopy();
+  pathlengthpathlengthz->DrawCopy();
 
   TCanvas *c3 = new TCanvas("c3","",10,10,600,600);
-  //pathMass->DrawCopy();
-
-  
-  
-
-  //increase dca cut may reduce background more than signal
-
-  // TH1D *invariant_mass = new TH1D("invariant_mass","Invariant Mass",200,0.47,0.53);
-  // ntuple->Draw("invariant_mass>>invariant_mass",cut);
-  // invariant_mass->DrawCopy();
-
-  // TCanvas *c2 = new TCanvas("c2","",10,10,600,600);
-  // TH2D *invariants = new TH2D("invariants","Invariant mass v. Invariant pt",5000,0,7,5000,0,5);
-  // ntuple->Draw("invariant_mass:invariant_pt>>invariants",cut);
-  // invariants->DrawCopy();
-
-  // TH2D *pseudoInv= new TH2D("pseudoInv","Invariant Mass and pseudorapidity",5000,0,3,5000,0,7);
-  // ntuple->Draw("invariant_mass:pseudorapidity>>pseudoInv",cut);
-  // pseudoInv->DrawCopy()    ;
-
-  // TH2D *pairRapidity = new TH2D("pairRapidity","Pair DCA and pseudorapidity",5000,-2,2,5000,-0.06,0.06);
-  // ntuple->Draw("pair_dca:pseudorapidity>>pairRapidity",cut);
-  // pairRapidity->DrawCopy();
-
-
-  /*
-  TCanvas *c3 = new TCanvas("c3","",10,10,600,600);
-  TH2D *pathMass = new TH2D("pathMass","Invariant Mass vs. Path Length",5000,0.0,5.0,5000,0.4,0.6);
-  ntuple->Draw("invariant_mass:pathlength>>pathMass",cut+cut2);
   pathMass->DrawCopy();
 
-  TCanvas *c4 = new TCanvas("c4","",10,10,600,600);
-  TH2D *radiusMass = new TH2D("radiusMass","Invariant Mass vs. Radius",5000,0.0,5.0,5000,0.4,0.6);
-  ntuple->Draw("invariant_mass:sqrt(pow(pathlength_x,2) + pow(pathlength_y,2))>>radiusMass",cut+cut2);
-  radiusMass->DrawCopy();
-
-  TCanvas *c5 = new TCanvas("c5","",10,10,600,600);
-  TH2D *pathlengthpathlengthz = new TH2D("pathlengthpathlengthz","path v. pathlength_z",5000,-20.0,20.0,5000,0.0,10.0);
-  ntuple->Draw("pathlength:pathlength_z>>pathlengthpathlengthz",cut+kshort_cut+cut2);
-  pathlengthpathlengthz->DrawCopy();
-  */
 
 
 }

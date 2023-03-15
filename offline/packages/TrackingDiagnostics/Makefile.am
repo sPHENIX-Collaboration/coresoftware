@@ -17,11 +17,11 @@ pkginclude_HEADERS = \
 lib_LTLIBRARIES = \
   libTrackingDiagnostics.la
 
-libmassRecoAnalysis_la_SOURCES = \
+libTrackingDiagnostics_la_SOURCES = \
   KshortReconstruction.cc \
   helixResiduals.cc
 
-libmassRecoAnalysis_la_LIBADD = \
+libTrackingDiagnostics_la_LIBADD = \
   -lphool \
   -lfun4all \
   -lg4eval \

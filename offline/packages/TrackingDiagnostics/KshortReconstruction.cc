@@ -9,7 +9,6 @@
 #include <Acts/Propagator/EigenStepper.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 
-
 #include <TLorentzVector.h>
 
 #include <TFile.h>

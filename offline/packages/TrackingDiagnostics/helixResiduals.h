@@ -1,14 +1,14 @@
 #ifndef HELIXRESIDUALS_H
 #define HELIXRESIDUALS_H
 
-#include <fun4all/SubsysReco.h>
-
 #include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase_historic/TrackSeed_v1.h>
 #include <trackermillepedealignment/HelicalFitter.h>
+
+#include <fun4all/SubsysReco.h>
 
 class TFile;
 class TNtuple;
