@@ -237,7 +237,7 @@ void PHCASeeding::QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtre
 
 PositionMap PHCASeeding::FillTree()
 { 
-  std::cout << "fill tree..." << std::endl;
+  // std::cout << "fill tree..." << std::endl;
   t_fill->stop();
   int n_dupli = 0;
   int nlayer[60];
@@ -304,7 +304,7 @@ PositionMap PHCASeeding::FillTree()
 
 int PHCASeeding::Process(PHCompositeNode */*topNode*/)
 {
-  std::cout << " Process...  " << std::endl;
+//   std::cout << " Process...  " << std::endl;
 //  TFile fpara("CA_para.root", "RECREATE");
   if(_n_iteration>0){
     if (!_iteration_map){
