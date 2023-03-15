@@ -225,6 +225,7 @@ class TruthRecoTrackMatching : public SubsysReco
     void set_diagnostic_file(std::string file_name);
 
     std::vector<int>   m_trkid_reco_matched {};
+    std::vector<int>   m_cnt_reco_matched {};
     std::vector<unsigned int> m_i0_reco_matched {};
     std::vector<unsigned int> m_i1_reco_matched {};
     std::vector<unsigned int> m_layer_reco_matched {};
@@ -233,6 +234,7 @@ class TruthRecoTrackMatching : public SubsysReco
     std::vector<float> m_z_reco_matched {};
 
     std::vector<int>   m_trkid_reco_notmatched {};
+    std::vector<int>   m_cnt_reco_notmatched {};
     std::vector<unsigned int> m_i0_reco_notmatched {};
     std::vector<unsigned int> m_i1_reco_notmatched {};
     std::vector<unsigned int> m_layer_reco_notmatched {};
@@ -241,6 +243,7 @@ class TruthRecoTrackMatching : public SubsysReco
     std::vector<float> m_z_reco_notmatched {};
 
     std::vector<int>   m_trkid_true_matched {};
+    std::vector<int>   m_cnt_true_matched {};
     std::vector<unsigned int> m_i0_true_matched {};
     std::vector<unsigned int> m_i1_true_matched {};
     std::vector<unsigned int> m_layer_true_matched {};
@@ -249,12 +252,15 @@ class TruthRecoTrackMatching : public SubsysReco
     std::vector<float> m_z_true_matched {};
 
     std::vector<int>   m_trkid_true_notmatched {};
+    std::vector<int>   m_cnt_true_notmatched {};
     std::vector<unsigned int> m_i0_true_notmatched {};
     std::vector<unsigned int> m_i1_true_notmatched {};
     std::vector<unsigned int> m_layer_true_notmatched {};
     std::vector<float> m_x_true_notmatched {};
     std::vector<float> m_y_true_notmatched {};
     std::vector<float> m_z_true_notmatched {};
+
+    int m_event {0};
 
     void clear_branch_vectors();
     void fill_tree();
