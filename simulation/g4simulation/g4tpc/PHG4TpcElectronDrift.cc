@@ -630,7 +630,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         TrkrHitSetTpc *hitset = dynamic_cast<TrkrHitSetTpc *>(node_hitsetit->second);
         assert(hitset);
 
-        // ensure the hitset is prepared
+        // ensure the hitset is prepared and consistent
         {
           assert(seggeo);
           PHG4TpcCylinderGeom *layer_geometry = seggeo->GetLayerCellGeom(layer);
@@ -664,7 +664,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           }
           else
           {
-            hitset->SetTBins(ntbin);
+            hitset->setTBins(ntbin);
           }
           if (hitset->getTBinIndexStart())
           {
@@ -674,9 +674,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           {
             hitset->setTBinIndexStart(start_tbin);
           }
-
-
-        }  // ensure the hitset is prepared
+        }  // ensure the hitset is prepared and consistent
 
         // get all of the hits from the temporary hitset
         TrkrHitSet::ConstRange temp_hit_range = temp_hitset_iter->second->getHits();
