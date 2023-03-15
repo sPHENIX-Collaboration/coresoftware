@@ -24,6 +24,7 @@ libcalo_reco_la_LIBADD = \
   -lsph_onnx \
   -lcaloCalibDBFile \
   -lcdbobjects \
+  -ldbtools \
   -lphparameter
 
 AM_CPPFLAGS = \
