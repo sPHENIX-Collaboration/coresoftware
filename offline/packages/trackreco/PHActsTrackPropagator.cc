@@ -112,7 +112,7 @@ PHActsTrackPropagator::propagateTrack(const Acts::BoundTrackParameters &params)
 {
   ActsPropagator propagator(m_tGeometry);
   propagator.verbosity(Verbosity());
-  
+
   return propagator.propagateTrack(params, m_sphenixLayer);
 }
 

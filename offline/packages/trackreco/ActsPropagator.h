@@ -2,7 +2,6 @@
 #ifndef ACTSPROPAGATOR_H
 #define ACTSPROPAGATOR_H
 
-
 #include <trackbase/ActsGeometry.h>
 
 #include <Acts/Definitions/Algebra.hpp>
@@ -20,10 +19,8 @@
 
 #include <trackbase/ActsGeometry.h>
 
-
-class ActsPropagator 
+class ActsPropagator
 {
-
  public:
   using BoundTrackParam = const Acts::BoundTrackParameters;
   using BoundTrackParamPair = std::pair<float, BoundTrackParam>;
@@ -34,26 +31,28 @@ class ActsPropagator
   using SphenixPropagator = Acts::Propagator<Stepper, Acts::Navigator>;
 
   ActsPropagator() {}
-  ActsPropagator(ActsGeometry* geometry) : m_geometry(geometry) {}
+  ActsPropagator(ActsGeometry* geometry)
+    : m_geometry(geometry)
+  {
+  }
   ~ActsPropagator() {}
 
   BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params,
-				       const unsigned int sphenixLayer);
+                                       const unsigned int sphenixLayer);
 
   BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params,
-				       const SurfacePtr& surface);
+                                       const SurfacePtr& surface);
 
-  /// The following function takes the track parameters at the vertex and 
+  /// The following function takes the track parameters at the vertex and
   /// propagates them in isolation to the requested surface, i.e. it does
   /// NOT stop at each layer in the sPHENIX detector on the way to the
   /// target surface
   BoundTrackParamResult propagateTrackFast(const Acts::BoundTrackParameters& params,
-					   const SurfacePtr& surface);
-
+                                           const SurfacePtr& surface);
 
   bool checkLayer(const unsigned int& sphenixlayer,
-		  unsigned int& actsvolume,
-		  unsigned int& actslayer);
+                  unsigned int& actsvolume,
+                  unsigned int& actslayer);
   void verbosity(int verb) { m_verbosity = verb; }
 
  private:
@@ -66,8 +65,6 @@ class ActsPropagator
   bool m_constField = false;
 
   ActsGeometry* m_geometry = nullptr;
-
-
 };
 
 #endif

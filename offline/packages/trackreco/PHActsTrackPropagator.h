@@ -70,7 +70,6 @@ class PHActsTrackPropagator : public SubsysReco
   SvtxVertexMap *m_vertexMap = nullptr;
 
   unsigned int m_sphenixLayer = std::numeric_limits<unsigned int>::max();
-
 };
 
 #endif  // PHACTSTRACKPROPAGATOR_H

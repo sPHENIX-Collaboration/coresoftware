@@ -34,8 +34,6 @@ class SvtxVertexMap;
 #include <memory>
 #include <string>
 
-
-
 /**
  * This class takes final fitted tracks from the Acts track fitting
  * and projects them out to cylinders with radius at the same radius
@@ -47,7 +45,7 @@ class PHActsTrackProjection : public SubsysReco
 {
  public:
   using BoundTrackParam =
-    const Acts::BoundTrackParameters;
+      const Acts::BoundTrackParameters;
   using SurfacePtr = std::shared_ptr<const Acts::Surface>;
   using Trajectory = ActsExamples::Trajectories;
   using BoundTrackParamResult = ActsPropagator::BoundTrackParamResult;

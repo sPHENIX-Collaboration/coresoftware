@@ -8,19 +8,19 @@
 #include <trackbase_historic/SvtxTrackState_v1.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
+#include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
-#include <Acts/MagneticField/ConstantBField.hpp>
 
 ActsPropagator::BoundTrackParamResult
 ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
-			       const unsigned int sphenixLayer)
+                               const unsigned int sphenixLayer)
 {
   unsigned int actsvolume, actslayer;
-  if(!checkLayer(sphenixLayer, actsvolume, actslayer) or !m_geometry)
-    {
-      return Acts::Result<BoundTrackParamPair>::failure(std::error_code(0,std::generic_category()));
-    }
+  if (!checkLayer(sphenixLayer, actsvolume, actslayer) or !m_geometry)
+  {
+    return Acts::Result<BoundTrackParamPair>::failure(std::error_code(0, std::generic_category()));
+  }
 
   if (m_verbosity > 1)
   {
@@ -50,30 +50,29 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto result = propagator.propagate(params, options);
 
-  if(result.ok())
-    {
-      auto finalparams = *result.value().endParameters;
-      auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
-      auto pair = std::make_pair(pathlength, finalparams);
+  if (result.ok())
+  {
+    auto finalparams = *result.value().endParameters;
+    auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
+    auto pair = std::make_pair(pathlength, finalparams);
 
-      return Acts::Result<BoundTrackParamPair>::success(pair);
-    }
+    return Acts::Result<BoundTrackParamPair>::success(pair);
+  }
 
   return result.error();
 }
 
 ActsPropagator::BoundTrackParamResult
 ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
-			       const SurfacePtr& surface)
+                               const SurfacePtr& surface)
 {
-
   if (m_verbosity > 1)
   {
     printTrackParams(params);
   }
- 
+
   auto propagator = makePropagator();
-  
+
   Acts::Logging::Level logLevel = Acts::Logging::INFO;
   if (m_verbosity > 3)
   {
@@ -90,30 +89,29 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
   auto result = propagator.propagate(params, *surface,
                                      options);
 
-  if(result.ok())
-    {
-      auto finalparams = *result.value().endParameters;
-      auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
-      auto pair = std::make_pair(pathlength, finalparams);
+  if (result.ok())
+  {
+    auto finalparams = *result.value().endParameters;
+    auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
+    auto pair = std::make_pair(pathlength, finalparams);
 
-      return Acts::Result<BoundTrackParamPair>::success(pair);
-    }
+    return Acts::Result<BoundTrackParamPair>::success(pair);
+  }
 
   return result.error();
 }
 
 ActsPropagator::BoundTrackParamResult
 ActsPropagator::propagateTrackFast(const Acts::BoundTrackParameters& params,
-			       const SurfacePtr& surface)
+                                   const SurfacePtr& surface)
 {
-
   if (m_verbosity > 1)
   {
     printTrackParams(params);
   }
- 
+
   auto propagator = makeFastPropagator();
-  
+
   Acts::Logging::Level logLevel = Acts::Logging::INFO;
   if (m_verbosity > 3)
   {
@@ -130,22 +128,21 @@ ActsPropagator::propagateTrackFast(const Acts::BoundTrackParameters& params,
   auto result = propagator.propagate(params, *surface,
                                      options);
 
-  if(result.ok())
-    {
-      auto finalparams = *result.value().endParameters;
-      auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
-      auto pair = std::make_pair(pathlength, finalparams);
+  if (result.ok())
+  {
+    auto finalparams = *result.value().endParameters;
+    auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
+    auto pair = std::make_pair(pathlength, finalparams);
 
-      return Acts::Result<BoundTrackParamPair>::success(pair);
-    }
+    return Acts::Result<BoundTrackParamPair>::success(pair);
+  }
 
   return result.error();
 }
 
-
 ActsPropagator::FastPropagator ActsPropagator::makeFastPropagator()
 {
- auto field = m_geometry->geometry().magField;
+  auto field = m_geometry->geometry().magField;
 
   if (m_constField)
   {
@@ -157,11 +154,9 @@ ActsPropagator::FastPropagator ActsPropagator::makeFastPropagator()
   Stepper stepper(field);
 
   return FastPropagator(stepper);
-
 }
 ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
 {
-  
   auto field = m_geometry->geometry().magField;
 
   if (m_constField)
@@ -178,14 +173,12 @@ ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
   cfg.resolveSensitive = true;
   Acts::Navigator navigator(cfg);
 
-  return SphenixPropagator(stepper,navigator);
-
+  return SphenixPropagator(stepper, navigator);
 }
 
-
 bool ActsPropagator::checkLayer(const unsigned int& sphenixlayer,
-				unsigned int& actsvolume,
-				unsigned int& actslayer)
+                                unsigned int& actsvolume,
+                                unsigned int& actslayer)
 {
   /*
    * Acts geometry is defined in terms of volumes and layers. Within a volume
@@ -229,7 +222,7 @@ bool ActsPropagator::checkLayer(const unsigned int& sphenixlayer,
   bool foundlayer = false;
   bool foundvolume = false;
 
-  tgeometry->visitSurfaces([&](const Acts::Surface *srf)
+  tgeometry->visitSurfaces([&](const Acts::Surface* srf)
                            {
     if (srf != nullptr) {
       auto layer = srf->geometryId().layer();
@@ -253,18 +246,16 @@ bool ActsPropagator::checkLayer(const unsigned int& sphenixlayer,
   return true;
 }
 
-
-
 void ActsPropagator::printTrackParams(const Acts::BoundTrackParameters& params)
 {
-   std::cout << "Propagating final track fit with momentum: "
-              << params.momentum() << " and position "
-              << params.position(m_geometry->geometry().getGeoContext())
-              << std::endl
-              << "track fit phi/eta "
-              << atan2(params.momentum()(1),
-                       params.momentum()(0))
-              << " and "
-              << atanh(params.momentum()(2) / params.momentum().norm())
-              << std::endl;
+  std::cout << "Propagating final track fit with momentum: "
+            << params.momentum() << " and position "
+            << params.position(m_geometry->geometry().getGeoContext())
+            << std::endl
+            << "track fit phi/eta "
+            << atan2(params.momentum()(1),
+                     params.momentum()(0))
+            << " and "
+            << atanh(params.momentum()(2) / params.momentum().norm())
+            << std::endl;
 }
