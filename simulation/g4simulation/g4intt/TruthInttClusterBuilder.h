@@ -67,7 +67,7 @@ class TruthInttClusterBuilder {
   TrkrClusterContainer    *m_clusters;
   TrkrTruthTrackContainer *m_truthtracks;
   /* PHG4TpcCylinderGeomContainer* m_geom_container */
-  PHG4CylinderGeomContainer* m_geom_container;
+  PHG4CylinderGeomContainer* m_geom_container { nullptr };
 
   // member data required for clustering
 

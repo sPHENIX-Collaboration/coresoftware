@@ -262,7 +262,7 @@ void TruthMvtxClusterBuilder::cluster_hits() {
 	  const double phisize = phibins.size() * pitch;
 	  const double zsize = zbins.size() * length;
 	  
-	  static const double invsqrt12 = 1./std::sqrt(12);
+	  /* static const double invsqrt12 = 1./std::sqrt(12); */
 	  
 	  // scale factors (phi direction)
 	  /*

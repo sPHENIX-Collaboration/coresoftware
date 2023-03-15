@@ -76,7 +76,7 @@ class TruthMvtxClusterBuilder {
   int m_verbosity {0};
   /* bool are_adjacent(RawHit* lhs, RawHit* rhs); */
   bool are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs);
-  PHG4CylinderGeomContainer* m_geom_container;
+  PHG4CylinderGeomContainer* m_geom_container { nullptr };
 };
 
 #endif
