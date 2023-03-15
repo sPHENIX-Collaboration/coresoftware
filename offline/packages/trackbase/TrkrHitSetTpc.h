@@ -19,7 +19,7 @@ class TrkrHitSetTpc : public TrkrHitSet
 
   TrkrHitSetTpc() = default;
 
-  TrkrHitSetTpc(const unsigned int /*n_pad*/, const unsigned int /*n_tbin*/) {}
+  TrkrHitSetTpc(const uint16_t /*n_pad*/, const uint16_t /*n_tbin*/) {}
 
   ~TrkrHitSetTpc() override
   {
@@ -27,30 +27,36 @@ class TrkrHitSetTpc : public TrkrHitSet
 
   virtual void identify(std::ostream& os = std::cout) const override;
 
-  virtual void Resize(const unsigned int /*n_pad*/, const unsigned int /*n_tbin*/) {}
+  virtual void Resize(const uint16_t /*n_pad*/, const uint16_t /*n_tbin*/) {}
+
+  //! global -> local conversion
+  std::pair<uint16_t, uint16_t> getLocalPhiTBin(const TrkrDefs::hitkey) const;
+
+  //! local -> global conversion
+  TrkrDefs::hitkey getHitKeyfromLocalBin(const uint16_t /*local_pad*/, const uint16_t /*local_tbin*/) const;
 
   TpcDefs::ADCDataType& getTpcADC(const TrkrDefs::hitkey);
 
   const TpcDefs::ADCDataType& getTpcADC(const TrkrDefs::hitkey) const;
 
-  virtual TpcDefs::ADCDataType& getTpcADC(const uint16_t /*pad*/, const uint16_t /*tbin*/)
+  virtual TpcDefs::ADCDataType& getTpcADC(const uint16_t /*local_pad*/, const uint16_t /*local_tbin*/)
   {
     static TpcDefs::ADCDataType v = 0;
     return v;
   };
 
-  virtual const TpcDefs::ADCDataType& getTpcADC(const uint16_t /*pad*/, const uint16_t /*tbin*/) const
+  virtual const TpcDefs::ADCDataType& getTpcADC(const uint16_t /*local_pad*/, const uint16_t /*local_tbin*/) const
   {
     static TpcDefs::ADCDataType v = 0;
     return v;
   };
 
-  virtual unsigned int getNPads() const
+  virtual uint16_t getNPads() const
   {
     return 0;
   }
 
-  virtual void setNPads(unsigned int /*nPads*/)
+  virtual void setNPads(uint16_t /*nPads*/)
   {
   }
 
@@ -65,12 +71,39 @@ class TrkrHitSetTpc : public TrkrHitSet
   {
   }
 
-  virtual unsigned int getTBins() const
+  virtual uint16_t getTBins() const
   {
     return 0;
   }
 
-  virtual void setTBins(unsigned int /*tBins*/)
+  virtual void setTBins(uint16_t /*tBins*/)
+  {
+  }
+
+  virtual uint16_t getPadIndexStart() const
+  {
+    return 0;
+  }
+
+  virtual void setPadIndexStart(uint16_t )
+  {
+  }
+
+  virtual TpcDefs::BCODataType getStartingBco() const
+  {
+    return 0;
+  }
+
+  virtual void setStartingBco(TpcDefs::BCODataType )
+  {
+  }
+
+  virtual uint16_t getTBinIndexStart() const
+  {
+    return 0;
+  }
+
+  virtual void setTBinIndexStart(uint16_t)
   {
   }
 

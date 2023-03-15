@@ -22,7 +22,7 @@ void TrkrHitSetTpcv1::Reset()
     std::fill(pad.begin(), pad.end(), 0);
   }
 }
-void TrkrHitSetTpcv1::Resize(const unsigned int n_pad, const unsigned int n_tbin)
+void TrkrHitSetTpcv1::Resize(const uint16_t n_pad, const uint16_t n_tbin)
 {
   if (n_pad != m_timeFrameADCData.size())
     m_timeFrameADCData.resize(n_pad);
@@ -38,16 +38,19 @@ void TrkrHitSetTpcv1::Resize(const unsigned int n_pad, const unsigned int n_tbin
 
 void TrkrHitSetTpcv1::identify(std::ostream& os) const
 {
-  const unsigned int layer = TrkrDefs::getLayer(m_hitSetKey);
-  const unsigned int trkrid = TrkrDefs::getTrkrId(m_hitSetKey);
+  const uint16_t layer = TrkrDefs::getLayer(m_hitSetKey);
+  const uint16_t trkrid = TrkrDefs::getTrkrId(m_hitSetKey);
 
   os
       << "TrkrHitSetTpcv1: "
       << "       hitsetkey " << getHitSetKey()
-      << " TrkrId " << trkrid
-      << " layer " << layer
+      << " TrkrId: " << trkrid
+      << " layer: " << layer
       << " m_nPads: " << m_nPads
       << " n_tBins: " << n_tBins
+      << " m_padIndexStart: " << m_padIndexStart
+      << " m_tBinIndexStart: " << m_tBinIndexStart
+      << " m_StartingBCO: " << m_StartingBCO
       << std::endl;
 
   //  for( const auto& entry : m_hits )
@@ -56,8 +59,11 @@ void TrkrHitSetTpcv1::identify(std::ostream& os) const
   //    (entry.second)->identify(os);
   //  }
 
-  for (unsigned int i = 0; i < m_nPads; ++i)
+  for (uint16_t i = 0; i < m_nPads; ++i)
   {
+    // skip empty pads
+    if (*std::max_element(m_timeFrameADCData[i].begin(), m_timeFrameADCData[i].end()) == 0) continue;
+
     os << "Pad " << i << ":";
 
     for (const auto& adc : m_timeFrameADCData[i])
