@@ -11,7 +11,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <trackbase/CMFlashClusterv1.h>
+#include <trackbase/CMFlashClusterv2.h>
 #include <trackbase/CMFlashClusterContainerv1.h>
 #include <trackbase/CMFlashDifferencev1.h>
 #include <trackbase/CMFlashDifferenceContainerv1.h>
@@ -522,14 +522,23 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
        cmitr !=clusrange.second;
        ++cmitr)
     {
-      const auto& [cmkey, cmclus] = *cmitr;
+      const auto& [cmkey, cmclus_orig] = *cmitr;
+      CMFlashClusterv2 *cmclus = dynamic_cast<CMFlashClusterv2 *>(cmclus_orig);
       const unsigned int nclus = cmclus->getNclusters();
+
+      const bool isRGap = cmclus->getIsRGap();
+
       
       // Do the static + average distortion corrections if the container was found
       Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
       if( m_dcc_in) pos = m_distortionCorrection.get_corrected_position( pos, m_dcc_in ); 
       
       TVector3 tmp_pos(pos[0], pos[1], pos[2]);
+
+      //      std::cout << "cmkey " << cmkey << "   R: " << tmp_pos.Perp() << "   isgap: " << isRGap << std::endl;
+
+      if(isRGap) continue;
+
       reco_pos.push_back(tmp_pos);      
       reco_nclusters.push_back(nclus);
 

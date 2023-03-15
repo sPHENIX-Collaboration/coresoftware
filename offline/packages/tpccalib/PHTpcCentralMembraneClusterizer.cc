@@ -22,7 +22,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/CMFlashClusterv1.h>
+#include <trackbase/CMFlashClusterv2.h>
 #include <trackbase/CMFlashClusterContainerv1.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
@@ -180,6 +180,8 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       // redundant to the 'adjacent row' check:  if (i==j) continue; //can't match yourself.
       // must match to an adjacent row.
       if (std::abs(layer[i]-layer[j])!=1) continue;
+
+      if( (layer[i] == 22 && layer[j] == 23) || (layer[i] == 23 && layer[j] == 22) || (layer[i] == 38 && layer[j] == 39) || (layer[i] == 39 && layer[j] == 38) ) continue;
       
       // must match clusters that are on the same side
       if( side[i] != side[j] ) continue;
@@ -237,6 +239,14 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   std::vector<float>aveenergy;
   std::vector<TVector3> avepos;
   std::vector<unsigned int> nclusters;
+  std::vector<bool> isREdge;
+
+  int nR2 = 0;
+  int nR3 = 0;
+
+  double R2AveE = 0.0;
+  double R3AveE = 0.0;
+
   for (int i=0;i<nTpcClust;++i)
   {
     if(_histos)  hClustE[0]->Fill(energy[i]);
@@ -248,6 +258,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
         if(_histos)  hClustE[1]->Fill(energy[i]+energy[i_pair[i]]);
         
         aveenergy.push_back(energy[i]+energy[i_pair[i]]);
+
+	//	if(
+	
         
         // The pads measure phi and z accurately
         // They do not measure R! It is taken as the center of the padrow
@@ -304,7 +317,10 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
         TVector3 temppos(aveR*cos(avePhi), aveR*sin(avePhi), aveZ);
         avepos.push_back(temppos);
         nclusters.push_back(2);
-        
+	if( (layer[i] == 22 && layer[i_pair[i]] == 23) || (layer[i] == 23 && layer[i_pair[i]] == 22) || (layer[i] == 38 && layer[i_pair[i]] == 39) || (layer[i] == 39 || layer[i_pair[i]] == 38) ) isREdge.push_back(true);
+	else isREdge.push_back(false);
+	
+  
         if(Verbosity() > 0)
           std::cout << " layer i " << layer[i] << " energy " << energy[i] << " pos i " << pos[i].X() << "  " << pos[i].Y() << "  " << pos[i].Z()
           << " layer i_pair " << layer[i_pair[i]] << " energy i_pair " << energy[i_pair[i]] 
@@ -318,7 +334,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       aveenergy.push_back(energy[i]);
       avepos.push_back(pos[i]);
       nclusters.push_back(1);
-    }
+      if( (layer[i] == 22 && layer[i_pair[i]] == 23) || (layer[i] == 23 && layer[i_pair[i]] == 22) || (layer[i] == 38 && layer[i_pair[i]] == 39) || (layer[i] == 39 || layer[i_pair[i]] == 38) ) isREdge.push_back(true);
+      else isREdge.push_back(false);
+      }
   }      
       
   // Loop over the vectors and put the clusters on the node tree
@@ -327,13 +345,14 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   
   for(unsigned int iv = 0; iv <avepos.size(); ++iv)
   {
-    auto cmfc = new CMFlashClusterv1();
+    auto cmfc = new CMFlashClusterv2();
     
     cmfc->setX(avepos[iv].X());
     cmfc->setY(avepos[iv].Y());
     cmfc->setZ(avepos[iv].Z());
     cmfc->setAdc(aveenergy[iv]);
     cmfc->setNclusters(nclusters[iv]);
+    cmfc->setIsRGap(isREdge[iv]);
     
     _corrected_CMcluster_map->addClusterSpecifyKey(iv, cmfc);
     
