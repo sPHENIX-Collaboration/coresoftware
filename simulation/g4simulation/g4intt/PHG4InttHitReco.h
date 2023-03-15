@@ -43,14 +43,14 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
   std::string m_CellNodeName;
   std::string m_GeoNodeName;
 
-  TrkrTruthTrackContainer* m_truthtracks;
-  TrkrClusterContainer*    m_truthclusters;
+  TrkrTruthTrackContainer* m_truthtracks { nullptr };
+  TrkrClusterContainer*    m_truthclusters { nullptr };
 
   double m_Tmin;
   double m_Tmax;
   double m_crossingPeriod;
 
-  TruthInttClusterBuilder* m_truth_clusterer;
+  TruthInttClusterBuilder* m_truth_clusterer { nullptr };
 
   gsl_vector *m_LocalOutVec = nullptr;
   gsl_vector *m_PathVec = nullptr;
