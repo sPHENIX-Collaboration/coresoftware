@@ -86,8 +86,8 @@ Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
 
 Acts::Vector3 getVertex(SvtxTrack* track);
 
-TNtuple *ntp_reco_info;
-ActsGeometry *_tGeometry;
+TNtuple *ntp_reco_info = nullptr;
+ActsGeometry *_tGeometry = nullptr;
 SvtxTrackMap *m_svtxTrackMap = nullptr; 
 SvtxVertexMap *m_vertexMap   = nullptr;
 
@@ -98,8 +98,8 @@ double _qual_cut             = 10.0;
 double pair_dca_cut          = 0.05; // kshort relative cut 500 microns
 double track_dca_cut         = 0.01;
 double invariant_pt_cut      = 0.1;
-TFile *fout;
-TH1D* recomass;
+TFile *fout = nullptr;
+TH1D* recomass = nullptr;
 };
 
 #endif  // KSHORTRECONSTRUCTION_H 

@@ -33,19 +33,19 @@ private:
 
   void fill_residuals(TrackSeed* seed, int seed_id, bool isTpc);
 
-  HelicalFitter* _fitter;
-  ActsGeometry* tGeometry;
+  HelicalFitter* _fitter = nullptr;
+  ActsGeometry* tGeometry = nullptr;
 
-  TNtuple* ntp_residuals;
+  TNtuple* ntp_residuals = nullptr;
 
   SvtxTrackMap* _tracks = nullptr;
   TrkrClusterContainer* _clusters = nullptr;
   TrackSeedContainer* _tpc_seeds = nullptr;
   TrackSeedContainer* _si_seeds = nullptr;
 
-  TFile *fout;
+  TFile *fout = nullptr;
 
-  std::string _outputfile;
+  std::string _outputfile = "";
 };
 
 #endif  // HELIXRESIDUALS_H 
