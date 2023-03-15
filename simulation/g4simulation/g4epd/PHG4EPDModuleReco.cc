@@ -55,7 +55,7 @@ int PHG4EPDModuleReco::InitRun(PHCompositeNode *topNode)
       dst_node = new PHCompositeNode("DST");
       topNode->addNode(dst_node);
   }
-  PHIODataNode<PHObject> *epd_geom_node = new PHIODataNode<PHObject>(this->epd_geom, "EPD_Geometry", "PHObject");
+  PHIODataNode<PHObject> *epd_geom_node = new PHIODataNode<PHObject>(this->epd_geom, "TOWERGEOM_EPD", "PHObject");
   dst_node->addNode(epd_geom_node);
   return Fun4AllReturnCodes::EVENT_OK;
 }
