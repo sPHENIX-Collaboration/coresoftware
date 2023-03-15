@@ -22,16 +22,16 @@ class SvtxTrackMap;
 class SvtxVertexMap;
 class SvtxTrack;
 
-using BoundTrackParam = 
-  const Acts::BoundTrackParameters;
-using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
-using SurfacePtr = std::shared_ptr<const Acts::Surface>;
-using Trajectory = ActsExamples::Trajectories;
-
 class PHActsVertexPropagator : public SubsysReco
 {
 
  public: 
+  using BoundTrackParam = 
+  const Acts::BoundTrackParameters;
+  using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
+  using SurfacePtr = std::shared_ptr<const Acts::Surface>;
+  using Trajectory = ActsExamples::Trajectories;
+
   PHActsVertexPropagator(const std::string& name = "PHActsVertexPropagator");
   
   int Init(PHCompositeNode *topNode) override;

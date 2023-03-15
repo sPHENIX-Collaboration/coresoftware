@@ -286,7 +286,8 @@ void PHActsTrackProjection::getSquareTowerEnergies(int phiBin,
   return;
 }
 
-BoundTrackParamResult PHActsTrackProjection::propagateTrack(
+PHActsTrackProjection::BoundTrackParamResult 
+PHActsTrackProjection::propagateTrack(
     const Acts::BoundTrackParameters& params,
     const SurfacePtr& targetSurf)
 {

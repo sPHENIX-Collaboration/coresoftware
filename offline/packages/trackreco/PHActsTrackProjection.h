@@ -34,11 +34,7 @@ class SvtxVertexMap;
 #include <memory>
 #include <string>
 
-using BoundTrackParam =
-    const Acts::BoundTrackParameters;
-using BoundTrackParamResult = ActsPropagator::BoundTrackParamResult;
-using SurfacePtr = std::shared_ptr<const Acts::Surface>;
-using Trajectory = ActsExamples::Trajectories;
+
 
 /**
  * This class takes final fitted tracks from the Acts track fitting
@@ -50,6 +46,12 @@ using Trajectory = ActsExamples::Trajectories;
 class PHActsTrackProjection : public SubsysReco
 {
  public:
+  using BoundTrackParam =
+    const Acts::BoundTrackParameters;
+  using SurfacePtr = std::shared_ptr<const Acts::Surface>;
+  using Trajectory = ActsExamples::Trajectories;
+  using BoundTrackParamResult = ActsPropagator::BoundTrackParamResult;
+
   PHActsTrackProjection(const std::string &name = "PHActsTrackProjection");
 
   int Init(PHCompositeNode *topNode) override;
