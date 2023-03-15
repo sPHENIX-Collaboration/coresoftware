@@ -268,7 +268,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
   
   // create ACTS parameters from track parameters at origin
   auto trackParams = makeTrackParams(track);
-
+  
   // store crossing. It is used in calculating cluster's global position
   m_crossing = track->get_crossing();
   assert( m_crossing != SHRT_MAX );
@@ -287,11 +287,11 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     if(detId != TrkrDefs::tpcId) continue;  
     
     const auto cluster = m_clusterContainer->findCluster(cluskey);      
-    const auto surf = m_tGeometry->maps().getSurface( cluskey, cluster );
-    auto result = propagateTrackState(trackParams, surf);
+    const auto surface = m_tGeometry->maps().getSurface( cluskey, cluster );   
+    const auto result = propagateTrackState(trackParams, surface);
     
     // skip if propagation failed
-    if(std::isnan(result.first))
+    if(!result)
     {
       if( Verbosity() > 1 )
       {
@@ -311,8 +311,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     }
     
     // get extrapolated track state, convert to sPHENIX and add to track
-    auto pathLength = result.first;
-    auto trackStateParams = result.second;
+    const auto& [pathLength, trackStateParams] = *result;
     if(Verbosity() > 1)
     {
       std::cout << "PHTpcResiduals::processTrack -"
@@ -543,7 +542,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 }
 
 //__________________________________________________________________________________________________________________________________________
-PHTpcResiduals::BoundTrackParamPair  PHTpcResiduals::propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surf) const
+std::optional<PHTpcResiduals::BoundTrackParamPair>  PHTpcResiduals::propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surface) const
 {
  
 
@@ -565,7 +564,7 @@ PHTpcResiduals::BoundTrackParamPair  PHTpcResiduals::propagateTrackState( const 
 				    m_tGeometry->geometry().magFieldContext,
 				    Acts::LoggerWrapper{*logger});
      
-  auto result = propagator.propagate(params, *surf, options);
+  auto result = propagator.propagate(params, *surface, options);
    
   if(result.ok())
   {
@@ -574,8 +573,7 @@ PHTpcResiduals::BoundTrackParamPair  PHTpcResiduals::propagateTrackState( const 
     // return both path length and extrapolated parameters
     return std::make_pair( pathlength, params );
   } else {
-    return std::make_pair(NAN, Acts::BoundTrackParameters(nullptr, Acts::BoundVector::Zero(),-1));
-
+    return std::nullopt;
   }
 }
 
