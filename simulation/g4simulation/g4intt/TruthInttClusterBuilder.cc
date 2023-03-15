@@ -351,7 +351,6 @@ void TruthInttClusterBuilder::cluster_hits() {
 	  clus->setSubSurfKey(0);
 
     // add the cluster to the trkrclustercontainer
-    cout << PHWHERE << " w.w 0.0 " << endl;
       auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
       if (hitsetkey_cnt.find(hitsetkey)==hitsetkey_cnt.end()) {
         hitsetkey_cnt[hitsetkey] = 0;
@@ -361,7 +360,6 @@ void TruthInttClusterBuilder::cluster_hits() {
 	    auto new_clusid = hitsetkey_cnt[hitsetkey]; 
       auto new_ckey = TrkrDefs::genClusKey(hitsetkey, new_clusid);
    m_clusters->addClusterSpecifyKey(new_ckey, clus.release());
-    cout << PHWHERE << " w.w 1.0 " << endl;
    track->addCluster(new_ckey);
      } // end loop over cluster ID's
   }  // end loop over hitsets

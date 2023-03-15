@@ -271,16 +271,16 @@ void TruthMvtxClusterBuilder::cluster_hits() {
 	    These scale factors are applied to produce cluster pulls with width unity
 	  */
 	  
-	  double phierror = pitch * invsqrt12;
+	  /* double phierror = pitch * invsqrt12; */
 	  
-	  static constexpr std::array<double, 7> scalefactors_phi = {{ 0.36, 0.6,0.37,0.49,0.4,0.37,0.33 }};
-	  if(phibins.size() == 1 && zbins.size() == 1) phierror*=scalefactors_phi[0];
-	  else if(phibins.size() == 2 && zbins.size() == 1) phierror*=scalefactors_phi[1];
-	  else if(phibins.size() == 1 && zbins.size() == 2) phierror*=scalefactors_phi[2];
-	  else if( phibins.size() == 2 && zbins.size() == 2 ) phierror*=scalefactors_phi[0];
-	  else if( phibins.size() == 2 && zbins.size() == 3 )  phierror*=scalefactors_phi[1];
-	  else if( phibins.size() == 3 && zbins.size() == 2 )  phierror*=scalefactors_phi[2];
-	  else if( phibins.size() == 3 && zbins.size() == 3 )  phierror*=scalefactors_phi[3];
+	  /* static constexpr std::array<double, 7> scalefactors_phi = {{ 0.36, 0.6,0.37,0.49,0.4,0.37,0.33 }}; */
+	  /* if(phibins.size() == 1 && zbins.size() == 1) phierror*=scalefactors_phi[0]; */
+	  /* else if(phibins.size() == 2 && zbins.size() == 1) phierror*=scalefactors_phi[1]; */
+	  /* else if(phibins.size() == 1 && zbins.size() == 2) phierror*=scalefactors_phi[2]; */
+	  /* else if( phibins.size() == 2 && zbins.size() == 2 ) phierror*=scalefactors_phi[0]; */
+	  /* else if( phibins.size() == 2 && zbins.size() == 3 )  phierror*=scalefactors_phi[1]; */
+	  /* else if( phibins.size() == 3 && zbins.size() == 2 )  phierror*=scalefactors_phi[2]; */
+	  /* else if( phibins.size() == 3 && zbins.size() == 3 )  phierror*=scalefactors_phi[3]; */
 	  
 	  // scale factors (z direction)
 	  /*

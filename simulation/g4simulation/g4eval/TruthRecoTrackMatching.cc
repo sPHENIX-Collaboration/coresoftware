@@ -613,7 +613,7 @@ std::pair<bool, float> TruthRecoTrackMatching::compare_cluster_pair (
 ) {
   auto layer = TrkrDefs::getLayer(hitsetkey);
   if (layer > 55) {
-    cout << " Error! Trying to compar cluster in layer < 7 or > 55, which is not programmed yet!" << endl;
+    cout << " Error! Trying to compar cluster in layer > 55, which is not programmed yet!" << endl;
     return {false, 0.};
   }
 
