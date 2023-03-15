@@ -74,16 +74,6 @@ class TrkrHitSetTpcv1 final : public TrkrHitSetTpc
     m_nPads = nPads;
   }
 
-  const TimeFrameADCDataType& getTimeFrameAdcData() const override
-  {
-    return m_timeFrameADCData;
-  }
-
-  void setTimeFrameAdcData(const TimeFrameADCDataType& timeFrameAdcData) override
-  {
-    m_timeFrameADCData = timeFrameAdcData;
-  }
-
   uint16_t getTBins() const override
   {
     return n_tBins;
@@ -122,6 +112,16 @@ class TrkrHitSetTpcv1 final : public TrkrHitSetTpc
   void setTBinIndexStart(uint16_t tBinIndexStart) override
   {
     m_tBinIndexStart = tBinIndexStart;
+  }
+
+  const TimeFrameADCDataType& getTimeFrameAdcData() const override
+  {
+    return m_timeFrameADCData;
+  }
+
+  void setTimeFrameAdcData(const TimeFrameADCDataType& timeFrameAdcData) override
+  {
+    m_timeFrameADCData = timeFrameAdcData;
   }
 
  private:

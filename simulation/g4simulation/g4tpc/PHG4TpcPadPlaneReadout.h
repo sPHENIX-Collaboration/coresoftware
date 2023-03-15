@@ -4,7 +4,9 @@
 #include "PHG4TpcPadPlane.h"
 #include "TpcClusterBuilder.h"
 
+#include <trackbase/TpcDefs.h>
 #include <g4main/PHG4HitContainer.h>
+
 #include <gsl/gsl_rng.h>
 #include <array>
 #include <climits>
@@ -64,9 +66,9 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<double, 3> MaxRadius;
   std::array<double, 5> Thickness;
 
-  static const int NSides = 2;
-  static const int NSectors = 12;
-  static const int NRSectors = 3;
+  static const int NSides = TpcDefs::NSides;
+  static const int NSectors = TpcDefs::NSectors;
+  static const int NRSectors = TpcDefs::NRSectors;
 
   std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dR;
   std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dPhi;
