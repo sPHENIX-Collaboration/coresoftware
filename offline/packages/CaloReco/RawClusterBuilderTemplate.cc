@@ -17,8 +17,6 @@
 #include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-
-
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfo.h>
@@ -551,7 +549,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (chkenergyconservation)
+  if (chkenergyconservation && towers && _clusters)
   {
     double ecluster = _clusters->getTotalEdep();
     double etower = towers->getTotalEdep();
@@ -573,6 +571,11 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       }
     }
   }
+  else if (chkenergyconservation)
+  {
+      std::cout << "RawClusterBuilderTemplate : energy conservation check asked for but tower or cluster container is NULL " << std::endl;
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
