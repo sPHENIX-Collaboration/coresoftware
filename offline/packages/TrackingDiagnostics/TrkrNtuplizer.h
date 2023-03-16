@@ -76,8 +76,6 @@ class TrkrNtuplizer : public SubsysReco
   //----------------------------------
   // evaluator output ntuples
 
-  unsigned int _errors;
-
   bool _do_info_eval;
   bool _do_vertex_eval;
   bool _do_hit_eval;
