@@ -492,22 +492,22 @@ void TruthRecoTrackMatching::match_tracks_in_box(
       unsigned short nclus_nomatch = 0; // number of reco and truth cluster that share a hitsetkey, but still fair matching criteria
       unsigned short nclus_reco    = 0; // count in the comparison loop
       SvtxTrack* reco_track = m_SvtxTrackMap->get(ipair->second);
-      ClusKeyReader r_keys { reco_track };
-      while (r_keys.next()) {
-          ++nclus_reco;
-          auto hitsetkey = r_keys.hitsetkey(); //TrkrDefs::getHitSetKeyFromClusKey(*r_key);
-          if (truth_keys.count(hitsetkey) != 0) {
-            // reco and truth cluster are in same hitsetkey-indexed subsurface. 
-            // See if they match (++nclus_match) or not (++nclus_nomatch)
-            if (compare_cluster_pair(truth_keys[hitsetkey], r_keys.cluskey(), hitsetkey).first) {
-              ++nclus_match;
-            } else {
-              ++nclus_nomatch;
-            }
+
+
+      for (auto reco_ckey : ClusKeyIter(reco_track)) {
+        ++nclus_reco;
+        auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(reco_ckey); 
+        if (truth_keys.count(hitsetkey) != 0) {
+          // reco and truth cluster are in same hitsetkey-indexed subsurface. 
+          // See if they match (++nclus_match) or not (++nclus_nomatch)
+          if (compare_cluster_pair(truth_keys[hitsetkey], reco_ckey, hitsetkey).first) {
+            ++nclus_match;
+          } else {
+            ++nclus_nomatch;
           }
         }
-      /* } // end reco seed loop */
-      // if the match passes minimum cuts, then it is a possible match
+      }
+
       if (Verbosity()>100) {
         auto truth_track = m_TrkrTruthTrackContainer->getTruthTrack(id_true);
         cout << Form("possmatch:(phi,eta,pT:id) true(%5.2f,%5.2f,%4.2f:%2i) reco(%5.2f,%5.2f,%4.2f:%2i) "
@@ -668,13 +668,10 @@ float TruthRecoTrackMatching::sigma_CompMatchClusters(PossibleMatch& match) {
   double n_matches = 0.; // get the mean match values
   double sum_diff  = 0.;
 
-  ClusKeyReader r_keys { reco_track };
-  while ( r_keys.next() ) {
-  /* for (auto r_key = tpcseed->begin_cluster_keys(); r_key!=tpcseed->end_cluster_keys(); ++r_key) { */
-  
-    auto hitsetkey = r_keys.hitsetkey();
+  for (auto reco_ckey : ClusKeyIter(reco_track)) {
+    auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(reco_ckey); 
     if (truth_keys.count(hitsetkey) == 0) continue;
-    auto comp_val = compare_cluster_pair(truth_keys[hitsetkey], r_keys.cluskey(), hitsetkey, true);
+    auto comp_val = compare_cluster_pair(truth_keys[hitsetkey], reco_ckey, hitsetkey, true);
 
     if (comp_val.first) {
       n_matches += 1.;
@@ -853,12 +850,12 @@ void TruthRecoTrackMatching::fill_tree() {
     set_reco_matched.insert(trkid);
     m_trkid_reco_matched.push_back(trkid);
     SvtxTrack* reco_track = m_SvtxTrackMap->get(trkid);
-    ClusKeyReader r_keys { reco_track }; 
     m_i0_reco_matched.push_back(cnt);
-    while (r_keys.next()) {
-      auto cluster = m_RecoClusterContainer->findCluster(r_keys.cluskey());
-      Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(r_keys.cluskey(), cluster);
-      m_layer_reco_matched .push_back(TrkrDefs::getLayer(r_keys.cluskey()));
+    
+    for (auto reco_ckey : ClusKeyIter(reco_track)) {
+      auto cluster = m_RecoClusterContainer->findCluster(reco_ckey);
+      Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(reco_ckey, cluster);
+      m_layer_reco_matched .push_back(TrkrDefs::getLayer(reco_ckey));
       m_cnt_reco_matched.push_back(itrk);
       m_x_reco_matched     .push_back(gloc[0]);
       m_y_reco_matched     .push_back(gloc[1]);
@@ -877,12 +874,11 @@ void TruthRecoTrackMatching::fill_tree() {
     if (set_reco_matched.count(trkid)) continue;
     m_trkid_reco_notmatched.push_back(trkid);
     SvtxTrack* reco_track = m_SvtxTrackMap->get(trkid);
-    ClusKeyReader r_keys { reco_track };
     m_i0_reco_notmatched.push_back(cnt);
-    while (r_keys.next()) {
-      auto cluster = m_RecoClusterContainer->findCluster(r_keys.cluskey());
-      Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(r_keys.cluskey(), cluster);
-      m_layer_reco_notmatched .push_back(TrkrDefs::getLayer(r_keys.cluskey()));
+    for (auto reco_ckey : ClusKeyIter(reco_track)) {
+      auto cluster = m_RecoClusterContainer->findCluster(reco_ckey);
+      Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(reco_ckey, cluster);
+      m_layer_reco_notmatched .push_back(TrkrDefs::getLayer(reco_ckey));
       m_cnt_reco_notmatched.push_back(itrk);
       m_x_reco_notmatched     .push_back(gloc[0]);
       m_y_reco_notmatched     .push_back(gloc[1]);
@@ -897,55 +893,57 @@ void TruthRecoTrackMatching::fill_tree() {
   clear_branch_vectors();
 }
 
-TruthRecoTrackMatching::ClusKeyReader::ClusKeyReader(SvtxTrack* _track) :
-  track{_track} 
-{ reset(); }
-
-void TruthRecoTrackMatching::ClusKeyReader::reset() {
-  auto seed = track->get_silicon_seed();
-  if (seed != nullptr) {
-    silicon_hits = true;
-    current_hit = seed->begin_cluster_keys();
-    --current_hit;  // use ++ to get to the first entry
-    end_hit = seed->end_cluster_keys();
-    return;
-  } 
-
-  silicon_hits = false;
-  seed = track->get_tpc_seed();
-  if (seed != nullptr) {
-    silicon_hits = false;
-    current_hit = seed->begin_cluster_keys();
-    --current_hit; // use ++ to get to the first entry
-    end_hit = seed->end_cluster_keys();
-    return;
-  } 
-  
-  no_data = true;
-  return;
+// Implementation of the iterable struct to get cluster keys from
+// a SvtxTrack. It is used like:
+// for (auto& cluskey : ClusKeyIter(svtx_track)) {
+//    ... // do things with cluster keys
+// }
+TruthRecoTrackMatching::ClusKeyIter::ClusKeyIter(SvtxTrack* _track) :
+    track {_track}
+  , in_silicon { _track->get_silicon_seed()!=nullptr }
+  , has_tpc    { _track->get_tpc_seed()!=nullptr }
+  , no_data    { !in_silicon && !has_tpc }
+{
 }
-bool TruthRecoTrackMatching::ClusKeyReader::next() {
+
+TruthRecoTrackMatching::ClusKeyIter TruthRecoTrackMatching::ClusKeyIter::begin() {
+  ClusKeyIter iter0 { track }; 
+  if (iter0.no_data) return iter0;
+  if (iter0.in_silicon) {
+    iter0.iter = track->get_silicon_seed()->begin_cluster_keys();
+    iter0.iter_end_silicon = track->get_silicon_seed()->end_cluster_keys();
+  } else if (has_tpc) {
+    iter0.iter = track->get_tpc_seed()->begin_cluster_keys();
+  } 
+  return iter0;
+}
+
+TruthRecoTrackMatching::ClusKeyIter TruthRecoTrackMatching::ClusKeyIter::end() {
+  ClusKeyIter iter0 { track }; 
+  if (iter0.no_data) return iter0;
+  if (has_tpc) {
+    iter0.iter = track->get_tpc_seed()->end_cluster_keys();
+  } else if (in_silicon) {
+    iter0.iter = track->get_silicon_seed()->end_cluster_keys();
+  } 
+  return iter0;
+}
+
+void TruthRecoTrackMatching::ClusKeyIter::operator++() {
+  if (no_data) return;
+  ++iter;
+  if (in_silicon && has_tpc && iter == iter_end_silicon) {
+    in_silicon = false;
+    iter = track->get_tpc_seed()->begin_cluster_keys();
+  }
+}
+
+bool TruthRecoTrackMatching::ClusKeyIter::operator!=(const ClusKeyIter& rhs) {
   if (no_data) return false;
-  ++current_hit;
-  if (current_hit != end_hit) return true;
-
-  // now current_hit == end_hit
-  if (!silicon_hits) return false;
-
-  // finished silicon hits, now do tpc hits
-  silicon_hits = false;
-  auto seed = track->get_tpc_seed();
-  if (seed == nullptr) return false;
-  current_hit = seed->begin_cluster_keys();
-  end_hit = seed->end_cluster_keys();
-  
-  return (current_hit != end_hit);
+  return iter != rhs.iter;
 }
-  
-TrkrDefs::cluskey TruthRecoTrackMatching::ClusKeyReader::cluskey() {
-  return *current_hit;
-}
-TrkrDefs::hitsetkey TruthRecoTrackMatching::ClusKeyReader::hitsetkey() {
-  return TrkrDefs::getHitSetKeyFromClusKey(*current_hit);
+
+TrkrDefs::cluskey TruthRecoTrackMatching::ClusKeyIter::operator*() {
+  return *iter;
 }
 

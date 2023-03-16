@@ -267,27 +267,29 @@ class TruthRecoTrackMatching : public SubsysReco
     void clear_branch_vectors();
     void fill_tree();
 
-    // return both the silicon clusters and the tpc clusters for a given track
-    // helper set to loop through all the SvtxTrack hitsetkeys
-    std::vector<TrkrDefs::hitsetkey> get_hitsetkeys(SvtxTrack*);
-
-    struct ClusKeyReader {
-      public:
-      ClusKeyReader (SvtxTrack* _track);// : track { _track } {};
-      bool next();
-      TrkrDefs::cluskey cluskey();
-      TrkrDefs::hitsetkey hitsetkey();
-      void reset();
-
-      private:
-      bool silicon_hits { true };
-      bool no_data { false };
+    // The following is a struct to iterate over the cluster keys for a given
+    // StvxTrack* tracks, starting with the silicone seed and then returning
+    // values for the tpc seed. It is used like:
+    //
+    // for (auto& cluskey : ClusKeyIter(svtx_track)) {
+    //    ... // do things with cluster keys
+    // }
+    struct ClusKeyIter {
+      ClusKeyIter(SvtxTrack* _track);
+      // data
       SvtxTrack* track;
-      TrackSeed::ClusterKeyIter end_hit {};
-      TrackSeed::ClusterKeyIter current_hit {}; // loop through silicon then tpc
+      bool in_silicon;
+      bool has_tpc;
+      bool no_data; // neither a tpc nor a silicon seed
+      TrackSeed::ClusterKeyIter iter             { };
+      TrackSeed::ClusterKeyIter iter_end_silicon { };
+
+      ClusKeyIter begin();
+      ClusKeyIter end();
+      void operator++();
+      TrkrDefs::cluskey operator*();
+      bool operator!=(const ClusKeyIter& rhs);
     };
 };
-
-
 
 #endif
