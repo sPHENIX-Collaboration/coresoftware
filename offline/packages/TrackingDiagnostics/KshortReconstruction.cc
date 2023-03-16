@@ -475,9 +475,9 @@ Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack *track, Acts::Vector3
 
 int KshortReconstruction::InitRun(PHCompositeNode *topNode)
 {
-  char fileName[500];
-  sprintf(fileName, "eval_output/ntp_mass_out_%i.root",process);
-  fout = new TFile(fileName,"recreate");
+
+  const char *cfilepath =  filepath.c_str();
+  fout = new TFile(cfilepath,"recreate");
   ntp_reco_info = new TNtuple("ntp_reco_info","decay_pairs","x1:y1:z1:px1:py1:pz1:dca3dxy1:dca3dz1:phi1:pca_rel1_x:pca_rel1_y:pca_rel1_z:eta1:charge1:tpcClusters_1:x2:y2:z2:px2:py2:pz2:dca3dxy2:dca3dz2:phi2:pca_rel2_x:pca_rel2_y:pca_rel2_z:eta2:charge2:tpcClusters_2:vertex_x:vertex_y:vertex_z:pair_dca:invariant_mass:invariant_pt:pathlength_x:pathlength_y:pathlength_z:pathlength:rapidity:pseudorapidity:projected_pos1_x:projected_pos1_y:projected_pos1_z:projected_pos2_x:projected_pos2_y:projected_pos2_z:projected_mom1_x:projected_mom1_y:projected_mom1_z:projected_mom2_x:projected_mom2_y:projected_mom2_z:projected_pca_rel1_x:projected_pca_rel1_y:projected_pca_rel1_z:projected_pca_rel2_x:projected_pca_rel2_y:projected_pca_rel2_z:projected_pair_dca:projected_pathlength_x:projected_pathlength_y:projected_pathlength_z:projected_pathlength:quality1:quality2:cosThetaReco");
 
   getNodes(topNode);
