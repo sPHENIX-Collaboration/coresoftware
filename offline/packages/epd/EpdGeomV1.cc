@@ -1,22 +1,23 @@
-#include "EpdGeom.h"
+#include "EpdGeomV1.h"
 
 #include <map>
 #include <utility>
+#include <tuple>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
 // Initializes the EPD Geometry
-EpdGeom::EpdGeom() {
+EpdGeomV1::EpdGeomV1() {
   build_lookup();
 }
 
 // Cleanup
-EpdGeom::~EpdGeom() {};
+EpdGeomV1::~EpdGeomV1() {};
 
 
 // Calculates the appropriate tower id from a given side/r/phi index
-unsigned int EpdGeom::side_r_phi_to_id(unsigned int side, unsigned int r_index, unsigned int phi_index) {
+unsigned int EpdGeomV1::side_r_phi_to_id(unsigned int side, unsigned int r_index, unsigned int phi_index) {
   unsigned int id = 0x0;
   id = id | (side << 20);
   id = id | (r_index << 10);
@@ -25,7 +26,7 @@ unsigned int EpdGeom::side_r_phi_to_id(unsigned int side, unsigned int r_index, 
 };
 
 // Calculates the appropriate tower id from a given side/sector/tile index
-unsigned int EpdGeom::side_sector_tile_to_id(unsigned int side, unsigned int sector, unsigned int tile) {
+unsigned int EpdGeomV1::side_sector_tile_to_id(unsigned int side, unsigned int sector, unsigned int tile) {
   int rmap[31] = {0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15};
   int phimap[31] = {0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
   unsigned int phi = phimap[tile] + (sector * 2);
@@ -33,7 +34,7 @@ unsigned int EpdGeom::side_sector_tile_to_id(unsigned int side, unsigned int sec
 }
 
 // Calculates the appropriate side/r/phi index from a tower ID
-std::tuple<unsigned int, unsigned int, unsigned int> EpdGeom::id_to_side_r_phi(unsigned int id) {
+std::tuple<unsigned int, unsigned int, unsigned int> EpdGeomV1::id_to_side_r_phi(unsigned int id) {
   unsigned int side, r_index, phi_index;
   side = (id >> 20) & 0x1;
   r_index = (id >> 10) & 0x3ff;
@@ -42,7 +43,7 @@ std::tuple<unsigned int, unsigned int, unsigned int> EpdGeom::id_to_side_r_phi(u
 };
 
 // Calculates the appropriate side/sector/tile from a tower ID
-std::tuple<unsigned int, unsigned int, unsigned int> EpdGeom::id_to_side_sector_tile(unsigned int id) {
+std::tuple<unsigned int, unsigned int, unsigned int> EpdGeomV1::id_to_side_sector_tile(unsigned int id) {
   unsigned int side, r_index, phi_index;
   std::tie(side, r_index, phi_index) = id_to_side_r_phi(id);
   unsigned int sector = phi_index / 2; 
@@ -53,7 +54,7 @@ std::tuple<unsigned int, unsigned int, unsigned int> EpdGeom::id_to_side_sector_
   return std::tuple<unsigned int, unsigned int, unsigned int>(side, sector, tile);
 }
 
-float EpdGeom::r(unsigned int id) {
+float EpdGeomV1::r(unsigned int id) {
   return r_lookup[id];
 }
 
@@ -62,7 +63,7 @@ float EpdGeom::r(unsigned int id) {
 // int id: The tile's ID
 // Returns:
 // float: the tile's location in r/phi space
-float EpdGeom::r_from_key(unsigned int key) {
+float EpdGeomV1::r_from_key(unsigned int key) {
   return r(decode_epd(key));
 };
 
@@ -72,19 +73,19 @@ float EpdGeom::r_from_key(unsigned int key) {
 // int phi_index: The phi index of the desired tile
 // Returns:
 // float: the tile's location in r/phi space
-float EpdGeom::r_from_side_r_phi(unsigned int side, unsigned int r_index, unsigned int phi_index) {
+float EpdGeomV1::r_from_side_r_phi(unsigned int side, unsigned int r_index, unsigned int phi_index) {
   unsigned int key;
   key = side_r_phi_to_id(side, r_index, phi_index);
   return r_from_key(key);
 };
 
 
-float EpdGeom::r_from_side_sector_tile(unsigned int side, unsigned int sector, unsigned int tile) {
+float EpdGeomV1::r_from_side_sector_tile(unsigned int side, unsigned int sector, unsigned int tile) {
   unsigned int key = side_sector_tile_to_id(side, sector, tile);
   return r_from_key(key);
 }
 
-float EpdGeom::phi(unsigned int id) {
+float EpdGeomV1::phi(unsigned int id) {
   return phi_lookup[id];
 }
 
@@ -93,7 +94,7 @@ float EpdGeom::phi(unsigned int id) {
 // int id: The tile's ID
 // Returns:
 // float: the tile's location in r/phi space
-float EpdGeom::phi_from_key(unsigned int key) {
+float EpdGeomV1::phi_from_key(unsigned int key) {
   return phi(decode_epd(key));
 };
 
@@ -103,36 +104,36 @@ float EpdGeom::phi_from_key(unsigned int key) {
 // int phi_index: The phi index of the desired tile
 // Returns:
 // float: the tile's location in r/phi space
-float EpdGeom::phi_from_side_r_phi(unsigned int side, unsigned int r_index, unsigned int phi_index) {
+float EpdGeomV1::phi_from_side_r_phi(unsigned int side, unsigned int r_index, unsigned int phi_index) {
   unsigned int key;
   key = side_r_phi_to_id(side, r_index, phi_index);
   return phi_from_key(key);
 };
 
-float EpdGeom::phi_from_side_sector_tile(unsigned int side, unsigned int sector, unsigned int tile) {
+float EpdGeomV1::phi_from_side_sector_tile(unsigned int side, unsigned int sector, unsigned int tile) {
   unsigned int key = side_sector_tile_to_id(side, sector, tile);
   return phi_from_key(key);
 }
 
-float EpdGeom::z(unsigned int id) {
+float EpdGeomV1::z(unsigned int id) {
   return z_lookup[id];
 }
 
-float EpdGeom::z_from_key(unsigned int key) {
+float EpdGeomV1::z_from_key(unsigned int key) {
   return z(decode_epd(key));
 }
 
-float EpdGeom::z_from_side_r_phi(unsigned int side, unsigned int r_index, unsigned int phi_index) {
+float EpdGeomV1::z_from_side_r_phi(unsigned int side, unsigned int r_index, unsigned int phi_index) {
   unsigned int key = side_r_phi_to_id(side, r_index, phi_index);
   return z_from_key(key);
 }
 
-float EpdGeom::z_from_side_sector_tile(unsigned int side, unsigned int sector, unsigned int tile) {
+float EpdGeomV1::z_from_side_sector_tile(unsigned int side, unsigned int sector, unsigned int tile) {
   unsigned int key = side_sector_tile_to_id(side, sector, tile);
   return z_from_key(key);
 }
 
-unsigned int EpdGeom::decode_epd(unsigned int tower_key) {
+unsigned int EpdGeomV1::decode_epd(unsigned int tower_key) {
   int channels_per_sector = 31;
   int supersector = channels_per_sector * 12;
   unsigned int ns_sector = tower_key >> 20U;
@@ -156,7 +157,7 @@ unsigned int EpdGeom::decode_epd(unsigned int tower_key) {
 
 
 // Generates the maps returning the r and phi for a particular tile
-void EpdGeom::build_lookup() {
+void EpdGeomV1::build_lookup() {
   r_lookup = std::vector<float>(NUM_TOWERS, -999);
   phi_lookup = std::vector<float>(NUM_TOWERS, -999);
   z_lookup = std::vector<float>(NUM_TOWERS, -999);
@@ -189,7 +190,7 @@ void EpdGeom::build_lookup() {
   // }
 }
 
-bool EpdGeom::test_id_mapping() {
+bool EpdGeomV1::test_id_mapping() {
   bool pass = true;
   for (unsigned int side = 0; side < 2; side++) {
     for (unsigned int r_index = 0; r_index < 16; r_index++) {
@@ -221,6 +222,6 @@ bool EpdGeom::test_id_mapping() {
   return pass;
 }
 
-void EpdGeom::identify(std::ostream &os) const {
+void EpdGeomV1::identify(std::ostream &os) const {
   os << "EPD Geometry Class" << std::endl;
 }

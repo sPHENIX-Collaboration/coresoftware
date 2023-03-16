@@ -25,13 +25,24 @@ libepd_la_LIBADD = \
   -lSubsysReco
 
 pkginclude_HEADERS = \
-  EPDDefs.h \
   EpdGeom.h \
+  EpdGeomV1.h \
   EpdGeomMaker.h
 
+pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = EpdGeom_Dict_rdict.pcm 
+
 libepd_la_SOURCES = \
-  EpdGeom.cc \
-  EpdGeomMaker.cc
+  EpdGeomMaker.cc \
+  EpdGeomV1.cc \ 
+  EpdGeom_Dict.cc 
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
