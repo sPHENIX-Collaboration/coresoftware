@@ -19,6 +19,8 @@ libg4bbc_io_la_LIBADD = \
 libg4bbc_la_LIBADD = \
   -lg4detectors \
   -lfun4all \
+  -lSubsysReco \
+  -lbbc \
   libg4bbc_io.la
 
 pkginclude_HEADERS = \
@@ -26,6 +28,7 @@ pkginclude_HEADERS = \
   BbcVertexv1.h \
   BbcVertexMap.h \
   BbcVertexMapv1.h \
+  BbcSimReco.h \
   BbcVertexFastSimReco.h
 
 ROOTDICTS = \
@@ -36,6 +39,7 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  BbcSimReco_Dict_rdict.pcm \
   BbcVertex_Dict_rdict.pcm \
   BbcVertexv1_Dict_rdict.pcm \
   BbcVertexMap_Dict_rdict.pcm \
@@ -48,6 +52,8 @@ libg4bbc_io_la_SOURCES = \
   BbcVertexMapv1.cc
 
 libg4bbc_la_SOURCES = \
+  BbcSimReco_Dict.cc \
+  BbcSimReco.cc \
   BbcVertexFastSimReco.cc
 
 # Rule for generating table CINT dictionaries.
