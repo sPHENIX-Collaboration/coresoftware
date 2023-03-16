@@ -57,6 +57,14 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   
   void Get_Histos(const char * infile, const char * outfile);
 
+
+
+  void set_UseTowerInfo(const int useMode)
+  {  // 0 only old tower, 1 only new (TowerInfo based), 
+    m_UseTowerInfo = useMode;
+  }
+
+
  private:
   int m_ievent = 0;
   std::string m_Filename;
@@ -101,6 +109,8 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   /* float corr_val; */
   
   TFile * f_temp;
+  
+  int m_UseTowerInfo = 0;  // 0 only old tower, 1 only new (TowerInfo based), 
   
 
 };
