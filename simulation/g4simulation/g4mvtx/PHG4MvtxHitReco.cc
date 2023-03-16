@@ -59,7 +59,6 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const std::string &name, const std::string &det
   , m_strobe_width(5.)
   , m_strobe_separation(0.)
 {
-    std::cout << "FIMXE b 1.0" << detector << std::endl;
   if (Verbosity())
   {
     std::cout << "Creating PHG4MvtxHitReco for detector = " << detector << std::endl;
