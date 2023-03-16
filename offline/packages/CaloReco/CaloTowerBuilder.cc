@@ -62,7 +62,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
   else if (m_dettype == CaloTowerBuilder::HCALIN)
     {
       m_packet_low  = 7001;
-      m_packet_high = 7032;
+      m_packet_high = 7008;
       m_detector = "HCALIN";
       WaveformProcessing->set_template_file("testbeam_ihcal_template.root");
    }
@@ -70,7 +70,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     {
       m_detector = "HCALOUT";
       m_packet_low = 8001;
-      m_packet_high = 8032;
+      m_packet_high = 8008;
       WaveformProcessing->set_template_file("testbeam_ohcal_template.root");
    }
   else if (m_dettype == CaloTowerBuilder::EPD)

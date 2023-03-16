@@ -13,6 +13,7 @@
 #include <Acts/EventData/TrackParameters.hpp>
 
 #include <memory>
+#include <optional>
 
 class PHCompositeNode;
 class SvtxTrack;
@@ -106,7 +107,7 @@ class PHTpcResiduals : public SubsysReco
    * matching propagation
    * returns the path lenght and the resulting parameters
    */
-  BoundTrackParamPair propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surf ) const;
+  std::optional<BoundTrackParamPair> propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surf ) const;
 
   /// Gets distortion cell for identifying bins in TPC
   int getCell(const Acts::Vector3& loc);
