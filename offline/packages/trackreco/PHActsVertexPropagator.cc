@@ -1,4 +1,5 @@
 #include "PHActsVertexPropagator.h"
+
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -18,8 +19,6 @@
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
-#include <Acts/Propagator/EigenStepper.hpp>
-#include <Acts/Propagator/Navigator.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 
 PHActsVertexPropagator::PHActsVertexPropagator(const std::string& name)
@@ -78,7 +77,7 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
       auto result = propagateTrack(boundParams, svtxTrack->get_vertex_id());
       if (result.ok())
       {
-        updateSvtxTrack(svtxTrack, result.value());
+        updateSvtxTrack(svtxTrack, result.value().second);
       }
       else
       {
@@ -172,7 +171,7 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   }
 }
 
-PHActsVertexPropagator::BoundTrackParamResult
+ActsPropagator::BoundTrackParamResult
 PHActsVertexPropagator::propagateTrack(
     const Acts::BoundTrackParameters& params,
     const unsigned int vtxid)
@@ -181,37 +180,11 @@ PHActsVertexPropagator::propagateTrack(
   auto actsVertex = getVertex(vtxid);
   auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(actsVertex);
 
-  using Stepper = Acts::EigenStepper<>;
-  using Propagator = Acts::Propagator<Stepper, Acts::Navigator>;
-
-  Stepper stepper(m_tGeometry->geometry().magField);
-  Acts::Navigator::Config cfg{m_tGeometry->geometry().tGeometry};
-  Acts::Navigator navigator(cfg);
-  Propagator propagator(stepper, navigator);
-
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
-  if (Verbosity() > 3)
-  {
-    logLevel = Acts::Logging::VERBOSE;
-  }
-
-  auto logger = Acts::getDefaultLogger("PHActsVertexPropagator",
-                                       logLevel);
-
-  Acts::PropagatorOptions<> options(m_tGeometry->geometry().getGeoContext(),
-                                    m_tGeometry->geometry().magFieldContext,
-                                    Acts::LoggerWrapper{*logger});
-
-  auto result = propagator.propagate(params, *perigee,
-                                     options);
-
-  if (result.ok())
-  {
-    return Acts::Result<BoundTrackParam>::success(std::move((*result).endParameters.value()));
-    return params;
-  }
-
-  return result.error();
+  ActsPropagator propagator(m_tGeometry);
+  propagator.verbosity(Verbosity());
+  
+  return propagator.propagateTrack(params,perigee);
+ 
 }
 
 Acts::Vector3 PHActsVertexPropagator::getVertex(const unsigned int vtxid)

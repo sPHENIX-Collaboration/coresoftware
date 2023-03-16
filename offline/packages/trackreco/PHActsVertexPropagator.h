@@ -1,17 +1,13 @@
 #ifndef TRACKRECO_PHACTSVERTEXPROPAGATOR_H
 #define TRACKRECO_PHACTSVERTEXPROPAGATOR_H
 
+#include "ActsPropagator.h"
+
 #include <fun4all/SubsysReco.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <Acts/Definitions/Algebra.hpp>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <Acts/Propagator/Propagator.hpp>
-#pragma GCC diagnostic pop
-
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/CylinderSurface.hpp>
 #include <Acts/Utilities/Result.hpp>
@@ -41,8 +37,9 @@ class PHActsVertexPropagator : public SubsysReco
  private:
   int getNodes(PHCompositeNode *topNode);
   void setTrackVertexTo0();
-  BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters &params,
-                                       const unsigned int vtxid);
+  ActsPropagator::BoundTrackParamResult 
+    propagateTrack(const Acts::BoundTrackParameters &params,
+		   const unsigned int vtxid);
   Acts::Vector3 getVertex(const unsigned int vtxid);
   void updateSvtxTrack(SvtxTrack *track,
                        const Acts::BoundTrackParameters &params);

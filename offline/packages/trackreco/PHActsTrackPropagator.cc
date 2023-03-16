@@ -23,8 +23,6 @@
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
-#include <Acts/Propagator/EigenStepper.hpp>
-#include <Acts/Propagator/Navigator.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 
 //____________________________________________________________________________..

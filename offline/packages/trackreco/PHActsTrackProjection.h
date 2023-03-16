@@ -11,12 +11,6 @@
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <Acts/Propagator/Propagator.hpp>
-#pragma GCC diagnostic pop
-
 #include <Acts/Surfaces/CylinderSurface.hpp>
 #include <Acts/Utilities/Result.hpp>
 
