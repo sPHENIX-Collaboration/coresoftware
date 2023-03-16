@@ -27,6 +27,10 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
+#include <TFile.h>
+#include <TTree.h>
+#include <TTree.h>
+
 #include <TSystem.h>
 
 #include <algorithm>
@@ -202,15 +206,18 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
       for (auto& id_reco : match_indices.second) cout <<"->OB("<<id_reco<<")";
       cout << endl;
     }
-
-    // keep track of track id's in order to fill the EmbRecoMatchContainer with the list of un-matched tracks
-    m_EmbRecoMatchContainer->checkfill_idsTruthUnmatched(id_true);
   }
 
   if (Verbosity()>100) cout << "Innerbox pairs" << endl;
   match_tracks_in_box (innerbox_pairs);
   if (Verbosity()>100) cout << "Outerbox pairs" << endl;
   match_tracks_in_box (outerbox_pairs);
+
+  //fill the list of all truth track ids that are not matched
+  for (auto _pair : m_TrkrTruthTrackContainer->getMap()) {
+    auto id_true = _pair.first;
+    m_EmbRecoMatchContainer->checkfill_idsTruthUnmatched(id_true);
+  }
 
   if (Verbosity()>50) {
     cout << " --START--print-all-stored-matches--" << endl;
@@ -223,11 +230,23 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
     }
     cout << " --END--print-all-stored-matches----" << endl;
   }
+
+  if (m_write_diag) fill_tree();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TruthRecoTrackMatching::End(PHCompositeNode * /*topNode*/)
 {
+  if (m_write_diag) {
+    TFile *s_current = gDirectory->GetFile();
+    m_diag_file->cd();
+    m_diag_tree ->Write();
+    m_diag_file ->Save();
+    m_diag_file ->Close();
+    if (s_current != nullptr) s_current->cd();
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -359,7 +378,7 @@ TruthRecoTrackMatching::find_box_matches(float truth_phi, float truth_eta, float
 
   // if pt is specified, restrict pt_box to the given range
   RECO_pair_iter inner_box = outer_box;
-  const float _delta_outer_pt = delta_outer_pt(truth_pt);
+  const float _delta_outer_pt     = delta_outer_pt(truth_pt);
   const float _delta_inner_pt = delta_inner_pt(truth_pt);
   if (_delta_outer_pt > 0) {
     std::sort(outer_box.first, outer_box.second, CompRECOtoPt());
@@ -440,7 +459,7 @@ void TruthRecoTrackMatching::match_tracks_in_box(
   std::sort(box_pairs.begin(), box_pairs.end()); // sorted by first index_true, then id_reco
   vector<PossibleMatch> poss_matches;
 
-  auto ipair = box_pairs.begin(); // keep track of current examined pair
+  auto ipair = box_pairs.begin(); // save current examined pair for sorting/unsorting purposes
   while (ipair != box_pairs.end()) {
     auto id_true = ipair->first;
 
@@ -473,23 +492,22 @@ void TruthRecoTrackMatching::match_tracks_in_box(
       unsigned short nclus_nomatch = 0; // number of reco and truth cluster that share a hitsetkey, but still fair matching criteria
       unsigned short nclus_reco    = 0; // count in the comparison loop
       SvtxTrack* reco_track = m_SvtxTrackMap->get(ipair->second);
-      auto tpcseed = reco_track->get_tpc_seed();
-      if (tpcseed) {
-        for (auto r_key = tpcseed->begin_cluster_keys(); r_key!=tpcseed->end_cluster_keys(); ++r_key) {
-          ++nclus_reco;
-          auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(*r_key);
-          if (truth_keys.count(hitsetkey) != 0) {
-            // reco and truth cluster are in same hitsetkey-indexed subsurface. 
-            // See if they match (++nclus_match) or not (++nclus_nomatch)
-            if (compare_cluster_pair(truth_keys[hitsetkey], *r_key, hitsetkey).first) {
-              ++nclus_match;
-            } else {
-              ++nclus_nomatch;
-            }
+
+
+      for (auto reco_ckey : ClusKeyIter(reco_track)) {
+        ++nclus_reco;
+        auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(reco_ckey); 
+        if (truth_keys.count(hitsetkey) != 0) {
+          // reco and truth cluster are in same hitsetkey-indexed subsurface. 
+          // See if they match (++nclus_match) or not (++nclus_nomatch)
+          if (compare_cluster_pair(truth_keys[hitsetkey], reco_ckey, hitsetkey).first) {
+            ++nclus_match;
+          } else {
+            ++nclus_nomatch;
           }
         }
-      } // end reco seed loop
-      // if the match passes minimum cuts, then it is a possible match
+      }
+
       if (Verbosity()>100) {
         auto truth_track = m_TrkrTruthTrackContainer->getTruthTrack(id_true);
         cout << Form("possmatch:(phi,eta,pT:id) true(%5.2f,%5.2f,%4.2f:%2i) reco(%5.2f,%5.2f,%4.2f:%2i) "
@@ -597,8 +615,8 @@ std::pair<bool, float> TruthRecoTrackMatching::compare_cluster_pair (
   , bool calc_sigma
 ) {
   auto layer = TrkrDefs::getLayer(hitsetkey);
-  if (layer <7 || layer > 55) {
-    cout << " Error! Trying to compar cluster in layer < 7 or > 55, which is not programmed yet!" << endl;
+  if (layer > 55) {
+    cout << " Error! Trying to compar cluster in layer > 55, which is not programmed yet!" << endl;
     return {false, 0.};
   }
 
@@ -650,10 +668,10 @@ float TruthRecoTrackMatching::sigma_CompMatchClusters(PossibleMatch& match) {
   double n_matches = 0.; // get the mean match values
   double sum_diff  = 0.;
 
-  for (auto r_key = tpcseed->begin_cluster_keys(); r_key!=tpcseed->end_cluster_keys(); ++r_key) {
-    auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(*r_key);
+  for (auto reco_ckey : ClusKeyIter(reco_track)) {
+    auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(reco_ckey); 
     if (truth_keys.count(hitsetkey) == 0) continue;
-    auto comp_val = compare_cluster_pair(truth_keys[hitsetkey], *r_key, hitsetkey, true);
+    auto comp_val = compare_cluster_pair(truth_keys[hitsetkey], reco_ckey, hitsetkey, true);
 
     if (comp_val.first) {
       n_matches += 1.;
@@ -697,3 +715,235 @@ bool TruthRecoTrackMatching::at_nmax_id_reco(unsigned short id_reco) {
   }
   return (*m_nmatched_id_reco)[id_reco] >= m_max_ntruth_per_reco;
 }
+
+void TruthRecoTrackMatching::set_diagnostic_file(std::string file_name) {
+  m_write_diag = true;
+  TFile *s_current = gDirectory->GetFile();
+  m_diag_file = new TFile(file_name.c_str(),"recreate");
+  m_diag_file->cd();
+  m_diag_tree = new TTree("T", "Tree of Reco and True Clusters");
+
+    m_diag_tree->Branch("event", &m_event);
+
+    m_diag_tree->Branch("trkid_reco_matched", &m_trkid_reco_matched);
+    m_diag_tree->Branch("itrk_reco_matched", &m_cnt_reco_matched);
+    m_diag_tree->Branch("i0_reco_matched", &m_i0_reco_matched );
+    m_diag_tree->Branch("i1_reco_matched", &m_i1_reco_matched );
+    m_diag_tree->Branch("layer_reco_matched", &m_layer_reco_matched );
+    m_diag_tree->Branch("x_reco_matched", &m_x_reco_matched );
+    m_diag_tree->Branch("y_reco_matched", &m_y_reco_matched );
+    m_diag_tree->Branch("z_reco_matched", &m_z_reco_matched );
+
+    m_diag_tree->Branch("trkid_reco_notmatched", &m_trkid_reco_notmatched );
+    m_diag_tree->Branch("itrk_reco_notmatched", &m_cnt_reco_notmatched );
+    m_diag_tree->Branch("i0_reco_notmatched", &m_i0_reco_notmatched );
+    m_diag_tree->Branch("i1_reco_notmatched", &m_i1_reco_notmatched );
+    m_diag_tree->Branch("layer_reco_notmatched", &m_layer_reco_notmatched );
+    m_diag_tree->Branch("x_reco_notmatched", &m_x_reco_notmatched );
+    m_diag_tree->Branch("y_reco_notmatched", &m_y_reco_notmatched );
+    m_diag_tree->Branch("z_reco_notmatched", &m_z_reco_notmatched );
+
+    m_diag_tree->Branch("trkid_true_matched", &m_trkid_true_matched );
+    m_diag_tree->Branch("itrk_true_matched", &m_cnt_true_matched );
+    m_diag_tree->Branch("i0_true_matched", &m_i0_true_matched );
+    m_diag_tree->Branch("i1_true_matched", &m_i1_true_matched );
+    m_diag_tree->Branch("layer_true_matched", &m_layer_true_matched );
+    m_diag_tree->Branch("x_true_matched", &m_x_true_matched );
+    m_diag_tree->Branch("y_true_matched", &m_y_true_matched );
+    m_diag_tree->Branch("z_true_matched", &m_z_true_matched );
+
+    m_diag_tree->Branch("trkid_true_notmatched", &m_trkid_true_notmatched );
+    m_diag_tree->Branch("itrk_true_notmatched", &m_cnt_true_notmatched );
+    m_diag_tree->Branch("i0_true_notmatched", &m_i0_true_notmatched );
+    m_diag_tree->Branch("i1_true_notmatched", &m_i1_true_notmatched );
+    m_diag_tree->Branch("layer_true_notmatched", &m_layer_true_notmatched );
+    m_diag_tree->Branch("x_true_notmatched", &m_x_true_notmatched );
+    m_diag_tree->Branch("y_true_notmatched", &m_y_true_notmatched );
+    m_diag_tree->Branch("z_true_notmatched", &m_z_true_notmatched );
+
+  if (s_current!=nullptr) s_current->cd();
+}
+
+void TruthRecoTrackMatching::clear_branch_vectors() {
+    m_trkid_reco_matched.clear();
+    m_i0_reco_matched .clear();
+    m_i1_reco_matched .clear();
+    m_layer_reco_matched .clear();
+    m_x_reco_matched .clear();
+    m_y_reco_matched .clear();
+    m_z_reco_matched .clear();
+
+    m_trkid_reco_notmatched .clear();
+    m_i0_reco_notmatched .clear();
+    m_i1_reco_notmatched .clear();
+    m_layer_reco_notmatched .clear();
+    m_x_reco_notmatched .clear();
+    m_y_reco_notmatched .clear();
+    m_z_reco_notmatched .clear();
+
+    m_trkid_true_matched .clear();
+    m_i0_true_matched .clear();
+    m_i1_true_matched .clear();
+    m_layer_true_matched .clear();
+    m_x_true_matched .clear();
+    m_y_true_matched .clear();
+    m_z_true_matched .clear();
+
+    m_trkid_true_notmatched .clear();
+    m_i0_true_notmatched .clear();
+    m_i1_true_notmatched .clear();
+    m_layer_true_notmatched .clear();
+    m_x_true_notmatched .clear();
+    m_y_true_notmatched .clear();
+    m_z_true_notmatched .clear();
+
+}
+
+void TruthRecoTrackMatching::fill_tree() {
+  // fill clusters or un-matched truth tracks
+  int cnt = 0;
+  int itrk = 0;
+  for (auto& trkid : m_EmbRecoMatchContainer->ids_TruthUnmatched()) {
+    m_trkid_true_notmatched.push_back(trkid);
+    m_i0_true_notmatched.push_back(cnt);
+    auto track = m_TrkrTruthTrackContainer->getTruthTrack(trkid);
+    for (auto& ckey : track->getClusters()) {
+      auto cluster = m_TruthClusterContainer->findCluster(ckey);
+      m_cnt_true_notmatched.push_back(itrk);
+      Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(ckey, cluster);
+      m_layer_true_notmatched .push_back(TrkrDefs::getLayer(ckey));
+      m_x_true_notmatched     .push_back(gloc[0]);
+      m_y_true_notmatched     .push_back(gloc[1]);
+      m_z_true_notmatched     .push_back(gloc[2]);
+      ++cnt;
+    }
+    m_i1_true_notmatched.push_back(cnt);
+    ++itrk;
+  }
+
+  // fill clusters of matched truth tracks
+  cnt = 0;
+  itrk = 0;
+  for (auto& trkid : m_EmbRecoMatchContainer->ids_TruthMatched()) {
+    m_trkid_true_matched.push_back(trkid);
+    m_i0_true_matched.push_back(cnt);
+    auto track = m_TrkrTruthTrackContainer->getTruthTrack(trkid);
+    for (auto& ckey : track->getClusters()) {
+      auto cluster = m_TruthClusterContainer->findCluster(ckey);
+      m_cnt_true_matched.push_back(itrk);
+      Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(ckey, cluster);
+      m_layer_true_matched .push_back(TrkrDefs::getLayer(ckey));
+      m_x_true_matched     .push_back(gloc[0]);
+      m_y_true_matched     .push_back(gloc[1]);
+      m_z_true_matched     .push_back(gloc[2]);
+      ++cnt;
+    }
+    m_i1_true_matched.push_back(cnt);
+    ++itrk;
+  }
+  
+  // fill clusters of matched reco tracks
+  std::set<unsigned int> set_reco_matched;
+  cnt = 0;
+  itrk = 0;
+  for (auto& trkid : m_EmbRecoMatchContainer->ids_RecoMatched()) {
+    set_reco_matched.insert(trkid);
+    m_trkid_reco_matched.push_back(trkid);
+    SvtxTrack* reco_track = m_SvtxTrackMap->get(trkid);
+    m_i0_reco_matched.push_back(cnt);
+    
+    for (auto reco_ckey : ClusKeyIter(reco_track)) {
+      auto cluster = m_RecoClusterContainer->findCluster(reco_ckey);
+      Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(reco_ckey, cluster);
+      m_layer_reco_matched .push_back(TrkrDefs::getLayer(reco_ckey));
+      m_cnt_reco_matched.push_back(itrk);
+      m_x_reco_matched     .push_back(gloc[0]);
+      m_y_reco_matched     .push_back(gloc[1]);
+      m_z_reco_matched     .push_back(gloc[2]);
+      ++cnt;
+    }
+    m_i1_reco_matched.push_back(cnt);
+    ++itrk;
+  }
+ 
+  // fill clusters of not matched reco tracks
+  cnt = 0;
+  itrk = 0;
+  for (auto reco = m_SvtxTrackMap->begin(); reco != m_SvtxTrackMap->end(); ++reco) {
+    auto trkid = reco->first;
+    if (set_reco_matched.count(trkid)) continue;
+    m_trkid_reco_notmatched.push_back(trkid);
+    SvtxTrack* reco_track = m_SvtxTrackMap->get(trkid);
+    m_i0_reco_notmatched.push_back(cnt);
+    for (auto reco_ckey : ClusKeyIter(reco_track)) {
+      auto cluster = m_RecoClusterContainer->findCluster(reco_ckey);
+      Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(reco_ckey, cluster);
+      m_layer_reco_notmatched .push_back(TrkrDefs::getLayer(reco_ckey));
+      m_cnt_reco_notmatched.push_back(itrk);
+      m_x_reco_notmatched     .push_back(gloc[0]);
+      m_y_reco_notmatched     .push_back(gloc[1]);
+      m_z_reco_notmatched     .push_back(gloc[2]);
+      ++cnt;
+    }
+    m_i1_reco_notmatched.push_back(cnt);
+    ++itrk;
+  }
+  ++m_event;
+  m_diag_tree->Fill();
+  clear_branch_vectors();
+}
+
+// Implementation of the iterable struct to get cluster keys from
+// a SvtxTrack. It is used like:
+// for (auto& cluskey : ClusKeyIter(svtx_track)) {
+//    ... // do things with cluster keys
+// }
+TruthRecoTrackMatching::ClusKeyIter::ClusKeyIter(SvtxTrack* _track) :
+    track {_track}
+  , in_silicon { _track->get_silicon_seed()!=nullptr }
+  , has_tpc    { _track->get_tpc_seed()!=nullptr }
+  , no_data    { !in_silicon && !has_tpc }
+{
+}
+
+TruthRecoTrackMatching::ClusKeyIter TruthRecoTrackMatching::ClusKeyIter::begin() {
+  ClusKeyIter iter0 { track }; 
+  if (iter0.no_data) return iter0;
+  if (iter0.in_silicon) {
+    iter0.iter = track->get_silicon_seed()->begin_cluster_keys();
+    iter0.iter_end_silicon = track->get_silicon_seed()->end_cluster_keys();
+  } else if (has_tpc) {
+    iter0.iter = track->get_tpc_seed()->begin_cluster_keys();
+  } 
+  return iter0;
+}
+
+TruthRecoTrackMatching::ClusKeyIter TruthRecoTrackMatching::ClusKeyIter::end() {
+  ClusKeyIter iter0 { track }; 
+  if (iter0.no_data) return iter0;
+  if (has_tpc) {
+    iter0.iter = track->get_tpc_seed()->end_cluster_keys();
+  } else if (in_silicon) {
+    iter0.iter = track->get_silicon_seed()->end_cluster_keys();
+  } 
+  return iter0;
+}
+
+void TruthRecoTrackMatching::ClusKeyIter::operator++() {
+  if (no_data) return;
+  ++iter;
+  if (in_silicon && has_tpc && iter == iter_end_silicon) {
+    in_silicon = false;
+    iter = track->get_tpc_seed()->begin_cluster_keys();
+  }
+}
+
+bool TruthRecoTrackMatching::ClusKeyIter::operator!=(const ClusKeyIter& rhs) {
+  if (no_data) return false;
+  return iter != rhs.iter;
+}
+
+TrkrDefs::cluskey TruthRecoTrackMatching::ClusKeyIter::operator*() {
+  return *iter;
+}
+
