@@ -123,9 +123,17 @@ BbcSimReco::BbcSimReco(const string &name) : SubsysReco(name),
     _pdg( 0 ),
     _rndm( 0 ),
     _tres( 0.05 ),
-    _verbose( 0 )
+    _verbose( 0 ),
+    _truth_container( 0 ),
+    _bbcout( 0 ),
+    _bbcpmts( 0 )
 { 
 
+  _evtheader = 0;
+  _bbchits = 0;
+  gaussian = 0;
+  hevt_bbct[0] = 0;
+  hevt_bbct[1] = 0;
 }
 
 //___________________________________
