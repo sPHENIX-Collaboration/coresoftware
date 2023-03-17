@@ -489,18 +489,19 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_error(TrackSeed *seed,
 
   double phierror = clusterv5->getRPhiError();
   double zerror = clusterv5->getZError();
-
-  if(layer==7||layer==22||layer==23||layer==38||layer==39){
-    phierror *= 3.5;
-    zerror*= 3.5;
+  if( TrkrDefs::getTrkrId( key )== TrkrDefs::tpcId){
+    if(layer==7||layer==22||layer==23||layer==38||layer==39){
+      phierror *= 3.5;
+      zerror*= 3.5;
+    }
+    if(clusterv5->getEdge()>=5)
+      phierror *= 2;
+    if(clusterv5->getOverlap()>=2)
+      phierror *= 2;
+    
+    if(phierror>0.1) phierror = 0.1;
+    if(phierror<0.0005) phierror = 0.1;
   }
-  if(clusterv5->getEdge()>=5)
-    phierror *= 2;
-  if(clusterv5->getOverlap()>=2)
-    phierror *= 2;
-  if(phierror>0.1) phierror = 0.1;
-  if(phierror<0.0005) phierror = 0.1;
-
   return std::make_pair(square(phierror),square(zerror)); 
   //  return get_cluster_error(cluster, key, alpha, beta);
 }

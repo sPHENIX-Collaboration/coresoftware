@@ -12,14 +12,16 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   KshortReconstruction.h \
-  helixResiduals.h
+  helixResiduals.h \
+  TrkrNtuplizer.h
 
 lib_LTLIBRARIES = \
   libTrackingDiagnostics.la
 
 libTrackingDiagnostics_la_SOURCES = \
   KshortReconstruction.cc \
-  helixResiduals.cc
+  helixResiduals.cc \
+  TrkrNtuplizer.cc
 
 libTrackingDiagnostics_la_LIBADD = \
   -lphool \
