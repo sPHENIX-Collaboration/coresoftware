@@ -545,7 +545,9 @@ void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
       std::cout << materialFile 
 		<< " not found locally, use repo version" 
 		<< std::endl;
-      materialFile = std::string(getenv("CALIBRATIONROOT")) +
+      const char* calibrationroot = getenv("CALIBRATIONROOT");
+      assert(calibrationroot);
+      materialFile = std::string(calibrationroot) +
 	("/ACTS/sphenix-mm-material.json");
     }
   
