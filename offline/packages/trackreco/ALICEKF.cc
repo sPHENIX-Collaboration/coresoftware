@@ -552,7 +552,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     J(5,2) = 0.; // dpz/d(sinphi)
     J(5,3) = track_pt; // dpz/d(dz/ds)
     J(5,4) = -track_pt*track_pt*track_charge*d; // dpz/d(Q/pt)
-    bool cov_rot_nan = false;
+/*    bool cov_rot_nan = false;
     for(int i=0;i<6;i++)
     {
       for(int j=0;j<5;j++)
@@ -565,7 +565,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
       }
     }
     if(cov_rot_nan) continue;
-
+*/
     // the heavy lifting happens here
     Eigen::Matrix<double,6,6> scov = J*ecov*J.transpose();
     if(!covIsPosDef(scov))

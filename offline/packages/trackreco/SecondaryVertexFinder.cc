@@ -1,4 +1,5 @@
 #include "SecondaryVertexFinder.h"
+#include "ActsPropagator.h"
 
 /// Tracking includes
 
@@ -18,8 +19,6 @@
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
-#include <Acts/Propagator/Navigator.hpp>
-#include <Acts/Propagator/EigenStepper.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
@@ -426,12 +425,14 @@ bool SecondaryVertexFinder::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3
 
   const auto params = makeTrackParams(track);
 
-  //  auto result = propagateTrack(params, cylSurf);  
-  auto result = propagateTrack(params, perigee);  
+  ActsPropagator propagator(_tGeometry);
+  propagator.verbosity(Verbosity());
+  auto result = propagator.propagateTrack(params, perigee);\
   if(result.ok())
     {
-      auto projectionPos = result.value().position(_tGeometry->geometry().getGeoContext());
-      const auto momentum = result.value().momentum();
+      auto resultparams = result.value().second;
+      auto projectionPos = resultparams.position(_tGeometry->geometry().getGeoContext());
+      const auto momentum = resultparams.momentum();
       pos(0) = projectionPos.x() / Acts::UnitConstants::cm;
       pos(1) = projectionPos.y() / Acts::UnitConstants::cm;
       pos(2) = projectionPos.z() / Acts::UnitConstants::cm;
@@ -451,56 +452,6 @@ bool SecondaryVertexFinder::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3
 
   return ret;
 
-}
-
-BoundTrackParamResult SecondaryVertexFinder::propagateTrack(
-    const Acts::BoundTrackParameters& params,
-    const SurfacePtr& targetSurf)
-{
-  if (Verbosity() > 3)
-  {
-    std::cout << "Propagating final track fit with momentum: "
-              << params.momentum() << " and position "
-              << params.position(_tGeometry->geometry().getGeoContext())
-              << std::endl
-              << "track fit phi/eta "
-              << atan2(params.momentum()(1),
-                       params.momentum()(0))
-              << " and "
-              << atanh(params.momentum()(2) / params.momentum().norm())
-              << std::endl;
-  }
-
-  using Stepper = Acts::EigenStepper<>;
-  using Propagator = Acts::Propagator<Stepper>;
-
-  auto field = _tGeometry->geometry().magField;
-
-  Stepper stepper(field);
-  Propagator propagator(stepper);
-
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
-  if (Verbosity() > 3)
-  {
-    logLevel = Acts::Logging::VERBOSE;
-  }
-
-  auto logger = Acts::getDefaultLogger("PHActsTrackProjection",
-                                       logLevel);
-
-  Acts::PropagatorOptions<> options(_tGeometry->geometry().getGeoContext(),
-                                    _tGeometry->geometry().magFieldContext,
-                                    Acts::LoggerWrapper{*logger});
-
-  auto result = propagator.propagate(params, *targetSurf,
-                                     options);
-  if(result.ok())
-    {
-      return Acts::Result<BoundTrackParam>::success(std::move((*result).endParameters.value()));
-    }
-
-  return result.error();
-  
 }
 
 void SecondaryVertexFinder::outputTrackDetails(SvtxTrack *tr)

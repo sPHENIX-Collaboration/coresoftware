@@ -30,7 +30,6 @@
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
-#include <Acts/Propagator/EigenStepper.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 
 #include <CLHEP/Vector/ThreeVector.h>
@@ -131,11 +130,10 @@ int PHActsTrackProjection::projectTracks(const int caloLayer)
         m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
 
     auto result = propagateTrack(params, cylSurf);
-    if(result.ok())
-      {
-	updateSvtxTrack(result.value(), track, caloLayer);
-      }
-  
+    if (result.ok())
+    {
+      updateSvtxTrack(result.value(), track, caloLayer);
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -161,11 +159,12 @@ PHActsTrackProjection::makeTrackParams(SvtxTrack* track)
 
   Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
 
-  return ActsTrackFittingAlgorithm::TrackParameters::create(perigee, 
-     m_tGeometry->geometry().getGeoContext(),
-     actsFourPos, momentum,
-     track->get_charge() / track->get_p(),
-     cov).value();
+  return ActsTrackFittingAlgorithm::TrackParameters::create(perigee,
+                                                            m_tGeometry->geometry().getGeoContext(),
+                                                            actsFourPos, momentum,
+                                                            track->get_charge() / track->get_p(),
+                                                            cov)
+      .value();
 }
 Acts::Vector3 PHActsTrackProjection::getVertex(SvtxTrack* track)
 {
@@ -183,11 +182,13 @@ Acts::Vector3 PHActsTrackProjection::getVertex(SvtxTrack* track)
 }
 
 void PHActsTrackProjection::updateSvtxTrack(
-    const Acts::BoundTrackParameters& params,
+    const ActsPropagator::BoundTrackParamPair& parameters,
     SvtxTrack* svtxTrack,
     const int caloLayer)
 {
-  float pathlength = m_caloRadii.find(m_caloTypes.at(caloLayer))->second;
+  float pathlength = parameters.first;
+  auto params = parameters.second;
+
   SvtxTrackState_v1 out(pathlength);
 
   auto projectionPos = params.position(m_tGeometry->geometry().getGeoContext());
@@ -284,60 +285,14 @@ void PHActsTrackProjection::getSquareTowerEnergies(int phiBin,
   return;
 }
 
-BoundTrackParamResult PHActsTrackProjection::propagateTrack(
+PHActsTrackProjection::BoundTrackParamResult
+PHActsTrackProjection::propagateTrack(
     const Acts::BoundTrackParameters& params,
     const SurfacePtr& targetSurf)
 {
-  if (Verbosity() > 1)
-  {
-    std::cout << "Propagating final track fit with momentum: "
-              << params.momentum() << " and position "
-              << params.position(m_tGeometry->geometry().getGeoContext())
-              << std::endl
-              << "track fit phi/eta "
-              << atan2(params.momentum()(1),
-                       params.momentum()(0))
-              << " and "
-              << atanh(params.momentum()(2) / params.momentum().norm())
-              << std::endl;
-  }
-
-  using Stepper = Acts::EigenStepper<>;
-  using Propagator = Acts::Propagator<Stepper>;
-
-  auto field = m_tGeometry->geometry().magField;
-
-  if (m_constField)
-  {
-    Acts::Vector3 fieldVec(0, 0, 1.4 * Acts::UnitConstants::T);
-    field = std::make_shared<Acts::ConstantBField>(fieldVec);
-  }
-
-  Stepper stepper(field);
-  Propagator propagator(stepper);
-
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
-  if (Verbosity() > 3)
-  {
-    logLevel = Acts::Logging::VERBOSE;
-  }
-
-  auto logger = Acts::getDefaultLogger("PHActsTrackProjection",
-                                       logLevel);
-
-  Acts::PropagatorOptions<> options(m_tGeometry->geometry().getGeoContext(),
-                                    m_tGeometry->geometry().magFieldContext,
-                                    Acts::LoggerWrapper{*logger});
-
-  auto result = propagator.propagate(params, *targetSurf,
-                                     options);
-  if(result.ok())
-    {
-      return Acts::Result<BoundTrackParam>::success(std::move((*result).endParameters.value()));
-    }
-
-  return result.error();
-  
+  ActsPropagator propagator(m_tGeometry);
+  propagator.verbosity(Verbosity());
+  return propagator.propagateTrackFast(params, targetSurf);
 }
 
 int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode* topNode,
