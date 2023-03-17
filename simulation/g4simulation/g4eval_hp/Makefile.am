@@ -50,8 +50,6 @@ pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   MicromegasEvaluator_hp_Dict_rdict.pcm \
   SimEvaluator_hp_Dict_rdict.pcm \
-  TrackEvaluationContainer_Dict_rdict.pcm \
-  TrackEvaluationContainerv1_Dict_rdict.pcm \
   TrackingEvaluator_hp_Dict_rdict.pcm
 
 libg4eval_hp_la_SOURCES = \
