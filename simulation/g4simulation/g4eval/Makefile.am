@@ -49,18 +49,15 @@ pkginclude_HEADERS = \
   CaloTruthEval.h \
   DSTCompressor.h \
   DSTEmulator.h \
-  EventCounter_hp.h \
   EventEvaluator.h \
 	FillTruthRecoMatchMap.h \
   JetEvalStack.h \
   JetEvaluator.h \
   JetRecoEval.h \
   JetTruthEval.h \
-  MicromegasEvaluator_hp.h \
   MomentumEvaluator.h \
   PHG4DSTReader.h \
   PHG4DstCompressReco.h \
-  SimEvaluator_hp.h \
   SvtxClusterEval.h \
   SvtxEvalStack.h \
   SvtxEvaluator.h \
@@ -71,7 +68,6 @@ pkginclude_HEADERS = \
   SvtxVertexEval.h \
   TrackEvaluation.h \
   TrackEvaluationContainer.h \
-  TrackingEvaluator_hp.h \
   TrackEvaluationContainerv1.h  \
   TrackSeedTrackMapConverter.h \
   TruthRecoTrackMatching.h \
@@ -81,25 +77,16 @@ ROOTDICTS_io = \
   TrackEvaluationContainer_Dict.cc \
   TrackEvaluationContainerv1_Dict.cc
 
-ROOTDICTS = \
-  MicromegasEvaluator_hp_Dict.cc \
-  SimEvaluator_hp_Dict.cc \
-  TrackingEvaluator_hp_Dict.cc
-
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  MicromegasEvaluator_hp_Dict_rdict.pcm \
-  SimEvaluator_hp_Dict_rdict.pcm \
   TrackEvaluationContainer_Dict_rdict.pcm \
-  TrackEvaluationContainerv1_Dict_rdict.pcm \
-  TrackingEvaluator_hp_Dict_rdict.pcm
+  TrackEvaluationContainerv1_Dict_rdict.pcm
 
 libg4eval_io_la_SOURCES = \
   $(ROOTDICTS_io) \
   TrackEvaluationContainerv1.cc
 
 libg4eval_la_SOURCES = \
-  $(ROOTDICTS) \
   BaseTruthEval.cc \
   CaloEvalStack.cc \
   CaloEvaluator.cc \
@@ -107,13 +94,10 @@ libg4eval_la_SOURCES = \
   CaloRawTowerEval.cc \
   CaloTruthEval.cc \
   DSTEmulator.cc \
-  EventCounter_hp.cc \
   EventEvaluator.cc \
   FillTruthRecoMatchMap.cc \
   JetEvalStack.cc \
   JetEvaluator.cc \
-  MicromegasEvaluator_hp.cc \
-  SimEvaluator_hp.cc \
   JetRecoEval.cc \
   JetTruthEval.cc \
   MomentumEvaluator.cc \
@@ -128,7 +112,6 @@ libg4eval_la_SOURCES = \
   SvtxTruthRecoTableEval.cc \
   SvtxVertexEval.cc \
   TrackEvaluation.cc \
-  TrackingEvaluator_hp.cc \
   TrackSeedTrackMapConverter.cc \
   TruthRecoTrackMatching.cc
 
