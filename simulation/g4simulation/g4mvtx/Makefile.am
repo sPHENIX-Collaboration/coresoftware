@@ -19,8 +19,10 @@ AM_LDFLAGS = \
 libg4mvtx_la_LIBADD = \
   -lfun4all \
   -lphg4hit \
+  -lphool \
   -lg4detectors \
   -ltrack_io \
+  -lg4tracking_io \
   -lmvtx_io
 
 pkginclude_HEADERS = \
@@ -28,7 +30,8 @@ pkginclude_HEADERS = \
   PHG4MvtxHitReco.h \
   PHG4MvtxSubsystem.h \
   PHG4EICMvtxSubsystem.h \
-  PHG4MvtxDigitizer.h
+  PHG4MvtxDigitizer.h \
+  TruthMvtxClusterBuilder.h
 
 libg4mvtx_la_SOURCES = \
   PHG4MvtxHitReco.cc \
@@ -42,7 +45,8 @@ libg4mvtx_la_SOURCES = \
   PHG4MvtxDigitizer.cc \
   PHG4MvtxCable.cc \
   PHG4MvtxServiceStructure.cc \
-  PHG4MvtxSupport.cc
+  PHG4MvtxSupport.cc \
+  TruthMvtxClusterBuilder.cc
 
 ################################################
 # linking tests
