@@ -57,7 +57,7 @@ class ActsPropagator
                   unsigned int& actsvolume,
                   unsigned int& actslayer);
   void verbosity(int verb) { m_verbosity = verb; }
-
+  void setConstField(float field) { m_fieldval = field; }
  private:
   SphenixPropagator makePropagator();
   FastPropagator makeFastPropagator();
@@ -68,6 +68,8 @@ class ActsPropagator
   bool m_constField = false;
 
   ActsGeometry* m_geometry = nullptr;
+
+  float m_fieldval = -1.4 * Acts::UnitConstants::T;
 };
 
 #endif
