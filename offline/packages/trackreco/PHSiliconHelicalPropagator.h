@@ -15,12 +15,18 @@ public:
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  int Verbosity() { return _verbosity; }
+  void Verbosity(const int v) { _verbosity = v; }
+
   void set_track_map_name(std::string name){ _track_map_name = name; }
 private:
+  int createSeedContainer(const std::string container_name, PHCompositeNode *topNode);
   ActsGeometry* _tgeometry = nullptr;
   TrackSeedContainer* _si_seeds = nullptr;
+  TrackSeedContainer* _tpc_seeds = nullptr;
+  TrackSeedContainer* _svtx_seeds = nullptr;
   HelicalFitter* _fitter = nullptr;
   TrkrClusterContainer* _cluster_map = nullptr;
-  SvtxTrackMap* _track_map = nullptr;
-  std::string _track_map_name = "SvtxTrackMap";
+  std::string _track_map_name = "SvtxTrackSeedMap";
+  int _verbosity = 0;
 };
