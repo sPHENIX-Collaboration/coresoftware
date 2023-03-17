@@ -10,7 +10,6 @@
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterContainer.h>   
 #include <trackbase/TrkrClusterCrossingAssoc.h>   
-#include <trackbase/TrackFitUtils.h>
 
 #include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
@@ -120,8 +119,18 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
       std::vector<Acts::Vector3> global_vec;
       std::vector<TrkrDefs::cluskey> cluskey_vec;
-      getTrackletClusters(tracklet, global_vec, cluskey_vec);   // store cluster corrected global positions in a vector
-      std::vector<float> fitpars =  fitClusters(global_vec, cluskey_vec);       // do helical fit
+      //getTrackletClusters(tracklet, global_vec, cluskey_vec);   // store cluster corrected global positions in a vector
+      // Get a vector of cluster keys from the tracklet
+      getTrackletClusterList(tracklet, cluskey_vec);
+
+      // store cluster global positions in a vector
+      TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);   
+
+      correctTpcGlobalPositions( global_vec, cluskey_vec);
+
+      //std::vector<float> fitpars =  fitClusters(global_vec, cluskey_vec);       // do helical fit
+      std::vector<float> fitpars =  TrackFitUtils::fitClusters(global_vec, cluskey_vec);       // do helical fit`
+
       if(fitpars.size() == 0) continue;  // discard this track, not enough clusters to fit
 
       if(Verbosity() > 0)  
@@ -132,12 +141,14 @@ int HelicalFitter::process_event(PHCompositeNode*)
       if(fittpc && fitfulltrack)
 	{
 	  // this associates silicon clusters and adds them to the vectors
-	  unsigned int nsilicon = addSiliconClusters(fitpars, global_vec, cluskey_vec);
+	  //	  unsigned int nsilicon = addSiliconClusters(fitpars, global_vec, cluskey_vec);
+	  unsigned int nsilicon = TrackFitUtils::addSiliconClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec);
 	  if(nsilicon < 3) continue;  // discard this TPC seed, did not get a good match to silicon
 
 	  // fit the full track now
 	  fitpars.clear();
-	  fitpars =  fitClusters(global_vec, cluskey_vec);       // do helical fit
+	  //fitpars =  fitClusters(global_vec, cluskey_vec);       // do helical fit
+	  fitpars =  TrackFitUtils::fitClusters(global_vec, cluskey_vec);       // do helical fit
 	  if(fitpars.size() == 0) continue;  // discard this track, fit failed
 
 	  if(Verbosity() > 0)  
@@ -154,7 +165,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  if(!cluster) { continue;}
 	  
 	  // PCA of helix to cluster global position
-	  Acts::Vector3 pca = get_helix_pca(fitpars, global);
+	  //Acts::Vector3 pca = get_helix_pca(fitpars, global);
+	  Acts::Vector3 pca = TrackFitUtils::get_helix_pca(fitpars, global);
 	  if(Verbosity() > 0) {std::cout << "    cluster position " << global(0) << " " << global(1) << " " << global(2) 
 					 << " pca " << pca(0) << " " << pca(1) << " " << pca(2)  << std::endl;}
 	    
@@ -355,7 +367,7 @@ std::vector<Acts::Vector3> HelicalFitter::getDerivativesAlignmentAngles(Acts::Ve
 	  Eigen::Vector3d clusterLocalPosition (x,y,0);  // follows the convention for the acts transform of local = (x,z,y)
 	  Eigen::Vector3d finalCoords = overallTransformation*clusterLocalPosition;  // result in mm
 	  finalCoords /= 10.0; // convert mm back to cm
-	  
+
 	  // have to add corrections for TPC clusters after transformation to global
 	  if(trkrId == TrkrDefs::tpcId) {  makeTpcGlobalCorrections(cluster_key, crossing, global); }
 
@@ -588,6 +600,30 @@ void HelicalFitter::getTrackletClusters(TrackSeed *tracklet, std::vector<Acts::V
     } // end loop over clusters for this track 
 }
 
+void HelicalFitter::getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec)
+{
+  for (auto clusIter = tracklet->begin_cluster_keys();
+       clusIter != tracklet->end_cluster_keys();
+       ++clusIter)
+    {
+      auto key = *clusIter;
+      auto cluster = _cluster_map->findCluster(key);
+      if(!cluster)
+	{
+	  std::cout << "Failed to get cluster with key " << key << std::endl;
+	  continue;
+	}	  
+      
+      /// Make a safety check for clusters that couldn't be attached to a surface
+      auto surf = _tGeometry->maps().getSurface(key, cluster);
+      if(!surf)
+	{ continue; }
+      
+      cluskey_vec.push_back(key);
+      
+    } // end loop over clusters for this track 
+}
+
 std::vector<float> HelicalFitter::fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec)
 {
      std::vector<float> fitpars;
@@ -637,6 +673,13 @@ Acts::Vector3 HelicalFitter::getClusterError(TrkrCluster *cluster, TrkrDefs::clu
       clus_sigma(0) = sqrt(exy2 / 2.0);
       clus_sigma(1) = sqrt(exy2 / 2.0);
     }
+  else if(_cluster_version == 5)
+    {
+      clus_sigma(2) = cluster->getZError();
+      clus_sigma(0) = cluster->getRPhiError() / sqrt(2);
+      clus_sigma(1) = cluster->getRPhiError() / sqrt(2);
+    }
+
   return clus_sigma; 
 }
 
@@ -858,3 +901,21 @@ void HelicalFitter::set_layer_param_fixed(unsigned int layer, unsigned int param
    std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
    fixed_layer_params.insert(pair);
  }
+
+void HelicalFitter::correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec,  std::vector<TrkrDefs::cluskey> cluskey_vec)
+{
+  for(unsigned int iclus=0;iclus<cluskey_vec.size();++iclus)
+    {
+      auto cluskey = cluskey_vec[iclus];
+      auto global = global_vec[iclus];
+      const unsigned int trkrId = TrkrDefs::getTrkrId(cluskey);	  
+      if(trkrId == TrkrDefs::tpcId) 
+	{  
+	  // have to add corrections for TPC clusters after transformation to global
+	  int crossing = 0;  // for now
+	  makeTpcGlobalCorrections(cluskey, crossing, global); 
+	  global_vec[iclus] = global;
+	}
+    }
+}
+
