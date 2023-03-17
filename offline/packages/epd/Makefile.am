@@ -30,12 +30,16 @@ pkginclude_HEADERS = \
   EpdGeomMaker.h
 
 pcmdir = $(libdir)
-  nobase_dist_pcm_DATA = EpdGeom_Dict_rdict.pcm 
+  nobase_dist_pcm_DATA = \
+    EpdGeom_Dict_rdict.pcm \
+    EpdGeomV1_Dict_rdict.pcm 
 
 libepd_la_SOURCES = \
   EpdGeomMaker.cc \
-  EpdGeomV1.cc \ 
-  EpdGeom_Dict.cc 
+  EpdGeomV1.cc \
+  EpdGeom_Dict.cc \
+  EpdGeomV1_Dict.cc
+
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
