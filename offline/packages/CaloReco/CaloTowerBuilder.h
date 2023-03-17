@@ -5,7 +5,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-
 #include <climits>
 #include <string>
 
@@ -13,11 +12,9 @@ class CaloWaveformProcessing;
 class PHCompositeNode;
 class TowerInfoContainer;
 
-
 class CaloTowerBuilder : public SubsysReco
 {
  public:
-
   explicit CaloTowerBuilder(const std::string &name = "CaloTowerBuilder");
   ~CaloTowerBuilder() override;
 
@@ -46,15 +43,14 @@ class CaloTowerBuilder : public SubsysReco
   }
   void set_dataflag(bool flag)
   {
-    m_isdata =flag;
+    m_isdata = flag;
     return;
   }
 
  private:
- 
-  CaloWaveformProcessing* WaveformProcessing = nullptr;
+  CaloWaveformProcessing *WaveformProcessing = nullptr;
   CaloTowerBuilder::DetectorSystem m_dettype = CaloTowerBuilder::CEMC;
-  TowerInfoContainer *m_CaloInfoContainer = nullptr; //! Calo info
+  TowerInfoContainer *m_CaloInfoContainer = nullptr;  //! Calo info
   std::string m_detector = "CEMC";
   int m_packet_low = INT_MIN;
   int m_packet_high = INT_MIN;
@@ -62,4 +58,4 @@ class CaloTowerBuilder : public SubsysReco
   bool m_isdata = true;
 };
 
-#endif // CALOTOWERBUILDER_H
+#endif  // CALOTOWERBUILDER_H
