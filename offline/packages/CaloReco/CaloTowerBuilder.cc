@@ -27,12 +27,9 @@
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name):
  SubsysReco(name)
  , m_dettype(CaloTowerBuilder::CEMC)
- , m_CaloInfoContainer(0)
  , m_detector("CEMC")
  , m_packet_low(6017)
  , m_packet_high(6032)
- , m_nsamples(16)
- , m_isdata(true)
 {
   std::cout << "CaloTowerBuilder::CaloTowerBuilder(const std::string &name) Calling ctor" << std::endl;
 }
