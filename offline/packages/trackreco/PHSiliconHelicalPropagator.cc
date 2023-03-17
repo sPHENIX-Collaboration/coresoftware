@@ -20,8 +20,6 @@ PHSiliconHelicalPropagator::~PHSiliconHelicalPropagator()
 
 int PHSiliconHelicalPropagator::InitRun(PHCompositeNode* topNode)
 {
-  _fitter->InitRun(topNode);
-
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
   {
@@ -44,7 +42,7 @@ int PHSiliconHelicalPropagator::InitRun(PHCompositeNode* topNode)
   if(!_si_seeds)
   {
     std::cout << "No SiliconTrackSeedContainer, creating..." << std::endl;
-    if(createSeedContainer("SiliconTrackSeedContainer", topNode) != Fun4AllReturnCodes::EVENT_OK)
+    if(createSeedContainer(_si_seeds, "SiliconTrackSeedContainer", topNode) != Fun4AllReturnCodes::EVENT_OK)
     {
       std::cout << "Cannot create, exiting." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT; 
@@ -54,16 +52,17 @@ int PHSiliconHelicalPropagator::InitRun(PHCompositeNode* topNode)
   if(!_svtx_seeds)
   {
     std::cout << "No " << _track_map_name << " found, creating..." << std::endl;
-    if(createSeedContainer(_track_map_name, topNode) != Fun4AllReturnCodes::EVENT_OK)
+    if(createSeedContainer(_svtx_seeds, _track_map_name, topNode) != Fun4AllReturnCodes::EVENT_OK)
     {
       std::cout << "Cannot create, exiting." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
+  if(_fitter->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK) return Fun4AllReturnCodes::ABORTEVENT;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHSiliconHelicalPropagator::createSeedContainer(std::string container_name, PHCompositeNode *topNode)
+int PHSiliconHelicalPropagator::createSeedContainer(TrackSeedContainer*& container, std::string container_name, PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
@@ -84,11 +83,11 @@ int PHSiliconHelicalPropagator::createSeedContainer(std::string container_name, 
     dstNode->addNode(svtxNode);
   }
 
-  TrackSeedContainer *m_seedContainer = findNode::getClass<TrackSeedContainer>(topNode, container_name);
-  if(!m_seedContainer)
+  container = findNode::getClass<TrackSeedContainer>(topNode, container_name);
+  if(!container)
   {
-    m_seedContainer = new TrackSeedContainer_v1;
-    PHIODataNode<PHObject> *trackNode = new PHIODataNode<PHObject>(m_seedContainer, container_name, "PHObject");
+    container = new TrackSeedContainer_v1;
+    PHIODataNode<PHObject> *trackNode = new PHIODataNode<PHObject>(container, container_name, "PHObject");
     svtxNode->addNode(trackNode);
   }
   
@@ -97,11 +96,10 @@ int PHSiliconHelicalPropagator::createSeedContainer(std::string container_name, 
 
 int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
 {
-  for(TrackSeedContainer::ConstIter seed_iter = _tpc_seeds->begin(); seed_iter != _tpc_seeds->end(); ++seed_iter)
+  for(unsigned int seedID=0;seedID<_tpc_seeds->size();++seedID)
   {
-    TrackSeed* tpcseed = *seed_iter;
+    TrackSeed* tpcseed = _tpc_seeds->get(seedID);
     if(!tpcseed) continue;
-
     std::vector<Acts::Vector3> clusterPositions;
     std::vector<TrkrDefs::cluskey> clusterKeys;
     _fitter->getTrackletClusters(tpcseed,clusterPositions,clusterKeys);
@@ -110,28 +108,38 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
     std::vector<TrkrDefs::cluskey> si_clusterKeys;
     std::vector<Acts::Vector3> si_clusterPositions;
     unsigned int nSiClusters = _fitter->addSiliconClusters(fitparams,si_clusterPositions,si_clusterKeys);
-    
-    std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
-    for(auto clusterkey : si_clusterKeys)
+    if(nSiClusters>0)
     {
-      si_seed->insert_cluster_key(clusterkey);
-    }
-    si_seed->circleFitByTaubin(_cluster_map,_tgeometry,0,8);
-    si_seed->lineFit(_cluster_map,_tgeometry,0,8);
+      std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
+      for(auto clusterkey : si_clusterKeys)
+      {
+        si_seed->insert_cluster_key(clusterkey);
+      }
+      si_seed->circleFitByTaubin(_cluster_map,_tgeometry,0,8);
+      si_seed->lineFit(_cluster_map,_tgeometry,0,8);
     
-    TrackSeed* mapped_seed = _si_seeds->insert(si_seed.get());
+      TrackSeed* mapped_seed = _si_seeds->insert(si_seed.get());
 
-    std::unique_ptr<SvtxTrackSeed_v1> full_seed = std::make_unique<SvtxTrackSeed_v1>();
-    int tpc_seed_index = _tpc_seeds->index(seed_iter);
-    int si_seed_index = _si_seeds->find(mapped_seed);
-    if(Verbosity()>0)
-    {
-      std::cout << "inserted " << nSiClusters << " silicon clusters for tpc seed " << tpc_seed_index << std::endl;
-      std::cout << "new silicon seed index: " << si_seed_index << std::endl;
+      std::unique_ptr<SvtxTrackSeed_v1> full_seed = std::make_unique<SvtxTrackSeed_v1>();
+      int tpc_seed_index = _tpc_seeds->find(tpcseed);
+      int si_seed_index = _si_seeds->find(mapped_seed);
+      if(Verbosity()>0)
+      {  
+        std::cout << "inserted " << nSiClusters << " silicon clusters for tpc seed " << tpc_seed_index << std::endl;
+        std::cout << "new silicon seed index: " << si_seed_index << std::endl;
+      }
+      full_seed->set_tpc_seed_index(tpc_seed_index);
+      full_seed->set_silicon_seed_index(si_seed_index);
+      _svtx_seeds->insert(full_seed.get());
     }
-    full_seed->set_tpc_seed_index(tpc_seed_index);
-    full_seed->set_silicon_seed_index(si_seed_index);
-    _svtx_seeds->insert(full_seed.get());
+    else
+    {
+      // no Si clusters found, put TPC-only seed in SvtxTrackSeedContainer
+      std::unique_ptr<SvtxTrackSeed_v1> partial_seed = std::make_unique<SvtxTrackSeed_v1>();
+      int tpc_seed_index = _tpc_seeds->find(tpcseed);
+      partial_seed->set_tpc_seed_index(tpc_seed_index);
+      _svtx_seeds->insert(partial_seed.get());
+    }
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
