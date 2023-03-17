@@ -9,17 +9,16 @@
 #include <TNtuple.h>
 
 
-helixResiduals::helixResiduals(const std::string &name, const std::string &outputFile): SubsysReco(name)
+helixResiduals::helixResiduals(const std::string &name): SubsysReco(name)
 {
   _fitter = new HelicalFitter;
-  _outputfile = outputFile;
 }
 
 int helixResiduals::InitRun(PHCompositeNode *topNode)
 {
   _fitter->InitRun(topNode);
-
-  fout = new TFile(_outputfile.c_str(),"recreate");
+  const char *cfilepath =  filepath.c_str();
+  fout = new TFile(cfilepath,"recreate");
   ntp_residuals = new TNtuple("ntp_residuals","Seed Residuals","seed_id:layer:dphi:dz:x:y:z:pt:px:py:pz:crossing:isSilicon:isTpc");
   
   getNodes(topNode);
