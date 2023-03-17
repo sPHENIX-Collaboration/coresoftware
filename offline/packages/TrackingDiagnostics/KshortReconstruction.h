@@ -54,14 +54,13 @@ int InitRun(PHCompositeNode *topNode) override;
 int process_event(PHCompositeNode *topNode) override;
 int End(PHCompositeNode * /*topNode*/) override;
 
-
 void setPtCut(double ptcut) {invariant_pt_cut = ptcut;}
 void setTrackQualityCut(double cut) {_qual_cut = cut;}
 void setPairDCACut(double cut){pair_dca_cut = cut;}
 void setTrackDCACut(double cut){track_dca_cut = cut;}
 void setRequireMVTX(bool set) {_require_mvtx = set;}
 void setDecayMass(Float_t decayMassSet){decaymass = decayMassSet;}  //(muons decaymass = 0.1057) (pions = 0.13957) (electron = 0.000511)
-void set_output_number(int proc){process = proc;}
+void set_output_file(const std::string outputfile){filepath = outputfile;}
 
 private:  
 
@@ -86,20 +85,20 @@ Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
 
 Acts::Vector3 getVertex(SvtxTrack* track);
 
-TNtuple *ntp_reco_info = nullptr;
-ActsGeometry *_tGeometry = nullptr;
+TNtuple *ntp_reco_info       = nullptr;
+ActsGeometry *_tGeometry     = nullptr;
 SvtxTrackMap *m_svtxTrackMap = nullptr; 
 SvtxVertexMap *m_vertexMap   = nullptr;
 
-int process                  = 0;
+std::string filepath         = "";
 Float_t decaymass            = 0.13957;  // pion decay mass
 bool _require_mvtx           = true;
 double _qual_cut             = 10.0;
 double pair_dca_cut          = 0.05; // kshort relative cut 500 microns
 double track_dca_cut         = 0.01;
 double invariant_pt_cut      = 0.1;
-TFile *fout = nullptr;
-TH1D* recomass = nullptr;
+TFile *fout                  = nullptr;
+TH1D* recomass               = nullptr;
 };
 
 #endif  // KSHORTRECONSTRUCTION_H 
