@@ -672,7 +672,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
   }
 
   // spit out the truth clusters
-  m_truth_clusterer->print_clusters();
+  if (Verbosity() > 5) m_truth_clusterer->print_clusters();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
