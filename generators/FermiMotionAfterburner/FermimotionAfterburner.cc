@@ -25,11 +25,12 @@ namespace HepMC
 }
 
 //____________________________________________________________________________..
-FermimotionAfterburner::FermimotionAfterburner(const std::string &name)
+FermimotionAfterburner::FermimotionAfterburner(const std::string &name, const double pTspec)
   : SubsysReco(name)
 
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  m_pTspec = pTspec;
 }
 
 //____________________________________________________________________________..
@@ -68,6 +69,6 @@ void FermimotionAfterburner::AddpF(PHCompositeNode *topNode)
     {
       std::cout << PHWHERE << " no evt pointer under HEPMC Node found" << std::endl;
     }
-    FermiMotion(evt, RandomGenerator);
+    FermiMotion(evt, RandomGenerator, m_pTspec);
   }
 }
