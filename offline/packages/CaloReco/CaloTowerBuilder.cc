@@ -1,50 +1,42 @@
 #include "CaloTowerBuilder.h"
 
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainerv1.h>
+
+#include <caloreco/CaloWaveformProcessing.h>  // for CaloWaveformProcessing
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
-
-// #include <calobase/RawTower.h>  // for RawTower
-// #include <calobase/RawTowerContainer.h>
-// #include <calobase/RawTowerDefs.h>  // for HCALIN, HCALOUT, CEMC
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>
+#include <phool/PHNode.h>                     // for PHNode
 
-#include <phool/PHCompositeNode.h>
 #include <Event/Event.h>
-#include <Event/EventTypes.h>
 #include <Event/packet.h>
 
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfov1.h>
-// #include <TRandom3.h>
+#include <iostream>                           // for operator<<, endl, basic...
+#include <memory>                             // for allocator_traits<>::val...
+#include <vector>                             // for vector
 
 //____________________________________________________________________________..
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name):
  SubsysReco(name)
- , m_dettype(CaloTowerBuilder::CEMC)
- , m_detector("CEMC")
- , m_packet_low(6017)
- , m_packet_high(6032)
-{
-  std::cout << "CaloTowerBuilder::CaloTowerBuilder(const std::string &name) Calling ctor" << std::endl;
-}
+{}
 
 //____________________________________________________________________________..
 CaloTowerBuilder::~CaloTowerBuilder()
 {
-  std::cout << "CaloTowerBuilder::~CaloTowerBuilder() Calling dtor" << std::endl;
+  delete WaveformProcessing;
 }
 
 //____________________________________________________________________________..
 int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
 {
-  // rnd = new TRandom3();
-
   WaveformProcessing = new CaloWaveformProcessing();
   WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
 
@@ -163,8 +155,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
       m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::HCAL);  
     }
   
-  PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, Form("TOWERS_%s",m_detector.c_str()), "PHObject");
-  // PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_"+m_detector, "PHObject");
+  PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_" + m_detector, "PHObject");
   dst_node->addNode(emcal_towerNode);
 }
 
