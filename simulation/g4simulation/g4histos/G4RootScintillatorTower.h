@@ -7,13 +7,13 @@
 
 #include <iostream>          // for cout, ostream
 
-class RawTower;
+/* class TowerInfo; */
 
 class G4RootScintillatorTower : public PHObject
 {
  public:
   G4RootScintillatorTower();
-  G4RootScintillatorTower(const RawTower& tower);
+  G4RootScintillatorTower(double towerenergy, int ieta, int iphi);
   ~G4RootScintillatorTower() override {}
 
   void Reset() override;
