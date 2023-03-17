@@ -22,6 +22,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsAlignmentStates.h \
+  ActsPropagator.h \
   ALICEKF.h \
   AssocInfoContainer.h \
   AssocInfoContainerv1.h \
@@ -84,6 +85,7 @@ libtrack_reco_io_la_SOURCES = \
 
 ACTS_SOURCES = \
   ActsAlignmentStates.cc \
+  ActsPropagator.cc \
   MakeActsGeometry.cc \
   PHActsGSF.cc \
   PHActsKDTreeSeeding.cc \
