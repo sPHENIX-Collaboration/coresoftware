@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I`root-config --incdir`
+  -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
    libg4bbc_io.la \
