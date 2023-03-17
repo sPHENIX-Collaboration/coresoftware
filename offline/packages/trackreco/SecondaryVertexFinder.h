@@ -48,6 +48,7 @@ class TrkrClusterContainer;
 class TNtuple;
 class TH2D;
 class TFile;
+class TLorentzVector;
 
 using BoundTrackParam = const Acts::BoundTrackParameters;
 using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
@@ -73,10 +74,16 @@ class SecondaryVertexFinder : public SubsysReco
  void setRequireMVTX(bool set) {_require_mvtx = set;}
  void setOutfileName(const std::string& filename) {outfile = filename;}
  void setDecayParticleMass(double mass) {_decaymass = mass;}
+ void set_write_electrons_node(bool flag) {_write_electrons_node = flag;}
 
  private:
 
   int GetNodes(PHCompositeNode* topNode);
+  int CreateOutputNode(PHCompositeNode* topNode);
+
+bool passConversionElectronCuts(TLorentzVector tsum, 
+				SvtxTrack* tr1, SvtxTrack* tr2, float pair_dca, 
+				Eigen::Vector3d PCA, Eigen::Vector3d VTX);
 
   bool  hasSiliconSeed(SvtxTrack* tr); 
   void outputTrackDetails(SvtxTrack *tr);
@@ -94,6 +101,7 @@ class SecondaryVertexFinder : public SubsysReco
   void fillNtp(SvtxTrack *track1, SvtxTrack *track2, double dca3dxy1, double dca3dz1, double dca3dxy2, double dca3dz2,  Eigen::Vector3d vpos1,  Eigen::Vector3d vmom1, Eigen::Vector3d vpos2, Eigen::Vector3d vmom2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, double path, int has_silicon_1, int has_siilicon_2);
 
   SvtxTrackMap *_track_map{nullptr};
+  SvtxTrackMap *_track_map_electrons{nullptr};
   SvtxTrack *_track{nullptr};  
   SvtxVertexMap *_svtx_vertex_map{nullptr};
   ActsGeometry *_tGeometry{nullptr};
@@ -103,12 +111,18 @@ class SecondaryVertexFinder : public SubsysReco
  double _track_dcaxy_cut = 0.020;  
  double _track_dcaz_cut = 0.020;  
  double _two_track_dcacut = 0.5;  // 5000 microns 
+ double _conversion_pair_dcacut = 0.2;  // 5000 microns 
  double _qual_cut = 10.0;
  bool _require_mvtx = false;
  double _min_path_cut = 0.2;
  double _max_intersection_radius = 40.0;  // discard intersections at greater than 40 cm radius
  double _projected_track_z_cut = 1.0;
  double _decaymass = 0.13957;  // pion, default
+ unsigned int _min_tpc_clusters = 40;
+ double _costheta_cut = 0.99;
+ double _deta_cut = 0.05;
+
+ bool _write_electrons_node = true;
 	      
   TH2D *recomass{nullptr};
   TNtuple *ntp{nullptr};
