@@ -27,6 +27,7 @@
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
   : SubsysReco(name)
 {
+  WaveformProcessing = new CaloWaveformProcessing();
 }
 
 //____________________________________________________________________________..
@@ -38,7 +39,6 @@ CaloTowerBuilder::~CaloTowerBuilder()
 //____________________________________________________________________________..
 int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
 {
-  WaveformProcessing = new CaloWaveformProcessing();
   WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
 
   if (m_dettype == CaloTowerBuilder::CEMC)
