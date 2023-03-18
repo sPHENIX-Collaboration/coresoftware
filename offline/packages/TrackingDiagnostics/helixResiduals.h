@@ -26,7 +26,7 @@ public:
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode * /*topNode*/) override;
   int End(PHCompositeNode * /*topNode*/) override;
-  void set_output_file(const std::string outputfile){filepath = outputfile;}
+  void set_output_file(const std::string &outputfile){filepath = outputfile;}
 
 private:  
 
