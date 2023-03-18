@@ -3,8 +3,8 @@
 #include "BbcVertex.h"
 #include "BbcVertexMap.h"
 
-#include <iterator>        // for reverse_iterator
-#include <utility>         // for pair, make_pair
+#include <iterator>  // for reverse_iterator
+#include <utility>   // for pair, make_pair
 
 using namespace std;
 
@@ -26,7 +26,7 @@ void BbcVertexMapv1::identify(ostream& os) const
 
 void BbcVertexMapv1::clear()
 {
-  for (auto & iter : _map)
+  for (auto& iter : _map)
   {
     delete iter.second;
   }
@@ -37,24 +37,30 @@ void BbcVertexMapv1::clear()
 const BbcVertex* BbcVertexMapv1::get(unsigned int id) const
 {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) { return nullptr;
-}
+  if (iter == _map.end())
+  {
+    return nullptr;
+  }
   return iter->second;
 }
 
 BbcVertex* BbcVertexMapv1::get(unsigned int id)
 {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) { return nullptr;
-}
+  if (iter == _map.end())
+  {
+    return nullptr;
+  }
   return iter->second;
 }
 
 BbcVertex* BbcVertexMapv1::insert(BbcVertex* clus)
 {
   unsigned int index = 0;
-  if (!_map.empty()) { index = _map.rbegin()->first + 1;
-}
+  if (!_map.empty())
+  {
+    index = _map.rbegin()->first + 1;
+  }
   _map.insert(make_pair(index, clus));
   _map[index]->set_id(index);
   return _map[index];
