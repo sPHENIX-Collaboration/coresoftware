@@ -93,7 +93,6 @@ bool passConversionElectronCuts(TLorentzVector tsum,
   Acts::Vector3 getVertex(SvtxTrack* track);
   void findPcaTwoLines(Eigen::Vector3d pos1, Eigen::Vector3d mom1, Eigen::Vector3d pos2, Eigen::Vector3d mom2,
 		       double &dca, Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);
-  BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params, const SurfacePtr& targetSurf);
   void getCircleXYTrack(SvtxTrack *track, double& R, Eigen::Vector2d& center);
   double getZFromIntersectionXY(SvtxTrack *track, double& R, Eigen::Vector2d& center, Eigen::Vector2d intersection);
   bool projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d& PCA, Eigen::Vector3d& pos, Eigen::Vector3d& mom);
