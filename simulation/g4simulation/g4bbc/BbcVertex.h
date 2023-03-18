@@ -15,7 +15,7 @@ class BbcVertex : public PHObject
 
   void identify(std::ostream& os = std::cout) const override { os << "BbcVertex base class" << std::endl; }
   PHObject* CloneMe() const override { return nullptr; }
-  int isValid() const  override{ return 0; }
+  int isValid() const override { return 0; }
 
   // vertex info
 
