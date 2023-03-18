@@ -45,6 +45,8 @@ const Double_t C = 29.9792458; // cm/ns
 // kludge where we have the hardcoded positions of the tubes
 // These are the x,y for the south BBC (in cm).
 // The north inverts the x coordinate (x -> -x)
+
+/* unused causes compiler warning
 const float TubeLoc[64][2] = {
     { -12.2976,	4.26 },
     { -12.2976,	1.42 },
@@ -111,6 +113,7 @@ const float TubeLoc[64][2] = {
     { -12.2976,	-4.26 },
     { -12.2976,	-1.42 }
 };    
+*/
 
 } // namespace BBCINFO
 
@@ -119,21 +122,18 @@ using namespace BBCINFO;
 
 //____________________________________
 BbcSimReco::BbcSimReco(const string &name) : SubsysReco(name),
-    f_evt( 0 ),
-    _pdg( 0 ),
-    _rndm( 0 ),
-    _tres( 0.05 ),
-    _verbose( 0 ),
-    _truth_container( 0 ),
-    _bbcout( 0 ),
-    _bbcpmts( 0 )
+    _tres( 0.05 )
 { 
 
-  _evtheader = 0;
-  _bbchits = 0;
-  gaussian = 0;
-  hevt_bbct[0] = 0;
-  hevt_bbct[1] = 0;
+  std::fill(std::begin(f_pmtq), std::end(f_pmtq), NAN);
+  std::fill(std::begin(f_pmtt0), std::end(f_pmtt0), NAN);
+  std::fill(std::begin(f_pmtt1), std::end(f_pmtt1), NAN);
+  std::fill(std::begin(f_bbcn), std::end(f_bbcn), 0);
+  std::fill(std::begin(f_bbcq), std::end(f_bbcq), NAN);
+  std::fill(std::begin(f_bbct), std::end(f_bbct), NAN);
+  std::fill(std::begin(f_bbcte), std::end(f_bbcte), NAN);
+  hevt_bbct[0] = nullptr;
+  hevt_bbct[1] = nullptr;
 }
 
 //___________________________________
@@ -261,7 +261,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
       }
       else
       {
-        if (_verbose) cout << "BAD " << ch << "\t" << this_hit->get_t(1) << endl;
+        if (Verbosity()) cout << "BAD " << ch << "\t" << this_hit->get_t(1) << endl;
       }
     }
 
@@ -295,7 +295,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     // Fill charge and time info
     if ( len[ich]>0. )
     {
-      if ( f_evt<20 && _verbose!=0 )
+      if ( f_evt<20 && Verbosity()!=0 )
       {
         cout << "ich " << ich << "\t" << len[ich] << "\t" << edep[ich] << endl;
       }
@@ -324,7 +324,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
       }
       else  // should never happen
       {
-        if ( _verbose!=0 ) cout << "ERROR, have hit but no time" << endl;
+        if ( Verbosity()!=0 ) cout << "ERROR, have hit but no time" << endl;
       }
 
       _bbcpmts->AddBbcPmt(ich, f_pmtq[ich], f_pmtt0[ich], f_pmtt1[ich]);
