@@ -73,7 +73,8 @@ int BbcVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 
 int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 1) cout << "BbcVertexFastSimReco::process_event -- entered" << endl;
+  if (Verbosity() > 1) { cout << "BbcVertexFastSimReco::process_event -- entered" << endl;
+}
 
   //---------------------------------
   // Get Objects off of the Node Tree
@@ -97,7 +98,8 @@ int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode)
   //---------------------
 
   PHG4VtxPoint *point = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
-  if (!point) return Fun4AllReturnCodes::EVENT_OK;
+  if (!point) { return Fun4AllReturnCodes::EVENT_OK;
+}
 
   BbcVertex *vertex = new BbcVertexv1();
 

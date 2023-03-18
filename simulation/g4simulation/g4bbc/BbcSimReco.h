@@ -60,17 +60,17 @@ private:
   Float_t  f_vy = NAN;
   Float_t  f_vz = NAN;
   Float_t  f_vt = NAN;
-  Float_t  f_pmtq[128]; // npe in each arm
-  Float_t  f_pmtt0[128]; // time in each arm
-  Float_t  f_pmtt1[128]; // time in each arm
-  Short_t  f_bbcn[2]; // num hits for each arm (north and south)
-  Float_t  f_bbcq[2]; // total charge (currently npe) in each arm
-  Float_t  f_bbct[2]; // time in arm
-  Float_t  f_bbcte[2]; // earliest hit time in arm
+  Float_t  f_pmtq[128]{}; // npe in each arm
+  Float_t  f_pmtt0[128]{}; // time in each arm
+  Float_t  f_pmtt1[128]{}; // time in each arm
+  Short_t  f_bbcn[2]{}; // num hits for each arm (north and south)
+  Float_t  f_bbcq[2]{}; // total charge (currently npe) in each arm
+  Float_t  f_bbct[2]{}; // time in arm
+  Float_t  f_bbcte[2]{}; // earliest hit time in arm
   Float_t  f_bbcz = NAN;    // z-vertex
   Float_t  f_bbct0 = NAN;   // start time
 
-  TH1 *hevt_bbct[2];  // time in each bbc, per event
+  TH1 *hevt_bbct[2]{};  // time in each bbc, per event
   TF1 *gaussian = nullptr;
 
   //

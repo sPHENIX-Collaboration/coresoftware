@@ -26,11 +26,9 @@ void BbcVertexMapv1::identify(ostream& os) const
 
 void BbcVertexMapv1::clear()
 {
-  for (Iter iter = _map.begin();
-       iter != _map.end();
-       ++iter)
+  for (auto & iter : _map)
   {
-    delete iter->second;
+    delete iter.second;
   }
   _map.clear();
   return;
@@ -39,21 +37,24 @@ void BbcVertexMapv1::clear()
 const BbcVertex* BbcVertexMapv1::get(unsigned int id) const
 {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) { return nullptr;
+}
   return iter->second;
 }
 
 BbcVertex* BbcVertexMapv1::get(unsigned int id)
 {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) { return nullptr;
+}
   return iter->second;
 }
 
 BbcVertex* BbcVertexMapv1::insert(BbcVertex* clus)
 {
   unsigned int index = 0;
-  if (!_map.empty()) index = _map.rbegin()->first + 1;
+  if (!_map.empty()) { index = _map.rbegin()->first + 1;
+}
   _map.insert(make_pair(index, clus));
   _map[index]->set_id(index);
   return _map[index];

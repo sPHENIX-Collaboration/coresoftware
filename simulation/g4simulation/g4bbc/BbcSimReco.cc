@@ -206,7 +206,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
   // Get True Vertex
   // NB: Currently PrimaryVertexIndex is always 1, need to figure out how to handle collision pile-up
   PHG4VtxPoint *vtxp = _truth_container->GetPrimaryVtx( _truth_container->GetPrimaryVertexIndex() );
-  if ( vtxp != 0 )
+  if ( vtxp != nullptr )
   {
     f_vx = vtxp->get_x();
     f_vy = vtxp->get_y();
@@ -261,7 +261,8 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
       }
       else
       {
-        if (Verbosity()) cout << "BAD " << ch << "\t" << this_hit->get_t(1) << endl;
+        if (Verbosity()) { cout << "BAD " << ch << "\t" << this_hit->get_t(1) << endl;
+}
       }
     }
 
@@ -281,9 +282,9 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
   }
 
   // process the data from each channel
-  for (int iarm=0; iarm<2; iarm++)
+  for (float & iarm : f_bbct)
   {
-    f_bbct[iarm] = 0.;
+    iarm = 0.;
   }
 
   vector<float> hit_times[2];   // times of the hits in each [arm]
@@ -324,7 +325,8 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
       }
       else  // should never happen
       {
-        if ( Verbosity()!=0 ) cout << "ERROR, have hit but no time" << endl;
+        if ( Verbosity()!=0 ) { cout << "ERROR, have hit but no time" << endl;
+}
       }
 
       _bbcpmts->AddBbcPmt(ich, f_pmtq[ich], f_pmtt0[ich], f_pmtt1[ich]);
@@ -416,25 +418,30 @@ void BbcSimReco::GetNodes(PHCompositeNode *topNode)
 
   // Truth container
   _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-  if(!_truth_container && f_evt<10) cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << endl;
+  if(!_truth_container && f_evt<10) { cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << endl;
+}
 
   // BBC hit container
   _bbchits = findNode::getClass<PHG4HitContainer> (topNode, "G4HIT_BBC");
-  if(!_bbchits && f_evt<10) cout << PHWHERE << " G4HIT_BBC node not found on node tree" << endl;
+  if(!_bbchits && f_evt<10) { cout << PHWHERE << " G4HIT_BBC node not found on node tree" << endl;
+}
 
   // Event Header info
   _evtheader = findNode::getClass<EventHeaderv1>(topNode, "EventHeader");
-  if (!_evtheader && f_evt<10) cout << PHWHERE << " G4HIT_BBC node not found on node tree" << endl;
+  if (!_evtheader && f_evt<10) { cout << PHWHERE << " G4HIT_BBC node not found on node tree" << endl;
+}
 
   /** DST Objects **/
 
   // BbcOut data
   _bbcout = findNode::getClass<BbcOut> (topNode, "BbcOut");
-  if(!_bbcout && f_evt<10) cout << PHWHERE << " BbcOut node not found on node tree" << endl;
+  if(!_bbcout && f_evt<10) { cout << PHWHERE << " BbcOut node not found on node tree" << endl;
+}
 
   // BbcPmtContainer
   _bbcpmts = findNode::getClass<BbcPmtContainer> (topNode, "BbcPmtContainer");
-  if(!_bbcpmts && f_evt<10) cout << PHWHERE << " BbcPmtContainer node not found on node tree" << endl;
+  if(!_bbcpmts && f_evt<10) { cout << PHWHERE << " BbcPmtContainer node not found on node tree" << endl;
+}
 
 }
 
