@@ -8,6 +8,7 @@
 
 #include <Acts/Propagator/EigenStepper.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
+#include <utility>
 
 #include <TLorentzVector.h>
 
@@ -23,7 +24,8 @@ int KshortReconstruction::process_event(PHCompositeNode * /**topNode*/)
     {
       auto id1 = tr1_it->first;
       auto tr1 = tr1_it->second;
-      if(tr1->get_quality() > _qual_cut) continue;
+      if(tr1->get_quality() > _qual_cut) { continue;
+}
 
       // calculate number silicon tracks
       double this_dca_cut    = track_dca_cut;
@@ -38,14 +40,16 @@ int KshortReconstruction::process_event(PHCompositeNode * /**topNode*/)
       Acts::Vector3 mom1(tr1->get_px(), tr1->get_py(), tr1->get_pz());
       Acts::Vector3 dcaVals1 = calculateDca(tr1, mom1, pos1);
       // first dca cuts
-      if(dcaVals1(0) < this_dca_cut or dcaVals1(1) < this_dca_cut) continue;
+      if(dcaVals1(0) < this_dca_cut or dcaVals1(1) < this_dca_cut) { continue;
+}
 
       // look for close DCA matches with all other such tracks
       for(auto tr2_it = std::next(tr1_it); tr2_it != m_svtxTrackMap->end(); ++tr2_it)
 	{
 	  auto id2 = tr2_it->first;
 	  auto tr2 = tr2_it->second;
-	  if(tr2->get_quality() > _qual_cut) continue;
+	  if(tr2->get_quality() > _qual_cut) { continue;
+}
 
           // calculate number silicon tracks
           TrackSeed *siliconseed2 = tr2->get_silicon_seed();
@@ -62,12 +66,15 @@ int KshortReconstruction::process_event(PHCompositeNode * /**topNode*/)
           Acts::Vector3 mom2(tr2->get_px(), tr2->get_py(), tr2->get_pz());
           Acts::Vector3 dcaVals2 = calculateDca(tr2, mom2, pos2);
 
-          if(dcaVals2(0) < this_dca_cut2 or dcaVals2(1) < this_dca_cut2) continue;
+          if(dcaVals2(0) < this_dca_cut2 or dcaVals2(1) < this_dca_cut2) { continue;
+}
 	  
 	  // find DCA of these two tracks
-	  if(Verbosity() > 3) std::cout << "Check DCA for tracks " << id1 << " and  " << id2 << std::endl;
+	  if(Verbosity() > 3) { std::cout << "Check DCA for tracks " << id1 << " and  " << id2 << std::endl;
+}
 
-          if(tr1->get_charge() == tr2->get_charge()) continue;
+          if(tr1->get_charge() == tr2->get_charge()) { continue;
+}
 	  
 	  // declare these variables to pass into findPCAtwoTracks and fillHistogram by reference
           double pair_dca;
@@ -103,7 +110,8 @@ int KshortReconstruction::process_event(PHCompositeNode * /**topNode*/)
 	      Acts::Vector3 pca_rel1_proj;
 	      Acts::Vector3 pca_rel2_proj;
 
-	      if (!ret1 or !ret2) continue;
+	      if (!ret1 or !ret2) { continue;
+}
 
 	      // recalculate pca with projected position and momentum
 	      findPcaTwoTracks(projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj);
@@ -266,8 +274,9 @@ bool KshortReconstruction::projectTrackToCylinder(SvtxTrack* track, double Radiu
       mom(1) = momentum.y();
       mom(2) = momentum.z();	      
     }
-  else
+  else {
     ret = false;
+}
 
   return ret;
 }
@@ -380,8 +389,8 @@ void KshortReconstruction::findPcaTwoTracks(Acts::Vector3 pos1, Acts::Vector3 po
   v2.SetPxPyPzE(px2,py2,pz2,E2);
 
   //calculate lorentz vector
-  Eigen::Vector3d a1 = pos1;
-  Eigen::Vector3d a2 = pos2;
+  const Eigen::Vector3d& a1 = std::move(pos1);
+  const Eigen::Vector3d& a2 = std::move(pos2);
 
   Eigen::Vector3d b1(v1.Px(), v1.Py(), v1.Pz());
   Eigen::Vector3d b2(v2.Px(), v2.Py(), v2.Pz());
@@ -401,10 +410,11 @@ void KshortReconstruction::findPcaTwoTracks(Acts::Vector3 pos1, Acts::Vector3 po
   // The DCA of these two lines is the projection of a2-a1 along the direction of the perpendicular to both 
   // remember that a2-a1 is longer than (or equal to) the dca by definition
   dca = 999;
-  if( mag_bcrossb != 0)
+  if( mag_bcrossb != 0) {
     dca = bcrossb.dot(aminusa) / mag_bcrossb;
-  else
+  } else {
     return;   // same track, skip combination
+}
   
   // get the points at which the normal to the lines intersect the lines, where the lines are perpendicular
   double X = b1.dot(b2) - b1.dot(b1) * b2.dot(b2) / b2.dot(b1);
@@ -424,7 +434,7 @@ void KshortReconstruction::findPcaTwoTracks(Acts::Vector3 pos1, Acts::Vector3 po
 
 KshortReconstruction::KshortReconstruction(const std::string &name): SubsysReco(name){}
 
-Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack *track, Acts::Vector3 momentum, Acts::Vector3 position)
+Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack *track, const Acts::Vector3& momentum, Acts::Vector3 position)
     {
      Acts::Vector3 outVals(999,999,999);
      auto vtxid = track->get_vertex_id();

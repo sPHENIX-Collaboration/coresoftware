@@ -75,7 +75,7 @@ void findPcaTwoTracks(Acts::Vector3 pos1, Acts::Vector3 pos2, Acts::Vector3 mom1
 
 int getNodes(PHCompositeNode *topNode);
 
-Acts::Vector3 calculateDca(SvtxTrack *track, Acts::Vector3 momentum, Acts::Vector3 position);
+Acts::Vector3 calculateDca(SvtxTrack *track, const Acts::Vector3& momentum, Acts::Vector3 position);
 
 bool projectTrackToCylinder(SvtxTrack* track, double Radius, Eigen::Vector3d& pos, Eigen::Vector3d& mom);
 bool projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d PCA, Eigen::Vector3d& pos, Eigen::Vector3d& mom);

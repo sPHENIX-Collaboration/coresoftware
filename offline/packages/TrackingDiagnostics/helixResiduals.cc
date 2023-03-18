@@ -78,7 +78,8 @@ int helixResiduals::process_event(PHCompositeNode * /*topNode*/)
   {
     int id = _tpc_seeds->index(tpcseed_iter);
     TrackSeed* tpcseed = _tpc_seeds->get(id);
-    if(!tpcseed) continue;
+    if(!tpcseed) { continue;
+}
     std::cout << "processing tpc seed " << id << std::endl;
     fill_residuals(tpcseed,id,true);
   }
@@ -86,7 +87,8 @@ int helixResiduals::process_event(PHCompositeNode * /*topNode*/)
   {
     int id = _si_seeds->index(siseed_iter);
     TrackSeed* siseed = _si_seeds->get(id);
-    if(!siseed) continue;
+    if(!siseed) { continue;
+}
     std::cout << "processing si seed " << id << std::endl;
     fill_residuals(siseed,id,false);
   }
@@ -96,7 +98,8 @@ int helixResiduals::process_event(PHCompositeNode * /*topNode*/)
 
 void helixResiduals::fill_residuals(TrackSeed* seed, int seed_id, bool isTpc)
 {
-  if(seed->size_cluster_keys()==0) return;
+  if(seed->size_cluster_keys()==0) { return;
+}
   
   std::vector<Acts::Vector3> clusterPositions;
   std::vector<TrkrDefs::cluskey> clusterKeys;
@@ -117,8 +120,10 @@ void helixResiduals::fill_residuals(TrackSeed* seed, int seed_id, bool isTpc)
     float cluster_phi = atan2(position(1),position(0));
     float pca_phi = atan2(pca(1),pca(0));
     float dphi = cluster_phi - pca_phi;
-    if(dphi>M_PI) dphi = 2*M_PI-dphi;
-    if(dphi<-M_PI) dphi = 2*M_PI+dphi;
+    if(dphi>M_PI) { dphi = 2*M_PI-dphi;
+}
+    if(dphi<-M_PI) { dphi = 2*M_PI+dphi;
+}
     float dz = position(2) - pca(2);
 
     ntp_residuals->Fill(seed_id,layer,dphi,dz,position(0),position(1),position(2),pt,px,py,pz,crossing,!isTpc,isTpc);
