@@ -386,8 +386,8 @@ void TrkrNtuplizer::printOutputInfo(PHCompositeNode* topNode)
 	  for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
 	    const auto cluskey = clusIter->first;
 	    //	    const auto cluster = clusIter->second;
-	    unsigned int layer = TrkrDefs::getLayer(cluskey);
-	    nclusters[layer]++;
+//	    unsigned int layer = TrkrDefs::getLayer(cluskey);
+	    nclusters[TrkrDefs::getLayer(cluskey)]++;
 	  }
 	}
       }
@@ -561,15 +561,15 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       auto range = clustermap_in->getClusters(hitsetkey);
       for( auto iter_cin = range.first; iter_cin != range.second; ++iter_cin ){
         TrkrDefs::cluskey cluster_key = iter_cin->first;
-        unsigned int layer = TrkrDefs::getLayer(cluster_key);
+        unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
         if (_nlayers_maps > 0)
-    if (layer < _nlayers_maps) nclus_maps++;
+    if (layer_local < _nlayers_maps) nclus_maps++;
         if (_nlayers_intt > 0)
-    if (layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt) nclus_intt++;
+    if (layer_local >= _nlayers_maps && layer_local < _nlayers_maps + _nlayers_intt) nclus_intt++;
         if (_nlayers_tpc > 0)
-    if (layer >= _nlayers_maps + _nlayers_intt && layer <  _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_tpc++;
+    if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local <  _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_tpc++;
         if (_nlayers_mms > 0)
-    if (layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_mms++;
+    if (layer_local >= _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_mms++;
       }
     }
   }
@@ -660,9 +660,9 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     }
     // need things off of the DST...
     TrkrHitSetContainer *hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-    PHG4TpcCylinderGeomContainer* geom_container =
+    PHG4TpcCylinderGeomContainer* geom_container_local =
         findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-    if (!geom_container)
+    if (!geom_container_local)
     {
       std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
       return;
@@ -690,7 +690,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	    float hitID = hit_key;
 	    float e = hit->getEnergy();
 	    float adc = hit->getAdc();
-	    float layer = TrkrDefs::getLayer(hitset_key);
+	    float layer_local = TrkrDefs::getLayer(hitset_key);
 	    float sector = TpcDefs::getSectorId(hitset_key);
 	    float side = TpcDefs::getSide(hitset_key);
 	    float cellID = 0;
@@ -701,17 +701,17 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	    float phi = NAN;
 	    float z = NAN;
 	    
-	    if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc )
+	    if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc )
 	      {
-		PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
+		PHG4TpcCylinderGeom* GeoLayer_local = geom_container_local->GetLayerCellGeom(layer_local);
 		phibin = (float) TpcDefs::getPad(hit_key);
 		tbin = (float) TpcDefs::getTBin(hit_key);
-		phi = GeoLayer->get_phicenter(phibin);
+		phi = GeoLayer_local->get_phicenter(phibin);
 
 		double zdriftlength = tbin * m_tGeometry->get_drift_velocity()*AdcClockPeriod ;
       // convert z drift length to z position in the TPC
 		//		cout << " tbin: " << tbin << " vdrift " <<m_tGeometry->get_drift_velocity() << " l drift: " << zdriftlength  <<endl;
-		unsigned short NTBins = (unsigned short)GeoLayer->get_zbins();
+		unsigned short NTBins = (unsigned short)GeoLayer_local->get_zbins();
 		double m_tdriftmax = AdcClockPeriod * NTBins / 2.0;  
 		double clusz =  (m_tdriftmax * m_tGeometry->get_drift_velocity()) - zdriftlength; 
 		if(side == 0) 
@@ -725,7 +725,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	      hitID,
 	      e,
 	      adc,
-	      layer,
+	      layer_local,
 	      sector,
 	      side,
 	      cellID,
@@ -858,22 +858,22 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	  }
 	  float e = cluster->getAdc();
 	  float adc = cluster->getAdc();
-	  float layer = (float) TrkrDefs::getLayer(cluster_key);
+	  float layer_local = (float) TrkrDefs::getLayer(cluster_key);
 	  float sector = TpcDefs::getSectorId(cluster_key);
 	  float side = TpcDefs::getSide(cluster_key);
 
 	  // count all hits for this cluster
-	  TrkrDefs::hitsetkey hitsetkey =  TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-	  int hitsetlayer2 = TrkrDefs::getLayer(hitsetkey);
-	  if(hitsetlayer!=layer){
-	    cout << "WARNING hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer << endl;  
+	  TrkrDefs::hitsetkey hitsetkey_local =  TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+	  int hitsetlayer2 = TrkrDefs::getLayer(hitsetkey_local);
+	  if(hitsetlayer!=layer_local){
+	    cout << "WARNING hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer_local << endl;  
 	  }
 	  /*else{
 	    cout << "Good    hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer << endl;  
 	  }
 	  */
 	  float sumadc = 0;
-	  TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey);
+	  TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey_local);
 	  std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
 	    hitrange = clusterhitmap->getHits(cluster_key);  
 	  for(std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
@@ -911,7 +911,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 				  e,
 				  adc,
 				  maxadc,
-				  layer,
+				  layer_local,
 				  sector,
 				  side,
 				  size,
@@ -971,11 +971,11 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         float quality = track->get_quality();
         float chisq = track->get_chisq();
         float ndf = track->get_ndf();
-	float nhits = 0;
+	float nhits_local = 0;
 	if(tpcseed)
-	  { nhits += tpcseed->size_cluster_keys(); }
+	  { nhits_local += tpcseed->size_cluster_keys(); }
 	if(silseed)
-	  { nhits += silseed->size_cluster_keys(); }
+	  { nhits_local += silseed->size_cluster_keys(); }
         unsigned int layers = 0x0;
         int maps[_nlayers_maps];
         int intt[_nlayers_intt];
@@ -1013,44 +1013,44 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 
 	if(tpcseed) 
 	  {
-        for (SvtxTrack::ConstClusterKeyIter iter = tpcseed->begin_cluster_keys();
-             iter != tpcseed->end_cluster_keys();
-             ++iter)
+        for (SvtxTrack::ConstClusterKeyIter iter_local = tpcseed->begin_cluster_keys();
+             iter_local != tpcseed->end_cluster_keys();
+             ++iter_local)
         {
-	  TrkrDefs::cluskey cluster_key = *iter;
+	  TrkrDefs::cluskey cluster_key = *iter_local;
           //TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-          unsigned int layer = TrkrDefs::getLayer(cluster_key);
+          unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
 
-          if (_nlayers_maps > 0 && layer < _nlayers_maps)
+          if (_nlayers_maps > 0 && layer_local < _nlayers_maps)
           {
-            maps[layer] = 1;
+            maps[layer_local] = 1;
             nmaps++;
           }
-          if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+          if (_nlayers_intt > 0 && layer_local >= _nlayers_maps && layer_local < _nlayers_maps + _nlayers_intt)
           {
-            intt[layer - _nlayers_maps] = 1;
+            intt[layer_local - _nlayers_maps] = 1;
             nintt++;
           }
-          if (_nlayers_mms > 0 && layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
+          if (_nlayers_mms > 0 && layer_local >= _nlayers_maps + _nlayers_intt + _nlayers_tpc && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
           {
-            mms[layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
+            mms[layer_local - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
             nmms++;
           }
-          if (_nlayers_tpc > 0 && layer >= (_nlayers_maps + _nlayers_intt) && layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
+          if (_nlayers_tpc > 0 && layer_local >= (_nlayers_maps + _nlayers_intt) && layer_local < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
           {
-            tpc[layer - (_nlayers_maps + _nlayers_intt)] = 1;
+            tpc[layer_local - (_nlayers_maps + _nlayers_intt)] = 1;
             ntpc++;
-	    if((layer - (_nlayers_maps + _nlayers_intt))<8){
+	    if((layer_local - (_nlayers_maps + _nlayers_intt))<8){
 	      ntpc11++;
 	    }
 
-	    if((layer - (_nlayers_maps + _nlayers_intt))<16){
+	    if((layer_local - (_nlayers_maps + _nlayers_intt))<16){
 	      ntpc1++;
 	    }
-	    else if((layer - (_nlayers_maps + _nlayers_intt))<32){
+	    else if((layer_local - (_nlayers_maps + _nlayers_intt))<32){
 	      ntpc2++;
 	    }
-	    else if((layer - (_nlayers_maps + _nlayers_intt))<48){
+	    else if((layer_local - (_nlayers_maps + _nlayers_intt))<48){
 	      ntpc3++;
 	    }
           }
@@ -1059,44 +1059,44 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 
 	if(silseed) 
 	  {
-        for (SvtxTrack::ConstClusterKeyIter iter = silseed->begin_cluster_keys();
-             iter != silseed->end_cluster_keys();
-             ++iter)
+        for (SvtxTrack::ConstClusterKeyIter iter_local = silseed->begin_cluster_keys();
+             iter_local != silseed->end_cluster_keys();
+             ++iter_local)
         {
-	  TrkrDefs::cluskey cluster_key = *iter;
+	  TrkrDefs::cluskey cluster_key = *iter_local;
           //TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-          unsigned int layer = TrkrDefs::getLayer(cluster_key);
+          unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
 
-          if (_nlayers_maps > 0 && layer < _nlayers_maps)
+          if (_nlayers_maps > 0 && layer_local < _nlayers_maps)
           {
-            maps[layer] = 1;
+            maps[layer_local] = 1;
             nmaps++;
           }
-          if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+          if (_nlayers_intt > 0 && layer_local >= _nlayers_maps && layer_local < _nlayers_maps + _nlayers_intt)
           {
-            intt[layer - _nlayers_maps] = 1;
+            intt[layer_local - _nlayers_maps] = 1;
             nintt++;
           }
-          if (_nlayers_mms > 0 && layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
+          if (_nlayers_mms > 0 && layer_local >= _nlayers_maps + _nlayers_intt + _nlayers_tpc && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
           {
-            mms[layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
+            mms[layer_local - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
             nmms++;
           }
-          if (_nlayers_tpc > 0 && layer >= (_nlayers_maps + _nlayers_intt) && layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
+          if (_nlayers_tpc > 0 && layer_local >= (_nlayers_maps + _nlayers_intt) && layer_local < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
           {
-            tpc[layer - (_nlayers_maps + _nlayers_intt)] = 1;
+            tpc[layer_local - (_nlayers_maps + _nlayers_intt)] = 1;
             ntpc++;
-	    if((layer - (_nlayers_maps + _nlayers_intt))<8){
+	    if((layer_local - (_nlayers_maps + _nlayers_intt))<8){
 	      ntpc11++;
 	    }
 
-	    if((layer - (_nlayers_maps + _nlayers_intt))<16){
+	    if((layer_local - (_nlayers_maps + _nlayers_intt))<16){
 	      ntpc1++;
 	    }
-	    else if((layer - (_nlayers_maps + _nlayers_intt))<32){
+	    else if((layer_local - (_nlayers_maps + _nlayers_intt))<32){
 	      ntpc2++;
 	    }
-	    else if((layer - (_nlayers_maps + _nlayers_intt))<48){
+	    else if((layer_local - (_nlayers_maps + _nlayers_intt))<48){
 	      ntpc3++;
 	    }
           }
@@ -1166,7 +1166,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
                               quality,
                               chisq,
                               ndf,
-                              nhits, nmaps, nintt, ntpc,nmms,
+                              nhits_local, nmaps, nintt, ntpc,nmms,
 			      ntpc1,ntpc11,ntpc2,ntpc3,
 			      nlmaps, nlintt, nltpc,nlmms,
                               (float) layers,

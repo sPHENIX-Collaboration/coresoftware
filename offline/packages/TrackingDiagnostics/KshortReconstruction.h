@@ -6,6 +6,7 @@
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
+
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
@@ -16,6 +17,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wunused-value"
 #include <Acts/Propagator/Propagator.hpp>
 #pragma GCC diagnostic pop
 
