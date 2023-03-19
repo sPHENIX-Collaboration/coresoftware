@@ -47,6 +47,7 @@ class ActsGeometry;
 class TrkrClusterContainer;
 class TNtuple;
 class TH2D;
+class TH1D;
 class TFile;
 class TLorentzVector;
 
@@ -75,6 +76,7 @@ class SecondaryVertexFinder : public SubsysReco
  void setOutfileName(const std::string& filename) {outfile = filename;}
  void setDecayParticleMass(double mass) {_decaymass = mass;}
  void set_write_electrons_node(bool flag) {_write_electrons_node = flag;}
+ void set_write_ntuple(bool flag) {_write_ntuple = flag;}
 
  private:
 
@@ -105,25 +107,39 @@ bool passConversionElectronCuts(TLorentzVector tsum,
   SvtxVertexMap *_svtx_vertex_map{nullptr};
   ActsGeometry *_tGeometry{nullptr};
 
+ bool _require_mvtx = false;
+ bool _write_electrons_node = true;
+ bool _write_ntuple = false;
+
+ double _decaymass = 0.000511;  // conversion electrons, default 
+
  // these are minimal cuts used to make the ntuple
  // They can be tightened later when analyzing the ntuple
+
+ // single track cuts
  double _track_dcaxy_cut = 0.020;  
  double _track_dcaz_cut = 0.020;  
- double _two_track_dcacut = 0.5;  // 5000 microns 
- double _conversion_pair_dcacut = 0.2;  // 5000 microns 
  double _qual_cut = 10.0;
- bool _require_mvtx = false;
- double _min_path_cut = 0.2;
+
+ //track_pair cuts
+ double _two_track_dcacut = 0.5;  // 5000 microns 
  double _max_intersection_radius = 40.0;  // discard intersections at greater than 40 cm radius
  double _projected_track_z_cut = 1.0;
- double _decaymass = 0.13957;  // pion, default
- unsigned int _min_tpc_clusters = 40;
- double _costheta_cut = 0.99;
- double _deta_cut = 0.05;
 
- bool _write_electrons_node = true;
-	      
+ // decay vertex cuts
+ double _min_path_cut = 0.2;
+ double _costheta_cut = 0.9985;
+
+ // specific conversion electron cuts
+ double _conversion_pair_dcacut = 0.2;  // 2000 microns 
+ unsigned int _min_tpc_clusters = 40;
+ double _deta_cut = 0.05;
+ double _invariant_pt_cut = 0.1;
+ double _max_mass_cut = 0.03;
+
   TH2D *recomass{nullptr};
+  TH2D *hdecaypos{nullptr};
+  TH1D *hdecay_radius{nullptr};
   TNtuple *ntp{nullptr};
   std::string outfile;
   
