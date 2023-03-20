@@ -60,7 +60,7 @@ class RawClusterPositionCorrection : public SubsysReco
   PHParameters _eclus_calib_params;
   PHParameters _ecore_calib_params;
   void SetDefaultParameters(PHParameters &param);
-  RawClusterContainer *_recalib_clusters;
+  RawClusterContainer *_recalib_clusters{};
 
   std::string _det_name;
 

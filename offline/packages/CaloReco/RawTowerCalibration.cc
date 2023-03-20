@@ -75,11 +75,11 @@ int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
 
   if (_calib_algorithm == kDbfile_tbt_gain_corr)
   {
-    if (detector.c_str()[0] == 'H')
+    if (detector.c_str()[0] == 'H') {
       _cal_dbfile = (CaloCalibSimpleCorrFile *) new HcalCaloCalibSimpleCorrFilev1();
-    else if (detector.c_str()[0] == 'C')
+    } else if (detector.c_str()[0] == 'C') {
       _cal_dbfile = (CaloCalibSimpleCorrFile *) new CEmcCaloCalibSimpleCorrFilev1();
-    else
+    } else
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
                 << "kDbfile_tbt_gain_corr  chosen but Detector Name not HCALOUT/IN or CEMC"

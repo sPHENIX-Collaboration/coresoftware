@@ -111,10 +111,11 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode * /*topNode*/)
 
       int phibin = towerphis.at(j);
 
-      if (phibin - towerphis.at(0) < -phi_bins / 2.0)
+      if (phibin - towerphis.at(0) < -phi_bins / 2.0) {
         phibin += phi_bins;
-      else if (phibin - towerphis.at(0) > +phi_bins / 2.0)
+      } else if (phibin - towerphis.at(0) > +phi_bins / 2.0) {
         phibin -= phi_bins;
+}
       assert(std::abs(phibin - towerphis.at(0)) <= phi_bins / 2.0);
 
       energymult = towerenergies.at(j) * phibin;
@@ -142,11 +143,15 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode * /*topNode*/)
         int ieta = search_eta;
         int iphi = search_phi;
 
-        if (ieta >= eta_bins) continue;
-        if (ieta < 0) continue;
+        if (ieta >= eta_bins) { continue;
+}
+        if (ieta < 0) { continue;
+}
 
-        if (iphi >= phi_bins) iphi -= phi_bins;
-        if (iphi < 0) iphi += phi_bins;
+        if (iphi >= phi_bins) { iphi -= phi_bins;
+}
+        if (iphi < 0) { iphi += phi_bins;
+}
 
         const bool isDead = m_deadMap->isDeadTower(ieta, iphi);
 
@@ -167,7 +172,8 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode * /*topNode*/)
         }
       }
 
-      if (rejecCluster) break;
+      if (rejecCluster) { break;
+}
     }
 
     //container operation

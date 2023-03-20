@@ -55,9 +55,11 @@ BEmcProfile::BEmcProfile(const std::string& fname)
   nth = hth->GetNbinsX();
 
   energy_array = new float[nen];
-  for (int i = 0; i < nen; i++) energy_array[i] = hen->GetBinContent(i + 1);
+  for (int i = 0; i < nen; i++) { energy_array[i] = hen->GetBinContent(i + 1);
+}
   theta_array = new float[nth];
-  for (int i = 0; i < nth; i++) theta_array[i] = hth->GetBinContent(i + 1);
+  for (int i = 0; i < nth; i++) { theta_array[i] = hth->GetBinContent(i + 1);
+}
 
   if (Verbosity())
   {
@@ -170,7 +172,8 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   }
 
   int nn = plist->size();
-  if (nn <= 0) return -1;
+  if (nn <= 0) { return -1;
+}
 
   // z coordinate below means x coordinate
 
@@ -190,7 +193,8 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
       iz0 = ich % NX;
     }
   }
-  if (emax <= 0) return -1;
+  if (emax <= 0) { return -1;
+}
 
   float etot = 0;
   float sz = 0;
@@ -216,9 +220,11 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   float ddy = fabs(ycg - iy0cg);
 
   int isz = 1;
-  if (zcg - iz0cg < 0) isz = -1;
+  if (zcg - iz0cg < 0) { isz = -1;
+}
   int isy = 1;
-  if (ycg - iy0cg < 0) isy = -1;
+  if (ycg - iy0cg < 0) { isy = -1;
+}
 
   // 4 central towers: 43
   //                   12
@@ -228,10 +234,14 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   e2 = GetTowerEnergy(iy0cg, iz0cg + isz, plist, NX);
   e3 = GetTowerEnergy(iy0cg + isy, iz0cg + isz, plist, NX);
   e4 = GetTowerEnergy(iy0cg + isy, iz0cg, plist, NX);
-  if (e1 < thresh) e1 = 0;
-  if (e2 < thresh) e2 = 0;
-  if (e3 < thresh) e3 = 0;
-  if (e4 < thresh) e4 = 0;
+  if (e1 < thresh) { e1 = 0;
+}
+  if (e2 < thresh) { e2 = 0;
+}
+  if (e3 < thresh) { e3 = 0;
+}
+  if (e4 < thresh) { e4 = 0;
+}
 
   float e1t = (e1 + e2 + e3 + e4) / etot;
   float e2t = (e1 + e2 - e3 - e4) / etot;
@@ -245,11 +255,13 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   for (int ip = 0; ip < NP; ip++)
   {
     PredictEnergy(ip, en, theta, phi, ddz, ddy, ep[ip], err[ip]);
-    if (ep[ip] < 0) return -1;
-    if (ip < 3)
+    if (ep[ip] < 0) { return -1;
+}
+    if (ip < 3) {
       err[ip] = sqrt(err[ip] * err[ip] + 4 * enoise * enoise / etot / etot);
-    else
+    } else {
       err[ip] = sqrt(err[ip] * err[ip] + 1 * enoise * enoise / etot / etot);
+}
   }
 
   float chi2 = 0.;
@@ -409,21 +421,25 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float /*phi*/
 
   // Energy bin
   int ie2 = 0;
-  while (ie2 < nen && energy > energy_array[ie2]) ie2++;
-  if (ie2 == 0)
+  while (ie2 < nen && energy > energy_array[ie2]) { ie2++;
+}
+  if (ie2 == 0) {
     ie2 = 1;
-  else if (ie2 >= nen)
+  } else if (ie2 >= nen) {
     ie2 = nen - 1;
+}
   int ie1 = ie2 - 1;
   //  int ie1 = ie2-2; // For a test()
 
   // Theta bin
   int it2 = 0;
-  while (it2 < nth && theta > theta_array[it2]) it2++;
-  if (it2 == 0)
+  while (it2 < nth && theta > theta_array[it2]) { it2++;
+}
+  if (it2 == 0) {
     it2 = 1;
-  else if (it2 >= nth)
+  } else if (it2 >= nth) {
     it2 = nth - 1;
+}
   int it1 = it2 - 1;
   //  int it1 = it2-2; // For a test()
 
@@ -434,10 +450,11 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float /*phi*/
   float rr = sqrt((0.5 - ddz) * (0.5 - ddz) + (0.5 - ddy) * (0.5 - ddy));
 
   float xx = rr;
-  if (ip == 1)
+  if (ip == 1) {
     xx = ddy;
-  else if (ip == 2)
+  } else if (ip == 2) {
     xx = ddz;
+}
 
   float en1 = energy_array[ie1];
   float en2 = energy_array[ie2];
@@ -457,34 +474,41 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float /*phi*/
   float pr11 = hmean[ii11]->GetBinContent(ibin);
   float pr21 = hmean[ii21]->GetBinContent(ibin);
   float prt1 = pr11 + (pr21 - pr11) / (log(en2) - log(en1)) * (log(energy) - log(en1));
-  if (prt1 < 0) prt1 = 0;
+  if (prt1 < 0) { prt1 = 0;
+}
 
   float er11 = hsigma[ii11]->GetBinContent(ibin);
   float er21 = hsigma[ii21]->GetBinContent(ibin);
   float ert1 = er11 + (er21 - er11) / (1. / sqrt(en2) - 1. / sqrt(en1)) * (1. / sqrt(energy) - 1. / sqrt(en1));
-  if (ert1 < 0) ert1 = 0;
+  if (ert1 < 0) { ert1 = 0;
+}
 
   float pr12 = hmean[ii12]->GetBinContent(ibin);
   float pr22 = hmean[ii22]->GetBinContent(ibin);
   float prt2 = pr12 + (pr22 - pr12) / (log(en2) - log(en1)) * (log(energy) - log(en1));
-  if (prt2 < 0) prt2 = 0;
+  if (prt2 < 0) { prt2 = 0;
+}
 
   float er12 = hsigma[ii12]->GetBinContent(ibin);
   float er22 = hsigma[ii22]->GetBinContent(ibin);
   float ert2 = er12 + (er22 - er12) / (1. / sqrt(en2) - 1. / sqrt(en1)) * (1. / sqrt(energy) - 1. / sqrt(en1));
-  if (ert2 < 0) ert2 = 0;
+  if (ert2 < 0) { ert2 = 0;
+}
 
   // Quadratic theta dependence of mean and sigma
   //
   float pr = prt1 + (prt2 - prt1) / (pow(th2, 2) - pow(th1, 2)) * (pow(theta, 2) - pow(th1, 2));
-  if (pr < 0) pr = 0;
+  if (pr < 0) { pr = 0;
+}
   float er = ert1 + (ert2 - ert1) / (pow(th2, 2) - pow(th1, 2)) * (pow(theta, 2) - pow(th1, 2));
-  if (er < 0) er = 0;
+  if (er < 0) { er = 0;
+}
 
   // Additional error due to binning in xx
   //
   int ibin1 = ibin;
-  if (ibin > 1) ibin1 = ibin - 1;
+  if (ibin > 1) { ibin1 = ibin - 1;
+}
   int ibin2 = ibin;
   if (ibin < hmean[ii11]->GetNbinsX())
   {
@@ -536,21 +560,25 @@ float BEmcProfile::PredictEnergyR(float energy, float theta, float /*phi*/, floa
 
   // Energy bin
   int ie2 = 0;
-  while (ie2 < nen && energy > energy_array[ie2]) ie2++;
-  if (ie2 == 0)
+  while (ie2 < nen && energy > energy_array[ie2]) { ie2++;
+}
+  if (ie2 == 0) {
     ie2 = 1;
-  else if (ie2 >= nen)
+  } else if (ie2 >= nen) {
     ie2 = nen - 1;
+}
   int ie1 = ie2 - 1;
   //  int ie1 = ie2-2; // For a test()
 
   // Theta bin
   int it2 = 0;
-  while (it2 < nth && theta > theta_array[it2]) it2++;
-  if (it2 == 0)
+  while (it2 < nth && theta > theta_array[it2]) { it2++;
+}
+  if (it2 == 0) {
     it2 = 1;
-  else if (it2 >= nth)
+  } else if (it2 >= nth) {
     it2 = nth - 1;
+}
   int it1 = it2 - 1;
   //  int it1 = it2-2; // For a test()
 
@@ -574,17 +602,20 @@ float BEmcProfile::PredictEnergyR(float energy, float theta, float /*phi*/, floa
   float pr11 = hr4[ii11]->GetBinContent(ibin);
   float pr21 = hr4[ii21]->GetBinContent(ibin);
   float prt1 = pr11 + (pr21 - pr11) / (log(en2) - log(en1)) * (log(energy) - log(en1));
-  if (prt1 < 0) prt1 = 0;
+  if (prt1 < 0) { prt1 = 0;
+}
 
   float pr12 = hr4[ii12]->GetBinContent(ibin);
   float pr22 = hr4[ii22]->GetBinContent(ibin);
   float prt2 = pr12 + (pr22 - pr12) / (log(en2) - log(en1)) * (log(energy) - log(en1));
-  if (prt2 < 0) prt2 = 0;
+  if (prt2 < 0) { prt2 = 0;
+}
 
   // Quadratic theta dependence of mean and sigma
   //
   float pr = prt1 + (prt2 - prt1) / (pow(th2, 2) - pow(th1, 2)) * (pow(theta, 2) - pow(th1, 2));
-  if (pr < 0) pr = 0;
+  if (pr < 0) { pr = 0;
+}
 
   return pr;
 }
@@ -592,7 +623,8 @@ float BEmcProfile::PredictEnergyR(float energy, float theta, float /*phi*/, floa
 float BEmcProfile::GetTowerEnergy(int iy, int iz, std::vector<EmcModule>* plist, int NX)
 {
   int nn = plist->size();
-  if (nn <= 0) return 0;
+  if (nn <= 0) { return 0;
+}
 
   for (int i = 0; i < nn; i++)
   {

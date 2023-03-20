@@ -193,7 +193,8 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
     if (nsamples >= 3) {
       int maxx = 0;
       for (int i = 0; i < nsamples; i++) {
-        if (i < 3) ped += v.at(i);
+        if (i < 3) { ped += v.at(i);
+}
         if (v.at(i) > maxy) {
           maxy = v.at(i);
           maxx = i;

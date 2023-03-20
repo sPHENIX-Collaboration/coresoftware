@@ -115,8 +115,9 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
   }
   
   std::string rawClusNodeName = "CLUSTER_" + _det_name;
-  if (m_UseTowerInfo)
+  if (m_UseTowerInfo) {
     rawClusNodeName = "CLUSTERINFO_" + _det_name;
+}
   
   RawClusterContainer *rawclusters = findNode::getClass<RawClusterContainer>(topNode, rawClusNodeName.c_str());
   if (!rawclusters)
@@ -125,8 +126,8 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  RawTowerContainer *_towers = 0;
-  TowerInfoContainer *  _towerinfos = 0;
+  RawTowerContainer *_towers = nullptr;
+  TowerInfoContainer *  _towerinfos = nullptr;
 
   if (!m_UseTowerInfo)
     {
@@ -247,10 +248,11 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
       
       int phibin = towerphis.at(j);
       
-      if (phibin - towerphis.at(0) < -nphibin / 2.0)
+      if (phibin - towerphis.at(0) < -nphibin / 2.0) {
         phibin += nphibin;
-      else if (phibin - towerphis.at(0) > +nphibin / 2.0)
+      } else if (phibin - towerphis.at(0) > +nphibin / 2.0) {
         phibin -= nphibin;
+}
       assert(std::abs(phibin - towerphis.at(0)) <= nphibin / 2.0);
 
       energymult = towerenergies.at(j) * phibin;
@@ -261,7 +263,8 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     float avgphi = phimult / phisum;
     float avgeta = etamult / etasum;
     
-    if (avgphi < 0) avgphi += nphibin;
+    if (avgphi < 0) { avgphi += nphibin;
+}
 
     //this determines the position of the cluster in the 2x2 block
     float fmodphi = fmod(avgphi, 2.);
@@ -272,18 +275,23 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 
     int etabin = -99;
     int phibin = -99;
-    for (int j = 0; j < bins - 1; j++)
-      if (fmodphi >= binvals.at(j) && fmodphi <= binvals.at(j + 1))
+    for (int j = 0; j < bins - 1; j++) {
+      if (fmodphi >= binvals.at(j) && fmodphi <= binvals.at(j + 1)) {
         phibin = j;
+}
+}
     
-    for (int j = 0; j < bins - 1; j++)
-      if (fmodeta >= binvals.at(j) && fmodeta <= binvals.at(j + 1))
+    for (int j = 0; j < bins - 1; j++) {
+      if (fmodeta >= binvals.at(j) && fmodeta <= binvals.at(j + 1)) {
         etabin = j;
+}
+}
 
     if ((phibin < 0 || etabin < 0) && Verbosity())
     {
-      if (Verbosity())
+      if (Verbosity()) {
         std::cout << "couldn't recalibrate cluster, something went wrong??" << std::endl;
+}
     }
 
     float eclus_recalib_val = 1;
@@ -350,8 +358,9 @@ void RawClusterPositionCorrection::CreateNodeTree(PHCompositeNode *topNode)
   if (!_recalib_clusters)
     { 
       _recalib_clusters = new RawClusterContainer();
-      if (m_UseTowerInfo)
+      if (m_UseTowerInfo) {
 	ClusterCorrNodeName = "CLUSTERINFO_POS_COR_" + _det_name;
+}
       
       PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_recalib_clusters, ClusterCorrNodeName.c_str(), "PHObject");
       cemcNode->addNode(clusterNode);

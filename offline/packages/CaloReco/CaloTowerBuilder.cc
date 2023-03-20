@@ -83,7 +83,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   if (m_isdata)
   {
     Event *_event = findNode::getClass<Event>(topNode, "PRDF");
-    if (_event == 0)
+    if (_event == nullptr)
     {
       std::cout << "CaloUnpackPRDF::Process_Event - Event not found" << std::endl;
       return -1;
@@ -102,7 +102,8 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       for (int channel = 0; channel < packet->iValue(0, "CHANNELS"); channel++)
       {
         std::vector<float> waveform;
-        for (int samp = 0; samp < m_nsamples; samp++)
+        waveform.reserve(m_nsamples);
+for (int samp = 0; samp < m_nsamples; samp++)
         {
           waveform.push_back(packet->iValue(samp, channel));
         }

@@ -168,10 +168,14 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     RawTowerDefs::keytype towerid = towerg->get_id();
     int ix = RawTowerDefs::decode_index2(towerid);  // index2 is phi in CYL
     int iy = RawTowerDefs::decode_index1(towerid);  // index1 is eta in CYL
-    if (ixmin > ix) ixmin = ix;
-    if (ixmax < ix) ixmax = ix;
-    if (iymin > iy) iymin = iy;
-    if (iymax < iy) iymax = iy;
+    if (ixmin > ix) { ixmin = ix;
+}
+    if (ixmax < ix) { ixmax = ix;
+}
+    if (iymin > iy) { iymin = iy;
+}
+    if (iymax < iy) { iymax = iy;
+}
     ngeom++;
   }
   if (Verbosity() > 1)
@@ -217,7 +221,8 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  if (!bemc->CompleteTowerGeometry()) return Fun4AllReturnCodes::ABORTEVENT;
+  if (!bemc->CompleteTowerGeometry()) { return Fun4AllReturnCodes::ABORTEVENT;
+}
 
   if (bPrintGeom)
   {
@@ -265,7 +270,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-    RawTowerContainer *towers = 0;
+    RawTowerContainer *towers = nullptr;
     if (m_UseTowerInfo < 1)
     {
 
@@ -288,7 +293,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  TowerInfoContainer *  calib_towerinfos = 0;
+  TowerInfoContainer *  calib_towerinfos = nullptr;
 
   if (m_UseTowerInfo > 0)
     {
@@ -462,7 +467,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     //    pc->GetMoments( &xcg, &ycg, &xx, &xy, &yy );
 
     int npk = pc->GetSubClusters(PList, Peaks);
-    if (npk < 0) return Fun4AllReturnCodes::ABORTEVENT;
+    if (npk < 0) { return Fun4AllReturnCodes::ABORTEVENT;
+}
 
     //    std::cout << "  iCl = " << ncl << " (" << npk << "): E ="
     //         << ecl << "  x = " << xcg << "  y = " << ycg << std::endl;
@@ -604,8 +610,9 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
   _clusters = new RawClusterContainer();
   ClusterNodeName = "CLUSTER_" + detector;
 
-  if (m_UseTowerInfo)
+  if (m_UseTowerInfo) {
     ClusterNodeName = "CLUSTERINFO_" + detector;
+}
 
   PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   cemcNode->addNode(clusterNode);
