@@ -9,20 +9,19 @@
 #include <iostream>
 #include <string>
 
-
 Ort::Session *onnxmodule;
 
 void CaloWaveformProcessing::initialize_processing()
 {
-    char *calibrationsroot =  getenv("CALIBRATIONROOT");
-    assert(calibrationsroot);
+  char *calibrationsroot = getenv("CALIBRATIONROOT");
+  assert(calibrationsroot);
   if (m_processingtype == CaloWaveformProcessing::TEMPLATE)
   {
     std::string calibrations_repo_template = std::string(calibrationsroot) + "/WaveformProcessing/templates/" + m_template_input_file;
     url_template = XploadInterface::instance()->getUrl(m_template_input_file, calibrations_repo_template);
     m_Fitter = new CaloWaveformFitting();
     m_Fitter->initialize_processing(url_template);
-    m_Fitter->set_nthreads(get_nthreads ());
+    m_Fitter->set_nthreads(get_nthreads());
   }
   if (m_processingtype == CaloWaveformProcessing::ONNX)
   {
@@ -84,20 +83,20 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(std
   return fit_values;
 }
 
-  int CaloWaveformProcessing::get_nthreads()
+int CaloWaveformProcessing::get_nthreads()
+{
+  if (m_Fitter)
   {
-    if (m_Fitter)
-    {
-      return m_Fitter->get_nthreads();
-    }
-    return _nthreads;
+    return m_Fitter->get_nthreads();
   }
-  void CaloWaveformProcessing::set_nthreads (int nthreads)
+  return _nthreads;
+}
+void CaloWaveformProcessing::set_nthreads(int nthreads)
+{
+  _nthreads = nthreads;
+  if (m_Fitter)
   {
-    _nthreads = nthreads;
-    if (m_Fitter)
-    {
-      m_Fitter->set_nthreads(nthreads);
-    }
-    return;
+    m_Fitter->set_nthreads(nthreads);
   }
+  return;
+}

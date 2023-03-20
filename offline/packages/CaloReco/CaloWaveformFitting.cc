@@ -15,12 +15,11 @@
 #include <ROOT/TThreadExecutor.hxx>
 #include <ROOT/TThreadedObject.hxx>
 
-#include <iostream>
 #include <pthread.h>
+#include <iostream>
 #include <string>
 
-
-//Define some items that must be defined globally in the .cc file
+// Define some items that must be defined globally in the .cc file
 TProfile *CaloWaveformFitting::h_template = nullptr;
 
 double CaloWaveformFitting::template_function(double *x, double *par)
@@ -31,28 +30,29 @@ double CaloWaveformFitting::template_function(double *x, double *par)
 
 void CaloWaveformFitting::initialize_processing(const std::string &templatefile)
 {
-    TFile *fin = TFile::Open(templatefile.c_str());
-    assert(fin);
-    assert(fin->IsOpen());
-    h_template = static_cast<TProfile *>(fin->Get("waveform_template"));
+  TFile *fin = TFile::Open(templatefile.c_str());
+  assert(fin);
+  assert(fin->IsOpen());
+  h_template = static_cast<TProfile *>(fin->Get("waveform_template"));
 }
 
 std::vector<std::vector<float>> CaloWaveformFitting::process_waveform(std::vector<std::vector<float>> waveformvector)
 {
   int size1 = waveformvector.size();
   std::vector<std::vector<float>> fitresults;
-    for (int i = 0; i < size1; i++)
-    {
-      waveformvector.at(i).push_back(i);
-    }
-    fitresults = calo_processing_templatefit(waveformvector);
+  for (int i = 0; i < size1; i++)
+  {
+    waveformvector.at(i).push_back(i);
+  }
+  fitresults = calo_processing_templatefit(waveformvector);
   return fitresults;
 }
 
 std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit(std::vector<std::vector<float>> chnlvector)
 {
   ROOT::TThreadExecutor t(_nthreads);
-  auto func = [&](std::vector<float> &v) {
+  auto func = [&](std::vector<float> &v)
+  {
     int size1 = v.size() - 1;
     auto h = new TH1F(Form("h_%d", (int) round(v.at(size1))), "", size1, 0, size1);
     float maxheight = 0;
@@ -120,7 +120,8 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
   return fit_params;
 }
 
-void CaloWaveformFitting::FastMax(float x0, float x1, float x2, float y0, float y1, float y2, float & xmax, float & ymax) {
+void CaloWaveformFitting::FastMax(float x0, float x1, float x2, float y0, float y1, float y2, float &xmax, float &ymax)
+{
   int n = 3;
   double xp[3] = {x0, x1, x2};
   double yp[3] = {y0, y1, y2};
@@ -128,50 +129,60 @@ void CaloWaveformFitting::FastMax(float x0, float x1, float x2, float y0, float 
   double X, Y, B, C, D;
   ymax = y1;
   xmax = x1;
-  if (y0 > ymax) {
+  if (y0 > ymax)
+  {
     ymax = y0;
     xmax = x0;
   }
-  if (y2 > ymax) {
+  if (y2 > ymax)
+  {
     ymax = y2;
     xmax = x2;
   }
-  for (int i = 0; i <= 1; i++) {
+  for (int i = 0; i <= 1; i++)
+  {
     sp->GetCoeff(i, X, Y, B, C, D);
-    if (D == 0) {
-
-      if (C < 0) {
-        //TSpline is a quadratic equation
+    if (D == 0)
+    {
+      if (C < 0)
+      {
+        // TSpline is a quadratic equation
 
         float root = -B / (2 * C) + X;
-        if (root >= xp[i] && root <= xp[i + 1]) {
+        if (root >= xp[i] && root <= xp[i + 1])
+        {
           float yvalue = sp->Eval(root);
-          if (yvalue > ymax) {
+          if (yvalue > ymax)
+          {
             ymax = yvalue;
             xmax = root;
           }
         }
       }
     }
-    else {
-      //find x when derivative = 0
+    else
+    {
+      // find x when derivative = 0
       float root = (-2 * C + sqrt(4 * C * C - 12 * B * D)) / (6 * D) + X;
-      if (root >= xp[i] && root <= xp[i + 1]) {
+      if (root >= xp[i] && root <= xp[i + 1])
+      {
         float yvalue = sp->Eval(root);
-        if (yvalue > ymax) {
+        if (yvalue > ymax)
+        {
           ymax = yvalue;
           xmax = root;
         }
       }
       root = (-2 * C - sqrt(4 * C * C - 12 * B * D)) / (6 * D) + X;
-      if (root >= xp[i] && root <= xp[i + 1]) {
+      if (root >= xp[i] && root <= xp[i + 1])
+      {
         float yvalue = sp->Eval(root);
-        if (yvalue > ymax) {
+        if (yvalue > ymax)
+        {
           ymax = yvalue;
           xmax = root;
         }
       }
-
     }
   }
   delete sp;
@@ -190,24 +201,30 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
     float amp = 0;
     float time = 0;
     float ped = 0;
-    if (nsamples >= 3) {
+    if (nsamples >= 3)
+    {
       int maxx = 0;
-      for (int i = 0; i < nsamples; i++) {
-        if (i < 3) { ped += v.at(i);
-}
-        if (v.at(i) > maxy) {
+      for (int i = 0; i < nsamples; i++)
+      {
+        if (i < 3)
+        {
+          ped += v.at(i);
+        }
+        if (v.at(i) > maxy)
+        {
           maxy = v.at(i);
           maxx = i;
         }
       }
       ped /= 3;
-      if (maxx == 0 || maxx == nsamples - 1) {
+      if (maxx == 0 || maxx == nsamples - 1)
+      {
         amp = maxy;
         time = maxx;
       }
-      else {
+      else
+      {
         FastMax(maxx - 1, maxx, maxx + 1, v.at(maxx - 1), v.at(maxx), v.at(maxx + 1), time, amp);
-
       }
     }
     amp -= ped;

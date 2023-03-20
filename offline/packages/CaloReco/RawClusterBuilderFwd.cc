@@ -265,8 +265,10 @@ bool RawClusterBuilderFwd::CorrectPhi(RawCluster *cluster, RawTowerContainer *to
     RawTowerGeom *tgeo =
         towergeom->get_tower_geometry(tmpt->get_id());
     double phi = tgeo->get_phi();
-    if (phi > M_PI) { phi = phi - 2. * M_PI;  // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
-}
+    if (phi > M_PI)
+    {
+      phi = phi - 2. * M_PI;  // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
+    }
     if (phi < phimin)
     {
       phimin = phi;
@@ -277,8 +279,10 @@ bool RawClusterBuilderFwd::CorrectPhi(RawCluster *cluster, RawTowerContainer *to
     }
   }
 
-  if ((phimax - phimin) < 3.) { return false;  // cluster is not at phi discontinuity
-}
+  if ((phimax - phimin) < 3.)
+  {
+    return false;  // cluster is not at phi discontinuity
+  }
 
   float mean = 0.;
   for (iter = begin_end.first; iter != begin_end.second; ++iter)
@@ -288,8 +292,10 @@ bool RawClusterBuilderFwd::CorrectPhi(RawCluster *cluster, RawTowerContainer *to
     RawTowerGeom *tgeo =
         towergeom->get_tower_geometry(tmpt->get_id());
     double phi = tgeo->get_phi();
-    if (phi > M_PI) { phi = phi - 2. * M_PI;  // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
-}
+    if (phi > M_PI)
+    {
+      phi = phi - 2. * M_PI;  // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
+    }
     if (phi < 0.)
     {
       phi = phi + 2. * M_PI;  // shift phi range for correct mean calculation

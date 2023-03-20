@@ -21,11 +21,10 @@ class CaloWaveformProcessing : public SubsysReco
   };
 
   CaloWaveformProcessing()
-    :m_processingtype(CaloWaveformProcessing::TEMPLATE)
+    : m_processingtype(CaloWaveformProcessing::TEMPLATE)
     , m_template_input_file("CEMC_TEMPLATE")
-    , m_model_name("CEMC_ONNX")
-{};
-  ~CaloWaveformProcessing() override  { }
+    , m_model_name("CEMC_ONNX"){};
+  ~CaloWaveformProcessing() override {}
 
   void set_processing_type(CaloWaveformProcessing::process modelno)
   {
@@ -53,17 +52,15 @@ class CaloWaveformProcessing : public SubsysReco
 
   int get_nthreads();
 
-  std::vector<std::vector<float>>  process_waveform(std::vector<std::vector<float>> waveformvector);
-  std::vector<std::vector<float>>  calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
+  std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
+  std::vector<std::vector<float>> calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
 
-
-  void initialize_processing(); 
+  void initialize_processing();
 
  private:
-
   CaloWaveformFitting *m_Fitter = nullptr;
 
-  CaloWaveformProcessing::process m_processingtype = CaloWaveformProcessing::NONE; 
+  CaloWaveformProcessing::process m_processingtype = CaloWaveformProcessing::NONE;
   int _nthreads = 1;
 
   std::string m_template_input_file;

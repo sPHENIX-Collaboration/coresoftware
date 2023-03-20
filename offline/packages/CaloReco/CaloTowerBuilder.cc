@@ -103,7 +103,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       {
         std::vector<float> waveform;
         waveform.reserve(m_nsamples);
-for (int samp = 0; samp < m_nsamples; samp++)
+        for (int samp = 0; samp < m_nsamples; samp++)
         {
           waveform.push_back(packet->iValue(samp, channel));
         }
