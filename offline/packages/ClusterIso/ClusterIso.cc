@@ -141,7 +141,6 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
     {
       if (Verbosity() >= VERBOSITY_EVEN_MORE) std::cout << Name() << "::ClusterIso starting subtracted calculation" << '\n';
       //get EMCal towers
-     // RawTowerContainer *towersEM3old = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER_SUB1");
       TowerInfoContainer *towersEM3old = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1");
       if (towersEM3old == nullptr)
       {
@@ -248,7 +247,6 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
    	    unsigned int ntowers = towersOH3->size();
 	    for (unsigned int channel = 0; channel < ntowers;channel++)
             {
-              // RawTower *tower = rtiter->second;
    	      TowerInfo *tower = towersOH3->get_tower_at_channel(channel);
 	      unsigned int towerkey =towersOH3->encode_key(channel);
 	      int ieta = towersOH3->getTowerEtaBin(towerkey);
@@ -383,8 +381,6 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
           if (Verbosity() >= VERBOSITY_MAX) std::cout << "\t after innerHCal isoEt:" << isoEt << '\n';
           //calculate Outer HCal tower contribution to isolation energy
           {
-            // RawTowerContainer::ConstRange begin_end = towersOH3->getTowers();
-            // for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
  	    unsigned int ntowers = towersOH3->size();
 	    for (unsigned int channel = 0; channel < ntowers;channel++)
 	      {
