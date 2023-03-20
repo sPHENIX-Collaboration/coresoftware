@@ -26,6 +26,12 @@ int PHSiliconHelicalPropagator::InitRun(PHCompositeNode* topNode)
     std::cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+  _cluster_crossing_map = findNode::getClass<TrkrClusterCrossingAssoc>(topNode, "TRKR_CLUSTERCROSSINGASSOC");
+  if (!_cluster_crossing_map)
+  {
+    std::cerr << PHWHERE << " ERROR: Can't find TRKR_CLUSTERCROSSINGASSOC " << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
   _tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!_tgeometry)
   {
@@ -111,9 +117,26 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
     if(nSiClusters>0)
     {
       std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
+      std::map<short,int> crossing_frequency;
       for(auto clusterkey : si_clusterKeys)
       {
         si_seed->insert_cluster_key(clusterkey);
+        if(TrkrDefs::getTrkrId(clusterkey) == TrkrDefs::inttId)
+        {
+          auto hit_crossings = _cluster_crossing_map->getCrossings(clusterkey);
+          for(auto iter = hit_crossings.first; iter != hit_crossings.second; ++iter)
+          {
+            short crossing = iter->second;
+            if(crossing_frequency.count(crossing)==0) crossing_frequency.insert({crossing,1});
+            else crossing_frequency[crossing]++;
+          }
+        }
+      }
+      if(crossing_frequency.size()>0)
+      {
+        short most_common_crossing = (std::max_element(crossing_frequency.begin(),crossing_frequency.end(),
+          [](auto entry1, auto entry2) { return entry1.second > entry2.second; }))->first;
+        si_seed->set_crossing(most_common_crossing);
       }
       si_seed->circleFitByTaubin(_cluster_map,_tgeometry,0,8);
       si_seed->lineFit(_cluster_map,_tgeometry,0,8);
