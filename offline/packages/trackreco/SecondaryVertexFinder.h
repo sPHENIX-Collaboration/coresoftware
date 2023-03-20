@@ -119,7 +119,7 @@ bool passConversionElectronCuts(TLorentzVector tsum,
  // single track cuts
  double _track_dcaxy_cut = 0.020;  
  double _track_dcaz_cut = 0.020;  
- double _qual_cut = 10.0;
+ double _qual_cut = 4.0;
 
  //track_pair cuts
  double _two_track_dcacut = 0.5;  // 5000 microns 
