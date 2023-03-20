@@ -6,16 +6,29 @@
 #include <utility>
 #include <array>
 #include <set>
+#include <vector>
+#include <Eigen/Core>
 /* #include <trackbase_historic/TrackSeed.h> */
 
-class TrkrClusterContainer;
+class ActsGeometry;
+class EmbRecoMatchContainer;
 class PHCompositeNode;
-class TrkrCluster;
 class SvtxTrack;
+class SvtxTrackMap;
+class TrkrCluster;
+class TrkrClusterContainer;
+class TrkrTruthTrack;
 
 namespace G4Eval {
-  class TrkrClusterComparer {
 
+  // Following function writes msg to the currently active TFile
+  // if f_outname is provided, then it will write the message to a new
+  // TFiles of that name and close it again.
+  void write_StringToTFile(std::string msg_name, std::string msg);
+
+  std::vector<int> unmatchedSvtxTrkIds(EmbRecoMatchContainer*, SvtxTrackMap*);
+
+  class TrkrClusterComparer {
     // most members are public for easy access after the node has been used
     public:
     TrkrClusterComparer (float _nphi_widths=0.5, float _nz_widths=0.5 );
@@ -51,6 +64,9 @@ namespace G4Eval {
 
     void set_nz_widths(float   val) { m_nz_widths   = val; };
     void set_nphi_widths(float val) { m_nphi_widths = val; };
+
+    std::pair<int,Eigen::Vector3d> clusloc_PHG4(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey>);
+    std::pair<int,Eigen::Vector3d> clusloc_SVTX(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey>);
     private:
     //phi pixel sizes, got for the geometries from the topNode
     std::array<double, 56> m_phistep {0.}; // the phistep squared
@@ -59,6 +75,8 @@ namespace G4Eval {
 
     TrkrClusterContainer* m_TruthClusters {nullptr};
     TrkrClusterContainer* m_RecoClusters  {nullptr};
+    ActsGeometry*         m_ActsGeometry  {nullptr};
+
   };
   
   // The following is a struct to iterate over the cluster keys for a given
@@ -88,41 +106,59 @@ namespace G4Eval {
     bool operator!=(const ClusKeyIter& rhs);
   };
 
-  struct HitSetClusKeyVec {
+  int trklayer_0123(TrkrDefs::hitsetkey); // 0:Mvtx 1:Intt 2:Tpc 3:Tpot 
+
+  class ClusCntr {
+    private:
     using Vector = std::vector<std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey>>;
     using Iter = Vector::iterator;
 
-    vector keys_svtx;
-    vector keys_phg4;
+    TrkrClusterComparer* comp;
+    std::array<int,5> cntclus(Vector& keys);
+    std::array<int,5> cnt_matchedclus(Vector& keys, std::vector<bool>& matches);
+    ActsGeometry* geom {nullptr};
 
-    vector bool matches_svtx;
-    vector bool matches_phg4;
+    public:
+    ClusCntr(TrkrClusterComparer*_=nullptr) : comp{_} {};
 
-    double find_matches(TrkrClusterCommparer&);
+    Vector svtx_keys {};
+    Vector phg4_keys {};
 
-    int addSvtxClusters(SvtxTrack*);
-    int addPHG4Clusters(TrkrTruthTrack*);
+    double match_stat {0};
 
-    std::array<unsigned int,4> svtx_cntclus_allMvtxInttTpc();
-    std::array<unsigned int,4> phg4_cntclus_allMvtxInttTpc();
+    void reset();
+    std::array<int,3> find_matches();// populated matches_{svtx,phg4}; 
+                                     // return's {n-matched, n-phg4, n-svtx}
+    std::array<int,3> find_matches(TrkrTruthTrack* g4_track, SvtxTrack* sv_track);
 
-    std::array<unsigned int,4> svtx_cntmatchclus_allMvtxInttTpc();
-    std::array<unsigned int,4> phg4_cntmatchclus_allMvtxInttTpc();
+    int phg4_n_matched(); // also same as phg4_cnt_matchedclus()[4]
+    int svtx_n_matched(); // should be almost always the same
+                     // which is ALMOST guaranteed to be same as svtx_cnt_matchedclus()[4]
+    int phg4_nclus() { return (int) phg4_keys.size(); }
+    int svtx_nclus() { return (int) svtx_keys.size(); }
 
+    std::vector<bool> svtx_matches;
+    std::vector<bool> phg4_matches;
 
-    // Does the following:
-    // for a given SvtxTrack or TrkrTruthTrack,
-    // - makes a vector of pairs: {hitsetkey, cluskey}, and sort it
-    // - can return pointers to first and last pair with a given hitsetkey
-    // - can keep track of which one's are matched and which are not
-    HitSetClusKeyVec(SvtxTrack*);
-    HitSetClusKeyVec(TrkrTruthTrack*);
-    std::vector< std::pair<TrkrDefs::hitsetkey, TrkrDefs::cluskey>> data;
-    int cnt(TrkrDefs::hitsetkey); // count how many pairs have 
-    vector<TrkrDefs::cluskey
+    int addClusKeys(SvtxTrack*); // return number of clusters
+    int addClusKeys(TrkrTruthTrack*); // return number of clusters
 
-  }
+    std::array<int,5> svtx_cntclus() { return cntclus(svtx_keys); }; // Mvtx Intt Tpc TPOT Sum
+    std::array<int,5> phg4_cntclus() { return cntclus(phg4_keys); };
 
+    std::array<int,5> svtx_cnt_matchedclus() {return cnt_matchedclus(svtx_keys, svtx_matches); };
+    std::array<int,5> phg4_cnt_matchedclus() {return cnt_matchedclus(phg4_keys, phg4_matches); };
+
+    using LayerLoc = std::pair<int,Eigen::Vector3d>;
+    std::vector<LayerLoc> phg4_clusloc_all();
+    std::vector<LayerLoc> phg4_clusloc_unmatched();
+    std::vector<LayerLoc> svtx_clusloc_all();
+    std::vector<LayerLoc> svtx_clusloc_unmatched();
+    std::vector<LayerLoc> clusloc_matched();
+
+    void set_comparer(TrkrClusterComparer* _comp) { comp = _comp; };
+
+  };
 }
 
 #endif

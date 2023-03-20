@@ -74,6 +74,7 @@ class TruthRecoTrackMatching : public SubsysReco
     int End(PHCompositeNode           *) override;
 
     G4Eval::TrkrClusterComparer m_cluster_comp;
+    G4Eval::ClusCntr            m_cluscntr;
 
     int createNodes(PHCompositeNode* topNode);
 
