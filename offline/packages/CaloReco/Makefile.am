@@ -11,8 +11,12 @@ lib_LTLIBRARIES = \
 libcalo_reco_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib64 \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  `root-config --libs`
 
+if USE_ONLINE
+
+else
 libcalo_reco_la_LIBADD = \
   -lCLHEP \
   -lphool \
@@ -26,12 +30,18 @@ libcalo_reco_la_LIBADD = \
   -lcdbobjects \
   -ldbtools \
   -lphparameter
+endif
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
+if USE_ONLINE
+pkginclude_HEADERS = \
+  CaloWaveformFitting.h
+
+else
 pkginclude_HEADERS = \
   CaloWaveformFitting.h \
   CaloWaveformProcessing.h \
@@ -43,7 +53,13 @@ pkginclude_HEADERS = \
   RawClusterBuilderTemplate.h \
   RawClusterPositionCorrection.h \
   RawTowerCalibration.h 
+endif
 
+if USE_ONLINE
+libcalo_reco_la_SOURCES = \
+  CaloWaveformFitting.cc
+
+else
 libcalo_reco_la_SOURCES = \
   BEmcCluster.cc \
   BEmcProfile.cc \
@@ -65,6 +81,7 @@ libcalo_reco_la_SOURCES = \
   RawTowerCalibration.cc \
   RawTowerDeadTowerInterp.cc \
   RawTowerDeadMapLoader.cc
+endif
 
 ################################################
 # linking tests
