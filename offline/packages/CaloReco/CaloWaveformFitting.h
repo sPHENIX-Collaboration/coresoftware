@@ -1,20 +1,14 @@
 #ifndef CALORECO_CALOWAVEFORMFITTING_H
 #define CALORECO_CALOWAVEFORMFITTING_H
 
-#include <TProfile.h>
-
 #include <string>
+#include <vector>
+
+class TProfile;
 
 class CaloWaveformFitting
 {
  public:
-  enum process
-  {
-    NONE = 0,
-    TEMPLATE = 1,
-    ONNX = 2,
-    FAST = 3,
-  };
 
   CaloWaveformFitting() = default;
   ~CaloWaveformFitting() = default;
@@ -44,11 +38,9 @@ class CaloWaveformFitting
 
  private:
 
-  static TProfile* h_template; 
+  static TProfile *h_template;
   static double template_function(double *x, double *par);
-
   int _nthreads = 1;
-
   std::string m_template_input_file;
   std::string url_template;
 

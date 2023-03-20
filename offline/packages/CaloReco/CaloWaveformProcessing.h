@@ -61,7 +61,6 @@ class CaloWaveformProcessing : public SubsysReco
 
   std::vector<std::vector<float>>  process_waveform(std::vector<std::vector<float>> waveformvector);
   std::vector<std::vector<float>>  calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
-  std::vector<std::vector<float>>  calo_processing_templatefit(std::vector<std::vector<float>> chnlvector);
   std::vector<std::vector<float>>  calo_processing_fast(std::vector<std::vector<float>> chnlvector);
 
 
@@ -69,8 +68,6 @@ class CaloWaveformProcessing : public SubsysReco
 
  private:
 
-  static TProfile* h_template; 
-  static double template_function(double *x, double *par);
   CaloWaveformFitting *m_TemplateFitter = nullptr;
 
   CaloWaveformProcessing::process m_processingtype = CaloWaveformProcessing::NONE; 

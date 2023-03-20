@@ -1,9 +1,5 @@
 #include "CaloWaveformFitting.h"
 
-#include <ffamodules/XploadInterface.h>
-
-#include <phool/onnxlib.h>
-
 #include <TF1.h>
 #include <TFile.h>
 #include <TProfile.h>
