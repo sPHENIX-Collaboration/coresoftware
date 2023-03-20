@@ -136,9 +136,6 @@ class MakeActsGeometry : public SubsysReco
 
   void set_drift_velocity(double vd){m_drift_velocity = vd;}
 
-  void build_mm_surfaces( bool value )
-  { m_buildMMs = value; }
-    
   void set_nSurfPhi( unsigned int value )
   { m_nSurfPhi = value; }
   
@@ -271,8 +268,6 @@ class MakeActsGeometry : public SubsysReco
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField ="1.4" ;
   double m_magFieldRescale = -1.;
-
-  bool m_buildMMs = false;
 
   double m_mvtxDevs[6] = {0};
   double m_inttDevs[6] = {0};

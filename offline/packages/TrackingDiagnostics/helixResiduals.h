@@ -19,17 +19,17 @@ class SvtxTrackMap;
 
 class helixResiduals : public SubsysReco
 {
-public:
-  helixResiduals(const std::string &name = "helixResiduals", const std::string &outputFile = "residuals.root");
-  ~helixResiduals(){}
+ public:
+  helixResiduals(const std::string& name = "helixResiduals");
+  ~helixResiduals() {}
 
-  int InitRun(PHCompositeNode *topNode) override;
-  int process_event(PHCompositeNode * /*topNode*/) override;
-  int End(PHCompositeNode * /*topNode*/) override;
+  int InitRun(PHCompositeNode* topNode) override;
+  int process_event(PHCompositeNode* /*topNode*/) override;
+  int End(PHCompositeNode* /*topNode*/) override;
+  void set_output_file(const std::string& outputfile) { filepath = outputfile; }
 
-private:  
-
-  int getNodes(PHCompositeNode *topNode);
+ private:
+  int getNodes(PHCompositeNode* topNode);
 
   void fill_residuals(TrackSeed* seed, int seed_id, bool isTpc);
 
@@ -43,9 +43,9 @@ private:
   TrackSeedContainer* _tpc_seeds = nullptr;
   TrackSeedContainer* _si_seeds = nullptr;
 
-  TFile *fout = nullptr;
+  TFile* fout = nullptr;
 
-  std::string _outputfile = "";
+  std::string filepath = "";
 };
 
-#endif  // HELIXRESIDUALS_H 
+#endif  // HELIXRESIDUALS_H

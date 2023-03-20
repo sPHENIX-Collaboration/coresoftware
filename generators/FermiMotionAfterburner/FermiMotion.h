@@ -8,6 +8,6 @@ namespace HepMC
   class GenEvent;
 }
 
-int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator);
+int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator, double pTspec);
 
 #endif

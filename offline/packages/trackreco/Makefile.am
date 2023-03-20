@@ -22,6 +22,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsAlignmentStates.h \
+  ActsPropagator.h \
   ALICEKF.h \
   AssocInfoContainer.h \
   AssocInfoContainerv1.h \
@@ -48,6 +49,7 @@ pkginclude_HEADERS = \
   PHTrackCleaner.h \
   PHTrackSelector.h \
   PHRaveVertexing.h \
+  PHSiliconHelicalPropagator.h \
   PHSiliconSeedMerger.h \
   PHSiliconTruthTrackSeeding.h \
   PHSimpleKFProp.h \
@@ -84,6 +86,7 @@ libtrack_reco_io_la_SOURCES = \
 
 ACTS_SOURCES = \
   ActsAlignmentStates.cc \
+  ActsPropagator.cc \
   MakeActsGeometry.cc \
   PHActsGSF.cc \
   PHActsKDTreeSeeding.cc \
@@ -118,6 +121,7 @@ libtrack_reco_la_SOURCES = \
   PHInitVertexing.cc \
   PHMicromegasTpcTrackMatching.cc \
   PHRaveVertexing.cc \
+  PHSiliconHelicalPropagator.cc \
   PHSiliconSeedMerger.cc \
   PHSiliconTpcTrackMatching.cc \
   PHSiliconTruthTrackSeeding.cc \
@@ -165,7 +169,8 @@ libtrack_reco_la_LIBADD = \
   -ltrack_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter
+  -lphparameter \
+  -ltrackeralign
 
 
 # Rule for generating table CINT dictionaries.
