@@ -11,7 +11,7 @@
 #include <trackbase/TpcDefs.h>
 
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
-#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
@@ -49,6 +49,7 @@
 #include <TLorentzVector.h>
 #include <TNtuple.h>
 #include <TH2D.h>
+#include <TH1D.h>
 #include <TFile.h>
 
 //____________________________________________________________________________..
@@ -67,15 +68,25 @@ SecondaryVertexFinder::~SecondaryVertexFinder()
 //____________________________________________________________________________..
 int SecondaryVertexFinder::InitRun(PHCompositeNode *topNode)
 {
+  if(_write_electrons_node)
+    {
+      CreateOutputNode(topNode);
+    }
+
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  recomass = new TH2D("recomass", "invariant mass vs pT", 1000, 0, 5, 5000,0,5);
-
-  ntp = new TNtuple("ntp","decay_pairs","x1:y1:z1:px1:py1:pz1:dca3dxy1:dca3dz1:vposx1:vposy1:vposz1:vmomx1:vmomy1:vmomz1:pca_relx_1:pca_rely_1:pca_relz_1:eta1:charge1:tpcClusters_1:quality1:eta1:x2:y2:z2:px2:py2:pz2:dca3dxy2:dca3dz2:vposx2:vposy2:vposz2:vmomx2:vmomy2:vmomz2:pca_relx_2:pca_rely_2:pca_relz_2:eta2:charge2:tpcClusters_2:quality2:eta2:vertex_x:vertex_y:vertex_z:pair_dca:invariant_mass:invariant_pt:path:has_silicon1:has_silicon2");
-
-  GetNodes(topNode);
-
+  if(_write_ntuple)
+    {
+      recomass = new TH2D("recomass", "invariant mass vs pT", 1000, 0, 5, 4000,0,2);
+      hdecaypos = new TH2D("hdecaypos","decay radius",200, -40, 40, 200,-40,40);
+      hdecaypos->GetXaxis()->SetTitle("decay X (cm)");
+      hdecaypos->GetYaxis()->SetTitle("decay Y (cm)");
+      hdecay_radius = new TH1D("hdecay_radius", "Decay Radius", 200, 0, 40.0);
+      
+      ntp = new TNtuple("ntp","decay_pairs","x1:y1:z1:px1:py1:pz1:dca3dxy1:dca3dz1:vposx1:vposy1:vposz1:vmomx1:vmomy1:vmomz1:pca_relx_1:pca_rely_1:pca_relz_1:eta1:charge1:tpcClusters_1:quality1:eta1:x2:y2:z2:px2:py2:pz2:dca3dxy2:dca3dz2:vposx2:vposy2:vposz2:vmomx2:vmomy2:vmomz2:pca_relx_2:pca_rely_2:pca_relz_2:eta2:charge2:tpcClusters_2:quality2:eta2:vertex_x:vertex_y:vertex_z:pair_dca:invariant_mass:invariant_pt:path:has_silicon1:has_silicon2");
+    }
+  
   return ret;
 }
 
@@ -125,7 +136,7 @@ void SecondaryVertexFinder::fillNtp(SvtxTrack *track1, SvtxTrack *track2, double
 //____________________________________________________________________________..
 int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 {
-  //if(Verbosity() > 0)
+  if(Verbosity() > 0)
     std::cout << PHWHERE << " track map size " << _track_map->size()  << std::endl;
 
   // Loop over tracks and check for close DCA match with all other tracks
@@ -292,7 +303,8 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	      // check that the z positions are close
 	      if(fabs(vpos1(2) - vpos2(2)) > _projected_track_z_cut) 
 		{
-		  std::cout << "    Warning: projected z positions are screwed up, should not be" << std::endl;
+		  if(Verbosity() > 0) 
+		    { std::cout << "    Warning: projected z positions are screwed up, should not be" << std::endl; }
 		  continue;
 		}
 
@@ -310,7 +322,8 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 		  std::cout << "   mom1.x " << vmom1(0) << " mom1.y " << vmom1(1) << " mom1.z " << vmom1(2) << std::endl; 
 		  std::cout << "   mom2.x " << vmom2(0) << " mom2.y " << vmom2(1) << " mom2.z " << vmom2(2) << std::endl; 
 		}
-	      	      
+
+	      // Improve the pair dca using a local straight line approximation	      	      
 	      double pair_dca;
 	      Eigen::Vector3d PCA1(0,0,0), PCA2(0,0,0);
 	      findPcaTwoLines(vpos1, vmom1, vpos2, vmom2, pair_dca, PCA1, PCA2);  
@@ -338,28 +351,104 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	      TLorentzVector tsum = t1+t2;
 	      
 	      // calculate the decay length
-	      Eigen::Vector3d PCA = (PCA1+PCA2) / 2.0;  // average the PCA of the track pair
+	      Eigen::Vector3d PCA = (vpos1+vpos2) / 2.0;  // average the PCA of the track pair
 	      auto vtxid = tr1->get_vertex_id();
 	      auto vertex1 = _svtx_vertex_map->get(vtxid);
 	      Eigen::Vector3d VTX(vertex1->get_x(), vertex1->get_y(), vertex1->get_z());
 	      Eigen::Vector3d path = PCA - VTX;
+	      double decay_radius = sqrt( pow(PCA(0),2) + pow(PCA(1),2) );
 	      
 	      if(path.norm() > _min_path_cut)
 		{
-		  std::cout << "    Pair mass " << tsum.M() << " pair pT " << tsum.Pt() 
-			    << " decay length " << path.norm() << std::endl;
-		  recomass->Fill(tsum.Pt(), tsum.M());
+		  if(Verbosity() > 0)
+		    {
+		      std::cout << "    Pair mass " << tsum.M() << " pair pT " << tsum.Pt() 
+				<< " decay length " << path.norm() << std::endl;
+		    }
 
-		  fillNtp(tr1, tr2,  dca3dxy1, dca3dz1, dca3dxy2, dca3dz2, vpos1, vmom1, vpos2, vmom2,
-			  PCA1, PCA2, pair_dca, tsum.M(), tsum.Pt(), path.norm(), has_silicon_1, has_silicon_2);
+		  if(_write_ntuple)
+		    {
+		      fillNtp(tr1, tr2,  dca3dxy1, dca3dz1, dca3dxy2, dca3dz2, vpos1, vmom1, vpos2, vmom2,
+			      PCA1, PCA2, pair_dca, tsum.M(), tsum.Pt(), path.norm(), has_silicon_1, has_silicon_2);
+		    }
 
+		  if(_write_electrons_node)
+		    {
+		      if(passConversionElectronCuts(tsum, tr1, tr2, pair_dca, PCA, VTX))
+			{
+			  if(Verbosity() > 0)
+			    std::cout << "     **** inserting tracks " << tr1->get_id() << "  and " << tr2->get_id() << std::endl; 
+
+			  // Add decay particles to output node
+			  _track_map_electrons->insertWithKey(tr1, tr1->get_id());
+			  _track_map_electrons->insertWithKey(tr2, tr2->get_id());
+
+			  if(_write_ntuple)
+			    { 
+			      // these are just to check on the effect of the cuts
+			      recomass->Fill(tsum.Pt(), tsum.M());  
+			      hdecay_radius->Fill(decay_radius);
+			      hdecaypos->Fill( PCA(0), PCA(1));
+			    }
+			}
+		    }
 		}
 	    }
 	}
 
     }
-  
+
+  if(Verbosity() > 0)
+    {
+      std::cout << PHWHERE << " electron track map size " << _track_map_electrons->size()  << std::endl;  
+      for(auto tr_it = _track_map_electrons->begin(); tr_it != _track_map_electrons->end(); ++tr_it)
+	{
+	  auto id = tr_it->first;
+	  auto tr = tr_it->second;
+
+	  std::cout << " Electron track " << id 
+		    << " x " << tr->get_x() << " y " << tr->get_y() << " z " << tr->get_z() 
+		    << " px " << tr->get_px() << " py " << tr->get_py() << " pz " << tr->get_pz() 
+		    << std::endl;	  
+	}
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+bool SecondaryVertexFinder::passConversionElectronCuts(TLorentzVector tsum, SvtxTrack* tr1, SvtxTrack* tr2, float pair_dca, Eigen::Vector3d PCA, Eigen::Vector3d VTX)
+{
+  bool pass = false;
+
+  // additional single track cuts
+  auto tpc_seed1 = tr1->get_tpc_seed();
+  unsigned int ntpc1 = tpc_seed1->size_cluster_keys();
+  auto tpc_seed2 = tr2->get_tpc_seed();
+  unsigned int ntpc2 = tpc_seed2->size_cluster_keys();
+  if(ntpc1 < _min_tpc_clusters || ntpc2 < _min_tpc_clusters) {return pass;}
+
+  // pair cuts
+  if(fabs(pair_dca) > _conversion_pair_dcacut) {return pass;};
+
+  if(tsum.M() > _max_mass_cut) {return pass;}
+
+  if(tsum.Pt() < _invariant_pt_cut) {return pass;}
+
+  Eigen::Vector3d path = PCA - VTX;
+  if(path.norm() < 0.2) {return pass;}
+
+  // Angle between path vector and reco pair momentum vector
+  Eigen::Vector3d invariant_mom(tsum.Px(), tsum.Py(), tsum.Pz());
+  double costheta = path.dot(invariant_mom) / (path.norm() * invariant_mom.norm());
+  //      std::cout << " costheta " << costheta << std::endl;
+  if(costheta < _costheta_cut) {return pass;};
+  
+  // selects "decays" with zero mass
+  if(fabs(tr1->get_eta() - tr2->get_eta()) > _deta_cut) {return pass;}; 
+
+
+  pass = true;
+  return pass;
 }
 
 double SecondaryVertexFinder::getZFromIntersectionXY(SvtxTrack *track, double& R, Eigen::Vector2d& center, Eigen::Vector2d intersection)
@@ -443,10 +532,15 @@ bool SecondaryVertexFinder::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3
     }
   else
     {
-      std::cout << "   Failed projection of track with: " << std::endl;
-      std::cout << " x,y,z = " << track->get_x() << "  " << track->get_y() << "  " << track->get_z() << std::endl;
-      std::cout << " px,py,pz = " << track->get_px() << "  " << track->get_py() << "  " << track->get_pz() << std::endl;
-      std::cout << " to point (x,y,z) = " << PCA(0) / Acts::UnitConstants::cm << "  " << PCA(1) / Acts::UnitConstants::cm << "  " << PCA(2) / Acts::UnitConstants::cm << std::endl; 
+      if(Verbosity() > 0)
+	{
+	  std::cout << "   Failed projection of track with: " << std::endl;
+	  std::cout << " x,y,z = " << track->get_x() << "  " << track->get_y() << "  " << track->get_z() << std::endl;
+	  std::cout << " px,py,pz = " << track->get_px() << "  " << track->get_py() << "  " << track->get_pz() << std::endl;
+	  std::cout << " to point (x,y,z) = " << PCA(0) / Acts::UnitConstants::cm << "  " 
+		    << PCA(1) / Acts::UnitConstants::cm << "  " << PCA(2) / Acts::UnitConstants::cm << std::endl; 
+	}
+
       ret = false;
     }
 
@@ -714,12 +808,51 @@ bool SecondaryVertexFinder::circle_circle_intersection(double r0, double x0, dou
 
 int SecondaryVertexFinder::End(PHCompositeNode */*topNode*/)
 {
-  TFile *fout = new TFile(outfile.c_str(),"recreate");
-  recomass->Write();
-  ntp->Write();
-  fout->Close();
+  if(_write_ntuple)
+    {
+      TFile *fout = new TFile(outfile.c_str(),"recreate");
+      recomass->Write();
+      hdecaypos->Write();
+      hdecay_radius->Write();
+      ntp->Write();
+      fout->Close();
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int SecondaryVertexFinder::CreateOutputNode(PHCompositeNode* topNode)
+{
+
+  PHNodeIterator iter(topNode);
+  
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+
+  if (!dstNode)
+  {
+    std::cerr << "DST node is missing, quitting" << std::endl;
+    throw std::runtime_error("Failed to find DST node in SecondaryVertexFinder");
+  }
+  
+  PHNodeIterator dstIter(topNode);
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", "SVTX"));
+
+  if (!svtxNode)
+  {
+    svtxNode = new PHCompositeNode("SVTX");
+    dstNode->addNode(svtxNode);
+  }
+
+  if(_write_electrons_node)
+  {
+    _track_map_electrons = new SvtxTrackMap_v2;
+    auto tracks_node = new PHIODataNode<PHObject>( _track_map_electrons, "SvtxTrackMapElectrons", "PHObject");
+    svtxNode->addNode(tracks_node);
+    if (Verbosity())
+    { std::cout << "Svtx/SvtxTrackMapElectrons node added" << std::endl; }
+  }
+
+  return true;
 }
 
 int SecondaryVertexFinder::GetNodes(PHCompositeNode* topNode)
