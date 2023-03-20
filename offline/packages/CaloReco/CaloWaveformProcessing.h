@@ -3,9 +3,11 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include<TProfile.h>
+#include <TProfile.h>
 
 #include <string>
+
+class CaloWaveformFitting;
 
 class CaloWaveformProcessing : public SubsysReco
 {
@@ -69,6 +71,7 @@ class CaloWaveformProcessing : public SubsysReco
 
   static TProfile* h_template; 
   static double template_function(double *x, double *par);
+  CaloWaveformFitting *m_TemplateFitter = nullptr;
 
   CaloWaveformProcessing::process m_processingtype = CaloWaveformProcessing::NONE; 
   int _nthreads = 1;

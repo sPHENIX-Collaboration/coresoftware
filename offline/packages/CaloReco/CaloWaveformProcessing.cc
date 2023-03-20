@@ -1,4 +1,5 @@
 #include "CaloWaveformProcessing.h"
+#include "CaloWaveformFitting.h"
 
 #include <ffamodules/XploadInterface.h>
 
@@ -42,10 +43,8 @@ void CaloWaveformProcessing::initialize_processing()
   {
     std::string calibrations_repo_template = std::string(calibrationsroot) + "/WaveformProcessing/templates/" + m_template_input_file;
     url_template = XploadInterface::instance()->getUrl(m_template_input_file, calibrations_repo_template);
-    TFile *fin = TFile::Open(url_template.c_str());
-    assert(fin);
-    assert(fin->IsOpen());
-    h_template = static_cast<TProfile *>(fin->Get("waveform_template"));
+    m_TemplateFitter = new CaloWaveformFitting();
+    m_TemplateFitter->initialize_processing(url_template);
   }
   if (m_processingtype == CaloWaveformProcessing::ONNX)
   {
@@ -65,7 +64,7 @@ std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::ve
     {
       waveformvector.at(i).push_back(i);
     }
-    fitresults = CaloWaveformProcessing::calo_processing_templatefit(waveformvector);
+    fitresults = m_TemplateFitter->calo_processing_templatefit(waveformvector);
   }
   if (m_processingtype == CaloWaveformProcessing::ONNX)
   {

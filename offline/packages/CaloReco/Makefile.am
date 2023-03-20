@@ -33,6 +33,7 @@ AM_CPPFLAGS = \
   -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
+  CaloWaveformFitting.h \
   CaloWaveformProcessing.h \
   CaloTowerBuilder.h \
   CaloTowerCalib.h \
@@ -50,6 +51,7 @@ libcalo_reco_la_SOURCES = \
   BEmcRecCEMC.cc \
   BEmcRecFEMC.cc \
   BEmcRecEEMC.cc \
+  CaloWaveformFitting.cc \
   CaloWaveformProcessing.cc \
   CaloTowerBuilder.cc \
   CaloTowerCalib.cc \
