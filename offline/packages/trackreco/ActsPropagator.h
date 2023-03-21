@@ -71,7 +71,7 @@ class ActsPropagator
 
   ActsGeometry* m_geometry = nullptr;
 
-  float m_fieldval = -1.4 * Acts::UnitConstants::T;
+  float m_fieldval = 1.4 * Acts::UnitConstants::T;
 };
 
 #endif
