@@ -3,6 +3,7 @@
 #include "PHG4MvtxHitReco.h"
 
 #include <mvtx/CylinderGeom_Mvtx.h>
+#include <mvtx/MvtxHitPruner.h>
 
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TrkrDefs.h>
@@ -178,6 +179,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
   }
   m_truth_clusterer = new TruthMvtxClusterBuilder(m_truthclusters, m_truthtracks, Verbosity());
   m_truth_clusterer->set_verbosity(Verbosity());
+  m_truth_clusterer->set_HitPruner(m_hit_pruner);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -744,3 +746,4 @@ TrkrDefs::hitsetkey PHG4MvtxHitReco::zero_strobe_bits(TrkrDefs::hitsetkey hitset
 PHG4MvtxHitReco::~PHG4MvtxHitReco() {
   delete m_truth_clusterer;
 }
+

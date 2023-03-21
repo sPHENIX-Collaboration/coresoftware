@@ -6,6 +6,7 @@
 #include <g4tracking/TrkrTruthTrack.h>
 #include <g4tracking/TrkrTruthTrackContainer.h>
 #include <mvtx/CylinderGeom_Mvtx.h>
+#include <mvtx/MvtxHitPruner.h>
 #include <phool/phool.h>  // for PHWHERE
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
@@ -115,6 +116,10 @@ void TruthMvtxClusterBuilder::cluster_hits() {
   // logic taken from offline/packages/mvtx/MvtxClusterizer.cc starting about line 258
   if (m_verbosity > 0)
     cout << "Entering MvtxClusterizer::ClusterMvtx " << endl;
+
+  if (m_MvtxHitPruner) {
+    m_MvtxHitPruner->process_TrkrHitSetContainer(m_hits);
+  }
 
   auto track = m_truthtracks->getTruthTrack(trkid, m_truthinfo);
 
@@ -351,33 +356,32 @@ void TruthMvtxClusterBuilder::cluster_hits() {
 	  /* } */
 	}  // clusitr loop
     }  // loop over hitsets
+  if (m_verbosity>3) std::cout << "track " << track->getTrackid() << " has " << track->getClusters().size() << " mvtx clusters" << std::endl;
       
-      
-  return;
-
   m_hits->Reset();
+  return;
 };
 
 bool TruthMvtxClusterBuilder::are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs)
 {
-  /* if (GetZClustering()) */
-  /* { */
-  /*   // column is first, row is second */
-  /*   if (fabs( MvtxDefs::getCol(lhs.first) - MvtxDefs::getCol(rhs.first) ) <= 1) */
-  /*   { */
-  /*     if (fabs( MvtxDefs::getRow(lhs.first) - MvtxDefs::getRow(rhs.first) ) <= 1) */
-  /*     { */
-  /*       return true; */
-  /*     } */
-  /*   } */
-  /* } */
-  /* else */
-  //{ default to always used
-  if (fabs( MvtxDefs::getCol(lhs.first) - MvtxDefs::getCol(rhs.first) ) == 0)
+  if (GetZClustering())
   {
-    if (fabs( MvtxDefs::getRow(lhs.first) - MvtxDefs::getRow(rhs.first) ) <= 1)
+    if (fabs( MvtxDefs::getCol(lhs.first) - MvtxDefs::getCol(rhs.first) ) <= 1)
     {
-      return true;
+      if (fabs( MvtxDefs::getRow(lhs.first) - MvtxDefs::getRow(rhs.first) ) <= 1)
+      {
+        return true;
+      }
+    }
+  }
+  else
+  {
+    if (fabs( MvtxDefs::getCol(lhs.first) - MvtxDefs::getCol(rhs.first) ) == 0)
+    {
+      if (fabs( MvtxDefs::getRow(lhs.first) - MvtxDefs::getRow(rhs.first) ) <= 1)
+      {
+        return true;
+      }
     }
   }
   //}

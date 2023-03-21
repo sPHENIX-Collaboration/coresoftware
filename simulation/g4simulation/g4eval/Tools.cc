@@ -316,13 +316,9 @@ namespace G4Eval {
 
   int ClusCntr::addClusKeys(TrkrTruthTrack* track) {
     phg4_keys.clear();
-    std::cout << "FIXME z0: nclusters: " << track->getClusters().size() << std::endl;
-    int i {0};
     for (auto ckey : track->getClusters()) {
       phg4_keys.push_back( {TrkrDefs::getHitSetKeyFromClusKey(ckey), ckey} );
-      std::cout << " i("<<i++<<") " << ((int)TrkrDefs::getLayer(ckey)) << " " << (int) TrkrDefs::getHitSetKeyFromClusKey(ckey) << std::endl;
     }
-    std::cout << " FIXME z1: end of clusters " << std::endl;
     std::sort(phg4_keys.begin(), phg4_keys.end());
     return phg4_keys.size();
   }

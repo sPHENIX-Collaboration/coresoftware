@@ -17,6 +17,7 @@
 class PHCompositeNode;
 class TrkrTruthTrackContainer;
 class TrkrClusterContainer;
+class MvtxHitPruner;
 
 class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 {
@@ -42,7 +43,12 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   //! parameters
   void SetDefaultParameters() override;
 
+  //void set_HitPruner(MvtxHitPruner*
+  void set_HitPruner(MvtxHitPruner* _) { m_hit_pruner = _; };
+
  private:
+  MvtxHitPruner* m_hit_pruner;
+
   std::pair<double, double> generate_alpide_pulse(const double energy_deposited);
 
   double generate_strobe_zero_tm_start();

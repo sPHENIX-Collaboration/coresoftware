@@ -523,7 +523,6 @@ void TruthRecoTrackMatching::match_tracks_in_box(
     // make all possible reco matches matched for this track
     /* std::map<TrkrDefs::hitsetkey,TrkrDefs::cluskey> truth_keys; */
     m_cluscntr.addClusKeys(m_TrkrTruthTrackContainer->getTruthTrack(id_true));
-    std::cout << " FIXME NCLUS TRUE: " << (int)m_cluscntr.phg4_nclus() << std::endl;
     // add the truth keys into the track counter
     /* auto truth_track = m_TrkrTruthTrackContainer->getTruthTrack(id_true); */
     /* for (auto& key : truth_track->getClusters()) { */
