@@ -5,43 +5,17 @@
 
 #include <fun4all/SubsysReco.h>
 
-
-#include <calobase/RawTowerDefs.h>  // for HCALIN, HCALOUT, CEMC
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfov1.h>
-#include <caloreco/CaloWaveformProcessing.h>
-
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>    // for PHIODataNode
-#include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>        // for PHObject
-#include <phool/getClass.h>
-#include <phool/phool.h>
-
-#include <Event/Event.h>
-#include <Event/EventTypes.h>
-#include <Event/packet.h>
-
-#include <cassert>
-#include <cmath>  // for NAN
-#include <iostream>
-#include <map>      // for _Rb_tree_const_iterator
-#include <utility>  // for pair
-
-
-
-#include <TRandom3.h>
+#include <climits>
 #include <string>
 
+class CaloWaveformProcessing;
 class PHCompositeNode;
-
+class TowerInfoContainer;
 
 class CaloTowerBuilder : public SubsysReco
 {
  public:
-
-  CaloTowerBuilder(const std::string &name = "CaloTowerBuilder");
+  explicit CaloTowerBuilder(const std::string &name = "CaloTowerBuilder");
   ~CaloTowerBuilder() override;
 
   int InitRun(PHCompositeNode *topNode) override;
@@ -69,20 +43,19 @@ class CaloTowerBuilder : public SubsysReco
   }
   void set_dataflag(bool flag)
   {
-    m_isdata =flag;
+    m_isdata = flag;
     return;
   }
 
  private:
- 
-  CaloWaveformProcessing* WaveformProcessing = new CaloWaveformProcessing();
-  CaloTowerBuilder::DetectorSystem m_dettype; 
-  TowerInfoContainer *m_CaloInfoContainer; //! Calo info
-  std::string m_detector;
-  int m_packet_low;
-  int m_packet_high;
-  int m_nsamples;
-  bool m_isdata;
+  CaloWaveformProcessing *WaveformProcessing = nullptr;
+  CaloTowerBuilder::DetectorSystem m_dettype = CaloTowerBuilder::CEMC;
+  TowerInfoContainer *m_CaloInfoContainer = nullptr;  //! Calo info
+  std::string m_detector = "CEMC";
+  int m_packet_low = INT_MIN;
+  int m_packet_high = INT_MIN;
+  int m_nsamples = 16;
+  bool m_isdata = true;
 };
 
-#endif // CALOTOWERBUILDER_H
+#endif  // CALOTOWERBUILDER_H

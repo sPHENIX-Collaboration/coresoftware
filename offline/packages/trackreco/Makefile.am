@@ -49,6 +49,7 @@ pkginclude_HEADERS = \
   PHTrackCleaner.h \
   PHTrackSelector.h \
   PHRaveVertexing.h \
+  PHSiliconHelicalPropagator.h \
   PHSiliconSeedMerger.h \
   PHSiliconTruthTrackSeeding.h \
   PHSimpleKFProp.h \
@@ -120,6 +121,7 @@ libtrack_reco_la_SOURCES = \
   PHInitVertexing.cc \
   PHMicromegasTpcTrackMatching.cc \
   PHRaveVertexing.cc \
+  PHSiliconHelicalPropagator.cc \
   PHSiliconSeedMerger.cc \
   PHSiliconTpcTrackMatching.cc \
   PHSiliconTruthTrackSeeding.cc \
@@ -167,7 +169,8 @@ libtrack_reco_la_LIBADD = \
   -ltrack_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter
+  -lphparameter \
+  -ltrackeralign
 
 
 # Rule for generating table CINT dictionaries.

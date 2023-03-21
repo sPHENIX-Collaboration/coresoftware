@@ -16,7 +16,7 @@ class SvtxVertexMap;
 class SvtxVertex;
 class RawCluster;
 class RawClusterContainer;
-class RawTowerContainer;
+class TowerInfoContainer;
 class RawTowerGeomContainer;
 class SvtxTrackCaloClusterMap;
 
@@ -55,7 +55,7 @@ class PHTrackClusterAssociator : public SubsysReco
   std::map<std::string, float> m_caloRadii;
 
   RawTowerGeomContainer* m_towerGeomContainer = nullptr;
-  RawTowerContainer* m_towerContainer = nullptr;
+  TowerInfoContainer* m_towerContainer = nullptr;
   RawClusterContainer* m_clusterContainer = nullptr;
 
   SvtxTrackCaloClusterMap* m_trackClusterMap = nullptr;
