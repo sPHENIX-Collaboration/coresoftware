@@ -88,6 +88,8 @@ class FillTruthRecoMatchTree : public SubsysReco
 
   void clear_vectors();
 
+  void print_mvtx_diagnostics();
+
  private:
 
    int createNodes(PHCompositeNode *topNode);

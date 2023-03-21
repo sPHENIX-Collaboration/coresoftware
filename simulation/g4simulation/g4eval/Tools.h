@@ -67,14 +67,15 @@ namespace G4Eval {
 
     std::pair<int,Eigen::Vector3d> clusloc_PHG4(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey>);
     std::pair<int,Eigen::Vector3d> clusloc_SVTX(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey>);
+
+    TrkrClusterContainer* m_TruthClusters {nullptr};
+    TrkrClusterContainer* m_RecoClusters  {nullptr};
     private:
     //phi pixel sizes, got for the geometries from the topNode
     std::array<double, 56> m_phistep {0.}; // the phistep squared
     float m_nphi_widths;
     float m_nz_widths;
 
-    TrkrClusterContainer* m_TruthClusters {nullptr};
-    TrkrClusterContainer* m_RecoClusters  {nullptr};
     ActsGeometry*         m_ActsGeometry  {nullptr};
 
   };
@@ -120,6 +121,8 @@ namespace G4Eval {
 
     public:
     ClusCntr(TrkrClusterComparer*_=nullptr) : comp{_} {};
+    TrkrClusterContainer* get_PHG4_clusters();
+    TrkrClusterContainer* get_SVTX_clusters();
 
     Vector svtx_keys {};
     Vector phg4_keys {};

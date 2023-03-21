@@ -268,6 +268,16 @@ namespace G4Eval {
     return *iter;
   }
 
+  TrkrClusterContainer* ClusCntr::get_PHG4_clusters() {
+    if (comp == nullptr) return nullptr;
+    else return comp->m_TruthClusters;
+  }
+
+  TrkrClusterContainer* ClusCntr::get_SVTX_clusters() {
+    if (comp == nullptr) return nullptr;
+    else return comp->m_RecoClusters;
+  }
+
   std::array<int,5> ClusCntr::cntclus(Vector& keys) {
     std::array<int,5> cnt { 0, 0, 0, 0, 0 };
     for (auto& it : keys) {

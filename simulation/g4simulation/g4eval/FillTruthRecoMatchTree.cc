@@ -17,6 +17,7 @@
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+#include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -240,6 +241,9 @@ int FillTruthRecoMatchTree::createNodes(PHCompositeNode *topNode)
 
 int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
 {
+  print_mvtx_diagnostics();
+  return 0;
+
   if (Verbosity()>5) cout << " FillTruthRecoMatchTree::process_event() " << endl;
 
   // fill in the event data
@@ -417,6 +421,61 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
   m_ttree->Fill();
   clear_vectors();
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void FillTruthRecoMatchTree::print_mvtx_diagnostics() {
+  std::cout << "To do: "
+    << " (1)  number of truth tracks and total number of mvtx and ratio " << std::endl
+    << " (2)  ditto for reco tracks " << std::endl;
+
+  double n_PHG4_tracks = m_TrkrTruthTrackContainer->getMap().size();
+  // count how many mvtx clusters in the phg4 tracks
+  double n_in_PHG4_tracks {0.};
+  for (auto& pair : m_TrkrTruthTrackContainer->getMap()) {
+    m_cluscntr.addClusKeys( pair.second );
+    n_in_PHG4_tracks += m_cluscntr.phg4_cntclus()[0];
+  }
+  // count how mant mvtx clusters in truth container (should be the same)
+  double n_in_PHG4_clusters {0.};
+  for (auto hitsetkey : m_cluscntr.get_PHG4_clusters()->getHitSetKeys()) {
+    if (TrkrDefs::getLayer(hitsetkey) > 2) continue;
+    auto range = m_cluscntr.get_PHG4_clusters()->getClusters(hitsetkey);
+    for (auto r = range.first; r != range.second; ++r)  {
+      n_in_PHG4_clusters += 1.;
+    }
+  }
+
+  // count how many svtx tracks
+  double n_SVTX_tracks = m_SvtxTrackMap->size();
+  // count how many mvtx clusters in svtx tracks
+  double n_in_SVTX_tracks {0.};
+  for (auto entry = m_SvtxTrackMap->begin(); entry != m_SvtxTrackMap->end(); ++entry) {
+    m_cluscntr.addClusKeys(entry->second);
+    n_in_SVTX_tracks += m_cluscntr.svtx_cntclus()[0];
+  }
+  // count how many mvtx are total in the container
+  double n_in_SVTX_clusters {0.};
+  for (auto hitsetkey : m_cluscntr.get_SVTX_clusters()->getHitSetKeys()) {
+    if (TrkrDefs::getLayer(hitsetkey) > 2) continue;
+    auto range = m_cluscntr.get_SVTX_clusters()->getClusters(hitsetkey);
+    for (auto r = range.first; r != range.second; ++r)  {
+      n_in_SVTX_clusters += 1.;
+    }
+  }
+
+  std::cout << Form("MVTX"
+      "\nPHG4:  Tracks(%.0f)   Clusters In tracks(%.0f)   Total (%.0f)"
+      "\n       ave. per track: %6.3f   ratio in all tracks: %6.2f"
+      , n_PHG4_tracks, n_in_PHG4_tracks, n_in_PHG4_clusters
+      , (n_in_PHG4_tracks/n_PHG4_tracks), (n_in_PHG4_tracks/n_in_PHG4_clusters))
+    << std::endl;
+  std::cout << Form(
+      "\nSVTX:  Tracks(%.0f)   Clusters In tracks(%.0f)   Total (%.0f)"
+      "\n       ave. per track: %6.3f   ratio in all tracks: %6.2f"
+      , n_SVTX_tracks, n_in_SVTX_tracks, n_in_SVTX_clusters
+      , (n_in_SVTX_tracks/n_SVTX_tracks), (n_in_SVTX_tracks/n_in_SVTX_clusters))
+    << std::endl;
+
 }
 
 int FillTruthRecoMatchTree::End(PHCompositeNode *)

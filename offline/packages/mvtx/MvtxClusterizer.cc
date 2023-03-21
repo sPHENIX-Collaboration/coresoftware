@@ -210,6 +210,7 @@ int MvtxClusterizer::InitRun(PHCompositeNode *topNode)
 
 int MvtxClusterizer::process_event(PHCompositeNode *topNode)
 {
+  cout << " FIXME y0 : new event in MvtxClusterizer " << endl;
   // get node containing the digitized hits
   if(!do_read_raw){
     m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -346,6 +347,9 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	}
       //    cout << "found cluster #: "<< clusters.size()<< endl;
       // loop over the componenets and make clusters
+    cout << PHWHERE << endl;
+  cout << " -- z0 -- starting loop over clusters -- " << endl;
+  int total_clusters = 0;
       for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter)
 	{
 	  int clusid = *clusiter;
@@ -354,6 +358,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  if (Verbosity() > 2) cout << "Filling cluster id " << clusid << " of " << std::distance(cluster_ids.begin(),clusiter )<< endl;
 	  
 	  // make the cluster directly in the node tree
+    /* cout << PHWHERE << endl; */
+  cout << " --> --> --> " << clusid << endl;
+  ++total_clusters;
+    /* cout << " FIXME z: component clusid " << clusid << endl; */
 	  auto ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 	  
 	  // determine the size of the cluster in phi and z
