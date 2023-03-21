@@ -146,14 +146,17 @@ ActsPropagator::FastPropagator ActsPropagator::makeFastPropagator()
 
   if (m_constField)
   {
+    if (m_verbosity > 2)
+    {
+      std::cout << "Using const field of val " << m_fieldval << std::endl;
+    }
     Acts::Vector3 fieldVec(0, 0, m_fieldval);
     field = std::make_shared<Acts::ConstantBField>(fieldVec);
   }
 
-  auto trackingGeometry = m_geometry->geometry().tGeometry;
-  Stepper stepper(field);
+  ActsPropagator::Stepper stepper(field);
 
-  return FastPropagator(stepper);
+  return ActsPropagator::FastPropagator(stepper);
 }
 ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
 {

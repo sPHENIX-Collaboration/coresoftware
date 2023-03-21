@@ -15,8 +15,8 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <Acts/Propagator/Propagator.hpp>
 #pragma GCC diagnostic pop
-#include <Acts/Propagator/detail/VoidPropagatorComponents.hpp>
 #include <Acts/Propagator/Navigator.hpp>
+#include <Acts/Propagator/detail/VoidPropagatorComponents.hpp>
 
 #include <Acts/Utilities/Result.hpp>
 
@@ -57,7 +57,9 @@ class ActsPropagator
                   unsigned int& actsvolume,
                   unsigned int& actslayer);
   void verbosity(int verb) { m_verbosity = verb; }
-  void setConstField(float field) { m_fieldval = field; }
+  void setConstFieldValue(float field) { m_fieldval = field; }
+  void constField() { m_constField = true; }
+
  private:
   SphenixPropagator makePropagator();
   FastPropagator makeFastPropagator();

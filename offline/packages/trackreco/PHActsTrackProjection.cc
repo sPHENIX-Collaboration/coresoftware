@@ -288,21 +288,13 @@ void PHActsTrackProjection::getSquareTowerEnergies(int phiBin,
 PHActsTrackProjection::BoundTrackParamResult
 PHActsTrackProjection::propagateTrack(
     const Acts::BoundTrackParameters& params,
-    const int caloLayer,
+    const int /*caloLayer*/,
     const SurfacePtr& targetSurf)
 {
   ActsPropagator propagator(m_tGeometry);
-  propagator.setConstField(true);
+  propagator.constField();
   propagator.verbosity(Verbosity());
-  std::cout << "propagating to calo layer " << caloLayer<<std::endl;
-  if(caloLayer < 2)
-    {
-      propagator.setConstField(-1.4*Acts::UnitConstants::T);
-    }
-  else
-    {
-      propagator.setConstField(1.4*Acts::UnitConstants::T);
-    }
+  propagator.setConstFieldValue(1.4 * Acts::UnitConstants::T);
 
   return propagator.propagateTrackFast(params, targetSurf);
 }
