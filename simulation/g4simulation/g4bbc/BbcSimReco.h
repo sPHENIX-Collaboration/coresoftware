@@ -5,6 +5,8 @@
 
 #include <Rtypes.h>
 
+#include <gsl/gsl_rng.h>
+
 #include <cmath>
 #include <map>
 #include <string>
@@ -28,7 +30,7 @@ class BbcSimReco : public SubsysReco
   // Default constructor
   BbcSimReco(const std::string &name = "BbcSimReco");
 
-  ~BbcSimReco() override {}
+  ~BbcSimReco() override;
 
   //! Initialization, called for at overall initialization
   int Init(PHCompositeNode *) override;
@@ -72,7 +74,8 @@ class BbcSimReco : public SubsysReco
 
   //
   TDatabasePDG *_pdg = nullptr;
-  TRandom3 *_rndm = nullptr;
+  gsl_rng *m_RandomGenerator = nullptr;
+  unsigned int m_Seed = 0;
   Float_t _tres = NAN;  // time resolution of one channel
 
   std::map<int, int> _pids;  // PIDs of tracks in the BBC

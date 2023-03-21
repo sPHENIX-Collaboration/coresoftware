@@ -2,19 +2,24 @@
 
 #include <bbc/BbcOutV1.h>
 #include <bbc/BbcPmtContainerV1.h>
-#include <ffaobjects/EventHeaderv1.h>
-#include <fun4all/Fun4AllServer.h>
-#include <fun4all/PHTFileServer.h>
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
+
+#include <ffaobjects/EventHeaderv1.h>
+
+#include <fun4all/Fun4AllServer.h>
+#include <fun4all/PHTFileServer.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
@@ -25,15 +30,14 @@
 #include <TLorentzVector.h>
 #include <TString.h>
 #include <TTree.h>
-//#include <TMath.h>
 #include <TDatabasePDG.h>
-#include <TRandom3.h>
 #include <TSystem.h>
+
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
 
 #include <cmath>
 #include <iostream>
-
-using namespace std;
 
 namespace BBCINFO
 {
@@ -119,7 +123,7 @@ namespace BBCINFO
 using namespace BBCINFO;
 
 //____________________________________
-BbcSimReco::BbcSimReco(const string &name)
+BbcSimReco::BbcSimReco(const std::string &name)
   : SubsysReco(name)
   , _tres(0.05)
 {
@@ -132,16 +136,24 @@ BbcSimReco::BbcSimReco(const string &name)
   std::fill(std::begin(f_bbcte), std::end(f_bbcte), NAN);
   hevt_bbct[0] = nullptr;
   hevt_bbct[1] = nullptr;
+  m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  m_Seed = PHRandomSeed();  // fixed seed is handled in this funtcion
+  gsl_rng_set(m_RandomGenerator, m_Seed);
+}
+
+BbcSimReco::~BbcSimReco()
+{
+  gsl_rng_free(m_RandomGenerator);
+  return;
 }
 
 //___________________________________
 int BbcSimReco::Init(PHCompositeNode *topNode)
 {
-  // cout << PHWHERE << endl;
+  // std::cout << PHWHERE << std::endl;
   CreateNodes(topNode);
 
   _pdg = new TDatabasePDG();  // database of PDG info on particles
-  _rndm = new TRandom3(0);
 
   TString name, title;
   for (int iarm = 0; iarm < 2; iarm++)
@@ -176,7 +188,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
   // GetNodes(topNode);
 
   f_evt = _evtheader->get_EvtSequence();
-  // if(f_evt%100==0) cout << PHWHERE << "Events processed: " << f_evt << endl;
+  // if(f_evt%100==0) std::cout << PHWHERE << "Events processed: " << f_evt << std::endl;
 
   //**** Initialize Variables
 
@@ -215,8 +227,8 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
 
     if (f_evt < 20)
     {
-      cout << "VTXP "
-           << "\t" << f_vx << "\t" << f_vy << "\t" << f_vz << "\t" << f_vt << endl;
+      std::cout << "VTXP "
+           << "\t" << f_vx << "\t" << f_vy << "\t" << f_vz << "\t" << f_vt << std::endl;
     }
   }
 
@@ -234,7 +246,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     // int arm = ch/64;;                         // south=0, north=1
 
     int trkid = this_hit->get_trkid();
-    // if ( trkid>0 && f_evt<20 ) cout << "TRKID " << trkid << endl;
+    // if ( trkid>0 && f_evt<20 ) std::cout << "TRKID " << trkid << std::endl;
 
     PHG4Particle *part = _truth_container->GetParticle(trkid);
     v4.SetPxPyPzE(part->get_px(), part->get_py(), part->get_pz(), part->get_e());
@@ -257,14 +269,14 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
       if (fabs(this_hit->get_t(1)) < 106.5)
       {
         first_time[ch] = this_hit->get_t(1) - vtxp->get_t();
-        Float_t dt = static_cast<float>(_rndm->Gaus(0, _tres));  // get fluctuation in time
+        Float_t dt = gsl_ran_gaussian(m_RandomGenerator, _tres); // get fluctuation in time
         first_time[ch] += dt;
       }
       else
       {
         if (Verbosity())
         {
-          cout << "BAD " << ch << "\t" << this_hit->get_t(1) << endl;
+          std::cout << "BAD " << ch << "\t" << this_hit->get_t(1) << std::endl;
         }
       }
     }
@@ -290,7 +302,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     iarm = 0.;
   }
 
-  vector<float> hit_times[2];  // times of the hits in each [arm]
+  std::vector<float> hit_times[2];  // times of the hits in each [arm]
 
   for (int ich = 0; ich < 128; ich++)
   {
@@ -301,12 +313,12 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     {
       if (f_evt < 20 && Verbosity() != 0)
       {
-        cout << "ich " << ich << "\t" << len[ich] << "\t" << edep[ich] << endl;
+        std::cout << "ich " << ich << "\t" << len[ich] << "\t" << edep[ich] << std::endl;
       }
 
       // Get charge in BBC tube
       float npe = len[ich] * (120 / 3.0);                          // we get 120 p.e. per 3 cm
-      float dnpe = static_cast<float>(_rndm->Gaus(0, sqrt(npe)));  // get fluctuation in npe
+      float dnpe = gsl_ran_gaussian(m_RandomGenerator, std::sqrt(npe)); // get fluctuation in npe
 
       npe += dnpe;  // apply the fluctuations in npe
 
@@ -321,7 +333,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
         hit_times[arm].push_back(first_time[ich]);
 
         f_bbct[arm] += first_time[ich];
-        // cout << "XXX " << ich << "\t" << f_bbct[arm] << "\t" << first_time[ich] << endl;
+        // std::cout << "XXX " << ich << "\t" << f_bbct[arm] << "\t" << first_time[ich] << std::endl;
 
         f_pmtt0[ich] = first_time[ich];
         f_pmtt1[ich] = first_time[ich];
@@ -330,7 +342,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
       {
         if (Verbosity() != 0)
         {
-          cout << "ERROR, have hit but no time" << endl;
+          std::cout << "ERROR, have hit but no time" << std::endl;
         }
       }
 
@@ -385,7 +397,7 @@ void BbcSimReco::CreateNodes(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing doing nothing" << endl;
+    std::cout << PHWHERE << "DST Node missing doing nothing" << std::endl;
   }
 
   PHCompositeNode *bbcNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "BBC"));
@@ -423,21 +435,21 @@ void BbcSimReco::GetNodes(PHCompositeNode *topNode)
   _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!_truth_container && f_evt < 10)
   {
-    cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << endl;
+    std::cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << std::endl;
   }
 
   // BBC hit container
   _bbchits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_BBC");
   if (!_bbchits && f_evt < 10)
   {
-    cout << PHWHERE << " G4HIT_BBC node not found on node tree" << endl;
+    std::cout << PHWHERE << " G4HIT_BBC node not found on node tree" << std::endl;
   }
 
   // Event Header info
   _evtheader = findNode::getClass<EventHeaderv1>(topNode, "EventHeader");
   if (!_evtheader && f_evt < 10)
   {
-    cout << PHWHERE << " G4HIT_BBC node not found on node tree" << endl;
+    std::cout << PHWHERE << " G4HIT_BBC node not found on node tree" << std::endl;
   }
 
   /** DST Objects **/
@@ -446,13 +458,13 @@ void BbcSimReco::GetNodes(PHCompositeNode *topNode)
   _bbcout = findNode::getClass<BbcOut>(topNode, "BbcOut");
   if (!_bbcout && f_evt < 10)
   {
-    cout << PHWHERE << " BbcOut node not found on node tree" << endl;
+    std::cout << PHWHERE << " BbcOut node not found on node tree" << std::endl;
   }
 
   // BbcPmtContainer
   _bbcpmts = findNode::getClass<BbcPmtContainer>(topNode, "BbcPmtContainer");
   if (!_bbcpmts && f_evt < 10)
   {
-    cout << PHWHERE << " BbcPmtContainer node not found on node tree" << endl;
+    std::cout << PHWHERE << " BbcPmtContainer node not found on node tree" << std::endl;
   }
 }
