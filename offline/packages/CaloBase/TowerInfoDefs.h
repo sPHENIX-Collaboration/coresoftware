@@ -1,11 +1,11 @@
 #ifndef CALOBASE_TOWERINFODEFS_H
 #define CALOBASE_TOWERINFODEFS_H
 
+#include "RawTowerDefs.h"
 #include <bitset>
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <RawTowerDefs.h>
 /*! Namespace with functions to encode / decode calo information. 
  */
 
