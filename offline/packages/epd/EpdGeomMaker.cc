@@ -1,6 +1,7 @@
 #include "EpdGeomMaker.h"
 
 #include "EpdGeom.h"
+#include "EpdGeomV1.h"
 
 #include <string>
 
@@ -12,7 +13,7 @@
 #include <phool/PHIODataNode.h>
 
 EpdGeomMaker::EpdGeomMaker(const std::string &name) : SubsysReco(name) {
-    this->epd_geom = new EpdGeom();
+    this->epd_geom = new EpdGeomV1();
 }
 
 EpdGeomMaker::~EpdGeomMaker() {
