@@ -40,6 +40,7 @@ pkginclude_HEADERS = \
   RawTowerGeomContainer.h \
   RawTowerGeomContainerv1.h \
   RawTowerGeomContainer_Cylinderv1.h \
+  TowerInfoDefs.h \
   TowerInfo.h \
   TowerInfov1.h \
   TowerInfoContainer.h \
