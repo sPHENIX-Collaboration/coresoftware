@@ -292,7 +292,9 @@ PHActsTrackProjection::propagateTrack(
     const SurfacePtr& targetSurf)
 {
   ActsPropagator propagator(m_tGeometry);
+  propagator.setConstField(true);
   propagator.verbosity(Verbosity());
+  std::cout << "propagating to calo layer " << caloLayer<<std::endl;
   if(caloLayer < 2)
     {
       propagator.setConstField(-1.4*Acts::UnitConstants::T);
@@ -301,6 +303,7 @@ PHActsTrackProjection::propagateTrack(
     {
       propagator.setConstField(1.4*Acts::UnitConstants::T);
     }
+
   return propagator.propagateTrackFast(params, targetSurf);
 }
 

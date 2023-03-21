@@ -161,7 +161,7 @@ ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
 
   if (m_constField)
   {
-    Acts::Vector3 fieldVec(0, 0, 1.4 * Acts::UnitConstants::T);
+    Acts::Vector3 fieldVec(0, 0, m_fieldval);
     field = std::make_shared<Acts::ConstantBField>(fieldVec);
   }
 
