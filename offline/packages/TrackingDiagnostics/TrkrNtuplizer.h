@@ -9,10 +9,10 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>
 #include <TMatrixFfwd.h>
-#include <TMatrixT.h>   
+#include <TMatrixT.h>
 #include <TMatrixTUtils.h>
+#include <string>
 
 class PHCompositeNode;
 class PHTimer;
@@ -23,7 +23,7 @@ class SvtxTrack;
 class SvtxTrackEval;
 class SvtxVertexMap;
 
-//class TrkrClusterContainer;
+// class TrkrClusterContainer;
 
 /// \class SvtxEvaluator
 ///
@@ -67,11 +67,11 @@ class TrkrNtuplizer : public SubsysReco
   float m_fSeed;
   // eval stack
 
-  TMatrixF calculateClusterError(TrkrCluster* c, float& clusphi);
-  void get_dca(SvtxTrack* track, SvtxVertexMap* vertexmap,
-	       float& dca3dxy, float& dca3dz,
-	       float& dca3dxysigma, float& dca3dzsigma);
-  //TrkrClusterContainer *cluster_map{nullptr};
+  TMatrixF calculateClusterError(TrkrCluster *c, float &clusphi);
+  void get_dca(SvtxTrack *track, SvtxVertexMap *vertexmap,
+               float &dca3dxy, float &dca3dz,
+               float &dca3dxysigma, float &dca3dzsigma);
+  // TrkrClusterContainer *cluster_map{nullptr};
 
   //----------------------------------
   // evaluator output ntuples
@@ -99,7 +99,7 @@ class TrkrNtuplizer : public SubsysReco
 
   // evaluator output file
   std::string _filename;
-  //Track map name
+  // Track map name
   std::string _trackmapname;
   TFile *_tfile;
 
@@ -109,9 +109,9 @@ class TrkrNtuplizer : public SubsysReco
   void fillOutputNtuples(PHCompositeNode *topNode);  ///< dump the evaluator information into ntuple for external analysis
   void printInputInfo(PHCompositeNode *topNode);     ///< print out the input object information (debugging upstream components)
   void printOutputInfo(PHCompositeNode *topNode);    ///< print out the ancestry information for detailed diagnosis
-    double AdcClockPeriod = 53.0;   // ns 
-    int m_cluster_version = 4;
-    SvtxTrackEval* _TrackEval;
+  double AdcClockPeriod = 53.0;                      // ns
+  int m_cluster_version = 4;
+  SvtxTrackEval *_TrackEval;
 };
 
 #endif  // G4EVAL_SVTXEVALUATOR_H

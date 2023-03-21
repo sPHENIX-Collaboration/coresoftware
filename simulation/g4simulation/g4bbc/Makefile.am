@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I`root-config --incdir`
+  -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
    libg4bbc_io.la \
@@ -17,15 +17,18 @@ libg4bbc_io_la_LIBADD = \
   -lphool
 
 libg4bbc_la_LIBADD = \
+  libg4bbc_io.la \
   -lg4detectors \
   -lfun4all \
-  libg4bbc_io.la
+  -lSubsysReco \
+  -lbbc
 
 pkginclude_HEADERS = \
   BbcVertex.h \
   BbcVertexv1.h \
   BbcVertexMap.h \
   BbcVertexMapv1.h \
+  BbcSimReco.h \
   BbcVertexFastSimReco.h
 
 ROOTDICTS = \
@@ -48,6 +51,7 @@ libg4bbc_io_la_SOURCES = \
   BbcVertexMapv1.cc
 
 libg4bbc_la_SOURCES = \
+  BbcSimReco.cc \
   BbcVertexFastSimReco.cc
 
 # Rule for generating table CINT dictionaries.

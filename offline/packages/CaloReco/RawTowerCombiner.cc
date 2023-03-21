@@ -74,7 +74,7 @@ int RawTowerCombiner::InitRun(PHCompositeNode *topNode)
   catch (std::exception &e)
   {
     std::cout << e.what() << std::endl;
-    //exit(1);
+    // exit(1);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -134,7 +134,7 @@ int RawTowerCombiner::process_event(PHCompositeNode * /*topNode*/)
 
       output_tower->set_time(
           (std::abs(output_tower->get_energy()) * output_tower->get_time() + std::abs(input_tower->get_energy()) * input_tower->get_time())  //
-          / (std::abs(output_tower->get_energy()) + std::abs(input_tower->get_energy()) + 1e-9)                                              //avoid devide 0
+          / (std::abs(output_tower->get_energy()) + std::abs(input_tower->get_energy()) + 1e-9)                                              // avoid devide 0
       );
 
       RawTower::CellConstRange cell_range = input_tower->get_g4cells();
@@ -167,7 +167,7 @@ int RawTowerCombiner::process_event(PHCompositeNode * /*topNode*/)
   // replace content in tower container
   _towers->Reset();
 
-  for (auto & it : new_tower_map)
+  for (auto &it : new_tower_map)
   {
     const int eta = it.first.first;
     const int phi = it.first.second;
@@ -240,7 +240,9 @@ void RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
 
     int last_bin = (ibin + 1) * _n_combine_phi - 1;
     if (last_bin >= towergeom->get_phibins())
+    {
       last_bin = towergeom->get_phibins();
+    }
 
     const std::pair<double, double> range1 = towergeom->get_phibounds(
         first_bin);
@@ -257,7 +259,9 @@ void RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
 
     int last_bin = (ibin + 1) * _n_combine_eta - 1;
     if (last_bin >= towergeom->get_etabins())
+    {
       last_bin = towergeom->get_etabins();
+    }
 
     const std::pair<double, double> range1 = towergeom->get_etabounds(
         first_bin);
@@ -284,6 +288,7 @@ void RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
 
   // setup location of all towers
   for (int iphi = 0; iphi < towergeom->get_phibins(); iphi++)
+  {
     for (int ieta = 0; ieta < towergeom->get_etabins(); ieta++)
     {
       RawTowerGeomv1 *tg = new RawTowerGeomv1(
@@ -298,6 +303,7 @@ void RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
 
       towergeom->add_tower_geometry(tg);
     }
+  }
   if (Verbosity() >= VERBOSITY_SOME)
   {
     towergeom->identify();
