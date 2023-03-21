@@ -58,7 +58,10 @@ void BEmcRecFEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
   const float X0 = 0.8;  // in cm; obtained from GEANT (should be ~ rad length)
 
   float logE = log(0.1);
-  if (E > 0.1) logE = std::log(E);
+  if (E > 0.1)
+  {
+    logE = std::log(E);
+  }
   float zV = zA - fVz;
   float cosT = std::fabs(zV) / std::sqrt(xA * xA + yA * yA + zV * zV);
 
@@ -106,7 +109,10 @@ void BEmcRecFEMC::CorrectECore(float Ecore, float x, float y, float& Ecorr)
   const float par3 = 0.067;
 
   Ecorr = Ecore;
-  if (Ecore < 0.01) return;
+  if (Ecore < 0.01)
+  {
+    return;
+  }
 
   float xA, yA, zA;
   Tower2Global(Ecore / 0.91, x, y, xA, yA, zA);  // 0.91 - average correction
@@ -136,7 +142,10 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   yc = y;
   //  return;
 
-  if (Energy < 0.01) return;
+  if (Energy < 0.01)
+  {
+    return;
+  }
 
   float xA, yA, zA;
   Tower2Global(Energy, x, y, xA, yA, zA);
@@ -149,14 +158,22 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   float sin2Ty = sinTy * sinTy;
 
   if (sinTx > 0)
+  {
     xZero = -0.417 * sinTx - 1.500 * sin2Tx;
+  }
   else
+  {
     xZero = -0.417 * sinTx + 1.500 * sin2Tx;
+  }
 
   if (sinTy > 0)
+  {
     yZero = -0.417 * sinTy - 1.500 * sin2Ty;
+  }
   else
+  {
     yZero = -0.417 * sinTy + 1.500 * sin2Ty;
+  }
 
   t = 0.98 + 0.98 * std::sqrt(Energy);
   t *= 0.7;  // Temp correction

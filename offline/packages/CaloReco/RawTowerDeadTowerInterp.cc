@@ -128,27 +128,44 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
         int ieta = bineta + neighborIndex.first;
         int iphi = binphi + neighborIndex.second;
 
-        if (ieta >= eta_bins) continue;
-        if (ieta < 0) continue;
+        if (ieta >= eta_bins)
+        {
+          continue;
+        }
+        if (ieta < 0)
+        {
+          continue;
+        }
 
-        if (iphi >= phi_bins) iphi -= phi_bins;
-        if (iphi < 0) iphi += phi_bins;
+        if (iphi >= phi_bins)
+        {
+          iphi -= phi_bins;
+        }
+        if (iphi < 0)
+        {
+          iphi += phi_bins;
+        }
 
         assert(ieta >= 0);
         assert(ieta <= eta_bins);
         assert(iphi >= 0);
         assert(iphi <= phi_bins);
 
-        if (m_deadTowerMap->isDeadTower(ieta, iphi)) continue;
+        if (m_deadTowerMap->isDeadTower(ieta, iphi))
+        {
+          continue;
+        }
 
         ++n_neighbor;
 
         assert(m_calibTowers);
-
 	unsigned int towerkey = (ieta << 16U) + iphi;
 	TowerInfo *neighTower = m_calibTowers->get_tower_at_key(towerkey);
         // RawTower *neighTower = m_calibTowers->getTower(ieta, iphi);
-        if (neighTower == nullptr) continue;
+        if (neighTower == nullptr) 
+	{
+	  continue;
+	}
 
         if (Verbosity() >= VERBOSITY_MORE)
         {
@@ -199,7 +216,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
       }
     }
 
-  }  //if (m_deadTowerMap)
+  }  // if (m_deadTowerMap)
   else
   {
     static bool once = true;

@@ -60,11 +60,14 @@ void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
     //      std::cout << "Success pass data(size): " << DZ << std::endl << std::endl;
 
     float logE = log(0.1);
-    if (E > 0.1) logE = std::log(E);
+    if (E > 0.1)
+    {
+      logE = std::log(E);
+    }
     float zV = zA - fVz;
     float cosT = std::fabs(zV) / std::sqrt(xA * xA + yA * yA + zV * zV);
 
-    zC = (zA - DZ) + (D + X0 * logE) * cosT;  //Only the shower depth corrected
+    zC = (zA - DZ) + (D + X0 * logE) * cosT;  // Only the shower depth corrected
     //  zC = zA; // !!!!!
 
     xC = xA;  // Keep the x and y the same. The x and y correction is in another code
@@ -79,11 +82,14 @@ void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
     //      std::cout << "Success pass data(size): " << DZ << std::endl << std::endl;
 
     float logE = log(0.1);
-    if (E > 0.1) logE = std::log(E);
+    if (E > 0.1)
+    {
+      logE = std::log(E);
+    }
     float zV = zA - fVz;
     float cosT = std::fabs(zV) / std::sqrt(xA * xA + yA * yA + zV * zV);
 
-    zC = (zA - DZ) + (D + X0 * logE) * cosT;  //Only the shower depth corrected
+    zC = (zA - DZ) + (D + X0 * logE) * cosT;  // Only the shower depth corrected
     //  zC = zA; // !!!!!
 
     xC = xA;  // Keep the x and y the same. The x and y correction is in another code
@@ -141,7 +147,10 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   yc = y;
   //  return;
 
-  if (Energy < 0.01) return;
+  if (Energy < 0.01)
+  {
+    return;
+  }
 
   float xA, yA, zA;
   Tower2Global(Energy, x, y, xA, yA, zA);
@@ -154,14 +163,22 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   float sin2Ty = sinTy * sinTy;
 
   if (sinTx > 0)
+  {
     xZero = -0.6 * sinTx - 1.500 * sin2Tx;
+  }
   else
+  {
     xZero = -0.6 * sinTx + 1.500 * sin2Tx;
+  }
 
   if (sinTy > 0)
+  {
     yZero = -0.6 * sinTy - 1.5 * sin2Ty;
+  }
   else
+  {
     yZero = -0.6 * sinTy + 1.5 * sin2Ty;
+  }
 
   yZero = -yZero;  // Because tower index in X decreases with increasing X in EEMC (y is actually x here!)
 
