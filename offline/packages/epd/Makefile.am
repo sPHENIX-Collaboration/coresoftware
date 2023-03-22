@@ -25,6 +25,7 @@ libepd_la_LIBADD = \
   -lSubsysReco
 
 pkginclude_HEADERS = \
+  EPDDefs.h \
   EpdGeom.h \
   EpdGeomV1.h \
   EpdGeomMaker.h
