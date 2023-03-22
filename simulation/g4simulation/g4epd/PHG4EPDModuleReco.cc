@@ -6,6 +6,7 @@
 #include <calobase/TowerInfoContainerv1.h>
 
 #include <epd/EPDDefs.h>
+#include <epd/EpdGeomV1.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -49,14 +50,18 @@ int PHG4EPDModuleReco::InitRun(PHCompositeNode *topNode)
 
   CreateNodes(topNode);
   PHNodeIterator node_itr(topNode);
-  PHCompositeNode *dst_node = dynamic_cast<PHCompositeNode *>(node_itr.findFirst("PHCompositeNode", "DST"));
-  if (!dst_node) {
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(node_itr.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode) {
       std::cout << "PHComposite node created: DST" << std::endl;
-      dst_node = new PHCompositeNode("DST");
-      topNode->addNode(dst_node);
+      dstNode = new PHCompositeNode("DST");
+      topNode->addNode(dstNode);
   }
-  PHIODataNode<PHObject> *epd_geom_node = new PHIODataNode<PHObject>(this->epd_geom, "TOWERGEOM_EPD", "PHObject");
-  dst_node->addNode(epd_geom_node);
+  PHIODataNode *epdGeomNode = dynamic_cast<PHIODataNode *>(node_itr.findFirst("PHIODataNode", "TOWERGEOM_EPD"));
+  if (!epdGeomNode) {
+    EpdGeomV1 *epd_geom = new EpdGeomV1();
+    PHIODataNode<PHObject> *epd_geom_node = new PHIODataNode<PHObject>(this->epd_geom, "TOWERGEOM_EPD", "PHObject");
+    dstNode->addNode(epd_geom_node);
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
