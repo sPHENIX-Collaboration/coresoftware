@@ -88,8 +88,16 @@ int PHG4MvtxDigitizer::InitRun(PHCompositeNode *topNode)
 
 int PHG4MvtxDigitizer::process_event(PHCompositeNode *topNode)
 {
+  // Get the TrkrHitSetContainer node
+  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!trkrhitsetcontainer)
+  {
+    cout << "Could not locate TRKR_HITSET node, quit! " << endl;
+    exit(1);
+  }
+
   // This code now only does the Mvtx
-  DigitizeMvtxLadderCells(topNode);
+  DigitizeMvtxLadderCells(topNode, trkrhitsetcontainer);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -133,7 +141,9 @@ void PHG4MvtxDigitizer::CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode
   return;
 }
 
-void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
+void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode
+    , TrkrHitSetContainer* trkrhitsetcontainer
+    , bool b_truthtracks)
 {
   //----------
   // Get Nodes
@@ -141,13 +151,6 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
 
   // new containers
   //=============
-  // Get the TrkrHitSetContainer node
-  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (!trkrhitsetcontainer)
-  {
-    cout << "Could not locate TRKR_HITSET node, quit! " << endl;
-    exit(1);
-  }
 
   // Get the TrkrHitTruthAssoc node
   auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");

@@ -30,6 +30,8 @@ class PHG4MvtxDigitizer : public SubsysReco
   //! event processing
   int process_event(PHCompositeNode *topNode) override;
 
+  int process_TrkrHitSetContainer(TrkrHitSetContainer*);
+
   //! end of process
   int End(PHCompositeNode * /*topNode*/) override { return 0; };
 
@@ -48,7 +50,7 @@ class PHG4MvtxDigitizer : public SubsysReco
 
  private:
   void CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode);
-  void DigitizeMvtxLadderCells(PHCompositeNode *topNode);
+  void DigitizeMvtxLadderCells(PHCompositeNode *topNode, TrkrHitSetContainer*, bool b_truthtracks=false);
 
   std::vector<float> adc_input;
   std::vector<int> is_populated;
