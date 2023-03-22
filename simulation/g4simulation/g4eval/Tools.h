@@ -119,7 +119,6 @@ namespace G4Eval {
     TrkrClusterComparer* comp;
     std::array<int,5> cntclus(Vector& keys);
     std::array<int,5> cnt_matchedclus(Vector& keys, std::vector<bool>& matches);
-    ActsGeometry* geom {nullptr};
 
     public:
     ClusCntr(TrkrClusterComparer*_=nullptr) : comp{_} {};

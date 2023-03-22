@@ -93,11 +93,6 @@ class FillTruthRecoMatchTree : public SubsysReco
  private:
 
    int createNodes(PHCompositeNode *topNode);
-    // if looking for matched and un-matched clusters, need
-    // the matching criteria.
-    // This should match that in TruthRecoTrackMatching
-   double _cluster_nzwidths   { 0.5 };
-   double _cluster_nphiwidths { 0.5 };
 
    G4Eval::TrkrClusterComparer m_cluster_comp;
    G4Eval::ClusCntr            m_cluscntr;
