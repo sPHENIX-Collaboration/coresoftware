@@ -76,7 +76,7 @@ class FillTruthRecoMatchTree : public SubsysReco
       , bool  _fill_svtxnomatch   = false
       , float _cluster_nzwidths   = 0.5
       , float _cluster_nphiwidths = 0.5
-      , const std::string tfile_name="trackclusmatch.root"
+      , const std::string& tfile_name="trackclusmatch.root"
   );
 
   virtual ~FillTruthRecoMatchTree();

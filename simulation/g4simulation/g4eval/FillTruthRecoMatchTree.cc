@@ -30,7 +30,7 @@ FillTruthRecoMatchTree::FillTruthRecoMatchTree(
     , bool _fill_SvUnMatched
     , float _cluster_nzwidths
     , float _cluster_nphiwidths
-    , const std::string _tfile_name
+    , const std::string& _tfile_name
     )
   : 
     m_cluster_comp { _cluster_nphiwidths, _cluster_nzwidths }

@@ -93,9 +93,9 @@ class TruthMvtxClusterBuilder {
   PHG4CylinderGeomContainer* m_geom_container { nullptr };
 
   bool m_makeZClustering {true};  // z_clustering_option
-  bool do_hit_assoc = true;
-  bool do_read_raw = false;
-  int m_cluster_version = 4;
+  /* bool do_hit_assoc = true; */
+  /* bool do_read_raw = false; */
+  /* int m_cluster_version = 4; */
 };
 
 #endif

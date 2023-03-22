@@ -47,7 +47,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   void set_HitPruner(MvtxHitPruner* _) { m_hit_pruner = _; };
 
  private:
-  MvtxHitPruner* m_hit_pruner;
+  MvtxHitPruner* m_hit_pruner { nullptr };
 
   std::pair<double, double> generate_alpide_pulse(const double energy_deposited);
 

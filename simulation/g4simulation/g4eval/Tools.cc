@@ -46,8 +46,7 @@ namespace G4Eval {
 // function implementation mostly from 
 // https://root-forum.cern.ch/t/is-it-possible-to-save-plain-text-in-a-root-file/27674/4
 // Note that there is also the code there to read it back from a TFile
-  void write_StringToTFile(std::string msg_name
-          , std::string msg)
+  void write_StringToTFile(const std::string& msg_name, const std::string& msg)
   {                                                      
     //the string is either written to the current file, or to a new file
     //that is named f_outname
@@ -77,8 +76,8 @@ namespace G4Eval {
     m_nz_widths   { _nz_widths }
   {};
   int TrkrClusterComparer::init(PHCompositeNode* topNode,
-      std::string name_phg4_clusters,
-      std::string name_reco_clusters)
+      const std::string& name_phg4_clusters,
+      const std::string& name_reco_clusters)
   {
     // fill bin/pixel sizes
     // ------ MVTX data ------

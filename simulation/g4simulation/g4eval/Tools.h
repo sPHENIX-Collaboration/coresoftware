@@ -8,6 +8,7 @@
 #include <set>
 #include <vector>
 #include <Eigen/Core>
+#include <cfloat>
 /* #include <trackbase_historic/TrackSeed.h> */
 
 class ActsGeometry;
@@ -24,7 +25,7 @@ namespace G4Eval {
   // Following function writes msg to the currently active TFile
   // if f_outname is provided, then it will write the message to a new
   // TFiles of that name and close it again.
-  void write_StringToTFile(std::string msg_name, std::string msg);
+  void write_StringToTFile(const std::string& msg_name, const std::string& msg);
 
   std::vector<int> unmatchedSvtxTrkIds(EmbRecoMatchContainer*, SvtxTrackMap*);
 
@@ -33,8 +34,8 @@ namespace G4Eval {
     public:
     TrkrClusterComparer (float _nphi_widths=0.5, float _nz_widths=0.5 );
     int init(PHCompositeNode* topNode, 
-        std::string name_truth_clusters="TRKR_TRUTHCLUSTERCONTAINER", 
-        std::string name_reco_clusters="TRKR_CLUSTER");
+        const std::string& name_truth_clusters="TRKR_TRUTHCLUSTERCONTAINER", 
+        const std::string&name_reco_clusters="TRKR_CLUSTER");
 
     bool status_good {false};
     TrkrCluster* clus_T {nullptr};
@@ -47,10 +48,11 @@ namespace G4Eval {
     // Members that are set with each set of cluster keys that
     // are passed to it.
     // z and phi locations of phg4 hit (T) and Svtx hit (R)
-    float z_T, z_R, phi_T, phi_R; 
-    float phisize_R, phisize_T, zsize_R, zsize_T; // sizes are in pixels/layers
-    float phi_delta; // abs(phi_T-phi_R)
-    float z_delta;   // abs(z_T-z_R)
+    float z_T       { FLT_MAX }, z_R       { FLT_MAX };
+    float phi_T     { FLT_MAX }, phi_R     { FLT_MAX };
+    float phisize_R { FLT_MAX }, phisize_T { FLT_MAX };
+    float zsize_R   { FLT_MAX }, zsize_T   { FLT_MAX };
+    float phi_delta { FLT_MAX }, z_delta   { FLT_MAX }; // abs(z_T-z_R)
 
     bool in_tpc  {false};
     bool in_mvtx {false};
