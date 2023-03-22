@@ -129,7 +129,7 @@ int PHActsTrackProjection::projectTracks(const int caloLayer)
     auto cylSurf =
         m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
 
-    auto result = propagateTrack(params, cylSurf);
+    auto result = propagateTrack(params, caloLayer, cylSurf);
     if (result.ok())
     {
       updateSvtxTrack(result.value(), track, caloLayer);
@@ -289,10 +289,14 @@ void PHActsTrackProjection::getSquareTowerEnergies(int phiBin,
 PHActsTrackProjection::BoundTrackParamResult
 PHActsTrackProjection::propagateTrack(
     const Acts::BoundTrackParameters& params,
+    const int /*caloLayer*/,
     const SurfacePtr& targetSurf)
 {
   ActsPropagator propagator(m_tGeometry);
+  propagator.constField();
   propagator.verbosity(Verbosity());
+  propagator.setConstFieldValue(1.4 * Acts::UnitConstants::T);
+
   return propagator.propagateTrackFast(params, targetSurf);
 }
 
