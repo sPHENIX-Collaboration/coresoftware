@@ -37,10 +37,10 @@ namespace G4Eval {
         const std::string& name_truth_clusters="TRKR_TRUTHCLUSTERCONTAINER", 
         const std::string&name_reco_clusters="TRKR_CLUSTER");
 
-    bool status_good {false};
-    TrkrCluster* clus_T {nullptr};
-    TrkrCluster* clus_R {nullptr};
-    int layer;
+    TrkrCluster* clus_T { nullptr };
+    TrkrCluster* clus_R { nullptr };
+    bool status_good    { false   };
+    int  layer          { INT_MAX };
 
     std::pair<bool, float> operator()  // return pair(is_matched,how_good_match)
       (TrkrDefs::cluskey key_T, TrkrDefs::cluskey key_R);
