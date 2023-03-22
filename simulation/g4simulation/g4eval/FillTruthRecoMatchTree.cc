@@ -38,7 +38,7 @@ FillTruthRecoMatchTree::FillTruthRecoMatchTree(
   , m_fill_SvU      { _fill_SvUnMatched }
 {
   m_cluscntr.set_comparer(&m_cluster_comp);
-  m_tfile                                   = new TFile(_tfile_name.c_str(), "recreate");
+  m_tfile = new TFile(_tfile_name.c_str(), "recreate");
   m_tfile->cd();
   m_ttree = new TTree("T", "Tracks (and sometimes clusters)");
 
@@ -241,8 +241,6 @@ int FillTruthRecoMatchTree::createNodes(PHCompositeNode *topNode)
 
 int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
 {
-  print_mvtx_diagnostics();
-  return 0;
 
   if (Verbosity()>5) cout << " FillTruthRecoMatchTree::process_event() " << endl;
 
@@ -274,6 +272,7 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
   int index_G4U_clusU   {0};
   int index_SvU_clusU   {0};
   
+  if (Verbosity() > 2) std::cout << " getting" << (int) m_EmbRecoMatchContainer->getMatches().size() << std::endl;
   for (auto& match : m_EmbRecoMatchContainer->getMatches()) {
 
     unsigned int g4_trkid = match->idTruthTrack();
@@ -420,6 +419,7 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
 
   m_ttree->Fill();
   clear_vectors();
+  if (Verbosity()>100) print_mvtx_diagnostics();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
