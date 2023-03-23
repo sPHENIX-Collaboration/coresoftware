@@ -63,7 +63,7 @@ class TPCHitTrackDisplay: public SubsysReco
   //Event counter
   int _event;
   int _pdgcode;
-  int cent_index;
+  
   //bool isRawData;
     
   //User modules

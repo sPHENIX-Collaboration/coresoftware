@@ -65,6 +65,7 @@ TPCHitTrackDisplay::TPCHitTrackDisplay(const string &name) :
   SubsysReco(name)
   , m_cut_ADC(200.0)
   , m_trackless_clusters(true)
+  , _pdgcode(0)
 {
 	//initialize
 	_event = 0;
@@ -227,7 +228,7 @@ void TPCHitTrackDisplay::SimulationOut(PHCompositeNode *topNode)
       return;
     }
 
-    cent_index = cent->get_centile(CentralityInfo::PROP::bimp);
+    int cent_index = cent->get_centile(CentralityInfo::PROP::bimp);
 
 
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
@@ -365,7 +366,6 @@ void TPCHitTrackDisplay::SimulationOut(PHCompositeNode *topNode)
       pz = track->get_pz();
       mom.SetX(px); mom.SetY(py); mom.SetZ(pz);
       c = track->get_charge();
-
 
       std::vector<TrkrDefs::cluskey> clusters;
       auto siseed = track->get_silicon_seed();
