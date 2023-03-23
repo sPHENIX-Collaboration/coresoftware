@@ -22,6 +22,9 @@
 
 #include <trackbase/ActsGeometry.h>
 
+class SvtxTrack;
+class SvtxVertexMap;
+
 class ActsPropagator
 {
  public:
@@ -39,6 +42,8 @@ class ActsPropagator
   {
   }
   ~ActsPropagator() {}
+
+  BoundTrackParam makeTrackParams(SvtxTrack* track, SvtxVertexMap* vertexMap);
 
   BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params,
                                        const unsigned int sphenixLayer);

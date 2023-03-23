@@ -49,8 +49,6 @@ class PHActsTrackPropagator : public SubsysReco
 
  private:
   int getNodes(PHCompositeNode *topNode);
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack *track);
-  Acts::Vector3 getVertex(SvtxTrack *track);
   BoundTrackParamResult propagateTrack(
       const Acts::BoundTrackParameters &params);
   void convertsPHENIXLayerToActsLayer(unsigned int &actsvolume,
