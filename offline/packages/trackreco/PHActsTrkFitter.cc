@@ -10,6 +10,7 @@
 /// Tracking includes
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/TpcDefs.h>
@@ -704,10 +705,11 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
 	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
       }else if(m_cluster_version==5){
-	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = pow(cluster->getRPhiError(),2) * Acts::UnitConstants::cm2;
+	TrkrClusterv5 *clusterv5 = dynamic_cast<TrkrClusterv5*> (cluster);
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = pow(clusterv5->getRPhiError(),2) * Acts::UnitConstants::cm2;
 	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
 	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
-	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = pow(cluster->getZError(),2) * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = pow(clusterv5->getZError(),2) * Acts::UnitConstants::cm2;
       }
 
       ActsSourceLink::Index index = measurements.size();
