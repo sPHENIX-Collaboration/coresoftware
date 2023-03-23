@@ -6,6 +6,7 @@
 #include <calobase/TowerInfoContainerv1.h>
 
 #include <epd/EPDDefs.h>
+#include <epd/EpdGeomV1.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -48,7 +49,19 @@ int PHG4EPDModuleReco::InitRun(PHCompositeNode *topNode)
   m_EpdMpv = get_double_param("epdmpv");
 
   CreateNodes(topNode);
-
+  PHNodeIterator node_itr(topNode);
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(node_itr.findFirst("PHCompositeNode", "RUN"));
+  if (!runNode) {
+    std::cout << PHWHERE << "RUN Node not found - that is fatal" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+  EpdGeom *epdGeom = findNode::getClass<EpdGeom>(topNode,"TOWERGEOM_EPD");
+  if (!epdGeom) {
+    epdGeom = new EpdGeomV1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(epdGeom, "TOWERGEOM_EPD", "PHObject");
+    runNode->addNode(newNode);
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
