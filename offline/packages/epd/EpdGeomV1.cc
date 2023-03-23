@@ -221,7 +221,3 @@ bool EpdGeomV1::test_id_mapping() {
   }
   return pass;
 }
-
-void EpdGeomV1::identify(std::ostream &os) const {
-  os << "EPD Geometry Class" << std::endl;
-}

@@ -56,11 +56,11 @@ int PHG4EPDModuleReco::InitRun(PHCompositeNode *topNode)
       dstNode = new PHCompositeNode("DST");
       topNode->addNode(dstNode);
   }
-  PHIODataNode *epdGeomNode = dynamic_cast<PHIODataNode *>(node_itr.findFirst("PHIODataNode", "TOWERGEOM_EPD"));
+  PHIODataNode<PHObject> *epdGeomNode = dynamic_cast<PHIODataNode<PHObject> *>(node_itr.findFirst("PHIODataNode", "TOWERGEOM_EPD"));
   if (!epdGeomNode) {
-    EpdGeomV1 *epd_geom = new EpdGeomV1();
-    PHIODataNode<PHObject> *epd_geom_node = new PHIODataNode<PHObject>(this->epd_geom, "TOWERGEOM_EPD", "PHObject");
-    dstNode->addNode(epd_geom_node);
+    EpdGeomV1 *epdGeom = new EpdGeomV1();
+    PHIODataNode<PHObject> *epdGeomNode = new PHIODataNode<PHObject>(epdGeom, "TOWERGEOM_EPD", "PHObject");
+    dstNode->addNode(epdGeomNode);
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }

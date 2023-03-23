@@ -54,7 +54,6 @@ public:
   
   
 
-  void identify(std::ostream &os = std::cout ) const override;
   void Reset() override {return;}; // Reset doesn't need to do anything
 
 private:

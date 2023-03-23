@@ -32,7 +32,6 @@ class EpdGeom : public PHObject
     virtual float z_from_side_sector_tile(unsigned int /*side*/, unsigned int /*sector*/, unsigned int /*tile*/) {return -999;};
     virtual unsigned int decode_epd(unsigned int /*tower_key*/) {return 999;};
 
-    virtual void identify(std::ostream /*&os*/ ) const {return;};
     virtual void Reset() override {return;}; // Reset doesn't need to do anything
 
   private:
