@@ -51,9 +51,6 @@
 /*************************************************************/
 
 
-std::ofstream outfile1("TRACKS.json", std::ios::app);
-
-
 using namespace std;
 
 //----------------------------------------------------------------------------//
@@ -66,6 +63,7 @@ TPCHitTrackDisplay::TPCHitTrackDisplay(const string &name) :
   , m_cut_ADC(200.0)
   , m_trackless_clusters(true)
   , _pdgcode(0)
+  , outfile1((name + ".json").c_str(), std::ios::app)
 {
 	//initialize
 	_event = 0;
@@ -104,7 +102,7 @@ int TPCHitTrackDisplay::process_event(PHCompositeNode *topNode)
 //--   End method, wrap everything up
 //----------------------------------------------------------------------------//
 
-int TPCHitTrackDisplay::EndRun(PHCompositeNode *topNode)
+int TPCHitTrackDisplay::EndRun(const int runnumber)
 {
 
     return Fun4AllReturnCodes::EVENT_OK;

@@ -6,7 +6,7 @@
 #include <fun4all/SubsysReco.h>
 #include <string>
 #include <vector>
-
+#include <fstream>
 
 
 //Forward declerations
@@ -45,7 +45,7 @@ class TPCHitTrackDisplay: public SubsysReco
   int process_event(PHCompositeNode *);
 
   //End, write and close files
-  int EndRun(PHCompositeNode *);
+  int EndRun(const int);
   
   void set_pdgcode(const int thispdgcode) { _pdgcode = thispdgcode; }
 
@@ -54,16 +54,17 @@ class TPCHitTrackDisplay: public SubsysReco
 
   // Boolean for whether or not to include clusters without an associted track above a certain ADC value 
   void setIncludeTracklessClusters(float value) { m_trackless_clusters = value; }
-    
+   
  private:
- 
+
   float m_cut_ADC;  
   bool m_trackless_clusters; 
 
   //Event counter
   int _event;
   int _pdgcode;
-  
+  std::ofstream outfile1;
+ 
   //bool isRawData;
     
   //User modules
