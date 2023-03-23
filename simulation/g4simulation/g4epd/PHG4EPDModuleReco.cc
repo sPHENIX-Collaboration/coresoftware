@@ -50,17 +50,17 @@ int PHG4EPDModuleReco::InitRun(PHCompositeNode *topNode)
 
   CreateNodes(topNode);
   PHNodeIterator node_itr(topNode);
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(node_itr.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode) {
-      std::cout << "PHComposite node created: DST" << std::endl;
-      dstNode = new PHCompositeNode("DST");
-      topNode->addNode(dstNode);
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(node_itr.findFirst("PHCompositeNode", "RUN"));
+  if (!runNode) {
+    std::cout << PHWHERE << "RUN Node not found - that is fatal" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
-  PHIODataNode<PHObject> *epdGeomNode = dynamic_cast<PHIODataNode<PHObject> *>(node_itr.findFirst("PHIODataNode", "TOWERGEOM_EPD"));
-  if (!epdGeomNode) {
-    EpdGeomV1 *epdGeom = new EpdGeomV1();
-    PHIODataNode<PHObject> *epdGeomNode = new PHIODataNode<PHObject>(epdGeom, "TOWERGEOM_EPD", "PHObject");
-    dstNode->addNode(epdGeomNode);
+  EpdGeom *epdGeom = findNode::getClass<EpdGeom>(topNode,"TOWERGEOM_EPD");
+  if (!epdGeom) {
+    epdGeom = new EpdGeomV1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(epdGeom, "TOWERGEOM_EPD", "PHObject");
+    runNode->addNode(newNode);
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -28,11 +28,12 @@ libg4epd_la_SOURCES = \
   PHG4EPDModuleReco.cc
 
 libg4epd_la_LIBADD = \
-  -lphool \
+  -lcalo_io \
+  -lepd_io \
   -lg4detectors \
-  -lSubsysReco \
   -lphg4hit \
-  -lcalo_io
+  -lSubsysReco \
+  -lphool
 
 # leave generic name for test executable, they stay in the local build area
 # this preserves a similar "look and feel"
