@@ -32,15 +32,8 @@ int hcaladc[8][2] = {
 
 
 
-
-
-
-
-
-
 namespace TowerInfoDefs
 {
-
   // convert from tower index to key
   inline unsigned int encode_emcal(const unsigned int towerIndex)
   {
@@ -86,19 +79,13 @@ namespace TowerInfoDefs
     return key;
   } 
 
-
-
-
   inline unsigned int encode_emcal (const unsigned int etabin, const unsigned int phibin)
   {
     unsigned int key = phibin + (etabin << 16U);
     return key;
   }
 
-
-
-
-  // convert from tower index to key
+  // convert from tower index to hcal key
   inline unsigned int encode_hcal(const unsigned int towerIndex)
   {
  int phimap[64] = {0};
@@ -123,7 +110,6 @@ namespace TowerInfoDefs
       std::cout << "Attempting to access channel with invalid value ih HCAL " << packet << std::endl;
       exit(1);
     }
-
   int interfaceboard = ((towerIndex % supersector) % nchannelsperpacket) / channels_per_sector;
   int interfaceboard_channel = ((towerIndex % supersector) % nchannelsperpacket) % channels_per_sector;
   int localphibin = phimap[interfaceboard_channel] + phibinoffset[interfaceboard];
@@ -133,15 +119,16 @@ namespace TowerInfoDefs
   unsigned int globalphibin = localphibin + supersectornumber * 8;
   unsigned int key = globalphibin + (globaletabin << 16U);
   return key;
-
   } 
+
+  // convert from etabin-phibin to key
   inline unsigned int encode_hcal (const unsigned int etabin, const unsigned int phibin)
   {
     unsigned int key = phibin + (etabin << 16U);
     return key;
   }
 
-
+  // convert from channel index to EPD key
   inline unsigned int encode_epd(const unsigned int towerIndex)  // convert from tower index to key
   {
     int channels_per_sector = 31;
@@ -155,17 +142,109 @@ namespace TowerInfoDefs
     unsigned int r = rmap[channel];
     unsigned int key = globalphi + (r << 10U) + (supersectornumber << 20U);
     return key;
-    
   } 
 
+  // convert from arm-rbin-phibin to key
   inline unsigned int encode_epd (const unsigned int arm, const unsigned int rbin, const unsigned int phibin) 
   {
     unsigned int key = phibin + (rbin << 10U) + (arm << 20U);
     return key;
   }
 
+  // convert from channel number to zdc tower key
+  inline unsigned int encode_zdc(const unsigned int towerIndex)
+  {
+    if (towerIndex > 5) 
+      {
+	std::cout << "Attempting to access zdc channel with invalid number " << towerIndex << std::endl;
+	exit(1);	
+      }
+    // 3 bits: one for pos/neg z and 2 for the 3 modules  
+    
+    unsigned int key;
+    if(towerIndex==0) key = 0;
+    if(towerIndex==1) key = 1;
+    if(towerIndex==2) key = 2;
+    //negative side
+    if(towerIndex==3) {key = 1 << 2; key += 0;}
+    if(towerIndex==4) {key = 1 << 2; key += 1;}
+    if(towerIndex==5) {key = 1 << 2; key += 2;}
+    return key;
+  }
+  
 
-  inline unsigned int decode_epd(const unsigned int tower_key) // decode the tower_key to corresponding index for the emcal
+  // convert from channel number to smd tower key
+  inline unsigned int encode_smd(const unsigned int towerIndex)
+  {
+    // 3 bits: one for pos/neg z and 2 for the 3 modules  
+    if (towerIndex > 29) 
+      {
+	std::cout << "Attempting to access smd channel with invalid number " << towerIndex << std::endl;
+	exit(1);	
+      }
+    int Xpos[2] = {0,6}; 
+    int Ypos[2] = {7,14}; 
+    int Xneg[2] = {15,23};
+    int Yneg[2] = {22,29};
+    unsigned int xyBit = 0;
+    unsigned int fingerIndex;
+    unsigned int sideBit = 0;
+    if (towerIndex >= Xpos[0] && towerIndex <= Xpos[1] ) 
+      {
+	xyBit = 0; 
+	fingerIndex = towerIndex -Xpos[0]; 
+	sideBit = 1;
+      }
+    if (towerIndex >= Ypos[0] && towerIndex <= Ypos[1] ) 
+      {
+	xyBit = 1; 
+	fingerIndex = towerIndex -Ypos[0]; 
+	sideBit = 1;
+      }
+    if (towerIndex >= Xneg[0] && towerIndex <= Xneg[1] ) 
+      {
+	xyBit = 0; 
+	fingerIndex = towerIndex - Xneg[0]; 
+	sideBit = 0;
+      }
+    if (towerIndex >= Yneg[0] && towerIndex <= Yneg[1] ) 
+      {
+	xyBit = 1; 
+	fingerIndex = towerIndex - Yneg[0]; 
+	sideBit = 0;
+      }
+    unsigned int key = (sideBit << 4) + (xyBit << 3) + fingerIndex;
+    return key;
+  }
+  
+
+  // convert from smd tower key to channel number
+  inline unsigned int decode_smd(const unsigned int key)
+  {
+    unsigned int index=999;
+    for (unsigned int i=0; i<30; i++)
+      {
+	if (encode_smd(i) == key) {index=i; break;}
+      }
+    return index;
+  }
+
+
+  // convert from zdc tower key to channel number
+  inline unsigned int decode_zdc(const unsigned int key)
+  {
+    unsigned int index=999;
+    for (unsigned int i=0; i<6; i++)
+      {
+	if (encode_zdc(i) == key) {index=i; break;}
+      }
+    return index;
+  }
+  
+
+
+  // convert from EPD tower key to channel index
+  inline unsigned int decode_epd(const unsigned int tower_key) 
   {
     int channels_per_sector = 31;
     int supersector = channels_per_sector * 12;
@@ -189,7 +268,8 @@ namespace TowerInfoDefs
   }
 
 
-  inline unsigned int decode_emcal(const unsigned int tower_key)  //convert from calorimeter key to channel index
+  // convert from EMCAL tower key to channel index
+  inline unsigned int decode_emcal(const unsigned int tower_key)  
   {
     int etabinoffset[4] = {0};
     int etabinmap[4] = {0};
@@ -229,8 +309,9 @@ namespace TowerInfoDefs
     index = localindex + channels_per_sector * ib + packet * nchannelsperpacket + supersector * supersectornumber;
     return index;
   }
-  
-  inline unsigned int decode_hcal(const unsigned int tower_key) //convert from calorimeter key to channel index
+
+  // convert from HCAL tower key to channel index
+  inline unsigned int decode_hcal(const unsigned int tower_key) 
   {
     int channels_per_sector = 16;
     int supersector = 16 * 4 * 3;
@@ -251,22 +332,68 @@ namespace TowerInfoDefs
     return index;
   }
 
-
-  inline unsigned int getCaloTowerPhiBin(const unsigned int key) // convert from calorimeter key to phi bin coordinates
+ // convert from calorimeter key to phi bin 
+  inline unsigned int getCaloTowerPhiBin(const unsigned int key)
   {
     unsigned int etabin = key >> 16U;
     unsigned int phibin = key - (etabin << 16U);
     return phibin;
   }
-  
-  inline unsigned int getCaloTowerEtaBin(const unsigned int key) // convert from calorimeter key to eta bin coordinates
+
+  // convert from calorimeter key to eta bin 
+  inline unsigned int getCaloTowerEtaBin(const unsigned int key) 
   {
     unsigned int etabin = key >> 16U;
     return etabin;
   }
   
 
-  inline RawTowerDefs::keytype get_emcal_geokey_at_channel(const unsigned int towerIndex) // convienent for interface to geometry class
+
+
+
+
+  // convert from calorimeter key to zdc side 
+  inline int get_zdc_side(const unsigned int key) 
+  {
+    if (key&4) return 1;
+    if (!(key&4)) return -1;
+    return -999;
+  }
+
+  // convert from calorimeter key to zdc module number
+  inline unsigned int get_zdc_module_index(const unsigned int key)
+  {
+    return key&3;
+  }
+  
+
+
+
+
+  // convert from calorimeter key to smd side 
+  inline int get_smd_side(const unsigned int key) 
+  { 
+    if (key&(1<<4)) return 1;
+    if ( !(key&(1<<4)) ) return -1;
+    return -999;
+  }
+  // convert from calorimeter key to smd xy bin
+  inline int get_smd_xy(const unsigned int key)
+  { 
+    if (key&(1<<3)) return 0;
+    if ( !(key&(1<<3)) ) return 1;
+    return -999;
+  }
+    // convert from calorimeter key to smd finger 
+  inline int get_smd_finger_index(const unsigned int key) 
+  {
+    return key&7;
+  }
+
+
+
+  // convienent for interface to geometry class
+  inline RawTowerDefs::keytype get_emcal_geokey_at_channel(const unsigned int towerIndex)
   {
     unsigned int towerkey = encode_emcal(towerIndex);
     unsigned int etabin = getCaloTowerEtaBin(towerkey);
@@ -275,8 +402,8 @@ namespace TowerInfoDefs
     return key;
   }
 
-
-  inline RawTowerDefs::keytype get_hcalin_geokey_at_channel(const unsigned int towerIndex) // convienent for interface to geometry class
+  // convienent for interface to geometry class
+  inline RawTowerDefs::keytype get_hcalin_geokey_at_channel(const unsigned int towerIndex) 
   {
     unsigned int towerkey = encode_hcal(towerIndex);
     unsigned int etabin = getCaloTowerEtaBin(towerkey);
@@ -285,8 +412,8 @@ namespace TowerInfoDefs
     return key;
   }
 
-
-  inline RawTowerDefs::keytype get_hcalout_geokey_at_channel(const unsigned int towerIndex) // convienent for interface to geometry class
+  // convienent for interface to geometry class
+  inline RawTowerDefs::keytype get_hcalout_geokey_at_channel(const unsigned int towerIndex) 
   {
     unsigned int towerkey = encode_hcal(towerIndex);
     unsigned int etabin = getCaloTowerEtaBin(towerkey);
@@ -294,7 +421,6 @@ namespace TowerInfoDefs
     const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, etabin, phibin);
     return key;
   }
-
 
 
 
