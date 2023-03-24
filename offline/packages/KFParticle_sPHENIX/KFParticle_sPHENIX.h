@@ -170,9 +170,9 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMaximumTrackchi2nDOF(float trackchi2ndof) { m_track_chi2ndof = trackchi2ndof; }
 
-  void setMinMVTXclusters(int nHits) { m_nMVTXHits = nHits; }
+  void setMinMVTXhits(int nHits) { m_nMVTXHits = nHits; }
 
-  void setMinTPCclusters(int nHits) { m_nTPCHits = nHits; }
+  void setMinTPChits(int nHits) { m_nTPCHits = nHits; }
 
   void setMaximumDaughterDCA(float dca) { m_comb_DCA = dca; }
 
