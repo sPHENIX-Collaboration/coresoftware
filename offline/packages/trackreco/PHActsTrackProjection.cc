@@ -22,8 +22,8 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainerv1.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <phgeom/PHGeomUtility.h>
 
@@ -123,13 +123,14 @@ int PHActsTrackProjection::End(PHCompositeNode* /*topNode*/)
 
 int PHActsTrackProjection::projectTracks(const int caloLayer)
 {
+  ActsPropagator prop(m_tGeometry);
   for (const auto& [key, track] : *m_trackMap)
   {
-    const auto params = makeTrackParams(track);
+    const auto params = prop.makeTrackParams(track, m_vertexMap);
     auto cylSurf =
         m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
 
-    auto result = propagateTrack(params, cylSurf);
+    auto result = propagateTrack(params, caloLayer, cylSurf);
     if (result.ok())
     {
       updateSvtxTrack(result.value(), track, caloLayer);
@@ -139,47 +140,7 @@ int PHActsTrackProjection::projectTracks(const int caloLayer)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-Acts::BoundTrackParameters
-PHActsTrackProjection::makeTrackParams(SvtxTrack* track)
-{
-  Acts::Vector3 momentum(track->get_px(),
-                         track->get_py(),
-                         track->get_pz());
 
-  auto actsVertex = getVertex(track);
-  auto perigee =
-      Acts::Surface::makeShared<Acts::PerigeeSurface>(actsVertex);
-  auto actsFourPos =
-      Acts::Vector4(track->get_x() * Acts::UnitConstants::cm,
-                    track->get_y() * Acts::UnitConstants::cm,
-                    track->get_z() * Acts::UnitConstants::cm,
-                    10 * Acts::UnitConstants::ns);
-
-  ActsTransformations transformer;
-
-  Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
-
-  return ActsTrackFittingAlgorithm::TrackParameters::create(perigee,
-                                                            m_tGeometry->geometry().getGeoContext(),
-                                                            actsFourPos, momentum,
-                                                            track->get_charge() / track->get_p(),
-                                                            cov)
-      .value();
-}
-Acts::Vector3 PHActsTrackProjection::getVertex(SvtxTrack* track)
-{
-  auto vertexId = track->get_vertex_id();
-  const SvtxVertex* svtxVertex = m_vertexMap->get(vertexId);
-  Acts::Vector3 vertex = Acts::Vector3::Zero();
-  if (svtxVertex)
-  {
-    vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
-    vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm;
-    vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
-  }
-
-  return vertex;
-}
 
 void PHActsTrackProjection::updateSvtxTrack(
     const ActsPropagator::BoundTrackParamPair& parameters,
@@ -271,7 +232,8 @@ void PHActsTrackProjection::getSquareTowerEnergies(int phiBin,
       if (ieta < 0 or ieta >= m_towerGeomContainer->get_etabins())
         continue;
 
-      auto tower = m_towerContainer->getTower(ieta, wrapPhi);
+      unsigned int towerkey = (ieta << 16U) + wrapPhi;
+      auto tower = m_towerContainer->get_tower_at_key(towerkey);
 
       if (!tower)
         continue;
@@ -288,10 +250,14 @@ void PHActsTrackProjection::getSquareTowerEnergies(int phiBin,
 PHActsTrackProjection::BoundTrackParamResult
 PHActsTrackProjection::propagateTrack(
     const Acts::BoundTrackParameters& params,
+    const int /*caloLayer*/,
     const SurfacePtr& targetSurf)
 {
   ActsPropagator propagator(m_tGeometry);
+  propagator.constField();
   propagator.verbosity(Verbosity());
+  propagator.setConstFieldValue(1.4 * Acts::UnitConstants::T);
+
   return propagator.propagateTrackFast(params, targetSurf);
 }
 
@@ -299,12 +265,12 @@ int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode* topNode,
                                                  const int caloLayer)
 {
   std::string towerGeoNodeName = "TOWERGEOM_" + m_caloNames.at(caloLayer);
-  std::string towerNodeName = "TOWER_CALIB_" + m_caloNames.at(caloLayer);
+  std::string towerNodeName = "TOWERINFO_CALIB_" + m_caloNames.at(caloLayer);
   std::string clusterNodeName = "CLUSTER_" + m_caloNames.at(caloLayer);
 
   m_towerGeomContainer = findNode::getClass<RawTowerGeomContainer>(topNode, towerGeoNodeName.c_str());
 
-  m_towerContainer = findNode::getClass<RawTowerContainer>(topNode, towerNodeName.c_str());
+  m_towerContainer = findNode::getClass<TowerInfoContainerv1>(topNode, towerNodeName.c_str());
 
   m_clusterContainer = findNode::getClass<RawClusterContainer>(topNode, clusterNodeName.c_str());
 

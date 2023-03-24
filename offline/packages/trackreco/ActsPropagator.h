@@ -15,12 +15,15 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <Acts/Propagator/Propagator.hpp>
 #pragma GCC diagnostic pop
-#include <Acts/Propagator/detail/VoidPropagatorComponents.hpp>
 #include <Acts/Propagator/Navigator.hpp>
+#include <Acts/Propagator/detail/VoidPropagatorComponents.hpp>
 
 #include <Acts/Utilities/Result.hpp>
 
 #include <trackbase/ActsGeometry.h>
+
+class SvtxTrack;
+class SvtxVertexMap;
 
 class ActsPropagator
 {
@@ -40,6 +43,8 @@ class ActsPropagator
   }
   ~ActsPropagator() {}
 
+  BoundTrackParam makeTrackParams(SvtxTrack* track, SvtxVertexMap* vertexMap);
+
   BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params,
                                        const unsigned int sphenixLayer);
 
@@ -57,6 +62,8 @@ class ActsPropagator
                   unsigned int& actsvolume,
                   unsigned int& actslayer);
   void verbosity(int verb) { m_verbosity = verb; }
+  void setConstFieldValue(float field) { m_fieldval = field; }
+  void constField() { m_constField = true; }
 
  private:
   SphenixPropagator makePropagator();
@@ -68,6 +75,8 @@ class ActsPropagator
   bool m_constField = false;
 
   ActsGeometry* m_geometry = nullptr;
+
+  float m_fieldval = 1.4 * Acts::UnitConstants::T;
 };
 
 #endif

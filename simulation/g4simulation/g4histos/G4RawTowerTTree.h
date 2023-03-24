@@ -28,7 +28,7 @@ class G4RawTowerTTree : public SubsysReco
   void SaveRawTowers(const int i = 1) { savetowers = i; }
 
   void HistoFileName(const std::string &name) { _histofilename = name; }
-
+ 
  protected:
   std::string _detector;
   std::string _outnodename;

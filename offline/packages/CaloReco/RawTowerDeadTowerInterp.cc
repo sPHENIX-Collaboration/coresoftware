@@ -1,7 +1,7 @@
 #include "RawTowerDeadTowerInterp.h"
 
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainerv1.h>
 #include <calobase/RawTowerDeadMap.h>
 #include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
@@ -128,25 +128,44 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
         int ieta = bineta + neighborIndex.first;
         int iphi = binphi + neighborIndex.second;
 
-        if (ieta >= eta_bins) continue;
-        if (ieta < 0) continue;
+        if (ieta >= eta_bins)
+        {
+          continue;
+        }
+        if (ieta < 0)
+        {
+          continue;
+        }
 
-        if (iphi >= phi_bins) iphi -= phi_bins;
-        if (iphi < 0) iphi += phi_bins;
+        if (iphi >= phi_bins)
+        {
+          iphi -= phi_bins;
+        }
+        if (iphi < 0)
+        {
+          iphi += phi_bins;
+        }
 
         assert(ieta >= 0);
         assert(ieta <= eta_bins);
         assert(iphi >= 0);
         assert(iphi <= phi_bins);
 
-        if (m_deadTowerMap->isDeadTower(ieta, iphi)) continue;
+        if (m_deadTowerMap->isDeadTower(ieta, iphi))
+        {
+          continue;
+        }
 
         ++n_neighbor;
 
         assert(m_calibTowers);
-        RawTower *neighTower =
-            m_calibTowers->getTower(ieta, iphi);
-        if (neighTower == nullptr) continue;
+	unsigned int towerkey = (ieta << 16U) + iphi;
+	TowerInfo *neighTower = m_calibTowers->get_tower_at_key(towerkey);
+        // RawTower *neighTower = m_calibTowers->getTower(ieta, iphi);
+        if (neighTower == nullptr) 
+	{
+	  continue;
+	}
 
         if (Verbosity() >= VERBOSITY_MORE)
         {
@@ -159,23 +178,26 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
 
       if (n_neighbor > 0 and E_SumNeighbor != 0)
       {
-        RawTower *deadTower = m_calibTowers->getTower(key);
 
-        if (deadTower == nullptr)
-        {
-          deadTower = new RawTowerv1();
-        }
+	unsigned int deadtowerkey = (bineta << 16U) + binphi;
+
+        TowerInfo *deadTower = m_calibTowers->get_tower_at_key(deadtowerkey);
+
+        // if (deadTower == nullptr)
+        // {
+        //   deadTower = new TowerInfo();
+        // }
         assert(deadTower);
 
         deadTower->set_energy(E_SumNeighbor / n_neighbor);
-        m_calibTowers->AddTower(key, deadTower);
+        // m_calibTowers->AddTower(key, deadTower);
 
         recovery_energy += deadTower->get_energy();
         ++recoverTower;
 
         if (Verbosity() >= VERBOSITY_MORE)
         {
-          std::cout << " -> " << deadTower->get_energy() << " GeV @ " << deadTower->get_id();
+          std::cout << " -> " << deadTower->get_energy() << " GeV @ etabin: " << bineta << " , phi bin: " << binphi ;
         }
 
       }  // if (n_neighbor>0)
@@ -194,7 +216,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
       }
     }
 
-  }  //if (m_deadTowerMap)
+  }  // if (m_deadTowerMap)
   else
   {
     static bool once = true;
@@ -216,8 +238,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
               << "process_event"
               << "recovery_energy = " << recovery_energy
               << " GeV from " << recoverTower << " towers out of total " << deadTowerCnt << " dead towers"
-              << ", output sum energy = "
-              << m_calibTowers->getTotalEdep() << " GeV" << std::endl;
+               << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -279,8 +300,8 @@ void RawTowerDeadTowerInterp::CreateNodes(PHCompositeNode *topNode)
         "Failed to find DST node in RawTowerDeadTowerInterp::CreateNodes");
   }
 
-  const std::string rawTowerNodeName = "TOWER_" + _calib_tower_node_prefix + "_" + m_detector;
-  m_calibTowers = findNode::getClass<RawTowerContainer>(dstNode, rawTowerNodeName);
+  const std::string rawTowerNodeName = "TOWERINFO_" + _calib_tower_node_prefix + "_" + m_detector;
+  m_calibTowers = findNode::getClass<TowerInfoContainerv1>(dstNode, rawTowerNodeName);
   if (!m_calibTowers)
   {
     std::cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__

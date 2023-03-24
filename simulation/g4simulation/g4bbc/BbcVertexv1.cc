@@ -13,7 +13,7 @@ BbcVertexv1::BbcVertexv1()
 {
 }
 
-BbcVertexv1::~BbcVertexv1() {}
+BbcVertexv1::~BbcVertexv1() = default;
 
 void BbcVertexv1::identify(ostream& os) const
 {
@@ -28,11 +28,26 @@ void BbcVertexv1::identify(ostream& os) const
 
 int BbcVertexv1::isValid() const
 {
-  if (_id == 0xFFFFFFFF) return 0;
-  if (isnan(_t)) return 0;
-  if (isnan(_t_err)) return 0;
-  if (isnan(_z)) return 0;
-  if (isnan(_z_err)) return 0;
+  if (_id == 0xFFFFFFFF)
+  {
+    return 0;
+  }
+  if (isnan(_t))
+  {
+    return 0;
+  }
+  if (isnan(_t_err))
+  {
+    return 0;
+  }
+  if (isnan(_z))
+  {
+    return 0;
+  }
+  if (isnan(_z_err))
+  {
+    return 0;
+  }
 
   return 1;
 }

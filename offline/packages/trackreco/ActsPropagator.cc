@@ -6,11 +6,51 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
+
+ActsPropagator::BoundTrackParam
+ActsPropagator::makeTrackParams(SvtxTrack* track,
+				SvtxVertexMap* vertexMap)
+{
+  Acts::Vector3 momentum(track->get_px(),
+                         track->get_py(),
+                         track->get_pz());
+  
+  auto vertexId = track->get_vertex_id();
+  const SvtxVertex* svtxVertex = vertexMap->get(vertexId);
+  Acts::Vector3 vertex = Acts::Vector3::Zero();
+  if (svtxVertex)
+  {
+    vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
+    vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm;
+    vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
+  }
+ 
+  auto perigee =
+      Acts::Surface::makeShared<Acts::PerigeeSurface>(vertex);
+  auto actsFourPos =
+      Acts::Vector4(track->get_x() * Acts::UnitConstants::cm,
+                    track->get_y() * Acts::UnitConstants::cm,
+                    track->get_z() * Acts::UnitConstants::cm,
+                    10 * Acts::UnitConstants::ns);
+
+  ActsTransformations transformer;
+
+  Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
+
+  return ActsTrackFittingAlgorithm::TrackParameters::create(perigee,
+                                                            m_geometry->geometry().getGeoContext(),
+                                                            actsFourPos, momentum,
+                                                            track->get_charge() / track->get_p(),
+                                                            cov)
+      .value();
+}
 
 ActsPropagator::BoundTrackParamResult
 ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
@@ -146,14 +186,17 @@ ActsPropagator::FastPropagator ActsPropagator::makeFastPropagator()
 
   if (m_constField)
   {
-    Acts::Vector3 fieldVec(0, 0, 1.4 * Acts::UnitConstants::T);
+    if (m_verbosity > 2)
+    {
+      std::cout << "Using const field of val " << m_fieldval << std::endl;
+    }
+    Acts::Vector3 fieldVec(0, 0, m_fieldval);
     field = std::make_shared<Acts::ConstantBField>(fieldVec);
   }
 
-  auto trackingGeometry = m_geometry->geometry().tGeometry;
-  Stepper stepper(field);
+  ActsPropagator::Stepper stepper(field);
 
-  return FastPropagator(stepper);
+  return ActsPropagator::FastPropagator(stepper);
 }
 ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
 {
@@ -161,7 +204,7 @@ ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
 
   if (m_constField)
   {
-    Acts::Vector3 fieldVec(0, 0, 1.4 * Acts::UnitConstants::T);
+    Acts::Vector3 fieldVec(0, 0, m_fieldval);
     field = std::make_shared<Acts::ConstantBField>(fieldVec);
   }
 

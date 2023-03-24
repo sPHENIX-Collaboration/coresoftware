@@ -58,7 +58,7 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode * /*topNode*/)
   assert(eta_bins > 0);
   assert(phi_bins > 0);
 
-  //loop over the clusters
+  // loop over the clusters
   RawClusterContainer::ConstRange begin_end = m_rawClusters->getClusters();
   RawClusterContainer::ConstIterator iter;
 
@@ -71,7 +71,7 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode * /*topNode*/)
     std::vector<float> towerphis;
     std::vector<float> towerenergies;
 
-    //loop over the towers in the cluster
+    // loop over the towers in the cluster
     RawCluster::TowerConstRange towers = cluster->get_towers();
     RawCluster::TowerConstIterator toweriter;
 
@@ -86,7 +86,7 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode * /*topNode*/)
       int towerphi = tower->get_binphi();
       double towerenergy = tower->get_energy();
 
-      //put the etabin, phibin, and energy into the corresponding vectors
+      // put the etabin, phibin, and energy into the corresponding vectors
       toweretas.push_back(towereta);
       towerphis.push_back(towerphi);
       towerenergies.push_back(towerenergy);
@@ -95,8 +95,8 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode * /*topNode*/)
     int ntowers = toweretas.size();
     assert(ntowers >= 1);
 
-    //loop over the towers to determine the energy
-    //weighted eta and phi position of the cluster
+    // loop over the towers to determine the energy
+    // weighted eta and phi position of the cluster
 
     float etamult = 0;
     float etasum = 0;
@@ -112,9 +112,13 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode * /*topNode*/)
       int phibin = towerphis.at(j);
 
       if (phibin - towerphis.at(0) < -phi_bins / 2.0)
+      {
         phibin += phi_bins;
+      }
       else if (phibin - towerphis.at(0) > +phi_bins / 2.0)
+      {
         phibin -= phi_bins;
+      }
       assert(std::abs(phibin - towerphis.at(0)) <= phi_bins / 2.0);
 
       energymult = towerenergies.at(j) * phibin;
@@ -142,11 +146,23 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode * /*topNode*/)
         int ieta = search_eta;
         int iphi = search_phi;
 
-        if (ieta >= eta_bins) continue;
-        if (ieta < 0) continue;
+        if (ieta >= eta_bins)
+        {
+          continue;
+        }
+        if (ieta < 0)
+        {
+          continue;
+        }
 
-        if (iphi >= phi_bins) iphi -= phi_bins;
-        if (iphi < 0) iphi += phi_bins;
+        if (iphi >= phi_bins)
+        {
+          iphi -= phi_bins;
+        }
+        if (iphi < 0)
+        {
+          iphi += phi_bins;
+        }
 
         const bool isDead = m_deadMap->isDeadTower(ieta, iphi);
 
@@ -167,10 +183,13 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode * /*topNode*/)
         }
       }
 
-      if (rejecCluster) break;
+      if (rejecCluster)
+      {
+        break;
+      }
     }
 
-    //container operation
+    // container operation
     if (rejecCluster)
     {
       if (Verbosity() > VERBOSITY_MORE)
@@ -209,10 +228,10 @@ void RawClusterDeadAreaMask::CreateNodeTree(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
-  //Get the DST Node
+  // Get the DST Node
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
-  //Check that it is there
+  // Check that it is there
   if (!dstNode)
   {
     std::cout << "DST Node missing, quitting" << std::endl;
