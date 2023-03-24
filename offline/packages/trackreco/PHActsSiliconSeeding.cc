@@ -24,7 +24,6 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase/TrkrCluster.h>            
-#include <trackbase/TrkrClusterv5.h>            
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
@@ -572,9 +571,8 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
     localCov(0,0) = para_errors.first* Acts::UnitConstants::cm2;
     localCov(1,1) = para_errors.second* Acts::UnitConstants::cm2;
   }else if(m_cluster_version==5){
-    TrkrClusterv5 *clusterv5 = dynamic_cast<TrkrClusterv5*> (clus);
-    localCov(0,0) = pow(clusterv5->getRPhiError(),2) * Acts::UnitConstants::cm2;
-    localCov(1,1) = pow(clusterv5->getZError(),2) * Acts::UnitConstants::cm2;
+    localCov(0,0) = pow(clus->getRPhiError(),2) * Acts::UnitConstants::cm2;
+    localCov(1,1) = pow(clus->getZError(),2) * Acts::UnitConstants::cm2;
   }
     
   float x = globalPos.x();
