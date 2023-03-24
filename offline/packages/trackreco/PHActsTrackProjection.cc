@@ -123,9 +123,10 @@ int PHActsTrackProjection::End(PHCompositeNode* /*topNode*/)
 
 int PHActsTrackProjection::projectTracks(const int caloLayer)
 {
+  ActsPropagator prop(m_tGeometry);
   for (const auto& [key, track] : *m_trackMap)
   {
-    const auto params = makeTrackParams(track);
+    const auto params = prop.makeTrackParams(track, m_vertexMap);
     auto cylSurf =
         m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
 
@@ -139,47 +140,7 @@ int PHActsTrackProjection::projectTracks(const int caloLayer)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-Acts::BoundTrackParameters
-PHActsTrackProjection::makeTrackParams(SvtxTrack* track)
-{
-  Acts::Vector3 momentum(track->get_px(),
-                         track->get_py(),
-                         track->get_pz());
 
-  auto actsVertex = getVertex(track);
-  auto perigee =
-      Acts::Surface::makeShared<Acts::PerigeeSurface>(actsVertex);
-  auto actsFourPos =
-      Acts::Vector4(track->get_x() * Acts::UnitConstants::cm,
-                    track->get_y() * Acts::UnitConstants::cm,
-                    track->get_z() * Acts::UnitConstants::cm,
-                    10 * Acts::UnitConstants::ns);
-
-  ActsTransformations transformer;
-
-  Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
-
-  return ActsTrackFittingAlgorithm::TrackParameters::create(perigee,
-                                                            m_tGeometry->geometry().getGeoContext(),
-                                                            actsFourPos, momentum,
-                                                            track->get_charge() / track->get_p(),
-                                                            cov)
-      .value();
-}
-Acts::Vector3 PHActsTrackProjection::getVertex(SvtxTrack* track)
-{
-  auto vertexId = track->get_vertex_id();
-  const SvtxVertex* svtxVertex = m_vertexMap->get(vertexId);
-  Acts::Vector3 vertex = Acts::Vector3::Zero();
-  if (svtxVertex)
-  {
-    vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
-    vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm;
-    vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
-  }
-
-  return vertex;
-}
 
 void PHActsTrackProjection::updateSvtxTrack(
     const ActsPropagator::BoundTrackParamPair& parameters,
