@@ -8,10 +8,9 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include/eigen3 \
   -I$(OFFLINE_MAIN)/include \
   -I$(G4_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
