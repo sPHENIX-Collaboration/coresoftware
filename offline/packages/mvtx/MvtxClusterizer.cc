@@ -420,7 +420,7 @@ int MvtxClusterizer::ClusterMvtx(
 	      locxsum += local_coords.X();
 	      loczsum += local_coords.Z();
 	      // add the association between this cluster key and this hitkey to the table
-	      m_clusterhitassoc->addAssoc(ckey, mapiter->second.first);
+	      if (!b_truthtracks) m_clusterhitassoc->addAssoc(ckey, mapiter->second.first);
 	      
 	    }  //mapiter
 	  
@@ -534,7 +534,7 @@ int MvtxClusterizer::ClusterMvtx(
   if(verbosity > 1)
     {
       // check that the associations were written correctly
-      m_clusterhitassoc->identify();
+      if (!b_truthtracks) m_clusterhitassoc->identify();
     }
       
   return Fun4AllReturnCodes::EVENT_OK;

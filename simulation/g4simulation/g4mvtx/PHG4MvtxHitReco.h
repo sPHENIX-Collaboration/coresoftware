@@ -31,11 +31,10 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   ~PHG4MvtxHitReco() override;
 
   void SetTruthClusterizer (
-        PHCompositeNode*   _topNode  
-      , PHG4MvtxDigitizer* _digitiser
+        PHG4MvtxDigitizer* _digitiser
       , MvtxHitPruner*     _pruner
       , MvtxClusterizer*   _clusterizer
-      , int                _verbosity=0);
+      , int                _verbosity=-1);
 
   //! module initialization
   int InitRun(PHCompositeNode *topNode) override;

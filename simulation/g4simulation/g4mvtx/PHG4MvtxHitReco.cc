@@ -73,13 +73,14 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const std::string &name, const std::string &det
 }
 
 void PHG4MvtxHitReco::SetTruthClusterizer (
-        PHCompositeNode*   _topNode
-      , PHG4MvtxDigitizer* _digitizer
+        PHG4MvtxDigitizer* _digitizer
       , MvtxHitPruner*     _pruner
       , MvtxClusterizer*   _clusterizer
       , int                _verbosity) 
 {
-  m_truthclusterizer = new PHG4MvtxTruthClusterizer(_topNode, _digitizer, _pruner, _clusterizer, _verbosity);
+  std::cout << PHWHERE << std::endl;
+  int verbosity = (_verbosity==-1) ? Verbosity() : _verbosity;
+  m_truthclusterizer = new PHG4MvtxTruthClusterizer(_digitizer, _pruner, _clusterizer, verbosity);
 }
 
 int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
@@ -157,6 +158,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
     trkrnode->addNode(newNode);
   }
 
+  if (m_truthclusterizer) m_truthclusterizer->init_run(topNode);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

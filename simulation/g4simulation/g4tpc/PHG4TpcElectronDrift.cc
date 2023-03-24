@@ -336,7 +336,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   }
 
   if (truth_clusterer == nullptr)  {
-    /* if (Verbosity()) std::cout << " truth clusterer was a null pointer " << std::endl; */
     truth_clusterer = new TpcClusterBuilder(truthclustercontainer, m_tGeometry, seggeo);
   } else {
     if (Verbosity()) std::cout << " truth clusterer was NOT a null pointer " << std::endl;
@@ -402,7 +401,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     {  // starting a new track
       truth_clusterer->cluster_and_reset(/*argument is if to reset hitsetkey as well*/ false);
       trkid = trkid_new;
-      truth_clusterer->is_embedded_track = (truthinfo->isEmbeded(trkid));
+      truth_clusterer->is_embedded_track = (truthinfo->isEmbeded(trkid)); 
       if (Verbosity() > 1000){
         std::cout << " New track " << trkid << " is embed? : " 
           << truth_clusterer->is_embedded_track << std::endl;
