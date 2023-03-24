@@ -60,6 +60,10 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
   double radius = m_Params->get_double_param("radius") * cm;
   double thickness = m_Params->get_double_param("thickness") * cm;
   double length = m_Params->get_double_param("length") * cm;
+
+  double start_phi_rad = m_Params->get_double_param("start_phi_rad") * rad;
+  double delta_phi_rad = m_Params->get_double_param("delta_phi_rad") * rad;
+
   if (!isfinite(radius) || !isfinite(thickness) || !isfinite(length))
   {
     cout << PHWHERE << ": Bad Parameters for " << GetName() << endl;
@@ -71,7 +75,7 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4VSolid *cylinder_solid = new G4Tubs(G4String(GetName()),
                                         radius,
                                         radius + thickness,
-                                        length / 2., 0, twopi);
+                                        length / 2., start_phi_rad, delta_phi_rad);
   double steplimits = m_Params->get_double_param("steplimits") * cm;
   G4UserLimits *g4userlimits = nullptr;
   if (isfinite(steplimits))

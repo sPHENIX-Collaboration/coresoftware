@@ -28,7 +28,6 @@
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
-#include <ActsExamples/EventData/Track.hpp>
 
 #include <memory>
 #include <string>
@@ -110,6 +109,8 @@ class PHActsTrkFitter : public SubsysReco
   /// Set flag for pp running
   void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
 
+  void ignoreLayer(int layer) { m_ignoreLayer = layer; }
+
  private:
 
   /// Get all the nodes
@@ -120,7 +121,7 @@ class PHActsTrkFitter : public SubsysReco
 
   void loopTracks(Acts::Logging::Level logLevel);
   SourceLinkVec getSourceLinks(TrackSeed *track, 
-			       ActsExamples::MeasurementContainer& measurements,
+			       ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
 			       short int crossing);
 
   /// Convert the acts track fit result to an svtx track
@@ -130,7 +131,7 @@ class PHActsTrkFitter : public SubsysReco
   /// navigation, depending on m_fitSiliconMMs
   ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
            const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
-	   const ActsExamples::TrackParameters& seed,
+	   const ActsTrackFittingAlgorithm::TrackParameters& seed,
 	   const ActsTrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
 	   const SurfacePtrVec& surfSequence,
@@ -145,7 +146,7 @@ class PHActsTrkFitter : public SubsysReco
   bool getTrackFitResult(const FitResult& fitOutput, SvtxTrack* track);
 
   Acts::BoundSymMatrix setDefaultCovariance() const;
-  void printTrackSeed(const ActsExamples::TrackParameters& seed) const;
+  void printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const;
 
   /// Event counter
   int m_event = 0;
@@ -200,6 +201,8 @@ class PHActsTrkFitter : public SubsysReco
   // cluster mover utility class
   TpcClusterMover _clusterMover;
   ClusterErrorPara _ClusErrPara;
+
+  int m_ignoreLayer = std::numeric_limits<int>::max();
 
   std::string m_fieldMap = "";
 

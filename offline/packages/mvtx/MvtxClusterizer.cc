@@ -13,6 +13,7 @@
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterv4.h>
+#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>                     // for hitkey, getLayer
 #include <trackbase/MvtxDefs.h>                   
 #include <trackbase/TrkrHitv2.h>
@@ -474,6 +475,24 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	    clus->setLocalX(locclusx);
 	    clus->setLocalY(locclusz);
 	    
+	    clus->setPhiSize(phibins.size());
+	    clus->setZSize(zbins.size());
+	    // All silicon surfaces have a 1-1 map to hitsetkey. 
+	    // So set subsurface key to 0
+	    clus->setSubSurfKey(0);
+	    
+	    if (Verbosity() > 2)
+	      clus->identify();
+	    
+	    m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+	  }else if(m_cluster_version==5){
+	    auto clus = std::make_unique<TrkrClusterv5>();
+	    clus->setAdc(nhits);
+	    clus->setMaxAdc(1);
+	    clus->setLocalX(locclusx);
+	    clus->setLocalY(locclusz);
+	    clus->setPhiError(phierror);
+	    clus->setZError(zerror);
 	    clus->setPhiSize(phibins.size());
 	    clus->setZSize(zbins.size());
 	    // All silicon surfaces have a 1-1 map to hitsetkey. 

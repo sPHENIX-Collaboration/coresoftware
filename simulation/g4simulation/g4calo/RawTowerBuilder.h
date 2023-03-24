@@ -2,6 +2,7 @@
 #define G4CALO_RAWTOWERBUILDER_H
 
 #include <fun4all/SubsysReco.h>
+#include <calobase/TowerInfoContainer.h>
 
 #include <g4detectors/PHG4CellDefs.h>
 
@@ -26,11 +27,16 @@ class RawTowerBuilder : public SubsysReco
   {
     //! save Geant4 energy deposition as the weight of the cells
     kEnergyDeposition,
-
     //! save light yield as the weight of the cells
     kLightYield
-
   };
+  enum ProcessTowerType
+  {
+    kRawTowerOnly= 0,
+    kTowerInfoOnly = 1,
+    kBothTowers =2
+  };
+
 
   enu_tower_energy_src
   get_tower_energy_src() const
@@ -56,14 +62,21 @@ class RawTowerBuilder : public SubsysReco
     m_SimTowerNodePrefix = simTowerNodePrefix;
   }
 
+  void set_towerinfo(RawTowerBuilder::ProcessTowerType UseTowerInfo )
+  {
+    m_UseTowerInfo = UseTowerInfo;
+  }
+
  protected:
   void CreateNodes(PHCompositeNode *topNode);
 
   RawTowerContainer *m_TowerContainer = nullptr;
+  /* TowerInfoContainer *m_TowerInfoContainer = nullptr; */
   RawTowerGeomContainer *m_RawTowerGeomContainer = nullptr;
 
   std::string m_Detector = "NONE";
   std::string m_TowerNodeName;
+  std::string m_TowerInfoNodeName;
   std::string m_TowerGeomNodeName;
   std::string m_SimTowerNodePrefix;
 
@@ -78,6 +91,7 @@ class RawTowerBuilder : public SubsysReco
   double m_PhiMin = NAN;
   double m_EtaStep = NAN;
   double m_PhiStep = NAN;
+  RawTowerBuilder::ProcessTowerType m_UseTowerInfo = RawTowerBuilder::ProcessTowerType::kBothTowers;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
 };
 
 #endif  // G4CALO_RAWTOWERBUILDER_H

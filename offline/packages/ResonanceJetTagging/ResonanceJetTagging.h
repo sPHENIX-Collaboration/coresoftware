@@ -56,16 +56,18 @@ class ResonanceJetTagging : public SubsysReco
   enum TAG
   {
     D0 = 0,
-    DPLUS = 1,
-    DSTAR = 2,
-    JPSY = 3,
-    K0 = 4,
-    GAMMA = 5,
-    ELECTRON = 6
+    D0TOK3PI = 1,
+    DPLUS = 2,
+    DSTAR = 3,
+    JPSY = 4,
+    K0 = 5,
+    GAMMA = 6,
+    ELECTRON = 7,
+    LAMBDAC = 8
   };
 
   /// Constructor
-  ResonanceJetTagging(const std::string &name = "ResonanceJetTagging", const TAG tag = TAG::D0);
+  ResonanceJetTagging(const std::string &name = "ResonanceJetTagging", const TAG tag = TAG::D0, const std::string &KFparticle_Container_name = "");
 
   // Destructor
   virtual ~ResonanceJetTagging();
@@ -172,10 +174,13 @@ class ResonanceJetTagging : public SubsysReco
     {
     case ALGO::ANTIKT:
       m_jetalgo = fastjet::antikt_algorithm;
+      break;
     case ALGO::KT:
       m_jetalgo = fastjet::kt_algorithm;
+      break;
     case ALGO::CAMBRIDGE:
       m_jetalgo = fastjet::cambridge_algorithm;
+      break;
     }
   }
   fastjet::JetAlgorithm getJetAlgo() { return m_jetalgo; }
@@ -185,14 +190,19 @@ class ResonanceJetTagging : public SubsysReco
     {
     case RECOMB::E_SCHEME:
       m_recomb_scheme = fastjet::E_scheme;
+      break;
     case RECOMB::PT_SCHEME:
       m_recomb_scheme = fastjet::pt_scheme;
+      break;
     case RECOMB::PT2_SCHEME:
       m_recomb_scheme = fastjet::pt2_scheme;
+      break;
     case RECOMB::ET_SCHEME:
       m_recomb_scheme = fastjet::Et_scheme;
+      break;
     case RECOMB::ET2_SCHEME:
       m_recomb_scheme = fastjet::Et2_scheme;
+      break;
     }
   }
   fastjet::RecombinationScheme getRecombScheme() { return m_recomb_scheme; }
@@ -254,13 +264,15 @@ class ResonanceJetTagging : public SubsysReco
   unsigned int m_truth_jet_id = 0;
   bool m_dorec;
   bool m_dotruth;
+  int m_nDaughters;
   TAG m_tag_particle;
+  std::string m_KFparticle_name;
 
   /// Methods for grabbing the data
-  int tagD0(PHCompositeNode *topNode);
-  void findTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *Tag, PHG4Particlev2 *TagDecays[], int nDecays);
-  void addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, PHG4Particlev2 *TagDecays[], int nDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
-  void addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, PHG4Particlev2 *TagDecays[], int nDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
+  int tagHFHadronic(PHCompositeNode *topNode);
+  void findTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *Tag, const std::vector<PHG4Particlev2*> &TagDecays);
+  void addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<PHG4Particlev2*> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
+  void addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<PHG4Particlev2*> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
   void addClusters(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
   void findMCTaggedJets(PHCompositeNode *topNode);
 
@@ -268,8 +280,8 @@ class ResonanceJetTagging : public SubsysReco
   bool isAcceptableTrack(SvtxTrack *track);
   bool isAcceptableEMCalCluster(CLHEP::Hep3Vector &E_vec_cluster);
   bool isAcceptableHCalCluster(CLHEP::Hep3Vector &E_vec_cluster);
-  bool isDecay(HepMC::GenParticle *particle, PHG4Particle *decays[], int nDecays);
-  bool isDecay(SvtxTrack *track, PHG4Particlev2 *decays[], int nDecays);
+  bool isDecay(HepMC::GenParticle *particle, const std::vector<PHG4Particlev2*> &decays);
+  bool isDecay(SvtxTrack *track, const std::vector<PHG4Particlev2*> &decays);
   int createJetNode(PHCompositeNode *topNode);
 };
 

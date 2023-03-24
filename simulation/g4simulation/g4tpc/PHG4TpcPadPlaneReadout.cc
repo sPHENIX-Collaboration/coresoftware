@@ -18,10 +18,10 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 
-#include <trackbase/TrkrTruthTrack.h>
-#include <trackbase/TrkrTruthTrackv1.h>
-#include <trackbase/TrkrTruthTrackContainer.h>
-#include <trackbase/TrkrTruthTrackContainerv1.h>
+#include <g4tracking/TrkrTruthTrack.h>
+#include <g4tracking/TrkrTruthTrackv1.h>
+#include <g4tracking/TrkrTruthTrackContainer.h>
+#include <g4tracking/TrkrTruthTrackContainerv1.h>
 
 #include <phool/phool.h>  // for PHWHERE
 
@@ -170,11 +170,7 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/,
 
   return 0;
 }
-//double PHG4TpcPadPlaneReadout::GetGainWeight(double x,double y, int side){
-//  // This function get weights for gain uniformity in the TPC readout
-//  int binXY = h_Gain[side]->FindBin(x,y);
-//  return h_Gain[side]->GetBinContent(binXY);
-//}
+
 
 double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
 {
@@ -193,7 +189,8 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
 }
 
 
-TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
+void PHG4TpcPadPlaneReadout::MapToPadPlane(
+    TpcClusterBuilder  *tpc_truth_clusterer,
     TrkrHitSetContainer *single_hitsetcontainer, 
     TrkrHitSetContainer *hitsetcontainer, 
     TrkrHitTruthAssoc * /*hittruthassoc*/, 
@@ -232,7 +229,7 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
 
   phi = check_phi(side, phi, rad_gem);
   unsigned int layernum = 0;
-  TpcClusterBuilder pass_data {};
+  /* TpcClusterBuilder pass_data {}; */
 
   // Find which readout layer this electron ends up in
 
@@ -249,8 +246,8 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
       // capture the layer where this electron hits the gem stack
       LayerGeom = layeriter->second;
       layernum = LayerGeom->get_layer();
-      pass_data.layerGeom = LayerGeom;
-      pass_data.layer = layernum;
+      /* pass_data.layerGeom = LayerGeom; */
+      /* pass_data.layer = layernum; */
       if (Verbosity() > 1000)
         std::cout << " g4hit id " << hiter->first << " rad_gem " << rad_gem << " rad_low " << rad_low << " rad_high " << rad_high
                   << " layer  " << hiter->second->get_layer() << " want to change to " << layernum << std::endl;
@@ -261,12 +258,12 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
 
   if (layernum == 0)
   {
-    return {};
+    return;
   }
 
   // store phi bins and tbins upfront to avoid repetitive checks on the phi methods
   const auto phibins = LayerGeom->get_phibins();
-  pass_data.nphibins = phibins;
+  /* pass_data.nphibins = phibins; */
 
   const auto tbins   = LayerGeom->get_zbins();
 
@@ -281,9 +278,7 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
   //===============================
 
   double nelec = getSingleEGEMAmplification();
-  //nelec = nelec * GetGainWeight(x_gem,y_gem, side);
-
-  pass_data.neff_electrons = nelec;
+  /* pass_data.neff_electrons = nelec; */
 
   // Distribute the charge between the pads in phi
   //====================================
@@ -300,11 +295,11 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
   pad_phibin_share.clear();
 
   populate_zigzag_phibins(side, layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
-  if (pad_phibin.size() == 0) {
-    pass_data.neff_electrons = 0;
-  } else {
-    pass_data.fillPhiBins(pad_phibin);
-  }
+  /* if (pad_phibin.size() == 0) { */
+    /* pass_data.neff_electrons = 0; */
+  /* } else { */
+    /* pass_data.fillPhiBins(pad_phibin); */
+  /* } */
 
   // Normalize the shares so they add up to 1
   double norm1 = 0.0;
@@ -325,11 +320,11 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
   adc_tbin.clear();
   adc_tbin_share.clear();
   populate_tbins(t_gem, sigmaL, adc_tbin, adc_tbin_share);
-  if (adc_tbin.size() == 0)  {
-    pass_data.neff_electrons = 0;
-  } else {
-    pass_data.fillTimeBins(adc_tbin);
-  }
+  /* if (adc_tbin.size() == 0)  { */
+    /* pass_data.neff_electrons = 0; */
+  /* } else { */
+    /* pass_data.fillTimeBins(adc_tbin); */
+  /* } */
 
   // Normalize the shares so that they add up to 1
   double tnorm = 0.0;
@@ -407,6 +402,8 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
       // Either way, add the energy to it  -- adc values will be added at digitization
       hit->addEnergy(neffelectrons);
 
+      tpc_truth_clusterer->addhitset(hitsetkey, hitkey, neffelectrons);
+
       // repeat for the single_hitsetcontainer
       // See if this hit already exists
       TrkrHit *single_hit = nullptr;
@@ -430,8 +427,8 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
 
     }  // end of loop over adc T bins
   }    // end of loop over zigzag pads
-  pass_data.phi_integral = phi_integral;
-  pass_data.time_integral = t_integral;
+  /* pass_data.phi_integral = phi_integral; */
+  /* pass_data.time_integral = t_integral; */
 
   /*
   // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
@@ -459,7 +456,7 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
     }
 
   m_NHits++;
-  return pass_data;
+  /* return pass_data; */
 }
 double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double phi, const double radius){
   double new_phi = phi;

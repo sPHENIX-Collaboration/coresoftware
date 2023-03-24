@@ -37,6 +37,7 @@
 #include "DumpSvtxVertexMap.h"
 #include "DumpSyncObject.h"
 #include "DumpTowerBackground.h"
+#include "DumpTowerInfoContainer.h"
 #include "DumpTpcSeedTrackMap.h"
 #include "DumpTrackSeedContainer.h"
 #include "DumpTrkrClusterContainer.h"
@@ -44,7 +45,6 @@
 #include "DumpTrkrClusterHitAssoc.h"
 #include "DumpTrkrHitSetContainer.h"
 #include "DumpTrkrHitTruthAssoc.h"
-#include "DumpTrkrHitTruthClusters.h"
 #include "DumpVariableArray.h"
 
 #include <ffaobjects/EventHeader.h>
@@ -324,6 +324,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       {
         newdump = new DumpTowerBackground(NodeName);
       }
+      else if (tmp->InheritsFrom("TowerInfoContainer"))
+      {
+        newdump = new DumpTowerInfoContainer(NodeName);
+      }
       else if (tmp->InheritsFrom("TpcSeedTrackMap"))
       {
         newdump = new DumpTpcSeedTrackMap(NodeName);
@@ -351,10 +355,6 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("TrkrHitTruthAssoc"))
       {
         newdump = new DumpTrkrHitTruthAssoc(NodeName);
-      }
-      else if (tmp->InheritsFrom("TrkrHitTruthClusters"))
-      {
-        newdump = new DumpTrkrHitTruthClusters(NodeName);
       }
       else if (tmp->InheritsFrom("VariableArray"))
       {

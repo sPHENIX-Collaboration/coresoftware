@@ -191,11 +191,12 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  if( !isnan(residual(1)) && clus_sigma(1) < 1.0)  // discards crazy clusters
 	    {_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(1), clus_sigma(1));}
 
+	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
 	  getLocalDerivativesZ(pca, lcl_derivative);
 	  getGlobalDerivativesZ(angleDerivs, glbl_derivative, layer);
 	  if(Verbosity() > 3) 
 	    { std::cout  << "layer " << layer << " Z buffers:" << std::endl; printBuffers(2, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label); }
-	  if(!isnan(residual(2)) && clus_sigma(2) < 1.0)
+	  if(!isnan(residual(2)) && clus_sigma(2) < 1.0 && trkrid != TrkrDefs::inttId)
 	    {_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(2), clus_sigma(2));}
 	}
 

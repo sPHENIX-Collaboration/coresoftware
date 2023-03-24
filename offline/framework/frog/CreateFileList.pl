@@ -45,7 +45,9 @@ my %proddesc = (
     "13" => "JS pythia8 Photon Jet",
     "14" => "Single Particles",
     "15" => "Special Productions",
-    "16" => "HF pythia8 D0 Jets"
+    "16" => "HF pythia8 D0 Jets",
+    "17" => "HF pythia8 D0 pi-k Jets ptmin = 5GeV ",
+    "18" => "HF pythia8 D0 pi-k Jets ptmin = 12GeV"
     );
 
 my %pileupdesc = (
@@ -59,7 +61,7 @@ my $start_segment;
 my $last_segment;
 my $randomize;
 my $prodtype;
-my $runnumber = 40;
+my $runnumber = 6;
 my $verbose;
 my $nopileup;
 my $embed;
@@ -136,7 +138,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("sHijing_0_20fm_%s_bkg_0_20fm",$pileupstring);
 	}
-        $notlike{$filenamestring} = "pythia8";
+        $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
 	&commonfiletypes();
     }
     elsif ($prodtype == 5)
@@ -239,6 +241,7 @@ if (defined $prodtype)
     }
     elsif ($prodtype == 14)
     {
+        $embedok = 1;
         $nopileup = 1;
         my $bad = 0;
 	$filenamestring = "single";
@@ -247,23 +250,31 @@ if (defined $prodtype)
 	    print "-particle: G4 particle name needs to be set for single particle sims\n";
 	    $bad = 1;
 	}
-	if (!defined $pmin)
-	{
-	    print "-pmin: min mimentum needs to be set for single particle sims\n";
-	    $bad = 1;
-	}
-	if (!defined $pmax)
-	{
-	    print "-pmax: max momentum needs to be set for single particle sims\n";
-	    $bad = 1;
-	}
 	if ($bad > 0)
 	{
             print "\nExisting single particle sims, use:\n";
             print_single_types();
 	    exit(1);
 	}
-	$filenamestring = sprintf("%s_%s_%d_%dMeV",$filenamestring, $particle, $pmin, $pmax);
+	if (defined $pmin && defined $pmax)
+	{
+	    $filenamestring = sprintf("%s_%s_%d_%dMeV",$filenamestring, $particle, $pmin, $pmax);
+	    if (defined $embed)
+	    {
+		$filenamestring = sprintf("%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring);
+	    }
+	}
+	else
+	{
+	    if (defined $embed)
+	    {
+		$filenamestring = sprintf("%s_%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring, $particle);
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring, $particle, $pmin, $pmax);
+	    }
+	}
 	&commonfiletypes();
     }
     elsif ($prodtype == 15)
@@ -287,6 +298,24 @@ if (defined $prodtype)
     elsif ($prodtype == 16)
     {
 	$filenamestring = "pythia8_JetD0";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	}
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 17)
+    {
+	$filenamestring = "pythia8_CharmD0piKJet5";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	}
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 18)
+    {
+	$filenamestring = "pythia8_CharmD0piKJet12";
 	if (! defined $nopileup)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
@@ -433,7 +462,11 @@ my $conds = sprintf("dsttype = ? and filename like \'\%%%s\%\'",$filenamestring_
 
 if (exists $notlike{$filenamestring})
 {
-    $conds = sprintf("%s and filename not like  \'\%%%s\%\'",$conds,$notlike{$filenamestring});
+    my $ref = $notlike{$filenamestring};
+    foreach my $item  (@$ref)
+    {
+	$conds = sprintf("%s and filename not like  \'\%%%s\%\'",$conds,$item);
+    }
 }
 if (defined $start_segment)
 {
@@ -631,6 +664,8 @@ sub commonfiletypes
     $filetypes{"DST_VERTEX"} = "Pileup Simulated Smeared Vertex";
 # pass3 calo
     $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
+# pass3 global
+    $filetypes{"DST_GLOBAL"} = "Reconstructed Global Detectors (Bbc, Epd)";
 #pass3 trk
     $filetypes{"DST_TRKR_HIT"} = "TPC and Silicon Hits";
     $filetypes{"DST_TRUTH"} = "Truth Info (updated with Clusters)";
@@ -670,17 +705,33 @@ sub fill_other_types
 
 sub print_single_types
 {
-    my $sqlstring = sprintf("select filename from datasets where runnumber = %d and filename like '%%_single_%%'",$runnumber);
+    my $sqlstring = sprintf("select filename from datasets where runnumber = %d and filename like '%%_single_%%' and segment=0",$runnumber);
     my $getallfiles = $dbh->prepare($sqlstring);
     $getallfiles->execute();
     my $runsplit = sprintf("MeV-%010d",$runnumber);
+    my $runsplit_embed = sprintf("_sHijing_0_20fm");
+    my $runsplit_runnumber = sprintf("-%010d",$runnumber);
     my %types = ();
     my %dsts = ();
     while (my @res = $getallfiles->fetchrow_array())
     {
 	my @sp1 = split(/_single_/,$res[0]);
-	my @sp2 = split(/$runsplit/,$sp1[1]);
-	$types{$sp2[0]} = 1;
+        my @sp2;
+        my $typeflag = "";
+	if ($sp1[1] =~ /MeV/)
+	{
+	    @sp2 = split(/$runsplit/,$sp1[1]);
+	}
+	if ($sp1[1] =~ /$runsplit_embed/)
+	{
+	    @sp2 = split(/$runsplit_embed/,$sp1[1]);
+            $typeflag = "-embed ";
+	}
+	else
+	{
+	    @sp2 = split(/$runsplit_runnumber/,$sp1[1]);
+	}
+	$types{$sp2[0]} = $typeflag;
         $dsts{$sp1[0]} = 1;
     }
     $getallfiles->finish();
@@ -688,7 +739,11 @@ sub print_single_types
     {
 	if ($name =~ /(\S+)\_(\d+)\_(\d+).*/ )
 	{
-	    print "CreateFileList.pl -type 14 -particle $1 -pmin $2 -pmax $3\n";
+	    print "CreateFileList.pl -type 14 $types{$name} -run $runnumber -particle $1 -pmin $2 -pmax $3\n";
+	}
+	else
+	{
+	    print "CreateFileList.pl -type 14 $types{$name} -run $runnumber -particle $name\n";
 	}
     }
     print "\nDST types:\n";

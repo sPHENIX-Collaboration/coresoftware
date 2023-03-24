@@ -82,6 +82,16 @@ double ALICEKF::getClusterError(TrkrCluster* c, TrkrDefs::cluskey key, Acts::Vec
 	localErr[2][0] = 0.;
 	localErr[2][1] = 0.;
 	localErr[2][2] = para_errors.second;
+      }else if(m_cluster_version==5){
+	localErr[0][0] = 0.;
+	localErr[0][1] = 0.;
+	localErr[0][2] = 0.;
+	localErr[1][0] = 0.;
+	localErr[1][1] = pow(c->getRPhiError(),2);
+	localErr[1][2] = 0.;
+	localErr[2][0] = 0.;
+	localErr[2][1] = 0.;
+	localErr[2][2] = pow(c->getZError(),2);
       }
       float clusphi = atan2(global(1), global(0));
       TMatrixF ROT(3,3);
@@ -542,7 +552,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     J(5,2) = 0.; // dpz/d(sinphi)
     J(5,3) = track_pt; // dpz/d(dz/ds)
     J(5,4) = -track_pt*track_pt*track_charge*d; // dpz/d(Q/pt)
-    bool cov_rot_nan = false;
+/*    bool cov_rot_nan = false;
     for(int i=0;i<6;i++)
     {
       for(int j=0;j<5;j++)
@@ -555,7 +565,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
       }
     }
     if(cov_rot_nan) continue;
-
+*/
     // the heavy lifting happens here
     Eigen::Matrix<double,6,6> scov = J*ecov*J.transpose();
     if(!covIsPosDef(scov))

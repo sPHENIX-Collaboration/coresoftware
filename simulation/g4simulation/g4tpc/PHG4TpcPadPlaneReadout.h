@@ -35,7 +35,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   // otherwise warning of inconsistent overload since only one MapToPadPlane methow is overridden
   using PHG4TpcPadPlane::MapToPadPlane;
 
-  TpcClusterBuilder MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
+  void MapToPadPlane(TpcClusterBuilder* tpc_clustbuilder, TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
 
   void SetDefaultParameters() override;
   void UpdateInternalParameters() override;
@@ -104,12 +104,10 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_min_Phi_sectors;
   std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_max_Phi_sectors;
 
-  // Return gain weight
-  //double GetGainWeight(double x,double y, int side)
-
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
   gsl_rng *RandomGenerator;
+  
 };
 
 #endif

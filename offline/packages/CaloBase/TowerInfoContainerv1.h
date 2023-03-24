@@ -11,45 +11,39 @@
 class TowerInfoContainerv1 : public TowerInfoContainer
 {
  public:
-  TowerInfoContainerv1(DETECTOR detec = DETECTOR::EMCAL);
-  ~TowerInfoContainerv1() override;
-   typedef std::map<unsigned int, TowerInfo *> Map;
-   typedef Map::iterator Iterator;
-  typedef Map::const_iterator ConstIterator;
-  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
-  typedef std::pair<Iterator, Iterator> Range;
+  TowerInfoContainerv1(DETECTOR detec);
 
+  // default constructor for ROOT IO
+  TowerInfoContainerv1() {}
+
+  ~TowerInfoContainerv1() override;
 
   void Reset() override;
-  void add(TowerInfov1 *ti, int pos);
-  TowerInfov1 *at(int pos) override;
+  TowerInfov1 *get_tower_at_channel(int pos) override;
+  TowerInfov1 *get_tower_at_key(int pos) override;
+
+
   unsigned int encode_key(unsigned int towerIndex) override;
   unsigned int decode_key(unsigned int tower_key) override;
-  Range getTowers(void);
 
+  unsigned int encode_epd(unsigned int towerIndex) override;
+  unsigned int encode_hcal(unsigned int towerIndex) override;
+  unsigned int encode_emcal(unsigned int towerIndex) override;
+
+  unsigned int decode_epd(unsigned int towerIndex) override;
+  unsigned int decode_hcal(unsigned int towerIndex) override;
+  unsigned int decode_emcal(unsigned int towerIndex) override;
 
   size_t size() override { return _clones->GetEntries(); }
 
   unsigned int getTowerPhiBin(unsigned int towerIndex) override;
   unsigned int getTowerEtaBin(unsigned int towerIndex) override;
 
-  ConstIter begin() const override { return _map.begin(); }
-  ConstIter find(int key) const override { return _map.find(key); }
-  ConstIter end() const override { return _map.end(); }
-
-  Iter begin() override { return _map.begin(); }
-  Iter find(int key) override { return _map.find(key); }
-  Iter end() override { return _map.end(); }
-
  protected:
-  TClonesArray *_clones;
-  DETECTOR _detector;
-  TowerMap _map;
-  Map _towers;
+  TClonesArray *_clones = nullptr;
+  DETECTOR _detector = DETECTOR_INVALID;
 
  private:
-  using TowerInfoContainer::add;
-
   ClassDefOverride(TowerInfoContainerv1, 1);
 };
 

@@ -231,6 +231,10 @@ void PHCASeeding::QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtre
 
 PositionMap PHCASeeding::FillTree()
 { 
+  if(Verbosity()>1)
+    {
+      std::cout << "fill tree..." << std::endl;
+    }
   t_fill->stop();
   int n_dupli = 0;
   int nlayer[60];
@@ -297,6 +301,10 @@ PositionMap PHCASeeding::FillTree()
 
 int PHCASeeding::Process(PHCompositeNode */*topNode*/)
 {
+  if(Verbosity() > 1)
+    {
+      std::cout << " Process...  " << std::endl;
+    }
 //  TFile fpara("CA_para.root", "RECREATE");
   if(_n_iteration>0){
     if (!_iteration_map){
@@ -902,7 +910,8 @@ void PHCASeeding::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
 
 int PHCASeeding::Setup(PHCompositeNode *topNode)
 {
-  if(Verbosity()>0) std::cout << "Called Setup" << std::endl;
+  //  if(Verbosity()>0)
+    std::cout << "Called Setup" << std::endl;
   if(Verbosity()>0) std::cout << "topNode:" << topNode << std::endl;
   PHTrackSeeding::Setup(topNode);
   

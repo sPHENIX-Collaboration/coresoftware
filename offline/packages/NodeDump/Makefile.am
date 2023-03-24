@@ -50,12 +50,12 @@ libphnodedump_la_SOURCES = \
   DumpSvtxVertexMap.cc \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
+  DumpTowerInfoContainer.cc \
   DumpTpcSeedTrackMap.cc \
   DumpTrackSeedContainer.cc \
   DumpTrkrClusterContainer.cc \
   DumpTrkrClusterHitAssoc.cc \
   DumpTrkrHitSetContainer.cc \
-  DumpTrkrHitTruthClusters.cc \
   DumpTrkrClusterCrossingAssoc.cc \
   DumpTrkrHitTruthAssoc.cc \
   DumpVariableArray.cc \

@@ -4,20 +4,16 @@
 #ifndef G4TPC_PHG4TPCELECTRONDRIFT_H
 #define G4TPC_PHG4TPCELECTRONDRIFT_H
 
-
-#include <phparameter/PHParameterInterface.h>
-
-#include <g4main/PHG4HitContainer.h>
-
-#include <fun4all/SubsysReco.h>
-#include "TpcClusterBuilder.h"
-
-#include <gsl/gsl_rng.h>
-
 #include <array>
 #include <cmath>
+#include <fstream>
+#include <fun4all/SubsysReco.h>
+#include <g4main/PHG4HitContainer.h>
+#include <gsl/gsl_rng.h>
 #include <memory>
+#include <phparameter/PHParameterInterface.h>
 #include <string>
+#include <trackbase/ActsGeometry.h>
 
 class PHG4TpcPadPlane;
 class PHG4TpcDistortion;
@@ -32,12 +28,14 @@ class TrkrTruthTrackContainer;
 class TrkrClusterContainer;
 class TrkrTruthTrack;
 class DistortedTrackContainer;
+class TpcClusterBuilder;
+class PHG4TpcCylinderGeomContainer;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
-  ~PHG4TpcElectronDrift() override = default;
+  ~PHG4TpcElectronDrift() override;
   int Init(PHCompositeNode *) override;
   int InitRun(PHCompositeNode *) override;
   int process_event(PHCompositeNode *) override;
@@ -72,6 +70,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   /*     double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, */
   /*     TNtuple *ntpad, TNtuple *nthit); */
 
+  std::ofstream f_out;
+
   TrkrHitSetContainer *hitsetcontainer = nullptr;
   TrkrHitTruthAssoc *hittruthassoc = nullptr;
   TrkrTruthTrackContainer *truthtracks = nullptr;
@@ -82,6 +82,9 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::unique_ptr<PHG4TpcPadPlane> padplane;
 
   std::unique_ptr<PHG4TpcDistortion> m_distortionMap;
+  ActsGeometry* m_tGeometry;
+  PHG4TpcCylinderGeomContainer *seggeo;
+
   int event_num = 0;
   bool do_ElectronDriftQAHistos = false;
 
@@ -127,8 +130,11 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double min_time = NAN;
   double max_time = NAN;
 
-  std::array<TpcClusterBuilder,55> layer_clusterers; // Generate TrkrClusterv4's for TrkrTruthTracks
-  void buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsigned int>&);
+
+  /* std::array<TpcClusterBuilder,55> layer_clusterers; // Generate TrkrClusterv4's for TrkrTruthTracks */
+  TpcClusterBuilder* truth_clusterer { nullptr };
+
+  /* void buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsigned int>&); */
 
   //! rng de-allocator
   class Deleter
