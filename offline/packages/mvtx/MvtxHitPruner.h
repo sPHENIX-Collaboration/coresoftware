@@ -40,7 +40,7 @@ class MvtxHitPruner : public SubsysReco
   int End(PHCompositeNode */*topNode*/) override { return 0; }
 
   // will run process event on the container that is passed in
-  int process_TrkrHitSetContainer(TrkrHitSetContainer*);
+  int process_TrkrHitSetContainer(TrkrHitSetContainer* _hitset, int verbosity=-1);
 
  private:
 

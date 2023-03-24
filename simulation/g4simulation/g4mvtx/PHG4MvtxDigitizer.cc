@@ -143,8 +143,10 @@ void PHG4MvtxDigitizer::CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode
 
 void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode
     , TrkrHitSetContainer* trkrhitsetcontainer
-    , bool b_truthtracks)
+    , bool b_truthtracks, int _verbosity)
 {
+  int verbosity = b_truthtracks ? _verbosity : Verbosity();
+
   //----------
   // Get Nodes
   //----------
@@ -167,7 +169,7 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode
     // get the hitset key so we can find the layer
     TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
     int layer = TrkrDefs::getLayer(hitsetkey);
-    if (Verbosity() > 1) cout << "PHG4MvtxDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
+    if (verbosity > 1) cout << "PHG4MvtxDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
 
     // get all of the hits from this hitset
     TrkrHitSet *hitset = hitset_iter->second;
@@ -181,13 +183,17 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode
 
       // Convert the signal value to an ADC value and write that to the hit
       //unsigned int adc = hit->getEnergy() / (TrkrDefs::MvtxEnergyScaleup *_energy_scale[layer]);
-      if (Verbosity() > 0)
-        cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << " in layer " << layer << std::endl;
-      // Remove the hits with energy under threshold
+      if (verbosity > 0) {
+        cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " 
+             << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup 
+             << " in layer " << layer << std::endl;
+      }
+
+      // Remove the hits with energy under threshold (if not doing this for emb. truth tracks)
       bool rm_hit = false;
-      if ((hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup) < _energy_threshold)
+      if (!b_truthtracks && ((hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup) < _energy_threshold))
       {
-        if (Verbosity() > 0) std::cout << "         remove hit, below energy threshold of " << _energy_threshold << std::endl;
+        if (verbosity > 0) std::cout << "         remove hit, below energy threshold of " << _energy_threshold << std::endl;
         rm_hit = true;
       }
       unsigned short adc = (unsigned short) (hit->getEnergy() / (TrkrDefs::MvtxEnergyScaleup * _energy_scale[layer]));
@@ -197,11 +203,13 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode
       if (rm_hit) hits_rm.insert(hit_iter->first);
     }
 
-    for (const auto &key : hits_rm)
-    {
-      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: remove hit with key: " << key << endl;
-      hitset->removeHit(key);
-      if (hittruthassoc) hittruthassoc->removeAssoc(hitsetkey, key);
+    if (!b_truthtracks) {
+      for (const auto &key : hits_rm)
+      {
+        if (verbosity > 0) cout << "    PHG4MvtxDigitizer: remove hit with key: " << key << endl;
+        hitset->removeHit(key);
+        if (hittruthassoc) hittruthassoc->removeAssoc(hitsetkey, key);
+      }
     }
   }
 

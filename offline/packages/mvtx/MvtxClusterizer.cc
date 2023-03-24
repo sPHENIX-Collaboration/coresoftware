@@ -236,33 +236,57 @@ int MvtxClusterizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  // get node for cluster hit associations
-  m_clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
-  if (!m_clusterhitassoc)
-  {
-    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
   // run clustering
+  int status { Fun4AllReturnCodes::EVENT_OK };
   if(!do_read_raw){
-    ClusterMvtx(topNode);
+    status = ClusterMvtx(topNode); // passes m_hits, and m_clusterlist by default
   }else{
     ClusterMvtxRaw(topNode);
   }
   PrintClusters(topNode);
 
   // done
-  return Fun4AllReturnCodes::EVENT_OK;
+  return status;
 }
 
-void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
+int MvtxClusterizer::ClusterMvtx(
+    PHCompositeNode *topNode, TrkrHitSetContainer* hits, 
+    TrkrClusterContainer* clusterlist, bool b_truthtracks, int _verbosity)
 {
-  if (Verbosity() > 0)
-    cout << "Entering MvtxClusterizer::ClusterMvtx " << endl;
+  // This node can be called either by process_event (to cluster all the TrkrClusters in the Svtx tracks)
+  // or by PHG4MvtxHitReco, to cluser the TrkrClusters in PHG4 Truth Tracks
+  //
+  //  if called by process_event, then:
+  //  verbosity    = Verbosity()
+  //  _clusterlist = m_clusterlist
+  //  _hits        = m_hits
+  //  otherwise, these are values passed from PHG4MvtxHitReco for the hits resulting only 
+  //  from the PHG4Hits of the truth tracks
+  int                   verbosity    = b_truthtracks ? _verbosity : Verbosity();
+  TrkrHitSetContainer*  _hits        = b_truthtracks ? hits        : m_hits;
+  TrkrClusterContainer* _clusterlist = b_truthtracks ? clusterlist : m_clusterlist;
+
+
+  if (verbosity > 0) {
+    if (b_truthtracks) {
+      cout << "Entering MvtxClusterizer::ClusterMvtx to cluster TrkrTruthTrack clustsers" << endl;
+    } else {
+      cout << "Entering MvtxClusterizer::ClusterMvtx" << endl;
+    }
+  }
+
+  // get node for cluster hit associations
+  if (!b_truthtracks) {
+    m_clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+    if (!m_clusterhitassoc)
+    {
+      cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  }
 
   PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
-  if (!geom_container) return;
+  if (!geom_container) return Fun4AllReturnCodes::ABORTEVENT;
 
   //-----------
   // Clustering
@@ -270,14 +294,14 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
   // loop over each MvtxHitSet object (chip)
   TrkrHitSetContainer::ConstRange hitsetrange =
-    m_hits->getHitSets(TrkrDefs::TrkrId::mvtxId);
+    _hits->getHitSets(TrkrDefs::TrkrId::mvtxId);
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
     {
       TrkrHitSet *hitset = hitsetitr->second;
       
-      if(Verbosity() > 0)
+      if(verbosity > 0)
 	{ 
 	  unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
 	  unsigned int stave = MvtxDefs::getStaveId(hitsetitr->first);
@@ -286,7 +310,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  cout << "MvtxClusterizer found hitsetkey " << hitsetitr->first << " layer " << layer << " stave " << stave << " chip " << chip << " strobe " << strobe << endl;
      	}
 
-      if (Verbosity() > 2)
+      if (verbosity > 2)
 	hitset->identify();
       
       // fill a vector of hits to make things easier
@@ -299,9 +323,9 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	{
 	  hitvec.push_back(make_pair(hitr->first, hitr->second));
 	}
-      if (Verbosity() > 2) cout << "hitvec.size(): " << hitvec.size() << endl;
+      if (verbosity > 2) cout << "hitvec.size(): " << hitvec.size() << endl;
 
-      if(Verbosity() > 0)
+      if(verbosity > 0)
 	{
 	  for (unsigned int i = 0; i < hitvec.size(); i++)
 	    {
@@ -351,7 +375,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  int clusid = *clusiter;
 	  auto clusrange = clusters.equal_range(clusid);
 	  
-	  if (Verbosity() > 2) cout << "Filling cluster id " << clusid << " of " << std::distance(cluster_ids.begin(),clusiter )<< endl;
+	  if (verbosity > 2) cout << "Filling cluster id " << clusid << " of " << std::distance(cluster_ids.begin(),clusiter )<< endl;
 	  
 	  // make the cluster directly in the node tree
 	  auto ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
@@ -444,7 +468,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  else if( zbins.size() == 3 && phibins.size() == 2 )  zerror*=scalefactors_z[2];
 	  else if( zbins.size() == 3 && phibins.size() == 3 )  zerror*=scalefactors_z[3];
 	  
-	  if(Verbosity() > 0)
+	  if(verbosity > 0)
 	    cout << " MvtxClusterizer: cluskey " << ckey << " layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize 
 		 << " zbins " << zbins.size() << " length " << length << " zsize " << zsize 
 		 << " local x " << locclusx << " local y " << locclusz
@@ -465,10 +489,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	    // So set subsurface key to 0
 	    clus->setSubSurfKey(0);
 	    
-	    if (Verbosity() > 2)
+	    if (verbosity > 2)
 	      clus->identify();
 	    
-	    m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+	    _clusterlist->addClusterSpecifyKey(ckey, clus.release());
 	  }else if(m_cluster_version==4){
 	    auto clus = std::make_unique<TrkrClusterv4>();
 	    clus->setAdc(nhits);
@@ -481,10 +505,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	    // So set subsurface key to 0
 	    clus->setSubSurfKey(0);
 	    
-	    if (Verbosity() > 2)
+	    if (verbosity > 2)
 	      clus->identify();
 	    
-	    m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+	    _clusterlist->addClusterSpecifyKey(ckey, clus.release());
 	  }else if(m_cluster_version==5){
 	    auto clus = std::make_unique<TrkrClusterv5>();
 	    clus->setAdc(nhits);
@@ -499,27 +523,36 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	    // So set subsurface key to 0
 	    clus->setSubSurfKey(0);
 	    
-	    if (Verbosity() > 2)
+	    if (verbosity > 2)
 	      clus->identify();
 	    
-	    m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+	    _clusterlist->addClusterSpecifyKey(ckey, clus.release());
 	  }
 	}  // clusitr loop
     }  // loop over hitsets
       
-  if(Verbosity() > 1)
+  if(verbosity > 1)
     {
       // check that the associations were written correctly
       m_clusterhitassoc->identify();
     }
       
-  return;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
     cout << "Entering MvtxClusterizer::ClusterMvtx " << endl;
+
+  // get node for cluster hit associations
+  m_clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+  if (!m_clusterhitassoc)
+  {
+    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << endl;
+    return;
+  }
+
 
   PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   if (!geom_container) return;

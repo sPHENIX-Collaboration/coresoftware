@@ -21,8 +21,9 @@ libg4mvtx_la_LIBADD = \
   -lphg4hit \
   -lphool \
   -lg4detectors \
-  -ltrack_io \
   -lg4tracking_io \
+  -ltrack_io \
+  -lmvtx \
   -lmvtx_io
 
 pkginclude_HEADERS = \
@@ -31,6 +32,7 @@ pkginclude_HEADERS = \
   PHG4MvtxSubsystem.h \
   PHG4EICMvtxSubsystem.h \
   PHG4MvtxDigitizer.h \
+  PHG4MvtxTruthClusterizer.h \
   TruthMvtxClusterBuilder.h
 
 libg4mvtx_la_SOURCES = \
@@ -46,6 +48,7 @@ libg4mvtx_la_SOURCES = \
   PHG4MvtxCable.cc \
   PHG4MvtxServiceStructure.cc \
   PHG4MvtxSupport.cc \
+  PHG4MvtxTruthClusterizer.cc \
   TruthMvtxClusterBuilder.cc
 
 ################################################

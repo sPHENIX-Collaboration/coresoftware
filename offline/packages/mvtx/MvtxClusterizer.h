@@ -58,12 +58,14 @@ class MvtxClusterizer : public SubsysReco
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
   void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
 
+  int ClusterMvtx(PHCompositeNode *topNode, TrkrHitSetContainer* _hits=nullptr, 
+      TrkrClusterContainer* _clusterlist = nullptr, 
+      bool b_truthtracks=false, int verbosity=0);
  private:
   //bool are_adjacent(const pixel lhs, const pixel rhs);
   bool are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs);
   bool are_adjacent(RawHit* lhs,  RawHit* rhs);
 
-  void ClusterMvtx(PHCompositeNode *topNode);
   void ClusterMvtxRaw(PHCompositeNode *topNode);
   void PrintClusters(PHCompositeNode *topNode);
 

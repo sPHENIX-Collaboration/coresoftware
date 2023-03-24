@@ -1,7 +1,7 @@
 #ifndef G4MVTX_PHG4MVTXHITRECO_H
 #define G4MVTX_PHG4MVTXHITRECO_H
 
-#include "TruthMvtxClusterBuilder.h"
+/* #include "TruthMvtxClusterBuilder.h" */
 
 #include <phparameter/PHParameterInterface.h>
 #include <trackbase/TrkrDefs.h>
@@ -17,6 +17,9 @@
 class PHCompositeNode;
 class TrkrTruthTrackContainer;
 class TrkrClusterContainer;
+class PHG4MvtxDigitizer;
+class MvtxHitPruner;
+class MvtxClusterizer;
 
 class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 {
@@ -26,6 +29,13 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
       const std::string &detector = "MVTX");
 
   ~PHG4MvtxHitReco() override;
+
+  void SetTruthClusterizer (
+        PHCompositeNode*   _topNode  
+      , PHG4MvtxDigitizer* _digitiser
+      , MvtxHitPruner*     _pruner
+      , MvtxClusterizer*   _clusterizer
+      , int                _verbosity=0);
 
   //! module initialization
   int InitRun(PHCompositeNode *topNode) override;
@@ -43,6 +53,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   void SetDefaultParameters() override;
 
  private:
+
   std::pair<double, double> generate_alpide_pulse(const double energy_deposited);
 
   double generate_strobe_zero_tm_start();
@@ -62,9 +73,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 
   bool m_in_sphenix_srdo = false;
 
-  TrkrTruthTrackContainer* m_truthtracks     { nullptr };
-  TrkrClusterContainer*    m_truthclusters   { nullptr };
-  TruthMvtxClusterBuilder* m_truth_clusterer { nullptr };
+  class PHG4MvtxTruthClusterizer *m_truthclusterizer { nullptr };
 
   class Deleter
   {
