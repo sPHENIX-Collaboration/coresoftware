@@ -84,7 +84,6 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
     Acts::Vector3 residual = clusGlobal - stateGlobal;
 
     Acts::Vector3 clus_sigma(0, 0, 0);
-    std::cout << " cluster version " << m_clusterVersion << std::endl;
 
       if (m_clusterVersion == 3 || m_clusterVersion == 5)
       {

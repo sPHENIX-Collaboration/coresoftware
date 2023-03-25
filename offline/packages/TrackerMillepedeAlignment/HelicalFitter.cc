@@ -119,16 +119,18 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
       std::vector<Acts::Vector3> global_vec;
       std::vector<TrkrDefs::cluskey> cluskey_vec;
-      //getTrackletClusters(tracklet, global_vec, cluskey_vec);   // store cluster corrected global positions in a vector
-      // Get a vector of cluster keys from the tracklet
-      getTrackletClusterList(tracklet, cluskey_vec);
 
+
+      ////getTrackletClusters(tracklet, global_vec, cluskey_vec);   // store cluster corrected global positions in a vector 
+
+      // Get a vector of cluster keys from the tracklet  
+      getTrackletClusterList(tracklet, cluskey_vec);
       // store cluster global positions in a vector
       TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);   
 
       correctTpcGlobalPositions( global_vec, cluskey_vec);
 
-      //std::vector<float> fitpars =  fitClusters(global_vec, cluskey_vec);       // do helical fit
+      ////std::vector<float> fitpars =  fitClusters(global_vec, cluskey_vec);       // do helical fit
       std::vector<float> fitpars =  TrackFitUtils::fitClusters(global_vec, cluskey_vec);       // do helical fit`
 
       if(fitpars.size() == 0) continue;  // discard this track, not enough clusters to fit
@@ -141,13 +143,13 @@ int HelicalFitter::process_event(PHCompositeNode*)
       if(fittpc && fitfulltrack)
 	{
 	  // this associates silicon clusters and adds them to the vectors
-	  //	  unsigned int nsilicon = addSiliconClusters(fitpars, global_vec, cluskey_vec);
+	  //unsigned int nsilicon = addSiliconClusters(fitpars, global_vec, cluskey_vec);
 	  unsigned int nsilicon = TrackFitUtils::addSiliconClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec);
 	  if(nsilicon < 3) continue;  // discard this TPC seed, did not get a good match to silicon
 
 	  // fit the full track now
 	  fitpars.clear();
-	  //fitpars =  fitClusters(global_vec, cluskey_vec);       // do helical fit
+	  ////fitpars =  fitClusters(global_vec, cluskey_vec);       // do helical fit
 	  fitpars =  TrackFitUtils::fitClusters(global_vec, cluskey_vec);       // do helical fit
 	  if(fitpars.size() == 0) continue;  // discard this track, fit failed
 
@@ -165,7 +167,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  if(!cluster) { continue;}
 	  
 	  // PCA of helix to cluster global position
-	  //Acts::Vector3 pca = get_helix_pca(fitpars, global);
+	  ////Acts::Vector3 pca = get_helix_pca(fitpars, global);
 	  Acts::Vector3 pca = TrackFitUtils::get_helix_pca(fitpars, global);
 	  if(Verbosity() > 0) {std::cout << "    cluster position " << global(0) << " " << global(1) << " " << global(2) 
 					 << " pca " << pca(0) << " " << pca(1) << " " << pca(2)  << std::endl;}
@@ -267,38 +269,9 @@ int  HelicalFitter::GetNodes(PHCompositeNode* topNode)
 
 Acts::Vector3 HelicalFitter::get_helix_pca(std::vector<float>& fitpars, Acts::Vector3 global)
 {
-  // no analytic solution for the coordinates of the closest approach of a helix to a point
-  // Instead, we get the PCA in x and y to the circle, and the PCA in z to the z vs R line at the R of the PCA 
-
-  float radius = fitpars[0];
-  float x0 = fitpars[1];
-  float y0 = fitpars[2];  
-  float zslope = fitpars[3];
-  float z0 = fitpars[4];
-
-  Acts::Vector2 pca_circle = get_circle_point_pca(radius, x0, y0, global);
-
-  // The radius of the PCA determines the z position:
-  float pca_circle_radius = pca_circle.norm();
-  float pca_z = pca_circle_radius * zslope + z0;
-  Acts::Vector3 pca(pca_circle(0), pca_circle(1), pca_z);
-
-  // now we want a second point on the helix so we can get a local straight line approximation to the track
-  // project the circle PCA vector an additional small amount and find the helix PCA to that point 
-  float projection = 0.25;  // cm
-  Acts::Vector3 second_point = pca + projection * pca/pca.norm();
-  Acts::Vector2 second_point_pca_circle = get_circle_point_pca(radius, x0, y0, second_point);
-  float second_point_pca_z = pca_circle_radius * zslope + z0;
-  Acts::Vector3 second_point_pca(second_point_pca_circle(0), second_point_pca_circle(1), second_point_pca_z);
-
-  // pca and second_point_pca define a straight line approximation to the track
-  Acts::Vector3 tangent = (second_point_pca - pca) /  (second_point_pca - pca).norm();
-
- // get the PCA of the cluster to that line
-  Acts::Vector3 final_pca = getPCALinePoint(global, tangent, pca);
-
-  return final_pca;
+  return TrackFitUtils::get_helix_pca(fitpars, global);
 }
+
 
 Acts::Vector3 HelicalFitter::getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref)
 {
@@ -563,41 +536,12 @@ int HelicalFitter::getLabelBase(Acts::GeometryIdentifier id)
   return -1;
 }
 
+// this method to be replaced by calls to TrackFitUtils
 void HelicalFitter::getTrackletClusters(TrackSeed *tracklet, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
-  for (auto clusIter = tracklet->begin_cluster_keys();
-       clusIter != tracklet->end_cluster_keys();
-       ++clusIter)
-    {
-      auto key = *clusIter;
-      auto cluster = _cluster_map->findCluster(key);
-      if(!cluster)
-	{
-	  std::cout << "Failed to get cluster with key " << key << std::endl;
-	  continue;
-	}	  
-      
-      /// Make a safety check for clusters that couldn't be attached to a surface
-      auto surf = _tGeometry->maps().getSurface(key, cluster);
-      if(!surf)
-	{ continue; }
-      
-      Acts::Vector3 global  = _tGeometry->getGlobalPosition(key, cluster);	  
-      
-      const unsigned int trkrId = TrkrDefs::getTrkrId(key);	  
-      
-      // have to add corrections for TPC clusters after transformation to global
-      if(trkrId == TrkrDefs::tpcId) 
-	{  
-	  int crossing = 0;  // for now
-	  makeTpcGlobalCorrections(key, crossing, global); 
-	}
-      
-      // add the global positions to a vector to give to the helical fitter
-      global_vec.push_back(global);
-      cluskey_vec.push_back(key);
-      
-    } // end loop over clusters for this track 
+  getTrackletClusterList(tracklet, cluskey_vec);
+  // store cluster global positions in a vector
+  TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);   
 }
 
 void HelicalFitter::getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec)
@@ -626,31 +570,7 @@ void HelicalFitter::getTrackletClusterList(TrackSeed *tracklet, std::vector<Trkr
 
 std::vector<float> HelicalFitter::fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec)
 {
-     std::vector<float> fitpars;
-
-      // make the helical fit using TrackFitUtils
-      if(global_vec.size() < 3)  
-	if(Verbosity() > 0) {  std::cout << " track has too few clusters for circle fit, skip it" << std::endl; return fitpars; }
-      std::tuple<double, double, double> circle_fit_pars = TrackFitUtils::circle_fit_by_taubin(global_vec);
-
-      // It is problematic that the large errors on the INTT strip z values are not allowed for - drop the INTT from the z line fit
-      std::vector<Acts::Vector3> global_vec_noINTT;
-      for(unsigned int ivec=0;ivec<global_vec.size(); ++ivec)
-	{
-	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
-	  if(trkrid != TrkrDefs::inttId) { global_vec_noINTT.push_back(global_vec[ivec]); }
-	}      
-      if(global_vec_noINTT.size() < 3) 
-	if(Verbosity() > 0) { std::cout << " track has too few non-INTT clusters for z fit, skip it" << std::endl; return fitpars; }
-     std::tuple<double,double> line_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
-
-     fitpars.push_back( std::get<0>(circle_fit_pars));
-     fitpars.push_back( std::get<1>(circle_fit_pars));
-     fitpars.push_back( std::get<2>(circle_fit_pars));
-     fitpars.push_back( std::get<0>(line_fit_pars));
-     fitpars.push_back( std::get<1>(line_fit_pars));
-
-     return fitpars; 
+  return TrackFitUtils::fitClusters(global_vec, cluskey_vec);       // do helical fit
 }
 
 Acts::Vector3 HelicalFitter::getClusterError(TrkrCluster *cluster, TrkrDefs::cluskey cluskey, Acts::Vector3& global)
@@ -810,64 +730,8 @@ void HelicalFitter::printBuffers(int index, Acts::Vector3 residual, Acts::Vector
 
 unsigned int HelicalFitter::addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
-  // project the fit of the TPC clusters to each silicon layer, and find the nearest silicon cluster
-  // iterate over the cluster map and find silicon clusters that match this track fit
 
-  unsigned int nsilicon = 0;
-
-  // We want the best match in each layer
-  std::vector<float> best_layer_dca;
-  best_layer_dca.assign(7, 999.0);
-  std::vector<TrkrDefs::cluskey> best_layer_cluskey;
-  best_layer_cluskey.assign(7, 0);
-
-  for(const auto& hitsetkey:_cluster_map->getHitSetKeys())
-    {
-      auto range = _cluster_map->getClusters(hitsetkey);
-      for( auto clusIter = range.first; clusIter != range.second; ++clusIter )
-	{
-	  TrkrDefs::cluskey cluskey = clusIter->first;
-	  unsigned int layer = TrkrDefs::getLayer(cluskey);
-	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
-	  
-	  if(trkrid != TrkrDefs::mvtxId && trkrid != TrkrDefs::inttId)  continue;
-	  
-	  TrkrCluster* cluster = clusIter->second;
-	  auto global = _tGeometry->getGlobalPosition(cluskey, cluster);
-
-	  Acts::Vector3 pca = get_helix_pca(fitpars, global);
-	  float dca = (pca - global).norm();
-	  if(trkrid == TrkrDefs::inttId || trkrid == TrkrDefs::mvtxId)
-	    {
-	      Acts::Vector2 global_xy(global(0), global(1));
-	      Acts::Vector2 pca_xy(pca(0), pca(1));
-	      Acts::Vector2 pca_xy_residual = pca_xy - global_xy;
-	      dca = pca_xy_residual.norm();
-	    }
-
-	  if(dca < best_layer_dca[layer])
-	    {
-	      best_layer_dca[layer] = dca;
-	      best_layer_cluskey[layer] = cluskey;
-	    }
-	}  // end cluster iteration
-    } // end hitsetkey iteration
-
-  for(unsigned int layer = 0; layer < 7; ++layer)
-    {
-      if(best_layer_dca[layer] < dca_cut)
-	{
-	  cluskey_vec.push_back(best_layer_cluskey[layer]);
-	  auto clus =  _cluster_map->findCluster(best_layer_cluskey[layer]);
-	  auto global = _tGeometry->getGlobalPosition(best_layer_cluskey[layer], clus);
-	  global_vec.push_back(global);
-	  nsilicon++;
-	  if(Verbosity() > 0) std::cout << "   add cluster in layer " << layer << " with cluskey " << best_layer_cluskey[layer] << " and dca " << best_layer_dca[layer] 
-		    << " nsilicon " << nsilicon << std::endl;
-	}
-    }
-
-  return nsilicon;
+  return TrackFitUtils::addSiliconClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec);
 }
 
  bool HelicalFitter::is_layer_fixed(unsigned int layer)
