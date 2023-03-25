@@ -5,6 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <phparameter/PHParameterInterface.h>
 
@@ -68,13 +69,16 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
   void getTrackletClusters(TrackSeed *_track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
   Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, Acts::Vector3 global);
+  void correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec,  std::vector<TrkrDefs::cluskey> cluskey_vec);
   unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
  private:
 
-Mille* _mille;
+  Mille* _mille;
 
   int GetNodes(PHCompositeNode* topNode);
+
+  void getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
   Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref);
   Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
@@ -103,7 +107,7 @@ Mille* _mille;
   TpcDistortionCorrectionContainer* _dcc_average{nullptr};
   TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
 
-  unsigned int _cluster_version = 4;
+  unsigned int _cluster_version = 5;
   bool test_output = false;
 
   ClusterErrorPara _ClusErrPara;

@@ -84,7 +84,8 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
     Acts::Vector3 residual = clusGlobal - stateGlobal;
 
     Acts::Vector3 clus_sigma(0, 0, 0);
-      if (m_clusterVersion == 3)
+
+      if (m_clusterVersion == 3 || m_clusterVersion == 5)
       {
         clus_sigma(2) = clus->getZError() * Acts::UnitConstants::cm;
         clus_sigma(0) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
