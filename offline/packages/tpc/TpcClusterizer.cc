@@ -764,6 +764,12 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
 
 int TpcClusterizer::process_event(PHCompositeNode *topNode)
 {
+  // most of the logic is in the method ClusterCylinderCells, which
+  // may be separately called to cluster the TrkrHits of each individual truth track
+  //
+  // For process_event, just set m_hits to the appropriate TrkrHitSetContainer, 
+  // and m_clusters to the appropriate TrkrClusterContainer and call ClusterCylinderCells to do the rest
+  //
   //  int print_layer = 18;
 
   if (Verbosity() > 1000)
@@ -802,12 +808,36 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  ClusterCylinderCells(topNode, do_read_raw);
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+int TpcClusterizer::ClusterCylinderCells(
+      PHCompositeNode *topNode
+    , bool                  _do_read_raw
+    , TrkrHitSetContainer*  _hits         
+    , TrkrClusterContainer* _clusterlist  
+    , bool                  b_truthtracks 
+    , int                   _verbosity   )
+{
+  int verbosity = b_truthtracks ? _verbosity : Verbosity();
+
+  if (!b_truthtracks) {
+    _hits = m_hits;
+    _clusterlist = m_clusterlist;
+  }
+
   // get node for cluster hit associations
-  m_clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
-  if (!m_clusterhitassoc)
-  {
-    std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+  m_clusterhitassoc = nullptr;
+  if (!b_truthtracks) {
+    m_clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+    if (!m_clusterhitassoc)
+    {
+      std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
   }
 
   PHG4TpcCylinderGeomContainer *geom_container =
@@ -835,8 +865,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   RawHitSetContainer::ConstRange rawhitsetrange;
   int num_hitsets = 0;
 
-  if(!do_read_raw){
-    hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
+  if(!_do_read_raw){
+    hitsetrange = _hits->getHitSets(TrkrDefs::TrkrId::tpcId);
     num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
   }else{
     rawhitsetrange = m_rawhits->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -865,7 +895,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     }
   int count = 0;
 
-  if(!do_read_raw){
+  if(!_do_read_raw){
     for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
 	 hitsetitr != hitsetrange.second;
 	 ++hitsetitr)
@@ -896,7 +926,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
 	thread_pair.data.sampa_tbias = m_sampa_tbias;
 	thread_pair.data.cluster_version = cluster_version;
-	thread_pair.data.verbosity = Verbosity();
+	thread_pair.data.verbosity = verbosity;
 	
 	unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
 	unsigned short NPhiBinsSector = NPhiBins/12;
@@ -943,7 +973,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	      auto cluster = data.cluster_vector[index];
 	      
 	      // insert in map
-	      m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+	      _clusterlist->addClusterSpecifyKey(ckey, cluster);
 	    }
 	  
 	  // copy hit associations to map
@@ -953,7 +983,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	    const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
 	    
 	    // add to association table
-	    m_clusterhitassoc->addAssoc(ckey,hkey); 
+	    if (!b_truthtracks) m_clusterhitassoc->addAssoc(ckey,hkey); 
 	  }
 	}
 	count++;
@@ -990,7 +1020,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
       thread_pair.data.sampa_tbias = m_sampa_tbias;
       thread_pair.data.cluster_version = cluster_version;
-      thread_pair.data.verbosity = Verbosity();
+      thread_pair.data.verbosity = verbosity;
 
       unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
       unsigned short NPhiBinsSector = NPhiBins/12;
@@ -1060,7 +1090,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	    auto cluster = data.cluster_vector[index];
 	    
 	    // insert in map
-	    m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+	    _clusterlist->addClusterSpecifyKey(ckey, cluster);
 	  }
 	
 	// copy hit associations to map
@@ -1070,7 +1100,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	    const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
 	    
 	    // add to association table
-	    m_clusterhitassoc->addAssoc(ckey,hkey); 
+	    if (!b_truthtracks) m_clusterhitassoc->addAssoc(ckey,hkey); 
 	  }
 	  }
       count++;
@@ -1103,7 +1133,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	    
 	    // insert in map
 	    //std::cout << "X: " << cluster->getLocalX() << "Y: " << cluster->getLocalY() << std::endl;
-	    m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+	    _clusterlist->addClusterSpecifyKey(ckey, cluster);
 	  }
 	
 	// copy hit associations to map
@@ -1113,14 +1143,14 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	    const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
 	    
 	    // add to association table
-	    m_clusterhitassoc->addAssoc(ckey,hkey); 
+	    if (!b_truthtracks) m_clusterhitassoc->addAssoc(ckey,hkey); 
 	  }
 
       }
   }
 
-  if (Verbosity() > 0)
-    std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;
+  if (verbosity > 0)
+    std::cout << "TPC Clusterizer found " << _clusterlist->size() << " Clusters "  << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

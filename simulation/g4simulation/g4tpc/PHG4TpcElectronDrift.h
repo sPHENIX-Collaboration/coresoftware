@@ -28,13 +28,21 @@ class TrkrTruthTrackContainer;
 class TrkrClusterContainer;
 class TrkrTruthTrack;
 class DistortedTrackContainer;
-class TpcClusterBuilder;
 class PHG4TpcCylinderGeomContainer;
+class PHG4TpcDigitizer;
+class TpcClusterizer;
+class PHG4TpcTruthClusterizer;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
+
+  void SetTruthClusterizer (
+        PHG4TpcDigitizer* _digitiser
+      , TpcClusterizer*   _clusterizer
+      , int                _verbosity =-1); // if left at default, it will use the value from Verbosity()
+
   ~PHG4TpcElectronDrift() override;
   int Init(PHCompositeNode *) override;
   int InitRun(PHCompositeNode *) override;
@@ -65,10 +73,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
  private:
-  //! map a given x,y,z coordinates to plane hits
-  /* TpcClusterBuilder MapToPadPlane(const double x, const double y, const */
-  /*     double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, */
-  /*     TNtuple *ntpad, TNtuple *nthit); */
+
+  PHG4TpcTruthClusterizer *m_truthclusterizer { nullptr };
 
   std::ofstream f_out;
 
@@ -130,9 +136,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double min_time = NAN;
   double max_time = NAN;
 
-
-  /* std::array<TpcClusterBuilder,55> layer_clusterers; // Generate TrkrClusterv4's for TrkrTruthTracks */
-  TpcClusterBuilder* truth_clusterer { nullptr };
 
   /* void buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsigned int>&); */
 

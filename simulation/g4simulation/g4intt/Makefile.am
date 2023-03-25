@@ -30,7 +30,7 @@ pkginclude_HEADERS = \
   PHG4InttDigitizer.h  \
   PHG4InttHitReco.h \
   PHG4InttSubsystem.h \
-  TruthInttClusterBuilder.h
+  PHG4InttTruthClusterizer.h
 
 ROOTDICTS = \
   InttDeadMap_Dict.cc \
@@ -51,12 +51,13 @@ libg4intt_la_SOURCES = \
   PHG4InttHitReco.cc \
   PHG4InttSteppingAction.cc \
   PHG4InttSubsystem.cc \
-  TruthInttClusterBuilder.cc
+  PHG4InttTruthClusterizer.cc
 
 libg4intt_la_LIBADD = \
   libg4intt_io.la \
   -lg4detectors \
   -lg4tracking_io \
+  -lintt \
   -lintt_io
 
 # sources for io library

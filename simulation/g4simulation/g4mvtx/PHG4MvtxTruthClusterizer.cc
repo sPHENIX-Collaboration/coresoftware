@@ -35,7 +35,7 @@ int PHG4MvtxTruthClusterizer::clusterize_hits(TrkrClusterContainer* clusters)
   int prune = m_pruner ->process_TrkrHitSetContainer(m_hits, m_verbosity);
   if (prune != Fun4AllReturnCodes::EVENT_OK) return prune;
 
-  int cluster = m_clusterizer ->ClusterMvtx(m_topNode, m_hits, clusters, true, 1000);
+  int cluster = m_clusterizer ->ClusterMvtx(m_topNode, m_hits, clusters, true, m_verbosity);
   if (cluster != Fun4AllReturnCodes::EVENT_OK) return prune;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -66,7 +66,9 @@ void PHG4MvtxTruthClusterizer::end_of_event() {
   if (m_verbosity>2) { 
       std::cout << PHWHERE << " :: tracks with clusters after clustering in MVTX" << std::endl;
       for (auto& track : m_truthtracks->getMap()) {
-        std::cout << " track("<< track.first <<") nclusters: " << track.second->getClusters().size() << std::endl;
+        std::cout << "  track("<< track.first <<") nclusters: " << track.second->getClusters().size();
+        for (auto& cluster : track.second->getClusters()) std::cout << " " << (int) TrkrDefs::getLayer(cluster);
+        std::cout << std::endl;
       }
   }
 }

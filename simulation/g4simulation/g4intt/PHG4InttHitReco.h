@@ -3,8 +3,6 @@
 #ifndef G4INTT_PHG4INTTHITRECO_H
 #define G4INTT_PHG4INTTHITRECO_H
 
-#include "TruthInttClusterBuilder.h"
-
 #include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
@@ -15,10 +13,11 @@
 #include <string>
 
 class PHCompositeNode;
+class PHG4InttTruthClusterizer;
 
-class TrkrTruthTrackContainer;
-class TrkrClusterContainer;
-
+// Process to cluster tracks:
+class PHG4InttDigitizer; // digitize (no pruning that I can see)
+class InttClusterizer;   // reconstruct
 
 class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
 {
@@ -26,6 +25,12 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
   PHG4InttHitReco(const std::string &name = "PHG4InttHitReco");
 
   ~PHG4InttHitReco() override;
+
+  void SetTruthClusterizer (
+        PHG4InttDigitizer* _digitiser
+      , InttClusterizer*   _clusterizer
+      , int                _verbosity =-1); // if left at default, it will use the value from Verbosity()
+
   //! module initialization
   int InitRun(PHCompositeNode *topNode) override;
 
@@ -43,18 +48,15 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
   std::string m_CellNodeName;
   std::string m_GeoNodeName;
 
-  TrkrTruthTrackContainer* m_truthtracks { nullptr };
-  TrkrClusterContainer*    m_truthclusters { nullptr };
-
   double m_Tmin;
   double m_Tmax;
   double m_crossingPeriod;
 
-  TruthInttClusterBuilder* m_truth_clusterer { nullptr };
-
   gsl_vector *m_LocalOutVec = nullptr;
   gsl_vector *m_PathVec = nullptr;
   gsl_vector *m_SegmentVec = nullptr;
+
+  PHG4InttTruthClusterizer *m_truthclusterizer { nullptr };
 };
 
 #endif

@@ -13,6 +13,7 @@
 #include <vector>
 
 class PHCompositeNode;
+class TrkrHitSetContainer;
 
 class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
 {
@@ -35,10 +36,11 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
 
   void set_adc_scale(const int &layer, const std::vector<double> &userrange);
 
+  // following function is also called by truth clusters
+  void DigitizeLadderCells(PHCompositeNode *topNode, TrkrHitSetContainer* trkrhitsetcontainer, bool b_truthtracks=false, int _verbosity=0);
  private:
   void CalculateLadderCellADCScale(PHCompositeNode *topNode);
 
-  void DigitizeLadderCells(PHCompositeNode *topNode);
 
   // noise electrons
   float added_noise();

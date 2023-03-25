@@ -1,32 +1,29 @@
-#ifndef G4MVTX_TRUTHCLUSTERIZER__H
-#define G4MVTX_TRUTHCLUSTERIZER__H
+#ifndef G4INTT_TRUTHCLUSTERIZER__H
+#define G4INTT_TRUTHCLUSTERIZER__H
 
 #include <g4tracking/TruthClusterizerBase.h>
-  // This is the helper class for PHG4MvtxHitReco. It will cluster the PHG4Hits
+  // This is the helper class for PHG4InttHitReco. It will cluster the PHG4Hits
   // which come from each individual embedded ("Truth") track. It uses pointers
-  // to the modules (1) MvtxHitPruner, (2) PHG4MvtxDigitizer, and (3)
-  // MvtxClusterizer, which also do the clustering for all the PHG4Hits
-  // together (from all truth tracks together + all other tracks + noise).
+  // to the PHG4InttDigitizer and InttClusterizer modules , which also do the
+  // clustering for all the PHG4Hits together (from all truth tracks together +
+  // all other tracks + noise).
   //
   // Because it makes calls to these other modules, t needs to be initialized
   // from the Fun4All driving macro *after* adding the above listed modules.
 
-class PHG4MvtxDigitizer;
-class MvtxHitPruner;
-class MvtxClusterizer;
+class PHG4InttDigitizer;
+class InttClusterizer;
 class PHCompositeNode;
 
-class  PHG4MvtxTruthClusterizer : public TruthClusterizerBase {
+class  PHG4InttTruthClusterizer : public TruthClusterizerBase {
   public:
   PHCompositeNode*   m_topNode     ;
-  PHG4MvtxDigitizer* m_digitiser   ;
-  MvtxHitPruner*     m_pruner      ;
-  MvtxClusterizer*   m_clusterizer ;
+  PHG4InttDigitizer* m_digitiser   ;
+  InttClusterizer*   m_clusterizer ;
 
-  PHG4MvtxTruthClusterizer (
-        PHG4MvtxDigitizer* _digitiser
-      , MvtxHitPruner*     _pruner
-      , MvtxClusterizer*   _clusterizer
+  PHG4InttTruthClusterizer (
+        PHG4InttDigitizer* _digitiser
+      , InttClusterizer*   _clusterizer
       , int                _verbosity = 0 );
 
   void init_run(PHCompositeNode*& _topNode);
@@ -34,7 +31,7 @@ class  PHG4MvtxTruthClusterizer : public TruthClusterizerBase {
 
   void check_g4hit(PHG4Hit*);
   void end_of_event();
-  ~PHG4MvtxTruthClusterizer(){};
+  ~PHG4InttTruthClusterizer(){};
 
   /* fn_clusterer = mvtx_clusterize; */
   /* int check_g4hit (PHG4Hit* hit, int (*fn_clusterer)() ) { return _check_g4hit(hit, fn_clusterer=mvtx_clusterize); }; */

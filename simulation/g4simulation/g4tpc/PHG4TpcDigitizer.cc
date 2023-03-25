@@ -112,7 +112,16 @@ int PHG4TpcDigitizer::InitRun(PHCompositeNode *topNode)
 
 int PHG4TpcDigitizer::process_event(PHCompositeNode *topNode)
 {
-  DigitizeCylinderCells(topNode);
+
+  // Get the TrkrHitSetContainer node
+  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!trkrhitsetcontainer)
+  {
+    std::cout << "Could not locate TRKR_HITSET node, quit! " << std::endl;
+    exit(1);
+  }
+
+  DigitizeCylinderCells(topNode, trkrhitsetcontainer);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -150,9 +159,12 @@ void PHG4TpcDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode)
   return;
 }
 
-void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
+void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode, TrkrHitSetContainer* trkrhitsetcontainer, bool b_truthtracks, int _verbosity)
 {
+  // the local control over the vebosity is for when this is called to digitize the truth track clusters
+  int verbosity = b_truthtracks ? _verbosity : Verbosity();
   unsigned int print_layer = 18;  // to print diagnostic output for layer 47
+  bool skip_noise = b_truthtracks || m_skip_noise; // always skip noise if this is a truth track
 
   // Digitizes the Tpc cells that were created in PHG4CylinderCellTpcReco
   // These contain as edep the number of electrons out of the GEM stack, distributed between Z bins by shaper response and ADC clock window
@@ -228,20 +240,17 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
   }
 
-  // Get the TrkrHitSetContainer node
-  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (!trkrhitsetcontainer)
-  {
-    std::cout << "Could not locate TRKR_HITSET node, quit! " << std::endl;
-    exit(1);
-  }
-
-  TrkrHitTruthAssoc *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
-  if (!hittruthassoc)
-  {
-    std::cout << PHWHERE << " Could not locate TRKR_HITTRUTHASSOC node, quit! " << std::endl;
-    exit(1);
-  }
+  // 2023.03.25 : hittruthassoc, which shouldn't be filled for truth tracks, had already been commented out of 
+  // all used in this module.
+  /* TrkrHitTruthAssoc *hittruthassoc { nullptr }; */
+  /* if (!b_truthtracks) { */
+  /*   hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC"); */
+  /*   if (!hittruthassoc) */
+  /*   { */
+  /*     std::cout << PHWHERE << " Could not locate TRKR_HITTRUTHASSOC node, quit! " << std::endl; */
+  /*     exit(1); */
+  /*   } */
+  /* } */
 
 
   //-------------
@@ -256,13 +265,13 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
       if (!layergeom) exit(1);
 
       int nphibins = layergeom->get_phibins();
-      if(Verbosity() > 1) 
+      if(verbosity > 1) 
         std::cout << "    nphibins " << nphibins << std::endl;
       
       for(unsigned int side = 0; side < 2; ++side)
 	{
 	  
-	  if(Verbosity() > 1) 
+	  if(verbosity > 1) 
 	    std::cout << "TPC layer " << layer << " side " << side << std::endl;
 	  
 	  // for this layer and side, use a vector of a vector of cells for each phibin
@@ -286,7 +295,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 	      // skip this hitset if it is not on this side
 	      if(this_side != side) continue; 
 
-	      if (Verbosity() > 2)
+	      if (verbosity > 2)
 		if (layer == print_layer)
 		  std::cout << "new: PHG4TpcDigitizer:  processing signal hits for layer " << layer 
 			    << " hitsetkey " << hitsetkey << " side " << side << std::endl;
@@ -306,7 +315,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 	    }
 	  
 	  // Process one phi bin at a time
-	  if(Verbosity() > 1) std::cout << "    phi_sorted_hits size " <<  phi_sorted_hits.size() << std::endl;
+	  if(verbosity > 1) std::cout << "    phi_sorted_hits size " <<  phi_sorted_hits.size() << std::endl;
 	  for (unsigned int iphi = 0; iphi < phi_sorted_hits.size(); iphi++)
 	    {
 	      // Make a fixed length vector to indicate whether each time bin is signal or noise
@@ -328,7 +337,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 		  is_populated[tbin] = 1;  // this bin is a associated with a hit
 		  t_sorted_hits[tbin].push_back(phi_sorted_hits[iphi][it]);
 		  
-		  if (Verbosity() > 2)
+		  if (verbosity > 2)
 		    if (layer == print_layer)
 		      {
 			TrkrDefs::hitkey hitkey = phi_sorted_hits[iphi][it]->first;
@@ -362,7 +371,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 		      adc_input[it] = signal_with_noise ;
 		      adc_hitid[it] = t_sorted_hits[it][0]->first;
 
-		      if (Verbosity() > 2)
+		      if (verbosity > 2)
 			if (layer == print_layer)
 			  std::cout << "existing signal hit: layer " << layer << " iphi " << iphi << " it " << it 
 				    << " edep " << (t_sorted_hits[it][0]->second)->getEnergy()
@@ -379,7 +388,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 			  adc_input[it]= noise;
 			  adc_hitid[it] = 0;              // there is no hit, just add a placeholder in the vector for now, replace it later
 			  
-			  if (Verbosity() > 2)
+			  if (verbosity > 2)
 			    if (layer == print_layer)
 			      std::cout << "noise hit: layer " << layer << " side " << side << " iphi " << iphi << " it " << it
 					<< " adc gain " << ADCSignalConversionGain
@@ -419,7 +428,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 		    {
 		      // digitize this bin and the following 4 bins
 		      
-		      if (Verbosity() > 2)
+		      if (verbosity > 2)
 			if (layer == print_layer) 
 			  std::cout << std::endl
 				    << "Hit above threshold of " 
@@ -450,7 +459,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 			      TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it + itup);
 			      TrkrHit *hit = nullptr;
 			      
-			      if (Verbosity() > 2)
+			      if (verbosity > 2)
 				if (layer == print_layer) 
 				  std::cout << "    Digitizing:  iphi " << iphi << "  it+itup " << it + itup 
 					    << " adc_hitid " << adc_hitid[it + itup]
@@ -479,7 +488,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 				  hit = new TrkrHitv2();
 				  hitset_iter->second->addHitSpecificKey(hitkey, hit);
 				  
-				  if (Verbosity() > 2)
+				  if (verbosity > 2)
 				    if (layer == print_layer) 
 				      std::cout << "      adding noise TrkrHit for iphi " << iphi 
 						<< " tbin " << it + itup
@@ -525,7 +534,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
     } // end loop over TPC layers
   
   //======================================================
-  if (Verbosity() > 5)
+  if (verbosity > 5)
     {
       std::cout << "From PHG4TpcDigitizer: hitsetcontainer dump at end before cleaning:" << std::endl;
     }
@@ -543,7 +552,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
       const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
       const int sector = TpcDefs::getSectorId(hitsetkey);
       const int side = TpcDefs::getSide(hitsetkey);
-      if (Verbosity() > 5)
+      if (verbosity > 5)
 	std::cout << "PHG4TpcDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << std::endl;
       
       // get all of the hits from this hitset
@@ -556,14 +565,14 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 	  TrkrDefs::hitkey hitkey = hit_iter->first;
 	  TrkrHit *tpchit = hit_iter->second;
 	  
-	  if (Verbosity() > 5)
+	  if (verbosity > 5)
 	    std::cout << "    layer " << layer << "  hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) 
 		      << " t bin " << TpcDefs::getTBin(hitkey)
 		      << " adc " << tpchit->getAdc() << std::endl;
 	  
 	  if (tpchit->getAdc() == 0)
 	    {
-	      if (Verbosity() > 20)
+	      if (verbosity > 20)
 		{
 		  std::cout << "                       --   this hit not digitized - delete it" << std::endl;
 		}
@@ -579,7 +588,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
       TrkrHitSet *hitset = trkrhitsetcontainer->findHitSet(delete_hitkey_list[i].first);
       const unsigned int layer = TrkrDefs::getLayer(delete_hitkey_list[i].first);
       hitset->removeHit(delete_hitkey_list[i].second);
-      if (Verbosity() > 20)
+      if (verbosity > 20)
 	if (layer == print_layer)
 	  std::cout << "removed hit with hitsetkey " << delete_hitkey_list[i].first
 		    << " and hitkey " << delete_hitkey_list[i].second << std::endl;
@@ -589,7 +598,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
     }
   
   // Final hitset dump
-  if (Verbosity() > 5)
+  if (verbosity > 5)
     std::cout << "From PHG4TpcDigitizer: hitsetcontainer dump at end after cleaning:" << std::endl;
   // We want all hitsets for the Tpc
   TrkrHitSetContainer::ConstRange hitset_range_final = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -603,7 +612,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
     if (layer != print_layer) continue;
     const int sector = TpcDefs::getSectorId(hitsetkey);
     const int side = TpcDefs::getSide(hitsetkey);
-    if (Verbosity() > 5 && layer == print_layer)
+    if (verbosity > 5 && layer == print_layer)
       std::cout << "PHG4TpcDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << std::endl;
 
     // get all of the hits from this hitset
@@ -615,7 +624,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
     {
       TrkrDefs::hitkey hitkey = hit_iter->first;
       TrkrHit *tpchit = hit_iter->second;
-      if (Verbosity() > 5)
+      if (verbosity > 5)
         std::cout << "      LAYER " << layer << " hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " t bin " << TpcDefs::getTBin(hitkey)
                   << " adc " << tpchit->getAdc() << std::endl;
 

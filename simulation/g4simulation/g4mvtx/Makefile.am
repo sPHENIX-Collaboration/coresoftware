@@ -32,8 +32,7 @@ pkginclude_HEADERS = \
   PHG4MvtxSubsystem.h \
   PHG4EICMvtxSubsystem.h \
   PHG4MvtxDigitizer.h \
-  PHG4MvtxTruthClusterizer.h \
-  TruthMvtxClusterBuilder.h
+  PHG4MvtxTruthClusterizer.h
 
 libg4mvtx_la_SOURCES = \
   PHG4MvtxHitReco.cc \
@@ -48,8 +47,7 @@ libg4mvtx_la_SOURCES = \
   PHG4MvtxCable.cc \
   PHG4MvtxServiceStructure.cc \
   PHG4MvtxSupport.cc \
-  PHG4MvtxTruthClusterizer.cc \
-  TruthMvtxClusterBuilder.cc
+  PHG4MvtxTruthClusterizer.cc
 
 ################################################
 # linking tests

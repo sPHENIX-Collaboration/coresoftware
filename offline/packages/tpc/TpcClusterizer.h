@@ -32,6 +32,14 @@ class TpcClusterizer : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
+  int ClusterCylinderCells(
+      PHCompositeNode *topNode
+    , bool                  _do_read_raw  // is called with do_read_raw
+    , TrkrHitSetContainer*  _hits         = nullptr
+    , TrkrClusterContainer* _clusterlist  = nullptr
+    , bool                  b_truthtracks = false
+    , int                   _verbosity    = 0
+  );
   int End(PHCompositeNode *topNode) override;
 
   void set_sector_fiducial_cut(const double cut){SectorFiducialCut = cut; }

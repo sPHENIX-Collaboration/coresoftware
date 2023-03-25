@@ -76,12 +76,14 @@ class InttClusterizer : public SubsysReco
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
   void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
 
+  // note: the following function may be called externally to cluster the hits from individual embedded tracks
+  void ClusterLadderCells(PHCompositeNode *topNode, TrkrHitSetContainer* hits=nullptr, TrkrClusterContainer* clusterlist=nullptr,
+      bool b_truthtracks=false, int verbosity=0); 
  private:
   bool ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs, const int layer);
   bool ladder_are_adjacent(RawHit* lhs,  RawHit* rhs, const int layer);
 
   void CalculateLadderThresholds(PHCompositeNode *topNode);
-  void ClusterLadderCells(PHCompositeNode *topNode);
   void ClusterLadderCellsRaw(PHCompositeNode *topNode);
   void PrintClusters(PHCompositeNode *topNode);
 

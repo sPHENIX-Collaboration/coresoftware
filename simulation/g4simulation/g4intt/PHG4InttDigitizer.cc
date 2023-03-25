@@ -135,7 +135,15 @@ int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
 
 int PHG4InttDigitizer::process_event(PHCompositeNode *topNode)
 {
-  DigitizeLadderCells(topNode);
+
+  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!trkrhitsetcontainer)
+  {
+    std::cout << "Could not locate TRKR_HITSET node, quit! " << std::endl;
+    exit(1);
+  }
+
+  DigitizeLadderCells(topNode, trkrhitsetcontainer); // this may also be called separately by the truth clusterer with 2 additional parameters
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -169,13 +177,15 @@ void PHG4InttDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
   return;
 }
 
-void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
+void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode, TrkrHitSetContainer* trkrhitsetcontainer, bool b_truthtracks, int _verbosity)
 {
+  // n.b. the local control over the vebosity is for when this is called to digitize the truth track clusters
+  int verbosity = b_truthtracks ? _verbosity : Verbosity();
   //---------------------------
   // Get common Nodes
   //---------------------------
   const InttDeadMap *deadmap = findNode::getClass<InttDeadMap>(topNode, "DEADMAP_INTT");
-  if (Verbosity() >= VERBOSITY_MORE)
+  if (verbosity >= VERBOSITY_MORE)
   {
     if (deadmap)
     {
@@ -189,15 +199,10 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
   }
 
   // Get the TrkrHitSetContainer node
-  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (!trkrhitsetcontainer)
-  {
-    std::cout << "Could not locate TRKR_HITSET node, quit! " << std::endl;
-    exit(1);
-  }
 
   // Get the TrkrHitTruthAssoc node
-  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  TrkrHitTruthAssoc* hittruthassoc = nullptr; // don't use when not b_truthtracks
+  if (!b_truthtracks) hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
 
   //-------------
   // Digitization
@@ -216,7 +221,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
     const int ladder_phi = InttDefs::getLadderPhiId(hitsetkey);
     const int ladder_z = InttDefs::getLadderZId(hitsetkey);
 
-    if (Verbosity() > 1)
+    if (verbosity > 1)
     {
       std::cout << "PHG4InttDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << std::endl;
     }
@@ -236,7 +241,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       int strip_row = InttDefs::getRow(hitkey);  // strip phi index
 
       // Apply deadmap here if desired
-      if (deadmap)
+      if (deadmap) // NOTE: is equally applied to b_truthtrack hits 
       {
         if (deadmap->isDeadChannelIntt(
                 layer,
@@ -247,7 +252,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
         {
           ++m_nDeadCells;
 
-          if (Verbosity() >= VERBOSITY_MORE)
+          if (verbosity >= VERBOSITY_MORE)
           {
             std::cout << "PHG4InttDigitizer::DigitizeLadderCells - dead strip at layer " << layer << ": ";
             hit->identify();
@@ -276,7 +281,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       }
       hit->setAdc(adc);
 
-      if (Verbosity() > 2)
+      if (verbosity > 2)
       {
         std::cout << "PHG4InttDigitizer: found hit with layer " << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi
                   << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << hit->getAdc() << std::endl;
@@ -286,13 +291,13 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
     // remove hits on dead channel in TRKR_HITSET and TRKR_HITTRUTHASSOC
     for (const auto &key : dead_hits)
     {
-      if (Verbosity() > 2)
+      if (verbosity > 2)
       {
         std::cout << " PHG4InttDigitizer: remove hit with key: " << key << std::endl;
       }
       hitset->removeHit(key);
 
-      if (hittruthassoc) hittruthassoc->removeAssoc(hitsetkey, key);
+      if (!b_truthtracks && hittruthassoc) hittruthassoc->removeAssoc(hitsetkey, key);
     }
   }  // end loop over hitsets
 
@@ -328,7 +333,7 @@ float PHG4InttDigitizer::added_noise()
 
   // Note the noise is bi-polar, i.e. can make ths signal fluctuate up and down.
   // Much of the mNoiseSigma as extracted in https://github.com/sPHENIX-Collaboration/coresoftware/pull/580
-  // is statistical fluctuation from the limited calibration data. They does not directly apply here.
+  // is statistical fluctuation from the limited calibration data. They do not directly apply here.
   float noise = gsl_ran_gaussian(RandomGenerator, mNoiseMean);
 
   return noise;

@@ -78,7 +78,7 @@ void PHG4MvtxHitReco::SetTruthClusterizer (
       , MvtxClusterizer*   _clusterizer
       , int                _verbosity) 
 {
-  std::cout << PHWHERE << std::endl;
+  if (_verbosity > 5) std::cout << PHWHERE << " " << " Setting Truth Clusterizing for Mctx" << std::endl;
   int verbosity = (_verbosity==-1) ? Verbosity() : _verbosity;
   m_truthclusterizer = new PHG4MvtxTruthClusterizer(_digitizer, _pruner, _clusterizer, verbosity);
 }

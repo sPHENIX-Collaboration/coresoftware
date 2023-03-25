@@ -334,9 +334,21 @@ void InttClusterizer::CalculateLadderThresholds(PHCompositeNode* topNode)
   return;
 }
 
-void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
+/* void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode) */
+void InttClusterizer::ClusterLadderCells(PHCompositeNode *topNode
+    , TrkrHitSetContainer*  _hits          // if b_truthtracks, hits for a specific truth track only
+    , TrkrClusterContainer* _clusterlist   // same for clusters
+    , bool                  b_truthtracks
+    , int                   _verbosity)
 {
-  if (Verbosity() > 0)
+  int verbosity = b_truthtracks ? _verbosity : Verbosity();
+
+  if (!b_truthtracks) {
+    _hits = m_hits;
+    _clusterlist = m_clusterlist;
+  }
+
+  if (verbosity > 0)
     cout << "Entering InttClusterizer::ClusterLadderCells " << endl;
 
   //----------
@@ -353,7 +365,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
   // loop over the InttHitSet objects
   TrkrHitSetContainer::ConstRange hitsetrange =
-      m_hits->getHitSets(TrkrDefs::TrkrId::inttId);
+      _hits->getHitSets(TrkrDefs::TrkrId::inttId);
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
@@ -361,8 +373,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
     // Each hitset contains only hits that are clusterizable - i.e. belong to a single sensor
     TrkrHitSet *hitset = hitsetitr->second;
 
-    if(Verbosity() > 1) cout << "InttClusterizer found hitsetkey " << hitsetitr->first << endl;
-    if (Verbosity() > 2)
+    if(verbosity > 1) cout << "InttClusterizer found hitsetkey " << hitsetitr->first << endl;
+    if (verbosity > 2)
       hitset->identify();
 
     // we have a single hitset, get the info that identifies the sensor
@@ -383,7 +395,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
       {
 	hitvec.push_back(make_pair(hitr->first, hitr->second));
       }
-    if (Verbosity() > 2)
+    if (verbosity > 2)
       cout << "hitvec.size(): " << hitvec.size() << endl;
     
     typedef adjacency_list<vecS, vecS, undirectedS> Graph;
@@ -434,7 +446,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 
-	if (Verbosity() > 2)
+	if (verbosity > 2)
 	  cout << "Filling cluster with key " << ckey << endl;
 
 	// get the bunch crossing number from the hitsetkey
@@ -466,7 +478,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    unsigned int hit_adc = (mapiter->second).second->getAdc();
 
 	    // Add clusterkey/bunch crossing to mmap
-	    m_clustercrossingassoc->addAssoc(ckey, crossing);
+	    if (!b_truthtracks) m_clustercrossingassoc->addAssoc(ckey, crossing);
 
 	    // now get the positions from the geometry
 	    double local_hit_location[3] = {0., 0., 0.};
@@ -492,10 +504,10 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    ++nhits;
 
 	    // add this cluster-hit association to the association map of (clusterkey,hitkey)
-	    m_clusterhitassoc->addAssoc(ckey, mapiter->second.first);
+	    if (!b_truthtracks) m_clusterhitassoc->addAssoc(ckey, mapiter->second.first);
 
-	    if (Verbosity() > 2) cout << "     nhits = " << nhits << endl;
-	    if (Verbosity() > 2)
+	    if (verbosity > 2) cout << "     nhits = " << nhits << endl;
+	    if (verbosity > 2)
 	      {
 		cout << "  From  geometry object: hit x " << local_hit_location[0] << " hit y " << local_hit_location[1] << " hit z " << local_hit_location[2] << endl;
 		cout << "     nhits " << nhits << " clusx  = " << xlocalsum / nhits << " clusy " << ylocalsum / nhits << " clusz " << zlocalsum / nhits << " hit_adc " << hit_adc << endl;
@@ -539,7 +551,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	  // Fill the cluster fields
 	  clus->setAdc(clus_adc);
 	  
-	  if(Verbosity() > 10) clus->identify();
+	  if(verbosity > 10) clus->identify();
 	  
 	  clus->setLocalX(cluslocaly);
 	  clus->setLocalY(cluslocalz);
@@ -550,7 +562,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    clus->setActsLocalError(0,1, 0.);
 	    clus->setActsLocalError(1,0, 0.);
 	    clus->setActsLocalError(1,1, square(zerror));
-	    m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+	    _clusterlist->addClusterSpecifyKey(ckey, clus.release());
 	}
 	else if(m_cluster_version==4){
 	  auto clus = std::make_unique<TrkrClusterv4>();
@@ -559,14 +571,14 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	  clus->setPhiSize(phibins.size());
 	  clus->setZSize(1);
 
-	  if(Verbosity() > 10) clus->identify();
+	  if(verbosity > 10) clus->identify();
 	  
 	  clus->setLocalX(cluslocaly);
 	  clus->setLocalY(cluslocalz);
 	  // silicon has a 1-1 map between hitsetkey and surfaces. So set to 
 	  // 0
 	  clus->setSubSurfKey(0);
-	  m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+	  _clusterlist->addClusterSpecifyKey(ckey, clus.release());
 	  
 	}else if(m_cluster_version==5){
 	  auto clus = std::make_unique<TrkrClusterv5>();
@@ -582,26 +594,26 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	  // So set subsurface key to 0
 	  clus->setSubSurfKey(0);
 	  
-	  if (Verbosity() > 2)
+	  if (verbosity > 2)
 	    clus->identify();
 	  
-	  m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+	  _clusterlist->addClusterSpecifyKey(ckey, clus.release());
 	}
       } // end loop over cluster ID's
   }  // end loop over hitsets
 
 
-  if(Verbosity() > 2)
+  if(verbosity > 2)
     {
       // check that the associations were written correctly
       cout << "After InttClusterizer, cluster-hit associations are:" << endl;
-      m_clusterhitassoc->identify();
+      if (!b_truthtracks) m_clusterhitassoc->identify();
     }
 
-    if(Verbosity() > 0)
+    if(verbosity > 0)
     {
       std::cout << " Cluster-crossing associations are:" << std::endl;
-      m_clustercrossingassoc->identify();  
+      if (!b_truthtracks) m_clustercrossingassoc->identify();  
     }
 
     
@@ -610,7 +622,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 {
   if (Verbosity() > 0)
-    cout << "Entering InttClusterizer::ClusterLadderCells " << endl;
+    cout << "Entering InttClusterizer::ClusterLadderCellsRaw " << endl;
 
   //----------
   // Get Nodes

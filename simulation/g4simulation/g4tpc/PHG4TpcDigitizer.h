@@ -16,6 +16,7 @@
 #include <gsl/gsl_rng.h>
 
 class PHCompositeNode;
+class TrkrHitSetContainer;
 
 class PHG4TpcDigitizer : public SubsysReco
 {
@@ -45,11 +46,12 @@ class PHG4TpcDigitizer : public SubsysReco
   void SetADCThreshold(const float thresh) { ADCThreshold = thresh; };
   void SetENC(const float enc) { TpcEnc = enc; };
   void set_drift_velocity(float vd) {_drift_velocity = vd;}
-  void set_skip_noise_flag(const bool skip) {skip_noise = skip;}
+  void set_skip_noise_flag(const bool skip) {m_skip_noise = skip;}
 
+  // following function may also be called by truth clusters
+  void DigitizeCylinderCells(PHCompositeNode *topNode, TrkrHitSetContainer* trkrhitsetcontainer, bool b_truthtracks=false, int _verbosity=0);
  private:
   void CalculateCylinderCellADCScale(PHCompositeNode *topNode);
-  void DigitizeCylinderCells(PHCompositeNode *topNode);
   float added_noise();
   float add_noise_to_bin(float signal);
   
@@ -65,7 +67,7 @@ class PHG4TpcDigitizer : public SubsysReco
   float ADCSignalConversionGain;
   float ADCNoiseConversionGain;
 
-  bool skip_noise = false;
+  bool m_skip_noise = false;
 
   std::vector<std::vector<TrkrHitSet::ConstIterator> > phi_sorted_hits;
   std::vector<std::vector<TrkrHitSet::ConstIterator> > t_sorted_hits;
