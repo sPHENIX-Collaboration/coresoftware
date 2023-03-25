@@ -107,9 +107,7 @@ void TruthClusterizerBase::check_g4hit_status(PHG4Hit* hit) {
 void TruthClusterizerBase::transfer_clusters(TrkrClusterContainer* pass_clusters) {
   m_hits->Reset(); // clear out the old  hits
   for (auto hitsetkey : pass_clusters->getHitSetKeys()) {
-    if (m_hitsetkey_cnt.find(hitsetkey)==m_hitsetkey_cnt.end()) {
-      m_hitsetkey_cnt[hitsetkey] = 0;
-    }
+    m_hitsetkey_cnt.try_emplace(hitsetkey,0);
     unsigned int& cnt = m_hitsetkey_cnt[hitsetkey];
     auto range = pass_clusters->getClusters(hitsetkey);
     for (auto cluster = range.first; cluster != range.second; ++cluster) {

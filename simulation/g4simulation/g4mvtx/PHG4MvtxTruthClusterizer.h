@@ -18,7 +18,7 @@ class PHCompositeNode;
 
 class  PHG4MvtxTruthClusterizer : public TruthClusterizerBase {
   public:
-  PHCompositeNode*   m_topNode     ;
+  PHCompositeNode*   m_topNode     { nullptr };
   PHG4MvtxDigitizer* m_digitiser   ;
   MvtxHitPruner*     m_pruner      ;
   MvtxClusterizer*   m_clusterizer ;

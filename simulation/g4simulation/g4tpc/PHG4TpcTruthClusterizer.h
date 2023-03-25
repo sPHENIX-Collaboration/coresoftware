@@ -17,7 +17,7 @@ class PHCompositeNode;
 
 class  PHG4TpcTruthClusterizer : public TruthClusterizerBase {
   private:
-  PHCompositeNode*   m_topNode        ;
+  PHCompositeNode*   m_topNode     { nullptr };
   PHG4TpcDigitizer*  m_digitiser      ;
   TpcClusterizer*    m_clusterizer    ;
 
