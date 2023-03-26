@@ -170,6 +170,10 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMaximumTrackchi2nDOF(float trackchi2ndof) { m_track_chi2ndof = trackchi2ndof; }
 
+  void setMinMVTXhits(int nHits) { m_nMVTXHits = nHits; }
+
+  void setMinTPChits(int nHits) { m_nTPCHits = nHits; }
+
   void setMaximumDaughterDCA(float dca) { m_comb_DCA = dca; }
 
   void setMaximumVertexchi2nDOF(float vertexchi2nDOF) { m_vertex_chi2ndof = vertexchi2nDOF; }
@@ -194,6 +198,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void useFakePrimaryVertex(bool use_fake) { m_use_fake_pv = use_fake; }
 
   void allowZeroMassTracks(bool allow) { m_allowZeroMassTracks = allow; }
+
+  void extraolateTracksToSV(bool extrapolate) { m_extrapolateTracksToSV = extrapolate; }
 
   void constrainIntermediateMasses(bool constrain_int_mass) { m_constrain_int_mass = constrain_int_mass; }
 

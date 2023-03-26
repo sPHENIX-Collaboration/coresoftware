@@ -68,6 +68,8 @@ KFParticle_Tools::KFParticle_Tools()
   , m_track_ip(-1.)
   , m_track_ipchi2(10.)
   , m_track_chi2ndof(4.)
+  , m_nMVTXHits(3)
+  , m_nTPCHits(20)
   , m_comb_DCA(0.05)
   , m_vertex_chi2ndof(15.)
   , m_fdchi2(50.)
@@ -76,6 +78,7 @@ KFParticle_Tools::KFParticle_Tools()
   , m_mother_pt(0.)
   , m_mother_ipchi2(FLT_MAX)
   , m_get_charge_conjugate(true)
+  , m_extrapolateTracksToSV(true)
   , m_vtx_map_node_name("SvtxVertexMap")
   , m_trk_map_node_name("SvtxTrackMap")
   , m_dst_vertexmap()
@@ -134,6 +137,8 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
 
 KFParticle KFParticle_Tools::makeParticle(PHCompositeNode * /*topNode*/)  ///Return a KFPTrack from track vector and covariance matrix. No mass or vertex constraints
 {
+  KFParticle kfp_particle;
+
   float f_trackParameters[6] = {m_dst_track->get_x(),
                                 m_dst_track->get_y(),
                                 m_dst_track->get_z(),
@@ -150,7 +155,6 @@ KFParticle KFParticle_Tools::makeParticle(PHCompositeNode * /*topNode*/)  ///Ret
       ++iterate;
     }
 
-  KFParticle kfp_particle;
   kfp_particle.Create(f_trackParameters, f_trackCovariance, (Int_t) m_dst_track->get_charge(), -1);
   kfp_particle.NDF() = m_dst_track->get_ndf();
   kfp_particle.Chi2() = m_dst_track->get_chisq();
@@ -168,6 +172,37 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
   for (SvtxTrackMap::Iter iter = m_dst_trackmap->begin(); iter != m_dst_trackmap->end(); ++iter)
   {
     m_dst_track = iter->second;
+
+    //First check if we have the required number of MVTX and TPC hits
+    TrackSeed *tpcseed = m_dst_track->get_tpc_seed();
+    TrackSeed *silseed = m_dst_track->get_silicon_seed();
+    int MVTX_hits = 0;
+    int TPC_hits = 0;
+
+    if (silseed)
+    {
+      for (auto cluster_iter = silseed->begin_cluster_keys();
+           cluster_iter != silseed->end_cluster_keys(); ++cluster_iter)
+      {
+        const auto &cluster_key = *cluster_iter;
+        const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+
+        if (trackerID == TrkrDefs::mvtxId) ++MVTX_hits;
+      }
+      if (MVTX_hits < m_nMVTXHits) continue;
+    }
+    if (tpcseed)
+    {
+      for (auto cluster_iter = tpcseed->begin_cluster_keys(); cluster_iter != tpcseed->end_cluster_keys(); ++cluster_iter)
+      {
+        const auto &cluster_key = *cluster_iter;
+        const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+
+        if (trackerID == TrkrDefs::tpcId) ++TPC_hits;
+      }
+      if (TPC_hits < m_nTPCHits) continue;
+    }
+
     daughterParticles.push_back(makeParticle(topNode));  ///Turn all dst tracks in KFP tracks
     daughterParticles[trackID].SetId(iter->first);
     ++trackID;
@@ -205,7 +240,11 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle v
   float trackchi2ndof = particle.GetChi2() / particle.GetNDF();
   calcMinIP(particle, primaryVertices, min_ip, min_ipchi2);
 
-  if (pt >= m_track_pt && ptchi2 <= m_track_ptchi2 && min_ip >= m_track_ip && min_ipchi2 >= m_track_ipchi2 && trackchi2ndof <= m_track_chi2ndof)
+  if (pt >= m_track_pt 
+   && ptchi2 <= m_track_ptchi2 
+   && min_ip >= m_track_ip 
+   && min_ipchi2 >= m_track_ipchi2 
+   && trackchi2ndof <= m_track_chi2ndof)
     goodTrack = true;
 
   return goodTrack;
@@ -506,7 +545,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   for (int j = 0; j < nTracks; ++j)
   {
-    inputTracks[j].SetProductionVertex(mother);
+    if (m_extrapolateTracksToSV) inputTracks[j].SetProductionVertex(mother);
     if (!m_allowZeroMassTracks)
     {
       if (inputTracks[j].GetMass() == 0) daughterMassCheck = false;
