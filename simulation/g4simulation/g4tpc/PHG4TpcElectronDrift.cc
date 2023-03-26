@@ -161,37 +161,6 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(newNode);
   }
 
-  truthtracks = findNode::getClass<TrkrTruthTrackContainer>(topNode, "TRKR_TRUTHTRACKCONTAINER");
-  if (!truthtracks)
-  {
-    PHNodeIterator dstiter(dstNode);
-    auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode("TRKR");
-      dstNode->addNode(DetNode);
-    }
-
-    truthtracks = new TrkrTruthTrackContainerv1();
-    auto newNode = new PHIODataNode<PHObject>(truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
-    DetNode->addNode(newNode);
-  }
-  truthclustercontainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_TRUTHCLUSTERCONTAINER");
-  if (!truthclustercontainer)
-  {
-    PHNodeIterator dstiter(dstNode);
-    auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode("TRKR");
-      dstNode->addNode(DetNode);
-    }
-
-    truthclustercontainer = new TrkrClusterContainerv4;
-    auto newNode = new PHIODataNode<PHObject>(truthclustercontainer, "TRKR_TRUTHCLUSTERCONTAINER", "PHObject");
-    DetNode->addNode(newNode);
-  }
-
   seggeonodename = "CYLINDERCELLGEOM_SVTX";  // + detector;
   seggeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   if (!seggeo)
@@ -200,7 +169,6 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     auto newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
     runNode->addNode(newNode);
   }
-
   
   UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
@@ -690,12 +658,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   }
 
   ++event_num;  // if doing more than one event, event_num will be incremented.
-
-  if (Verbosity() > 500) 
-  {
-    std::cout << " TruthTrackContainer results at end of event in PHG4TpcElectronDrift::process_event " << std::endl;
-    truthtracks->identify();
-  }
 
   if (m_truthclusterizer) {
     if (Verbosity() > 800) { 
