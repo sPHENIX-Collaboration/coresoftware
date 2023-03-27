@@ -201,6 +201,7 @@ unsigned int TrackFitUtils::addSiliconClusters(std::vector<float>& fitpars,
       for( auto clusIter = range.first; clusIter != range.second; ++clusIter )
 	{
 	  TrkrDefs::cluskey cluskey = clusIter->first;
+          std::cout << "cluster key " << cluskey << std::endl;
 	  unsigned int layer = TrkrDefs::getLayer(cluskey);
 	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
 	  
@@ -231,11 +232,14 @@ unsigned int TrackFitUtils::addSiliconClusters(std::vector<float>& fitpars,
     {
       if(best_layer_dca[layer] < dca_cut)
 	{
-	  cluskey_vec.push_back(best_layer_cluskey[layer]);
-	  auto clus =  _cluster_map->findCluster(best_layer_cluskey[layer]);
-	  auto global = _tGeometry->getGlobalPosition(best_layer_cluskey[layer], clus);
-	  global_vec.push_back(global);
-	  nsilicon++;
+	  if(best_layer_cluskey[layer] != 0)
+          {
+            cluskey_vec.push_back(best_layer_cluskey[layer]);
+	    auto clus =  _cluster_map->findCluster(best_layer_cluskey[layer]);
+	    auto global = _tGeometry->getGlobalPosition(best_layer_cluskey[layer], clus);
+	    global_vec.push_back(global);
+	    nsilicon++;
+          }
 	}
     }
 
