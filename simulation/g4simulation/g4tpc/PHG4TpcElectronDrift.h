@@ -26,7 +26,6 @@ class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
 class TrkrTruthTrackContainer;
 class TrkrClusterContainer;
-class TrkrTruthTrack;
 class DistortedTrackContainer;
 class PHG4TpcCylinderGeomContainer;
 class PHG4TpcDigitizer;
