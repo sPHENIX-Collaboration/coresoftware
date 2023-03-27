@@ -236,7 +236,7 @@ int TpcDirectLaserReconstruction::load_nodes( PHCompositeNode* topNode )
   assert(m_track_map);
 
  // get node containing the digitized hits
-  m_hit_map = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  m_hit_map = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_TPC");
   assert(m_hit_map);
 
   return Fun4AllReturnCodes::EVENT_OK;

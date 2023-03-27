@@ -130,19 +130,19 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
   // new containers
-  hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_TPC");
   if (!hitsetcontainer)
   {
     PHNodeIterator dstiter(dstNode);
-    auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TPC"));
     if (!DetNode)
     {
-      DetNode = new PHCompositeNode("TRKR");
+      DetNode = new PHCompositeNode("TPC");
       dstNode->addNode(DetNode);
     }
 
     hitsetcontainer = new TrkrHitSetContainerv2("TrkrHitSetTpcv1");
-    auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+    auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET_TPC", "PHObject");
     DetNode->addNode(newNode);
   }
 

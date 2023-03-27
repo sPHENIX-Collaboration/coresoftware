@@ -142,10 +142,10 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
   // new containers
   //=============
   // Get the TrkrHitSetContainer node
-  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_MVTX");
   if (!trkrhitsetcontainer)
   {
-    cout << "Could not locate TRKR_HITSET node, quit! " << endl;
+    cout << "Could not locate TRKR_HITSET_MVTX node, quit! " << endl;
     exit(1);
   }
 

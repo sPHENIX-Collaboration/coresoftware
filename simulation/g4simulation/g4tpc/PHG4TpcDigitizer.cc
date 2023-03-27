@@ -229,10 +229,10 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
   }
 
   // Get the TrkrHitSetContainer node
-  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_TPC");
   if (!trkrhitsetcontainer)
   {
-    std::cout << "Could not locate TRKR_HITSET node, quit! " << std::endl;
+    std::cout << "Could not locate TRKR_HITSET_TPC node, quit! " << std::endl;
     exit(1);
   }
 
@@ -272,6 +272,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 	      phi_sorted_hits.push_back(std::vector<TrkrHitSet::ConstIterator>());
 	    }
       
+	  // TODO: edit with new hit container
 	  // Loop over all hitsets containing signals for this layer and add them to phi_sorted_hits for their phibin
 	  TrkrHitSetContainer::ConstRange hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId, layer);
 	  for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;

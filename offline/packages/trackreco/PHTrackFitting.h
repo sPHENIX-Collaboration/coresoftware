@@ -53,7 +53,6 @@ class PHTrackFitting : public SubsysReco
 
   //SvtxClusterMap *_cluster_map;
   TrkrClusterContainer *_cluster_map;
-  TrkrHitSetContainer  *_hitsets = nullptr;
   SvtxVertexMap *_vertex_map;
   SvtxTrackMap *_track_map;
 

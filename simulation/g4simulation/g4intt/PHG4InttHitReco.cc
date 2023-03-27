@@ -117,19 +117,19 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
 
-  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_INTT");
   if (!hitsetcontainer)
   {
     PHNodeIterator dstiter(dstNode);
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "INTT"));
     if (!DetNode)
     {
-      DetNode = new PHCompositeNode("TRKR");
+      DetNode = new PHCompositeNode("INTT");
       dstNode->addNode(DetNode);
     }
 
     hitsetcontainer = new TrkrHitSetContainerv1;
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET_INTT", "PHObject");
     DetNode->addNode(newNode);
   }
 
@@ -224,10 +224,10 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
   }
 
   // Get the TrkrHitSetContainer node
-  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_INTT");
   if (!hitsetcontainer)
   {
-    std::cout << "Could not locate TRKR_HITSET node, quit! " << std::endl;
+    std::cout << "Could not locate TRKR_HITSET_INTT node, quit! " << std::endl;
     exit(1);
   }
 

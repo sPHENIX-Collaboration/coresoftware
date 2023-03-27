@@ -113,19 +113,19 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
   SaveToNodeTree(runDetNode, paramNodeName);
 
   // create hitset container if needed
-  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_MVTX");
   if (!hitsetcontainer)
   {
     PHNodeIterator dstiter(dstNode);
-    auto trkrnode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    auto trkrnode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "MVTX"));
     if (!trkrnode)
     {
-      trkrnode = new PHCompositeNode("TRKR");
+      trkrnode = new PHCompositeNode("MVTX");
       dstNode->addNode(trkrnode);
     }
 
     hitsetcontainer = new TrkrHitSetContainerv1;
-    auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+    auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET_MVTX", "PHObject");
     trkrnode->addNode(newNode);
   }
 
@@ -212,7 +212,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
   assert(geoNode);
 
   // Get the TrkrHitSetContainer node
-  auto trkrHitSetContainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto trkrHitSetContainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_MVTX");
   assert(trkrHitSetContainer);
 
   // Get the TrkrHitTruthAssoc node

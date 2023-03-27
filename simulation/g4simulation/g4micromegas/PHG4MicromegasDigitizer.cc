@@ -91,7 +91,7 @@ int PHG4MicromegasDigitizer::process_event(PHCompositeNode *topNode)
 {
   // Get Nodes
   // Get the TrkrHitSetContainer node
-  auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_MICROMEGAS");
   assert( trkrhitsetcontainer );
 
   // Get the TrkrHitTruthAssoc node

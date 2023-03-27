@@ -272,10 +272,10 @@ int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_MICROMEGAS");
   if (!m_hitsets)
   {
-    std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl;
+    std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer TRKR_HITSET_MICROMEGAS." << std::endl;
   }
 
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");

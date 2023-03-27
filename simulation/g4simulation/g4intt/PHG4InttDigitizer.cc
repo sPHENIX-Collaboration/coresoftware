@@ -189,10 +189,10 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
   }
 
   // Get the TrkrHitSetContainer node
-  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_INTT");
   if (!trkrhitsetcontainer)
   {
-    std::cout << "Could not locate TRKR_HITSET node, quit! " << std::endl;
+    std::cout << "Could not locate TRKR_HITSET_INTT node, quit! " << std::endl;
     exit(1);
   }
 
@@ -283,7 +283,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       }
     }  // end loop over hits in this hitset
 
-    // remove hits on dead channel in TRKR_HITSET and TRKR_HITTRUTHASSOC
+    // remove hits on dead channel in TRKR_HITSET_INTT and TRKR_HITTRUTHASSOC
     for (const auto &key : dead_hits)
     {
       if (Verbosity() > 2)
