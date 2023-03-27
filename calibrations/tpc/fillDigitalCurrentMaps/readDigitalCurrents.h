@@ -67,6 +67,7 @@ class readDigitalCurrents : public SubsysReco
 
   void SetBeamXing(int newBeamXing);
   void SetEvtStart(int newEvtStart);
+  void FillCSV(int fillCSVFile);
   void SetCollSyst(int coll_syst=0);
   void SetIBF(float ampIBFfrac=0.004);
   void SetCCGC(float f_ccgc=0);
@@ -86,6 +87,8 @@ class readDigitalCurrents : public SubsysReco
  private:
    int _beamxing = 0;
    int _evtstart = 0;
+
+  int _fillCSVFile = 0;
 
     int _f_ccgc = 0;
 

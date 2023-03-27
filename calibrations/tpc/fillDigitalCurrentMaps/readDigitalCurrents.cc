@@ -210,23 +210,10 @@ int readDigitalCurrents::Init(PHCompositeNode *topNode)
 
   _h_R  = new TH1F("_h_R" ,"_h_R;R, [m]"   ,r_bins_N ,r_bins);
   _h_hits  = new TH1F("_h_hits" ,"_h_hits;N, [hit]"   ,1e5,0-0.5,1e5-0.5);
-  //_h_SC_ibf  = new TH3F("_h_SC_ibf" ,"_h_SC_ibf;#phi, [rad];R, [m];Z, [m]"   ,nphi,0,6.28319,nr,rmin,rmax,2*nz,-z_rdo,z_rdo);
-  //_h_DC_SC = new TH3F("_h_DC_SC" ,"_h_DC_SC;#phi, [rad];R, [m];Z, [m]"   ,nphi,0,6.28319,nr,rmin,rmax,2*nz,-z_rdo,z_rdo);
   _h_hit_XY = new TH2F("_h_hit_XY" ,"_h_hit_XY;X, [m];Y, [m]"   ,4*nr,-1*rmax,rmax,4*nr,-1*rmax,rmax);
-  //_h_hit_XY = new TH2F("_h_hit_XY" ,"_h_hit_XY;X, [m];Y, [m]"   ,2000,-1000,1000,2000,-1000,1000);
-  //_h_DC_E = new TH2F("_h_DC_E" ,"_h_DC_E;ADC;E"   ,200,-100,2e3-100,500,-100,5e3-100);
   
-  //double phi_bins[nphi+1];
-  //for (int p=0;p<=nphi;p++){
-  //  phi_bins[p]=6.28319/nphi*p;
-  //} 
-  //double z_bins[2*nz+1];
-  //for (int z=0;z<=2*nz;z++){
-  //  z_bins[z]=-z_rdo+z_rdo/nz*z;
-  //} 
   _h_SC_ibf  = new TH3F("_h_SC_ibf" ,"_h_SC_ibf;#phi, [rad];R, [mm];Z, [mm]"   ,nphi,phi_bins,r_bins_N ,r_bins,2*nz,z_bins);
   _h_DC_SC = new TH3F("_h_DC_SC" ,"_h_DC_SC;#phi, [rad];R, [mm];Z, [mm]"   ,nphi,phi_bins,r_bins_N ,r_bins,2*nz,z_bins);
-  //_h_DC_SC_XY = new TH3F("_h_DC_SC_XY" ,"_h_DC_SC_XY;X, [m];Y, [m];Z, [m]"   ,4*nr,-1*rmax,rmax,4*nr,-1*rmax,rmax,2*nz,-z_rdo,z_rdo);
   _h_DC_SC_XY = new TH2F("_h_DC_SC_XY" ,"_h_DC_SC_XY;X, [mm];Y, [mm];ADC;"   ,4*nr,-1*rmax,rmax,4*nr,-1*rmax,rmax);
   _h_DC_E = new TH2F("_h_DC_E" ,"_h_DC_E;ADC;E"   ,200,-100,2e3-100,500,-100,5e3-100);
   hm->registerHisto(_h_R );
@@ -236,16 +223,18 @@ int readDigitalCurrents::Init(PHCompositeNode *topNode)
   hm->registerHisto(_h_hit_XY );
   hm->registerHisto(_h_DC_E );
   hm->registerHisto(_h_SC_ibf );
-  //outfile = new TFile(_filename.c_str(), "RECREATE");
   _event_timestamp = 0;
 
-  myCSVFile.open ("./Files/example_1ms_120evts_AA.csv");
-          myCSVFile << "Event,"
-                    << "T,"
-                    << "Pad,"
-                    << "Radius,"
-                    << "ADC"
-                    <<"\n";
+  if(_fillCSVFile){
+    myCSVFile.open ("./Files/example_1ms_120evts_AA.csv");
+            myCSVFile << "Event,"
+                      << "T,"
+                      << "Pad,"
+                      << "Radius,"
+                      << "ADC"
+                      <<"\n";
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -427,11 +416,13 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
         if((RBin>33 && RBin<50) && z>0){
           int nRBins = layergeom_ccgc->get_phibins();
           if(phibin<nRBins/12 ) {
-            myCSVFile << _evtstart<<","
-                      << layergeom_ccgc->get_zcenter(zbin) << ","
-                      << phibin<<","
-                      << RBin-34<< ","
-                      << adc <<"\n";
+            if (_fillCSVFile){
+              myCSVFile << _evtstart<<","
+                        << layergeom_ccgc->get_zcenter(zbin) << ","
+                        << phibin<<","
+                        << RBin-34<< ","
+                        << adc <<"\n";
+            }
             _h_hit_XY->Fill( x, y);
           }
         
@@ -517,7 +508,7 @@ int readDigitalCurrents::End(PHCompositeNode *topNode)
   _h_DC_SC_XY ->Sumw2( false );
   _h_SC_ibf   ->Sumw2( false );
   hm->dumpHistos(_filename, "RECREATE");
-  myCSVFile.close();
+  if(_fillCSVFile)myCSVFile.close();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -539,6 +530,11 @@ void readDigitalCurrents::SetEvtStart(int newEvtStart){
   cout<<"Start event is set to: "<<newEvtStart<<endl;
 
 }
+void readDigitalCurrents::FillCSV(int fillCSVFile){
+  _fillCSVFile = fillCSVFile;
+  cout<<"Fill CSV file is set to: "<<fillCSVFile<<endl;
+}
+
 void readDigitalCurrents::SetBeamXing(int newBeamXing){
   _beamxing = newBeamXing;
   cout<<"Initial BeamXing is set to: "<<newBeamXing<<endl;
