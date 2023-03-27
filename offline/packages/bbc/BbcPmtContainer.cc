@@ -5,7 +5,7 @@
 
 using namespace std;
 
-ClassImp(BbcPmtContainer)
+//ClassImp(BbcPmtContainer)
 
 void BbcPmtContainer::identify(ostream& os) const
 {
@@ -66,3 +66,4 @@ void BbcPmtContainer::virtual_warning(const char *funcsname) const
   cout << "BbcPmtContainer::" << funcsname << " is virtual, doing nothing" << endl;
   return ;
 }
+

@@ -346,11 +346,14 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
         }
       }
 
+      //int ipmt = f_bbcn[0] + f_bbcn[1]; // number of hit pmt
       _bbcpmts->AddBbcPmt(ich, f_pmtq[ich], f_pmtt0[ich], f_pmtt1[ich]);
 
       // threshold should be > 0.
       ++f_bbcn[arm];
     }
+
+
   }
 
   // Get best t
@@ -408,20 +411,21 @@ void BbcSimReco::CreateNodes(PHCompositeNode *topNode)
   }
 
   //-* contains final physics products (nmips, t0, etc)
-  BbcOut *bbcout = findNode::getClass<BbcOut>(bbcNode, "BbcOut");
-  if (!bbcout)
+  _bbcout = findNode::getClass<BbcOut>(bbcNode, "BbcOut");
+  if (!_bbcout)
   {
-    bbcout = new BbcOutV1();
-    PHIODataNode<PHObject> *BbcOutNode = new PHIODataNode<PHObject>(bbcout, "BbcOut", "PHObject");
+    std::cout << "Creating BBCOUT" << std::endl;
+    _bbcout = new BbcOutV1();
+    PHIODataNode<PHObject> *BbcOutNode = new PHIODataNode<PHObject>(_bbcout, "BbcOut", "PHObject");
     bbcNode->addNode(BbcOutNode);
   }
 
   //-* contains info for each pmt (nmips, time, etc)
-  BbcPmtContainer *bbcpmts = findNode::getClass<BbcPmtContainer>(bbcNode, "BbcPmtContainer");
-  if (!bbcpmts)
+  _bbcpmts = findNode::getClass<BbcPmtContainer>(bbcNode, "BbcPmtContainer");
+  if (!_bbcpmts)
   {
-    bbcpmts = new BbcPmtContainerV1();
-    PHIODataNode<PHObject> *BbcPmtNode = new PHIODataNode<PHObject>(bbcpmts, "BbcPmtContainer", "PHObject");
+    _bbcpmts = new BbcPmtContainerV1();
+    PHIODataNode<PHObject> *BbcPmtNode = new PHIODataNode<PHObject>(_bbcpmts, "BbcPmtContainer", "PHObject");
     bbcNode->addNode(BbcPmtNode);
   }
 }
