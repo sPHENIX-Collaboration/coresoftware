@@ -19,8 +19,8 @@
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfov1.h>
 
-#include <ffaobjects/EventHeader.h>
 #include <dbtools/ReadCalib.h>
+#include <ffaobjects/EventHeader.h>
 
 //____________________________________________________________________________..
 CaloTowerCalib::CaloTowerCalib(const std::string &name)
@@ -45,9 +45,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator nodeIter(topNode);
 
-
-
-  EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  EventHeader *evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
 
   if (evtHeader)
   {
@@ -61,7 +59,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   if (m_dettype == CaloTowerCalib::CEMC)
   {
     recoConsts *rc = recoConsts::instance();
-    //place holder
+    // place holder
     rc->set_StringFlag("CDB_GLOBALTAG", "CEMCCalibTest");
     ReadCalib *rb = new ReadCalib();
     std::string calibdir = rb->getCalibrationFile("TestBeginValidity", m_runNumber);
@@ -96,7 +94,6 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
       std::cout << calibdir << std::endl;
       exit(1);
     }
-
   }
   else if (m_dettype == CaloTowerCalib::HCALOUT)
   {
@@ -120,7 +117,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   else if (m_dettype == CaloTowerCalib::EPD)
   {
     recoConsts *rc = recoConsts::instance();
-    //place holder
+    // place holder
     rc->set_StringFlag("CDB_GLOBALTAG", "EPDCalibTest");
     ReadCalib *rb = new ReadCalib();
     std::string calibdir = rb->getCalibrationFile("TestBeginValidity", m_runNumber);
@@ -136,7 +133,6 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
       std::cout << calibdir << std::endl;
       exit(1);
     }
-    
   }
 
   PHNodeIterator iter(topNode);
@@ -144,7 +140,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   // Looking for the DST node
   PHCompositeNode *dstNode;
   dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode",
-            "DST"));
+                                                           "DST"));
   if (!dstNode)
   {
     std::cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
@@ -185,31 +181,31 @@ void CaloTowerCalib::CreateNodeTree(PHCompositeNode *topNode)
   std::cout << "creating node" << std::endl;
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst(
-                               "PHCompositeNode", "DST"));
+      "PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
               << "DST Node missing, doing nothing." << std::endl;
     throw std::runtime_error(
-      "Failed to find DST node in RawTowerCalibration::CreateNodes");
+        "Failed to find DST node in RawTowerCalibration::CreateNodes");
   }
 
   // towers
   std::string RawTowerNodeName = "TOWERS_" + m_detector;
   _raw_towers = findNode::getClass<TowerInfoContainerv1>(dstNode,
-                RawTowerNodeName);
+                                                         RawTowerNodeName);
   if (!_raw_towers)
   {
     std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
               << " " << RawTowerNodeName << " Node missing, doing bail out!"
               << std::endl;
     throw std::runtime_error(
-      "Failed to find " + RawTowerNodeName + " node in RawTowerCalibration::CreateNodes");
+        "Failed to find " + RawTowerNodeName + " node in RawTowerCalibration::CreateNodes");
   }
 
   std::string CalibTowerNodeName = "TOWERS_Calib_" + m_detector;
   _calib_towers = findNode::getClass<TowerInfoContainerv1>(dstNode,
-                  CalibTowerNodeName);
+                                                           CalibTowerNodeName);
   if (!_calib_towers)
   {
     _calib_towers = new TowerInfoContainerv1(m_DETECTOR);

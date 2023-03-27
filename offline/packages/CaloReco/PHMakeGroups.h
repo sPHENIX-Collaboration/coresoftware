@@ -48,9 +48,9 @@ int PHMakeGroups(std::vector<Hit>& hits,
   // Find the connections between the vertices of the graph (vertices are the rawhits,
   // connections are made when they are adjacent to one another)
   std::vector<int> component(num_vertices(G));
-  //connected_components(G, &component[0]);
+  // connected_components(G, &component[0]);
   connected_components(G, &component[0]);
-  //std::cout << "Found " << num << " groups of hits" << std::endl;
+  // std::cout << "Found " << num << " groups of hits" << std::endl;
 
   // Loop over the components(vertices) compiling a list of the unique
   // connections (ie clusters).

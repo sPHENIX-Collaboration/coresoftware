@@ -14,7 +14,7 @@ BbcPmtContainerV1::BbcPmtContainerV1()
 {
   // BbcPmtHit is class for single hit (members: pmt,adc,tdc0,tdc1), do not mix
   // with TClonesArray *BbcPmtHits
-  BbcPmtHits = new TClonesArray("BbcPmtHit", NPMTBBCV1);
+  BbcPmtHits = new TClonesArray("BbcPmtHitV1", NPMTBBCV1);
   npmt = 0;
 }
 

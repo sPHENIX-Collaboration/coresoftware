@@ -1,8 +1,5 @@
-// Discribtion:Thie code is used to add Fermimotion p_F to spectator neutrons
-//Modified from the flowafterburner code, thx!
-//
-//AuthorList:
-// initial code 2020
+// Discribtion:This code is used to add Fermimotion p_F to spectator neutrons
+
 
 //include the header file here
 #include "FermiMotion.h"
@@ -48,7 +45,7 @@ double ploss(double b)
 //this method is use to generate and random p_F
 //along a random direction and add it to the momentum
 //assume Au for now
-CLHEP::HepLorentzVector pwithpF(CLHEP::HepLorentzVector p, gsl_rng *RandomGenerator, int id)
+CLHEP::HepLorentzVector pwithpF(CLHEP::HepLorentzVector p, gsl_rng *RandomGenerator, int id, double pTspec, double bphi)
 {
   //id should be either 2112 or 2212
   if (!((id == 2112) || (id == 2212)))
@@ -67,9 +64,18 @@ CLHEP::HepLorentzVector pwithpF(CLHEP::HepLorentzVector p, gsl_rng *RandomGenera
   float pFx = pF * sqrt(1 - cotheta * cotheta) * cos(phi);
   float pFy = pF * sqrt(1 - cotheta * cotheta) * sin(phi);
   float pFz = pF * cotheta;
+  float pSx = pTspec * cos(bphi);
+  float pSy = pTspec * sin(bphi);  
+  
+  if (p.pz() < 0) {
+    pSx *= -1;
+    pSy *= -1;
+
+  }
+
   //now add the pF to p
-  float px = p.px() + pFx;
-  float py = p.py() + pFy;
+  float px = p.px() + pFx + pSx;
+  float py = p.py() + pFy + pSy;
   float pz = p.pz() + pFz;
   //calculate the total energy
   float const nrm = 0.938;
@@ -79,7 +85,7 @@ CLHEP::HepLorentzVector pwithpF(CLHEP::HepLorentzVector p, gsl_rng *RandomGenera
   return pwithpF;
 }
 
-int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator)
+int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator, double pTspec)
 {
   //find ploss
   //std::cout<<"getting b"<<std::endl;
@@ -90,6 +96,7 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator)
     exit(1);
   }
   double b = hi->impact_parameter();
+  double bphi = hi->event_plane_angle();
   double pnl = ploss(b);
   //now loop over all particles and find spectator neutrons
 
@@ -114,15 +121,15 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator)
 
         delete ((*p)->production_vertex())->remove_particle(*p);
         //std::cout<<"removing: "<<n->barcode()<<std::endl;
-	p = prev;
-	continue;
+        p = prev;
+        continue;
       }
     }
 
     //add pF to the remaining
 
     CLHEP::HepLorentzVector p0(n->momentum().px(), n->momentum().py(), n->momentum().pz(), n->momentum().e());
-    CLHEP::HepLorentzVector newp = pwithpF(p0, RandomGenerator, id);
+    CLHEP::HepLorentzVector newp = pwithpF(p0, RandomGenerator, id, pTspec, bphi);
     (*p)->set_momentum(newp);
   }
 

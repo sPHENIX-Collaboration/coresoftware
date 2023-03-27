@@ -6,7 +6,7 @@
 #include <iostream>          // for cout, ostream
 
 class G4RootScintillatorTower;
-class RawTower;
+class TowerInfo;
 class TClonesArray;
 
 class G4RootScintillatorTowerContainer : public PHObject
@@ -18,7 +18,7 @@ class G4RootScintillatorTowerContainer : public PHObject
   void Reset() override;
   void identify(std::ostream& os = std::cout) const override;
 
-  G4RootScintillatorTower* AddTower(const RawTower& tower);
+  G4RootScintillatorTower* AddTower(double towerenergy,int ieta, int iphi);
 
   void set_idet(const int i) { idet = i; }
   int get_idet() const { return idet; }
