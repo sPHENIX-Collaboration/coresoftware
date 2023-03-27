@@ -12,8 +12,8 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 
-#include <g4tpc/PHG4TpcPadPlane.h>
-#include <g4tpc/PHG4TpcPadPlaneReadout.h>
+//#include <g4tpc/PHG4TpcPadPlane.h>
+//#include <g4tpc/PHG4TpcPadPlaneReadout.h>
 
 #include <TAxis.h>  // for TAxis
 #include <TFile.h>
@@ -140,8 +140,8 @@ int fillSpaceChargeMaps::Init(PHCompositeNode * /*topNode*/)
     _rawHits->Branch("event_timestamp", &_event_timestamp);
     _rawHits->Branch("event_bunchXing", &_event_bunchXing);
   }
-  padplane = new PHG4TpcPadPlaneReadout;
-  seggeo = new PHG4TpcCylinderGeomContainer();
+  //padplane = new PHG4TpcPadPlaneReadout;
+  //seggeo = new PHG4TpcCylinderGeomContainer();
   return 0;
 }
 
@@ -200,7 +200,7 @@ int fillSpaceChargeMaps::InitRun(PHCompositeNode * /*topNode*/)
   _mbRate = _freqKhz * kHz;
   _xingRate = 9.383 * MHz;
   _mean = mbRate / xingRate;
-  padplane->CreateReadoutGeometry( PHCompositeNode *, seggeo);
+  //padplane->CreateReadoutGeometry( PHCompositeNode *, seggeo);
   return 0;
 }
 
