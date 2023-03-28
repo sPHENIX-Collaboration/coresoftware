@@ -28,7 +28,6 @@ using namespace std;
 
 SvtxHitEval::SvtxHitEval(PHCompositeNode* topNode)
   : _trutheval(topNode)
-  , _hitmap(nullptr)
     //  , _g4cells_svtx(nullptr)
     // , _g4cells_tracker(nullptr)
     //, _g4cells_maps(nullptr)
@@ -197,42 +196,54 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key)
 
   // get all of the g4hits for this hit_key
   // have to start with all hitsets, unfortunately
-  TrkrHitSetContainer::ConstRange all_hitsets = _hitmap->getHitSets(); 
-  for(TrkrHitSetContainer::ConstIterator iter = all_hitsets.first; iter != all_hitsets.second; ++iter)
+  for (const auto& [trkrID, _hitmap] : _hitmaps)
+  {
+    TrkrHitSetContainer::ConstRange all_hitsets = _hitmap->getHitSets();
+    for (TrkrHitSetContainer::ConstIterator iter = all_hitsets.first; iter != all_hitsets.second; ++iter)
     {
       TrkrDefs::hitsetkey hitset_key = iter->first;
       unsigned int trkrid = TrkrDefs::getTrkrId(hitset_key);
-      TrkrHitSet *hitset = iter->second;
+      TrkrHitSet* hitset = iter->second;
 
       // does this hitset contain our hitkey?
-      TrkrHit *hit = nullptr;
+      TrkrHit* hit = nullptr;
       hit = hitset->getHit(hit_key);
-      if(hit)
-	{
-	  // get g4hits for this hit
+      if (hit)
+      {
+        // get g4hits for this hit
 
-	  std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;    
-	  _hit_truth_map->getG4Hits(hitset_key, hit_key, temp_map); 	  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
-	  for(std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter =  temp_map.begin(); 
-	      htiter != temp_map.end(); ++htiter) 
-	    {
-	      // extract the g4 hit key here and add the g4hit to the set
-	      PHG4HitDefs::keytype g4hitkey = htiter->second.second;
-	      //cout << "           hitkey " << hitkey <<  " g4hitkey " << g4hitkey << endl;	  
-	      PHG4Hit * g4hit = nullptr;
-       switch( trkrid )
-       {
-        case TrkrDefs::tpcId: g4hit = _g4hits_tpc->findHit(g4hitkey); break;
-        case TrkrDefs::inttId: g4hit = _g4hits_intt->findHit(g4hitkey); break;
-        case TrkrDefs::mvtxId: g4hit = _g4hits_mvtx->findHit(g4hitkey); break;
-       case TrkrDefs::micromegasId: g4hit = _g4hits_mms->findHit(g4hitkey); break;
-        default: break;
-       }
-	      // fill output set
-	      if( g4hit ) truth_hits.insert(g4hit);
-	    }
-	}
+        std::multimap<TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;
+        _hit_truth_map->getG4Hits(hitset_key, hit_key, temp_map);  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
+        for (std::multimap<TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter = temp_map.begin();
+             htiter != temp_map.end(); ++htiter)
+        {
+          // extract the g4 hit key here and add the g4hit to the set
+          PHG4HitDefs::keytype g4hitkey = htiter->second.second;
+          // cout << "           hitkey " << hitkey <<  " g4hitkey " << g4hitkey << endl;
+          PHG4Hit* g4hit = nullptr;
+          switch (trkrid)
+          {
+          case TrkrDefs::tpcId:
+            g4hit = _g4hits_tpc->findHit(g4hitkey);
+            break;
+          case TrkrDefs::inttId:
+            g4hit = _g4hits_intt->findHit(g4hitkey);
+            break;
+          case TrkrDefs::mvtxId:
+            g4hit = _g4hits_mvtx->findHit(g4hitkey);
+            break;
+          case TrkrDefs::micromegasId:
+            g4hit = _g4hits_mms->findHit(g4hitkey);
+            break;
+          default:
+            break;
+          }
+          // fill output set
+          if (g4hit) truth_hits.insert(g4hit);
+        }
+      }
     }
+  }
 
   if (_do_cache) _cache_all_truth_hits.insert(make_pair(hit_key, truth_hits));
 
@@ -269,42 +280,59 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key, const T
     }
   }
 
+
   std::set<PHG4Hit*> truth_hits;
-  TrkrHitSetContainer::ConstRange all_hitsets = _hitmap->getHitSets(trkrid); 
 
-  for(TrkrHitSetContainer::ConstIterator iter = all_hitsets.first; iter != all_hitsets.second; ++iter)
+  if (_hitmaps.find(trkrid) != _hitmaps.end())
   {
-    TrkrDefs::hitsetkey hitset_key = iter->first;
-    TrkrHitSet *hitset = iter->second;
+    TrkrHitSetContainer* _hitmap = _hitmaps[trkrid];
+    assert(_hitmap);
 
-    // does this hitset contain our hitkey?
-    TrkrHit *hit = nullptr;
-    hit = hitset->getHit(hit_key);
-    if(hit)
+    TrkrHitSetContainer::ConstRange all_hitsets = _hitmap->getHitSets(trkrid);
+
+    for (TrkrHitSetContainer::ConstIterator iter = all_hitsets.first; iter != all_hitsets.second; ++iter)
+    {
+      TrkrDefs::hitsetkey hitset_key = iter->first;
+      TrkrHitSet* hitset = iter->second;
+
+      // does this hitset contain our hitkey?
+      TrkrHit* hit = nullptr;
+      hit = hitset->getHit(hit_key);
+      if (hit)
       {
         // get g4hits for this hit
 
-        std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;    
-        _hit_truth_map->getG4Hits(hitset_key, hit_key, temp_map); 	  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
-        for(std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter =  temp_map.begin(); 
-            htiter != temp_map.end(); ++htiter) 
+        std::multimap<TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;
+        _hit_truth_map->getG4Hits(hitset_key, hit_key, temp_map);  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
+        for (std::multimap<TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter = temp_map.begin();
+             htiter != temp_map.end(); ++htiter)
+        {
+          // extract the g4 hit key here and add the g4hit to the set
+          PHG4HitDefs::keytype g4hitkey = htiter->second.second;
+          // cout << "           hitkey " << hitkey <<  " g4hitkey " << g4hitkey << endl;
+          PHG4Hit* g4hit = nullptr;
+          switch (trkrid)
           {
-            // extract the g4 hit key here and add the g4hit to the set
-            PHG4HitDefs::keytype g4hitkey = htiter->second.second;
-            //cout << "           hitkey " << hitkey <<  " g4hitkey " << g4hitkey << endl;	  
-            PHG4Hit * g4hit = nullptr;
-     switch( trkrid )
-     {
-      case TrkrDefs::tpcId: g4hit = _g4hits_tpc->findHit(g4hitkey); break;
-      case TrkrDefs::inttId: g4hit = _g4hits_intt->findHit(g4hitkey); break;
-      case TrkrDefs::mvtxId: g4hit = _g4hits_mvtx->findHit(g4hitkey); break;
-     case TrkrDefs::micromegasId: g4hit = _g4hits_mms->findHit(g4hitkey); break;
-      default: break;
-     }
-            // fill output set
-            if( g4hit ) truth_hits.insert(g4hit);
+          case TrkrDefs::tpcId:
+            g4hit = _g4hits_tpc->findHit(g4hitkey);
+            break;
+          case TrkrDefs::inttId:
+            g4hit = _g4hits_intt->findHit(g4hitkey);
+            break;
+          case TrkrDefs::mvtxId:
+            g4hit = _g4hits_mvtx->findHit(g4hitkey);
+            break;
+          case TrkrDefs::micromegasId:
+            g4hit = _g4hits_mms->findHit(g4hitkey);
+            break;
+          default:
+            break;
           }
+          // fill output set
+          if (g4hit) truth_hits.insert(g4hit);
+        }
       }
+    }
   }
 
   if (_do_cache) _cache_all_truth_hits.insert(make_pair(hit_key, truth_hits));
@@ -666,33 +694,36 @@ std::set<TrkrDefs::hitkey> SvtxHitEval::all_hits_from(PHG4Particle* g4particle)
 
   std::set<TrkrDefs::hitkey> hits;
 
-  // loop over all the hits
-  TrkrHitSetContainer::ConstRange all_hitsets = _hitmap->getHitSets();
-  for (TrkrHitSetContainer::ConstIterator iter = all_hitsets.first;
-       iter != all_hitsets.second;
-       ++iter)
-  {    
-    TrkrHitSet::ConstRange range = iter->second->getHits();
-    for(TrkrHitSet::ConstIterator hitr = range.first; hitr != range.second; ++hitr)
+  for (const auto& [trkrID, _hitmap] : _hitmaps)
+  {
+    // loop over all the hits
+    TrkrHitSetContainer::ConstRange all_hitsets = _hitmap->getHitSets();
+    for (TrkrHitSetContainer::ConstIterator iter = all_hitsets.first;
+         iter != all_hitsets.second;
+         ++iter)
+    {
+      TrkrHitSet::ConstRange range = iter->second->getHits();
+      for (TrkrHitSet::ConstIterator hitr = range.first; hitr != range.second; ++hitr)
       {
-	TrkrDefs::hitkey hit_key = hitr->first;
-	
-	// loop over all truth hits connected to this hit
-	std::set<PHG4Hit*> g4hits = all_truth_hits(hit_key);
-	for (std::set<PHG4Hit*>::iterator jter = g4hits.begin();
-	     jter != g4hits.end();
-	     ++jter)
-	  {
-	    PHG4Hit* candidate = *jter;
-	    PHG4Particle *particle = _truthinfo->GetParticle(candidate->get_trkid());
-	    if (g4particle->get_track_id() == particle->get_track_id()) 
-	      {
-		hits.insert(hit_key);
-	      }
-	  }
-      }	
+        TrkrDefs::hitkey hit_key = hitr->first;
+
+        // loop over all truth hits connected to this hit
+        std::set<PHG4Hit*> g4hits = all_truth_hits(hit_key, trkrID);
+        for (std::set<PHG4Hit*>::iterator jter = g4hits.begin();
+             jter != g4hits.end();
+             ++jter)
+        {
+          PHG4Hit* candidate = *jter;
+          PHG4Particle* particle = _truthinfo->GetParticle(candidate->get_trkid());
+          if (g4particle->get_track_id() == particle->get_track_id())
+          {
+            hits.insert(hit_key);
+          }
+        }
+      }
+    }
   }
-  
+
   if (_do_cache) _cache_all_hits_from_particle.insert(make_pair(g4particle, hits));
   
   return hits;
@@ -733,33 +764,36 @@ std::set<TrkrDefs::hitkey> SvtxHitEval::all_hits_from(PHG4Hit* g4hit)
   unsigned int hit_layer = g4hit->get_layer();
 
   // loop over all the hits
-  TrkrHitSetContainer::ConstRange all_hitsets = _hitmap->getHitSets();
-  for (TrkrHitSetContainer::ConstIterator iter = all_hitsets.first;
-       iter != all_hitsets.second;
-       ++iter)
+  for (const auto& [trkrID, _hitmap] : _hitmaps)
   {
-    TrkrHitSet::ConstRange range = iter->second->getHits();
-    for(TrkrHitSet::ConstIterator hitr = range.first; hitr != range.second; ++hitr)
+    TrkrHitSetContainer::ConstRange all_hitsets = _hitmap->getHitSets();
+    for (TrkrHitSetContainer::ConstIterator iter = all_hitsets.first;
+         iter != all_hitsets.second;
+         ++iter)
+    {
+      TrkrHitSet::ConstRange range = iter->second->getHits();
+      for (TrkrHitSet::ConstIterator hitr = range.first; hitr != range.second; ++hitr)
       {
-	TrkrDefs::hitkey hit_key = hitr->first;
+        TrkrDefs::hitkey hit_key = hitr->first;
 
-	if (TrkrDefs::getLayer(hit_key) != hit_layer) continue;
+        if (TrkrDefs::getLayer(hit_key) != hit_layer) continue;
 
-	// loop over all truth hits connected to this hit
-	std::set<PHG4Hit*> g4hits = all_truth_hits(hit_key);
-	for (std::set<PHG4Hit*>::iterator jter = g4hits.begin();
-	     jter != g4hits.end();
-	     ++jter)
-	  {
-	    PHG4Hit* candidate = *jter;
-	    if (candidate->get_hit_id() == g4hit->get_hit_id())
-	      {
-		hits.insert(hit_key);
-	      }
-	  }
+        // loop over all truth hits connected to this hit
+        std::set<PHG4Hit*> g4hits = all_truth_hits(hit_key);
+        for (std::set<PHG4Hit*>::iterator jter = g4hits.begin();
+             jter != g4hits.end();
+             ++jter)
+        {
+          PHG4Hit* candidate = *jter;
+          if (candidate->get_hit_id() == g4hit->get_hit_id())
+          {
+            hits.insert(hit_key);
+          }
+        }
       }
+    }
   }
-  
+
   if (_do_cache) _cache_all_hits_from_g4hit.insert(make_pair(g4hit, hits));
   
   return hits;
@@ -919,7 +953,12 @@ std::set<TrkrDefs::hitkey> SvtxHitEval::all_hits_from(PHG4Hit* g4hit)
 void SvtxHitEval::get_node_pointers(PHCompositeNode* topNode)
 {
   // need things off of the DST...
-  _hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  for (const auto & [trkrID, trkrName] : TrkrDefs::TrkrNames)
+  {
+    TrkrHitSetContainer * _hitmap  = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_" + trkrName);
+    if (_hitmap)
+      _hitmaps[trkrID] = _hitmap;
+  }
  
   _clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
   if(!_clustermap)
@@ -941,8 +980,8 @@ void SvtxHitEval::get_node_pointers(PHCompositeNode* topNode)
 bool SvtxHitEval::has_node_pointers()
 {
   if (_strict)
-    assert(_hitmap);
-  else if (!_hitmap)
+    assert(_hitmaps.size());
+  else if (!_hitmaps.size())
   {
     return false;
   }

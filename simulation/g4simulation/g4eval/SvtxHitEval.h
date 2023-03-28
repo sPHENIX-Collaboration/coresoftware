@@ -80,7 +80,7 @@ class SvtxHitEval
   bool has_node_pointers();
 
   SvtxTruthEval _trutheval;
-  TrkrHitSetContainer* _hitmap;
+  std::map<TrkrDefs::TrkrId, TrkrHitSetContainer*> _hitmaps;
   TrkrClusterContainer* _clustermap;
   TrkrHitTruthAssoc* _hit_truth_map;
 
