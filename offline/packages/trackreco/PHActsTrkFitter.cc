@@ -627,7 +627,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       TrkrDefs::cluskey cluskey = global_moved[i].first;
       Acts::Vector3 global = global_moved[i].second;
    
-      if(TrkrDefs::getLayer(cluskey) == m_ignoreLayer)
+      if(std::find(m_ignoreLayer.begin(), m_ignoreLayer.end(), 
+		   TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end())
 	{
 	  if(Verbosity() > 3)
 	    {
