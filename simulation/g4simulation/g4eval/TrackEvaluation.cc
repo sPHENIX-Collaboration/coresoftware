@@ -386,7 +386,12 @@ int TrackEvaluation::load_nodes( PHCompositeNode* topNode )
   m_container = findNode::getClass<TrackEvaluationContainerv1>(topNode, "TrackEvaluationContainer");
 
   // hitset container
-  m_hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  for (const auto & [trkrID, trkrName] : TrkrDefs::TrkrNames)
+  {
+    TrkrHitSetContainer * hitsetcontainer  = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_" + trkrName);
+    if (hitsetcontainer)
+      m_hitsetcontainermap[trkrID] = hitsetcontainer;
+  }
 
   // g4hits
   m_g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
@@ -447,7 +452,7 @@ void TrackEvaluation::evaluate_event()
 void TrackEvaluation::evaluate_clusters()
 {
 
-  if(!(m_cluster_map&&m_hitsetcontainer&&m_container)) return;
+  if(!(m_cluster_map&&m_hitsetcontainermap.size()>0&&m_container)) return;
 
   // clear array
   m_container->clearClusters();
@@ -460,7 +465,15 @@ void TrackEvaluation::evaluate_clusters()
       // create cluster structure
       auto cluster_struct = create_cluster( key, cluster, track );
       add_cluster_size( cluster_struct, cluster);
-      add_cluster_energy( cluster_struct, key, m_cluster_hit_map, m_hitsetcontainer );
+
+
+      auto hitsetsmap_iter = m_hitsetcontainermap.find(TrkrDefs::getTrkrId(hitsetkey));
+      if (hitsetsmap_iter != m_hitsetcontainermap.end())
+      {
+        TrkrHitSetContainer* hitsetcontainer = hitsetsmap_iter->second;
+        assert(hitsetcontainer);
+        add_cluster_energy( cluster_struct, key, m_cluster_hit_map, hitsetcontainer );
+      }
 
       // truth information
       const auto g4hits = find_g4hits( key );
@@ -516,7 +529,15 @@ void TrackEvaluation::evaluate_tracks()
       // create new cluster struct
       auto cluster_struct = create_cluster( cluster_key, cluster, track );
       add_cluster_size( cluster_struct, cluster);
-      add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, m_hitsetcontainer );
+
+      auto hitsetsmap_iter = m_hitsetcontainermap.find(TrkrDefs::getTrkrId(cluster_key));
+      if (hitsetsmap_iter != m_hitsetcontainermap.end())
+      {
+        TrkrHitSetContainer* hitsetcontainer = hitsetsmap_iter->second;
+        assert(hitsetcontainer);
+        add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, hitsetcontainer );
+      }
+
       // truth information
       const auto g4hits = find_g4hits( cluster_key );
       const bool is_micromegas( TrkrDefs::getTrkrId(cluster_key) == TrkrDefs::micromegasId );
