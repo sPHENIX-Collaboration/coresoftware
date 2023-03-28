@@ -80,10 +80,6 @@ class PHActsTrkFitter : public SubsysReco
   void fitSiliconMMs(bool fitSiliconMMs)
        {m_fitSiliconMMs = fitSiliconMMs;}
 
-  /// require micromegas in SiliconMM fits
-  void setUseMicromegas( bool value )
-  { m_useMicromegas = value; }
-
   void setUpdateSvtxTrackStates(bool fillSvtxTrackStates)
        { m_fillSvtxTrackStates = fillSvtxTrackStates; }   
 
@@ -166,9 +162,6 @@ class PHActsTrkFitter : public SubsysReco
   /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
   bool m_fitSiliconMMs = false;
 
-  /// requires micromegas present when fitting silicon-MM surfaces
-  bool m_useMicromegas = true;
-  
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates = true;
 
