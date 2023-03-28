@@ -13,13 +13,10 @@
 
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
-#include <g4detectors/PHG4TpcCylinderGeom.h>
 
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
-#include <g4detectors/PHG4CylinderCellGeom.h>
+
 
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSet.h>
@@ -169,10 +166,7 @@ int readDigitalCurrents::Init(PHCompositeNode *topNode)
 
 
   
-  //double phi_bins[nphi+1];
-  //for (int p=0;p<=nphi;p++){
-  //  phi_bins[p]=2*pi/nphi*p;
-  //} 
+
   double z_bins[2*nz+1];
   for (int z=0;z<=2*nz;z++){
     z_bins[z]=-z_rdo+z_rdo/nz*z;
