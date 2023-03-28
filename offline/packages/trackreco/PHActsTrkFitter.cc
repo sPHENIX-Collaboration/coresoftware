@@ -321,22 +321,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
       if(sourceLinks.empty()) { continue; }
 
-      /// If using directed navigation, collect surface list to navigate
-      SurfacePtrVec surfaces;
-      if(m_fitSiliconMMs)
-      {
-        sourceLinks = getSurfaceVector(sourceLinks, surfaces);
-        
-        // skip if there is no surfaces
-        if( surfaces.empty() ) continue;
-        
-        // make sure micromegas are in the tracks, if required
-        if( m_useMicromegas &&
-          std::none_of( surfaces.begin(), surfaces.end(), [this]( const auto& surface )
-          { return m_tGeometry->maps().isMicromegasSurface( surface ); } ) )
-        { continue; }
-      }
-
       Acts::Vector3 momentum(
 	       tpcseed->get_px(m_clusterContainer, m_tGeometry), 
 	       tpcseed->get_py(m_clusterContainer, m_tGeometry),
@@ -397,7 +381,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       fitTimer.stop();
       fitTimer.restart();
       auto mtj = std::make_shared<Acts::VectorMultiTrajectory>();
-      auto result = fitTrack(wrappedSls, seed, kfOptions, surfaces,mtj);
+      auto result = fitTrack(wrappedSls, seed, kfOptions, mtj);
       fitTimer.stop();
       auto fitTime = fitTimer.get_accumulated_time();
    
@@ -466,9 +450,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 }
 
 //___________________________________________________________________________________
-SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
-					      ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-				   short int crossing )
+SourceLinkVec PHActsTrkFitter::getSourceLinks(
+    TrackSeed* track,
+    ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
+    short int crossing )
 {
 
   SourceLinkVec sourcelinks;
@@ -637,6 +622,14 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	  continue;
 	}
 
+      if(m_fitSiliconMMs)
+	{
+	  if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::tpcId)
+	    { 
+	      continue; 
+	    }
+	}
+
       auto cluster = m_clusterContainer->findCluster(cluskey);
       Surface surf = m_tGeometry->maps().getSurface(cluskey, cluster);
 
@@ -731,9 +724,10 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 		    << std::endl;
 	}
       
-      sourcelinks.push_back(sl);
-      measurements.push_back(meas);
- 
+      
+         sourcelinks.push_back(sl);
+	 measurements.push_back(meas);
+	
     }
   
   SLTrackTimer.stop();
@@ -821,108 +815,10 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
 ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
     const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
     const ActsTrackFittingAlgorithm::TrackParameters& seed,
-    const ActsTrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
-    const SurfacePtrVec& surfSequence,
+    const ActsTrackFittingAlgorithm::GeneralFitterOptions& kfOptions,
     std::shared_ptr<Acts::VectorMultiTrajectory>& mtj)
 {
-  if(m_fitSiliconMMs) 
-  { 
-    return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence, mtj); 
-  } else {
-    return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions, mtj); 
-  }
-}
-
-SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks,
-						SurfacePtrVec& surfaces) const
-{
-  SourceLinkVec siliconMMSls;
-
-//   if(Verbosity() > 1)
-//     std::cout << "Sorting " << sourceLinks.size() << " SLs" << std::endl;
-  
-  for(const auto& sl : sourceLinks)
-  {
-    if(Verbosity() > 1)
-    { std::cout << "SL available on : " << sl.geometryId() << std::endl; }
-      
-    const auto surf = m_tGeometry->geometry().tGeometry->findSurface(sl.geometryId());
-    // skip TPC surfaces
-    if( m_tGeometry->maps().isTpcSurface( surf ) ) continue;
-    
-    // also skip micromegas surfaces if not used
-    if( m_tGeometry->maps().isMicromegasSurface( surf ) && !m_useMicromegas ) continue;
-    
-    // update vectors
-    siliconMMSls.push_back(sl);
-    surfaces.push_back(surf);
-  }
-      
-  /// Surfaces need to be sorted in order, i.e. from smallest to
-  /// largest radius extending from target surface
-  /// Add a check to ensure this
-  if(!surfaces.empty())
-  { checkSurfaceVec(surfaces); }
-
-  if(Verbosity() > 1)
-    {
-      for(const auto& surf : surfaces)
-	{
-	  std::cout << "Surface vector : " << surf->geometryId() << std::endl;
-	}
-    }
-
-  return siliconMMSls;
-}
-
-void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces) const
-{
-  for(int i = 0; i < surfaces.size() - 1; i++)
-  {
-    const auto& surface = surfaces.at(i);
-    const auto thisVolume = surface->geometryId().volume();
-    const auto thisLayer  = surface->geometryId().layer();
-      
-    const auto nextSurface = surfaces.at(i+1);
-    const auto nextVolume = nextSurface->geometryId().volume();
-    const auto nextLayer = nextSurface->geometryId().layer();
-    
-    /// Implement a check to ensure surfaces are sorted
-    if(nextVolume == thisVolume) 
-    {
-      if(nextLayer < thisLayer)
-      {
-        std::cout 
-          << "PHActsTrkFitter::checkSurfaceVec - " 
-          << "Surface not in order... removing surface" 
-          << surface->geometryId() << std::endl;
-        
-        surfaces.erase(surfaces.begin() + i);
-	      
-        /// Subtract one so we don't skip a surface
-	      --i;
-	      continue;
-	    }
-      
-    } else {
-
-      if(nextVolume < thisVolume)
-      {
-        std::cout 
-          << "PHActsTrkFitter::checkSurfaceVec - " 
-          << "Volume not in order... removing surface" 
-          << surface->geometryId() << std::endl;
-        
-        surfaces.erase(surfaces.begin() + i);
-
-        /// Subtract one so we don't skip a surface
-	      --i;
-	      continue;
-      
-      }
-    }
-  } 
-
+  return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions, mtj);   
 }
 
 void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
