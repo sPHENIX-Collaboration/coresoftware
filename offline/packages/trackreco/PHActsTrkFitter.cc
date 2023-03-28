@@ -193,7 +193,6 @@ int PHActsTrkFitter::process_event(PHCompositeNode */*topNode*/)
     {
       std::cout << " SvtxTrackMap size is now " << m_trackMap->size() 
 	      << std::endl;
-
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -287,7 +286,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if(!tpcseed)
 	{ std::cout << "no tpc seed"<<std::endl; continue; }
 
-      if(Verbosity() > 0) 
+      if(Verbosity() > 1) 
 	{
 	  if(siseed) std::cout << " silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
 	  std::cout << " tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
@@ -302,6 +301,27 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if(siseed) sourceLinks = getSourceLinks(siseed, measurements, crossing);
       const auto tpcSourceLinks = getSourceLinks(tpcseed, measurements, crossing);
       sourceLinks.insert( sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end() );
+
+      if(m_fitSiliconMMs)
+	{
+	  bool sil = siseed != nullptr ? true : false;
+	  bool tpot = false;
+
+	  for(auto& sl : sourceLinks)
+	    {
+	      auto key = sl.cluskey();
+	      if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::micromegasId)
+		{
+		  tpot = true;
+		}
+	    }
+	  //if(sil && tpot)
+	  if(!sil or !tpot)
+	    {
+	      if(Verbosity() > 3) std::cout << "no silicon+tpot measurements, skipping" << std::endl;
+	      continue; 
+	    }
+	}
 
       // position comes from the silicon seed, unless there is no silicon seed
       Acts::Vector3 position(0,0,0);
@@ -407,12 +427,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
         if(m_fitSiliconMMs)
         {
-          
-          unsigned int trid = m_directedTrackMap->size();
+	  unsigned int trid = m_silmmTrackMap->size();
           newTrack.set_id(trid);
 
           if( getTrackFitResult(fitOutput, &newTrack) )
-          { m_directedTrackMap->insertWithKey(&newTrack, trid); }
+	    { m_silmmTrackMap->insertWithKey(&newTrack, trid); }
           
         } else {
           
@@ -480,7 +499,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(
       if(!cluster)
 	{
 	  if(Verbosity() > 0) std::cout << "Failed to get cluster with key " << key << " for track " << m_seedMap->find(track) << std::endl;
-    else std::cout<< "PHActsTrkFitter :: Key: "<< key << " for track " << m_seedMap->find(track) <<std::endl;
+	  else std::cout<< "PHActsTrkFitter :: Key: "<< key << " for track " << m_seedMap->find(track) <<std::endl;
 	  continue;
 	}
 
@@ -592,12 +611,6 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(
 	  if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
 	}
    
-      if(Verbosity() > 0)
-	{
-	  std::cout << " zinit " << global[2] << " xinit " << global[0] << " yinit " << global[1] << " side " << side << " crossing " << crossing 
-		    << " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
-	}
-
       // add the global positions to a vector to give to the cluster mover
       global_raw.push_back(std::make_pair(key, global));
       
@@ -612,7 +625,9 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(
       TrkrDefs::cluskey cluskey = global_moved[i].first;
       Acts::Vector3 global = global_moved[i].second;
    
-      if(m_ignoreLayer.find(TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end())
+      if(m_ignoreLayer.find(TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end()
+	 or
+	 (m_fitSiliconMMs && TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::tpcId))
 	{
 	  if(Verbosity() > 3)
 	    {
@@ -620,14 +635,6 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(
 			<< (unsigned int) TrkrDefs::getLayer(cluskey) << std::endl;
 	    }
 	  continue;
-	}
-
-      if(m_fitSiliconMMs)
-	{
-	  if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::tpcId)
-	    { 
-	      continue; 
-	    }
 	}
 
       auto cluster = m_clusterContainer->findCluster(cluskey);
@@ -665,7 +672,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(
 	  localPos(1) = loct(1);
 	}
       
-      if(Verbosity() > 0)
+      if(Verbosity() > 1)
 	{
 	  std::cout << " cluster global after mover: " << global << std::endl; 
 	  std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
@@ -999,20 +1006,6 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
     dstNode->addNode(svtxNode);
   }
 
-  if(m_fitSiliconMMs)
-    {
-      m_directedTrackMap = findNode::getClass<SvtxTrackMap>(topNode,
-							    "SvtxSiliconMMTrackMap");
-      if(!m_directedTrackMap)
-	{
-	  /// Copy this trackmap, then use it for the rest of processing
-	  m_directedTrackMap = new SvtxTrackMap_v2;
-
-	  PHIODataNode<PHObject> *trackNode = 
-	    new PHIODataNode<PHObject>(m_directedTrackMap,"SvtxSiliconMMTrackMap","PHObject");
-	  svtxNode->addNode(trackNode);
-	} 
-    }
 
   m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
   if(!m_trajectories)
@@ -1039,6 +1032,24 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
       m_alignmentStateMap = new SvtxAlignmentStateMap_v1;
       auto node = new PHDataNode<SvtxAlignmentStateMap>(m_alignmentStateMap,"SvtxAlignmentStateMap","PHObject");
       svtxNode->addNode(node);
+    }
+
+  if(m_fitSiliconMMs)
+    {
+      m_silmmTrackMap = findNode::getClass<SvtxTrackMap>(topNode,
+							 "SvtxSiliconMMTrackMap");
+      
+      if(!m_silmmTrackMap)
+	{
+	  /// Copy this trackmap, then use it for the rest of processing
+	  m_silmmTrackMap = new SvtxTrackMap_v2;
+        
+	  PHIODataNode<PHObject> *trackNode = 
+	    new PHIODataNode<PHObject>(m_silmmTrackMap,
+				       "SvtxSiliconMMTrackMap",
+				       "PHObject");
+	  svtxNode->addNode(trackNode);
+	} 
     }
 
   if(m_actsEvaluator)

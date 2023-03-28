@@ -149,7 +149,7 @@ class PHActsTrkFitter : public SubsysReco
   /// TrackMap containing SvtxTracks
   alignmentTransformationContainer *m_alignmentTransformationMap = nullptr;  // added for testing purposes
   SvtxTrackMap *m_trackMap = nullptr;
-  SvtxTrackMap *m_directedTrackMap = nullptr;
+  SvtxTrackMap *m_silmmTrackMap = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
   TrackSeedContainer *m_seedMap = nullptr;
   TrackSeedContainer *m_tpcSeeds = nullptr;
