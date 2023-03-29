@@ -3,9 +3,11 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include<TProfile.h>
+#include <TProfile.h>
 
 #include <string>
+
+class CaloWaveformFitting;
 
 class CaloWaveformProcessing : public SubsysReco
 {
@@ -19,17 +21,17 @@ class CaloWaveformProcessing : public SubsysReco
   };
 
   CaloWaveformProcessing()
-    :m_processingtype(CaloWaveformProcessing::TEMPLATE)
+    : m_processingtype(CaloWaveformProcessing::TEMPLATE)
     , m_template_input_file("CEMC_TEMPLATE")
-    , m_model_name("CEMC_ONNX")
-{};
-  ~CaloWaveformProcessing() override  { }
+    , m_model_name("CEMC_ONNX"){};
+  ~CaloWaveformProcessing() override {}
 
   void set_processing_type(CaloWaveformProcessing::process modelno)
   {
     m_processingtype = modelno;
     return;
   }
+
   CaloWaveformProcessing::process get_processing_type()
   {
     return m_processingtype;
@@ -46,31 +48,19 @@ class CaloWaveformProcessing : public SubsysReco
     return;
   }
 
-  void set_nthreads (int nthreads)
-  {
-    _nthreads = nthreads;
-    return;
-  }
+  void set_nthreads(int nthreads);
 
-  int get_nthreads ()
-  {
-    return _nthreads;
-  }
+  int get_nthreads();
 
-  std::vector<std::vector<float>>  process_waveform(std::vector<std::vector<float>> waveformvector);
-  std::vector<std::vector<float>>  calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
-  std::vector<std::vector<float>>  calo_processing_templatefit(std::vector<std::vector<float>> chnlvector);
-  std::vector<std::vector<float>>  calo_processing_fast(std::vector<std::vector<float>> chnlvector);
+  std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
+  std::vector<std::vector<float>> calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
 
-
-  void initialize_processing(); 
+  void initialize_processing();
 
  private:
+  CaloWaveformFitting *m_Fitter = nullptr;
 
-  static TProfile* h_template; 
-  static double template_function(double *x, double *par);
-
-  CaloWaveformProcessing::process m_processingtype = CaloWaveformProcessing::NONE; 
+  CaloWaveformProcessing::process m_processingtype = CaloWaveformProcessing::NONE;
   int _nthreads = 1;
 
   std::string m_template_input_file;
@@ -78,6 +68,5 @@ class CaloWaveformProcessing : public SubsysReco
 
   std::string url_onnx;
   std::string m_model_name;
-  void FastMax(float x0, float x1, float x2, float y0, float y1, float y2, float & xmax, float & ymax);
 };
 #endif

@@ -1,6 +1,6 @@
 #include "G4RootScintillatorTower.h"
 
-#include <calobase/RawTower.h>
+// #include <calobase/TowerInfo.h>
 
 #include <iostream>
 
@@ -13,11 +13,13 @@ G4RootScintillatorTower::G4RootScintillatorTower()
 {
 }
 
-G4RootScintillatorTower::G4RootScintillatorTower(const RawTower& tower)
-  : row(tower.get_binphi())
-  , column(tower.get_bineta())
-  , energy(tower.get_energy())
+
+G4RootScintillatorTower::G4RootScintillatorTower(double towerenergy,int ieta, int iphi)
+  : row(iphi)
+  , column(ieta)
+  , energy(towerenergy)
 {
+
 }
 
 void G4RootScintillatorTower::Reset()

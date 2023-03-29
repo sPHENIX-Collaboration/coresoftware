@@ -109,7 +109,7 @@ class PHActsTrkFitter : public SubsysReco
   /// Set flag for pp running
   void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
 
-  void ignoreLayer(int layer) { m_ignoreLayer = layer; }
+  void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
 
  private:
 
@@ -202,8 +202,8 @@ class PHActsTrkFitter : public SubsysReco
   TpcClusterMover _clusterMover;
   ClusterErrorPara _ClusErrPara;
 
-  int m_ignoreLayer = std::numeric_limits<int>::max();
-
+  std::set<int> m_ignoreLayer;
+ 
   std::string m_fieldMap = "";
 
   int _n_iteration = 0;

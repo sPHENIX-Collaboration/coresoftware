@@ -33,10 +33,9 @@ class RawClusterBuilderTemplate : public SubsysReco
   void LoadProfile(const std::string& fname);
 
   void set_UseTowerInfo(const int useMode)
-  {  // 0 only old tower, 1 only new (TowerInfo based), 
+  {  // 0 only old tower, 1 only new (TowerInfo based),
     m_UseTowerInfo = useMode;
   }
-
 
  private:
   void CreateNodes(PHCompositeNode* topNode);
@@ -63,11 +62,9 @@ class RawClusterBuilderTemplate : public SubsysReco
   bool bProfProb = false;
   float fProbNoiseParam = 0.04;
 
-  int m_UseTowerInfo = 0;  // 0 only old tower, 1 only new (TowerInfo based), 
-  
+  int m_UseTowerInfo = 0;  // 0 only old tower, 1 only new (TowerInfo based),
+
   std::string m_towerInfo_nodename;
-
-
 };
 
 #endif /* RawClusterBuilderTemplate_H__ */

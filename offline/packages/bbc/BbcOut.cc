@@ -4,7 +4,7 @@
 #include <cmath>
 #include <iostream>
 
-ClassImp(BbcOut)
+//ClassImp(BbcOut)
 
 void BbcOut::identify(std::ostream& os) const
 {

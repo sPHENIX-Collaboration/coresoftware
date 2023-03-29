@@ -88,6 +88,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_alignStates.actsGeometry(m_tGeometry);
   m_alignStates.clusters(m_clusterContainer);
   m_alignStates.stateMap(m_alignmentStateMap);
+  m_alignStates.clusterVersion(m_cluster_version);
   m_alignStates.verbosity(Verbosity());
 
   m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
@@ -626,7 +627,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       TrkrDefs::cluskey cluskey = global_moved[i].first;
       Acts::Vector3 global = global_moved[i].second;
    
-      if(TrkrDefs::getLayer(cluskey) == m_ignoreLayer)
+      if(m_ignoreLayer.find(TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end())
 	{
 	  if(Verbosity() > 3)
 	    {
