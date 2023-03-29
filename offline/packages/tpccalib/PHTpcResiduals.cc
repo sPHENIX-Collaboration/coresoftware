@@ -333,7 +333,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     clusZ = globClusPos(2);
     
     // cluster errors
-    if( m_cluster_version >= 4 )
+    if( m_cluster_version == 4 )
     {
       const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, clusR, cluskey ); 
       clusRPhiErr = std::sqrt( errors_square.first );
