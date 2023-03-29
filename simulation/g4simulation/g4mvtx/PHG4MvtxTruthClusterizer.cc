@@ -1,8 +1,8 @@
 #include "PHG4MvtxTruthClusterizer.h"
+#include "PHG4MvtxDigitizer.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <g4mvtx/PHG4MvtxDigitizer.h>
 #include <g4tracking/TrkrTruthTrack.h>
 #include <g4tracking/TrkrTruthTrackContainer.h>
 #include <iostream>
