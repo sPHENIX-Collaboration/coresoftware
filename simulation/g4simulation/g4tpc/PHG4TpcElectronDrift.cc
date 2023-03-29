@@ -339,7 +339,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     /* if (Verbosity()) std::cout << " truth clusterer was a null pointer " << std::endl; */
     truth_clusterer = new TpcClusterBuilder(truthclustercontainer, m_tGeometry, seggeo);
   } else {
-    if (Verbosity()) std::cout << " truth clusterer was NOT a null pointer " << std::endl;
+    if (Verbosity()>10) std::cout << " truth clusterer was NOT a null pointer " << std::endl;
   }
 
 

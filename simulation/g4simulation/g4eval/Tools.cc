@@ -164,6 +164,7 @@ namespace G4Eval {
     in_intt = (layer >2  && layer <7);
     in_tpc  = (layer >6  && layer <55);
 
+    std::cout << "FIXME Comparing layer: " << layer << std::endl;
     float phi_step = m_phistep[layer];
     float z_step = in_mvtx ? m_zstep_mvtx : m_zstep_tpc;
 
@@ -183,19 +184,25 @@ namespace G4Eval {
       zsize_T  = clus_R->getZSize() * z_step;
     }
 
-    float dphi = fabs(phi_T-phi_R);
-    while (dphi > M_PI) dphi = fabs(dphi-2*M_PI);
+    phi_delta = fabs(phi_T-phi_R);
+    while (phi_delta > M_PI) phi_delta = fabs(phi_delta-2*M_PI);
     z_delta   = fabs (z_T-z_R);
 
     float phi_stat = (m_nphi_widths * phisize_R );
 
     bool is_match = (phi_delta < phi_stat);
     float fit_statistic = (phi_delta / phi_stat);
+    float z_stat = 0;
     if (!in_intt) {
-      float z_stat   = (m_nz_widths   * zsize_R   );
+      z_stat   = (m_nz_widths   * zsize_R   ); // FIXME
+      /* float z_stat   = (m_nz_widths   * zsize_R   ); */
       is_match = is_match && (z_delta < z_stat);
       fit_statistic += z_delta / z_stat;
     }
+    std::cout << " FIXME razberry comp layer ("<<layer<<") is_match("<<is_match<<") phi_delta("<<phi_delta<<")  phi_stat("
+             <<phi_stat<<") GOOD_phi("<<(phi_delta<phi_stat)<<") ";
+    if (!in_intt) std::cout << " z_delta("<<z_delta<<")  z_stat(" <<z_stat<<") GOOD_z("<<(z_delta<z_stat)<<")" << std::endl;
+    else std::cout << std::endl;
     return { is_match, fit_statistic };
   }
 
@@ -224,6 +231,7 @@ namespace G4Eval {
   , has_tpc    { _track->get_tpc_seed()!=nullptr }
   , no_data    { !in_silicon && !has_tpc }
   {
+    std::cout << " FIMXE: new track apple has_tpc: " << has_tpc << "  in_silicon " << in_silicon << std::endl;
   }
 
   ClusKeyIter ClusKeyIter::begin() {
@@ -307,6 +315,7 @@ namespace G4Eval {
   int ClusCntr::addClusKeys(SvtxTrack* track) {
     svtx_keys.clear();
     for (auto ckey : ClusKeyIter(track)) {
+      std::cout << "FIXME: orange layer: " << ((int)TrkrDefs::getLayer(ckey)) << std::endl;
       svtx_keys.push_back( {TrkrDefs::getHitSetKeyFromClusKey(ckey), ckey} );
     }
     std::sort(svtx_keys.begin(), svtx_keys.end());
@@ -316,6 +325,7 @@ namespace G4Eval {
   int ClusCntr::addClusKeys(TrkrTruthTrack* track) {
     phg4_keys.clear();
     for (auto ckey : track->getClusters()) {
+      std::cout << "FIXME: blue TRUE layer: " << ((int)TrkrDefs::getLayer(ckey)) << std::endl;
       phg4_keys.push_back( {TrkrDefs::getHitSetKeyFromClusKey(ckey), ckey} );
     }
     std::sort(phg4_keys.begin(), phg4_keys.end());
