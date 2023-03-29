@@ -1,7 +1,7 @@
 #ifndef TRUTHTRKMATCHER__H
 #define TRUTHTRKMATCHER__H
 
-#include "Tools.h" // has some G4Eval tools (TrkrClusterComparer)
+#include "g4tools.h" // has some G4Eval tools (TrkrClusterComparer)
 
 #include <fun4all/SubsysReco.h> 
 #include <trackbase/ActsGeometry.h>

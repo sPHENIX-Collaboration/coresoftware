@@ -1,5 +1,5 @@
 #include "TruthRecoTrackMatching.h"
-#include "Tools.h"
+#include "g4tools.h"
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
@@ -128,16 +128,6 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
     auto index_reco = reco->first;
     auto track      = reco->second;
     recoData.push_back( {track->get_phi(), track->get_eta(), track->get_pt(), index_reco } );
-    std::cout << " FIXME svtxtrack has seed? PEAR " << (reco->second->get_silicon_seed()==nullptr) << std::endl;
-  }
-  if (true) { // FIXME 
-    std::cout << " FIXME banana all Svtx Clusters: " << std::endl;
-    for (auto& hitsetkey : m_RecoClusterContainer->getHitSetKeys()) {
-      auto c_range = m_RecoClusterContainer->getClusters(hitsetkey);
-      for (auto& iter = c_range.first; iter != c_range.second; ++iter) {
-        std::cout << " FIXME reco cluster layer peach : " << ((int)TrkrDefs::getLayer(iter->first)) << std::endl;
-      }
-    }
   }
   // sort the recoData table by phi
   std::sort(recoData.begin(), recoData.end(), CompRECOtoPhi());

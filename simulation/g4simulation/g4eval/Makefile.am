@@ -64,7 +64,7 @@ pkginclude_HEADERS = \
   SvtxTruthEval.h \
   SvtxTruthRecoTableEval.h \
   SvtxVertexEval.h \
-  Tools.h \
+  g4tools.h \
   TrackEvaluation.h \
   TrackEvaluationContainer.h \
   TrackEvaluationContainerv1.h  \
@@ -112,7 +112,7 @@ libg4eval_la_SOURCES = \
   SvtxTruthEval.cc \
   SvtxTruthRecoTableEval.cc \
   SvtxVertexEval.cc \
-  Tools.cc \
+  g4tools.cc \
   TrackEvaluation.cc \
   TrackSeedTrackMapConverter.cc \
   TruthRecoTrackMatching.cc
