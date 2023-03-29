@@ -210,7 +210,7 @@ float PHG4EPDModuleReco::GetTileR(int thisr)
 
 float PHG4EPDModuleReco::GetTileZ(int thisz)
 {
-  float tileZ[2] = {-316, 316};
+  float tileZ[2] = {-316.0, 316.0};
   return tileZ[thisz];
 }
 
