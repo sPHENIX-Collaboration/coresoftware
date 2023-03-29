@@ -1889,8 +1889,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         if ((hit->getAdc() - 70) > maxadc)
           maxadc = (hit->getAdc() - 70);
       }
-      e = sumadc;
     }
+    e = sumadc;
 
     float trackID = NAN;
 	  if (track!=NULL) trackID = track->get_id();

@@ -398,50 +398,54 @@ void TrkrNtuplizer::printOutputInfo(PHCompositeNode* topNode)
 
     cout << "===Tracking Summary============================" << endl;
 
-    TrkrHitSetContainer* hitsetmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-
-    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
-    if (!clustermap)
-    {
-      clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-    }
-
     unsigned int nclusters[100] = {0};
     unsigned int nhits[100] = {0};
 
-    ActsGeometry* tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-
-    if (!tgeometry)
+    for (const auto& [trkrID, trkrName] : TrkrDefs::TrkrNames)
     {
-      std::cout << PHWHERE << "No Acts geometry on node tree. Can't  continue."
-                << std::endl;
-    }
+      TrkrHitSetContainer* hitsetmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_" + trkrName);
 
-    if (hitsetmap)
-    {
-      TrkrHitSetContainer::ConstRange all_hitsets = hitsetmap->getHitSets();
-      for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
-           hitsetiter != all_hitsets.second;
-           ++hitsetiter)
+      TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+      if (!clustermap)
       {
-        // we have a single hitset, get the layer
-        unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
+        clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+      }
 
-        // count all hits in this hitset
-        TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
-        for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-             hitr != hitrangei.second;
-             ++hitr)
+
+      ActsGeometry* tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+
+      if (!tgeometry)
+      {
+        std::cout << PHWHERE << "No Acts geometry on node tree. Can't  continue."
+                  << std::endl;
+      }
+
+      if (hitsetmap)
+      {
+        TrkrHitSetContainer::ConstRange all_hitsets = hitsetmap->getHitSets();
+        for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
+             hitsetiter != all_hitsets.second;
+             ++hitsetiter)
         {
-          ++nhits[layer];
-        }
-        auto range = clustermap->getClusters(hitsetiter->first);
-        for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
-        {
-          const auto cluskey = clusIter->first;
-          //	    const auto cluster = clusIter->second;
-          //	    unsigned int layer = TrkrDefs::getLayer(cluskey);
-          nclusters[TrkrDefs::getLayer(cluskey)]++;
+          // we have a single hitset, get the layer
+          unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
+
+          // count all hits in this hitset
+          TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
+          for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+               hitr != hitrangei.second;
+               ++hitr)
+          {
+            ++nhits[layer];
+          }
+          auto range = clustermap->getClusters(hitsetiter->first);
+          for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
+          {
+            const auto cluskey = clusIter->first;
+            //	    const auto cluster = clusIter->second;
+            //	    unsigned int layer = TrkrDefs::getLayer(cluskey);
+            nclusters[TrkrDefs::getLayer(cluskey)]++;
+          }
         }
       }
     }
@@ -525,37 +529,41 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   float occ31 = 0;
   float occ316 = 0;
 
-  TrkrHitSetContainer* hitmap_in = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (hitmap_in)
+  for (const auto& [trkrID, trkrName] : TrkrDefs::TrkrNames)
   {
-    TrkrHitSetContainer::ConstRange all_hitsets = hitmap_in->getHitSets();
-    for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
-         hitsetiter != all_hitsets.second;
-         ++hitsetiter)
+    TrkrHitSetContainer* hitmap_in = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_" + trkrName);
+
+    if (hitmap_in)
     {
-      // we have a single hitset, get the layer
-      unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
-      if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+      TrkrHitSetContainer::ConstRange all_hitsets = hitmap_in->getHitSets();
+      for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
+           hitsetiter != all_hitsets.second;
+           ++hitsetiter)
       {
-        // count all hits in this hitset
-        TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
-        for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-             hitr != hitrangei.second;
-             ++hitr)
+        // we have a single hitset, get the layer
+        unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
+        if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
         {
-          nhit[layer]++;
-          nhit_tpc_all++;
-          if ((float) layer == _nlayers_maps + _nlayers_intt)
+          // count all hits in this hitset
+          TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
+          for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+               hitr != hitrangei.second;
+               ++hitr)
           {
-            nhit_tpc_in++;
-          }
-          if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc - 1)
-          {
-            nhit_tpc_out++;
-          }
-          if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1)
-          {
-            nhit_tpc_mid++;
+            nhit[layer]++;
+            nhit_tpc_all++;
+            if ((float) layer == _nlayers_maps + _nlayers_intt)
+            {
+              nhit_tpc_in++;
+            }
+            if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc - 1)
+            {
+              nhit_tpc_out++;
+            }
+            if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1)
+            {
+              nhit_tpc_mid++;
+            }
           }
         }
       }
@@ -756,89 +764,92 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       _timer->restart();
     }
     // need things off of the DST...
-    TrkrHitSetContainer* hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-    PHG4TpcCylinderGeomContainer* geom_container_local =
-        findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-    if (!geom_container_local)
+    for (const auto& [trkrID, trkrName] : TrkrDefs::TrkrNames)
     {
-      std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
-      return;
-    }
-
-    if (hitmap)
-    {
-      TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
-      for (TrkrHitSetContainer::ConstIterator iter = all_hitsets.first;
-           iter != all_hitsets.second;
-           ++iter)
+      TrkrHitSetContainer* hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_" + trkrName);
+      PHG4TpcCylinderGeomContainer* geom_container_local =
+          findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      if (!geom_container_local)
       {
-        TrkrDefs::hitsetkey hitset_key = iter->first;
-        TrkrHitSet* hitset = iter->second;
+        std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+        return;
+      }
 
-        // get all hits for this hitset
-        TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-        for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-             hitr != hitrangei.second;
-             ++hitr)
+      if (hitmap)
+      {
+        TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
+        for (TrkrHitSetContainer::ConstIterator iter = all_hitsets.first;
+             iter != all_hitsets.second;
+             ++iter)
         {
-          TrkrDefs::hitkey hit_key = hitr->first;
-          TrkrHit* hit = hitr->second;
-          float event = _ievent;
-          float hitID = hit_key;
-          float e = hit->getEnergy();
-          float adc = hit->getAdc();
-          float layer_local = TrkrDefs::getLayer(hitset_key);
-          float sector = TpcDefs::getSectorId(hitset_key);
-          float side = TpcDefs::getSide(hitset_key);
-          float cellID = 0;
-          float ecell = hit->getAdc();
+          TrkrDefs::hitsetkey hitset_key = iter->first;
+          TrkrHitSet* hitset = iter->second;
 
-          float phibin = NAN;
-          float tbin = NAN;
-          float phi = NAN;
-          float z = NAN;
-
-          if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+          // get all hits for this hitset
+          TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+          for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+               hitr != hitrangei.second;
+               ++hitr)
           {
-            PHG4TpcCylinderGeom* GeoLayer_local = geom_container_local->GetLayerCellGeom(layer_local);
-            phibin = (float) TpcDefs::getPad(hit_key);
-            tbin = (float) TpcDefs::getTBin(hit_key);
-            phi = GeoLayer_local->get_phicenter(phibin);
+            TrkrDefs::hitkey hit_key = hitr->first;
+            TrkrHit* hit = hitr->second;
+            float event = _ievent;
+            float hitID = hit_key;
+            float e = hit->getEnergy();
+            float adc = hit->getAdc();
+            float layer_local = TrkrDefs::getLayer(hitset_key);
+            float sector = TpcDefs::getSectorId(hitset_key);
+            float side = TpcDefs::getSide(hitset_key);
+            float cellID = 0;
+            float ecell = hit->getAdc();
 
-            double zdriftlength = tbin * m_tGeometry->get_drift_velocity() * AdcClockPeriod;
-            // convert z drift length to z position in the TPC
-            //		cout << " tbin: " << tbin << " vdrift " <<m_tGeometry->get_drift_velocity() << " l drift: " << zdriftlength  <<endl;
-            unsigned short NTBins = (unsigned short) GeoLayer_local->get_zbins();
-            double m_tdriftmax = AdcClockPeriod * NTBins / 2.0;
-            double clusz = (m_tdriftmax * m_tGeometry->get_drift_velocity()) - zdriftlength;
-            if (side == 0)
+            float phibin = NAN;
+            float tbin = NAN;
+            float phi = NAN;
+            float z = NAN;
+
+            if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
             {
-              clusz = -clusz;
+              PHG4TpcCylinderGeom* GeoLayer_local = geom_container_local->GetLayerCellGeom(layer_local);
+              phibin = (float) TpcDefs::getPad(hit_key);
+              tbin = (float) TpcDefs::getTBin(hit_key);
+              phi = GeoLayer_local->get_phicenter(phibin);
+
+              double zdriftlength = tbin * m_tGeometry->get_drift_velocity() * AdcClockPeriod;
+              // convert z drift length to z position in the TPC
+              //		cout << " tbin: " << tbin << " vdrift " <<m_tGeometry->get_drift_velocity() << " l drift: " << zdriftlength  <<endl;
+              unsigned short NTBins = (unsigned short) GeoLayer_local->get_zbins();
+              double m_tdriftmax = AdcClockPeriod * NTBins / 2.0;
+              double clusz = (m_tdriftmax * m_tGeometry->get_drift_velocity()) - zdriftlength;
+              if (side == 0)
+              {
+                clusz = -clusz;
+              }
+              z = clusz;
             }
-            z = clusz;
+
+            float hit_data[] = {
+                event,
+                (float) _iseed,
+                hitID,
+                e,
+                adc,
+                layer_local,
+                sector,
+                side,
+                cellID,
+                ecell,
+                (float) phibin,
+                (float) tbin,
+                phi,
+                z,
+                nhit_tpc_all,
+                nhit_tpc_in,
+                nhit_tpc_mid,
+                nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
+
+            _ntp_hit->Fill(hit_data);
           }
-
-          float hit_data[] = {
-              event,
-              (float) _iseed,
-              hitID,
-              e,
-              adc,
-              layer_local,
-              sector,
-              side,
-              cellID,
-              ecell,
-              (float) phibin,
-              (float) tbin,
-              phi,
-              z,
-              nhit_tpc_all,
-              nhit_tpc_in,
-              nhit_tpc_mid,
-              nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
-
-          _ntp_hit->Fill(hit_data);
         }
       }
     }
@@ -873,7 +884,15 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
-    TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+
+    std::map<uint8_t, TrkrHitSetContainer*> hitsetsmap;
+    for (const auto & [trkrID, trkrName] : TrkrDefs::TrkrNames)
+    {
+      TrkrHitSetContainer * hitsets  = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_" + trkrName);
+      if (hitsets)
+        hitsetsmap[trkrID] = hitsets;
+    }
+
     TrkrClusterIterationMapv1* _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
 
     if (Verbosity() > 1)
@@ -894,7 +913,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       {
         cout << "no clusterhitmap" << endl;
       }
-      if (hitsets != nullptr)
+      if (hitsetsmap.size() != 0)
       {
         cout << "got hitsets" << endl;
       }
@@ -904,7 +923,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       }
     }
 
-    if (clustermap && clusterhitmap && hitsets)
+    if (clustermap && clusterhitmap && hitsetsmap.size() != 0)
     {
       for (const auto& hitsetkey : clustermap->getHitSetKeys())
       {
@@ -1004,26 +1023,35 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           }
           */
           float sumadc = 0;
-          TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey_local);
-          std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
-              hitrange = clusterhitmap->getHits(cluster_key);
-          for (std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
-                   clushititer = hitrange.first;
-               clushititer != hitrange.second; ++clushititer)
-          {
-            TrkrHit* hit = hitset->second->getHit(clushititer->second);
-            if (!hit)
-            {
-              continue;
-            }
 
-            ++size;
-            sumadc += (hit->getAdc() - 70);
-            if ((hit->getAdc() - 70) > maxadc)
+          auto hitsetsmap_iter = hitsetsmap.find(TrkrDefs::getTrkrId(hitsetkey));
+          if (hitsetsmap_iter != hitsetsmap.end())
+          {
+            TrkrHitSetContainer* hitsets = hitsetsmap_iter->second;
+            assert(hitsets);
+
+            TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey_local);
+            std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
+                hitrange = clusterhitmap->getHits(cluster_key);
+            for (std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
+                     clushititer = hitrange.first;
+                 clushititer != hitrange.second; ++clushititer)
             {
-              maxadc = (hit->getAdc() - 70);
+              TrkrHit* hit = hitset->second->getHit(clushititer->second);
+              if (!hit)
+              {
+                continue;
+              }
+
+              ++size;
+              sumadc += (hit->getAdc() - 70);
+              if ((hit->getAdc() - 70) > maxadc)
+              {
+                maxadc = (hit->getAdc() - 70);
+              }
             }
-          }
+          } //           if (hitsetsmap_iter != hitsetsmap.end())
+
           e = sumadc;
 
           float trackID = NAN;
