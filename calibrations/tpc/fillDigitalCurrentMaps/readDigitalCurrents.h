@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef READDIGITALCURRENTS_H
-#define READDIGITALCURRENTS_H
+#ifndef READDIGITALCURRENTS_READDIGITALCURRENTS_H
+#define READDIGITALCURRENTS_READDIGITALCURRENTS_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -75,13 +75,13 @@ class readDigitalCurrents : public SubsysReco
   //double pi = 3.14159265358979323846;//2 * acos(0.0);
 
  protected:
-   Fun4AllHistoManager *hm;
+   Fun4AllHistoManager *hm = nullptr;
    std::string _filename;
-   //TFile *outfile;
+   //TFile *outfile = nullptr;
    std::map<int,int> _timestamps;
    std::vector<int> _keys;
-   float _ampIBFfrac;
-   int _collSyst;
+   float _ampIBFfrac = 0.02;
+   int _collSyst = 0;
    std::ofstream myCSVFile;
 
  private:
@@ -92,17 +92,17 @@ class readDigitalCurrents : public SubsysReco
 
     int _f_ccgc = 0;
 
-    TH2*   _h_modules_measuredibf;
+    TH2*   _h_modules_measuredibf = nullptr;
 
-    TH1*   _h_R;
-    TH1*   _h_hits;
-    TH3*   _h_DC_SC;
-    TH2*   _h_DC_SC_XY;
-    TH2*   _h_hit_XY;
-    TH2*   _h_DC_E;
-    TH3*   _h_SC_ibf;
-    float _event_timestamp;
-    float _event_bunchXing;
+    TH1*   _h_R = nullptr;
+    TH1*   _h_hits = nullptr;
+    TH3*   _h_DC_SC = nullptr;
+    TH2*   _h_DC_SC_XY = nullptr;
+    TH2*   _h_hit_XY = nullptr;
+    TH2*   _h_DC_E = nullptr;
+    TH3*   _h_SC_ibf = nullptr;
+    float _event_timestamp = 0;
+    float _event_bunchXing = 0;
 
     //double pi = 2 * acos(0.0);
     double adc_pedestal=0.;//74.4;

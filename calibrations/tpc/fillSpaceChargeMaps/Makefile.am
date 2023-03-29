@@ -7,7 +7,7 @@ AM_CPPFLAGS = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib 
 
 pkginclude_HEADERS = \
   fillSpaceChargeMaps.h \
