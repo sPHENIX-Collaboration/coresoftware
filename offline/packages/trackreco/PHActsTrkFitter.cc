@@ -304,19 +304,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
       if(m_fitSiliconMMs)
 	{
-	  bool sil = siseed != nullptr ? true : false;
-	  bool tpot = false;
-
-	  for(auto& sl : sourceLinks)
-	    {
-	      auto key = sl.cluskey();
-	      if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::micromegasId)
-		{
-		  tpot = true;
-		}
-	    }
-	  //if(sil && tpot)
-	  if(!sil or !tpot)
+	  if(!checkMM(sourceLinks) or !siseed)
 	    {
 	      if(Verbosity() > 3) std::cout << "no silicon+tpot measurements, skipping" << std::endl;
 	      continue; 
@@ -466,6 +454,21 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
   return;
 
+}
+
+bool PHActsTrkFitter::checkMM(SourceLinkVec& sls)
+{
+  bool tpot = false;
+  for(auto& sl : sls)
+    {
+      auto key = sl.cluskey();
+      if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::micromegasId)
+	{
+	  tpot = true;
+	}
+    }
+
+  return tpot;
 }
 
 //___________________________________________________________________________________

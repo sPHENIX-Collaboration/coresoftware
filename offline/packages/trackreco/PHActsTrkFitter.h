@@ -137,6 +137,8 @@ class PHActsTrkFitter : public SubsysReco
   Acts::BoundSymMatrix setDefaultCovariance() const;
   void printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const;
 
+  bool checkMM(SourceLinkVec& sls);
+
   /// Event counter
   int m_event = 0;
 
