@@ -801,7 +801,7 @@ void TrackingEvaluator_hp::evaluate_tracks()
       add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, m_hitsetcontainer );
 
       // assign cluster error from parametrisation
-      if( m_cluster_version >= 4 )
+      if( m_cluster_version == 4 )
       {
         switch( TrkrDefs::getTrkrId(cluster_key) )
         {
@@ -1228,7 +1228,7 @@ TrackingEvaluator_hp::ClusterStruct TrackingEvaluator_hp::create_cluster( TrkrDe
   cluster_struct._r = get_r( cluster_struct._x, cluster_struct._y );
   cluster_struct._phi = std::atan2( cluster_struct._y, cluster_struct._x );
   
-  if( m_cluster_version < 4 )
+  if( m_cluster_version != 4 )
   {
     cluster_struct._phi_error = cluster->getRPhiError()/cluster_struct._r;
     cluster_struct._z_error = cluster->getZError();
