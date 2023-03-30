@@ -36,7 +36,6 @@
 #include <Acts/Seeding/Seed.hpp>
 #include <Acts/Seeding/SeedFilter.hpp>
 
-#include <bitset>
 namespace
 {
   template<class T>
@@ -250,13 +249,10 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
 	  auto trackSeed = std::make_unique<TrackSeed_v1>();
 
-    std::cout << "making key" << "\n";
 	  for(auto& spacePoint : seed.sp())
 	    {
 	      const auto& cluskey = spacePoint->m_clusKey;
-        std::cout << "cluskey: " << cluskey << "\n";
-
-              cluster_keys.push_back(cluskey);
+	      cluster_keys.push_back(cluskey);
 	  
 	      trackSeed->insert_cluster_key(cluskey);
 	      auto globalPosition = m_tGeometry->getGlobalPosition(
@@ -624,12 +620,6 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
 	      << " and cluster key "
 	      << key << " and geo id "
 	      << surf->geometryId() << std::endl;
-
-  std::cout << "cluster key in hex:" << std::hex << key <<
-    ", in bin: " << std::bitset<64>(key) << std::dec <<
-    ", trkrid: " << +TrkrDefs::getTrkrId( key ) << "\n";
-  std::cout << "mvtx id is " << +TrkrDefs::mvtxId << " and intt id is " << +TrkrDefs::inttId << "\n";
-
   
   return spPtr;
 
