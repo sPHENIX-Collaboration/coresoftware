@@ -11,9 +11,11 @@
 
 #include <string>
 
-
+// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libfun4all.so)
+// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libreadDigitalCurrents.so)
+// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libg4dst.so)
 
 void Fun4All_FillDCMap(  const int nEvents = 1000, const int eventsInFileStart = 0, const int eventsBeamCrossing = 1508071, const string &fname = "/sphenix/user/shulga/Work/IBF/macros/detectors/sPHENIX/Files/DST_G4Hits_sHijing_0-12fm_005000_006000.root", const string &foutputname = "./Files/hists_G4Hits_sHijing_0-12fm_000000_001000.root" )//DST_G4sPHENIX_1000evt.root")//G4sPHENIX.root" )
