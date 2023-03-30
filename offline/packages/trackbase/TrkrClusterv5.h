@@ -66,9 +66,7 @@ class TrkrClusterv5 : public TrkrCluster
   // cluster info
   //
   unsigned int getAdc() const override { 
-    uint8_t tmp = m_adc;
-    return tmp ; 
-
+    return m_adc ; 
   }
 
   void setAdc(unsigned int adc) override {
