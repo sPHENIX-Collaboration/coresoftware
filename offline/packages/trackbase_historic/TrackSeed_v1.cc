@@ -1,7 +1,8 @@
 #include "TrackSeed_v1.h"
+#include <trackbase/TrkrCluster.h>
 
 #include <trackbase/TrackFitUtils.h>
-#include <trackbase/TrkrClusterv5.h>
+
 namespace
 {
 
@@ -89,7 +90,7 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
       if(layer < startLayer or layer > endLayer)
 	{ continue; }
       
-      auto clus = dynamic_cast<TrkrClusterv5*>(clusters->findCluster(key));
+      auto clus = clusters->findCluster(key);
       std::cout << "clus edge is " << (int)clus->getEdge() << std::endl;
       if(clus->getEdge() > 0)
 	{ continue; }
