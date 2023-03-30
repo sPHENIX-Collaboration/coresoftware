@@ -107,6 +107,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
   gsl_rng *RandomGenerator;
+  
 };
 
 #endif

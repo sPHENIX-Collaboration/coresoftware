@@ -7,26 +7,27 @@ AM_CPPFLAGS = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib 
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  fillSpaceChargeMaps.h \
-  Shifter.h
+  readDigitalCurrents.h
 
 lib_LTLIBRARIES = \
-  libfillSpaceChargeMaps.la
+  libreadDigitalCurrents.la
 
-libfillSpaceChargeMaps_la_SOURCES = \
-  fillSpaceChargeMaps.cc \
-  Shifter.cc
+libreadDigitalCurrents_la_SOURCES = \
+  readDigitalCurrents.cc
 
-libfillSpaceChargeMaps_la_LIBADD = \
-  -lfun4all \
+libreadDigitalCurrents_la_LIBADD = \
   -lphool \
+  -lfun4all \
   -lphg4hit \
+  -ltrackbase_historic_io \
+  -ltrack_io \
+  -ltpc_io \
   -lg4detectors \
   -lg4testbench \
-  -lg4tpc \
   -lSubsysReco
 
 BUILT_SOURCES = testexternals.cc
@@ -35,7 +36,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libfillSpaceChargeMaps.la
+testexternals_LDADD   = libreadDigitalCurrents.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
