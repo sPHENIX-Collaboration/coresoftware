@@ -10,9 +10,6 @@
 #include <vector>
 #include <fstream>
 
-#pragma once 
-//#include <math.h>
-
 class Fun4AllHistoManager;
 class PHCompositeNode;
 
