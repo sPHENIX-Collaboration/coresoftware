@@ -75,11 +75,11 @@ class TrkrClusterv5 : public TrkrCluster
     m_adc = adc; 
   }
 
-  unsigned int getMaxAdc() const { 
+  unsigned int getMaxAdc() const override { 
     return m_maxadc; 
   }
 
-  void setMaxAdc(uint16_t maxadc) {
+  void setMaxAdc(uint16_t maxadc) override {
     m_maxadc = maxadc;
   }
 
@@ -127,11 +127,11 @@ class TrkrClusterv5 : public TrkrCluster
    float getZSize() const override { return (float) m_zsize; }
    void setZSize(char zsize) { m_zsize = zsize; }
  
-   char getOverlap() { return m_overlap; }
-   void setOverlap(char overlap) { m_overlap = overlap; }
+   char getOverlap() const override{ return m_overlap; }
+   void setOverlap(char overlap) override { m_overlap = overlap; }
  
-   char getEdge() { return m_edge; }
-   void setEdge(char edge) { m_edge = edge; }
+   char getEdge() const override{ return m_edge; }
+   void setEdge(char edge) override { m_edge = edge; }
 
    //float getPhiSize() const override 
    //{ std::cout << "Deprecated size function"<< std::endl; return NAN;}
