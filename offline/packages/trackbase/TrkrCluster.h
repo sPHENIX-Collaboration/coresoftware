@@ -70,7 +70,7 @@ class TrkrCluster : public PHObject
   virtual void setEdge(char) {}
   virtual void setTime(const float) {}
   virtual float getTime() const { return NAN;}
-
+  virtual char getSize() const {return std::numeric_limits<char>::max(); }
   
 
   //
