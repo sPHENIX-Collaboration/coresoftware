@@ -83,9 +83,10 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
 				     uint8_t endLayer)
 {
   std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
-
+  std::cout << "Calling here"<<std::endl;
   for(const auto& key: m_cluster_keys)
     {
+      std::cout << "iterating"<<std::endl;
       auto layer = TrkrDefs::getLayer(key);
       if(layer < startLayer or layer > endLayer)
 	{ continue; }

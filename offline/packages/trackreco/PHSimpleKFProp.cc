@@ -1174,6 +1174,7 @@ void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap&
   { 
     /// The ALICEKF gives a better charge determination at high pT
     int q = seed.get_charge();
+    std::cout << "circle fitting"<<std::endl;
     seed.circleFitByTaubin(_cluster_map, _tgeometry, 7, 55);
     seed.lineFit(_cluster_map,_tgeometry, 7, 55);
     //seed.circleFitByTaubin(positions,7,55);
