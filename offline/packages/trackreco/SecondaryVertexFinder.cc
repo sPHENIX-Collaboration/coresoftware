@@ -744,6 +744,9 @@ Acts::BoundTrackParameters SecondaryVertexFinder::makeTrackParams(SvtxTrack* tra
                                                cov).value();
 }
 
+//===========================
+// replace with a call to TrackFitUtils
+//===========================
 bool SecondaryVertexFinder::circle_circle_intersection(double r0, double x0, double y0, double r1, double x1, double y1, std::vector<double>& intersectionXY)
 {
   bool ret = true;

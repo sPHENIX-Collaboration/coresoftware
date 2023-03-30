@@ -10,12 +10,12 @@
 
 PHSiliconHelicalPropagator::PHSiliconHelicalPropagator(std::string name) : SubsysReco(name)
 {
-  _fitter = new HelicalFitter();
+
 }
 
 PHSiliconHelicalPropagator::~PHSiliconHelicalPropagator()
 {
-  delete _fitter;
+
 }
 
 int PHSiliconHelicalPropagator::InitRun(PHCompositeNode* topNode)
@@ -64,7 +64,6 @@ int PHSiliconHelicalPropagator::InitRun(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
-  if(_fitter->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK) return Fun4AllReturnCodes::ABORTEVENT;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -108,12 +107,12 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
     if(!tpcseed) continue;
     std::vector<Acts::Vector3> clusterPositions;
     std::vector<TrkrDefs::cluskey> clusterKeys;
-    _fitter->getTrackletClusters(tpcseed,clusterPositions,clusterKeys);
-    std::vector<float> fitparams = _fitter->fitClusters(clusterPositions,clusterKeys);
+    TrackFitUtils::getTrackletClusters(_tgeometry,_cluster_map,clusterPositions,clusterKeys);
+    std::vector<float> fitparams = TrackFitUtils::fitClusters(clusterPositions,clusterKeys);
     
     std::vector<TrkrDefs::cluskey> si_clusterKeys;
     std::vector<Acts::Vector3> si_clusterPositions;
-    unsigned int nSiClusters = _fitter->addSiliconClusters(fitparams,si_clusterPositions,si_clusterKeys);
+    unsigned int nSiClusters = TrackFitUtils::addSiliconClusters(fitparams,1000.,_tgeometry,_cluster_map,si_clusterPositions,si_clusterKeys);
     if(nSiClusters>0)
     {
       std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();

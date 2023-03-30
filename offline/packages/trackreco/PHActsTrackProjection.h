@@ -98,10 +98,8 @@ class PHActsTrackProjection : public SubsysReco
   void getClusterProperties(double phi, double eta,
                             double &minIndex, double &minDphi,
                             double &minDeta, double &minE);
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack *track);
   double deltaPhi(const double &phi);
-  Acts::Vector3 getVertex(SvtxTrack *track);
-
+ 
   /// Objects containing the Acts track fit results
   ActsGeometry *m_tGeometry = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
