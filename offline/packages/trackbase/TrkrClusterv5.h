@@ -118,7 +118,7 @@ class TrkrClusterv5 : public TrkrCluster
    void setError(unsigned int, unsigned int, float) override 
    { std::cout << "Deprecated seterr trkrcluster function!" << std::endl; }
 
-   char getSize() { return m_phisize * m_zsize; }
+   char getSize() const override { return m_phisize * m_zsize; }
    //   void setSize(char size) { m_size = size; }
  
    float getPhiSize() const override { return (float) m_phisize; }
@@ -127,7 +127,7 @@ class TrkrClusterv5 : public TrkrCluster
    float getZSize() const override { return (float) m_zsize; }
    void setZSize(char zsize) { m_zsize = zsize; }
  
-   char getOverlap() const override{ return m_overlap; }
+   char getOverlap() const override { return m_overlap; }
    void setOverlap(char overlap) override { m_overlap = overlap; }
  
    char getEdge() const override{ return m_edge; }
