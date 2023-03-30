@@ -62,9 +62,16 @@ class TrkrCluster : public PHObject
   //
   virtual void setAdc(unsigned int) {}
   virtual unsigned int getAdc() const { return UINT_MAX; }
-
+  virtual void setMaxAdc(uint16_t) {}
+  virtual unsigned int getMaxAdc() {return UINT_MAX; }
+  virtual char getOverlap() { return std::numeric_limits<char>::max(); }
+  virtual void setOverlap(char) {}
+  virtual char getEdge(){ return std::numeric_limits<char>::max(); }
+  virtual void setEdge(char) {}
   virtual void setTime(const float) {}
   virtual float getTime() const { return NAN;}
+
+  
 
   //
   // convenience interface
