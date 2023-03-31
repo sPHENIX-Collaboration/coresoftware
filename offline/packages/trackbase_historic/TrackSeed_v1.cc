@@ -91,7 +91,7 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
 	{ continue; }
       
       auto clus = clusters->findCluster(key);
-      std::cout << "clus edge is " << (int)clus->getEdge() << std::endl;
+
       if(clus->getEdge() > 0)
 	{ continue; }
       Acts::Vector3 pos = tGeometry->getGlobalPosition(
@@ -104,7 +104,7 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
       std::cout << "Can't circle fit less than 3 points " << std::endl;
       return;
     }
-  std::cout << "circle fitting " << positions.size() << " clusters"<<std::endl;
+
   circleFitByTaubin(positions, startLayer, endLayer);
 
 }
