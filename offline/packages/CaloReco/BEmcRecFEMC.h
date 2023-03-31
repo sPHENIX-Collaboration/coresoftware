@@ -7,7 +7,7 @@
 #include <vector>  // for vector
 
 class EmcModule;
-//class BEmcProfile;
+// class BEmcProfile;
 
 class BEmcRecFEMC : public BEmcRec
 {

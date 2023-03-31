@@ -89,11 +89,17 @@ void BEmcRec::PrintTowerGeometry(const std::string& fname)
 
 bool BEmcRec::GetTowerGeometry(int ix, int iy, TowerGeom& geom)
 {
-  if (ix < 0 || ix >= fNx || iy < 0 || iy >= fNy) return false;
+  if (ix < 0 || ix >= fNx || iy < 0 || iy >= fNy)
+  {
+    return false;
+  }
 
   int ich = iy * fNx + ix;
   std::map<int, TowerGeom>::iterator it = fTowerGeom.find(ich);
-  if (it == fTowerGeom.end()) return false;
+  if (it == fTowerGeom.end())
+  {
+    return false;
+  }
 
   geom = it->second;
   return true;
@@ -101,7 +107,10 @@ bool BEmcRec::GetTowerGeometry(int ix, int iy, TowerGeom& geom)
 
 bool BEmcRec::SetTowerGeometry(int ix, int iy, float xx, float yy, float zz)
 {
-  if (ix < 0 || ix >= fNx || iy < 0 || iy >= fNy) return false;
+  if (ix < 0 || ix >= fNx || iy < 0 || iy >= fNy)
+  {
+    return false;
+  }
 
   TowerGeom geom;
   geom.Xcenter = xx;
@@ -142,7 +151,10 @@ bool BEmcRec::CompleteTowerGeometry()
     TowerGeom geomx;
     int inx = 0;
 
-    while (inx < nb && (idx[inx] == 0 || !GetTowerGeometry(ix + idx[inx], iy + idy[inx], geomx))) inx++;
+    while (inx < nb && (idx[inx] == 0 || !GetTowerGeometry(ix + idx[inx], iy + idy[inx], geomx)))
+    {
+      inx++;
+    }
     if (inx >= nb)
     {
       std::cout << "Error in BEmcRec::CompleteTowerGeometry(): Error when locating neighbour for (ix,iy)=("
@@ -153,7 +165,10 @@ bool BEmcRec::CompleteTowerGeometry()
     TowerGeom geomy;
     int iny = 0;
 
-    while (iny < nb && (idy[iny] == 0 || !GetTowerGeometry(ix + idx[iny], iy + idy[iny], geomy))) iny++;
+    while (iny < nb && (idy[iny] == 0 || !GetTowerGeometry(ix + idx[iny], iy + idy[iny], geomy)))
+    {
+      iny++;
+    }
     if (iny >= nb)
     {
       std::cout << "Error in BEmcRec::CompleteTowerGeometry(): Error when locating neighbour for (ix,iy)=("
@@ -207,7 +222,10 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
     const int idx[4] = {1, 0, -1, 0};
     const int idy[4] = {0, 1, 0, -1};
     int ii = 0;
-    while (ii < 4 && !GetTowerGeometry(ix + idx[ii], iy + idy[ii], geom0)) ii++;
+    while (ii < 4 && !GetTowerGeometry(ix + idx[ii], iy + idy[ii], geom0))
+    {
+      ii++;
+    }
     if (ii >= 4)
     {
       std::cout << "Error in BEmcRec::Tower2Global: can not identify neighbour for tower ("
@@ -244,9 +262,13 @@ int BEmcRec::iTowerDist(int ix1, int ix2)
     if (idistr < abs(idist))
     {  // Then count in opposite direction
       if (idist < 0)
+      {
         idist = idistr;
+      }
       else
+      {
         idist = -idistr;
+      }
     }
   }
   //  std::cout << "Dist " << ix1 << " " << ix2 << ": " << idist << std::endl;
@@ -262,9 +284,13 @@ float BEmcRec::fTowerDist(float x1, float x2)
     if (distr < abs(dist))
     {  // Then count in opposite direction
       if (dist < 0)
+      {
         dist = distr;
+      }
       else
+      {
         dist = -distr;
+      }
     }
   }
   return dist;
@@ -291,7 +317,10 @@ int BEmcRec::FindClusters()
   (*fClusters).clear();
   nhit = (*fModules).size();
 
-  if (nhit <= 0) return 0;
+  if (nhit <= 0)
+  {
+    return 0;
+  }
   if (nhit == 1)
   {
     Clt.ReInitialize((*fModules));
@@ -308,7 +337,10 @@ int BEmcRec::FindClusters()
 
   ph = (*fModules).begin();
   vv = vhit;
-  while (ph != (*fModules).end()) *vv++ = *ph++;
+  while (ph != (*fModules).end())
+  {
+    *vv++ = *ph++;
+  }
 
   qsort(vhit, nhit, sizeof(EmcModule), HitNCompare);
 
@@ -316,7 +348,10 @@ int BEmcRec::FindClusters()
   next = 0;
   for (ich = 1; ich < nhit + 1; ich++)
   {
-    if (ich < nhit) ia = vhit[ich].ich;
+    if (ich < nhit)
+    {
+      ia = vhit[ich].ich;
+    }
 
     // New subcluster
     //
@@ -357,7 +392,10 @@ int BEmcRec::FindClusters()
         {
           leng = LenCl[iCl];
 
-          if (iab - vhit[last].ich > fNx) goto new_ich;
+          if (iab - vhit[last].ich > fNx)
+          {
+            goto new_ich;
+          }
           for (int ichc = last; ichc >= last - leng + 1; ichc--)
           {
             //	    if( iab-vhit[ichc].ich >  fNx ) goto new_icl; // From PHENIX version !!! This may be not right for complicated clusters, where tower ordering is not conserved
@@ -372,7 +410,10 @@ int BEmcRec::FindClusters()
               CopyVector(vt, &vhit[ib - leng], leng);
 
               // Now the number of clusters is reduced by 1 and the length of the last one increased by iCl-cluster length "leng"
-              for (int i = iCl; i < nCl - 2; i++) LenCl[i] = LenCl[i + 1];
+              for (int i = iCl; i < nCl - 2; i++)
+              {
+                LenCl[i] = LenCl[i + 1];
+              }
               ib -= leng;
               LenCl[nCl - 2] = LenCl[nCl - 1] + leng;
               nCl--;
@@ -399,7 +440,10 @@ int BEmcRec::FindClusters()
     {
       leng = LenCl[iCl];
       hl.clear();
-      for (ich = 0; ich < leng; ich++) hl.push_back(vhit[ib + ich]);
+      for (ich = 0; ich < leng; ich++)
+      {
+        hl.push_back(vhit[ib + ich]);
+      }
       Clt.ReInitialize(hl);
       ib += LenCl[iCl];
       fClusters->push_back(Clt);
@@ -429,7 +473,10 @@ void BEmcRec::Momenta(std::vector<EmcModule>* phit, float& pe, float& px,
   pxx = 0;
   pyy = 0;
   pyx = 0;
-  if (phit->empty()) return;
+  if (phit->empty())
+  {
+    return;
+  }
 
   // Find max energy tower
   //
@@ -446,7 +493,10 @@ void BEmcRec::Momenta(std::vector<EmcModule>* phit, float& pe, float& px,
     }
     ++ph;
   }
-  if (emax <= 0) return;
+  if (emax <= 0)
+  {
+    return;
+  }
 
   int iymax = ichmax / fNx;
   int ixmax = ichmax - iymax * fNx;
@@ -491,8 +541,14 @@ void BEmcRec::Momenta(std::vector<EmcModule>* phit, float& pe, float& px,
     x += ixmax;
     y += iymax;
 
-    while (x < -0.5) x += float(fNx);
-    while (x >= fNx - 0.5) x -= float(fNx);
+    while (x < -0.5)
+    {
+      x += float(fNx);
+    }
+    while (x >= fNx - 0.5)
+    {
+      x -= float(fNx);
+    }
 
     px = x;
     py = y;
@@ -506,7 +562,10 @@ void BEmcRec::Momenta(std::vector<EmcModule>* phit, float& pe, float& px,
 
 float BEmcRec::PredictEnergy(float en, float xcg, float ycg, int ix, int iy)
 {
-  if (_emcprof != nullptr && bProfileProb) return PredictEnergyProb(en, xcg, ycg, ix, iy);
+  if (_emcprof != nullptr && bProfileProb)
+  {
+    return PredictEnergyProb(en, xcg, ycg, ix, iy);
+  }
 
   float dx = fabs(fTowerDist(float(ix), xcg));
   float dy = ycg - iy;
@@ -569,10 +628,19 @@ float BEmcRec::PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy)
 // Predict tower energy from profiles used in GetProb()
 // This is expected to be used in BEmcCluster::GetSubClusters
 {
-  if (_emcprof == nullptr) return -1;
+  if (_emcprof == nullptr)
+  {
+    return -1;
+  }
 
-  while (xcg < -0.5) xcg += float(fNx);
-  while (xcg >= fNx - 0.5) xcg -= float(fNx);
+  while (xcg < -0.5)
+  {
+    xcg += float(fNx);
+  }
+  while (xcg >= fNx - 0.5)
+  {
+    xcg -= float(fNx);
+  }
 
   int ixcg = int(xcg + 0.5);
   int iycg = int(ycg + 0.5);
@@ -586,22 +654,36 @@ float BEmcRec::PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy)
   GetImpactThetaPhi(xg, yg, zg, theta, phi);
 
   int isx = 1;
-  if (xcg - ixcg < 0) isx = -1;
+  if (xcg - ixcg < 0)
+  {
+    isx = -1;
+  }
   int isy = 1;
-  if (ycg - iycg < 0) isy = -1;
+  if (ycg - iycg < 0)
+  {
+    isy = -1;
+  }
 
   int idx = iTowerDist(ixcg, ix) * isx;
   int idy = (iy - iycg) * isy;
 
   int id = -1;
   if (idx == 0 && idy == 0)
+  {
     id = 0;
+  }
   else if (idx == 1 && idy == 0)
+  {
     id = 1;
+  }
   else if (idx == 1 && idy == 1)
+  {
     id = 2;
+  }
   else if (idx == 0 && idy == 1)
+  {
     id = 3;
+  }
 
   if (id < 0)
   {
@@ -621,16 +703,27 @@ float BEmcRec::PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy)
   float eout;
 
   if (id == 0)
+  {
     eout = (ep[1] + ep[2]) / 2. + ep[3];
+  }
   else if (id == 1)
+  {
     eout = (ep[0] - ep[2]) / 2. - ep[3];
+  }
   else if (id == 3)
+  {
     eout = (ep[0] - ep[1]) / 2. - ep[3];
+  }
   else
+  {
     eout = ep[3];
+  }
 
   //  if( eout<0 ) printf("id=%d eout=%f: ep= %f %f %f %f Input: E=%f xcg=%f ycg=%f\n",id,eout,ep[0],ep[1],ep[2],ep[3],en,xcg,ycg);
-  if (eout < 0) eout = 1e-6;
+  if (eout < 0)
+  {
+    eout = 1e-6;
+  }
 
   return eout;
 }
@@ -640,7 +733,10 @@ float BEmcRec::PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy)
 float BEmcRec::GetTowerEnergy(int iy, int iz, std::vector<EmcModule>* plist)
 {
   int nn = plist->size();
-  if (nn <= 0) return 0;
+  if (nn <= 0)
+  {
+    return 0;
+  }
 
   for (int i = 0; i < nn; i++)
   {
@@ -666,7 +762,10 @@ float BEmcRec::GetProb(std::vector<EmcModule> HitList, float en, float xg, float
 
   chi2 = 0;
   ndf = 0;
-  if (_emcprof == nullptr) return -1;
+  if (_emcprof == nullptr)
+  {
+    return -1;
+  }
 
   if (!(_emcprof->IsLoaded()))
   {
@@ -674,7 +773,10 @@ float BEmcRec::GetProb(std::vector<EmcModule> HitList, float en, float xg, float
   }
 
   int nn = HitList.size();
-  if (nn <= 0) return -1;
+  if (nn <= 0)
+  {
+    return -1;
+  }
 
   float theta, phi;
   GetImpactThetaPhi(xg, yg, zg, theta, phi);
@@ -692,9 +794,15 @@ float BEmcRec::GetProb(std::vector<EmcModule> HitList, float en, float xg, float
   float ddy = fabs(ycg - iy0cg);
 
   int isz = 1;
-  if (zcg - iz0cg < 0) isz = -1;
+  if (zcg - iz0cg < 0)
+  {
+    isz = -1;
+  }
   int isy = 1;
-  if (ycg - iy0cg < 0) isy = -1;
+  if (ycg - iy0cg < 0)
+  {
+    isy = -1;
+  }
 
   // 4 central towers: 43
   //                   12
@@ -704,10 +812,22 @@ float BEmcRec::GetProb(std::vector<EmcModule> HitList, float en, float xg, float
   e2 = GetTowerEnergy(iy0cg, iz0cg + isz, &HitList);
   e3 = GetTowerEnergy(iy0cg + isy, iz0cg + isz, &HitList);
   e4 = GetTowerEnergy(iy0cg + isy, iz0cg, &HitList);
-  if (e1 < thresh) e1 = 0;
-  if (e2 < thresh) e2 = 0;
-  if (e3 < thresh) e3 = 0;
-  if (e4 < thresh) e4 = 0;
+  if (e1 < thresh)
+  {
+    e1 = 0;
+  }
+  if (e2 < thresh)
+  {
+    e2 = 0;
+  }
+  if (e3 < thresh)
+  {
+    e3 = 0;
+  }
+  if (e4 < thresh)
+  {
+    e4 = 0;
+  }
 
   float e1t = (e1 + e2 + e3 + e4) / etot;
   float e2t = (e1 + e2 - e3 - e4) / etot;
@@ -764,7 +884,8 @@ int BEmcRec::HitACompare(const void* h1, const void* h2)
 {
   float amp1 = static_cast<const EmcModule*>(h1)->amp;
   float amp2 = static_cast<const EmcModule*>(h2)->amp;
-  return (amp1 < amp2) ? 1 : (amp1 > amp2) ? -1 : 0;
+  return (amp1 < amp2) ? 1 : (amp1 > amp2) ? -1
+                                           : 0;
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -772,7 +893,10 @@ int BEmcRec::HitACompare(const void* h1, const void* h2)
 void BEmcRec::ZeroVector(int* v, int N)
 {
   int* p = v;
-  for (int i = 0; i < N; i++) *p++ = 0;
+  for (int i = 0; i < N; i++)
+  {
+    *p++ = 0;
+  }
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -780,7 +904,10 @@ void BEmcRec::ZeroVector(int* v, int N)
 void BEmcRec::ZeroVector(float* v, int N)
 {
   float* p = v;
-  for (int i = 0; i < N; i++) *p++ = 0;
+  for (int i = 0; i < N; i++)
+  {
+    *p++ = 0;
+  }
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -800,8 +927,14 @@ void BEmcRec::ZeroVector(EmcModule* v, int N)
 
 void BEmcRec::CopyVector(const int* from, int* to, int N)
 {
-  if (N <= 0) return;
-  for (int i = 0; i < N; i++) to[i] = from[i];
+  if (N <= 0)
+  {
+    return;
+  }
+  for (int i = 0; i < N; i++)
+  {
+    to[i] = from[i];
+  }
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -822,7 +955,7 @@ void BEmcRec::CopyVector(const EmcModule* from, EmcModule* to, int N)
 
 /* Future improvements:
 
-1. FindClusters(): to ensure that all EmcModules are above energy threshold 
+1. FindClusters(): to ensure that all EmcModules are above energy threshold
 set by SetThreshold routine (or default one)
 
 */

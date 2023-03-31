@@ -14,7 +14,7 @@ BbcPmtContainerV1::BbcPmtContainerV1()
 {
   // BbcPmtHit is class for single hit (members: pmt,adc,tdc0,tdc1), do not mix
   // with TClonesArray *BbcPmtHits
-  BbcPmtHits = new TClonesArray("BbcPmtHit", NPMTBBCV1);
+  BbcPmtHits = new TClonesArray("BbcPmtHitV1", NPMTBBCV1);
   npmt = 0;
 }
 
@@ -44,7 +44,7 @@ void BbcPmtContainerV1::Reset()
 void BbcPmtContainerV1::AddBbcPmt(const Short_t pmt, const Float_t adc, const Float_t tdc0, const Float_t tdc1)
 {
   TClonesArray &Bbchits = *BbcPmtHits;
-  new(Bbchits[pmt]) BbcPmtHitV1(pmt, adc, tdc0, tdc1);
+  new(Bbchits[npmt++]) BbcPmtHitV1(pmt, adc, tdc0, tdc1);
 }
 
 Float_t BbcPmtContainerV1::get_adc(const int iPmt) const

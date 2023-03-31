@@ -633,6 +633,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
   }
 
   // spit out the truth clusters
+
   if (Verbosity() > 5) m_truthclusterizer->print_clusters();
   m_truthclusterizer->end_of_event();
 
