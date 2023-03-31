@@ -36,6 +36,11 @@ class BbcPmtContainer : public PHObject
   /// get Number of Bbc Pmt's
   virtual Short_t get_npmt() const;
 
+  /** get id of Pmt iPmt in TClonesArray
+      @param iPmt no of Pmt in TClonesArray
+   */
+  virtual Short_t get_pmt(const int iPmt) const;
+
   /** get Adc of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */

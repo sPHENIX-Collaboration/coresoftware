@@ -37,6 +37,11 @@ public:
   /// get Number of Bbc Pmt's
   Short_t get_npmt() const override {return npmt;}
 
+  /** get id of Pmt iPmt in TClonesArray
+      @param iPmt no of Pmt in TClonesArray
+   */
+  Short_t get_pmt(const int iPmt) const override;
+
   /** get Adc of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */
