@@ -188,7 +188,7 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
 
 
 void PHG4TpcPadPlaneReadout::MapToPadPlane(
-    TpcClusterBuilder  *tpc_truth_clusterer,
+    PHG4TpcTruthClusterizer *tpc_truth_clusterer,
     TrkrHitSetContainer *single_hitsetcontainer, 
     TrkrHitSetContainer *hitsetcontainer, 
     TrkrHitTruthAssoc * /*hittruthassoc*/, 

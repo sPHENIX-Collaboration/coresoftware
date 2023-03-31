@@ -1,4 +1,6 @@
 #include "PHG4InttHitReco.h"
+#include "PHG4InttTruthClusterizer.h"
+
 #include <intt/CylinderGeomIntt.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
@@ -52,6 +54,7 @@ PHG4InttHitReco::PHG4InttHitReco(const std::string &name)
   , m_Tmin(NAN)
   , m_Tmax(NAN)
   , m_crossingPeriod(NAN)
+  , m_truthclusterizer { new PHG4InttTruthClusterizer }
 {
   InitializeParameters();
 
@@ -68,7 +71,7 @@ PHG4InttHitReco::~PHG4InttHitReco()
   gsl_vector_free(m_LocalOutVec);
   gsl_vector_free(m_PathVec);
   gsl_vector_free(m_SegmentVec);
-  delete m_truth_clusterer;
+  delete m_truthclusterizer;
 }
 
 int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
@@ -176,40 +179,7 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
   m_Tmax = get_double_param("tmax");
   m_crossingPeriod = get_double_param("beam_crossing_period");
 
-  //
-  m_truthtracks = findNode::getClass<TrkrTruthTrackContainer>(topNode, "TRKR_TRUTHTRACKCONTAINER");
-  if (!m_truthtracks)
-  {
-    PHNodeIterator dstiter(dstNode);
-    auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode("TRKR");
-      dstNode->addNode(DetNode);
-    }
-
-    m_truthtracks = new TrkrTruthTrackContainerv1();
-    auto newNode = new PHIODataNode<PHObject>(m_truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
-    DetNode->addNode(newNode);
-  }
-  m_truthclusters = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_TRUTHCLUSTERCONTAINER");
-  if (!m_truthclusters)
-  {
-    PHNodeIterator dstiter(dstNode);
-    auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode("TRKR");
-      dstNode->addNode(DetNode);
-    }
-
-    m_truthclusters = new TrkrClusterContainerv4;
-    auto newNode = new PHIODataNode<PHObject>(m_truthclusters, "TRKR_TRUTHCLUSTERCONTAINER", "PHObject");
-    DetNode->addNode(newNode);
-  }
-
-  m_truth_clusterer = new TruthInttClusterBuilder(m_truthclusters, 
-      m_truthtracks, Verbosity() );
+  m_truthclusterizer->init_run(topNode, Verbosity());
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -251,24 +221,12 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
 
 
-  // get nodes for the truth_clusterer
-  PHG4TruthInfoContainer *truthinfo =
-    findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-  m_truth_clusterer->set_truthinfo(truthinfo);
- 
-  // get the geometry node
-  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
-  if (!geom_container) {
-    std::cout << PHWHERE << "Failed to get geom_container in TruthInttClusterBuilder.cc" << std::endl;
-  }
-  m_truth_clusterer->set_geom_container(geom_container);
-
   for (PHG4HitContainer::ConstIterator hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     const int sphxlayer = hiter->second->get_detid();
     CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(geo->GetLayerGeom(sphxlayer));
 
-    m_truth_clusterer->check_g4hit(hiter->second);
+    m_truthclusterizer->check_g4hit(hiter->second);
 
     // checking ADC timing integration window cut
     // uses default values for now
@@ -488,7 +446,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       double hit_energy = venergy[i1].first * TrkrDefs::InttEnergyScaleup;
       hit->addEnergy(hit_energy);
 
-      m_truth_clusterer->addhitset(hitsetkey, hitkey, hit_energy);
+      m_truthclusterizer->addhitset(hitsetkey, hitkey, hit_energy);
 
       // Add this hit to the association map
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
@@ -499,7 +457,6 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       }
     }
   }  // end loop over g4hits
-  m_truth_clusterer->reset();
   
   // print the list of entries in the association table
   if (Verbosity() > 0)
@@ -508,6 +465,11 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     hitsetcontainer->identify();
     hittruthassoc->identify();
   }
+  
+  // spit out the truth clusters
+  if (Verbosity() > 5) m_truthclusterizer->print_clusters();
+  m_truthclusterizer->end_of_event();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

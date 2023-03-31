@@ -64,7 +64,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
  private:
 
-  PHG4TpcTruthClusterizer m_truthclusterizer;
+  PHG4TpcTruthClusterizer* m_truthclusterizer;
 
   std::ofstream f_out;
 

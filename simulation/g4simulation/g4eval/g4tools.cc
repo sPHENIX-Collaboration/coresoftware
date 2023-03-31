@@ -225,7 +225,6 @@ namespace G4Eval {
   , has_tpc    { _track->get_tpc_seed()!=nullptr }
   , no_data    { !in_silicon && !has_tpc }
   {
-    std::cout << " FIMXE: new track apple has_tpc: " << has_tpc << "  in_silicon " << in_silicon << std::endl;
   }
 
   ClusKeyIter ClusKeyIter::begin() {

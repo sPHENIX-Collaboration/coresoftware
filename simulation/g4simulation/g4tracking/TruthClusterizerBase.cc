@@ -46,13 +46,14 @@
 #include <set>
 #include <vector> 
 
-TruthClusterizerBase::TruthClusterizerBase(int _verbosity)
-  : m_verbosity     { _verbosity }
-  , m_hits          { new TrkrHitSetContainerv1 }
-{}
+TruthClusterizerBase::TruthClusterizerBase ( )
+    : m_hits      { new TrkrHitSetContainerv1 }
+{ }
 
-void TruthClusterizerBase::init_nodes(PHCompositeNode*& topNode) {
-  PHNodeIterator iter(topNode);
+void TruthClusterizerBase::init_clusterizer_base( PHCompositeNode*& _topNode, int _verbosity ) {
+  m_topNode = _topNode;
+  m_verbosity = _verbosity;
+  PHNodeIterator iter(m_topNode);
   auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   assert(dstNode);
   PHNodeIterator dstiter(dstNode);
@@ -63,7 +64,7 @@ void TruthClusterizerBase::init_nodes(PHCompositeNode*& topNode) {
     dstNode->addNode(DetNode);
   }
 
-  m_truthtracks = findNode::getClass<TrkrTruthTrackContainer>(topNode, "TRKR_TRUTHTRACKCONTAINER");
+  m_truthtracks = findNode::getClass<TrkrTruthTrackContainer>(m_topNode, "TRKR_TRUTHTRACKCONTAINER");
   if (!m_truthtracks)
   {
     PHNodeIterator dstiter(dstNode);
@@ -72,7 +73,7 @@ void TruthClusterizerBase::init_nodes(PHCompositeNode*& topNode) {
     DetNode->addNode(newNode);
   }
 
-  m_clusters = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_TRUTHCLUSTERCONTAINER");
+  m_clusters = findNode::getClass<TrkrClusterContainer>(m_topNode, "TRKR_TRUTHCLUSTERCONTAINER");
   if (!m_clusters)
   {
     m_clusters = new TrkrClusterContainerv4;
@@ -80,7 +81,7 @@ void TruthClusterizerBase::init_nodes(PHCompositeNode*& topNode) {
     DetNode->addNode(newNode);
   }
 
-  m_truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  m_truthinfo = findNode::getClass<PHG4TruthInfoContainer>(m_topNode, "G4TruthInfo");
   if (!m_truthinfo)
   {
     std::cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << std::endl;

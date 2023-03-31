@@ -79,18 +79,16 @@ int MvtxHitPruner::InitRun(PHCompositeNode * /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int MvtxHitPruner::process_event(PHCompositeNode *topNode) {
+int MvtxHitPruner::process_event(PHCompositeNode *topNode)
+{
+  // get node containing the digitized hits
   m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!m_hits)
   {
     cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  return process_TrkrHitSetContainer(m_hits);
-}
 
-int MvtxHitPruner::process_TrkrHitSetContainer(TrkrHitSetContainer* _m_hits)
-{
   // We want to combine all strobe values for a given hitset
   // Start by looping over all MVTX hitsets and making a map of physical sensor to hitsetkey-with-strobe
   //=============================================================================
@@ -98,7 +96,7 @@ int MvtxHitPruner::process_TrkrHitSetContainer(TrkrHitSetContainer* _m_hits)
   std::set<TrkrDefs::hitsetkey> bare_hitset_set;  // list of all physical sensor hitsetkeys (i.e. with strobe set to zero)
 
   TrkrHitSetContainer::ConstRange hitsetrange =
-    _m_hits->getHitSets(TrkrDefs::TrkrId::mvtxId);
+    m_hits->getHitSets(TrkrDefs::TrkrId::mvtxId);
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
@@ -122,7 +120,7 @@ int MvtxHitPruner::process_TrkrHitSetContainer(TrkrHitSetContainer* _m_hits)
   for(auto bare_it = bare_hitset_set.begin(); bare_it != bare_hitset_set.end(); ++bare_it)
     {
       auto bare_hitsetkey = *bare_it;
-      TrkrHitSet* bare_hitset = (_m_hits->findOrAddHitSet(bare_hitsetkey))->second;
+      TrkrHitSet* bare_hitset = (m_hits->findOrAddHitSet(bare_hitsetkey))->second;
       if(Verbosity() > 0) std::cout << "         bare_hitset " << bare_hitsetkey << " initially has " << bare_hitset->size() << " hits " << std::endl; 
 
       auto bare_hitsetrange= hitset_multimap.equal_range(bare_hitsetkey);
@@ -136,7 +134,7 @@ int MvtxHitPruner::process_TrkrHitSetContainer(TrkrHitSetContainer* _m_hits)
 	      if(Verbosity() > 0)  cout << "            process hitsetkey " << hitsetkey << " for bare_hitsetkey " << bare_hitsetkey << endl;
 
 	      // copy all hits to the hitset with strobe 0
-	      TrkrHitSet* hitset = _m_hits->findHitSet(hitsetkey);		
+	      TrkrHitSet* hitset = m_hits->findHitSet(hitsetkey);		
 
 	       if(Verbosity() > 0) 
 		 std::cout << "                hitsetkey " << hitsetkey << " has strobe " << strobe << " and has " << hitset->size() << " hits,  so copy it" << std::endl;
@@ -165,7 +163,7 @@ int MvtxHitPruner::process_TrkrHitSetContainer(TrkrHitSetContainer* _m_hits)
 		}
 
 	      // all hits are copied over to the strobe zero hitset, remove this hitset
-	      _m_hits->removeHitSet(hitsetkey);
+	      m_hits->removeHitSet(hitsetkey);
 	    }
 	}
     }

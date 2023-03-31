@@ -34,8 +34,9 @@ class PHG4Hit;
 
 class TruthClusterizerBase {
   protected:
-  int                      m_verbosity     ;
   TrkrHitSetContainer*     m_hits          ;
+  int                      m_verbosity     { 0 };
+  PHCompositeNode*         m_topNode       { nullptr };
   TrkrTruthTrackContainer* m_truthtracks   { nullptr };
   TrkrClusterContainer*    m_clusters      { nullptr }; // cluster container passed to individual clusterers
   PHG4TruthInfoContainer*  m_truthinfo     { nullptr };
@@ -54,8 +55,8 @@ class TruthClusterizerBase {
   /* }; */
 
   public:
-  TruthClusterizerBase ( int verbosity=0 );
-  void init_nodes ( PHCompositeNode*& topNode );
+  TruthClusterizerBase ( );
+  void    init_clusterizer_base ( PHCompositeNode*& _topNode, int verbosity );
   virtual ~TruthClusterizerBase();
 
   // main use functions
@@ -67,6 +68,7 @@ class TruthClusterizerBase {
   void addhitset   (TrkrDefs::hitsetkey, TrkrDefs::hitkey, float neffelectrons);
 
   // convenience
+  int  Verbosity() { return m_verbosity; };
   void set_verbosity(int _) { m_verbosity = _; };
   void print_clusters(int nclusprint=20);
 

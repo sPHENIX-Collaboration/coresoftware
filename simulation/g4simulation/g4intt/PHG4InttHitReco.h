@@ -3,7 +3,6 @@
 #ifndef G4INTT_PHG4INTTHITRECO_H
 #define G4INTT_PHG4INTTHITRECO_H
 
-#include "TruthInttClusterBuilder.h"
 
 #include <phparameter/PHParameterInterface.h>
 
@@ -18,6 +17,7 @@ class PHCompositeNode;
 
 class TrkrTruthTrackContainer;
 class TrkrClusterContainer;
+class PHG4InttTruthClusterizer;
 
 
 class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
@@ -37,6 +37,7 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
 
   void Detector(const std::string &d) { m_Detector = d; }
 
+  PHG4InttTruthClusterizer* get_truth_clusterizer() { return m_truthclusterizer; };
  protected:
   std::string m_Detector = "INTT";
   std::string m_HitNodeName;
@@ -50,7 +51,7 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
   double m_Tmax;
   double m_crossingPeriod;
 
-  TruthInttClusterBuilder* m_truth_clusterer { nullptr };
+  PHG4InttTruthClusterizer* m_truthclusterizer;
 
   gsl_vector *m_LocalOutVec = nullptr;
   gsl_vector *m_PathVec = nullptr;

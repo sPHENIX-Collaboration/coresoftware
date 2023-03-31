@@ -39,9 +39,6 @@ class MvtxHitPruner : public SubsysReco
   //! end of process
   int End(PHCompositeNode */*topNode*/) override { return 0; }
 
-  // will run process event on the container that is passed in
-  int process_TrkrHitSetContainer(TrkrHitSetContainer*);
-
  private:
 
   // node tree storage pointers

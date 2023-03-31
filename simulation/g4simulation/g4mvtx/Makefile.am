@@ -23,7 +23,7 @@ libg4mvtx_la_LIBADD = \
   -lg4detectors \
   -ltrack_io \
   -lg4tracking_io \
-	-lmvtx \
+  -lmvtx \
   -lmvtx_io
 
 pkginclude_HEADERS = \
@@ -32,7 +32,7 @@ pkginclude_HEADERS = \
   PHG4MvtxSubsystem.h \
   PHG4EICMvtxSubsystem.h \
   PHG4MvtxDigitizer.h \
-  TruthMvtxClusterBuilder.h
+  PHG4MvtxTruthClusterizer.h
 
 libg4mvtx_la_SOURCES = \
   PHG4MvtxHitReco.cc \
@@ -47,7 +47,7 @@ libg4mvtx_la_SOURCES = \
   PHG4MvtxCable.cc \
   PHG4MvtxServiceStructure.cc \
   PHG4MvtxSupport.cc \
-  TruthMvtxClusterBuilder.cc
+  PHG4MvtxTruthClusterizer.cc
 
 ################################################
 # linking tests

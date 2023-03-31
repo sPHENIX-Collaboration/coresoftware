@@ -88,6 +88,7 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , PHParameterInterface(name)
   , temp_hitsetcontainer(new TrkrHitSetContainerv1)
   , single_hitsetcontainer(new TrkrHitSetContainerv1)
+  , m_truthclusterizer { new PHG4InttTruthClusterizer }
 {
   InitializeParameters();
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
@@ -98,6 +99,7 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
 int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
 {
   padplane->Init(topNode);
+  m_truthclusterizer->init_run(topNode, Verbosity());
   event_num = 0;
   return Fun4AllReturnCodes::EVENT_OK;
 }
