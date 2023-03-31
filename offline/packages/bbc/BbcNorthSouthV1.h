@@ -1,5 +1,7 @@
-#ifndef __BBCNORTHSOUTHV1_H__
-#define __BBCNORTHSOUTHV1_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef BBC_BBCNORTHSOUTHV1_H
+#define BBC_BBCNORTHSOUTHV1_H
 
 #include "BbcNorthSouth.h"
 

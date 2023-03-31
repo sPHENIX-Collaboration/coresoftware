@@ -1,5 +1,7 @@
-#ifndef __BBCOUTV1_H
-#define __BBCOUTV1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef BBC_BBCOUTV1_H
+#define BBC_BBCOUTV1_H
 
 #include "BbcOut.h"
 class TClonesArray;
@@ -89,7 +91,6 @@ private:
   Float_t Bbc_dTimeZero;
   TClonesArray *BbcNS;
 
-private: // so the ClassDef does not show up with doc++
   ClassDefOverride(BbcOutV1,1)
 
 };

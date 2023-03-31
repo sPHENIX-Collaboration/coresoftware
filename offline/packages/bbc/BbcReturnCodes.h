@@ -1,9 +1,11 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 /*
 Return codes
 */
 
-#ifndef BBCRETURNCODE
-#define BBCRETURNCODE
+#ifndef BBC_BBCRETURNCODES_H
+#define BBC_BBCRETURNCODES_H
 
 const short BBC_INVALID_SHORT = -9999;
 const int   BBC_INVALID_INT   = -9999;

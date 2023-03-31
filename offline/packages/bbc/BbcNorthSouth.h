@@ -1,5 +1,7 @@
-#ifndef __BBCNORTHSOUTH_H__
-#define __BBCNORTHSOUTH_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef BBC_BBCNORTHSOUTH_H
+#define BBC_BBCNORTHSOUTH_H
 
 #include "phool/phool.h"
 #include <TObject.h>

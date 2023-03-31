@@ -1,7 +1,9 @@
-#ifndef __BBCOUT_H__
-#define __BBCOUT_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef BBC_BBCOUT_H
+#define BBC_BBCOUT_H
 
-#include "phool/PHObject.h"
+#include <phool/PHObject.h>
 
 ///
 class BbcOut: public PHObject

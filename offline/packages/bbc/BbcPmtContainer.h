@@ -1,7 +1,9 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 //  virtual Bbc PMT Container class
 
-#ifndef __BBCPMTCONTAINER_H__
-#define __BBCPMTCONTAINER_H__
+#ifndef BBC_BBCPMTCONTAINER_H
+#define BBC_BBCPMTCONTAINER_H
 
 #include "phool/PHObject.h"
 #include <iostream>

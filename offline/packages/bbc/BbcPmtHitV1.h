@@ -1,5 +1,7 @@
-#ifndef __BBCPMTHITV1_H__
-#define __BBCPMTHITV1_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef BBC_BBCPMTHITV1_H
+#define BBC_BBCPMTHITV1_H
 
 #include "BbcPmtHit.h"
 #include <iostream>

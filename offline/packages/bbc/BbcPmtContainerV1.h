@@ -1,5 +1,7 @@
-#ifndef __BBCPMTCONTAINERV1_H__
-#define __BBCPMTCONTAINERV1_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef BBC_BBCPMTCONTAINERV1_H
+#define BBC_BBCPMTCONTAINERV1_H
 
 #include "BbcPmtContainer.h"
 

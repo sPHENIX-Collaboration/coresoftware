@@ -1,5 +1,7 @@
-#ifndef __BBCPMTHIT_H__
-#define __BBCPMTHIT_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef BBC_BBCPMTHIT_H
+#define BBC_BBCPMTHIT_H
 
 #include <iostream>
 #include <phool/phool.h>
