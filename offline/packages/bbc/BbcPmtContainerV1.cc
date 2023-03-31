@@ -35,7 +35,7 @@ void BbcPmtContainerV1::Reset()
   npmt = 0;
 }
 
-void BbcPmtContainerV1::AddBbcPmt(const Short_t pmt, const Float_t adc, const Float_t tdc0, const Float_t tdc1)
+void BbcPmtContainerV1::AddBbcPmt(const Short_t pmt, const float adc, const Float_t tdc0, const Float_t tdc1)
 {
   TClonesArray &Bbchits = *BbcPmtHits;
   new(Bbchits[npmt++]) BbcPmtHitV1(pmt, adc, tdc0, tdc1);
@@ -47,19 +47,19 @@ Short_t BbcPmtContainerV1::get_pmt(const int iPmt) const
   return ((Bbchit) ? Bbchit->get_pmt() : BbcReturnCodes::BBC_INVALID_SHORT);
 }
 
-Float_t BbcPmtContainerV1::get_adc(const int iPmt) const
+float BbcPmtContainerV1::get_adc(const int iPmt) const
 {
   BbcPmtHit *Bbchit = (BbcPmtHit*) GetBbcPmtHits()->UncheckedAt(iPmt);
   return ((Bbchit) ? Bbchit->get_adc() : BbcReturnCodes::BBC_INVALID_FLOAT);
 }
 
-Float_t BbcPmtContainerV1::get_tdc0(const int iPmt) const
+float BbcPmtContainerV1::get_tdc0(const int iPmt) const
 {
   BbcPmtHit *Bbchit = (BbcPmtHit*) GetBbcPmtHits()->UncheckedAt(iPmt);
   return ((Bbchit) ? Bbchit->get_tdc0() : BbcReturnCodes::BBC_INVALID_FLOAT);
 }
 
-Float_t BbcPmtContainerV1::get_tdc1(const int iPmt) const
+float BbcPmtContainerV1::get_tdc1(const int iPmt) const
 {
   BbcPmtHit *Bbchit = (BbcPmtHit*) GetBbcPmtHits()->UncheckedAt(iPmt);
   return ((Bbchit) ? Bbchit->get_tdc1() : BbcReturnCodes::BBC_INVALID_FLOAT);

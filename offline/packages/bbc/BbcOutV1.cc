@@ -55,27 +55,27 @@ void BbcOutV1::identify(std::ostream& out) const
 }
 
 //______________________________________
-void BbcOutV1::set_TimeZero(const Float_t t0, const Float_t t0err )
+void BbcOutV1::set_TimeZero(const float t0, const Float_t t0err )
 {
   Bbc_TimeZero  = t0;
   Bbc_dTimeZero = t0err;
 }
 
 //______________________________________
-void BbcOutV1::set_Vertex( const Float_t vtx, const Float_t vtxerr)
+void BbcOutV1::set_Vertex( const float vtx, const Float_t vtxerr)
 {
   Bbc_ZVertex   = vtx;
   Bbc_dZVertex  = vtxerr;
 }
 
 //______________________________________
-void BbcOutV1::set_dZVertex( const Float_t vtxerr)
+void BbcOutV1::set_dZVertex( const float vtxerr)
 {
   Bbc_dZVertex = vtxerr;
 }
 
 //______________________________________
-void BbcOutV1::AddBbcNS(const int iBBC, const Short_t npmt, const Float_t energy, const Float_t timing)
+void BbcOutV1::AddBbcNS(const int iBBC, const Short_t npmt, const float energy, const Float_t timing)
 {
   TClonesArray &bbcns = *BbcNS;
   new(bbcns[iBBC]) BbcNorthSouthV1(npmt, energy,timing);
@@ -90,14 +90,14 @@ Short_t BbcOutV1::get_nPMT(const int nBbc) const
 }
 
 //______________________________________
-Float_t BbcOutV1::get_nCharge(const int nBbc) const
+float BbcOutV1::get_nCharge(const int nBbc) const
 {
   BbcNorthSouth *bbcns = (BbcNorthSouthV1*) GetBbcNS()->UncheckedAt(nBbc);
   //  if bbcns=nil (does not exist) return BbcReturnCodes::BBC_INVALID_FLOAT, else Energy
   return((bbcns) ? bbcns->get_nCharge() : BbcReturnCodes::BBC_INVALID_FLOAT);
 }
 
-Float_t BbcOutV1::get_Timing(const int nBbc) const
+float BbcOutV1::get_Timing(const int nBbc) const
 {
   BbcNorthSouth *bbcns = (BbcNorthSouthV1*) GetBbcNS()->UncheckedAt(nBbc);
   //  if bbcns=nil (does not exist) return BbcReturnCodes::BBC_INVALID_FLOAT, else Timing

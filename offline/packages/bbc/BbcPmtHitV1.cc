@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-BbcPmtHitV1::BbcPmtHitV1(const Short_t ipmt, const Float_t iadc, const Float_t itdc0, const Float_t itdc1) :
+BbcPmtHitV1::BbcPmtHitV1(const Short_t ipmt, const float iadc, const Float_t itdc0, const Float_t itdc1) :
   pmt(ipmt),
   adc(iadc),
   tdc0(itdc0),

@@ -44,17 +44,17 @@ class BbcPmtContainer : public PHObject
   /** get Adc of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */
-  virtual Float_t get_adc(const int iPmt) const;
+  virtual float get_adc(const int iPmt) const;
 
   /** get Tdc0 of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */
-  virtual Float_t get_tdc0(const int iPmt) const;
+  virtual float get_tdc0(const int iPmt) const;
 
   /** get Tdc1 of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */
-  virtual Float_t get_tdc1(const int iPmt) const;
+  virtual float get_tdc1(const int iPmt) const;
 
   /** Add Bbc Raw hit object to TCLonesArray
       @param ipmt Pmt id
@@ -62,7 +62,7 @@ class BbcPmtContainer : public PHObject
       @param tdc0 Tdc0 value
       @param tdc1 Tdc1 value
   */
-  virtual void AddBbcPmt(const Short_t ipmt, const Float_t adc, const Float_t tdc0, const Float_t tdc1);
+  virtual void AddBbcPmt(const Short_t ipmt, const float adc, const Float_t tdc0, const Float_t tdc1);
 
  private:
   void virtual_warning(const std::string &funcname) const;

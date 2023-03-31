@@ -45,17 +45,17 @@ public:
   /** get Adc of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */
-  Float_t get_adc(const int iPmt) const override;
+  float get_adc(const int iPmt) const override;
 
   /** get Tdc0 of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */
-  Float_t get_tdc0(const int iPmt) const override;
+  float get_tdc0(const int iPmt) const override;
 
   /** get Tdc1 of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */
-  Float_t get_tdc1(const int iPmt) const override;
+  float get_tdc1(const int iPmt) const override;
 
   /** Add Bbc Raw hit object to TCLonesArray
       @param pmt Pmt id
@@ -64,7 +64,7 @@ public:
       @param tdc1 Tdc1 value
       @param ipmt no of pmt
   */
-   void AddBbcPmt(const Short_t ipmt, const Float_t adc, const Float_t tdc0, const Float_t tdc1) override;
+   void AddBbcPmt(const Short_t ipmt, const float adc, const Float_t tdc0, const Float_t tdc1) override;
 
 private:
   TClonesArray *GetBbcPmtHits() const {return BbcPmtHits;}

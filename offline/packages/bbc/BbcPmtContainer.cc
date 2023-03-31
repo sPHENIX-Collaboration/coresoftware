@@ -41,27 +41,27 @@ Short_t BbcPmtContainer::get_pmt(const int /*iPmt*/) const
   return BbcReturnCodes::BBC_INVALID_SHORT;
 }
 
-Float_t BbcPmtContainer::get_adc(const int /*iPmt*/) const
+float BbcPmtContainer::get_adc(const int /*iPmt*/) const
 {
   virtual_warning("get_Adc(const short iPmt)");
   return BbcReturnCodes::BBC_INVALID_FLOAT;
 }
 
-Float_t BbcPmtContainer::get_tdc0(const int /*iPmt*/) const
+float BbcPmtContainer::get_tdc0(const int /*iPmt*/) const
 {
   virtual_warning("get_Tdc0(const short iPmt)");
   return BbcReturnCodes::BBC_INVALID_FLOAT;
 }
 
-Float_t BbcPmtContainer::get_tdc1(const int /*iPmt*/) const
+float BbcPmtContainer::get_tdc1(const int /*iPmt*/) const
 {
   virtual_warning("get_Tdc1(const short iPmt)");
   return BbcReturnCodes::BBC_INVALID_FLOAT;
 }
 
-void BbcPmtContainer::AddBbcPmt(const Short_t /*ipmt*/, const Float_t /*adc*/, const Float_t /*tdc0*/, const Float_t /*tdc1*/)
+void BbcPmtContainer::AddBbcPmt(const Short_t /*ipmt*/, const float /*adc*/, const Float_t /*tdc0*/, const Float_t /*tdc1*/)
 {
-  virtual_warning("AddBbcPmtHit(const Short_t ipmt, const Short_t adc, const Float_t tdc0, const Float_t tdc1)");
+  virtual_warning("AddBbcPmtHit(const Short_t ipmt, const Short_t adc, const float tdc0, const Float_t tdc1)");
   return ;
 }
 
