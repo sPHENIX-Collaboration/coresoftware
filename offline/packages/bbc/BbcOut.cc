@@ -80,7 +80,7 @@ void BbcOut::AddBbcNS(const int /*nBbc*/, const Short_t /*npmt*/, const Float_t 
 Short_t BbcOut::get_nPMT(const int /*nBbc*/) const
 {
   virtual_warning("get_nPMT(const int nBbc)");
-  return BBC_INVALID_SHORT;
+  return BbcReturnCodes::BBC_INVALID_SHORT;
 }
 
 Float_t BbcOut::get_nCharge(const int /*nBbc*/) const

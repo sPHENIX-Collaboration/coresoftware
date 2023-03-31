@@ -34,25 +34,25 @@ void BbcPmtContainer::set_npmt(const Short_t /*ival*/)
 short BbcPmtContainer::get_npmt() const
 {
   virtual_warning("get_npmt()");
-  return BBC_INVALID_SHORT;
+  return BbcReturnCodes::BBC_INVALID_SHORT;
 }
 
 Float_t BbcPmtContainer::get_adc(const int /*iPmt*/) const
 {
   virtual_warning("get_Adc(const short iPmt)");
-  return BBC_INVALID_SHORT;
+  return BbcReturnCodes::BBC_INVALID_SHORT;
 }
 
 Float_t BbcPmtContainer::get_tdc0(const int /*iPmt*/) const
 {
   virtual_warning("get_Tdc0(const short iPmt)");
-  return BBC_INVALID_SHORT;
+  return BbcReturnCodes::BBC_INVALID_SHORT;
 }
 
 Float_t BbcPmtContainer::get_tdc1(const int /*iPmt*/) const
 {
   virtual_warning("get_Tdc1(const short iPmt)");
-  return BBC_INVALID_SHORT;
+  return BbcReturnCodes::BBC_INVALID_SHORT;
 }
 
 void BbcPmtContainer::AddBbcPmt(const Short_t /*ipmt*/, const Float_t /*adc*/, const Float_t /*tdc0*/, const Float_t /*tdc1*/)

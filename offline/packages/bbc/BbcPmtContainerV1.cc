@@ -50,19 +50,19 @@ void BbcPmtContainerV1::AddBbcPmt(const Short_t pmt, const Float_t adc, const Fl
 Float_t BbcPmtContainerV1::get_adc(const int iPmt) const
 {
   BbcPmtHit *Bbchit = (BbcPmtHit*) GetBbcPmtHits()->UncheckedAt(iPmt);
-  return ((Bbchit) ? Bbchit->get_adc() : BBC_INVALID_SHORT);
+  return ((Bbchit) ? Bbchit->get_adc() : BbcReturnCodes::BBC_INVALID_SHORT);
 }
 
 Float_t BbcPmtContainerV1::get_tdc0(const int iPmt) const
 {
   BbcPmtHit *Bbchit = (BbcPmtHit*) GetBbcPmtHits()->UncheckedAt(iPmt);
-  return ((Bbchit) ? Bbchit->get_tdc0() : BBC_INVALID_SHORT);
+  return ((Bbchit) ? Bbchit->get_tdc0() : BbcReturnCodes::BBC_INVALID_SHORT);
 }
 
 Float_t BbcPmtContainerV1::get_tdc1(const int iPmt) const
 {
   BbcPmtHit *Bbchit = (BbcPmtHit*) GetBbcPmtHits()->UncheckedAt(iPmt);
-  return ((Bbchit) ? Bbchit->get_tdc1() : BBC_INVALID_SHORT);
+  return ((Bbchit) ? Bbchit->get_tdc1() : BbcReturnCodes::BBC_INVALID_SHORT);
 }
 
 void BbcPmtContainerV1::identify(ostream& out) const

@@ -1,9 +1,6 @@
 #include "BbcPmtHitV1.h"
+
 #include <iostream>
-
-ClassImp(BbcPmtHitV1)
-
-using namespace std;
 
 BbcPmtHitV1::BbcPmtHitV1(const Short_t ipmt, const Float_t iadc, const Float_t itdc0, const Float_t itdc1) :
   pmt(ipmt),
@@ -14,7 +11,9 @@ BbcPmtHitV1::BbcPmtHitV1(const Short_t ipmt, const Float_t iadc, const Float_t i
 }
 
 
-void BbcPmtHitV1::identify(ostream& out) const
+void BbcPmtHitV1::identify(std::ostream& out) const
 {
-  out << "identify yourself: I am a BbcPmtHitV1 object" << endl;
+  out << "identify yourself: I am a BbcPmtHitV1 object" << std::endl;
+  out << "Pmt: " << pmt << ", adc: " << adc << ", tdc0: "
+      << tdc0 << ", tdc1: " << tdc1 << std::endl;
 }
