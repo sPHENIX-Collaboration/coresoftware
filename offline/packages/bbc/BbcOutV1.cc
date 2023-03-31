@@ -3,14 +3,10 @@
 #include "BbcNorthSouthV1.h"
 
 #include <TClonesArray.h>
+
 #include <iostream>
 
-//static const int NPMTBBCV1 = 128;
 static const int NBBC = 2;
-
-using namespace std;
-
-ClassImp(BbcOutV1)
 
 //______________________________________
 BbcOutV1::BbcOutV1()
@@ -31,10 +27,7 @@ void BbcOutV1::Init()
 //______________________________________
 BbcOutV1::~BbcOutV1()
 {  
-  if (BbcNS)
-  {
     delete BbcNS;
-  }
 }
 
 //______________________________________
@@ -54,11 +47,11 @@ void BbcOutV1::Reset()
 }
 
 //______________________________________
-void BbcOutV1::identify(ostream& out) const
+void BbcOutV1::identify(std::ostream& out) const
 {
-  out << "identify yourself: I am a BbcOutV1 object" << endl;
-  out << "Vertex: " << Bbc_ZVertex << " Error: " << Bbc_dZVertex << endl;
-  out << "T0: " << Bbc_TimeZero << " Error: " << Bbc_dTimeZero << endl;
+  out << "identify yourself: I am a BbcOutV1 object" << std::endl;
+  out << "Vertex: " << Bbc_ZVertex << " Error: " << Bbc_dZVertex << std::endl;
+  out << "T0: " << Bbc_TimeZero << " Error: " << Bbc_dTimeZero << std::endl;
 }
 
 //______________________________________

@@ -4,10 +4,12 @@
 #define BBC_BBCPMTHIT_H
 
 #include <iostream>
-#include <phool/phool.h>
-#include <TObject.h>
 
-class BbcPmtHit : public TObject
+#include <phool/PHObject.h>
+#include <phool/phool.h>
+
+
+class BbcPmtHit : public PHObject
 {
 public:
 
@@ -20,7 +22,7 @@ public:
   virtual Float_t get_tdc0() const { PHOOL_VIRTUAL_WARNING; return -9999; }
   virtual Float_t get_tdc1() const { PHOOL_VIRTUAL_WARNING; return -9999; }
 
-  void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream& os = std::cout) const override;
 
 private:
   ClassDefOverride(BbcPmtHit,1)

@@ -61,14 +61,13 @@ public:
   */
    void AddBbcPmt(const Short_t ipmt, const Float_t adc, const Float_t tdc0, const Float_t tdc1) override;
 
-protected:
+private:
   TClonesArray *GetBbcPmtHits() const {return BbcPmtHits;}
 
-  Short_t npmt;
-  TClonesArray *BbcPmtHits;
+  Short_t npmt = 0;
+  TClonesArray *BbcPmtHits = nullptr;
 
 
-private: // so the ClassDef does not show up with doc++
   ClassDefOverride(BbcPmtContainerV1,1)
 };
 

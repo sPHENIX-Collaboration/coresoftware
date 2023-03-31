@@ -1,29 +1,23 @@
 #include "BbcPmtContainerV1.h"
 #include "BbcPmtHitV1.h"
 #include "BbcReturnCodes.h"
+
 #include <TClonesArray.h>
+
 #include <iostream>
 
-using namespace std;
-
 static const int NPMTBBCV1 = 128;
-
-ClassImp(BbcPmtContainerV1)
 
 BbcPmtContainerV1::BbcPmtContainerV1()
 {
   // BbcPmtHit is class for single hit (members: pmt,adc,tdc0,tdc1), do not mix
   // with TClonesArray *BbcPmtHits
   BbcPmtHits = new TClonesArray("BbcPmtHitV1", NPMTBBCV1);
-  npmt = 0;
 }
 
 BbcPmtContainerV1::~BbcPmtContainerV1()
 {
-  if (BbcPmtHits)
-    {
-      delete BbcPmtHits;
-    }
+  delete BbcPmtHits;
 }
 
 int BbcPmtContainerV1::isValid() const
@@ -65,7 +59,7 @@ Float_t BbcPmtContainerV1::get_tdc1(const int iPmt) const
   return ((Bbchit) ? Bbchit->get_tdc1() : BbcReturnCodes::BBC_INVALID_SHORT);
 }
 
-void BbcPmtContainerV1::identify(ostream& out) const
+void BbcPmtContainerV1::identify(std::ostream& out) const
 {
-  out << "identify yourself: I am a BbcPmtContainerV1 object" << endl;
+  out << "identify yourself: I am a BbcPmtContainerV1 object" << std::endl;
 }

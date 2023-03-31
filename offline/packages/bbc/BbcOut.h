@@ -5,23 +5,25 @@
 
 #include <phool/PHObject.h>
 
+#include <string>
+
 ///
 class BbcOut: public PHObject
 {
 public:
   ///
-  virtual ~BbcOut() {}
+  ~BbcOut() override {}
   
   /** identify Function from PHObject
       @param os Output Stream 
    */
-  virtual void identify(std::ostream& os = std::cout) const override; 
+  void identify(std::ostream& os = std::cout) const override; 
 
   /// Clear Event
-  virtual void Reset() override;
+  void Reset() override;
 
   /// isValid returns non zero if object contains vailid data
-  virtual int isValid() const override;
+  int isValid() const override;
 
   /// get ZVertex determined by Bbc
   virtual Float_t get_VertexPoint() const;
@@ -87,12 +89,9 @@ public:
   virtual void FillFromClass(const BbcOut& old);
     
 private:
-  void virtual_warning(const char *funcname) const;
+  void virtual_warning(const std::string &funcname) const;
 
-  /// Root Internal Version
   ClassDefOverride(BbcOut,1)
-
-
 };
 
 #endif

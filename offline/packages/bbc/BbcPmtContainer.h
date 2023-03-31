@@ -5,8 +5,10 @@
 #ifndef BBC_BBCPMTCONTAINER_H
 #define BBC_BBCPMTCONTAINER_H
 
-#include "phool/PHObject.h"
+#include <phool/PHObject.h>
+
 #include <iostream>
+#include <string>
 
 ///
 class BbcPmtContainer : public PHObject
@@ -58,7 +60,7 @@ class BbcPmtContainer : public PHObject
   virtual void AddBbcPmt(const Short_t ipmt, const Float_t adc, const Float_t tdc0, const Float_t tdc1);
 
  private:
-  void virtual_warning(const char *funcname) const;
+  void virtual_warning(const std::string &funcname) const;
 
   ClassDefOverride(BbcPmtContainer,1)
 };

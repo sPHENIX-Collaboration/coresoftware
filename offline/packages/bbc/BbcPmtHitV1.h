@@ -4,6 +4,7 @@
 #define BBC_BBCPMTHITV1_H
 
 #include "BbcPmtHit.h"
+
 #include <iostream>
 
 class BbcPmtHitV1 : public BbcPmtHit
@@ -21,13 +22,12 @@ public:
 
   void identify(std::ostream& os = std::cout) const;
 
-protected:
+private:
   Short_t pmt;
   Float_t adc;
   Float_t tdc0;
   Float_t tdc1;
 
-private:
   ClassDefOverride(BbcPmtHitV1,1)
 };
 

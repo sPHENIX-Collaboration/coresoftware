@@ -4,11 +4,9 @@
 #include <cmath>
 #include <iostream>
 
-//ClassImp(BbcOut)
-
 void BbcOut::identify(std::ostream& os) const
 {
-  os << "virtual BbcOut object";
+  os << "virtual BbcOut object" << std::endl;
   return ;
 }
 
@@ -95,7 +93,7 @@ Float_t BbcOut::get_Timing(const int /*nBbc*/) const
   return NAN;
 }
 
-void BbcOut::virtual_warning(const char *funcsname) const
+void BbcOut::virtual_warning(const std::string &funcsname) const
 {
   std::cout << "BbcOut::" << funcsname << " is virtual, doing nothing" << std::endl;
   return ;

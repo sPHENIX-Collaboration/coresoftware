@@ -1,21 +1,19 @@
-#include <iostream>
-#include "phool/phool.h"
 #include "BbcPmtContainer.h"
 #include "BbcReturnCodes.h"
 
-using namespace std;
+#include <phool/phool.h>
 
-//ClassImp(BbcPmtContainer)
+#include <iostream>
 
-void BbcPmtContainer::identify(ostream& os) const
+void BbcPmtContainer::identify(std::ostream& os) const
 {
-  os << "virtual BbcPmtContainer object";
+  os << "virtual BbcPmtContainer object" << std::endl;
   return ;
 }
 
 void BbcPmtContainer::Reset()
 {
-  cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << endl;
+  std::cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << std::endl;
   return ;
 }
 
@@ -61,9 +59,9 @@ void BbcPmtContainer::AddBbcPmt(const Short_t /*ipmt*/, const Float_t /*adc*/, c
   return ;
 }
 
-void BbcPmtContainer::virtual_warning(const char *funcsname) const
+void BbcPmtContainer::virtual_warning(const std::string &funcsname) const
 {
-  cout << "BbcPmtContainer::" << funcsname << " is virtual, doing nothing" << endl;
+  std::cout << "BbcPmtContainer::" << funcsname << " is virtual, doing nothing" << std::endl;
   return ;
 }
 
