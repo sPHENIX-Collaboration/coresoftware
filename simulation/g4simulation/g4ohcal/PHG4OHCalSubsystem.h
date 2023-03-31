@@ -45,6 +45,11 @@ class PHG4OHCalSubsystem : public PHG4DetectorSubsystem
 
   void SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr);
 
+  // this method is used to check if it can be used as mothervolume
+  // Subsystems which can be mothervolume need to implement this
+  // and return true
+  bool CanBeMotherSubsystem() const override { return true; }
+  
  private:
   void SetDefaultParameters() override;
 

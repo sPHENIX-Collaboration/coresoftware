@@ -14,41 +14,59 @@ AM_CXXFLAGS=`geant4-config --cflags`
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include
+  -I$(OFFLINE_MAIN)/include \
+  -DEVTGEN_HEPMC3
 
 libg4decayer_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OPT_SPHENIX)/lib \
+  -L$(OFFLINE_MAIN)/lib64 \
   `geant4-config --libs`
 
 libg4decayer_la_LIBADD = \
-  -lPythia6
+  -lPythia6 \
+  -lEvtGen \
+  -lEvtGenExternal \
+  -lHepMC3 \
+  -lgsl \
+  -lgslcblas \
+  -lfun4all 
+
 
 libg4decayer_la_SOURCES = \
   pythia6_common_address.c \
   Pythia6.cc \
   G4Pythia6Decayer.cc \
   G4Pythia6DecayerMessenger.cc \
-  P6DExtDecayerPhysics.cc
+  P6DExtDecayerPhysics.cc \
+  G4EvtGenDecayer.cc \
+  EvtGenExtDecayerPhysics.cc \
+  PHEvtGenRandomEngine.cc 
 
 pkginclude_HEADERS = \
   EDecayType.hh \
-  P6DExtDecayerPhysics.hh
+  P6DExtDecayerPhysics.hh \
+  G4EvtGenDecayer.hh \
+  EvtGenExtDecayerPhysics.hh \
+  PHEvtGenRandomEngine.hh 
 
 ################################################
 # linking tests
+
+BUILT_SOURCES = \
+  testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = \
-  testexternals.C
+  testexternals.cc
 
 testexternals_LDADD = \
   libg4decayer.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
@@ -56,4 +74,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict*
+	rm -f $(BUILT_SOURCES)

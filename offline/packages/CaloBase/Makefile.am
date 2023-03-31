@@ -40,6 +40,7 @@ pkginclude_HEADERS = \
   RawTowerGeomContainer.h \
   RawTowerGeomContainerv1.h \
   RawTowerGeomContainer_Cylinderv1.h \
+  TowerInfoDefs.h \
   TowerInfo.h \
   TowerInfov1.h \
   TowerInfoContainer.h \
@@ -112,7 +113,6 @@ libcalo_io_la_SOURCES = \
   RawTowerGeomContainerv1.cc \
   RawTowerGeomContainer_Cylinderv1.cc \
   TowerInfov1.cc \
-  TowerInfoContainer.cc \
   TowerInfoContainerv1.cc
 
 # Rule for generating table CINT dictionaries.

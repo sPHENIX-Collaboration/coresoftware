@@ -48,6 +48,15 @@ class Jet : public PHObject
     ECAL_TOPO_CLUSTER = 22,    /* EMCal 3-D topoCluster input */
     EEMC_TOWER = 23,
     EEMC_CLUSTER = 24,
+    CEMC_TOWERINFO = 25,
+    HCALIN_TOWERINFO = 26,
+    HCALOUT_TOWERINFO = 27,
+    CEMC_TOWERINFO_RETOWER = 28, /* needed for HI jet reco */
+    CEMC_TOWERINFO_SUB1 = 29,
+    HCALIN_TOWERINFO_SUB1 = 30,
+    HCALOUT_TOWERINFO_SUB1 = 31, /* needed for HI jet reco */
+
+
   };
 
 

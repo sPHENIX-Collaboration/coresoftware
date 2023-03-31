@@ -1,4 +1,5 @@
 class TH3;
+class TH2;
 template <class T>
 class MultiArray;
 
@@ -40,6 +41,9 @@ class ChargeMapReader
 
   bool ReadSourceCharge(const char* filename, const char* histname, float axisScale = 1., float contentScale = 1.);
   bool ReadSourceCharge(TH3* sourceHist, float axisScale = 1., float contentScale = 1.);
+
+  bool ReadSourceAdc(const char *adcfilename, const char* adchistname, const char* ibfgainfilename, const char* ibfgainhistname, float axisScale =1., float contentScale=1.);
+  bool ReadSourceAdc(TH3 *adcHist, TH2* gainHist, float axisScale =1., float contentScale =1.);
 
   void SetChargeInBin(int r, int phi, int z, float q);
   void SetChargeAtPosition(float r, float phi, float z, float q);

@@ -18,13 +18,12 @@
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
 
-
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
-#include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/PHObject.h>                         // for PHObject
 
@@ -102,10 +101,9 @@ namespace
 }
 
 //___________________________________________________________________________
-PHG4MicromegasHitReco::PHG4MicromegasHitReco(const std::string &name, const std::string& detector)
+PHG4MicromegasHitReco::PHG4MicromegasHitReco(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-  , m_detector(detector)
 {
   // initialize rng
   const uint seed = PHRandomSeed();
@@ -148,7 +146,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
   auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+    std::cout << "PHG4MicromegasHitReco::InitRun - DST Node missing, doing nothing." << std::endl;
     exit(1);
   }
 
@@ -156,7 +154,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
   auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hitsetcontainer)
   {
-    std::cout << PHWHERE << "creating TRKR_HITSET." << std::endl;
+    std::cout << "PHG4MicromegasHitReco::InitRun - creating TRKR_HITSET." << std::endl;
 
     // find or create TRKR node
     PHNodeIterator dstiter(dstNode);
@@ -177,7 +175,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
   auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
   if (!hittruthassoc)
   {
-    std::cout << PHWHERE << "creating TRKR_HITTRUTHASSOC." << std::endl;
+    std::cout << "PHG4MicromegasHitReco::InitRun - creating TRKR_HITTRUTHASSOC." << std::endl;
 
     // find or create TRKR node
     PHNodeIterator dstiter(dstNode);
@@ -201,8 +199,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 {
   // load relevant nodes
   // G4Hits
-  const std::string g4hitnodename = "G4HIT_" + m_detector;
-  auto g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, g4hitnodename);
+  auto g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
   assert(g4hitcontainer);
 
   // acts geometry

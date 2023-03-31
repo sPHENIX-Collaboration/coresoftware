@@ -5,6 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <phparameter/PHParameterInterface.h>
 
@@ -64,13 +65,21 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_layer_param_fixed(unsigned int layer, unsigned int param);
   void set_cluster_version(unsigned int v) { _cluster_version = v; }
 
+  // utility functions for analysis modules
+  std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
+  void getTrackletClusters(TrackSeed *_track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
+  Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, Acts::Vector3 global);
+  void correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec,  std::vector<TrkrDefs::cluskey> cluskey_vec);
+  unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec);
+
  private:
 
-Mille* _mille;
+  Mille* _mille;
 
   int GetNodes(PHCompositeNode* topNode);
 
-  Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, Acts::Vector3 global);
+  void getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec);
+
   Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref);
   Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
 
@@ -81,8 +90,6 @@ Mille* _mille;
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
   int getTpcRegion(int layer);
 
-  void getTrackletClusters(TrackSeed *_track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
-  std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
   Acts::Vector3 getClusterError(TrkrCluster *cluster, TrkrDefs::cluskey cluskey, Acts::Vector3& global);
   void getGlobalLabels(Surface surf, int glbl_label[]);
   void getLocalDerivativesX(Acts::Vector3& pca, std::vector<float>& fitpars, float lcl_derivative[]);
@@ -94,14 +101,13 @@ Mille* _mille;
   void printBuffers(int index, Acts::Vector3 residual, Acts::Vector3 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[]);
   bool is_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
-  unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
   TpcDistortionCorrectionContainer* _dcc_static{nullptr};
   TpcDistortionCorrectionContainer* _dcc_average{nullptr};
   TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
 
-  unsigned int _cluster_version = 4;
+  unsigned int _cluster_version = 5;
   bool test_output = false;
 
   ClusterErrorPara _ClusErrPara;

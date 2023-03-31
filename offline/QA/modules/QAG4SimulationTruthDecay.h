@@ -5,11 +5,11 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <decayfinder/DecayFinderContainer_v1.h>     // for DecayFinderContainer_v1
+#include <decayfinder/DecayFinderContainer_v1.h>  // for DecayFinderContainer_v1
 
 #include <g4main/PHG4Particle.h>
-#include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
 
 #include <TBranch.h>
 #include <TFile.h>
@@ -22,8 +22,9 @@ class PHG4TruthInfoContainer;
 class PHG4Particle;
 class PHG4VtxPoint;
 
-class QAG4SimulationTruthDecay : public SubsysReco {
-public:
+class QAG4SimulationTruthDecay : public SubsysReco
+{
+ public:
   QAG4SimulationTruthDecay(const std::string &name = "QAG4SimulationTruthDecay");
 
   virtual ~QAG4SimulationTruthDecay();
@@ -41,33 +42,57 @@ public:
   int process_event(PHCompositeNode *topNode) override;
 
   std::string get_histo_prefix();
-  
+
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
 
   void setMotherPDG(int PDGID) { m_decay_pdg_id = PDGID; }
-  
-  void setMotherPDGRange(int min, int max) { m_mother_PDG_ID_min = min; m_mother_PDG_ID_max = max; };
-  void setDaughterPDGRange(int min, int max) { m_daughter_PDG_ID_min = min; m_daughter_PDG_ID_max = max; };
- 
+
+  void setMotherPDGRange(int min, int max)
+  {
+    m_mother_PDG_ID_min = min;
+    m_mother_PDG_ID_max = max;
+  };
+  void setDaughterPDGRange(int min, int max)
+  {
+    m_daughter_PDG_ID_min = min;
+    m_daughter_PDG_ID_max = max;
+  };
+
   void setMinPT(float value) { m_pt_min = value; }
- 
-  void setEtaRange(float min, float max) { m_eta_min = min; m_eta_max = max; }
- 
-  void setNBinsMass (int nBins) { m_mass_nBins = nBins; }
-  void setMassRange(float min, float max) { m_mass_min = min; m_mass_max = max; }
- 
-  void setNBinsDecayLength (int nBins) { m_decayLength_nBins = nBins; }
-  void setDecayLengthRange(float min, float max) { m_decayLength_min = min; m_decayLength_max = max; }
- 
-  void setNBinsDecayTime (int nBins) { m_decayTime_nBins = nBins; }
-  void setDecayTimeRange(float min, float max) { m_decayTime_min = min; m_decayTime_max = max; }
+
+  void setEtaRange(float min, float max)
+  {
+    m_eta_min = min;
+    m_eta_max = max;
+  }
+
+  void setNBinsMass(int nBins) { m_mass_nBins = nBins; }
+  void setMassRange(float min, float max)
+  {
+    m_mass_min = min;
+    m_mass_max = max;
+  }
+
+  void setNBinsDecayLength(int nBins) { m_decayLength_nBins = nBins; }
+  void setDecayLengthRange(float min, float max)
+  {
+    m_decayLength_min = min;
+    m_decayLength_max = max;
+  }
+
+  void setNBinsDecayTime(int nBins) { m_decayTime_nBins = nBins; }
+  void setDecayTimeRange(float min, float max)
+  {
+    m_decayTime_min = min;
+    m_decayTime_max = max;
+  }
 
   void setDFNodeName(const std::string &name) { m_df_module_name = name; }
   void setOutputName(const std::string &name) { m_outfile_name = name; }
   void writeTuple(bool write) { m_write_nTuple = write; }
 
-private:
+ private:
   typedef std::vector<std::pair<std::pair<int, int>, int>> Decay;
 
   unsigned int m_nTracks;
@@ -84,7 +109,7 @@ private:
   TTree *m_tree;
   bool m_write_nTuple;
   bool m_write_QAHists;
-  DecayFinderContainer_v1* m_decayMap = nullptr;
+  DecayFinderContainer_v1 *m_decayMap = nullptr;
 
   void initializeBranches();
   void getMotherPDG(PHCompositeNode *topNode);
@@ -152,4 +177,4 @@ private:
   bool m_accept_pT = true;
 };
 
-#endif // GEANTTESTER_H
+#endif  // GEANTTESTER_H

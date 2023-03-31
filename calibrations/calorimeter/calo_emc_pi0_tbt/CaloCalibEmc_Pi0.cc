@@ -6,6 +6,11 @@
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerGeom.h>
+
+#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfov1.h>
+
 
 #include <g4vertex/GlobalVertex.h>
 #include <g4vertex/GlobalVertexMap.h>
@@ -38,6 +43,7 @@
 #include <map>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
 #include <vector>   // for vector
+#include <string>   // for string
 
 //using namespace std;
 
@@ -148,7 +154,8 @@ int CaloCalibEmc_Pi0::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 {
-  if (m_ievent % 50 == 0)
+  //  if (m_ievent % 50 == 0)
+  if (true)
   {
     std::cout << std::endl;
     std::cout << "Beginning of the event " << m_ievent << std::endl;
@@ -157,8 +164,20 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 
   _eventNumber = m_ievent++;
 
+
+  std::string clusnodename = "CLUSTER_POS_COR_CEMC";
+  if (m_UseTowerInfo)
+    clusnodename = "CLUSTERINFO_POS_COR_CEMC";
+    
+  /*
+  std::string clusnodename = "CLUSTER_CEMC";
+  if (m_UseTowerInfo)
+    clusnodename = "CLUSTERINFO_CEMC";
+  */
+
   // create a cluster object
-  RawClusterContainer *recal_clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_POS_COR_CEMC");
+  RawClusterContainer *recal_clusters = findNode::getClass<RawClusterContainer>(topNode,clusnodename.c_str());
+
 
   if (!recal_clusters)
     {
@@ -176,11 +195,21 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
   // create a tower geometry object
   std::string towergeomnode = "TOWERGEOM_" + _caloname;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnode.c_str());
-  if (!towergeom)
+  if (!towergeom && m_UseTowerInfo < 1)
   {
     std::cout << PHWHERE << ": Could not find node " << towergeomnode << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  //if using towerinfo
+  // create a tower object
+  towernode = "TOWERINFO_CALIB_" + _caloname;
+  TowerInfoContainer *_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towernode.c_str());
+  if (!_towerinfos && m_UseTowerInfo > 0)
+    {
+      std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
+    }
+
 
   // Get Vertex
   float vx = 0;
@@ -219,6 +248,8 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
     RawCluster *t_recalcluster = t_rclusiter->second;
 
     float cluse = t_recalcluster->get_ecore();
+    //    std::cout << "clus " << cluse << std::endl;
+
     if (cluse > 0.1) inCs++;
 
     if (cluse > 0.6) savCs[iCs++] = t_recalcluster;
@@ -243,6 +274,9 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
     std::vector<int> toweretas;
     std::vector<int> towerphis;
     std::vector<float> towerenergies;
+
+    RawTower * tower;
+    TowerInfo * towinfo;
     
     // loop over the towers from the outer loop cluster
     // and find the max tower location and save the 
@@ -254,16 +288,48 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
     
     for (toweriter = towers.first; toweriter != towers.second; ++toweriter)
       {
-	RawTower *tower = _towers->getTower(toweriter->first);
 	
-	int towereta = tower->get_bineta();
-	int towerphi = tower->get_binphi();
-	double towerenergy = tower->get_energy();
+	if (m_UseTowerInfo < 1)
+	  {
+
+	    tower = _towers->getTower(toweriter->first);
+	    
+	    int towereta = tower->get_bineta();
+	    int towerphi = tower->get_binphi();
+	    double towerenergy = tower->get_energy();
+	    
+	    // put the eta, phi, energy into corresponding vectors
+	    toweretas.push_back(towereta);
+	    towerphis.push_back(towerphi);
+	    towerenergies.push_back(towerenergy);				
+	    
+	  }
+	else
+	  {
+	    
+	    
+	    //RawTowerGeom *tower_geom_instance = geom->get_tower_geometry(toweriter->first);
+	    //
+	    //	     unsigned int towerindex = _towerinfos->decode_key(toweriter->first);
+	    
+	    
+	    int iphi = RawTowerDefs::decode_index2(toweriter->first);  // index2 is phi in CYL
+	    int ieta = RawTowerDefs::decode_index1(toweriter->first);  // index1 is eta in CYL	    
+	    unsigned int towerkey = iphi + (ieta << 16U);
+	    unsigned int towerindex =  _towerinfos->decode_key(towerkey);
+	    
+	    towinfo = _towerinfos->get_tower_at_channel(towerindex);
+	    
+	    double towerenergy = towinfo->get_energy();
+	    
+	    // put the eta, phi, energy into corresponding vectors
+	    toweretas.push_back(ieta);
+	    towerphis.push_back(iphi);
+	    towerenergies.push_back(towerenergy);				
+	    
+	    
+	  }
 	
-	// put the eta, phi, energy into corresponding vectors
-	toweretas.push_back(towereta);
-	towerphis.push_back(towerphi);
-	towerenergies.push_back(towerenergy);				
       }
     
     // cout << endl;
@@ -272,6 +338,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
     // cout << "Total number of towers size(toweretas): " << toweretas.size() << endl;
     // float maxTowerEnergy = *max_element(towerenergies.begin(), towerenergies.end());
     // cout << "The maxTowerEnergy: " << maxTowerEnergy << endl;
+
     int maxTowerIndex = max_element(towerenergies.begin(), towerenergies.end()) - towerenergies.begin();
     maxTowerEta = toweretas[maxTowerIndex];
     maxTowerPhi = towerphis[maxTowerIndex];
@@ -285,12 +352,30 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
       float tt_clus_pt = E_vec_cluster.perp();
       float tt_clus_phi = E_vec_cluster.getPhi();
 
+      // if (tt_clus_energy > 0.029)
+      // 	{
+	  
+      // 	if (m_UseTowerInfo < 1)
+      // 	  std::cout <<  "rawtJF clus " << jCs << " " << tt_clus_energy <<  " phi: " 
+      // 		    << tt_clus_phi << " eta: " << tt_clus_eta <<  " ieta  "
+      // 		    << maxTowerEta << " iphi " << maxTowerPhi 
+      // 		    << " towsize " << towerenergies.size() << std::endl;
+      // 	else
+      // 	  std::cout <<  "infoJF clus " << jCs << " " << tt_clus_energy <<  " phi: " 
+      // 		    << tt_clus_phi << " eta: " << tt_clus_eta <<  " ieta  "
+      // 		    << maxTowerEta << " iphi " << maxTowerPhi 
+      // 		    << " towsize " << towerenergies.size() << std::endl;
+
+
+      // 	}
+	
+
       _clusterEnergies[jCs] = tt_clus_energy;
       _clusterPts[jCs] = tt_clus_pt;
       _clusterEtas[jCs] = tt_clus_eta;
       _clusterPhis[jCs] = tt_clus_phi;
 
-      if (tt_clus_pt > 1.0 ) 
+      if (tt_clus_pt > 0.9 ) 
 	{
 				
 	  // another loop to go into the saved cluster

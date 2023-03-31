@@ -29,8 +29,8 @@ class QAG4SimulationVertex : public SubsysReco
   int process_event(PHCompositeNode *topNode);
 
   std::string get_histo_prefix();
-  
-  void check_embed() { m_checkembed = true;}
+
+  void check_embed() { m_checkembed = true; }
   void embed_id_cut(const int id) { m_embed_id_cut = id; }
   void addEmbeddingID(int embeddingID);
 

@@ -19,8 +19,12 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   CylinderGeomMicromegas.h \
+  MicromegasCalibrationData.h \
   MicromegasClusterizer.h \
   MicromegasDefs.h \
+  MicromegasMapping.h \
+  MicromegasRawDataCalibration.h \
+  MicromegasRawDataDecoder.h \
   MicromegasTile.h
 
 ROOTDICTS = \
@@ -36,10 +40,13 @@ nobase_dist_pcm_DATA = \
 libmicromegas_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeomMicromegas.cc \
-  MicromegasDefs.cc
+  MicromegasCalibrationData.cc \
+  MicromegasDefs.cc \
+  MicromegasMapping.cc
 
 libmicromegas_io_la_LIBADD = \
   -lCLHEP \
+  -lcdbobjects \
   -lg4detectors_io \
   -lphool \
   -ltrack_io \
@@ -47,7 +54,9 @@ libmicromegas_io_la_LIBADD = \
 
 # sources for micromegas library
 libmicromegas_la_SOURCES = \
-  MicromegasClusterizer.cc
+  MicromegasClusterizer.cc \
+  MicromegasRawDataCalibration.cc \
+  MicromegasRawDataDecoder.cc
 
 libmicromegas_la_LIBADD = \
   libmicromegas_io.la \
@@ -60,7 +69,6 @@ libmicromegas_la_LIBADD = \
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;
-
 
 ################################################
 # linking tests

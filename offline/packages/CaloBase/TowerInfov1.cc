@@ -11,3 +11,9 @@ void TowerInfov1::Reset()
   _time = 0;
   _energy = NAN;
 }
+
+void TowerInfov1::Clear(Option_t* )
+{
+  _time = 0;
+  _energy = 0;
+}

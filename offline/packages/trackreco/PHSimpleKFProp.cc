@@ -104,6 +104,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   fitter->setFixedClusterError(2,_fixed_clus_err.at(2));
   //  _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
   // m_Cache = magField->makeCache(m_tGeometry->magFieldContext);
+  std::cout << "done init " << m_cluster_version << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

@@ -9,6 +9,7 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -18,12 +19,17 @@
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfov1.h>
 
+#include <dbtools/ReadCalib.h>
+#include <ffaobjects/EventHeader.h>
+
 //____________________________________________________________________________..
 CaloTowerCalib::CaloTowerCalib(const std::string &name)
   : SubsysReco(name)
   , m_dettype(CaloTowerCalib::HCALOUT)
   , m_detector("HCALOUT")
   , m_DETECTOR(TowerInfoContainer::HCAL)
+  , m_fieldname("")
+  , m_runNumber(-1)
 {
   std::cout << "CaloTowerCalib::CaloTowerCalib(const std::string &name) Calling ctor" << std::endl;
 }
@@ -37,31 +43,96 @@ CaloTowerCalib::~CaloTowerCalib()
 //____________________________________________________________________________..
 int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
 {
+  PHNodeIterator nodeIter(topNode);
+
+  EventHeader *evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+
+  if (evtHeader)
+  {
+    m_runNumber = evtHeader->get_RunNumber();
+  }
+  else
+  {
+    m_runNumber = -1;
+  }
+  std::cout << "at run" << m_runNumber << std::endl;
   if (m_dettype == CaloTowerCalib::CEMC)
   {
+    recoConsts *rc = recoConsts::instance();
+    // place holder
+    rc->set_StringFlag("CDB_GLOBALTAG", "CEMCCalibTest");
+    ReadCalib *rb = new ReadCalib();
+    std::string calibdir = rb->getCalibrationFile("TestBeginValidity", m_runNumber);
     m_detector = "CEMC";
     m_DETECTOR = TowerInfoContainer::EMCAL;
     m_fieldname = "cemc_abscalib_mip";
-    cdbttree = new CDBTTree("/sphenix/user/shuhangli/DB/cemcDB.root");
+    if (calibdir[0] == '/')
+    {
+      cdbttree = new CDBTTree(calibdir.c_str());
+    }
+    else
+    {
+      std::cout << calibdir << std::endl;
+      exit(1);
+    }
   }
   else if (m_dettype == CaloTowerCalib::HCALIN)
   {
+    recoConsts *rc = recoConsts::instance();
+    rc->set_StringFlag("CDB_GLOBALTAG", "HCalCalibTest");
+    ReadCalib *rb = new ReadCalib();
+    std::string calibdir = rb->getCalibrationFile("TestBeginValidity", m_runNumber);
     m_detector = "HCALIN";
     m_DETECTOR = TowerInfoContainer::HCAL;
-    m_fieldname = "ohcal_abscalib_mip";
-    cdbttree = new CDBTTree("/sphenix/user/shuhangli/DB/hcalDB.root");
+    m_fieldname = "ihcal_abscalib_mip";
+    if (calibdir[0] == '/')
+    {
+      cdbttree = new CDBTTree(calibdir.c_str());
+    }
+    else
+    {
+      std::cout << calibdir << std::endl;
+      exit(1);
+    }
   }
   else if (m_dettype == CaloTowerCalib::HCALOUT)
   {
+    recoConsts *rc = recoConsts::instance();
+    rc->set_StringFlag("CDB_GLOBALTAG", "HCalCalibTest");
+    ReadCalib *rb = new ReadCalib();
+    std::string calibdir = rb->getCalibrationFile("TestBeginValidity", m_runNumber);
     m_detector = "HCALOUT";
     m_DETECTOR = TowerInfoContainer::HCAL;
     m_fieldname = "ohcal_abscalib_mip";
-    cdbttree = new CDBTTree("/sphenix/user/shuhangli/DB/hcalDB.root");
+    if (calibdir[0] == '/')
+    {
+      cdbttree = new CDBTTree(calibdir.c_str());
+    }
+    else
+    {
+      std::cout << calibdir << std::endl;
+      exit(1);
+    }
   }
   else if (m_dettype == CaloTowerCalib::EPD)
   {
+    recoConsts *rc = recoConsts::instance();
+    // place holder
+    rc->set_StringFlag("CDB_GLOBALTAG", "EPDCalibTest");
+    ReadCalib *rb = new ReadCalib();
+    std::string calibdir = rb->getCalibrationFile("TestBeginValidity", m_runNumber);
     m_detector = "EPD";
     m_DETECTOR = TowerInfoContainer::SEPD;
+    m_fieldname = "EPD_abscalib_mip";
+    if (calibdir[0] == '/')
+    {
+      cdbttree = new CDBTTree(calibdir.c_str());
+    }
+    else
+    {
+      std::cout << calibdir << std::endl;
+      exit(1);
+    }
   }
 
   PHNodeIterator iter(topNode);
@@ -92,46 +163,16 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int CaloTowerCalib::process_event(PHCompositeNode * /*topNode*/)
 {
-  /*
-  int n_channels = _raw_towers->size();
-
-  for (int i = 0; i < n_channels; i++)
+  unsigned int ntowers = _raw_towers->size();
+  for (unsigned int channel = 0; channel < ntowers; channel++)
   {
-    TowerInfov1 *caloinfo_raw = _raw_towers->at(i);
-
+    unsigned int key = _raw_towers->encode_key(channel);
+    TowerInfo *caloinfo_raw = _raw_towers->get_tower_at_channel(channel);
     float raw_amplitude = caloinfo_raw->get_energy();
-
-    TowerInfov1 *caloinfo_calib = new TowerInfov1(*caloinfo_raw);
-
-    int key = _raw_towers->encode_key(i);
-
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
-
-    caloinfo_calib->set_energy(raw_amplitude * calibconst);
-
-    _calib_towers->add(caloinfo_calib, i);
+    _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst);
   }
-  */
-  TowerInfoContainerv1::Range begin_end = _raw_towers->getTowers();
-  TowerInfoContainerv1::Iterator rtiter;
-  for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
-    {
-      unsigned int key = rtiter->first;
-      TowerInfo *caloinfo_raw = rtiter->second;
-      float raw_amplitude = caloinfo_raw->get_energy();
 
-      TowerInfov1 *caloinfo_calib = new TowerInfov1(*caloinfo_raw);
-     
-      float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
-
-      caloinfo_calib->set_energy(raw_amplitude * calibconst);
-
-      unsigned int channel = _calib_towers->decode_key(key);
-
-      _calib_towers->add(caloinfo_calib, channel);
-      
-    }
-  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

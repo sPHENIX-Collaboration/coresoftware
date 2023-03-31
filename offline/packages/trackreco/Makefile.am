@@ -22,6 +22,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsAlignmentStates.h \
+  ActsPropagator.h \
   ALICEKF.h \
   AssocInfoContainer.h \
   AssocInfoContainerv1.h \
@@ -36,6 +37,7 @@ pkginclude_HEADERS = \
   PHActsVertexPropagator.h \
   PHActsTrkFitter.h \
   PHActsTrackProjection.h \
+  PHActsTrackPropagator.h \
   PHCASeeding.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
@@ -47,6 +49,7 @@ pkginclude_HEADERS = \
   PHTrackCleaner.h \
   PHTrackSelector.h \
   PHRaveVertexing.h \
+  PHSiliconHelicalPropagator.h \
   PHSiliconSeedMerger.h \
   PHSiliconTruthTrackSeeding.h \
   PHSimpleKFProp.h \
@@ -62,6 +65,7 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
+  SecondaryVertexFinder.h \
   SvtxTrackStateRemoval.h \
   TrackingIterationCounter.h
 
@@ -82,13 +86,15 @@ libtrack_reco_io_la_SOURCES = \
 
 ACTS_SOURCES = \
   ActsAlignmentStates.cc \
+  ActsPropagator.cc \
   MakeActsGeometry.cc \
   PHActsGSF.cc \
   PHActsKDTreeSeeding.cc \
   PHActsSiliconSeeding.cc \
   PHActsTrkFitter.cc \
   PHActsVertexPropagator.cc \
-  PHActsTrackProjection.cc
+  PHActsTrackProjection.cc \
+  PHActsTrackPropagator.cc
 
 $OFFLINE_MAIN/share:
 dist_data_DATA = \
@@ -115,6 +121,7 @@ libtrack_reco_la_SOURCES = \
   PHInitVertexing.cc \
   PHMicromegasTpcTrackMatching.cc \
   PHRaveVertexing.cc \
+  PHSiliconHelicalPropagator.cc \
   PHSiliconSeedMerger.cc \
   PHSiliconTpcTrackMatching.cc \
   PHSiliconTruthTrackSeeding.cc \
@@ -133,6 +140,7 @@ libtrack_reco_la_SOURCES = \
   PHTruthTrackSeeding.cc \
   PHTruthVertexing.cc \
   PHTruthSiliconAssociation.cc \
+  SecondaryVertexFinder.cc \
   SvtxTrackStateRemoval.cc \
   TrackingIterationCounter.cc
 
@@ -161,7 +169,8 @@ libtrack_reco_la_LIBADD = \
   -ltrack_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter
+  -lphparameter \
+  -ltrackeralign
 
 
 # Rule for generating table CINT dictionaries.

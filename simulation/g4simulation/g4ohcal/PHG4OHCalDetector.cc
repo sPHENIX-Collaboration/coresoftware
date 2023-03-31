@@ -121,6 +121,11 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   m_DisplayAction->SetMyTopVolume(mothervol);
   ConstructOHCal(hcal_envelope_log);
 
+  // allow installing new G4 subsystem installed inside the HCal envelope via macros, in particular its support rings. 
+  PHG4Subsystem *mysys = GetMySubsystem();
+  if (mysys) 
+    mysys->SetLogicalVolume(hcal_envelope_log);
+   
   // disable GDML export for HCal geometries for memory saving and compatibility issues
   assert(gdml_config);
   gdml_config->exclude_physical_vol(mothervol);

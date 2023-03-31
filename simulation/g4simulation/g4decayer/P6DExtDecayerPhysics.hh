@@ -74,4 +74,4 @@ class P6DExtDecayerPhysics : public G4VPhysicsConstructor
   EDecayType _force_decay_type;
 };
 
-#endif  //P6D_EXT_DECAYER_PHYSICS_H
+#endif  // P6D_EXT_DECAYER_PHYSICS_H
