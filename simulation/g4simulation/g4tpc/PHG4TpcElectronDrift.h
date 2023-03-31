@@ -26,7 +26,9 @@ class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
 class TrkrTruthTrackContainer;
 class TrkrClusterContainer;
+class TrkrTruthTrack;
 class DistortedTrackContainer;
+class TpcClusterBuilder;
 class PHG4TpcCylinderGeomContainer;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
@@ -63,13 +65,18 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
  private:
-
-  PHG4TpcTruthClusterizer* m_truthclusterizer;
+  //! map a given x,y,z coordinates to plane hits
+  /* TpcClusterBuilder MapToPadPlane(const double x, const double y, const */
+  /*     double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, */
+  /*     TNtuple *ntpad, TNtuple *nthit); */
 
   std::ofstream f_out;
 
   TrkrHitSetContainer *hitsetcontainer = nullptr;
   TrkrHitTruthAssoc *hittruthassoc = nullptr;
+  TrkrTruthTrackContainer *truthtracks = nullptr;
+  TrkrTruthTrack *current_track = nullptr;
+  TrkrClusterContainer *truthclustercontainer = nullptr; // the TrkrClusterContainer for truth clusters
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<TrkrHitSetContainer> single_hitsetcontainer;
   std::unique_ptr<PHG4TpcPadPlane> padplane;
@@ -123,6 +130,9 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double min_time = NAN;
   double max_time = NAN;
 
+
+  /* std::array<TpcClusterBuilder,55> layer_clusterers; // Generate TrkrClusterv4's for TrkrTruthTracks */
+  TpcClusterBuilder* truth_clusterer { nullptr };
 
   /* void buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsigned int>&); */
 
