@@ -29,6 +29,7 @@ int DumpBbcPmtContainer::process_Node(PHNode *myNode)
       *fout << "BbcPmtContainer->get_npmt: " << bbcpmtcontainer->get_npmt() << std::endl;
       for (int j = 0; j < bbcpmtcontainer->get_npmt(); j++)
       {
+	*fout << "BbcPmtContainer->get_pmt(" << j <<"): " << bbcpmtcontainer->get_pmt(j) << std::endl;
 	*fout << "BbcPmtContainer->get_adc(" << j <<"): " << bbcpmtcontainer->get_adc(j) << std::endl;
 	*fout << "BbcPmtContainer->get_tdc0(" << j << "): " << bbcpmtcontainer->get_tdc0(j) << std::endl;
 	*fout << "BbcPmtContainer->get_tdc1(" << j << "): " << bbcpmtcontainer->get_tdc1(j) << std::endl;
