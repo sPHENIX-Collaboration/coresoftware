@@ -62,7 +62,7 @@ class BbcPmtContainer : public PHObject
       @param tdc0 Tdc0 value
       @param tdc1 Tdc1 value
   */
-  virtual void AddBbcPmt(const short ipmt, const float adc, const Float_t tdc0, const Float_t tdc1);
+  virtual void AddBbcPmt(const short ipmt, const float adc, const float tdc0, const float tdc1);
 
  private:
   void virtual_warning(const std::string &funcname) const;

@@ -59,9 +59,9 @@ float BbcPmtContainer::get_tdc1(const int /*iPmt*/) const
   return BbcReturnCodes::BBC_INVALID_FLOAT;
 }
 
-void BbcPmtContainer::AddBbcPmt(const short /*ipmt*/, const float /*adc*/, const Float_t /*tdc0*/, const Float_t /*tdc1*/)
+void BbcPmtContainer::AddBbcPmt(const short /*ipmt*/, const float /*adc*/, const float /*tdc0*/, const float /*tdc1*/)
 {
-  virtual_warning("AddBbcPmtHit(const short ipmt, const Short_t adc, const float tdc0, const Float_t tdc1)");
+  virtual_warning("AddBbcPmtHit(const short ipmt, const short adc, const float tdc0, const float tdc1)");
   return ;
 }
 

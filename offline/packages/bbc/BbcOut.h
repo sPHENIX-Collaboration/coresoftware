@@ -43,7 +43,7 @@ public:
       @param vtx Bbc ZVertex 
       @param vtxerr Bbc Error on ZVertex
    */
-  virtual void set_TimeVertex(const float t0, const Float_t t0err, const Float_t vtx, const Float_t vtxerr)
+  virtual void set_TimeVertex(const float t0, const float t0err, const float vtx, const float vtxerr)
   { 
     set_TimeZero( t0, t0err );
     set_Vertex( vtx, vtxerr );
@@ -53,10 +53,10 @@ public:
       @param t0 Bbc T0
       @param t0err Bbc T0 error
    */
-  virtual void set_TimeZero(const float t0, const Float_t t0err = 0);
+  virtual void set_TimeZero(const float t0, const float t0err = 0);
 
   //! set vertex
-  virtual void set_Vertex( const float vtx, const Float_t vtxerr);
+  virtual void set_Vertex( const float vtx, const float vtxerr);
   
   /** set Vtx Error for Bbc
       @param vtxerr Bbc Vtx Error
@@ -69,7 +69,7 @@ public:
       @param timing Timing of North/South
       @param nBbc  Arm, use Bbc::North and Bbc::South
    */
-  virtual void AddBbcNS(const int iBBC, const short npmt, const float ncharge, const Float_t timing);
+  virtual void AddBbcNS(const int iBBC, const short npmt, const float ncharge, const float timing);
 
   /** get Number of PMT's fired in North/South Bbc
       @param nBbc  Arm, use Bbc::North and Bbc::South

@@ -14,7 +14,7 @@ class BbcPmtHit : public PHObject
 public:
 
   BbcPmtHit() {}
-  BbcPmtHit(const short /*pmt*/, const float /*adc*/, const Float_t /*tdc0*/, const Float_t /*tdc1*/) {}
+  BbcPmtHit(const short /*pmt*/, const float /*adc*/, const float /*tdc0*/, const float /*tdc1*/) {}
   virtual ~BbcPmtHit() { }
 
   virtual short get_pmt()  const { PHOOL_VIRTUAL_WARNING; return -9999; }

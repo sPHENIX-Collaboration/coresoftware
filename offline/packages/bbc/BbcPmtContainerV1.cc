@@ -35,7 +35,7 @@ void BbcPmtContainerV1::Reset()
   npmt = 0;
 }
 
-void BbcPmtContainerV1::AddBbcPmt(const short pmt, const float adc, const Float_t tdc0, const Float_t tdc1)
+void BbcPmtContainerV1::AddBbcPmt(const short pmt, const float adc, const float tdc0, const float tdc1)
 {
   TClonesArray &Bbchits = *BbcPmtHits;
   new(Bbchits[npmt++]) BbcPmtHitV1(pmt, adc, tdc0, tdc1);

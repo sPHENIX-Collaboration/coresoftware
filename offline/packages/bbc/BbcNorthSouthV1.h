@@ -10,7 +10,7 @@ class BbcNorthSouthV1 : public BbcNorthSouth
 {
 public:
   BbcNorthSouthV1() { }
-  BbcNorthSouthV1(const short npmt, const float chargesum, const Float_t timing);
+  BbcNorthSouthV1(const short npmt, const float chargesum, const float timing);
   virtual ~BbcNorthSouthV1() { }
   void identify(std::ostream& os = std::cout) const override;
 

@@ -1,6 +1,6 @@
 #include "BbcNorthSouthV1.h"
 
-BbcNorthSouthV1::BbcNorthSouthV1(const short npmt, const float ncharge, const Float_t meantime)
+BbcNorthSouthV1::BbcNorthSouthV1(const short npmt, const float ncharge, const float meantime)
   : nPmt(npmt)
   , nCharge(ncharge)
   , MeanTime(meantime)

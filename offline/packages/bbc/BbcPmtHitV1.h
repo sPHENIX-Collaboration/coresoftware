@@ -12,7 +12,7 @@ class BbcPmtHitV1 : public BbcPmtHit
 
 public:
   BbcPmtHitV1() { }
-  BbcPmtHitV1(const short pmt, const float adc, const Float_t tdc0, const Float_t tdc1);
+  BbcPmtHitV1(const short pmt, const float adc, const float tdc0, const float tdc1);
   ~BbcPmtHitV1() override = default;
 
   short get_pmt()  const override {return pmt;}

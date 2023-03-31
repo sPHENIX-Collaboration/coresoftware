@@ -64,7 +64,7 @@ public:
       @param tdc1 Tdc1 value
       @param ipmt no of pmt
   */
-   void AddBbcPmt(const short ipmt, const float adc, const Float_t tdc0, const Float_t tdc1) override;
+   void AddBbcPmt(const short ipmt, const float adc, const float tdc0, const float tdc1) override;
 
 private:
   TClonesArray *GetBbcPmtHits() const {return BbcPmtHits;}

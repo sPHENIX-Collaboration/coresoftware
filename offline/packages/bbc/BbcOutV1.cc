@@ -55,14 +55,14 @@ void BbcOutV1::identify(std::ostream& out) const
 }
 
 //______________________________________
-void BbcOutV1::set_TimeZero(const float t0, const Float_t t0err )
+void BbcOutV1::set_TimeZero(const float t0, const float t0err )
 {
   Bbc_TimeZero  = t0;
   Bbc_dTimeZero = t0err;
 }
 
 //______________________________________
-void BbcOutV1::set_Vertex( const float vtx, const Float_t vtxerr)
+void BbcOutV1::set_Vertex( const float vtx, const float vtxerr)
 {
   Bbc_ZVertex   = vtx;
   Bbc_dZVertex  = vtxerr;
@@ -75,7 +75,7 @@ void BbcOutV1::set_dZVertex( const float vtxerr)
 }
 
 //______________________________________
-void BbcOutV1::AddBbcNS(const int iBBC, const short npmt, const float energy, const Float_t timing)
+void BbcOutV1::AddBbcNS(const int iBBC, const short npmt, const float energy, const float timing)
 {
   TClonesArray &bbcns = *BbcNS;
   new(bbcns[iBBC]) BbcNorthSouthV1(npmt, energy,timing);

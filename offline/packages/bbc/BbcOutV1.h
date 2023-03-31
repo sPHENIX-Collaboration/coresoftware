@@ -44,10 +44,10 @@ public:
       @param t0 Bbc T0
       @param t0err Bbc T0 error
    */
-  void set_TimeZero(const float t0, const Float_t t0err = 0) override;
+  void set_TimeZero(const float t0, const float t0err = 0) override;
 
   //! set vertex
-  void set_Vertex( const float vtx, const Float_t vtxerr = 0) override;
+  void set_Vertex( const float vtx, const float vtxerr = 0) override;
   
   /** set Vtx Error for Bbc
       @param vtxerr Bbc Vtx Error
@@ -60,7 +60,7 @@ public:
       @param timing Timing of North/South
       @param nBbc  Arm, use Bbc::North and Bbc::South
    */
-  void AddBbcNS(const int nBbc, const short npmt, const float chargesum, const Float_t timing) override;
+  void AddBbcNS(const int nBbc, const short npmt, const float chargesum, const float timing) override;
 
   /** get Number of PMT's fired in North/South Bbc
       @param nBbc  Arm, use Bbc::North and Bbc::South

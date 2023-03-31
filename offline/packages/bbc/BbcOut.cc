@@ -48,16 +48,16 @@ float BbcOut::get_dTimeZero() const
 }
 
 //__________________________________________
-void BbcOut::set_TimeZero(const float, const Float_t)
+void BbcOut::set_TimeZero(const float, const float)
 {
-  virtual_warning("set_TimeZero(const float t0, const Float_t t0err)");
+  virtual_warning("set_TimeZero(const float t0, const float t0err)");
   return ;
 }
 
 //__________________________________________
-void BbcOut::set_Vertex( const float, const Float_t )
+void BbcOut::set_Vertex( const float, const float )
 {
-  virtual_warning("set_Vertex(const float vtx, const Float_t vtxerr)");
+  virtual_warning("set_Vertex(const float vtx, const float vtxerr)");
   return ;
 }
 
@@ -69,9 +69,9 @@ void BbcOut::set_dZVertex(const float )
 }
 
 //________________________________________________________________
-void BbcOut::AddBbcNS(const int /*nBbc*/, const short /*npmt*/, const float /*energy*/, const Float_t /*timing*/)
+void BbcOut::AddBbcNS(const int /*nBbc*/, const short /*npmt*/, const float /*energy*/, const float /*timing*/)
 {
-  virtual_warning("AddBbcNS(const int iBBC, const short npmt, const float energy, const Float_t timing)");
+  virtual_warning("AddBbcNS(const int iBBC, const short npmt, const float energy, const float timing)");
   return ;
 }
 
