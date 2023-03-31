@@ -75,14 +75,14 @@ void BbcOutV1::set_dZVertex( const float vtxerr)
 }
 
 //______________________________________
-void BbcOutV1::AddBbcNS(const int iBBC, const Short_t npmt, const float energy, const Float_t timing)
+void BbcOutV1::AddBbcNS(const int iBBC, const short npmt, const float energy, const Float_t timing)
 {
   TClonesArray &bbcns = *BbcNS;
   new(bbcns[iBBC]) BbcNorthSouthV1(npmt, energy,timing);
 }
 
 //______________________________________
-Short_t BbcOutV1::get_nPMT(const int nBbc) const
+short BbcOutV1::get_nPMT(const int nBbc) const
 {
   BbcNorthSouthV1 *bbcns = (BbcNorthSouthV1*) GetBbcNS()->UncheckedAt(nBbc);
   //  if bbcns=nil (does not exist) return BbcReturnCodes::BBC_INVALID_SHORT, else nPMT

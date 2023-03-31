@@ -69,13 +69,13 @@ void BbcOut::set_dZVertex(const float )
 }
 
 //________________________________________________________________
-void BbcOut::AddBbcNS(const int /*nBbc*/, const Short_t /*npmt*/, const float /*energy*/, const Float_t /*timing*/)
+void BbcOut::AddBbcNS(const int /*nBbc*/, const short /*npmt*/, const float /*energy*/, const Float_t /*timing*/)
 {
-  virtual_warning("AddBbcNS(const int iBBC, const Short_t npmt, const float energy, const Float_t timing)");
+  virtual_warning("AddBbcNS(const int iBBC, const short npmt, const float energy, const Float_t timing)");
   return ;
 }
 
-Short_t BbcOut::get_nPMT(const int /*nBbc*/) const
+short BbcOut::get_nPMT(const int /*nBbc*/) const
 {
   virtual_warning("get_nPMT(const int nBbc)");
   return BbcReturnCodes::BBC_INVALID_SHORT;

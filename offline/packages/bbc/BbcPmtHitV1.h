@@ -12,10 +12,10 @@ class BbcPmtHitV1 : public BbcPmtHit
 
 public:
   BbcPmtHitV1() { }
-  BbcPmtHitV1(const Short_t pmt, const float adc, const Float_t tdc0, const Float_t tdc1);
+  BbcPmtHitV1(const short pmt, const float adc, const Float_t tdc0, const Float_t tdc1);
   ~BbcPmtHitV1() override = default;
 
-  Short_t get_pmt()  const override {return pmt;}
+  short get_pmt()  const override {return pmt;}
   float get_adc()  const override {return adc;}
   float get_tdc0() const override {return tdc0;}
   float get_tdc1() const override {return tdc1;}
@@ -23,7 +23,7 @@ public:
   void identify(std::ostream& os = std::cout) const override;
 
 private:
-  Short_t pmt;
+  short pmt;
   float adc;
   float tdc0;
   float tdc1;

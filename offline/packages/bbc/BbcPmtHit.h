@@ -14,10 +14,10 @@ class BbcPmtHit : public PHObject
 public:
 
   BbcPmtHit() {}
-  BbcPmtHit(const Short_t /*pmt*/, const float /*adc*/, const Float_t /*tdc0*/, const Float_t /*tdc1*/) {}
+  BbcPmtHit(const short /*pmt*/, const float /*adc*/, const Float_t /*tdc0*/, const Float_t /*tdc1*/) {}
   virtual ~BbcPmtHit() { }
 
-  virtual Short_t get_pmt()  const { PHOOL_VIRTUAL_WARNING; return -9999; }
+  virtual short get_pmt()  const { PHOOL_VIRTUAL_WARNING; return -9999; }
   virtual float get_adc()  const { PHOOL_VIRTUAL_WARNING; return -9999; }
   virtual float get_tdc0() const { PHOOL_VIRTUAL_WARNING; return -9999; }
   virtual float get_tdc1() const { PHOOL_VIRTUAL_WARNING; return -9999; }

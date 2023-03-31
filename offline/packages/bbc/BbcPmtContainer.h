@@ -31,15 +31,15 @@ class BbcPmtContainer : public PHObject
   /** set number of PMTs for Bbc
       @param ival Number of Bbc Pmt's
    */
-  virtual void set_npmt(const Short_t ival);
+  virtual void set_npmt(const short ival);
 
   /// get Number of Bbc Pmt's
-  virtual Short_t get_npmt() const;
+  virtual short get_npmt() const;
 
   /** get id of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */
-  virtual Short_t get_pmt(const int iPmt) const;
+  virtual short get_pmt(const int iPmt) const;
 
   /** get Adc of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
@@ -62,7 +62,7 @@ class BbcPmtContainer : public PHObject
       @param tdc0 Tdc0 value
       @param tdc1 Tdc1 value
   */
-  virtual void AddBbcPmt(const Short_t ipmt, const float adc, const Float_t tdc0, const Float_t tdc1);
+  virtual void AddBbcPmt(const short ipmt, const float adc, const Float_t tdc0, const Float_t tdc1);
 
  private:
   void virtual_warning(const std::string &funcname) const;

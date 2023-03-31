@@ -69,12 +69,12 @@ public:
       @param timing Timing of North/South
       @param nBbc  Arm, use Bbc::North and Bbc::South
    */
-  virtual void AddBbcNS(const int iBBC, const Short_t npmt, const float ncharge, const Float_t timing);
+  virtual void AddBbcNS(const int iBBC, const short npmt, const float ncharge, const Float_t timing);
 
   /** get Number of PMT's fired in North/South Bbc
       @param nBbc  Arm, use Bbc::North and Bbc::South
    */
-  virtual Short_t get_nPMT(const int iBBC) const;
+  virtual short get_nPMT(const int iBBC) const;
 
   /** get Number of Charged Particles into North/South Bbc
       @param nBbc  Arm, use Bbc::North and Bbc::South

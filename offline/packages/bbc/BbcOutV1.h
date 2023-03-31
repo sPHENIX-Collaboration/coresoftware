@@ -60,12 +60,12 @@ public:
       @param timing Timing of North/South
       @param nBbc  Arm, use Bbc::North and Bbc::South
    */
-  void AddBbcNS(const int nBbc, const Short_t npmt, const float chargesum, const Float_t timing) override;
+  void AddBbcNS(const int nBbc, const short npmt, const float chargesum, const Float_t timing) override;
 
   /** get Number of PMT's fired in North/South Bbc
       @param nBbc  Arm, use Bbc::North and Bbc::South
    */
-  Short_t get_nPMT(const int nBbc) const override;
+  short get_nPMT(const int nBbc) const override;
 
 
   /** get Number of Charged Particles into North/South Bbc

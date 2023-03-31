@@ -32,15 +32,15 @@ public:
   /** set T0 for Bbc
       @param ival Number of Bbc Pmt's
    */
-  void set_npmt(const Short_t ival) override {npmt=ival;return;}
+  void set_npmt(const short ival) override {npmt=ival;return;}
 
   /// get Number of Bbc Pmt's
-  Short_t get_npmt() const override {return npmt;}
+  short get_npmt() const override {return npmt;}
 
   /** get id of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */
-  Short_t get_pmt(const int iPmt) const override;
+  short get_pmt(const int iPmt) const override;
 
   /** get Adc of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
@@ -64,12 +64,12 @@ public:
       @param tdc1 Tdc1 value
       @param ipmt no of pmt
   */
-   void AddBbcPmt(const Short_t ipmt, const float adc, const Float_t tdc0, const Float_t tdc1) override;
+   void AddBbcPmt(const short ipmt, const float adc, const Float_t tdc0, const Float_t tdc1) override;
 
 private:
   TClonesArray *GetBbcPmtHits() const {return BbcPmtHits;}
 
-  Short_t npmt = 0;
+  short npmt = 0;
   TClonesArray *BbcPmtHits = nullptr;
 
 
