@@ -21,7 +21,6 @@
 #include <phool/PHIODataNode.h>
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv4.h>
-#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <set>
 
@@ -540,7 +539,9 @@ void PHG4MvtxTruthClusterizer::_C__ClusterMvtx(TrkrClusterContainer* m_clusterli
 		 << " local x " << locclusx << " local y " << locclusz
 		 << endl;
 	  
-	  if (m_cluster_version==4){
+    // ok force it use use cluster version v4 for now (Valgrind is not happy with application of v5)
+	  /* if (m_cluster_version==4){ */
+    if (m_cluster_version == 4) {
 	    auto clus = std::make_unique<TrkrClusterv4>();
 	    clus->setAdc(nhits);
 	    clus->setLocalX(locclusx);
@@ -556,25 +557,26 @@ void PHG4MvtxTruthClusterizer::_C__ClusterMvtx(TrkrClusterContainer* m_clusterli
 	      clus->identify();
 	    
 	    m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
-	  }else if(m_cluster_version==5){
-	    auto clus = std::make_unique<TrkrClusterv5>();
-	    clus->setAdc(nhits);
-	    clus->setMaxAdc(1);
-	    clus->setLocalX(locclusx);
-	    clus->setLocalY(locclusz);
-	    clus->setPhiError(phierror);
-	    clus->setZError(zerror);
-	    clus->setPhiSize(phibins.size());
-	    clus->setZSize(zbins.size());
-	    // All silicon surfaces have a 1-1 map to hitsetkey. 
-	    // So set subsurface key to 0
-	    clus->setSubSurfKey(0);
+    }
+	  /* }else if(m_cluster_version==5){ */
+	    /* auto clus = std::make_unique<TrkrClusterv5>(); */
+	    /* clus->setAdc(nhits); */
+	    /* clus->setMaxAdc(1); */
+	    /* clus->setLocalX(locclusx); */
+	    /* clus->setLocalY(locclusz); */
+	    /* clus->setPhiError(phierror); */
+	    /* clus->setZError(zerror); */
+	    /* clus->setPhiSize(phibins.size()); */
+	    /* clus->setZSize(zbins.size()); */
+	    /* // All silicon surfaces have a 1-1 map to hitsetkey. */ 
+	    /* // So set subsurface key to 0 */
+	    /* clus->setSubSurfKey(0); */
 	    
-	    if (Verbosity() > 2)
-	      clus->identify();
+	    /* if (Verbosity() > 2) */
+	    /*   clus->identify(); */
 	    
-	    m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
-	  }
+	    /* m_clusterlist->addClusterSpecifyKey(ckey, clus.release()); */
+	  /* } */
 	}  // clusitr loop
     }  // loop over hitsets
       

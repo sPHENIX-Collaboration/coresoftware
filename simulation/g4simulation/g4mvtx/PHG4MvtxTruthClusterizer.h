@@ -62,7 +62,10 @@ class  PHG4MvtxTruthClusterizer : public TruthClusterizerBase {
   bool _C__are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs);
 
   public:
-  void set_cluster_version(int value) { m_cluster_version = value; }
+  void set_cluster_version(int /*value*/) {
+    std::cout << "None-implemented function in PHG4MvtxTruthClusterizer. " << std::endl
+              << "Only TrkrClusterv4 currently implemented." << std::endl;
+  };
   void _C__ClusterMvtx(TrkrClusterContainer* clusters);
   bool GetZClustering() const { return m_makeZClustering; };
   void SetZClustering(const bool make_z_clustering) { m_makeZClustering = make_z_clustering; };

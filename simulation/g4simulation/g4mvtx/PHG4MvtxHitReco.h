@@ -1,8 +1,6 @@
 #ifndef G4MVTX_PHG4MVTXHITRECO_H
 #define G4MVTX_PHG4MVTXHITRECO_H
 
-#include "TruthMvtxClusterBuilder.h"
-
 #include <phparameter/PHParameterInterface.h>
 #include <trackbase/TrkrDefs.h>
 
