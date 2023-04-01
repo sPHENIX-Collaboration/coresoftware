@@ -6,6 +6,8 @@
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
+#include <iostream>
+
 class BbcNorthSouth : public PHObject
 {
  public:

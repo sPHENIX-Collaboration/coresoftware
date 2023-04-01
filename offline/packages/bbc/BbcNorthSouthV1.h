@@ -5,6 +5,8 @@
 
 #include "BbcNorthSouth.h"
 
+#include <iostream>
+
 class BbcNorthSouthV1 : public BbcNorthSouth
 {
  public:

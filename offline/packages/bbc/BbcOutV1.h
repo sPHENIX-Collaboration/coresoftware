@@ -5,6 +5,8 @@
 
 #include "BbcOut.h"
 
+#include <iostream>
+
 class TClonesArray;
 
 ///
