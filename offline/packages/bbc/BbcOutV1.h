@@ -76,10 +76,11 @@ class BbcOutV1 : public BbcOut
    */
   float get_Timing(const int nBbc) const override;
 
-  virtual void Init();
 
  private:
+
   TClonesArray *GetBbcNS() const { return BbcNS; }
+  void Init();
 
   float Bbc_ZVertex{};
   float Bbc_dZVertex{};

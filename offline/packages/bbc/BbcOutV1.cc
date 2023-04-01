@@ -84,22 +84,22 @@ void BbcOutV1::AddBbcNS(const int iBBC, const short npmt, const float energy, co
 //______________________________________
 short BbcOutV1::get_nPMT(const int nBbc) const
 {
-  BbcNorthSouthV1 *bbcns = (BbcNorthSouthV1 *) GetBbcNS()->UncheckedAt(nBbc);
-  //  if bbcns=nil (does not exist) return BbcReturnCodes::BBC_INVALID_SHORT, else nPMT
+  BbcNorthSouthV1 *bbcns = static_cast<BbcNorthSouthV1 *> (GetBbcNS()->UncheckedAt(nBbc));
+  //  if bbcns=null (does not exist) return BbcReturnCodes::BBC_INVALID_SHORT, else nPMT
   return ((bbcns) ? bbcns->get_nPMT() : BbcReturnCodes::BBC_INVALID_SHORT);
 }
 
 //______________________________________
 float BbcOutV1::get_nCharge(const int nBbc) const
 {
-  BbcNorthSouth *bbcns = (BbcNorthSouthV1 *) GetBbcNS()->UncheckedAt(nBbc);
-  //  if bbcns=nil (does not exist) return BbcReturnCodes::BBC_INVALID_FLOAT, else Energy
+  BbcNorthSouth *bbcns = static_cast<BbcNorthSouthV1 *> (GetBbcNS()->UncheckedAt(nBbc));
+  //  if bbcns=null (does not exist) return BbcReturnCodes::BBC_INVALID_FLOAT, else Energy
   return ((bbcns) ? bbcns->get_nCharge() : BbcReturnCodes::BBC_INVALID_FLOAT);
 }
 
 float BbcOutV1::get_Timing(const int nBbc) const
 {
-  BbcNorthSouth *bbcns = (BbcNorthSouthV1 *) GetBbcNS()->UncheckedAt(nBbc);
-  //  if bbcns=nil (does not exist) return BbcReturnCodes::BBC_INVALID_FLOAT, else Timing
+  BbcNorthSouth *bbcns = static_cast<BbcNorthSouthV1 *> (GetBbcNS()->UncheckedAt(nBbc));
+  //  if bbcns=null (does not exist) return BbcReturnCodes::BBC_INVALID_FLOAT, else Timing
   return ((bbcns) ? bbcns->get_MeanTime() : BbcReturnCodes::BBC_INVALID_FLOAT);
 }
