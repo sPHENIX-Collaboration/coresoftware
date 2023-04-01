@@ -8,16 +8,16 @@
 #include <string>
 
 ///
-class BbcOut: public PHObject
+class BbcOut : public PHObject
 {
-public:
+ public:
   ///
   ~BbcOut() override {}
-  
+
   /** identify Function from PHObject
-      @param os Output Stream 
+      @param os Output Stream
    */
-  void identify(std::ostream& os = std::cout) const override; 
+  void identify(std::ostream& os = std::cout) const override;
 
   /// Clear Event
   void Reset() override;
@@ -40,13 +40,13 @@ public:
   /** set T0, Error on T0, ZVertex and Error on ZVertex
       @param t0 Bbc T0
       @param t0err Bbc Error on T0
-      @param vtx Bbc ZVertex 
+      @param vtx Bbc ZVertex
       @param vtxerr Bbc Error on ZVertex
    */
   virtual void set_TimeVertex(const float t0, const float t0err, const float vtx, const float vtxerr)
-  { 
-    set_TimeZero( t0, t0err );
-    set_Vertex( vtx, vtxerr );
+  {
+    set_TimeZero(t0, t0err);
+    set_Vertex(vtx, vtxerr);
   }
 
   /** set T0 for Bbc
@@ -56,13 +56,13 @@ public:
   virtual void set_TimeZero(const float t0, const float t0err = 0);
 
   //! set vertex
-  virtual void set_Vertex( const float vtx, const float vtxerr);
-  
+  virtual void set_Vertex(const float vtx, const float vtxerr);
+
   /** set Vtx Error for Bbc
       @param vtxerr Bbc Vtx Error
    */
   virtual void set_dZVertex(const float vtxerr);
-  
+
   /** Add Bbc North/South object containing Number of pmt's, Energy and Timing
       @param npmt Number of PMT's fired
       @param ncharge Number of Charged Particles into North/South
@@ -87,12 +87,11 @@ public:
   virtual float get_Timing(const int iBBC) const;
 
   virtual void FillFromClass(const BbcOut& old);
-    
-private:
-  void virtual_warning(const std::string &funcname) const;
 
-  ClassDefOverride(BbcOut,1)
+ private:
+  void virtual_warning(const std::string& funcname) const;
+
+  ClassDefOverride(BbcOut, 1)
 };
 
 #endif
-

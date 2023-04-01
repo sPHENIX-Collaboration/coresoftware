@@ -10,7 +10,7 @@ class TClonesArray;
 ///
 class BbcPmtContainerV1 : public BbcPmtContainer
 {
-public:
+ public:
   /// ctor
   BbcPmtContainerV1();
 
@@ -21,21 +21,24 @@ public:
   void Reset() override;
 
   /** identify Function from PHObject
-      @param os Output Stream 
+      @param os Output Stream
    */
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;
 
- 
   /** set T0 for Bbc
       @param ival Number of Bbc Pmt's
    */
-  void set_npmt(const short ival) override {npmt=ival;return;}
+  void set_npmt(const short ival) override
+  {
+    npmt = ival;
+    return;
+  }
 
   /// get Number of Bbc Pmt's
-  short get_npmt() const override {return npmt;}
+  short get_npmt() const override { return npmt; }
 
   /** get id of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
@@ -64,18 +67,15 @@ public:
       @param tdc1 Tdc1 value
       @param ipmt no of pmt
   */
-   void AddBbcPmt(const short ipmt, const float adc, const float tdc0, const float tdc1) override;
+  void AddBbcPmt(const short ipmt, const float adc, const float tdc0, const float tdc1) override;
 
-private:
-  TClonesArray *GetBbcPmtHits() const {return BbcPmtHits;}
+ private:
+  TClonesArray *GetBbcPmtHits() const { return BbcPmtHits; }
 
   short npmt = 0;
   TClonesArray *BbcPmtHits = nullptr;
 
-
-  ClassDefOverride(BbcPmtContainerV1,1)
+  ClassDefOverride(BbcPmtContainerV1, 1)
 };
 
 #endif
-
-

@@ -8,13 +8,13 @@
 void BbcPmtContainer::identify(std::ostream& os) const
 {
   os << "virtual BbcPmtContainer object" << std::endl;
-  return ;
+  return;
 }
 
 void BbcPmtContainer::Reset()
 {
   std::cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << std::endl;
-  return ;
+  return;
 }
 
 int BbcPmtContainer::isValid() const
@@ -26,7 +26,7 @@ int BbcPmtContainer::isValid() const
 void BbcPmtContainer::set_npmt(const short /*ival*/)
 {
   virtual_warning("set_npmt(const short ival)");
-  return ;
+  return;
 }
 
 short BbcPmtContainer::get_npmt() const
@@ -62,12 +62,11 @@ float BbcPmtContainer::get_tdc1(const int /*iPmt*/) const
 void BbcPmtContainer::AddBbcPmt(const short /*ipmt*/, const float /*adc*/, const float /*tdc0*/, const float /*tdc1*/)
 {
   virtual_warning("AddBbcPmtHit(const short ipmt, const short adc, const float tdc0, const float tdc1)");
-  return ;
+  return;
 }
 
-void BbcPmtContainer::virtual_warning(const std::string &funcsname) const
+void BbcPmtContainer::virtual_warning(const std::string& funcsname) const
 {
   std::cout << "BbcPmtContainer::" << funcsname << " is virtual, doing nothing" << std::endl;
-  return ;
+  return;
 }
-

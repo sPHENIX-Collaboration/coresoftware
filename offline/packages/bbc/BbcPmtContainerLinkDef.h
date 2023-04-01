@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class BbcPmtContainer+;
+#pragma link C++ class BbcPmtContainer + ;
 
 #endif

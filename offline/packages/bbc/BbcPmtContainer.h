@@ -18,7 +18,7 @@ class BbcPmtContainer : public PHObject
   virtual ~BbcPmtContainer() {}
 
   /** identify Function from PHObject
-      @param os Output Stream 
+      @param os Output Stream
    */
   virtual void identify(std::ostream& os = std::cout) const override;
 
@@ -65,9 +65,9 @@ class BbcPmtContainer : public PHObject
   virtual void AddBbcPmt(const short ipmt, const float adc, const float tdc0, const float tdc1);
 
  private:
-  void virtual_warning(const std::string &funcname) const;
+  void virtual_warning(const std::string& funcname) const;
 
-  ClassDefOverride(BbcPmtContainer,1)
+  ClassDefOverride(BbcPmtContainer, 1)
 };
 
 #endif

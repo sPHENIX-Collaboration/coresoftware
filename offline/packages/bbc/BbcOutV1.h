@@ -8,10 +8,9 @@
 class TClonesArray;
 
 ///
-class BbcOutV1: public BbcOut
+class BbcOutV1 : public BbcOut
 {
-public:
-
+ public:
   ///
   BbcOutV1();
   ///
@@ -21,24 +20,24 @@ public:
   void Reset() override;
 
   /** identify Function from PHObject
-      @param os Output Stream 
+      @param os Output Stream
    */
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;
 
   /// get ZVertex determined by Bbc
-  float get_VertexPoint() const override {return Bbc_ZVertex;}
+  float get_VertexPoint() const override { return Bbc_ZVertex; }
 
   /// get Error on ZVertex determined by Bbc
-  float get_dVertexPoint() const override {return Bbc_dZVertex;}
+  float get_dVertexPoint() const override { return Bbc_dZVertex; }
 
   /// get T0 determined by Bbc
-  float get_TimeZero() const override {return Bbc_TimeZero;}
+  float get_TimeZero() const override { return Bbc_TimeZero; }
 
   /// get Error on T0 determined by Bbc
-  float get_dTimeZero() const override {return Bbc_dTimeZero;}
+  float get_dTimeZero() const override { return Bbc_dTimeZero; }
 
   /** set T0 for Bbc
       @param t0 Bbc T0
@@ -47,8 +46,8 @@ public:
   void set_TimeZero(const float t0, const float t0err = 0) override;
 
   //! set vertex
-  void set_Vertex( const float vtx, const float vtxerr = 0) override;
-  
+  void set_Vertex(const float vtx, const float vtxerr = 0) override;
+
   /** set Vtx Error for Bbc
       @param vtxerr Bbc Vtx Error
   */
@@ -67,7 +66,6 @@ public:
    */
   short get_nPMT(const int nBbc) const override;
 
-
   /** get Number of Charged Particles into North/South Bbc
       @param nBbc  Arm, use Bbc::North and Bbc::South
    */
@@ -80,19 +78,16 @@ public:
 
   virtual void Init();
 
-private:
-  
-  
+ private:
   TClonesArray *GetBbcNS() const { return BbcNS; }
 
-  float Bbc_ZVertex;
-  float Bbc_dZVertex;
-  float Bbc_TimeZero;
-  float Bbc_dTimeZero;
+  float Bbc_ZVertex{};
+  float Bbc_dZVertex{};
+  float Bbc_TimeZero{};
+  float Bbc_dTimeZero{};
   TClonesArray *BbcNS;
 
-  ClassDefOverride(BbcOutV1,1)
-
+  ClassDefOverride(BbcOutV1, 1)
 };
 
 #endif
