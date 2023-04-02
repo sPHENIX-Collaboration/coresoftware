@@ -500,7 +500,7 @@ void PHG4MvtxTruthClusterizer::_C__ClusterMvtx(TrkrClusterContainer* m_clusterli
 	  const double phisize = phibins.size() * pitch;
 	  const double zsize   = zbins.size()   * length;
 	  
-	  static const double invsqrt12 = 1./std::sqrt(12);
+	  /* static const double invsqrt12 = 1./std::sqrt(12); */
 	  
 	  // scale factors (phi direction)
 	  /*
@@ -509,16 +509,16 @@ void PHG4MvtxTruthClusterizer::_C__ClusterMvtx(TrkrClusterContainer* m_clusterli
 	    These scale factors are applied to produce cluster pulls with width unity
 	  */
 	  
-	  double phierror = pitch * invsqrt12;
+	  /* double phierror = pitch * invsqrt12; */
 	  
-	  static constexpr std::array<double, 7> scalefactors_phi = {{ 0.36, 0.6,0.37,0.49,0.4,0.37,0.33 }};
-	  if     ( phibins.size() == 1 && zbins.size() == 1 ) phierror*=scalefactors_phi[0];
-	  else if( phibins.size() == 2 && zbins.size() == 1 ) phierror*=scalefactors_phi[1];
-	  else if( phibins.size() == 1 && zbins.size() == 2 ) phierror*=scalefactors_phi[2];
-	  else if( phibins.size() == 2 && zbins.size() == 2 ) phierror*=scalefactors_phi[0];
-	  else if( phibins.size() == 2 && zbins.size() == 3 ) phierror*=scalefactors_phi[1];
-	  else if( phibins.size() == 3 && zbins.size() == 2 ) phierror*=scalefactors_phi[2];
-	  else if( phibins.size() == 3 && zbins.size() == 3 ) phierror*=scalefactors_phi[3];
+	  /* static constexpr std::array<double, 7> scalefactors_phi = {{ 0.36, 0.6,0.37,0.49,0.4,0.37,0.33 }}; */
+	  /* if     ( phibins.size() == 1 && zbins.size() == 1 ) phierror*=scalefactors_phi[0]; */
+	  /* else if( phibins.size() == 2 && zbins.size() == 1 ) phierror*=scalefactors_phi[1]; */
+	  /* else if( phibins.size() == 1 && zbins.size() == 2 ) phierror*=scalefactors_phi[2]; */
+	  /* else if( phibins.size() == 2 && zbins.size() == 2 ) phierror*=scalefactors_phi[0]; */
+	  /* else if( phibins.size() == 2 && zbins.size() == 3 ) phierror*=scalefactors_phi[1]; */
+	  /* else if( phibins.size() == 3 && zbins.size() == 2 ) phierror*=scalefactors_phi[2]; */
+	  /* else if( phibins.size() == 3 && zbins.size() == 3 ) phierror*=scalefactors_phi[3]; */
 	  
 	  
 	  // scale factors (z direction)
@@ -526,12 +526,12 @@ void PHG4MvtxTruthClusterizer::_C__ClusterMvtx(TrkrClusterContainer* m_clusterli
 	    they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in z and phi
 	    other clusters, which are very few and pathological, get a scale factor of 1
 	  */
-	  static constexpr std::array<double, 4> scalefactors_z = {{ 0.47, 0.48, 0.71, 0.55 }};
-	  double zerror = length*invsqrt12;
-	  if( zbins.size() == 2 && phibins.size() == 2 ) zerror*=scalefactors_z[0];
-	  else if( zbins.size() == 2 && phibins.size() == 3 )  zerror*=scalefactors_z[1];
-	  else if( zbins.size() == 3 && phibins.size() == 2 )  zerror*=scalefactors_z[2];
-	  else if( zbins.size() == 3 && phibins.size() == 3 )  zerror*=scalefactors_z[3];
+	  /* static constexpr std::array<double, 4> scalefactors_z = {{ 0.47, 0.48, 0.71, 0.55 }}; */
+	  /* double zerror = length*invsqrt12; */
+	  /* if( zbins.size() == 2 && phibins.size() == 2 ) zerror*=scalefactors_z[0]; */
+	  /* else if( zbins.size() == 2 && phibins.size() == 3 )  zerror*=scalefactors_z[1]; */
+	  /* else if( zbins.size() == 3 && phibins.size() == 2 )  zerror*=scalefactors_z[2]; */
+	  /* else if( zbins.size() == 3 && phibins.size() == 3 )  zerror*=scalefactors_z[3]; */
 	  
 	  if(Verbosity() > 0)
 	    cout << " MvtxClusterizer: cluskey " << ckey << " layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize 
