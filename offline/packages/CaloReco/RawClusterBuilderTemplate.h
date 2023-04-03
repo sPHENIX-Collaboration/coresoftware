@@ -32,6 +32,11 @@ class RawClusterBuilderTemplate : public SubsysReco
   void checkenergy(const int i = 1) { chkenergyconservation = i; }
   void LoadProfile(const std::string& fname);
 
+  void set_UseTowerInfo(const int useMode)
+  {  // 0 only old tower, 1 only new (TowerInfo based),
+    m_UseTowerInfo = useMode;
+  }
+
  private:
   void CreateNodes(PHCompositeNode* topNode);
   bool Cell2Abs(RawTowerGeomContainer* towergeom, float phiC, float etaC, float& phi, float& eta);
@@ -56,6 +61,10 @@ class RawClusterBuilderTemplate : public SubsysReco
   bool bPrintGeom = false;
   bool bProfProb = false;
   float fProbNoiseParam = 0.04;
+
+  int m_UseTowerInfo = 0;  // 0 only old tower, 1 only new (TowerInfo based),
+
+  std::string m_towerInfo_nodename;
 };
 
 #endif /* RawClusterBuilderTemplate_H__ */

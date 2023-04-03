@@ -23,7 +23,6 @@
 #include <g4tracking/TrkrTruthTrackContainerv1.h>
 
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterv4.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterContainerv4.h>

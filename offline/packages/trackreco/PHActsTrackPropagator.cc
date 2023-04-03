@@ -23,8 +23,6 @@
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
-#include <Acts/Propagator/EigenStepper.hpp>
-#include <Acts/Propagator/Navigator.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 
 //____________________________________________________________________________..
@@ -48,12 +46,6 @@ int PHActsTrackPropagator::Init(PHCompositeNode *)
 int PHActsTrackPropagator::InitRun(PHCompositeNode *topNode)
 {
   int ret = getNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK)
-  {
-    return ret;
-  }
-
-  ret = checkLayer();
 
   return ret;
 }
@@ -61,12 +53,13 @@ int PHActsTrackPropagator::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHActsTrackPropagator::process_event(PHCompositeNode *)
 {
+  ActsPropagator prop(m_tGeometry);
   for (auto &[key, track] : *m_trackMap)
   {
-    const auto params = makeTrackParams(track);
+    const auto params = prop.makeTrackParams(track, m_vertexMap);
 
     auto result = propagateTrack(params);
-    if (!std::isnan(result.first))
+    if (result.ok())
     {
       addTrackState(result, track);
     }
@@ -76,11 +69,11 @@ int PHActsTrackPropagator::process_event(PHCompositeNode *)
 }
 
 void PHActsTrackPropagator::addTrackState(
-    const BoundTrackParamResult &result,
+    BoundTrackParamResult &result,
     SvtxTrack *svtxTrack)
 {
-  float pathlength = result.first;
-  auto params = result.second;
+  float pathlength = result.value().first;
+  auto params = result.value().second;
 
   SvtxTrackState_v1 out(pathlength);
 
@@ -116,105 +109,10 @@ void PHActsTrackPropagator::addTrackState(
 PHActsTrackPropagator::BoundTrackParamResult
 PHActsTrackPropagator::propagateTrack(const Acts::BoundTrackParameters &params)
 {
-  if (Verbosity() > 1)
-  {
-    std::cout << "Propagating final track fit with momentum: "
-              << params.momentum() << " and position "
-              << params.position(m_tGeometry->geometry().getGeoContext())
-              << std::endl
-              << "track fit phi/eta "
-              << atan2(params.momentum()(1),
-                       params.momentum()(0))
-              << " and "
-              << atanh(params.momentum()(2) / params.momentum().norm())
-              << std::endl;
-  }
+  ActsPropagator propagator(m_tGeometry);
+  propagator.verbosity(Verbosity());
 
-  using Stepper = Acts::EigenStepper<>;
-  using Propagator = Acts::Propagator<Stepper, Acts::Navigator>;
-
-  auto field = m_tGeometry->geometry().magField;
-  auto trackingGeometry = m_tGeometry->geometry().tGeometry;
-  Stepper stepper(field);
-  Acts::Navigator::Config cfg{trackingGeometry};
-  cfg.resolvePassive = false;
-  cfg.resolveMaterial = true;
-  cfg.resolveSensitive = true;
-  Acts::Navigator navigator(cfg);
-
-  Propagator propagator(stepper, navigator);
-
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
-  if (Verbosity() > 3)
-  {
-    logLevel = Acts::Logging::VERBOSE;
-  }
-
-  auto logger = Acts::getDefaultLogger("PHActsTrackPropagator",
-                                       logLevel);
-  using Actors = Acts::ActionList<>;
-  using Aborters = Acts::AbortList<ActsAborter>;
-
-  Acts::PropagatorOptions<Actors, Aborters> options(
-      m_tGeometry->geometry().getGeoContext(),
-      m_tGeometry->geometry().magFieldContext,
-      Acts::LoggerWrapper{*logger});
-
-  options.abortList.get<ActsAborter>().abortlayer = m_actslayer;
-  options.abortList.get<ActsAborter>().abortvolume = m_actsvolume;
-
-  auto result = propagator.propagate(params, options);
-
-  if (result.ok())
-  {
-    auto params = *result.value().endParameters;
-    double pathlength = result.value().pathLength / Acts::UnitConstants::cm;
-    return std::make_pair(pathlength, params);
-  }
-
-  return std::make_pair(NAN, Acts::BoundTrackParameters(nullptr, Acts::BoundVector::Zero(), -1));
-}
-
-Acts::BoundTrackParameters
-PHActsTrackPropagator::makeTrackParams(SvtxTrack *track)
-{
-  Acts::Vector3 momentum(track->get_px(),
-                         track->get_py(),
-                         track->get_pz());
-
-  auto actsVertex = getVertex(track);
-  auto perigee =
-      Acts::Surface::makeShared<Acts::PerigeeSurface>(actsVertex);
-  auto actsFourPos =
-      Acts::Vector4(track->get_x() * Acts::UnitConstants::cm,
-                    track->get_y() * Acts::UnitConstants::cm,
-                    track->get_z() * Acts::UnitConstants::cm,
-                    10 * Acts::UnitConstants::ns);
-
-  ActsTransformations transformer;
-
-  Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
-
-  return ActsTrackFittingAlgorithm::TrackParameters::create(perigee,
-                                                            m_tGeometry->geometry().getGeoContext(),
-                                                            actsFourPos, momentum,
-                                                            track->get_charge() / track->get_p(),
-                                                            cov)
-      .value();
-}
-Acts::Vector3 PHActsTrackPropagator::getVertex(SvtxTrack *track)
-{
-  auto vertexId = track->get_vertex_id();
-  const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
-  Acts::Vector3 vertex = Acts::Vector3::Zero();
-  if (svtxVertex)
-  {
-    vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
-    vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm;
-    vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
-  }
-
-  return vertex;
+  return propagator.propagateTrack(params, m_sphenixLayer);
 }
 
 //____________________________________________________________________________..
@@ -255,75 +153,6 @@ int PHActsTrackPropagator::getNodes(PHCompositeNode *topNode)
     std::cout << PHWHERE << "No SvtxTrackMap on node tree. Bailing."
               << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHActsTrackPropagator::checkLayer()
-{
-  /*
-   * Acts geometry is defined in terms of volumes and layers. Within a volume
-   * layers always begin at 2 and iterate in 2s, i.e. the MVTX is defined as a
-   * volume and the 3 layers are identifiable as 2, 4, and 6.
-   * So we convert the sPHENIX layer number here to the Acts volume and
-   * layer number that can interpret where to navigate to in the propagation.
-   * The only exception is the TPOT, which is interpreted as a single layer.
-   */
-
-  /// mvtx
-  if (m_sphenixLayer < 3)
-  {
-    m_actsvolume = 10;
-    m_actslayer = (m_sphenixLayer + 1) * 2;
-  }
-
-  /// intt
-  else if (m_sphenixLayer < 7)
-  {
-    m_actsvolume = 12;
-    m_actslayer = ((m_sphenixLayer - 3) + 1) * 2;
-  }
-
-  /// tpc
-  else if (m_sphenixLayer < 55)
-  {
-    m_actsvolume = 14;
-    m_actslayer = ((m_sphenixLayer - 7) + 1) * 2;
-  }
-  /// tpot only has one layer in Acts geometry
-  else
-  {
-    m_actsvolume = 16;
-    m_actslayer = 2;
-  }
-
-  /// Test to make sure the found volume and layer exist
-  auto tgeometry = m_tGeometry->geometry().tGeometry;
-
-  bool foundlayer = false;
-  bool foundvolume = false;
-
-  tgeometry->visitSurfaces([&](const Acts::Surface *srf)
-                           {
-    if (srf != nullptr) {
-      auto layer = srf->geometryId().layer();
-      auto volume = srf->geometryId().volume();
-      if(volume == m_actsvolume and layer == m_actslayer)
-	{
-	  foundlayer = true;
-	  foundvolume = true;
-	  return;
-	}
-    } });
-
-  if (!foundlayer or !foundvolume)
-  {
-    std::cout << PHWHERE
-              << "Could not identify Acts volume and layer to propagate to. Can't continue. "
-              << std::endl;
-
-    return Fun4AllReturnCodes::ABORTRUN;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

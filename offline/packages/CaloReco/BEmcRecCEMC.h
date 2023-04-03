@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-//class BEmcProfile;
+// class BEmcProfile;
 class EmcModule;
 
 class BEmcRecCEMC : public BEmcRec

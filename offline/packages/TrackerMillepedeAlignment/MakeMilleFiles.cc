@@ -327,6 +327,12 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       clus_sigma(0) = sqrt(exy2 / 2.0);
       clus_sigma(1) = sqrt(exy2 / 2.0);
     }
+  else if(_cluster_version == 5)
+    {
+      clus_sigma(2) = cluster->getZError();
+      clus_sigma(0) = cluster->getRPhiError() / sqrt(2);
+      clus_sigma(1) = cluster->getRPhiError() / sqrt(2);
+    }
 
     if (std::isnan(clus_sigma(0)) ||
         std::isnan(clus_sigma(1)) ||

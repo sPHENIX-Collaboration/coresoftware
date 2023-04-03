@@ -66,6 +66,7 @@ class CaloTowerCalib : public SubsysReco
 
   CDBTTree *cdbttree = nullptr;
   std::string m_fieldname;
+  int m_runNumber;
 };
 
 #endif  // CALOTOWERBUILDER_H

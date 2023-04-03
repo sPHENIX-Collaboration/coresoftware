@@ -77,14 +77,14 @@ class TrkrClusterv4 : public TrkrCluster
     m_adc  |= tmp; 
   }
 
-  unsigned int getMaxAdc() const { 
+  unsigned int getMaxAdc() const override { 
     uint8_t tmp = (m_adc >> 8);
     unsigned int out = 0;
     out |= tmp;
     return out; 
   }
 
-  void setMaxAdc(uint16_t maxadc) {
+  void setMaxAdc(uint16_t maxadc) override {
     if(maxadc>0xff)maxadc=0xff;
     uint16_t tmp = (maxadc << 8);
     m_adc |= tmp;
@@ -120,7 +120,7 @@ class TrkrClusterv4 : public TrkrCluster
    void setError(unsigned int, unsigned int, float) override 
    { std::cout << "Deprecated seterr trkrcluster function!" << std::endl; }
 
-   char getSize() { return m_phisize * m_zsize; }
+   char getSize() const override { return m_phisize * m_zsize; }
    //   void setSize(char size) { m_size = size; }
  
    float getPhiSize() const override { return (float) m_phisize; }
@@ -129,11 +129,11 @@ class TrkrClusterv4 : public TrkrCluster
    float getZSize() const override { return (float) m_zsize; }
    void setZSize(char zsize) { m_zsize = zsize; }
  
-   char getOverlap() { return m_overlap; }
-   void setOverlap(char overlap) { m_overlap = overlap; }
+   char getOverlap() const override { return m_overlap; }
+   void setOverlap(char overlap) override { m_overlap = overlap; }
  
-   char getEdge() { return m_edge; }
-   void setEdge(char edge) { m_edge = edge; }
+   char getEdge() const override { return m_edge; }
+   void setEdge(char edge) override { m_edge = edge; }
 
    //float getPhiSize() const override 
    //{ std::cout << "Deprecated size function"<< std::endl; return NAN;}
