@@ -292,34 +292,39 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 
     int layerMatch = -1;
     
+    int nRowsMatch = 2;
+
+    if(layer[i] >= 39) nRowsMatch = 4;
+    else if(layer[i] >= 23) nRowsMatch = 3;
+
     if( pos[i].Z() >= 0 ){
       if(layer[i] == 7){
-	if(nPairAbove_pos[layer[i]-7] >= 3) layerMatch = layer[i]+1;
+	if(nPairAbove_pos[layer[i]-7] >= nRowsMatch) layerMatch = layer[i]+1;
       }else if(layer[i] == 54){
-	if(nPairAbove_pos[layer[i]-8] >= 3) layerMatch = layer[i]-1;
+	if(nPairAbove_pos[layer[i]-8] >= nRowsMatch) layerMatch = layer[i]-1;
       }else{
-	if(nPairAbove_pos[layer[i]-7] >=3 && nPairAbove_pos[layer[i]-8] >=3){
+	if(nPairAbove_pos[layer[i]-7] >= nRowsMatch && nPairAbove_pos[layer[i]-8] >= nRowsMatch){
 	  if(pairAboveContent_pos[layer[i]-7]/nPairAbove_pos[layer[i]-7] > pairAboveContent_pos[layer[i]-8]/nPairAbove_pos[layer[i]-8]) layerMatch = layer[i]+1;
 	  else layerMatch = layer[i]-1;
-	}else if(nPairAbove_pos[layer[i]-7] >=3) layerMatch = layer[i]+1;
-	else if(nPairAbove_pos[layer[i]-8] >=3) layerMatch = layer[i]-1;
+	}else if(nPairAbove_pos[layer[i]-7] >= nRowsMatch) layerMatch = layer[i]+1;
+	else if(nPairAbove_pos[layer[i]-8] >= nRowsMatch) layerMatch = layer[i]-1;
       }
     }else{
       if(layer[i] == 7){
-	if(nPairAbove_neg[layer[i]-7] >= 3) layerMatch = layer[i]+1;
+	if(nPairAbove_neg[layer[i]-7] >= nRowsMatch) layerMatch = layer[i]+1;
       }else if(layer[i] == 54){
-	if(nPairAbove_neg[layer[i]-8] >= 3) layerMatch = layer[i]-1;
+	if(nPairAbove_neg[layer[i]-8] >= nRowsMatch) layerMatch = layer[i]-1;
       }else{
-	if(nPairAbove_neg[layer[i]-7] >=3 && nPairAbove_neg[layer[i]-8] >=3){
+	if(nPairAbove_neg[layer[i]-7] >= nRowsMatch && nPairAbove_neg[layer[i]-8] >= nRowsMatch){
 	  if(pairAboveContent_neg[layer[i]-7]/nPairAbove_neg[layer[i]-7] > pairAboveContent_neg[layer[i]-8]/nPairAbove_neg[layer[i]-8]) layerMatch = layer[i]+1;
 	  else layerMatch = layer[i]-1;
-	}else if(nPairAbove_neg[layer[i]-7] >=3) layerMatch = layer[i]+1;
-	else if(nPairAbove_neg[layer[i]-8] >=3) layerMatch = layer[i]-1;
+	}else if(nPairAbove_neg[layer[i]-7] >= nRowsMatch) layerMatch = layer[i]+1;
+	else if(nPairAbove_neg[layer[i]-8] >= nRowsMatch) layerMatch = layer[i]-1;
       }
     }
 
 
-    if(layerMatch == -1 && (layer[i] == 22 || layer[i] == 23 || layer[i] == 38 || layer[i] == 39) ) isAcrossGap[i] = true;
+    if(layerMatch == -1 && (layer[i] == 22 || layer[i] == 23 || layer[i] == 38 || layer[i] == 39 || layer[i] == 7) ) isAcrossGap[i] = true;
 
     float bestphidist=maxphidist;
     for (int j=0;j<nTpcClust;j++)
@@ -436,8 +441,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
         double rad1 = layergeom1->get_radius();
         PHG4TpcCylinderGeom *layergeom2 = _geom_container->GetLayerCellGeom(layer[i_pair[i]]);
         double rad2 = layergeom2->get_radius();
-        PHG4TpcCylinderGeom *layergeom0;
-        double layer_dr;
+	//        PHG4TpcCylinderGeom *layergeom0;
+        double layer_dr = std::abs(rad1 - rad2);
+	/*
         if(layer[i] != 7 && layer[i] != 23 && layer[i] != 39)
         {
           layergeom0 = _geom_container->GetLayerCellGeom(layer[i]-1);
@@ -447,7 +453,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
         {
           layergeom0 = _geom_container->GetLayerCellGeom(layer[i]+1);
           layer_dr = layergeom0->get_radius() - rad1; 
-        }
+	  }*/
         double rad_lyr_boundary = rad1 + layer_dr / 2.0;	 
         
         
@@ -456,11 +462,22 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
         if( _dcc)  dist_pos = _distortionCorrection.get_corrected_position( dist_pos, _dcc ); 
         double dist_r = sqrt(dist_pos[0]*dist_pos[0] + dist_pos[1] * dist_pos[1]);
         double cmclus_dr = _cmclus_dr_outer; 
-        if(dist_r < 41.0)
+        /*
+	if(dist_r < 41.0)
           cmclus_dr = _cmclus_dr_inner;
         else if(dist_r >= 41.0 && rad2 < 58.0)
           cmclus_dr = _cmclus_dr_mid; 
-        // Use radial width of stripe and efrac to determine where radius at center of distribution must be
+        */
+
+	if(dist_r < 41.0){
+	  if(rad2 >= 41.0) cmclus_dr = 0.5*(_cmclus_dr_inner + _cmclus_dr_mid);
+	  else cmclus_dr = _cmclus_dr_inner;
+	}else if(dist_r >= 41.0 && dist_r < 58.0){
+	  if(rad2 >= 58.0) cmclus_dr = 0.5*(_cmclus_dr_mid + _cmclus_dr_outer);
+	  else cmclus_dr = _cmclus_dr_mid;
+	}
+
+	// Use radial width of stripe and efrac to determine where radius at center of distribution must be
         double aveR = rad_lyr_boundary - efrac * cmclus_dr + cmclus_dr/2.0;
         
         if(Verbosity() > 0)
@@ -481,8 +498,11 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
           << std::endl;
       }
     } else {
+
+      std::cout << "singleton layer: " << layer[i] << "   radius: " << pos[i].Perp() << "   isAcrossGap? " << isAcrossGap[i] << std::endl;
       if(_histos)  hClustE[2]->Fill(energy[i]);
       // These single cluster cases have good phi, but do not have a good radius centroid estimate - may want to skip them, record nclusters
+      if(layer[i] == 7) isAcrossGap[i] = true;
       aveenergy.push_back(energy[i]);
       avepos.push_back(pos[i]);
       nclusters.push_back(1);

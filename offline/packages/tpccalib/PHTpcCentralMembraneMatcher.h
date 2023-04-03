@@ -134,7 +134,9 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   TGraph *clust_r_phi_gr2_pos;
   TGraph *clust_r_phi_gr2_neg;
   
-  
+  TNtuple *reco_ntup = nullptr;
+
+
   std::string m_outputfile2 = "CM_r_phi_maps.root";
   std::unique_ptr<TFile> fout2;
 

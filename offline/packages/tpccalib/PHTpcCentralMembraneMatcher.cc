@@ -285,12 +285,23 @@ std::vector<double> PHTpcCentralMembraneMatcher::getRPeaks(TH2F *r_phi){
 
 int PHTpcCentralMembraneMatcher::getClusterRMatch( std::vector<int> hitMatches, std::vector<double> clusterPeaks, double clusterR){
 
-  int closest_clusterR = -1;
+  //  int closest_clusterR = -1;
 
-  for(int i=0; i<(int)hitMatches.size(); i++){
+  /*  for(int i=0; i<(int)hitMatches.size(); i++){
 
-    double lowGap = 0.0;
-    double highGap = 0.0;
+    double lowGap = 0.5;
+    double highGap = 0.5;
+  */
+  double closestDist = 100.;
+  int closestPeak = -1;
+  for(int j=0; j<(int)clusterPeaks.size(); j++){
+    if(std::abs(clusterR - clusterPeaks[j]) < closestDist){
+      closestDist = std::abs(clusterR - clusterPeaks[j]);
+      closestPeak = j;
+    }
+  }
+  
+    /*
 
     if(hitMatches[i] <= 14){
       lowGap = 0.565985;
@@ -315,13 +326,20 @@ int PHTpcCentralMembraneMatcher::getClusterRMatch( std::vector<int> hitMatches, 
       highGap = 1.09705;
     }
 
+
     if( clusterR > (clusterPeaks[i] - lowGap) && clusterR <= (clusterPeaks[i] + highGap) ){
       closest_clusterR = hitMatches[i];
       break;
     }
-  }
+    */
+  //  }
 
-  return closest_clusterR;
+
+
+  //  return closest_clusterR;
+
+  if(closestPeak != -1) return hitMatches[closestPeak];
+  else return -1;
 
 }
 
@@ -372,6 +390,8 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
   clust_r_phi = new TH2F("clust_r_phi","clust R vs #phi;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
   clust_r_phi_pos = new TH2F("clust_r_phi_pos","clust R vs #phi Z>0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
   clust_r_phi_neg = new TH2F("clust_r_phi_neg","clust R vs #phi Z<0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
+
+  reco_ntup = new TNtuple("reco_ntuple","","hitR:hitPhi:hitZ:recoR:recoPhi:recoZ");
 
   std::vector<double> hitR;
   std::vector<double> hitPhi;
@@ -904,6 +924,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     cmdiff->setNclusters(nclus);
     
     m_cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
+
+    reco_ntup->Fill(m_truth_pos[p.first].Perp(),m_truth_pos[p.first].Phi(),m_truth_pos[p.first].Z(),reco_pos[p.second].Perp(),reco_pos[p.second].Phi(),reco_pos[p.second].Z());
     
     // store cluster position
     const double clus_r = reco_pos[p.second].Perp();
@@ -1019,6 +1041,8 @@ int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
   clust_r_phi_gr2->Write("clust_r_phi_gr2");
   clust_r_phi_gr2_pos->Write("clust_r_phi_gr2_pos");
   clust_r_phi_gr2_neg->Write("clust_r_phi_gr2_neg");
+
+  reco_ntup->Write();
 
   fout2->Close();
 
