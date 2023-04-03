@@ -17,8 +17,7 @@ lib_LTLIBRARIES = \
    libg4eval.la
 
 libg4eval_io_la_LIBADD = \
-  -lphool \
-  -ltrack_io
+  -lphool
 
 libg4eval_la_LIBADD = \
   libg4eval_io.la \
@@ -65,8 +64,6 @@ pkginclude_HEADERS = \
   SvtxTruthRecoTableEval.h \
   SvtxVertexEval.h \
   TrackEvaluation.h \
-  DSTWriter.h \
-  DSTReader.h \
   TrackEvaluationContainer.h \
   TrackEvaluationContainerv1.h  \
   TrackSeedTrackMapConverter.h \
@@ -76,27 +73,16 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   TrackEvaluationContainer_Dict.cc \
-  TrackEvaluationContainerv1_Dict.cc \
-	DSTContainer_Dict.cc \
-  DSTContainerv1_Dict.cc \
-	DSTContainerv3_Dict.cc \
-	DSTContainerTcl_Dict.cc
+  TrackEvaluationContainerv1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   TrackEvaluationContainer_Dict_rdict.pcm \
-  TrackEvaluationContainerv1_Dict_rdict.pcm \
-	DSTContainer_Dict_rdict.pcm \
-	DSTContainerv1_Dict_rdict.pcm \
-	DSTContainerv3_Dict_rdict.pcm \
-	DSTContainerTcl_Dict_rdict.pcm
+  TrackEvaluationContainerv1_Dict_rdict.pcm
 
 libg4eval_io_la_SOURCES = \
   $(ROOTDICTS) \
-  TrackEvaluationContainerv1.cc \
-  DSTContainerv1.cc \
-	DSTContainerv3.cc \
-	DSTContainerTcl.cc
+  TrackEvaluationContainerv1.cc
 
 libg4eval_la_SOURCES = \
   BaseTruthEval.cc \
@@ -125,8 +111,6 @@ libg4eval_la_SOURCES = \
   SvtxVertexEval.cc \
   TrackEvaluation.cc \
   TrackSeedTrackMapConverter.cc \
-  DSTWriter.cc \
-  DSTReader.cc \
   TruthRecoTrackMatching.cc
 
 # Rule for generating table CINT dictionaries.
