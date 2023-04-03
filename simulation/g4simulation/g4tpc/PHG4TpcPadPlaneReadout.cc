@@ -171,6 +171,7 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/,
   return 0;
 }
 
+
 double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
 {
   // Jin H.: For the GEM gain in sPHENIX TPC,
@@ -182,6 +183,7 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
   //         for the single electron gain distribution -
   //         and yes, the parameter you're looking for is of course the slope, which is the inverse gain.
   double nelec = gsl_ran_exponential(RandomGenerator, averageGEMGain);
+  //Put gain reading here
 
   return nelec;
 }

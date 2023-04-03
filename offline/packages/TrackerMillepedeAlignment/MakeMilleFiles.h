@@ -94,7 +94,7 @@ class MakeMilleFiles : public SubsysReco
   std::string steering_outfilename = ("steer.txt");
 
   bool _binary = true;
-  unsigned int _cluster_version = 4;
+  unsigned int _cluster_version = 5;
 
   bool m_useAnalytic = true;
 

@@ -4,9 +4,10 @@
 #include <fun4all/SubsysReco.h> 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase_historic/TrackSeed.h>
 
-#include <TFile.h>
-#include <TTree.h>
+/* #include <TFile.h> */
+/* #include <TTree.h> */
 
 #include <array>
 #include <iostream>
@@ -14,6 +15,8 @@
 #include <set>
 #include <tuple>
 #include <vector>
+#include <string>
+
 
 class EmbRecoMatchContainer;
 class PHCompositeNode;
@@ -27,6 +30,8 @@ class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrTruthTrack;
 class TrkrTruthTrackContainer;
+class TTree;
+class TFile;
 
 class TruthRecoTrackMatching : public SubsysReco 
 {
@@ -65,6 +70,7 @@ class TruthRecoTrackMatching : public SubsysReco
     int InitRun(PHCompositeNode       *) override; //`
     int process_event(PHCompositeNode *) override; //`
     int End(PHCompositeNode           *) override;
+
 
     int createNodes(PHCompositeNode* topNode);
 
@@ -210,6 +216,80 @@ class TruthRecoTrackMatching : public SubsysReco
     std::pair<bool, float> compare_cluster_pair(TrkrDefs::cluskey key_T,
         TrkrDefs::cluskey key_R, TrkrDefs::hitsetkey key, bool
         calc_sigma=false);
+
+    // ------------------------------------------------------------------
+    // output for diagnositics:
+    //  If there is output, put all the clusters into the x, y, z
+    // ------------------------------------------------------------------
+    TTree* m_diag_tree { nullptr } ;
+    TFile* m_diag_file { nullptr } ;
+    bool m_write_diag { false };
+    void set_diagnostic_file(std::string file_name);
+
+    std::vector<int>   m_trkid_reco_matched {};
+    std::vector<int>   m_cnt_reco_matched {};
+    std::vector<unsigned int> m_i0_reco_matched {};
+    std::vector<unsigned int> m_i1_reco_matched {};
+    std::vector<unsigned int> m_layer_reco_matched {};
+    std::vector<float> m_x_reco_matched {};
+    std::vector<float> m_y_reco_matched {};
+    std::vector<float> m_z_reco_matched {};
+
+    std::vector<int>   m_trkid_reco_notmatched {};
+    std::vector<int>   m_cnt_reco_notmatched {};
+    std::vector<unsigned int> m_i0_reco_notmatched {};
+    std::vector<unsigned int> m_i1_reco_notmatched {};
+    std::vector<unsigned int> m_layer_reco_notmatched {};
+    std::vector<float> m_x_reco_notmatched {};
+    std::vector<float> m_y_reco_notmatched {};
+    std::vector<float> m_z_reco_notmatched {};
+
+    std::vector<int>   m_trkid_true_matched {};
+    std::vector<int>   m_cnt_true_matched {};
+    std::vector<unsigned int> m_i0_true_matched {};
+    std::vector<unsigned int> m_i1_true_matched {};
+    std::vector<unsigned int> m_layer_true_matched {};
+    std::vector<float> m_x_true_matched {};
+    std::vector<float> m_y_true_matched {};
+    std::vector<float> m_z_true_matched {};
+
+    std::vector<int>   m_trkid_true_notmatched {};
+    std::vector<int>   m_cnt_true_notmatched {};
+    std::vector<unsigned int> m_i0_true_notmatched {};
+    std::vector<unsigned int> m_i1_true_notmatched {};
+    std::vector<unsigned int> m_layer_true_notmatched {};
+    std::vector<float> m_x_true_notmatched {};
+    std::vector<float> m_y_true_notmatched {};
+    std::vector<float> m_z_true_notmatched {};
+
+    int m_event {0};
+
+    void clear_branch_vectors();
+    void fill_tree();
+
+    // The following is a struct to iterate over the cluster keys for a given
+    // StvxTrack* tracks, starting with the silicone seed and then returning
+    // values for the tpc seed. It is used like:
+    //
+    // for (auto& cluskey : ClusKeyIter(svtx_track)) {
+    //    ... // do things with cluster keys
+    // }
+    struct ClusKeyIter {
+      ClusKeyIter(SvtxTrack* _track);
+      // data
+      SvtxTrack* track;
+      bool in_silicon;
+      bool has_tpc;
+      bool no_data; // neither a tpc nor a silicon seed
+      TrackSeed::ClusterKeyIter iter             { };
+      TrackSeed::ClusterKeyIter iter_end_silicon { };
+
+      ClusKeyIter begin();
+      ClusKeyIter end();
+      void operator++();
+      TrkrDefs::cluskey operator*();
+      bool operator!=(const ClusKeyIter& rhs);
+    };
 };
 
 #endif

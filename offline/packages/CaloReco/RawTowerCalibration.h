@@ -57,9 +57,9 @@ class RawTowerCalibration : public SubsysReco
   };
   enum ProcessTowerType
   {
-    kRawTowerOnly= 0,
+    kRawTowerOnly = 0,
     kTowerInfoOnly = 1,
-    kBothTowers =2
+    kBothTowers = 2
   };
 
   enu_calib_algorithm
@@ -158,12 +158,10 @@ class RawTowerCalibration : public SubsysReco
     m_UseConditionsDB = setUseCondDB;
   }
 
-
-  void set_towerinfo(RawTowerCalibration::ProcessTowerType UseTowerInfo )
+  void set_towerinfo(RawTowerCalibration::ProcessTowerType UseTowerInfo)
   {
     m_UseTowerInfo = UseTowerInfo;
   }
-
 
  protected:
   void
@@ -176,7 +174,6 @@ class RawTowerCalibration : public SubsysReco
 
   TowerInfoContainerv1 *_calib_towerinfos = nullptr;
   TowerInfoContainerv1 *_raw_towerinfos = nullptr;
-
 
   RawTowerGeomContainer *rawtowergeom = nullptr;
 
@@ -213,8 +210,6 @@ class RawTowerCalibration : public SubsysReco
 
   CaloCalibSimpleCorrFile *_cal_dbfile = nullptr;
   RawTowerCalibration::ProcessTowerType m_UseTowerInfo = RawTowerCalibration::ProcessTowerType::kBothTowers;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
-
-
 };
 
 #endif

@@ -1,22 +1,20 @@
-#include <iostream>
-#include "phool/phool.h"
 #include "BbcPmtContainer.h"
 #include "BbcReturnCodes.h"
 
-using namespace std;
+#include <phool/phool.h>
 
-ClassImp(BbcPmtContainer)
+#include <iostream>
 
-void BbcPmtContainer::identify(ostream& os) const
+void BbcPmtContainer::identify(std::ostream& os) const
 {
-  os << "virtual BbcPmtContainer object";
-  return ;
+  os << "virtual BbcPmtContainer object" << std::endl;
+  return;
 }
 
 void BbcPmtContainer::Reset()
 {
-  cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << endl;
-  return ;
+  std::cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << std::endl;
+  return;
 }
 
 int BbcPmtContainer::isValid() const
@@ -25,44 +23,50 @@ int BbcPmtContainer::isValid() const
   return 0;
 }
 
-void BbcPmtContainer::set_npmt(const Short_t /*ival*/)
+void BbcPmtContainer::set_npmt(const short /*ival*/)
 {
   virtual_warning("set_npmt(const short ival)");
-  return ;
+  return;
 }
 
 short BbcPmtContainer::get_npmt() const
 {
   virtual_warning("get_npmt()");
-  return BBC_INVALID_SHORT;
+  return BbcReturnCodes::BBC_INVALID_SHORT;
 }
 
-Float_t BbcPmtContainer::get_adc(const int /*iPmt*/) const
+short BbcPmtContainer::get_pmt(const int /*iPmt*/) const
+{
+  virtual_warning("get_pmt(const short iPmt)");
+  return BbcReturnCodes::BBC_INVALID_SHORT;
+}
+
+float BbcPmtContainer::get_adc(const int /*iPmt*/) const
 {
   virtual_warning("get_Adc(const short iPmt)");
-  return BBC_INVALID_SHORT;
+  return BbcReturnCodes::BBC_INVALID_FLOAT;
 }
 
-Float_t BbcPmtContainer::get_tdc0(const int /*iPmt*/) const
+float BbcPmtContainer::get_tdc0(const int /*iPmt*/) const
 {
   virtual_warning("get_Tdc0(const short iPmt)");
-  return BBC_INVALID_SHORT;
+  return BbcReturnCodes::BBC_INVALID_FLOAT;
 }
 
-Float_t BbcPmtContainer::get_tdc1(const int /*iPmt*/) const
+float BbcPmtContainer::get_tdc1(const int /*iPmt*/) const
 {
   virtual_warning("get_Tdc1(const short iPmt)");
-  return BBC_INVALID_SHORT;
+  return BbcReturnCodes::BBC_INVALID_FLOAT;
 }
 
-void BbcPmtContainer::AddBbcPmt(const Short_t /*ipmt*/, const Float_t /*adc*/, const Float_t /*tdc0*/, const Float_t /*tdc1*/)
+void BbcPmtContainer::AddBbcPmt(const short /*ipmt*/, const float /*adc*/, const float /*tdc0*/, const float /*tdc1*/)
 {
-  virtual_warning("AddBbcPmtHit(const Short_t ipmt, const Short_t adc, const Float_t tdc0, const Float_t tdc1)");
-  return ;
+  virtual_warning("AddBbcPmtHit(const short ipmt, const short adc, const float tdc0, const float tdc1)");
+  return;
 }
 
-void BbcPmtContainer::virtual_warning(const char *funcsname) const
+void BbcPmtContainer::virtual_warning(const std::string& funcsname) const
 {
-  cout << "BbcPmtContainer::" << funcsname << " is virtual, doing nothing" << endl;
-  return ;
+  std::cout << "BbcPmtContainer::" << funcsname << " is virtual, doing nothing" << std::endl;
+  return;
 }

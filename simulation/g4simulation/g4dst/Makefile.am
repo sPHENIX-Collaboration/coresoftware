@@ -11,10 +11,12 @@ lib_LTLIBRARIES = \
 libg4dst_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -lbbc_io \
   -lcalo_io \
   -lcalotrigger_io \
   -lcentrality_io \
   -ldecayfinder_io \
+  -lepd_io \
   -leventplane_io \
   -lffaobjects \
   -lg4bbc_io \
