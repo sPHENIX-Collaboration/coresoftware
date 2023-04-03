@@ -31,7 +31,6 @@ class  PHG4InttTruthClusterizer : public TruthClusterizerBase {
   //     note that no noise is added during the digitization
   // ---------------------------------------
   public:
-  void say_hi() { std::cout << " BANANA hello world " << std::endl; };
   void set_adc_scale(const int &layer, const std::vector<double> &userrange);
   void _D__DigitizeLadderCells(PHCompositeNode *topNode);
   private:
