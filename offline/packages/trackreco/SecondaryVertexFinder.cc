@@ -522,9 +522,9 @@ bool SecondaryVertexFinder::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3
       auto resultparams = result.value().second;
       auto projectionPos = resultparams.position(_tGeometry->geometry().getGeoContext());
       const auto momentum = resultparams.momentum();
-      pos(0) = projectionPos.x() / Acts::UnitConstants::cm;
-      pos(1) = projectionPos.y() / Acts::UnitConstants::cm;
-      pos(2) = projectionPos.z() / Acts::UnitConstants::cm;
+      pos(0) = projectionPos.x();
+      pos(1) = projectionPos.y();
+      pos(2) = projectionPos.z();
       
       mom(0) = momentum.x();
       mom(1) = momentum.y();

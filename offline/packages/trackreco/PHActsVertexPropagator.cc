@@ -150,9 +150,10 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
               << std::endl;
   }
 
-  track->set_x(position(0) / Acts::UnitConstants::cm);
-  track->set_y(position(1) / Acts::UnitConstants::cm);
-  track->set_z(position(2) / Acts::UnitConstants::cm);
+  /// unit conversion already happened in ActsPropagator
+  track->set_x(position(0));
+  track->set_y(position(1));
+  track->set_z(position(2));
 
   ActsTransformations rotater;
   rotater.setVerbosity(Verbosity());

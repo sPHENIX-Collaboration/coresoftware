@@ -154,9 +154,9 @@ void PHActsTrackProjection::updateSvtxTrack(
 
   auto projectionPos = params.position(m_tGeometry->geometry().getGeoContext());
   const auto momentum = params.momentum();
-  out.set_x(projectionPos.x() / Acts::UnitConstants::cm);
-  out.set_y(projectionPos.y() / Acts::UnitConstants::cm);
-  out.set_z(projectionPos.z() / Acts::UnitConstants::cm);
+  out.set_x(projectionPos.x());
+  out.set_y(projectionPos.y());
+  out.set_z(projectionPos.z());
   out.set_px(momentum.x());
   out.set_py(momentum.y());
   out.set_pz(momentum.z());
