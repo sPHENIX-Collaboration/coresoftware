@@ -163,12 +163,12 @@ namespace TowerInfoDefs
     
     unsigned int key;
     if(towerIndex==0) key = 0;
-    if(towerIndex==1) key = 1;
-    if(towerIndex==2) key = 2;
+    else if(towerIndex==1) key = 1;
+    else if(towerIndex==2) key = 2;
     //negative side
-    if(towerIndex==3) {key = 1 << 2; key += 0;}
-    if(towerIndex==4) {key = 1 << 2; key += 1;}
-    if(towerIndex==5) {key = 1 << 2; key += 2;}
+    else if(towerIndex==3) {key = 1 << 2; key += 0;}
+    else if(towerIndex==4) {key = 1 << 2; key += 1;}
+    else if(towerIndex==5) {key = 1 << 2; key += 2;}
     return key;
   }
   
@@ -182,10 +182,10 @@ namespace TowerInfoDefs
 	std::cout << "Attempting to access smd channel with invalid number " << towerIndex << std::endl;
 	exit(1);	
       }
-    int Xpos[2] = {0,6}; 
-    int Ypos[2] = {7,14}; 
-    int Xneg[2] = {15,23};
-    int Yneg[2] = {22,29};
+    unsigned int Xpos[2] = {0,6};
+    unsigned int Ypos[2] = {7,14};
+    unsigned int Xneg[2] = {15,23};
+    unsigned int Yneg[2] = {22,29};
     unsigned int xyBit = 0;
     unsigned int fingerIndex;
     unsigned int sideBit = 0;
