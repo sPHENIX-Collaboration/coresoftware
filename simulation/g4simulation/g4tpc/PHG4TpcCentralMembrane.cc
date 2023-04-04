@@ -126,28 +126,24 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* /* topNode */)
       // loop over stripeID
       for (int k = 0; k < nGoodStripes_R1_e[j]; k++)
       {
-	if(skip_R1_e) continue;
         adjust_hits(GetPHG4HitFromStripe(i, 0, j, k, electrons_per_stripe));
       }
 
       // loop over stripeID
       for (int k = 0; k < nGoodStripes_R1[j]; k++)
       {
-	if(skip_R1) continue;
         adjust_hits(GetPHG4HitFromStripe(i, 1, j, k, electrons_per_stripe));
       }
 
       // loop over stripeID
       for (int k = 0; k < nGoodStripes_R2[j]; k++)
       {
-	if(skip_R2) continue;
         adjust_hits(GetPHG4HitFromStripe(i, 2, j, k, electrons_per_stripe));
       }
 
       // loop over stripeID
       for (int k = 0; k < nGoodStripes_R3[j]; k++)
       {
-	if(skip_R3) continue;
         adjust_hits(GetPHG4HitFromStripe(i, 3, j, k, electrons_per_stripe));
       }
     }

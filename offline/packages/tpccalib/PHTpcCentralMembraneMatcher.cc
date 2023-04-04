@@ -23,7 +23,6 @@
 #include <TH1D.h>
 #include <TH2F.h>
 #include <TF1.h>
-#include <TNtuple.h>
 #include <TString.h>
 #include <TVector3.h>
 #include <TStyle.h>
@@ -167,103 +166,30 @@ std::vector<double> PHTpcCentralMembraneMatcher::getRGaps( TH2F *r_phi ){
 }
 */
 
+//get the average phi rotation using smoothed histograms
 double PHTpcCentralMembraneMatcher::getPhiRotation_smoothed(TH1D *hitHist, TH1D *clustHist){
 
-  TCanvas *c1 = new TCanvas();
-  
-  gStyle->SetOptFit(1);
-
+  //smooth the truth and cluster histograms
   hitHist->Smooth();
   clustHist->Smooth();
 
-  TF1 *f1 = new TF1("f1",[&](double *x, double *p){ return p[0] * hitHist->GetBinContent(hitHist->FindBin(x[0] - p[1])); }, -M_PI, M_PI, 2);
+  //make a TF1 with a lambda function to make a function out of the truth histogram and shift it by a constant
+  TF1 *f1 = new TF1("f1",[&](double *x, double *p){ return p[0] * hitHist->GetBinContent(hitHist->FindBin((x[0] - p[1])>M_PI?x[0] - p[1] - 2*M_PI: x[0] - p[1])); }, -M_PI, M_PI, 2);
   f1->SetParNames("A","shift");
   f1->SetParameters(1.0,0.0);
   //  f1->SetParLimits(1,-M_PI/18,M_PI/18);
 
   f1->SetNpx(500);
 
-  clustHist->Fit("f1","I");
+  clustHist->Fit("f1","IQ");
 
   clustHist->Draw();
   f1->Draw("same");
 
-  c1->SaveAs(Form("%s_fit.png",clustHist->GetName()));
-
-  gStyle->SetOptFit(0);
-
   return f1->GetParameter(1);
 }
 
-std::vector<std::vector<double>> PHTpcCentralMembraneMatcher::getPhiGaps( TH2F *r_phi ){
-  
-  int bin0 = r_phi->GetYaxis()->FindBin(0.0);
-  int bin40 = r_phi->GetYaxis()->FindBin(40.0);
-  int bin58 = r_phi->GetYaxis()->FindBin(58.0);
-  int bin100 = r_phi->GetYaxis()->FindBin(99.99);
-  
-  TH1D *phiHist[3];
-  phiHist[0] = r_phi->ProjectionX("phiHist_R1",bin0,bin40);
-  phiHist[1] = r_phi->ProjectionX("phiHist_R2",bin40,bin58);
-  phiHist[2] = r_phi->ProjectionX("phiHist_R3",bin58,bin100);
-
-  std::vector<std::vector<double>> phiGaps;
-
-  for(int R=0; R<3; R++){
-    std::vector<double> phiGaps_R;
-    for(int i=2; i<=phiHist[R]->GetNbinsX(); i++){
-      if(phiHist[R]->GetBinContent(i) > 0 && phiHist[R]->GetBinContent(i-1) == 0){
-	if(phiGaps_R.size() == 0) phiGaps_R.push_back(phiHist[R]->GetBinCenter(i));
-	else if(phiHist[R]->GetBinCenter(i) - phiGaps_R[phiGaps_R.size()-1] > (M_PI/36.)) phiGaps_R.push_back(phiHist[R]->GetBinCenter(i));
-      }
-    }
-
-    phiGaps.push_back(phiGaps_R);
-  }
-
-  return phiGaps;
-
-}
-
-std::vector<double> PHTpcCentralMembraneMatcher::getAverageRotation(std::vector<std::vector<double>> hit, std::vector<std::vector<double>> clust){
-
-  std::vector<double> avgAngle;
-
-  for(int R=0; R<3; R++){
-
-    double di = 0.0;
-    double dj = 0.0;
-
-    for(int i=0; i<(int)hit[R].size() - 1; i++){
-      di += hit[R][i+1] - hit[R][i];
-    }
-    di = di/(hit[R].size()-1);
-
-    for(int j=0; j<(int)clust[R].size() - 1; j++){
-      dj += clust[R][j+1] - clust[R][j];
-    }
-    dj = dj/(clust[R].size()-1);
-    
-    double sum = 0.0;
-    int nMatch = 0;
-    for(int i=0; i<(int)hit[R].size(); i++){
-      for(int j=0; j<(int)clust[R].size(); j++){
-	if(fabs(clust[R][j] - hit[R][i]) > (di+dj)/4.0) continue;
-	if(j!=0 && clust[R][j] - clust[R][j] > 1.5*M_PI/9.0) continue;
-	sum += clust[R][j] - hit[R][i];
-	nMatch++;
-      }
-    }
-
-    avgAngle.push_back(sum/nMatch);
-
-  }
-  
-  return avgAngle;
-
-}
-
-
+//get vector with peak positions in Y (R) of histogram
 std::vector<double> PHTpcCentralMembraneMatcher::getRPeaks(TH2F *r_phi){
 
   TH1D *proj = r_phi->ProjectionY("R_proj");
@@ -271,9 +197,11 @@ std::vector<double> PHTpcCentralMembraneMatcher::getRPeaks(TH2F *r_phi){
   std::vector<double> rPeaks;
 
   for(int i=2; i<proj->GetNbinsX(); i++){
+    //peak is when content is higher than 0.15* maximum value and content is greater than or equal to both adjacent bins
     if(proj->GetBinContent(i) > 0.15*proj->GetMaximum() && proj->GetBinContent(i) >= proj->GetBinContent(i-1) && proj->GetBinContent(i) >= proj->GetBinContent(i+1)) rPeaks.push_back(proj->GetBinCenter(i));
   }
 
+  //if two peaks are within 0.75 cm of eachother, remove one with fewer counts
   for(int i=0; i<(int)rPeaks.size()-1; i++){
     if(rPeaks[i+1]-rPeaks[i] > 0.75) continue;
     if(proj->GetBinContent(proj->FindBin(rPeaks[i])) > proj->GetBinContent(proj->FindBin(rPeaks[i+1]))) rPeaks.erase(rPeaks.begin()+i+1);
@@ -285,15 +213,9 @@ std::vector<double> PHTpcCentralMembraneMatcher::getRPeaks(TH2F *r_phi){
 
 int PHTpcCentralMembraneMatcher::getClusterRMatch( std::vector<int> hitMatches, std::vector<double> clusterPeaks, double clusterR){
 
-  //  int closest_clusterR = -1;
-
-  /*  for(int i=0; i<(int)hitMatches.size(); i++){
-
-    double lowGap = 0.5;
-    double highGap = 0.5;
-  */
   double closestDist = 100.;
   int closestPeak = -1;
+  //find cluster peak closest to position of passed cluster
   for(int j=0; j<(int)clusterPeaks.size(); j++){
     if(std::abs(clusterR - clusterPeaks[j]) < closestDist){
       closestDist = std::abs(clusterR - clusterPeaks[j]);
@@ -301,43 +223,7 @@ int PHTpcCentralMembraneMatcher::getClusterRMatch( std::vector<int> hitMatches, 
     }
   }
   
-    /*
-
-    if(hitMatches[i] <= 14){
-      lowGap = 0.565985;
-      highGap = 0.565985;
-    }else if(hitMatches[i] == 15){
-      lowGap = 0.565985;
-      highGap = 1.2409686;
-    }else if(hitMatches[i] == 16){
-      lowGap = 1.2409686;
-      highGap = 1.020695;
-    }else if(hitMatches[i] >= 17 && hitMatches[i] <= 22){
-      lowGap = 1.020695;
-      highGap = 1.020695;
-    }else if(hitMatches[i] == 23){
-      lowGap = 1.020695;
-      highGap = 1.5001502;
-    }else if(hitMatches[i] == 24){
-      lowGap = 1.5001502;
-      highGap = 1.09705;
-    }else if(hitMatches[i] >= 25){
-      lowGap = 1.09705;
-      highGap = 1.09705;
-    }
-
-
-    if( clusterR > (clusterPeaks[i] - lowGap) && clusterR <= (clusterPeaks[i] + highGap) ){
-      closest_clusterR = hitMatches[i];
-      break;
-    }
-    */
-  //  }
-
-
-
-  //  return closest_clusterR;
-
+  //return hit match to cluster peak or -1 if closest peak failed (shouldn't be possible)
   if(closestPeak != -1) return hitMatches[closestPeak];
   else return -1;
 
@@ -381,20 +267,10 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
     hnclus = new TH1F("hnclus", " nclusters ", 3, 0., 3.);
   }
 
-  fout2.reset( new TFile(m_outputfile2.c_str(),"RECREATE") ); 
-    
   hit_r_phi = new TH2F("hit_r_phi","hit r vs #phi;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
-  hit_r_phi_pos = new TH2F("hit_r_phi_pos","hit R vs #phi Z>0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
-  hit_r_phi_neg = new TH2F("hit_r_phi_neg","hit R vs #phi Z<0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
 
-  clust_r_phi = new TH2F("clust_r_phi","clust R vs #phi;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
   clust_r_phi_pos = new TH2F("clust_r_phi_pos","clust R vs #phi Z>0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
   clust_r_phi_neg = new TH2F("clust_r_phi_neg","clust R vs #phi Z<0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
-
-  reco_ntup = new TNtuple("reco_ntuple","","hitR:hitPhi:hitZ:recoR:recoPhi:recoZ:nClus");
-
-  std::vector<double> hitR;
-  std::vector<double> hitPhi;
 
   // Get truth cluster positions
   //=====================
@@ -414,16 +290,11 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
     m_truth_pos.push_back( source );
 
     hit_r_phi->Fill(source.Phi(), source.Perp());
-    hit_r_phi_pos->Fill(source.Phi(), source.Perp());
 
-    hitR.push_back(source.Perp());
-    hitPhi.push_back(source.Phi());
-    
     source.SetZ( -1 );
     m_truth_pos.push_back( source );
 
     hit_r_phi->Fill(source.Phi(), source.Perp());
-    hit_r_phi_neg->Fill(source.Phi(), source.Perp());
   };
   
   // inner region extended is the 8 layers inside 30 cm    
@@ -488,12 +359,6 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 	  if(m_savehistograms) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}
 
-  hit_r_phi_gr = new TGraph((int)hitR.size(), &hitPhi[0], &hitR[0]);
-  hit_r_phi_gr->SetMarkerStyle(20);
-  hit_r_phi_gr->SetMarkerSize(0.5);
-  hit_r_phi_gr->GetXaxis()->SetTitle("#phi");
-  hit_r_phi_gr->GetYaxis()->SetTitle("R (cm)");
-
   int ret = GetNodes(topNode);
   return ret;
 }
@@ -504,41 +369,10 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   std::vector<TVector3> reco_pos;
   std::vector<unsigned int> reco_nclusters;
  
-  std::vector<double> clustR;
-  std::vector<double> clustPhi;
-
-  std::vector<double> clustR_pos;
-  std::vector<double> clustPhi_pos;
-
-  std::vector<double> clustR_neg;
-  std::vector<double> clustPhi_neg;
-
-
-  std::vector<double> clustR1;
-  std::vector<double> clustPhi1;
-
-  std::vector<double> clustR_pos1;
-  std::vector<double> clustPhi_pos1;
-
-  std::vector<double> clustR_neg1;
-  std::vector<double> clustPhi_neg1;
-
-  std::vector<double> clustR2;
-  std::vector<double> clustPhi2;
-
-  std::vector<double> clustR_pos2;
-  std::vector<double> clustPhi_pos2;
-
-  std::vector<double> clustR_neg2;
-  std::vector<double> clustPhi_neg2;
-
-
-
   // reset output distortion correction container histograms
   for( const auto& harray:{m_dcc_out->m_hDRint, m_dcc_out->m_hDPint, m_dcc_out->m_hDZint, m_dcc_out->m_hentries} )
   { for( const auto& h:harray ) { h->Reset(); } }
 
-  clust_r_phi->Reset();
   clust_r_phi_pos->Reset();
   clust_r_phi_neg->Reset();
 
@@ -552,6 +386,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       CMFlashClusterv2 *cmclus = dynamic_cast<CMFlashClusterv2 *>(cmclus_orig);
       const unsigned int nclus = cmclus->getNclusters();
 
+      if(m_useOnly_nClus2 && nclus != 2) continue;
+
       const bool isRGap = cmclus->getIsRGap();
 
       
@@ -561,55 +397,15 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       
       TVector3 tmp_pos(pos[0], pos[1], pos[2]);
 
-      //      std::cout << "cmkey " << cmkey << "   R: " << tmp_pos.Perp() << "   isgap: " << isRGap << std::endl;
-
-      //      if(isRGap && Verbosity() > 2) std::cout << "here!" << std::endl;
-
-      //      if(isRGap && nclus == 1) continue;
-      
       if(isRGap) continue;
       
       reco_pos.push_back(tmp_pos);      
       reco_nclusters.push_back(nclus);
 
-      clustR.push_back(tmp_pos.Perp());
-      clustPhi.push_back(tmp_pos.Phi());
+      if(tmp_pos.Z() < 0) clust_r_phi_neg->Fill(tmp_pos.Phi(),tmp_pos.Perp());
+      else clust_r_phi_pos->Fill(tmp_pos.Phi(),tmp_pos.Perp());
 
-      if(nclus == 1){
-	clustR1.push_back(tmp_pos.Perp());
-	clustPhi1.push_back(tmp_pos.Phi());
-      }else{
-	clustR2.push_back(tmp_pos.Perp());
-	clustPhi2.push_back(tmp_pos.Phi());
-      }
-
-      clust_r_phi->Fill(tmp_pos.Phi(),tmp_pos.Perp());
-      if(tmp_pos.Z() > 0){
-	clust_r_phi_pos->Fill(tmp_pos.Phi(),tmp_pos.Perp());
-	clustR_pos.push_back(tmp_pos.Perp());
-	clustPhi_pos.push_back(tmp_pos.Phi());
-
-	if(nclus == 1){
-	  clustR_pos1.push_back(tmp_pos.Perp());
-	  clustPhi_pos1.push_back(tmp_pos.Phi());
-	}else{
-	  clustR_pos2.push_back(tmp_pos.Perp());
-	  clustPhi_pos2.push_back(tmp_pos.Phi());
-	}
-
-      }else if(tmp_pos.Z() < 0){
-	clust_r_phi_neg->Fill(tmp_pos.Phi(),tmp_pos.Perp());
-	clustR_neg.push_back(tmp_pos.Perp());
-	clustPhi_neg.push_back(tmp_pos.Phi());
-
-	if(nclus == 1){
-	  clustR_neg1.push_back(tmp_pos.Perp());
-	  clustPhi_neg1.push_back(tmp_pos.Phi());
-	}else{
-	  clustR_neg2.push_back(tmp_pos.Perp());
-	  clustPhi_neg2.push_back(tmp_pos.Phi());
-	}
-      }
+      
 
       if(Verbosity())
 	{
@@ -626,79 +422,10 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     }
 
   
-  clust_r_phi_gr = new TGraph((int)clustR.size(), &clustPhi[0], &clustR[0]);
-  clust_r_phi_gr->SetMarkerStyle(20);
-  clust_r_phi_gr->SetMarkerSize(0.5);
-  clust_r_phi_gr->SetMarkerColor(kMagenta);
-
-  clust_r_phi_gr_pos = new TGraph((int)clustR_pos.size(), &clustPhi_pos[0], &clustR_pos[0]);
-  clust_r_phi_gr_pos->SetMarkerStyle(20);
-  clust_r_phi_gr_pos->SetMarkerSize(0.5);
-  clust_r_phi_gr_pos->SetMarkerColor(kMagenta);
-
-  clust_r_phi_gr_neg = new TGraph((int)clustR_neg.size(), &clustPhi_neg[0], &clustR_neg[0]);
-  clust_r_phi_gr_neg->SetMarkerStyle(20);
-  clust_r_phi_gr_neg->SetMarkerSize(0.5);
-  clust_r_phi_gr_neg->SetMarkerColor(kMagenta);
-
-
-  clust_r_phi_gr1 = new TGraph((int)clustR1.size(), &clustPhi1[0], &clustR1[0]);
-  clust_r_phi_gr1->SetMarkerStyle(20);
-  clust_r_phi_gr1->SetMarkerSize(0.5);
-  clust_r_phi_gr1->SetMarkerColor(kBlue);
-
-  clust_r_phi_gr1_pos = new TGraph((int)clustR_pos1.size(), &clustPhi_pos1[0], &clustR_pos1[0]);
-  clust_r_phi_gr1_pos->SetMarkerStyle(20);
-  clust_r_phi_gr1_pos->SetMarkerSize(0.5);
-  clust_r_phi_gr1_pos->SetMarkerColor(kBlue);
-
-  clust_r_phi_gr1_neg = new TGraph((int)clustR_neg1.size(), &clustPhi_neg1[0], &clustR_neg1[0]);
-  clust_r_phi_gr1_neg->SetMarkerStyle(20);
-  clust_r_phi_gr1_neg->SetMarkerSize(0.5);
-  clust_r_phi_gr1_neg->SetMarkerColor(kBlue);
-
-
-  clust_r_phi_gr2 = new TGraph((int)clustR2.size(), &clustPhi2[0], &clustR2[0]);
-  clust_r_phi_gr2->SetMarkerStyle(20);
-  clust_r_phi_gr2->SetMarkerSize(0.5);
-  clust_r_phi_gr2->SetMarkerColor(kGreen+2);
-
-  clust_r_phi_gr2_pos = new TGraph((int)clustR_pos2.size(), &clustPhi_pos2[0], &clustR_pos2[0]);
-  clust_r_phi_gr2_pos->SetMarkerStyle(20);
-  clust_r_phi_gr2_pos->SetMarkerSize(0.5);
-  clust_r_phi_gr2_pos->SetMarkerColor(kGreen+2);
-
-  clust_r_phi_gr2_neg = new TGraph((int)clustR_neg2.size(), &clustPhi_neg2[0], &clustR_neg2[0]);
-  clust_r_phi_gr2_neg->SetMarkerStyle(20);
-  clust_r_phi_gr2_neg->SetMarkerSize(0.5);
-  clust_r_phi_gr2_neg->SetMarkerColor(kGreen+2);
-
-
-  std::vector<std::vector<double>> hit_phiGaps = getPhiGaps(hit_r_phi);
-  std::vector<std::vector<double>> clust_phiGaps = getPhiGaps(clust_r_phi);
-  std::vector<double> angleDiff = getAverageRotation(hit_phiGaps, clust_phiGaps);
-  
-
-  std::vector<std::vector<double>> hit_phiGaps_pos = getPhiGaps(hit_r_phi_pos);
-  std::vector<std::vector<double>> clust_phiGaps_pos = getPhiGaps(clust_r_phi_pos);
-  std::vector<double> angleDiff_pos = getAverageRotation(hit_phiGaps_pos, clust_phiGaps_pos);
-
-  std::vector<std::vector<double>> hit_phiGaps_neg = getPhiGaps(hit_r_phi_neg);
-  std::vector<std::vector<double>> clust_phiGaps_neg = getPhiGaps(clust_r_phi_neg);
-  std::vector<double> angleDiff_neg = getAverageRotation(hit_phiGaps_neg, clust_phiGaps_neg);
-
-  //  std::cout << "rotation R1: " << angleDiff[0] << "   R2: " << angleDiff[1] << "   R3: " << angleDiff[2] << std::endl;
-  // std::cout << "pos rotation R1: " << angleDiff_pos[0] << "   R2: " << angleDiff_pos[1] << "   R3: " << angleDiff_pos[2] << std::endl;
-  // std::cout << "neg rotation R1: " << angleDiff_neg[0] << "   R2: " << angleDiff_neg[1] << "   R3: " << angleDiff_neg[2] << std::endl;
-
-  double clustRotation[3];
   double clustRotation_pos[3];
   double clustRotation_neg[3];
 
-  clustRotation[0] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR1",151,206),clust_r_phi->ProjectionX("cR1",151,206));
-  clustRotation[1] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR2",206,290),clust_r_phi->ProjectionX("cR2",206,290));
-  clustRotation[2] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR3",290,499),clust_r_phi->ProjectionX("cR3",290,499));
-
+  //get global phi rotation for each module
   clustRotation_pos[0] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR1",151,206),clust_r_phi_pos->ProjectionX("cR1_pos",151,206));
   clustRotation_pos[1] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR2",206,290),clust_r_phi_pos->ProjectionX("cR2_pos",206,290));
   clustRotation_pos[2] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR3",290,499),clust_r_phi_pos->ProjectionX("cR3_pos",290,499));
@@ -707,14 +434,13 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   clustRotation_neg[1] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR2",206,290),clust_r_phi_neg->ProjectionX("cR2_neg",206,290));
   clustRotation_neg[2] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR3",290,499),clust_r_phi_neg->ProjectionX("cR3_neg",290,499));
 
-  std::cout << "clust rotation R1: "<< clustRotation[0] << "   R2: " << clustRotation[1] << "   R3: " << clustRotation[2] << std::endl;
-  std::cout << "pos clust rotation R1: "<< clustRotation_pos[0] << "   R2: " << clustRotation_pos[1] << "   R3: " << clustRotation_pos[2] << std::endl;
-  std::cout << "neg clust rotation R1: "<< clustRotation_neg[0] << "   R2: " << clustRotation_neg[1] << "   R3: " << clustRotation_neg[2] << std::endl;
 
+  //get hit and cluster peaks
   std::vector<double> hit_RPeaks = getRPeaks(hit_r_phi);
   std::vector<double> clust_RPeaks_pos = getRPeaks(clust_r_phi_pos);
   std::vector<double> clust_RPeaks_neg = getRPeaks(clust_r_phi_neg);
 
+  //identify where gaps between module 1&2 and 2&3 are by finding largest distances between peaks
   std::vector<double> clust_RGaps_pos;
   int R12Gap_pos = -1;
   int R23Gap_pos = -1;
@@ -727,11 +453,6 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     R12Gap_pos = tmpGap_pos;
     R23Gap_pos = std::distance(clust_RGaps_pos.begin(),std::max_element(clust_RGaps_pos.begin()+R12Gap_pos+1,clust_RGaps_pos.end()));
   }
-  std::cout << "R12Gap_pos: " << R12Gap_pos << std::endl;
-  std::cout << "R23Gap_pos: " << R23Gap_pos << std::endl;
-
-
-  std::cout << "pos region sizes R1: " << R12Gap_pos+1 << "   R2: " << R23Gap_pos-R12Gap_pos << "   R3: " << (int)clust_RGaps_pos.size()-R23Gap_pos << std::endl;
 
   std::vector<double> clust_RGaps_neg;
   int R12Gap_neg = -1;
@@ -745,33 +466,26 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     R12Gap_neg = tmpGap_neg;
     R23Gap_neg = std::distance(clust_RGaps_neg.begin(),std::max_element(clust_RGaps_neg.begin()+R12Gap_neg+1,clust_RGaps_neg.end()));
   }
-  std::cout << "R12Gap_neg: " << R12Gap_neg << std::endl;
-  std::cout << "R23Gap_neg: " << R23Gap_neg << std::endl;
 
-  std::cout << "neg region sizes R1: " << R12Gap_neg+1 << "   R2: " << R23Gap_neg-R12Gap_neg << "   R3: " << (int)clust_RGaps_neg.size()-R23Gap_neg << std::endl;
-
-
-  std::cout << "hit matches pos = {";
   std::vector<int> hitMatches_pos;
+  //match cluster peaks to hit peaks using gap positions
   for(int i=0; i<(int)clust_RPeaks_pos.size(); i++){
-
+    
+    //Module 1
     if(i < (R12Gap_pos+1)){
+      //module 1-2 gap is between 15 & 16 in hitPeaks
       hitMatches_pos.push_back(15 + i - R12Gap_pos );
+      //if multiple rows missing, offset for each one
       if(clust_RGaps_pos[R12Gap_pos] > 3.6) hitMatches_pos[i] -= 1;
       if(clust_RGaps_pos[R12Gap_pos] > 4.6) hitMatches_pos[i] -= 1;
-      if(clust_RGaps_pos[R12Gap_pos] > 5.8) hitMatches_pos[i] -= 1;
-      
+      if(clust_RGaps_pos[R12Gap_pos] > 5.8) hitMatches_pos[i] -= 1;      
     }
+    //module 1-2 gap is between 15 & 16
     else if(i < (R23Gap_pos+1) && i >= (R12Gap_pos+1)) hitMatches_pos.push_back(15+1 + i - (R12Gap_pos+1));
-    else if(i >= R23Gap_pos+1) hitMatches_pos.push_back(23+1 + i - (R23Gap_pos+1));
-   
-
-    //    hitMatches_pos.push_back(i + 23 - R23Gap_pos);
-    if(i<(int)clust_RPeaks_pos.size()-1) std::cout << " " << hitMatches_pos[i] << ",";
-    else std::cout << " " << hitMatches_pos[i] << "}" << std::endl;
+    //module 2-3 gap is between 22 & 23
+    else if(i >= R23Gap_pos+1) hitMatches_pos.push_back(23+1 + i - (R23Gap_pos+1));   
   }
 
-  std::cout << "hit matches neg = {";
   std::vector<int> hitMatches_neg;
   for(int i=0; i<(int)clust_RPeaks_neg.size(); i++){
 
@@ -784,10 +498,6 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     }
     else if(i < (R23Gap_neg+1) && i >= (R12Gap_neg+1)) hitMatches_neg.push_back(15+1 + i - (R12Gap_neg+1));
     else if(i >= R23Gap_neg+1) hitMatches_neg.push_back(23+1 + i - (R23Gap_neg+1));
-
-    //    hitMatches_neg.push_back(i + 23 - R23Gap_neg);
-    if(i<(int)clust_RPeaks_neg.size()-1) std::cout << " " << hitMatches_neg[i] << ",";
-    else std::cout << " " << hitMatches_neg[i] << "}" << std::endl;
   }
 
   
@@ -799,117 +509,108 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   std::vector<bool> hits_matched(m_truth_pos.size());
   std::vector<bool> clusts_matched(reco_pos.size());
 
-  for(int matchIt=0; matchIt<2; matchIt++){
+  //do iterative matching m_nMatchIter times
+  for(int matchIt=0; matchIt<m_nMatchIter; matchIt++){
   // loop over truth positions
-  for(unsigned int i=0; i<m_truth_pos.size(); ++i)
-  {
-
-    if(hits_matched[i]) continue;
-
-    const double z1 = m_truth_pos[i].Z(); 
-    const double rad1= get_r( m_truth_pos[i].X(),m_truth_pos[i].Y());
-    const double phi1 = m_truth_pos[i].Phi();
-
-    int hitRadIndex = -1;
-    
-    for(int k=0; k<(int)hit_RPeaks.size(); k++){
-      if(std::abs(rad1 - hit_RPeaks[k]) < 0.5){
-	hitRadIndex = k;
-	break;
-      }
-    }
-
-    //    std::cout << "hit " << i << "   rad: " << rad1 << "   hitRadIndex: " << hitRadIndex << "   hitRPeaks: " << ((hitRadIndex != -1) ? hit_RPeaks[hitRadIndex] : -1) << std::endl;
-    
-    double prev_dphi = 1.1*m_phi_cut;
-    int matchJ = -1;
-
-    // loop over cluster positions
-    for(unsigned int j = 0; j < reco_pos.size(); ++j)
+    for(unsigned int i=0; i<m_truth_pos.size(); ++i)
     {
-      if(clusts_matched[j]) continue;
+
+      if(hits_matched[i]) continue;
+
+      const double z1 = m_truth_pos[i].Z(); 
+      const double rad1= get_r( m_truth_pos[i].X(),m_truth_pos[i].Y());
+      const double phi1 = m_truth_pos[i].Phi();
       
-      int angleR = -1;
+      int hitRadIndex = -1;
       
-      if(reco_pos[j].Perp() < 41) angleR = 0;
-      else if(reco_pos[j].Perp() >= 41 && reco_pos[j].Perp() < 58) angleR = 1;
-      if(reco_pos[j].Perp() >= 58) angleR = 2;
-      
-      
-      //const auto& nclus = reco_nclusters[j];
-      double phi2 = reco_pos[j].Phi();
-      const double z2 = reco_pos[j].Z(); 
-      const double rad2=get_r(reco_pos[j].X(), reco_pos[j].Y());
-      if(angleR != -1){
-	if(z2 > 0) phi2 += (hitRotation[angleR+1] - clustRotation_pos[angleR]);
-	else phi2 += (hitRotation[angleR+1] - clustRotation_neg[angleR]);
+      //get which hit radial index this it
+      for(int k=0; k<(int)hit_RPeaks.size(); k++){
+	if(std::abs(rad1 - hit_RPeaks[k]) < 0.5){
+	  hitRadIndex = k;
+	  break;
+	}
       }
       
-
-      int clustRMatchIndex = -1;
-      if(z2 > 0) clustRMatchIndex = getClusterRMatch(hitMatches_pos, clust_RPeaks_pos, rad2);
-      else clustRMatchIndex = getClusterRMatch(hitMatches_neg, clust_RPeaks_neg, rad2);
-
-
-      if(clustRMatchIndex == -1) continue;
-
-      //const double phi2 = reco_pos[j].Phi();
-    
-      // only match pairs that are on the same side of the TPC
-      const bool accepted_z = ((z1>0)==(z2>0));
-      if( !accepted_z ) continue;
- 
-
-     
-      const bool accepted_r = (hitRadIndex == clustRMatchIndex);
-
-      //      const auto dphi = delta_phi(phi1-phi2);
-      const auto dphi = delta_phi(phi1-phi2);
-      const bool accepted_phi = std::abs(dphi) < m_phi_cut;
-         
-      if(!accepted_r || !accepted_phi) continue;
+      //for iterative looping: identify closest phi
+      double prev_dphi = 1.1*m_phi_cut;
+      int matchJ = -1;
       
-      //      std::cout << "matching cluster " << j << "   rad: " << rad2 << "   clustRMatchIndex: " << clustRMatchIndex  << "   hitRadIndex: " << hitRadIndex << "   hitMatchedR: " << (clustRMatchIndex != -1 ? hit_RPeaks[clustRMatchIndex] : -1) << std::endl;
-
-
-      if(fabs(dphi)<fabs(prev_dphi)){
-	prev_dphi = dphi;
-	matchJ = j;
-	hits_matched[i] = true;
-      }
-    }//end loop over reco_pos
-	
-    if(matchJ != -1){
-      clusts_matched[matchJ] = true;
-      matched_pair.emplace_back(i,matchJ);
-      matched_nclus.push_back(reco_nclusters[matchJ]);
-
-      if(m_savehistograms)
+      // loop over cluster positions
+      for(unsigned int j = 0; j < reco_pos.size(); ++j)
 	{
-
-	  const auto& nclus = reco_nclusters[matchJ];
-	  const double rad2=get_r(reco_pos[matchJ].X(), reco_pos[matchJ].Y());
-	  const double phi2 = reco_pos[matchJ].Phi();
+	  if(clusts_matched[j]) continue;
 	  
-	  const auto dr = rad1-rad2;
+	  int angleR = -1;
+	  
+	  if(reco_pos[j].Perp() < 41) angleR = 0;
+	  else if(reco_pos[j].Perp() >= 41 && reco_pos[j].Perp() < 58) angleR = 1;
+	  if(reco_pos[j].Perp() >= 58) angleR = 2;
+	  
+      
+	  //const auto& nclus = reco_nclusters[j];
+	  double phi2 = reco_pos[j].Phi();
+	  const double z2 = reco_pos[j].Z(); 
+	  const double rad2=get_r(reco_pos[j].X(), reco_pos[j].Y());
+	  if(angleR != -1){
+	    if(z2 > 0) phi2 -= clustRotation_pos[angleR];
+	    else phi2 -= clustRotation_neg[angleR];
+	  }
+      
+	  
+	  int clustRMatchIndex = -1;
+	  if(z2 > 0) clustRMatchIndex = getClusterRMatch(hitMatches_pos, clust_RPeaks_pos, rad2);
+	  else clustRMatchIndex = getClusterRMatch(hitMatches_neg, clust_RPeaks_neg, rad2);
+	  
+	  
+	  if(clustRMatchIndex == -1) continue;
+	  
+	  //const double phi2 = reco_pos[j].Phi();
+	  
+	  // only match pairs that are on the same side of the TPC
+	  const bool accepted_z = ((z1>0)==(z2>0));
+	  if( !accepted_z ) continue;
+	  
+	  
+	  
+	  const bool accepted_r = (hitRadIndex == clustRMatchIndex);
+	  
 	  const auto dphi = delta_phi(phi1-phi2);
+	  const bool accepted_phi = std::abs(dphi) < m_phi_cut;
+	  
+	  if(!accepted_r || !accepted_phi) continue;
+	  
+	  
+	  
+	  if(fabs(dphi)<fabs(prev_dphi)){
+	    prev_dphi = dphi;
+	    matchJ = j;
+	    hits_matched[i] = true;
+	  }
+	}//end loop over reco_pos
+      
+      if(matchJ != -1){
+	clusts_matched[matchJ] = true;
+	matched_pair.emplace_back(i,matchJ);
+	matched_nclus.push_back(reco_nclusters[matchJ]);
+	
+	if(m_savehistograms)
+	  {
+	    
+	    const auto& nclus = reco_nclusters[matchJ];
+	    const double rad2=get_r(reco_pos[matchJ].X(), reco_pos[matchJ].Y());
+	    const double phi2 = reco_pos[matchJ].Phi();
+	    
+	    const auto dr = rad1-rad2;
+	    const auto dphi = delta_phi(phi1-phi2);
 	  
 	  hnclus->Fill( (float) nclus);
 	  
 	  double r =  rad2;
 	  
-	  //if( accepted_r )
-	  //	    {
 	  hdrphi->Fill(r * dphi);
 	  hdphi->Fill(dphi);
 	  hrdphi->Fill(r,dphi);
-	  //	    }
-	  
-	  //	  if( accepted_r && accepted_phi)
 	  hdrdphi->Fill(dr, dphi); 
-	  
-	  //	     if( accepted_phi )
-	  //	    {
 	  hrdr->Fill(r,dr);
 	  if(nclus==1)
 	    {
@@ -923,10 +624,9 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	      if(r >= 40.0 && r < 58.0) hdr2_double->Fill(dr); 
 	      if(r >= 58.0) hdr3_double->Fill(dr); 	  
 	    }
-	  //	    }
-	}//end save histos
-    }//end if match was found      
-  }//end loop over truth pos      
+	  }//end save histos
+      }//end if match was found      
+    }//end loop over truth pos      
   }//end loop over matching iterations
   
   // print some statistics: 
@@ -963,8 +663,6 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     
     m_cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
 
-    reco_ntup->Fill(m_truth_pos[p.first].Perp(),m_truth_pos[p.first].Phi(),m_truth_pos[p.first].Z(),reco_pos[p.second].Perp(),reco_pos[p.second].Phi(),reco_pos[p.second].Z(),nclus);
-    
     // store cluster position
     const double clus_r = reco_pos[p.second].Perp();
     double clus_phi = reco_pos[p.second].Phi();
@@ -1054,36 +752,6 @@ int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
     }
   }
   
-  fout2->cd();
-
-  hit_r_phi->Write();
-  hit_r_phi_pos->Write();
-  hit_r_phi_neg->Write();
-
-  hit_r_phi_gr->Write("hit_r_phi_gr");
-  
-
-  clust_r_phi->Write();
-  clust_r_phi_pos->Write();
-  clust_r_phi_neg->Write();
-
-  clust_r_phi_gr->Write("clust_r_phi_gr");
-  clust_r_phi_gr_pos->Write("clust_r_phi_gr_pos");
-  clust_r_phi_gr_neg->Write("clust_r_phi_gr_neg");
-
-
-  clust_r_phi_gr1->Write("clust_r_phi_gr1");
-  clust_r_phi_gr1_pos->Write("clust_r_phi_gr1_pos");
-  clust_r_phi_gr1_neg->Write("clust_r_phi_gr1_neg");
-
-  clust_r_phi_gr2->Write("clust_r_phi_gr2");
-  clust_r_phi_gr2_pos->Write("clust_r_phi_gr2_pos");
-  clust_r_phi_gr2_neg->Write("clust_r_phi_gr2_neg");
-
-  reco_ntup->Write();
-
-  fout2->Close();
-
   // write evaluation histograms
   if(m_savehistograms && fout)
   {

@@ -45,8 +45,7 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   void set_min_z_value(const double val) {_min_z_value = val;}
   void set_stripe_dr_values(const double dr1, const double dr2, const double dr3){ _cmclus_dr_inner = dr1; _cmclus_dr_mid = dr2; _cmclus_dr_outer = dr3;}
 
-  void set_removeSector(bool a_removeSector){ removeSector = a_removeSector; }
-
+  void set_modulo_threshold( int val ) { m_moduloThreshold = val; }
   void set_metaCluster_threshold( int val ) { m_metaClusterThreshold = val; }
 
  //! run initialization
@@ -83,6 +82,7 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   int m_cm_clusters_size2 = 0;  
   //@}
 
+  int m_moduloThreshold = 5;
   int m_metaClusterThreshold = 18;
   
   bool _histos = false;
@@ -97,9 +97,6 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   TH2F *hDistRowAdj = nullptr;
   TH1F *hDist2Adj = nullptr;
   TH1F *hClustE[3] = {nullptr};
-
-  TH2F *hrPhi_reco_pos = nullptr;
-  TH2F *hrPhi_reco_neg = nullptr;
 
   TH2F *hrPhi_reco_petalModulo_pos = nullptr;
   TH2F *hrPhi_reco_petalModulo_neg = nullptr;
@@ -119,17 +116,11 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   std::string m_histogramfilename = "PHTpcCentralMembraneClusterizer.root";
   std::unique_ptr<TFile> m_histogramfile;
 
-
-  std::string m_histogramfilenameMaps = "CentralMembraneClusterizer_reco_maps.root";
-  std::unique_ptr<TFile> m_histogramfileMaps;
-  
   unsigned int _min_adc_value = 0;
   double _min_z_value = 0.0;
   double _cmclus_dr_inner = 0.51;  //cm
   double _cmclus_dr_mid = 0.95;  //cm
   double _cmclus_dr_outer = 1.025;  //cm
-
-  bool removeSector = false;
 
 };
 

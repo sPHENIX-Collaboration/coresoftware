@@ -74,13 +74,6 @@ int PHTpcCentralMembraneClusterizer::InitRun(PHCompositeNode *topNode)
     hDist2Adj=new TH1F("hDist2Adj","phi distance to nearby clusters on adjacent padrow;dist[rad]",100,-0.001,0.01);
   }
 
-  m_histogramfileMaps.reset( new TFile(m_histogramfilenameMaps.c_str(), "RECREATE"));
-  m_histogramfileMaps->cd();   
-
-
-  hrPhi_reco_pos = new TH2F("hrPhi_reco_pos","Reco R vs #phi Z > 0;#phi;R (cm)",400,-M_PI,M_PI,400,20,78);
-  hrPhi_reco_neg = new TH2F("hrPhi_reco_neg","Reco R vs #phi Z < 0;#phi;R (cm)",400,-M_PI,M_PI,400,20,78);
-
   hrPhi_reco_petalModulo_pos = new TH2F("hrPhi_reco_petalModulo_pos","Reco R vs #phi Z > 0;#phi;R (cm)",50,0.0,M_PI/9,400,20,78);
   hrPhi_reco_petalModulo_neg = new TH2F("hrPhi_reco_petalModulo_neg","Reco R vs #phi;#phi Z < 0;R (cm)",50,0.0,M_PI/9,400,20,78);
 
@@ -120,7 +113,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   std::vector<bool>isAcrossGap;
   int nTpcClust = 0;
 
-
+  //first loop over clusters to make mod phi histograms of each layer and each pair of layers
   for(const auto& hitsetkey:_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
   {
     auto clusRange = _cluster_map->getClusters(hitsetkey);
@@ -138,6 +131,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 
       double phiMod = phi;
 
+      //make sure phiMod is between 0 and pi/9
       while(phiMod < 0.0 || phiMod > M_PI/9){
 	if(phiMod < 0.0) phiMod += M_PI/9;
 	else if(phiMod > M_PI/9) phiMod -= M_PI/9;
@@ -149,6 +143,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 
 	hrPhi_reco_petalModulo_pos->Fill(phiMod, tmp_pos.Perp());
 	hphi_reco_pos[layer-7]->Fill(phiMod);
+	//for layer pairs, if last layer can only go in layer 53-54 pair, if first layer can only go in layer 7-8 pair
 	if(layer < 54) hphi_reco_pair_pos[layer-7]->Fill(phiMod);
 	if(layer > 7) hphi_reco_pair_pos[layer-8]->Fill(phiMod);
       }else{
@@ -157,6 +152,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 
 	hrPhi_reco_petalModulo_neg->Fill(phiMod, tmp_pos.Perp());
 	hphi_reco_neg[layer-7]->Fill(phiMod);
+	//for layer pairs, if last layer can only go in layer 53-54 pair, if first layer can only go in layer 7-8 pair
 	if(layer < 54) hphi_reco_pair_neg[layer-7]->Fill(phiMod);
 	if(layer > 7) hphi_reco_pair_neg[layer-8]->Fill(phiMod);
       }
@@ -164,7 +160,8 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
     }
   }
 
-
+  //loop over histos for each pair of layers, count number of bins above threshold
+  //for a given layer, layer pair with higher average value above threshold will be better match for meta-clustering
   for(int i=0; i<47; i++){
     for(int j=1; j<hphi_reco_pair_pos[i]->GetNbinsX(); j++){
       if(hphi_reco_pair_pos[i]->GetBinContent(j) > m_metaClusterThreshold){
@@ -177,7 +174,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       }
     }
   }
- 
+
+
+  //loop over clusters again
   for(const auto& hitsetkey:_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
   {
     auto clusRange = _cluster_map->getClusters(hitsetkey);
@@ -218,12 +217,13 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 
       bool aboveThreshold = true;
 
+      //Find which phiMod bin cluster is in (with given layer) and if counts below threshold don't use
       if(z >= 0){
 	phiBin = hphi_reco_pos[lay-7]->GetXaxis()->FindBin(phiMod);
-	if(hphi_reco_pos[lay-7]->GetBinContent(phiBin) < 5) aboveThreshold = false;
+	if(hphi_reco_pos[lay-7]->GetBinContent(phiBin) < m_moduloThreshold) aboveThreshold = false;
       }else{
 	phiBin = hphi_reco_neg[lay-7]->GetXaxis()->FindBin(phiMod);
-	if(hphi_reco_neg[lay-7]->GetBinContent(phiBin) < 5) aboveThreshold = false;
+	if(hphi_reco_neg[lay-7]->GetBinContent(phiBin) < m_moduloThreshold) aboveThreshold = false;
       }
 
       if( !aboveThreshold ) continue;
@@ -231,14 +231,8 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       if(cluster->getAdc() < _min_adc_value) continue;
       if( std::abs(z) < _min_z_value) continue;
 
+      //require that z be within 1cm of peak in z distributions (separate for each side)
       if( (z>=0 && std::abs(z - hz_pos->GetBinCenter(hz_pos->GetMaximumBin())) > 1.0) || (z<0 && std::abs(z - hz_neg->GetBinCenter(hz_neg->GetMaximumBin())) > 1.0) ) continue;
-
-      //      if(removeSector && TpcDefs::getSide(cluskey) > 0 && TpcDefs::getSectorId(cluskey) == 1 && TrkrDefs::getLayer(cluskey) < 38) continue;
-      if(removeSector && TpcDefs::getSide(cluskey) > 0 && TrkrDefs::getLayer(cluskey) < 38) continue;
-      
-
-      if(z >= 0) hrPhi_reco_pos->Fill(tmp_pos.Phi(),tmp_pos.Perp());
-      else hrPhi_reco_neg->Fill(tmp_pos.Phi(),tmp_pos.Perp());
 
       ++m_accepted_clusters;
       
@@ -291,21 +285,24 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   {
 
     int layerMatch = -1;
-    
-    int nRowsMatch = 2;
 
+    int nRowsMatch = 2;
     if(layer[i] >= 39) nRowsMatch = 4;
     else if(layer[i] >= 23) nRowsMatch = 3;
 
     if( pos[i].Z() >= 0 ){
       if(layer[i] == 7){
+	//if layer is 7, can only get one layer match
 	if(nPairAbove_pos[layer[i]-7] >= nRowsMatch) layerMatch = layer[i]+1;
       }else if(layer[i] == 54){
+	//if layer is 8, can only get one layer match
 	if(nPairAbove_pos[layer[i]-8] >= nRowsMatch) layerMatch = layer[i]-1;
       }else{
+	//if both pairs of rows have enough bins above threshold, match to pair with higher average
 	if(nPairAbove_pos[layer[i]-7] >= nRowsMatch && nPairAbove_pos[layer[i]-8] >= nRowsMatch){
 	  if(pairAboveContent_pos[layer[i]-7]/nPairAbove_pos[layer[i]-7] > pairAboveContent_pos[layer[i]-8]/nPairAbove_pos[layer[i]-8]) layerMatch = layer[i]+1;
 	  else layerMatch = layer[i]-1;
+	  //otherwise just use the one that is above threshold
 	}else if(nPairAbove_pos[layer[i]-7] >= nRowsMatch) layerMatch = layer[i]+1;
 	else if(nPairAbove_pos[layer[i]-8] >= nRowsMatch) layerMatch = layer[i]-1;
       }
@@ -323,23 +320,23 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       }
     }
 
-
+    //if the match is default and the layer is on the edge of a module, identify it as being across the gap
     if(layerMatch == -1 && (layer[i] == 22 || layer[i] == 23 || layer[i] == 38 || layer[i] == 39 || layer[i] == 7) ) isAcrossGap[i] = true;
 
     float bestphidist=maxphidist;
     for (int j=0;j<nTpcClust;j++)
     {
-      // redundant to the 'adjacent row' check:  if (i==j) continue; //can't match yourself.
-      // must match to an adjacent row.
-
+      
+      //radial match must be the correct layer identified above
       if(layer[j] != layerMatch) continue;
 
+      // redundant to the 'adjacent row' check:  if (i==j) continue; //can't match yourself.
+      // must match to an adjacent row.
       if (std::abs(layer[i]-layer[j])!=1) continue;
 
+      //setting agross gap for ones where match was found
       if( (layer[i] == 22 && layer[j] == 23) || (layer[i] == 23 && layer[j] == 22) || (layer[i] == 38 && layer[j] == 39) || (layer[i] == 39 && layer[j] == 38) ) isAcrossGap[i] = true;
 
-      //      if( (layer[i] == 22 && layer[j] == 23) || (layer[i] == 23 && layer[j] == 22) || (layer[i] == 38 && layer[j] == 39) || (layer[i] == 39 && layer[j] == 38) ) continue;
-    
       // must match clusters that are on the same side
       if( side[i] != side[j] ) continue;
     
@@ -441,19 +438,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
         double rad1 = layergeom1->get_radius();
         PHG4TpcCylinderGeom *layergeom2 = _geom_container->GetLayerCellGeom(layer[i_pair[i]]);
         double rad2 = layergeom2->get_radius();
-	//        PHG4TpcCylinderGeom *layergeom0;
+	//matching done correctly now, so distance between layers should be directly calculable
         double layer_dr = std::abs(rad1 - rad2);
-	/*
-        if(layer[i] != 7 && layer[i] != 23 && layer[i] != 39)
-        {
-          layergeom0 = _geom_container->GetLayerCellGeom(layer[i]-1);
-          layer_dr = rad1 - layergeom0->get_radius();
-        }
-        else
-        {
-          layergeom0 = _geom_container->GetLayerCellGeom(layer[i]+1);
-          layer_dr = layergeom0->get_radius() - rad1; 
-	  }*/
+
         double rad_lyr_boundary = rad1 + layer_dr / 2.0;	 
         
         
@@ -462,17 +449,13 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
         if( _dcc)  dist_pos = _distortionCorrection.get_corrected_position( dist_pos, _dcc ); 
         double dist_r = sqrt(dist_pos[0]*dist_pos[0] + dist_pos[1] * dist_pos[1]);
         double cmclus_dr = _cmclus_dr_outer; 
-        /*
-	if(dist_r < 41.0)
-          cmclus_dr = _cmclus_dr_inner;
-        else if(dist_r >= 41.0 && rad2 < 58.0)
-          cmclus_dr = _cmclus_dr_mid; 
-        */
 
 	if(dist_r < 41.0){
+	  //if across boundary, use average
 	  if(rad2 >= 41.0) cmclus_dr = 0.5*(_cmclus_dr_inner + _cmclus_dr_mid);
 	  else cmclus_dr = _cmclus_dr_inner;
 	}else if(dist_r >= 41.0 && dist_r < 58.0){
+	  //if across boundary, use average
 	  if(rad2 >= 58.0) cmclus_dr = 0.5*(_cmclus_dr_mid + _cmclus_dr_outer);
 	  else cmclus_dr = _cmclus_dr_mid;
 	}
@@ -499,9 +482,8 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       }
     } else {
 
-      std::cout << "singleton layer: " << layer[i] << "   radius: " << pos[i].Perp() << "   isAcrossGap? " << isAcrossGap[i] << std::endl;
       if(_histos)  hClustE[2]->Fill(energy[i]);
-      // These single cluster cases have good phi, but do not have a good radius centroid estimate - may want to skip them, record nclusters
+      // These single cluster cases have good phi, but do not have a good radius centroid estimate - may want to skip them, record nclusters and identify if across gap
       if(layer[i] == 7) isAcrossGap[i] = true;
       aveenergy.push_back(energy[i]);
       avepos.push_back(pos[i]);
@@ -588,36 +570,6 @@ int PHTpcCentralMembraneClusterizer::End(PHCompositeNode * /*topNode*/ )
     m_histogramfile->Close();
   }
 
-  m_histogramfileMaps->cd();
-
-  hrPhi_reco_pos->SetMarkerStyle(20);
-  hrPhi_reco_pos->SetMarkerSize(0.25);
-  hrPhi_reco_pos->SetMarkerColor(kRed);
-
-  hrPhi_reco_neg->SetMarkerStyle(20);
-  hrPhi_reco_neg->SetMarkerSize(0.25);
-  hrPhi_reco_neg->SetMarkerColor(kRed);
-
-  hrPhi_reco_pos->Write();
-  hrPhi_reco_neg->Write();
-
-  hrPhi_reco_petalModulo_pos->Write();
-  hrPhi_reco_petalModulo_neg->Write();
-
-  for(int i=0; i<48; i++){
-    hphi_reco_pos[i]->Write();
-    hphi_reco_neg[i]->Write();
-
-    if(i<47){
-      hphi_reco_pair_pos[i]->Write();
-      hphi_reco_pair_neg[i]->Write();
-    }
-  }
-
-  m_histogramfileMaps->Close();
-
-
-  
   // print statistics
   if( Verbosity() )
   {

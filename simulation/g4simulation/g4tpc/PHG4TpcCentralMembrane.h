@@ -52,11 +52,6 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
   /// set modulo for events in which to generate CM hits
   void setCentralMembraneEventModulo(int mod) { m_eventModulo = mod; };
 
-  void setSkipR1_e( bool a_skip ) { skip_R1_e = a_skip; };
-  void setSkipR1( bool a_skip ) { skip_R1 = a_skip; };
-  void setSkipR2( bool a_skip ) { skip_R2 = a_skip; };
-  void setSkipR3( bool a_skip ) { skip_R3 = a_skip; };
-
  private:
   /// detector name
   std::string detector = "TPC";
@@ -67,11 +62,6 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
 
   int m_eventModulo = 10;
   int m_eventNum = 0;
-
-  bool skip_R1_e = false;
-  bool skip_R1 = false;
-  bool skip_R2 = false;
-  bool skip_R3 = false;
 
   static constexpr double mm = 1.0;
   static constexpr double cm = 10.0;

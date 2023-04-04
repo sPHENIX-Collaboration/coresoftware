@@ -23,7 +23,6 @@ class CMFlashClusterContainer;
 class CMFlashDifferenceContainer;
 
 class TF1;
-class TNtuple;
 class TFile;
 class TH1F;
 class TH1D;
@@ -50,6 +49,10 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   /// output file name for storing the space charge reconstruction matrices
   void setOutputfile(const std::string &outputfile)
   {m_outputfile = outputfile;}
+
+  void setNMatchIter( int val ){ m_nMatchIter = val; }
+
+  void set_useOnly_nClus2( bool val ){ m_useOnly_nClus2 = val; }
   
   void set_grid_dimensions( int phibins, int rbins );
 
@@ -113,32 +116,9 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   std::unique_ptr<TFile> fout;
 
   TH2F *hit_r_phi;
-  TH2F *hit_r_phi_pos;
-  TH2F *hit_r_phi_neg;
 
-  TH2F *clust_r_phi;
   TH2F *clust_r_phi_pos;
   TH2F *clust_r_phi_neg;
-
-  TGraph *hit_r_phi_gr;
-
-  TGraph *clust_r_phi_gr;
-  TGraph *clust_r_phi_gr_pos;
-  TGraph *clust_r_phi_gr_neg;
-
-  TGraph *clust_r_phi_gr1;
-  TGraph *clust_r_phi_gr1_pos;
-  TGraph *clust_r_phi_gr1_neg;
-
-  TGraph *clust_r_phi_gr2;
-  TGraph *clust_r_phi_gr2_pos;
-  TGraph *clust_r_phi_gr2_neg;
-  
-  TNtuple *reco_ntup = nullptr;
-
-
-  std::string m_outputfile2 = "CM_r_phi_maps.root";
-  std::unique_ptr<TFile> fout2;
 
   //@}
     
@@ -238,15 +218,12 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
   //@}
 
-  double hitRotationTotal;
-  double hitRotation[4];
-  double clustRotation[3];
+  bool m_useOnly_nClus2 = false;
+
+  int m_nMatchIter = 2;
+
   double clustRotation_pos[3];
   double clustRotation_neg[3];
-
-  std::vector<std::vector<double>> getPhiGaps(TH2F *r_phi);
-
-  std::vector<double> getAverageRotation(std::vector<std::vector<double>> hit, std::vector<std::vector<double>> clust);
 
   double getPhiRotation_smoothed( TH1D *hitHist, TH1D *clustHist );
 
