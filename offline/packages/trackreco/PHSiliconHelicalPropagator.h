@@ -1,6 +1,7 @@
+#include <fun4all/SubsysReco.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase_historic/TrackSeedContainer.h>
-#include <trackermillepedealignment/HelicalFitter.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase/TrkrClusterCrossingAssoc.h>
 
@@ -23,7 +24,6 @@ private:
   TrackSeedContainer* _si_seeds = nullptr;
   TrackSeedContainer* _tpc_seeds = nullptr;
   TrackSeedContainer* _svtx_seeds = nullptr;
-  HelicalFitter* _fitter = nullptr;
   TrkrClusterContainer* _cluster_map = nullptr;
   TrkrClusterCrossingAssoc* _cluster_crossing_map = nullptr;
 
