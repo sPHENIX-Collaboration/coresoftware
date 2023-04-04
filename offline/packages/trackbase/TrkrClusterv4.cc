@@ -72,7 +72,7 @@ void TrkrClusterv4::CopyFrom( const TrkrCluster& source )
 }
 
 
-void TrkrClusterv4::CopyFromv4( TrkrClusterv4* source )
+void TrkrClusterv4::CopyFrom( TrkrClusterv4* source )
 {
   // do nothing if copying onto oneself
   if( this == source )

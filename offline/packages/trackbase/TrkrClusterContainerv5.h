@@ -45,10 +45,9 @@ class TrkrClusterContainerv5 : public TrkrClusterContainer
 
   unsigned int size(void) const override;
 
+  void set_cluster_version(int value) { m_cluster_version = value; }
+
  private:
-  /// convenient alias
-  // using Vector = std::vector<TrkrCluster*>;
-  using Vector = TClonesArray*;
 
   /// the actual container
   std::map<TrkrDefs::hitsetkey, TClonesArray*> m_clusmap;
@@ -60,6 +59,8 @@ class TrkrClusterContainerv5 : public TrkrClusterContainer
    * see https://root.cern.ch/root/htmldoc/guides/users-guide/InputOutput.html for details
    */
   Map m_tmpmap;  //! transient. The temporary map does not get written to the output
+
+  int m_cluster_version = 4;
 
   ClassDefOverride(TrkrClusterContainerv5, 1)
 };

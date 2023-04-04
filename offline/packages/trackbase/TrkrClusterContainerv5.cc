@@ -5,11 +5,13 @@
  * @brief Implementation of TrkrClusterContainerv5
  */
 #include "TrkrClusterContainerv5.h"
+#include <TClonesArray.h>
 #include "TrkrCluster.h"
 #include "TrkrClusterv4.h"
 #include "TrkrDefs.h"
 
 #include <algorithm>
+#include <string>
 
 namespace
 {
@@ -93,7 +95,10 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
   // find relevant vector or create one if not found
   auto& clus_vector = m_clusmap[hitsetkey];
   if (!clus_vector) {
-    clus_vector = new TClonesArray("TrkrClusterv4");
+    std::string cluster_class_name =
+      "TrkrClusterv" + std::to_string(m_cluster_version);
+    clus_vector = new TClonesArray(cluster_class_name.c_str());
+    // clus_vector = new TClonesArray("TrkrCluster");
   }
   // std::cout << "created new array for hitsetkey " << hitsetkey << std::endl;
 
@@ -116,11 +121,10 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
     std::cout << "get null" << std::endl;
     if (!cluster)
       {
-        // clus_vector[index] = newclus;
-        TrkrClusterv4* cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
-        cls->CopyFromv4(static_cast<TrkrClusterv4*>(newclus));
-        // cls->Reset();
-        // cls = static_cast<TrkrClusterv4*>(newclus->CloneMe());
+      auto cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
+      cls->CopyFrom(static_cast<TrkrClusterv4*>(newclus));
+      // new (clus_vector[index]) TrkrClusterv4(newclus);
+      newclus->~TrkrCluster();
       }
       else
       {
@@ -134,22 +138,18 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
     // clus_vector.push_back(newclus);
     // std::cout << "constructing new object in array" << std::endl;
 
-    // TrkrCluster* cls = (TrkrCluster*) clus_vector->ConstructedAt(index);
-    TrkrClusterv4* cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
-    // new(clus_vector[index]) TrkrClusterv4();
-    cls->CopyFromv4(static_cast<TrkrClusterv4*>(newclus));
-    // cls->Reset();
-    // cls = static_cast<TrkrClusterv4*>(newclus->CloneMe());
+    auto cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
+    cls->CopyFrom(static_cast<TrkrClusterv4*>(newclus));
+    newclus->~TrkrCluster();
   }
   else
   {
     // if index exceeds the vector size, resize cluster to the right size with nullptr, and assign
     // clus_vector.resize(index + 1, nullptr);
     // clus_vector[index] = newclus;
-    TrkrClusterv4* cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
-    cls->CopyFromv4(static_cast<TrkrClusterv4*>(newclus));
-    // cls->Reset();
-    // cls = static_cast<TrkrClusterv4*>(newclus->CloneMe());
+    auto cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
+    cls->CopyFrom(static_cast<TrkrClusterv4*>(newclus));
+    newclus->~TrkrCluster();
   }
 }
 
@@ -234,7 +234,7 @@ TrkrClusterContainer::HitSetKeyList TrkrClusterContainerv5::getHitSetKeys() cons
   out.reserve(m_clusmap.size());
   std::transform(
       m_clusmap.begin(), m_clusmap.end(), std::back_inserter(out),
-      [](const std::pair<TrkrDefs::hitsetkey, Vector>& pair)
+      [](const std::pair<TrkrDefs::hitsetkey, TClonesArray*>& pair)
       { return pair.first; });
   return out;
 }
@@ -255,7 +255,7 @@ TrkrClusterContainer::HitSetKeyList TrkrClusterContainerv5::getHitSetKeys(const 
   out.reserve(m_clusmap.size());
   std::transform(
       begin, end, std::back_inserter(out),
-      [](const std::pair<TrkrDefs::hitsetkey, Vector>& pair)
+      [](const std::pair<TrkrDefs::hitsetkey, TClonesArray*>& pair)
       { return pair.first; });
   return out;
 }
@@ -276,7 +276,7 @@ TrkrClusterContainer::HitSetKeyList TrkrClusterContainerv5::getHitSetKeys(const 
   out.reserve(m_clusmap.size());
   std::transform(
       begin, end, std::back_inserter(out),
-      [](const std::pair<TrkrDefs::hitsetkey, Vector>& pair)
+      [](const std::pair<TrkrDefs::hitsetkey, TClonesArray*>& pair)
       { return pair.first; });
   return out;
 }
