@@ -48,13 +48,13 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   KFParticle makeVertex(PHCompositeNode *topNode);
 
-  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode, std::string vertexMapName);
+  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode, std::string &vertexMapName);
 
   KFParticle makeParticle(PHCompositeNode *topNode);
 
   std::vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
 
-  int getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex, std::string vertexMapName);
+  int getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex, std::string &vertexMapName);
 
   /*const*/ bool isGoodTrack(KFParticle particle, const std::vector<KFParticle> &primaryVertices);
 

@@ -165,8 +165,8 @@ int KFParticle_sPHENIX::End(PHCompositeNode * /*topNode*/)
   return 0;
 }
 
-void KFParticle_sPHENIX::printParticles(const KFParticle motherParticle,
-                                        const KFParticle chosenVertex,
+void KFParticle_sPHENIX::printParticles(const KFParticle &motherParticle,
+                                        const KFParticle &chosenVertex,
                                         const std::vector<KFParticle> &daughterParticles,
                                         const std::vector<KFParticle> &intermediateParticles,
                                         const int numPVs, const int numTracks)
