@@ -31,6 +31,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   ~PHG4TpcPadPlaneReadout() override;
 
   void SetDriftVelocity(double vd) override { drift_velocity = vd; }
+  void UseGain(int flagToUseGain) {_flagToUseGain = flagToUseGain;};
 
 
   int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4TpcCylinderGeomContainer *seggeo) override;
@@ -91,6 +92,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<double, 3> SectorPhi;
   int m_NHits = 0;
 
+  int _flagToUseGain = 0;
   // gaussian sampling
   static constexpr double _nsigmas = 5;
 

@@ -63,14 +63,15 @@ PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const std::string &name)
 {
   InitializeParameters();
   // Reading TPC Gain Maps from the file
-  std::cout<<"PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout :::"<<std::string(getenv("CALIBRATIONROOT"))+std::string("/tpc/fillDigitalCurrentMaps/Files/TPCGainMaps.root")<<std::endl;
-  TFile *fileGain = TFile::Open("/sphenix/user/shulga/Work/TpcPadPlane_phi_coresoftware/coresoftware/calibrations/tpc/fillDigitalCurrentMaps/Files/TPCGainMaps.root");
-  h_gain[0] = (TH2F*)fileGain->Get("RadPhiPlot0")->Clone();
-  h_gain[1] = (TH2F*)fileGain->Get("RadPhiPlot1")->Clone();
-  h_gain[0]->SetDirectory(0);
-  h_gain[1]->SetDirectory(0);
-  fileGain->Close();
-
+  if(_flagToUseGain==1){
+    std::cout<<"PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout :::"<<std::string(getenv("CALIBRATIONROOT"))+std::string("/tpc/fillDigitalCurrentMaps/Files/TPCGainMaps.root")<<std::endl;
+    TFile *fileGain = TFile::Open("/sphenix/user/shulga/Work/TpcPadPlane_phi_coresoftware/coresoftware/calibrations/tpc/fillDigitalCurrentMaps/Files/TPCGainMaps.root");
+    h_gain[0] = (TH2F*)fileGain->Get("RadPhiPlot0")->Clone();
+    h_gain[1] = (TH2F*)fileGain->Get("RadPhiPlot1")->Clone();
+    h_gain[0]->SetDirectory(0);
+    h_gain[1]->SetDirectory(0);
+    fileGain->Close();
+  }
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   gsl_rng_set(RandomGenerator, PHRandomSeed());  // fixed seed is handled in this funtcion
 
@@ -291,8 +292,9 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
   // Applying weight with respect to the rad_gem and phi after electrons are redistributed
   double phi_gain = phi;
   if(phi<0)phi_gain += 2*M_PI;
-  double gain_weight = h_gain[side]->GetBinContent(h_gain[side]->FindBin(rad_gem*10,phi_gain));//rad_gem in cm -> *10 to get mm
-  //std::cout<<side << ": rad_gem = " << rad_gem*10 << "phi = "<< phi_gain << " gain_weight = " << gain_weight << "; nelec = " << nelec <<std::endl;
+  double gain_weight = 1.0;
+  if(_flagToUseGain==1) gain_weight = h_gain[side]->GetBinContent(h_gain[side]->FindBin(rad_gem*10,phi_gain));//rad_gem in cm -> *10 to get mm
+  std::cout<<side << ": rad_gem = " << rad_gem*10 << "phi = "<< phi_gain << " gain_weight = " << gain_weight << "; nelec = " << nelec <<std::endl;
   nelec = nelec*gain_weight;
   //std::cout<< "gain_weight * nelec = " << nelec <<std::endl;
 
