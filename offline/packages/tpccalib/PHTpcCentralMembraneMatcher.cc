@@ -391,7 +391,7 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
   clust_r_phi_pos = new TH2F("clust_r_phi_pos","clust R vs #phi Z>0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
   clust_r_phi_neg = new TH2F("clust_r_phi_neg","clust R vs #phi Z<0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
 
-  reco_ntup = new TNtuple("reco_ntuple","","hitR:hitPhi:hitZ:recoR:recoPhi:recoZ");
+  reco_ntup = new TNtuple("reco_ntuple","","hitR:hitPhi:hitZ:recoR:recoPhi:recoZ:nClus");
 
   std::vector<double> hitR;
   std::vector<double> hitPhi;
@@ -489,6 +489,10 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 	}
 
   hit_r_phi_gr = new TGraph((int)hitR.size(), &hitPhi[0], &hitR[0]);
+  hit_r_phi_gr->SetMarkerStyle(20);
+  hit_r_phi_gr->SetMarkerSize(0.5);
+  hit_r_phi_gr->GetXaxis()->SetTitle("#phi");
+  hit_r_phi_gr->GetYaxis()->SetTitle("R (cm)");
 
   int ret = GetNodes(topNode);
   return ret;
@@ -623,18 +627,52 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 
   
   clust_r_phi_gr = new TGraph((int)clustR.size(), &clustPhi[0], &clustR[0]);
+  clust_r_phi_gr->SetMarkerStyle(20);
+  clust_r_phi_gr->SetMarkerSize(0.5);
+  clust_r_phi_gr->SetMarkerColor(kMagenta);
+
   clust_r_phi_gr_pos = new TGraph((int)clustR_pos.size(), &clustPhi_pos[0], &clustR_pos[0]);
+  clust_r_phi_gr_pos->SetMarkerStyle(20);
+  clust_r_phi_gr_pos->SetMarkerSize(0.5);
+  clust_r_phi_gr_pos->SetMarkerColor(kMagenta);
+
   clust_r_phi_gr_neg = new TGraph((int)clustR_neg.size(), &clustPhi_neg[0], &clustR_neg[0]);
+  clust_r_phi_gr_neg->SetMarkerStyle(20);
+  clust_r_phi_gr_neg->SetMarkerSize(0.5);
+  clust_r_phi_gr_neg->SetMarkerColor(kMagenta);
 
 
   clust_r_phi_gr1 = new TGraph((int)clustR1.size(), &clustPhi1[0], &clustR1[0]);
+  clust_r_phi_gr1->SetMarkerStyle(20);
+  clust_r_phi_gr1->SetMarkerSize(0.5);
+  clust_r_phi_gr1->SetMarkerColor(kBlue);
+
   clust_r_phi_gr1_pos = new TGraph((int)clustR_pos1.size(), &clustPhi_pos1[0], &clustR_pos1[0]);
+  clust_r_phi_gr1_pos->SetMarkerStyle(20);
+  clust_r_phi_gr1_pos->SetMarkerSize(0.5);
+  clust_r_phi_gr1_pos->SetMarkerColor(kBlue);
+
   clust_r_phi_gr1_neg = new TGraph((int)clustR_neg1.size(), &clustPhi_neg1[0], &clustR_neg1[0]);
+  clust_r_phi_gr1_neg->SetMarkerStyle(20);
+  clust_r_phi_gr1_neg->SetMarkerSize(0.5);
+  clust_r_phi_gr1_neg->SetMarkerColor(kBlue);
 
 
   clust_r_phi_gr2 = new TGraph((int)clustR2.size(), &clustPhi2[0], &clustR2[0]);
+  clust_r_phi_gr2->SetMarkerStyle(20);
+  clust_r_phi_gr2->SetMarkerSize(0.5);
+  clust_r_phi_gr2->SetMarkerColor(kGreen+2);
+
   clust_r_phi_gr2_pos = new TGraph((int)clustR_pos2.size(), &clustPhi_pos2[0], &clustR_pos2[0]);
+  clust_r_phi_gr2_pos->SetMarkerStyle(20);
+  clust_r_phi_gr2_pos->SetMarkerSize(0.5);
+  clust_r_phi_gr2_pos->SetMarkerColor(kGreen+2);
+
   clust_r_phi_gr2_neg = new TGraph((int)clustR_neg2.size(), &clustPhi_neg2[0], &clustR_neg2[0]);
+  clust_r_phi_gr2_neg->SetMarkerStyle(20);
+  clust_r_phi_gr2_neg->SetMarkerSize(0.5);
+  clust_r_phi_gr2_neg->SetMarkerColor(kGreen+2);
+
 
   std::vector<std::vector<double>> hit_phiGaps = getPhiGaps(hit_r_phi);
   std::vector<std::vector<double>> clust_phiGaps = getPhiGaps(clust_r_phi);
@@ -925,7 +963,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     
     m_cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
 
-    reco_ntup->Fill(m_truth_pos[p.first].Perp(),m_truth_pos[p.first].Phi(),m_truth_pos[p.first].Z(),reco_pos[p.second].Perp(),reco_pos[p.second].Phi(),reco_pos[p.second].Z());
+    reco_ntup->Fill(m_truth_pos[p.first].Perp(),m_truth_pos[p.first].Phi(),m_truth_pos[p.first].Z(),reco_pos[p.second].Perp(),reco_pos[p.second].Phi(),reco_pos[p.second].Z(),nclus);
     
     // store cluster position
     const double clus_r = reco_pos[p.second].Perp();

@@ -590,6 +590,14 @@ int PHTpcCentralMembraneClusterizer::End(PHCompositeNode * /*topNode*/ )
 
   m_histogramfileMaps->cd();
 
+  hrPhi_reco_pos->SetMarkerStyle(20);
+  hrPhi_reco_pos->SetMarkerSize(0.25);
+  hrPhi_reco_pos->SetMarkerColor(kRed);
+
+  hrPhi_reco_neg->SetMarkerStyle(20);
+  hrPhi_reco_neg->SetMarkerSize(0.25);
+  hrPhi_reco_neg->SetMarkerColor(kRed);
+
   hrPhi_reco_pos->Write();
   hrPhi_reco_neg->Write();
 
