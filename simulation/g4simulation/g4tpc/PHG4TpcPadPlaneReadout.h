@@ -6,6 +6,9 @@
 
 #include <g4main/PHG4HitContainer.h>
 #include <gsl/gsl_rng.h>
+
+#include <TH2F.h>
+
 #include <array>
 #include <climits>
 #include <cmath>
@@ -107,6 +110,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
   gsl_rng *RandomGenerator;
+
+  TH2F *h_gain[2];
   
 };
 
