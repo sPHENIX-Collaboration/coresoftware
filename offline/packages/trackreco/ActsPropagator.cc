@@ -63,7 +63,7 @@ ActsPropagator::makeTrackParams(SvtxTrack* track,
 }
 
 ActsPropagator::BoundTrackParamResult
-ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
+ActsPropagator::propagateTrack(const ActsPropagator::BoundTrackParam& params,
                                const unsigned int sphenixLayer)
 {
   unsigned int actsvolume, actslayer;
@@ -113,7 +113,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 }
 
 ActsPropagator::BoundTrackParamResult
-ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
+ActsPropagator::propagateTrack(const ActsPropagator::BoundTrackParam& params,
                                const SurfacePtr& surface)
 {
   if (m_verbosity > 1)
@@ -152,7 +152,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 }
 
 ActsPropagator::BoundTrackParamResult
-ActsPropagator::propagateTrackFast(const Acts::BoundTrackParameters& params,
+ActsPropagator::propagateTrackFast(const ActsPropagator::BoundTrackParam& params,
                                    const SurfacePtr& surface)
 {
   if (m_verbosity > 1)
