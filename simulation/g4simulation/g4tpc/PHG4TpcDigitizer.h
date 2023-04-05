@@ -46,6 +46,8 @@ class PHG4TpcDigitizer : public SubsysReco
   void SetENC(const float enc) { TpcEnc = enc; };
   void set_drift_velocity(float vd) {_drift_velocity = vd;}
   void set_skip_noise_flag(const bool skip) {skip_noise = skip;}
+  void set_nPreSample(unsigned int s) {m_nPreSample = s;}
+  void set_nPostSample(unsigned int s) {m_nPostSample = s;}
 
  private:
   void CalculateCylinderCellADCScale(PHCompositeNode *topNode);
@@ -64,11 +66,11 @@ class PHG4TpcDigitizer : public SubsysReco
 
   float ADCSignalConversionGain;
   float ADCNoiseConversionGain;
+  //! SAMPA zero-suppression digitization parameter
+  unsigned int m_nPreSample = 2;
+  unsigned int m_nPostSample = 3;
 
   bool skip_noise = false;
-
-  std::vector<std::vector<TrkrHitSet::ConstIterator> > phi_sorted_hits;
-  std::vector<std::vector<TrkrHitSet::ConstIterator> > t_sorted_hits;
 
   std::vector<float> adc_input;
   std::vector<TrkrDefs::hitkey> adc_hitid;

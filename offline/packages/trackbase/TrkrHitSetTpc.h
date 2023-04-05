@@ -66,6 +66,12 @@ class TrkrHitSetTpc : public TrkrHitSet
 
     return tmp;
   }
+  virtual  TimeFrameADCDataType& getTimeFrameAdcData()
+  {
+    static TimeFrameADCDataType tmp;
+
+    return tmp;
+  }
 
   virtual void setTimeFrameAdcData(const TimeFrameADCDataType&)
   {

@@ -119,6 +119,11 @@ class TrkrHitSetTpcv1 final : public TrkrHitSetTpc
     return m_timeFrameADCData;
   }
 
+  TimeFrameADCDataType& getTimeFrameAdcData() override
+  {
+    return m_timeFrameADCData;
+  }
+
   void setTimeFrameAdcData(const TimeFrameADCDataType& timeFrameAdcData) override
   {
     m_timeFrameADCData = timeFrameAdcData;
