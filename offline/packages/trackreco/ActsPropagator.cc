@@ -144,7 +144,7 @@ ActsPropagator::propagateTrack(const ActsPropagator::BoundTrackParam& params,
     auto finalparams = *result.value().endParameters;
     auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
     auto pair = std::make_pair(pathlength, finalparams);
-
+    finalparams.position(m_geometry->geometry().getGeoContext()) /= Acts::UnitConstants::cm;
     return Acts::Result<BoundTrackParamPair>::success(pair);
   }
 
@@ -183,7 +183,7 @@ ActsPropagator::propagateTrackFast(const ActsPropagator::BoundTrackParam& params
     auto finalparams = *result.value().endParameters;
     auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
     auto pair = std::make_pair(pathlength, finalparams);
-
+    finalparams.position(m_geometry->geometry().getGeoContext()) /= Acts::UnitConstants::cm;
     return Acts::Result<BoundTrackParamPair>::success(pair);
   }
 

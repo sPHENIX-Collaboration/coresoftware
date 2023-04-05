@@ -146,7 +146,7 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   {
     std::cout << "Updating position track parameters from " << track->get_x()
               << ", " << track->get_y() << ", " << track->get_z() << " to "
-              << position.transpose() / 10.
+              << position.transpose()
               << std::endl;
   }
 
