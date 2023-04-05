@@ -11,6 +11,7 @@
 #include "TrkrDefs.h"
 
 #include <algorithm>
+#include <memory>
 #include <string>
 
 namespace
@@ -93,12 +94,13 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
   const TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(key);
 
   // find relevant vector or create one if not found
-  auto& clus_vector = m_clusmap[hitsetkey];
+  auto clus_vector = std::shared_ptr<TClonesArray>(m_clusmap[hitsetkey]);
   if (!clus_vector) {
     std::string cluster_class_name =
       "TrkrClusterv" + std::to_string(m_cluster_version);
-    clus_vector = new TClonesArray(cluster_class_name.c_str());
+    auto clus_vector_ptr = new TClonesArray(cluster_class_name.c_str());
     // clus_vector = new TClonesArray("TrkrCluster");
+    clus_vector = std::shared_ptr<TClonesArray>(clus_vector_ptr);
   }
   // std::cout << "created new array for hitsetkey " << hitsetkey << std::endl;
 
