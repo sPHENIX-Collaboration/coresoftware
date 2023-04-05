@@ -72,10 +72,6 @@ class PHG4TpcDigitizer : public SubsysReco
 
   bool skip_noise = false;
 
-  std::vector<float> adc_input;
-  std::vector<TrkrDefs::hitkey> adc_hitid;
-  std::vector<int> is_populated;
-
   // settings
   std::map<int, unsigned int> _max_adc;
   std::map<int, float> _energy_scale;
