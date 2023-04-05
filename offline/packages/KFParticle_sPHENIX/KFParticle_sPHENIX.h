@@ -68,8 +68,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
    * masses, momenta and positions for mothers, intermediates and final state tracks,
    * PV position, number of vertices and number of tracks in the event (multiplicity)
    */
-  void printParticles(const KFParticle motherParticle,
-                      const KFParticle chosenVertex,
+  void printParticles(const KFParticle &motherParticle,
+                      const KFParticle &chosenVertex,
                       const std::vector<KFParticle> &daughterParticles,
                       const std::vector<KFParticle> &intermediateParticles,
                       const int numPVs, const int numTracks);
@@ -199,7 +199,11 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void allowZeroMassTracks(bool allow) { m_allowZeroMassTracks = allow; }
 
-  void extraolateTracksToSV(bool extrapolate) { m_extrapolateTracksToSV = extrapolate; }
+  void extraolateTracksToSV(bool extrapolate)
+  { 
+    m_extrapolateTracksToSV = extrapolate; 
+    m_extrapolateTracksToSV_nTuple = extrapolate; 
+  }
 
   void constrainIntermediateMasses(bool constrain_int_mass) { m_constrain_int_mass = constrain_int_mass; }
 
