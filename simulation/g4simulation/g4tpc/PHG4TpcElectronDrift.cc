@@ -23,6 +23,7 @@
 #include <g4tracking/TrkrTruthTrackContainerv1.h>
 
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterv4.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterContainerv4.h>
@@ -81,10 +82,6 @@ namespace
     return x * x;
   }
 }  // namespace
-
-genElecs::genElecs(){}
-
-g4HitClass::g4HitClass(){}
 
 PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   : SubsysReco(name)
@@ -325,12 +322,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     }
     std::cout << std::endl;
   }
-
-  m_outfile = new TFile("/sphenix/user/bkimelman/gen1_CM_on_Feb8_v2/PHG4TpcElectronDrift_Ben.root","RECREATE");
-  m_g4Hits = new g4HitClass();
-  m_hitTree = new TTree("m_hitTree","");
-  m_hitTree->Branch("g4Hits",&m_g4Hits);
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -455,18 +447,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
                     pow(hiter->second->get_y(1), 2)) << std::endl;
     }
 
-    m_g4Hits->set_g4xStart(hiter->second->get_x(0));
-    m_g4Hits->set_g4yStart(hiter->second->get_y(0));
-    m_g4Hits->set_g4zStart(hiter->second->get_z(0));
-    m_g4Hits->set_g4tStart(hiter->second->get_t(0));
-
-    m_g4Hits->set_g4xEnd(hiter->second->get_x(1));
-    m_g4Hits->set_g4yEnd(hiter->second->get_y(1));
-    m_g4Hits->set_g4zEnd(hiter->second->get_z(1));
-    m_g4Hits->set_g4yEnd(hiter->second->get_t(1));
-
-    m_g4Hits->set_g4E(eion);
-
     for (unsigned int i = 0; i < n_electrons; i++)
     {
       // We choose the electron starting position at random from a flat
@@ -479,13 +459,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       const double y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
       const double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
       const double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
-
-      genElecs *tmp_elec = new genElecs();
-
-      tmp_elec->set_xStart(x_start);
-      tmp_elec->set_yStart(y_start);
-      tmp_elec->set_zStart(z_start);
-      tmp_elec->set_tStart(t_start);
 
       unsigned int side = 0;
       if (z_start > 0) side = 1;
@@ -561,13 +534,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           deltaz->Fill(z_start, z_distortion);             // map of distortion in Z (time)
         }
       }
-
-      tmp_elec->set_xEnd(x_final);
-      tmp_elec->set_yEnd(y_final);
-      tmp_elec->set_zEnd(z_final);
-      tmp_elec->set_tEnd(t_final);
-
-      m_g4Hits->addElectron(tmp_elec);
 
       // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
       if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
@@ -705,9 +671,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
     single_hitsetcontainer->Reset();
 
-    m_hitTree->Fill();
-    m_g4Hits->reset_g4_electrons();
-
   }  // end loop over g4hits
 
   truth_clusterer->cluster_and_reset(/*argument is if to reset hitsetkey as well*/ true);
@@ -804,10 +767,6 @@ int PHG4TpcElectronDrift::End(PHCompositeNode * /*topNode*/)
     z_startmap->Write();
     EDrift_outf->Close();
   }
-
-  m_outfile->cd();
-  m_hitTree->Write();
-  m_outfile->Close();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
