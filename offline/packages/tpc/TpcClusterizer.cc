@@ -97,45 +97,7 @@ namespace
   };
   
   pthread_mutex_t mythreadlock;
-
-  std::vector<double> clusterx;
-  std::vector<double> clustery;
-  std::vector<double> clusterz;
-  std::vector<double> clustert;
-  std::vector<double> clustert_early;
-  std::vector<double> clusterE;
   
-  std::vector<std::vector<double>> hitx;
-  std::vector<std::vector<double>> hity;
-  std::vector<std::vector<double>> hitz;
-  std::vector<std::vector<double>> hitE;
-
-  /*
-  void set_hitData(double x, double y, double z, double e){
-    m_hitx.push_back(x);
-    m_hity.push_back(y);
-    m_hitz.push_back(z);
-    m_hitE.push_back(e);
-    return;
-  }
-
-  void clear_hitData(){
-    m_hitx.clear();
-    m_hity.clear();
-    m_hitz.clear();
-    m_hitE.clear();
-    return;
-  }
-
-  void set_clustData(double x, double y, double z, double e){
-    m_clustx = x;
-    m_clusty = y;
-    m_clustz = z;
-    m_clustE = e;
-    return;
-  }
-  */
-
   void remove_hit(double adc, int phibin, int tbin, int edge, std::multimap<unsigned short, ihit> &all_hit_map, std::vector<std::vector<unsigned short>> &adcval)
   {
     typedef std::multimap<unsigned short, ihit>::iterator hit_iterator;
@@ -349,19 +311,6 @@ namespace
       int max_adc  = 0;
       if(clus_size == 1) return;
       //      std::cout << "process list" << std::endl;    
-      
-      std::vector<double> temp_vectx;
-      std::vector<double> temp_vecty;
-      std::vector<double> temp_vectz;
-      std::vector<double> temp_vectE;
-      
-      //std::cout << "made temp vectors" << std::endl;
-      
-      //clear_hitData();
-      //::m_hitx.clear();
-      //::m_hity.clear();
-      //::m_hitz.clear();
-      //::m_hitE.clear();
       std::vector<TrkrDefs::hitkey> hitkeyvec;
       for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
 	double adc = iter->adc; 
@@ -376,19 +325,6 @@ namespace
 	if(it > tbinhi) tbinhi = it;
 	if(it < tbinlo) tbinlo = it;
 	
-	double hitPhi = my_data.layergeom->get_phicenter(iphi);
-	
-	//std::cout << "working on hit " << std::distance(std::begin(ihit_list),iter) << std::endl;
-
-	//set_hitData(radius * cos(hitPhi), radius * sin(hitPhi), my_data.layergeom->get_zcenter(it),adc);
-	temp_vectx.push_back(radius * cos(hitPhi));
-	temp_vecty.push_back(radius * sin(hitPhi));
-	temp_vectz.push_back(my_data.layergeom->get_zcenter(it));
-	temp_vectE.push_back(adc);
-
-	//std::cout << "pushed back temp vectors" << std::endl;
-
-
 	// update phi sums
 	//	double phi_center = my_data.layergeom->get_phicenter(iphi);
 	
@@ -469,9 +405,6 @@ namespace
       // To get equivalent charge per T bin, so that summing ADC input voltage over all T bins returns total input charge, divide voltages by 2.4 for 80 ns SAMPA
       // Equivalent charge per T bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
 
-      clustert_early.push_back(clust);
-
-
       // SAMPA shaping bias correction
       clust = clust + my_data.sampa_tbias;
 
@@ -483,25 +416,8 @@ namespace
       //std::cout << "done transform" << std::endl;
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
       
-      //set_clustData(clusx,clusy,clusz,adc_sum);
-
-      hitx.push_back(temp_vectx);
-      hity.push_back(temp_vecty);
-      hitz.push_back(temp_vectz);
-      hitE.push_back(temp_vectE);
-      
-      clusterx.push_back(clusx);
-      clustery.push_back(clusy);
-      clusterz.push_back(clusz);
-      clustert.push_back(clust);
-      clusterE.push_back(adc_sum);
-
-      //      std::cout << "pushed back namespace vectors" << std::endl;
-
-      //      ::m_cluster_tree->Fill();
-
       if(my_data.cluster_version==3){
-	//	std::cout << "ver3" << std::endl;
+	std::cout << "ver3" << std::endl;
 	// Fill in the cluster details
 	//================
 	auto clus = new TrkrClusterv3;
@@ -516,7 +432,7 @@ namespace
 	clus->setActsLocalError(1,1, t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2));
 	my_data.cluster_vector.push_back(clus);
       }else if(my_data.cluster_version==4){
-	//	std::cout << "ver4" << std::endl;
+	std::cout << "ver4" << std::endl;
 	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
 	if(sqrt(phi_err_square) > 0.01){
 	auto clus = new TrkrClusterv4;
@@ -535,6 +451,7 @@ namespace
 	my_data.cluster_vector.push_back(clus);
 	}
       }else if(my_data.cluster_version==5){
+	std::cout << "ver5" << std::endl;
 	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
 	if(sqrt(phi_err_square) > 0.01){
 	auto clus = new TrkrClusterv5;
@@ -842,28 +759,6 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(clusterhitassoc, "TRKR_CLUSTERHITASSOC", "PHObject");
     DetNode->addNode(newNode);
   }
-
-  m_outfile = new TFile(m_filename.c_str(),"RECREATE");
-
-  m_hitEnergy = new TH1F("m_hitEnergy","",10000,0.0,1e-4);
-  m_cluster_hitEnergy = new TH1F("m_cluster_hitEnergy","",10000,0.0,100);
-  m_hit_clusterEnergy = new TH2F("m_hit_clusterEnergy","",10000,0.0,1e-4,10000,0.0,100);
-
-  m_cluster_tree = new TTree("m_cluster_tree","");
-
-  m_cluster_tree->Branch("clustx",&m_clustx);
-  m_cluster_tree->Branch("clusty",&m_clusty);
-  m_cluster_tree->Branch("clustz",&m_clustz);
-  m_cluster_tree->Branch("clustt",&m_clustt);
-  m_cluster_tree->Branch("clustt_early",&m_clustt_early);
-  m_cluster_tree->Branch("clustE",&m_clustE);
-
-  m_cluster_tree->Branch("hitx",&m_hitx);
-  m_cluster_tree->Branch("hity",&m_hity);
-  m_cluster_tree->Branch("hitz",&m_hitz);
-  m_cluster_tree->Branch("hitE",&m_hitE);
-
-
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1225,31 +1120,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       }
   }
 
-  //  std::cout << "about to push back member vectors" << std::endl;
-
-  for(int ic=0; ic<(int)clusterx.size(); ic++){
-    //std::cout << "cluster number " << ic << std::endl;
-
-    m_clustx = clusterx[ic];
-    m_clusty = clustery[ic];
-    m_clustz = clusterz[ic];
-    m_clustt = clustert[ic];
-    m_clustt_early = clustert_early[ic];
-    m_clustE = clusterE[ic];
-    
-    m_hitx = hitx[ic];
-    m_hity = hity[ic];
-    m_hitz = hitz[ic];
-    m_hitE = hitE[ic];
-
-    //std::cout << "pushed back member vectors" << std::endl;
-
-    m_cluster_tree->Fill();
-
-    //std::cout << "Filled tree" << std::endl;
-
-  }
-
   if (Verbosity() > 0)
     std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1257,18 +1127,5 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
 int TpcClusterizer::End(PHCompositeNode */*topNode*/)
 {
-
-  m_outfile->cd();
-
-  m_cluster_tree->Write();
-
-  m_hitEnergy->Write();
-  m_cluster_hitEnergy->Write();
-  m_hit_clusterEnergy->Write();
-
-  
-
-  m_outfile->Close();
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
