@@ -185,10 +185,7 @@ int BbcSimReco::InitRun(PHCompositeNode *topNode)
 // Call user instructions for every event
 int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
 {
-  // GetNodes(topNode);
-
   f_evt = _evtheader->get_EvtSequence();
-  // if(f_evt%100==0) std::cout << PHWHERE << "Events processed: " << f_evt << std::endl;
 
   //**** Initialize Variables
 
@@ -225,7 +222,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     f_vz = vtxp->get_z();
     f_vt = vtxp->get_t();
 
-    if (f_evt < 20)
+    if (Verbosity() && f_evt < 20)
     {
       std::cout << "VTXP "
            << "\t" << f_vx << "\t" << f_vy << "\t" << f_vz << "\t" << f_vt << std::endl;
