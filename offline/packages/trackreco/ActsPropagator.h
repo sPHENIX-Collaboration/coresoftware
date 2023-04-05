@@ -45,20 +45,23 @@ class ActsPropagator
   ~ActsPropagator() {}
 
   SurfacePtr makeVertexSurface(const SvtxVertex* vertex);
+
   BoundTrackParam makeTrackParams(SvtxTrack* track, SvtxVertexMap* vertexMap);
 
   /// For an example of how to unpack a BoundTrackParamResult, see as an
   /// example PHActsVertexPropagator::propagateTrack
+  /// Returns in units of cm and GeV
   BoundTrackParamResult propagateTrack(const BoundTrackParam& params,
                                        const unsigned int sphenixLayer);
 
+  /// Returns in units of cm and GeV
   BoundTrackParamResult propagateTrack(const BoundTrackParam& params,
                                        const SurfacePtr& surface);
 
   /// The following function takes the track parameters at the vertex and
   /// propagates them in isolation to the requested surface, i.e. it does
   /// NOT stop at each layer in the sPHENIX detector on the way to the
-  /// target surface
+  /// target surface. Returns in units of mm and GeV
   BoundTrackParamResult propagateTrackFast(const BoundTrackParam& params,
                                            const SurfacePtr& surface);
 

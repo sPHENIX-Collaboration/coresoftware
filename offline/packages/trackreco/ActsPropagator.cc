@@ -201,17 +201,8 @@ ActsPropagator::propagateTrackFast(const ActsPropagator::BoundTrackParam& params
   if (result.ok())
   {
     auto finalparams = *result.value().endParameters;
-    auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
-    /// do the conversion to cm here by making a new track param object. Acts
-    /// follows constness of returned objects
-    BoundTrackParam param = ActsTrackFittingAlgorithm::TrackParameters::create(
-	                    finalparams.referenceSurface().getSharedPtr(), 
-			    m_geometry->geometry().getGeoContext(),
-			    finalparams.fourPosition(m_geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm,
-			    finalparams.momentum(), 
-			    finalparams.charge() / finalparams.absoluteMomentum(),
-			    finalparams.covariance().value()).value();
-    auto pair = std::make_pair(pathlength, param);
+    auto pathlength = result.value().pathLength;
+    auto pair = std::make_pair(pathlength, finalparams);
 
     return Acts::Result<BoundTrackParamPair>::success(pair);
   }
