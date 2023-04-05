@@ -133,13 +133,13 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   //@{
 
   /// distortion correction grid size along phi
-  int m_phibins = 200;
+  int m_phibins = 36;
 
   static constexpr float m_phiMin = 0;
   static constexpr float m_phiMax = 2.*M_PI;
 
   /// distortion correction grid size along r
-  int m_rbins = 58;
+  int m_rbins = 16;
 
   static constexpr float m_rMin = 20; // cm
   static constexpr float m_rMax = 78; // cm
