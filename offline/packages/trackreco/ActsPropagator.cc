@@ -54,12 +54,13 @@ ActsPropagator::makeTrackParams(SvtxTrack* track,
 
   Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
 
-  return ActsTrackFittingAlgorithm::TrackParameters::create(perigee,
-                                                            m_geometry->geometry().getGeoContext(),
-                                                            actsFourPos, momentum,
-                                                            track->get_charge() / track->get_p(),
-                                                            cov)
-      .value();
+  return ActsTrackFittingAlgorithm::TrackParameters::create(
+         perigee,
+	 m_geometry->geometry().getGeoContext(),
+	 actsFourPos, momentum,
+	 track->get_charge() / track->get_p(),
+	 cov)
+    .value();
 }
 
 ActsPropagator::BoundTrackParamResult
@@ -104,8 +105,17 @@ ActsPropagator::propagateTrack(const ActsPropagator::BoundTrackParam& params,
   {
     auto finalparams = *result.value().endParameters;
     auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
-    auto pair = std::make_pair(pathlength, finalparams);
-    finalparams.position(m_geometry->geometry().getGeoContext()) /= Acts::UnitConstants::cm;
+    /// do the conversion to cm here by making a new track param object. Acts
+    /// follows constness of returned objects
+    BoundTrackParam param = ActsTrackFittingAlgorithm::TrackParameters::create(
+			    finalparams.referenceSurface().getSharedPtr(), 
+			    m_geometry->geometry().getGeoContext(),
+			    finalparams.fourPosition(m_geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm,
+			    finalparams.momentum(), 
+			    finalparams.charge() / finalparams.absoluteMomentum(),
+			    finalparams.covariance().value()).value();
+    auto pair = std::make_pair(pathlength, param);
+ 
     return Acts::Result<BoundTrackParamPair>::success(pair);
   }
 
@@ -143,8 +153,18 @@ ActsPropagator::propagateTrack(const ActsPropagator::BoundTrackParam& params,
   {
     auto finalparams = *result.value().endParameters;
     auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
-    auto pair = std::make_pair(pathlength, finalparams);
-    finalparams.position(m_geometry->geometry().getGeoContext()) /= Acts::UnitConstants::cm;
+    /// do the conversion to cm here by making a new track param object. Acts
+    /// follows constness of returned objects
+    BoundTrackParam param = ActsTrackFittingAlgorithm::TrackParameters::create(
+	                    finalparams.referenceSurface().getSharedPtr(), 
+			    m_geometry->geometry().getGeoContext(),
+			    finalparams.fourPosition(m_geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm,
+			    finalparams.momentum(), 
+			    finalparams.charge() / finalparams.absoluteMomentum(),
+			    finalparams.covariance().value()).value();
+    
+    auto pair = std::make_pair(pathlength, param);
+
     return Acts::Result<BoundTrackParamPair>::success(pair);
   }
 
@@ -182,8 +202,17 @@ ActsPropagator::propagateTrackFast(const ActsPropagator::BoundTrackParam& params
   {
     auto finalparams = *result.value().endParameters;
     auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
-    auto pair = std::make_pair(pathlength, finalparams);
-    finalparams.position(m_geometry->geometry().getGeoContext()) /= Acts::UnitConstants::cm;
+    /// do the conversion to cm here by making a new track param object. Acts
+    /// follows constness of returned objects
+    BoundTrackParam param = ActsTrackFittingAlgorithm::TrackParameters::create(
+	                    finalparams.referenceSurface().getSharedPtr(), 
+			    m_geometry->geometry().getGeoContext(),
+			    finalparams.fourPosition(m_geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm,
+			    finalparams.momentum(), 
+			    finalparams.charge() / finalparams.absoluteMomentum(),
+			    finalparams.covariance().value()).value();
+    auto pair = std::make_pair(pathlength, param);
+
     return Acts::Result<BoundTrackParamPair>::success(pair);
   }
 
