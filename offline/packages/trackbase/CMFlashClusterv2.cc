@@ -48,6 +48,8 @@ void CMFlashClusterv2::CopyFrom( const CMFlashCluster& source )
   setY( source.getY() );
   setZ( source.getZ() );
   setAdc( source.getAdc() );
+  setIsRGap( source.getIsRGap() );
+  setIsPhiGap( source.getIsPhiGap() );
 
 }
 
