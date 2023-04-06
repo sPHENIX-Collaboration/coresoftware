@@ -23,7 +23,7 @@ class EpdGeom : public PHObject
     virtual void set_z(unsigned int /*key*/, float /*z*/) {return;}
     virtual void set_r(unsigned int /*key*/, float /*r*/) {return;}
     virtual void set_phi(unsigned int /*key*/, float /*f*/) {return;}
-    virtual void set_phi0(unsigned int /*key*/, float /*f*/) {return;} 
+    virtual void set_phi0(unsigned int /*key*/, float /*f0*/) {return;} 
     virtual float get_r(unsigned int /*key*/) const {return NAN;};
     virtual float get_z(unsigned int /*key*/) const {return NAN;};
     virtual float get_phi(unsigned int /*key*/) const {return NAN;};
