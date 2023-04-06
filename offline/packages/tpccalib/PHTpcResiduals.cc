@@ -605,7 +605,7 @@ void PHTpcResiduals::addTrackState( SvtxTrack* track, TrkrDefs::cluskey key, flo
   { state.set_error(i, j, globalCov(i,j)); }
  
   state.set_name(std::to_string((TrkrDefs::cluskey) key));
-
+  std::cout << "set to " << state.get_name() << std::endl;
   track->insert_state(&state);
 }
 

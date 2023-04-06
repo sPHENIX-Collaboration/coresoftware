@@ -26,7 +26,6 @@ class QAG4SimulationDistortions : public SubsysReco
   int Init(PHCompositeNode*) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode*) override;
-  int End(PHCompositeNode*) override;
 
  private:
 
@@ -34,8 +33,9 @@ class QAG4SimulationDistortions : public SubsysReco
     {
       return std::string("h_") + Name() + std::string("_");
     }
+  
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
-
+  bool checkTrack(SvtxTrack* track);
   SvtxTrackMap* m_trackMap = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
   ActsGeometry* m_tGeometry = nullptr;
