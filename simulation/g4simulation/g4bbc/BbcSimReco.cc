@@ -116,22 +116,20 @@ namespace BBCINFO
   };
   */
 
-}  // namespace BBCINFO
-
-using namespace BBCINFO;
+}
 
 //____________________________________
 BbcSimReco::BbcSimReco(const std::string &name)
   : SubsysReco(name)
   , _tres(0.05)
 {
-  std::fill(std::begin(f_pmtq), std::end(f_pmtq), NAN);
-  std::fill(std::begin(f_pmtt0), std::end(f_pmtt0), NAN);
-  std::fill(std::begin(f_pmtt1), std::end(f_pmtt1), NAN);
+  std::fill(std::begin(f_pmtq), std::end(f_pmtq), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(f_pmtt0), std::end(f_pmtt0), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(f_pmtt1), std::end(f_pmtt1), std::numeric_limits<float>::quiet_NaN());
   std::fill(std::begin(f_bbcn), std::end(f_bbcn), 0);
-  std::fill(std::begin(f_bbcq), std::end(f_bbcq), NAN);
-  std::fill(std::begin(f_bbct), std::end(f_bbct), NAN);
-  std::fill(std::begin(f_bbcte), std::end(f_bbcte), NAN);
+  std::fill(std::begin(f_bbcq), std::end(f_bbcq), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(f_bbct), std::end(f_bbct), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(f_bbcte), std::end(f_bbcte), std::numeric_limits<float>::quiet_NaN());
   hevt_bbct[0] = nullptr;
   hevt_bbct[1] = nullptr;
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -194,8 +192,8 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
   f_bbct[1] = -9999.;
   f_bbcte[0] = -9999.;
   f_bbcte[1] = -9999.;
-  f_bbcz = NAN;
-  f_bbct0 = NAN;
+  f_bbcz = std::numeric_limits<float>::quiet_NaN();
+  f_bbct0 = std::numeric_limits<float>::quiet_NaN();
   hevt_bbct[0]->Reset();
   hevt_bbct[1]->Reset();
 
@@ -279,7 +277,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     // get summed path length for particles that can create CKOV light
     // n.p.e. is determined from path length
     Double_t beta = v4.Beta();
-    if (beta > v_ckov && charge != 0.)
+    if (beta > BBCINFO::v_ckov && charge != 0.)
     {
       len[ch] += this_hit->get_path_length();
 
@@ -375,7 +373,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     }
 
     // Now calculate zvtx, t0 from best times
-    f_bbcz = (f_bbct[0] - f_bbct[1]) * C / 2.0;
+    f_bbcz = (f_bbct[0] - f_bbct[1]) * BBCINFO::C / 2.0;
     f_bbct0 = (f_bbct[0] + f_bbct[1]) / 2.0;
 
     _bbcout->set_Vertex(f_bbcz, 0.6);
