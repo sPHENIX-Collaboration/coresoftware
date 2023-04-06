@@ -68,7 +68,8 @@ int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 
 int GlobalVertexFastSimReco::process_event(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 1) std::cout << "GlobalVertexFastSimReco::process_event -- entered" << std::endl;
+  if (Verbosity() > 1) { std::cout << "GlobalVertexFastSimReco::process_event -- entered" << std::endl;
+}
 
   //---------------------------------
   // Get Objects off of the Node Tree

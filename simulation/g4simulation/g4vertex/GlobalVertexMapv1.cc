@@ -23,11 +23,9 @@ void GlobalVertexMapv1::identify(std::ostream& os) const
 
 void GlobalVertexMapv1::clear()
 {
-  for (Iter iter = _map.begin();
-       iter != _map.end();
-       ++iter)
+  for (auto & iter : _map)
   {
-    delete iter->second;
+    delete iter.second;
   }
   _map.clear();
   return;
@@ -36,14 +34,16 @@ void GlobalVertexMapv1::clear()
 const GlobalVertex* GlobalVertexMapv1::get(unsigned int id) const
 {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return nullptr;
+  if (iter == _map.end()) { return nullptr;
+}
   return iter->second;
 }
 
 GlobalVertex* GlobalVertexMapv1::get(unsigned int id)
 {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) return nullptr;
+  if (iter == _map.end()) { return nullptr;
+}
   return iter->second;
 }
 
