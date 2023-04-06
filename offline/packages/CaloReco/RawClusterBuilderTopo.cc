@@ -7,6 +7,10 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawClusterUtility.h>
+
+#include <calobase/TowerInfov1.h>
+#include <calobase/TowerInfoContainerv1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -18,6 +22,19 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
+#include <fastjet/ClusterSequence.hh>
+#include <fastjet/FunctionOfPseudoJet.hh>
+#include <fastjet/JetDefinition.hh>
+
+#include <g4vertex/GlobalVertex.h>
+#include <g4vertex/GlobalVertexMap.h>
+
+#include <centrality/CentralityInfov1.h>
+
+//root
+#include <TFile.h>
+#include <TTree.h>
 
 #include <algorithm>
 #include <cmath>
@@ -57,14 +74,8 @@ float RawClusterBuilderTopo::calculate_dR(float eta1, float eta2, float phi1, fl
 {
   float deta = eta1 - eta2;
   float dphi = phi1 - phi2;
-  while (dphi > M_PI)
-  {
-    dphi -= 2 * M_PI;
-  }
-  while (dphi < -M_PI)
-  {
-    dphi += 2 * M_PI;
-  }
+  while (dphi > M_PI) dphi -= 2 * M_PI;
+  while (dphi < -M_PI) dphi += 2 * M_PI;
   return sqrt(pow(deta, 2) + pow(dphi, 2));
 }
 
@@ -85,10 +96,7 @@ std::vector<int> RawClusterBuilderTopo::get_adjacent_towers_by_ID(int ID)
       {
         for (int delta_phi = -1; delta_phi <= 1; delta_phi++)
         {
-          if (delta_layer == 0 && delta_eta == 0 && delta_phi == 0)
-          {
-            continue;  // this is the same tower
-          }
+          if (delta_layer == 0 && delta_eta == 0 && delta_phi == 0) continue;  // this is the same tower
 
           int test_eta = this_eta + delta_eta;
           if (test_eta < 0 || test_eta >= _HCAL_NETA)
@@ -102,10 +110,7 @@ std::vector<int> RawClusterBuilderTopo::get_adjacent_towers_by_ID(int ID)
           // disallow "corner" adjacency (diagonal in eta/phi plane and in different layer) if this option not enabled
           if (!_allow_corner_neighbor && delta_layer == 1 && abs(delta_phi) == 1 && abs(delta_eta) == 1)
           {
-            if (Verbosity() > 20)
-            {
-              std::cout << "RawClusterBuilderTopo::get_adjacent_towers_by_ID : corner growth not allowed " << std::endl;
-            }
+            if (Verbosity() > 20) std::cout << "RawClusterBuilderTopo::get_adjacent_towers_by_ID : corner growth not allowed " << std::endl;
             continue;
           }
 
@@ -130,10 +135,7 @@ std::vector<int> RawClusterBuilderTopo::get_adjacent_towers_by_ID(int ID)
         int new_phi = (EMCal_phi_start + delta_phi + _EMCAL_NPHI) % _EMCAL_NPHI;
 
         int EMCal_tower = get_ID(2, new_eta, new_phi);
-        if (Verbosity() > 20)
-        {
-          std::cout << "RawClusterBuilderTopo::get_adjacent_towers_by_ID : HCal tower with eta / phi = " << this_eta << " / " << this_phi << ", adding EMCal tower with eta / phi = " << new_eta << " / " << new_phi << std::endl;
-        }
+        if (Verbosity() > 20) std::cout << "RawClusterBuilderTopo::get_adjacent_towers_by_ID : HCal tower with eta / phi = " << this_eta << " / " << this_phi << ", adding EMCal tower with eta / phi = " << new_eta << " / " << new_phi << std::endl;
         adjacent_towers.push_back(EMCal_tower);
       }
     }
@@ -147,10 +149,7 @@ std::vector<int> RawClusterBuilderTopo::get_adjacent_towers_by_ID(int ID)
     {
       for (int delta_phi = -1; delta_phi <= 1; delta_phi++)
       {
-        if (delta_eta == 0 && delta_phi == 0)
-        {
-          continue;  // this is the same tower
-        }
+        if (delta_eta == 0 && delta_phi == 0) continue;  // this is the same tower
 
         int test_eta = this_eta + delta_eta;
         if (test_eta < 0 || test_eta >= _EMCAL_NETA)
@@ -174,18 +173,12 @@ std::vector<int> RawClusterBuilderTopo::get_adjacent_towers_by_ID(int ID)
       if (HCal_eta >= 0)
       {
         int IHCal_tower = get_ID(0, HCal_eta, HCal_phi);
-        if (Verbosity() > 20)
-        {
-          std::cout << "RawClusterBuilderTopo::get_adjacent_towers_by_ID : EMCal tower with eta / phi = " << this_eta << " / " << this_phi << ", adding IHCal tower with eta / phi = " << HCal_eta << " / " << HCal_phi << std::endl;
-        }
+        if (Verbosity() > 20) std::cout << "RawClusterBuilderTopo::get_adjacent_towers_by_ID : EMCal tower with eta / phi = " << this_eta << " / " << this_phi << ", adding IHCal tower with eta / phi = " << HCal_eta << " / " << HCal_phi << std::endl;
         adjacent_towers.push_back(IHCal_tower);
       }
       else
       {
-        if (Verbosity() > 20)
-        {
-          std::cout << "RawClusterBuilderTopo::get_adjacent_towers_by_ID : EMCal tower with eta / phi = " << this_eta << " / " << this_phi << ", does not have matching IHCal due to large eta " << std::endl;
-        }
+        if (Verbosity() > 20) std::cout << "RawClusterBuilderTopo::get_adjacent_towers_by_ID : EMCal tower with eta / phi = " << this_eta << " / " << this_phi << ", does not have matching IHCal due to large eta " << std::endl;
       }
     }
   }
@@ -215,9 +208,7 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
   if (n_clusters != 1)  // if we didn't just pass down from export_single_cluster
   {
     if (Verbosity() > 2)
-    {
       std::cout << "RawClusterBuilderTopo::export_clusters called on an initial cluster with " << n_clusters << " final clusters " << std::endl;
-    }
   }
   // build a RawCluster for output
   std::vector<RawCluster *> clusters;
@@ -317,6 +308,10 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
 
     _clusters->AddCluster(clusters[cl]);
 
+    _tree_cluster_e.push_back(clusters_E[cl]);
+    _tree_cluster_eta.push_back(-1 * log(tan(std::atan2(std::sqrt(mean_y * mean_y + mean_x * mean_x), mean_z) / 2.0)));
+    _tree_cluster_phi.push_back(std::atan2(mean_y, mean_x));
+
     if (Verbosity() > 1)
     {
       std::cout << "RawClusterBuilderTopo::export_clusters: added cluster with E = " << clusters_E[cl] << ", eta = " << -1 * log(tan(std::atan2(std::sqrt(mean_y * mean_y + mean_x * mean_x), mean_z) / 2.0)) << ", phi = " << std::atan2(mean_y, mean_x) << std::endl;
@@ -326,8 +321,11 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
   return;
 }
 
-RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
+RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name, const std::string &filename)
   : SubsysReco(name)
+  , _outfilename(filename)
+  , _outfile(nullptr)
+  , _tree(nullptr)
 {
   // geometry defined at run-time
   _EMCAL_NETA = -1;
@@ -381,30 +379,42 @@ int RawClusterBuilderTopo::InitRun(PHCompositeNode *topNode)
     std::cout << "RawClusterBuilderTopo::InitRun: initialized with minE for local max in EMCal / IHCal / OHCal = " << _local_max_minE_LAYER[2] << " / " << _local_max_minE_LAYER[0] << " / " << _local_max_minE_LAYER[1] << std::endl;
   }
 
+  initializeTrees();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 {
-  RawTowerContainer *towersEM = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
-  RawTowerContainer *towersIH = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
-  RawTowerContainer *towersOH = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
 
-  if (!towersEM)
+  CentralityInfo* cent_node = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
+  if (!cent_node)
   {
-    std::cout << " RawClusterBuilderTopo::process_event : container TOWER_CALIB_CEMC does not exist, aborting " << std::endl;
+    std::cout << "RawClusterBuilderTopo::process_event - Error can not find centrality node " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  if (!towersIH)
+
+  TowerInfoContainer *towerinfosEM = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
+  TowerInfoContainer *towerinfosIH = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
+  TowerInfoContainer *towerinfosOH = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
+
+  if (!towerinfosEM)
   {
-    std::cout << " RawClusterBuilderTopo::process_event : container TOWER_CALIB_HCALIN does not exist, aborting " << std::endl;
+    std::cout << " RawClusterBuilderTopo::process_event : container TOWERINFO_CALIB_CEMC does not exist, aborting " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  if (!towersOH)
+  if (!towerinfosIH)
   {
-    std::cout << " RawClusterBuilderTopo::process_event : container TOWER_CALIB_HCALOUT does not exist, aborting " << std::endl;
+    std::cout << " RawClusterBuilderTopo::process_event : container TOWERINFO_CALIB_HCALIN does not exist, aborting " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+  if (!towerinfosOH)
+  {
+    std::cout << " RawClusterBuilderTopo::process_event : container TOWERINFO_CALIB_HCALOUT does not exist, aborting " << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+
 
   _geom_containers[0] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
   _geom_containers[1] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
@@ -428,9 +438,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
   if (Verbosity() > 10)
   {
-    std::cout << "RawClusterBuilderTopo::process_event: " << towersEM->size() << " TOWER_CALIB_CEMC towers" << std::endl;
-    std::cout << "RawClusterBuilderTopo::process_event: " << towersIH->size() << " TOWER_CALIB_HCALIN towers" << std::endl;
-    std::cout << "RawClusterBuilderTopo::process_event: " << towersOH->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
+    std::cout << "RawClusterBuilderTopo::process_event: " << towerinfosEM->size() << " TOWERINFO_CALIB_CEMC towers" << std::endl;
+    std::cout << "RawClusterBuilderTopo::process_event: " << towerinfosIH->size() << " TOWERINFO_CALIB_HCALIN towers" << std::endl;
+    std::cout << "RawClusterBuilderTopo::process_event: " << towerinfosOH->size() << " TOWERINFO_CALIB_HCALOUT towers" << std::endl;
 
     std::cout << "RawClusterBuilderTopo::process_event: pointer to TOWERGEOM_CEMC: " << _geom_containers[2] << std::endl;
     std::cout << "RawClusterBuilderTopo::process_event: pointer to TOWERGEOM_HCALIN: " << _geom_containers[0] << std::endl;
@@ -487,19 +497,26 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
   // translate towers to our internal representation
   if (_enable_EMCal)
   {
-    RawTowerContainer::ConstRange begin_end_EM = towersEM->getTowers();
-    for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+    TowerInfo *towerInfo = nullptr;
+    for(unsigned int iEM = 0; iEM < towerinfosEM->size(); iEM++)
     {
-      RawTower *tower = rtiter->second;
-      RawTowerGeom *tower_geom = _geom_containers[2]->get_tower_geometry(tower->get_key());
+      towerInfo = towerinfosEM->get_tower_at_channel(iEM);
+      unsigned int towerinfo_key = towerinfosEM->encode_key(iEM);
+      int ti_ieta = towerinfosEM->getTowerEtaBin(towerinfo_key);
+      int ti_iphi = towerinfosEM->getTowerPhiBin(towerinfo_key);
+      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ti_ieta, ti_iphi);
+
+      RawTowerGeom *tower_geom = _geom_containers[2]->get_tower_geometry(key);
 
       int ieta = _geom_containers[2]->get_etabin(tower_geom->get_eta());
       int iphi = _geom_containers[2]->get_phibin(tower_geom->get_phi());
-      float this_E = tower->get_energy();
+      float this_E = towerInfo->get_energy();
+
+      if(this_E < 1.E-10) continue;
 
       _EMTOWERMAP_STATUS_ETA_PHI[ieta][iphi] = -1;  // change status to unknown
       _EMTOWERMAP_E_ETA_PHI[ieta][iphi] = this_E;
-      _EMTOWERMAP_KEY_ETA_PHI[ieta][iphi] = tower->get_key();
+      _EMTOWERMAP_KEY_ETA_PHI[ieta][iphi] = key;
 
       if (this_E > _sigma_seed * _noise_LAYER[2])
       {
@@ -517,19 +534,26 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
   // translate towers to our internal representation
   if (_enable_HCal)
   {
-    RawTowerContainer::ConstRange begin_end_IH = towersIH->getTowers();
-    for (RawTowerContainer::ConstIterator rtiter = begin_end_IH.first; rtiter != begin_end_IH.second; ++rtiter)
+    TowerInfo *towerInfo = nullptr;
+    for(unsigned int iIH = 0; iIH < towerinfosIH->size(); iIH++)
     {
-      RawTower *tower = rtiter->second;
-      RawTowerGeom *tower_geom = _geom_containers[0]->get_tower_geometry(tower->get_key());
+      towerInfo = towerinfosIH->get_tower_at_channel(iIH);
+      unsigned int towerinfo_key = towerinfosIH->encode_key(iIH);
+      int ti_ieta = towerinfosIH->getTowerEtaBin(towerinfo_key);
+      int ti_iphi = towerinfosIH->getTowerPhiBin(towerinfo_key);
+      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ti_ieta, ti_iphi);
+
+      RawTowerGeom *tower_geom = _geom_containers[0]->get_tower_geometry(key);
 
       int ieta = _geom_containers[0]->get_etabin(tower_geom->get_eta());
       int iphi = _geom_containers[0]->get_phibin(tower_geom->get_phi());
-      float this_E = tower->get_energy();
+      float this_E = towerInfo->get_energy();
+
+      if(this_E < 1.E-10) continue;
 
       _TOWERMAP_STATUS_LAYER_ETA_PHI[0][ieta][iphi] = -1;  // change status to unknown
       _TOWERMAP_E_LAYER_ETA_PHI[0][ieta][iphi] = this_E;
-      _TOWERMAP_KEY_LAYER_ETA_PHI[0][ieta][iphi] = tower->get_key();
+      _TOWERMAP_KEY_LAYER_ETA_PHI[0][ieta][iphi] = key;
 
       if (this_E > _sigma_seed * _noise_LAYER[0])
       {
@@ -543,19 +567,25 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       }
     }
 
-    RawTowerContainer::ConstRange begin_end_OH = towersOH->getTowers();
-    for (RawTowerContainer::ConstIterator rtiter = begin_end_OH.first; rtiter != begin_end_OH.second; ++rtiter)
+    for(unsigned int iOH = 0; iOH < towerinfosOH->size(); iOH++)
     {
-      RawTower *tower = rtiter->second;
-      RawTowerGeom *tower_geom = _geom_containers[1]->get_tower_geometry(tower->get_key());
+      towerInfo = towerinfosOH->get_tower_at_channel(iOH);
+      unsigned int towerinfo_key = towerinfosOH->encode_key(iOH);
+      int ti_ieta = towerinfosOH->getTowerEtaBin(towerinfo_key);
+      int ti_iphi = towerinfosOH->getTowerPhiBin(towerinfo_key);
+      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ti_ieta, ti_iphi);
+
+      RawTowerGeom *tower_geom = _geom_containers[1]->get_tower_geometry(key);
 
       int ieta = _geom_containers[1]->get_etabin(tower_geom->get_eta());
       int iphi = _geom_containers[1]->get_phibin(tower_geom->get_phi());
-      float this_E = tower->get_energy();
+      float this_E = towerInfo->get_energy();
+
+      if(this_E < 1.E-10) continue;
 
       _TOWERMAP_STATUS_LAYER_ETA_PHI[1][ieta][iphi] = -1;  // change status to unknown
       _TOWERMAP_E_LAYER_ETA_PHI[1][ieta][iphi] = this_E;
-      _TOWERMAP_KEY_LAYER_ETA_PHI[1][ieta][iphi] = tower->get_key();
+      _TOWERMAP_KEY_LAYER_ETA_PHI[1][ieta][iphi] = key;
 
       if (this_E > _sigma_seed * _noise_LAYER[1])
       {
@@ -589,9 +619,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
   }
 
   if (Verbosity() > 0)
-  {
     std::cout << "RawClusterBuilderTopo::process_event: initialized with " << list_of_seeds.size() << " seeds with E > 4*sigma " << std::endl;
-  }
 
   int cluster_index = 0;  // begin counting clusters
 
@@ -667,30 +695,21 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         // if tower is owned by THIS cluster already, continue
         if (get_status_from_ID(this_adjacent_tower_ID) == cluster_index)
         {
-          if (Verbosity() > 10)
-          {
-            std::cout << "already owned by this cluster index " << cluster_index << std::endl;
-          }
+          if (Verbosity() > 10) std::cout << "already owned by this cluster index " << cluster_index << std::endl;
           continue;
         }
 
         // if tower has < 2*sigma energy, continue
         if (get_E_from_ID(this_adjacent_tower_ID) < _sigma_grow * _noise_LAYER[test_layer])
         {
-          if (Verbosity() > 10)
-          {
-            std::cout << "E = " << get_E_from_ID(this_adjacent_tower_ID) << " under 2*sigma threshold " << std::endl;
-          }
+          if (Verbosity() > 10) std::cout << "E = " << get_E_from_ID(this_adjacent_tower_ID) << " under 2*sigma threshold " << std::endl;
           continue;
         }
 
         // if tower is owned by somebody else, continue (although should this really happen?)
         if (get_status_from_ID(this_adjacent_tower_ID) > -1)
         {
-          if (Verbosity() > 10)
-          {
-            std::cout << "ERROR! in growth stage, encountered >2sigma tower which is already owned?!" << std::endl;
-          }
+          if (Verbosity() > 10) std::cout << "ERROR! in growth stage, encountered >2sigma tower which is already owned?!" << std::endl;
           continue;
         }
 
@@ -698,16 +717,10 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         grow_tower_ID.push_back(this_adjacent_tower_ID);
         cluster_tower_ID.push_back(this_adjacent_tower_ID);
         set_status_by_ID(this_adjacent_tower_ID, cluster_index);
-        if (Verbosity() > 10)
-        {
-          std::cout << "add this tower ( ID " << this_adjacent_tower_ID << " ) to grow list " << std::endl;
-        }
+        if (Verbosity() > 10) std::cout << "add this tower ( ID " << this_adjacent_tower_ID << " ) to grow list " << std::endl;
       }
 
-      if (Verbosity() > 5)
-      {
-        std::cout << " --> after examining neighbors, grow list is now " << grow_tower_ID.size() << ", # of towers in cluster = " << cluster_tower_ID.size() << std::endl;
-      }
+      if (Verbosity() > 5) std::cout << " --> after examining neighbors, grow list is now " << grow_tower_ID.size() << ", # of towers in cluster = " << cluster_tower_ID.size() << std::endl;
     }
 
     // done growing cluster, now add on perimeter towers with E > 0 * sigma
@@ -730,56 +743,40 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
       for (int this_adjacent_tower_ID : adjacent_tower_IDs)
       {
-        if (Verbosity() > 10)
-        {
-          std::cout << " --> --> --> checking possible adjacent tower with ID " << this_adjacent_tower_ID << " : ";
-        }
+        if (Verbosity() > 10) std::cout << " --> --> --> checking possible adjacent tower with ID " << this_adjacent_tower_ID << " : ";
 
         int test_layer = get_ilayer_from_ID(this_adjacent_tower_ID);
 
         // if tower does not exist, continue
         if (get_status_from_ID(this_adjacent_tower_ID) == -2)
         {
-          if (Verbosity() > 10)
-          {
-            std::cout << "does not exist " << std::endl;
-          }
+          if (Verbosity() > 10) std::cout << "does not exist " << std::endl;
           continue;
         }
 
         // if tower is owned by somebody else (including current cluster), continue. ( allowed during perimeter fixing state )
         if (get_status_from_ID(this_adjacent_tower_ID) > -1)
         {
-          if (Verbosity() > 10)
-          {
-            std::cout << "already owned by other cluster index " << get_status_from_ID(this_adjacent_tower_ID) << std::endl;
-          }
+          if (Verbosity() > 10) std::cout << "already owned by other cluster index " << get_status_from_ID(this_adjacent_tower_ID) << std::endl;
           continue;
         }
 
         // if tower has < 0*sigma energy, continue
         if (get_E_from_ID(this_adjacent_tower_ID) < _sigma_peri * _noise_LAYER[test_layer])
         {
-          if (Verbosity() > 10)
-          {
-            std::cout << "E = " << get_E_from_ID(this_adjacent_tower_ID) << " under 0*sigma threshold " << std::endl;
-          }
+          if (Verbosity() > 10) std::cout << "E = " << get_E_from_ID(this_adjacent_tower_ID) << " under 0*sigma threshold " << std::endl;
           continue;
         }
 
         // perimeter tower good to be added to cluster
         cluster_tower_ID.push_back(this_adjacent_tower_ID);
         set_status_by_ID(this_adjacent_tower_ID, cluster_index);
-        if (Verbosity() > 10)
-        {
-          std::cout << "add this tower ( ID " << this_adjacent_tower_ID << " ) to cluster " << std::endl;
-        }
+        if (Verbosity() > 10) std::cout << "add this tower ( ID " << this_adjacent_tower_ID << " ) to cluster " << std::endl;
       }
 
-      if (Verbosity() > 5)
-      {
-        std::cout << " --> after examining perimeter neighbors, # of towers in cluster is now = " << cluster_tower_ID.size() << std::endl;
-      }
+
+
+      if (Verbosity() > 5) std::cout << " --> after examining perimeter neighbors, # of towers in cluster is now = " << cluster_tower_ID.size() << std::endl;
     }
 
     // keep track of these
@@ -789,13 +786,30 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     cluster_index++;
   }
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 0) std::cout << "RawClusterBuilderTopo::process_event: " << cluster_index << " topo-clusters initially reconstructed, entering splitting step" << std::endl;
+
+  int original_cluster_index = cluster_index;  // since it may be updated
+  //Fill the tree
+  resetTreeVariables();
+  _tree_centrality = cent_node->get_centile(CentralityInfo::PROP::bimp);
+  for (int cl = 0; cl < original_cluster_index; cl++)
   {
-    std::cout << "RawClusterBuilderTopo::process_event: " << cluster_index << " topo-clusters initially reconstructed, entering splitting step" << std::endl;
+    std::vector<int> original_towers = all_cluster_towers.at(cl);
+
+    //fill tree with towers
+    for(auto tid : original_towers)
+    {
+      _tree_tower_id.push_back(tid);
+      _tree_tower_e.push_back(get_E_from_ID(tid));
+      _tree_tower_cluster_id.push_back(cl);
+    }
+    _tree_cluster_id.push_back(cl);
   }
 
+
+
   // now entering cluster splitting stage
-  int original_cluster_index = cluster_index;  // since it may be updated
+
   for (int cl = 0; cl < original_cluster_index; cl++)
   {
     std::vector<int> original_towers = all_cluster_towers.at(cl);
@@ -803,10 +817,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     if (!_do_split)
     {
       // don't run splitting, just export entire cluster as it is
-      if (Verbosity() > 2)
-      {
-        std::cout << "RawClusterBuilderTopo::process_event: splitting step disabled, cluster " << cluster_index << " is final" << std::endl;
-      }
+      if (Verbosity() > 2) std::cout << "RawClusterBuilderTopo::process_event: splitting step disabled, cluster " << cluster_index << " is final" << std::endl;
       export_single_cluster(original_towers);
       continue;
     }
@@ -816,18 +827,12 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     // iterate through each tower, looking for maxima
     for (int tower_ID : original_towers)
     {
-      if (Verbosity() > 10)
-      {
-        std::cout << " -> examining tower ID " << tower_ID << " for possible local maximum " << std::endl;
-      }
+      if (Verbosity() > 10) std::cout << " -> examining tower ID " << tower_ID << " for possible local maximum " << std::endl;
 
       // check minimum energy
       if (get_E_from_ID(tower_ID) < _local_max_minE_LAYER[get_ilayer_from_ID(tower_ID)])
       {
-        if (Verbosity() > 10)
-        {
-          std::cout << " -> -> energy E = " << get_E_from_ID(tower_ID) << " < " << _local_max_minE_LAYER[get_ilayer_from_ID(tower_ID)] << " too low" << std::endl;
-        }
+        if (Verbosity() > 10) std::cout << " -> -> energy E = " << get_E_from_ID(tower_ID) << " < " << _local_max_minE_LAYER[get_ilayer_from_ID(tower_ID)] << " too low" << std::endl;
         continue;
       }
 
@@ -839,36 +844,24 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       bool has_higher_neighbor = false;
       for (int this_adjacent_tower_ID : adjacent_tower_IDs)
       {
-        if (get_status_from_ID(this_adjacent_tower_ID) != cl)
-        {
-          continue;  // only consider neighbors in cluster, obviously
-        }
+        if (get_status_from_ID(this_adjacent_tower_ID) != cl) continue;  // only consider neighbors in cluster, obviously
 
         neighbors_in_cluster++;
 
         if (get_E_from_ID(this_adjacent_tower_ID) > get_E_from_ID(tower_ID))
         {
-          if (Verbosity() > 10)
-          {
-            std::cout << " -> -> has higher-energy neighbor ID / E = " << this_adjacent_tower_ID << " / " << get_E_from_ID(this_adjacent_tower_ID) << std::endl;
-          }
+          if (Verbosity() > 10) std::cout << " -> -> has higher-energy neighbor ID / E = " << this_adjacent_tower_ID << " / " << get_E_from_ID(this_adjacent_tower_ID) << std::endl;
           has_higher_neighbor = true;  // at this point we can break -- we won't need to count the number of good neighbors, since we won't even pass the E_neighbor test
           break;
         }
       }
 
-      if (has_higher_neighbor)
-      {
-        continue;  // if we broke out, now continue
-      }
+      if (has_higher_neighbor) continue;  // if we broke out, now continue
 
       // check number of neighbors
       if (neighbors_in_cluster < 4)
       {
-        if (Verbosity() > 10)
-        {
-          std::cout << " -> -> too few neighbors N = " << neighbors_in_cluster << std::endl;
-        }
+        if (Verbosity() > 10) std::cout << " -> -> too few neighbors N = " << neighbors_in_cluster << std::endl;
         continue;
       }
 
@@ -876,21 +869,14 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     }
 
     // check for possible EMCal-OHCal seed overlaps
-
     for (unsigned int n = 0; n < local_maxima_ID.size(); n++)
     {
       // only look at I/OHCal local maxima
       std::pair<int, float> this_LM = local_maxima_ID.at(n);
-      if (get_ilayer_from_ID(this_LM.first) == 2)
-      {
-        continue;
-      }
+      if (get_ilayer_from_ID(this_LM.first) == 2) continue;
 
       float this_phi = _geom_containers[get_ilayer_from_ID(this_LM.first)]->get_phicenter(get_iphi_from_ID(this_LM.first));
-      if (this_phi > M_PI)
-      {
-        this_phi -= 2 * M_PI;
-      }
+      if (this_phi > M_PI) this_phi -= 2 * M_PI;
       float this_eta = _geom_containers[get_ilayer_from_ID(this_LM.first)]->get_etacenter(get_ieta_from_ID(this_LM.first));
 
       bool has_EM_overlap = false;
@@ -898,23 +884,14 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       // check all other local maxima for overlaps
       for (unsigned int n2 = 0; n2 < local_maxima_ID.size(); n2++)
       {
-        if (n == n2)
-        {
-          continue;  // don't check the same one
-        }
+        if (n == n2) continue;  // don't check the same one
 
         // only look at EMCal local mazima
         std::pair<int, float> this_LM2 = local_maxima_ID.at(n2);
-        if (get_ilayer_from_ID(this_LM2.first) != 2)
-        {
-          continue;
-        }
+        if (get_ilayer_from_ID(this_LM2.first) != 2) continue;
 
         float this_phi2 = _geom_containers[get_ilayer_from_ID(this_LM2.first)]->get_phicenter(get_iphi_from_ID(this_LM2.first));
-        if (this_phi2 > M_PI)
-        {
-          this_phi -= 2 * M_PI;
-        }
+        if (this_phi2 > M_PI) this_phi -= 2 * M_PI;
         float this_eta2 = _geom_containers[get_ilayer_from_ID(this_LM2.first)]->get_etacenter(get_ieta_from_ID(this_LM2.first));
 
         // calculate geometric dR
@@ -950,10 +927,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         int tower_ID = this_LM.first;
         std::cout << "RawClusterBuilderTopo::process_event in cluster " << cl << ", tower ID " << tower_ID << " is LOCAL MAXIMUM with layer / E = " << get_ilayer_from_ID(tower_ID) << " / " << get_E_from_ID(tower_ID) << ", ";
         float this_phi = _geom_containers[get_ilayer_from_ID(tower_ID)]->get_phicenter(get_iphi_from_ID(tower_ID));
-        if (this_phi > M_PI)
-        {
-          this_phi -= 2 * M_PI;
-        }
+        if (this_phi > M_PI) this_phi -= 2 * M_PI;
         std::cout << " eta / phi = " << _geom_containers[get_ilayer_from_ID(tower_ID)]->get_etacenter(get_ieta_from_ID(tower_ID)) << " / " << this_phi << std::endl;
       }
     }
@@ -961,10 +935,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     // do we have only 1 or 0 local maxima?
     if (local_maxima_ID.size() <= 1)
     {
-      if (Verbosity() > 2)
-      {
-        std::cout << "RawClusterBuilderTopo::process_event cluster " << cl << " has only " << local_maxima_ID.size() << " local maxima, not splitting " << std::endl;
-      }
+      if (Verbosity() > 2) std::cout << "RawClusterBuilderTopo::process_event cluster " << cl << " has only " << local_maxima_ID.size() << " local maxima, not splitting " << std::endl;
       export_single_cluster(original_towers);
 
       continue;
@@ -1046,12 +1017,11 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
           }
           // look over all towers THIS one is adjacent to, and count up...
           std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(neighbor_ID);
+
           for (int this_adjacent_tower_ID : adjacent_tower_IDs)
           {
-            if (get_status_from_ID(this_adjacent_tower_ID) != cl)
-            {
-              continue;
-            }
+            if (get_status_from_ID(this_adjacent_tower_ID) != cl) continue;
+
             if (tower_ownership[this_adjacent_tower_ID].first > -1)
             {
               if (Verbosity() > 20)
@@ -1143,10 +1113,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
           for (int this_adjacent_tower_ID : adjacent_tower_IDs)
           {
-            if (get_status_from_ID(this_adjacent_tower_ID) != cl)
-            {
-              continue;
-            }
+            if (get_status_from_ID(this_adjacent_tower_ID) != cl) continue;
             if (tower_ownership[this_adjacent_tower_ID].first == -1)
             {
               new_neighbor_list.push_back(this_adjacent_tower_ID);
@@ -1195,10 +1162,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
           for (int this_adjacent_tower_ID : adjacent_tower_IDs)
           {
-            if (get_status_from_ID(this_adjacent_tower_ID) != cl)
-            {
-              continue;
-            }
+            if (get_status_from_ID(this_adjacent_tower_ID) != cl) continue;
             std::cout << "    -> adjacent to add tower " << this_adjacent_tower_ID << " , which has status " << tower_ownership[this_adjacent_tower_ID].first << std::endl;
           }
         }
@@ -1227,7 +1191,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         pseudocluster_sumE[the_pair.first] += get_E_from_ID(this_ID);
         float this_eta = _geom_containers[get_ilayer_from_ID(this_ID)]->get_etacenter(get_ieta_from_ID(this_ID));
         float this_phi = _geom_containers[get_ilayer_from_ID(this_ID)]->get_phicenter(get_iphi_from_ID(this_ID));
-        // float this_phi = ( get_ilayer_from_ID( this_ID ) == 2 ? geomEM->get_phicenter( get_iphi_from_ID( this_ID ) ) : geomOH->get_phicenter( get_iphi_from_ID( this_ID ) ) );
+        //float this_phi = ( get_ilayer_from_ID( this_ID ) == 2 ? geomEM->get_phicenter( get_iphi_from_ID( this_ID ) ) : geomOH->get_phicenter( get_iphi_from_ID( this_ID ) ) );
         pseudocluster_sumeta[the_pair.first] += this_eta;
         pseudocluster_sumphi[the_pair.first] += this_phi;
         pseudocluster_ntower[the_pair.first] += 1;
@@ -1268,10 +1232,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
       for (int this_adjacent_tower_ID : adjacent_tower_IDs)
       {
-        if (get_status_from_ID(this_adjacent_tower_ID) != cl)
-        {
-          continue;
-        }
+        if (get_status_from_ID(this_adjacent_tower_ID) != cl) continue;
         if (tower_ownership[this_adjacent_tower_ID].first > -1)
         {
           pseudocluster_adjacency[tower_ownership[this_adjacent_tower_ID].first] = true;
@@ -1301,10 +1262,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
       for (unsigned int n = 0; n < pseudocluster_adjacency.size(); n++)
       {
-        if (!pseudocluster_adjacency[n])
-        {
-          continue;
-        }
+        if (!pseudocluster_adjacency[n]) continue;
 
         if (pseudocluster_sumE[n] > highest_pseudocluster_E)
         {
@@ -1343,10 +1301,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
           for (int this_adjacent_tower_ID : adjacent_tower_IDs)
           {
-            if (get_status_from_ID(this_adjacent_tower_ID) != cl)
-            {
-              continue;
-            }
+            if (get_status_from_ID(this_adjacent_tower_ID) != cl) continue;
             std::cout << " -> adjacent to add tower " << this_adjacent_tower_ID << " , which has status " << tower_ownership[this_adjacent_tower_ID].first << std::endl;
           }
         }
@@ -1356,6 +1311,79 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     // call helper function
     export_clusters(original_towers, tower_ownership, local_maxima_ID.size(), pseudocluster_sumE, pseudocluster_eta, pseudocluster_phi);
   }
+
+
+  std::unique_ptr<fastjet::JetDefinition> jetdef(new fastjet::JetDefinition(fastjet::antikt_algorithm, 0.4, fastjet::E_scheme, fastjet::Best));
+  std::vector<fastjet::PseudoJet> particles;
+
+  GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  if (!vertexmap)
+  {
+    std::cout << "ResonanceJetTagging::getEmcalClusters - Fatal Error - GlobalVertexMap node is missing. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << std::endl;
+    assert(vertexmap);  // force quit
+
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
+  if (vertexmap->empty())
+  {
+    std::cout << "ResonanceJetTagging::getEmcalClusters - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << std::endl;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
+  GlobalVertex *vtx = vertexmap->begin()->second;
+  if (vtx == nullptr)
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
+  CLHEP::Hep3Vector vertex(vtx->get_x(), vtx->get_y(), vtx->get_z());
+
+  /// Loop over the HCAL Topo clusters
+  for(unsigned int icluster = 0; icluster < _clusters->size(); icluster++)
+  {
+    RawCluster *topocluster = _clusters->getCluster(icluster);
+
+    if(!topocluster) continue;
+
+    CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetEVec(*topocluster, vertex);
+    double cluster_e = E_vec_cluster.mag();
+    double cluster_pt = E_vec_cluster.perp();
+    double cluster_phi = E_vec_cluster.getPhi();
+    float cluster_theta = M_PI / 2.0 - atan2(topocluster->get_z(), topocluster->get_r() );
+	  float cluster_eta = -1 * log( tan( cluster_theta / 2.0 ) );
+
+	  if(vtx)
+	  {
+	    cluster_eta = RawClusterUtility::GetPseudorapidity(*topocluster, vertex);
+	  }
+
+    double cluster_px = cluster_pt * cos(cluster_phi);
+    double cluster_py = cluster_pt * sin(cluster_phi);
+    double cluster_pz = cluster_pt * sinh(cluster_eta);
+    fastjet::PseudoJet part(cluster_px, cluster_py, cluster_pz, cluster_e);
+    particles.push_back(part);
+  }
+
+
+  fastjet::ClusterSequence jetFinder(particles, *jetdef);
+  std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
+
+
+  for(auto topojet : fastjets)
+  {
+    _jets_px.push_back(topojet.px());
+    _jets_py.push_back(topojet.py());
+    _jets_pz.push_back(topojet.pz());
+    _jets_e.push_back(topojet.E());
+    _jets_p.push_back(std::sqrt(topojet.modp2()));
+    _jets_pt.push_back(topojet.perp());
+    _jets_eta.push_back(topojet.eta());
+    _jets_phi.push_back(topojet.phi());
+  }
+
+  _tree->Fill();
+
 
   if (Verbosity() > 1)
   {
@@ -1375,6 +1403,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
 int RawClusterBuilderTopo::End(PHCompositeNode * /*topNode*/)
 {
+  _outfile->cd();
+  _tree->Write();
+  _outfile->Close();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1401,4 +1432,56 @@ void RawClusterBuilderTopo::CreateNodes(PHCompositeNode *topNode)
 
   PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   DetNode->addNode(clusterNode);
+}
+
+void RawClusterBuilderTopo::initializeTrees()
+{
+
+  delete _outfile;
+  _outfile = new TFile(_outfilename.c_str(), "RECREATE");
+
+  delete _tree;
+  _tree = new TTree("tree", "A tree with tower and cluster info");
+  _tree->Branch("_tree_centrality", &_tree_centrality, "_tree_centrality/I");
+  _tree->Branch("_tree_tower_id", &_tree_tower_id);
+  _tree->Branch("_tree_tower_e", &_tree_tower_e);
+  _tree->Branch("_tree_tower_cluster_id", &_tree_tower_cluster_id);
+  _tree->Branch("_tree_cluster_id", &_tree_cluster_id);
+
+  _tree->Branch("_tree_cluster_e", &_tree_cluster_e);
+  _tree->Branch("_tree_cluster_eta", &_tree_cluster_eta);
+  _tree->Branch("_tree_cluster_phi", &_tree_cluster_phi);
+
+  _tree->Branch("_jets_px", &_jets_px);
+  _tree->Branch("_jets_py", &_jets_py);
+  _tree->Branch("_jets_pz", &_jets_pz);
+  _tree->Branch("_jets_e", &_jets_e);
+  _tree->Branch("_jets_p", &_jets_p);
+  _tree->Branch("_jets_pt", &_jets_pt);
+  _tree->Branch("_jets_eta", &_jets_eta);
+  _tree->Branch("_jets_phi", &_jets_phi);
+
+}
+
+void RawClusterBuilderTopo::resetTreeVariables()
+{
+  _tree_centrality = -1;
+  _tree_tower_id.clear();
+  _tree_tower_e.clear();
+  _tree_tower_cluster_id.clear();
+  _tree_cluster_id.clear();
+
+  _tree_cluster_e.clear();
+  _tree_cluster_eta.clear();
+  _tree_cluster_phi.clear();
+
+  _jets_px.clear();
+  _jets_py.clear();
+  _jets_pz.clear();
+  _jets_e.clear();
+  _jets_p.clear();
+  _jets_pt.clear();
+  _jets_eta.clear();
+  _jets_phi.clear();
+
 }
