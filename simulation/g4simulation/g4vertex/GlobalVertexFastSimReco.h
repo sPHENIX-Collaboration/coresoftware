@@ -14,7 +14,7 @@
 #include <gsl/gsl_rng.h>
 
 #include <limits>
-#include <string>                // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 

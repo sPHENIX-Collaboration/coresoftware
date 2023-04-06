@@ -6,14 +6,14 @@ GlobalVertexv1::GlobalVertexv1(const GlobalVertex::VTXTYPE id)
   : _id(id)
 {
   std::fill(std::begin(_pos), std::end(_pos), std::numeric_limits<float>::quiet_NaN());
-  std::fill(std::begin(_err),std::end(_err), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(_err), std::end(_err), std::numeric_limits<float>::quiet_NaN());
 }
 
 void GlobalVertexv1::identify(std::ostream& os) const
 {
   os << "---GlobalVertexv1-----------------------" << std::endl;
   os << "vertexid: " << get_id();
-  switch(get_id())
+  switch (get_id())
   {
   case GlobalVertex::UNDEFINED:
     os << ", type GlobalVertex::UNDEFINED" << std::endl;
@@ -72,30 +72,44 @@ void GlobalVertexv1::identify(std::ostream& os) const
 
 int GlobalVertexv1::isValid() const
 {
-  if (! std::isfinite(_t)) { return 0;
-}
-  if (! std::isfinite(_t_err)) { return 0;
-}
-  if (! std::isfinite(_chisq)) { return 0;
-}
-  if (_ndof ==  std::numeric_limits<unsigned int>::max()) { return 0;
-}
+  if (!std::isfinite(_t))
+  {
+    return 0;
+  }
+  if (!std::isfinite(_t_err))
+  {
+    return 0;
+  }
+  if (!std::isfinite(_chisq))
+  {
+    return 0;
+  }
+  if (_ndof == std::numeric_limits<unsigned int>::max())
+  {
+    return 0;
+  }
 
   for (float _po : _pos)
   {
-    if (! std::isfinite(_po)) { return 0;
-}
+    if (!std::isfinite(_po))
+    {
+      return 0;
+    }
   }
   for (int j = 0; j < 3; ++j)
   {
     for (int i = j; i < 3; ++i)
     {
-      if (! std::isfinite(get_error(i, j))) { return 0;
-}
+      if (!std::isfinite(get_error(i, j)))
+      {
+        return 0;
+      }
     }
   }
-  if (_vtx_ids.empty()) { return 0;
-}
+  if (_vtx_ids.empty())
+  {
+    return 0;
+  }
   return 1;
 }
 
@@ -112,7 +126,9 @@ float GlobalVertexv1::get_error(unsigned int i, unsigned int j) const
 
 unsigned int GlobalVertexv1::covar_index(unsigned int i, unsigned int j) const
 {
-  if (i > j) { std::swap(i, j);
-}
+  if (i > j)
+  {
+    std::swap(i, j);
+  }
   return i + 1 + (j + 1) * (j) / 2 - 1;
 }

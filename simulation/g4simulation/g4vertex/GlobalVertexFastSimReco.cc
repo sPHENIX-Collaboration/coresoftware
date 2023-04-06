@@ -1,30 +1,30 @@
 #include "GlobalVertexFastSimReco.h"
 
-#include "GlobalVertexMap.h"                // for GlobalVertexMap
+#include "GlobalVertex.h"     // for GlobalVertex
+#include "GlobalVertexMap.h"  // for GlobalVertexMap
 #include "GlobalVertexMapv1.h"
-#include "GlobalVertex.h"                   // for GlobalVertex
 #include "GlobalVertexv1.h"
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>             // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                   // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                 // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
-#include <phool/phool.h>                    // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>                    // for gsl_rng_alloc, gsl_rng_free
+#include <gsl/gsl_rng.h>  // for gsl_rng_alloc, gsl_rng_free
 
 #include <cmath>
-#include <cstdlib>                         // for exit
+#include <cstdlib>  // for exit
 #include <iostream>
 
 GlobalVertexFastSimReco::GlobalVertexFastSimReco(const std::string &name)
@@ -68,8 +68,10 @@ int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 
 int GlobalVertexFastSimReco::process_event(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 1) { std::cout << "GlobalVertexFastSimReco::process_event -- entered" << std::endl;
-}
+  if (Verbosity() > 1)
+  {
+    std::cout << "GlobalVertexFastSimReco::process_event -- entered" << std::endl;
+  }
 
   //---------------------------------
   // Get Objects off of the Node Tree
@@ -100,9 +102,9 @@ int GlobalVertexFastSimReco::process_event(PHCompositeNode *topNode)
   vertex->set_z(point->get_z());
   vertex->set_t(point->get_t());
   vertex->set_t_err(0.);
-  for (int i = 0; i<3; i++)
+  for (int i = 0; i < 3; i++)
   {
-    for (int j = 0; j<3; j++)
+    for (int j = 0; j < 3; j++)
     {
       vertex->set_error(i, j, 0.0);
     }

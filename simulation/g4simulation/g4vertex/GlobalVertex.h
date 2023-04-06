@@ -12,8 +12,7 @@
 class GlobalVertex : public PHObject
 {
  public:
-
-// the order matters (best vertex -> highest number), so leave some space in case we want to wedge other vertices in here
+  // the order matters (best vertex -> highest number), so leave some space in case we want to wedge other vertices in here
   enum VTXTYPE
   {
     UNDEFINED = 0,
