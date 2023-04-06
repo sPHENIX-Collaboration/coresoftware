@@ -9,8 +9,6 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include <ffaobjects/EventHeaderv1.h>
-
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/PHTFileServer.h>
 
@@ -185,8 +183,6 @@ int BbcSimReco::InitRun(PHCompositeNode *topNode)
 // Call user instructions for every event
 int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
 {
-  f_evt = _evtheader->get_EvtSequence();
-
   //**** Initialize Variables
 
   // Arm Data
@@ -222,7 +218,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     f_vz = vtxp->get_z();
     f_vt = vtxp->get_t();
 
-    if (Verbosity() && f_evt < 20)
+    if (Verbosity())
     {
       std::cout << "VTXP "
            << "\t" << f_vx << "\t" << f_vy << "\t" << f_vz << "\t" << f_vt << std::endl;
@@ -308,7 +304,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     // Fill charge and time info
     if (len[ich] > 0.)
     {
-      if (f_evt < 20 && Verbosity() != 0)
+      if (Verbosity() > 0)
       {
         std::cout << "ich " << ich << "\t" << len[ich] << "\t" << edep[ich] << std::endl;
       }
@@ -433,38 +429,35 @@ void BbcSimReco::GetNodes(PHCompositeNode *topNode)
 
   // Truth container
   _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-  if (!_truth_container && f_evt < 10)
+  if (!_truth_container)
   {
     std::cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << std::endl;
+    gSystem->Exit(1);
   }
 
   // BBC hit container
   _bbchits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_BBC");
-  if (!_bbchits && f_evt < 10)
+  if (!_bbchits)
   {
     std::cout << PHWHERE << " G4HIT_BBC node not found on node tree" << std::endl;
-  }
-
-  // Event Header info
-  _evtheader = findNode::getClass<EventHeaderv1>(topNode, "EventHeader");
-  if (!_evtheader && f_evt < 10)
-  {
-    std::cout << PHWHERE << " G4HIT_BBC node not found on node tree" << std::endl;
+    gSystem->Exit(1);
   }
 
   /** DST Objects **/
 
   // BbcOut data
   _bbcout = findNode::getClass<BbcOut>(topNode, "BbcOut");
-  if (!_bbcout && f_evt < 10)
+  if (!_bbcout)
   {
     std::cout << PHWHERE << " BbcOut node not found on node tree" << std::endl;
+    gSystem->Exit(1);
   }
 
   // BbcPmtContainer
   _bbcpmts = findNode::getClass<BbcPmtContainer>(topNode, "BbcPmtContainer");
-  if (!_bbcpmts && f_evt < 10)
+  if (!_bbcpmts)
   {
     std::cout << PHWHERE << " BbcPmtContainer node not found on node tree" << std::endl;
+    gSystem->Exit(1);
   }
 }

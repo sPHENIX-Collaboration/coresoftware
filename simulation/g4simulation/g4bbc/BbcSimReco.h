@@ -83,7 +83,6 @@ class BbcSimReco : public SubsysReco
   // Input Objects from DST
   PHG4TruthInfoContainer *_truth_container = nullptr;
   PHG4HitContainer *_bbchits = nullptr;
-  EventHeader *_evtheader = nullptr;
 
   // Output to DST
   BbcOut *_bbcout = nullptr;
