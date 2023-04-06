@@ -99,7 +99,7 @@ class PHTpcResiduals : public SubsysReco
   void processTrack(SvtxTrack* track);
 
   /// fill track state from bound track parameters
-  void addTrackState( SvtxTrack* track, float pathlength, const Acts::BoundTrackParameters& params );
+  void addTrackState( SvtxTrack* track, TrkrDefs::cluskey key, float pathlength, const Acts::BoundTrackParameters& params );
   
   /** \brief 
    * Propagates the silicon+MM track fit to the surface on which
