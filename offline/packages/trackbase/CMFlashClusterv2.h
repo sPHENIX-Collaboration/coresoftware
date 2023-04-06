@@ -52,10 +52,10 @@ class CMFlashClusterv2 : public CMFlashCluster
   void setZ(float z) override { m_pos[2] = z; }
   unsigned int getNclusters() const override {return m_nclusters;}
   void setNclusters(unsigned int n) override { m_nclusters = n;}
-  bool getIsRGap() { return m_isRGap; }
-  void setIsRGap(bool isRGap) { m_isRGap = isRGap;}
-  bool getIsPhiGap() { return m_isPhiGap; }
-  void setIsPhiGap(bool isPhiGap) { m_isPhiGap = isPhiGap;}
+  bool getIsRGap() const override { return m_isRGap; }
+  void setIsRGap(bool isRGap) override { m_isRGap = isRGap;}
+  bool getIsPhiGap() const override { return m_isPhiGap; }
+  void setIsPhiGap(bool isPhiGap) override { m_isPhiGap = isPhiGap;}
   
   //
   // cluster info
