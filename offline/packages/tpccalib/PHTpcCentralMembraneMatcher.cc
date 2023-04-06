@@ -422,17 +422,14 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     }
 
   
-  double clustRotation_pos[3];
-  double clustRotation_neg[3];
-
   //get global phi rotation for each module
-  clustRotation_pos[0] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR1",151,206),clust_r_phi_pos->ProjectionX("cR1_pos",151,206));
-  clustRotation_pos[1] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR2",206,290),clust_r_phi_pos->ProjectionX("cR2_pos",206,290));
-  clustRotation_pos[2] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR3",290,499),clust_r_phi_pos->ProjectionX("cR3_pos",290,499));
+  m_clustRotation_pos[0] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR1",151,206),clust_r_phi_pos->ProjectionX("cR1_pos",151,206));
+  m_clustRotation_pos[1] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR2",206,290),clust_r_phi_pos->ProjectionX("cR2_pos",206,290));
+  m_clustRotation_pos[2] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR3",290,499),clust_r_phi_pos->ProjectionX("cR3_pos",290,499));
 
-  clustRotation_neg[0] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR1",151,206),clust_r_phi_neg->ProjectionX("cR1_neg",151,206));
-  clustRotation_neg[1] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR2",206,290),clust_r_phi_neg->ProjectionX("cR2_neg",206,290));
-  clustRotation_neg[2] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR3",290,499),clust_r_phi_neg->ProjectionX("cR3_neg",290,499));
+  m_clustRotation_neg[0] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR1",151,206),clust_r_phi_neg->ProjectionX("cR1_neg",151,206));
+  m_clustRotation_neg[1] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR2",206,290),clust_r_phi_neg->ProjectionX("cR2_neg",206,290));
+  m_clustRotation_neg[2] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR3",290,499),clust_r_phi_neg->ProjectionX("cR3_neg",290,499));
 
 
   //get hit and cluster peaks
@@ -552,8 +549,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	  const double z2 = reco_pos[j].Z(); 
 	  const double rad2=get_r(reco_pos[j].X(), reco_pos[j].Y());
 	  if(angleR != -1){
-	    if(z2 > 0) phi2 -= clustRotation_pos[angleR];
-	    else phi2 -= clustRotation_neg[angleR];
+	    if(z2 > 0) phi2 -= m_clustRotation_pos[angleR];
+	    else phi2 -= m_clustRotation_neg[angleR];
 	  }
       
 	  

@@ -123,7 +123,7 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   //@}
     
   /// radius cut for matching clusters to pad, for size 2 clusters
-  double m_rad_cut= 0.5;
+  //  double m_rad_cut= 0.5;
   
   /// phi cut for matching clusters to pad
   /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
@@ -221,9 +221,9 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   bool m_useOnly_nClus2 = false;
 
   int m_nMatchIter = 2;
-
-  double clustRotation_pos[3];
-  double clustRotation_neg[3];
+  
+  double m_clustRotation_pos[3];
+  double m_clustRotation_neg[3];
 
   double getPhiRotation_smoothed( TH1D *hitHist, TH1D *clustHist );
 
