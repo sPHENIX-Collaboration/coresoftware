@@ -17,23 +17,20 @@ class ActsGeometry;
 class QAG4SimulationDistortions : public SubsysReco
 {
  public:
-
-  QAG4SimulationDistortions(const std::string &name = "QAG4SimulationDistortions");
+  QAG4SimulationDistortions(const std::string& name = "QAG4SimulationDistortions");
 
   ~QAG4SimulationDistortions() override;
 
-
   int Init(PHCompositeNode*) override;
-  int InitRun(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode*) override;
 
  private:
-
   std::string get_histo_prefix()
-    {
-      return std::string("h_") + Name() + std::string("_");
-    }
-  
+  {
+    return std::string("h_") + Name() + std::string("_");
+  }
+
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
   bool checkTrack(SvtxTrack* track);
   SvtxTrackMap* m_trackMap = nullptr;
@@ -41,4 +38,4 @@ class QAG4SimulationDistortions : public SubsysReco
   ActsGeometry* m_tGeometry = nullptr;
 };
 
-#endif // QAG4SIMULATIONDISTORTIONS_H
+#endif  // QAG4SIMULATIONDISTORTIONS_H
