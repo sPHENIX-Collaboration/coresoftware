@@ -8,6 +8,8 @@
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
 
+#include <bbc/BbcOut.h>
+
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
@@ -33,20 +35,7 @@ using namespace std;
 
 GlobalVertexReco::GlobalVertexReco(const string &name)
   : SubsysReco(name)
-  , _xdefault(0.0)
-  , _xerr(0.3)
-  , _ydefault(0.0)
-  , _yerr(0.3)
-  , _tdefault(0.0)
-  , _terr(0.2)
 {
-}
-
-GlobalVertexReco::~GlobalVertexReco() {}
-
-int GlobalVertexReco::Init(PHCompositeNode */*topNode*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int GlobalVertexReco::InitRun(PHCompositeNode *topNode)
@@ -73,10 +62,36 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
     cout << PHWHERE << "::ERROR - cannot find GlobalVertexMap" << endl;
     exit(-1);
   }
+// just patch in the new bbc vertex
+  BbcOut *bbcout = findNode::getClass<BbcOut>(topNode, "BbcOut");
+  if (bbcout)
+  {
+    GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::BBC);
+
+      vertex->set_x(_xdefault);
+      vertex->set_y(_ydefault);
+      vertex->set_z(bbcout->get_VertexPoint());
+
+      vertex->set_t(bbcout->get_TimeZero());
+      vertex->set_t_err(bbcout->get_dTimeZero());
+
+      vertex->set_error(0, 0, _xerr * _xerr);
+      vertex->set_error(0, 1, 0.0);
+      vertex->set_error(0, 2, 0.0);
+
+      vertex->set_error(1, 1, 0.0);
+      vertex->set_error(1, 1, _yerr *_yerr);
+      vertex->set_error(1, 2, 0.0);
+
+      vertex->set_error(2, 0, 0.0);
+      vertex->set_error(2, 1, 0.0);
+      vertex->set_error(2, 2, bbcout->get_dTimeZero()*bbcout->get_dTimeZero());
+      if (Verbosity() > 1) vertex->identify();
+      globalmap->insert(vertex);
+  }
 
   SvtxVertexMap *svtxmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   BbcVertexMap *bbcmap = findNode::getClass<BbcVertexMap>(topNode, "BbcVertexMap");
-
   // we will make 3 different kinds of global vertexes
   //  (1) SVTX+BBC vertexes - we match SVTX vertex to the nearest BBC vertex within 3 sigma in zvertex
   //      the spatial point comes from the SVTX, the timing from the BBC
@@ -126,7 +141,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       if (min_sigma > 3.0 || !bbc_best) continue;
 
       // we have a matching pair
-      GlobalVertex *vertex = new GlobalVertexv1();
+      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::SVTX_BBC);
 
       for (unsigned int i = 0; i < 3; ++i)
       {
@@ -150,7 +165,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
       globalmap->insert(vertex);
 
-      if (Verbosity()) vertex->identify();
+      if (Verbosity() > 1) vertex->identify();
     }
   }
 
@@ -169,7 +184,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       if (isnan(svtx->get_z())) continue;
 
       // we have a standalone SVTX vertex
-      GlobalVertex *vertex = new GlobalVertexv1();
+      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::SVTX);
 
       for (unsigned int i = 0; i < 3; ++i)
       {
@@ -192,7 +207,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
       globalmap->insert(vertex);
 
-      if (Verbosity()) vertex->identify();
+      if (Verbosity() > 1) vertex->identify();
     }
   }
 
@@ -210,7 +225,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       if (used_bbc_vtxids.find(bbc->get_id()) != used_bbc_vtxids.end()) continue;
       if (isnan(bbc->get_z())) continue;
 
-      GlobalVertex *vertex = new GlobalVertexv1();
+      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::UNDEFINED);
 
       // nominal beam location
       // could be replaced with a beam spot some day
@@ -225,9 +240,9 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       vertex->set_error(0, 1, 0.0);
       vertex->set_error(0, 2, 0.0);
 
-      vertex->set_error(1, 1, 0.0);
+      vertex->set_error(1, 0, 0.0);
       vertex->set_error(1, 1, pow(_yerr, 2));
-      vertex->set_error(1, 1, 0.0);
+      vertex->set_error(1, 2, 0.0);
 
       vertex->set_error(0, 2, 0.0);
       vertex->set_error(1, 2, 0.0);
@@ -238,15 +253,13 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
       globalmap->insert(vertex);
 
-      if (Verbosity()) vertex->identify();
+      if (Verbosity() > 1) vertex->identify();
     }
   }
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int GlobalVertexReco::End(PHCompositeNode */*topNode*/)
+if (Verbosity()) 
 {
+ globalmap->identify();
+}
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -255,7 +268,7 @@ int GlobalVertexReco::CreateNodes(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
 
   // Looking for the DST node
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
@@ -278,11 +291,5 @@ int GlobalVertexReco::CreateNodes(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *VertexMapNode = new PHIODataNode<PHObject>(vertexes, "GlobalVertexMap", "PHObject");
     globalNode->addNode(VertexMapNode);
   }
-  else
-  {
-    cout << PHWHERE << "::ERROR - GlobalVertexMap pre-exists, but should not, perhaps you are also running the FastSim" << endl;
-    exit(-1);
-  }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }

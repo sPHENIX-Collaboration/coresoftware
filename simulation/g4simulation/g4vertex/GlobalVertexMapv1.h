@@ -14,7 +14,7 @@
 class GlobalVertexMapv1 : public GlobalVertexMap
 {
  public:
-  GlobalVertexMapv1();
+  GlobalVertexMapv1() = default;
   ~GlobalVertexMapv1() override;
 
   void identify(std::ostream& os = std::cout) const override;
