@@ -3,12 +3,9 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterv1.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawClusterUtility.h>
-
 #include <calobase/TowerInfov1.h>
 #include <calobase/TowerInfoContainerv1.h>
 
@@ -22,19 +19,6 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-
-#include <fastjet/ClusterSequence.hh>
-#include <fastjet/FunctionOfPseudoJet.hh>
-#include <fastjet/JetDefinition.hh>
-
-#include <g4vertex/GlobalVertex.h>
-#include <g4vertex/GlobalVertexMap.h>
-
-#include <centrality/CentralityInfov1.h>
-
-//root
-#include <TFile.h>
-#include <TTree.h>
 
 #include <algorithm>
 #include <cmath>
@@ -308,10 +292,6 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
 
     _clusters->AddCluster(clusters[cl]);
 
-    _tree_cluster_e.push_back(clusters_E[cl]);
-    _tree_cluster_eta.push_back(-1 * log(tan(std::atan2(std::sqrt(mean_y * mean_y + mean_x * mean_x), mean_z) / 2.0)));
-    _tree_cluster_phi.push_back(std::atan2(mean_y, mean_x));
-
     if (Verbosity() > 1)
     {
       std::cout << "RawClusterBuilderTopo::export_clusters: added cluster with E = " << clusters_E[cl] << ", eta = " << -1 * log(tan(std::atan2(std::sqrt(mean_y * mean_y + mean_x * mean_x), mean_z) / 2.0)) << ", phi = " << std::atan2(mean_y, mean_x) << std::endl;
@@ -323,9 +303,6 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
 
 RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name, const std::string &filename)
   : SubsysReco(name)
-  , _outfilename(filename)
-  , _outfile(nullptr)
-  , _tree(nullptr)
 {
   // geometry defined at run-time
   _EMCAL_NETA = -1;
@@ -379,21 +356,11 @@ int RawClusterBuilderTopo::InitRun(PHCompositeNode *topNode)
     std::cout << "RawClusterBuilderTopo::InitRun: initialized with minE for local max in EMCal / IHCal / OHCal = " << _local_max_minE_LAYER[2] << " / " << _local_max_minE_LAYER[0] << " / " << _local_max_minE_LAYER[1] << std::endl;
   }
 
-  initializeTrees();
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 {
-
-  CentralityInfo* cent_node = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
-  if (!cent_node)
-  {
-    std::cout << "RawClusterBuilderTopo::process_event - Error can not find centrality node " << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
   TowerInfoContainer *towerinfosEM = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
   TowerInfoContainer *towerinfosIH = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
   TowerInfoContainer *towerinfosOH = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
@@ -789,24 +756,6 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
   if (Verbosity() > 0) std::cout << "RawClusterBuilderTopo::process_event: " << cluster_index << " topo-clusters initially reconstructed, entering splitting step" << std::endl;
 
   int original_cluster_index = cluster_index;  // since it may be updated
-  //Fill the tree
-  resetTreeVariables();
-  _tree_centrality = cent_node->get_centile(CentralityInfo::PROP::bimp);
-  for (int cl = 0; cl < original_cluster_index; cl++)
-  {
-    std::vector<int> original_towers = all_cluster_towers.at(cl);
-
-    //fill tree with towers
-    for(auto tid : original_towers)
-    {
-      _tree_tower_id.push_back(tid);
-      _tree_tower_e.push_back(get_E_from_ID(tid));
-      _tree_tower_cluster_id.push_back(cl);
-    }
-    _tree_cluster_id.push_back(cl);
-  }
-
-
 
   // now entering cluster splitting stage
 
@@ -1312,79 +1261,6 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     export_clusters(original_towers, tower_ownership, local_maxima_ID.size(), pseudocluster_sumE, pseudocluster_eta, pseudocluster_phi);
   }
 
-
-  std::unique_ptr<fastjet::JetDefinition> jetdef(new fastjet::JetDefinition(fastjet::antikt_algorithm, 0.4, fastjet::E_scheme, fastjet::Best));
-  std::vector<fastjet::PseudoJet> particles;
-
-  GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
-  if (!vertexmap)
-  {
-    std::cout << "ResonanceJetTagging::getEmcalClusters - Fatal Error - GlobalVertexMap node is missing. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << std::endl;
-    assert(vertexmap);  // force quit
-
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-
-  if (vertexmap->empty())
-  {
-    std::cout << "ResonanceJetTagging::getEmcalClusters - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << std::endl;
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-
-  GlobalVertex *vtx = vertexmap->begin()->second;
-  if (vtx == nullptr)
-  {
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-
-  CLHEP::Hep3Vector vertex(vtx->get_x(), vtx->get_y(), vtx->get_z());
-
-  /// Loop over the HCAL Topo clusters
-  for(unsigned int icluster = 0; icluster < _clusters->size(); icluster++)
-  {
-    RawCluster *topocluster = _clusters->getCluster(icluster);
-
-    if(!topocluster) continue;
-
-    CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetEVec(*topocluster, vertex);
-    double cluster_e = E_vec_cluster.mag();
-    double cluster_pt = E_vec_cluster.perp();
-    double cluster_phi = E_vec_cluster.getPhi();
-    float cluster_theta = M_PI / 2.0 - atan2(topocluster->get_z(), topocluster->get_r() );
-	  float cluster_eta = -1 * log( tan( cluster_theta / 2.0 ) );
-
-	  if(vtx)
-	  {
-	    cluster_eta = RawClusterUtility::GetPseudorapidity(*topocluster, vertex);
-	  }
-
-    double cluster_px = cluster_pt * cos(cluster_phi);
-    double cluster_py = cluster_pt * sin(cluster_phi);
-    double cluster_pz = cluster_pt * sinh(cluster_eta);
-    fastjet::PseudoJet part(cluster_px, cluster_py, cluster_pz, cluster_e);
-    particles.push_back(part);
-  }
-
-
-  fastjet::ClusterSequence jetFinder(particles, *jetdef);
-  std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
-
-
-  for(auto topojet : fastjets)
-  {
-    _jets_px.push_back(topojet.px());
-    _jets_py.push_back(topojet.py());
-    _jets_pz.push_back(topojet.pz());
-    _jets_e.push_back(topojet.E());
-    _jets_p.push_back(std::sqrt(topojet.modp2()));
-    _jets_pt.push_back(topojet.perp());
-    _jets_eta.push_back(topojet.eta());
-    _jets_phi.push_back(topojet.phi());
-  }
-
-  _tree->Fill();
-
-
   if (Verbosity() > 1)
   {
     std::cout << "RawClusterBuilderTopo::process_event after splitting (if any) final clusters output to node are: " << std::endl;
@@ -1403,9 +1279,6 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
 int RawClusterBuilderTopo::End(PHCompositeNode * /*topNode*/)
 {
-  _outfile->cd();
-  _tree->Write();
-  _outfile->Close();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1432,56 +1305,4 @@ void RawClusterBuilderTopo::CreateNodes(PHCompositeNode *topNode)
 
   PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   DetNode->addNode(clusterNode);
-}
-
-void RawClusterBuilderTopo::initializeTrees()
-{
-
-  delete _outfile;
-  _outfile = new TFile(_outfilename.c_str(), "RECREATE");
-
-  delete _tree;
-  _tree = new TTree("tree", "A tree with tower and cluster info");
-  _tree->Branch("_tree_centrality", &_tree_centrality, "_tree_centrality/I");
-  _tree->Branch("_tree_tower_id", &_tree_tower_id);
-  _tree->Branch("_tree_tower_e", &_tree_tower_e);
-  _tree->Branch("_tree_tower_cluster_id", &_tree_tower_cluster_id);
-  _tree->Branch("_tree_cluster_id", &_tree_cluster_id);
-
-  _tree->Branch("_tree_cluster_e", &_tree_cluster_e);
-  _tree->Branch("_tree_cluster_eta", &_tree_cluster_eta);
-  _tree->Branch("_tree_cluster_phi", &_tree_cluster_phi);
-
-  _tree->Branch("_jets_px", &_jets_px);
-  _tree->Branch("_jets_py", &_jets_py);
-  _tree->Branch("_jets_pz", &_jets_pz);
-  _tree->Branch("_jets_e", &_jets_e);
-  _tree->Branch("_jets_p", &_jets_p);
-  _tree->Branch("_jets_pt", &_jets_pt);
-  _tree->Branch("_jets_eta", &_jets_eta);
-  _tree->Branch("_jets_phi", &_jets_phi);
-
-}
-
-void RawClusterBuilderTopo::resetTreeVariables()
-{
-  _tree_centrality = -1;
-  _tree_tower_id.clear();
-  _tree_tower_e.clear();
-  _tree_tower_cluster_id.clear();
-  _tree_cluster_id.clear();
-
-  _tree_cluster_e.clear();
-  _tree_cluster_eta.clear();
-  _tree_cluster_phi.clear();
-
-  _jets_px.clear();
-  _jets_py.clear();
-  _jets_pz.clear();
-  _jets_e.clear();
-  _jets_p.clear();
-  _jets_pt.clear();
-  _jets_eta.clear();
-  _jets_phi.clear();
-
 }
