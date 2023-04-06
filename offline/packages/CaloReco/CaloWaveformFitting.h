@@ -37,7 +37,7 @@ class CaloWaveformFitting
 
  private:
   void FastMax(float x0, float x1, float x2, float y0, float y1, float y2, float &xmax, float &ymax);
-  TProfile *h_template;
+  TProfile *h_template = nullptr;
   double template_function(double *x, double *par);
   int _nthreads = 1;
   std::string m_template_input_file;
