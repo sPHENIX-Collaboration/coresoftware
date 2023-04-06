@@ -7,7 +7,7 @@
 #include <iostream>
 #include <string>
 
-
+ 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 static const int emcadc[8][8] = {
