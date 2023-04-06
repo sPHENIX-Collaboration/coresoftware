@@ -301,7 +301,7 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
   return;
 }
 
-RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name, const std::string &filename)
+RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
   : SubsysReco(name)
 {
   // geometry defined at run-time
