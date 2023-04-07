@@ -14,6 +14,7 @@
 
 #include <phfield/PHFieldUtility.h>
 #include <phfield/PHFieldConfigv1.h>
+#include <phfield/PHFieldConfig.h>           // for PHFieldConfig, PHFieldCo...
 
 #include <Geant4/G4ChordFinder.hh>
 #include <Geant4/G4ClassicalRK4.hh>
@@ -23,9 +24,9 @@
 #include <Geant4/G4Mag_UsualEqRhs.hh>
 #include <Geant4/G4MagneticField.hh>
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4Types.hh>                        // for G4int
 
 #include <cassert>
-#include <iostream>
 
 PHG4OHCalFieldSetup::PHG4OHCalFieldSetup(const std::string &iron_fieldmap_path, const double scale, const double inner_radius, const double outer_radius, const double size_z)
   : fMinStep(0.005 * mm)

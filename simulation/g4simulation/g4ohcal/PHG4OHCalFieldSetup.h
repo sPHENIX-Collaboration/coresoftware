@@ -15,6 +15,7 @@
 
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 
+#include <limits>             // for numeric_limits
 #include <string>
 
 class G4ChordFinder;
@@ -67,7 +68,7 @@ class PHG4OHCalFieldSetup
   G4ChordFinder* fChordFinderIron = nullptr;
   G4MagneticField* fEMfieldIron = nullptr;
   G4MagIntegratorStepper* fStepperIron = nullptr;
-  G4double fMinStep = NAN;
+  G4double fMinStep = std::numeric_limits<float>::quiet_NaN();
 };
 
 #endif /* G4OHCAL_PHG4OHCALFIELDSETUP_H */

@@ -11,6 +11,10 @@
 #include <g4main/PHG4DisplayAction.h>
 #include <g4main/PHG4Subsystem.h>
 
+#include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfig.h>
+
+#include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
@@ -47,11 +51,9 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>       // for unique_ptr
-#include <type_traits>  // for __decay_and_strip<>::_...
 #include <utility>      // for pair, make_pair
 #include <vector>       // for vector, vector<>::iter...
 
-class G4Material;
 class PHCompositeNode;
 
 PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parames, const std::string &dnam)
@@ -68,7 +70,9 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
 {
   gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
   assert(gdml_config);
-
+  PHFieldConfig *fieldconf = findNode::getClass<PHFieldConfig>(Node, PHFieldUtility::GetDSTConfigNodeName());
+  if (fieldconf->get_field_config() != PHFieldConfig::kFieldUniform)
+  {
   m_FieldSetup =
     new PHG4OHCalFieldSetup(
       m_Params->get_string_param("IronFieldMapPath"), m_Params->get_double_param("IronFieldMapScale"),
@@ -76,6 +80,7 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
       m_OuterRadius + 10*cm, // add 10 cm to make sure fieldmap with 2x2 grid covers it
       m_SizeZ/2. + 10*cm // div by 2 bc G4 convention
         );
+  }
 }
 
 PHG4OHCalDetector::~PHG4OHCalDetector()
@@ -124,8 +129,9 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // allow installing new G4 subsystem installed inside the HCal envelope via macros, in particular its support rings. 
   PHG4Subsystem *mysys = GetMySubsystem();
   if (mysys) 
+  {
     mysys->SetLogicalVolume(hcal_envelope_log);
-   
+  }
   // disable GDML export for HCal geometries for memory saving and compatibility issues
   assert(gdml_config);
   gdml_config->exclude_physical_vol(mothervol);
@@ -226,12 +232,15 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
 
   for (auto & logical_vol : m_SteelAbsorberLogVolSet)
   {
-    logical_vol->SetFieldManager(m_FieldSetup->get_Field_Manager_Iron(), true);
+    if (m_FieldSetup) // only if we have a field defined for the steel absorber
+    {
+      logical_vol->SetFieldManager(m_FieldSetup->get_Field_Manager_Iron(), true);
 
     if (m_Params->get_int_param("field_check"))
     {
       std::cout <<__PRETTY_FUNCTION__<<" : setup Field_Manager_Iron for LV "
           <<logical_vol->GetName()<<" w/ # of daughter "<< logical_vol->GetNoDaughters()<<std::endl;
+    }
     }
   }
 
