@@ -8,6 +8,7 @@
 #include <TClonesArray.h>
 #include "TrkrCluster.h"
 #include "TrkrClusterv4.h"
+#include "TrkrClusterv5.h"
 #include "TrkrDefs.h"
 
 #include <algorithm>
@@ -96,8 +97,9 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
   // find relevant vector or create one if not found
   auto clus_vector = std::shared_ptr<TClonesArray>(m_clusmap[hitsetkey]);
   if (!clus_vector) {
-    std::string cluster_class_name =
-      "TrkrClusterv" + std::to_string(m_cluster_version);
+    // std::string cluster_class_name =
+    //   "TrkrClusterv" + std::to_string(m_cluster_version);
+    std::string cluster_class_name = "TrkrCluster";
     auto clus_vector_ptr = new TClonesArray(cluster_class_name.c_str());
     // clus_vector = new TClonesArray("TrkrCluster");
     clus_vector = std::shared_ptr<TClonesArray>(clus_vector_ptr);
@@ -123,8 +125,15 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
     std::cout << "get null" << std::endl;
     if (!cluster)
       {
-      auto cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
-      cls->CopyFrom(static_cast<TrkrClusterv4*>(newclus));
+      if (m_cluster_version == 4)
+      {
+        auto cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
+        cls->CopyFrom(static_cast<TrkrClusterv4*>(newclus));
+      } else if (m_cluster_version == 5)
+      {
+        auto cls = (TrkrClusterv5*) clus_vector->ConstructedAt(index);
+        cls->CopyFrom(static_cast<TrkrClusterv5*>(newclus));
+      }
       // new (clus_vector[index]) TrkrClusterv4(newclus);
       newclus->~TrkrCluster();
       }
@@ -140,8 +149,16 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
     // clus_vector.push_back(newclus);
     // std::cout << "constructing new object in array" << std::endl;
 
-    auto cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
-    cls->CopyFrom(static_cast<TrkrClusterv4*>(newclus));
+      if (m_cluster_version == 4)
+      {
+        auto cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
+        cls->CopyFrom(static_cast<TrkrClusterv4*>(newclus));
+      }
+      else if (m_cluster_version == 5)
+      {
+        auto cls = (TrkrClusterv5*) clus_vector->ConstructedAt(index);
+        cls->CopyFrom(static_cast<TrkrClusterv5*>(newclus));
+      }
     newclus->~TrkrCluster();
   }
   else
@@ -149,8 +166,16 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
     // if index exceeds the vector size, resize cluster to the right size with nullptr, and assign
     // clus_vector.resize(index + 1, nullptr);
     // clus_vector[index] = newclus;
-    auto cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
-    cls->CopyFrom(static_cast<TrkrClusterv4*>(newclus));
+    if (m_cluster_version == 4)
+    {
+        auto cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
+        cls->CopyFrom(static_cast<TrkrClusterv4*>(newclus));
+    }
+    else if (m_cluster_version == 5)
+    {
+        auto cls = (TrkrClusterv5*) clus_vector->ConstructedAt(index);
+        cls->CopyFrom(static_cast<TrkrClusterv5*>(newclus));
+    }
     newclus->~TrkrCluster();
   }
 }
