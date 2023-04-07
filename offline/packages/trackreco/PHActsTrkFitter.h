@@ -80,6 +80,10 @@ class PHActsTrkFitter : public SubsysReco
   void fitSiliconMMs(bool fitSiliconMMs)
        {m_fitSiliconMMs = fitSiliconMMs;}
 
+  /// require micromegas in SiliconMM fits
+  void setUseMicromegas( bool value )
+  { m_useMicromegas = value; }
+
   void setUpdateSvtxTrackStates(bool fillSvtxTrackStates)
        { m_fillSvtxTrackStates = fillSvtxTrackStates; }   
 
@@ -130,14 +134,19 @@ class PHActsTrkFitter : public SubsysReco
 	   const ActsTrackFittingAlgorithm::TrackParameters& seed,
 	   const ActsTrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
+	   const SurfacePtrVec& surfSequence,
 	   std::shared_ptr<Acts::VectorMultiTrajectory>& mtj);
+
+  /// Functions to get list of sorted surfaces for direct navigation, if
+  /// applicable
+  SourceLinkVec getSurfaceVector(const SourceLinkVec& sourceLinks, 
+				 SurfacePtrVec& surfaces) const;
+  void checkSurfaceVec(SurfacePtrVec& surfaces) const;
 
   bool getTrackFitResult(const FitResult& fitOutput, SvtxTrack* track);
 
   Acts::BoundSymMatrix setDefaultCovariance() const;
   void printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const;
-
-  bool checkMM(SourceLinkVec& sls);
 
   /// Event counter
   int m_event = 0;
@@ -151,7 +160,7 @@ class PHActsTrkFitter : public SubsysReco
   /// TrackMap containing SvtxTracks
   alignmentTransformationContainer *m_alignmentTransformationMap = nullptr;  // added for testing purposes
   SvtxTrackMap *m_trackMap = nullptr;
-  SvtxTrackMap *m_silmmTrackMap = nullptr;
+  SvtxTrackMap *m_directedTrackMap = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
   TrackSeedContainer *m_seedMap = nullptr;
   TrackSeedContainer *m_tpcSeeds = nullptr;
@@ -164,6 +173,9 @@ class PHActsTrkFitter : public SubsysReco
   /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
   bool m_fitSiliconMMs = false;
 
+  /// requires micromegas present when fitting silicon-MM surfaces
+  bool m_useMicromegas = true;
+  
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates = true;
 

@@ -56,7 +56,7 @@ class ClusterErrorPara
   
   using error_t = std::pair<double, double>;
 
-  error_t get_clusterv5_error(TrackSeed *seed, TrkrClusterv5* clusterv5, double cluster_r, TrkrDefs::cluskey key);
+  error_t get_clusterv5_modified_error(TrkrClusterv5* clusterv5, double cluster_r, TrkrDefs::cluskey key);
   error_t get_cluster_error(TrackSeed *seed, TrkrCluster* cluster, double cluster_r, TrkrDefs::cluskey key);
   error_t get_cluster_error(TrkrCluster* cluster,  TrkrDefs::cluskey key, double alpha, double beta);
 

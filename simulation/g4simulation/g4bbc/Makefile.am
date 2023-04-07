@@ -18,10 +18,9 @@ libg4bbc_io_la_LIBADD = \
 
 libg4bbc_la_LIBADD = \
   libg4bbc_io.la \
+  -lbbc_io \
   -lg4detectors \
-  -lfun4all \
-  -lSubsysReco \
-  -lbbc
+  -lSubsysReco
 
 pkginclude_HEADERS = \
   BbcVertex.h \

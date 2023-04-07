@@ -1,9 +1,11 @@
-
 #include "PHG4EPDModuleReco.h"
 
+#include <calobase/TowerInfoDefs.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv1.h>
+
+#include <calobase/TowerInfoDefs.h>
 
 #include <epd/EPDDefs.h>
 #include <epd/EpdGeomV1.h>
@@ -62,6 +64,24 @@ int PHG4EPDModuleReco::InitRun(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(epdGeom, "TOWERGEOM_EPD", "PHObject");
     runNode->addNode(newNode);
   }
+ 
+  //fill epd geometry
+  unsigned int epdchannels = 744;
+  for (unsigned int ch = 0; ch < epdchannels; ch++)
+  {
+    unsigned int thiskey = TowerInfoDefs::encode_epd(ch);
+    epdGeom->set_z(thiskey, GetTileZ(TowerInfoDefs::get_epd_arm(thiskey)));
+    epdGeom->set_r(thiskey, GetTileR(TowerInfoDefs::get_epd_rbin(thiskey)));
+    if(TowerInfoDefs::get_epd_rbin(thiskey) == 0)
+    {
+      epdGeom->set_phi0(thiskey, GetTilePhi0(TowerInfoDefs::get_epd_phibin(thiskey)));
+    }
+    else
+    {
+      epdGeom->set_phi(thiskey, GetTilePhi(TowerInfoDefs::get_epd_phibin(thiskey)));
+    }
+  }
+    
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -123,13 +143,14 @@ int PHG4EPDModuleReco::process_event(PHCompositeNode *topNode)
       {
         unsigned int globalphi = Getphimap(j) + 2 * i;
         unsigned int r = Getrmap(j);
+	if (r == 0)
+	  {
+	    globalphi = i;
+	  }
 
-        unsigned int key = globalphi + (r << 10U) + (k << 20U);
-
+        unsigned int key = TowerInfoDefs::encode_epd(k,r,globalphi);
         unsigned int ch = m_TowerInfoContainer->decode_key(key);
-
         m_TowerInfoContainer->get_tower_at_channel(ch)->set_energy(m_EpdTile_e[k][i][j]);
-
         m_TowerInfoContainer_calib->get_tower_at_channel(ch)->set_energy(m_EpdTile_Calib_e[k][i][j]);
       }
     }
@@ -155,16 +176,40 @@ void PHG4EPDModuleReco::set_timing_window(const double tmi, const double tma)
 
 int PHG4EPDModuleReco::Getrmap(int rindex)
 {
-  int rmap[31] = {0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15};
+  static const int rmap[31] = {0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15};
 
   return rmap[rindex];
 }
 
 int PHG4EPDModuleReco::Getphimap(int phiindex)
 {
-  int phimap[31] = {0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
+  static const int phimap[31] = {0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
 
   return phimap[phiindex];
+}
+
+float PHG4EPDModuleReco::GetTilePhi(int thisphi)
+{
+  static const float tilephi[24] = {0.13089969, 0.39269908, 0.65449847, 0.91629786, 1.17809725,1.43989663, 1.70169602, 1.96349541, 2.2252948 , 2.48709418, 2.74889357, 3.01069296, 3.27249235, 3.53429174, 3.79609112, 4.05789051, 4.3196899 , 4.58148929, 4.84328867, 5.10508806, 5.36688745, 5.62868684, 5.89048623, 6.15228561};
+  return tilephi[thisphi];
+} 
+
+float PHG4EPDModuleReco::GetTilePhi0(int thisphi0)
+{
+  static const float tilephi0[12] = {0.26179939, 0.78539816, 1.30899694, 1.83259571, 2.35619449, 2.87979327, 3.40339204, 3.92699082, 4.45058959, 4.97418837, 5.49778714, 6.02138592};
+  return tilephi0[thisphi0];
+} 
+
+float PHG4EPDModuleReco::GetTileR(int thisr)
+{
+  static const float tileR[16] = {6.8, 11.2, 15.6, 20.565, 26.095, 31.625, 37.155, 42.685, 48.215, 53.745, 59.275, 64.805, 70.335, 75.865, 81.395, 86.925};
+  return tileR[thisr];
+}
+
+float PHG4EPDModuleReco::GetTileZ(int thisz)
+{
+  static const float tileZ[2] = {-316.0, 316.0};
+  return tileZ[thisz];
 }
 
 void PHG4EPDModuleReco::CreateNodes(PHCompositeNode *topNode)

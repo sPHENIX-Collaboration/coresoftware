@@ -9,8 +9,6 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include <ffaobjects/EventHeaderv1.h>
-
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/PHTFileServer.h>
 
@@ -118,22 +116,20 @@ namespace BBCINFO
   };
   */
 
-}  // namespace BBCINFO
-
-using namespace BBCINFO;
+}
 
 //____________________________________
 BbcSimReco::BbcSimReco(const std::string &name)
   : SubsysReco(name)
   , _tres(0.05)
 {
-  std::fill(std::begin(f_pmtq), std::end(f_pmtq), NAN);
-  std::fill(std::begin(f_pmtt0), std::end(f_pmtt0), NAN);
-  std::fill(std::begin(f_pmtt1), std::end(f_pmtt1), NAN);
+  std::fill(std::begin(f_pmtq), std::end(f_pmtq), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(f_pmtt0), std::end(f_pmtt0), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(f_pmtt1), std::end(f_pmtt1), std::numeric_limits<float>::quiet_NaN());
   std::fill(std::begin(f_bbcn), std::end(f_bbcn), 0);
-  std::fill(std::begin(f_bbcq), std::end(f_bbcq), NAN);
-  std::fill(std::begin(f_bbct), std::end(f_bbct), NAN);
-  std::fill(std::begin(f_bbcte), std::end(f_bbcte), NAN);
+  std::fill(std::begin(f_bbcq), std::end(f_bbcq), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(f_bbct), std::end(f_bbct), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(f_bbcte), std::end(f_bbcte), std::numeric_limits<float>::quiet_NaN());
   hevt_bbct[0] = nullptr;
   hevt_bbct[1] = nullptr;
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -185,11 +181,6 @@ int BbcSimReco::InitRun(PHCompositeNode *topNode)
 // Call user instructions for every event
 int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
 {
-  // GetNodes(topNode);
-
-  f_evt = _evtheader->get_EvtSequence();
-  // if(f_evt%100==0) std::cout << PHWHERE << "Events processed: " << f_evt << std::endl;
-
   //**** Initialize Variables
 
   // Arm Data
@@ -201,8 +192,8 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
   f_bbct[1] = -9999.;
   f_bbcte[0] = -9999.;
   f_bbcte[1] = -9999.;
-  f_bbcz = NAN;
-  f_bbct0 = NAN;
+  f_bbcz = std::numeric_limits<float>::quiet_NaN();
+  f_bbct0 = std::numeric_limits<float>::quiet_NaN();
   hevt_bbct[0]->Reset();
   hevt_bbct[1]->Reset();
 
@@ -225,7 +216,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     f_vz = vtxp->get_z();
     f_vt = vtxp->get_t();
 
-    if (f_evt < 20)
+    if (Verbosity())
     {
       std::cout << "VTXP "
            << "\t" << f_vx << "\t" << f_vy << "\t" << f_vz << "\t" << f_vt << std::endl;
@@ -286,7 +277,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     // get summed path length for particles that can create CKOV light
     // n.p.e. is determined from path length
     Double_t beta = v4.Beta();
-    if (beta > v_ckov && charge != 0.)
+    if (beta > BBCINFO::v_ckov && charge != 0.)
     {
       len[ch] += this_hit->get_path_length();
 
@@ -311,7 +302,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     // Fill charge and time info
     if (len[ich] > 0.)
     {
-      if (f_evt < 20 && Verbosity() != 0)
+      if (Verbosity() > 0)
       {
         std::cout << "ich " << ich << "\t" << len[ich] << "\t" << edep[ich] << std::endl;
       }
@@ -370,9 +361,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
       // gaussian->SetParameter(1,hevt_bbct[iarm]->GetMean());
       // gaussian->SetRange(6,hevt_bbct[iarm]->GetMean()+0.125);
 
-      hevt_bbct[iarm]->Fit(gaussian, "BLR");
-      hevt_bbct[iarm]->Draw();
-
+      hevt_bbct[iarm]->Fit(gaussian, "BLRNQ");
       if (f_bbcn[iarm] > 0)
       {
         // f_bbct[iarm] = f_bbct[iarm] / f_bbcn[iarm];
@@ -384,7 +373,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     }
 
     // Now calculate zvtx, t0 from best times
-    f_bbcz = (f_bbct[0] - f_bbct[1]) * C / 2.0;
+    f_bbcz = (f_bbct[0] - f_bbct[1]) * BBCINFO::C / 2.0;
     f_bbct0 = (f_bbct[0] + f_bbct[1]) / 2.0;
 
     _bbcout->set_Vertex(f_bbcz, 0.6);
@@ -401,6 +390,8 @@ void BbcSimReco::CreateNodes(PHCompositeNode *topNode)
   if (!dstNode)
   {
     std::cout << PHWHERE << "DST Node missing doing nothing" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
 
   PHCompositeNode *bbcNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "BBC"));
@@ -414,7 +405,6 @@ void BbcSimReco::CreateNodes(PHCompositeNode *topNode)
   _bbcout = findNode::getClass<BbcOut>(bbcNode, "BbcOut");
   if (!_bbcout)
   {
-    std::cout << "Creating BBCOUT" << std::endl;
     _bbcout = new BbcOutV1();
     PHIODataNode<PHObject> *BbcOutNode = new PHIODataNode<PHObject>(_bbcout, "BbcOut", "PHObject");
     bbcNode->addNode(BbcOutNode);
@@ -437,38 +427,35 @@ void BbcSimReco::GetNodes(PHCompositeNode *topNode)
 
   // Truth container
   _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-  if (!_truth_container && f_evt < 10)
+  if (!_truth_container)
   {
     std::cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << std::endl;
+    gSystem->Exit(1);
   }
 
   // BBC hit container
   _bbchits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_BBC");
-  if (!_bbchits && f_evt < 10)
+  if (!_bbchits)
   {
     std::cout << PHWHERE << " G4HIT_BBC node not found on node tree" << std::endl;
-  }
-
-  // Event Header info
-  _evtheader = findNode::getClass<EventHeaderv1>(topNode, "EventHeader");
-  if (!_evtheader && f_evt < 10)
-  {
-    std::cout << PHWHERE << " G4HIT_BBC node not found on node tree" << std::endl;
+    gSystem->Exit(1);
   }
 
   /** DST Objects **/
 
   // BbcOut data
   _bbcout = findNode::getClass<BbcOut>(topNode, "BbcOut");
-  if (!_bbcout && f_evt < 10)
+  if (!_bbcout)
   {
     std::cout << PHWHERE << " BbcOut node not found on node tree" << std::endl;
+    gSystem->Exit(1);
   }
 
   // BbcPmtContainer
   _bbcpmts = findNode::getClass<BbcPmtContainer>(topNode, "BbcPmtContainer");
-  if (!_bbcpmts && f_evt < 10)
+  if (!_bbcpmts)
   {
     std::cout << PHWHERE << " BbcPmtContainer node not found on node tree" << std::endl;
+    gSystem->Exit(1);
   }
 }

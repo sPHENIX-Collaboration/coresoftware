@@ -13,7 +13,8 @@
 
 #include <gsl/gsl_rng.h>
 
-#include <string>                // for string
+#include <limits>
+#include <string>  // for string
 
 class PHCompositeNode;
 
@@ -27,10 +28,8 @@ class GlobalVertexFastSimReco : public SubsysReco
   GlobalVertexFastSimReco(const std::string &name = "GlobalVertexFastSimReco");
   ~GlobalVertexFastSimReco() override;
 
-  int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
   void set_x_smearing(const float x_smear) { _x_smear = x_smear; }
   void set_y_smearing(const float y_smear) { _y_smear = y_smear; }
@@ -40,11 +39,11 @@ class GlobalVertexFastSimReco : public SubsysReco
  private:
   int CreateNodes(PHCompositeNode *topNode);
 
-  float _x_smear;
-  float _y_smear;
-  float _z_smear;
-  float _t_smear;
-  gsl_rng *RandomGenerator;
+  float _x_smear = std::numeric_limits<float>::quiet_NaN();
+  float _y_smear = std::numeric_limits<float>::quiet_NaN();
+  float _z_smear = std::numeric_limits<float>::quiet_NaN();
+  float _t_smear = std::numeric_limits<float>::quiet_NaN();
+  gsl_rng *RandomGenerator = nullptr;
 };
 
 #endif  // G4VERTEX_GLOBALVERTEXFASTSIMRECO_H
