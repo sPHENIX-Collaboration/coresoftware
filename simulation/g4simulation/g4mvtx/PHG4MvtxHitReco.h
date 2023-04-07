@@ -12,11 +12,14 @@
 #include <memory>  // for unique_ptr
 #include <string>
 
-class PHG4MvtxTruthClusterizer;
 class PHCompositeNode;
-class TrkrTruthTrackContainer;
+class PHG4MvtxTruthClusterizer;
+class PHG4TruthInfoContainer;
 class TrkrClusterContainer;
-class MvtxHitPruner;
+class TrkrHitSetContainer;
+class TrkrTruthTrack;
+class TrkrTruthTrackContainer;
+class PHG4Hit;
 
 class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 {
@@ -42,12 +45,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   //! parameters
   void SetDefaultParameters() override;
 
-  //void set_HitPruner(MvtxHitPruner*
-  void set_HitPruner(MvtxHitPruner* _) { m_hit_pruner = _; };
-
  private:
-  MvtxHitPruner* m_hit_pruner { nullptr };
-
   std::pair<double, double> generate_alpide_pulse(const double energy_deposited);
 
   double generate_strobe_zero_tm_start();
@@ -67,8 +65,6 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 
   bool m_in_sphenix_srdo = false;
 
-  PHG4MvtxTruthClusterizer *m_truthclusterizer { nullptr };
-
   class Deleter
   {
    public:
@@ -77,6 +73,23 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   };
 
   std::unique_ptr<gsl_rng, Deleter> m_rng;
+
+  // needed for clustering truth tracks
+  private:
+  TrkrTruthTrackContainer* m_truthtracks     { nullptr }; // output truth tracks
+  TrkrClusterContainer*    m_truthclusters   { nullptr }; // output clusters indexed to TrkrDefs::cluskeys in m_truthtracks
+  PHG4TruthInfoContainer*  m_truthinfo       { nullptr };
+  int                      m_trkid           { -1      };
+  bool                     m_is_emb          { false   };
+  TrkrTruthTrack*          m_current_track   { nullptr };
+  const int                m_cluster_version { 4 };
+  TrkrHitSetContainer*     m_truth_hits; // generate and delete a container for each truth track
+  std::map<TrkrDefs::hitsetkey,unsigned int> m_hitsetkey_cnt {}; // counter for making ckeys form hitsetkeys
+
+  void truthcheck_g4hit       ( PHG4Hit*, PHCompositeNode* topNode );
+  void addtruthhitset         ( TrkrDefs::hitsetkey, TrkrDefs::hitkey, float neffelectrons );
+  void clusterize_truthtrack  ( PHCompositeNode* topNode );
+  void end_event_truthcluster ( PHCompositeNode* topNode );
 };
 
 #endif

@@ -56,6 +56,28 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
   gsl_vector *m_LocalOutVec = nullptr;
   gsl_vector *m_PathVec = nullptr;
   gsl_vector *m_SegmentVec = nullptr;
+
+  // needed for clustering truth tracks
+  private:
+  TrkrTruthTrackContainer* m_truthtracks     { nullptr }; // output truth tracks
+  TrkrClusterContainer*    m_truthclusters   { nullptr }; // output clusters indexed to TrkrDefs::cluskeys in m_truthtracks
+  PHG4TruthInfoContainer*  m_truthinfo       { nullptr };
+  int                      m_trkid           { -1      };
+  bool                     m_is_emb          { false   };
+  TrkrTruthTrack*          m_current_track   { nullptr };
+  const int                m_cluster_version { 4 };
+  TrkrHitSetContainer*     m_truth_hits; // generate and delete a container for each truth track
+  std::map<TrkrDefs::hitsetkey,unsigned int> m_hitsetkey_cnt {}; // counter for making ckeys form hitsetkeys
+
+  void truthcheck_g4hit       ( PHG4Hit*, PHCompositeNode* topNode );
+  void addtruthhitset         ( TrkrDefs::hitsetkey, TrkrDefs::hitkey, float neffelectrons );
+  void clusterize_truthtrack  ( PHCompositeNode* topNode );
+  void end_event_truthcluster ( PHCompositeNode* topNode );
+
+  double m_truth_pixelthreshold { 0.01 };
+  public:
+  void set_truth_pixelthreshold (double val) { m_truth_pixelthreshold = val; };
+
 };
 
 #endif

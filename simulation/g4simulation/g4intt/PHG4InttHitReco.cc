@@ -54,7 +54,7 @@ PHG4InttHitReco::PHG4InttHitReco(const std::string &name)
   , m_Tmin(NAN)
   , m_Tmax(NAN)
   , m_crossingPeriod(NAN)
-  , m_truthclusterizer { new PHG4InttTruthClusterizer }
+  , m_truth_hits { new TrkrHitSetContainerv1 }
 {
   InitializeParameters();
 
@@ -71,7 +71,7 @@ PHG4InttHitReco::~PHG4InttHitReco()
   gsl_vector_free(m_LocalOutVec);
   gsl_vector_free(m_PathVec);
   gsl_vector_free(m_SegmentVec);
-  delete m_truthclusterizer;
+  delete m_truth_hits;
 }
 
 int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
@@ -179,7 +179,30 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
   m_Tmax = get_double_param("tmax");
   m_crossingPeriod = get_double_param("beam_crossing_period");
 
-  m_truthclusterizer->init_run(topNode, Verbosity());
+  // get the nodes for the truth clustering
+  m_truthtracks = findNode::getClass<TrkrTruthTrackContainer>(topNode, "TRKR_TRUTHTRACKCONTAINER");
+  if (!m_truthtracks)
+  {
+    PHNodeIterator dstiter(dstNode);
+    m_truthtracks = new TrkrTruthTrackContainerv1();
+    auto newNode = new PHIODataNode<PHObject>(m_truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
+    dstNode->addNode(newNode);
+  }
+
+  m_truthclusters = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_TRUTHCLUSTERCONTAINER");
+  if (!m_truthclusters)
+  {
+    m_truthclusters = new TrkrClusterContainerv4;
+    auto newNode = new PHIODataNode<PHObject>(m_truthclusters, "TRKR_TRUTHCLUSTERCONTAINER", "PHObject");
+    dstNode->addNode(newNode);
+  }
+
+  m_truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  if (!m_truthinfo)
+  {
+    std::cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << std::endl;
+    assert(m_truthinfo);
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -226,7 +249,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     const int sphxlayer = hiter->second->get_detid();
     CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(geo->GetLayerGeom(sphxlayer));
 
-    m_truthclusterizer->check_g4hit(hiter->second);
+    truthcheck_g4hit(g4hit, topNode);
 
     // checking ADC timing integration window cut
     // uses default values for now
@@ -446,7 +469,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       double hit_energy = venergy[i1].first * TrkrDefs::InttEnergyScaleup;
       hit->addEnergy(hit_energy);
 
-      m_truthclusterizer->addhitset(hitsetkey, hitkey, hit_energy);
+      addtruthhitset(hitsetkey, hitkey, hit_energy);
 
       // Add this hit to the association map
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
@@ -466,12 +489,9 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     hittruthassoc->identify();
   }
   
-  // spit out the truth clusters
-  if (Verbosity() > 5) m_truthclusterizer->print_clusters();
-  m_truthclusterizer->end_of_event();
-
+  end_event_truthcluster( topNode );
   return Fun4AllReturnCodes::EVENT_OK;
-}
+} // end process_event
 
 void PHG4InttHitReco::SetDefaultParameters()
 {
@@ -481,6 +501,368 @@ void PHG4InttHitReco::SetDefaultParameters()
   set_default_double_param("tmax", 7020.0);   // max upper time window for extended readout
   set_default_double_param("tmin", -20.0);  // min lower time window for extended readout
   set_default_double_param("beam_crossing_period", 106.0);   
+
+  return;
+}
+
+void PHG4InttHitReco::truthcheck_g4hit(PHG4Hit* hit, PHCompositeNode* topNode) {
+  int new_trkid = (hit==nullptr) ? -1 : hit->get_trkid();
+  bool is_new_track = (new_trkid != m_trkid);
+  if (Verbosity()>5) std::cout << PHWHERE << std::endl << " -> Checking status of PHG4Hit. Track id("<<new_trkid<<")" << std::endl;
+  if (!is_new_track) return;
+  if (Verbosity()>2) std::cout << PHWHERE << std::endl << " -> Found new embedded track with id: " << new_trkid << std::endl;
+  if (m_is_emb) {
+    clusterize_truthtrack(topNode); // cluster m_truth_hits and add m_current_track
+    m_current_track = nullptr;
+  }
+  m_trkid = new_trkid; // although m_current_track won't catch up until update_track is called
+  m_is_emb = m_truthinfo->isEmbeded(m_trkid);
+  if (m_is_emb) {
+    m_current_track = m_truthtracks->getTruthTrack(m_trkid, m_truthinfo);
+  }
+}
+
+void PHG4InttHitReco::end_event_truthcluster ( PHCompositeNode* topNode ) {
+  if (m_is_emb) {
+    clusterize_truthtrack(topNode); // cluster m_truth_hits and add m_current_track
+    m_current_track = nullptr;
+    m_trkid = -1;
+    m_is_emb = false;
+  }
+  m_hitsetkey_cnt.clear();
+}
+
+void PHG4InttHitReco::addtruthhitset(
+    TrkrDefs::hitsetkey hitsetkey, 
+    TrkrDefs::hitkey hitkey, 
+    float neffelectrons) 
+{
+  if (!m_is_emb) return;
+  TrkrHitSetContainer::Iterator hitsetit = m_truth_hits->findOrAddHitSet(hitsetkey);
+  // See if this hit already exists
+  TrkrHit *hit = nullptr;
+  hit = hitsetit->second->getHit(hitkey);
+  if (!hit)
+  {
+    // create a new one
+    hit = new TrkrHitv2();
+    hitsetit->second->addHitSpecificKey(hitkey, hit);
+  }
+  // Either way, add the energy to it  -- adc values will be added at digitization
+  hit->addEnergy(neffelectrons);
+}
+
+void PHG4InttHitReco::clusterize_truthtrack(PHCompositeNode* topNode) {
+  // -----------------------------------------------
+  // Digitize, adapted from g4intt/PHG4InttDigitizer
+  // -----------------------------------------------
+  // don't use the dead map for truth tracks
+  TrkrHitSetContainer::ConstRange hitset_range = m_truth_hits->getHitSets(TrkrDefs::TrkrId::inttId);
+  for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
+       hitset_iter != hitset_range.second;
+       ++hitset_iter)
+  {
+    // we have an itrator to one TrkrHitSet for the intt from the trkrHitSetContainer
+    // get the hitset key so we can find the layer
+    TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
+    const int layer = TrkrDefs::getLayer(hitsetkey);
+    const int ladder_phi = InttDefs::getLadderPhiId(hitsetkey);
+    const int ladder_z = InttDefs::getLadderZId(hitsetkey);
+
+    if (Verbosity() > 1)
+    {
+      std::cout << "PHG4InttDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << std::endl;
+    }
+    // get all of the hits from this hitset
+    TrkrHitSet *hitset = hitset_iter->second;
+    TrkrHitSet::ConstRange hit_range = hitset->getHits();
+    /* std::set<TrkrDefs::hitkey> dead_hits;  // hits on dead channel */ // no dead channels implemented
+    for (TrkrHitSet::ConstIterator hit_iter = hit_range.first;
+         hit_iter != hit_range.second;
+         ++hit_iter)
+    {
+      // ++m_nCells; // not really used by PHG4InttDigitizer
+
+      TrkrHit *hit = hit_iter->second;
+      TrkrDefs::hitkey hitkey = hit_iter->first;
+      int strip_col = InttDefs::getCol(hitkey);  // strip z index
+      int strip_row = InttDefs::getRow(hitkey);  // strip phi index
+
+      // FIXME need energy scales here
+      if (_energy_scale.count(layer) > 1)
+      {
+        assert(!"Error: _energy_scale has two or more keys.");
+      }
+      const float mip_e = _energy_scale[layer];
+
+      std::vector<std::pair<double, double> > vadcrange = _max_fphx_adc[layer];
+
+      int adc = 0;
+      for (unsigned int irange = 0; irange < vadcrange.size(); ++irange)
+      {
+        if (hit->getEnergy() / TrkrDefs::InttEnergyScaleup >= vadcrange[irange].first * 
+            (double) mip_e && hit->getEnergy() / TrkrDefs::InttEnergyScaleup 
+            < vadcrange[irange].second * (double) mip_e)
+        {
+          adc = (unsigned short) irange;
+        }
+      }
+      hit->setAdc(adc);
+
+      if (Verbosity() > 2)
+      {
+        std::cout << "PHG4InttDigitizer: found hit with layer " << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi
+                  << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << hit->getAdc() << std::endl;
+      }
+    }  // end loop over hits in this hitset
+
+    /* // remove hits on dead channel in TRKR_HITSET and TRKR_HITTRUTHASSOC */
+    /* for (const auto &key : dead_hits) */
+    /* { */
+    /*   if (Verbosity() > 2) */
+    /*   { */
+    /*     std::cout << " PHG4InttDigitizer: remove hit with key: " << key << std::endl; */
+    /*   } */
+    /*   hitset->removeHit(key); */
+    /* } */
+  }  // end loop over hitsets
+
+  // -----------------------------------------------
+  // Cluster, adapted from intt/InttClusterizer
+  // -----------------------------------------------
+  if (Verbosity() > 0)
+    std::cout << "Entering InttClusterizer::ClusterLadderCells " << std::endl;
+
+  //----------
+  // Get Nodes
+  //----------
+
+  // get the geometry node
+  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  if (!geom_container) return;
+
+  //-----------
+  // Clustering
+  //-----------
+
+  // loop over the InttHitSet objects
+  TrkrHitSetContainer::ConstRange hitsetrange =
+      m_truth_hits->getHitSets(TrkrDefs::TrkrId::inttId); // from TruthClusterizerBase
+  for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr)
+  {
+    // Each hitset contains only hits that are clusterizable - i.e. belong to a single sensor
+    TrkrHitSet *hitset = hitsetitr->second;
+    
+    // cluster this hitset; all pixels in it are, by definition, part of the same clusters
+
+    if(Verbosity() > 1) std::cout << "InttClusterizer found hitsetkey " << hitsetitr->first << std::endl;
+    if (Verbosity() > 2)
+      hitset->identify();
+
+    // we have a single hitset, get the info that identifies the sensor
+    int layer = TrkrDefs::getLayer(hitsetitr->first);
+    int ladder_z_index = InttDefs::getLadderZId(hitsetitr->first);
+   
+    // we will need the geometry object for this layer to get the global position  
+    CylinderGeomIntt* geom = dynamic_cast<CylinderGeomIntt*>(geom_container->GetLayerGeom(layer));
+    float pitch = geom->get_strip_y_spacing();
+    float length = geom->get_strip_z_spacing();
+    
+    /* // fill a vector of hits to make things easier - gets every hit in the hitset */
+    /* std::vector <std::pair< TrkrDefs::hitkey, TrkrHit*> > hitvec; */
+    /* TrkrHitSet::ConstRange hitrangei = hitset->getHits(); */
+    /* for (TrkrHitSet::ConstIterator hitr = hitrangei.first; */
+    /*      hitr != hitrangei.second; */
+    /*      ++hitr) */
+    /*   { */
+  /* hitvec.push_back(std::make_pair(hitr->first, hitr->second)); */
+    /*   } */
+    /* if (Verbosity() > 2) */
+    /*   std::cout << "hitvec.size(): " << hitvec.size() << std::endl; */
+    
+    /* typedef adjacency_list<vecS, vecS, undirectedS> Graph; */
+    /* Graph G; */
+    
+    /* // Find adjacent strips */
+    /* for (unsigned int i = 0; i < hitvec.size(); i++) */
+    /*   { */
+ /* for (unsigned int j = i + 1; j < hitvec.size(); j++) */
+  /* { */
+  /* if (_C__ladder_are_adjacent(hitvec[i], hitvec[j], layer)) */
+  /* { */
+  /* add_edge(i, j, G); */
+  /* } */
+  /* } */
+  
+  /* add_edge(i, i, G); */
+    /*   } */
+    
+    /* // Find the connections between the vertices of the graph (vertices are the rawhits, */
+    /* // connections are made when they are adjacent to one another) */
+    /* std::vector<int> component(num_vertices(G)); */
+    
+    /* // this is the actual clustering, performed by boost */
+    /* connected_components(G, &component[0]); */
+    
+    /* // Loop over the components(hit cells) compiling a list of the */
+    /* // unique connected groups (ie. clusters). */
+    /* std::set<int> cluster_ids;  // unique components */
+    
+    /* std::multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*> >  clusters; */
+    /* for (unsigned int i = 0; i < component.size(); i++) */
+    /*   { */
+  /* cluster_ids.insert(component[i]); // one entry per unique cluster id */
+  /* clusters.insert(std::make_pair(component[i], hitvec[i]));  // multiple entries per unique cluster id */
+    /*   } */
+
+    /* // loop over the cluster ID's and make the clusters from the connected hits */
+    /* for (std::set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter) */
+    /*   { */
+  /* int clusid = *clusiter; */
+  //cout << " intt clustering: add cluster number " << clusid << std::endl; 
+  // get all hits for this cluster ID only
+  /* std::pair<std::multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator, */  
+  /* std::multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator>  clusrange = clusters.equal_range(clusid); */
+  /* std::multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator mapiter = clusrange.first; */
+  
+  // make the cluster directly in the node tree
+    auto hitsetkey = hitset->getHitSetKey();
+  TrkrDefs::cluskey ckey = TrkrDefs::genClusKey(hitsetkey, clusid);
+
+  if (Verbosity() > 2)
+  std::cout << "Filling cluster with key " << ckey << std::endl;
+
+  // get the bunch crossing number from the hitsetkey
+  /* short int crossing = InttDefs::getTimeBucketId(hitset->getHitSetKey()); */
+
+  // determine the size of the cluster in phi and z, useful for track fitting the cluster
+  std::set<int> phibins;
+  std::set<int> zbins;
+
+  // determine the cluster position...
+  double xlocalsum = 0.0;
+  double ylocalsum = 0.0;
+  double zlocalsum = 0.0;
+  unsigned int clus_energy = 0.0;
+  /* unsigned int clus_maxadc = 0.0; */
+  unsigned nhits = 0;
+
+  // aggregate the adc values 
+  double sum_energy {0};
+  for ( auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit)
+    sum_energy += ihit->getEnergy();
+  }
+
+  // tune this energy threshold in the same maner of the MVTX, namely to get the same kind of pixel sizes
+  // as the SvtxTrack clusters
+  const double threshold = sum_energy * m_truth_pixelthreshold;
+
+  //std::cout << PHWHERE << " ckey " << ckey << ":" << std::endl;  
+  for ( auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit)
+  /* for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter) */
+  {
+    if (ihit->getEnergy() < threshold) continue;
+    // mapiter->second.first  is the hit key
+    //cout << " adding hitkey " << mapiter->second.first << std::endl; 
+    int col =  InttDefs::getCol( ihit->first);
+    int row = InttDefs::getRow( (ihit->first);
+    zbins.insert(col);
+    phibins.insert(row);
+
+    // mapiter->second.second is the hit
+    unsigned int hit_adc = ihit->second->getAdc();
+
+    // now get the positions from the geometry
+    double local_hit_location[3] = {0., 0., 0.};
+    geom->find_strip_center_localcoords(ladder_z_index, row, col, local_hit_location);
+    
+    // NOTE:
+    /* if (_make_e_weights[layer]) */
+    /* if ( false ) // the current implementation of the code does not weight by adc values */
+    /*              // therefore the default here is to use use adc to cut the outliers and nothing else */
+    /* { */
+    /*   xlocalsum += local_hit_location[0] * (double) hit_adc; */
+    /*   ylocalsum += local_hit_location[1] * (double) hit_adc; */
+    /*   zlocalsum += local_hit_location[2] * (double) hit_adc; */
+    /* } */
+    /* else */
+    /* { */
+    xlocalsum += local_hit_location[0];
+    ylocalsum += local_hit_location[1];
+    zlocalsum += local_hit_location[2];
+    /* } */
+    /* if(hit_adc > clus_maxadc) clus_maxadc = hit_adc; */
+    clus_energy += hit_adc;
+    ++nhits;
+
+    // add this cluster-hit association to the association map of (clusterkey,hitkey)
+    if (Verbosity() > 2) std::cout << "     nhits = " << nhits << std::endl;
+    if (Verbosity() > 2)
+    {
+        std::cout << "  From  geometry object: hit x " << local_hit_location[0] 
+                  << " hit y " << local_hit_location[1] << " hit z " << local_hit_location[2] << std::endl;
+        std::cout << "     nhits " << nhits << " clusx  = " << xlocalsum / nhits << " clusy " 
+                  << ylocalsum / nhits << " clusz " << zlocalsum / nhits << " hit_adc " << hit_adc << std::endl;
+    }
+  }
+
+  /* static const float invsqrt12 = 1./sqrt(12); */
+  // scale factors (phi direction)
+  /*
+  they corresponds to clusters of size 1 and 2 in phi
+  other clusters, which are very few and pathological, get a scale factor of 1
+  These scale factors are applied to produce cluster pulls with width unity
+  */
+
+  /* float phierror = pitch * invsqrt12; */
+  
+  /* static constexpr std::array<double, 3> scalefactors_phi = {{ 0.85, 0.4, 0.33 }}; */
+  /* if( phibins.size() == 1 && layer < 5) phierror*=scalefactors_phi[0]; */
+  /* else if( phibins.size() == 2 && layer < 5) phierror*=scalefactors_phi[1]; */
+  /* else if( phibins.size() == 2 && layer > 4) phierror*=scalefactors_phi[2]; */ 
+  /* // z error. All clusters have a z-size of 1. */
+  /* const float zerror = length * invsqrt12; */
+
+  double cluslocaly = NAN;
+  double cluslocalz = NAN;
+
+  if (_make_e_weights[layer])
+    {
+      cluslocaly = ylocalsum / (double) clus_adc;
+      cluslocalz = zlocalsum / (double) clus_adc;
+    }
+  else
+    {
+      cluslocaly = ylocalsum / nhits;
+      cluslocalz = zlocalsum / nhits;
+    }
+  if ( m_cluster_version==4 ){
+    auto clus = std::make_unique<TrkrClusterv4>();
+    // Fill the cluster fields
+    clus->setAdc(clus_adc);
+    clus->setPhiSize(phibins.size());
+    clus->setZSize(1);
+
+    if(Verbosity() > 10) clus->identify();
+
+    clus->setLocalX(cluslocaly);
+    clus->setLocalY(cluslocalz);
+    // silicon has a 1-1 map between hitsetkey and surfaces. So set to 
+    // 0
+    clus->setSubSurfKey(0);
+
+    m_hitsetkey_cnt.try_emplace(hitsetkey,0);
+    unsigned int& cnt = m_hitsetkey_cnt[hitsetkey];
+    ckey = TrkrDefs::genClusKey(hitsetkey, cnt);
+    m_truthclusters->addClusterSpecifyKey(ckey, clus.release());
+    m_current_track->addCluster(ckey);
+    ++cnt;
+    /* m_clusterlist->addClusterSpecifyKey(ckey, clus.release()); */
+    
+  }
+  }  // end loop over hitsets
 
   return;
 }
