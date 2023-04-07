@@ -199,7 +199,7 @@ PHField2D::PHField2D(const std::string &filename, const int verb, const float ma
     // you can change this to check table values for correctness
     // print_map prints the values in the root table, and the
     // std::couts print the values entered into the vectors
-    if (fabs(z) < 10 && ir < 10 /*&& iphi==2*/ && Verbosity() > 3)
+    if (std::fabs(z) < 10 && ir < 10 /*&& iphi==2*/ && Verbosity() > 3)
     {
       print_map(iter);
 

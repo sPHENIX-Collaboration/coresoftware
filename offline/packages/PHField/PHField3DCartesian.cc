@@ -234,7 +234,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
     ykey_save = ykey[0];
     zkey_save = zkey[0];
 
-    std::map<boost::tuple<float, float, float>, boost::tuple<float, float, float> >::const_iterator magval;
+    std::map<std::tuple<float, float, float>, std::tuple<float, float, float> >::const_iterator magval;
     trio key;
     for (int i = 0; i < 2; i++)
     {
@@ -242,7 +242,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
       {
         for (int k = 0; k < 2; k++)
         {
-          key = boost::make_tuple(xkey[i], ykey[j], zkey[k]);
+          key = std::make_tuple(xkey[i], ykey[j], zkey[k]);
           magval = fieldmap.find(key);
           if (magval == fieldmap.end())
           {
@@ -252,12 +252,12 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
                       << ", z: " << zkey[k] / cm << std::endl;
             return;
           }
-          xyz[i][j][k][0] = (magval->first).get<0>();
-          xyz[i][j][k][1] = (magval->first).get<1>();
-          xyz[i][j][k][2] = (magval->first).get<2>();
-          bf[i][j][k][0] = (magval->second).get<0>();
-          bf[i][j][k][1] = (magval->second).get<1>();
-          bf[i][j][k][2] = (magval->second).get<2>();
+          xyz[i][j][k][0] = std::get<0>(magval->first);
+          xyz[i][j][k][1] = std::get<1>(magval->first);
+          xyz[i][j][k][2] = std::get<2>(magval->first);
+          bf[i][j][k][0] = std::get<0>(magval->second);
+          bf[i][j][k][1] = std::get<1>(magval->second);
+          bf[i][j][k][2] = std::get<2>(magval->second);
           if (Verbosity() > 0)
           {
             std::cout << "read x/y/z: " << xyz[i][j][k][0] / cm << "/"
