@@ -417,7 +417,7 @@ namespace
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
       
       if(my_data.cluster_version==3){
-	std::cout << "ver3" << std::endl;
+	//std::cout << "ver3" << std::endl;
 	// Fill in the cluster details
 	//================
 	auto clus = new TrkrClusterv3;

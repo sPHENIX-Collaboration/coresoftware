@@ -167,7 +167,6 @@ int PHG4TpcCentralMembrane::process_event(PHCompositeNode* topNode)
 
   // load g4hit container
   auto g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  std::cout << PHWHERE << "hitnodename: " << hitnodename.c_str() << std::endl;
   if (!g4hitcontainer)
   {
     std::cout << PHWHERE << "Could not locate g4 hit node " << hitnodename << std::endl;

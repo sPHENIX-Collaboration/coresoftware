@@ -383,7 +383,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
        ++cmitr)
     {
       const auto& [cmkey, cmclus_orig] = *cmitr;
-      CMFlashClusterv2 *cmclus = dynamic_cast<CMFlashClusterv2 *>(cmclus_orig);
+      CMFlashCluster *cmclus = cmclus_orig;
       const unsigned int nclus = cmclus->getNclusters();
 
       if(m_useOnly_nClus2 && nclus != 2) continue;
@@ -858,12 +858,13 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
   m_dcc_out_aggregated.reset( new TpcDistortionCorrectionContainer );
 
   // compute axis limits to include guarding bins, needed for TH2::Interpolate to work
-  //  const float phiMin = m_phiMin - (m_phiMax-m_phiMin)/m_phibins;
-  //  const float phiMax = m_phiMax + (m_phiMax-m_phiMin)/m_phibins;
+  const float phiMin = m_phiMin - (m_phiMax-m_phiMin)/m_phibins;
+  const float phiMax = m_phiMax + (m_phiMax-m_phiMin)/m_phibins;
   
-  //  const float rMin = m_rMin - (m_rMax-m_rMin)/m_rbins;
-  //  const float rMax = m_rMax + (m_rMax-m_rMin)/m_rbins;
-
+  const float rMin = m_rMin - (m_rMax-m_rMin)/m_rbins;
+  const float rMax = m_rMax + (m_rMax-m_rMin)/m_rbins;
+  
+  /*
   double r_bins_mm[69] = {217.83-2,217.83,
 		       223.83, 229.83, 235.83, 241.83, 247.83, 253.83, 259.83, 265.83, 271.83, 277.83, 283.83, 289.83, 295.83, 301.83, 306.83,
 		       311.05, 317.92, 323.31, 329.27, 334.63, 340.59, 345.95, 351.91, 357.27, 363.23, 368.59, 374.55, 379.91, 385.87, 391.23, 397.19, 402.49,
@@ -893,7 +894,7 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
 			  5.3567, 5.3886, 5.4204, 5.4523, 5.4842, 5.4978, 5.5297, 5.5615, 5.5934, 5.6253, 5.6572, 5.689, 5.7209, 5.7528, 5.7847, 
 			  5.8165, 5.8484, 5.8803, 5.9122, 5.944, 5.9759, 6.0078, 6.0214, 6.0533, 6.0851, 6.117, 6.1489, 6.1808, 6.2127, 6.2445, 
 			  6.2764, 2 * M_PI};
-
+  */
 
   // reset all output distortion container so that they match the requested grid size
   const std::array<const std::string,2> extension = {{ "_negz", "_posz" }};
@@ -905,16 +906,16 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
     // create all histograms
     for( int i =0; i < 2; ++i )
     {
-      //      delete dcc->m_hDPint[i]; dcc->m_hDPint[i] = new TH2F( Form("hIntDistortionP%s", extension[i].c_str()), Form("hIntDistortionP%s", extension[i].c_str()), m_phibins+2, phiMin, phiMax, m_rbins+2, rMin, rMax );
-      //      delete dcc->m_hDRint[i]; dcc->m_hDRint[i] = new TH2F( Form("hIntDistortionR%s", extension[i].c_str()), Form("hIntDistortionR%s", extension[i].c_str()), m_phibins+2, phiMin, phiMax, m_rbins+2, rMin, rMax );
-      //      delete dcc->m_hDZint[i]; dcc->m_hDZint[i] = new TH2F( Form("hIntDistortionZ%s", extension[i].c_str()), Form("hIntDistortionZ%s", extension[i].c_str()), m_phibins+2, phiMin, phiMax, m_rbins+2, rMin, rMax );
-      //      delete dcc->m_hentries[i]; dcc->m_hentries[i] = new TH2I( Form("hEntries%s", extension[i].c_str()), Form("hEntries%s", extension[i].c_str()), m_phibins+2, phiMin, phiMax, m_rbins+2, rMin, rMax );
+      delete dcc->m_hDPint[i]; dcc->m_hDPint[i] = new TH2F( Form("hIntDistortionP%s", extension[i].c_str()), Form("hIntDistortionP%s", extension[i].c_str()), m_phibins+2, phiMin, phiMax, m_rbins+2, rMin, rMax );
+      delete dcc->m_hDRint[i]; dcc->m_hDRint[i] = new TH2F( Form("hIntDistortionR%s", extension[i].c_str()), Form("hIntDistortionR%s", extension[i].c_str()), m_phibins+2, phiMin, phiMax, m_rbins+2, rMin, rMax );
+      delete dcc->m_hDZint[i]; dcc->m_hDZint[i] = new TH2F( Form("hIntDistortionZ%s", extension[i].c_str()), Form("hIntDistortionZ%s", extension[i].c_str()), m_phibins+2, phiMin, phiMax, m_rbins+2, rMin, rMax );
+      delete dcc->m_hentries[i]; dcc->m_hentries[i] = new TH2I( Form("hEntries%s", extension[i].c_str()), Form("hEntries%s", extension[i].c_str()), m_phibins+2, phiMin, phiMax, m_rbins+2, rMin, rMax );
 
 
-      delete dcc->m_hDPint[i]; dcc->m_hDPint[i] = new TH2F( Form("hIntDistortionP%s", extension[i].c_str()), Form("hIntDistortionP%s", extension[i].c_str()), 205, phiBins, 68, r_bins );
-      delete dcc->m_hDRint[i]; dcc->m_hDRint[i] = new TH2F( Form("hIntDistortionR%s", extension[i].c_str()), Form("hIntDistortionR%s", extension[i].c_str()), 205, phiBins, 68, r_bins );
-      delete dcc->m_hDZint[i]; dcc->m_hDZint[i] = new TH2F( Form("hIntDistortionZ%s", extension[i].c_str()), Form("hIntDistortionZ%s", extension[i].c_str()), 205, phiBins, 68, r_bins );
-      delete dcc->m_hentries[i]; dcc->m_hentries[i] = new TH2I( Form("hEntries%s", extension[i].c_str()), Form("hEntries%s", extension[i].c_str()), 205, phiBins, 68, r_bins);
+      //delete dcc->m_hDPint[i]; dcc->m_hDPint[i] = new TH2F( Form("hIntDistortionP%s", extension[i].c_str()), Form("hIntDistortionP%s", extension[i].c_str()), 205, phiBins, 68, r_bins );
+      //delete dcc->m_hDRint[i]; dcc->m_hDRint[i] = new TH2F( Form("hIntDistortionR%s", extension[i].c_str()), Form("hIntDistortionR%s", extension[i].c_str()), 205, phiBins, 68, r_bins );
+      //delete dcc->m_hDZint[i]; dcc->m_hDZint[i] = new TH2F( Form("hIntDistortionZ%s", extension[i].c_str()), Form("hIntDistortionZ%s", extension[i].c_str()), 205, phiBins, 68, r_bins );
+      //delete dcc->m_hentries[i]; dcc->m_hentries[i] = new TH2I( Form("hEntries%s", extension[i].c_str()), Form("hEntries%s", extension[i].c_str()), 205, phiBins, 68, r_bins);
     }
   }
   
