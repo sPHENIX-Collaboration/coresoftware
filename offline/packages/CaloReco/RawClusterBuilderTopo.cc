@@ -468,12 +468,20 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     for(unsigned int iEM = 0; iEM < towerinfosEM->size(); iEM++)
     {
       towerInfo = towerinfosEM->get_tower_at_channel(iEM);
+      if(!towerInfo)
+      {
+        continue;
+      }
       unsigned int towerinfo_key = towerinfosEM->encode_key(iEM);
       int ti_ieta = towerinfosEM->getTowerEtaBin(towerinfo_key);
       int ti_iphi = towerinfosEM->getTowerPhiBin(towerinfo_key);
       const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ti_ieta, ti_iphi);
 
       RawTowerGeom *tower_geom = _geom_containers[2]->get_tower_geometry(key);
+      if(!tower_geom)
+      {
+        continue;
+      }
 
       int ieta = _geom_containers[2]->get_etabin(tower_geom->get_eta());
       int iphi = _geom_containers[2]->get_phibin(tower_geom->get_phi());
@@ -505,12 +513,20 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     for(unsigned int iIH = 0; iIH < towerinfosIH->size(); iIH++)
     {
       towerInfo = towerinfosIH->get_tower_at_channel(iIH);
+      if(!towerInfo)
+      {
+        continue;
+      }
       unsigned int towerinfo_key = towerinfosIH->encode_key(iIH);
       int ti_ieta = towerinfosIH->getTowerEtaBin(towerinfo_key);
       int ti_iphi = towerinfosIH->getTowerPhiBin(towerinfo_key);
       const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ti_ieta, ti_iphi);
 
       RawTowerGeom *tower_geom = _geom_containers[0]->get_tower_geometry(key);
+      if(!tower_geom)
+      {
+        continue;
+      }
 
       int ieta = _geom_containers[0]->get_etabin(tower_geom->get_eta());
       int iphi = _geom_containers[0]->get_phibin(tower_geom->get_phi());
@@ -537,12 +553,20 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     for(unsigned int iOH = 0; iOH < towerinfosOH->size(); iOH++)
     {
       towerInfo = towerinfosOH->get_tower_at_channel(iOH);
+      if(!towerInfo)
+      {
+        continue;
+      }
       unsigned int towerinfo_key = towerinfosOH->encode_key(iOH);
       int ti_ieta = towerinfosOH->getTowerEtaBin(towerinfo_key);
       int ti_iphi = towerinfosOH->getTowerPhiBin(towerinfo_key);
       const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ti_ieta, ti_iphi);
 
       RawTowerGeom *tower_geom = _geom_containers[1]->get_tower_geometry(key);
+      if(!tower_geom)
+      {
+        continue;
+      }
 
       int ieta = _geom_containers[1]->get_etabin(tower_geom->get_eta());
       int iphi = _geom_containers[1]->get_phibin(tower_geom->get_phi());
