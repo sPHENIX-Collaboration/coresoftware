@@ -12,11 +12,15 @@
 class GlobalVertex : public PHObject
 {
  public:
+  // the order matters (best vertex -> highest number), so leave some space in case we want to wedge other vertices in here
   enum VTXTYPE
   {
-    NONE = 0,
-    BBC = 1,
-    SVTX = 2
+    UNDEFINED = 0,
+    TRUTH = 100,
+    SMEARED = 200,
+    BBC = 300,
+    SVTX = 400,
+    SVTX_BBC = 500
   };
 
   typedef std::map<GlobalVertex::VTXTYPE, unsigned int>::const_iterator ConstVtxIter;
