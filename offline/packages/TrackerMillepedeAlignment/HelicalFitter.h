@@ -64,6 +64,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_layer_fixed(unsigned int layer);
   void set_layer_param_fixed(unsigned int layer, unsigned int param);
   void set_cluster_version(unsigned int v) { _cluster_version = v; }
+  void set_fitted_subsystems(bool si, bool tpc, bool full) { fitsilicon = si; fittpc = tpc; fitfulltrack = full; }
+  void set_error_inflation_factor(float factor) {_error_inflation = factor;}
 
   // utility functions for analysis modules
   std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
@@ -85,7 +87,9 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   int getLabelBase(Acts::GeometryIdentifier id);
   Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
+  Acts::Transform3 makePerturbationTranslation(Acts::Vector3 translations);
   std::vector<Acts::Vector3> getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing);
+  std::vector<Acts::Vector3> getDerivativesAlignmentTranslations(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing);
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
   int getTpcRegion(int layer);
@@ -94,10 +98,10 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void getGlobalLabels(Surface surf, int glbl_label[]);
   void getLocalDerivativesX(Acts::Vector3& pca, std::vector<float>& fitpars, float lcl_derivative[]);
   void getLocalDerivativesY(Acts::Vector3& pca, std::vector<float>& fitpars, float lcl_derivative[]);
-  void getLocalDerivativesZ(Acts::Vector3& global, float lcl_derivative[]);
-  void getGlobalDerivativesX( std::vector<Acts::Vector3> angleDerivs, float glbl_derivatives[], unsigned int layer);
-  void getGlobalDerivativesY( std::vector<Acts::Vector3> angleDerivs, float glbl_derivatives[], unsigned int layer);
-  void getGlobalDerivativesZ( std::vector<Acts::Vector3> angleDerivs, float glbl_derivatives[], unsigned int layer);
+  void getLocalDerivativesZ(Acts::Vector3& global,  std::vector<float>& fitpars, float lcl_derivative[]);
+  void getGlobalDerivativesX( std::vector<Acts::Vector3> angleDerivs, std::vector<Acts::Vector3> translDerivs, float glbl_derivatives[], unsigned int layer);
+  void getGlobalDerivativesY( std::vector<Acts::Vector3> angleDerivs, std::vector<Acts::Vector3> translDerivs, float glbl_derivatives[], unsigned int layer);
+  void getGlobalDerivativesZ( std::vector<Acts::Vector3> angleDerivs, std::vector<Acts::Vector3> translDerivs, float glbl_derivatives[], unsigned int layer);
   void printBuffers(int index, Acts::Vector3 residual, Acts::Vector3 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[]);
   bool is_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
@@ -112,7 +116,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   ClusterErrorPara _ClusErrPara;
 
-  float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
+  float sensorAngles[3] = {0.01, 0.01, 0.01};  // perturbation values for each alignment angle
+  float sensorTransl[3] = {0.5, 0.5, 0.5};  // perturbation values for each translation direction (mm)
  
   std::set<unsigned int> fixed_layers;
   std::set<std::pair<unsigned int,unsigned int>> fixed_layer_params;
@@ -141,11 +146,12 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   static const int NLC = 5;
   static const int NGL = 6;
 
-  bool fitsilicon = false;
-  bool fittpc = true;
-  bool fitfulltrack = true;
+  bool fitsilicon = true;
+  bool fittpc = false;
+  bool fitfulltrack = false;
 
   float dca_cut = 0.1;  // 1 mm
+  float _error_inflation = 1.0;
 
   std::string _field;
   int _fieldDir = -1;

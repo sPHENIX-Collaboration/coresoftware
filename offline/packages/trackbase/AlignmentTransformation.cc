@@ -86,7 +86,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	   }
 
          surf                        = surfMaps.getSiliconSurface(hitsetkey);
-	 Acts::Transform3 transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
+	 //Acts::Transform3 transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
+	 Acts::Transform3 transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
          Acts::GeometryIdentifier id = surf->geometryId();
 
 	 if(localVerbosity) 
@@ -108,7 +109,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	   }
 
          surf                        = surfMaps.getSiliconSurface(hitsetkey);
-	 Acts::Transform3 transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
+	 //Acts::Transform3 transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
+	 Acts::Transform3 transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
          Acts::GeometryIdentifier id = surf->geometryId();
 
 	 if(localVerbosity) 
@@ -136,7 +138,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	 for(unsigned int subsurfkey = subsurfkey_min; subsurfkey<subsurfkey_max; subsurfkey++)
 	   {
              surf                        = surfMaps.getTpcSurface(hitsetkey,subsurfkey);
-	     Acts::Transform3 transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
+	     //Acts::Transform3 transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
+	     Acts::Transform3 transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
              Acts::GeometryIdentifier id = surf->geometryId();
 
 	     if(localVerbosity) 
@@ -156,7 +159,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	     millepedeTranslation = millepedeTranslation + perturbationTranslation;
 	  }
 	surf                        = surfMaps.getMMSurface(hitsetkey);
-	Acts::Transform3 transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
+	//Acts::Transform3 transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
+	Acts::Transform3 transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
 	Acts::GeometryIdentifier id = surf->geometryId();
 
 	if(localVerbosity)
@@ -229,6 +233,30 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
   return globalRotation;
 }
 
+Eigen::Matrix3d AlignmentTransformation::modifyRotationConvention(Eigen::Matrix3d rotationMatrix)
+{
+  // Acts uses a rotation matrix that transforms local position (x,z,y) into global position (x',y',z')
+  // That rotation matrix is obtained from the one we have (which does (x,y,z) to (x',y',z') by:
+  //    exchanging column 2 and 3 (y with z)
+  //    flipping the signs of the original content of column 2
+
+  Eigen::Matrix3d actsRotationMatrix;
+  actsRotationMatrix(0,0) = rotationMatrix(0,0);
+  actsRotationMatrix(1,0) = rotationMatrix(1,0);
+  actsRotationMatrix(2,0) = rotationMatrix(2,0);
+
+  // flip column 1 and 2
+  actsRotationMatrix(0,1) = rotationMatrix(0,2);
+  actsRotationMatrix(1,1) = rotationMatrix(1,2);
+  actsRotationMatrix(2,1) = rotationMatrix(2,2);
+
+  actsRotationMatrix(0,2) = -rotationMatrix(0,1);
+  actsRotationMatrix(1,2) = -rotationMatrix(1,1);
+  actsRotationMatrix(2,2) = -rotationMatrix(2,1);
+
+  return actsRotationMatrix;
+}
+
 Acts::Transform3 AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector)
 {
   // Acts uses a rotation matrix that transforms local position (x,z,y) into global position (x',y',z')
@@ -255,6 +283,64 @@ Acts::Transform3 AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotat
   affineMatrix.linear() = actsRotationMatrix;
   affineMatrix.translation() = translationVector;
   return affineMatrix;
+}
+
+Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles)
+{
+  //define null matrices
+  Eigen::Vector3d nullTranslation(0,0,0);
+  Eigen::AngleAxisd a(0, Eigen::Vector3d::UnitX());
+  Eigen::AngleAxisd b(0, Eigen::Vector3d::UnitY());
+  Eigen::AngleAxisd g(0, Eigen::Vector3d::UnitZ());
+  Eigen::Quaternion<double> qnull       = g*b*a;
+  Eigen::Matrix3d nullRotation = qnull.matrix();
+
+  // Create alignment rotation matrix
+  Eigen::AngleAxisd alpha(sensorAngles(0), Eigen::Vector3d::UnitX());
+  Eigen::AngleAxisd beta(sensorAngles(1), Eigen::Vector3d::UnitY());
+  Eigen::AngleAxisd gamma(sensorAngles(2), Eigen::Vector3d::UnitZ());
+  Eigen::Quaternion<double> q       = gamma*beta*alpha;
+  Eigen::Matrix3d millepedeRotation = q.matrix();
+
+  Acts::Transform3 mpRotationAffine;   
+  mpRotationAffine.linear() = millepedeRotation;   
+  mpRotationAffine.translation() = nullTranslation;   
+
+
+  // create alignment translation matrix
+  Acts::Transform3 mpTranslationAffine;   
+  mpTranslationAffine.linear() = nullRotation;   
+  mpTranslationAffine.translation() = millepedeTranslation;   
+
+  // get the acts transform components
+  Acts::Transform3 actsTransform = surf->transform(m_tGeometry->geometry().getGeoContext());
+  Eigen::Matrix3d actsRotationPart    = actsTransform.rotation();
+  Eigen::Vector3d actsTranslationPart    = actsTransform.translation();
+
+  // modify actsRotationPart so that it rotates (x,y,z)->(x',y',z') instead of (x,z,y)->(x',y',z')
+  Eigen::Matrix3d modifiedActsRotationPart =  modifyRotationConvention(actsRotationPart);
+
+  // and make affine matrices from each
+  Acts::Transform3 actsRotationAffine;
+  actsRotationAffine.linear() = modifiedActsRotationPart;
+  actsRotationAffine.translation() = nullTranslation;
+  Acts::Transform3 actsTranslationAffine;
+  actsTranslationAffine.linear() = nullRotation;
+  actsTranslationAffine.translation() = actsTranslationPart;
+
+  //Put them together into a combined transform
+
+ Acts::Transform3 transform = mpTranslationAffine *  actsTranslationAffine *  actsRotationAffine * mpRotationAffine;
+
+  if(localVerbosity > 2)
+    {
+      std::cout << "mpRotationAffine: "<< std::endl<< mpRotationAffine.matrix()  <<std::endl;
+      std::cout << "actsRotationAffine: "<< std::endl<< actsRotationAffine.matrix()  <<std::endl;
+      std::cout << "actsTranslationAffine: "<< std::endl<< actsTranslationAffine.matrix()  <<std::endl;
+      std::cout << "mpTranslationAffine: " << std::endl << mpTranslationAffine.matrix() <<std::endl;
+    }
+
+  return transform;   
 }
 
 Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles)
