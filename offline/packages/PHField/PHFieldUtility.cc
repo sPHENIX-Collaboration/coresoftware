@@ -18,10 +18,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 #include <cassert>
 #include <cstdlib>  // for getenv
