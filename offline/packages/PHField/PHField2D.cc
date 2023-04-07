@@ -8,8 +8,6 @@
 
 #include <Geant4/G4SystemOfUnits.hh>
 
-#include <boost/tuple/tuple_comparison.hpp>
-
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -121,12 +119,12 @@ PHField2D::PHField2D(const std::string &filename, const int verb, const float ma
   {
     std::map<trio, trio>::iterator it = sorted_map.begin();
     print_map(it);
-    float last_z = it->first.get<0>();
+    float last_z = std::get<0>(it->first);
     for (it = sorted_map.begin(); it != sorted_map.end(); ++it)
     {
-      if (it->first.get<0>() != last_z)
+      if (std::get<0>(it->first) != last_z)
       {
-        last_z = it->first.get<0>();
+        last_z = std::get<0>(it->first);
         print_map(it);
       }
     }
@@ -162,10 +160,10 @@ PHField2D::PHField2D(const std::string &filename, const int verb, const float ma
   for (; iter != sorted_map.end(); ++iter)
   {
     // equivalent to ->GetEntry(iter)
-    float z = iter->first.get<0>() * cm;
-    float r = iter->first.get<1>() * cm;
-    float Bz = iter->second.get<0>() * magfield_unit;
-    float Br = iter->second.get<1>() * magfield_unit;
+    float z = std::get<0>(iter->first) * cm;
+    float r = std::get<1>(iter->first) * cm;
+    float Bz = std::get<0>(iter->second) * magfield_unit;
+    float Br = std::get<1>(iter->second) * magfield_unit;
 
     if (z > maxz_)
     {
@@ -416,10 +414,10 @@ void PHField2D::GetFieldCyl(const double CylPoint[4], double *BfieldCyl) const
 void PHField2D::print_map(std::map<trio, trio>::iterator &it) const
 {
   std::cout << "    Key: <"
-       << it->first.get<0>() / cm << ","
-       << it->first.get<1>() / cm << ">"
+       << std::get<0>(it->first) / cm << ","
+       << std::get<1>(it->first) / cm << ">"
 
        << " Value: <"
-       << it->second.get<0>() / magfield_unit << ","
-	    << it->second.get<1>() / magfield_unit << ">" << std::endl;
+       << std::get<0>(it->second) / magfield_unit << ","
+	    << std::get<1>(it->second) / magfield_unit << ">" << std::endl;
 }
