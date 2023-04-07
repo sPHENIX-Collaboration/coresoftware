@@ -6,8 +6,6 @@
 
 #include <Geant4/G4SystemOfUnits.hh>
 
-#include <boost/tuple/tuple_comparison.hpp>
-
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -102,12 +100,12 @@ PHField3DCylindrical::PHField3DCylindrical(const std::string &filename, const in
   {
     std::map<trio, trio>::iterator it = sorted_map.begin();
     print_map(it);
-    float last_z = it->first.get<0>();
+    float last_z = std::get<0>(it->first);
     for (it = sorted_map.begin(); it != sorted_map.end(); ++it)
     {
-      if (it->first.get<0>() != last_z)
+      if (std::get<0>(it->first) != last_z)
       {
-        last_z = it->first.get<0>();
+        last_z = std::get<0>(it->first);
         print_map(it);
       }
     }
@@ -147,12 +145,12 @@ PHField3DCylindrical::PHField3DCylindrical(const std::string &filename, const in
   for (; iter != sorted_map.end(); ++iter)
   {
     // equivalent to ->GetEntry(iter)
-    float z = iter->first.get<0>() * cm;
-    float r = iter->first.get<1>() * cm;
-    float phi = iter->first.get<2>() * deg;
-    float Bz = iter->second.get<0>() * gauss;
-    float Br = iter->second.get<1>() * gauss;
-    float Bphi = iter->second.get<2>() * gauss;
+    float z = std::get<0>(iter->first) * cm;
+    float r = std::get<1>(iter->first) * cm;
+    float phi = std::get<2>(iter->first) * deg;
+    float Bz = std::get<0>(iter->second) * gauss;
+    float Br = std::get<1>(iter->second) * gauss;
+    float Bphi = std::get<2>(iter->second) * gauss;
 
     if (z > maxz_)
     {
@@ -484,12 +482,12 @@ bool PHField3DCylindrical::bin_search(const std::vector<float> &vec, unsigned st
 void PHField3DCylindrical::print_map(std::map<trio, trio>::iterator &it) const
 {
   std::cout << "    Key: <"
-       << it->first.get<0>() * cm << ","
-       << it->first.get<1>() * cm << ","
-       << it->first.get<2>() * deg << ">"
+       << std::get<0>(it->first) * cm << ","
+       << std::get<1>(it->first) * cm << ","
+       << std::get<2>(it->first) * deg << ">"
 
        << " Value: <"
-       << it->second.get<0>() * gauss << ","
-       << it->second.get<1>() * gauss << ","
-	    << it->second.get<2>() * gauss << ">" << std::endl;
+       << std::get<0>(it->second) * gauss << ","
+	    << std::get<1>(it->second) * gauss << ","
+	    << std::get<2>(it->second) * gauss << ">" << std::endl;
 }
