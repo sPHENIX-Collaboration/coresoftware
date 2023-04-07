@@ -57,7 +57,7 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
   //SvtxHitMap *_hitmap;
 
   const unsigned int nadcbins = 8;
-  std::map<int, std::vector<std::pair<double, double> > > _max_fphx_adc;
+  std::map<int, std::vector<double>> _max_fphx_adc;
 
   unsigned int m_nCells = 0;
   unsigned int m_nDeadCells = 0;
