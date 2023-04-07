@@ -20,8 +20,8 @@ PHField3DCylindrical::PHField3DCylindrical(const std::string &filename, const in
 {
   std::cout << "\n================ Begin Construct Mag Field =====================" << std::endl;
   std::cout << "\n-----------------------------------------------------------"
-       << "\n      Magnetic field Module - Verbosity:" << Verbosity()
-       << "\n-----------------------------------------------------------";
+            << "\n      Magnetic field Module - Verbosity:" << Verbosity()
+            << "\n-----------------------------------------------------------";
 
   // open file
   TFile *rootinput = TFile::Open(filename.c_str());
@@ -31,8 +31,8 @@ PHField3DCylindrical::PHField3DCylindrical(const std::string &filename, const in
     exit(1);
   }
   std::cout << "\n ---> "
-          "Reading the field grid from "
-       << filename << " ... " << std::endl;
+               "Reading the field grid from "
+            << filename << " ... " << std::endl;
   rootinput->cd();
 
   //  get root NTuple objects
@@ -58,16 +58,16 @@ PHField3DCylindrical::PHField3DCylindrical(const std::string &filename, const in
   if (Verbosity() > 0)
   {
     std::cout << "\n  NENTRIES should be the same as the following values:"
-         << "\n  [ Number of values r,phi,z: "
-         << nr << " " << nphi << " " << nz << " ]! " << std::endl;
+              << "\n  [ Number of values r,phi,z: "
+              << nr << " " << nphi << " " << nz << " ]! " << std::endl;
   }
 
   if (nz != nr || nz != nphi || nr != nphi)
   {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-         << "\n The file you entered is not a \"table\" of values"
-         << "\n Something very likely went oh so wrong"
-         << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+              << "\n The file you entered is not a \"table\" of values"
+              << "\n Something very likely went oh so wrong"
+              << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
   }
 
   // Keep track of the unique z, r, phi values in the grid using sets
@@ -196,12 +196,12 @@ PHField3DCylindrical::PHField3DCylindrical(const std::string &filename, const in
       print_map(iter);
 
       std::cout << " B("
-           << r_map_[ir] << ", "
-           << phi_map_[iphi] << ", "
-           << z_map_[iz] << "):  ("
-           << BFieldR_[iz][ir][iphi] << ", "
-           << BFieldPHI_[iz][ir][iphi] << ", "
-           << BFieldZ_[iz][ir][iphi] << ")" << std::endl;
+                << r_map_[ir] << ", "
+                << phi_map_[iphi] << ", "
+                << z_map_[iz] << "):  ("
+                << BFieldR_[iz][ir][iphi] << ", "
+                << BFieldPHI_[iz][ir][iphi] << ", "
+                << BFieldZ_[iz][ir][iphi] << ")" << std::endl;
     }
 
   }  // end loop over root field map file
@@ -209,11 +209,11 @@ PHField3DCylindrical::PHField3DCylindrical(const std::string &filename, const in
   rootinput->Close();
 
   std::cout << "\n ---> ... read file successfully "
-       << "\n ---> Z Boundaries ~ zlow, zhigh: "
-       << minz_ / cm << "," << maxz_ / cm << " cm " << std::endl;
+            << "\n ---> Z Boundaries ~ zlow, zhigh: "
+            << minz_ / cm << "," << maxz_ / cm << " cm " << std::endl;
 
   std::cout << "\n================= End Construct Mag Field ======================\n"
-       << std::endl;
+            << std::endl;
 }
 
 void PHField3DCylindrical::GetFieldValue(const double point[4], double *Bfield) const
@@ -273,8 +273,8 @@ void PHField3DCylindrical::GetFieldValue(const double point[4], double *Bfield) 
   if (Verbosity() > 2)
   {
     std::cout << "END PHField3DCylindrical::GetFieldValue\n"
-         << "  --->  {Bx, By, Bz} : "
-         << "< " << Bfield[0] << ", " << Bfield[1] << ", " << Bfield[2] << " >" << std::endl;
+              << "  --->  {Bx, By, Bz} : "
+              << "< " << Bfield[0] << ", " << Bfield[1] << ", " << Bfield[2] << " >" << std::endl;
   }
 
   return;
@@ -444,8 +444,8 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   if (Verbosity() > 2)
   {
     std::cout << "End GFCyl Call: <bz,br,bphi> : {"
-         << BfieldCyl[0] / gauss << "," << BfieldCyl[1] / gauss << "," << BfieldCyl[2] / gauss << "}"
-         << std::endl;
+              << BfieldCyl[0] / gauss << "," << BfieldCyl[1] / gauss << "," << BfieldCyl[2] / gauss << "}"
+              << std::endl;
   }
 
   return;
@@ -482,12 +482,12 @@ bool PHField3DCylindrical::bin_search(const std::vector<float> &vec, unsigned st
 void PHField3DCylindrical::print_map(std::map<trio, trio>::iterator &it) const
 {
   std::cout << "    Key: <"
-       << std::get<0>(it->first) * cm << ","
-       << std::get<1>(it->first) * cm << ","
-       << std::get<2>(it->first) * deg << ">"
+            << std::get<0>(it->first) * cm << ","
+            << std::get<1>(it->first) * cm << ","
+            << std::get<2>(it->first) * deg << ">"
 
-       << " Value: <"
-       << std::get<0>(it->second) * gauss << ","
-	    << std::get<1>(it->second) * gauss << ","
-	    << std::get<2>(it->second) * gauss << ">" << std::endl;
+            << " Value: <"
+            << std::get<0>(it->second) * gauss << ","
+            << std::get<1>(it->second) * gauss << ","
+            << std::get<2>(it->second) * gauss << ">" << std::endl;
 }

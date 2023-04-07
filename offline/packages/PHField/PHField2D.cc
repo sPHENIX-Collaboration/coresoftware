@@ -1,6 +1,6 @@
 #include "PHField2D.h"
 
-//root framework
+// root framework
 #include <TDirectory.h>
 #include <TFile.h>
 #include <TNtuple.h>
@@ -78,16 +78,16 @@ PHField2D::PHField2D(const std::string &filename, const int verb, const float ma
   if (Verbosity() > 1)
   {
     std::cout << "\n  NENTRIES should be the same as the following values:"
-         << "\n  [ Number of values r,z: "
-         << nr << " " << nz << " ]! " << std::endl;
+              << "\n  [ Number of values r,z: "
+              << nr << " " << nz << " ]! " << std::endl;
   }
 
   if (nz != nr)
   {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-         << "\n The file you entered is not a \"table\" of values"
-         << "\n Something very likely went oh so wrong"
-         << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+              << "\n The file you entered is not a \"table\" of values"
+              << "\n Something very likely went oh so wrong"
+              << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
   }
 
   // Keep track of the unique z, r, phi values in the grid using sets
@@ -202,10 +202,10 @@ PHField2D::PHField2D(const std::string &filename, const int verb, const float ma
       print_map(iter);
 
       std::cout << " B("
-           << r_map_[ir] << ", "
-           << z_map_[iz] << "):  ("
-           << BFieldR_[iz][ir] << ", "
-           << BFieldZ_[iz][ir] << ")" << std::endl;
+                << r_map_[ir] << ", "
+                << z_map_[iz] << "):  ("
+                << BFieldR_[iz][ir] << ", "
+                << BFieldZ_[iz][ir] << ")" << std::endl;
     }
 
   }  // end loop over root field map file
@@ -276,8 +276,8 @@ void PHField2D::GetFieldValue(const double point[4], double *Bfield) const
   if (Verbosity() > 2)
   {
     std::cout << "END PHField2D::GetFieldValue\n"
-         << "  --->  {Bx, By, Bz} : "
-         << "< " << Bfield[0] << ", " << Bfield[1] << ", " << Bfield[2] << " >" << std::endl;
+              << "  --->  {Bx, By, Bz} : "
+              << "< " << Bfield[0] << ", " << Bfield[1] << ", " << Bfield[2] << " >" << std::endl;
   }
 
   return;
@@ -403,8 +403,8 @@ void PHField2D::GetFieldCyl(const double CylPoint[4], double *BfieldCyl) const
   if (Verbosity() > 2)
   {
     std::cout << "End GFCyl Call: <bz,br,bphi> : {"
-         << BfieldCyl[0] / gauss << "," << BfieldCyl[1] / gauss << "," << BfieldCyl[2] / gauss << "}"
-         << std::endl;
+              << BfieldCyl[0] / gauss << "," << BfieldCyl[1] / gauss << "," << BfieldCyl[2] / gauss << "}"
+              << std::endl;
   }
 
   return;
@@ -414,10 +414,10 @@ void PHField2D::GetFieldCyl(const double CylPoint[4], double *BfieldCyl) const
 void PHField2D::print_map(std::map<trio, trio>::iterator &it) const
 {
   std::cout << "    Key: <"
-       << std::get<0>(it->first) / cm << ","
-       << std::get<1>(it->first) / cm << ">"
+            << std::get<0>(it->first) / cm << ","
+            << std::get<1>(it->first) / cm << ">"
 
-       << " Value: <"
-       << std::get<0>(it->second) / magfield_unit << ","
-	    << std::get<1>(it->second) / magfield_unit << ">" << std::endl;
+            << " Value: <"
+            << std::get<0>(it->second) / magfield_unit << ","
+            << std::get<1>(it->second) / magfield_unit << ">" << std::endl;
 }

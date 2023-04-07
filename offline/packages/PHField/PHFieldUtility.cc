@@ -69,8 +69,8 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, float inner_rad
     field = new PHField3DCartesian(
         field_config->get_filename(),
         field_config->get_magfield_rescale(),
-	inner_radius,
-	outer_radius,
+        inner_radius,
+        outer_radius,
         size_z);
     break;
 
