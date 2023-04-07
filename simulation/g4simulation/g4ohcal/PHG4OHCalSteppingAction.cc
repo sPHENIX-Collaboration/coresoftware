@@ -33,7 +33,7 @@
 #include <Geant4/G4AffineTransform.hh>  // for G4AffineTransform
 #include <Geant4/G4Field.hh>
 #include <Geant4/G4FieldManager.hh>
-#include <Geant4/G4LogicalVolume.hh>                  // for G4LogicalVolume
+#include <Geant4/G4LogicalVolume.hh>       // for G4LogicalVolume
 #include <Geant4/G4NavigationHistory.hh>   // for G4NavigationHistory
 #include <Geant4/G4ParticleDefinition.hh>  // for G4ParticleDefinition
 #include <Geant4/G4PropagatorInField.hh>
@@ -272,17 +272,17 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
       {
         m_Hit = new PHG4Hitv1();
       }
-      //here we set the entrance values in cm
+      // here we set the entrance values in cm
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
       m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
       m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
 
       // time in ns
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-      //set the track ID
+      // set the track ID
       m_Hit->set_trkid(aTrack->GetTrackID());
       m_SaveTrackId = aTrack->GetTrackID();
-      //set the initial energy deposit
+      // set the initial energy deposit
       m_Hit->set_edep(0);
       if (whichactive > 0)  // return of IsInOHCalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
@@ -351,7 +351,7 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
 
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
-    //sum up the energy to get total deposited
+    // sum up the energy to get total deposited
     m_Hit->set_edep(m_Hit->get_edep() + edep);
 
     if (whichactive > 0)
@@ -493,7 +493,7 @@ void PHG4OHCalSteppingAction::FieldChecker(const G4Step* aStep)
 
   static const std::string h_field_name = "hOHCalField";
 
-  if (! se->isHistoRegistered(h_field_name))
+  if (!se->isHistoRegistered(h_field_name))
   {
     TH2F* h = new TH2F(h_field_name.c_str(), "Magnetic field (Tesla) in HCal;X (cm);Y (cm)", 2400,
                        -300, 300, 2400, -300, 300);

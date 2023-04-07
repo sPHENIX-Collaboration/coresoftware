@@ -4,7 +4,7 @@
 
 /*!
  * \file PHG4OHCalFieldSetup.h
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -15,7 +15,7 @@
 
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 
-#include <limits>             // for numeric_limits
+#include <limits>  // for numeric_limits
 #include <string>
 
 class G4ChordFinder;
@@ -30,7 +30,7 @@ class G4MagneticField;
 class PHG4OHCalFieldSetup
 {
  public:
-  PHG4OHCalFieldSetup(const std::string & iron_fieldmap_path, const double scale = 1., const double inner_radius = 0., const double outer_radius = 1.e10, const double size_z = 1.e10);
+  PHG4OHCalFieldSetup(const std::string& iron_fieldmap_path, const double scale = 1., const double inner_radius = 0., const double outer_radius = 1.e10, const double size_z = 1.e10);
 
   // delete copy ctor and assignment opertor (cppcheck)
   explicit PHG4OHCalFieldSetup(const PHG4OHCalFieldSetup&) = delete;
