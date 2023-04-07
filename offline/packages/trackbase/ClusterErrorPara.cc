@@ -21,7 +21,6 @@ ClusterErrorPara::ClusterErrorPara()
   f0 = new TF1("f0","pol1",0,10);
   f0->SetParameter(0,0.0163943);
   f0->SetParameter(1,0.0192931);
-  //  f0->SetParameter(2,-5.2042);
 
   f1 = new TF1("f1","pol2",0,10);
   f1->SetParameter(0,0.0119384);
