@@ -20,7 +20,8 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib
 
 libepd_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lcalo_io
 
 libepd_la_LIBADD = \
   libepd_io.la \

@@ -140,14 +140,12 @@ int PHActsTrackProjection::projectTracks(const int caloLayer)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-
-
 void PHActsTrackProjection::updateSvtxTrack(
     const ActsPropagator::BoundTrackParamPair& parameters,
     SvtxTrack* svtxTrack,
     const int caloLayer)
 {
-  float pathlength = parameters.first;
+  float pathlength = parameters.first / Acts::UnitConstants::cm;
   auto params = parameters.second;
 
   SvtxTrackState_v1 out(pathlength);
