@@ -2,15 +2,9 @@
 
 #include <TDirectory.h>  // for TDirectory, gDirectory
 #include <TFile.h>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TNtuple.h>
-#pragma GCC diagnostic pop
 
 #include <Geant4/G4SystemOfUnits.hh>
-
-#include <boost/tuple/tuple_comparison.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -21,26 +15,24 @@
 #include <set>
 #include <utility>
 
-using namespace std;
-
-PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int verb, const float magfield_rescale)
+PHField3DCylindrical::PHField3DCylindrical(const std::string &filename, const int verb, const float magfield_rescale)
   : PHField(verb)
 {
-  cout << "\n================ Begin Construct Mag Field =====================" << endl;
-  cout << "\n-----------------------------------------------------------"
-       << "\n      Magnetic field Module - Verbosity:" << Verbosity()
-       << "\n-----------------------------------------------------------";
+  std::cout << "\n================ Begin Construct Mag Field =====================" << std::endl;
+  std::cout << "\n-----------------------------------------------------------"
+            << "\n      Magnetic field Module - Verbosity:" << Verbosity()
+            << "\n-----------------------------------------------------------";
 
   // open file
   TFile *rootinput = TFile::Open(filename.c_str());
   if (!rootinput)
   {
-    cout << "\n could not open " << filename << " exiting now" << endl;
+    std::cout << "\n could not open " << filename << " exiting now" << std::endl;
     exit(1);
   }
-  cout << "\n ---> "
-          "Reading the field grid from "
-       << filename << " ... " << endl;
+  std::cout << "\n ---> "
+               "Reading the field grid from "
+            << filename << " ... " << std::endl;
   rootinput->cd();
 
   //  get root NTuple objects
@@ -62,20 +54,20 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
   static const int NENTRIES = field_map->GetEntries();
 
   // run checks on entries
-  cout << " ---> The field grid contained " << NENTRIES << " entries" << endl;
+  std::cout << " ---> The field grid contained " << NENTRIES << " entries" << std::endl;
   if (Verbosity() > 0)
   {
-    cout << "\n  NENTRIES should be the same as the following values:"
-         << "\n  [ Number of values r,phi,z: "
-         << nr << " " << nphi << " " << nz << " ]! " << endl;
+    std::cout << "\n  NENTRIES should be the same as the following values:"
+              << "\n  [ Number of values r,phi,z: "
+              << nr << " " << nphi << " " << nz << " ]! " << std::endl;
   }
 
   if (nz != nr || nz != nphi || nr != nphi)
   {
-    cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-         << "\n The file you entered is not a \"table\" of values"
-         << "\n Something very likely went oh so wrong"
-         << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+              << "\n The file you entered is not a \"table\" of values"
+              << "\n Something very likely went oh so wrong"
+              << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
   }
 
   // Keep track of the unique z, r, phi values in the grid using sets
@@ -88,7 +80,7 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
   // phi.
   if (Verbosity() > 0)
   {
-    cout << "  --> Sorting Entries..." << endl;
+    std::cout << "  --> Sorting Entries..." << std::endl;
   }
   std::map<trio, trio> sorted_map;
   for (int i = 0; i < field_map->GetEntries(); i++)
@@ -103,17 +95,17 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
     phi_set.insert(ROOT_PHI * deg);
   }
 
-  // couts for assurance
+  // std::couts for assurance
   if (Verbosity() > 4)
   {
-    map<trio, trio>::iterator it = sorted_map.begin();
+    std::map<trio, trio>::iterator it = sorted_map.begin();
     print_map(it);
-    float last_z = it->first.get<0>();
+    float last_z = std::get<0>(it->first);
     for (it = sorted_map.begin(); it != sorted_map.end(); ++it)
     {
-      if (it->first.get<0>() != last_z)
+      if (std::get<0>(it->first) != last_z)
       {
-        last_z = it->first.get<0>();
+        last_z = std::get<0>(it->first);
         print_map(it);
       }
     }
@@ -121,7 +113,7 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
 
   if (Verbosity() > 0)
   {
-    cout << "  --> Putting entries into containers... " << endl;
+    std::cout << "  --> Putting entries into containers... " << std::endl;
   }
 
   // grab the minimum and maximum z values
@@ -143,22 +135,22 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
   std::copy(r_set.begin(), r_set.end(), r_map_.begin());
 
   // initialize the field map vectors to the correct sizes
-  BFieldR_.resize(nz, vector<vector<float> >(nr, vector<float>(nphi, 0)));
-  BFieldPHI_.resize(nz, vector<vector<float> >(nr, vector<float>(nphi, 0)));
-  BFieldZ_.resize(nz, vector<vector<float> >(nr, vector<float>(nphi, 0)));
+  BFieldR_.resize(nz, std::vector<std::vector<float> >(nr, std::vector<float>(nphi, 0)));
+  BFieldPHI_.resize(nz, std::vector<std::vector<float> >(nr, std::vector<float>(nphi, 0)));
+  BFieldZ_.resize(nz, std::vector<std::vector<float> >(nr, std::vector<float>(nphi, 0)));
 
   // all of this assumes that  z_prev < z , i.e. the table is ordered (as of right now)
   unsigned int ir = 0, iphi = 0, iz = 0;  // useful indexes to keep track of
-  map<trio, trio>::iterator iter = sorted_map.begin();
+  std::map<trio, trio>::iterator iter = sorted_map.begin();
   for (; iter != sorted_map.end(); ++iter)
   {
     // equivalent to ->GetEntry(iter)
-    float z = iter->first.get<0>() * cm;
-    float r = iter->first.get<1>() * cm;
-    float phi = iter->first.get<2>() * deg;
-    float Bz = iter->second.get<0>() * gauss;
-    float Br = iter->second.get<1>() * gauss;
-    float Bphi = iter->second.get<2>() * gauss;
+    float z = std::get<0>(iter->first) * cm;
+    float r = std::get<1>(iter->first) * cm;
+    float phi = std::get<2>(iter->first) * deg;
+    float Bz = std::get<0>(iter->second) * gauss;
+    float Br = std::get<1>(iter->second) * gauss;
+    float Bphi = std::get<2>(iter->second) * gauss;
 
     if (z > maxz_)
     {
@@ -189,7 +181,7 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
     // shouldn't happen
     if (iz > 0 && z < z_map_[iz - 1])
     {
-      cout << "!!!!!!!!! Your map isn't ordered.... z: " << z << " zprev: " << z_map_[iz - 1] << endl;
+      std::cout << "!!!!!!!!! Your map isn't ordered.... z: " << z << " zprev: " << z_map_[iz - 1] << std::endl;
     }
 
     BFieldR_[iz][ir][iphi] = Br * magfield_rescale;
@@ -198,37 +190,37 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
 
     // you can change this to check table values for correctness
     // print_map prints the values in the root table, and the
-    // couts print the values entered into the vectors
-    if (fabs(z) < 10 && ir < 10 /*&& iphi==2*/ && Verbosity() > 3)
+    // std::couts print the values entered into the vectors
+    if (std::fabs(z) < 10 && ir < 10 /*&& iphi==2*/ && Verbosity() > 3)
     {
       print_map(iter);
 
-      cout << " B("
-           << r_map_[ir] << ", "
-           << phi_map_[iphi] << ", "
-           << z_map_[iz] << "):  ("
-           << BFieldR_[iz][ir][iphi] << ", "
-           << BFieldPHI_[iz][ir][iphi] << ", "
-           << BFieldZ_[iz][ir][iphi] << ")" << endl;
+      std::cout << " B("
+                << r_map_[ir] << ", "
+                << phi_map_[iphi] << ", "
+                << z_map_[iz] << "):  ("
+                << BFieldR_[iz][ir][iphi] << ", "
+                << BFieldPHI_[iz][ir][iphi] << ", "
+                << BFieldZ_[iz][ir][iphi] << ")" << std::endl;
     }
 
   }  // end loop over root field map file
 
   rootinput->Close();
 
-  cout << "\n ---> ... read file successfully "
-       << "\n ---> Z Boundaries ~ zlow, zhigh: "
-       << minz_ / cm << "," << maxz_ / cm << " cm " << endl;
+  std::cout << "\n ---> ... read file successfully "
+            << "\n ---> Z Boundaries ~ zlow, zhigh: "
+            << minz_ / cm << "," << maxz_ / cm << " cm " << std::endl;
 
-  cout << "\n================= End Construct Mag Field ======================\n"
-       << endl;
+  std::cout << "\n================= End Construct Mag Field ======================\n"
+            << std::endl;
 }
 
 void PHField3DCylindrical::GetFieldValue(const double point[4], double *Bfield) const
 {
   if (Verbosity() > 2)
   {
-    cout << "\nPHField3DCylindrical::GetFieldValue" << endl;
+    std::cout << "\nPHField3DCylindrical::GetFieldValue" << std::endl;
   }
   double x = point[0];
   double y = point[1];
@@ -274,15 +266,15 @@ void PHField3DCylindrical::GetFieldValue(const double point[4], double *Bfield) 
     Bfield[2] = 0.0;
     if (Verbosity() > 2)
     {
-      cout << "!!!!!!!!!! Field point not in defined region (outside of z bounds)" << endl;
+      std::cout << "!!!!!!!!!! Field point not in defined region (outside of z bounds)" << std::endl;
     }
   }
 
   if (Verbosity() > 2)
   {
-    cout << "END PHField3DCylindrical::GetFieldValue\n"
-         << "  --->  {Bx, By, Bz} : "
-         << "< " << Bfield[0] << ", " << Bfield[1] << ", " << Bfield[2] << " >" << endl;
+    std::cout << "END PHField3DCylindrical::GetFieldValue\n"
+              << "  --->  {Bx, By, Bz} : "
+              << "< " << Bfield[0] << ", " << Bfield[1] << ", " << Bfield[2] << " >" << std::endl;
   }
 
   return;
@@ -300,14 +292,14 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
 
   if (Verbosity() > 2)
   {
-    cout << "GetFieldCyl@ <z,r,phi>: {" << z << "," << r << "," << phi << "}" << endl;
+    std::cout << "GetFieldCyl@ <z,r,phi>: {" << z << "," << r << "," << phi << "}" << std::endl;
   }
 
   if (z <= z_map_[0] || z >= z_map_[z_map_.size() - 1])
   {
     if (Verbosity() > 2)
     {
-      cout << "!!!! Point not in defined region (|z| too large)" << endl;
+      std::cout << "!!!! Point not in defined region (|z| too large)" << std::endl;
     }
     return;
   }
@@ -316,7 +308,7 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
     r = r_map_[0];
     if (Verbosity() > 2)
     {
-      cout << "!!!! Point not in defined region (radius too small in specific z-plane). Use min radius" << endl;
+      std::cout << "!!!! Point not in defined region (radius too small in specific z-plane). Use min radius" << std::endl;
     }
     //    return;
   }
@@ -324,12 +316,12 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   {
     if (Verbosity() > 2)
     {
-      cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
+      std::cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << std::endl;
     }
     return;
   }
 
-  vector<float>::const_iterator ziter = upper_bound(z_map_.begin(), z_map_.end(), z);
+  std::vector<float>::const_iterator ziter = upper_bound(z_map_.begin(), z_map_.end(), z);
   int z_index0 = distance(z_map_.begin(), ziter) - 1;
   int z_index1 = z_index0 + 1;
 
@@ -338,13 +330,13 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   assert(z_index0 < (int) z_map_.size());
   assert(z_index1 < (int) z_map_.size());
 
-  vector<float>::const_iterator riter = upper_bound(r_map_.begin(), r_map_.end(), r);
+  std::vector<float>::const_iterator riter = upper_bound(r_map_.begin(), r_map_.end(), r);
   int r_index0 = distance(r_map_.begin(), riter) - 1;
   if (r_index0 >= (int) r_map_.size())
   {
     if (Verbosity() > 2)
     {
-      cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
+      std::cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << std::endl;
     }
     return;
   }
@@ -354,7 +346,7 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   {
     if (Verbosity() > 2)
     {
-      cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
+      std::cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << std::endl;
     }
     return;
   }
@@ -362,7 +354,7 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   assert(r_index0 >= 0);
   assert(r_index1 >= 0);
 
-  vector<float>::const_iterator phiiter = upper_bound(phi_map_.begin(), phi_map_.end(), phi);
+  std::vector<float>::const_iterator phiiter = upper_bound(phi_map_.begin(), phi_map_.end(), phi);
   int phi_index0 = distance(phi_map_.begin(), phiiter) - 1;
   int phi_index1 = phi_index0 + 1;
   if (phi_index1 >= (int) phi_map_.size())
@@ -438,22 +430,22 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
       zweight * ((1 - rweight) * ((1 - phiweight) * Bphi100 + phiweight * Bphi101) +
                  rweight * ((1 - phiweight) * Bphi110 + phiweight * Bphi111));
 
-  //     cout << "wr: " << rweight << " wz: " << zweight << " wphi: " << phiweight << endl;
-  //     cout << "Bz000: " << Bz000 << endl
-  //          << "Bz001: " << Bz001 << endl
-  //          << "Bz010: " << Bz010 << endl
-  //          << "Bz011: " << Bz011 << endl
-  //          << "Bz100: " << Bz100 << endl
-  //          << "Bz101: " << Bz101 << endl
-  //          << "Bz110: " << Bz110 << endl
-  //          << "Bz111: " << Bz111 << endl
-  //          << "Bz:    " << BfieldCyl[0] << endl << endl;
+  //     std::cout << "wr: " << rweight << " wz: " << zweight << " wphi: " << phiweight << std::endl;
+  //     std::cout << "Bz000: " << Bz000 << std::endl
+  //          << "Bz001: " << Bz001 << std::endl
+  //          << "Bz010: " << Bz010 << std::endl
+  //          << "Bz011: " << Bz011 << std::endl
+  //          << "Bz100: " << Bz100 << std::endl
+  //          << "Bz101: " << Bz101 << std::endl
+  //          << "Bz110: " << Bz110 << std::endl
+  //          << "Bz111: " << Bz111 << std::endl
+  //          << "Bz:    " << BfieldCyl[0] << std::endl << std::endl;
 
   if (Verbosity() > 2)
   {
-    cout << "End GFCyl Call: <bz,br,bphi> : {"
-         << BfieldCyl[0] / gauss << "," << BfieldCyl[1] / gauss << "," << BfieldCyl[2] / gauss << "}"
-         << endl;
+    std::cout << "End GFCyl Call: <bz,br,bphi> : {"
+              << BfieldCyl[0] / gauss << "," << BfieldCyl[1] / gauss << "," << BfieldCyl[2] / gauss << "}"
+              << std::endl;
   }
 
   return;
@@ -461,7 +453,7 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
 
 // a binary search algorithm that puts the location that "key" would be, into index...
 // it returns true if key was found, and false if not.
-bool PHField3DCylindrical::bin_search(const vector<float> &vec, unsigned start, unsigned end, const float &key, unsigned &index) const
+bool PHField3DCylindrical::bin_search(const std::vector<float> &vec, unsigned start, unsigned end, const float &key, unsigned &index) const
 {
   // Termination condition: start index greater than end index
   if (start > end)
@@ -487,15 +479,15 @@ bool PHField3DCylindrical::bin_search(const vector<float> &vec, unsigned start, 
 }
 
 // debug function to print key/value pairs in map
-void PHField3DCylindrical::print_map(map<trio, trio>::iterator &it) const
+void PHField3DCylindrical::print_map(std::map<trio, trio>::iterator &it) const
 {
-  cout << "    Key: <"
-       << it->first.get<0>() * cm << ","
-       << it->first.get<1>() * cm << ","
-       << it->first.get<2>() * deg << ">"
+  std::cout << "    Key: <"
+            << std::get<0>(it->first) * cm << ","
+            << std::get<1>(it->first) * cm << ","
+            << std::get<2>(it->first) * deg << ">"
 
-       << " Value: <"
-       << it->second.get<0>() * gauss << ","
-       << it->second.get<1>() * gauss << ","
-       << it->second.get<2>() * gauss << ">\n";
+            << " Value: <"
+            << std::get<0>(it->second) * gauss << ","
+            << std::get<1>(it->second) * gauss << ","
+            << std::get<2>(it->second) * gauss << ">" << std::endl;
 }
