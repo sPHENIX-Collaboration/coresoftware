@@ -13,7 +13,6 @@
 #include <string>
 
 class PHCompositeNode;
-class PHG4MvtxTruthClusterizer;
 class PHG4TruthInfoContainer;
 class TrkrClusterContainer;
 class TrkrHitSetContainer;

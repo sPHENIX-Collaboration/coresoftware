@@ -4,21 +4,24 @@
 #define G4INTT_PHG4INTTHITRECO_H
 
 
-#include <phparameter/PHParameterInterface.h>
-
 #include <fun4all/SubsysReco.h>
-
 #include <gsl/gsl_vector.h>  // for gsl_vector
+#include <phparameter/PHParameterInterface.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <cmath>
+#include <map>
 #include <string>
 
 class PHCompositeNode;
 
-class TrkrTruthTrackContainer;
+class PHG4Hit;
+class PHG4TruthInfoContainer;
 class TrkrClusterContainer;
-class PHG4InttTruthClusterizer;
-
+class TrkrClusterContainer;
+class TrkrHitSetContainer;
+class TrkrTruthTrack;
+class TrkrTruthTrackContainer;
 
 class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
 {
@@ -37,21 +40,15 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
 
   void Detector(const std::string &d) { m_Detector = d; }
 
-  PHG4InttTruthClusterizer* get_truth_clusterizer() { return m_truthclusterizer; };
  protected:
   std::string m_Detector = "INTT";
   std::string m_HitNodeName;
   std::string m_CellNodeName;
   std::string m_GeoNodeName;
 
-  TrkrTruthTrackContainer* m_truthtracks { nullptr };
-  TrkrClusterContainer*    m_truthclusters { nullptr };
-
   double m_Tmin;
   double m_Tmax;
   double m_crossingPeriod;
-
-  PHG4InttTruthClusterizer* m_truthclusterizer;
 
   gsl_vector *m_LocalOutVec = nullptr;
   gsl_vector *m_PathVec = nullptr;
