@@ -329,9 +329,14 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
     }
   else if(_cluster_version == 5)
     {
-      clus_sigma(2) = cluster->getZError();
-      clus_sigma(0) = cluster->getRPhiError() / sqrt(2);
-      clus_sigma(1) = cluster->getRPhiError() / sqrt(2);
+      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+      TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
+      auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5,clusRadius,ckey);
+      double phierror = sqrt(para_errors.first);
+      double zerror = sqrt(para_errors.second);
+      clus_sigma(2) = zerror;
+      clus_sigma(0) = phierror/ sqrt(2);
+      clus_sigma(1) = phierror/ sqrt(2);
     }
 
     if (std::isnan(clus_sigma(0)) ||

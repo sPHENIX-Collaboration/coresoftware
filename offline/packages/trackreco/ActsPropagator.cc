@@ -103,7 +103,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
   if (result.ok())
   {
     auto finalparams = *result.value().endParameters;
-    auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
+    auto pathlength = result.value().pathLength;
     auto pair = std::make_pair(pathlength, finalparams);
 
     return Acts::Result<BoundTrackParamPair>::success(pair);
@@ -142,7 +142,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
   if (result.ok())
   {
     auto finalparams = *result.value().endParameters;
-    auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
+    auto pathlength = result.value().pathLength;
     auto pair = std::make_pair(pathlength, finalparams);
 
     return Acts::Result<BoundTrackParamPair>::success(pair);
@@ -181,7 +181,7 @@ ActsPropagator::propagateTrackFast(const Acts::BoundTrackParameters& params,
   if (result.ok())
   {
     auto finalparams = *result.value().endParameters;
-    auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
+    auto pathlength = result.value().pathLength;
     auto pair = std::make_pair(pathlength, finalparams);
 
     return Acts::Result<BoundTrackParamPair>::success(pair);

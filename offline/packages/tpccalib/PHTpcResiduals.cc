@@ -323,7 +323,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
         << std::endl;
     }
     
-    addTrackState( track, pathLength, trackStateParams );
+    addTrackState( track, key, pathLength, trackStateParams );
     
     // calculate residuals with respect to cluster
     // Get all the relevant information for residual calculation
@@ -578,7 +578,7 @@ std::optional<PHTpcResiduals::BoundTrackParamPair>  PHTpcResiduals::propagateTra
 }
 
 //_______________________________________________________________________________________________________
-void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Acts::BoundTrackParameters& params )
+void PHTpcResiduals::addTrackState( SvtxTrack* track, TrkrDefs::cluskey key, float pathlength, const Acts::BoundTrackParameters& params )
 {
 
   /* this is essentially a copy of the code from trackbase_historic/ActsTransformations::fillSvtxTrackStates */
@@ -603,6 +603,8 @@ void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Ac
   for (int i = 0; i < 6; ++i)
     for (int j = 0; j < 6; ++j)
   { state.set_error(i, j, globalCov(i,j)); }
+ 
+  state.set_name(std::to_string((TrkrDefs::cluskey) key));
 
   track->insert_state(&state);
 }
