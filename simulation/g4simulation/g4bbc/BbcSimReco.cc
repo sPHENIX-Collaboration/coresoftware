@@ -352,6 +352,8 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
   {
     for (int iarm = 0; iarm < 2; iarm++)
     {
+      if (! hit_times[iarm].empty())
+      {
       std::sort(hit_times[iarm].begin(), hit_times[iarm].end());
       float earliest = hit_times[iarm][0];
 
@@ -369,6 +371,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
         f_bbcte[iarm] = earliest;
 
         _bbcout->AddBbcNS(iarm, f_bbcn[iarm], f_bbcq[iarm], f_bbct[iarm]);
+      }
       }
     }
 
