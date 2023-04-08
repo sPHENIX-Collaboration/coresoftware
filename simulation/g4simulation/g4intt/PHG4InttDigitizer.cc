@@ -332,13 +332,13 @@ float PHG4InttDigitizer::added_noise()
   return noise;
 }
 
-void PHG4InttDigitizer::set_adc_scale(const int &layer, const std::vector<double> &userrange)
+void PHG4InttDigitizer::set_adc_scale(const int &layer, std::vector<double> userrange)
 {
   if (userrange.size() != nadcbins)
   {
     std::cout << "Error: vector in set_fphx_adc_scale(vector) must have eight elements." << std::endl;
     gSystem->Exit(1);
   }
+  std::sort(userrange.begin(), userrange.end());
   _max_fphx_adc.insert(std::make_pair(layer, userrange));
-  std::sort(_max_fphx_adc[layer].begin(), _max_fphx_adc[layer].end());
 }
