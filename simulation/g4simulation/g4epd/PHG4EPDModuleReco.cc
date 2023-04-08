@@ -58,11 +58,20 @@ int PHG4EPDModuleReco::InitRun(PHCompositeNode *topNode)
     gSystem->Exit(1);
     exit(1);
   }
+
+  PHNodeIterator runiter(runNode);
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode", m_Detector));
+  if (!DetNode)
+  {
+    DetNode = new PHCompositeNode(m_Detector);
+    runNode->addNode(DetNode);
+  }
+
   EpdGeom *epdGeom = findNode::getClass<EpdGeom>(topNode,"TOWERGEOM_EPD");
   if (!epdGeom) {
     epdGeom = new EpdGeomV1();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(epdGeom, "TOWERGEOM_EPD", "PHObject");
-    runNode->addNode(newNode);
+    DetNode->addNode(newNode);
   }
  
   //fill epd geometry
