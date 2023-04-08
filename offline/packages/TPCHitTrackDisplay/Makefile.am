@@ -19,7 +19,6 @@ AM_LDFLAGS = \
 libTPCHitTrackDisplay_la_LIBADD = \
   -lphool \
   -lg4detectors \
-  -lepd \
   -lcentrality_io \
   -lphg4hit \
   -lConstituentSubtractor \
