@@ -62,11 +62,11 @@ class SvtxTrack;
 class SvtxTrackMap;
 class TrackSeedContainer;
 class TrkrCluster;
-class TrkrClusterContainer;
+/* class TrkrClusterContainer; */
 class TrkrTruthTrack;
 class TrkrTruthTrackContainer;
 class TTree;
-class TFile;
+class TH2D;
 
 class FillTruthRecoMatchTree : public SubsysReco
 {
@@ -107,10 +107,10 @@ class FillTruthRecoMatchTree : public SubsysReco
    /* PHG4TpcCylinderGeomContainer *m_PHG4TpcCylinderGeomContainer {nullptr}; */
 
 
-   TFile* m_tfile;
    TTree* m_ttree;
    bool   m_fill_clusters;
    bool   m_fill_SvU; // unmatched Svtx tracks
+   std::string m_outfile_name;
 
   // Tree Branch members:
     int   nevent       {-1};
@@ -131,6 +131,10 @@ class FillTruthRecoMatchTree : public SubsysReco
     //  clusters:
     //    M : matched
     //    U : unmatched
+    TH2D* h2_G4_nPixelsPhi;
+    TH2D* h2_G4_nPixelsZ;
+    TH2D* h2_Sv_nPixelsPhi;
+    TH2D* h2_Sv_nPixelsZ;
     
     // TRACKS WHICH ARE MATCHED
     std::vector<int>   b_G4M_trackid            {}; // g4-track-matched

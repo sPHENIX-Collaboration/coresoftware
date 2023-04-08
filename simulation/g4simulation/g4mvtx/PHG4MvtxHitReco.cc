@@ -661,9 +661,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
   end_event_truthcluster(topNode);
 
-  // FIXME
-  if (true) {
-  /* if (Verbosity() > 3) { */
+  if (Verbosity() > 3) {
     int nclusprint = -1;
     std::cout << PHWHERE << ": content of clusters " << std::endl;
     auto& tmap = m_truthtracks->getMap();
@@ -973,9 +971,8 @@ void PHG4MvtxHitReco::clusterize_truthtrack(PHCompositeNode* topNode) {
     { // hitsetitr    : pair(TrkrDefs::hitsetkey, TrkrHitSet>;   TrkrHitSet : map <HitKey, TrkrHit>
       TrkrHitSet *hitset = hitsetitr->second; // hitset : map <TrkrDefs::hitkey, TrkrHit>
       
-      // FIXME
-      /* if(Verbosity() > 0) */
-      if (true) 
+      /* if (true) */ 
+  if(Verbosity() > 0)
 	{ 
 	  unsigned int layer  = TrkrDefs::getLayer    (hitsetitr ->first);
 	  unsigned int stave  = MvtxDefs::getStaveId  (hitsetitr ->first);
@@ -1056,9 +1053,8 @@ void PHG4MvtxHitReco::clusterize_truthtrack(PHCompositeNode* topNode) {
 	  const double phisize = phibins.size() * pitch;
 	  const double zsize   = zbins.size()   * length;
 	  
-      // FIXME
-    if (true) {
-	  /* if(Verbosity() > 0) { */
+    /* if (true) { */
+	  if(Verbosity() > 0) {
 	    std::cout << " MvtxClusterizer: cluskey " << ckey << " layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize 
 		 << " zbins " << zbins.size() << " length " << length << " zsize " << zsize 
 		 << " local x " << locclusx << " local y " << locclusz
@@ -1079,18 +1075,13 @@ void PHG4MvtxHitReco::clusterize_truthtrack(PHCompositeNode* topNode) {
 	    // So set subsurface key to 0
 	    clus->setSubSurfKey(0);
 	    
-      //FIXME
-      if (true) 
-	    /* if (Verbosity() > 2) */
+	    if (Verbosity() > 2)
 	      clus->identify();
 	    
       // get the count of how many clusters have allready been added to this hitsetkey (possibly from other embedded tracks tracks)
       m_hitsetkey_cnt.try_emplace(hitsetkey,0);
       unsigned int& cnt = m_hitsetkey_cnt[hitsetkey];
       ckey = TrkrDefs::genClusKey(hitsetkey, cnt);
-      //FIXME
-      if (true) std::cout << " Adding key PLUM to hitsetkey("<<hitsetkey<<") num("<<cnt<<")" << std::endl;
-      /* if (Verbosity() > 4) std::cout << " Adding key PLUM to hitsetkey("<<hitsetkey<<") num("<<cnt<<")" << std::endl; */
 	    m_truthclusters->addClusterSpecifyKey(ckey, clus.release());
       m_current_track->addCluster(ckey);
       ++cnt;

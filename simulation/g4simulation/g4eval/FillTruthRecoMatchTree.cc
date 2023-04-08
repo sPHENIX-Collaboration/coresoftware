@@ -2,6 +2,7 @@
 
 #include <TFile.h>
 #include <TTree.h>
+#include <fun4all/PHTFileServer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4tracking/EmbRecoMatch.h>
@@ -21,6 +22,8 @@
 #include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <TH2D.h>
+#include <trackbase/TrkrCluster.h>
 
 using std::cout;
 using std::endl;
@@ -30,16 +33,26 @@ FillTruthRecoMatchTree::FillTruthRecoMatchTree(
     , bool _fill_SvUnMatched
     , float _cluster_nzwidths
     , float _cluster_nphiwidths
-    , const std::string& _tfile_name
+    , const std::string& _outfile_name
     )
   : 
-    m_cluster_comp { _cluster_nphiwidths, _cluster_nzwidths }
+    m_cluster_comp  { _cluster_nphiwidths, _cluster_nzwidths }
   , m_fill_clusters { _fill_clusters }
   , m_fill_SvU      { _fill_SvUnMatched }
+  , m_outfile_name  { _outfile_name }
 {
   m_cluscntr.set_comparer(&m_cluster_comp);
-  m_tfile = new TFile(_tfile_name.c_str(), "recreate");
-  m_tfile->cd();
+	PHTFileServer::get().open(m_outfile_name, "RECREATE");
+  
+  h2_G4_nPixelsPhi = new TH2D("G4_nPixelsPhi", "PHG4 Emb Tracks; cluster pixel width Phi; layer",
+      100, -0.5, 99.5, 56, -0.5, 55.5);
+  h2_G4_nPixelsZ = new TH2D("G4_nPixelsZ", "PHG4 Emb Tracks; cluster pixel width Z; layer",
+      100, -0.5, 99.5, 56, -0.5, 55.5);
+  h2_Sv_nPixelsPhi = new TH2D("Sv_nPixelsPhi", "Svtx Reco Tracks; cluster pixel width Phi; layer",
+      100, -0.5, 99.5, 56, -0.5, 55.5);
+  h2_Sv_nPixelsZ = new TH2D("Sv_nPixelsZ", "Svtx Reco Tracks; cluster pixel width Z; layer",
+      100, -0.5, 99.5, 56, -0.5, 55.5);
+
   m_ttree = new TTree("T", "Tracks (and sometimes clusters)");
 
   m_ttree->Branch("event",                  &nevent);
@@ -250,12 +263,35 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
   nsvtx = m_SvtxTrackMap            ->size();
   ntrackmatches = m_EmbRecoMatchContainer->getMatches().size();
   // get centrality later...
+  
+  // fill in pixel widths on truth tracks
+  
+  for (auto hitsetkey : m_cluscntr.get_PHG4_clusters()->getHitSetKeys()) {
+    float layer = (float) TrkrDefs::getLayer(hitsetkey);
+    auto range = m_cluscntr.get_PHG4_clusters()->getClusters(hitsetkey);
+    for (auto iter = range.first; iter != range.second; ++iter) {
+      auto& cluster = iter->second;
+      h2_G4_nPixelsPhi ->Fill( (float)cluster->getPhiSize(), layer );
+      h2_G4_nPixelsZ   ->Fill( (float)cluster->getZSize(),   layer );
+    }
+  }
+  // fill in pixel widths on reco tracks
+  for (auto hitsetkey : m_cluscntr.get_SVTX_clusters()->getHitSetKeys()) {
+    float layer = (float) TrkrDefs::getLayer(hitsetkey);
+    auto range = m_cluscntr.get_SVTX_clusters()->getClusters(hitsetkey);
+    for (auto iter = range.first; iter != range.second; ++iter) {
+      auto& cluster = iter->second;
+      h2_Sv_nPixelsPhi ->Fill( (float)cluster->getPhiSize(), layer );
+      h2_Sv_nPixelsZ   ->Fill( (float)cluster->getZSize(), layer );
+    }
+  }
 
   nphg4_part = 0;
 	const auto range = m_PHG4TruthInfoContainer->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
       iter != range.second; ++iter)
   { nphg4_part++; }
+
 
 
   // unmatched tracks are only entered once
@@ -481,10 +517,14 @@ void FillTruthRecoMatchTree::print_mvtx_diagnostics() {
 int FillTruthRecoMatchTree::End(PHCompositeNode *)
 {
   if (Verbosity()>2) std::cout << PHWHERE << ": ending FillTruthRecoMatchTree" << std::endl;
-  m_tfile->cd();
+	PHTFileServer::get().cd(m_outfile_name);
+
+  h2_G4_nPixelsPhi ->Write();
+  h2_G4_nPixelsZ   ->Write();
+  h2_Sv_nPixelsPhi ->Write();
+  h2_Sv_nPixelsZ   ->Write();
+
   m_ttree->Write();
-  m_tfile->Save();
-  m_tfile->Close();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
