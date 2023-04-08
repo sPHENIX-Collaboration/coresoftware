@@ -1,10 +1,14 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 //  virtual Bbc PMT Container class
 
-#ifndef __BBCPMTCONTAINER_H__
-#define __BBCPMTCONTAINER_H__
+#ifndef BBC_BBCPMTCONTAINER_H
+#define BBC_BBCPMTCONTAINER_H
 
-#include "phool/PHObject.h"
+#include <phool/PHObject.h>
+
 #include <iostream>
+#include <string>
 
 ///
 class BbcPmtContainer : public PHObject
@@ -14,7 +18,7 @@ class BbcPmtContainer : public PHObject
   virtual ~BbcPmtContainer() {}
 
   /** identify Function from PHObject
-      @param os Output Stream 
+      @param os Output Stream
    */
   virtual void identify(std::ostream& os = std::cout) const override;
 
@@ -27,25 +31,30 @@ class BbcPmtContainer : public PHObject
   /** set number of PMTs for Bbc
       @param ival Number of Bbc Pmt's
    */
-  virtual void set_npmt(const Short_t ival);
+  virtual void set_npmt(const short ival);
 
   /// get Number of Bbc Pmt's
-  virtual Short_t get_npmt() const;
+  virtual short get_npmt() const;
+
+  /** get id of Pmt iPmt in TClonesArray
+      @param iPmt no of Pmt in TClonesArray
+   */
+  virtual short get_pmt(const int iPmt) const;
 
   /** get Adc of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */
-  virtual Float_t get_adc(const int iPmt) const;
+  virtual float get_adc(const int iPmt) const;
 
   /** get Tdc0 of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */
-  virtual Float_t get_tdc0(const int iPmt) const;
+  virtual float get_tdc0(const int iPmt) const;
 
   /** get Tdc1 of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */
-  virtual Float_t get_tdc1(const int iPmt) const;
+  virtual float get_tdc1(const int iPmt) const;
 
   /** Add Bbc Raw hit object to TCLonesArray
       @param ipmt Pmt id
@@ -53,12 +62,12 @@ class BbcPmtContainer : public PHObject
       @param tdc0 Tdc0 value
       @param tdc1 Tdc1 value
   */
-  virtual void AddBbcPmt(const Short_t ipmt, const Float_t adc, const Float_t tdc0, const Float_t tdc1);
+  virtual void AddBbcPmt(const short ipmt, const float adc, const float tdc0, const float tdc1);
 
  private:
-  void virtual_warning(const char *funcname) const;
+  void virtual_warning(const std::string& funcname) const;
 
-  ClassDefOverride(BbcPmtContainer,1)
+  ClassDefOverride(BbcPmtContainer, 1)
 };
 
 #endif

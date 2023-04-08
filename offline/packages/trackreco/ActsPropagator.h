@@ -23,6 +23,7 @@
 #include <trackbase/ActsGeometry.h>
 
 class SvtxTrack;
+class SvtxVertex;
 class SvtxVertexMap;
 
 class ActsPropagator
@@ -43,6 +44,7 @@ class ActsPropagator
   }
   ~ActsPropagator() {}
 
+  SurfacePtr makeVertexSurface(const SvtxVertex* vertex);
   BoundTrackParam makeTrackParams(SvtxTrack* track, SvtxVertexMap* vertexMap);
 
   BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params,

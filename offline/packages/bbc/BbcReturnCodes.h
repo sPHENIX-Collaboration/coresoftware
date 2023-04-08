@@ -1,13 +1,16 @@
-/*
-Return codes
-*/
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 
-#ifndef BBCRETURNCODE
-#define BBCRETURNCODE
+#ifndef BBC_BBCRETURNCODES_H
+#define BBC_BBCRETURNCODES_H
 
-const short BBC_INVALID_SHORT = -9999;
-const int   BBC_INVALID_INT   = -9999;
-const long  BBC_INVALID_LONG  = -9999;
-const float BBC_INVALID_FLOAT = -9999.9;
+#include <limits>
+
+namespace BbcReturnCodes
+{
+  const short BBC_INVALID_SHORT = std::numeric_limits<short>::min();  //-9999;
+  const int BBC_INVALID_INT = std::numeric_limits<int>::min();        //-9999;
+  const float BBC_INVALID_FLOAT = std::numeric_limits<float>::quiet_NaN();
+}  // namespace BbcReturnCodes
 
 #endif

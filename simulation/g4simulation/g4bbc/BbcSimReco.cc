@@ -185,10 +185,7 @@ int BbcSimReco::InitRun(PHCompositeNode *topNode)
 // Call user instructions for every event
 int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
 {
-  // GetNodes(topNode);
-
   f_evt = _evtheader->get_EvtSequence();
-  // if(f_evt%100==0) std::cout << PHWHERE << "Events processed: " << f_evt << std::endl;
 
   //**** Initialize Variables
 
@@ -225,7 +222,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     f_vz = vtxp->get_z();
     f_vt = vtxp->get_t();
 
-    if (f_evt < 20)
+    if (Verbosity() && f_evt < 20)
     {
       std::cout << "VTXP "
            << "\t" << f_vx << "\t" << f_vy << "\t" << f_vz << "\t" << f_vt << std::endl;
@@ -370,9 +367,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
       // gaussian->SetParameter(1,hevt_bbct[iarm]->GetMean());
       // gaussian->SetRange(6,hevt_bbct[iarm]->GetMean()+0.125);
 
-      hevt_bbct[iarm]->Fit(gaussian, "BLR");
-      hevt_bbct[iarm]->Draw();
-
+      hevt_bbct[iarm]->Fit(gaussian, "BLRNQ");
       if (f_bbcn[iarm] > 0)
       {
         // f_bbct[iarm] = f_bbct[iarm] / f_bbcn[iarm];
@@ -401,6 +396,8 @@ void BbcSimReco::CreateNodes(PHCompositeNode *topNode)
   if (!dstNode)
   {
     std::cout << PHWHERE << "DST Node missing doing nothing" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
 
   PHCompositeNode *bbcNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "BBC"));
@@ -414,7 +411,6 @@ void BbcSimReco::CreateNodes(PHCompositeNode *topNode)
   _bbcout = findNode::getClass<BbcOut>(bbcNode, "BbcOut");
   if (!_bbcout)
   {
-    std::cout << "Creating BBCOUT" << std::endl;
     _bbcout = new BbcOutV1();
     PHIODataNode<PHObject> *BbcOutNode = new PHIODataNode<PHObject>(_bbcout, "BbcOut", "PHObject");
     bbcNode->addNode(BbcOutNode);

@@ -8,11 +8,21 @@
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/ActsTransformations.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
+
+ActsPropagator::SurfacePtr
+ActsPropagator::makeVertexSurface(const SvtxVertex* vertex)
+{
+  return Acts::Surface::makeShared<Acts::PerigeeSurface>(
+     Acts::Vector3(vertex->get_x() * Acts::UnitConstants::cm,
+		   vertex->get_y() * Acts::UnitConstants::cm,
+		   vertex->get_z() * Acts::UnitConstants::cm));
+}
 
 ActsPropagator::BoundTrackParam
 ActsPropagator::makeTrackParams(SvtxTrack* track,
