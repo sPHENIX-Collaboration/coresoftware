@@ -1,7 +1,6 @@
 // this is the new trackbase version
 
 #include "PHG4MvtxHitReco.h"
-#include "PHG4MvtxTruthClusterizer.h"
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 #include <mvtx/MvtxHitPruner.h>
@@ -1013,7 +1012,7 @@ void PHG4MvtxHitReco::clusterize_truthtrack(PHCompositeNode* topNode) {
 
     // make a tunable threshhold for energy in a given hit
     //  -- percentage of someting? (total cluster energy)
-    double sum_energy;
+    double sum_energy { 0. };
 	  for ( auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit) {
       sum_energy += ihit->second->getEnergy();
     }
@@ -1024,7 +1023,7 @@ void PHG4MvtxHitReco::clusterize_truthtrack(PHCompositeNode* topNode) {
     double npixels {0.};
 	  for ( auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit)
 	    {
-        if (ihit->getEnergy()<threshhold) continue;
+        if (ihit->second->getEnergy()<threshhold) continue;
         npixels += 1.;
 	      // size
 	      int col =  MvtxDefs::getCol( ihit->first);
@@ -1070,7 +1069,7 @@ void PHG4MvtxHitReco::clusterize_truthtrack(PHCompositeNode* topNode) {
 	  /* if (m_cluster_version==4){ */
     if (m_cluster_version == 4) {
 	    auto clus = std::make_unique<TrkrClusterv4>();
-	    clus->setAdc(pixels);
+	    clus->setAdc(npixels);
 	    clus->setLocalX(locclusx);
 	    clus->setLocalY(locclusz);
 	    

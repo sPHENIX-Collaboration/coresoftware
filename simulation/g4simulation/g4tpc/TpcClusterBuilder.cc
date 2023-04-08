@@ -188,10 +188,6 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
     TrkrDefs::cluskey cluskey = TrkrDefs::genClusKey(hitsetkey, hitsetkey_cnt[hitsetkey]);
     m_clusterlist->addClusterSpecifyKey(cluskey, cluster);
 
-    if (false) { // debug print statement
-        /* cout << hitsetkey_cnt[hitsetkey] << " " << cluster->getLocalX() << std::endl; */
-    }
-
     if (current_track != nullptr) current_track->addCluster(cluskey);
   }
 
