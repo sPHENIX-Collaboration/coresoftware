@@ -339,12 +339,6 @@ void PHG4InttDigitizer::set_adc_scale(const int &layer, const std::vector<double
     std::cout << "Error: vector in set_fphx_adc_scale(vector) must have eight elements." << std::endl;
     gSystem->Exit(1);
   }
-  //sort(userrange.begin(), userrange.end()); // TODO, causes GLIBC error
-
-  std::vector<double> vadcrange;
-  for (unsigned int irange = 0; irange < userrange.size(); ++irange)
-  {
-      vadcrange.push_back(userrange[irange]);
-  }
-  _max_fphx_adc.insert(std::make_pair(layer, vadcrange));
+  _max_fphx_adc.insert(std::make_pair(layer, userrange));
+  std::sort(_max_fphx_adc[layer].begin(), _max_fphx_adc[layer].end());
 }
