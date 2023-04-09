@@ -370,6 +370,14 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
 
           _bbcout->AddBbcNS(iarm, f_bbcn[iarm], f_bbcq[iarm], f_bbct[iarm]);
         }
+        else
+        {
+          _bbcout->AddBbcNS(iarm, 0, -99999., -99999.);
+        }
+      }
+      else
+      {
+        _bbcout->AddBbcNS(iarm, 0, -99999., -99999.);
       }
     }
 
