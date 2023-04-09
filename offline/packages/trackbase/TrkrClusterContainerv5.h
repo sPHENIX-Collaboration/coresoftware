@@ -60,7 +60,7 @@ class TrkrClusterContainerv5 : public TrkrClusterContainer
    */
   Map m_tmpmap;  //! transient. The temporary map does not get written to the output
 
-  int m_cluster_version = 4;
+  int m_cluster_version = 5;
 
   ClassDefOverride(TrkrClusterContainerv5, 1)
 };
