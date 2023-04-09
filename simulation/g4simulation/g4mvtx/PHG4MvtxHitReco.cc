@@ -15,7 +15,7 @@
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterContainerv4.h>
+#include <trackbase/TrkrClusterContainerv5.h>
 #include <g4tracking/TrkrTruthTrackContainer.h>
 #include <g4tracking/TrkrTruthTrackContainerv1.h>
 
@@ -172,7 +172,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    m_truthclusters = new TrkrClusterContainerv4;
+    m_truthclusters = new TrkrClusterContainerv5;
     auto newNode = new PHIODataNode<PHObject>(m_truthclusters, "TRKR_TRUTHCLUSTERCONTAINER", "PHObject");
     DetNode->addNode(newNode);
   }
