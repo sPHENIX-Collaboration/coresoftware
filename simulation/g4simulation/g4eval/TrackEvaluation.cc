@@ -32,6 +32,7 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitSetTpc.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/ClusterErrorPara.h>
@@ -205,37 +206,46 @@ namespace
   }
 
   //! hit energy for a given cluster
-  void add_cluster_energy( TrackEvaluationContainerv1::ClusterStruct& cluster, TrkrDefs::cluskey clus_key,
-    TrkrClusterHitAssoc* cluster_hit_map,
-    TrkrHitSetContainer* hitsetcontainer )
+  void add_cluster_energy(TrackEvaluationContainerv1::ClusterStruct& cluster, TrkrDefs::cluskey clus_key,
+                          TrkrClusterHitAssoc* cluster_hit_map,
+                          TrkrHitSetContainer* hitsetcontainer)
   {
-
     // check container
-    if(!(cluster_hit_map && hitsetcontainer)) return;
+    if (!(cluster_hit_map && hitsetcontainer)) return;
 
     // for now this is only filled for micromegas
     const auto detId = TrkrDefs::getTrkrId(clus_key);
-    if(detId != TrkrDefs::micromegasId) return;
+    if (detId != TrkrDefs::micromegasId) return;
 
     const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(clus_key);
-    const auto hitset = hitsetcontainer->findHitSet( hitset_key );
-    if( !hitset ) return;
+    const auto hitset = hitsetcontainer->findHitSet(hitset_key);
+    if (!hitset) return;
 
     const auto range = cluster_hit_map->getHits(clus_key);
     cluster.energy_max = 0;
     cluster.energy_sum = 0;
 
-    for( const auto& pair:range_adaptor(range))
+    for (const auto& pair : range_adaptor(range))
     {
-      const auto hit = hitset->getHit( pair.second );
-      if( hit )
+      if (dynamic_cast<TrkrHitSetTpc*>(hitset))
       {
-        const auto energy = hit->getEnergy();
+        // specialized hit container for TPCs
+
+        const auto energy = dynamic_cast<TrkrHitSetTpc*>(hitset)->getTpcADC(pair.second);
         cluster.energy_sum += energy;
-        if( energy > cluster.energy_max ) cluster.energy_max = energy;
+        if (energy > cluster.energy_max) cluster.energy_max = energy;
+      }
+      else
+      {
+        const auto hit = hitset->getHit(pair.second);
+        if (hit)
+        {
+          const auto energy = hit->getEnergy();
+          cluster.energy_sum += energy;
+          if (energy > cluster.energy_max) cluster.energy_max = energy;
+        }
       }
     }
-
   }
 
   // ad}d truth information
