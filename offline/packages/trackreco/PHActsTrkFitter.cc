@@ -46,9 +46,6 @@
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
-#include <Acts/TrackFitting/GainMatrixSmoother.hpp>
-#include <Acts/TrackFitting/GainMatrixUpdater.hpp>
-
 
 #include <TDatabasePDG.h>
 
