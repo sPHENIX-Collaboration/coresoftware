@@ -432,7 +432,7 @@ namespace
 	clus->setActsLocalError(1,1, t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2));
 	my_data.cluster_vector.push_back(clus);
       }else if(my_data.cluster_version==4){
-	std::cout << "ver4" << std::endl;
+	//std::cout << "ver4" << std::endl;
 	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
 	if(sqrt(phi_err_square) > 0.01){
 	auto clus = new TrkrClusterv4;
@@ -451,7 +451,7 @@ namespace
 	my_data.cluster_vector.push_back(clus);
 	}
       }else if(my_data.cluster_version==5){
-	std::cout << "ver5" << std::endl;
+	//std::cout << "ver5" << std::endl;
 	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
 	if(sqrt(phi_err_square) > 0.01){
 	auto clus = new TrkrClusterv5;
