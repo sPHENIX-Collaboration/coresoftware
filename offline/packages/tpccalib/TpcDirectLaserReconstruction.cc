@@ -22,6 +22,7 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 #include <trackbase/TpcDefs.h>
+#include <trackbase/TrkrHitSetTpc.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -374,7 +375,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     const TrkrDefs::hitsetkey& hitsetkey = hitsetitr->first;
     const int side = TpcDefs::getSide(hitsetkey);
     
-    auto hitset = hitsetitr->second;
+    auto hitset = dynamic_cast<TrkrHitSetTpc *>(hitsetitr->second);
+    assert(hitset);
+
     const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
     const auto layergeom = m_geom_container->GetLayerCellGeom(layer);
     const auto layer_center_radius = layergeom->get_radius();
@@ -388,12 +391,25 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     // get corresponding hits
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
     
-    for (auto hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
+//    for (auto hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
+
+    const TrkrHitSetTpc::TimeFrameADCDataType &dataframe = hitset->getTimeFrameAdcData();
+
+    for (unsigned int local_pad = 0; local_pad < dataframe.size(); ++local_pad)
+    {
+      const std::vector<TpcDefs::ADCDataType> &pad_data = dataframe[local_pad];
+
+      for (unsigned int local_tbin = 0; local_tbin < pad_data.size(); ++local_tbin)
       {
+        const TpcDefs::ADCDataType &rawadc = pad_data[local_tbin];
+        TrkrDefs::hitkey hitkey = hitset->getHitKeyfromLocalBin(local_pad, local_tbin);
+
+        if (rawadc<=0) continue;
+
 	++m_total_hits;
 
-	const unsigned short phibin = TpcDefs::getPad(hitr->first);
-  const unsigned short zbin = TpcDefs::getTBin(hitr->first);
+	const unsigned short phibin = TpcDefs::getPad(hitkey);
+  const unsigned short zbin = TpcDefs::getTBin(hitkey);
 
 	const double phi = layergeom->get_phicenter(phibin);
   const double x = layer_center_radius * cos(phi);
@@ -410,7 +426,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
             h_hits->Fill(x,y,z);
           }
 
-	float adc = (hitr->second->getAdc()) - m_pedestal; 
+	float adc = rawadc - m_pedestal;
 	
 	// calculate dca
 	// origin is track origin, direction is track direction
@@ -480,6 +496,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 	cluspos_map.insert(std::make_pair(layer, cluspos_pair));	
 	layer_bin_set.insert(layer);
       }
+      }//        for (unsigned int local_pad = 0; local_pad < dataframe.size(); ++local_pad)
+
+
   }
 
   for(int GEMS_iter = 0; GEMS_iter < 72; GEMS_iter++)
