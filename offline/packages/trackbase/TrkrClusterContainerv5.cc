@@ -214,7 +214,7 @@ TrkrClusterContainerv5::getClusters(TrkrDefs::hitsetkey hitsetkey)
     const auto& clusters = iter->second;
     for (Int_t index = 0; index < clusters->GetEntriesFast(); ++index)
     {
-      const auto& cluster = (TrkrCluster*) clusters->At(index);
+      const auto& cluster = (TrkrCluster*) (*clusters)[index];
       if (cluster)
       {
         // generate cluster key from hitset and index
