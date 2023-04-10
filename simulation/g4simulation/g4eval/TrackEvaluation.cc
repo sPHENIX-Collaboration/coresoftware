@@ -707,7 +707,7 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrD
 
     if(cluster_struct.layer>=7){
       TrkrClusterv5 *clusterv5 = dynamic_cast<TrkrClusterv5 *>(cluster);
-      auto para_errors_mm = ClusErrPara.get_clusterv5_error(tpc_seed,clusterv5,r,key);
+      auto para_errors_mm = ClusErrPara.get_clusterv5_modified_error(clusterv5,r,key);
 
       cluster_struct.phi_error = clusterv5->getRPhiError()/cluster_struct.r;
       cluster_struct.z_error = clusterv5->getZError();

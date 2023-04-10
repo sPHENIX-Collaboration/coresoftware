@@ -5,18 +5,19 @@
 
 #include "GlobalVertex.h"
 
-#include <cstddef>        // for size_t
+#include <cstddef>  // for size_t
 #include <iostream>
+#include <limits>
 #include <map>
-#include <utility>         // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 class PHObject;
 
 class GlobalVertexv1 : public GlobalVertex
 {
  public:
-  GlobalVertexv1();
-  ~GlobalVertexv1() override;
+  GlobalVertexv1(const GlobalVertex::VTXTYPE id = GlobalVertex::UNDEFINED);
+  ~GlobalVertexv1() override = default;
 
   // PHObject virtual overloads
 
@@ -82,13 +83,13 @@ class GlobalVertexv1 : public GlobalVertex
  private:
   unsigned int covar_index(unsigned int i, unsigned int j) const;
 
-  unsigned int _id;                                        //< unique identifier within container
-  float _t;                                                //< collision time
-  float _t_err;                                            //< collision time uncertainty
-  float _pos[3];                                           //< collision position x,y,z
-  float _chisq;                                            //< vertex fit chisq
-  unsigned int _ndof;                                      //< degrees of freedom
-  float _err[6];                                           //< error covariance matrix (+/- cm^2)
+  unsigned int _id = std::numeric_limits<unsigned int>::max();  //< unique identifier within container
+  float _t = std::numeric_limits<float>::quiet_NaN();           //< collision time
+  float _t_err = std::numeric_limits<float>::quiet_NaN();       //< collision time uncertainty
+  float _pos[3] = {};                                           //< collision position x,y,z
+  float _chisq = std::numeric_limits<float>::quiet_NaN();       //< vertex fit chisq
+  unsigned int _ndof = std::numeric_limits<unsigned int>::max();
+  float _err[6] = {};                                      //< error covariance matrix (+/- cm^2)
   std::map<GlobalVertex::VTXTYPE, unsigned int> _vtx_ids;  //< list of vtx ids
 
   ClassDefOverride(GlobalVertexv1, 1);

@@ -23,10 +23,11 @@ class CMFlashClusterContainer;
 class CMFlashDifferenceContainer;
 
 class TF1;
-class TNtuple;
 class TFile;
 class TH1F;
+class TH1D;
 class TH2F;
+class TGraph;
 class TVector3;
 
 class PHTpcCentralMembraneMatcher : public SubsysReco
@@ -48,6 +49,10 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   /// output file name for storing the space charge reconstruction matrices
   void setOutputfile(const std::string &outputfile)
   {m_outputfile = outputfile;}
+
+  void setNMatchIter( int val ){ m_nMatchIter = val; }
+
+  void set_useOnly_nClus2( bool val ){ m_useOnly_nClus2 = val; }
   
   void set_grid_dimensions( int phibins, int rbins );
 
@@ -110,10 +115,15 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   
   std::unique_ptr<TFile> fout;
 
+  TH2F *hit_r_phi;
+
+  TH2F *clust_r_phi_pos;
+  TH2F *clust_r_phi_neg;
+
   //@}
     
   /// radius cut for matching clusters to pad, for size 2 clusters
-  double m_rad_cut= 0.5;
+  //  double m_rad_cut= 0.5;
   
   /// phi cut for matching clusters to pad
   /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
@@ -208,6 +218,18 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
   //@}
 
+  bool m_useOnly_nClus2 = false;
+
+  int m_nMatchIter = 2;
+  
+  double m_clustRotation_pos[3];
+  double m_clustRotation_neg[3];
+
+  double getPhiRotation_smoothed( TH1D *hitHist, TH1D *clustHist );
+
+  std::vector<double> getRPeaks(TH2F *r_phi);
+
+  int getClusterRMatch( std::vector<int> hitMatches, std::vector<double> clusterPeaks, double clusterR);
 };
 
 #endif // PHTPCCENTRALMEMBRANEMATCHER_H

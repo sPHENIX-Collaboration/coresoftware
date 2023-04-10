@@ -18,11 +18,12 @@ libg4vertex_io_la_LIBADD = \
   -ltrackbase_historic_io
 
 libg4vertex_la_LIBADD = \
+  libg4vertex_io.la \
+  -lbbc_io \
   -lg4detectors \
   -lfun4all \
   -lg4bbc_io \
-  -ltrackbase_historic_io \
-  libg4vertex_io.la
+  -ltrackbase_historic_io
 
 pkginclude_HEADERS = \
   GlobalVertex.h \

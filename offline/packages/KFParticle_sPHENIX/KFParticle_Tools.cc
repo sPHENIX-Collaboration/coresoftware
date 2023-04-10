@@ -111,7 +111,7 @@ KFParticle KFParticle_Tools::makeVertex(PHCompositeNode * /*topNode*/)
   return kfp_vertex;
 }
 
-std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode *topNode, std::string vertexMapName)
+std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode *topNode, const std::string &vertexMapName)
 {
   std::string vtxMN;
   if (vertexMapName.empty())
@@ -211,7 +211,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
   return daughterParticles;
 }
 
-int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex, std::string vertexMapName)
+int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex, const std::string &vertexMapName)
 {
   std::string vtxMN;
   if (vertexMapName.empty())
