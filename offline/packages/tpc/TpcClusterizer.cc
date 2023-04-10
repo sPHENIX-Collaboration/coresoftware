@@ -41,6 +41,7 @@
 #include <TFile.h>
 
 #include <array>
+#include <cassert>
 #include <cmath>  // for sqrt, cos, sin
 #include <iostream>
 #include <limits>
@@ -48,7 +49,6 @@
 #include <string>
 #include <utility>  // for pair
 #include <vector>
-#include <cassert>
 // Terra incognita....
 #include <pthread.h>
 
@@ -561,62 +561,139 @@ namespace
 
     if (my_data->hitset != nullptr)
     {
-      TrkrHitSet *hitset = my_data->hitset;
-      TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-
-      for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-           hitr != hitrangei.second;
-           ++hitr)
+      if (dynamic_cast<TrkrHitSetTpc *>(my_data->hitset))
       {
-        if (TpcDefs::getPad(hitr->first) - phioffset < 0)
-        {
-          // std::cout << "WARNING phibin out of range: " << TpcDefs::getPad(hitr->first) - phioffset << " | " << phibins << std::endl;
-          continue;
-        }
-        if (TpcDefs::getTBin(hitr->first) - toffset < 0)
-        {
-          // std::cout << "WARNING tbin out of range: " << TpcDefs::getTBin(hitr->first) - toffset  << " | " << tbins <<std::endl;
-        }
-        unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
-        unsigned short tbin = TpcDefs::getTBin(hitr->first) - toffset;
-        unsigned short tbinorg = TpcDefs::getTBin(hitr->first);
-        if (phibin >= phibins)
-        {
-          // std::cout << "WARNING phibin out of range: " << phibin << " | " << phibins << std::endl;
-          continue;
-        }
-        if (tbin >= tbins)
-        {
-          // std::cout << "WARNING z bin out of range: " << tbin << " | " << tbins << std::endl;
-          continue;
-        }
-        if (tbinorg > tbinmax || tbinorg < tbinmin)
-          continue;
-        float_t fadc = (hitr->second->getAdc()) - pedestal;  // proper int rounding +0.5
-        unsigned short adc = 0;
-        if (fadc > 0) adc = (unsigned short) fadc;
-        if (phibin >= phibins) continue;
-        if (tbin >= tbins) continue;  // tbin is unsigned int, <0 cannot happen
+        // TPC specific hit set format
 
-        if (adc > 0)
-        {
-          if (adc > (5 + my_data->threshold))
-          {
-            ihit thisHit;
+        TrkrHitSetTpc *hitset = dynamic_cast<TrkrHitSetTpc *>(my_data->hitset);
+        assert(hitset);
 
-            thisHit.iphi = phibin;
-            thisHit.it = tbin;
-            thisHit.adc = adc;
-            thisHit.edge = 0;
-            all_hit_map.insert(std::make_pair(adc, thisHit));
-          }
-          if (adc > my_data->threshold)
+        const TrkrHitSetTpc::TimeFrameADCDataType &dataframe = hitset->getTimeFrameAdcData();
+
+        for (unsigned int local_pad = 0; local_pad < dataframe.size(); ++local_pad)
+        {
+          const std::vector<TpcDefs::ADCDataType> &pad_data = dataframe[local_pad];
+
+          for (unsigned int local_tbin = 0; local_tbin < pad_data.size(); ++local_tbin)
           {
-            adcval[phibin][tbin] = (unsigned short) adc;
+            const TpcDefs::ADCDataType &rawadc = pad_data[local_tbin];
+            TrkrDefs::hitkey hitkey = hitset->getHitKeyfromLocalBin(local_pad, local_tbin);
+
+            if (TpcDefs::getPad(hitkey) - phioffset < 0)
+            {
+              std::cout << __PRETTY_FUNCTION__ << ": WARNING phibin out of range: " << TpcDefs::getPad(hitkey) - phioffset << " | " << phibins << std::endl;
+              continue;
+            }
+            if (TpcDefs::getTBin(hitkey) - toffset < 0)
+            {
+              std::cout << __PRETTY_FUNCTION__ << ": WARNING tbin out of range: " << TpcDefs::getTBin(hitkey) - toffset << " | " << tbins << std::endl;
+            }
+            unsigned short phibin = TpcDefs::getPad(hitkey) - phioffset;
+            unsigned short tbin = TpcDefs::getTBin(hitkey) - toffset;
+            unsigned short tbinorg = TpcDefs::getTBin(hitkey);
+            if (phibin >= phibins)
+            {
+              // std::cout << "WARNING phibin out of range: " << phibin << " | " << phibins << std::endl;
+              continue;
+            }
+            if (tbin >= tbins)
+            {
+              // std::cout << "WARNING z bin out of range: " << tbin << " | " << tbins << std::endl;
+              continue;
+            }
+            if (tbinorg > tbinmax || tbinorg < tbinmin)
+              continue;
+            float_t fadc = rawadc - pedestal;  // proper int rounding +0.5
+            unsigned short adc = 0;
+            if (fadc > 0) adc = (unsigned short) fadc;
+            if (phibin >= phibins) continue;
+            if (tbin >= tbins) continue;  // tbin is unsigned int, <0 cannot happen
+
+            if (adc > 0)
+            {
+              if (adc > (5 + my_data->threshold))
+              {
+                ihit thisHit;
+
+                thisHit.iphi = phibin;
+                thisHit.it = tbin;
+                thisHit.adc = adc;
+                thisHit.edge = 0;
+                all_hit_map.insert(std::make_pair(adc, thisHit));
+              }
+              if (adc > my_data->threshold)
+              {
+                adcval[phibin][tbin] = (unsigned short) adc;
+              }
+            }
+
+          }  //           for (int local_tbin = 0; local_tbin < pad_data.size(); ++local_tbin)
+
+        }  //         for (int local_pad = 0; local_pad < dataframe.size(); ++local_pad)
+
+      }  //       if (dynamic_cast<TrkrHitSetTpc *>(my_data->hitset))
+      else
+      {
+        // generic hitset format
+
+        TrkrHitSet *hitset = my_data->hitset;
+        TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+
+        for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+             hitr != hitrangei.second;
+             ++hitr)
+        {
+          if (TpcDefs::getPad(hitr->first) - phioffset < 0)
+          {
+            // std::cout << "WARNING phibin out of range: " << TpcDefs::getPad(hitr->first) - phioffset << " | " << phibins << std::endl;
+            continue;
+          }
+          if (TpcDefs::getTBin(hitr->first) - toffset < 0)
+          {
+            // std::cout << "WARNING tbin out of range: " << TpcDefs::getTBin(hitr->first) - toffset  << " | " << tbins <<std::endl;
+          }
+          unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
+          unsigned short tbin = TpcDefs::getTBin(hitr->first) - toffset;
+          unsigned short tbinorg = TpcDefs::getTBin(hitr->first);
+          if (phibin >= phibins)
+          {
+            // std::cout << "WARNING phibin out of range: " << phibin << " | " << phibins << std::endl;
+            continue;
+          }
+          if (tbin >= tbins)
+          {
+            // std::cout << "WARNING z bin out of range: " << tbin << " | " << tbins << std::endl;
+            continue;
+          }
+          if (tbinorg > tbinmax || tbinorg < tbinmin)
+            continue;
+          float_t fadc = (hitr->second->getAdc()) - pedestal;  // proper int rounding +0.5
+          unsigned short adc = 0;
+          if (fadc > 0) adc = (unsigned short) fadc;
+          if (phibin >= phibins) continue;
+          if (tbin >= tbins) continue;  // tbin is unsigned int, <0 cannot happen
+
+          if (adc > 0)
+          {
+            if (adc > (5 + my_data->threshold))
+            {
+              ihit thisHit;
+
+              thisHit.iphi = phibin;
+              thisHit.it = tbin;
+              thisHit.adc = adc;
+              thisHit.edge = 0;
+              all_hit_map.insert(std::make_pair(adc, thisHit));
+            }
+            if (adc > my_data->threshold)
+            {
+              adcval[phibin][tbin] = (unsigned short) adc;
+            }
           }
         }
-      }
-    }
+      }  //   else ->   if (dynamic_cast<TrkrHitSetTpc *>(my_data->hitset))
+
+    }  //     if (my_data->hitset != nullptr)
     else if (my_data->rawhitset != nullptr)
     {
       RawHitSetv1 *hitset = my_data->rawhitset;
