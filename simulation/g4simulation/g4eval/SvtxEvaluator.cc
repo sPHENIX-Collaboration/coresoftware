@@ -22,6 +22,7 @@
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetTpc.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 
@@ -816,19 +817,38 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   float occ31  = 0;
   float occ316 = 0;
 
-  for ([[maybe_unused]] const auto &  [trkrID, trkrName] : TrkrDefs::TrkrNames)
+  TrkrHitSetContainer* hitmap_in = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_TPC");
+  if (hitmap_in)
   {
-    TrkrHitSetContainer* hitmap_in = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_" + trkrName);
-    if (hitmap_in)
+    TrkrHitSetContainer::ConstRange all_hitsets = hitmap_in->getHitSets();
+    for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
+         hitsetiter != all_hitsets.second;
+         ++hitsetiter)
     {
-      TrkrHitSetContainer::ConstRange all_hitsets = hitmap_in->getHitSets();
-      for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
-           hitsetiter != all_hitsets.second;
-           ++hitsetiter)
+      // we have a single hitset, get the layer
+      unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
+      if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
       {
-        // we have a single hitset, get the layer
-        unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
-        if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+        if (dynamic_cast<TrkrHitSetTpc*>(hitsetiter->second))
+        {
+          const TrkrHitSetTpc::TimeFrameADCDataType& dataframe = hitset->getTimeFrameAdcData();
+
+          for (const auto& pad_data : dataframe)
+          {
+            for (const auto& adc : pad_data)
+            {
+              if (adc > 0)
+              {
+                nhit[layer]++;
+                nhit_tpc_all++;
+                if ((float) layer == _nlayers_maps + _nlayers_intt) nhit_tpc_in++;
+                if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc - 1) nhit_tpc_out++;
+                if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1) nhit_tpc_mid++;
+              }
+            }
+          }
+        }  //           if (dynamic_cast<TrkrHitSetTpc*>(hitsetiter->second))
+        else
         {
           // count all hits in this hitset
           TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
@@ -845,7 +865,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         }
       }
     }
-  } //   for (const auto& [trkrID, trkrName] : TrkrDefs::TrkrNames)
+  }
 
   /**********/
   PHG4TpcCylinderGeomContainer* geom_container =
