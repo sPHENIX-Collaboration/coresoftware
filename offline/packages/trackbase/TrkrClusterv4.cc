@@ -69,6 +69,10 @@ void TrkrClusterv4::CopyFrom( const TrkrCluster& source )
   
   setSubSurfKey( source.getSubSurfKey() );
   setAdc( source.getAdc() );
+  setPhiSize(source.getPhiSize());
+  setZSize(source.getZSize());
+  setOverlap(source.getOverlap());
+  setEdge(source.getEdge());
 }
 
 

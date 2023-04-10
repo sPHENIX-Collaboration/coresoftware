@@ -49,7 +49,7 @@ class PHG4OHCalSubsystem : public PHG4DetectorSubsystem
   // Subsystems which can be mothervolume need to implement this
   // and return true
   bool CanBeMotherSubsystem() const override { return true; }
-  
+
  private:
   void SetDefaultParameters() override;
 
