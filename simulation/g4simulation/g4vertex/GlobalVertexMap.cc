@@ -31,4 +31,3 @@ GlobalVertexMap::Iter GlobalVertexMap::end()
 {
   return DummyGlobalVertexMap.end();
 }
-

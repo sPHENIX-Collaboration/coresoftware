@@ -12,7 +12,7 @@ PHFieldUniform::PHFieldUniform(
 {
 }
 
-void PHFieldUniform::GetFieldValue(const double /*point*/ [4], double *Bfield) const
+void PHFieldUniform::GetFieldValue(const double /*point*/[4], double *Bfield) const
 {
   Bfield[0] = field_mag_x_;
   Bfield[1] = field_mag_y_;

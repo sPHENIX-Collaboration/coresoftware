@@ -29,6 +29,7 @@ libqa_modules_la_LIBADD = \
 pkginclude_HEADERS = \
   QAG4SimulationCalorimeter.h \
   QAG4SimulationCalorimeterSum.h \
+  QAG4SimulationDistortions.h \
   QAG4SimulationIntt.h \
   QAG4SimulationJet.h \
   QAG4SimulationKFParticle.h \
@@ -45,6 +46,7 @@ pkginclude_HEADERS = \
 libqa_modules_la_SOURCES = \
   QAG4SimulationCalorimeter.cc \
   QAG4SimulationCalorimeterSum.cc \
+  QAG4SimulationDistortions.cc \
   QAG4SimulationIntt.cc \
   QAG4SimulationJet.cc \
   QAG4SimulationMicromegas.cc \

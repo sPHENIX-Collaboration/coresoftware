@@ -16,7 +16,7 @@ void SurveyFiles(TFileCollection* filelist);
 
 
   
-void generate_distortion_map(const char *inputname, const char* gainName, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true, bool isAdc=false){
+void generate_distortion_map(const char *inputname, const char* gainName, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true, bool isAdc=false, int nSteps=500){
   printf("generating single distortion map.  Caution:  This is vastly less efficient than re-using the tpc model once it is set up\n");
  
   bool hasTwin=true; //this flag prompts the code to build both a positive-half and a negative-half for the TPC, reusing as much of the calculations as possible.  It is more efficient to 'twin' one half of the TPC than to recalculate/store the greens functions for both.
@@ -206,7 +206,7 @@ void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.roo
       //TestSpotDistortion(tpc);
  
       //tpc->GenerateDistortionMaps(outputfilename,2,2,2,1,true);
-      tpc->GenerateSeparateDistortionMaps(outputfilename,2,2,2,1,true);
+      tpc->GenerateSeparateDistortionMaps(outputfilename,500,2,2,2,1,true);
       printf("distortions mapped.\n");
       tpc->PlotFieldSlices(outputfilename.Data(),pos);
       tpc->PlotFieldSlices(outputfilename.Data(),pos,'B');

@@ -21,7 +21,6 @@ ClusterErrorPara::ClusterErrorPara()
   f0 = new TF1("f0","pol1",0,10);
   f0->SetParameter(0,0.0163943);
   f0->SetParameter(1,0.0192931);
-  //  f0->SetParameter(2,-5.2042);
 
   f1 = new TF1("f1","pol2",0,10);
   f1->SetParameter(0,0.0119384);
@@ -474,36 +473,33 @@ ClusterErrorPara::ClusterErrorPara()
 }
 
 //_________________________________________________________________________________
-ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_error(TrackSeed *seed, TrkrClusterv5* clusterv5, double cluster_r, TrkrDefs::cluskey key)
-{/*
-  float r = cluster_r;
-  float R = TMath::Abs(1.0/seed->get_qOverR());
-  double alpha = (r*r) /(2*r*R);
-  double beta = TMath::Abs(atan(seed->get_slope()));
- */
-  if(seed==0) std::cout << "hallo" << std::endl;
-  if(cluster_r==0) std::cout << "hallo" << std::endl;
-  if(key==0) std::cout << "hallo" << std::endl;
-
+ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClusterv5* clusterv5, double cluster_r, TrkrDefs::cluskey key)
+{
+  if(cluster_r>300){
+    std::cout << " far out " << std::endl;
+  }
   int layer = TrkrDefs::getLayer(key);
 
   double phierror = clusterv5->getRPhiError();
   double zerror = clusterv5->getZError();
   if( TrkrDefs::getTrkrId( key )== TrkrDefs::tpcId){
     if(layer==7||layer==22||layer==23||layer==38||layer==39){
-      phierror *= 3.5;
-      zerror*= 3.5;
+      phierror *= 4;
+      zerror*= 4;
     }
-    if(clusterv5->getEdge()>=5)
-      phierror *= 2;
+    if(clusterv5->getEdge()>=3)
+      phierror *= 4;
     if(clusterv5->getOverlap()>=2)
       phierror *= 2;
-    
+    if(clusterv5->getPhiSize()==1)
+      phierror *= 10;
+    if(clusterv5->getPhiSize()>=5)
+      phierror *= 10;
+
     if(phierror>0.1) phierror = 0.1;
     if(phierror<0.0005) phierror = 0.1;
   }
   return std::make_pair(square(phierror),square(zerror)); 
-  //  return get_cluster_error(cluster, key, alpha, beta);
 }
 
 //_________________________________________________________________________________

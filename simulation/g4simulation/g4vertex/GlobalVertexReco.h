@@ -12,7 +12,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>                // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 
@@ -24,12 +24,10 @@ class GlobalVertexReco : public SubsysReco
 {
  public:
   GlobalVertexReco(const std::string &name = "GlobalVertexReco");
-  ~GlobalVertexReco() override;
+  ~GlobalVertexReco() override = default;
 
-  int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
   void set_x_defaults(float xdefault, float xerr)
   {
@@ -50,9 +48,12 @@ class GlobalVertexReco : public SubsysReco
  private:
   int CreateNodes(PHCompositeNode *topNode);
 
-  float _xdefault, _xerr;
-  float _ydefault, _yerr;
-  float _tdefault, _terr;
+  float _xdefault = 0.;
+  float _xerr = 0.3;
+  float _ydefault = 0.;
+  float _yerr = 0.3;
+  float _tdefault = 0.;
+  float _terr = 0.2;
 };
 
 #endif  // G4VERTEX_GLOBALVERTEXRECO_H

@@ -59,6 +59,11 @@ class CMFlashCluster : public PHObject
   virtual unsigned int getAdc() const { return UINT_MAX; }
   virtual unsigned int getNclusters() const {return UINT_MAX;}
   virtual void setNclusters( unsigned int) {}
+  virtual void setIsRGap(bool) {}
+  virtual bool getIsRGap() const { return false; }
+  virtual void setIsPhiGap(bool) {}
+  virtual bool getIsPhiGap() const { return false; }
+
 
  protected:
   CMFlashCluster() = default;

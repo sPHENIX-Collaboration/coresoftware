@@ -1,6 +1,8 @@
 #include "PHNodeDump.h"
 #include "DumpObject.h"
 
+#include "DumpBbcOut.h"
+#include "DumpBbcPmtContainer.h"
 #include "DumpBbcVertexMap.h"
 #include "DumpCaloTriggerInfo.h"
 #include "DumpCdbUrlSave.h"
@@ -180,7 +182,15 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       // need a static cast since only from DST these guys are of type PHIODataNode<TObject*>
       // when created they are normally  PHIODataNode<PHObject*> but can be anything else as well
       TObject *tmp = static_cast<TObject *>((static_cast<PHIODataNode<TObject> *>(node))->getData());
-      if (tmp->InheritsFrom("BbcVertexMap"))
+      if (tmp->InheritsFrom("BbcOut"))
+      {
+        newdump = new DumpBbcOut(NodeName);
+      }
+      else if (tmp->InheritsFrom("BbcPmtContainer"))
+      {
+        newdump = new DumpBbcPmtContainer(NodeName);
+      }
+      else if (tmp->InheritsFrom("BbcVertexMap"))
       {
         newdump = new DumpBbcVertexMap(NodeName);
       }
