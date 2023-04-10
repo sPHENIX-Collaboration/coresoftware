@@ -2,12 +2,12 @@
 #define TPC_TPCCLUSTERIZER_H
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrCluster.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrCluster.h>
 
-#include <map> 
-#include <vector>
+#include <map>
 #include <string>
+#include <vector>
 
 class PHCompositeNode;
 class TrkrHitSet;
@@ -19,8 +19,8 @@ class TrkrClusterHitAssoc;
 class PHG4TpcCylinderGeom;
 class PHG4TpcCylinderGeomContainer;
 
-//typedef std::pair<int, int> iphiz;
-//typedef std::pair<double, iphiz> ihit;
+// typedef std::pair<int, int> iphiz;
+// typedef std::pair<double, iphiz> ihit;
 typedef std::pair<unsigned short, unsigned short> iphiz;
 typedef std::pair<unsigned short, iphiz> ihit;
 
@@ -34,17 +34,17 @@ class TpcClusterizer : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-  void set_sector_fiducial_cut(const double cut){SectorFiducialCut = cut; }
-  void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
-  void set_do_wedge_emulation(bool do_wedge){ do_wedge_emulation = do_wedge;}
-  void set_do_sequential(bool do_seq){ do_sequential = do_seq;}
-  void set_threshold(float val) { threshold = val;}
-  void set_remove_singles(bool do_sing){ do_singles = do_sing;}
-  void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
-  void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size ;}
-  void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeT = size ;}
+  void set_sector_fiducial_cut(const double cut) { SectorFiducialCut = cut; }
+  void set_do_hit_association(bool do_assoc) { do_hit_assoc = do_assoc; }
+  void set_do_wedge_emulation(bool do_wedge) { do_wedge_emulation = do_wedge; }
+  void set_do_sequential(bool do_seq) { do_sequential = do_seq; }
+  void set_threshold(float val) { threshold = val; }
+  void set_remove_singles(bool do_sing) { do_singles = do_sing; }
+  void set_read_raw(bool read_raw) { do_read_raw = read_raw; }
+  void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size; }
+  void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeT = size; }
   void set_cluster_version(int value) { cluster_version = value; }
-  
+
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
 
@@ -65,11 +65,11 @@ class TpcClusterizer : public SubsysReco
   unsigned short MaxClusterHalfSizeT = 5;
   int cluster_version = 4;
   double m_tdriftmax = 0;
-  double AdcClockPeriod = 53.0;   // ns 
+  double AdcClockPeriod = 53.0;  // ns
 
   // TPC shaping offset correction parameter
   // From Tony Frawley July 5, 2022
-  double m_sampa_tbias = 39.6;  // ns  
+  double m_sampa_tbias = 39.6;  // ns
 };
 
 #endif
