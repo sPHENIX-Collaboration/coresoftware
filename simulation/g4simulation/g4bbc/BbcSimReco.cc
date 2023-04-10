@@ -21,15 +21,15 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <TDatabasePDG.h>
 #include <TF1.h>
 #include <TFile.h>
 #include <TH1F.h>
 #include <TH2F.h>
 #include <TLorentzVector.h>
 #include <TString.h>
-#include <TTree.h>
-#include <TDatabasePDG.h>
 #include <TSystem.h>
+#include <TTree.h>
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
@@ -116,7 +116,7 @@ namespace BBCINFO
   };
   */
 
-}
+}  // namespace BBCINFO
 
 //____________________________________
 BbcSimReco::BbcSimReco(const std::string &name)
@@ -219,7 +219,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     if (Verbosity())
     {
       std::cout << "VTXP "
-           << "\t" << f_vx << "\t" << f_vy << "\t" << f_vz << "\t" << f_vt << std::endl;
+                << "\t" << f_vx << "\t" << f_vy << "\t" << f_vz << "\t" << f_vt << std::endl;
     }
   }
 
@@ -260,7 +260,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
       if (fabs(this_hit->get_t(1)) < 106.5)
       {
         first_time[ch] = this_hit->get_t(1) - vtxp->get_t();
-        Float_t dt = gsl_ran_gaussian(m_RandomGenerator, _tres); // get fluctuation in time
+        Float_t dt = gsl_ran_gaussian(m_RandomGenerator, _tres);  // get fluctuation in time
         first_time[ch] += dt;
       }
       else
@@ -308,8 +308,8 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
       }
 
       // Get charge in BBC tube
-      float npe = len[ich] * (120 / 3.0);                          // we get 120 p.e. per 3 cm
-      float dnpe = gsl_ran_gaussian(m_RandomGenerator, std::sqrt(npe)); // get fluctuation in npe
+      float npe = len[ich] * (120 / 3.0);                                // we get 120 p.e. per 3 cm
+      float dnpe = gsl_ran_gaussian(m_RandomGenerator, std::sqrt(npe));  // get fluctuation in npe
 
       npe += dnpe;  // apply the fluctuations in npe
 
@@ -337,14 +337,12 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
         }
       }
 
-      //int ipmt = f_bbcn[0] + f_bbcn[1]; // number of hit pmt
+      // int ipmt = f_bbcn[0] + f_bbcn[1]; // number of hit pmt
       _bbcpmts->AddBbcPmt(ich, f_pmtq[ich], f_pmtt0[ich], f_pmtt1[ich]);
 
       // threshold should be > 0.
       ++f_bbcn[arm];
     }
-
-
   }
 
   // Get best t
@@ -352,23 +350,34 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
   {
     for (int iarm = 0; iarm < 2; iarm++)
     {
-      std::sort(hit_times[iarm].begin(), hit_times[iarm].end());
-      float earliest = hit_times[iarm][0];
-
-      gaussian->SetParameter(0, 5);
-      gaussian->SetParameter(1, earliest);
-      gaussian->SetRange(6, earliest + 5 * 0.05);
-      // gaussian->SetParameter(1,hevt_bbct[iarm]->GetMean());
-      // gaussian->SetRange(6,hevt_bbct[iarm]->GetMean()+0.125);
-
-      hevt_bbct[iarm]->Fit(gaussian, "BLRNQ");
-      if (f_bbcn[iarm] > 0)
+      if (!hit_times[iarm].empty())
       {
-        // f_bbct[iarm] = f_bbct[iarm] / f_bbcn[iarm];
-        f_bbct[iarm] = gaussian->GetParameter(1);
-        f_bbcte[iarm] = earliest;
+        std::sort(hit_times[iarm].begin(), hit_times[iarm].end());
+        float earliest = hit_times[iarm][0];
 
-        _bbcout->AddBbcNS(iarm, f_bbcn[iarm], f_bbcq[iarm], f_bbct[iarm]);
+        gaussian->SetParameter(0, 5);
+        gaussian->SetParameter(1, earliest);
+        gaussian->SetRange(6, earliest + 5 * 0.05);
+        // gaussian->SetParameter(1,hevt_bbct[iarm]->GetMean());
+        // gaussian->SetRange(6,hevt_bbct[iarm]->GetMean()+0.125);
+
+        hevt_bbct[iarm]->Fit(gaussian, "BLRNQ");
+        if (f_bbcn[iarm] > 0)
+        {
+          // f_bbct[iarm] = f_bbct[iarm] / f_bbcn[iarm];
+          f_bbct[iarm] = gaussian->GetParameter(1);
+          f_bbcte[iarm] = earliest;
+
+          _bbcout->AddBbcNS(iarm, f_bbcn[iarm], f_bbcq[iarm], f_bbct[iarm]);
+        }
+        else
+        {
+          _bbcout->AddBbcNS(iarm, 0, -99999., -99999.);
+        }
+      }
+      else
+      {
+        _bbcout->AddBbcNS(iarm, 0, -99999., -99999.);
       }
     }
 

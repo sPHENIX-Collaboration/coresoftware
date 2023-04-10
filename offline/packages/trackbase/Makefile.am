@@ -31,6 +31,7 @@ pkginclude_HEADERS = \
   CMFlashClusterContainer.h \
   CMFlashClusterContainerv1.h \
   CMFlashClusterv1.h \
+  CMFlashClusterv2.h \
   CMFlashDifference.h \
   CMFlashDifferenceContainer.h \
   CMFlashDifferenceContainerv1.h \
@@ -89,6 +90,7 @@ ROOTDICTS = \
   CMFlashClusterContainerv1_Dict.cc \
   CMFlashCluster_Dict.cc \
   CMFlashClusterv1_Dict.cc \
+  CMFlashClusterv2_Dict.cc \
   CMFlashDifferenceContainer_Dict.cc \
   CMFlashDifferenceContainerv1_Dict.cc \
   CMFlashDifference_Dict.cc \
@@ -140,6 +142,7 @@ nobase_dist_pcm_DATA = \
   CMFlashClusterContainerv1_Dict_rdict.pcm \
   CMFlashCluster_Dict_rdict.pcm \
   CMFlashClusterv1_Dict_rdict.pcm \
+  CMFlashClusterv2_Dict_rdict.pcm \
   CMFlashDifferenceContainer_Dict_rdict.pcm \
   CMFlashDifferenceContainerv1_Dict_rdict.pcm \
   CMFlashDifference_Dict_rdict.pcm \
@@ -191,6 +194,7 @@ libtrack_io_la_SOURCES = \
   AlignmentTransformation.cc \
   CMFlashClusterContainerv1.cc \
   CMFlashClusterv1.cc \
+  CMFlashClusterv2.cc \
   CMFlashDifferenceContainerv1.cc \
   CMFlashDifferencev1.cc \
   ClusterErrorPara.cc \
