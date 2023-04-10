@@ -831,7 +831,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         if (dynamic_cast<TrkrHitSetTpc*>(hitsetiter->second))
         {
-          const TrkrHitSetTpc::TimeFrameADCDataType& dataframe = hitset->getTimeFrameAdcData();
+          const TrkrHitSetTpc::TimeFrameADCDataType& dataframe = dynamic_cast<TrkrHitSetTpc*>(hitsetiter->second)->getTimeFrameAdcData();
 
           for (const auto& pad_data : dataframe)
           {
@@ -863,7 +863,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1) nhit_tpc_mid++;
           }
         }
-      }
+      }//       if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+
     }
   }
 
@@ -1583,171 +1584,350 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
              ++iter)
         {
           TrkrDefs::hitsetkey hitset_key = iter->first;
-          TrkrHitSet* hitset = iter->second;
 
-          // get all hits for this hitset
-          TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-          for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-               hitr != hitrangei.second;
-               ++hitr)
+          if (dynamic_cast<TrkrHitSetTpc*>(iter->second))
           {
-            TrkrDefs::hitkey hit_key = hitr->first;
-            TrkrHit* hit = hitr->second;
-            PHG4Hit* g4hit = hiteval->max_truth_hit_by_energy(hit_key);
-            PHG4Particle* g4particle = trutheval->get_particle(g4hit);
-            float event = _ievent;
-            float hitID = hit_key;
-            float e = hit->getEnergy();
-            float adc = hit->getAdc();
-            float layer = TrkrDefs::getLayer(hitset_key);
-            float sector = TpcDefs::getSectorId(hitset_key);
-            float side = TpcDefs::getSide(hitset_key);
-            float cellID = 0;
-            float ecell = hit->getAdc();
+            TrkrHitSetTpc* hitset = dynamic_cast<TrkrHitSetTpc*>(iter->second);
 
-            float phibin = NAN;
-            float zbin = NAN;
-            float phi = NAN;
-            float z = NAN;
+            const TrkrHitSetTpc::TimeFrameADCDataType& dataframe = hitset->getTimeFrameAdcData();
 
-            if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+            for (unsigned int local_pad = 0; local_pad < dataframe.size(); ++local_pad)
             {
-              PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
-              phibin = (float) TpcDefs::getPad(hit_key);
-              zbin = (float) TpcDefs::getTBin(hit_key);
-              phi = GeoLayer->get_phicenter(phibin);
-              z = GeoLayer->get_zcenter(zbin);
-            }
+              const std::vector<TpcDefs::ADCDataType>& pad_data = dataframe[local_pad];
 
-            float g4hitID = NAN;
-            float gedep = NAN;
-            float gx = NAN;
-            float gy = NAN;
-            float gz = NAN;
-            float gt = NAN;
-            float gtrackID = NAN;
-            float gflavor = NAN;
-            float gpx = NAN;
-            float gpy = NAN;
-            float gpz = NAN;
-            float gvx = NAN;
-            float gvy = NAN;
-            float gvz = NAN;
-            float gvt = NAN;
-            float gfpx = NAN;
-            float gfpy = NAN;
-            float gfpz = NAN;
-            float gfx = NAN;
-            float gfy = NAN;
-            float gfz = NAN;
-            float gembed = NAN;
-            float gprimary = NAN;
+              for (unsigned int local_tbin = 0; local_tbin < pad_data.size(); ++local_tbin)
+              {
+                const TpcDefs::ADCDataType& rawadc = pad_data[local_tbin];
+                if (rawadc <= 0) continue;
 
-            float efromtruth = NAN;
+                TrkrDefs::hitkey hit_key = hitset->getHitKeyfromLocalBin(local_pad, local_tbin);
 
-            if (g4hit)
+                PHG4Hit* g4hit = hiteval->max_truth_hit_by_energy(hit_key);
+                PHG4Particle* g4particle = trutheval->get_particle(g4hit);
+                float event = _ievent;
+                float hitID = hit_key;
+                float e = rawadc;
+                float adc = rawadc;
+                float layer = TrkrDefs::getLayer(hitset_key);
+                float sector = TpcDefs::getSectorId(hitset_key);
+                float side = TpcDefs::getSide(hitset_key);
+                float cellID = 0;
+                float ecell = rawadc;
+
+                float phibin = NAN;
+                float zbin = NAN;
+                float phi = NAN;
+                float z = NAN;
+
+                if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+                {
+                  PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
+                  phibin = (float) TpcDefs::getPad(hit_key);
+                  zbin = (float) TpcDefs::getTBin(hit_key);
+                  phi = GeoLayer->get_phicenter(phibin);
+                  z = GeoLayer->get_zcenter(zbin);
+                }
+
+                float g4hitID = NAN;
+                float gedep = NAN;
+                float gx = NAN;
+                float gy = NAN;
+                float gz = NAN;
+                float gt = NAN;
+                float gtrackID = NAN;
+                float gflavor = NAN;
+                float gpx = NAN;
+                float gpy = NAN;
+                float gpz = NAN;
+                float gvx = NAN;
+                float gvy = NAN;
+                float gvz = NAN;
+                float gvt = NAN;
+                float gfpx = NAN;
+                float gfpy = NAN;
+                float gfpz = NAN;
+                float gfx = NAN;
+                float gfy = NAN;
+                float gfz = NAN;
+                float gembed = NAN;
+                float gprimary = NAN;
+
+                float efromtruth = NAN;
+
+                if (g4hit)
+                {
+                  g4hitID = g4hit->get_hit_id();
+                  gedep = g4hit->get_edep();
+                  gx = g4hit->get_avg_x();
+                  gy = g4hit->get_avg_y();
+                  gz = g4hit->get_avg_z();
+                  gt = g4hit->get_avg_t();
+
+                  if (g4particle)
+                  {
+                    if (_scan_for_embedded)
+                    {
+                      if (trutheval->get_embed(g4particle) <= 0) continue;
+                    }
+
+                    gtrackID = g4particle->get_track_id();
+                    gflavor = g4particle->get_pid();
+                    gpx = g4particle->get_px();
+                    gpy = g4particle->get_py();
+                    gpz = g4particle->get_pz();
+
+                    PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
+
+                    if (vtx)
+                    {
+                      gvx = vtx->get_x();
+                      gvy = vtx->get_y();
+                      gvz = vtx->get_z();
+                      gvt = vtx->get_t();
+                    }
+
+                    PHG4Hit* outerhit = nullptr;
+                    if (_do_eval_light == false)
+                      outerhit = trutheval->get_outermost_truth_hit(g4particle);
+                    if (outerhit)
+                    {
+                      gfpx = outerhit->get_px(1);
+                      gfpy = outerhit->get_py(1);
+                      gfpz = outerhit->get_pz(1);
+                      gfx = outerhit->get_x(1);
+                      gfy = outerhit->get_y(1);
+                      gfz = outerhit->get_z(1);
+                    }
+                    gembed = trutheval->get_embed(g4particle);
+                    gprimary = trutheval->is_primary(g4particle);
+                  }  //   if (g4particle){
+                }
+
+                if (g4particle)
+                {
+                  efromtruth = hiteval->get_energy_contribution(hit_key, g4particle);
+                }
+
+                float hit_data[] = {
+                    event,
+                    (float) _iseed,
+                    hitID,
+                    e,
+                    adc,
+                    layer,
+                    sector,
+                    side,
+                    cellID,
+                    ecell,
+                    (float) phibin,
+                    (float) zbin,
+                    phi,
+                    z,
+                    g4hitID,
+                    gedep,
+                    gx,
+                    gy,
+                    gz,
+                    gt,
+                    gtrackID,
+                    gflavor,
+                    gpx,
+                    gpy,
+                    gpz,
+                    gvx,
+                    gvy,
+                    gvz,
+                    gvt,
+                    gfpx,
+                    gfpy,
+                    gfpz,
+                    gfx,
+                    gfy,
+                    gfz,
+                    gembed,
+                    gprimary,
+                    efromtruth,
+                    nhit_tpc_all,
+                    nhit_tpc_in,
+                    nhit_tpc_mid,
+                    nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
+
+                _ntp_hit->Fill(hit_data);
+
+              }  //               for (unsigned int local_tbin = 0; local_tbin < pad_data.size(); ++local_tbin)
+
+            }  //             for (unsigned int local_pad = 0; local_pad < dataframe.size(); ++local_pad)
+
+          }  //          if (TrkrHitSetTpc *hitset = dynamic_cast<TrkrHitSetTpc *>(my_data->hitset);)
+          else
+          {
+            TrkrHitSet* hitset = iter->second;
+
+            // get all hits for this hitset
+            TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+            for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+                 hitr != hitrangei.second;
+                 ++hitr)
             {
-              g4hitID = g4hit->get_hit_id();
-              gedep = g4hit->get_edep();
-              gx = g4hit->get_avg_x();
-              gy = g4hit->get_avg_y();
-              gz = g4hit->get_avg_z();
-              gt = g4hit->get_avg_t();
+              TrkrDefs::hitkey hit_key = hitr->first;
+              TrkrHit* hit = hitr->second;
+              PHG4Hit* g4hit = hiteval->max_truth_hit_by_energy(hit_key);
+              PHG4Particle* g4particle = trutheval->get_particle(g4hit);
+              float event = _ievent;
+              float hitID = hit_key;
+              float e = hit->getEnergy();
+              float adc = hit->getAdc();
+              float layer = TrkrDefs::getLayer(hitset_key);
+              float sector = TpcDefs::getSectorId(hitset_key);
+              float side = TpcDefs::getSide(hitset_key);
+              float cellID = 0;
+              float ecell = hit->getAdc();
+
+              float phibin = NAN;
+              float zbin = NAN;
+              float phi = NAN;
+              float z = NAN;
+
+              if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+              {
+                PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
+                phibin = (float) TpcDefs::getPad(hit_key);
+                zbin = (float) TpcDefs::getTBin(hit_key);
+                phi = GeoLayer->get_phicenter(phibin);
+                z = GeoLayer->get_zcenter(zbin);
+              }
+
+              float g4hitID = NAN;
+              float gedep = NAN;
+              float gx = NAN;
+              float gy = NAN;
+              float gz = NAN;
+              float gt = NAN;
+              float gtrackID = NAN;
+              float gflavor = NAN;
+              float gpx = NAN;
+              float gpy = NAN;
+              float gpz = NAN;
+              float gvx = NAN;
+              float gvy = NAN;
+              float gvz = NAN;
+              float gvt = NAN;
+              float gfpx = NAN;
+              float gfpy = NAN;
+              float gfpz = NAN;
+              float gfx = NAN;
+              float gfy = NAN;
+              float gfz = NAN;
+              float gembed = NAN;
+              float gprimary = NAN;
+
+              float efromtruth = NAN;
+
+              if (g4hit)
+              {
+                g4hitID = g4hit->get_hit_id();
+                gedep = g4hit->get_edep();
+                gx = g4hit->get_avg_x();
+                gy = g4hit->get_avg_y();
+                gz = g4hit->get_avg_z();
+                gt = g4hit->get_avg_t();
+
+                if (g4particle)
+                {
+                  if (_scan_for_embedded)
+                  {
+                    if (trutheval->get_embed(g4particle) <= 0) continue;
+                  }
+
+                  gtrackID = g4particle->get_track_id();
+                  gflavor = g4particle->get_pid();
+                  gpx = g4particle->get_px();
+                  gpy = g4particle->get_py();
+                  gpz = g4particle->get_pz();
+
+                  PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
+
+                  if (vtx)
+                  {
+                    gvx = vtx->get_x();
+                    gvy = vtx->get_y();
+                    gvz = vtx->get_z();
+                    gvt = vtx->get_t();
+                  }
+
+                  PHG4Hit* outerhit = nullptr;
+                  if (_do_eval_light == false)
+                    outerhit = trutheval->get_outermost_truth_hit(g4particle);
+                  if (outerhit)
+                  {
+                    gfpx = outerhit->get_px(1);
+                    gfpy = outerhit->get_py(1);
+                    gfpz = outerhit->get_pz(1);
+                    gfx = outerhit->get_x(1);
+                    gfy = outerhit->get_y(1);
+                    gfz = outerhit->get_z(1);
+                  }
+                  gembed = trutheval->get_embed(g4particle);
+                  gprimary = trutheval->is_primary(g4particle);
+                }  //   if (g4particle){
+              }
 
               if (g4particle)
               {
-                if (_scan_for_embedded)
-                {
-                  if (trutheval->get_embed(g4particle) <= 0) continue;
-                }
+                efromtruth = hiteval->get_energy_contribution(hit_key, g4particle);
+              }
 
-                gtrackID = g4particle->get_track_id();
-                gflavor = g4particle->get_pid();
-                gpx = g4particle->get_px();
-                gpy = g4particle->get_py();
-                gpz = g4particle->get_pz();
+              float hit_data[] = {
+                  event,
+                  (float) _iseed,
+                  hitID,
+                  e,
+                  adc,
+                  layer,
+                  sector,
+                  side,
+                  cellID,
+                  ecell,
+                  (float) phibin,
+                  (float) zbin,
+                  phi,
+                  z,
+                  g4hitID,
+                  gedep,
+                  gx,
+                  gy,
+                  gz,
+                  gt,
+                  gtrackID,
+                  gflavor,
+                  gpx,
+                  gpy,
+                  gpz,
+                  gvx,
+                  gvy,
+                  gvz,
+                  gvt,
+                  gfpx,
+                  gfpy,
+                  gfpz,
+                  gfx,
+                  gfy,
+                  gfz,
+                  gembed,
+                  gprimary,
+                  efromtruth,
+                  nhit_tpc_all,
+                  nhit_tpc_in,
+                  nhit_tpc_mid,
+                  nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
 
-                PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
-
-                if (vtx)
-                {
-                  gvx = vtx->get_x();
-                  gvy = vtx->get_y();
-                  gvz = vtx->get_z();
-                  gvt = vtx->get_t();
-                }
-
-                PHG4Hit* outerhit = nullptr;
-                if (_do_eval_light == false)
-                  outerhit = trutheval->get_outermost_truth_hit(g4particle);
-                if (outerhit)
-                {
-                  gfpx = outerhit->get_px(1);
-                  gfpy = outerhit->get_py(1);
-                  gfpz = outerhit->get_pz(1);
-                  gfx = outerhit->get_x(1);
-                  gfy = outerhit->get_y(1);
-                  gfz = outerhit->get_z(1);
-                }
-                gembed = trutheval->get_embed(g4particle);
-                gprimary = trutheval->is_primary(g4particle);
-              }  //   if (g4particle){
+              _ntp_hit->Fill(hit_data);
             }
 
-            if (g4particle)
-            {
-              efromtruth = hiteval->get_energy_contribution(hit_key, g4particle);
-            }
-
-            float hit_data[] = {
-                event,
-                (float) _iseed,
-                hitID,
-                e,
-                adc,
-                layer,
-                sector,
-                side,
-                cellID,
-                ecell,
-                (float) phibin,
-                (float) zbin,
-                phi,
-                z,
-                g4hitID,
-                gedep,
-                gx,
-                gy,
-                gz,
-                gt,
-                gtrackID,
-                gflavor,
-                gpx,
-                gpy,
-                gpz,
-                gvx,
-                gvy,
-                gvz,
-                gvt,
-                gfpx,
-                gfpy,
-                gfpz,
-                gfx,
-                gfy,
-                gfz,
-                gembed,
-                gprimary,
-                efromtruth,
-                nhit_tpc_all,
-                nhit_tpc_in,
-                nhit_tpc_mid,
-                nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
-
-            _ntp_hit->Fill(hit_data);
-          }
+          }  // else ->           if (TrkrHitSetTpc *hitset = dynamic_cast<TrkrHitSetTpc *>(my_data->hitset);)
         }
       }
-    } //     for ([[maybe_unused]] const auto& [trkrID, trkrName] : TrkrDefs::TrkrNames)
+    }  //     for ([[maybe_unused]] const auto& [trkrID, trkrName] : TrkrDefs::TrkrNames)
 
     if (Verbosity() >= 1)
     {
