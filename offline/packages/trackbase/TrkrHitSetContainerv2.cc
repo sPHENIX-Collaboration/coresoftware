@@ -63,7 +63,7 @@ TrkrHitSetContainerv2::addHitSetSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHi
   return TrkrHitSetContainer::addHitSetSpecifyKey(key, newhit);
 }
 
-void TrkrHitSetContainerv2::removeHitSet(TrkrDefs::hitsetkey key)
+void TrkrHitSetContainerv2::removeHitSet(TrkrDefs::hitsetkey )
 {
   std::cout << __PRETTY_FUNCTION__
             << " : deprecated. This function still works but slows down operation." << std::endl;
@@ -146,6 +146,8 @@ void TrkrHitSetContainerv2::syncMapArray(void) const
         << " m_hitArray.GetLast() = " << m_hitArray.GetLast()
         << " m_hitArray.GetEntries() = " << m_hitArray.GetEntries()
         << std::endl;
+
+    assert(m_hitmap.size() == 0);
   }
 
   for (unsigned int i = 0; i < size(); ++i)
