@@ -28,7 +28,6 @@ libcalo_reco_la_LIBADD = \
   -lsph_onnx \
   -lcaloCalibDBFile \
   -lcdbobjects \
-  -ldbtools \
   -lphparameter
 endif
 
@@ -70,7 +69,6 @@ libcalo_reco_la_SOURCES = \
   CaloWaveformFitting.cc \
   CaloWaveformProcessing.cc \
   CaloTowerBuilder.cc \
-  CaloTowerCalib.cc \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \
