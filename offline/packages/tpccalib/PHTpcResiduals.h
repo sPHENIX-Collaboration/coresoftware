@@ -71,12 +71,10 @@ class PHTpcResiduals : public SubsysReco
   void setGridDimensions(const int phiBins, const int rBins, const int zBins);
 
   /// set to true to store evaluation histograms and ntuples
-  void setSavehistograms( bool value )
-  { m_savehistograms = value; }
+  void setSavehistograms( bool ) {}
     
   /// output file name for evaluation histograms
-  void setHistogramOutputfile(const std::string &outputfile) 
-  {m_histogramfilename = outputfile;}
+  void setHistogramOutputfile(const std::string&) {}
 
   /// output file name for storing the space charge reconstruction matrices
   void setOutputfile(const std::string &outputfile)
@@ -126,9 +124,6 @@ class PHTpcResiduals : public SubsysReco
   /// Gets distortion cell for identifying bins in TPC
   int getCell(const Acts::Vector3& loc);
 
-  /// create histograms
-  void makeHistograms();
-    
   //! create ACTS track parameters from Svtx track
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack* ) const;
   
@@ -206,55 +201,6 @@ class PHTpcResiduals : public SubsysReco
   int m_accepted_clusters = 0;
   //@}
 
-  /// Output root histograms
-  bool m_savehistograms = false;
-  TH2 *h_rphiResid = nullptr;
-  TH2 *h_zResid = nullptr;
-  TH2 *h_etaResidLayer = nullptr;
-  TH2 *h_zResidLayer = nullptr;
-  TH2 *h_etaResid = nullptr;
-  TH1 *h_index = nullptr;
-  TH2 *h_alpha = nullptr;
-  TH2 *h_beta = nullptr;
-  
-  //@name additional histograms that copy the per-cell data used to extract the distortions
-  //@{
-  using TH1_map_t = std::map<int,TH1*>;
-  using TH2_map_t = std::map<int,TH2*>;
-  
-  TH1_map_t h_drphi;
-  TH1_map_t h_dz;
-  TH2_map_t h_drphi_alpha;
-  TH2_map_t h_dz_beta;
-  //@}
-  
-  TTree *residTup = nullptr;
-
-  /// delta rphi vs layer number
-  TH2 *h_deltarphi_layer = nullptr;
-
-  /// delta z vs layer number
-  TH2 *h_deltaz_layer = nullptr;
-
-  std::string m_histogramfilename = "PHTpcResiduals.root";
-  std::unique_ptr<TFile> m_histogramfile = nullptr;
-
-  /// For diagnostics
-  double tanAlpha = 0;
-  double tanBeta = 0;
-  double drphi = 0;
-  double dz = 0;
-  double clusR = 0;
-  double clusPhi = 0;
-  double clusZ = 0;
-  double statePhi = 0;
-  double stateZ = 0;
-  double stateRPhiErr = 0;
-  double stateZErr = 0;
-  double clusRPhiErr = 0;
-  double clusZErr = 0;
-  double stateR = 0;
-  TrkrDefs::cluskey cluskey = 0;
 };
 
 #endif
