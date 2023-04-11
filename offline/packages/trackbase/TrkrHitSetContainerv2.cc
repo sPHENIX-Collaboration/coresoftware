@@ -15,8 +15,8 @@
 #include <cstdlib>
 
 TrkrHitSetContainerv2::
-    TrkrHitSetContainerv2(const std::string& hitsetclass)
-  : m_hitArray(hitsetclass.c_str())
+    TrkrHitSetContainerv2(const std::string& hitsetclass, const size_t estimated_size)
+  : m_hitArray(hitsetclass.c_str(), estimated_size)
 {
 }
 
@@ -68,15 +68,7 @@ void TrkrHitSetContainerv2::removeHitSet(TrkrDefs::hitsetkey key)
   std::cout << __PRETTY_FUNCTION__
             << " : deprecated. This function still works but slows down operation." << std::endl;
 
-  syncMapArray();
-  auto iter = m_hitmap.find(key);
-  if (iter != m_hitmap.end())
-  {
-    TrkrHitSet* hitset = iter->second;
-    //    delete hitset;
-    m_hitArray.Remove(hitset);
-    m_hitmap.erase(iter);
-  }
+  exit(1);
 }
 
 void TrkrHitSetContainerv2::removeHitSet(TrkrHitSet* hitset)
@@ -116,7 +108,7 @@ TrkrHitSetContainerv2::findOrAddHitSet(TrkrDefs::hitsetkey key)
   auto it = m_hitmap.lower_bound(key);
   if (it == m_hitmap.end() || (key < it->first))
   {
-    TrkrHitSet* hitset = (TrkrHitSet*) m_hitArray.ConstructedAt(m_hitArray.GetSize());
+    TrkrHitSet* hitset = (TrkrHitSet*) m_hitArray.ConstructedAt(m_hitArray.GetLast() + 1);
     assert(hitset);
 
     it = m_hitmap.insert(it, std::make_pair(key, hitset));
@@ -142,21 +134,36 @@ TrkrHitSetContainerv2::findHitSet(TrkrDefs::hitsetkey key)
 
 void TrkrHitSetContainerv2::syncMapArray(void) const
 {
-  if (m_hitmap.size() == (size_t) m_hitArray.GetSize()) return;
+  if (m_hitmap.size() == (size_t) size()) return;
 
   if (m_hitmap.size() > 0)
   {
     std::cout
         << __PRETTY_FUNCTION__ << " Error: m_hitmap and m_hitArray get out of sync, which should not happen unless DST readback. "
-        << "m_hitmap.size( ) = " << m_hitmap.size() << " m_hitArray.GetSize() = " << m_hitArray.GetSize() << std::endl;
+        << " size() = " << size()
+        << " m_hitmap.size( ) = " << m_hitmap.size()
+        << " m_hitArray.GetSize() = " << m_hitArray.GetSize()
+        << " m_hitArray.GetLast() = " << m_hitArray.GetLast()
+        << " m_hitArray.GetEntries() = " << m_hitArray.GetEntries()
+        << std::endl;
   }
 
-  for (int i = 0; i < m_hitArray.GetSize(); ++i)
+  for (unsigned int i = 0; i < size(); ++i)
   {
-    TrkrHitSet* hitset = static_cast<TrkrHitSet*>(m_hitArray[i]);
+    TrkrHitSet* hitset = dynamic_cast<TrkrHitSet*>(m_hitArray[i]);
 
-    assert(hitset);
-
-    m_hitmap[hitset->getHitSetKey()] = hitset;
+    if (hitset == nullptr)
+    {
+      std::cout << __PRETTY_FUNCTION__ << " : fatal error, invalid hitset in m_hitArray at position " << i << ". "
+                << " size() = " << size()
+                << " m_hitmap.size( ) = " << m_hitmap.size()
+                << " m_hitArray.GetSize() = " << m_hitArray.GetSize()
+                << " m_hitArray.GetLast() = " << m_hitArray.GetLast()
+                << " m_hitArray.GetEntries() = " << m_hitArray.GetEntries()
+                << std::endl;
+      assert(hitset);
+    }
+    else
+      m_hitmap[hitset->getHitSetKey()] = hitset;
   }
 }

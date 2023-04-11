@@ -23,7 +23,7 @@ class TrkrHitSetContainerv2 final : public TrkrHitSetContainer
   TrkrHitSetContainerv2() = default;
 
  public:
-  TrkrHitSetContainerv2(const std::string& hitsetclass);
+  TrkrHitSetContainerv2(const std::string& hitsetclass, const size_t estimated_size);
 
   ~TrkrHitSetContainerv2() override
   {
@@ -56,7 +56,7 @@ class TrkrHitSetContainerv2 final : public TrkrHitSetContainer
 
   unsigned int size() const override
   {
-    return m_hitArray.GetSize();
+    return m_hitArray.GetEntriesFast();
   }
 
  private:

@@ -140,7 +140,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    hitsetcontainer = new TrkrHitSetContainerv2("TrkrHitSetTpcv1");
+    hitsetcontainer = new TrkrHitSetContainerv2("TrkrHitSetTpcv1", 24*48 /*estimated number of TPC hitsets for pre-allocated memory*/);
     auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET_TPC", "PHObject");
     DetNode->addNode(newNode);
   }
