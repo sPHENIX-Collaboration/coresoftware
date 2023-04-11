@@ -33,8 +33,6 @@
 
 PHG4TpcDigitizer::PHG4TpcDigitizer(const std::string &name)
   : SubsysReco(name)
-  , TpcMinLayer(7)
-  , TpcNLayers(48)
   , ADCThreshold(2700)                                                    // electrons
   , TpcEnc(670)                                                           // electrons
   , Pedestal(50000)                                                       // electrons

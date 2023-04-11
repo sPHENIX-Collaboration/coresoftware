@@ -41,7 +41,6 @@ class PHG4TpcDigitizer : public SubsysReco
     _energy_scale.insert(std::make_pair(layer, energy_per_adc));
   }
 
-  void SetTpcMinLayer(const int minlayer) { TpcMinLayer = minlayer; };
   void SetADCThreshold(const float thresh) { ADCThreshold = thresh; };
   void SetENC(const float enc) { TpcEnc = enc; };
   void set_drift_velocity(float vd) {_drift_velocity = vd;}
@@ -55,8 +54,6 @@ class PHG4TpcDigitizer : public SubsysReco
   float added_noise();
   float add_noise_to_bin(float signal);
   
-  unsigned int TpcMinLayer;
-  unsigned int TpcNLayers;
   float ADCThreshold;
   float ADCThreshold_mV = 0;
   float TpcEnc;
