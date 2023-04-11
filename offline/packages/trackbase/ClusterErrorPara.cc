@@ -473,11 +473,9 @@ ClusterErrorPara::ClusterErrorPara()
 }
 
 //_________________________________________________________________________________
-ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClusterv5* clusterv5, double cluster_r, TrkrDefs::cluskey key)
+ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClusterv5* clusterv5, double, TrkrDefs::cluskey key)
 {
-  if(cluster_r>300){
-    std::cout << " far out " << std::endl;
-  }
+
   int layer = TrkrDefs::getLayer(key);
 
   double phierror = clusterv5->getRPhiError();
