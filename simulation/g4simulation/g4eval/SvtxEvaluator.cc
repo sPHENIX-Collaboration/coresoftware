@@ -65,6 +65,74 @@
 
 using namespace std;
 
+namespace sumClusterEnergyFromHits
+{
+  void calc(
+      TrkrClusterHitAssoc* clusterhitmap,
+      TrkrDefs::cluskey cluster_key,
+      const std::map<uint8_t, TrkrHitSetContainer*>& hitsetsmap,
+      float& sumadc,
+      float& maxadc,
+      float& size)
+  {
+    TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+    sumadc = 0;
+
+    auto hitsetsmap_iter = hitsetsmap.find(TrkrDefs::getTrkrId(hitsetkey));
+    if (hitsetsmap_iter != hitsetsmap.end())
+    {
+      TrkrHitSetContainer* hitsets = hitsetsmap_iter->second;
+      assert(hitsets);
+
+      if (dynamic_cast<TrkrHitSetTpc*>(hitsets->findHitSet(hitsetkey)))
+      {
+        // specialized hit container for TPCs
+
+        TrkrHitSetTpc* hitset = dynamic_cast<TrkrHitSetTpc*>(hitsets->findHitSet(hitsetkey));
+
+        std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
+            hitrange = clusterhitmap->getHits(cluster_key);
+        for (std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
+                 clushititer = hitrange.first;
+             clushititer != hitrange.second; ++clushititer)
+        {
+          auto adc = hitset->getTpcADC(clushititer->second);
+          if (adc <= 0) continue;
+
+          ++size;
+          sumadc += (adc - 70);
+          if ((adc - 70) > maxadc)
+            maxadc = (adc - 70);
+        }
+
+      }  //       if (dynamic_cast<TrkrHitSetTpc*>(hitsets->findHitSet(hitsetkey)))
+      else
+      {
+        TrkrHitSet* hitset = hitsets->findHitSet(hitsetkey);
+
+        std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
+            hitrange = clusterhitmap->getHits(cluster_key);
+        for (std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
+                 clushititer = hitrange.first;
+             clushititer != hitrange.second; ++clushititer)
+        {
+          TrkrHit* hit = hitset->getHit(clushititer->second);
+          if (!hit) continue;
+
+          ++size;
+          sumadc += (hit->getAdc() );
+          if ((hit->getAdc() ) > maxadc)
+            maxadc = (hit->getAdc());
+        }
+
+      }  // else ->       if (dynamic_cast<TrkrHitSetTpc*>(hitsets->findHitSet(hitsetkey)))
+
+    }  //    if (hitsetsmap_iter != hitsetsmap.end())
+
+  }  //   void calc(
+
+}  // namespace sumClusterEnergyFromHits
+
 SvtxEvaluator::SvtxEvaluator(const string& /*name*/, const string& filename, const string& trackmapname,
                              unsigned int nlayers_maps,
                              unsigned int nlayers_intt,
@@ -1946,6 +2014,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     _timer->restart();
   }
 
+  std::map<uint8_t, TrkrHitSetContainer*> hitsetsmap;
+  for (const auto & [trkrID, trkrName] : TrkrDefs::TrkrNames)
+  {
+    TrkrHitSetContainer * hitsets  = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_" + trkrName);
+    if (hitsets)
+      hitsetsmap[trkrID] = hitsets;
+  }
+
   if (_ntp_cluster && !_scan_for_embedded)
   {
     if (Verbosity() > 1) cout << "Filling ntp_cluster (all of them) " << endl;
@@ -1955,13 +2031,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
 
     TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
-    std::map<uint8_t, TrkrHitSetContainer*> hitsetsmap;
-    for (const auto & [trkrID, trkrName] : TrkrDefs::TrkrNames)
-    {
-      TrkrHitSetContainer * hitsets  = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_" + trkrName);
-      if (hitsets)
-        hitsetsmap[trkrID] = hitsets;
-    }
     TrkrClusterIterationMapv1* _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
     ClusterErrorPara ClusErrPara;
 
@@ -2066,31 +2135,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    cout << "Good    hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer << endl;  
 	  }
 	  */
-	  float sumadc = 0;
 
-	  auto hitsetsmap_iter = hitsetsmap.find(TrkrDefs::getTrkrId(hitsetkey));
-    if (hitsetsmap_iter != hitsetsmap.end())
-    {
-      TrkrHitSetContainer* hitsets = hitsetsmap_iter->second;
-      assert(hitsets);
-
-      TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey);
-      std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
-          hitrange = clusterhitmap->getHits(cluster_key);
-      for (std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
-               clushititer = hitrange.first;
-           clushititer != hitrange.second; ++clushititer)
-      {
-        TrkrHit* hit = hitset->second->getHit(clushititer->second);
-        if (!hit) continue;
-
-        ++size;
-        sumadc += (hit->getAdc() - 70);
-        if ((hit->getAdc() - 70) > maxadc)
-          maxadc = (hit->getAdc() - 70);
-      }
-    }
-    e = sumadc;
+	  sumClusterEnergyFromHits::calc(
+        clusterhitmap,
+        cluster_key,
+        hitsetsmap,
+        e,
+        maxadc,
+        size
+    );
 
     float trackID = NAN;
 	  if (track!=NULL) trackID = track->get_id();
@@ -2281,14 +2334,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
     TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
 
-    std::map<uint8_t, TrkrHitSetContainer*> hitsetsmap;
-    for (const auto & [trkrID, trkrName] : TrkrDefs::TrkrNames)
-    {
-      TrkrHitSetContainer * hitsets  = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_" + trkrName);
-      if (hitsets)
-        hitsetsmap[trkrID] = hitsets;
-    }
-
     TrkrClusterIterationMapv1* _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
 
     if (trackmap != nullptr && clustermap != nullptr && clusterhitmap != nullptr && hitsetsmap.size() != 0){
@@ -2392,28 +2437,17 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      // count all hits for this cluster
 
 	      float maxadc = -999;
+	      float sumadc = 0;
+	      sumClusterEnergyFromHits::calc(
+	          clusterhitmap,
+	          cluster_key,
+	          hitsetsmap,
+	          sumadc,
+	          maxadc,
+	          size
+	      );
 
-	      // count all hits for this cluster
-	      TrkrDefs::hitsetkey hitsetkey =  TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
 
-	      auto hitsetsmap_iter = hitsetsmap.find(TrkrDefs::getTrkrId(hitsetkey));
-	      if (hitsetsmap_iter != hitsetsmap.end())
-	      {
-	        TrkrHitSetContainer* hitsets = hitsetsmap_iter->second;
-          assert(hitsets);
-          TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey);
-          std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
-              hitrange = clusterhitmap->getHits(cluster_key);
-          for (std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
-                   clushititer = hitrange.first;
-               clushititer != hitrange.second; ++clushititer)
-          {
-            TrkrHit* hit = hitset->second->getHit(clushititer->second);
-            ++size;
-            if (hit->getAdc() > maxadc)
-              maxadc = hit->getAdc();
-          }
-        }
 
         float trackID = NAN;
 	      trackID = track->get_id();
