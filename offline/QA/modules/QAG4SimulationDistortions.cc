@@ -22,6 +22,7 @@
 #include <TH2.h>
 #include <TNamed.h>
 #include <TString.h>
+#include <TTree.h>
 #include <TVector3.h>
 
 #include <array>
@@ -128,6 +129,28 @@ int QAG4SimulationDistortions::Init(PHCompositeNode*)
   h = new TH2F(TString(get_histo_prefix()) + "clusrphi_pulls", "layer; #Deltar#phi_{track-cluster}/#sigma_{r#phi}^{clus}", 57, 0, 57, 100, -5, 5);
   hm->registerHisto(h);
 
+  TTree* t(nullptr);
+
+  t = new TTree(TString(get_histo_prefix()) + "residTree", "tpc residual info");
+  t->Branch("tanAlpha", &m_tanAlpha, "tanAlpha/D");
+  t->Branch("tanBeta", &m_tanBeta, "tanBeta/D");
+  t->Branch("drphi", &m_drphi, "drphi/D");
+  t->Branch("dz", &m_dz, "dz/D");
+  t->Branch("clusR", &m_clusR, "clusR/D");
+  t->Branch("clusPhi", &m_clusPhi, "clusPhi/D");
+  t->Branch("clusZ", &m_clusZ, "clusZ/D");
+  t->Branch("statePhi", &m_statePhi, "statePhi/D");
+  t->Branch("stateZ", &m_stateZ, "stateZ/D");
+  t->Branch("stateR", &m_stateR, "stateR/D");
+  t->Branch("stateRPhiErr", &m_stateRPhiErr, "stateRPhiErr/D");
+  t->Branch("stateZErr", &m_stateZErr, "stateZErr/D");
+  t->Branch("clusRPhiErr", &m_clusRPhiErr, "clusRPhiErr/D");
+  t->Branch("clusZErr", &m_clusZErr, "clusZErr/D");
+  t->Branch("cluskey", &m_cluskey, "cluskey/l");
+  t->Branch("event", &m_event, "event/I");
+
+  hm->registerHisto(t);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -194,6 +217,9 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode*)
 
   auto h_clusrphi_pulls = dynamic_cast<TH1*>(hm->getHisto(get_histo_prefix() + "clusrphi_pulls"));
   assert(h_clusrphi_pulls);
+
+  auto t_tree = dynamic_cast<TTree*>(hm->getHisto(get_histo_prefix() + "residTree"));
+  assert(t_tree);
 
   for (const auto& [key, track] : *m_trackMap)
   {
@@ -288,8 +314,28 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode*)
       h_staterphi_pulls->Fill(layer, drphi / stateRPhiErr);
       h_clusz_pulls->Fill(layer, dz / clusZErr);
       h_clusrphi_pulls->Fill(layer, drphi / clusRPhiErr);
+
+      m_tanAlpha = trackAlpha;
+      m_tanBeta = trackBeta;
+      m_drphi = drphi;
+      m_dz = dz;
+      m_clusR = clusR;
+      m_clusPhi = clusPhi;
+      m_clusZ = clusZ;
+      m_statePhi = statePhi;
+      m_stateZ = stateZ;
+      m_stateR = stateR;
+      m_stateRPhiErr = stateRPhiErr;
+      m_stateZErr = stateZErr;
+      m_clusRPhiErr = clusRPhiErr;
+      m_clusZErr = clusZErr;
+      m_cluskey = key;
+      t_tree->Fill();
     }
   }
+
+  m_event++;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
