@@ -176,16 +176,18 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
 	  // fitpoint is the point where the helical fit intersects the plane of the surface
 	  // this is what we need to get the residuals
-	  
-	  if(Verbosity() > 1) {std::cout << "    cluster position " << global(0) << " " << global(1) << " " << global(2) 
-					 << " fitpoint " << fitpoint(0) << " " << fitpoint(1) << " " << fitpoint(2)  << std::endl;}
-	    
+       	    
 	  // Now transform the helix fitpoint to local coordinates to compare with cluster local coordinates
 	  Acts::Vector3 fitpoint_local = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint *  Acts::UnitConstants::cm);
 	  fitpoint_local /= Acts::UnitConstants::cm;
 
 	  Acts::Vector2 residual(cluster->getLocalX() - fitpoint_local(0), cluster->getLocalY() - fitpoint_local(1)); 
-
+  
+	  if(Verbosity() > 1) {std::cout << "    cluster position " << global(0) << " " << global(1) << " " << global(2) << std::endl
+					 << " fitpoint " << fitpoint(0) << " " << fitpoint(1) << " " << fitpoint(2) << std::endl
+					 << " fitpoint_local " << fitpoint_local(0) << " " << fitpoint_local(1) << " " << fitpoint_local(2) << std::endl  
+					 << " cluster local x " << cluster->getLocalX() << " cluster local y " << cluster->getLocalY() << std::endl
+					 << " cluster local residual x " << residual(0) << " cluster local residual y " <<residual(1) << std::endl;}
 	  unsigned int layer = TrkrDefs::getLayer(cluskey_vec[ivec]);	  
 	  float phi =  atan2(global(1), global(0));
 	  std::cout << "Local residuals: layer " << layer << " phi " << phi << " dx " << residual(0) << " dy " << residual(1) << std::endl;
@@ -473,9 +475,9 @@ std::vector<Acts::Vector3> HelicalFitter::getDerivativesAlignmentTranslations(Ac
 	      keeper(2) -= (finalCoords(2) - y);
 	    }
 
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 5)
 	    {
-	      std::cout << "        AlignmentTranslationsDerives: finalCoords(0) " << finalCoords(0) << " global(0) " << global(0) << " finalCoords(1) " 
+	      std::cout << "        AlignmentTranslationsDerivs: finalCoords(0) " << finalCoords(0) << " global(0) " << global(0) << " finalCoords(1) " 
 			<< finalCoords(1) << " global(1) " << global(1) << " finalCoords(2) " << finalCoords(2) 
 			<< " global(2) " << global(2) << std::endl;
 	      std::cout  << "        keeper now:  keeper(0) " << keeper(0) << " keeper(1) " << keeper(1) << " keeper(2) " 
@@ -497,7 +499,7 @@ std::vector<Acts::Vector3> HelicalFitter::getDerivativesAlignmentTranslations(Ac
       if( isnan(derivs(2)) ) { derivs(2) = 0; }
       derivs_vector.push_back(derivs);
 
-      if(Verbosity() > 1) { std::cout << "        derivs(0) " << derivs(0) << " derivs(1) " << derivs(1) << " derivs(2) " << derivs(2) << std::endl; }
+      if(Verbosity() > 1) { std::cout << "        AlignmentTranslationsDerivs: itrans " << itrans << " derivs(0) " << derivs(0) << " derivs(1) " << derivs(1) << " derivs(2) " << derivs(2) << std::endl; }
     }
   return derivs_vector;
 }
@@ -540,6 +542,8 @@ std::vector<Acts::Vector3> HelicalFitter::getDerivativesAlignmentAngles(Acts::Ve
 	  finalLocalPosition /= 10.0; // convert mm back to cm
 
 	  // have to add corrections for TPC clusters after transformation to global
+	  // The helical fit is to corrected data, so if we transform back to local, can 
+	  // we compare with the cluster local? What is needed here for the TPC?
 
 	  // note that x and y cancel out here	  	  
 	  if(ip == 0)
@@ -553,9 +557,9 @@ std::vector<Acts::Vector3> HelicalFitter::getDerivativesAlignmentAngles(Acts::Ve
 	      keeper(2) -= (finalLocalPosition(2) - y);
 	    }
 
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 5)
 	    {
-	      std::cout << "        AliognmentAngleDerivs: finalLocalPosition(0) " << finalLocalPosition(0) << " global(0) " << global(0) << " finalLocalPosition(1) " << finalLocalPosition(1) 
+	      std::cout << "        AlignmentAngleDerivs: finalLocalPosition(0) " << finalLocalPosition(0) << " global(0) " << global(0) << " finalLocalPosition(1) " << finalLocalPosition(1) 
 			<< " global(1) " << global(1) << " finalLocalPosition(2) " << finalLocalPosition(2) << " global(2) " << global(2) << std::endl;
 	      std::cout  << "        keeper now:  keeper(0) " << keeper(0) << " keeper(1) " << keeper(1) << " keeper(2) " << keeper(2) << std::endl;
 	    }
@@ -574,7 +578,7 @@ std::vector<Acts::Vector3> HelicalFitter::getDerivativesAlignmentAngles(Acts::Ve
       if( isnan(derivs(2)) ) { derivs(2) = 0; }
       derivs_vector.push_back(derivs);
 
-      if(Verbosity() > 1) { std::cout << "        derivs(0) " << derivs(0) << " derivs(1) " << derivs(1) << " derivs(2) " << derivs(2) << std::endl; }
+      if(Verbosity() > 1) { std::cout << "        AlignmentAngleDerivs: iangle " << iangle << " derivs(0) " << derivs(0) << " derivs(1) " << derivs(1) << " derivs(2) " << derivs(2) << std::endl; }
     }
   
   return derivs_vector;

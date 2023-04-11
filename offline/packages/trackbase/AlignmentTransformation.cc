@@ -88,19 +88,19 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	   }
 
          surf                        = surfMaps.getSiliconSurface(hitsetkey);
-	 Acts::Transform3 transform2  = makeTransform(surf, millepedeTranslation, sensorAngles);
 	 Acts::Transform3 transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
          Acts::GeometryIdentifier id = surf->geometryId();
 
 	 if(localVerbosity) 
 	   {
-	   std::cout << " Add transform for MVTX with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
-	   std::cout << "mvtx transform:" << std::endl << transform.matrix() << std::endl;
-	   std::cout << "mvtx transform2:" << std::endl << transform2.matrix() << std::endl;
+	     //Acts::Transform3 transform2  = makeTransform(surf, millepedeTranslation, sensorAngles);
+	     std::cout << " Add transform for MVTX with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	     std::cout << " final mvtx transform:" << std::endl << transform.matrix() << std::endl;
+	     //	     std::cout << "mvtx transform2:" << std::endl << transform2.matrix() << std::endl;
 	   }
 	 transformMap->addTransform(id,transform);
        }
-
+     
      else if(trkrId == TrkrDefs::inttId) 
        {
 
@@ -189,6 +189,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
  
 }
 
+// no longer used
 Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
 {  
   /*
@@ -236,6 +237,7 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
   return globalRotation;
 }
 
+// no longer used
 Eigen::Matrix3d AlignmentTransformation::modifyRotationConvention(Eigen::Matrix3d rotationMatrix)
 {
   // Acts uses a rotation matrix that transforms local position (x,z,y) into global position (x',y',z')
@@ -260,6 +262,7 @@ Eigen::Matrix3d AlignmentTransformation::modifyRotationConvention(Eigen::Matrix3
   return actsRotationMatrix;
 }
 
+// no longer used
 Acts::Transform3 AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector)
 {
   // Acts uses a rotation matrix that transforms local position (x,z,y) into global position (x',y',z')
@@ -299,11 +302,18 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   Eigen::Matrix3d nullRotation = qnull.matrix();
 
   // Create alignment rotation matrix
+
   // Note that Acts transforms local coordinates of (x,z,y) to global (x,y,z)
-  // So we apply alpha to x, gamma to y, and beta to z in the local frame
+  //=====================================================
+  // So our beginning local position vector should be (x,z,y)
+  // and our MP (local) alignment translation vector should be (dx,dz,dy)
+  // We don't worry about the angle parameter order, since they are 
+  // just arbitrary parameters that will be fitted to data
+  //=====================================================
+
   Eigen::AngleAxisd alpha(sensorAngles(0), Eigen::Vector3d::UnitX());
-  Eigen::AngleAxisd beta(sensorAngles(2), Eigen::Vector3d::UnitY());
-  Eigen::AngleAxisd gamma(sensorAngles(1), Eigen::Vector3d::UnitZ());
+  Eigen::AngleAxisd beta(sensorAngles(1), Eigen::Vector3d::UnitY());
+  Eigen::AngleAxisd gamma(sensorAngles(2), Eigen::Vector3d::UnitZ());
   Eigen::Quaternion<double> q       = gamma*beta*alpha;
   Eigen::Matrix3d millepedeRotation = q.matrix();
 
@@ -323,7 +333,6 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
 
   // and make affine matrices from each
   Acts::Transform3 actsRotationAffine;
-  //  actsRotationAffine.linear() = modifiedActsRotationPart;
   actsRotationAffine.linear() = actsRotationPart;
   actsRotationAffine.translation() = nullTranslation;
   Acts::Transform3 actsTranslationAffine;
@@ -332,24 +341,26 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
 
   //Put them together into a combined transform
 
-  // EITHER: put the translations in the global frame
+  // EITHER: put the mp translations in the global frame
   // Acts::Transform3 transform = mpTranslationAffine *  actsTranslationAffine *  actsRotationAffine * mpRotationAffine;
-  // OR: put the translations in the local coordinate frame
+  // OR (new): put the mp translations in the local coordinate frame
   Acts::Transform3 transform =  actsTranslationAffine *  actsRotationAffine * mpTranslationAffine * mpRotationAffine;
 
   if(localVerbosity > 2)
     {
       std::cout << "newMakeTransform" << std::endl;
       std::cout << "mpRotationAffine: "<< std::endl<< mpRotationAffine.matrix()  <<std::endl;
+      std::cout << "mpTranslationAffine: " << std::endl << mpTranslationAffine.matrix() <<std::endl;
+      std::cout << " mptranslationAffine * mpRotationAffine " << std::endl << (mpTranslationAffine * mpRotationAffine).matrix() << std::endl;
       std::cout << "actsRotationAffine: "<< std::endl<< actsRotationAffine.matrix()  <<std::endl;
       std::cout << "actsTranslationAffine: "<< std::endl<< actsTranslationAffine.matrix()  <<std::endl;
-      std::cout << "mpTranslationAffine: " << std::endl << mpTranslationAffine.matrix() <<std::endl;
-      std::cout << "transform: " << std::endl << transform.matrix() <<std::endl;
+      std::cout << "Overall transform: " << std::endl << transform.matrix() <<std::endl;
     }
 
   return transform;   
 }
 
+// no longer used
 Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles)
 {
   // Create alignment rotation matrix
@@ -369,7 +380,7 @@ Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vec
   if(localVerbosity > 2)
     {
       std::cout << "makeTransform:" << std::endl;
-      std::cout << "sensor center: " << sensorCenter << " millepede translation: " << millepedeTranslation <<std::endl;
+      std::cout << "sensor center: " << std::endl << sensorCenter << std::endl << " millepede translation: " << std::endl << millepedeTranslation <<std::endl;
       std::cout << "transformation: "<< std::endl<< transformation.matrix()  <<std::endl;
     }
 
