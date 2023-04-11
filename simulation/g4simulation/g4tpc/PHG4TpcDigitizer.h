@@ -48,6 +48,9 @@ class PHG4TpcDigitizer : public SubsysReco
   void set_nPreSample(unsigned int s) {m_nPreSample = s;}
   void set_nPostSample(unsigned int s) {m_nPostSample = s;}
 
+  //! Preserve old interface
+  void SetTpcMinLayer(const int minlayer);
+
  private:
   void CalculateCylinderCellADCScale(PHCompositeNode *topNode);
   void DigitizeCylinderCells(PHCompositeNode *topNode);

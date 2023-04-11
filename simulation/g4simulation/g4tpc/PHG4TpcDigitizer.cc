@@ -322,3 +322,9 @@ float PHG4TpcDigitizer::added_noise()
 
   return noise;
 }
+
+void PHG4TpcDigitizer::
+SetTpcMinLayer(const int )
+{
+  std::cout <<__PRETTY_FUNCTION__<<" is deprecated. Ignore this call"<<std::endl;
+}
