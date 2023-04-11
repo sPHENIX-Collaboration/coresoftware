@@ -6,8 +6,10 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <math.h>
 #include <string>
 #include <vector>
+
 class PHCompositeNode;
 class SvtxTrackMap;
 class TrkrClusterContainer;
@@ -36,6 +38,23 @@ class QAG4SimulationDistortions : public SubsysReco
   SvtxTrackMap* m_trackMap = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
   ActsGeometry* m_tGeometry = nullptr;
+
+  int m_event = 0;
+  float m_tanAlpha = NAN;
+  float m_tanBeta = NAN;
+  float m_drphi = NAN;
+  float m_dz = NAN;
+  float m_clusR = NAN;
+  float m_clusPhi = NAN;
+  float m_clusZ = NAN;
+  float m_statePhi = NAN;
+  float m_stateZ = NAN;
+  float m_stateR = NAN;
+  float m_stateRPhiErr = NAN;
+  float m_stateZErr = NAN;
+  float m_clusRPhiErr = NAN;
+  float m_clusZErr = NAN;
+  TrkrDefs::cluskey m_cluskey = TrkrDefs::CLUSKEYMAX;
 };
 
 #endif  // QAG4SIMULATIONDISTORTIONS_H
