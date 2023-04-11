@@ -388,11 +388,6 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     const unsigned short NTBins = (unsigned short)layergeom->get_zbins();
     const float tdriftmax =  AdcClockPeriod * NTBins / 2.0;
 
-    // get corresponding hits
-    TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-    
-//    for (auto hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
-
     const TrkrHitSetTpc::TimeFrameADCDataType &dataframe = hitset->getTimeFrameAdcData();
 
     for (unsigned int local_pad = 0; local_pad < dataframe.size(); ++local_pad)
