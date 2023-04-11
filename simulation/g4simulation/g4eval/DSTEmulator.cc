@@ -570,10 +570,6 @@ int DSTEmulator::load_nodes( PHCompositeNode* topNode )
   // local container
   m_container = findNode::getClass<TrackEvaluationContainerv1>(topNode, "TrackEvaluationContainer");
 
-  // hitset container
-  // TRKR_HITSET are now split for each subsystem
-  // m_hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-
   // g4hits
   m_g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   m_g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
