@@ -27,8 +27,8 @@ class sphenixnpc : public nopayloadclient::Client
   nlohmann::json setGlobalTag(std::string name) override;
   nlohmann::json clearCache() override;
   std::string getCalibrationFile(const std::string &type, uint64_t iov);
-  int insertcalib(const std::string &fname, const std::string &payloadtype, uint64_t iov_start);
-  int insertcalib(const std::string &fname, const std::string &payloadtype, uint64_t iov_start, uint64_t iov_end);
+  int insertcalib(const std::string &payloadtype, const std::string &fname, uint64_t iov_start);
+  int insertcalib(const std::string &payloadtype, const std::string &fname, uint64_t iov_start, uint64_t iov_end);
   void Verbosity(int i) { m_Verbosity = i; }
   int Verbosity() const { return m_Verbosity; }
 

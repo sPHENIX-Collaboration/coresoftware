@@ -14,7 +14,6 @@ sphenixnpc *sphenixnpc::instance(const std::string &globaltag)
 
 sphenixnpc::~sphenixnpc()
 {
-  clearCache();
   __instance = nullptr;
 }
 
