@@ -1670,7 +1670,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
                 TrkrDefs::hitkey hit_key = hitset->getHitKeyfromLocalBin(local_pad, local_tbin);
 
-                PHG4Hit* g4hit = hiteval->max_truth_hit_by_energy(hit_key);
+                PHG4Hit* g4hit = hiteval->max_truth_hit_by_energy(hitset_key, hit_key);
                 PHG4Particle* g4particle = trutheval->get_particle(g4hit);
                 float event = _ievent;
                 float hitID = hit_key;
@@ -1773,7 +1773,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
                 if (g4particle)
                 {
-                  efromtruth = hiteval->get_energy_contribution(hit_key, g4particle);
+                  efromtruth = hiteval->get_energy_contribution(hitset_key, hit_key, g4particle);
                 }
 
                 float hit_data[] = {
@@ -1839,7 +1839,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             {
               TrkrDefs::hitkey hit_key = hitr->first;
               TrkrHit* hit = hitr->second;
-              PHG4Hit* g4hit = hiteval->max_truth_hit_by_energy(hit_key);
+              PHG4Hit* g4hit = hiteval->max_truth_hit_by_energy(hitset_key, hit_key);
               PHG4Particle* g4particle = trutheval->get_particle(g4hit);
               float event = _ievent;
               float hitID = hit_key;
@@ -1942,7 +1942,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
               if (g4particle)
               {
-                efromtruth = hiteval->get_energy_contribution(hit_key, g4particle);
+                efromtruth = hiteval->get_energy_contribution(hitset_key, hit_key, g4particle);
               }
 
               float hit_data[] = {
