@@ -629,6 +629,12 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         TrkrHitSetTpc *hitset = dynamic_cast<TrkrHitSetTpc *>(node_hitsetit->second);
         assert(hitset);
         assert(hitset->getHitSetKey() == node_hitsetkey);
+        if (Verbosity() > 100)
+        {
+          std::cout << __PRETTY_FUNCTION__ << " filling hitset from node_hitsetkey = "<<node_hitsetkey<<": ";
+
+          hitset->identify();
+        }
 
         // ensure the hitset is prepared and consistent
         {
@@ -661,6 +667,13 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
             }
             hitset->setNPads(npad);
           }
+          if (Verbosity() > 100)
+          {
+            std::cout << __PRETTY_FUNCTION__ << " done npad hitset from node_hitsetkey = "<<node_hitsetkey<<": ";
+
+            hitset->identify();
+          }
+
           if (hitset->getPadIndexStart())
           {
             assert(hitset->getPadIndexStart() == start_pad);
@@ -676,6 +689,12 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
                         << std::endl;
             }
             hitset->setPadIndexStart(start_pad);
+          }
+          if (Verbosity() > 100)
+          {
+            std::cout << __PRETTY_FUNCTION__ << " done start_pad hitset from node_hitsetkey = "<<node_hitsetkey<<": ";
+
+            hitset->identify();
           }
 
           // TODO: using a x2 larger zbins to ensure fitting extended readout time. Reduce down when needed.
@@ -697,6 +716,13 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
             }
             hitset->setNTBins(ntbin);
           }
+          if (Verbosity() > 100)
+          {
+            std::cout << __PRETTY_FUNCTION__ << " done ntbin hitset from node_hitsetkey = "<<node_hitsetkey<<": ";
+
+            hitset->identify();
+          }
+
           if (hitset->getTBinIndexStart())
           {
             assert(hitset->getTBinIndexStart() == start_tbin);
@@ -713,7 +739,19 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
             }
             hitset->setTBinIndexStart(start_tbin);
           }
+          if (Verbosity() > 100)
+          {
+            std::cout << __PRETTY_FUNCTION__ << " done start_tbin hitset from node_hitsetkey = "<<node_hitsetkey<<": ";
+
+            hitset->identify();
+          }
         }  // ensure the hitset is prepared and consistent
+        if (Verbosity() > 100)
+        {
+          std::cout << __PRETTY_FUNCTION__ << " done initializing hitset from node_hitsetkey = "<<node_hitsetkey<<": ";
+
+          hitset->identify();
+        }
 
         // get all of the hits from the temporary hitset
         TrkrHitSet::ConstRange temp_hit_range = temp_hitset_iter->second->getHits();

@@ -110,9 +110,8 @@ TrkrHitSetContainerv2::findOrAddHitSet(TrkrDefs::hitsetkey key)
   {
     TrkrHitSet* hitset = (TrkrHitSet*) m_hitArray.ConstructedAt(m_hitArray.GetLast() + 1);
     assert(hitset);
-
+    hitset -> setHitSetKey(key);
     it = m_hitmap.insert(it, std::make_pair(key, hitset));
-    it->second->setHitSetKey(key);
   }
   return it;
 }
