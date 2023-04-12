@@ -746,7 +746,6 @@ void PHG4TpcPadPlaneReadout::UseGain(const int flagToUseGain)
   // Reading TPC Gain Maps from the file
   if(m_flagToUseGain==1){
     std::string gain_maps_filename = std::string(getenv("CALIBRATIONROOT"))+std::string("/TPC/GainMaps/TPCGainMaps.root");
-    std::cout<<"PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout :::"<<gain_maps_filename<<std::endl;
     TFile *fileGain = TFile::Open(gain_maps_filename.c_str(), "READ");
     h_gain[0] = (TH2F*)fileGain->Get("RadPhiPlot0")->Clone();
     h_gain[1] = (TH2F*)fileGain->Get("RadPhiPlot1")->Clone();
