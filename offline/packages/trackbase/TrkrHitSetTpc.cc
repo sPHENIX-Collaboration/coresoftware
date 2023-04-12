@@ -41,26 +41,51 @@ std::pair<uint16_t, uint16_t> TrkrHitSetTpc::getLocalPhiTBin(TrkrDefs::hitkey ke
   const uint16_t tbin = TpcDefs ::getTBin(key);
   const uint8_t side = TpcDefs::getSide(getHitSetKey());
 
+  uint16_t local_pad = 0;
+  uint16_t local_tbin = 0;
+
   if (side == 0)
   {
-    const uint16_t local_pad = pad - getPadIndexStart();
-    const uint16_t local_tbin = tbin - getTBinIndexStart();
-
-    assert(local_pad < getNPads());
-    assert(local_tbin < getNTBins());
-
-    return std::make_pair(local_pad, local_tbin);
+    local_pad = pad - getPadIndexStart();
+    local_tbin = tbin - getTBinIndexStart();
   }
   else
   {
-    const uint16_t local_pad = getNPads() - 1 - pad + getPadIndexStart();
-    const uint16_t local_tbin = -tbin + getTBinIndexStart();
-
-    assert(local_pad < getNPads());
-    assert(local_tbin < getNTBins());
-
-    return std::make_pair(local_pad, local_tbin);
+    local_pad = getNPads() - 1 - pad + getPadIndexStart();
+    local_tbin = -tbin + getTBinIndexStart();
   }
+
+  if (local_pad >= getNPads())
+  {
+    std::cout << __PRETTY_FUNCTION__ << " fatal error local_pad >= getNPads()"
+              << " getHitSetKey() = " << getHitSetKey()
+              << " pad = " << pad
+              << " tbin = " << tbin
+              << " side = " << side
+              << " local_pad = " << local_pad
+              << " local_tbin = " << local_tbin
+              << " getPadIndexStart() = " << getPadIndexStart()
+              << " getTBinIndexStart() = " << getTBinIndexStart()
+              << std::endl;
+  }
+  assert(local_pad < getNPads());
+
+  if (local_tbin >= getNTBins())
+  {
+    std::cout << __PRETTY_FUNCTION__ << " fatal error local_tbin >= getNTBins()"
+              << " getHitSetKey() = " << getHitSetKey()
+              << " pad = " << pad
+              << " tbin = " << tbin
+              << " side = " << side
+              << " local_pad = " << local_pad
+              << " local_tbin = " << local_tbin
+              << " getPadIndexStart() = " << getPadIndexStart()
+              << " getTBinIndexStart() = " << getTBinIndexStart()
+              << std::endl;
+  }
+  assert(local_tbin < getNTBins());
+
+  return std::make_pair(local_pad, local_tbin);
 }
 
 TrkrDefs::hitkey TrkrHitSetTpc::getHitKeyfromLocalBin(

@@ -628,6 +628,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         TrkrHitSetContainer::Iterator node_hitsetit = hitsetcontainer->findOrAddHitSet(node_hitsetkey);
         TrkrHitSetTpc *hitset = dynamic_cast<TrkrHitSetTpc *>(node_hitsetit->second);
         assert(hitset);
+        assert(hitset->getHitSetKey() == node_hitsetkey);
 
         // ensure the hitset is prepared and consistent
         {
