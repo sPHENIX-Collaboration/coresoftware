@@ -60,7 +60,6 @@ class PHTpcResiduals : public SubsysReco
   
   void setMaxTrackResidualDz(float maxResidualDz)
   { m_maxResidualDz = maxResidualDz; }
-  
   //@}
 
   /// track min pT 
@@ -126,7 +125,7 @@ class PHTpcResiduals : public SubsysReco
 
   //! create ACTS track parameters from Svtx track
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack* ) const;
-  
+
   //! create ACTS track parameters from Svtx track state
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack*, SvtxTrackState* ) const;
 
