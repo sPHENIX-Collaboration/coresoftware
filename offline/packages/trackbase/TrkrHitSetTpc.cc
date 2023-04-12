@@ -47,7 +47,7 @@ std::pair<uint16_t, uint16_t> TrkrHitSetTpc::getLocalPhiTBin(TrkrDefs::hitkey ke
     const uint16_t local_tbin = tbin - getTBinIndexStart();
 
     assert(local_pad < getNPads());
-    assert(local_tbin < getTBins());
+    assert(local_tbin < getNTBins());
 
     return std::make_pair(local_pad, local_tbin);
   }
@@ -57,7 +57,7 @@ std::pair<uint16_t, uint16_t> TrkrHitSetTpc::getLocalPhiTBin(TrkrDefs::hitkey ke
     const uint16_t local_tbin = -tbin + getTBinIndexStart();
 
     assert(local_pad < getNPads());
-    assert(local_tbin < getTBins());
+    assert(local_tbin < getNTBins());
 
     return std::make_pair(local_pad, local_tbin);
   }

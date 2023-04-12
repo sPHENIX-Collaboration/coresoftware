@@ -680,9 +680,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           // TODO: using a x2 larger zbins to ensure fitting extended readout time. Reduce down when needed.
           const int ntbin = layer_geometry->get_zbins();
           const int start_tbin = side == 0 ? 0 : layer_geometry->get_zbins();
-          if (hitset->getTBins())
+          if (hitset->getNTBins())
           {
-            assert(hitset->getTBins() == ntbin);
+            assert(hitset->getNTBins() == ntbin);
           }
           else
           {
@@ -694,7 +694,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
                         << " : setTBins " << ntbin
                         << std::endl;
             }
-            hitset->setTBins(ntbin);
+            hitset->setNTBins(ntbin);
           }
           if (hitset->getTBinIndexStart())
           {

@@ -16,9 +16,9 @@ class TrkrHitSetTpcv1 final : public TrkrHitSetTpc
   TrkrHitSetTpcv1() = default;
 
   TrkrHitSetTpcv1(const uint16_t n_pad, const uint16_t n_tbin)
-    : TrkrHitSetTpc(n_pad, n_tbin)
+    : TrkrHitSetTpc(n_pad, n_tbin), m_nPads(n_pad), m_nTBins(n_tbin)
   {
-    Resize(n_pad, n_tbin);
+    Resize();
   }
 
   ~TrkrHitSetTpcv1() override
@@ -27,7 +27,7 @@ class TrkrHitSetTpcv1 final : public TrkrHitSetTpc
 
   void identify(std::ostream& os = std::cout) const override;
 
-  void Resize(const uint16_t n_pad, const uint16_t n_tbin) override;
+  void Resize() override;
 
   //! For ROOT TClonesArray end of event Operation
   void Clear(Option_t* /*option*/ = "") override { Reset(); }
@@ -61,7 +61,7 @@ class TrkrHitSetTpcv1 final : public TrkrHitSetTpc
 
   unsigned int size() const override
   {
-    return m_nPads * n_tBins;
+    return m_nPads * m_nTBins;
   }
 
   uint16_t getNPads() const override
@@ -72,16 +72,18 @@ class TrkrHitSetTpcv1 final : public TrkrHitSetTpc
   void setNPads(uint16_t nPads = 0) override
   {
     m_nPads = nPads;
+    Resize();
   }
 
-  uint16_t getTBins() const override
+  uint16_t getNTBins() const override
   {
-    return n_tBins;
+    return m_nTBins;
   }
 
-  void setTBins(uint16_t tBins = 0) override
+  void setNTBins(uint16_t tBins = 0) override
   {
-    n_tBins = tBins;
+    m_nTBins = tBins;
+    Resize();
   }
 
   uint16_t getPadIndexStart() const override
@@ -147,7 +149,7 @@ class TrkrHitSetTpcv1 final : public TrkrHitSetTpc
 
   //! size of the local index
   uint16_t m_nPads = 0;
-  uint16_t n_tBins = 0;
+  uint16_t m_nTBins = 0;
 
   ClassDefOverride(TrkrHitSetTpcv1, 1);
 };

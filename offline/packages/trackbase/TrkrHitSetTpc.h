@@ -27,7 +27,8 @@ class TrkrHitSetTpc : public TrkrHitSet
 
   virtual void identify(std::ostream& os = std::cout) const override;
 
-  virtual void Resize(const uint16_t /*n_pad*/, const uint16_t /*n_tbin*/) {}
+  //! resize to fit getNPads and getNTBins
+  virtual void Resize() {}
 
   //! global -> local conversion
   std::pair<uint16_t, uint16_t> getLocalPhiTBin(const TrkrDefs::hitkey) const;
@@ -77,12 +78,12 @@ class TrkrHitSetTpc : public TrkrHitSet
   {
   }
 
-  virtual uint16_t getTBins() const
+  virtual uint16_t getNTBins() const
   {
     return 0;
   }
 
-  virtual void setTBins(uint16_t /*tBins*/)
+  virtual void setNTBins(uint16_t /*tBins*/)
   {
   }
 

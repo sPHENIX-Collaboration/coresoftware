@@ -22,8 +22,11 @@ void TrkrHitSetTpcv1::Reset()
     std::fill(pad.begin(), pad.end(), 0);
   }
 }
-void TrkrHitSetTpcv1::Resize(const uint16_t n_pad, const uint16_t n_tbin)
+void TrkrHitSetTpcv1::Resize()
 {
+  const uint16_t n_pad = getNPads();
+  const uint16_t n_tbin = getNTBins();
+
   if (n_pad != m_timeFrameADCData.size())
     m_timeFrameADCData.resize(n_pad);
 
@@ -47,7 +50,7 @@ void TrkrHitSetTpcv1::identify(std::ostream& os) const
       << " TrkrId: " << trkrid
       << " layer: " << layer
       << " m_nPads: " << m_nPads
-      << " n_tBins: " << n_tBins
+      << " n_tBins: " << m_nTBins
       << " m_padIndexStart: " << m_padIndexStart
       << " m_tBinIndexStart: " << m_tBinIndexStart
       << " m_StartingBCO: " << m_StartingBCO
@@ -77,7 +80,9 @@ void TrkrHitSetTpcv1::identify(std::ostream& os) const
 TpcDefs::ADCDataType& TrkrHitSetTpcv1::getTpcADC(const uint16_t pad, const uint16_t tbin)
 {
   assert(pad < m_nPads);
-  assert(tbin < n_tBins);
+  assert(tbin < m_nTBins);
+  assert(m_timeFrameADCData.size() == m_nPads);
+  assert(m_timeFrameADCData[pad].size() == m_nTBins);
 
   return m_timeFrameADCData[pad][tbin];
 }
@@ -85,7 +90,9 @@ TpcDefs::ADCDataType& TrkrHitSetTpcv1::getTpcADC(const uint16_t pad, const uint1
 const TpcDefs::ADCDataType& TrkrHitSetTpcv1::getTpcADC(const uint16_t pad, const uint16_t tbin) const
 {
   assert(pad < m_nPads);
-  assert(tbin < n_tBins);
+  assert(tbin < m_nTBins);
+  assert(m_timeFrameADCData.size() == m_nPads);
+  assert(m_timeFrameADCData[pad].size() == m_nTBins);
 
   return m_timeFrameADCData[pad][tbin];
 }
