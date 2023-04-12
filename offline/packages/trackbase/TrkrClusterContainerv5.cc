@@ -15,6 +15,8 @@
 #include <memory>
 #include <string>
 
+using TrkrCluster_impl = TrkrClusterv5;
+
 namespace
 {
   TrkrClusterContainer::Map dummy_map;
@@ -27,7 +29,6 @@ void TrkrClusterContainerv5::Reset()
   for (auto&& [key, clus_vector] : m_clusmap)
   {
     clus_vector->Delete();
-    delete clus_vector;
   }
   // also clear temporary map
   {
@@ -99,10 +100,12 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
   // find relevant vector or create one if not found
   // auto clus_vector = std::shared_ptr<TClonesArray>(m_clusmap[hitsetkey]);
 
+  TClonesArray* clus_vector = nullptr;
   auto iter = m_clusmap.find(hitsetkey);
-  auto& clus_vector = iter->second;
-  if (iter == m_clusmap.end())
+  if (iter != m_clusmap.end())
   {
+    clus_vector = iter->second;
+  } else {
     std::string cluster_class_name =
         "TrkrClusterv" + std::to_string(m_cluster_version);
     // std::string cluster_class_name = "TrkrCluster";
@@ -132,61 +135,29 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
     std::cout << "get null" << std::endl;
     if (!cluster)
     {
-      if (m_cluster_version == 4)
-      {
-        cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
-        cls->CopyFrom(static_cast<TrkrClusterv4*>(newclus));
-      } else if (m_cluster_version == 5)
-      {
-        cls = (TrkrClusterv5*) clus_vector->ConstructedAt(index);
-        cls->CopyFrom(static_cast<TrkrClusterv5*>(newclus));
-      }
-      // new (clus_vector[index]) TrkrClusterv4(newclus);
+      cls = (TrkrCluster_impl*) clus_vector->ConstructedAt(index);
+      cls->CopyFrom(static_cast<TrkrCluster_impl*>(newclus));
+      // new (clus_vector[index]) TrkrCluster_impl(newclus);
       delete newclus;
-      }
-      else
-      {
-        std::cout << "TrkrClusterContainerv5::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
-        exit(1);
-      }
-  }
-  else if (index == clus_vector->GetEntriesFast())
-  {
-    // if index matches the vector size, just push back the new cluster
-    // clus_vector.push_back(newclus);
-    // std::cout << "constructing new object in array" << std::endl;
-
-      if (m_cluster_version == 4)
-      {
-        cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
-        cls->CopyFrom(static_cast<TrkrClusterv4*>(newclus));
-      }
-      else if (m_cluster_version == 5)
-      {
-        cls = (TrkrClusterv5*) clus_vector->ConstructedAt(index);
-        cls->CopyFrom(static_cast<TrkrClusterv5*>(newclus));
-      }
-    delete newclus;
+    }
+    else
+    {
+      std::cout << "TrkrClusterContainerv5::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
+      exit(1);
+    }
   }
   else
   {
     // if index exceeds the vector size, resize cluster to the right size with nullptr, and assign
     // clus_vector.resize(index + 1, nullptr);
     // clus_vector[index] = newclus;
-    if (m_cluster_version == 4)
-    {
-        cls = (TrkrClusterv4*) clus_vector->ConstructedAt(index);
-        cls->CopyFrom(static_cast<TrkrClusterv4*>(newclus));
-    }
-    else if (m_cluster_version == 5)
-    {
-        cls = (TrkrClusterv5*) clus_vector->ConstructedAt(index);
-        cls->CopyFrom(static_cast<TrkrClusterv5*>(newclus));
-    }
+    cls = (TrkrCluster_impl*) clus_vector->ConstructedAt(index);
+    cls->CopyFrom(static_cast<TrkrCluster_impl*>(newclus));
+    // new (clus_vector[index]) TrkrCluster_impl(newclus);
     delete newclus;
   }
   // std::cout << "cluster valid:" << cls->isValid() << "\n";
-  }
+}
 
 TrkrClusterContainerv5::ConstRange
 TrkrClusterContainerv5::getClusters() const
