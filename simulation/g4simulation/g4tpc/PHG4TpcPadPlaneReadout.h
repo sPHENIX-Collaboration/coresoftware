@@ -31,6 +31,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   ~PHG4TpcPadPlaneReadout() override;
 
   void UseGain(const int flagToUseGain);
+  void ReadGain();
 
   void SetDriftVelocity(double vd) override { drift_velocity = vd; }
 
