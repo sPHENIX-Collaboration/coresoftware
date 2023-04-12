@@ -28,6 +28,12 @@ while(my @res = $getdsttypes->fetchrow_array())
 	unlink $listfile;
     }
 }
+my %exclude_these = (
+    "DST_JOBA" => "Test PanDa",
+    "DST_MDC2_GLOBAL" => "Test PanDa",
+    "DST_PASS1_CLUSTERS" => "Test PanDa",
+    "DST_RECO_CLUSTER" => "Test PanDa"
+    );
 
 my %proddesc = (
 #    "1" => "hijing (0-12fm) pileup 0-12fm DELETED",
@@ -47,7 +53,8 @@ my %proddesc = (
     "15" => "Special Productions",
     "16" => "HF pythia8 D0 Jets",
     "17" => "HF pythia8 D0 pi-k Jets ptmin = 5GeV ",
-    "18" => "HF pythia8 D0 pi-k Jets ptmin = 12GeV"
+    "18" => "HF pythia8 D0 pi-k Jets ptmin = 12GeV",
+    "19" => "JS pythia8 Jet ptmin = 40GeV"
     );
 
 my %pileupdesc = (
@@ -322,6 +329,23 @@ if (defined $prodtype)
 	}
 	&commonfiletypes();
     }
+    elsif ($prodtype == 19)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Jet40";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $pileupstring);
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+	&commonfiletypes();
+    }
     else
     {
 	print "no production type $prodtype\n";
@@ -371,7 +395,10 @@ if ($#ARGV < 0)
 	print "\navailable file types (choose at least one, --> means: written to):\n";
 	foreach my $tp (sort keys %dsttype)
 	{
-	    print "$tp  --> $dsttype{$tp}\n";
+	    if (! exists $exclude_these{$tp})
+	    {
+		print "$tp  --> $dsttype{$tp}\n";
+	    }
 	}
     }
     else

@@ -54,7 +54,6 @@ class BbcSimReco : public SubsysReco
   void CreateNodes(PHCompositeNode *topNode);  // Create all the nodes
   void GetNodes(PHCompositeNode *);            // Get all the needed nodes
 
-  Int_t f_evt = 0;
   Float_t f_vx = NAN;
   Float_t f_vy = NAN;
   Float_t f_vz = NAN;
@@ -83,7 +82,6 @@ class BbcSimReco : public SubsysReco
   // Input Objects from DST
   PHG4TruthInfoContainer *_truth_container = nullptr;
   PHG4HitContainer *_bbchits = nullptr;
-  EventHeader *_evtheader = nullptr;
 
   // Output to DST
   BbcOut *_bbcout = nullptr;
