@@ -28,7 +28,14 @@ void TrkrClusterContainerv5::Reset()
   // delete all clusters
   for (auto&& [key, clus_vector] : m_clusmap)
   {
-    clus_vector->Delete();
+    clus_vector->Clear();
+    delete clus_vector;
+  }
+  // clear the maps
+  /* using swap ensures that the memory is properly de-allocated */
+  {
+    std::map<TrkrDefs::hitsetkey, TClonesArray*> empty;
+    m_clusmap.swap(empty);
   }
   // also clear temporary map
   {
@@ -106,10 +113,13 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
   {
     clus_vector = iter->second;
   } else {
-    std::string cluster_class_name =
-        "TrkrClusterv" + std::to_string(m_cluster_version);
+    // std::string cluster_class_name =
+    //     "TrkrClusterv" + std::to_string(m_cluster_version);
     // std::string cluster_class_name = "TrkrCluster";
-    clus_vector = new TClonesArray(cluster_class_name.c_str());
+    TrkrCluster_impl tmp;
+    // clus_vector = new TClonesArray(cluster_class_name.c_str());
+    clus_vector = new TClonesArray(tmp.GetName());
+
     m_clusmap[hitsetkey] = clus_vector;
     // std::cout << "created new array for hitsetkey " << hitsetkey << std::endl;
   }
