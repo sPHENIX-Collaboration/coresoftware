@@ -72,6 +72,8 @@ PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const std::string &name)
 PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
 {
   gsl_rng_free(RandomGenerator);
+  delete h_gain[0];
+  delete h_gain[1];
 }
 
 int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/, PHG4TpcCylinderGeomContainer *seggeo)
@@ -749,13 +751,17 @@ void PHG4TpcPadPlaneReadout::ReadGain()
 {
   // Reading TPC Gain Maps from the file
   if(m_flagToUseGain==1){
-    std::string gain_maps_filename = std::string(getenv("CALIBRATIONROOT"))+std::string("/TPC/GainMaps/TPCGainMaps.root");
-    TFile *fileGain = TFile::Open(gain_maps_filename.c_str(), "READ");
-    h_gain[0] = (TH2F*)fileGain->Get("RadPhiPlot0")->Clone();
-    h_gain[1] = (TH2F*)fileGain->Get("RadPhiPlot1")->Clone();
-    h_gain[0]->SetDirectory(0);
-    h_gain[1]->SetDirectory(0);
-    fileGain->Close();
+    char *calibrationsroot = getenv("CALIBRATIONROOT");
+    if (calibrationsroot != nullptr)
+    {
+      std::string gain_maps_filename = std::string(calibrationsroot)+std::string("/TPC/GainMaps/TPCGainMaps.root");
+      TFile *fileGain = TFile::Open(gain_maps_filename.c_str(), "READ");
+      h_gain[0] = (TH2F*)fileGain->Get("RadPhiPlot0")->Clone();
+      h_gain[1] = (TH2F*)fileGain->Get("RadPhiPlot1")->Clone();
+      h_gain[0]->SetDirectory(nullptr);
+      h_gain[1]->SetDirectory(nullptr);
+      fileGain->Close();
+    }
   }
 }
 void PHG4TpcPadPlaneReadout::SetDefaultParameters()
