@@ -177,9 +177,9 @@ unsigned int TowerInfoDefs::encode_hcal(const unsigned int towerIndex)
 
 
 	phibinoffset[0] = 0;
-	phibinoffset[1] = 8;
-	phibinoffset[2] = 16;
-	phibinoffset[3] = 0;
+	phibinoffset[1] = 2;
+	phibinoffset[2] = 4;
+	phibinoffset[3] = 6;
 	ifirst = 0;
       }
 
