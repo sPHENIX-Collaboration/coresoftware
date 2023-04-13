@@ -19,7 +19,7 @@
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfov1.h>
 
-#include <dbtools/ReadCalib.h>
+#include <sphenixnpc/sphenixnpc.h>
 #include <ffaobjects/EventHeader.h>
 
 //____________________________________________________________________________..
@@ -61,8 +61,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     recoConsts *rc = recoConsts::instance();
     // place holder
     rc->set_StringFlag("CDB_GLOBALTAG", "CEMCCalibTest");
-    ReadCalib *rb = new ReadCalib();
-    std::string calibdir = rb->getCalibrationFile("TestBeginValidity", m_runNumber);
+    sphenixnpc *cdb = sphenixnpc::instance(rc->get_StringFlag("CDB_GLOBALTAG"));
+    std::string calibdir = cdb->getCalibrationFile("TestBeginValidity", m_runNumber);
     m_detector = "CEMC";
     m_DETECTOR = TowerInfoContainer::EMCAL;
     m_fieldname = "cemc_abscalib_mip";
@@ -80,8 +80,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   {
     recoConsts *rc = recoConsts::instance();
     rc->set_StringFlag("CDB_GLOBALTAG", "HCalCalibTest");
-    ReadCalib *rb = new ReadCalib();
-    std::string calibdir = rb->getCalibrationFile("TestBeginValidity", m_runNumber);
+    sphenixnpc *cdb = sphenixnpc::instance(rc->get_StringFlag("CDB_GLOBALTAG"));
+    std::string calibdir = cdb->getCalibrationFile("TestBeginValidity", m_runNumber);
     m_detector = "HCALIN";
     m_DETECTOR = TowerInfoContainer::HCAL;
     m_fieldname = "ihcal_abscalib_mip";
@@ -99,8 +99,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   {
     recoConsts *rc = recoConsts::instance();
     rc->set_StringFlag("CDB_GLOBALTAG", "HCalCalibTest");
-    ReadCalib *rb = new ReadCalib();
-    std::string calibdir = rb->getCalibrationFile("TestBeginValidity", m_runNumber);
+    sphenixnpc *cdb = sphenixnpc::instance(rc->get_StringFlag("CDB_GLOBALTAG"));
+    std::string calibdir = cdb->getCalibrationFile("TestBeginValidity", m_runNumber);
     m_detector = "HCALOUT";
     m_DETECTOR = TowerInfoContainer::HCAL;
     m_fieldname = "ohcal_abscalib_mip";
@@ -119,8 +119,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     recoConsts *rc = recoConsts::instance();
     // place holder
     rc->set_StringFlag("CDB_GLOBALTAG", "EPDCalibTest");
-    ReadCalib *rb = new ReadCalib();
-    std::string calibdir = rb->getCalibrationFile("TestBeginValidity", m_runNumber);
+    sphenixnpc *cdb = sphenixnpc::instance(rc->get_StringFlag("CDB_GLOBALTAG"));
+    std::string calibdir = cdb->getCalibrationFile("TestBeginValidity", m_runNumber);
     m_detector = "EPD";
     m_DETECTOR = TowerInfoContainer::SEPD;
     m_fieldname = "EPD_abscalib_mip";
