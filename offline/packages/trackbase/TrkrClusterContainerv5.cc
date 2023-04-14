@@ -115,13 +115,11 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
   } else {
     // std::string cluster_class_name =
     //     "TrkrClusterv" + std::to_string(m_cluster_version);
-    // std::string cluster_class_name = "TrkrCluster";
     TrkrCluster_impl tmp;
     // clus_vector = new TClonesArray(cluster_class_name.c_str());
     clus_vector = new TClonesArray(tmp.GetName());
 
     m_clusmap[hitsetkey] = clus_vector;
-    // std::cout << "created new array for hitsetkey " << hitsetkey << std::endl;
   }
 
   // get cluster index in vector
@@ -142,7 +140,6 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
      */
 
     auto cluster = (TrkrCluster*) (*clus_vector)[index];
-    std::cout << "get null" << std::endl;
     if (!cluster)
     {
       cls = (TrkrCluster_impl*) clus_vector->ConstructedAt(index);
@@ -166,7 +163,6 @@ void TrkrClusterContainerv5::addClusterSpecifyKey(const TrkrDefs::cluskey key, T
     // new (clus_vector[index]) TrkrCluster_impl(newclus);
     delete newclus;
   }
-  // std::cout << "cluster valid:" << cls->isValid() << "\n";
 }
 
 TrkrClusterContainerv5::ConstRange
