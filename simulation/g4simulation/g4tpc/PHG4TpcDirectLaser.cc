@@ -151,11 +151,17 @@ namespace
     const auto ofc_dist = (ofc_strike->Z() - start.Z()) / direction.Z();
 
     if (ifc_dist < 0)
+    {
       return (ofc_dist > 0) ? ofc_strike : std::nullopt;
+    }
     else if (ofc_dist < 0)
+    {
       return ifc_strike;
+    }
     else
+    {
       return (ifc_dist < ofc_dist) ? ifc_strike : ofc_strike;
+    }
   }
 
   /// TVector3 stream
