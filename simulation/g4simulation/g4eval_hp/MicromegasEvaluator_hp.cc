@@ -7,6 +7,7 @@
 #include <g4main/PHG4Hitv1.h>
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
+#include <micromegas/MicromegasMapping.h>
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
@@ -81,29 +82,8 @@ namespace
     out << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
     return out;
   }
-
-  // tile/layer unique id
-  struct tile_id_t
-  {
-    tile_id_t( int layer, uint tile ):
-      _layer( layer ), 
-      _tile( tile )
-    {}
-    int _layer = 0;
-    uint _tile = 0;
-  };
- 
-  bool operator == (const tile_id_t& lhs, const tile_id_t& rhs )
-  { return lhs._layer == rhs._layer && lhs._tile == rhs._tile; }
   
 }
-
-template<>
-  struct std::hash<tile_id_t>
-{
-  std::size_t operator()(const tile_id_t& id) const noexcept
-  { return id._tile + (id._layer<<4); }
-};
 
 //_____________________________________________________________________
 void MicromegasEvaluator_hp::Container::Reset()
@@ -372,37 +352,11 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
 {
   std::cout << "MicromegasEvaluator_hp::print_micromegas_geometry" << std::endl;
 
-  using tile_map_t = std::unordered_map<tile_id_t, std::string>;
-  tile_map_t tile_map = {
-    {{55,0},"M5P"},  {{56,0},"M5Z"},  
-    {{55,1},"M8P"},  {{56,1},"M8Z"},  
-    {{55,2},"M4P"},  {{56,2},"M4Z"},  
-    {{55,3},"M10P"}, {{56,3},"M10Z"}, 
-    {{55,4},"M9P"},  {{56,4},"M9Z"},  
-    {{55,5},"M2P"},  {{56,5},"M2Z"},  
-    {{55,6},"M6P"},  {{56,6},"M6Z"},  
-    {{55,7},"M7P"},  {{56,7},"M7Z"}   
-  };                                  
-                                      
-  // loop over layers
-//   const auto range = m_geonode->get_begin_end();
-//   for( auto it = range.first; it != range.second; ++it )
-//   {
-//     // get relevant geometry
-//     auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(it->second);
-//     assert( layergeom );
-// 
-//     const auto layer = layergeom->get_layer();
-//     
-//     // loop over tiles
-//     for( const uint& tileid:{3, 2, 1, 0, 5, 4, 7, 6} )
-//       // for( uint tileid = 0; tileid < layergeom->get_tiles_count(); ++tileid )
-//     {
-      
-  // loop over layers
+  MicromegasMapping mapping;
   
   // loop over tiles
-  for( const uint& tileid:{3, 2, 1, 0, 5, 4, 7, 6} )
+  // for( const uint& tileid:{3, 2, 1, 0, 5, 4, 7, 6} )
+  for( uint tileid = 0; tileid < 8; ++tileid )
   {
     
     for( int layer:{55,56} )
@@ -432,7 +386,8 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
           + 20e-4  // resist layer
           + 50e-4;  // kapton
         
-        switch( layergeom->get_segmentation_type() )
+        const auto segmentation = layergeom->get_segmentation_type();
+        switch( segmentation )
         {
           case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
           {
@@ -460,29 +415,32 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
         }
        
         // get module name from layer and tileid
-        const auto module_name = tile_map[{layer, tileid}];
-        
-        if( layer == 55 )
-        {
-          if( stripnum == 0 ) 
-          {
-            std::cout << module_name << "_s3 " << strip_begin_world << std::endl;
-            std::cout << module_name << "_s4 " << strip_end_world << std::endl;          
-          } else {
-            std::cout << module_name << "_s1 " << strip_begin_world << std::endl;
-            std::cout << module_name << "_s2 " << strip_end_world << std::endl;          
-          }
-        } else {
-          if( stripnum == 0 ) 
-          {
-            std::cout << module_name << "_s3 "  << strip_end_world << std::endl;          
-            std::cout << module_name << "_s4 " << strip_begin_world << std::endl;
-          } else {
-            std::cout << module_name << "_s1 " << strip_end_world << std::endl;          
-            std::cout << module_name << "_s2 " << strip_begin_world << std::endl;
-          }
-        }        
-        
+        const auto hitsetkey = MicromegasDefs::genHitSetKey(layer, segmentation, tileid );
+        const auto module_name_sphenix = mapping.get_detname_sphenix_from_hitsetkey(hitsetkey);
+        const auto module_name_saclay = mapping.get_detname_saclay_from_hitsetkey(hitsetkey);
+//         if( layer == 55 )
+//         {
+//           if( stripnum == 0 ) 
+//           {
+//             std::cout << module_name_saclay << "_s3 " << strip_begin_world << std::endl;
+//             std::cout << module_name_saclay << "_s4 " << strip_end_world << std::endl;          
+//           } else {
+//             std::cout << module_name_saclay << "_s1 " << strip_begin_world << std::endl;
+//             std::cout << module_name_saclay << "_s2 " << strip_end_world << std::endl;          
+//           }
+//         } else {
+//           if( stripnum == 0 ) 
+//           {
+//             std::cout << module_name_saclay << "_s3 "  << strip_end_world << std::endl;          
+//             std::cout << module_name_saclay << "_s4 " << strip_begin_world << std::endl;
+//           } else {
+//             std::cout << module_name_saclay << "_s1 " << strip_end_world << std::endl;          
+//             std::cout << module_name_saclay << "_s2 " << strip_begin_world << std::endl;
+//           }
+//         }        
+
+        std::cout << layer << " " << tileid << " " << module_name_sphenix << " " << module_name_saclay << " " << stripnum << " " <<  strip_begin_world << std::endl;
+        std::cout << layer << " " << tileid << " " << module_name_sphenix << " " << module_name_saclay << " " << stripnum << " " <<  strip_end_world << std::endl;
       }
       std::cout << std::endl;
     }
