@@ -92,3 +92,24 @@ int MicromegasMapping::get_physical_strip( int /*fee_id*/, int channel_id) const
   return channel_id;
 }
 
+//____________________________________________________________________________________________________
+std::string MicromegasMapping::get_detname_saclay_from_hitsetkey( TrkrDefs::hitsetkey key ) const
+{
+  const auto iter = std::find_if( m_detectors.begin(), m_detectors.end(), [key](const DetectorId& detector ) { return detector.m_hitsetkey == key; } );
+  if( iter == m_detectors.end() )
+  {
+    std::cout << "MicromegasMapping::get_detname_saclay_from_hitsetkey - invalid key: " << key << std::endl;
+    return std::string();
+  } else return iter->m_detname_saclay;
+}
+
+//____________________________________________________________________________________________________
+std::string MicromegasMapping::get_detname_sphenix_from_hitsetkey( TrkrDefs::hitsetkey key ) const
+{
+  const auto iter = std::find_if( m_detectors.begin(), m_detectors.end(), [key](const DetectorId& detector ) { return detector.m_hitsetkey == key; } );
+  if( iter == m_detectors.end() )
+  {
+    std::cout << "MicromegasMapping::get_detname_sphenix_from_hitsetkey - invalid key: " << key << std::endl;
+    return std::string();
+  } else return iter->m_detname_sphenix;
+}

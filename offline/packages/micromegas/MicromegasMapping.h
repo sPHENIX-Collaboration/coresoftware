@@ -30,7 +30,7 @@ class MicromegasMapping
   /** saclay detector name are of type MxxP and MxxZ, with xx the module number */
   std::string get_detname_saclay( int /*fee_id*/) const;
 
-  /// get detector name (saclay) from fiber_id (fee_id)
+  /// get detector name (sphenix) from fiber_id (fee_id)
   /** sphenix detector name are of type SWP, SWZ, etc. */
   std::string get_detname_sphenix( int /*fee_id*/) const;
 
@@ -42,6 +42,12 @@ class MicromegasMapping
    */
   int get_physical_strip( int /*fee_id*/, int /*channel_id*/) const;
 
+  /// get detector name (sphenix) from hitset key
+  std::string get_detname_saclay_from_hitsetkey( TrkrDefs::hitsetkey ) const;
+  
+  /// get detector name (saclay) from hitset key
+  std::string get_detname_sphenix_from_hitsetkey( TrkrDefs::hitsetkey ) const;
+  
   private:
 
   /// contains all relevant detector information
