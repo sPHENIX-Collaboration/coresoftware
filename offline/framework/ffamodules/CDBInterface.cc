@@ -17,6 +17,8 @@
 
 #include <sphenixnpc/sphenixnpc.h>
 
+#include <TSystem.h>
+
 #include <cstdint>   // for uint64_t
 #include <iostream>  // for operator<<, basic_ostream, endl
 #include <utility>   // for pair
@@ -119,7 +121,8 @@ std::string CDBInterface::getUrl(const std::string &domain, const std::string &f
     gSystem->Exit(1);
   }
   sphenixnpc *cdb = sphenixnpc::instance(rc->get_StringFlag("CDB_GLOBALTAG"));
-  std::string return_url = cdb->getCalibrationFile(domain,rc->get_uint64Flag("TIMESTAMP"));
+  uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP");
+  std::string return_url = cdb->getCalibrationFile(domain,timestamp);
   if (return_url.empty())
   {
     return_url = filename;
