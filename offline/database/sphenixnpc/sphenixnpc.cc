@@ -81,7 +81,16 @@ nlohmann::json sphenixnpc::clearCache()
 std::string sphenixnpc::getCalibrationFile(const std::string &type, uint64_t iov)
 {
   nlohmann::json result = get(type, iov);
-  return result.at("msg");
+  std::string fullUrl = result.at("msg");
+  if (fullUrl.find("Exception") != std::string::npos)
+  {
+    if (Verbosity())
+    {
+      std::cout << fullUrl << std::endl;
+    }
+    return std::string("");
+  }
+  return fullUrl;
 }
 
 int sphenixnpc::insertcalib(const std::string &pl_type, const std::string &file_url, uint64_t iov_start)
