@@ -6,8 +6,11 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
+#include "MicromegasDefs.h"
+
 #include <trackbase/TrkrDefs.h>
 
+#include <array>
 #include <map>
 #include <string>
 #include <vector>
@@ -50,6 +53,9 @@ class MicromegasMapping
   
   private:
 
+  /// construct fee channel id to physical strip mapping
+  void construct_channel_mapping();
+  
   /// contains all relevant detector information
   /** this effectively implements mapping between fee_id as defined in EDBC,    * detector names (in both Saclay and sPHENIX convention),
    * and hitsetkey which is the detector unique identifier
@@ -95,6 +101,12 @@ class MicromegasMapping
 
   /// map detector_id to fee_id
   std::map<int, DetectorId> m_detector_map;
+  
+  /// map FEE channel id to physical strip id (z view)
+  std::array<int, MicromegasDefs::m_nchannels_fee> m_fee_to_strip_mapping_z = {{0}};
+  
+  /// map FEE channel id to physical strip id (phi view)
+  std::array<int, MicromegasDefs::m_nchannels_fee> m_fee_to_strip_mapping_phi = {{0}};
 
 };
 
