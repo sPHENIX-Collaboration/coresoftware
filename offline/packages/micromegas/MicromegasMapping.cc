@@ -46,16 +46,7 @@ namespace
     {}
     
   };
-  
-  // equal to operator
-  inline bool operator == (const mec8_channel_id& lhs, const mec8_channel_id& rhs )
-  {
-    return
-      lhs.m_cable_id == rhs.m_cable_id &&
-      lhs.m_connector_id == rhs.m_connector_id &&
-      lhs.m_channel_id == rhs.m_channel_id;
-  }
-  
+    
   // less than operator
   inline bool operator < (const mec8_channel_id& lhs, const mec8_channel_id& rhs )
   {
