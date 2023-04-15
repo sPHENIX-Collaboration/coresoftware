@@ -5,8 +5,6 @@
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfoDefs.h>
 
-#include <calobase/TowerInfoDefs.h>
-
 #include <epd/EPDDefs.h>
 #include <epd/EpdGeomV1.h>
 
@@ -154,11 +152,12 @@ int PHG4EPDModuleReco::process_event(PHCompositeNode *topNode)
       {
         unsigned int globalphi = Getphimap(j) + 2 * i;
         unsigned int r = Getrmap(j);
+        
         if (r == 0)
         {
           globalphi = i;
         }
-
+        
         unsigned int key = TowerInfoDefs::encode_epd(k, r, globalphi);
         unsigned int ch = m_TowerInfoContainer->decode_key(key);
         m_TowerInfoContainer->get_tower_at_channel(ch)->set_energy(m_EpdTile_e[k][i][j]);
