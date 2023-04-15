@@ -57,11 +57,6 @@ class MicromegasRawDataCalibration : public SubsysReco
 
   /// create evaluation histograms
   void create_histograms();
-
-  static constexpr int m_nchannels_fee = 256;
-  static constexpr int m_nfee = 16;
-  static constexpr int m_nchannels_total = m_nfee*m_nchannels_fee;
-  static constexpr int m_max_adc = 1024;
   
   /// min sample for noise estimation 
   int m_sample_min = 0;
