@@ -33,7 +33,8 @@ BbcOutV1::~BbcOutV1()
 //______________________________________
 int BbcOutV1::isValid() const
 {
-  return ((std::isfinite(Bbc_TimeZero)) ? 1 : 0);
+// compatible with old invalid setting of -9999.9
+  return ((std::isfinite(Bbc_TimeZero) && (Bbc_TimeZero > -9999.)) ? 1 : 0);
 }
 
 //______________________________________
