@@ -18,11 +18,10 @@ class TrkrHitSet;
  */
 class TrkrHitSetContainerv2 final : public TrkrHitSetContainer
 {
- private:
-  //! only used in ROOT IO
+public:
+  //! only used in ROOT IO. Do NOT use this constructor in user code
   TrkrHitSetContainerv2() = default;
 
- public:
   TrkrHitSetContainerv2(const std::string& hitsetclass, const size_t estimated_size);
 
   ~TrkrHitSetContainerv2() override
