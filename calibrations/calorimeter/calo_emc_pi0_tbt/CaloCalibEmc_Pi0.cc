@@ -5,11 +5,10 @@
 #include <calobase/RawClusterUtility.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTowerGeom.h>
-
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfov1.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfo.h>
 
 
 #include <g4vertex/GlobalVertex.h>
