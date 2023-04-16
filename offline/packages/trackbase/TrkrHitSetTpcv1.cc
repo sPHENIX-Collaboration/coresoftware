@@ -16,7 +16,12 @@
 void TrkrHitSetTpcv1::Reset()
 {
   m_hitSetKey = TrkrDefs::HITSETKEYMAX;
+  m_StartingBCO = 0;
+  m_padIndexStart = 0;
+  m_tBinIndexStart = 0;
 
+  //ADC 2D array is zeroed but intentionally NOT deleted,
+  //which potentially save memory allocation-deallocation ops in the next event
   for (auto& pad : m_timeFrameADCData)
   {
     std::fill(pad.begin(), pad.end(), 0);
