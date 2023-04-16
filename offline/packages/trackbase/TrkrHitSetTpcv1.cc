@@ -33,10 +33,8 @@ void TrkrHitSetTpcv1::Resize()
   for (auto& pad : m_timeFrameADCData)
   {
     if (n_tbin != pad.size())
-      pad.resize(n_tbin);
+      pad.resize(n_tbin, 0);
   }
-
-  Reset();
 }
 
 void TrkrHitSetTpcv1::identify(std::ostream& os) const
