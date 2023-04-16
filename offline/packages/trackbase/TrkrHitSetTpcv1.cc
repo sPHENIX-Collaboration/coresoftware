@@ -64,6 +64,12 @@ void TrkrHitSetTpcv1::identify(std::ostream& os) const
 
   for (uint16_t i = 0; i < m_nPads; ++i)
   {
+    if (m_timeFrameADCData[i].size() == 0)
+    {
+      os << "Pad " << i << " is empty" << std::endl;
+      continue;
+    }
+
     // skip empty pads
     if (*std::max_element(m_timeFrameADCData[i].begin(), m_timeFrameADCData[i].end()) == 0) continue;
 
