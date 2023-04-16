@@ -33,7 +33,10 @@ void TrkrHitSetTpcv1::Resize()
   for (auto& pad : m_timeFrameADCData)
   {
     if (n_tbin != pad.size())
+    {
+      pad.reserve(n_tbin);
       pad.resize(n_tbin, 0);
+    }
   }
 }
 
