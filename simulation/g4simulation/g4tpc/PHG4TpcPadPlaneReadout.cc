@@ -62,7 +62,8 @@ PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const std::string &name)
   : PHG4TpcPadPlane(name)
 {
   InitializeParameters();
-  if(m_flagToUseGain==1)ReadGain();
+  //if(m_flagToUseGain==1)
+  ReadGain();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   gsl_rng_set(RandomGenerator, PHRandomSeed());  // fixed seed is handled in this funtcion
 
