@@ -683,7 +683,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
             hitset->identify();
           }
 
-
           // start_pad setup if needed
           if (Verbosity() > 100)
           {
@@ -701,10 +700,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
             hitset->identify();
           }
 
-
           // ntbin setup if needed
           // TODO: using a x2 larger zbins to ensure fitting extended readout time. Reduce down when needed.
-          const int ntbin = layer_geometry->get_zbins();
+          const int ntbin = layer_geometry->get_zbins() + 1;
           const int start_tbin = side == 0 ? 0 : layer_geometry->get_zbins();
           if (hitset->getNTBins())
           {
@@ -774,13 +772,14 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
           if (TpcDefs::getPad(temp_hitkey) < start_pad or TpcDefs::getPad(temp_hitkey) >= start_pad + npad)
           {
-            std::cout << __PRETTY_FUNCTION__
-                      << " WARNING: ignore an invalid hit temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
-                      << " z bin " << TpcDefs::getTBin(temp_hitkey)
-                      << "which is outside the hitset "
-                      << " in layer " << layer
-                      << " with sector " << sector << " side " << side << " start_pad " << start_pad << " npad " << npad
-                      << std::endl;
+            if (Verbosity())
+              std::cout << __PRETTY_FUNCTION__
+                        << " WARNING: ignore an invalid hit temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
+                        << " z bin " << TpcDefs::getTBin(temp_hitkey)
+                        << "which is outside the hitset "
+                        << " in layer " << layer
+                        << " with sector " << sector << " side " << side << " start_pad " << start_pad << " npad " << npad
+                        << std::endl;
             continue;
           }
 
