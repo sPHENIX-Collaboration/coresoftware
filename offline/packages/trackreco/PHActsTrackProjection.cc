@@ -147,8 +147,8 @@ void PHActsTrackProjection::updateSvtxTrack(
 {
   float pathlength = parameters.first / Acts::UnitConstants::cm;
   auto params = parameters.second;
-
-  SvtxTrackState_v1 out(pathlength);
+  float calorad = m_caloRadii.find(m_caloTypes.at(caloLayer))->second;
+  SvtxTrackState_v1 out(calorad);
 
   auto projectionPos = params.position(m_tGeometry->geometry().getGeoContext());
   const auto momentum = params.momentum();
@@ -162,7 +162,7 @@ void PHActsTrackProjection::updateSvtxTrack(
   if (Verbosity() > 1)
   {
     std::cout << "Adding track state for caloLayer " << caloLayer
-              << " with position " << projectionPos.transpose() << std::endl;
+              << " at pathlength " << pathlength << " with position " << projectionPos.transpose() << std::endl;
   }
 
   ActsTransformations transformer;

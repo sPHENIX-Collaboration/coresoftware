@@ -3,6 +3,8 @@
 #ifndef BBC_BBCNORTHSOUTH_H
 #define BBC_BBCNORTHSOUTH_H
 
+#include "BbcReturnCodes.h"
+
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
@@ -19,17 +21,17 @@ class BbcNorthSouth : public PHObject
   virtual short get_nPMT() const
   {
     PHOOL_VIRTUAL_WARNING;
-    return -9999;
+    return BbcReturnCodes::BBC_INVALID_SHORT;
   }
   virtual float get_nCharge() const
   {
     PHOOL_VIRTUAL_WARNING;
-    return -9999;
+    return BbcReturnCodes::BBC_INVALID_FLOAT;
   }
   virtual float get_MeanTime() const
   {
     PHOOL_VIRTUAL_WARNING;
-    return -9999;
+    return BbcReturnCodes::BBC_INVALID_FLOAT;
   }
 
  private:
