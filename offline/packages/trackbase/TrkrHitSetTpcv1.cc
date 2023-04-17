@@ -20,8 +20,8 @@ void TrkrHitSetTpcv1::Reset()
   m_padIndexStart = 0;
   m_tBinIndexStart = 0;
 
-  //ADC 2D array is zeroed but intentionally NOT deleted,
-  //which potentially save memory allocation-deallocation ops in the next event
+  // ADC 2D array is zeroed but intentionally NOT deleted,
+  // which potentially save memory allocation-deallocation ops in the next event
   for (auto& pad : m_timeFrameADCData)
   {
     std::fill(pad.begin(), pad.end(), 0);
@@ -72,7 +72,7 @@ void TrkrHitSetTpcv1::identify(std::ostream& os) const
   {
     if (m_timeFrameADCData[i].size() == 0)
     {
-      os << "Pad " << i << " is empty" << std::endl;
+      os << "Pad " << i << " ADC vector is zero-sized" << std::endl;
       continue;
     }
 
@@ -81,9 +81,14 @@ void TrkrHitSetTpcv1::identify(std::ostream& os) const
 
     os << "Pad " << i << ":";
 
+    int j = 0;
     for (const auto& adc : m_timeFrameADCData[i])
     {
-      os << "\t" << adc;
+      if (adc)
+      {
+        os << "\t[" << j << "]:" << adc;
+      }
+      ++j;
     }
     os << std::endl;
   }

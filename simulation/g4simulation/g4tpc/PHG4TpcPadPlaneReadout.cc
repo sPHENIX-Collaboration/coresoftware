@@ -402,6 +402,23 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       // Either way, add the energy to it  -- adc values will be added at digitization
       hit->addEnergy(neffelectrons);
 
+      if (Verbosity() > 100)
+      {
+        std::cout << __PRETTY_FUNCTION__ << " adding hit: hitkey = "
+            << hitkey << " pad " << TpcDefs::getPad(hitkey)
+                                    << " z bin " << TpcDefs::getTBin(hitkey)
+                                    << "which comes from input hit in hitsetkey "<<hitsetkey
+                                    << " layer " << layernum<<"|"<<(int)TrkrDefs::getLayer(hitsetkey)
+                                    << " with sector " << sector<<"|"<<(int)TpcDefs::getSectorId(hitsetkey)
+                                    << " side " << side<<"|"<<(int)TpcDefs::getSide(hitsetkey)
+                                    << " pads_per_sector " << pads_per_sector
+                                    << " pad_num " << pad_num
+                                    << "  LayerGeom->get_phibins() " <<  LayerGeom->get_phibins()
+                                    << "  LayerGeom->get_layer() " <<  LayerGeom->get_layer()
+                                    << std::endl;
+                                    hit->identify();
+      }
+
       tpc_truth_clusterer->addhitset(hitsetkey, hitkey, neffelectrons);
 
       // repeat for the single_hitsetcontainer

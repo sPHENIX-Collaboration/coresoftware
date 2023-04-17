@@ -22,7 +22,9 @@ TrkrHitSetContainerv2::
 
 void TrkrHitSetContainerv2::Reset()
 {
+  // force rebuild of indexing map
   m_hitmap.clear();
+
   //! fast clear without calling destructor
   m_hitArray.Clear("C");
 }

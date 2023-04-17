@@ -152,7 +152,6 @@ void PHG4TpcDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode)
 
 void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 {
-
   // Digitizes the Tpc cells that were created in PHG4CylinderCellTpcReco
   // These contain as edep the number of electrons out of the GEM stack, distributed between Z bins by shaper response and ADC clock window
   // - i.e. all of the phi and Z bins in a cluster have edep values that add up to the primary charge in the layer times 2000
@@ -257,12 +256,23 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
     }
     assert(hitset);
 
+    if (Verbosity() > 2)
+    {
+      const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+      const int sector = TpcDefs::getSectorId(hitsetkey);
+      const int side = TpcDefs::getSide(hitsetkey);
+
+      std::cout << __PRETTY_FUNCTION__ << " Start processing hitsetkey "
+                << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << std::endl;
+      hitset->identify(std::cout);
+    }
+
     std::vector<bool> pass_zero_suppression;
 
-    for (auto & t_sorted_hits : hitset->getTimeFrameAdcData())
+    for (auto &t_sorted_hits : hitset->getTimeFrameAdcData())
     {
       // add noise
-      for (auto & adc_bin : t_sorted_hits)
+      for (auto &adc_bin : t_sorted_hits)
       {
         adc_bin = static_cast<TpcDefs::ADCDataType>(add_noise_to_bin((float) adc_bin));
       }
@@ -274,10 +284,10 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
       {
         if (t_sorted_hits[i] > ADCThreshold_mV)
         {
-          for (int j = i - m_nPreSample; j < i + (int)m_nPostSample; ++j)
+          for (int j = i - m_nPreSample; j < i + (int) m_nPostSample; ++j)
           {
             if (j < 0) continue;
-            if (j >= (int)pass_zero_suppression.size()) continue;
+            if (j >= (int) pass_zero_suppression.size()) continue;
 
             pass_zero_suppression[j] = true;
           }
@@ -301,6 +311,16 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 
     }  //  for (auto & t_sorted_hits : hitset->getTimeFrameAdcData())
 
+    if (Verbosity() > 2)
+    {
+      const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+      const int sector = TpcDefs::getSectorId(hitsetkey);
+      const int side = TpcDefs::getSide(hitsetkey);
+
+      std::cout << __PRETTY_FUNCTION__ << " Finished processing hitsetkey "
+                << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << std::endl;
+      hitset->identify(std::cout);
+    }
   }  //   for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
 
   return;
@@ -324,7 +344,7 @@ float PHG4TpcDigitizer::added_noise()
 }
 
 void PHG4TpcDigitizer::
-SetTpcMinLayer(const int )
+    SetTpcMinLayer(const int)
 {
-  std::cout <<__PRETTY_FUNCTION__<<" is deprecated. Ignore this call"<<std::endl;
+  std::cout << __PRETTY_FUNCTION__ << " is deprecated. Ignore this call" << std::endl;
 }
