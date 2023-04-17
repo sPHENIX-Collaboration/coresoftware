@@ -640,7 +640,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         PHG4TpcCylinderGeom *layer_geometry = seggeo->GetLayerCellGeom(layer);
         assert(layer_geometry);
 
-        const int npad = layer_geometry->get_phibins() / TpcDefs::NRSectors;
+        const int npad = layer_geometry->get_phibins() / TpcDefs::NSectors;
         const int start_pad = sector * npad;
 
         // ensure the hitset is prepared and consistent
@@ -680,7 +680,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           {
             std::cout << __PRETTY_FUNCTION__ << " done npad hitset from node_hitsetkey = " << node_hitsetkey << ": ";
 
-            hitset->identify();
+//            hitset->identify();
           }
 
           // start_pad setup if needed
@@ -697,7 +697,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           {
             std::cout << __PRETTY_FUNCTION__ << " done start_pad hitset from node_hitsetkey = " << node_hitsetkey << ": ";
 
-            hitset->identify();
+//            hitset->identify();
           }
 
           // ntbin setup if needed
@@ -724,7 +724,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           {
             std::cout << __PRETTY_FUNCTION__ << " done ntbin hitset from node_hitsetkey = " << node_hitsetkey << ": ";
 
-            hitset->identify();
+//            hitset->identify();
           }
 
           // ntbin start_tbin if needed
@@ -741,7 +741,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           {
             std::cout << __PRETTY_FUNCTION__ << " done start_tbin hitset from node_hitsetkey = " << node_hitsetkey << ": ";
 
-            hitset->identify();
+//            hitset->identify();
           }
         }  // ensure the hitset is prepared and consistent
         if (Verbosity() > 100)
@@ -761,7 +761,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           TrkrHit *temp_tpchit = temp_hit_iter->second;
           if ((Verbosity() > 10 && layer == print_layer) or Verbosity() > 100)
           {
-            std::cout << "      temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
+            std::cout << __PRETTY_FUNCTION__<< "      temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
                       << " z bin " << TpcDefs::getTBin(temp_hitkey)
                       << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
 
@@ -779,6 +779,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
                         << "which is outside the hitset "
                         << " in layer " << layer
                         << " with sector " << sector << " side " << side << " start_pad " << start_pad << " npad " << npad
+                        << "  layer_geometry->get_phibins() " <<  layer_geometry->get_phibins()
+                        << "  layer_geometry->get_layer() " <<  layer_geometry->get_layer()
                         << std::endl;
             continue;
           }
@@ -790,6 +792,16 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         if (Verbosity() > 100 && layer == print_layer)
           std::cout << "  ihit " << ihit << " collected energy = " << eg4hit << std::endl;
 
+
+        if (Verbosity() > 100 )
+        {
+
+          std::cout << __PRETTY_FUNCTION__ << " Done with filling from temp_hitset with key: "
+                    << node_hitsetkey << " in layer " << layer
+                    << " with sector " << sector << " side " << side <<"Print content:"
+                    << std::endl;
+          hitset->identify();
+        }
       }  // end loop over temp hitsets
 
       // erase all entries in the temp hitsetcontainer
