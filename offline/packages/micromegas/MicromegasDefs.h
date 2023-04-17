@@ -91,6 +91,18 @@ namespace MicromegasDefs
    s*/
   uint8_t getTileId(TrkrDefs::cluskey);
 
+  //! number of channels per fee board
+  static constexpr int m_nchannels_fee = 256;
+
+  //! number of fee boards
+  static constexpr int m_nfee = 16;
+
+  //! total number of channels
+  static constexpr int m_nchannels_total = m_nfee*m_nchannels_fee;
+
+  //! max adc value per readout sample
+  static constexpr int m_max_adc = 1024;
+  
 }
 
 #endif

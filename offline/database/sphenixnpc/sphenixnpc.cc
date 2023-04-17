@@ -44,12 +44,15 @@ nlohmann::json sphenixnpc::getUrlDict(long long iov)
   return nopayloadclient::Client::getUrlDict(0, iov);
 }
 
-nlohmann::json sphenixnpc::get(std::string pl_type, long long iov)
+nlohmann::json sphenixnpc::get(const std::string &pl_type, long long iov)
 {
   if (url_dict_.is_null())
   {
     nlohmann::json resp = getUrlDict(iov);
-    if (resp["code"] != 0) return resp;
+    if (resp["code"] != 0)
+    {
+      return resp;
+    }
     url_dict_ = resp["msg"];
   }
   if (not url_dict_.contains(pl_type))
@@ -59,7 +62,7 @@ nlohmann::json sphenixnpc::get(std::string pl_type, long long iov)
   return makeResp(url_dict_[pl_type]);
 }
 
-nlohmann::json sphenixnpc::cache_set_GlobalTag(std::string name)
+nlohmann::json sphenixnpc::cache_set_GlobalTag(const std::string &name)
 {
   if (name != m_CachedGlobalTag)
   {
@@ -78,7 +81,16 @@ nlohmann::json sphenixnpc::clearCache()
 std::string sphenixnpc::getCalibrationFile(const std::string &type, uint64_t iov)
 {
   nlohmann::json result = get(type, iov);
-  return result.at("msg");
+  std::string fullUrl = result.at("msg");
+  if (fullUrl.find("Exception") != std::string::npos)
+  {
+    if (Verbosity())
+    {
+      std::cout << fullUrl << std::endl;
+    }
+    return std::string("");
+  }
+  return fullUrl;
 }
 
 int sphenixnpc::insertcalib(const std::string &pl_type, const std::string &file_url, uint64_t iov_start)

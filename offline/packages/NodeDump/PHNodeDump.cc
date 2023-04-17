@@ -7,6 +7,7 @@
 #include "DumpCaloTriggerInfo.h"
 #include "DumpCdbUrlSave.h"
 #include "DumpCentralityInfo.h"
+#include "DumpEpdGeom.h"
 #include "DumpEpInfo.h"
 #include "DumpEventHeader.h"
 #include "DumpFlagSave.h"
@@ -205,6 +206,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("CentralityInfo"))
       {
         newdump = new DumpCentralityInfo(NodeName);
+      }
+      else if (tmp->InheritsFrom("EpdGeom"))
+      {
+        newdump = new DumpEpdGeom(NodeName);
       }
       else if (tmp->InheritsFrom("EpInfo"))
       {
