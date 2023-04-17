@@ -5,8 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 # list of shared libraries to produce
 lib_LTLIBRARIES = \
-  libepd_io.la \
-  libepd.la
+  libepd_io.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -20,19 +19,13 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib
 
 libepd_io_la_LIBADD = \
-  -lphool
-
-libepd_la_LIBADD = \
-  libepd_io.la \
-  -lgsl \
-  -lgslcblas \
-  -lSubsysReco
+  -lphool \
+  -lcalo_io
 
 pkginclude_HEADERS = \
   EPDDefs.h \
   EpdGeom.h \
-  EpdGeomV1.h \
-  EpdGeomMaker.h
+  EpdGeomV1.h
 
 ROOTDICTS = \
   EpdGeom_Dict.cc \
@@ -48,10 +41,6 @@ libepd_io_la_SOURCES = \
   $(ROOTDICTS) \
   EpdGeomV1.cc
 
-libepd_la_SOURCES = \
-  EpdGeomMaker.cc
-
-
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
@@ -65,11 +54,7 @@ libepd_la_SOURCES = \
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals \
   testexternals_io
-
-testexternals_SOURCES = testexternals.cc
-testexternals_LDADD = libepd.la
 
 testexternals_io_SOURCES = testexternals.cc
 testexternals_io_LDADD = libepd_io.la

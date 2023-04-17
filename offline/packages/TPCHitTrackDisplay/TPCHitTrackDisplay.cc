@@ -60,10 +60,10 @@ using namespace std;
 
 TPCHitTrackDisplay::TPCHitTrackDisplay(const string &name) :
   SubsysReco(name)
-  , m_cut_ADC(200.0)
+  , m_cut_ADC(75.0)
   , m_trackless_clusters(true)
   , _pdgcode(0)
-  , outfile1((name + ".json").c_str(), std::ios::app)
+  , _fileName(name)
 {
 	//initialize
 	_event = 0;
@@ -215,6 +215,10 @@ return;
 // write json file from simulation data for silicon and tpc clusters/tracks
 void TPCHitTrackDisplay::SimulationOut(PHCompositeNode *topNode)
 {
+    stringstream fname;
+    fname << _fileName << "event" << _event << ".json";
+    fstream outfile1(fname.str(), ios_base::out); 
+    
     cout << _event << endl;
 
     TrkrClusterContainer *clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
@@ -443,7 +447,9 @@ void TPCHitTrackDisplay::SimulationOut(PHCompositeNode *topNode)
     outfile1 << "}" << endl; 
     outfile1 << "}" << endl; 
     
-return;
+    usedClusters.clear();
+  
+    return;
 
 }
 

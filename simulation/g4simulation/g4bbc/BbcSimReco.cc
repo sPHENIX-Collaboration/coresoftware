@@ -9,8 +9,6 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include <ffaobjects/EventHeaderv1.h>
-
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/PHTFileServer.h>
 
@@ -23,15 +21,15 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <TDatabasePDG.h>
 #include <TF1.h>
 #include <TFile.h>
 #include <TH1F.h>
 #include <TH2F.h>
 #include <TLorentzVector.h>
 #include <TString.h>
-#include <TTree.h>
-#include <TDatabasePDG.h>
 #include <TSystem.h>
+#include <TTree.h>
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
@@ -120,20 +118,18 @@ namespace BBCINFO
 
 }  // namespace BBCINFO
 
-using namespace BBCINFO;
-
 //____________________________________
 BbcSimReco::BbcSimReco(const std::string &name)
   : SubsysReco(name)
   , _tres(0.05)
 {
-  std::fill(std::begin(f_pmtq), std::end(f_pmtq), NAN);
-  std::fill(std::begin(f_pmtt0), std::end(f_pmtt0), NAN);
-  std::fill(std::begin(f_pmtt1), std::end(f_pmtt1), NAN);
+  std::fill(std::begin(f_pmtq), std::end(f_pmtq), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(f_pmtt0), std::end(f_pmtt0), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(f_pmtt1), std::end(f_pmtt1), std::numeric_limits<float>::quiet_NaN());
   std::fill(std::begin(f_bbcn), std::end(f_bbcn), 0);
-  std::fill(std::begin(f_bbcq), std::end(f_bbcq), NAN);
-  std::fill(std::begin(f_bbct), std::end(f_bbct), NAN);
-  std::fill(std::begin(f_bbcte), std::end(f_bbcte), NAN);
+  std::fill(std::begin(f_bbcq), std::end(f_bbcq), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(f_bbct), std::end(f_bbct), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(f_bbcte), std::end(f_bbcte), std::numeric_limits<float>::quiet_NaN());
   hevt_bbct[0] = nullptr;
   hevt_bbct[1] = nullptr;
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -185,8 +181,6 @@ int BbcSimReco::InitRun(PHCompositeNode *topNode)
 // Call user instructions for every event
 int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
 {
-  f_evt = _evtheader->get_EvtSequence();
-
   //**** Initialize Variables
 
   // Arm Data
@@ -198,8 +192,8 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
   f_bbct[1] = -9999.;
   f_bbcte[0] = -9999.;
   f_bbcte[1] = -9999.;
-  f_bbcz = NAN;
-  f_bbct0 = NAN;
+  f_bbcz = std::numeric_limits<float>::quiet_NaN();
+  f_bbct0 = std::numeric_limits<float>::quiet_NaN();
   hevt_bbct[0]->Reset();
   hevt_bbct[1]->Reset();
 
@@ -222,10 +216,10 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     f_vz = vtxp->get_z();
     f_vt = vtxp->get_t();
 
-    if (Verbosity() && f_evt < 20)
+    if (Verbosity())
     {
       std::cout << "VTXP "
-           << "\t" << f_vx << "\t" << f_vy << "\t" << f_vz << "\t" << f_vt << std::endl;
+                << "\t" << f_vx << "\t" << f_vy << "\t" << f_vz << "\t" << f_vt << std::endl;
     }
   }
 
@@ -266,7 +260,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
       if (fabs(this_hit->get_t(1)) < 106.5)
       {
         first_time[ch] = this_hit->get_t(1) - vtxp->get_t();
-        Float_t dt = gsl_ran_gaussian(m_RandomGenerator, _tres); // get fluctuation in time
+        Float_t dt = gsl_ran_gaussian(m_RandomGenerator, _tres);  // get fluctuation in time
         first_time[ch] += dt;
       }
       else
@@ -283,7 +277,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     // get summed path length for particles that can create CKOV light
     // n.p.e. is determined from path length
     Double_t beta = v4.Beta();
-    if (beta > v_ckov && charge != 0.)
+    if (beta > BBCINFO::v_ckov && charge != 0.)
     {
       len[ch] += this_hit->get_path_length();
 
@@ -308,14 +302,14 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     // Fill charge and time info
     if (len[ich] > 0.)
     {
-      if (f_evt < 20 && Verbosity() != 0)
+      if (Verbosity() > 0)
       {
         std::cout << "ich " << ich << "\t" << len[ich] << "\t" << edep[ich] << std::endl;
       }
 
       // Get charge in BBC tube
-      float npe = len[ich] * (120 / 3.0);                          // we get 120 p.e. per 3 cm
-      float dnpe = gsl_ran_gaussian(m_RandomGenerator, std::sqrt(npe)); // get fluctuation in npe
+      float npe = len[ich] * (120 / 3.0);                                // we get 120 p.e. per 3 cm
+      float dnpe = gsl_ran_gaussian(m_RandomGenerator, std::sqrt(npe));  // get fluctuation in npe
 
       npe += dnpe;  // apply the fluctuations in npe
 
@@ -343,14 +337,12 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
         }
       }
 
-      //int ipmt = f_bbcn[0] + f_bbcn[1]; // number of hit pmt
+      // int ipmt = f_bbcn[0] + f_bbcn[1]; // number of hit pmt
       _bbcpmts->AddBbcPmt(ich, f_pmtq[ich], f_pmtt0[ich], f_pmtt1[ich]);
 
       // threshold should be > 0.
       ++f_bbcn[arm];
     }
-
-
   }
 
   // Get best t
@@ -358,28 +350,39 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
   {
     for (int iarm = 0; iarm < 2; iarm++)
     {
-      std::sort(hit_times[iarm].begin(), hit_times[iarm].end());
-      float earliest = hit_times[iarm][0];
-
-      gaussian->SetParameter(0, 5);
-      gaussian->SetParameter(1, earliest);
-      gaussian->SetRange(6, earliest + 5 * 0.05);
-      // gaussian->SetParameter(1,hevt_bbct[iarm]->GetMean());
-      // gaussian->SetRange(6,hevt_bbct[iarm]->GetMean()+0.125);
-
-      hevt_bbct[iarm]->Fit(gaussian, "BLRNQ");
-      if (f_bbcn[iarm] > 0)
+      if (!hit_times[iarm].empty())
       {
-        // f_bbct[iarm] = f_bbct[iarm] / f_bbcn[iarm];
-        f_bbct[iarm] = gaussian->GetParameter(1);
-        f_bbcte[iarm] = earliest;
+        std::sort(hit_times[iarm].begin(), hit_times[iarm].end());
+        float earliest = hit_times[iarm][0];
 
-        _bbcout->AddBbcNS(iarm, f_bbcn[iarm], f_bbcq[iarm], f_bbct[iarm]);
+        gaussian->SetParameter(0, 5);
+        gaussian->SetParameter(1, earliest);
+        gaussian->SetRange(6, earliest + 5 * 0.05);
+        // gaussian->SetParameter(1,hevt_bbct[iarm]->GetMean());
+        // gaussian->SetRange(6,hevt_bbct[iarm]->GetMean()+0.125);
+
+        hevt_bbct[iarm]->Fit(gaussian, "BLRNQ");
+        if (f_bbcn[iarm] > 0)
+        {
+          // f_bbct[iarm] = f_bbct[iarm] / f_bbcn[iarm];
+          f_bbct[iarm] = gaussian->GetParameter(1);
+          f_bbcte[iarm] = earliest;
+
+          _bbcout->AddBbcNS(iarm, f_bbcn[iarm], f_bbcq[iarm], f_bbct[iarm]);
+        }
+        else
+        {
+          _bbcout->AddBbcNS(iarm, 0, -99999., -99999.);
+        }
+      }
+      else
+      {
+        _bbcout->AddBbcNS(iarm, 0, -99999., -99999.);
       }
     }
 
     // Now calculate zvtx, t0 from best times
-    f_bbcz = (f_bbct[0] - f_bbct[1]) * C / 2.0;
+    f_bbcz = (f_bbct[0] - f_bbct[1]) * BBCINFO::C / 2.0;
     f_bbct0 = (f_bbct[0] + f_bbct[1]) / 2.0;
 
     _bbcout->set_Vertex(f_bbcz, 0.6);
@@ -433,38 +436,35 @@ void BbcSimReco::GetNodes(PHCompositeNode *topNode)
 
   // Truth container
   _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-  if (!_truth_container && f_evt < 10)
+  if (!_truth_container)
   {
     std::cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << std::endl;
+    gSystem->Exit(1);
   }
 
   // BBC hit container
   _bbchits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_BBC");
-  if (!_bbchits && f_evt < 10)
+  if (!_bbchits)
   {
     std::cout << PHWHERE << " G4HIT_BBC node not found on node tree" << std::endl;
-  }
-
-  // Event Header info
-  _evtheader = findNode::getClass<EventHeaderv1>(topNode, "EventHeader");
-  if (!_evtheader && f_evt < 10)
-  {
-    std::cout << PHWHERE << " G4HIT_BBC node not found on node tree" << std::endl;
+    gSystem->Exit(1);
   }
 
   /** DST Objects **/
 
   // BbcOut data
   _bbcout = findNode::getClass<BbcOut>(topNode, "BbcOut");
-  if (!_bbcout && f_evt < 10)
+  if (!_bbcout)
   {
     std::cout << PHWHERE << " BbcOut node not found on node tree" << std::endl;
+    gSystem->Exit(1);
   }
 
   // BbcPmtContainer
   _bbcpmts = findNode::getClass<BbcPmtContainer>(topNode, "BbcPmtContainer");
-  if (!_bbcpmts && f_evt < 10)
+  if (!_bbcpmts)
   {
     std::cout << PHWHERE << " BbcPmtContainer node not found on node tree" << std::endl;
+    gSystem->Exit(1);
   }
 }

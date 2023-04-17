@@ -79,7 +79,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto propagator = makePropagator();
 
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
   if (m_verbosity > 3)
   {
     logLevel = Acts::Logging::VERBOSE;
@@ -103,7 +103,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
   if (result.ok())
   {
     auto finalparams = *result.value().endParameters;
-    auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
+    auto pathlength = result.value().pathLength;
     auto pair = std::make_pair(pathlength, finalparams);
 
     return Acts::Result<BoundTrackParamPair>::success(pair);
@@ -123,7 +123,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto propagator = makePropagator();
 
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
   if (m_verbosity > 3)
   {
     logLevel = Acts::Logging::VERBOSE;
@@ -142,7 +142,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
   if (result.ok())
   {
     auto finalparams = *result.value().endParameters;
-    auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
+    auto pathlength = result.value().pathLength;
     auto pair = std::make_pair(pathlength, finalparams);
 
     return Acts::Result<BoundTrackParamPair>::success(pair);
@@ -162,7 +162,7 @@ ActsPropagator::propagateTrackFast(const Acts::BoundTrackParameters& params,
 
   auto propagator = makeFastPropagator();
 
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
   if (m_verbosity > 3)
   {
     logLevel = Acts::Logging::VERBOSE;
@@ -181,7 +181,7 @@ ActsPropagator::propagateTrackFast(const Acts::BoundTrackParameters& params,
   if (result.ok())
   {
     auto finalparams = *result.value().endParameters;
-    auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
+    auto pathlength = result.value().pathLength;
     auto pair = std::make_pair(pathlength, finalparams);
 
     return Acts::Result<BoundTrackParamPair>::success(pair);

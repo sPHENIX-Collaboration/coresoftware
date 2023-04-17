@@ -87,7 +87,10 @@ int PHActsVertexPropagator::process_event(PHCompositeNode* topNode)
       }
       else
       {
-        svtxTrack->identify();
+	if(Verbosity()>1)
+	  {
+	    svtxTrack->identify();
+	  }
       }
     }
   }

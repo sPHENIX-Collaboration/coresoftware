@@ -19,9 +19,6 @@
 #include <iostream>
 #include <string>
 
-// Define some items that must be defined globally in the .cc file
-TProfile *CaloWaveformFitting::h_template = nullptr;
-
 double CaloWaveformFitting::template_function(double *x, double *par)
 {
   Double_t v1 = par[0] * h_template->Interpolate(x[0] - par[1]) + par[2];
@@ -79,8 +76,10 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
     {
       pedestal = 0.5 * (v.at(size1 - 3) + v.at(size1 - 2));
     }
-    auto f = new TF1(Form("f_%d", (int) round(v.at(size1))), template_function, 0, 31, 3);
-    ROOT::Math::WrappedMultiTF1 *fitFunction = new ROOT::Math::WrappedMultiTF1(*f, 3);
+
+
+    auto f = new TF1(Form("f_%d", (int) round(v.at(size1))), this,&CaloWaveformFitting::template_function, 0, 31, 3,"CaloWaveformFitting","template_function");
+   ROOT::Math::WrappedMultiTF1 *fitFunction = new ROOT::Math::WrappedMultiTF1(*f, 3);
     ROOT::Fit::BinData data(v.size() - 1, 1);
     ROOT::Fit::FillData(data, h);
     ROOT::Fit::Chi2Function *EPChi2 = new ROOT::Fit::Chi2Function(data, *fitFunction);

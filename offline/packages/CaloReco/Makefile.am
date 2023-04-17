@@ -26,9 +26,9 @@ libcalo_reco_la_LIBADD = \
   -lg4vertex_io \
   -lcalo_io \
   -lsph_onnx \
+  -lsphenixnpc \
   -lcaloCalibDBFile \
   -lcdbobjects \
-  -ldbtools \
   -lphparameter
 endif
 

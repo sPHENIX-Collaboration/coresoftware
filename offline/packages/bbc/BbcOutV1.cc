@@ -18,10 +18,10 @@ BbcOutV1::BbcOutV1()
 //______________________________________
 void BbcOutV1::Init()
 {
-  Bbc_ZVertex = -99999.9;
-  Bbc_dZVertex = -99999.9;
-  Bbc_TimeZero = -99999.9;
-  Bbc_dTimeZero = -99999.9;
+  Bbc_ZVertex = std::numeric_limits<float>::quiet_NaN();
+  Bbc_dZVertex = std::numeric_limits<float>::quiet_NaN();
+  Bbc_TimeZero = std::numeric_limits<float>::quiet_NaN();
+  Bbc_dTimeZero = std::numeric_limits<float>::quiet_NaN();
 }
 
 //______________________________________
@@ -33,7 +33,8 @@ BbcOutV1::~BbcOutV1()
 //______________________________________
 int BbcOutV1::isValid() const
 {
-  return ((Bbc_TimeZero > -9999.) ? 1 : 0);
+// compatible with old invalid setting of -9999.9
+  return ((std::isfinite(Bbc_TimeZero) && (Bbc_TimeZero > -9999.)) ? 1 : 0);
 }
 
 //______________________________________
