@@ -37,9 +37,9 @@ class PHActsVertexPropagator : public SubsysReco
  private:
   int getNodes(PHCompositeNode *topNode);
   void setTrackVertexToBbc(PHCompositeNode *topNode);
-  ActsPropagator::BoundTrackParamResult 
-    propagateTrack(const Acts::BoundTrackParameters &params,
-		   const unsigned int vtxid);
+  ActsPropagator::BoundTrackParamResult
+  propagateTrack(const Acts::BoundTrackParameters &params,
+                 const unsigned int vtxid);
   Acts::Vector3 getVertex(const unsigned int vtxid);
   void updateSvtxTrack(SvtxTrack *track,
                        const Acts::BoundTrackParameters &params);
