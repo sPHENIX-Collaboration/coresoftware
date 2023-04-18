@@ -112,3 +112,33 @@ int sphenixnpc::insertcalib(const std::string &pl_type, const std::string &file_
   }
   return 0;
 }
+
+int sphenixnpc::createDomain(const std::string &domain)
+{
+  int iret = -1;
+  nlohmann::json resp;
+  if (m_DomainCache.empty())
+  {
+    resp = nopayloadclient::Client::getPayloadTypes();
+    nlohmann::json msgcont = resp["msg"];
+    for (auto &it : msgcont.items())
+    {
+      std::string existent_domain = it.value().at("name");
+      m_DomainCache.insert(existent_domain);
+    }
+  }
+  if (m_DomainCache.find(domain) == m_DomainCache.end())
+  {
+    resp = nopayloadclient::Client::createPayloadType(domain);
+    iret = resp["code"];
+    if (iret == 0)
+    {
+      m_DomainCache.insert(domain);
+    }
+  }
+  else
+  {
+    iret = 0;
+  }
+  return iret;
+}

@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 
 #include <iostream>
+#include <set>
 
 class sphenixnpc : public nopayloadclient::Client
 {
@@ -19,7 +20,7 @@ class sphenixnpc : public nopayloadclient::Client
   ~sphenixnpc();
   nlohmann::json getUrlDict(long long iov);
   int createGlobalTag(const std::string &tagname);
-
+  int createDomain(const std::string &domain);
   nlohmann::json get(const std::string &pl_type, long long iov);
   nlohmann::json cache_set_GlobalTag(const std::string &name);
   nlohmann::json clearCache() override;
@@ -36,6 +37,7 @@ class sphenixnpc : public nopayloadclient::Client
   int m_Verbosity = 0;
   nlohmann::json url_dict_;  // valid until global tag is switched
   std::string m_CachedGlobalTag;
+  std::set<std::string> m_DomainCache;
 };
 
 #endif  // SPHENIXNPC_SPHENIXNPC_H
