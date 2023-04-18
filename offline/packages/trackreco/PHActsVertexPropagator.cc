@@ -41,14 +41,6 @@ int PHActsVertexPropagator::InitRun(PHCompositeNode* topNode)
 }
 int PHActsVertexPropagator::process_event(PHCompositeNode* topNode)
 {
-  if (m_vertexMap->size() == 0)
-  {
-    bool ret = setTrackVertexToBbc(topNode);
-    if(!ret) 
-      {
-	return Fun4AllReturnCodes::EVENT_OK; 
-      }
-  }
 
   std::vector<unsigned int> deletedKeys;
   for (const auto& [trackKey, trajectory] : *m_trajectories)
@@ -96,6 +88,11 @@ int PHActsVertexPropagator::process_event(PHCompositeNode* topNode)
   }
 
   setVtxChi2();
+
+  if (m_vertexMap->size() == 0)
+  {
+    setTrackVertexToBbc(topNode);
+  }
 
   /// Erase the trajectories that were removed from the track cleaner
   for (auto& key : deletedKeys)
@@ -187,12 +184,6 @@ PHActsVertexPropagator::propagateTrack(
 {
   /// create perigee surface
   auto actsVertex = getVertex(vtxid);
-  
-  /// BBC vertex wasn't found. Propagate to perigee at 0,0,0
-  if(actsVertex(2) < -9999)
-    {
-      actsVertex = Acts::Vector3::Zero(); 
-    }
   auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(actsVertex);
 
   ActsPropagator propagator(m_tGeometry);
@@ -205,12 +196,18 @@ PHActsVertexPropagator::propagateTrack(
 Acts::Vector3 PHActsVertexPropagator::getVertex(const unsigned int vtxid)
 {
   auto svtxVertex = m_vertexMap->get(vtxid);
-  return Acts::Vector3(svtxVertex->get_x() * Acts::UnitConstants::cm,
-                       svtxVertex->get_y() * Acts::UnitConstants::cm,
-                       svtxVertex->get_z() * Acts::UnitConstants::cm);
+  /// check that a vertex exists
+  if(svtxVertex)
+    {
+      return Acts::Vector3(svtxVertex->get_x() * Acts::UnitConstants::cm,
+			   svtxVertex->get_y() * Acts::UnitConstants::cm,
+			   svtxVertex->get_z() * Acts::UnitConstants::cm);
+    }
+  
+  return Acts::Vector3::Zero();
 }
 
-bool PHActsVertexPropagator::setTrackVertexToBbc(PHCompositeNode *topNode)
+void PHActsVertexPropagator::setTrackVertexToBbc(PHCompositeNode *topNode)
 {
   auto bbcmap = findNode::getClass<BbcOut>(topNode, "BbcOut");
   if(!bbcmap)
@@ -220,8 +217,7 @@ bool PHActsVertexPropagator::setTrackVertexToBbc(PHCompositeNode *topNode)
 	  std::cout << PHWHERE << "Won't propagate tracks as no vertex was found"
 		    << std::endl;
 	}
-      
-      return false;
+      return;
     }
   
   float z = bbcmap->get_VertexPoint();
@@ -231,14 +227,14 @@ bool PHActsVertexPropagator::setTrackVertexToBbc(PHCompositeNode *topNode)
       if(Verbosity() > 1)
 	{
 	  std::cout << PHWHERE 
-		    << "No vertex found in the event, track parameters are WRT (0,0,z_{trk})" 
+		    << "No vertex found in the event, track parameters are WRT (0,0,0})" 
 		    << std::endl;
 	}
 
-      return false;
+      return;
     }
 
-   /// If we found no vertices in the event, propagate the tracks to 0,0,bbcz
+   /// If we found no vertices in the event, associate track to bbc
   auto vertex = std::make_unique<SvtxVertex_v1>();
   vertex->set_chisq(0.);
   vertex->set_ndof(0);
@@ -256,6 +252,7 @@ bool PHActsVertexPropagator::setTrackVertexToBbc(PHCompositeNode *topNode)
   }
   vertex->set_error(2,2, zerr*zerr);
   m_vertexMap->insert(vertex.release());
+
   if(Verbosity() > 1)
     {
       std::cout << "Set track vertex to propagate to BBC vertex "
@@ -268,7 +265,7 @@ bool PHActsVertexPropagator::setTrackVertexToBbc(PHCompositeNode *topNode)
     track->set_vertex_id(0);
   }
 
-  return true;  
+  return;  
 }
 
 
