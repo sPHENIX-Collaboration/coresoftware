@@ -215,11 +215,29 @@ bool PHActsVertexPropagator::setTrackVertexToBbc(PHCompositeNode *topNode)
   auto bbcmap = findNode::getClass<BbcOut>(topNode, "BbcOut");
   if(!bbcmap)
     {
-      std::cout << PHWHERE << "Can't propagate tracks as no vertex was found"
-		<< std::endl;
+      if(Verbosity() > 1) 
+	{
+	  std::cout << PHWHERE << "Won't propagate tracks as no vertex was found"
+		    << std::endl;
+	}
+      
       return false;
     }
   
+  float z = bbcmap->get_VertexPoint();
+  float zerr = bbcmap->get_dVertexPoint();
+  if(std::isnan(z) or std::isnan(zerr)) 
+    {
+      if(Verbosity() > 1)
+	{
+	  std::cout << PHWHERE 
+		    << "No vertex found in the event, track parameters are WRT (0,0,z_{trk})" 
+		    << std::endl;
+	}
+
+      return false;
+    }
+
    /// If we found no vertices in the event, propagate the tracks to 0,0,bbcz
   auto vertex = std::make_unique<SvtxVertex_v1>();
   vertex->set_chisq(0.);
@@ -228,17 +246,23 @@ bool PHActsVertexPropagator::setTrackVertexToBbc(PHCompositeNode *topNode)
   vertex->set_id(0);
   vertex->set_x(0);
   vertex->set_y(0);
-  vertex->set_z(bbcmap->get_VertexPoint());
+  vertex->set_z(z);
   for (int i = 0; i < 3; i++)
   {
     for (int j = 0; j < 3; j++)
     {
-      vertex->set_error(i, j, 20.);
+      vertex->set_error(i, j, 0.);
     }
   }
-  vertex->set_error(2,2, bbcmap->get_dVertexPoint() * bbcmap->get_dVertexPoint());
+  vertex->set_error(2,2, zerr*zerr);
   m_vertexMap->insert(vertex.release());
- 
+  if(Verbosity() > 1)
+    {
+      std::cout << "Set track vertex to propagate to BBC vertex "
+		<< bbcmap->get_VertexPoint() << " +/- " 
+		<< bbcmap->get_dVertexPoint() << std::endl;
+    }
+
   for (auto& [key, track] : *m_trackMap)
   {
     track->set_vertex_id(0);
