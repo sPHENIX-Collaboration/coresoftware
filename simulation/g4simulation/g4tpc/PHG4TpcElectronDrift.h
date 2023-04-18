@@ -79,7 +79,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TrkrTruthTrackContainer *truthtracks = nullptr;
   TrkrTruthTrack *current_track = nullptr;
   TrkrClusterContainer *truthclustercontainer = nullptr; // the TrkrClusterContainer for truth clusters
-  std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<TrkrHitSetContainer> single_hitsetcontainer;
   std::unique_ptr<PHG4TpcPadPlane> padplane;
 
