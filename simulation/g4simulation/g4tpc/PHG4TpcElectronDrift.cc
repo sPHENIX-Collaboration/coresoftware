@@ -303,6 +303,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
   padplane->InitRun(topNode);
   padplane->CreateReadoutGeometry(topNode, seggeo);
+  InitTrkrHitSets();
 
   // print all layers radii
   if (Verbosity())
@@ -324,6 +325,108 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHG4TpcElectronDrift::InitTrkrHitSets()
+{
+  assert(seggeo);
+  assert(padplane);
+  assert(hitsetcontainer);
+
+  const int min_layer = padplane->get_minLayer();
+  const int n_layer = padplane->get_nLayer();
+
+  for (int layer = min_layer; layer < min_layer + n_layer; ++layer)
+  {
+    assert(seggeo);
+    PHG4TpcCylinderGeom *layer_geometry = seggeo->GetLayerCellGeom(layer);
+    assert(layer_geometry);
+
+    const int npad = layer_geometry->get_phibins() / TpcDefs::NSectors;
+
+    for (int side = 0; side < TpcDefs::NSides; ++side)
+    {
+      for (int sector = 0; sector < TpcDefs::NSectors; ++sector)
+      {
+        TrkrDefs::hitsetkey node_hitsetkey = TpcDefs::genHitSetKey(layer, sector, side);
+
+        // find or add this hitset on the node tree
+        TrkrHitSetContainer::Iterator node_hitsetit = hitsetcontainer->findOrAddHitSet(node_hitsetkey);
+        TrkrHitSetTpc *hitset = dynamic_cast<TrkrHitSetTpc *>(node_hitsetit->second);
+        assert(hitset);
+        assert(hitset->getHitSetKey() == node_hitsetkey);
+
+        const int start_pad = sector * npad;
+
+        // prepare hitset
+        if (Verbosity() > 100)
+        {
+          std::cout << __PRETTY_FUNCTION__ << "prepare hitset with key: "
+                    << node_hitsetkey << " in layer " << layer
+                    << " with sector " << sector << " side " << side << std::endl;
+        }
+
+        // phi setup if needed
+        assert(hitset->getNPads() == 0);
+        if (Verbosity())
+        {
+          std::cout << __PRETTY_FUNCTION__ << " npad is inconsistent, need to resize for temp_hitset with key: "
+                    << node_hitsetkey << " in layer " << layer
+                    << " with sector " << sector << " side " << side
+                    << " : setNPads " << npad
+                    << " This is necissary as TPC has various sizes of pad rows, which unfortunately leads to this extra memory allocation/delocation from event to event"
+                    << std::endl;
+        }
+        hitset->setNPads(npad);
+
+        // start_pad setup if needed
+        if (Verbosity() > 100)
+        {
+          std::cout << __PRETTY_FUNCTION__ << " prepare hitset with key: "
+                    << node_hitsetkey << " in layer " << layer
+                    << " with sector " << sector << " side " << side
+                    << " : setPadIndexStart " << start_pad
+                    << std::endl;
+        }
+        hitset->setPadIndexStart(start_pad);
+
+        // ntbin setup if needed
+        // TODO: using a x2 larger zbins to ensure fitting extended readout time. Reduce down when needed.
+        const int ntbin = layer_geometry->get_zbins() + 1;
+        const int start_tbin = side == 0 ? 0 : layer_geometry->get_zbins();
+        assert(hitset->getNTBins() == 0);
+        if (Verbosity())
+        {
+          std::cout << __PRETTY_FUNCTION__ << " prepare hitset with key: "
+                    << node_hitsetkey << " in layer " << layer
+                    << " with sector " << sector << " side " << side
+                    << " : setTBins " << ntbin
+                    << std::endl;
+        }
+        hitset->setNTBins(ntbin);
+
+        // ntbin start_tbin if needed
+        if (Verbosity() > 100)
+        {
+          std::cout << __PRETTY_FUNCTION__ << " prepare hitset with key: "
+                    << node_hitsetkey << " in layer " << layer
+                    << " with sector " << sector << " side " << side
+                    << " : setTBinIndexStart " << start_tbin
+                    << std::endl;
+        }
+        hitset->setTBinIndexStart(start_tbin);
+        if (Verbosity() > 100)
+        {
+          std::cout << __PRETTY_FUNCTION__ << " done start_tbin hitset from node_hitsetkey = " << node_hitsetkey << ": ";
+
+          hitset->identify();
+        }
+
+      }  //     for (int sector = 0; sector< TpcDefs::NSectors; ++sector)
+
+    }  //         for (int side = 0; side < TpcDefs::NSides; ++side)
+
+  }  // for(int layer = min_layer; layer < min_layer + n_layer; ++layer)
 }
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
@@ -643,110 +746,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         const int npad = layer_geometry->get_phibins() / TpcDefs::NSectors;
         const int start_pad = sector * npad;
 
-        // ensure the hitset is prepared and consistent
-        {
-          if (Verbosity() > 100)
-          {
-            std::cout << __PRETTY_FUNCTION__ << "ensure the hitset is prepared and consistent for temp_hitset with key: "
-                      << node_hitsetkey << " in layer " << layer
-                      << " with sector " << sector << " side " << side << std::endl;
-          }
-
-          // phi setup if needed
-          if (hitset->getNPads() == npad)
-          {
-            if (Verbosity() > 2)
-              std::cout << __PRETTY_FUNCTION__ << " npad is consistent, no need to resize for temp_hitset with key: "
-                        << node_hitsetkey << " in layer " << layer
-                        << " with sector " << sector << " side " << side
-                        << " hitset->getNPads() = " << hitset->getNPads()
-                        << " : setNPads " << npad
-                        << std::endl;
-          }
-          else
-          {
-            if (Verbosity())
-            {
-              std::cout << __PRETTY_FUNCTION__ << " npad is inconsistent, need to resize for temp_hitset with key: "
-                        << node_hitsetkey << " in layer " << layer
-                        << " with sector " << sector << " side " << side
-                        << " : setNPads " << npad
-                        << " This is necissary as TPC has various sizes of pad rows, which unfortunately leads to this extra memory allocation/delocation from event to event"
-                        << std::endl;
-            }
-            hitset->setNPads(npad);
-          }
-          if (Verbosity() > 100)
-          {
-            std::cout << __PRETTY_FUNCTION__ << " done npad hitset from node_hitsetkey = " << node_hitsetkey << ": ";
-
-//            hitset->identify();
-          }
-
-          // start_pad setup if needed
-          if (Verbosity() > 100)
-          {
-            std::cout << __PRETTY_FUNCTION__ << "ensure the hitset is prepared and consistent for temp_hitset with key: "
-                      << node_hitsetkey << " in layer " << layer
-                      << " with sector " << sector << " side " << side
-                      << " : setPadIndexStart " << start_pad
-                      << std::endl;
-          }
-          hitset->setPadIndexStart(start_pad);
-          if (Verbosity() > 100)
-          {
-            std::cout << __PRETTY_FUNCTION__ << " done start_pad hitset from node_hitsetkey = " << node_hitsetkey << ": ";
-
-//            hitset->identify();
-          }
-
-          // ntbin setup if needed
-          // TODO: using a x2 larger zbins to ensure fitting extended readout time. Reduce down when needed.
-          const int ntbin = layer_geometry->get_zbins() + 1;
-          const int start_tbin = side == 0 ? 0 : layer_geometry->get_zbins();
-          if (hitset->getNTBins())
-          {
-            assert(hitset->getNTBins() == ntbin);  // we do not expect ntbin to change, othertwise it is a consistency error
-          }
-          else
-          {
-            if (Verbosity())
-            {
-              std::cout << __PRETTY_FUNCTION__ << "ensure the hitset is prepared and consistent for temp_hitset with key: "
-                        << node_hitsetkey << " in layer " << layer
-                        << " with sector " << sector << " side " << side
-                        << " : setTBins " << ntbin
-                        << std::endl;
-            }
-            hitset->setNTBins(ntbin);
-          }
-          if (Verbosity() > 100)
-          {
-            std::cout << __PRETTY_FUNCTION__ << " done ntbin hitset from node_hitsetkey = " << node_hitsetkey << ": ";
-
-//            hitset->identify();
-          }
-
-          // ntbin start_tbin if needed
-          if (Verbosity() > 100)
-          {
-            std::cout << __PRETTY_FUNCTION__ << "ensure the hitset is prepared and consistent for temp_hitset with key: "
-                      << node_hitsetkey << " in layer " << layer
-                      << " with sector " << sector << " side " << side
-                      << " : setTBinIndexStart " << start_tbin
-                      << std::endl;
-          }
-          hitset->setTBinIndexStart(start_tbin);
-          if (Verbosity() > 100)
-          {
-            std::cout << __PRETTY_FUNCTION__ << " done start_tbin hitset from node_hitsetkey = " << node_hitsetkey << ": ";
-
-//            hitset->identify();
-          }
-        }  // ensure the hitset is prepared and consistent
         if (Verbosity() > 100)
         {
-          std::cout << __PRETTY_FUNCTION__ << " done initializing hitset from node_hitsetkey = " << node_hitsetkey << ": ";
+          std::cout << __PRETTY_FUNCTION__ << " start with filling hitset from node_hitsetkey = " << node_hitsetkey << ": ";
 
           hitset->identify();
         }
@@ -761,7 +763,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           TrkrHit *temp_tpchit = temp_hit_iter->second;
           if ((Verbosity() > 10 && layer == print_layer) or Verbosity() > 100)
           {
-            std::cout << __PRETTY_FUNCTION__<< "      temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
+            std::cout << __PRETTY_FUNCTION__ << "      temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
                       << " z bin " << TpcDefs::getTBin(temp_hitkey)
                       << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
 
@@ -772,16 +774,15 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
           if (TpcDefs::getPad(temp_hitkey) < start_pad or TpcDefs::getPad(temp_hitkey) >= start_pad + npad)
           {
-            if (Verbosity())
-              std::cout << __PRETTY_FUNCTION__
-                        << " WARNING: ignore an invalid hit temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
-                        << " z bin " << TpcDefs::getTBin(temp_hitkey)
-                        << "which is outside the hitset "
-                        << " in layer " << layer
-                        << " with sector " << sector << " side " << side << " start_pad " << start_pad << " npad " << npad
-                        << "  layer_geometry->get_phibins() " <<  layer_geometry->get_phibins()
-                        << "  layer_geometry->get_layer() " <<  layer_geometry->get_layer()
-                        << std::endl;
+            std::cout << __PRETTY_FUNCTION__
+                      << " WARNING: ignore an invalid hit temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
+                      << " z bin " << TpcDefs::getTBin(temp_hitkey)
+                      << "which is outside the hitset "
+                      << " in layer " << layer
+                      << " with sector " << sector << " side " << side << " start_pad " << start_pad << " npad " << npad
+                      << "  layer_geometry->get_phibins() " << layer_geometry->get_phibins()
+                      << "  layer_geometry->get_layer() " << layer_geometry->get_layer()
+                      << std::endl;
             continue;
           }
 
@@ -792,13 +793,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         if (Verbosity() > 100 && layer == print_layer)
           std::cout << "  ihit " << ihit << " collected energy = " << eg4hit << std::endl;
 
-
-        if (Verbosity() > 100 )
+        if (Verbosity() > 100)
         {
-
           std::cout << __PRETTY_FUNCTION__ << " Done with filling from temp_hitset with key: "
                     << node_hitsetkey << " in layer " << layer
-                    << " with sector " << sector << " side " << side <<"Print content:"
+                    << " with sector " << sector << " side " << side << "Print content:"
                     << std::endl;
           hitset->identify();
         }

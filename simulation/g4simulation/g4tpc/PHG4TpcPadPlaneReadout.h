@@ -4,8 +4,8 @@
 #include "PHG4TpcPadPlane.h"
 #include "TpcClusterBuilder.h"
 
-#include <trackbase/TpcDefs.h>
 #include <g4main/PHG4HitContainer.h>
+#include <trackbase/TpcDefs.h>
 
 #include <gsl/gsl_rng.h>
 #include <array>
@@ -15,7 +15,7 @@
 #include <vector>
 
 class PHCompositeNode;
-//class PHG4CellContainer;
+// class PHG4CellContainer;
 class PHG4TpcCylinderGeomContainer;
 class PHG4TpcCylinderGeom;
 class TNtuple;
@@ -31,16 +31,17 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   void SetDriftVelocity(double vd) override { drift_velocity = vd; }
 
-
   int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4TpcCylinderGeomContainer *seggeo) override;
 
   // otherwise warning of inconsistent overload since only one MapToPadPlane methow is overridden
   using PHG4TpcPadPlane::MapToPadPlane;
-
-  void MapToPadPlane(TpcClusterBuilder* tpc_clustbuilder, TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
+  void MapToPadPlane(TpcClusterBuilder *tpc_clustbuilder, TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
 
   void SetDefaultParameters() override;
   void UpdateInternalParameters() override;
+
+  int get_minLayer() override { return MinLayer[0]; }
+  int get_nLayer() override { return NTpcLayers[0] + NTpcLayers[1] + NTpcLayers[2]; }
 
  private:
   //  void populate_rectangular_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
@@ -70,8 +71,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   static const int NSectors = TpcDefs::NSectors;
   static const int NRSectors = TpcDefs::NRSectors;
 
-  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dR;
-  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dPhi;
+  std::array<std::array<std::array<float, NRSectors>, NSectors>, NSides> dR;
+  std::array<std::array<std::array<float, NRSectors>, NSectors>, NSides> dPhi;
 
   double MaxZ = NAN;
   double MinT = NAN;
@@ -99,17 +100,16 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::vector<int> pad_phibin;
   std::vector<double> pad_phibin_share;
   std::vector<double> adc_tbin_share;
-  std::array<std::vector<double>, NSides > sector_R_bias;
-  std::array<std::vector<double>, NSides > sector_Phi_bias;
-  std::array<std::vector<double>, NSides > sector_min_Phi;
-  std::array<std::vector<double>, NSides > sector_max_Phi;
-  std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_min_Phi_sectors;
-  std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_max_Phi_sectors;
+  std::array<std::vector<double>, NSides> sector_R_bias;
+  std::array<std::vector<double>, NSides> sector_Phi_bias;
+  std::array<std::vector<double>, NSides> sector_min_Phi;
+  std::array<std::vector<double>, NSides> sector_max_Phi;
+  std::array<std::array<std::vector<double>, NRSectors>, NSides> sector_min_Phi_sectors;
+  std::array<std::array<std::vector<double>, NRSectors>, NSides> sector_max_Phi_sectors;
 
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
   gsl_rng *RandomGenerator;
-  
 };
 
 #endif

@@ -36,6 +36,9 @@ class PHG4TpcPadPlane : public SubsysReco, public PHParameterInterface
   virtual void MapToPadPlane(TpcClusterBuilder* /*builder*/, TrkrHitSetContainer * /*single_hitsetcontainer*/, TrkrHitSetContainer * /*hitsetcontainer*/, TrkrHitTruthAssoc * /*hittruthassoc*/, const double /*x_gem*/, const double /*y_gem*/, const double /*t_gem*/, const unsigned int /*side*/, PHG4HitContainer::ConstIterator /*hiter*/, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)=0;// { return {}; }
   void Detector(const std::string &name) { detector = name; }
 
+  virtual int get_minLayer()  {return 0;}
+  virtual int get_nLayer()  {return 0;}
+
  protected:
   std::string detector;
 };

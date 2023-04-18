@@ -25,8 +25,22 @@ void TrkrHitSetContainerv2::Reset()
   // force rebuild of indexing map
   m_hitmap.clear();
 
-  //! fast clear without calling destructor
-  m_hitArray.Clear("C");
+  //! fast clear without calling destructor and without marking hitsets removed.
+  //! This is inspired by but even faster than TClonesArray::Clear()
+  //! We just reset hitset values and reuse the hitset objects
+  Int_t n = m_hitArray.GetEntriesFast();
+  for (Int_t i = 0; i < n; i++) {
+     TObject *obj = m_hitArray.UncheckedAt(i);
+     if (obj) {
+        obj->Clear();
+        obj->ResetBit( kHasUUID );
+        obj->ResetBit( kIsReferenced );
+        obj->SetUniqueID( 0 );
+     }
+  }
+
+  // alternative is to also marking hitset removed, which is not used here but optional for a v3 container
+  // m_hitArray.Clear("C");
 }
 
 void TrkrHitSetContainerv2::identify(std::ostream& os) const

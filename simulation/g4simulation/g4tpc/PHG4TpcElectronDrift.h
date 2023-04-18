@@ -41,6 +41,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   int process_event(PHCompositeNode *) override;
   int End(PHCompositeNode *) override;
 
+  void InitTrkrHitSets();
+
   void SetDefaultParameters() override;
 
   //! detector name
