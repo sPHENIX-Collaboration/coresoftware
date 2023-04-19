@@ -18,18 +18,18 @@ if USE_ONLINE
 
 else
 libcalo_reco_la_LIBADD = \
+  -lcalo_io \
+  -lcdbobjects \
   -lCLHEP \
-  -lphool \
-  -lSubsysReco \
+  -lffamodules \
   -lgsl \
   -lgslcblas \
   -lg4vertex_io \
-  -lcalo_io \
   -lsph_onnx \
   -lsphenixnpc \
-  -lcaloCalibDBFile \
-  -lcdbobjects \
-  -lphparameter
+  -lphparameter \
+  -lphool \
+  -lSubsysReco
 endif
 
 AM_CPPFLAGS = \

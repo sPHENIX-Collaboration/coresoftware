@@ -4,7 +4,7 @@
 #include "TpcDefs.h"
 #include "TrkrDefs.h"
 
-#include <ffamodules/XploadInterface.h>
+#include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -53,7 +53,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
    { 
      datafile.clear();
      // load alignment constants file from database
-     alignmentParamsFile = XploadInterface::instance()->getUrl("TRACKINGALIGNMENT");
+     alignmentParamsFile = CDBInterface::instance()->getUrl("TRACKINGALIGNMENT");
      std::cout << "AlignmentTransformation: Reading alignment parameters from database file: " << alignmentParamsFile << std::endl; 
      datafile.open(alignmentParamsFile);
    }
