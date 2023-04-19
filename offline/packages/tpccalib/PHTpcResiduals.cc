@@ -95,6 +95,13 @@ namespace
       []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
   }
 
+  /// streamer
+  std::ostream& operator << (std::ostream& out, const Acts::Vector3& v )
+  {
+    out << "(" << v.x() << "," << v.y() << "," << v.z() << ")";
+    return out;
+  }
+  
 }
 
 //___________________________________________________________________________________
@@ -185,7 +192,7 @@ int PHTpcResiduals::processTracks(PHCompositeNode */*topNode*/)
 
   for(const auto &[trackKey, track] : *m_trackMap)
   {
-    if(Verbosity() > 1) 
+    // if(Verbosity() > 1) 
     { std::cout << "PHTpcResiduals::processTracks - Processing track key " << trackKey << std::endl; }
     
     ++m_total_tracks;
@@ -221,26 +228,7 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
 
 //___________________________________________________________________________________
 Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) const
-{
-  Acts::Vector3 momentum(track->get_px(), track->get_py(), track->get_pz());
-  double trackQ = track->get_charge() * Acts::UnitConstants::e;
-  double p = track->get_p();
-
-  /* get acts covariance matrix from track parameters */
-  const auto cov = m_transformer.rotateSvtxTrackCovToActs( track );
-  
-  /* get position from  track parameters */
-  const Acts::Vector3 position(track->get_x() * Acts::UnitConstants::cm,
-    track->get_y() * Acts::UnitConstants::cm,
-    track->get_z() * Acts::UnitConstants::cm);
-
-  const auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(position);
-  const auto actsFourPos = Acts::Vector4(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
-
-  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geometry().getGeoContext(),
-					    actsFourPos, momentum,
-					    trackQ/p, cov).value();
-}
+{ return makeTrackParams(track,track->get_state(0)); }
 
 //___________________________________________________________________________________
 Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track, SvtxTrackState* state) const
@@ -259,6 +247,26 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track, Svt
     state->get_y() * Acts::UnitConstants::cm,
     state->get_z() * Acts::UnitConstants::cm);
 
+  // if( Verbosity() )
+  {
+    std::cout << "PHTpcResiduals::makeTrackParams -"
+      << " position: " << position
+      << " momentum: " << momentum
+      << std::endl;
+    
+    // covariance
+    std::cout << "PHTpcResiduals::makeTrackParams - cov: " << std::endl;
+    for( int i = 0; i < 6; ++i )
+    {
+      std::cout << "  "; 
+      for( int j = 0; j<6; ++j )
+      {
+        std::cout << state->get_error(i,j) << " ";
+      }
+      std::cout << std::endl;
+    }
+  }
+  
   const auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(position);
   const auto actsFourPos = Acts::Vector4(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
   return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geometry().geoContext,
@@ -273,8 +281,8 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
   if(Verbosity() > 1)
   {
     std::cout << "PHTpcResiduals::processTrack -" 
-      << " track momentum: " << track->get_p() 
-      << " position: (" << track->get_x() << ", " << track->get_y() << ", " << track->get_z() << ")"
+      << " track momentum: " << Acts::Vector3( track->get_px(),  track->get_py(), track->get_pz() )
+      << " position: " << Acts::Vector3( track->get_x(), track->get_y(), track->get_z() )
       << std::endl;
   }
   
