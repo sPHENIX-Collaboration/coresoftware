@@ -6,11 +6,12 @@
 #include "BbcNorthSouth.h"
 
 #include <iostream>
+#include <limits>
 
 class BbcNorthSouthV1 : public BbcNorthSouth
 {
  public:
-  BbcNorthSouthV1() = delete;
+  BbcNorthSouthV1() = default;
   BbcNorthSouthV1(const short npmt, const float chargesum, const float timing);
   virtual ~BbcNorthSouthV1() {}
   void identify(std::ostream& os = std::cout) const override;
@@ -22,9 +23,9 @@ class BbcNorthSouthV1 : public BbcNorthSouth
  protected:
   virtual void Clear(Option_t* /*option*/ = "") override {}
 
-  short nPmt;
-  float nCharge;
-  float MeanTime;
+  short nPmt = 0;
+  float nCharge = std::numeric_limits<float>::quiet_NaN();
+  float MeanTime = std::numeric_limits<float>::quiet_NaN();
 
  private:
   ClassDefOverride(BbcNorthSouth, 1)

@@ -26,6 +26,7 @@ libcalo_reco_la_LIBADD = \
   -lg4vertex_io \
   -lcalo_io \
   -lsph_onnx \
+  -lsphenixnpc \
   -lcaloCalibDBFile \
   -lcdbobjects \
   -lphparameter
@@ -69,6 +70,7 @@ libcalo_reco_la_SOURCES = \
   CaloWaveformFitting.cc \
   CaloWaveformProcessing.cc \
   CaloTowerBuilder.cc \
+  CaloTowerCalib.cc \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \

@@ -305,7 +305,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	  bool eta_match = false;
 	  double si_eta = _tracklet_si->get_eta();
 	  if(  fabs(tpc_eta - si_eta) < _eta_search_win * mag)  eta_match = true;
-//	  if(!eta_match) continue;
+	  if(!eta_match) continue;
 	  unsigned int siid = phtrk_iter_si;
 	  double si_x = _tracklet_si->get_x();
 	  double si_y = _tracklet_si->get_y();
@@ -329,14 +329,14 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 		position_match = true;	    
 	    }
 	  
-//	  if(!position_match)
-//	    { continue; }
+	  if(!position_match)
+	    { continue; }
 
 	  bool phi_match = false;
 	  double si_phi = _tracklet_si->get_phi(_cluster_map,_tGeometry);
 	  if(  fabs(tpc_phi - si_phi)  < _phi_search_win * mag) phi_match = true;
 	  if(  fabs( fabs(tpc_phi - si_phi)  - 2.0 * M_PI)  < _phi_search_win * mag ) phi_match = true;
-//	  if(!phi_match) continue;
+	  if(!phi_match) continue;
 	  if(Verbosity() > 3)
 	    {
 	      cout << " testing for a match for TPC track " << tpcid << " with pT " << _tracklet_tpc->get_pt() 
@@ -347,29 +347,27 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	      std::cout << "      x search " << _x_search_win*mag << " y search " << _y_search_win*mag << " z search " << _z_search_win*mag  << std::endl;
 	    }
 
-	  if(eta_match && phi_match && position_match)
+	  // got a match, add to the list
+	  // These stubs are matched in eta, phi, x and y already
+	  matched = true;
+	  tpc_matches.insert(std::make_pair(tpcid, siid));
+	  tpc_matched_set.insert(tpcid);
+	  
+	  if(Verbosity() > 1)  
 	    {
-	      // got a match, add to the list
-	      // These stubs are matched in eta, phi, x and y already
-	      matched = true;
-	      tpc_matches.insert(std::make_pair(tpcid, siid));
-	      tpc_matched_set.insert(tpcid);
-
-	      if(Verbosity() > 1)  
-		{
-		  cout << " found a match for TPC track " << tpcid << " with Si track " << siid << endl;
-		  cout << "          tpc_phi " << tpc_phi << " si_phi " <<  si_phi << " phi_match " << phi_match 
-		       << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
-		  std::cout << "      tpc x " << tpc_x << " si x " << si_x << " tpc y " << tpc_y << " si y " << si_y << " tpc_z " << tpc_z  << " si z " << si_z << std::endl;
-		}
-
-	      // temporary!
-	      if(_test_windows)
-		cout << " Try_silicon:  pt " << tpc_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  
-		     << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << " tpc_x " << tpc_x << " tpc_y " << tpc_y << " tpc_z " << tpc_z 
-		     << " dx " << tpc_x - si_x << " dy " << tpc_y - si_y << " dz " << tpc_z - si_z  
-		     << endl;
+	      cout << " found a match for TPC track " << tpcid << " with Si track " << siid << endl;
+	      cout << "          tpc_phi " << tpc_phi << " si_phi " <<  si_phi << " phi_match " << phi_match 
+		   << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
+	      std::cout << "      tpc x " << tpc_x << " si x " << si_x << " tpc y " << tpc_y << " si y " << si_y << " tpc_z " << tpc_z  << " si z " << si_z << std::endl;
 	    }
+	  
+	  // temporary!
+	  if(_test_windows)
+	    cout << " Try_silicon:  pt " << tpc_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  
+		 << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << " tpc_x " << tpc_x << " tpc_y " << tpc_y << " tpc_z " << tpc_z 
+		 << " dx " << tpc_x - si_x << " dy " << tpc_y - si_y << " dz " << tpc_z - si_z  
+		 << endl;
+	  
 	}
       // if no match found, keep tpc seed for fitting
       if(!matched)

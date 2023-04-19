@@ -514,7 +514,8 @@ double ClusterErrorPara::tpc_phi_error(int layer, double alpha, TrkrCluster* clu
   double phierror = 0;
 
   TrkrClusterv4 *clusterv4 = dynamic_cast<TrkrClusterv4 *>(cluster);
-
+  assert( clusterv4 );
+  
   int sector = -1;
   if(layer >=7 && layer < 23){
     sector = 0;
@@ -617,6 +618,7 @@ double ClusterErrorPara::tpc_phi_error(int layer, double alpha, TrkrCluster* clu
 double ClusterErrorPara::tpc_z_error(int layer, double beta, TrkrCluster* cluster){
   double zerror   = 0.05;
   TrkrClusterv4 *clusterv4 = dynamic_cast<TrkrClusterv4 *>(cluster);
+  assert( clusterv4 );
   
   int sector = -1;
   if(layer >=7 && layer < 23){
