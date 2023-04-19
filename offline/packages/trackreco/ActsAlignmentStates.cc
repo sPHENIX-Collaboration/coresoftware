@@ -21,6 +21,7 @@
 #include <trackbase_historic/SvtxTrack.h>
 
 #include <Acts/Definitions/Units.hpp>
+#include <Acts/EventData/MeasurementHelpers.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 #include <Acts/Surfaces/Surface.hpp>
@@ -34,8 +35,9 @@ namespace
   }
 }  // namespace
 
-void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
-                                                SvtxTrack* track)
+void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
+                                                SvtxTrack* track,
+						const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
   const auto mj = traj.multiTrajectory();
   const auto& tips = traj.tips();
@@ -55,7 +57,16 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
     const auto& surface = state.referenceSurface();
     const auto& sl = static_cast<const ActsSourceLink&>(state.uncalibrated());
     auto ckey = sl.cluskey();
+    Acts::Vector2 loc = Acts::Vector2::Zero();
 
+    std::visit([&](const auto& meas) {
+	std::cout << meas.parameters() << std::endl;
+	std::cout << meas.parameters().rows() << ", " << meas.parameters().cols() << std::endl;
+	std::cout << meas.parameters()[0] << ", " << meas.parameters()[1] << std::endl;
+	loc(0) = meas.parameters()[0];
+	loc(1) = meas.parameters()[1];
+      }, measurements[sl.index()]);
+    
     if (m_verbosity > 2)
       {
 	std::cout << "sl index and ckey " << sl.index() << ", "
@@ -75,23 +86,23 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
     {
       makeTpcGlobalCorrections(ckey, crossing, clusGlobal);
     }
-
+   
     /// convert to acts units
     clusGlobal *= Acts::UnitConstants::cm;
 
     const Acts::FreeVector globalStateParams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), state.smoothed());
     Acts::Vector3 stateGlobal = globalStateParams.segment<3>(Acts::eFreePos0);
-    Acts::Vector3 residual = clusGlobal - stateGlobal;
-
+    Acts::Vector3 globalResidual = clusGlobal - stateGlobal;
+  
     Acts::Vector3 clus_sigma(0, 0, 0);
 
-      if (m_clusterVersion == 3 || m_clusterVersion == 5)
+      if (m_clusterVersion != 4)
       {
         clus_sigma(2) = clus->getZError() * Acts::UnitConstants::cm;
         clus_sigma(0) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
         clus_sigma(1) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
       }
-      else if (m_clusterVersion == 4)
+      else 
       {
         double clusRadius = sqrt(clusGlobal(0) * clusGlobal(0) + clusGlobal(1) * clusGlobal(1));
         auto para_errors = m_clusErrPara.get_simple_cluster_error(clus, clusRadius, ckey);
@@ -101,13 +112,22 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
         clus_sigma(0) = sqrt(exy2 / 2.0);
         clus_sigma(1) = sqrt(exy2 / 2.0);
       }
+  
+    const Acts::ActsDynamicMatrix H = state.effectiveProjector();
+    /// Acts residual, in local coordinates
+
+    auto localResidual = loc - H * state.smoothed();
+   
     if (m_verbosity > 2)
     {
          
       std::cout << "clus global is " << clusGlobal.transpose() << std::endl
                 << "state global is " << stateGlobal.transpose() << std::endl
-                << "Residual is " << residual.transpose() << std::endl;
+                << "Residual is " << globalResidual.transpose() << std::endl;
       std::cout << "   clus errors are " << clus_sigma.transpose() << std::endl;
+      std::cout << "   clus loc is " << loc.transpose() << std::endl;
+      std::cout << "   state loc is " << (H * state.smoothed()).transpose() << std::endl;
+      std::cout << "   local residual is " << localResidual.transpose() << std::endl;
     }
 
     // Get the derivative of alignment (global) parameters w.r.t. measurement or residual
@@ -119,23 +139,19 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
     Acts::FreeVector pathDerivative = Acts::FreeVector::Zero();
     pathDerivative.head<3>() = direction;
 
-    const Acts::ActsDynamicMatrix H = state.effectiveProjector();
-
-    /// Acts residual, in local coordinates
-    //auto actslocres = state.effectiveCalibrated() - H * state.smoothed();
-
-    // Get the derivative of bound parameters w.r.t. alignment parameters
+  
+    // Get the derivative of bound parameters wrt alignment parameters
     Acts::AlignmentToBoundMatrix d =
         surface.alignmentToBoundDerivative(m_tGeometry->geometry().getGeoContext(), freeParams, pathDerivative);
     // Get the derivative of bound parameters wrt track parameters
     Acts::FreeToBoundMatrix j = surface.freeToBoundJacobian(m_tGeometry->geometry().getGeoContext(), freeParams);
-
+    
     // derivative of residual wrt track parameters
     auto dLocResTrack = -H * j;
     // derivative of residual wrt alignment parameters
     auto dLocResAlignment = -H * d;
 
-    if (m_verbosity > 4)
+    if (m_verbosity > 3)
     {
       std::cout << " derivative of resiudal wrt track params " << std::endl
                 << dLocResTrack << std::endl
@@ -176,7 +192,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
     sphenixRot(4, 7) = direction.y() * p2;
     sphenixRot(5, 7) = direction.z() * p2;
 
-    const auto dGlobResTrack = rot * dLocResTrack * sphenixRot.transpose();
+    const auto dGlobResTrack =  dLocResTrack * sphenixRot.transpose();
 
     if (m_verbosity > 3)
     {
@@ -186,15 +202,16 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
                 << dGlobResTrack << std::endl;
     }
 
-
+    
     auto svtxstate = std::make_unique<SvtxAlignmentState_v1>();
-    svtxstate->set_residual(residual);
+    svtxstate->set_residual(localResidual);
     svtxstate->set_local_derivative_matrix(dGlobResTrack);
-    svtxstate->set_global_derivative_matrix(dGlobResAlignment);
+    svtxstate->set_global_derivative_matrix(dLocResAlignment);
     svtxstate->set_cluster_key(ckey);
     
     if(m_analytic)
       {
+	/*
 	auto surf = m_tGeometry->maps().getSurface(ckey, clus);
 	auto anglederivs = getDerivativesAlignmentAngles(clusGlobal, ckey, 
 							 clus, surf, 
@@ -203,6 +220,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
 
 	getGlobalDerivatives(anglederivs,analytic);
        	svtxstate->set_global_derivative_matrix(analytic);
+	*/
       }
 
     statevec.push_back(svtxstate.release());

@@ -14,6 +14,7 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
+#include <trackbase/ActsTrackFittingAlgorithm.h>
 
 class PHCompositeNode;
 class SvtxTrack;
@@ -32,8 +33,9 @@ class ActsAlignmentStates
   ActsAlignmentStates() {}
   ~ActsAlignmentStates() {}
   void clusterVersion(const int v) { m_clusterVersion = v; }
-  void fillAlignmentStateMap(Trajectory traj,
-                             SvtxTrack* track);
+  void fillAlignmentStateMap(const Trajectory& traj,
+                             SvtxTrack* track,
+			     const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
   void verbosity(const int verb) { m_verbosity = verb; }
   void analyticGlobalDer(bool a) { m_analytic = a; }
   void distortionContainers(TpcDistortionCorrectionContainer* stat,
