@@ -63,7 +63,7 @@ class TPCHitTrackDisplay: public SubsysReco
   //Event counter
   int _event;
   int _pdgcode;
-  std::ofstream outfile1;
+  std::string _fileName;  
  
   //bool isRawData;
     

@@ -5,6 +5,7 @@
 
 #include "MicromegasRawDataCalibration.h"
 #include "MicromegasCalibrationData.h"
+#include "MicromegasDefs.h"
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -109,7 +110,7 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
     if( piter == m_profile_map.end() || fee < piter->first )
     {
       // create and insert
-      profile = new TProfile( Form( "h_adc_channel_%i", fee ), "ADC vs channel;channel;adc", m_nchannels_fee, 0, m_nchannels_fee );
+      profile = new TProfile( Form( "h_adc_channel_%i", fee ), "ADC vs channel;channel;adc", MicromegasDefs::m_nchannels_fee, 0, MicromegasDefs::m_nchannels_fee );
       profile->SetErrorOption( "s" );
       m_profile_map.insert(  piter, std::make_pair( fee, profile ) );      
     } else profile = piter->second;
@@ -131,7 +132,7 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
       } else {
         
         const auto fee_index = iter->second;
-        const auto channel_index = fee_index*m_nchannels_fee + channel;
+        const auto channel_index = fee_index*MicromegasDefs::m_nchannels_fee + channel;
 
         // loop over samples
         if( m_h_adc_channel )
@@ -176,9 +177,9 @@ int MicromegasRawDataCalibration::End(PHCompositeNode* /*topNode*/ )
   {
     // create mean and rms histograms
     auto profile = m_h_adc_channel->ProfileX("h_adc_channel_profx", 1, -1, "s" );
-    auto h_pedestal = new TH1F( "h_pedestal", "pedestal vs channel;channel;pedestal (adc)", m_nchannels_total, 0, m_nchannels_total );
-    auto h_rms = new TH1F( "h_rms", "rms vs channel;channel;RMS (adc)", m_nchannels_total, 0, m_nchannels_total );
-    for( int i =0; i<m_nchannels_total; ++i )
+    auto h_pedestal = new TH1F( "h_pedestal", "pedestal vs channel;channel;pedestal (adc)", MicromegasDefs::m_nchannels_total, 0, MicromegasDefs::m_nchannels_total );
+    auto h_rms = new TH1F( "h_rms", "rms vs channel;channel;RMS (adc)", MicromegasDefs::m_nchannels_total, 0, MicromegasDefs::m_nchannels_total );
+    for( int i =0; i<MicromegasDefs::m_nchannels_total; ++i )
     {
       h_pedestal->SetBinContent( i+1, profile->GetBinContent(i+1) );
       h_rms->SetBinContent(i+1, profile->GetBinError(i+1) );
@@ -202,5 +203,5 @@ void MicromegasRawDataCalibration::create_histograms()
   m_histogramfile->cd();
 
   m_h_fee_id = new TH1I( "h_fee_id", "FEE id;Fee id;entries", 10, 0, 10 );
-  m_h_adc_channel = new TH2I( "h_adc_channel", "ADC vs channel;channel;adc", m_nchannels_total, 0, m_nchannels_total, m_max_adc, 0, m_max_adc );
+  m_h_adc_channel = new TH2I( "h_adc_channel", "ADC vs channel;channel;adc", MicromegasDefs::m_nchannels_total, 0, MicromegasDefs::m_nchannels_total, MicromegasDefs::m_max_adc, 0, MicromegasDefs::m_max_adc );
 }
