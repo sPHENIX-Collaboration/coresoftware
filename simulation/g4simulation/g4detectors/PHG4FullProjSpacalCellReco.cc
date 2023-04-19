@@ -32,7 +32,7 @@
 #include <phool/phool.h>  // for PHWHERE
 #include <phool/recoConsts.h>
 
-#include <xpload/xpload.h>
+#include <ffamodules/CDBInterface.h>
 
 #include <TAxis.h>  // for TAxis
 #include <TFile.h>
@@ -543,16 +543,16 @@ void PHG4FullProjSpacalCellReco::LightCollectionModel::load_data_from_CDB(
     const std::string &histogram_fiber_model)
 {
   recoConsts *rc = recoConsts::instance();
-  xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), domain, rc->get_uint64Flag("TIMESTAMP"), xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
-  if (result.payload.empty())
+  std::string url = CDBInterface::instance()->getUrl(domain);
+  if (url.empty())
   {
     std::cout << "No calibration for domain " << domain << " for timestamp " << rc->get_uint64Flag("TIMESTAMP") << std::endl;
     gSystem->Exit(1);
   }
-  TFile *fin = TFile::Open(result.payload.c_str());
+  TFile *fin = TFile::Open(url.c_str());
   if (!fin)
   {
-    std::cout << "could not open " << result.payload << std::endl;
+    std::cout << "could not open " << url << std::endl;
     gSystem->Exit(1);
   }
   if (data_grid_light_guide_efficiency) delete data_grid_light_guide_efficiency;
