@@ -122,6 +122,9 @@ void setTPCParams(double tpcDevs[6])
 
   int localVerbosity = 0;
 
+  bool use_global_translations = false;
+  bool use_new_transforms = true;
+
   Acts::Transform3 makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles);
   Acts::Transform3 newMakeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles);
 

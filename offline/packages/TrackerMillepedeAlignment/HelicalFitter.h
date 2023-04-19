@@ -100,10 +100,12 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   Acts::Vector2 getClusterError(TrkrCluster *cluster, TrkrDefs::cluskey cluskey, Acts::Vector3& global);
   void getGlobalLabels(Surface surf, int glbl_label[]);
-  void getLocalDerivativesX(Surface surf, Acts::Vector3 fitpoint, Acts::Vector3& fitpoint_local, std::vector<float>& fitpars, float lcl_derivative[5]);
-  void getLocalDerivativesZ(Acts::Vector3& fitpoint,  std::vector<float>& fitpars, float lcl_derivative[5]);
+  void getLocalDerivativesX(Surface surf, Acts::Vector3 fitpoint, Acts::Vector3& fitpoint_local, std::vector<float>& fitpars, 
+			    float lcl_derivative[5], unsigned int layer);
+  void getLocalDerivativesZ(Surface surf, Acts::Vector3& fitpoint,  Acts::Vector3& fitpoint_local, std::vector<float>& fitpars, 
+			    float lcl_derivative[5], unsigned int layer);
   void getGlobalDerivativesX( std::vector<Acts::Vector3> angleDerivs, std::vector<Acts::Vector3> translDerivs, float glbl_derivatives[], unsigned int layer);
-  //  void getGlobalDerivativesY( std::vector<Acts::Vector3> angleDerivs, std::vector<Acts::Vector3> translDerivs, float glbl_derivatives[], unsigned int layer);
+  void getGlobalDerivativesY( std::vector<Acts::Vector3> angleDerivs, std::vector<Acts::Vector3> translDerivs, float glbl_derivatives[], unsigned int layer);
   void getGlobalDerivativesZ( std::vector<Acts::Vector3> angleDerivs, std::vector<Acts::Vector3> translDerivs, float glbl_derivatives[], unsigned int layer);
   void printBuffers(int index, Acts::Vector2 residual, Acts::Vector2 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[]);
   bool is_layer_fixed(unsigned int layer);
