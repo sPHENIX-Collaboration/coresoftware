@@ -28,6 +28,7 @@ class TH1F;
 class TH1D;
 class TH2F;
 class TGraph;
+class TNtuple;
 class TVector3;
 
 class PHTpcCentralMembraneMatcher : public SubsysReco
@@ -115,10 +116,18 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   
   std::unique_ptr<TFile> fout;
 
+
+  std::unique_ptr<TFile> fout2;
+  std::string m_histogramfilename2 = "CMMatcher.root";
+
   TH2F *hit_r_phi;
 
   TH2F *clust_r_phi_pos;
   TH2F *clust_r_phi_neg;
+
+  TNtuple *match_ntup = nullptr;
+
+  int m_event_index = 0;
 
   //@}
     
@@ -133,16 +142,16 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   //@{
 
   /// distortion correction grid size along phi
-  int m_phibins = 36;
+  int m_phibins = 24;
 
   static constexpr float m_phiMin = 0;
   static constexpr float m_phiMax = 2.*M_PI;
 
   /// distortion correction grid size along r
-  int m_rbins = 16;
+  int m_rbins = 12;
 
   static constexpr float m_rMin = 20; // cm
-  static constexpr float m_rMax = 78; // cm
+  static constexpr float m_rMax = 80; // cm
   
   //@} 
   

@@ -11,7 +11,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <trackbase/CMFlashClusterv2.h>
+#include <trackbase/CMFlashClusterv3.h>
 #include <trackbase/CMFlashClusterContainerv1.h>
 #include <trackbase/CMFlashDifferencev1.h>
 #include <trackbase/CMFlashDifferenceContainerv1.h>
@@ -23,6 +23,7 @@
 #include <TH1D.h>
 #include <TH2F.h>
 #include <TF1.h>
+#include <TNtuple.h>
 #include <TString.h>
 #include <TVector3.h>
 #include <TStyle.h>
@@ -265,6 +266,8 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
     hdr3_double = new TH1F("hdr3_double", "outer dr double", 200,-max_dr, max_dr);
     hdrphi = new TH1F("hdrphi","r * dphi", 200, -0.05, 0.05);
     hnclus = new TH1F("hnclus", " nclusters ", 3, 0., 3.);
+
+    fout2.reset ( new TFile(m_histogramfilename2.c_str(),"RECREATE") );
   }
 
   hit_r_phi = new TH2F("hit_r_phi","hit r vs #phi;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
@@ -272,6 +275,8 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
   clust_r_phi_pos = new TH2F("clust_r_phi_pos","clust R vs #phi Z>0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
   clust_r_phi_neg = new TH2F("clust_r_phi_neg","clust R vs #phi Z<0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
 
+  match_ntup = new TNtuple("match_ntup","Match NTuple","event:truthR:truthPhi:recoR:recoPhi:recoZ:nclus:r1:phi1:e1:layer1:r2:phi2:e2:layer2");
+  
   // Get truth cluster positions
   //=====================
   
@@ -367,14 +372,26 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 {
   std::vector<TVector3> reco_pos;
+  std::vector<TVector3> pos1;
+  std::vector<TVector3> pos2;
   std::vector<unsigned int> reco_nclusters;
- 
+  std::vector<unsigned int> reco_adc;
+  std::vector<unsigned int> adc1;
+  std::vector<unsigned int> adc2;
+  std::vector<unsigned int> layer1;
+  std::vector<unsigned int> layer2;
+
   // reset output distortion correction container histograms
   for( const auto& harray:{m_dcc_out->m_hDRint, m_dcc_out->m_hDPint, m_dcc_out->m_hDZint, m_dcc_out->m_hentries} )
   { for( const auto& h:harray ) { h->Reset(); } }
 
   clust_r_phi_pos->Reset();
   clust_r_phi_neg->Reset();
+
+  if(!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 100){
+    m_event_index++;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   // read the reconstructed CM clusters
   auto clusrange = m_corrected_CMcluster_map->getClusters();
@@ -385,6 +402,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       const auto& [cmkey, cmclus_orig] = *cmitr;
       CMFlashCluster *cmclus = cmclus_orig;
       const unsigned int nclus = cmclus->getNclusters();
+      const unsigned int adc = cmclus->getAdc();
 
       if(m_useOnly_nClus2 && nclus != 2) continue;
 
@@ -397,10 +415,22 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       
       TVector3 tmp_pos(pos[0], pos[1], pos[2]);
 
-      if(isRGap) continue;
+      TVector3 tmp_pos1(cmclus->getX1(), cmclus->getY1(), cmclus->getZ1());
+      TVector3 tmp_pos2(cmclus->getX2(), cmclus->getY2(), cmclus->getZ2());
+
+      
+
+      if(nclus == 1 && isRGap) continue;
       
       reco_pos.push_back(tmp_pos);      
+      pos1.push_back(tmp_pos1);      
+      pos2.push_back(tmp_pos2);      
       reco_nclusters.push_back(nclus);
+      reco_adc.push_back(adc);
+      adc1.push_back(cmclus->getAdc1());
+      adc2.push_back(cmclus->getAdc2());
+      layer1.push_back(cmclus->getLayer1());
+      layer2.push_back(cmclus->getLayer2());
 
       if(tmp_pos.Z() < 0) clust_r_phi_neg->Fill(tmp_pos.Phi(),tmp_pos.Perp());
       else clust_r_phi_pos->Fill(tmp_pos.Phi(),tmp_pos.Perp());
@@ -660,6 +690,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     
     m_cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
 
+    match_ntup->Fill(m_event_index,m_truth_pos[p.first].Perp(),m_truth_pos[p.first].Phi(),reco_pos[p.second].Perp(),reco_pos[p.second].Phi(),reco_pos[p.second].Z(),nclus,pos1[p.second].Perp(),pos1[p.second].Phi(),adc1[p.second],layer1[p.second],pos2[p.second].Perp(),pos2[p.second].Phi(),adc2[p.second],layer2[p.second]);
+
     // store cluster position
     const double clus_r = reco_pos[p.second].Perp();
     double clus_phi = reco_pos[p.second].Phi();
@@ -721,6 +753,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 		    << std::endl;
 	}
     }
+
+  m_event_index++;
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -770,6 +804,16 @@ int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
     hnclus->Write();
     
     fout->Close();
+  }
+
+  if(m_savehistograms && fout2)
+  {
+    fout2->cd();
+
+    match_ntup->Write();
+    hit_r_phi->Write();
+    clust_r_phi_pos->Write();
+    clust_r_phi_neg->Write();
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

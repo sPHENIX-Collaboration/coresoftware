@@ -5,7 +5,6 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <TNtuple.h>
 #include <TFile.h>
 #include <TH1F.h>
 #include <TH2F.h>
@@ -22,7 +21,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/CMFlashClusterv2.h>
+#include <trackbase/CMFlashClusterv3.h>
 #include <trackbase/CMFlashClusterContainerv1.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
@@ -159,6 +158,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 
     }
   }
+
+  //use peak in z distributions to identify if there is a CM Flash. Peak should be >20% of entries (needs to be tuned)
+  if(hz_pos->GetMaximum() < 0.2*hz_pos->GetEntries() || hz_neg->GetMaximum() < 0.2*hz_neg->GetEntries()) return Fun4AllReturnCodes::EVENT_OK;
 
   //loop over histos for each pair of layers, count number of bins above threshold
   //for a given layer, layer pair with higher average value above threshold will be better match for meta-clustering
@@ -319,9 +321,10 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	else if(nPairAbove_neg[layer[i]-8] >= nRowsMatch) layerMatch = layer[i]-1;
       }
     }
-
+  
     //if the match is default and the layer is on the edge of a module, identify it as being across the gap
-    if(layerMatch == -1 && (layer[i] == 22 || layer[i] == 23 || layer[i] == 38 || layer[i] == 39 || layer[i] == 7) ) isAcrossGap[i] = true;
+    //    if(layerMatch == -1 && (layer[i] == 22 || layer[i] == 23 || layer[i] == 38 || layer[i] == 39 || layer[i] == 7) ) isAcrossGap[i] = true;
+    if(layer[i] == 22 || layer[i] == 23 || layer[i] == 38 || layer[i] == 39 || layer[i] == 7) isAcrossGap[i] = true;
 
     float bestphidist=maxphidist;
     for (int j=0;j<nTpcClust;j++)
@@ -335,7 +338,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       if (std::abs(layer[i]-layer[j])!=1) continue;
 
       //setting agross gap for ones where match was found
-      if( (layer[i] == 22 && layer[j] == 23) || (layer[i] == 23 && layer[j] == 22) || (layer[i] == 38 && layer[j] == 39) || (layer[i] == 39 && layer[j] == 38) ) isAcrossGap[i] = true;
+      //if( (layer[i] == 22 && layer[j] == 23) || (layer[i] == 23 && layer[j] == 22) || (layer[i] == 38 && layer[j] == 39) || (layer[i] == 39 && layer[j] == 38) ) isAcrossGap[i] = true;
 
       // must match clusters that are on the same side
       if( side[i] != side[j] ) continue;
@@ -470,7 +473,8 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
         TVector3 temppos(aveR*cos(avePhi), aveR*sin(avePhi), aveZ);
         avepos.push_back(temppos);
         nclusters.push_back(2);
-	isREdge.push_back(isAcrossGap[i]);
+	if(isAcrossGap[i] && isAcrossGap[i_pair[i]]) isREdge.push_back(true);
+	else isREdge.push_back(false);
 	
   
         if(Verbosity() > 0)
@@ -484,7 +488,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 
       if(_histos)  hClustE[2]->Fill(energy[i]);
       // These single cluster cases have good phi, but do not have a good radius centroid estimate - may want to skip them, record nclusters and identify if across gap
-      if(layer[i] == 7) isAcrossGap[i] = true;
+      //      if(layer[i] == 7) isAcrossGap[i] = true;
       aveenergy.push_back(energy[i]);
       avepos.push_back(pos[i]);
       nclusters.push_back(1);
@@ -498,7 +502,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   
   for(unsigned int iv = 0; iv <avepos.size(); ++iv)
   {
-    auto cmfc = new CMFlashClusterv2();
+    auto cmfc = new CMFlashClusterv3();
     
     cmfc->setX(avepos[iv].X());
     cmfc->setY(avepos[iv].Y());
@@ -567,6 +571,11 @@ int PHTpcCentralMembraneClusterizer::End(PHCompositeNode * /*topNode*/ )
     hDistRowAdj->Write();
     hDist2Adj->Write();
     
+    for(int i=0; i<47; i++){
+      hphi_reco_pair_pos[i]->Write();
+      hphi_reco_pair_neg[i]->Write();
+    }
+
     m_histogramfile->Close();
   }
 
