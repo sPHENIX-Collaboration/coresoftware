@@ -13,15 +13,16 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfov1.h>
 
-#include <dbfile_calo_calib/CEmcCaloCalibSimpleCorrFilev1.h>
-#include <dbfile_calo_calib/CaloCalibSimpleCorrFile.h>
-#include <dbfile_calo_calib/HcalCaloCalibSimpleCorrFilev1.h>
+#include <phparameter/PHParameters.h>
+
+#include <cdbobjects/CDBTTree.h>
+
+#include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBOSITY_MORE
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <phparameter/PHParameters.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -59,6 +60,7 @@ RawTowerDigitizer::RawTowerDigitizer(const std::string &name)
 RawTowerDigitizer::~RawTowerDigitizer()
 {
   gsl_rng_free(m_RandomGenerator);
+  delete m_CDBTTree;
 }
 
 void RawTowerDigitizer::set_seed(const unsigned int iseed)
@@ -95,11 +97,27 @@ int RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
   {
     if (m_Detector.c_str()[0] == 'H')
     {
-      m_CalDBFile = new HcalCaloCalibSimpleCorrFilev1();
+      std::string url = CDBInterface::instance()->getUrl("HCALGAINSCORR");
+	if (url.empty())
+	{
+	  std::cout << PHWHERE << " Could not get Hcal Calibration for domain HCALGAINSCORR" << std::endl;
+	  gSystem->Exit(1);
+	  exit(1);
+	}
+
+      m_CDBTTree = new CDBTTree(url);
     }
     else if (m_Detector.c_str()[0] == 'C')
     {
-      m_CalDBFile = new CEmcCaloCalibSimpleCorrFilev1();
+      std::string url = CDBInterface::instance()->getUrl("CEMCGAINSCORR");
+	if (url.empty())
+	{
+	  std::cout << PHWHERE << " Could not get Cemc Calibration for domain CEMCGAINSCORR" << std::endl;
+	  gSystem->Exit(1);
+	  exit(1);
+	}
+
+      m_CDBTTree = new CDBTTree(url);
     }
     else
     {
@@ -107,15 +125,6 @@ int RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
                 << "Calo Decal requested but Detector Name not HCALOUT/IN or CEMC"
                 << std::endl;
       gSystem->Exit(1);
-    }
-
-    if (!m_DecalFileName.empty())
-    {
-      m_CalDBFile->Open(m_DecalFileName.c_str());
-    }
-    else
-    {
-      m_Decal = false;
     }
     //warnings for bad file names handled inside Open
   }
@@ -254,7 +263,9 @@ int RawTowerDigitizer::process_event(PHCompositeNode */**topNode*/)
 	    {
 	      if (m_DoDecal && m_Decal)
 		{
-		  float decal_fctr = m_CalDBFile->getCorr(eta, phi);
+                  unsigned int etaphikey = phi;
+                  etaphikey = (etaphikey << 16U) + eta;
+		  float decal_fctr = m_CDBTTree->GetFloatValue(etaphikey,"etaphi");
 		  
 		  if (m_DecalInverse)
 		    {
@@ -324,7 +335,9 @@ int RawTowerDigitizer::process_event(PHCompositeNode */**topNode*/)
 	    {
 	      if (m_DoDecal && m_Decal)
 		{
-		  float decal_fctr = m_CalDBFile->getCorr(eta, phi);
+                  unsigned int etaphikey = phi;
+                  etaphikey = (etaphikey << 16U) + eta;
+		  float decal_fctr = m_CDBTTree->GetFloatValue(etaphikey,"etaphi");
 		  if (m_DecalInverse)
 		    {
 		      decal_fctr = 1.0 / decal_fctr;

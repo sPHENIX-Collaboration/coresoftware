@@ -113,7 +113,7 @@ int RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
       m_Towers->AddTower(tower->get_id(), tower);
     }
 
-    tower->add_ecell((g4hit_i->get_index_j() << 16) + g4hit_i->get_index_k(), g4hit_i->get_light_yield());
+    tower->add_ecell((g4hit_i->get_index_j() << 16U) + g4hit_i->get_index_k(), g4hit_i->get_light_yield());
     tower->set_energy(tower->get_energy() + g4hit_i->get_light_yield());
     tower->add_eshower(g4hit_i->get_shower_id(), g4hit_i->get_edep());
   }
@@ -228,7 +228,7 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
   while (getline(istream_mapping, line_mapping))
   {
     /* Skip lines starting with / including a '#' */
-    if (line_mapping.find("#") != std::string::npos)
+    if (line_mapping.find('#') != std::string::npos)
     {
       if (Verbosity() > 0)
       {
