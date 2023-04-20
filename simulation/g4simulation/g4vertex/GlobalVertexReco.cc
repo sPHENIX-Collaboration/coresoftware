@@ -305,8 +305,8 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
     for (const auto &[tkey, track] : *trackmap)
     {
       float maxdz = std::numeric_limits<float>::max();
-      float vtxid = std::numeric_limits<unsigned int>::max();
-
+      unsigned int vtxid = std::numeric_limits<unsigned int>::max();
+      
       for (const auto &[vkey, vertex] : *globalmap)
       {
         float dz = track->get_z() - vertex->get_z();
