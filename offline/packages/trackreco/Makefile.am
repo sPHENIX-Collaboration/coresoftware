@@ -159,7 +159,6 @@ libtrack_reco_la_LIBADD = \
   -lgenfit2 \
   -lgenfit2exp \
   -lPHGenFit \
-  -lg4bbc_io \
   -lg4tpc \
   -lg4intt \
   -lg4mvtx \
