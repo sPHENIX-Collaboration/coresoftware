@@ -147,14 +147,16 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
     Acts::FreeToBoundMatrix j = surface.freeToBoundJacobian(m_tGeometry->geometry().getGeoContext(), freeParams);
     
     // derivative of residual wrt track parameters
-    auto dLocResTrack = -H * j;
+    auto dLocResTrackActs = -H * j;
     // derivative of residual wrt alignment parameters
     auto dLocResAlignment = -H * d;
 
     if (m_verbosity > 3)
     {
+      std::cout << "free to bound jacobian " << std::endl
+		<< j << std::endl;
       std::cout << " derivative of resiudal wrt track params " << std::endl
-                << dLocResTrack << std::endl
+                << dLocResTrackActs << std::endl
                 << " derivative of residual wrt alignment params " << std::endl
                 << dLocResAlignment << std::endl;
     }
@@ -192,20 +194,24 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
     sphenixRot(4, 7) = direction.y() * p2;
     sphenixRot(5, 7) = direction.z() * p2;
 
-    const auto dGlobResTrack =  dLocResTrack * sphenixRot.transpose();
+    const auto dLocResTrack =  dLocResTrackActs * sphenixRot.transpose();
 
     if (m_verbosity > 3)
     {
       std::cout << "derivative of residual wrt alignment parameters glob " << std::endl
                 << dGlobResAlignment << std::endl;
       std::cout << "derivative of residual wrt track parameters glob " << std::endl
-                << dGlobResTrack << std::endl;
+                << dLocResTrack << std::endl;
     }
 
-    
+    SvtxAlignmentState::LocalMatrix aligncalc = SvtxAlignmentState::LocalMatrix::Zero();
+    aligncalc(0,0) = -1;
+    aligncalc(0,1) = 0;
+    aligncalc(0,2) = 0.;
+
     auto svtxstate = std::make_unique<SvtxAlignmentState_v1>();
     svtxstate->set_residual(localResidual);
-    svtxstate->set_local_derivative_matrix(dGlobResTrack);
+    svtxstate->set_local_derivative_matrix(dLocResTrack);
     svtxstate->set_global_derivative_matrix(dLocResAlignment);
     svtxstate->set_cluster_key(ckey);
     
