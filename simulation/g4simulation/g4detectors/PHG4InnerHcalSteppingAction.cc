@@ -12,7 +12,7 @@
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
-#include <ffamodules/XploadInterface.h>
+#include <ffamodules/CDBInterface.h>
 
 #include <phool/getClass.h>
 
@@ -85,7 +85,7 @@ int PHG4InnerHcalSteppingAction::Init()
     {
       return 0;
     }
-    std::string url = XploadInterface::instance()->getUrl("OLD_INNER_HCAL_TILEMAP", ihcalmapname);
+    std::string url = CDBInterface::instance()->getUrl("OLD_INNER_HCAL_TILEMAP", ihcalmapname);
     if (!std::filesystem::exists(url))
     {
       std::cout << PHWHERE << " Could not locate " << url << std::endl;

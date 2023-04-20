@@ -62,14 +62,44 @@ nlohmann::json sphenixnpc::get(const std::string &pl_type, long long iov)
   return makeResp(url_dict_[pl_type]);
 }
 
-nlohmann::json sphenixnpc::cache_set_GlobalTag(const std::string &name)
+int sphenixnpc::cache_set_GlobalTag(const std::string &name)
 {
-  if (name != m_CachedGlobalTag)
+  int iret = 0;
+  if (name == m_CachedGlobalTag) // global tag already set
   {
-    url_dict_ = nlohmann::json{};
-    m_CachedGlobalTag = name;
+    return iret;
   }
-  return nopayloadclient::Client::setGlobalTag(name);
+  url_dict_ = nlohmann::json{};
+  m_CachedGlobalTag = name;
+  //return nopayloadclient::Client::setGlobalTag(name);
+  nopayloadclient::Client::setGlobalTag(name);
+  bool found_gt = false;
+  nlohmann::json resp = nopayloadclient::Client::getGlobalTags();
+  nlohmann::json msgcont = resp["msg"];
+  for (auto &it : msgcont.items())
+  {
+    std::string exist_gt = it.value().at("name");
+    std::cout << "global tag: " <<  exist_gt << std::endl;
+    if (exist_gt == name)
+    {
+      found_gt = true;
+      break;
+    }
+  }
+  if (!found_gt)
+  {
+    resp = nopayloadclient::Client::createGlobalTag();
+    iret = resp["code"];
+    if (iret != 0)
+    {
+      std::cout << "Error creating global tag, msg: " << resp["msg"] << std::endl;
+    }
+    else
+    {
+      std::cout << "sphenixnpc: Created new global tag " << name << std::endl;
+    }
+  }
+  return iret;
 }
 
 nlohmann::json sphenixnpc::clearCache()
@@ -111,4 +141,34 @@ int sphenixnpc::insertcalib(const std::string &pl_type, const std::string &file_
     std::cout << ret << std::endl;
   }
   return 0;
+}
+
+int sphenixnpc::createDomain(const std::string &domain)
+{
+  int iret = -1;
+  nlohmann::json resp;
+  if (m_DomainCache.empty())
+  {
+    resp = nopayloadclient::Client::getPayloadTypes();
+    nlohmann::json msgcont = resp["msg"];
+    for (auto &it : msgcont.items())
+    {
+      std::string existent_domain = it.value().at("name");
+      m_DomainCache.insert(existent_domain);
+    }
+  }
+  if (m_DomainCache.find(domain) == m_DomainCache.end())
+  {
+    resp = nopayloadclient::Client::createPayloadType(domain);
+    iret = resp["code"];
+    if (iret == 0)
+    {
+      m_DomainCache.insert(domain);
+    }
+  }
+  else
+  {
+    iret = 0;
+  }
+  return iret;
 }
