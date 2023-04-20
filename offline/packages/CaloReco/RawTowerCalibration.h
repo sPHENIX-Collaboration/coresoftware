@@ -9,7 +9,7 @@
 #include <iostream>
 #include <string>
 
-class CaloCalibSimpleCorrFile;
+class CDBTTree;
 class PHCompositeNode;
 class RawTowerContainer;
 class TowerInfoContainerv1;
@@ -22,21 +22,17 @@ class RawTowerCalibration : public SubsysReco
 {
  public:
   RawTowerCalibration(const std::string &name = "RawTowerCalibration");
-  ~RawTowerCalibration() override
-  {
-  }
+  ~RawTowerCalibration() override;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
-  void
-  Detector(const std::string &d)
+  void Detector(const std::string &d)
   {
-    detector = d;
+    m_Detector = d;
     _tower_calib_params.set_name(d);
   }
-  void
-  TowerType(const int type)
+  void TowerType(const int type)
   {
     _tower_type = type;
   }
@@ -62,80 +58,67 @@ class RawTowerCalibration : public SubsysReco
     kBothTowers = 2
   };
 
-  enu_calib_algorithm
-  get_calib_algorithm() const
+  enu_calib_algorithm get_calib_algorithm() const
   {
     return _calib_algorithm;
   }
 
-  void
-  set_calib_algorithm(enu_calib_algorithm calibAlgorithm)
+  void set_calib_algorithm(enu_calib_algorithm calibAlgorithm)
   {
     _calib_algorithm = calibAlgorithm;
   }
 
-  double
-  get_calib_const_GeV_ADC() const
+  double get_calib_const_GeV_ADC() const
   {
     return _calib_const_GeV_ADC;
   }
 
-  void
-  set_calib_const_GeV_ADC(double calibConstGeVAdc)
+  void set_calib_const_GeV_ADC(double calibConstGeVAdc)
   {
     _calib_const_GeV_ADC = calibConstGeVAdc;
   }
 
-  void
-  set_variable_GeV_ADC(const bool value)
+  void set_variable_GeV_ADC(const bool value)
   {
     _GeV_ADC_file = value;
   }
 
-  std::string
-  get_calib_tower_node_prefix() const
+  std::string get_calib_tower_node_prefix() const
   {
     return _calib_tower_node_prefix;
   }
 
-  void
-  set_calib_tower_node_prefix(const std::string &calibTowerNodePrefix)
+  void set_calib_tower_node_prefix(const std::string &calibTowerNodePrefix)
   {
     _calib_tower_node_prefix = calibTowerNodePrefix;
   }
 
-  double
-  get_pedstal_ADC() const
+  double get_pedstal_ADC() const
   {
     return _pedstal_ADC;
   }
 
-  void
-  set_pedstal_ADC(double pedstalAdc)
+  void set_pedstal_ADC(double pedstalAdc)
   {
     _pedstal_ADC = pedstalAdc;
   }
 
-  void
-  set_variable_pedestal(const bool value)
+  void set_variable_pedestal(const bool value)
   {
     _pedestal_file = value;
   }
 
-  std::string
-  get_raw_tower_node_prefix() const
+  std::string get_raw_tower_node_prefix() const
   {
     return _raw_tower_node_prefix;
   }
 
-  void
-  set_raw_tower_node_prefix(const std::string &rawTowerNodePrefix)
+  void set_raw_tower_node_prefix(const std::string &rawTowerNodePrefix)
   {
     _raw_tower_node_prefix = rawTowerNodePrefix;
   }
 
-  void
-  set_zero_suppression_GeV(double)
+  void set_zero_suppression_GeV(double)
   {
     std::cout << "RawTowerCalibration::set_zero_suppression_GeV is deprecated!" << std::endl
               << "  See discussion at https://github.com/sPHENIX-Collaboration/coresoftware/pull/867" << std::endl
@@ -143,8 +126,7 @@ class RawTowerCalibration : public SubsysReco
   }
 
   //! Get the parameters for update. Useful fields are listed in SetDefaultParameters();
-  PHParameters &
-  GetCalibrationParameters()
+  PHParameters &GetCalibrationParameters()
   {
     return _tower_calib_params;
   }
@@ -164,10 +146,8 @@ class RawTowerCalibration : public SubsysReco
   }
 
  protected:
-  void
-  CreateNodes(PHCompositeNode *topNode);
+  void CreateNodes(PHCompositeNode *topNode);
 
-  enu_calib_algorithm _calib_algorithm;
 
   RawTowerContainer *_calib_towers = nullptr;
   RawTowerContainer *_raw_towers = nullptr;
@@ -177,7 +157,9 @@ class RawTowerCalibration : public SubsysReco
 
   RawTowerGeomContainer *rawtowergeom = nullptr;
 
-  std::string detector;
+  enu_calib_algorithm _calib_algorithm;
+
+  std::string m_Detector;
   std::string RawTowerNodeName;
   std::string RawTowerInfoNodeName;
   std::string CaliTowerNodeName;
@@ -208,7 +190,7 @@ class RawTowerCalibration : public SubsysReco
   std::string m_CalibrationFileName;
   bool m_UseConditionsDB = false;
 
-  CaloCalibSimpleCorrFile *_cal_dbfile = nullptr;
+  CDBTTree *m_CDBTTree = nullptr;
   RawTowerCalibration::ProcessTowerType m_UseTowerInfo = RawTowerCalibration::ProcessTowerType::kBothTowers;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
 };
 
