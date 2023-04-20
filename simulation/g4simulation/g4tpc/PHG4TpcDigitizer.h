@@ -67,8 +67,8 @@ class PHG4TpcDigitizer : public SubsysReco
   float ADCSignalConversionGain;
   float ADCNoiseConversionGain;
   //! SAMPA zero-suppression digitization parameter
-  unsigned int m_nPreSample = 2;
-  unsigned int m_nPostSample = 3;
+  unsigned int m_nPreSample = 0;
+  unsigned int m_nPostSample = 5;
 
   bool skip_noise = false;
 
