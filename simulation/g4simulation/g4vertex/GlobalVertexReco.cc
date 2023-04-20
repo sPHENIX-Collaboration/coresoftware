@@ -304,6 +304,12 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   {
     for (const auto &[tkey, track] : *trackmap)
     {
+      //! Check that the vertex hasn't already been assigned
+      auto trackvtxid = track->get_vertex_id();
+      if(svtxmap->get(trackvtxid) != nullptr)
+	{
+	  continue;
+	}
       float maxdz = std::numeric_limits<float>::max();
       unsigned int vtxid = std::numeric_limits<unsigned int>::max();
       
