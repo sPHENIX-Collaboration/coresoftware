@@ -86,7 +86,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
   Acts::Vector3 get_line_plane_intersection(Acts::Vector3 PCA, Acts::Vector3 tangent, 
 					    Acts::Vector3 sensor_center, Acts::Vector3 sensor_normal);
-  std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(std::vector<float>& fitpars, Acts::Vector3 global);
+  std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global);
 
   int getLabelBase(Acts::GeometryIdentifier id);
@@ -110,6 +110,10 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void printBuffers(int index, Acts::Vector2 residual, Acts::Vector2 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[]);
   bool is_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
+
+  void getLocalDerivativesXY(Surface surf, Acts::Vector3 global, Acts::Vector3 fitpoint, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer);
+
+  void get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts::Vector3> tangent, Acts::Vector3& projX, Acts::Vector3 projY);
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
   TpcDistortionCorrectionContainer* _dcc_static{nullptr};

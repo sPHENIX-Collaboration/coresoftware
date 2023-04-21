@@ -32,9 +32,12 @@
 
 void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 { 
-  localVerbosity = 3;
+  localVerbosity = 0;
 
-  std::cout << "AlignmentTransformation: use global translation perturbations = " << use_global_translations 
+  use_new_transforms = true;
+  use_global_millepede_translations = 0;
+
+  std::cout << "AlignmentTransformation: use global translation perturbations = " << use_global_millepede_translations 
 	    << " use new transforms = " << use_new_transforms << std::endl;
 
   getNodes(topNode);
@@ -367,7 +370,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   // create alignment translation matrix
   Acts::Transform3 mpTranslationAffine;   
   mpTranslationAffine.linear() = nullRotation;
-  if(use_global_translations) 
+  if(use_global_millepede_translations > 0) 
     {   
       mpTranslationAffine.translation() = millepedeTranslation;   
     }
@@ -395,7 +398,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
 
 
   Acts::Transform3 transform;
-  if(use_global_translations)
+  if(use_global_millepede_translations > 0)
     {
       // put the mp translations in the global frame
       transform = mpTranslationAffine *  actsTranslationAffine *  actsRotationAffine * mpRotationAffine;
@@ -409,16 +412,16 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   if(localVerbosity > 2)
     {
       std::cout << "newMakeTransform" << std::endl;
-      std::cout << " use_global_translations = " << use_global_translations << std::endl;
+      std::cout << " use_global_translations = " << use_global_millepede_translations << std::endl;
       std::cout << "mpRotationAffine: "<< std::endl<< mpRotationAffine.matrix()  <<std::endl;
-      if(!use_global_translations)
+      if(use_global_millepede_translations == 0)
 	{
 	  std::cout << "mpTranslationAffine: " << std::endl << mpTranslationAffine.matrix() <<std::endl;
 	  std::cout << " mptranslationAffine * mpRotationAffine " << std::endl << (mpTranslationAffine * mpRotationAffine).matrix() << std::endl;
 	}
       std::cout << "actsRotationAffine: "<< std::endl<< actsRotationAffine.matrix()  <<std::endl;
       std::cout << "actsTranslationAffine: "<< std::endl<< actsTranslationAffine.matrix()  <<std::endl;
-      if(use_global_translations)
+      if(use_global_millepede_translations > 0)
 	{
 	  std::cout << "mpTranslationAffine: " << std::endl << mpTranslationAffine.matrix() <<std::endl;
 	}
