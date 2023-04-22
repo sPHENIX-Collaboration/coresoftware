@@ -46,6 +46,9 @@ class TrkrClusterv4 : public TrkrCluster
   void CopyFrom( TrkrCluster* source ) override
   { CopyFrom( *source ); }
 
+  //! copy content from v4 object
+  void CopyFrom( TrkrClusterv4* source );
+
   //
   // cluster position
   //

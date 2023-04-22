@@ -9,7 +9,7 @@
 #include <phool/phool.h>  // for PHWHERE
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
-#include <trackbase/TrkrClusterContainerv4.h>
+#include <trackbase/TrkrClusterContainerv5.h>
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>  // // make iwyu happy
