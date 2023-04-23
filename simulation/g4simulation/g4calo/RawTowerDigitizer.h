@@ -11,7 +11,7 @@
 #include <cmath>
 #include <string>
 
-class CaloCalibSimpleCorrFile;
+class CDBTTree;
 class PHCompositeNode;
 class RawTower;
 class TowerInfo;
@@ -278,7 +278,7 @@ class RawTowerDigitizer : public SubsysReco
   bool m_Decal = true;
   std::string m_DecalFileName;
   bool m_UseConditionsDB = false;
-  CaloCalibSimpleCorrFile *m_CalDBFile = nullptr;
+  CDBTTree *m_CDBTTree = nullptr;
 
 
   RawTowerDigitizer::ProcessTowerType m_UseTowerInfo = RawTowerDigitizer::ProcessTowerType::kBothTowers;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
