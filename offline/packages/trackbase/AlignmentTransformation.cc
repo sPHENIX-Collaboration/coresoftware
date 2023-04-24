@@ -34,11 +34,9 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 { 
   localVerbosity = 0;
 
-  use_new_transforms = true;
-  use_global_millepede_translations = 1;
-
-  std::cout << "AlignmentTransformation: use global translation perturbations = " << use_global_millepede_translations 
-	    << " use new transforms = " << use_new_transforms << std::endl;
+  // The default is to use translation parameters that are in global coordinates
+  use_global_millepede_translations = true;
+  std::cout << "AlignmentTransformation: use global translation perturbations = " << use_global_millepede_translations  << std::endl;
 
   getNodes(topNode);
 
@@ -96,14 +94,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
          surf                        = surfMaps.getSiliconSurface(hitsetkey);
 	 
 	 Acts::Transform3 transform;
-	 if(use_new_transforms)
-	   {
-	     transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
-	   }
-	 else
-	   {
-	     transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
-	   }
+	 transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
+
          Acts::GeometryIdentifier id = surf->geometryId();
 	 
 	 if(localVerbosity) 
@@ -111,8 +103,6 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
 	     std::cout << " Add transform for MVTX with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 	     std::cout << " final mvtx transform:" << std::endl << transform.matrix() << std::endl;
-	     Acts::Transform3 transform2  = makeTransform(surf, millepedeTranslation, sensorAngles);
-	     	     std::cout << "mvtx transform2:" << std::endl << transform2.matrix() << std::endl;
 	   }
 	 transformMap->addTransform(id,transform);
        }
@@ -130,14 +120,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
          surf                        = surfMaps.getSiliconSurface(hitsetkey);
 	 
 	 Acts::Transform3 transform;
-	 if(use_new_transforms)
-	   {
-	     transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
-	   }
-	 else
-	   {
-	     transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
-	   }
+	 transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
          Acts::GeometryIdentifier id = surf->geometryId();
 	 
 	 if(localVerbosity) 
@@ -167,14 +150,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
              surf                        = surfMaps.getTpcSurface(hitsetkey,subsurfkey);
 	     
 	     Acts::Transform3 transform;
-	     if(use_new_transforms)
-	       {
-		 transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
-	       }
-	     else
-	       {
-		 transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
-	       }
+	     transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
 	     Acts::GeometryIdentifier id = surf->geometryId();
 	     
 	     if(localVerbosity) 
@@ -196,14 +172,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	surf                        = surfMaps.getMMSurface(hitsetkey);
 
 	Acts::Transform3 transform;
-	if(use_new_transforms)
-	  {
-	    transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
-	  }
-	else
-	  {
-	    transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
-	  }
+	transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
 	Acts::GeometryIdentifier id = surf->geometryId();
 
 	if(localVerbosity)
@@ -229,111 +198,6 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
  
 }
 
-// no longer used
-Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
-{  
-  /*
-    Get ideal geometry rotation, by aligning surface to surface normal vector in global coordinates
-    URL: https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
-  */  
- 
-  Eigen::Vector3d ylocal(0,1,0);
-  Eigen::Vector3d sensorNormal    = -surf->normal(m_tGeometry->geometry().getGeoContext());
-  sensorNormal                    = sensorNormal/sensorNormal.norm(); // make unit vector 
-  double cosTheta                 = ylocal.dot(sensorNormal);
-  double sinTheta                 = (ylocal.cross(sensorNormal)).norm();
-  Eigen::Vector3d vectorRejection = (sensorNormal - (ylocal.dot(sensorNormal))*ylocal)/(sensorNormal - (ylocal.dot(sensorNormal))*ylocal).norm();
-  Eigen::Vector3d perpVector      =  sensorNormal.cross(ylocal);
-
-  // Initialize and fill matrices (row,col)
-  Eigen::Matrix3d fInverse;
-  fInverse(0,0) = ylocal(0);
-  fInverse(1,0) = ylocal(1);
-  fInverse(2,0) = ylocal(2);
-  fInverse(0,1) = vectorRejection(0);
-  fInverse(1,1) = vectorRejection(1); 
-  fInverse(2,1) = vectorRejection(2);
-  fInverse(0,2) = perpVector(0);
-  fInverse(1,2) = perpVector(1);
-  fInverse(2,2) = perpVector(2);
-  
-  Eigen::Matrix3d G;
-  G(0,0) =  cosTheta;
-  G(0,1) = -sinTheta;
-  G(0,2) =  0;
-  G(1,0) =  sinTheta;
-  G(1,1) =  cosTheta;
-  G(1,2) =  0;
-  G(2,0) =  0;
-  G(2,1) =  0;
-  G(2,2) =  1;
-
-  Eigen::Matrix3d globalRotation = fInverse * G * (fInverse.inverse()); 
-
-  if(localVerbosity > 2)
-    {
-      std::cout<< " global rotation: "<< std::endl << globalRotation <<std::endl;
-    }
-  return globalRotation;
-}
-
-// no longer used
-Eigen::Matrix3d AlignmentTransformation::modifyRotationConvention(Eigen::Matrix3d rotationMatrix)
-{
-  // Acts uses a rotation matrix that transforms local position (x,z,y) into global position (x',y',z')
-  // That rotation matrix is obtained from the one we have (which does (x,y,z) to (x',y',z') by:
-  //    exchanging column 2 and 3 (y with z)
-  //    flipping the signs of the original content of column 2
-
-  // this method will exchange the y and z columns for any rotation matrix
-  // it therefore can convert either (x,z,y) to (x',y',z') or (x,y,z) to (x',z',y') 
-
-  Eigen::Matrix3d actsRotationMatrix;
-  actsRotationMatrix(0,0) = rotationMatrix(0,0);
-  actsRotationMatrix(1,0) = rotationMatrix(1,0);
-  actsRotationMatrix(2,0) = rotationMatrix(2,0);
-
-  // flip column 1 and 2
-  actsRotationMatrix(0,1) = rotationMatrix(0,2);
-  actsRotationMatrix(1,1) = rotationMatrix(1,2);
-  actsRotationMatrix(2,1) = rotationMatrix(2,2);
-
-  actsRotationMatrix(0,2) = -rotationMatrix(0,1);
-  actsRotationMatrix(1,2) = -rotationMatrix(1,1);
-  actsRotationMatrix(2,2) = -rotationMatrix(2,1);
-
-  return actsRotationMatrix;
-}
-
-// no longer used
-Acts::Transform3 AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector)
-{
-  // Acts uses a rotation matrix that transforms local position (x,z,y) into global position (x',y',z')
-  // That rotation matrix is obtained from the one we have (which does (x,y,z) to (x',y',z') by:
-  //    exchanging column 2 and 3 (y with z)
-  //    flipping the signs of the original content of column 2
-
-  Eigen::Matrix3d actsRotationMatrix;
-  actsRotationMatrix(0,0) = rotationMatrix(0,0);
-  actsRotationMatrix(1,0) = rotationMatrix(1,0);
-  actsRotationMatrix(2,0) = rotationMatrix(2,0);
-
-  // flip column 1 and 2
-  actsRotationMatrix(0,1) = rotationMatrix(0,2);
-  actsRotationMatrix(1,1) = rotationMatrix(1,2);
-  actsRotationMatrix(2,1) = rotationMatrix(2,2);
-
-  actsRotationMatrix(0,2) = -rotationMatrix(0,1);
-  actsRotationMatrix(1,2) = -rotationMatrix(1,1);
-  actsRotationMatrix(2,2) = -rotationMatrix(2,1);
-
-  // Creates 4x4 affine matrix given rotation matrix and translationVector 
-  Acts::Transform3 affineMatrix;
-  affineMatrix.linear() = actsRotationMatrix;
-  affineMatrix.translation() = translationVector;
-  return affineMatrix;
-}
-
 // currently used as the transform maker
 Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles)
 {
@@ -349,7 +213,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
 
   // Note that Acts transforms local coordinates of (x,z,y) to global (x,y,z)
   //=====================================================
-  // Our MP (local) alignment translation vector (dx,dy,dz)
+  // If we use a local alignment translation vector (dx,dy,dz) it
   // should be converted to (dx,dz,dy) before applying the Acts transform to global
   // It seems we can just interchange the x and y coordinates for this
   // Swapping y and z is a rotation around the x axis, resulting in a left handed coordinate system
@@ -417,7 +281,8 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
       if(use_global_millepede_translations == 0)
 	{
 	  std::cout << "mpTranslationAffine: " << std::endl << mpTranslationAffine.matrix() <<std::endl;
-	  std::cout << " mptranslationAffine * mpRotationAffine " << std::endl << (mpTranslationAffine * mpRotationAffine).matrix() << std::endl;
+	  std::cout << " mptranslationAffine * mpRotationAffine " << std::endl 
+		    << (mpTranslationAffine * mpRotationAffine).matrix() << std::endl;
 	}
       std::cout << "actsRotationAffine: "<< std::endl<< actsRotationAffine.matrix()  <<std::endl;
       std::cout << "actsTranslationAffine: "<< std::endl<< actsTranslationAffine.matrix()  <<std::endl;
@@ -430,34 +295,6 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
 
   return transform;   
 }
-
-// no longer used
-Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles)
-{
-  // Create alignment rotation matrix
-  Eigen::AngleAxisd alpha(sensorAngles(0), Eigen::Vector3d::UnitX());
-  Eigen::AngleAxisd beta(sensorAngles(1), Eigen::Vector3d::UnitY());
-  Eigen::AngleAxisd gamma(sensorAngles(2), Eigen::Vector3d::UnitZ());
-  Eigen::Quaternion<double> q       = gamma*beta*alpha;
-  Eigen::Matrix3d millepedeRotation = q.matrix();
-
-  // Create ideal rotation matrix from ActsGeometry
-  Eigen::Matrix3d globalRotation    = AlignmentTransformation::rotateToGlobal(surf);
-  Eigen::Matrix3d combinedRotation  = globalRotation * millepedeRotation; 
-  Eigen::Vector3d sensorCenter      = surf->center(m_tGeometry->geometry().getGeoContext());//*0.1;
-  Eigen::Vector3d globalTranslation = sensorCenter + millepedeTranslation;
-  Acts::Transform3 transformation   = AlignmentTransformation::makeAffineMatrix(combinedRotation,globalTranslation);
-
-  if(localVerbosity > 2)
-    {
-      std::cout << "makeTransform:" << std::endl;
-      std::cout << "sensor center: " << std::endl << sensorCenter << std::endl << " millepede translation: " << std::endl << millepedeTranslation <<std::endl;
-      std::cout << "transformation: "<< std::endl<< transformation.matrix()  <<std::endl;
-    }
-
-  return transformation;   
-}
-
 
 int AlignmentTransformation::getNodes(PHCompositeNode* topNode)
 {

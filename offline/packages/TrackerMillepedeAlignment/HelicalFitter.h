@@ -90,23 +90,14 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global);
 
   int getLabelBase(Acts::GeometryIdentifier id);
-  Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
-  Acts::Transform3 makePerturbationTranslation(Acts::Vector3 translations);
-  std::vector<Acts::Vector3> getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster);
-  std::vector<Acts::Vector3> getDerivativesAlignmentTranslations(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster);
+
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
   int getTpcRegion(int layer);
 
   Acts::Vector2 getClusterError(TrkrCluster *cluster, TrkrDefs::cluskey cluskey, Acts::Vector3& global);
   void getGlobalLabels(Surface surf, int glbl_label[]);
-  void getLocalDerivativesX(Surface surf, Acts::Vector3 fitpoint, Acts::Vector3& fitpoint_local, std::vector<float>& fitpars, 
-			    float lcl_derivative[5], unsigned int layer);
-  void getLocalDerivativesZ(Surface surf, Acts::Vector3& fitpoint,  Acts::Vector3& fitpoint_local, std::vector<float>& fitpars, 
-			    float lcl_derivative[5], unsigned int layer);
-  void getGlobalDerivativesX( std::vector<Acts::Vector3> angleDerivs, std::vector<Acts::Vector3> translDerivs, float glbl_derivatives[], unsigned int layer);
-  void getGlobalDerivativesY( std::vector<Acts::Vector3> angleDerivs, std::vector<Acts::Vector3> translDerivs, float glbl_derivatives[], unsigned int layer);
-  void getGlobalDerivativesZ( std::vector<Acts::Vector3> angleDerivs, std::vector<Acts::Vector3> translDerivs, float glbl_derivatives[], unsigned int layer);
+
   void printBuffers(int index, Acts::Vector2 residual, Acts::Vector2 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[]);
   bool is_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
