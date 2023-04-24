@@ -737,6 +737,7 @@ Acts::SeedFinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
   config.toleranceParam = m_tolerance;
   config.maxPtScattering = m_maxPtScattering;
   config.sigmaError = m_sigmaError;
+  config.helixcut = m_helixcut;
 
   return config;
 }

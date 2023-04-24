@@ -10,6 +10,8 @@
 
 #include <bbc/BbcOut.h>
 
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
@@ -295,6 +297,39 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
     }
   }
+
+  /// Associate any tracks that were not assigned a track-vertex
+  auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  if (trackmap)
+  {
+    for (const auto &[tkey, track] : *trackmap)
+    {
+      //! Check that the vertex hasn't already been assigned
+      auto trackvtxid = track->get_vertex_id();
+      if(svtxmap->get(trackvtxid) != nullptr)
+	{
+	  continue;
+	}
+      float maxdz = std::numeric_limits<float>::max();
+      unsigned int vtxid = std::numeric_limits<unsigned int>::max();
+      
+      for (const auto &[vkey, vertex] : *globalmap)
+      {
+        float dz = track->get_z() - vertex->get_z();
+        if (fabs(dz) < maxdz)
+        {
+          maxdz = dz;
+          vtxid = vkey;
+        }
+      }
+      track->set_vertex_id(vtxid);
+      if (Verbosity())
+      {
+        std::cout << "Associated track with z " << track->get_z() << " to GlobalVertex id " << track->get_vertex_id() << std::endl;
+      }
+    }
+  }
+
   if (Verbosity())
   {
     globalmap->identify();

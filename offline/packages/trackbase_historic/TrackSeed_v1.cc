@@ -101,7 +101,6 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
     }
   if(positions.size() < 3)
     {
-      std::cout << "Can't circle fit less than 3 points " << std::endl;
       return;
     }
 

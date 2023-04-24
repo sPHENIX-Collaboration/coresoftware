@@ -11,11 +11,11 @@
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfov1.h>
 
-#include <dbfile_calo_calib/CEmcCaloCalibSimpleCorrFilev1.h>
-#include <dbfile_calo_calib/CaloCalibSimpleCorrFile.h>
-#include <dbfile_calo_calib/HcalCaloCalibSimpleCorrFilev1.h>
-
 #include <phparameter/PHParameters.h>
+
+#include <cdbobjects/CDBTTree.h>
+
+#include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -26,6 +26,8 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
+
+#include <TSystem.h>
 
 #include <cassert>
 #include <cstdlib>
@@ -40,12 +42,17 @@
 RawTowerCalibration::RawTowerCalibration(const std::string &name)
   : SubsysReco(name)
   , _calib_algorithm(kNo_calibration)
-  , detector("NONE")
+  , m_Detector("NONE")
   , _calib_tower_node_prefix("CALIB")
   , _raw_tower_node_prefix("RAW")
   , _tower_calib_params(name)
 {
   //_tower_type = -1;
+}
+
+RawTowerCalibration::~RawTowerCalibration()
+{
+  delete  m_CDBTTree;
 }
 
 int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
@@ -58,7 +65,7 @@ int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
                                                            "DST"));
   if (!dstNode)
   {
-    std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
               << "DST Node missing, doing nothing." << std::endl;
     exit(1);
   }
@@ -75,23 +82,10 @@ int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
 
   if (_calib_algorithm == kDbfile_tbt_gain_corr)
   {
-    if (detector.c_str()[0] == 'H')
-    {
-      _cal_dbfile = (CaloCalibSimpleCorrFile *) new HcalCaloCalibSimpleCorrFilev1();
-    }
-    else if (detector.c_str()[0] == 'C')
-    {
-      _cal_dbfile = (CaloCalibSimpleCorrFile *) new CEmcCaloCalibSimpleCorrFilev1();
-    }
-    else
-    {
-      std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
-                << "kDbfile_tbt_gain_corr  chosen but Detector Name not HCALOUT/IN or CEMC"
+      std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+                << "kDbfile_tbt_gain_corr  chosen but not implemented"
                 << std::endl;
-      return -999;
-    }
-
-    _cal_dbfile->Open(m_CalibrationFileName.c_str());
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -101,7 +95,7 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity())
   {
-    std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
               << "Process event entered" << std::endl;
   }
 
@@ -201,9 +195,33 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
       // else if  // eventally this will be done exclusively of tow_by_tow
       else if (_calib_algorithm == kDbfile_tbt_gain_corr)
       {
-        if (!_cal_dbfile)
+	if (m_Detector.c_str()[0] == 'H')
+	{
+	  std::string url = CDBInterface::instance()->getUrl("HCALTBYTCORR");
+	  if (url.empty())
+	  {
+	    std::cout << PHWHERE << " Could not get Hcal Calibration for domain HCALTBYTCORR" << std::endl;
+	    gSystem->Exit(1);
+	    exit(1);
+	  }
+
+	  m_CDBTTree = new CDBTTree(url);
+	}
+	else if (m_Detector.c_str()[0] == 'C')
+	{
+	  std::string url = CDBInterface::instance()->getUrl("CEMCTBYTCORR");
+	  if (url.empty())
+	  {
+	    std::cout << PHWHERE << " Could not get Cemc Calibration for domain CEMCTBYTCORR" << std::endl;
+	    gSystem->Exit(1);
+	    exit(1);
+	  }
+
+	  m_CDBTTree = new CDBTTree(url);
+	}
+        if (!m_CDBTTree)
         {
-          std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+          std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
                     << "kDbfile_tbt_gain_corr  chosen but no file loaded" << std::endl;
           return Fun4AllReturnCodes::ABORTRUN;
         }
@@ -213,8 +231,10 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
 
         const int eta = raw_tower->get_bineta();
         const int phi = raw_tower->get_binphi();
+	unsigned int etaphikey = phi;
+	etaphikey = (etaphikey << 16U) + eta;
 
-        gain_factor = _cal_dbfile->getCorr(eta, phi);
+        gain_factor = m_CDBTTree->GetFloatValue(etaphikey,"etaphi");
 
         const double raw_energy = raw_tower->get_energy();
         RawTower *calib_tower = new RawTowerv2(*raw_tower);
@@ -228,7 +248,7 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
       }
       else
       {
-        std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+        std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
                   << " invalid calibration algorithm #" << _calib_algorithm
                   << std::endl;
 
@@ -286,9 +306,9 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
       }
       else if (_calib_algorithm == kDbfile_tbt_gain_corr)
       {
-        if (!_cal_dbfile)
+        if (!m_CDBTTree)
         {
-          std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+          std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
                     << "kDbfile_tbt_gain_corr  chosen but no file loaded" << std::endl;
           return Fun4AllReturnCodes::ABORTRUN;
         }
@@ -296,15 +316,17 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
         float gain_factor = -888;
         const int eta = _raw_towerinfos->getTowerEtaBin(key);
         const int phi = _raw_towerinfos->getTowerPhiBin(key);
+	unsigned int etaphikey = phi;
+	etaphikey = (etaphikey << 16U) + eta;
 
-        gain_factor = _cal_dbfile->getCorr(eta, phi);
+        gain_factor = m_CDBTTree->GetFloatValue(etaphikey,"etaphi");
         const double raw_energy = raw_tower->get_energy();
         float corr_energy = raw_energy * gain_factor * _calib_const_GeV_ADC;
         calib_tower->set_energy(corr_energy);
       }
       else
       {
-        std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+        std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
                   << " invalid calibration algorithm #" << _calib_algorithm
                   << std::endl;
 
@@ -344,7 +366,7 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
 
   if (Verbosity())
   {
-    std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
               << "input sum energy = " << _raw_towers->getTotalEdep()
               << ", output sum digitalized value = "
               << _calib_towers->getTotalEdep() << std::endl;
@@ -364,18 +386,18 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
       "PHCompositeNode", "RUN"));
   if (!runNode)
   {
-    std::cerr << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
               << "Run Node missing, doing nothing." << std::endl;
     throw std::runtime_error(
         "Failed to find Run node in RawTowerCalibration::CreateNodes");
   }
 
-  TowerGeomNodeName = "TOWERGEOM_" + detector;
+  TowerGeomNodeName = "TOWERGEOM_" + m_Detector;
   rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode,
                                                            TowerGeomNodeName);
   if (!rawtowergeom)
   {
-    std::cerr << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
               << " " << TowerGeomNodeName << " Node missing, doing bail out!"
               << std::endl;
     throw std::runtime_error(
@@ -391,7 +413,7 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
       "PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    std::cerr << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
               << "DST Node missing, doing nothing." << std::endl;
     throw std::runtime_error(
         "Failed to find DST node in RawTowerCalibration::CreateNodes");
@@ -399,12 +421,12 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
 
   if (m_UseTowerInfo != 1)
   {
-    RawTowerNodeName = "TOWER_" + _raw_tower_node_prefix + "_" + detector;
+    RawTowerNodeName = "TOWER_" + _raw_tower_node_prefix + "_" + m_Detector;
     _raw_towers = findNode::getClass<RawTowerContainer>(dstNode,
                                                         RawTowerNodeName);
     if (!_raw_towers)
     {
-      std::cerr << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+      std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
                 << " " << RawTowerNodeName << " Node missing, doing bail out!"
                 << std::endl;
       throw std::runtime_error(
@@ -413,11 +435,11 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
   }
   if (m_UseTowerInfo > 0)
   {
-    RawTowerInfoNodeName = "TOWERINFO_" + _raw_tower_node_prefix + "_" + detector;
+    RawTowerInfoNodeName = "TOWERINFO_" + _raw_tower_node_prefix + "_" + m_Detector;
     _raw_towerinfos = findNode::getClass<TowerInfoContainerv1>(dstNode, RawTowerInfoNodeName);
     if (!_raw_towerinfos)
     {
-      std::cerr << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+      std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
                 << " " << RawTowerInfoNodeName << " Node missing, doing bail out!"
                 << std::endl;
       throw std::runtime_error(
@@ -428,17 +450,17 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
   // Create the tower nodes on the tree
   PHNodeIterator dstiter(dstNode);
   PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst(
-      "PHCompositeNode", detector));
+      "PHCompositeNode", m_Detector));
   if (!DetNode)
   {
-    DetNode = new PHCompositeNode(detector);
+    DetNode = new PHCompositeNode(m_Detector);
     dstNode->addNode(DetNode);
   }
 
   // Be careful as a previous calibrator may have been registered for this detector
   if (m_UseTowerInfo != 1)
   {
-    CaliTowerNodeName = "TOWER_" + _calib_tower_node_prefix + "_" + detector;
+    CaliTowerNodeName = "TOWER_" + _calib_tower_node_prefix + "_" + m_Detector;
     _calib_towers = findNode::getClass<RawTowerContainer>(DetNode,
                                                           CaliTowerNodeName);
     if (!_calib_towers)
@@ -450,16 +472,16 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
   }
   if (m_UseTowerInfo > 0)
   {
-    CaliTowerInfoNodeName = "TOWERINFO_" + _calib_tower_node_prefix + "_" + detector;
+    CaliTowerInfoNodeName = "TOWERINFO_" + _calib_tower_node_prefix + "_" + m_Detector;
     _calib_towerinfos = findNode::getClass<TowerInfoContainerv1>(DetNode, CaliTowerInfoNodeName);
     if (!_calib_towerinfos)
     {
       TowerInfoContainerv1::DETECTOR detec;
-      if (detector == "CEMC")
+      if (m_Detector == "CEMC")
       {
         detec = TowerInfoContainer::DETECTOR::EMCAL;
       }
-      else if (detector == "HCALIN" || detector == "HCALOUT")
+      else if (m_Detector == "HCALIN" || m_Detector == "HCALOUT")
       {
         detec = TowerInfoContainer::DETECTOR::HCAL;
       }
