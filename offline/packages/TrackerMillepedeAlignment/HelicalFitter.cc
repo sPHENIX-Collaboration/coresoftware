@@ -730,6 +730,7 @@ void HelicalFitter::getLocalDerivativesXY(Surface surf, Acts::Vector3 global, co
 	  std::cout << " intersection_delta " << intersection_delta(0) << "  " << intersection_delta(1) << "  " << intersection_delta(2) << std::endl;
 	}
 
+
       // convert to delta-intersection / delta-parameter
       intersection_delta /= fitpars_delta[ip];
 
