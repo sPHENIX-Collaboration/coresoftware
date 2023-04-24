@@ -35,7 +35,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
   localVerbosity = 0;
 
   use_new_transforms = true;
-  use_global_millepede_translations = 0;
+  use_global_millepede_translations = 1;
 
   std::cout << "AlignmentTransformation: use global translation perturbations = " << use_global_millepede_translations 
 	    << " use new transforms = " << use_new_transforms << std::endl;

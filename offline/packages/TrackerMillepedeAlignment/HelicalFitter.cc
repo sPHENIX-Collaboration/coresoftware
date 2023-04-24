@@ -121,9 +121,6 @@ int HelicalFitter::process_event(PHCompositeNode*)
       std::vector<Acts::Vector3> global_vec;
       std::vector<TrkrDefs::cluskey> cluskey_vec;
 
-
-      ////getTrackletClusters(tracklet, global_vec, cluskey_vec);   // store cluster corrected global positions in a vector 
-
       // Get a vector of cluster keys from the tracklet  
       getTrackletClusterList(tracklet, cluskey_vec);
       // store cluster global positions in a vector
@@ -170,7 +167,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
 	  // What we need now is to find the point on the surface at which the helix would intersect
 	  // If we have that point, we can transform the fit back to local coords
-	  // we have fitpars for the helix and the cluster key, from which we get the surface
+	  // we have fitpars for the helix, and the cluster key - from which we get the surface
 
 	  Surface surf = _tGeometry->maps().getSurface(cluskey, cluster);
 	  Acts::Vector3 fitpoint = get_helix_surface_intersection(surf, fitpars, global);
@@ -179,11 +176,6 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  // Now transform the helix fitpoint to local coordinates to compare with cluster local coordinates
 	  Acts::Vector3 fitpoint_local = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint *  Acts::UnitConstants::cm);
 	  fitpoint_local /= Acts::UnitConstants::cm;
-
-	  /*
-	  std::cout << " inverse transform used for fitpoint:" << std::endl <<  surf->transform(_tGeometry->geometry().getGeoContext()).inverse().matrix() << std::endl;
-	std::cout << "local-global transform " << std::endl <<  surf->transform(_tGeometry->geometry().getGeoContext()).matrix() << std::endl;
-	  */
 
 	  auto xloc = cluster->getLocalX();  // in cm
 	  auto zloc = cluster->getLocalY();	  
@@ -222,18 +214,24 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
 	  float lcl_derivativeX[NLC];
 	  float lcl_derivativeY[NLC];
-	  float glbl_derivative[NGL];
+	  getLocalDerivativesXY(surf, global, fitpars, lcl_derivativeX, lcl_derivativeY, layer);
 
-	  getLocalDerivativesXY(surf, global, fitpoint, fitpars, lcl_derivativeX, lcl_derivativeY, layer);
+	  float glbl_derivativeX[NGL];
+	  float glbl_derivativeY[NGL];
+	  getGlobalDerivativesXY(surf, global, fitpoint, fitpars, glbl_derivativeX, glbl_derivativeY, layer);
+
+	  for(unsigned int i = 0; i < NGL; ++i) 
+	    {
+	      if(is_layer_param_fixed(layer, i) || is_layer_fixed(layer)) 
+		{
+		  glbl_derivativeX[i] = 0;
+		  glbl_derivativeY[i] = 0;
+		}
+	    }
 
 	  // Add the measurement separately for each coordinate direction to Mille
 	  // set the derivatives non-zero only for parameters we want to be optimized
 	  // local parameter numbering is arbitrary:
-	  //    using 0=x0, 1=y0, 2=z0, 3=R, 4=zslope 
-	  //getLocalDerivativesX(surf, fitpoint, fitpoint_local, fitpars, lcl_derivative, layer);
-	  getGlobalDerivativesX(angleDerivs, translDerivs, glbl_derivative, layer);
-	  //	  if(Verbosity() > 1)
-	  //{ std::cout << "layer " << layer << " X buffers:" << std::endl; printBuffers(0, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label); }
 
 	  // provides output that can be grep'ed to make plots of input to mille
 	  if(Verbosity() > 1)
@@ -253,20 +251,20 @@ int HelicalFitter::process_event(PHCompositeNode*)
 			    << " derivx X0 " << lcl_derivativeX[1] << " label " << 2
  			    << " derivx Y0 " << lcl_derivativeX[2] << " label " << 3
 			    << " derivx Zslope " << lcl_derivativeX[3] << " label " << 4
-			    << " derivx Z0" << lcl_derivativeX[4] << " label " << 5
-			    << " glbl_derivative " << glbl_derivative[3] << " label " << glbl_label[3]
+			    << " derivx Z0 " << lcl_derivativeX[4] << " label " << 5
+			    << " glblderivX alpha " << glbl_derivativeX[0] << " label " << glbl_label[0]
+			    << " glblderivX beta " << glbl_derivativeX[1] << " label " << glbl_label[1]
+			    << " glblderivX gamma " << glbl_derivativeX[2] << " label " << glbl_label[2]
+			    << " glblderivX xtrans " << glbl_derivativeX[3] << " label " << glbl_label[3]
+			    << " glblderivX ytrans " << glbl_derivativeX[4] << " label " << glbl_label[4]
+			    << " glblderivX ztrans " << glbl_derivativeX[5] << " label " << glbl_label[5]
 			    << std::endl;
 		}
-	    }
-	  
+	    }	  
+    
 	  if( !isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
-	    { _mille->mille(NLC, lcl_derivativeX, NGL, glbl_derivative, glbl_label, residual(0), _error_inflation*clus_sigma(0));}
+	    { _mille->mille(NLC, lcl_derivativeX, NGL, glbl_derivativeX, glbl_label, residual(0), _error_inflation*clus_sigma(0));}
 	  
-
-	  //getLocalDerivativesZ(surf, fitpoint, fitpoint_local, fitpars, lcl_derivative, layer);
-	  getGlobalDerivativesZ(angleDerivs, translDerivs, glbl_derivative, layer);
-	  //getGlobalDerivativesY(angleDerivs, translDerivs, glbl_derivative, layer);  // in local coords alpha and dx are applied to x axis, beta and "dz" to y axis
-
 	  // provides output that can be grep'ed to make plots of input to mille
 	  if(Verbosity() > 1)
 	    {
@@ -285,15 +283,18 @@ int HelicalFitter::process_event(PHCompositeNode*)
  			    << " derivy Y0 " << lcl_derivativeY[2] << " label " << 3
 			    << " derivy Zslope " << lcl_derivativeY[3] << " label " << 4
 			    << " derivy Z0 " << lcl_derivativeY[4] << " label " << 5
-			    << " glbl_derivative " << glbl_derivative[5] << " label " << glbl_label[5]
+			    << " glblderivY alpha " << glbl_derivativeY[0] << " label " << glbl_label[0]
+			    << " glblderivY beta " << glbl_derivativeY[1] << " label " << glbl_label[1]
+			    << " glblderivY gamma " << glbl_derivativeY[2] << " label " << glbl_label[2]
+			    << " glblderivY xtrans " << glbl_derivativeY[3] << " label " << glbl_label[3]
+			    << " glblderivY ytrans " << glbl_derivativeY[4] << " label " << glbl_label[4]
+			    << " glblderivY ztrans " << glbl_derivativeY[5] << " label " << glbl_label[5]
 			    << std::endl;
 		}
 	    }
 
-	  //	  if(Verbosity() > 1) 
-	  //{ std::cout  << "layer " << layer << " Z buffers:" << std::endl; printBuffers(1, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label); }
 	  if(!isnan(residual(1)) && clus_sigma(1) < 1.0 && trkrid != TrkrDefs::inttId)
-	    {_mille->mille(NLC, lcl_derivativeY, NGL, glbl_derivative, glbl_label, residual(1), _error_inflation*clus_sigma(1));}
+	    {_mille->mille(NLC, lcl_derivativeY, NGL, glbl_derivativeY, glbl_label, residual(1), _error_inflation*clus_sigma(1));}
 	}
 
       // close out this track
@@ -899,7 +900,7 @@ Acts::Vector2 HelicalFitter::getClusterError(TrkrCluster *cluster, TrkrDefs::clu
 }
 
 // new one
-void HelicalFitter::getLocalDerivativesXY(Surface surf, Acts::Vector3 global, Acts::Vector3 fitpoint, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer)
+void HelicalFitter::getLocalDerivativesXY(Surface surf, Acts::Vector3 global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer)
 {
   // Calculate the derivatives of the residual wrt the track parameters numerically
   std::vector<float> temp_fitpars;
@@ -918,7 +919,7 @@ void HelicalFitter::getLocalDerivativesXY(Surface surf, Acts::Vector3 global, Ac
 
   // calculate projX and projY vectors once for the optimum fit parameters
   //  std::pair<Acts::Vector3, Acts::Vector3> tangent = get_helix_tangent(fitpars, global)
-  std::pair<Acts::Vector3, Acts::Vector3> tangent = get_helix_tangent(fitpars, fitpoint);
+  std::pair<Acts::Vector3, Acts::Vector3> tangent = get_helix_tangent(fitpars, global);  // should this be global, not fitpoint?
 
   Acts::Vector3 projX(0,0,0), projY(0,0,0);
   get_projectionXY(surf, tangent, projX, projY);
@@ -933,24 +934,83 @@ void HelicalFitter::getLocalDerivativesXY(Surface surf, Acts::Vector3 global, Ac
 
       Acts::Vector3 temp_intersection = get_helix_surface_intersection(surf, temp_fitpars, global);
       Acts::Vector3 intersection_delta = temp_intersection - intersection;
-      std::cout << "Layer " << layer << " local parameter " << ip << ":" << std::endl; 
-      std::cout << " intersection " << intersection(0) << "  " << intersection(1) << "  " << intersection(2) << std::endl;
-      std::cout << " temp_intersection " << temp_intersection(0) << "  " << temp_intersection(1) << "  " << temp_intersection(2) << std::endl;
-      std::cout << " intersection_delta " << intersection_delta(0) << "  " << intersection_delta(1) << "  " << intersection_delta(2) << std::endl;
+      if(Verbosity() > 1)
+	{
+	  std::cout << "Layer " << layer << " local parameter " << ip << ":" << std::endl; 
+	  std::cout << " intersection " << intersection(0) << "  " << intersection(1) << "  " << intersection(2) << std::endl;
+	  std::cout << " temp_intersection " << temp_intersection(0) << "  "<< temp_intersection(1) << "  "<< temp_intersection(2)<< std::endl;
+	  std::cout << " intersection_delta " << intersection_delta(0) << "  " << intersection_delta(1) << "  " << intersection_delta(2) << std::endl;
+	}
 
       // convert to delta-intersection / delta-parameter
       intersection_delta /= fitpars_delta[ip];
-      std::cout << " intersection_delta / delta_p " << intersection_delta(0) << "  " << intersection_delta(1) << "  " << intersection_delta(2) << std::endl;
+
+      if(Verbosity() > 1)
+	{std::cout << " intersection_delta / delta_p " << intersection_delta(0) << "  " << intersection_delta(1) << "  " << intersection_delta(2) << std::endl;}
 
       // calculate the change in residual for X and Y 
       lcl_derivativeX[ip] = intersection_delta.dot(projX);
       lcl_derivativeY[ip] = intersection_delta.dot(projY);
-      std::cout << " ip " << ip << "  derivativeX " << lcl_derivativeX[ip] << "  " << " derivativeY " << lcl_derivativeY[ip] << std::endl;
+      if(Verbosity() > 1)
+	{std::cout << " ip " << ip << "  derivativeX " << lcl_derivativeX[ip] << "  " << " derivativeY " << lcl_derivativeY[ip] << std::endl;}
 
       temp_fitpars[ip] = fitpars[ip];
     }
 }
 
+void HelicalFitter::getGlobalDerivativesXY(Surface surf, Acts::Vector3 global, Acts::Vector3 fitpoint, const std::vector<float>& fitpars, float glbl_derivativeX[6], float glbl_derivativeY[6], unsigned int layer)
+{
+  Acts::Vector3 unitx(1, 0, 0);
+  Acts::Vector3 unity(0, 1, 0);
+  Acts::Vector3 unitz(0, 0, 1);
+
+  // calculate projX and projY vectors once for the optimum fit parameters
+  std::pair<Acts::Vector3, Acts::Vector3> tangent = get_helix_tangent(fitpars, global);  // should this be global, not fitpoint?
+
+  Acts::Vector3 projX(0,0,0), projY(0,0,0);
+  get_projectionXY(surf, tangent, projX, projY);
+
+  // translations
+
+  glbl_derivativeX[3] = unitx.dot(projX);
+  glbl_derivativeX[4] = unity.dot(projX);
+  glbl_derivativeX[5] = unitz.dot(projX);
+
+  glbl_derivativeY[3] = unitx.dot(projY);
+  glbl_derivativeY[4] = unity.dot(projY);
+  glbl_derivativeY[5] = unitz.dot(projY);
+
+  // rotations
+
+  // need center of sensor to intersection point
+  Acts::Vector3 sensorCenter      = surf->center(_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;  // convert to cm
+  Acts::Vector3 OM = fitpoint - sensorCenter;
+
+  glbl_derivativeX[0] = (unitx.cross(OM)).dot(projX);
+  glbl_derivativeX[1] = (unity.cross(OM)).dot(projX);
+  glbl_derivativeX[2] = (unitz.cross(OM)).dot(projX);
+
+  glbl_derivativeY[0] = (unitx.cross(OM)).dot(projY);
+  glbl_derivativeY[1] = (unity.cross(OM)).dot(projY);
+  glbl_derivativeY[2] = (unitz.cross(OM)).dot(projY);
+
+  if(Verbosity() > 1)
+    {
+      std::cout << " glbl_derivativesX for layer " << layer << std::endl;
+      for(unsigned int i = 0; i < 6; ++i)
+	{
+	  std::cout << " i " << i << " glbl_derivative " << glbl_derivativeX[i] << std::endl;
+	}
+      
+      std::cout << " glbl_derivativesY for layer " << layer << std::endl;
+      for(unsigned int i = 0; i < 6; ++i)
+	{
+	  std::cout << " i " << i << " glbl_derivative " << glbl_derivativeY[i] << std::endl;
+	}
+    }
+
+
+}
 void HelicalFitter::get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts::Vector3> tangent, Acts::Vector3& projX, Acts::Vector3& projY)
 {
   // we only need the direction part of the tangent
