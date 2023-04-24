@@ -49,6 +49,11 @@ nlohmann::json sphenixnpc::getUrlDict(long long iov)
   return nopayloadclient::Client::getUrlDict(iov,iov);
 }
 
+nlohmann::json sphenixnpc::getUrlDict(long long iov1, long long iov2)
+{
+  return nopayloadclient::Client::getUrlDict(iov1,iov2);
+}
+
 nlohmann::json sphenixnpc::get(const std::string &pl_type, long long iov)
 {
   if (url_dict_.is_null())
