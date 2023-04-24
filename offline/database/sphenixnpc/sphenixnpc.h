@@ -13,7 +13,6 @@ class sphenixnpc : public nopayloadclient::Client
  public:
   using nopayloadclient::Client::createGlobalTag;
   using nopayloadclient::Client::deleteGlobalTag;
-  using nopayloadclient::Client::getUrlDict;
   using nopayloadclient::Client::setGlobalTag;
 
   static sphenixnpc *instance(const std::string &globaltag = "NONE");
