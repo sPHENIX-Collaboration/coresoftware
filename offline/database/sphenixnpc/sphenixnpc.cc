@@ -1,5 +1,11 @@
 #include "sphenixnpc.h"
 
+#include <nopayloadclient/nopayloadclient.hpp>
+
+#include <nlohmann/json.hpp>
+#include <iostream>
+#include <stdexcept>
+
 sphenixnpc *sphenixnpc::__instance = nullptr;
 
 sphenixnpc *sphenixnpc::instance(const std::string &globaltag)
@@ -47,6 +53,11 @@ int sphenixnpc::deleteGlobalTag(const std::string &tagname)
 nlohmann::json sphenixnpc::getUrlDict(long long iov)
 {
   return nopayloadclient::Client::getUrlDict(iov,iov);
+}
+
+nlohmann::json sphenixnpc::getUrlDict(long long iov1, long long iov2)
+{
+  return nopayloadclient::Client::getUrlDict(iov1,iov2);
 }
 
 nlohmann::json sphenixnpc::get(const std::string &pl_type, long long iov)

@@ -5,8 +5,10 @@
 
 #include <nlohmann/json.hpp>
 
+#include <cstdint>
 #include <iostream>
 #include <set>
+#include <string>
 
 class sphenixnpc : public nopayloadclient::Client
 {
@@ -18,6 +20,7 @@ class sphenixnpc : public nopayloadclient::Client
   static sphenixnpc *instance(const std::string &globaltag = "NONE");
   ~sphenixnpc();
   nlohmann::json getUrlDict(long long iov);
+  nlohmann::json getUrlDict(long long iov1, long long iov2) override;
   int createGlobalTag(const std::string &tagname);
   int createDomain(const std::string &domain);
   nlohmann::json get(const std::string &pl_type, long long iov);
