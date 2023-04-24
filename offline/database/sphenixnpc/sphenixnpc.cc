@@ -1,5 +1,11 @@
 #include "sphenixnpc.h"
 
+#include <nopayloadclient/nopayloadclient.hpp>
+
+#include <nlohmann/json.hpp>
+#include <iostream>
+#include <stdexcept>
+
 sphenixnpc *sphenixnpc::__instance = nullptr;
 
 sphenixnpc *sphenixnpc::instance(const std::string &globaltag)
