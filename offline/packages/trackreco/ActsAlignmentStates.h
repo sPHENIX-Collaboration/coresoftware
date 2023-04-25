@@ -56,7 +56,9 @@ class ActsAlignmentStates
   void getGlobalDerivatives(std::vector<Acts::Vector3>& anglederivs, SvtxAlignmentState::GlobalMatrix& analytic);
   Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster* cluster);
-
+  std::pair<Acts::Vector3, Acts::Vector3> get_projectionXY(const Acts::Surface& surface, const Acts::Vector3& tangent);
+  SvtxAlignmentState::GlobalMatrix makeGlobalDerivatives(const Acts::Vector3& OM, const std::pair<Acts::Vector3, Acts::Vector3>& projxy);
+  
   bool m_analytic = true;
   int m_verbosity = 0;
   int m_clusterVersion = 4;

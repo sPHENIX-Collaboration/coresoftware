@@ -57,30 +57,27 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
     const auto& surface = state.referenceSurface();
     const auto& sl = static_cast<const ActsSourceLink&>(state.uncalibrated());
     auto ckey = sl.cluskey();
-    Acts::Vector2 loc = Acts::Vector2::Zero();
-
+    Acts::Vector2 localMeas = Acts::Vector2::Zero();
+    /// get the local measurement that acts used
     std::visit([&](const auto& meas) {
-	std::cout << meas.parameters() << std::endl;
-	std::cout << meas.parameters().rows() << ", " << meas.parameters().cols() << std::endl;
-	std::cout << meas.parameters()[0] << ", " << meas.parameters()[1] << std::endl;
-	loc(0) = meas.parameters()[0];
-	loc(1) = meas.parameters()[1];
+	localMeas(0) = meas.parameters()[0];
+	localMeas(1) = meas.parameters()[1];
       }, measurements[sl.index()]);
     
     if (m_verbosity > 2)
       {
 	std::cout << "sl index and ckey " << sl.index() << ", "
-		  << sl.cluskey() << std::endl;
+		  << sl.cluskey() << " with local position " 
+		  << localMeas.transpose() << std::endl;
       }
 
     auto clus = m_clusterMap->findCluster(ckey);
     const auto trkrId = TrkrDefs::getTrkrId(ckey);
-
-    /// Gets the global parameters from the state
-    const Acts::FreeVector freeParams =
-        Acts::MultiTrajectoryHelpers::freeSmoothed(m_tGeometry->geometry().getGeoContext(), state);
  
-    /// Calculate the residual in global coordinates
+    const Acts::Vector2 localState = state.effectiveProjector() * state.smoothed();
+    /// Local residual between measurement and smoothed Acts state
+    const Acts::Vector2 localResidual = localMeas - localState;  
+
     Acts::Vector3 clusGlobal = m_tGeometry->getGlobalPosition(ckey, clus);
     if (trkrId == TrkrDefs::tpcId)
     {
@@ -92,19 +89,18 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
 
     const Acts::FreeVector globalStateParams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), state.smoothed());
     Acts::Vector3 stateGlobal = globalStateParams.segment<3>(Acts::eFreePos0);
-    Acts::Vector3 globalResidual = clusGlobal - stateGlobal;
-  
+
     Acts::Vector3 clus_sigma(0, 0, 0);
 
-      if (m_clusterVersion != 4)
+    if (m_clusterVersion != 4)
       {
         clus_sigma(2) = clus->getZError() * Acts::UnitConstants::cm;
         clus_sigma(0) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
         clus_sigma(1) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
       }
-      else 
+    else 
       {
-        double clusRadius = sqrt(clusGlobal(0) * clusGlobal(0) + clusGlobal(1) * clusGlobal(1));
+        double clusRadius = sqrt(clusGlobal(0) * clusGlobal(0) + clusGlobal(1) * clusGlobal(1)) / Acts::UnitConstants::cm;
         auto para_errors = m_clusErrPara.get_simple_cluster_error(clus, clusRadius, ckey);
         float exy2 = para_errors.first * Acts::UnitConstants::cm2;
         float ez2 = para_errors.second * Acts::UnitConstants::cm2;
@@ -113,122 +109,53 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
         clus_sigma(1) = sqrt(exy2 / 2.0);
       }
   
-    const Acts::ActsDynamicMatrix H = state.effectiveProjector();
-    /// Acts residual, in local coordinates
-
-    auto localResidual = loc - H * state.smoothed();
-   
+ 
     if (m_verbosity > 2)
     {
-         
       std::cout << "clus global is " << clusGlobal.transpose() << std::endl
-                << "state global is " << stateGlobal.transpose() << std::endl
-                << "Residual is " << globalResidual.transpose() << std::endl;
+                << "state global is " << stateGlobal.transpose() << std::endl;
       std::cout << "   clus errors are " << clus_sigma.transpose() << std::endl;
-      std::cout << "   clus loc is " << loc.transpose() << std::endl;
-      std::cout << "   state loc is " << (H * state.smoothed()).transpose() << std::endl;
+      std::cout << "   clus loc is " << localMeas.transpose() << std::endl;
+      std::cout << "   state loc is " << localState << std::endl;
       std::cout << "   local residual is " << localResidual.transpose() << std::endl;
     }
 
     // Get the derivative of alignment (global) parameters w.r.t. measurement or residual
-    const Acts::Vector3 direction = freeParams.segment<3>(Acts::eFreeDir0);
-    // The derivative of free parameters w.r.t. path length. @note Here, we
-    // assumes a linear track model, i.e. negecting the change of track
-    // direction. Otherwise, we need to know the magnetic field at the free
-    // parameters
-    Acts::FreeVector pathDerivative = Acts::FreeVector::Zero();
-    pathDerivative.head<3>() = direction;
+    /// The local bound parameters still have access to global phi/theta
+    double phi = state.smoothed()[Acts::eBoundPhi];
+    double theta = state.smoothed()[Acts::eBoundTheta];
+    const Acts::Vector3 tangent = Acts::makeDirectionUnitFromPhiTheta(phi,theta);
+    if(m_verbosity > 2)
+      {
+	std::cout << "tangent vector to track state is " << tangent.transpose() << std::endl;
+      }
 
-  
-    // Get the derivative of bound parameters wrt alignment parameters
-    Acts::AlignmentToBoundMatrix d =
-        surface.alignmentToBoundDerivative(m_tGeometry->geometry().getGeoContext(), freeParams, pathDerivative);
-    // Get the derivative of bound parameters wrt track parameters
-    Acts::FreeToBoundMatrix j = surface.freeToBoundJacobian(m_tGeometry->geometry().getGeoContext(), freeParams);
-    
-    // derivative of residual wrt track parameters
-    auto dLocResTrackActs = -H * j;
-    // derivative of residual wrt alignment parameters
-    auto dLocResAlignment = -H * d;
+    std::pair<Acts::Vector3, Acts::Vector3> projxy = 
+      get_projectionXY(surface, tangent);
 
-    if (m_verbosity > 3)
-    {
-      std::cout << "free to bound jacobian " << std::endl
-		<< j << std::endl;
-      std::cout << " derivative of resiudal wrt track params " << std::endl
-                << dLocResTrackActs << std::endl
-                << " derivative of residual wrt alignment params " << std::endl
-                << dLocResAlignment << std::endl;
-    }
-
-    /// The above matrices are in Acts local coordinates, so we need to convert them to
-    /// global coordinates with a rotation d(l0,l1)/d(x,y,z)
-
-    const double cosTheta = direction.z();
-    const double sinTheta = std::sqrt(square(direction.x()) + square(direction.y()));
-    const double invSinTheta = 1. / sinTheta;
-    const double cosPhi = direction.x() * invSinTheta;
-    const double sinPhi = direction.y() * invSinTheta;
-    Acts::ActsMatrix<3, 2> rot = Acts::ActsMatrix<3, 2>::Zero();
-    rot(0, 0) = -sinPhi;
-    rot(0, 1) = -cosPhi * cosTheta;
-    rot(1, 0) = cosPhi;
-    rot(1, 1) = -sinPhi * cosTheta;
-    rot(2, 1) = sinTheta;
-
-    /// this is a 3x6 matrix now of d(x_res,y_res,z_res)/d(dx,dy,dz,alpha,beta,gamma)
-    const auto dGlobResAlignment = rot * dLocResAlignment;
-
-    /// Acts global coordinates are (x,y,z,t,hatx,haty,hatz,q/p)
-    /// So now rotate to x,y,z, px,py,pz
-    const double p = 1. / abs(globalStateParams[Acts::eFreeQOverP]);
-    const double p2 = square(p);
-    Acts::ActsMatrix<6, 8> sphenixRot = Acts::ActsMatrix<6, 8>::Zero();
-    sphenixRot(0, 0) = 1;
-    sphenixRot(1, 1) = 1;
-    sphenixRot(2, 2) = 1;
-    sphenixRot(3, 4) = p;
-    sphenixRot(4, 5) = p;
-    sphenixRot(5, 6) = p;
-    sphenixRot(3, 7) = direction.x() * p2;
-    sphenixRot(4, 7) = direction.y() * p2;
-    sphenixRot(5, 7) = direction.z() * p2;
-
-    const auto dLocResTrack =  dLocResTrackActs * sphenixRot.transpose();
-
-    if (m_verbosity > 3)
-    {
-      std::cout << "derivative of residual wrt alignment parameters glob " << std::endl
-                << dGlobResAlignment << std::endl;
-      std::cout << "derivative of residual wrt track parameters glob " << std::endl
-                << dLocResTrack << std::endl;
-    }
-
-    SvtxAlignmentState::LocalMatrix aligncalc = SvtxAlignmentState::LocalMatrix::Zero();
-    aligncalc(0,0) = -1;
-    aligncalc(0,1) = 0;
-    aligncalc(0,2) = 0.;
+    Acts::Vector3 sensorCenter = surface.center(m_tGeometry->geometry().getGeoContext());
+    Acts::Vector3 OM = stateGlobal - sensorCenter;
+    if(m_verbosity > 2)
+      {
+	std::cout << "   global deriv calcs" << std::endl
+		  << "stateGlobal: " << stateGlobal.transpose()
+		  << ", sensor center " << sensorCenter.transpose() << std::endl
+		  << ", OM " << OM.transpose() << std::endl << "   projxy "
+		  << projxy.first.transpose() << ", " 
+		  << projxy.second.transpose() << std::endl;
+      }
 
     auto svtxstate = std::make_unique<SvtxAlignmentState_v1>();
     svtxstate->set_residual(localResidual);
-    svtxstate->set_local_derivative_matrix(dLocResTrack);
-    svtxstate->set_global_derivative_matrix(dLocResAlignment);
+    //svtxstate->set_local_derivative_matrix(dLocResTrack);
+    svtxstate->set_global_derivative_matrix(makeGlobalDerivatives(OM, projxy));
     svtxstate->set_cluster_key(ckey);
-    
-    if(m_analytic)
-      {
-	/*
-	auto surf = m_tGeometry->maps().getSurface(ckey, clus);
-	auto anglederivs = getDerivativesAlignmentAngles(clusGlobal, ckey, 
-							 clus, surf, 
-							 crossing);
-        SvtxAlignmentState::GlobalMatrix analytic = SvtxAlignmentState::GlobalMatrix::Zero();
+    auto somematrix = surface.localCartesianToBoundLocalDerivative(
+        m_tGeometry->geometry().getGeoContext(), stateGlobal);
 
-	getGlobalDerivatives(anglederivs,analytic);
-       	svtxstate->set_global_derivative_matrix(analytic);
-	*/
-      }
-
+    std::cout << "localcartesiantoboundlocalderiv " << std::endl
+	      << somematrix << std::endl;
+ 
     statevec.push_back(svtxstate.release());
 
     return true; });
@@ -242,6 +169,62 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
   m_alignmentStateMap->insertWithKey(track->get_id(), statevec);
 
   return;
+}
+
+SvtxAlignmentState::GlobalMatrix 
+ActsAlignmentStates::makeGlobalDerivatives(const Acts::Vector3& OM, 
+					   const std::pair<Acts::Vector3,Acts::Vector3>& projxy)
+{
+  SvtxAlignmentState::GlobalMatrix globalder = SvtxAlignmentState::GlobalMatrix::Zero();
+  Acts::SymMatrix3 unit = Acts::SymMatrix3::Identity();
+
+  //! x residual rotations
+  globalder(0,0) = ((unit.col(0)).cross(OM)).dot(projxy.first);
+  globalder(0,1) = ((unit.col(1)).cross(OM)).dot(projxy.first);
+  globalder(0,2) = ((unit.col(2)).cross(OM)).dot(projxy.first);
+  //! x residual translations
+  globalder(0,3) = unit.col(0).dot(projxy.first);
+  globalder(0,4) = unit.col(1).dot(projxy.first);
+  globalder(0,5) = unit.col(2).dot(projxy.first);
+  
+  //! y residual rotations
+  globalder(1,0) = ((unit.col(0)).cross(OM)).dot(projxy.second);
+  globalder(1,1) = ((unit.col(1)).cross(OM)).dot(projxy.second);
+  globalder(1,2) = ((unit.col(2)).cross(OM)).dot(projxy.second);
+  //! y residual translations
+  globalder(1,3) = unit.col(0).dot(projxy.second);
+  globalder(1,4) = unit.col(1).dot(projxy.second);
+  globalder(1,5) = unit.col(2).dot(projxy.second);
+  
+  return globalder;
+
+}
+
+std::pair<Acts::Vector3, Acts::Vector3> ActsAlignmentStates::get_projectionXY(const Acts::Surface& surface, const Acts::Vector3& tangent)
+{
+  Acts::Vector3 projx = Acts::Vector3::Zero();
+  Acts::Vector3 projy = Acts::Vector3::Zero();
+  
+  // get the plane of the surface
+  Acts::Vector3 sensorCenter = surface.center(m_tGeometry->geometry().getGeoContext()); 
+  // sensorNormal is the Z vector
+  Acts::Vector3 Z = -surface.normal(m_tGeometry->geometry().getGeoContext());
+
+  // get surface X and Y unit vectors in global frame
+  // transform Xlocal = 1.0 to global, subtract the surface center, normalize to 1
+  Acts::Vector3 xloc(1.0,0.0,0.0);
+  Acts::Vector3 xglob =  surface.transform(m_tGeometry->geometry().getGeoContext()) * xloc;
+
+  Acts::Vector3 yloc(0.0,1.0,0.0);
+  Acts::Vector3 yglob =  surface.transform(m_tGeometry->geometry().getGeoContext()) * yloc;
+
+  Acts::Vector3 X = (xglob-sensorCenter) / (xglob-sensorCenter).norm();
+  Acts::Vector3 Y = (yglob-sensorCenter) / (yglob-sensorCenter).norm();
+
+  projx = X - (tangent.dot(X) / tangent.dot(Z)) * Z;
+  projy = Y - (tangent.dot(Y) / tangent.dot(Z)) * Z;
+
+  return std::make_pair(projx, projy);
 }
 
 void ActsAlignmentStates::getGlobalDerivatives(std::vector<Acts::Vector3>& anglederivs, SvtxAlignmentState::GlobalMatrix& analytic)
