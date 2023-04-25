@@ -55,6 +55,8 @@ class CaloTowerBuilder : public SubsysReco
   int m_packet_low = INT_MIN;
   int m_packet_high = INT_MIN;
   int m_nsamples = 16;
+  int m_nchannels = 192;
+  int m_nzerosuppsamples = 2;
   bool m_isdata = true;
 };
 

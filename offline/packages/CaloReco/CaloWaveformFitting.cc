@@ -51,52 +51,72 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
   auto func = [&](std::vector<float> &v)
   {
     int size1 = v.size() - 1;
-    auto h = new TH1F(Form("h_%d", (int) round(v.at(size1))), "", size1, 0, size1);
-    float maxheight = 0;
-    int maxbin = 0;
-    for (int i = 0; i < size1; i++)
-    {
-      h->SetBinContent(i + 1, v.at(i));
-      if (v.at(i) > maxheight)
+    
+    if (size1 == _nzerosuppresssamples)
       {
-        maxheight = v.at(i);
-        maxbin = i;
+	v.push_back(v.at(0));
+	v.push_back(-1); // set time to -1 to indicate zero suppressed 
+	v.push_back(v.at(1));    
       }
-    }
-    float pedestal = 1500;
-    if (maxbin > 4)
-    {
-      pedestal = 0.5 * (v.at(maxbin - 4) + v.at(maxbin - 5));
-    }
-    else if (maxbin > 3)
-    {
-      pedestal = (v.at(maxbin - 4));
-    }
     else
-    {
-      pedestal = 0.5 * (v.at(size1 - 3) + v.at(size1 - 2));
-    }
-
-
-    auto f = new TF1(Form("f_%d", (int) round(v.at(size1))), this,&CaloWaveformFitting::template_function, 0, 31, 3,"CaloWaveformFitting","template_function");
-   ROOT::Math::WrappedMultiTF1 *fitFunction = new ROOT::Math::WrappedMultiTF1(*f, 3);
-    ROOT::Fit::BinData data(v.size() - 1, 1);
-    ROOT::Fit::FillData(data, h);
-    ROOT::Fit::Chi2Function *EPChi2 = new ROOT::Fit::Chi2Function(data, *fitFunction);
-    ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
-    fitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
-    double params[] = {static_cast<double>(maxheight), static_cast<double>(maxbin - 5), static_cast<double>(pedestal)};
-    fitter->Config().SetParamsSettings(3, params);
-    fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
-    for (int i = 0; i < 3; i++)
-    {
-      v.push_back(f->GetParameter(i));
-    }
-    h->Delete();
-    f->Delete();
-    delete fitFunction;
-    delete fitter;
-    delete EPChi2;
+      {
+	auto h = new TH1F(Form("h_%d", (int) round(v.at(size1))), "", size1, 0, size1);
+	float maxheight = 0;
+	int maxbin = 0;
+	for (int i = 0; i < size1; i++)
+	  {
+	    h->SetBinContent(i + 1, v.at(i));
+	    if (v.at(i) > maxheight)
+	      {
+		maxheight = v.at(i);
+		maxbin = i;
+	      }
+	  }
+	float pedestal = 1500;
+	if (maxbin > 4)
+	  {
+	    pedestal = 0.5 * (v.at(maxbin - 4) + v.at(maxbin - 5));
+	  }
+	else if (maxbin > 3)
+	  {
+	    pedestal = (v.at(maxbin - 4));
+	  }
+	else
+	  {
+	    pedestal = 0.5 * (v.at(size1 - 3) + v.at(size1 - 2));
+	  }
+	
+	if (_bdosoftwarezerosuppression && maxheight - pedestal < _nsoftwarezerosuppression)
+	  {
+	    // std::cout << "software zero suppression happened " << std::endl;
+	    h->Delete();
+	    v.push_back(v.at(6));
+	    v.push_back(-1);
+	    v.push_back(pedestal);		
+	  }
+	else
+	  {
+	    auto f = new TF1(Form("f_%d", (int) round(v.at(size1))), this,&CaloWaveformFitting::template_function, 0, 31, 3,"CaloWaveformFitting","template_function");
+	    ROOT::Math::WrappedMultiTF1 *fitFunction = new ROOT::Math::WrappedMultiTF1(*f, 3);
+	    ROOT::Fit::BinData data(v.size() - 1, 1);
+	    ROOT::Fit::FillData(data, h);
+	    ROOT::Fit::Chi2Function *EPChi2 = new ROOT::Fit::Chi2Function(data, *fitFunction);
+	    ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
+	    fitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
+	    double params[] = {static_cast<double>(maxheight), static_cast<double>(maxbin - 5), static_cast<double>(pedestal)};
+	    fitter->Config().SetParamsSettings(3, params);
+	    fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
+	    for (int i = 0; i < 3; i++)
+	      {
+		v.push_back(f->GetParameter(i));
+	      }
+	    h->Delete();
+	    f->Delete();
+	    delete fitFunction;
+	    delete fitter;
+	    delete EPChi2;
+	  }
+      }
   };
 
   t.Foreach(func, chnlvector);
