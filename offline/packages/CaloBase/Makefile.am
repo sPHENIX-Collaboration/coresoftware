@@ -4,6 +4,11 @@
 AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
+if USE_ONLINE
+pkginclude_HEADERS = \
+  TowerInfoDefs.h
+
+else
 lib_LTLIBRARIES = \
   libcalo_io.la
 
@@ -115,6 +120,7 @@ libcalo_io_la_SOURCES = \
   TowerInfov1.cc \
   TowerInfoDefs.cc \
   TowerInfoContainerv1.cc
+endif
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

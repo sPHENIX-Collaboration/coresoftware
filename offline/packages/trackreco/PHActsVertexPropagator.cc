@@ -39,11 +39,6 @@ int PHActsVertexPropagator::InitRun(PHCompositeNode* topNode)
 }
 int PHActsVertexPropagator::process_event(PHCompositeNode*)
 {
-  if (m_vertexMap->size() == 0)
-  {
-    setTrackVertexTo0();
-  }
-
   std::vector<unsigned int> deletedKeys;
   for (const auto& [trackKey, trajectory] : *m_trajectories)
   {
@@ -81,16 +76,19 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
       }
       else
       {
-	if(Verbosity()>1)
-	  {
-	    svtxTrack->identify();
-	  }
+        if (Verbosity() > 1)
+        {
+          svtxTrack->identify();
+        }
       }
     }
   }
 
   setVtxChi2();
-
+  if (m_vertexMap->size() == 0 && Verbosity() > 2)
+  {
+    std::cout << "Propagated tracks to PerigeeSurface at (0,0,0) as no track vertices were found" << std::endl;
+  }
   /// Erase the trajectories that were removed from the track cleaner
   for (auto& key : deletedKeys)
   {
@@ -185,44 +183,22 @@ PHActsVertexPropagator::propagateTrack(
 
   ActsPropagator propagator(m_tGeometry);
   propagator.verbosity(Verbosity());
-  
-  return propagator.propagateTrack(params,perigee);
- 
+
+  return propagator.propagateTrack(params, perigee);
 }
 
 Acts::Vector3 PHActsVertexPropagator::getVertex(const unsigned int vtxid)
 {
   auto svtxVertex = m_vertexMap->get(vtxid);
-  return Acts::Vector3(svtxVertex->get_x() * Acts::UnitConstants::cm,
-                       svtxVertex->get_y() * Acts::UnitConstants::cm,
-                       svtxVertex->get_z() * Acts::UnitConstants::cm);
-}
-
-void PHActsVertexPropagator::setTrackVertexTo0()
-{
-  /// If we found no vertices in the event, propagate the tracks to 0,0,0
-  auto vertex = std::make_unique<SvtxVertex_v1>();
-  vertex->set_chisq(0.);
-  vertex->set_ndof(0);
-  vertex->set_t0(0);
-  vertex->set_id(0);
-  vertex->set_x(0);
-  vertex->set_y(0);
-  vertex->set_z(0);
-  for (int i = 0; i < 3; i++)
+  /// check that a vertex exists
+  if (svtxVertex)
   {
-    for (int j = 0; j < 3; j++)
-    {
-      vertex->set_error(i, j, 20.);
-    }
+    return Acts::Vector3(svtxVertex->get_x() * Acts::UnitConstants::cm,
+                         svtxVertex->get_y() * Acts::UnitConstants::cm,
+                         svtxVertex->get_z() * Acts::UnitConstants::cm);
   }
 
-  m_vertexMap->insert(vertex.release());
-
-  for (auto& [key, track] : *m_trackMap)
-  {
-    track->set_vertex_id(0);
-  }
+  return Acts::Vector3::Zero();
 }
 
 int PHActsVertexPropagator::End(PHCompositeNode*)

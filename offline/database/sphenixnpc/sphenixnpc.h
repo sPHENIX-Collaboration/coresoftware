@@ -5,23 +5,26 @@
 
 #include <nlohmann/json.hpp>
 
+#include <cstdint>
 #include <iostream>
+#include <set>
+#include <string>
 
 class sphenixnpc : public nopayloadclient::Client
 {
  public:
   using nopayloadclient::Client::createGlobalTag;
   using nopayloadclient::Client::deleteGlobalTag;
-  using nopayloadclient::Client::getUrlDict;
   using nopayloadclient::Client::setGlobalTag;
 
   static sphenixnpc *instance(const std::string &globaltag = "NONE");
   ~sphenixnpc();
   nlohmann::json getUrlDict(long long iov);
+  nlohmann::json getUrlDict(long long iov1, long long iov2) override;
   int createGlobalTag(const std::string &tagname);
-
+  int createDomain(const std::string &domain);
   nlohmann::json get(const std::string &pl_type, long long iov);
-  nlohmann::json cache_set_GlobalTag(const std::string &name);
+  int cache_set_GlobalTag(const std::string &name);
   nlohmann::json clearCache() override;
   std::string getCalibrationFile(const std::string &type, uint64_t iov);
   int insertcalib(const std::string &pl_type, const std::string &file_url, uint64_t iov_start);
@@ -36,6 +39,7 @@ class sphenixnpc : public nopayloadclient::Client
   int m_Verbosity = 0;
   nlohmann::json url_dict_;  // valid until global tag is switched
   std::string m_CachedGlobalTag;
+  std::set<std::string> m_DomainCache;
 };
 
 #endif  // SPHENIXNPC_SPHENIXNPC_H

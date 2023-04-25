@@ -30,7 +30,7 @@ void CaloWaveformProcessing::initialize_processing()
       }
   }
   else if (m_processingtype == CaloWaveformProcessing::ONNX)
-    {
+  {
     std::string calibrations_repo_model = std::string(calibrationsroot) + "/WaveformProcessing/models/" + m_model_name;
     url_onnx = CDBInterface::instance()->getUrl(m_model_name, calibrations_repo_model);
     onnxmodule = onnxSession(url_onnx);
