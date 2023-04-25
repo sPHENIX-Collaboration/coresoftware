@@ -118,9 +118,6 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   ClusterErrorPara _ClusErrPara;
 
-  float sensorAngles[3] = {0.01, 0.01, 0.01};  // perturbation values for each alignment angle
-  float sensorTransl[3] = {0.5, 0.5, 0.5};  // perturbation values for each translation direction (mm)
- 
   std::set<unsigned int> fixed_layers;
   std::set<std::pair<unsigned int,unsigned int>> fixed_layer_params;
 
