@@ -122,11 +122,9 @@ void setTPCParams(double tpcDevs[6])
 
   int localVerbosity = 0;
 
-  Acts::Transform3 makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles);
+  bool use_global_millepede_translations = true;
 
-  Acts::Transform3 makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector);
-
-  Eigen::Matrix3d rotateToGlobal(Surface surf);
+  Acts::Transform3 newMakeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles);
 
   alignmentTransformationContainer* transformMap = NULL;
   ActsGeometry* m_tGeometry = NULL;
