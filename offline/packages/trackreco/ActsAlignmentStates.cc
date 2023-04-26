@@ -45,14 +45,15 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
   const auto& trackTip = tips.front();
   const auto crossing = track->get_silicon_seed()->get_crossing();
 
-  /// trajectory (helix) paramters
-  const auto& params = traj.trackParameters(trackTip);
-  const auto boundparams = params.parameters();
-
   ActsPropagator propagator(m_tGeometry);
 
   SvtxAlignmentStateMap::StateVec statevec;
-  if(m_verbosity > 2) std::cout << "Beginning alignment state creation for track " << track->get_id() << std::endl;
+  if(m_verbosity > 2) 
+    {
+      std::cout << "Beginning alignment state creation for track " 
+		<< track->get_id() << std::endl;
+    }
+
   std::vector<Acts::BoundIndices> indices {Acts::eBoundLoc0, Acts::eBoundLoc1, Acts::eBoundPhi, Acts::eBoundTheta, Acts::eBoundQOverP, Acts::eBoundTime};
   mj.visitBackwards(trackTip, [&](const auto& state)
                     {
@@ -156,50 +157,11 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
 
     //! this is the derivative of the state wrt to Acts track parameters
     //! e.g. (d_0, z_0, phi, theta, q/p, t)
-  
-    auto localDeriv = -state.effectiveProjector() * state.jacobian();
+    auto localDeriv = state.effectiveProjector() * state.jacobian();
     if(m_verbosity > 2)
       {
 	std::cout << "local deriv " << std::endl << localDeriv << std::endl;
-	std::cout << "local deriv rows cols " << localDeriv.rows() << ", " << localDeriv.cols() << std::endl;
-      }
-
-    SvtxAlignmentState::LocalMatrix locDerivCalc = SvtxAlignmentState::LocalMatrix::Zero();
-    for(int nloc = 0; nloc < SvtxAlignmentState::NLOC; nloc++)
-      {
-	Acts::BoundVector newparam;
-	for(auto index : indices)
-	  {
-	    newparam[index] = boundparams[index];
-	    if(index == nloc) newparam[index ] = boundparams[index]+0.1;
-	  }
-	const Acts::BoundTrackParameters newparams(
-             params.referenceSurface().getSharedPtr(), 
-	     newparam, params.charge(), params.covariance());
-	propagator.verbosity(m_verbosity);
-	/// propagate the helix to the surface with the modified track parameters
-	auto result = propagator.propagateTrack(newparams, surface.getSharedPtr());
-	if(result.ok())
-	  {
-	    const Acts::Vector3 newStateGlob = result.value().second.position(m_tGeometry->geometry().getGeoContext());
-	    if(m_verbosity > 2)
-	      {
-		std::cout << "  kf state " << stateGlobal.transpose()
-			  << std::endl << "  new state " << newStateGlob.transpose() << std::endl;
-	      }
-	    Acts::Vector3 stateDiff = newStateGlob - stateGlobal;
-	    stateDiff /= 0.1;
-	    locDerivCalc(0, nloc) = stateDiff.dot(projxy.first);
-	    locDerivCalc(1, nloc) = stateDiff.dot(projxy.second);
-	    
-	  }
-      }
-    if(m_verbosity > 2)
-      {
-	std::cout << "hand calculated local derivatives " 
-		  << std::endl << locDerivCalc << std::endl;
-
-      }
+      }  
 
     auto globDeriv = makeGlobalDerivatives(OM, projxy);
     auto svtxstate = std::make_unique<SvtxAlignmentState_v1>();
@@ -207,10 +169,10 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
     svtxstate->set_residual(localResidual);
     svtxstate->set_local_derivative_matrix(localDeriv);
     svtxstate->set_global_derivative_matrix(globDeriv);
-   svtxstate->set_cluster_key(ckey);
+    svtxstate->set_cluster_key(ckey);
   
     statevec.push_back(svtxstate.release());
-   return true; });
+    return true; });
 
   if (m_verbosity > 2)
   {
