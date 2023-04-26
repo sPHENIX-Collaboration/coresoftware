@@ -134,7 +134,11 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
     /// The local bound parameters still have access to global phi/theta
     double phi = state.smoothed()[Acts::eBoundPhi];
     double theta = state.smoothed()[Acts::eBoundTheta];
-    const Acts::Vector3 tangent = Acts::makeDirectionUnitFromPhiTheta(phi,theta);
+    Acts::Vector3 tangent = Acts::makeDirectionUnitFromPhiTheta(phi,theta);
+    //! charge for phi is switched in Acts
+    tangent(0) *= -1; 
+    tangent(1) *= -1;
+    
     if(m_verbosity > 2)
       {
 	std::cout << "tangent vector to track state is " << tangent.transpose() << std::endl;
@@ -145,6 +149,9 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
 
     Acts::Vector3 sensorCenter = surface.center(m_tGeometry->geometry().getGeoContext());
     Acts::Vector3 OM = stateGlobal - sensorCenter;
+
+    auto globDeriv = makeGlobalDerivatives(OM, projxy);
+
     if(m_verbosity > 2)
       {
 	std::cout << "   global deriv calcs" << std::endl
@@ -152,7 +159,8 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
 		  << ", sensor center " << sensorCenter.transpose() << std::endl
 		  << ", OM " << OM.transpose() << std::endl << "   projxy "
 		  << projxy.first.transpose() << ", " 
-		  << projxy.second.transpose() << std::endl;
+		  << projxy.second.transpose() << std::endl
+		  << "global derivatives " << std::endl << globDeriv << std::endl;
       }
 
     //! this is the derivative of the state wrt to Acts track parameters
@@ -163,7 +171,6 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
 	std::cout << "local deriv " << std::endl << localDeriv << std::endl;
       }  
 
-    auto globDeriv = makeGlobalDerivatives(OM, projxy);
     auto svtxstate = std::make_unique<SvtxAlignmentState_v1>();
     
     svtxstate->set_residual(localResidual);
@@ -223,7 +230,7 @@ std::pair<Acts::Vector3, Acts::Vector3> ActsAlignmentStates::get_projectionXY(co
   Acts::Vector3 sensorCenter = surface.center(m_tGeometry->geometry().getGeoContext()); 
   // sensorNormal is the Z vector
   Acts::Vector3 Z = -surface.normal(m_tGeometry->geometry().getGeoContext());
-
+  
   // get surface X and Y unit vectors in global frame
   // transform Xlocal = 1.0 to global, subtract the surface center, normalize to 1
   Acts::Vector3 xloc(1.0,0.0,0.0);
