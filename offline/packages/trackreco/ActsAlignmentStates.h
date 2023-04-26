@@ -12,9 +12,9 @@
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ActsTrackFittingAlgorithm.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
-#include <trackbase/ActsTrackFittingAlgorithm.h>
 
 class PHCompositeNode;
 class SvtxTrack;
@@ -35,9 +35,8 @@ class ActsAlignmentStates
   void clusterVersion(const int v) { m_clusterVersion = v; }
   void fillAlignmentStateMap(const Trajectory& traj,
                              SvtxTrack* track,
-			     const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
+                             const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
   void verbosity(const int verb) { m_verbosity = verb; }
-  void analyticGlobalDer(bool a) { m_analytic = a; }
   void distortionContainers(TpcDistortionCorrectionContainer* stat,
                             TpcDistortionCorrectionContainer* average,
                             TpcDistortionCorrectionContainer* fluc)
@@ -49,17 +48,13 @@ class ActsAlignmentStates
   void actsGeometry(ActsGeometry* geom) { m_tGeometry = geom; }
   void clusters(TrkrClusterContainer* clus) { m_clusterMap = clus; }
   void stateMap(SvtxAlignmentStateMap* map) { m_alignmentStateMap = map; }
-  
+
  private:
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
-  std::vector<Acts::Vector3> getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing);
-  void getGlobalDerivatives(std::vector<Acts::Vector3>& anglederivs, SvtxAlignmentState::GlobalMatrix& analytic);
-  Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
-  float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster* cluster);
+
   std::pair<Acts::Vector3, Acts::Vector3> get_projectionXY(const Acts::Surface& surface, const Acts::Vector3& tangent);
   SvtxAlignmentState::GlobalMatrix makeGlobalDerivatives(const Acts::Vector3& OM, const std::pair<Acts::Vector3, Acts::Vector3>& projxy);
-  
-  bool m_analytic = true;
+
   int m_verbosity = 0;
   int m_clusterVersion = 4;
 
