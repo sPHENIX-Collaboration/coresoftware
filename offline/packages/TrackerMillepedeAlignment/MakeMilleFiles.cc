@@ -311,11 +311,12 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 
     // need standard deviation of measurements
     SvtxAlignmentState::ResidualVector clus_sigma = SvtxAlignmentState::ResidualVector::Zero();
+    
     if (_cluster_version == 3)
     {
-      clus_sigma(2) = cluster->getZError() * Acts::UnitConstants::cm;
-      clus_sigma(0) = cluster->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
-      clus_sigma(1) = cluster->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
+      clus_sigma(1) = cluster->getZError() * Acts::UnitConstants::cm;
+      clus_sigma(0) = cluster->getRPhiError() * Acts::UnitConstants::cm;
+     
     }
     else if (_cluster_version == 4)
     {
@@ -323,9 +324,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster, clusRadius, ckey);
       float exy2 = para_errors.first * Acts::UnitConstants::cm2;
       float ez2 = para_errors.second * Acts::UnitConstants::cm2;
-      clus_sigma(2) = sqrt(ez2);
-      clus_sigma(0) = sqrt(exy2 / 2.0);
-      clus_sigma(1) = sqrt(exy2 / 2.0);
+      clus_sigma(1) = sqrt(ez2);
+      clus_sigma(0) = sqrt(exy2);
     }
   else if(_cluster_version == 5)
     {
@@ -334,9 +334,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5,clusRadius,ckey);
       double phierror = sqrt(para_errors.first);
       double zerror = sqrt(para_errors.second);
-      clus_sigma(2) = zerror;
-      clus_sigma(0) = phierror/ sqrt(2);
-      clus_sigma(1) = phierror/ sqrt(2);
+      clus_sigma(1) = zerror;
+      clus_sigma(0) = phierror;
     }
 
     if (std::isnan(clus_sigma(0)) ||
@@ -364,7 +363,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       std::cout << std::endl;
     }
 
-    /// For N residual coordinates x,y,z
+    /// For N residual local coordinates x, z
     for (int i = 0; i < SvtxAlignmentState::NRES; ++i)
     {
       // Add the measurement separately for each coordinate direction to Mille
@@ -419,7 +418,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
   return;
 }
 
-void MakeMilleFiles::printBuffers(int index, Acts::Vector3 residual, Acts::Vector3 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[])
+void MakeMilleFiles::printBuffers(int index, Acts::Vector2 residual, Acts::Vector2 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[])
 {
   std::cout << " float buffer: " << " residual " << "  " << residual(index);
   for (int il=0;il<SvtxAlignmentState::NLOC;++il) { if(lcl_derivative[il] != 0) std::cout << " lcl_deriv["<< il << "] " << lcl_derivative[il] << "  ";  }

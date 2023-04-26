@@ -85,7 +85,7 @@ class MakeMilleFiles : public SubsysReco
 
   bool is_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
-  void printBuffers(int index, Acts::Vector3 residual, Acts::Vector3 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[]);
+  void printBuffers(int index, Acts::Vector2 residual, Acts::Vector2 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[]);
 
   void addTrackToMilleFile(SvtxAlignmentStateMap::StateVec statevec);
 
