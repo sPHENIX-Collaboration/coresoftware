@@ -97,7 +97,7 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
 
   // get number of datasets (also call waveforms)
   const auto n_waveforms = packet->iValue(0, "NR_WF" );
-  // if( Verbosity() )
+  if( Verbosity() )
   { std::cout << "MicromegasRawDataCalibration::process_event - n_waveforms: " << n_waveforms << std::endl; }
   
   for( int i=0; i<n_waveforms; ++i )
@@ -105,7 +105,7 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
     auto channel = packet->iValue( i, "CHANNEL" );
     int fee = packet->iValue(i, "FEE" );
     int samples = packet->iValue( i, "SAMPLES" );
-    // if( Verbosity() )
+    if( Verbosity() )
     {
       std::cout
         << "MicromegasRawDataCalibration::process_event -"
