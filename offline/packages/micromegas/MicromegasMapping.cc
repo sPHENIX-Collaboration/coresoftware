@@ -206,6 +206,7 @@ std::string MicromegasMapping::get_detname_sphenix_from_hitsetkey( TrkrDefs::hit
 //____________________________________________________________________________________________________
 void MicromegasMapping::construct_channel_mapping()
 {
+  // procedure details: https://indico.bnl.gov/event/19349/contributions/75908/attachments/47219/80098/talk.pdf
 
   /*
    * map channel id on FEE board (0-255) to mec8 connector and channel
@@ -310,7 +311,7 @@ void MicromegasMapping::construct_channel_mapping()
   }
 
   // map phisical strips in the detector to MEC8 signal id on detector as defined by Audrey
-  // source: https://indico.bnl.gov/event/19038/contributions/75495/attachments/47029/79751/MappingTPOT.xlsx
+  // source: https://indico.bnl.gov/event/19038/contributions/75495/attachments/47029/79824/MappingTPOT.xlsx
   std::map<int,int> strip_to_signal_id_mapping_all =
   {
     {1,1}, {2,33}, {3,2}, {4,34}, {5,3}, {6,35}, {7,4}, {8,36},
@@ -392,7 +393,7 @@ void MicromegasMapping::construct_channel_mapping()
   /* sources:
    * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225938-XX.PNG.png
    * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225940-XX.PNG.png
-   * https://indico.bnl.gov/event/19038/contributions/75495/attachments/47029/79750/MappingGerber.pdf
+   * https://indico.bnl.gov/event/19038/contributions/75495/attachments/47029/79823/MappingGerber.pdf
    * https://indico.bnl.gov/event/17391/contributions/68961/attachments/47061/79816/TpotProgress.pdf, slide 2
    */
   std::map<int,int> mec8_to_signal_mapping_phi = {
@@ -416,7 +417,7 @@ void MicromegasMapping::construct_channel_mapping()
 
   // map all mec8 channel id to signal id on detector as defined by audrey in phi views
   /* sources:
-   * https://indico.bnl.gov/event/19038/contributions/75495/attachments/47029/79750/MappingGerber.pdf
+   * https://indico.bnl.gov/event/19038/contributions/75495/attachments/47029/79823/MappingGerber.pdf
    * https://indico.bnl.gov/event/17391/contributions/68961/attachments/47061/79816/TpotProgress.pdf, slide 2
    */
   std::map<mec8_channel_id,int> mec8_to_signal_mapping_phi_all;
