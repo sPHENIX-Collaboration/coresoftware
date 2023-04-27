@@ -355,10 +355,10 @@ void MicromegasMapping::construct_channel_mapping()
   auto get_strip_geant_z = []( int strip_audrey )
   {
     /*
-     * for z views, audrey and geant strips are numbered in the same direction
+     * for z views, audrey and geant strips are numbered in oposite directions
      * geant strips start from zero
-     */
-    return strip_audrey-1;
+    */
+    return MicromegasDefs::m_nchannels_fee-strip_audrey;
   };
 
   // construct fee channel id to strip
