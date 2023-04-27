@@ -355,7 +355,6 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
   MicromegasMapping mapping;
   
   // loop over tiles
-  // for( const uint& tileid:{3, 2, 1, 0, 5, 4, 7, 6} )
   for( uint tileid = 0; tileid < 8; ++tileid )
   {
     
@@ -367,11 +366,8 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
       
       const auto thickness = layergeom->get_thickness();
       const auto strip_length = layergeom->get_strip_length( tileid, m_tGeometry);      
-      
-//       if( tileid == 3 )
-//       { std::cout << "MicromegasEvaluator_hp::print_micromegas_geometry - layer: " << layer << " thickness: " << thickness << " strip_length: " << strip_length << std::endl; }
-      
-      for( const uint stripnum:{255,0} )
+            
+      for( const uint stripnum:{0,255} )
       {
         
         // get strip center, local coordinates
@@ -418,26 +414,6 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
         const auto hitsetkey = MicromegasDefs::genHitSetKey(layer, segmentation, tileid );
         const auto module_name_sphenix = mapping.get_detname_sphenix_from_hitsetkey(hitsetkey);
         const auto module_name_saclay = mapping.get_detname_saclay_from_hitsetkey(hitsetkey);
-//         if( layer == 55 )
-//         {
-//           if( stripnum == 0 ) 
-//           {
-//             std::cout << module_name_saclay << "_s3 " << strip_begin_world << std::endl;
-//             std::cout << module_name_saclay << "_s4 " << strip_end_world << std::endl;          
-//           } else {
-//             std::cout << module_name_saclay << "_s1 " << strip_begin_world << std::endl;
-//             std::cout << module_name_saclay << "_s2 " << strip_end_world << std::endl;          
-//           }
-//         } else {
-//           if( stripnum == 0 ) 
-//           {
-//             std::cout << module_name_saclay << "_s3 "  << strip_end_world << std::endl;          
-//             std::cout << module_name_saclay << "_s4 " << strip_begin_world << std::endl;
-//           } else {
-//             std::cout << module_name_saclay << "_s1 " << strip_end_world << std::endl;          
-//             std::cout << module_name_saclay << "_s2 " << strip_begin_world << std::endl;
-//           }
-//         }        
 
         std::cout << layer << " " << tileid << " " << module_name_sphenix << " " << module_name_saclay << " " << stripnum << " " <<  strip_begin_world << std::endl;
         std::cout << layer << " " << tileid << " " << module_name_sphenix << " " << module_name_saclay << " " << stripnum << " " <<  strip_end_world << std::endl;
