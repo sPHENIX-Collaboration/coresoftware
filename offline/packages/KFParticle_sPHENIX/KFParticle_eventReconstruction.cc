@@ -56,8 +56,8 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
                                                  std::vector<std::vector<KFParticle>>& selectedIntermediates,
                                                  int& nPVs, int& multiplicity)
 {
-  //ALICE field is 0.5T but they set it to -5 in KFParticle? Checked momentum sums and -1.4 is more accurate
-  KFParticle::SetField(-1.4e0);
+  //The actual unit of KFParticle is in kilo Gauss (kG), which is equivalent to 0.1 T, instead of Tesla (T). The positive value indicates the B field is in the +z direction
+  KFParticle::SetField(14.0);
 
   std::vector<KFParticle> primaryVertices;
   if (m_use_fake_pv)
