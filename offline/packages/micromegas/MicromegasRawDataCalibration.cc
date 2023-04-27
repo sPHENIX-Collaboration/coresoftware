@@ -87,7 +87,7 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
    * To be fixed at a later stage.
    * check with Martin Purschke
    */
-  auto packet = event->getPacket(5001);
+  auto packet = event->getPacket(MicromegasDefs::m_packet_id);
   if( !packet )
   {
     // no data
