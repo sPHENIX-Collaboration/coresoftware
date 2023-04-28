@@ -24,7 +24,13 @@ class CaloWaveformFitting
     return;
   }
 
-  int get_nthreads()
+  void set_softwarezerosuppression(bool usezerosuppression,int softwarezerosuppression)
+  {
+    _nsoftwarezerosuppression = softwarezerosuppression;
+    _bdosoftwarezerosuppression = usezerosuppression;
+  }
+
+  int get_nthreads() 
   {
     return _nthreads;
   }
@@ -40,6 +46,9 @@ class CaloWaveformFitting
   TProfile *h_template = nullptr;
   double template_function(double *x, double *par);
   int _nthreads = 1;
+  int _nzerosuppresssamples = 2;
+  int _nsoftwarezerosuppression = 40;
+  bool _bdosoftwarezerosuppression = false;
   std::string m_template_input_file;
   std::string url_template;
 

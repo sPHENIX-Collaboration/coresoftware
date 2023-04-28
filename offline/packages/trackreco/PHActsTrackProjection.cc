@@ -41,10 +41,16 @@ PHActsTrackProjection::PHActsTrackProjection(const std::string& name)
   m_caloNames.push_back("CEMC");
   m_caloNames.push_back("HCALIN");
   m_caloNames.push_back("HCALOUT");
+  m_caloNames.push_back("OUTER_CEMC");
+  m_caloNames.push_back("OUTER_HCALIN");
+  m_caloNames.push_back("OUTER_HCALOUT");
 
   m_caloTypes.push_back(SvtxTrack::CEMC);
   m_caloTypes.push_back(SvtxTrack::HCALIN);
   m_caloTypes.push_back(SvtxTrack::HCALOUT);
+  m_caloTypes.push_back(SvtxTrack::OUTER_CEMC);
+  m_caloTypes.push_back(SvtxTrack::OUTER_HCALIN);
+  m_caloTypes.push_back(SvtxTrack::OUTER_HCALOUT);
 }
 
 int PHActsTrackProjection::InitRun(PHCompositeNode* topNode)
@@ -94,6 +100,11 @@ int PHActsTrackProjection::process_event(PHCompositeNode* topNode)
     }
 
     int ret = projectTracks(layer);
+    if (ret != Fun4AllReturnCodes::EVENT_OK)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    ret = projectTracks(layer+m_nCaloLayers);
     if (ret != Fun4AllReturnCodes::EVENT_OK)
     {
       return Fun4AllReturnCodes::ABORTEVENT;
@@ -306,6 +317,8 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode* topNode)
 
     /// Default to using calo radius
     double caloRadius = m_towerGeomContainer->get_radius();
+    double caloOuterRadius = m_towerGeomContainer->get_radius() + m_towerGeomContainer->get_thickness();
+
     if (m_caloRadii.find(m_caloTypes.at(caloLayer)) != m_caloRadii.end())
     {
       caloRadius = m_caloRadii.find(m_caloTypes.at(caloLayer))->second;
@@ -317,11 +330,23 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode* topNode)
 
     caloRadius *= Acts::UnitConstants::cm;
 
+    if (m_caloRadii.find(m_caloTypes.at(caloLayer+m_nCaloLayers)) != m_caloRadii.end())
+    {
+      caloOuterRadius = m_caloRadii.find(m_caloTypes.at(caloLayer+m_nCaloLayers))->second;
+    }
+    else
+    {
+      m_caloRadii.insert(std::make_pair(m_caloTypes.at(caloLayer+m_nCaloLayers), caloOuterRadius));
+    }
+
+    caloOuterRadius *= Acts::UnitConstants::cm;
+
     /// Extend farther so that there is at least surface there, for high
     /// curling tracks. Can always reject later
     const auto eta = 2.5;
     const auto theta = 2. * atan(exp(-eta));
     const auto halfZ = caloRadius / tan(theta) * Acts::UnitConstants::cm;
+    const auto halfZOuter = caloOuterRadius / tan(theta) * Acts::UnitConstants::cm;
 
     /// Make a cylindrical surface at (0,0,0) aligned along the z axis
     auto transform = Acts::Transform3::Identity();
@@ -330,12 +355,17 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode* topNode)
         Acts::Surface::makeShared<Acts::CylinderSurface>(transform,
                                                          caloRadius,
                                                          halfZ);
+    std::shared_ptr<Acts::CylinderSurface> outer_surf = 
+        Acts::Surface::makeShared<Acts::CylinderSurface>(transform, 
+                                                         caloOuterRadius, 
+                                                         halfZOuter);
     if (Verbosity() > 1)
     {
       std::cout << "Creating  cylindrical surface at " << caloRadius << std::endl;
+      std::cout << "Creating  cylindrical surface at " << caloOuterRadius << std::endl;
     }
-    m_caloSurfaces.insert(std::make_pair(m_caloNames.at(caloLayer),
-                                         surf));
+    m_caloSurfaces.insert(std::make_pair(m_caloNames.at(caloLayer),surf));
+    m_caloSurfaces.insert(std::make_pair(m_caloNames.at(caloLayer+m_nCaloLayers), outer_surf));
   }
 
   if (Verbosity() > 1)
