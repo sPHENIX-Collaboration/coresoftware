@@ -93,7 +93,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<double, 3> SectorPhi;
   int m_NHits = 0;
   // Using Gain maps is turned off by default
-  int m_flagToUseGain = 0;
+  int m_flagToUseGain = 1;
   // gaussian sampling
   static constexpr double _nsigmas = 5;
 

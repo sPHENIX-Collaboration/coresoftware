@@ -10,6 +10,8 @@
 #include <vector>
 #include <fstream>
 
+#include <cmath>      // for sin, asin, cos, floor, M_PI
+
 class Fun4AllHistoManager;
 class PHCompositeNode;
 
@@ -62,7 +64,7 @@ class readDigitalCurrents : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
-  void SetBeamXing(int newBeamXing);
+  void SetBeamXing(const std::vector<int> &beamXs);
   void SetEvtStart(int newEvtStart);
   void FillCSV(int fillCSVFile);
   void SetCollSyst(int coll_syst=0);
@@ -82,8 +84,8 @@ class readDigitalCurrents : public SubsysReco
    std::ofstream myCSVFile;
 
  private:
-   int _beamxing = 0;
-   int _evtstart = 0;
+  std::vector<int> _beamxing;
+  int _evtstart = 0;
 
   int _fillCSVFile = 0;
 
@@ -97,7 +99,10 @@ class readDigitalCurrents : public SubsysReco
     TH2*   _h_DC_SC_XY = nullptr;
     TH2*   _h_hit_XY = nullptr;
     TH2*   _h_DC_E = nullptr;
-    TH3*   _h_SC_ibf = nullptr;
+    //TH3*   _h_SC_ibf = nullptr;
+    static const int nFrames = 30;
+    TH3 *_h_SC_ibf[nFrames] = {nullptr};
+
     float _event_timestamp = 0;
     float _event_bunchXing = 0;
 

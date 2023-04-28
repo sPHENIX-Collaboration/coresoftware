@@ -289,6 +289,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
   double gain_weight = 1.0;
   if(m_flagToUseGain==1) gain_weight = h_gain[side]->GetBinContent(h_gain[side]->FindBin(rad_gem*10,phi_gain));//rad_gem in cm -> *10 to get mm
   nelec = nelec*gain_weight;
+  std::cout<<"PHG4TpcPadPlaneReadout::MapToPadPlane gain_weight = "<<gain_weight<<std::endl;
   /* pass_data.neff_electrons = nelec; */
 
   // Distribute the charge between the pads in phi
