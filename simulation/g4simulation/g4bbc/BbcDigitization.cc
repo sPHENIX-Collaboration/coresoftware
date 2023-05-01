@@ -2,6 +2,7 @@
 
 #include <bbc/BbcOutV1.h>
 #include <bbc/BbcPmtContainerV1.h>
+#include <bbc/BbcDefs.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -36,87 +37,6 @@
 
 #include <cmath>
 #include <iostream>
-
-namespace BBCINFO
-{
-  const Double_t index_refract = 1.4585;
-  const Double_t v_ckov = 1.0 / index_refract;  // velocity threshold for CKOV
-  const Double_t C = 29.9792458;                // cm/ns
-
-  // kludge where we have the hardcoded positions of the tubes
-  // These are the x,y for the south BBC (in cm).
-  // The north inverts the x coordinate (x -> -x)
-
-  /* unused causes compiler warning
-  const float TubeLoc[64][2] = {
-      { -12.2976,	4.26 },
-      { -12.2976,	1.42 },
-      { -9.83805,	8.52 },
-      { -9.83805,	5.68 },
-      { -9.83805,	2.84 },
-      { -7.37854,	9.94 },
-      { -7.37854,	7.1 },
-      { -7.37854,	4.26 },
-      { -7.37854,	1.42 },
-      { -4.91902,	11.36 },
-      { -4.91902,	8.52 },
-      { -4.91902,	5.68 },
-      { -2.45951,	12.78 },
-      { -2.45951,	9.94 },
-      { -2.45951,	7.1 },
-      { 0,	11.36 },
-      { 0,	8.52 },
-      { 2.45951,	12.78 },
-      { 2.45951,	9.94 },
-      { 2.45951,	7.1 },
-      { 4.91902,	11.36 },
-      { 4.91902,	8.52 },
-      { 4.91902,	5.68 },
-      { 7.37854,	9.94 },
-      { 7.37854,	7.1 },
-      { 7.37854,	4.26 },
-      { 7.37854,	1.42 },
-      { 9.83805,	8.52 },
-      { 9.83805,	5.68 },
-      { 9.83805,	2.84 },
-      { 12.2976,	4.26 },
-      { 12.2976,	1.42 },
-      { 12.2976,	-4.26 },
-      { 12.2976,	-1.42 },
-      { 9.83805,	-8.52 },
-      { 9.83805,	-5.68 },
-      { 9.83805,	-2.84 },
-      { 7.37854,	-9.94 },
-      { 7.37854,	-7.1 },
-      { 7.37854,	-4.26 },
-      { 7.37854,	-1.42 },
-      { 4.91902,	-11.36 },
-      { 4.91902,	-8.52 },
-      { 4.91902,	-5.68 },
-      { 2.45951,	-12.78 },
-      { 2.45951,	-9.94 },
-      { 2.45951,	-7.1 },
-      { 0,	-11.36 },
-      { 0,	-8.52 },
-      { -2.45951,	-12.78 },
-      { -2.45951,	-9.94 },
-      { -2.45951,	-7.1 },
-      { -4.91902,	-11.36 },
-      { -4.91902,	-8.52 },
-      { -4.91902,	-5.68 },
-      { -7.37854,	-9.94 },
-      { -7.37854,	-7.1 },
-      { -7.37854,	-4.26 },
-      { -7.37854,	-1.42 },
-      { -9.83805,	-8.52 },
-      { -9.83805,	-5.68 },
-      { -9.83805,	-2.84 },
-      { -12.2976,	-4.26 },
-      { -12.2976,	-1.42 }
-  };
-  */
-
-}  // namespace BBCINFO
 
 //____________________________________
 BbcDigitization::BbcDigitization(const std::string &name)
@@ -277,7 +197,7 @@ int BbcDigitization::process_event(PHCompositeNode * /*topNode*/)
     // get summed path length for particles that can create CKOV light
     // n.p.e. is determined from path length
     Double_t beta = v4.Beta();
-    if (beta > BBCINFO::v_ckov && charge != 0.)
+    if (beta > BbcDefs::v_ckov && charge != 0.)
     {
       len[ch] += this_hit->get_path_length();
 
@@ -382,7 +302,7 @@ int BbcDigitization::process_event(PHCompositeNode * /*topNode*/)
     }
 
     // Now calculate zvtx, t0 from best times
-    f_bbcz = (f_bbct[0] - f_bbct[1]) * BBCINFO::C / 2.0;
+    f_bbcz = (f_bbct[0] - f_bbct[1]) * BbcDefs::C / 2.0;
     f_bbct0 = (f_bbct[0] + f_bbct[1]) / 2.0;
 
     _bbcout->set_Vertex(f_bbcz, 0.6);
