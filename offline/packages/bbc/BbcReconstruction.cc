@@ -19,8 +19,6 @@
 #include <TF1.h>
 #include <TH1.h>
 
-#include <memory>
-
 //____________________________________________________________________________..
 BbcReconstruction::BbcReconstruction(const std::string &name)
   : SubsysReco(name)
@@ -35,7 +33,7 @@ BbcReconstruction::~BbcReconstruction()
 //____________________________________________________________________________..
 int BbcReconstruction::Init(PHCompositeNode *)
 {
-  m_gaussian = new TF1("gaussian", "gaus", 0, 20);
+  m_gaussian = std::make_unique<TF1>("gaussian", "gaus", 0, 20);
   m_gaussian->FixParameter(2, m_tres);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -124,7 +122,7 @@ int BbcReconstruction::process_event(PHCompositeNode *)
       m_gaussian->SetParameter(0, 5);
       m_gaussian->SetParameter(1, earliest);
       m_gaussian->SetRange(6, earliest + 5 * m_tres);
-      h_evt_bbct[iarm]->Fit(m_gaussian, "BLRNQ");
+      h_evt_bbct[iarm]->Fit(m_gaussian.get(), "BLRNQ");
       bbct[iarm] = m_gaussian->GetParameter(1);
     }
 

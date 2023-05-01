@@ -5,6 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <memory>
 #include <string>
 
 class PHCompositeNode;
@@ -27,7 +28,7 @@ class BbcReconstruction : public SubsysReco
  private:
   int createNodes(PHCompositeNode *topNode);
   int getNodes(PHCompositeNode *topNode);
-  TF1 *m_gaussian = nullptr;
+  std::unique_ptr<TF1> m_gaussian = nullptr;
 
   float m_tres = 0.05;
 

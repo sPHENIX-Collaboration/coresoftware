@@ -11,6 +11,12 @@ BbcVertexv2::BbcVertexv2()
   , _z(NAN)
   , _z_err(NAN)
 {
+  for (int i = 0; i < 2; i++)
+  {
+    _bbc_ns_npmt[i] = 0;
+    _bbc_ns_q[i] = NAN;
+    _bbc_ns_t[i] = NAN;
+  }
 }
 
 BbcVertexv2::~BbcVertexv2() = default;
