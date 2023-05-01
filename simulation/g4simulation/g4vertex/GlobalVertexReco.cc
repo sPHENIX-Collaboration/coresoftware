@@ -5,8 +5,8 @@
 #include "GlobalVertexMapv1.h"
 #include "GlobalVertexv1.h"
 
-#include <g4bbc/BbcVertex.h>
-#include <g4bbc/BbcVertexMap.h>
+#include <bbc/BbcVertex.h>
+#include <bbc/BbcVertexMap.h>
 
 #include <bbc/BbcOut.h>
 
