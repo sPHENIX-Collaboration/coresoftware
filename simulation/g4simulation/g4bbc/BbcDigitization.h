@@ -1,5 +1,5 @@
-#ifndef G4BBC_BBCSIMRECO_H
-#define G4BBC_BBCSIMRECO_H
+#ifndef G4BBC_BBCDIGITIZATION_H
+#define G4BBC_BBCDIGITIZATION_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -24,13 +24,13 @@ class TH1;
 class TH2;
 class TF1;
 
-class BbcSimReco : public SubsysReco
+class BbcDigitization : public SubsysReco
 {
  public:
   // Default constructor
-  BbcSimReco(const std::string &name = "BbcSimReco");
+  BbcDigitization(const std::string &name = "BbcDigitization");
 
-  ~BbcSimReco() override;
+  ~BbcDigitization() override;
 
   //! Initialization, called for at overall initialization
   int Init(PHCompositeNode *) override;
@@ -88,4 +88,4 @@ class BbcSimReco : public SubsysReco
   BbcPmtContainer *_bbcpmts = nullptr;
 };
 
-#endif  //* __BBCSIMRECO_H__ *//
+#endif  //* __BBCDIGITIZATION_H__ *//

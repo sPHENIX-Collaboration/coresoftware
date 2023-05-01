@@ -1,4 +1,4 @@
-#include "BbcSimReco.h"
+#include "BbcDigitization.h"
 
 #include <bbc/BbcOutV1.h>
 #include <bbc/BbcPmtContainerV1.h>
@@ -119,7 +119,7 @@ namespace BBCINFO
 }  // namespace BBCINFO
 
 //____________________________________
-BbcSimReco::BbcSimReco(const std::string &name)
+BbcDigitization::BbcDigitization(const std::string &name)
   : SubsysReco(name)
   , _tres(0.05)
 {
@@ -137,14 +137,14 @@ BbcSimReco::BbcSimReco(const std::string &name)
   gsl_rng_set(m_RandomGenerator, m_Seed);
 }
 
-BbcSimReco::~BbcSimReco()
+BbcDigitization::~BbcDigitization()
 {
   gsl_rng_free(m_RandomGenerator);
   return;
 }
 
 //___________________________________
-int BbcSimReco::Init(PHCompositeNode *topNode)
+int BbcDigitization::Init(PHCompositeNode *topNode)
 {
   // std::cout << PHWHERE << std::endl;
   CreateNodes(topNode);
@@ -170,7 +170,7 @@ int BbcSimReco::Init(PHCompositeNode *topNode)
 }
 
 //___________________________________
-int BbcSimReco::InitRun(PHCompositeNode *topNode)
+int BbcDigitization::InitRun(PHCompositeNode *topNode)
 {
   GetNodes(topNode);
 
@@ -179,7 +179,7 @@ int BbcSimReco::InitRun(PHCompositeNode *topNode)
 
 //__________________________________
 // Call user instructions for every event
-int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
+int BbcDigitization::process_event(PHCompositeNode * /*topNode*/)
 {
   //**** Initialize Variables
 
@@ -392,7 +392,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
   return 0;
 }
 
-void BbcSimReco::CreateNodes(PHCompositeNode *topNode)
+void BbcDigitization::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -430,7 +430,7 @@ void BbcSimReco::CreateNodes(PHCompositeNode *topNode)
 }
 
 //___________________________________
-void BbcSimReco::GetNodes(PHCompositeNode *topNode)
+void BbcDigitization::GetNodes(PHCompositeNode *topNode)
 {
   // Get the DST objects
 
