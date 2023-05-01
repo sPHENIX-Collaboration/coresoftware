@@ -15,7 +15,6 @@ class TF1;
 class BbcReconstruction : public SubsysReco
 {
  public:
-
   BbcReconstruction(const std::string &name = "BbcReconstruction");
 
   ~BbcReconstruction() override;
@@ -28,12 +27,12 @@ class BbcReconstruction : public SubsysReco
  private:
   int createNodes(PHCompositeNode *topNode);
   int getNodes(PHCompositeNode *topNode);
-  TF1* m_gaussian = nullptr;
+  TF1 *m_gaussian = nullptr;
 
   float m_tres = 0.05;
 
-  BbcVertexMap* m_bbcvertexmap = nullptr;
+  BbcVertexMap *m_bbcvertexmap = nullptr;
   BbcPmtContainer *m_bbcpmts = nullptr;
 };
 
-#endif // BBCRECONSTRUCTION_H
+#endif  // BBCRECONSTRUCTION_H

@@ -36,15 +36,15 @@ class BbcVertexv2 : public BbcVertex
   void set_z_err(float z_err) override { _z_err = z_err; }
 
   void set_bbc_ns(int iarm, int bbc_npmt, float bbc_q, float bbc_t) override
-  { 
+  {
     _bbc_ns_npmt[iarm] = bbc_npmt;
     _bbc_ns_q[iarm] = bbc_q;
     _bbc_ns_t[iarm] = bbc_t;
   }
-  
+
   int get_bbc_npmt(int iarm) const override { return _bbc_ns_npmt[iarm]; }
   float get_bbc_q(int iarm) const override { return _bbc_ns_q[iarm]; }
-  float get_bbc_t(int iarm) const override { return _bbc_ns_t[iarm]; } 
+  float get_bbc_t(int iarm) const override { return _bbc_ns_t[iarm]; }
 
  private:
   unsigned int _id;  //< unique identifier within container

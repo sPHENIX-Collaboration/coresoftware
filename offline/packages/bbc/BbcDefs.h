@@ -1,8 +1,8 @@
 #ifndef BBC_BBCDEFS_H
 #define BBC_BBCDEFS_H
 
-#include <iostream>
 #include <TMath.h>
+#include <iostream>
 
 namespace BbcDefs
 {
@@ -83,11 +83,6 @@ namespace BbcDefs
   };
   */
 
-
-}
-
-
-
-
+}  // namespace BbcDefs
 
 #endif

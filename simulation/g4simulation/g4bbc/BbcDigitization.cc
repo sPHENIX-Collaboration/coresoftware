@@ -1,7 +1,7 @@
 #include "BbcDigitization.h"
 
-#include <bbc/BbcPmtContainerV1.h>
 #include <bbc/BbcDefs.h>
+#include <bbc/BbcPmtContainerV1.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -206,10 +206,10 @@ int BbcDigitization::process_event(PHCompositeNode * /*topNode*/)
       }
 
       _bbcpmts->AddBbcPmt(ich, f_pmtq[ich], f_pmtt0[ich], f_pmtt1[ich]);
-      if(Verbosity() > 0)
-	{
-	  std::cout << "Adding " << ich << ", " << f_pmtq[ich] << ", " << f_pmtt0[ich] <<" , " << f_pmtt1[ich] << std::endl;
-	}
+      if (Verbosity() > 0)
+      {
+        std::cout << "Adding " << ich << ", " << f_pmtq[ich] << ", " << f_pmtt0[ich] << " , " << f_pmtt1[ich] << std::endl;
+      }
     }
   }
 
