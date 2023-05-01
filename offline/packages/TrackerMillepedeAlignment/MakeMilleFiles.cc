@@ -453,7 +453,14 @@ bool MakeMilleFiles::is_layer_fixed(unsigned int layer)
 
   return ret;
 }
-
+void MakeMilleFiles::set_layers_fixed(unsigned int minlayer,
+				      unsigned int maxlayer)
+{
+  for(unsigned int i=minlayer; i<maxlayer; i++)
+    {
+      fixed_layers.insert(i);
+    }
+}
 void MakeMilleFiles::set_layer_fixed(unsigned int layer)
 {
   fixed_layers.insert(layer);
