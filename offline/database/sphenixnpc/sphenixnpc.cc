@@ -1,5 +1,11 @@
 #include "sphenixnpc.h"
 
+#include <nopayloadclient/nopayloadclient.hpp>
+
+#include <nlohmann/json.hpp>
+#include <iostream>
+#include <stdexcept>
+
 sphenixnpc *sphenixnpc::__instance = nullptr;
 
 sphenixnpc *sphenixnpc::instance(const std::string &globaltag)
@@ -20,12 +26,17 @@ sphenixnpc::~sphenixnpc()
 int sphenixnpc::createGlobalTag(const std::string &tagname)
 {
   setGlobalTag(tagname);
-  nlohmann::json result = nopayloadclient::Client::createGlobalTag();
-  if (Verbosity())
+  nlohmann::json resp = nopayloadclient::Client::createGlobalTag();
+  int iret = resp["code"];
+  if (iret != 0)
   {
-    std::cout << result << std::endl;
+    std::cout << "Error creating global tag, msg: " << resp["msg"] << std::endl;
   }
-  return 0;
+  else
+  {
+    std::cout << "sphenixnpc: Created new global tag " << tagname << std::endl;
+  }
+  return iret;
 }
 
 int sphenixnpc::deleteGlobalTag(const std::string &tagname)
@@ -41,7 +52,12 @@ int sphenixnpc::deleteGlobalTag(const std::string &tagname)
 
 nlohmann::json sphenixnpc::getUrlDict(long long iov)
 {
-  return nopayloadclient::Client::getUrlDict(0, iov);
+  return nopayloadclient::Client::getUrlDict(iov,iov);
+}
+
+nlohmann::json sphenixnpc::getUrlDict(long long iov1, long long iov2)
+{
+  return nopayloadclient::Client::getUrlDict(iov1,iov2);
 }
 
 nlohmann::json sphenixnpc::get(const std::string &pl_type, long long iov)
@@ -49,6 +65,9 @@ nlohmann::json sphenixnpc::get(const std::string &pl_type, long long iov)
   if (url_dict_.is_null())
   {
     nlohmann::json resp = getUrlDict(iov);
+    std::cout << "response" << std::endl;
+    std::cout << resp << std::endl;
+    std::cout << "end response" << std::endl;
     if (resp["code"] != 0)
     {
       return resp;
@@ -62,17 +81,16 @@ nlohmann::json sphenixnpc::get(const std::string &pl_type, long long iov)
   return makeResp(url_dict_[pl_type]);
 }
 
-int sphenixnpc::cache_set_GlobalTag(const std::string &name)
+int sphenixnpc::cache_set_GlobalTag(const std::string &tagname)
 {
   int iret = 0;
-  if (name == m_CachedGlobalTag) // global tag already set
+  if (tagname == m_CachedGlobalTag) // global tag already set
   {
     return iret;
   }
   url_dict_ = nlohmann::json{};
-  m_CachedGlobalTag = name;
-  //return nopayloadclient::Client::setGlobalTag(name);
-  nopayloadclient::Client::setGlobalTag(name);
+  m_CachedGlobalTag = tagname;
+  nopayloadclient::Client::setGlobalTag(tagname);
   bool found_gt = false;
   nlohmann::json resp = nopayloadclient::Client::getGlobalTags();
   nlohmann::json msgcont = resp["msg"];
@@ -80,7 +98,7 @@ int sphenixnpc::cache_set_GlobalTag(const std::string &name)
   {
     std::string exist_gt = it.value().at("name");
     std::cout << "global tag: " <<  exist_gt << std::endl;
-    if (exist_gt == name)
+    if (exist_gt == tagname)
     {
       found_gt = true;
       break;
@@ -96,7 +114,7 @@ int sphenixnpc::cache_set_GlobalTag(const std::string &name)
     }
     else
     {
-      std::cout << "sphenixnpc: Created new global tag " << name << std::endl;
+      std::cout << "sphenixnpc: Created new global tag " << tagname << std::endl;
     }
   }
   return iret;
