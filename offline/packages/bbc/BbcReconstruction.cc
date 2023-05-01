@@ -79,26 +79,37 @@ int BbcReconstruction::process_event(PHCompositeNode *)
 
   for(int ich = 0; ich < 128; ich++)
     {
-      const int arm = ich / 64;
+
+      const auto pmt = m_bbcpmts->get_pmt(ich);
+      const int arm = pmt / 64;
       auto bbchit = m_bbcpmts->get_tdc0(ich);
-      if(bbchit == BbcReturnCodes::BBC_INVALID_FLOAT)
+      
+      if(std::isnan(m_bbcpmts->get_adc(ich)))
 	{
-	  //! No hit in PMT, continue
+	  //! PMT with no ADC, skip it
 	  continue;
 	}
       
-      //! total charge 
-      bbcq[arm] += m_bbcpmts->get_adc(ich);
-
-      //! number of hit pmts
-      bbcn[arm]++;
-
       if(bbchit < 9999.)
 	{
+	  //! total charge 
+	  bbcq[arm] += m_bbcpmts->get_adc(ich);
+	  
+	  //! number of hit pmts
+	  bbcn[arm]++;
+	  
 	  h_evt_bbct[arm]->Fill(bbchit);
 	  hit_times[arm].push_back(bbchit);
 	}
-
+      if(Verbosity() > 0)
+	{
+	  std::cout << "Channel " << ich << " with pmt " << pmt << " in arm " << arm << "  has " << m_bbcpmts->get_adc(ich) << std::endl;
+	    }
+    }
+  
+  if(Verbosity() > 0)
+    {
+      std::cout << "nbbc arm 1,2: " << bbcn[0] << ", " << bbcn[1] << std::endl;
     }
 
   if(bbcn[0]> 0 && bbcn[1] >0)
@@ -127,14 +138,24 @@ int BbcReconstruction::process_event(PHCompositeNode *)
       auto vertex = std::make_unique<BbcVertexv2>();
       vertex->set_t(bbct0);
       vertex->set_z(bbcz);
+      vertex->set_z_err(0.6);
+      vertex->set_t_err(m_tres);
+
       for(int iarm=0 ; iarm<2; iarm++)
 	{
 	  vertex->set_bbc_ns(iarm, bbcn[iarm], bbcq[iarm], bbct[iarm]);
 	}
 
+      if(Verbosity() > 0)
+	{
+	  std::cout << "bbc vertex z and t0 " << bbcz << ", " 
+		    << bbct0 << std::endl;
+	}
+      
       m_bbcvertexmap->insert(vertex.release());
-    }      
-
+	
+    } 
+    
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
