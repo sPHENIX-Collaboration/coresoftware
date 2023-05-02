@@ -10,9 +10,8 @@
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfo.h>
 
-
-#include <g4vertex/GlobalVertex.h>
-#include <g4vertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>

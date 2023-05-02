@@ -26,7 +26,7 @@ libg4eval_la_LIBADD = \
   -lfun4all \
   -lg4detectors_io \
   -lg4jets_io \
-  -lg4vertex_io \
+  -lglobalvertex_io \
   -lg4tracking_io \
   -ltrackbase_historic_io \
   -ltrack_io \
