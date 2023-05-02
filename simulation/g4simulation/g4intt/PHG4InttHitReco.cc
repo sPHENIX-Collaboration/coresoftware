@@ -516,7 +516,9 @@ void PHG4InttHitReco::SetDefaultParameters()
 }
 
 void PHG4InttHitReco::truthcheck_g4hit(PHG4Hit* g4hit, PHCompositeNode* topNode) {
-  int new_trkid = (g4hit==nullptr) ? -1 : g4hit->get_trkid();
+  if (g4hit==nullptr) return;
+  int new_trkid = g4hit->get_trkid();
+
   bool is_new_track = (new_trkid != m_trkid);
   if (Verbosity()>5) std::cout << PHWHERE << std::endl << " -> Checking status of PHG4Hit. Track id("<<new_trkid<<")" << std::endl;
   if (!is_new_track) {
