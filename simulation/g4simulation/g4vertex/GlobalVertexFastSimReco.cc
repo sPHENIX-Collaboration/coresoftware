@@ -1,9 +1,9 @@
 #include "GlobalVertexFastSimReco.h"
 
-#include "GlobalVertex.h"     // for GlobalVertex
-#include "GlobalVertexMap.h"  // for GlobalVertexMap
-#include "GlobalVertexMapv1.h"
-#include "GlobalVertexv1.h"
+#include <globalvertex/GlobalVertex.h>     // for GlobalVertex
+#include <globalvertex/GlobalVertexMap.h>  // for GlobalVertexMap
+#include <globalvertex/GlobalVertexMapv1.h>
+#include <globalvertex/GlobalVertexv1.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
