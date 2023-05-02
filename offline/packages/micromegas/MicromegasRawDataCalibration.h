@@ -5,7 +5,6 @@
  * \file MicromegasRawDataCalibration.h
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
-
 #include <fun4all/SubsysReco.h>
 
 #include <map>
