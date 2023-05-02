@@ -39,6 +39,11 @@
 #include <string>   // for string
 #include <tuple>    // for tie, tuple
 #include <utility>  // for pair
+#include "TFile.h"  // for pair
+#include "TTree.h"  // for pair
+#include "TH1.h"  // for pair
+#include <iostream>  // for pair
+
 
 /// Create necessary objects
 KFParticle_Tools kfp_Tools_evtReco;
@@ -56,9 +61,32 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
                                                  std::vector<std::vector<KFParticle>>& selectedIntermediates,
                                                  int& nPVs, int& multiplicity)
 {
-  //The actual unit of KFParticle is in kilo Gauss (kG), which is equivalent to 0.1 T, instead of Tesla (T). The positive value indicates the B field is in the +z direction
-  KFParticle::SetField(14.0);
+  //Load the official offline B-field map that is also used in tracking, basically copying the codes from: https://github.com/sPHENIX-Collaboration/coresoftware/blob/master/offline/packages/trackreco/MakeActsGeometry.cc#L478-L483, provide by Joe Osborn. 
+  char *calibrationsroot = getenv("CALIBRATIONROOT");
+  std::string m_magField = "sphenix3dtrackingmapxyz.root";
+  if (calibrationsroot != nullptr)
+  {
+	  m_magField = std::string(calibrationsroot) + std::string("/Field/Map/") + m_magField;
+  }
+  TFile * fin = new TFile(m_magField.c_str());
+  fin->cd();
 
+  TTree * fieldmap = (TTree *) fin->Get("fieldmap");
+  TH1F * BzHist = new TH1F("BzHist","",100,0,10); 
+
+  fieldmap->Project("BzHist","bz","x==0 && y==0 && z==0");
+	
+  //The actual unit of KFParticle is in kilo Gauss (kG), which is equivalent to 0.1 T, instead of Tesla (T). The positive value indicates the B field is in the +z direction
+  float BzValue = BzHist->GetMean() * 10;  //Factor of 10 to convert the B field unit from kG to T
+  
+  //std::cout << "BzValue = " << BzValue << std::endl; //Check the Bz Value for debug purpose
+  
+  KFParticle::SetField(BzValue);
+
+  fieldmap->Delete();
+  BzHist->Delete();
+  fin->Close();
+ 
   std::vector<KFParticle> primaryVertices;
   if (m_use_fake_pv)
     primaryVertices.push_back(createFakePV());
