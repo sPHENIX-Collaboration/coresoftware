@@ -29,7 +29,7 @@ using std::cout;
 using std::endl;
 //____________________________________________________________________________..
 FillTruthRecoMatchTree::FillTruthRecoMatchTree(
-      bool _fill_clusters
+    bool _fill_clusters
     , bool _fill_SvUnMatched
     , float _cluster_nzwidths
     , float _cluster_nphiwidths
@@ -37,13 +37,13 @@ FillTruthRecoMatchTree::FillTruthRecoMatchTree(
     )
   : 
     m_cluster_comp  { _cluster_nphiwidths, _cluster_nzwidths }
-  , m_fill_clusters { _fill_clusters }
-  , m_fill_SvU      { _fill_SvUnMatched }
-  , m_outfile_name  { _outfile_name }
+    , m_fill_clusters { _fill_clusters }
+    , m_fill_SvU      { _fill_SvUnMatched }
+    , m_outfile_name  { _outfile_name }
 {
   m_cluscntr.set_comparer(&m_cluster_comp);
-	PHTFileServer::get().open(m_outfile_name, "RECREATE");
-  
+  PHTFileServer::get().open(m_outfile_name, "RECREATE");
+
   h2_G4_nPixelsPhi = new TH2D("G4_nPixelsPhi", "PHG4 Emb Tracks; cluster pixel width Phi; layer",
       100, -0.5, 99.5, 56, -0.5, 55.5);
   h2_G4_nPixelsZ = new TH2D("G4_nPixelsZ", "PHG4 Emb Tracks; cluster pixel width Z; layer",
@@ -62,91 +62,34 @@ FillTruthRecoMatchTree::FillTruthRecoMatchTree(
   m_ttree->Branch("nphg4",                  &nphg4);
   m_ttree->Branch("nsvtx",                  &nsvtx);
 
-  m_ttree->Branch("G4M_trackid",            &b_G4M_trackid);
-  m_ttree->Branch("G4M_nclus",              &b_G4M_nclus);
-  m_ttree->Branch("G4M_nclusmvtx",          &b_G4M_nclusmvtx);
-  m_ttree->Branch("G4M_nclusintt",          &b_G4M_nclusintt);
-  m_ttree->Branch("G4M_nclustpc",           &b_G4M_nclustpc);
-  m_ttree->Branch("G4M_nclus_matchrat",     &b_G4M_nclus_matchrat);
-  m_ttree->Branch("G4M_nclusmvtx_matchrat", &b_G4M_nclusmvtx_matchrat);
-  m_ttree->Branch("G4M_nclusintt_matchrat", &b_G4M_nclusintt_matchrat);
-  m_ttree->Branch("G4M_nclustpc_matchrat",  &b_G4M_nclustpc_matchrat);
-  m_ttree->Branch("G4M_pt",                 &b_G4M_pt);
-  m_ttree->Branch("G4M_phi",                &b_G4M_phi);
-  m_ttree->Branch("G4M_eta",                &b_G4M_eta);
-  m_ttree->Branch("SvM_trackid",            &b_SvM_trackid);
-  m_ttree->Branch("SvM_nclus",              &b_SvM_nclus);
-  m_ttree->Branch("SvM_nclusmvtx",          &b_SvM_nclusmvtx);
-  m_ttree->Branch("SvM_nclusintt",          &b_SvM_nclusintt);
-  m_ttree->Branch("SvM_nclustpc",           &b_SvM_nclustpc);
-  m_ttree->Branch("SvM_nclus_matchrat",     &b_SvM_nclus_matchrat);
-  m_ttree->Branch("SvM_nclusmvtx_matchrat", &b_SvM_nclusmvtx_matchrat);
-  m_ttree->Branch("SvM_nclusintt_matchrat", &b_SvM_nclusintt_matchrat);
-  m_ttree->Branch("SvM_nclustpc_matchrat",  &b_SvM_nclustpc_matchrat);
-  m_ttree->Branch("SvM_pt",                 &b_SvM_pt);
-  m_ttree->Branch("SvM_phi",                &b_SvM_phi);
-  m_ttree->Branch("SvM_eta",                &b_SvM_eta);
-  if (m_fill_clusters) {
-    m_ttree->Branch("clusM_i0",             &b_clusM_i0);
-    m_ttree->Branch("clusM_i1",             &b_clusM_i1);
-    m_ttree->Branch("clusM_layer",          &b_clusM_layer);
-    m_ttree->Branch("clusM_x",              &b_clusM_x);
-    m_ttree->Branch("clusM_y",              &b_clusM_y);
-    m_ttree->Branch("clusM_z",              &b_clusM_z);
-    m_ttree->Branch("clusM_r",              &b_clusM_r);
-    m_ttree->Branch("G4M_clusU_i0",         &b_G4M_clusU_i0);
-    m_ttree->Branch("G4M_clusU_i1",         &b_G4M_clusU_i1);
-    m_ttree->Branch("G4M_clusU_layer",      &b_G4M_clusU_layer);
-    m_ttree->Branch("G4M_clusU_x",          &b_G4M_clusU_x);
-    m_ttree->Branch("G4M_clusU_y",          &b_G4M_clusU_y);
-    m_ttree->Branch("G4M_clusU_z",          &b_G4M_clusU_z);
-    m_ttree->Branch("G4M_clusU_r",          &b_G4M_clusU_r);
-    m_ttree->Branch("SvM_clusU_i0",         &b_SvM_clusU_i0);
-    m_ttree->Branch("SvM_clusU_i1",         &b_SvM_clusU_i1);
-    m_ttree->Branch("SvM_clusU_layer",      &b_SvM_clusU_layer);
-    m_ttree->Branch("SvM_clusU_x",          &b_SvM_clusU_x);
-    m_ttree->Branch("SvM_clusU_y",          &b_SvM_clusU_y);
-    m_ttree->Branch("SvM_clusU_z",          &b_SvM_clusU_z);
-    m_ttree->Branch("SvM_clusU_r",          &b_SvM_clusU_r);
-  }
-  m_ttree->Branch("G4U_trackid",            &b_G4U_trackid);
-  m_ttree->Branch("G4U_nclus",              &b_G4U_nclus);
-  m_ttree->Branch("G4U_nclusmvtx",          &b_G4U_nclusmvtx);
-  m_ttree->Branch("G4U_nclusintt",          &b_G4U_nclusintt);
-  m_ttree->Branch("G4U_nclustpc",           &b_G4U_nclustpc);
-  m_ttree->Branch("G4U_pt",                 &b_G4U_pt);
-  m_ttree->Branch("G4U_phi",                &b_G4U_phi);
-  m_ttree->Branch("G4U_eta",                &b_G4U_eta);
-  if (m_fill_SvU) {
-    m_ttree->Branch("SvU_trackid",          &b_SvU_trackid);
-    m_ttree->Branch("SvU_nclus",            &b_SvU_nclus);
-    m_ttree->Branch("SvU_nclusmvtx",        &b_SvU_nclusmvtx);
-    m_ttree->Branch("SvU_nclusintt",        &b_SvU_nclusintt);
-    m_ttree->Branch("SvU_nclustpc",         &b_SvU_nclustpc);
-    m_ttree->Branch("SvU_pt",               &b_SvU_pt);
-    m_ttree->Branch("SvU_phi",              &b_SvU_phi);
-    m_ttree->Branch("SvU_eta",              &b_SvU_eta);
-  }
-  if (m_fill_clusters) {
-    m_ttree->Branch("G4U_clusU_i0",         &b_G4U_clusU_i0);
-    m_ttree->Branch("G4U_clusU_i1",         &b_G4U_clusU_i1);
-    m_ttree->Branch("G4U_clusU_layer",      &b_G4U_clusU_layer);
-    m_ttree->Branch("G4U_clusU_x",          &b_G4U_clusU_x);
-    m_ttree->Branch("G4U_clusU_y",          &b_G4U_clusU_y);
-    m_ttree->Branch("G4U_clusU_z",          &b_G4U_clusU_z);
-    m_ttree->Branch("G4U_clusU_r",          &b_G4U_clusU_r);
-    if (m_fill_SvU) {
-      m_ttree->Branch("SvU_clusU_i0",       &b_SvU_clusU_i0);
-      m_ttree->Branch("SvU_clusU_i1",       &b_SvU_clusU_i1);
-      m_ttree->Branch("SvU_clusU_layer",    &b_SvU_clusU_layer);
-      m_ttree->Branch("SvU_clusU_x",        &b_SvU_clusU_x);
-      m_ttree->Branch("SvU_clusU_y",        &b_SvU_clusU_y);
-      m_ttree->Branch("SvU_clusU_z",        &b_SvU_clusU_z);
-      m_ttree->Branch("SvU_clusU_r",        &b_SvU_clusU_r);
-    }
-  }
+  m_ttree ->Branch("trackid"    , &b_trackid    );
+  m_ttree  ->Branch("is_G4track" , &b_is_g4track );
+  m_ttree  ->Branch("is_Svtrack" , &b_is_Svtrack );
+  m_ttree  ->Branch("is_matched" , &b_is_matched );
 
+  m_ttree ->Branch("trkpt"  , &b_trkpt  );
+  m_ttree ->Branch("trketa" , &b_trketa );
+  m_ttree ->Branch("trkphi" , &b_trkphi );
 
+  m_ttree  ->Branch("nclus"         , &b_nclus         );
+  m_ttree  ->Branch("nclustpc"      , &b_nclustpc      );
+  m_ttree  ->Branch("nclusmvtx"     , &b_nclusmvtx     );
+  m_ttree  ->Branch("nclusintt"     , &b_nclusintt     );
+  m_ttree  ->Branch("matchrat"      , &b_matchrat      );
+  m_ttree  ->Branch("matchrat_intt" , &b_matchrat_intt );
+  m_ttree  ->Branch("matchrat_mvtx" , &b_matchrat_mvtx );
+  m_ttree  ->Branch("matchrat_tpc"  , &b_matchrat_tpc  );
+
+  if (m_fill_clusters) {
+    m_ttree ->Branch("clus_match" , &b_clusmatch  );
+    m_ttree ->Branch("clus_x"     , &b_clus_x     );
+    m_ttree ->Branch("clus_y"     , &b_clus_y     );
+    m_ttree ->Branch("clus_z"     , &b_clus_z     );
+    m_ttree ->Branch("clus_r"     , &b_clus_r     );
+    m_ttree ->Branch("clus_layer" , &b_clus_layer );
+    m_ttree ->Branch("nphibins"   , &b_clus_nphibins );
+    m_ttree ->Branch("nzbins"     , &b_clus_ntbins );
+  }
 }
 
 //____________________________________________________________________________..
@@ -263,9 +206,8 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
   nsvtx = m_SvtxTrackMap            ->size();
   ntrackmatches = m_EmbRecoMatchContainer->getMatches().size();
   // get centrality later...
-  
+
   // fill in pixel widths on truth tracks
-  
   for (auto hitsetkey : m_cluscntr.get_PHG4_clusters()->getHitSetKeys()) {
     float layer = (float) TrkrDefs::getLayer(hitsetkey);
     auto range = m_cluscntr.get_PHG4_clusters()->getClusters(hitsetkey);
@@ -287,7 +229,7 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
   }
 
   nphg4_part = 0;
-	const auto range = m_PHG4TruthInfoContainer->GetPrimaryParticleRange();
+  const auto range = m_PHG4TruthInfoContainer->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
       iter != range.second; ++iter)
   { nphg4_part++; }
@@ -301,160 +243,215 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
   // (1) fill unmatched phg4
   // (2) fill unmatched svtx
   // (3) fill matched phg4 and svtx
-  clear_vectors(); 
-  int index_G4M_clusU   {0};
-  int index_SvM_clusU   {0};
-  int i_matched   {0};
-  int index_G4U_clusU   {0};
-  int index_SvU_clusU   {0};
-  
+  clear_clusvecs(" nothing "); 
+
   if (Verbosity() > 2) std::cout << " getting" << (int) m_EmbRecoMatchContainer->getMatches().size() << std::endl;
   for (auto& match : m_EmbRecoMatchContainer->getMatches()) {
-
     unsigned int g4_trkid = match->idTruthTrack();
     int sv_trkid = match->idRecoTrack();
 
     auto g4trk = m_TrkrTruthTrackContainer->getTruthTrack(g4_trkid);
     auto svtrk = m_SvtxTrackMap->get(sv_trkid);
 
-    b_G4M_trackid .push_back(g4_trkid);
-    b_G4M_pt      .push_back(g4trk->getPt());
-    b_G4M_eta     .push_back(g4trk->getPseudoRapidity());
-    b_G4M_phi     .push_back(g4trk->getPhi());
-
-    b_SvM_trackid .push_back(sv_trkid);
-    b_SvM_pt      .push_back(svtrk->get_pt());
-    b_SvM_eta     .push_back(svtrk->get_eta());
-    b_SvM_phi     .push_back(svtrk->get_phi());
-
     m_cluscntr.addClusKeys( g4trk );
     m_cluscntr.addClusKeys( svtrk );
     m_cluscntr.find_matches();
 
+    // <- <- <- <- G4 Matched Tracks
+    b_is_matched = true;
+    b_is_g4track = true;
+    b_is_Svtrack = false;
+
+    b_trackid    = g4_trkid;
+    b_trkpt      = g4trk->getPt();
+    b_trketa     = g4trk->getPseudoRapidity();
+    b_trkphi     = g4trk->getPhi();
+
     auto cnt = m_cluscntr.phg4_cntclus();
-    b_G4M_nclus          .push_back( cnt[4] );
-    b_G4M_nclusmvtx      .push_back( cnt[0] );
-    b_G4M_nclusintt      .push_back( cnt[1] );
-    b_G4M_nclustpc       .push_back( cnt[2] );
     auto cnt_match = m_cluscntr.phg4_cnt_matchedclus();
-    b_G4M_nclus_matchrat     .push_back( (float)cnt_match[4] / cnt[4] );
-    b_G4M_nclusmvtx_matchrat .push_back( (float)cnt_match[0] / cnt[0] );
-    b_G4M_nclusintt_matchrat .push_back( (float)cnt_match[1] / cnt[1] );
-    b_G4M_nclustpc_matchrat  .push_back( (float)cnt_match[2] / cnt[2] );
+
+    b_nclus     = cnt[4] ;
+    b_nclusmvtx = cnt[0] ;
+    b_nclusintt = cnt[1] ;
+    b_nclustpc  = cnt[2] ;
+
+    b_matchrat      = (float)cnt_match[4] / cnt[4] ;
+    b_matchrat_mvtx = (float)cnt_match[0] / cnt[0] ;
+    b_matchrat_intt = (float)cnt_match[1] / cnt[1] ;
+    b_matchrat_tpc  = (float)cnt_match[2] / cnt[2] ;
+
+    if (m_fill_clusters) {
+      auto clusters = m_cluscntr.phg4_clusloc_unmatched();
+      for (auto& loc : clusters) {
+        b_clusmatch     .push_back(false);
+        b_clus_layer    .push_back(std::get<0>(loc));
+        auto x = std::get<1>(loc)[0];
+        auto y = std::get<1>(loc)[1];
+        b_clus_x        .push_back(x);
+        b_clus_y        .push_back(y);
+        b_clus_z        .push_back(std::get<1>(loc)[2]);
+        b_clus_r        .push_back(pow(x*x+y*y,0.5));
+        b_clus_nphibins .push_back(std::get<2>(loc));
+        b_clus_ntbins   .push_back(std::get<3>(loc));
+      }
+
+      clusters = m_cluscntr.clusloc_matched();
+      for (auto& loc : clusters) {
+        b_clusmatch     .push_back(true);
+        b_clus_layer    .push_back(std::get<0>(loc));
+        auto x = std::get<1>(loc)[0];
+        auto y = std::get<1>(loc)[1];
+        b_clus_x        .push_back(x);
+        b_clus_y        .push_back(y);
+        b_clus_z        .push_back(std::get<1>(loc)[2]);
+        b_clus_r        .push_back(pow(x*x+y*y,0.5));
+        b_clus_nphibins .push_back(std::get<2>(loc));
+        b_clus_ntbins   .push_back(std::get<3>(loc));
+      }
+    }
+    m_ttree->Fill();
+    clear_clusvecs();
+    /* clear_clusvecs("apple0 g4_matched"); */
+
+    // <- <- <- <- Svtx Matched Tracks
+    b_is_g4track = false;
+    b_is_Svtrack = true;
+    b_trackid    = sv_trkid;
+    b_trkpt      = svtrk->get_pt();
+    b_trketa     = svtrk->get_eta();
+    b_trkphi     = svtrk->get_phi();
 
     cnt = m_cluscntr.svtx_cntclus();
-    b_SvM_nclus              .push_back( cnt[4] );
-    b_SvM_nclusmvtx          .push_back( cnt[0] );
-    b_SvM_nclusintt          .push_back( cnt[1] );
-    b_SvM_nclustpc           .push_back( cnt[2] );
-    cnt_match = m_cluscntr.svtx_cnt_matchedclus();
-    b_SvM_nclus_matchrat     .push_back( (float)cnt_match[4] / cnt[4] );
-    b_SvM_nclusmvtx_matchrat .push_back( (float)cnt_match[0] / cnt[0] );
-    b_SvM_nclusintt_matchrat .push_back( (float)cnt_match[1] / cnt[1] );
-    b_SvM_nclustpc_matchrat  .push_back( (float)cnt_match[2] / cnt[2] );
+     /* cout << " FIXME 0000 matched Svtx: " << sv_trkid << " " << svtrk->get_pt()<<" " << svtrk->get_eta()<<" "<< svtrk->get_phi() << " " << cnt[4] <<  endl; */
+    b_nclus     = cnt[4] ;
+    b_nclusmvtx = cnt[0] ;
+    b_nclusintt = cnt[1] ;
+    b_nclustpc  = cnt[2] ;
 
+    b_matchrat      = (float)cnt_match[4] / cnt[4] ;
+    b_matchrat_mvtx = (float)cnt_match[0] / cnt[0] ;
+    b_matchrat_intt = (float)cnt_match[1] / cnt[1] ;
+    b_matchrat_tpc  = (float)cnt_match[2] / cnt[2] ;
+
+    /* int _ = 0; */
     if (m_fill_clusters) {
-      // clusters only in G4 matched tracks (i.e. by definition, unmatched clusters)
-      auto clusters = m_cluscntr.phg4_clusloc_unmatched();
-      b_G4M_clusU_i0.push_back(index_G4M_clusU);
-      index_G4M_clusU += clusters.size();
-      b_G4M_clusU_i1.push_back(index_G4M_clusU);
+      auto clusters = m_cluscntr.svtx_clusloc_unmatched();
       for (auto& loc : clusters) {
-        b_G4M_clusU_layer.push_back(loc.first);
-        b_G4M_clusU_x.push_back(loc.second[0]);
-        b_G4M_clusU_y.push_back(loc.second[1]);
-        b_G4M_clusU_z.push_back(loc.second[2]);
-        b_G4M_clusU_r.push_back(pow(pow(loc.second[0],2.)+pow(loc.second[1],2.),0.5));
+        b_clusmatch     .push_back(false);
+        b_clus_layer    .push_back(std::get<0>(loc));
+        auto x = std::get<1>(loc)[0];
+        auto y = std::get<1>(loc)[1];
+        /* if (_==0) cout << " apple x: " << x << " y: " << y << endl; */
+        /* _ += 1; */
+        b_clus_x        .push_back(x);
+        b_clus_y        .push_back(y);
+        b_clus_z        .push_back(std::get<1>(loc)[2]);
+        b_clus_r        .push_back(pow(x*x+y*y,0.5));
+        b_clus_nphibins .push_back(std::get<2>(loc));
+        b_clus_ntbins   .push_back(std::get<3>(loc));
       }
 
-      // Svtx only (i.e. unmatched) clusters
-      clusters = m_cluscntr.svtx_clusloc_unmatched();
-      b_SvM_clusU_i0.push_back(index_SvM_clusU);
-      index_SvM_clusU += clusters.size();
-      b_SvM_clusU_i1.push_back(index_SvM_clusU);
-      for (auto& loc : clusters) {
-        b_SvM_clusU_layer.push_back(loc.first);
-        b_SvM_clusU_x.push_back(loc.second[0]);
-        b_SvM_clusU_y.push_back(loc.second[1]);
-        b_SvM_clusU_z.push_back(loc.second[2]);
-        b_SvM_clusU_r.push_back(pow(pow(loc.second[0],2.)+pow(loc.second[1],2.),0.5));
-      }
-
-      // Matched clusters
       clusters = m_cluscntr.clusloc_matched();
-      b_clusM_i0.push_back(i_matched);
-      i_matched += clusters.size();
-      b_clusM_i1.push_back(i_matched);
       for (auto& loc : clusters) {
-        b_clusM_layer.push_back(loc.first);
-        b_clusM_x.push_back(loc.second[0]);
-        b_clusM_y.push_back(loc.second[1]);
-        b_clusM_z.push_back(loc.second[2]);
-        b_clusM_r.push_back(pow(pow(loc.second[0],2.)+pow(loc.second[1],2.),0.5));
+        b_clusmatch     .push_back(true);
+        b_clus_layer    .push_back(std::get<0>(loc));
+        auto x = std::get<1>(loc)[0];
+        auto y = std::get<1>(loc)[1];
+        b_clus_x        .push_back(x);
+        b_clus_y        .push_back(y);
+        b_clus_z        .push_back(std::get<1>(loc)[2]);
+        b_clus_r        .push_back(pow(x*x+y*y,0.5));
+        b_clus_nphibins .push_back(std::get<2>(loc));
+        b_clus_ntbins   .push_back(std::get<3>(loc));
       }
     }
+    m_ttree->Fill();
+    clear_clusvecs();
+    /* clear_clusvecs("apple1 s4_matched"); */
   }
 
-  // fill in un-matched PHG4 tracks
+  // <- <- <- <- G4 un-matched Tracks
+  b_is_matched = false;
+  b_is_g4track = true;
+  b_is_Svtrack = false;
   for (auto& g4_trkid : m_EmbRecoMatchContainer->ids_TruthUnmatched()) {
     auto g4trk = m_TrkrTruthTrackContainer->getTruthTrack(g4_trkid);
-    b_G4U_trackid .push_back(g4_trkid);
-    b_G4U_pt      .push_back(g4trk->getPt());
-    b_G4U_eta     .push_back(g4trk->getPseudoRapidity());
-    b_G4U_phi     .push_back(g4trk->getPhi());
-
     m_cluscntr.addClusKeys( g4trk );
+
+    b_trackid  = g4_trkid;
+    b_trkpt    = g4trk->getPt();
+    b_trketa   = g4trk->getPseudoRapidity();
+    b_trkphi   = g4trk->getPhi();
+
     auto cnt = m_cluscntr.phg4_cntclus();
-    b_G4U_nclus          .push_back( cnt[4] );
-    b_G4U_nclusmvtx      .push_back( cnt[0] );
-    b_G4U_nclusintt      .push_back( cnt[1] );
-    b_G4U_nclustpc       .push_back( cnt[2] );
+    b_nclus     = cnt[4];
+    b_nclusmvtx = cnt[0];
+    b_nclusintt = cnt[1];
+    b_nclustpc  = cnt[2];
+
     if (m_fill_clusters) {
       auto clusters = m_cluscntr.phg4_clusloc_all();
-      b_G4U_clusU_i0.push_back(index_G4U_clusU);
-      index_G4U_clusU += clusters.size();
-      b_G4U_clusU_i1.push_back(index_G4U_clusU);
       for (auto& loc : clusters) {
-        b_G4U_clusU_layer.push_back(loc.first);
-        b_G4U_clusU_x.push_back(loc.second[0]);
-        b_G4U_clusU_y.push_back(loc.second[1]);
-        b_G4U_clusU_z.push_back(loc.second[2]);
-        b_G4U_clusU_r.push_back(pow(pow(loc.second[0],2.)+pow(loc.second[1],2.),0.5));
+        b_clusmatch     .push_back(false);
+        b_clus_layer    .push_back(std::get<0>(loc));
+        auto x = std::get<1>(loc)[0];
+        auto y = std::get<1>(loc)[1];
+        b_clus_x        .push_back(x);
+        b_clus_y        .push_back(y);
+        b_clus_z        .push_back(std::get<1>(loc)[2]);
+        b_clus_r        .push_back(pow(x*x+y*y,0.5));
+        b_clus_nphibins .push_back(std::get<2>(loc));
+        b_clus_ntbins   .push_back(std::get<3>(loc));
       }
+      //this is an unmatched track, so there are no matched clusters
     }
+    m_ttree->Fill();
+    clear_clusvecs();
+    /* clear_clusvecs("apple2 g4_unmatched"); */
   }
 
+  // <- <- <- <- Svtx un-matched Tracks
+  b_is_matched = false;
+  b_is_matched = false;
+  b_is_g4track = false;
+  b_is_Svtrack = true;
+
+  // just put in all svtx tracks, period...
   if (m_fill_SvU) {
     for (auto sv_trkid : G4Eval::unmatchedSvtxTrkIds(m_EmbRecoMatchContainer, m_SvtxTrackMap)) {
       auto svtrk = m_SvtxTrackMap->get(sv_trkid);
-      b_SvU_trackid .push_back(sv_trkid);
-      b_SvU_pt      .push_back(svtrk->get_pt());
-      b_SvU_eta     .push_back(svtrk->get_eta());
-      b_SvU_phi     .push_back(svtrk->get_phi());
       m_cluscntr.addClusKeys( svtrk );
+      b_trackid  = sv_trkid;
+      b_trkpt    = svtrk->get_pt();
+      b_trketa   = svtrk->get_eta();
+      b_trkphi   = svtrk->get_phi();
+
       auto cnt = m_cluscntr.svtx_cntclus();
-      b_SvU_nclus     .push_back( cnt[4] );
-      b_SvU_nclusmvtx .push_back( cnt[0] );
-      b_SvU_nclusintt .push_back( cnt[1] );
-      b_SvU_nclustpc  .push_back( cnt[2] );
-    }
-    if (m_fill_clusters) {
-      auto clusters = m_cluscntr.svtx_clusloc_all();
-      b_SvU_clusU_i0.push_back (index_SvU_clusU);
-      index_SvU_clusU += clusters.size();
-      b_SvU_clusU_i1.push_back (index_SvU_clusU);
-      for (auto& loc : clusters) {
-        b_SvU_clusU_layer.push_back(loc.first);
-        b_SvU_clusU_x.push_back(loc.second[0]);
-        b_SvU_clusU_y.push_back(loc.second[1]);
-        b_SvU_clusU_z.push_back(loc.second[2]);
-        b_SvU_clusU_r.push_back(pow(pow(loc.second[0],2.)+pow(loc.second[1],2.),0.5));
+      b_nclus     = cnt[4] ;
+      b_nclusmvtx = cnt[0] ;
+      b_nclusintt = cnt[1] ;
+      b_nclustpc  = cnt[2] ;
+
+      if (m_fill_clusters) {
+        auto clusters = m_cluscntr.svtx_clusloc_all();
+        for (auto& loc : clusters) {
+          b_clusmatch     .push_back(false);
+          b_clus_layer    .push_back(std::get<0>(loc));
+          auto x = std::get<1>(loc)[0];
+          auto y = std::get<1>(loc)[1];
+          b_clus_x        .push_back(x);
+          b_clus_y        .push_back(y);
+          b_clus_z        .push_back(std::get<1>(loc)[2]);
+          b_clus_r        .push_back(pow(x*x+y*y,0.5));
+          b_clus_nphibins .push_back(std::get<2>(loc));
+          b_clus_ntbins   .push_back(std::get<3>(loc));
+        }
       }
+      m_ttree->Fill();
+      clear_clusvecs();
     }
   }
 
-  m_ttree->Fill();
-  clear_vectors();
   if (Verbosity()>100) print_mvtx_diagnostics();
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -514,107 +511,34 @@ void FillTruthRecoMatchTree::print_mvtx_diagnostics() {
 
 }
 
-int FillTruthRecoMatchTree::End(PHCompositeNode *)
-{
-  if (Verbosity()>2) std::cout << PHWHERE << ": ending FillTruthRecoMatchTree" << std::endl;
-	PHTFileServer::get().cd(m_outfile_name);
+  int FillTruthRecoMatchTree::End(PHCompositeNode *)
+  {
+    if (Verbosity()>2) std::cout << PHWHERE << ": ending FillTruthRecoMatchTree" << std::endl;
+    PHTFileServer::get().cd(m_outfile_name);
 
-  h2_G4_nPixelsPhi ->Write();
-  h2_G4_nPixelsZ   ->Write();
-  h2_Sv_nPixelsPhi ->Write();
-  h2_Sv_nPixelsZ   ->Write();
+    h2_G4_nPixelsPhi ->Write();
+    h2_G4_nPixelsZ   ->Write();
+    h2_Sv_nPixelsPhi ->Write();
+    h2_Sv_nPixelsZ   ->Write();
 
-  m_ttree->Write();
-  return Fun4AllReturnCodes::EVENT_OK;
-}
+    m_ttree->Write();
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
-void FillTruthRecoMatchTree::clear_vectors() {
+  void FillTruthRecoMatchTree::clear_clusvecs(std::string tag) {
+    /* cout << " banana |" << tag << "|"<<endl; */
+    if (tag != "") {
+      cout << endl << " pear printing "<<tag<<" x("<< b_clus_x.size()<<") ";
+      for (auto x : b_clus_x) cout << x <<" ";
+      cout << endl;
+    }
     // Tracks and clustes
-
-    b_G4M_trackid            .clear();
-    b_G4M_nclus              .clear();
-    b_G4M_nclusmvtx          .clear();
-    b_G4M_nclusintt          .clear();
-    b_G4M_nclustpc           .clear();
-    b_G4M_nclus_matchrat     .clear();
-    b_G4M_nclusmvtx_matchrat .clear();
-    b_G4M_nclusintt_matchrat .clear();
-    b_G4M_nclustpc_matchrat  .clear();
-    b_G4M_pt                 .clear();
-    b_G4M_phi                .clear();
-    b_G4M_eta                .clear();
-    b_SvM_trackid            .clear();
-    b_SvM_nclus              .clear();
-    b_SvM_nclusmvtx          .clear();
-    b_SvM_nclusintt          .clear();
-    b_SvM_nclustpc           .clear();
-    b_SvM_nclus_matchrat     .clear();
-    b_SvM_nclusmvtx_matchrat .clear();
-    b_SvM_nclusintt_matchrat .clear();
-    b_SvM_nclustpc_matchrat  .clear();
-    b_SvM_pt                 .clear();
-    b_SvM_phi                .clear();
-    b_SvM_eta                .clear();
-    if (m_fill_clusters) {
-      b_clusM_i0               .clear();
-      b_clusM_i1               .clear();
-      b_clusM_layer            .clear();
-      b_clusM_x                .clear();
-      b_clusM_y                .clear();
-      b_clusM_z                .clear();
-      b_clusM_r                .clear();
-      b_G4M_clusU_i0           .clear();
-      b_G4M_clusU_i1           .clear();
-      b_G4M_clusU_layer        .clear();
-      b_G4M_clusU_x            .clear();
-      b_G4M_clusU_y            .clear();
-      b_G4M_clusU_z            .clear();
-      b_G4M_clusU_r            .clear();
-      b_SvM_clusU_i0           .clear();
-      b_SvM_clusU_i1           .clear();
-      b_SvM_clusU_layer        .clear();
-      b_SvM_clusU_x            .clear();
-      b_SvM_clusU_y            .clear();
-      b_SvM_clusU_z            .clear();
-      b_SvM_clusU_r            .clear();
-    }
-    b_G4U_trackid            .clear();
-    b_G4U_nclus              .clear();
-    b_G4U_nclusmvtx          .clear();
-    b_G4U_nclusintt          .clear();
-    b_G4U_nclustpc           .clear();
-    b_G4U_pt                 .clear();
-    b_G4U_phi                .clear();
-    b_G4U_eta                .clear();
-    if (m_fill_SvU) {
-      b_SvU_trackid            .clear();
-      b_SvU_nclus              .clear();
-      b_SvU_nclusmvtx          .clear();
-      b_SvU_nclusintt          .clear();
-      b_SvU_nclustpc           .clear();
-      b_SvU_pt                 .clear();
-      b_SvU_phi                .clear();
-      b_SvU_eta                .clear();
-    }
-    if (m_fill_clusters) {
-      b_G4U_clusU_i0           .clear();
-      b_G4U_clusU_i1           .clear();
-      b_G4U_clusU_layer        .clear();
-      b_G4U_clusU_x            .clear();
-      b_G4U_clusU_y            .clear();
-      b_G4U_clusU_z            .clear();
-      b_G4U_clusU_r            .clear();
-      if (m_fill_SvU) {
-        b_SvU_clusU_i0           .clear();
-        b_SvU_clusU_i1           .clear();
-        b_SvU_clusU_layer        .clear();
-        b_SvU_clusU_x            .clear();
-        b_SvU_clusU_y            .clear();
-        b_SvU_clusU_z            .clear();
-        b_SvU_clusU_r            .clear();
-      }
-    }
-
-
-
-}
+    b_clusmatch     .clear();
+    b_clus_x        .clear();
+    b_clus_y        .clear();
+    b_clus_z        .clear();
+    b_clus_r        .clear();
+    b_clus_layer    .clear();
+    b_clus_nphibins .clear();
+    b_clus_ntbins   .clear();
+  }

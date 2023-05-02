@@ -9,6 +9,7 @@
 #include <vector>
 #include <Eigen/Core>
 #include <cfloat>
+#include <tuple>
 /* #include <trackbase_historic/TrackSeed.h> */
 
 class ActsGeometry;
@@ -21,6 +22,8 @@ class TrkrClusterContainer;
 class TrkrTruthTrack;
 
 namespace G4Eval {
+  // ClusLoc holds layer, location, phi size and z size
+  using ClusLoc = std::tuple<int,Eigen::Vector3d,int,int>;
 
   // Following function writes msg to the currently active TFile
   // if f_outname is provided, then it will write the message to a new
@@ -39,20 +42,21 @@ namespace G4Eval {
 
     TrkrCluster* clus_T { nullptr };
     TrkrCluster* clus_R { nullptr };
-    bool status_good    { false   };
-    int  layer          { INT_MAX };
 
-    std::pair<bool, float> operator()  // return pair(is_matched,how_good_match)
-      (TrkrDefs::cluskey key_T, TrkrDefs::cluskey key_R);
+    /* std::pair<bool, float> is_match_b */
+    std::pair<bool, float> operator() (TrkrDefs::cluskey key_T, TrkrDefs::cluskey key_R);
 
     // Members that are set with each set of cluster keys that
     // are passed to it.
     // z and phi locations of phg4 hit (T) and Svtx hit (R)
+    bool is_match  { false };
+    int  layer     { INT_MAX };
+
     float z_T       { FLT_MAX }, z_R       { FLT_MAX };
     float phi_T     { FLT_MAX }, phi_R     { FLT_MAX };
-    float phisize_R { FLT_MAX }, phisize_T { FLT_MAX };
-    float zsize_R   { FLT_MAX }, zsize_T   { FLT_MAX };
-    float phi_delta { FLT_MAX }, z_delta   { FLT_MAX }; // abs(z_T-z_R)
+    float phisize_R { FLT_MAX }, phisize_T { FLT_MAX }; // phisize is in nbins * nwidhts
+    float zsize_R   { FLT_MAX }, zsize_T   { FLT_MAX }; // zsize   is in nbins * nwdiths
+    float phi_delta { FLT_MAX }, z_delta   { FLT_MAX }; // deltas are also in nbins
 
     bool in_tpc  {false};
     bool in_mvtx {false};
@@ -67,8 +71,8 @@ namespace G4Eval {
     void set_nz_widths(float   val) { m_nz_widths   = val; };
     void set_nphi_widths(float val) { m_nphi_widths = val; };
 
-    std::pair<int,Eigen::Vector3d> clusloc_PHG4(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey>);
-    std::pair<int,Eigen::Vector3d> clusloc_SVTX(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey>);
+    ClusLoc clusloc_PHG4(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey>);
+    ClusLoc clusloc_SVTX(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey>);
 
     TrkrClusterContainer* m_TruthClusters {nullptr};
     TrkrClusterContainer* m_RecoClusters  {nullptr};
@@ -104,6 +108,7 @@ namespace G4Eval {
 
     ClusKeyIter begin();
     ClusKeyIter end();
+
     void operator++();
     TrkrDefs::cluskey operator*();
     bool operator!=(const ClusKeyIter& rhs);
@@ -153,12 +158,12 @@ namespace G4Eval {
     std::array<int,5> svtx_cnt_matchedclus() {return cnt_matchedclus(svtx_keys, svtx_matches); };
     std::array<int,5> phg4_cnt_matchedclus() {return cnt_matchedclus(phg4_keys, phg4_matches); };
 
-    using LayerLoc = std::pair<int,Eigen::Vector3d>;
-    std::vector<LayerLoc> phg4_clusloc_all();
-    std::vector<LayerLoc> phg4_clusloc_unmatched();
-    std::vector<LayerLoc> svtx_clusloc_all();
-    std::vector<LayerLoc> svtx_clusloc_unmatched();
-    std::vector<LayerLoc> clusloc_matched();
+    //I need the cluster widths for diagnostics, too
+    std::vector<ClusLoc> phg4_clusloc_all       ();
+    std::vector<ClusLoc> phg4_clusloc_unmatched();
+    std::vector<ClusLoc> svtx_clusloc_all       ();
+    std::vector<ClusLoc> svtx_clusloc_unmatched ();
+    std::vector<ClusLoc> clusloc_matched        ();
 
     void set_comparer(TrkrClusterComparer* _comp) { comp = _comp; };
 

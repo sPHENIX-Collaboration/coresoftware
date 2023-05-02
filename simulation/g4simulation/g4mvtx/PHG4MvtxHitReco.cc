@@ -690,6 +690,11 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << " ----- end of clusters " << std::endl;
   }
 
+  if (m_is_emb) {
+    cluster_truthhits(topNode); // the last track was truth -- cluster it
+    prior_g4hit = nullptr;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -761,26 +766,50 @@ PHG4MvtxHitReco::~PHG4MvtxHitReco() {
   delete m_truth_hits;
 }
 
-void PHG4MvtxHitReco::truthcheck_g4hit(PHG4Hit* hit, PHCompositeNode* topNode) {
-  int new_trkid = (hit==nullptr) ? -1 : hit->get_trkid();
+void PHG4MvtxHitReco::truthcheck_g4hit(PHG4Hit* g4hit, PHCompositeNode* topNode) {
+  int new_trkid = (g4hit==nullptr) ? -1 : g4hit->get_trkid();
   bool is_new_track = (new_trkid != m_trkid);
   if (Verbosity()>5) std::cout << PHWHERE << std::endl << " -> Checking status of PHG4Hit. Track id("<<new_trkid<<")" << std::endl;
-  if (!is_new_track) return;
+  if (!is_new_track) {
+      /* FIXME */ 
+      /* std::cout << " FIXME PEAR Checking g4hit : " << g4hit->get_x(0) << " " */ 
+      /*   << g4hit->get_y(0) << " " << g4hit->get_z(0) */ 
+      /*   << "  trackid("<<g4hit->get_trkid() << ") " << std::endl; */
+    if (m_is_emb) {
+      /* std::cout << " FIXME Checking MVTX g4hit : " << g4hit->get_x(0) << " " */ 
+      /*   << g4hit->get_y(0) << " " << g4hit->get_z(0) */ 
+      /*   << "  trackid("<<g4hit->get_trkid() << ") " << std::endl; */
+      if (prior_g4hit!=nullptr
+          && (    std::abs(prior_g4hit->get_x(0)-g4hit->get_x(0)) > max_g4hitstep
+               || std::abs(prior_g4hit->get_y(0)-g4hit->get_y(0)) > max_g4hitstep
+             )
+          )
+      {
+          // this is a looper track -- cluster hits up to this point already
+          cluster_truthhits(topNode);
+      }
+      prior_g4hit = g4hit;
+    }
+    return;
+  }
+  // <- STATUS: this is a new track
   if (Verbosity()>2) std::cout << PHWHERE << std::endl << " -> Found new embedded track with id: " << new_trkid << std::endl;
   if (m_is_emb) {
-    clusterize_truthtrack(topNode); // cluster m_truth_hits and add m_current_track
+    cluster_truthhits(topNode); // cluster m_truth_hits and add m_current_track
     m_current_track = nullptr;
+    prior_g4hit = nullptr;
   }
-  m_trkid = new_trkid; // although m_current_track won't catch up until update_track is called
+  m_trkid = new_trkid;
   m_is_emb = m_truthinfo->isEmbeded(m_trkid);
   if (m_is_emb) {
     m_current_track = m_truthtracks->getTruthTrack(m_trkid, m_truthinfo);
+    prior_g4hit = g4hit;
   }
 }
 
 void PHG4MvtxHitReco::end_event_truthcluster ( PHCompositeNode* topNode ) {
   if (m_is_emb) {
-    clusterize_truthtrack(topNode); // cluster m_truth_hits and add m_current_track
+    cluster_truthhits(topNode); // cluster m_truth_hits and add m_current_track
     m_current_track = nullptr;
     m_trkid = -1;
     m_is_emb = false;
@@ -808,7 +837,7 @@ void PHG4MvtxHitReco::addtruthhitset(
   hit->addEnergy(neffelectrons);
 }
 
-void PHG4MvtxHitReco::clusterize_truthtrack(PHCompositeNode* topNode) {
+void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode) {
   // clusterize the mvtx hits in m_truth_hits, put them in m_truthclusters, and put the id's in m_current_track
   // ----------------------------------------------------------------------------------------------------
   // Digitization -- simplified from g4mvtx/PHG4MvtxDigitizer --
@@ -1007,20 +1036,20 @@ void PHG4MvtxHitReco::clusterize_truthtrack(PHCompositeNode* topNode) {
 	    exit(1);
 	  
 
-    // make a tunable threshhold for energy in a given hit
+    // make a tunable threshold for energy in a given hit
     //  -- percentage of someting? (total cluster energy)
     double sum_energy { 0. };
 	  for ( auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit) {
       sum_energy += ihit->second->getEnergy();
     }
-    const double threshhold = sum_energy / 100.; //FIXME -- tune this as needed
+    const double threshold = sum_energy * m_pixel_thresholdrat; //FIXME -- tune this as needed
 	  /* const unsigned int npixels = std::distance( hitrangei.first, hitrangei.second ); */
     // to tune this parameter: run a bunch of tracks and compare truth sizes and reco sizes,
     // should come out the same
     double npixels {0.};
 	  for ( auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit)
 	    {
-        if (ihit->second->getEnergy()<threshhold) continue;
+        if (ihit->second->getEnergy()<threshold) continue;
         npixels += 1.;
 	      // size
 	      int col =  MvtxDefs::getCol( ihit->first);
@@ -1091,5 +1120,6 @@ void PHG4MvtxHitReco::clusterize_truthtrack(PHCompositeNode* topNode) {
     }  // loop over hitsets
   }
   m_truth_hits->Reset();
+  prior_g4hit = nullptr;
   return;
 }

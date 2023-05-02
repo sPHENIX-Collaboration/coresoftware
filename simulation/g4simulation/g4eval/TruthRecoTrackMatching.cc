@@ -1,5 +1,5 @@
 #include "TruthRecoTrackMatching.h"
-#include "g4tools.h"
+#include "g4evaltools.h"
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>

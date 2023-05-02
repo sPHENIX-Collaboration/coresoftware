@@ -1,4 +1,4 @@
-#include "g4tools.h"
+#include "g4evaltools.h"
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -150,9 +150,16 @@ namespace G4Eval {
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
+  // ok return tuple<bool is_match, float stat, 
+  // float delta_phi (in pixels), float half_phi_width (in pixels),
+  // float half_eta_width (in pixels)
+  // float delta_z (in bins), flaot 
+  //
+
   std::pair<bool, float> TrkrClusterComparer::operator()
-      (TrkrDefs::cluskey key_T, TrkrDefs::cluskey key_R) 
+      (TrkrDefs::cluskey key_T, TrkrDefs::cluskey key_R)
   {
+    // note: can use returned values, or just pull from these values
     layer = TrkrDefs::getLayer(key_T);
     if (layer > 55) {
       std::cout << " Error! Trying to compar cluster in layer > 55, "
@@ -172,46 +179,53 @@ namespace G4Eval {
 
     phi_T     = clus_T->getPosition(0);
     phi_R     = clus_R->getPosition(0);
-    phisize_R = clus_R->getPhiSize() * phi_step;
-    phisize_T = clus_T->getPhiSize() * phi_step; // only for user to get, if they want
+    phisize_R = clus_R->getPhiSize()*m_nphi_widths;// * phi_step;
+    phisize_T = clus_T->getPhiSize()*m_nphi_widths;// * phi_step; // only for user to get, if they want
 
     z_T      = clus_T->getPosition(1);
     z_R      = clus_R->getPosition(1);
 
     if (!in_intt) {
-      zsize_R  = clus_R->getZSize() * z_step;
-      zsize_T  = clus_R->getZSize() * z_step;
+      zsize_R  = clus_R->getZSize()*m_nz_widths;// * z_step;
+      zsize_T  = clus_R->getZSize()*m_nz_widths;// * z_step;
     }
 
     phi_delta = fabs(phi_T-phi_R);
     while (phi_delta > M_PI) phi_delta = fabs(phi_delta-2*M_PI);
-    z_delta   = fabs (z_T-z_R);
+    phi_delta /= phi_step;
 
-    float phi_stat = (m_nphi_widths * phisize_R );
+    z_delta   = fabs (z_T-z_R) / z_step;
 
-    bool is_match = (phi_delta < phi_stat);
+    /* float phi_stat = (m_nphi_widths * phisize_R ); */
+
+    float phi_stat = std::max(phisize_T, phisize_R);
     float fit_statistic = (phi_delta / phi_stat);
+    is_match = (fit_statistic <= 1.);
+
     float z_stat = 0;
     if (!in_intt) {
-      z_stat   = (m_nz_widths   * zsize_R   ); 
+      z_stat   = std::max(zsize_T, zsize_R);
+      
       is_match = is_match && (z_delta < z_stat);
       fit_statistic += z_delta / z_stat;
     }
     return { is_match, fit_statistic };
   }
 
-  std::pair<int,Eigen::Vector3d> TrkrClusterComparer::clusloc_PHG4(
+  ClusLoc TrkrClusterComparer::clusloc_PHG4(
       std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey> input) {
       auto cluster = m_TruthClusters->findCluster(input.second);
       Eigen::Vector3d gloc = m_ActsGeometry->getGlobalPosition(input.second, cluster);
-      return {TrkrDefs::getLayer(input.first),gloc};
+      return {TrkrDefs::getLayer(input.first),gloc,
+        (int)cluster->getPhiSize(),(int)cluster->getZSize()};
   }
 
-  std::pair<int,Eigen::Vector3d> TrkrClusterComparer::clusloc_SVTX(
+  ClusLoc TrkrClusterComparer::clusloc_SVTX(
       std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey> input) {
       auto cluster = m_RecoClusters->findCluster(input.second);
       Eigen::Vector3d gloc = m_ActsGeometry->getGlobalPosition(input.second, cluster);
-      return {TrkrDefs::getLayer(input.first),gloc};
+      return {TrkrDefs::getLayer(input.first),gloc,
+        (int)cluster->getPhiSize(),(int)cluster->getZSize()};
   }
 
   // Implementation of the iterable struct to get cluster keys from
@@ -410,14 +424,14 @@ namespace G4Eval {
   int ClusCntr::svtx_n_matched() { 
     return std::accumulate(svtx_matches.begin(), svtx_matches.end(), 0); }
 
-  std::vector<ClusCntr::LayerLoc> ClusCntr::phg4_clusloc_all() {
-    std::vector<LayerLoc> vec{};
+  std::vector<ClusLoc> ClusCntr::phg4_clusloc_all() {
+    std::vector<ClusLoc> vec{};
     for (auto& cluspair : phg4_keys) vec.push_back(comp->clusloc_PHG4(cluspair));
     return vec;
   }
 
-  std::vector<ClusCntr::LayerLoc> ClusCntr::phg4_clusloc_unmatched() {
-    std::vector<LayerLoc> vec{};
+  std::vector<ClusLoc> ClusCntr::phg4_clusloc_unmatched() {
+    std::vector<ClusLoc> vec{};
     auto cnt = phg4_keys.size();
     for (unsigned int i = 0; i<cnt; ++i) {
       if (!phg4_matches[i]) vec.push_back(comp->clusloc_PHG4(phg4_keys[i]));
@@ -425,14 +439,14 @@ namespace G4Eval {
     return vec;
   }
 
-  std::vector<ClusCntr::LayerLoc> ClusCntr::svtx_clusloc_all() {
-    std::vector<LayerLoc> vec{};
+  std::vector<ClusLoc> ClusCntr::svtx_clusloc_all() {
+    std::vector<ClusLoc> vec{};
     for (auto& cluspair : svtx_keys) vec.push_back(comp->clusloc_SVTX(cluspair));
     return vec;
   }
 
-  std::vector<ClusCntr::LayerLoc> ClusCntr::svtx_clusloc_unmatched() {
-    std::vector<LayerLoc> vec{};
+  std::vector<ClusLoc> ClusCntr::svtx_clusloc_unmatched() {
+    std::vector<ClusLoc> vec{};
     auto cnt = svtx_keys.size();
     for (unsigned int i = 0; i<cnt; ++i) {
       if (!svtx_matches[i]) vec.push_back(comp->clusloc_SVTX(svtx_keys[i]));
@@ -440,8 +454,8 @@ namespace G4Eval {
     return vec;
   }
 
-  std::vector<ClusCntr::LayerLoc> ClusCntr::clusloc_matched() {
-    std::vector<LayerLoc> vec{};
+  std::vector<ClusLoc> ClusCntr::clusloc_matched() {
+    std::vector<ClusLoc> vec{};
     auto cnt = phg4_keys.size();
     for (unsigned int i = 0; i<cnt; ++i) {
       if (phg4_matches[i]) vec.push_back(comp->clusloc_PHG4(phg4_keys[i]));

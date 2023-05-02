@@ -43,7 +43,7 @@
  *      save un-matched Svtx tracks = false
  */
 
-#include "g4tools.h"
+#include "g4evaltools.h"
 
 #include <fun4all/SubsysReco.h> 
 #include <vector>
@@ -86,7 +86,7 @@ class FillTruthRecoMatchTree : public SubsysReco
   int process_event(PHCompositeNode * /*topNode*/) override;
   int End(PHCompositeNode *topNode) override;
 
-  void clear_vectors();
+  void clear_clusvecs(std::string tag="");
 
   void print_mvtx_diagnostics();
 
@@ -94,7 +94,7 @@ class FillTruthRecoMatchTree : public SubsysReco
 
    int createNodes(PHCompositeNode *topNode);
 
-   G4Eval::TrkrClusterComparer m_cluster_comp;
+   G4Eval::TrkrClusterComparer m_cluster_comp { 1., 1.};
    G4Eval::ClusCntr            m_cluscntr;
 
    // contianer used to fill the other track matches
@@ -136,82 +136,111 @@ class FillTruthRecoMatchTree : public SubsysReco
     TH2D* h2_Sv_nPixelsPhi;
     TH2D* h2_Sv_nPixelsZ;
     
-    // TRACKS WHICH ARE MATCHED
-    std::vector<int>   b_G4M_trackid            {}; // g4-track-matched
-    std::vector<int>   b_G4M_nclus              {};
-    std::vector<int>   b_G4M_nclusmvtx          {};
-    std::vector<int>   b_G4M_nclusintt          {};
-    std::vector<int>   b_G4M_nclustpc           {};
-    std::vector<float> b_G4M_nclus_matchrat     {};
-    std::vector<float> b_G4M_nclusmvtx_matchrat {};
-    std::vector<float> b_G4M_nclusintt_matchrat {};
-    std::vector<float> b_G4M_nclustpc_matchrat  {};
-    std::vector<float> b_G4M_pt                 {};
-    std::vector<float> b_G4M_phi                {};
-    std::vector<float> b_G4M_eta                {};
-    std::vector<int>   b_SvM_trackid            {}; // Svtx-track-matched
-    std::vector<int>   b_SvM_nclus              {};
-    std::vector<int>   b_SvM_nclusmvtx          {};
-    std::vector<int>   b_SvM_nclusintt          {};
-    std::vector<int>   b_SvM_nclustpc           {};
-    std::vector<float> b_SvM_nclus_matchrat     {};
-    std::vector<float> b_SvM_nclusmvtx_matchrat {};
-    std::vector<float> b_SvM_nclusintt_matchrat {};
-    std::vector<float> b_SvM_nclustpc_matchrat  {};
-    std::vector<float> b_SvM_pt                 {};
-    std::vector<float> b_SvM_phi                {};
-    std::vector<float> b_SvM_eta                {};
-    std::vector<int>   b_clusM_i0               {}; // if storing clusters -- matched clusters
-    std::vector<int>   b_clusM_i1               {};
-    std::vector<float> b_clusM_layer            {};
-    std::vector<float> b_clusM_x                {};
-    std::vector<float> b_clusM_y                {};
-    std::vector<float> b_clusM_z                {};
-    std::vector<float> b_clusM_r                {};
-    std::vector<int>   b_G4M_clusU_i0           {}; // matched phg4 unmatched clusters
-    std::vector<int>   b_G4M_clusU_i1           {};
-    std::vector<float> b_G4M_clusU_layer        {};
-    std::vector<float> b_G4M_clusU_x            {};
-    std::vector<float> b_G4M_clusU_y            {};
-    std::vector<float> b_G4M_clusU_z            {};
-    std::vector<float> b_G4M_clusU_r            {};
-    std::vector<int>   b_SvM_clusU_i0           {}; //  matched phg4 unmatched clusters
-    std::vector<int>   b_SvM_clusU_i1           {};
-    std::vector<float> b_SvM_clusU_layer        {};
-    std::vector<float> b_SvM_clusU_x            {};
-    std::vector<float> b_SvM_clusU_y            {};
-    std::vector<float> b_SvM_clusU_z            {};
-    std::vector<float> b_SvM_clusU_r            {};
-    std::vector<int>   b_G4U_trackid            {}; // unmatched tracks
-    std::vector<int>   b_G4U_nclus              {};
-    std::vector<int>   b_G4U_nclusmvtx          {};
-    std::vector<int>   b_G4U_nclusintt          {};
-    std::vector<int>   b_G4U_nclustpc           {};
-    std::vector<float> b_G4U_pt                 {};
-    std::vector<float> b_G4U_phi                {};
-    std::vector<float> b_G4U_eta                {};
-    std::vector<int>   b_SvU_trackid            {}; // Svtx-track-matched
-    std::vector<int>   b_SvU_nclus              {};
-    std::vector<int>   b_SvU_nclusmvtx          {};
-    std::vector<int>   b_SvU_nclusintt          {};
-    std::vector<int>   b_SvU_nclustpc           {};
-    std::vector<float> b_SvU_pt                 {};
-    std::vector<float> b_SvU_phi                {};
-    std::vector<float> b_SvU_eta                {};
-    std::vector<int>   b_G4U_clusU_i0           {}; // unmatched phg4 unmatched clusters
-    std::vector<int>   b_G4U_clusU_i1           {};
-    std::vector<float> b_G4U_clusU_layer        {};
-    std::vector<float> b_G4U_clusU_x            {};
-    std::vector<float> b_G4U_clusU_y            {};
-    std::vector<float> b_G4U_clusU_z            {};
-    std::vector<float> b_G4U_clusU_r            {};
-    std::vector<int>   b_SvU_clusU_i0           {}; // unmatched phg4 unmatched clusters
-    std::vector<int>   b_SvU_clusU_i1           {};
-    std::vector<float> b_SvU_clusU_layer        {};
-    std::vector<float> b_SvU_clusU_x            {};
-    std::vector<float> b_SvU_clusU_y            {};
-    std::vector<float> b_SvU_clusU_z            {};
-    std::vector<float> b_SvU_clusU_r            {};
+    // Track tree
+    int  b_trackid;
+    bool b_is_g4track;
+    bool b_is_Svtrack;
+    bool b_is_matched;
+
+    float b_trkpt;
+    float b_trkphi;
+    float b_trketa;
+
+
+    int   b_nclus         {};
+    int   b_nclustpc      {};
+    int   b_nclusmvtx     {};
+    int   b_nclusintt     {};
+
+    float b_matchrat      {};
+    float b_matchrat_intt {};
+    float b_matchrat_mvtx {};
+    float b_matchrat_tpc  {};
+
+    std::vector<bool>  b_clusmatch  {};
+    std::vector<float> b_clus_x     {};
+    std::vector<float> b_clus_y     {};
+    std::vector<float> b_clus_z     {};
+    std::vector<float> b_clus_r     {};
+    std::vector<int>   b_clus_layer {};
+    std::vector<int>   b_clus_nphibins   {};
+    std::vector<int>   b_clus_ntbins     {};
+
+    /* std::vector<int>   b_G4M_trackid            {}; // g4-track-matched */
+    /* std::vector<int>   b_G4M_nclus              {}; */
+    /* std::vector<int>   b_G4M_nclusmvtx          {}; */
+    /* std::vector<int>   b_G4M_nclusintt          {}; */
+    /* std::vector<int>   b_G4M_nclustpc           {}; */
+    /* std::vector<float> b_G4M_nclus_matchrat     {}; */
+    /* std::vector<float> b_G4M_nclusmvtx_matchrat {}; */
+    /* std::vector<float> b_G4M_nclusintt_matchrat {}; */
+    /* std::vector<float> b_G4M_nclustpc_matchrat  {}; */
+    /* std::vector<float> b_G4M_pt                 {}; */
+    /* std::vector<float> b_G4M_phi                {}; */
+    /* std::vector<float> b_G4M_eta                {}; */
+    /* std::vector<int>   b_SvM_trackid            {}; // Svtx-track-matched */
+    /* std::vector<int>   b_SvM_nclus              {}; */
+    /* std::vector<int>   b_SvM_nclusmvtx          {}; */
+    /* std::vector<int>   b_SvM_nclusintt          {}; */
+    /* std::vector<int>   b_SvM_nclustpc           {}; */
+    /* std::vector<float> b_SvM_nclus_matchrat     {}; */
+    /* std::vector<float> b_SvM_nclusmvtx_matchrat {}; */
+    /* std::vector<float> b_SvM_nclusintt_matchrat {}; */
+    /* std::vector<float> b_SvM_nclustpc_matchrat  {}; */
+    /* std::vector<float> b_SvM_pt                 {}; */
+    /* std::vector<float> b_SvM_phi                {}; */
+    /* std::vector<float> b_SvM_eta                {}; */
+    /* std::vector<int>   b_clusM_i0               {}; // if storing clusters -- matched clusters */
+    /* std::vector<int>   b_clusM_i1               {}; */
+    /* std::vector<float> b_clusM_layer            {}; */
+    /* std::vector<float> b_clusM_x                {}; */
+    /* std::vector<float> b_clusM_y                {}; */
+    /* std::vector<float> b_clusM_z                {}; */
+    /* std::vector<float> b_clusM_r                {}; */
+    /* std::vector<int>   b_G4M_clusU_i0           {}; // matched phg4 unmatched clusters */
+    /* std::vector<int>   b_G4M_clusU_i1           {}; */
+    /* std::vector<float> b_G4M_clusU_layer        {}; */
+    /* std::vector<float> b_G4M_clusU_x            {}; */
+    /* std::vector<float> b_G4M_clusU_y            {}; */
+    /* std::vector<float> b_G4M_clusU_z            {}; */
+    /* std::vector<float> b_G4M_clusU_r            {}; */
+    /* std::vector<int>   b_SvM_clusU_i0           {}; //  matched phg4 unmatched clusters */
+    /* std::vector<int>   b_SvM_clusU_i1           {}; */
+    /* std::vector<float> b_SvM_clusU_layer        {}; */
+    /* std::vector<float> b_SvM_clusU_x            {}; */
+    /* std::vector<float> b_SvM_clusU_y            {}; */
+    /* std::vector<float> b_SvM_clusU_z            {}; */
+    /* std::vector<float> b_SvM_clusU_r            {}; */
+    /* std::vector<int>   b_G4U_trackid            {}; // unmatched tracks */
+    /* std::vector<int>   b_G4U_nclus              {}; */
+    /* std::vector<int>   b_G4U_nclusmvtx          {}; */
+    /* std::vector<int>   b_G4U_nclusintt          {}; */
+    /* std::vector<int>   b_G4U_nclustpc           {}; */
+    /* std::vector<float> b_G4U_pt                 {}; */
+    /* std::vector<float> b_G4U_phi                {}; */
+    /* std::vector<float> b_G4U_eta                {}; */
+    /* std::vector<int>   b_SvU_trackid            {}; // Svtx-track-matched */
+    /* std::vector<int>   b_SvU_nclus              {}; */
+    /* std::vector<int>   b_SvU_nclusmvtx          {}; */
+    /* std::vector<int>   b_SvU_nclusintt          {}; */
+    /* std::vector<int>   b_SvU_nclustpc           {}; */
+    /* std::vector<float> b_SvU_pt                 {}; */
+    /* std::vector<float> b_SvU_phi                {}; */
+    /* std::vector<float> b_SvU_eta                {}; */
+    /* std::vector<int>   b_G4U_clusU_i0           {}; // unmatched phg4 unmatched clusters */
+    /* std::vector<int>   b_G4U_clusU_i1           {}; */
+    /* std::vector<float> b_G4U_clusU_layer        {}; */
+    /* std::vector<float> b_G4U_clusU_x            {}; */
+    /* std::vector<float> b_G4U_clusU_y            {}; */
+    /* std::vector<float> b_G4U_clusU_z            {}; */
+    /* std::vector<float> b_G4U_clusU_r            {}; */
+    /* std::vector<int>   b_SvU_clusU_i0           {}; // unmatched phg4 unmatched clusters */
+    /* std::vector<int>   b_SvU_clusU_i1           {}; */
+    /* std::vector<float> b_SvU_clusU_layer        {}; */
+    /* std::vector<float> b_SvU_clusU_x            {}; */
+    /* std::vector<float> b_SvU_clusU_y            {}; */
+    /* std::vector<float> b_SvU_clusU_z            {}; */
+    /* std::vector<float> b_SvU_clusU_r            {}; */
 
 
 

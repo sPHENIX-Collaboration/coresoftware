@@ -84,11 +84,18 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   const int                m_cluster_version { 4 };
   TrkrHitSetContainer*     m_truth_hits; // generate and delete a container for each truth track
   std::map<TrkrDefs::hitsetkey,unsigned int> m_hitsetkey_cnt {}; // counter for making ckeys form hitsetkeys
+  
 
-  void truthcheck_g4hit       ( PHG4Hit*, PHCompositeNode* topNode );
-  void addtruthhitset         ( TrkrDefs::hitsetkey, TrkrDefs::hitkey, float neffelectrons );
-  void clusterize_truthtrack  ( PHCompositeNode* topNode );
-  void end_event_truthcluster ( PHCompositeNode* topNode );
+  PHG4Hit* prior_g4hit { nullptr }; // used to check for jumps in g4hits for loopers;
+  void addtruthhitset ( TrkrDefs::hitsetkey, TrkrDefs::hitkey, float neffelectrons );
+  void truthcheck_g4hit       ( PHG4Hit*,        PHCompositeNode* topNode );
+  void cluster_truthhits      ( PHCompositeNode* topNode          );
+  void end_event_truthcluster ( PHCompositeNode* topNode          );
+
+  double m_pixel_thresholdrat { 0.01 };
+  float  max_g4hitstep        { 3.5  };
+  public:
+  void set_pixel_thresholdrat (double val) { m_pixel_thresholdrat = val; };
 };
 
 #endif

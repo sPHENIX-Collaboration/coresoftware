@@ -48,6 +48,9 @@
 #include <utility>  // for pair, swap, make_...
 #include <vector>   // for vector
 
+
+// update to make sure to clusterize clusters in loopers 
+
 PHG4InttHitReco::PHG4InttHitReco(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
@@ -250,13 +253,14 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     const int sphxlayer = hiter->second->get_detid();
     CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(geo->GetLayerGeom(sphxlayer));
 
-    truthcheck_g4hit(hiter->second, topNode);
 
     // checking ADC timing integration window cut
     // uses default values for now
     // these should depend on layer radius
     if (hiter->second->get_t(0) > m_Tmax) continue;
     if (hiter->second->get_t(1) < m_Tmin) continue;
+
+    truthcheck_g4hit(hiter->second, topNode);
 
     float time = (hiter->second->get_t(0) + hiter->second->get_t(1)) / 2.0;
 
@@ -489,6 +493,11 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     hitsetcontainer->identify();
     hittruthassoc->identify();
   }
+
+  if (m_is_emb) {
+    cluster_truthhits(topNode); // the last track was truth -- make it's clusters
+    prior_g4hit = nullptr;
+  }
   
   end_event_truthcluster( topNode );
   return Fun4AllReturnCodes::EVENT_OK;
@@ -506,26 +515,45 @@ void PHG4InttHitReco::SetDefaultParameters()
   return;
 }
 
-void PHG4InttHitReco::truthcheck_g4hit(PHG4Hit* hit, PHCompositeNode* topNode) {
-  int new_trkid = (hit==nullptr) ? -1 : hit->get_trkid();
+void PHG4InttHitReco::truthcheck_g4hit(PHG4Hit* g4hit, PHCompositeNode* topNode) {
+  int new_trkid = (g4hit==nullptr) ? -1 : g4hit->get_trkid();
   bool is_new_track = (new_trkid != m_trkid);
   if (Verbosity()>5) std::cout << PHWHERE << std::endl << " -> Checking status of PHG4Hit. Track id("<<new_trkid<<")" << std::endl;
-  if (!is_new_track) return;
+  if (!is_new_track) {
+    // check to see if it is an embedded track that meets the looper condition:
+    if (m_is_emb) {
+      if (prior_g4hit!=nullptr
+          && (    std::abs(prior_g4hit->get_x(0)-g4hit->get_x(0)) > max_g4hitstep
+               || std::abs(prior_g4hit->get_y(0)-g4hit->get_y(0)) > max_g4hitstep
+             )
+          )
+      {
+          // this is a looper track -- cluster hits up to this point already
+          cluster_truthhits(topNode);
+      }
+      prior_g4hit = g4hit;
+    }
+    return;
+  }
+  // <- STATUS: this is a new track
   if (Verbosity()>2) std::cout << PHWHERE << std::endl << " -> Found new embedded track with id: " << new_trkid << std::endl;
   if (m_is_emb) {
-    clusterize_truthtrack(topNode); // cluster m_truth_hits and add m_current_track
+    //cluster the old track
+    cluster_truthhits(topNode); // cluster m_truth_hits and add m_current_track
     m_current_track = nullptr;
+    prior_g4hit = nullptr;
   }
-  m_trkid = new_trkid; // although m_current_track won't catch up until update_track is called
+  m_trkid = new_trkid;
   m_is_emb = m_truthinfo->isEmbeded(m_trkid);
   if (m_is_emb) {
     m_current_track = m_truthtracks->getTruthTrack(m_trkid, m_truthinfo);
+    prior_g4hit = g4hit;
   }
 }
 
 void PHG4InttHitReco::end_event_truthcluster ( PHCompositeNode* topNode ) {
   if (m_is_emb) {
-    clusterize_truthtrack(topNode); // cluster m_truth_hits and add m_current_track
+    cluster_truthhits(topNode); // cluster m_truth_hits and add m_current_track
     m_current_track = nullptr;
     m_trkid = -1;
     m_is_emb = false;
@@ -553,7 +581,7 @@ void PHG4InttHitReco::addtruthhitset(
   hit->addEnergy(neffelectrons);
 }
 
-void PHG4InttHitReco::clusterize_truthtrack(PHCompositeNode* topNode) {
+void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
   // -----------------------------------------------
   // Digitize, adapted from g4intt/PHG4InttDigitizer
   // -----------------------------------------------
@@ -689,7 +717,8 @@ void PHG4InttHitReco::clusterize_truthtrack(PHCompositeNode* topNode) {
 
     // tune this energy threshold in the same maner of the MVTX, namely to get the same kind of pixel sizes
     // as the SvtxTrack clusters
-    const double threshold = sum_energy * m_truth_pixelthreshold;
+    /* const double threshold = sum_energy * m_truth_pixelthreshold; */
+    const double threshold = sum_energy * m_pixel_thresholdrat; //FIXME -- tune this as needed
 
     int layer = TrkrDefs::getLayer ( hitsetkey );
     CylinderGeomIntt* geom = dynamic_cast<CylinderGeomIntt*>(geom_container->GetLayerGeom(layer));
@@ -796,5 +825,7 @@ void PHG4InttHitReco::clusterize_truthtrack(PHCompositeNode* topNode) {
     }  // end loop over hitsets
   }
 
+  m_truth_hits->Reset(); 
+  prior_g4hit = nullptr;
   return;
 }
