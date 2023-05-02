@@ -23,7 +23,7 @@ libg4bbc_la_LIBADD = \
   -lSubsysReco
 
 pkginclude_HEADERS = \
-  BbcSimReco.h \
+  BbcDigitization.h \
   BbcVertexFastSimReco.h
 
 
@@ -31,7 +31,7 @@ libg4bbc_io_la_SOURCES = \
   $(ROOTDICTS)
 
 libg4bbc_la_SOURCES = \
-  BbcSimReco.cc \
+  BbcDigitization.cc \
   BbcVertexFastSimReco.cc
 
 # Rule for generating table CINT dictionaries.
