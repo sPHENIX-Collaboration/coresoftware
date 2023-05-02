@@ -6,24 +6,13 @@
 #include <iostream>
 #include <stdexcept>
 
-sphenixnpc *sphenixnpc::__instance = nullptr;
-
-sphenixnpc *sphenixnpc::instance(const std::string &globaltag)
+sphenixnpc::sphenixnpc(const std::string &globaltag)
 {
-  if (!__instance)
-  {
-    __instance = new sphenixnpc();
-  }
-  __instance->cache_set_GlobalTag(globaltag);
-  return __instance;
+  cache_set_GlobalTag(globaltag);
 }
 
-sphenixnpc::~sphenixnpc()
-{
-  __instance = nullptr;
-}
 
-int sphenixnpc::createGlobalTag(const std::string &tagname)
+int sphenixnpc::createThisGlobalTag(const std::string &tagname)
 {
   setGlobalTag(tagname);
   nlohmann::json resp = nopayloadclient::Client::createGlobalTag();
@@ -39,7 +28,7 @@ int sphenixnpc::createGlobalTag(const std::string &tagname)
   return iret;
 }
 
-int sphenixnpc::deleteGlobalTag(const std::string &tagname)
+int sphenixnpc::deleteThisGlobalTag(const std::string &tagname)
 {
   setGlobalTag(tagname);
   nlohmann::json result = nopayloadclient::Client::deleteGlobalTag();
