@@ -367,7 +367,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       for (int j = 0; j < SvtxAlignmentState::NGL; ++j)
       {
         /// swap the order to match what is expected from the workflow
-        glbl_derivative[j] = state->get_global_derivative_matrix()(i, (j + 3) % SvtxAlignmentState::NGL);
+        glbl_derivative[j] = state->get_global_derivative_matrix()(i, j);
 
         if (is_layer_fixed(layer) || is_layer_param_fixed(layer, j))
         {
@@ -387,6 +387,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 
         for (int k = 0; k < SvtxAlignmentState::NGL; k++)
         {
+	  if(glbl_derivative[k] > 0 || glbl_derivative[k] < 0)
+	    std::cout << "NONZERO GLOBAL DERIVATIVE"<<std::endl;
           std::cout << glbl_derivative[k] << ", ";
         }
         std::cout << std::endl
