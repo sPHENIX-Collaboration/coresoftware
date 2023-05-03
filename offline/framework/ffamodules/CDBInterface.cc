@@ -47,6 +47,13 @@ CDBInterface::CDBInterface(const std::string &name)
 }
 
 //____________________________________________________________________________..
+
+CDBInterface::~CDBInterface()
+{
+  delete cdbclient;
+}
+
+//____________________________________________________________________________..
 int CDBInterface::End(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);

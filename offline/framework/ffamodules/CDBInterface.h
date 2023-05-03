@@ -18,7 +18,7 @@ class CDBInterface : public SubsysReco
  public:
   static CDBInterface *instance();
 
-  ~CDBInterface() override {}
+  ~CDBInterface() override;
 
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
