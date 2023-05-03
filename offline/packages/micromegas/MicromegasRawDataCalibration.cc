@@ -6,6 +6,7 @@
 #include "MicromegasRawDataCalibration.h"
 #include "MicromegasCalibrationData.h"
 #include "MicromegasDefs.h"
+#include "MicromegasMapping.h"
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -33,6 +34,8 @@ MicromegasRawDataCalibration::MicromegasRawDataCalibration( const std::string& n
 int MicromegasRawDataCalibration::Init(PHCompositeNode* /*topNode*/ )
 {
 
+  MicromegasMapping();
+  
   // histogram evaluation
   if( m_savehistograms ) create_histograms();
   return Fun4AllReturnCodes::EVENT_OK;
@@ -45,19 +48,28 @@ int MicromegasRawDataCalibration::InitRun(PHCompositeNode* /*topNode*/)
 //___________________________________________________________________________
 int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
 {
-
+  
   // map fee id to detector index in histogram
   using fee_map_t = std::map<int,int>;
   fee_map_t fee_map = {
-    {2, 0},
-    {1, 1},
-    {3, 2},
-    {4, 3},
-    {8, 4},
-    {9, 5},
-    {7, 6},
-    {5, 7}
-  };
+    {5, 0},      // SEIP
+    {7, 1},      // SEIZ
+    {6, 2},      // SCOP
+    {8, 3},      // SCOZ
+    {9, 4},      // SCIP
+    {10, 5},     // SCIZ
+    {24, 6},     // SWIP
+    {25, 7},     // SWIZ
+
+    {11, 8},     // NEIP
+    {12, 9},     // NEIZ
+    {19, 10},    // NCOP
+    {18, 11},    // NCOZ
+    {0, 12},     // NCIP
+    {1, 13},     // NCIZ
+    {15, 14},    // NWIP
+    {14, 15},    // NWIZ
+  };                 
 
   // load relevant nodes
   // PRDF node
@@ -75,7 +87,7 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
    * To be fixed at a later stage.
    * check with Martin Purschke
    */
-  auto packet = event->getPacket(4001);
+  auto packet = event->getPacket(MicromegasDefs::m_packet_id);
   if( !packet )
   {
     // no data

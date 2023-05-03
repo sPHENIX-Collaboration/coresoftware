@@ -52,6 +52,13 @@ class CaloWaveformProcessing : public SubsysReco
 
   int get_nthreads();
 
+  void set_softwarezerosuppression(bool usezerosuppression,int softwarezerosuppression)
+  {
+    _nsoftwarezerosuppression = softwarezerosuppression;
+    _bdosoftwarezerosuppression = usezerosuppression;
+  }
+
+
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
   std::vector<std::vector<float>> calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
 
@@ -62,6 +69,8 @@ class CaloWaveformProcessing : public SubsysReco
 
   CaloWaveformProcessing::process m_processingtype = CaloWaveformProcessing::NONE;
   int _nthreads = 1;
+  int _nsoftwarezerosuppression = 40;
+  bool _bdosoftwarezerosuppression = false;
 
   std::string m_template_input_file;
   std::string url_template;

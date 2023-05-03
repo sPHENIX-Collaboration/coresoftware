@@ -91,6 +91,9 @@ namespace MicromegasDefs
    s*/
   uint8_t getTileId(TrkrDefs::cluskey);
 
+  //! TPOT packet id
+  static constexpr unsigned int m_packet_id = 5001;
+  
   //! number of channels per fee board
   static constexpr int m_nchannels_fee = 256;
 

@@ -1,8 +1,8 @@
 #include "TowerInfoDefs.h"
 #include "RawTowerDefs.h"
-#include <phool/phool.h>
-#include <TSystem.h>
+
 #include <bitset>
+#include <climits>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -271,8 +271,8 @@ unsigned int TowerInfoDefs::encode_epd (const unsigned int arm, const unsigned i
 {
   if (rbin == 0 && phibin > 11)
     {
-      std::cout << PHWHERE << " encode_epd invalid phibin value: " << phibin << " where max valid phibin is 11"<< std::endl;
-      gSystem->Exit(1);
+      std::cout << __PRETTY_FUNCTION__ << " encode_epd invalid phibin value: " << phibin << " where max valid phibin is 11"<< std::endl;
+      exit(1);
     }
   
     unsigned int sector = phibin/2;
@@ -391,7 +391,7 @@ unsigned int TowerInfoDefs::encode_zdc(const unsigned int towerIndex)
     unsigned int Xneg[2] = {15,23};
     unsigned int Yneg[2] = {22,29};
     unsigned int xyBit = 0;
-    unsigned int fingerIndex;
+    unsigned int fingerIndex = UINT_MAX;
     unsigned int sideBit = 0;
     if (towerIndex >= Xpos[0] && towerIndex <= Xpos[1] ) 
       {
@@ -418,6 +418,7 @@ unsigned int TowerInfoDefs::encode_zdc(const unsigned int towerIndex)
 	sideBit = 0;
       }
     unsigned int key = (sideBit << 4) + (xyBit << 3) + fingerIndex;
+//    key += (sideBit << 4) + (xyBit << 3) + fingerIndex;
     return key;
   }
   
