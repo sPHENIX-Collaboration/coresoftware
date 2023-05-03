@@ -268,6 +268,7 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
     hnclus = new TH1F("hnclus", " nclusters ", 3, 0., 3.);
 
     fout2.reset ( new TFile(m_histogramfilename2.c_str(),"RECREATE") );
+    match_ntup = new TNtuple("match_ntup","Match NTuple","event:truthR:truthPhi:recoR:recoPhi:recoZ:nclus:r1:phi1:e1:layer1:r2:phi2:e2:layer2");
   }
 
   hit_r_phi = new TH2F("hit_r_phi","hit r vs #phi;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
@@ -275,7 +276,6 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
   clust_r_phi_pos = new TH2F("clust_r_phi_pos","clust R vs #phi Z>0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
   clust_r_phi_neg = new TH2F("clust_r_phi_neg","clust R vs #phi Z<0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
 
-  match_ntup = new TNtuple("match_ntup","Match NTuple","event:truthR:truthPhi:recoR:recoPhi:recoZ:nclus:r1:phi1:e1:layer1:r2:phi2:e2:layer2");
   
   // Get truth cluster positions
   //=====================
@@ -689,8 +689,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     cmdiff->setNclusters(nclus);
     
     m_cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
-
-    match_ntup->Fill(m_event_index,m_truth_pos[p.first].Perp(),m_truth_pos[p.first].Phi(),reco_pos[p.second].Perp(),reco_pos[p.second].Phi(),reco_pos[p.second].Z(),nclus,pos1[p.second].Perp(),pos1[p.second].Phi(),adc1[p.second],layer1[p.second],pos2[p.second].Perp(),pos2[p.second].Phi(),adc2[p.second],layer2[p.second]);
+    
+    if(m_savehistograms) match_ntup->Fill(m_event_index,m_truth_pos[p.first].Perp(),m_truth_pos[p.first].Phi(),reco_pos[p.second].Perp(),reco_pos[p.second].Phi(),reco_pos[p.second].Z(),nclus,pos1[p.second].Perp(),pos1[p.second].Phi(),adc1[p.second],layer1[p.second],pos2[p.second].Perp(),pos2[p.second].Phi(),adc2[p.second],layer2[p.second]);
 
     // store cluster position
     const double clus_r = reco_pos[p.second].Perp();
@@ -867,38 +867,38 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
   DetNode->addNode(CMFlashDifferenceNode);
 
     
-   // output tpc fluctuation distortion container
-   // this one is filled on the fly on a per-CM-event basis, and applied in the tracking chain
-   const std::string dcc_out_node_name = "TpcDistortionCorrectionContainerFluctuation";
-   m_dcc_out = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,dcc_out_node_name);
-   if( !m_dcc_out )
-   { 
+  //// output tpc fluctuation distortion container
+  //// this one is filled on the fly on a per-CM-event basis, and applied in the tracking chain
+  //const std::string dcc_out_node_name = "TpcDistortionCorrectionContainerFluctuation";
+  //m_dcc_out = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,dcc_out_node_name);
+  //if( !m_dcc_out )
+  //{ 
    
-     /// Get the DST node and check
-     auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-     if (!dstNode)
-     {
-       std::cout << "PHTpcCentralMembraneMatcher::InitRun - DST Node missing, quitting" << std::endl;
-       return Fun4AllReturnCodes::ABORTRUN;
-     }
+  //   /// Get the DST node and check
+  //   auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  //   if (!dstNode)
+  //   {
+  //     std::cout << "PHTpcCentralMembraneMatcher::InitRun - DST Node missing, quitting" << std::endl;
+  //     return Fun4AllReturnCodes::ABORTRUN;
+  //   }
      
-     // Get the tracking subnode and create if not found
-     auto svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
-     if (!svtxNode)
-     {
-       svtxNode = new PHCompositeNode("SVTX");
-       dstNode->addNode(svtxNode);
-     }
+  //   // Get the tracking subnode and create if not found
+  //   auto svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+  //   if (!svtxNode)
+  //   {
+  //     svtxNode = new PHCompositeNode("SVTX");
+  //     dstNode->addNode(svtxNode);
+  //   }
  
-     std::cout << "PHTpcCentralMembraneMatcher::GetNodes - creating TpcDistortionCorrectionContainer in node " << dcc_out_node_name << std::endl;
-     m_dcc_out = new TpcDistortionCorrectionContainer;
-     auto node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
-     svtxNode->addNode(node);
-   }
+  //   std::cout << "PHTpcCentralMembraneMatcher::GetNodes - creating TpcDistortionCorrectionContainer in node " << dcc_out_node_name << std::endl;
+  //   m_dcc_out = new TpcDistortionCorrectionContainer;
+  //   auto node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
+  //   svtxNode->addNode(node);
+  // }
   
 
-//  // create per event distortions. Do not put on the node tree
-//  m_dcc_out = new TpcDistortionCorrectionContainer;
+  // create per event distortions. Do not put on the node tree
+  m_dcc_out = new TpcDistortionCorrectionContainer;
 
   // also prepare the local distortion container, used to aggregate multple events 
   m_dcc_out_aggregated.reset( new TpcDistortionCorrectionContainer );
