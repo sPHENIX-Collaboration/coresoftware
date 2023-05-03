@@ -1,5 +1,7 @@
 #include "CDBInterface.h"
 
+#include <sphenixnpc/sphenixnpc.h>
+
 #include <ffaobjects/CdbUrlSave.h>
 #include <ffaobjects/CdbUrlSavev1.h>
 
@@ -15,7 +17,7 @@
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
-#include <sphenixnpc/sphenixnpc.h>
+//#include </phenix/u/pinkenbu/workarea/sPHENIX/gitrepov5/install/include/sphenixnpc/sphenixnpc.h>
 
 #include <TSystem.h>
 
@@ -42,6 +44,13 @@ CDBInterface::CDBInterface(const std::string &name)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
   se->addNewSubsystem(this);
+}
+
+//____________________________________________________________________________..
+
+CDBInterface::~CDBInterface()
+{
+  delete cdbclient;
 }
 
 //____________________________________________________________________________..
@@ -120,9 +129,12 @@ std::string CDBInterface::getUrl(const std::string &domain, const std::string &f
     std::cout << "rc->set_uint64Flag(\"TIMESTAMP\",<64 bit timestamp>)" << std::endl;
     gSystem->Exit(1);
   }
-  sphenixnpc *cdb = sphenixnpc::instance(rc->get_StringFlag("CDB_GLOBALTAG"));
+  if (cdbclient == nullptr)
+  {
+    cdbclient = new sphenixnpc(rc->get_StringFlag("CDB_GLOBALTAG"));
+  }
   uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP");
-  std::string return_url = cdb->getCalibrationFile(domain,timestamp);
+  std::string return_url = cdbclient->getCalibrationFile(domain,timestamp);
   if (return_url.empty())
   {
     return_url = filename;
