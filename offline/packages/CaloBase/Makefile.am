@@ -4,11 +4,6 @@
 AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
-if USE_ONLINE
-pkginclude_HEADERS = \
-  TowerInfoDefs.h
-
-else
 lib_LTLIBRARIES = \
   libcalo_io.la
 
@@ -16,13 +11,24 @@ libcalo_io_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-libcalo_io_la_LIBADD = \
-  -lphool
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
+
+# List of shared libraries to produce
+if USE_ONLINE
+pkginclude_HEADERS = \
+  RawTowerDefs.h \
+  TowerInfoDefs.h
+
+libcalo_io_la_SOURCES = \
+  TowerInfoDefs.cc
+
+else
+
+libcalo_io_la_LIBADD = \
+  -lphool
 
 pkginclude_HEADERS = \
   RawClusterUtility.h \
