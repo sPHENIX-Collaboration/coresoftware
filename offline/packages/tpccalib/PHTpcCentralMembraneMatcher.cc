@@ -409,10 +409,10 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       const bool isRGap = cmclus->getIsRGap();
 
       
-      // Do the static + average distortion corrections if the container was found
+       // Do the static + average distortion corrections if the container was found
       Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
       if( m_dcc_in) pos = m_distortionCorrection.get_corrected_position( pos, m_dcc_in ); 
-      
+
       TVector3 tmp_pos(pos[0], pos[1], pos[2]);
 
       TVector3 tmp_pos1(cmclus->getX1(), cmclus->getY1(), cmclus->getZ1());
@@ -835,7 +835,7 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
     }      
 
   // input tpc distortion correction
-  m_dcc_in = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  m_dcc_in = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( m_dcc_in )
     { 
       std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container" << std::endl; 
@@ -865,38 +865,40 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
   PHIODataNode<PHObject> *CMFlashDifferenceNode =
     new PHIODataNode<PHObject>(m_cm_flash_diffs, "CM_FLASH_DIFFERENCES", "PHObject");
   DetNode->addNode(CMFlashDifferenceNode);
-  
-//   // output tpc fluctuation distortion container
-//   // this one is filled on the fly on a per-CM-event basis, and applied in the tracking chain
-//   const std::string dcc_out_node_name = "TpcDistortionCorrectionContainerFluctuation";
-//   m_dcc_out = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,dcc_out_node_name);
-//   if( !m_dcc_out )
-//   { 
-//   
-//     /// Get the DST node and check
-//     auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-//     if (!dstNode)
-//     {
-//       std::cout << "PHTpcCentralMembraneMatcher::InitRun - DST Node missing, quitting" << std::endl;
-//       return Fun4AllReturnCodes::ABORTRUN;
-//     }
-//     
-//     // Get the tracking subnode and create if not found
-//     auto svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
-//     if (!svtxNode)
-//     {
-//       svtxNode = new PHCompositeNode("SVTX");
-//       dstNode->addNode(svtxNode);
-//     }
-// 
-//     std::cout << "PHTpcCentralMembraneMatcher::GetNodes - creating TpcDistortionCorrectionContainer in node " << dcc_out_node_name << std::endl;
-//     m_dcc_out = new TpcDistortionCorrectionContainer;
-//     auto node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
-//     svtxNode->addNode(node);
-//   }
 
-  // create per event distortions. Do not put on the node tree
-  m_dcc_out = new TpcDistortionCorrectionContainer;
+    
+   // output tpc fluctuation distortion container
+   // this one is filled on the fly on a per-CM-event basis, and applied in the tracking chain
+   const std::string dcc_out_node_name = "TpcDistortionCorrectionContainerFluctuation";
+   m_dcc_out = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,dcc_out_node_name);
+   if( !m_dcc_out )
+   { 
+   
+     /// Get the DST node and check
+     auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+     if (!dstNode)
+     {
+       std::cout << "PHTpcCentralMembraneMatcher::InitRun - DST Node missing, quitting" << std::endl;
+       return Fun4AllReturnCodes::ABORTRUN;
+     }
+     
+     // Get the tracking subnode and create if not found
+     auto svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+     if (!svtxNode)
+     {
+       svtxNode = new PHCompositeNode("SVTX");
+       dstNode->addNode(svtxNode);
+     }
+ 
+     std::cout << "PHTpcCentralMembraneMatcher::GetNodes - creating TpcDistortionCorrectionContainer in node " << dcc_out_node_name << std::endl;
+     m_dcc_out = new TpcDistortionCorrectionContainer;
+     auto node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
+     svtxNode->addNode(node);
+   }
+  
+
+//  // create per event distortions. Do not put on the node tree
+//  m_dcc_out = new TpcDistortionCorrectionContainer;
 
   // also prepare the local distortion container, used to aggregate multple events 
   m_dcc_out_aggregated.reset( new TpcDistortionCorrectionContainer );
