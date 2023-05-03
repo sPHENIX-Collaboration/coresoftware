@@ -134,11 +134,11 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
     /// The local bound parameters still have access to global phi/theta
     double phi = state.smoothed()[Acts::eBoundPhi];
     double theta = state.smoothed()[Acts::eBoundTheta];
+
     Acts::Vector3 tangent = Acts::makeDirectionUnitFromPhiTheta(phi,theta);
-    //! charge for phi is switched in Acts
-    tangent(0) *= -1; 
-    tangent(1) *= -1;
-    
+    //! opposite convention for coordinates in Acts
+    tangent *= -1;
+
     if(m_verbosity > 2)
       {
 	std::cout << "tangent vector to track state is " << tangent.transpose() << std::endl;
@@ -243,7 +243,8 @@ std::pair<Acts::Vector3, Acts::Vector3> ActsAlignmentStates::get_projectionXY(co
 
   projx = X - (tangent.dot(X) / tangent.dot(Z)) * Z;
   projy = Y - (tangent.dot(Y) / tangent.dot(Z)) * Z;
-
+  if(m_verbosity > 2)
+    std::cout << "projxy " << projx.transpose() << ", " << projy.transpose() << std::endl;
   return std::make_pair(projx, projy);
 }
 
