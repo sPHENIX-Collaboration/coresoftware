@@ -1,6 +1,8 @@
 #ifndef TRUTHTRKMATCHER__H
 #define TRUTHTRKMATCHER__H
 
+#include "g4evaltools.h" // has some G4Eval tools (TrkrClusterComparer)
+
 #include <fun4all/SubsysReco.h> 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
@@ -55,12 +57,12 @@ class TruthRecoTrackMatching : public SubsysReco
          *--------------------------------------------------------*/
           const unsigned short _nmin_match = 4    
         , const float  _nmin_ratio         = 0.   
-        , const double _cutoff_dphi        = 0.3  
-        , const double _same_dphi          = 0.05 
-        , const double _cutoff_deta        = 0.3  
-        , const double _same_deta          = 0.05 
-        , const double _cluster_nzwidths   = 0.5
-        , const double _cluster_nphiwidths = 0.5
+        , const float _cutoff_dphi        = 0.3  
+        , const float _same_dphi          = 0.05 
+        , const float _cutoff_deta        = 0.3  
+        , const float _same_deta          = 0.05 
+        , const float _cluster_nzwidths   = 0.5
+        , const float _cluster_nphiwidths = 0.5
         , const unsigned short    _max_nreco_per_truth  = 4
         , const unsigned short    _max_ntruth_per_reco  = 4
     );  // for some output kinematis
@@ -71,11 +73,13 @@ class TruthRecoTrackMatching : public SubsysReco
     int process_event(PHCompositeNode *) override; //`
     int End(PHCompositeNode           *) override;
 
+    G4Eval::TrkrClusterComparer m_cluster_comp;
+    G4Eval::ClusCntr            m_cluscntr;
 
     int createNodes(PHCompositeNode* topNode);
 
-    void set_cluster_nphiwidths       (float val) { m_cluster_nphiwidths = val; };
-    void set_cluster_nzwidths         (float val) { m_cluster_nzwidths   = val; };
+    void set_cluster_nphiwidths       (float val) { m_cluster_comp.set_nphi_widths(val);};
+    void set_cluster_nzwidths         (float val) { m_cluster_comp.set_nz_widths(val);};
     void set_cutoff_deta              (float val) { m_cutoff_deta        = val; };
     void set_cutoff_dphi              (float val) { m_cutoff_dphi        = val; };
     void set_nmin_truth_cluster_ratio (float val) { m_nmincluster_ratio  = val; };
@@ -89,10 +93,12 @@ class TruthRecoTrackMatching : public SubsysReco
   //--------------------------------------------------
   // Internal functions
   //--------------------------------------------------
+  
 
     //--------------------------------------------------
     // Constant parameters for track matching
     //--------------------------------------------------
+
     unsigned short  m_nmincluster_match; // minimum of matched clustered to keep a truth to emb match
     float  m_nmincluster_ratio; // minimum ratio of truth clustered that must be matched in reconstructed track
 
@@ -101,15 +107,15 @@ class TruthRecoTrackMatching : public SubsysReco
     double m_cutoff_deta; //  how far in |eta_truth-eta_reco| to match
     double m_same_deta;   // |eta_truth-eta_reco| to auto-evaluate (is < m_cutoff_deta)
 
-    double m_cluster_nzwidths;   // cutoff in *getPhiSize() in cluster for |cluster_phi_truth-cluster_phi_reco| to match
-    double m_cluster_nphiwidths; // same for eta
+    /* double m_cluster_nzwidths;   // cutoff in *getPhiSize() in cluster for |cluster_phi_truth-cluster_phi_reco| to match */
+    /* double m_cluster_nphiwidths; // same for eta */
 
     unsigned short m_max_nreco_per_truth;
     unsigned short m_max_ntruth_per_reco;
 
 
-    std::array<double, 55> m_phistep {0.}; // the phistep squared
-    double m_zstep {0.};
+    /* std::array<double, 55> m_phistep {0.}; // the phistep squared */
+    /* double m_zstep {0.}; */
 
     std::map<unsigned short, unsigned short>  m_nmatched_index_true {};
 
@@ -267,29 +273,6 @@ class TruthRecoTrackMatching : public SubsysReco
     void clear_branch_vectors();
     void fill_tree();
 
-    // The following is a struct to iterate over the cluster keys for a given
-    // StvxTrack* tracks, starting with the silicone seed and then returning
-    // values for the tpc seed. It is used like:
-    //
-    // for (auto& cluskey : ClusKeyIter(svtx_track)) {
-    //    ... // do things with cluster keys
-    // }
-    struct ClusKeyIter {
-      ClusKeyIter(SvtxTrack* _track);
-      // data
-      SvtxTrack* track;
-      bool in_silicon;
-      bool has_tpc;
-      bool no_data; // neither a tpc nor a silicon seed
-      TrackSeed::ClusterKeyIter iter             { };
-      TrackSeed::ClusterKeyIter iter_end_silicon { };
-
-      ClusKeyIter begin();
-      ClusKeyIter end();
-      void operator++();
-      TrkrDefs::cluskey operator*();
-      bool operator!=(const ClusKeyIter& rhs);
-    };
 };
 
 #endif

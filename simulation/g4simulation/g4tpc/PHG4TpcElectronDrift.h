@@ -1,8 +1,9 @@
 // Tell emacs that this is a C++ source
 // -*- C++ -*-.
-
 #ifndef G4TPC_PHG4TPCELECTRONDRIFT_H
 #define G4TPC_PHG4TPCELECTRONDRIFT_H
+
+#include "TpcClusterBuilder.h"
 
 #include <array>
 #include <cmath>
@@ -35,7 +36,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
-  ~PHG4TpcElectronDrift() override;
+  ~PHG4TpcElectronDrift() override { };
   int Init(PHCompositeNode *) override;
   int InitRun(PHCompositeNode *) override;
   int process_event(PHCompositeNode *) override;
@@ -64,7 +65,13 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   //! setup readout plane
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
+  // cluster the PHG4Tracks individually
+  TpcClusterBuilder truth_clusterer {};
+  void set_pixel_thresholdrat (double val) { truth_clusterer.set_pixel_thresholdrat(val); };
+  void set_max_g4hitstep (float _) { max_g4hitstep =_; };
+
  private:
+  float max_g4hitstep { 7. };
   //! map a given x,y,z coordinates to plane hits
   /* TpcClusterBuilder MapToPadPlane(const double x, const double y, const */
   /*     double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, */
@@ -75,7 +82,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TrkrHitSetContainer *hitsetcontainer = nullptr;
   TrkrHitTruthAssoc *hittruthassoc = nullptr;
   TrkrTruthTrackContainer *truthtracks = nullptr;
-  TrkrTruthTrack *current_track = nullptr;
+  TrkrTruthTrack *truth_track = nullptr;
   TrkrClusterContainer *truthclustercontainer = nullptr; // the TrkrClusterContainer for truth clusters
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<TrkrHitSetContainer> single_hitsetcontainer;
@@ -129,12 +136,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double max_active_radius = NAN;
   double min_time = NAN;
   double max_time = NAN;
-
-
-  /* std::array<TpcClusterBuilder,55> layer_clusterers; // Generate TrkrClusterv4's for TrkrTruthTracks */
-  TpcClusterBuilder* truth_clusterer { nullptr };
-
-  /* void buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsigned int>&); */
 
   //! rng de-allocator
   class Deleter
