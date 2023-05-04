@@ -98,7 +98,7 @@ int PHG4OHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
     // create stepping action
     m_SteppingAction = new PHG4OHCalSteppingAction(m_Detector, GetParams());
-    m_SteppingAction->Init();
+    m_SteppingAction->InitWithNode(topNode);
     m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
     m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
   }
@@ -107,7 +107,7 @@ int PHG4OHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     if (GetParams()->get_int_param("blackhole"))
     {
       m_SteppingAction = new PHG4OHCalSteppingAction(m_Detector, GetParams());
-      m_SteppingAction->Init();
+      m_SteppingAction->InitWithNode(topNode);
     }
   }
 
@@ -168,12 +168,15 @@ void PHG4OHCalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_z", 0.);
   set_default_double_param("size_z", 639.240 + 10);
   set_default_double_param("Birk_const", 0.07943);
+   set_default_double_param("tmin", -20.);
+  set_default_double_param("tmax", 60.);
   set_default_int_param("field_check", 0);
   set_default_int_param("light_scint_model", 1);
 
   set_default_int_param("n_towers", 64);
   set_default_int_param(PHG4HcalDefs::scipertwr, 5);
   set_default_int_param("n_scinti_tiles", 12);
+  set_default_int_param("saveg4hit", 1);
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
   std::string defaultmapfilename;
