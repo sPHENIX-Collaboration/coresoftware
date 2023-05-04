@@ -17,12 +17,9 @@ lib_LTLIBRARIES = \
    libg4eval_hp.la
 
 libg4eval_hp_la_LIBADD = \
-  -lcalo_io \
   -lCLHEP \
   -lfun4all \
   -lg4detectors_io \
-  -lg4jets_io \
-  -lg4vertex_io \
   -ltrackbase_historic_io \
   -ltrack_io \
   -ltpc_io \
