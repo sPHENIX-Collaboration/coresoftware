@@ -7,7 +7,7 @@
 #include <phool/PHObject.h>
 #include <vector>
 #include <array>
-
+ 
 /* class VtxPoint; */
 class EmbRecoMatchv1 : public EmbRecoMatch
 {

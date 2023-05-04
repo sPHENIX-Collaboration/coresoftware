@@ -10,8 +10,8 @@
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
 
-#include <g4vertex/GlobalVertex.h>
-#include <g4vertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
 
 #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 

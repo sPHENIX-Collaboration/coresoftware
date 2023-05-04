@@ -1,10 +1,10 @@
 
 #include "BbcVertexFastSimReco.h"
 
-#include "BbcVertex.h"     // for BbcVertex
-#include "BbcVertexMap.h"  // for BbcVertexMap
-#include "BbcVertexMapv1.h"
-#include "BbcVertexv1.h"
+#include <bbc/BbcVertex.h>     // for BbcVertex
+#include <bbc/BbcVertexMap.h>  // for BbcVertexMap
+#include <bbc/BbcVertexMapv1.h>
+#include <bbc/BbcVertexv1.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>

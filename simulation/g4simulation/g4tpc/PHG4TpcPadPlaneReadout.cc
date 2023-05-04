@@ -190,7 +190,7 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
 
 
 void PHG4TpcPadPlaneReadout::MapToPadPlane(
-    TpcClusterBuilder  *tpc_truth_clusterer,
+    TpcClusterBuilder  &tpc_truth_clusterer,
     TrkrHitSetContainer *single_hitsetcontainer, 
     TrkrHitSetContainer *hitsetcontainer, 
     TrkrHitTruthAssoc * /*hittruthassoc*/, 
@@ -402,7 +402,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       // Either way, add the energy to it  -- adc values will be added at digitization
       hit->addEnergy(neffelectrons);
 
-      tpc_truth_clusterer->addhitset(hitsetkey, hitkey, neffelectrons);
+      tpc_truth_clusterer.addhitset(hitsetkey, hitkey, neffelectrons);
 
       // repeat for the single_hitsetcontainer
       // See if this hit already exists

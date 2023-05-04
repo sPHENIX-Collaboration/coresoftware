@@ -6,18 +6,15 @@
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 
-
 #include <calobase/TowerInfov1.h>
 #include <calobase/TowerInfoContainerv1.h>
-
-
 
 #include <calobase/RawTowerDefs.h>           // for encode_towerid
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-#include <g4vertex/GlobalVertex.h>
-#include <g4vertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
 
 #include <phool/getClass.h>
 

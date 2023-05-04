@@ -1,6 +1,6 @@
-#include "BbcSimReco.h"
+#include "BbcDigitization.h"
 
-#include <bbc/BbcOutV1.h>
+#include <bbc/BbcDefs.h>
 #include <bbc/BbcPmtContainerV1.h>
 
 #include <g4main/PHG4Hit.h>
@@ -37,131 +37,32 @@
 #include <cmath>
 #include <iostream>
 
-namespace BBCINFO
-{
-  const Double_t index_refract = 1.4585;
-  const Double_t v_ckov = 1.0 / index_refract;  // velocity threshold for CKOV
-  const Double_t C = 29.9792458;                // cm/ns
-
-  // kludge where we have the hardcoded positions of the tubes
-  // These are the x,y for the south BBC (in cm).
-  // The north inverts the x coordinate (x -> -x)
-
-  /* unused causes compiler warning
-  const float TubeLoc[64][2] = {
-      { -12.2976,	4.26 },
-      { -12.2976,	1.42 },
-      { -9.83805,	8.52 },
-      { -9.83805,	5.68 },
-      { -9.83805,	2.84 },
-      { -7.37854,	9.94 },
-      { -7.37854,	7.1 },
-      { -7.37854,	4.26 },
-      { -7.37854,	1.42 },
-      { -4.91902,	11.36 },
-      { -4.91902,	8.52 },
-      { -4.91902,	5.68 },
-      { -2.45951,	12.78 },
-      { -2.45951,	9.94 },
-      { -2.45951,	7.1 },
-      { 0,	11.36 },
-      { 0,	8.52 },
-      { 2.45951,	12.78 },
-      { 2.45951,	9.94 },
-      { 2.45951,	7.1 },
-      { 4.91902,	11.36 },
-      { 4.91902,	8.52 },
-      { 4.91902,	5.68 },
-      { 7.37854,	9.94 },
-      { 7.37854,	7.1 },
-      { 7.37854,	4.26 },
-      { 7.37854,	1.42 },
-      { 9.83805,	8.52 },
-      { 9.83805,	5.68 },
-      { 9.83805,	2.84 },
-      { 12.2976,	4.26 },
-      { 12.2976,	1.42 },
-      { 12.2976,	-4.26 },
-      { 12.2976,	-1.42 },
-      { 9.83805,	-8.52 },
-      { 9.83805,	-5.68 },
-      { 9.83805,	-2.84 },
-      { 7.37854,	-9.94 },
-      { 7.37854,	-7.1 },
-      { 7.37854,	-4.26 },
-      { 7.37854,	-1.42 },
-      { 4.91902,	-11.36 },
-      { 4.91902,	-8.52 },
-      { 4.91902,	-5.68 },
-      { 2.45951,	-12.78 },
-      { 2.45951,	-9.94 },
-      { 2.45951,	-7.1 },
-      { 0,	-11.36 },
-      { 0,	-8.52 },
-      { -2.45951,	-12.78 },
-      { -2.45951,	-9.94 },
-      { -2.45951,	-7.1 },
-      { -4.91902,	-11.36 },
-      { -4.91902,	-8.52 },
-      { -4.91902,	-5.68 },
-      { -7.37854,	-9.94 },
-      { -7.37854,	-7.1 },
-      { -7.37854,	-4.26 },
-      { -7.37854,	-1.42 },
-      { -9.83805,	-8.52 },
-      { -9.83805,	-5.68 },
-      { -9.83805,	-2.84 },
-      { -12.2976,	-4.26 },
-      { -12.2976,	-1.42 }
-  };
-  */
-
-}  // namespace BBCINFO
-
 //____________________________________
-BbcSimReco::BbcSimReco(const std::string &name)
+BbcDigitization::BbcDigitization(const std::string &name)
   : SubsysReco(name)
   , _tres(0.05)
 {
   std::fill(std::begin(f_pmtq), std::end(f_pmtq), std::numeric_limits<float>::quiet_NaN());
   std::fill(std::begin(f_pmtt0), std::end(f_pmtt0), std::numeric_limits<float>::quiet_NaN());
   std::fill(std::begin(f_pmtt1), std::end(f_pmtt1), std::numeric_limits<float>::quiet_NaN());
-  std::fill(std::begin(f_bbcn), std::end(f_bbcn), 0);
-  std::fill(std::begin(f_bbcq), std::end(f_bbcq), std::numeric_limits<float>::quiet_NaN());
-  std::fill(std::begin(f_bbct), std::end(f_bbct), std::numeric_limits<float>::quiet_NaN());
-  std::fill(std::begin(f_bbcte), std::end(f_bbcte), std::numeric_limits<float>::quiet_NaN());
-  hevt_bbct[0] = nullptr;
-  hevt_bbct[1] = nullptr;
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   m_Seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   gsl_rng_set(m_RandomGenerator, m_Seed);
 }
 
-BbcSimReco::~BbcSimReco()
+BbcDigitization::~BbcDigitization()
 {
   gsl_rng_free(m_RandomGenerator);
   return;
 }
 
 //___________________________________
-int BbcSimReco::Init(PHCompositeNode *topNode)
+int BbcDigitization::Init(PHCompositeNode *topNode)
 {
   // std::cout << PHWHERE << std::endl;
   CreateNodes(topNode);
 
   _pdg = new TDatabasePDG();  // database of PDG info on particles
-
-  TString name, title;
-  for (int iarm = 0; iarm < 2; iarm++)
-  {
-    //
-    name = "hevt_bbct";
-    name += iarm;
-    title = "bbc times, arm ";
-    title += iarm;
-    hevt_bbct[iarm] = new TH1F(name, title, 200, 7.5, 11.5);
-    hevt_bbct[iarm]->SetLineColor(4);
-  }
 
   gaussian = new TF1("gaussian", "gaus", 0, 20);
   gaussian->FixParameter(2, _tres);  // set sigma to timing resolution
@@ -170,7 +71,7 @@ int BbcSimReco::Init(PHCompositeNode *topNode)
 }
 
 //___________________________________
-int BbcSimReco::InitRun(PHCompositeNode *topNode)
+int BbcDigitization::InitRun(PHCompositeNode *topNode)
 {
   GetNodes(topNode);
 
@@ -179,23 +80,9 @@ int BbcSimReco::InitRun(PHCompositeNode *topNode)
 
 //__________________________________
 // Call user instructions for every event
-int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
+int BbcDigitization::process_event(PHCompositeNode * /*topNode*/)
 {
   //**** Initialize Variables
-
-  // Arm Data
-  f_bbcn[0] = 0;
-  f_bbcn[1] = 0;
-  f_bbcq[0] = 0.;
-  f_bbcq[1] = 0.;
-  f_bbct[0] = -9999.;
-  f_bbct[1] = -9999.;
-  f_bbcte[0] = -9999.;
-  f_bbcte[1] = -9999.;
-  f_bbcz = std::numeric_limits<float>::quiet_NaN();
-  f_bbct0 = std::numeric_limits<float>::quiet_NaN();
-  hevt_bbct[0]->Reset();
-  hevt_bbct[1]->Reset();
 
   // PMT data
   float len[128] = {0.};
@@ -277,7 +164,7 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     // get summed path length for particles that can create CKOV light
     // n.p.e. is determined from path length
     Double_t beta = v4.Beta();
-    if (beta > BBCINFO::v_ckov && charge != 0.)
+    if (beta > BbcDefs::v_ckov && charge != 0.)
     {
       len[ch] += this_hit->get_path_length();
 
@@ -287,18 +174,8 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
     nhits++;
   }
 
-  // process the data from each channel
-  for (float &iarm : f_bbct)
-  {
-    iarm = 0.;
-  }
-
-  std::vector<float> hit_times[2];  // times of the hits in each [arm]
-
   for (int ich = 0; ich < 128; ich++)
   {
-    int arm = ich / 64;  // ch 0-63 = south, ch 64-127 = north
-
     // Fill charge and time info
     if (len[ich] > 0.)
     {
@@ -312,20 +189,11 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
       float dnpe = gsl_ran_gaussian(m_RandomGenerator, std::sqrt(npe));  // get fluctuation in npe
 
       npe += dnpe;  // apply the fluctuations in npe
-
-      f_bbcq[arm] += npe;
       f_pmtq[ich] = npe;
 
       // Now time
       if (first_time[ich] < 9999.)
       {
-        // Fill evt histogram
-        hevt_bbct[arm]->Fill(first_time[ich]);
-        hit_times[arm].push_back(first_time[ich]);
-
-        f_bbct[arm] += first_time[ich];
-        // std::cout << "XXX " << ich << "\t" << f_bbct[arm] << "\t" << first_time[ich] << std::endl;
-
         f_pmtt0[ich] = first_time[ich];
         f_pmtt1[ich] = first_time[ich];
       }
@@ -337,62 +205,18 @@ int BbcSimReco::process_event(PHCompositeNode * /*topNode*/)
         }
       }
 
-      // int ipmt = f_bbcn[0] + f_bbcn[1]; // number of hit pmt
       _bbcpmts->AddBbcPmt(ich, f_pmtq[ich], f_pmtt0[ich], f_pmtt1[ich]);
-
-      // threshold should be > 0.
-      ++f_bbcn[arm];
-    }
-  }
-
-  // Get best t
-  if (f_bbcn[0] > 0 && f_bbcn[1] > 0)
-  {
-    for (int iarm = 0; iarm < 2; iarm++)
-    {
-      if (!hit_times[iarm].empty())
+      if (Verbosity() > 0)
       {
-        std::sort(hit_times[iarm].begin(), hit_times[iarm].end());
-        float earliest = hit_times[iarm][0];
-
-        gaussian->SetParameter(0, 5);
-        gaussian->SetParameter(1, earliest);
-        gaussian->SetRange(6, earliest + 5 * 0.05);
-        // gaussian->SetParameter(1,hevt_bbct[iarm]->GetMean());
-        // gaussian->SetRange(6,hevt_bbct[iarm]->GetMean()+0.125);
-
-        hevt_bbct[iarm]->Fit(gaussian, "BLRNQ");
-        if (f_bbcn[iarm] > 0)
-        {
-          // f_bbct[iarm] = f_bbct[iarm] / f_bbcn[iarm];
-          f_bbct[iarm] = gaussian->GetParameter(1);
-          f_bbcte[iarm] = earliest;
-
-          _bbcout->AddBbcNS(iarm, f_bbcn[iarm], f_bbcq[iarm], f_bbct[iarm]);
-        }
-        else
-        {
-          _bbcout->AddBbcNS(iarm, 0, -99999., -99999.);
-        }
-      }
-      else
-      {
-        _bbcout->AddBbcNS(iarm, 0, -99999., -99999.);
+        std::cout << "Adding " << ich << ", " << f_pmtq[ich] << ", " << f_pmtt0[ich] << " , " << f_pmtt1[ich] << std::endl;
       }
     }
-
-    // Now calculate zvtx, t0 from best times
-    f_bbcz = (f_bbct[0] - f_bbct[1]) * BBCINFO::C / 2.0;
-    f_bbct0 = (f_bbct[0] + f_bbct[1]) / 2.0;
-
-    _bbcout->set_Vertex(f_bbcz, 0.6);
-    _bbcout->set_TimeZero(f_bbct0, 0.05);
   }
 
   return 0;
 }
 
-void BbcSimReco::CreateNodes(PHCompositeNode *topNode)
+void BbcDigitization::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -410,15 +234,6 @@ void BbcSimReco::CreateNodes(PHCompositeNode *topNode)
     dstNode->addNode(bbcNode);
   }
 
-  //-* contains final physics products (nmips, t0, etc)
-  _bbcout = findNode::getClass<BbcOut>(bbcNode, "BbcOut");
-  if (!_bbcout)
-  {
-    _bbcout = new BbcOutV1();
-    PHIODataNode<PHObject> *BbcOutNode = new PHIODataNode<PHObject>(_bbcout, "BbcOut", "PHObject");
-    bbcNode->addNode(BbcOutNode);
-  }
-
   //-* contains info for each pmt (nmips, time, etc)
   _bbcpmts = findNode::getClass<BbcPmtContainer>(bbcNode, "BbcPmtContainer");
   if (!_bbcpmts)
@@ -430,7 +245,7 @@ void BbcSimReco::CreateNodes(PHCompositeNode *topNode)
 }
 
 //___________________________________
-void BbcSimReco::GetNodes(PHCompositeNode *topNode)
+void BbcDigitization::GetNodes(PHCompositeNode *topNode)
 {
   // Get the DST objects
 
@@ -451,14 +266,6 @@ void BbcSimReco::GetNodes(PHCompositeNode *topNode)
   }
 
   /** DST Objects **/
-
-  // BbcOut data
-  _bbcout = findNode::getClass<BbcOut>(topNode, "BbcOut");
-  if (!_bbcout)
-  {
-    std::cout << PHWHERE << " BbcOut node not found on node tree" << std::endl;
-    gSystem->Exit(1);
-  }
 
   // BbcPmtContainer
   _bbcpmts = findNode::getClass<BbcPmtContainer>(topNode, "BbcPmtContainer");
