@@ -12,37 +12,26 @@
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 #include <cmath>  // for sqrt, cos, sin
 #include <map>  // for _Rb_tree_cons...
+#include <TString.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <g4tracking/TrkrTruthTrackContainer.h>
 
+#include <set>
+
+#include <iostream>
+#include <ios>
+
 /* class TpcClusterBuilder; */
 
-using std::cout, std::endl, std::string, std::ofstream;
+using std::cout, std::endl, std::string, std::ofstream, std::ostream;
 
 double TpcClusterBuilder::square(double v) { return v*v; }
 double TpcClusterBuilder::square(float  v) { return v*v; }
 
 void TpcClusterBuilder::set_verbosity(int verbosity_level) { verbosity = verbosity_level; }
 
-TpcClusterBuilder::TpcClusterBuilder
-    ( TrkrClusterContainer*         _truth_cluster_container
-    /* , TrkrTruthTrackContainer*      _truth_track_container */
-    , ActsGeometry*                 _ActsGeometry
-    , PHG4TpcCylinderGeomContainer* _geom_container
-   ): m_clusterlist         { _truth_cluster_container }
-    , m_tGeometry           { _ActsGeometry            }
-    , geom_container        { _geom_container          }
-{ }
-
-void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
-  if (verbosity) if (m_hits == nullptr) cout << " m_hits == nullptr! " << endl;
-
-  if (!is_embedded_track) {
-    reset(clear_hitsetkey_cnt);
-    return;
-  }
-
+void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
   // now build the TrkrCluster
   TrkrHitSetContainer::ConstRange hitsetrange;
   hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -50,6 +39,7 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
   //-----------------------------------------------------
   // from TpcClusterizer.cc ~line: 837
   //-----------------------------------------------------
+
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
       hitsetitr != hitsetrange.second;
       ++hitsetitr)
@@ -90,24 +80,56 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
     double radius = layergeom->get_radius();  // returns center of layer
 
     int phibinhi = -1;
-    int phibinlo = 666666;
+    int phibinlo = INT_MAX;
     int tbinhi = -1;
-    int tbinlo = 666666;
+    int tbinlo = INT_MAX;
 
     auto ihit_list = hitset->getHits();
+
+    double sum_energy { 0. }; // energy = 4 * adc at this point
+    for(auto ihit = ihit_list.first; ihit != ihit_list.second; ++ihit){
+      int e = ihit->second->getEnergy();
+      int adc = ihit->second->getAdc();
+      if (adc*4 != e) {
+      cout << " FIXME: energy: " << ihit->second->getEnergy() << " vs adc " << ihit->second->getAdc() << endl;
+      }
+      sum_energy += ihit->second->getEnergy();
+    }
+    const double threshold = sum_energy * m_pixel_thresholdrat;
+  
+    // FIXME -- see why the hits are so scattered
+    std::set<int> v_iphi, v_it;              // FIXME
+    std::map<int,unsigned int> m_iphi, m_it; // FIXME
     for(auto iter = ihit_list.first; iter != ihit_list.second; ++iter){
       unsigned int adc = iter->second->getAdc(); 
       if (adc <= 0) continue;
 
+      if (iter->second->getEnergy()<threshold) {
+        /* cout << "FIXME cutting " << iter->second->getEnergy() << " is below " << threshold << endl; */
+      }
+
+      if (iter->second->getEnergy()<threshold) continue;
+
       int iphi = TpcDefs::getPad(iter->first) - phioffset;
       int it   = TpcDefs::getTBin(iter->first) - toffset;
 
+      //FIXME
+      v_iphi.insert(iphi);
+      v_it.insert(it);
+      m_iphi.try_emplace(iphi,0);
+      m_it.try_emplace(it,0);
+
+      m_iphi[iphi] += adc;
+      m_it[it] += adc;
+
       if(iphi<0 || iphi>=phibins){
-        //std::cout << "WARNING phibin out of range: " << phibin << " | " << phibins << std::endl;
+      //FIXME
+        std::cout << "WARNING phibin out of range: " << iphi << " | " << phibins << std::endl;
         continue;
       }
       if(it<0 || it>=tbins){
-        //std::cout << "WARNING z bin out of range: " << tbin << " | " << tbins << std::endl;
+      //FIXME
+        std::cout << "WARNING z bin out of range: " << it << " | " << tbins << std::endl;
         continue;
       }
 
@@ -132,6 +154,17 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
 
       adc_sum += adc;
     }
+    
+    if (true) { // FIXME 
+      int _phi_sum = 0;
+      for (auto _ : m_iphi) _phi_sum += _.second;
+      if (_phi_sum != adc_sum) cout << " FIXME z1 " << adc_sum << " delta phi: " << (adc_sum - _phi_sum) << endl;
+
+      int _t_sum = 0;
+      for (auto _ : m_it) _t_sum += _.second;
+      if (_t_sum != adc_sum) cout << " FIXME z1 " << adc_sum << " delta phi: " << (adc_sum - _phi_sum) << endl;
+    }
+      
 
     // This is the global position
     double clusiphi = iphi_sum / adc_sum;
@@ -143,11 +176,80 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
     double zdriftlength = clust * m_tGeometry->get_drift_velocity();
     // convert z drift length to z position in the TPC
     double clusz = m_tdriftmax * m_tGeometry->get_drift_velocity() - zdriftlength;
-    if(side == 0) clusz = -clusz;
-    /* const double phi_cov = phi2_sum/adc_sum - square(clusphi); */
+    if (side == 0) clusz = -clusz;
 
     char tsize = tbinhi - tbinlo + 1;
     char phisize = phibinhi - phibinlo + 1;
+
+    if (tsize < 0) cout << " FIXME z4 tsize: " << ((int)tsize) << " " << tbinlo << " to " << tbinhi << endl;
+    
+    // -------------------------------------------------
+    // -------------------------------------------------
+    // debug here: FIXME
+    //
+    /* cout << " FIXME phisize " << ((int) phisize) << endl; */
+    //FIXME
+    if (false) { // Printing for debugging
+      if ((int)phisize > 10 || (int)tsize > 8) {
+        int _size_phi = ((int)phisize);
+        int _nbins_phi  = v_iphi.size();
+        int _delta_phi = abs(_size_phi-_nbins_phi);
+        int _size_z = ((int)tsize);
+        int _nbins_z = v_it.size();
+        int _delta_z = abs(_size_z - _nbins_z);
+
+        TString fmt;
+        cout << " x|"<<_delta_phi<<"|"<<_delta_z
+          <<"| new node FIXME A1  layer("<< layer 
+          <<") (nset:size) phi("
+          << _nbins_phi<<":"<<_size_phi << ") z("
+          <<_nbins_z<<":"<<_size_z<<") " 
+          <<"trkId("<<track->getTrackid()<<") trkpT("<<track->getPt()<<")"
+          << endl;
+        if (phisize>10) {
+          cout << "  iphi-from-(";
+          int _prev = -1;
+          double tempsum = 0.;
+          for (auto _ : v_iphi) {
+            if (_prev == -1) {
+              cout << _<<"): ";
+            } else {
+              int _diff = ((int)_-_prev-1);
+              if (_diff != 0) cout<<">"<<_diff<<">";
+            }
+            /* cout << std::setprecision(2) << std::fixed; */
+            double _rat = (float)m_iphi[_] / (float)adc_sum;
+            fmt.Form("%.2f",_rat);
+            cout << fmt <<" ";
+            tempsum += _rat;
+            _prev = _;
+          }
+          if (tempsum < 0.999) cout << " Z3 sumphirat: " << tempsum;
+          cout << endl;
+        }
+        if (tsize>8) {
+          int _prev = -1;
+          double tempsum = 0.;
+          cout << "  iz-from-(";
+          for (auto _ : v_it) {
+            if (_prev == -1) {
+              cout << _<<"): ";
+            } else {
+              int _diff = ((int)_-_prev-1);
+              if (_diff != 0) cout<<">"<<_diff<<">";
+            }
+            /* cout << std::setprecision(2) << std::fixed; */
+            double _rat = (float)m_it[_] / (float)adc_sum;
+            fmt.Form("%.2f",_rat);
+            cout << fmt <<" ";
+            tempsum += _rat;
+            _prev = _;
+          }
+          if (tempsum < 0.999) cout << " Z3 sumzrat: " << tempsum;
+        }
+        cout << endl;
+      }
+    } // end debug printing
 
     // get the global vector3 to then get the surface local phi and z
     Acts::Vector3 global(clusx, clusy, clusz);
@@ -180,28 +282,20 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
     cluster->setLocalY(clust);
 
     // add the clusterkey
-    if (hitsetkey_cnt.find(hitsetkey)==hitsetkey_cnt.end()) {
-      hitsetkey_cnt[hitsetkey] = 0;
-    } else {
-      hitsetkey_cnt[hitsetkey] +=1;
-    }
+    auto empl = hitsetkey_cnt.try_emplace(hitsetkey,0);
+    if (!empl.second) empl.first->second += 1;
     TrkrDefs::cluskey cluskey = TrkrDefs::genClusKey(hitsetkey, hitsetkey_cnt[hitsetkey]);
     m_clusterlist->addClusterSpecifyKey(cluskey, cluster);
 
-    if (false) { // debug print statement
-        /* cout << hitsetkey_cnt[hitsetkey] << " " << cluster->getLocalX() << std::endl; */
-    }
-
-    if (current_track != nullptr) current_track->addCluster(cluskey);
+    track->addCluster(cluskey);
   }
-
-  reset(clear_hitsetkey_cnt);
+  m_hits->Reset();
 }
 
-void TpcClusterBuilder::set_current_track(TrkrTruthTrack* track) {
-  current_track = track;
-  ++ n_tracks;
-}
+/* void TpcClusterBuilder::set_current_track(TrkrTruthTrack* track) { */
+  /* current_track = track; */
+  /* ++ n_tracks; */
+/* } */
 
 void TpcClusterBuilder::addhitset(
     TrkrDefs::hitsetkey hitsetkey, 
@@ -210,7 +304,7 @@ void TpcClusterBuilder::addhitset(
 {
   // copy of code in PHG4TpcPadPlaneReadout::MapToPadPlane, with a switch
   // to ignore non embedded tracks
-  if (!is_embedded_track) return;
+  if (!b_collect_hits) return;
 
   // Add the hitset to the current embedded track
   // Code from PHG4TpcPadPlaneReadout::MapToPadPlane (around lines {}.cc::386-401)
@@ -228,15 +322,8 @@ void TpcClusterBuilder::addhitset(
   hit->addEnergy(neffelectrons);
 }
 
-void TpcClusterBuilder::reset(bool clear_hitsetkey_cnt) {
-  // clear the hitsets before the next track
-  m_hits->Reset();
-
-  // if done with the event, also clear the hitsetkey_cnt
-  if (clear_hitsetkey_cnt) {
+void TpcClusterBuilder::clear_hitsetkey_cnt() {
     hitsetkey_cnt.clear();
-    n_tracks = 0;
-  }
 }
 
 void TpcClusterBuilder::print(
@@ -302,4 +389,15 @@ void TpcClusterBuilder::print_file(
   fout << " ----- end of tracks in TrkrrTruthTrackContainer ------ " << endl;
   fout.close();
 }
+
+void TpcClusterBuilder::set_input_nodes( 
+      TrkrClusterContainer* _truth_cluster_container
+    , ActsGeometry*                 _ActsGeometry
+    , PHG4TpcCylinderGeomContainer* _geom_container
+) {
+  m_clusterlist   = _truth_cluster_container;
+  m_tGeometry     = _ActsGeometry;
+  geom_container  = _geom_container;
+  needs_input_nodes = false;
+};
 

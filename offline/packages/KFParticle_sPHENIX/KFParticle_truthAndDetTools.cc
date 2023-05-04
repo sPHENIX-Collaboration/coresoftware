@@ -19,6 +19,9 @@
 #include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>  // for SvtxVertexMap, SvtxVer...
 
+#include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertex.h>
+
 #include <g4main/PHG4Particle.h>            // for PHG4Particle
 #include <g4main/PHG4TruthInfoContainer.h>  // for PHG4TruthInfoContainer
 #include <g4main/PHG4VtxPoint.h>            // for PHG4VtxPoint
@@ -84,9 +87,9 @@ SvtxTrack *KFParticle_truthAndDetTools::getTrack(unsigned int track_id, SvtxTrac
   return matched_track;
 }
 
-SvtxVertex *KFParticle_truthAndDetTools::getVertex(unsigned int vertex_id, SvtxVertexMap *vertexmap)
+GlobalVertex *KFParticle_truthAndDetTools::getVertex(unsigned int vertex_id, GlobalVertexMap *vertexmap)
 {
-  SvtxVertex *matched_vertex = vertexmap->get(vertex_id);
+  GlobalVertex *matched_vertex = vertexmap->get(vertex_id);
 
   return matched_vertex;
 }
@@ -197,7 +200,10 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   {
     std::cout << "KFParticle truth matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
   }
-
+  auto globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  if(!globalvertexmap) {
+    std::cout << "KFParticle truth matching: GlobalVertexMap does not exist" << std::endl; 
+  }
   track = getTrack(daughter.Id(), dst_trackmap);
   g4particle = getTruthTrack(track, topNode);
 
@@ -238,8 +244,15 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   if (m_constrain_to_vertex_truthMatch)
   {
     //Calculate true DCA
-    SvtxVertex *recoVertex = getVertex(vertex.Id(), dst_vertexmap);
-    PHG4VtxPoint *truePoint = vertexeval->max_truth_point_by_ntracks(recoVertex);
+    GlobalVertex *recoVertex = getVertex(vertex.Id(), globalvertexmap);
+    auto svtxv = recoVertex->find_vtxids(GlobalVertex::SVTX);
+    if(svtxv == recoVertex->end_vtxids())
+      {
+	std::cout << "Have a global vertex with no track vertex... shouldn't happen in KFParticle_truthAndDetTools::fillTruthBranch..." << std::endl;
+      }
+
+    SvtxVertex* svtxvertex = dst_vertexmap->find(svtxv->second)->second;
+    PHG4VtxPoint *truePoint = vertexeval->max_truth_point_by_ntracks(svtxvertex);
 
     KFParticle trueKFParticleVertex;
 

@@ -17,11 +17,11 @@ class sphenixnpc : public nopayloadclient::Client
   using nopayloadclient::Client::deleteGlobalTag;
   using nopayloadclient::Client::setGlobalTag;
 
-  static sphenixnpc *instance(const std::string &globaltag = "NONE");
-  ~sphenixnpc();
+  sphenixnpc(const std::string &globaltag);
+  virtual ~sphenixnpc() = default;
   nlohmann::json getUrlDict(long long iov);
   nlohmann::json getUrlDict(long long iov1, long long iov2) override;
-  int createGlobalTag(const std::string &tagname);
+  int createThisGlobalTag(const std::string &tagname);
   int createDomain(const std::string &domain);
   nlohmann::json get(const std::string &pl_type, long long iov);
   int cache_set_GlobalTag(const std::string &name);
@@ -29,13 +29,12 @@ class sphenixnpc : public nopayloadclient::Client
   std::string getCalibrationFile(const std::string &type, uint64_t iov);
   int insertcalib(const std::string &pl_type, const std::string &file_url, uint64_t iov_start);
   int insertcalib(const std::string &pl_type, const std::string &file_url, uint64_t iov_start, uint64_t iov_end);
-  int deleteGlobalTag(const std::string &);
+  int deleteThisGlobalTag(const std::string &);
 
   void Verbosity(int i) { m_Verbosity = i; }
   int Verbosity() const { return m_Verbosity; }
 
  private:
-  static sphenixnpc *__instance;
   int m_Verbosity = 0;
   nlohmann::json url_dict_;  // valid until global tag is switched
   std::string m_CachedGlobalTag;
