@@ -34,12 +34,16 @@
 #include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBOSITY...
 #include <fun4all/SubsysReco.h>   // for SubsysReco
 
-#include <cctype>    // for toupper
-#include <cmath>     // for sqrt
-#include <cstdlib>   // for size_t, exit
-#include <iostream>  // for operator<<, endl, basi...
-#include <map>       // for map
-#include <tuple>     // for tie, tuple
+#include <ffamodules/CDBInterface.h>  // for accessing the field map file from the CDB
+#include <cctype>                     // for toupper
+#include <cmath>                      // for sqrt
+#include <cstdlib>                    // for size_t, exit
+#include <iostream>                   // for operator<<, endl, basi...
+#include <map>                        // for map
+#include <tuple>                      // for tie, tuple
+#include "TFile.h"                    // for reading the field map file
+#include "TH1.h"                      // for obtaining the B field value
+#include "TTree.h"                    // for getting the TTree from the file
 
 class PHCompositeNode;
 
@@ -91,6 +95,36 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
   int returnCode = 0;
   if (!m_decayDescriptor.empty()) returnCode = parseDecayDescriptor();
 
+  // Load the official offline B-field map that is also used in tracking, basically copying the codes from: https://github.com/sPHENIX-Collaboration/coresoftware/blob/master/offline/packages/trackreco/MakeActsGeometry.cc#L478-L483, provide by Joe Osborn.
+  char *calibrationsroot = getenv("CALIBRATIONROOT");
+  std::string m_magField = "sphenix3dtrackingmapxyz.root";
+  // std::string url = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", m_magField);
+  m_magField = CDBInterface::instance()->getUrl("FIELDMAPTRACKING");  // Joe's Implementation to get the field map file name
+
+  if (calibrationsroot != nullptr)
+  {
+    m_magField = std::string(calibrationsroot) + std::string("/Field/Map/") + m_magField;
+  }
+
+  // std::cout << "m_magField = " << m_magField << std::endl;
+
+  TFile *fin = new TFile(m_magField.c_str());
+  fin->cd();
+
+  TTree *fieldmap = (TTree *) fin->Get("fieldmap");
+  TH1F *BzHist = new TH1F("BzHist", "", 100, 0, 10);
+
+  fieldmap->Project("BzHist", "bz", "x==0 && y==0 && z==0");
+
+  // The actual unit of KFParticle is in kilo Gauss (kG), which is equivalent to 0.1 T, instead of Tesla (T). The positive value indicates the B field is in the +z direction
+  m_Bz = BzHist->GetMean() * 10;  // Factor of 10 to convert the B field unit from kG to T
+
+  // std::cout << "BzValue = " << BzValue << std::endl; //Check the Bz Value for debug purpose
+
+  fieldmap->Delete();
+  BzHist->Delete();
+  fin->Close();
+
   return returnCode;
 }
 
@@ -116,7 +150,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     if (Verbosity() >= VERBOSITY_SOME) std::cout << "KFParticle: Event skipped as there are no tracks" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
+  setBz(m_Bz);
   createDecay(topNode, mother, vertex, daughters, intermediates, nPVs, multiplicity);
 
   if (!m_has_intermediates_sPHENIX) intermediates = daughters;
@@ -233,33 +267,34 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   std::string startIntermediate = "{";
   std::string endIntermediate = "}";
 
-  //These tracks require a + or - after their name for TDatabasePDG
+  // These tracks require a + or - after their name for TDatabasePDG
   std::string specialTracks[] = {"e", "mu", "pi", "K"};
 
   std::string manipulateDecayDescriptor = m_decayDescriptor;
 
-  //Remove all white space before we begin
+  // Remove all white space before we begin
   size_t pos;
   while ((pos = manipulateDecayDescriptor.find(" ")) != std::string::npos) manipulateDecayDescriptor.replace(pos, 1, "");
 
-  //Check for charge conjugate requirement
+  // Check for charge conjugate requirement
   std::string checkForCC = manipulateDecayDescriptor.substr(0, 1) + manipulateDecayDescriptor.substr(manipulateDecayDescriptor.size() - 3, 3);
-  std::for_each(checkForCC.begin(), checkForCC.end(), [](char &c) { c = ::toupper(c); });
+  std::for_each(checkForCC.begin(), checkForCC.end(), [](char &c)
+                { c = ::toupper(c); });
 
-  //Remove the CC check if needed
+  // Remove the CC check if needed
   if (checkForCC == "[]CC")
   {
     manipulateDecayDescriptor = manipulateDecayDescriptor.substr(1, manipulateDecayDescriptor.size() - 4);
     getChargeConjugate(true);
   }
 
-  //Find the initial particle
+  // Find the initial particle
   size_t findMotherEndPoint = manipulateDecayDescriptor.find(decayArrow);
   mother = manipulateDecayDescriptor.substr(0, findMotherEndPoint);
   if (!findParticle(mother)) ddCanBeParsed = false;
   manipulateDecayDescriptor.erase(0, findMotherEndPoint + decayArrow.length());
 
-  //Try and find the intermediates
+  // Try and find the intermediates
   while ((pos = manipulateDecayDescriptor.find(startIntermediate)) != std::string::npos)
   {
     size_t findIntermediateStartPoint = manipulateDecayDescriptor.find(startIntermediate, pos);
@@ -272,7 +307,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     else
       ddCanBeParsed = false;
 
-    //Now find the daughters associated to this intermediate
+    // Now find the daughters associated to this intermediate
     int nDaughters = 0;
     intermediateDecay.erase(0, intermediateDecay.find(decayArrow) + decayArrow.length());
     while ((daughterLocator = intermediateDecay.find(chargeIndicator)) != std::string::npos)
@@ -315,7 +350,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     nTracks += nDaughters;
   }
 
-  //Now find any remaining reconstructable tracks from the mother
+  // Now find any remaining reconstructable tracks from the mother
   while ((daughterLocator = manipulateDecayDescriptor.find(chargeIndicator)) != std::string::npos)
   {
     daughter = manipulateDecayDescriptor.substr(0, daughterLocator);
