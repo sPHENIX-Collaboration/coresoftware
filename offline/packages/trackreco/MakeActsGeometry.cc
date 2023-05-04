@@ -35,6 +35,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 
+#include <ffamodules/CDBInterface.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHNode.h>
@@ -477,13 +479,15 @@ void MakeActsGeometry::buildActsSurfaces()
 	}
       char *calibrationsroot = getenv("CALIBRATIONROOT");
       m_magField = "sphenix3dtrackingmapxyz.root";
+      
+      std::string url = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", 
+							 m_magField);
+
       if (calibrationsroot != nullptr)
       {
 	m_magField = std::string(calibrationsroot) + std::string("/Field/Map/") + m_magField;
       }
-      //m_magField = std::string("/phenix/u/bogui/data/Field/sphenix3dtrackingmapxyz.root");
-      //m_magField = std::string("/phenix/u/bogui/data/Field/sphenix3dbigmapxyz.root");
-      
+
       argstr[7] = "--bf-map-file";
       argstr[8] = m_magField;
       argstr[9]= "--bf-map-tree";
