@@ -214,6 +214,7 @@ void MicromegasRawDataCalibration::create_histograms()
   m_histogramfile.reset( new TFile(m_histogramfilename.c_str(), "RECREATE") );
   m_histogramfile->cd();
 
-  m_h_fee_id = new TH1I( "h_fee_id", "FEE id;Fee id;entries", 10, 0, 10 );
+  static constexpr int max_fee = 26;
+  m_h_fee_id = new TH1I( "h_fee_id", "FEE id;Fee id;entries", max_fee, 0, max_fee );
   m_h_adc_channel = new TH2I( "h_adc_channel", "ADC vs channel;channel;adc", MicromegasDefs::m_nchannels_total, 0, MicromegasDefs::m_nchannels_total, MicromegasDefs::m_max_adc, 0, MicromegasDefs::m_max_adc );
 }
