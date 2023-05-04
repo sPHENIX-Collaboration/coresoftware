@@ -12,11 +12,6 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-libg4vertex_io_la_LIBADD = \
-  -lphool \
-  -ltrackbase_historic_io \
-  -lglobalvertex_io
-
 libg4vertex_la_LIBADD = \
   -lbbc_io \
   -lg4detectors \
@@ -42,13 +37,10 @@ libg4vertex_la_SOURCES = \
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals_g4vertex_io \
   testexternals_g4vertex
 
 BUILT_SOURCES = \
   testexternals.cc
-
-testexternals_g4vertex_io_SOURCES = testexternals.cc
 
 testexternals_g4vertex_SOURCES = testexternals.cc
 testexternals_g4vertex_LDADD = libg4vertex.la
