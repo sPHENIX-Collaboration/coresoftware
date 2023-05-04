@@ -40,10 +40,10 @@
 #include <iostream>  // for operator<<, endl, basi...
 #include <map>       // for map
 #include <tuple>     // for tie, tuple
-#include "TFile.h"  // for pair
-#include "TTree.h"  // for pair
-#include "TH1.h"  // for pair
-
+#include "TFile.h"  // for reading the field map file
+#include "TTree.h"  // for getting the TTree from the file
+#include "TH1.h"  // for obtaining the B field value
+#include <ffamodules/CDBInterface.h> // for accessing the field map file from the CDB
 
 class PHCompositeNode;
 
@@ -99,10 +99,16 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
   //Load the official offline B-field map that is also used in tracking, basically copying the codes from: https://github.com/sPHENIX-Collaboration/coresoftware/blob/master/offline/packages/trackreco/MakeActsGeometry.cc#L478-L483, provide by Joe Osborn. 
   char *calibrationsroot = getenv("CALIBRATIONROOT");
   std::string m_magField = "sphenix3dtrackingmapxyz.root";
+ // std::string url = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", m_magField);
+  m_magField = CDBInterface::instance()->getUrl("FIELDMAPTRACKING"); //Joe's Implementation to get the field map file name
+	
   if (calibrationsroot != nullptr)
   {
 	  m_magField = std::string(calibrationsroot) + std::string("/Field/Map/") + m_magField;
   }
+  
+  //std::cout << "m_magField = " << m_magField << std::endl;
+
   TFile * fin = new TFile(m_magField.c_str());
   fin->cd();
 
@@ -115,8 +121,6 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
   m_Bz = BzHist->GetMean() * 10;  //Factor of 10 to convert the B field unit from kG to T
  
   //std::cout << "BzValue = " << BzValue << std::endl; //Check the Bz Value for debug purpose
- 
-  //KFParticle::SetField(BzValue);
 
   fieldmap->Delete();
   BzHist->Delete();
