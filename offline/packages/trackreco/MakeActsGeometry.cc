@@ -480,9 +480,8 @@ void MakeActsGeometry::buildActsSurfaces()
       char *calibrationsroot = getenv("CALIBRATIONROOT");
       m_magField = "sphenix3dtrackingmapxyz.root";
       
-      std::string url = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", 
-							 m_magField);
-
+      m_magField = CDBInterface::instance()->getUrl("FIELDMAPTRACKING");
+    
       if (calibrationsroot != nullptr)
       {
 	m_magField = std::string(calibrationsroot) + std::string("/Field/Map/") + m_magField;
