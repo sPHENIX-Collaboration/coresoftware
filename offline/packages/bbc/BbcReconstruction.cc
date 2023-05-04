@@ -23,6 +23,8 @@
 BbcReconstruction::BbcReconstruction(const std::string &name)
   : SubsysReco(name)
 {
+  h_evt_bbct[0] = nullptr;
+  h_evt_bbct[1] = nullptr;
 }
 
 //____________________________________________________________________________..
@@ -35,6 +37,18 @@ int BbcReconstruction::Init(PHCompositeNode *)
 {
   m_gaussian = std::make_unique<TF1>("gaussian", "gaus", 0, 20);
   m_gaussian->FixParameter(2, m_tres);
+
+  TString name, title;
+  for (int iarm = 0; iarm < 2; iarm++)
+  {
+    //
+    name = "hevt_bbct";
+    name += iarm;
+    title = "bbc times, arm ";
+    title += iarm;
+    h_evt_bbct[iarm] = new TH1F(name, title, 200, 7.5, 11.5);
+    h_evt_bbct[iarm]->SetLineColor(4);
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -54,20 +68,6 @@ int BbcReconstruction::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int BbcReconstruction::process_event(PHCompositeNode *)
 {
-  TH1 *h_evt_bbct[2]{};
-  h_evt_bbct[0] = nullptr;
-  h_evt_bbct[1] = nullptr;
-  TString name, title;
-  for (int iarm = 0; iarm < 2; iarm++)
-  {
-    //
-    name = "hevt_bbct";
-    name += iarm;
-    title = "bbc times, arm ";
-    title += iarm;
-    h_evt_bbct[iarm] = new TH1F(name, title, 200, 7.5, 11.5);
-    h_evt_bbct[iarm]->SetLineColor(4);
-  }
 
   std::vector<float> hit_times[2];
   float bbcq[2] = {0};
