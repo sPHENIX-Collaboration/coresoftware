@@ -21,7 +21,7 @@ libclusteriso_la_SOURCES = \
 
 libclusteriso_la_LIBADD = \
   -lcalo_io \
-  -lg4vertex_io \
+  -lglobalvertex_io \
   -lSubsysReco \
   -lCLHEP
 
