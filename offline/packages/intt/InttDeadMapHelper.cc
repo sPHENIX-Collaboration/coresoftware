@@ -49,6 +49,37 @@ InttDeadMapHelper::InttDeadMapHelper(InttDeadMapHelper const& _o)
 	D = _o.D;
 }
 
+InttDeadMapHelper& InttDeadMapHelper::operator=(InttDeadMapHelper const& _o)
+{
+	if(this == &_o)return *this;
+
+	N = _o.N;
+	points = new struct InttDeadMap_Point_s[N];
+	for(InttDeadMap_Long_t i = 0; i < N; ++i)
+	{
+		points[i] = _o.points[i];
+	}
+
+	n_z = _o.n_z;
+	n_t = _o.n_t;
+
+	p = _o.p;
+	q = _o.q;
+
+	mu = _o.mu;
+	sg = _o.sg;
+
+	n_g = _o.n_g;
+	n_l = _o.n_l;
+	n_u = _o.n_u;
+
+	i_lower = _o.i_lower;
+	i_upper = _o.i_upper;
+	D = _o.D;
+
+	return *this;
+}
+
 InttDeadMapHelper::InttDeadMapHelper(InttDeadMap_Long_t const& _N, InttDeadMap_Double_t const& _n_z, InttDeadMap_Double_t const& _n_t)
 {
 	N = _N;

@@ -37,6 +37,8 @@ public:
 	InttDeadMapHelper();
 
 	InttDeadMapHelper(InttDeadMapHelper const&);
+	InttDeadMapHelper& operator=(InttDeadMapHelper const&);
+
 	InttDeadMapHelper(InttDeadMap_Long_t const&, InttDeadMap_Double_t const&, InttDeadMap_Double_t const&);
 
 	~InttDeadMapHelper();
