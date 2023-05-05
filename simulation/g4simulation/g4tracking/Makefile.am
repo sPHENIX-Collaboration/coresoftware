@@ -23,6 +23,7 @@ libg4tracking_io_la_LIBADD = \
 pkginclude_HEADERS = \
   TrkrTruthTrack.h \
   EmbRecoMatch.h \
+  ClusterHitsVerbose.h \
   EmbRecoMatchContainer.h \
   EmbRecoMatchContainerv1.h \
   EmbRecoMatchv1.h \
@@ -54,6 +55,7 @@ nobase_dist_pcm_DATA = \
 
 libg4tracking_io_la_SOURCES = \
   $(ROOTDICTS) \
+  ClusterHitsVerbose.cc \
   EmbRecoMatchContainer.cc \
   EmbRecoMatchContainerv1.cc \
   EmbRecoMatchv1.cc \
