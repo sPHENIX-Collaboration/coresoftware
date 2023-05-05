@@ -34,7 +34,11 @@ public:
 		InttDeadMap_Status_e	status;
 	};
 
+	InttDeadMapHelper();
+
+	InttDeadMapHelper(InttDeadMapHelper const&);
 	InttDeadMapHelper(InttDeadMap_Long_t const&, InttDeadMap_Double_t const&, InttDeadMap_Double_t const&);
+
 	~InttDeadMapHelper();
 
 	void gen_points(InttDeadMap_Double_t const&);

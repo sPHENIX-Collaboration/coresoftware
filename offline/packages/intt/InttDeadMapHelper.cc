@@ -1,5 +1,54 @@
 #include "InttDeadMapHelper.h"
 
+InttDeadMapHelper::InttDeadMapHelper()
+{
+	N = 0;
+	points = nullptr;
+
+	n_z = 0.0;
+	n_t = 0.0;
+	p = 0.0;
+	q = 0.0;
+
+	mu = 0;
+	sg = 0;
+
+	n_g = 0;
+	n_l = 0;
+	n_u = 0;
+
+	i_lower = 0;
+	i_upper = 0;
+	D = 0;
+}
+
+InttDeadMapHelper::InttDeadMapHelper(InttDeadMapHelper const& _o)
+{
+	N = _o.N;
+	points = new struct InttDeadMap_Point_s[N];
+	for(InttDeadMap_Long_t i = 0; i < N; ++i)
+	{
+		points[i] = _o.points[i];
+	}
+
+	n_z = _o.n_z;
+	n_t = _o.n_t;
+
+	p = _o.p;
+	q = _o.q;
+
+	mu = _o.mu;
+	sg = _o.sg;
+
+	n_g = _o.n_g;
+	n_l = _o.n_l;
+	n_u = _o.n_u;
+
+	i_lower = _o.i_lower;
+	i_upper = _o.i_upper;
+	D = _o.D;
+}
+
 InttDeadMapHelper::InttDeadMapHelper(InttDeadMap_Long_t const& _N, InttDeadMap_Double_t const& _n_z, InttDeadMap_Double_t const& _n_t)
 {
 	N = _N;
@@ -24,7 +73,7 @@ InttDeadMapHelper::InttDeadMapHelper(InttDeadMap_Long_t const& _N, InttDeadMap_D
 
 InttDeadMapHelper::~InttDeadMapHelper()
 {
-	delete[] points;
+	if(points)delete[] points;
 }
 
 void InttDeadMapHelper::quicksort_hitkey(InttDeadMap_Long_t const& _l, InttDeadMap_Long_t const& _u)
@@ -32,13 +81,14 @@ void InttDeadMapHelper::quicksort_hitkey(InttDeadMap_Long_t const& _l, InttDeadM
 	if(_l < 0)return;
 	if(_u < 1)return;
 	if(_u <= _l)return;
+	if(!points)return;
 
 	InttDeadMap_Long_t i_pivot = _l - 1;
 
 	{
 		InttDeadMap_Long_t i;
 
-		struct InttDeadMap_Point_s pivot = points[i_upper - 1];
+		struct InttDeadMap_Point_s pivot = points[_u - 1];
 		struct InttDeadMap_Point_s temp;
 
 		for(i = _l; i < _u - 1; ++i)
@@ -67,13 +117,14 @@ void InttDeadMapHelper::quicksort_counts(InttDeadMap_Long_t const& _l, InttDeadM
 	if(_l < 0)return;
 	if(_u < 1)return;
 	if(_u <= _l)return;
+	if(!points)return;
 
 	InttDeadMap_Long_t i_pivot = _l - 1;
 
 	{
 		InttDeadMap_Long_t i;
 
-		struct InttDeadMap_Point_s pivot = points[i_upper - 1];
+		struct InttDeadMap_Point_s pivot = points[_u- 1];
 		struct InttDeadMap_Point_s temp;
 
 		for(i = _l; i < _u - 1; ++i)
@@ -93,13 +144,14 @@ void InttDeadMapHelper::quicksort_counts(InttDeadMap_Long_t const& _l, InttDeadM
 		points[_u - 1] = temp;
 	}
 
-	quicksort_hitkey(_l, i_pivot);
-	quicksort_hitkey(i_pivot + 1, _u);
+	quicksort_counts(_l, i_pivot);
+	quicksort_counts(i_pivot + 1, _u);
 }
 
 
 struct InttDeadMapHelper::InttDeadMap_Point_s* InttDeadMapHelper::get_point(InttDeadMap_HitKey_t const& hitkey, InttDeadMap_Long_t const& _l, InttDeadMap_Long_t const& _u)
 {
+	if(!points)					return nullptr;
 	if(points[(_u + _l) / 2].hitkey == hitkey)	return &(points[(i_upper + i_lower) / 2]);
 
 	if(_u - _l <= 1)				return nullptr;
@@ -112,6 +164,8 @@ struct InttDeadMapHelper::InttDeadMap_Point_s* InttDeadMapHelper::get_point(Intt
 
 int InttDeadMapHelper::count_type_i()
 {
+	if(!points)return EXIT_FAILURE;
+
 	//Alternatively, instead of a two-pass and then classify,
 	//I can fit to a Gaussian and use a goodness-of-fit parameter
 	InttDeadMap_Long_t i = 0;
@@ -167,6 +221,8 @@ int InttDeadMapHelper::count_type_i()
 
 int InttDeadMapHelper::check_type_i()
 {
+	if(!points)return EXIT_FAILURE;
+
 	printf("check_type_i\n");
 
 	if(i_upper - i_lower <= 1)return EXIT_FAILURE;
@@ -199,10 +255,12 @@ int InttDeadMapHelper::check_type_i()
 			d = n_u - n_l - ceil((upper - lower) / 2.0);
 		}
 
-		if(d == 0)return EXIT_SUCCESS;
-
 		std::cout << "\t" << floor(lower) << " < " << n_l << " + " << n_u << " < " << ceil(upper) << std::endl;
-		std::cout << "\t" << mu << " " << sg << std::endl;
+		std::cout << "\t" << "mu: " << mu << "\tsg: " << sg << std::endl;
+		std::cout << "\t" << "lower: " << i_lower << "\tupper: " << i_upper << std::endl;
+		std::cout << "\td_l: " << (mu - points[i_lower].counts) / sg;
+		std::cout << "\td_u: " << (points[i_upper - 1].counts - mu) / sg << std::endl;
+		if(d == 0)return EXIT_SUCCESS;
 
 		lower = mu - n_z * sg;
 		upper = mu + n_z * sg;
@@ -234,13 +292,14 @@ int InttDeadMapHelper::check_type_i()
 		}
 	}
 
-	return EXIT_SUCCESS;
 	return check_type_i();
 }
 
 void InttDeadMapHelper::gen_points(InttDeadMap_Double_t const& frac)
 {
-	InttDeadMap_Long_t n_bad = ceil(frac * N);
+	if(!points)return;
+
+	InttDeadMap_Long_t n_bad = ceil(frac * N / 2.0);
 
 	mu = 4121.1324151;
 	sg = 124.14124;
