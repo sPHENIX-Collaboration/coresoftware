@@ -6,7 +6,7 @@
  * \author Jakub Kvapil <jakub.kvapil@cern.ch>
  */
 
-#include <fun4all/SubsysReco.h>
+#include "fun4all/SubsysReco.h"
 #include "trackbase/MvtxDefs.h"
 
 #include <memory>
