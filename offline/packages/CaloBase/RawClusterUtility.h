@@ -2,7 +2,7 @@
 
 /*!
  * \file RawClusterUtility.h
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $

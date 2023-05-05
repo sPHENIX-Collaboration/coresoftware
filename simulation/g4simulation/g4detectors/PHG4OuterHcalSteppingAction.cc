@@ -9,7 +9,7 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <ffamodules/XploadInterface.h>
+#include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllServer.h>
 
@@ -100,7 +100,7 @@ int PHG4OuterHcalSteppingAction::Init()
     {
       return 0;
     }
-    std::string url = XploadInterface::instance()->getUrl("OLD_OUTER_HCAL_TILEMAP", mappingfilename);
+    std::string url = CDBInterface::instance()->getUrl("OLD_OUTER_HCAL_TILEMAP", mappingfilename);
     if (!std::filesystem::exists(url))
     {
       std::cout << PHWHERE << " Could not locate " << url << std::endl;

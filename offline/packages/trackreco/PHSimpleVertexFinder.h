@@ -37,7 +37,7 @@ class PHSimpleVertexFinder : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
  void setBeamLineCut(const double cut) {_beamline_xy_cut = cut;}
- void setDcaCut(const double cut) {_dcacut = cut;}
+ void setDcaCut(const double cut) {_base_dcacut = cut;}
  void setTrackQualityCut(double cut) {_qual_cut = cut;}
  void setRequireMVTX(bool set) {_require_mvtx = set;}
  void setNmvtxRequired(unsigned int n) {_nmvtx_required = n;}
@@ -64,9 +64,10 @@ class PHSimpleVertexFinder : public SubsysReco
   SvtxTrack *_track{nullptr};  
   SvtxVertexMap *_svtx_vertex_map{nullptr};
   
-  double _dcacut = 0.0080;  // 80 microns 
+  double _base_dcacut = 0.0080;  // 80 microns 
+  double _active_dcacut = 0.080;
   double _beamline_xy_cut = 0.2;  // must be within 2 mm of beam line
-  double _qual_cut = 5.0;
+  double _qual_cut = 10.0;
   bool _require_mvtx = true;
   unsigned int _nmvtx_required = 3; 
   double _track_pt_cut = 0.0;

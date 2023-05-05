@@ -111,7 +111,7 @@ extern "C"
   void* pythia6_common_address(const char*);
 }
 
-Pythia6* Pythia6::fgInstance = 0;
+Pythia6* Pythia6::fgInstance = nullptr;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -119,7 +119,10 @@ Pythia6* Pythia6::Instance()
 {
   /// Static access method
 
-  if (!fgInstance) fgInstance = new Pythia6();
+  if (!fgInstance)
+  {
+    fgInstance = new Pythia6();
+  }
 
   return fgInstance;
 }
@@ -127,10 +130,10 @@ Pythia6* Pythia6::Instance()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 Pythia6::Pythia6()
-  : fParticles(0)
-  , fPyjets(0)
-  , fPydat1(0)
-  , fPydat3(0)
+  : fParticles(nullptr)
+  , fPyjets(nullptr)
+  , fPydat1(nullptr)
+  , fPydat3(nullptr)
 {
   /// Pythia6 constructor: creates a vector of Pythia6Particle in which it will
   /// store all particles. Note that there may be only one functional Pythia6
@@ -166,7 +169,9 @@ Pythia6::~Pythia6()
   {
     ParticleVector::const_iterator it;
     for (it = fParticles->begin(); it != fParticles->end(); ++it)
+    {
       delete *it;
+    }
     delete fParticles;
   }
 }
@@ -219,11 +224,16 @@ int Pythia6::ImportParticles(ParticleVector* particles, const char* option)
   ///  This can be demanded explicitly by setting the option = "Final"
   ///  If the option = "All", all the particles are stored.
 
-  if (particles == 0) return 0;
+  if (particles == nullptr)
+  {
+    return 0;
+  }
 
   ParticleVector::const_iterator it;
   for (it = particles->begin(); it != particles->end(); ++it)
+  {
     delete *it;
+  }
   particles->clear();
 
   int numpart = fPyjets->N;

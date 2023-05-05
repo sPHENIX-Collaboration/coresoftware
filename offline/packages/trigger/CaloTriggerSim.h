@@ -45,8 +45,8 @@ class CaloTriggerSim : public SubsysReco
   int m_EMCAL_1x1_NETA = -1;
   int m_EMCAL_1x1_NPHI = -1;
 
-  int m_EMCAL_2x2_NETA = -1;
-  int m_EMCAL_2x2_NPHI = -1;
+  std::vector<double>::size_type m_EMCAL_2x2_NETA = ULONG_MAX;
+  std::vector<double>::size_type m_EMCAL_2x2_NPHI = ULONG_MAX;
 
   int m_EMCAL_4x4_NETA = -1;
   int m_EMCAL_4x4_NPHI = -1;
@@ -71,8 +71,8 @@ class CaloTriggerSim : public SubsysReco
   int m_FULLCALO_0p1x0p1_NETA = -1;
   int m_FULLCALO_0p1x0p1_NPHI = -1;
 
-  int m_FULLCALO_0p2x0p2_NETA = -1;
-  int m_FULLCALO_0p2x0p2_NPHI = -1;
+  std::vector<double>::size_type m_FULLCALO_0p2x0p2_NETA = ULONG_MAX;
+  std::vector<double>::size_type m_FULLCALO_0p2x0p2_NPHI = ULONG_MAX;
 
   int m_FULLCALO_0p4x0p4_NETA = -1;
   int m_FULLCALO_0p4x0p4_NPHI = -1;

@@ -25,9 +25,9 @@
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
-#include <ActsExamples/EventData/Track.hpp>
 
 #include <memory>
 #include <string>
@@ -47,7 +47,7 @@ class TpcDistortionCorrectionContainer;
 class SvtxAlignmentStateMap;
 
 using SourceLink = ActsSourceLink;
-using FitResult = Acts::KalmanFitterResult;
+using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices,2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
@@ -106,6 +106,11 @@ class PHActsTrkFitter : public SubsysReco
 
   void set_cluster_version(int value) { m_cluster_version = value; }
 
+  /// Set flag for pp running
+  void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
+
+  void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
+
  private:
 
   /// Get all the nodes
@@ -116,7 +121,7 @@ class PHActsTrkFitter : public SubsysReco
 
   void loopTracks(Acts::Logging::Level logLevel);
   SourceLinkVec getSourceLinks(TrackSeed *track, 
-			       ActsExamples::MeasurementContainer& measurements,
+			       ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
 			       short int crossing);
 
   /// Convert the acts track fit result to an svtx track
@@ -126,10 +131,11 @@ class PHActsTrkFitter : public SubsysReco
   /// navigation, depending on m_fitSiliconMMs
   ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
            const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
-	   const ActsExamples::TrackParameters& seed,
+	   const ActsTrackFittingAlgorithm::TrackParameters& seed,
 	   const ActsTrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
-	   const SurfacePtrVec& surfSequence);
+	   const SurfacePtrVec& surfSequence,
+	   std::shared_ptr<Acts::VectorMultiTrajectory>& mtj);
 
   /// Functions to get list of sorted surfaces for direct navigation, if
   /// applicable
@@ -137,10 +143,11 @@ class PHActsTrkFitter : public SubsysReco
 				 SurfacePtrVec& surfaces) const;
   void checkSurfaceVec(SurfacePtrVec& surfaces) const;
 
-  bool getTrackFitResult(const FitResult& fitOutput, SvtxTrack* track);
+  bool getTrackFitResult(const FitResult& fitOutput, SvtxTrack* track,
+			 const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
   Acts::BoundSymMatrix setDefaultCovariance() const;
-  void printTrackSeed(const ActsExamples::TrackParameters& seed) const;
+  void printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const;
 
   /// Event counter
   int m_event = 0;
@@ -177,6 +184,9 @@ class PHActsTrkFitter : public SubsysReco
   bool m_useOutlierFinder = false;
   ResidualOutlierFinder m_outlierFinder;
 
+  /// Flag for pp running
+  bool m_pp_mode = false;
+
   bool m_actsEvaluator = false;
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
   SvtxTrackMap *m_seedTracks = nullptr;
@@ -193,6 +203,8 @@ class PHActsTrkFitter : public SubsysReco
   TpcClusterMover _clusterMover;
   ClusterErrorPara _ClusErrPara;
 
+  std::set<int> m_ignoreLayer;
+ 
   std::string m_fieldMap = "";
 
   int _n_iteration = 0;

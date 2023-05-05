@@ -51,6 +51,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   int GetNodes(PHCompositeNode* topNode);
 
   void findEtaPhiMatches( std::set<unsigned int> &tpc_matched_set,
+                            std::set<unsigned int> &tpc_unmatched_set,
 			    std::multimap<unsigned int, unsigned int> &tpc_matches );
   std::vector<short int> getInttCrossings(TrackSeed *si_track);
    void checkCrossingMatches( std::multimap<unsigned int, unsigned int> &tpc_matches);

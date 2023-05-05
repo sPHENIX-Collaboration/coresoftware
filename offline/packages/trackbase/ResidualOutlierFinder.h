@@ -5,40 +5,59 @@
 #include <Acts/EventData/Measurement.hpp>
 #include <Acts/EventData/MeasurementHelpers.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
 
 struct ResidualOutlierFinder
 {
   int verbosity = 0;
   std::map<long unsigned int, float> chi2Cuts;
 
-  bool operator()(Acts::MultiTrajectory::ConstTrackStateProxy state) const
+  bool operator()(Acts::MultiTrajectory<Acts::VectorMultiTrajectory>::ConstTrackStateProxy state) const
   {
     // can't determine an outlier w/o a measurement or predicted parameters
     if (!state.hasCalibrated() || !state.hasPredicted())
     {
       return false;
     }
-
+  
     const auto predicted = state.predicted();
     const auto predictedCovariance = state.predictedCovariance();
     double chi2 = std::numeric_limits<float>::max();
+    
+    auto fullCalibrated = state
+      .template calibrated<Acts::MultiTrajectoryTraits::MeasurementSizeMax>().data();
+    auto fullCalibratedCovariance = state
+      .template calibratedCovariance<Acts::MultiTrajectoryTraits::MeasurementSizeMax>().data();
 
-    Acts::visit_measurement(state.calibrated(), state.calibratedCovariance(),
-                            state.calibratedSize(),
-                            [&](const auto calibrated,
-                                const auto calibratedCovariance) {
-                              constexpr size_t kMeasurementSize = decltype(calibrated)::RowsAtCompileTime;
+    chi2 = Acts::visit_measurement(state.calibratedSize(), [&](auto N) -> double {
+	constexpr size_t kMeasurementSize = decltype(N)::value;
+	typename Acts::TrackStateTraits<kMeasurementSize, true>::Measurement calibrated{
+	  fullCalibrated};
 
-                              using ParametersVector = Acts::ActsVector<kMeasurementSize>;
-                              const auto H = state.projector().template topLeftCorner<kMeasurementSize, Acts::eBoundSize>().eval();
-                              ParametersVector res;
-                              res = calibrated - H * predicted;
-                              chi2 = (res.transpose() * ((calibratedCovariance + H * predictedCovariance * H.transpose())).inverse() * res).eval()(0, 0);
-                            });  /// end lambda and call to visit meas
+	typename Acts::TrackStateTraits<kMeasurementSize, true>::MeasurementCovariance
+	  calibratedCovariance{fullCalibratedCovariance};
+
+	using ParametersVector = Acts::ActsVector<kMeasurementSize>;
+	const auto H = state.projector().template topLeftCorner<kMeasurementSize, Acts::eBoundSize>().eval();
+	ParametersVector res;
+	res = calibrated - H * predicted;
+	chi2 = (res.transpose() * ((calibratedCovariance + H * predictedCovariance * H.transpose())).inverse() * res).eval()(0, 0);
+	
+	return chi2;
+      });
 
     if (verbosity > 2)
     {
-      const auto distance = (state.calibrated() - state.projector() * state.predicted()).norm();
+      auto distance = Acts::visit_measurement(state.calibratedSize(), [&](auto N) {
+      constexpr size_t kMeasurementSize = decltype(N)::value;
+      auto residuals =
+          state.template calibrated<kMeasurementSize>() -
+          state.projector()
+      .template topLeftCorner<kMeasurementSize, Acts::eBoundSize>() *
+              state.predicted();
+      auto cdistance = residuals.norm();
+      return cdistance;
+    });
       std::cout << "Measurement has distance, chi2 "
                 << distance << ", " << chi2
                 << std::endl;

@@ -26,6 +26,7 @@
 #include <trackbase/InttDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterv4.h>
+#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHit.h>
@@ -192,13 +193,14 @@ namespace
   void add_cluster_size( TrackEvaluationContainerv1::ClusterStruct& cluster, TrkrCluster* trk_clus)
   {
 
-    TrkrClusterv4 *trk_clusv4 = dynamic_cast<TrkrClusterv4*> (trk_clus);
-    cluster.size = trk_clusv4->getSize();
-    cluster.phi_size = trk_clusv4->getPhiSize();
-    cluster.z_size = trk_clusv4->getZSize();
-    cluster.ovlp = trk_clusv4->getOverlap();
-    cluster.edge = trk_clusv4->getEdge();
-    cluster.adc = trk_clusv4->getAdc();
+    TrkrClusterv5 *trk_clusv5 = dynamic_cast<TrkrClusterv5*> (trk_clus);
+    cluster.size = trk_clusv5->getSize();
+    cluster.phi_size = trk_clusv5->getPhiSize();
+    cluster.z_size = trk_clusv5->getZSize();
+    cluster.ovlp = trk_clusv5->getOverlap();
+    cluster.edge = trk_clusv5->getEdge();
+    cluster.adc = trk_clusv5->getAdc();
+    cluster.max_adc = trk_clusv5->getMaxAdc();
 
   }
 
@@ -340,12 +342,15 @@ int TrackEvaluation::process_event(PHCompositeNode* topNode)
   if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
 
   // cleanup output container
+  std::cout << "start..." << std::endl;
   if( m_container ) m_container->Reset();
-
+  std::cout << "event..." << std::endl;
   if(m_flags&EvalEvent) evaluate_event();
+  std::cout << "clusters..." << std::endl;
   if(m_flags&EvalClusters) evaluate_clusters();
+  std::cout << "tracks..." << std::endl;
   if(m_flags&EvalTracks) evaluate_tracks();
-
+  std::cout << "end..." << std::endl;
   // clear maps
   m_g4hit_map.clear();
   return Fun4AllReturnCodes::EVENT_OK;
@@ -484,10 +489,8 @@ void TrackEvaluation::evaluate_tracks()
       
   // clear array
   m_container->clearTracks();
-
   for( const auto& [track_id,track]:*m_track_map )
   {
-    
     auto track_struct = create_track( track );
     
     // truth information
@@ -501,7 +504,6 @@ void TrackEvaluation::evaluate_tracks()
 
     // running iterator over track states, used to match a given cluster to a track state
     auto state_iter = track->begin_states();
-
     // loop over clusters
     for( const auto& cluster_key:get_cluster_keys( track ) )
     {
@@ -511,12 +513,10 @@ void TrackEvaluation::evaluate_tracks()
         std::cout << "TrackEvaluation::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
         continue;
       }
-
       // create new cluster struct
       auto cluster_struct = create_cluster( cluster_key, cluster, track );
       add_cluster_size( cluster_struct, cluster);
       add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, m_hitsetcontainer );
-
       // truth information
       const auto g4hits = find_g4hits( cluster_key );
       const bool is_micromegas( TrkrDefs::getTrkrId(cluster_key) == TrkrDefs::micromegasId );
@@ -664,7 +664,6 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrD
     si_seed = track->get_silicon_seed();
     tpc_seed = track->get_tpc_seed();
   }
-
   // get global coordinates
   Acts::Vector3 global;
   global = m_tGeometry->getGlobalPosition(key, cluster);
@@ -679,13 +678,20 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrD
   cluster_struct.z_error = 0.0;
   cluster_struct.trk_alpha = 0.0;
   cluster_struct.trk_beta = 0.0;
+
   ClusterErrorPara ClusErrPara;
+  
   if(track!=0){
     float r = cluster_struct.r;
-    if(cluster_struct.layer>7){
-      auto para_errors_mm = ClusErrPara.get_cluster_error(tpc_seed,cluster,r,key);
-      cluster_struct.phi_error = sqrt(para_errors_mm.first)/cluster_struct.r;
-      cluster_struct.z_error = sqrt(para_errors_mm.second);
+
+    if(cluster_struct.layer>=7){
+      TrkrClusterv5 *clusterv5 = dynamic_cast<TrkrClusterv5 *>(cluster);
+      auto para_errors_mm = ClusErrPara.get_clusterv5_modified_error(clusterv5,r,key);
+
+      cluster_struct.phi_error = clusterv5->getRPhiError()/cluster_struct.r;
+      cluster_struct.z_error = clusterv5->getZError();
+      cluster_struct.para_phi_error = sqrt(para_errors_mm.first)/cluster_struct.r;
+      cluster_struct.para_z_error = sqrt(para_errors_mm.second);
       //	float R = TMath::Abs(1.0/tpc_seed->get_qOverR());
       cluster_struct.trk_radius = 1.0/tpc_seed->get_qOverR();
       cluster_struct.trk_alpha = (r*r) /(2*r*TMath::Abs(1.0/tpc_seed->get_qOverR()));
@@ -700,6 +706,7 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrD
       cluster_struct.trk_beta = atan(si_seed->get_slope());
     }
   }
+
   return cluster_struct;
 }
 

@@ -3,14 +3,13 @@
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ActsTrackFittingAlgorithm.h>
 
 /// Acts includes to create all necessary definitions
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
-
-#include <ActsExamples/EventData/Trajectories.hpp>
-#include <ActsExamples/EventData/Track.hpp>
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
 
 #include "SvtxTrack.h"
 
@@ -24,9 +23,6 @@
 class SvtxTrack;
 class SvtxTrackState;
 class TrkrCluster;
-
-using Trajectory = ActsExamples::Trajectories;
-
 
 /**
  * This is a helper class for rotating track covariance matrices to and from
@@ -54,7 +50,7 @@ class ActsTransformations
 
   /// Rotates an Acts covariance matrix from (d0, z0, phi, theta, q/p, time) local curvilinear coordinates
   /// to global cartesian coordinates (x,y,z,px,py,pz) coordinates
-  Acts::BoundSymMatrix rotateActsCovToSvtxTrack( const ActsExamples::TrackParameters& ) const;
+  Acts::BoundSymMatrix rotateActsCovToSvtxTrack( const ActsTrackFittingAlgorithm::TrackParameters& ) const;
 
   void setVerbosity(int verbosity) {m_verbosity = verbosity;}
 
@@ -62,7 +58,7 @@ class ActsTransformations
 
   /// Calculate the DCA for a given Acts fitted track parameters and 
   /// vertex
-  void calculateDCA(const ActsExamples::TrackParameters param,
+  void calculateDCA(const ActsTrackFittingAlgorithm::TrackParameters param,
 		    Acts::Vector3 vertex,
 		    Acts::BoundSymMatrix cov,
 		    Acts::GeometryContext& geoCtxt,
@@ -71,7 +67,7 @@ class ActsTransformations
 		    float &dca3DxyCov,
 		    float &dca3DzCov) const;
 
-  void fillSvtxTrackStates(const Acts::MultiTrajectory& traj, 
+  void fillSvtxTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj, 
 			   const size_t& trackTip,
 			   SvtxTrack *svtxTrack,
 			   Acts::GeometryContext& geoContext) const;

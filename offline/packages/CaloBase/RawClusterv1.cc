@@ -47,9 +47,9 @@ void RawClusterv1::identify(std::ostream& os) const
   os << "RawClusterv1 ID " << get_id() << " consist of " << getNTowers() << " towers with total energy of " << get_energy() << " GeV ";
   os << "@ (r,phi,z) = (" << get_r() << ", " << get_phi() << ", " << get_z() << "), (x,y,z) = (" << get_x() << ", " << get_y() << ", " << get_z() << ")";
 
-  for (prop_map_t::const_iterator i = prop_map.begin(); i != prop_map.end(); ++i)
+  for (auto i : prop_map)
   {
-    PROPERTY prop_id = static_cast<PROPERTY>(i->first);
+    PROPERTY prop_id = static_cast<PROPERTY>(i.first);
     pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
     os << "\t" << prop_id << ":\t" << property_info.first << " = \t";
     switch (property_info.second)
@@ -72,18 +72,18 @@ void RawClusterv1::identify(std::ostream& os) const
 }
 
 ////! convert cluster location to psuedo-rapidity given a user chosen z-location
-//float RawClusterv1::get_eta(const float z) const
+// float RawClusterv1::get_eta(const float z) const
 //{
-//  if (get_r() <= 0) return numeric_limits<float>::signaling_NaN();
-//  return asinh((get_z() - z) / get_r());
-//}
+//   if (get_r() <= 0) return numeric_limits<float>::signaling_NaN();
+//   return asinh((get_z() - z) / get_r());
+// }
 //
 ////! convert cluster E_T given a user chosen z-location
-//float RawClusterv1::get_et(const float z) const
+// float RawClusterv1::get_et(const float z) const
 //{
-//  if (get_r() <= 0) return numeric_limits<float>::signaling_NaN();
-//  return get_energy() * sin(atan2(get_r(), (get_z() - z)));
-//}
+//   if (get_r() <= 0) return numeric_limits<float>::signaling_NaN();
+//   return get_energy() * sin(atan2(get_r(), (get_z() - z)));
+// }
 
 bool RawClusterv1::has_property(const PROPERTY prop_id) const
 {
@@ -103,7 +103,10 @@ float RawClusterv1::get_property_float(const PROPERTY prop_id) const
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
 
-  if (i != prop_map.end()) return u_property(i->second).fdata;
+  if (i != prop_map.end())
+  {
+    return u_property(i->second).fdata;
+  }
 
   return NAN;
 }
@@ -120,7 +123,10 @@ int RawClusterv1::get_property_int(const PROPERTY prop_id) const
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
 
-  if (i != prop_map.end()) return u_property(i->second).idata;
+  if (i != prop_map.end())
+  {
+    return u_property(i->second).idata;
+  }
 
   return INT_MIN;
 }
@@ -138,7 +144,10 @@ RawClusterv1::get_property_uint(const PROPERTY prop_id) const
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
 
-  if (i != prop_map.end()) return u_property(i->second).uidata;
+  if (i != prop_map.end())
+  {
+    return u_property(i->second).uidata;
+  }
 
   return UINT_MAX;
 }
@@ -181,7 +190,7 @@ void RawClusterv1::set_property(const PROPERTY prop_id, const unsigned int value
   }
   prop_map[prop_id] = u_property(value).get_storage();
 }
-void RawClusterv1::set_et_iso(const float et_iso, const int radiusx10, bool subtracted, bool clusterTower = 1)
+void RawClusterv1::set_et_iso(const float et_iso, const int radiusx10, bool subtracted, bool clusterTower = true)
 {
   if (clusterTower)
   {
@@ -247,7 +256,7 @@ RawClusterv1::get_property_nocheck(const PROPERTY prop_id) const
   return UINT_MAX;
 }
 
-float RawClusterv1::get_et_iso(const int radiusx10 = 3, bool subtracted = 0, bool clusterTower = 1) const
+float RawClusterv1::get_et_iso(const int radiusx10 = 3, bool subtracted = false, bool clusterTower = true) const
 {
   float r;
   if (clusterTower)

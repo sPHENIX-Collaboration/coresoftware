@@ -11,34 +11,54 @@ lib_LTLIBRARIES = \
 libcalo_reco_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib64 \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  `root-config --libs`
 
+if USE_ONLINE
+
+else
 libcalo_reco_la_LIBADD = \
+  -lcalo_io \
+  -lcdbobjects \
   -lCLHEP \
-  -lphool \
-  -lSubsysReco \
+  -lffamodules \
   -lgsl \
   -lgslcblas \
-  -lg4vertex_io \
-  -lcalo_io \
+  -lglobalvertex_io \
   -lsph_onnx \
-  -lcaloCalibDBFile \
-  -lphparameter
+  -lphparameter \
+  -lphool \
+  -lSubsysReco
+endif
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
+if USE_ONLINE
 pkginclude_HEADERS = \
+  CaloWaveformFitting.h
+
+else
+pkginclude_HEADERS = \
+  CaloWaveformFitting.h \
   CaloWaveformProcessing.h \
+  CaloTowerBuilder.h \
+  CaloTowerCalib.h \
   RawClusterBuilderFwd.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
   RawClusterPositionCorrection.h \
   RawTowerCalibration.h 
+endif
 
+if USE_ONLINE
+libcalo_reco_la_SOURCES = \
+  CaloWaveformFitting.cc
+
+else
 libcalo_reco_la_SOURCES = \
   BEmcCluster.cc \
   BEmcProfile.cc \
@@ -46,7 +66,10 @@ libcalo_reco_la_SOURCES = \
   BEmcRecCEMC.cc \
   BEmcRecFEMC.cc \
   BEmcRecEEMC.cc \
+  CaloWaveformFitting.cc \
   CaloWaveformProcessing.cc \
+  CaloTowerBuilder.cc \
+  CaloTowerCalib.cc \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \
@@ -57,6 +80,7 @@ libcalo_reco_la_SOURCES = \
   RawTowerCalibration.cc \
   RawTowerDeadTowerInterp.cc \
   RawTowerDeadMapLoader.cc
+endif
 
 ################################################
 # linking tests

@@ -381,6 +381,28 @@ PHG4TpcCylinderGeom::get_phicenter(const int ibin) const
   return phi_center;
 }
 
+double
+PHG4TpcCylinderGeom::get_phi(const float ibin) const
+{
+  //double phi_center = -999;
+  if (ibin < 0 || ibin > nphibins)
+  {
+    std::cout << PHWHERE << "Asking for invalid bin in phi: " << ibin << std::endl;
+    exit(1);
+  }
+
+  check_binning_method_phi();
+
+  const int side = 0 ;
+  unsigned int pads_per_sector = nphibins / 12;
+  unsigned int sector = ibin / pads_per_sector;  
+  double phi = (sector_max_Phi[side][sector] - (ibin +0.5 - sector * pads_per_sector) * phistep);
+  if(phi <= -M_PI){
+    phi += 2*M_PI;
+  }
+  return phi;
+}
+
 std::string
 PHG4TpcCylinderGeom::methodname(const int i) const
 {

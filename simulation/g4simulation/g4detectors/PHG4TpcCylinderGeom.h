@@ -43,6 +43,7 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   virtual double get_zcenter(const int ibin) const;
   virtual double get_phicenter(const int ibin) const;
   virtual double get_phicenter_new(const int ibin) const;
+  virtual double get_phi(const float ibin) const;
 
   virtual int get_etabin(const double eta) const;
   virtual int get_zbin(const double z) const;

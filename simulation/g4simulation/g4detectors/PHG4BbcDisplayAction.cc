@@ -83,6 +83,38 @@ void PHG4BbcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     {
       visatt->SetColour(G4Colour::White());
     }
+    else if (it.second == "Bbc_Base_Plates")
+    {
+      visatt->SetColour(G4Colour::White());
+    }
+    else if (it.second == "Bbc_Sidesupport_Plates")
+    {
+      visatt->SetColour(G4Colour::White());
+    }
+    else if (it.second == "Bbc_Support_Post")
+    {
+      visatt->SetColour(G4Colour::Green());
+    }
+    else if (it.second == "Bbc_Support_Arm")
+    {
+      visatt->SetColour(G4Colour::Green());
+    }
+    else if (it.second == "Bbc_Gusset0_Plates")
+    {
+      visatt->SetColour(G4Colour::White());
+    }
+    else if (it.second == "Bbc_Gusset1_Plates")
+    {
+      visatt->SetColour(G4Colour::White());
+    }
+    else if (it.second == "Bbc_Gusset2_Plates")
+    {
+      visatt->SetColour(G4Colour::White());
+    }
+    else if (it.second == "Bbc_Splice_Plates")
+    {
+      visatt->SetColour(G4Colour::White());
+    }
     else
     {
       std::cout << "PHG4BbcDisplayAction::ApplyDisplayAction unknown logical volume " << it.second << " in " << GetName() << std::endl;

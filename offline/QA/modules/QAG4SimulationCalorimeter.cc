@@ -266,7 +266,7 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode * /*topNode*/
   assert(_truth_container);
   PHG4TruthInfoContainer::ConstRange primary_range =
       _truth_container->GetPrimaryParticleRange();
-  double total_primary_energy = 1e-9;  //make it zero energy epsilon samll so it can be used for denominator
+  double total_primary_energy = 1e-9;  // make it zero energy epsilon samll so it can be used for denominator
   for (PHG4TruthInfoContainer::ConstIterator particle_iter = primary_range.first;
        particle_iter != primary_range.second; ++particle_iter)
   {
@@ -637,7 +637,7 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  //get a cluster count
+  // get a cluster count
   TH1D *h_norm = dynamic_cast<TH1D *>(hm->getHisto(get_histo_prefix() + "_Normalization"));
   assert(h_norm);
 
@@ -679,7 +679,7 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
                 << cluster->get_energy() << " VS primary energy "
                 << last_primary->get_e() << std::endl;
 
-    h->Fill(cluster->get_energy() / (last_primary->get_e() + 1e-9));  //avoids divide zero
+    h->Fill(cluster->get_energy() / (last_primary->get_e() + 1e-9));  // avoids divide zero
 
     // now work on the projection:
     const CLHEP::Hep3Vector hit(cluster->get_position());

@@ -137,9 +137,6 @@ TVector3 CylinderGeomMicromegas::get_world_from_local_vect( uint tileid, ActsGeo
 //________________________________________________________________________________
 int CylinderGeomMicromegas::find_tile_cylindrical( const TVector3& world_coordinates ) const
 {
-  // check radius
-  if( !check_radius(world_coordinates) ) return -1;
-
   // convert to polar coordinates
   const auto phi = std::atan2( world_coordinates.y(), world_coordinates.x() );
   const auto z = world_coordinates.z();

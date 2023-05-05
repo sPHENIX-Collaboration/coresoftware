@@ -167,15 +167,15 @@ class RawTowerGeom : public PHObject
     return -1;
   }
 
-    virtual double get_roty() const
+  virtual double get_roty() const
   {
-     PHOOL_VIRTUAL_WARN("get_roty()");
-      return NAN;
+    PHOOL_VIRTUAL_WARN("get_roty()");
+    return NAN;
   }
   virtual double get_rotz() const
   {
-     PHOOL_VIRTUAL_WARN("get_rotz()");
-      return NAN;
+    PHOOL_VIRTUAL_WARN("get_rotz()");
+    return NAN;
   }
 
   virtual void set_roty(double)

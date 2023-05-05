@@ -4,6 +4,11 @@
 
 #include <Acts/EventData/Measurement.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
+#pragma GCC diagnostic pop
+
 #include <Acts/EventData/SourceLink.hpp>
 
 #include "TrkrDefs.h"
@@ -34,8 +39,9 @@ class Calibrator
   /// @tparam parameters_t Track parameters type
   /// @param gctx The geometry context (unused)
   /// @param trackState The track state to calibrate
+
   void calibrate(const Acts::GeometryContext& gctx,
-                 Acts::MultiTrajectory::TrackStateProxy trackState) const
+                 Acts::MultiTrajectory<Acts::VectorMultiTrajectory>::TrackStateProxy trackState) const
   {
     const auto& sourceLink =
         static_cast<const ActsSourceLink&>(trackState.uncalibrated());
@@ -71,11 +77,14 @@ class Calibrator
           Acts::Measurement<Acts::BoundIndices, 2> meas(
               uncalibmeas.sourceLink(), indices,
               loc, expandedCov);
+
+	  trackState.allocateCalibrated(meas.size());
           trackState.setCalibrated(meas);
-        },
+
+    },
         (*m_measurements)[sourceLink.index()]);
   }
-
+    
  private:
   // use pointer so the calibrator is copyable and default constructible.
   const MeasurementContainer* m_measurements = nullptr;

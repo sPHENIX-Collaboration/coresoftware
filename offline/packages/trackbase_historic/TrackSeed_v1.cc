@@ -1,4 +1,5 @@
 #include "TrackSeed_v1.h"
+#include <trackbase/TrkrCluster.h>
 
 #include <trackbase/TrackFitUtils.h>
 
@@ -89,10 +90,18 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
       if(layer < startLayer or layer > endLayer)
 	{ continue; }
       
+      auto clus = clusters->findCluster(key);
+
+      if(clus->getEdge() > 0)
+	{ continue; }
       Acts::Vector3 pos = tGeometry->getGlobalPosition(
-           key, clusters->findCluster(key));
+           key, clus);
 
       positions.insert(std::make_pair(key, pos));
+    }
+  if(positions.size() < 3)
+    {
+      return;
     }
 
   circleFitByTaubin(positions, startLayer, endLayer);

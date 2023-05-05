@@ -13,6 +13,7 @@
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterv4.h>
+#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>                     // for hitkey, getLayer
 #include <trackbase/MvtxDefs.h>                   
 #include <trackbase/TrkrHitv2.h>
@@ -343,8 +344,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  cluster_ids.insert(component[i]);
 	  clusters.insert(make_pair(component[i], hitvec[i]));
 	}
-      //    cout << "found cluster #: "<< clusters.size()<< endl;
-      // loop over the componenets and make clusters
+  int total_clusters = 0;
       for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter)
 	{
 	  int clusid = *clusiter;
@@ -352,7 +352,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  
 	  if (Verbosity() > 2) cout << "Filling cluster id " << clusid << " of " << std::distance(cluster_ids.begin(),clusiter )<< endl;
 	  
-	  // make the cluster directly in the node tree
+    ++total_clusters;
 	  auto ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 	  
 	  // determine the size of the cluster in phi and z
@@ -404,9 +404,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  locclusz = loczsum / nhits;
 	  
 	  const double pitch = layergeom->get_pixel_x();
-	  //	std::cout << " pitch: " <<  pitch << std::endl;
 	  const double length = layergeom->get_pixel_z();
-	  //	std::cout << " length: " << length << std::endl;
 	  const double phisize = phibins.size() * pitch;
 	  const double zsize = zbins.size() * length;
 	  
@@ -474,6 +472,24 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	    clus->setLocalX(locclusx);
 	    clus->setLocalY(locclusz);
 	    
+	    clus->setPhiSize(phibins.size());
+	    clus->setZSize(zbins.size());
+	    // All silicon surfaces have a 1-1 map to hitsetkey. 
+	    // So set subsurface key to 0
+	    clus->setSubSurfKey(0);
+	    
+	    if (Verbosity() > 2)
+	      clus->identify();
+	    
+	    m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+	  }else if(m_cluster_version==5){
+	    auto clus = std::make_unique<TrkrClusterv5>();
+	    clus->setAdc(nhits);
+	    clus->setMaxAdc(1);
+	    clus->setLocalX(locclusx);
+	    clus->setLocalY(locclusz);
+	    clus->setPhiError(phierror);
+	    clus->setZError(zerror);
 	    clus->setPhiSize(phibins.size());
 	    clus->setZSize(zbins.size());
 	    // All silicon surfaces have a 1-1 map to hitsetkey. 

@@ -35,7 +35,10 @@ class SvtxTrack : public PHObject
     PRES = 0,
     CEMC = 1,
     HCALIN = 2,
-    HCALOUT = 3
+    HCALOUT = 3,
+    OUTER_CEMC = 4,
+    OUTER_HCALIN = 5,
+    OUTER_HCALOUT = 6
   };
 
   ~SvtxTrack() override = default;

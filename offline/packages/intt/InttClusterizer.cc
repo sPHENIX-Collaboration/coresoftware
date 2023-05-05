@@ -4,6 +4,7 @@
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterv4.h>
+#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitv2.h>
@@ -448,6 +449,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	double ylocalsum = 0.0;
 	double zlocalsum = 0.0;
 	unsigned int clus_adc = 0.0;
+	unsigned int clus_maxadc = 0.0;
 	unsigned nhits = 0;
 
 	//std::cout << PHWHERE << " ckey " << ckey << ":" << std::endl;	
@@ -484,7 +486,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 		ylocalsum += local_hit_location[1];
 		zlocalsum += local_hit_location[2];
 	      }
-
+	    if(hit_adc > clus_maxadc)
+	      clus_maxadc = hit_adc;
 	    clus_adc += hit_adc;
 	    ++nhits;
 
@@ -565,6 +568,24 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	  clus->setSubSurfKey(0);
 	  m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
 	  
+	}else if(m_cluster_version==5){
+	  auto clus = std::make_unique<TrkrClusterv5>();
+	  clus->setAdc(clus_adc);
+	  clus->setMaxAdc(clus_maxadc);
+	  clus->setLocalX(cluslocaly);
+	  clus->setLocalY(cluslocalz);
+	  clus->setPhiError(phierror);
+	  clus->setZError(zerror);
+	  clus->setPhiSize(phibins.size());
+	  clus->setZSize(1);
+	  // All silicon surfaces have a 1-1 map to hitsetkey. 
+	  // So set subsurface key to 0
+	  clus->setSubSurfKey(0);
+	  
+	  if (Verbosity() > 2)
+	    clus->identify();
+	  
+	  m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
 	}
       } // end loop over cluster ID's
   }  // end loop over hitsets

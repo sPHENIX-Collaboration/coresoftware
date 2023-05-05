@@ -119,8 +119,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 
 	      for(auto& key : mvtx2Keys)
 		{
-		  if(mvtx1Keys.find(key) == mvtx1Keys.end())
-		    { mvtx1Keys.insert(key); }
+		  mvtx1Keys.insert(key); 
 		}
 	      
 	      if(Verbosity() > 2)

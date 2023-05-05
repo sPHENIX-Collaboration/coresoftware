@@ -65,6 +65,13 @@ class LiteCaloEval : public SubsysReco
   //void Fit_Histos();
   void FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts);
 
+  void setFitMax(float fitMax);
+  void setFitMin(float fitMin);
+
+  float getFitMax();
+  float getFitMin();
+
+
  private:
   TFile *f_temp = nullptr;
   TFile *cal_output = nullptr;
@@ -75,7 +82,7 @@ class LiteCaloEval : public SubsysReco
   TH3 *hcalout_e_eta_phi = {};
 
   TH1 *hcal_in_eta_phi[24][64] = {};
-  TH1 *hcalin_eta[24] = {};
+  TH1 *hcalin_eta[25] = {};
   TH2 *hcalin_energy_eta = nullptr;
   TH3 *hcalin_e_eta_phi = nullptr;
 
@@ -89,10 +96,11 @@ class LiteCaloEval : public SubsysReco
   float fitmax = 0.;
 
   int _ievent = 0;
-  int mode = 0;
+  int mode;
 
   std::string _caloname;
   std::string _filename;
+
 };
 
 #endif  // LITECALOEVAL_H

@@ -153,7 +153,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 
 int KFParticle_sPHENIX::End(PHCompositeNode * /*topNode*/)
 {
-  std::cout << "KFParticle_sPHENIX object " << Name() << " finished. Number of canadidates: " << candidateCounter << std::endl;
+  std::cout << "KFParticle_sPHENIX object " << Name() << " finished. Number of candidates: " << candidateCounter << std::endl;
 
   if (m_save_output && candidateCounter != 0)
   {
@@ -165,8 +165,8 @@ int KFParticle_sPHENIX::End(PHCompositeNode * /*topNode*/)
   return 0;
 }
 
-void KFParticle_sPHENIX::printParticles(const KFParticle motherParticle,
-                                        const KFParticle chosenVertex,
+void KFParticle_sPHENIX::printParticles(const KFParticle &motherParticle,
+                                        const KFParticle &chosenVertex,
                                         const std::vector<KFParticle> &daughterParticles,
                                         const std::vector<KFParticle> &intermediateParticles,
                                         const int numPVs, const int numTracks)
