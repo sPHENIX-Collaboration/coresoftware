@@ -427,7 +427,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           unsigned int trid = m_directedTrackMap->size();
           newTrack.set_id(trid);
 
-          if( getTrackFitResult(fitOutput, &newTrack) )
+          if( getTrackFitResult(fitOutput, &newTrack, measurements) )
           { m_directedTrackMap->insertWithKey(&newTrack, trid); }
           
         } else {
@@ -435,7 +435,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           unsigned int trid = m_trackMap->size();
           newTrack.set_id(trid);
 
-          if( getTrackFitResult(fitOutput, &newTrack))
+          if( getTrackFitResult(fitOutput, &newTrack, measurements))
           { m_trackMap->insertWithKey(&newTrack, trid); }
         
         }
@@ -750,7 +750,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
   return sourcelinks;
 }
 
-bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* track)
+bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* track, const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
@@ -804,7 +804,7 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
     {
       if(track->get_silicon_seed() && track->get_tpc_seed())
 	{
-	  m_alignStates.fillAlignmentStateMap(trajectory, track);
+	  m_alignStates.fillAlignmentStateMap(trajectory, track, measurements);
 	}
     }
     

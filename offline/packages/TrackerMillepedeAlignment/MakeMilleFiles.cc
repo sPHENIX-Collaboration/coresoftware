@@ -79,13 +79,12 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 {
   // Outline:
   //
-  // loop over tracks
+  // loop over track alignment states
   //   Make any track cuts here to skip undesirable tracks (maybe low pT?)
   //   loop over track states+measurements for each track
-  //      for each measurement
-  //         Get measurement value and error (global, what to use for error?)
+  //      for each measurement, performed in trackreco/ActsAlignmentStates.cc
+  //         Get measurement value and error
   //         Calculate derivatives and residuals from Acts jacobians
-  //         Rotate residual-derivative matrices to global coordinates
   //         These are stored in a map and unpacked for mille
   //   Call _mille->mille() with arguments obtained from previous iteration:
   //     local pars
@@ -100,20 +99,19 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
   // Note: all units are in the Acts units of mm and GeV to avoid converting matrices
 
   if (Verbosity() > 0)
-    {
-      std::cout << PHWHERE << " track map size " << _track_map->size() << std::endl;
-      std::cout << "state map size " << _state_map->size() << std::endl;
-    }
+  {
+    std::cout << PHWHERE << " track map size " << _track_map->size() << std::endl;
+    std::cout << "state map size " << _state_map->size() << std::endl;
+  }
 
   for (auto [key, statevec] : *_state_map)
   {
-    
     // Check if track was removed from cleaner
     auto iter = _track_map->find(key);
-    if(iter == _track_map->end())
-      {
-	continue;
-      }
+    if (iter == _track_map->end())
+    {
+      continue;
+    }
 
     SvtxTrack* track = iter->second;
 
@@ -133,10 +131,10 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
     _mille->end();
   }
 
-  if(Verbosity() > 0 )
-    {
-      std::cout << "Finished processing mille file " << std::endl;
-    }
+  if (Verbosity() > 0)
+  {
+    std::cout << "Finished processing mille file " << std::endl;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -303,19 +301,19 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
     // The global alignment parameters are given initial values of zero by default, we do not specify them
     // We identify the global alignment parameters for this surface
 
-    const auto cluster = _cluster_map->findCluster(ckey);
-    const auto layer = TrkrDefs::getLayer(ckey);
+    TrkrCluster* cluster = _cluster_map->findCluster(ckey);
+    const unsigned int layer = TrkrDefs::getLayer(ckey);
 
-    const auto residual = state->get_residual();
-    const auto& global = _tGeometry->getGlobalPosition(ckey, cluster);
+    const SvtxAlignmentState::ResidualVector residual = state->get_residual();
+    const Acts::Vector3 global = _tGeometry->getGlobalPosition(ckey, cluster);
 
     // need standard deviation of measurements
     SvtxAlignmentState::ResidualVector clus_sigma = SvtxAlignmentState::ResidualVector::Zero();
+
     if (_cluster_version == 3)
     {
-      clus_sigma(2) = cluster->getZError() * Acts::UnitConstants::cm;
-      clus_sigma(0) = cluster->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
-      clus_sigma(1) = cluster->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
+      clus_sigma(1) = cluster->getZError() * Acts::UnitConstants::cm;
+      clus_sigma(0) = cluster->getRPhiError() * Acts::UnitConstants::cm;
     }
     else if (_cluster_version == 4)
     {
@@ -323,25 +321,22 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster, clusRadius, ckey);
       float exy2 = para_errors.first * Acts::UnitConstants::cm2;
       float ez2 = para_errors.second * Acts::UnitConstants::cm2;
-      clus_sigma(2) = sqrt(ez2);
-      clus_sigma(0) = sqrt(exy2 / 2.0);
-      clus_sigma(1) = sqrt(exy2 / 2.0);
+      clus_sigma(1) = sqrt(ez2);
+      clus_sigma(0) = sqrt(exy2);
     }
-  else if(_cluster_version == 5)
+    else if (_cluster_version == 5)
     {
-      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+      double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
       TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-      auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5,clusRadius,ckey);
+      auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5, clusRadius, ckey);
       double phierror = sqrt(para_errors.first);
       double zerror = sqrt(para_errors.second);
-      clus_sigma(2) = zerror;
-      clus_sigma(0) = phierror/ sqrt(2);
-      clus_sigma(1) = phierror/ sqrt(2);
+      clus_sigma(1) = zerror;
+      clus_sigma(0) = phierror;
     }
 
     if (std::isnan(clus_sigma(0)) ||
-        std::isnan(clus_sigma(1)) ||
-        std::isnan(clus_sigma(2)))
+        std::isnan(clus_sigma(1)))
     {
       continue;
     }
@@ -364,15 +359,15 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       std::cout << std::endl;
     }
 
-    /// For N residual coordinates x,y,z
+    /// For N residual local coordinates x, z
     for (int i = 0; i < SvtxAlignmentState::NRES; ++i)
     {
       // Add the measurement separately for each coordinate direction to Mille
       float glbl_derivative[SvtxAlignmentState::NGL];
       for (int j = 0; j < SvtxAlignmentState::NGL; ++j)
       {
-	/// swap the order to match what is expected from the workflow
-        glbl_derivative[j] = state->get_global_derivative_matrix()(i, (j+3)%SvtxAlignmentState::NGL);
+        /// swap the order to match what is expected from the workflow
+        glbl_derivative[j] = state->get_global_derivative_matrix()(i, j);
 
         if (is_layer_fixed(layer) || is_layer_param_fixed(layer, j))
         {
@@ -392,6 +387,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 
         for (int k = 0; k < SvtxAlignmentState::NGL; k++)
         {
+	  if(glbl_derivative[k] > 0 || glbl_derivative[k] < 0)
+	    std::cout << "NONZERO GLOBAL DERIVATIVE"<<std::endl;
           std::cout << glbl_derivative[k] << ", ";
         }
         std::cout << std::endl
@@ -405,11 +402,11 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 
       if (clus_sigma(i) < 1.0)  // discards crazy clusters
       {
-	 if(Verbosity() > 3)
-	    { 
-	      std::cout << "ckey " << ckey << " and layer " << layer << " buffers:" << std::endl; 
-	      printBuffers(i, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label); 
-	    }
+        if (Verbosity() > 3)
+        {
+          std::cout << "ckey " << ckey << " and layer " << layer << " buffers:" << std::endl;
+          printBuffers(i, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label);
+        }
 
         _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), clus_sigma(i));
       }
@@ -419,17 +416,35 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
   return;
 }
 
-void MakeMilleFiles::printBuffers(int index, Acts::Vector3 residual, Acts::Vector3 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[])
+void MakeMilleFiles::printBuffers(int index, Acts::Vector2 residual, Acts::Vector2 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[])
 {
-  std::cout << " float buffer: " << " residual " << "  " << residual(index);
-  for (int il=0;il<SvtxAlignmentState::NLOC;++il) { if(lcl_derivative[il] != 0) std::cout << " lcl_deriv["<< il << "] " << lcl_derivative[il] << "  ";  }
-  std::cout  << " sigma " << "  " << clus_sigma(index) << "  ";
-  for (int ig=0;ig<SvtxAlignmentState::NGL;++ig) { if(glbl_derivative[ig] != 0)  std::cout << " glbl_deriv["<< ig << "] " << glbl_derivative[ig] << "  ";  }
-  std::cout << " int buffer: " << " 0 " << "  ";
-  for (int il=0;il<SvtxAlignmentState::NLOC;++il) { if(lcl_derivative[il] != 0) std::cout << " lcl_label["<< il << "] " << il << "  ";  }
-  std::cout << " 0 " << "  ";
-  for (int ig=0;ig<SvtxAlignmentState::NGL;++ig) { if(glbl_derivative[ig] != 0) std::cout << " glbl_label["<< ig << "] " << glbl_label[ig] << "  ";  }
-  std::cout << " end of meas " << std::endl;		    
+  std::cout << " float buffer: "
+            << " residual "
+            << "  " << residual(index);
+  for (int il = 0; il < SvtxAlignmentState::NLOC; ++il)
+  {
+    if (lcl_derivative[il] != 0) std::cout << " lcl_deriv[" << il << "] " << lcl_derivative[il] << "  ";
+  }
+  std::cout << " sigma "
+            << "  " << clus_sigma(index) << "  ";
+  for (int ig = 0; ig < SvtxAlignmentState::NGL; ++ig)
+  {
+    if (glbl_derivative[ig] != 0) std::cout << " glbl_deriv[" << ig << "] " << glbl_derivative[ig] << "  ";
+  }
+  std::cout << " int buffer: "
+            << " 0 "
+            << "  ";
+  for (int il = 0; il < SvtxAlignmentState::NLOC; ++il)
+  {
+    if (lcl_derivative[il] != 0) std::cout << " lcl_label[" << il << "] " << il << "  ";
+  }
+  std::cout << " 0 "
+            << "  ";
+  for (int ig = 0; ig < SvtxAlignmentState::NGL; ++ig)
+  {
+    if (glbl_derivative[ig] != 0) std::cout << " glbl_label[" << ig << "] " << glbl_label[ig] << "  ";
+  }
+  std::cout << " end of meas " << std::endl;
 }
 bool MakeMilleFiles::is_layer_fixed(unsigned int layer)
 {
@@ -440,7 +455,14 @@ bool MakeMilleFiles::is_layer_fixed(unsigned int layer)
 
   return ret;
 }
-
+void MakeMilleFiles::set_layers_fixed(unsigned int minlayer,
+				      unsigned int maxlayer)
+{
+  for(unsigned int i=minlayer; i<maxlayer; i++)
+    {
+      fixed_layers.insert(i);
+    }
+}
 void MakeMilleFiles::set_layer_fixed(unsigned int layer)
 {
   fixed_layers.insert(layer);
