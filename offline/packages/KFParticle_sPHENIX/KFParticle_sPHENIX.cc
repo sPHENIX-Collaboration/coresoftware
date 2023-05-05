@@ -106,8 +106,6 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
 	  m_magField = std::string(calibrationsroot) + std::string("/Field/Map/") + m_magField;
   }
  
-  //std::cout << "m_magField = " << m_magField << std::endl;
-
   TFile * fin = new TFile(m_magField.c_str());
   fin->cd();
 
@@ -118,8 +116,6 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
 
   //The actual unit of KFParticle is in kilo Gauss (kG), which is equivalent to 0.1 T, instead of Tesla (T). The positive value indicates the B field is in the +z direction
   m_Bz = BzHist->GetMean() * 10;  //Factor of 10 to convert the B field unit from kG to T
- 
-  //std::cout << "m_Bz = " << m_Bz << std::endl; //Check the Bz Value for debug purpose
 
   fieldmap->Delete();
   BzHist->Delete();
