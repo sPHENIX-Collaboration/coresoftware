@@ -29,7 +29,9 @@
 #include <phool/getClass.h>
 
 #include <TFile.h>
-
+#include <TH1.h>                  // for obtaining the B field value
+#include <TTree.h>                // for getting the TTree from the file
+                                  //
 #include <KFParticle.h>           // for KFParticle
 #include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBOSITY...
 #include <fun4all/SubsysReco.h>   // for SubsysReco
@@ -41,9 +43,6 @@
 #include <iostream>                   // for operator<<, endl, basi...
 #include <map>                        // for map
 #include <tuple>                      // for tie, tuple
-#include "TFile.h"                    // for reading the field map file
-#include "TH1.h"                      // for obtaining the B field value
-#include "TTree.h"                    // for getting the TTree from the file
 
 class PHCompositeNode;
 
@@ -99,7 +98,7 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
   char *calibrationsroot = getenv("CALIBRATIONROOT");
   std::string m_magField = "sphenix3dtrackingmapxyz.root";
   // std::string url = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", m_magField);
-  m_magField = CDBInterface::instance()->getUrl("FIELDMAPTRACKING");  // Joe's Implementation to get the field map file name
+  m_magField = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", m_magField);  // Joe's New Implementation to get the field map file name
 
   if (calibrationsroot != nullptr)
   {
@@ -119,7 +118,7 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
   // The actual unit of KFParticle is in kilo Gauss (kG), which is equivalent to 0.1 T, instead of Tesla (T). The positive value indicates the B field is in the +z direction
   m_Bz = BzHist->GetMean() * 10;  // Factor of 10 to convert the B field unit from kG to T
 
-  // std::cout << "BzValue = " << BzValue << std::endl; //Check the Bz Value for debug purpose
+  // std::cout << "m_Bz = " << m_Bz << std::endl; //Check the Bz Value for debug purpose
 
   fieldmap->Delete();
   BzHist->Delete();

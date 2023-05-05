@@ -302,7 +302,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   bool m_require_mva;
   bool m_save_dst;
   bool m_save_output;
-  float m_Bz;
+  float m_Bz = 0;
   std::string m_outfile_name;
   TFile *m_outfile;
   std::string m_decayDescriptor;
