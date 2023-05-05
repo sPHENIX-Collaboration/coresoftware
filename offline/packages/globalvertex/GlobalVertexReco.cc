@@ -295,11 +295,12 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   }
 
   /// Associate any tracks that were not assigned a track-vertex
+  
   for (const auto &[tkey, track] : *trackmap)
   {
     //! Check that the vertex hasn't already been assigned
     auto trackvtxid = track->get_vertex_id();
-    if (globalmap->find(trackvtxid)->second != nullptr)
+    if (globalmap->find(trackvtxid) != globalmap->end())
     {
       continue;
     }
