@@ -152,6 +152,9 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_double_param("light_balance_inner_radius", NAN);
   set_default_double_param("light_balance_outer_corr", NAN);
   set_default_double_param("light_balance_outer_radius", NAN);
+  set_default_double_param("phistart", NAN);
+  set_default_double_param("scinti_eta_coverage_neg", 1.1);
+  set_default_double_param("scinti_eta_coverage_pos", 1.1);
   set_default_double_param(PHG4HcalDefs::outerrad, 274.010 / 2 + 3);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
@@ -169,7 +172,8 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4HcalDefs::n_towers, 64);
   set_default_int_param(PHG4HcalDefs::scipertwr, 4);
   set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
-  set_default_int_param("saveg4hit", 1);
+  set_default_int_param("etabins", 24);
+  set_default_int_param("saveg4hit", 0);
   
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");

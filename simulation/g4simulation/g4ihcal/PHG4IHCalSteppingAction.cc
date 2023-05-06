@@ -126,7 +126,7 @@ int PHG4IHCalSteppingAction::InitWithNode(PHCompositeNode* topNode)
       std::cout << e.what() << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
-    topNode->print();
+    if (Verbosity() > 1) topNode->print();
   }
 
   return 0;
@@ -181,7 +181,7 @@ bool PHG4IHCalSteppingAction::NoHitSteppingAction(const G4Step* aStep)
   const G4Track* aTrack = aStep->GetTrack();
   // we only need visible energy here
   double light_yield = eion;
-  
+
   // correct evis using light map
   if (m_LightScintModelFlag)
   {
@@ -582,7 +582,14 @@ void PHG4IHCalSteppingAction::CreateNodeTree(PHCompositeNode* topNode)
     dst_node = new PHCompositeNode("DST");
     topNode->addNode(dst_node);
   }
+  PHNodeIterator dstiter(dst_node);
+  PHCompositeNode* DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", m_Detector->SuperDetector()));
+  if (!DetNode)
+  {
+    DetNode = new PHCompositeNode(m_Detector->SuperDetector());
+    dst_node->addNode(DetNode);
+  }
   m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::HCAL);
-  PHIODataNode<PHObject>* towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_HCALIN", "PHObject");
-  dst_node->addNode(towerNode);
+  PHIODataNode<PHObject>* towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERINFO_SIM_" + m_Detector->SuperDetector(), "PHObject");
+  DetNode->addNode(towerNode);
 }
