@@ -22,6 +22,12 @@ void CaloWaveformProcessing::initialize_processing()
     m_Fitter = new CaloWaveformFitting();
     m_Fitter->initialize_processing(url_template);
     m_Fitter->set_nthreads(get_nthreads());
+
+    if (_bdosoftwarezerosuppression == true)
+      {
+	//std::cout << "hey zero suppression is on! " << std::endl;
+	m_Fitter->set_softwarezerosuppression(_bdosoftwarezerosuppression,_nsoftwarezerosuppression);
+      }
   }
   else if (m_processingtype == CaloWaveformProcessing::ONNX)
   {

@@ -38,12 +38,15 @@ class TrkrTruthTrack;
 class PHG4TruthInfoContainer;
 class PHG4Hit;
 
+class MvtxHitPruner;
+
 class TruthMvtxClusterBuilder {
 
   // member data
   int                      trkid {-1};
   bool                     is_emb {false};
   PHG4TruthInfoContainer  *m_truthinfo {nullptr};
+  MvtxHitPruner *m_MvtxHitPruner { nullptr };
 
   // intermediary hits, used to cluster Truth hits
   TrkrHitSetContainer     *m_hits {}; // save the hits as they come along
@@ -68,8 +71,19 @@ class TruthMvtxClusterBuilder {
 
   void set_verbosity(int _verbosity) { m_verbosity = _verbosity; };
   void set_geom_container (PHG4CylinderGeomContainer *_geom_container) { m_geom_container = _geom_container; };
+  void set_HitPruner(MvtxHitPruner* _) { m_MvtxHitPruner = _; };
 
   void print_clusters(int nclusters=-1);
+
+  //! option to turn off z-dimension clustering
+  void SetZClustering(const bool make_z_clustering)
+  {
+    m_makeZClustering = make_z_clustering;
+  }
+  bool GetZClustering() const
+  {
+    return m_makeZClustering;
+  }
 
   private:
   void cluster_hits();
@@ -77,6 +91,11 @@ class TruthMvtxClusterBuilder {
   /* bool are_adjacent(RawHit* lhs, RawHit* rhs); */
   bool are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs);
   PHG4CylinderGeomContainer* m_geom_container { nullptr };
+
+  bool m_makeZClustering {true};  // z_clustering_option
+  /* bool do_hit_assoc = true; */
+  /* bool do_read_raw = false; */
+  /* int m_cluster_version = 4; */
 };
 
 #endif

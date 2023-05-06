@@ -1,23 +1,18 @@
 #include "sphenixnpc.h"
 
-sphenixnpc *sphenixnpc::__instance = nullptr;
+#include <nopayloadclient/nopayloadclient.hpp>
 
-sphenixnpc *sphenixnpc::instance(const std::string &globaltag)
+#include <nlohmann/json.hpp>
+#include <iostream>
+#include <stdexcept>
+
+sphenixnpc::sphenixnpc(const std::string &globaltag)
 {
-  if (!__instance)
-  {
-    __instance = new sphenixnpc();
-  }
-  __instance->cache_set_GlobalTag(globaltag);
-  return __instance;
+  cache_set_GlobalTag(globaltag);
 }
 
-sphenixnpc::~sphenixnpc()
-{
-  __instance = nullptr;
-}
 
-int sphenixnpc::createGlobalTag(const std::string &tagname)
+int sphenixnpc::createThisGlobalTag(const std::string &tagname)
 {
   setGlobalTag(tagname);
   nlohmann::json resp = nopayloadclient::Client::createGlobalTag();
@@ -33,7 +28,7 @@ int sphenixnpc::createGlobalTag(const std::string &tagname)
   return iret;
 }
 
-int sphenixnpc::deleteGlobalTag(const std::string &tagname)
+int sphenixnpc::deleteThisGlobalTag(const std::string &tagname)
 {
   setGlobalTag(tagname);
   nlohmann::json result = nopayloadclient::Client::deleteGlobalTag();
@@ -47,6 +42,11 @@ int sphenixnpc::deleteGlobalTag(const std::string &tagname)
 nlohmann::json sphenixnpc::getUrlDict(long long iov)
 {
   return nopayloadclient::Client::getUrlDict(iov,iov);
+}
+
+nlohmann::json sphenixnpc::getUrlDict(long long iov1, long long iov2)
+{
+  return nopayloadclient::Client::getUrlDict(iov1,iov2);
 }
 
 nlohmann::json sphenixnpc::get(const std::string &pl_type, long long iov)

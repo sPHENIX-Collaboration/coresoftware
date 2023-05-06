@@ -11,13 +11,14 @@
 #include <tuple>  // for tuple
 
 class PHCompositeNode;
+class sphenixnpc;
 
 class CDBInterface : public SubsysReco
 {
  public:
   static CDBInterface *instance();
 
-  ~CDBInterface() override {}
+  ~CDBInterface() override;
 
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
@@ -30,7 +31,7 @@ class CDBInterface : public SubsysReco
   CDBInterface(const std::string &name = "CDBInterface");
 
   static CDBInterface *__instance;
-
+  sphenixnpc *cdbclient = nullptr;
   std::set<std::tuple<std::string, std::string, uint64_t>> m_UrlVector;
 };
 

@@ -1,5 +1,5 @@
-#ifndef G4BBC_BBCSIMRECO_H
-#define G4BBC_BBCSIMRECO_H
+#ifndef G4BBC_BBCDIGITIZATION_H
+#define G4BBC_BBCDIGITIZATION_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -16,7 +16,6 @@ class PHCompositeNode;
 class PHG4HitContainer;
 class PHG4TruthInfoContainer;
 class EventHeader;
-class BbcOut;
 class BbcPmtContainer;
 class TDatabasePDG;
 class TRandom3;
@@ -24,13 +23,13 @@ class TH1;
 class TH2;
 class TF1;
 
-class BbcSimReco : public SubsysReco
+class BbcDigitization : public SubsysReco
 {
  public:
   // Default constructor
-  BbcSimReco(const std::string &name = "BbcSimReco");
+  BbcDigitization(const std::string &name = "BbcDigitization");
 
-  ~BbcSimReco() override;
+  ~BbcDigitization() override;
 
   //! Initialization, called for at overall initialization
   int Init(PHCompositeNode *) override;
@@ -61,14 +60,7 @@ class BbcSimReco : public SubsysReco
   Float_t f_pmtq[128]{};   // npe in each arm
   Float_t f_pmtt0[128]{};  // time in each arm
   Float_t f_pmtt1[128]{};  // time in each arm
-  Short_t f_bbcn[2]{};     // num hits for each arm (north and south)
-  Float_t f_bbcq[2]{};     // total charge (currently npe) in each arm
-  Float_t f_bbct[2]{};     // time in arm
-  Float_t f_bbcte[2]{};    // earliest hit time in arm
-  Float_t f_bbcz = NAN;    // z-vertex
-  Float_t f_bbct0 = NAN;   // start time
 
-  TH1 *hevt_bbct[2]{};  // time in each bbc, per event
   TF1 *gaussian = nullptr;
 
   //
@@ -84,8 +76,7 @@ class BbcSimReco : public SubsysReco
   PHG4HitContainer *_bbchits = nullptr;
 
   // Output to DST
-  BbcOut *_bbcout = nullptr;
   BbcPmtContainer *_bbcpmts = nullptr;
 };
 
-#endif  //* __BBCSIMRECO_H__ *//
+#endif  //* __BBCDIGITIZATION_H__ *//
