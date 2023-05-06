@@ -62,6 +62,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_mms_grouping(int group) {mms_grp = (mmsGrp) group;}
   void set_test_output(bool test) {test_output = test;}
   void set_layer_fixed(unsigned int layer);
+  void set_tpc_sector_fixed(unsigned int region, unsigned int sector, unsigned int side);
   void set_layer_param_fixed(unsigned int layer, unsigned int param);
   void set_cluster_version(unsigned int v) { _cluster_version = v; }
   void set_fitted_subsystems(bool si, bool tpc, bool full) { fitsilicon = si; fittpc = tpc; fitfulltrack = full; }
@@ -99,6 +100,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void getGlobalLabels(Surface surf, int glbl_label[]);
 
   void printBuffers(int index, Acts::Vector2 residual, Acts::Vector2 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[]);
+  bool is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side);
   bool is_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
 
@@ -119,6 +121,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   ClusterErrorPara _ClusErrPara;
 
   std::set<unsigned int> fixed_layers;
+  std::set<unsigned int> fixed_sectors;
   std::set<std::pair<unsigned int,unsigned int>> fixed_layer_params;
 
   // set default groups to lowest level
