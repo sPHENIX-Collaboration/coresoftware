@@ -11,7 +11,7 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <CGAL/Cartesian.h>  // for Cartesian_base_ref_count::...
 #include <CGAL/Exact_circular_kernel_2.h>
-#include <CGAL/Point_2.h>  // for Point_2
+#include <CGAL/Point_2.h>    // for Point_2
 #pragma GCC diagnostic pop
 
 #include <map>
@@ -28,6 +28,7 @@ class PHCompositeNode;
 class PHG4InnerHcalDisplayAction;
 class PHParameters;
 class PHG4Subsystem;
+class RawTowerGeomContainer;
 
 class PHG4InnerHcalDetector : public PHG4Detector
 {
@@ -66,6 +67,7 @@ class PHG4InnerHcalDetector : public PHG4Detector
   std::pair<int, int> GetLayerTowerId(G4VPhysicalVolume *volume) const;
 
  protected:
+  void AddGeometryNode();
   int ConstructInnerHcal(G4LogicalVolume *sandwich);
   double x_at_y(Point_2 &p0, Point_2 &p1, double yin);
   PHG4InnerHcalDisplayAction *m_DisplayAction = nullptr;
@@ -103,6 +105,8 @@ class PHG4InnerHcalDetector : public PHG4Detector
   std::map<G4VPhysicalVolume *, std::pair<int, int>> m_ScintiTilePhysVolMap;
   std::vector<G4VSolid *> m_ScintiTilesVec;
   std::string m_ScintiLogicNamePrefix;
+  RawTowerGeomContainer *m_RawTowerGeom = nullptr;
+  std::string m_TowerGeomNodeName;
 };
 
 #endif  // G4DETECTORS_PHG4INNERHCALDETECTOR_H

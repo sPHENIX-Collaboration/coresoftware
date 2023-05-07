@@ -173,7 +173,7 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4HcalDefs::scipertwr, 4);
   set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
   set_default_int_param("etabins", 24);
-  set_default_int_param("saveg4hit", 0);
+  set_default_int_param("saveg4hit", 1);
   
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");

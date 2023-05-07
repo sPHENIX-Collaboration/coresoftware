@@ -27,6 +27,7 @@ AM_LDFLAGS = \
 
 libg4detectors_io_la_LIBADD = \
   -lphool \
+  -lcalo_io \
   -lphparameter
 
 

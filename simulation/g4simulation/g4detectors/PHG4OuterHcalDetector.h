@@ -30,6 +30,7 @@ class PHG4OuterHcalDisplayAction;
 class PHG4OuterHcalFieldSetup;
 class PHParameters;
 class PHG4Subsystem;
+class RawTowerGeomContainer;
 
 class PHG4OuterHcalDetector : public PHG4Detector
 {
@@ -64,6 +65,7 @@ class PHG4OuterHcalDetector : public PHG4Detector
   std::pair<int, int> GetLayerTowerId(G4VPhysicalVolume *volume) const;
 
  protected:
+  void AddGeometryNode();
   int ConstructOuterHcal(G4LogicalVolume *hcalenvelope);
   G4VSolid *ConstructSteelPlate(G4LogicalVolume *hcalenvelope);
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalenvelope);
@@ -104,6 +106,8 @@ class PHG4OuterHcalDetector : public PHG4Detector
   std::vector<G4VSolid *> m_ScintiTilesVec;
   std::set<G4VPhysicalVolume *> m_SteelAbsorberVec;
   std::map<G4VPhysicalVolume *, std::pair<int, int>> m_ScintiTilePhysVolMap;
+  RawTowerGeomContainer *m_RawTowerGeom = nullptr;
+  std::string m_TowerGeomNodeName;
 };
 
 #endif
