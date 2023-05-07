@@ -27,7 +27,6 @@ AM_LDFLAGS = \
 
 libg4detectors_io_la_LIBADD = \
   -lphool \
-  -lcalo_io \
   -lphparameter
 
 
@@ -39,6 +38,7 @@ libg4detectors_la_LIBADD = \
   -lgmp \
   -lphg4gdml \
   -lphool  \
+  -lcalo_io \
   -lSubsysReco
 
 pkginclude_HEADERS = \
