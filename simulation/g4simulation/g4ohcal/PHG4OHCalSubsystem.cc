@@ -180,7 +180,7 @@ void PHG4OHCalSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4HcalDefs::scipertwr, 5);
   set_default_int_param("n_scinti_tiles", 12);
   set_default_int_param("etabins", 24);
-  set_default_int_param("saveg4hit", 0);
+  set_default_int_param("saveg4hit", 1);
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
   std::string defaultmapfilename;
