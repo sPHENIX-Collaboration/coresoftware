@@ -173,6 +173,8 @@ PHG4TpcDirectLaser::PHG4TpcDirectLaser(const std::string& name)
   , PHParameterInterface(name)
 {
   InitializeParameters();
+  theta_p = 0;
+  phi_p = 0;
 }
 
 //_____________________________________________________________
@@ -254,7 +256,7 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode* topNode)
   std::cout << "PHG4TpcDirectLaser::InitRun - electrons_per_gev " << electrons_per_gev << std::endl;
   
   //TFile * infile1 = TFile::Open("theta_phi_laser.root");
-
+  
   std::string LASER_ANGLES_ROOTFILE = std::string(getenv("CALIBRATIONROOT")) + "/TPC/DirectLaser/theta_phi_laser.root";
   TFile* infile1 = TFile::Open(LASER_ANGLES_ROOTFILE.c_str());
 
