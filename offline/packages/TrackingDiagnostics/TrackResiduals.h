@@ -10,11 +10,15 @@
 #include <TTree.h>
 #include <string>
 
+#include <trackbase/TrkrDefs.h>
+
 #include <cmath>
 #include <iostream>
 #include <limits>
 
+class TrkrCluster;
 class PHCompositeNode;
+class ActsGeometry;
 
 class TrackResiduals : public SubsysReco
 {
@@ -32,7 +36,7 @@ class TrackResiduals : public SubsysReco
  private:
   void clearClusterStateVectors();
   void createBranches();
-
+  float convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster);
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
