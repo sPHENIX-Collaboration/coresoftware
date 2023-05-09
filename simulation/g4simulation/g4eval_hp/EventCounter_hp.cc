@@ -49,6 +49,7 @@ int EventCounter_hp::End(PHCompositeNode*)
   _timer->stop();
   std::cout
     << "EventCounter_hp::End -"
+    << " events: " << _ievent
     << " time per event:" << _timer->get_accumulated_time()/(1000.*_ievent) << " sec"
     << std::endl;
 
