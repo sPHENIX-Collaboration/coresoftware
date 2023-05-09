@@ -6,7 +6,6 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrDefs.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -214,7 +213,12 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
 
       //! have cluster and state, fill vectors
       m_cluslx.push_back(cluster->getLocalX());
-      m_cluslz.push_back(cluster->getLocalY());
+      float clusz = cluster->getLocalY();
+      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
+	{
+	  clusz = convertTimeToZ(geometry,ckey, cluster);
+	}
+      m_cluslz.push_back(clusz);
       m_cluselx.push_back(cluster->getRPhiError());
       m_cluselz.push_back(cluster->getZError());
       m_clusgx.push_back(clusglob.x());
@@ -272,6 +276,20 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
 
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster)
+{
+  // must convert local Y from cluster average time of arival to local cluster z position
+  double drift_velocity = geometry->get_drift_velocity();
+  double zdriftlength = cluster->getLocalY() * drift_velocity;
+  double surfCenterZ = 52.89; // 52.89 is where G4 thinks the surface center is
+  double zloc = surfCenterZ - zdriftlength;   // converts z drift length to local z position in the TPC in north
+  unsigned int side = TpcDefs::getSide(cluster_key);
+  if(side == 0) zloc = -zloc;
+  float z = zloc;  // in cm
+ 
+  return z; 
 }
 
 //____________________________________________________________________________..
