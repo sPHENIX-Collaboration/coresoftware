@@ -204,6 +204,16 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  Acts::Vector2 clus_sigma = getClusterError(cluster, cluskey, global);
 	  if(isnan(clus_sigma(0)) || isnan(clus_sigma(1)))  { continue; }
 
+	  float inflation_factor = 1;
+	  if(trkrid == TrkrDefs::mvtxId)
+	    inflation_factor = _error_inflation[0];
+	  else if(trkrid == TrkrDefs::inttId)
+	    inflation_factor = _error_inflation[1];
+ 	  else if(trkrid == TrkrDefs::tpcId)
+	    inflation_factor = _error_inflation[2];
+	  else
+	    inflation_factor = _error_inflation[3];
+
 	  int glbl_label[NGL];
 	  getGlobalLabels(surf, glbl_label);  // these depend on the sensor grouping
 
@@ -247,7 +257,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		{
 		  // radius = fitpars[0],  X0 = fitpars[1],  Y0 = fitpars[2], zslope = fitpars[3], Z0  = fitpars[4] 
 		  std::cout << "Local residualsX: layer " << layer << " phi " << phi * 180 / M_PI << " beta " << beta * 180.90 / M_PI
-			    << " dxloc " << residual(0) << " error " << clus_sigma(0) 
+			    << " dxloc " << residual(0) << " error " << clus_sigma(0)  << " inflation_factor " << inflation_factor 
 			    << " xloc " << xloc << " fitxloc " << fitpoint_local(0) 
 			    << " zglob " << global(2) << " fitzglob " << fitpoint(2) 
 			    << " xglob " << global(0) << " fitxglob " << fitpoint(0)
@@ -270,7 +280,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	    }	  
     
 	  if( !isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
-	    { _mille->mille(NLC, lcl_derivativeX, NGL, glbl_derivativeX, glbl_label, residual(0), _error_inflation*clus_sigma(0));}
+	    { _mille->mille(NLC, lcl_derivativeX, NGL, glbl_derivativeX, glbl_label, residual(0), inflation_factor*clus_sigma(0));}
 	  
 	  // provides output that can be grep'ed to make plots of input to mille
 	  if(Verbosity() > 1)
@@ -278,7 +288,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	      if(layer < 7)
 		{
 		  std::cout << "Local residualsY: layer " << layer << " phi " << phi * 180 / M_PI << " beta " << beta * 180.90 / M_PI
-			    << " dzloc " << residual(1) << " error " << clus_sigma(1) 
+			    << " dzloc " << residual(1) << " error " << clus_sigma(1) << " inflation_factor " << inflation_factor 
 			    << " zloc " << zloc << " fitzloc " << fitpoint_local(1)
 			    << " zglob " << global(2) << " fitzglob " << fitpoint(2) 
 			    << " xglob " << global(0) << " fitxglob " << fitpoint(0)
@@ -302,7 +312,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
 	  //if(!isnan(residual(1)) && clus_sigma(1) < 1.0 && trkrid != TrkrDefs::inttId)
 	  if(!isnan(residual(1)) && clus_sigma(1) < 1.0)
-	    {_mille->mille(NLC, lcl_derivativeY, NGL, glbl_derivativeY, glbl_label, residual(1), _error_inflation*clus_sigma(1));}
+	    {_mille->mille(NLC, lcl_derivativeY, NGL, glbl_derivativeY, glbl_label, residual(1), inflation_factor*clus_sigma(1));}
 	}
 
       // close out this track
@@ -835,7 +845,7 @@ void HelicalFitter::get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts
 
   return;
 }
-
+/*
 void HelicalFitter::printBuffers(int index, Acts::Vector2 residual, Acts::Vector2 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[])
 {
   std::cout << " float buffer: " << " residual " << "  " << residual(index);
@@ -848,6 +858,7 @@ void HelicalFitter::printBuffers(int index, Acts::Vector2 residual, Acts::Vector
   for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0) std::cout << " glbl_label["<< ig << "] " << glbl_label[ig] << "  ";  }
   std::cout << " end of meas " << std::endl;		    
 }
+*/
 
 unsigned int HelicalFitter::addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
