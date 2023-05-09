@@ -1,4 +1,5 @@
 #include "ActsAlignmentStates.h"
+#include "ActsPropagator.h"
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -21,6 +22,7 @@
 #include <trackbase_historic/SvtxTrack.h>
 
 #include <Acts/Definitions/Units.hpp>
+#include <Acts/EventData/MeasurementHelpers.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 #include <Acts/Surfaces/Surface.hpp>
@@ -34,15 +36,25 @@ namespace
   }
 }  // namespace
 
-void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
-                                                SvtxTrack* track)
+void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
+                                                SvtxTrack* track,
+                                                const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
   const auto mj = traj.multiTrajectory();
   const auto& tips = traj.tips();
   const auto& trackTip = tips.front();
   const auto crossing = track->get_silicon_seed()->get_crossing();
-  SvtxAlignmentStateMap::StateVec statevec;
 
+  ActsPropagator propagator(m_tGeometry);
+
+  SvtxAlignmentStateMap::StateVec statevec;
+  if (m_verbosity > 2)
+  {
+    std::cout << "Beginning alignment state creation for track "
+              << track->get_id() << std::endl;
+  }
+
+  std::vector<Acts::BoundIndices> indices{Acts::eBoundLoc0, Acts::eBoundLoc1, Acts::eBoundPhi, Acts::eBoundTheta, Acts::eBoundQOverP, Acts::eBoundTime};
   mj.visitBackwards(trackTip, [&](const auto& state)
                     {
     /// Collect only track states which were used in smoothing of KF and are measurements
@@ -51,49 +63,54 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
     {
       return true;
     }
-
+      
     const auto& surface = state.referenceSurface();
     const auto& sl = static_cast<const ActsSourceLink&>(state.uncalibrated());
     auto ckey = sl.cluskey();
-
+    Acts::Vector2 localMeas = Acts::Vector2::Zero();
+    /// get the local measurement that acts used
+    std::visit([&](const auto& meas) {
+	localMeas(0) = meas.parameters()[0];
+	localMeas(1) = meas.parameters()[1];
+      }, measurements[sl.index()]);
+    
     if (m_verbosity > 2)
       {
 	std::cout << "sl index and ckey " << sl.index() << ", "
-		  << sl.cluskey() << std::endl;
+		  << sl.cluskey() << " with local position " 
+		  << localMeas.transpose() << std::endl;
       }
 
     auto clus = m_clusterMap->findCluster(ckey);
     const auto trkrId = TrkrDefs::getTrkrId(ckey);
-
-    /// Gets the global parameters from the state
-    const Acts::FreeVector freeParams =
-        Acts::MultiTrajectoryHelpers::freeSmoothed(m_tGeometry->geometry().getGeoContext(), state);
  
-    /// Calculate the residual in global coordinates
+    const Acts::Vector2 localState = state.effectiveProjector() * state.smoothed();
+    /// Local residual between measurement and smoothed Acts state
+    const Acts::Vector2 localResidual = localMeas - localState;  
+
     Acts::Vector3 clusGlobal = m_tGeometry->getGlobalPosition(ckey, clus);
     if (trkrId == TrkrDefs::tpcId)
     {
       makeTpcGlobalCorrections(ckey, crossing, clusGlobal);
     }
-
+   
     /// convert to acts units
     clusGlobal *= Acts::UnitConstants::cm;
 
     const Acts::FreeVector globalStateParams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), state.smoothed());
     Acts::Vector3 stateGlobal = globalStateParams.segment<3>(Acts::eFreePos0);
-    Acts::Vector3 residual = clusGlobal - stateGlobal;
 
     Acts::Vector3 clus_sigma(0, 0, 0);
 
-      if (m_clusterVersion == 3 || m_clusterVersion == 5)
+    if (m_clusterVersion != 4)
       {
         clus_sigma(2) = clus->getZError() * Acts::UnitConstants::cm;
         clus_sigma(0) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
         clus_sigma(1) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
       }
-      else if (m_clusterVersion == 4)
+    else 
       {
-        double clusRadius = sqrt(clusGlobal(0) * clusGlobal(0) + clusGlobal(1) * clusGlobal(1));
+        double clusRadius = sqrt(clusGlobal(0) * clusGlobal(0) + clusGlobal(1) * clusGlobal(1)) / Acts::UnitConstants::cm;
         auto para_errors = m_clusErrPara.get_simple_cluster_error(clus, clusRadius, ckey);
         float exy2 = para_errors.first * Acts::UnitConstants::cm2;
         float ez2 = para_errors.second * Acts::UnitConstants::cm2;
@@ -101,112 +118,67 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
         clus_sigma(0) = sqrt(exy2 / 2.0);
         clus_sigma(1) = sqrt(exy2 / 2.0);
       }
+  
+ 
     if (m_verbosity > 2)
     {
-         
       std::cout << "clus global is " << clusGlobal.transpose() << std::endl
-                << "state global is " << stateGlobal.transpose() << std::endl
-                << "Residual is " << residual.transpose() << std::endl;
+                << "state global is " << stateGlobal.transpose() << std::endl;
       std::cout << "   clus errors are " << clus_sigma.transpose() << std::endl;
+      std::cout << "   clus loc is " << localMeas.transpose() << std::endl;
+      std::cout << "   state loc is " << localState << std::endl;
+      std::cout << "   local residual is " << localResidual.transpose() << std::endl;
     }
 
     // Get the derivative of alignment (global) parameters w.r.t. measurement or residual
-    const Acts::Vector3 direction = freeParams.segment<3>(Acts::eFreeDir0);
-    // The derivative of free parameters w.r.t. path length. @note Here, we
-    // assumes a linear track model, i.e. negecting the change of track
-    // direction. Otherwise, we need to know the magnetic field at the free
-    // parameters
-    Acts::FreeVector pathDerivative = Acts::FreeVector::Zero();
-    pathDerivative.head<3>() = direction;
+    /// The local bound parameters still have access to global phi/theta
+    double phi = state.smoothed()[Acts::eBoundPhi];
+    double theta = state.smoothed()[Acts::eBoundTheta];
 
-    const Acts::ActsDynamicMatrix H = state.effectiveProjector();
+    Acts::Vector3 tangent = Acts::makeDirectionUnitFromPhiTheta(phi,theta);
+    //! opposite convention for coordinates in Acts
+    tangent *= -1;
 
-    /// Acts residual, in local coordinates
-    //auto actslocres = state.effectiveCalibrated() - H * state.smoothed();
-
-    // Get the derivative of bound parameters w.r.t. alignment parameters
-    Acts::AlignmentToBoundMatrix d =
-        surface.alignmentToBoundDerivative(m_tGeometry->geometry().getGeoContext(), freeParams, pathDerivative);
-    // Get the derivative of bound parameters wrt track parameters
-    Acts::FreeToBoundMatrix j = surface.freeToBoundJacobian(m_tGeometry->geometry().getGeoContext(), freeParams);
-
-    // derivative of residual wrt track parameters
-    auto dLocResTrack = -H * j;
-    // derivative of residual wrt alignment parameters
-    auto dLocResAlignment = -H * d;
-
-    if (m_verbosity > 4)
-    {
-      std::cout << " derivative of resiudal wrt track params " << std::endl
-                << dLocResTrack << std::endl
-                << " derivative of residual wrt alignment params " << std::endl
-                << dLocResAlignment << std::endl;
-    }
-
-    /// The above matrices are in Acts local coordinates, so we need to convert them to
-    /// global coordinates with a rotation d(l0,l1)/d(x,y,z)
-
-    const double cosTheta = direction.z();
-    const double sinTheta = std::sqrt(square(direction.x()) + square(direction.y()));
-    const double invSinTheta = 1. / sinTheta;
-    const double cosPhi = direction.x() * invSinTheta;
-    const double sinPhi = direction.y() * invSinTheta;
-    Acts::ActsMatrix<3, 2> rot = Acts::ActsMatrix<3, 2>::Zero();
-    rot(0, 0) = -sinPhi;
-    rot(0, 1) = -cosPhi * cosTheta;
-    rot(1, 0) = cosPhi;
-    rot(1, 1) = -sinPhi * cosTheta;
-    rot(2, 1) = sinTheta;
-
-    /// this is a 3x6 matrix now of d(x_res,y_res,z_res)/d(dx,dy,dz,alpha,beta,gamma)
-    const auto dGlobResAlignment = rot * dLocResAlignment;
-
-    /// Acts global coordinates are (x,y,z,t,hatx,haty,hatz,q/p)
-    /// So now rotate to x,y,z, px,py,pz
-    const double p = 1. / abs(globalStateParams[Acts::eFreeQOverP]);
-    const double p2 = square(p);
-    Acts::ActsMatrix<6, 8> sphenixRot = Acts::ActsMatrix<6, 8>::Zero();
-    sphenixRot(0, 0) = 1;
-    sphenixRot(1, 1) = 1;
-    sphenixRot(2, 2) = 1;
-    sphenixRot(3, 4) = p;
-    sphenixRot(4, 5) = p;
-    sphenixRot(5, 6) = p;
-    sphenixRot(3, 7) = direction.x() * p2;
-    sphenixRot(4, 7) = direction.y() * p2;
-    sphenixRot(5, 7) = direction.z() * p2;
-
-    const auto dGlobResTrack = rot * dLocResTrack * sphenixRot.transpose();
-
-    if (m_verbosity > 3)
-    {
-      std::cout << "derivative of residual wrt alignment parameters glob " << std::endl
-                << dGlobResAlignment << std::endl;
-      std::cout << "derivative of residual wrt track parameters glob " << std::endl
-                << dGlobResTrack << std::endl;
-    }
-
-
-    auto svtxstate = std::make_unique<SvtxAlignmentState_v1>();
-    svtxstate->set_residual(residual);
-    svtxstate->set_local_derivative_matrix(dGlobResTrack);
-    svtxstate->set_global_derivative_matrix(dGlobResAlignment);
-    svtxstate->set_cluster_key(ckey);
-    
-    if(m_analytic)
+    if(m_verbosity > 2)
       {
-	auto surf = m_tGeometry->maps().getSurface(ckey, clus);
-	auto anglederivs = getDerivativesAlignmentAngles(clusGlobal, ckey, 
-							 clus, surf, 
-							 crossing);
-        SvtxAlignmentState::GlobalMatrix analytic = SvtxAlignmentState::GlobalMatrix::Zero();
-
-	getGlobalDerivatives(anglederivs,analytic);
-       	svtxstate->set_global_derivative_matrix(analytic);
+	std::cout << "tangent vector to track state is " << tangent.transpose() << std::endl;
       }
 
-    statevec.push_back(svtxstate.release());
+    std::pair<Acts::Vector3, Acts::Vector3> projxy = 
+      get_projectionXY(surface, tangent);
 
+    Acts::Vector3 sensorCenter = surface.center(m_tGeometry->geometry().getGeoContext());
+    Acts::Vector3 OM = stateGlobal - sensorCenter;
+
+    auto globDeriv = makeGlobalDerivatives(OM, projxy);
+
+    if(m_verbosity > 2)
+      {
+	std::cout << "   global deriv calcs" << std::endl
+		  << "stateGlobal: " << stateGlobal.transpose()
+		  << ", sensor center " << sensorCenter.transpose() << std::endl
+		  << ", OM " << OM.transpose() << std::endl << "   projxy "
+		  << projxy.first.transpose() << ", " 
+		  << projxy.second.transpose() << std::endl
+		  << "global derivatives " << std::endl << globDeriv << std::endl;
+      }
+
+    //! this is the derivative of the state wrt to Acts track parameters
+    //! e.g. (d_0, z_0, phi, theta, q/p, t)
+    auto localDeriv = state.effectiveProjector() * state.jacobian();
+    if(m_verbosity > 2)
+      {
+	std::cout << "local deriv " << std::endl << localDeriv << std::endl;
+      }  
+
+    auto svtxstate = std::make_unique<SvtxAlignmentState_v1>();
+    
+    svtxstate->set_residual(localResidual);
+    svtxstate->set_local_derivative_matrix(localDeriv);
+    svtxstate->set_global_derivative_matrix(globDeriv);
+    svtxstate->set_cluster_key(ckey);
+  
+    statevec.push_back(svtxstate.release());
     return true; });
 
   if (m_verbosity > 2)
@@ -220,21 +192,60 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
   return;
 }
 
-void ActsAlignmentStates::getGlobalDerivatives(std::vector<Acts::Vector3>& anglederivs, SvtxAlignmentState::GlobalMatrix& analytic)
+SvtxAlignmentState::GlobalMatrix
+ActsAlignmentStates::makeGlobalDerivatives(const Acts::Vector3& OM,
+                                           const std::pair<Acts::Vector3, Acts::Vector3>& projxy)
 {
-  analytic(0,0) = 1;
-  analytic(1,1) = 1;
-  analytic(2,2) = 1;
-  
-  for(int res = 0; res < SvtxAlignmentState::NRES; ++res)
-    {
-      for(int gl = 3; gl < SvtxAlignmentState::NGL; ++gl)
-	{
-	  // this is not backwards - the angle derivs is transposed
-	  analytic(res,gl) = anglederivs.at(gl-3)(res) * Acts::UnitConstants::cm;
-	}
-    }
-  
+  SvtxAlignmentState::GlobalMatrix globalder = SvtxAlignmentState::GlobalMatrix::Zero();
+  Acts::SymMatrix3 unit = Acts::SymMatrix3::Identity();
+
+  //! x residual rotations
+  globalder(0, 0) = ((unit.col(0)).cross(OM)).dot(projxy.first);
+  globalder(0, 1) = ((unit.col(1)).cross(OM)).dot(projxy.first);
+  globalder(0, 2) = ((unit.col(2)).cross(OM)).dot(projxy.first);
+  //! x residual translations
+  globalder(0, 3) = unit.col(0).dot(projxy.first);
+  globalder(0, 4) = unit.col(1).dot(projxy.first);
+  globalder(0, 5) = unit.col(2).dot(projxy.first);
+
+  //! y residual rotations
+  globalder(1, 0) = ((unit.col(0)).cross(OM)).dot(projxy.second);
+  globalder(1, 1) = ((unit.col(1)).cross(OM)).dot(projxy.second);
+  globalder(1, 2) = ((unit.col(2)).cross(OM)).dot(projxy.second);
+  //! y residual translations
+  globalder(1, 3) = unit.col(0).dot(projxy.second);
+  globalder(1, 4) = unit.col(1).dot(projxy.second);
+  globalder(1, 5) = unit.col(2).dot(projxy.second);
+
+  return globalder;
+}
+
+std::pair<Acts::Vector3, Acts::Vector3> ActsAlignmentStates::get_projectionXY(const Acts::Surface& surface, const Acts::Vector3& tangent)
+{
+  Acts::Vector3 projx = Acts::Vector3::Zero();
+  Acts::Vector3 projy = Acts::Vector3::Zero();
+
+  // get the plane of the surface
+  Acts::Vector3 sensorCenter = surface.center(m_tGeometry->geometry().getGeoContext());
+  // sensorNormal is the Z vector
+  Acts::Vector3 Z = -surface.normal(m_tGeometry->geometry().getGeoContext());
+
+  // get surface X and Y unit vectors in global frame
+  // transform Xlocal = 1.0 to global, subtract the surface center, normalize to 1
+  Acts::Vector3 xloc(1.0, 0.0, 0.0);
+  Acts::Vector3 xglob = surface.transform(m_tGeometry->geometry().getGeoContext()) * xloc;
+
+  Acts::Vector3 yloc(0.0, 1.0, 0.0);
+  Acts::Vector3 yglob = surface.transform(m_tGeometry->geometry().getGeoContext()) * yloc;
+
+  Acts::Vector3 X = (xglob - sensorCenter) / (xglob - sensorCenter).norm();
+  Acts::Vector3 Y = (yglob - sensorCenter) / (yglob - sensorCenter).norm();
+
+  projx = X - (tangent.dot(X) / tangent.dot(Z)) * Z;
+  projy = Y - (tangent.dot(Y) / tangent.dot(Z)) * Z;
+  if(m_verbosity > 2)
+    std::cout << "projxy " << projx.transpose() << ", " << projy.transpose() << std::endl;
+  return std::make_pair(projx, projy);
 }
 
 void ActsAlignmentStates::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global)
@@ -257,134 +268,4 @@ void ActsAlignmentStates::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key
   {
     global = m_distortionCorrection.get_corrected_position(global, m_dcc_fluctuation);
   }
-}
-
-std::vector<Acts::Vector3> ActsAlignmentStates::getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing)
-{
-  // The value of global is from the geocontext transformation
-  // we add to that transformation a small rotation around the relevant axis in the surface frame
-
-  std::vector<Acts::Vector3> derivs_vector;
-
-  // get the transformation from the geocontext
-  Acts::Transform3 transform = surface->transform(m_tGeometry->geometry().getGeoContext());
-
-  // Make an additional transform that applies a small rotation angle in the surface frame
-  for (unsigned int iangle = 0; iangle < 3; ++iangle)
-  {
-    // creates transform that adds a perturbation rotation around one axis, uses it to estimate derivative wrt perturbation rotation
-
-    unsigned int trkrId = TrkrDefs::getTrkrId(cluster_key);
-    unsigned int layer = TrkrDefs::getLayer(cluster_key);
-
-    Acts::Vector3 derivs(0, 0, 0);
-    Eigen::Vector3d theseAngles(0, 0, 0);
-    theseAngles[iangle] = sensorAngles[iangle];  // set the one we want to be non-zero
-
-    Acts::Vector3 keeper(0, 0, 0);
-    for (int ip = 0; ip < 2; ++ip)
-    {
-      if (ip == 1)
-      {
-        theseAngles[iangle] *= -1;
-      }  // test both sides of zero
-
-      if (m_verbosity > 1)
-      {
-        std::cout << "     trkrId " << trkrId << " layer " << layer << " cluster_key " << cluster_key
-                  << " sensorAngles " << theseAngles[0] << "  " << theseAngles[1] << "  " << theseAngles[2] << std::endl;
-      }
-
-      Acts::Transform3 perturbationTransformation = makePerturbationTransformation(theseAngles);
-      Acts::Transform3 overallTransformation = transform * perturbationTransformation;
-
-      // transform the cluster local position to global coords with this additional rotation added
-      auto x = cluster->getLocalX() * 10;  // mm
-      auto y = cluster->getLocalY() * 10;
-      if (trkrId == TrkrDefs::tpcId)
-      {
-        y = convertTimeToZ(cluster_key, cluster);
-      }
-
-      Eigen::Vector3d clusterLocalPosition(x, y, 0);                                      // follows the convention for the acts transform of local = (x,z,y)
-      Eigen::Vector3d finalCoords = overallTransformation * clusterLocalPosition / 10.0;  // convert mm back to cm
-
-      // have to add corrections for TPC clusters after transformation to global
-      if (trkrId == TrkrDefs::tpcId)
-      {
-        makeTpcGlobalCorrections(cluster_key, crossing, global);
-      }
-
-      if (ip == 0)
-      {
-        keeper(0) = (finalCoords(0) - global(0));
-        keeper(1) = (finalCoords(1) - global(1));
-        keeper(2) = (finalCoords(2) - global(2));
-      }
-      else
-      {
-        keeper(0) -= (finalCoords(0) - global(0));
-        keeper(1) -= (finalCoords(1) - global(1));
-        keeper(2) -= (finalCoords(2) - global(2));
-      }
-
-      if (m_verbosity > 1)
-      {
-        std::cout << "        finalCoords(0) " << finalCoords(0) << " global(0) " << global(0) << " finalCoords(1) " << finalCoords(1)
-                  << " global(1) " << global(1) << " finalCoords(2) " << finalCoords(2) << " global(2) " << global(2) << std::endl;
-        std::cout << "        keeper now:  keeper(0) " << keeper(0) << " keeper(1) " << keeper(1) << " keeper(2) " << keeper(2) << std::endl;
-      }
-    }
-
-    // derivs vector contains:
-    //   (dx/dalpha,     dy/dalpha,     dz/dalpha)     (for iangle = 0)
-    //   (dx/dbeta,        dy/dbeta,        dz/dbeta)        (for iangle = 1)
-    //   (dx/dgamma, dy/dgamma, dz/dgamma) (for iangle = 2)
-
-    // Average the changes to get the estimate of the derivative
-    // Check what the sign of this should be !!!!
-    derivs(0) = keeper(0) / (2.0 * fabs(theseAngles[iangle]));
-    derivs(1) = keeper(1) / (2.0 * fabs(theseAngles[iangle]));
-    derivs(2) = keeper(2) / (2.0 * fabs(theseAngles[iangle]));
-    derivs_vector.push_back(derivs);
-
-    if (m_verbosity > 1)
-    {
-      std::cout << "        derivs(0) " << derivs(0) << " derivs(1) " << derivs(1) << " derivs(2) " << derivs(2) << std::endl;
-    }
-  }
-
-  return derivs_vector;
-}
-
-Acts::Transform3 ActsAlignmentStates::makePerturbationTransformation(Acts::Vector3 angles)
-{
-  // Note: Here beta is apllied to the z axis and gamma is applied to the y axis because the geocontext transform
-  // will flip those axes when transforming to global coordinates
-  Eigen::AngleAxisd alpha(angles(0), Eigen::Vector3d::UnitX());
-  Eigen::AngleAxisd beta(angles(2), Eigen::Vector3d::UnitY());
-  Eigen::AngleAxisd gamma(angles(1), Eigen::Vector3d::UnitZ());
-  Eigen::Quaternion<double> q = gamma * beta * alpha;
-  Eigen::Matrix3d perturbationRotation = q.matrix();
-
-  // combine rotation and translation into an affine matrix
-  Eigen::Vector3d nullTranslation(0, 0, 0);
-  Acts::Transform3 perturbationTransformation;
-  perturbationTransformation.linear() = perturbationRotation;
-  perturbationTransformation.translation() = nullTranslation;
-
-  return perturbationTransformation;
-}
-float ActsAlignmentStates::convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster* cluster)
-{
-  // must convert local Y from cluster average time of arival to local cluster z position
-  double drift_velocity = m_tGeometry->get_drift_velocity();
-  double zdriftlength = cluster->getLocalY() * drift_velocity;
-  double surfCenterZ = 52.89;                // 52.89 is where G4 thinks the surface center is
-  double zloc = surfCenterZ - zdriftlength;  // converts z drift length to local z position in the TPC in north
-  unsigned int side = TpcDefs::getSide(cluster_key);
-  if (side == 0) zloc = -zloc;
-  float z = zloc * 10.0;
-
-  return z;
 }

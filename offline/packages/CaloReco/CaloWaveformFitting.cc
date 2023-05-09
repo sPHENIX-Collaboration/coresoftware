@@ -90,7 +90,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
 	  {
 	    // std::cout << "software zero suppression happened " << std::endl;
 	    h->Delete();
-	    v.push_back(v.at(6));
+	    v.push_back(v.at(6) - pedestal);
 	    v.push_back(-1);
 	    v.push_back(pedestal);		
 	  }

@@ -24,9 +24,8 @@ libcalo_reco_la_LIBADD = \
   -lffamodules \
   -lgsl \
   -lgslcblas \
-  -lg4vertex_io \
+  -lglobalvertex_io \
   -lsph_onnx \
-  -lsphenixnpc \
   -lphparameter \
   -lphool \
   -lSubsysReco

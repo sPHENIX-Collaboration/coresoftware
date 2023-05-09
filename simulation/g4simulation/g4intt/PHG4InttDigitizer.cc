@@ -1,7 +1,6 @@
 // This is the new trackbase container version
 
 #include "PHG4InttDigitizer.h"
-
 #include "InttDeadMap.h"
 
 #include <g4detectors/PHG4CylinderGeom.h>

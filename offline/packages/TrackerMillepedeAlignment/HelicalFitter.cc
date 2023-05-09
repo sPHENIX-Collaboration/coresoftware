@@ -180,7 +180,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  auto xloc = cluster->getLocalX();  // in cm
 	  auto zloc = cluster->getLocalY();	  
 	  if(trkrid == TrkrDefs::tpcId) { zloc = convertTimeToZ(cluskey, cluster); }
-	  //float y = 0.0;   // Because the fitpoint is on the surface, y will always be zero in local coordinates
+	  //float yloc = 0.0;   // Because the fitpoint is on the surface, y will always be zero in local coordinates
 
 	  Acts::Vector2 residual(xloc - fitpoint_local(0), zloc - fitpoint_local(1)); 
 
@@ -204,13 +204,18 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  Acts::Vector2 clus_sigma = getClusterError(cluster, cluskey, global);
 	  if(isnan(clus_sigma(0)) || isnan(clus_sigma(1)))  { continue; }
 
+	  float inflation_factor = 1;
+	  if(trkrid == TrkrDefs::mvtxId)
+	    inflation_factor = _error_inflation[0];
+	  else if(trkrid == TrkrDefs::inttId)
+	    inflation_factor = _error_inflation[1];
+ 	  else if(trkrid == TrkrDefs::tpcId)
+	    inflation_factor = _error_inflation[2];
+	  else
+	    inflation_factor = _error_inflation[3];
+
 	  int glbl_label[NGL];
 	  getGlobalLabels(surf, glbl_label);  // these depend on the sensor grouping
-
-	  // These derivatives are for the local parameters
-	  // The angleDerivs dimensions are [alpha/beta/gamma](x/y/z)
-	  //std::vector<Acts::Vector3> angleDerivs = getDerivativesAlignmentAngles(global, cluskey, cluster); 
-	  //std::vector<Acts::Vector3> translDerivs = getDerivativesAlignmentTranslations(global, cluskey, cluster);
 
 	  float lcl_derivativeX[NLC];
 	  float lcl_derivativeY[NLC];
@@ -222,10 +227,22 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
 	  for(unsigned int i = 0; i < NGL; ++i) 
 	    {
-	      if(is_layer_param_fixed(layer, i) || is_layer_fixed(layer)) 
+	      if( is_layer_param_fixed(layer, i) || is_layer_fixed(layer) )
 		{
 		  glbl_derivativeX[i] = 0;
 		  glbl_derivativeY[i] = 0;
+		}
+
+	      if(trkrid == TrkrDefs::tpcId)
+		{
+		  unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
+		  unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  
+		  if(is_tpc_sector_fixed(layer, sector, side))
+		    {
+		      //if(i==0) std::cout << " param " << i << " layer " << layer << " sector " << sector << " side " << side << std::endl;
+		      glbl_derivativeX[i] = 0;
+		      glbl_derivativeY[i] = 0;
+		    }
 		}
 	    }
 
@@ -240,7 +257,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		{
 		  // radius = fitpars[0],  X0 = fitpars[1],  Y0 = fitpars[2], zslope = fitpars[3], Z0  = fitpars[4] 
 		  std::cout << "Local residualsX: layer " << layer << " phi " << phi * 180 / M_PI << " beta " << beta * 180.90 / M_PI
-			    << " dxloc " << residual(0) << " error " << clus_sigma(0) 
+			    << " dxloc " << residual(0) << " error " << clus_sigma(0)  << " inflation_factor " << inflation_factor 
 			    << " xloc " << xloc << " fitxloc " << fitpoint_local(0) 
 			    << " zglob " << global(2) << " fitzglob " << fitpoint(2) 
 			    << " xglob " << global(0) << " fitxglob " << fitpoint(0)
@@ -263,7 +280,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	    }	  
     
 	  if( !isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
-	    { _mille->mille(NLC, lcl_derivativeX, NGL, glbl_derivativeX, glbl_label, residual(0), _error_inflation*clus_sigma(0));}
+	    { _mille->mille(NLC, lcl_derivativeX, NGL, glbl_derivativeX, glbl_label, residual(0), inflation_factor*clus_sigma(0));}
 	  
 	  // provides output that can be grep'ed to make plots of input to mille
 	  if(Verbosity() > 1)
@@ -271,7 +288,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	      if(layer < 7)
 		{
 		  std::cout << "Local residualsY: layer " << layer << " phi " << phi * 180 / M_PI << " beta " << beta * 180.90 / M_PI
-			    << " dzloc " << residual(1) << " error " << clus_sigma(1) 
+			    << " dzloc " << residual(1) << " error " << clus_sigma(1) << " inflation_factor " << inflation_factor 
 			    << " zloc " << zloc << " fitzloc " << fitpoint_local(1)
 			    << " zglob " << global(2) << " fitzglob " << fitpoint(2) 
 			    << " xglob " << global(0) << " fitxglob " << fitpoint(0)
@@ -293,8 +310,9 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		}
 	    }
 
-	  if(!isnan(residual(1)) && clus_sigma(1) < 1.0 && trkrid != TrkrDefs::inttId)
-	    {_mille->mille(NLC, lcl_derivativeY, NGL, glbl_derivativeY, glbl_label, residual(1), _error_inflation*clus_sigma(1));}
+	  //if(!isnan(residual(1)) && clus_sigma(1) < 1.0 && trkrid != TrkrDefs::inttId)
+	  if(!isnan(residual(1)) && clus_sigma(1) < 1.0)
+	    {_mille->mille(NLC, lcl_derivativeY, NGL, glbl_derivativeY, glbl_label, residual(1), inflation_factor*clus_sigma(1));}
 	}
 
       // close out this track
@@ -827,7 +845,7 @@ void HelicalFitter::get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts
 
   return;
 }
-
+/*
 void HelicalFitter::printBuffers(int index, Acts::Vector2 residual, Acts::Vector2 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[])
 {
   std::cout << " float buffer: " << " residual " << "  " << residual(index);
@@ -840,6 +858,7 @@ void HelicalFitter::printBuffers(int index, Acts::Vector2 residual, Acts::Vector
   for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0) std::cout << " glbl_label["<< ig << "] " << glbl_label[ig] << "  ";  }
   std::cout << " end of meas " << std::endl;		    
 }
+*/
 
 unsigned int HelicalFitter::addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
@@ -861,6 +880,7 @@ unsigned int HelicalFitter::addSiliconClusters(std::vector<float>& fitpars, std:
  {
    fixed_layers.insert(layer);
  }
+
  
 bool HelicalFitter::is_layer_param_fixed(unsigned int layer, unsigned int param)
  {
@@ -877,6 +897,25 @@ void HelicalFitter::set_layer_param_fixed(unsigned int layer, unsigned int param
  {
    std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
    fixed_layer_params.insert(pair);
+ }
+
+void HelicalFitter::set_tpc_sector_fixed(unsigned int region, unsigned int sector, unsigned int side)
+ {
+   // make a combined subsector index
+   unsigned int subsector = region * 24 + side * 12 + sector;
+   fixed_sectors.insert(subsector);
+ }
+
+bool HelicalFitter::is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side)
+ {
+   bool ret = false;
+   unsigned int region = getTpcRegion(layer);
+   unsigned int subsector = region * 24 + side * 12 + sector;
+   auto it = fixed_sectors.find(subsector);
+   if(it != fixed_sectors.end()) 
+     ret = true;
+  
+   return ret;
  }
 
 void HelicalFitter::correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec,  std::vector<TrkrDefs::cluskey> cluskey_vec)

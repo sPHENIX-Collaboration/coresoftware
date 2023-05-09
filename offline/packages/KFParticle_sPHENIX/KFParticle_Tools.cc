@@ -32,6 +32,9 @@
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
+#include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertex.h>
+
 #include <phool/getClass.h>
 
 //KFParticle stuff
@@ -121,14 +124,26 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
 
   std::vector<KFParticle> primaryVertices;
   m_dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, vtxMN);
+  auto globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
+  if(!globalvertexmap) { 
+    std::cout << "Can't continue in KFParticle_Tools::makeAllPrimaryVertices" << std::endl; 
+  }
+
   unsigned int vertexID = 0;
 
-  for (SvtxVertexMap::ConstIter iter = m_dst_vertexmap->begin(); iter != m_dst_vertexmap->end(); ++iter)
+  for (GlobalVertexMap::ConstIter iter = globalvertexmap->begin(); iter != globalvertexmap->end(); ++iter)
   {
-    m_dst_vertex = iter->second;
+    GlobalVertex *gvertex = iter->second;
+    auto svtxv = gvertex->find_vtxids(GlobalVertex::SVTX);
+    // check that it contains a track vertex
+    if(svtxv == gvertex->end_vtxids())
+      { continue; }
+
+    auto svtxvertexid = svtxv->second;
+    m_dst_vertex = m_dst_vertexmap->find(svtxvertexid)->second;
 
     primaryVertices.push_back(makeVertex(topNode));
-    primaryVertices[vertexID].SetId(iter->first);
+    primaryVertices[vertexID].SetId(gvertex->get_id());
     ++vertexID;
   }
 
@@ -221,8 +236,10 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle v
 
   SvtxVertex *associatedVertex = NULL;
   m_dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, vtxMN);
-
-  associatedVertex = m_dst_vertexmap->find(vertex.Id())->second;
+  auto globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  GlobalVertex *associatedgvertex = globalvertexmap->find(vertex.Id())->second;
+  auto svtxvtx_id = associatedgvertex->find_vtxids(GlobalVertex::SVTX)->second;
+  associatedVertex = m_dst_vertexmap->find(svtxvtx_id)->second;
 
   return associatedVertex->size_tracks();
 }

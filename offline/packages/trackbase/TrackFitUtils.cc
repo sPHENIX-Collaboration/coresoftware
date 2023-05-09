@@ -370,12 +370,14 @@ Acts::Vector3 TrackFitUtils::getPCALinePoint(Acts::Vector3 global, Acts::Vector3
   // The position of the closest point on the line to global is:
   // posref + projection of difference between the point and posref on the tangent vector
   Acts::Vector3 pca = posref + ( (global - posref).dot(tangent) ) * tangent;
+  /*
   if( (pca-posref).norm() > 0.001)
     {
       std::cout << " getPCALinePoint: old pca " << posref(0) << "  " << posref(1) << "  " << posref(2) << std::endl;
       std::cout << " getPCALinePoint: new pca " << pca(0) << "  " << pca(1) << "  " << pca(2) << std::endl;
       std::cout << " getPCALinePoint: delta pca " << pca(0) - posref(0) << "  " << pca(1)-posref(1) << "  " << pca(2) -posref(2) << std::endl;
     }
+  */
 
   return pca;
 }
