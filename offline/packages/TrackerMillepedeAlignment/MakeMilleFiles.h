@@ -54,9 +54,9 @@ class MakeMilleFiles : public SubsysReco
   void set_layer_param_fixed(unsigned int layer, unsigned int param);
   void set_cluster_version(unsigned int v) { _cluster_version = v; }
   void set_layers_fixed(unsigned int minlayer, unsigned int maxlayer);
-  void set_error_inflation_factor(unsigned int layer, float factor) 
+  void set_error_inflation_factor(unsigned int layer, float factor)
   {
-    m_layerMisalignment.insert(std::make_pair(layer,factor));
+    m_layerMisalignment.insert(std::make_pair(layer, factor));
   }
 
  private:
@@ -71,7 +71,7 @@ class MakeMilleFiles : public SubsysReco
 
   bool is_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
- 
+
   void addTrackToMilleFile(SvtxAlignmentStateMap::StateVec statevec);
 
   std::map<int, float> derivativeGL;

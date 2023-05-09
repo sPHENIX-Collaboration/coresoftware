@@ -194,7 +194,6 @@ Acts::Vector3 MakeMilleFiles::getPCALinePoint(Acts::Vector3 global, SvtxTrackSta
   return pca;
 }
 
-
 void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec statevec)
 {
   for (auto state : statevec)
@@ -249,20 +248,20 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
     }
 
     auto surf = _tGeometry->maps().getSurface(ckey, cluster);
-    
+
     int glbl_label[SvtxAlignmentState::NGL];
-    if(layer < 7)
-      {
-	AlignmentDefs::getSiliconGlobalLabels(surf, glbl_label,si_group);
-      }
-    else if( layer < 55)
+    if (layer < 7)
+    {
+      AlignmentDefs::getSiliconGlobalLabels(surf, glbl_label, si_group);
+    }
+    else if (layer < 55)
     {
       AlignmentDefs::getTpcGlobalLabels(surf, glbl_label, tpc_group);
     }
     else if (layer < 57)
-      {
-	AlignmentDefs::getMMGlobalLabels(surf, glbl_label, mms_group);
-      }
+    {
+      AlignmentDefs::getMMGlobalLabels(surf, glbl_label, mms_group);
+    }
 
     if (Verbosity() > 1)
     {
@@ -296,8 +295,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 
         for (int k = 0; k < SvtxAlignmentState::NGL; k++)
         {
-	  if(glbl_derivative[k] > 0 || glbl_derivative[k] < 0)
-	    std::cout << "NONZERO GLOBAL DERIVATIVE"<<std::endl;
+          if (glbl_derivative[k] > 0 || glbl_derivative[k] < 0)
+            std::cout << "NONZERO GLOBAL DERIVATIVE" << std::endl;
           std::cout << glbl_derivative[k] << ", ";
         }
         std::cout << std::endl
@@ -314,15 +313,15 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
         if (Verbosity() > 3)
         {
           std::cout << "ckey " << ckey << " and layer " << layer << " buffers:" << std::endl;
-	  AlignmentDefs::printBuffers(i, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label);
+          AlignmentDefs::printBuffers(i, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label);
         }
-	float errinf = 1.0;
-	if(m_layerMisalignment.find(layer) != m_layerMisalignment.end())
-	  {
-	    errinf = m_layerMisalignment.find(layer)->second;
-	  }
-	
-        _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), errinf*clus_sigma(i));
+        float errinf = 1.0;
+        if (m_layerMisalignment.find(layer) != m_layerMisalignment.end())
+        {
+          errinf = m_layerMisalignment.find(layer)->second;
+        }
+
+        _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), errinf * clus_sigma(i));
       }
     }
   }
@@ -340,12 +339,12 @@ bool MakeMilleFiles::is_layer_fixed(unsigned int layer)
   return ret;
 }
 void MakeMilleFiles::set_layers_fixed(unsigned int minlayer,
-				      unsigned int maxlayer)
+                                      unsigned int maxlayer)
 {
-  for(unsigned int i=minlayer; i<maxlayer; i++)
-    {
-      fixed_layers.insert(i);
-    }
+  for (unsigned int i = minlayer; i < maxlayer; i++)
+  {
+    fixed_layers.insert(i);
+  }
 }
 void MakeMilleFiles::set_layer_fixed(unsigned int layer)
 {
