@@ -229,7 +229,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		  unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  
 		  if(is_tpc_sector_fixed(layer, sector, side))
 		    {
-		      std::cout << " layer " << layer << " sector " << sector << "side " << side << std::endl;
+		      //if(i==0) std::cout << " param " << i << " layer " << layer << " sector " << sector << " side " << side << std::endl;
 		      glbl_derivativeX[i] = 0;
 		      glbl_derivativeY[i] = 0;
 		    }
