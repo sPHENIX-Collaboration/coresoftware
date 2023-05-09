@@ -78,8 +78,8 @@ my $particle;
 my $pmin;
 my $pmax;
 my $production;
-
-GetOptions('embed' => \$embed, 'l:i' => \$last_segment, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, "production:s"=>\$production, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
+my $momentum;
+GetOptions('embed' => \$embed, 'l:i' => \$last_segment, 'momentum:s' => \$momentum, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, "production:s"=>\$production, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
 my $filenamestring;
 my %filetypes = ();
 my %notlike = ();
@@ -279,7 +279,15 @@ if (defined $prodtype)
 	}
 	if (defined $pmin && defined $pmax)
 	{
-	    $filenamestring = sprintf("%s_%s_%d_%dMeV",$filenamestring, $particle, $pmin, $pmax);
+	    if (defined $momentum)
+	    {
+		$filenamestring = sprintf("%s_%s_%s_%d_%dMeV",$filenamestring, $particle, $momentum, $pmin, $pmax);
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s_%d_%dMeV",$filenamestring, $particle, $pmin, $pmax);
+	    }
+
 	    if (defined $embed)
 	    {
 		$filenamestring = sprintf("%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring);
@@ -418,6 +426,7 @@ if ($#ARGV < 0)
 	}
         print "\n Single particle mandatory options:\n";
         print "-particle : G4 particle name\n";
+        print "-mom : (optional) p or pt\n";
         print "-pmin : minimum momentum (in MeV/c)\n";
         print "-pmax : maximum momentum (in MeV/c)\n";
 
@@ -787,17 +796,34 @@ sub print_single_types
     {
 	if ($name =~ /(\S+)\_(\d+)\_(\d+).*/ )
 	{
-	    print "CreateFileList.pl -type 14 $types{$name} -run $runnumber -particle $1 -pmin $2 -pmax $3\n";
+	    my $part = $1;
+            my $mom;
+            my $minp = $2;
+            my $maxp = $3;
+	    if ($part =~ /(\S+)_(\S+)/)
+	    {
+		$part = $1;
+		$mom = $2;
+	    }
+	    if (defined $mom)
+	    {
+		print "CreateFileList.pl -type 14 $types{$name} -run $runnumber -particle $part -mom $mom -pmin $minp -pmax $maxp\n";
+	    }
+	    else
+            {
+                print "CreateFileList.pl -type 14 $types{$name} -run $runnumber -particle $part -pmin $minp -pmax $maxp\n";
+            }
 	}
-	else
-	{
-	    print "CreateFileList.pl -type 14 $types{$name} -run $runnumber -particle $name\n";
-	}
+        else
+        {
+            print "CreateFileList.pl -type 14 $types{$name} -run $runnumber -particle $name\n";
+
+        }
     }
     print "\nDST types:\n";
     foreach my $name (sort keys %dsts)
     {
-	    print "$name\n";
+	print "$name\n";
     }
 }
 
