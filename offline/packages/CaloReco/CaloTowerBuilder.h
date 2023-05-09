@@ -4,6 +4,7 @@
 #define CALOTOWERBUILDER_H
 
 #include <fun4all/SubsysReco.h>
+#include "CaloWaveformProcessing.h"
 
 #include <climits>
 #include <string>
@@ -47,17 +48,32 @@ class CaloTowerBuilder : public SubsysReco
     return;
   }
 
+  void set_processing_type( CaloWaveformProcessing::process processingtype)
+  {
+    _processingtype = processingtype;
+  }
+
+  void set_softwarezerosuppression(bool usezerosuppression,int softwarezerosuppression)
+  {
+    _nsoftwarezerosuppression = softwarezerosuppression;
+    _bdosoftwarezerosuppression = usezerosuppression;
+  }
+
  private:
-  CaloWaveformProcessing *WaveformProcessing = nullptr;
-  CaloTowerBuilder::DetectorSystem m_dettype = CaloTowerBuilder::CEMC;
-  TowerInfoContainer *m_CaloInfoContainer = nullptr;  //! Calo info
-  std::string m_detector = "CEMC";
-  int m_packet_low = INT_MIN;
-  int m_packet_high = INT_MIN;
-  int m_nsamples = 16;
-  int m_nchannels = 192;
-  int m_nzerosuppsamples = 2;
-  bool m_isdata = true;
+  CaloWaveformProcessing *WaveformProcessing;
+  CaloTowerBuilder::DetectorSystem m_dettype;
+  TowerInfoContainer *m_CaloInfoContainer;  //! Calo info
+  std::string m_detector; 
+  int m_packet_low;
+  int m_packet_high;
+  int m_nsamples;
+  int m_nchannels;
+  int m_nzerosuppsamples;
+  bool m_isdata;
+  int _nsoftwarezerosuppression;
+  bool _bdosoftwarezerosuppression;
+  CaloWaveformProcessing::process _processingtype;
+
 };
 
 #endif  // CALOTOWERBUILDER_H
