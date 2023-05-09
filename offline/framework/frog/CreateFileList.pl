@@ -54,7 +54,8 @@ my %proddesc = (
     "16" => "HF pythia8 D0 Jets",
     "17" => "HF pythia8 D0 pi-k Jets ptmin = 5GeV ",
     "18" => "HF pythia8 D0 pi-k Jets ptmin = 12GeV",
-    "19" => "JS pythia8 Jet ptmin = 40GeV"
+    "19" => "JS pythia8 Jet ptmin = 40GeV",
+    "20" => "hijing pAu (0-10fm) pileup 0-10fm"
     );
 
 my %pileupdesc = (
@@ -83,8 +84,10 @@ my $filenamestring;
 my %filetypes = ();
 my %notlike = ();
 
-my $pileupstring;
+my $AuAu_pileupstring;
 my $pp_pileupstring;
+my $pAu_pileupstring;
+my $pileupstring;
 
 if (defined $embed && defined $nopileup)
 {
@@ -93,16 +96,17 @@ if (defined $embed && defined $nopileup)
 }
 if ($pileup == 1)
 {
-    $pileupstring = sprintf("50kHz");
+    $AuAu_pileupstring = sprintf("50kHz");
     $pp_pileupstring = sprintf("3MHz");
+    $pAu_pileupstring = sprintf("500kHz");
 }
 elsif ($pileup == 2)
 {
-    $pileupstring = sprintf("25kHz");
+    $AuAu_pileupstring = sprintf("25kHz");
 }
 elsif ($pileup == 3)
 {
-    $pileupstring = sprintf("10kHz");
+    $AuAu_pileupstring = sprintf("10kHz");
 }
 else
 {
@@ -116,13 +120,13 @@ if (defined $prodtype)
 {
     if ($prodtype == 1)
     {
-	$filenamestring = sprintf("sHijing_0_12fm_%s_bkg_0_12fm",$pileupstring);
+	$filenamestring = sprintf("sHijing_0_12fm_%s_bkg_0_12fm",$AuAu_pileupstring);
         die "This dataset has been deleted\n";
 	&commonfiletypes();
     }
     elsif ($prodtype == 2)
     {
-	$filenamestring = sprintf("sHijing_0_488fm_%s_bkg_0_12fm",$pileupstring);
+	$filenamestring = sprintf("sHijing_0_488fm_%s_bkg_0_12fm",$AuAu_pileupstring);
         die "Dataset $prodtype has been deleted\n";
 	&commonfiletypes();
     }
@@ -133,6 +137,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 4)
@@ -143,20 +148,22 @@ if (defined $prodtype)
 	}
 	else
 	{
-	    $filenamestring = sprintf("sHijing_0_20fm_%s_bkg_0_20fm",$pileupstring);
+	    $filenamestring = sprintf("sHijing_0_20fm_%s_bkg_0_20fm",$AuAu_pileupstring);
 	}
         $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
+        $pileupstring = $AuAu_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 5)
     {
-	$filenamestring = sprintf("sHijing_0_12fm_%s_bkg_0_20fm",$pileupstring);
+	$filenamestring = sprintf("sHijing_0_12fm_%s_bkg_0_20fm",$AuAu_pileupstring);
         die "Dataset $prodtype has been deleted\n";
 	&commonfiletypes();
     }
     elsif ($prodtype == 6)
     {
-	$filenamestring = sprintf("sHijing_0_488fm_%s_bkg_0_20fm",$pileupstring);
+	$filenamestring = sprintf("sHijing_0_488fm_%s_bkg_0_20fm",$AuAu_pileupstring);
+        $pileupstring = $AuAu_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 7)
@@ -166,6 +173,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 8)
@@ -175,6 +183,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 9)
@@ -184,6 +193,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 10)
@@ -193,6 +203,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 11)
@@ -203,13 +214,14 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $pileupstring);
+		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
 	    }
 	    else
 	    {
 		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	    }
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 12)
@@ -220,13 +232,14 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $pileupstring);
+		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
 	    }
 	    else
 	    {
 		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	    }
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 13)
@@ -237,13 +250,14 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $pileupstring);
+		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
 	    }
 	    else
 	    {
 		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	    }
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 14)
@@ -309,6 +323,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 17)
@@ -318,6 +333,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 18)
@@ -327,6 +343,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 19)
@@ -337,13 +354,28 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $pileupstring);
+		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
 	    }
 	    else
 	    {
 		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	    }
 	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 20)
+    {
+	if (defined $nopileup)
+	{
+	    $filenamestring = sprintf("sHijing_pAu_0_10fm");
+	}
+	else
+	{
+	    $filenamestring = sprintf("sHijing_pAu_0_10fm_%s_bkg_0_10fm",$pAu_pileupstring);
+	}
+        $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
+        $pileupstring = $pAu_pileupstring;
 	&commonfiletypes();
     }
     else
@@ -531,20 +563,9 @@ foreach  my $tp (keys %req_types)
 	}
 	else
 	{
-	    my @sp1 = split(/_/,$filenamestring_with_runnumber);
-	    if ($#sp1 == 3 || $#sp1 == 6 )
-	    {
-		$newfilenamestring = sprintf("%s_%s_%s\-%010d-",$sp1[0],$sp1[1],$sp1[2],$runnumber);
-	    }
-	    elsif ($#sp1 == 2)
-	    {
-		$newfilenamestring = sprintf("%s_%s\-%010d-",$sp1[0],$sp1[1],$runnumber);
-	    }
-	    else
-	    {
-		print "splitting $filenamestring_with_runnumber gave bad number of _: $#sp1\n";
-		die;
-	    }
+	    my $splitstring = sprintf("_%s",$pileupstring);
+            my @sp2 = split(/$splitstring/,$filenamestring_with_runnumber);
+	    $newfilenamestring = sprintf("%s-%010d-",$sp2[0],$runnumber);
 	}
 	my $newgetfilesql = $getfilesql;
 	$newgetfilesql =~ s/$filenamestring_with_runnumber/$newfilenamestring/;
