@@ -36,13 +36,13 @@
 #include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBOSITY...
 #include <fun4all/SubsysReco.h>   // for SubsysReco
 
-#include <cctype>    // for toupper
-#include <cmath>     // for sqrt
-#include <cstdlib>   // for size_t, exit
-#include <iostream>  // for operator<<, endl, basi...
-#include <map>       // for map
-#include <tuple>     // for tie, tuple
-//#include <ffamodules/CDBInterface.h> // for accessing the field map file from the CDB
+#include <ffamodules/CDBInterface.h>  // for accessing the field map file from the CDB
+#include <cctype>                     // for toupper
+#include <cmath>                      // for sqrt
+#include <cstdlib>                    // for size_t, exit
+#include <iostream>                   // for operator<<, endl, basi...
+#include <map>                        // for map
+#include <tuple>                      // for tie, tuple
 
 class PHCompositeNode;
 
@@ -101,39 +101,35 @@ int KFParticle_sPHENIX::InitRun(PHCompositeNode *topNode)
 {
   assert(topNode);
 
-  std::cout << "Doing InitRun for KFParticle Now" << std::endl;
-  /*
-  //Load the official offline B-field map that is also used in tracking, basically copying the codes from: https://github.com/sPHENIX-Collaboration/coresoftware/blob/master/offline/packages/trackreco/MakeActsGeometry.cc#L478-L483, provide by Joe Osborn.
+  // Load the official offline B-field map that is also used in tracking, basically copying the codes from: https://github.com/sPHENIX-Collaboration/coresoftware/blob/master/offline/packages/trackreco/MakeActsGeometry.cc#L478-L483, provide by Joe Osborn.
   char *calibrationsroot = getenv("CALIBRATIONROOT");
   std::string m_magField = "sphenix3dtrackingmapxyz.root";
- // std::string url = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", m_magField);
-  m_magField = CDBInterface::instance()->getUrl("FIELDMAPTRACKING",m_magField); //Joe's New Implementation to get the field map file name
+  // std::string url = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", m_magField);
+  m_magField = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", m_magField);  // Joe's New Implementation to get the field map file name
 
   if (calibrationsroot != nullptr)
   {
-          m_magField = std::string(calibrationsroot) + std::string("/Field/Map/") + m_magField;
+    m_magField = std::string(calibrationsroot) + std::string("/Field/Map/") + m_magField;
   }
 
-  TFile * fin = new TFile(m_magField.c_str());
+  TFile *fin = new TFile(m_magField.c_str());
   fin->cd();
 
-  TTree * fieldmap = (TTree *) fin->Get("fieldmap");
-  TH1F * BzHist = new TH1F("BzHist","",100,0,10);
+  TTree *fieldmap = (TTree *) fin->Get("fieldmap");
+  TH1F *BzHist = new TH1F("BzHist", "", 100, 0, 10);
 
-  fieldmap->Project("BzHist","bz","x==0 && y==0 && z==0");
+  fieldmap->Project("BzHist", "bz", "x==0 && y==0 && z==0");
 
-  //The actual unit of KFParticle is in kilo Gauss (kG), which is equivalent to 0.1 T, instead of Tesla (T). The positive value indicates the B field is in the +z direction
-  m_Bz = BzHist->GetMean() * 10;  //Factor of 10 to convert the B field unit from kG to T
+  // The actual unit of KFParticle is in kilo Gauss (kG), which is equivalent to 0.1 T, instead of Tesla (T). The positive value indicates the B field is in the +z direction
+  m_Bz = BzHist->GetMean() * 10;  // Factor of 10 to convert the B field unit from kG to T
 
-  if(BzHist->Integral() == 0) std::cout << "No entry for Bz at (0,0,0)" << std::endl;
-  if(abs(m_Bz - 14.0) > 2) std::cout << "Bad magnetic field detected: deviation from 1.4 T for more than 0.2 T, probably due to the shift of the magnetic field map" << std::endl;
-
-  std::cout << "m_Bz = " << m_Bz << std::endl;
+  if (BzHist->Integral() == 0) std::cout << "No entry for Bz at (0,0,0)" << std::endl;
+  if (abs(m_Bz - 14.0) > 2) std::cout << "Bad magnetic field detected: deviation from 1.4 T for more than 0.2 T, probably due to the shift of the magnetic field map" << std::endl;
 
   fieldmap->Delete();
   BzHist->Delete();
   fin->Close();
-  */
+
   return 0;
 }
 
@@ -159,6 +155,8 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     if (Verbosity() >= VERBOSITY_SOME) std::cout << "KFParticle: Event skipped as there are no tracks" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  setBz(m_Bz);  // Set the Magnetic Field for KFParticle
 
   createDecay(topNode, mother, vertex, daughters, intermediates, nPVs, multiplicity);
 
