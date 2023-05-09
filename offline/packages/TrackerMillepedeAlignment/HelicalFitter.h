@@ -60,12 +60,14 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_mms_grouping(int group) {mms_grp = (AlignmentDefs::mmsGrp) group;}
   void set_test_output(bool test) {test_output = test;}
   void set_layer_fixed(unsigned int layer);
+  void set_tpc_sector_fixed(unsigned int region, unsigned int sector, unsigned int side);
   void set_layer_param_fixed(unsigned int layer, unsigned int param);
   void set_cluster_version(unsigned int v) { _cluster_version = v; }
   void set_fitted_subsystems(bool si, bool tpc, bool full) { fitsilicon = si; fittpc = tpc; fitfulltrack = full; }
+
   void set_error_inflation_factor(unsigned int layer, float factor) 
   {
-    AlignmentDefs::layerMisalignment.insert(std::make_pair(layer,factor));
+    _layerMisalignment.insert(std::make_pair(layer,factor));
   }
   
   // utility functions for analysis modules
@@ -93,11 +95,11 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
-  int getTpcRegion(int layer);
 
   Acts::Vector2 getClusterError(TrkrCluster *cluster, TrkrDefs::cluskey cluskey, Acts::Vector3& global);
 
-  
+  bool is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side);
+
   bool is_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
 
@@ -118,13 +120,13 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   ClusterErrorPara _ClusErrPara;
 
   std::set<unsigned int> fixed_layers;
+  std::set<unsigned int> fixed_sectors;
   std::set<std::pair<unsigned int,unsigned int>> fixed_layer_params;
 
   // set default groups to lowest level
   AlignmentDefs::siliconGrp si_grp = AlignmentDefs::siliconGrp::snsr;
   AlignmentDefs::tpcGrp tpc_grp = AlignmentDefs::tpcGrp::htst;
   AlignmentDefs::mmsGrp mms_grp = AlignmentDefs::mmsGrp::tl;
-
 
  /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;
@@ -143,10 +145,11 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool fitfulltrack = false;
 
   float dca_cut = 0.1;  // 1 mm
-  float _error_inflation = 1.0;
+  float _error_inflation[4] = {1,1,1,1};
 
   std::string _field;
   int _fieldDir = -1;
+  std::map<unsigned int, float> _layerMisalignment;
 
   std::string _track_map_name = "TpcTrackSeedContainer";
   std::string _silicon_track_map_name = "SiliconTrackSeedContainer";

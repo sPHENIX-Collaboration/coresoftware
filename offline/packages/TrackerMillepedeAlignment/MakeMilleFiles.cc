@@ -317,10 +317,11 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 	  AlignmentDefs::printBuffers(i, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label);
         }
 	float errinf = 1.0;
-	if(AlignmentDefs::layerMisalignment.find(layer) != AlignmentDefs::layerMisalignment.end())
+	if(m_layerMisalignment.find(layer) != m_layerMisalignment.end())
 	  {
-	    errinf = AlignmentDefs::layerMisalignment.find(layer)->second;
+	    errinf = m_layerMisalignment.find(layer)->second;
 	  }
+	
         _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), errinf*clus_sigma(i));
       }
     }

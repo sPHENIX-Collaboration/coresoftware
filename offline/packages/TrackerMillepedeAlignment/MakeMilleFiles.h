@@ -56,7 +56,7 @@ class MakeMilleFiles : public SubsysReco
   void set_layers_fixed(unsigned int minlayer, unsigned int maxlayer);
   void set_error_inflation_factor(unsigned int layer, float factor) 
   {
-    AlignmentDefs::layerMisalignment.insert(std::make_pair(layer,factor));
+    m_layerMisalignment.insert(std::make_pair(layer,factor));
   }
 
  private:
@@ -81,7 +81,7 @@ class MakeMilleFiles : public SubsysReco
   bool _binary = true;
   unsigned int _cluster_version = 5;
 
-  bool m_useAnalytic = true;
+  std::map<unsigned int, float> m_layerMisalignment;
 
   // set default groups to lowest level
   AlignmentDefs::siliconGrp si_group = AlignmentDefs::siliconGrp::snsr;

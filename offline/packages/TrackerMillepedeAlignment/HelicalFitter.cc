@@ -180,7 +180,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  auto xloc = cluster->getLocalX();  // in cm
 	  auto zloc = cluster->getLocalY();	  
 	  if(trkrid == TrkrDefs::tpcId) { zloc = convertTimeToZ(cluskey, cluster); }
-	  //float y = 0.0;   // Because the fitpoint is on the surface, y will always be zero in local coordinates
+	  //float yloc = 0.0;   // Because the fitpoint is on the surface, y will always be zero in local coordinates
 
 	  Acts::Vector2 residual(xloc - fitpoint_local(0), zloc - fitpoint_local(1)); 
 
@@ -225,6 +225,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
 	  float lcl_derivativeX[AlignmentDefs::NLC];
 	  float lcl_derivativeY[AlignmentDefs::NLC];
+
 	  getLocalDerivativesXY(surf, global, fitpars, lcl_derivativeX, lcl_derivativeY, layer);
 
 	  float glbl_derivativeX[AlignmentDefs::NGL];
@@ -233,16 +234,34 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
 	  for(unsigned int i = 0; i < AlignmentDefs::NGL; ++i) 
 	    {
-	      if(is_layer_param_fixed(layer, i) || is_layer_fixed(layer)) 
+	      if( is_layer_param_fixed(layer, i) || is_layer_fixed(layer) )
 		{
 		  glbl_derivativeX[i] = 0;
 		  glbl_derivativeY[i] = 0;
+		}
+
+	      if(trkrid == TrkrDefs::tpcId)
+		{
+		  unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
+		  unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  
+		  if(is_tpc_sector_fixed(layer, sector, side))
+		    {
+		      //if(i==0) std::cout << " param " << i << " layer " << layer << " sector " << sector << " side " << side << std::endl;
+		      glbl_derivativeX[i] = 0;
+		      glbl_derivativeY[i] = 0;
+		    }
 		}
 	    }
 
 	  // Add the measurement separately for each coordinate direction to Mille
 	  // set the derivatives non-zero only for parameters we want to be optimized
 	  // local parameter numbering is arbitrary:
+	  float errinf = 1.0;
+
+	  if(_layerMisalignment.find(layer) != _layerMisalignment.end())
+	    {
+	      errinf = _layerMisalignment.find(layer)->second;
+	    }
 
 	  // provides output that can be grep'ed to make plots of input to mille
 	  if(Verbosity() > 1)
@@ -251,7 +270,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		{
 		  // radius = fitpars[0],  X0 = fitpars[1],  Y0 = fitpars[2], zslope = fitpars[3], Z0  = fitpars[4] 
 		  std::cout << "Local residualsX: layer " << layer << " phi " << phi * 180 / M_PI << " beta " << beta * 180.90 / M_PI
-			    << " dxloc " << residual(0) << " error " << clus_sigma(0) 
+			    << " dxloc " << residual(0) << " error " << clus_sigma(0)  << " inflation_factor " << errinf
 			    << " xloc " << xloc << " fitxloc " << fitpoint_local(0) 
 			    << " zglob " << global(2) << " fitzglob " << fitpoint(2) 
 			    << " xglob " << global(0) << " fitxglob " << fitpoint(0)
@@ -275,12 +294,6 @@ int HelicalFitter::process_event(PHCompositeNode*)
     
 	  if( !isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
 	    { 
-	      float errinf = 1.0;
-	      if(AlignmentDefs::layerMisalignment.find(layer) != AlignmentDefs::layerMisalignment.end())
-		{
-		  errinf = AlignmentDefs::layerMisalignment.find(layer)->second;
-		}
-	      
 	      _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf*clus_sigma(0));
 	    }
 	  
@@ -290,7 +303,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	      if(layer < 7)
 		{
 		  std::cout << "Local residualsY: layer " << layer << " phi " << phi * 180 / M_PI << " beta " << beta * 180.90 / M_PI
-			    << " dzloc " << residual(1) << " error " << clus_sigma(1) 
+			    << " dzloc " << residual(1) << " error " << clus_sigma(1) << " inflation_factor " << errinf
 			    << " zloc " << zloc << " fitzloc " << fitpoint_local(1)
 			    << " zglob " << global(2) << " fitzglob " << fitpoint(2) 
 			    << " xglob " << global(0) << " fitxglob " << fitpoint(0)
@@ -314,11 +327,6 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
 	  if(!isnan(residual(1)) && clus_sigma(1) < 1.0 && trkrid != TrkrDefs::inttId)
 	    {
-	      float errinf = 1.0;
-	      if(AlignmentDefs::layerMisalignment.find(layer) != AlignmentDefs::layerMisalignment.end())
-		{
-		  errinf = AlignmentDefs::layerMisalignment.find(layer)->second;
-		}
 	      _mille->mille(AlignmentDefs::NLC, lcl_derivativeY, AlignmentDefs::NGL, glbl_derivativeY, glbl_label, residual(1), errinf*clus_sigma(1));
 	    }
 	}
@@ -753,7 +761,6 @@ void HelicalFitter::get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts
   return;
 }
 
-
 unsigned int HelicalFitter::addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
 
@@ -774,6 +781,7 @@ unsigned int HelicalFitter::addSiliconClusters(std::vector<float>& fitpars, std:
  {
    fixed_layers.insert(layer);
  }
+
  
 bool HelicalFitter::is_layer_param_fixed(unsigned int layer, unsigned int param)
  {
@@ -790,6 +798,25 @@ void HelicalFitter::set_layer_param_fixed(unsigned int layer, unsigned int param
  {
    std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
    fixed_layer_params.insert(pair);
+ }
+
+void HelicalFitter::set_tpc_sector_fixed(unsigned int region, unsigned int sector, unsigned int side)
+ {
+   // make a combined subsector index
+   unsigned int subsector = region * 24 + side * 12 + sector;
+   fixed_sectors.insert(subsector);
+ }
+
+bool HelicalFitter::is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side)
+ {
+   bool ret = false;
+   unsigned int region = AlignmentDefs::getTpcRegion(layer);
+   unsigned int subsector = region * 24 + side * 12 + sector;
+   auto it = fixed_sectors.find(subsector);
+   if(it != fixed_sectors.end()) 
+     ret = true;
+  
+   return ret;
  }
 
 void HelicalFitter::correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec,  std::vector<TrkrDefs::cluskey> cluskey_vec)

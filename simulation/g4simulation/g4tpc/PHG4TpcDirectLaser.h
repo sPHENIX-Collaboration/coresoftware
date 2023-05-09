@@ -6,6 +6,7 @@
 #include <phparameter/PHParameterInterface.h>
 
 #include <TVector3.h>
+#include <TNtuple.h>
 
 #include <cmath>
 #include <string>  // for string, allocator
@@ -46,6 +47,10 @@ class PHG4TpcDirectLaser : public SubsysReco, public PHParameterInterface
   /// define steps along theta
   void SetThetaStepping(int n, double min, double max);
 
+  /// define steps for file                                                                                                                        
+  void SetFileStepping(int n);
+
+
   /// get total number of steps
   int GetNpatternSteps() const
   {
@@ -64,6 +69,12 @@ class PHG4TpcDirectLaser : public SubsysReco, public PHParameterInterface
     m_autoAdvanceDirectLaser = value;
   };
 
+  /// advance automatically through pattern from file                                                                                                 
+  void SetDirectLaserPatternfromFile(bool value)
+  {
+    m_steppingpattern = value;
+  };
+
   void SetArbitraryThetaPhi(double theta, double phi)
   {
     arbitrary_theta = theta;
@@ -80,6 +91,12 @@ class PHG4TpcDirectLaser : public SubsysReco, public PHParameterInterface
 
   /// aim lasers to a give step
   void AimToPatternStep(int n);
+
+  /// aim lasers to a give step from file                                                                                                             
+  void AimToPatternStep_File(int n);
+
+  float theta_p, phi_p;
+  TNtuple *pattern = nullptr;
 
   /// aim to next step
   void AimToNextPatternStep();
@@ -140,6 +157,10 @@ class PHG4TpcDirectLaser : public SubsysReco, public PHParameterInterface
 
   /// set to true to change direct laser tracks from one event to the other
   bool m_autoAdvanceDirectLaser = false;
+
+  /// set to true to get stepping patern from file                                                    
+  bool m_steppingpattern = false;
+
 
   /// g4hit container
   PHG4HitContainer *m_g4hitcontainer = nullptr;

@@ -27,8 +27,5 @@ namespace AlignmentDefs
 		    Acts::Vector2 clus_sigma, float lcl_derivative[], 
 		    float glbl_derivative[], int glbl_label[]);
 
-  static std::map<unsigned int, float> layerMisalignment;
-
-
 }
 #endif
