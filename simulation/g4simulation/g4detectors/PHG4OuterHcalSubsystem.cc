@@ -178,6 +178,7 @@ void PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_z", 0.);
   set_default_double_param("tmin", -20.);
   set_default_double_param("tmax", 60.);
+  set_default_double_param("dt", 100.);
   set_default_double_param("scinti_eta_coverage", 1.1);
   set_default_double_param("scinti_gap", 0.85);
   set_default_double_param("scinti_gap_neighbor", 0.1);

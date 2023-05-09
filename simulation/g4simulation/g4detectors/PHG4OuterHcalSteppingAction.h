@@ -69,6 +69,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   bool m_doG4Hit = true;
   double m_tmin = -20.;
   double m_tmax = 60.;
+  double m_dt = 100.;
   TowerInfoContainer *m_CaloInfoContainer = nullptr;
 };
 

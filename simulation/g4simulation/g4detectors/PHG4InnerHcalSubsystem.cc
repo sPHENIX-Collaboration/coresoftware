@@ -171,6 +171,7 @@ void PHG4InnerHcalSubsystem::SetDefaultParameters()
   set_default_double_param("scinti_outer_gap", 1.22 * (5.0 / 4.0));
   set_default_double_param("tmin", -20.);
   set_default_double_param("tmax", 60.);
+  set_default_double_param("dt", 100.);
   // some math issue in the code subtracts 0.4mm so the scintillator
   // does not end at 133.09 as per drawing but at 133.05
   // adding 0.4mm compensates for this (so 133.13 gives the desired 133.09

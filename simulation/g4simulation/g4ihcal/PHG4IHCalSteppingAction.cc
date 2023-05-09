@@ -70,6 +70,7 @@ PHG4IHCalSteppingAction::PHG4IHCalSteppingAction(PHG4IHCalDetector* detector, co
   , m_doG4Hit(m_Params->get_int_param("saveg4hit"))
   , m_tmin(m_Params->get_double_param("tmin"))
   , m_tmax(m_Params->get_double_param("tmax"))
+  , m_dt(m_Params->get_double_param("dt"))
 {
   SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
                      m_Params->get_double_param("light_balance_inner_corr"),
@@ -175,8 +176,10 @@ bool PHG4IHCalSteppingAction::NoHitSteppingAction(const G4Step* aStep)
   G4StepPoint* prePoint = aStep->GetPreStepPoint();
   G4StepPoint* postPoint = aStep->GetPostStepPoint();
   // time window cut
-  double time = 0.5 * (prePoint->GetGlobalTime() / nanosecond + postPoint->GetGlobalTime() / nanosecond);
-  if (time < m_tmin || time > m_tmax) return false;
+  double pretime = prePoint->GetGlobalTime() / nanosecond;
+  double posttime = postPoint->GetGlobalTime() / nanosecond;
+  if (posttime < m_tmin || pretime > m_tmax) return false;
+  if ((posttime - pretime) > m_dt) return false;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
   const G4Track* aTrack = aStep->GetTrack();
   // we only need visible energy here

@@ -166,6 +166,7 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_double_param("Birk_const", 0.07943);
   set_default_double_param("tmin", -20.);
   set_default_double_param("tmax", 60.);
+  set_default_double_param("dt", 100.);
   
 
   set_default_int_param("light_scint_model", 1);

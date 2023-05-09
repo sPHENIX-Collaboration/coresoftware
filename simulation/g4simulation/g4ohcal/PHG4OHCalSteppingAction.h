@@ -73,6 +73,7 @@ class PHG4OHCalSteppingAction : public PHG4SteppingAction
   bool m_doG4Hit = true;
   double m_tmin = -20.;
   double m_tmax = 60.;
+  double m_dt = 100.;
   std::string m_AbsorberNodeName;
   std::string m_HitNodeName;
 
