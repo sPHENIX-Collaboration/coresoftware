@@ -1,16 +1,70 @@
 #include "AlignmentDefs.h"
 
-
-void AlignmentDefs::getGlobalLabels(Surface surf, int glbl_label[])
+void AlignmentDefs::getSiliconGlobalLabels(Surface surf, int glbl_label[], AlignmentDefs::siliconGrp grp)
 {
   Acts::GeometryIdentifier id = surf->geometryId();
-  int label_base = getLabelBase(id);   // This value depends on how the surfaces are grouped
-  for(int i=0; i<NGL; i++)
+  int group = 0;
+  switch(grp) {
+  case AlignmentDefs::siliconGrp::snsr:
+    group = 0;
+    break;
+  case AlignmentDefs::siliconGrp::stv:
+    group = 1;
+    break;
+  case AlignmentDefs::siliconGrp::brrl:
+    group = 2;
+    break;
+  }
+  
+  int label_base = getLabelBase(id, group);
+  for(int i=0; i<NGL; ++i)
     {
       glbl_label[i] = label_base + i;
     }
-
 }
+
+void AlignmentDefs::getTpcGlobalLabels(Surface surf, int glbl_label[], AlignmentDefs::tpcGrp grp)
+{
+  Acts::GeometryIdentifier id = surf->geometryId();
+  int group = 0;
+  switch(grp) {
+  case AlignmentDefs::tpcGrp::htst:
+    group = 3;
+    break;
+  case AlignmentDefs::tpcGrp::sctr:
+    group = 4;
+    break;
+  case AlignmentDefs::tpcGrp::tp:
+    group = 5;
+    break;
+  }
+  
+  int label_base = getLabelBase(id, group);
+  for(int i=0; i<NGL; ++i)
+    {
+      glbl_label[i] = label_base + i;
+    }
+}
+void AlignmentDefs::getMMGlobalLabels(Surface surf, int glbl_label[], AlignmentDefs::mmsGrp grp)
+{
+  Acts::GeometryIdentifier id = surf->geometryId();
+  int group = 0;
+  switch(grp) {
+  case AlignmentDefs::mmsGrp::tl:
+    group = 6;
+    break;
+  case AlignmentDefs::mmsGrp::mm:
+    group = 7;
+    break;
+  }
+  
+  int label_base = getLabelBase(id, group);
+  for(int i=0; i<NGL; ++i)
+    {
+      glbl_label[i] = label_base + i;
+    }
+}
+
 int AlignmentDefs::getTpcRegion(int layer)
 {
   int region = 0;
@@ -21,7 +75,7 @@ int AlignmentDefs::getTpcRegion(int layer)
 
   return region;  
 }
-int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id)
+int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, int group)
 {
   
   unsigned int volume = id.volume(); 
@@ -34,28 +88,28 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id)
   // decide what level of grouping we want
   if(layer < 7)
     {
-      if(si_grp == siliconGrp::snsr)
+      if(group == 0)
 	{
 	  // every sensor has a different label
 	  int stave = sensor / nsensors_stave[layer];
 	  label_base += layer*1000000  + stave*10000 + sensor*10;
 	  return label_base;
 	}
-      if(si_grp == siliconGrp::stv)
+      if(group == 1)
 	{
 	  // layer and stave, assign all sensors to the stave number
 	  int stave = sensor / nsensors_stave[layer];
 	  label_base += layer*1000000 + stave*10000;
 	  return label_base;
 	}
-      if(si_grp == siliconGrp::brrl)
+      if(group == 2)
 	// layer only, assign all sensors to sensor 0 
 	label_base += layer*1000000 + 0;
       return label_base;
     }
   else if(layer > 6 && layer < 55)
     {
-      if(tpc_grp == tpcGrp::htst)
+      if(group == 3)
 	{
 	  // want every hitset (layer, sector, side) to have a separate label
 	  // each group of 12 subsurfaces (sensors) is in a single hitset
@@ -63,7 +117,7 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id)
 	  label_base += layer*1000000 + hitset*10000;
 	  return label_base;
 	}
-      if(tpc_grp == tpcGrp::sctr)
+      if(group == 4)
 	{
 	  // group all tpc layers in each region and sector, assign layer 7 and side and sector number to all layers and hitsets
 	  int side = sensor / 144; // 0-143 on side 0, 144-287 on side 1
@@ -74,7 +128,7 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id)
 	  label_base += 7*1000000 + (region * 24 + side*12 + sector) *10000; 
 	  return label_base;
 	}
-      if(tpc_grp == tpcGrp::tp)
+      if(group == 5)
 	{
 	  // all tpc layers and all sectors, assign layer 7 and sensor 0 to all layers and sensors
 	  label_base += 7*1000000 + 0;
@@ -83,14 +137,14 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id)
     }
   else
     {
-      if(mms_grp == mmsGrp::tl)
+      if(group == 6)
 	{
 	  // every tile has different label
 	  int tile = sensor;
 	  label_base += layer*1000000 + tile*10000+sensor*10;
 	  return label_base;
 	}
-      if(mms_grp == mmsGrp::mm)
+      if(group == 7)
 	{
 	  // assign layer 55 and tile 0 to all
 	  label_base += 55*1000000 + 0;	  
