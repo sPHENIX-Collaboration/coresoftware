@@ -69,11 +69,6 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   SvtxVertexMap *svtxmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   BbcVertexMap *bbcmap = findNode::getClass<BbcVertexMap>(topNode, "BbcVertexMap");
   SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  if (!trackmap)
-  {
-    std::cout << PHWHERE << "No track map, can't continue." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
 
   // we will make 3 different kinds of global vertexes
   //  (1) SVTX+BBC vertexes - we match SVTX vertex to the nearest BBC vertex within 3 sigma in zvertex
@@ -157,13 +152,15 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       globalmap->insert(vertex);
 
       //! Reset track ids to the new vertex object
-      for (auto iter = svtx->begin_tracks(); iter != svtx->end_tracks();
-           ++iter)
+      if (trackmap)
       {
-        auto track = trackmap->find(*iter)->second;
-        track->set_vertex_id(vertex->get_id());
+        for (auto iter = svtx->begin_tracks(); iter != svtx->end_tracks();
+             ++iter)
+        {
+          auto track = trackmap->find(*iter)->second;
+          track->set_vertex_id(vertex->get_id());
+        }
       }
-
       global_vertex_id++;
 
       if (Verbosity() > 1)
@@ -218,13 +215,15 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       used_svtx_vtxids.insert(svtx->get_id());
 
       //! Reset track ids to the new vertex object
-      for (auto iter = svtx->begin_tracks(); iter != svtx->end_tracks();
-           ++iter)
+      if (trackmap)
       {
-        auto track = trackmap->find(*iter)->second;
-        track->set_vertex_id(vertex->get_id());
+        for (auto iter = svtx->begin_tracks(); iter != svtx->end_tracks();
+             ++iter)
+        {
+          auto track = trackmap->find(*iter)->second;
+          track->set_vertex_id(vertex->get_id());
+        }
       }
-
       globalmap->insert(vertex);
 
       if (Verbosity() > 1)
@@ -295,33 +294,35 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   }
 
   /// Associate any tracks that were not assigned a track-vertex
-  
-  for (const auto &[tkey, track] : *trackmap)
+  if (trackmap)
   {
-    //! Check that the vertex hasn't already been assigned
-    auto trackvtxid = track->get_vertex_id();
-    if (globalmap->find(trackvtxid) != globalmap->end())
+    for (const auto &[tkey, track] : *trackmap)
     {
-      continue;
-    }
-
-    float maxdz = std::numeric_limits<float>::max();
-    unsigned int vtxid = std::numeric_limits<unsigned int>::max();
-
-    for (const auto &[vkey, vertex] : *globalmap)
-    {
-      float dz = track->get_z() - vertex->get_z();
-      if (fabs(dz) < maxdz)
+      //! Check that the vertex hasn't already been assigned
+      auto trackvtxid = track->get_vertex_id();
+      if (globalmap->find(trackvtxid) != globalmap->end())
       {
-        maxdz = dz;
-        vtxid = vkey;
+        continue;
       }
-    }
 
-    track->set_vertex_id(vtxid);
-    if (Verbosity())
-    {
-      std::cout << "Associated track with z " << track->get_z() << " to GlobalVertex id " << track->get_vertex_id() << std::endl;
+      float maxdz = std::numeric_limits<float>::max();
+      unsigned int vtxid = std::numeric_limits<unsigned int>::max();
+
+      for (const auto &[vkey, vertex] : *globalmap)
+      {
+        float dz = track->get_z() - vertex->get_z();
+        if (fabs(dz) < maxdz)
+        {
+          maxdz = dz;
+          vtxid = vkey;
+        }
+      }
+
+      track->set_vertex_id(vtxid);
+      if (Verbosity())
+      {
+        std::cout << "Associated track with z " << track->get_z() << " to GlobalVertex id " << track->get_vertex_id() << std::endl;
+      }
     }
   }
 

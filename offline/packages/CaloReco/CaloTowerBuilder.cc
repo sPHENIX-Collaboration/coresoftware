@@ -26,6 +26,19 @@
 //____________________________________________________________________________..
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
   : SubsysReco(name)
+  , WaveformProcessing(nullptr)
+  , m_dettype(CaloTowerBuilder::CEMC)
+  , m_CaloInfoContainer(nullptr)
+  , m_detector("CEMC")
+  , m_packet_low(INT_MIN)
+  , m_packet_high(INT_MIN)
+  , m_nsamples(16)
+  , m_nchannels(192)
+  , m_nzerosuppsamples(2)
+  , m_isdata(true)
+  , _nsoftwarezerosuppression(40)
+  , _bdosoftwarezerosuppression(false)
+  , _processingtype(CaloWaveformProcessing::NONE)
 {
   WaveformProcessing = new CaloWaveformProcessing();
 }
@@ -39,16 +52,20 @@ CaloTowerBuilder::~CaloTowerBuilder()
 //____________________________________________________________________________..
 int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
 {
-  WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
-  WaveformProcessing->set_softwarezerosuppression(true,40);
+  WaveformProcessing->set_processing_type(_processingtype);
+  WaveformProcessing->set_softwarezerosuppression(_bdosoftwarezerosuppression,_nsoftwarezerosuppression);
+
   if (m_dettype == CaloTowerBuilder::CEMC)
   {
     m_detector = "CEMC";
     m_packet_low = 6001;
     m_packet_high = 6128;
-    // 6001, 60128
     m_nchannels = 192;
     WaveformProcessing->set_template_file("testbeam_cemc_template.root");
+    if (_processingtype == CaloWaveformProcessing::NONE)
+      {
+	WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
+      }
   }
   else if (m_dettype == CaloTowerBuilder::HCALIN)
   {
@@ -57,6 +74,10 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_detector = "HCALIN";
     m_nchannels = 192;
     WaveformProcessing->set_template_file("testbeam_ihcal_template.root");
+    if (_processingtype == CaloWaveformProcessing::NONE)
+      {
+	WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
+      }
   }
   else if (m_dettype == CaloTowerBuilder::HCALOUT)
   {
@@ -65,6 +86,10 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_packet_high = 8008;
     m_nchannels = 192;
     WaveformProcessing->set_template_file("testbeam_ohcal_template.root");
+    if (_processingtype == CaloWaveformProcessing::NONE)
+      {
+	WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
+      }
   }
   else if (m_dettype == CaloTowerBuilder::EPD)
   {
@@ -72,7 +97,10 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_packet_low = 9001;
     m_packet_high = 9005;
     m_nchannels = 186;
-    WaveformProcessing->set_template_file("testbeam_cemc_template.root");  // place holder until we have EPD templates
+    if (_processingtype == CaloWaveformProcessing::NONE)
+      {
+	WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST); //default the EPD to fast processing
+      }
   }
   WaveformProcessing->initialize_processing();
   CreateNodeTree(topNode);
