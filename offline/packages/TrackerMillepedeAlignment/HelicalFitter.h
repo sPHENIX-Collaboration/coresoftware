@@ -145,7 +145,6 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool fitfulltrack = false;
 
   float dca_cut = 0.1;  // 1 mm
-  float _error_inflation[4] = {1,1,1,1};
 
   std::string _field;
   int _fieldDir = -1;
