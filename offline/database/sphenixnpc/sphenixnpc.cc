@@ -6,6 +6,9 @@
 #include <iostream>
 #include <stdexcept>
 
+sphenixnpc::sphenixnpc()
+{}
+
 sphenixnpc::sphenixnpc(const std::string &globaltag)
 {
   cache_set_GlobalTag(globaltag);

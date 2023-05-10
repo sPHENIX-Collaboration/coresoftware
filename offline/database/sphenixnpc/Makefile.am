@@ -15,6 +15,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 libsphenixnpc_la_SOURCES = \
+  CDBUtils.cc \
   sphenixnpc.cc
 
 
@@ -25,6 +26,7 @@ libsphenixnpc_la_LIBADD = \
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
+  CDBUtils.h \
   sphenixnpc.h
 
 ################################################

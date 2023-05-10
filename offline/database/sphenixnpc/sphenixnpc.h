@@ -16,7 +16,7 @@ class sphenixnpc : public nopayloadclient::Client
   using nopayloadclient::Client::createGlobalTag;
   using nopayloadclient::Client::deleteGlobalTag;
   using nopayloadclient::Client::setGlobalTag;
-
+  sphenixnpc();
   sphenixnpc(const std::string &globaltag);
   virtual ~sphenixnpc() = default;
   nlohmann::json getUrlDict(long long iov);
