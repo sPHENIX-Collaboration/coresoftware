@@ -93,6 +93,7 @@ m_detectors( {
   {24, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 6 ), "sec22.0", "R3.8", "M6P",  "SWIP" },
   {25, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   6 ), "sec22.1", "R3.8", "M6Z",  "SWIZ" },
 
+  // north side
   {11, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 5 ), "sec8.0",  "R2.1", "M2P",  "NEIP" },
   {12, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   5 ), "sec8.1",  "R2.2", "M2Z",  "NEIZ" },
   {19, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 3 ), "sec9.0",  "R2.3", "M10P", "NCOP" },
