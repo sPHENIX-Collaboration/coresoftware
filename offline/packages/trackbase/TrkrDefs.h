@@ -4,8 +4,8 @@
  * @date June 2018
  * @brief Namespace with Trkr key types and utility functions
  */
-#ifndef TRACKBASE_TRKRDEFUTIL_H
-#define TRACKBASE_TRKRDEFUTIL_H
+#ifndef TRACKBASE_TRKRDEFS_H
+#define TRACKBASE_TRKRDEFS_H
 
 #include <cstdint>
 #include <iostream>
@@ -104,4 +104,4 @@ namespace TrkrDefs
 
 }
 
-#endif  //TRACKBASE_TRKRDEFUTIL_H
+#endif  //TRACKBASE_TRKRDEFS_H
