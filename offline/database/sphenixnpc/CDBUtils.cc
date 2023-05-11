@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <stdexcept>
+
 CDBUtils::CDBUtils()
   : cdbclient(new sphenixnpc())
 {}
@@ -19,6 +20,11 @@ CDBUtils::CDBUtils(const std::string &globaltag)
 void CDBUtils::createGlobalTag(const std::string &tagname)
 {
   cdbclient->createThisGlobalTag(tagname);
+}
+
+void CDBUtils::setGlobalTag(const std::string &tagname)
+{
+  cdbclient->setGlobalTag(const std::string &tagname);
 }
 
 int CDBUtils::deleteGlobalTag(const std::string &tagname)
