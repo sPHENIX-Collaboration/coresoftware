@@ -4,14 +4,17 @@
 AUTOMAKE_OPTIONS = foreign
 
 # list of shared libraries to produce
-if USE_ONLINE
-
-else
-
 lib_LTLIBRARIES = \
   libtrack_io.la
 
-endif
+if USE_ONLINE
+pkginclude_HEADERS = \
+  TrkrDefs.h
+
+libtrack_io_la_SOURCES = \
+  TrkrDefs.cc
+
+else
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -24,10 +27,6 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib64
 
-if USE_ONLINE
-pkginclude_HEADERS = \
-  TrkrDefs.h
-else
 
 pkginclude_HEADERS = \
   ActsAborter.h \
@@ -277,14 +276,8 @@ endif
 
 BUILT_SOURCES = testexternals.cc
 
-if USE_ONLINE
-
-else
-
 noinst_PROGRAMS = \
   testexternals_track_io
-
-endif
 
 #testexternals_track_util_SOURCES = testexternals.cc
 #testexternals_track_util_LDADD = libtrack_util.la
