@@ -187,7 +187,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  unsigned int layer = TrkrDefs::getLayer(cluskey_vec[ivec]);	  
 	  float phi =  atan2(global(1), global(0));
 	  float beta =  atan2(global(2), sqrt(pow(global(0),2) + pow(global(1),2)));
-	    
+
 	  if(Verbosity() > 1) {
 	  Acts::Vector3 loc_check =  surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (global *  Acts::UnitConstants::cm);
 	  loc_check /= Acts::UnitConstants::cm;
@@ -736,28 +736,35 @@ void HelicalFitter::getLocalDerivativesXY(Surface surf, Acts::Vector3 global, co
   // loop over the track fit parameters
   for(unsigned int ip = 0; ip < fitpars.size(); ++ip)
     {
-      temp_fitpars[ip] += fitpars_delta[ip];
-
-      Acts::Vector3 temp_intersection = get_helix_surface_intersection(surf, temp_fitpars, global);
-      Acts::Vector3 intersection_delta = temp_intersection - intersection;
-      if(Verbosity() > 1)
+      Acts::Vector3 intersection_delta[2];
+      for(int ipm = 0; ipm < 2; ++ipm)
 	{
-	  std::cout << "Layer " << layer << " local parameter " << ip << ":" << std::endl; 
-	  std::cout << " intersection " << intersection(0) << "  " << intersection(1) << "  " << intersection(2) << std::endl;
-	  std::cout << " temp_intersection " << temp_intersection(0) << "  "<< temp_intersection(1) << "  "<< temp_intersection(2)<< std::endl;
-	  std::cout << " intersection_delta " << intersection_delta(0) << "  " << intersection_delta(1) << "  " << intersection_delta(2) << std::endl;
+	  //intersection_delta[ipm] = {0,0,0};
+	  temp_fitpars[ip] = fitpars[ip];
+	  float deltapm = pow(-1.0, ipm);
+	  temp_fitpars[ip] += deltapm * fitpars_delta[ip];
+
+	  Acts::Vector3 temp_intersection = get_helix_surface_intersection(surf, temp_fitpars, global);
+	  intersection_delta[ipm] = temp_intersection - intersection;
+	  if(Verbosity() > 1)
+	    {
+	      std::cout << "Layer " << layer << " local parameter " << ip << " with ipm " << ipm << " deltapm " << deltapm << " :" << std::endl; 
+	      std::cout << " intersection " << intersection(0) << "  " << intersection(1) << "  " << intersection(2) << std::endl;
+	      std::cout << " temp_intersection " << temp_intersection(0) << "  "<< temp_intersection(1) << "  "<< temp_intersection(2)<< std::endl;
+	      std::cout << " intersection_delta " << intersection_delta[ipm](0) << "  " << intersection_delta[ipm](1) << "  " << intersection_delta[ipm](2) << std::endl;
+	      std::cout << " intersection_delta / fitpars_delta = " <<  (intersection_delta[ipm] / fitpars_delta[ip])(0) << "  " <<  (intersection_delta[ipm] / fitpars_delta[ip])(1) << "  " <<  (intersection_delta[ipm] / fitpars_delta[ip])(2) << std::endl;;
+	    }
 	}
-
-
+      Acts::Vector3 average_intersection_delta = (intersection_delta[0] - intersection_delta[1]) / (2 * fitpars_delta[ip]);
       // convert to delta-intersection / delta-parameter
-      intersection_delta /= fitpars_delta[ip];
+      //      intersection_delta /= fitpars_delta[ip];
 
       if(Verbosity() > 1)
-	{std::cout << " intersection_delta / delta_p " << intersection_delta(0) << "  " << intersection_delta(1) << "  " << intersection_delta(2) << std::endl;}
+	{std::cout << " average_intersection_delta / delta " << average_intersection_delta(0) << "  " << average_intersection_delta(1) << "  " << average_intersection_delta(2) << std::endl;}
 
       // calculate the change in residual for X and Y 
-      lcl_derivativeX[ip] = intersection_delta.dot(projX);
-      lcl_derivativeY[ip] = intersection_delta.dot(projY);
+      lcl_derivativeX[ip] = average_intersection_delta.dot(projX);
+      lcl_derivativeY[ip] = average_intersection_delta.dot(projY);
       if(Verbosity() > 1)
 	{std::cout << " ip " << ip << "  derivativeX " << lcl_derivativeX[ip] << "  " << " derivativeY " << lcl_derivativeY[ip] << std::endl;}
 
