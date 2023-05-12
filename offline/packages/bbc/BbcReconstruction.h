@@ -12,6 +12,7 @@ class PHCompositeNode;
 class BbcPmtContainer;
 class BbcVertexMap;
 class TF1;
+class TH1;
 
 class BbcReconstruction : public SubsysReco
 {
@@ -31,7 +32,7 @@ class BbcReconstruction : public SubsysReco
   std::unique_ptr<TF1> m_gaussian = nullptr;
 
   float m_tres = 0.05;
-
+  TH1 *h_evt_bbct[2];
   BbcVertexMap *m_bbcvertexmap = nullptr;
   BbcPmtContainer *m_bbcpmts = nullptr;
 };

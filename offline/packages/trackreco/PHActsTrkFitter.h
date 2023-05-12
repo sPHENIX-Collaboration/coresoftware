@@ -143,7 +143,8 @@ class PHActsTrkFitter : public SubsysReco
 				 SurfacePtrVec& surfaces) const;
   void checkSurfaceVec(SurfacePtrVec& surfaces) const;
 
-  bool getTrackFitResult(const FitResult& fitOutput, SvtxTrack* track);
+  bool getTrackFitResult(const FitResult& fitOutput, SvtxTrack* track,
+			 const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
   Acts::BoundSymMatrix setDefaultCovariance() const;
   void printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const;

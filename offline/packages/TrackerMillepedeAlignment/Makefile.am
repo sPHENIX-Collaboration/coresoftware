@@ -28,6 +28,7 @@ libtrackeralign_la_LIBADD = \
   -ltpc_io
 
 pkginclude_HEADERS = \
+  AlignmentDefs.h \
   MakeMilleFiles.h \
   Mille.h \
   HelicalFitter.h
@@ -35,6 +36,7 @@ pkginclude_HEADERS = \
 pcmdir = $(libdir)
 
 libtrackeralign_la_SOURCES = \
+  AlignmentDefs.cc \
   MakeMilleFiles.cc \
   Mille.cc \
   HelicalFitter.cc
