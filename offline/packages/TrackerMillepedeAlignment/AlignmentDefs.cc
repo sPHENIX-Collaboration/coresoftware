@@ -71,7 +71,7 @@ void AlignmentDefs::getMMGlobalLabels(Surface surf, int glbl_label[], AlignmentD
 int AlignmentDefs::getTpcRegion(int layer)
 {
   int region = 0;
-  if (layer > 23 && layer < 39)
+  if (layer > 22 && layer < 39)
     region = 1;
   if (layer > 38 && layer < 55)
     region = 2;
