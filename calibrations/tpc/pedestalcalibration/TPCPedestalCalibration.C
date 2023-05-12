@@ -15,6 +15,11 @@
 #include "TTreeReaderValue.h"
 #include "TTreeReaderArray.h"
 
+/*************************************************************/
+/*                TPC Pedestal Calibration                   */
+/*               Thomas Marshall,Aditya Dash                 */
+/*        rosstom@ucla.edu,aditya55@physics.ucla.edu         */
+/*************************************************************/
 
 void TPCPedestalCalibration(vector<string> inputFiles = {"/sphenix/user/rosstom/test/testFiles/TPC_ebdc00_pedestal-00010131-0000.prdf_TPCRawDataTree.root"}){
   for (int fileNum = 0; fileNum < inputFiles.size(); fileNum++){
