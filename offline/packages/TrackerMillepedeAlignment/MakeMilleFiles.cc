@@ -194,100 +194,6 @@ Acts::Vector3 MakeMilleFiles::getPCALinePoint(Acts::Vector3 global, SvtxTrackSta
   return pca;
 }
 
-int MakeMilleFiles::getTpcRegion(int layer)
-{
-  int region = 0;
-  if (layer > 23 && layer < 39)
-    region = 1;
-  if (layer > 38 && layer < 55)
-    region = 2;
-
-  return region;
-}
-
-int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
-{
-  unsigned int volume = id.volume();
-  unsigned int acts_layer = id.layer();
-  unsigned int layer = base_layer_map.find(volume)->second + acts_layer / 2 - 1;
-  unsigned int sensor = id.sensitive() - 1;  // Acts starts at 1
-
-  int label_base = 1;  // Mille wants to start at 1
-
-  // decide what level of grouping we want
-  if (layer < 7)
-  {
-    if (si_group == siliconGroup::sensor)
-    {
-      // every sensor has a different label
-      int stave = sensor / nsensors_stave[layer];
-      label_base += layer * 1000000 + stave * 10000 + sensor * 10;
-      return label_base;
-    }
-    if (si_group == siliconGroup::stave)
-    {
-      // layer and stave, assign all sensors to the stave number
-      int stave = sensor / nsensors_stave[layer];
-      label_base += layer * 1000000 + stave * 10000;
-      return label_base;
-    }
-    if (si_group == siliconGroup::barrel)
-    {
-      // layer only, assign all sensors to sensor 0
-      label_base += layer * 1000000 + 0;
-
-      return label_base;
-    }
-  }
-  else if (layer > 6 && layer < 55)
-  {
-    if (tpc_group == tpcGroup::hitset)
-    {
-      // want every hitset (layer, sector, side) to have a separate label
-      // each group of 12 subsurfaces (sensors) is in a single hitset
-      int hitset = sensor / 12;  // hitsets 0-11 on side 0, 12-23 on side 1
-      label_base += layer * 1000000 + hitset * 10000;
-      return label_base;
-    }
-    if (tpc_group == tpcGroup::sector)
-    {
-      // group all tpc layers in each region and sector, assign layer 7 and side and sector number to all layers and hitsets
-      int side = sensor / 144;  // 0-143 on side 0, 144-287 on side 1
-      int sector = (sensor - side * 144) / 12;
-      // for a given layer there are only 12 sectors x 2 sides
-      // The following gives the sectors in the inner, mid, outer regions unique group labels
-      int region = getTpcRegion(layer);  // inner, mid, outer
-      label_base += 7 * 1000000 + (region * 24 + side * 12 + sector) * 10000;
-      // std::cout << " layer " << layer << " sensor " << sensor << " region " << region << " side " << side << " sector " << sector << " label_base " << label_base << std::endl;
-      return label_base;
-    }
-    if (tpc_group == tpcGroup::tpc)
-    {
-      // all tpc layers and all sectors, assign layer 7 and sensor 0 to all layers and sensors
-      label_base += 7 * 1000000 + 0;
-      return label_base;
-    }
-  }
-  else
-  {
-    if (mms_group == mmsGroup::tile)
-    {
-      // every tile has different label
-      int tile = sensor;
-      label_base += layer * 1000000 + tile * 10000 + sensor * 10;
-      return label_base;
-    }
-    if (mms_group == mmsGroup::mms)
-    {
-      // assign layer 55 and tile 0 to all
-      label_base += 55 * 1000000 + 0;
-      return label_base;
-    }
-  }
-
-  return -1;
-}
-
 void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec statevec)
 {
   for (auto state : statevec)
@@ -341,17 +247,20 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       continue;
     }
 
-    Acts::GeometryIdentifier id = _tGeometry->maps().getSurface(ckey, cluster)->geometryId();
-    int label_base = getLabelBase(id);  // This value depends on how the surfaces are grouped
+    auto surf = _tGeometry->maps().getSurface(ckey, cluster);
 
     int glbl_label[SvtxAlignmentState::NGL];
-    for (int i = 0; i < SvtxAlignmentState::NGL; ++i)
+    if (layer < 7)
     {
-      glbl_label[i] = label_base + i;
-      if (Verbosity() > 1)
-      {
-        std::cout << "  glbl " << i << " label " << glbl_label[i] << " ";
-      }
+      AlignmentDefs::getSiliconGlobalLabels(surf, glbl_label, si_group);
+    }
+    else if (layer < 55)
+    {
+      AlignmentDefs::getTpcGlobalLabels(surf, glbl_label, tpc_group);
+    }
+    else if (layer < 57)
+    {
+      AlignmentDefs::getMMGlobalLabels(surf, glbl_label, mms_group);
     }
 
     if (Verbosity() > 1)
@@ -366,7 +275,6 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       float glbl_derivative[SvtxAlignmentState::NGL];
       for (int j = 0; j < SvtxAlignmentState::NGL; ++j)
       {
-        /// swap the order to match what is expected from the workflow
         glbl_derivative[j] = state->get_global_derivative_matrix()(i, j);
 
         if (is_layer_fixed(layer) || is_layer_param_fixed(layer, j))
@@ -387,8 +295,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 
         for (int k = 0; k < SvtxAlignmentState::NGL; k++)
         {
-	  if(glbl_derivative[k] > 0 || glbl_derivative[k] < 0)
-	    std::cout << "NONZERO GLOBAL DERIVATIVE"<<std::endl;
+          if (glbl_derivative[k] > 0 || glbl_derivative[k] < 0)
+            std::cout << "NONZERO GLOBAL DERIVATIVE" << std::endl;
           std::cout << glbl_derivative[k] << ", ";
         }
         std::cout << std::endl
@@ -405,10 +313,15 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
         if (Verbosity() > 3)
         {
           std::cout << "ckey " << ckey << " and layer " << layer << " buffers:" << std::endl;
-          printBuffers(i, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label);
+          AlignmentDefs::printBuffers(i, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label);
+        }
+        float errinf = 1.0;
+        if (m_layerMisalignment.find(layer) != m_layerMisalignment.end())
+        {
+          errinf = m_layerMisalignment.find(layer)->second;
         }
 
-        _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), clus_sigma(i));
+        _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), errinf * clus_sigma(i));
       }
     }
   }
@@ -416,36 +329,6 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
   return;
 }
 
-void MakeMilleFiles::printBuffers(int index, Acts::Vector2 residual, Acts::Vector2 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[])
-{
-  std::cout << " float buffer: "
-            << " residual "
-            << "  " << residual(index);
-  for (int il = 0; il < SvtxAlignmentState::NLOC; ++il)
-  {
-    if (lcl_derivative[il] != 0) std::cout << " lcl_deriv[" << il << "] " << lcl_derivative[il] << "  ";
-  }
-  std::cout << " sigma "
-            << "  " << clus_sigma(index) << "  ";
-  for (int ig = 0; ig < SvtxAlignmentState::NGL; ++ig)
-  {
-    if (glbl_derivative[ig] != 0) std::cout << " glbl_deriv[" << ig << "] " << glbl_derivative[ig] << "  ";
-  }
-  std::cout << " int buffer: "
-            << " 0 "
-            << "  ";
-  for (int il = 0; il < SvtxAlignmentState::NLOC; ++il)
-  {
-    if (lcl_derivative[il] != 0) std::cout << " lcl_label[" << il << "] " << il << "  ";
-  }
-  std::cout << " 0 "
-            << "  ";
-  for (int ig = 0; ig < SvtxAlignmentState::NGL; ++ig)
-  {
-    if (glbl_derivative[ig] != 0) std::cout << " glbl_label[" << ig << "] " << glbl_label[ig] << "  ";
-  }
-  std::cout << " end of meas " << std::endl;
-}
 bool MakeMilleFiles::is_layer_fixed(unsigned int layer)
 {
   bool ret = false;
@@ -456,12 +339,12 @@ bool MakeMilleFiles::is_layer_fixed(unsigned int layer)
   return ret;
 }
 void MakeMilleFiles::set_layers_fixed(unsigned int minlayer,
-				      unsigned int maxlayer)
+                                      unsigned int maxlayer)
 {
-  for(unsigned int i=minlayer; i<maxlayer; i++)
-    {
-      fixed_layers.insert(i);
-    }
+  for (unsigned int i = minlayer; i < maxlayer; i++)
+  {
+    fixed_layers.insert(i);
+  }
 }
 void MakeMilleFiles::set_layer_fixed(unsigned int layer)
 {
