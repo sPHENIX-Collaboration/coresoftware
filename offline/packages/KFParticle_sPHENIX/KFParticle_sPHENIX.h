@@ -33,10 +33,10 @@
 #include "KFParticle_DST.h"
 #include "KFParticle_nTuple.h"
 
-//sPHENIX stuff
+// sPHENIX stuff
 #include <fun4all/SubsysReco.h>
 
-//KFParticle stuff
+// KFParticle stuff
 #include <KFParticle.h>
 
 #include <algorithm>  // for max
@@ -59,6 +59,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   int Init(PHCompositeNode *topNode);
 
+  int InitRun(PHCompositeNode *topNode);
+
   int process_event(PHCompositeNode *topNode);
 
   int End(PHCompositeNode *topNode);
@@ -76,7 +78,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   int parseDecayDescriptor();
 
-  ///Parameters for the user to vary
+  /// Parameters for the user to vary
 
   void setDecayDescriptor(const std::string &decayDescriptor) { m_decayDescriptor = decayDescriptor; }
 
@@ -200,9 +202,9 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void allowZeroMassTracks(bool allow) { m_allowZeroMassTracks = allow; }
 
   void extraolateTracksToSV(bool extrapolate)
-  { 
-    m_extrapolateTracksToSV = extrapolate; 
-    m_extrapolateTracksToSV_nTuple = extrapolate; 
+  {
+    m_extrapolateTracksToSV = extrapolate;
+    m_extrapolateTracksToSV_nTuple = extrapolate;
   }
 
   void constrainIntermediateMasses(bool constrain_int_mass) { m_constrain_int_mass = constrain_int_mass; }
@@ -290,10 +292,10 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void getAllPVInfo(bool pvinfo) { m_get_all_PVs = pvinfo; }
 
-  ///Use alternate vertex and track fitters
+  /// Use alternate vertex and track fitters
   void setVertexMapNodeName(const std::string &vtx_map_node_name) { m_vtx_map_node_name = m_vtx_map_node_name_nTuple = vtx_map_node_name; }
 
-  ///Use alternate vertex and track fitters
+  /// Use alternate vertex and track fitters
   void setTrackMapNodeName(const std::string &trk_map_node_name) { m_trk_map_node_name = m_trk_map_node_name_nTuple = trk_map_node_name; }
 
  private:
@@ -302,9 +304,10 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   bool m_require_mva;
   bool m_save_dst;
   bool m_save_output;
+  float m_Bz = 0;
   std::string m_outfile_name;
   TFile *m_outfile;
   std::string m_decayDescriptor;
 };
 
-#endif  //KFPARTICLESPHENIX_KFPARTICLESPHENIX_H
+#endif  // KFPARTICLESPHENIX_KFPARTICLESPHENIX_H
