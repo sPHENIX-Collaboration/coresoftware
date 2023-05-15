@@ -24,6 +24,7 @@
 
 #include <cassert>
 #include <fstream>
+#include <memory>
 
 //_________________________________________________________
 MicromegasRawDataCalibration::MicromegasRawDataCalibration( const std::string& name ):
@@ -87,7 +88,7 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
    * To be fixed at a later stage.
    * check with Martin Purschke
    */
-  auto packet = event->getPacket(MicromegasDefs::m_packet_id);
+  std::unique_ptr<Packet> packet( event->getPacket(MicromegasDefs::m_packet_id) );
   if( !packet )
   {
     // no data
