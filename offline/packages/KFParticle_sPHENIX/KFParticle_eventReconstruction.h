@@ -50,7 +50,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                    std::vector<std::vector<KFParticle>>& selectedIntermediates,
                    int& nPVs, int& multiplicity);
 
-  ///Used to reconstruct simple decays with no intermediate states
+  /// Used to reconstruct simple decays with no intermediate states
   void buildBasicChain(std::vector<KFParticle>& selectedMotherBasic,
                        std::vector<KFParticle>& selectedVertexBasic,
                        std::vector<std::vector<KFParticle>>& selectedDaughtersBasic,
@@ -58,7 +58,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                        const std::vector<int>& goodTrackIndexBasic,
                        const std::vector<KFParticle>& primaryVerticesBasic);
 
-  ///Used to reconstruct more complicated decays with up to four intermediate states
+  /// Used to reconstruct more complicated decays with up to four intermediate states
   void buildChain(std::vector<KFParticle>& selectedMotherAdv,
                   std::vector<KFParticle>& selectedVertexAdv,
                   std::vector<std::vector<KFParticle>>& selectedDaughtersAdv,
@@ -67,7 +67,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                   const std::vector<int>& goodTrackIndexAdv,
                   const std::vector<KFParticle>& primaryVerticesAdv);
 
-  ///Basic building block for event reconstruction and selection
+  /// Basic building block for event reconstruction and selection
   void getCandidateDecay(std::vector<KFParticle>& selectedMotherCand,
                          std::vector<KFParticle>& selectedVertexCand,
                          std::vector<std::vector<KFParticle>>& selectedDaughtersCand,
@@ -77,19 +77,20 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                          int n_track_start, int n_track_stop,
                          bool isIntermediate, int intermediateNumber, bool constrainMass);
 
-  ///Method to chose best candidate from a selection of common SV's
+  /// Method to chose best candidate from a selection of common SV's
   int selectBestCombination(bool PVconstraint, bool isAnInterMother,
                             std::vector<KFParticle> possibleCandidates,
                             std::vector<KFParticle> possibleVertex);
 
   KFParticle createFakePV();
+  void setBz(double Bz_Tesla);
 
  protected:
   bool m_constrain_to_vertex;
   bool m_constrain_int_mass;
   bool m_use_fake_pv;
 
-  //private:
+  // private:
 };
 
-#endif  //KFPARTICLESPHENIX_KFPARTICLEEVENTRECONSTRUCTION_H
+#endif  // KFPARTICLESPHENIX_KFPARTICLEEVENTRECONSTRUCTION_H
