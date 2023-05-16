@@ -16,14 +16,19 @@ class CDBUtils
   CDBUtils(const std::string &globaltag);
   virtual ~CDBUtils() = default;
   void createGlobalTag(const std::string &tagname);
-  void setGlobalTag(const std::string &tagname);
+  int setGlobalTag(const std::string &tagname);
+  void lockGlobalTag(const std::string &tagname);
+  void unlockGlobalTag(const std::string &tagname);
   int createDomain(const std::string &domain);
-  std::string getCalibrationFile(const std::string &type, uint64_t iov);
-  int insertcalib(const std::string &pl_type, const std::string &file_url, uint64_t iov_start);
-  int insertcalib(const std::string &pl_type, const std::string &file_url, uint64_t iov_start, uint64_t iov_end);
+  std::string getUrl(const std::string &type, uint64_t iov);
+  int insertPayload(const std::string &pl_type, const std::string &file_url, uint64_t iov_start);
+  int insertPayload(const std::string &pl_type, const std::string &file_url, uint64_t iov_start, uint64_t iov_end);
   int deleteGlobalTag(const std::string &);
-  void ListGlobalTags();
+  void listGlobalTags();
+  void listPayloadTypes();
   void clearCache();
+  bool isGlobalTagSet();
+  int createPayloadType(const std::string& pl_type);
   void Verbosity(int i) { m_Verbosity = i; }
   int Verbosity() const { return m_Verbosity; }
 

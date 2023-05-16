@@ -15,10 +15,33 @@ sphenixnpc::sphenixnpc(const std::string &globaltag)
 }
 
 
-int sphenixnpc::createThisGlobalTag(const std::string &tagname)
+nlohmann::json sphenixnpc::createGlobalTag(const std::string &tagname)
 {
-  setGlobalTag(tagname);
-  nlohmann::json resp = nopayloadclient::Client::createGlobalTag();
+  if (tagname == m_CachedGlobalTag) // global tag already set
+  {
+    std::string message = "global tag already set to " + tagname;
+    return {{"code", 0}, {"msg", message}};
+  }
+// check if the global tag exists already
+  bool found_gt = false;
+  nlohmann::json resp = nopayloadclient::Client::getGlobalTags();
+  nlohmann::json msgcont = resp["msg"];
+  for (auto &it : msgcont.items())
+  {
+    std::string exist_gt = it.value().at("name");
+    std::cout << "global tag: " <<  exist_gt << std::endl;
+    if (exist_gt == tagname)
+    {
+      found_gt = true;
+      break;
+    }
+  }
+  if (found_gt)
+  {
+    std::string message = "global tag " + tagname + " already exists";
+    return {{"code", 0}, {"msg", message}};
+  }
+  resp = nopayloadclient::Client::createGlobalTag(tagname);
   int iret = resp["code"];
   if (iret != 0)
   {
@@ -26,20 +49,12 @@ int sphenixnpc::createThisGlobalTag(const std::string &tagname)
   }
   else
   {
+    nopayloadclient::Client::setGlobalTag(tagname);
+    m_CachedGlobalTag = tagname;
+    clearCache();
     std::cout << "sphenixnpc: Created new global tag " << tagname << std::endl;
   }
-  return iret;
-}
-
-int sphenixnpc::deleteThisGlobalTag(const std::string &tagname)
-{
-  setGlobalTag(tagname);
-  nlohmann::json result = nopayloadclient::Client::deleteGlobalTag();
-  if (Verbosity())
-  {
-    std::cout << result << std::endl;
-  }
-  return 0;
+  return resp;
 }
 
 nlohmann::json sphenixnpc::getUrlDict(long long iov)
@@ -71,6 +86,37 @@ nlohmann::json sphenixnpc::get(const std::string &pl_type, long long iov)
     return nopayloadclient::DataBaseException("No payload with type " + pl_type + " exists.").jsonify();
   }
   return makeResp(url_dict_[pl_type]);
+}
+
+nlohmann::json sphenixnpc::setGlobalTag(const std::string &tagname)
+{
+  if (tagname == m_CachedGlobalTag) // global tag already set
+  {
+    std::string message = "global tag already set to " + tagname;
+    return {{"code", 0}, {"msg", message}};
+  }
+  url_dict_ = nlohmann::json{};
+  bool found_gt = false;
+  nlohmann::json resp = nopayloadclient::Client::getGlobalTags();
+  nlohmann::json msgcont = resp["msg"];
+  for (auto &it : msgcont.items())
+  {
+    std::string exist_gt = it.value().at("name");
+    std::cout << "global tag: " <<  exist_gt << std::endl;
+    if (exist_gt == tagname)
+    {
+      found_gt = true;
+      break;
+    }
+  }
+  if (found_gt)
+  {
+  m_CachedGlobalTag = tagname;
+  resp = nopayloadclient::Client::setGlobalTag(tagname);
+  return resp;
+  }
+std::string message = "global tag " + tagname + " does not exist";
+    return {{"code", -1}, {"msg", message}};
 }
 
 int sphenixnpc::cache_set_GlobalTag(const std::string &tagname)
@@ -118,8 +164,13 @@ nlohmann::json sphenixnpc::clearCache()
   return nopayloadclient::Client::clearCache();
 }
 
-std::string sphenixnpc::getCalibrationFile(const std::string &type, uint64_t iov)
+std::string sphenixnpc::getUrl(const std::string &type, uint64_t iov)
 {
+  if (iov != m_CachedIOV)
+  {
+    clearCache();
+    m_CachedIOV = iov;
+  }
   nlohmann::json result = get(type, iov);
   std::string fullUrl = result.at("msg");
   if (fullUrl.find("Exception") != std::string::npos)
@@ -133,24 +184,24 @@ std::string sphenixnpc::getCalibrationFile(const std::string &type, uint64_t iov
   return fullUrl;
 }
 
-int sphenixnpc::insertcalib(const std::string &pl_type, const std::string &file_url, uint64_t iov_start)
+nlohmann::json sphenixnpc::insertPayload(const std::string &pl_type, const std::string &file_url, uint64_t iov_start)
 {
-  nlohmann::json ret = nopayloadclient::Client::insertPayload(pl_type, file_url, 0, iov_start);
+  nlohmann::json resp = nopayloadclient::Client::insertPayload(pl_type, file_url, 0, iov_start);
   if (Verbosity())
   {
-    std::cout << ret << std::endl;
+    std::cout << resp << std::endl;
   }
-  return 0;
+  return resp;
 }
 
-int sphenixnpc::insertcalib(const std::string &pl_type, const std::string &file_url, uint64_t iov_start, uint64_t iov_end)
+nlohmann::json sphenixnpc::insertPayload(const std::string &pl_type, const std::string &file_url, uint64_t iov_start, uint64_t iov_end)
 {
   nlohmann::json ret = nopayloadclient::Client::insertPayload(pl_type, file_url, 0, iov_start, 0, iov_end);
   if (Verbosity())
   {
     std::cout << ret << std::endl;
   }
-  return 0;
+  return ret;
 }
 
 int sphenixnpc::createDomain(const std::string &domain)
@@ -182,3 +233,13 @@ int sphenixnpc::createDomain(const std::string &domain)
   }
   return iret;
 }
+
+bool sphenixnpc::isGlobalTagSet()
+{
+  if (m_CachedGlobalTag.empty())
+  {
+    return false;
+  }
+  return true;
+}
+
