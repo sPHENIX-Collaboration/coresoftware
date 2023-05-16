@@ -12,9 +12,9 @@
 #include <Event/EventTypes.h>
 #include <Event/packet.h>
 
+#include <TMath.h>
 #include <TFile.h>
 #include <TTree.h>
-#include <TMath.h>
 
 #include <memory>
 #include <cassert>
@@ -27,20 +27,19 @@
 /*************************************************************/
 
 TPCPedestalCalibration::TPCPedestalCalibration(const std::string &name)
- :SubsysReco(name)
+ :SubsysReco("TPCPedestalCalibration")
  , m_fname(name)
 {
-  std::cout << "TPCPedestalCalibration::TPCPedestalCalibration(const std::string &name) Calling ctor" << std::endl;
   // reserve memory for max ADC samples
   m_adcSamples.resize(1024, 0);
 }
 
-int TPCPedestalCalibration::InitRun(PHCompositeNode *topNode)
+int TPCPedestalCalibration::InitRun(PHCompositeNode *)
 {
   m_file = TFile::Open(m_fname.c_str(), "recreate");
   assert(m_file->IsOpen());
  
-  TTree* m_pedestalTree=new TTree("pedestalTree","Each entry is one TPC Channel");
+  m_pedestalTree = new TTree("pedestalTree", "Each entry is one TPC Channel");
 
   m_pedestalTree->Branch("isAlive",&m_isAlive,"isAlive/I");
   m_pedestalTree->Branch("pedMean",&m_pedMean,"pedMean/F");
@@ -68,8 +67,6 @@ int TPCPedestalCalibration::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int TPCPedestalCalibration::process_event(PHCompositeNode *topNode)
 {
-  std::cout << "TPCPedestalCalibration::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
-
   Event *_event = findNode::getClass<Event>(topNode, "PRDF");
   if (_event == nullptr)
   {
@@ -90,15 +87,13 @@ int TPCPedestalCalibration::process_event(PHCompositeNode *topNode)
 
     m_packet = packet;
 
-    Packet *p = _event->getPacket(m_packet);
+    std::unique_ptr<Packet> p (_event->getPacket(m_packet));
     if (!p)
     {
       if (Verbosity())
       {
         std::cout << __PRETTY_FUNCTION__ << " : missing packet " << packet << std::endl;
       }
-
-      assert(p);
 
       continue;
     }

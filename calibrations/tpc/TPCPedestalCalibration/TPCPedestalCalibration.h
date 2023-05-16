@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef TPCPEDESTALCALIBRATION_H
-#define TPCPEDESTALCALIBRATION_H
+#ifndef TPCPedestalCalibration_H
+#define TPCPedestalCalibration_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -17,7 +17,7 @@ class TPCPedestalCalibration : public SubsysReco
  public:
   explicit TPCPedestalCalibration(const std::string &name = "TPCPedestalCalibration.root");
 
-  ~TPCPedestalCalibration() override {};
+  ~TPCPedestalCalibration() override {}
 
   int InitRun(PHCompositeNode *topNode) override;
 
@@ -66,4 +66,4 @@ class TPCPedestalCalibration : public SubsysReco
   int slot_arr[26] = {5,6,1,3,2,12,10,11,9,8,7,1,2,4,8,7,6,5,4,3,1,3,2,4,6,5};
 };
 
-#endif // TPCPEDESTALCALIBRATION_H
+#endif // TPCPedestalCalibration_H
