@@ -11,13 +11,24 @@ libcalo_io_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-libcalo_io_la_LIBADD = \
-  -lphool
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
+
+# List of shared libraries to produce
+if USE_ONLINE
+pkginclude_HEADERS = \
+  RawTowerDefs.h \
+  TowerInfoDefs.h
+
+libcalo_io_la_SOURCES = \
+  TowerInfoDefs.cc
+
+else
+
+libcalo_io_la_LIBADD = \
+  -lphool
 
 pkginclude_HEADERS = \
   RawClusterUtility.h \
@@ -113,7 +124,9 @@ libcalo_io_la_SOURCES = \
   RawTowerGeomContainerv1.cc \
   RawTowerGeomContainer_Cylinderv1.cc \
   TowerInfov1.cc \
+  TowerInfoDefs.cc \
   TowerInfoContainerv1.cc
+endif
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

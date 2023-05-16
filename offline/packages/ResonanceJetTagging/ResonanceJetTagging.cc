@@ -11,8 +11,8 @@
 #include <g4jets/Jetv1.h>
 
 /// Tracking includes
-#include <g4vertex/GlobalVertex.h>
-#include <g4vertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -732,12 +732,12 @@ void ResonanceJetTagging::findMCTaggedJets(PHCompositeNode *topNode)
           decayIDs.push_back((*it)->barcode());
         }
       //if not, look into GEANT
-      } 
+      }
       else
       {
         PHG4TruthInfoContainer::ConstRange range = m_truthinfo->GetParticleRange();
         for(PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
-        {  
+        {
           PHG4Particle* g4particle = iter->second;
           PHG4Particle* mother = nullptr;
           if (g4particle->get_parent_id() != 0) mother = m_truthinfo->GetParticle(g4particle->get_parent_id());
@@ -766,6 +766,10 @@ void ResonanceJetTagging::findMCTaggedJets(PHCompositeNode *topNode)
           continue;
         }
         if ((*p)->status() > 1)
+        {
+          continue;
+        }
+        if (std::abs((*p)->pdg_id()) == m_tag_pdg)
         {
           continue;
         }

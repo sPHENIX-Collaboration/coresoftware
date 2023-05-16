@@ -25,13 +25,16 @@
 #include <trackbase/ActsGeometry.h>
 #include <map>
 #include <climits>
+#include <iostream>
 
-class TrkrCluster;
+using std::ostream;
+
 class PHG4TpcCylinderGeom;
+class PHG4TpcCylinderGeomContainer;
+class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class TrkrTruthTrack;
-class PHG4TpcCylinderGeomContainer;
 class TrkrTruthTrackContainer;
 
 // This is the basic data for each set of TrkrHits from each TrkrHitsSet 
@@ -40,28 +43,34 @@ class TpcClusterBuilder {
   double square(double);
   double square(float);
 
-  TrkrClusterContainer*         m_clusterlist; // fill for output
-  ActsGeometry*                 m_tGeometry;   // used to generate clusters
-  PHG4TpcCylinderGeomContainer* geom_container;
+  TrkrClusterContainer*         m_clusterlist  { nullptr }; // fill for output
+  ActsGeometry*                 m_tGeometry    { nullptr }; // used to generate clusters
+  PHG4TpcCylinderGeomContainer* geom_container { nullptr };
 
   // internal containers to fill and consume hits and fill with tracks
   TrkrHitSetContainer* m_hits        { new TrkrHitSetContainerv1() };
-  TrkrTruthTrack*      current_track { nullptr };
+  /* TrkrTruthTrack*      current_track { nullptr }; */
   std::map<TrkrDefs::hitsetkey,unsigned int> hitsetkey_cnt {};
 
-  int n_tracks {0};
+  public:
+  private:
 
+  int n_tracks {0};
   int verbosity {0};
 
   public:
-  TpcClusterBuilder( 
-      TrkrClusterContainer*         _truth_cluster_container
-    , ActsGeometry*                 _ActsGeometry
-    , PHG4TpcCylinderGeomContainer* _geom_container
-  );
+  TpcClusterBuilder( ) { };
+      /* TrkrClusterContainer*         _truth_cluster_container */
+    /* , ActsGeometry*                 _ActsGeometry */
+    /* , PHG4TpcCylinderGeomContainer* _geom_container */
+  /* ); */
 
-  bool is_embedded_track {false};
-  void cluster_and_reset (bool clear_hitsetkey_cnt);
+  void fixme_check();
+  void fixme_short_check();
+
+  bool b_collect_hits { false };
+  /* bool is_embedded_track {false}; */
+  void cluster_hits (TrkrTruthTrack* track);
   void addhitset (TrkrDefs::hitsetkey, TrkrDefs::hitkey, float neffelectrons);
   void set_current_track (TrkrTruthTrack* _trkrtruthtrack);
   void print(TrkrTruthTrackContainer*, int nclusprint=-1);
@@ -84,7 +93,19 @@ class TpcClusterBuilder {
   // From Tony Frawley July 5, 2022
   double m_sampa_tbias = 39.6;  // ns
 
-  void reset(bool clear_hitsetkey_cnt);
+
+  // for pixel thresholds
+  private:
+  double m_pixel_thresholdrat { 0.01 };
+  public:
+  void clear_hitsetkey_cnt();
+  void set_pixel_thresholdrat (double val) { m_pixel_thresholdrat = val; };
+  bool needs_input_nodes = true;
+  void set_input_nodes( 
+      TrkrClusterContainer* _truth_cluster_container
+    , ActsGeometry*                 _ActsGeometry
+    , PHG4TpcCylinderGeomContainer* _geom_container
+  );
 };
 
 #endif  //TRACKBASE_PADPLANEREADOUTSTRUCT_H

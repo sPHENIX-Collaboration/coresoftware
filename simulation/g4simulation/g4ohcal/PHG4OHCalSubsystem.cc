@@ -9,7 +9,7 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>   // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
@@ -21,9 +21,9 @@
 #include <phool/getClass.h>
 
 #include <cmath>     // for NAN
+#include <cstdlib>   // for getenv
 #include <iostream>  // for operator<<, basic_ostream
 #include <set>       // for set
-#include <cstdlib> // for getenv
 class PHG4Detector;
 
 //_______________________________________________________________________
@@ -48,12 +48,11 @@ int PHG4OHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   // create display settings before detector
   m_DisplayAction = new PHG4OHCalDisplayAction(Name());
 
-  if (get_string_param("IronFieldMapPath") == "DefaultParameters-InvadPath" )
+  if (get_string_param("IronFieldMapPath") == "DefaultParameters-InvadPath")
   {
-    std::cout <<__PRETTY_FUNCTION__<<": invalid string parameter IronFieldMapPath, where we expect a 3D field map"<<std::endl;
-    exit (1);
+    std::cout << __PRETTY_FUNCTION__ << ": invalid string parameter IronFieldMapPath, where we expect a 3D field map" << std::endl;
+    exit(1);
   }
-
 
   // create detector
   m_Detector = new PHG4OHCalDetector(this, topNode, GetParams(), Name());
@@ -99,7 +98,7 @@ int PHG4OHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
     // create stepping action
     m_SteppingAction = new PHG4OHCalSteppingAction(m_Detector, GetParams());
-    m_SteppingAction->Init();
+    m_SteppingAction->InitWithNode(topNode);
     m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
     m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
   }
@@ -108,7 +107,7 @@ int PHG4OHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     if (GetParams()->get_int_param("blackhole"))
     {
       m_SteppingAction = new PHG4OHCalSteppingAction(m_Detector, GetParams());
-      m_SteppingAction->Init();
+      m_SteppingAction->InitWithNode(topNode);
     }
   }
 
@@ -155,12 +154,15 @@ void PHG4OHCalSubsystem::SetLightCorrection(const double inner_radius, const dou
 
 void PHG4OHCalSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("inner_radius", 182.423  - 5);
+  set_default_double_param("inner_radius", 182.423 - 5);
   set_default_double_param("light_balance_inner_corr", NAN);
   set_default_double_param("light_balance_inner_radius", NAN);
   set_default_double_param("light_balance_outer_corr", NAN);
   set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param("outer_radius", 269.317  + 5 );
+  set_default_double_param("phistart", NAN);
+  set_default_double_param("scinti_eta_coverage_neg", 1.1);
+  set_default_double_param("scinti_eta_coverage_pos", 1.1);
+  set_default_double_param("outer_radius", 269.317 + 5);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
@@ -169,30 +171,34 @@ void PHG4OHCalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_z", 0.);
   set_default_double_param("size_z", 639.240 + 10);
   set_default_double_param("Birk_const", 0.07943);
+  set_default_double_param("tmin", -20.);
+  set_default_double_param("tmax", 60.);
+  set_default_double_param("dt", 100.);
   set_default_int_param("field_check", 0);
   set_default_int_param("light_scint_model", 1);
 
   set_default_int_param("n_towers", 64);
   set_default_int_param(PHG4HcalDefs::scipertwr, 5);
   set_default_int_param("n_scinti_tiles", 12);
+  set_default_int_param("etabins", 24);
+  set_default_int_param("saveg4hit", 1);
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
   std::string defaultmapfilename;
-  const char* Calibroot = getenv("CALIBRATIONROOT");
+  const char *Calibroot = getenv("CALIBRATIONROOT");
   if (Calibroot)
-   {
-     defaultmapfilename = Calibroot;
-     defaultmapfilename += "/HCALOUT/tilemap/ohcalgdmlmapfiles102022.root";
-   }
+  {
+    defaultmapfilename = Calibroot;
+    defaultmapfilename += "/HCALOUT/tilemap/ohcalgdmlmapfiles102022.root";
+  }
   set_default_string_param("MapFileName", defaultmapfilename);
   set_default_string_param("MapHistoName", "ohcal_mephi_map_towerid_");
-  
+
   if (!Calibroot)
   {
-    std::cout<<__PRETTY_FUNCTION__ << ": no CALIBRATIONROOT environment variable" << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << ": no CALIBRATIONROOT environment variable" << std::endl;
     exit(1);
   }
-  set_default_string_param("IronFieldMapPath", std::string(Calibroot) + "/Field/Map/sphenix3dbigmapxyz_steel_rebuild.root" );
+  set_default_string_param("IronFieldMapPath", std::string(Calibroot) + "/Field/Map/sphenix3dbigmapxyz_steel_rebuild.root");
   set_default_double_param("IronFieldMapScale", 1.);
-  
 }

@@ -7,6 +7,15 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
   libtrack_io.la
 
+if USE_ONLINE
+pkginclude_HEADERS = \
+  TrkrDefs.h
+
+libtrack_io_la_SOURCES = \
+  TrkrDefs.cc
+
+else
+
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
@@ -18,6 +27,7 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib64
 
+
 pkginclude_HEADERS = \
   ActsAborter.h \
   ActsGeometry.h \
@@ -26,11 +36,14 @@ pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
   ActsTrackFittingAlgorithm.h \
   ActsTrackingGeometry.h \
+  alignmentTransformationContainer.h \
   AlignmentTransformation.h \
   CMFlashCluster.h \
   CMFlashClusterContainer.h \
   CMFlashClusterContainerv1.h \
   CMFlashClusterv1.h \
+  CMFlashClusterv2.h \
+  CMFlashClusterv3.h \
   CMFlashDifference.h \
   CMFlashDifferenceContainer.h \
   CMFlashDifferenceContainerv1.h \
@@ -48,6 +61,7 @@ pkginclude_HEADERS = \
   RawHitv1.h \
   ResidualOutlierFinder.h \
   SpacePoint.h \
+  sPHENIXActsDetectorElement.h \
   TpcDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
@@ -80,15 +94,17 @@ pkginclude_HEADERS = \
   TrkrHitTruthAssoc.h \
   TrkrHitTruthAssocv1.h \
   TrkrHitv1.h \
-  TrkrHitv2.h \
-  alignmentTransformationContainer.h \
-  sPHENIXActsDetectorElement.h
+  TrkrHitv2.h
+
 
 ROOTDICTS = \
+  alignmentTransformationContainer_Dict.cc \
   CMFlashClusterContainer_Dict.cc \
   CMFlashClusterContainerv1_Dict.cc \
   CMFlashCluster_Dict.cc \
   CMFlashClusterv1_Dict.cc \
+  CMFlashClusterv2_Dict.cc \
+  CMFlashClusterv3_Dict.cc \
   CMFlashDifferenceContainer_Dict.cc \
   CMFlashDifferenceContainerv1_Dict.cc \
   CMFlashDifference_Dict.cc \
@@ -129,17 +145,18 @@ ROOTDICTS = \
   TrkrHitTruthAssocv1_Dict.cc \
   TrkrHit_Dict.cc \
   TrkrHitv1_Dict.cc \
-  TrkrHitv2_Dict.cc \
-  alignmentTransformationContainer_Dict.cc \
-  sPHENIXActsDetectorElement.cc
+  TrkrHitv2_Dict.cc
 
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  alignmentTransformationContainer_Dict_rdict.pcm \
   CMFlashClusterContainer_Dict_rdict.pcm \
   CMFlashClusterContainerv1_Dict_rdict.pcm \
   CMFlashCluster_Dict_rdict.pcm \
   CMFlashClusterv1_Dict_rdict.pcm \
+  CMFlashClusterv2_Dict_rdict.pcm \
+  CMFlashClusterv3_Dict_rdict.pcm \
   CMFlashDifferenceContainer_Dict_rdict.pcm \
   CMFlashDifferenceContainerv1_Dict_rdict.pcm \
   CMFlashDifference_Dict_rdict.pcm \
@@ -180,17 +197,19 @@ nobase_dist_pcm_DATA = \
   TrkrHitTruthAssocv1_Dict_rdict.pcm \
   TrkrHit_Dict_rdict.pcm \
   TrkrHitv1_Dict_rdict.pcm \
-  TrkrHitv2_Dict_rdict.pcm \
-  alignmentTransformationContainer_Dict_rdict.pcm
+  TrkrHitv2_Dict_rdict.pcm
 
 # sources for io library
 libtrack_io_la_SOURCES = \
   $(ROOTDICTS) \
   ActsGeometry.cc \
   ActsSurfaceMaps.cc \
+  alignmentTransformationContainer.cc \
   AlignmentTransformation.cc \
   CMFlashClusterContainerv1.cc \
   CMFlashClusterv1.cc \
+  CMFlashClusterv2.cc \
+  CMFlashClusterv3.cc \
   CMFlashDifferenceContainerv1.cc \
   CMFlashDifferencev1.cc \
   ClusterErrorPara.cc \
@@ -202,6 +221,7 @@ libtrack_io_la_SOURCES = \
   RawHitSetv1.cc \
   RawHitTpc.cc \
   RawHitv1.cc \
+  sPHENIXActsDetectorElement.cc \
   TpcDefs.cc \
   TpcSeedTrackMap.cc \
   TpcSeedTrackMapv1.cc \
@@ -233,16 +253,16 @@ libtrack_io_la_SOURCES = \
   TrkrHitSetv1.cc \
   TrkrHitTruthAssocv1.cc \
   TrkrHitv1.cc \
-  TrkrHitv2.cc \
-  alignmentTransformationContainer.cc
+  TrkrHitv2.cc
 
 libtrack_io_la_LIBADD = \
   -lphool \
   -lActsCore \
   -lActsPluginTGeo \
   -lffamodules \
-	-lphg4hit 
+  -lphg4hit
 
+endif
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

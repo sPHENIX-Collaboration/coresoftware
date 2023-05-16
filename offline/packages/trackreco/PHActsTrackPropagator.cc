@@ -72,7 +72,7 @@ void PHActsTrackPropagator::addTrackState(
     BoundTrackParamResult &result,
     SvtxTrack *svtxTrack)
 {
-  float pathlength = result.value().first;
+  float pathlength = result.value().first / Acts::UnitConstants::cm;
   auto params = result.value().second;
 
   SvtxTrackState_v1 out(pathlength);

@@ -24,7 +24,13 @@ class CaloWaveformFitting
     return;
   }
 
-  int get_nthreads()
+  void set_softwarezerosuppression(bool usezerosuppression,int softwarezerosuppression)
+  {
+    _nsoftwarezerosuppression = softwarezerosuppression;
+    _bdosoftwarezerosuppression = usezerosuppression;
+  }
+
+  int get_nthreads() 
   {
     return _nthreads;
   }
@@ -37,9 +43,12 @@ class CaloWaveformFitting
 
  private:
   void FastMax(float x0, float x1, float x2, float y0, float y1, float y2, float &xmax, float &ymax);
-  static TProfile *h_template;
-  static double template_function(double *x, double *par);
+  TProfile *h_template = nullptr;
+  double template_function(double *x, double *par);
   int _nthreads = 1;
+  int _nzerosuppresssamples = 2;
+  int _nsoftwarezerosuppression = 40;
+  bool _bdosoftwarezerosuppression = false;
   std::string m_template_input_file;
   std::string url_template;
 

@@ -62,6 +62,10 @@ class PHG4EPDModuleReco : public SubsysReco, public PHParameterInterface
  private:
   int Getrmap(int rindex);
   int Getphimap(int phiindex);
+  float GetTilePhi(int thisphi);
+  float GetTilePhi0(int thisphi0);
+  float GetTileR(int thisr);
+  float GetTileZ(int thisz);
   void CreateNodes(PHCompositeNode *topNode);
 
   std::string m_Detector;

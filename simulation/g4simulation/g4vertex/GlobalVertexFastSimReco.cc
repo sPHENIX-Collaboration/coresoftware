@@ -1,40 +1,34 @@
 #include "GlobalVertexFastSimReco.h"
 
-#include "GlobalVertexMap.h"                // for GlobalVertexMap
-#include "GlobalVertexMapv1.h"
-#include "GlobalVertex.h"                   // for GlobalVertex
-#include "GlobalVertexv1.h"
+#include <globalvertex/GlobalVertex.h>     // for GlobalVertex
+#include <globalvertex/GlobalVertexMap.h>  // for GlobalVertexMap
+#include <globalvertex/GlobalVertexMapv1.h>
+#include <globalvertex/GlobalVertexv1.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>             // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                   // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                 // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
-#include <phool/phool.h>                    // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>                    // for gsl_rng_alloc, gsl_rng_free
+#include <gsl/gsl_rng.h>  // for gsl_rng_alloc, gsl_rng_free
 
 #include <cmath>
-#include <cstdlib>                         // for exit
+#include <cstdlib>  // for exit
 #include <iostream>
 
-using namespace std;
-
-GlobalVertexFastSimReco::GlobalVertexFastSimReco(const string &name)
+GlobalVertexFastSimReco::GlobalVertexFastSimReco(const std::string &name)
   : SubsysReco(name)
-  , _x_smear(NAN)
-  , _y_smear(NAN)
-  , _z_smear(NAN)
-  , _t_smear(NAN)
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
 }
@@ -44,11 +38,6 @@ GlobalVertexFastSimReco::~GlobalVertexFastSimReco()
   gsl_rng_free(RandomGenerator);
 }
 
-int GlobalVertexFastSimReco::Init(PHCompositeNode */*topNode*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 {
   if (isnan(_x_smear) ||
@@ -56,7 +45,7 @@ int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode)
       isnan(_z_smear) ||
       isnan(_t_smear))
   {
-    cout << PHWHERE << "::ERROR - smearing must be defined for (x,y,z,t) via set_?_smearing(float)" << endl;
+    std::cout << PHWHERE << "::ERROR - smearing must be defined for (x,y,z,t) via set_?_smearing(float)" << std::endl;
     exit(-1);
   }
 
@@ -65,13 +54,13 @@ int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "=================== GlobalVertexFastSimReco::InitRun() ====================" << endl;
-    cout << " x smearing: " << _x_smear << " cm " << endl;
-    cout << " y smearing: " << _y_smear << " cm " << endl;
-    cout << " z smearing: " << _z_smear << " cm " << endl;
-    cout << " t smearing: " << _t_smear << " cm " << endl;
-    cout << " random seed: " << seed << endl;
-    cout << "===========================================================================" << endl;
+    std::cout << "=================== GlobalVertexFastSimReco::InitRun() ====================" << std::endl;
+    std::cout << " x smearing: " << _x_smear << " cm " << std::endl;
+    std::cout << " y smearing: " << _y_smear << " cm " << std::endl;
+    std::cout << " z smearing: " << _z_smear << " cm " << std::endl;
+    std::cout << " t smearing: " << _t_smear << " cm " << std::endl;
+    std::cout << " random seed: " << seed << std::endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   return CreateNodes(topNode);
@@ -79,7 +68,10 @@ int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 
 int GlobalVertexFastSimReco::process_event(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 1) cout << "GlobalVertexFastSimReco::process_event -- entered" << endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "GlobalVertexFastSimReco::process_event -- entered" << std::endl;
+  }
 
   //---------------------------------
   // Get Objects off of the Node Tree
@@ -87,14 +79,14 @@ int GlobalVertexFastSimReco::process_event(PHCompositeNode *topNode)
   PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!truthinfo)
   {
-    cout << PHWHERE << "::ERROR - cannot find G4TruthInfo" << endl;
+    std::cout << PHWHERE << "::ERROR - cannot find G4TruthInfo" << std::endl;
     exit(-1);
   }
 
   GlobalVertexMap *vertexes = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexes)
   {
-    cout << PHWHERE << "::ERROR - cannot find GlobalVertexMap" << endl;
+    std::cout << PHWHERE << "::ERROR - cannot find GlobalVertexMap" << std::endl;
     exit(-1);
   }
 
@@ -104,7 +96,22 @@ int GlobalVertexFastSimReco::process_event(PHCompositeNode *topNode)
 
   PHG4VtxPoint *point = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
 
-  GlobalVertex *vertex = new GlobalVertexv1();
+  GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::TRUTH);
+  vertex->set_x(point->get_x());
+  vertex->set_y(point->get_y());
+  vertex->set_z(point->get_z());
+  vertex->set_t(point->get_t());
+  vertex->set_t_err(0.);
+  for (int i = 0; i < 3; i++)
+  {
+    for (int j = 0; j < 3; j++)
+    {
+      vertex->set_error(i, j, 0.0);
+    }
+  }
+  vertexes->insert(vertex);
+
+  vertex = new GlobalVertexv1(GlobalVertex::SMEARED);
 
   vertex->set_x(point->get_x() + gsl_ran_gaussian(RandomGenerator, _x_smear));
   vertex->set_y(point->get_y() + gsl_ran_gaussian(RandomGenerator, _y_smear));
@@ -130,11 +137,6 @@ int GlobalVertexFastSimReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int GlobalVertexFastSimReco::End(PHCompositeNode */*topNode*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int GlobalVertexFastSimReco::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
@@ -143,7 +145,7 @@ int GlobalVertexFastSimReco::CreateNodes(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -165,7 +167,7 @@ int GlobalVertexFastSimReco::CreateNodes(PHCompositeNode *topNode)
   }
   else
   {
-    cout << PHWHERE << "::ERROR - GlobalVertexMap pre-exists, but should not if running FastSim" << endl;
+    std::cout << PHWHERE << "::ERROR - GlobalVertexMap pre-exists, but should not if running FastSim" << std::endl;
     exit(-1);
   }
 

@@ -8,11 +8,21 @@
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/ActsTransformations.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
+
+ActsPropagator::SurfacePtr
+ActsPropagator::makeVertexSurface(const SvtxVertex* vertex)
+{
+  return Acts::Surface::makeShared<Acts::PerigeeSurface>(
+     Acts::Vector3(vertex->get_x() * Acts::UnitConstants::cm,
+		   vertex->get_y() * Acts::UnitConstants::cm,
+		   vertex->get_z() * Acts::UnitConstants::cm));
+}
 
 ActsPropagator::BoundTrackParam
 ActsPropagator::makeTrackParams(SvtxTrack* track,
@@ -69,7 +79,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto propagator = makePropagator();
 
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
   if (m_verbosity > 3)
   {
     logLevel = Acts::Logging::VERBOSE;
@@ -93,7 +103,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
   if (result.ok())
   {
     auto finalparams = *result.value().endParameters;
-    auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
+    auto pathlength = result.value().pathLength;
     auto pair = std::make_pair(pathlength, finalparams);
 
     return Acts::Result<BoundTrackParamPair>::success(pair);
@@ -113,7 +123,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto propagator = makePropagator();
 
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
   if (m_verbosity > 3)
   {
     logLevel = Acts::Logging::VERBOSE;
@@ -132,7 +142,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
   if (result.ok())
   {
     auto finalparams = *result.value().endParameters;
-    auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
+    auto pathlength = result.value().pathLength;
     auto pair = std::make_pair(pathlength, finalparams);
 
     return Acts::Result<BoundTrackParamPair>::success(pair);
@@ -152,7 +162,7 @@ ActsPropagator::propagateTrackFast(const Acts::BoundTrackParameters& params,
 
   auto propagator = makeFastPropagator();
 
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
   if (m_verbosity > 3)
   {
     logLevel = Acts::Logging::VERBOSE;
@@ -171,7 +181,7 @@ ActsPropagator::propagateTrackFast(const Acts::BoundTrackParameters& params,
   if (result.ok())
   {
     auto finalparams = *result.value().endParameters;
-    auto pathlength = result.value().pathLength / Acts::UnitConstants::cm;
+    auto pathlength = result.value().pathLength;
     auto pair = std::make_pair(pathlength, finalparams);
 
     return Acts::Result<BoundTrackParamPair>::success(pair);

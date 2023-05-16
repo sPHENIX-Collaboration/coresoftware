@@ -31,7 +31,7 @@
 #include <phfield/PHFieldConfigv2.h>
 #include <phfield/PHFieldUtility.h>
 
-#include <ffamodules/XploadInterface.h>
+#include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -290,7 +290,7 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
   if (m_FieldMapFile == "CDB")
   {
     // loading from database
-    std::string url = XploadInterface::instance()->getUrl("FIELDMAPBIG", m_FieldMapFile);
+    std::string url = CDBInterface::instance()->getUrl("FIELDMAPBIG", m_FieldMapFile);
     default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, url, m_MagneticFieldRescale));
   }
   else if (m_FieldMapFile != "NONE")

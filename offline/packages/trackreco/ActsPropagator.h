@@ -23,12 +23,14 @@
 #include <trackbase/ActsGeometry.h>
 
 class SvtxTrack;
+class SvtxVertex;
 class SvtxVertexMap;
 
 class ActsPropagator
 {
  public:
   using BoundTrackParam = const Acts::BoundTrackParameters;
+  /// Return type of std::pair<path length, parameters>
   using BoundTrackParamPair = std::pair<float, BoundTrackParam>;
   using BoundTrackParamResult = Acts::Result<BoundTrackParamPair>;
   using SurfacePtr = std::shared_ptr<const Acts::Surface>;
@@ -43,14 +45,20 @@ class ActsPropagator
   }
   ~ActsPropagator() {}
 
+  /// Helper functions for creating needed input for track propagation
+  /// functions below
+  SurfacePtr makeVertexSurface(const SvtxVertex* vertex);
   BoundTrackParam makeTrackParams(SvtxTrack* track, SvtxVertexMap* vertexMap);
 
+  /// The return type is an Acts::Result of a std::pair, where the pair is
+  /// a path length and the track parameters at the surface in units of mm 
+  /// and GeV. For an example of how to unpack this, see 
+  /// PHActsTrackProjection::propagateTrack and 
+  /// PHActsTrackProjection::updateSvtxTrack
   BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params,
                                        const unsigned int sphenixLayer);
-
   BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params,
                                        const SurfacePtr& surface);
-
   /// The following function takes the track parameters at the vertex and
   /// propagates them in isolation to the requested surface, i.e. it does
   /// NOT stop at each layer in the sPHENIX detector on the way to the
