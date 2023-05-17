@@ -88,8 +88,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
   std::set<unsigned int> used_svtx_vtxids;
   std::set<unsigned int> used_bbc_vtxids;
-  int global_vertex_id = 0;
-
+ 
   if (svtxmap && bbcmap)
   {
     if (Verbosity())
@@ -126,7 +125,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
 
       // we have a matching pair
-      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::SVTX_BBC);
+      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::VTXTYPE::SVTX_BBC);
 
       for (unsigned int i = 0; i < 3; ++i)
       {
@@ -147,7 +146,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       used_svtx_vtxids.insert(svtx->get_id());
       vertex->insert_vtxids(GlobalVertex::BBC, bbc_best->get_id());
       used_bbc_vtxids.insert(bbc_best->get_id());
-      vertex->set_id(global_vertex_id);
+      vertex->set_id(globalmap->size());
 
       globalmap->insert(vertex);
 
@@ -161,7 +160,6 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
           track->set_vertex_id(vertex->get_id());
         }
       }
-      global_vertex_id++;
 
       if (Verbosity() > 1)
       {
@@ -194,10 +192,9 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
 
       // we have a standalone SVTX vertex
-      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::SVTX);
+      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::VTXTYPE::SVTX);
 
-      vertex->set_id(global_vertex_id);
-      global_vertex_id++;
+      vertex->set_id(globalmap->size());
 
       for (unsigned int i = 0; i < 3; ++i)
       {
@@ -232,7 +229,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
     }
   }
-
+ 
   // okay now loop over all unused BBC vertexes (3rd class)...
   if (bbcmap)
   {
@@ -256,9 +253,8 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         continue;
       }
 
-      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::UNDEFINED);
-      vertex->set_id(global_vertex_id);
-      global_vertex_id++;
+      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::VTXTYPE::BBC);
+      vertex->set_id(globalmap->size());
 
       // nominal beam location
       // could be replaced with a beam spot some day
@@ -292,7 +288,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
     }
   }
-
+ 
   /// Associate any tracks that were not assigned a track-vertex
   if (trackmap)
   {
