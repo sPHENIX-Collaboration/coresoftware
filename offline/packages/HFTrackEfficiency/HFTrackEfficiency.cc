@@ -264,6 +264,9 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
 
   selectedTracks.clear();
 
+  delete motherTrueLV;
+  delete daughterTrueLV;
+
   return foundDecay;
 }
 
