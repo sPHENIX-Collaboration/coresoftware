@@ -38,6 +38,7 @@ libg4detectors_la_LIBADD = \
   -lgmp \
   -lphg4gdml \
   -lphool  \
+  -lcalo_io \
   -lSubsysReco
 
 pkginclude_HEADERS = \
