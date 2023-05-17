@@ -126,7 +126,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
 
       // we have a matching pair
-      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::SVTX_BBC);
+      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::VTXTYPE::SVTX_BBC);
 
       for (unsigned int i = 0; i < 3; ++i)
       {
@@ -194,7 +194,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
 
       // we have a standalone SVTX vertex
-      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::SVTX);
+      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::VTXTYPE::SVTX);
 
       vertex->set_id(global_vertex_id);
       global_vertex_id++;
@@ -256,7 +256,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         continue;
       }
 
-      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::UNDEFINED);
+      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::VTXTYPE::BBC);
       vertex->set_id(global_vertex_id);
       global_vertex_id++;
 
