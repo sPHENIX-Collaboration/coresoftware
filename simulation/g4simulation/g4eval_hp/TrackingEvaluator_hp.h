@@ -665,7 +665,6 @@ class TrackingEvaluator_hp : public SubsysReco
   /// cluster version
   int m_cluster_version = 4;
   
-
 };
 
 #endif  // G4EVAL_TRACKINGEVALUATOR_HP_H
