@@ -138,14 +138,13 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       g4_hits->AddLayer(GetLayer());
     }
 
-    steppingAction_ = new PHG4SpacalSteppingAction(detector_);
-    steppingAction_->set_int_param("saveg4hit", GetParams()->get_int_param("saveg4hit"));
+    steppingAction_ = new PHG4SpacalSteppingAction(detector_, GetParams());
+    steppingAction_->InitWithNode(topNode);
     steppingAction_->get_light_collection_model().load_data_file(
         std::string(getenv("CALIBRATIONROOT")) + std::string("/CEMC/LightCollection/Prototype3Module.xml"),
         "data_grid_light_guide_efficiency", "data_grid_fiber_trans");
     steppingAction_->SetHitNodeName("G4HIT", m_HitNodeName);
     steppingAction_->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
-    steppingAction_->InitWithNode(topNode);
   }
   return 0;
 }
@@ -157,6 +156,7 @@ int PHG4SpacalSubsystem::process_event(PHCompositeNode* topNode)
   // relevant nodes needed internally
   if (steppingAction_)
   {
+    
     steppingAction_->SetInterfacePointers(topNode);
   }
   return 0;
@@ -185,6 +185,9 @@ void PHG4SpacalSubsystem::SetDefaultParameters()
   set_default_double_param("radius", 90.);
   set_default_double_param("zmin", -149.470000);
   set_default_double_param("zmax", 149.470000);
+  set_default_double_param("tmin", -20.);
+  set_default_double_param("tmax", 60.);
+  set_default_double_param("dt", 100.);
   set_default_int_param("azimuthal_n_sec", 256);
 
   set_default_int_param("construction_verbose", 0.);

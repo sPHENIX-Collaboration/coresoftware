@@ -35,7 +35,7 @@ class PHG4SpacalSteppingAction : public PHG4SteppingAction, public PHParameterIn
 {
  public:
   //! ctor
-  explicit PHG4SpacalSteppingAction(PHG4SpacalDetector *);
+  explicit PHG4SpacalSteppingAction(PHG4SpacalDetector *, const PHParameters *parameters);
 
   //! dtor
   ~PHG4SpacalSteppingAction() override;
@@ -56,6 +56,8 @@ class PHG4SpacalSteppingAction : public PHG4SteppingAction, public PHParameterIn
 
   void SetDefaultParameters() override;
 
+  int SetUpGeomNode(PHCompositeNode *topNode);
+
   LightCollectionModel &get_light_collection_model() { return light_collection_model; }
 
  private:
@@ -73,6 +75,7 @@ class PHG4SpacalSteppingAction : public PHG4SteppingAction, public PHParameterIn
   int m_SaveTrackid = -1;
   int m_SavePostStepStatus = -1;
   bool m_doG4Hit = true;
+  bool m_geomsetup = false;
   double m_tmin = -20.;
   double m_tmax = 60.;
   double m_dt = 100.;

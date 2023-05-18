@@ -71,10 +71,15 @@ class G4VPhysicalVolume;
 class PHCompositeNode;
 
 //____________________________________________________________________________..
-PHG4SpacalSteppingAction::PHG4SpacalSteppingAction(PHG4SpacalDetector *indetector)
+PHG4SpacalSteppingAction::PHG4SpacalSteppingAction(PHG4SpacalDetector *indetector, const PHParameters *parameters)
   : PHG4SteppingAction(indetector->GetName())
   , PHParameterInterface(indetector->GetName())
   , m_Detector(indetector)
+  , m_Params(parameters)
+  , m_doG4Hit(m_Params->get_int_param("saveg4hit"))
+  , m_tmin(m_Params->get_double_param("tmin"))
+  , m_tmax(m_Params->get_double_param("tmax"))
+  , m_dt(m_Params->get_double_param("dt"))
 {
 }
 
@@ -89,11 +94,37 @@ PHG4SpacalSteppingAction::~PHG4SpacalSteppingAction()
 
 int PHG4SpacalSteppingAction::InitWithNode(PHCompositeNode *topNode)
 {
-  UpdateParametersWithMacro();
-  m_doG4Hit = get_int_param("saveg4hit");
-  m_tmin = get_double_param("tmin");
-  m_tmax = get_double_param("tmax");
-  m_dt = get_double_param("dt");
+  if (m_doG4Hit) return 0;
+  PHNodeIterator iter(topNode);
+  detector = m_Detector->SuperDetector();
+  // Looking for the DST node
+  PHCompositeNode *dstNode;
+  dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+  {
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+    exit(1);
+  }
+
+  // add towerinfo here
+  PHNodeIterator dstiter(dstNode);
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", detector));
+  if (!DetNode)
+  {
+    DetNode = new PHCompositeNode(detector);
+    dstNode->addNode(DetNode);
+  }
+  m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::EMCAL);
+  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERINFO_SIM_" + detector, "PHObject");
+  DetNode->addNode(towerNode);
+
+  return 0;
+}
+
+int PHG4SpacalSteppingAction::SetUpGeomNode(PHCompositeNode *topNode)
+{
+  if(m_geomsetup) return 0;
+
   if (m_doG4Hit) return 0;
   PHNodeIterator iter(topNode);
   detector = m_Detector->SuperDetector();
@@ -266,7 +297,6 @@ int PHG4SpacalSteppingAction::InitWithNode(PHCompositeNode *topNode)
 
   // add geo object filled by different binning methods
   seggeo->AddLayerCellGeom(layerseggeo);
-
   // save this to the run wise tree to store on DST
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
@@ -314,21 +344,12 @@ int PHG4SpacalSteppingAction::InitWithNode(PHCompositeNode *topNode)
   // a special implimentation of PHG4CylinderGeom is required here.
   _layergeom = dynamic_cast<const PHG4CylinderGeom_Spacalv3 *>(_layergeom_raw);
   assert(_layergeom);
-
-  // add towerinfo here
-  PHNodeIterator dstiter(dstNode);
-  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", detector));
-  if (!DetNode)
-  {
-    DetNode = new PHCompositeNode(detector);
-    dstNode->addNode(DetNode);
-  }
-  m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::EMCAL);
-  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERINFO_SIM_" + detector, "PHObject");
-  DetNode->addNode(towerNode);
-
+  m_geomsetup = true;
   return 0;
 }
+
+
+
 
 bool PHG4SpacalSteppingAction::NoHitSteppingAction(const G4Step *aStep)
 {
@@ -422,6 +443,7 @@ bool PHG4SpacalSteppingAction::NoHitSteppingAction(const G4Step *aStep)
 
     // get light yield
     double light_yield = GetVisibleEnergyDeposition(aStep);
+    
     if (light_collection_model.use_fiber_model())
     {
       const G4TouchableHandle &theTouchable0 = prePoint->GetTouchableHandle();
@@ -439,6 +461,8 @@ bool PHG4SpacalSteppingAction::NoHitSteppingAction(const G4Step *aStep)
 
       light_yield *= light_collection_model.get_fiber_transmission(z);
     }
+    
+
     // light yield correction from light guide collection efficiency:
     if (light_collection_model.use_fiber_model())
     {
@@ -759,6 +783,11 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step *aStep, bool)
 //____________________________________________________________________________..
 void PHG4SpacalSteppingAction::SetInterfacePointers(PHCompositeNode *topNode)
 {
+  //we can only play with the geometry node after ConstructMe is called
+  if(!m_geomsetup)
+  {
+    SetUpGeomNode(topNode);
+  }
   m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_AbsorberNodeName);
   // if we do not find the node it's messed up.
@@ -772,7 +801,7 @@ void PHG4SpacalSteppingAction::SetInterfacePointers(PHCompositeNode *topNode)
   {
     if (Verbosity() > 0)
     {
-      std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << std::endl;
+      std::cout << "PHG4SpacalSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << std::endl;
     }
   }
 }

@@ -20,6 +20,7 @@ class PHCompositeNode;
 class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4SpacalDetector;
+class PHG4SpacalSteppingAction;
 
 class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
 {

@@ -93,6 +93,7 @@ pkginclude_HEADERS = \
   PHG4SectorConstructor.h \
   PHG4SectorSubsystem.h \
   PHG4SpacalSubsystem.h \
+  PHG4SpacalSteppingAction.h \
   PHG4StepStatusDecode.h \
   PHG4TpcCylinderGeom.h \
   PHG4TpcCylinderGeomContainer.h \
