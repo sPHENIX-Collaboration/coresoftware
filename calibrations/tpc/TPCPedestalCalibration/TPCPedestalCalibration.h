@@ -32,6 +32,11 @@ class TPCPedestalCalibration : public SubsysReco
     m_packets.push_back(packet);
   }
 
+  void SetSector(int sectorNum)
+  {
+    m_sector = sectorNum;
+  }
+ 
  protected:
   //! which packet to decode
   std::vector<int> m_packets{1001};
