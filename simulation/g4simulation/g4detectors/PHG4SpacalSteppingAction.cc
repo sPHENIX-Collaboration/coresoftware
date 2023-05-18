@@ -10,6 +10,19 @@
 #include "PHG4CylinderGeom_Spacalv3.h"
 #include "PHG4SpacalDetector.h"
 
+#include "PHG4CellDefs.h"
+#include "PHG4CylinderCellGeom.h"
+#include "PHG4CylinderCellGeomContainer.h"
+#include "PHG4CylinderCellGeom_Spacalv1.h"
+#include "PHG4CylinderGeom.h"           // for PHG4CylinderGeom
+#include "PHG4CylinderGeomContainer.h"
+#include "PHG4CylinderGeom_Spacalv1.h"  // for PHG4CylinderGeom_Spaca...
+
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfoDefs.h>
+
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
@@ -17,39 +30,51 @@
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>    // for PHNode
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>     // for PHWHERE
+#include <phool/recoConsts.h>
 
-#include <Geant4/G4IonisParamMat.hh>  // for G4IonisParamMat
-#include <Geant4/G4Material.hh>       // for G4Material
+#include <phparameter/PHParameters.h>
+
+#include <Geant4/G4IonisParamMat.hh>           // for G4IonisParamMat
+#include <Geant4/G4Material.hh>                // for G4Material
 #include <Geant4/G4MaterialCutsCouple.hh>
-#include <Geant4/G4ParticleDefinition.hh>  // for G4ParticleDefinition
+#include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
+#include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh>   // for G4StepPoint
-#include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fAtRestD...
-#include <Geant4/G4String.hh>      // for G4String
+#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fAtRestD...
+#include <Geant4/G4String.hh>                  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
-#include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
-#include <Geant4/G4Track.hh>                  // for G4Track
-#include <Geant4/G4TrackStatus.hh>            // for fStopAndKill
-#include <Geant4/G4Types.hh>                  // for G4double
-#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
-#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
+#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                   // for G4Track
+#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
+#include <Geant4/G4TransportationManager.hh>
+#include <Geant4/G4Types.hh>                   // for G4double
+#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
 
 #include <TSystem.h>
 
 #include <cmath>    // for isfinite
 #include <cstdlib>  // for exit
 #include <iostream>
-#include <string>  // for operator<<, char_traits
+#include <string>   // for operator<<, char_traits
 
 class G4VPhysicalVolume;
 class PHCompositeNode;
 
 //____________________________________________________________________________..
-PHG4SpacalSteppingAction::PHG4SpacalSteppingAction(PHG4SpacalDetector* detector)
-  : PHG4SteppingAction(detector->GetName())
-  , m_Detector(detector)
+PHG4SpacalSteppingAction::PHG4SpacalSteppingAction(PHG4SpacalDetector *indetector)
+  : PHG4SteppingAction(indetector->GetName())
+  , PHParameterInterface(indetector->GetName())
+  , m_Detector(indetector)
 {
 }
 
@@ -62,17 +87,405 @@ PHG4SpacalSteppingAction::~PHG4SpacalSteppingAction()
   delete m_Hit;
 }
 
-//____________________________________________________________________________..
-bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+int PHG4SpacalSteppingAction::InitWithNode(PHCompositeNode *topNode)
+{
+  UpdateParametersWithMacro();
+  m_doG4Hit = get_int_param("saveg4hit");
+  m_tmin = get_double_param("tmin");
+  m_tmax = get_double_param("tmax");
+  m_dt = get_double_param("dt");
+  if (m_doG4Hit) return 0;
+  PHNodeIterator iter(topNode);
+  detector = m_Detector->SuperDetector();
+  // Looking for the DST node
+  PHCompositeNode *dstNode;
+  dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+  {
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+    exit(1);
+  }
+
+  geonodename = "CYLINDERGEOM_" + detector;
+  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
+  if (!geo)
+  {
+    std::cout << "PHG4SpacalSteppingAction::InitWithNode - Could not locate geometry node "
+              << geonodename << std::endl;
+    topNode->print();
+    exit(1);
+  }
+  if (Verbosity() > 0)
+  {
+    std::cout << "PHG4SpacalSteppingAction::InitWithNode - incoming geometry:"
+              << std::endl;
+    geo->identify();
+  }
+  seggeonodename = "CYLINDERCELLGEOM_" + detector;
+  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename);
+  if (!seggeo)
+  {
+    seggeo = new PHG4CylinderCellGeomContainer();
+    PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
+    runNode->addNode(newNode);
+  }
+
+  const PHG4CylinderGeom *layergeom_raw = geo->GetFirstLayerGeom();
+  assert(layergeom_raw);
+
+  // a special implimentation of PHG4CylinderGeom is required here.
+  const PHG4CylinderGeom_Spacalv3 *layergeom =
+      dynamic_cast<const PHG4CylinderGeom_Spacalv3 *>(layergeom_raw);
+
+  if (!layergeom)
+  {
+    std::cout << "PHG4SpacalSteppingAction::InitWithNode - Fatal Error -"
+              << " require to work with a version of SPACAL geometry of PHG4CylinderGeom_Spacalv3 or higher. "
+              << "However the incoming geometry has version "
+              << layergeom_raw->ClassName() << std::endl;
+    exit(1);
+  }
+  if (Verbosity() > 1)
+  {
+    layergeom->identify();
+  }
+
+  layergeom->subtower_consistency_check();
+
+  //      int layer = layergeom->get_layer();
+
+  // create geo object and fill with variables common to all binning methods
+  PHG4CylinderCellGeom_Spacalv1 *layerseggeo = new PHG4CylinderCellGeom_Spacalv1();
+  layerseggeo->set_layer(layergeom->get_layer());
+  layerseggeo->set_radius(layergeom->get_radius());
+  layerseggeo->set_thickness(layergeom->get_thickness());
+  layerseggeo->set_binning(PHG4CellDefs::spacalbinning);
+
+  // construct a map to convert tower_ID into the older eta bins.
+
+  const PHG4CylinderGeom_Spacalv3::tower_map_t &tower_map = layergeom->get_sector_tower_map();
+  const PHG4CylinderGeom_Spacalv3::sector_map_t &sector_map = layergeom->get_sector_map();
+  const int nphibin = layergeom->get_azimuthal_n_sec()       // sector
+                      * layergeom->get_max_phi_bin_in_sec()  // blocks per sector
+                      * layergeom->get_n_subtower_phi();     // subtower per block
+  const double deltaphi = 2. * M_PI / nphibin;
+
+  using map_z_tower_z_ID_t = std::map<double, int>;
+  map_z_tower_z_ID_t map_z_tower_z_ID;
+  double phi_min = NAN;
+
+  for (const auto &tower_pair : tower_map)
+  {
+    const int &tower_ID = tower_pair.first;
+    const PHG4CylinderGeom_Spacalv3::geom_tower &tower = tower_pair.second;
+
+    // inspect index in sector 0
+    std::pair<int, int> tower_z_phi_ID = layergeom->get_tower_z_phi_ID(tower_ID, 0);
+
+    const int &tower_ID_z = tower_z_phi_ID.first;
+    const int &tower_ID_phi = tower_z_phi_ID.second;
+
+    if (tower_ID_phi == 0)
+    {
+      // assign phi min according phi bin 0
+      phi_min = M_PI_2 - deltaphi * (layergeom->get_max_phi_bin_in_sec() * layergeom->get_n_subtower_phi() / 2)  // shift of first tower in sector
+                + sector_map.begin()->second;
+    }
+
+    if (tower_ID_phi == layergeom->get_max_phi_bin_in_sec() / 2)
+    {
+      // assign eta min according phi bin 0
+      map_z_tower_z_ID[tower.centralZ] = tower_ID_z;
+    }
+    // ...
+  }  //       const auto &tower_pair: tower_map
+
+  assert(!std::isnan(phi_min));
+  layerseggeo->set_phimin(phi_min);
+  layerseggeo->set_phistep(deltaphi);
+  layerseggeo->set_phibins(nphibin);
+
+  PHG4CylinderCellGeom_Spacalv1::tower_z_ID_eta_bin_map_t tower_z_ID_eta_bin_map;
+  int eta_bin = 0;
+  for (auto &z_tower_z_ID : map_z_tower_z_ID)
+  {
+    tower_z_ID_eta_bin_map[z_tower_z_ID.second] = eta_bin;
+    eta_bin++;
+  }
+  layerseggeo->set_tower_z_ID_eta_bin_map(tower_z_ID_eta_bin_map);
+  layerseggeo->set_etabins(eta_bin * layergeom->get_n_subtower_eta());
+  layerseggeo->set_etamin(NAN);
+  layerseggeo->set_etastep(NAN);
+
+  // build eta bin maps
+  for (const auto &tower_pair : tower_map)
+  {
+    const int &tower_ID = tower_pair.first;
+    const PHG4CylinderGeom_Spacalv3::geom_tower &tower = tower_pair.second;
+
+    // inspect index in sector 0
+    std::pair<int, int> tower_z_phi_ID = layergeom->get_tower_z_phi_ID(tower_ID, 0);
+    const int &tower_ID_z = tower_z_phi_ID.first;
+    const int &tower_ID_phi = tower_z_phi_ID.second;
+    const int &etabin = tower_z_ID_eta_bin_map[tower_ID_z];
+
+    if (tower_ID_phi == layergeom->get_max_phi_bin_in_sec() / 2)
+    {
+      // half z-range
+      const double dz = fabs(0.5 * (tower.pDy1 + tower.pDy2) / sin(tower.pRotationAngleX));
+      const double tower_radial = layergeom->get_tower_radial_position(tower);
+
+      auto z_to_eta = [&tower_radial](const double &z)
+      { return -log(tan(0.5 * atan2(tower_radial, z))); };
+
+      const double eta_central = z_to_eta(tower.centralZ);
+      // half eta-range
+      const double deta = (z_to_eta(tower.centralZ + dz) - z_to_eta(tower.centralZ - dz)) / 2;
+      assert(deta > 0);
+
+      for (int sub_tower_ID_y = 0; sub_tower_ID_y < tower.NSubtowerY;
+           ++sub_tower_ID_y)
+      {
+        assert(tower.NSubtowerY <= layergeom->get_n_subtower_eta());
+        // do not overlap to the next bin.
+        const int sub_tower_etabin = etabin * layergeom->get_n_subtower_eta() + sub_tower_ID_y;
+
+        const std::pair<double, double> etabounds(eta_central - deta + sub_tower_ID_y * 2 * deta / tower.NSubtowerY,
+                                                  eta_central - deta + (sub_tower_ID_y + 1) * 2 * deta / tower.NSubtowerY);
+
+        const std::pair<double, double> zbounds(tower.centralZ - dz + sub_tower_ID_y * 2 * dz / tower.NSubtowerY,
+                                                tower.centralZ - dz + (sub_tower_ID_y + 1) * 2 * dz / tower.NSubtowerY);
+
+        layerseggeo->set_etabounds(sub_tower_etabin, etabounds);
+        layerseggeo->set_zbounds(sub_tower_etabin, zbounds);
+      }
+    }
+    // ...
+  }  //       const auto &tower_pair: tower_map
+
+  // add geo object filled by different binning methods
+  seggeo->AddLayerCellGeom(layerseggeo);
+
+  // save this to the run wise tree to store on DST
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
+  PHNodeIterator runIter(runNode);
+  PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));
+  if (!RunDetNode)
+  {
+    RunDetNode = new PHCompositeNode(detector);
+    runNode->addNode(RunDetNode);
+  }
+  std::string paramnodename = "G4CELLPARAM_" + detector;
+  SaveToNodeTree(RunDetNode, paramnodename);
+  // save this to the parNode for use
+  PHNodeIterator parIter(parNode);
+  PHCompositeNode *ParDetNode = dynamic_cast<PHCompositeNode *>(parIter.findFirst("PHCompositeNode", detector));
+  if (!ParDetNode)
+  {
+    ParDetNode = new PHCompositeNode(detector);
+    parNode->addNode(ParDetNode);
+  }
+  std::string cellgeonodename = "G4CELLGEO_" + detector;
+  PutOnParNode(ParDetNode, cellgeonodename);
+
+  // get the private layergeo
+  _layergeo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
+  if (!_layergeo)
+  {
+    std::cout << "PHG4SpacalSteppingAction::InitWithNode - Fatal Error - Could not locate sim geometry node "
+              << geonodename << std::endl;
+    exit(1);
+  }
+
+  _seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename);
+  if (!_seggeo)
+  {
+    std::cout << "PHG4FullProjSpacalCellReco::process_event - Fatal Error - could not locate cell geometry node "
+              << seggeonodename << std::endl;
+    exit(1);
+  }
+  PHG4CylinderCellGeom *_geo_raw = _seggeo->GetFirstLayerCellGeom();
+  _geo = dynamic_cast<PHG4CylinderCellGeom_Spacalv1 *>(_geo_raw);
+  assert(_geo);
+  const PHG4CylinderGeom *_layergeom_raw = _layergeo->GetFirstLayerGeom();
+  assert(_layergeom_raw);
+  // a special implimentation of PHG4CylinderGeom is required here.
+  _layergeom = dynamic_cast<const PHG4CylinderGeom_Spacalv3 *>(_layergeom_raw);
+  assert(_layergeom);
+
+  // add towerinfo here
+  PHNodeIterator dstiter(dstNode);
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", detector));
+  if (!DetNode)
+  {
+    DetNode = new PHCompositeNode(detector);
+    dstNode->addNode(DetNode);
+  }
+  m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::EMCAL);
+  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERINFO_SIM_" + detector, "PHObject");
+  DetNode->addNode(towerNode);
+
+  return 0;
+}
+
+bool PHG4SpacalSteppingAction::NoHitSteppingAction(const G4Step *aStep)
 {
   // get volume of the current step
-  G4VPhysicalVolume* volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
+  G4VPhysicalVolume *volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
+  int isactive = m_Detector->IsInCylinderActive(volume);
+  if (isactive > PHG4SpacalDetector::INACTIVE)
+  {
+    G4StepPoint *prePoint = aStep->GetPreStepPoint();
+    G4StepPoint *postPoint = aStep->GetPostStepPoint();
+    // time window cut
+    double pretime = prePoint->GetGlobalTime() / nanosecond;
+    double posttime = postPoint->GetGlobalTime() / nanosecond;
+    if (posttime < m_tmin || pretime > m_tmax) return false;
+    if ((posttime - pretime) > m_dt) return false;
+
+    int scint_id = -1;
+
+    if (  //
+        m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper ||
+        m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower ||
+        m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted ||
+        m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower  //
+    )
+    {
+      // SPACAL ID that is associated with towers
+      int sector_ID = 0;
+      int tower_ID = 0;
+      int fiber_ID = 0;
+
+      if (isactive == PHG4SpacalDetector::FIBER_CORE)
+      {
+        fiber_ID = prePoint->GetTouchable()->GetReplicaNumber(1);
+        tower_ID = prePoint->GetTouchable()->GetReplicaNumber(2);
+        sector_ID = prePoint->GetTouchable()->GetReplicaNumber(3);
+      }
+
+      else
+      {
+        return false;
+      }
+
+      // compact the tower/sector/fiber ID into 32 bit scint_id, so we could save some space for SPACAL hits
+      scint_id = PHG4CylinderGeom_Spacalv3::scint_id_coder(sector_ID, tower_ID, fiber_ID).scint_ID;
+    }
+    else
+    {
+      // other configuraitons
+      if (isactive == PHG4SpacalDetector::FIBER_CORE)
+      {
+        scint_id = prePoint->GetTouchable()->GetReplicaNumber(2);
+      }
+      else
+      {
+        return false;
+      }
+    }
+    // decode scint_id
+    PHG4CylinderGeom_Spacalv3::scint_id_coder decoder(scint_id);
+
+    // convert to z_ID, phi_ID
+    std::pair<int, int> tower_z_phi_ID = _layergeom->get_tower_z_phi_ID(decoder.tower_ID, decoder.sector_ID);
+    const int &tower_ID_z = tower_z_phi_ID.first;
+    const int &tower_ID_phi = tower_z_phi_ID.second;
+
+    PHG4CylinderGeom_Spacalv3::tower_map_t::const_iterator it_tower =
+        _layergeom->get_sector_tower_map().find(decoder.tower_ID);
+    assert(it_tower != _layergeom->get_sector_tower_map().end());
+
+    // convert tower_ID_z to to eta bin number
+    int etabin = -1;
+    try
+    {
+      etabin = _geo->get_etabin_block(tower_ID_z);  // block eta bin
+    }
+    catch (std::exception &e)
+    {
+      std::cout << "Print cell geometry:" << std::endl;
+      _geo->identify();
+      std::cout << "Print scint_id_coder:" << std::endl;
+      decoder.identify();
+      std::cout << "PHG4SpacalSteppingAction::UserSteppingAction::"
+                << " - Fatal Error - " << e.what() << std::endl;
+      exit(1);
+    }
+
+    const int sub_tower_ID_x = it_tower->second.get_sub_tower_ID_x(decoder.fiber_ID);
+    const int sub_tower_ID_y = it_tower->second.get_sub_tower_ID_y(decoder.fiber_ID);
+    unsigned short etabinshort = etabin * _layergeom->get_n_subtower_eta() + sub_tower_ID_y;
+    unsigned short phibin = tower_ID_phi * _layergeom->get_n_subtower_phi() + sub_tower_ID_x;
+
+    // get light yield
+    double light_yield = GetVisibleEnergyDeposition(aStep);
+    if (light_collection_model.use_fiber_model())
+    {
+      const G4TouchableHandle &theTouchable0 = prePoint->GetTouchableHandle();
+      const G4ThreeVector &worldPosition0 = prePoint->GetPosition();
+      G4ThreeVector localPosition = theTouchable0->GetHistory()->GetTopTransform().TransformPoint(worldPosition0);
+      const double localz0 = localPosition.z();
+      // post point
+      const G4TouchableHandle &theTouchable1 = postPoint->GetTouchableHandle();
+      const G4ThreeVector &worldPosition1 = postPoint->GetPosition();
+      localPosition = theTouchable1->GetHistory()->GetTopTransform().TransformPoint(worldPosition1);
+      const double localz1 = localPosition.z();
+
+      const double z = 0.5 * (localz0 + localz1);
+      assert(not std::isnan(z));
+
+      light_yield *= light_collection_model.get_fiber_transmission(z);
+    }
+    // light yield correction from light guide collection efficiency:
+    if (light_collection_model.use_fiber_model())
+    {
+      const double x = it_tower->second.get_position_fraction_x_in_sub_tower(decoder.fiber_ID);
+      const double y = it_tower->second.get_position_fraction_y_in_sub_tower(decoder.fiber_ID);
+
+      light_yield *= light_collection_model.get_light_guide_efficiency(x, y);
+    }
+    unsigned int tower_key = TowerInfoDefs::encode_emcal(etabinshort, phibin);
+    m_CaloInfoContainer->get_tower_at_key(tower_key)->set_energy(m_CaloInfoContainer->get_tower_at_key(tower_key)->get_energy() + light_yield);
+
+    // set keep for the track
+    const G4Track *aTrack = aStep->GetTrack();
+    if (light_yield > 0)
+    {
+      if (G4VUserTrackInformation *p = aTrack->GetUserInformation())
+      {
+        if (PHG4TrackUserInfoV1 *pp = dynamic_cast<PHG4TrackUserInfoV1 *>(p))
+        {
+          pp->SetKeep(1);  // we want to keep the track
+        }
+      }
+    }
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+//____________________________________________________________________________..
+bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step *aStep, bool)
+{
+  if (!m_doG4Hit)
+  {
+    return NoHitSteppingAction(aStep);
+  }
+
+  // get volume of the current step
+  G4VPhysicalVolume *volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
 
-  const G4Track* aTrack = aStep->GetTrack();
+  const G4Track *aTrack = aStep->GetTrack();
 
   int layer_id = m_Detector->get_Layer();
   // make sure we are in a volume
@@ -89,8 +502,8 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       geantino = true;
     }
-    G4StepPoint* prePoint = aStep->GetPreStepPoint();
-    G4StepPoint* postPoint = aStep->GetPostStepPoint();
+    G4StepPoint *prePoint = aStep->GetPreStepPoint();
+    G4StepPoint *postPoint = aStep->GetPostStepPoint();
     int scint_id = -1;
 
     if (  //
@@ -100,7 +513,7 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower  //
     )
     {
-      //SPACAL ID that is associated with towers
+      // SPACAL ID that is associated with towers
       int sector_ID = 0;
       int tower_ID = 0;
       int fiber_ID = 0;
@@ -169,17 +582,17 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       }
       m_Hit->set_layer((unsigned int) layer_id);
       m_Hit->set_scint_id(scint_id);  // isactive contains the scintillator slat id
-      //here we set the entrance values in cm
+      // here we set the entrance values in cm
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
       m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
       m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
 
       // time in ns
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-      //set the track ID
+      // set the track ID
       m_Hit->set_trkid(aTrack->GetTrackID());
       m_SaveTrackid = aTrack->GetTrackID();
-      //set the initial energy deposit
+      // set the initial energy deposit
       m_Hit->set_edep(0);
       // Now add the hit
       if (isactive == PHG4SpacalDetector::FIBER_CORE)  // the slat ids start with zero
@@ -194,9 +607,9 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         m_CurrentHitContainer = m_AbsorberHitContainer;
       }
-      if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
+      if (G4VUserTrackInformation *p = aTrack->GetUserInformation())
       {
-        if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
+        if (PHG4TrackUserInfoV1 *pp = dynamic_cast<PHG4TrackUserInfoV1 *>(p))
         {
           m_Hit->set_trkid(pp->GetUserTrackId());
           m_Hit->set_shower_id(pp->GetShower()->get_id());
@@ -241,7 +654,7 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
 
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
-    //sum up the energy to get total deposited
+    // sum up the energy to get total deposited
     m_Hit->set_edep(m_Hit->get_edep() + edep);
 
     if (isactive == PHG4SpacalDetector::FIBER_CORE)  // only for active areas
@@ -295,9 +708,9 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     }
     if (edep > 0)
     {
-      if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
+      if (G4VUserTrackInformation *p = aTrack->GetUserInformation())
       {
-        if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
+        if (PHG4TrackUserInfoV1 *pp = dynamic_cast<PHG4TrackUserInfoV1 *>(p))
         {
           pp->SetKeep(1);  // we want to keep the track
         }
@@ -344,14 +757,14 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 }
 
 //____________________________________________________________________________..
-void PHG4SpacalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
+void PHG4SpacalSteppingAction::SetInterfacePointers(PHCompositeNode *topNode)
 {
   m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_AbsorberNodeName);
   // if we do not find the node it's messed up.
   if (!m_HitContainer)
   {
-    std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
+    std::cout << "PHG4SpacalSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
     gSystem->Exit(1);
   }
   // this is perfectly fine if absorber hits are disabled
@@ -390,7 +803,7 @@ PHG4SpacalSteppingAction::get_zmax() const
   }
 }
 
-void PHG4SpacalSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+void PHG4SpacalSteppingAction::SetHitNodeName(const std::string &type, const std::string &name)
 {
   if (type == "G4HIT")
   {
@@ -404,5 +817,15 @@ void PHG4SpacalSteppingAction::SetHitNodeName(const std::string& type, const std
   }
   std::cout << "Invalid output hit node type " << type << std::endl;
   gSystem->Exit(1);
+  return;
+}
+
+// not using is one, just to make the compiler happy
+void PHG4SpacalSteppingAction::SetDefaultParameters()
+{
+  set_default_double_param("tmax", 60.0);
+  set_default_double_param("tmin", -20.0);
+  set_default_double_param("dt", 100.0);
+  set_default_int_param("saveg4hit", 1);
   return;
 }

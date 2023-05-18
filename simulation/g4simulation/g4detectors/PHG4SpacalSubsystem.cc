@@ -16,7 +16,7 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>   // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
@@ -29,6 +29,7 @@
 
 #include <TSystem.h>
 
+#include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream
 #include <sstream>
 
@@ -138,8 +139,13 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     }
 
     steppingAction_ = new PHG4SpacalSteppingAction(detector_);
+    steppingAction_->set_int_param("saveg4hit", GetParams()->get_int_param("saveg4hit"));
+    steppingAction_->get_light_collection_model().load_data_file(
+        std::string(getenv("CALIBRATIONROOT")) + std::string("/CEMC/LightCollection/Prototype3Module.xml"),
+        "data_grid_light_guide_efficiency", "data_grid_fiber_trans");
     steppingAction_->SetHitNodeName("G4HIT", m_HitNodeName);
     steppingAction_->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
+    steppingAction_->InitWithNode(topNode);
   }
   return 0;
 }
@@ -185,6 +191,7 @@ void PHG4SpacalSubsystem::SetDefaultParameters()
   set_default_int_param("azimuthal_seg_visible", 0.);
   set_default_int_param("virualize_fiber", 0.);
   set_default_int_param("config", static_cast<int>(PHG4CylinderGeom_Spacalv1::kNonProjective));
+  set_default_int_param("saveg4hit", 1);
 
   set_default_double_param("divider_width", 0);       // radial size of the divider between blocks. <=0 means no dividers
   set_default_string_param("divider_mat", "G4_AIR");  // materials of the divider. G4_AIR is equivalent to not installing one in the term of material distribution
