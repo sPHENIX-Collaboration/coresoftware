@@ -8,6 +8,8 @@
 #include <trackbase/TrkrClusterContainer.h>
 
 #include <trackbase_historic/ActsTransformations.h>
+#include <trackbase_historic/SvtxAlignmentState.h>
+#include <trackbase_historic/SvtxAlignmentStateMap.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>
@@ -78,6 +80,32 @@ int TrackResiduals::InitRun(PHCompositeNode*)
 }
 void TrackResiduals::clearClusterStateVectors()
 {
+  m_statelxglobderivdx.clear();
+  m_statelxglobderivdy.clear();
+  m_statelxglobderivdz.clear();
+  m_statelxglobderivdalpha.clear();
+  m_statelxglobderivdbeta.clear();
+  m_statelxglobderivdgamma.clear();
+
+  m_statelxlocderivd0.clear();
+  m_statelxlocderivz0.clear();
+  m_statelxlocderivphi.clear();
+  m_statelxlocderivtheta.clear();
+  m_statelxlocderivqop.clear();
+
+  m_statelzglobderivdx.clear();
+  m_statelzglobderivdy.clear();
+  m_statelzglobderivdz.clear();
+  m_statelzglobderivdalpha.clear();
+  m_statelzglobderivdbeta.clear();
+  m_statelzglobderivdgamma.clear();
+
+  m_statelzlocderivd0.clear();
+  m_statelzlocderivz0.clear();
+  m_statelzlocderivphi.clear();
+  m_statelzlocderivtheta.clear();
+  m_statelzlocderivqop.clear();
+
   m_cluslx.clear();
   m_cluslz.clear();
   m_cluselx.clear();
@@ -106,6 +134,8 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   auto vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, "SvtxAlignmentStateMap");
+
   if (!trackmap or !clustermap or !geometry or !vertexmap)
   {
     std::cout << "Missing node, can't continue" << std::endl;
@@ -214,10 +244,10 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       //! have cluster and state, fill vectors
       m_cluslx.push_back(cluster->getLocalX());
       float clusz = cluster->getLocalY();
-      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
-	{
-	  clusz = convertTimeToZ(geometry,ckey, cluster);
-	}
+      if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
+      {
+        clusz = convertTimeToZ(geometry, ckey, cluster);
+      }
       m_cluslz.push_back(clusz);
       m_cluselx.push_back(cluster->getRPhiError());
       m_cluselz.push_back(cluster->getZError());
@@ -271,6 +301,43 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
 
     m_nhits = m_nmaps + m_nintt + m_ntpc + m_nmms;
 
+    if (alignmentmap and alignmentmap->find(key) != alignmentmap->end())
+    {
+      auto& statevec = alignmentmap->find(key)->second;
+
+      for (auto& state : statevec)
+      {
+        auto& globderivs = state->get_global_derivative_matrix();
+        auto& locderivs = state->get_local_derivative_matrix();
+
+        m_statelxglobderivdalpha.push_back(globderivs(0, 0));
+        m_statelxglobderivdbeta.push_back(globderivs(0, 1));
+        m_statelxglobderivdgamma.push_back(globderivs(0, 2));
+        m_statelxglobderivdx.push_back(globderivs(0, 3));
+        m_statelxglobderivdy.push_back(globderivs(0, 4));
+        m_statelxglobderivdz.push_back(globderivs(0, 5));
+
+        m_statelzglobderivdalpha.push_back(globderivs(1, 0));
+        m_statelzglobderivdbeta.push_back(globderivs(1, 1));
+        m_statelzglobderivdgamma.push_back(globderivs(1, 2));
+        m_statelzglobderivdx.push_back(globderivs(1, 3));
+        m_statelzglobderivdy.push_back(globderivs(1, 4));
+        m_statelzglobderivdz.push_back(globderivs(1, 5));
+
+        m_statelxlocderivd0.push_back(locderivs(0, 0));
+        m_statelxlocderivz0.push_back(locderivs(0, 1));
+        m_statelxlocderivphi.push_back(locderivs(0, 2));
+        m_statelxlocderivtheta.push_back(locderivs(0, 3));
+        m_statelxlocderivqop.push_back(locderivs(0, 4));
+
+        m_statelzlocderivd0.push_back(locderivs(1, 0));
+        m_statelzlocderivz0.push_back(locderivs(1, 1));
+        m_statelzlocderivphi.push_back(locderivs(1, 2));
+        m_statelzlocderivtheta.push_back(locderivs(1, 3));
+        m_statelzlocderivqop.push_back(locderivs(1, 4));
+      }
+    }
+
     m_tree->Fill();
   }
 
@@ -278,18 +345,18 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster)
+float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster)
 {
   // must convert local Y from cluster average time of arival to local cluster z position
   double drift_velocity = geometry->get_drift_velocity();
   double zdriftlength = cluster->getLocalY() * drift_velocity;
-  double surfCenterZ = 52.89; // 52.89 is where G4 thinks the surface center is
-  double zloc = surfCenterZ - zdriftlength;   // converts z drift length to local z position in the TPC in north
+  double surfCenterZ = 52.89;                // 52.89 is where G4 thinks the surface center is
+  double zloc = surfCenterZ - zdriftlength;  // converts z drift length to local z position in the TPC in north
   unsigned int side = TpcDefs::getSide(cluster_key);
-  if(side == 0) zloc = -zloc;
+  if (side == 0) zloc = -zloc;
   float z = zloc;  // in cm
- 
-  return z; 
+
+  return z;
 }
 
 //____________________________________________________________________________..
@@ -351,4 +418,30 @@ void TrackResiduals::createBranches()
   m_tree->Branch("statepy", &m_statepy);
   m_tree->Branch("statepz", &m_statepz);
   m_tree->Branch("statepl", &m_statepl);
+
+  m_tree->Branch("statelxglobderivdx", &m_statelxglobderivdx);
+  m_tree->Branch("statelxglobderivdy", &m_statelxglobderivdy);
+  m_tree->Branch("statelxglobderivdz", &m_statelxglobderivdz);
+  m_tree->Branch("statelxglobderivdalpha", &m_statelxglobderivdalpha);
+  m_tree->Branch("statelxglobderivdbeta", &m_statelxglobderivdbeta);
+  m_tree->Branch("statelxglobderivdgamma", &m_statelxglobderivdgamma);
+
+  m_tree->Branch("statelxlocderivd0", &m_statelxlocderivd0);
+  m_tree->Branch("statelxlocderivz0", &m_statelxlocderivz0);
+  m_tree->Branch("statelxlocderivphi", &m_statelxlocderivphi);
+  m_tree->Branch("statelxlocderivtheta", &m_statelxlocderivtheta);
+  m_tree->Branch("statelxlocderivqop", &m_statelxlocderivqop);
+
+  m_tree->Branch("statelzglobderivdx", &m_statelzglobderivdx);
+  m_tree->Branch("statelzglobderivdy", &m_statelzglobderivdy);
+  m_tree->Branch("statelzglobderivdz", &m_statelzglobderivdz);
+  m_tree->Branch("statelzglobderivdalpha", &m_statelzglobderivdalpha);
+  m_tree->Branch("statelzglobderivdbeta", &m_statelzglobderivdbeta);
+  m_tree->Branch("statelzglobderivdgamma", &m_statelzglobderivdgamma);
+
+  m_tree->Branch("statelzlocderivd0", &m_statelzlocderivd0);
+  m_tree->Branch("statelzlocderivz0", &m_statelzlocderivz0);
+  m_tree->Branch("statelzlocderivphi", &m_statelzlocderivphi);
+  m_tree->Branch("statelzlocderivtheta", &m_statelzlocderivtheta);
+  m_tree->Branch("statelzlocderivqop", &m_statelzlocderivqop);
 }

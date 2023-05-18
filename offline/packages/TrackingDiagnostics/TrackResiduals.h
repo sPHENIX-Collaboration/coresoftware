@@ -36,7 +36,7 @@ class TrackResiduals : public SubsysReco
  private:
   void clearClusterStateVectors();
   void createBranches();
-  float convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster);
+  float convertTimeToZ(ActsGeometry *geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
@@ -92,6 +92,32 @@ class TrackResiduals : public SubsysReco
   std::vector<float> m_statepy;
   std::vector<float> m_statepz;
   std::vector<float> m_statepl;
+
+  std::vector<float> m_statelxglobderivdx;
+  std::vector<float> m_statelxglobderivdy;
+  std::vector<float> m_statelxglobderivdz;
+  std::vector<float> m_statelxglobderivdalpha;
+  std::vector<float> m_statelxglobderivdbeta;
+  std::vector<float> m_statelxglobderivdgamma;
+
+  std::vector<float> m_statelxlocderivd0;
+  std::vector<float> m_statelxlocderivz0;
+  std::vector<float> m_statelxlocderivphi;
+  std::vector<float> m_statelxlocderivtheta;
+  std::vector<float> m_statelxlocderivqop;
+
+  std::vector<float> m_statelzglobderivdx;
+  std::vector<float> m_statelzglobderivdy;
+  std::vector<float> m_statelzglobderivdz;
+  std::vector<float> m_statelzglobderivdalpha;
+  std::vector<float> m_statelzglobderivdbeta;
+  std::vector<float> m_statelzglobderivdgamma;
+
+  std::vector<float> m_statelzlocderivd0;
+  std::vector<float> m_statelzlocderivz0;
+  std::vector<float> m_statelzlocderivphi;
+  std::vector<float> m_statelzlocderivtheta;
+  std::vector<float> m_statelzlocderivqop;
 };
 
 #endif  // TRACKRESIDUALS_H
