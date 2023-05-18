@@ -19,6 +19,7 @@
 class TrkrCluster;
 class PHCompositeNode;
 class ActsGeometry;
+class SvtxTrack;
 
 class TrackResiduals : public SubsysReco
 {
@@ -32,14 +33,21 @@ class TrackResiduals : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
   void outfileName(std::string name) { m_outfileName = name; }
+  void alignment(bool align) { m_doAlignment = align; }
 
  private:
   void clearClusterStateVectors();
   void createBranches();
   float convertTimeToZ(ActsGeometry *geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
+
+  void fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack *track,
+                           PHCompositeNode *topNode);
+
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
+
+  bool m_doAlignment = false;
 
   int m_event = 0;
   //! Track level quantities
@@ -79,6 +87,7 @@ class TrackResiduals : public SubsysReco
   std::vector<float> m_clusgz;
   std::vector<int> m_cluslayer;
   std::vector<int> m_clussize;
+  std::vector<uint32_t> m_clushitsetkey;
 
   //! states on track information
   std::vector<float> m_statelx;
