@@ -12,8 +12,16 @@ void EpInfov1::Reset()
   {
     std::fill(vec.begin(), vec.end(), NAN);
   }
+    
+ for (auto &vec : QphiWeightedOneSide)
+ {
+    std::fill(vec.begin(), vec.end(), NAN);
+ }
   std::fill(PsiRaw.begin(), PsiRaw.end(), NAN);
+  std::fill(PsiPhiWeighted.begin(), PsiPhiWeighted.end(), NAN);
   std::fill(WheelSumWeightsRaw.begin(), WheelSumWeightsRaw.end(), NAN);
+  std::fill(WheelSumWeightsPhiWeighted.begin(), WheelSumWeightsPhiWeighted.end(), NAN);
+
 }
 
 // ===================== Access to Q-vectors ==========================
@@ -28,6 +36,17 @@ std::pair<double, double> EpInfov1::RawQ(unsigned int order) const
   return std::make_pair(QrawOneSide.at(order - 1).at(0), QrawOneSide.at(order - 1).at(1));
 }
 
+//------------------------ phi-weighted Q -------------------------------
+
+std::pair<double, double> EpInfov1::PhiWeightedQ(unsigned int order) const
+{
+  if (ArgumentOutOfBounds(order))
+  {
+    return std::make_pair(NAN, NAN);
+  }
+  return std::make_pair(QphiWeightedOneSide.at(order - 1).at(0), QphiWeightedOneSide.at(order - 1).at(1));
+}
+
 // --------------------- Wheel sum-of-weights, raw ----------------------
 double EpInfov1::SWRaw(unsigned int order) const
 {
@@ -35,6 +54,12 @@ double EpInfov1::SWRaw(unsigned int order) const
   return WheelSumWeightsRaw.at(order - 1);
 }
 
+// --------------------- Wheel sum-of-weights, phi-weighted ---------------
+double EpInfov1::SWPhiWeighted(unsigned int order) const
+{
+  if (ArgumentOutOfBounds(order)) return NAN;
+  return WheelSumWeightsPhiWeighted.at(order - 1);
+}
 // ===================== Access to Event-plane angles ====================
 
 //------------------------- raw EP angles --------------------------------
@@ -43,6 +68,14 @@ double EpInfov1::RawPsi(unsigned int order) const
   if (ArgumentOutOfBounds(order)) return NAN;
   return Range(PsiRaw.at(order - 1), order);
 }
+
+//-------------------- phi-weighted EP angles ---------------------------
+double EpInfov1::PhiWeightedPsi(unsigned int order) const
+{
+  if (ArgumentOutOfBounds(order)) return NAN;
+  return Range(PsiPhiWeighted.at(order - 1), order);
+}
+
 //-----------------------------------------------------------------------
 
 //----- Simple method to put angles in a convenient range: (0,2pi/n) ----
@@ -84,6 +117,15 @@ void EpInfov1::CopyPsiRaw(const std::vector<double> &vec)
   PsiRaw = vec;
 }
 
+void EpInfov1::CopyPsiPhiWeighted(const std::vector<double> &vec)
+{
+  if (PsiPhiWeighted.size() != vec.size())
+  {
+      PsiPhiWeighted.resize(vec.size());
+  }
+    PsiPhiWeighted = vec;
+}
+
 void EpInfov1::CopyWheelSumWeightsRaw(const std::vector<double> &vec)
 {
   if (WheelSumWeightsRaw.size() != vec.size())
@@ -91,6 +133,15 @@ void EpInfov1::CopyWheelSumWeightsRaw(const std::vector<double> &vec)
     WheelSumWeightsRaw.resize(vec.size());
   }
   WheelSumWeightsRaw = vec;
+}
+
+void EpInfov1::CopyWheelSumWeightsPhiWeighted(const std::vector<double> &vec)
+{
+  if (WheelSumWeightsPhiWeighted.size() != vec.size())
+  {
+      WheelSumWeightsPhiWeighted.resize(vec.size());
+  }
+    WheelSumWeightsPhiWeighted = vec;
 }
 
 void EpInfov1::CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec)
@@ -106,4 +157,19 @@ void EpInfov1::CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec)
     }
   }
   QrawOneSide = vecvec;
+}
+
+void EpInfov1::CopyQphiWeightedOneSide(const std::vector<std::vector<double>> &vecvec)
+{
+  if (QphiWeightedOneSide.size() != vecvec.size())
+  {
+      QphiWeightedOneSide.resize(vecvec.size());
+    int i = 0;
+    for (auto &vec : vecvec)
+    {
+        QphiWeightedOneSide.at(i).resize(vec.size());
+      i++;
+    }
+  }
+    QphiWeightedOneSide = vecvec;
 }
