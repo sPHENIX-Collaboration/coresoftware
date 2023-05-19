@@ -109,7 +109,6 @@ void EpFinder::ResultsEPD(const std::vector<EpHit> &EpdHits, int EventTypeId, Ep
      }
     }
       
-    //if(mPhiWeightInput[_ns]) std::cout<<idx_x+1<<"\t"<<idx_y+1<<"\t"<<mPhiWeightInput[_ns]->GetBinContent(idx_x+1,idx_y+1)<<std::endl;
 
     //--------------------------------
     // now calculate Q-vectors
@@ -174,7 +173,6 @@ void EpFinder::ResultsEPD(const std::vector<EpHit> &EpdHits, int EventTypeId, Ep
     PsiPhiWeighted[order-1] = GetPsiInRange(QphiWeightedOneSide[order-1][0],QphiWeightedOneSide[order-1][1],order);
   } // loop over order
 
-  //std::cout<<PsiRaw[1]<<std::endl;   
 
   // copy results to i/o object
   if (epinfo)
