@@ -42,13 +42,16 @@ libeventplane_io_la_LIBADD = \
 
 libeventplane_la_LIBADD = \
   libeventplane_io.la \
+  -lepd_io \
+  -lfun4all \
   -lphool \
   -lSubsysReco \
   -lcentrality_io \
   -lphg4hit \
   -lgsl \
   -lgslcblas \
-  -lcalo_io
+  -lcalo_io \
+  -lcdbobjects
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
