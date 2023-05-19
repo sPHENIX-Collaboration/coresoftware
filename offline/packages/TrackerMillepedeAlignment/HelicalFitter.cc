@@ -17,6 +17,11 @@
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxTrack_v4.h>
+#include <trackbase_historic/SvtxTrackMap_v2.h>
+#include <trackbase_historic/SvtxAlignmentState_v1.h>
+#include <trackbase_historic/SvtxAlignmentStateMap_v1.h>
+#include <trackbase_historic/SvtxTrackState_v1.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4Particle.h>  // for PHG4Particle
@@ -61,6 +66,9 @@ int HelicalFitter::InitRun(PHCompositeNode *topNode)
 
    int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+
+  ret = CreateNodes(topNode);
+  if(ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   // Instantiate Mille and open output data file
   if(test_output)
@@ -135,14 +143,30 @@ int HelicalFitter::process_event(PHCompositeNode*)
       if(Verbosity() > 1)  
 	{ std::cout << " Track " << trackid   << " radius " << fitpars[0] << " X0 " << fitpars[1]<< " Y0 " << fitpars[2]
 		 << " zslope " << fitpars[3]  << " Z0 " << fitpars[4] << std::endl; }
-
+      
+      /// Create a track map for diagnostics
+      SvtxTrack_v4 newTrack;
+      if(fitsilicon) { newTrack.set_silicon_seed(tracklet); }
+      else if(fittpc) {  newTrack.set_tpc_seed(tracklet); }
+      
       // if a full track is requested, get the silicon clusters too and refit
       if(fittpc && fitfulltrack)
 	{
 	  // this associates silicon clusters and adds them to the vectors
 	  unsigned int nsilicon = TrackFitUtils::addSiliconClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec);
 	  if(nsilicon < 3) continue;  // discard this TPC seed, did not get a good match to silicon
+	  auto trackseed = std::make_unique<TrackSeed_v1>();
+	  for(auto& ckey : cluskey_vec)
+	    {
+	      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId or
+		 TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::inttId)
+		{
+		  trackseed->insert_cluster_key(ckey);
+		}
+	    }
 
+	  newTrack.set_silicon_seed(trackseed.get());
+	  
 	  // fit the full track now
 	  fitpars.clear();
 	  fitpars =  TrackFitUtils::fitClusters(global_vec, cluskey_vec);       // do helical fit
@@ -153,8 +177,32 @@ int HelicalFitter::process_event(PHCompositeNode*)
 					   << " zslope " << fitpars[3]  << " Z0 " << fitpars[4] << std::endl; }
 	} 
 
-      // get the residuals and derivatives for all clusters
+      newTrack.set_crossing(tracklet->get_crossing());
+      newTrack.set_id(trackid);
+      /// use the track seed functions to help get the track trajectory values
+      /// in the usual coordinates
+  
+      TrackSeed_v1 someseed;
+      for(auto& ckey : cluskey_vec)
+	{ someseed.insert_cluster_key(ckey); }
+      someseed.set_qOverR(tracklet->get_charge() / fitpars[0]);
+ 
+      someseed.set_X0(fitpars[1]);
+      someseed.set_Y0(fitpars[2]);
+      someseed.set_Z0(fitpars[4]);
+      someseed.set_slope(fitpars[3]);
 
+      newTrack.set_x(someseed.get_x());
+      newTrack.set_y(someseed.get_y());
+      newTrack.set_z(someseed.get_z());
+      newTrack.set_px(someseed.get_px(_cluster_map,_tGeometry));
+      newTrack.set_py(someseed.get_py(_cluster_map,_tGeometry));
+      newTrack.set_pz(someseed.get_pz());
+  
+      newTrack.set_charge(tracklet->get_charge());
+      SvtxAlignmentStateMap::StateVec statevec;
+  
+      // get the residuals and derivatives for all clusters
       for(unsigned int ivec=0;ivec<global_vec.size(); ++ivec)
 	{
 
@@ -187,7 +235,17 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  unsigned int layer = TrkrDefs::getLayer(cluskey_vec[ivec]);	  
 	  float phi =  atan2(global(1), global(0));
 	  float beta =  atan2(global(2), sqrt(pow(global(0),2) + pow(global(1),2)));
-	    
+
+	  SvtxTrackState_v1 svtxstate(fitpoint.norm());
+	  svtxstate.set_x(fitpoint(0));
+	  svtxstate.set_y(fitpoint(1));
+	  svtxstate.set_z(fitpoint(2));
+	  auto tangent = get_helix_tangent(fitpars, global);  
+	  svtxstate.set_px(someseed.get_p() * tangent.second.x());
+	  svtxstate.set_py(someseed.get_p() * tangent.second.y());
+	  svtxstate.set_pz(someseed.get_p() * tangent.second.z());
+	  newTrack.insert_state(&svtxstate);
+	  
 	  if(Verbosity() > 1) {
 	  Acts::Vector3 loc_check =  surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (global *  Acts::UnitConstants::cm);
 	  loc_check /= Acts::UnitConstants::cm;
@@ -232,6 +290,28 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  float glbl_derivativeY[AlignmentDefs::NGL];
 	  getGlobalDerivativesXY(surf, global, fitpoint, fitpars, glbl_derivativeX, glbl_derivativeY, layer);
 
+	  auto alignmentstate = std::make_unique<SvtxAlignmentState_v1>();
+	  alignmentstate->set_residual(residual);
+	  alignmentstate->set_cluster_key(cluskey);
+	  SvtxAlignmentState::GlobalMatrix svtxglob = 
+	    SvtxAlignmentState::GlobalMatrix::Zero();
+	  SvtxAlignmentState::LocalMatrix svtxloc = 
+	    SvtxAlignmentState::LocalMatrix::Zero();
+	  for(int i=0; i<AlignmentDefs::NLC; i++)
+	    {
+	      svtxloc(0,i) = lcl_derivativeX[i];
+	      svtxloc(1,i) = lcl_derivativeY[i];
+	    }
+	  for(int i=0; i<AlignmentDefs::NGL; i++)
+	    {
+	      svtxglob(0,i) = glbl_derivativeX[i];
+	      svtxglob(1,i) = glbl_derivativeY[i];
+	    }
+
+	  alignmentstate->set_local_derivative_matrix(svtxloc);
+	  alignmentstate->set_global_derivative_matrix(svtxglob);
+	  statevec.push_back(alignmentstate.release());
+	  
 	  for(unsigned int i = 0; i < AlignmentDefs::NGL; ++i) 
 	    {
 	      if( is_layer_param_fixed(layer, i) || is_layer_fixed(layer) )
@@ -330,7 +410,9 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	      _mille->mille(AlignmentDefs::NLC, lcl_derivativeY, AlignmentDefs::NGL, glbl_derivativeY, glbl_label, residual(1), errinf*clus_sigma(1));
 	    }
 	}
-
+      
+      m_alignmentmap->insertWithKey(newTrack.get_id(), statevec);
+      m_trackmap->insertWithKey(&newTrack, trackid);
       // close out this track
       _mille->end();
       
@@ -452,7 +534,44 @@ int HelicalFitter::End(PHCompositeNode* )
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+int HelicalFitter::CreateNodes(PHCompositeNode* topNode)
+{
+  PHNodeIterator iter(topNode);
+  
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
 
+  if (!dstNode)
+  {
+    std::cerr << "DST node is missing, quitting" << std::endl;
+    throw std::runtime_error("Failed to find DST node in PHActsTrkFitter::createNodes");
+  }
+  
+  PHNodeIterator dstIter(topNode);
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", "SVTX"));
+  if (!svtxNode)
+  {
+    svtxNode = new PHCompositeNode("SVTX");
+    dstNode->addNode(svtxNode);
+  }
+  
+  m_trackmap = findNode::getClass<SvtxTrackMap>(topNode, "HelicalFitterTrackMap");
+  if(!m_trackmap)
+    {
+      m_trackmap = new SvtxTrackMap_v2;
+      PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(m_trackmap,"HelicalFitterTrackMap","PHObject");
+      svtxNode->addNode(node);
+    }
+
+  m_alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode,"HelicalFitterAlignmentStateMap");
+  if(!m_alignmentmap)
+    {
+      m_alignmentmap = new SvtxAlignmentStateMap_v1;
+      PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(m_alignmentmap,"HelicalFitterAlignmentStateMap","PHObject");
+      svtxNode->addNode(node);
+    }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 int  HelicalFitter::GetNodes(PHCompositeNode* topNode)
 {
   //---------------------------------
