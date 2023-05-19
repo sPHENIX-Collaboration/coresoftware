@@ -53,7 +53,6 @@ class EpFinderReco : public SubsysReco
 
   EpInfo *_EpInfo_det[2] = {};
  
-  RawTowerGeomContainer *towergeom = nullptr;
   std::vector<std::string> EventPlaneNodeName;
   std::string EpNode = "EPINFO_";
   std::string TowerNode = "TOWERINFO_CALIB_";
