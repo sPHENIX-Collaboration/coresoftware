@@ -15,15 +15,31 @@ class EpInfov1 : public EpInfo
   void Reset() override;
 
   virtual double RawPsi(unsigned int order) const override;
+  virtual double PhiWeightedPsi(unsigned int order) const override;
 
   virtual double SWRaw(unsigned int order) const override;
+  virtual double SWPhiWeighted(unsigned int order) const override;
 
   virtual std::pair<double, double> RawQ(unsigned int order) const override;
+  virtual std::pair<double, double> PhiWeightedQ(unsigned int order) const override;
 
   virtual unsigned int MaxOrder() const override { return QrawOneSide.size(); }
+    
   virtual void CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec) override;  // {QrawOneSide = vecvec;}
+    
+    
+    virtual void CopyQphiWeightedOneSide(const std::vector<std::vector<double>> &vecvec) override;  // {QrawOneSide = vecvec;}
+
+    
   virtual void CopyWheelSumWeightsRaw(const std::vector<double> &vec) override;           // {WheelSumWeightsRaw = vec;}
+    
+    
+    virtual void CopyWheelSumWeightsPhiWeighted(const std::vector<double> &vec) override;           // {WheelSumWeightsRaw = vec;}
+
   virtual void CopyPsiRaw(const std::vector<double> &vec) override;                       // {PsiRaw = vec;}
+    
+    virtual void CopyPsiPhiWeighted(const std::vector<double> &vec) override;                       // {PsiRaw = vec;}
+
 
  private:
   bool ArgumentOutOfBounds(unsigned int order) const;
@@ -31,8 +47,14 @@ class EpInfov1 : public EpInfo
   double Range(double psi, unsigned int order) const;  /// puts angle psi into range (0,2pi/n)
 
   std::vector<std::vector<double>> QrawOneSide;
+ std::vector<std::vector<double>> QphiWeightedOneSide;
+
   std::vector<double> WheelSumWeightsRaw;
+  std::vector<double> WheelSumWeightsPhiWeighted;
+
   std::vector<double> PsiRaw;
+  std::vector<double> PsiPhiWeighted;
+
 
   ClassDefOverride(EpInfov1, 1);
 };
