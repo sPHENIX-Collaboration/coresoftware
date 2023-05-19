@@ -19,6 +19,7 @@
 class TrkrCluster;
 class PHCompositeNode;
 class ActsGeometry;
+class SvtxTrack;
 
 class TrackResiduals : public SubsysReco
 {
@@ -32,14 +33,21 @@ class TrackResiduals : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
   void outfileName(std::string name) { m_outfileName = name; }
+  void alignment(bool align) { m_doAlignment = align; }
 
  private:
   void clearClusterStateVectors();
   void createBranches();
-  float convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster);
+  float convertTimeToZ(ActsGeometry *geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
+
+  void fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack *track,
+                           PHCompositeNode *topNode);
+
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
+
+  bool m_doAlignment = false;
 
   int m_event = 0;
   //! Track level quantities
@@ -79,6 +87,7 @@ class TrackResiduals : public SubsysReco
   std::vector<float> m_clusgz;
   std::vector<int> m_cluslayer;
   std::vector<int> m_clussize;
+  std::vector<uint32_t> m_clushitsetkey;
 
   //! states on track information
   std::vector<float> m_statelx;
@@ -92,6 +101,32 @@ class TrackResiduals : public SubsysReco
   std::vector<float> m_statepy;
   std::vector<float> m_statepz;
   std::vector<float> m_statepl;
+
+  std::vector<float> m_statelxglobderivdx;
+  std::vector<float> m_statelxglobderivdy;
+  std::vector<float> m_statelxglobderivdz;
+  std::vector<float> m_statelxglobderivdalpha;
+  std::vector<float> m_statelxglobderivdbeta;
+  std::vector<float> m_statelxglobderivdgamma;
+
+  std::vector<float> m_statelxlocderivd0;
+  std::vector<float> m_statelxlocderivz0;
+  std::vector<float> m_statelxlocderivphi;
+  std::vector<float> m_statelxlocderivtheta;
+  std::vector<float> m_statelxlocderivqop;
+
+  std::vector<float> m_statelzglobderivdx;
+  std::vector<float> m_statelzglobderivdy;
+  std::vector<float> m_statelzglobderivdz;
+  std::vector<float> m_statelzglobderivdalpha;
+  std::vector<float> m_statelzglobderivdbeta;
+  std::vector<float> m_statelzglobderivdgamma;
+
+  std::vector<float> m_statelzlocderivd0;
+  std::vector<float> m_statelzlocderivz0;
+  std::vector<float> m_statelzlocderivphi;
+  std::vector<float> m_statelzlocderivtheta;
+  std::vector<float> m_statelzlocderivqop;
 };
 
 #endif  // TRACKRESIDUALS_H
