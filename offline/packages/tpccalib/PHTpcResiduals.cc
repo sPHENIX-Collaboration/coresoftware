@@ -257,7 +257,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       << " position: (" << track->get_x() << ", " << track->get_y() << ", " << track->get_z() << ")"
       << std::endl;
   }
-  ActsPropagator propagator;
+  ActsPropagator propagator(m_tGeometry);
 
   // create ACTS parameters from track parameters at origin
   auto trackParams = makeTrackParams(track);
