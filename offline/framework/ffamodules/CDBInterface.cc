@@ -1,4 +1,6 @@
-#include "XploadInterface.h"
+#include "CDBInterface.h"
+
+#include <sphenixnpc/sphenixnpc.h>
 
 #include <ffaobjects/CdbUrlSave.h>
 #include <ffaobjects/CdbUrlSavev1.h>
@@ -15,27 +17,29 @@
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
-#include <xpload/xpload.h>
+//#include </phenix/u/pinkenbu/workarea/sPHENIX/gitrepov5/install/include/sphenixnpc/sphenixnpc.h>
+
+#include <TSystem.h>
 
 #include <cstdint>   // for uint64_t
 #include <iostream>  // for operator<<, basic_ostream, endl
 #include <utility>   // for pair
 #include <vector>    // for vector
 
-XploadInterface *XploadInterface::__instance = nullptr;
+CDBInterface *CDBInterface::__instance = nullptr;
 
-XploadInterface *XploadInterface::instance()
+CDBInterface *CDBInterface::instance()
 {
   if (__instance)
   {
     return __instance;
   }
-  __instance = new XploadInterface();
+  __instance = new CDBInterface();
   return __instance;
 }
 
 //____________________________________________________________________________..
-XploadInterface::XploadInterface(const std::string &name)
+CDBInterface::CDBInterface(const std::string &name)
   : SubsysReco(name)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
@@ -43,7 +47,14 @@ XploadInterface::XploadInterface(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int XploadInterface::End(PHCompositeNode *topNode)
+
+CDBInterface::~CDBInterface()
+{
+  delete cdbclient;
+}
+
+//____________________________________________________________________________..
+int CDBInterface::End(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
@@ -93,7 +104,7 @@ int XploadInterface::End(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-void XploadInterface::Print(const std::string & /* what */) const
+void CDBInterface::Print(const std::string & /* what */) const
 {
   for (auto &iter : m_UrlVector)
   {
@@ -103,15 +114,30 @@ void XploadInterface::Print(const std::string & /* what */) const
   }
 }
 
-std::string XploadInterface::getUrl(const std::string &domain, const std::string &filename)
+std::string CDBInterface::getUrl(const std::string &domain, const std::string &filename)
 {
-  std::string return_url = filename;
   recoConsts *rc = recoConsts::instance();
-  uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP", 12345678912345);
-  xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG", "TEST"), domain, timestamp, xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG", "sPHENIX_cdb")));
-  if (!result.payload.empty())
+  if (! rc->FlagExist("CDB_GLOBALTAG"))
   {
-    return_url = result.payload;
+    std::cout << "CDB_GLOBALTAG flag needs to be set via" << std::endl;
+    std::cout << "rc->set_StringFlag(\"CDB_GLOBALTAG\",<global tag>)" << std::endl;
+    gSystem->Exit(1);
+  }
+  if (! rc->FlagExist("TIMESTAMP"))
+  {
+    std::cout << "TIMESTAMP flag needs to be set via" << std::endl;
+    std::cout << "rc->set_uint64Flag(\"TIMESTAMP\",<64 bit timestamp>)" << std::endl;
+    gSystem->Exit(1);
+  }
+  if (cdbclient == nullptr)
+  {
+    cdbclient = new sphenixnpc(rc->get_StringFlag("CDB_GLOBALTAG"));
+  }
+  uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP");
+  std::string return_url = cdbclient->getCalibrationFile(domain,timestamp);
+  if (return_url.empty())
+  {
+    return_url = filename;
   }
   auto pret = m_UrlVector.insert(make_tuple(domain, return_url, timestamp));
   if (!pret.second && Verbosity() > 1)

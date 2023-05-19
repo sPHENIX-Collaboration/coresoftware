@@ -3,6 +3,8 @@
 #ifndef HELICALFITTER_H
 #define HELICALFITTER_H
 
+#include "AlignmentDefs.h"
+
 #include <fun4all/SubsysReco.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrackFitUtils.h>
@@ -23,10 +25,6 @@ class TF1;
 class TpcDistortionCorrectionContainer;
 class Mille;
 class SvtxTrackSeed;
-
-enum siliconGrp {snsr, stv, brrl};
-enum tpcGrp {htst, sctr, tp};
-enum mmsGrp {tl, mm};
 
 class HelicalFitter : public SubsysReco, public PHParameterInterface
 {
@@ -57,14 +55,21 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
  void set_datafile_name(const std::string& file) { data_outfilename = file;}
   void set_steeringfile_name(const std::string& file) { steering_outfilename = file;}
-  void set_silicon_grouping(int group) {si_grp = (siliconGrp) group;}
-  void set_tpc_grouping(int group) {tpc_grp = (tpcGrp) group;}
-  void set_mms_grouping(int group) {mms_grp = (mmsGrp) group;}
+  void set_silicon_grouping(int group) {si_grp = (AlignmentDefs::siliconGrp) group;}
+  void set_tpc_grouping(int group) {tpc_grp = (AlignmentDefs::tpcGrp) group;}
+  void set_mms_grouping(int group) {mms_grp = (AlignmentDefs::mmsGrp) group;}
   void set_test_output(bool test) {test_output = test;}
   void set_layer_fixed(unsigned int layer);
+  void set_tpc_sector_fixed(unsigned int region, unsigned int sector, unsigned int side);
   void set_layer_param_fixed(unsigned int layer, unsigned int param);
   void set_cluster_version(unsigned int v) { _cluster_version = v; }
+  void set_fitted_subsystems(bool si, bool tpc, bool full) { fitsilicon = si; fittpc = tpc; fitfulltrack = full; }
 
+  void set_error_inflation_factor(unsigned int layer, float factor) 
+  {
+    _layerMisalignment.insert(std::make_pair(layer,factor));
+  }
+  
   // utility functions for analysis modules
   std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
   void getTrackletClusters(TrackSeed *_track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
@@ -82,25 +87,27 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref);
   Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
+  Acts::Vector3 get_line_plane_intersection(Acts::Vector3 PCA, Acts::Vector3 tangent, 
+					    Acts::Vector3 sensor_center, Acts::Vector3 sensor_normal);
+  std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global);
+  Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global);
 
-  int getLabelBase(Acts::GeometryIdentifier id);
-  Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
-  std::vector<Acts::Vector3> getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing);
+
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
-  int getTpcRegion(int layer);
 
-  Acts::Vector3 getClusterError(TrkrCluster *cluster, TrkrDefs::cluskey cluskey, Acts::Vector3& global);
-  void getGlobalLabels(Surface surf, int glbl_label[]);
-  void getLocalDerivativesX(Acts::Vector3& pca, std::vector<float>& fitpars, float lcl_derivative[]);
-  void getLocalDerivativesY(Acts::Vector3& pca, std::vector<float>& fitpars, float lcl_derivative[]);
-  void getLocalDerivativesZ(Acts::Vector3& global, float lcl_derivative[]);
-  void getGlobalDerivativesX( std::vector<Acts::Vector3> angleDerivs, float glbl_derivatives[], unsigned int layer);
-  void getGlobalDerivativesY( std::vector<Acts::Vector3> angleDerivs, float glbl_derivatives[], unsigned int layer);
-  void getGlobalDerivativesZ( std::vector<Acts::Vector3> angleDerivs, float glbl_derivatives[], unsigned int layer);
-  void printBuffers(int index, Acts::Vector3 residual, Acts::Vector3 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[]);
+  Acts::Vector2 getClusterError(TrkrCluster *cluster, TrkrDefs::cluskey cluskey, Acts::Vector3& global);
+
+  bool is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side);
+
   bool is_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
+
+  void getLocalDerivativesXY(Surface surf, Acts::Vector3 global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer);
+
+  void getGlobalDerivativesXY(Surface surf, Acts::Vector3 global, Acts::Vector3 fitpoint, const std::vector<float>& fitpars, float glb_derivativeX[6], float glbl_derivativeY[6], unsigned int layer);
+
+  void get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts::Vector3> tangent, Acts::Vector3& projX, Acts::Vector3& projY);
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
   TpcDistortionCorrectionContainer* _dcc_static{nullptr};
@@ -112,19 +119,14 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   ClusterErrorPara _ClusErrPara;
 
-  float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
- 
   std::set<unsigned int> fixed_layers;
+  std::set<unsigned int> fixed_sectors;
   std::set<std::pair<unsigned int,unsigned int>> fixed_layer_params;
 
   // set default groups to lowest level
-  siliconGrp si_grp = siliconGrp::snsr;
-  tpcGrp tpc_grp = tpcGrp::htst;
-  mmsGrp mms_grp = mmsGrp::tl;
-
-  int nsensors_stave[7] = {9,9,9,4,4,4,4};
-
-  std::map<unsigned int, unsigned int> base_layer_map = { {10, 0}, {12,3}, {14,7}, {16,55} };
+  AlignmentDefs::siliconGrp si_grp = AlignmentDefs::siliconGrp::snsr;
+  AlignmentDefs::tpcGrp tpc_grp = AlignmentDefs::tpcGrp::htst;
+  AlignmentDefs::mmsGrp mms_grp = AlignmentDefs::mmsGrp::tl;
 
  /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;
@@ -138,17 +140,15 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   std::string  data_outfilename = ("mille_helical_output_data_file.bin");  
   std::string  steering_outfilename = ("steer_helical.txt");  
 
-  static const int NLC = 5;
-  static const int NGL = 6;
-
-  bool fitsilicon = false;
-  bool fittpc = true;
-  bool fitfulltrack = true;
+  bool fitsilicon = true;
+  bool fittpc = false;
+  bool fitfulltrack = false;
 
   float dca_cut = 0.1;  // 1 mm
 
   std::string _field;
   int _fieldDir = -1;
+  std::map<unsigned int, float> _layerMisalignment;
 
   std::string _track_map_name = "TpcTrackSeedContainer";
   std::string _silicon_track_map_name = "SiliconTrackSeedContainer";

@@ -29,8 +29,7 @@ pkginclude_HEADERS = \
   PHG4InttDefs.h \
   PHG4InttDigitizer.h  \
   PHG4InttHitReco.h \
-  PHG4InttSubsystem.h \
-  TruthInttClusterBuilder.h
+  PHG4InttSubsystem.h
 
 ROOTDICTS = \
   InttDeadMap_Dict.cc \
@@ -50,8 +49,7 @@ libg4intt_la_SOURCES = \
   PHG4InttFPHXParameterisation.cc \
   PHG4InttHitReco.cc \
   PHG4InttSteppingAction.cc \
-  PHG4InttSubsystem.cc \
-  TruthInttClusterBuilder.cc
+  PHG4InttSubsystem.cc
 
 libg4intt_la_LIBADD = \
   libg4intt_io.la \

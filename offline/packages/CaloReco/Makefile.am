@@ -18,17 +18,17 @@ if USE_ONLINE
 
 else
 libcalo_reco_la_LIBADD = \
+  -lcalo_io \
+  -lcdbobjects \
   -lCLHEP \
-  -lphool \
-  -lSubsysReco \
+  -lffamodules \
   -lgsl \
   -lgslcblas \
-  -lg4vertex_io \
-  -lcalo_io \
+  -lglobalvertex_io \
   -lsph_onnx \
-  -lcaloCalibDBFile \
-  -lcdbobjects \
-  -lphparameter
+  -lphparameter \
+  -lphool \
+  -lSubsysReco
 endif
 
 AM_CPPFLAGS = \
@@ -69,6 +69,7 @@ libcalo_reco_la_SOURCES = \
   CaloWaveformFitting.cc \
   CaloWaveformProcessing.cc \
   CaloTowerBuilder.cc \
+  CaloTowerCalib.cc \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \

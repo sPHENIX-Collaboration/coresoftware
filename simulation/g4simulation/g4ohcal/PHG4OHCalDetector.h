@@ -20,6 +20,7 @@ class PHG4OHCalFieldSetup;
 class PHParameters;
 class PHG4Subsystem;
 class PHG4GDMLConfig;
+class RawTowerGeomContainer;
 
 class PHG4OHCalDetector : public PHG4Detector
 {
@@ -47,6 +48,7 @@ class PHG4OHCalDetector : public PHG4Detector
   std::tuple<int, int, int> GetRowColumnId(G4VPhysicalVolume *volume) const;
 
  private:
+  void AddGeometryNode();
   int ConstructOHCal(G4LogicalVolume *hcalenvelope);
   int map_towerid(const int tower_id);
   int map_layerid(const unsigned int isector, const int layer_id);
@@ -78,6 +80,8 @@ class PHG4OHCalDetector : public PHG4Detector
   PHG4GDMLConfig *gdml_config = nullptr;
 
   std::string m_GDMPath;
+  RawTowerGeomContainer *m_RawTowerGeom = nullptr;
+  std::string m_TowerGeomNodeName;
 };
 
 #endif  // G4OHCAL_PHG4OHCALDETECTOR_H

@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef FFAMODULES_XPLOADINTERFACE_H
-#define FFAMODULES_XPLOADINTERFACE_H
+#ifndef FFAMODULES_CDBINTERFACE_H
+#define FFAMODULES_CDBINTERFACE_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -11,13 +11,14 @@
 #include <tuple>  // for tuple
 
 class PHCompositeNode;
+class sphenixnpc;
 
-class XploadInterface : public SubsysReco
+class CDBInterface : public SubsysReco
 {
  public:
-  static XploadInterface *instance();
+  static CDBInterface *instance();
 
-  ~XploadInterface() override {}
+  ~CDBInterface() override;
 
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
@@ -27,11 +28,11 @@ class XploadInterface : public SubsysReco
   std::string getUrl(const std::string &domain, const std::string &filename = "");
 
  private:
-  XploadInterface(const std::string &name = "XploadInterface");
+  CDBInterface(const std::string &name = "CDBInterface");
 
-  static XploadInterface *__instance;
-
+  static CDBInterface *__instance;
+  sphenixnpc *cdbclient = nullptr;
   std::set<std::tuple<std::string, std::string, uint64_t>> m_UrlVector;
 };
 
-#endif  // FFAMODULES_XPLOADINTERFACE_H
+#endif  // FFAMODULES_CDBINTERFACE_H

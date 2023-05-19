@@ -79,7 +79,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto propagator = makePropagator();
 
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
   if (m_verbosity > 3)
   {
     logLevel = Acts::Logging::VERBOSE;
@@ -123,7 +123,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto propagator = makePropagator();
 
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
   if (m_verbosity > 3)
   {
     logLevel = Acts::Logging::VERBOSE;
@@ -162,7 +162,7 @@ ActsPropagator::propagateTrackFast(const Acts::BoundTrackParameters& params,
 
   auto propagator = makeFastPropagator();
 
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
   if (m_verbosity > 3)
   {
     logLevel = Acts::Logging::VERBOSE;

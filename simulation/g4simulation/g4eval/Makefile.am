@@ -6,7 +6,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-	-isystem`root-config --incdir`
+  -isystem`root-config --incdir`
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -26,7 +26,7 @@ libg4eval_la_LIBADD = \
   -lfun4all \
   -lg4detectors_io \
   -lg4jets_io \
-  -lg4vertex_io \
+  -lglobalvertex_io \
   -lg4tracking_io \
   -ltrackbase_historic_io \
   -ltrack_io \
@@ -47,7 +47,8 @@ pkginclude_HEADERS = \
   DSTCompressor.h \
   DSTEmulator.h \
   EventEvaluator.h \
-	FillTruthRecoMatchMap.h \
+  FillTruthRecoMatchMap.h \
+  FillTruthRecoMatchTree.h \
   JetEvalStack.h \
   JetEvaluator.h \
   JetRecoEval.h \
@@ -63,6 +64,7 @@ pkginclude_HEADERS = \
   SvtxTruthEval.h \
   SvtxTruthRecoTableEval.h \
   SvtxVertexEval.h \
+  g4evaltools.h \
   TrackEvaluation.h \
   TrackEvaluationContainer.h \
   TrackEvaluationContainerv1.h  \
@@ -94,6 +96,7 @@ libg4eval_la_SOURCES = \
   DSTEmulator.cc \
   EventEvaluator.cc \
   FillTruthRecoMatchMap.cc \
+  FillTruthRecoMatchTree.cc \
   JetEvalStack.cc \
   JetEvaluator.cc \
   JetRecoEval.cc \
@@ -109,6 +112,7 @@ libg4eval_la_SOURCES = \
   SvtxTruthEval.cc \
   SvtxTruthRecoTableEval.cc \
   SvtxVertexEval.cc \
+  g4evaltools.cc \
   TrackEvaluation.cc \
   TrackSeedTrackMapConverter.cc \
   TruthRecoTrackMatching.cc

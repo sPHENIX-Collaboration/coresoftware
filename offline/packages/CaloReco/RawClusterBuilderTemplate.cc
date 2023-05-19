@@ -6,8 +6,8 @@
 #include "BEmcRecEEMC.h"
 #include "BEmcRecFEMC.h"
 
-#include <g4vertex/GlobalVertex.h>
-#include <g4vertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -22,7 +22,7 @@
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfov1.h>
 
-#include <ffamodules/XploadInterface.h>
+#include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -99,8 +99,7 @@ void RawClusterBuilderTemplate::Detector(const std::string &d)
 
 void RawClusterBuilderTemplate::LoadProfile(const std::string &fname)
 {
-  std::string url = XploadInterface::instance()->getUrl("EMCPROFILE", fname);
-
+  std::string url = CDBInterface::instance()->getUrl("EMCPROFILE", fname);
   bemc->LoadProfile(url);
 }
 

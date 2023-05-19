@@ -24,7 +24,6 @@ class CMFlashClusterContainer;
 class  PHG4TpcCylinderGeomContainer;
 
 class TF1;
-class TNtuple;
 class TFile;
 class TH1F;
 class TH2F;

@@ -20,6 +20,7 @@ class PHG4IHCalDisplayAction;
 class PHParameters;
 class PHG4Subsystem;
 class PHG4GDMLConfig;
+class RawTowerGeomContainer;
 
 class PHG4IHCalDetector : public PHG4Detector
 {
@@ -50,6 +51,7 @@ class PHG4IHCalDetector : public PHG4Detector
   int GetSectorId(G4VPhysicalVolume *volume) const;
 
  private:
+  void AddGeometryNode();
   int map_towerid(const int tower_id);
   int map_layerid(const int layer_id);
   int ConstructIHCal(G4LogicalVolume *sandwich);
@@ -81,6 +83,8 @@ class PHG4IHCalDetector : public PHG4Detector
   PHG4GDMLConfig *gdml_config = nullptr;
 
   std::string m_GDMPath;
+  RawTowerGeomContainer *m_RawTowerGeom = nullptr;
+  std::string m_TowerGeomNodeName;
 };
 
 #endif  // G4IHCAL_PHG4IHCALDETECTOR_H

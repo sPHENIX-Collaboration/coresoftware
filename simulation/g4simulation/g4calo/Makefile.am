@@ -31,17 +31,17 @@ libg4calo_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libg4calo_la_LIBADD = \
-  -lphool \
-  -lSubsysReco \
+  -lcalo_io \
+  -lcdbobjects \
   -lfun4all \
   -lg4detectors_io \
   -lg4testbench \
-  -lphg4hit \
-  -lphparameter \
   -lgsl \
   -lgslcblas \
-  -lcaloCalibDBFile \
-  -lcalo_io
+  -lphool \
+  -lphg4hit \
+  -lphparameter \
+  -lSubsysReco
 
 ################################################
 # linking tests
