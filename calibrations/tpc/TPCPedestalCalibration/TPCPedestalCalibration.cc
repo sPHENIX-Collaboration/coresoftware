@@ -32,6 +32,18 @@ TPCPedestalCalibration::TPCPedestalCalibration(const std::string &name)
 {
   // reserve memory for max ADC samples
   m_adcSamples.resize(1024, 0);
+
+  for(int fee_no=0;fee_no<26;fee_no++)
+  {
+    for(int channel_no=0;channel_no<256;channel_no++)
+    {
+      m_aveADCFeeChannel[fee_no][channel_no]=0.0;
+      m_stdADCFeeChannel[fee_no][channel_no]=0.0;
+      m_countsADCFeeChannel[fee_no][channel_no]=0.0;
+      m_aliveArrayFeeChannel[fee_no][channel_no]=1;
+    }
+  }
+
 }
 
 int TPCPedestalCalibration::InitRun(PHCompositeNode *)
@@ -49,18 +61,7 @@ int TPCPedestalCalibration::InitRun(PHCompositeNode *)
   m_pedestalTree->Branch("channel",&m_chan,"channel/I");
   m_pedestalTree->Branch("module",&m_module,"module/I");
   m_pedestalTree->Branch("slot",&m_slot,"slot/I");
-
-  for(int fee_no=0;fee_no<26;fee_no++)
-  {
-    for(int channel_no=0;channel_no<256;channel_no++)
-    {
-      m_aveADCFeeChannel[fee_no][channel_no]=0.0;
-      m_stdADCFeeChannel[fee_no][channel_no]=0.0;
-      m_countsADCFeeChannel[fee_no][channel_no]=0.0;
-      m_aliveArrayFeeChannel[fee_no][channel_no]=1;
-    }
-  }
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
