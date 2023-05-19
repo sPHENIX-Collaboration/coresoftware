@@ -66,6 +66,7 @@ pkginclude_HEADERS = \
   MicromegasMapping.h \
   MicromegasRawDataCalibration.h \
   MicromegasRawDataDecoder.h \
+  MicromegasRawDataEvaluation.h \
   MicromegasTile.h
 
 ROOTDICTS = \
@@ -75,6 +76,7 @@ ROOTDICTS = \
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeomMicromegas_Dict_rdict.pcm \
+  MicromegasRawDataEvaluation_Dict_rdict.pcm \
   MicromegasTile_Dict_rdict.pcm
 
 libmicromegas_io_la_SOURCES = \
@@ -95,7 +97,9 @@ libmicromegas_io_la_LIBADD = \
 libmicromegas_la_SOURCES = \
   MicromegasClusterizer.cc \
   MicromegasRawDataCalibration.cc \
-  MicromegasRawDataDecoder.cc
+  MicromegasRawDataDecoder.cc \
+  MicromegasRawDataEvaluation.cc \
+  MicromegasRawDataEvaluation_Dict.cc
 
 libmicromegas_la_LIBADD = \
   libmicromegas_io.la \

@@ -46,17 +46,8 @@ class MicromegasRawDataCalibration : public SubsysReco
   /// set to true to store evaluation histograms and ntuples
   void set_calibration_file( const std::string& value ) { m_calibration_filename = value; }
   
-  /// set to true to store evaluation histograms and ntuples
-  void set_save_histograms( bool value ) { m_savehistograms = value; }
-
-  /// output file name for evaluation histograms
-  void set_histogram_outputfile(const std::string &outputfile) {m_histogramfilename = outputfile;}
-
   private:
 
-  /// create evaluation histograms
-  void create_histograms();
-  
   /// min sample for noise estimation 
   int m_sample_min = 0;
   
@@ -70,24 +61,6 @@ class MicromegasRawDataCalibration : public SubsysReco
   using profile_map_t = std::map<int, TProfile*>;
   profile_map_t m_profile_map;
   
-  ///@name evaluation histograms
-  //@{
-
-  /// Output root histograms
-  bool m_savehistograms = true;
-
-  /// histogram output file name
-  std::string m_histogramfilename = "MicromegasRawDataCalibration.root";
-  std::unique_ptr<TFile> m_histogramfile;
-
-  /// Fired FEE
-  TH1* m_h_fee_id = nullptr;
-
-  /// ADC distribution vs channel number
-  TH2* m_h_adc_channel = nullptr;
-
-  //@}
-
 };
 
 #endif
