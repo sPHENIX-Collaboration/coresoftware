@@ -6,15 +6,16 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
+#include <vector>
+#include <array>
+#include <cmath>
 
 //Forward declarations
 class PHCompositeNode;
 class EpFinder;
 class EpInfo;
-class RawTowerContainer;
 class RawTowerGeomContainer;
 class PHG4HitContainer;
-class TH1D;
 
 class EpFinderReco : public SubsysReco
 {
@@ -32,72 +33,37 @@ class EpFinderReco : public SubsysReco
 
   void set_algo_node(const std::string &algonode) { _algonode = algonode; }
 
-  void set_ep_mode(int do_ep)
-  {
-    _do_ep = do_ep;
-  }
+  void Detector(const std::string &d){ detector = d;}
 
-  void set_sEPD_calib(bool do_sepd_calib)
-  {
-    _do_sepd_calib = do_sepd_calib;
-  }
+  void set_truncation_filename(const std::string &fname) { m_TruncationFileName = fname; }
 
-  void set_sEPD_MPV_in_GeV(const double sepdmpv)
-  {
-    _sepdmpv = sepdmpv;
-  }
-
-  void Detector(const std::string &d)
-  {
-    detector = d;
-  }
-
- private:
-  TH1D *heta = nullptr;
-  TH1D *hcent = nullptr;
-
+  private:
+ 
   void GetEventPlanes(PHCompositeNode *);
   int GetNodes(PHCompositeNode *);
   int CreateNodes(PHCompositeNode *);
 
-  int GetPhiBin(float tphi, int numPhiDivisions);
-  float GetMeanPhi(int iphi, int numPhiDivisions);
-
   std::string _algonode = "EVENT_PLANE";
-  int _do_ep = 0;
-  bool _do_sepd_calib = false;
-  double _sepdmpv = 1.;
 
-  RawTowerContainer *_calib_towers = nullptr;
-  RawTowerGeomContainer *rawtowergeom = nullptr;
-  RawTowerContainer *cemctowers = nullptr;
-  RawTowerGeomContainer *cemctowergeom = nullptr;
-  RawTowerContainer *hcalotowers = nullptr;
-  RawTowerGeomContainer *hcalotowergeom = nullptr;
-  RawTowerContainer *hcalitowers = nullptr;
-  RawTowerGeomContainer *hcalitowergeom = nullptr;
-  PHG4HitContainer *e_hit_container = nullptr;
-  PHG4HitContainer *b_hit_container = nullptr;
+  std::string detector = "NONE";
+  std::string m_TruncationFileName;
+  std::array<std::array<std::array<double, 16>, 10>, 2> m_Epd_Trunc_e = {};
+ 
+  EpFinder *EpFinder_det[2] = {};
 
-  std::string detector = "CEMC";
+  EpInfo *_EpInfo_det[2] = {};
+ 
+  RawTowerGeomContainer *towergeom = nullptr;
+  std::vector<std::string> EventPlaneNodeName;
+  std::string EpNode = "EPINFO_";
+  std::string TowerNode = "TOWERINFO_CALIB_";
+  std::string TowerGeomNode = "TOWERGEOM_";
+    
+  std::vector<std::pair<int,int>> Nepd_phi_list[16];
+  std::vector<std::pair<int,int>> Sepd_phi_list[16];
+  std::vector<std::pair<int,int>> Nepd_phi_list0[1];
+  std::vector<std::pair<int,int>> Sepd_phi_list0[1];
 
-  EpFinder *EpFinder_1 = nullptr;
-  EpFinder *EpFinder_2 = nullptr;
-  EpFinder *EpFinder_3 = nullptr;
-  EpFinder *EpFinder_4 = nullptr;
-
-  EpInfo *_CALO_EpInfo = nullptr;
-  EpInfo *_BBC_EpInfoS = nullptr;
-  EpInfo *_BBC_EpInfoN = nullptr;
-  EpInfo *_EPD_EpInfoS = nullptr;
-  EpInfo *_EPD_EpInfoN = nullptr;
-  EpInfo *_CEMCHCAL_EpInfo = nullptr;
-  EpInfo *_EPD_EpInfoS_calib = nullptr;
-  EpInfo *_EPD_EpInfoN_calib = nullptr;
-
-  std::string CaliTowerNodeName;
-  std::string TowerGeomNodeName;
-  std::string EPNodeName;
 };
 
 #endif  //* EVENTPLANE_EPFINDERRECO_H *//
