@@ -281,6 +281,15 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
         {
           glbl_derivative[j] = 0.0;
         }
+	if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
+	  {
+	    auto sector = TpcDefs::getSectorId(ckey);
+	    auto side = TpcDefs::getSide(ckey);
+	    if(is_tpc_sector_fixed(layer, sector, side))
+	      {
+		glbl_derivative[j] = 0.0;
+	      }
+	  }
       }
 
       float lcl_derivative[SvtxAlignmentState::NLOC];
@@ -367,3 +376,14 @@ void MakeMilleFiles::set_layer_param_fixed(unsigned int layer, unsigned int para
   std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
   fixed_layer_params.insert(pair);
 }
+bool MakeMilleFiles::is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side)
+ {
+   bool ret = false;
+   unsigned int region = AlignmentDefs::getTpcRegion(layer);
+   unsigned int subsector = region * 24 + side * 12 + sector;
+   auto it = fixed_sectors.find(subsector);
+   if(it != fixed_sectors.end()) 
+     ret = true;
+
+   return ret;
+ }
