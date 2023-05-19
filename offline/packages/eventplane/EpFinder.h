@@ -48,7 +48,6 @@ class EpFinder
   std::vector<double> WheelSumWeightsPhiWeighted;
   std::vector<double> PsiRaw;
   std::vector<double> PsiPhiWeighted;
-  float thisphiWeight = 0.;
 
   TH2D* mPhiWeightInput[2];
   TH2D* mPhiWeightOutput[2];
