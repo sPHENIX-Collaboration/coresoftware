@@ -32,6 +32,7 @@
 #include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream
 #include <sstream>
+#include <cassert>
 
 class PHG4Detector;
 
@@ -140,9 +141,11 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 
     steppingAction_ = new PHG4SpacalSteppingAction(detector_, GetParams());
     steppingAction_->InitWithNode(topNode);
+    const char* calibrationRoot = getenv("CALIBRATIONROOT");
+    assert(calibrationRoot != nullptr && "Environment variable CALIBRATIONROOT is not set");
+    std::string filePath = std::string(calibrationRoot) + "/CEMC/LightCollection/Prototype3Module.xml";
     steppingAction_->get_light_collection_model().load_data_file(
-        std::string(getenv("CALIBRATIONROOT")) + std::string("/CEMC/LightCollection/Prototype3Module.xml"),
-        "data_grid_light_guide_efficiency", "data_grid_fiber_trans");
+    filePath, "data_grid_light_guide_efficiency", "data_grid_fiber_trans");
     steppingAction_->SetHitNodeName("G4HIT", m_HitNodeName);
     steppingAction_->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
   }
