@@ -30,6 +30,7 @@ libtpccalib_la_LIBADD = \
   -lg4detectors_io \
   -ltrack_io \
   -ltrackbase_historic_io \
+  -ltrack_reco \
   -ltpc_io
 
 pkginclude_HEADERS = \

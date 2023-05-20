@@ -20,6 +20,8 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 
+#include <trackreco/ActsPropagator.h>
+
 #include <micromegas/MicromegasDefs.h>
 
 #include <Acts/Surfaces/PerigeeSurface.hpp>
@@ -223,8 +225,8 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
 Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) const
 {
   Acts::Vector3 momentum(track->get_px(), 
-			  track->get_py(), 
-			  track->get_pz());
+			 track->get_py(), 
+			 track->get_pz());
   double trackQ = track->get_charge() * Acts::UnitConstants::e;
   double p = track->get_p();
 
@@ -255,17 +257,17 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       << " position: (" << track->get_x() << ", " << track->get_y() << ", " << track->get_z() << ")"
       << std::endl;
   }
-  
+  ActsPropagator propagator(m_tGeometry);
+
   // create ACTS parameters from track parameters at origin
   auto trackParams = makeTrackParams(track);
   
   // store crossing. It is used in calculating cluster's global position
   m_crossing = track->get_crossing();
   assert( m_crossing != SHRT_MAX );
-  
+
   for( const auto& cluskey:get_cluster_keys( track ) )
   {
-    
     // increment counter
     ++m_total_clusters;
     
@@ -275,10 +277,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     
     const auto cluster = m_clusterContainer->findCluster(cluskey);      
     const auto surface = m_tGeometry->maps().getSurface( cluskey, cluster );   
-    const auto result = propagateTrackState(trackParams, surface);
+    auto result = propagator.propagateTrack(trackParams, surface);
     
     // skip if propagation failed
-    if(!result)
+    if(!result.ok())
     {
       if( Verbosity() > 1 )
       {
@@ -298,7 +300,9 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     }
     
     // get extrapolated track state, convert to sPHENIX and add to track
-    const auto& [pathLength, trackStateParams] = *result;
+    auto& [pathLength, trackStateParams] = result.value();    
+    pathLength /= Acts::UnitConstants::cm;
+
     if(Verbosity() > 1)
     {
       std::cout << "PHTpcResiduals::processTrack -"
@@ -309,7 +313,8 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
         << trackStateParams.momentum()
         << std::endl;
     }
-    
+
+
     addTrackState( track, cluskey, pathLength, trackStateParams );
     
     // calculate residuals with respect to cluster
@@ -484,42 +489,6 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       
   }
         
-}
-
-//__________________________________________________________________________________________________________________________________________
-std::optional<PHTpcResiduals::BoundTrackParamPair>  PHTpcResiduals::propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surface) const
-{
- 
-
-  using Stepper = Acts::EigenStepper<>;
-  using Propagator = Acts::Propagator<Stepper, Acts::Navigator>;
-
-  Stepper stepper(m_tGeometry->geometry().magField);
-  Acts::Navigator::Config cfg{m_tGeometry->geometry().tGeometry};
-  Acts::Navigator navigator(cfg);
-  Propagator propagator(stepper, navigator);
-
-  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
-  if(Verbosity() > 10)
-    logLevel = Acts::Logging::VERBOSE;
-
-  auto logger = Acts::getDefaultLogger("PHTpcResiduals", logLevel);
-      
-  Acts::PropagatorOptions<> options(m_tGeometry->geometry().getGeoContext(),
-				    m_tGeometry->geometry().magFieldContext,
-				    Acts::LoggerWrapper{*logger});
-     
-  auto result = propagator.propagate(params, *surface, options);
-   
-  if(result.ok())
-  {
-    const Acts::BoundTrackParameters params = *result.value().endParameters;
-    double pathlength = result.value().pathLength / Acts::UnitConstants::cm;
-    // return both path length and extrapolated parameters
-    return std::make_pair( pathlength, params );
-  } else {
-    return std::nullopt;
-  }
 }
 
 //_______________________________________________________________________________________________________
