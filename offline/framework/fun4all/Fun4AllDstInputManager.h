@@ -32,15 +32,15 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
  protected:
   int ReadNextEventSyncObject();
   void ReadRunTTree(const int i) { m_ReadRunTTree = i; }
-  void IManager(PHNodeIOManager *iman) {m_IManager = iman;}
-  PHNodeIOManager *IManager() {return m_IManager;}
-  void runNode(PHCompositeNode *node) {m_RunNode = node;}
-  PHCompositeNode *runNode() {return m_RunNode;}
-  void runNodeCopy(PHCompositeNode *node) {m_RunNodeCopy = node;}
-  PHCompositeNode *runNodeCopy() {return m_RunNodeCopy;}
-  void runNodeSum(PHCompositeNode *node) {m_RunNodeSum = node;}
-  PHCompositeNode *runNodeSum() {return m_RunNodeSum;}
-  std::string RunNodeName() const {return RunNode;}
+  void IManager(PHNodeIOManager *iman) { m_IManager = iman; }
+  PHNodeIOManager *IManager() { return m_IManager; }
+  void runNode(PHCompositeNode *node) { m_RunNode = node; }
+  PHCompositeNode *runNode() { return m_RunNode; }
+  void runNodeCopy(PHCompositeNode *node) { m_RunNodeCopy = node; }
+  PHCompositeNode *runNodeCopy() { return m_RunNodeCopy; }
+  void runNodeSum(PHCompositeNode *node) { m_RunNodeSum = node; }
+  PHCompositeNode *runNodeSum() { return m_RunNodeSum; }
+  std::string RunNodeName() const { return RunNode; }
   std::string fullfilename;
 
  private:

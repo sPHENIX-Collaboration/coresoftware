@@ -20,8 +20,8 @@
 #include <iostream>
 
 Fun4AllRunNodeInputManager::Fun4AllRunNodeInputManager(const std::string &name,
-                                                           const std::string &nodename,
-                                                           const std::string &topnodename)
+                                                       const std::string &nodename,
+                                                       const std::string &topnodename)
   : Fun4AllDstInputManager(name, nodename, topnodename)
 {
   return;
@@ -74,9 +74,9 @@ int Fun4AllRunNodeInputManager::fileopen(const std::string &filenam)
     if (runNodeCopy())
     {
       std::cout << PHWHERE
-		<< " The impossible happened, we have a valid copy of the run node "
-		<< runNodeCopy()->getName() << " which should be a nullptr"
-		<< std::endl;
+                << " The impossible happened, we have a valid copy of the run node "
+                << runNodeCopy()->getName() << " which should be a nullptr"
+                << std::endl;
       gSystem->Exit(1);
     }
     runNodeCopy(new PHCompositeNode("RUNNODECOPY"));

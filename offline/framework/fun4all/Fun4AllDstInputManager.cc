@@ -413,7 +413,7 @@ int Fun4AllDstInputManager::ReadNextEventSyncObject()
 {
 readnextsync:
   static int readfull = 0;  // for some reason all the input managers need to see the same (I think, should look at this at some point)
-  if (!m_IManager)            // in case the old file was exhausted and there is no new file opened
+  if (!m_IManager)          // in case the old file was exhausted and there is no new file opened
   {
     return Fun4AllReturnCodes::SYNC_FAIL;
   }
@@ -430,7 +430,7 @@ readnextsync:
       std::string delimeters = phooldefs::branchpathdelim;  // + phooldefs::legacypathdelims;
       std::vector<std::string> splitvec;
       boost::split(splitvec, bIter->first, boost::is_any_of(delimeters));
-      for (auto & ia : splitvec)  // -1 so we skip the node name
+      for (auto &ia : splitvec)  // -1 so we skip the node name
       {
         if (ia == syncdefs::SYNCNODENAME)
         {
@@ -586,7 +586,7 @@ int Fun4AllDstInputManager::setBranches()
 int Fun4AllDstInputManager::setSyncBranches(PHNodeIOManager *IMan)
 {
   // protection against switching off the sync variables
-  for (auto & i : syncdefs::SYNCVARS)
+  for (auto &i : syncdefs::SYNCVARS)
   {
     IMan->selectObjectToRead(i, true);
   }
