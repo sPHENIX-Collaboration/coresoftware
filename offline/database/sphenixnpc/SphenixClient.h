@@ -1,5 +1,5 @@
-#ifndef SPHENIXNPC_SPHENIXNPC_H
-#define SPHENIXNPC_SPHENIXNPC_H
+#ifndef SPHENIXNPC_SPHENIXCLIENT_H
+#define SPHENIXNPC_SPHENIXCLIENT_H
 
 #include <nopayloadclient/nopayloadclient.hpp>
 
@@ -11,12 +11,12 @@
 #include <set>
 #include <string>
 
-class sphenixnpc : public nopayloadclient::NoPayloadClient
+class SphenixClient : public nopayloadclient::NoPayloadClient
 {
  public:
-  sphenixnpc();
-  sphenixnpc(const std::string &globaltag);
-  virtual ~sphenixnpc() = default;
+  SphenixClient();
+  SphenixClient(const std::string &globaltag);
+  virtual ~SphenixClient() = default;
   nlohmann::json getPayloadIOVs(long long iov);
   nlohmann::json  getUrl(const std::string& pl_type, long long iov);
   nlohmann::json insertPayload(const std::string& pl_type, const std::string& file_url, long long iov_start);
@@ -39,4 +39,4 @@ class sphenixnpc : public nopayloadclient::NoPayloadClient
   std::set<std::string> m_DomainCache;
 };
 
-#endif  // SPHENIXNPC_SPHENIXNPC_H
+#endif  // SPHENIXNPC_SPHENIXCLIENT_H

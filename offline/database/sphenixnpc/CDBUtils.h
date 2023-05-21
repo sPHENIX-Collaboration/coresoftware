@@ -6,7 +6,7 @@
 #include <set>
 #include <string>
 
-class sphenixnpc;
+class SphenixClient;
 
 class CDBUtils
 {
@@ -34,9 +34,9 @@ class CDBUtils
 
  private:
   int m_Verbosity = 0;
-  sphenixnpc *cdbclient = nullptr;
+  SphenixClient *cdbclient = nullptr;
   std::string m_CachedGlobalTag;
   std::set<std::string> m_DomainCache;
 };
 
-#endif  // SPHENIXNPC_SPHENIXNPC_H
+#endif  // SPHENIXNPC_CDBUTILS_H

@@ -1,4 +1,4 @@
-#include "sphenixnpc.h"
+#include "SphenixClient.h"
 
 #include <nopayloadclient/nopayloadclient.hpp>
 
@@ -6,18 +6,18 @@
 #include <iostream>
 #include <stdexcept>
 
-sphenixnpc::sphenixnpc()
+SphenixClient::SphenixClient()
 {}
 
-sphenixnpc::sphenixnpc(const std::string &gt_name): nopayloadclient::NoPayloadClient(gt_name)
+SphenixClient::SphenixClient(const std::string &gt_name): nopayloadclient::NoPayloadClient(gt_name)
 {
 //cache_set_GlobalTag(globaltag);
 }
 
-nlohmann::json sphenixnpc::getPayloadIOVs(long long iov) {
+nlohmann::json SphenixClient::getPayloadIOVs(long long iov) {
     return nopayloadclient::NoPayloadClient::getPayloadIOVs(0, iov);
 }
-nlohmann::json sphenixnpc::getUrl(const std::string& pl_type, long long iov) {
+nlohmann::json SphenixClient::getUrl(const std::string& pl_type, long long iov) {
     nlohmann::json resp = getPayloadIOVs(iov);
     if (resp["code"] != 0) return resp;
     nlohmann::json payload_iovs = resp["msg"];
@@ -30,25 +30,25 @@ nlohmann::json sphenixnpc::getUrl(const std::string& pl_type, long long iov) {
     }
     return makeResp(payload_iov["payload_url"]);
 }
-nlohmann::json sphenixnpc::insertPayload(const std::string& pl_type, const std::string& file_url,
+nlohmann::json SphenixClient::insertPayload(const std::string& pl_type, const std::string& file_url,
                            long long iov_start) {
     return nopayloadclient::NoPayloadClient::insertPayload(pl_type, file_url, 0, iov_start);
 }
 
-nlohmann::json sphenixnpc::insertPayload(const std::string& pl_type, const std::string& file_url,
+nlohmann::json SphenixClient::insertPayload(const std::string& pl_type, const std::string& file_url,
                            long long iov_start, long long iov_end) {
     return nopayloadclient::NoPayloadClient::insertPayload(pl_type, file_url, 0, iov_start, 0, iov_end);
 }
 
-nlohmann::json sphenixnpc::setGlobalTag(const std::string& name) {
+nlohmann::json SphenixClient::setGlobalTag(const std::string& name) {
     return nopayloadclient::NoPayloadClient::setGlobalTag(name);
 }
 
-nlohmann::json sphenixnpc::clearCache() {
+nlohmann::json SphenixClient::clearCache() {
     return nopayloadclient::NoPayloadClient::clearCache();
 }
 
-nlohmann::json sphenixnpc::createGlobalTag1(const std::string &tagname)
+nlohmann::json SphenixClient::createGlobalTag1(const std::string &tagname)
 {
   if (tagname == m_CachedGlobalTag) // global tag already set
   {
@@ -85,12 +85,12 @@ nlohmann::json sphenixnpc::createGlobalTag1(const std::string &tagname)
     nopayloadclient::NoPayloadClient::setGlobalTag(tagname);
     m_CachedGlobalTag = tagname;
     clearCache();
-    std::cout << "sphenixnpc: Created new global tag " << tagname << std::endl;
+    std::cout << "SphenixClient: Created new global tag " << tagname << std::endl;
   }
   return resp;
 }
 
-nlohmann::json sphenixnpc::setGlobalTag1(const std::string &tagname)
+nlohmann::json SphenixClient::setGlobalTag1(const std::string &tagname)
 {
   if (tagname == m_CachedGlobalTag) // global tag already set
   {
@@ -120,7 +120,7 @@ std::string message = "global tag " + tagname + " does not exist";
     return {{"code", -1}, {"msg", message}};
 }
 
-int sphenixnpc::cache_set_GlobalTag(const std::string &tagname)
+int SphenixClient::cache_set_GlobalTag(const std::string &tagname)
 {
   int iret = 0;
   if (tagname == m_CachedGlobalTag) // global tag already set
@@ -152,13 +152,13 @@ int sphenixnpc::cache_set_GlobalTag(const std::string &tagname)
     }
     else
     {
-      std::cout << "sphenixnpc: Created new global tag " << tagname << std::endl;
+      std::cout << "SphenixClient: Created new global tag " << tagname << std::endl;
     }
   }
   return iret;
 }
 
-int sphenixnpc::createDomain(const std::string &domain)
+int SphenixClient::createDomain(const std::string &domain)
 {
   int iret = -1;
   nlohmann::json resp;
@@ -188,7 +188,7 @@ int sphenixnpc::createDomain(const std::string &domain)
   return iret;
 }
 
-bool sphenixnpc::isGlobalTagSet()
+bool SphenixClient::isGlobalTagSet()
 {
   if (m_CachedGlobalTag.empty())
   {

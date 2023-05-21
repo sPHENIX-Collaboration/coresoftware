@@ -16,7 +16,7 @@ AM_LDFLAGS = \
 
 libsphenixnpc_la_SOURCES = \
   CDBUtils.cc \
-  sphenixnpc.cc
+  SphenixClient.cc
 
 
 libsphenixnpc_la_LIBADD = \
@@ -27,7 +27,7 @@ libsphenixnpc_la_LIBADD = \
 
 pkginclude_HEADERS = \
   CDBUtils.h \
-  sphenixnpc.h
+  SphenixClient.h
 
 ################################################
 # linking tests

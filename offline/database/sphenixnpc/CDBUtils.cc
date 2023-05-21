@@ -1,6 +1,6 @@
 #include "CDBUtils.h"
 
-#include "sphenixnpc.h"
+#include "SphenixClient.h"
 
 #include <nlohmann/json.hpp>
 
@@ -8,11 +8,11 @@
 #include <stdexcept>
 
 CDBUtils::CDBUtils()
-  : cdbclient(new sphenixnpc())
+  : cdbclient(new SphenixClient())
 {}
 
 CDBUtils::CDBUtils(const std::string &globaltag)
-  : cdbclient(new sphenixnpc(globaltag))
+  : cdbclient(new SphenixClient(globaltag))
 {
 }
 
