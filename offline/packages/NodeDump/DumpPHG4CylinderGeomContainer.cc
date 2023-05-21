@@ -34,7 +34,6 @@ int DumpPHG4CylinderGeomContainer::process_Node(PHNode *myNode)
     *fout << "num layers: " << phg4geomcontainer->get_NLayers() << std::endl;
     for (hiter = geom_begin_end.first; hiter != geom_begin_end.second; hiter++)
     {
-
       *fout << "layer: " << hiter->second->get_layer() << std::endl;
       *fout << "radius: " << hiter->second->get_radius() << std::endl;
       *fout << "thickness: " << hiter->second->get_thickness() << std::endl;
@@ -54,25 +53,24 @@ int DumpPHG4CylinderGeomContainer::process_Node(PHNode *myNode)
       PHG4CylinderGeom_Spacalv1 *layergeomv1 = dynamic_cast<PHG4CylinderGeom_Spacalv1 *>(hiter->second);
       if (layergeomv1)
       {
-	const PHG4CylinderGeom_Spacalv3::sector_map_t &sector_map = layergeomv1->get_sector_map();
-	*fout << "xpos: " << layergeomv1->get_xpos() << std::endl;
-	*fout << "ypos: " << layergeomv1->get_ypos() << std::endl;
-	*fout << "zpos: " << layergeomv1->get_zpos() << std::endl;
-	for (auto sectormapiter : sector_map)
-	{
-	  *fout << "sector " << sectormapiter.first << ", rotation: " << sectormapiter.second << std::endl;
-	}
+        const PHG4CylinderGeom_Spacalv3::sector_map_t &sector_map = layergeomv1->get_sector_map();
+        *fout << "xpos: " << layergeomv1->get_xpos() << std::endl;
+        *fout << "ypos: " << layergeomv1->get_ypos() << std::endl;
+        *fout << "zpos: " << layergeomv1->get_zpos() << std::endl;
+        for (auto sectormapiter : sector_map)
+        {
+          *fout << "sector " << sectormapiter.first << ", rotation: " << sectormapiter.second << std::endl;
+        }
       }
       PHG4CylinderGeom_Spacalv3 *layergeomv3 = dynamic_cast<PHG4CylinderGeom_Spacalv3 *>(hiter->second);
       if (layergeomv3)
       {
-	*fout << "sidewall_outer_torr: " << layergeomv3->get_sidewall_outer_torr() << std::endl;
-	const PHG4CylinderGeom_Spacalv3::tower_map_t &tower_map = layergeomv3->get_sector_tower_map();
-	for (const auto & towermapiter : tower_map)
-	{
-	  *fout << "tower " << towermapiter.first << ", rot angle: " << towermapiter.second.pRotationAngleX << std::endl;
-	}
-
+        *fout << "sidewall_outer_torr: " << layergeomv3->get_sidewall_outer_torr() << std::endl;
+        const PHG4CylinderGeom_Spacalv3::tower_map_t &tower_map = layergeomv3->get_sector_tower_map();
+        for (const auto &towermapiter : tower_map)
+        {
+          *fout << "tower " << towermapiter.first << ", rot angle: " << towermapiter.second.pRotationAngleX << std::endl;
+        }
       }
     }
   }

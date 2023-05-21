@@ -1,7 +1,6 @@
 #ifndef NODEDUMP_DUMPBBCPMTCONTAINER_H
 #define NODEDUMP_DUMPBBCPMTCONTAINER_H
 
-
 #include "DumpObject.h"
 
 #include <string>
@@ -15,8 +14,7 @@ class DumpBbcPmtContainer : public DumpObject
   virtual ~DumpBbcPmtContainer() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
 #endif
-

@@ -1,7 +1,6 @@
 #ifndef NODEDUMP_DUMPBBCOUT_H
 #define NODEDUMP_DUMPBBCOUT_H
 
-
 #include "DumpObject.h"
 
 #include <string>
@@ -15,8 +14,7 @@ class DumpBbcOut : public DumpObject
   virtual ~DumpBbcOut() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
 #endif
-
