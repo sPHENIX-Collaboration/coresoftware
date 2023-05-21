@@ -4,6 +4,7 @@
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeom_Spacalv3.h>
 
 #include <map>
 #include <ostream>
@@ -49,6 +50,28 @@ int DumpPHG4CylinderGeomContainer::process_Node(PHNode *myNode)
       *fout << "pixel_z: " << hiter->second->get_pixel_z() << std::endl;
       *fout << "pixel_x: " << hiter->second->get_pixel_x() << std::endl;
       *fout << "pixel_thickness: " << hiter->second->get_pixel_thickness() << std::endl;
+      PHG4CylinderGeom_Spacalv1 *layergeomv1 = dynamic_cast<PHG4CylinderGeom_Spacalv1 *>(hiter->second);
+      if (layergeomv1)
+      {
+        const PHG4CylinderGeom_Spacalv3::sector_map_t &sector_map = layergeomv1->get_sector_map();
+        *fout << "xpos: " << layergeomv1->get_xpos() << std::endl;
+        *fout << "ypos: " << layergeomv1->get_ypos() << std::endl;
+        *fout << "zpos: " << layergeomv1->get_zpos() << std::endl;
+        for (auto sectormapiter : sector_map)
+        {
+          *fout << "sector " << sectormapiter.first << ", rotation: " << sectormapiter.second << std::endl;
+        }
+      }
+      PHG4CylinderGeom_Spacalv3 *layergeomv3 = dynamic_cast<PHG4CylinderGeom_Spacalv3 *>(hiter->second);
+      if (layergeomv3)
+      {
+        *fout << "sidewall_outer_torr: " << layergeomv3->get_sidewall_outer_torr() << std::endl;
+        const PHG4CylinderGeom_Spacalv3::tower_map_t &tower_map = layergeomv3->get_sector_tower_map();
+        for (const auto &towermapiter : tower_map)
+        {
+          *fout << "tower " << towermapiter.first << ", rot angle: " << towermapiter.second.pRotationAngleX << std::endl;
+        }
+      }
     }
   }
   return 0;

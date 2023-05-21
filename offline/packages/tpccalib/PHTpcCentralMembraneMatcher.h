@@ -78,7 +78,8 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
   /// static distortion container
   /** used in input to correct CM clusters before calculating residuals */
-  TpcDistortionCorrectionContainer* m_dcc_in{nullptr};
+  TpcDistortionCorrectionContainer* m_dcc_in_static{nullptr};
+  TpcDistortionCorrectionContainer* m_dcc_in_average{nullptr};
 
   /// fluctuation distortion container
   /** used in output to write fluctuation distortions */

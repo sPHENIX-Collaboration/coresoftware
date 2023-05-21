@@ -581,7 +581,14 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> deca
         {
           if (Verbosity() >= VERBOSITY_MAX) std::cout << "This is a child you were looking for" << std::endl;
           actualDecayProducts.push_back(particleID);
-          decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(),g4particle->get_barcode()), particleID));
+          if (m_geneventmap)
+          {
+            decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(),g4particle->get_barcode()), particleID));
+          }
+          else
+          {
+            decayChain.push_back(std::make_pair(std::make_pair(g4particle->get_primary_id(),g4particle->get_barcode()), particleID));
+          }
         }
       }  //Now check if it's part of the other resonance list
       else if (m_allowPhotons && particleID == 22) continue;

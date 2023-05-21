@@ -10,6 +10,7 @@
 class G4Step;
 class G4VPhysicalVolume;
 class PHCompositeNode;
+class TowerInfoContainer;
 class PHG4OHCalDetector;
 class PHParameters;
 class PHG4Hit;
@@ -29,7 +30,7 @@ class PHG4OHCalSteppingAction : public PHG4SteppingAction
   //! stepping action
   bool UserSteppingAction(const G4Step *, bool) override;
 
-  int Init() override;
+  int InitWithNode(PHCompositeNode *topNode) override;
 
   //! reimplemented from base class
   void SetInterfacePointers(PHCompositeNode *) override;
@@ -38,8 +39,9 @@ class PHG4OHCalSteppingAction : public PHG4SteppingAction
 
   void FieldChecker(const G4Step *);
   void EnableFieldChecker(const int i = 1) { m_EnableFieldCheckerFlag = i; }
-
+  void CreateNodeTree(PHCompositeNode *topNode);
  private:
+ bool NoHitSteppingAction(const G4Step *aStep);
   //! pointer to the detector
   PHG4OHCalDetector *m_Detector = nullptr;
 
@@ -68,8 +70,14 @@ class PHG4OHCalSteppingAction : public PHG4SteppingAction
   int m_IsBlackHoleFlag = 0;
   int m_NScintiPlates = -1;
   int m_LightScintModelFlag = 0;
+  bool m_doG4Hit = true;
+  double m_tmin = -20.;
+  double m_tmax = 60.;
+  double m_dt = 100.;
   std::string m_AbsorberNodeName;
   std::string m_HitNodeName;
+
+  TowerInfoContainer *m_CaloInfoContainer = nullptr;
 };
 
 #endif  // G4OHCAL_PHG4OHCALSTEPPINGACTION_H

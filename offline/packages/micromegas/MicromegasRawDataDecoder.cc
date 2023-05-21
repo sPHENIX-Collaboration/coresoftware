@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <memory>
 
 //_________________________________________________________
 MicromegasRawDataDecoder::MicromegasRawDataDecoder( const std::string& name ):
@@ -97,7 +98,7 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
    * To be fixed at a later stage.
    * check with Martin Purschke
    */
-  auto packet = event->getPacket(MicromegasDefs::m_packet_id);
+  std::unique_ptr<Packet> packet( event->getPacket(MicromegasDefs::m_packet_id) );
   if( !packet )
   {
     // no data
