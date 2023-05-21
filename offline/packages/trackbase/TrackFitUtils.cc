@@ -1,6 +1,5 @@
 #include "TrackFitUtils.h"
 
-#include <trackbase_historic/TrackSeed_v1.h>
 #include "ActsGeometry.h"
 #include "TrkrDefs.h"                // for cluskey, getTrkrId, tpcId
 #include "TpcDefs.h"
