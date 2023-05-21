@@ -9,7 +9,7 @@
 #include <string>
 
 
-typedef PHIODataNode<BbcPmtContainer> MyNode_t;
+using MyNode_t = PHIODataNode<BbcPmtContainer>;
 
 DumpBbcPmtContainer::DumpBbcPmtContainer(const std::string &NodeName): DumpObject(NodeName)
 {

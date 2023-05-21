@@ -9,7 +9,7 @@
 #include <string>
 
 
-typedef PHIODataNode<BbcOut> MyNode_t;
+using MyNode_t = PHIODataNode<BbcOut>;
 
 DumpBbcOut::DumpBbcOut(const std::string &NodeName): DumpObject(NodeName)
 {
