@@ -29,6 +29,8 @@
 #include <phool/getClass.h>
 
 #include <TF1.h>
+#include <TNtuple.h>
+#include <TFile.h>
 
 #include <climits>                            // for UINT_MAX
 #include <iostream>                            // for operator<<, basic_ostream
@@ -77,6 +79,12 @@ int HelicalFitter::InitRun(PHCompositeNode *topNode)
   steering_file << data_outfilename << std::endl;
   steering_file.close();
 
+  if(make_ntuple)
+    {
+      fout = new TFile("HF_ntuple.root","recreate");
+      ntp = new TNtuple("ntp","HF ntuple","layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:xglob:yglob:zglob:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
+   }
+
   // print grouping setup to log file:
   std::cout << "MakeMilleFiles::InitRun: Surface groupings are silicon " << si_grp << " tpc " << tpc_grp << " mms " << mms_grp << std::endl; 
 
@@ -109,6 +117,9 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
   // Decide whether we want to make a helical fit for silicon or TPC
   unsigned int maxtracks = 0; 
+  unsigned int nsilicon = 0;
+  unsigned int ntpc = 0;
+  unsigned int nclus = 0;
   if(fittpc) { maxtracks =  _track_map_tpc->size();  }
   if(fitsilicon)  { maxtracks =  _track_map_silicon->size(); }
   for(unsigned int trackid = 0; trackid < maxtracks; ++trackid)
@@ -140,7 +151,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
       if(fittpc && fitfulltrack)
 	{
 	  // this associates silicon clusters and adds them to the vectors
-	  unsigned int nsilicon = TrackFitUtils::addSiliconClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec);
+	  ntpc = cluskey_vec.size();
+	  nsilicon = TrackFitUtils::addSiliconClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec);
 	  if(nsilicon < 3) continue;  // discard this TPC seed, did not get a good match to silicon
 
 	  // fit the full track now
@@ -152,6 +164,12 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	    { std::cout << " Full track " << trackid   << " radius " << fitpars[0] << " X0 " << fitpars[1]<< " Y0 " << fitpars[2]
 					   << " zslope " << fitpars[3]  << " Z0 " << fitpars[4] << std::endl; }
 	} 
+
+      nclus = ntpc+nsilicon;
+
+      // some basic track quality requirements
+      if(fittpc && ntpc < 35) continue;
+      if((fitsilicon || fitfulltrack) && nsilicon < 5) continue;
 
       // get the residuals and derivatives for all clusters
 
@@ -216,16 +234,16 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	      unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
 	      unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  
 	      Acts::Vector3 center =  surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
+	      Acts::GeometryIdentifier id = surf->geometryId();
 	      unsigned int region = AlignmentDefs::getTpcRegion(layer);
-	      std::cout << "     layer " << layer << " sector " << sector << " region " << region << " side " << side 
+	      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+	      std::cout << "     layer " << layer << " hitsetkey " << hitsetkey << " sector " << sector << " region " << region << " side " << side 
 			<< " sensor center " << center[0] << "  " << center[1] << "  " << center[2] 
 			<< " phi " << atan2(center[1],center[0])* 180.0/M_PI << std::endl;
 	      std::cout << "     global labels: " << glbl_label[3] << "  " << glbl_label[4] << "  " << glbl_label[5] << std::endl;
+	      std::cout << " TPC surface GeometryIdentifier " << id << std::endl;
+	      std::cout << " subsurf key from cluster " << cluster->getSubSurfKey() << std::endl;
 	      */
-	    }
-	  else if (layer < 57)
-	    {
-	      AlignmentDefs::getMMGlobalLabels(surf, glbl_label, mms_grp);
 	    }
 
 	  // These derivatives are for the local parameters
@@ -270,6 +288,33 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	      errinf = _layerMisalignment.find(layer)->second;
 	    }
 
+	  if(make_ntuple)
+	    {
+	      unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
+	      unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  	      
+	      unsigned int subsurf = cluster->getSubSurfKey();
+	      float ntp_data[38] = {
+		(float) layer, (float) nsilicon, (float) ntpc, (float) nclus, (float) trkrid,  (float) sector,  (float) side,
+		(float) subsurf, phi,
+		(float) global(0), (float) global(1), (float) global(2),
+		xloc,zloc, (float) fitpoint_local(0), (float) fitpoint_local(1), 
+		lcl_derivativeX[0],lcl_derivativeX[1],lcl_derivativeX[2],lcl_derivativeX[3],lcl_derivativeX[4],
+		glbl_derivativeX[0],glbl_derivativeX[1],glbl_derivativeX[2],glbl_derivativeX[3],glbl_derivativeX[4],glbl_derivativeX[5],
+		lcl_derivativeY[0],lcl_derivativeY[1],lcl_derivativeY[2],lcl_derivativeY[3],lcl_derivativeY[4],
+		glbl_derivativeY[0],glbl_derivativeY[1],glbl_derivativeY[2],glbl_derivativeY[3],glbl_derivativeY[4],glbl_derivativeY[5] };
+
+	      ntp->Fill(ntp_data);
+
+	      if(Verbosity() > 2)
+		{
+		  for(int i=0;i<34;++i)
+		    {
+		      std::cout << ntp_data[i] << "  " ;
+		    }
+		  std::cout << std::endl;
+		}
+	    };
+	  
 	  // provides output that can be grep'ed to make plots of input to mille
 	  if(Verbosity() > 1)
 	    {
@@ -467,6 +512,12 @@ int HelicalFitter::End(PHCompositeNode* )
 {
   // closes output file in destructor
   delete _mille;
+
+  if(make_ntuple)
+    {
+     fout->Write();
+     fout->Close();
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

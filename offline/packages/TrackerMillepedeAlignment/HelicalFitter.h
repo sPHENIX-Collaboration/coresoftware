@@ -22,6 +22,8 @@ class TrackSeedContainer;
 class TrackSeed;
 class TrkrClusterContainer;
 class TF1;
+class TNtuple;
+class TFile;
 class TpcDistortionCorrectionContainer;
 class Mille;
 class SvtxTrackSeed;
@@ -152,6 +154,11 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   std::string _track_map_name = "TpcTrackSeedContainer";
   std::string _silicon_track_map_name = "SiliconTrackSeedContainer";
+
+  bool make_ntuple = true;
+  TNtuple *ntp{nullptr};
+  TFile *fout{nullptr};
+
 };
 
 #endif // HELICALFITTER_H
