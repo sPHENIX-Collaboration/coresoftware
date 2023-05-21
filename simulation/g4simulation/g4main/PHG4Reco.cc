@@ -16,8 +16,6 @@
 #include "PHG4UIsession.h"
 #include "PHG4Utils.h"
 
-#include <eastphysicslist/eASTPhysicsList.hh>
-
 #include <g4decayer/EDecayType.hh>
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 
@@ -222,10 +220,6 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   {
     setenv("AllowForHeavyElements", "1", 1);
     myphysicslist = new QGSP_INCLXX_HP(Verbosity());
-  }
-  else if (m_PhysicsList == "EAST")
-  {
-    myphysicslist = new eASTPhysicsList(Verbosity());
   }
   else
   {
