@@ -10,11 +10,11 @@ class PHNode;
 class DumpBbcPmtContainer : public DumpObject
 {
  public:
-  DumpBbcPmtContainer(const std::string &NodeName);
+  explicit DumpBbcPmtContainer(const std::string &NodeName);
   virtual ~DumpBbcPmtContainer() {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif
