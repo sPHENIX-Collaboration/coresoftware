@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////
-/*! 
+/*!
   \file PHTFileServer.cc
   \brief TFile clean handling
   \author  Hugo Pereira
@@ -22,7 +22,10 @@ PHTFileServer::SafeTFile::TFileMap PHTFileServer::SafeTFile::_map;
 //_________________________________________________
 PHTFileServer::~PHTFileServer()
 {
-  if (!SafeTFile::file_map().empty()) close();
+  if (!SafeTFile::file_map().empty())
+  {
+    close();
+  }
 }
 
 //_________________________________________________
@@ -47,7 +50,10 @@ void PHTFileServer::open(const std::string& filename, const std::string& type)
 
     // create new SafeTFile; insert in map; change TDirectory
     SafeTFile* file(new SafeTFile(filename, type));
-    if (!file->IsOpen()) std::cout << ("PHTFileServer::open - error opening TFile") << std::endl;
+    if (!file->IsOpen())
+    {
+      std::cout << ("PHTFileServer::open - error opening TFile") << std::endl;
+    }
     SafeTFile::file_map().insert(make_pair(filename, file));
     file->cd();
   }
@@ -58,7 +64,9 @@ bool PHTFileServer::flush(const std::string& filename)
 {
   SafeTFile::TFileMap::iterator iter(SafeTFile::file_map().find(filename));
   if (iter != SafeTFile::file_map().end())
+  {
     iter->second->Flush();
+  }
   else
   {
     std::ostringstream what;
@@ -75,7 +83,9 @@ bool PHTFileServer::cd(const std::string& filename)
 {
   SafeTFile::TFileMap::iterator iter(SafeTFile::file_map().find(filename));
   if (iter != SafeTFile::file_map().end())
+  {
     iter->second->cd();
+  }
   else
   {
     std::ostringstream what;
@@ -132,7 +142,7 @@ void PHTFileServer::close()
 {
   // close
   //  MUTOO::TRACE( "PHTFileServer::close" );
-  for (auto & iter : SafeTFile::file_map())
+  for (auto& iter : SafeTFile::file_map())
   {
     if (iter.second->IsOpen())
     {
@@ -177,7 +187,7 @@ PHTFileServer::SafeTFile::~SafeTFile()
     Close();
   }
 
-  /* 
+  /*
   remove this filename from the make to make sure that PHTFileServer
   does not try to write/close this TFile during the destructor
   */
