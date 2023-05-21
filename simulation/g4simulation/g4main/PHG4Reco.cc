@@ -123,15 +123,11 @@ PHG4Reco::PHG4Reco(const std::string &name)
   : SubsysReco(name)
   , m_Fun4AllMessenger(new Fun4AllMessenger(Fun4AllServer::instance()))
 {
-  for (int i = 0; i < 3; i++)
-  {
-    m_WorldSize[i] = 1000.;
-  }
   return;
 }
 
 //_________________________________________________________________
-PHG4Reco::~PHG4Reco(void)
+PHG4Reco::~PHG4Reco()
 {
   // one can delete null pointer (it results in a nop), so checking if
   // they are non zero is not needed
@@ -159,11 +155,12 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   G4Seed(iseed);  // fixed seed handled in PHRandomSeed()
 
   // create GEANT run manager
-  if (Verbosity() > 1) std::cout << "PHG4Reco::Init - create run manager" << std::endl;
+  if (Verbosity() > 1) { std::cout << "PHG4Reco::Init - create run manager" << std::endl;
+}
 
   // redirect GEANT verbosity to nowhere
   //  if (Verbosity() < 1)
-  if (0)
+  if (false)
   {
     G4UImanager *uimanager = G4UImanager::GetUIpointer();
     m_UISession = new PHG4UIsession();
@@ -245,7 +242,8 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     std::cout << "Use EvtGen Decayer" << std::endl;
     G4HadronicParameters::Instance()->SetEnableBCParticles(false);  //Disable the Geant4 built in HF Decay and use external decayers for them
 	EvtGenExtDecayerPhysics *decayer = new EvtGenExtDecayerPhysics();
-	if(CustomizeDecay)	decayer->CustomizeEvtGenDecay(EvtGenDecayFile);		
+	if(CustomizeDecay) {	decayer->CustomizeEvtGenDecay(EvtGenDecayFile);
+}
 
 	myphysicslist->RegisterPhysics(decayer);
   }
@@ -277,7 +275,8 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 
 int PHG4Reco::InitField(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 1) std::cout << "PHG4Reco::InitField - create magnetic field setup" << std::endl;
+  if (Verbosity() > 1) { std::cout << "PHG4Reco::InitField - create magnetic field setup" << std::endl;
+}
 
   std::unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
 
@@ -296,7 +295,8 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
     default_field_cfg.reset(new PHFieldConfigv2(0, 0, m_MagneticField * m_MagneticFieldRescale));
   }
 
-  if (Verbosity() > 1) std::cout << "PHG4Reco::InitField - create magnetic field setup" << std::endl;
+  if (Verbosity() > 1) { std::cout << "PHG4Reco::InitField - create magnetic field setup" << std::endl;
+}
 
   PHField *phfield = PHFieldUtility::GetFieldMapNode(default_field_cfg.get(), topNode, Verbosity() + 1);
   assert(phfield);
@@ -363,7 +363,8 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // create phenix detector, add subsystems, and register to GEANT
   // create display settings before detector
   m_DisplayAction = new PHG4PhenixDisplayAction(Name());
-  if (Verbosity() > 1) std::cout << "PHG4Reco::Init - create detector" << std::endl;
+  if (Verbosity() > 1) { std::cout << "PHG4Reco::Init - create detector" << std::endl;
+}
   m_Detector = new PHG4PhenixDetector(this);
   m_Detector->Verbosity(Verbosity());
   m_Detector->SetWorldSizeX(m_WorldSize[0] * cm);
@@ -653,8 +654,9 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
 
   for (SubsysReco *reco: m_SubsystemList)
   {
-    if (Verbosity() >= 2)
+    if (Verbosity() >= 2) {
       std::cout << "PHG4Reco::process_event - " << reco->Name() << "->process_event" << std::endl;
+}
 
     try
     {
@@ -680,8 +682,9 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
 
   for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
-    if (Verbosity() >= 2)
+    if (Verbosity() >= 2) {
       std::cout << " PHG4Reco::process_event - " << g4sub->Name() << "->process_after_geant" << std::endl;
+}
     try
     {
       g4sub->process_after_geant(topNode);

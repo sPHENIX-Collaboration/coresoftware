@@ -46,7 +46,7 @@ class PHG4Reco : public SubsysReco
   };  // Decayer Option for User to Choose: 0 - GEANT 4 Internal Decayer (with momentum conservation issues), 1, PYTHIA 6 Decayer, 2 - EvtGen Decayer
 
   //! constructor
-  PHG4Reco(const std::string &name = "PHG4RECO");
+  explicit PHG4Reco(const std::string &name = "PHG4RECO");
 
   //! destructor
   ~PHG4Reco() override;
@@ -140,7 +140,7 @@ class PHG4Reco : public SubsysReco
   void setDisableUserActions(bool b = true) { m_disableUserActions = b; }
   void ApplyDisplayAction();
 
-  void CustomizeEvtGenDecay(std::string& DecayFile)
+  void CustomizeEvtGenDecay(const std::string& DecayFile)
   {
 	  EvtGenDecayFile = DecayFile;
 	  if(!EvtGenDecayFile.empty()) CustomizeDecay = true;
@@ -154,7 +154,7 @@ class PHG4Reco : public SubsysReco
 
   float m_MagneticField = 0.;
   float m_MagneticFieldRescale = 1.0;
-  double m_WorldSize[3];
+  double m_WorldSize[3]{1000.,1000.,1000.};
 
   //! magnetic field
   G4TBMagneticFieldSetup *m_Field = nullptr;
