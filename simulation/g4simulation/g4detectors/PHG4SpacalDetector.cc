@@ -70,7 +70,6 @@ PHG4SpacalDetector::PHG4SpacalDetector(PHG4Subsystem *subsys,
                                        bool init_geom)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4SpacalDisplayAction *>(subsys->GetDisplayAction()))
-  , m_Params(parameters)
   , layer(lyr)
 {
   if (init_geom)
