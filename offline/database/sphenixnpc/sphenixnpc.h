@@ -5,28 +5,29 @@
 
 #include <nlohmann/json.hpp>
 
+
 #include <cstdint>
 #include <iostream>
 #include <set>
 #include <string>
 
-class sphenixnpc : public nopayloadclient::Client
+class sphenixnpc : public nopayloadclient::NoPayloadClient
 {
  public:
   sphenixnpc();
   sphenixnpc(const std::string &globaltag);
   virtual ~sphenixnpc() = default;
-  nlohmann::json getUrlDict(long long iov);
-  nlohmann::json getUrlDict(long long iov1, long long iov2) override;
-  nlohmann::json createGlobalTag(const std::string &tagname) override;
+  nlohmann::json getPayloadIOVs(long long iov);
+  nlohmann::json  getUrl(const std::string& pl_type, long long iov);
+  nlohmann::json insertPayload(const std::string& pl_type, const std::string& file_url, long long iov_start);
+  nlohmann::json insertPayload(const std::string& pl_type, const std::string& file_url, long long iov_start, long long iov_end);
+  nlohmann::json setGlobalTag1(const std::string& name);
+  nlohmann::json clearCache();
+
+  nlohmann::json createGlobalTag1(const std::string &tagname);
   int createDomain(const std::string &domain);
-  nlohmann::json setGlobalTag(const std::string &tagname) override;
-  nlohmann::json get(const std::string &pl_type, long long iov);
+  nlohmann::json setGlobalTag(const std::string &tagname);
   int cache_set_GlobalTag(const std::string &name);
-  nlohmann::json clearCache() override;
-  std::string getUrl(const std::string &type, uint64_t iov);
-  nlohmann::json insertPayload(const std::string &pl_type, const std::string &file_url, uint64_t iov_start);
-  nlohmann::json insertPayload(const std::string &pl_type, const std::string &file_url, uint64_t iov_start, uint64_t iov_end);
   bool isGlobalTagSet();
   void Verbosity(int i) { m_Verbosity = i; }
   int Verbosity() const { return m_Verbosity; }
@@ -34,7 +35,6 @@ class sphenixnpc : public nopayloadclient::Client
  private:
   int m_Verbosity = 0;
   uint64_t m_CachedIOV = 0;
-  nlohmann::json url_dict_;  // valid until global tag is switched
   std::string m_CachedGlobalTag;
   std::set<std::string> m_DomainCache;
 };
