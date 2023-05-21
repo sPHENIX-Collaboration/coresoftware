@@ -121,7 +121,6 @@ class PHG4SpacalDetector : public PHG4Detector
 
  private:
   PHG4SpacalDisplayAction* m_DisplayAction = nullptr;
-  PHParameters* m_Params = nullptr;
 
  protected:
   void AddTowerGeometryNode();

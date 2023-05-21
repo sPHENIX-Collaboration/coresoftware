@@ -22,8 +22,6 @@
 #include <g4main/PHG4Subsystem.h>
 #include <g4main/PHG4Utils.h>
 
-#include <phparameter/PHParameters.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>          // for PHNode
