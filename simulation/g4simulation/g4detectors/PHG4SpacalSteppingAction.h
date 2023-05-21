@@ -13,8 +13,6 @@
 
 #include "LightCollectionModel.h"
 
-#include <phparameter/PHParameterInterface.h>
-
 #include <g4main/PHG4SteppingAction.h>
 
 class G4Step;
@@ -31,7 +29,7 @@ class PHG4Shower;
 class PHParameters;
 class TowerInfoContainer;
 
-class PHG4SpacalSteppingAction : public PHG4SteppingAction, public PHParameterInterface
+class PHG4SpacalSteppingAction : public PHG4SteppingAction
 {
  public:
   //! ctor
@@ -53,8 +51,6 @@ class PHG4SpacalSteppingAction : public PHG4SteppingAction, public PHParameterIn
   double get_zmax() const;
 
   void SetHitNodeName(const std::string &type, const std::string &name) override;
-
-  void SetDefaultParameters() override;
 
   int SetUpGeomNode(PHCompositeNode *topNode);
 

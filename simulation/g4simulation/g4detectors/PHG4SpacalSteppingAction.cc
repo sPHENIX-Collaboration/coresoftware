@@ -73,7 +73,6 @@ class PHCompositeNode;
 //____________________________________________________________________________..
 PHG4SpacalSteppingAction::PHG4SpacalSteppingAction(PHG4SpacalDetector *indetector, const PHParameters *parameters)
   : PHG4SteppingAction(indetector->GetName())
-  , PHParameterInterface(indetector->GetName())
   , m_Detector(indetector)
   , m_Params(parameters)
   , m_doG4Hit(m_Params->get_int_param("saveg4hit"))
@@ -123,203 +122,14 @@ int PHG4SpacalSteppingAction::InitWithNode(PHCompositeNode *topNode)
 
 int PHG4SpacalSteppingAction::SetUpGeomNode(PHCompositeNode *topNode)
 {
-  if(m_geomsetup) return 0;
+  if (m_geomsetup) return 0;
 
   if (m_doG4Hit) return 0;
   PHNodeIterator iter(topNode);
   detector = m_Detector->SuperDetector();
-  // Looking for the DST node
-  PHCompositeNode *dstNode;
-  dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode)
-  {
-    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
-    exit(1);
-  }
 
   geonodename = "CYLINDERGEOM_" + detector;
-  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
-  if (!geo)
-  {
-    std::cout << "PHG4SpacalSteppingAction::InitWithNode - Could not locate geometry node "
-              << geonodename << std::endl;
-    topNode->print();
-    exit(1);
-  }
-  if (Verbosity() > 0)
-  {
-    std::cout << "PHG4SpacalSteppingAction::InitWithNode - incoming geometry:"
-              << std::endl;
-    geo->identify();
-  }
   seggeonodename = "CYLINDERCELLGEOM_" + detector;
-  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename);
-  if (!seggeo)
-  {
-    seggeo = new PHG4CylinderCellGeomContainer();
-    PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
-    runNode->addNode(newNode);
-  }
-
-  const PHG4CylinderGeom *layergeom_raw = geo->GetFirstLayerGeom();
-  assert(layergeom_raw);
-
-  // a special implimentation of PHG4CylinderGeom is required here.
-  const PHG4CylinderGeom_Spacalv3 *layergeom =
-      dynamic_cast<const PHG4CylinderGeom_Spacalv3 *>(layergeom_raw);
-
-  if (!layergeom)
-  {
-    std::cout << "PHG4SpacalSteppingAction::InitWithNode - Fatal Error -"
-              << " require to work with a version of SPACAL geometry of PHG4CylinderGeom_Spacalv3 or higher. "
-              << "However the incoming geometry has version "
-              << layergeom_raw->ClassName() << std::endl;
-    exit(1);
-  }
-  if (Verbosity() > 1)
-  {
-    layergeom->identify();
-  }
-
-  layergeom->subtower_consistency_check();
-
-  //      int layer = layergeom->get_layer();
-
-  // create geo object and fill with variables common to all binning methods
-  PHG4CylinderCellGeom_Spacalv1 *layerseggeo = new PHG4CylinderCellGeom_Spacalv1();
-  layerseggeo->set_layer(layergeom->get_layer());
-  layerseggeo->set_radius(layergeom->get_radius());
-  layerseggeo->set_thickness(layergeom->get_thickness());
-  layerseggeo->set_binning(PHG4CellDefs::spacalbinning);
-
-  // construct a map to convert tower_ID into the older eta bins.
-
-  const PHG4CylinderGeom_Spacalv3::tower_map_t &tower_map = layergeom->get_sector_tower_map();
-  const PHG4CylinderGeom_Spacalv3::sector_map_t &sector_map = layergeom->get_sector_map();
-  const int nphibin = layergeom->get_azimuthal_n_sec()       // sector
-                      * layergeom->get_max_phi_bin_in_sec()  // blocks per sector
-                      * layergeom->get_n_subtower_phi();     // subtower per block
-  const double deltaphi = 2. * M_PI / nphibin;
-
-  using map_z_tower_z_ID_t = std::map<double, int>;
-  map_z_tower_z_ID_t map_z_tower_z_ID;
-  double phi_min = NAN;
-
-  for (const auto &tower_pair : tower_map)
-  {
-    const int &tower_ID = tower_pair.first;
-    const PHG4CylinderGeom_Spacalv3::geom_tower &tower = tower_pair.second;
-
-    // inspect index in sector 0
-    std::pair<int, int> tower_z_phi_ID = layergeom->get_tower_z_phi_ID(tower_ID, 0);
-
-    const int &tower_ID_z = tower_z_phi_ID.first;
-    const int &tower_ID_phi = tower_z_phi_ID.second;
-
-    if (tower_ID_phi == 0)
-    {
-      // assign phi min according phi bin 0
-      phi_min = M_PI_2 - deltaphi * (layergeom->get_max_phi_bin_in_sec() * layergeom->get_n_subtower_phi() / 2)  // shift of first tower in sector
-                + sector_map.begin()->second;
-    }
-
-    if (tower_ID_phi == layergeom->get_max_phi_bin_in_sec() / 2)
-    {
-      // assign eta min according phi bin 0
-      map_z_tower_z_ID[tower.centralZ] = tower_ID_z;
-    }
-    // ...
-  }  //       const auto &tower_pair: tower_map
-
-  assert(!std::isnan(phi_min));
-  layerseggeo->set_phimin(phi_min);
-  layerseggeo->set_phistep(deltaphi);
-  layerseggeo->set_phibins(nphibin);
-
-  PHG4CylinderCellGeom_Spacalv1::tower_z_ID_eta_bin_map_t tower_z_ID_eta_bin_map;
-  int eta_bin = 0;
-  for (auto &z_tower_z_ID : map_z_tower_z_ID)
-  {
-    tower_z_ID_eta_bin_map[z_tower_z_ID.second] = eta_bin;
-    eta_bin++;
-  }
-  layerseggeo->set_tower_z_ID_eta_bin_map(tower_z_ID_eta_bin_map);
-  layerseggeo->set_etabins(eta_bin * layergeom->get_n_subtower_eta());
-  layerseggeo->set_etamin(NAN);
-  layerseggeo->set_etastep(NAN);
-
-  // build eta bin maps
-  for (const auto &tower_pair : tower_map)
-  {
-    const int &tower_ID = tower_pair.first;
-    const PHG4CylinderGeom_Spacalv3::geom_tower &tower = tower_pair.second;
-
-    // inspect index in sector 0
-    std::pair<int, int> tower_z_phi_ID = layergeom->get_tower_z_phi_ID(tower_ID, 0);
-    const int &tower_ID_z = tower_z_phi_ID.first;
-    const int &tower_ID_phi = tower_z_phi_ID.second;
-    const int &etabin = tower_z_ID_eta_bin_map[tower_ID_z];
-
-    if (tower_ID_phi == layergeom->get_max_phi_bin_in_sec() / 2)
-    {
-      // half z-range
-      const double dz = fabs(0.5 * (tower.pDy1 + tower.pDy2) / sin(tower.pRotationAngleX));
-      const double tower_radial = layergeom->get_tower_radial_position(tower);
-
-      auto z_to_eta = [&tower_radial](const double &z)
-      { return -log(tan(0.5 * atan2(tower_radial, z))); };
-
-      const double eta_central = z_to_eta(tower.centralZ);
-      // half eta-range
-      const double deta = (z_to_eta(tower.centralZ + dz) - z_to_eta(tower.centralZ - dz)) / 2;
-      assert(deta > 0);
-
-      for (int sub_tower_ID_y = 0; sub_tower_ID_y < tower.NSubtowerY;
-           ++sub_tower_ID_y)
-      {
-        assert(tower.NSubtowerY <= layergeom->get_n_subtower_eta());
-        // do not overlap to the next bin.
-        const int sub_tower_etabin = etabin * layergeom->get_n_subtower_eta() + sub_tower_ID_y;
-
-        const std::pair<double, double> etabounds(eta_central - deta + sub_tower_ID_y * 2 * deta / tower.NSubtowerY,
-                                                  eta_central - deta + (sub_tower_ID_y + 1) * 2 * deta / tower.NSubtowerY);
-
-        const std::pair<double, double> zbounds(tower.centralZ - dz + sub_tower_ID_y * 2 * dz / tower.NSubtowerY,
-                                                tower.centralZ - dz + (sub_tower_ID_y + 1) * 2 * dz / tower.NSubtowerY);
-
-        layerseggeo->set_etabounds(sub_tower_etabin, etabounds);
-        layerseggeo->set_zbounds(sub_tower_etabin, zbounds);
-      }
-    }
-    // ...
-  }  //       const auto &tower_pair: tower_map
-
-  // add geo object filled by different binning methods
-  seggeo->AddLayerCellGeom(layerseggeo);
-  // save this to the run wise tree to store on DST
-  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
-  PHNodeIterator runIter(runNode);
-  PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));
-  if (!RunDetNode)
-  {
-    RunDetNode = new PHCompositeNode(detector);
-    runNode->addNode(RunDetNode);
-  }
-  std::string paramnodename = "G4CELLPARAM_" + detector;
-  SaveToNodeTree(RunDetNode, paramnodename);
-  // save this to the parNode for use
-  PHNodeIterator parIter(parNode);
-  PHCompositeNode *ParDetNode = dynamic_cast<PHCompositeNode *>(parIter.findFirst("PHCompositeNode", detector));
-  if (!ParDetNode)
-  {
-    ParDetNode = new PHCompositeNode(detector);
-    parNode->addNode(ParDetNode);
-  }
-  std::string cellgeonodename = "G4CELLGEO_" + detector;
-  PutOnParNode(ParDetNode, cellgeonodename);
-
   // get the private layergeo
   _layergeo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
   if (!_layergeo)
@@ -347,9 +157,6 @@ int PHG4SpacalSteppingAction::SetUpGeomNode(PHCompositeNode *topNode)
   m_geomsetup = true;
   return 0;
 }
-
-
-
 
 bool PHG4SpacalSteppingAction::NoHitSteppingAction(const G4Step *aStep)
 {
@@ -443,7 +250,7 @@ bool PHG4SpacalSteppingAction::NoHitSteppingAction(const G4Step *aStep)
 
     // get light yield
     double light_yield = GetVisibleEnergyDeposition(aStep);
-    
+
     if (light_collection_model.use_fiber_model())
     {
       const G4TouchableHandle &theTouchable0 = prePoint->GetTouchableHandle();
@@ -461,7 +268,6 @@ bool PHG4SpacalSteppingAction::NoHitSteppingAction(const G4Step *aStep)
 
       light_yield *= light_collection_model.get_fiber_transmission(z);
     }
-    
 
     // light yield correction from light guide collection efficiency:
     if (light_collection_model.use_fiber_model())
@@ -783,8 +589,8 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step *aStep, bool)
 //____________________________________________________________________________..
 void PHG4SpacalSteppingAction::SetInterfacePointers(PHCompositeNode *topNode)
 {
-  //we can only play with the geometry node after ConstructMe is called
-  if(!m_geomsetup)
+  // we can only play with the geometry node after ConstructMe is called
+  if ((!m_geomsetup) && (!m_doG4Hit))
   {
     SetUpGeomNode(topNode);
   }
@@ -849,12 +655,3 @@ void PHG4SpacalSteppingAction::SetHitNodeName(const std::string &type, const std
   return;
 }
 
-// not using is one, just to make the compiler happy
-void PHG4SpacalSteppingAction::SetDefaultParameters()
-{
-  set_default_double_param("tmax", 60.0);
-  set_default_double_param("tmin", -20.0);
-  set_default_double_param("dt", 100.0);
-  set_default_int_param("saveg4hit", 1);
-  return;
-}
