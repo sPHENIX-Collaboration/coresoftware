@@ -40,13 +40,13 @@ void TPCMap::setMapNames(const std::string &r1, const std::string &r2, const std
   }
 }
 
-int TPCMap::digest_map(const std::string &s, const unsigned int section_offset)
+int TPCMap::digest_map(const std::string &fileName, const unsigned int section_offset)
 {
-  std::ifstream infile(s, std::ios::in);
+  std::ifstream infile(fileName, std::ios::in);
 
   if (!infile.is_open())
   {
-    std::cout << "Could not open file " << std::endl;
+    std::cout << "Could not open file: "<< fileName << std::endl;
     _broken = 1;
     return -1;
   }

@@ -8,6 +8,7 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <memory>
 #include <string>
 
 class PHCompositeNode;

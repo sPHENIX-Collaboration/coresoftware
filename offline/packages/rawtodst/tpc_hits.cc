@@ -19,7 +19,6 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/PHCompositeNode.h>
 
 //____________________________________________________________________________..
 tpc_hits::tpc_hits(const std::string &name)
@@ -48,8 +47,36 @@ int tpc_hits::Init(PHCompositeNode * /*topNode*/)
 //____________________________________________________________________________..
 int tpc_hits::InitRun(PHCompositeNode *topNode)
 {
-  // std::cout << "tpc_hits::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
 
+  // get dst node
+  PHNodeIterator iter(topNode);
+  auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+  {
+    std::cout << "tpc_hits::InitRun - DST Node missing, doing nothing." << std::endl;
+    exit(1);
+  }
+
+  // create hitset container if needed
+  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!hitsetcontainer)
+  {
+    std::cout << "tpc_hits::InitRun - creating TRKR_HITSET." << std::endl;
+
+    // find or create TRKR node
+    PHNodeIterator dstiter(dstNode);
+    auto trkrnode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!trkrnode)
+    {
+      trkrnode = new PHCompositeNode("TRKR");
+      dstNode->addNode(trkrnode);
+    }
+
+    // create container and add to the tree
+    m_hits = new TrkrHitSetContainerv1;
+    auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+    trkrnode->addNode(newNode);
+  }  
   topNode->print();
 
   // we reset the BCO for the new run
@@ -57,7 +84,7 @@ int tpc_hits::InitRun(PHCompositeNode *topNode)
   rollover_value = 0;
   current_BCOBIN = 0;
 
-  m_hits = new TrkrHitSetContainerv1();
+  //m_hits = new TrkrHitSetContainerv1();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -78,12 +105,23 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
 
-  Packet *p = _event->getPacket(4001);
-  if (!p)
+  Packet *p = _event->getPacket(4000);
+  // check all possible TPC packets that we need to analyze
+  for (int packet = 4000; packet<=4230; packet+=10)
   {
-    return Fun4AllReturnCodes::DISCARDEVENT;
+    std::cout << "tpc_hits:: Packet: "<< packet << " processing" << std::endl;
+    Packet *p_tmp = _event->getPacket(packet);
+  
+    if (!p_tmp)
+    {
+      std::cout << "tpc_hits:: Event getPacket: "<< packet << " IS NOT FOUND" << std::endl;
+      //return Fun4AllReturnCodes::DISCARDEVENT;
+    }else{
+      //p = _event->getPacket(packet);
+      std::cout << "tpc_hits:: Event getPacket: "<< packet << " FOUND!!!" << std::endl;
+  
+    }
   }
-
   int nr_of_waveforms = p->iValue(0, "NR_WF");
 
   for (auto &l : m_hitset)
@@ -109,6 +147,18 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
       }
       int sampa_nr = p->iValue(wf, "SAMPAADDRESS");
       int channel = p->iValue(wf, "CHANNEL");
+
+      int fee = p->iValue(wf, "FEE");
+      int sampaAddress = p->iValue(wf, "SAMPAADDRESS");
+      int sampaChannel = p->iValue(wf, "SAMPACHANNEL");
+      int checksum = p->iValue(wf, "CHECKSUM");
+      int checksumError = p->iValue(wf, "CHECKSUMERROR");
+      int samples = p->iValue( wf, "SAMPLES" );
+      
+
+
+      //std::cout << "tpc_hits::Process_Event SAMPAADDRESS " << sampa_nr << std::endl;
+      //std::cout << "tpc_hits::Process_Event Chn " << channel << std::endl;
       int layer;
       if (channel < 128)
       {
@@ -122,15 +172,43 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
       //      mhit->setAdc(
       int sector = 0;
       int side = 0;
+      //std::cout << "tpc_hits::Process_Event Chn 1" << std::endl;
       TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layer, sector, side);
+      //std::cout << "tpc_hits::Process_Event Chn 2" << std::endl;
       TrkrHitSetContainer::Iterator hitsetit = m_hits->findOrAddHitSet(hitsetkey);
-      for (int s = 0; s < p->iValue(wf, "SAMPLES"); s++)
+
+      //TrkrHit *hit = hitsetit->second;
+      
+      std::cout << "tpc_hits::Process_Event Chn Chn:"<< channel 
+      <<" layer: " << layer 
+      << " sampa: "<< sampa_nr 
+      << " fee: "<< fee 
+      << " sampaAddress: "<< sampaAddress 
+      << " sampaChannel: "<< sampaChannel 
+      << " checksum: "<< checksum 
+      << " checksumError: "<< checksumError 
+
+      << " hitsetkey "<< hitsetkey 
+
+      << std::endl;
+      for( int is = 0 ; is < samples ; is++ )
+      {
+        p->iValue(wf,is);
+      }
+
+      //std::cout << "tpc_hits::Process_Event Chn 3" << std::endl;
+      for (int s = 0; s < samples; s++)
       {
         int pad = 0;
+        // generate hit key
         TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(pad, s + 2 * (current_BCO - starting_BCO));
+        // find existing hit, or create
         TrkrHit *hit = hitsetit->second->getHit(hitkey);
+        // create hit, assign adc and insert in hitset     
         hit->setAdc(0);
+        hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
+
     }
   }
   // we skip the mapping to real pads at first. We just say
