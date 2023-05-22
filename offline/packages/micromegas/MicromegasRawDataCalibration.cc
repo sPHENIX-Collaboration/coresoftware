@@ -6,7 +6,6 @@
 #include "MicromegasRawDataCalibration.h"
 #include "MicromegasCalibrationData.h"
 #include "MicromegasDefs.h"
-#include "MicromegasMapping.h"
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -18,12 +17,11 @@
 #include <phool/PHCompositeNode.h>
 
 #include <TFile.h>
-#include <TH1.h>
-#include <TH2.h>
 #include <TProfile.h>
 
 #include <cassert>
 #include <fstream>
+#include <memory>
 
 //_________________________________________________________
 MicromegasRawDataCalibration::MicromegasRawDataCalibration( const std::string& name ):
@@ -33,11 +31,7 @@ MicromegasRawDataCalibration::MicromegasRawDataCalibration( const std::string& n
 //_____________________________________________________________________
 int MicromegasRawDataCalibration::Init(PHCompositeNode* /*topNode*/ )
 {
-
-  MicromegasMapping();
-  
   // histogram evaluation
-  if( m_savehistograms ) create_histograms();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -49,28 +43,6 @@ int MicromegasRawDataCalibration::InitRun(PHCompositeNode* /*topNode*/)
 int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
 {
   
-  // map fee id to detector index in histogram
-  using fee_map_t = std::map<int,int>;
-  fee_map_t fee_map = {
-    {5, 0},      // SEIP
-    {7, 1},      // SEIZ
-    {6, 2},      // SCOP
-    {8, 3},      // SCOZ
-    {9, 4},      // SCIP
-    {10, 5},     // SCIZ
-    {24, 6},     // SWIP
-    {25, 7},     // SWIZ
-
-    {11, 8},     // NEIP
-    {12, 9},     // NEIZ
-    {19, 10},    // NCOP
-    {18, 11},    // NCOZ
-    {0, 12},     // NCIP
-    {1, 13},     // NCIZ
-    {15, 14},    // NWIP
-    {14, 15},    // NWIZ
-  };                 
-
   // load relevant nodes
   // PRDF node
   auto event = findNode::getClass<Event>(topNode, "PRDF");
@@ -87,7 +59,7 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
    * To be fixed at a later stage.
    * check with Martin Purschke
    */
-  auto packet = event->getPacket(MicromegasDefs::m_packet_id);
+  std::unique_ptr<Packet> packet( event->getPacket(MicromegasDefs::m_packet_id) );
   if( !packet )
   {
     // no data
@@ -131,29 +103,6 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
     for( int is = std::max( m_sample_min,0 ); is < std::min( m_sample_max,samples ); ++ is )
     { profile->Fill( channel, packet->iValue(i,is) ); }
     
-    // fill evaluation histograms
-    if( m_savehistograms )
-    {
-      if( m_h_fee_id ) m_h_fee_id->Fill(fee);
-
-      // find fee index from map
-      const auto iter = fee_map.find( fee );
-      if( iter == fee_map.end() )
-      {
-        std::cout << "MicromegasRawDataCalibration::process_event - unable to find fee " << fee << " in map" << std::endl;
-      } else {
-        
-        const auto fee_index = iter->second;
-        const auto channel_index = fee_index*MicromegasDefs::m_nchannels_fee + channel;
-
-        // loop over samples
-        if( m_h_adc_channel )
-        {
-          for( int is = std::max( m_sample_min,0 ); is < std::min( m_sample_max,samples ); ++ is )
-          { m_h_adc_channel->Fill( channel_index, packet->iValue(i,is) ); }
-        }
-      }      
-    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -184,36 +133,5 @@ int MicromegasRawDataCalibration::End(PHCompositeNode* /*topNode*/ )
     calibration_data.write( m_calibration_filename );
   }
   
-  // save evaluation histograms
-  if( m_savehistograms && m_histogramfile )
-  {
-    // create mean and rms histograms
-    auto profile = m_h_adc_channel->ProfileX("h_adc_channel_profx", 1, -1, "s" );
-    auto h_pedestal = new TH1F( "h_pedestal", "pedestal vs channel;channel;pedestal (adc)", MicromegasDefs::m_nchannels_total, 0, MicromegasDefs::m_nchannels_total );
-    auto h_rms = new TH1F( "h_rms", "rms vs channel;channel;RMS (adc)", MicromegasDefs::m_nchannels_total, 0, MicromegasDefs::m_nchannels_total );
-    for( int i =0; i<MicromegasDefs::m_nchannels_total; ++i )
-    {
-      h_pedestal->SetBinContent( i+1, profile->GetBinContent(i+1) );
-      h_rms->SetBinContent(i+1, profile->GetBinError(i+1) );
-    }
-
-    m_histogramfile->cd();
-    m_h_fee_id->Write();
-    m_h_adc_channel->Write();
-    h_pedestal->Write();
-    h_rms->Write();
-    m_histogramfile->Close();
-  }
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//_____________________________________________________________________
-void MicromegasRawDataCalibration::create_histograms()
-{
-  std::cout << "MicromegasRawDataCalibration::create_histograms - writing evaluation histograms to: " << m_histogramfilename << std::endl;
-  m_histogramfile.reset( new TFile(m_histogramfilename.c_str(), "RECREATE") );
-  m_histogramfile->cd();
-
-  m_h_fee_id = new TH1I( "h_fee_id", "FEE id;Fee id;entries", 10, 0, 10 );
-  m_h_adc_channel = new TH2I( "h_adc_channel", "ADC vs channel;channel;adc", MicromegasDefs::m_nchannels_total, 0, MicromegasDefs::m_nchannels_total, MicromegasDefs::m_max_adc, 0, MicromegasDefs::m_max_adc );
 }

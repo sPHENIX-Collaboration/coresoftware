@@ -13,31 +13,7 @@ void GlobalVertexv1::identify(std::ostream& os) const
 {
   os << "---GlobalVertexv1-----------------------" << std::endl;
   os << "vertexid: " << get_id();
-  switch (get_id())
-  {
-  case GlobalVertex::UNDEFINED:
-    os << ", type GlobalVertex::UNDEFINED" << std::endl;
-    break;
-  case GlobalVertex::TRUTH:
-    os << ", type GlobalVertex::TRUTH" << std::endl;
-    break;
-  case GlobalVertex::SMEARED:
-    os << ", type GlobalVertex::SMEARED" << std::endl;
-    break;
-  case GlobalVertex::BBC:
-    os << ", type GlobalVertex::BBC" << std::endl;
-    break;
-  case GlobalVertex::SVTX:
-    os << ", type GlobalVertex::SVTX" << std::endl;
-    break;
-  case GlobalVertex::SVTX_BBC:
-    os << ", type GlobalVertex::SVTX_BBC" << std::endl;
-    break;
-  default:
-    os << "unknown type of GlobalVertex:" << get_id() << std::endl;
-    break;
-  }
-
+ 
   os << " t = " << get_t() << std::endl;
 
   os << " (x,y,z) =  (" << get_position(0);

@@ -25,7 +25,6 @@ void CaloWaveformProcessing::initialize_processing()
 
     if (_bdosoftwarezerosuppression == true)
       {
-	//std::cout << "hey zero suppression is on! " << std::endl;
 	m_Fitter->set_softwarezerosuppression(_bdosoftwarezerosuppression,_nsoftwarezerosuppression);
       }
   }

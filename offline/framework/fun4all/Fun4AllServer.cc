@@ -1480,9 +1480,13 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
       if (std::find(RetCodes.begin(),
                     RetCodes.end(),
                     static_cast<int>(Fun4AllReturnCodes::ABORTEVENT)) == RetCodes.end())
+      {
         icnt_good++;
+      }
       if (iret || (nevnts > 0 && icnt_good >= nevnts))
+      {
         break;
+      }
     }
     else if (iret || (nevnts > 0 && icnt >= nevnts))
     {
