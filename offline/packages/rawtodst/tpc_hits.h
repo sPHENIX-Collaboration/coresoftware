@@ -6,6 +6,9 @@
 #include "TPCMap.h"
 #include "TPC_RawHit.h"
 
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHitSet.h>
+
 #include <fun4all/SubsysReco.h>
 
 #include <memory>

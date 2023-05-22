@@ -2,6 +2,11 @@
 #include "tpc_hits.h"
 
 #include <trackbase/TpcDefs.h>
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitSetv1.h>
 #include <trackbase/TrkrHitv2.h>
@@ -58,8 +63,8 @@ int tpc_hits::InitRun(PHCompositeNode *topNode)
   }
 
   // create hitset container if needed
-  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (!hitsetcontainer)
+  m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!m_hits)
   {
     std::cout << "tpc_hits::InitRun - creating TRKR_HITSET." << std::endl;
 
@@ -74,7 +79,7 @@ int tpc_hits::InitRun(PHCompositeNode *topNode)
 
     // create container and add to the tree
     m_hits = new TrkrHitSetContainerv1;
-    auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+    auto newNode = new PHIODataNode<PHObject>(m_hits, "TRKR_HITSET", "PHObject");
     trkrnode->addNode(newNode);
   }  
   topNode->print();
@@ -173,13 +178,12 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
       int sector = 0;
       int side = 0;
       //std::cout << "tpc_hits::Process_Event Chn 1" << std::endl;
-      TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layer, sector, side);
+      TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sector, side);
       //std::cout << "tpc_hits::Process_Event Chn 2" << std::endl;
-      TrkrHitSetContainer::Iterator hitsetit = m_hits->findOrAddHitSet(hitsetkey);
+      TrkrHitSetContainer::Iterator hitsetit = m_hits->findOrAddHitSet(tpcHitSetKey);
 
-      //TrkrHit *hit = hitsetit->second;
       
-      std::cout << "tpc_hits::Process_Event Chn Chn:"<< channel 
+      std::cout << "tpc_hits::Process_Event Samples "<< samples <<"Chn:"<< channel 
       <<" layer: " << layer 
       << " sampa: "<< sampa_nr 
       << " fee: "<< fee 
@@ -188,26 +192,31 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
       << " checksum: "<< checksum 
       << " checksumError: "<< checksumError 
 
-      << " hitsetkey "<< hitsetkey 
+      << " hitsetkey "<< tpcHitSetKey 
 
       << std::endl;
-      for( int is = 0 ; is < samples ; is++ )
-      {
-        p->iValue(wf,is);
-      }
+      //for( int is = 0 ; is < samples ; is++ )
+      //{
+      //  p->iValue(wf,is);
+      //}
 
       //std::cout << "tpc_hits::Process_Event Chn 3" << std::endl;
       for (int s = 0; s < samples; s++)
       {
-        int pad = 0;
+        unsigned short pad = 0;
+        unsigned short t = s + 2 * (current_BCO - starting_BCO);
+        std::cout << "current_BCO - starting_BCO="<< current_BCO <<"-"<< starting_BCO<<"=" << s + 2 * (current_BCO - starting_BCO) << std::endl;
         // generate hit key
-        TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(pad, s + 2 * (current_BCO - starting_BCO));
+        //TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(pad, t);//s + 2 * (current_BCO - starting_BCO));
+        TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad, (unsigned int) t);
         // find existing hit, or create
-        TrkrHit *hit = hitsetit->second->getHit(hitkey);
-        // create hit, assign adc and insert in hitset     
-        hit->setAdc(0);
-        hitsetit->second->addHitSpecificKey(hitkey, hit);
+        std::cout << "| " << hitkey << " "<< p->iValue(wf,s) ;
+        m_hit = hitsetit->second->getHit(hitkey);
+      //  // create hit, assign adc and insert in hitset     
+        m_hit->setAdc(0+s);
+      //  hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
+      std::cout << std::endl;
 
     }
   }
