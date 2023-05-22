@@ -22,6 +22,7 @@ class TrkrClusterContainer;
 class TrackSeedContainer;
 class TrkrCluster;
 class PHG4CylinderGeomContainer;
+class TrackSeed;
 
 class PHActsKDTreeSeeding : public SubsysReco
 {
