@@ -329,7 +329,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     double clusZErr = 0;
     if( m_cluster_version == 4 )
     {
-      const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, clusR, cluskey ); 
+      const auto errors_square = m_cluster_error_parametrization.get_cluster_error( cluster, clusR, cluskey, track->get_tpc_seed()->get_qOverR(), track->get_tpc_seed()->get_slope() ); 
       clusRPhiErr = std::sqrt( errors_square.first );
       clusZErr = std::sqrt( errors_square.second );
     } else {
