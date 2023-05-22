@@ -16,9 +16,9 @@
 #include <TFile.h>
 #include <TTree.h>
 
-#include <memory>
 #include <cassert>
 #include <iostream>
+#include <memory>
 
 //____________________________________________________________________________..
 TpcRawDataTree::TpcRawDataTree(const std::string &name)
@@ -27,6 +27,13 @@ TpcRawDataTree::TpcRawDataTree(const std::string &name)
 {
   // reserve memory for max ADC samples
   m_adcSamples.resize(1024, 0);
+
+  // add all possible TPC packet that we need to analyze
+  // if a subset is needed,  call RemoveAllPackets()
+  for (int packet = 4001; packet <= 4231; packet += 10)
+  {
+    m_packets.push_back(packet);
+  }
 }
 
 //____________________________________________________________________________..
@@ -68,7 +75,7 @@ int TpcRawDataTree::process_event(PHCompositeNode *topNode)
   Event *_event = findNode::getClass<Event>(topNode, "PRDF");
   if (_event == nullptr)
   {
-    std::cout << "TpcRawDataTree::Process_Event - Event not found" << std::endl;
+    std::cout << "TpcRawDataTree::Process_Event Event not found" << std::endl;
     return -1;
   }
   if (_event->getEvtType() >= 8)  /// special events
@@ -87,7 +94,7 @@ int TpcRawDataTree::process_event(PHCompositeNode *topNode)
 
     m_packet = packet;
 
-    std::unique_ptr<Packet> p (_event->getPacket(m_packet));
+    std::unique_ptr<Packet> p(_event->getPacket(m_packet));
     if (!p)
     {
       if (Verbosity())
