@@ -22,6 +22,8 @@ class TrackSeedContainer;
 class TrackSeed;
 class TrkrClusterContainer;
 class TF1;
+class TNtuple;
+class TFile;
 class TpcDistortionCorrectionContainer;
 class Mille;
 class SvtxTrackSeed;
@@ -74,7 +76,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   
   // utility functions for analysis modules
   std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
-  void getTrackletClusters(TrackSeed *_track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
+  //void getTrackletClusters(TrackSeed *_track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
   Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, Acts::Vector3 global);
   void correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec,  std::vector<TrkrDefs::cluskey> cluskey_vec);
   unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec);
@@ -157,6 +159,11 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   std::string _track_map_name = "TpcTrackSeedContainer";
   std::string _silicon_track_map_name = "SiliconTrackSeedContainer";
+
+  bool make_ntuple = true;
+  TNtuple *ntp{nullptr};
+  TFile *fout{nullptr};
+
 };
 
 #endif // HELICALFITTER_H
