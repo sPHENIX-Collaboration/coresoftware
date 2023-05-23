@@ -174,6 +174,22 @@ unsigned int TPCMap::getLayer(const unsigned int FEE, const unsigned int FEEChan
   return itr->second.layer;
 }
 
+unsigned int TPCMap::getPad(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const
+{
+  if (FEE >= 26 || FEEChannel > 255)
+  {
+    return 0.;
+  }
+  unsigned int key = 256 * FEE + FEEChannel;
+
+  std::map<unsigned int, struct tpc_map>::const_iterator itr = tmap.find(key);
+  if (itr == tmap.end())
+  {
+    return -100;
+  }
+  return itr->second.padnr;
+}
+
 double TPCMap::getR(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const
 {
   if (FEE >= 26 || FEEChannel > 255)

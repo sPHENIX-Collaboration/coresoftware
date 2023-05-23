@@ -15,9 +15,11 @@
 #include <string>
 
 class PHCompositeNode;
+class Fun4AllHistoManager;
 class TrkrHitSetContainer;
 class TrkrHitSet;
 class TrkrHit;
+class TH2;
 
 class tpc_hits : public SubsysReco
 {
@@ -55,6 +57,9 @@ class tpc_hits : public SubsysReco
   void Print(const std::string &what = "ALL") const override;
 
  protected:
+   Fun4AllHistoManager *hm = nullptr;
+   std::string _filename;
+
   static const int layercount = 16;
   static const int layeroffset = 7 + 16;
 
@@ -69,6 +74,11 @@ class tpc_hits : public SubsysReco
   int starting_BCO;
   int rollover_value;
   int current_BCOBIN;
+
+  private:
+
+    TH2*   _h_hit_XY = nullptr;
+
 };
 
 #endif  // TPC_HITS_H
