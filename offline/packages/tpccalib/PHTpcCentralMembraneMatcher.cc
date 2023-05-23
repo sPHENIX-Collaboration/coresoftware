@@ -411,14 +411,25 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       
        // Do the static + average distortion corrections if the container was found
       Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
-      if( m_dcc_in) pos = m_distortionCorrection.get_corrected_position( pos, m_dcc_in ); 
+      Acts::Vector3 apos1(cmclus->getX1(), cmclus->getY1(), cmclus->getZ1());
+      Acts::Vector3 apos2(cmclus->getX2(), cmclus->getY2(), cmclus->getZ2());
+      if( m_dcc_in_static){
+	pos = m_distortionCorrection.get_corrected_position( pos, m_dcc_in_static ); 
+	apos1 = m_distortionCorrection.get_corrected_position( apos1, m_dcc_in_static ); 
+	apos2 = m_distortionCorrection.get_corrected_position( apos2, m_dcc_in_static ); 
+      }
+      if( m_dcc_in_average){
+	pos = m_distortionCorrection.get_corrected_position( pos, m_dcc_in_average ); 
+	apos1 = m_distortionCorrection.get_corrected_position( apos1, m_dcc_in_average ); 
+	apos2 = m_distortionCorrection.get_corrected_position( apos2, m_dcc_in_average ); 
+      }
+      
+      
 
       TVector3 tmp_pos(pos[0], pos[1], pos[2]);
+      TVector3 tmp_pos1(apos1[0], apos1[1], apos1[2]);
+      TVector3 tmp_pos2(apos2[0], apos2[1], apos2[2]);
 
-      TVector3 tmp_pos1(cmclus->getX1(), cmclus->getY1(), cmclus->getZ1());
-      TVector3 tmp_pos2(cmclus->getX2(), cmclus->getY2(), cmclus->getZ2());
-
-      
 
       if(nclus == 1 && isRGap) continue;
       
@@ -834,11 +845,18 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }      
 
-  // input tpc distortion correction
-  m_dcc_in = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
-  if( m_dcc_in )
+  // input tpc distortion correction static
+  m_dcc_in_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
+  if( m_dcc_in_static )
     { 
-      std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container" << std::endl; 
+      std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container static" << std::endl; 
+    }
+
+  // input tpc distortion correction average
+  m_dcc_in_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
+  if( m_dcc_in_average )
+    { 
+      std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container average" << std::endl; 
     }
 
   // create node for results of matching

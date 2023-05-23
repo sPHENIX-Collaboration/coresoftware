@@ -94,7 +94,7 @@ int Fun4AllSyncManager::run(const int nevnts)
     unsigned iman = 0;
     int ifirst = 0;
     int hassync = 0;
-    for (auto & iter : m_InManager)
+    for (auto &iter : m_InManager)
     {
       m_iretInManager[iman] = iter->run(1);
       iret += m_iretInManager[iman];
@@ -238,7 +238,7 @@ readerror:
     if (!resetnodetree)  // all syncing is done and no read errors --> we have a good event in memory
     {
       m_CurrentRun = 0;  // reset current run to 0
-      for (auto & iter : m_InManager)
+      for (auto &iter : m_InManager)
       {
         int runno = iter->RunNumber();
         if (Verbosity() > 2)
@@ -256,7 +256,7 @@ readerror:
           {
             if (m_CurrentRun != runno)
             {
-              std::cout << "Mixing run numbers (except runnumber=0 which means no valid runnumber) is not supported" << std::endl;
+              std::cout << PHWHERE << "Mixing run numbers (except runnumber=0 which means no valid runnumber) is not supported" << std::endl;
               std::cout << "Here are the list of input managers and runnumbers:" << std::endl;
               for (Fun4AllInputManager *inman : m_InManager)
               {

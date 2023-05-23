@@ -26,6 +26,19 @@
 //____________________________________________________________________________..
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
   : SubsysReco(name)
+  , WaveformProcessing(nullptr)
+  , m_dettype(CaloTowerBuilder::CEMC)
+  , m_CaloInfoContainer(nullptr)
+  , m_detector("CEMC")
+  , m_packet_low(INT_MIN)
+  , m_packet_high(INT_MIN)
+  , m_nsamples(16)
+  , m_nchannels(192)
+  , m_nzerosuppsamples(2)
+  , m_isdata(true)
+  , _nsoftwarezerosuppression(40)
+  , _bdosoftwarezerosuppression(false)
+  , _processingtype(CaloWaveformProcessing::NONE)
 {
   WaveformProcessing = new CaloWaveformProcessing();
 }
@@ -39,16 +52,20 @@ CaloTowerBuilder::~CaloTowerBuilder()
 //____________________________________________________________________________..
 int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
 {
-  WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
-  WaveformProcessing->set_softwarezerosuppression(true,40);
+  WaveformProcessing->set_processing_type(_processingtype);
+  WaveformProcessing->set_softwarezerosuppression(_bdosoftwarezerosuppression, _nsoftwarezerosuppression);
+
   if (m_dettype == CaloTowerBuilder::CEMC)
   {
     m_detector = "CEMC";
     m_packet_low = 6001;
     m_packet_high = 6128;
-    // 6001, 60128
     m_nchannels = 192;
     WaveformProcessing->set_template_file("testbeam_cemc_template.root");
+    if (_processingtype == CaloWaveformProcessing::NONE)
+    {
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
+    }
   }
   else if (m_dettype == CaloTowerBuilder::HCALIN)
   {
@@ -57,6 +74,10 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_detector = "HCALIN";
     m_nchannels = 192;
     WaveformProcessing->set_template_file("testbeam_ihcal_template.root");
+    if (_processingtype == CaloWaveformProcessing::NONE)
+    {
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
+    }
   }
   else if (m_dettype == CaloTowerBuilder::HCALOUT)
   {
@@ -65,6 +86,10 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_packet_high = 8008;
     m_nchannels = 192;
     WaveformProcessing->set_template_file("testbeam_ohcal_template.root");
+    if (_processingtype == CaloWaveformProcessing::NONE)
+    {
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
+    }
   }
   else if (m_dettype == CaloTowerBuilder::EPD)
   {
@@ -72,7 +97,21 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_packet_low = 9001;
     m_packet_high = 9005;
     m_nchannels = 186;
-    WaveformProcessing->set_template_file("testbeam_cemc_template.root");  // place holder until we have EPD templates
+    if (_processingtype == CaloWaveformProcessing::NONE)
+    {
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);  // default the EPD to fast processing
+    }
+  }
+  else if (m_dettype == CaloTowerBuilder::MBD)
+  {
+    m_detector = "MBD";
+    m_packet_low = 1001;
+    m_packet_high = 1002;
+    m_nchannels = 128;
+    if (_processingtype == CaloWaveformProcessing::NONE)
+    {
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST); 
+    }
   }
   WaveformProcessing->initialize_processing();
   CreateNodeTree(topNode);
@@ -100,60 +139,60 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     {
       Packet *packet = _event->getPacket(pid);
       if (packet)
-	{
-	  int nchannels = packet->iValue(0, "CHANNELS");
-	  if (nchannels > m_nchannels) // packet is corrupted and reports too many channels
-	    {
-	      return Fun4AllReturnCodes::DISCARDEVENT;
-	    }
-	  for (int channel = 0; channel < nchannels; channel++)
-	    {
-	      std::vector<float> waveform;
-	      waveform.reserve(m_nsamples);
-	      for (int samp = 0; samp < m_nsamples; samp++)
-		{
-		  waveform.push_back(packet->iValue(samp, channel));
-		}
-	      waveforms.push_back(waveform);
-	      waveform.clear();
-	    }
-	  if (nchannels < m_nchannels)
-	    {
-	      for (int channel = 0; channel <m_nchannels - nchannels; channel++)
-		{
-		  std::vector<float> waveform;
-		  waveform.reserve(m_nsamples);
-		  for (int samp = 0; samp < m_nzerosuppsamples; samp++)
-		    {
-		      waveform.push_back(0);
-		    }
-		  waveforms.push_back(waveform);
-		  waveform.clear();
-		}
-	    }
-	  delete packet;
-	}
-      else // if the packet is missing treat constitutent channels as zero suppressed 
-	{
-	  for (int channel = 0; channel <m_nchannels; channel++) 
-	    {
-	        std::vector<float> waveform;
-		waveform.reserve(2);
-		for (int samp = 0; samp < m_nzerosuppsamples; samp++)
-		  {
-		    waveform.push_back(0);
-		  }
-		waveforms.push_back(waveform);
-		waveform.clear();
-	    }
-	}
+      {
+        int nchannels = packet->iValue(0, "CHANNELS");
+        if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
+        {
+          return Fun4AllReturnCodes::DISCARDEVENT;
+        }
+        for (int channel = 0; channel < nchannels; channel++)
+        {
+          std::vector<float> waveform;
+          waveform.reserve(m_nsamples);
+          for (int samp = 0; samp < m_nsamples; samp++)
+          {
+            waveform.push_back(packet->iValue(samp, channel));
+          }
+          waveforms.push_back(waveform);
+          waveform.clear();
+        }
+        if (nchannels < m_nchannels)
+        {
+          for (int channel = 0; channel < m_nchannels - nchannels; channel++)
+          {
+            std::vector<float> waveform;
+            waveform.reserve(m_nsamples);
+            for (int samp = 0; samp < m_nzerosuppsamples; samp++)
+            {
+              waveform.push_back(0);
+            }
+            waveforms.push_back(waveform);
+            waveform.clear();
+          }
+        }
+        delete packet;
+      }
+      else  // if the packet is missing treat constitutent channels as zero suppressed
+      {
+        for (int channel = 0; channel < m_nchannels; channel++)
+        {
+          std::vector<float> waveform;
+          waveform.reserve(2);
+          for (int samp = 0; samp < m_nzerosuppsamples; samp++)
+          {
+            waveform.push_back(0);
+          }
+          waveforms.push_back(waveform);
+          waveform.clear();
+        }
+      }
     }
   }
   else  // placeholder for adding simulation
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  
+
   std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
   int n_channels = processed_waveforms.size();
   for (int i = 0; i < n_channels; i++)
@@ -161,7 +200,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     m_CaloInfoContainer->get_tower_at_channel(i)->set_time(processed_waveforms.at(i).at(1));
     m_CaloInfoContainer->get_tower_at_channel(i)->set_energy(processed_waveforms.at(i).at(0));
   }
-  
+
   waveforms.clear();
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -187,6 +226,10 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   else if (m_dettype == EPD)
   {
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::SEPD);
+  }
+  else if (m_dettype == MBD)
+  {
+    m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::MBD);
   }
   else
   {

@@ -1832,7 +1832,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		seed = track->get_tpc_seed();
 	      }
 	      if(seed != nullptr){
-		auto para_errors = ClusErrPara.get_cluster_error(seed,cluster,r,cluster_key);
+		auto para_errors = ClusErrPara.get_cluster_error(cluster,r,cluster_key, seed->get_qOverR(), seed->get_slope());
 		pephi = sqrt(para_errors.first* Acts::UnitConstants::cm2);
 		pez =sqrt( para_errors.second* Acts::UnitConstants::cm2);
 	      }
@@ -2157,7 +2157,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  seed = track->get_tpc_seed();
 		}
 		if(seed != nullptr){
-		  auto para_errors = _ClusErrPara.get_cluster_error(seed,cluster,clusRadius,cluster_key);
+		  auto para_errors = _ClusErrPara.get_cluster_error(cluster,clusRadius,cluster_key,seed->get_qOverR(), seed->get_slope());
 		  pephi = sqrt(para_errors.first* Acts::UnitConstants::cm2);
 		  pez =sqrt( para_errors.second* Acts::UnitConstants::cm2);
 		}
