@@ -126,7 +126,7 @@ bool TDirectoryHelper::mkpath(TDirectory* dir, const std::string& pathin)
 
   TDirectory* currentdir = dir;
 
-  for (auto & path : paths)
+  for (auto& path : paths)
   {
     currentdir->cd();
 
