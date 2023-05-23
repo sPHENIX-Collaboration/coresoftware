@@ -29,7 +29,7 @@ class CDBUtils
   void clearCache();
   bool isGlobalTagSet();
   int createPayloadType(const std::string& pl_type);
-  void Verbosity(int i) { m_Verbosity = i; }
+  void Verbosity(int i);
   int Verbosity() const { return m_Verbosity; }
 
  private:

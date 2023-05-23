@@ -203,4 +203,12 @@ int CDBUtils::createPayloadType(const std::string& pl_type)
     }
   return iret;
 }
-//  nlohmann::json ret = insertPayload(pl_type, file_url, 0, iov_start);
+
+void CDBUtils::Verbosity(int i)
+{
+  if (cdbclient)
+  {
+    cdbclient->Verbosity(i);
+  }
+   m_Verbosity = i;
+}
