@@ -10,7 +10,9 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 
+#include <trackbase/InttDefs.h>
 #include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -43,6 +45,25 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 	Event* evt = findNode::getClass<Event>(topNode, "PRDF");
 	if(!evt)return Fun4AllReturnCodes::DISCARDEVENT;
 
+	int adc = 0;
+	//int amp = 0;
+	int chp = 0;
+	int chn = 0;
+	int fee = 0;
+	int bco = 0;
+
+	struct INTT_Felix::Ladder_s ldr_struct;
+	int layer = 0;
+	int ladder_z = 0;
+	int ladder_phi = 0;
+	int strip_x = 0;
+	int strip_y = 0;
+
+	TrkrDefs::hitsetkey hit_set_key = 0;
+	TrkrDefs::hitkey hit_key = 0;
+	TrkrHitSetContainer::Iterator hit_set_container_itr;
+	TrkrHit* hit = nullptr;
+
 	for(int pid = 3001; pid < 3009; ++pid)
 	{
 		Packet* p = evt->getPacket(pid);
@@ -53,45 +74,32 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 
 		full_bco = p->lValue(0, "BCO");
 
-		//Could potentially wrap these into a struct
-		int adc = 0;
-		int amp = 0;
-		int chp = 0;
-		int chn = 0;
-		int fee = 0;
-		int bco = 0;
-
-		TrkrDefs::hitsetkey hit_set_key = 0;
-		TrkrDefs::hitkey hit_key = 0;
-		TrkrHitSetContainer::Iterator hit_set_container_itr;
-		TrkrHit* hit = nullptr;
-
 		for(int n = 0; n < N; ++n)
 		{
 			adc = p->iValue(n, "ADC");
-			amp = p->iValue(n, "AMPLITUE");
+			//amp = p->iValue(n, "AMPLITUE");
 			chp = p->iValue(n, "CHIP_ID");
 			chn = p->iValue(n, "CHANNEL_ID");
 			fee = p->iValue(n, "FEE");
 			bco = p->iValue(n, "FPHX_BCO");
 
-			//make hit_set_key
-			//dummy expression so it compiles
-			//should add a helper method somewhere, either in trackbase or here
-			hit_set_key = adc + amp + chp + chn + fee + bco;
-			//...
+			INTT_Felix::FelixMap(pid - 3001, fee, ldr_struct);
+			layer = 2 * ldr_struct.barrel + ldr_struct.ladder;
+			ladder_phi = ldr_struct.ladder;				//        B  A  A  B
+			ladder_z = arm * 2 + (chp % 13 < 5);			//South<- 1, 0, 2, 3 ->North
+
+			strip_x = 25 * arm - (2 * arm - 1) * chp % 13;
+			strip_y = 128 * ((arm + chp / 13) % 2) + chn; //need to check this is the convention
+
+			hit_key = InttDefs::genHitKey(strip_x, strip_y);
+			hit_set_key = InttDefs::genHitSetKey(layer, ladder_z, ladder_phi, bco);
 
 			hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
-
-			//make hit_key
-			//...
-
 			hit = hit_set_container_itr->second->getHit(hit_key);
-			if(hit)continue; //Not a typo; this is to avoid duplicate hits
+			if(hit)continue;
 
-			hit = new TrkrHit;
-			//hit->setAdc(...)
-			//...
+			hit = new TrkrHitv2;
+			hit->setAdc(adc)
 			hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
 		}
 	}
