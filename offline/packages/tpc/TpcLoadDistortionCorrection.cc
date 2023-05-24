@@ -53,22 +53,14 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   // look for distortion calibration object
   PHNodeIterator iter(topNode);
  
-  /// Get the DST node and check
-  auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode)
+  /// Get the RUN node and check
+  auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  if (!runNode)
   {
-    std::cout << "TpcLoadDistortionCorrection::InitRun - DST Node missing, quitting" << std::endl;
+    std::cout << "TpcLoadDistortionCorrection::InitRun - RUN Node missing, quitting" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
  
-  // Get the tracking subnode and create if not found
-  auto svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
-  if (!svtxNode)
-  {
-    svtxNode = new PHCompositeNode("SVTX");
-    dstNode->addNode(svtxNode);
-  }
-
   //create and populate the nodes for each distortion, if present:
   for (int i=0;i<3;i++){
 
@@ -81,7 +73,7 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
 	std::cout << "TpcLoadDistortionCorrection::InitRun - creating TpcDistortionCorrectionContainer in node " << m_node_name[i] << std::endl;
 	distortion_correction_object = new TpcDistortionCorrectionContainer;
 	auto node = new PHDataNode<TpcDistortionCorrectionContainer>(distortion_correction_object, m_node_name[i]);
-	svtxNode->addNode(node);
+	runNode->addNode(node);
       }
 
     std::cout << "TpcLoadDistortionCorrection::InitRun - reading corrections from " << m_correction_filename[i] << std::endl;
