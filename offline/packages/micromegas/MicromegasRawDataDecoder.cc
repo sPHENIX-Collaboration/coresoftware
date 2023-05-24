@@ -100,7 +100,7 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
     {
       // no data
       std::cout << "MicromegasRawDataDecoder::process_event - event contains no TPOT data" << std::endl;
-      return Fun4AllReturnCodes::EVENT_OK;
+      continue;
     }
     
     // get number of datasets (also call waveforms)
