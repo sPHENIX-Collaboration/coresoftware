@@ -46,16 +46,17 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 	if(!evt)return Fun4AllReturnCodes::DISCARDEVENT;
 
 	int adc = 0;
-	//int amp = 0;
+	int amp = 0;
+	int bco = 0;
 	int chp = 0;
 	int chn = 0;
 	int fee = 0;
-	int bco = 0;
 
 	struct INTT_Felix::Ladder_s ldr_struct;
 	int layer = 0;
 	int ladder_z = 0;
 	int ladder_phi = 0;
+	int arm = 0;
 	int strip_x = 0;
 	int strip_y = 0;
 
@@ -78,16 +79,16 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 		{
 			adc = p->iValue(n, "ADC");
 			//amp = p->iValue(n, "AMPLITUE");
+			bco = p->iValue(n, "FPHX_BCO");
 			chp = p->iValue(n, "CHIP_ID");
 			chn = p->iValue(n, "CHANNEL_ID");
 			fee = p->iValue(n, "FEE");
-			bco = p->iValue(n, "FPHX_BCO");
 
 			INTT_Felix::FelixMap(pid - 3001, fee, ldr_struct);
 			layer = 2 * ldr_struct.barrel + ldr_struct.ladder;
 			ladder_phi = ldr_struct.ladder;				//        B  A  A  B
 			ladder_z = arm * 2 + (chp % 13 < 5);			//South<- 1, 0, 2, 3 ->North
-
+			arm = (pid - 3001) / 4;
 			strip_x = 25 * arm - (2 * arm - 1) * chp % 13;
 			strip_y = 128 * ((arm + chp / 13) % 2) + chn; //need to check this is the convention
 
@@ -99,7 +100,7 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 			if(hit)continue;
 
 			hit = new TrkrHitv2;
-			hit->setAdc(adc)
+			hit->setAdc(adc);
 			hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
 		}
 	}
