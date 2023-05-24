@@ -1,5 +1,4 @@
 #include "ClusterErrorPara.h"
-#include <trackbase_historic/TrackSeed.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterv4.h>
 
@@ -501,12 +500,12 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
 }
 
 //_________________________________________________________________________________
-ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrackSeed *seed, TrkrCluster* cluster, double cluster_r, TrkrDefs::cluskey key)
+ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrkrCluster* cluster, double cluster_r, TrkrDefs::cluskey key, float qOverR, float slope)
 {
   float r = cluster_r;
-  float R = TMath::Abs(1.0/seed->get_qOverR());
+  float R = TMath::Abs(1.0/qOverR);
   double alpha = (r*r) /(2*r*R);
-  double beta = TMath::Abs(atan(seed->get_slope()));
+  double beta = TMath::Abs(atan(slope));
   return get_cluster_error(cluster, key, alpha, beta);
 }
 

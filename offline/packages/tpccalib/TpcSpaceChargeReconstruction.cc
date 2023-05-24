@@ -448,7 +448,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     double cluster_z_error = 0;
     if( m_cluster_version >= 4 )
     {
-      const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, cluster_r, cluster_key ); 
+      const auto errors_square = m_cluster_error_parametrization.get_cluster_error(cluster, cluster_r, cluster_key, track->get_tpc_seed()->get_qOverR(), track->get_tpc_seed()->get_slope() ); 
       cluster_rphi_error = std::sqrt( errors_square.first );
       cluster_z_error = std::sqrt( errors_square.second );
     } else {

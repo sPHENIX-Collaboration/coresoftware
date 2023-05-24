@@ -19,6 +19,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  TpcRawDataTree.h \
   TpcClusterCleaner.h \
   TpcClusterizer.h \
   TpcClusterMover.h \
@@ -33,6 +34,7 @@ pcmdir = $(libdir)
 
 # sources for tpc library
 libtpc_la_SOURCES = \
+  TpcRawDataTree.cc \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
   TpcLoadDistortionCorrection.cc \
