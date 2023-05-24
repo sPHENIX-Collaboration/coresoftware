@@ -103,7 +103,7 @@ void setTPCParams(double tpcDevs[6])
       }
   }
 
- void misalignmentFactor(TrkrDefs::TrkrId id, const double factor);
+ void misalignmentFactor(uint8_t layer, const double factor);
 
  private:
 
