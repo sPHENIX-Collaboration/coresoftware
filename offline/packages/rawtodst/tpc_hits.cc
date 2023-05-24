@@ -149,12 +149,6 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
       continue;
     }
 
-  
-    //if(current_packet==0){
-    //  std::cout << "tpc_hits:: Event getPacket DID NOT FOUND PACKET!!!" << std::endl;
-    //  return Fun4AllReturnCodes::DISCARDEVENT;
-    //}
-
     //Packet *p = _event->getPacket(current_packet);
 
     int nr_of_waveforms = p->iValue(0, "NR_WF");
@@ -184,17 +178,12 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
         int channel = p->iValue(wf, "CHANNEL");
 
         int fee = p->iValue(wf, "FEE");
-        //int sampaAddress = p->iValue(wf, "SAMPAADDRESS");
-        //int sampaChannel = p->iValue(wf, "SAMPACHANNEL");
-        //int checksum = p->iValue(wf, "CHECKSUM");
-        //int checksumError = p->iValue(wf, "CHECKSUMERROR");
         int samples = p->iValue( wf, "SAMPLES" );
         //int FEE_map[26]={5, 6, 1, 3, 2, 12, 10, 11, 9, 8, 7, 1, 2, 4, 8, 7, 6, 5, 4, 3, 1, 3, 2, 4, 6, 5};
         int FEE_R[26]={2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
         // From Takao
         int FEE_map[26]={3, 2, 5, 3, 4, 0, 2, 1, 3, 4, 5, 7, 6, 2, 0, 1, 0, 1, 4, 5, 11, 9, 10, 8, 6, 7};
-        //std::cout << "tpc_hits::Process_Event SAMPAADDRESS " << sampa_nr << std::endl;
-        //std::cout << "tpc_hits::Process_Event Chn " << channel << std::endl;
+
         int layer;
         if (channel < 128)
         {
@@ -217,21 +206,27 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
         double R = M.getR(feeM, channel);
         double phi = M.getPhi(feeM, channel) + sector * M_PI / 6 ;
 
-        //std::cout << "tpc_hits::Process_Event Samples "<< samples 
-        //<<" Chn:"<< channel 
-        //<<" layer: " << layer 
-        //<< " sampa: "<< sampa_nr 
-        //<< " fee: "<< fee 
-        //<< " Mapped fee: "<< feeM 
-        //<< " sampaAddress: "<< sampaAddress 
-        //<< " sampaChannel: "<< sampaChannel 
-        //<< " checksum: "<< checksum 
-        //<< " checksumError: "<< checksumError 
-
-        //<< " hitsetkey "<< tpcHitSetKey 
-        //<< " R = " << R
-        //<< " phi = " << phi
-        //<< std::endl;
+        if( Verbosity() )
+        {
+          int sampaAddress = p->iValue(wf, "SAMPAADDRESS");
+          int sampaChannel = p->iValue(wf, "SAMPACHANNEL");
+          int checksum = p->iValue(wf, "CHECKSUM");
+          int checksumError = p->iValue(wf, "CHECKSUMERROR");
+          std::cout << "tpc_hits::Process_Event Samples "<< samples 
+          <<" Chn:"<< channel 
+          <<" layer: " << layer 
+          << " sampa: "<< sampa_nr 
+          << " fee: "<< fee 
+          << " Mapped fee: "<< feeM 
+          << " sampaAddress: "<< sampaAddress 
+          << " sampaChannel: "<< sampaChannel 
+          << " checksum: "<< checksum 
+          << " checksumError: "<< checksumError 
+          << " hitsetkey "<< tpcHitSetKey 
+          << " R = " << R
+          << " phi = " << phi
+          << std::endl;
+        }
         for (int s = 0; s < samples; s++)
         {
           int pad = 0;
@@ -240,29 +235,24 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
           // generate hit key
           TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad, (unsigned int) t);
           // find existing hit, or create
-          //std::cout << "| " << hitkey << " "<< adc; //<< std::endl;
-          //m_hit = hitsetit->second->getHit(hitkey);
           auto hit = hitsetit->second->getHit(hitkey);
 
-          //if (!m_hit)
-          //{
+          // create hit, assign adc and insert in hitset
           if (!hit)
           {
             // create a new one
-            std::cout << "creating hitkey "<< hitkey <<std::endl;
-            //m_hit = new TrkrHitv2();
-            //hitsetit->second->addHitSpecificKey(hitkey, m_hit);
             hit = new TrkrHitv2();
             hit->setAdc(adc);
             hitsetit->second->addHitSpecificKey(hitkey, hit);
           }
-          //  // create hit, assign adc and insert in hitset     
-          //m_hit->setAdc(adc);
-          //hit->setAdc(adc);
-          _h_hit_XY->Fill(R*cos(phi),R*sin(phi),adc);
+          //else{
+          //  hit->setAdc(adc);
           //  hitsetit->second->addHitSpecificKey(hitkey, hit);
+          //}
+
+          _h_hit_XY->Fill(R*cos(phi),R*sin(phi),adc);
+
         }
-        //std::cout << std::endl;
 
       }
     }
@@ -277,18 +267,18 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int tpc_hits::ResetEvent(PHCompositeNode * /*topNode*/)
-{
-  std::cout << "tpc_hits::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
+//int tpc_hits::ResetEvent(PHCompositeNode * /*topNode*/)
+//{
+//  std::cout << "tpc_hits::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+//  return Fun4AllReturnCodes::EVENT_OK;
+//}
 
 //____________________________________________________________________________..
-int tpc_hits::EndRun(const int runnumber)
-{
-  std::cout << "tpc_hits::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
+//int tpc_hits::EndRun(const int runnumber)
+//{
+//  std::cout << "tpc_hits::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+//  return Fun4AllReturnCodes::EVENT_OK;
+//}
 
 //____________________________________________________________________________..
 int tpc_hits::End(PHCompositeNode * /*topNode*/)
@@ -300,14 +290,14 @@ int tpc_hits::End(PHCompositeNode * /*topNode*/)
 }
 
 //____________________________________________________________________________..
-int tpc_hits::Reset(PHCompositeNode * /*topNode*/)
-{
-  std::cout << "tpc_hits::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
+//int tpc_hits::Reset(PHCompositeNode * /*topNode*/)
+//{
+//  std::cout << "tpc_hits::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+//  return Fun4AllReturnCodes::EVENT_OK;
+//}
 
 //____________________________________________________________________________..
-void tpc_hits::Print(const std::string &what) const
-{
-  std::cout << "tpc_hits::Print(const std::string &what) const Printing info for " << what << std::endl;
-}
+//void tpc_hits::Print(const std::string &what) const
+//{
+//  std::cout << "tpc_hits::Print(const std::string &what) const Printing info for " << what << std::endl;
+//}

@@ -16,9 +16,9 @@
 
 class PHCompositeNode;
 class Fun4AllHistoManager;
-class TrkrHitSetContainer;
-class TrkrHitSet;
-class TrkrHit;
+//class TrkrHitSetContainer;
+//class TrkrHitSet;
+//class TrkrHit;
 class TH2;
 
 class tpc_hits : public SubsysReco
@@ -43,18 +43,18 @@ class tpc_hits : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
 
   /// Clean up internals after each event.
-  int ResetEvent(PHCompositeNode *topNode) override;
+  //int ResetEvent(PHCompositeNode *topNode) override;
 
   /// Called at the end of each run.
-  int EndRun(const int runnumber) override;
+  //int EndRun(const int runnumber) override;
 
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
 
   /// Reset
-  int Reset(PHCompositeNode * /*topNode*/) override;
+  //int Reset(PHCompositeNode * /*topNode*/) override;
 
-  void Print(const std::string &what = "ALL") const override;
+  //void Print(const std::string &what = "ALL") const override;
 
  protected:
    Fun4AllHistoManager *hm = nullptr;
