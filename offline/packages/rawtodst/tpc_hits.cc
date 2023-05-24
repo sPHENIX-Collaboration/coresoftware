@@ -129,13 +129,13 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
   }
 
   // check all possible TPC packets that we need to analyze
-  int sector = -1;
+  for(int ep=0;ep<2;ep++){
+   for (int sector = 0; sector<=23; sector++)
+   {
+    const int packet = 4000 + sector*10 + ep;
 
-  for (int packet = 4000; packet<=4230; packet+=10)
-  {
+    // Reading packet
     Packet *p = _event->getPacket(packet);
-
-    sector++;
 
     // Figure out which side
     int side = 0;   
@@ -143,12 +143,10 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
 
     if (p)
     {
-      std::cout << "tpc_hits:: Event getPacket: "<< packet << " Sector"<< sector << std::endl;
+      std::cout << "tpc_hits:: Event getPacket: "<< packet << "| Sector"<< sector << "| EndPoint "<< ep << std::endl;
     }else{
       continue;
     }
-
-    //Packet *p = _event->getPacket(current_packet);
 
     int nr_of_waveforms = p->iValue(0, "NR_WF");
 
@@ -178,21 +176,12 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
 
         int fee = p->iValue(wf, "FEE");
         int samples = p->iValue( wf, "SAMPLES" );
+        // clockwise FEE mapping
         //int FEE_map[26]={5, 6, 1, 3, 2, 12, 10, 11, 9, 8, 7, 1, 2, 4, 8, 7, 6, 5, 4, 3, 1, 3, 2, 4, 6, 5};
         int FEE_R[26]={2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
-        // From Takao
+        // conter clockwise FEE mapping (From Takao)
         int FEE_map[26]={3, 2, 5, 3, 4, 0, 2, 1, 3, 4, 5, 7, 6, 2, 0, 1, 0, 1, 4, 5, 11, 9, 10, 8, 6, 7};
         int pads_per_sector[3] = {96, 128, 192};
-
-        //if (channel < 128)
-        //{
-        //  layer = sampa_nr * 2;
-        //}
-        //else
-        //{
-        //  layer = sampa_nr * 2 + 1;
-        //}
-
 
         // setting the mapp of the FEE
         int feeM = FEE_map[fee]-1;
@@ -204,7 +193,6 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
         double phi = M.getPhi(feeM, channel) + sector * M_PI / 6 ;
 
         TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sector, side);
-        //TrkrHitSetContainer::Iterator hitsetit = m_hits->findOrAddHitSet(tpcHitSetKey);
         TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(tpcHitSetKey);
 
         if( Verbosity() )
@@ -258,8 +246,8 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
       }
     }
 
-  }// End of run over packets
-
+   }// End of run over packets
+  }//End of ep loop
   // we skip the mapping to real pads at first. We just say
   // that we get 16 rows (segment R2) with 128 pads
   // so each FEE fills 2 rows. Not right, but one step at a time.
