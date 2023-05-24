@@ -49,6 +49,7 @@ class MicromegasRawDataEvaluation : public SubsysReco
   class Sample
   {
     public:
+    unsigned int packet_id = 0;
     unsigned short fee_id = 0;
     unsigned short layer = 0;
     unsigned short tile = 0;
