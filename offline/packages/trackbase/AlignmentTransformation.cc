@@ -144,7 +144,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	 unsigned int side           = TpcDefs::getSide(hitsetkey);
 	 int subsurfkey_min = (1-side)*144 + (144-sector*12) - 12 - 6;
 	 int subsurfkey_max = subsurfkey_min + 12;
-	 std::cout << " sector " << sector << " side " << side << " subsurfkey_min " << subsurfkey_min << " subsurfkey_max " << subsurfkey_max << std::endl;
+	 //std::cout << " sector " << sector << " side " << side << " subsurfkey_min " << subsurfkey_min << " subsurfkey_max " << subsurfkey_max << std::endl;
 
 	 for(int subsurfkey = subsurfkey_min; subsurfkey<subsurfkey_max; subsurfkey++)
 	   {
