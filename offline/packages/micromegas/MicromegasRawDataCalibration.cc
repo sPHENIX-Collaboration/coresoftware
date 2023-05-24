@@ -53,58 +53,55 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
   { return Fun4AllReturnCodes::DISCARDEVENT; }
 
 
-  // get TPOT packet number
-  /*
-   * for now it is the same packet number as the TPC: 4001.
-   * To be fixed at a later stage.
-   * check with Martin Purschke
-   */
-  std::unique_ptr<Packet> packet( event->getPacket(MicromegasDefs::m_packet_id) );
-  if( !packet )
+  // loop over TPOT packets
+  for( const auto& packet_id:MicromegasDefs::m_packet_ids )
   {
-    // no data
-    std::cout << "MicromegasRawDataCalibration::process_event - event contains no TPOT data" << std::endl;
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-
-  // get number of datasets (also call waveforms)
-  const auto n_waveforms = packet->iValue(0, "NR_WF" );
-  if( Verbosity() )
-  { std::cout << "MicromegasRawDataCalibration::process_event - n_waveforms: " << n_waveforms << std::endl; }
-  
-  for( int i=0; i<n_waveforms; ++i )
-  {
-    auto channel = packet->iValue( i, "CHANNEL" );
-    int fee = packet->iValue(i, "FEE" );
-    int samples = packet->iValue( i, "SAMPLES" );
-    if( Verbosity() )
+    std::unique_ptr<Packet> packet( event->getPacket(packet_id) );
+    if( !packet )
     {
-      std::cout
-        << "MicromegasRawDataCalibration::process_event -"
-        << " waveform: " << i
-        << " fee: " << fee
-        << " channel: " << channel
-        << " samples: " << samples
-        << std::endl;
+      // no data
+      std::cout << "MicromegasRawDataCalibration::process_event - event contains no TPOT data" << std::endl;
+      return Fun4AllReturnCodes::EVENT_OK;
     }
-
-    // find relevant profile histogram 
-    TProfile* profile = nullptr;
-    auto piter = m_profile_map.lower_bound( fee );
-    if( piter == m_profile_map.end() || fee < piter->first )
-    {
-      // create and insert
-      profile = new TProfile( Form( "h_adc_channel_%i", fee ), "ADC vs channel;channel;adc", MicromegasDefs::m_nchannels_fee, 0, MicromegasDefs::m_nchannels_fee );
-      profile->SetErrorOption( "s" );
-      m_profile_map.insert(  piter, std::make_pair( fee, profile ) );      
-    } else profile = piter->second;
-
-    // fill
-    for( int is = std::max( m_sample_min,0 ); is < std::min( m_sample_max,samples ); ++ is )
-    { profile->Fill( channel, packet->iValue(i,is) ); }
     
+    // get number of datasets (also call waveforms)
+    const auto n_waveforms = packet->iValue(0, "NR_WF" );
+    if( Verbosity() )
+    { std::cout << "MicromegasRawDataCalibration::process_event - n_waveforms: " << n_waveforms << std::endl; }
+    
+    for( int i=0; i<n_waveforms; ++i )
+    {
+      auto channel = packet->iValue( i, "CHANNEL" );
+      int fee = packet->iValue(i, "FEE" );
+      int samples = packet->iValue( i, "SAMPLES" );
+      if( Verbosity() )
+      {
+        std::cout
+          << "MicromegasRawDataCalibration::process_event -"
+          << " waveform: " << i
+          << " fee: " << fee
+          << " channel: " << channel
+          << " samples: " << samples
+          << std::endl;
+      }
+        
+      // find relevant profile histogram 
+      TProfile* profile = nullptr;
+      auto piter = m_profile_map.lower_bound( fee );
+      if( piter == m_profile_map.end() || fee < piter->first )
+      {
+        // create and insert
+        profile = new TProfile( Form( "h_adc_channel_%i", fee ), "ADC vs channel;channel;adc", MicromegasDefs::m_nchannels_fee, 0, MicromegasDefs::m_nchannels_fee );
+        profile->SetErrorOption( "s" );
+        m_profile_map.insert(  piter, std::make_pair( fee, profile ) );      
+      } else profile = piter->second;
+      
+      // fill
+      for( int is = std::max( m_sample_min,0 ); is < std::min( m_sample_max,samples ); ++ is )
+      { profile->Fill( channel, packet->iValue(i,is) ); }
+        
+    }
   }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
