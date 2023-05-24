@@ -36,7 +36,7 @@ libintt_la_SOURCES = \
   InttClusterizer.cc \
   InttDeadMapHelper.cc \
   InttFelixMap.cc \
-  InttRawDataDecoder.h
+  InttRawDataDecoder.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \

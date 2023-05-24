@@ -24,6 +24,7 @@ public:
 	InttRawDataDecoder(std::string const& name = "InttRawDataDecoder");
 
 	int Init(PHCompositeNode*) override;
+	int InitRun(PHCompositeNode*) override;
 	int process_event(PHCompositeNode*) override;
 	int End(PHCompositeNode*) override;
 

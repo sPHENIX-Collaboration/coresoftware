@@ -10,7 +10,9 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 
+#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 InttRawDataDecoder::InttRawDataDecoder(std::string const& name):
 	SubsysReco(name)
@@ -35,10 +37,10 @@ int InttRawDataDecoder::InitRun(PHCompositeNode* /*topNode*/)
 //process_event
 int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 {
-	TrkrHitSetContainer trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+	TrkrHitSetContainer* trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
 	if(!trkr_hit_set_container)return Fun4AllReturnCodes::DISCARDEVENT;
 
-	Event evt = findNode::getClass<Event>(topNode, "PRDF");
+	Event* evt = findNode::getClass<Event>(topNode, "PRDF");
 	if(!evt)return Fun4AllReturnCodes::DISCARDEVENT;
 
 	for(int pid = 3001; pid < 3009; ++pid)
@@ -49,8 +51,9 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 		int N = p->iValue(0, "NR_HITS");
 		if(!N)continue;
 
-		bco_full = p->lValue(0, "BCO");
+		full_bco = p->lValue(0, "BCO");
 
+		//Could potentially wrap these into a struct
 		int adc = 0;
 		int amp = 0;
 		int chp = 0;
@@ -65,14 +68,17 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 
 		for(int n = 0; n < N; ++n)
 		{
-			adc = p->iValue(i, "ADC");
-			amp = p->iValue(i, "AMPLITUE");
-			chp = p->iValue(i, "CHIP_ID");
-			chn = p->iValue(i, "CHANNEL_ID");
-			fee = p->iValue(i, "FEE");
-			bco = p->iValue(i, "FPHX_BCO");
+			adc = p->iValue(n, "ADC");
+			amp = p->iValue(n, "AMPLITUE");
+			chp = p->iValue(n, "CHIP_ID");
+			chn = p->iValue(n, "CHANNEL_ID");
+			fee = p->iValue(n, "FEE");
+			bco = p->iValue(n, "FPHX_BCO");
 
 			//make hit_set_key
+			//dummy expression so it compiles
+			//should add a helper method somewhere, either in trackbase or here
+			hit_set_key = adc + amp + chp + chn + fee + bco;
 			//...
 
 			hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
@@ -86,7 +92,7 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 			hit = new TrkrHit;
 			//hit->setAdc(...)
 			//...
-			hit_setcontainer_itr->second->addHitSpecificKey(hit_key, hit);
+			hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
 		}
 	}
 
