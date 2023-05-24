@@ -109,7 +109,7 @@ int tpc_hits::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int tpc_hits::process_event(PHCompositeNode *topNode)
 {
-  std::cout << "tpc_hits::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+  //std::cout << "tpc_hits::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   // load relevant nodes
   // Get the TrkrHitSetContainer node
   auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -133,7 +133,6 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
 
   for (int packet = 4000; packet<=4230; packet+=10)
   {
-    std::cout << "tpc_hits:: Packet: "<< packet << " processing" << std::endl;
     Packet *p = _event->getPacket(packet);
 
     sector++;
@@ -144,7 +143,7 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
 
     if (p)
     {
-      std::cout << "tpc_hits:: Event getPacket: "<< packet << " FOUND!!!" << std::endl;
+      std::cout << "tpc_hits:: Event getPacket: "<< packet << " Sector"<< sector << std::endl;
     }else{
       continue;
     }
@@ -183,28 +182,30 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
         int FEE_R[26]={2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
         // From Takao
         int FEE_map[26]={3, 2, 5, 3, 4, 0, 2, 1, 3, 4, 5, 7, 6, 2, 0, 1, 0, 1, 4, 5, 11, 9, 10, 8, 6, 7};
+        int pads_per_sector[3] = {96, 128, 192};
 
-        int layer;
-        if (channel < 128)
-        {
-          layer = sampa_nr * 2;
-        }
-        else
-        {
-          layer = sampa_nr * 2 + 1;
-        }
+        //if (channel < 128)
+        //{
+        //  layer = sampa_nr * 2;
+        //}
+        //else
+        //{
+        //  layer = sampa_nr * 2 + 1;
+        //}
 
-        TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sector, side);
-        //TrkrHitSetContainer::Iterator hitsetit = m_hits->findOrAddHitSet(tpcHitSetKey);
-        TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(tpcHitSetKey);
 
         // setting the mapp of the FEE
         int feeM = FEE_map[fee]-1;
         if(FEE_R[fee]==2) feeM += 6;
         if(FEE_R[fee]==3) feeM += 14;
+        int layer = M.getLayer(feeM, channel);
 
         double R = M.getR(feeM, channel);
         double phi = M.getPhi(feeM, channel) + sector * M_PI / 6 ;
+
+        TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sector, side);
+        //TrkrHitSetContainer::Iterator hitsetit = m_hits->findOrAddHitSet(tpcHitSetKey);
+        TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(tpcHitSetKey);
 
         if( Verbosity() )
         {
@@ -229,11 +230,11 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
         }
         for (int s = 0; s < samples; s++)
         {
-          int pad = 0;
+          int pad = M.getPad(feeM, channel);
           int t = s + 2 * (current_BCO - starting_BCO);
           int adc = p->iValue(wf,s);
           // generate hit key
-          TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad, (unsigned int) t);
+          TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad + sector*pads_per_sector[FEE_R[sector]-1], (unsigned int) t);
           // find existing hit, or create
           auto hit = hitsetit->second->getHit(hitkey);
 
