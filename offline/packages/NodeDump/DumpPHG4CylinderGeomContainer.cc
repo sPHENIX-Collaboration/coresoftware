@@ -4,6 +4,7 @@
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeom_Spacalv3.h>
 
 #include <map>
 #include <ostream>
@@ -49,6 +50,64 @@ int DumpPHG4CylinderGeomContainer::process_Node(PHNode *myNode)
       *fout << "pixel_z: " << hiter->second->get_pixel_z() << std::endl;
       *fout << "pixel_x: " << hiter->second->get_pixel_x() << std::endl;
       *fout << "pixel_thickness: " << hiter->second->get_pixel_thickness() << std::endl;
+      PHG4CylinderGeom_Spacalv1 *layergeomv1 = dynamic_cast<PHG4CylinderGeom_Spacalv1 *>(hiter->second);
+      if (layergeomv1)
+      {
+        const PHG4CylinderGeom_Spacalv3::sector_map_t &sector_map = layergeomv1->get_sector_map();
+        *fout << "xpos: " << layergeomv1->get_xpos() << std::endl;
+        *fout << "ypos: " << layergeomv1->get_ypos() << std::endl;
+        *fout << "zpos: " << layergeomv1->get_zpos() << std::endl;
+        *fout << "fiber_clading_thickness: " << layergeomv1->get_fiber_clading_thickness() << std::endl;
+        *fout << "fiber_core_diameter: " << layergeomv1->get_fiber_core_diameter() << std::endl;
+        *fout << "fiber_distance: " << layergeomv1->get_fiber_distance() << std::endl;
+        *fout << "absorber_mat: " << layergeomv1->get_absorber_mat() << std::endl;
+        *fout << "fiber_clading_mat: " << layergeomv1->get_fiber_clading_mat() << std::endl;
+        *fout << "fiber_core_mat: " << layergeomv1->get_fiber_core_mat() << std::endl;
+        *fout << "virualize_fiber: " << layergeomv1->is_virualize_fiber() << std::endl;
+        for (auto sectormapiter : sector_map)
+        {
+          *fout << "sector " << sectormapiter.first << ", rotation: " << sectormapiter.second << std::endl;
+        }
+      }
+      PHG4CylinderGeom_Spacalv3 *layergeomv3 = dynamic_cast<PHG4CylinderGeom_Spacalv3 *>(hiter->second);
+      if (layergeomv3)
+      {
+        *fout << "sidewall_outer_torr: " << layergeomv3->get_sidewall_outer_torr() << std::endl;
+        *fout << "sidewall_thickness: " << layergeomv3->get_sidewall_thickness() << std::endl;
+        *fout << "sidewall_mat: " << layergeomv3->get_sidewall_mat() << std::endl;
+        *fout << "max_phi_bin_in_sec: " << layergeomv3->get_max_phi_bin_in_sec() << std::endl;
+        *fout << "divider_mat: " << layergeomv3->get_divider_mat() << std::endl;
+        *fout << "divider_width: " << layergeomv3->get_divider_width() << std::endl;
+
+        const PHG4CylinderGeom_Spacalv3::tower_map_t &tower_map = layergeomv3->get_sector_tower_map();
+        for (const auto &towermapiter : tower_map)
+        {
+          *fout << "tower " << towermapiter.first << ", id: " << towermapiter.second.id << std::endl;
+          *fout << "tower " << towermapiter.first << ", pDz: " << towermapiter.second.pDz << std::endl;
+          *fout << "tower " << towermapiter.first << ", pDy1: " << towermapiter.second.pDy1 << std::endl;
+          *fout << "tower " << towermapiter.first << ", pDx1: " << towermapiter.second.pDx1 << std::endl;
+          *fout << "tower " << towermapiter.first << ", pDx2: " << towermapiter.second.pDx2 << std::endl;
+          *fout << "tower " << towermapiter.first << ", pDy2: " << towermapiter.second.pDy2 << std::endl;
+          *fout << "tower " << towermapiter.first << ", pDx3: " << towermapiter.second.pDx3 << std::endl;
+          *fout << "tower " << towermapiter.first << ", pDx4: " << towermapiter.second.pDx4 << std::endl;
+          *fout << "tower " << towermapiter.first << ", pTheta: " << towermapiter.second.pTheta << std::endl;
+          *fout << "tower " << towermapiter.first << ", pPhi: " << towermapiter.second.pPhi << std::endl;
+          *fout << "tower " << towermapiter.first << ", pAlp1: " << towermapiter.second.pAlp1 << std::endl;
+          *fout << "tower " << towermapiter.first << ", pAlp2: " << towermapiter.second.pAlp2 << std::endl;
+          *fout << "tower " << towermapiter.first << ", pRotationAngleX: " << towermapiter.second.pRotationAngleX << std::endl;
+          *fout << "tower " << towermapiter.first << ", centralX: " << towermapiter.second.centralX << std::endl;
+          *fout << "tower " << towermapiter.first << ", centralY: " << towermapiter.second.centralY << std::endl;
+          *fout << "tower " << towermapiter.first << ", centralZ: " << towermapiter.second.centralZ << std::endl;
+          *fout << "tower " << towermapiter.first << ", ModuleSkinThickness: " << towermapiter.second.ModuleSkinThickness << std::endl;
+          *fout << "tower " << towermapiter.first << ", NFiberX: " << towermapiter.second.NFiberX << std::endl;
+          *fout << "tower " << towermapiter.first << ", NFiberY: " << towermapiter.second.NFiberY << std::endl;
+          *fout << "tower " << towermapiter.first << ", NSubtowerX: " << towermapiter.second.NSubtowerX << std::endl;
+          *fout << "tower " << towermapiter.first << ", NSubtowerY: " << towermapiter.second.NSubtowerY << std::endl;
+          *fout << "tower " << towermapiter.first << ", LightguideHeight: " << towermapiter.second.LightguideHeight << std::endl;
+          *fout << "tower " << towermapiter.first << ", LightguideTaperRatio: " << towermapiter.second.LightguideTaperRatio << std::endl;
+          *fout << "tower " << towermapiter.first << ", LightguideMaterial: " << towermapiter.second.LightguideMaterial << std::endl;
+        }
+      }
     }
   }
   return 0;

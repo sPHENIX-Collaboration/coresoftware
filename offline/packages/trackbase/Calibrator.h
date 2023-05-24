@@ -61,8 +61,8 @@ class Calibrator
 
           auto cov = uncalibmeas.covariance();
           const auto& cluskey = sourceLink.cluskey();
-          const auto trkrid = TrkrDefs::getTrkrId(cluskey);
-          const double misalignmentFactor = gctx.get<alignmentTransformationContainer*>()->getMisalignmentFactor(trkrid);
+          const auto layer = TrkrDefs::getLayer(cluskey);
+          const double misalignmentFactor = gctx.get<alignmentTransformationContainer*>()->getMisalignmentFactor(layer);
 
           Acts::ActsSymMatrix<2> expandedCov = Acts::ActsSymMatrix<2>::Zero();
 

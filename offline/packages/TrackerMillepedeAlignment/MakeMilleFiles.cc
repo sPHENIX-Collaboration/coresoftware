@@ -237,8 +237,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5, clusRadius, ckey);
       double phierror = sqrt(para_errors.first);
       double zerror = sqrt(para_errors.second);
-      clus_sigma(1) = zerror;
-      clus_sigma(0) = phierror;
+      clus_sigma(1) = zerror * Acts::UnitConstants::cm;
+      clus_sigma(0) = phierror * Acts::UnitConstants::cm;
     }
 
     if (std::isnan(clus_sigma(0)) ||

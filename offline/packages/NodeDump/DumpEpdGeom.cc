@@ -27,21 +27,21 @@ int DumpEpdGeom::process_Node(PHNode *myNode)
   }
   if (epdgeom)
   {
-    for (int iarm = 0; iarm<2; iarm++)
+    for (int iarm = 0; iarm < 2; iarm++)
     {
       for (int irad = 0; irad < 16; irad++)
       {
-	for (int iphi = 0; iphi<24; iphi++)
-	{ 
-	  if (irad == 0 && iphi > 11)
-	  {
-	    continue;
-	  }
-	  unsigned int key = TowerInfoDefs::encode_epd(iarm, irad, iphi);
-	  *fout << "tile key: 0x" << std::hex << key << std::dec << std::endl;
-	  *fout << "get_r: " << epdgeom->get_r(key) << std::endl;
-	  *fout << "get_phi: " << epdgeom->get_phi(key) << std::endl;
-	  *fout << "get_z: " << epdgeom->get_z(key) << std::endl;
+        for (int iphi = 0; iphi < 24; iphi++)
+        {
+          if (irad == 0 && iphi > 11)
+          {
+            continue;
+          }
+          unsigned int key = TowerInfoDefs::encode_epd(iarm, irad, iphi);
+          *fout << "tile key: 0x" << std::hex << key << std::dec << std::endl;
+          *fout << "get_r: " << epdgeom->get_r(key) << std::endl;
+          *fout << "get_phi: " << epdgeom->get_phi(key) << std::endl;
+          *fout << "get_z: " << epdgeom->get_z(key) << std::endl;
         }
       }
     }

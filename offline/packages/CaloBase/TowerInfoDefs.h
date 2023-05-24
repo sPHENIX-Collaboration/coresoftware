@@ -35,12 +35,19 @@ namespace TowerInfoDefs
    int get_smd_xy(const unsigned int key);
    int get_smd_finger_index(const unsigned int key);
 
+   unsigned int get_mbd_side(const unsigned int key);
+   // 0 for time 1 for charge
+   unsigned int get_mbd_type(const unsigned int key);
+   unsigned int get_mbd_channel(const unsigned int key);
 
 
    unsigned int encode_zdc(const unsigned int towerIndex);
    unsigned int encode_smd(const unsigned int towerIndex);
    unsigned int decode_smd(const unsigned int key);
    unsigned int decode_zdc(const unsigned int key);
+
+   unsigned int encode_mbd(const unsigned int towerIndex);
+   unsigned int decode_mbd(const unsigned int key);
 
 
    RawTowerDefs::keytype get_emcal_geokey_at_channel(const unsigned int towerIndex);
