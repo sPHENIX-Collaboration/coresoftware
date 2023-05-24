@@ -46,7 +46,7 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 	if(!evt)return Fun4AllReturnCodes::DISCARDEVENT;
 
 	int adc = 0;
-	int amp = 0;
+	//int amp = 0;
 	int bco = 0;
 	int chp = 0;
 	int chn = 0;
