@@ -90,6 +90,8 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
   if(event->getEvtType() >= 8)
   { return Fun4AllReturnCodes::DISCARDEVENT; }
 
+  m_container->Reset();
+  
   // loop over TPOT packets
   for( const auto& packet_id:MicromegasDefs::m_packet_ids )
   {
@@ -97,22 +99,20 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
     if( !packet )
     {
       // no data
-      std::cout << "MicromegasRawDataEvaluation::process_event - event contains no TPOT data" << std::endl;
+      std::cout << "MicromegasRawDataEvaluation::process_event - packet " << packet_id << " not found." << std::endl;
       return Fun4AllReturnCodes::EVENT_OK;
     }
-    
-    m_container->Reset();
-    
+        
     // get number of datasets (also call waveforms)
     const auto n_waveforms = packet->iValue(0, "NR_WF" );
     m_container->n_waveforms = n_waveforms;
     if( Verbosity() )
-    { std::cout << "MicromegasRawDataEvaluation::process_event - n_waveforms: " << n_waveforms << std::endl; }
+    { std::cout << "MicromegasRawDataEvaluation::process_event - packet: " << packet_id << " n_waveforms: " << n_waveforms << std::endl; }
     
     for( int i=0; i<n_waveforms; ++i )
     {
-      const unsigned short channel = packet->iValue( i, "CHANNEL" );
       const unsigned short fee = packet->iValue(i, "FEE" );
+      const unsigned short channel = packet->iValue( i, "CHANNEL" );
       
       // get hitsetkey, layer and tile
       const auto hitsetkey = m_mapping.get_hitsetkey(fee);
@@ -131,6 +131,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         m_container->samples.push_back( 
           Sample
           {
+            .packet_id = packet_id,
             .fee_id = fee,
             .layer = layer,
             .tile = tile,
