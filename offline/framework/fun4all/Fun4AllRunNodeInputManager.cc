@@ -64,45 +64,17 @@ int Fun4AllRunNodeInputManager::fileopen(const std::string &filenam)
   {
     runNode(se->getNode(RunNodeName(), TopNodeName()));
     IManager()->read(runNode());
-    // get the current run number
+    // get the current run number from an existing run noder
     RunHeader *runheader = findNode::getClass<RunHeader>(runNode(), "RunHeader");
     if (runheader)
     {
       SetRunNumber(runheader->get_RunNumber());
     }
-    // delete our internal copy of the runnode when opening subsequent files
-    if (runNodeCopy())
-    {
-      std::cout << PHWHERE
-                << " The impossible happened, we have a valid copy of the run node "
-                << runNodeCopy()->getName() << " which should be a nullptr"
-                << std::endl;
-      gSystem->Exit(1);
-    }
-    runNodeCopy(new PHCompositeNode("RUNNODECOPY"));
-    if (!runNodeSum())
-    {
-      runNodeSum(new PHCompositeNode("RUNNODESUM"));
-    }
-    PHNodeIOManager *tmpIman = new PHNodeIOManager(fullfilename, PHReadOnly, PHRunTree);
-    tmpIman->read(runNodeCopy());
-    delete tmpIman;
-
-    PHNodeIntegrate integrate;
-    integrate.RunNode(runNode());
-    integrate.RunSumNode(runNodeSum());
-    // run recursively over internal run node copy and integrate objects
-    PHNodeIterator mainIter(runNodeCopy());
-    mainIter.forEach(integrate);
-    // we do not need to keep the internal copy, keeping it would crate
-    // problems in case a subsequent file does not contain all the
-    // runwise objects from the previous file. Keeping this copy would then
-    // integrate the missing object again with the old copy
-    delete runNodeCopy();
-    runNodeCopy(nullptr);
   }
   // DLW: move the delete outside the if block to cover the case where isFunctional() fails
   delete IManager();
+  IManager(nullptr);
+  IsOpen(1);
   return 0;
 }
 

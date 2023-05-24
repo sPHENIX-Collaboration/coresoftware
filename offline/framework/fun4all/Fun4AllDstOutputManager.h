@@ -25,6 +25,7 @@ class Fun4AllDstOutputManager : public Fun4AllOutputManager
   int StripNode(const std::string &nodename) override;
   int StripRunNode(const std::string &nodename) override;
   void SaveRunNode(const int i) override { m_SaveRunNodeFlag = i; }
+  void SaveDstNode(const int i) override { m_SaveDstNodeFlag = i; }
   int outfileopen(const std::string &fname) override;
 
   void Print(const std::string &what = "ALL") const override;
@@ -35,6 +36,7 @@ class Fun4AllDstOutputManager : public Fun4AllOutputManager
  private:
   PHNodeIOManager *dstOut = nullptr;
   int m_SaveRunNodeFlag = 1;
+  int m_SaveDstNodeFlag = 1;
   std::set<std::string> savenodes;
   std::set<std::string> saverunnodes;
   std::set<std::string> stripnodes;
