@@ -1,5 +1,6 @@
 #include "TpcClusterBuilder.h"
 /* #include <trackbase/TrkrClusterv3.h> */
+#include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TpcDefs.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
@@ -86,41 +87,53 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
 
     auto ihit_list = hitset->getHits();
 
-    double sum_energy { 0. }; // energy = 4 * adc at this point
+    double sum_adc { 0. }; // energy = 4 * adc at this point
     for(auto ihit = ihit_list.first; ihit != ihit_list.second; ++ihit){
-      int e = ihit->second->getEnergy();
-      int adc = ihit->second->getAdc();
-      if (adc*4 != e) {
-      cout << " FIXME: energy: " << ihit->second->getEnergy() << " vs adc " << ihit->second->getAdc() << endl;
-      }
-      sum_energy += ihit->second->getEnergy();
+      sum_adc += ihit->second->getAdc();
     }
-    const double threshold = sum_energy * m_pixel_thresholdrat;
+    const double threshold = sum_adc * m_pixel_thresholdrat;
   
     // FIXME -- see why the hits are so scattered
     std::set<int> v_iphi, v_it;              // FIXME
-    std::map<int,unsigned int> m_iphi, m_it; // FIXME
-    for(auto iter = ihit_list.first; iter != ihit_list.second; ++iter){
+    std::map<int,unsigned int> m_iphi, m_it, m_iphiCut, m_itCut; // FIXME
+    for(auto iter = ihit_list.first; iter != ihit_list.second; ++iter)
+    {
       unsigned int adc = iter->second->getAdc(); 
       if (adc <= 0) continue;
 
-      if (iter->second->getEnergy()<threshold) {
-        /* cout << "FIXME cutting " << iter->second->getEnergy() << " is below " << threshold << endl; */
+      if (iter->second->getAdc()<threshold) {
+        /* cout << "FIXME cutting " << iter->second->getAdc() << " is below " << threshold << endl; */
       }
 
-      if (iter->second->getEnergy()<threshold) continue;
+      int iphi;
+      int it  ;
 
-      int iphi = TpcDefs::getPad(iter->first) - phioffset;
-      int it   = TpcDefs::getTBin(iter->first) - toffset;
+      if (adc<threshold) {
+        if (mClusHitsVerbose) {
+          iphi = TpcDefs::getPad(iter->first) - phioffset;
+          it   = TpcDefs::getTBin(iter->first) - toffset;
+
+          auto pnew = m_iphiCut.try_emplace(iphi,adc);
+          if (!pnew.second) pnew.first->second += adc;
+
+          pnew = m_itCut.try_emplace(it,adc);
+          if (!pnew.second) pnew.first->second += adc;
+        }
+        continue;
+      } else {
+        iphi = TpcDefs::getPad(iter->first) - phioffset;
+        it   = TpcDefs::getTBin(iter->first) - toffset;
+      }
 
       //FIXME
       v_iphi.insert(iphi);
       v_it.insert(it);
-      m_iphi.try_emplace(iphi,0);
-      m_it.try_emplace(it,0);
 
-      m_iphi[iphi] += adc;
-      m_it[it] += adc;
+      auto ins = m_iphi.try_emplace(iphi,adc);
+      if (!ins.second) ins.first->second += adc;
+
+      ins = m_it.try_emplace(it,adc);
+      if (!ins.second) ins.first->second += adc;
 
       if(iphi<0 || iphi>=phibins){
       //FIXME
@@ -154,16 +167,33 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
 
       adc_sum += adc;
     }
-    
-    if (true) { // FIXME 
-      int _phi_sum = 0;
-      for (auto _ : m_iphi) _phi_sum += _.second;
-      if (_phi_sum != adc_sum) cout << " FIXME z1 " << adc_sum << " delta phi: " << (adc_sum - _phi_sum) << endl;
-
-      int _t_sum = 0;
-      for (auto _ : m_it) _t_sum += _.second;
-      if (_t_sum != adc_sum) cout << " FIXME z1 " << adc_sum << " delta phi: " << (adc_sum - _phi_sum) << endl;
+    if (mClusHitsVerbose) {
+      if (verbosity>10) {
+        for (auto& hit : m_iphi) {
+          cout << " m_phi(" << hit.first <<" : " << hit.second<<") ";
+        }
+      }
+      /* cout << " MELON 0 m_iphi "; */
+      /* for (auto& hit : m_iphi)   cout  << hit.first << "|" << hit.second << " "; */
+      /* cout << endl; */
+      /* cout << " MELON 1 m_it   "; */
+      /* for (auto& hit : m_it) cout    << hit.first << "|" << hit.second << " "; */
+      /* cout << endl; */
+      for (auto& hit : m_iphi)    mClusHitsVerbose->addPhiHit    (hit.first, (float)hit.second);
+      for (auto& hit : m_it)      mClusHitsVerbose->addZHit      (hit.first, (float)hit.second);
+      for (auto& hit : m_iphiCut) mClusHitsVerbose->addPhiCutHit (hit.first, (float)hit.second);
+      for (auto& hit : m_itCut)   mClusHitsVerbose->addZCutHit   (hit.first, (float)hit.second);
     }
+    
+    /* if (true) { // FIXME */ 
+    /*   int _phi_sum = 0; */
+    /*   for (auto _ : m_iphi) _phi_sum += _.second; */
+    /*   /1* if (_phi_sum != adc_sum) cout << " FIXME z1 " << adc_sum << " delta phi: " << (adc_sum - _phi_sum) << endl; *1/ */
+
+    /*   int _t_sum = 0; */
+    /*   for (auto _ : m_it) _t_sum += _.second; */
+    /*   /1* if (_t_sum != adc_sum) cout << " FIXME z1 " << adc_sum << " delta phi: " << (adc_sum - _phi_sum) << endl; *1/ */
+    /* } */
       
 
     // This is the global position
@@ -260,6 +290,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
 
     if (!surface) {
       if (verbosity) std::cout << "Can't find the surface! with hitsetkey " << ((int)hitsetkey) << std::endl;
+      /* if (mClusHitsVerbose) mClusHitsVerbose->Reset(); */
       continue;
     }
 
@@ -288,6 +319,10 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
     m_clusterlist->addClusterSpecifyKey(cluskey, cluster);
 
     track->addCluster(cluskey);
+    if (mClusHitsVerbose) {
+      mClusHitsVerbose->push_hits(cluskey);
+      /* cout << " FIXME z1 ClusHitsVerbose.size: " << mClusHitsVerbose->getMap().size() << endl; */
+    }
   }
   m_hits->Reset();
 }
@@ -394,10 +429,12 @@ void TpcClusterBuilder::set_input_nodes(
       TrkrClusterContainer* _truth_cluster_container
     , ActsGeometry*                 _ActsGeometry
     , PHG4TpcCylinderGeomContainer* _geom_container
+    , ClusHitsVerbosev1*            _clushitsverbose
 ) {
-  m_clusterlist   = _truth_cluster_container;
-  m_tGeometry     = _ActsGeometry;
-  geom_container  = _geom_container;
+  m_clusterlist     = _truth_cluster_container;
+  m_tGeometry       = _ActsGeometry;
+  geom_container    = _geom_container;
+  mClusHitsVerbose  = _clushitsverbose;
   needs_input_nodes = false;
 };
 

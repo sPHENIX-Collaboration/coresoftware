@@ -15,7 +15,7 @@ class TrkrTruthTrackContainer : public PHObject
  public:
   //using Vector = std::vector<TrkrTruthTrack*>;
   using Map = std::map<unsigned int, TrkrTruthTrack*>;
-  using Iterator = Map::iterator; //Vector::iterator;
+  using Iterator = Map::iterator; // Vector::iterator;
   using ConstIterator = Map::const_iterator;
   using Range = std::pair<Iterator, Iterator>;
   using ConstRange = std::pair<ConstIterator, ConstIterator>;

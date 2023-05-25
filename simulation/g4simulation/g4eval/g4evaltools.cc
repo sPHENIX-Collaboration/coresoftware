@@ -20,6 +20,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <TFile.h>
 #include <TObjString.h>
+#include <iostream>
 
 using std::cout;
 using std::endl;
@@ -64,8 +65,16 @@ namespace G4Eval {
   // return the layer of the hit: 0:Mvtx 1:Intt 2:Tpc 3:Tpot 
   int trklayer_0123(TrkrDefs::hitsetkey key) {
     auto layer = TrkrDefs::getLayer(key);
-    if (layer < 3) return 0;
-    if (layer < 7) return 1;
+    if (layer < 3)  return 0;
+    if (layer < 7)  return 1;
+    if (layer < 55) return 2;
+    return 3;
+  }
+
+  int trklayer_0123(TrkrDefs::cluskey key) {
+    auto layer = TrkrDefs::getLayer(key);
+    if (layer < 3)  return 0;
+    if (layer < 7)  return 1;
     if (layer < 55) return 2;
     return 3;
   }
@@ -216,8 +225,11 @@ namespace G4Eval {
       std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey> input) {
       auto cluster = m_TruthClusters->findCluster(input.second);
       Eigen::Vector3d gloc = m_ActsGeometry->getGlobalPosition(input.second, cluster);
+      std::cout << " FIXME A000 " << endl;
+      std::cout << " FIXME A001 getZ() global position z() " << gloc[2] << " vs: " << 
+        cluster->getPosition(1) << endl;
       return {TrkrDefs::getLayer(input.first),gloc,
-        (int)cluster->getPhiSize(),(int)cluster->getZSize()};
+        (int)cluster->getPhiSize(),(int)cluster->getZSize(), input.second};
   }
 
   ClusLoc TrkrClusterComparer::clusloc_SVTX(
@@ -225,7 +237,7 @@ namespace G4Eval {
       auto cluster = m_RecoClusters->findCluster(input.second);
       Eigen::Vector3d gloc = m_ActsGeometry->getGlobalPosition(input.second, cluster);
       return {TrkrDefs::getLayer(input.first),gloc,
-        (int)cluster->getPhiSize(),(int)cluster->getZSize()};
+        (int)cluster->getPhiSize(),(int)cluster->getZSize(), input.second};
   }
 
   // Implementation of the iterable struct to get cluster keys from

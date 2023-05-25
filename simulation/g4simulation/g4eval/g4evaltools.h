@@ -22,8 +22,8 @@ class TrkrClusterContainer;
 class TrkrTruthTrack;
 
 namespace G4Eval {
-  // ClusLoc holds layer, location, phi size and z size
-  using ClusLoc = std::tuple<int,Eigen::Vector3d,int,int>;
+  // ClusLoc holds layer, location, phi size and z size, TrkrDefs::cluskey
+  using ClusLoc = std::tuple<int,Eigen::Vector3d,int,int,TrkrDefs::cluskey>;
 
   // Following function writes msg to the currently active TFile
   // if f_outname is provided, then it will write the message to a new
@@ -115,6 +115,7 @@ namespace G4Eval {
   };
 
   int trklayer_0123(TrkrDefs::hitsetkey); // 0:Mvtx 1:Intt 2:Tpc 3:Tpot 
+  int trklayer_0123(TrkrDefs::cluskey); // 0:Mvtx 1:Intt 2:Tpc 3:Tpot 
 
   class ClusCntr {
     private:
@@ -160,7 +161,7 @@ namespace G4Eval {
 
     //I need the cluster widths for diagnostics, too
     std::vector<ClusLoc> phg4_clusloc_all       ();
-    std::vector<ClusLoc> phg4_clusloc_unmatched();
+    std::vector<ClusLoc> phg4_clusloc_unmatched ();
     std::vector<ClusLoc> svtx_clusloc_all       ();
     std::vector<ClusLoc> svtx_clusloc_unmatched ();
     std::vector<ClusLoc> clusloc_matched        ();
