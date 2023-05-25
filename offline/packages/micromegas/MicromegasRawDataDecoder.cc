@@ -92,101 +92,98 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
   if(event->getEvtType() >= 8)
   { return Fun4AllReturnCodes::DISCARDEVENT; }
 
-  // get TPOT packet number
-  /*
-   * for now it is the same packet number as the TPC: 4001.
-   * To be fixed at a later stage.
-   * check with Martin Purschke
-   */
-  std::unique_ptr<Packet> packet( event->getPacket(MicromegasDefs::m_packet_id) );
-  if( !packet )
+  // loop over TPOT packets
+  for( const auto& packet_id:MicromegasDefs::m_packet_ids )
   {
-    // no data
-    std::cout << "MicromegasRawDataDecoder::process_event - event contains no TPOT data" << std::endl;
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-
-  // get number of datasets (also call waveforms)
-  const auto n_waveforms = packet->iValue(0, "NR_WF" );
-  if( Verbosity() )
-  { std::cout << "MicromegasRawDataDecoder::process_event - n_waveforms: " << n_waveforms << std::endl; }
-  for( int i=0; i<n_waveforms; ++i )
-  {
+    std::unique_ptr<Packet> packet( event->getPacket(packet_id) );
+    if( !packet )
+    {
+      // no data
+      std::cout << "MicromegasRawDataDecoder::process_event - event contains no TPOT data" << std::endl;
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
     
-    auto channel = packet->iValue( i, "CHANNEL" );
-    int fee = packet->iValue(i, "FEE" );
-    int samples = packet->iValue( i, "SAMPLES" );
+    // get number of datasets (also call waveforms)
+    const auto n_waveforms = packet->iValue(0, "NR_WF" );
     if( Verbosity() )
+    { std::cout << "MicromegasRawDataDecoder::process_event - n_waveforms: " << n_waveforms << std::endl; }
+    for( int i=0; i<n_waveforms; ++i )
     {
-      std::cout
-        << "MicromegasRawDataDecoder::process_event -"
-        << " waveform: " << i
-        << " fee: " << fee
-        << " channel: " << channel
-        << " samples: " << samples
-        << std::endl;
-    }
-        
-    // get channel rms and pedestal from calibration data
-    const double pedestal = m_calibration_data.get_pedestal( fee, channel );
-    const double rms = m_calibration_data.get_rms( fee, channel );
-    
-    // a rms of zero means the calibration has failed. the data is unusable
-    if( rms <= 0 ) continue;
-    
-    // loop over samples find maximum
-    std::vector<int> adc;
-    for( int is = std::max( m_sample_min,0 ); is < std::min( m_sample_max,samples ); ++ is )
-    { adc.push_back( packet->iValue( i, is ) ); }
-
-    if( adc.empty() ) continue;
-
-    // get max adc value in range
-    /* TODO: use more advanced signal processing */
-    auto max_adc = *std::max_element( adc.begin(), adc.end() );
-    
-    // subtract pedestal
-    max_adc -= pedestal;
-    
-    // compare to threshold
-    if( max_adc > m_n_sigma * rms ) 
-    {
-
-      // map fee and channel to physical hitsetid and physical strip
-      // get hitset key matching this fee
-      const TrkrDefs::hitsetkey hitsetkey = m_mapping.get_hitsetkey( fee );     
-      if( !hitsetkey ) continue;
-
-      // get matching physical strip
-      int strip = m_mapping.get_physical_strip( fee, channel );
-      if( strip < 0 ) continue;
       
-      // get matching hitset
-      const auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
-
-      // generate hit key
-      const TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip);
-    
-      // find existing hit, or create
-      auto hit = hitset_it->second->getHit(hitkey);
-      if( hit ) 
+      auto channel = packet->iValue( i, "CHANNEL" );
+      int fee = packet->iValue(i, "FEE" );
+      int samples = packet->iValue( i, "SAMPLES" );
+      if( Verbosity() )
       {
-        std::cout << "MicromegasRawDataDecoder::process_event - duplicated hit, hitsetkey: " << hitsetkey << " strip: " << strip << std::endl;
-        continue;
+        std::cout
+          << "MicromegasRawDataDecoder::process_event -"
+          << " waveform: " << i
+          << " fee: " << fee
+          << " channel: " << channel
+          << " samples: " << samples
+          << std::endl;
       }
-
-      // create hit, assign adc and insert in hitset
-      hit = new TrkrHitv2;
-      hit->setAdc( max_adc );
-      hitset_it->second->addHitSpecificKey(hitkey, hit);
       
-      // increment counter
-      ++m_hitcounts[hitsetkey];
+      // get channel rms and pedestal from calibration data
+      const double pedestal = m_calibration_data.get_pedestal( fee, channel );
+      const double rms = m_calibration_data.get_rms( fee, channel );
+      
+      // a rms of zero means the calibration has failed. the data is unusable
+      if( rms <= 0 ) continue;
+      
+      // loop over samples find maximum
+      std::vector<int> adc;
+      for( int is = std::max( m_sample_min,0 ); is < std::min( m_sample_max,samples ); ++ is )
+      { adc.push_back( packet->iValue( i, is ) ); }
+      
+      if( adc.empty() ) continue;
+      
+      // get max adc value in range
+      /* TODO: use more advanced signal processing */
+      auto max_adc = *std::max_element( adc.begin(), adc.end() );
+      
+      // subtract pedestal
+      max_adc -= pedestal;
+      
+      // compare to threshold
+      if( max_adc > m_n_sigma * rms ) 
+      {
+        
+        // map fee and channel to physical hitsetid and physical strip
+        // get hitset key matching this fee
+        const TrkrDefs::hitsetkey hitsetkey = m_mapping.get_hitsetkey( fee );     
+        if( !hitsetkey ) continue;
+        
+        // get matching physical strip
+        int strip = m_mapping.get_physical_strip( fee, channel );
+        if( strip < 0 ) continue;
+        
+        // get matching hitset
+        const auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
+        
+        // generate hit key
+        const TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip);
+        
+        // find existing hit, or create
+        auto hit = hitset_it->second->getHit(hitkey);
+        if( hit ) 
+        {
+          std::cout << "MicromegasRawDataDecoder::process_event - duplicated hit, hitsetkey: " << hitsetkey << " strip: " << strip << std::endl;
+          continue;
+        }
+        
+        // create hit, assign adc and insert in hitset
+        hit = new TrkrHitv2;
+        hit->setAdc( max_adc );
+        hitset_it->second->addHitSpecificKey(hitkey, hit);
+        
+        // increment counter
+        ++m_hitcounts[hitsetkey];
+        
+      }
       
     }
-    
   }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

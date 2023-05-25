@@ -30,9 +30,9 @@ int DumpTowerInfoContainer::process_Node(PHNode *myNode)
   {
     unsigned int nchannels = towerinfocontainer->size();
     *fout << "size: " << towerinfocontainer->size() << std::endl;
-    for ( unsigned int channel = 0; channel < nchannels;channel++ )
-  {
-    TowerInfo *rawtwr = towerinfocontainer->get_tower_at_channel(channel);
+    for (unsigned int channel = 0; channel < nchannels; channel++)
+    {
+      TowerInfo *rawtwr = towerinfocontainer->get_tower_at_channel(channel);
       *fout << "time: " << rawtwr->get_time() << std::endl;
       *fout << "energy: " << rawtwr->get_energy() << std::endl;
     }

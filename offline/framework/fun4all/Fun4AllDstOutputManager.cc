@@ -118,6 +118,10 @@ void Fun4AllDstOutputManager::Print(const std::string &what) const
 // that everything is written out), those nodes are declared transient
 int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
 {
+  if (!m_SaveDstNodeFlag)
+  {
+    return 0;
+  }
   PHNodeIterator nodeiter(startNode);
   if (savenodes.empty())
   {

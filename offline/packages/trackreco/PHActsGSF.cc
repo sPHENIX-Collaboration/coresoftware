@@ -338,7 +338,7 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
     else if (m_cluster_version == 4)
     {
       double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
-      auto para_errors = _ClusErrPara.get_cluster_error(track, cluster, clusRadius, cluskey);
+      auto para_errors = _ClusErrPara.get_cluster_error(cluster, clusRadius, cluskey, track->get_qOverR(), track->get_slope());
       cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
       cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
       cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;

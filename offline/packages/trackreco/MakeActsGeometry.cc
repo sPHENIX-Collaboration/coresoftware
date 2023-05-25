@@ -174,9 +174,9 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
 
   alignment_transformation.createMap(topNode);
-  for(auto& [id, factor] : m_misalignmentFactor)
+  for(auto& [layer, factor] : m_misalignmentFactor)
     {
-      alignment_transformation.misalignmentFactor(id, factor);
+      alignment_transformation.misalignmentFactor(layer, factor);
     }
 
  // print
