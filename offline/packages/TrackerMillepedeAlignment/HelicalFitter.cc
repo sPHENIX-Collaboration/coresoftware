@@ -738,7 +738,7 @@ void HelicalFitter::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, shor
 
 
 
-/*
+
 // this method to be replaced by calls to TrackFitUtils
 void HelicalFitter::getTrackletClusters(TrackSeed *tracklet, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
@@ -746,7 +746,7 @@ void HelicalFitter::getTrackletClusters(TrackSeed *tracklet, std::vector<Acts::V
   // store cluster global positions in a vector
   TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);   
 }
-*/
+
 
 void HelicalFitter::getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
