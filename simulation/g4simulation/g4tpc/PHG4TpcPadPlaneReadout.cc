@@ -66,6 +66,8 @@ PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const std::string &name)
   ReadGain();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   gsl_rng_set(RandomGenerator, PHRandomSeed());  // fixed seed is handled in this funtcion
+  h_gain[0] = nullptr;
+  h_gain[1] = nullptr;
 
   return;
 }
