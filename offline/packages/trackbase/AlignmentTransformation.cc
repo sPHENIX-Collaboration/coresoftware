@@ -164,7 +164,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 			   << " trkrid " << trkrId << " hitsetkey " << hitsetkey  << " layer " << layer << " sector " << sector << " side " << side 
 			   << " subsurfkey " << subsurfkey << std::endl;
 		 Acts::Vector3 center =  surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
-		 std::cout << "Surface center: " << std::endl <<center << std::endl;
+		 std::cout << "Ideal surface center: " << std::endl <<center << std::endl;
+		 std::cout << "transform matrix: " << std::endl <<  transform.matrix() << std::endl;
 	       }
 	     transformMap->addTransform(id,transform);
 	   }
