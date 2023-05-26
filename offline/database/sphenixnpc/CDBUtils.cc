@@ -17,45 +17,40 @@ CDBUtils::CDBUtils(const std::string &globaltag)
 }
 
 
-void CDBUtils::createGlobalTag(const std::string &tagname)
+int CDBUtils::createGlobalTag(const std::string &tagname)
 {
-  cdbclient->createGlobalTag(tagname);
+  nlohmann::json resp = cdbclient->createGlobalTag(tagname);
+  int iret = resp["code"];
+  nlohmann::json msgcont = resp["msg"];
+  std::cout << msgcont << std::endl;
+  return iret;
 }
 
 int CDBUtils::deleteGlobalTag(const std::string &tagname)
 {
   nlohmann::json resp = cdbclient->deleteGlobalTag(tagname);
   int iret = resp["code"];
-  if (iret != 0)
-  {
-    nlohmann::json msgcont = resp["msg"];
-    std::cout << "message: " << msgcont << std::endl;
-  }
+  nlohmann::json msgcont = resp["msg"];
+  std::cout << msgcont << std::endl;
   return iret;
 }
 
-void CDBUtils::lockGlobalTag(const std::string &tagname)
+int CDBUtils::lockGlobalTag(const std::string &tagname)
 {
   nlohmann::json resp = cdbclient->lockGlobalTag(tagname);
   int iret = resp["code"];
-  if (iret != 0)
-  {
-    nlohmann::json msgcont = resp["msg"];
-    std::cout << "message: " << msgcont << std::endl;
-  }
-  return;
+  nlohmann::json msgcont = resp["msg"];
+  std::cout << msgcont << std::endl;
+  return iret;
 }
 
-void CDBUtils::unlockGlobalTag(const std::string &tagname)
+int CDBUtils::unlockGlobalTag(const std::string &tagname)
 {
   nlohmann::json resp = cdbclient->unlockGlobalTag(tagname);
   int iret = resp["code"];
-  if (iret != 0)
-  {
-    nlohmann::json msgcont = resp["msg"];
-    std::cout << "message: " << msgcont << std::endl;
-  }
-  return;
+  nlohmann::json msgcont = resp["msg"];
+  std::cout << "message: " << msgcont << std::endl;
+  return iret;
 }
 
 void CDBUtils::clearCache()
@@ -65,35 +60,36 @@ void CDBUtils::clearCache()
 
 std::string CDBUtils::getUrl(const std::string &type, uint64_t iov)
 {
-  return cdbclient->getUrl(type, iov);
+  nlohmann::json resp = cdbclient->getUrl(type, iov);
+  return resp["msg"];
 }
 
-int CDBUtils::createDomain(const std::string &domain)
+int CDBUtils::createPayloadType(const std::string &pt)
 {
-  cdbclient->createDomain(domain);
   int iret = -1;
   nlohmann::json resp;
-  if (m_DomainCache.empty())
+  if (m_PayloadTypeCache.empty())
   {
     resp = cdbclient->getPayloadTypes();
     nlohmann::json msgcont = resp["msg"];
     for (auto &it : msgcont.items())
     {
-      std::string existent_domain = it.value().at("name");
-      m_DomainCache.insert(existent_domain);
+      std::string existent_pt = it.value().at("name");
+      m_PayloadTypeCache.insert(existent_pt);
     }
   }
-  if (m_DomainCache.find(domain) == m_DomainCache.end())
+  if (m_PayloadTypeCache.find(pt) == m_PayloadTypeCache.end())
   {
-    resp = cdbclient->createPayloadType(domain);
+    resp = cdbclient->createPayloadType(pt);
     iret = resp["code"];
     if (iret == 0)
     {
-      m_DomainCache.insert(domain);
+      m_PayloadTypeCache.insert(pt);
     }
   }
   else
   {
+    std::cout << "PayloadTypeCache " << pt << " exists already" << std::endl;
     iret = 0;
   }
   return iret;
@@ -138,7 +134,7 @@ int CDBUtils::insertPayload(const std::string &pl_type, const std::string &file_
   }
   else
   {
-    std::cout << resp << std::endl;
+    std::cout << resp["msg"] << std::endl;
   }
   return iret;
 }
@@ -158,7 +154,7 @@ int CDBUtils::insertPayload(const std::string &pl_type, const std::string &file_
   }
   else
   {
-    std::cout << resp << std::endl;
+    std::cout << resp["msg"] << std::endl;
   }
   return iret;
 }
@@ -167,10 +163,6 @@ int CDBUtils::setGlobalTag(const std::string &tagname)
 {
   nlohmann::json resp = cdbclient->setGlobalTag(tagname);
   int iret = resp["code"];
-  if (iret != 0)
-  {
-      std::cout << "Error setting global tag, msg: " << resp["msg"] << std::endl;
-    }
   std::cout << "message: " << resp["msg"] << std::endl;
   return iret;
 }
@@ -180,6 +172,7 @@ bool CDBUtils::isGlobalTagSet()
   return cdbclient->isGlobalTagSet();
 }
 
+/*
 int CDBUtils::createPayloadType(const std::string& pl_type)
 {
   if (! isGlobalTagSet())
@@ -203,6 +196,7 @@ int CDBUtils::createPayloadType(const std::string& pl_type)
     }
   return iret;
 }
+*/
 
 void CDBUtils::Verbosity(int i)
 {

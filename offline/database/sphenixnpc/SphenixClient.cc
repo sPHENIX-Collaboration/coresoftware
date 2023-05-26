@@ -11,7 +11,7 @@ SphenixClient::SphenixClient()
 
 SphenixClient::SphenixClient(const std::string &gt_name): nopayloadclient::NoPayloadClient(gt_name)
 {
-//cache_set_GlobalTag(globaltag);
+  m_CachedGlobalTag = gt_name;
 }
 
 nlohmann::json SphenixClient::getPayloadIOVs(long long iov) {
@@ -40,8 +40,33 @@ nlohmann::json SphenixClient::insertPayload(const std::string& pl_type, const st
     return nopayloadclient::NoPayloadClient::insertPayload(pl_type, file_url, 0, iov_start, 0, iov_end);
 }
 
-nlohmann::json SphenixClient::setGlobalTag(const std::string& name) {
-    return nopayloadclient::NoPayloadClient::setGlobalTag(name);
+nlohmann::json SphenixClient::setGlobalTag(const std::string& gt_name) {
+  if (m_CachedGlobalTag == gt_name)
+  {
+    std::string message = "global tag already set to " + gt_name;
+    return {{"code", 0}, {"msg", message}};
+  }
+// check if the global tag exists before switching
+  bool found_gt = false;
+  nlohmann::json resp = nopayloadclient::NoPayloadClient::getGlobalTags();
+  nlohmann::json msgcont = resp["msg"];
+  for (auto &it : msgcont.items())
+  {
+    std::string exist_gt = it.value().at("name");
+    if (exist_gt == gt_name)
+    {
+      found_gt = true;
+      break;
+    }
+  }
+  if (found_gt)
+  {
+    m_CachedGlobalTag = gt_name;
+    return nopayloadclient::NoPayloadClient::setGlobalTag(gt_name);
+  }
+
+  std::string message = "global tag " + gt_name + " does not exist";
+  return {{"code", -1}, {"msg", message}};
 }
 
 nlohmann::json SphenixClient::clearCache() {
