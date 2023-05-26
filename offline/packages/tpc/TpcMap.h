@@ -1,15 +1,15 @@
-#ifndef __TPCMap_H__
-#define __TPCMap_H__
+#ifndef __TpcMap_H__
+#define __TpcMap_H__
 
 #include <map>
 #include <string>
 
-class TPCMap
+class TpcMap
 {
  public:
   // constructors and destructors
-  TPCMap() = default;
-  virtual ~TPCMap() = default;
+  TpcMap() = default;
+  virtual ~TpcMap() = default;
 
   virtual unsigned int getLayer(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int packetid = 0) const;
   virtual unsigned int getPad(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int packetid = 0) const;

@@ -33,6 +33,7 @@ TpcRawDataTree::TpcRawDataTree(const std::string &name)
   for (int packet = 4001; packet <= 4231; packet += 10)
   {
     m_packets.push_back(packet);
+    m_packets.push_back(packet+1);
   }
 }
 

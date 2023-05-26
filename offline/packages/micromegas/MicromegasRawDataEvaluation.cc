@@ -62,7 +62,12 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
     {6, 2},      // SCOP
     {8, 3},      // SCOZ
     {9, 4},      // SCIP
-    {10, 5},     // SCIZ
+    
+    // old mapping until May 23
+    /* it is ok to keep it here, to be able to process older files */
+    {10, 5},     // SCIZ 
+    // updated after May 23
+    {23, 5},     // SCIZ
     {24, 6},     // SWIP
     {25, 7},     // SWIZ
 
@@ -85,61 +90,61 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
   if(event->getEvtType() >= 8)
   { return Fun4AllReturnCodes::DISCARDEVENT; }
 
-  // get TPOT packet number
-  /*
-   * for now it is the same packet number as the TPC: 4001.
-   * To be fixed at a later stage.
-   * check with Martin Purschke
-   */
-  std::unique_ptr<Packet> packet( event->getPacket(MicromegasDefs::m_packet_id) );
-  if( !packet )
-  {
-    // no data
-    std::cout << "MicromegasRawDataEvaluation::process_event - event contains no TPOT data" << std::endl;
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-
   m_container->Reset();
-
-  // get number of datasets (also call waveforms)
-  const auto n_waveforms = packet->iValue(0, "NR_WF" );
-  m_container->n_waveforms = n_waveforms;
-  if( Verbosity() )
-  { std::cout << "MicromegasRawDataEvaluation::process_event - n_waveforms: " << n_waveforms << std::endl; }
   
-  for( int i=0; i<n_waveforms; ++i )
+  // loop over TPOT packets
+  for( const auto& packet_id:MicromegasDefs::m_packet_ids )
   {
-    const unsigned short channel = packet->iValue( i, "CHANNEL" );
-    const unsigned short fee = packet->iValue(i, "FEE" );
-    
-    // get hitsetkey, layer and tile
-    const auto hitsetkey = m_mapping.get_hitsetkey(fee);
-    const unsigned short layer = TrkrDefs::getLayer( hitsetkey );
-    const unsigned short tile = MicromegasDefs::getTileId( hitsetkey );
-
-    // get detector index and absolute channel number
-    const unsigned short det_index = fee_map[fee];
-    const unsigned short absolute_channel = channel + det_index*MicromegasDefs::m_nchannels_fee;
-      
-    // get number of samples and loop
-    const unsigned short samples = packet->iValue( i, "SAMPLES" );
-    for( unsigned short is = 0; is < samples; ++is )
+    std::unique_ptr<Packet> packet( event->getPacket(packet_id) );
+    if( !packet )
     {
-      unsigned short adc = packet->iValue(i,is); 
-      m_container->samples.push_back( 
-      Sample{
-        .fee_id = fee,
-        .layer = layer,
-        .tile = tile,
-        .channel = channel,
-        .absolute_channel = absolute_channel,
-        .sample = is,
-        .adc = adc
-      });
+      // no data
+      std::cout << "MicromegasRawDataEvaluation::process_event - packet " << packet_id << " not found." << std::endl;
+      return Fun4AllReturnCodes::EVENT_OK;
     }
+        
+    // get number of datasets (also call waveforms)
+    const auto n_waveforms = packet->iValue(0, "NR_WF" );
+    m_container->n_waveforms = n_waveforms;
+    if( Verbosity() )
+    { std::cout << "MicromegasRawDataEvaluation::process_event - packet: " << packet_id << " n_waveforms: " << n_waveforms << std::endl; }
     
+    for( int i=0; i<n_waveforms; ++i )
+    {
+      const unsigned short fee = packet->iValue(i, "FEE" );
+      const unsigned short channel = packet->iValue( i, "CHANNEL" );
+      
+      // get hitsetkey, layer and tile
+      const auto hitsetkey = m_mapping.get_hitsetkey(fee);
+      const unsigned short layer = TrkrDefs::getLayer( hitsetkey );
+      const unsigned short tile = MicromegasDefs::getTileId( hitsetkey );
+      
+      // get detector index and absolute channel number
+      const unsigned short det_index = fee_map[fee];
+      const unsigned short absolute_channel = channel + det_index*MicromegasDefs::m_nchannels_fee;
+      
+      // get number of samples and loop
+      const unsigned short samples = packet->iValue( i, "SAMPLES" );
+      for( unsigned short is = 0; is < samples; ++is )
+      {
+        unsigned short adc = packet->iValue(i,is); 
+        m_container->samples.push_back( 
+          Sample
+          {
+            .packet_id = packet_id,
+            .fee_id = fee,
+            .layer = layer,
+            .tile = tile,
+            .channel = channel,
+            .absolute_channel = absolute_channel,
+            .sample = is,
+            .adc = adc
+          });
+      }
+          
+    }
   }
-  
+        
   m_evaluation_tree->Fill();
   
   return Fun4AllReturnCodes::EVENT_OK;
