@@ -132,7 +132,7 @@ std::string CDBInterface::getUrl(const std::string &domain, const std::string &f
     cdbclient = new SphenixClient(rc->get_StringFlag("CDB_GLOBALTAG"));
   }
   uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP");
-  std::string return_url = cdbclient->getUrl(domain,timestamp);
+  std::string return_url = cdbclient->getCalibration(domain,timestamp);
   if (return_url.empty())
   {
     return_url = filename;

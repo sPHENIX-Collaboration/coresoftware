@@ -17,6 +17,7 @@ SphenixClient::SphenixClient(const std::string &gt_name): nopayloadclient::NoPay
 nlohmann::json SphenixClient::getPayloadIOVs(long long iov) {
     return nopayloadclient::NoPayloadClient::getPayloadIOVs(0, iov);
 }
+
 nlohmann::json SphenixClient::getUrl(const std::string& pl_type, long long iov) {
     nlohmann::json resp = getPayloadIOVs(iov);
     if (resp["code"] != 0) return resp;
@@ -30,6 +31,13 @@ nlohmann::json SphenixClient::getUrl(const std::string& pl_type, long long iov) 
     }
     return makeResp(payload_iov["payload_url"]);
 }
+
+std::string SphenixClient::getCalibration(const std::string& pl_type, long long iov)
+{
+  nlohmann::json resp = getUrl(pl_type, iov);
+  return resp["msg"];
+}
+
 nlohmann::json SphenixClient::insertPayload(const std::string& pl_type, const std::string& file_url,
                            long long iov_start) {
     return nopayloadclient::NoPayloadClient::insertPayload(pl_type, file_url, 0, iov_start);

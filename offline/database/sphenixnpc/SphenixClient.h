@@ -23,6 +23,7 @@ class SphenixClient : public nopayloadclient::NoPayloadClient
   nlohmann::json insertPayload(const std::string& pl_type, const std::string& file_url, long long iov_start, long long iov_end);
   nlohmann::json setGlobalTag(const std::string& name);
   nlohmann::json clearCache();
+  std::string getCalibration(const std::string& pl_type, long long iov);
 
   nlohmann::json createGlobalTag1(const std::string &tagname);
   int createDomain(const std::string &domain);
