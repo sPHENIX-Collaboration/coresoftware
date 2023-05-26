@@ -12,7 +12,12 @@ class CDBUtils
 {
  public:
   CDBUtils();
-  CDBUtils(const std::string &globaltag);
+  explicit CDBUtils(const std::string &globaltag);
+
+  // delete copy ctor and assignment operator (cppcheck)
+  explicit CDBUtils(const CDBUtils&) = delete;
+  CDBUtils& operator=(const CDBUtils&) = delete;
+
   virtual ~CDBUtils() = default;
   int createGlobalTag(const std::string &tagname);
   int setGlobalTag(const std::string &tagname);

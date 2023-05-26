@@ -8,9 +8,8 @@
 
 SphenixClient::SphenixClient(const std::string& gt_name)
   : nopayloadclient::NoPayloadClient(gt_name)
-{
-  m_CachedGlobalTag = gt_name;
-}
+  , m_CachedGlobalTag(gt_name)
+{}
 
 nlohmann::json SphenixClient::getPayloadIOVs(long long iov)
 {

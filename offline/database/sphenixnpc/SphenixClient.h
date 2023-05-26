@@ -14,7 +14,7 @@ class SphenixClient : public nopayloadclient::NoPayloadClient
 {
  public:
   SphenixClient() = default;
-  SphenixClient(const std::string& globaltag);
+  explicit SphenixClient(const std::string& globaltag);
   virtual ~SphenixClient() = default;
   // make clang happy, since we use our own without overriding the base class methods
   using nopayloadclient::NoPayloadClient::getPayloadIOVs;
