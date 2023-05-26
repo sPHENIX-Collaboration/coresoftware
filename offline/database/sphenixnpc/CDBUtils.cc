@@ -9,13 +9,13 @@
 
 CDBUtils::CDBUtils()
   : cdbclient(new SphenixClient())
-{}
+{
+}
 
 CDBUtils::CDBUtils(const std::string &globaltag)
   : cdbclient(new SphenixClient(globaltag))
 {
 }
-
 
 int CDBUtils::createGlobalTag(const std::string &tagname)
 {
@@ -102,7 +102,7 @@ void CDBUtils::listGlobalTags()
   for (auto &it : msgcont.items())
   {
     std::string exist_gt = it.value().at("name");
-    std::cout << "global tag: " <<  exist_gt << std::endl;
+    std::cout << "global tag: " << exist_gt << std::endl;
   }
   return;
 }
@@ -114,7 +114,7 @@ void CDBUtils::listPayloadTypes()
   for (auto &it : msgcont.items())
   {
     std::string exist_pl = it.value().at("name");
-    std::cout << "payload type: " <<  exist_pl << std::endl;
+    std::cout << "payload type: " << exist_pl << std::endl;
   }
   return;
 }
@@ -126,7 +126,7 @@ int CDBUtils::insertPayload(const std::string &pl_type, const std::string &file_
     std::cout << "No Global Tag set" << std::endl;
     return -1;
   }
-  nlohmann::json resp = cdbclient->insertPayload(pl_type,file_url,iov_start);
+  nlohmann::json resp = cdbclient->insertPayload(pl_type, file_url, iov_start);
   int iret = resp["code"];
   if (iret != 0)
   {
@@ -204,5 +204,5 @@ void CDBUtils::Verbosity(int i)
   {
     cdbclient->Verbosity(i);
   }
-   m_Verbosity = i;
+  m_Verbosity = i;
 }

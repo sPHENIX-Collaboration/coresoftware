@@ -11,7 +11,6 @@ class SphenixClient;
 class CDBUtils
 {
  public:
-
   CDBUtils();
   CDBUtils(const std::string &globaltag);
   virtual ~CDBUtils() = default;
