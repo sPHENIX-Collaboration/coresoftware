@@ -26,6 +26,7 @@
 #include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
+#include <TFile.h>
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
@@ -34,6 +35,7 @@
 #include <iostream>
 #include <map>      // for _Rb_tree_cons...
 #include <utility>  // for pair
+#include <cstdlib>  // for getenv
 
 class PHCompositeNode;
 class TrkrHitTruthAssoc;
@@ -60,9 +62,12 @@ PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const std::string &name)
   : PHG4TpcPadPlane(name)
 {
   InitializeParameters();
-
+  //if(m_flagToUseGain==1)
+  ReadGain();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   gsl_rng_set(RandomGenerator, PHRandomSeed());  // fixed seed is handled in this funtcion
+  h_gain[0] = nullptr;
+  h_gain[1] = nullptr;
 
   return;
 }
@@ -70,6 +75,8 @@ PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const std::string &name)
 PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
 {
   gsl_rng_free(RandomGenerator);
+  delete h_gain[0];
+  delete h_gain[1];
 }
 
 int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/, PHG4TpcCylinderGeomContainer *seggeo)
@@ -278,6 +285,13 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
   //===============================
 
   double nelec = getSingleEGEMAmplification();
+  // Applying weight with respect to the rad_gem and phi after electrons are redistributed
+  double phi_gain = phi;
+  if(phi<0)phi_gain += 2*M_PI;
+  double gain_weight = 1.0;
+  if(m_flagToUseGain==1) gain_weight = h_gain[side]->GetBinContent(h_gain[side]->FindBin(rad_gem*10,phi_gain));//rad_gem in cm -> *10 to get mm
+  nelec = nelec*gain_weight;
+  //std::cout<<"PHG4TpcPadPlaneReadout::MapToPadPlane gain_weight = "<<gain_weight<<std::endl;
   /* pass_data.neff_electrons = nelec; */
 
   // Distribute the charge between the pads in phi
@@ -731,6 +745,29 @@ void PHG4TpcPadPlaneReadout::populate_tbins(const double t, const std::array<dou
   return;
 }
 
+void PHG4TpcPadPlaneReadout::UseGain(const int flagToUseGain)
+{
+  m_flagToUseGain = flagToUseGain;
+  if(m_flagToUseGain == 1 && Verbosity()>0) std::cout << "PHG4TpcPadPlaneReadout: UseGain: TRUE " << std::endl;
+}
+
+void PHG4TpcPadPlaneReadout::ReadGain()
+{
+  // Reading TPC Gain Maps from the file
+  if(m_flagToUseGain==1){
+    char *calibrationsroot = getenv("CALIBRATIONROOT");
+    if (calibrationsroot != nullptr)
+    {
+      std::string gain_maps_filename = std::string(calibrationsroot)+std::string("/TPC/GainMaps/TPCGainMaps.root");
+      TFile *fileGain = TFile::Open(gain_maps_filename.c_str(), "READ");
+      h_gain[0] = (TH2F*)fileGain->Get("RadPhiPlot0")->Clone();
+      h_gain[1] = (TH2F*)fileGain->Get("RadPhiPlot1")->Clone();
+      h_gain[0]->SetDirectory(nullptr);
+      h_gain[1]->SetDirectory(nullptr);
+      fileGain->Close();
+    }
+  }
+}
 void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 {
   set_default_int_param("ntpc_layers_inner", 16);
