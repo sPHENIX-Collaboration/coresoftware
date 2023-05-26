@@ -1,5 +1,5 @@
 
-#include "tpc_hits.h"
+#include "TpcRawDataDecoder.h"
 
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
@@ -27,31 +27,78 @@
 
 #include <TFile.h>
 #include <TH2.h>
+#include <TNtuple.h>
 
 //____________________________________________________________________________..
-tpc_hits::tpc_hits(const std::string &name)
+TpcRawDataDecoder::TpcRawDataDecoder(const std::string &name)
   : SubsysReco(name)
  , hm(nullptr)
  , _filename("./outputfile.root")
  {
-  std::cout << "tpc_hits::tpc_hits(const std::string &name)" << std::endl;
+  std::cout << "TpcRawDataDecoder::TpcRawDataDecoder(const std::string &name)" << std::endl;
   starting_BCO = -1;
   rollover_value = 0;
   current_BCOBIN = 0;
   M.setMapNames("AutoPad-R1-RevA.sch.ChannelMapping.csv", "AutoPad-R2-RevA-Pads.sch.ChannelMapping.csv", "AutoPad-R3-RevA.sch.ChannelMapping.csv");
+
+
+
+
+  // Open a file, save the ntuple and close the file
+  TFile in_file("/sphenix/user/shulga/Work/Files/pedestal-10616-outfile.root");
+  in_file.GetObject("h_Alive",h_Alive);
+  float chan_id,fee_id,module_id,pedMean,pedStdi, sec_id; float* row_content;
+
+    if( Verbosity() )std::cout << "chan_id\t fee_id\t module_id\t pedMean\t pedStdi\t sec_id\n";
+    for (int irow=0;irow<h_Alive->GetEntries();++irow)
+    {
+      h_Alive->GetEntry(irow);
+      row_content = h_Alive->GetArgs();
+      chan_id = row_content[0];
+      fee_id = row_content[1];
+      module_id = row_content[2];
+      pedMean = row_content[3];
+      pedStdi = row_content[4];
+      sec_id = row_content[5];
+      if( Verbosity() )
+      {
+        std::cout
+        << chan_id   << "\t"
+        << fee_id    << "\t" 
+        << module_id << "\t"
+        << pedMean   << "\t"
+        << pedStdi   << "\t"
+        << sec_id    << "\t"
+        << std::endl;
+      }
+
+      struct tpc_map x
+      {
+      };
+
+      x.CHN_ID = chan_id  ; 
+      x.FEE_ID = fee_id   ; 
+      x.MOD_ID = module_id; 
+      x.PedMean = pedMean  ; 
+      x.PedStdi = pedStdi  ; 
+      x.SEC_ID = sec_id   ; 
+
+      unsigned int key = 256 * (fee_id) + chan_id;
+      tmap[key] = x;
+    }
 }
 
 //____________________________________________________________________________..
-tpc_hits::~tpc_hits()
+TpcRawDataDecoder::~TpcRawDataDecoder()
 {
   delete hm;
-  std::cout << "tpc_hits::~tpc_hits() Calling dtor" << std::endl;
+  std::cout << "TpcRawDataDecoder::~TpcRawDataDecoder() Calling dtor" << std::endl;
 }
 
 //____________________________________________________________________________..
-int tpc_hits::Init(PHCompositeNode * /*topNode*/)
+int TpcRawDataDecoder::Init(PHCompositeNode * /*topNode*/)
 {
-  std::cout << "tpc_hits::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  std::cout << "TpcRawDataDecoder::Init(PHCompositeNode *topNode) Initializing" << std::endl;
   hm = new Fun4AllHistoManager("HITHIST");
 
   _h_hit_XY = new TH2F("_h_hit_XY" ,"_h_hit_XY;X, [m];Y, [m]", 400, -800, 800, 400, -800, 800);
@@ -62,7 +109,7 @@ int tpc_hits::Init(PHCompositeNode * /*topNode*/)
 }
 
 //____________________________________________________________________________..
-int tpc_hits::InitRun(PHCompositeNode *topNode)
+int TpcRawDataDecoder::InitRun(PHCompositeNode *topNode)
 {
 
   // get dst node
@@ -70,7 +117,7 @@ int tpc_hits::InitRun(PHCompositeNode *topNode)
   auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    std::cout << "tpc_hits::InitRun - DST Node missing, doing nothing." << std::endl;
+    std::cout << "TpcRawDataDecoder::InitRun - DST Node missing, doing nothing." << std::endl;
     exit(1);
   }
 
@@ -78,7 +125,7 @@ int tpc_hits::InitRun(PHCompositeNode *topNode)
   auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hitsetcontainer)
   {
-    std::cout << "tpc_hits::InitRun - creating TRKR_HITSET." << std::endl;
+    std::cout << "TpcRawDataDecoder::InitRun - creating TRKR_HITSET." << std::endl;
 
     // find or create TRKR node
     PHNodeIterator dstiter(dstNode);
@@ -107,9 +154,9 @@ int tpc_hits::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int tpc_hits::process_event(PHCompositeNode *topNode)
+int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 {
-  //std::cout << "tpc_hits::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+  //std::cout << "TpcRawDataDecoder::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   // load relevant nodes
   // Get the TrkrHitSetContainer node
   auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -120,7 +167,7 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
 
   if (_event == nullptr)
   {
-    std::cout << "tpc_hits::Process_Event - Event not found" << std::endl;
+    std::cout << "TpcRawDataDecoder::Process_Event - Event not found" << std::endl;
     return -1;
   }
   if (_event->getEvtType() >= 8)  /// special events
@@ -143,7 +190,7 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
 
     if (p)
     {
-      std::cout << "tpc_hits:: Event getPacket: "<< packet << "| Sector"<< sector << "| EndPoint "<< ep << std::endl;
+      std::cout << "TpcRawDataDecoder:: Event getPacket: "<< packet << "| Sector"<< sector << "| EndPoint "<< ep << std::endl;
     }else{
       continue;
     }
@@ -191,7 +238,8 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
 
         double R = M.getR(feeM, channel);
         double phi = M.getPhi(feeM, channel) + sector * M_PI / 6 ;
-
+        unsigned int key = 256 * (feeM) + channel;
+        int pedestal = round(tmap[key].PedMean);
         TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sector, side);
         TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(tpcHitSetKey);
 
@@ -201,7 +249,7 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
           int sampaChannel = p->iValue(wf, "SAMPACHANNEL");
           int checksum = p->iValue(wf, "CHECKSUM");
           int checksumError = p->iValue(wf, "CHECKSUMERROR");
-          std::cout << "tpc_hits::Process_Event Samples "<< samples 
+          std::cout << "TpcRawDataDecoder::Process_Event Samples "<< samples 
           <<" Chn:"<< channel 
           <<" layer: " << layer 
           << " sampa: "<< sampa_nr 
@@ -231,7 +279,8 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
           {
             // create a new one
             hit = new TrkrHitv2();
-            hit->setAdc(adc);
+            hit->setAdc(adc-pedestal);
+            //std::cout<< "ADC = " << adc << " Pedestal = "<< pedestal << "delta = "<< adc-pedestal << std::endl;
             hitsetit->second->addHitSpecificKey(hitkey, hit);
           }
           //else{
@@ -256,37 +305,44 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-//int tpc_hits::ResetEvent(PHCompositeNode * /*topNode*/)
+//int TpcRawDataDecoder::ResetEvent(PHCompositeNode * /*topNode*/)
 //{
-//  std::cout << "tpc_hits::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+//  std::cout << "TpcRawDataDecoder::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
 //  return Fun4AllReturnCodes::EVENT_OK;
 //}
 
 //____________________________________________________________________________..
-//int tpc_hits::EndRun(const int runnumber)
+//int TpcRawDataDecoder::EndRun(const int runnumber)
 //{
-//  std::cout << "tpc_hits::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+//  std::cout << "TpcRawDataDecoder::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
 //  return Fun4AllReturnCodes::EVENT_OK;
 //}
 
 //____________________________________________________________________________..
-int tpc_hits::End(PHCompositeNode * /*topNode*/)
+int TpcRawDataDecoder::End(PHCompositeNode * /*topNode*/)
 {
-  std::cout << "tpc_hits::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+  std::cout << "TpcRawDataDecoder::End(PHCompositeNode *topNode) This is the End..." << std::endl;
   hm->dumpHistos(_filename, "RECREATE");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-//int tpc_hits::Reset(PHCompositeNode * /*topNode*/)
+//int TpcRawDataDecoder::Reset(PHCompositeNode * /*topNode*/)
 //{
-//  std::cout << "tpc_hits::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+//  std::cout << "TpcRawDataDecoder::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
 //  return Fun4AllReturnCodes::EVENT_OK;
 //}
 
 //____________________________________________________________________________..
-//void tpc_hits::Print(const std::string &what) const
+//void TpcRawDataDecoder::Print(const std::string &what) const
 //{
-//  std::cout << "tpc_hits::Print(const std::string &what) const Printing info for " << what << std::endl;
+//  std::cout << "TpcRawDataDecoder::Print(const std::string &what) const Printing info for " << what << std::endl;
 //}
+
+//____________________________________________________________________________..
+void TpcRawDataDecoder::setHistoFileName(const std::string &what)
+{
+  _filename = what;
+  std::cout << "TpcRawDataDecoder::setHistoFileName(const std::string &what) Histogram File Name is " << what << std::endl;
+}

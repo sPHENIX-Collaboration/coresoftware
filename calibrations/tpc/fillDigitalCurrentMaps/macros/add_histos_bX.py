@@ -7,13 +7,13 @@ import sys
 
 gROOT.SetBatch(True)
 
-dirName = '/sphenix/user/shulga/Work/TpcPadPlane_phi_coresoftware/coresoftware/calibrations/tpc/fillSpaceChargeMaps/Files/'
+dirName = '/sphenix/user/shulga/Work/TpcPadPlane_phi_coresoftware/coresoftware/calibrations/tpc/fillDigitalCurrentMaps/Files/'
 #bXs = [1508071, 3016509, 4524020, 6032112, 7540028, 9048092, 10556072, 12064371, 13572143, 15080178, 16588072, 18096105]
 #bXs = [18096105]
 h_names = []#'_h_hits','_h_R','_h_DC_E']
 for i in range(30):
     h_names.append('_h_SC_ibf_{}'.format(i))
-    h_names.append('_h_SC_prim_{}'.format(i))
+
 
 
 #sys.argv[0]
@@ -22,7 +22,7 @@ bX = sys.argv[2]
 
 
 print(bX)
-name = 'mdc2_ADCBins_UseFieldMaps_hist_G4Hits_sHijing_0-12fm_bX{}*'.format(bX)
+name = 'hist_G4Hits_sHijing_0-12fm_bX{}*'.format(bX)
 outputName = './Files/Summary_hist_mdc2_UseFieldMaps_AA_event_{}_bX{}_new.root'.format(ib,bX)
 
 filePattern = dirName+name
