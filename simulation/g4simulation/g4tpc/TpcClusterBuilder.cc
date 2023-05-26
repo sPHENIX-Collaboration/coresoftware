@@ -87,9 +87,17 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
 
     auto ihit_list = hitset->getHits();
 
+    const int iphi_max = phioffset+phibins;
+    const int it_max   = toffset+tbins;
+
     double sum_adc { 0. }; // energy = 4 * adc at this point
-    for(auto ihit = ihit_list.first; ihit != ihit_list.second; ++ihit){
-      sum_adc += ihit->second->getAdc();
+                           //
+    // accumulate energy from all hits that are not out of range
+    for(auto iter = ihit_list.first; iter != ihit_list.second; ++iter){
+      int iphi = TpcDefs::getPad(iter->first) ;//- phioffset;
+      int it   = TpcDefs::getTBin(iter->first);// - toffset;
+      if (iphi < phioffset || iphi > iphi_max || it < toffset || it > it_max) continue;
+      sum_adc += iter->second->getAdc();
     }
     const double threshold = sum_adc * m_pixel_thresholdrat;
   
@@ -100,19 +108,18 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
     {
       unsigned int adc = iter->second->getAdc(); 
       if (adc <= 0) continue;
-
-      if (iter->second->getAdc()<threshold) {
-        /* cout << "FIXME cutting " << iter->second->getAdc() << " is below " << threshold << endl; */
+      int iphi = TpcDefs::getPad(iter->first) ;//- phioffset;
+      int it   = TpcDefs::getTBin(iter->first);// - toffset;
+      if (iphi < phioffset || iphi > iphi_max) {
+        std::cout << "WARNING phibin out of range: " << iphi << " | " << phibins << std::endl;
+        continue;
       }
-
-      int iphi;
-      int it  ;
-
+      if (it < toffset || it > it_max) {
+        std::cout << "WARNING z bin out of range: " << it << " | " << tbins << std::endl;
+        continue;
+      }
       if (adc<threshold) {
         if (mClusHitsVerbose) {
-          iphi = TpcDefs::getPad(iter->first) - phioffset;
-          it   = TpcDefs::getTBin(iter->first) - toffset;
-
           auto pnew = m_iphiCut.try_emplace(iphi,adc);
           if (!pnew.second) pnew.first->second += adc;
 
@@ -120,43 +127,22 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
           if (!pnew.second) pnew.first->second += adc;
         }
         continue;
-      } else {
-        iphi = TpcDefs::getPad(iter->first) - phioffset;
-        it   = TpcDefs::getTBin(iter->first) - toffset;
-      }
+      } 
 
-      //FIXME
       v_iphi.insert(iphi);
       v_it.insert(it);
 
-      auto ins = m_iphi.try_emplace(iphi,adc);
-      if (!ins.second) ins.first->second += adc;
-
-      ins = m_it.try_emplace(it,adc);
-      if (!ins.second) ins.first->second += adc;
-
-      if(iphi<0 || iphi>=phibins){
-      //FIXME
-        std::cout << "WARNING phibin out of range: " << iphi << " | " << phibins << std::endl;
-        continue;
-      }
-      if(it<0 || it>=tbins){
-      //FIXME
-        std::cout << "WARNING z bin out of range: " << it << " | " << tbins << std::endl;
-        continue;
-      }
-
-      iphi += phioffset;
-      it   += toffset;
+      // fill m_iphi
+      auto pnew = m_iphi.try_emplace(iphi,adc);
+      if (!pnew.second) pnew.first->second += adc;
+      pnew = m_it.try_emplace(it,adc);
+      if (!pnew.second) pnew.first->second += adc;
 
       if (iphi > phibinhi) phibinhi = iphi;
       if (iphi < phibinlo) phibinlo = iphi;
       if (it > tbinhi) tbinhi = it;
       if (it < tbinlo) tbinlo = it;
 
-      // update phi sums
-      /* double phi_center = layergeom->get_phicenter(iphi); */
-      /* phi_sum += phi_center * adc; */
       iphi_sum += iphi * adc;
       // phi2_sum += square(phi_center)*adc;
 
@@ -179,23 +165,12 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
       /* cout << " MELON 1 m_it   "; */
       /* for (auto& hit : m_it) cout    << hit.first << "|" << hit.second << " "; */
       /* cout << endl; */
-      for (auto& hit : m_iphi)    mClusHitsVerbose->addPhiHit    (hit.first, (float)hit.second);
-      for (auto& hit : m_it)      mClusHitsVerbose->addZHit      (hit.first, (float)hit.second);
-      for (auto& hit : m_iphiCut) mClusHitsVerbose->addPhiCutHit (hit.first, (float)hit.second);
-      for (auto& hit : m_itCut)   mClusHitsVerbose->addZCutHit   (hit.first, (float)hit.second);
+      for (auto& hit : m_iphi)    mClusHitsVerbose->addPhiHit    (hit.first, hit.second);
+      for (auto& hit : m_it)      mClusHitsVerbose->addZHit      (hit.first, hit.second);
+      for (auto& hit : m_iphiCut) mClusHitsVerbose->addPhiCutHit (hit.first, hit.second);
+      for (auto& hit : m_itCut)   mClusHitsVerbose->addZCutHit   (hit.first, hit.second);
     }
     
-    /* if (true) { // FIXME */ 
-    /*   int _phi_sum = 0; */
-    /*   for (auto _ : m_iphi) _phi_sum += _.second; */
-    /*   /1* if (_phi_sum != adc_sum) cout << " FIXME z1 " << adc_sum << " delta phi: " << (adc_sum - _phi_sum) << endl; *1/ */
-
-    /*   int _t_sum = 0; */
-    /*   for (auto _ : m_it) _t_sum += _.second; */
-    /*   /1* if (_t_sum != adc_sum) cout << " FIXME z1 " << adc_sum << " delta phi: " << (adc_sum - _phi_sum) << endl; *1/ */
-    /* } */
-      
-
     // This is the global position
     double clusiphi = iphi_sum / adc_sum;
     double clusphi  = layergeom->get_phi(clusiphi);

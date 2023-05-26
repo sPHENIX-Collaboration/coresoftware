@@ -345,13 +345,12 @@ namespace
 	iphi_sum += iphi * adc;
 	iphi2_sum += square(iphi)*adc;
 
-	// update t sums
-	double t = my_data.layergeom->get_zcenter(it);
-	t_sum += t*adc;
-	t2_sum += square(t)*adc;
-	
-  adc_sum += adc;
+  // update t sums
+  double t = my_data.layergeom->get_zcenter(it);
+  t_sum += t*adc;
+  t2_sum += square(t)*adc;
 
+  adc_sum += adc;
 
   if (my_data.fillClusHitsVerbose) {
     auto pnew = m_phi.try_emplace(iphi,adc);
@@ -360,10 +359,10 @@ namespace
     pnew = m_z.try_emplace(it,adc);
     if (!pnew.second) pnew.first->second += adc;
   }
-	
-	// capture the hitkeys for all adc values above a certain threshold
-	TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
-	// if(adc>5)
+
+  // capture the hitkeys for all adc values above a certain threshold
+  TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
+  // if(adc>5)
 	hitkeyvec.push_back(hitkey);
       }
       //      std::cout << "done process list" << std::endl;

@@ -92,15 +92,15 @@ FillTruthRecoMatchTree::FillTruthRecoMatchTree(
     m_ttree ->Branch("clus_z"       , &b_clus_z        );
     m_ttree ->Branch("clus_r"       , &b_clus_r        );
     m_ttree ->Branch("clus_layer"   , &b_clus_layer    );
-    m_ttree ->Branch("nphibins"     , &b_clus_nphibins );
-    m_ttree ->Branch("nzbins"       , &b_clus_ntbins   );
+    /* m_ttree ->Branch("nphibins"     , &b_clus_nphibins ); */
+    /* m_ttree ->Branch("nzbins"       , &b_clus_ntbins   ); */
 
-    m_ttree ->Branch("clus_phi"     , &b_clus_phi      );
-    m_ttree ->Branch("clus_phisize" , &b_clus_phisize  );
-    m_ttree ->Branch("clus_zsize"   , &b_clus_zsize    );
+    m_ttree ->Branch("clus_lphi"     , &b_clus_lphi     );
+    m_ttree ->Branch("clus_lphisize" , &b_clus_lphisize );
+    m_ttree ->Branch("clus_lz"       , &b_clus_lz       );
+    m_ttree ->Branch("clus_lzsize"   , &b_clus_lzsize   );
     
     if (m_fill_clusverbose) {
-  cout << "FIXME Q2" << endl;
       m_ttree ->Branch("phibins"     , &b_phibins     );
       m_ttree ->Branch("phibins_cut" , &b_phibins_cut );
       m_ttree ->Branch("zbins"       , &b_zbins     );
@@ -358,53 +358,32 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
           << " eta("<<b_trketa<<") phi("<<b_trkphi<<") pt("<<b_trkpt
           <<"): clusters unmatched: " << clusters.size() << std::endl; 
       }
-      for (auto& loc : clusters) {
-        b_clusmatch     .push_back(false);
-        b_clus_layer    .push_back(std::get<0>(loc));
-        auto x = std::get<1>(loc)[0];
-        auto y = std::get<1>(loc)[1];
-        b_clus_x        .push_back(x);
-        b_clus_y        .push_back(y);
-        b_clus_z        .push_back(std::get<1>(loc)[2]);
-        b_clus_r        .push_back(pow(x*x+y*y,0.5));
-        b_clus_nphibins .push_back(std::get<2>(loc));
-        b_clus_ntbins   .push_back(std::get<3>(loc));
-        pushback_verb_bins(std::get<4>(loc),true);
-
-        if (m_PHG4ClusHitVerb) { // FIXME
-           auto key = std::get<4>(loc);
+      for (auto& clus : clusters) {
+          b_clusmatch     .push_back(false);
+          fill_cluster_branches(clus, true);
+          if (m_PHG4ClusHitVerb) { // FIXME
+           auto key = clus.ckey;
           cout << " Z01 PHG4-match-id("<<b_trackid<<") nomatch-layer("<<b_clus_layer.back()
-            <<") layer(" << std::get<0>(loc) <<") has cluster("
+            <<") layer(" << clus.layer <<") has cluster("
             << m_PHG4ClusHitVerb->hasClusKey(key) << ")";
-          if (m_PHG4ClusHitVerb->hasClusKey(key)) { cout <<
-            " n phi:z:phicut:zcut("<< m_PHG4ClusHitVerb->phiBins(key).size()
+          if (m_PHG4ClusHitVerb->hasClusKey(key)) { 
+            cout << " n phi:z:phicut:zcut("<< m_PHG4ClusHitVerb->phiBins(key).size()
             <<":" << m_PHG4ClusHitVerb->zBins(key).size()
             <<":" << m_PHG4ClusHitVerb->phiCutBins(key).size()
             <<":" << m_PHG4ClusHitVerb->zCutBins(key).size() <<")";
           }
           cout << endl;
         }
-
       }
 
       // - - - - MATCHED PHG4 hits in matched track
       clusters = m_cluscntr.clusloc_matched();
-      for (auto& loc : clusters) {
+      for (auto& clus : clusters) {
         b_clusmatch     .push_back(true);
-        b_clus_layer    .push_back(std::get<0>(loc));
-        auto x = std::get<1>(loc)[0];
-        auto y = std::get<1>(loc)[1];
-        b_clus_x        .push_back(x);
-        b_clus_y        .push_back(y);
-        b_clus_z        .push_back(std::get<1>(loc)[2]);
-        b_clus_r        .push_back(pow(x*x+y*y,0.5));
-        b_clus_nphibins .push_back(std::get<2>(loc));
-        b_clus_ntbins   .push_back(std::get<3>(loc));
-        pushback_verb_bins(std::get<4>(loc),true);
-
-        auto key = std::get<4>(loc);
+        fill_cluster_branches(clus, true);
+        auto key = clus.ckey;
         cout << " Z02 PHG4-match-id("<<b_trackid<<") match-layer("<<b_clus_layer.back()
-          <<") layer(" << std::get<0>(loc) <<") has cluster("
+          <<") layer(" << clus.layer <<") has cluster("
           << m_PHG4ClusHitVerb->hasClusKey(key) << ")";
         if (m_PHG4ClusHitVerb->hasClusKey(key)) { cout <<
           " n phi:z:phicut:zcut("<< m_PHG4ClusHitVerb->phiBins(key).size()
@@ -442,26 +421,14 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
     /* int _ = 0; */
     if (m_fill_clusters) {
       auto clusters = m_cluscntr.svtx_clusloc_unmatched();
-      for (auto& loc : clusters) {
+      for (auto& clus : clusters) {
         b_clusmatch     .push_back(false);
-        b_clus_layer    .push_back(std::get<0>(loc));
-        auto x = std::get<1>(loc)[0];
-        auto y = std::get<1>(loc)[1];
-        /* if (_==0) cout << " apple x: " << x << " y: " << y << endl; */
-        /* _ += 1; */
-        b_clus_x        .push_back(x);
-        b_clus_y        .push_back(y);
-        b_clus_z        .push_back(std::get<1>(loc)[2]);
-        b_clus_r        .push_back(pow(x*x+y*y,0.5));
-        b_clus_nphibins .push_back(std::get<2>(loc));
-        b_clus_ntbins   .push_back(std::get<3>(loc));
-        pushback_verb_bins(std::get<4>(loc),false);
-
-        auto key = std::get<4>(loc);
+        fill_cluster_branches(clus, false);
+        auto& key = clus.ckey;
         cout << " Z03 SVTX-match-id("<<b_trackid<<") nomatch-layer("<<b_clus_layer.back()
-          <<") layer(" << std::get<0>(loc) <<") has cluster("
-          << m_SvtxClusHitVerb->hasClusKey(key) << ")";
-        if (m_SvtxClusHitVerb->hasClusKey(key)) { cout <<
+          <<") layer(" << clus.layer <<") has cluster("
+          << m_SvtxClusHitVerb->hasClusKey(clus.ckey) << ")";
+        if (m_SvtxClusHitVerb->hasClusKey(clus.ckey)) { cout <<
           " n phi:z:phicut:zcut("<< m_SvtxClusHitVerb->phiBins(key).size()
             <<":" << m_SvtxClusHitVerb->zBins(key).size()
             <<":" << m_SvtxClusHitVerb->phiCutBins(key).size()
@@ -471,22 +438,12 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
       }
 
       clusters = m_cluscntr.clusloc_matched();
-      for (auto& loc : clusters) {
+      for (auto& clus : clusters) {
         b_clusmatch     .push_back(true);
-        b_clus_layer    .push_back(std::get<0>(loc));
-        auto x = std::get<1>(loc)[0];
-        auto y = std::get<1>(loc)[1];
-        b_clus_x        .push_back(x);
-        b_clus_y        .push_back(y);
-        b_clus_z        .push_back(std::get<1>(loc)[2]);
-        b_clus_r        .push_back(pow(x*x+y*y,0.5));
-        b_clus_nphibins .push_back(std::get<2>(loc));
-        b_clus_ntbins   .push_back(std::get<3>(loc));
-        pushback_verb_bins(std::get<4>(loc),false);
-
-        auto key = std::get<4>(loc);
+        fill_cluster_branches(clus, false);
+        auto key = clus.ckey;
         cout << " Z04 SVTX-match-id("<<b_trackid<<") match-layer("<<b_clus_layer.back()
-          <<") layer(" << std::get<0>(loc) <<") has cluster("
+          <<") layer(" << clus.layer <<") has cluster("
           << m_SvtxClusHitVerb->hasClusKey(key) << ")";
         if (m_SvtxClusHitVerb->hasClusKey(key)) { cout <<
           " n phi:z:phicut:zcut("<< m_SvtxClusHitVerb->phiBins(key).size()
@@ -522,23 +479,12 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
     b_nclustpc  = cnt[2];
 
     if (m_fill_clusters) {
-      auto clusters = m_cluscntr.phg4_clusloc_all();
-      for (auto& loc : clusters) {
+      for (auto& clus : m_cluscntr.phg4_clusloc_all()) {
         b_clusmatch     .push_back(false);
-        b_clus_layer    .push_back(std::get<0>(loc));
-        auto x = std::get<1>(loc)[0];
-        auto y = std::get<1>(loc)[1];
-        b_clus_x        .push_back(x);
-        b_clus_y        .push_back(y);
-        b_clus_z        .push_back(std::get<1>(loc)[2]);
-        b_clus_r        .push_back(pow(x*x+y*y,0.5));
-        b_clus_nphibins .push_back(std::get<2>(loc));
-        b_clus_ntbins   .push_back(std::get<3>(loc));
-        pushback_verb_bins(std::get<4>(loc),true);
-
-        auto key = std::get<4>(loc);
+        fill_cluster_branches(clus, true);
+        auto key = clus.ckey;
         cout << " Z05 PHG4-nomatch-id("<<b_trackid<<") nomatch-layer("<<b_clus_layer.back()
-          <<") layer(" << std::get<0>(loc) <<") has cluster("
+          <<") layer(" << clus.layer <<") has cluster("
           << m_PHG4ClusHitVerb->hasClusKey(key) << ")";
         if (m_PHG4ClusHitVerb->hasClusKey(key)) { cout <<
           " n phi:z:phicut:zcut("<< m_PHG4ClusHitVerb->phiBins(key).size()
@@ -561,7 +507,7 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
   b_is_g4track = false;
   b_is_Svtrack = true;
 
-  // just put in all svtx tracks, period...
+  // put in all unmatched svtx tracks, too
   if (m_fill_SvU) {
     for (auto sv_trkid : G4Eval::unmatchedSvtxTrkIds(m_EmbRecoMatchContainer, m_SvtxTrackMap)) {
       auto svtrk = m_SvtxTrackMap->get(sv_trkid);
@@ -578,25 +524,13 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
       b_nclustpc  = cnt[2] ;
 
       if (m_fill_clusters) {
-        auto clusters = m_cluscntr.svtx_clusloc_all();
-        for (auto& loc : clusters) {
-          b_clusmatch     .push_back(false);
-          b_clus_layer    .push_back(std::get<0>(loc));
-          auto x = std::get<1>(loc)[0];
-          auto y = std::get<1>(loc)[1];
-          b_clus_x        .push_back(x);
-          b_clus_y        .push_back(y);
-          b_clus_z        .push_back(std::get<1>(loc)[2]);
-          b_clus_r        .push_back(pow(x*x+y*y,0.5));
-          b_clus_nphibins .push_back(std::get<2>(loc));
-          b_clus_ntbins   .push_back(std::get<3>(loc));
-          pushback_verb_bins(std::get<4>(loc),false);
-
-          auto key = std::get<4>(loc);
+        for (auto &clus : m_cluscntr.svtx_clusloc_all()) {
+          fill_cluster_branches(clus, false);
+          auto& key = clus.ckey;
           cout <<" Z06 SVTX-nomatch-id("<<b_trackid<<") nomatch-layer("<<b_clus_layer.back()
-            <<") layer(" << std::get<0>(loc) <<") has cluster("
-            << m_SvtxClusHitVerb->hasClusKey(key) << ")";
-          if (m_SvtxClusHitVerb->hasClusKey(key)) { cout <<
+            <<") layer(" << clus.layer <<") has cluster("
+            << m_SvtxClusHitVerb->hasClusKey(clus.ckey) << ")";
+          if (m_SvtxClusHitVerb->hasClusKey(clus.ckey)) { cout <<
             " n phi:z:phicut:zcut("<< m_SvtxClusHitVerb->phiBins(key).size()
               <<":" << m_SvtxClusHitVerb->zBins(key).size()
               <<":" << m_SvtxClusHitVerb->phiCutBins(key).size()
@@ -699,12 +633,11 @@ void FillTruthRecoMatchTree::clear_clusvecs(std::string tag) {
     b_clus_z        .clear();
     b_clus_r        .clear();
     b_clus_layer    .clear();
-    b_clus_nphibins .clear();
-    b_clus_ntbins   .clear();
 
-    b_clus_phi      .clear();
-    b_clus_phisize  .clear();
-    b_clus_zsize    .clear();
+    b_clus_lphi      .clear();
+    b_clus_lphisize  .clear();
+    b_clus_lz        .clear();
+    b_clus_lzsize    .clear();
 
     if (m_fill_clusverbose) {
       b_phibins     .clear();
@@ -720,13 +653,26 @@ void FillTruthRecoMatchTree::clear_clusvecs(std::string tag) {
   }
 }
 
-void FillTruthRecoMatchTree::pushback_verb_bins(TrkrDefs::cluskey key, bool doPHG4) {
+void FillTruthRecoMatchTree::fill_cluster_branches(
+    G4Eval::ClusLoc& clus, bool isPHG4) 
+{
+  auto x = clus.gloc[0];//std::get<1>(loc)[0];
+  auto y = clus.gloc[1];
+  auto r = pow(x*x+y*y,0.5);
+  b_clusmatch     .push_back(false);
+  b_clus_layer    .push_back(clus.layer);
+  b_clus_x        .push_back(x);
+  b_clus_y        .push_back(y);
+  b_clus_z        .push_back(clus.gloc[2]);
+  b_clus_r        .push_back(r);
+  b_clus_lz       .push_back(clus.z);
+  b_clus_lzsize   .push_back(clus.zsize);
+  b_clus_lphi     .push_back(clus.phi);
+  b_clus_lphisize .push_back(clus.phisize);
   if (!m_fill_clusverbose) return;
+  ClusHitsVerbose* data = (isPHG4) ? m_PHG4ClusHitVerb : m_SvtxClusHitVerb;
 
-  ClusHitsVerbose* data = (doPHG4) ? m_PHG4ClusHitVerb : m_SvtxClusHitVerb;
-
-  /* cout << " hadkey " << data->hasClusKey(key) << endl; */
-
+  auto& key = clus.ckey;
   if (data->hasClusKey(key)) {
     auto phidat = data->phiBins_pvecIE(key);
     b_phibins  .push_back(phidat.first);

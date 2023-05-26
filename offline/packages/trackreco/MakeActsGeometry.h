@@ -128,7 +128,8 @@ class MakeActsGeometry : public SubsysReco
 	return;
       }
 
-    std::cout << "Passed an unknown trkr layer, misalignment factor will not be set for " << layer << std::endl;
+    /* std::cout << " FIXME " << ((int) layer) << std::endl; */
+    std::cout << "Passed an unknown trkr layer, misalignment factor will not be set FOR " << layer << std::endl;
   }
 
   double getSurfStepPhi() {return m_surfStepPhi;}

@@ -221,23 +221,20 @@ namespace G4Eval {
     return { is_match, fit_statistic };
   }
 
-  ClusLoc TrkrClusterComparer::clusloc_PHG4(
-      std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey> input) {
-      auto cluster = m_TruthClusters->findCluster(input.second);
-      Eigen::Vector3d gloc = m_ActsGeometry->getGlobalPosition(input.second, cluster);
-      std::cout << " FIXME A000 " << endl;
-      std::cout << " FIXME A001 getZ() global position z() " << gloc[2] << " vs: " << 
-        cluster->getPosition(1) << endl;
-      return {TrkrDefs::getLayer(input.first),gloc,
-        (int)cluster->getPhiSize(),(int)cluster->getZSize(), input.second};
-  }
-
-  ClusLoc TrkrClusterComparer::clusloc_SVTX(
-      std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey> input) {
-      auto cluster = m_RecoClusters->findCluster(input.second);
-      Eigen::Vector3d gloc = m_ActsGeometry->getGlobalPosition(input.second, cluster);
-      return {TrkrDefs::getLayer(input.first),gloc,
-        (int)cluster->getPhiSize(),(int)cluster->getZSize(), input.second};
+  ClusLoc TrkrClusterComparer::makeClusLoc(TrkrClusterContainer* clusters, TrkrDefs::cluskey key) {
+    auto cluster = clusters->findCluster(key);
+    ClusLoc data{};
+    data.gloc = m_ActsGeometry->getGlobalPosition(key, cluster);
+    data.layer = TrkrDefs::getLayer(key);
+    const auto zstep = (data.layer<3)  ? m_zstep_mvtx 
+      : (data.layer< 7) ? 0.
+      : m_zstep_tpc ;
+    data.phi = cluster->getPosition(0);
+    data.z   = cluster->getPosition(1);
+    data.phisize = cluster->getPhiSize()*m_phistep[data.layer];
+    data.zsize   = cluster->getZSize()  *zstep;
+    data.ckey = key;
+    return data;
   }
 
   // Implementation of the iterable struct to get cluster keys from

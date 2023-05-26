@@ -167,12 +167,13 @@ class FillTruthRecoMatchTree : public SubsysReco
     std::vector<float> b_clus_z     {};
     std::vector<float> b_clus_r     {};
     std::vector<int>   b_clus_layer {};
-    std::vector<int>   b_clus_nphibins   {};
-    std::vector<int>   b_clus_ntbins     {};
+    /* std::vector<int>   b_clus_nphibins   {}; */
+    /* std::vector<int>   b_clus_ntbins     {}; */
 
-    std::vector<float> b_clus_phi  {};
-    std::vector<float> b_clus_phisize {}; // phi scaled by dphi
-    std::vector<float> b_clus_zsize   {};
+    std::vector<float> b_clus_lphi     {}; // l for local surface
+    std::vector<float> b_clus_lphisize {}; // phi scaled by dphi
+    std::vector<float> b_clus_lz       {};
+    std::vector<float> b_clus_lzsize   {};
 
     // Maps of hits within clusters
     /* using BinData = std::pair<int,float>;  // index + energy for a given bin (MVTX, INTT, or TPC) */
@@ -188,7 +189,8 @@ class FillTruthRecoMatchTree : public SubsysReco
     VecVecInt b_zbinsE;
     VecVecInt b_zbinsE_cut;
 
-    void pushback_verb_bins(TrkrDefs::cluskey, bool isPHG4=true);
+    void fill_cluster_branches(G4Eval::ClusLoc&, bool isPHG4=true);
+    /* void pushback_verb_bins(TrkrDefs::cluskey, bool isPHG4=true); */
     
 };
 

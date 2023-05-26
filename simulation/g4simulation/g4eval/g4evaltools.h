@@ -23,7 +23,16 @@ class TrkrTruthTrack;
 
 namespace G4Eval {
   // ClusLoc holds layer, location, phi size and z size, TrkrDefs::cluskey
-  using ClusLoc = std::tuple<int,Eigen::Vector3d,int,int,TrkrDefs::cluskey>;
+  struct ClusLoc {
+    int layer{0};
+    Eigen::Vector3d gloc{};
+    float phi{0};
+    float phisize{0};
+    float z{0};
+    float zsize{0};
+    TrkrDefs::cluskey ckey{};
+  };
+  /* using ClusLoc = std::tuple<int,Eigen::Vector3d,float,float,TrkrDefs::cluskey>; */
 
   // Following function writes msg to the currently active TFile
   // if f_outname is provided, then it will write the message to a new
@@ -71,8 +80,13 @@ namespace G4Eval {
     void set_nz_widths(float   val) { m_nz_widths   = val; };
     void set_nphi_widths(float val) { m_nphi_widths = val; };
 
-    ClusLoc clusloc_PHG4(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey>);
-    ClusLoc clusloc_SVTX(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey>);
+    ClusLoc makeClusLoc(TrkrClusterContainer*, TrkrDefs::cluskey);
+    ClusLoc clusloc_PHG4(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey> _) {
+      return makeClusLoc(m_TruthClusters, _.second);
+    }
+    ClusLoc clusloc_SVTX(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey> _) {
+      return makeClusLoc(m_RecoClusters, _.second);
+    }
 
     TrkrClusterContainer* m_TruthClusters {nullptr};
     TrkrClusterContainer* m_RecoClusters  {nullptr};
