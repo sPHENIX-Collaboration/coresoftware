@@ -21,7 +21,10 @@ class SphenixClient : public nopayloadclient::NoPayloadClient
 
   nlohmann::json getPayloadIOVs(long long iov);
   nlohmann::json getUrl(const std::string& pl_type, long long iov);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
   nlohmann::json insertPayload(const std::string& pl_type, const std::string& file_url, long long iov_start);
+#pragma GCC diagnostic pop
   nlohmann::json insertPayload(const std::string& pl_type, const std::string& file_url, long long iov_start, long long iov_end);
   nlohmann::json setGlobalTag(const std::string& name);
   nlohmann::json clearCache();
