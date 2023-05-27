@@ -39,6 +39,14 @@ nlohmann::json SphenixClient::getUrl(const std::string& pl_type, long long iov)
 std::string SphenixClient::getCalibration(const std::string& pl_type, long long iov)
 {
   nlohmann::json resp = getUrl(pl_type, iov);
+  if (resp["code"] != 0)
+  {
+    if (m_Verbosity> 0)
+    {
+      std::cout << resp["msg"] << std::endl;
+    }
+    return "";
+  }
   return resp["msg"];
 }
 
