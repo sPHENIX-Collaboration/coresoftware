@@ -10,6 +10,7 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/alignmentTransformationContainer.h>
 
 #include <trackbase/RawHit.h>
 #include <trackbase/RawHitSet.h>
@@ -411,7 +412,11 @@ namespace
       /// convert to Acts units
       global *= Acts::UnitConstants::cm;
       //std::cout << "transform" << std::endl;
+      // The TPC is the only subsystem that clusters in global coordinates. For consistency,
+      // we must use the construction transforms to get the local coordinates.
+      alignmentTransformationContainer::use_alignment = false;
       Acts::Vector3 local = surface->transform(my_data.tGeometry->geometry().getGeoContext()).inverse() * global;
+      alignmentTransformationContainer::use_alignment = true;
       local /= Acts::UnitConstants::cm;     
       //std::cout << "done transform" << std::endl;
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)

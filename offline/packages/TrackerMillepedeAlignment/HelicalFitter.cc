@@ -82,11 +82,11 @@ int HelicalFitter::InitRun(PHCompositeNode *topNode)
   if(make_ntuple)
     {
       fout = new TFile("HF_ntuple.root","recreate");
-      ntp = new TNtuple("ntp","HF ntuple","event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:sensx:sensy:sensz:normx:normy:normz:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
+      ntp = new TNtuple("ntp","HF ntuple","event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
    }
  
   // print grouping setup to log file:
-  std::cout << "MakeMilleFiles::InitRun: Surface groupings are silicon " << si_grp << " tpc " << tpc_grp << " mms " << mms_grp << std::endl; 
+  std::cout << "HelicalFitter::InitRun: Surface groupings are silicon " << si_grp << " tpc " << tpc_grp << " mms " << mms_grp << std::endl; 
 
   event=-1;
 
@@ -310,19 +310,29 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
 	  if(make_ntuple)
 	    {
-	      Acts::Vector3 sensorCenter      = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
+	      // get the local parameters using the ideal transforms
+	      alignmentTransformationContainer::use_alignment = false;
+	      Acts::Vector3 ideal_center =  surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  
+	      Acts::Vector3 ideal_norm =  -surf->normal(_tGeometry->geometry().getGeoContext());  
+	      Acts::Vector3 ideal_local(xloc, zloc, 0.0); // cm
+	      Acts::Vector3 ideal_glob =  surf->transform(_tGeometry->geometry().getGeoContext())*(ideal_local * Acts::UnitConstants::cm);
+	      ideal_glob /= Acts::UnitConstants::cm;
+	      alignmentTransformationContainer::use_alignment = true;
+
+	      Acts::Vector3 sensorCenter      = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1; // cm
 	      Acts::Vector3 sensorNormal    = -surf->normal(_tGeometry->geometry().getGeoContext());
-	      //std::cout << "sensor center " << sensorCenter(0) << "  " << sensorCenter(1) << "  " << sensorCenter(2) << std::endl;  
-	      //std::cout << "sensor normal " << sensorNormal(0) << "  " << sensorNormal(1) << "  " << sensorNormal(2) << std::endl;  
 	      unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
 	      unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  	      
 	      unsigned int subsurf = cluster->getSubSurfKey();
-	      float ntp_data[60] = {
+	      float ntp_data[69] = {
 		(float) event, (float) trackid,
 		(float) layer, (float) nsilicon, (float) ntpc, (float) nclus, (float) trkrid,  (float) sector,  (float) side,
 		(float) subsurf, phi,
 		(float) sensorCenter(0), (float) sensorCenter(1), (float) sensorCenter(2),
 		(float) sensorNormal(0), (float) sensorNormal(1), (float) sensorNormal(2),
+		(float) ideal_center(0), (float) ideal_center(1), (float) ideal_center(2),
+		(float) ideal_norm(0), (float) ideal_norm(1), (float) ideal_norm(2),
+		(float) ideal_glob(0), (float) ideal_glob(1), (float) ideal_glob(2),
 		(float) fitpars[0], (float) fitpars[1], (float) fitpars[2], (float) fitpars[3], (float) fitpars[4], 
 		(float) global(0), (float) global(1), (float) global(2),
 		(float) fitpoint(0), (float) fitpoint(1), (float) fitpoint(2), 
