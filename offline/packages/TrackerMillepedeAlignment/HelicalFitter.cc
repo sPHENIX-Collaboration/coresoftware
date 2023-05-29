@@ -265,6 +265,10 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	      alignmentTransformationContainer::use_alignment = true;
 	      */
 	    }
+	  else
+	    {
+	      continue;
+	    }
 
 	  // These derivatives are for the local parameters
 	  float lcl_derivativeX[AlignmentDefs::NLC];
