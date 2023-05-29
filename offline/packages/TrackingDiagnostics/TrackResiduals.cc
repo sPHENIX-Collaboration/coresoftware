@@ -115,6 +115,7 @@ void TrackResiduals::clearClusterStateVectors()
   m_clusgz.clear();
   m_cluslayer.clear();
   m_clussize.clear();
+  m_clushitsetkey.clear();
 
   m_statelx.clear();
   m_statelz.clear();

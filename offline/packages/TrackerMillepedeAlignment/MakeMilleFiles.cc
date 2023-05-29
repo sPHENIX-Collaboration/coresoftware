@@ -277,9 +277,11 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       {
         glbl_derivative[j] = state->get_global_derivative_matrix()(i, j);
 
-        if (is_layer_fixed(layer) || is_layer_param_fixed(layer, j))
+        if (is_layer_fixed(layer) || 
+	    is_layer_param_fixed(layer, j, fixed_layer_gparams))
         {
-          glbl_derivative[j] = 0.0;
+	  std::cout << "Setting " << layer << ", " << j << std::endl;
+          glbl_derivative[j] = 0.;
         }
 	if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
 	  {
@@ -296,6 +298,13 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       for (int j = 0; j < SvtxAlignmentState::NLOC; ++j)
       {
         lcl_derivative[j] = state->get_local_derivative_matrix()(i, j);
+
+	if(is_layer_param_fixed(layer, j, fixed_layer_lparams))
+	  {
+	    	std::cout << "Local layer " << layer << ", " << j << std::endl;
+
+	    lcl_derivative[j] = 0.;
+	  }
       }
       if (Verbosity() > 2)
       {
@@ -360,21 +369,24 @@ void MakeMilleFiles::set_layer_fixed(unsigned int layer)
   fixed_layers.insert(layer);
 }
 
-bool MakeMilleFiles::is_layer_param_fixed(unsigned int layer, unsigned int param)
+bool MakeMilleFiles::is_layer_param_fixed(unsigned int layer, unsigned int param, std::set<std::pair<unsigned int, unsigned int>>& param_fixed)
 {
   bool ret = false;
   std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
-  auto it = fixed_layer_params.find(pair);
-  if (it != fixed_layer_params.end())
+  auto it = param_fixed.find(pair);
+  if (it != param_fixed.end())
     ret = true;
 
   return ret;
 }
 
-void MakeMilleFiles::set_layer_param_fixed(unsigned int layer, unsigned int param)
+void MakeMilleFiles::set_layer_gparam_fixed(unsigned int layer, unsigned int param)
 {
-  std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
-  fixed_layer_params.insert(pair);
+  fixed_layer_gparams.insert(std::make_pair(layer,param));
+}
+void MakeMilleFiles::set_layer_lparam_fixed(unsigned int layer, unsigned int param)
+{
+  fixed_layer_lparams.insert(std::make_pair(layer,param));
 }
 bool MakeMilleFiles::is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side)
  {
