@@ -1,6 +1,6 @@
 #include "CDBInterface.h"
 
-#include <sphenixnpc/sphenixnpc.h>
+#include <sphenixnpc/SphenixClient.h>
 
 #include <ffaobjects/CdbUrlSave.h>
 #include <ffaobjects/CdbUrlSavev1.h>
@@ -16,8 +16,6 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
-
-//#include </phenix/u/pinkenbu/workarea/sPHENIX/gitrepov5/install/include/sphenixnpc/sphenixnpc.h>
 
 #include <TSystem.h>
 
@@ -131,10 +129,10 @@ std::string CDBInterface::getUrl(const std::string &domain, const std::string &f
   }
   if (cdbclient == nullptr)
   {
-    cdbclient = new sphenixnpc(rc->get_StringFlag("CDB_GLOBALTAG"));
+    cdbclient = new SphenixClient(rc->get_StringFlag("CDB_GLOBALTAG"));
   }
   uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP");
-  std::string return_url = cdbclient->getCalibrationFile(domain,timestamp);
+  std::string return_url = cdbclient->getCalibration(domain,timestamp);
   if (return_url.empty())
   {
     return_url = filename;

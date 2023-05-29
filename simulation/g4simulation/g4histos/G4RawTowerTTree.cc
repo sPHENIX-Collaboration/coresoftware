@@ -5,7 +5,7 @@
 
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfoContainer.h>
 
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -21,10 +21,6 @@
 #include <TSystem.h>
 
 #include <iostream>                          // for operator<<, endl, basic_...
-#include <map>                               // for _Rb_tree_const_iterator
-#include <utility>                           // for pair
-
-using namespace std;
 
 G4RawTowerTTree::G4RawTowerTTree(const std::string &name)
   : SubsysReco(name)
@@ -39,9 +35,9 @@ int G4RawTowerTTree::Init(PHCompositeNode *topNode)
 {
   if (_detector.empty())
   {
-    cout << "Detector not set via Detector(<name>) method" << endl;
-    cout << "(it is the name appended to the G4TOWER_<name> nodename)" << endl;
-    cout << "you do not want to run like this, exiting now" << endl;
+    std::cout << "Detector not set via Detector(<name>) method" << std::endl;
+    std::cout << "(it is the name appended to the G4TOWER_<name> nodename)" << std::endl;
+    std::cout << "you do not want to run like this, exiting now" << std::endl;
     gSystem->Exit(1);
   }
   hm = new Fun4AllHistoManager("TOWERHIST");
@@ -63,10 +59,10 @@ int G4RawTowerTTree::process_event(PHCompositeNode *topNode)
   RawTowerGeomContainer *rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode, _towergeomnodename);
 
   // RawTowerContainer *g4towers = findNode::getClass<RawTowerContainer>(topNode, _towernodename);
-  TowerInfoContainer *g4towers = findNode::getClass<TowerInfoContainerv1>(topNode, _towernodename);
+  TowerInfoContainer *g4towers = findNode::getClass<TowerInfoContainer>(topNode, _towernodename);
   if (!g4towers)
   {
-    cout << "could not find " << _towernodename << endl;
+    std::cout << "could not find " << _towernodename << std::endl;
     gSystem->Exit(1);
   }
 
