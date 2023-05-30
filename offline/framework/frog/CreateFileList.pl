@@ -55,7 +55,8 @@ my %proddesc = (
     "17" => "HF pythia8 D0 pi-k Jets ptmin = 5GeV ",
     "18" => "HF pythia8 D0 pi-k Jets ptmin = 12GeV",
     "19" => "JS pythia8 Jet ptmin = 40GeV",
-    "20" => "hijing pAu (0-10fm) pileup 0-10fm"
+    "20" => "hijing pAu (0-10fm) pileup 0-10fm",
+    "21" => "JS pythia8 Jet ptmin = 20GeV"
     );
 
 my %pileupdesc = (
@@ -79,7 +80,7 @@ my $pmin;
 my $pmax;
 my $production;
 my $momentum;
-GetOptions('embed' => \$embed, 'l:i' => \$last_segment, 'momentum:s' => \$momentum, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, "production:s"=>\$production, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
+GetOptions('embed:s' => \$embed, 'l:i' => \$last_segment, 'momentum:s' => \$momentum, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, "production:s"=>\$production, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
 my $filenamestring;
 my %filetypes = ();
 my %notlike = ();
@@ -232,7 +233,15 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+                print "embed is $embed\n";
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
 	    }
 	    else
 	    {
@@ -386,6 +395,32 @@ if (defined $prodtype)
         $pileupstring = $pAu_pileupstring;
 	&commonfiletypes();
     }
+    elsif ($prodtype == 21)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Jet20";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+                print "embed is $embed\n";
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
     else
     {
 	print "no production type $prodtype\n";
@@ -399,6 +434,13 @@ if (defined $embed && ! $embedok)
     print "Embedding not implemented for type $prodtype\n";
     exit(1);
 }
+if (defined $embed)
+{
+    if ($embed ne "pau" && $embed ne "auau")
+    {
+	push(@ARGV,$embed);
+    }
+}
 
 my $filenamestring_with_runnumber = sprintf("%s\-%010d-",$filenamestring,$runnumber);
 if ($#ARGV < 0)
@@ -407,7 +449,8 @@ if ($#ARGV < 0)
     {
 	print "usage: CreateFileLists.pl -type <production type> <filetypes>\n";
 	print "parameters:\n";
-	print "-embed : pp embedded into hijing (only for pp types)\n";
+	print "-embed : pp embedded into AuAu hijing (only for pp types)\n";
+	print "-embed pau : embedded into pAu (only for pp types\n";
 	print "-l     : last segment\n";
 	print "-n     : <number of events>\n";
 	print "-nopileup : without pileup\n";
