@@ -618,7 +618,7 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
 
   goodCandidate = false;
 
-  const float speed = 2.99792458e-1;
+  const float speed = 2.99792458e-2;
   calculated_decayTime /= speed;
 
   if (calculated_fdchi2 >= m_fdchi2 && calculated_ipchi2 <= m_mother_ipchi2 && isInRange(m_dira_min, calculated_dira, m_dira_max) && isInRange(m_min_decayTime, calculated_decayTime, m_max_decayTime) && isInRange(m_min_decayLength, calculated_decayLength, m_max_decayLength))
