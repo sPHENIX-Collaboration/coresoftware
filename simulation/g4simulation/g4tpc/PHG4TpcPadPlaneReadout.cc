@@ -1,5 +1,6 @@
 #include "PHG4TpcPadPlaneReadout.h"
 
+#include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CellDefs.h>  // for genkey, keytype
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
@@ -7,8 +8,8 @@
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4HitContainer.h>
 
-
 #include <phool/PHRandomSeed.h>
+#include <phool/getClass.h>
 
 // Move to new storage containers
 #include <trackbase/TpcDefs.h>
@@ -79,106 +80,24 @@ PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
   delete h_gain[1];
 }
 
-int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/, PHG4TpcCylinderGeomContainer *seggeo)
+//_________________________________________________________
+int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
 {
-  if (Verbosity()) std::cout << "PHG4TpcPadPlaneReadout: CreateReadoutGeometry: " << std::endl;
-
-  for (int iregion = 0; iregion < 3; ++iregion)
-  {
-    //int zside = 0;
-    for (int zside = 0; zside < 2;zside++){
-      sector_R_bias[zside].clear();
-      sector_Phi_bias[zside].clear();
-      sector_min_Phi[zside].clear();
-      sector_max_Phi[zside].clear();
-      sector_min_Phi_sectors[zside][iregion].clear();
-      sector_max_Phi_sectors[zside][iregion].clear();
-      //int eff_layer = 0;
-      for (int isector = 0; isector < NSectors; ++isector)//12 sectors
-      {
-        sector_R_bias[zside].push_back(dR[zside][isector][iregion]);
-        sector_Phi_bias[zside].push_back(dPhi[zside][isector][iregion]);
   
-        double sec_gap = (2*M_PI - SectorPhi[iregion]*12)/12;
-        double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap - 2 * M_PI / 12 * isector;// * (isector+1) ;
-        double sec_min_phi = sec_max_phi - SectorPhi[iregion];
-        sector_min_Phi[zside].push_back(sec_min_phi);
-        sector_max_Phi[zside].push_back(sec_max_phi);
-        sector_min_Phi_sectors[zside][iregion].push_back(sec_min_phi);
-        sector_max_Phi_sectors[zside][iregion].push_back(sec_max_phi);
+  std::cout << " PHG4TpcPadPlaneReadout::InitRun" << std::endl;
   
-      }// isector
-    }
-
-    double sum_r = 0;
-    for (int layer = MinLayer[iregion]; layer < MinLayer[iregion] + NTpcLayers[iregion]; ++layer)
-    {          
-      double r_length = Thickness[iregion];
-      if(iregion == 0 && layer>0){
-        if(layer%2==0) r_length = Thickness[4];
-        else r_length = Thickness[3];
-      }
-      sum_r += r_length;
-    }    
-    double pad_space = (MaxRadius[iregion] - MinRadius[iregion] - sum_r)/(NTpcLayers[iregion]-1);
-    double current_r = MinRadius[iregion];
-
-    for (int layer = MinLayer[iregion]; layer < MinLayer[iregion] + NTpcLayers[iregion]; ++layer)
-    {
-      if (Verbosity())
-      {
-        std::cout << " layer " << layer << " MinLayer " << MinLayer[iregion] << " region " << iregion
-                  << " radius " << MinRadius[iregion] + ((double) (layer - MinLayer[iregion]) + 0.5) * Thickness[iregion]
-                  << " thickness " << Thickness[iregion]
-                  << " NTBins " << NTBins << " tmin " << MinT << " tstep " << TBinWidth
-                  << " phibins " << NPhiBins[iregion] << " phistep " << PhiBinWidth[iregion] << std::endl;
-      }
-
-      PHG4TpcCylinderGeom *layerseggeo = new PHG4TpcCylinderGeom();
-      layerseggeo->set_layer(layer);
-
-      //layerseggeo->set_radius(MinRadius[iregion] + ((double) (layer - MinLayer[iregion]) + 0.5) * Thickness[iregion]);
-      //layerseggeo->set_thickness(Thickness[iregion]);
-
-      double r_length = Thickness[iregion];
-      if(iregion == 0 && layer>0){
-        if(layer%2==0) r_length = Thickness[4];
-        else r_length = Thickness[3];
-      }
-      layerseggeo->set_thickness(r_length);
-      layerseggeo->set_radius(current_r+r_length/2);
-      layerseggeo->set_binning(PHG4CellDefs::sizebinning);
-      layerseggeo->set_zbins(NTBins);
-      layerseggeo->set_zmin(MinT);
-      layerseggeo->set_zstep(TBinWidth);
-      layerseggeo->set_phibins(NPhiBins[iregion]);
-      layerseggeo->set_phistep(PhiBinWidth[iregion]);
-      layerseggeo->set_r_bias(sector_R_bias);
-      layerseggeo->set_phi_bias(sector_Phi_bias);
-      layerseggeo->set_sector_min_phi(sector_min_Phi);
-      layerseggeo->set_sector_max_phi(sector_max_Phi);
-
-      // Chris Pinkenburg: greater causes huge memory growth which causes problems
-      // on our farm. If you need to increase this - TALK TO ME first
-      if (NPhiBins[iregion] * NTBins > 5100000)
-      {
-        std::cout << "increase Tpc cellsize, number of cells "
-                  << NPhiBins[iregion] * NTBins << " for layer " << layer
-                  << " exceed 5.1M limit" << std::endl;
-        gSystem->Exit(1);
-      }
-      seggeo->AddLayerCellGeom(layerseggeo);
-
-      current_r += r_length + pad_space;
-    }
-  }
-
-  GeomContainer = seggeo;
-
-  return 0;
+  // base class
+  const auto reply = PHG4TpcPadPlane::InitRun( topNode );
+  if( reply != Fun4AllReturnCodes::EVENT_OK ) return reply;
+  
+  // load geo node
+  GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
+  assert( GeomContainer );
+  
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
-
+//_________________________________________________________
 double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
 {
   // Jin H.: For the GEM gain in sPHENIX TPC,

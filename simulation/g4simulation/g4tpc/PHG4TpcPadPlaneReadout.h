@@ -30,12 +30,12 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   ~PHG4TpcPadPlaneReadout() override;
 
+  int InitRun(PHCompositeNode *topNode) override;
+
   void UseGain(const int flagToUseGain);
   void ReadGain();
 
   void SetDriftVelocity(double vd) override { drift_velocity = vd; }
-
-  int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4TpcCylinderGeomContainer *seggeo) override;
 
   // otherwise warning of inconsistent overload since only one MapToPadPlane methow is overridden
   using PHG4TpcPadPlane::MapToPadPlane;
@@ -112,7 +112,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
-  gsl_rng *RandomGenerator;
+  gsl_rng *RandomGenerator = nullptr;
 
   TH2F *h_gain[2];
   
