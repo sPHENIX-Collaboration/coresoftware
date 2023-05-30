@@ -803,31 +803,31 @@ void TrackingEvaluator_hp::evaluate_tracks()
       // assign cluster error from parametrisation
       if( m_cluster_version == 4 )
       {
-        switch( TrkrDefs::getTrkrId(cluster_key) )
-        {
-          case TrkrDefs::tpcId:
-          case TrkrDefs::micromegasId:
-          {
-            if( track->get_tpc_seed() )
-            {
-              const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, cluster_struct._r, cluster_key ); 
-              cluster_struct._phi_error = std::sqrt( errors_square.first )/cluster_struct._r;
-              cluster_struct._z_error = std::sqrt( errors_square.second );
-            }
-            break;
-          }
-        
-          default:
-          {
-            if( track->get_silicon_seed() )
-            {
-              const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, cluster_struct._r, cluster_key ); 
-              cluster_struct._phi_error = std::sqrt( errors_square.first )/cluster_struct._r;
-              cluster_struct._z_error = std::sqrt( errors_square.second );
-            }
-            break;
-          }        
-        }
+//         switch( TrkrDefs::getTrkrId(cluster_key) )
+//         {
+//           case TrkrDefs::tpcId:
+//           case TrkrDefs::micromegasId:
+//           {
+//             if( track->get_tpc_seed() )
+//             {
+//               const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, cluster_struct._r, cluster_key ); 
+//               cluster_struct._phi_error = std::sqrt( errors_square.first )/cluster_struct._r;
+//               cluster_struct._z_error = std::sqrt( errors_square.second );
+//             }
+//             break;
+//           }
+//         
+//           default:
+//           {
+//             if( track->get_silicon_seed() )
+//             {
+//               const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, cluster_struct._r, cluster_key ); 
+//               cluster_struct._phi_error = std::sqrt( errors_square.first )/cluster_struct._r;
+//               cluster_struct._z_error = std::sqrt( errors_square.second );
+//             }
+//             break;
+//           }        
+//         }
       }
       
       // truth information
