@@ -1,4 +1,4 @@
-#include "TPCMap.h"
+#include "TpcMap.h"
 
 #include <climits>
 #include <cmath>
@@ -7,7 +7,7 @@
 #include <iostream>
 #include <sstream>
 
-void TPCMap::setMapNames(const std::string &r1, const std::string &r2, const std::string &r3)
+void TpcMap::setMapNames(const std::string &r1, const std::string &r2, const std::string &r3)
 {
   const char *calibrationroot = getenv("CALIBRATIONROOT");
   std::string full_path;
@@ -40,7 +40,7 @@ void TPCMap::setMapNames(const std::string &r1, const std::string &r2, const std
   }
 }
 
-int TPCMap::digest_map(const std::string &fileName, const unsigned int section_offset)
+int TpcMap::digest_map(const std::string &fileName, const unsigned int section_offset)
 {
   std::ifstream infile(fileName, std::ios::in);
 
@@ -158,7 +158,7 @@ int TPCMap::digest_map(const std::string &fileName, const unsigned int section_o
   return 0;
 }
 
-unsigned int TPCMap::getLayer(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const
+unsigned int TpcMap::getLayer(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const
 {
   if (FEE >= 26 || FEEChannel > 255)
   {
@@ -174,7 +174,7 @@ unsigned int TPCMap::getLayer(const unsigned int FEE, const unsigned int FEEChan
   return itr->second.layer;
 }
 
-unsigned int TPCMap::getPad(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const
+unsigned int TpcMap::getPad(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const
 {
   if (FEE >= 26 || FEEChannel > 255)
   {
@@ -190,7 +190,7 @@ unsigned int TPCMap::getPad(const unsigned int FEE, const unsigned int FEEChanne
   return itr->second.padnr;
 }
 
-double TPCMap::getR(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const
+double TpcMap::getR(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const
 {
   if (FEE >= 26 || FEEChannel > 255)
   {
@@ -206,7 +206,7 @@ double TPCMap::getR(const unsigned int FEE, const unsigned int FEEChannel, const
   return itr->second.PadR;
 }
 
-double TPCMap::getPhi(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const
+double TpcMap::getPhi(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const
 {
   if (FEE > 25 || FEEChannel > 255)
   {

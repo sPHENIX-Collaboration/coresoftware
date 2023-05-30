@@ -6,6 +6,9 @@
 
 #include <g4main/PHG4HitContainer.h>
 #include <gsl/gsl_rng.h>
+
+#include <TH2F.h>
+
 #include <array>
 #include <climits>
 #include <cmath>
@@ -27,8 +30,10 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   ~PHG4TpcPadPlaneReadout() override;
 
-  void SetDriftVelocity(double vd) override { drift_velocity = vd; }
+  void UseGain(const int flagToUseGain);
+  void ReadGain();
 
+  void SetDriftVelocity(double vd) override { drift_velocity = vd; }
 
   int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4TpcCylinderGeomContainer *seggeo) override;
 
@@ -87,7 +92,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<int, 3> NTpcLayers;
   std::array<double, 3> SectorPhi;
   int m_NHits = 0;
-
+  // Using Gain maps is turned off by default
+  int m_flagToUseGain = 0;
   // gaussian sampling
   static constexpr double _nsigmas = 5;
 
@@ -107,6 +113,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
   gsl_rng *RandomGenerator;
+
+  TH2F *h_gain[2];
   
 };
 
