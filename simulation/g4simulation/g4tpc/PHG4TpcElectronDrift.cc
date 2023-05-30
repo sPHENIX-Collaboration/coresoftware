@@ -765,6 +765,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     truthtracks->identify();
   }
 
+  if (Verbosity()>800) {
     truth_clusterer.print(truthtracks);
     truth_clusterer.print_file(truthtracks,"drift_clusters.txt");
   }
