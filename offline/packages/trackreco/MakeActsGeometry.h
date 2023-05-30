@@ -119,16 +119,14 @@ class MakeActsGeometry : public SubsysReco
   }
 
 
-  void misalignmentFactor(TrkrDefs::TrkrId id, const double misalignment)
+  void misalignmentFactor(uint8_t layer, const double misalignment)
   {
-    auto it = m_misalignmentFactor.find(id);
+    auto it = m_misalignmentFactor.find(layer);
     if(it != m_misalignmentFactor.end())
       {
 	it->second = misalignment;
 	return;
       }
-
-    std::cout << "Passed an unknown trkr id, misalignment factor will not be set for " << id << std::endl;
   }
 
   double getSurfStepPhi() {return m_surfStepPhi;}
@@ -209,7 +207,7 @@ class MakeActsGeometry : public SubsysReco
   TGeoManager* m_geoManager = nullptr;
 
   bool m_useField = true;
-  std::map<TrkrDefs::TrkrId, double> m_misalignmentFactor;
+  std::map<uint8_t, double> m_misalignmentFactor;
 
   /// Several maps that connect Acts world to sPHENIX G4 world 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> m_clusterNodeMap;

@@ -15,7 +15,8 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 libsphenixnpc_la_SOURCES = \
-  sphenixnpc.cc
+  CDBUtils.cc \
+  SphenixClient.cc
 
 
 libsphenixnpc_la_LIBADD = \
@@ -25,7 +26,8 @@ libsphenixnpc_la_LIBADD = \
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
-  sphenixnpc.h
+  CDBUtils.h \
+  SphenixClient.h
 
 ################################################
 # linking tests

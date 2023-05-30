@@ -10,7 +10,6 @@
 #include <TF1.h>
 #include <trackbase/TrkrClusterv5.h>
 //class TF1;
-class TrackSeed;
 class TrkrCluster;
 
 class ClusterErrorPara
@@ -57,7 +56,7 @@ class ClusterErrorPara
   using error_t = std::pair<double, double>;
 
   error_t get_clusterv5_modified_error(TrkrClusterv5* clusterv5, double cluster_r, TrkrDefs::cluskey key);
-  error_t get_cluster_error(TrackSeed *seed, TrkrCluster* cluster, double cluster_r, TrkrDefs::cluskey key);
+  error_t get_cluster_error(TrkrCluster* cluster, double cluster_r, TrkrDefs::cluskey key, float qOverR, float slope);
   error_t get_cluster_error(TrkrCluster* cluster,  TrkrDefs::cluskey key, double alpha, double beta);
 
   error_t get_simple_cluster_error(TrkrCluster* cluster, double cluster_r, TrkrDefs::cluskey key);

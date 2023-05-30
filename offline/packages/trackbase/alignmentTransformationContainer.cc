@@ -17,20 +17,20 @@ bool alignmentTransformationContainer::use_alignment = false;
 
 alignmentTransformationContainer::alignmentTransformationContainer()
 {
-  for ( const auto id : { TrkrDefs::mvtxId, TrkrDefs::inttId, TrkrDefs::tpcId, TrkrDefs::micromegasId })
+  for ( uint8_t layer = 0; layer < 57; layer++)
     {
-      m_misalignmentFactor.insert(std::make_pair(id, 1.));
+      m_misalignmentFactor.insert(std::make_pair(layer, 1.));
     }
 }
-void alignmentTransformationContainer::setMisalignmentFactor(uint8_t id, double factor)
+void alignmentTransformationContainer::setMisalignmentFactor(uint8_t layer, double factor)
 {
-  auto it = m_misalignmentFactor.find(id);
+  auto it = m_misalignmentFactor.find(layer);
   if(it != m_misalignmentFactor.end())
     {
       it->second = factor;
       return;
     }
-  std::cout << "You provided a nonexistent TrkrDefs::TrkrId in alignmentTransformationContainer::setMisalignmentFactor..."
+  std::cout << "You provided a nonexistent layer in alignmentTransformationContainer::setMisalignmentFactor..."
 	    << std::endl;
 }
 void alignmentTransformationContainer::Reset()

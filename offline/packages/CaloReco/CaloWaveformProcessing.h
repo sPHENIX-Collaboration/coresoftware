@@ -20,10 +20,7 @@ class CaloWaveformProcessing : public SubsysReco
     FAST = 3,
   };
 
-  CaloWaveformProcessing()
-    : m_processingtype(CaloWaveformProcessing::TEMPLATE)
-    , m_template_input_file("CEMC_TEMPLATE")
-    , m_model_name("CEMC_ONNX"){};
+  CaloWaveformProcessing() {}
   ~CaloWaveformProcessing() override {}
 
   void set_processing_type(CaloWaveformProcessing::process modelno)
@@ -40,6 +37,12 @@ class CaloWaveformProcessing : public SubsysReco
   void set_template_file(const std::string &template_input_file)
   {
     m_template_input_file = template_input_file;
+    return;
+  }
+
+  void set_template_name(const std::string &template_name)
+  {
+    m_template_name = template_name;
     return;
   }
   void set_model_file(const std::string &model_name)
@@ -67,15 +70,16 @@ class CaloWaveformProcessing : public SubsysReco
  private:
   CaloWaveformFitting *m_Fitter = nullptr;
 
-  CaloWaveformProcessing::process m_processingtype = CaloWaveformProcessing::NONE;
+  CaloWaveformProcessing::process m_processingtype = CaloWaveformProcessing::TEMPLATE;
   int _nthreads = 1;
   int _nsoftwarezerosuppression = 40;
   bool _bdosoftwarezerosuppression = false;
 
   std::string m_template_input_file;
   std::string url_template;
+  std::string m_template_name = "NONE";
 
   std::string url_onnx;
-  std::string m_model_name;
+  std::string m_model_name = "CEMC_ONNX";
 };
 #endif

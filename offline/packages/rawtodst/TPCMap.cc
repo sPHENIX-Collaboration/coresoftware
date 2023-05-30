@@ -40,13 +40,13 @@ void TPCMap::setMapNames(const std::string &r1, const std::string &r2, const std
   }
 }
 
-int TPCMap::digest_map(const std::string &s, const unsigned int section_offset)
+int TPCMap::digest_map(const std::string &fileName, const unsigned int section_offset)
 {
-  std::ifstream infile(s, std::ios::in);
+  std::ifstream infile(fileName, std::ios::in);
 
   if (!infile.is_open())
   {
-    std::cout << "Could not open file " << std::endl;
+    std::cout << "Could not open file: "<< fileName << std::endl;
     _broken = 1;
     return -1;
   }
@@ -172,6 +172,22 @@ unsigned int TPCMap::getLayer(const unsigned int FEE, const unsigned int FEEChan
     return 0;
   }
   return itr->second.layer;
+}
+
+unsigned int TPCMap::getPad(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const
+{
+  if (FEE >= 26 || FEEChannel > 255)
+  {
+    return 0.;
+  }
+  unsigned int key = 256 * FEE + FEEChannel;
+
+  std::map<unsigned int, struct tpc_map>::const_iterator itr = tmap.find(key);
+  if (itr == tmap.end())
+  {
+    return -100;
+  }
+  return itr->second.padnr;
 }
 
 double TPCMap::getR(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const

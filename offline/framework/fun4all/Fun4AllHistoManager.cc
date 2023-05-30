@@ -175,11 +175,15 @@ bool Fun4AllHistoManager::registerHisto(const std::string &hname, TNamed *h1d, c
 
   // reset directory for TTree
   if (h1d->InheritsFrom("TTree"))
+  {
     static_cast<TTree *>(h1d)->SetDirectory(nullptr);
+  }
 
   // For histograms, enforce error calculation and propagation
   if (h1d->InheritsFrom("TH1"))
+  {
     static_cast<TH1 *>(h1d)->Sumw2();
+  }
 
   return true;
 }
@@ -285,11 +289,13 @@ void Fun4AllHistoManager::Reset()
   {
     TNamed *h = hiter->second;
     if (h->InheritsFrom("TH1"))
+    {
       (dynamic_cast<TH1 *>(h))->Reset();
-#if HAS_THNSPARSE
+    }
     else if (h->InheritsFrom("THnSparse"))
+    {
       (dynamic_cast<THnSparse *>(h))->Reset();
-#endif
+    }
   }
   return;
 }
