@@ -52,25 +52,17 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   double check_phi(const unsigned int side, const double phi, const double radius);
 
-  std::string seggeonodename;
-
   PHG4TpcCylinderGeomContainer *GeomContainer = nullptr;
   PHG4TpcCylinderGeom *LayerGeom = nullptr;
-
-  double rad_gem = NAN;
-  double output_radius = 0;
-
-  static const unsigned int print_layer = 18;
 
   double neffelectrons_threshold = NAN;
 
   std::array<int, 3> MinLayer;
   std::array<double, 3> MinRadius;
   std::array<double, 3> MaxRadius;
-  std::array<double, 5> Thickness;
 
-  static const int NSides = 2;
-  static const int NSectors = 12;
+  static constexpr int NSides = 2;
+  static constexpr int NSectors = 12;
   static const int NRSectors = 3;
 
   double MaxZ = NAN;
@@ -79,7 +71,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   double sigmaT = NAN;
   std::array<double, 2> sigmaL;
   std::array<double, 3> PhiBinWidth;
-  double ZBinWidth = NAN;
   double TBinWidth = NAN;
   double drift_velocity = 8.0e-03;  // default value, override from macro
   double tpc_adc_clock = NAN;
@@ -100,8 +91,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::vector<int> pad_phibin;
   std::vector<double> pad_phibin_share;
   std::vector<double> adc_tbin_share;
-  std::array<std::vector<double>, NSides > sector_R_bias;
-  std::array<std::vector<double>, NSides > sector_Phi_bias;
   std::array<std::vector<double>, NSides > sector_min_Phi;
   std::array<std::vector<double>, NSides > sector_max_Phi;
   std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_min_Phi_sectors;

@@ -50,12 +50,18 @@ namespace
     return x * x;
   }
 
+  template <class T>
+  inline T get_r( const T& x, const T& y )
+  { return std::sqrt(square(x) + square(y)); }
+  
   //! return normalized gaussian centered on zero and of width sigma
   template <class T>
   inline T gaus(const T &x, const T &sigma)
   {
     return std::exp(-square(x / sigma) / 2) / (sigma * std::sqrt(2 * M_PI));
   }
+
+  static constexpr unsigned int print_layer = 18;
 
 }  // namespace
 
@@ -91,6 +97,7 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   if( reply != Fun4AllReturnCodes::EVENT_OK ) return reply;
   
   // load geo node
+  const std::string seggeonodename = "CYLINDERCELLGEOM_SVTX";
   GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   assert( GeomContainer );
   
@@ -131,7 +138,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
   if (phi > +M_PI) phi -= 2 * M_PI;
   if (phi < -M_PI) phi += 2 * M_PI;
 
-  rad_gem = sqrt(x_gem * x_gem + y_gem * y_gem);
+  double rad_gem = get_r( x_gem, y_gem );
 
   // Moving electrons from dead area to a closest pad 
   for (int iregion = 0; iregion < 3; ++iregion)
@@ -545,7 +552,6 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
   {
     phibin_pad.push_back(pad_keep[ipad]);
     phibin_pad_share.push_back(overlap[ipad]);
-    if (rad_gem < output_radius) std::cout << "         zigzags: for pad " << ipad << " integral is " << overlap[ipad] << std::endl;
    }
 
   return;
@@ -757,19 +763,9 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   MaxRadius[1] = get_double_param("tpc_maxradius_mid");
   MaxRadius[2] = get_double_param("tpc_maxradius_outer");
 
-  //Thickness[0] = NTpcLayers[0] <= 0 ? 0 : (MaxRadius[0] - MinRadius[0]) / NTpcLayers[0];
-  //Thickness[1] = NTpcLayers[1] <= 0 ? 0 : (MaxRadius[1] - MinRadius[1]) / NTpcLayers[1];
-  //Thickness[2] = NTpcLayers[2] <= 0 ? 0 : (MaxRadius[2] - MinRadius[2]) / NTpcLayers[2];
-
   MaxRadius[0] = get_double_param("tpc_maxradius_inner");
   MaxRadius[1] = get_double_param("tpc_maxradius_mid");
   MaxRadius[2] = get_double_param("tpc_maxradius_outer");
-
-  Thickness[0] = 0.687;
-  Thickness[1] = 1.012;
-  Thickness[2] = 1.088;
-  Thickness[3] = 0.534;
-  Thickness[4] = 0.595;
 
   sigmaT = get_double_param("gem_cloud_sigma");
   sigmaL[0] = get_double_param("sampa_shaping_lead");
@@ -779,7 +775,6 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
 
   MaxZ = get_double_param("maxdriftlength");
   TBinWidth = tpc_adc_clock;
-  ZBinWidth = TBinWidth * drift_velocity;
   MaxT = 2.0 * MaxZ / drift_velocity;  // allows for extended time readout
   MinT = 0;
   NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
