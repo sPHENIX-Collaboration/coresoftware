@@ -73,9 +73,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   static const int NSectors = 12;
   static const int NRSectors = 3;
 
-  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dR;
-  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dPhi;
-
   double MaxZ = NAN;
   double MinT = NAN;
   double MaxT = NAN;
