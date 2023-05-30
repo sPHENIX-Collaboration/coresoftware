@@ -100,8 +100,13 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   ConstructTpcGasVolume(tpc_envelope_logic);
 
   new G4PVPlacement(0, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
-                    tpc_envelope_logic, "tpc_envelope",
-                    logicWorld, 0, false, OverlapCheck());
+    tpc_envelope_logic, "tpc_envelope",
+    logicWorld, 0, false, OverlapCheck());
+                  
+  // geometry node
+  add_geometry_node();
+  
+                  
 }
 
 int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
@@ -458,3 +463,8 @@ void PHG4TpcDetector ::CreateCompositeMaterial(
   //how to register our finished material?
   return;
 }
+
+
+//_______________________________________________________________
+void PHG4TpcDetector::add_geometry_node()
+{}
