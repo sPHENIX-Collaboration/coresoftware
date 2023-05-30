@@ -2,12 +2,17 @@
 #include "PHG4TpcDefs.h"
 #include "PHG4TpcDisplayAction.h"
 
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
 
 #include <phparameter/PHParameters.h>
-
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>       
 #include <phool/recoConsts.h>
 
 #include <TSystem.h>
@@ -467,4 +472,18 @@ void PHG4TpcDetector ::CreateCompositeMaterial(
 
 //_______________________________________________________________
 void PHG4TpcDetector::add_geometry_node()
-{}
+{
+
+  // create PHG4TpcCylinderGeomContainer and put on node tree
+  const std::string geonode_name = "CYLINDERCELLGEOM_SVTX";  
+  auto geonode = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode(), geonode_name);
+  if (!geonode)
+  {
+    geonode = new PHG4TpcCylinderGeomContainer;
+    PHNodeIterator iter(topNode());
+    auto runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
+    auto newNode = new PHIODataNode<PHObject>(geonode, geonode_name, "PHObject");
+    runNode->addNode(newNode);
+  }
+
+}
