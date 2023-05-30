@@ -19,6 +19,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  BbcDefs.h \
   BbcOut.h \
   BbcOutV1.h \
   BbcNorthSouth.h \
@@ -27,7 +28,13 @@ pkginclude_HEADERS = \
   BbcPmtContainerV1.h \
   BbcPmtHit.h \
   BbcPmtHitV1.h \
-  BbcReturnCodes.h
+  BbcReconstruction.h \
+  BbcReturnCodes.h \
+  BbcVertex.h \
+  BbcVertexv1.h \
+  BbcVertexv2.h \
+  BbcVertexMap.h \
+  BbcVertexMapv1.h
 
 ROOTDICTS = \
   BbcOut_Dict.cc \
@@ -37,7 +44,12 @@ ROOTDICTS = \
   BbcPmtHit_Dict.cc \
   BbcPmtHitV1_Dict.cc \
   BbcPmtContainer_Dict.cc \
-  BbcPmtContainerV1_Dict.cc
+  BbcPmtContainerV1_Dict.cc \
+  BbcVertex_Dict.cc \
+  BbcVertexv1_Dict.cc \
+  BbcVertexv2_Dict.cc \
+  BbcVertexMap_Dict.cc \
+  BbcVertexMapv1_Dict.cc
 
 pcmdir = $(libdir)
 
@@ -49,7 +61,12 @@ nobase_dist_pcm_DATA = \
   BbcPmtHit_Dict_rdict.pcm \
   BbcPmtHitV1_Dict_rdict.pcm \
   BbcPmtContainer_Dict_rdict.pcm \
-  BbcPmtContainerV1_Dict_rdict.pcm
+  BbcPmtContainerV1_Dict_rdict.pcm \
+  BbcVertex_Dict_rdict.pcm \
+  BbcVertexv1_Dict_rdict.pcm \
+  BbcVertexv2_Dict_rdict.pcm \
+  BbcVertexMap_Dict_rdict.pcm \
+  BbcVertexMapv1_Dict_rdict.pcm
 
 
 libbbc_io_la_SOURCES = \
@@ -61,10 +78,16 @@ libbbc_io_la_SOURCES = \
   BbcPmtHit.cc \
   BbcPmtHitV1.cc \
   BbcPmtContainer.cc \
-  BbcPmtContainerV1.cc
+  BbcPmtContainerV1.cc \
+  BbcReconstruction.cc \
+  BbcVertexv1.cc \
+  BbcVertexv2.cc \
+  BbcVertexMap.cc \
+  BbcVertexMapv1.cc
 
 libbbc_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lSubsysReco
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

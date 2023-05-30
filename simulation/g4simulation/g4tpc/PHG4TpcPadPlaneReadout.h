@@ -8,6 +8,9 @@
 #include <trackbase/TpcDefs.h>
 
 #include <gsl/gsl_rng.h>
+
+#include <TH2F.h>
+
 #include <array>
 #include <climits>
 #include <cmath>
@@ -29,13 +32,17 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   ~PHG4TpcPadPlaneReadout() override;
 
+  void UseGain(const int flagToUseGain);
+  void ReadGain();
+
   void SetDriftVelocity(double vd) override { drift_velocity = vd; }
 
   int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4TpcCylinderGeomContainer *seggeo) override;
 
   // otherwise warning of inconsistent overload since only one MapToPadPlane methow is overridden
   using PHG4TpcPadPlane::MapToPadPlane;
-  void MapToPadPlane(TpcClusterBuilder *tpc_clustbuilder, TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
+
+  void MapToPadPlane(TpcClusterBuilder& tpc_clustbuilder, TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
 
   void SetDefaultParameters() override;
   void UpdateInternalParameters() override;
@@ -90,7 +97,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<int, 3> NTpcLayers;
   std::array<double, 3> SectorPhi;
   int m_NHits = 0;
-
+  // Using Gain maps is turned off by default
+  int m_flagToUseGain = 0;
   // gaussian sampling
   static constexpr double _nsigmas = 5;
 
@@ -110,6 +118,12 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
   gsl_rng *RandomGenerator;
+<<<<<<< HEAD
+=======
+
+  TH2F *h_gain[2];
+  
+>>>>>>> 1156c7778bc35f1f1db5ffc22d5632a9e99a9c8b
 };
 
 #endif

@@ -11,18 +11,18 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <trackbase/CMFlashClusterv2.h>
+#include <trackbase/CMFlashClusterv3.h>
 #include <trackbase/CMFlashClusterContainerv1.h>
 #include <trackbase/CMFlashDifferencev1.h>
 #include <trackbase/CMFlashDifferenceContainerv1.h>
 
-#include <TCanvas.h>
 #include <TFile.h>
 #include <TGraph.h>
 #include <TH1F.h>
 #include <TH1D.h>
 #include <TH2F.h>
 #include <TF1.h>
+#include <TNtuple.h>
 #include <TString.h>
 #include <TVector3.h>
 #include <TStyle.h>
@@ -183,8 +183,8 @@ double PHTpcCentralMembraneMatcher::getPhiRotation_smoothed(TH1D *hitHist, TH1D 
 
   clustHist->Fit("f1","IQ");
 
-  clustHist->Draw();
-  f1->Draw("same");
+  //  clustHist->Draw();
+  //f1->Draw("same");
 
   return f1->GetParameter(1);
 }
@@ -265,6 +265,9 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
     hdr3_double = new TH1F("hdr3_double", "outer dr double", 200,-max_dr, max_dr);
     hdrphi = new TH1F("hdrphi","r * dphi", 200, -0.05, 0.05);
     hnclus = new TH1F("hnclus", " nclusters ", 3, 0., 3.);
+
+    fout2.reset ( new TFile(m_histogramfilename2.c_str(),"RECREATE") );
+    match_ntup = new TNtuple("match_ntup","Match NTuple","event:truthR:truthPhi:recoR:recoPhi:recoZ:nclus:r1:phi1:e1:layer1:r2:phi2:e2:layer2");
   }
 
   hit_r_phi = new TH2F("hit_r_phi","hit r vs #phi;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
@@ -272,6 +275,7 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
   clust_r_phi_pos = new TH2F("clust_r_phi_pos","clust R vs #phi Z>0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
   clust_r_phi_neg = new TH2F("clust_r_phi_neg","clust R vs #phi Z<0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
 
+  
   // Get truth cluster positions
   //=====================
   
@@ -367,14 +371,28 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 {
   std::vector<TVector3> reco_pos;
+  std::vector<TVector3> pos1;
+  std::vector<TVector3> pos2;
   std::vector<unsigned int> reco_nclusters;
- 
+  std::vector<unsigned int> reco_adc;
+  std::vector<unsigned int> adc1;
+  std::vector<unsigned int> adc2;
+  std::vector<unsigned int> layer1;
+  std::vector<unsigned int> layer2;
+
   // reset output distortion correction container histograms
   for( const auto& harray:{m_dcc_out->m_hDRint, m_dcc_out->m_hDPint, m_dcc_out->m_hDZint, m_dcc_out->m_hentries} )
-  { for( const auto& h:harray ) { h->Reset(); } }
-
+  { 
+    
   clust_r_phi_pos->Reset();
   clust_r_phi_neg->Reset();
+
+  if(!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 100){
+    m_event_index++;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+  
+  for( const auto& h:harray ) { h->Reset(); } }
 
   // read the reconstructed CM clusters
   auto clusrange = m_corrected_CMcluster_map->getClusters();
@@ -385,22 +403,46 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       const auto& [cmkey, cmclus_orig] = *cmitr;
       CMFlashCluster *cmclus = cmclus_orig;
       const unsigned int nclus = cmclus->getNclusters();
+      const unsigned int adc = cmclus->getAdc();
 
       if(m_useOnly_nClus2 && nclus != 2) continue;
 
       const bool isRGap = cmclus->getIsRGap();
 
       
-      // Do the static + average distortion corrections if the container was found
+       // Do the static + average distortion corrections if the container was found
       Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
-      if( m_dcc_in) pos = m_distortionCorrection.get_corrected_position( pos, m_dcc_in ); 
+      Acts::Vector3 apos1(cmclus->getX1(), cmclus->getY1(), cmclus->getZ1());
+      Acts::Vector3 apos2(cmclus->getX2(), cmclus->getY2(), cmclus->getZ2());
+      if( m_dcc_in_static){
+	pos = m_distortionCorrection.get_corrected_position( pos, m_dcc_in_static ); 
+	apos1 = m_distortionCorrection.get_corrected_position( apos1, m_dcc_in_static ); 
+	apos2 = m_distortionCorrection.get_corrected_position( apos2, m_dcc_in_static ); 
+      }
+      if( m_dcc_in_average){
+	pos = m_distortionCorrection.get_corrected_position( pos, m_dcc_in_average ); 
+	apos1 = m_distortionCorrection.get_corrected_position( apos1, m_dcc_in_average ); 
+	apos2 = m_distortionCorrection.get_corrected_position( apos2, m_dcc_in_average ); 
+      }
       
-      TVector3 tmp_pos(pos[0], pos[1], pos[2]);
+      
 
-      if(isRGap) continue;
+      TVector3 tmp_pos(pos[0], pos[1], pos[2]);
+      TVector3 tmp_pos1(apos1[0], apos1[1], apos1[2]);
+      TVector3 tmp_pos2(apos2[0], apos2[1], apos2[2]);
+
+
+      if(nclus == 1 && isRGap) continue;
       
       reco_pos.push_back(tmp_pos);      
+      pos1.push_back(tmp_pos1);      
+      pos2.push_back(tmp_pos2);      
       reco_nclusters.push_back(nclus);
+      reco_adc.push_back(adc);
+      adc1.push_back(cmclus->getAdc1());
+      adc2.push_back(cmclus->getAdc2());
+      layer1.push_back(cmclus->getLayer1());
+      layer2.push_back(cmclus->getLayer2());
 
       if(tmp_pos.Z() < 0) clust_r_phi_neg->Fill(tmp_pos.Phi(),tmp_pos.Perp());
       else clust_r_phi_pos->Fill(tmp_pos.Phi(),tmp_pos.Perp());
@@ -659,6 +701,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     cmdiff->setNclusters(nclus);
     
     m_cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
+    
+    if(m_savehistograms) match_ntup->Fill(m_event_index,m_truth_pos[p.first].Perp(),m_truth_pos[p.first].Phi(),reco_pos[p.second].Perp(),reco_pos[p.second].Phi(),reco_pos[p.second].Z(),nclus,pos1[p.second].Perp(),pos1[p.second].Phi(),adc1[p.second],layer1[p.second],pos2[p.second].Perp(),pos2[p.second].Phi(),adc2[p.second],layer2[p.second]);
 
     // store cluster position
     const double clus_r = reco_pos[p.second].Perp();
@@ -721,6 +765,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 		    << std::endl;
 	}
     }
+
+  m_event_index++;
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -772,6 +818,16 @@ int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
     fout->Close();
   }
 
+  if(m_savehistograms && fout2)
+  {
+    fout2->cd();
+
+    match_ntup->Write();
+    hit_r_phi->Write();
+    clust_r_phi_pos->Write();
+    clust_r_phi_neg->Write();
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -790,11 +846,18 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }      
 
-  // input tpc distortion correction
-  m_dcc_in = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
-  if( m_dcc_in )
+  // input tpc distortion correction static
+  m_dcc_in_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
+  if( m_dcc_in_static )
     { 
-      std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container" << std::endl; 
+      std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container static" << std::endl; 
+    }
+
+  // input tpc distortion correction average
+  m_dcc_in_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
+  if( m_dcc_in_average )
+    { 
+      std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container average" << std::endl; 
     }
 
   // create node for results of matching
@@ -821,38 +884,32 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
   PHIODataNode<PHObject> *CMFlashDifferenceNode =
     new PHIODataNode<PHObject>(m_cm_flash_diffs, "CM_FLASH_DIFFERENCES", "PHObject");
   DetNode->addNode(CMFlashDifferenceNode);
+
+    
+  //// output tpc fluctuation distortion container
+  //// this one is filled on the fly on a per-CM-event basis, and applied in the tracking chain
+  const std::string dcc_out_node_name = "TpcDistortionCorrectionContainerFluctuation";
+  m_dcc_out = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,dcc_out_node_name);
+  if( !m_dcc_out )
+  { 
+   
+     /// Get the RUN node and check
+     auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+     if (!runNode)
+     {
+       std::cout << "PHTpcCentralMembraneMatcher::InitRun - RUN Node missing, quitting" << std::endl;
+       return Fun4AllReturnCodes::ABORTRUN;
+     }
+     
+     std::cout << "PHTpcCentralMembraneMatcher::GetNodes - creating TpcDistortionCorrectionContainer in node " << dcc_out_node_name << std::endl;
+     m_dcc_out = new TpcDistortionCorrectionContainer;
+     auto node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
+     runNode->addNode(node);
+   }
   
-//   // output tpc fluctuation distortion container
-//   // this one is filled on the fly on a per-CM-event basis, and applied in the tracking chain
-//   const std::string dcc_out_node_name = "TpcDistortionCorrectionContainerFluctuation";
-//   m_dcc_out = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,dcc_out_node_name);
-//   if( !m_dcc_out )
-//   { 
-//   
-//     /// Get the DST node and check
-//     auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-//     if (!dstNode)
-//     {
-//       std::cout << "PHTpcCentralMembraneMatcher::InitRun - DST Node missing, quitting" << std::endl;
-//       return Fun4AllReturnCodes::ABORTRUN;
-//     }
-//     
-//     // Get the tracking subnode and create if not found
-//     auto svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
-//     if (!svtxNode)
-//     {
-//       svtxNode = new PHCompositeNode("SVTX");
-//       dstNode->addNode(svtxNode);
-//     }
-// 
-//     std::cout << "PHTpcCentralMembraneMatcher::GetNodes - creating TpcDistortionCorrectionContainer in node " << dcc_out_node_name << std::endl;
-//     m_dcc_out = new TpcDistortionCorrectionContainer;
-//     auto node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
-//     svtxNode->addNode(node);
-//   }
 
   // create per event distortions. Do not put on the node tree
-  m_dcc_out = new TpcDistortionCorrectionContainer;
+  //m_dcc_out = new TpcDistortionCorrectionContainer;
 
   // also prepare the local distortion container, used to aggregate multple events 
   m_dcc_out_aggregated.reset( new TpcDistortionCorrectionContainer );

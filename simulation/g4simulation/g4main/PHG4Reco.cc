@@ -16,8 +16,6 @@
 #include "PHG4UIsession.h"
 #include "PHG4Utils.h"
 
-#include <eastphysicslist/eASTPhysicsList.hh>
-
 #include <g4decayer/EDecayType.hh>
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 
@@ -50,8 +48,8 @@
 
 #include <CLHEP/Random/Random.h>
 
+#include <G4HadronicParameters.hh>  // for G4HadronicParameters
 #include <Geant4/G4Cerenkov.hh>
-#include <Geant4/G4Scintillation.hh>
 #include <Geant4/G4Element.hh>       // for G4Element
 #include <Geant4/G4EventManager.hh>  // for G4EventManager
 #include <Geant4/G4HadronicProcessStore.hh>
@@ -75,6 +73,7 @@
 #include <Geant4/G4Region.hh>
 #include <Geant4/G4RegionStore.hh>
 #include <Geant4/G4RunManager.hh>
+#include <Geant4/G4Scintillation.hh>
 #include <Geant4/G4StepLimiterPhysics.hh>
 #include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
@@ -86,7 +85,6 @@
 #include <Geant4/G4Version.hh>
 #include <Geant4/G4VisExecutive.hh>
 #include <Geant4/G4VisManager.hh>  // for G4VisManager
-#include <G4HadronicParameters.hh> // for G4HadronicParameters
 
 // physics lists
 #include <Geant4/FTFP_BERT.hh>
@@ -125,15 +123,11 @@ PHG4Reco::PHG4Reco(const std::string &name)
   : SubsysReco(name)
   , m_Fun4AllMessenger(new Fun4AllMessenger(Fun4AllServer::instance()))
 {
-  for (int i = 0; i < 3; i++)
-  {
-    m_WorldSize[i] = 1000.;
-  }
   return;
 }
 
 //_________________________________________________________________
-PHG4Reco::~PHG4Reco(void)
+PHG4Reco::~PHG4Reco()
 {
   // one can delete null pointer (it results in a nop), so checking if
   // they are non zero is not needed
@@ -161,11 +155,14 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   G4Seed(iseed);  // fixed seed handled in PHRandomSeed()
 
   // create GEANT run manager
-  if (Verbosity() > 1) std::cout << "PHG4Reco::Init - create run manager" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "PHG4Reco::Init - create run manager" << std::endl;
+  }
 
   // redirect GEANT verbosity to nowhere
   //  if (Verbosity() < 1)
-  if (0)
+  if (false)
   {
     G4UImanager *uimanager = G4UImanager::GetUIpointer();
     m_UISession = new PHG4UIsession();
@@ -223,10 +220,6 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     setenv("AllowForHeavyElements", "1", 1);
     myphysicslist = new QGSP_INCLXX_HP(Verbosity());
   }
-  else if (m_PhysicsList == "EAST")
-  {
-    myphysicslist = new eASTPhysicsList(Verbosity());
-  }
   else
   {
     std::cout << "Physics List " << m_PhysicsList << " not implemented" << std::endl;
@@ -237,7 +230,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   if (m_Decayer == kPYTHIA6Decayer)
   {
     std::cout << "Use PYTHIA Decayer" << std::endl;
-    G4HadronicParameters::Instance()->SetEnableBCParticles(false);  //Disable the Geant4 built in HF Decay and use external decayers for them
+    G4HadronicParameters::Instance()->SetEnableBCParticles(false);  // Disable the Geant4 built in HF Decay and use external decayers for them
     P6DExtDecayerPhysics *decayer = new P6DExtDecayerPhysics();
     if (m_ActiveForceDecayFlag)
     {
@@ -249,11 +242,14 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   if (m_Decayer == kEvtGenDecayer)
   {
     std::cout << "Use EvtGen Decayer" << std::endl;
-    G4HadronicParameters::Instance()->SetEnableBCParticles(false);  //Disable the Geant4 built in HF Decay and use external decayers for them
-	EvtGenExtDecayerPhysics *decayer = new EvtGenExtDecayerPhysics();
-	if(CustomizeDecay)	decayer->CustomizeEvtGenDecay(EvtGenDecayFile);		
+    G4HadronicParameters::Instance()->SetEnableBCParticles(false);  // Disable the Geant4 built in HF Decay and use external decayers for them
+    EvtGenExtDecayerPhysics *decayer = new EvtGenExtDecayerPhysics();
+    if (CustomizeDecay)
+    {
+      decayer->CustomizeEvtGenDecay(EvtGenDecayFile);
+    }
 
-	myphysicslist->RegisterPhysics(decayer);
+    myphysicslist->RegisterPhysics(decayer);
   }
 
   if (m_Decayer == kGEANTInternalDecayer)
@@ -269,7 +265,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 
   DefineRegions();
   // initialize registered subsystems
-  for (SubsysReco *reco: m_SubsystemList)
+  for (SubsysReco *reco : m_SubsystemList)
   {
     reco->Init(topNode);
   }
@@ -283,7 +279,10 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 
 int PHG4Reco::InitField(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 1) std::cout << "PHG4Reco::InitField - create magnetic field setup" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "PHG4Reco::InitField - create magnetic field setup" << std::endl;
+  }
 
   std::unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
 
@@ -302,7 +301,10 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
     default_field_cfg.reset(new PHFieldConfigv2(0, 0, m_MagneticField * m_MagneticFieldRescale));
   }
 
-  if (Verbosity() > 1) std::cout << "PHG4Reco::InitField - create magnetic field setup" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "PHG4Reco::InitField - create magnetic field setup" << std::endl;
+  }
 
   PHField *phfield = PHFieldUtility::GetFieldMapNode(default_field_cfg.get(), topNode, Verbosity() + 1);
   assert(phfield);
@@ -336,9 +338,9 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   recoConsts *rc = recoConsts::instance();
 
   rc->set_StringFlag("WorldMaterial", m_WorldMaterial);
-// build world material - so in subsequent code we can call
-//  G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"))
-// if the world material is not in the nist DB, we need to implement it here
+  // build world material - so in subsequent code we can call
+  //  G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"))
+  // if the world material is not in the nist DB, we need to implement it here
   G4NistManager::Instance()->FindOrBuildMaterial(m_WorldMaterial);
   // G4NistManager::Instance()->FindOrBuildMaterial("G4_Galactic");
   // G4NistManager::Instance()->FindOrBuildMaterial("G4_Be");
@@ -348,7 +350,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   rc->set_FloatFlag("WorldSizey", m_WorldSize[1]);
   rc->set_FloatFlag("WorldSizez", m_WorldSize[2]);
 
-  //setup the global field
+  // setup the global field
   const int field_ret = InitField(topNode);
   if (field_ret != Fun4AllReturnCodes::EVENT_OK)
   {
@@ -357,7 +359,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
 
   // initialize registered subsystems
-  for (SubsysReco *reco: m_SubsystemList)
+  for (SubsysReco *reco : m_SubsystemList)
   {
     if (Verbosity() >= 1)
     {
@@ -369,7 +371,10 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // create phenix detector, add subsystems, and register to GEANT
   // create display settings before detector
   m_DisplayAction = new PHG4PhenixDisplayAction(Name());
-  if (Verbosity() > 1) std::cout << "PHG4Reco::Init - create detector" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "PHG4Reco::Init - create detector" << std::endl;
+  }
   m_Detector = new PHG4PhenixDetector(this);
   m_Detector->Verbosity(Verbosity());
   m_Detector->SetWorldSizeX(m_WorldSize[0] * cm);
@@ -378,7 +383,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   m_Detector->SetWorldShape(m_WorldShape);
   m_Detector->SetWorldMaterial(m_WorldMaterial);
 
-  for (PHG4Subsystem *g4sub: m_SubsystemList)
+  for (PHG4Subsystem *g4sub : m_SubsystemList)
   {
     if (g4sub->GetDetector())
     {
@@ -390,15 +395,15 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   if (m_disableUserActions)
   {
     std::cout << "PHG4Reco::InitRun - WARNING - event/track/stepping action disabled! "
-         << "This is aimed to reduce resource consumption for G4 running only. E.g. dose analysis. "
-         << "Meanwhile, it will disable all Geant4 based analysis. Toggle this feature on/off with PHG4Reco::setDisableUserActions()" << std::endl;
+              << "This is aimed to reduce resource consumption for G4 running only. E.g. dose analysis. "
+              << "Meanwhile, it will disable all Geant4 based analysis. Toggle this feature on/off with PHG4Reco::setDisableUserActions()" << std::endl;
   }
 
   setupInputEventNodeReader(topNode);
   // create main event action, add subsystemts and register to GEANT
   m_EventAction = new PHG4PhenixEventAction();
 
-  for (PHG4Subsystem *g4sub: m_SubsystemList)
+  for (PHG4Subsystem *g4sub : m_SubsystemList)
   {
     PHG4EventAction *evtact = g4sub->GetEventAction();
     if (evtact)
@@ -414,7 +419,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   // create main stepping action, add subsystems and register to GEANT
   m_StackingAction = new PHG4PhenixStackingAction();
-  for (PHG4Subsystem *g4sub: m_SubsystemList)
+  for (PHG4Subsystem *g4sub : m_SubsystemList)
   {
     PHG4StackingAction *action = g4sub->GetStackingAction();
     if (action)
@@ -434,7 +439,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   // create main stepping action, add subsystems and register to GEANT
   m_SteppingAction = new PHG4PhenixSteppingAction();
-  for (PHG4Subsystem *g4sub: m_SubsystemList)
+  for (PHG4Subsystem *g4sub : m_SubsystemList)
   {
     PHG4SteppingAction *action = g4sub->GetSteppingAction();
     if (action)
@@ -455,7 +460,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   // create main tracking action, add subsystems and register to GEANT
   m_TrackingAction = new PHG4PhenixTrackingAction();
-  for (PHG4Subsystem *g4sub: m_SubsystemList)
+  for (PHG4Subsystem *g4sub : m_SubsystemList)
   {
     m_TrackingAction->AddAction(g4sub->GetTrackingAction());
 
@@ -485,12 +490,12 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     std::cout << PHWHERE << "Could not initialize EmSaturation, Birks constants will fail" << std::endl;
   }
 #endif
-  
+
   // add cerenkov and optical photon processes
   // std::cout << std::endl << "Ignore the next message - we implemented this correctly" << std::endl;
   G4Cerenkov *theCerenkovProcess = new G4Cerenkov("Cerenkov");
   // std::cout << "End of bogus warning message" << std::endl << std::endl;
-  G4Scintillation* theScintillationProcess      = new G4Scintillation("Scintillation");
+  G4Scintillation *theScintillationProcess = new G4Scintillation("Scintillation");
 
   /*
     if (Verbosity() > 0)
@@ -533,7 +538,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
       pmanager->SetProcessOrderingToLast(theScintillationProcess, idxAtRest);
       pmanager->SetProcessOrderingToLast(theScintillationProcess, idxPostStep);
     }
-    for (PHG4Subsystem *g4sub: m_SubsystemList)
+    for (PHG4Subsystem *g4sub : m_SubsystemList)
     {
       g4sub->AddProcesses(particle);
     }
@@ -550,7 +555,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   // needs large amount of memory which kills central hijing events
   // store generated trajectories
-  //if( G4TrackingManager* trackingManager = G4EventManager::GetEventManager()->GetTrackingManager() ){
+  // if( G4TrackingManager* trackingManager = G4EventManager::GetEventManager()->GetTrackingManager() ){
   //  trackingManager->SetStoreTrajectory( true );
   //}
 
@@ -582,13 +587,13 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
 
   // dump geometry to root file
-  if( m_ExportGeometry )
+  if (m_ExportGeometry)
   {
     std::cout << "PHG4Reco::InitRun - writing geometry to " << m_ExportGeomFilename << std::endl;
     PHGeomUtility::ExportGeomtry(topNode, m_ExportGeomFilename);
   }
 
-  if (PHRandomSeed::Verbosity()>=2)
+  if (PHRandomSeed::Verbosity() >= 2)
   {
     // at high verbosity, to save the random number to file
     G4RunManager::GetRunManager()->SetRandomNumberStore(true);
@@ -597,14 +602,14 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 }
 
 //________________________________________________________________
-//Dump TGeo File
+// Dump TGeo File
 void PHG4Reco::Dump_GDML(const std::string &filename)
 {
   PHG4GDMLUtility ::Dump_GDML(filename, m_Detector->GetPhysicalVolume());
 }
 
 //________________________________________________________________
-//Dump TGeo File using native Geant4 tools
+// Dump TGeo File using native Geant4 tools
 void PHG4Reco::Dump_G4_GDML(const std::string &filename)
 {
   PHG4GDMLUtility::Dump_G4_GDML(filename, m_Detector->GetPhysicalVolume());
@@ -648,7 +653,7 @@ int PHG4Reco::InitUImanager()
 //_________________________________________________________________
 int PHG4Reco::process_event(PHCompositeNode *topNode)
 {
-  if (PHRandomSeed::Verbosity()>=2)
+  if (PHRandomSeed::Verbosity() >= 2)
   {
     G4Random::showEngineStatus();
   }
@@ -657,10 +662,12 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   m_GeneratorAction->SetInEvent(ineve);
 
-  for (SubsysReco *reco: m_SubsystemList)
+  for (SubsysReco *reco : m_SubsystemList)
   {
     if (Verbosity() >= 2)
+    {
       std::cout << "PHG4Reco::process_event - " << reco->Name() << "->process_event" << std::endl;
+    }
 
     try
     {
@@ -669,7 +676,7 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
     catch (const std::exception &e)
     {
       std::cout << PHWHERE << " caught exception thrown during process_event from "
-           << reco->Name() << std::endl;
+                << reco->Name() << std::endl;
       std::cout << "error: " << e.what() << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -679,15 +686,17 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
   if (Verbosity() >= 2)
   {
     std::cout << " PHG4Reco::process_event - "
-         << "run one event :" << std::endl;
+              << "run one event :" << std::endl;
     ineve->identify();
   }
   m_RunManager->BeamOn(1);
 
-  for (PHG4Subsystem *g4sub: m_SubsystemList)
+  for (PHG4Subsystem *g4sub : m_SubsystemList)
   {
     if (Verbosity() >= 2)
+    {
       std::cout << " PHG4Reco::process_event - " << g4sub->Name() << "->process_after_geant" << std::endl;
+    }
     try
     {
       g4sub->process_after_geant(topNode);
@@ -695,7 +704,7 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
     catch (const std::exception &e)
     {
       std::cout << PHWHERE << " caught exception thrown during process_after_geant from "
-           << g4sub->Name() << std::endl;
+                << g4sub->Name() << std::endl;
       std::cout << "error: " << e.what() << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -705,7 +714,7 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
 
 int PHG4Reco::ResetEvent(PHCompositeNode *topNode)
 {
-  for (SubsysReco *reco: m_SubsystemList)
+  for (SubsysReco *reco : m_SubsystemList)
   {
     reco->ResetEvent(topNode);
   }
@@ -714,7 +723,7 @@ int PHG4Reco::ResetEvent(PHCompositeNode *topNode)
 
 void PHG4Reco::Print(const std::string &what) const
 {
-  for (SubsysReco *reco: m_SubsystemList)
+  for (SubsysReco *reco : m_SubsystemList)
   {
     if (what.empty() || what == "ALL" || (reco->Name()).find(what) != std::string::npos)
     {
@@ -758,7 +767,7 @@ void PHG4Reco::G4Seed(const unsigned int i)
 {
   CLHEP::HepRandom::setTheSeed(i);
 
-  if (PHRandomSeed::Verbosity()>=2)
+  if (PHRandomSeed::Verbosity() >= 2)
   {
     G4Random::showEngineStatus();
   }
@@ -769,10 +778,10 @@ void PHG4Reco::G4Seed(const unsigned int i)
 //____________________________________________________________________________
 void PHG4Reco::DefineMaterials()
 {
-  G4String symbol,name;   //a=mass of a mole;
-  G4double density;  //z=mean number of protons;
-  G4double fractionmass,a;
-  G4int ncomponents, natoms,z;
+  G4String symbol, name;  // a=mass of a mole;
+  G4double density;       // z=mean number of protons;
+  G4double fractionmass, a;
+  G4int ncomponents, natoms, z;
   // this is for FTFP_BERT_HP where the neutron code barfs
   // if the z difference to the last known element (U) is too large
   // home made compounds
@@ -918,7 +927,7 @@ void PHG4Reco::DefineMaterials()
 
   // E864 Pb-Scifi calorimeter
   // E864 Calorimeter is 99% Pb, 1% Antimony
-  //Nuclear Instruments and Methods in Physics Research A 406 (1998) 227 258
+  // Nuclear Instruments and Methods in Physics Research A 406 (1998) 227 258
   G4double density_e864 = (0.99 * 11.34 + 0.01 * 6.697) * g / cm3;
   G4Material *absorber_e864 = new G4Material("E864_Absorber", density_e864, 2);
   absorber_e864->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Pb"), 0.99);
@@ -933,14 +942,14 @@ void PHG4Reco::DefineMaterials()
   W_Epoxy->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_W"), fractionmass = 0.5);
   W_Epoxy->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_POLYSTYRENE"), fractionmass = 0.5);
 
-  //from http://www.physi.uni-heidelberg.de/~adler/TRD/TRDunterlagen/RadiatonLength/tgc2.htm
-  //Epoxy (for FR4 )
-  //density = 1.2*g/cm3;
+  // from http://www.physi.uni-heidelberg.de/~adler/TRD/TRDunterlagen/RadiatonLength/tgc2.htm
+  // Epoxy (for FR4 )
+  // density = 1.2*g/cm3;
   G4Material *Epoxy = new G4Material("Epoxy", 1.2 * g / cm3, ncomponents = 2);
   Epoxy->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), natoms = 2);
   Epoxy->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 2);
 
-  //FR4 (Glass + Epoxy)
+  // FR4 (Glass + Epoxy)
   density = 1.86 * g / cm3;
   G4Material *FR4 = new G4Material("FR4", density, ncomponents = 2);
   FR4->AddMaterial(quartz, fractionmass = 0.528);
@@ -978,7 +987,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   PMMA->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 5.7 / (3.6 + 5.7 + 1.4));
   PMMA->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), 1.4 / (3.6 + 5.7 + 1.4));
 
-  //scintillator for HCal, use a new name in order to change the Birks' constant
+  // scintillator for HCal, use a new name in order to change the Birks' constant
   G4Material *Uniplast_scintillator = new G4Material("Uniplast_scintillator", 1.06 * g / cm3, ncomponents = 1);
   Uniplast_scintillator->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_POLYSTYRENE"), fractionmass = 1.);
 
@@ -1004,10 +1013,10 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   CF4->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 1);
   CF4->AddElement(G4NistManager::Instance()->FindOrBuildElement("F"), natoms = 4);
 
-  G4Element* elLu = new G4Element(name="Lutetium", symbol="Lu", z=71., a=174.97*g/mole);    
-  G4Material *LSO = new G4Material("LSO",  //its name 
-                        density = 7.4*g/cm3,    //its density
-                         ncomponents = 3);         //number of components
+  G4Element *elLu = new G4Element(name = "Lutetium", symbol = "Lu", z = 71., a = 174.97 * g / mole);
+  G4Material *LSO = new G4Material("LSO",                    // its name
+                                   density = 7.4 * g / cm3,  // its density
+                                   ncomponents = 3);         // number of components
 
   LSO->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), natoms = 1);
   LSO->AddElement(elLu, natoms = 2);
@@ -1099,8 +1108,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   G4MaterialPropertiesTable *MPT_CF4 = new G4MaterialPropertiesTable();
 
 #if G4VERSION_NUMBER >= 1100
-  MPT_CF4->AddProperty("RINDEX", PhotonEnergy_CF4, RefractiveIndex_CF4, nEntries_CF4,false,true);
-  MPT_CF4->AddProperty("ABSLENGTH", PhotonEnergy_CF4, Absorption_CF4, nEntries_CF4,false,true);
+  MPT_CF4->AddProperty("RINDEX", PhotonEnergy_CF4, RefractiveIndex_CF4, nEntries_CF4, false, true);
+  MPT_CF4->AddProperty("ABSLENGTH", PhotonEnergy_CF4, Absorption_CF4, nEntries_CF4, false, true);
 #else
   MPT_CF4->AddProperty("RINDEX", PhotonEnergy_CF4, RefractiveIndex_CF4, nEntries_CF4)->SetSpline(true);
   MPT_CF4->AddProperty("ABSLENGTH", PhotonEnergy_CF4, Absorption_CF4, nEntries_CF4)->SetSpline(true);
@@ -1162,8 +1171,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   G4MaterialPropertiesTable *MPT_LiF = new G4MaterialPropertiesTable();
 
 #if G4VERSION_NUMBER >= 1100
-  MPT_LiF->AddProperty("RINDEX", PhotonEnergy_LiF, RefractiveIndex_LiF, nEntries_LiF,false,true);
-  MPT_LiF->AddProperty("ABSLENGTH", PhotonEnergy_LiF, Absorption_LiF, nEntries_LiF,false,true);
+  MPT_LiF->AddProperty("RINDEX", PhotonEnergy_LiF, RefractiveIndex_LiF, nEntries_LiF, false, true);
+  MPT_LiF->AddProperty("ABSLENGTH", PhotonEnergy_LiF, Absorption_LiF, nEntries_LiF, false, true);
 #else
   MPT_LiF->AddProperty("RINDEX", PhotonEnergy_LiF, RefractiveIndex_LiF, nEntries_LiF)->SetSpline(true);
   MPT_LiF->AddProperty("ABSLENGTH", PhotonEnergy_LiF, Absorption_LiF, nEntries_LiF)->SetSpline(true);
@@ -1214,8 +1223,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   G4MaterialPropertiesTable *MPT_CsI = new G4MaterialPropertiesTable();
 
 #if G4VERSION_NUMBER >= 1100
-  MPT_CsI->AddProperty("RINDEX", PhotonEnergy_CsI, RefractiveIndex_CsI, nEntries_CsI,false,true);
-  MPT_CsI->AddProperty("ABSLENGTH", PhotonEnergy_CsI, Absorption_CsI, nEntries_CsI,false,true);
+  MPT_CsI->AddProperty("RINDEX", PhotonEnergy_CsI, RefractiveIndex_CsI, nEntries_CsI, false, true);
+  MPT_CsI->AddProperty("ABSLENGTH", PhotonEnergy_CsI, Absorption_CsI, nEntries_CsI, false, true);
 #else
   MPT_CsI->AddProperty("RINDEX", PhotonEnergy_CsI, RefractiveIndex_CsI, nEntries_CsI)->SetSpline(true);
   MPT_CsI->AddProperty("ABSLENGTH", PhotonEnergy_CsI, Absorption_CsI, nEntries_CsI)->SetSpline(true);
@@ -1251,7 +1260,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   // mRICH_Acrylic ---------------
   const int mRICH_nEntries1 = 32;
 
-  //same photon energy array as aerogel 1
+  // same photon energy array as aerogel 1
   G4double mRICH_PhotonEnergy[mRICH_nEntries1] =
       {2.034 * eV, 2.068 * eV, 2.103 * eV, 2.139 * eV,   // 610, 600, 590, 580, (nm)
        2.177 * eV, 2.216 * eV, 2.256 * eV, 2.298 * eV,   // 570, 560, 550, 540,
@@ -1303,7 +1312,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
        1.02572, 1.0258, 1.02585, 1.0259, 1.02595,
        1.026, 1.02608};
 
-  G4double mRICH_Agel1Absorption[mRICH_nEntries1] =  //from Hubert
+  G4double mRICH_Agel1Absorption[mRICH_nEntries1] =  // from Hubert
       {3.448 * m, 4.082 * m, 6.329 * m, 9.174 * m, 12.346 * m, 13.889 * m,
        15.152 * m, 17.241 * m, 18.868 * m, 20.000 * m, 26.316 * m, 35.714 * m,
        45.455 * m, 47.619 * m, 52.632 * m, 52.632 * m, 55.556 * m, 52.632 * m,
@@ -1312,7 +1321,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
        17.500 * m, 14.500 * m};
 
   G4double mRICH_Agel1Rayleigh[mRICH_nEntries1];
-  //const G4double AerogelTypeAClarity = 0.00719*micrometer*micrometer*micrometer*micrometer/cm;
+  // const G4double AerogelTypeAClarity = 0.00719*micrometer*micrometer*micrometer*micrometer/cm;
   const G4double AerogelTypeAClarity = 0.0020 * micrometer * micrometer * micrometer * micrometer / cm;
   G4double Cparam = AerogelTypeAClarity * cm / (micrometer * micrometer * micrometer * micrometer);
   G4double PhotMomWaveConv = 1239 * eV * nm;
@@ -1322,7 +1331,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
     for (int i = 0; i < mRICH_nEntries1; i++)
     {
       G4double ephoton = mRICH_PhotonEnergy[i];
-      //In the following the 1000 is to convert form nm to micrometer
+      // In the following the 1000 is to convert form nm to micrometer
       G4double wphoton = (PhotMomWaveConv / ephoton) / (1000.0 * nm);
       mRICH_Agel1Rayleigh[i] = (std::pow(wphoton, 4)) / Cparam;
     }
@@ -1331,7 +1340,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   G4MaterialPropertiesTable *mRICH_Agel1_myMPT = new G4MaterialPropertiesTable();
   mRICH_Agel1_myMPT->AddProperty("RINDEX", mRICH_PhotonEnergy, mRICH_Agel1RefractiveIndex, mRICH_nEntries1);
   mRICH_Agel1_myMPT->AddProperty("ABSLENGTH", mRICH_PhotonEnergy, mRICH_Agel1Absorption, mRICH_nEntries1);
-  mRICH_Agel1_myMPT->AddProperty("RAYLEIGH", mRICH_PhotonEnergy, mRICH_Agel1Rayleigh, mRICH_nEntries1);  //Need table of rayleigh Scattering!!!
+  mRICH_Agel1_myMPT->AddProperty("RAYLEIGH", mRICH_PhotonEnergy, mRICH_Agel1Rayleigh, mRICH_nEntries1);  // Need table of rayleigh Scattering!!!
   mRICH_Agel1_myMPT->AddConstProperty("SCINTILLATIONYIELD", 0. / MeV);
   mRICH_Agel1_myMPT->AddConstProperty("RESOLUTIONSCALE", 1.0);
 
@@ -1367,7 +1376,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
        1.03196, 1.03212, 1.03228, 1.03244, 1.03261,
        1.03279, 1.03297, 1.03315, 1.03334, 1.03354};
 
-  G4double mRICH_Agel2Absorption[mRICH_nEntries2] =  //from Marco
+  G4double mRICH_Agel2Absorption[mRICH_nEntries2] =  // from Marco
       {17.5000 * cm, 17.7466 * cm, 17.9720 * cm, 18.1789 * cm, 18.3694 * cm,
        18.5455 * cm, 18.7086 * cm, 18.8602 * cm, 19.0015 * cm, 19.1334 * cm,
        19.2569 * cm, 19.3728 * cm, 19.4817 * cm, 19.5843 * cm, 19.6810 * cm,
@@ -1379,7 +1388,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
        1.7296 * cm, 1.5696 * cm, 1.4266 * cm, 1.2986 * cm, 1.1837 * cm,
        1.0806 * cm, 0.9877 * cm, 0.9041 * cm, 0.8286 * cm, 0.7603 * cm};
 
-  G4double mRICH_Agel2Rayleigh[mRICH_nEntries2] =  //from Marco
+  G4double mRICH_Agel2Rayleigh[mRICH_nEntries2] =  // from Marco
       {35.1384 * cm, 29.24805 * cm, 24.5418 * cm, 20.7453 * cm, 17.6553 * cm,
        15.1197 * cm, 13.02345 * cm, 11.2782 * cm, 9.81585 * cm, 8.58285 * cm,
        7.53765 * cm, 6.6468 * cm, 5.88375 * cm, 5.22705 * cm, 4.6596 * cm,
@@ -1404,7 +1413,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   mRICH_Aerogel2->SetMaterialPropertiesTable(mRICH_Agel2MPT);
 
   // mRICH_Borosilicate ----------
-  //using the same photon energy array as mRICH_Acrylic
+  // using the same photon energy array as mRICH_Acrylic
 
   G4double mRICH_glassRefractiveIndex[mRICH_nEntries1] =
       {1.47, 1.47, 1.47, 1.47, 1.47,
@@ -1426,7 +1435,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
        00.001 * cm, 00.001 * cm, 00.001 * cm, 00.001 * cm};
 
   G4MaterialPropertiesTable *mRICH_glass_myMPT = new G4MaterialPropertiesTable();
-  //same photon energy array as aerogel 1
+  // same photon energy array as aerogel 1
   mRICH_glass_myMPT->AddProperty("RINDEX", mRICH_PhotonEnergy, mRICH_glassRefractiveIndex, mRICH_nEntries1);
   mRICH_glass_myMPT->AddProperty("ABSLENGTH", mRICH_PhotonEnergy, mRICH_glassAbsorption, mRICH_nEntries1);
 
@@ -1435,7 +1444,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   mRICH_Borosilicate->SetMaterialPropertiesTable(mRICH_glass_myMPT);
 
   // mRICH_Air ------------------
-  //using same photon energy array as mRICH_Acrylic
+  // using same photon energy array as mRICH_Acrylic
 
   G4double mRICH_AirRefractiveIndex[mRICH_nEntries1] =
       {1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00,
@@ -1473,7 +1482,7 @@ void PHG4Reco::DefineRegions()
 PHG4Subsystem *
 PHG4Reco::getSubsystem(const std::string &name)
 {
-  for (PHG4Subsystem *subsys: m_SubsystemList)
+  for (PHG4Subsystem *subsys : m_SubsystemList)
   {
     if (subsys->Name() == name)
     {
@@ -1504,7 +1513,7 @@ void PHG4Reco::ApplyDisplayAction()
   }
   G4VPhysicalVolume *physworld = m_Detector->GetPhysicalVolume();
   m_DisplayAction->ApplyDisplayAction(physworld);
-  for (PHG4Subsystem *g4sub: m_SubsystemList)
+  for (PHG4Subsystem *g4sub : m_SubsystemList)
   {
     PHG4DisplayAction *action = g4sub->GetDisplayAction();
     if (action)

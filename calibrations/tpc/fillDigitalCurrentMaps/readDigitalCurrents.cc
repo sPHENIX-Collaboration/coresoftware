@@ -36,7 +36,6 @@
 #include <sstream>
 #include <set>
 
-double pi = 2 * acos(0.0);
 
 using namespace std;
 
@@ -74,7 +73,7 @@ bool IsOverFrame(double r, double phi){
 
   //find the two spokes we're between:
   
-  float sectorangle=(pi/6);
+  float sectorangle=(M_PI/6);
   float nsectors=phi/sectorangle;
   int nsec=floor(nsectors);
   float reduced_phi=phi-nsec*sectorangle; //between zero and sixty degrees.
@@ -131,7 +130,7 @@ int readDigitalCurrents::Init(PHCompositeNode *topNode)
                                  411.53, 421.70, 431.90, 442.11, 452.32, 462.52, 472.73, 482.94, 493.14, 503.35, 513.56, 523.76, 533.97, 544.18, 554.39, 564.59, 574.76,
                                  583.67, 594.59, 605.57, 616.54, 627.51, 638.48, 649.45, 660.42, 671.39, 682.36, 693.33, 704.30, 715.27, 726.24, 737.21, 748.18, 759.11};
   const int nphi = 205;
-  double phi_bins[nphi + 1] = { 0., 6.3083-2 * pi, 6.3401-2 * pi, 6.372-2 * pi, 6.4039-2 * pi, 6.4358-2 * pi, 6.4676-2 * pi, 6.4995-2 * pi, 6.5314-2 * pi, 
+  double phi_bins[nphi + 1] = { 0., 6.3083-2 * M_PI, 6.3401-2 * M_PI, 6.372-2 * M_PI, 6.4039-2 * M_PI, 6.4358-2 * M_PI, 6.4676-2 * M_PI, 6.4995-2 * M_PI, 6.5314-2 * M_PI, 
                                 0.2618, 0.2937, 0.3256, 0.3574, 0.3893, 0.4212, 0.453, 0.4849, 0.5168, 0.5487, 0.5805, 0.6124, 0.6443, 0.6762, 0.7081, 
                                 0.7399, 0.7718, 0.7854, 0.8173, 0.8491, 0.881, 0.9129, 0.9448, 0.9767, 1.0085, 1.0404, 1.0723, 1.1041, 1.136, 1.1679, 
                                 1.1998, 1.2317, 1.2635, 1.2954, 1.309, 1.3409, 1.3727, 1.4046, 1.4365, 1.4684, 1.5002, 1.5321, 1.564, 1.5959, 1.6277, 
@@ -145,7 +144,7 @@ int readDigitalCurrents::Init(PHCompositeNode *topNode)
                                 4.8968, 4.9287, 4.9606, 4.9742, 5.0061, 5.0379, 5.0698, 5.1017, 5.1336, 5.1654, 5.1973, 5.2292, 5.2611, 5.2929, 5.3248, 
                                 5.3567, 5.3886, 5.4204, 5.4523, 5.4842, 5.4978, 5.5297, 5.5615, 5.5934, 5.6253, 5.6572, 5.689, 5.7209, 5.7528, 5.7847, 
                                 5.8165, 5.8484, 5.8803, 5.9122, 5.944, 5.9759, 6.0078, 6.0214, 6.0533, 6.0851, 6.117, 6.1489, 6.1808, 6.2127, 6.2445, 
-                                6.2764, 2 * pi};
+                                6.2764, 2 * M_PI};
 
 
 
@@ -176,17 +175,29 @@ int readDigitalCurrents::Init(PHCompositeNode *topNode)
   _h_hits  = new TH1F("_h_hits" ,"_h_hits;N, [hit]"   ,1e5,0-0.5,1e5-0.5);
   _h_hit_XY = new TH2F("_h_hit_XY" ,"_h_hit_XY;X, [m];Y, [m]"   ,4*nr,-1*rmax,rmax,4*nr,-1*rmax,rmax);
   
-  _h_SC_ibf  = new TH3F("_h_SC_ibf" ,"_h_SC_ibf;#phi, [rad];R, [mm];Z, [mm]"   ,nphi,phi_bins,r_bins_N ,r_bins,2*nz,z_bins);
+  //_h_SC_ibf  = new TH3F("_h_SC_ibf" ,"_h_SC_ibf;#phi, [rad];R, [mm];Z, [mm]"   ,nphi,phi_bins,r_bins_N ,r_bins,2*nz,z_bins);
   _h_DC_SC = new TH3F("_h_DC_SC" ,"_h_DC_SC;#phi, [rad];R, [mm];Z, [mm]"   ,nphi,phi_bins,r_bins_N ,r_bins,2*nz,z_bins);
   _h_DC_SC_XY = new TH2F("_h_DC_SC_XY" ,"_h_DC_SC_XY;X, [mm];Y, [mm];ADC;"   ,4*nr,-1*rmax,rmax,4*nr,-1*rmax,rmax);
   _h_DC_E = new TH2F("_h_DC_E" ,"_h_DC_E;ADC;E"   ,200,-100,2e3-100,500,-100,5e3-100);
+
+  char name[100];
+  char name_ax[100];
+  for (int iz = 0; iz < nFrames; iz++)
+  {
+    sprintf(name, "_h_SC_ibf_%d", iz);
+    sprintf(name_ax, "_h_SC_ibf_%d;#phi, [rad];R, [mm];Z, [mm]", iz);
+    _h_SC_ibf[iz] = new TH3F(name, name_ax, nphi, phi_bins, r_bins_N, r_bins, 2 * nz, z_bins);
+
+    hm->registerHisto(_h_SC_ibf[iz]);
+  }
+
   hm->registerHisto(_h_R );
   hm->registerHisto(_h_hits );
   hm->registerHisto(_h_DC_SC );
   hm->registerHisto(_h_DC_SC_XY );
   hm->registerHisto(_h_hit_XY );
   hm->registerHisto(_h_DC_E );
-  hm->registerHisto(_h_SC_ibf );
+
   _event_timestamp = 0;
 
   if(_fillCSVFile){
@@ -255,7 +266,7 @@ int readDigitalCurrents::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int readDigitalCurrents::process_event(PHCompositeNode *topNode)
 {
-  double bX = _beamxing;
+  //double bX = _beamxing;
   //float bX = 1508071;
   //double z_bias_avg = 0;
   //if (_fAvg==1){ 
@@ -340,7 +351,8 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
       int min_phiBin=1e5;
       int max_phiBin=-1;
       for(TrkrHitSet::ConstIterator hit_iter = range.first; hit_iter != range.second; ++hit_iter){
-        int f_fill_ibf=0;
+        //int f_fill_ibf=0;
+        int f_fill_ibf[30] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 
         unsigned short phibin = TpcDefs::getPad(hit_iter->first);
@@ -352,8 +364,8 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
         }else{
           phi_center = layergeom_cgc->get_phicenter(phibin);
         }
-        if (phi_center<0) phi_center+=2*pi;
-        if(phi_center<pi/2+pi/12 && phi_center>pi/2-pi/12){
+        if (phi_center<0) phi_center+=2*M_PI;
+        if(phi_center<M_PI/2+M_PI/12 && phi_center>M_PI/2-M_PI/12){
           if(min_phiBin>phibin)min_phiBin=phibin;
           if(max_phiBin<phibin)max_phiBin=phibin;
         }
@@ -374,7 +386,10 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
         float E = hit->getEnergy();
         //double z = 0;
         //double z_prim = -1*1e10;
-        double z_ibf =  -1*1e10;
+        //double z_ibf =  -1*1e10;
+        double z_ibf[30] = {-1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10,
+                            -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10,
+                            -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10, -1 * 1e10};
 
         int RBin=_h_R->GetXaxis()->FindBin(radius);
         if((RBin>33 && RBin<50) && z>0){
@@ -392,28 +407,35 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
         
         }
         //if(!IsOverFrame(radius/mm,phi_center)){
+        for (int iz = 0; iz < nFrames; iz++)
+        {
+          double bX = _beamxing[iz];
+          if (_event_bunchXing <= bX)
+          {
+            if(z>=0 && z<1.055*m){
+              z_ibf[iz] = 1.055 * m - (bX - _event_bunchXing) * 106 * vIon * ns;
+              if( z_ibf[iz]>0 && z_ibf[iz]<1.055*m){
+                f_fill_ibf[iz]=1;
+              }
+            }
+            if(z<0 && z>-1.055*m){
+              z_ibf[iz] = -1.055*m+(bX-_event_bunchXing)*106*vIon*ns;
+              if( z_ibf[iz]<0 && z_ibf[iz]>-1.055*m){
+                f_fill_ibf[iz]=1;
+              }
+            }
+          }
           
-
+        }
           if(z>=0 && z<1.055*m){
             if(adc>=0)n_hits++;
             if(adc>=0)_h_DC_E->Fill(adc,E);
 
-            //z_prim = z-(bX-_event_bunchXing)*106*vIon*ns;
-            z_ibf = 1.055*m-(bX-_event_bunchXing)*106*vIon*ns;
-            //if(n_hits%100==0)cout<<"z_ibf = "<<z_ibf<<"="<<"1.055*m-("<<bX<<"-"<<_event_bunchXing<<")*"<<106*vIon*ns<<endl;
-            if( z_ibf>0 && z_ibf<1.055*m){
-              f_fill_ibf=1;
-            }
           }
           if(z<0 && z>-1.055*m){
             if(adc>=0)n_hits++;
             if(adc>=0)_h_DC_E->Fill(adc,E);
 
-            //z_prim = z+(bX-_event_bunchXing)*106*vIon*ns;
-            z_ibf = -1.055*m+(bX-_event_bunchXing)*106*vIon*ns;
-            if( z_ibf<0 && z_ibf>-1.055*m){
-              f_fill_ibf=1;
-            }
           }        
         
         //Reading IBF and Gain weights according to X-Y position
@@ -429,9 +451,13 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
           float w_adc = adc*w_ibf;
           _h_DC_SC->Fill(phi_center,radius,z,w_adc);       
           _h_DC_SC_XY->Fill(x,y,w_adc);
-          if(f_fill_ibf==1){
-            _h_SC_ibf  ->Fill(phi_center,radius,z_ibf,w_adc);
+          if(f_fill_ibf[0]==1){
+            
             _h_R->Fill(radius);
+          }
+          for (int iz = 0; iz < nFrames; iz++)
+          {
+            if (f_fill_ibf[iz] == 1)_h_SC_ibf[iz]  ->Fill(phi_center,radius,z_ibf[iz],w_adc);
           }
         //}
         //if(n_hits%100==0) std::cout<<radius<<"|"<<phi_center<<"|"<<z<<std::endl;
@@ -470,7 +496,10 @@ int readDigitalCurrents::End(PHCompositeNode *topNode)
   _h_DC_SC    ->Sumw2( false );
   _h_hit_XY ->Sumw2( false );
   _h_DC_SC_XY ->Sumw2( false );
-  _h_SC_ibf   ->Sumw2( false );
+  for (int iz = 0; iz < nFrames; iz++)
+  {
+    _h_SC_ibf[iz]->Sumw2(false);
+  }
   hm->dumpHistos(_filename, "RECREATE");
   if(_fillCSVFile)myCSVFile.close();
   return Fun4AllReturnCodes::EVENT_OK;
@@ -499,10 +528,11 @@ void readDigitalCurrents::FillCSV(int fillCSVFile){
   cout<<"Fill CSV file is set to: "<<fillCSVFile<<endl;
 }
 
-void readDigitalCurrents::SetBeamXing(int newBeamXing){
-  _beamxing = newBeamXing;
-  cout<<"Initial BeamXing is set to: "<<newBeamXing<<endl;
 
+void readDigitalCurrents::SetBeamXing(const std::vector<int> &beamXs)
+{
+  _beamxing = beamXs;
+  std::cout << "Initial BeamXing is set to: " << _beamxing[0] << std::endl;
 }
 void readDigitalCurrents::SetCollSyst(int coll_syst){
   _collSyst = coll_syst;

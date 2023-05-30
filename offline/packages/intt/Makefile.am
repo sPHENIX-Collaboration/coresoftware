@@ -19,6 +19,9 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   InttClusterizer.h \
+  InttDeadMapHelper.h \
+  InttFelixMap.h \
+  InttRawDataDecoder.h \
   CylinderGeomIntt.h
 
 ROOTDICTS = \
@@ -30,7 +33,10 @@ nobase_dist_pcm_DATA = \
 
 # sources for intt library
 libintt_la_SOURCES = \
-  InttClusterizer.cc
+  InttClusterizer.cc \
+  InttDeadMapHelper.cc \
+  InttFelixMap.cc \
+  InttRawDataDecoder.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \

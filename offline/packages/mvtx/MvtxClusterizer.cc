@@ -344,8 +344,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  cluster_ids.insert(component[i]);
 	  clusters.insert(make_pair(component[i], hitvec[i]));
 	}
-      //    cout << "found cluster #: "<< clusters.size()<< endl;
-      // loop over the componenets and make clusters
+  int total_clusters = 0;
       for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter)
 	{
 	  int clusid = *clusiter;
@@ -353,7 +352,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  
 	  if (Verbosity() > 2) cout << "Filling cluster id " << clusid << " of " << std::distance(cluster_ids.begin(),clusiter )<< endl;
 	  
-	  // make the cluster directly in the node tree
+    ++total_clusters;
 	  auto ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 	  
 	  // determine the size of the cluster in phi and z
@@ -405,9 +404,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  locclusz = loczsum / nhits;
 	  
 	  const double pitch = layergeom->get_pixel_x();
-	  //	std::cout << " pitch: " <<  pitch << std::endl;
 	  const double length = layergeom->get_pixel_z();
-	  //	std::cout << " length: " << length << std::endl;
 	  const double phisize = phibins.size() * pitch;
 	  const double zsize = zbins.size() * length;
 	  

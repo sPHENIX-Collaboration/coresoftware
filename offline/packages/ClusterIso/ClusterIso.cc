@@ -17,8 +17,8 @@
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-#include <g4vertex/GlobalVertex.h>
-#include <g4vertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
 
 #include <fun4all/Fun4AllBase.h>             // for Fun4AllBase::VERBOSITY_MORE
 #include <fun4all/SubsysReco.h>

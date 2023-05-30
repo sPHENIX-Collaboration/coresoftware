@@ -23,6 +23,8 @@ class SvtxVertexEval;
 class TrkrClusterContainer;
 class TTree;
 class KFParticle;
+class GlobalVertex;
+class GlobalVertexMap;
 
 namespace HepMC
 {
@@ -37,7 +39,7 @@ class KFParticle_truthAndDetTools
   virtual ~KFParticle_truthAndDetTools();  //Destructor
 
   SvtxTrack *getTrack(unsigned int track_id, SvtxTrackMap *trackmap);
-  SvtxVertex *getVertex(unsigned int vertex_id, SvtxVertexMap *vertexmap);
+  GlobalVertex *getVertex(unsigned int vertex_id, GlobalVertexMap *vertexmap);
   PHG4Particle *getTruthTrack(SvtxTrack *thisTrack, PHCompositeNode *topNode);
 
   void initializeTruthBranches(TTree *m_tree, int daughter_id, std::string daughter_number, bool m_constrain_to_vertex_truthMatch);

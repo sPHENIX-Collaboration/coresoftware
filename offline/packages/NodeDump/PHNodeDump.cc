@@ -7,8 +7,8 @@
 #include "DumpCaloTriggerInfo.h"
 #include "DumpCdbUrlSave.h"
 #include "DumpCentralityInfo.h"
-#include "DumpEpdGeom.h"
 #include "DumpEpInfo.h"
+#include "DumpEpdGeom.h"
 #include "DumpEventHeader.h"
 #include "DumpFlagSave.h"
 #include "DumpGlobalVertexMap.h"
@@ -160,7 +160,6 @@ int PHNodeDump::CloseOutputFiles()
 int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
 {
   DumpObject *newdump;
-  const std::string &newnode = NodeName;
   if (!exclusive.empty())
   {
     if (exclusive.find(NodeName) == exclusive.end())
@@ -168,13 +167,14 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       std::cout << "Exclusive find: Ignoring " << NodeName << std::endl;
       newdump = new DumpObject(NodeName);
       newdump->NoOutput();
-      goto initdump;
+      return initdump(NodeName, newdump);
     }
   }
   if (ignore.find(NodeName) != ignore.end())
   {
     std::cout << "Ignoring " << NodeName << std::endl;
     newdump = new DumpObject(NodeName);
+    newdump->NoOutput();
   }
   else
   {
@@ -389,12 +389,15 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
     }
   }
   newdump->PrintEvtSeq(print_evtseq);
+  return initdump(NodeName, newdump);
+}
 
-initdump:
-  newdump->SetParentNodeDump(this);
-  newdump->SetOutDir(outdir);
-  newdump->SetPrecision(fp_precision);
-  newdump->Init();
-  dumpthis[newnode] = newdump;
+int PHNodeDump::initdump(const std::string &newnode, DumpObject *dmp)
+{
+  dmp->SetParentNodeDump(this);
+  dmp->SetOutDir(outdir);
+  dmp->SetPrecision(fp_precision);
+  dmp->Init();
+  dumpthis[newnode] = dmp;
   return 0;
 }

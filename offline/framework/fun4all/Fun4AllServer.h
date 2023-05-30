@@ -83,8 +83,8 @@ class Fun4AllServer : public Fun4AllBase
   //! run n events (0 means up to end of file)
   int run(const int nevnts = 0, const bool require_nevents = false);
 
-  /*! 
-    \brief skip n events (0 means up to the end of file). 
+  /*!
+    \brief skip n events (0 means up to the end of file).
     Skip means read, don't process.
   */
   int skip(const int nevnts = 0);

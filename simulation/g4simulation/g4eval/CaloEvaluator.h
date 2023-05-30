@@ -38,6 +38,13 @@ class CaloEvaluator : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  // allow user to set the value of the event number
+  // useful for condor simulation submissions
+  // must be called after Init()
+  void set_event(int ievent) {
+    _ievent = ievent;
+  }
+
   void set_strict(bool b) { _strict = b; }
   // funtions to limit the tracing to only part of the event ---------
   // and speed up the evaluation
