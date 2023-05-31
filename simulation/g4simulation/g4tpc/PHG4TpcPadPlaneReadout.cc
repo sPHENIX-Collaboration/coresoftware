@@ -701,14 +701,6 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 
   set_default_int_param("tpc_minlayer_inner", 7);
 
-  //set_default_double_param("tpc_minradius_inner", 30.0);  // cm
-  //set_default_double_param("tpc_minradius_mid", 40.0);
-  //set_default_double_param("tpc_minradius_outer", 60.0);
-//
-  //set_default_double_param("tpc_maxradius_inner", 40.0);  // cm
-  //set_default_double_param("tpc_maxradius_mid", 60.0);
-  //set_default_double_param("tpc_maxradius_outer", 77.0);  // from Tom
-
   set_default_double_param("tpc_minradius_inner", 31.105);//30.0);  // cm
   set_default_double_param("tpc_minradius_mid", 41.153);//40.0);
   set_default_double_param("tpc_minradius_outer", 58.367);//60.0);
