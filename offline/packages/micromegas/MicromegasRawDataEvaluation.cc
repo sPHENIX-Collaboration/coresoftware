@@ -100,7 +100,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
     {
       // no data
       std::cout << "MicromegasRawDataEvaluation::process_event - packet " << packet_id << " not found." << std::endl;
-      return Fun4AllReturnCodes::EVENT_OK;
+      continue;
     }
         
     // get number of datasets (also call waveforms)
