@@ -130,6 +130,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     const double x_gem, const double y_gem, const double t_gem, const unsigned int side, 
     PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)
 {
+  std::cout << "PHG4TpcPadPlaneReadout::MapToPadPlane" << std::endl;
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
   // The t_gem value already reflects the drift time of the primary electron from the production point, and is randomized within the longitudinal diffusion witdth
@@ -231,8 +232,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
               //<< " zigzag_pads " << zigzag_pads
               << std::endl;
 
-  pad_phibin.clear();
-  pad_phibin_share.clear();
+  std::vector<int> pad_phibin;
+  std::vector<double> pad_phibin_share;
 
   populate_zigzag_phibins(side, layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
   /* if (pad_phibin.size() == 0) { */
@@ -257,8 +258,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     std::cout << "  populate t bins for layernum " << layernum
               << " with t_gem " << t_gem << " sigmaL[0] " << sigmaL[0] << " sigmaL[1] " << sigmaL[1] << std::endl;
 
-  adc_tbin.clear();
-  adc_tbin_share.clear();
+  std::vector<int> adc_tbin;
+  std::vector<double> adc_tbin_share;
   populate_tbins(t_gem, sigmaL, adc_tbin, adc_tbin_share);
   /* if (adc_tbin.size() == 0)  { */
     /* pass_data.neff_electrons = 0; */
@@ -396,42 +397,54 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     }
 
   m_NHits++;
+  std::cout << "PHG4TpcPadPlaneReadout::MapToPadPlane - done" << std::endl;
   /* return pass_data; */
 }
-double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double phi, const double radius){
+double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double phi, const double radius)
+{
+  std::cout << "PHG4TpcPadPlaneReadout::check_phi" << std::endl;
+  
   double new_phi = phi;
   int p_region=-1;
   for (int iregion = 0; iregion < 3; ++iregion)
   {  
     if (radius < MaxRadius[iregion] && radius > MinRadius[iregion]) p_region = iregion;
   }
-    if(p_region>0){
-      for(int s=0; s<12;s++){
-        double daPhi = 0;
-        if (s==0){
-          daPhi = fabs(sector_min_Phi_sectors[side][p_region][11] + 2*M_PI - sector_max_Phi_sectors[side][p_region][s]);
-        }else{
-          daPhi = fabs(sector_min_Phi_sectors[side][p_region][s-1] - sector_max_Phi_sectors[side][p_region][s]);
-        }
+  
+  std::cout << "PHG4TpcPadPlaneReadout::check_phi - p_region: " << p_region << std::endl;
+
+  
+  if(p_region>0){
+    for(int s=0; s<12;s++)
+    {
+      double daPhi = 0;
+      if (s==0)
+      {
+        daPhi = fabs(sector_min_Phi_sectors[side][p_region][11] + 2*M_PI - sector_max_Phi_sectors[side][p_region][s]);
+      }else{
+        daPhi = fabs(sector_min_Phi_sectors[side][p_region][s-1] - sector_max_Phi_sectors[side][p_region][s]);
+      }
       double min_phi = sector_max_Phi_sectors[side][p_region][s];
       double max_phi = sector_max_Phi_sectors[side][p_region][s]+daPhi;
-        if (new_phi<=max_phi && new_phi>=min_phi){
-          if(fabs(max_phi - new_phi) > fabs(new_phi - min_phi)){
-            new_phi = min_phi-PhiBinWidth[p_region]/5;//to be changed
-          }else{
-            new_phi = max_phi+PhiBinWidth[p_region]/5;
-          }
-
-
-         }
-
+      if (new_phi<=max_phi && new_phi>=min_phi)
+      {
+        if(fabs(max_phi - new_phi) > fabs(new_phi - min_phi))
+        {
+          new_phi = min_phi-PhiBinWidth[p_region]/5;//to be changed
+        }else{
+          new_phi = max_phi+PhiBinWidth[p_region]/5;
+        }
       }
     }
-    if(new_phi<sector_min_Phi_sectors[side][p_region][11] && new_phi>=-M_PI){
-      new_phi += 2*M_PI;
-    }
+  }
+  if(new_phi<sector_min_Phi_sectors[side][p_region][11] && new_phi>=-M_PI)
+  {
+    new_phi += 2*M_PI;
+  } 
+  std::cout << "PHG4TpcPadPlaneReadout::check_phi - done" << std::endl;
   return new_phi;
 }
+
 void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &phibin_pad, std::vector<double> &phibin_pad_share)
 {
   const double radius      = LayerGeom->get_radius();
@@ -750,10 +763,6 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   MinRadius[0] = get_double_param("tpc_minradius_inner");
   MinRadius[1] = get_double_param("tpc_minradius_mid");
   MinRadius[2] = get_double_param("tpc_minradius_outer");
-
-  MaxRadius[0] = get_double_param("tpc_maxradius_inner");
-  MaxRadius[1] = get_double_param("tpc_maxradius_mid");
-  MaxRadius[2] = get_double_param("tpc_maxradius_outer");
 
   MaxRadius[0] = get_double_param("tpc_maxradius_inner");
   MaxRadius[1] = get_double_param("tpc_maxradius_mid");

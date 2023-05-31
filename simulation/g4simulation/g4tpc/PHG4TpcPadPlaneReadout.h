@@ -87,10 +87,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   double averageGEMGain = NAN;
 
-  std::vector<int> adc_tbin;
-  std::vector<int> pad_phibin;
-  std::vector<double> pad_phibin_share;
-  std::vector<double> adc_tbin_share;
   std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_min_Phi_sectors;
   std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_max_Phi_sectors;
 
@@ -98,7 +94,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   double getSingleEGEMAmplification();
   gsl_rng *RandomGenerator = nullptr;
 
-  TH2F *h_gain[2];
+  TH2F *h_gain[2] = {nullptr};
   
 };
 
