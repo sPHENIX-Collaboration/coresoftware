@@ -21,9 +21,6 @@
 #include <cassert>
 #include <iostream>
 
-R__LOAD_LIBRARY(libcdbobjects.so)
-R__LOAD_LIBRARY(libsphenixnpc.so)
-R__LOAD_LIBRARY(libphool.so)
 /*************************************************************/
 /*                TPC Pedestal Calibration                   */
 /*               Thomas Marshall,Aditya Dash                 */
@@ -55,20 +52,6 @@ int TPCPedestalCalibration::InitRun(PHCompositeNode *)
 {
   m_cdbttree = new CDBTTree(m_fname);  
 
-  //m_file = TFile::Open(m_fname.c_str(), "recreate");
-  //assert(m_file->IsOpen());
- 
-  //m_pedestalTree = new TTree("pedestalTree", "Each entry is one TPC Channel");
-
-  //m_pedestalTree->Branch("isAlive",&m_isAlive,"isAlive/I");
-  //m_pedestalTree->Branch("pedMean",&m_pedMean,"pedMean/F");
-  //m_pedestalTree->Branch("pedStd",&m_pedStd,"pedStd/F");
-  //m_pedestalTree->Branch("sector",&m_sector,"sector/I");
-  //m_pedestalTree->Branch("fee",&m_outFEE,"fee/I");
-  //m_pedestalTree->Branch("channel",&m_chan,"channel/I");
-  //m_pedestalTree->Branch("module",&m_module,"module/I");
-  //m_pedestalTree->Branch("slot",&m_slot,"slot/I");
-  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

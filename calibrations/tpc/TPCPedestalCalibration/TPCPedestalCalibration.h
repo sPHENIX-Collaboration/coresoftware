@@ -61,8 +61,6 @@ class TPCPedestalCalibration : public SubsysReco
   std::string m_fname;
   bool m_writeToCDB;
   CDBTTree * m_cdbttree = nullptr;
-  //TFile * m_file = nullptr;
-  //TTree * m_pedestalTree = nullptr;
 
   int m_BCO = 0;
   int m_packet = 0;
