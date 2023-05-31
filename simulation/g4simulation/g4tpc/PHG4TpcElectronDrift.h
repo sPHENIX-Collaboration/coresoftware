@@ -42,6 +42,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   int process_event(PHCompositeNode *) override;
   int End(PHCompositeNode *) override;
 
+  void InitTrkrHitSets();
+
   void SetDefaultParameters() override;
 
   //! detector name
@@ -84,7 +86,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TrkrTruthTrackContainer *truthtracks = nullptr;
   TrkrTruthTrack *truth_track = nullptr;
   TrkrClusterContainer *truthclustercontainer = nullptr; // the TrkrClusterContainer for truth clusters
-  std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<TrkrHitSetContainer> single_hitsetcontainer;
   std::unique_ptr<PHG4TpcPadPlane> padplane;
 

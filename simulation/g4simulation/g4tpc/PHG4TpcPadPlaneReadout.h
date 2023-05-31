@@ -5,6 +5,8 @@
 #include "TpcClusterBuilder.h"
 
 #include <g4main/PHG4HitContainer.h>
+#include <trackbase/TpcDefs.h>
+
 #include <gsl/gsl_rng.h>
 
 #include <TH2F.h>
@@ -16,7 +18,7 @@
 #include <vector>
 
 class PHCompositeNode;
-//class PHG4CellContainer;
+// class PHG4CellContainer;
 class PHG4TpcCylinderGeomContainer;
 class PHG4TpcCylinderGeom;
 class TNtuple;
@@ -45,6 +47,9 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   void SetDefaultParameters() override;
   void UpdateInternalParameters() override;
 
+  int get_minLayer() override { return MinLayer[0]; }
+  int get_nLayer() override { return NTpcLayers[0] + NTpcLayers[1] + NTpcLayers[2]; }
+
  private:
   //  void populate_rectangular_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_zigzag_phibins(const unsigned int side, const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
@@ -69,12 +74,12 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<double, 3> MaxRadius;
   std::array<double, 5> Thickness;
 
-  static const int NSides = 2;
-  static const int NSectors = 12;
-  static const int NRSectors = 3;
+  static const int NSides = TpcDefs::NSides;
+  static const int NSectors = TpcDefs::NSectors;
+  static const int NRSectors = TpcDefs::NRSectors;
 
-  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dR;
-  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dPhi;
+  std::array<std::array<std::array<float, NRSectors>, NSectors>, NSides> dR;
+  std::array<std::array<std::array<float, NRSectors>, NSectors>, NSides> dPhi;
 
   double MaxZ = NAN;
   double MinT = NAN;
@@ -103,19 +108,18 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::vector<int> pad_phibin;
   std::vector<double> pad_phibin_share;
   std::vector<double> adc_tbin_share;
-  std::array<std::vector<double>, NSides > sector_R_bias;
-  std::array<std::vector<double>, NSides > sector_Phi_bias;
-  std::array<std::vector<double>, NSides > sector_min_Phi;
-  std::array<std::vector<double>, NSides > sector_max_Phi;
-  std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_min_Phi_sectors;
-  std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_max_Phi_sectors;
+  std::array<std::vector<double>, NSides> sector_R_bias;
+  std::array<std::vector<double>, NSides> sector_Phi_bias;
+  std::array<std::vector<double>, NSides> sector_min_Phi;
+  std::array<std::vector<double>, NSides> sector_max_Phi;
+  std::array<std::array<std::vector<double>, NRSectors>, NSides> sector_min_Phi_sectors;
+  std::array<std::array<std::vector<double>, NRSectors>, NSides> sector_max_Phi_sectors;
 
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
   gsl_rng *RandomGenerator;
 
   TH2F *h_gain[2];
-  
 };
 
 #endif

@@ -144,7 +144,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   assert(geonode);
 
   // hitset container
-  auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_MICROMEGAS");
   assert( trkrhitsetcontainer );
 
   // cluster container

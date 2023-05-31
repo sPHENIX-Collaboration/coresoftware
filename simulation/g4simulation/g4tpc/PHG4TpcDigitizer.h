@@ -41,11 +41,15 @@ class PHG4TpcDigitizer : public SubsysReco
     _energy_scale.insert(std::make_pair(layer, energy_per_adc));
   }
 
-  void SetTpcMinLayer(const int minlayer) { TpcMinLayer = minlayer; };
   void SetADCThreshold(const float thresh) { ADCThreshold = thresh; };
   void SetENC(const float enc) { TpcEnc = enc; };
   void set_drift_velocity(float vd) {_drift_velocity = vd;}
   void set_skip_noise_flag(const bool skip) {skip_noise = skip;}
+  void set_nPreSample(unsigned int s) {m_nPreSample = s;}
+  void set_nPostSample(unsigned int s) {m_nPostSample = s;}
+
+  //! Preserve old interface
+  void SetTpcMinLayer(const int minlayer);
 
  private:
   void CalculateCylinderCellADCScale(PHCompositeNode *topNode);
@@ -53,8 +57,6 @@ class PHG4TpcDigitizer : public SubsysReco
   float added_noise();
   float add_noise_to_bin(float signal);
   
-  unsigned int TpcMinLayer;
-  unsigned int TpcNLayers;
   float ADCThreshold;
   float ADCThreshold_mV = 0;
   float TpcEnc;
@@ -64,15 +66,11 @@ class PHG4TpcDigitizer : public SubsysReco
 
   float ADCSignalConversionGain;
   float ADCNoiseConversionGain;
+  //! SAMPA zero-suppression digitization parameter
+  unsigned int m_nPreSample = 0;
+  unsigned int m_nPostSample = 5;
 
   bool skip_noise = false;
-
-  std::vector<std::vector<TrkrHitSet::ConstIterator> > phi_sorted_hits;
-  std::vector<std::vector<TrkrHitSet::ConstIterator> > t_sorted_hits;
-
-  std::vector<float> adc_input;
-  std::vector<TrkrDefs::hitkey> adc_hitid;
-  std::vector<int> is_populated;
 
   // settings
   std::map<int, unsigned int> _max_adc;

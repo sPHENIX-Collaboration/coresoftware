@@ -22,6 +22,7 @@
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetTpc.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 
@@ -66,6 +67,74 @@
 #include <vector>
 
 using namespace std;
+
+namespace sumClusterEnergyFromHits
+{
+  void calc(
+      TrkrClusterHitAssoc* clusterhitmap,
+      TrkrDefs::cluskey cluster_key,
+      const std::map<uint8_t, TrkrHitSetContainer*>& hitsetsmap,
+      float& sumadc,
+      float& maxadc,
+      float& size)
+  {
+    TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+    sumadc = 0;
+
+    auto hitsetsmap_iter = hitsetsmap.find(TrkrDefs::getTrkrId(hitsetkey));
+    if (hitsetsmap_iter != hitsetsmap.end())
+    {
+      TrkrHitSetContainer* hitsets = hitsetsmap_iter->second;
+      assert(hitsets);
+
+      if (dynamic_cast<TrkrHitSetTpc*>(hitsets->findHitSet(hitsetkey)))
+      {
+        // specialized hit container for TPCs
+
+        TrkrHitSetTpc* hitset = dynamic_cast<TrkrHitSetTpc*>(hitsets->findHitSet(hitsetkey));
+
+        std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
+            hitrange = clusterhitmap->getHits(cluster_key);
+        for (std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
+                 clushititer = hitrange.first;
+             clushititer != hitrange.second; ++clushititer)
+        {
+          auto adc = hitset->getTpcADC(clushititer->second);
+          if (adc <= 0) continue;
+
+          ++size;
+          sumadc += (adc - 70);
+          if ((adc - 70) > maxadc)
+            maxadc = (adc - 70);
+        }
+
+      }  //       if (dynamic_cast<TrkrHitSetTpc*>(hitsets->findHitSet(hitsetkey)))
+      else
+      {
+        TrkrHitSet* hitset = hitsets->findHitSet(hitsetkey);
+
+        std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
+            hitrange = clusterhitmap->getHits(cluster_key);
+        for (std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
+                 clushititer = hitrange.first;
+             clushititer != hitrange.second; ++clushititer)
+        {
+          TrkrHit* hit = hitset->getHit(clushititer->second);
+          if (!hit) continue;
+
+          ++size;
+          sumadc += (hit->getAdc() );
+          if ((hit->getAdc() ) > maxadc)
+            maxadc = (hit->getAdc());
+        }
+
+      }  // else ->       if (dynamic_cast<TrkrHitSetTpc*>(hitsets->findHitSet(hitsetkey)))
+
+    }  //    if (hitsetsmap_iter != hitsetsmap.end())
+
+  }  //   void calc(
+
+}  // namespace sumClusterEnergyFromHits
 
 SvtxEvaluator::SvtxEvaluator(const string& /*name*/, const string& filename, const string& trackmapname,
                              unsigned int nlayers_maps,
@@ -818,34 +887,58 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   float occ216 = 0;
   float occ31  = 0;
   float occ316 = 0;
-  
-  TrkrHitSetContainer* hitmap_in = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+
+  TrkrHitSetContainer* hitmap_in = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_TPC");
   if (hitmap_in)
+  {
+    TrkrHitSetContainer::ConstRange all_hitsets = hitmap_in->getHitSets();
+    for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
+         hitsetiter != all_hitsets.second;
+         ++hitsetiter)
     {
-      TrkrHitSetContainer::ConstRange all_hitsets = hitmap_in->getHitSets();
-      for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
-	   hitsetiter != all_hitsets.second;
-	   ++hitsetiter)
-	{
-	  // we have a single hitset, get the layer
-	  unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
-	  if(layer >= _nlayers_maps + _nlayers_intt && layer <  _nlayers_maps + _nlayers_intt + _nlayers_tpc)
-	    {	
-	      // count all hits in this hitset
-	      TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
-	      for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-		   hitr != hitrangei.second;
-		   ++hitr)
-		{
-		  nhit[layer]++;
-		  nhit_tpc_all++;
-		  if ((float) layer == _nlayers_maps + _nlayers_intt) nhit_tpc_in++;
-		  if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc - 1) nhit_tpc_out++;
-		  if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1) nhit_tpc_mid++;
-		}
-	    }
-	}
+      // we have a single hitset, get the layer
+      unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
+      if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+      {
+        if (dynamic_cast<TrkrHitSetTpc*>(hitsetiter->second))
+        {
+          const TrkrHitSetTpc::TimeFrameADCDataType& dataframe = dynamic_cast<TrkrHitSetTpc*>(hitsetiter->second)->getTimeFrameAdcData();
+
+          for (const auto& pad_data : dataframe)
+          {
+            for (const auto& adc : pad_data)
+            {
+              if (adc > 0)
+              {
+                nhit[layer]++;
+                nhit_tpc_all++;
+                if ((float) layer == _nlayers_maps + _nlayers_intt) nhit_tpc_in++;
+                if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc - 1) nhit_tpc_out++;
+                if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1) nhit_tpc_mid++;
+              }
+            }
+          }
+        }  //           if (dynamic_cast<TrkrHitSetTpc*>(hitsetiter->second))
+        else
+        {
+          // count all hits in this hitset
+          TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
+          for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+               hitr != hitrangei.second;
+               ++hitr)
+          {
+            nhit[layer]++;
+            nhit_tpc_all++;
+            if ((float) layer == _nlayers_maps + _nlayers_intt) nhit_tpc_in++;
+            if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc - 1) nhit_tpc_out++;
+            if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1) nhit_tpc_mid++;
+          }
+        }
+      }//       if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+
     }
+  }
+
   /**********/
   PHG4TpcCylinderGeomContainer* geom_container =
     findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
@@ -1552,187 +1645,370 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       _timer->restart();
     }
     // need things off of the DST...
-    TrkrHitSetContainer *hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-    PHG4TpcCylinderGeomContainer* geom_container =
-        findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-    if (!geom_container)
+    for ([[maybe_unused]] const auto& [trkrID, trkrName] : TrkrDefs::TrkrNames)
     {
-      std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
-      return;
-    }
-
-    if (hitmap)
-    {
-      TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
-      for (TrkrHitSetContainer::ConstIterator iter = all_hitsets.first;
-           iter != all_hitsets.second;
-           ++iter)
+      TrkrHitSetContainer* hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_" + trkrName);
+      PHG4TpcCylinderGeomContainer* geom_container =
+          findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      if (!geom_container)
       {
-	TrkrDefs::hitsetkey hitset_key = iter->first;
-	TrkrHitSet *hitset = iter->second;
-
-	// get all hits for this hitset
-	TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-	for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-	     hitr != hitrangei.second;
-	     ++hitr)
-	  {
-	    TrkrDefs::hitkey hit_key = hitr->first;	    
-	    TrkrHit *hit = hitr->second;
-	    PHG4Hit* g4hit = hiteval->max_truth_hit_by_energy(hit_key);
-	    PHG4Particle* g4particle = trutheval->get_particle(g4hit);
-	    float event = _ievent;
-	    float hitID = hit_key;
-	    float e = hit->getEnergy();
-	    float adc = hit->getAdc();
-	    float layer = TrkrDefs::getLayer(hitset_key);
-	    float sector = TpcDefs::getSectorId(hitset_key);
-	    float side = TpcDefs::getSide(hitset_key);
-	    float cellID = 0;
-	    float ecell = hit->getAdc();
-	    
-	    float phibin = NAN;
-	    float zbin = NAN;
-	    float phi = NAN;
-	    float z = NAN;
-	    
-	    if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc )
-	      {
-		PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
-		phibin = (float) TpcDefs::getPad(hit_key);
-		zbin = (float) TpcDefs::getTBin(hit_key);
-		phi = GeoLayer->get_phicenter(phibin);
-		z = GeoLayer->get_zcenter(zbin);
-	      }
-
-	    float g4hitID = NAN;
-	    float gedep = NAN;
-	    float gx = NAN;
-	    float gy = NAN;
-	    float gz = NAN;
-	    float gt = NAN;
-	    float gtrackID = NAN;
-	    float gflavor = NAN;
-	    float gpx = NAN;
-	    float gpy = NAN;
-	    float gpz = NAN;
-	    float gvx = NAN;
-	    float gvy = NAN;
-	    float gvz = NAN;
-	    float gvt = NAN;
-	    float gfpx = NAN;
-	    float gfpy = NAN;
-	    float gfpz = NAN;
-	    float gfx = NAN;
-	    float gfy = NAN;
-	    float gfz = NAN;
-	    float gembed = NAN;
-	    float gprimary = NAN;
-	    
-	    float efromtruth = NAN;
-
-	    if (g4hit)
-	      {
-		g4hitID = g4hit->get_hit_id();
-		gedep = g4hit->get_edep();
-		gx = g4hit->get_avg_x();
-		gy = g4hit->get_avg_y();
-		gz = g4hit->get_avg_z();
-		gt = g4hit->get_avg_t();
-		
-		if (g4particle)
-		  {
-		    if (_scan_for_embedded)
-		      {
-			if (trutheval->get_embed(g4particle) <= 0) continue;
-		      }
-		    
-		    gtrackID = g4particle->get_track_id();
-		    gflavor = g4particle->get_pid();
-		    gpx = g4particle->get_px();
-		    gpy = g4particle->get_py();
-		    gpz = g4particle->get_pz();
-		    
-		    PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
-		    
-		    if (vtx)
-		      {
-			gvx = vtx->get_x();
-			gvy = vtx->get_y();
-			gvz = vtx->get_z();
-			gvt = vtx->get_t();
-		      }
-
-		    PHG4Hit* outerhit = nullptr;
-		    if (_do_eval_light == false)
-		      outerhit = trutheval->get_outermost_truth_hit(g4particle);
-		    if (outerhit)
-		      {
-			gfpx = outerhit->get_px(1);
-			gfpy = outerhit->get_py(1);
-			gfpz = outerhit->get_pz(1);
-			gfx = outerhit->get_x(1);
-			gfy = outerhit->get_y(1);
-			gfz = outerhit->get_z(1);
-		      }
-		    gembed = trutheval->get_embed(g4particle);
-		    gprimary = trutheval->is_primary(g4particle);
-		  }  //   if (g4particle){
-	      }
-	    
-	    if (g4particle)
-	      {
-		efromtruth = hiteval->get_energy_contribution(hit_key, g4particle);
-	      }
-
-	    float hit_data[] = {
-	      event,
-              (float) _iseed,
-	      hitID,
-	      e,
-	      adc,
-	      layer,
-	      sector,
-	      side,
-	      cellID,
-	      ecell,
-	      (float) phibin,
-	      (float) zbin,
-	      phi,
-	      z,
-	      g4hitID,
-	      gedep,
-	      gx,
-	      gy,
-	      gz,
-	      gt,
-	      gtrackID,
-	      gflavor,
-	      gpx,
-	      gpy,
-	      gpz,
-	      gvx,
-	      gvy,
-	      gvz,
-	      gvt,
-	      gfpx,
-	      gfpy,
-	      gfpz,
-	      gfx,
-	      gfy,
-	      gfz,
-	      gembed,
-	      gprimary,
-	      efromtruth,
-	      nhit_tpc_all,
-	      nhit_tpc_in,
-	      nhit_tpc_mid,
-	      nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
-	    
-	    _ntp_hit->Fill(hit_data);
-	  }
+        std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+        return;
       }
-    }
+
+      if (hitmap)
+      {
+        TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
+        for (TrkrHitSetContainer::ConstIterator iter = all_hitsets.first;
+             iter != all_hitsets.second;
+             ++iter)
+        {
+          TrkrDefs::hitsetkey hitset_key = iter->first;
+
+          if (dynamic_cast<TrkrHitSetTpc*>(iter->second))
+          {
+            TrkrHitSetTpc* hitset = dynamic_cast<TrkrHitSetTpc*>(iter->second);
+
+            const TrkrHitSetTpc::TimeFrameADCDataType& dataframe = hitset->getTimeFrameAdcData();
+
+            for (unsigned int local_pad = 0; local_pad < dataframe.size(); ++local_pad)
+            {
+              const std::vector<TpcDefs::ADCDataType>& pad_data = dataframe[local_pad];
+
+              for (unsigned int local_tbin = 0; local_tbin < pad_data.size(); ++local_tbin)
+              {
+                const TpcDefs::ADCDataType& rawadc = pad_data[local_tbin];
+                if (rawadc <= 0) continue;
+
+                TrkrDefs::hitkey hit_key = hitset->getHitKeyfromLocalBin(local_pad, local_tbin);
+
+                PHG4Hit* g4hit = hiteval->max_truth_hit_by_energy(hitset_key, hit_key);
+                PHG4Particle* g4particle = trutheval->get_particle(g4hit);
+                float event = _ievent;
+                float hitID = hit_key;
+                float e = rawadc;
+                float adc = rawadc;
+                float layer = TrkrDefs::getLayer(hitset_key);
+                float sector = TpcDefs::getSectorId(hitset_key);
+                float side = TpcDefs::getSide(hitset_key);
+                float cellID = 0;
+                float ecell = rawadc;
+
+                float phibin = NAN;
+                float zbin = NAN;
+                float phi = NAN;
+                float z = NAN;
+
+                if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+                {
+                  PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
+                  phibin = (float) TpcDefs::getPad(hit_key);
+                  zbin = (float) TpcDefs::getTBin(hit_key);
+                  phi = GeoLayer->get_phicenter(phibin);
+                  z = GeoLayer->get_zcenter(zbin);
+                }
+
+                float g4hitID = NAN;
+                float gedep = NAN;
+                float gx = NAN;
+                float gy = NAN;
+                float gz = NAN;
+                float gt = NAN;
+                float gtrackID = NAN;
+                float gflavor = NAN;
+                float gpx = NAN;
+                float gpy = NAN;
+                float gpz = NAN;
+                float gvx = NAN;
+                float gvy = NAN;
+                float gvz = NAN;
+                float gvt = NAN;
+                float gfpx = NAN;
+                float gfpy = NAN;
+                float gfpz = NAN;
+                float gfx = NAN;
+                float gfy = NAN;
+                float gfz = NAN;
+                float gembed = NAN;
+                float gprimary = NAN;
+
+                float efromtruth = NAN;
+
+                if (g4hit)
+                {
+                  g4hitID = g4hit->get_hit_id();
+                  gedep = g4hit->get_edep();
+                  gx = g4hit->get_avg_x();
+                  gy = g4hit->get_avg_y();
+                  gz = g4hit->get_avg_z();
+                  gt = g4hit->get_avg_t();
+
+                  if (g4particle)
+                  {
+                    if (_scan_for_embedded)
+                    {
+                      if (trutheval->get_embed(g4particle) <= 0) continue;
+                    }
+
+                    gtrackID = g4particle->get_track_id();
+                    gflavor = g4particle->get_pid();
+                    gpx = g4particle->get_px();
+                    gpy = g4particle->get_py();
+                    gpz = g4particle->get_pz();
+
+                    PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
+
+                    if (vtx)
+                    {
+                      gvx = vtx->get_x();
+                      gvy = vtx->get_y();
+                      gvz = vtx->get_z();
+                      gvt = vtx->get_t();
+                    }
+
+                    PHG4Hit* outerhit = nullptr;
+                    if (_do_eval_light == false)
+                      outerhit = trutheval->get_outermost_truth_hit(g4particle);
+                    if (outerhit)
+                    {
+                      gfpx = outerhit->get_px(1);
+                      gfpy = outerhit->get_py(1);
+                      gfpz = outerhit->get_pz(1);
+                      gfx = outerhit->get_x(1);
+                      gfy = outerhit->get_y(1);
+                      gfz = outerhit->get_z(1);
+                    }
+                    gembed = trutheval->get_embed(g4particle);
+                    gprimary = trutheval->is_primary(g4particle);
+                  }  //   if (g4particle){
+                }
+
+                if (g4particle)
+                {
+                  efromtruth = hiteval->get_energy_contribution(hitset_key, hit_key, g4particle);
+                }
+
+                float hit_data[] = {
+                    event,
+                    (float) _iseed,
+                    hitID,
+                    e,
+                    adc,
+                    layer,
+                    sector,
+                    side,
+                    cellID,
+                    ecell,
+                    (float) phibin,
+                    (float) zbin,
+                    phi,
+                    z,
+                    g4hitID,
+                    gedep,
+                    gx,
+                    gy,
+                    gz,
+                    gt,
+                    gtrackID,
+                    gflavor,
+                    gpx,
+                    gpy,
+                    gpz,
+                    gvx,
+                    gvy,
+                    gvz,
+                    gvt,
+                    gfpx,
+                    gfpy,
+                    gfpz,
+                    gfx,
+                    gfy,
+                    gfz,
+                    gembed,
+                    gprimary,
+                    efromtruth,
+                    nhit_tpc_all,
+                    nhit_tpc_in,
+                    nhit_tpc_mid,
+                    nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
+
+                _ntp_hit->Fill(hit_data);
+
+              }  //               for (unsigned int local_tbin = 0; local_tbin < pad_data.size(); ++local_tbin)
+
+            }  //             for (unsigned int local_pad = 0; local_pad < dataframe.size(); ++local_pad)
+
+          }  //          if (TrkrHitSetTpc *hitset = dynamic_cast<TrkrHitSetTpc *>(my_data->hitset);)
+          else
+          {
+            TrkrHitSet* hitset = iter->second;
+
+            // get all hits for this hitset
+            TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+            for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+                 hitr != hitrangei.second;
+                 ++hitr)
+            {
+              TrkrDefs::hitkey hit_key = hitr->first;
+              TrkrHit* hit = hitr->second;
+              PHG4Hit* g4hit = hiteval->max_truth_hit_by_energy(hitset_key, hit_key);
+              PHG4Particle* g4particle = trutheval->get_particle(g4hit);
+              float event = _ievent;
+              float hitID = hit_key;
+              float e = hit->getEnergy();
+              float adc = hit->getAdc();
+              float layer = TrkrDefs::getLayer(hitset_key);
+              float sector = TpcDefs::getSectorId(hitset_key);
+              float side = TpcDefs::getSide(hitset_key);
+              float cellID = 0;
+              float ecell = hit->getAdc();
+
+              float phibin = NAN;
+              float zbin = NAN;
+              float phi = NAN;
+              float z = NAN;
+
+              if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+              {
+                PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
+                phibin = (float) TpcDefs::getPad(hit_key);
+                zbin = (float) TpcDefs::getTBin(hit_key);
+                phi = GeoLayer->get_phicenter(phibin);
+                z = GeoLayer->get_zcenter(zbin);
+              }
+
+              float g4hitID = NAN;
+              float gedep = NAN;
+              float gx = NAN;
+              float gy = NAN;
+              float gz = NAN;
+              float gt = NAN;
+              float gtrackID = NAN;
+              float gflavor = NAN;
+              float gpx = NAN;
+              float gpy = NAN;
+              float gpz = NAN;
+              float gvx = NAN;
+              float gvy = NAN;
+              float gvz = NAN;
+              float gvt = NAN;
+              float gfpx = NAN;
+              float gfpy = NAN;
+              float gfpz = NAN;
+              float gfx = NAN;
+              float gfy = NAN;
+              float gfz = NAN;
+              float gembed = NAN;
+              float gprimary = NAN;
+
+              float efromtruth = NAN;
+
+              if (g4hit)
+              {
+                g4hitID = g4hit->get_hit_id();
+                gedep = g4hit->get_edep();
+                gx = g4hit->get_avg_x();
+                gy = g4hit->get_avg_y();
+                gz = g4hit->get_avg_z();
+                gt = g4hit->get_avg_t();
+
+                if (g4particle)
+                {
+                  if (_scan_for_embedded)
+                  {
+                    if (trutheval->get_embed(g4particle) <= 0) continue;
+                  }
+
+                  gtrackID = g4particle->get_track_id();
+                  gflavor = g4particle->get_pid();
+                  gpx = g4particle->get_px();
+                  gpy = g4particle->get_py();
+                  gpz = g4particle->get_pz();
+
+                  PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
+
+                  if (vtx)
+                  {
+                    gvx = vtx->get_x();
+                    gvy = vtx->get_y();
+                    gvz = vtx->get_z();
+                    gvt = vtx->get_t();
+                  }
+
+                  PHG4Hit* outerhit = nullptr;
+                  if (_do_eval_light == false)
+                    outerhit = trutheval->get_outermost_truth_hit(g4particle);
+                  if (outerhit)
+                  {
+                    gfpx = outerhit->get_px(1);
+                    gfpy = outerhit->get_py(1);
+                    gfpz = outerhit->get_pz(1);
+                    gfx = outerhit->get_x(1);
+                    gfy = outerhit->get_y(1);
+                    gfz = outerhit->get_z(1);
+                  }
+                  gembed = trutheval->get_embed(g4particle);
+                  gprimary = trutheval->is_primary(g4particle);
+                }  //   if (g4particle){
+              }
+
+              if (g4particle)
+              {
+                efromtruth = hiteval->get_energy_contribution(hitset_key, hit_key, g4particle);
+              }
+
+              float hit_data[] = {
+                  event,
+                  (float) _iseed,
+                  hitID,
+                  e,
+                  adc,
+                  layer,
+                  sector,
+                  side,
+                  cellID,
+                  ecell,
+                  (float) phibin,
+                  (float) zbin,
+                  phi,
+                  z,
+                  g4hitID,
+                  gedep,
+                  gx,
+                  gy,
+                  gz,
+                  gt,
+                  gtrackID,
+                  gflavor,
+                  gpx,
+                  gpy,
+                  gpz,
+                  gvx,
+                  gvy,
+                  gvz,
+                  gvt,
+                  gfpx,
+                  gfpy,
+                  gfpz,
+                  gfx,
+                  gfy,
+                  gfz,
+                  gembed,
+                  gprimary,
+                  efromtruth,
+                  nhit_tpc_all,
+                  nhit_tpc_in,
+                  nhit_tpc_mid,
+                  nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
+
+              _ntp_hit->Fill(hit_data);
+            }
+
+          }  // else ->           if (TrkrHitSetTpc *hitset = dynamic_cast<TrkrHitSetTpc *>(my_data->hitset);)
+        }
+      }
+    }  //     for ([[maybe_unused]] const auto& [trkrID, trkrName] : TrkrDefs::TrkrNames)
+
     if (Verbosity() >= 1)
     {
       _timer->stop();
@@ -1750,6 +2026,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     _timer->restart();
   }
 
+  std::map<uint8_t, TrkrHitSetContainer*> hitsetsmap;
+  for (const auto & [trkrID, trkrName] : TrkrDefs::TrkrNames)
+  {
+    TrkrHitSetContainer * hitsets  = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_" + trkrName);
+    if (hitsets)
+      hitsetsmap[trkrID] = hitsets;
+  }
+
   if (_ntp_cluster && !_scan_for_embedded)
   {
     if (Verbosity() > 1) cout << "Filling ntp_cluster (all of them) " << endl;
@@ -1759,7 +2043,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
 
     TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
-    TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
     TrkrClusterIterationMapv1* _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
     ClusterErrorPara ClusErrPara;
 
@@ -1772,14 +2055,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	cout << "got clusterhitmap" << endl;
       else
 	cout << "no clusterhitmap" << endl;
-      if (hitsets != nullptr)
+      if (hitsetsmap.size() != 0)
        cout << "got hitsets" << endl;
       else
        cout << "no hitsets" << endl;
      
     }
 
-    if (clustermap && clusterhitmap && hitsets ){
+    if (clustermap && clusterhitmap && hitsetsmap.size()>0 ){
       for(const auto& hitsetkey:clustermap->getHitSetKeys())
       {
         int hitsetlayer = TrkrDefs::getLayer(hitsetkey);
@@ -1864,24 +2147,17 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    cout << "Good    hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer << endl;  
 	  }
 	  */
-	  float sumadc = 0;
-	  TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey);
-	  std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
-	    hitrange = clusterhitmap->getHits(cluster_key);  
-	  for(std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
-		clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
-	    {
-	      TrkrHit* hit = hitset->second->getHit(clushititer->second);
-	      if(!hit) continue;
 
-	      ++size; 
-	      sumadc += (hit->getAdc() - 70);
-	      if((hit->getAdc()-70)>maxadc)
-		maxadc = (hit->getAdc()-70);
-	    }
-	  e = sumadc;
-	  
-	  float trackID = NAN;
+	  sumClusterEnergyFromHits::calc(
+        clusterhitmap,
+        cluster_key,
+        hitsetsmap,
+        e,
+        maxadc,
+        size
+    );
+
+    float trackID = NAN;
 	  if (track!=NULL) trackID = track->get_id();
 	  
 	  float g4hitID = NAN;
@@ -2048,8 +2324,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  _ntp_cluster->Fill(cluster_data);
 	}
       }
-    }
-  }
+    } //     if (clustermap && clusterhitmap && hitsets ){
+
+  } //   if (_ntp_cluster && !_scan_for_embedded)
+
   else if (_ntp_cluster && _scan_for_embedded)
   {
     if (Verbosity() > 1) 
@@ -2067,10 +2345,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
 
     TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
-    TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+
     TrkrClusterIterationMapv1* _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
 
-    if (trackmap != nullptr && clustermap != nullptr && clusterhitmap != nullptr && hitsets != nullptr){
+    if (trackmap != nullptr && clustermap != nullptr && clusterhitmap != nullptr && hitsetsmap.size() != 0){
       for (SvtxTrackMap::Iter iter = trackmap->begin();
            iter != trackmap->end();
            ++iter)
@@ -2171,21 +2449,19 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      // count all hits for this cluster
 
 	      float maxadc = -999;
-	      // count all hits for this cluster
-	      TrkrDefs::hitsetkey hitsetkey =  TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-	      TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey);
-	      std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
-		hitrange = clusterhitmap->getHits(cluster_key);  
-	      for(std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
-		    clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
-		{
-		  TrkrHit* hit = hitset->second->getHit(clushititer->second);
-		  ++size; 
-		  if(hit->getAdc()>maxadc)
-		    maxadc = hit->getAdc();
-		}
-	      
-	      float trackID = NAN;
+	      float sumadc = 0;
+	      sumClusterEnergyFromHits::calc(
+	          clusterhitmap,
+	          cluster_key,
+	          hitsetsmap,
+	          sumadc,
+	          maxadc,
+	          size
+	      );
+
+
+
+        float trackID = NAN;
 	      trackID = track->get_id();
 	      
 	      float g4hitID = NAN;
@@ -2335,8 +2611,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      _ntp_cluster->Fill(cluster_data);
 	    }
 	}
-    }
-  }
+    } //     if (trackmap != nullptr && clustermap != nullptr && clusterhitmap != nullptr && hitsets != nullptr){
+
+  } //   else if (_ntp_cluster && _scan_for_embedded)
+
   if (Verbosity() >= 1){
     _timer->stop();
     cout << "cluster time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;

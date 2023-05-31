@@ -151,23 +151,24 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
   }
 
   // create hitset container if needed
-  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_MICROMEGAS");
   if (!hitsetcontainer)
   {
-    std::cout << "PHG4MicromegasHitReco::InitRun - creating TRKR_HITSET." << std::endl;
+    if (Verbosity())
+      std::cout << "PHG4MicromegasHitReco::InitRun - creating TRKR_HITSET_MICROMEGAS." << std::endl;
 
     // find or create TRKR node
     PHNodeIterator dstiter(dstNode);
-    auto trkrnode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    auto trkrnode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "MICROMEGAS"));
     if (!trkrnode)
     {
-      trkrnode = new PHCompositeNode("TRKR");
+      trkrnode = new PHCompositeNode("MICROMEGAS");
       dstNode->addNode(trkrnode);
     }
 
     // create container and add to the tree
     hitsetcontainer = new TrkrHitSetContainerv1;
-    auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+    auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET_MICROMEGAS", "PHObject");
     trkrnode->addNode(newNode);
   }
 
@@ -212,7 +213,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
   assert(geonode);
 
   // Get the TrkrHitSetContainer node
-  auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_MICROMEGAS");
   assert(trkrhitsetcontainer);
 
   // Get the TrkrHitTruthAssoc node

@@ -32,6 +32,7 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitSetTpc.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/ClusterErrorPara.h>
@@ -205,37 +206,46 @@ namespace
   }
 
   //! hit energy for a given cluster
-  void add_cluster_energy( TrackEvaluationContainerv1::ClusterStruct& cluster, TrkrDefs::cluskey clus_key,
-    TrkrClusterHitAssoc* cluster_hit_map,
-    TrkrHitSetContainer* hitsetcontainer )
+  void add_cluster_energy(TrackEvaluationContainerv1::ClusterStruct& cluster, TrkrDefs::cluskey clus_key,
+                          TrkrClusterHitAssoc* cluster_hit_map,
+                          TrkrHitSetContainer* hitsetcontainer)
   {
-
     // check container
-    if(!(cluster_hit_map && hitsetcontainer)) return;
+    if (!(cluster_hit_map && hitsetcontainer)) return;
 
     // for now this is only filled for micromegas
     const auto detId = TrkrDefs::getTrkrId(clus_key);
-    if(detId != TrkrDefs::micromegasId) return;
+    if (detId != TrkrDefs::micromegasId) return;
 
     const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(clus_key);
-    const auto hitset = hitsetcontainer->findHitSet( hitset_key );
-    if( !hitset ) return;
+    const auto hitset = hitsetcontainer->findHitSet(hitset_key);
+    if (!hitset) return;
 
     const auto range = cluster_hit_map->getHits(clus_key);
     cluster.energy_max = 0;
     cluster.energy_sum = 0;
 
-    for( const auto& pair:range_adaptor(range))
+    for (const auto& pair : range_adaptor(range))
     {
-      const auto hit = hitset->getHit( pair.second );
-      if( hit )
+      if (dynamic_cast<TrkrHitSetTpc*>(hitset))
       {
-        const auto energy = hit->getEnergy();
+        // specialized hit container for TPCs
+
+        const auto energy = dynamic_cast<TrkrHitSetTpc*>(hitset)->getTpcADC(pair.second);
         cluster.energy_sum += energy;
-        if( energy > cluster.energy_max ) cluster.energy_max = energy;
+        if (energy > cluster.energy_max) cluster.energy_max = energy;
+      }
+      else
+      {
+        const auto hit = hitset->getHit(pair.second);
+        if (hit)
+        {
+          const auto energy = hit->getEnergy();
+          cluster.energy_sum += energy;
+          if (energy > cluster.energy_max) cluster.energy_max = energy;
+        }
       }
     }
-
   }
 
   // ad}d truth information
@@ -386,7 +396,12 @@ int TrackEvaluation::load_nodes( PHCompositeNode* topNode )
   m_container = findNode::getClass<TrackEvaluationContainerv1>(topNode, "TrackEvaluationContainer");
 
   // hitset container
-  m_hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  for (const auto & [trkrID, trkrName] : TrkrDefs::TrkrNames)
+  {
+    TrkrHitSetContainer * hitsetcontainer  = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_" + trkrName);
+    if (hitsetcontainer)
+      m_hitsetcontainermap[trkrID] = hitsetcontainer;
+  }
 
   // g4hits
   m_g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
@@ -447,7 +462,7 @@ void TrackEvaluation::evaluate_event()
 void TrackEvaluation::evaluate_clusters()
 {
 
-  if(!(m_cluster_map&&m_hitsetcontainer&&m_container)) return;
+  if(!(m_cluster_map&&m_hitsetcontainermap.size()>0&&m_container)) return;
 
   // clear array
   m_container->clearClusters();
@@ -460,7 +475,15 @@ void TrackEvaluation::evaluate_clusters()
       // create cluster structure
       auto cluster_struct = create_cluster( key, cluster, track );
       add_cluster_size( cluster_struct, cluster);
-      add_cluster_energy( cluster_struct, key, m_cluster_hit_map, m_hitsetcontainer );
+
+
+      auto hitsetsmap_iter = m_hitsetcontainermap.find(TrkrDefs::getTrkrId(hitsetkey));
+      if (hitsetsmap_iter != m_hitsetcontainermap.end())
+      {
+        TrkrHitSetContainer* hitsetcontainer = hitsetsmap_iter->second;
+        assert(hitsetcontainer);
+        add_cluster_energy( cluster_struct, key, m_cluster_hit_map, hitsetcontainer );
+      }
 
       // truth information
       const auto g4hits = find_g4hits( key );
@@ -516,7 +539,15 @@ void TrackEvaluation::evaluate_tracks()
       // create new cluster struct
       auto cluster_struct = create_cluster( cluster_key, cluster, track );
       add_cluster_size( cluster_struct, cluster);
-      add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, m_hitsetcontainer );
+
+      auto hitsetsmap_iter = m_hitsetcontainermap.find(TrkrDefs::getTrkrId(cluster_key));
+      if (hitsetsmap_iter != m_hitsetcontainermap.end())
+      {
+        TrkrHitSetContainer* hitsetcontainer = hitsetsmap_iter->second;
+        assert(hitsetcontainer);
+        add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, hitsetcontainer );
+      }
+
       // truth information
       const auto g4hits = find_g4hits( cluster_key );
       const bool is_micromegas( TrkrDefs::getTrkrId(cluster_key) == TrkrDefs::micromegasId );

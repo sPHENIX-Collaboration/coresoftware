@@ -80,9 +80,6 @@ class DSTEmulator : public SubsysReco
   //! evaluation node
   TrackEvaluationContainerv1* m_container = nullptr;
 
-  //! hits
-  TrkrHitSetContainer* m_hitsetcontainer = nullptr;
-
   //! clusters
   TrkrClusterContainer* m_cluster_map = nullptr;
 

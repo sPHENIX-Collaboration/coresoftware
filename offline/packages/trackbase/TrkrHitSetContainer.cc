@@ -30,7 +30,7 @@ TrkrHitSetContainer::addHitSet(TrkrHitSet* /*newhit*/)
 TrkrHitSetContainer::ConstIterator
 TrkrHitSetContainer::addHitSetSpecifyKey(const TrkrDefs::hitsetkey /*key*/, TrkrHitSet* /*newhit*/)
 { return dummy_map.cbegin(); }
- 
+
 TrkrHitSetContainer::Iterator
 TrkrHitSetContainer::findOrAddHitSet(TrkrDefs::hitsetkey /*key*/)
 { return dummy_map.begin(); }

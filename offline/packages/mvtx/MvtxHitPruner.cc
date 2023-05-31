@@ -82,10 +82,10 @@ int MvtxHitPruner::InitRun(PHCompositeNode * /*topNode*/)
 int MvtxHitPruner::process_event(PHCompositeNode *topNode)
 {
   // get node containing the digitized hits
-  m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_MVTX");
   if (!m_hits)
   {
-    cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << endl;
+    cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET_MVTX" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 

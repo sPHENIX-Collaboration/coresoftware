@@ -121,7 +121,7 @@ class TrackEvaluation : public SubsysReco
   ActsGeometry *m_tGeometry = nullptr;
 
   //! hits
-  TrkrHitSetContainer* m_hitsetcontainer = nullptr;
+  std::map<uint8_t, TrkrHitSetContainer*> m_hitsetcontainermap;
 
   //! clusters
   TrkrClusterContainer* m_cluster_map = nullptr;

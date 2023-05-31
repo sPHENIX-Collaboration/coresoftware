@@ -245,10 +245,10 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
 
   // get node containing the digitized hits
   if(!do_read_raw){
-    m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+    m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET_INTT");
     if (!m_hits)
       {
-	cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << endl;
+	cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET_INTT" << endl;
 	return Fun4AllReturnCodes::ABORTRUN;
       }
   }else{
@@ -256,7 +256,7 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
     m_rawhits = findNode::getClass<RawHitSetContainer>(topNode, "TRKR_RAWHITSET");
     if (!m_rawhits)
       {
-	std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
+	std::cout << PHWHERE << "ERROR: Can't find node TRKR_RAWHITSET" << std::endl;
 	return Fun4AllReturnCodes::ABORTRUN;
       }
   }
