@@ -43,6 +43,7 @@ libg4detectors_la_LIBADD = \
 
 pkginclude_HEADERS = \
   BeamLineMagnetSubsystem.h \
+  LightCollectionModel.h \
   PHG4BbcSubsystem.h \
   PHG4BlockCellGeom.h \
   PHG4BlockCellGeomContainer.h \
@@ -92,6 +93,7 @@ pkginclude_HEADERS = \
   PHG4SectorConstructor.h \
   PHG4SectorSubsystem.h \
   PHG4SpacalSubsystem.h \
+  PHG4SpacalSteppingAction.h \
   PHG4StepStatusDecode.h \
   PHG4TpcCylinderGeom.h \
   PHG4TpcCylinderGeomContainer.h \
@@ -202,6 +204,7 @@ libg4detectors_la_SOURCES = \
   BeamLineMagnetDisplayAction.cc \
   BeamLineMagnetSubsystem.cc \
   BeamLineMagnetSteppingAction.cc \
+  LightCollectionModel.cc \
   PHG4GDMLDetector.cc \
   PHG4GDMLSubsystem.cc \
   PHG4BbcDetector.cc \
