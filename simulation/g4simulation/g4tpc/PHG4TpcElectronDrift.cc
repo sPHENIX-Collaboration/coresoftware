@@ -304,22 +304,15 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   padplane->CreateReadoutGeometry(topNode, seggeo);
 
   // print all layers radii
-  if (Verbosity())
+  // if (Verbosity())
   {
-    const auto range = seggeo->get_begin_end(); 
-    std::cout << "PHG4TpcElectronDrift::InitRun - layers: " << std::distance(range.first, range.second) << std::endl;
-    int counter = 0;
-    for (auto layeriter = range.first; layeriter != range.second; ++layeriter)
+    const auto [layer_begin, layer_end] = seggeo->get_begin_end(); 
+    std::cout << "PHG4TpcElectronDrift::InitRun - layers: " << std::distance(layer_begin, layer_end) << std::endl;
+
+    for(auto layeriter = layer_begin; layeriter != layer_end; ++layeriter)
     {
-      const auto radius = layeriter->second->get_radius();
-      std::cout << Form( "%.3f ", radius );
-      if( ++counter == 8 )
-      {
-        counter = 0;
-        std::cout << std::endl;
-      }
+      std::cout << *layeriter->second << std::endl;
     }
-    std::cout << std::endl;
   }
   
   return Fun4AllReturnCodes::EVENT_OK;
