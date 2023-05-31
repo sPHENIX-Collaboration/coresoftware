@@ -13,8 +13,8 @@ namespace
     out << "{ ";
     for( size_t iside = 0; iside < array.size(); ++iside )
     {
-      out << "{ ";
-      bool first = false;
+      out << "{";
+      bool first = true;
       for( const auto& value:array[iside] )
       {
         if( !first ) out << ", ";
@@ -43,10 +43,10 @@ std::ostream& operator << (std::ostream& out, const PHG4TpcCylinderGeom& geom )
     << ", thickness: " << geom.thickness
     << std::endl;
  
-  out << "sector_R_bias: " << geom.sector_R_bias << std::endl;
-  out << "sector_Phi_bias: " << geom.sector_Phi_bias << std::endl;
-  out << "sector_min_Phi: " << geom.sector_min_Phi << std::endl;
-  out << "sector_max_Phi: " << geom.sector_max_Phi << std::endl;
+  out << "  sector_R_bias: " << geom.sector_R_bias << std::endl;
+  out << "  sector_Phi_bias: " << geom.sector_Phi_bias << std::endl;
+  out << "  sector_min_Phi: " << geom.sector_min_Phi << std::endl;
+  out << "  sector_max_Phi: " << geom.sector_max_Phi << std::endl;
   
   return out;
 }
