@@ -15,6 +15,8 @@
 
 #include <phool/recoConsts.h>
 
+#include <phparameter/PHParameters.h>
+
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4DisplacedSolid.hh>
 #include <Geant4/G4Exception.hh>          // for G4Exception
@@ -55,6 +57,7 @@ class PHCompositeNode;
 PHG4FullProjTiltedSpacalDetector::PHG4FullProjTiltedSpacalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
                                                                    const std::string& dnam, PHParameters* parameters, const int lyr)
   : PHG4SpacalDetector(subsys, Node, dnam, parameters, lyr, false)
+  , m_Params(parameters)
 {
   assert(_geom == nullptr);
 
@@ -90,6 +93,22 @@ void PHG4FullProjTiltedSpacalDetector::ConstructMe(G4LogicalVolume* logicWorld)
     std::cout << "PHG4FullProjTiltedSpacalDetector::Construct::" << GetName()
               << " - Completed." << std::endl;
   }
+  
+  if (m_Params->get_int_param("saveg4hit")) return;
+   try
+  {
+    AddCellGeometryNode();
+    AddTowerGeometryNode();
+    
+    
+  }
+  catch (std::exception &e)
+  {
+    std::cout << e.what() << std::endl;
+    //exit(1);
+  }
+  
+  
 }
 
 std::pair<G4LogicalVolume*, G4Transform3D>
