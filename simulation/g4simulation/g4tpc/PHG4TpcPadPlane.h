@@ -22,8 +22,6 @@ class PHG4TpcPadPlane : public SubsysReco, public PHParameterInterface
  public:
   PHG4TpcPadPlane(const std::string &name = "PHG4TpcPadPlane");
 
-  ~PHG4TpcPadPlane() override {}
-
   int process_event(PHCompositeNode *) final
   { return 0; }
 

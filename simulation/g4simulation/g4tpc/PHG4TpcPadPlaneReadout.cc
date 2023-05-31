@@ -90,7 +90,7 @@ PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
 int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
 {
   
-  std::cout << " PHG4TpcPadPlaneReadout::InitRun" << std::endl;
+  std::cout << "PHG4TpcPadPlaneReadout::InitRun" << std::endl;
   
   // base class
   const auto reply = PHG4TpcPadPlane::InitRun( topNode );
@@ -100,7 +100,7 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   const std::string seggeonodename = "CYLINDERCELLGEOM_SVTX";
   GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   assert( GeomContainer );
-  
+    
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -786,4 +786,26 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   PhiBinWidth[2] = SectorPhi[2] * 12 / (double) NPhiBins[2];
 
   averageGEMGain = get_double_param("gem_amplification");
+  
+  
+  for (int iregion = 0; iregion < 3; ++iregion)
+  {
+    //int zside = 0;
+    for (int zside = 0; zside < 2;zside++)
+    {
+      sector_min_Phi_sectors[zside][iregion].clear();
+      sector_max_Phi_sectors[zside][iregion].clear();
+      //int eff_layer = 0;
+      for (int isector = 0; isector < NSectors; ++isector)//12 sectors
+      {        
+        double sec_gap = (2*M_PI - SectorPhi[iregion]*12)/12;
+        double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap - 2 * M_PI / 12 * isector;// * (isector+1) ;
+        double sec_min_phi = sec_max_phi - SectorPhi[iregion];
+        sector_min_Phi_sectors[zside][iregion].push_back(sec_min_phi);
+        sector_max_Phi_sectors[zside][iregion].push_back(sec_max_phi);
+        
+      }// isector
+    }
+  }
+  
 }

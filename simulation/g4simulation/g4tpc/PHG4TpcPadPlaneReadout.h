@@ -91,8 +91,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::vector<int> pad_phibin;
   std::vector<double> pad_phibin_share;
   std::vector<double> adc_tbin_share;
-  std::array<std::vector<double>, NSides > sector_min_Phi;
-  std::array<std::vector<double>, NSides > sector_max_Phi;
   std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_min_Phi_sectors;
   std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_max_Phi_sectors;
 
