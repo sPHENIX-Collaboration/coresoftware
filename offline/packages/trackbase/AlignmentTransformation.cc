@@ -142,12 +142,16 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	   }
 	 unsigned int sector         = TpcDefs::getSectorId(hitsetkey);
 	 unsigned int side           = TpcDefs::getSide(hitsetkey);
-	 unsigned int subsurfkey_min = sector * 12 + (1-side) * 144;
-	 unsigned int subsurfkey_max = subsurfkey_min + 12;
+	 int subsurfkey_min = (1-side)*144 + (144-sector*12) - 12 - 6;
+	 int subsurfkey_max = subsurfkey_min + 12;
+	 //std::cout << " sector " << sector << " side " << side << " subsurfkey_min " << subsurfkey_min << " subsurfkey_max " << subsurfkey_max << std::endl;
 
-	 for(unsigned int subsurfkey = subsurfkey_min; subsurfkey<subsurfkey_max; subsurfkey++)
+	 for(int subsurfkey = subsurfkey_min; subsurfkey<subsurfkey_max; subsurfkey++)
 	   {
-             surf                        = surfMaps.getTpcSurface(hitsetkey,subsurfkey);
+	     int sskey = subsurfkey;
+	     if(sskey < 0) { sskey += 288; }
+
+             surf                        = surfMaps.getTpcSurface(hitsetkey,(unsigned int) sskey);
 	     
 	     Acts::Transform3 transform;
 	     transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
@@ -155,7 +159,13 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	     
 	     if(localVerbosity) 
 	       {
-		 std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+		 unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+		 std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << std::endl 
+			   << " trkrid " << trkrId << " hitsetkey " << hitsetkey  << " layer " << layer << " sector " << sector << " side " << side 
+			   << " subsurfkey " << subsurfkey << std::endl;
+		 Acts::Vector3 center =  surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
+		 std::cout << "Ideal surface center: " << std::endl <<center << std::endl;
+		 std::cout << "transform matrix: " << std::endl <<  transform.matrix() << std::endl;
 	       }
 	     transformMap->addTransform(id,transform);
 	   }
@@ -234,7 +244,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   // create alignment translation matrix
   Acts::Transform3 mpTranslationAffine;   
   mpTranslationAffine.linear() = nullRotation;
-  if(use_global_millepede_translations > 0) 
+  if(use_global_millepede_translations) 
     {   
       mpTranslationAffine.translation() = millepedeTranslation;   
     }
@@ -262,7 +272,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
 
 
   Acts::Transform3 transform;
-  if(use_global_millepede_translations > 0)
+  if(use_global_millepede_translations)
     {
       // put the mp translations in the global frame
       transform = mpTranslationAffine *  actsTranslationAffine *  actsRotationAffine * mpRotationAffine;
@@ -278,7 +288,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
       std::cout << "newMakeTransform" << std::endl;
       std::cout << " use_global_translations = " << use_global_millepede_translations << std::endl;
       std::cout << "mpRotationAffine: "<< std::endl<< mpRotationAffine.matrix()  <<std::endl;
-      if(use_global_millepede_translations == 0)
+      if(!use_global_millepede_translations)
 	{
 	  std::cout << "mpTranslationAffine: " << std::endl << mpTranslationAffine.matrix() <<std::endl;
 	  std::cout << " mptranslationAffine * mpRotationAffine " << std::endl 
@@ -286,7 +296,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
 	}
       std::cout << "actsRotationAffine: "<< std::endl<< actsRotationAffine.matrix()  <<std::endl;
       std::cout << "actsTranslationAffine: "<< std::endl<< actsTranslationAffine.matrix()  <<std::endl;
-      if(use_global_millepede_translations > 0)
+      if(use_global_millepede_translations)
 	{
 	  std::cout << "mpTranslationAffine: " << std::endl << mpTranslationAffine.matrix() <<std::endl;
 	}

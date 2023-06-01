@@ -10,6 +10,7 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/alignmentTransformationContainer.h>
 
 #include <trackbase/RawHit.h>
 #include <trackbase/RawHitSet.h>
@@ -765,6 +766,11 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
 
 int TpcClusterizer::process_event(PHCompositeNode *topNode)
 {
+  // The TPC is the only subsystem that clusters in global coordinates. For consistency,
+  // we must use the construction transforms to get the local coordinates.
+  // Set the flag to use ideal transforms for the duration of this process_event, for thread safety
+  alignmentTransformationContainer::use_alignment = false;
+
   //  int print_layer = 18;
 
   if (Verbosity() > 1000)
@@ -1119,6 +1125,9 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
       }
   }
+
+  // set the flag to use alignment transformations, needed by the rest of reconstruction
+  alignmentTransformationContainer::use_alignment = true;
 
   if (Verbosity() > 0)
     std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;

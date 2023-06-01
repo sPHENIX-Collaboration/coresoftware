@@ -2,6 +2,7 @@
 #define ALIGNMENTDEFS_H
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrDefs.h>
 
 namespace AlignmentDefs
 {
@@ -32,10 +33,10 @@ namespace AlignmentDefs
 
   int getTpcRegion(int layer);
   void getSiliconGlobalLabels(Surface surf, int glbl_label[], siliconGrp grp);
-  void getTpcGlobalLabels(Surface surf, int glbl_label[], tpcGrp grp);
+  void getTpcGlobalLabels(Surface surf, TrkrDefs::cluskey cluskey, int glbl_label[], tpcGrp grp);
   void getMMGlobalLabels(Surface surf, int glbl_label[], mmsGrp grp);
 
-  int getLabelBase(Acts::GeometryIdentifier id, int group);
+  int getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey cluskey, int group);
 
   void printBuffers(int index, Acts::Vector2 residual,
                     Acts::Vector2 clus_sigma, float lcl_derivative[],
