@@ -20,9 +20,6 @@ PHG4TpcPadPlane::PHG4TpcPadPlane(const std::string &name)
 
 int PHG4TpcPadPlane::InitRun(PHCompositeNode *topNode)
 {
-  
-  std::cout << "PHG4TpcPadPlane::InitRun" << std::endl;
-  
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
