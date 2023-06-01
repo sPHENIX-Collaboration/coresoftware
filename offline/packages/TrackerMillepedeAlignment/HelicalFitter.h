@@ -95,7 +95,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 					    Acts::Vector3 sensor_center, Acts::Vector3 sensor_normal);
   std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global);
-
+  Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global, Acts::Vector3& pca, Acts::Vector3& tangent);
 
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
@@ -163,6 +163,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool make_ntuple = true;
   TNtuple *ntp{nullptr};
   TFile *fout{nullptr};
+
+  int event = 0;
 
 };
 

@@ -27,9 +27,12 @@ class CDBUtils
   std::string getUrl(const std::string &type, uint64_t iov);
   int insertPayload(const std::string &pl_type, const std::string &file_url, uint64_t iov_start);
   int insertPayload(const std::string &pl_type, const std::string &file_url, uint64_t iov_start, uint64_t iov_end);
+  int cloneGlobalTag(const std::string& source, const std::string& target);
+
   int deleteGlobalTag(const std::string &);
   void listGlobalTags();
   void listPayloadTypes();
+  void listPayloadIOVs(uint64_t iov);
   void clearCache();
   bool isGlobalTagSet();
   void Verbosity(int i);

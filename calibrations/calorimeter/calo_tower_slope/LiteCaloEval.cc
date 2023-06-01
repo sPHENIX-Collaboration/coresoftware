@@ -116,19 +116,17 @@ int LiteCaloEval::InitRun(PHCompositeNode * /*topNode*/)
 
     for (int i = 0; i < 24; i++)
     {
-
-      
-
       std::string hist_name = "hcalin_eta_" + std::to_string(i);
-      if (i < 24)
-	{
+      hcalin_eta[i] = new TH1F(hist_name.c_str(), "hcalin eta's", 40000, 0, 4.);
+      // if (i < 24) // cppcheck flags this as always true (which it is in this loop
+      // 	{
 	  
-	  hcalin_eta[i] = new TH1F(hist_name.c_str(), "hcalin eta's", 40000, 0, 4.);
-	}
-      else
-	{
-	  hcalin_eta[i] = new TH1F(hist_name.c_str(), "hcalin eta's", 2000000, 0, 4.);
-	}
+      // 	  hcalin_eta[i] = new TH1F(hist_name.c_str(), "hcalin eta's", 40000, 0, 4.);
+      // 	}
+      // else
+      // 	{
+      // 	  hcalin_eta[i] = new TH1F(hist_name.c_str(), "hcalin eta's", 2000000, 0, 4.);
+      // 	}
     }
 
   }

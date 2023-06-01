@@ -144,7 +144,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	 unsigned int side           = TpcDefs::getSide(hitsetkey);
 	 int subsurfkey_min = (1-side)*144 + (144-sector*12) - 12 - 6;
 	 int subsurfkey_max = subsurfkey_min + 12;
-	 std::cout << " sector " << sector << " side " << side << " subsurfkey_min " << subsurfkey_min << " subsurfkey_max " << subsurfkey_max << std::endl;
+	 //std::cout << " sector " << sector << " side " << side << " subsurfkey_min " << subsurfkey_min << " subsurfkey_max " << subsurfkey_max << std::endl;
 
 	 for(int subsurfkey = subsurfkey_min; subsurfkey<subsurfkey_max; subsurfkey++)
 	   {
@@ -164,7 +164,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 			   << " trkrid " << trkrId << " hitsetkey " << hitsetkey  << " layer " << layer << " sector " << sector << " side " << side 
 			   << " subsurfkey " << subsurfkey << std::endl;
 		 Acts::Vector3 center =  surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
-		 std::cout << "Surface center: " << std::endl <<center << std::endl;
+		 std::cout << "Ideal surface center: " << std::endl <<center << std::endl;
+		 std::cout << "transform matrix: " << std::endl <<  transform.matrix() << std::endl;
 	       }
 	     transformMap->addTransform(id,transform);
 	   }
