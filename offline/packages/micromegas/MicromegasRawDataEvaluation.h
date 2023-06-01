@@ -53,7 +53,14 @@ class MicromegasRawDataEvaluation : public SubsysReco
     unsigned short fee_id = 0;
     unsigned short layer = 0;
     unsigned short tile = 0;
+
+    /// channel id
     unsigned short channel = 0;
+    
+    /// physical strip id
+    unsigned short strip = 0;
+    
+    /// absolute channel id, used to show all channels in a given plot
     unsigned short absolute_channel = 0;
     unsigned short sample = 0;
     unsigned short adc = 0;
