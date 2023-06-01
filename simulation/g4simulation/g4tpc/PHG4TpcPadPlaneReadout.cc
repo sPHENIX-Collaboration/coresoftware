@@ -473,6 +473,12 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
   /* return pass_data; */
 }
 double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double phi, const double radius){
+
+  
+  std::cout << "PHG4TpcPadPlaneReadout::check_phi" << std::endl;
+  std::cout << "radius: " << radius << std::endl;
+  std::cout << "MinRadius: " << MinRadius[0] << " " <<  MinRadius[1] << " " <<  MinRadius[2]  << std::endl;
+  std::cout << "MaxRadius: " << MaxRadius[0] << " " <<  MaxRadius[1] << " " <<  MaxRadius[2]  << std::endl;
   double new_phi = phi;
   int p_region=-1;
   for (int iregion = 0; iregion < 3; ++iregion)
