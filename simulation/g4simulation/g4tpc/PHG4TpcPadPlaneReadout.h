@@ -57,7 +57,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   double neffelectrons_threshold = NAN;
 
-  std::array<int, 3> MinLayer;
   std::array<double, 3> MinRadius;
   std::array<double, 3> MaxRadius;
 
@@ -65,20 +64,12 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   static constexpr int NSectors = 12;
   static const int NRSectors = 3;
 
-  double MaxZ = NAN;
-  double MinT = NAN;
-  double MaxT = NAN;
   double sigmaT = NAN;
   std::array<double, 2> sigmaL;
   std::array<double, 3> PhiBinWidth;
-  double TBinWidth = NAN;
   double drift_velocity = 8.0e-03;  // default value, override from macro
-  double tpc_adc_clock = NAN;
 
   int NTBins = INT_MAX;
-  std::array<int, 3> NPhiBins;
-  std::array<int, 3> NTpcLayers;
-  std::array<double, 3> SectorPhi;
   int m_NHits = 0;
   // Using Gain maps is turned off by default
   int m_flagToUseGain = 0;

@@ -700,11 +700,6 @@ void PHG4TpcPadPlaneReadout::ReadGain()
 }
 void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 {
-  set_default_int_param("ntpc_layers_inner", 16);
-  set_default_int_param("ntpc_layers_mid", 16);
-  set_default_int_param("ntpc_layers_outer", 16);
-
-  set_default_int_param("tpc_minlayer_inner", 7);
 
   set_default_double_param("tpc_minradius_inner", 31.105);//30.0);  // cm
   set_default_double_param("tpc_minradius_mid", 41.153);//40.0);
@@ -742,16 +737,6 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 
 void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
 {
-  NTpcLayers = 
-  {{
-    get_int_param("ntpc_layers_inner"),
-    get_int_param("ntpc_layers_mid"),
-    get_int_param("ntpc_layers_outer")
-  }};
-
-  MinLayer[0] = get_int_param("tpc_minlayer_inner");
-  MinLayer[1] = MinLayer[0] + NTpcLayers[0];
-  MinLayer[2] = MinLayer[1] + NTpcLayers[1];
 
   neffelectrons_threshold = get_double_param("neffelectrons_threshold");
 
@@ -768,22 +753,22 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
     get_double_param("sampa_shaping_tail")
   }};
 
-  tpc_adc_clock = get_double_param("tpc_adc_clock");
+  const double tpc_adc_clock = get_double_param("tpc_adc_clock");
 
-  MaxZ = get_double_param("maxdriftlength");
-  TBinWidth = tpc_adc_clock;
-  MaxT = 2.0 * MaxZ / drift_velocity;  // allows for extended time readout
-  MinT = 0;
+  const double MaxZ = get_double_param("maxdriftlength");
+  const double TBinWidth = tpc_adc_clock;
+  const double MaxT = 2.0 * MaxZ / drift_velocity;  // allows for extended time readout
+  const double MinT = 0;
   NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
 
-  SectorPhi =
+  const std::array<double, 3> SectorPhi =
   {{
     get_double_param("tpc_sector_phi_inner"),
     get_double_param("tpc_sector_phi_mid"),
     get_double_param("tpc_sector_phi_outer")
   }};
 
-  NPhiBins = 
+  const std::array<int,3> NPhiBins = 
   {{
     get_int_param("ntpc_phibins_inner"),
     get_int_param("ntpc_phibins_mid"),
