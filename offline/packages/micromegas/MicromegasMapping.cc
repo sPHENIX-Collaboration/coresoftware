@@ -389,8 +389,6 @@ void MicromegasMapping::construct_channel_mapping()
     // store in array
     m_fee_to_strip_mapping_z[channel_id] = strip_geant;
   }
-
-  // print_mapping( "m_fee_to_strip_mapping_z", m_fee_to_strip_mapping_z );
   
   // map mec8 channel id (1-70) to mec8 signal id on detector as defined by audrey in phi views
   /* sources:
@@ -479,6 +477,7 @@ void MicromegasMapping::construct_channel_mapping()
     m_fee_to_strip_mapping_phi[channel_id] = strip_geant;
   }
 
-  // print_mapping( "m_fee_to_strip_mapping_phi", m_fee_to_strip_mapping_phi );
+//   print_mapping( "m_fee_to_strip_mapping_z", m_fee_to_strip_mapping_z );
+//   print_mapping( "m_fee_to_strip_mapping_phi", m_fee_to_strip_mapping_phi );
   
 }
