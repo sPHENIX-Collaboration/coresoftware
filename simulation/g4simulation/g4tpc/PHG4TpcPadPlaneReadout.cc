@@ -744,6 +744,13 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
     get_double_param("tpc_minradius_outer")
   }};
 
+  MaxRadius =
+  {{
+    get_double_param("tpc_maxradius_inner"),
+    get_double_param("tpc_maxradius_mid"),
+    get_double_param("tpc_maxradius_outer")
+  }};
+
   sigmaT = get_double_param("gem_cloud_sigma");
   sigmaL = {{
     get_double_param("sampa_shaping_lead"),
@@ -781,15 +788,13 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
 
   averageGEMGain = get_double_param("gem_amplification");
   
-  
   for (int iregion = 0; iregion < 3; ++iregion)
   {
-    //int zside = 0;
     for (int zside = 0; zside < 2;zside++)
     {
       sector_min_Phi_sectors[zside][iregion].clear();
       sector_max_Phi_sectors[zside][iregion].clear();
-      for (int isector = 0; isector < NSectors; ++isector)//12 sectors
+      for (int isector = 0; isector < NSectors; ++isector)
       {        
         double sec_gap = (2*M_PI - SectorPhi[iregion]*12)/12;
         double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap - 2 * M_PI / 12 * isector;// * (isector+1) ;
@@ -797,7 +802,7 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
         sector_min_Phi_sectors[zside][iregion].push_back(sec_min_phi);
         sector_max_Phi_sectors[zside][iregion].push_back(sec_max_phi);
         
-      }// isector
+      }
     }
   }  
 }
