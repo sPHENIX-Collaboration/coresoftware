@@ -557,15 +557,12 @@ void PHG4TpcDetector::add_geometry_node()
   // should move to a common file 
   static constexpr int NSides = 2;
   static constexpr int NSectors = 12;
-  static constexpr int NRSectors = 3;
 
   std::array<std::vector<double>, NSides > sector_R_bias;
   std::array<std::vector<double>, NSides > sector_Phi_bias;
   std::array<std::vector<double>, NSides > sector_min_Phi;
   std::array<std::vector<double>, NSides > sector_max_Phi;
   
-  std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_min_Phi_sectors;
-  std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_max_Phi_sectors;
 
   for (int iregion = 0; iregion < 3; ++iregion)
   {
@@ -576,8 +573,6 @@ void PHG4TpcDetector::add_geometry_node()
       sector_Phi_bias[zside].clear();
       sector_min_Phi[zside].clear();
       sector_max_Phi[zside].clear();
-      sector_min_Phi_sectors[zside][iregion].clear();
-      sector_max_Phi_sectors[zside][iregion].clear();
       //int eff_layer = 0;
       for (int isector = 0; isector < NSectors; ++isector)//12 sectors
       {
@@ -592,9 +587,6 @@ void PHG4TpcDetector::add_geometry_node()
         double sec_min_phi = sec_max_phi - SectorPhi[iregion];
         sector_min_Phi[zside].push_back(sec_min_phi);
         sector_max_Phi[zside].push_back(sec_max_phi);
-        sector_min_Phi_sectors[zside][iregion].push_back(sec_min_phi);
-        sector_max_Phi_sectors[zside][iregion].push_back(sec_max_phi);
-        
       }// isector
     }
     
