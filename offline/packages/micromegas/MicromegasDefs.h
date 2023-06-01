@@ -11,6 +11,8 @@
 
 #include <trackbase/TrkrDefs.h>
 
+#include <array>
+
 namespace MicromegasDefs
 {
 
@@ -91,8 +93,9 @@ namespace MicromegasDefs
    s*/
   uint8_t getTileId(TrkrDefs::cluskey);
 
-  //! TPOT packet id
-  static constexpr unsigned int m_packet_id = 5001;
+  //! TPOT packet ids
+  static constexpr int m_npackets = 2;
+  static constexpr std::array<unsigned int,m_npackets> m_packet_ids = {5000, 5001};
   
   //! number of channels per fee board
   static constexpr int m_nchannels_fee = 256;

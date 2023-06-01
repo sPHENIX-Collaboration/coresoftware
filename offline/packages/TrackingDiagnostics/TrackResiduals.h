@@ -32,7 +32,7 @@ class TrackResiduals : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
-  void outfileName(std::string name) { m_outfileName = name; }
+  void outfileName(std::string &name) { m_outfileName = name; }
   void alignment(bool align) { m_doAlignment = align; }
   void alignmentmapName(std::string name) { m_alignmentMapName = name; }
   void trackmapName(std::string name) { m_trackMapName = name; }

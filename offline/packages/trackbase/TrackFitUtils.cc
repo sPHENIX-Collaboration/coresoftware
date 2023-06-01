@@ -1,6 +1,5 @@
 #include "TrackFitUtils.h"
 
-#include <trackbase_historic/TrackSeed_v1.h>
 #include "ActsGeometry.h"
 #include "TrkrDefs.h"                // for cluskey, getTrkrId, tpcId
 #include "TpcDefs.h"
@@ -313,19 +312,23 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
       for(unsigned int ivec=0;ivec<global_vec.size(); ++ivec)
 	{
 	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
-	  if(trkrid != TrkrDefs::inttId) { global_vec_noINTT.push_back(global_vec[ivec]); }
-	}      
+	  if(trkrid != TrkrDefs::inttId)
+	    {
+	      global_vec_noINTT.push_back(global_vec[ivec]); 
+	    }
+	}
+      
       if(global_vec_noINTT.size() < 3) 
 	{ return fitpars; }
-     std::tuple<double,double> line_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
-
-     fitpars.push_back( std::get<0>(circle_fit_pars));
-     fitpars.push_back( std::get<1>(circle_fit_pars));
-     fitpars.push_back( std::get<2>(circle_fit_pars));
-     fitpars.push_back( std::get<0>(line_fit_pars));
-     fitpars.push_back( std::get<1>(line_fit_pars));
-
-     return fitpars; 
+      std::tuple<double,double> line_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
+      
+      fitpars.push_back( std::get<0>(circle_fit_pars));
+      fitpars.push_back( std::get<1>(circle_fit_pars));
+      fitpars.push_back( std::get<2>(circle_fit_pars));
+      fitpars.push_back( std::get<0>(line_fit_pars));
+      fitpars.push_back( std::get<1>(line_fit_pars));
+      
+      return fitpars; 
 }
 
 //_________________________________________________________________________________

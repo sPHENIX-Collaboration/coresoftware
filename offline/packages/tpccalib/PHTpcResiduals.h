@@ -112,14 +112,6 @@ class PHTpcResiduals : public SubsysReco
   /// fill track state from bound track parameters
   void addTrackState( SvtxTrack* track, TrkrDefs::cluskey key, float pathlength, const Acts::BoundTrackParameters& params );
   
-  /** \brief 
-   * Propagates the silicon+MM track fit to the surface on which
-   * an available source link in the TPC exists, added from the stub
-   * matching propagation
-   * returns the path lenght and the resulting parameters
-   */
-  std::optional<BoundTrackParamPair> propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surf ) const;
-
   /// Gets distortion cell for identifying bins in TPC
   int getCell(const Acts::Vector3& loc);
 

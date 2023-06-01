@@ -18,7 +18,7 @@ void CaloWaveformProcessing::initialize_processing()
   if (m_processingtype == CaloWaveformProcessing::TEMPLATE)
   {
     std::string calibrations_repo_template = std::string(calibrationsroot) + "/WaveformProcessing/templates/" + m_template_input_file;
-    url_template = CDBInterface::instance()->getUrl(m_template_input_file, calibrations_repo_template);
+    url_template = CDBInterface::instance()->getUrl(m_template_name, calibrations_repo_template);
     m_Fitter = new CaloWaveformFitting();
     m_Fitter->initialize_processing(url_template);
     m_Fitter->set_nthreads(get_nthreads());
