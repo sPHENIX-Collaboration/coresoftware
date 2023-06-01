@@ -742,9 +742,12 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 
 void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
 {
-  NTpcLayers[0] = get_int_param("ntpc_layers_inner");
-  NTpcLayers[1] = get_int_param("ntpc_layers_mid");
-  NTpcLayers[2] = get_int_param("ntpc_layers_outer");
+  NTpcLayers = 
+  {{
+    get_int_param("ntpc_layers_inner"),
+    get_int_param("ntpc_layers_mid"),
+    get_int_param("ntpc_layers_outer")
+  }};
 
   MinLayer[0] = get_int_param("tpc_minlayer_inner");
   MinLayer[1] = MinLayer[0] + NTpcLayers[0];
@@ -752,17 +755,18 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
 
   neffelectrons_threshold = get_double_param("neffelectrons_threshold");
 
-  MinRadius[0] = get_double_param("tpc_minradius_inner");
-  MinRadius[1] = get_double_param("tpc_minradius_mid");
-  MinRadius[2] = get_double_param("tpc_minradius_outer");
-
-  MaxRadius[0] = get_double_param("tpc_maxradius_inner");
-  MaxRadius[1] = get_double_param("tpc_maxradius_mid");
-  MaxRadius[2] = get_double_param("tpc_maxradius_outer");
+  MinRadius =
+  {{
+    get_double_param("tpc_minradius_inner"),
+    get_double_param("tpc_minradius_mid"),
+    get_double_param("tpc_minradius_outer")
+  }};
 
   sigmaT = get_double_param("gem_cloud_sigma");
-  sigmaL[0] = get_double_param("sampa_shaping_lead");
-  sigmaL[1] = get_double_param("sampa_shaping_tail");
+  sigmaL = {{
+    get_double_param("sampa_shaping_lead"),
+    get_double_param("sampa_shaping_tail")
+  }};
 
   tpc_adc_clock = get_double_param("tpc_adc_clock");
 
@@ -772,19 +776,26 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   MinT = 0;
   NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
 
-  std::cout << PHWHERE << "MaxT " << MaxT << " NTBins = " << NTBins << " drift velocity " << drift_velocity << std::endl;
+  SectorPhi =
+  {{
+    get_double_param("tpc_sector_phi_inner"),
+    get_double_param("tpc_sector_phi_mid"),
+    get_double_param("tpc_sector_phi_outer")
+  }};
 
-  SectorPhi[0] = get_double_param("tpc_sector_phi_inner");
-  SectorPhi[1] = get_double_param("tpc_sector_phi_mid");
-  SectorPhi[2] = get_double_param("tpc_sector_phi_outer");
-
-  NPhiBins[0] = get_int_param("ntpc_phibins_inner");
-  NPhiBins[1] = get_int_param("ntpc_phibins_mid");
-  NPhiBins[2] = get_int_param("ntpc_phibins_outer");
-
-  PhiBinWidth[0] = SectorPhi[0] * 12 / (double) NPhiBins[0];
-  PhiBinWidth[1] = SectorPhi[1] * 12 / (double) NPhiBins[1];
-  PhiBinWidth[2] = SectorPhi[2] * 12 / (double) NPhiBins[2];
+  NPhiBins = 
+  {{
+    get_int_param("ntpc_phibins_inner"),
+    get_int_param("ntpc_phibins_mid"),
+    get_int_param("ntpc_phibins_outer")
+  }};
+  
+  PhiBinWidth =
+  {{
+    SectorPhi[0] * 12 / (double) NPhiBins[0],
+    SectorPhi[1] * 12 / (double) NPhiBins[1],
+    SectorPhi[2] * 12 / (double) NPhiBins[2]
+  }};
 
   averageGEMGain = get_double_param("gem_amplification");
   
@@ -796,7 +807,6 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
     {
       sector_min_Phi_sectors[zside][iregion].clear();
       sector_max_Phi_sectors[zside][iregion].clear();
-      //int eff_layer = 0;
       for (int isector = 0; isector < NSectors; ++isector)//12 sectors
       {        
         double sec_gap = (2*M_PI - SectorPhi[iregion]*12)/12;
@@ -807,6 +817,5 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
         
       }// isector
     }
-  }
-  
+  }  
 }
