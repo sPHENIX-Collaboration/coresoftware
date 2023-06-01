@@ -55,6 +55,24 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
   }
 
   std::vector<Acts::BoundIndices> indices{Acts::eBoundLoc0, Acts::eBoundLoc1, Acts::eBoundPhi, Acts::eBoundTheta, Acts::eBoundQOverP, Acts::eBoundTime};
+
+  auto silseed = track->get_silicon_seed();
+  int nmaps = 0;
+  int nintt = 0;
+  for(auto iter = silseed->begin_cluster_keys(); 
+      iter != silseed->end_cluster_keys();
+      ++iter)
+    {
+      TrkrDefs::cluskey ckey = *iter;
+      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
+	{ nmaps++; }
+      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::inttId)
+	{ nintt++; }
+    }
+
+  if(nmaps < 2 or nintt < 2) 
+    { return; }
+
   mj.visitBackwards(trackTip, [&](const auto& state)
                     {
     /// Collect only track states which were used in smoothing of KF and are measurements
