@@ -193,13 +193,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
   seggeonodename = "CYLINDERCELLGEOM_SVTX";  // + detector;
   seggeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
-  if (!seggeo)
-  {
-    seggeo = new PHG4TpcCylinderGeomContainer();
-    auto newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
-    runNode->addNode(newNode);
-  }
-
+  assert( seggeo );
   
   UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
@@ -301,7 +295,6 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   }
 
   padplane->InitRun(topNode);
-  padplane->CreateReadoutGeometry(topNode, seggeo);
 
   // print all layers radii
   // if (Verbosity())
