@@ -656,7 +656,7 @@ void PHG4MicromegasDetector::add_geometry_node()
   auto geonode = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode_name);
   if (!geonode)
   {
-    geonode = new PHG4CylinderGeomContainer();
+    geonode = new PHG4CylinderGeomContainer;
     PHNodeIterator iter(topNode());
     auto runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
     auto newNode = new PHIODataNode<PHObject>(geonode, geonode_name, "PHObject");
