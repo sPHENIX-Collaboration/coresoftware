@@ -99,6 +99,10 @@ class MakeMilleFiles : public SubsysReco
   std::set<unsigned int> fixed_layers;
   std::set<std::pair<unsigned int, unsigned int>> fixed_layer_gparams, fixed_layer_lparams;
 
+  std::string m_constraintFileName = "mp2con.txt";
+  std::ofstream m_constraintFile;
+  std::set<int> m_usedConstraintGlbLbl;
+
   SvtxTrackMap* _track_map{nullptr};
   SvtxAlignmentStateMap* _state_map{nullptr};
   ActsGeometry* _tGeometry{nullptr};

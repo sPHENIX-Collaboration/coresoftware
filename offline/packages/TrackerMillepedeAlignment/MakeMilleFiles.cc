@@ -66,7 +66,10 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
   // Write the steering file here, and add the data file path to it
   std::ofstream steering_file(steering_outfilename);
   steering_file << data_outfilename << std::endl;
+  steering_file << m_constraintFileName << std::endl;
   steering_file.close();
+
+  m_constraintFile.open(m_constraintFileName);
 
   // print grouping setup to log file:
   std::cout << "MakeMilleFiles::InitRun: Surface groupings are silicon " << si_group << " tpc " << tpc_group << " mms " << mms_group << std::endl;
@@ -142,6 +145,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 int MakeMilleFiles::End(PHCompositeNode*)
 {
   delete _mille;
+  m_constraintFile.close();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -338,8 +342,32 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
         {
           errinf = m_layerMisalignment.find(layer)->second;
         }
+        
+	if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::inttId)
+	  {
+	    if(m_usedConstraintGlbLbl.find(glbl_label[0]) == m_usedConstraintGlbLbl.end())
+	      {
+		auto surfcent = surf->center(_tGeometry->geometry().getGeoContext());
+		float sensorphi = atan2(surfcent.y(), surfcent.x());
+		m_constraintFile << " Constraint  0.0" << std::endl;
+		for(int temp =0; temp < SvtxAlignmentState::NGL; temp++)
+		  {
+		    float factor = 0.;
+		    if(temp == 3) factor = std::cos(sensorphi);
+		    else if(temp == 4) factor = std::sin(sensorphi);
+		    else continue;
+		    m_constraintFile << "     " << glbl_label[temp] << "   " 
+				     << factor << std::endl;
+		   
+		    
+		  }
 
-        _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), errinf * clus_sigma(i));
+		m_usedConstraintGlbLbl.insert(glbl_label[0]);
+
+	      }
+	  }
+      
+      _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), errinf * clus_sigma(i));
       }
     }
   }
