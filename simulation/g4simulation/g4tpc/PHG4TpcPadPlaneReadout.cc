@@ -89,9 +89,6 @@ PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
 //_________________________________________________________
 int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
 {
-  
-  std::cout << "PHG4TpcPadPlaneReadout::InitRun" << std::endl;
-  
   // base class
   const auto reply = PHG4TpcPadPlane::InitRun( topNode );
   if( reply != Fun4AllReturnCodes::EVENT_OK ) return reply;
