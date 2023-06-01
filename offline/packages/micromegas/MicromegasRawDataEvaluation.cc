@@ -113,7 +113,8 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
     {
       const unsigned short fee = packet->iValue(i, "FEE" );
       const unsigned short channel = packet->iValue( i, "CHANNEL" );
-      
+      const unsigned short strip = m_mapping.get_physical_strip(fee, channel);
+
       // get hitsetkey, layer and tile
       const auto hitsetkey = m_mapping.get_hitsetkey(fee);
       const unsigned short layer = TrkrDefs::getLayer( hitsetkey );
@@ -136,6 +137,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
             .layer = layer,
             .tile = tile,
             .channel = channel,
+            .strip = strip,
             .absolute_channel = absolute_channel,
             .sample = is,
             .adc = adc
