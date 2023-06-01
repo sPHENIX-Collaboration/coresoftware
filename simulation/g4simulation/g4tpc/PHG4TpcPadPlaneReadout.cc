@@ -130,7 +130,6 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     const double x_gem, const double y_gem, const double t_gem, const unsigned int side, 
     PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)
 {
-  std::cout << "PHG4TpcPadPlaneReadout::MapToPadPlane" << std::endl;
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
   // The t_gem value already reflects the drift time of the primary electron from the production point, and is randomized within the longitudinal diffusion witdth
@@ -397,13 +396,10 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     }
 
   m_NHits++;
-  std::cout << "PHG4TpcPadPlaneReadout::MapToPadPlane - done" << std::endl;
   /* return pass_data; */
 }
 double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double phi, const double radius)
-{
-  std::cout << "PHG4TpcPadPlaneReadout::check_phi" << std::endl;
-  
+{  
   double new_phi = phi;
   int p_region=-1;
   for (int iregion = 0; iregion < 3; ++iregion)
@@ -411,10 +407,8 @@ double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double p
     if (radius < MaxRadius[iregion] && radius > MinRadius[iregion]) p_region = iregion;
   }
   
-  std::cout << "PHG4TpcPadPlaneReadout::check_phi - p_region: " << p_region << std::endl;
-
-  
-  if(p_region>0){
+  if(p_region>0)
+  {
     for(int s=0; s<12;s++)
     {
       double daPhi = 0;
@@ -438,9 +432,8 @@ double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double p
     }
     if(new_phi<sector_min_Phi_sectors[side][p_region][11] && new_phi>=-M_PI)
     { new_phi += 2*M_PI; }
-    
   }
-  std::cout << "PHG4TpcPadPlaneReadout::check_phi - done" << std::endl;
+  
   return new_phi;
 }
 
