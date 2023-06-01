@@ -73,6 +73,8 @@ class MicromegasCalibrationData
   using calibration_map_t = std::map<int, calibration_vector_t>;
   calibration_map_t m_calibration_map;
     
+  friend std::ostream& operator << (std::ostream&, const MicromegasCalibrationData& );
+  
 };
 
 #endif
