@@ -436,11 +436,10 @@ double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double p
         }
       }
     }
+    if(new_phi<sector_min_Phi_sectors[side][p_region][11] && new_phi>=-M_PI)
+    { new_phi += 2*M_PI; }
+    
   }
-  if(new_phi<sector_min_Phi_sectors[side][p_region][11] && new_phi>=-M_PI)
-  {
-    new_phi += 2*M_PI;
-  } 
   std::cout << "PHG4TpcPadPlaneReadout::check_phi - done" << std::endl;
   return new_phi;
 }
