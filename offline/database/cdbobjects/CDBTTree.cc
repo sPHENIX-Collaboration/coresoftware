@@ -440,15 +440,15 @@ void CDBTTree::Print()
 void CDBTTree::WriteCDBTTree()
 {
   bool empty_single = m_SingleFloatEntryMap.empty() && m_SingleDoubleEntryMap.empty() &&
-    m_SingleIntEntryMap.empty() && m_SingleUInt64EntryMap.empty();
-  if (!empty_single &&  !m_Locked[SingleEntries])
+                      m_SingleIntEntryMap.empty() && m_SingleUInt64EntryMap.empty();
+  if (!empty_single && !m_Locked[SingleEntries])
   {
     std::cout << "You need to call CDBTTree::CommitSingle() before writing" << std::endl;
     return;
   }
   bool empty_multiple = m_FloatEntryMap.empty() && m_DoubleEntryMap.empty() &&
-    m_IntEntryMap.empty() && m_UInt64EntryMap.empty();
-  if (!empty_multiple &&  !m_Locked[MultipleEntries])
+                        m_IntEntryMap.empty() && m_UInt64EntryMap.empty();
+  if (!empty_multiple && !m_Locked[MultipleEntries])
   {
     std::cout << "You need to call CDBTTree::Commit() before writing" << std::endl;
     return;
@@ -467,7 +467,7 @@ void CDBTTree::WriteCDBTTree()
     WriteSingleCDBTTree();
     m_TTree[SingleEntries]->Write();
   }
-  if (! empty_multiple)
+  if (!empty_multiple)
   {
     WriteMultipleCDBTTree();
     m_TTree[MultipleEntries]->Write();
