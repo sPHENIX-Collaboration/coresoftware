@@ -78,6 +78,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, Acts::Vector3 global);
   void correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec,  std::vector<TrkrDefs::cluskey> cluskey_vec);
   unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec);
+  void addGlobalConstraintIntt(int glbl_label[6], Surface surf);
 
  private:
 
@@ -119,6 +120,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   unsigned int _cluster_version = 5;
   bool test_output = false;
 
+  std::map<int, std::pair<std::pair<int, float>, std::pair<int, float>> > InttConstraints;
+
   ClusterErrorPara _ClusErrPara;
 
   std::set<unsigned int> fixed_layers;
@@ -146,7 +149,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool fittpc = false;
   bool fitfulltrack = false;
 
-  float dca_cut = 0.1;  // 1 mm
+  float dca_cut = 0.2;  // 1 mm
 
   std::string _field;
   int _fieldDir = -1;

@@ -238,6 +238,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  if(layer < 7)
 	    {
 	      AlignmentDefs::getSiliconGlobalLabels(surf, glbl_label, si_grp);	      
+	      if(layer > 2)
+		{ addGlobalConstraintIntt(glbl_label, surf); }
 	    }
 	  else if (layer < 55)
 	    {
@@ -443,6 +445,34 @@ int HelicalFitter::process_event(PHCompositeNode*)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void HelicalFitter::addGlobalConstraintIntt(int glbl_label[6], Surface surf)
+{
+  // Add entry for the INTT dx and dy global labels to the constraints file
+
+  // use dx translation parameter as the key
+  int label_dx = glbl_label[3];
+  int label_dy = glbl_label[4];
+
+  // Does this constraint exist already?
+  if(InttConstraints.find(label_dx) != InttConstraints.end())
+    {
+      return;
+    }
+
+  // add it to the map
+  // we need label_dx, label_dy, sensor x and sensor y
+  alignmentTransformationContainer::use_alignment = false;
+  Acts::Vector3 sensorCenter      = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
+  alignmentTransformationContainer::use_alignment = true;
+
+  std::pair<int, float> dx_x = std::make_pair(label_dx, sensorCenter(0));
+  std::pair<int, float> dy_y = std::make_pair(label_dy, sensorCenter(1));
+  auto constraint = std::make_pair(dx_x, dy_y);
+  InttConstraints.insert(std::make_pair(label_dx, constraint));
+
+  return;
+}
+
 Acts::Vector3 HelicalFitter::get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global)
 {
   // we want the point where the helix intersects the plane of the surface
@@ -587,6 +617,18 @@ int HelicalFitter::End(PHCompositeNode* )
      fout->Write();
      fout->Close();
     }
+
+  ofstream fconstraint("mille_global_constraints.txt");
+  for (auto it = InttConstraints.begin(); it != InttConstraints.end(); ++it)
+    {
+      auto xpair = it->second.first;
+      auto ypair = it->second.second;
+
+      fconstraint << "Constraint 0.0" << std::endl;
+      fconstraint << xpair.first << "  " << xpair.second << std::endl;
+      fconstraint << ypair.first << "  " << ypair.second << std::endl;
+    }
+  fconstraint.close();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
