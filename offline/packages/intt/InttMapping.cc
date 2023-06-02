@@ -164,32 +164,32 @@ bool operator!=(struct Intt::Offline_s const& lhs, struct Intt::Offline_s const&
 
 bool operator<(struct Intt::RawData_s const& lhs, struct Intt::RawData_s const& rhs)
 {
-	if(lhs.felix_server < rhs.felix_server)return true;
-	if(lhs.felix_channel < rhs.felix_channel)return true;
-	if(lhs.chip < rhs.chip)return true;
-	if(lhs.channel < rhs.channel)return true;
+	if(lhs.felix_server != rhs.felix_server)return lhs.felix_server < rhs.felix_server;
+	if(lhs.felix_channel != rhs.felix_channel)return lhs.felix_channel < rhs.felix_channel;
+	if(lhs.chip != rhs.chip)return lhs.chip < rhs.chip;
+	if(lhs.channel != rhs.channel)return lhs.channel < rhs.channel;
 
 	return false;
 }
 
 bool operator<(struct Intt::Online_s const& lhs, struct Intt::Online_s const& rhs)
 {
-	if(lhs.lyr < rhs.lyr)return true;
-	if(lhs.ldr < rhs.ldr)return true;
-	if(lhs.arm < rhs.arm)return true;
-	if(lhs.chp < rhs.chp)return true;
-	if(lhs.chn < rhs.chn)return true;
+	if(lhs.lyr != rhs.lyr)return lhs.lyr < rhs.lyr;
+	if(lhs.ldr != rhs.ldr)return lhs.ldr < rhs.ldr;
+	if(lhs.arm != rhs.arm)return lhs.arm < rhs.arm;
+	if(lhs.chp != rhs.chp)return lhs.chp < rhs.chp;
+	if(lhs.chn != rhs.chn)return lhs.chn < rhs.chn;
 
 	return false;
 }
 
 bool operator<(struct Intt::Offline_s const& lhs, struct Intt::Offline_s const& rhs)
 {
-	if(lhs.layer < rhs.layer)return true;
-	if(lhs.ladder_phi < rhs.ladder_phi)return true;
-	if(lhs.ladder_z < rhs.ladder_z)return true;
-	if(lhs.strip_x < rhs.strip_x)return true;
-	if(lhs.strip_y < rhs.strip_y)return true;
+	if(lhs.layer != rhs.layer)return lhs.layer < rhs.layer;
+	if(lhs.ladder_phi != rhs.ladder_phi)return lhs.ladder_phi < rhs.ladder_phi;
+	if(lhs.ladder_z != rhs.ladder_z)return lhs.ladder_z < rhs.ladder_z;
+	if(lhs.strip_x != rhs.strip_x)return lhs.strip_x < rhs.strip_x;
+	if(lhs.strip_y != rhs.strip_y)return lhs.strip_y < rhs.strip_y;
 
 	return false;
 }
