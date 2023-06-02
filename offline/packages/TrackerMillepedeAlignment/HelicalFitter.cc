@@ -29,6 +29,8 @@
 #include <phool/getClass.h>
 
 #include <TF1.h>
+#include <TNtuple.h>
+#include <TFile.h>
 
 #include <climits>                            // for UINT_MAX
 #include <iostream>                            // for operator<<, basic_ostream
@@ -77,8 +79,16 @@ int HelicalFitter::InitRun(PHCompositeNode *topNode)
   steering_file << data_outfilename << std::endl;
   steering_file.close();
 
+  if(make_ntuple)
+    {
+      fout = new TFile("HF_ntuple.root","recreate");
+      ntp = new TNtuple("ntp","HF ntuple","event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
+   }
+ 
   // print grouping setup to log file:
-  std::cout << "MakeMilleFiles::InitRun: Surface groupings are silicon " << si_grp << " tpc " << tpc_grp << " mms " << mms_grp << std::endl; 
+  std::cout << "HelicalFitter::InitRun: Surface groupings are silicon " << si_grp << " tpc " << tpc_grp << " mms " << mms_grp << std::endl; 
+
+  event=-1;
 
   return ret;
 }
@@ -98,6 +108,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
   // _track_map_silicon contains the silicon seed track stubs
   // _svtx_seed_map contains the combined silicon and tpc track seeds
 
+  event++;
+
   if(Verbosity() > 0)
     cout << PHWHERE 
 	 << " TPC seed map size " << _track_map_tpc->size() 
@@ -109,6 +121,9 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
   // Decide whether we want to make a helical fit for silicon or TPC
   unsigned int maxtracks = 0; 
+  unsigned int nsilicon = 0;
+  unsigned int ntpc = 0;
+  unsigned int nclus = 0;
   if(fittpc) { maxtracks =  _track_map_tpc->size();  }
   if(fitsilicon)  { maxtracks =  _track_map_silicon->size(); }
   for(unsigned int trackid = 0; trackid < maxtracks; ++trackid)
@@ -128,7 +143,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
       correctTpcGlobalPositions( global_vec, cluskey_vec);
 
-      std::vector<float> fitpars =  TrackFitUtils::fitClusters(global_vec, cluskey_vec);       // do helical fit`
+      std::vector<float> fitpars =  TrackFitUtils::fitClusters(global_vec, cluskey_vec);       // do helical fit
 
       if(fitpars.size() == 0) continue;  // discard this track, not enough clusters to fit
 
@@ -140,7 +155,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
       if(fittpc && fitfulltrack)
 	{
 	  // this associates silicon clusters and adds them to the vectors
-	  unsigned int nsilicon = TrackFitUtils::addSiliconClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec);
+	  ntpc = cluskey_vec.size();
+	  nsilicon = TrackFitUtils::addSiliconClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec);
 	  if(nsilicon < 3) continue;  // discard this TPC seed, did not get a good match to silicon
 
 	  // fit the full track now
@@ -152,6 +168,12 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	    { std::cout << " Full track " << trackid   << " radius " << fitpars[0] << " X0 " << fitpars[1]<< " Y0 " << fitpars[2]
 					   << " zslope " << fitpars[3]  << " Z0 " << fitpars[4] << std::endl; }
 	} 
+
+      nclus = ntpc+nsilicon;
+
+      // some basic track quality requirements
+      if(fittpc && ntpc < 35) continue;
+      if((fitsilicon || fitfulltrack) && nsilicon < 5) continue;
 
       // get the residuals and derivatives for all clusters
 
@@ -170,7 +192,9 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  // we have fitpars for the helix, and the cluster key - from which we get the surface
 
 	  Surface surf = _tGeometry->maps().getSurface(cluskey, cluster);
-	  Acts::Vector3 fitpoint = get_helix_surface_intersection(surf, fitpars, global);
+	  Acts::Vector3 helix_pca(0,0,0);
+	  Acts::Vector3 helix_tangent(0,0,0);
+	  Acts::Vector3 fitpoint = get_helix_surface_intersection(surf, fitpars, global, helix_pca, helix_tangent);
 
 	  // fitpoint is the point where the helical fit intersects the plane of the surface
 	  // Now transform the helix fitpoint to local coordinates to compare with cluster local coordinates
@@ -187,19 +211,25 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  unsigned int layer = TrkrDefs::getLayer(cluskey_vec[ivec]);	  
 	  float phi =  atan2(global(1), global(0));
 	  float beta =  atan2(global(2), sqrt(pow(global(0),2) + pow(global(1),2)));
-	    
-	  if(Verbosity() > 1) {
-	  Acts::Vector3 loc_check =  surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (global *  Acts::UnitConstants::cm);
-	  loc_check /= Acts::UnitConstants::cm;
-	  std::cout << "    layer " << layer << std::endl
-		    << " cluster global " << global(0) << " " << global(1) << " " << global(2) << std::endl
-		    << " fitpoint " << fitpoint(0) << " " << fitpoint(1) << " " << fitpoint(2) << std::endl
-		    << " fitpoint_local " << fitpoint_local(0) << " " << fitpoint_local(1) << " " << fitpoint_local(2) << std::endl  
-		    << " cluster local x " << cluster->getLocalX() << " cluster local y " << cluster->getLocalY() << std::endl
-		    << " cluster global to local x " << loc_check(0) << " local y " << loc_check(1) << "  local z " << loc_check(2) << std::endl
-		    << " cluster local residual x " << residual(0) << " cluster local residual y " <<residual(1) << std::endl;
-	  }
 
+	  if(Verbosity() > 1) 
+	    {
+	      Acts::Transform3 transform =  surf->transform(_tGeometry->geometry().getGeoContext());
+	      std::cout << "Transform is:" << std::endl;
+	      std::cout <<  transform.matrix() << std::endl;
+	      Acts::Vector3 loc_check =  surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (global *  Acts::UnitConstants::cm);
+	      loc_check /= Acts::UnitConstants::cm;
+	      unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
+	      unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  
+	      std::cout << "    layer " << layer << " sector " << sector << " side " << side << " subsurf " <<   cluster->getSubSurfKey() << std::endl
+			<< " cluster global " << global(0) << " " << global(1) << " " << global(2) << std::endl
+			<< " fitpoint " << fitpoint(0) << " " << fitpoint(1) << " " << fitpoint(2) << std::endl
+			<< " fitpoint_local " << fitpoint_local(0) << " " << fitpoint_local(1) << " " << fitpoint_local(2) << std::endl  
+			<< " cluster local x " << cluster->getLocalX() << " cluster local y " << cluster->getLocalY() << std::endl
+			<< " cluster global to local x " << loc_check(0) << " local y " << loc_check(1) << "  local z " << loc_check(2) << std::endl
+			<< " cluster local residual x " << residual(0) << " cluster local residual y " <<residual(1) << std::endl;
+	    }
+	  
 	  // need standard deviation of measurements
 	  Acts::Vector2 clus_sigma = getClusterError(cluster, cluskey, global);
 	  if(isnan(clus_sigma(0)) || isnan(clus_sigma(1)))  { continue; }
@@ -207,27 +237,46 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  int glbl_label[AlignmentDefs::NGL];
 	  if(layer < 7)
 	    {
-	      AlignmentDefs::getSiliconGlobalLabels(surf, glbl_label, si_grp);
+	      AlignmentDefs::getSiliconGlobalLabels(surf, glbl_label, si_grp);	      
 	    }
 	  else if (layer < 55)
 	    {
-	      AlignmentDefs::getTpcGlobalLabels(surf, glbl_label, tpc_grp);
+	      AlignmentDefs::getTpcGlobalLabels(surf, cluskey, glbl_label, tpc_grp);
+	      /*
+	      unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
+	      unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  
+	      Acts::Vector3 center =  surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
+	      Acts::GeometryIdentifier id = surf->geometryId();
+	      unsigned int region = AlignmentDefs::getTpcRegion(layer);
+	      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+	      std::cout << std::endl << "     layer " << layer << " hitsetkey " << hitsetkey << " sector " << sector 
+			<< " region " << region << " side " << side 
+			<< " sensor center " << center[0] << "  " << center[1] << "  " << center[2] 
+			<< " phi " << atan2(center[1],center[0])* 180.0/M_PI << std::endl;
+	      std::cout << "     global labels: " << glbl_label[3] << "  " << glbl_label[4] << "  " << glbl_label[5] << std::endl;
+	      std::cout << " TPC surface GeometryIdentifier " << id << std::endl;
+	      std::cout << " subsurf key from cluster " << cluster->getSubSurfKey() << std::endl;
+	      std::cout << " transform: " << std::endl << surf->transform(_tGeometry->geometry().getGeoContext()).matrix() << std::endl;
+	      // get the local parameters using the ideal transforms
+	      alignmentTransformationContainer::use_alignment = false;
+	      Acts::Vector3 ideal_center =  surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
+	      std::cout << " ideal sensor center " << ideal_center[0] << "  " << ideal_center[1] << "  " << ideal_center[2] << std::endl;
+	      std::cout << " ideal transform: " << std::endl << surf->transform(_tGeometry->geometry().getGeoContext()).matrix() << std::endl;
+	      alignmentTransformationContainer::use_alignment = true;
+	      */
 	    }
-	  else if (layer < 57)
+	  else
 	    {
-	      AlignmentDefs::getMMGlobalLabels(surf, glbl_label, mms_grp);
+	      continue;
 	    }
 
 	  // These derivatives are for the local parameters
-	  // The angleDerivs dimensions are [alpha/beta/gamma](x/y/z)
-	  //std::vector<Acts::Vector3> angleDerivs = getDerivativesAlignmentAngles(global, cluskey, cluster); 
-	  //std::vector<Acts::Vector3> translDerivs = getDerivativesAlignmentTranslations(global, cluskey, cluster);
-
 	  float lcl_derivativeX[AlignmentDefs::NLC];
 	  float lcl_derivativeY[AlignmentDefs::NLC];
 
 	  getLocalDerivativesXY(surf, global, fitpars, lcl_derivativeX, lcl_derivativeY, layer);
 
+	  // The global derivs dimensions are [alpha/beta/gamma](x/y/z)
 	  float glbl_derivativeX[AlignmentDefs::NGL];
 	  float glbl_derivativeY[AlignmentDefs::NGL];
 	  getGlobalDerivativesXY(surf, global, fitpoint, fitpars, glbl_derivativeX, glbl_derivativeY, layer);
@@ -263,13 +312,64 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	      errinf = _layerMisalignment.find(layer)->second;
 	    }
 
+	  if(make_ntuple)
+	    {
+	      // get the local parameters using the ideal transforms
+	      alignmentTransformationContainer::use_alignment = false;
+	      Acts::Vector3 ideal_center =  surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  
+	      Acts::Vector3 ideal_norm =  -surf->normal(_tGeometry->geometry().getGeoContext());  
+	      Acts::Vector3 ideal_local(xloc, zloc, 0.0); // cm
+	      Acts::Vector3 ideal_glob =  surf->transform(_tGeometry->geometry().getGeoContext())*(ideal_local * Acts::UnitConstants::cm);
+	      ideal_glob /= Acts::UnitConstants::cm;
+	      alignmentTransformationContainer::use_alignment = true;
+
+	      Acts::Vector3 sensorCenter      = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1; // cm
+	      Acts::Vector3 sensorNormal    = -surf->normal(_tGeometry->geometry().getGeoContext());
+	      unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
+	      unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  	      
+	      unsigned int subsurf = cluster->getSubSurfKey();
+	      float ntp_data[69] = {
+		(float) event, (float) trackid,
+		(float) layer, (float) nsilicon, (float) ntpc, (float) nclus, (float) trkrid,  (float) sector,  (float) side,
+		(float) subsurf, phi,
+		(float) sensorCenter(0), (float) sensorCenter(1), (float) sensorCenter(2),
+		(float) sensorNormal(0), (float) sensorNormal(1), (float) sensorNormal(2),
+		(float) ideal_center(0), (float) ideal_center(1), (float) ideal_center(2),
+		(float) ideal_norm(0), (float) ideal_norm(1), (float) ideal_norm(2),
+		(float) ideal_glob(0), (float) ideal_glob(1), (float) ideal_glob(2),
+		(float) fitpars[0], (float) fitpars[1], (float) fitpars[2], (float) fitpars[3], (float) fitpars[4], 
+		(float) global(0), (float) global(1), (float) global(2),
+		(float) fitpoint(0), (float) fitpoint(1), (float) fitpoint(2), 
+		(float) helix_pca(0), (float) helix_pca(1), (float) helix_pca(2),
+		(float) helix_tangent(0), (float) helix_tangent(1), (float) helix_tangent(2),
+		xloc,zloc, (float) fitpoint_local(0), (float) fitpoint_local(1), 
+		lcl_derivativeX[0],lcl_derivativeX[1],lcl_derivativeX[2],lcl_derivativeX[3],lcl_derivativeX[4],
+		glbl_derivativeX[0],glbl_derivativeX[1],glbl_derivativeX[2],glbl_derivativeX[3],glbl_derivativeX[4],glbl_derivativeX[5],
+		lcl_derivativeY[0],lcl_derivativeY[1],lcl_derivativeY[2],lcl_derivativeY[3],lcl_derivativeY[4],
+		glbl_derivativeY[0],glbl_derivativeY[1],glbl_derivativeY[2],glbl_derivativeY[3],glbl_derivativeY[4],glbl_derivativeY[5] };
+
+	      ntp->Fill(ntp_data);
+
+	      if(Verbosity() > 2)
+		{
+		  for(int i=0;i<34;++i)
+		    {
+		      std::cout << ntp_data[i] << "  " ;
+		    }
+		  std::cout << std::endl;
+		}
+	    };
+	  
 	  // provides output that can be grep'ed to make plots of input to mille
 	  if(Verbosity() > 1)
 	    {
-	      if(layer < 7)
+	      if(layer > 0 && layer < 55)
 		{
-		  // radius = fitpars[0],  X0 = fitpars[1],  Y0 = fitpars[2], zslope = fitpars[3], Z0  = fitpars[4] 
-		  std::cout << "Local residualsX: layer " << layer << " phi " << phi * 180 / M_PI << " beta " << beta * 180.90 / M_PI
+		  // helix radius = fitpars[0],  X0 = fitpars[1],  Y0 = fitpars[2], zslope = fitpars[3], Z0  = fitpars[4] 
+		  unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
+		  unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  
+		  std::cout << "Local residualsX: layer " << layer << " sector " << sector << " side " << side 
+			    << " phi " << phi * 180 / M_PI << " beta " << beta * 180.90 / M_PI
 			    << " dxloc " << residual(0) << " error " << clus_sigma(0)  << " inflation_factor " << errinf
 			    << " xloc " << xloc << " fitxloc " << fitpoint_local(0) 
 			    << " zglob " << global(2) << " fitzglob " << fitpoint(2) 
@@ -288,6 +388,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 			    << " glblderivX xtrans " << glbl_derivativeX[3] << " label " << glbl_label[3]
 			    << " glblderivX ytrans " << glbl_derivativeX[4] << " label " << glbl_label[4]
 			    << " glblderivX ztrans " << glbl_derivativeX[5] << " label " << glbl_label[5]
+
 			    << std::endl;
 		}
 	    }	  
@@ -300,9 +401,12 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  // provides output that can be grep'ed to make plots of input to mille
 	  if(Verbosity() > 1)
 	    {
-	      if(layer < 7)
+	      if(layer > 0 && layer < 55)
 		{
-		  std::cout << "Local residualsY: layer " << layer << " phi " << phi * 180 / M_PI << " beta " << beta * 180.90 / M_PI
+		  unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
+		  unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  
+		  std::cout << "Local residualsY: layer " << layer << " sector " << sector << " side " << side 
+			    << " phi " << phi * 180 / M_PI << " beta " << beta * 180.90 / M_PI
 			    << " dzloc " << residual(1) << " error " << clus_sigma(1) << " inflation_factor " << errinf
 			    << " zloc " << zloc << " fitzloc " << fitpoint_local(1)
 			    << " zglob " << global(2) << " fitzglob " << fitpoint(2) 
@@ -353,6 +457,30 @@ Acts::Vector3 HelicalFitter::get_helix_surface_intersection(Surface surf, std::v
   std::pair<Acts::Vector3, Acts::Vector3> line =  get_helix_tangent(fitpars, global);
   Acts::Vector3 pca = line.first;
   Acts::Vector3 tangent = line.second;
+
+  //  std::cout << "   pca: "  << pca(0) << "  " << pca(1) << "  " << pca(2) << "  " << std::endl;
+
+  Acts::Vector3 intersection = get_line_plane_intersection(pca, tangent, sensorCenter, sensorNormal);
+
+  return intersection;
+}
+
+Acts::Vector3 HelicalFitter::get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global, Acts::Vector3& pca, Acts::Vector3& tangent)
+{
+  // we want the point where the helix intersects the plane of the surface
+
+  // get the plane of the surface
+  Acts::Vector3 sensorCenter      = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
+  Acts::Vector3 sensorNormal    = -surf->normal(_tGeometry->geometry().getGeoContext());
+  sensorNormal /= sensorNormal.norm();
+
+  // there are analytic solutions for a line-plane intersection.
+  // to use this, need to get the vector tangent to the helix near the measurement and a point on it.
+  std::pair<Acts::Vector3, Acts::Vector3> line =  get_helix_tangent(fitpars, global);
+  // Acts::Vector3 pca = line.first;
+  // Acts::Vector3 tangent = line.second;
+  pca = line.first;
+  tangent = line.second;
 
   //  std::cout << "   pca: "  << pca(0) << "  " << pca(1) << "  " << pca(2) << "  " << std::endl;
 
@@ -428,15 +556,19 @@ std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_helix_tangent(const s
       Acts::Vector3 tangent2 = (second_point_pca2 - pca) /  (second_point_pca2 - pca).norm();
       Acts::Vector3 final_pca2 = getPCALinePoint(global, tangent2, pca);
     
-      std::cout << " getting tangent at angle_pca: " << angle_pca * 180.0 / M_PI << std::endl 
-		<< " pca                      " << pca(0) << "  " << pca(1) << "  " << pca(2) << std::endl
-		<< " second_point  " << second_point_pca(0) << "  " << second_point_pca(1) << "  " << second_point_pca(2) << std::endl
-		<< " tangent " << tangent(0) << "  " << tangent(1) << "  " << tangent(2) << std::endl	
-		<< " final_pca " << final_pca(0) << "  " << final_pca(1) << "  " << final_pca(2) << std::endl	
-		<< " second_point2 " << second_point_pca2(0) << "  " << second_point_pca2(1) << "  " << second_point_pca2(2) << std::endl
-		<< " tangent2 " << tangent2(0) << "  " << tangent2(1) << "  " << tangent2(2) << std::endl	
-		<< " final_pca2 " << final_pca2(0) << "  " << final_pca2(1) << "  " << final_pca2(2) 
-		<< std::endl;
+      std::cout << " get_helix_tangent: getting tangent at angle_pca: " << angle_pca * 180.0 / M_PI << std::endl 
+		<< " original first point pca                      " << pca(0) << "  " << pca(1) << "  " << pca(2) << std::endl
+		<< " original second point pca  " << second_point_pca(0) << "  " << second_point_pca(1) << "  " << second_point_pca(2) << std::endl
+		<< " original tangent " << tangent(0) << "  " << tangent(1) << "  " << tangent(2) << std::endl	
+		<< " original final pca from line " << final_pca(0) << "  " << final_pca(1) << "  " << final_pca(2) << std::endl;
+
+      if(Verbosity() > 3)
+	{
+	  std::cout	<< "    Check: 2nd point pca meth 2 "<< second_point_pca2(0)<< "  "<< second_point_pca2(1) << "  "<< second_point_pca2(2) << std::endl
+			<< "    check tangent " << tangent2(0) << "  " << tangent2(1) << "  " << tangent2(2) << std::endl	
+			<< "    check final pca from line " << final_pca2(0) << "  " << final_pca2(1) << "  " << final_pca2(2) 
+			<< std::endl;
+	}
     }
 
 
@@ -449,6 +581,12 @@ int HelicalFitter::End(PHCompositeNode* )
 {
   // closes output file in destructor
   delete _mille;
+
+  if(make_ntuple)
+    {
+     fout->Write();
+     fout->Close();
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -549,9 +687,7 @@ void HelicalFitter::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, shor
 }
 
 
-
-
-// this method to be replaced by calls to TrackFitUtils
+// this method is an interface to TrackFitUtils
 void HelicalFitter::getTrackletClusters(TrackSeed *tracklet, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
   getTrackletClusterList(tracklet, cluskey_vec);
@@ -575,9 +711,12 @@ void HelicalFitter::getTrackletClusterList(TrackSeed *tracklet, std::vector<Trkr
       
       /// Make a safety check for clusters that couldn't be attached to a surface
       auto surf = _tGeometry->maps().getSurface(key, cluster);
-      if(!surf)
-	{ continue; }
-      
+      if(!surf)  { continue; }
+
+      // drop some bad layers in the TPC completely
+      unsigned int layer = TrkrDefs::getLayer(key);
+      if(layer == 7 || layer == 22 || layer == 23 || layer == 38 || layer == 39) {continue;}
+
       cluskey_vec.push_back(key);
       
     } // end loop over clusters for this track 
@@ -639,40 +778,51 @@ void HelicalFitter::getLocalDerivativesXY(Surface surf, Acts::Vector3 global, co
     }
 
   // calculate projX and projY vectors once for the optimum fit parameters
-  //  std::pair<Acts::Vector3, Acts::Vector3> tangent = get_helix_tangent(fitpars, global)
-  std::pair<Acts::Vector3, Acts::Vector3> tangent = get_helix_tangent(fitpars, global);  // should this be global, not fitpoint?
+  if(Verbosity() > 1) std::cout << "Call get_helix_tangent for best fit fitpars" << std::endl;
+  std::pair<Acts::Vector3, Acts::Vector3> tangent = get_helix_tangent(fitpars, global);
 
   Acts::Vector3 projX(0,0,0), projY(0,0,0);
   get_projectionXY(surf, tangent, projX, projY);
-
+  //  std::cout << "  projX "  << std::endl << projX << std::endl;
+  //  std::cout << "  projY "  << std::endl << projY << std::endl;
 
   Acts::Vector3 intersection = get_helix_surface_intersection(surf, temp_fitpars, global);
 
   // loop over the track fit parameters
   for(unsigned int ip = 0; ip < fitpars.size(); ++ip)
     {
-      temp_fitpars[ip] += fitpars_delta[ip];
-
-      Acts::Vector3 temp_intersection = get_helix_surface_intersection(surf, temp_fitpars, global);
-      Acts::Vector3 intersection_delta = temp_intersection - intersection;
-      if(Verbosity() > 1)
+      Acts::Vector3 intersection_delta[2];
+      for(int ipm = 0; ipm < 2; ++ipm)
 	{
-	  std::cout << "Layer " << layer << " local parameter " << ip << ":" << std::endl; 
-	  std::cout << " intersection " << intersection(0) << "  " << intersection(1) << "  " << intersection(2) << std::endl;
-	  std::cout << " temp_intersection " << temp_intersection(0) << "  "<< temp_intersection(1) << "  "<< temp_intersection(2)<< std::endl;
-	  std::cout << " intersection_delta " << intersection_delta(0) << "  " << intersection_delta(1) << "  " << intersection_delta(2) << std::endl;
+	  temp_fitpars[ip] = fitpars[ip];  // reset to best fit value
+	  float deltapm = pow(-1.0, ipm);
+	  temp_fitpars[ip] += deltapm * fitpars_delta[ip];
+
+	  if(Verbosity() > 1)
+	    {
+	      std::cout << "Layer " << layer << " local parameter " << ip << " with ipm " << ipm << " deltapm " << deltapm << " :" << std::endl; 
+	    }
+	  Acts::Vector3 temp_intersection = get_helix_surface_intersection(surf, temp_fitpars, global);
+	  intersection_delta[ipm] = temp_intersection - intersection;
+	  if(Verbosity() > 1)
+	    {
+	      std::cout << " intersection " << intersection(0) << "  " << intersection(1) << "  " << intersection(2) << std::endl;
+	      std::cout << " temp_intersection " << temp_intersection(0) << "  "<< temp_intersection(1) << "  "<< temp_intersection(2)<< std::endl;
+	      std::cout << " intersection_delta " << intersection_delta[ipm](0) << "  " << intersection_delta[ipm](1) << "  " << intersection_delta[ipm](2) << std::endl;
+	      std::cout << " intersection_delta / fitpars_delta = " <<  (intersection_delta[ipm] / fitpars_delta[ip])(0) << "  " <<  (intersection_delta[ipm] / fitpars_delta[ip])(1) << "  " <<  (intersection_delta[ipm] / fitpars_delta[ip])(2) << std::endl;;
+	    }
 	}
-
-
+      Acts::Vector3 average_intersection_delta = (intersection_delta[0] - intersection_delta[1]) / (2 * fitpars_delta[ip]);
       // convert to delta-intersection / delta-parameter
-      intersection_delta /= fitpars_delta[ip];
+      //      intersection_delta /= fitpars_delta[ip];
 
       if(Verbosity() > 1)
-	{std::cout << " intersection_delta / delta_p " << intersection_delta(0) << "  " << intersection_delta(1) << "  " << intersection_delta(2) << std::endl;}
+	{std::cout << " average_intersection_delta / delta " << average_intersection_delta(0) << "  " << average_intersection_delta(1) << "  " << average_intersection_delta(2) << std::endl;}
 
-      // calculate the change in residual for X and Y 
-      lcl_derivativeX[ip] = intersection_delta.dot(projX);
-      lcl_derivativeY[ip] = intersection_delta.dot(projY);
+      // calculate the change in fit for X and Y 
+      // - note negative sign from ATLAS paper is dropped here because mille wants the derivative of the fit, not the derivative of the residual
+      lcl_derivativeX[ip] = average_intersection_delta.dot(projX);
+      lcl_derivativeY[ip] = average_intersection_delta.dot(projY);
       if(Verbosity() > 1)
 	{std::cout << " ip " << ip << "  derivativeX " << lcl_derivativeX[ip] << "  " << " derivativeY " << lcl_derivativeY[ip] << std::endl;}
 
@@ -716,6 +866,15 @@ void HelicalFitter::getGlobalDerivativesXY(Surface surf, Acts::Vector3 global, A
   glbl_derivativeY[1] = (unity.cross(OM)).dot(projY);
   glbl_derivativeY[2] = (unitz.cross(OM)).dot(projY);
 
+  /*
+  // note: the global derivative sign must be reversed from the ATLAS paper 
+  // because mille wants the derivative of the fit, not of the residual.
+  for(unsigned int i = 0; i < 6; ++i)
+    {
+      glbl_derivativeX[i] *= -1.0; 
+      glbl_derivativeY[i] *= -1.0; 
+    }
+  */
   if(Verbosity() > 1)
     {
       std::cout << " glbl_derivativesX for layer " << layer << std::endl;

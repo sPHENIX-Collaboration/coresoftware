@@ -256,7 +256,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
     }
     else if (layer < 55)
     {
-      AlignmentDefs::getTpcGlobalLabels(surf, glbl_label, tpc_group);
+      AlignmentDefs::getTpcGlobalLabels(surf, ckey, glbl_label, tpc_group);
     }
     else if (layer < 57)
     {
