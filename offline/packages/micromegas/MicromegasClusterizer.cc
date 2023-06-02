@@ -243,11 +243,9 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
     // initialize cluster count
     int cluster_count = 0;
-    int strip_count = 0;
     // loop over found hit ranges and create clusters
     for( const auto& range : ranges )
     {
-      strip_count++;
       // create cluster key and corresponding cluster
       const auto ckey = TrkrDefs::genClusKey( hitsetkey, cluster_count++ );
 
@@ -262,11 +260,11 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       // also store adc value
       unsigned int adc_sum = 0;
       unsigned int max_adc = 0;
-      strip_count = 0;
+      unsigned int strip_count = 0;
       // loop over constituting hits
       for( auto hit_it = range.first; hit_it != range.second; ++hit_it )
       {
-	strip_count++;
+        ++strip_count;
         // get hit key
         const auto hitkey = hit_it->first;
         const auto hit = hit_it->second;
@@ -283,9 +281,9 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         const double weight = double(hit->getAdc()) - pedestal;
 
         // increment cluster adc
-	if(hit->getAdc() > max_adc)
-	  max_adc = hit->getAdc();
-        adc_sum += hit->getAdc();
+        const auto hit_adc = hit->getAdc();
+        if( hit_adc > max_adc) { max_adc = hit_adc; }
+        adc_sum += hit_adc;
 
         // get strip local coordinate and update relevant sums
         const auto strip_local_coordinate = layergeom->get_local_coordinates( tileid, acts_geometry, strip );
