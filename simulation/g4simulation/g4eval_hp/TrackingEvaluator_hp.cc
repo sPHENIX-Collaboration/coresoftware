@@ -695,13 +695,6 @@ void TrackingEvaluator_hp::evaluate_clusters()
     std::cout << "TrackingEvaluator_hp::evaluate_clusters - n_tpc_clusters: " << n_tpc_clusters << std::endl;
   }
   
-  // print total clusters in TPC
-  {
-    
-    
-  }
-  
-  
   // first loop over hitsets
   for( const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
   {
