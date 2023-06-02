@@ -5,7 +5,6 @@
 #include <nlohmann/json.hpp>
 
 #include <iostream>
-#include <stdexcept>
 
 CDBUtils::CDBUtils()
   : cdbclient(new SphenixClient())
@@ -55,7 +54,9 @@ int CDBUtils::unlockGlobalTag(const std::string &tagname)
 
 void CDBUtils::clearCache()
 {
-  cdbclient->clearCache();
+  nlohmann::json resp = cdbclient->clearCache();
+  std::cout << resp["msg"] << std::endl;
+  return;
 }
 
 std::string CDBUtils::getUrl(const std::string &type, uint64_t iov)
@@ -74,21 +75,21 @@ void CDBUtils::listPayloadIOVs(uint64_t iov)
   nlohmann::json resp = cdbclient->getPayloadIOVs(iov);
   if (resp["code"] != 0)
   {
-    std::cout <<  resp["msg"] << std::endl;
+    std::cout << resp["msg"] << std::endl;
     return;
   }
   nlohmann::json payload_iovs = resp["msg"];
-  for (auto & [pt, val] : payload_iovs.items())
+  for (auto &[pt, val] : payload_iovs.items())
   {
-    std::cout <<  pt << ": " << val["payload_url"]
-	      << ", begin ts: " << val["minor_iov_start"]
-	      << ", end ts: " << val["minor_iov_end"]
+    std::cout << pt << ": " << val["payload_url"]
+              << ", begin ts: " << val["minor_iov_start"]
+              << ", end ts: " << val["minor_iov_end"]
               << std::endl;
   }
   return;
 }
 
-int CDBUtils::cloneGlobalTag(const std::string& source, const std::string& target)
+int CDBUtils::cloneGlobalTag(const std::string &source, const std::string &target)
 {
   nlohmann::json resp = cdbclient->getGlobalTags();
   nlohmann::json msgcont = resp["msg"];

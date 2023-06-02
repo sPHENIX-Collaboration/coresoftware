@@ -102,7 +102,10 @@ void CDBTTree::SetUInt64Value(int channel, const std::string &name, uint64_t val
 void CDBTTree::Commit()
 {
   m_Locked[MultipleEntries] = true;
-  // create ntuple string
+}
+
+void CDBTTree::WriteMultipleCDBTTree()
+{
   m_TTree[MultipleEntries] = new TTree(m_TTreeName[MultipleEntries].c_str(), m_TTreeName[MultipleEntries].c_str());
   std::set<int> id_set;
   std::map<std::string, float> floatmap;
@@ -293,6 +296,11 @@ void CDBTTree::SetSingleUInt64Value(const std::string &name, uint64_t value)
 void CDBTTree::CommitSingle()
 {
   m_Locked[SingleEntries] = true;
+  return;
+}
+
+void CDBTTree::WriteSingleCDBTTree()
+{
   m_TTree[SingleEntries] = new TTree(m_TTreeName[SingleEntries].c_str(), m_TTreeName[SingleEntries].c_str());
   for (auto &field : m_SingleFloatEntryMap)
   {
@@ -431,18 +439,41 @@ void CDBTTree::Print()
 
 void CDBTTree::WriteCDBTTree()
 {
-  std::string currdir = gDirectory->GetPath();
-  TFile *f = TFile::Open(m_Filename.c_str(), "RECREATE");
-  for (auto ttree : m_TTree)
+  bool empty_single = m_SingleFloatEntryMap.empty() && m_SingleDoubleEntryMap.empty() &&
+                      m_SingleIntEntryMap.empty() && m_SingleUInt64EntryMap.empty();
+  if (!empty_single && !m_Locked[SingleEntries])
   {
-    if (ttree != nullptr)
-    {
-      ttree->Write();
-    }
-    delete ttree;
-    ttree = nullptr;
+    std::cout << "You need to call CDBTTree::CommitSingle() before writing" << std::endl;
+    return;
+  }
+  bool empty_multiple = m_FloatEntryMap.empty() && m_DoubleEntryMap.empty() &&
+                        m_IntEntryMap.empty() && m_UInt64EntryMap.empty();
+  if (!empty_multiple && !m_Locked[MultipleEntries])
+  {
+    std::cout << "You need to call CDBTTree::Commit() before writing" << std::endl;
+    return;
+  }
+  if (empty_single && empty_multiple)
+  {
+    std::cout << "no values to be saved" << std::endl;
+    return;
+  }
+
+  std::string currdir = gDirectory->GetPath();
+
+  TFile *f = TFile::Open(m_Filename.c_str(), "RECREATE");
+  if (!empty_single)
+  {
+    WriteSingleCDBTTree();
+    m_TTree[SingleEntries]->Write();
+  }
+  if (!empty_multiple)
+  {
+    WriteMultipleCDBTTree();
+    m_TTree[MultipleEntries]->Write();
   }
   f->Close();
+
   gROOT->cd(currdir.c_str());  // restore previous directory
 }
 

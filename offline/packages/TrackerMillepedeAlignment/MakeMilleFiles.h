@@ -78,7 +78,9 @@ class MakeMilleFiles : public SubsysReco
                                                            Surface surface, int crossing);
 
   bool is_layer_fixed(unsigned int layer);
+
   bool is_layer_param_fixed(unsigned int layer, unsigned int param, std::set<std::pair<unsigned int, unsigned int>>& param_fixed);
+
   bool is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side);
   void addTrackToMilleFile(SvtxAlignmentStateMap::StateVec statevec);
 

@@ -1,6 +1,5 @@
 #include "TrkrNtuplizer.h"
 
-#include <g4eval/SvtxTrackEval.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrCluster.h>
@@ -83,7 +82,6 @@ TrkrNtuplizer::TrkrNtuplizer(const string& /*name*/, const string& filename, con
   , _trackmapname(trackmapname)
   , _tfile(nullptr)
   , _timer(nullptr)
-  , _TrackEval(nullptr)
 {
 }
 
@@ -191,19 +189,12 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
     _iseed = 0;
     m_fSeed = NAN;
   }
+  if(_trackmap == nullptr)
+    _trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
 
   if (Verbosity() > 1)
   {
     cout << "TrkrNtuplizer::process_event - Seed = " << _iseed << endl;
-  }
-  if (!_TrackEval)
-  {
-    _TrackEval = new SvtxTrackEval(topNode);
-    _TrackEval->next_event(topNode);
-  }
-  else
-  {
-    _TrackEval->next_event(topNode);
   }
   //-----------------------------------
   // print what is coming into the code
@@ -314,15 +305,15 @@ void TrkrNtuplizer::printInputInfo(PHCompositeNode* topNode)
     }
 
     cout << "---SVXTRACKS-------------" << endl;
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
-    if (trackmap)
+
+    if (_trackmap)
     {
       unsigned int itrack = 0;
-      for (SvtxTrackMap::Iter iter = trackmap->begin();
-           iter != trackmap->end();
+      for (SvtxTrackMap::Iter iter = _trackmap->begin();
+           iter != _trackmap->end();
            ++iter)
       {
-        cout << itrack << " of " << trackmap->size();
+        cout << itrack << " of " << _trackmap->size();
         SvtxTrack* track = iter->second;
         cout << " : SvtxTrack:" << endl;
         track->identify();
@@ -473,12 +464,10 @@ void TrkrNtuplizer::printOutputInfo(PHCompositeNode* topNode)
       }
     }
 
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
-
     cout << " => nTracks = ";
-    if (trackmap)
+    if (_trackmap)
     {
-      cout << trackmap->size() << endl;
+      cout << _trackmap->size() << endl;
     }
     else
     {
@@ -678,10 +667,10 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       cout << "Filling ntp_info " << endl;
     }
     float ntrk = 0;
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
-    if (trackmap)
+
+    if (_trackmap)
     {
-      ntrk = (float) trackmap->size();
+      ntrk = (float) _trackmap->size();
     }
     if (Verbosity() > 0)
     {
@@ -915,7 +904,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         {
           TrkrDefs::cluskey cluster_key = iter->first;
           TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-          SvtxTrack* track = _TrackEval->best_track_from(cluster_key);
+          SvtxTrack* track = best_track_from(cluster_key);
           float niter = 0;
           if (_iteration_map != nullptr)
           {
@@ -1090,12 +1079,12 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     // need things off of the DST...
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
+
     SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
 
-    if (trackmap)
+    if (_trackmap)
     {
-      for (auto& iter : *trackmap)
+      for (auto& iter : *_trackmap)
       {
         SvtxTrack* track = iter.second;
         float trackID = track->get_id();
@@ -1431,6 +1420,143 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       cout << "tpcseed time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
     }
   }
+  return;
+}
+
+std::vector<TrkrDefs::cluskey> TrkrNtuplizer::get_track_ckeys(SvtxTrack* track)
+{
+  std::vector<TrkrDefs::cluskey> cluster_keys;
+  TrackSeed *tpcseed = track->get_tpc_seed();
+  TrackSeed *silseed = track->get_silicon_seed();
+  if(silseed)
+    {
+      for(auto iter = silseed->begin_cluster_keys();
+	  iter!= silseed->end_cluster_keys();
+	  ++iter)
+	{ cluster_keys.push_back(*iter); }
+    }
+  if(tpcseed)
+    {
+      for(auto iter = tpcseed->begin_cluster_keys();
+          iter!= tpcseed->end_cluster_keys();
+          ++iter)
+        { cluster_keys.push_back(*iter); }
+    }
+  
+  return cluster_keys;
+}
+
+SvtxTrack* TrkrNtuplizer::best_track_from(TrkrDefs::cluskey cluster_key)
+{
+  std::map<TrkrDefs::cluskey, SvtxTrack*>::iterator find_iter =
+    _cache_best_track_from_cluster.find(cluster_key);
+  if (find_iter != _cache_best_track_from_cluster.end())
+    {
+      return find_iter->second;
+    }
+
+  SvtxTrack* best_track = nullptr;
+  float best_quality = FLT_MAX;
+
+  std::set<SvtxTrack*> tracks = all_tracks_from(cluster_key);
+  // loop over all SvtxTracks
+  for (std::set<SvtxTrack*>::iterator iter = tracks.begin();
+       iter != tracks.end();
+       ++iter)
+  {
+    SvtxTrack* candidate = *iter;
+    if (candidate->get_quality() < best_quality)
+    {
+      best_quality = candidate->get_quality();
+      best_track = candidate;
+    }
+  }
+
+  _cache_best_track_from_cluster.insert(make_pair(cluster_key, best_track));
+  return best_track;
+}
+
+std::set<SvtxTrack*> TrkrNtuplizer::all_tracks_from(TrkrDefs::cluskey cluster_key)
+{
+  std::set<SvtxTrack*> tracks;
+
+  if (_cache_track_from_cluster_exists == false) create_cache_track_from_cluster();
+  std::map<TrkrDefs::cluskey, std::set<SvtxTrack*> >::iterator find_iter =
+    _cache_all_tracks_from_cluster.find(cluster_key);
+  if (find_iter != _cache_all_tracks_from_cluster.end())
+    {
+      return find_iter->second;
+    }
+  else
+    {
+      return tracks;
+    }
+
+  // loop over all SvtxTracks
+  for (SvtxTrackMap::Iter iter = _trackmap->begin();
+       iter != _trackmap->end();
+       ++iter)
+  {
+    SvtxTrack* track = iter->second;
+    std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
+
+    // loop over all clusters
+    for (const auto& candidate : cluster_keys)
+    {
+
+      //      if (_strict)
+      //      {
+      //        assert(candidate);
+      //      }
+      //      else if (!candidate)
+      //      {
+      //        ++_errors;
+      //        continue;
+      //      }
+
+      if (cluster_key == candidate)
+      {
+        tracks.insert(track);
+      }
+    }
+  }
+
+  _cache_all_tracks_from_cluster.insert(make_pair(cluster_key, tracks));
+
+  return tracks;
+}
+
+void TrkrNtuplizer::create_cache_track_from_cluster()
+{
+
+  // loop over all SvtxTracks
+  for (SvtxTrackMap::Iter iter = _trackmap->begin();
+       iter != _trackmap->end();
+       ++iter)
+  {
+    SvtxTrack* track = iter->second;
+    std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
+
+    // loop over all clusters
+    for (const auto& candidate_key : cluster_keys)
+    {
+      //check if cluster has an entry in cache
+      std::map<TrkrDefs::cluskey, std::set<SvtxTrack*> >::iterator cliter =
+          _cache_all_tracks_from_cluster.find(candidate_key);
+      if (cliter != _cache_all_tracks_from_cluster.end())
+      {                                //got entry
+        cliter->second.insert(track);  //add track to list;
+      }
+      else
+      {
+        std::set<SvtxTrack*> tracks;
+        tracks.insert(track);
+        _cache_all_tracks_from_cluster.insert(make_pair(candidate_key, tracks));
+      }
+    }
+  }
+  _cache_track_from_cluster_exists = true;
+
   return;
 }
 
