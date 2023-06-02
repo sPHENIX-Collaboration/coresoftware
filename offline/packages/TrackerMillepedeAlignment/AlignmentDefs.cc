@@ -1,4 +1,5 @@
 #include "AlignmentDefs.h"
+#include <trackbase/TpcDefs.h>
 
 void AlignmentDefs::getSiliconGlobalLabels(Surface surf, int glbl_label[], AlignmentDefs::siliconGrp grp)
 {
@@ -17,14 +18,14 @@ void AlignmentDefs::getSiliconGlobalLabels(Surface surf, int glbl_label[], Align
     break;
   }
 
-  int label_base = getLabelBase(id, group);
+  int label_base = getLabelBase(id, 0, group);
   for (int i = 0; i < NGL; ++i)
   {
     glbl_label[i] = label_base + i;
   }
 }
 
-void AlignmentDefs::getTpcGlobalLabels(Surface surf, int glbl_label[], AlignmentDefs::tpcGrp grp)
+void AlignmentDefs::getTpcGlobalLabels(Surface surf, TrkrDefs::cluskey cluskey, int glbl_label[], AlignmentDefs::tpcGrp grp)
 {
   Acts::GeometryIdentifier id = surf->geometryId();
   int group = 0;
@@ -41,7 +42,7 @@ void AlignmentDefs::getTpcGlobalLabels(Surface surf, int glbl_label[], Alignment
     break;
   }
 
-  int label_base = getLabelBase(id, group);
+  int label_base = getLabelBase(id, cluskey, group);
   for (int i = 0; i < NGL; ++i)
   {
     glbl_label[i] = label_base + i;
@@ -61,7 +62,7 @@ void AlignmentDefs::getMMGlobalLabels(Surface surf, int glbl_label[], AlignmentD
     break;
   }
 
-  int label_base = getLabelBase(id, group);
+  int label_base = getLabelBase(id, 0, group);
   for (int i = 0; i < NGL; ++i)
   {
     glbl_label[i] = label_base + i;
@@ -71,14 +72,14 @@ void AlignmentDefs::getMMGlobalLabels(Surface surf, int glbl_label[], AlignmentD
 int AlignmentDefs::getTpcRegion(int layer)
 {
   int region = 0;
-  if (layer > 23 && layer < 39)
+  if (layer > 22 && layer < 39)
     region = 1;
   if (layer > 38 && layer < 55)
     region = 2;
 
   return region;
 }
-int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, int group)
+int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey cluskey, int group)
 {
   unsigned int volume = id.volume();
   unsigned int acts_layer = id.layer();
@@ -122,12 +123,19 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, int group)
     if (group == 4)
     {
       // group all tpc layers in each region and sector, assign layer 7 and side and sector number to all layers and hitsets
-      int side = sensor / 144;  // 0-143 on side 0, 144-287 on side 1
-      int sector = (sensor - side * 144) / 12;
+      int side = TpcDefs::getSide(cluskey);
+      int sector = TpcDefs::getSectorId(cluskey);;
+      int region = getTpcRegion(layer);  // inner, mid, outer
+
       // for a given layer there are only 12 sectors x 2 sides
       // The following gives the sectors in the inner, mid, outer regions unique group labels
-      int region = getTpcRegion(layer);  // inner, mid, outer
       label_base += 7 * 1000000 + (region * 24 + side * 12 + sector) * 10000;
+      /*
+      std::cout << " sensor " << sensor << " sector " << sector << " region " << region 
+		<< " side " << side << " label base " << label_base << std::endl;
+      std::cout << " Volume " << volume << " acts_layer " << acts_layer << " base_layer " <<  base_layer_map.find(volume)->second << " layer " << layer << std::endl;
+      */
+
       return label_base;
     }
     if (group == 5)
@@ -153,7 +161,6 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, int group)
       return label_base;
     }
   }
-
   return -1;
 }
 

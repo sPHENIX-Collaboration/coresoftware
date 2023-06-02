@@ -34,6 +34,8 @@ class TrackResiduals : public SubsysReco
   int End(PHCompositeNode *topNode) override;
   void outfileName(std::string &name) { m_outfileName = name; }
   void alignment(bool align) { m_doAlignment = align; }
+  void alignmentmapName(std::string name) { m_alignmentMapName = name; }
+  void trackmapName(std::string name) { m_trackMapName = name; }
 
  private:
   void clearClusterStateVectors();
@@ -46,6 +48,9 @@ class TrackResiduals : public SubsysReco
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
+
+  std::string m_alignmentMapName = "SvtxAlignmentStateMap";
+  std::string m_trackMapName = "SvtxTrackMap";
 
   bool m_doAlignment = false;
 

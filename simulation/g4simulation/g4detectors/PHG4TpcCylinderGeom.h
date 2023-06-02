@@ -101,6 +101,8 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   std::array<std::vector<double>, NSides > sector_min_Phi;
   std::array<std::vector<double>, NSides > sector_max_Phi;
 
+  // streamer
+  friend std::ostream& operator << (std::ostream&, const PHG4TpcCylinderGeom& );
 
   ClassDefOverride(PHG4TpcCylinderGeom, 2)
 };

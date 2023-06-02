@@ -22,9 +22,13 @@ class TrackSeedContainer;
 class TrackSeed;
 class TrkrClusterContainer;
 class TF1;
+class TNtuple;
+class TFile;
 class TpcDistortionCorrectionContainer;
 class Mille;
 class SvtxTrackSeed;
+class SvtxTrackMap;
+class SvtxAlignmentStateMap;
 
 class HelicalFitter : public SubsysReco, public PHParameterInterface
 {
@@ -76,13 +80,14 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, Acts::Vector3 global);
   void correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec,  std::vector<TrkrDefs::cluskey> cluskey_vec);
   unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec);
+  void set_dca_cut(float dca) {dca_cut = dca;}
 
  private:
 
   Mille* _mille;
 
   int GetNodes(PHCompositeNode* topNode);
-
+  int CreateNodes(PHCompositeNode* topNode);
   void getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
   Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref);
@@ -91,7 +96,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 					    Acts::Vector3 sensor_center, Acts::Vector3 sensor_normal);
   std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global);
-
+  Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global, Acts::Vector3& pca, Acts::Vector3& tangent);
 
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
@@ -137,14 +142,17 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   TrkrClusterContainer *_cluster_map{nullptr};
   ActsGeometry *_tGeometry{nullptr};
 
-  std::string  data_outfilename = ("mille_helical_output_data_file.bin");  
-  std::string  steering_outfilename = ("steer_helical.txt");  
+  std::string data_outfilename = ("mille_helical_output_data_file.bin");  
+  std::string steering_outfilename = ("steer_helical.txt");  
 
   bool fitsilicon = true;
   bool fittpc = false;
   bool fitfulltrack = false;
 
-  float dca_cut = 0.1;  // 1 mm
+  float dca_cut = 0.19;  // 1 mm
+
+  SvtxTrackMap* m_trackmap = nullptr;
+  SvtxAlignmentStateMap* m_alignmentmap = nullptr;
 
   std::string _field;
   int _fieldDir = -1;
@@ -152,6 +160,13 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   std::string _track_map_name = "TpcTrackSeedContainer";
   std::string _silicon_track_map_name = "SiliconTrackSeedContainer";
+
+  bool make_ntuple = true;
+  TNtuple *ntp{nullptr};
+  TFile *fout{nullptr};
+
+  int event = 0;
+
 };
 
 #endif // HELICALFITTER_H
