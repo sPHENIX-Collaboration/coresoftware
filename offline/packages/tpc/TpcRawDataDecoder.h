@@ -19,6 +19,7 @@ class Fun4AllHistoManager;
 //class TrkrHitSet;
 //class TrkrHit;
 class TH2;
+class TH3;
 class TNtuple;
 
 class TpcRawDataDecoder : public SubsysReco
@@ -55,7 +56,7 @@ class TpcRawDataDecoder : public SubsysReco
   //int Reset(PHCompositeNode * /*topNode*/) override;
 
   //void Print(const std::string &what = "ALL") const override;
-  void setHistoFileName(const std::string &what = "./outputfile.root");
+  //void setHistoFileName(const std::string &what = "./outputfile.root");
 
  protected:
    Fun4AllHistoManager *hm = nullptr;
@@ -73,7 +74,7 @@ class TpcRawDataDecoder : public SubsysReco
   TpcMap M;
   TNtuple *h_Alive = nullptr;
 
-  struct tpc_map
+  struct ped_tpc_map
   {
     unsigned int CHN_ID;
     unsigned int FEE_ID;
@@ -83,15 +84,17 @@ class TpcRawDataDecoder : public SubsysReco
     unsigned int SEC_ID;
   };
 
-  std::map<unsigned int, struct tpc_map> tmap;  
+  std::map<unsigned int, struct ped_tpc_map> tmap;  
 
   int starting_BCO;
   int rollover_value;
   int current_BCOBIN;
 
   private:
-
+    int m_Debug = 0;
+    TH3*   _h_hit_XYT = nullptr;
     TH2*   _h_hit_XY = nullptr;
+    TH2*   _h_hit_XY_ADCcut = nullptr;
 
 };
 
