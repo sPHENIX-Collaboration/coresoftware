@@ -2,9 +2,8 @@
 //  -*- C++ -*-.
 #ifndef EVENTPLANE_EPFINDERRECO_H
 #define EVENTPLANE_EPFINDERRECO_H
-
+#include "TH3.h"
 #include <fun4all/SubsysReco.h>
-
 #include <string>
 #include <vector>
 #include <array>
@@ -35,29 +34,38 @@ class EpFinderReco : public SubsysReco
 
   void Detector(const std::string &d){ detector = d;}
 
-  void set_truncation_filename(const std::string &fname) { m_TruncationFileName = fname; }
-
-  private:
+  void set_truncation_filename(const std::string &fname) { truncationFile = fname; }
+  
+  enum kCentrality {kBimp, kEPD, kMBD};
  
+  void set_centralitytype(EpFinderReco::kCentrality CentType) { m_CentType = CentType; }
+
+ private: 
   void GetEventPlanes(PHCompositeNode *);
   int GetNodes(PHCompositeNode *);
   int CreateNodes(PHCompositeNode *);
 
-  std::string _algonode = "EVENT_PLANE";
+  EpFinderReco::kCentrality m_CentType = EpFinderReco::kCentrality::kBimp; 
 
+  std::string _algonode = "EVENT_PLANE";
   std::string detector = "NONE";
-  std::string m_TruncationFileName;
-  std::array<std::array<std::array<double, 16>, 10>, 2> m_Epd_Trunc_e = {};
- 
+
+  std::string truncationFile = "NONE.root";
+  std::string truncationhist = "ArmCentRinghist";
+
   EpFinder *EpFinder_det[2] = {};
 
   EpInfo *_EpInfo_det[2] = {};
  
+  TH3* mTruncationInput;
+  
+  int cent_index = -1;
+  
   std::vector<std::string> EventPlaneNodeName;
   std::string EpNode = "EPINFO_";
   std::string TowerNode = "TOWERINFO_CALIB_";
   std::string TowerGeomNode = "TOWERGEOM_";
-    
+  
   std::vector<std::pair<int,int>> Nepd_phi_list[16];
   std::vector<std::pair<int,int>> Sepd_phi_list[16];
   std::vector<std::pair<int,int>> Nepd_phi_list0[1];
