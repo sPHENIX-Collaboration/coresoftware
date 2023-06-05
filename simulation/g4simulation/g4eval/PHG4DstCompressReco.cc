@@ -94,8 +94,10 @@ int PHG4DstCompressReco::InitRun(PHCompositeNode* topNode)
 
 int PHG4DstCompressReco::process_event(PHCompositeNode* /*topNode*/)
 {
-  if (_g4hits.empty() && _g4cells.empty() && _towers.empty()) { return Fun4AllReturnCodes::EVENT_OK;
-}
+  if (_g4hits.empty() && _g4cells.empty() && _towers.empty())
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   //---cells--------------------------------------------------------------------
 

@@ -100,10 +100,10 @@ void JetRecoEval::next_event(PHCompositeNode* topNode)
   get_node_pointers(topNode);
 }
 
-void JetRecoEval:: set_track_nodename (const string & name) 
+void JetRecoEval::set_track_nodename(const string& name)
 {
   m_TrackNodeName = name;
-  _jettrutheval.set_track_nodename (name);
+  _jettrutheval.set_track_nodename(name);
 }
 
 std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
@@ -429,8 +429,10 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     }
   }
 
-  if (_do_cache) { _cache_all_truth_showers.insert(make_pair(recojet, truth_showers));
-}
+  if (_do_cache)
+  {
+    _cache_all_truth_showers.insert(make_pair(recojet, truth_showers));
+  }
 
   return truth_showers;
 }
@@ -764,8 +766,10 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     }
   }
 
-  if (_do_cache) { _cache_all_truth_particles.insert(make_pair(recojet, truth_particles));
-}
+  if (_do_cache)
+  {
+    _cache_all_truth_particles.insert(make_pair(recojet, truth_particles));
+  }
 
   return truth_particles;
 }
@@ -811,14 +815,18 @@ std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet)
     }
 
     Jet* truth_jet = _jettrutheval.get_truth_jet(particle);
-    if (!truth_jet) { continue;
-}
+    if (!truth_jet)
+    {
+      continue;
+    }
 
     truth_jets.insert(truth_jet);
   }
 
-  if (_do_cache) { _cache_all_truth_jets.insert(make_pair(recojet, truth_jets));
-}
+  if (_do_cache)
+  {
+    _cache_all_truth_jets.insert(make_pair(recojet, truth_jets));
+  }
 
   return truth_jets;
 }
@@ -869,8 +877,10 @@ Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet)
     }
   }
 
-  if (_do_cache) { _cache_max_truth_jet_by_energy.insert(make_pair(recojet, truthjet));
-}
+  if (_do_cache)
+  {
+    _cache_max_truth_jet_by_energy.insert(make_pair(recojet, truthjet));
+  }
 
   return truthjet;
 }
@@ -900,7 +910,7 @@ std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet)
   std::set<Jet*> recojets;
 
   // loop over all reco jets
-  for (auto & _recojet : *_recojets)
+  for (auto& _recojet : *_recojets)
   {
     Jet* recojet = _recojet.second;
 
@@ -925,8 +935,10 @@ std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet)
     }
   }
 
-  if (_do_cache) { _cache_all_jets_from.insert(make_pair(truthjet, recojets));
-}
+  if (_do_cache)
+  {
+    _cache_all_jets_from.insert(make_pair(truthjet, recojets));
+  }
 
   return recojets;
 }
@@ -977,8 +989,10 @@ Jet* JetRecoEval::best_jet_from(Jet* truthjet)
     }
   }
 
-  if (_do_cache) { _cache_best_jet_from.insert(make_pair(truthjet, bestrecojet));
-}
+  if (_do_cache)
+  {
+    _cache_best_jet_from.insert(make_pair(truthjet, bestrecojet));
+  }
 
   return bestrecojet;
 }
@@ -1001,15 +1015,19 @@ Jet* JetRecoEval::unique_reco_jet_from_truth(Jet* truthjet)
   {
     Jet* back_matching = max_truth_jet_by_energy(recojet);
 
-    if (back_matching->get_id() == truthjet->get_id()) {
+    if (back_matching->get_id() == truthjet->get_id())
+    {
       return recojet;  // uniquely matched
-    } else {
+    }
+    else
+    {
       return nullptr;
-}
+    }
   }
-  else {
+  else
+  {
     return nullptr;
-}
+  }
 }
 
 Jet* JetRecoEval::unique_truth_jet_from_reco(Jet* recojet)
@@ -1030,15 +1048,19 @@ Jet* JetRecoEval::unique_truth_jet_from_reco(Jet* recojet)
   {
     Jet* back_matching = best_jet_from(truthjet);
 
-    if (back_matching->get_id() == recojet->get_id()) {
+    if (back_matching->get_id() == recojet->get_id())
+    {
       return truthjet;  // uniquely matched
-    } else {
+    }
+    else
+    {
       return nullptr;
-}
+    }
   }
-  else {
+  else
+  {
     return nullptr;
-}
+  }
 }
 
 // overlap calculations
@@ -1314,8 +1336,10 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet)
     }
   }
 
-  if (_do_cache) { _cache_get_energy_contribution.insert(make_pair(make_pair(recojet, truthjet), energy_contribution));
-}
+  if (_do_cache)
+  {
+    _cache_get_energy_contribution.insert(make_pair(make_pair(recojet, truthjet), energy_contribution));
+  }
 
   return energy_contribution;
 }
@@ -1554,8 +1578,10 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet::SRC src)
 
   }  // for (Jet::ConstIter jter = recojet->lower_bound_comp(src);
 
-  if (_do_cache) { _cache_get_energy_contribution_src.insert(make_pair(make_pair(recojet, src), energy));
-}
+  if (_do_cache)
+  {
+    _cache_get_energy_contribution_src.insert(make_pair(make_pair(recojet, src), energy));
+  }
 
   return energy;
 }
@@ -1889,8 +1915,10 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     }
   }
 
-  if (_do_cache) { _cache_all_truth_hits.insert(make_pair(recojet, truth_hits));
-}
+  if (_do_cache)
+  {
+    _cache_all_truth_hits.insert(make_pair(recojet, truth_hits));
+  }
 
   return truth_hits;
 }

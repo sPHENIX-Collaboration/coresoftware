@@ -18,7 +18,7 @@ class PHHepMCGenEventMap;
 class PHHepMCGenEvent;
 class TFile;
 class TNtuple;
-class TTree;  //Added by Barak
+class TTree;  // Added by Barak
 
 /// \class EventEvaluator
 ///
@@ -207,7 +207,6 @@ class EventEvaluator : public SubsysReco
   int* _hepmcp_m2;
   int* _hepmcp_BCID;
 
-
   int _calo_ID;
   int _calo_towers_N;
   int* _calo_towers_iEta;
@@ -226,14 +225,14 @@ class EventEvaluator : public SubsysReco
   CaloEvalStack* _caloevalstackHCALIN;
   CaloEvalStack* _caloevalstackHCALOUT;
   CaloEvalStack* _caloevalstackCEMC;
-  
+
   //----------------------------------
   // evaluator output ntuples
 
   bool _strict;
 
-  TTree* _event_tree;  //Added by Barak
-  TTree* _geometry_tree;  //Added by Barak
+  TTree* _event_tree;     // Added by Barak
+  TTree* _geometry_tree;  // Added by Barak
 
   // evaluator output file
   std::string _filename;
@@ -241,7 +240,7 @@ class EventEvaluator : public SubsysReco
   TFile* _tfile_geometry;
 
   // subroutines
-  int GetProjectionIndex(const std::string& projname);           ///< return track projection index for given track projection layer
+  int GetProjectionIndex(const std::string& projname);    ///< return track projection index for given track projection layer
   std::string GetProjectionNameFromIndex(int projindex);  ///< return track projection layer name from projection index (see GetProjectionIndex)
   void fillOutputNtuples(PHCompositeNode* topNode);       ///< dump the evaluator information into ntuple for external analysis
   void resetGeometryArrays();                             ///< reset the tree variables before filling for a new event
@@ -256,12 +255,12 @@ class EventEvaluator : public SubsysReco
   const int _maxNMCPart = 100000;
   const int _maxNHepmcp = 1000;
 
-  enum calotype {
-      kCEMC         = 0,
-      kHCALIN       = 1,
-      kHCALOUT       = 2
+  enum calotype
+  {
+    kCEMC = 0,
+    kHCALIN = 1,
+    kHCALOUT = 2
   };
-
 };
 
 #endif  // G4EVAL_EVENTEVALUATOR_H

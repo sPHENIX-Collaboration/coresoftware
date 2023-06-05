@@ -62,14 +62,19 @@ void CaloTruthEval::next_event(PHCompositeNode* topNode)
 
 bool CaloTruthEval::has_reduced_node_pointers()
 {
-  if (!_basetrutheval.has_reduced_node_pointers()) { return false;
-}
-
-  if (_strict) {
-    assert(_truthinfo);
-  } else if (!_truthinfo) {
+  if (!_basetrutheval.has_reduced_node_pointers())
+  {
     return false;
-}
+  }
+
+  if (_strict)
+  {
+    assert(_truthinfo);
+  }
+  else if (!_truthinfo)
+  {
+    return false;
+  }
 
   return true;
 }
@@ -147,8 +152,10 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary)
     return NAN;
   }
 
-  if (!is_primary(primary)) { return NAN;
-}
+  if (!is_primary(primary))
+  {
+    return NAN;
+  }
 
   primary = get_primary_particle(primary);
 
@@ -174,11 +181,15 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary)
 
   float shower_e = 0.0;
   PHG4Shower* shower = get_primary_shower(primary);
-  if (shower) { shower_e = shower->get_edep(_g4hit_container_id);
-}
+  if (shower)
+  {
+    shower_e = shower->get_edep(_g4hit_container_id);
+  }
 
-  if (_do_cache) { _cache_get_shower_energy_deposit.insert(make_pair(primary, shower_e));
-}
+  if (_do_cache)
+  {
+    _cache_get_shower_energy_deposit.insert(make_pair(primary, shower_e));
+  }
 
   return shower_e;
 }
@@ -201,12 +212,16 @@ float CaloTruthEval::get_shower_eh_ratio(PHG4Particle* primary)
     return NAN;
   }
 
-  if (!is_primary(primary)) { return NAN;
-}
+  if (!is_primary(primary))
+  {
+    return NAN;
+  }
 
   PHG4Shower* shower = get_primary_shower(primary);
-  if (!shower) { return 0.0;
-}
+  if (!shower)
+  {
+    return 0.0;
+  }
 
   float ratio = shower->get_eh_ratio(get_caloid());
 
@@ -215,19 +230,28 @@ float CaloTruthEval::get_shower_eh_ratio(PHG4Particle* primary)
 
 bool CaloTruthEval::has_full_node_pointers()
 {
-  if (!_basetrutheval.has_full_node_pointers()) { return false;
-}
-
-  if (_strict) {
-    assert(_truthinfo);
-  } else if (!_truthinfo) {
+  if (!_basetrutheval.has_full_node_pointers())
+  {
     return false;
-}
+  }
 
-  if (_strict) { assert(_g4hits);
-}
-  if (!_g4hits) { return false;
-}
+  if (_strict)
+  {
+    assert(_truthinfo);
+  }
+  else if (!_truthinfo)
+  {
+    return false;
+  }
+
+  if (_strict)
+  {
+    assert(_g4hits);
+  }
+  if (!_g4hits)
+  {
+    return false;
+  }
 
   return true;
 }
@@ -269,26 +293,34 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Shower* shower)
 
   // loop over all g4hits on the shower
   PHG4Shower::HitIdIter iter = shower->find_g4hit_id(_g4hit_container_id);
-  if (iter != shower->end_g4hit_id()) { return truth_hits;
-}
+  if (iter != shower->end_g4hit_id())
+  {
+    return truth_hits;
+  }
 
   for (unsigned long long jter : iter->second)
   {
     PHG4Hit* g4hit = _g4hits->findHit(jter);
 
-    if (_strict) {
+    if (_strict)
+    {
       assert(g4hit);
-    } else if (!g4hit)
+    }
+    else if (!g4hit)
     {
       ++_errors;
     }
 
-    if (g4hit) { truth_hits.insert(g4hit);
-}
+    if (g4hit)
+    {
+      truth_hits.insert(g4hit);
+    }
   }
 
-  if (_do_cache) { _cache_all_truth_hits_g4shower.insert(make_pair(shower, truth_hits));
-}
+  if (_do_cache)
+  {
+    _cache_all_truth_hits_g4shower.insert(make_pair(shower, truth_hits));
+  }
 
   return truth_hits;
 }
@@ -334,13 +366,17 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Particle* particle)
        ++g4iter)
   {
     PHG4Hit* g4hit = g4iter->second;
-    if (is_g4hit_from_particle(g4hit, particle)) { continue;
-}
+    if (is_g4hit_from_particle(g4hit, particle))
+    {
+      continue;
+    }
     truth_hits.insert(g4hit);
   }
 
-  if (_do_cache) { _cache_all_truth_hits_g4particle.insert(make_pair(particle, truth_hits));
-}
+  if (_do_cache)
+  {
+    _cache_all_truth_hits_g4particle.insert(make_pair(particle, truth_hits));
+  }
 
   return truth_hits;
 }
@@ -380,8 +416,10 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit)
 
   PHG4Particle* primary = _basetrutheval.get_primary_particle(g4hit);
 
-  if (_do_cache) { _cache_get_primary_particle_g4hit.insert(make_pair(g4hit, primary));
-}
+  if (_do_cache)
+  {
+    _cache_get_primary_particle_g4hit.insert(make_pair(g4hit, primary));
+  }
 
   if (_strict)
   {
@@ -418,8 +456,10 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_hits_from_primary(PHG4Particle* pri
     return std::set<PHG4Hit*>();
   }
 
-  if (!is_primary(primary)) { return std::set<PHG4Hit*>();
-}
+  if (!is_primary(primary))
+  {
+    return std::set<PHG4Hit*>();
+  }
 
   primary = get_primary_particle(primary);
 
@@ -446,11 +486,15 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_hits_from_primary(PHG4Particle* pri
   std::set<PHG4Hit*> truth_hits;
 
   PHG4Shower* shower = get_primary_shower(primary);
-  if (shower) { truth_hits = all_truth_hits(shower);
-}
+  if (shower)
+  {
+    truth_hits = all_truth_hits(shower);
+  }
 
-  if (_do_cache) { _cache_get_shower_hits_from_primary.insert(make_pair(primary, truth_hits));
-}
+  if (_do_cache)
+  {
+    _cache_get_shower_hits_from_primary.insert(make_pair(primary, truth_hits));
+  }
 
   return truth_hits;
 }

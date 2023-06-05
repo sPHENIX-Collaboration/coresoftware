@@ -123,8 +123,10 @@ std::set<PHG4Particle*> JetTruthEval::all_truth_particles(Jet* truthjet)
     truth_particles.insert(truth_particle);
   }
 
-  if (_do_cache) { _cache_all_truth_particles.insert(make_pair(truthjet, truth_particles));
-}
+  if (_do_cache)
+  {
+    _cache_all_truth_particles.insert(make_pair(truthjet, truth_particles));
+  }
 
   return truth_particles;
 }
@@ -177,8 +179,10 @@ std::set<PHG4Shower*> JetTruthEval::all_truth_showers(Jet* truthjet)
     }
   }
 
-  if (_do_cache) { _cache_all_truth_showers.insert(make_pair(truthjet, truth_showers));
-}
+  if (_do_cache)
+  {
+    _cache_all_truth_showers.insert(make_pair(truthjet, truth_showers));
+  }
 
   return truth_showers;
 }
@@ -242,8 +246,10 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet)
     }
   }
 
-  if (_do_cache) { _cache_all_truth_hits.insert(make_pair(truthjet, truth_hits));
-}
+  if (_do_cache)
+  {
+    _cache_all_truth_hits.insert(make_pair(truthjet, truth_hits));
+  }
 
   return truth_hits;
 }
@@ -273,7 +279,7 @@ Jet* JetTruthEval::get_truth_jet(PHG4Particle* particle)
   Jet* truth_jet = nullptr;
 
   // loop over all jets and look for this particle...
-  for (auto & _truthjet : *_truthjets)
+  for (auto& _truthjet : *_truthjets)
   {
     Jet* candidate = _truthjet.second;
 
@@ -302,12 +308,16 @@ Jet* JetTruthEval::get_truth_jet(PHG4Particle* particle)
       }
     }
 
-    if (truth_jet) { break;
-}
+    if (truth_jet)
+    {
+      break;
+    }
   }
 
-  if (_do_cache) { _cache_get_truth_jet.insert(make_pair(particle, truth_jet));
-}
+  if (_do_cache)
+  {
+    _cache_get_truth_jet.insert(make_pair(particle, truth_jet));
+  }
 
   return truth_jet;
 }

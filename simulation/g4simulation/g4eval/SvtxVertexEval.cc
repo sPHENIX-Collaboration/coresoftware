@@ -121,8 +121,10 @@ std::set<PHG4Particle*> SvtxVertexEval::all_truth_particles(SvtxVertex* vertex)
     all_particles.insert(max_particle);
   }
 
-  if (_do_cache) { _cache_all_truth_particles.insert(make_pair(vertex, all_particles));
-}
+  if (_do_cache)
+  {
+    _cache_all_truth_particles.insert(make_pair(vertex, all_particles));
+  }
 
   return all_particles;
 }
@@ -175,8 +177,10 @@ std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex)
     points.insert(point);
   }
 
-  if (_do_cache) { _cache_all_truth_points.insert(make_pair(vertex, points));
-}
+  if (_do_cache)
+  {
+    _cache_all_truth_points.insert(make_pair(vertex, points));
+  }
 
   return points;
 }
@@ -224,8 +228,10 @@ PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex)
     }
   }
 
-  if (_do_cache) { _cache_max_truth_point_by_ntracks.insert(make_pair(vertex, max_point));
-}
+  if (_do_cache)
+  {
+    _cache_max_truth_point_by_ntracks.insert(make_pair(vertex, max_point));
+  }
 
   return max_point;
 }
@@ -262,7 +268,7 @@ std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint
 
   // loop over all vertexes on node
 
-  for (auto & iter : *_vertexmap)
+  for (auto& iter : *_vertexmap)
   {
     SvtxVertex* vertex = iter.second;
     std::set<PHG4VtxPoint*> points = all_truth_points(vertex);
@@ -275,8 +281,10 @@ std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint
     }
   }
 
-  if (_do_cache) { _cache_all_vertexes_from_point.insert(make_pair(truthpoint, all_vertexes));
-}
+  if (_do_cache)
+  {
+    _cache_all_vertexes_from_point.insert(make_pair(truthpoint, all_vertexes));
+  }
 
   return all_vertexes;
 }
@@ -322,8 +330,10 @@ SvtxVertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint)
     }
   }
 
-  if (_do_cache) { _cache_best_vertex_from_point.insert(make_pair(truthpoint, best_vertex));
-}
+  if (_do_cache)
+  {
+    _cache_best_vertex_from_point.insert(make_pair(truthpoint, best_vertex));
+  }
 
   return best_vertex;
 }
@@ -385,8 +395,10 @@ unsigned int SvtxVertexEval::get_ntracks_contribution(SvtxVertex* vertex, PHG4Vt
     }
   }
 
-  if (_do_cache) { _cache_get_ntracks_contribution.insert(make_pair(make_pair(vertex, truthpoint), ntracks));
-}
+  if (_do_cache)
+  {
+    _cache_get_ntracks_contribution.insert(make_pair(make_pair(vertex, truthpoint), ntracks));
+  }
 
   return ntracks;
 }
@@ -407,9 +419,10 @@ void SvtxVertexEval::get_node_pointers(PHCompositeNode* topNode)
   {
     _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
   }
-  if (!_vertexmap) {
+  if (!_vertexmap)
+  {
     std::cout << PHWHERE << "Did not find_vertexmap on node tree" << endl;
-}
+  }
 
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_TrackNodeName);
 
@@ -420,25 +433,31 @@ void SvtxVertexEval::get_node_pointers(PHCompositeNode* topNode)
 
 bool SvtxVertexEval::has_node_pointers()
 {
-  if (_strict) {
+  if (_strict)
+  {
     assert(_vertexmap);
-  } else if (!_vertexmap)
+  }
+  else if (!_vertexmap)
   {
     std::cout << PHWHERE << " did not find _vertexmap " << std::endl;
     return false;
   }
 
-  if (_strict) {
+  if (_strict)
+  {
     assert(_trackmap);
-  } else if (!_trackmap)
+  }
+  else if (!_trackmap)
   {
     std::cout << PHWHERE << " did not find _trackmap " << std::endl;
     return false;
   }
 
-  if (_strict) {
+  if (_strict)
+  {
     assert(_truthinfo);
-  } else if (!_truthinfo)
+  }
+  else if (!_truthinfo)
   {
     std::cout << PHWHERE << " did not find _truthinfo " << std::endl;
     return false;

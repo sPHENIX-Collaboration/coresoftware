@@ -19,8 +19,8 @@
 #include <iostream>
 #include <map>
 #include <memory>
-#include <vector>
 #include <utility>
+#include <vector>
 
 using namespace std;
 
@@ -71,9 +71,9 @@ class RecursiveMomentumContainer
     , y_pos(0)
     , z_pos(0)
   {
-    for (auto & container : containers)
+    for (auto& container : containers)
     {
-      for (auto & j : container)
+      for (auto& j : container)
       {
         for (unsigned int k = 0; k < 2; ++k)
         {
@@ -84,9 +84,9 @@ class RecursiveMomentumContainer
   }
   virtual ~RecursiveMomentumContainer()
   {
-    for (auto & container : containers)
+    for (auto& container : containers)
     {
-      for (auto & j : container)
+      for (auto& j : container)
       {
         for (unsigned int k = 0; k < 2; ++k)
         {
@@ -234,9 +234,9 @@ class RecursiveMomentumContainer
 
   virtual void append_list(vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI)
   {
-    for (auto & container : containers)
+    for (auto& container : containers)
     {
-      for (auto & j : container)
+      for (auto& j : container)
       {
         for (unsigned int k = 0; k < 2; ++k)
         {
@@ -265,8 +265,7 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
   {
   }
 
-  ~RecursiveMomentumContainerEnd() override
-  = default;
+  ~RecursiveMomentumContainerEnd() override = default;
 
   bool insert(TrivialTrack& track) override
   {
@@ -295,7 +294,7 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
 
   void append_list(vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI) override
   {
-    for (auto & track : tracks)
+    for (auto& track : tracks)
     {
       if ((track.px < PX_LO) || (track.px > PX_HI) || (track.py < PY_LO) || (track.py > PY_HI) || (track.pz < PZ_LO) || (track.pz > PZ_HI))
       {
@@ -460,7 +459,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
 
   // PHG4TruthInfoContainer::Map primarymap = truthinfo->GetPrimaryMap();
   PHG4TruthInfoContainer::Map primarymap = truthinfo->GetMap();
-  for (auto & iter : primarymap)
+  for (auto& iter : primarymap)
   {
     PHG4Particle* particle = iter.second;
 
@@ -491,7 +490,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
   }
 
   RecursiveMomentumContainer reco_sorted(-20., 20., -20., 20., -20., 20., 10);
-  for (auto & iter : *trackmap)
+  for (auto& iter : *trackmap)
   {
     SvtxTrack* track = iter.second;
 
