@@ -26,13 +26,13 @@ FillTruthRecoMatchMap::FillTruthRecoMatchMap(const std::string &name)
 
 //____________________________________________________________________________..
 FillTruthRecoMatchMap::~FillTruthRecoMatchMap()
-{
-}
+= default;
 
 //____________________________________________________________________________..
 int FillTruthRecoMatchMap::Init(PHCompositeNode *topNode)
 {
-  if (Verbosity()>1) topNode->print();
+  if (Verbosity()>1) { topNode->print();
+}
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -98,7 +98,8 @@ int FillTruthRecoMatchMap::createNodes(PHCompositeNode *topNode)
 
 int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
 {
-  if (Verbosity()>5) cout << " FillTruthRecoMatchMap::process_event() " << endl;
+  if (Verbosity()>5) { cout << " FillTruthRecoMatchMap::process_event() " << endl;
+}
   // make maps to all the matches for both truth and reco and fill the 
   /* auto matches = m_EmbRecoMatchContainer->getMatches(); */
 
@@ -170,44 +171,50 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
                     << " and PHG4ParticleSvtxMap (node \"PHG4ParticleToRecoMap\")" << endl;
 
   std::cout << " --BEGIN-- Contents of SvtxPHG4ParticleMap: " << std::endl;
-    for (auto iter = m_SvtxPHG4ParticleMap->begin(); iter != m_SvtxPHG4ParticleMap->end(); ++iter) {
-      printf("    { %2i ", (int)iter->first); // id_reco
-      auto n_matches = iter->second.size();
+    for (auto & iter : *m_SvtxPHG4ParticleMap) {
+      printf("    { %2i ", (int)iter.first); // id_reco
+      auto n_matches = iter.second.size();
       long unsigned int cnt_matches = 0;
-      for (auto matches : iter->second) {
-        if (cnt_matches==0) printf("-> { %5.2f -> ", matches.first);
-        else                printf("         -> { %5.2f -> ", matches.first);
+      for (const auto& matches : iter.second) {
+        if (cnt_matches==0) { printf("-> { %5.2f -> ", matches.first);
+        } else {                printf("         -> { %5.2f -> ", matches.first);
+}
         auto size = matches.second.size();
         long unsigned int i=0;
         for (auto id_true : matches.second) {
-          if (i<size-1) printf("%2i, ",id_true);
-          else          printf("%2i }",id_true);
+          if (i<size-1) { printf("%2i, ",id_true);
+          } else {          printf("%2i }",id_true);
+}
           ++i;
         } // end matches cnt
-        if (cnt_matches < (n_matches-1)) printf(",\n");
-        else                             printf("}\n");
+        if (cnt_matches < (n_matches-1)) { printf(",\n");
+        } else {                             printf("}\n");
+}
         ++cnt_matches;
       }
     }
     std::cout << " --END-- Contents of SvtxPHG4ParticleMap: " << std::endl << std::endl;
 
   std::cout << " --BEGIN-- Contents of PHG4ParticleToRecoMap: " << std::endl;
-    for (auto iter = m_PHG4ParticleSvtxMap->begin(); iter != m_PHG4ParticleSvtxMap->end(); ++iter) {
-      printf("    { %2i ", iter->first); // id_true
-      auto n_matches = iter->second.size();
+    for (auto & iter : *m_PHG4ParticleSvtxMap) {
+      printf("    { %2i ", iter.first); // id_true
+      auto n_matches = iter.second.size();
       long unsigned int cnt_matches = 0;
-      for (auto matches : iter->second) {
-        if (cnt_matches==0) printf("-> { %5.2f -> ", matches.first);
-        else                printf("         -> { %5.2f -> ", matches.first);
+      for (const auto& matches : iter.second) {
+        if (cnt_matches==0) { printf("-> { %5.2f -> ", matches.first);
+        } else {                printf("         -> { %5.2f -> ", matches.first);
+}
         auto size = matches.second.size();
         long unsigned int i=0;
         for (auto id_reco : matches.second) {
-          if (i<size-1) printf("%2i, ",id_reco);
-          else          printf("%2i }",id_reco);
+          if (i<size-1) { printf("%2i, ",id_reco);
+          } else {          printf("%2i }",id_reco);
+}
           ++i;
         } // end matches cnt
-        if (cnt_matches < (n_matches-1)) printf(",\n");
-        else                             printf("}\n");
+        if (cnt_matches < (n_matches-1)) { printf(",\n");
+        } else {                             printf("}\n");
+}
         ++cnt_matches;
       }
     }
@@ -219,7 +226,7 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int FillTruthRecoMatchMap::End(PHCompositeNode *)
+int FillTruthRecoMatchMap::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -73,11 +73,11 @@ class RecursiveMomentumContainer
   {
     for (auto & container : containers)
     {
-      for (unsigned int j = 0; j < 2; ++j)
+      for (auto & j : container)
       {
         for (unsigned int k = 0; k < 2; ++k)
         {
-          container[j][k] = nullptr;
+          j[k] = nullptr;
         }
       }
     }
@@ -86,13 +86,13 @@ class RecursiveMomentumContainer
   {
     for (auto & container : containers)
     {
-      for (unsigned int j = 0; j < 2; ++j)
+      for (auto & j : container)
       {
         for (unsigned int k = 0; k < 2; ++k)
         {
-          if (container[j][k] != nullptr)
+          if (j[k] != nullptr)
           {
-            delete container[j][k];
+            delete j[k];
           }
         }
       }
@@ -236,21 +236,21 @@ class RecursiveMomentumContainer
   {
     for (auto & container : containers)
     {
-      for (unsigned int j = 0; j < 2; ++j)
+      for (auto & j : container)
       {
         for (unsigned int k = 0; k < 2; ++k)
         {
-          if (container[j][k] == nullptr)
+          if (j[k] == nullptr)
           {
             continue;
           }
 
-          if ((container[j][k]->px_hi < PX_LO) || (container[j][k]->px_lo > PX_HI) || (container[j][k]->py_hi < PY_LO) || (container[j][k]->py_lo > PY_HI) || (container[j][k]->pz_hi < PZ_LO) || (container[j][k]->pz_lo > PZ_HI))
+          if ((j[k]->px_hi < PX_LO) || (j[k]->px_lo > PX_HI) || (j[k]->py_hi < PY_LO) || (j[k]->py_lo > PY_HI) || (j[k]->pz_hi < PZ_LO) || (j[k]->pz_lo > PZ_HI))
           {
             continue;
           }
 
-          container[j][k]->append_list(track_list, PX_LO, PX_HI, PY_LO, PY_HI, PZ_LO, PZ_HI);
+          j[k]->append_list(track_list, PX_LO, PX_HI, PY_LO, PY_HI, PZ_LO, PZ_HI);
         }
       }
     }

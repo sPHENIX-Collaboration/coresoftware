@@ -86,7 +86,7 @@ class FillTruthRecoMatchTree : public SubsysReco
   int process_event(PHCompositeNode * /*topNode*/) override;
   int End(PHCompositeNode *topNode) override;
 
-  void clear_clusvecs(std::string tag="");
+  void clear_clusvecs(const std::string& tag="");
 
   void print_mvtx_diagnostics();
 
@@ -137,14 +137,14 @@ class FillTruthRecoMatchTree : public SubsysReco
     TH2D* h2_Sv_nPixelsZ;
     
     // Track tree
-    int  b_trackid;
-    bool b_is_g4track;
-    bool b_is_Svtrack;
-    bool b_is_matched;
+    int  b_trackid{};
+    bool b_is_g4track{};
+    bool b_is_Svtrack{};
+    bool b_is_matched{};
 
-    float b_trkpt;
-    float b_trkphi;
-    float b_trketa;
+    float b_trkpt{};
+    float b_trkphi{};
+    float b_trketa{};
 
 
     int   b_nclus         {};

@@ -51,7 +51,7 @@ namespace
   template<class T> class range_adaptor
   {
     public:
-    range_adaptor( const T& range ):m_range(range){}
+    explicit range_adaptor( const T& range ):m_range(range){}
     inline const typename T::first_type& begin() {return m_range.first;}
     inline const typename T::second_type& end() {return m_range.second;}
     private:
@@ -421,7 +421,8 @@ DSTEmulator::DSTEmulator( const std::string& name, const std::string &filename, 
 //_____________________________________________________________________
 int DSTEmulator::Init(PHCompositeNode* topNode )
 { 
-  if (_tfile) delete _tfile;
+  if (_tfile) { delete _tfile;
+}
   _tfile = new TFile(_filename.c_str(), "RECREATE");
  
   _dst_data = new TNtuple("dst_data", "dst data","event:seed:"
@@ -474,7 +475,7 @@ int DSTEmulator::Init(PHCompositeNode* topNode )
 }
 
 //_____________________________________________________________________
-int DSTEmulator::InitRun(PHCompositeNode* )
+int DSTEmulator::InitRun(PHCompositeNode*  /*unused*/)
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //_____________________________________________________________________
@@ -482,7 +483,8 @@ int DSTEmulator::process_event(PHCompositeNode* topNode)
 {
   // load nodes
   auto res =  load_nodes(topNode);
-  if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
+  if( res != Fun4AllReturnCodes::EVENT_OK ) { return res;
+}
 
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode,
 						 "ActsGeometry");
@@ -495,7 +497,8 @@ int DSTEmulator::process_event(PHCompositeNode* topNode)
     }
   
   // cleanup output container
-  if( m_container ) m_container->Reset();
+  if( m_container ) { m_container->Reset();
+}
 
   evaluate_tracks();
 
@@ -505,7 +508,7 @@ int DSTEmulator::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int DSTEmulator::End(PHCompositeNode* )
+int DSTEmulator::End(PHCompositeNode*  /*unused*/)
 { 
   _tfile->cd();
   _dst_data->Write();
@@ -590,7 +593,8 @@ int DSTEmulator::load_nodes( PHCompositeNode* topNode )
 void DSTEmulator::evaluate_tracks()
 {
 
-  if( !( m_track_map && m_cluster_map && m_container ) ) return;
+  if( !( m_track_map && m_cluster_map && m_container ) ) { return;
+}
 
   int iseed = 0;
   recoConsts *rc = recoConsts::instance();
@@ -633,7 +637,8 @@ void DSTEmulator::evaluate_tracks()
         continue;
       }
 
-      if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::tpcId) continue;
+      if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::tpcId) { continue;
+}
 
       // create new cluster struct
       // auto cluster_struct = create_cluster( cluster_key, cluster );
@@ -653,7 +658,8 @@ void DSTEmulator::evaluate_tracks()
         {
           state_iter = iter;
           dr_min = dr;
-        } else break;
+        } else { break;
+}
       }
       // Got cluster and got state
       /*
@@ -750,8 +756,9 @@ void DSTEmulator::evaluate_tracks()
     double fraction =  (world_phi + M_PI) / (2.0 * M_PI);
     double rounded_nsurf = round( (double) (surf_vec.size()/2) * fraction  - 0.5);
     unsigned int nsurf = (unsigned int) rounded_nsurf; 
-    if(world_z < 0)
+    if(world_z < 0) {
       nsurf += surf_vec.size()/2;
+}
     
     Surface surface = surf_vec[nsurf];
 
@@ -889,7 +896,8 @@ DSTEmulator::G4HitSet DSTEmulator::find_g4hits( TrkrDefs::cluskey cluster_key ) 
 {
 
   // check maps
-  if( !( m_cluster_hit_map && m_hit_truth_map ) ) return G4HitSet();
+  if( !( m_cluster_hit_map && m_hit_truth_map ) ) { return G4HitSet();
+}
 
   // check if in map
   auto map_iter = m_g4hit_map.lower_bound( cluster_key );
@@ -907,35 +915,40 @@ DSTEmulator::G4HitSet DSTEmulator::find_g4hits( TrkrDefs::cluskey cluster_key ) 
     m_hit_truth_map->getG4Hits( hitset_key, hit_key, g4hit_map );
 
     // find corresponding g4 hist
-    for( auto truth_iter = g4hit_map.begin(); truth_iter != g4hit_map.end(); ++truth_iter )
+    for(auto & truth_iter : g4hit_map)
     {
 
-      const auto g4hit_key = truth_iter->second.second;
+      const auto g4hit_key = truth_iter.second.second;
       PHG4Hit* g4hit = nullptr;
 
       switch( TrkrDefs::getTrkrId( hitset_key ) )
       {
         case TrkrDefs::mvtxId:
-        if( m_g4hits_mvtx ) g4hit = m_g4hits_mvtx->findHit( g4hit_key );
+        if( m_g4hits_mvtx ) { g4hit = m_g4hits_mvtx->findHit( g4hit_key );
+}
         break;
 
         case TrkrDefs::inttId:
-        if( m_g4hits_intt ) g4hit = m_g4hits_intt->findHit( g4hit_key );
+        if( m_g4hits_intt ) { g4hit = m_g4hits_intt->findHit( g4hit_key );
+}
         break;
 
         case TrkrDefs::tpcId:
-        if( m_g4hits_tpc ) g4hit = m_g4hits_tpc->findHit( g4hit_key );
+        if( m_g4hits_tpc ) { g4hit = m_g4hits_tpc->findHit( g4hit_key );
+}
         break;
 
         case TrkrDefs::micromegasId:
-        if( m_g4hits_micromegas ) g4hit = m_g4hits_micromegas->findHit( g4hit_key );
+        if( m_g4hits_micromegas ) { g4hit = m_g4hits_micromegas->findHit( g4hit_key );
+}
         break;
 
         default: break;
       }
 
-      if( g4hit ) out.insert( g4hit );
-      else std::cout << "DSTEmulator::find_g4hits - g4hit not found " << g4hit_key << std::endl;
+      if( g4hit ) { out.insert( g4hit );
+      } else { std::cout << "DSTEmulator::find_g4hits - g4hit not found " << g4hit_key << std::endl;
+}
 
     }
   }
@@ -948,7 +961,8 @@ DSTEmulator::G4HitSet DSTEmulator::find_g4hits( TrkrDefs::cluskey cluster_key ) 
 //_____________________________________________________________________
 std::pair<int,int> DSTEmulator::get_max_contributor( SvtxTrack* track ) const
 {
-  if(!(m_track_map && m_cluster_map && m_g4truthinfo)) return {0,0};
+  if(!(m_track_map && m_cluster_map && m_g4truthinfo)) { return {0,0};
+}
 
   // maps MC track id and number of matching g4hits
   using IdMap = std::map<int,int>;
@@ -965,15 +979,17 @@ std::pair<int,int> DSTEmulator::get_max_contributor( SvtxTrack* track ) const
       if( iter == contributor_map.end() || iter->first != trkid )
       {
         contributor_map.insert(iter, std::make_pair(trkid,1));
-      } else ++iter->second;
+      } else { ++iter->second;
+}
     }
   }
 
-  if( contributor_map.empty() ) return {0,0};
-  else return *std::max_element(
+  if( contributor_map.empty() ) { return {0,0};
+  } else { return *std::max_element(
     contributor_map.cbegin(), contributor_map.cend(),
     []( const IdMap::value_type& first, const IdMap::value_type& second )
     { return first.second < second.second; } );
+}
 
 }
 

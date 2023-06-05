@@ -50,7 +50,7 @@ int PHG4DstCompressReco::InitRun(PHCompositeNode* topNode)
 
   SearchG4HitNodes(topNode);
 
-  for (auto name : _compress_g4cell_names)
+  for (const auto& name : _compress_g4cell_names)
   {
     PHG4CellContainer* g4cells = findNode::getClass<PHG4CellContainer>(topNode, name.c_str());
     if (g4cells)
@@ -59,7 +59,7 @@ int PHG4DstCompressReco::InitRun(PHCompositeNode* topNode)
     }
   }
 
-  for (auto name : _compress_tower_names)
+  for (const auto& name : _compress_tower_names)
   {
     RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, name.c_str());
     if (towers)

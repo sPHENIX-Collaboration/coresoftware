@@ -28,8 +28,7 @@ TrackSeedTrackMapConverter::TrackSeedTrackMapConverter(const std::string &name):
 
 //____________________________________________________________________________..
 TrackSeedTrackMapConverter::~TrackSeedTrackMapConverter()
-{
-}
+= default;
 
 //____________________________________________________________________________..
 int TrackSeedTrackMapConverter::InitRun(PHCompositeNode *topNode)
@@ -39,7 +38,7 @@ int TrackSeedTrackMapConverter::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
+int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 {
   if(Verbosity() > 1)
     {
@@ -191,8 +190,10 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
           double chi2 = 0.;
           for(unsigned int i=0; i<xy_residuals.size(); i++)
           {
-            if(std::isnan(xy_error2[i])) xy_error2[i] = 0.01;
-            if(std::isnan(rz_error2[i])) rz_error2[i] = 0.01;
+            if(std::isnan(xy_error2[i])) { xy_error2[i] = 0.01;
+}
+            if(std::isnan(rz_error2[i])) { rz_error2[i] = 0.01;
+}
             // method lifted from GPUTPCTrackParam::Filter
             chi2 += xy_residuals[i]*xy_residuals[i]/xy_error2[i] + rz_residuals[i]*rz_residuals[i]/rz_error2[i];
           }
@@ -228,7 +229,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 
 
 //____________________________________________________________________________..
-int TrackSeedTrackMapConverter::End(PHCompositeNode*)
+int TrackSeedTrackMapConverter::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

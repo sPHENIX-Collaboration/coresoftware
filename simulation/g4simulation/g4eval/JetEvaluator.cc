@@ -48,15 +48,17 @@ int JetEvaluator::Init(PHCompositeNode */*topNode*/)
 
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
-  if (_do_recojet_eval) _ntp_recojet = new TNtuple("ntp_recojet", "reco jet => max truth jet",
+  if (_do_recojet_eval) { _ntp_recojet = new TNtuple("ntp_recojet", "reco jet => max truth jet",
                                                    "event:id:ncomp:eta:phi:e:pt:"
                                                    "gid:gncomp:geta:gphi:ge:gpt:"
                                                    "efromtruth");
+}
 
-  if (_do_truthjet_eval) _ntp_truthjet = new TNtuple("ntp_truthjet", "truth jet => best reco jet",
+  if (_do_truthjet_eval) { _ntp_truthjet = new TNtuple("ntp_truthjet", "truth jet => best reco jet",
                                                      "event:gid:gncomp:geta:gphi:ge:gpt:"
                                                      "id:ncomp:eta:phi:e:pt:"
                                                      "efromtruth");
+}
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -101,8 +103,10 @@ int JetEvaluator::End(PHCompositeNode */*topNode*/)
 {
   _tfile->cd();
 
-  if (_do_recojet_eval) _ntp_recojet->Write();
-  if (_do_truthjet_eval) _ntp_truthjet->Write();
+  if (_do_recojet_eval) { _ntp_recojet->Write();
+}
+  if (_do_truthjet_eval) { _ntp_truthjet->Write();
+}
 
   _tfile->Close();
 
@@ -134,7 +138,8 @@ void JetEvaluator::printOutputInfo(PHCompositeNode */*topNode*/)
 
 void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 2) cout << "JetEvaluator::fillOutputNtuples() entered" << endl;
+  if (Verbosity() > 2) { cout << "JetEvaluator::fillOutputNtuples() entered" << endl;
+}
 
   JetRecoEval *recoeval = _jetevalstack->get_reco_eval();
   //JetTruthEval* trutheval = _jetevalstack->get_truth_eval();
@@ -145,7 +150,8 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
 
   if (_do_recojet_eval)
   {
-    if (Verbosity() > 1) cout << "JetEvaluator::filling recojet ntuple..." << endl;
+    if (Verbosity() > 1) { cout << "JetEvaluator::filling recojet ntuple..." << endl;
+}
 
     JetMap *recojets = findNode::getClass<JetMap>(topNode, _recojetname.c_str());
     if (!recojets)
@@ -155,11 +161,9 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
     }
 
     // for every recojet
-    for (JetMap::Iter iter = recojets->begin();
-         iter != recojets->end();
-         ++iter)
+    for (auto & iter : *recojets)
     {
-      Jet *recojet = iter->second;
+      Jet *recojet = iter.second;
       Jet *truthjet = recoeval->max_truth_jet_by_energy(recojet);
 
       float id = recojet->get_id();
@@ -213,7 +217,8 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
 
   if (_do_truthjet_eval)
   {
-    if (Verbosity() > 1) cout << "JetEvaluator::filling truthjet ntuple..." << endl;
+    if (Verbosity() > 1) { cout << "JetEvaluator::filling truthjet ntuple..." << endl;
+}
 
     JetMap *truthjets = findNode::getClass<JetMap>(topNode, _truthjetname.c_str());
     if (!truthjets)
@@ -223,11 +228,9 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
     }
 
     // for every truthjet
-    for (JetMap::Iter iter = truthjets->begin();
-         iter != truthjets->end();
-         ++iter)
+    for (auto & iter : *truthjets)
     {
-      Jet *truthjet = iter->second;
+      Jet *truthjet = iter.second;
       Jet *recojet = recoeval->best_jet_from(truthjet);
 
       float gid = truthjet->get_id();

@@ -33,11 +33,10 @@ SvtxTruthRecoTableEval::SvtxTruthRecoTableEval(const std::string &name)
 
 //____________________________________________________________________________..
 SvtxTruthRecoTableEval::~SvtxTruthRecoTableEval()
-{
-}
+= default;
 
 //____________________________________________________________________________..
-int SvtxTruthRecoTableEval::Init(PHCompositeNode *)
+int SvtxTruthRecoTableEval::Init(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -82,7 +81,7 @@ int SvtxTruthRecoTableEval::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int SvtxTruthRecoTableEval::ResetEvent(PHCompositeNode *)
+int SvtxTruthRecoTableEval::ResetEvent(PHCompositeNode * /*unused*/)
 {
   if (Verbosity() > 0)
   {
@@ -96,7 +95,7 @@ int SvtxTruthRecoTableEval::ResetEvent(PHCompositeNode *)
 }
 
 //____________________________________________________________________________..
-int SvtxTruthRecoTableEval::End(PHCompositeNode *)
+int SvtxTruthRecoTableEval::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -125,22 +124,21 @@ void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
                                     .mag();
 
     // only record particle above minimal momentum requirement.
-    if (momentum < m_minMomentumTruthMap) continue;
+    if (momentum < m_minMomentumTruthMap) { continue;
+}
 
     int gtrackID = g4particle->get_track_id();
     const std::set<SvtxTrack*>& alltracks = trackeval->all_tracks_from(g4particle);
 
     // not to record zero associations
-    if (alltracks.size() == 0) continue;
+    if (alltracks.size() == 0) { continue;
+}
 
     PHG4ParticleSvtxMap::WeightedRecoTrackMap recomap;
 
-    for (std::set<SvtxTrack*>::iterator jter = alltracks.begin();
-	 jter != alltracks.end();
-	 ++jter)
+    for (auto track : alltracks)
       {
-	SvtxTrack* track = *jter;
-	/// We fill the map with a key corresponding to the ncluster contribution.
+		/// We fill the map with a key corresponding to the ncluster contribution.
 	/// This weight could in principle be anything we choose
 	float clusCont = trackeval->get_nclusters_contribution(track, g4particle);
 	

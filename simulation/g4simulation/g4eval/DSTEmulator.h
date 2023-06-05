@@ -113,13 +113,13 @@ class DSTEmulator : public SubsysReco
   ActsGeometry *m_tGeometry = nullptr;
   ActsTransformations m_transform;
 
-  TNtuple *_dst_data;
+  TNtuple *_dst_data{};
 
   // output file
   std::string _filename;
   TFile *_tfile;
 
-  DSTCompressor* m_compressor;
+  DSTCompressor* m_compressor{};
 
   // Number of bits for the integer representation after compression
   int nBits = 8;

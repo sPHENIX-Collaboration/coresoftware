@@ -816,7 +816,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   float nclus_maps = 0;
   float nclus_mms = 0;
   float nhit[100];
-  for(float & i : nhit)i = 0;
+  for(float & i : nhit) {i = 0;
+}
   float occ11  = 0;
   float occ116 = 0;
   float occ21  = 0;

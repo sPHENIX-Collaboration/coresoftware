@@ -94,8 +94,7 @@ FillTruthRecoMatchTree::FillTruthRecoMatchTree(
 
 //____________________________________________________________________________..
 FillTruthRecoMatchTree::~FillTruthRecoMatchTree()
-{
-}
+= default;
 
 //____________________________________________________________________________..
 int FillTruthRecoMatchTree::Init(PHCompositeNode *topNode)
@@ -112,7 +111,8 @@ int FillTruthRecoMatchTree::Init(PHCompositeNode *topNode)
 int FillTruthRecoMatchTree::InitRun(PHCompositeNode *topNode)
 {
   auto init_status = m_cluster_comp.init(topNode);
-  if (init_status == Fun4AllReturnCodes::ABORTRUN) return init_status;
+  if (init_status == Fun4AllReturnCodes::ABORTRUN) { return init_status;
+}
 
   if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
@@ -198,7 +198,8 @@ int FillTruthRecoMatchTree::createNodes(PHCompositeNode *topNode)
 int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
 {
 
-  if (Verbosity()>5) cout << " FillTruthRecoMatchTree::process_event() " << endl;
+  if (Verbosity()>5) { cout << " FillTruthRecoMatchTree::process_event() " << endl;
+}
 
   // fill in the event data
   ++nevent; 
@@ -245,7 +246,8 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
   // (3) fill matched phg4 and svtx
   clear_clusvecs(" nothing "); 
 
-  if (Verbosity() > 2) std::cout << " getting" << (int) m_EmbRecoMatchContainer->getMatches().size() << std::endl;
+  if (Verbosity() > 2) { std::cout << " getting" << (int) m_EmbRecoMatchContainer->getMatches().size() << std::endl;
+}
   for (auto& match : m_EmbRecoMatchContainer->getMatches()) {
     unsigned int g4_trkid = match->idTruthTrack();
     int sv_trkid = match->idRecoTrack();
@@ -452,7 +454,8 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
     }
   }
 
-  if (Verbosity()>100) print_mvtx_diagnostics();
+  if (Verbosity()>100) { print_mvtx_diagnostics();
+}
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -471,7 +474,8 @@ void FillTruthRecoMatchTree::print_mvtx_diagnostics() {
   // count how mant mvtx clusters in truth container (should be the same)
   double n_in_PHG4_clusters {0.};
   for (auto hitsetkey : m_cluscntr.get_PHG4_clusters()->getHitSetKeys()) {
-    if (TrkrDefs::getLayer(hitsetkey) > 2) continue;
+    if (TrkrDefs::getLayer(hitsetkey) > 2) { continue;
+}
     auto range = m_cluscntr.get_PHG4_clusters()->getClusters(hitsetkey);
     for (auto r = range.first; r != range.second; ++r)  {
       n_in_PHG4_clusters += 1.;
@@ -482,14 +486,15 @@ void FillTruthRecoMatchTree::print_mvtx_diagnostics() {
   double n_SVTX_tracks = m_SvtxTrackMap->size();
   // count how many mvtx clusters in svtx tracks
   double n_in_SVTX_tracks {0.};
-  for (auto entry = m_SvtxTrackMap->begin(); entry != m_SvtxTrackMap->end(); ++entry) {
-    m_cluscntr.addClusKeys(entry->second);
+  for (auto & entry : *m_SvtxTrackMap) {
+    m_cluscntr.addClusKeys(entry.second);
     n_in_SVTX_tracks += m_cluscntr.svtx_cntclus()[0];
   }
   // count how many mvtx are total in the container
   double n_in_SVTX_clusters {0.};
   for (auto hitsetkey : m_cluscntr.get_SVTX_clusters()->getHitSetKeys()) {
-    if (TrkrDefs::getLayer(hitsetkey) > 2) continue;
+    if (TrkrDefs::getLayer(hitsetkey) > 2) { continue;
+}
     auto range = m_cluscntr.get_SVTX_clusters()->getClusters(hitsetkey);
     for (auto r = range.first; r != range.second; ++r)  {
       n_in_SVTX_clusters += 1.;
@@ -511,9 +516,10 @@ void FillTruthRecoMatchTree::print_mvtx_diagnostics() {
 
 }
 
-  int FillTruthRecoMatchTree::End(PHCompositeNode *)
+  int FillTruthRecoMatchTree::End(PHCompositeNode * /*unused*/)
   {
-    if (Verbosity()>2) std::cout << PHWHERE << ": ending FillTruthRecoMatchTree" << std::endl;
+    if (Verbosity()>2) { std::cout << PHWHERE << ": ending FillTruthRecoMatchTree" << std::endl;
+}
     PHTFileServer::get().cd(m_outfile_name);
 
     h2_G4_nPixelsPhi ->Write();
@@ -525,11 +531,12 @@ void FillTruthRecoMatchTree::print_mvtx_diagnostics() {
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  void FillTruthRecoMatchTree::clear_clusvecs(std::string tag) {
+  void FillTruthRecoMatchTree::clear_clusvecs(const std::string& tag) {
     /* cout << " banana |" << tag << "|"<<endl; */
     if (tag != "") {
       cout << endl << " pear printing "<<tag<<" x("<< b_clus_x.size()<<") ";
-      for (auto x : b_clus_x) cout << x <<" ";
+      for (auto x : b_clus_x) { cout << x <<" ";
+}
       cout << endl;
     }
     // Tracks and clustes
