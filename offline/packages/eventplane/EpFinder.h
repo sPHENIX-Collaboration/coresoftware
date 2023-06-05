@@ -3,15 +3,13 @@
 #ifndef EVENTPLANE_EPFINDER_H
 #define EVENTPLANE_EPFINDER_H
 
+#include "TH2D.h"
 #include <TString.h>
 #include <string>
-
 #include <array>  // for array
 #include <vector>
-#include "TH2D.h"
 
 class EpInfo;
-
 
 typedef struct
 {
@@ -44,14 +42,12 @@ class EpFinder
   std::vector<std::array<double, 2>> TotalWeight4Side;
   std::vector<std::vector<double>> QrawOneSide;
   std::vector<std::vector<double>> QphiWeightedOneSide;
-  std::vector<double> WheelSumWeightsRaw;
-  std::vector<double> WheelSumWeightsPhiWeighted;
   std::vector<double> PsiRaw;
   std::vector<double> PsiPhiWeighted;
 
-  TH2D* mPhiWeightInput[2];
-  TH2D* mPhiWeightOutput[2];
-  TH2D* mPhiAveraged[2];
+  TH2* mPhiWeightInput[2];
+  TH2* mPhiWeightOutput[2];
+  TH2* mPhiAveraged[2];
 };
 
 #endif  // EVENTPLANE_EPFINDER_H
