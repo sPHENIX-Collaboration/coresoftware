@@ -391,7 +391,7 @@ namespace
       const auto hit = hitset->getHit( pair.second );
       if( hit )
       {
-        const auto energy = hit->getEnergy();
+        const auto energy = hit->getAdc();
         cluster._energy_sum += energy;
         if( energy > cluster._energy_max ) cluster._energy_max = energy;
       }
