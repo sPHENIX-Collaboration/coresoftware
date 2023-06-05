@@ -48,6 +48,7 @@ CaloEvaluator::CaloEvaluator(const std::string& name, const std::string& calonam
 
 int CaloEvaluator::Init(PHCompositeNode* /*topNode*/)
 {
+  delete _tfile; // make cppcheck happy
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
   if (_do_gpoint_eval)
