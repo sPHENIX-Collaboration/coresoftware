@@ -1108,7 +1108,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       unsigned int ngembed = 0;
       for (auto & iter : embedvtxid_found)
       {
-        if (iter.first >= 0 || iter.first != iter.first) { continue;
+        if (iter.first >= 0) { continue;
 }
         ++ngembed;
       }
