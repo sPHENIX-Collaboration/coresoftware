@@ -40,7 +40,7 @@ class TrivialTrack
     , quality(qual)
   {
   }
-  ~TrivialTrack() {}
+  ~TrivialTrack() = default;
 };
 
 class RecursiveMomentumContainer
@@ -55,7 +55,7 @@ class RecursiveMomentumContainer
 
   unsigned int x_pos, y_pos, z_pos;
 
-  RecursiveMomentumContainer* containers[2][2][2];
+  RecursiveMomentumContainer* containers[2][2][2]{};
 
  public:
   RecursiveMomentumContainer(float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI, int MLEV, int LEV = 0)
@@ -71,28 +71,28 @@ class RecursiveMomentumContainer
     , y_pos(0)
     , z_pos(0)
   {
-    for (unsigned int i = 0; i < 2; ++i)
+    for (auto & container : containers)
     {
       for (unsigned int j = 0; j < 2; ++j)
       {
         for (unsigned int k = 0; k < 2; ++k)
         {
-          containers[i][j][k] = nullptr;
+          container[j][k] = nullptr;
         }
       }
     }
   }
   virtual ~RecursiveMomentumContainer()
   {
-    for (unsigned int i = 0; i < 2; ++i)
+    for (auto & container : containers)
     {
       for (unsigned int j = 0; j < 2; ++j)
       {
         for (unsigned int k = 0; k < 2; ++k)
         {
-          if (containers[i][j][k] != nullptr)
+          if (container[j][k] != nullptr)
           {
-            delete containers[i][j][k];
+            delete container[j][k];
           }
         }
       }
@@ -234,23 +234,23 @@ class RecursiveMomentumContainer
 
   virtual void append_list(vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI)
   {
-    for (unsigned int i = 0; i < 2; ++i)
+    for (auto & container : containers)
     {
       for (unsigned int j = 0; j < 2; ++j)
       {
         for (unsigned int k = 0; k < 2; ++k)
         {
-          if (containers[i][j][k] == nullptr)
+          if (container[j][k] == nullptr)
           {
             continue;
           }
 
-          if ((containers[i][j][k]->px_hi < PX_LO) || (containers[i][j][k]->px_lo > PX_HI) || (containers[i][j][k]->py_hi < PY_LO) || (containers[i][j][k]->py_lo > PY_HI) || (containers[i][j][k]->pz_hi < PZ_LO) || (containers[i][j][k]->pz_lo > PZ_HI))
+          if ((container[j][k]->px_hi < PX_LO) || (container[j][k]->px_lo > PX_HI) || (container[j][k]->py_hi < PY_LO) || (container[j][k]->py_lo > PY_HI) || (container[j][k]->pz_hi < PZ_LO) || (container[j][k]->pz_lo > PZ_HI))
           {
             continue;
           }
 
-          containers[i][j][k]->append_list(track_list, PX_LO, PX_HI, PY_LO, PY_HI, PZ_LO, PZ_HI);
+          container[j][k]->append_list(track_list, PX_LO, PX_HI, PY_LO, PY_HI, PZ_LO, PZ_HI);
         }
       }
     }
@@ -266,8 +266,7 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
   }
 
   ~RecursiveMomentumContainerEnd() override
-  {
-  }
+  = default;
 
   bool insert(TrivialTrack& track) override
   {
@@ -296,13 +295,13 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
 
   void append_list(vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI) override
   {
-    for (unsigned int i = 0; i < tracks.size(); ++i)
+    for (auto & track : tracks)
     {
-      if ((tracks[i].px < PX_LO) || (tracks[i].px > PX_HI) || (tracks[i].py < PY_LO) || (tracks[i].py > PY_HI) || (tracks[i].pz < PZ_LO) || (tracks[i].pz > PZ_HI))
+      if ((track.px < PX_LO) || (track.px > PX_HI) || (track.py < PY_LO) || (track.py > PY_HI) || (track.pz < PZ_LO) || (track.pz > PZ_HI))
       {
         continue;
       }
-      track_list.push_back(&(tracks[i]));
+      track_list.push_back(&track);
     }
   }
 
@@ -461,9 +460,9 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
 
   // PHG4TruthInfoContainer::Map primarymap = truthinfo->GetPrimaryMap();
   PHG4TruthInfoContainer::Map primarymap = truthinfo->GetMap();
-  for (PHG4TruthInfoContainer::Iterator iter = primarymap.begin(); iter != primarymap.end(); ++iter)
+  for (auto & iter : primarymap)
   {
-    PHG4Particle* particle = iter->second;
+    PHG4Particle* particle = iter.second;
 
     float vx = truthinfo->GetVtx(particle->get_vtx_id())->get_x();
     float vy = truthinfo->GetVtx(particle->get_vtx_id())->get_y();
@@ -492,9 +491,9 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
   }
 
   RecursiveMomentumContainer reco_sorted(-20., 20., -20., 20., -20., 20., 10);
-  for (SvtxTrackMap::Iter iter = trackmap->begin(); iter != trackmap->end(); ++iter)
+  for (auto & iter : *trackmap)
   {
-    SvtxTrack* track = iter->second;
+    SvtxTrack* track = iter.second;
 
     TrivialTrack ttrack(track->get_px(), track->get_py(), track->get_pz(), track->get_x() - gvx, track->get_y() - gvy, track->get_z() - gvz, track->get_quality());
     reco_sorted.insert(ttrack);

@@ -241,7 +241,7 @@ class EventEvaluator : public SubsysReco
   TFile* _tfile_geometry;
 
   // subroutines
-  int GetProjectionIndex(std::string projname);           ///< return track projection index for given track projection layer
+  int GetProjectionIndex(const std::string& projname);           ///< return track projection index for given track projection layer
   std::string GetProjectionNameFromIndex(int projindex);  ///< return track projection layer name from projection index (see GetProjectionIndex)
   void fillOutputNtuples(PHCompositeNode* topNode);       ///< dump the evaluator information into ntuple for external analysis
   void resetGeometryArrays();                             ///< reset the tree variables before filling for a new event
