@@ -39,46 +39,15 @@
 #include <set>
 #include <utility>
 
-using namespace std;
-
-CaloEvaluator::CaloEvaluator(const string& name, const string& caloname, const string& filename)
+CaloEvaluator::CaloEvaluator(const std::string& name, const std::string& caloname, const std::string& filename)
   : SubsysReco(name)
   , _caloname(caloname)
-  , _ievent(0)
-  , _towerID_debug(0)
-  , _ieta_debug(0)
-  , _iphi_debug(0)
-  , _eta_debug(0)
-  , _phi_debug(0)
-  , _e_debug(0)
-  , _x_debug(0)
-  , _y_debug(0)
-  , _z_debug(0)
-  , _truth_trace_embed_flags()
-  , _truth_e_threshold(0.0)
-  ,  // 0 GeV before reco is traced
-  _reco_e_threshold(0.0)
-  ,  // 0 GeV before reco is traced
-  _caloevalstack(nullptr)
-  , _strict(false)
-  , _do_gpoint_eval(true)
-  , _do_gshower_eval(true)
-  , _do_tower_eval(true)
-  , _do_cluster_eval(true)
-  , _ntp_gpoint(nullptr)
-  , _ntp_gshower(nullptr)
-  , _ntp_tower(nullptr)
-  , _tower_debug(nullptr)
-  , _ntp_cluster(nullptr)
   , _filename(filename)
-  , _tfile(nullptr)
 {
 }
 
 int CaloEvaluator::Init(PHCompositeNode* /*topNode*/)
 {
-  _ievent = 0;
-
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
   if (_do_gpoint_eval) _ntp_gpoint = new TNtuple("ntp_gpoint", "primary vertex => best (first) vertex",
@@ -157,6 +126,7 @@ int CaloEvaluator::process_event(PHCompositeNode* topNode)
   printOutputInfo(topNode);
 
   ++_ievent;
+  ++m_EvtCounter;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -180,9 +150,9 @@ int CaloEvaluator::End(PHCompositeNode* /*topNode*/)
 
   if (Verbosity() > 0)
   {
-    cout << "========================= " << Name() << "::End() ============================" << endl;
-    cout << " " << _ievent << " events of output written to: " << _filename << endl;
-    cout << "===========================================================================" << endl;
+    std::cout << "========================= " << Name() << "::End() ============================" << std::endl;
+    std::cout << " " << m_EvtCounter << " events of output written to: " << _filename << std::endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   if (_caloevalstack) delete _caloevalstack;
@@ -192,25 +162,25 @@ int CaloEvaluator::End(PHCompositeNode* /*topNode*/)
 
 void CaloEvaluator::printInputInfo(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 2) cout << "CaloEvaluator::printInputInfo() entered" << endl;
+  if (Verbosity() > 2) std::cout << "CaloEvaluator::printInputInfo() entered" << std::endl;
 
   // print out the truth container
 
   if (Verbosity() > 1)
   {
-    cout << endl;
-    cout << PHWHERE << "   NEW INPUT FOR EVENT " << _ievent << endl;
-    cout << endl;
+    std::cout << std::endl;
+    std::cout << PHWHERE << "   NEW INPUT FOR EVENT " << _ievent << std::endl;
+    std::cout << std::endl;
 
     // need things off of the DST...
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
     if (!truthinfo)
     {
-      cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+      std::cout << PHWHERE << " ERROR: Can't find G4TruthInfo" << std::endl;
       exit(-1);
     }
 
-    cout << Name() << ": PHG4TruthInfoContainer contents: " << endl;
+    std::cout << Name() << ": PHG4TruthInfoContainer contents: " << std::endl;
 
     PHG4TruthInfoContainer::Range truthrange = truthinfo->GetParticleRange();
     for (PHG4TruthInfoContainer::Iterator truthiter = truthrange.first;
@@ -219,8 +189,8 @@ void CaloEvaluator::printInputInfo(PHCompositeNode* topNode)
     {
       PHG4Particle* particle = truthiter->second;
 
-      cout << truthiter->first << " => pid: " << particle->get_pid()
-           << " pt: " << sqrt(pow(particle->get_px(), 2) + pow(particle->get_py(), 2)) << endl;
+      std::cout << truthiter->first << " => pid: " << particle->get_pid()
+           << " pt: " << sqrt(pow(particle->get_px(), 2) + pow(particle->get_py(), 2)) << std::endl;
     }
   }
 
@@ -229,7 +199,7 @@ void CaloEvaluator::printInputInfo(PHCompositeNode* topNode)
 
 void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 2) cout << "CaloEvaluator::printOutputInfo() entered" << endl;
+  if (Verbosity() > 2) std::cout << "CaloEvaluator::printOutputInfo() entered" << std::endl;
 
   CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
   CaloTruthEval* trutheval = _caloevalstack->get_truth_eval();
@@ -241,15 +211,15 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
   if (Verbosity() > 1)
   {
     // event information
-    cout << endl;
-    cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;
-    cout << endl;
+    std::cout << std::endl;
+    std::cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << std::endl;
+    std::cout << std::endl;
 
     // need things off of the DST...
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
     if (!truthinfo)
     {
-      cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+      std::cout << PHWHERE << " ERROR: Can't find G4TruthInfo" << std::endl;
       exit(-1);
     }
 
@@ -276,7 +246,7 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
       }
     }
 
-    cout << "vtrue = (" << gvx << "," << gvy << "," << gvz << ") => vreco = (" << vx << "," << vy << "," << vz << ")" << endl;
+    std::cout << "vtrue = (" << gvx << "," << gvy << "," << gvz << ") => vreco = (" << vx << "," << vy << "," << vz << ")" << std::endl;
 
     PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
     for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
@@ -285,68 +255,68 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
     {
       PHG4Particle* primary = iter->second;
 
-      cout << endl;
+      std::cout << std::endl;
 
-      cout << "===Primary PHG4Particle=========================================" << endl;
-      cout << " particle id = " << primary->get_track_id() << endl;
-      cout << " flavor = " << primary->get_pid() << endl;
-      cout << " (px,py,pz,e) = (";
+      std::cout << "===Primary PHG4Particle=========================================" << std::endl;
+      std::cout << " particle id = " << primary->get_track_id() << std::endl;
+      std::cout << " flavor = " << primary->get_pid() << std::endl;
+      std::cout << " (px,py,pz,e) = (";
 
       float gpx = primary->get_px();
       float gpy = primary->get_py();
       float gpz = primary->get_pz();
       float ge = primary->get_e();
 
-      cout.width(5);
-      cout << gpx;
-      cout << ",";
-      cout.width(5);
-      cout << gpy;
-      cout << ",";
-      cout.width(5);
-      cout << gpz;
-      cout << ",";
-      cout.width(5);
-      cout << ge;
-      cout << ")" << endl;
+      std::cout.width(5);
+      std::cout << gpx;
+      std::cout << ",";
+      std::cout.width(5);
+      std::cout << gpy;
+      std::cout << ",";
+      std::cout.width(5);
+      std::cout << gpz;
+      std::cout << ",";
+      std::cout.width(5);
+      std::cout << ge;
+      std::cout << ")" << std::endl;
 
       float gpt = sqrt(gpx * gpx + gpy * gpy);
       float geta = NAN;
       if (gpt != 0.0) geta = asinh(gpz / gpt);
       float gphi = atan2(gpy, gpx);
 
-      cout << "(eta,phi,e,pt) = (";
-      cout.width(5);
-      cout << geta;
-      cout << ",";
-      cout.width(5);
-      cout << gphi;
-      cout << ",";
-      cout.width(5);
-      cout << ge;
-      cout << ",";
-      cout.width(5);
-      cout << gpt;
-      cout << ")" << endl;
+      std::cout << "(eta,phi,e,pt) = (";
+      std::cout.width(5);
+      std::cout << geta;
+      std::cout << ",";
+      std::cout.width(5);
+      std::cout << gphi;
+      std::cout << ",";
+      std::cout.width(5);
+      std::cout << ge;
+      std::cout << ",";
+      std::cout.width(5);
+      std::cout << gpt;
+      std::cout << ")" << std::endl;
 
       PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
       float gvx = vtx->get_x();
       float gvy = vtx->get_y();
       float gvz = vtx->get_z();
 
-      cout << " vtrue = (";
-      cout.width(5);
-      cout << gvx;
-      cout << ",";
-      cout.width(5);
-      cout << gvy;
-      cout << ",";
-      cout.width(5);
-      cout << gvz;
-      cout << ")" << endl;
+      std::cout << " vtrue = (";
+      std::cout.width(5);
+      std::cout << gvx;
+      std::cout << ",";
+      std::cout.width(5);
+      std::cout << gvy;
+      std::cout << ",";
+      std::cout.width(5);
+      std::cout << gvz;
+      std::cout << ")" << std::endl;
 
-      cout << " embed = " << trutheval->get_embed(primary) << endl;
-      cout << " edep = " << trutheval->get_shower_energy_deposit(primary) << endl;
+      std::cout << " embed = " << trutheval->get_embed(primary) << std::endl;
+      std::cout << " edep = " << trutheval->get_shower_energy_deposit(primary) << std::endl;
 
       std::set<RawCluster*> clusters = clustereval->all_clusters_from(primary);
       for (std::set<RawCluster*>::iterator clusiter = clusters.begin();
@@ -364,25 +334,25 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
 
         float efromtruth = clustereval->get_energy_contribution(cluster, primary);
 
-        cout << " => #" << cluster->get_id() << " (x,y,z,phi,e) = (";
-        cout.width(5);
-        cout << x;
-        cout << ",";
-        cout.width(5);
-        cout << y;
-        cout << ",";
-        cout.width(5);
-        cout << z;
-        cout << ",";
-        cout.width(5);
-        cout << phi;
-        cout << ",";
-        cout.width(5);
-        cout << e;
-        cout << "), ntowers = " << ntowers << ", efromtruth = " << efromtruth << endl;
+        std::cout << " => #" << cluster->get_id() << " (x,y,z,phi,e) = (";
+        std::cout.width(5);
+        std::cout << x;
+        std::cout << ",";
+        std::cout.width(5);
+        std::cout << y;
+        std::cout << ",";
+        std::cout.width(5);
+        std::cout << z;
+        std::cout << ",";
+        std::cout.width(5);
+        std::cout << phi;
+        std::cout << ",";
+        std::cout.width(5);
+        std::cout << e;
+        std::cout << "), ntowers = " << ntowers << ", efromtruth = " << efromtruth << std::endl;
       }
     }
-    cout << endl;
+    std::cout << std::endl;
   }
 
   return;
@@ -390,7 +360,7 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
 
 void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 2) cout << "CaloEvaluator::fillOutputNtuples() entered" << endl;
+  if (Verbosity() > 2) std::cout << "CaloEvaluator::fillOutputNtuples() entered" << std::endl;
 
   CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
   CaloRawTowerEval* towereval = _caloevalstack->get_rawtower_eval();
@@ -406,7 +376,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
     if (!truthinfo)
     {
-      cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+      std::cout << PHWHERE << " ERROR: Can't find G4TruthInfo" << std::endl;
       exit(-1);
     }
 
@@ -450,14 +420,14 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (_ntp_gshower)
   {
-    if (Verbosity() > 1) cout << Name() << " CaloEvaluator::filling gshower ntuple..." << endl;
+    if (Verbosity() > 1) std::cout << Name() << " CaloEvaluator::filling gshower ntuple..." << std::endl;
 
     GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
     if (!truthinfo)
     {
-      cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+      std::cout << PHWHERE << " ERROR: Can't find G4TruthInfo" << std::endl;
       exit(-1);
     }
 
@@ -576,21 +546,21 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (_do_tower_eval)
   {
-    if (Verbosity() > 1) cout << "CaloEvaluator::filling tower ntuple..." << endl;
+    if (Verbosity() > 1) std::cout << "CaloEvaluator::filling tower ntuple..." << std::endl;
 
-    string towernode = "TOWER_CALIB_" + _caloname;
+    std::string towernode = "TOWER_CALIB_" + _caloname;
     RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, towernode.c_str());
     if (!towers)
     {
-      cerr << PHWHERE << " ERROR: Can't find " << towernode << endl;
+      std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
       exit(-1);
     }
 
-    string towergeomnode = "TOWERGEOM_" + _caloname;
+    std::string towergeomnode = "TOWERGEOM_" + _caloname;
     RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnode.c_str());
     if (!towergeom)
     {
-      cerr << PHWHERE << " ERROR: Can't find " << towergeomnode << endl;
+      std::cout << PHWHERE << " ERROR: Can't find " << towergeomnode << std::endl;
       exit(-1);
     }
 
@@ -605,12 +575,12 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       RawTowerGeom* tower_geom = towergeom->get_tower_geometry(tower->get_id());
       if (!tower_geom)
       {
-        cerr << PHWHERE << " ERROR: Can't find tower geometry for this tower hit: ";
+        std::cout << PHWHERE << " ERROR: Can't find tower geometry for this tower hit: ";
         tower->identify();
         exit(-1);
       }
 
-      //cout<<"Tower ID = "<<tower->get_id()<<" for bin(j,k)= "<<tower->get_bineta()<<","<<tower->get_binphi()<<endl; //Added by Barak
+      //std::cout<<"Tower ID = "<<tower->get_id()<<" for bin(j,k)= "<<tower->get_bineta()<<","<<tower->get_binphi()<<std::endl; //Added by Barak
       const float towerid = tower->get_id();
       const float ieta = tower->get_bineta();
       const float iphi = tower->get_binphi();
@@ -724,15 +694,15 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (_do_cluster_eval)
   {
-    if (Verbosity() > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
+    if (Verbosity() > 1) std::cout << "CaloEvaluator::filling gcluster ntuple..." << std::endl;
 
     GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
-    string clusternode = "CLUSTER_" + _caloname;
+    std::string clusternode = "CLUSTER_" + _caloname;
     RawClusterContainer* clusters = findNode::getClass<RawClusterContainer>(topNode, clusternode.c_str());
     if (!clusters)
     {
-      cerr << PHWHERE << " ERROR: Can't find " << clusternode << endl;
+      std::cout << PHWHERE << " ERROR: Can't find " << clusternode << std::endl;
       exit(-1);
     }
 
