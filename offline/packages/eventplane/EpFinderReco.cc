@@ -1,14 +1,9 @@
 #include "EpFinderReco.h"
-
 #include "EpFinder.h"
 #include "EpInfo.h"    // for EpInfo
 #include "EpInfov1.h"  // for EpInfo
 
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-
 #include <epd/EpdGeomV1.h>
-
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv1.h>
@@ -17,11 +12,7 @@
 #include <centrality/CentralityInfo.h>
 #include <centrality/CentralityInfov1.h>
 
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerDefs.h>
-#include <calobase/RawTowerGeom.h>
-#include <calobase/RawTowerGeomContainer.h>
+#include <cdbobjects/CDBHistos.h>
 
 //#include <trackbase_historic/SvtxTrackMap.h>
 
@@ -29,8 +20,6 @@
 #include <fun4all/PHTFileServer.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
-
-#include <filesystem>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -40,9 +29,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <TFile.h>
-#include <TH1.h>
-#include <TH2.h>  // for TH2F
+#include <TH3.h>  
 #include <TSystem.h>
 #include <TRandom.h>
 #include <TVector3.h>  // for TVector3
@@ -56,8 +43,6 @@
 #include <vector>  // for vector
 #include <fstream>
  
-using namespace std;
-
 EpFinderReco::EpFinderReco(const std::string &name)
   : SubsysReco(name)
   , detector("NONE")
@@ -80,45 +65,21 @@ int EpFinderReco::Init(PHCompositeNode *topNode)
      EpFinder_det[i] = new EpFinder(1,3,i);
      EpFinder_det[i]->Report();
   }
-    //for sEPD, provide truncation file if tower energies should be truncated
-    if(!m_TruncationFileName.empty())
-     {
-       if (std::filesystem::exists(m_TruncationFileName))
-       {
-         std::ifstream truncate_Nmip;
-         truncate_Nmip.open(m_TruncationFileName, std::ifstream::in);
-         if (truncate_Nmip.is_open())
-         {
-           while (!truncate_Nmip.eof())
-           {
-               for (int k = 0; k < 2; k++)
-                {
-                   for (int i = 0; i < 10; i++)
-                   {
-                    for (int j = 0; j < 16; j++)
-                    {
-                        truncate_Nmip >> m_Epd_Trunc_e[k][i][j];
-                        if (!std::isfinite(m_Epd_Trunc_e[k][i][j]))
-                        {
-                           std::cout << "Truncation value at rbin " << j
-                           << ", centbin " << i << ", arm " << k << " in " << m_TruncationFileName
-                           << " is not finite: " << m_Epd_Trunc_e[k][i][j] << std::endl;
-                           gSystem->Exit(1);
-                           exit(1);
-                       }
-                      else
-                       {
-                        if(Verbosity() >= 1) std::cout<<"Found Truncation File and will be using values \t"<< k << "\t" << i << "\t" << j << "\t" << m_Epd_Trunc_e[k][i][j] <<std::endl;
-                      }
-                    }
-                  }
-              }
-           }
-          truncate_Nmip.close();
-         }
-       }
-     }
-    return CreateNodes(topNode);
+
+    //Load sEPD truncation hist if it exists
+    CDBHistos *cdbhistos = new CDBHistos(truncationFile);
+    cdbhistos->LoadCalibrations();
+  
+    if(!(cdbhistos->getHisto(truncationhist)))
+    {
+        mTruncationInput = NULL;
+    }
+    else
+    {
+        mTruncationInput = dynamic_cast<TH3 *> (cdbhistos->getHisto(truncationhist));
+    }
+
+   return CreateNodes(topNode);
 }
 
 int EpFinderReco::CreateNodes(PHCompositeNode *topNode)
@@ -128,7 +89,7 @@ int EpFinderReco::CreateNodes(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -250,8 +211,19 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
        exit(1);
    }
 
-   int cent_index = cent->get_centile(CentralityInfo::PROP::bimp)/10;
-     
+   if(m_CentType == kCentrality::kBimp) 
+   {
+      cent_index = cent->get_centile(CentralityInfo::PROP::bimp)/10;
+   } 
+   else if(m_CentType == kCentrality::kEPD)
+   {
+      cent_index = cent->get_centile(CentralityInfo::PROP::epd_NS)/10;
+   }
+   else if(m_CentType == kCentrality::kMBD)
+   {
+      cent_index = cent->get_centile(CentralityInfo::PROP::mbd_NS)/10;
+   }
+
    TowerInfoContainerv1 *_towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, TowerNode + detector);
    if (!_towerinfos)
    {
@@ -293,15 +265,15 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
        phibin = TowerInfoDefs::get_epd_phibin(key);
        rbin = TowerInfoDefs::get_epd_rbin(key);
        
-       if((m_Epd_Trunc_e[arm][cent_index][rbin]) == 0.)
+       if(mTruncationInput)
        { 
-         eMax = 100.;
-       } //cant find truncation file, I will essentially not truncate
+         eMax = mTruncationInput->GetBinContent(arm+1,cent_index+1,rbin+1);
+       }       
        else  
        {
-         eMax = m_Epd_Trunc_e[arm][cent_index][rbin];
-       }
-       
+         eMax = 100.;
+       } //cant find truncation file, I will essentially not truncate
+
        truncated_tile_e = (tower_energy < eMax) ? tower_energy : eMax; //do tile energy truncation
       
        if(arm == 0) //south
