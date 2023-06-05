@@ -50,14 +50,16 @@ int CaloEvaluator::Init(PHCompositeNode* /*topNode*/)
 {
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
-  if (_do_gpoint_eval) _ntp_gpoint = new TNtuple("ntp_gpoint", "primary vertex => best (first) vertex",
+  if (_do_gpoint_eval) { _ntp_gpoint = new TNtuple("ntp_gpoint", "primary vertex => best (first) vertex",
                                                  "event:gvx:gvy:gvz:"
                                                  "vx:vy:vz");
+}
 
-  if (_do_gshower_eval) _ntp_gshower = new TNtuple("ntp_gshower", "truth shower => best cluster",
+  if (_do_gshower_eval) { _ntp_gshower = new TNtuple("ntp_gshower", "truth shower => best cluster",
                                                    "event:gparticleID:gflavor:gnhits:"
                                                    "geta:gphi:ge:gpt:gvx:gvy:gvz:gembed:gedep:"
                                                    "clusterID:ntowers:eta:x:y:z:phi:e:efromtruth");
+}
 
   //Barak: Added TTree to will allow the TowerID to be set correctly as integer
   if (_do_tower_eval)
@@ -84,12 +86,13 @@ int CaloEvaluator::Init(PHCompositeNode* /*topNode*/)
     _tower_debug->Branch("z", &_z_debug, "z/F");
   }
 
-  if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster", "cluster => max truth primary",
+  if (_do_cluster_eval) { _ntp_cluster = new TNtuple("ntp_cluster", "cluster => max truth primary",
                                                    "event:clusterID:ntowers:eta:x:y:z:phi:e:"
                                                    "gparticleID:gflavor:gnhits:"
                                                    "geta:gphi:ge:gpt:gvx:gvy:gvz:"
                                                    "gembed:gedep:"
                                                    "efromtruth");
+}
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -135,14 +138,17 @@ int CaloEvaluator::End(PHCompositeNode* /*topNode*/)
 {
   _tfile->cd();
 
-  if (_do_gpoint_eval) _ntp_gpoint->Write();
-  if (_do_gshower_eval) _ntp_gshower->Write();
+  if (_do_gpoint_eval) { _ntp_gpoint->Write();
+}
+  if (_do_gshower_eval) { _ntp_gshower->Write();
+}
   if (_do_tower_eval)
   {
     _ntp_tower->Write();
     _tower_debug->Write();
   }
-  if (_do_cluster_eval) _ntp_cluster->Write();
+  if (_do_cluster_eval) { _ntp_cluster->Write();
+}
 
   _tfile->Close();
 
@@ -155,14 +161,16 @@ int CaloEvaluator::End(PHCompositeNode* /*topNode*/)
     std::cout << "===========================================================================" << std::endl;
   }
 
-  if (_caloevalstack) delete _caloevalstack;
+  if (_caloevalstack) { delete _caloevalstack;
+}
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void CaloEvaluator::printInputInfo(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 2) std::cout << "CaloEvaluator::printInputInfo() entered" << std::endl;
+  if (Verbosity() > 2) { std::cout << "CaloEvaluator::printInputInfo() entered" << std::endl;
+}
 
   // print out the truth container
 
@@ -199,7 +207,8 @@ void CaloEvaluator::printInputInfo(PHCompositeNode* topNode)
 
 void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 2) std::cout << "CaloEvaluator::printOutputInfo() entered" << std::endl;
+  if (Verbosity() > 2) { std::cout << "CaloEvaluator::printOutputInfo() entered" << std::endl;
+}
 
   CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
   CaloTruthEval* trutheval = _caloevalstack->get_truth_eval();
@@ -280,10 +289,11 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
       std::cout << ge;
       std::cout << ")" << std::endl;
 
-      float gpt = sqrt(gpx * gpx + gpy * gpy);
+      float gpt = std::sqrt(gpx * gpx + gpy * gpy);
       float geta = NAN;
-      if (gpt != 0.0) geta = asinh(gpz / gpt);
-      float gphi = atan2(gpy, gpx);
+      if (gpt != 0.0) { geta = std::asinh(gpz / gpt);
+}
+      float gphi = std::atan2(gpy, gpx);
 
       std::cout << "(eta,phi,e,pt) = (";
       std::cout.width(5);
@@ -300,31 +310,27 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
       std::cout << ")" << std::endl;
 
       PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
-      float gvx = vtx->get_x();
-      float gvy = vtx->get_y();
-      float gvz = vtx->get_z();
+      float local_gvx = vtx->get_x();
+      float local_gvy = vtx->get_y();
+      float local_gvz = vtx->get_z();
 
       std::cout << " vtrue = (";
       std::cout.width(5);
-      std::cout << gvx;
+      std::cout << local_gvx;
       std::cout << ",";
       std::cout.width(5);
-      std::cout << gvy;
+      std::cout << local_gvy;
       std::cout << ",";
       std::cout.width(5);
-      std::cout << gvz;
+      std::cout << local_gvz;
       std::cout << ")" << std::endl;
 
       std::cout << " embed = " << trutheval->get_embed(primary) << std::endl;
       std::cout << " edep = " << trutheval->get_shower_energy_deposit(primary) << std::endl;
 
       std::set<RawCluster*> clusters = clustereval->all_clusters_from(primary);
-      for (std::set<RawCluster*>::iterator clusiter = clusters.begin();
-           clusiter != clusters.end();
-           ++clusiter)
+      for (auto cluster : clusters)
       {
-        RawCluster* cluster = (*clusiter);
-
         float ntowers = cluster->getNTowers();
         float x = cluster->get_x();
         float y = cluster->get_y();
@@ -360,7 +366,8 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
 
 void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 2) std::cout << "CaloEvaluator::fillOutputNtuples() entered" << std::endl;
+  if (Verbosity() > 2) { std::cout << "CaloEvaluator::fillOutputNtuples() entered" << std::endl;
+}
 
   CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
   CaloRawTowerEval* towereval = _caloevalstack->get_rawtower_eval();
@@ -420,7 +427,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (_ntp_gshower)
   {
-    if (Verbosity() > 1) std::cout << Name() << " CaloEvaluator::filling gshower ntuple..." << std::endl;
+    if (Verbosity() > 1) { std::cout << Name() << " CaloEvaluator::filling gshower ntuple..." << std::endl;
+}
 
     GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
@@ -438,12 +446,14 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     {
       PHG4Particle* primary = iter->second;
 
-      if (primary->get_e() < _truth_e_threshold) continue;
+      if (primary->get_e() < _truth_e_threshold) { continue;
+}
 
       if (!_truth_trace_embed_flags.empty())
       {
         if (_truth_trace_embed_flags.find(trutheval->get_embed(primary)) ==
-            _truth_trace_embed_flags.end()) continue;
+            _truth_trace_embed_flags.end()) { continue;
+}
       }
 
       float gparticleID = primary->get_track_id();
@@ -451,19 +461,21 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
       PHG4Shower* shower = trutheval->get_primary_shower(primary);
       float gnhits = NAN;
-      if (shower)
+      if (shower) {
         gnhits = shower->get_nhits(trutheval->get_caloid());
-      else
+      } else {
         gnhits = 0.0;
+}
       float gpx = primary->get_px();
       float gpy = primary->get_py();
       float gpz = primary->get_pz();
       float ge = primary->get_e();
 
-      float gpt = sqrt(gpx * gpx + gpy * gpy);
+      float gpt = std::sqrt(gpx * gpx + gpy * gpy);
       float geta = NAN;
-      if (gpt != 0.0) geta = asinh(gpz / gpt);
-      float gphi = atan2(gpy, gpx);
+      if (gpt != 0.0) { geta = std::asinh(gpz / gpt);
+}
+      float gphi = std::atan2(gpy, gpx);
 
       PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
       float gvx = vtx->get_x();
@@ -546,7 +558,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (_do_tower_eval)
   {
-    if (Verbosity() > 1) std::cout << "CaloEvaluator::filling tower ntuple..." << std::endl;
+    if (Verbosity() > 1) { std::cout << "CaloEvaluator::filling tower ntuple..." << std::endl;
+}
 
     std::string towernode = "TOWER_CALIB_" + _caloname;
     RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, towernode.c_str());
@@ -570,7 +583,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     {
       RawTower* tower = rtiter->second;
 
-      if (tower->get_energy() < _reco_e_threshold) continue;
+      if (tower->get_energy() < _reco_e_threshold) { continue;
+}
 
       RawTowerGeom* tower_geom = towergeom->get_tower_geometry(tower->get_id());
       if (!tower_geom)
@@ -631,18 +645,20 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         gflavor = primary->get_pid();
 
         PHG4Shower* shower = trutheval->get_primary_shower(primary);
-        if (shower)
+        if (shower) {
           gnhits = shower->get_nhits(trutheval->get_caloid());
-        else
+        } else {
           gnhits = 0.0;
+}
         gpx = primary->get_px();
         gpy = primary->get_py();
         gpz = primary->get_pz();
         ge = primary->get_e();
 
-        gpt = sqrt(gpx * gpx + gpy * gpy);
-        if (gpt != 0.0) geta = asinh(gpz / gpt);
-        gphi = atan2(gpy, gpx);
+        gpt = std::sqrt(gpx * gpx + gpy * gpy);
+        if (gpt != 0.0) { geta = std::asinh(gpz / gpt);
+}
+        gphi = std::atan2(gpy, gpx);
 
         PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
 
@@ -694,7 +710,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (_do_cluster_eval)
   {
-    if (Verbosity() > 1) std::cout << "CaloEvaluator::filling gcluster ntuple..." << std::endl;
+    if (Verbosity() > 1) { std::cout << "CaloEvaluator::filling gcluster ntuple..." << std::endl;
+}
 
     GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
@@ -716,7 +733,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       //    {
       //      RawCluster* cluster = clusters->getCluster(icluster);
 
-      if (cluster->get_energy() < _reco_e_threshold) continue;
+      if (cluster->get_energy() < _reco_e_threshold) { continue;
+}
 
       float clusterID = cluster->get_id();
       float ntowers = cluster->getNTowers();
@@ -771,18 +789,20 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         gflavor = primary->get_pid();
 
         PHG4Shower* shower = trutheval->get_primary_shower(primary);
-        if (shower)
+        if (shower) {
           gnhits = shower->get_nhits(trutheval->get_caloid());
-        else
+        } else {
           gnhits = 0.0;
+}
         gpx = primary->get_px();
         gpy = primary->get_py();
         gpz = primary->get_pz();
         ge = primary->get_e();
 
-        gpt = sqrt(gpx * gpx + gpy * gpy);
-        if (gpt != 0.0) geta = asinh(gpz / gpt);
-        gphi = atan2(gpy, gpx);
+        gpt = std::sqrt(gpx * gpx + gpy * gpy);
+        if (gpt != 0.0) { geta = std::asinh(gpz / gpt);
+}
+        gphi = std::atan2(gpy, gpx);
 
         PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
 
