@@ -54,7 +54,7 @@ namespace
   template<class T> class range_adaptor
   {
     public:
-    range_adaptor( const T& range ):m_range(range){}
+    explicit range_adaptor( const T& range ):m_range(range){}
     inline const typename T::first_type& begin() {return m_range.first;}
     inline const typename T::second_type& end() {return m_range.second;}
     private:
@@ -107,17 +107,20 @@ namespace
     {
 
       const double x = (hit.*accessor)();
-      if(std::isnan(x)) continue;
+      if(std::isnan(x)) { continue;
+}
 
       const double w = hit.weight;
-      if( w <= 0 ) continue;
+      if( w <= 0 ) { continue;
+}
 
       valid = true;
       sw += w;
       swx += w*x;
     }
 
-    if( !valid ) return NAN;
+    if( !valid ) { return NAN;
+}
     return swx/sw;
   }
 
@@ -211,15 +214,18 @@ namespace
   {
 
     // check container
-    if(!(cluster_hit_map && hitsetcontainer)) return;
+    if(!(cluster_hit_map && hitsetcontainer)) { return;
+}
 
     // for now this is only filled for micromegas
     const auto detId = TrkrDefs::getTrkrId(clus_key);
-    if(detId != TrkrDefs::micromegasId) return;
+    if(detId != TrkrDefs::micromegasId) { return;
+}
 
     const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(clus_key);
     const auto hitset = hitsetcontainer->findHitSet( hitset_key );
-    if( !hitset ) return;
+    if( !hitset ) { return;
+}
 
     const auto range = cluster_hit_map->getHits(clus_key);
     cluster.energy_max = 0;
@@ -232,7 +238,8 @@ namespace
       {
         const auto energy = hit->getEnergy();
         cluster.energy_sum += energy;
-        if( energy > cluster.energy_max ) cluster.energy_max = energy;
+        if( energy > cluster.energy_max ) { cluster.energy_max = energy;
+}
       }
     }
 
@@ -264,15 +271,18 @@ namespace
     const double B = 2*p0.x()*(p1.x()-p0.x()) + 2*p0.y()*(p1.y()-p0.y());
     const double C = square(p0.x()) + square(p0.y()) - square(radius);
     const double delta = square(B)-4*A*C;
-    if( delta < 0 ) return -1;
+    if( delta < 0 ) { return -1;
+}
 
     // check first intersection
     const double tup = (-B + std::sqrt(delta))/(2*A);
-    if( tup >= 0 && tup < 1 ) return tup;
+    if( tup >= 0 && tup < 1 ) { return tup;
+}
 
     // check second intersection
     const double tdn = (-B-sqrt(delta))/(2*A);
-    if( tdn >= 0 && tdn < 1 ) return tdn;
+    if( tdn >= 0 && tdn < 1 ) { return tdn;
+}
 
     // no valid extrapolation
     return -1;
@@ -331,7 +341,7 @@ int TrackEvaluation::Init(PHCompositeNode* topNode )
 }
 
 //_____________________________________________________________________
-int TrackEvaluation::InitRun(PHCompositeNode* )
+int TrackEvaluation::InitRun(PHCompositeNode*  /*unused*/)
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //_____________________________________________________________________
@@ -339,17 +349,22 @@ int TrackEvaluation::process_event(PHCompositeNode* topNode)
 {
   // load nodes
   auto res =  load_nodes(topNode);
-  if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
+  if( res != Fun4AllReturnCodes::EVENT_OK ) { return res;
+}
 
   // cleanup output container
   std::cout << "start..." << std::endl;
-  if( m_container ) m_container->Reset();
+  if( m_container ) { m_container->Reset();
+}
   std::cout << "event..." << std::endl;
-  if(m_flags&EvalEvent) evaluate_event();
+  if(m_flags&EvalEvent) { evaluate_event();
+}
   std::cout << "clusters..." << std::endl;
-  if(m_flags&EvalClusters) evaluate_clusters();
+  if(m_flags&EvalClusters) { evaluate_clusters();
+}
   std::cout << "tracks..." << std::endl;
-  if(m_flags&EvalTracks) evaluate_tracks();
+  if(m_flags&EvalTracks) { evaluate_tracks();
+}
   std::cout << "end..." << std::endl;
   // clear maps
   m_g4hit_map.clear();
@@ -357,7 +372,7 @@ int TrackEvaluation::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int TrackEvaluation::End(PHCompositeNode* )
+int TrackEvaluation::End(PHCompositeNode*  /*unused*/)
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //_____________________________________________________________________
@@ -411,7 +426,8 @@ int TrackEvaluation::load_nodes( PHCompositeNode* topNode )
 //_____________________________________________________________________
 void TrackEvaluation::evaluate_event()
 {
-  if(!m_container) return;
+  if(!m_container) { return;
+}
 
   // create event struct
   TrackEvaluationContainerv1::EventStruct event;
@@ -447,7 +463,8 @@ void TrackEvaluation::evaluate_event()
 void TrackEvaluation::evaluate_clusters()
 {
 
-  if(!(m_cluster_map&&m_hitsetcontainer&&m_container)) return;
+  if(!(m_cluster_map&&m_hitsetcontainer&&m_container)) { return;
+}
 
   // clear array
   m_container->clearClusters();
@@ -539,7 +556,8 @@ void TrackEvaluation::evaluate_tracks()
         {
           state_iter = iter;
           dr_min = dr;
-        } else break;
+        } else { break;
+}
       }
 
       // store track state in cluster struct
@@ -563,7 +581,8 @@ TrackEvaluation::G4HitSet TrackEvaluation::find_g4hits( TrkrDefs::cluskey cluste
 {
 
   // check maps
-  if( !( m_cluster_hit_map && m_hit_truth_map ) ) return G4HitSet();
+  if( !( m_cluster_hit_map && m_hit_truth_map ) ) { return G4HitSet();
+}
 
   // check if in map
   auto map_iter = m_g4hit_map.lower_bound( cluster_key );
@@ -581,35 +600,40 @@ TrackEvaluation::G4HitSet TrackEvaluation::find_g4hits( TrkrDefs::cluskey cluste
     m_hit_truth_map->getG4Hits( hitset_key, hit_key, g4hit_map );
 
     // find corresponding g4 hist
-    for( auto truth_iter = g4hit_map.begin(); truth_iter != g4hit_map.end(); ++truth_iter )
+    for(auto & truth_iter : g4hit_map)
     {
 
-      const auto g4hit_key = truth_iter->second.second;
+      const auto g4hit_key = truth_iter.second.second;
       PHG4Hit* g4hit = nullptr;
 
       switch( TrkrDefs::getTrkrId( hitset_key ) )
       {
         case TrkrDefs::mvtxId:
-        if( m_g4hits_mvtx ) g4hit = m_g4hits_mvtx->findHit( g4hit_key );
+        if( m_g4hits_mvtx ) { g4hit = m_g4hits_mvtx->findHit( g4hit_key );
+}
         break;
 
         case TrkrDefs::inttId:
-        if( m_g4hits_intt ) g4hit = m_g4hits_intt->findHit( g4hit_key );
+        if( m_g4hits_intt ) { g4hit = m_g4hits_intt->findHit( g4hit_key );
+}
         break;
 
         case TrkrDefs::tpcId:
-        if( m_g4hits_tpc ) g4hit = m_g4hits_tpc->findHit( g4hit_key );
+        if( m_g4hits_tpc ) { g4hit = m_g4hits_tpc->findHit( g4hit_key );
+}
         break;
 
         case TrkrDefs::micromegasId:
-        if( m_g4hits_micromegas ) g4hit = m_g4hits_micromegas->findHit( g4hit_key );
+        if( m_g4hits_micromegas ) { g4hit = m_g4hits_micromegas->findHit( g4hit_key );
+}
         break;
 
         default: break;
       }
 
-      if( g4hit ) out.insert( g4hit );
-      else std::cout << "TrackEvaluation::find_g4hits - g4hit not found " << g4hit_key << std::endl;
+      if( g4hit ) { out.insert( g4hit );
+      } else { std::cout << "TrackEvaluation::find_g4hits - g4hit not found " << g4hit_key << std::endl;
+}
 
     }
   }
@@ -622,7 +646,8 @@ TrackEvaluation::G4HitSet TrackEvaluation::find_g4hits( TrkrDefs::cluskey cluste
 //_____________________________________________________________________
 std::pair<int,int> TrackEvaluation::get_max_contributor( SvtxTrack* track ) const
 {
-  if(!(m_track_map && m_cluster_map && m_g4truthinfo)) return {0,0};
+  if(!(m_track_map && m_cluster_map && m_g4truthinfo)) { return {0,0};
+}
 
   // maps MC track id and number of matching g4hits
   using IdMap = std::map<int,int>;
@@ -638,15 +663,17 @@ std::pair<int,int> TrackEvaluation::get_max_contributor( SvtxTrack* track ) cons
       if( iter == contributor_map.end() || iter->first != trkid )
       {
         contributor_map.insert(iter, std::make_pair(trkid,1));
-      } else ++iter->second;
+      } else { ++iter->second;
+}
     }
   }
 
-  if( contributor_map.empty() ) return {0,0};
-  else return *std::max_element(
+  if( contributor_map.empty() ) { return {0,0};
+  } else { return *std::max_element(
     contributor_map.cbegin(), contributor_map.cend(),
     []( const IdMap::value_type& first, const IdMap::value_type& second )
     { return first.second < second.second; } );
+}
 
 }
 
@@ -681,7 +708,7 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrD
 
   ClusterErrorPara ClusErrPara;
   
-  if(track!=0){
+  if(track!=nullptr){
     float r = cluster_struct.r;
 
     if(cluster_struct.layer>=7){
@@ -809,7 +836,7 @@ void TrackEvaluation::add_trk_information_micromegas( TrackEvaluationContainerv1
 }
 
 //_____________________________________________________________________
-void TrackEvaluation::add_truth_information( TrackEvaluationContainerv1::ClusterStruct& cluster, std::set<PHG4Hit*> g4hits ) const
+void TrackEvaluation::add_truth_information( TrackEvaluationContainerv1::ClusterStruct& cluster, const std::set<PHG4Hit*>& g4hits ) const
 {
   // store number of contributing g4hits
   cluster.truth_size = g4hits.size();
@@ -847,7 +874,8 @@ void TrackEvaluation::add_truth_information( TrackEvaluationContainerv1::Cluster
       }
 
       // do nothing if out of bound
-      if( r1 <= rin || r0 >= rout ) continue;
+      if( r1 <= rin || r0 >= rout ) { continue;
+}
 
       // keep track of original deltar
       const auto dr_old = r1-r0;
@@ -856,7 +884,8 @@ void TrackEvaluation::add_truth_information( TrackEvaluationContainerv1::Cluster
       if( r0 < rin )
       {
         const auto t = line_circle_intersection( tmp_hits[0].position, tmp_hits[1].position, rin );
-        if( t<0 ) continue;
+        if( t<0 ) { continue;
+}
 
         tmp_hits[0].position = tmp_hits[0].position*(1.-t) + tmp_hits[1].position*t;
         tmp_hits[0].momentum = tmp_hits[0].momentum*(1.-t) + tmp_hits[1].momentum*t;
@@ -866,7 +895,8 @@ void TrackEvaluation::add_truth_information( TrackEvaluationContainerv1::Cluster
       if( r1 > rout )
       {
         const auto t = line_circle_intersection( tmp_hits[0].position, tmp_hits[1].position, rout );
-        if( t<0 ) continue;
+        if( t<0 ) { continue;
+}
 
         tmp_hits[1].position = tmp_hits[0].position*(1.-t) + tmp_hits[1].position*t;
         tmp_hits[1].momentum = tmp_hits[0].momentum*(1.-t) + tmp_hits[1].momentum*t;
@@ -912,7 +942,7 @@ void TrackEvaluation::add_truth_information( TrackEvaluationContainerv1::Cluster
 }
 
 //_____________________________________________________________________
-void TrackEvaluation::add_truth_information_micromegas( TrackEvaluationContainerv1::ClusterStruct& cluster, int tileid, std::set<PHG4Hit*> g4hits ) const
+void TrackEvaluation::add_truth_information_micromegas( TrackEvaluationContainerv1::ClusterStruct& cluster, int tileid, const std::set<PHG4Hit*>& g4hits ) const
 {
   // store number of contributing g4hits
   cluster.truth_size = g4hits.size();

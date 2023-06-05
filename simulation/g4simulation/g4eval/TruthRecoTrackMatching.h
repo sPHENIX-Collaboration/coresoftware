@@ -230,7 +230,7 @@ class TruthRecoTrackMatching : public SubsysReco
     TTree* m_diag_tree { nullptr } ;
     TFile* m_diag_file { nullptr } ;
     bool m_write_diag { false };
-    void set_diagnostic_file(std::string file_name);
+    void set_diagnostic_file(const std::string& file_name);
 
     std::vector<int>   m_trkid_reco_matched {};
     std::vector<int>   m_cnt_reco_matched {};

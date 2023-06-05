@@ -102,14 +102,14 @@ class TrackEvaluation : public SubsysReco
   void add_trk_information_micromegas( TrackEvaluationContainerv1::ClusterStruct&, int /* tileid */, SvtxTrackState* ) const;
 
   // add truth information
-  void add_truth_information( TrackEvaluationContainerv1::ClusterStruct&, std::set<PHG4Hit*> ) const;
+  void add_truth_information( TrackEvaluationContainerv1::ClusterStruct&, const std::set<PHG4Hit*>& ) const;
 
   // add truth information
   /*!
    * the difference between this and the generic method is that the track state to
    * the tiles detector plane, and not to the same radius as the cluster
    */
-  void add_truth_information_micromegas( TrackEvaluationContainerv1::ClusterStruct&, int /* tileid */, std::set<PHG4Hit*> ) const;
+  void add_truth_information_micromegas( TrackEvaluationContainerv1::ClusterStruct&, int /* tileid */, const std::set<PHG4Hit*>& ) const;
 
   //! evaluation node
   TrackEvaluationContainerv1* m_container = nullptr;

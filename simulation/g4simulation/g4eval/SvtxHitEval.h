@@ -81,8 +81,8 @@ class SvtxHitEval
 
   SvtxTruthEval _trutheval;
   TrkrHitSetContainer* _hitmap;
-  TrkrClusterContainer* _clustermap;
-  TrkrHitTruthAssoc* _hit_truth_map;
+  TrkrClusterContainer* _clustermap{};
+  TrkrHitTruthAssoc* _hit_truth_map{};
 
   PHG4HitContainer* _g4hits_tpc;
   PHG4HitContainer* _g4hits_intt;
