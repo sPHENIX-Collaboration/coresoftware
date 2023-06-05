@@ -109,41 +109,43 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
     if( Verbosity() )
     { std::cout << "MicromegasRawDataEvaluation::process_event - packet: " << packet_id << " n_waveforms: " << n_waveforms << std::endl; }
     
-    for( int i=0; i<n_waveforms; ++i )
+    for( int iwf=0; iwf<n_waveforms; ++iwf )
     {
-      const unsigned short fee = packet->iValue(i, "FEE" );
-      const unsigned short channel = packet->iValue( i, "CHANNEL" );
-      const unsigned short strip = m_mapping.get_physical_strip(fee, channel);
+      // create running sample, assign packet id
+      Sample sample;
+      sample.packet_id = packet_id;
+
+      // beam crossing, checksum, checksum error
+      sample.bco = packet->iValue(iwf, "BCO");
+      sample.checksum = packet->iValue(iwf, "CHECKSUM");
+      sample.checksum_error = packet->iValue(iwf, "CHECKSUMERROR");
 
       // get hitsetkey, layer and tile
-      const auto hitsetkey = m_mapping.get_hitsetkey(fee);
-      const unsigned short layer = TrkrDefs::getLayer( hitsetkey );
-      const unsigned short tile = MicromegasDefs::getTileId( hitsetkey );
+      sample.fee_id = packet->iValue(iwf, "FEE" );
+      const auto hitsetkey = m_mapping.get_hitsetkey(sample.fee_id);
+      sample.layer = TrkrDefs::getLayer( hitsetkey );
+      sample.tile = MicromegasDefs::getTileId( hitsetkey );
+
+      // channel, sampa_channel, sampa address and strip
+      sample.sampa_address = packet->iValue( iwf, "SAMPAADDRESS" );
+      sample.sampa_channel = packet->iValue( iwf, "SAMPACHANNEL" );
+      sample.channel = packet->iValue( iwf, "CHANNEL" );
+      sample.strip = m_mapping.get_physical_strip(sample.fee_id, sample.channel);
       
       // get detector index and absolute channel number
-      const unsigned short det_index = fee_map[fee];
-      const unsigned short absolute_channel = channel + det_index*MicromegasDefs::m_nchannels_fee;
+      const unsigned short det_index = fee_map[sample.fee_id];
+      sample.absolute_channel = sample.channel + det_index*MicromegasDefs::m_nchannels_fee;
       
       // get number of samples and loop
-      const unsigned short samples = packet->iValue( i, "SAMPLES" );
+      const unsigned short samples = packet->iValue( iwf, "SAMPLES" );
       for( unsigned short is = 0; is < samples; ++is )
       {
-        unsigned short adc = packet->iValue(i,is); 
-        m_container->samples.push_back( 
-          Sample
-          {
-            .packet_id = packet_id,
-            .fee_id = fee,
-            .layer = layer,
-            .tile = tile,
-            .channel = channel,
-            .strip = strip,
-            .absolute_channel = absolute_channel,
-            .sample = is,
-            .adc = adc
-          });
+        // assign sample id and corresponding adc, save copy in container
+        unsigned short adc = packet->iValue(iwf,is); 
+        sample.sample = is;
+        sample.adc = adc;
+        m_container->samples.push_back( sample );
       }
-          
     }
   }
         
