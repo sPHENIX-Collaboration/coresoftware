@@ -68,7 +68,7 @@ class SvtxTruthEval
   void get_node_pointers(PHCompositeNode* topNode);
   bool has_node_pointers();
 
-  void LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &x, float &y, float &z,  float &t, float &e);
+  void LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &x, float &y, float &z,  float &t, float &e);
 
   float line_circle_intersection(float x[], float y[], float z[], float radius);
 
@@ -84,10 +84,10 @@ class SvtxTruthEval
   PHG4HitContainer* _g4hits_tracker{nullptr};
   PHG4HitContainer* _g4hits_maps{nullptr};
 
-  PHG4TpcCylinderGeomContainer* _tpc_geom_container;
-  PHG4CylinderGeomContainer *_intt_geom_container;
-  PHG4CylinderGeomContainer* _mvtx_geom_container;
-  PHG4CylinderGeomContainer* _mms_geom_container;
+  PHG4TpcCylinderGeomContainer* _tpc_geom_container{};
+  PHG4CylinderGeomContainer *_intt_geom_container{};
+  PHG4CylinderGeomContainer* _mvtx_geom_container{};
+  PHG4CylinderGeomContainer* _mms_geom_container{};
   ActsGeometry* _tgeometry{nullptr};
 
   bool _strict;

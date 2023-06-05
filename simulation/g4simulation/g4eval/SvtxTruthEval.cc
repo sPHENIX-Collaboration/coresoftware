@@ -155,7 +155,8 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits()
     }
   }
 
-  if (_do_cache) _cache_all_truth_hits = truth_hits;
+  if (_do_cache) { _cache_all_truth_hits = truth_hits;
+}
 
   return truth_hits;
 }
@@ -293,14 +294,16 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_tr
     }
   }
 
-  if(_verbosity > 1)
-    cout << PHWHERE << " Truth clustering for particle " << particle->get_track_id() << endl;;
+  if(_verbosity > 1) {
+    cout << PHWHERE << " Truth clustering for particle " << particle->get_track_id() << endl;
+};
 
   // get all g4hits for this particle
   std::set<PHG4Hit*> g4hits = all_truth_hits(particle);
 
   float ng4hits = g4hits.size();
-  if(ng4hits == 0) return output_type_t();
+  if(ng4hits == 0) { return output_type_t();
+}
 
   // container for storing truth clusters  //std::map<unsigned int, TrkrCluster*> truth_clusters;
   output_type_t truth_clusters;
@@ -322,7 +325,8 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_tr
       std::vector<std::vector<double>> contributing_hits_entry;
       std::vector<std::vector<double>> contributing_hits_exit;
       LayerClusterG4Hits(g4hits, contributing_hits, contributing_hits_energy, contributing_hits_entry, contributing_hits_exit, layer, gx, gy, gz, gt, gedep);
-      if(!(gedep > 0)) continue;
+      if(!(gedep > 0)) { continue;
+}
 
       // we have the cluster in this layer from this truth particle
       // add the cluster to a TrkrCluster object
@@ -330,7 +334,8 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_tr
       if(layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)  // in TPC
 	{
 	  unsigned int side = 0;
-	  if(gz > 0) side = 1;
+	  if(gz > 0) { side = 1;
+}
 	  // need dummy sector here
 	  unsigned int sector = 0;
 	  ckey = TpcDefs::genClusKey(layer, sector, side, iclus);
@@ -377,9 +382,9 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_tr
       clus->setGlobal();
 
       // record which g4hits contribute to this truth cluster
-      for(unsigned int i=0; i< contributing_hits.size(); ++i)
+      for(auto & contributing_hit : contributing_hits)
 	{
-	  _truth_cluster_truth_hit_map.insert(make_pair(ckey,contributing_hits[i]));
+	  _truth_cluster_truth_hit_map.insert(make_pair(ckey,contributing_hit));
 	}
 
       // Estimate the size of the truth cluster
@@ -387,12 +392,13 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_tr
       float g4zsize = NAN;
       G4ClusterSize(ckey,layer, contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
 
-      for(int i1=0;i1<3;++i1)
+      for(int i1=0;i1<3;++i1) {
 	for(int i2=0;i2<3;++i2)
 	{
 	  clus->setSize(i1, i2, 0.0);
 	  clus->setError(i1, i2, 0.0);
 	}
+}
       clus->setError(0,0,gedep);  // stores truth energy
       clus->setSize(1, 1, g4phisize);
       clus->setSize(2, 2, g4zsize);
@@ -403,12 +409,13 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_tr
 
     }  // end loop over layers for this particle
 
-  if (_do_cache) _cache_all_truth_clusters_g4particle.insert(make_pair(particle, truth_clusters));
+  if (_do_cache) { _cache_all_truth_clusters_g4particle.insert(make_pair(particle, truth_clusters));
+}
 
   return truth_clusters;
 }
 
-void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &x, float &y, float &z,  float &t, float &e)
+void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &x, float &y, float &z,  float &t, float &e)
 {
   bool use_geo = true;
 
@@ -435,16 +442,14 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
       float rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0;
       float rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0;
 
-      if(_verbosity > 1)
+      if(_verbosity > 1) {
 	cout << " TruthEval::LayerCluster hits for layer  " << layer << " with rbin " << rbin << " rbout " << rbout << endl;
+}
 
       // we do not assume that the truth hits know what layer they are in
-      for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
-	   iter != truth_hits.end();
-	   ++iter)
+      for (auto this_g4hit : truth_hits)
 	{
 
-	  PHG4Hit* this_g4hit = *iter;
 	  float rbegin = sqrt(this_g4hit->get_x(0) * this_g4hit->get_x(0) + this_g4hit->get_y(0) * this_g4hit->get_y(0));
 	  float rend = sqrt(this_g4hit->get_x(1) * this_g4hit->get_x(1) + this_g4hit->get_y(1) * this_g4hit->get_y(1));
 	  //cout << " Eval: g4hit " << this_g4hit->get_hit_id() <<  " layer " << layer << " rbegin " << rbegin << " rend " << rend << endl;
@@ -476,10 +481,12 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
 	    }
 
 	  // check that the g4hit is not completely outside the cluster layer. Just skip this g4hit if it is
-	  if (rbegin < rbin && rend < rbin)
+	  if (rbegin < rbin && rend < rbin) {
 	    continue;
-	  if (rbegin > rbout && rend > rbout)
+}
+	  if (rbegin > rbout && rend > rbout) {
 	    continue;
+}
 
 
 	  if(_verbosity > 1)
@@ -649,14 +656,11 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
   else
     {
       // not TPC, one g4hit per cluster
-      for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
-	   iter != truth_hits.end();
-	   ++iter)
+      for (auto this_g4hit : truth_hits)
 	{
 
-	  PHG4Hit* this_g4hit = *iter;
-
-	  if(this_g4hit->get_layer() != (unsigned int) layer) continue;
+	  if(this_g4hit->get_layer() != (unsigned int) layer) { continue;
+}
 
 	  gx = this_g4hit->get_avg_x();
 	  gy = this_g4hit->get_avg_y();
@@ -750,7 +754,8 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, st
       double added_smear_trans = 0.085; // cm
       double gem_spread = 0.04;  // 400 microns
 
-      if(outer_phi < inner_phi) swap(outer_phi, inner_phi);
+      if(outer_phi < inner_phi) { swap(outer_phi, inner_phi);
+}
 
       // convert diffusion from cm to radians
       double g4max_phi =  outer_phi + sigmas * sqrt(  pow(phidiffusion, 2) + pow(added_smear_trans, 2) + pow(gem_spread, 2) ) / radius;
@@ -777,14 +782,16 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, st
       double added_smear_long = 0.105;  // cm
 
       // largest z reaches gems first, make that the outer z
-      if(outer_z < inner_z) swap(outer_z, inner_z);
+      if(outer_z < inner_z) { swap(outer_z, inner_z);
+}
       g4max_z = outer_z  + sigmas*sqrt(pow(zdiffusion,2) + pow(added_smear_long,2) + pow(zshaping_lead, 2));
       g4min_z = inner_z  -  sigmas*sqrt(pow(zdiffusion,2) + pow(added_smear_long,2) + pow(zshaping_tail, 2));
 
       // find the bins containing these max and min z edges
       unsigned int binmin = layergeom->get_zbin(g4min_z);
       unsigned int binmax = layergeom->get_zbin(g4max_z);
-      if(binmax < binmin) swap(binmax, binmin);
+      if(binmax < binmin) { swap(binmax, binmin);
+}
       unsigned int binwidth = binmax - binmin + 1;
 
       // multiply total number of bins that include the edges by the bin size
@@ -874,25 +881,29 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, st
       TVector3 local_outer = layergeom->get_local_from_world_coords(osurf,_tgeometry,world_outer);
 
       double diff =  max_diffusion_radius * 0.6;  // factor of 0.6 gives decent agreement with low occupancy reco clusters
-      if(local_outer[0] < local_inner[0])
+      if(local_outer[0] < local_inner[0]) {
 	diff = -diff;
+}
       local_outer[0] += diff;
       local_inner[0] -= diff;
 
       double diff_outer = min_diffusion_radius * 0.6;
-      if(local_outer[2] < local_inner[2])
+      if(local_outer[2] < local_inner[2]) {
 	diff_outer = -diff_outer;
+}
       local_outer[2] += diff_outer;
       local_inner[2] -= diff_outer;
 
       layergeom->get_pixel_from_local_coords(local_inner, row, column);
       layergeom->get_pixel_from_local_coords(local_outer, row_outer, column_outer);
 
-      if(row_outer < row) swap(row_outer, row);
+      if(row_outer < row) { swap(row_outer, row);
+}
       unsigned int rows = row_outer - row + 1;
       g4phisize = (double) rows * layergeom->get_pixel_x();
 
-      if(column_outer < column) swap(column_outer, column);
+      if(column_outer < column) { swap(column_outer, column);
+}
       unsigned int columns = column_outer - column + 1;
       g4zsize = (double) columns * layergeom->get_pixel_z();
 
@@ -944,11 +955,8 @@ PHG4Hit* SvtxTruthEval::get_innermost_truth_hit(PHG4Particle* particle)
   float innermost_radius = FLT_MAX;
 
   std::set<PHG4Hit*> truth_hits = all_truth_hits(particle);
-  for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
-       iter != truth_hits.end();
-       ++iter)
+  for (auto candidate : truth_hits)
   {
-    PHG4Hit* candidate = *iter;
     float x = candidate->get_x(0);  // use entry points
     float y = candidate->get_y(0);  // use entry points
     float r = sqrt(x * x + y * y);
@@ -994,11 +1002,8 @@ PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle)
   }
 
   std::set<PHG4Hit*> truth_hits = all_truth_hits(particle);
-  for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
-       iter != truth_hits.end();
-       ++iter)
+  for (auto candidate : truth_hits)
   {
-    PHG4Hit* candidate = *iter;
     float x = candidate->get_x(1);  // use exit points
     float y = candidate->get_y(1);  // use exit points
     float r = sqrt(x * x + y * y);
@@ -1008,7 +1013,8 @@ PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle)
       outermost_hit = candidate;
     }
   }
-  if (_do_cache) _cache_get_outermost_truth_hit.insert(make_pair(particle, outermost_hit));
+  if (_do_cache) { _cache_get_outermost_truth_hit.insert(make_pair(particle, outermost_hit));
+}
 
   return outermost_hit;
 }
@@ -1063,7 +1069,8 @@ PHG4Particle* SvtxTruthEval::get_primary_particle(PHG4Hit* g4hit)
 
   PHG4Particle* primary = _basetrutheval.get_primary_particle(g4hit);
 
-  if (_do_cache) _cache_get_primary_particle_g4hit.insert(make_pair(g4hit, primary));
+  if (_do_cache) { _cache_get_primary_particle_g4hit.insert(make_pair(g4hit, primary));
+}
 
   if (_strict)
   {
@@ -1122,15 +1129,17 @@ void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode)
 
 bool SvtxTruthEval::has_node_pointers()
 {
-  if (_strict)
+  if (_strict) {
     assert(_truthinfo);
-  else if (!_truthinfo)
+  } else if (!_truthinfo) {
     return false;
+}
 
-  if (_strict)
+  if (_strict) {
     assert(_g4hits_mms || _g4hits_svtx || _g4hits_tracker || _g4hits_maps);
-  else if (!_g4hits_mms && !_g4hits_svtx && !_g4hits_tracker && !_g4hits_maps)
+  } else if (!_g4hits_mms && !_g4hits_svtx && !_g4hits_tracker && !_g4hits_maps) {
     return false;
+}
 
   return true;
 }
@@ -1153,11 +1162,11 @@ float SvtxTruthEval::line_circle_intersection(float x[], float y[], float z[], f
 
   // The limits are 0 and 1, but we allow a little for floating point precision
   float t;
-  if (tdn >= -0.0e-4 && tdn <= 1.0004)
+  if (tdn >= -0.0e-4 && tdn <= 1.0004) {
     t = tdn;
-  else if (tup >= -0.0e-4 && tup <= 1.0004)
+  } else if (tup >= -0.0e-4 && tup <= 1.0004) {
     t = tup;
-  else
+  } else
   {
     cout << PHWHERE << "   **** Oops! No valid solution for tup or tdn, tdn = " << tdn << " tup = " << tup << endl;
     cout << "   radius " << radius << " rbegin " << sqrt(x[0] * x[0] + y[0] * y[0]) << " rend " << sqrt(x[1] * x[1] + y[1] * y[1]) << endl;
@@ -1194,7 +1203,8 @@ unsigned int SvtxTruthEval::getAdcValue(double gedep)
   double ADCSignalConversionGain = ChargeToPeakVolts * 1.60e-04 * 2.4;  // 20 (or 30) mV/fC * fC/electron * scaleup factor
   double adc_input_voltage = input_electrons * ADCSignalConversionGain;  // mV, see comments above
   unsigned int adc_output = (unsigned int) (adc_input_voltage * 1024.0 / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
-  if (adc_output > 1023) adc_output = 1023;
+  if (adc_output > 1023) { adc_output = 1023;
+}
 
   return adc_output;
 }
