@@ -81,7 +81,7 @@ class SvtxClusterEval
   float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Particle* truthparticle);
   float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Hit* truthhit);
 
-  std::pair<TrkrDefs::cluskey, TrkrCluster*> reco_cluster_from_truth_cluster( TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> gclus);
+  std::pair<TrkrDefs::cluskey, TrkrCluster*> reco_cluster_from_truth_cluster( TrkrDefs::cluskey, const std::shared_ptr<TrkrCluster>& gclus);
 
   unsigned int get_errors() { return _errors + _hiteval.get_errors(); }
 

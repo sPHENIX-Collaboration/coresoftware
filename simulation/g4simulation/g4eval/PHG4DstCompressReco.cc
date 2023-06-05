@@ -50,11 +50,8 @@ int PHG4DstCompressReco::InitRun(PHCompositeNode* topNode)
 
   SearchG4HitNodes(topNode);
 
-  for (std::set<std::string>::iterator iter = _compress_g4cell_names.begin();
-       iter != _compress_g4cell_names.end(); ++iter)
+  for (auto name : _compress_g4cell_names)
   {
-    std::string name = *iter;
-
     PHG4CellContainer* g4cells = findNode::getClass<PHG4CellContainer>(topNode, name.c_str());
     if (g4cells)
     {
@@ -62,11 +59,8 @@ int PHG4DstCompressReco::InitRun(PHCompositeNode* topNode)
     }
   }
 
-  for (std::set<std::string>::iterator iter = _compress_tower_names.begin();
-       iter != _compress_tower_names.end(); ++iter)
+  for (auto name : _compress_tower_names)
   {
-    std::string name = *iter;
-
     RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, name.c_str());
     if (towers)
     {
@@ -100,37 +94,28 @@ int PHG4DstCompressReco::InitRun(PHCompositeNode* topNode)
 
 int PHG4DstCompressReco::process_event(PHCompositeNode* /*topNode*/)
 {
-  if (_g4hits.empty() && _g4cells.empty() && _towers.empty()) return Fun4AllReturnCodes::EVENT_OK;
+  if (_g4hits.empty() && _g4cells.empty() && _towers.empty()) { return Fun4AllReturnCodes::EVENT_OK;
+}
 
   //---cells--------------------------------------------------------------------
 
-  for (std::set<PHG4CellContainer*>::iterator iter = _g4cells.begin();
-       iter != _g4cells.end();
-       ++iter)
+  for (auto cells : _g4cells)
   {
-    PHG4CellContainer* cells = *iter;
     cells->Reset();  // DROP ALL COMPRESSED G4CELLS
   }
 
   //---hits---------------------------------------------------------------------
 
-  for (std::set<PHG4HitContainer*>::iterator iter = _g4hits.begin();
-       iter != _g4hits.end();
-       ++iter)
+  for (auto hits : _g4hits)
   {
-    PHG4HitContainer* hits = *iter;
     hits->Reset();  // DROP ALL COMPRESSED G4HITS
   }
 
   //---secondary particles and vertexes-----------------------------------------
 
   std::set<int> keep_particle_ids;
-  for (std::set<PHG4HitContainer*>::iterator iter = _keep_g4hits.begin();
-       iter != _keep_g4hits.end();
-       ++iter)
+  for (auto hits : _keep_g4hits)
   {
-    PHG4HitContainer* hits = *iter;
-
     for (PHG4HitContainer::ConstIterator jter = hits->getHits().first;
          jter != hits->getHits().second;
          ++jter)
@@ -220,12 +205,8 @@ int PHG4DstCompressReco::process_event(PHCompositeNode* /*topNode*/)
   }
 
   //---tower cell entries-------------------------------------------------------
-  for (std::set<RawTowerContainer*>::iterator iter = _towers.begin();
-       iter != _towers.end();
-       ++iter)
+  for (auto towers : _towers)
   {
-    RawTowerContainer* towers = *iter;
-
     // loop over all the towers
     for (RawTowerContainer::Iterator jter = towers->getTowers().first;
          jter != towers->getTowers().second;
