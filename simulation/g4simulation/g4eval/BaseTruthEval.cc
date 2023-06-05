@@ -341,22 +341,22 @@ std::set<PHG4Shower*> BaseTruthEval::all_secondary_showers(PHG4Shower* shower)
        iter != range.second;
        ++iter)
   {
-    PHG4Shower* shower = iter->second;
+    PHG4Shower* local_shower = iter->second;
 
     if (m_Strict)
     {
-      assert(shower);
+      assert(local_shower);
     }
-    else if (!shower)
+    else if (!local_shower)
     {
       ++m_Errors;
     }
 
-    if (shower)
+    if (local_shower)
     {
-      if (shower->get_parent_shower_id() == shower->get_id())
+      if (local_shower->get_parent_shower_id() == local_shower->get_id())
       {
-        subshowers.insert(shower);
+        subshowers.insert(local_shower);
       }
     }
   }

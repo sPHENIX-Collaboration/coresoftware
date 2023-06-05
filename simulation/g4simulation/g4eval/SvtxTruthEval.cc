@@ -499,29 +499,29 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
 	  float yout = yl[1];
 	  float zout = zl[1];
 
-	  float t = NAN;
+	  float local_t = NAN;
 
 	  if (rbegin < rbin)
 	    {
 	      // line segment begins before boundary, find where it crosses
-	      t = line_circle_intersection(xl, yl, zl, rbin);
-	      if (t > 0)
+	      local_t = line_circle_intersection(xl, yl, zl, rbin);
+	      if (local_t > 0)
 		{
-		  xin = xl[0] + t * (xl[1] - xl[0]);
-		  yin = yl[0] + t * (yl[1] - yl[0]);
-		  zin = zl[0] + t * (zl[1] - zl[0]);
+		  xin = xl[0] + local_t * (xl[1] - xl[0]);
+		  yin = yl[0] + local_t * (yl[1] - yl[0]);
+		  zin = zl[0] + local_t * (zl[1] - zl[0]);
 		}
 	    }
 
 	  if (rend > rbout)
 	    {
 	      // line segment ends after boundary, find where it crosses
-	      t = line_circle_intersection(xl, yl, zl, rbout);
-	      if (t > 0)
+	      local_t = line_circle_intersection(xl, yl, zl, rbout);
+	      if (local_t > 0)
 		{
-		  xout = xl[0] + t * (xl[1] - xl[0]);
-		  yout = yl[0] + t * (yl[1] - yl[0]);
-		  zout = zl[0] + t * (zl[1] - zl[0]);
+		  xout = xl[0] + local_t * (xl[1] - xl[0]);
+		  yout = yl[0] + local_t * (yl[1] - yl[0]);
+		  zout = zl[0] + local_t * (zl[1] - zl[0]);
 		}
 	    }
 

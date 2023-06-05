@@ -21,13 +21,14 @@
 #include <phool/getClass.h>
 #include <phool/PHTimer.h>
 
+#include <TVector3.h>
+
 #include <cassert>
 #include <cfloat>
 #include <cmath>
 #include <iostream>                          // for operator<<, basic_ostream
 #include <map>
 #include <set>
-#include <TVector3.h>
 
 using namespace std;
 
@@ -447,13 +448,13 @@ PHG4Hit* SvtxClusterEval::all_truth_hits_by_nhit(TrkrDefs::cluskey cluster_key)
 	  PHG4HitDefs::keytype g4hitkey = htiter->second.second;
 	  if(_verbosity > 2)
 	    cout << " g4key:  " <<  g4hitkey << " layer: " << layer << endl;
-	  TrkrDefs::hitkey hitkey =  htiter->second.first;
+	  TrkrDefs::hitkey local_hitkey =  htiter->second.first;
 	  /*	  if(layer>=7){
 	    PHG4Hit *match_g4hit = _g4hits_tpc->findHit(g4hitkey);
 	    if(layer != match_g4hit->get_layer() ) continue;
 	    }
 	  */
-	  g4keyperhit.insert(std::pair<PHG4HitDefs::keytype,TrkrDefs::hitkey>(g4hitkey,hitkey));
+	  g4keyperhit.insert(std::pair<PHG4HitDefs::keytype,TrkrDefs::hitkey>(g4hitkey,local_hitkey));
 	  std::vector<PHG4HitDefs::keytype>::iterator itg4keys = find(g4hitkeys.begin(),g4hitkeys.end(),g4hitkey);
 	  if(itg4keys==g4hitkeys.end()) g4hitkeys.push_back(g4hitkey);
 	} // end loop over g4hits associated with hitsetkey and hitkey
@@ -569,13 +570,13 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
 	  PHG4HitDefs::keytype g4hitkey = htiter->second.second;
 	  if(_verbosity > 2)
 	    cout << " g4key:  " <<  g4hitkey << " layer: " << layer << endl;
-	  TrkrDefs::hitkey hitkey =  htiter->second.first;
+	  TrkrDefs::hitkey local_hitkey =  htiter->second.first;
 	  /*	  if(layer>=7){
 	    PHG4Hit *match_g4hit = _g4hits_tpc->findHit(g4hitkey);
 	    if(layer != match_g4hit->get_layer() ) continue;
 	    }
 	  */
-	  g4keyperhit.insert(std::pair<PHG4HitDefs::keytype,TrkrDefs::hitkey>(g4hitkey,hitkey));
+	  g4keyperhit.insert(std::pair<PHG4HitDefs::keytype,TrkrDefs::hitkey>(g4hitkey,local_hitkey));
 	  std::vector<PHG4HitDefs::keytype>::iterator itg4keys = find(g4hitkeys.begin(),g4hitkeys.end(),g4hitkey);
 	  if(itg4keys==g4hitkeys.end()) g4hitkeys.push_back(g4hitkey);
 	} // end loop over g4hits associated with hitsetkey and hitkey

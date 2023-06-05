@@ -143,11 +143,11 @@ std::set<PHG4Shower*> CaloRawClusterEval::all_truth_primary_showers(RawCluster* 
 
     std::set<PHG4Shower*> new_primary_showers = _towereval.all_truth_primary_showers(tower);
 
-    for (std::set<PHG4Shower*>::iterator iter = new_primary_showers.begin();
-         iter != new_primary_showers.end();
-         ++iter)
+    for (std::set<PHG4Shower*>::iterator local_iter = new_primary_showers.begin();
+         local_iter != new_primary_showers.end();
+         ++local_iter)
     {
-      PHG4Shower* shower = *iter;
+      PHG4Shower* shower = *local_iter;
 
       if (_strict)
       {
@@ -793,11 +793,11 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster)
 
     std::set<PHG4Hit*> new_hits = get_rawtower_eval()->all_truth_hits(tower);
 
-    for (std::set<PHG4Hit*>::iterator iter = new_hits.begin();
-         iter != new_hits.end();
-         ++iter)
+    for (std::set<PHG4Hit*>::iterator local_iter = new_hits.begin();
+         local_iter != new_hits.end();
+         ++local_iter)
     {
-      PHG4Hit* g4hit = *iter;
+      PHG4Hit* g4hit = *local_iter;
 
       if (_strict)
       {

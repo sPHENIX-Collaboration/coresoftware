@@ -17,9 +17,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
-
 #include <trackbase/TpcDefs.h>
-
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -526,8 +524,8 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 	  for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
 	    const auto cluskey = clusIter->first;
 	    //	    const auto cluster = clusIter->second;
-	    unsigned int layer = TrkrDefs::getLayer(cluskey);
-	    nclusters[layer]++;
+	    unsigned int local_layer = TrkrDefs::getLayer(cluskey);
+	    nclusters[local_layer]++;
 	  }
 	}
       }
@@ -636,9 +634,9 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
         cout << " embed flag = " << truthinfo->isEmbeded(particle->get_track_id()) << endl;
 
         cout << " ---Associated-PHG4Hits-----------------------------------------" << endl;
-        std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits(particle);
-        for (std::set<PHG4Hit*>::iterator jter = g4hits.begin();
-             jter != g4hits.end();
+        std::set<PHG4Hit*> local_g4hits = trutheval->all_truth_hits(particle);
+        for (std::set<PHG4Hit*>::iterator jter = local_g4hits.begin();
+             jter != local_g4hits.end();
              ++jter)
         {
           PHG4Hit* g4hit = *jter;
@@ -670,20 +668,20 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 	      Acts::Vector3 glob;
 	      glob = tgeometry->getGlobalPosition(cluster_key, cluster);
 
-	      float x = glob(0);
-	      float y = glob(1);
-	      float z = glob(2);
+	      float local_x = glob(0);
+	      float local_y = glob(1);
+	      float local_z = glob(2);
 	      
 	      cout << " => #" << cluster_key;
 	      cout << " xreco = (";
 	      cout.width(5);
-	      cout << x;
+	      cout << local_x;
 	      cout << ",";
 	      cout.width(5);
-	      cout << y;
+	      cout << local_y;
 	      cout << ",";
 	      cout.width(5);
-	      cout << z;
+	      cout << local_z;
 	      cout << ")";
 	    }
 	  
@@ -720,11 +718,11 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 
             cout << " ---Associated-SvtxClusters-to-PHG4Hits-------------------------" << endl;
 
-            for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-                 iter != track->end_cluster_keys();
-                 ++iter)
+            for (SvtxTrack::ConstClusterKeyIter local_iter = track->begin_cluster_keys();
+                 local_iter != track->end_cluster_keys();
+                 ++local_iter)
             {
-	      TrkrDefs::cluskey cluster_key = *iter;
+	      TrkrDefs::cluskey cluster_key = *local_iter;
               TrkrCluster *cluster = clustermap->findCluster(cluster_key);
 	      //auto trkrid = TrkrDefs::getTrkrId(cluster_key);
 	      Acts::Vector3 glob;
@@ -918,15 +916,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       auto range = clustermap_in->getClusters(hitsetkey);
       for( auto iter_cin = range.first; iter_cin != range.second; ++iter_cin ){
         TrkrDefs::cluskey cluster_key = iter_cin->first;
-        unsigned int layer = TrkrDefs::getLayer(cluster_key);
+        unsigned int local_layer = TrkrDefs::getLayer(cluster_key);
         if (_nlayers_maps > 0)
-    if (layer < _nlayers_maps) nclus_maps++;
+    if (local_layer < _nlayers_maps) nclus_maps++;
         if (_nlayers_intt > 0)
-    if (layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt) nclus_intt++;
+    if (local_layer >= _nlayers_maps && local_layer < _nlayers_maps + _nlayers_intt) nclus_intt++;
         if (_nlayers_tpc > 0)
-    if (layer >= _nlayers_maps + _nlayers_intt && layer <  _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_tpc++;
+    if (local_layer >= _nlayers_maps + _nlayers_intt && local_layer <  _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_tpc++;
         if (_nlayers_mms > 0)
-    if (layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_mms++;
+    if (local_layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_mms++;
       }
     }
   }
@@ -1022,11 +1020,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           }
           for (const TrkrDefs::cluskey g4cluster : g4clusters)
           {
-            unsigned int layer = TrkrDefs::getLayer(g4cluster);
-            //cout<<__LINE__<<": " << _ievent <<": " <<gtrackID << ": " << layer <<": " <<g4cluster->get_id() <<endl;
-            if (_nlayers_maps > 0 && layer < _nlayers_maps)
+            unsigned int local_layer = TrkrDefs::getLayer(g4cluster);
+            //cout<<__LINE__<<": " << _ievent <<": " <<gtrackID << ": " << local_layer <<": " <<g4cluster->get_id() <<endl;
+            if (_nlayers_maps > 0 && local_layer < _nlayers_maps)
             {
-              lmaps[layer] = 1;
+              lmaps[local_layer] = 1;
             }
           }
           if (_nlayers_maps > 0)
@@ -1430,7 +1428,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       float phi = NAN;
       float e = NAN;
       float adc = NAN;
-      float layer = NAN;
+      float local_layer = NAN;
       float size = NAN;
       float efromtruth = NAN;
       float dphitru = NAN;
@@ -1458,7 +1456,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         phi = vec2.Phi();
         e = cluster->getAdc();
         adc = cluster->getAdc();
-        layer = (float) TrkrDefs::getLayer(cluster_key);
+        local_layer = (float) TrkrDefs::getLayer(cluster_key);
         size = 0.0;
 	// count all hits for this cluster
 
@@ -1519,7 +1517,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                             phi,
                             e,
                             adc,
-                            layer,
+                            local_layer,
                             size,
 			    efromtruth,
                             dphitru,
@@ -1553,9 +1551,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
     // need things off of the DST...
     TrkrHitSetContainer *hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-    PHG4TpcCylinderGeomContainer* geom_container =
+    PHG4TpcCylinderGeomContainer* local_geom_container =
         findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-    if (!geom_container)
+    if (!local_geom_container)
     {
       std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
       return;
@@ -1585,7 +1583,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    float hitID = hit_key;
 	    float e = hit->getEnergy();
 	    float adc = hit->getAdc();
-	    float layer = TrkrDefs::getLayer(hitset_key);
+	    float local_layer = TrkrDefs::getLayer(hitset_key);
 	    float sector = TpcDefs::getSectorId(hitset_key);
 	    float side = TpcDefs::getSide(hitset_key);
 	    float cellID = 0;
@@ -1596,13 +1594,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    float phi = NAN;
 	    float z = NAN;
 	    
-	    if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc )
+	    if (local_layer >= _nlayers_maps + _nlayers_intt && local_layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc )
 	      {
-		PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
+		PHG4TpcCylinderGeom* local_GeoLayer = local_geom_container->GetLayerCellGeom(local_layer);
 		phibin = (float) TpcDefs::getPad(hit_key);
 		zbin = (float) TpcDefs::getTBin(hit_key);
-		phi = GeoLayer->get_phicenter(phibin);
-		z = GeoLayer->get_zcenter(zbin);
+		phi = local_GeoLayer->get_phicenter(phibin);
+		z = local_GeoLayer->get_zcenter(zbin);
 	      }
 
 	    float g4hitID = NAN;
@@ -1691,7 +1689,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      hitID,
 	      e,
 	      adc,
-	      layer,
+	      local_layer,
 	      sector,
 	      side,
 	      cellID,
@@ -1850,22 +1848,22 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  
 	  float e = cluster->getAdc();
 	  float adc = cluster->getAdc();
-	  float layer = (float) TrkrDefs::getLayer(cluster_key);
+	  float local_layer = (float) TrkrDefs::getLayer(cluster_key);
 	  float sector = TpcDefs::getSectorId(cluster_key);
 	  float side = TpcDefs::getSide(cluster_key);
 
 	  // count all hits for this cluster
-	  TrkrDefs::hitsetkey hitsetkey =  TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-	  int hitsetlayer2 = TrkrDefs::getLayer(hitsetkey);
-	  if(hitsetlayer!=layer){
-	    cout << "WARNING hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer << endl;  
+	  TrkrDefs::hitsetkey local_hitsetkey =  TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+	  int hitsetlayer2 = TrkrDefs::getLayer(local_hitsetkey);
+	  if(hitsetlayer!=local_layer){
+	    cout << "WARNING hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << local_layer << endl;  
 	  }
 	  /*else{
-	    cout << "Good    hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer << endl;  
+	    cout << "Good    hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << local_layer << endl;  
 	  }
 	  */
 	  float sumadc = 0;
-	  TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey);
+	  TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(local_hitsetkey);
 	  std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
 	    hitrange = clusterhitmap->getHits(cluster_key);  
 	  for(std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
@@ -1915,7 +1913,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  
 	  if(Verbosity() > 1)
 	    {
-	      std::cout << PHWHERE << "  ****   reco: layer " << layer << std::endl;
+	      std::cout << PHWHERE << "  ****   reco: layer " << local_layer << std::endl;
 	      cout << "              reco cluster key " << cluster_key << "  r " << r << "  x " << x << "  y " << y << "  z " << z << "  phi " << phi  << " adc " << adc << endl;
 	    }
 	  float nparticles = NAN;
@@ -1926,7 +1924,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    {
 	      if(Verbosity() > 1)
 		{
-		  cout << "Found matching truth cluster with key " << truth_ckey << " for reco cluster key " << cluster_key << " in layer " << layer << endl;
+		  cout << "Found matching truth cluster with key " << truth_ckey << " for reco cluster key " << cluster_key << " in layer " << local_layer << endl;
 		}
 	      
 	      g4hitID = 0;
@@ -2005,7 +2003,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 				  e,
 				  adc,
 				  maxadc,
-				  layer,
+				  local_layer,
 				  sector,
 				  side,
 				  size,
@@ -2087,22 +2085,22 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  auto siseed = track->get_silicon_seed();
           if(siseed)
           {
-	    for (auto iter = siseed->begin_cluster_keys();
-	         iter != siseed->end_cluster_keys();
-	         ++iter)
+	    for (auto local_iter = siseed->begin_cluster_keys();
+	         local_iter != siseed->end_cluster_keys();
+	         ++local_iter)
 	      {
-	        TrkrDefs::cluskey cluster_key = *iter;
+	        TrkrDefs::cluskey cluster_key = *local_iter;
 	        clusters.push_back(cluster_key);
 	      }
           }
 	  auto tpcseed = track->get_tpc_seed();
           if(tpcseed)
           {
-	    for (auto iter = tpcseed->begin_cluster_keys();
-	         iter != tpcseed->end_cluster_keys();
-	         ++iter)
+	    for (auto local_iter = tpcseed->begin_cluster_keys();
+	         local_iter != tpcseed->end_cluster_keys();
+	         ++local_iter)
 	      {
-	        TrkrDefs::cluskey cluster_key = *iter;
+	        TrkrDefs::cluskey cluster_key = *local_iter;
 	        clusters.push_back(cluster_key);
 	      }
           }
@@ -2165,7 +2163,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      
 	      float e = cluster->getAdc();
 	      float adc = cluster->getAdc();
-	      float layer = (float) TrkrDefs::getLayer(cluster_key);
+	      float local_layer = (float) TrkrDefs::getLayer(cluster_key);
 	      float sector = TpcDefs::getSectorId(cluster_key);
 	      float side = TpcDefs::getSide(cluster_key);
 	      // count all hits for this cluster
@@ -2223,7 +2221,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		{
 		  if(Verbosity() > 1)
 		    {
-		      cout << "         Found matching truth cluster with key " << truth_ckey << " for reco cluster key " << cluster_key << " in layer " << layer << endl;
+		      cout << "         Found matching truth cluster with key " << truth_ckey << " for reco cluster key " << cluster_key << " in layer " << local_layer << endl;
 		    }
 		  
 		  g4hitID = 0;
@@ -2292,7 +2290,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 				      e,
 				      adc,
 				      maxadc,
-				      layer,
+				      local_layer,
 				      sector,
 				      side,
 				      size,
@@ -2384,7 +2382,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  // loop over layers and add to ntuple
 	  for ( const auto& [ckey, gclus]: truth_clusters)
 	    {
-	      unsigned int layer = TrkrDefs::getLayer(ckey);
+	      unsigned int local_layer = TrkrDefs::getLayer(ckey);
 
 	      float gx = gclus->getX();
 	      float gy = gclus->getY();
@@ -2400,7 +2398,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 	      if(Verbosity() > 1)
 		{
-		  std::cout << PHWHERE << "  ****   truth: layer " << layer << std::endl;
+		  std::cout << PHWHERE << "  ****   truth: layer " << local_layer << std::endl;
 		  cout << "             truth cluster key " << ckey << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz 
 		       << " gphi " << gphi << " gedep " << gedep << " gadc " << gadc << endl;
 		}
@@ -2476,7 +2474,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      // add this cluster to the ntuple
 
 	      float g4cluster_data[] = {(float) _ievent,
-					(float) layer,
+					(float) local_layer,
 					gx,
 					gy,
 					gz,
@@ -2593,66 +2591,66 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         for (const TrkrDefs::cluskey g4cluster : g4clusters)
         {
-          unsigned int layer = TrkrDefs::getLayer(g4cluster);
-          //cout<<__LINE__<<": " << _ievent <<": " <<gtrackID << ": " << layer <<": " <<g4cluster->get_id() <<endl;
-          if (_nlayers_maps > 0 && layer < _nlayers_maps)
+          unsigned int local_layer = TrkrDefs::getLayer(g4cluster);
+          //cout<<__LINE__<<": " << _ievent <<": " <<gtrackID << ": " << local_layer <<": " <<g4cluster->get_id() <<endl;
+          if (_nlayers_maps > 0 && local_layer < _nlayers_maps)
           {
-            lmaps[layer] = 1;
+            lmaps[local_layer] = 1;
             ngmaps++;
           }
-          if (_nlayers_mms > 0 && layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+          if (_nlayers_mms > 0 && local_layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
           {
-            lmms[layer - _nlayers_tpc - _nlayers_intt - _nlayers_maps] = 1;
+            lmms[local_layer - _nlayers_tpc - _nlayers_intt - _nlayers_maps] = 1;
             ngmms++;
           }
-          if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+          if (_nlayers_intt > 0 && local_layer >= _nlayers_maps && local_layer < _nlayers_maps + _nlayers_intt)
           {
-            lintt[layer - _nlayers_maps] = 1;
+            lintt[local_layer - _nlayers_maps] = 1;
             ngintt++;
           }
 
-          if (_nlayers_intt > 0 && layer == _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+          if (_nlayers_intt > 0 && local_layer == _nlayers_maps && local_layer < _nlayers_maps + _nlayers_intt)
           {
             ngintt1++;
           }
 
-          if (_nlayers_intt > 1 && layer == _nlayers_maps + 1 && layer < _nlayers_maps + _nlayers_intt)
+          if (_nlayers_intt > 1 && local_layer == _nlayers_maps + 1 && local_layer < _nlayers_maps + _nlayers_intt)
           {
             ngintt2++;
           }
 
-          if (_nlayers_intt > 2 && layer == _nlayers_maps + 2 && layer < _nlayers_maps + _nlayers_intt)
+          if (_nlayers_intt > 2 && local_layer == _nlayers_maps + 2 && local_layer < _nlayers_maps + _nlayers_intt)
           {
             ngintt3++;
           }
 
-          if (_nlayers_intt > 3 && layer == _nlayers_maps + 3 && layer < _nlayers_maps + _nlayers_intt)
+          if (_nlayers_intt > 3 && local_layer == _nlayers_maps + 3 && local_layer < _nlayers_maps + _nlayers_intt)
           {
             ngintt4++;
           }
 
-          if (_nlayers_intt > 4 && layer == _nlayers_maps + 4 && layer < _nlayers_maps + _nlayers_intt)
+          if (_nlayers_intt > 4 && local_layer == _nlayers_maps + 4 && local_layer < _nlayers_maps + _nlayers_intt)
           {
             ngintt5++;
           }
 
-          if (_nlayers_intt > 5 && layer == _nlayers_maps + 5 && layer < _nlayers_maps + _nlayers_intt)
+          if (_nlayers_intt > 5 && local_layer == _nlayers_maps + 5 && local_layer < _nlayers_maps + _nlayers_intt)
           {
             ngintt6++;
           }
 
-          if (_nlayers_intt > 6 && layer == _nlayers_maps + 6 && layer < _nlayers_maps + _nlayers_intt)
+          if (_nlayers_intt > 6 && local_layer == _nlayers_maps + 6 && local_layer < _nlayers_maps + _nlayers_intt)
           {
             ngintt7++;
           }
 
-          if (_nlayers_intt > 7 && layer == _nlayers_maps + 7 && layer < _nlayers_maps + _nlayers_intt)
+          if (_nlayers_intt > 7 && local_layer == _nlayers_maps + 7 && local_layer < _nlayers_maps + _nlayers_intt)
           {
             ngintt8++;
           }
-          if (_nlayers_tpc > 0 && layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+          if (_nlayers_tpc > 0 && local_layer >= _nlayers_maps + _nlayers_intt && local_layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
           {
-            ltpc[layer - (_nlayers_maps + _nlayers_intt)] = 1;
+            ltpc[local_layer - (_nlayers_maps + _nlayers_intt)] = 1;
             ngtpc++;
           }
         }
@@ -2713,7 +2711,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float quality = NAN;
         float chisq = NAN;
         float ndf = NAN;
-        float nhits = 0;
+        float local_nhits = 0;
         float nmaps = 0;
         float nintt = 0;
         float ntpc = 0;
@@ -2776,9 +2774,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    TrackSeed *silseed = track->get_silicon_seed();
 	    TrackSeed *tpcseed = track->get_tpc_seed();
 	    if(tpcseed)
-	      { nhits += tpcseed->size_cluster_keys(); }
+	      { local_nhits += tpcseed->size_cluster_keys(); }
 	    if(silseed)
-	      { nhits += silseed->size_cluster_keys(); }
+	      { local_nhits += silseed->size_cluster_keys(); }
 	  
             vector <int> maps(_nlayers_maps, 0);
             vector <int> intt(_nlayers_intt, 0);
@@ -2804,51 +2802,51 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    
 	    if(tpcseed)
 	      {
-            for (TrackSeed::ConstClusterKeyIter iter = tpcseed->begin_cluster_keys();
-                 iter != tpcseed->end_cluster_keys();
-                 ++iter)
+            for (TrackSeed::ConstClusterKeyIter local_iter = tpcseed->begin_cluster_keys();
+                 local_iter != tpcseed->end_cluster_keys();
+                 ++local_iter)
             {
-	      TrkrDefs::cluskey cluster_key = *iter;
+	      TrkrDefs::cluskey cluster_key = *local_iter;
               //TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-              unsigned int layer = TrkrDefs::getLayer(cluster_key);
-              if (_nlayers_maps > 0 && layer < _nlayers_maps)
+              unsigned int local_layer = TrkrDefs::getLayer(cluster_key);
+              if (_nlayers_maps > 0 && local_layer < _nlayers_maps)
               {
-                maps[layer] = 1;
+                maps[local_layer] = 1;
                 nmaps++;
               }
-              if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+              if (_nlayers_intt > 0 && local_layer >= _nlayers_maps && local_layer < _nlayers_maps + _nlayers_intt)
               {
-                intt[layer - _nlayers_maps] = 1;
+                intt[local_layer - _nlayers_maps] = 1;
                 nintt++;
               }
               if (_nlayers_tpc > 0 &&
-                  layer >= (_nlayers_maps + _nlayers_intt) &&
-                  layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
+                  local_layer >= (_nlayers_maps + _nlayers_intt) &&
+                  local_layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
               {
-                tpc[layer - (_nlayers_maps + _nlayers_intt)] = 1;
+                tpc[local_layer - (_nlayers_maps + _nlayers_intt)] = 1;
                 ntpc++;
 
-		if((layer - (_nlayers_maps + _nlayers_intt))<8){
+		if((local_layer - (_nlayers_maps + _nlayers_intt))<8){
 		  ntpc11++;
 		}
 
-		if((layer - (_nlayers_maps + _nlayers_intt))<16){
-		  //std::cout << " tpc1: layer " << layer << std::endl;
+		if((local_layer - (_nlayers_maps + _nlayers_intt))<16){
+		  //std::cout << " tpc1: layer " << local_layer << std::endl;
 		  ntpc1++;
 		}
-		else if((layer - (_nlayers_maps + _nlayers_intt))<32){
-		  //std::cout << " tpc2: layer " << layer << std::endl;
+		else if((local_layer - (_nlayers_maps + _nlayers_intt))<32){
+		  //std::cout << " tpc2: layer " << local_layer << std::endl;
 		  ntpc2++;
 		}
-		else if((layer - (_nlayers_maps + _nlayers_intt))<48){
-		  //std::cout << " tpc3: layer " << layer << std::endl;
+		else if((local_layer - (_nlayers_maps + _nlayers_intt))<48){
+		  //std::cout << " tpc3: layer " << local_layer << std::endl;
 		  ntpc3++;
 		}
               }
 	    
-              if (_nlayers_mms > 0 && layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+              if (_nlayers_mms > 0 && local_layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
               {
-                mms[layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
+                mms[local_layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
                 nmms++;
               }
             }
@@ -2856,51 +2854,51 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    
 	    if(silseed)
 	      {
-            for (TrackSeed::ConstClusterKeyIter iter = silseed->begin_cluster_keys();
-                 iter != silseed->end_cluster_keys();
-                 ++iter)
+            for (TrackSeed::ConstClusterKeyIter local_iter = silseed->begin_cluster_keys();
+                 local_iter != silseed->end_cluster_keys();
+                 ++local_iter)
             {
-	      TrkrDefs::cluskey cluster_key = *iter;
+	      TrkrDefs::cluskey cluster_key = *local_iter;
               //TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-              unsigned int layer = TrkrDefs::getLayer(cluster_key);
-              if (_nlayers_maps > 0 && layer < _nlayers_maps)
+              unsigned int local_layer = TrkrDefs::getLayer(cluster_key);
+              if (_nlayers_maps > 0 && local_layer < _nlayers_maps)
               {
-                maps[layer] = 1;
+                maps[local_layer] = 1;
                 nmaps++;
               }
-              if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+              if (_nlayers_intt > 0 && local_layer >= _nlayers_maps && local_layer < _nlayers_maps + _nlayers_intt)
               {
-                intt[layer - _nlayers_maps] = 1;
+                intt[local_layer - _nlayers_maps] = 1;
                 nintt++;
               }
               if (_nlayers_tpc > 0 &&
-                  layer >= (_nlayers_maps + _nlayers_intt) &&
-                  layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
+                  local_layer >= (_nlayers_maps + _nlayers_intt) &&
+                  local_layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
               {
-                tpc[layer - (_nlayers_maps + _nlayers_intt)] = 1;
+                tpc[local_layer - (_nlayers_maps + _nlayers_intt)] = 1;
                 ntpc++;
 
-		if((layer - (_nlayers_maps + _nlayers_intt))<8){
+		if((local_layer - (_nlayers_maps + _nlayers_intt))<8){
 		  ntpc11++;
 		}
 
-		if((layer - (_nlayers_maps + _nlayers_intt))<16){
-		  //std::cout << " tpc1: layer " << layer << std::endl;
+		if((local_layer - (_nlayers_maps + _nlayers_intt))<16){
+		  //std::cout << " tpc1: layer " << local_layer << std::endl;
 		  ntpc1++;
 		}
-		else if((layer - (_nlayers_maps + _nlayers_intt))<32){
-		  //std::cout << " tpc2: layer " << layer << std::endl;
+		else if((local_layer - (_nlayers_maps + _nlayers_intt))<32){
+		  //std::cout << " tpc2: layer " << local_layer << std::endl;
 		  ntpc2++;
 		}
-		else if((layer - (_nlayers_maps + _nlayers_intt))<48){
-		  //std::cout << " tpc3: layer " << layer << std::endl;
+		else if((local_layer - (_nlayers_maps + _nlayers_intt))<48){
+		  //std::cout << " tpc3: layer " << local_layer << std::endl;
 		  ntpc3++;
 		}
               }
 	    
-              if (_nlayers_mms > 0 && layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+              if (_nlayers_mms > 0 && local_layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
               {
-                mms[layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
+                mms[local_layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
                 nmms++;
               }
             }
@@ -3049,7 +3047,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                quality,
                                chisq,
                                ndf,
-                               nhits,
+                               local_nhits,
                                (float) layers,
                                nmaps,
                                nintt,
@@ -3149,11 +3147,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float quality = track->get_quality();
         float chisq = track->get_chisq();
         float ndf = track->get_ndf();
-	float nhits = 0;
+	float local_nhits = 0;
 	if(tpcseed)
-	  { nhits += tpcseed->size_cluster_keys(); }
+	  { local_nhits += tpcseed->size_cluster_keys(); }
 	if(silseed)
-	  { nhits += silseed->size_cluster_keys(); }
+	  { local_nhits += silseed->size_cluster_keys(); }
         unsigned int layers = 0x0;
         int maps[_nlayers_maps];
         int intt[_nlayers_intt];
@@ -3191,44 +3189,44 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 	if(tpcseed) 
 	  {
-        for (SvtxTrack::ConstClusterKeyIter iter = tpcseed->begin_cluster_keys();
-             iter != tpcseed->end_cluster_keys();
-             ++iter)
+        for (SvtxTrack::ConstClusterKeyIter local_iter = tpcseed->begin_cluster_keys();
+             local_iter != tpcseed->end_cluster_keys();
+             ++local_iter)
         {
-	  TrkrDefs::cluskey cluster_key = *iter;
+	  TrkrDefs::cluskey cluster_key = *local_iter;
           //TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-          unsigned int layer = TrkrDefs::getLayer(cluster_key);
+          unsigned int local_layer = TrkrDefs::getLayer(cluster_key);
 
-          if (_nlayers_maps > 0 && layer < _nlayers_maps)
+          if (_nlayers_maps > 0 && local_layer < _nlayers_maps)
           {
-            maps[layer] = 1;
+            maps[local_layer] = 1;
             nmaps++;
           }
-          if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+          if (_nlayers_intt > 0 && local_layer >= _nlayers_maps && local_layer < _nlayers_maps + _nlayers_intt)
           {
-            intt[layer - _nlayers_maps] = 1;
+            intt[local_layer - _nlayers_maps] = 1;
             nintt++;
           }
-          if (_nlayers_mms > 0 && layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
+          if (_nlayers_mms > 0 && local_layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc && local_layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
           {
-            mms[layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
+            mms[local_layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
             nmms++;
           }
-          if (_nlayers_tpc > 0 && layer >= (_nlayers_maps + _nlayers_intt) && layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
+          if (_nlayers_tpc > 0 && local_layer >= (_nlayers_maps + _nlayers_intt) && local_layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
           {
-            tpc[layer - (_nlayers_maps + _nlayers_intt)] = 1;
+            tpc[local_layer - (_nlayers_maps + _nlayers_intt)] = 1;
             ntpc++;
-	    if((layer - (_nlayers_maps + _nlayers_intt))<8){
+	    if((local_layer - (_nlayers_maps + _nlayers_intt))<8){
 	      ntpc11++;
 	    }
 
-	    if((layer - (_nlayers_maps + _nlayers_intt))<16){
+	    if((local_layer - (_nlayers_maps + _nlayers_intt))<16){
 	      ntpc1++;
 	    }
-	    else if((layer - (_nlayers_maps + _nlayers_intt))<32){
+	    else if((local_layer - (_nlayers_maps + _nlayers_intt))<32){
 	      ntpc2++;
 	    }
-	    else if((layer - (_nlayers_maps + _nlayers_intt))<48){
+	    else if((local_layer - (_nlayers_maps + _nlayers_intt))<48){
 	      ntpc3++;
 	    }
           }
@@ -3237,44 +3235,44 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 	if(silseed) 
 	  {
-        for (SvtxTrack::ConstClusterKeyIter iter = silseed->begin_cluster_keys();
-             iter != silseed->end_cluster_keys();
-             ++iter)
+        for (SvtxTrack::ConstClusterKeyIter local_iter = silseed->begin_cluster_keys();
+             local_iter != silseed->end_cluster_keys();
+             ++local_iter)
         {
-	  TrkrDefs::cluskey cluster_key = *iter;
+	  TrkrDefs::cluskey cluster_key = *local_iter;
           //TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-          unsigned int layer = TrkrDefs::getLayer(cluster_key);
+          unsigned int local_layer = TrkrDefs::getLayer(cluster_key);
 
-          if (_nlayers_maps > 0 && layer < _nlayers_maps)
+          if (_nlayers_maps > 0 && local_layer < _nlayers_maps)
           {
-            maps[layer] = 1;
+            maps[local_layer] = 1;
             nmaps++;
           }
-          if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+          if (_nlayers_intt > 0 && local_layer >= _nlayers_maps && local_layer < _nlayers_maps + _nlayers_intt)
           {
-            intt[layer - _nlayers_maps] = 1;
+            intt[local_layer - _nlayers_maps] = 1;
             nintt++;
           }
-          if (_nlayers_mms > 0 && layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
+          if (_nlayers_mms > 0 && local_layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc && local_layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
           {
-            mms[layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
+            mms[local_layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
             nmms++;
           }
-          if (_nlayers_tpc > 0 && layer >= (_nlayers_maps + _nlayers_intt) && layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
+          if (_nlayers_tpc > 0 && local_layer >= (_nlayers_maps + _nlayers_intt) && local_layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
           {
-            tpc[layer - (_nlayers_maps + _nlayers_intt)] = 1;
+            tpc[local_layer - (_nlayers_maps + _nlayers_intt)] = 1;
             ntpc++;
-	    if((layer - (_nlayers_maps + _nlayers_intt))<8){
+	    if((local_layer - (_nlayers_maps + _nlayers_intt))<8){
 	      ntpc11++;
 	    }
 
-	    if((layer - (_nlayers_maps + _nlayers_intt))<16){
+	    if((local_layer - (_nlayers_maps + _nlayers_intt))<16){
 	      ntpc1++;
 	    }
-	    else if((layer - (_nlayers_maps + _nlayers_intt))<32){
+	    else if((local_layer - (_nlayers_maps + _nlayers_intt))<32){
 	      ntpc2++;
 	    }
-	    else if((layer - (_nlayers_maps + _nlayers_intt))<48){
+	    else if((local_layer - (_nlayers_maps + _nlayers_intt))<48){
 	      ntpc3++;
 	    }
           }
@@ -3408,28 +3406,28 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
             for (const TrkrDefs::cluskey g4cluster : g4clusters)
             {
-              unsigned int layer = TrkrDefs::getLayer(g4cluster);
-              if (_nlayers_maps > 0 && layer < _nlayers_maps)
+              unsigned int local_layer = TrkrDefs::getLayer(g4cluster);
+              if (_nlayers_maps > 0 && local_layer < _nlayers_maps)
               {
-                lmaps[layer] = 1;
+                lmaps[local_layer] = 1;
                 ngmaps++;
               }
 
-              if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+              if (_nlayers_intt > 0 && local_layer >= _nlayers_maps && local_layer < _nlayers_maps + _nlayers_intt)
               {
-                lintt[layer - _nlayers_maps] = 1;
+                lintt[local_layer - _nlayers_maps] = 1;
                 ngintt++;
               }
 
-              if (_nlayers_tpc > 0 && layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+              if (_nlayers_tpc > 0 && local_layer >= _nlayers_maps + _nlayers_intt && local_layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
               {
-                ltpc[layer - (_nlayers_maps + _nlayers_intt)] = 1;
+                ltpc[local_layer - (_nlayers_maps + _nlayers_intt)] = 1;
                 ngtpc++;
               }
 
-              if (_nlayers_mms > 0 && layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
+              if (_nlayers_mms > 0 && local_layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc && local_layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
               {
-                lmms[layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
+                lmms[local_layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
                 ngmms++;
               }
 
@@ -3519,7 +3517,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                               quality,
                               chisq,
                               ndf,
-                              nhits, nmaps, nintt, ntpc,nmms,
+                              local_nhits, nmaps, nintt, ntpc,nmms,
 			      ntpc1,ntpc11,ntpc2,ntpc3,
 			      nlmaps, nlintt, nltpc,nlmms,
                               (float) layers,
@@ -3584,7 +3582,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	if(Verbosity() >= 1)
 	  cout << "ievent " << _ievent
 	       << " trackID " << trackID
-	       << " nhits " << nhits
+	       << " nhits " << local_nhits
 	       << " px " << px
 	       << " py " << py
 	       << " pz " << pz
@@ -3658,21 +3656,21 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  zval[i] = 0;
 		}
 	      std::set<PHG4Hit*> truth_hits = trutheval->all_truth_hits(g4particle);
-	      for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
-		   iter != truth_hits.end();
-		   ++iter)
+	      for (std::set<PHG4Hit*>::iterator local_iter = truth_hits.begin();
+		   local_iter != truth_hits.end();
+		   ++local_iter)
 		{
-		  PHG4Hit* g4hit = *iter;
-		  unsigned int layer = g4hit->get_layer();
-		  //cout << "  g4hit " << g4hit->get_hit_id() << " layer = " << layer << endl;
-		  if (layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
+		  PHG4Hit* g4hit = *local_iter;
+		  unsigned int local_layer = g4hit->get_layer();
+		  //cout << "  g4hit " << g4hit->get_hit_id() << " layer = " << local_layer << endl;
+		  if (local_layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
 		    {
-		      //cout << PHWHERE << " skipping out of bounds detector id " << layer << endl;
+		      //cout << PHWHERE << " skipping out of bounds detector id " << local_layer << endl;
 		      continue;
 		    }
-		  xval[layer] = g4hit->get_avg_x();
-		  yval[layer] = g4hit->get_avg_y();
-		  zval[layer] = g4hit->get_avg_z();
+		  xval[local_layer] = g4hit->get_avg_x();
+		  yval[local_layer] = g4hit->get_avg_y();
+		  zval[local_layer] = g4hit->get_avg_z();
 		}
 	      
 	      for (unsigned int i = 0; i < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms; i++)

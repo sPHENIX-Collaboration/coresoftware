@@ -150,7 +150,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 	  svtxtrack->set_pz(trackSeed->get_pz());
 
           // calculate chisq and ndf
-          double R = 1./fabs(trackSeed->get_qOverR());
+          double R = 1./std::fabs(trackSeed->get_qOverR());
           double X0 = trackSeed->get_X0();
           double Y0 = trackSeed->get_Y0();
           double Z0 = trackSeed->get_Z0();

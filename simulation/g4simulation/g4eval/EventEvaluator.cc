@@ -1203,11 +1203,11 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     // Loop over track maps, identifiy each source.
     // Although this configuration is fixed here, it doesn't require multiple sources.
     // It will only store them if they're available.
-    std::vector<std::pair<std::string, TrackSource_t>> trackMapInfo = {
+    std::vector<std::pair<std::string, TrackSource_t>> trackMapInfovec = {
         {"TrackMap", TrackSource_t::all},
         {"TrackMapInner", TrackSource_t::inner}};
     bool foundAtLeastOneTrackSource = false;
-    for (const auto& trackMapInfo : trackMapInfo)
+    for (const auto& trackMapInfo : trackMapInfovec)
     {
       SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, trackMapInfo.first);
       if (trackmap)
