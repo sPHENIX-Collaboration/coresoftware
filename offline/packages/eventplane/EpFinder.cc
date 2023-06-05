@@ -1,9 +1,6 @@
 #include "EpFinder.h"
-
 #include "EpInfo.h"  // for EpInfo
-
 #include "TH2D.h"
-#include "TFile.h"
 #include <algorithm>  // for fill
 #include <cassert>
 #include <cmath>
@@ -11,7 +8,6 @@
 #include <memory>
 #include <vector>
 #include <fstream>
-
 #include <cdbobjects/CDBHistos.h>
 
 EpFinder::EpFinder(int nEventTypeBins, unsigned int maxorder, int ns)
@@ -19,8 +15,6 @@ EpFinder::EpFinder(int nEventTypeBins, unsigned int maxorder, int ns)
   , m_MaxOrder(maxorder)
 {
     TotalWeight4Side.resize(m_MaxOrder);
-    WheelSumWeightsRaw.resize(m_MaxOrder);
-    WheelSumWeightsPhiWeighted.resize(m_MaxOrder);
     PsiRaw.resize(m_MaxOrder);
     PsiPhiWeighted.resize(m_MaxOrder);
     QrawOneSide.resize(m_MaxOrder);
@@ -40,28 +34,20 @@ EpFinder::EpFinder(int nEventTypeBins, unsigned int maxorder, int ns)
     int pbinsx = 16; int pbinsy = 24; 
     mPhiWeightOutput[ns]   = new TH2D(Form("PhiWeightNS%d",ns),Form("sEPD Tile Weight divided by Averaged NS=%d",ns),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5));
     mPhiAveraged[ns]       = new TH2D(Form("PhiAveraged%d",ns),Form("sEPD PhiAverage NS=%d",ns),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5));
-    mPhiWeightInput[ns]    = new TH2D(Form("PhiAveragedIn%d",ns),Form("sEPD PhiAverage In NS=%d",ns),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5));
 
     CDBHistos *cdbhistosIn = new CDBHistos(Form("sEPD_PhiWeights_%d_Input.root", ns));
     cdbhistosIn->LoadCalibrations();
+  
     if(!(cdbhistosIn->getHisto(Form("PhiWeightNS%d", ns))))
     {
         mPhiWeightInput[ns] = NULL;
     }
     else
     {
-        //cloning mPhiWeightOutput[ns] since can't simply do mPhiWeightInput[ns] = cdbhistosIn->getHisto(Form("PhiWeightNS%d", ns)); CDBhistos TH1 restriction =(
-        for(int etabin = 1; etabin <= pbinsx; etabin ++)
-        {
-            for(int phibin = 1; phibin <= pbinsy; phibin ++)
-            {
-                double histcontent = cdbhistosIn->getHisto(Form("PhiWeightNS%d", ns))->GetBinContent(etabin,phibin);
-                mPhiWeightInput[ns]->SetBinContent(etabin, phibin, histcontent);
-            }
-        }
+        mPhiWeightInput[ns] = dynamic_cast<TH2 *> (cdbhistosIn->getHisto(Form("PhiWeightNS%d", ns)));
     }
-   
-   cdbhistosIn->Print(); 
+
+     cdbhistosIn->Print(); 
    
 }
 void EpFinder::Finish(int thishist)
@@ -72,9 +58,11 @@ void EpFinder::Finish(int thishist)
     
     CDBHistos *cdbhistosOut = new CDBHistos(Form("sEPD_PhiWeights_%d_Output.root", thishist));
     cdbhistosOut->registerHisto(mPhiWeightOutput[thishist]);
-    cdbhistosOut->WriteCDBHistos();
-     
-    std::cout << "EpFinder is finished!"<<std::endl;
+    cdbhistosOut->WriteCDBHistos();     
+
+    std::cout<< "Finished writing histogram sEPD_PhiWeights_"<<thishist<<"_Output.root " << 
+    "mv sEPD_PhiWeights_"<<thishist<<"_Output.root to sEPD_PhiWeights_"<<thishist<<"_Input.root in the next iteration"
+    << std::endl;
 }
 
 //==================================================================================================================
@@ -109,7 +97,6 @@ void EpFinder::ResultsEPD(const std::vector<EpHit> &EpdHits, int EventTypeId, Ep
      }
     }
       
-
     //--------------------------------
     // now calculate Q-vectors
     //--------------------------------
@@ -135,14 +122,6 @@ void EpFinder::ResultsEPD(const std::vector<EpHit> &EpdHits, int EventTypeId, Ep
         
     }
   }  // loop over hits
-
-  // Weights used, so you can "un-normalize" the ring-by-ring Q-vectors.
-  for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
-  {
-    WheelSumWeightsRaw[order - 1] = TotalWeight4Side[order - 1][0];
-    WheelSumWeightsPhiWeighted[order - 1] = TotalWeight4Side[order - 1][1];
-
-  }
 
   // at this point, we are finished with the detector hits, and deal only with the Q-vectors,
 
@@ -179,8 +158,6 @@ void EpFinder::ResultsEPD(const std::vector<EpHit> &EpdHits, int EventTypeId, Ep
   {
     epinfo->CopyQrawOneSide(QrawOneSide);
     epinfo->CopyQphiWeightedOneSide(QphiWeightedOneSide);
-    epinfo->CopyWheelSumWeightsRaw(WheelSumWeightsRaw);
-    epinfo->CopyWheelSumWeightsPhiWeighted(WheelSumWeightsPhiWeighted);
     epinfo->CopyPsiRaw(PsiRaw);
     epinfo->CopyPsiPhiWeighted(PsiPhiWeighted);
   }
