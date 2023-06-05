@@ -32,12 +32,15 @@ namespace G4Eval {
     }
 
     std::set<int> ids_unmatched;
-    for (auto reco = m_SvtxTrackMap->begin(); reco != m_SvtxTrackMap->end(); ++reco) {
-      auto trkid = reco->first;
-      if (ids_matched.count(trkid)==0) ids_unmatched.insert(trkid);
+    for (auto & reco : *m_SvtxTrackMap) {
+      auto trkid = reco.first;
+      if (ids_matched.count(trkid)==0) { ids_unmatched.insert(trkid);
+}
     }
     std::vector<int> ids_vec;
-    for (auto id : ids_unmatched) ids_vec.push_back((int)id);
+    ids_vec.reserve(ids_unmatched.size());
+for (auto id : ids_unmatched) { ids_vec.push_back((int)id);
+}
     std::sort(ids_vec.begin(), ids_vec.end());
     return ids_vec;
   }
@@ -64,9 +67,12 @@ namespace G4Eval {
   // return the layer of the hit: 0:Mvtx 1:Intt 2:Tpc 3:Tpot 
   int trklayer_0123(TrkrDefs::hitsetkey key) {
     auto layer = TrkrDefs::getLayer(key);
-    if (layer < 3) return 0;
-    if (layer < 7) return 1;
-    if (layer < 55) return 2;
+    if (layer < 3) { return 0;
+}
+    if (layer < 7) { return 1;
+}
+    if (layer < 55) { return 2;
+}
     return 3;
   }
 
@@ -87,13 +93,14 @@ namespace G4Eval {
       std::cout << PHWHERE << " Could not locate CYLINDERGEOM_MVTX " << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
-    for (int layer=0; layer<3; ++layer) {
+    for (int this_layer=0; this_layer<3; ++this_layer) {
       auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>
-        (geom_container_mvtx->GetLayerGeom(layer));
+        (geom_container_mvtx->GetLayerGeom(this_layer));
       const double pitch = layergeom->get_pixel_x();
       const double length = layergeom->get_pixel_z();
-      m_phistep    [layer] = pitch;
-      if (layer == 0) m_zstep_mvtx         = length;
+      m_phistep    [this_layer] = pitch;
+      if (this_layer == 0) { m_zstep_mvtx         = length;
+}
     }
 
     // ------ INTT data ------
@@ -104,11 +111,11 @@ namespace G4Eval {
       return Fun4AllReturnCodes::ABORTRUN;
     }
     // get phi and Z steps for intt
-    for (int layer=3; layer<7; ++layer) {
+    for (int this_layer=3; this_layer<7; ++this_layer) {
       CylinderGeomIntt* geom = 
-        dynamic_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
+        dynamic_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(this_layer));
       float pitch = geom->get_strip_y_spacing();
-      m_phistep [layer] = pitch;
+      m_phistep [this_layer] = pitch;
     }
 
     // ------ TPC data ------
@@ -119,10 +126,11 @@ namespace G4Eval {
       std::cout << PHWHERE << " Could not locate CYLINDERCELLGEOM_SVTX node " << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
-    for (int layer=7; layer<55; ++layer) {
-      PHG4TpcCylinderGeom *layergeom = geom_tpc->GetLayerCellGeom(layer);
-      if (layer==7) m_zstep_tpc = layergeom->get_zstep();
-      m_phistep[layer] = layergeom->get_phistep();
+    for (int this_layer=7; this_layer<55; ++this_layer) {
+      PHG4TpcCylinderGeom *layergeom = geom_tpc->GetLayerCellGeom(this_layer);
+      if (this_layer==7) { m_zstep_tpc = layergeom->get_zstep();
+}
+      m_phistep[this_layer] = layergeom->get_phistep();
     }
 
     m_TruthClusters = 
@@ -191,7 +199,8 @@ namespace G4Eval {
     }
 
     phi_delta = fabs(phi_T-phi_R);
-    while (phi_delta > M_PI) phi_delta = fabs(phi_delta-2*M_PI);
+    while (phi_delta > M_PI) { phi_delta = fabs(phi_delta-2*M_PI);
+}
     phi_delta /= phi_step;
 
     z_delta   = fabs (z_T-z_R) / z_step;
@@ -243,7 +252,8 @@ namespace G4Eval {
 
   ClusKeyIter ClusKeyIter::begin() {
     ClusKeyIter iter0 { track }; 
-    if (iter0.no_data) return iter0;
+    if (iter0.no_data) { return iter0;
+}
     if (iter0.in_silicon) {
       iter0.iter = track->get_silicon_seed()->begin_cluster_keys();
       iter0.iter_end_silicon = track->get_silicon_seed()->end_cluster_keys();
@@ -255,7 +265,8 @@ namespace G4Eval {
 
   ClusKeyIter ClusKeyIter::end() {
     ClusKeyIter iter0 { track }; 
-    if (iter0.no_data) return iter0;
+    if (iter0.no_data) { return iter0;
+}
     if (has_tpc) {
       iter0.iter = track->get_tpc_seed()->end_cluster_keys();
     } else if (in_silicon) {
@@ -265,7 +276,8 @@ namespace G4Eval {
   }
 
   void ClusKeyIter::operator++() {
-    if (no_data) return;
+    if (no_data) { return;
+}
     ++iter;
     if (in_silicon && has_tpc && iter == iter_end_silicon) {
       in_silicon = false;
@@ -274,7 +286,8 @@ namespace G4Eval {
   }
 
   bool ClusKeyIter::operator!=(const ClusKeyIter& rhs) {
-    if (no_data) return false;
+    if (no_data) { return false;
+}
     return iter != rhs.iter;
   }
 
@@ -283,13 +296,15 @@ namespace G4Eval {
   }
 
   TrkrClusterContainer* ClusCntr::get_PHG4_clusters() {
-    if (comp == nullptr) return nullptr;
-    else return comp->m_TruthClusters;
+    if (comp == nullptr) { return nullptr;
+    } else { return comp->m_TruthClusters;
+}
   }
 
   TrkrClusterContainer* ClusCntr::get_SVTX_clusters() {
-    if (comp == nullptr) return nullptr;
-    else return comp->m_RecoClusters;
+    if (comp == nullptr) { return nullptr;
+    } else { return comp->m_RecoClusters;
+}
   }
 
   std::array<int,5> ClusCntr::cntclus(Vector& keys) {
@@ -297,7 +312,8 @@ namespace G4Eval {
     for (auto& it : keys) {
       cnt[trklayer_0123(it.first)] += 1;
     }
-    for (int i=0;i<4;++i) cnt[4] += cnt[i];
+    for (int i=0;i<4;++i) { cnt[4] += cnt[i];
+}
     return cnt;
   }
 
@@ -315,7 +331,8 @@ namespace G4Eval {
         cnt[trklayer_0123(keys[i].first)] += 1;
       }
     }
-    for (int i=0;i<4;++i) cnt[4] += cnt[i];
+    for (int i=0;i<4;++i) { cnt[4] += cnt[i];
+}
     return cnt;
   }
 
@@ -386,17 +403,19 @@ namespace G4Eval {
 
         // must compare ALL sets of iA and iB with this same hitset
         auto sAend = iA+1; // search A end
-        while (sAend != iA1 && sAend->first == hitset) ++sAend;
+        while (sAend != iA1 && sAend->first == hitset) { ++sAend;
+}
 
         auto sBend = iB+1; // search B end
-        while (sBend != iB1 && sBend->first == hitset) ++sBend;
+        while (sBend != iB1 && sBend->first == hitset) { ++sBend;
+}
 
-        for (auto _A = iA; _A!=sAend; ++_A) {
-          for (auto _B = iB; _B!=sBend; ++_B) {
-            auto comp_val = comp->operator()(_A->second,_B->second);
+        for (auto A = iA; A!=sAend; ++A) {
+          for (auto B = iB; B!=sBend; ++B) {
+            auto comp_val = comp->operator()(A->second,B->second);
             if (comp_val.first) {
-              matchesA[_A-iA0] = true;
-              matchesB[_B-iB0] = true;
+              matchesA[A-iA0] = true;
+              matchesB[B-iB0] = true;
               match_stat += comp_val.second;
               ++n_match;
             }
@@ -426,7 +445,8 @@ namespace G4Eval {
 
   std::vector<ClusLoc> ClusCntr::phg4_clusloc_all() {
     std::vector<ClusLoc> vec{};
-    for (auto& cluspair : phg4_keys) vec.push_back(comp->clusloc_PHG4(cluspair));
+    for (auto& cluspair : phg4_keys) { vec.push_back(comp->clusloc_PHG4(cluspair));
+}
     return vec;
   }
 
@@ -434,14 +454,16 @@ namespace G4Eval {
     std::vector<ClusLoc> vec{};
     auto cnt = phg4_keys.size();
     for (unsigned int i = 0; i<cnt; ++i) {
-      if (!phg4_matches[i]) vec.push_back(comp->clusloc_PHG4(phg4_keys[i]));
+      if (!phg4_matches[i]) { vec.push_back(comp->clusloc_PHG4(phg4_keys[i]));
+}
     }
     return vec;
   }
 
   std::vector<ClusLoc> ClusCntr::svtx_clusloc_all() {
     std::vector<ClusLoc> vec{};
-    for (auto& cluspair : svtx_keys) vec.push_back(comp->clusloc_SVTX(cluspair));
+    for (auto& cluspair : svtx_keys) { vec.push_back(comp->clusloc_SVTX(cluspair));
+}
     return vec;
   }
 
@@ -449,7 +471,8 @@ namespace G4Eval {
     std::vector<ClusLoc> vec{};
     auto cnt = svtx_keys.size();
     for (unsigned int i = 0; i<cnt; ++i) {
-      if (!svtx_matches[i]) vec.push_back(comp->clusloc_SVTX(svtx_keys[i]));
+      if (!svtx_matches[i]) { vec.push_back(comp->clusloc_SVTX(svtx_keys[i]));
+}
     }
     return vec;
   }
@@ -458,7 +481,8 @@ namespace G4Eval {
     std::vector<ClusLoc> vec{};
     auto cnt = phg4_keys.size();
     for (unsigned int i = 0; i<cnt; ++i) {
-      if (phg4_matches[i]) vec.push_back(comp->clusloc_PHG4(phg4_keys[i]));
+      if (phg4_matches[i]) { vec.push_back(comp->clusloc_PHG4(phg4_keys[i]));
+}
     }
     return vec;
   }
