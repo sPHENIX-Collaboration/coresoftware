@@ -17,10 +17,9 @@ void EpInfov1::Reset()
  {
     std::fill(vec.begin(), vec.end(), NAN);
  }
-  std::fill(PsiRaw.begin(), PsiRaw.end(), NAN);
-  std::fill(PsiPhiWeighted.begin(), PsiPhiWeighted.end(), NAN);
-  std::fill(WheelSumWeightsRaw.begin(), WheelSumWeightsRaw.end(), NAN);
-  std::fill(WheelSumWeightsPhiWeighted.begin(), WheelSumWeightsPhiWeighted.end(), NAN);
+  
+ std::fill(PsiRaw.begin(), PsiRaw.end(), NAN);
+ std::fill(PsiPhiWeighted.begin(), PsiPhiWeighted.end(), NAN);
 
 }
 
@@ -33,6 +32,7 @@ std::pair<double, double> EpInfov1::RawQ(unsigned int order) const
   {
     return std::make_pair(NAN, NAN);
   }
+
   return std::make_pair(QrawOneSide.at(order - 1).at(0), QrawOneSide.at(order - 1).at(1));
 }
 
@@ -47,19 +47,6 @@ std::pair<double, double> EpInfov1::PhiWeightedQ(unsigned int order) const
   return std::make_pair(QphiWeightedOneSide.at(order - 1).at(0), QphiWeightedOneSide.at(order - 1).at(1));
 }
 
-// --------------------- Wheel sum-of-weights, raw ----------------------
-double EpInfov1::SWRaw(unsigned int order) const
-{
-  if (ArgumentOutOfBounds(order)) return NAN;
-  return WheelSumWeightsRaw.at(order - 1);
-}
-
-// --------------------- Wheel sum-of-weights, phi-weighted ---------------
-double EpInfov1::SWPhiWeighted(unsigned int order) const
-{
-  if (ArgumentOutOfBounds(order)) return NAN;
-  return WheelSumWeightsPhiWeighted.at(order - 1);
-}
 // ===================== Access to Event-plane angles ====================
 
 //------------------------- raw EP angles --------------------------------
@@ -124,24 +111,6 @@ void EpInfov1::CopyPsiPhiWeighted(const std::vector<double> &vec)
       PsiPhiWeighted.resize(vec.size());
   }
     PsiPhiWeighted = vec;
-}
-
-void EpInfov1::CopyWheelSumWeightsRaw(const std::vector<double> &vec)
-{
-  if (WheelSumWeightsRaw.size() != vec.size())
-  {
-    WheelSumWeightsRaw.resize(vec.size());
-  }
-  WheelSumWeightsRaw = vec;
-}
-
-void EpInfov1::CopyWheelSumWeightsPhiWeighted(const std::vector<double> &vec)
-{
-  if (WheelSumWeightsPhiWeighted.size() != vec.size())
-  {
-      WheelSumWeightsPhiWeighted.resize(vec.size());
-  }
-    WheelSumWeightsPhiWeighted = vec;
 }
 
 void EpInfov1::CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec)
