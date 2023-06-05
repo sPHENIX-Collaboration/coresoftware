@@ -49,11 +49,25 @@ class MicromegasRawDataEvaluation : public SubsysReco
   class Sample
   {
     public:
+    /// packet
     unsigned int packet_id = 0;
+
+    /// bco
+    unsigned int bco = 0;
+    
+    /// checksum and checksum error
+    unsigned int checksum = 0;
+    unsigned int checksum_error = 0;
+
+    /// fee
     unsigned short fee_id = 0;
     unsigned short layer = 0;
     unsigned short tile = 0;
-
+    
+    /// sampa channel and sampa address
+    unsigned short sampa_address = 0;
+    unsigned short sampa_channel = 0;
+    
     /// channel id
     unsigned short channel = 0;
     
@@ -64,6 +78,7 @@ class MicromegasRawDataEvaluation : public SubsysReco
     unsigned short absolute_channel = 0;
     unsigned short sample = 0;
     unsigned short adc = 0;
+    
     using List = std::vector<Sample>;
   };
     
