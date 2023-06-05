@@ -82,7 +82,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     rc->set_StringFlag("CDB_GLOBALTAG","bseidlitz");
     rc->set_uint64Flag("TIMESTAMP",0);
     cdb = CDBInterface::instance();
-    std::string calibdir = cdb->getUrl("ihcal_abscalib_mip_bdg912");
+    std::string calibdir = cdb->getUrl("ihcal_abscalib_mip_bldg912");
     std::cout <<  " calibdir=" <<  calibdir.c_str() << std::endl;
     m_detector = "HCALIN";
     m_DETECTOR = TowerInfoContainer::HCAL;
@@ -103,7 +103,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     rc->set_StringFlag("CDB_GLOBALTAG","bseidlitz");
     rc->set_uint64Flag("TIMESTAMP",0);
     cdb = CDBInterface::instance();
-    std::string calibdir = cdb->getUrl("ohcal_abscalib_mip_bdg912");
+    std::string calibdir = cdb->getUrl("ohcal_abscalib_mip_bldg912");
     m_detector = "HCALOUT";
     m_DETECTOR = TowerInfoContainer::HCAL;
     m_fieldname = "ohcal_abscalib_mip";
