@@ -16,7 +16,7 @@ class CaloEvalStack;
 class PHCompositeNode;
 class TFile;
 class TNtuple;
-class TTree;  //Added by Barak
+class TTree;  // Added by Barak
 
 /// \class CaloEvaluator
 ///
@@ -41,7 +41,8 @@ class CaloEvaluator : public SubsysReco
   // allow user to set the value of the event number
   // useful for condor simulation submissions
   // must be called after Init()
-  void set_event(int ievent) {
+  void set_event(int ievent)
+  {
     _ievent = ievent;
   }
 
@@ -96,7 +97,7 @@ class CaloEvaluator : public SubsysReco
   TNtuple *_ntp_gpoint = nullptr;
   TNtuple *_ntp_gshower = nullptr;
   TNtuple *_ntp_tower = nullptr;
-  TTree *_tower_debug = nullptr;  //Added by Barak
+  TTree *_tower_debug = nullptr;  // Added by Barak
 
   unsigned int _ievent = 0;
   unsigned int _towerID_debug = 0;
@@ -123,7 +124,6 @@ class CaloEvaluator : public SubsysReco
   std::string _caloname;
   std::string _filename;
   std::set<int> _truth_trace_embed_flags;
-
 };
 
 #endif  // G4EVAL_CALOEVALUATOR_H
