@@ -81,6 +81,10 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec,  std::vector<TrkrDefs::cluskey> cluskey_vec);
   unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
+  void addGlobalConstraintIntt(int glbl_label[6], Surface surf);
+
+  void set_dca_cut(float dca) {dca_cut = dca;}
+
  private:
 
   Mille* _mille;
@@ -121,6 +125,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   unsigned int _cluster_version = 5;
   bool test_output = false;
 
+  std::map<int, std::pair<std::pair<int, float>, std::pair<int, float>> > InttConstraints;
+
   ClusterErrorPara _ClusErrPara;
 
   std::set<unsigned int> fixed_layers;
@@ -148,7 +154,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool fittpc = false;
   bool fitfulltrack = false;
 
-  float dca_cut = 0.1;  // 1 mm
+  float dca_cut = 0.19;  // 1 mm
 
   SvtxTrackMap* m_trackmap = nullptr;
   SvtxAlignmentStateMap* m_alignmentmap = nullptr;
