@@ -1,5 +1,6 @@
 #include "PHG4TpcPadPlaneReadout.h"
 
+#include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CellDefs.h>  // for genkey, keytype
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
@@ -7,8 +8,8 @@
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4HitContainer.h>
 
-
 #include <phool/PHRandomSeed.h>
+#include <phool/getClass.h>
 
 // Move to new storage containers
 #include <trackbase/TpcDefs.h>
@@ -49,12 +50,18 @@ namespace
     return x * x;
   }
 
+  template <class T>
+  inline T get_r( const T& x, const T& y )
+  { return std::sqrt(square(x) + square(y)); }
+  
   //! return normalized gaussian centered on zero and of width sigma
   template <class T>
   inline T gaus(const T &x, const T &sigma)
   {
     return std::exp(-square(x / sigma) / 2) / (sigma * std::sqrt(2 * M_PI));
   }
+
+  static constexpr unsigned int print_layer = 18;
 
 }  // namespace
 
@@ -79,106 +86,22 @@ PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
   delete h_gain[1];
 }
 
-int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/, PHG4TpcCylinderGeomContainer *seggeo)
+//_________________________________________________________
+int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
 {
-  if (Verbosity()) std::cout << "PHG4TpcPadPlaneReadout: CreateReadoutGeometry: " << std::endl;
-
-  for (int iregion = 0; iregion < 3; ++iregion)
-  {
-    //int zside = 0;
-    for (int zside = 0; zside < 2;zside++){
-      sector_R_bias[zside].clear();
-      sector_Phi_bias[zside].clear();
-      sector_min_Phi[zside].clear();
-      sector_max_Phi[zside].clear();
-      sector_min_Phi_sectors[zside][iregion].clear();
-      sector_max_Phi_sectors[zside][iregion].clear();
-      //int eff_layer = 0;
-      for (int isector = 0; isector < NSectors; ++isector)//12 sectors
-      {
-        sector_R_bias[zside].push_back(dR[zside][isector][iregion]);
-        sector_Phi_bias[zside].push_back(dPhi[zside][isector][iregion]);
+  // base class
+  const auto reply = PHG4TpcPadPlane::InitRun( topNode );
+  if( reply != Fun4AllReturnCodes::EVENT_OK ) return reply;
   
-        double sec_gap = (2*M_PI - SectorPhi[iregion]*12)/12;
-        double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap - 2 * M_PI / 12 * isector;// * (isector+1) ;
-        double sec_min_phi = sec_max_phi - SectorPhi[iregion];
-        sector_min_Phi[zside].push_back(sec_min_phi);
-        sector_max_Phi[zside].push_back(sec_max_phi);
-        sector_min_Phi_sectors[zside][iregion].push_back(sec_min_phi);
-        sector_max_Phi_sectors[zside][iregion].push_back(sec_max_phi);
-  
-      }// isector
-    }
-
-    double sum_r = 0;
-    for (int layer = MinLayer[iregion]; layer < MinLayer[iregion] + NTpcLayers[iregion]; ++layer)
-    {          
-      double r_length = Thickness[iregion];
-      if(iregion == 0 && layer>0){
-        if(layer%2==0) r_length = Thickness[4];
-        else r_length = Thickness[3];
-      }
-      sum_r += r_length;
-    }    
-    double pad_space = (MaxRadius[iregion] - MinRadius[iregion] - sum_r)/(NTpcLayers[iregion]-1);
-    double current_r = MinRadius[iregion];
-
-    for (int layer = MinLayer[iregion]; layer < MinLayer[iregion] + NTpcLayers[iregion]; ++layer)
-    {
-      if (Verbosity())
-      {
-        std::cout << " layer " << layer << " MinLayer " << MinLayer[iregion] << " region " << iregion
-                  << " radius " << MinRadius[iregion] + ((double) (layer - MinLayer[iregion]) + 0.5) * Thickness[iregion]
-                  << " thickness " << Thickness[iregion]
-                  << " NTBins " << NTBins << " tmin " << MinT << " tstep " << TBinWidth
-                  << " phibins " << NPhiBins[iregion] << " phistep " << PhiBinWidth[iregion] << std::endl;
-      }
-
-      PHG4TpcCylinderGeom *layerseggeo = new PHG4TpcCylinderGeom();
-      layerseggeo->set_layer(layer);
-
-      //layerseggeo->set_radius(MinRadius[iregion] + ((double) (layer - MinLayer[iregion]) + 0.5) * Thickness[iregion]);
-      //layerseggeo->set_thickness(Thickness[iregion]);
-
-      double r_length = Thickness[iregion];
-      if(iregion == 0 && layer>0){
-        if(layer%2==0) r_length = Thickness[4];
-        else r_length = Thickness[3];
-      }
-      layerseggeo->set_thickness(r_length);
-      layerseggeo->set_radius(current_r+r_length/2);
-      layerseggeo->set_binning(PHG4CellDefs::sizebinning);
-      layerseggeo->set_zbins(NTBins);
-      layerseggeo->set_zmin(MinT);
-      layerseggeo->set_zstep(TBinWidth);
-      layerseggeo->set_phibins(NPhiBins[iregion]);
-      layerseggeo->set_phistep(PhiBinWidth[iregion]);
-      layerseggeo->set_r_bias(sector_R_bias);
-      layerseggeo->set_phi_bias(sector_Phi_bias);
-      layerseggeo->set_sector_min_phi(sector_min_Phi);
-      layerseggeo->set_sector_max_phi(sector_max_Phi);
-
-      // Chris Pinkenburg: greater causes huge memory growth which causes problems
-      // on our farm. If you need to increase this - TALK TO ME first
-      if (NPhiBins[iregion] * NTBins > 5100000)
-      {
-        std::cout << "increase Tpc cellsize, number of cells "
-                  << NPhiBins[iregion] * NTBins << " for layer " << layer
-                  << " exceed 5.1M limit" << std::endl;
-        gSystem->Exit(1);
-      }
-      seggeo->AddLayerCellGeom(layerseggeo);
-
-      current_r += r_length + pad_space;
-    }
-  }
-
-  GeomContainer = seggeo;
-
-  return 0;
+  // load geo node
+  const std::string seggeonodename = "CYLINDERCELLGEOM_SVTX";
+  GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
+  assert( GeomContainer );
+    
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
-
+//_________________________________________________________
 double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
 {
   // Jin H.: For the GEM gain in sPHENIX TPC,
@@ -212,7 +135,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
   if (phi > +M_PI) phi -= 2 * M_PI;
   if (phi < -M_PI) phi += 2 * M_PI;
 
-  rad_gem = sqrt(x_gem * x_gem + y_gem * y_gem);
+  double rad_gem = get_r( x_gem, y_gem );
 
   // Moving electrons from dead area to a closest pad 
   for (int iregion = 0; iregion < 3; ++iregion)
@@ -305,8 +228,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
               //<< " zigzag_pads " << zigzag_pads
               << std::endl;
 
-  pad_phibin.clear();
-  pad_phibin_share.clear();
+  std::vector<int> pad_phibin;
+  std::vector<double> pad_phibin_share;
 
   populate_zigzag_phibins(side, layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
   /* if (pad_phibin.size() == 0) { */
@@ -331,8 +254,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     std::cout << "  populate t bins for layernum " << layernum
               << " with t_gem " << t_gem << " sigmaL[0] " << sigmaL[0] << " sigmaL[1] " << sigmaL[1] << std::endl;
 
-  adc_tbin.clear();
-  adc_tbin_share.clear();
+  std::vector<int> adc_tbin;
+  std::vector<double> adc_tbin_share;
   populate_tbins(t_gem, sigmaL, adc_tbin, adc_tbin_share);
   /* if (adc_tbin.size() == 0)  { */
     /* pass_data.neff_electrons = 0; */
@@ -472,40 +395,45 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
   m_NHits++;
   /* return pass_data; */
 }
-double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double phi, const double radius){
+double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double phi, const double radius)
+{  
   double new_phi = phi;
   int p_region=-1;
   for (int iregion = 0; iregion < 3; ++iregion)
   {  
     if (radius < MaxRadius[iregion] && radius > MinRadius[iregion]) p_region = iregion;
   }
-    if(p_region>0){
-      for(int s=0; s<12;s++){
-        double daPhi = 0;
-        if (s==0){
-          daPhi = fabs(sector_min_Phi_sectors[side][p_region][11] + 2*M_PI - sector_max_Phi_sectors[side][p_region][s]);
-        }else{
-          daPhi = fabs(sector_min_Phi_sectors[side][p_region][s-1] - sector_max_Phi_sectors[side][p_region][s]);
-        }
+  
+  if(p_region>0)
+  {
+    for(int s=0; s<12;s++)
+    {
+      double daPhi = 0;
+      if (s==0)
+      {
+        daPhi = fabs(sector_min_Phi_sectors[side][p_region][11] + 2*M_PI - sector_max_Phi_sectors[side][p_region][s]);
+      }else{
+        daPhi = fabs(sector_min_Phi_sectors[side][p_region][s-1] - sector_max_Phi_sectors[side][p_region][s]);
+      }
       double min_phi = sector_max_Phi_sectors[side][p_region][s];
       double max_phi = sector_max_Phi_sectors[side][p_region][s]+daPhi;
-        if (new_phi<=max_phi && new_phi>=min_phi){
-          if(fabs(max_phi - new_phi) > fabs(new_phi - min_phi)){
-            new_phi = min_phi-PhiBinWidth[p_region]/5;//to be changed
-          }else{
-            new_phi = max_phi+PhiBinWidth[p_region]/5;
-          }
-
-
-         }
-
+      if (new_phi<=max_phi && new_phi>=min_phi)
+      {
+        if(fabs(max_phi - new_phi) > fabs(new_phi - min_phi))
+        {
+          new_phi = min_phi-PhiBinWidth[p_region]/5;//to be changed
+        }else{
+          new_phi = max_phi+PhiBinWidth[p_region]/5;
+        }
       }
     }
-    if(new_phi<sector_min_Phi_sectors[side][p_region][11] && new_phi>=-M_PI){
-      new_phi += 2*M_PI;
-    }
+    if(new_phi<sector_min_Phi_sectors[side][p_region][11] && new_phi>=-M_PI)
+    { new_phi += 2*M_PI; }
+  }
+  
   return new_phi;
 }
+
 void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &phibin_pad, std::vector<double> &phibin_pad_share)
 {
   const double radius      = LayerGeom->get_radius();
@@ -626,7 +554,6 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
   {
     phibin_pad.push_back(pad_keep[ipad]);
     phibin_pad_share.push_back(overlap[ipad]);
-    if (rad_gem < output_radius) std::cout << "         zigzags: for pad " << ipad << " integral is " << overlap[ipad] << std::endl;
    }
 
   return;
@@ -770,19 +697,6 @@ void PHG4TpcPadPlaneReadout::ReadGain()
 }
 void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 {
-  set_default_int_param("ntpc_layers_inner", 16);
-  set_default_int_param("ntpc_layers_mid", 16);
-  set_default_int_param("ntpc_layers_outer", 16);
-
-  set_default_int_param("tpc_minlayer_inner", 7);
-
-  //set_default_double_param("tpc_minradius_inner", 30.0);  // cm
-  //set_default_double_param("tpc_minradius_mid", 40.0);
-  //set_default_double_param("tpc_minradius_outer", 60.0);
-//
-  //set_default_double_param("tpc_maxradius_inner", 40.0);  // cm
-  //set_default_double_param("tpc_maxradius_mid", 60.0);
-  //set_default_double_param("tpc_maxradius_outer", 77.0);  // from Tom
 
   set_default_double_param("tpc_minradius_inner", 31.105);//30.0);  // cm
   set_default_double_param("tpc_minradius_mid", 41.153);//40.0);
@@ -820,130 +734,75 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 
 void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
 {
-  NTpcLayers[0] = get_int_param("ntpc_layers_inner");
-  NTpcLayers[1] = get_int_param("ntpc_layers_mid");
-  NTpcLayers[2] = get_int_param("ntpc_layers_outer");
-
-  MinLayer[0] = get_int_param("tpc_minlayer_inner");
-  MinLayer[1] = MinLayer[0] + NTpcLayers[0];
-  MinLayer[2] = MinLayer[1] + NTpcLayers[1];
 
   neffelectrons_threshold = get_double_param("neffelectrons_threshold");
 
-  MinRadius[0] = get_double_param("tpc_minradius_inner");
-  MinRadius[1] = get_double_param("tpc_minradius_mid");
-  MinRadius[2] = get_double_param("tpc_minradius_outer");
+  MinRadius =
+  {{
+    get_double_param("tpc_minradius_inner"),
+    get_double_param("tpc_minradius_mid"),
+    get_double_param("tpc_minradius_outer")
+  }};
 
-  MaxRadius[0] = get_double_param("tpc_maxradius_inner");
-  MaxRadius[1] = get_double_param("tpc_maxradius_mid");
-  MaxRadius[2] = get_double_param("tpc_maxradius_outer");
-
-  //Thickness[0] = NTpcLayers[0] <= 0 ? 0 : (MaxRadius[0] - MinRadius[0]) / NTpcLayers[0];
-  //Thickness[1] = NTpcLayers[1] <= 0 ? 0 : (MaxRadius[1] - MinRadius[1]) / NTpcLayers[1];
-  //Thickness[2] = NTpcLayers[2] <= 0 ? 0 : (MaxRadius[2] - MinRadius[2]) / NTpcLayers[2];
-
-  MaxRadius[0] = get_double_param("tpc_maxradius_inner");
-  MaxRadius[1] = get_double_param("tpc_maxradius_mid");
-  MaxRadius[2] = get_double_param("tpc_maxradius_outer");
-
-  Thickness[0] = 0.687;
-  Thickness[1] = 1.012;
-  Thickness[2] = 1.088;
-  Thickness[3] = 0.534;
-  Thickness[4] = 0.595;
+  MaxRadius =
+  {{
+    get_double_param("tpc_maxradius_inner"),
+    get_double_param("tpc_maxradius_mid"),
+    get_double_param("tpc_maxradius_outer")
+  }};
 
   sigmaT = get_double_param("gem_cloud_sigma");
-  sigmaL[0] = get_double_param("sampa_shaping_lead");
-  sigmaL[1] = get_double_param("sampa_shaping_tail");
+  sigmaL = {{
+    get_double_param("sampa_shaping_lead"),
+    get_double_param("sampa_shaping_tail")
+  }};
 
-  tpc_adc_clock = get_double_param("tpc_adc_clock");
+  const double tpc_adc_clock = get_double_param("tpc_adc_clock");
 
-  MaxZ = get_double_param("maxdriftlength");
-  TBinWidth = tpc_adc_clock;
-  ZBinWidth = TBinWidth * drift_velocity;
-  MaxT = 2.0 * MaxZ / drift_velocity;  // allows for extended time readout
-  MinT = 0;
+  const double MaxZ = get_double_param("maxdriftlength");
+  const double TBinWidth = tpc_adc_clock;
+  const double MaxT = 2.0 * MaxZ / drift_velocity;  // allows for extended time readout
+  const double MinT = 0;
   NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
 
-  std::cout << PHWHERE << "MaxT " << MaxT << " NTBins = " << NTBins << " drift velocity " << drift_velocity << std::endl;
+  const std::array<double, 3> SectorPhi =
+  {{
+    get_double_param("tpc_sector_phi_inner"),
+    get_double_param("tpc_sector_phi_mid"),
+    get_double_param("tpc_sector_phi_outer")
+  }};
 
-  SectorPhi[0] = get_double_param("tpc_sector_phi_inner");
-  SectorPhi[1] = get_double_param("tpc_sector_phi_mid");
-  SectorPhi[2] = get_double_param("tpc_sector_phi_outer");
-
-  NPhiBins[0] = get_int_param("ntpc_phibins_inner");
-  NPhiBins[1] = get_int_param("ntpc_phibins_mid");
-  NPhiBins[2] = get_int_param("ntpc_phibins_outer");
-
-  PhiBinWidth[0] = SectorPhi[0] * 12 / (double) NPhiBins[0];
-  PhiBinWidth[1] = SectorPhi[1] * 12 / (double) NPhiBins[1];
-  PhiBinWidth[2] = SectorPhi[2] * 12 / (double) NPhiBins[2];
+  const std::array<int,3> NPhiBins = 
+  {{
+    get_int_param("ntpc_phibins_inner"),
+    get_int_param("ntpc_phibins_mid"),
+    get_int_param("ntpc_phibins_outer")
+  }};
+  
+  PhiBinWidth =
+  {{
+    SectorPhi[0] * 12 / (double) NPhiBins[0],
+    SectorPhi[1] * 12 / (double) NPhiBins[1],
+    SectorPhi[2] * 12 / (double) NPhiBins[2]
+  }};
 
   averageGEMGain = get_double_param("gem_amplification");
-
-  //The modules are segmented in [-M_PI;M_PI] interval
-  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dR_tmp = {{
-    {{
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.}
-    }},
-    {{
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.}
-    }}
-  }};
-
-  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dPhi_tmp = {{
-    {{
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.}
-    }},
-    {{
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.},
-      {0.,0.,0.}
-    }}
-  }};
-
-  dR = dR_tmp;
-  dPhi = dPhi_tmp;
+  
+  for (int iregion = 0; iregion < 3; ++iregion)
+  {
+    for (int zside = 0; zside < 2;zside++)
+    {
+      sector_min_Phi_sectors[zside][iregion].clear();
+      sector_max_Phi_sectors[zside][iregion].clear();
+      for (int isector = 0; isector < NSectors; ++isector)
+      {        
+        double sec_gap = (2*M_PI - SectorPhi[iregion]*12)/12;
+        double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap - 2 * M_PI / 12 * isector;// * (isector+1) ;
+        double sec_min_phi = sec_max_phi - SectorPhi[iregion];
+        sector_min_Phi_sectors[zside][iregion].push_back(sec_min_phi);
+        sector_max_Phi_sectors[zside][iregion].push_back(sec_max_phi);
+        
+      }
+    }
+  }  
 }
