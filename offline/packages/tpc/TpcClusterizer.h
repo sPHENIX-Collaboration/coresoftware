@@ -44,7 +44,8 @@ class TpcClusterizer : public SubsysReco
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size ;}
   void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeT = size ;}
   void set_cluster_version(int value) { cluster_version = value; }
-  
+  void set_pedestal(int value) { pedestal = value; }
+
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
 

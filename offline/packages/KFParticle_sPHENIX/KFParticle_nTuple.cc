@@ -283,7 +283,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
                                    std::vector<KFParticle> intermediates,
                                    int nPVs, int multiplicity)
 {
-  const float speedOfLight = 2.99792458e-1;
+  const float speedOfLight = 2.99792458e-2;
 
   KFParticle temp;
   KFParticle* daughterArray = &daughters[0];

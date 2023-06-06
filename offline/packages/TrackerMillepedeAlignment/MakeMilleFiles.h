@@ -58,6 +58,13 @@ class MakeMilleFiles : public SubsysReco
   {
     m_layerMisalignment.insert(std::make_pair(layer, factor));
   }
+  void set_tpc_sector_fixed(unsigned int region, unsigned int sector, 
+			    unsigned int side)
+ {
+   // make a combined subsector index
+   unsigned int subsector = region * 24 + side * 12 + sector;
+   fixed_sectors.insert(subsector);
+ }
 
  private:
   Mille* _mille;
@@ -71,7 +78,7 @@ class MakeMilleFiles : public SubsysReco
 
   bool is_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
-
+  bool is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side);
   void addTrackToMilleFile(SvtxAlignmentStateMap::StateVec statevec);
 
   std::map<int, float> derivativeGL;
@@ -82,7 +89,7 @@ class MakeMilleFiles : public SubsysReco
   unsigned int _cluster_version = 5;
 
   std::map<unsigned int, float> m_layerMisalignment;
-
+  std::set<unsigned int> fixed_sectors;
   // set default groups to lowest level
   AlignmentDefs::siliconGrp si_group = AlignmentDefs::siliconGrp::snsr;
   AlignmentDefs::tpcGrp tpc_group = AlignmentDefs::tpcGrp::htst;

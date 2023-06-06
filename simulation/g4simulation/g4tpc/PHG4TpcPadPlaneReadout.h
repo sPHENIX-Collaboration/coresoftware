@@ -30,12 +30,12 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   ~PHG4TpcPadPlaneReadout() override;
 
+  int InitRun(PHCompositeNode *topNode) override;
+
   void UseGain(const int flagToUseGain);
   void ReadGain();
 
   void SetDriftVelocity(double vd) override { drift_velocity = vd; }
-
-  int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4TpcCylinderGeomContainer *seggeo) override;
 
   // otherwise warning of inconsistent overload since only one MapToPadPlane methow is overridden
   using PHG4TpcPadPlane::MapToPadPlane;
@@ -52,45 +52,24 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   double check_phi(const unsigned int side, const double phi, const double radius);
 
-  std::string seggeonodename;
-
   PHG4TpcCylinderGeomContainer *GeomContainer = nullptr;
   PHG4TpcCylinderGeom *LayerGeom = nullptr;
 
-  double rad_gem = NAN;
-  double output_radius = 0;
-
-  static const unsigned int print_layer = 18;
-
   double neffelectrons_threshold = NAN;
 
-  std::array<int, 3> MinLayer;
   std::array<double, 3> MinRadius;
   std::array<double, 3> MaxRadius;
-  std::array<double, 5> Thickness;
 
-  static const int NSides = 2;
-  static const int NSectors = 12;
+  static constexpr int NSides = 2;
+  static constexpr int NSectors = 12;
   static const int NRSectors = 3;
 
-  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dR;
-  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dPhi;
-
-  double MaxZ = NAN;
-  double MinT = NAN;
-  double MaxT = NAN;
   double sigmaT = NAN;
   std::array<double, 2> sigmaL;
   std::array<double, 3> PhiBinWidth;
-  double ZBinWidth = NAN;
-  double TBinWidth = NAN;
   double drift_velocity = 8.0e-03;  // default value, override from macro
-  double tpc_adc_clock = NAN;
 
   int NTBins = INT_MAX;
-  std::array<int, 3> NPhiBins;
-  std::array<int, 3> NTpcLayers;
-  std::array<double, 3> SectorPhi;
   int m_NHits = 0;
   // Using Gain maps is turned off by default
   int m_flagToUseGain = 0;
@@ -99,22 +78,14 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   double averageGEMGain = NAN;
 
-  std::vector<int> adc_tbin;
-  std::vector<int> pad_phibin;
-  std::vector<double> pad_phibin_share;
-  std::vector<double> adc_tbin_share;
-  std::array<std::vector<double>, NSides > sector_R_bias;
-  std::array<std::vector<double>, NSides > sector_Phi_bias;
-  std::array<std::vector<double>, NSides > sector_min_Phi;
-  std::array<std::vector<double>, NSides > sector_max_Phi;
   std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_min_Phi_sectors;
   std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_max_Phi_sectors;
 
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
-  gsl_rng *RandomGenerator;
+  gsl_rng *RandomGenerator = nullptr;
 
-  TH2F *h_gain[2];
+  TH2F *h_gain[2] = {nullptr};
   
 };
 
