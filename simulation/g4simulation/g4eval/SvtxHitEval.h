@@ -92,7 +92,7 @@ class SvtxHitEval
   PHG4TruthInfoContainer* _truthinfo;
 
   bool _strict = false;
-  int _verbosity 0;
+  int _verbosity = 0;
   unsigned int _errors = 0;
 
   bool _do_cache = true;
