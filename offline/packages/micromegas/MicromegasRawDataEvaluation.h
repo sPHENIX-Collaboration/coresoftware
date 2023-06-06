@@ -86,6 +86,8 @@ class MicromegasRawDataEvaluation : public SubsysReco
   {
     public:
     void Reset();
+    int n_tagger = 0;
+    int max_fee_count = 0;
     int n_waveforms = 0;
     Sample::List samples;
     ClassDef(Container,1)
@@ -106,6 +108,10 @@ class MicromegasRawDataEvaluation : public SubsysReco
   // main branch
   Container* m_container = nullptr;
   
+  // map bco to waiveforms
+  using bco_map_t = std::map<int,unsigned int>;
+  bco_map_t m_bco_map;
+
 };
 
 #endif
