@@ -665,7 +665,7 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
           if (_verbosity > 2)
           {
             std::cout << "layer: " << layer << " (" << glayer << ") "
-                 << " gtrackID: " << this_g4hit->get_trkid() << " novlp: " << ng4hit << " phi: " << vec.Phi() << " z: " << this_g4hit->get_avg_z() << " r: " << vec.Perp() << " keyg4: " << g4hitkey << " cz: " << cluster->getZ() << std::endl;  //<< " keyrec: "<< *it.second << std::endl;
+                      << " gtrackID: " << this_g4hit->get_trkid() << " novlp: " << ng4hit << " phi: " << vec.Phi() << " z: " << this_g4hit->get_avg_z() << " r: " << vec.Perp() << " keyg4: " << g4hitkey << " cz: " << cluster->getZ() << std::endl;  //<< " keyrec: "<< *it.second << std::endl;
           }
         }
       }
@@ -1043,9 +1043,9 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
         if (_verbosity > 1)
         {
           std::cout << " layer " << layer << " cluster_key " << cluster_key << " adc " << clus->getAdc()
-               << " localx " << clus->getLocalX()
-               << " localy " << clus->getLocalY()
-               << std::endl;
+                    << " localx " << clus->getLocalX()
+                    << " localy " << clus->getLocalY()
+                    << std::endl;
           std::cout << "  associated hits:";
           std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
               hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
@@ -1069,8 +1069,8 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
           {
             int gtrackID = candidate->get_trkid();
             std::cout << "   adding cluster with cluster_key " << cluster_key << " g4hit with g4hit_key " << g4hit_key
-                 << " gtrackID " << gtrackID
-                 << std::endl;
+                      << " gtrackID " << gtrackID
+                      << std::endl;
           }
 
           all_g4hits_set.insert(g4hit_key);

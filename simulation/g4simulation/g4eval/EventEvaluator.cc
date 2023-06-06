@@ -423,8 +423,8 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           if (!truthevent)
           {
             std::cout << PHWHERE
-                 << "no evt pointer under phhepmvgeneventmap found "
-                 << std::endl;
+                      << "no evt pointer under phhepmvgeneventmap found "
+                      << std::endl;
             return;
           }
 
@@ -1369,8 +1369,8 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           if (!truthevent)
           {
             std::cout << PHWHERE
-                 << "no evt pointer under phhepmvgeneventmap found "
-                 << std::endl;
+                      << "no evt pointer under phhepmvgeneventmap found "
+                      << std::endl;
             return;
           }
 

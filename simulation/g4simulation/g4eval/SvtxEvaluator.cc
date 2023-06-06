@@ -591,15 +591,15 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
       PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(ilayer);
 
       std::cout << "layer " << ilayer << ": nG4hits = " << ng4hits[ilayer]
-           << " => nHits = " << nhits[ilayer]
-           << " => nClusters = " << nclusters[ilayer] << std::endl;
+                << " => nHits = " << nhits[ilayer]
+                << " => nClusters = " << nclusters[ilayer] << std::endl;
       if (ilayer >= _nlayers_maps + _nlayers_intt && ilayer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
       {
         std::cout << "layer " << ilayer
-             << " => nphi = " << GeoLayer->get_phibins()
-             << " => nz   = " << GeoLayer->get_zbins()
-             << " => ntot = " << GeoLayer->get_phibins() * GeoLayer->get_zbins()
-             << std::endl;
+                  << " => nphi = " << GeoLayer->get_phibins()
+                  << " => nz   = " << GeoLayer->get_zbins()
+                  << " => ntot = " << GeoLayer->get_phibins() * GeoLayer->get_zbins()
+                  << std::endl;
       }
     }
 
@@ -784,7 +784,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
                 z = 0.5 * (g4hit->get_z(0) + g4hit->get_z(1));
 
                 std::cout << " #" << g4hit->get_hit_id()
-                     << " xtrue = (";
+                          << " xtrue = (";
                 std::cout.width(5);
                 std::cout << x;
                 std::cout << ",";
@@ -909,10 +909,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   if (Verbosity() > 1)
   {
     std::cout << " occ11 = " << occ11
-         << " nbins = " << nbins
-         << " nhits = " << nhits
-         << " layer = " << layer
-         << std::endl;
+              << " nbins = " << nbins
+              << " nhits = " << nhits
+              << " layer = " << layer
+              << std::endl;
   }
   layer = _nlayers_maps + _nlayers_intt + 15;
   GeoLayer = geom_container->GetLayerCellGeom(layer);
@@ -944,12 +944,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   if (Verbosity() > 1)
   {
     std::cout << " occ11 = " << occ11
-         << " occ116 = " << occ116
-         << " occ21 = " << occ21
-         << " occ216 = " << occ216
-         << " occ31 = " << occ31
-         << " occ316 = " << occ316
-         << std::endl;
+              << " occ116 = " << occ116
+              << " occ21 = " << occ21
+              << " occ216 = " << occ216
+              << " occ31 = " << occ31
+              << " occ316 = " << occ316
+              << std::endl;
   }
   TrkrClusterContainer* clustermap_in = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
   if (!clustermap_in)
@@ -2576,7 +2576,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         {
           std::cout << PHWHERE << "  ****   truth: layer " << local_layer << std::endl;
           std::cout << "             truth cluster key " << ckey << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz
-               << " gphi " << gphi << " gedep " << gedep << " gadc " << gadc << std::endl;
+                    << " gphi " << gphi << " gedep " << gedep << " gadc " << gadc << std::endl;
         }
 
         float gphisize = gclus->getSize(1, 1);
@@ -3941,14 +3941,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         if (Verbosity() >= 1)
         {
           std::cout << "ievent " << _ievent
-               << " trackID " << trackID
-               << " nhits " << local_nhits
-               << " px " << px
-               << " py " << py
-               << " pz " << pz
-               << " gembed " << gembed
-               << " gprimary " << gprimary
-               << std::endl;
+                    << " trackID " << trackID
+                    << " nhits " << local_nhits
+                    << " px " << px
+                    << " py " << py
+                    << " pz " << pz
+                    << " gembed " << gembed
+                    << " gprimary " << gprimary
+                    << std::endl;
         }
 
         _ntp_track->Fill(track_data);

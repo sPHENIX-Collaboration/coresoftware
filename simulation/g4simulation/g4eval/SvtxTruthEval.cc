@@ -492,10 +492,10 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
       if (_verbosity > 1)
       {
         std::cout << "     keep g4hit with rbegin " << rbegin << " rend " << rend
-             << "         xbegin " << xl[0] << " xend " << xl[1]
-             << " ybegin " << yl[0] << " yend " << yl[1]
-             << " zbegin " << zl[0] << " zend " << zl[1]
-             << std::endl;
+                  << "         xbegin " << xl[0] << " xend " << xl[1]
+                  << " ybegin " << yl[0] << " yend " << yl[1]
+                  << " zbegin " << zl[0] << " zend " << zl[1]
+                  << std::endl;
       }
 
       float xin = xl[0];
@@ -546,11 +546,11 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
       if (_verbosity > 1)
       {
         std::cout << "      rin  " << rin << " rout " << rout
-             << " xin " << xin << " xout " << xout << " yin " << yin << " yout " << yout << " zin " << zin << " zout " << zout
-             << " edep " << this_g4hit->get_edep()
-             << " this_edep " << efrac << std::endl;
+                  << " xin " << xin << " xout " << xout << " yin " << yin << " yout " << yout << " zin " << zin << " zout " << zout
+                  << " edep " << this_g4hit->get_edep()
+                  << " this_edep " << efrac << std::endl;
         std::cout << "              xavge " << (xin + xout) * 0.5 << " yavge " << (yin + yout) * 0.5 << " zavge " << (zin + zout) * 0.5 << " ravge " << (rin + rout) * 0.5
-             << std::endl;
+                  << std::endl;
       }
 
       // Capture entry and exit points
@@ -644,10 +644,10 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
       if (_verbosity > 1)
       {
         std::cout << "      rentry  " << rentry << " rexit " << rexit
-             << " xentry " << xentry << " xexit " << xexit << " yentry " << yentry << " yexit " << yexit << " zentry " << zentry << " zexit " << zexit << std::endl;
+                  << " xentry " << xentry << " xexit " << xexit << " yentry " << yentry << " yexit " << yexit << " zentry " << zentry << " zexit " << zexit << std::endl;
 
         std::cout << " geometric means: geo_x " << geo_x << " geo_y " << geo_y << " geo_z " << geo_z << " geo r " << geo_r << " e " << gwt << std::endl
-             << std::endl;
+                  << std::endl;
       }
     }
 

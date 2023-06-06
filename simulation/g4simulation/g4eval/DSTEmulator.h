@@ -21,7 +21,6 @@
 #include <string>
 #include <vector>
 
-
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Particle;

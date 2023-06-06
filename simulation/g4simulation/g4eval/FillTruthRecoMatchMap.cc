@@ -184,8 +184,8 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
   if (Verbosity() > 15)
   {
     std::cout << PHWHERE << " Print out: " << std::endl
-         << " Contents of SvtxPHG4ParticleMap (node \"RecoToPHG4ParticleMap\")" << std::endl
-         << " and PHG4ParticleSvtxMap (node \"PHG4ParticleToRecoMap\")" << std::endl;
+              << " Contents of SvtxPHG4ParticleMap (node \"RecoToPHG4ParticleMap\")" << std::endl
+              << " and PHG4ParticleSvtxMap (node \"PHG4ParticleToRecoMap\")" << std::endl;
 
     std::cout << " --BEGIN-- Contents of SvtxPHG4ParticleMap: " << std::endl;
     for (auto &iter : *m_SvtxPHG4ParticleMap)

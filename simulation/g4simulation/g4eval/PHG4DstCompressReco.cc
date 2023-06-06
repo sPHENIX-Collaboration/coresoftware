@@ -67,8 +67,8 @@ int PHG4DstCompressReco::InitRun(PHCompositeNode* topNode)
     if (_recoTruthMap == nullptr)
     {
       std::cout << __PRETTY_FUNCTION__ << " Fatal error: missing SvtxPHG4ParticleMap while m_keepRecoTrackMatchedParticles is set. "
-           << "Was PHG4DstCompressReco called before this module?"
-           << std::endl;
+                << "Was PHG4DstCompressReco called before this module?"
+                << std::endl;
       exit(1);
     }
 
@@ -76,8 +76,8 @@ int PHG4DstCompressReco::InitRun(PHCompositeNode* topNode)
     if (_truthRecoMap == nullptr)
     {
       std::cout << __PRETTY_FUNCTION__ << " Fatal error: missing PHG4ParticleSvtxMap while m_keepRecoTrackMatchedParticles is set. "
-           << "Was PHG4DstCompressReco called before this module?"
-           << std::endl;
+                << "Was PHG4DstCompressReco called before this module?"
+                << std::endl;
       exit(1);
     }
   }  //  if (m_keepRecoTrackMatchedParticles)

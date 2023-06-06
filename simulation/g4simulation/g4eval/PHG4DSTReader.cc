@@ -87,7 +87,7 @@ int PHG4DSTReader::Init(PHCompositeNode * /*unused*/)
     if (Verbosity() > 0)
     {
       std::cout << "PHG4DSTReader::Init - saving hits from node: " << hname << " - "
-           << class_name << std::endl;
+                << class_name << std::endl;
     }
 
     record rec;
@@ -105,7 +105,7 @@ int PHG4DSTReader::Init(PHCompositeNode * /*unused*/)
   if (_tower_postfix.size() && Verbosity() > 0)
   {
     std::cout << "PHG4DSTReader::Init - zero suppression for calorimeter towers = "
-         << _tower_zero_sup << " GeV" << std::endl;
+              << _tower_zero_sup << " GeV" << std::endl;
   }
   for (const auto &nodenam : _tower_postfix)
   {
@@ -116,7 +116,7 @@ int PHG4DSTReader::Init(PHCompositeNode * /*unused*/)
     if (Verbosity() > 0)
     {
       std::cout << "PHG4DSTReader::Init - saving raw tower info from node: " << hname
-           << " - " << class_name << std::endl;
+                << " - " << class_name << std::endl;
     }
     record rec;
     rec._cnt = 0;
@@ -137,7 +137,7 @@ int PHG4DSTReader::Init(PHCompositeNode * /*unused*/)
     if (Verbosity() > 0)
     {
       std::cout << "PHG4DSTReader::Init - saving jets from node: " << hname << " - "
-           << class_name << std::endl;
+                << class_name << std::endl;
     }
     record rec;
     rec._cnt = 0;
@@ -160,7 +160,7 @@ int PHG4DSTReader::Init(PHCompositeNode * /*unused*/)
     if (Verbosity() > 0)
     {
       std::cout << "PHG4DSTReader::Init - saving Particles node:" << class_name
-           << std::endl;
+                << std::endl;
     }
     record rec;
     rec._cnt = 0;
@@ -183,7 +183,7 @@ int PHG4DSTReader::Init(PHCompositeNode * /*unused*/)
     if (Verbosity() > 0)
     {
       std::cout << "PHG4DSTReader::Init - saving vertex for particles under node:"
-           << class_name << std::endl;
+                << class_name << std::endl;
     }
     record rec;
     rec._cnt = 0;
@@ -278,7 +278,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
       if (Verbosity() >= 2)
       {
         std::cout << "PHG4DSTReader::process_event - processing " << rec._name
-             << std::endl;
+                  << std::endl;
       }
 
       PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode,
@@ -299,8 +299,8 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
         if (Verbosity() >= 2)
         {
           std::cout << "PHG4DSTReader::process_event - processing "
-               << rec._name << " and received " << hits->size() << " hits"
-               << std::endl;
+                    << rec._name << " and received " << hits->size() << " hits"
+                    << std::endl;
         }
 
         for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first;
@@ -340,8 +340,8 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
           if (Verbosity() >= 2)
           {
             std::cout << "PHG4DSTReader::process_event - processing "
-                 << rec._name << " and hit " << hit->get_hit_id()
-                 << " with track id " << hit->get_trkid() << std::endl;
+                      << rec._name << " and hit " << hit->get_hit_id()
+                      << " with track id " << hit->get_trkid() << std::endl;
           }
 
           rec._cnt++;
@@ -353,7 +353,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
       if (Verbosity() >= 2)
       {
         std::cout << "PHG4DSTReader::process_event - processing tower "
-             << rec._name << std::endl;
+                  << rec._name << std::endl;
       }
 
       RawTowerContainer *hits = findNode::getClass<RawTowerContainer>(
@@ -374,8 +374,8 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
         if (Verbosity() >= 2)
         {
           std::cout << "PHG4DSTReader::process_event - processing "
-               << rec._name << " and received " << hits->size()
-               << " tower hits" << std::endl;
+                    << rec._name << " and received " << hits->size()
+                    << " tower hits" << std::endl;
         }
 
         for (RawTowerContainer::ConstIterator hit_iter = hit_range.first;
@@ -449,7 +449,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
       if (Verbosity() >= 2)
       {
         std::cout << "PHG4DSTReader::process_event - processing jets "
-             << rec._name << std::endl;
+                  << rec._name << std::endl;
       }
 
       JetMap *hits = findNode::getClass<JetMap>(topNode, rec._name);
@@ -467,8 +467,8 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
         if (Verbosity() >= 2)
         {
           std::cout << "PHG4DSTReader::process_event - processing "
-               << rec._name << " and received " << hits->size() << " jets"
-               << std::endl;
+                    << rec._name << " and received " << hits->size() << " jets"
+                    << std::endl;
         }
 
         // for every recojet
@@ -479,9 +479,9 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
           if (Verbosity() >= 2)
           {
             std::cout << "PHG4DSTReader::process_event - processing jet "
-                 << rec._name << " @ (" << hit_raw->get_eta() << ", "
-                 << hit_raw->get_phi() << "), pT = " << hit_raw->get_pt()
-                 << " - with raw type " << hit_raw->ClassName() << std::endl;
+                      << rec._name << " @ (" << hit_raw->get_eta() << ", "
+                      << hit_raw->get_phi() << "), pT = " << hit_raw->get_pt()
+                      << " - with raw type " << hit_raw->ClassName() << std::endl;
           }
 
           PHPyJet_type *hit = dynamic_cast<PHPyJet_type *>(hit_raw);
@@ -589,7 +589,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
         if (Verbosity() >= 2)
         {
           std::cout << "PHG4DSTReader::process_event - saving vertex id "
-               << i << std::endl;
+                    << i << std::endl;
         }
 
         vertex_type *new_v =

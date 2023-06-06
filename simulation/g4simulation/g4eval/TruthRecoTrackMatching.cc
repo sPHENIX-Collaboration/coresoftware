@@ -48,12 +48,12 @@ TruthRecoTrackMatching::TruthRecoTrackMatching(const unsigned short _nmincluster
   , m_nmincluster_match{_nmincluster_match}  // minimum number of clusters to match, default=4
   , m_nmincluster_ratio{_nmincluster_ratio}  // minimum ratio to match a track, default=0.
                                              // -- Track Kinematic Cuts to match --
-  , m_cutoff_dphi{_cutoff_dphi}  // maximum |dphi|=|phi_reco-phi_truth| to search for match
-  , m_same_dphi{_same_dphi}      // all tracks in this |dphi| must be tested for matches
-  , m_cutoff_deta{_cutoff_deta}  // same as m_cutoff_dphi for deta
-  , m_same_deta{_same_deta}      // same as m_same_dphi for deta
-                             // cluster matching widths (how close the truth center must be reco center)
-                             // number of truth tracks allowed matched per reco track, and v. versa
+  , m_cutoff_dphi{_cutoff_dphi}              // maximum |dphi|=|phi_reco-phi_truth| to search for match
+  , m_same_dphi{_same_dphi}                  // all tracks in this |dphi| must be tested for matches
+  , m_cutoff_deta{_cutoff_deta}              // same as m_cutoff_dphi for deta
+  , m_same_deta{_same_deta}                  // same as m_same_dphi for deta
+                                             // cluster matching widths (how close the truth center must be reco center)
+                                             // number of truth tracks allowed matched per reco track, and v. versa
   , m_max_nreco_per_truth{_max_nreco_per_truth}
   , m_max_ntruth_per_reco{_max_ntruth_per_reco}
 {
@@ -146,7 +146,7 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
                                           recoData.end(), (-M_PI + m_cutoff_dphi), CompRECOtoPhi());
   for (auto iter = recoData.begin(); iter != wrap_from_start; ++iter)
   {
-    auto entry = *iter;                                    // make a new copy to wrap to the other side of recoData
+    auto entry = *iter;                                              // make a new copy to wrap to the other side of recoData
     std::get<RECOphi>(entry) = std::get<RECOphi>(entry) + 2 * M_PI;  // put the new copy on the other end
     wraps.push_back(entry);
   }
@@ -163,8 +163,8 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
     for (auto& E : recoData)
     {
       std::cout << Form(" id:%2i  (phi:eta:pt) (%5.2f:%5.2f:%5.2f)", std::get<RECOid>(E),
-                   std::get<RECOphi>(E), std::get<RECOeta>(E), std::get<RECOpt>(E))
-           << std::endl;
+                        std::get<RECOphi>(E), std::get<RECOeta>(E), std::get<RECOpt>(E))
+                << std::endl;
     }
     std::cout << " ****end*listing*********************** " << std::endl;
   }
@@ -196,9 +196,9 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
     {
       auto& track = _pair.second;
       std::cout << Form(" id:%2i  (phi:eta:pt) (%5.2f:%5.2f:%5.2f nclus: %i)", track->getTrackid(),
-                   track->getPhi(), track->getPseudoRapidity(), track->getPt(),
-                   (int) track->getClusters().size())
-           << std::endl;
+                        track->getPhi(), track->getPseudoRapidity(), track->getPt(),
+                        (int) track->getClusters().size())
+                << std::endl;
     }
     std::cout << " ----end-listing-truth-tracks---------- " << std::endl;
   }
@@ -224,8 +224,8 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
     if (Verbosity() > 80)
     {
       std::cout << Form(" T(%i)  find box(%5.2f:%5.2f:%5.2f)",
-                   (int) track->getTrackid(), track->getPhi(),
-                   track->getPseudoRapidity(), track->getPt());
+                        (int) track->getTrackid(), track->getPhi(),
+                        track->getPseudoRapidity(), track->getPt());
       for (auto& id_reco : match_indices.first)
       {
         std::cout << "->IB(" << id_reco << ")";
@@ -264,9 +264,9 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
     for (auto match : m_EmbRecoMatchContainer->getMatches())
     {
       std::cout << Form(" Match id(%2i->%2i) nClusMatch-nClusTrue-nClusReco (%2i:%2i:%2i)",
-                   match->idTruthTrack(), match->idRecoTrack(),
-                   match->nClustersMatched(), match->nClustersTruth(), match->nClustersReco())
-           << std::endl;
+                        match->idTruthTrack(), match->idRecoTrack(),
+                        match->nClustersMatched(), match->nClustersTruth(), match->nClustersReco())
+                << std::endl;
     }
     std::cout << " --END--print-all-stored-matches----" << std::endl;
   }
@@ -618,14 +618,14 @@ void TruthRecoTrackMatching::match_tracks_in_box(
       {
         auto truth_track = m_TrkrTruthTrackContainer->getTruthTrack(id_true);
         std::cout << Form(
-                    "possmatch:(phi,eta,pT:id) true(%5.2f,%5.2f,%4.2f:%2i) reco(%5.2f,%5.2f,%4.2f:%2i) "
-                    "nCl(match:true:reco:nomatch)(%2i-%2i-%2i-%2i)",
-                    truth_track->getPhi(), truth_track->getPseudoRapidity(), truth_track->getPt(),
-                    (int) truth_track->getTrackid(),
-                    reco_track->get_phi(), reco_track->get_eta(), reco_track->get_pt(),
-                    ipair->second,
-                    (int) nclus_match, (int) nclus_true, (int) nclus_reco, (int) nclus_nomatch)
-             << std::endl;
+                         "possmatch:(phi,eta,pT:id) true(%5.2f,%5.2f,%4.2f:%2i) reco(%5.2f,%5.2f,%4.2f:%2i) "
+                         "nCl(match:true:reco:nomatch)(%2i-%2i-%2i-%2i)",
+                         truth_track->getPhi(), truth_track->getPseudoRapidity(), truth_track->getPt(),
+                         (int) truth_track->getTrackid(),
+                         reco_track->get_phi(), reco_track->get_eta(), reco_track->get_pt(),
+                         ipair->second,
+                         (int) nclus_match, (int) nclus_true, (int) nclus_reco, (int) nclus_nomatch)
+                  << std::endl;
       }
       if (nclus_match >= m_nmincluster_match && (static_cast<float>(nclus_match) / nclus_true >= m_nmincluster_ratio))
       {
