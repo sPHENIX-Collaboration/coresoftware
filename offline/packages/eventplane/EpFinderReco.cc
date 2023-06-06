@@ -46,6 +46,7 @@
 EpFinderReco::EpFinderReco(const std::string &name)
   : SubsysReco(name)
   , detector("NONE")
+  , mTruncationInput(NULL)
 {
 }
 
