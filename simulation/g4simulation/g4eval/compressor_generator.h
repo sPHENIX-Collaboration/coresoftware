@@ -13,7 +13,6 @@
 
 #include "RtypesCore.h"
 //-----------------------------------------------------------------------------
-//using namespace std;
 
 UShort_t residesIn(Float_t raw, std::vector<Float_t>* dict)
 {
