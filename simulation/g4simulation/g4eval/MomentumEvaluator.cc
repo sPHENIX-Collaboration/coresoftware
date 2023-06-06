@@ -10,6 +10,7 @@
 #include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
 
 #include <TFile.h>
@@ -21,8 +22,6 @@
 #include <memory>
 #include <utility>
 #include <vector>
-
-using namespace std;
 
 class TrivialTrack
 {
@@ -232,7 +231,7 @@ class RecursiveMomentumContainer
     }
   }
 
-  virtual void append_list(vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI)
+  virtual void append_list(std::vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI)
   {
     for (auto& container : containers)
     {
@@ -292,7 +291,7 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
     }
   }
 
-  void append_list(vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI) override
+  void append_list(std::vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI) override
   {
     for (auto& track : tracks)
     {
@@ -305,7 +304,7 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
   }
 
  protected:
-  vector<TrivialTrack> tracks;
+  std::vector<TrivialTrack> tracks;
 };
 
 bool RecursiveMomentumContainer::insert(TrivialTrack& track)
@@ -404,13 +403,13 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
   PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_SVTX");
   if (g4hits == nullptr)
   {
-    cout << "can't find PHG4HitContainer" << endl;
+    std::cout << "can't find PHG4HitContainer" << std::endl;
     exit(1);
   }
   PHG4HitContainer::ConstRange g4range = g4hits->getHits();
 
   // set<int> trkids;
-  map<int, pair<unsigned int, unsigned int> > trkids;
+  std::map<int, std::pair<unsigned int, unsigned int> > trkids;
 
   for (PHG4HitContainer::ConstIterator iter = g4range.first; iter != g4range.second; ++iter)
   {
@@ -422,7 +421,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
     {
       length = inner_z_length;
     }
-    if (fabs(hit->get_z(0)) > length)
+    if (std::fabs(hit->get_z(0)) > length)
     {
       continue;
     }
@@ -442,9 +441,9 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
       trkids[trk_id].second = (trkids[trk_id].second | (1 << (hit->get_layer() - 32)));
     }
 
-    // cout<<"trk_id = "<<trk_id<<endl;
-    // cout<<"layer = "<<hit->get_layer()<<endl;
-    // cout<<"nlayer = "<<__builtin_popcount(trkids[trk_id].first)+__builtin_popcount(trkids[trk_id].second)<<endl<<endl;
+    // std::cout<<"trk_id = "<<trk_id<<std::endl;
+    // std::cout<<"layer = "<<hit->get_layer()<<std::endl;
+    // std::cout<<"nlayer = "<<__builtin_popcount(trkids[trk_id].first)+__builtin_popcount(trkids[trk_id].second)<<std::endl<<std::endl;
     // trkids.insert(trk_id);
   }
 
@@ -479,7 +478,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    // cout<<"trk, nhits = "<<particle->get_track_id()<<" "<<__builtin_popcount(trkids[particle->get_track_id()].first)+__builtin_popcount(trkids[particle->get_track_id()].second)<<endl;
+    // std::cout<<"trk, nhits = "<<particle->get_track_id()<<" "<<__builtin_popcount(trkids[particle->get_track_id()].first)+__builtin_popcount(trkids[particle->get_track_id()].second)<<std::endl;
 
     if (__builtin_popcount(trkids[particle->get_track_id()].first) + __builtin_popcount(trkids[particle->get_track_id()].second) < (int) n_required_layers)
     {
@@ -499,18 +498,18 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
   }
 
   TrivialTrack* t_track = true_sorted.begin();
-  vector<TrivialTrack*> pointer_list;
+  std::vector<TrivialTrack*> pointer_list;
   while (t_track != nullptr)
   {
     pointer_list.clear();
 
-    float pt = sqrt((t_track->px * t_track->px) + (t_track->py * t_track->py));
+    float pt = std::sqrt((t_track->px * t_track->px) + (t_track->py * t_track->py));
     float pt_diff = pt * pt_search_scale;
     float px_lo = t_track->px - pt_diff;
     float px_hi = t_track->px + pt_diff;
     float py_lo = t_track->py - pt_diff;
     float py_hi = t_track->py + pt_diff;
-    float pz_diff = fabs(t_track->pz) * pz_search_scale;
+    float pz_diff = std::fabs(t_track->pz) * pz_search_scale;
     float pz_lo = t_track->pz - pz_diff;
     float pz_hi = t_track->pz + pz_diff;
 
@@ -518,14 +517,14 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
 
     if (pointer_list.size() > 0)
     {
-      float mom_true = sqrt(pt * pt + (t_track->pz) * (t_track->pz));
+      float mom_true = std::sqrt(pt * pt + (t_track->pz) * (t_track->pz));
       float best_ind = 0;
-      float mom_reco = sqrt((pointer_list[0]->px) * (pointer_list[0]->px) + (pointer_list[0]->py) * (pointer_list[0]->py) + (pointer_list[0]->pz) * (pointer_list[0]->pz));
+      float mom_reco = std::sqrt((pointer_list[0]->px) * (pointer_list[0]->px) + (pointer_list[0]->py) * (pointer_list[0]->py) + (pointer_list[0]->pz) * (pointer_list[0]->pz));
       float best_mom = mom_reco;
       for (unsigned int i = 1; i < pointer_list.size(); ++i)
       {
-        mom_reco = sqrt((pointer_list[i]->px) * (pointer_list[i]->px) + (pointer_list[i]->py) * (pointer_list[i]->py) + (pointer_list[i]->pz) * (pointer_list[i]->pz));
-        if (fabs(mom_true - mom_reco) < fabs(mom_true - best_mom))
+        mom_reco = std::sqrt((pointer_list[i]->px) * (pointer_list[i]->px) + (pointer_list[i]->py) * (pointer_list[i]->py) + (pointer_list[i]->pz) * (pointer_list[i]->pz));
+        if (std::fabs(mom_true - mom_reco) < std::fabs(mom_true - best_mom))
         {
           best_mom = mom_reco;
           best_ind = i;
@@ -549,13 +548,13 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
   {
     pointer_list.clear();
 
-    float pt = sqrt((r_track->px * r_track->px) + (r_track->py * r_track->py));
+    float pt = std::sqrt((r_track->px * r_track->px) + (r_track->py * r_track->py));
     float pt_diff = pt * pt_search_scale;
     float px_lo = r_track->px - pt_diff;
     float px_hi = r_track->px + pt_diff;
     float py_lo = r_track->py - pt_diff;
     float py_hi = r_track->py + pt_diff;
-    float pz_diff = fabs(r_track->pz) * pz_search_scale;
+    float pz_diff = std::fabs(r_track->pz) * pz_search_scale;
     float pz_lo = r_track->pz - pz_diff;
     float pz_hi = r_track->pz + pz_diff;
 
@@ -563,14 +562,14 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
 
     if (pointer_list.size() > 0)
     {
-      float mom_reco = sqrt(pt * pt + (r_track->pz) * (r_track->pz));
+      float mom_reco = std::sqrt(pt * pt + (r_track->pz) * (r_track->pz));
       float best_ind = 0;
-      float mom_true = sqrt((pointer_list[0]->px) * (pointer_list[0]->px) + (pointer_list[0]->py) * (pointer_list[0]->py) + (pointer_list[0]->pz) * (pointer_list[0]->pz));
+      float mom_true = std::sqrt((pointer_list[0]->px) * (pointer_list[0]->px) + (pointer_list[0]->py) * (pointer_list[0]->py) + (pointer_list[0]->pz) * (pointer_list[0]->pz));
       float best_mom = mom_true;
       for (unsigned int i = 1; i < pointer_list.size(); ++i)
       {
-        mom_true = sqrt((pointer_list[i]->px) * (pointer_list[i]->px) + (pointer_list[i]->py) * (pointer_list[i]->py) + (pointer_list[i]->pz) * (pointer_list[i]->pz));
-        if (fabs(mom_reco - mom_true) < fabs(mom_reco - best_mom))
+        mom_true = std::sqrt((pointer_list[i]->px) * (pointer_list[i]->px) + (pointer_list[i]->py) * (pointer_list[i]->py) + (pointer_list[i]->pz) * (pointer_list[i]->pz));
+        if (std::fabs(mom_reco - mom_true) < std::fabs(mom_reco - best_mom))
         {
           best_mom = mom_true;
           best_ind = i;

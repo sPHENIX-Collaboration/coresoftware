@@ -4,8 +4,10 @@
 
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
+
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
+
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Shower.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -22,30 +24,9 @@
 
 class PHG4Hit;
 
-using namespace std;
-
 CaloRawTowerEval::CaloRawTowerEval(PHCompositeNode* topNode, const std::string& caloname)
   : _caloname(caloname)
   , _trutheval(topNode, caloname)
-  , _towers(nullptr)
-  , _g4cells(nullptr)
-  , _g4hits(nullptr)
-  , _truthinfo(nullptr)
-  , _strict(false)
-  , _verbosity(1)
-  , _errors(0)
-  , _do_cache(true)
-  , _cache_all_truth_primary_showers()
-  , _cache_max_truth_primary_shower_by_energy()
-  , _cache_all_towers_from_primary_shower()
-  , _cache_best_tower_from_primary_shower()
-  , _cache_get_energy_contribution_primary_shower()
-  , _cache_all_truth_primary_particles()
-  , _cache_max_truth_primary_particle_by_energy()
-  , _cache_all_towers_from_primary_particle()
-  , _cache_best_tower_from_primary_particle()
-  , _cache_get_energy_contribution_primary_particle()
-  , _cache_all_truth_hits()
 {
   get_node_pointers(topNode);
 }
@@ -56,7 +37,7 @@ CaloRawTowerEval::~CaloRawTowerEval()
   {
     if ((_errors > 0) || (_verbosity > 1))
     {
-      cout << "CaloRawTowerEval::~CaloRawTowerEval() - Error Count: " << _errors << endl;
+      std::cout << "CaloRawTowerEval::~CaloRawTowerEval() - Error Count: " << _errors << std::endl;
     }
   }
 }
@@ -162,7 +143,7 @@ std::set<PHG4Shower*> CaloRawTowerEval::all_truth_primary_showers(RawTower* towe
 
   if (_do_cache)
   {
-    _cache_all_truth_primary_showers.insert(make_pair(tower, showers));
+    _cache_all_truth_primary_showers.insert(std::make_pair(tower, showers));
   }
 
   return showers;
@@ -226,7 +207,7 @@ PHG4Shower* CaloRawTowerEval::max_truth_primary_shower_by_energy(RawTower* tower
 
   if (_do_cache)
   {
-    _cache_max_truth_primary_shower_by_energy.insert(make_pair(tower, max_shower));
+    _cache_max_truth_primary_shower_by_energy.insert(std::make_pair(tower, max_shower));
   }
 
   return max_shower;
@@ -294,7 +275,7 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Shower* shower)
 
   if (_do_cache)
   {
-    _cache_best_tower_from_primary_shower.insert(make_pair(shower, best_tower));
+    _cache_best_tower_from_primary_shower.insert(std::make_pair(shower, best_tower));
   }
 
   return best_tower;
@@ -364,7 +345,7 @@ std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Shower* shower)
 
   if (_do_cache)
   {
-    _cache_all_towers_from_primary_shower.insert(make_pair(shower, towers));
+    _cache_all_towers_from_primary_shower.insert(std::make_pair(shower, towers));
   }
 
   return towers;
@@ -397,7 +378,7 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Shower* sho
   if (_do_cache)
   {
     std::map<std::pair<RawTower*, PHG4Shower*>, float>::iterator iter =
-        _cache_get_energy_contribution_primary_shower.find(make_pair(tower, shower));
+        _cache_get_energy_contribution_primary_shower.find(std::make_pair(tower, shower));
     if (iter != _cache_get_energy_contribution_primary_shower.end())
     {
       return iter->second;
@@ -415,7 +396,7 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Shower* sho
 
   if (_do_cache)
   {
-    _cache_get_energy_contribution_primary_shower.insert(make_pair(make_pair(tower, shower), energy));
+    _cache_get_energy_contribution_primary_shower.insert(std::make_pair(std::make_pair(tower, shower), energy));
   }
 
   return energy;
@@ -472,7 +453,7 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primary_particles(RawTower* 
 
   if (_do_cache)
   {
-    _cache_all_truth_primary_particles.insert(make_pair(tower, truth_primaries));
+    _cache_all_truth_primary_particles.insert(std::make_pair(tower, truth_primaries));
   }
 
   return truth_primaries;
@@ -516,7 +497,7 @@ PHG4Particle* CaloRawTowerEval::max_truth_primary_particle_by_energy(RawTower* t
 
   if (_do_cache)
   {
-    _cache_max_truth_primary_particle_by_energy.insert(make_pair(tower, max_primary));
+    _cache_max_truth_primary_particle_by_energy.insert(std::make_pair(tower, max_primary));
   }
 
   return max_primary;
@@ -579,7 +560,7 @@ std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary)
 
   if (_do_cache)
   {
-    _cache_all_towers_from_primary_particle.insert(make_pair(primary, towers));
+    _cache_all_towers_from_primary_particle.insert(std::make_pair(primary, towers));
   }
 
   return towers;
@@ -639,7 +620,7 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary)
 
   if (_do_cache)
   {
-    _cache_best_tower_from_primary_particle.insert(make_pair(primary, best_tower));
+    _cache_best_tower_from_primary_particle.insert(std::make_pair(primary, best_tower));
   }
 
   return best_tower;
@@ -686,7 +667,7 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
   if (_do_cache)
   {
     std::map<std::pair<RawTower*, PHG4Particle*>, float>::iterator iter =
-        _cache_get_energy_contribution_primary_particle.find(make_pair(tower, primary));
+        _cache_get_energy_contribution_primary_particle.find(std::make_pair(tower, primary));
     if (iter != _cache_get_energy_contribution_primary_particle.end())
     {
       return iter->second;
@@ -704,7 +685,7 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
 
   if (_do_cache)
   {
-    _cache_get_energy_contribution_primary_particle.insert(make_pair(make_pair(tower, primary), energy));
+    _cache_get_energy_contribution_primary_particle.insert(std::make_pair(std::make_pair(tower, primary), energy));
   }
 
   return energy;
@@ -827,7 +808,7 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower)
 
   if (_do_cache)
   {
-    _cache_all_truth_hits.insert(make_pair(tower, truth_hits));
+    _cache_all_truth_hits.insert(std::make_pair(tower, truth_hits));
   }
 
   return truth_hits;

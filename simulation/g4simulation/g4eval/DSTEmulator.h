@@ -6,18 +6,21 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-#include <fun4all/SubsysReco.h>
+#include "DSTCompressor.h"
+
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/ActsTransformations.h>
 
+#include <fun4all/SubsysReco.h>
+
 #include <TRandom.h>
+
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
 
-#include "DSTCompressor.h"
 
 class PHG4Hit;
 class PHG4HitContainer;

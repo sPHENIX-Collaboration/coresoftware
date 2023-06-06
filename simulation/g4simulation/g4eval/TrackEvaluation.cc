@@ -5,21 +5,20 @@
 
 #include "TrackEvaluation.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
+
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/getClass.h>
+
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/InttDefs.h>
@@ -37,6 +36,12 @@
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
 
 #include <TVector3.h>
 

@@ -1,17 +1,29 @@
 #include "TruthRecoTrackMatching.h"
+
 #include "g4evaltools.h"
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <g4main/PHG4TruthInfoContainer.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <g4tracking/EmbRecoMatch.h>
 #include <g4tracking/EmbRecoMatchContainer.h>
 #include <g4tracking/EmbRecoMatchContainerv1.h>
 #include <g4tracking/EmbRecoMatchv1.h>
 #include <g4tracking/TrkrTruthTrack.h>
 #include <g4tracking/TrkrTruthTrackContainer.h>
+
+#include <trackbase/TpcDefs.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrDefs.h>
+
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>  // for PHDataNode
 #include <phool/PHIODataNode.h>
@@ -21,33 +33,15 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
-#include <trackbase/TpcDefs.h>
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrDefs.h>
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
 
 #include <TFile.h>
-#include <TTree.h>
-
 #include <TSystem.h>
+#include <TTree.h>
 
 #include <algorithm>
 
 // To change:
 // Make the definition of matching clusters to be if the truth cluster center is withing 1/2 of width of the reco track center
-
-using RECO_pair_iter = TruthRecoTrackMatching::RECO_pair_iter;
-using PossibleMatch = TruthRecoTrackMatching::PossibleMatch;
-
-using std::array;
-using std::cout;
-using std::endl;
-using std::get;
-using std::make_pair;
-using std::make_tuple;
-using std::vector;
 
 TruthRecoTrackMatching::TruthRecoTrackMatching(const unsigned short _nmincluster_match, const float _nmincluster_ratio, const float _cutoff_dphi, const float _same_dphi, const float _cutoff_deta, const float _same_deta, const float _cluster_nzwidths, const float _cluster_nphiwidths, const unsigned short _max_nreco_per_truth, const unsigned short _max_ntruth_per_reco)
   : m_cluster_comp{_cluster_nphiwidths, _cluster_nzwidths}
@@ -62,14 +56,11 @@ TruthRecoTrackMatching::TruthRecoTrackMatching(const unsigned short _nmincluster
                              // number of truth tracks allowed matched per reco track, and v. versa
   , m_max_nreco_per_truth{_max_nreco_per_truth}
   , m_max_ntruth_per_reco{_max_ntruth_per_reco}
-  , m_nmatched_index_true{}
-  , m_nmatched_id_reco{nullptr}
-  , m_nmatched_id_true{nullptr}
 {
   m_cluscntr.set_comparer(&m_cluster_comp);
   if (Verbosity() > 50)
   {
-    cout << " Starting TruthRecoTrackMatching.cc " << endl;
+    std::cout << " Starting TruthRecoTrackMatching.cc " << std::endl;
   }
 }
 
@@ -156,7 +147,7 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
   for (auto iter = recoData.begin(); iter != wrap_from_start; ++iter)
   {
     auto entry = *iter;                                    // make a new copy to wrap to the other side of recoData
-    get<RECOphi>(entry) = get<RECOphi>(entry) + 2 * M_PI;  // put the new copy on the other end
+    std::get<RECOphi>(entry) = std::get<RECOphi>(entry) + 2 * M_PI;  // put the new copy on the other end
     wraps.push_back(entry);
   }
   for (auto E : wraps)
@@ -166,16 +157,16 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
 
   if (Verbosity() > 70)
   {
-    cout << " ****************************************** " << endl;
-    cout << " This is the RECO map of tracks to match to " << endl;
-    cout << " ****************************************** " << endl;
+    std::cout << " ****************************************** " << std::endl;
+    std::cout << " This is the RECO map of tracks to match to " << std::endl;
+    std::cout << " ****************************************** " << std::endl;
     for (auto& E : recoData)
     {
-      cout << Form(" id:%2i  (phi:eta:pt) (%5.2f:%5.2f:%5.2f)", get<RECOid>(E),
-                   get<RECOphi>(E), get<RECOeta>(E), get<RECOpt>(E))
-           << endl;
+      std::cout << Form(" id:%2i  (phi:eta:pt) (%5.2f:%5.2f:%5.2f)", std::get<RECOid>(E),
+                   std::get<RECOphi>(E), std::get<RECOeta>(E), std::get<RECOpt>(E))
+           << std::endl;
     }
-    cout << " ****end*listing*********************** " << endl;
+    std::cout << " ****end*listing*********************** " << std::endl;
   }
 
   /******************************************************************************
@@ -204,12 +195,12 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
     for (auto& _pair : m_TrkrTruthTrackContainer->getMap())
     {
       auto& track = _pair.second;
-      cout << Form(" id:%2i  (phi:eta:pt) (%5.2f:%5.2f:%5.2f nclus: %i)", track->getTrackid(),
+      std::cout << Form(" id:%2i  (phi:eta:pt) (%5.2f:%5.2f:%5.2f nclus: %i)", track->getTrackid(),
                    track->getPhi(), track->getPseudoRapidity(), track->getPt(),
                    (int) track->getClusters().size())
-           << endl;
+           << std::endl;
     }
-    cout << " ----end-listing-truth-tracks---------- " << endl;
+    std::cout << " ----end-listing-truth-tracks---------- " << std::endl;
   }
 
   for (auto _pair : m_TrkrTruthTrackContainer->getMap())
@@ -232,29 +223,29 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
 
     if (Verbosity() > 80)
     {
-      cout << Form(" T(%i)  find box(%5.2f:%5.2f:%5.2f)",
+      std::cout << Form(" T(%i)  find box(%5.2f:%5.2f:%5.2f)",
                    (int) track->getTrackid(), track->getPhi(),
                    track->getPseudoRapidity(), track->getPt());
       for (auto& id_reco : match_indices.first)
       {
-        cout << "->IB(" << id_reco << ")";
+        std::cout << "->IB(" << id_reco << ")";
       }
       for (auto& id_reco : match_indices.second)
       {
-        cout << "->OB(" << id_reco << ")";
+        std::cout << "->OB(" << id_reco << ")";
       }
-      cout << endl;
+      std::cout << std::endl;
     }
   }
 
   if (Verbosity() > 100)
   {
-    cout << "Innerbox pairs" << endl;
+    std::cout << "Innerbox pairs" << std::endl;
   }
   match_tracks_in_box(innerbox_pairs);
   if (Verbosity() > 100)
   {
-    cout << "Outerbox pairs" << endl;
+    std::cout << "Outerbox pairs" << std::endl;
   }
   match_tracks_in_box(outerbox_pairs);
 
@@ -267,17 +258,17 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
 
   if (Verbosity() > 50)
   {
-    cout << " --START--print-all-stored-matches--" << endl;
-    cout << " --0-- Printing all matches stored (start)" << endl;
+    std::cout << " --START--print-all-stored-matches--" << std::endl;
+    std::cout << " --0-- Printing all matches stored (start)" << std::endl;
     // re-print all the tracks with the matches with the fit values
     for (auto match : m_EmbRecoMatchContainer->getMatches())
     {
-      cout << Form(" Match id(%2i->%2i) nClusMatch-nClusTrue-nClusReco (%2i:%2i:%2i)",
+      std::cout << Form(" Match id(%2i->%2i) nClusMatch-nClusTrue-nClusReco (%2i:%2i:%2i)",
                    match->idTruthTrack(), match->idRecoTrack(),
                    match->nClustersMatched(), match->nClustersTruth(), match->nClustersReco())
-           << endl;
+           << std::endl;
     }
-    cout << " --END--print-all-stored-matches----" << endl;
+    std::cout << " --END--print-all-stored-matches----" << std::endl;
   }
 
   if (m_write_diag)
@@ -523,16 +514,16 @@ TruthRecoTrackMatching::find_box_matches(float truth_phi, float truth_eta, float
   // fill inner_box_matches
   for (auto iter = inner_box.first; iter != inner_box.second; ++iter)
   {
-    inner_box_matches.push_back(get<RECOid>(*iter));
+    inner_box_matches.push_back(std::get<RECOid>(*iter));
   }
   // fill inner_box_matches
   for (auto iter = outer_box.first; iter != inner_box.first; ++iter)
   {
-    outer_box_matches.push_back(get<RECOid>(*iter));
+    outer_box_matches.push_back(std::get<RECOid>(*iter));
   }
   for (auto iter = inner_box.second; iter != outer_box.second; ++iter)
   {
-    outer_box_matches.push_back(get<RECOid>(*iter));
+    outer_box_matches.push_back(std::get<RECOid>(*iter));
   }
 
   // resort recoData back to phi order
@@ -552,7 +543,7 @@ void TruthRecoTrackMatching::match_tracks_in_box(
   }
 
   std::sort(box_pairs.begin(), box_pairs.end());  // sorted by first index_true, then id_reco
-  vector<PossibleMatch> poss_matches;
+  std::vector<PossibleMatch> poss_matches;
 
   auto ipair = box_pairs.begin();  // save current examined pair for sorting/unsorting purposes
   while (ipair != box_pairs.end())
@@ -626,7 +617,7 @@ void TruthRecoTrackMatching::match_tracks_in_box(
       if (Verbosity() > 100)
       {
         auto truth_track = m_TrkrTruthTrackContainer->getTruthTrack(id_true);
-        cout << Form(
+        std::cout << Form(
                     "possmatch:(phi,eta,pT:id) true(%5.2f,%5.2f,%4.2f:%2i) reco(%5.2f,%5.2f,%4.2f:%2i) "
                     "nCl(match:true:reco:nomatch)(%2i-%2i-%2i-%2i)",
                     truth_track->getPhi(), truth_track->getPseudoRapidity(), truth_track->getPt(),
@@ -634,7 +625,7 @@ void TruthRecoTrackMatching::match_tracks_in_box(
                     reco_track->get_phi(), reco_track->get_eta(), reco_track->get_pt(),
                     ipair->second,
                     (int) nclus_match, (int) nclus_true, (int) nclus_reco, (int) nclus_nomatch)
-             << endl;
+             << std::endl;
       }
       if (nclus_match >= m_nmincluster_match && (static_cast<float>(nclus_match) / nclus_true >= m_nmincluster_ratio))
       {
@@ -654,13 +645,13 @@ void TruthRecoTrackMatching::match_tracks_in_box(
 
   if (Verbosity() > 200)
   {
-    cout << " All chosen possible matches (" << poss_matches.size() << ") track pairs  (nClMatched-nClTrue-nClReco : idTrue-idReco)" << endl;
+    std::cout << " All chosen possible matches (" << poss_matches.size() << ") track pairs  (nClMatched-nClTrue-nClReco : idTrue-idReco)" << std::endl;
     int i{0};
     for (auto match : poss_matches)
     {
-      /* auto truth_track = m_TrkrTruthTrackContainer->getTruthTracks()[get<PM_idtrue>(match)]; */
+      /* auto truth_track = m_TrkrTruthTrackContainer->getTruthTracks()[std::get<PM_idtrue>(match)]; */
       /* auto index_trut = truth_track->getTrackid(); */
-      cout << Form(" pair(%2i):  %2i-%2i-%2i-<%2i>-%2i ", i++, (int) get<PM_nmatch>(match), (int) get<PM_ntrue>(match), (int) get<PM_nreco>(match), (int) get<PM_idtrue>(match), (int) get<PM_idreco>(match)) << endl;
+      std::cout << Form(" pair(%2i):  %2i-%2i-%2i-<%2i>-%2i ", i++, (int) std::get<PM_nmatch>(match), (int) std::get<PM_ntrue>(match), (int) std::get<PM_nreco>(match), (int) std::get<PM_idtrue>(match), (int) std::get<PM_idreco>(match)) << std::endl;
     }
   }
 
@@ -673,7 +664,7 @@ void TruthRecoTrackMatching::match_tracks_in_box(
       ++iter;
       continue;
     }
-    vector<std::pair<float, int>> sigma_metric = {{0., 0}};
+    std::vector<std::pair<float, int>> sigma_metric = {{0., 0}};
     int n_sigma = 0;
     auto iter_same = iter + 1;  // iterator to look forward from first point and get detailed comparisons for all possibly matched tracks
     while (

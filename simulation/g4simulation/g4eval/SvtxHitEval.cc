@@ -24,32 +24,8 @@
 
 class TrkrHit;
 
-using namespace std;
-
 SvtxHitEval::SvtxHitEval(PHCompositeNode* topNode)
   : _trutheval(topNode)
-  , _hitmap(nullptr)
-  //  , _g4cells_svtx(nullptr)
-  // , _g4cells_tracker(nullptr)
-  //, _g4cells_maps(nullptr)
-  , _g4hits_tpc(nullptr)
-  , _g4hits_intt(nullptr)
-  , _g4hits_mvtx(nullptr)
-  , _g4hits_mms(nullptr)
-  , _truthinfo(nullptr)
-  , _strict(false)
-  , _verbosity(0)
-  , _errors(0)
-  , _do_cache(true)
-  , _cache_all_truth_hits()
-  , _cache_max_truth_hit_by_energy()
-  , _cache_all_truth_particles()
-  , _cache_max_truth_particle_by_energy()
-  , _cache_all_hits_from_particle()
-  , _cache_all_hits_from_g4hit()
-  , _cache_best_hit_from_g4hit()
-  , _cache_get_energy_contribution_g4particle()
-  , _cache_get_energy_contribution_g4hit()
 {
   get_node_pointers(topNode);
 }
@@ -60,7 +36,7 @@ SvtxHitEval::~SvtxHitEval()
   {
     if ((_errors > 0) || (_verbosity > 1))
     {
-      cout << "SvtxHitEval::~SvtxHitEval() - Error Count: " << _errors << endl;
+      std::cout << "SvtxHitEval::~SvtxHitEval() - Error Count: " << _errors << std::endl;
     }
   }
 }
@@ -88,7 +64,7 @@ PHG4Cell* SvtxHitEval::get_cell(SvtxHit* hit)
   if (!has_node_pointers())
   {
     ++_errors;
-    cout << PHWHERE << " nerr: " << _errors << endl;
+    std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     return nullptr;
   }
 
@@ -99,7 +75,7 @@ PHG4Cell* SvtxHitEval::get_cell(SvtxHit* hit)
   else if (!hit)
   {
     ++_errors;
-    cout << PHWHERE << " nerr: " << _errors << endl;
+    std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     return nullptr;
   }
 
@@ -117,7 +93,7 @@ PHG4Cell* SvtxHitEval::get_cell(SvtxHit* hit)
   else if (!cell)
   {
     ++_errors;
-    cout << PHWHERE << " nerr: " << _errors << endl;
+    std::cout << PHWHERE << " nerr: " << _errors << std::endl;
   }
 
   return cell;
@@ -131,7 +107,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key)
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return std::set<PHG4Hit*>();
   }
@@ -145,7 +121,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key)
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return std::set<PHG4Hit*>();
   }
@@ -175,28 +151,28 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key)
   else if (!cell)
   {
     ++_errors;
-    cout << PHWHERE << " nerr: " << _errors << endl;
+    std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     return truth_hits;
   }
 
-  //cout << "Eval: hitid " << hit->get_id() << " cellid " << cell->get_cellid() << endl;
+  //std::cout << "Eval: hitid " << hit->get_id() << " cellid " << cell->get_cellid() << std::endl;
   // loop over all the g4hits in this cell
   for (PHG4Cell::EdepConstIterator g4iter = cell->get_g4hits().first;
        g4iter != cell->get_g4hits().second;
        ++g4iter)
   {
-    //cout << "    Looking for hit " << g4iter->first << " in layer " << cell->get_layer() << " with edep " << g4iter->second << endl;
+    //std::cout << "    Looking for hit " << g4iter->first << " in layer " << cell->get_layer() << " with edep " << g4iter->second << std::endl;
     PHG4Hit* g4hit = nullptr;
     if (_g4hits_svtx) g4hit = _g4hits_svtx->findHit(g4iter->first);
     if (!g4hit && _g4hits_tracker) g4hit = _g4hits_tracker->findHit(g4iter->first);
     if (!g4hit && _g4hits_maps) g4hit = _g4hits_maps->findHit(g4iter->first);
-    if (!g4hit) cout << "    Failed to find  g4hit " << g4iter->first << " with edep " << g4iter->second << endl;
+    if (!g4hit) std::cout << "    Failed to find  g4hit " << g4iter->first << " with edep " << g4iter->second << std::endl;
     if (_strict)
       assert(g4hit);
     else if (!g4hit)
     {
       ++_errors;
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
       continue;
     }
   */
@@ -223,7 +199,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key)
       {
         // extract the g4 hit key here and add the g4hit to the set
         PHG4HitDefs::keytype g4hitkey = htiter.second.second;
-        // cout << "           hitkey " << hitkey <<  " g4hitkey " << g4hitkey << endl;
+        // std::cout << "           hitkey " << hitkey <<  " g4hitkey " << g4hitkey << std::endl;
         PHG4Hit* g4hit = nullptr;
         switch (trkrid)
         {
@@ -253,7 +229,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key)
 
   if (_do_cache)
   {
-    _cache_all_truth_hits.insert(make_pair(hit_key, truth_hits));
+    _cache_all_truth_hits.insert(std::make_pair(hit_key, truth_hits));
   }
 
   return truth_hits;
@@ -266,7 +242,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key, const T
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return std::set<PHG4Hit*>();
   }
@@ -280,7 +256,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key, const T
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return std::set<PHG4Hit*>();
   }
@@ -316,7 +292,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key, const T
       {
         // extract the g4 hit key here and add the g4hit to the set
         PHG4HitDefs::keytype g4hitkey = htiter.second.second;
-        // cout << "           hitkey " << hitkey <<  " g4hitkey " << g4hitkey << endl;
+        // std::cout << "           hitkey " << hitkey <<  " g4hitkey " << g4hitkey << std::endl;
         PHG4Hit* g4hit = nullptr;
         switch (trkrid)
         {
@@ -346,7 +322,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key, const T
 
   if (_do_cache)
   {
-    _cache_all_truth_hits.insert(make_pair(hit_key, truth_hits));
+    _cache_all_truth_hits.insert(std::make_pair(hit_key, truth_hits));
   }
 
   return truth_hits;
@@ -359,7 +335,7 @@ PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(TrkrDefs::hitkey hit_key)
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return nullptr;
   }
@@ -373,7 +349,7 @@ PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(TrkrDefs::hitkey hit_key)
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return nullptr;
   }
@@ -402,7 +378,7 @@ PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(TrkrDefs::hitkey hit_key)
 
   if (_do_cache)
   {
-    _cache_max_truth_hit_by_energy.insert(make_pair(hit_key, max_hit));
+    _cache_max_truth_hit_by_energy.insert(std::make_pair(hit_key, max_hit));
   }
 
   return max_hit;
@@ -415,7 +391,7 @@ PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(TrkrDefs::hitkey hit_key, const Tr
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return nullptr;
   }
@@ -429,7 +405,7 @@ PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(TrkrDefs::hitkey hit_key, const Tr
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return nullptr;
   }
@@ -458,7 +434,7 @@ PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(TrkrDefs::hitkey hit_key, const Tr
 
   if (_do_cache)
   {
-    _cache_max_truth_hit_by_energy.insert(make_pair(hit_key, max_hit));
+    _cache_max_truth_hit_by_energy.insert(std::make_pair(hit_key, max_hit));
   }
 
   return max_hit;
@@ -471,7 +447,7 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(TrkrDefs::hitkey hit_ke
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return std::set<PHG4Particle*>();
   }
@@ -485,7 +461,7 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(TrkrDefs::hitkey hit_ke
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return std::set<PHG4Particle*>();
   }
@@ -517,7 +493,7 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(TrkrDefs::hitkey hit_ke
       ++_errors;
       if (_verbosity > 0)
       {
-        cout << PHWHERE << " nerr: " << _errors << endl;
+        std::cout << PHWHERE << " nerr: " << _errors << std::endl;
       }
       continue;
     }
@@ -527,7 +503,7 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(TrkrDefs::hitkey hit_ke
 
   if (_do_cache)
   {
-    _cache_all_truth_particles.insert(make_pair(hit_key, truth_particles));
+    _cache_all_truth_particles.insert(std::make_pair(hit_key, truth_particles));
   }
 
   return truth_particles;
@@ -540,7 +516,7 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(TrkrDefs::hitkey hit_ke
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return std::set<PHG4Particle*>();
   }
@@ -554,7 +530,7 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(TrkrDefs::hitkey hit_ke
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return std::set<PHG4Particle*>();
   }
@@ -586,7 +562,7 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(TrkrDefs::hitkey hit_ke
       ++_errors;
       if (_verbosity > 0)
       {
-        cout << PHWHERE << " nerr: " << _errors << endl;
+        std::cout << PHWHERE << " nerr: " << _errors << std::endl;
       }
       continue;
     }
@@ -596,7 +572,7 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(TrkrDefs::hitkey hit_ke
 
   if (_do_cache)
   {
-    _cache_all_truth_particles.insert(make_pair(hit_key, truth_particles));
+    _cache_all_truth_particles.insert(std::make_pair(hit_key, truth_particles));
   }
 
   return truth_particles;
@@ -609,7 +585,7 @@ PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(TrkrDefs::hitkey hit_key
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return nullptr;
   }
@@ -623,7 +599,7 @@ PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(TrkrDefs::hitkey hit_key
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return nullptr;
   }
@@ -655,7 +631,7 @@ PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(TrkrDefs::hitkey hit_key
 
   if (_do_cache)
   {
-    _cache_max_truth_particle_by_energy.insert(make_pair(hit_key, max_particle));
+    _cache_max_truth_particle_by_energy.insert(std::make_pair(hit_key, max_particle));
   }
 
   return max_particle;
@@ -668,7 +644,7 @@ PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(TrkrDefs::hitkey hit_key
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return nullptr;
   }
@@ -682,7 +658,7 @@ PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(TrkrDefs::hitkey hit_key
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return nullptr;
   }
@@ -714,7 +690,7 @@ PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(TrkrDefs::hitkey hit_key
 
   if (_do_cache)
   {
-    _cache_max_truth_particle_by_energy.insert(make_pair(hit_key, max_particle));
+    _cache_max_truth_particle_by_energy.insert(std::make_pair(hit_key, max_particle));
   }
 
   return max_particle;
@@ -727,7 +703,7 @@ std::set<TrkrDefs::hitkey> SvtxHitEval::all_hits_from(PHG4Particle* g4particle)
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return std::set<TrkrDefs::hitkey>();
   }
@@ -741,7 +717,7 @@ std::set<TrkrDefs::hitkey> SvtxHitEval::all_hits_from(PHG4Particle* g4particle)
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return std::set<TrkrDefs::hitkey>();
   }
@@ -784,7 +760,7 @@ std::set<TrkrDefs::hitkey> SvtxHitEval::all_hits_from(PHG4Particle* g4particle)
 
   if (_do_cache)
   {
-    _cache_all_hits_from_particle.insert(make_pair(g4particle, hits));
+    _cache_all_hits_from_particle.insert(std::make_pair(g4particle, hits));
   }
 
   return hits;
@@ -797,7 +773,7 @@ std::set<TrkrDefs::hitkey> SvtxHitEval::all_hits_from(PHG4Hit* g4hit)
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return std::set<TrkrDefs::hitkey>();
   }
@@ -811,7 +787,7 @@ std::set<TrkrDefs::hitkey> SvtxHitEval::all_hits_from(PHG4Hit* g4hit)
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return std::set<TrkrDefs::hitkey>();
   }
@@ -860,7 +836,7 @@ std::set<TrkrDefs::hitkey> SvtxHitEval::all_hits_from(PHG4Hit* g4hit)
 
   if (_do_cache)
   {
-    _cache_all_hits_from_g4hit.insert(make_pair(g4hit, hits));
+    _cache_all_hits_from_g4hit.insert(std::make_pair(g4hit, hits));
   }
 
   return hits;
@@ -873,7 +849,7 @@ TrkrDefs::hitkey SvtxHitEval::best_hit_from(PHG4Hit* g4hit)
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return 0;
   }
@@ -887,7 +863,7 @@ TrkrDefs::hitkey SvtxHitEval::best_hit_from(PHG4Hit* g4hit)
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return 0;
   }
@@ -917,7 +893,7 @@ TrkrDefs::hitkey SvtxHitEval::best_hit_from(PHG4Hit* g4hit)
 
   if (_do_cache)
   {
-    _cache_best_hit_from_g4hit.insert(make_pair(g4hit, best_hit));
+    _cache_best_hit_from_g4hit.insert(std::make_pair(g4hit, best_hit));
   }
 
   return best_hit;
@@ -931,7 +907,7 @@ float SvtxHitEval::get_energy_contribution(TrkrDefs::hitkey hit_key, PHG4Particl
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return NAN;
   }
@@ -946,7 +922,7 @@ float SvtxHitEval::get_energy_contribution(TrkrDefs::hitkey hit_key, PHG4Particl
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return NAN;
   }
@@ -954,7 +930,7 @@ float SvtxHitEval::get_energy_contribution(TrkrDefs::hitkey hit_key, PHG4Particl
   if (_do_cache)
   {
     std::map<std::pair<TrkrDefs::hitkey, PHG4Particle*>, float>::iterator iter =
-        _cache_get_energy_contribution_g4particle.find(make_pair(hit_key, particle));
+        _cache_get_energy_contribution_g4particle.find(std::make_pair(hit_key, particle));
     if (iter != _cache_get_energy_contribution_g4particle.end())
     {
       return iter->second;
@@ -973,7 +949,7 @@ float SvtxHitEval::get_energy_contribution(TrkrDefs::hitkey hit_key, PHG4Particl
 
   if (_do_cache)
   {
-    _cache_get_energy_contribution_g4particle.insert(make_pair(make_pair(hit_key, particle), energy));
+    _cache_get_energy_contribution_g4particle.insert(std::make_pair(std::make_pair(hit_key, particle), energy));
   }
 
   return energy;
@@ -986,7 +962,7 @@ float SvtxHitEval::get_energy_contribution(TrkrDefs::hitkey hit_key, PHG4Hit* g4
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return NAN;
   }
@@ -1001,7 +977,7 @@ float SvtxHitEval::get_energy_contribution(TrkrDefs::hitkey hit_key, PHG4Hit* g4
     ++_errors;
     if (_verbosity > 0)
     {
-      cout << PHWHERE << " nerr: " << _errors << endl;
+      std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
     return NAN;
   }
@@ -1009,7 +985,7 @@ float SvtxHitEval::get_energy_contribution(TrkrDefs::hitkey hit_key, PHG4Hit* g4
   if (_do_cache)
   {
     std::map<std::pair<TrkrDefs::hitkey, PHG4Hit*>, float>::iterator iter =
-        _cache_get_energy_contribution_g4hit.find(make_pair(hit_key, g4hit));
+        _cache_get_energy_contribution_g4hit.find(std::make_pair(hit_key, g4hit));
     if (iter != _cache_get_energy_contribution_g4hit.end())
     {
       return iter->second;
@@ -1032,7 +1008,7 @@ float SvtxHitEval::get_energy_contribution(TrkrDefs::hitkey hit_key, PHG4Hit* g4
 
   if (_do_cache)
   {
-    _cache_get_energy_contribution_g4hit.insert(make_pair(make_pair(hit_key, g4hit), energy));
+    _cache_get_energy_contribution_g4hit.insert(std::make_pair(std::make_pair(hit_key, g4hit), energy));
   }
 
   return energy;
@@ -1079,7 +1055,7 @@ bool SvtxHitEval::has_node_pointers()
   }
   else if (!_g4hits_mms && !_g4hits_tpc && !_g4hits_intt && !_g4hits_mvtx)
   {
-    cout << "no hits" << endl;
+    std::cout << "no hits" << std::endl;
     return false;
   }
   if (_strict)
@@ -1088,7 +1064,7 @@ bool SvtxHitEval::has_node_pointers()
   }
   else if (!_truthinfo)
   {
-    cout << " no truth" << endl;
+    std::cout << " no truth" << std::endl;
     return false;
   }
 
