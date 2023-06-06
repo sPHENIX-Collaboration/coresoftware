@@ -1,36 +1,76 @@
 #include "EpFinder.h"
-
 #include "EpInfo.h"  // for EpInfo
-
+#include "TH2D.h"
 #include <algorithm>  // for fill
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <fstream>
+#include <cdbobjects/CDBHistos.h>
 
-using namespace std;
-
-EpFinder::EpFinder(int nEventTypeBins, unsigned int maxorder)
+EpFinder::EpFinder(int nEventTypeBins, unsigned int maxorder, int ns)
   : mNumberOfEventTypeBins(nEventTypeBins)
   , m_MaxOrder(maxorder)
 {
-  TotalWeight4Side.resize(m_MaxOrder);
-  WheelSumWeightsRaw.resize(m_MaxOrder);
-  PsiRaw.resize(m_MaxOrder);
-  QrawOneSide.resize(m_MaxOrder);
-  for (auto &vec : QrawOneSide)
-  {
-    vec.resize(2);
-  }
+    TotalWeight4Side.resize(m_MaxOrder);
+    PsiRaw.resize(m_MaxOrder);
+    PsiPhiWeighted.resize(m_MaxOrder);
+    QrawOneSide.resize(m_MaxOrder);
+    QphiWeightedOneSide.resize(m_MaxOrder);
+    
+    for (auto &vec : QrawOneSide)
+    {
+        vec.resize(2);
+    }
+    
+    for (auto &vec : QphiWeightedOneSide)
+    {
+        vec.resize(2);
+    }
+    
+    //---------------------------------------------------
+    int pbinsx = 16; int pbinsy = 24; 
+    mPhiWeightOutput[ns]   = new TH2D(Form("PhiWeightNS%d",ns),Form("sEPD Tile Weight divided by Averaged NS=%d",ns),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5));
+    mPhiAveraged[ns]       = new TH2D(Form("PhiAveraged%d",ns),Form("sEPD PhiAverage NS=%d",ns),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5));
+
+    CDBHistos *cdbhistosIn = new CDBHistos(Form("sEPD_PhiWeights_%d_Input.root", ns));
+    cdbhistosIn->LoadCalibrations();
+  
+    if(!(cdbhistosIn->getHisto(Form("PhiWeightNS%d", ns))))
+    {
+        mPhiWeightInput[ns] = NULL;
+    }
+    else
+    {
+        mPhiWeightInput[ns] = dynamic_cast<TH2 *> (cdbhistosIn->getHisto(Form("PhiWeightNS%d", ns)));
+    }
+
+     cdbhistosIn->Print(); 
+   
+}
+void EpFinder::Finish(int thishist)
+{
+
+    mPhiWeightOutput[thishist]->Divide(mPhiAveraged[thishist]);
+    delete mPhiAveraged[thishist];
+    
+    CDBHistos *cdbhistosOut = new CDBHistos(Form("sEPD_PhiWeights_%d_Output.root", thishist));
+    cdbhistosOut->registerHisto(mPhiWeightOutput[thishist]);
+    cdbhistosOut->WriteCDBHistos();     
+
+    std::cout<< "Finished writing histogram sEPD_PhiWeights_"<<thishist<<"_Output.root " << 
+    "mv sEPD_PhiWeights_"<<thishist<<"_Output.root to sEPD_PhiWeights_"<<thishist<<"_Input.root in the next iteration"
+    << std::endl;
 }
 
 //==================================================================================================================
-void EpFinder::Results(const std::vector<EpHit> &EpdHits, int EventTypeId, EpInfo *epinfo)
+void EpFinder::ResultsEPD(const std::vector<EpHit> &EpdHits, int EventTypeId, EpInfo *epinfo)
 {
   if ((EventTypeId < 0) || (EventTypeId >= mNumberOfEventTypeBins))
   {
-    cout << "You are asking for an undefined EventType - fail!\n";
+    std::cout << "You are asking for an undefined EventType - fail!" << std::endl;
     assert(0);
   }
 
@@ -41,33 +81,47 @@ void EpFinder::Results(const std::vector<EpHit> &EpdHits, int EventTypeId, EpInf
   for (unsigned int hit = 0; hit < EpdHits.size(); hit++)
   {
     float nMip = EpdHits.at(hit).nMip;
-    if (nMip < mThresh) continue;
-    double TileWeight = (nMip < mMax) ? nMip : mMax;
+    double TileWeight = nMip;
     double phi = EpdHits.at(hit).phi;
+    int idx_x =  EpdHits.at(hit).ix;
+    int idx_y =  EpdHits.at(hit).iy;
+    int _ns =  EpdHits.at(hit).wheel;
 
+      
+    if(EpdHits.at(hit).sameRing){
+    mPhiWeightOutput[_ns]->Fill(idx_x,idx_y,TileWeight);
+    for(unsigned int i = 0; i<EpdHits.at(hit).sameRing->size(); i++){
+    float x = EpdHits.at(hit).sameRing->at(i).first;
+    float y = EpdHits.at(hit).sameRing->at(i).second;
+    mPhiAveraged[_ns]->Fill(x,y,TileWeight/EpdHits.at(hit).sameRing->size());
+     }
+    }
+      
     //--------------------------------
     // now calculate Q-vectors
     //--------------------------------
-
+    
+    double PhiWeightedTileWeight = TileWeight;
+      if (mPhiWeightInput[_ns]) PhiWeightedTileWeight /= mPhiWeightInput[_ns]->GetBinContent(idx_x+1,idx_y+1);
+    
     for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
     {
-      double etaWeight = 1.0;  // not implemented - JGL 8/27/2019
+     
+      double etaWeight = 1.0;
 
-      //yes the fabs() makes sense.  The sign in the eta weight is equivalent to a trigonometric phase. --JGL
       TotalWeight4Side[order - 1][0] += fabs(etaWeight) * TileWeight;
+      TotalWeight4Side[order-1][1] += fabs(etaWeight) * PhiWeightedTileWeight;
 
       double Cosine = cos(phi * (double) order);
       double Sine = sin(phi * (double) order);
       QrawOneSide[order - 1][0] += etaWeight * TileWeight * Cosine;
       QrawOneSide[order - 1][1] += etaWeight * TileWeight * Sine;
+        
+      QphiWeightedOneSide[order - 1][0] += etaWeight * PhiWeightedTileWeight * Cosine;
+      QphiWeightedOneSide[order - 1][1] += etaWeight * PhiWeightedTileWeight * Sine;
+        
     }
   }  // loop over hits
-
-  // Weights used, so you can "un-normalize" the ring-by-ring Q-vectors.
-  for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
-  {
-    WheelSumWeightsRaw[order - 1] = TotalWeight4Side[order - 1][0];
-  }
 
   // at this point, we are finished with the detector hits, and deal only with the Q-vectors,
 
@@ -79,6 +133,12 @@ void EpFinder::Results(const std::vector<EpHit> &EpdHits, int EventTypeId, EpInf
       QrawOneSide[order - 1][0] /= TotalWeight4Side[order - 1][0];
       QrawOneSide[order - 1][1] /= TotalWeight4Side[order - 1][0];
     }
+
+    if (TotalWeight4Side[order-1][1]>0.0001){
+        QphiWeightedOneSide[order-1][0] /= TotalWeight4Side[order-1][1];
+        QphiWeightedOneSide[order-1][1] /= TotalWeight4Side[order-1][1];
+    }
+
   }
 
   // at this point, we are finished with the Q-vectors and just use them to get angles Psi
@@ -89,14 +149,19 @@ void EpFinder::Results(const std::vector<EpHit> &EpdHits, int EventTypeId, EpInf
   for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
   {
     PsiRaw[order - 1] = GetPsiInRange(QrawOneSide[order - 1][0], QrawOneSide[order - 1][1], order);
-  }  // loop over order
-     // copy results to i/o object
+    PsiPhiWeighted[order-1] = GetPsiInRange(QphiWeightedOneSide[order-1][0],QphiWeightedOneSide[order-1][1],order);
+  } // loop over order
+
+
+  // copy results to i/o object
   if (epinfo)
   {
     epinfo->CopyQrawOneSide(QrawOneSide);
-    epinfo->CopyWheelSumWeightsRaw(WheelSumWeightsRaw);
+    epinfo->CopyQphiWeightedOneSide(QphiWeightedOneSide);
     epinfo->CopyPsiRaw(PsiRaw);
+    epinfo->CopyPsiPhiWeighted(PsiPhiWeighted);
   }
+
   return;
 }
 
@@ -104,7 +169,7 @@ double EpFinder::GetPsiInRange(double Qx, double Qy, unsigned int order) const
 {
   double temp;
   if ((Qx == 0.0) || (Qy == 0.0))
-    temp = -999;
+    temp = NAN;
   else
   {
     temp = atan2(Qy, Qx) / ((double) order);
@@ -120,8 +185,7 @@ double EpFinder::GetPsiInRange(double Qx, double Qy, unsigned int order) const
 TString EpFinder::Report()
 {
   TString rep = Form("This is the EpFinder Report:\n");
-  rep += Form("Number of EventType bins = %d\n", mNumberOfEventTypeBins);
-  rep += Form("Threshold (in MipMPV units) = %f  and MAX weight = %f\n", mThresh, mMax);
+  rep += Form("Number of EventType bins = %d\n", mNumberOfEventTypeBins); 
   return rep;
 }
 
@@ -131,8 +195,15 @@ void EpFinder::ResetEvent()
   {
     vec.fill(0);
   }
+    
   for (auto &vec : QrawOneSide)
   {
     std::fill(vec.begin(), vec.end(), 0);
   }
+    
+ for (auto &vec : QphiWeightedOneSide)
+ {
+    std::fill(vec.begin(), vec.end(), 0);
+ }
+    
 }
