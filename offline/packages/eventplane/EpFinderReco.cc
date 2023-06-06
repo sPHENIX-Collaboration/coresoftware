@@ -269,7 +269,6 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
        if(mTruncationInput)
        { 
          eMax = mTruncationInput->GetBinContent(arm+1,cent_index+1,rbin+1);
-         std::cout<<arm+1<<"\t"<<cent_index+1<<"\t"<<rbin+1<<mTruncationInput->GetBinContent(arm+1,cent_index+1,rbin+1)<<"\t"<<eMax<<std::endl;
        }       
        else  
        {
