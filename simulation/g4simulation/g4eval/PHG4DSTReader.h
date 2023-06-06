@@ -2,7 +2,7 @@
 
 /*!
  * \file PHG4DSTReader.h
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.7 $
  * \date $Date: 2015/02/27 23:42:23 $
