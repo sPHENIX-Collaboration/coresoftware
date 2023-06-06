@@ -665,7 +665,7 @@ float BEmcRec::PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy)
   float ddx = fabs(xcg - ixcg);
   float ddy = fabs(ycg - iycg);
 
-  float xg, yg, zg;
+  float xg=0, yg=0, zg=0;
   Tower2Global(en, xcg, ycg, xg, yg, zg);
 
   float theta, phi;

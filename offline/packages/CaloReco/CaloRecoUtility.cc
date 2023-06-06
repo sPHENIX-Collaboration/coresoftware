@@ -160,6 +160,58 @@ CaloRecoUtility::CaloRecoUtility()
 
 }
 
+//this two stupid functions are  only here because of a 
+//cppcheck warning that should have been suppressed
+// "recommended to have a copy constructor/op= because of 
+// dynamic alloc resource"
+CaloRecoUtility::CaloRecoUtility(CaloRecoUtility & cru)
+{
+  _profLoaded = false;
+
+  if (cru._bemc == 0)
+    {
+      _bemc = 0;
+      return;
+    }
+
+  _bemc =  new BEmcRecCEMC();
+
+  _bemc->SetDim(256,96);  
+  
+  _bemc->SetTowerThreshold(0.030);
+
+  float fProbNoiseParam = 0.04;
+  _bemc->SetProbNoiseParam(fProbNoiseParam);
+
+
+}
+
+CaloRecoUtility& CaloRecoUtility::operator=(CaloRecoUtility & cru)
+{
+
+  if (this == &cru)
+    return *this;
+  
+  _profLoaded = false;
+  if (cru._bemc == 0)
+    {
+      _bemc = 0;
+      return *this;
+    }
+  
+  _bemc =  new BEmcRecCEMC();
+
+  _bemc->SetDim(256,96);  
+  
+  _bemc->SetTowerThreshold(0.030);
+
+  float fProbNoiseParam = 0.04;
+  _bemc->SetProbNoiseParam(fProbNoiseParam);
+
+  return *this;
+}
+
+
 CaloRecoUtility::~CaloRecoUtility()
 {
 

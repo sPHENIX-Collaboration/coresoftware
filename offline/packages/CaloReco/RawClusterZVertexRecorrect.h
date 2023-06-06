@@ -9,7 +9,7 @@
 #include <vector>
 
 class PHCompositeNode;
-class RawClusterContainer;
+//class RawClusterContainer;
 
 class RawClusterZVertexRecorrect : public SubsysReco
 {
@@ -38,7 +38,7 @@ class RawClusterZVertexRecorrect : public SubsysReco
 
  private:
 
-  RawClusterContainer *_recalib_clusters{};
+  //  RawClusterContainer *_recalib_clusters{};
 
   std::string _det_name;
 

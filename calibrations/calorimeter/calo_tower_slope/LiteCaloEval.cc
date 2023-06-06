@@ -285,17 +285,17 @@ int LiteCaloEval::process_event(PHCompositeNode* topNode)
   if(m_UseTowerInfo)
     {
       towernode = "TOWERINFO_CALIB_" + _caloname;
-
+      
       towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towernode.c_str());
       
       if (!towerinfos)
 	{
 	  std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
+	  exit(-1);
+	  
 	}
     }
-
-
- 
+  
   //getting size of node
   unsigned int nchannels = -1;
 
