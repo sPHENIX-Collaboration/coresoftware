@@ -103,11 +103,52 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       continue;
     }
         
+    // taggers
+    m_container->n_tagger = packet->lValue(0, "N_TAGGER");
+    
+    
     // get number of datasets (also call waveforms)
     const auto n_waveforms = packet->iValue(0, "NR_WF" );
     m_container->n_waveforms = n_waveforms;
-    if( Verbosity() )
-    { std::cout << "MicromegasRawDataEvaluation::process_event - packet: " << packet_id << " n_waveforms: " << n_waveforms << std::endl; }
+    m_container->max_fee_count = packet->iValue(0, "MAX_FEECOUNT"); 
+
+    // if( Verbosity() )
+    { 
+      std::cout << "MicromegasRawDataEvaluation::process_event -"
+        << " packet: " << packet_id 
+        << " max_fee_count: " << m_container->max_fee_count
+        << " n_tagger: " << m_container->n_tagger       
+        << " n_waveforms: " << n_waveforms 
+        << std::endl; 
+    }
+    
+    for (int t = 0; t < m_container->n_tagger; t++)
+    {
+      const auto tagger_type = static_cast<uint16_t>(packet->lValue(t, "TAGGER_TYPE"));
+      const auto is_endat = static_cast<uint8_t>(packet->lValue(t, "IS_ENDAT"));
+      const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
+      const auto bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+      const auto lvl1_count = static_cast<uint32_t>(packet->lValue(t, "LEVEL1_COUNT"));
+      const auto endat_count = static_cast<uint32_t>(packet->lValue(t, "ENDAT_COUNT"));
+      const auto last_bco = static_cast<uint64_t>(packet->lValue(t, "LAST_BCO"));
+      // const auto modebits = static_cast<uint8_t>(packet->lValue(t, "MODEBITS"));
+
+      // only printout the is_lvl1 triggers
+      // if( is_lvl1 )
+      {
+        std::cout << "MicromegasRawDataEvaluation::process_event -"
+          << " packet: " << packet_id 
+          << " tagger: " << t
+          << " type: " << tagger_type
+          << " is_enddat: " << (bool) (is_endat)
+          << " is_lvl1: " << (bool) (is_lvl1)
+          << " bco: " << bco
+          << " last bco: " << last_bco
+          << " endat_count: " << endat_count
+          << " lvl1_count: " << lvl1_count
+          << std::endl;
+      }
+    }
     
     for( int iwf=0; iwf<n_waveforms; ++iwf )
     {
@@ -119,6 +160,9 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       sample.bco = packet->iValue(iwf, "BCO");
       sample.checksum = packet->iValue(iwf, "CHECKSUM");
       sample.checksum_error = packet->iValue(iwf, "CHECKSUMERROR");
+
+      // increment bco map
+      ++m_bco_map[sample.bco];
 
       // get hitsetkey, layer and tile
       sample.fee_id = packet->iValue(iwf, "FEE" );
@@ -138,6 +182,22 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       
       // get number of samples and loop
       const unsigned short samples = packet->iValue( iwf, "SAMPLES" );
+
+      if( Verbosity() )
+      {
+        std::cout << "MicromegasRawDataEvaluation::process_event -"
+          << " bco: " << sample.bco
+          << " error: " << sample.checksum_error
+          << " layer: " << sample.layer
+          << " tile: " << sample.tile
+          << " sampa_address: " << sample.sampa_address
+          << " sampa_channel: " << sample.sampa_channel
+          << " channel: " << sample.channel 
+          << " strip: " << sample.strip 
+          << " samples: " << samples
+          << std::endl;
+      }
+        
       for( unsigned short is = 0; is < samples; ++is )
       {
         // assign sample id and corresponding adc, save copy in container
@@ -145,6 +205,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         sample.sample = is;
         sample.adc = adc;
         m_container->samples.push_back( sample );
+                
       }
     }
   }
@@ -163,5 +224,13 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/ )
     m_evaluation_tree->Write();
     m_evaluation_file->Close();
   }
+  
+  // print bco map
+  if( Verbosity() )
+  {
+    for( const auto& [bco,nwaveforms]:m_bco_map )
+    { std::cout << "MicromegasRawDataEvaluation::End - bco: " << bco << ", nwaveforms: " << nwaveforms << std::endl; }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
