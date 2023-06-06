@@ -31,7 +31,6 @@ int DumpEpInfo::process_Node(PHNode *myNode)
     {
       std::pair<double, double> tmp = epinfo->RawQ(i);
       *fout << "RawQ( " << i << "): " << tmp.first << ", " << tmp.second << std::endl;
-      *fout << "SWRaw( " << i << "): " << epinfo->SWRaw(i) << std::endl;
       *fout << "RawPsi( " << i << "): " << epinfo->RawPsi(i) << std::endl;
     }
   }
