@@ -241,6 +241,8 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
         if(FEE_R[fee]==2) feeM += 6;
         if(FEE_R[fee]==3) feeM += 14;
         int layer = M.getLayer(feeM, channel);
+        // antenna pads will be in 0 layer
+        if(layer==0)continue;
 
         double R = M.getR(feeM, channel);
         double phi = M.getPhi(feeM, channel) + sector * M_PI / 6 ;
