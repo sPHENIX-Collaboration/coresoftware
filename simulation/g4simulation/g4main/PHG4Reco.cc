@@ -840,15 +840,6 @@ void PHG4Reco::DefineMaterials()
   cf30_peek70->AddMaterial(cf, fractionmass = 0.34468085);
   cf30_peek70->AddMaterial(peek, fractionmass = 0.65531915);
 
-  // gas mixture for the MuID in fsPHENIX. CLS 02-25-14
-  G4Material *IsoButane = new G4Material("Isobutane", 0.00265 * g / cm3, 2);
-  IsoButane->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 4);
-  IsoButane->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 10);
-
-  G4Material *MuIDgas = new G4Material("MuIDgas", density = (1.977e-3 * 0.92 + 0.00265 * 0.08) * g / cm3, ncomponents = 2);
-  MuIDgas->AddMaterial(IsoButane, fractionmass = 0.08);
-  MuIDgas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_CARBON_DIOXIDE"), fractionmass = 0.92);
-
   // that seems to be the composition of 304 Stainless steel
   G4Material *StainlessSteel =
       new G4Material("SS304", density = 7.9 * g / cm3, ncomponents = 8);
@@ -1027,22 +1018,6 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   SilverEpoxyGlue_INTT->AddMaterial(Epoxy, fractionmass = 0.79);
   SilverEpoxyGlue_INTT->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ag"), fractionmass = 0.21);
 
-  //! ePHENIX TPC - Jin Huang <jhuang@bnl.gov>
-  //! Ref: B. Yu et al. A gem based tpc for the legs experiment. In Nuclear Science Symposium
-  //! Conference Record, 2005 IEEE, volume 2, pages 924-928, 2005. doi:10.1109/NSSMIC.2005.1596405.
-
-  const double den_CF4 = CF4->GetDensity() * .1;
-  const double den_G4_Ar = G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar")->GetDensity() * .8;
-  const double den_G4_CARBON_DIOXIDE = G4NistManager::Instance()->FindOrBuildMaterial("G4_CARBON_DIOXIDE")->GetDensity() * .1;
-  const double den = den_CF4 + den_G4_Ar + den_G4_CARBON_DIOXIDE;
-
-  G4Material *ePHEINX_TPC_Gas = new G4Material("ePHEINX_TPC_Gas", den,
-                                               ncomponents = 3, kStateGas);
-  ePHEINX_TPC_Gas->AddMaterial(CF4, den_CF4 / den);
-  ePHEINX_TPC_Gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar"), den_G4_Ar / den);
-  ePHEINX_TPC_Gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_CARBON_DIOXIDE"),
-                               den_G4_CARBON_DIOXIDE / den);
-  // cross checked with original implementation made up of Ne,C,F
   // this here is very close but makes more sense since it uses Ne and CF4
   double G4_Ne_frac = 0.5;
   double CF4_frac = 0.5;
@@ -1061,22 +1036,11 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   const double alt_den_G4_Ar = G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar")->GetDensity();
   const double alt_den_CF4 = CF4->GetDensity();
   const double alt_den_sphenix_tpc_gas = alt_den_G4_Ar * alt_G4_Ar_frac + alt_den_CF4 * alt_CF4_frac;
-  G4Material *sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas_ArCF4", den_sphenix_tpc_gas, ncomponents = 2, kStateGas);
-  sPHENIX_tpc_gas->AddMaterial(CF4, alt_den_CF4_2 * alt_CF4_frac / den_sphenix_tpc_gas);
-  sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar"), alt_den_G4_Ar * alt_G4_Ar_frac / alt_den_sphenix_tpc_gas);
+  G4Material *alt_sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas_ArCF4", den_sphenix_tpc_gas, ncomponents = 2, kStateGas);
+  alt_sPHENIX_tpc_gas->AddMaterial(CF4, alt_den_CF4 * alt_CF4_frac / den_sphenix_tpc_gas);
+  alt_sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar"), alt_den_G4_Ar * alt_G4_Ar_frac / alt_den_sphenix_tpc_gas);
 
   
-
-  // LHCb aerogel
-  //    double density = 2.200 * g / cm3;
-  G4Material *SiO2AerogelQuartz = new G4Material("ePHENIX_AerogelQuartz",
-                                                 2.200 * g / cm3, 2);
-  SiO2AerogelQuartz->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), 1);
-  SiO2AerogelQuartz->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), 2);
-
-  G4Material *AerogTypeA = new G4Material("ePHENIX_AeroGel", 0.200 * g / cm3, 1);
-  AerogTypeA->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("ePHENIX_AerogelQuartz"),
-                          100.0 * perCent);
 
   //
   // CF4
