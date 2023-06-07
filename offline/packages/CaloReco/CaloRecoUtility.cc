@@ -133,7 +133,14 @@ void CaloRecoUtility::ProbCorrsZVertex(RawCluster * clus, float vz)
 void CaloRecoUtility::LoadProfile()
 {
 
-  std::string fname_emc_prof = getenv("CALIBRATIONROOT");
+  const char *calibroot = getenv("CALIBRATIONROOT");
+
+  if (calibroot == nullptr)
+  {
+    std::cout << PHWHERE << "CALIBRATIONROOT env var not set" << std::endl;
+    exit(1);
+  }
+  std::string fname_emc_prof = calibroot;
   fname_emc_prof += "/EmcProfile/CEMCprof_Thresh30MeV.root";
 
   std::cout << "CaloRecoUtility:::loading emc_prof from " <<  fname_emc_prof << std::endl;
