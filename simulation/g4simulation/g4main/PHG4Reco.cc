@@ -1053,6 +1053,20 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   sPHENIX_tpc_gas->AddMaterial(CF4, den_CF4_2 * CF4_frac / den_sphenix_tpc_gas);
   sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ne"), den_G4_Ne * G4_Ne_frac / den_sphenix_tpc_gas);
 
+  // Due to supply issues, we are now expecting to use Ar CF4.
+  // The fractions are tuned to produce very similar drift speed
+  // and other parameters as the original NeCF4 mixture.
+  double alt_G4_Ar_frac = 0.6;
+  double alt_CF4_frac = 0.4;
+  const double alt_den_G4_Ar = G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar")->GetDensity();
+  const double alt_den_CF4 = CF4->GetDensity();
+  const double alt_den_sphenix_tpc_gas = alt_den_G4_Ar * alt_G4_Ar_frac + alt_den_CF4 * alt_CF4_frac;
+  G4Material *sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas_ArCF4", den_sphenix_tpc_gas, ncomponents = 2, kStateGas);
+  sPHENIX_tpc_gas->AddMaterial(CF4, alt_den_CF4_2 * alt_CF4_frac / den_sphenix_tpc_gas);
+  sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar"), alt_den_G4_Ar * alt_G4_Ar_frac / alt_den_sphenix_tpc_gas);
+
+  
+
   // LHCb aerogel
   //    double density = 2.200 * g / cm3;
   G4Material *SiO2AerogelQuartz = new G4Material("ePHENIX_AerogelQuartz",
