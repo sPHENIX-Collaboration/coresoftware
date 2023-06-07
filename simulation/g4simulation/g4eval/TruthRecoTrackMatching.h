@@ -4,12 +4,10 @@
 #include "g4evaltools.h"  // has some G4Eval tools (TrkrClusterComparer)
 
 #include <fun4all/SubsysReco.h>
+
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/TrackSeed.h>
-
-/* #include <TFile.h> */
-/* #include <TTree.h> */
 
 #include <array>
 #include <iostream>
@@ -104,25 +102,25 @@ class TruthRecoTrackMatching : public SubsysReco
   /* std::array<double, 55> m_phistep {0.}; // the phistep squared */
   /* double m_zstep {0.}; */
 
-  std::map<unsigned short, unsigned short> m_nmatched_index_true{};
+  std::map<unsigned short, unsigned short> m_nmatched_index_true;
 
-  std::map<unsigned short, unsigned short>* m_nmatched_id_reco{nullptr};
-  std::map<unsigned short, unsigned short>* m_nmatched_id_true{nullptr};
+  std::map<unsigned short, unsigned short>* m_nmatched_id_reco = nullptr;
+  std::map<unsigned short, unsigned short>* m_nmatched_id_true = nullptr;
 
   //--------------------------------------------------
   // Data from input nodes
   //--------------------------------------------------
-  PHG4TruthInfoContainer* m_PHG4TruthInfoContainer{nullptr};  // Get the truth track ids
-  SvtxTrackMap* m_SvtxTrackMap{nullptr};
-  TrkrClusterContainer* m_TruthClusterContainer{nullptr};
-  TrkrClusterContainer* m_RecoClusterContainer{nullptr};
-  TrkrTruthTrackContainer* m_TrkrTruthTrackContainer{nullptr};
-  PHG4TpcCylinderGeomContainer* m_PHG4TpcCylinderGeomContainer{nullptr};
+  PHG4TruthInfoContainer* m_PHG4TruthInfoContainer = nullptr;  // Get the truth track ids
+  SvtxTrackMap* m_SvtxTrackMap = nullptr;
+  TrkrClusterContainer* m_TruthClusterContainer = nullptr;
+  TrkrClusterContainer* m_RecoClusterContainer = nullptr;
+  TrkrTruthTrackContainer* m_TrkrTruthTrackContainer = nullptr;
+  PHG4TpcCylinderGeomContainer* m_PHG4TpcCylinderGeomContainer = nullptr;
 
-  ActsGeometry* m_ActsGeometry{nullptr};
+  ActsGeometry* m_ActsGeometry = nullptr;
 
   // Output data node:
-  EmbRecoMatchContainer* m_EmbRecoMatchContainer{nullptr};
+  EmbRecoMatchContainer* m_EmbRecoMatchContainer = nullptr;
 
   //--------------------------------------------------
   //    RECO data for a "table" of reconstructed tracks
@@ -219,9 +217,9 @@ class TruthRecoTrackMatching : public SubsysReco
   // output for diagnositics:
   //  If there is output, put all the clusters into the x, y, z
   // ------------------------------------------------------------------
-  TTree* m_diag_tree{nullptr};
-  TFile* m_diag_file{nullptr};
-  bool m_write_diag{false};
+  TTree* m_diag_tree = nullptr;
+  TFile* m_diag_file = nullptr;
+  bool m_write_diag = false;
   void set_diagnostic_file(const std::string& file_name);
 
   std::vector<int> m_trkid_reco_matched{};
@@ -260,7 +258,7 @@ class TruthRecoTrackMatching : public SubsysReco
   std::vector<float> m_y_true_notmatched{};
   std::vector<float> m_z_true_notmatched{};
 
-  int m_event{0};
+  int m_event = 0;
 
   void clear_branch_vectors();
   void fill_tree();

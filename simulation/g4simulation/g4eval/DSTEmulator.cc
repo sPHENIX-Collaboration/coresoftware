@@ -4,19 +4,17 @@
  */
 
 #include "DSTEmulator.h"
+
 #include "DSTCompressor.h"
 #include "TrackEvaluationContainerv1.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
+
 #include <micromegas/MicromegasDefs.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/getClass.h>
-#include <phool/recoConsts.h>
+
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
@@ -30,6 +28,13 @@
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
@@ -157,7 +162,7 @@ namespace
     return std::accumulate(track->begin_cluster_keys(), track->end_cluster_keys(), int64_t(0),
                            [](int64_t value, const TrkrDefs::cluskey& key)
                            {
-                             return TrkrDefs::getLayer(key) < 64 ? value | (1LL << TrkrDefs::getLayer(key)) : value;
+                             return TrkrDefs::getLayer(key) < 64 ? value | (1ULL << TrkrDefs::getLayer(key)) : value;
                            });
   }
 
@@ -781,7 +786,7 @@ void DSTEmulator::evaluate_tracks()
         continue;  // nullptr;
       }
       std::cout << " g0: " << global[0] << " g1: " << global[1] << " g2:" << global[2] << std::endl;
-      // double global_phi = atan2(global[1], global[0]);
+      // double global_phi = std::atan2(global[1], global[0]);
       // double global_z = global[2];
 
       // Predict which surface index this phi and z will correspond to
@@ -789,7 +794,7 @@ void DSTEmulator::evaluate_tracks()
       std::vector<Surface> surf_vec = mapIter->second;
 
       Acts::Vector3 world(globalpos_d[0], globalpos_d[1], globalpos_d[2]);
-      double world_phi = atan2(world[1], world[0]);
+      double world_phi = std::atan2(world[1], world[0]);
       double world_z = world[2];
 
       double fraction = (world_phi + M_PI) / (2.0 * M_PI);
@@ -806,10 +811,10 @@ void DSTEmulator::evaluate_tracks()
 
       // no conversion needed, only used in acts
       //    Acts::Vector3 normal = surface->normal(m_tGeometry->getGeoContext());
-      double TrkRadius = sqrt(trk_x * trk_x + trk_y * trk_y);
-      double rTrkPhi = TrkRadius * atan2(trk_y, trk_x);  // trkphi;
-      double surfRadius = sqrt(center(0) * center(0) + center(1) * center(1));
-      double surfPhiCenter = atan2(center[1], center[0]);
+      double TrkRadius = std::sqrt(trk_x * trk_x + trk_y * trk_y);
+      double rTrkPhi = TrkRadius * std::atan2(trk_y, trk_x);  // trkphi;
+      double surfRadius = std::sqrt(center(0) * center(0) + center(1) * center(1));
+      double surfPhiCenter = std::atan2(center[1], center[0]);
       double surfRphiCenter = surfPhiCenter * surfRadius;
       double surfZCenter = center[2];
 

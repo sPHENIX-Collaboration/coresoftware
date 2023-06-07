@@ -14,13 +14,7 @@
 #include <iostream>
 #include <utility>
 
-using namespace std;
-
 BaseTruthEval::BaseTruthEval(PHCompositeNode* topNode)
-  : m_TruthInfo(nullptr)
-  , m_Strict(false)
-  , m_Verbosity(0)
-  , m_Errors(0)
 {
   get_node_pointers(topNode);
 }
@@ -31,7 +25,7 @@ BaseTruthEval::~BaseTruthEval()
   {
     if ((m_Errors > 0) || (m_Verbosity > 1))
     {
-      cout << "BaseTruthEval::~BaseTruthEval() - Error Count: " << m_Errors << endl;
+      std::cout << "BaseTruthEval::~BaseTruthEval() - Error Count: " << m_Errors << std::endl;
     }
   }
 }
@@ -610,7 +604,7 @@ void BaseTruthEval::get_node_pointers(PHCompositeNode* topNode)
   m_TruthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!m_TruthInfo)
   {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+    std::cout << PHWHERE << " ERROR: Can't find G4TruthInfo" << std::endl;
     exit(-1);
   }
 

@@ -79,22 +79,22 @@ class SvtxTruthEval
 
   BaseTruthEval _basetrutheval;
 
-  PHG4TruthInfoContainer* _truthinfo{nullptr};
-  PHG4HitContainer* _g4hits_svtx{nullptr};
-  PHG4HitContainer* _g4hits_mms{nullptr};
-  PHG4HitContainer* _g4hits_tracker{nullptr};
-  PHG4HitContainer* _g4hits_maps{nullptr};
+  PHG4TruthInfoContainer* _truthinfo = nullptr;
+  PHG4HitContainer* _g4hits_svtx = nullptr;
+  PHG4HitContainer* _g4hits_mms = nullptr;
+  PHG4HitContainer* _g4hits_tracker = nullptr;
+  PHG4HitContainer* _g4hits_maps = nullptr;
 
   PHG4TpcCylinderGeomContainer* _tpc_geom_container{};
   PHG4CylinderGeomContainer* _intt_geom_container{};
   PHG4CylinderGeomContainer* _mvtx_geom_container{};
   PHG4CylinderGeomContainer* _mms_geom_container{};
-  ActsGeometry* _tgeometry{nullptr};
+  ActsGeometry* _tgeometry = nullptr;
 
-  bool _strict;
-  int _verbosity;
-  unsigned int _errors;
-  unsigned long iclus;
+  bool _strict = false;
+  int _verbosity = 0;
+  unsigned int _errors = 0;
+  unsigned long iclus = 0;
 
   const unsigned int _nlayers_maps = 3;
   const unsigned int _nlayers_intt = 4;
@@ -103,7 +103,7 @@ class SvtxTruthEval
 
   std::multimap<TrkrDefs::cluskey, PHG4Hit*> _truth_cluster_truth_hit_map;
 
-  bool _do_cache;
+  bool _do_cache = true;
   std::set<PHG4Hit*> _cache_all_truth_hits;
   std::map<PHG4Particle*, std::set<PHG4Hit*>> _cache_all_truth_hits_g4particle;
   std::map<PHG4Particle*, std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>>> _cache_all_truth_clusters_g4particle;

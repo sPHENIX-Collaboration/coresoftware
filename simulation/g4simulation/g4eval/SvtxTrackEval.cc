@@ -22,8 +22,6 @@
 #include <iostream>
 #include <set>
 
-using namespace std;
-
 SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
   : _clustereval(topNode)
 {
@@ -36,7 +34,7 @@ SvtxTrackEval::~SvtxTrackEval()
   {
     if ((_errors > 0) || (_verbosity > 1))
     {
-      cout << "SvtxTrackEval::~SvtxTrackEval() - Error Count: " << _errors << endl;
+      std::cout << "SvtxTrackEval::~SvtxTrackEval() - Error Count: " << _errors << std::endl;
     }
   }
 }
@@ -112,7 +110,7 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track)
 
   if (_do_cache)
   {
-    _cache_all_truth_hits.insert(make_pair(track, truth_hits));
+    _cache_all_truth_hits.insert(std::make_pair(track, truth_hits));
   }
 
   return truth_hits;
@@ -195,7 +193,7 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track)
 
   if (_do_cache)
   {
-    _cache_all_truth_particles.insert(make_pair(track, truth_particles));
+    _cache_all_truth_particles.insert(std::make_pair(track, truth_particles));
   }
 
   return truth_particles;
@@ -269,7 +267,7 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track)
 
   if (_do_cache)
   {
-    _cache_max_truth_particle_by_nclusters.insert(make_pair(track, max_particle));
+    _cache_max_truth_particle_by_nclusters.insert(std::make_pair(track, max_particle));
   }
 
   return max_particle;
@@ -352,7 +350,7 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
 
   if (_do_cache)
   {
-    _cache_all_tracks_from_particle.insert(make_pair(truthparticle, tracks));
+    _cache_all_tracks_from_particle.insert(std::make_pair(truthparticle, tracks));
   }
 
   return tracks;
@@ -421,7 +419,7 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit)
 
   if (_do_cache)
   {
-    _cache_all_tracks_from_g4hit.insert(make_pair(truthhit, tracks));
+    _cache_all_tracks_from_g4hit.insert(std::make_pair(truthhit, tracks));
   }
 
   return tracks;
@@ -485,7 +483,7 @@ SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle)
 
   if (_do_cache)
   {
-    _cache_best_track_from_particle.insert(make_pair(truthparticle, best_track));
+    _cache_best_track_from_particle.insert(std::make_pair(truthparticle, best_track));
   }
 
   return best_track;
@@ -530,7 +528,7 @@ void SvtxTrackEval::create_cache_track_from_cluster()
       {
         std::set<SvtxTrack*> tracks;
         tracks.insert(track);
-        _cache_all_tracks_from_cluster.insert(make_pair(candidate_key, tracks));
+        _cache_all_tracks_from_cluster.insert(std::make_pair(candidate_key, tracks));
       }
     }
   }
@@ -605,7 +603,7 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(TrkrDefs::cluskey cluster_ke
 
   if (_do_cache)
   {
-    _cache_all_tracks_from_cluster.insert(make_pair(cluster_key, tracks));
+    _cache_all_tracks_from_cluster.insert(std::make_pair(cluster_key, tracks));
   }
 
   return tracks;
@@ -655,7 +653,7 @@ SvtxTrack* SvtxTrackEval::best_track_from(TrkrDefs::cluskey cluster_key)
 
   if (_do_cache)
   {
-    _cache_best_track_from_cluster.insert(make_pair(cluster_key, best_track));
+    _cache_best_track_from_cluster.insert(std::make_pair(cluster_key, best_track));
   }
   return best_track;
 }
@@ -683,7 +681,7 @@ unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Par
   calc_cluster_contribution(track, particle);
 
   std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int>::iterator iter =
-      _cache_get_nclusters_contribution.find(make_pair(track, particle));
+      _cache_get_nclusters_contribution.find(std::make_pair(track, particle));
   if (iter != _cache_get_nclusters_contribution.end())
   {
     return iter->second;
@@ -713,7 +711,7 @@ unsigned int SvtxTrackEval::get_nwrongclusters_contribution(SvtxTrack* track, PH
   calc_cluster_contribution(track, particle);
 
   std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int>::iterator iter =
-      _cache_get_nwrongclusters_contribution.find(make_pair(track, particle));
+      _cache_get_nwrongclusters_contribution.find(std::make_pair(track, particle));
   if (iter != _cache_get_nwrongclusters_contribution.end())
   {
     return iter->second;
@@ -743,9 +741,9 @@ void SvtxTrackEval::calc_cluster_contribution(SvtxTrack* track, PHG4Particle* pa
   }
 
   std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int>::iterator iter =
-      _cache_get_nclusters_contribution.find(make_pair(track, particle));
+      _cache_get_nclusters_contribution.find(std::make_pair(track, particle));
   std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int>::iterator witer =
-      _cache_get_nwrongclusters_contribution.find(make_pair(track, particle));
+      _cache_get_nwrongclusters_contribution.find(std::make_pair(track, particle));
 
   if (iter != _cache_get_nclusters_contribution.end() &&
       witer != _cache_get_nwrongclusters_contribution.end())
@@ -785,8 +783,8 @@ void SvtxTrackEval::calc_cluster_contribution(SvtxTrack* track, PHG4Particle* pa
     }
   }
 
-  _cache_get_nclusters_contribution.insert(make_pair(make_pair(track, particle), nclusters));
-  _cache_get_nwrongclusters_contribution.insert(make_pair(make_pair(track, particle), nwrong));
+  _cache_get_nclusters_contribution.insert(std::make_pair(std::make_pair(track, particle), nclusters));
+  _cache_get_nwrongclusters_contribution.insert(std::make_pair(std::make_pair(track, particle), nwrong));
 
   return;
 }
@@ -813,7 +811,7 @@ unsigned int SvtxTrackEval::get_nclusters_contribution_by_layer(SvtxTrack* track
   if (_do_cache)
   {
     std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int>::iterator iter =
-        _cache_get_nclusters_contribution_by_layer.find(make_pair(track, particle));
+        _cache_get_nclusters_contribution_by_layer.find(std::make_pair(track, particle));
     if (iter != _cache_get_nclusters_contribution_by_layer.end())
     {
       return iter->second;
@@ -863,7 +861,7 @@ unsigned int SvtxTrackEval::get_nclusters_contribution_by_layer(SvtxTrack* track
   }
   if (_do_cache)
   {
-    _cache_get_nclusters_contribution_by_layer.insert(make_pair(make_pair(track, particle), nclusters_by_layer));
+    _cache_get_nclusters_contribution_by_layer.insert(std::make_pair(std::make_pair(track, particle), nclusters_by_layer));
   }
 
   return nclusters_by_layer;

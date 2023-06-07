@@ -14,24 +14,10 @@
 #include <set>
 #include <utility>
 
-using namespace std;
-
 CaloTruthEval::CaloTruthEval(PHCompositeNode* topNode, const std::string& caloname)
   : _basetrutheval(topNode)
   , _caloname(caloname)
   , _caloid(PHG4HitDefs::get_volume_id(caloname))
-  , _truthinfo(nullptr)
-  , _g4hits(nullptr)
-  , _g4hit_container_id(-1)
-  , _strict(false)
-  , _verbosity(1)
-  , _errors(0)
-  , _do_cache(true)
-  , _cache_get_shower_energy_deposit()
-  , _cache_all_truth_hits_g4shower()
-  , _cache_all_truth_hits_g4particle()
-  , _cache_get_primary_particle_g4hit()
-  , _cache_get_shower_hits_from_primary()
 {
   get_node_pointers(topNode);
 }
@@ -42,7 +28,7 @@ CaloTruthEval::~CaloTruthEval()
   {
     if ((_errors > 0) || (_verbosity > 1))
     {
-      cout << "CaloTruthEval::~CaloTruthEval() - Error Count: " << _errors << endl;
+      std::cout << "CaloTruthEval::~CaloTruthEval() - Error Count: " << _errors << std::endl;
     }
   }
 }
@@ -188,7 +174,7 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary)
 
   if (_do_cache)
   {
-    _cache_get_shower_energy_deposit.insert(make_pair(primary, shower_e));
+    _cache_get_shower_energy_deposit.insert(std::make_pair(primary, shower_e));
   }
 
   return shower_e;
@@ -319,7 +305,7 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Shower* shower)
 
   if (_do_cache)
   {
-    _cache_all_truth_hits_g4shower.insert(make_pair(shower, truth_hits));
+    _cache_all_truth_hits_g4shower.insert(std::make_pair(shower, truth_hits));
   }
 
   return truth_hits;
@@ -375,7 +361,7 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Particle* particle)
 
   if (_do_cache)
   {
-    _cache_all_truth_hits_g4particle.insert(make_pair(particle, truth_hits));
+    _cache_all_truth_hits_g4particle.insert(std::make_pair(particle, truth_hits));
   }
 
   return truth_hits;
@@ -418,7 +404,7 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit)
 
   if (_do_cache)
   {
-    _cache_get_primary_particle_g4hit.insert(make_pair(g4hit, primary));
+    _cache_get_primary_particle_g4hit.insert(std::make_pair(g4hit, primary));
   }
 
   if (_strict)
@@ -493,7 +479,7 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_hits_from_primary(PHG4Particle* pri
 
   if (_do_cache)
   {
-    _cache_get_shower_hits_from_primary.insert(make_pair(primary, truth_hits));
+    _cache_get_shower_hits_from_primary.insert(std::make_pair(primary, truth_hits));
   }
 
   return truth_hits;

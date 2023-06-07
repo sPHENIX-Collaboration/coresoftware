@@ -1,8 +1,14 @@
 #include "FillTruthRecoMatchMap.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <g4tracking/EmbRecoMatch.h>
 #include <g4tracking/EmbRecoMatchContainer.h>
+
+#include <trackbase_historic/PHG4ParticleSvtxMap.h>
+#include <trackbase_historic/PHG4ParticleSvtxMap_v1.h>
+#include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHIODataNode.h>
@@ -11,13 +17,9 @@
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
-#include <trackbase_historic/PHG4ParticleSvtxMap.h>
-#include <trackbase_historic/PHG4ParticleSvtxMap_v1.h>
-#include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
+
 #include <iostream>
 
-using std::cout;
-using std::endl;
 //____________________________________________________________________________..
 FillTruthRecoMatchMap::FillTruthRecoMatchMap(const std::string &name)
   : SubsysReco(name)
@@ -58,7 +60,6 @@ int FillTruthRecoMatchMap::createNodes(PHCompositeNode *topNode)
   if (!dstNode)
   {
     std::cout << PHWHERE << " DST node is missing, quitting" << std::endl;
-    std::cerr << PHWHERE << " DST node is missing, quitting" << std::endl;
     throw std::runtime_error("Failed to find DST node in FillTruthRecoMatchMap::createNodes");
   }
 
@@ -66,7 +67,6 @@ int FillTruthRecoMatchMap::createNodes(PHCompositeNode *topNode)
   if (!m_EmbRecoMatchContainer)
   {
     std::cout << PHWHERE << " Cannot find node TRKR_EMBRECOMATCHCONTAINER on node tree; quitting " << std::endl;
-    std::cerr << PHWHERE << " Cannot find node TRKR_EMBRECOMATCHCONTAINER on node tree; quitting " << std::endl;
     throw std::runtime_error(" Cannot find node TRKR_EMBRECOMATCHCONTAINER on node tree; quitting");
   }
 
@@ -102,7 +102,7 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() > 5)
   {
-    cout << " FillTruthRecoMatchMap::process_event() " << endl;
+    std::cout << " FillTruthRecoMatchMap::process_event() " << std::endl;
   }
   // make maps to all the matches for both truth and reco and fill the
   /* auto matches = m_EmbRecoMatchContainer->getMatches(); */
@@ -183,9 +183,9 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
 
   if (Verbosity() > 15)
   {
-    cout << PHWHERE << " Print out: " << endl
-         << " Contents of SvtxPHG4ParticleMap (node \"RecoToPHG4ParticleMap\")" << endl
-         << " and PHG4ParticleSvtxMap (node \"PHG4ParticleToRecoMap\")" << endl;
+    std::cout << PHWHERE << " Print out: " << std::endl
+              << " Contents of SvtxPHG4ParticleMap (node \"RecoToPHG4ParticleMap\")" << std::endl
+              << " and PHG4ParticleSvtxMap (node \"PHG4ParticleToRecoMap\")" << std::endl;
 
     std::cout << " --BEGIN-- Contents of SvtxPHG4ParticleMap: " << std::endl;
     for (auto &iter : *m_SvtxPHG4ParticleMap)

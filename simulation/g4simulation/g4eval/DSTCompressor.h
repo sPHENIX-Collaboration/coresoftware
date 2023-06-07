@@ -4,6 +4,9 @@
 #include "RtypesCore.h"
 #include "compressor_generator.h"
 
+#include <bitset>
+#include <iostream>
+
 class DSTCompressor
 {
  public:
