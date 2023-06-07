@@ -15,6 +15,7 @@
 
 #include <TFile.h>
 #include <TNtuple.h>
+#include <TSystem.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -436,9 +437,15 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
     {
       trkids[trk_id].first = (trkids[trk_id].first | (1 << (hit->get_layer())));
     }
-    else
+    else if (hit->get_layer() < 64)
     {
       trkids[trk_id].second = (trkids[trk_id].second | (1 << (hit->get_layer() - 32)));
+    }
+    else
+    {
+      std::cout << PHWHERE << "hit layer out of bounds (0-63) " << hit->get_layer() << std::endl;
+      gSystem->Exit(1);
+      exit(1);
     }
 
     // std::cout<<"trk_id = "<<trk_id<<std::endl;
