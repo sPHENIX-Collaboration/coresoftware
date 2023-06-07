@@ -32,7 +32,7 @@ libg4eval_la_LIBADD = \
   -lmicromegas_io \
   -lmvtx_io \
   -lphhepmc_io \
-  -lphg4hit
+  -lphg4hit \
   -ltrackbase_historic_io \
   -ltrack_io \
   -ltpc_io
