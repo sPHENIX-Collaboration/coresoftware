@@ -134,6 +134,10 @@ namespace G4Eval {
       m_phistep[layer] = layergeom->get_phistep();
     }
 
+    cout << " FIXME apple 0 " << endl;
+    int fixme = 0;
+    for (auto s : m_phistep) cout << (fixme++) << " : " << s << endl;
+
     m_TruthClusters = 
       findNode::getClass<TrkrClusterContainer>(topNode, name_phg4_clusters.c_str());
     if (!m_TruthClusters)

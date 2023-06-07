@@ -133,6 +133,7 @@ int FillTruthRecoMatchTree::Init(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int FillTruthRecoMatchTree::InitRun(PHCompositeNode *topNode)
 {
+  cout << " FIXME apple 1" << endl;
   auto init_status = m_cluster_comp.init(topNode);
   if (init_status == Fun4AllReturnCodes::ABORTRUN) return init_status;
 
@@ -331,7 +332,7 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
     b_is_g4track = true;
     b_is_Svtrack = false;
 
-    cout << " pear 0 g4_matched trkid: " << g4_trkid << endl;
+    cout << " || pear 0 g4_matched trkid: " << g4_trkid << endl;
     b_trackid    = g4_trkid;
     b_trkpt      = g4trk->getPt();
     b_trketa     = g4trk->getPseudoRapidity();
@@ -362,17 +363,17 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
           b_clusmatch     .push_back(false);
           fill_cluster_branches(clus, true);
           if (m_PHG4ClusHitVerb) { // FIXME
-           auto key = clus.ckey;
-          cout << " Z01 PHG4-match-id("<<b_trackid<<") nomatch-layer("<<b_clus_layer.back()
-            <<") layer(" << clus.layer <<") has cluster("
-            << m_PHG4ClusHitVerb->hasClusKey(key) << ")";
-          if (m_PHG4ClusHitVerb->hasClusKey(key)) { 
-            cout << " n phi:z:phicut:zcut("<< m_PHG4ClusHitVerb->phiBins(key).size()
-            <<":" << m_PHG4ClusHitVerb->zBins(key).size()
-            <<":" << m_PHG4ClusHitVerb->phiCutBins(key).size()
-            <<":" << m_PHG4ClusHitVerb->zCutBins(key).size() <<")";
-          }
-          cout << endl;
+           /* auto key = clus.ckey; */
+          /* cout << " Z01 PHG4-match-id("<<b_trackid<<") nomatch-layer("<<b_clus_layer.back() */
+          /*   <<") layer(" << clus.layer <<") has cluster(" */
+          /*   << m_PHG4ClusHitVerb->hasClusKey(key) << ")"; */
+          /* if (m_PHG4ClusHitVerb->hasClusKey(key)) { */ 
+          /*   cout << " n phi:z:phicut:zcut("<< m_PHG4ClusHitVerb->phiBins(key).size() */
+          /*   <<":" << m_PHG4ClusHitVerb->zBins(key).size() */
+          /*   <<":" << m_PHG4ClusHitVerb->phiCutBins(key).size() */
+          /*   <<":" << m_PHG4ClusHitVerb->zCutBins(key).size() <<")"; */
+          /* } */
+          /* cout << endl; */
         }
       }
 
@@ -381,17 +382,17 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
       for (auto& clus : clusters) {
         b_clusmatch     .push_back(true);
         fill_cluster_branches(clus, true);
-        auto key = clus.ckey;
-        cout << " Z02 PHG4-match-id("<<b_trackid<<") match-layer("<<b_clus_layer.back()
-          <<") layer(" << clus.layer <<") has cluster("
-          << m_PHG4ClusHitVerb->hasClusKey(key) << ")";
-        if (m_PHG4ClusHitVerb->hasClusKey(key)) { cout <<
-          " n phi:z:phicut:zcut("<< m_PHG4ClusHitVerb->phiBins(key).size()
-            <<":" << m_PHG4ClusHitVerb->zBins(key).size()
-            <<":" << m_PHG4ClusHitVerb->phiCutBins(key).size()
-            <<":" << m_PHG4ClusHitVerb->zCutBins(key).size() << ")";
-        }
-        cout << endl;
+        /* auto key = clus.ckey; */
+        /* cout << " Z02 PHG4-match-id("<<b_trackid<<") match-layer("<<b_clus_layer.back() */
+        /*   <<") layer(" << clus.layer <<") has cluster(" */
+        /*   << m_PHG4ClusHitVerb->hasClusKey(key) << ")"; */
+        /* if (m_PHG4ClusHitVerb->hasClusKey(key)) { cout << */
+        /*   " n phi:z:phicut:zcut("<< m_PHG4ClusHitVerb->phiBins(key).size() */
+        /*     <<":" << m_PHG4ClusHitVerb->zBins(key).size() */
+        /*     <<":" << m_PHG4ClusHitVerb->phiCutBins(key).size() */
+        /*     <<":" << m_PHG4ClusHitVerb->zCutBins(key).size() << ")"; */
+        /* } */
+        /* cout << endl; */
       }
     }
     m_ttree->Fill();
@@ -424,34 +425,34 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
       for (auto& clus : clusters) {
         b_clusmatch     .push_back(false);
         fill_cluster_branches(clus, false);
-        auto& key = clus.ckey;
-        cout << " Z03 SVTX-match-id("<<b_trackid<<") nomatch-layer("<<b_clus_layer.back()
-          <<") layer(" << clus.layer <<") has cluster("
-          << m_SvtxClusHitVerb->hasClusKey(clus.ckey) << ")";
-        if (m_SvtxClusHitVerb->hasClusKey(clus.ckey)) { cout <<
-          " n phi:z:phicut:zcut("<< m_SvtxClusHitVerb->phiBins(key).size()
-            <<":" << m_SvtxClusHitVerb->zBins(key).size()
-            <<":" << m_SvtxClusHitVerb->phiCutBins(key).size()
-            <<":" << m_SvtxClusHitVerb->zCutBins(key).size()<<")";
-        }
-        cout << endl;
+        /* auto& key = clus.ckey; */
+        /* cout << " Z03 SVTX-match-id("<<b_trackid<<") nomatch-layer("<<b_clus_layer.back() */
+        /*   <<") layer(" << clus.layer <<") has cluster(" */
+        /*   << m_SvtxClusHitVerb->hasClusKey(clus.ckey) << ")"; */
+        /* if (m_SvtxClusHitVerb->hasClusKey(clus.ckey)) { cout << */
+        /*   " n phi:z:phicut:zcut("<< m_SvtxClusHitVerb->phiBins(key).size() */
+        /*     <<":" << m_SvtxClusHitVerb->zBins(key).size() */
+        /*     <<":" << m_SvtxClusHitVerb->phiCutBins(key).size() */
+        /*     <<":" << m_SvtxClusHitVerb->zCutBins(key).size()<<")"; */
+        /* } */
+        /* cout << endl; */
       }
 
       clusters = m_cluscntr.clusloc_matched();
       for (auto& clus : clusters) {
         b_clusmatch     .push_back(true);
         fill_cluster_branches(clus, false);
-        auto key = clus.ckey;
-        cout << " Z04 SVTX-match-id("<<b_trackid<<") match-layer("<<b_clus_layer.back()
-          <<") layer(" << clus.layer <<") has cluster("
-          << m_SvtxClusHitVerb->hasClusKey(key) << ")";
-        if (m_SvtxClusHitVerb->hasClusKey(key)) { cout <<
-          " n phi:z:phicut:zcut("<< m_SvtxClusHitVerb->phiBins(key).size()
-            <<":" << m_SvtxClusHitVerb->zBins(key).size()
-            <<":" << m_SvtxClusHitVerb->phiCutBins(key).size()
-            <<":" << m_SvtxClusHitVerb->zCutBins(key).size()<<")";
-        }
-        cout << endl;
+        /* auto key = clus.ckey; */
+        /* cout << " Z04 SVTX-match-id("<<b_trackid<<") match-layer("<<b_clus_layer.back() */
+        /*   <<") layer(" << clus.layer <<") has cluster(" */
+        /*   << m_SvtxClusHitVerb->hasClusKey(key) << ")"; */
+        /* if (m_SvtxClusHitVerb->hasClusKey(key)) { cout << */
+        /*   " n phi:z:phicut:zcut("<< m_SvtxClusHitVerb->phiBins(key).size() */
+        /*     <<":" << m_SvtxClusHitVerb->zBins(key).size() */
+        /*     <<":" << m_SvtxClusHitVerb->phiCutBins(key).size() */
+        /*     <<":" << m_SvtxClusHitVerb->zCutBins(key).size()<<")"; */
+        /* } */
+        /* cout << endl; */
       }
     }
     m_ttree->Fill();
@@ -482,17 +483,17 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
       for (auto& clus : m_cluscntr.phg4_clusloc_all()) {
         b_clusmatch     .push_back(false);
         fill_cluster_branches(clus, true);
-        auto key = clus.ckey;
-        cout << " Z05 PHG4-nomatch-id("<<b_trackid<<") nomatch-layer("<<b_clus_layer.back()
-          <<") layer(" << clus.layer <<") has cluster("
-          << m_PHG4ClusHitVerb->hasClusKey(key) << ")";
-        if (m_PHG4ClusHitVerb->hasClusKey(key)) { cout <<
-          " n phi:z:phicut:zcut("<< m_PHG4ClusHitVerb->phiBins(key).size()
-            <<":" << m_PHG4ClusHitVerb->zBins(key).size()
-            <<":" << m_PHG4ClusHitVerb->phiCutBins(key).size()
-            <<":" << m_PHG4ClusHitVerb->zCutBins(key).size()<<")";
-        }
-        cout << endl;
+        /* auto key = clus.ckey; */
+        /* cout << " Z05 PHG4-nomatch-id("<<b_trackid<<") nomatch-layer("<<b_clus_layer.back() */
+        /*   <<") layer(" << clus.layer <<") has cluster(" */
+        /*   << m_PHG4ClusHitVerb->hasClusKey(key) << ")"; */
+        /* if (m_PHG4ClusHitVerb->hasClusKey(key)) { cout << */
+        /*   " n phi:z:phicut:zcut("<< m_PHG4ClusHitVerb->phiBins(key).size() */
+        /*     <<":" << m_PHG4ClusHitVerb->zBins(key).size() */
+        /*     <<":" << m_PHG4ClusHitVerb->phiCutBins(key).size() */
+        /*     <<":" << m_PHG4ClusHitVerb->zCutBins(key).size()<<")"; */
+        /* } */
+        /* cout << endl; */
       }
       //this is an unmatched track, so there are no matched clusters
     }
@@ -526,17 +527,17 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode * /*topNode*/)
       if (m_fill_clusters) {
         for (auto &clus : m_cluscntr.svtx_clusloc_all()) {
           fill_cluster_branches(clus, false);
-          auto& key = clus.ckey;
-          cout <<" Z06 SVTX-nomatch-id("<<b_trackid<<") nomatch-layer("<<b_clus_layer.back()
-            <<") layer(" << clus.layer <<") has cluster("
-            << m_SvtxClusHitVerb->hasClusKey(clus.ckey) << ")";
-          if (m_SvtxClusHitVerb->hasClusKey(clus.ckey)) { cout <<
-            " n phi:z:phicut:zcut("<< m_SvtxClusHitVerb->phiBins(key).size()
-              <<":" << m_SvtxClusHitVerb->zBins(key).size()
-              <<":" << m_SvtxClusHitVerb->phiCutBins(key).size()
-              <<":" << m_SvtxClusHitVerb->zCutBins(key).size()<<")";
-          }
-          cout << endl;
+          /* auto& key = clus.ckey; */
+          /* cout <<" Z06 SVTX-nomatch-id("<<b_trackid<<") nomatch-layer("<<b_clus_layer.back() */
+          /*   <<") layer(" << clus.layer <<") has cluster(" */
+          /*   << m_SvtxClusHitVerb->hasClusKey(clus.ckey) << ")"; */
+          /* if (m_SvtxClusHitVerb->hasClusKey(clus.ckey)) { cout << */
+          /*   " n phi:z:phicut:zcut("<< m_SvtxClusHitVerb->phiBins(key).size() */
+          /*     <<":" << m_SvtxClusHitVerb->zBins(key).size() */
+          /*     <<":" << m_SvtxClusHitVerb->phiCutBins(key).size() */
+          /*     <<":" << m_SvtxClusHitVerb->zCutBins(key).size()<<")"; */
+          /* } */
+          /* cout << endl; */
           }
       }
       m_ttree->Fill();
@@ -659,7 +660,6 @@ void FillTruthRecoMatchTree::fill_cluster_branches(
   auto x = clus.gloc[0];//std::get<1>(loc)[0];
   auto y = clus.gloc[1];
   auto r = pow(x*x+y*y,0.5);
-  b_clusmatch     .push_back(false);
   b_clus_layer    .push_back(clus.layer);
   b_clus_x        .push_back(x);
   b_clus_y        .push_back(y);
@@ -670,6 +670,7 @@ void FillTruthRecoMatchTree::fill_cluster_branches(
   b_clus_lphi     .push_back(clus.phi);
   b_clus_lphisize .push_back(clus.phisize);
   if (!m_fill_clusverbose) return;
+
   ClusHitsVerbose* data = (isPHG4) ? m_PHG4ClusHitVerb : m_SvtxClusHitVerb;
 
   auto& key = clus.ckey;
