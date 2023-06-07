@@ -195,6 +195,12 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
 // xC and yC are local position in tower units
 // For CYL geometry (xC,yC) is actually (phiC,zC)
 {
+
+  
+  bool flagDoSD =  true;
+  if (xA < -999)
+    flagDoSD = false;
+  
   xA = 0;
   yA = 0;
   zA = 0;
@@ -244,8 +250,16 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
   float yt = geom0.Ycenter + (xC - ix) * geom0.dY[0] + (yC - iy) * geom0.dY[1];
   float zt = geom0.Zcenter + (xC - ix) * geom0.dZ[0] + (yC - iy) * geom0.dZ[1];
 
-  CorrectShowerDepth(E, xt, yt, zt, xA, yA, zA);
-
+  if (flagDoSD)
+    {
+      CorrectShowerDepth(E, xt, yt, zt, xA, yA, zA);
+    }
+  else 
+    {
+      float savzt = zt; 
+      CorrectShowerDepth(E,xt,yt, zt, xA, yA, zA);
+      zA = savzt; 
+    }
   //  rA = sqrt(xA*xA+yA*yA);
   //  phiA = atan2(yA, xA);
 }
@@ -483,6 +497,7 @@ void BEmcRec::Momenta(std::vector<EmcModule>* phit, float& pe, float& px,
   ph = phit->begin();
   float emax = 0;
   int ichmax = 0;
+
   while (ph != phit->end())
   {
     a = ph->amp;
@@ -492,7 +507,8 @@ void BEmcRec::Momenta(std::vector<EmcModule>* phit, float& pe, float& px,
       ichmax = ph->ich;
     }
     ++ph;
-  }
+  }  
+
   if (emax <= 0)
   {
     return;
@@ -510,6 +526,7 @@ void BEmcRec::Momenta(std::vector<EmcModule>* phit, float& pe, float& px,
   yy = 0;
   yx = 0;
   ph = phit->begin();
+
   while (ph != phit->end())
   {
     a = ph->amp;
@@ -528,6 +545,7 @@ void BEmcRec::Momenta(std::vector<EmcModule>* phit, float& pe, float& px,
     }
     ++ph;
   }
+
   pe = e;
 
   if (e > 0)
@@ -647,7 +665,7 @@ float BEmcRec::PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy)
   float ddx = fabs(xcg - ixcg);
   float ddy = fabs(ycg - iycg);
 
-  float xg, yg, zg;
+  float xg=0, yg=0, zg=0;
   Tower2Global(en, xcg, ycg, xg, yg, zg);
 
   float theta, phi;
@@ -812,6 +830,7 @@ float BEmcRec::GetProb(std::vector<EmcModule> HitList, float en, float xg, float
   e2 = GetTowerEnergy(iy0cg, iz0cg + isz, &HitList);
   e3 = GetTowerEnergy(iy0cg + isy, iz0cg + isz, &HitList);
   e4 = GetTowerEnergy(iy0cg + isy, iz0cg, &HitList);
+
   if (e1 < thresh)
   {
     e1 = 0;
