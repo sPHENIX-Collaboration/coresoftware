@@ -48,7 +48,7 @@
 double LCE_fitf(Double_t *x, Double_t *par)
 {
 
-  return par[0]*LCE_grff->Eval(x[0]*par[1], 0, "S");
+  return par[0]*LCE_grff->Eval(x[0]*par[1], nullptr, "S");
   
 }
 
@@ -79,13 +79,8 @@ float LiteCaloEval::getFitMin()
 //____________________________________________________________________________..
 LiteCaloEval::LiteCaloEval(const std::string& name, const std::string& caloname, const std::string& filename)
   : SubsysReco(name)
-  , f_temp(0)
-  , fitmin(0.)
-  , fitmax(0.)
   , _caloname(caloname)
   , _filename(filename)
-  , mode(0)
-  , m_UseTowerInfo(0)
 {
 }
 
@@ -166,10 +161,11 @@ int LiteCaloEval::InitRun(PHCompositeNode* /*topNode*/)
     for (int i = 0; i < 25; i++)
     {
       std::string hist_name = "hcalout_eta_" + std::to_string(i);
-      if (i < 24)
+      if (i < 24) {
 	hcalout_eta[i] = new TH1F(hist_name.c_str(), "hcalout eta's", 20000, 0, 10);
-      else 
+      } else { 
 	hcalout_eta[i] = new TH1F(hist_name.c_str(), "hcalout eta's", 1000000, 0, 10);
+}
     }
   }
 
@@ -194,10 +190,11 @@ int LiteCaloEval::InitRun(PHCompositeNode* /*topNode*/)
       gStyle->SetOptFit(1);
       std::string b = "eta_" + std::to_string(i);
 
-      if (i < 96)
+      if (i < 96) {
 	eta_hist[i] = new TH1F(b.c_str(), "eta and all phi's", 5000, 0, 10);
-      else
+      } else {
 	eta_hist[i] = new TH1F(b.c_str(), "eta and all phi's", 1000000, 0, 10);
+}
     }
 
     //make 2d histo
@@ -241,8 +238,8 @@ int LiteCaloEval::process_event(PHCompositeNode* topNode)
 
   //raw tower container
   std::string towernode = "TOWER_CALIB_" + _caloname;
-  RawTowerContainer* towers = 0;
-  RawTowerGeomContainer* towergeom = 0;
+  RawTowerContainer* towers = nullptr;
+  RawTowerGeomContainer* towergeom = nullptr;
 
   //get tower energy for towerslope method only
   RawTowerContainer::ConstRange begin_end;
@@ -279,7 +276,7 @@ int LiteCaloEval::process_event(PHCompositeNode* topNode)
     }
 
   //  int centval1 = cent->get_centile(CentralityInfo::PROP::mbd_NS);
-  TowerInfoContainer *towerinfos = 0;
+  TowerInfoContainer *towerinfos = nullptr;
 
   //if using towerinfo create a tower object
   if(m_UseTowerInfo)
@@ -299,10 +296,11 @@ int LiteCaloEval::process_event(PHCompositeNode* topNode)
   //getting size of node
   unsigned int nchannels = -1;
 
-  if(m_UseTowerInfo)
+  if(m_UseTowerInfo) {
      nchannels = towerinfos->size();
-  else
+  } else {
     nchannels = towers->size();
+}
   
   TowerInfo *tower_info;
   RawTower *tower;
@@ -321,8 +319,9 @@ int LiteCaloEval::process_event(PHCompositeNode* topNode)
   for (unsigned int channel = 0; channel < nchannels; channel++)
     {
 
-      if(!m_UseTowerInfo && rtiter == begin_end.second)
+      if(!m_UseTowerInfo && rtiter == begin_end.second) {
 	std::cout << "ERROR: Recheck iteration process with rtiter variable" << std::endl;
+}
 
       float e = -1.0; //tower energy
       unsigned int ieta = 99999;
@@ -374,8 +373,9 @@ int LiteCaloEval::process_event(PHCompositeNode* topNode)
 	}
       
 
-      if (e <= 0)
+      if (e <= 0) {
 	continue;
+}
 
       if (calotype == LiteCaloEval::CEMC)
 	{
@@ -429,8 +429,9 @@ int LiteCaloEval::process_event(PHCompositeNode* topNode)
 	      int llet = ket%6;
 	      e *= 0.945+llet*0.02;	  	  
 	      int pket = iphi/4;
-	      if (pket%2==0) 
+	      if (pket%2==0) { 
 		e*= 1.03;
+}
 	    }
 
 	  hcal_out_eta_phi[ieta][iphi]->Fill(e);
@@ -456,8 +457,9 @@ int LiteCaloEval::process_event(PHCompositeNode* topNode)
 	      int llet = ket%6;
 	      e *= 0.945+llet*0.02;	  	  
 	      int pket = iphi/4;
-	      if (pket%2==0) 
+	      if (pket%2==0) { 
 		e*= 1.03;
+}
 	    }
 
 
@@ -472,8 +474,9 @@ int LiteCaloEval::process_event(PHCompositeNode* topNode)
 	  hcalin_e_eta_phi->Fill(e, ieta, iphi);
 	}
 
-      if(!m_UseTowerInfo)
+      if(!m_UseTowerInfo) {
 	++rtiter;
+}
 
     }//end of for loop
 
@@ -821,12 +824,14 @@ void LiteCaloEval::Get_Histos(const char * infile, const char* outfile)
     }
 
   int max_ieta = 96;
-  if (calotype != LiteCaloEval::CEMC)
+  if (calotype != LiteCaloEval::CEMC) {
     max_ieta = 24;
+}
 
   int max_iphi = 256;
-  if (calotype != LiteCaloEval::CEMC)
+  if (calotype != LiteCaloEval::CEMC) {
     max_iphi = 64;
+}
 
   ///start of eta loop
   for (int i=0; i< max_ieta; i++)
@@ -836,25 +841,28 @@ void LiteCaloEval::Get_Histos(const char * infile, const char* outfile)
       a.Form("%d", i);
       TString b = "eta_" + a;
 
-      if (calotype == LiteCaloEval::HCALOUT)
+      if (calotype == LiteCaloEval::HCALOUT) {
 	b = "hcalout_" + b;
-      else if(calotype == LiteCaloEval::HCALIN)
+      } else if(calotype == LiteCaloEval::HCALIN) {
 	b = "hcalin_" + b;
+}
 
       /// holds the eta slice of histos
       TH1F *heta_temp = (TH1F *)f_temp->Get(b.Data());
 
-      if (!heta_temp && i == 0) 
+      if (!heta_temp && i == 0) { 
 	std::cout << " warning hist "<< b.Data() << " not found" <<  std::endl;
+}
       
       /// assign the eta slice histo to an array (these arrays are private members in LCE.h)
       eta_hist[i] = heta_temp;
 
-      if (calotype == LiteCaloEval::HCALOUT)
+      if (calotype == LiteCaloEval::HCALOUT) {
 	hcalout_eta[i] = heta_temp;
 
-      else if (calotype == LiteCaloEval::HCALIN)
+      } else if (calotype == LiteCaloEval::HCALIN) {
 	hcalin_eta[i] = heta_temp;
+}
       
       ///start of phi loop
       for (int j = 0; j < max_iphi; j++)
@@ -862,29 +870,33 @@ void LiteCaloEval::Get_Histos(const char * infile, const char* outfile)
 	  ///create string to hold name of individual tower 
 	  std::string hist_name_p = "emc_ieta" + std::to_string(i) + "_phi" + std::to_string(j);
 
-	  if (calotype == LiteCaloEval::HCALOUT)
+	  if (calotype == LiteCaloEval::HCALOUT) {
 	    hist_name_p = "hcal_out_eta_" + std::to_string(i) + "_phi_" + std::to_string(j);
 
-	  else if (calotype == LiteCaloEval::HCALIN)
+	  } else if (calotype == LiteCaloEval::HCALIN) {
 	    hist_name_p = "hcal_in_eta_" + std::to_string(i) + "_phi_" + std::to_string(j);
+}
 
-	  if (j < 2)
+	  if (j < 2) {
 	    std::cout << "getting " << hist_name_p << std::endl;
+}
 		   
 	  /// heta_tempp holds tower histogram 
 	  TH1F *heta_tempp = (TH1F *)f_temp->Get(hist_name_p.c_str());
 
-	  if (!heta_tempp && i == 0)
+	  if (!heta_tempp && i == 0) {
 	    std::cout << " warning hist "<< hist_name_p.c_str() << " not found" <<  std::endl;
+}
 	  
 	  /// assign heta_tempp to array of tower histos
 	  cemc_hist_eta_phi[i][j] = heta_tempp;
 
-	  if (calotype == LiteCaloEval::HCALOUT)
+	  if (calotype == LiteCaloEval::HCALOUT) {
 	    hcal_out_eta_phi[i][j] = heta_tempp;
 
-	  else if (calotype == LiteCaloEval::HCALIN)
+	  } else if (calotype == LiteCaloEval::HCALIN) {
 	    hcal_in_eta_phi[i][j] = heta_tempp;
+}
 	}
       
       
@@ -899,10 +911,12 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
 {
   bool onlyEta = false;
 
-  if (fitmin < 0.001)
+  if (fitmin < 0.001) {
     fitmin = 0.15;
-  if (fitmax < 0.001)
+}
+  if (fitmax < 0.001) {
     fitmax = 1.3;
+}
 
   float par_value[96];
   float par_err[96]; 
@@ -921,33 +935,38 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
 
 
   /// if mFS is 1, 10, 20, etc, will make onlyEta = false and will run phi loop below 
-  if (modeFitShifts % 10 == 1)
+  if (modeFitShifts % 10 == 1) {
     onlyEta = true;
+}
 
   /// nsmooth is an automatic smoothing of histos
   int nsmooth = 1;
 
   /// if want more smoothing, look at mFS. If mFS=10, then addSmooth=1, and then there will be 2 total smoothings 
   int addSmooth = modeFitShifts %100 /10;
-  if (addSmooth) 
+  if (addSmooth) { 
     nsmooth += addSmooth;
+}
 
   /// flag that will run fits at tower level to get shifts, or will run at ring level and fit towers to eta slice histo
   bool flag_fit_rings =false;
 
   /// e.x. if mFS = 010 , 010%1000 = 10, 10/100 = 0  -> false, so dont run tower to rings
   /// e.x. if mFS = 110, 110%1000 = 110, 110/100 = 1 -> true, so run to fit eta slice histos fittings
-  if (modeFitShifts % 1000 / 100 == 1)
+  if (modeFitShifts % 1000 / 100 == 1) {
     flag_fit_rings = true;
+}
 
 
   int max_ieta = 96;
-  if (calotype != LiteCaloEval::CEMC)
+  if (calotype != LiteCaloEval::CEMC) {
     max_ieta = 24;
+}
 
   int max_iphi = 256;
-  if (calotype != LiteCaloEval::CEMC)
+  if (calotype != LiteCaloEval::CEMC) {
     max_iphi = 64;
+}
 
   ///histo to hold the returned fit parameter value
   TH2F * corrPat = new TH2F("corrPat","",max_ieta,0,max_ieta,max_iphi,0,max_iphi);
@@ -1003,10 +1022,10 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
       int iik = i;
 
       ///assign hnewf the eta slice histos.
-      TH1F * hnewf  = 0;
+      TH1F * hnewf  = nullptr;
        
       /// will hold eta slice histo but with certain towers removed, depending on calo type
-      TH1F * cleanEtaRef = 0;
+      TH1F * cleanEtaRef = nullptr;
       TString cleanEta = "cleanEtaRef_";
      
       if (calotype == LiteCaloEval::CEMC)
@@ -1112,7 +1131,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
       
       
       /// this function will be used to fit eta slice histos below
-      TF1 * f2f = 0;
+      TF1 * f2f = nullptr;
 
 
       /// Fit the eta slices w/ our user defined f'n and then get the tf1 
@@ -1120,8 +1139,9 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
 	{
 	  eta_hist[i]->Rebin(5);
 
-	  if (nsmooth > 1)
+	  if (nsmooth > 1) {
 	    eta_hist[i]->Smooth(nsmooth); 
+}
  
 
 	  eta_hist[i]->Fit("myexpo","L","",fitmin,fitmax);
@@ -1138,8 +1158,9 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
 	  hcalout_eta[i]->Rebin(2);
 
 
-	  if (nsmooth > 1)
+	  if (nsmooth > 1) {
 	    hcalout_eta[i]->Smooth(nsmooth);  
+}
 
 	  hcalout_eta[i]->Fit("myexpo","L","",fitmin,fitmax);
        
@@ -1153,8 +1174,9 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
 	  hcalin_eta[i]->Rebin(10);
 	  hcalin_eta[i]->Rebin(10);
 
-	  if (nsmooth > 1)
+	  if (nsmooth > 1) {
 	    hcalin_eta[i]->Smooth(nsmooth);
+}
 
 	  hcalin_eta[i]->Fit("myexpo","L","",fitmin,fitmax);
 
@@ -1192,7 +1214,8 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
 
 
       /// This if statement enables the phi (tower) material to execute
-      if (onlyEta == true)continue;
+      if (onlyEta == true) {continue;
+}
 		 
 
       /****************************************************
@@ -1247,7 +1270,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
  
       
 	  /// histo to hold tower from non modified root files
-	  TH1F * hnewfp  = 0;
+	  TH1F * hnewfp  = nullptr;
 	  
 
 	  if (calotype == LiteCaloEval::CEMC)
@@ -1335,7 +1358,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
        
 	  
 	  /// make tf1 that will hold the resulting fit from myexpo on towers
-	  TF1 * f2f2 = 0;
+	  TF1 * f2f2 = nullptr;
 
 	  if (calotype == LiteCaloEval::CEMC)
 	    {
@@ -1346,8 +1369,9 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
 		{
 		  scaleP0 /= cleanEtaRef->Integral(cleanEtaRef->FindBin(fitmin),cleanEtaRef->FindBin(fitmax));
 		}
-	      else
+	      else {
 		scaleP0 /= hnewfp->Integral(hnewfp->FindBin(fitmin),hnewfp->FindBin(fitmax));
+}
 
 	      f1->SetParameters(scaleP0,1.0);
 
@@ -1380,8 +1404,9 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
 		{
 		  scaleP0 /= cleanEtaRef->Integral(cleanEtaRef->FindBin(fitmin),cleanEtaRef->FindBin(fitmax));
 		}
-	      else
+	      else {
 		scaleP0 /= hnewfp->Integral(hnewfp->FindBin(fitmin),hnewfp->FindBin(fitmax));
+}
 	
 	      /// reset the "myexpo" parameters 
 	      f1->SetParameters(scaleP0,1.0);
@@ -1443,17 +1468,17 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
 	    }
 	  
 	  /// make graph and set points from evaluating f2f2
-	  TGraph * grT = new TGraph(1000);
-	  grT->SetName(myClnm2p.Data());
+	  TGraph *local_grT = new TGraph(1000);
+	  local_grT->SetName(myClnm2p.Data());
 
 	  for (int jjk = 0; jjk < 1000; jjk++)
 	    {
 	      float xjj = fitmin + jjk*(fitmax-fitmin)/1000.0;
 	      //grT->SetPoint(jjk,xjj,f2f->Eval(xjj));
-	      grT->SetPoint(jjk,xjj,f2f2->Eval(xjj));
+	      local_grT->SetPoint(jjk,xjj,f2f2->Eval(xjj));
 	    }
        
-	  grT->Write();
+	  local_grT->Write();
        
 	  float a1fp = f2f2->GetParameter(1);
 	  float b1fp = f2f2->GetParError(1);
@@ -1496,10 +1521,11 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
 	    {
 	      towid = mjl*1000 + mjk;
 	      corr = corrPat->GetBinContent(mjl+1,mjk+1);
-	      if (!(corr > 0.0))
+	      if (!(corr > 0.0)) {
 		corr = 1.0;
-	      else 
+	      } else { 
 		corr = 1.0/corr;
+}
 	      t1->Fill();
 	    }
 	}
@@ -1529,10 +1555,11 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
 	  for (int mjk = 0; mjk < max_iphi; mjk++) 
 	    {
 	      float corr = corrPat->GetBinContent(mjl+1,mjk+1);
-	      if (!(corr > 0.))
+	      if (!(corr > 0.)) {
 		corr = 1.0;
-	      else 
+	      } else { 
 		corr = 1.0/corr;
+}
 
 	      out_hcal_corrF << mjl << " " 
 			     << mjk << " " 
@@ -1546,8 +1573,9 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
     }
    
        
-  if (f_temp)
+  if (f_temp) {
     f_temp->Write();
+}
 
   f_temp->Close();
 

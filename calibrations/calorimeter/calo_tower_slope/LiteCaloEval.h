@@ -18,7 +18,7 @@ class TF1;
 
 
 double LCE_fitf(double * f, double *p);
-TGraph * LCE_grff = 0;
+TGraph * LCE_grff = nullptr;
 
 
 class LiteCaloEval : public SubsysReco
@@ -73,7 +73,7 @@ class LiteCaloEval : public SubsysReco
 
   // TNtuple -> to store fit parameters
 
-  TFile *f_temp;
+  TFile *f_temp = nullptr;
   /*
   TNtuple *nt_corrVals;
   TF1 *fit_func;
@@ -115,19 +115,19 @@ class LiteCaloEval : public SubsysReco
   TH2 *energy_eta_hist = nullptr;
   TH3 *e_eta_phi = nullptr;
 
-  TH2 *evtCentrality = nullptr;
+//  TH2 *evtCentrality = nullptr;
 
   Calo calotype = NONE;
   int _ievent = 0;
-  float fitmin;
-  float fitmax;
+  float fitmin = 0.;
+  float fitmax = 0.;
   std::string _caloname;
   std::string _filename;
 
-  int mode;
+  int mode = 0;
 
   //flag for using tower info
-  int m_UseTowerInfo;
+  int m_UseTowerInfo = 0;
 
 };
 
