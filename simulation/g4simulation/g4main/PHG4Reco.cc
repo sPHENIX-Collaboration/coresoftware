@@ -1036,8 +1036,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   const double alt_den_G4_Ar = G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar")->GetDensity();
   const double alt_den_CF4 = CF4->GetDensity();
   const double alt_den_sphenix_tpc_gas = alt_den_G4_Ar * alt_G4_Ar_frac + alt_den_CF4 * alt_CF4_frac;
-  G4Material *alt_sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas_ArCF4", den_sphenix_tpc_gas, ncomponents = 2, kStateGas);
-  alt_sPHENIX_tpc_gas->AddMaterial(CF4, alt_den_CF4 * alt_CF4_frac / den_sphenix_tpc_gas);
+  G4Material *alt_sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas_ArCF4", alt_den_sphenix_tpc_gas, ncomponents = 2, kStateGas);
+  alt_sPHENIX_tpc_gas->AddMaterial(CF4, alt_den_CF4 * alt_CF4_frac / alt_den_sphenix_tpc_gas);
   alt_sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar"), alt_den_G4_Ar * alt_G4_Ar_frac / alt_den_sphenix_tpc_gas);
 
   
