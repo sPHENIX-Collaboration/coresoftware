@@ -11,7 +11,7 @@
 #include <tuple>  // for tuple
 
 class PHCompositeNode;
-class sphenixnpc;
+class SphenixClient;
 
 class CDBInterface : public SubsysReco
 {
@@ -31,7 +31,7 @@ class CDBInterface : public SubsysReco
   CDBInterface(const std::string &name = "CDBInterface");
 
   static CDBInterface *__instance;
-  sphenixnpc *cdbclient = nullptr;
+  SphenixClient *cdbclient = nullptr;
   std::set<std::tuple<std::string, std::string, uint64_t>> m_UrlVector;
 };
 

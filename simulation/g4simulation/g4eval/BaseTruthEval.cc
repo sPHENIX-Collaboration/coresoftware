@@ -179,7 +179,10 @@ PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Shower* shower)
     return nullptr;
   }
 
-  if (is_primary(shower)) return shower;
+  if (is_primary(shower))
+  {
+    return shower;
+  }
 
   while (!is_primary(shower))
   {
@@ -217,7 +220,10 @@ PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Particle* particle)
     return nullptr;
   }
 
-  if (!is_primary(particle)) particle = get_primary_particle(particle);
+  if (!is_primary(particle))
+  {
+    particle = get_primary_particle(particle);
+  }
 
   PHG4Shower* returnval = nullptr;
 
@@ -255,7 +261,10 @@ PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Particle* particle)
     return nullptr;
   }
 
-  if (is_primary(particle)) return particle;
+  if (is_primary(particle))
+  {
+    return particle;
+  }
 
   PHG4Particle* returnval = m_TruthInfo->GetPrimaryParticle(particle->get_primary_id());
 
@@ -341,22 +350,22 @@ std::set<PHG4Shower*> BaseTruthEval::all_secondary_showers(PHG4Shower* shower)
        iter != range.second;
        ++iter)
   {
-    PHG4Shower* shower = iter->second;
+    PHG4Shower* local_shower = iter->second;
 
     if (m_Strict)
     {
-      assert(shower);
+      assert(local_shower);
     }
-    else if (!shower)
+    else if (!local_shower)
     {
       ++m_Errors;
     }
 
-    if (shower)
+    if (local_shower)
     {
-      if (shower->get_parent_shower_id() == shower->get_id())
+      if (local_shower->get_parent_shower_id() == local_shower->get_id())
       {
-        subshowers.insert(shower);
+        subshowers.insert(local_shower);
       }
     }
   }
@@ -383,7 +392,10 @@ bool BaseTruthEval::are_same_shower(PHG4Shower* s1, PHG4Shower* s2)
     return false;
   }
 
-  if (s1->get_id() == s2->get_id()) return true;
+  if (s1->get_id() == s2->get_id())
+  {
+    return true;
+  }
   return false;
 }
 
@@ -406,7 +418,10 @@ bool BaseTruthEval::are_same_particle(PHG4Particle* p1, PHG4Particle* p2)
     return false;
   }
 
-  if (p1->get_track_id() == p2->get_track_id()) return true;
+  if (p1->get_track_id() == p2->get_track_id())
+  {
+    return true;
+  }
   return false;
 }
 
@@ -429,7 +444,10 @@ bool BaseTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2)
     return false;
   }
 
-  if (vtx1->get_id() == vtx2->get_id()) return true;
+  if (vtx1->get_id() == vtx2->get_id())
+  {
+    return true;
+  }
   return false;
 }
 
@@ -602,9 +620,13 @@ void BaseTruthEval::get_node_pointers(PHCompositeNode* topNode)
 bool BaseTruthEval::has_reduced_node_pointers()
 {
   if (m_Strict)
+  {
     assert(m_TruthInfo);
+  }
   else if (!m_TruthInfo)
+  {
     return false;
+  }
 
   return true;
 }

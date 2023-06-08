@@ -115,9 +115,9 @@ namespace
 MakeActsGeometry::MakeActsGeometry(const std::string &name)
 : SubsysReco(name)
 {
-  for ( const auto id : { TrkrDefs::mvtxId, TrkrDefs::inttId, TrkrDefs::tpcId, TrkrDefs::micromegasId })
+  for ( int layer = 0; layer < 57; layer++)
     {
-      m_misalignmentFactor.insert(std::make_pair(id, 1.));
+      m_misalignmentFactor.insert(std::make_pair(layer, 1.));
     }
 }
 

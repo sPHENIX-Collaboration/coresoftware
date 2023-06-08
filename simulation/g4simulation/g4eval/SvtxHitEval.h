@@ -46,7 +46,7 @@ class SvtxHitEval
   // access the clustereval (and its cached values)
   SvtxTruthEval* get_truth_eval() { return &_trutheval; }
 
-  //PHG4Cell* get_cell(SvtxHit* hit);
+  // PHG4Cell* get_cell(SvtxHit* hit);
 
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits(TrkrDefs::hitkey hit_key);
@@ -81,8 +81,8 @@ class SvtxHitEval
 
   SvtxTruthEval _trutheval;
   TrkrHitSetContainer* _hitmap;
-  TrkrClusterContainer* _clustermap;
-  TrkrHitTruthAssoc* _hit_truth_map;
+  TrkrClusterContainer* _clustermap{};
+  TrkrHitTruthAssoc* _hit_truth_map{};
 
   PHG4HitContainer* _g4hits_tpc;
   PHG4HitContainer* _g4hits_intt;

@@ -20,7 +20,7 @@ do
     foutputname="./Files/hist_G4Hits_sHijing_0-12fm_bX"$bX"_"$A"_"$B".root" ;
     echo $fname ;
     echo $foutputname ;
-    root -l -b -q ./macros/Fun4All_FillDCMap.C\(10,$Xstart,$bX,\"$fname\",\"$foutputname\"\)
+    root -l -b -q ./macros/Fun4All_FillDCMap.C\(100,$Xstart,$bX,\"$fname\",\"$foutputname\"\)
 done
 
 echo all done
