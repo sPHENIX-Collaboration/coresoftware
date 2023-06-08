@@ -11,7 +11,9 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  tpc_hits.h
+  tpc_hits.h \
+  TPCMap.h \
+  TPC_RawHit.h
 
 lib_LTLIBRARIES = \
   librawtodst.la

@@ -76,17 +76,17 @@ class SvtxVertexEval
   bool has_node_pointers();
 
   SvtxTrackEval _trackeval;
-  SvtxVertexMap* _vertexmap;
-  SvtxTrackMap* _trackmap;
-  PHG4TruthInfoContainer* _truthinfo;
+  SvtxVertexMap* _vertexmap = nullptr;
+  SvtxTrackMap* _trackmap = nullptr;
+  PHG4TruthInfoContainer* _truthinfo = nullptr;
 
-  bool _strict;
+  bool _strict = false;
   bool _use_initial_vertex = true;
   bool _use_genfit_vertex = false;
-  int _verbosity;
-  unsigned int _errors;
+  int _verbosity = 0;
+  unsigned int _errors = 0;
 
-  bool _do_cache;
+  bool _do_cache = true;
   std::map<SvtxVertex*, std::set<PHG4Particle*> > _cache_all_truth_particles;
   std::map<SvtxVertex*, std::set<PHG4VtxPoint*> > _cache_all_truth_points;
   std::map<SvtxVertex*, PHG4VtxPoint*> _cache_max_truth_point_by_ntracks;

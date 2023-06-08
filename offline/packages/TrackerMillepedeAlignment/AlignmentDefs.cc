@@ -1,4 +1,5 @@
 #include "AlignmentDefs.h"
+#include <trackbase/TpcDefs.h>
 
 void AlignmentDefs::getSiliconGlobalLabels(Surface surf, int glbl_label[], AlignmentDefs::siliconGrp grp)
 {
@@ -17,14 +18,14 @@ void AlignmentDefs::getSiliconGlobalLabels(Surface surf, int glbl_label[], Align
     break;
   }
 
-  int label_base = getLabelBase(id, group);
+  int label_base = getLabelBase(id, 0, group);
   for (int i = 0; i < NGL; ++i)
   {
     glbl_label[i] = label_base + i;
   }
 }
 
-void AlignmentDefs::getTpcGlobalLabels(Surface surf, int glbl_label[], AlignmentDefs::tpcGrp grp)
+void AlignmentDefs::getTpcGlobalLabels(Surface surf, TrkrDefs::cluskey cluskey, int glbl_label[], AlignmentDefs::tpcGrp grp)
 {
   Acts::GeometryIdentifier id = surf->geometryId();
   int group = 0;
@@ -41,7 +42,7 @@ void AlignmentDefs::getTpcGlobalLabels(Surface surf, int glbl_label[], Alignment
     break;
   }
 
-  int label_base = getLabelBase(id, group);
+  int label_base = getLabelBase(id, cluskey, group);
   for (int i = 0; i < NGL; ++i)
   {
     glbl_label[i] = label_base + i;
@@ -61,7 +62,7 @@ void AlignmentDefs::getMMGlobalLabels(Surface surf, int glbl_label[], AlignmentD
     break;
   }
 
-  int label_base = getLabelBase(id, group);
+  int label_base = getLabelBase(id, 0, group);
   for (int i = 0; i < NGL; ++i)
   {
     glbl_label[i] = label_base + i;
@@ -71,14 +72,14 @@ void AlignmentDefs::getMMGlobalLabels(Surface surf, int glbl_label[], AlignmentD
 int AlignmentDefs::getTpcRegion(int layer)
 {
   int region = 0;
-  if (layer > 23 && layer < 39)
+  if (layer > 22 && layer < 39)
     region = 1;
   if (layer > 38 && layer < 55)
     region = 2;
 
   return region;
 }
-int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, int group)
+int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey cluskey, int group)
 {
   unsigned int volume = id.volume();
   unsigned int acts_layer = id.layer();
@@ -88,7 +89,7 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, int group)
   int label_base = 1;  // Mille wants to start at 1
 
   // decide what level of grouping we want
-  if (layer < 7)
+  if (layer < 3)
   {
     if (group == 0)
     {
@@ -102,6 +103,11 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, int group)
       // layer and stave, assign all sensors to the stave number
       int stave = sensor / nsensors_stave[layer];
       label_base += layer * 1000000 + stave * 10000;
+      /*
+      std::cout << id << std::endl;
+      std::cout << "    label_base " << label_base << " volume " << volume << " acts_layer " << acts_layer 
+		<< " layer " << layer << " stave " << stave << " sensor " << sensor << std::endl;
+      */
       return label_base;
     }
     if (group == 2)
@@ -109,11 +115,51 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, int group)
       label_base += layer * 1000000 + 0;
     return label_base;
   }
+  else if(layer > 2 && layer < 7)
+    {
+      // calculating the stave number from the sensor is different between the INTT and MVTX
+      // There are 4 sensors/stave, but they are mapped to staves in a strange way
+      // sensors 1-> (nstaves/layer)*2 are in staves 1->nstaves/layer in pairs
+      // sensors (nstaves/layer * 2) +1->nstaves/layer)*2 are in staves 1->nstaves/layer in pairs
+
+      int stave;
+      unsigned int breakat = nstaves_layer_intt[layer-3] * 2;
+      if(sensor < breakat)
+	{
+	  stave = sensor/2;  // staves 0 -> (nstaves/layer) -1
+	}
+      else
+	{
+	  stave = (sensor - breakat)/2;  //staves 0 -> (nstaves/layer) -1
+	}
+
+      if (group == 0)
+	{
+	  // every sensor has a different label
+	  label_base += layer * 1000000 + stave * 10000 + sensor * 10;
+	  return label_base;
+	}
+      if (group == 1)
+	{
+	  // layer and stave, assign all sensors to the stave number
+	  label_base += layer * 1000000 + stave * 10000;
+	  /*
+	  std::cout << "    "  << id << std::endl;
+	  std::cout << "    label_base " << label_base << " volume " << volume << " acts_layer " << acts_layer 
+		    << " layer " << layer << " breakat " << breakat << " stave " << stave << " sensor " << sensor << std::endl;
+	  */
+	  return label_base;
+	}
+      if (group == 2)
+	// layer only, assign all sensors to sensor 0
+	label_base += layer * 1000000 + 0;
+      return label_base;
+    }
   else if (layer > 6 && layer < 55)
   {
     if (group == 3)
-    {
-      // want every hitset (layer, sector, side) to have a separate label
+      {
+	// want every hitset (layer, sector, side) to have a separate label
       // each group of 12 subsurfaces (sensors) is in a single hitset
       int hitset = sensor / 12;  // 0-11 on side 0, 12-23 on side 1
       label_base += layer * 1000000 + hitset * 10000;
@@ -122,12 +168,19 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, int group)
     if (group == 4)
     {
       // group all tpc layers in each region and sector, assign layer 7 and side and sector number to all layers and hitsets
-      int side = sensor / 144;  // 0-143 on side 0, 144-287 on side 1
-      int sector = (sensor - side * 144) / 12;
+      int side = TpcDefs::getSide(cluskey);
+      int sector = TpcDefs::getSectorId(cluskey);;
+      int region = getTpcRegion(layer);  // inner, mid, outer
+
       // for a given layer there are only 12 sectors x 2 sides
       // The following gives the sectors in the inner, mid, outer regions unique group labels
-      int region = getTpcRegion(layer);  // inner, mid, outer
       label_base += 7 * 1000000 + (region * 24 + side * 12 + sector) * 10000;
+      /*
+      std::cout << " sensor " << sensor << " sector " << sector << " region " << region 
+		<< " side " << side << " label base " << label_base << std::endl;
+      std::cout << " Volume " << volume << " acts_layer " << acts_layer << " base_layer " <<  base_layer_map.find(volume)->second << " layer " << layer << std::endl;
+      */
+
       return label_base;
     }
     if (group == 5)
@@ -153,7 +206,6 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, int group)
       return label_base;
     }
   }
-
   return -1;
 }
 
