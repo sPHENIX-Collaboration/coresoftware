@@ -65,6 +65,12 @@ class RawClusterBuilderTemplate : public SubsysReco
   int m_UseTowerInfo = 0;  // 0 only old tower, 1 only new (TowerInfo based),
 
   std::string m_towerInfo_nodename;
+
+  int m_UseAltZVertex = 0;  
+  // 0 - use GlobalVtxMap
+  // 1 - use BbcReco ZVtx
+  // 2 - use NO zvertex (zvtx = 0)
+
 };
 
 #endif /* RawClusterBuilderTemplate_H__ */

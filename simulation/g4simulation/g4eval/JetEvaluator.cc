@@ -21,24 +21,14 @@
 #include <map>
 #include <utility>
 
-using namespace std;
-
-JetEvaluator::JetEvaluator(const string &name,
-                           const string &recojetname,
-                           const string &truthjetname,
-                           const string &filename)
+JetEvaluator::JetEvaluator(const std::string &name,
+                           const std::string &recojetname,
+                           const std::string &truthjetname,
+                           const std::string &filename)
   : SubsysReco(name)
   , _recojetname(recojetname)
   , _truthjetname(truthjetname)
-  , _ievent(0)
-  , _jetevalstack(nullptr)
-  , _strict(false)
-  , _do_recojet_eval(true)
-  , _do_truthjet_eval(true)
-  , _ntp_recojet(nullptr)
-  , _ntp_truthjet(nullptr)
   , _filename(filename)
-  , _tfile(nullptr)
 {
 }
 
@@ -122,9 +112,9 @@ int JetEvaluator::End(PHCompositeNode * /*topNode*/)
 
   if (Verbosity() > 0)
   {
-    cout << "========================== JetEvaluator::End() ============================" << endl;
-    cout << " " << _ievent << " events of output written to: " << _filename << endl;
-    cout << "===========================================================================" << endl;
+    std::cout << "========================== JetEvaluator::End() ============================" << std::endl;
+    std::cout << " " << _ievent << " events of output written to: " << _filename << std::endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   delete _jetevalstack;
@@ -148,7 +138,7 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
 {
   if (Verbosity() > 2)
   {
-    cout << "JetEvaluator::fillOutputNtuples() entered" << endl;
+    std::cout << "JetEvaluator::fillOutputNtuples() entered" << std::endl;
   }
 
   JetRecoEval *recoeval = _jetevalstack->get_reco_eval();
@@ -162,13 +152,13 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
   {
     if (Verbosity() > 1)
     {
-      cout << "JetEvaluator::filling recojet ntuple..." << endl;
+      std::cout << "JetEvaluator::filling recojet ntuple..." << std::endl;
     }
 
-    JetMap *recojets = findNode::getClass<JetMap>(topNode, _recojetname.c_str());
+    JetMap *recojets = findNode::getClass<JetMap>(topNode, _recojetname);
     if (!recojets)
     {
-      cerr << PHWHERE << " ERROR: Can't find " << _recojetname << endl;
+      std::cout << PHWHERE << " ERROR: Can't find " << _recojetname << std::endl;
       exit(-1);
     }
 
@@ -231,13 +221,13 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
   {
     if (Verbosity() > 1)
     {
-      cout << "JetEvaluator::filling truthjet ntuple..." << endl;
+      std::cout << "JetEvaluator::filling truthjet ntuple..." << std::endl;
     }
 
-    JetMap *truthjets = findNode::getClass<JetMap>(topNode, _truthjetname.c_str());
+    JetMap *truthjets = findNode::getClass<JetMap>(topNode, _truthjetname);
     if (!truthjets)
     {
-      cerr << PHWHERE << " ERROR: Can't find " << _truthjetname << endl;
+      std::cout << PHWHERE << " ERROR: Can't find " << _truthjetname << std::endl;
       exit(-1);
     }
 

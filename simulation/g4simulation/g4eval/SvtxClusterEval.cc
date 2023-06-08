@@ -30,8 +30,6 @@
 #include <map>
 #include <set>
 
-using namespace std;
-
 SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
   : _hiteval(topNode)
 {
@@ -44,7 +42,7 @@ SvtxClusterEval::~SvtxClusterEval()
   {
     if ((_errors > 0) || (_verbosity > 1))
     {
-      cout << "SvtxClusterEval::~SvtxClusterEval() - Error Count: " << _errors << endl;
+      std::cout << "SvtxClusterEval::~SvtxClusterEval() - Error Count: " << _errors << std::endl;
     }
   }
 }
@@ -121,7 +119,7 @@ std::pair<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxClusterEval::max_
 
   if (_verbosity > 0)
   {
-    cout << "         max truth particle by cluster energy has  trackID  " << max_particle->get_track_id() << endl;
+    std::cout << "         max truth particle by cluster energy has  trackID  " << max_particle->get_track_id() << std::endl;
   }
 
   TrkrCluster* reco_cluster = _clustermap->findCluster(cluster_key);
@@ -242,7 +240,7 @@ std::pair<TrkrDefs::cluskey, TrkrCluster*> SvtxClusterEval::reco_cluster_from_tr
 
     if (_verbosity > 0)
     {
-      cout << "       contributing g4hitID " << cont_g4hit->get_hit_id() << " g4trackID " << cont_g4hit->get_trkid() << endl;
+      std::cout << "       contributing g4hitID " << cont_g4hit->get_hit_id() << " g4trackID " << cont_g4hit->get_trkid() << std::endl;
     }
 
     for (unsigned long iter : cluskeys)
@@ -407,7 +405,7 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key
 
   if (_do_cache)
   {
-    _cache_all_truth_hits.insert(make_pair(cluster_key, truth_hits));
+    _cache_all_truth_hits.insert(std::make_pair(cluster_key, truth_hits));
   }
 
   return truth_hits;
@@ -471,7 +469,7 @@ PHG4Hit* SvtxClusterEval::all_truth_hits_by_nhit(TrkrDefs::cluskey cluster_key)
       PHG4HitDefs::keytype g4hitkey = htiter.second.second;
       if (_verbosity > 2)
       {
-        cout << " g4key:  " << g4hitkey << " layer: " << layer << endl;
+        std::cout << " g4key:  " << g4hitkey << " layer: " << layer << std::endl;
       }
       TrkrDefs::hitkey local_hitkey = htiter.second.first;
       /*	  if(layer>=7){
@@ -488,7 +486,7 @@ PHG4Hit* SvtxClusterEval::all_truth_hits_by_nhit(TrkrDefs::cluskey cluster_key)
     }  // end loop over g4hits associated with hitsetkey and hitkey
   }    // end loop over hits associated with cluskey
 
-  //  if (_do_cache) _cache_all_truth_hits.insert(make_pair(cluster_key, truth_hits));
+  //  if (_do_cache) _cache_all_truth_hits.insert(std::make_pair(cluster_key, truth_hits));
   PHG4HitDefs::keytype max_key = 0;
   unsigned int n_max = 0;
 
@@ -515,10 +513,10 @@ PHG4Hit* SvtxClusterEval::all_truth_hits_by_nhit(TrkrDefs::cluskey cluster_key)
           }
 
           TVector3 vec(this_g4hit->get_avg_x(), this_g4hit->get_avg_y(), this_g4hit->get_avg_z());
-          // cout << "layer: " << layer << " (" << glayer << ") " << " gtrackID: " << this_g4hit->get_trkid() << " novlp: " << ng4hit << " phi: " << vec.Phi() << " z: " << this_g4hit->get_avg_z() << " r: " << vec.Perp() << " keyg4: " << *it << endl; //<< " keyrec: "<< *it.second << endl;
+          // std::cout << "layer: " << layer << " (" << glayer << ") " << " gtrackID: " << this_g4hit->get_trkid() << " novlp: " << ng4hit << " phi: " << vec.Phi() << " z: " << this_g4hit->get_avg_z() << " r: " << vec.Perp() << " keyg4: " << *it << std::endl; //<< " keyrec: "<< *it.second << std::endl;
         }
         /*else{
-          cout << "g4hit == NULL " << endl;
+          std::cout << "g4hit == NULL " << std::endl;
         }
         */
       }
@@ -562,7 +560,7 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
   if (!has_node_pointers())
   {
     ++_errors;
-    return make_pair(0, 0);
+    return std::make_pair(0, 0);
   }
 
   //  if (_strict)
@@ -620,7 +618,7 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
       PHG4HitDefs::keytype g4hitkey = htiter.second.second;
       if (_verbosity > 2)
       {
-        cout << " g4key:  " << g4hitkey << " layer: " << layer << endl;
+        std::cout << " g4key:  " << g4hitkey << " layer: " << layer << std::endl;
       }
       TrkrDefs::hitkey local_hitkey = htiter.second.first;
       /*	  if(layer>=7){
@@ -641,7 +639,7 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
   unsigned int n_max = 0;
   if (_verbosity > 2)
   {
-    cout << " n matches found: " << g4hitkeys.size() << " phi: " << cvec.Phi() << " z: " << cvec.Z() << " ckey: " << cluster_key << endl;
+    std::cout << " n matches found: " << g4hitkeys.size() << " phi: " << cvec.Phi() << " z: " << cvec.Z() << " ckey: " << cluster_key << std::endl;
   }
 
   if (g4hitkeys.size() == 1)
@@ -666,8 +664,8 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
           TVector3 vec(this_g4hit->get_avg_x(), this_g4hit->get_avg_y(), this_g4hit->get_avg_z());
           if (_verbosity > 2)
           {
-            cout << "layer: " << layer << " (" << glayer << ") "
-                 << " gtrackID: " << this_g4hit->get_trkid() << " novlp: " << ng4hit << " phi: " << vec.Phi() << " z: " << this_g4hit->get_avg_z() << " r: " << vec.Perp() << " keyg4: " << g4hitkey << " cz: " << cluster->getZ() << endl;  //<< " keyrec: "<< *it.second << endl;
+            std::cout << "layer: " << layer << " (" << glayer << ") "
+                      << " gtrackID: " << this_g4hit->get_trkid() << " novlp: " << ng4hit << " phi: " << vec.Phi() << " z: " << this_g4hit->get_avg_z() << " r: " << vec.Perp() << " keyg4: " << g4hitkey << " cz: " << cluster->getZ() << std::endl;  //<< " keyrec: "<< *it.second << std::endl;
           }
         }
       }
@@ -680,7 +678,7 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
   }
   if (_verbosity > 2)
   {
-    cout << "found in layer: " << layer << " n_max: " << n_max << " max_key: " << max_key << " ckey: " << cluster_key << endl;
+    std::cout << "found in layer: " << layer << " n_max: " << n_max << " max_key: " << max_key << " ckey: " << cluster_key << std::endl;
   }
   if (max_key != 0)
   {
@@ -725,7 +723,7 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
 
     if (layer >= 7)
     {
-      //	    cout << " in tpc " << endl;
+      //	    std::cout << " in tpc " << std::endl;
       if (deta > 0.1)
       {
         is_loop = 1;
@@ -773,7 +771,7 @@ PHG4Hit* SvtxClusterEval::max_truth_hit_by_energy(TrkrDefs::cluskey cluster_key)
 
   if (_do_cache)
   {
-    _cache_max_truth_hit_by_energy.insert(make_pair(cluster_key, max_hit));
+    _cache_max_truth_hit_by_energy.insert(std::make_pair(cluster_key, max_hit));
   }
 
   return max_hit;
@@ -804,7 +802,7 @@ std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(TrkrDefs::cluskey c
   for (auto hit : g4hits)
   {
     PHG4Particle* particle = get_truth_eval()->get_particle(hit);
-    // cout << "cluster key " << cluster_key << " has hit " << hit->get_hit_id() << " and has particle " << particle->get_track_id() << endl;
+    // std::cout << "cluster key " << cluster_key << " has hit " << hit->get_hit_id() << " and has particle " << particle->get_track_id() << std::endl;
 
     if (_strict)
     {
@@ -821,7 +819,7 @@ std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(TrkrDefs::cluskey c
 
   if (_do_cache)
   {
-    _cache_all_truth_particles.insert(make_pair(cluster_key, truth_particles));
+    _cache_all_truth_particles.insert(std::make_pair(cluster_key, truth_particles));
   }
 
   return truth_particles;
@@ -871,7 +869,7 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_cluster_energy(TrkrDefs::cl
 
   if (_do_cache)
   {
-    _cache_max_truth_particle_by_cluster_energy.insert(make_pair(cluster_key, max_particle));
+    _cache_max_truth_particle_by_cluster_energy.insert(std::make_pair(cluster_key, max_particle));
   }
 
   return max_particle;
@@ -915,7 +913,7 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_energy(TrkrDefs::cluskey cl
 
   if (_do_cache)
   {
-    _cache_max_truth_particle_by_energy.insert(make_pair(cluster_key, max_particle));
+    _cache_max_truth_particle_by_energy.insert(std::make_pair(cluster_key, max_particle));
   }
 
   return max_particle;
@@ -977,7 +975,7 @@ void SvtxClusterEval::FillRecoClusterFromG4HitCache()
       std::set<PHG4Particle*> particles = all_truth_particles(cluster_key);
       for (auto candidate : particles)
       {
-        temp_clusters_from_particles.insert(make_pair(candidate, cluster_key));
+        temp_clusters_from_particles.insert(std::make_pair(candidate, cluster_key));
       }
     }
   }
@@ -996,7 +994,7 @@ void SvtxClusterEval::FillRecoClusterFromG4HitCache()
       TrkrDefs::cluskey cluster_key = cfp_iter->second;
       clusters.insert(cluster_key);
     }
-    _cache_all_clusters_from_particle.insert(make_pair(g4particle, clusters));
+    _cache_all_clusters_from_particle.insert(std::make_pair(g4particle, clusters));
   }
 
   Mytimer->stop();
@@ -1031,7 +1029,7 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
     // get all reco clusters
     if (_verbosity > 1)
     {
-      cout << "all_clusters_from_g4hit: list all reco clusters " << endl;
+      std::cout << "all_clusters_from_g4hit: list all reco clusters " << std::endl;
     }
 
     for (const auto& hitsetkey : _clustermap->getHitSetKeys())
@@ -1044,11 +1042,11 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
         TrkrCluster* clus = iter->second;
         if (_verbosity > 1)
         {
-          cout << " layer " << layer << " cluster_key " << cluster_key << " adc " << clus->getAdc()
-               << " localx " << clus->getLocalX()
-               << " localy " << clus->getLocalY()
-               << endl;
-          cout << "  associated hits:";
+          std::cout << " layer " << layer << " cluster_key " << cluster_key << " adc " << clus->getAdc()
+                    << " localx " << clus->getLocalX()
+                    << " localy " << clus->getLocalY()
+                    << std::endl;
+          std::cout << "  associated hits:";
           std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
               hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
           for (std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
@@ -1056,9 +1054,9 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
                clushititer != hitrange.second; ++clushititer)
           {
             TrkrDefs::hitkey hitkey = clushititer->second;
-            cout << " " << hitkey;
+            std::cout << " " << hitkey;
           }
-          cout << endl;
+          std::cout << std::endl;
         }
 
         // the returned truth hits were obtained from TrkrAssoc maps
@@ -1070,9 +1068,9 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
           if (_verbosity > 5)
           {
             int gtrackID = candidate->get_trkid();
-            cout << "   adding cluster with cluster_key " << cluster_key << " g4hit with g4hit_key " << g4hit_key
-                 << " gtrackID " << gtrackID
-                 << endl;
+            std::cout << "   adding cluster with cluster_key " << cluster_key << " g4hit with g4hit_key " << g4hit_key
+                      << " gtrackID " << gtrackID
+                      << std::endl;
           }
 
           all_g4hits_set.insert(g4hit_key);
@@ -1089,7 +1087,7 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
     {
       if (_verbosity > 5)
       {
-        cout << " associations for g4hit_key " << g4hit_key << endl;
+        std::cout << " associations for g4hit_key " << g4hit_key << std::endl;
       }
 
       std::map<PHG4HitDefs::keytype, PHG4Hit*>::iterator it = all_g4hits_map.find(g4hit_key);
@@ -1106,11 +1104,11 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
 
         if (_verbosity > 5)
         {
-          cout << "             g4hit_key " << g4hit_key << " associated with cluster_key " << jter->second << endl;
+          std::cout << "             g4hit_key " << g4hit_key << " associated with cluster_key " << jter->second << std::endl;
         }
       }
       // done with this g4hit
-      _cache_all_clusters_from_g4hit.insert(make_pair(g4hit, assoc_clusters));
+      _cache_all_clusters_from_g4hit.insert(std::make_pair(g4hit, assoc_clusters));
     }
   }
 
@@ -1154,10 +1152,10 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
   if (_cache_best_cluster_from_gtrackid_layer.size() == 0)
   {
     // get all reco clusters
-    // cout << "cache size ==0" << endl;
+    // std::cout << "cache size ==0" << std::endl;
     if (_verbosity > 1)
     {
-      cout << "all_clusters: found # " << _clustermap->size() << endl;
+      std::cout << "all_clusters: found # " << _clustermap->size() << std::endl;
     }
 
     for (const auto& hitsetkey : _clustermap->getHitSetKeys())
@@ -1182,13 +1180,13 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
         {
           if (gid_lay.second >= 0)
           {
-            _cache_best_cluster_from_gtrackid_layer.insert(make_pair(gid_lay, cluster_key));
+            _cache_best_cluster_from_gtrackid_layer.insert(std::make_pair(gid_lay, cluster_key));
           }
         }
         else if (_verbosity > 2)
         {
-          cout << "found doublematch" << endl;
-          cout << "ckey: " << cluster_key << " gtrackID: " << gid_lay.first << " layer: " << gid_lay.second << endl;
+          std::cout << "found doublematch" << std::endl;
+          std::cout << "ckey: " << cluster_key << " gtrackID: " << gid_lay.first << " layer: " << gid_lay.second << std::endl;
         }
       }
     }
@@ -1198,7 +1196,7 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
   TrkrDefs::cluskey best_cluster = 0;
   //  PHG4Hit*, std::set<TrkrDefs::cluskey> >::iterator iter =
 
-  std::map<std::pair<int, int>, TrkrDefs::cluskey>::iterator iter = _cache_best_cluster_from_gtrackid_layer.find(make_pair(gid, layer));
+  std::map<std::pair<int, int>, TrkrDefs::cluskey>::iterator iter = _cache_best_cluster_from_gtrackid_layer.find(std::make_pair(gid, layer));
   if (iter != _cache_best_cluster_from_gtrackid_layer.end())
   {
     return iter->second;
@@ -1250,7 +1248,7 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_from(PHG4Hit* truthhit)
 
   if (_do_cache)
   {
-    _cache_best_cluster_from_g4hit.insert(make_pair(truthhit, best_cluster));
+    _cache_best_cluster_from_g4hit.insert(std::make_pair(truthhit, best_cluster));
   }
 
   return best_cluster;
@@ -1282,7 +1280,7 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
   if (_do_cache)
   {
     std::map<std::pair<TrkrDefs::cluskey, PHG4Particle*>, float>::iterator iter =
-        _cache_get_energy_contribution_g4particle.find(make_pair(cluster_key, particle));
+        _cache_get_energy_contribution_g4particle.find(std::make_pair(cluster_key, particle));
     if (iter != _cache_get_energy_contribution_g4particle.end())
     {
       return iter->second;
@@ -1301,7 +1299,7 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
 
   if (_do_cache)
   {
-    _cache_get_energy_contribution_g4particle.insert(make_pair(make_pair(cluster_key, particle), energy));
+    _cache_get_energy_contribution_g4particle.insert(std::make_pair(std::make_pair(cluster_key, particle), energy));
   }
 
   return energy;
@@ -1327,10 +1325,10 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
   }
 
   if ((_do_cache) &&
-      (_cache_get_energy_contribution_g4hit.find(make_pair(cluster_key, g4hit)) !=
+      (_cache_get_energy_contribution_g4hit.find(std::make_pair(cluster_key, g4hit)) !=
        _cache_get_energy_contribution_g4hit.end()))
   {
-    return _cache_get_energy_contribution_g4hit[make_pair(cluster_key, g4hit)];
+    return _cache_get_energy_contribution_g4hit[std::make_pair(cluster_key, g4hit)];
   }
 
   // this is a fairly simple existance check right now, but might be more
@@ -1349,7 +1347,7 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
 
   if (_do_cache)
   {
-    _cache_get_energy_contribution_g4hit.insert(make_pair(make_pair(cluster_key, g4hit), energy));
+    _cache_get_energy_contribution_g4hit.insert(std::make_pair(std::make_pair(cluster_key, g4hit), energy));
   }
 
   return energy;
@@ -1401,21 +1399,21 @@ void SvtxClusterEval::fill_cluster_layer_map()
       auto glob = getGlobalPosition(cluster_key, cluster);
       float clus_phi = atan2(glob(1), glob(0));
 
-      multimap<unsigned int, innerMap>::iterator it = _clusters_per_layer.find(ilayer);
+      std::multimap<unsigned int, innerMap>::iterator it = _clusters_per_layer.find(ilayer);
       if (it == _clusters_per_layer.end())
       {
-        it = _clusters_per_layer.insert(make_pair(ilayer, innerMap()));
+        it = _clusters_per_layer.insert(std::make_pair(ilayer, innerMap()));
       }
-      it->second.insert(make_pair(clus_phi, cluster_key));
+      it->second.insert(std::make_pair(clus_phi, cluster_key));
 
       // address wrapping along +/-PI by filling larger area of the map
       if (clus_phi - (-M_PI) < _clusters_searching_window)
       {
-        it->second.insert(make_pair(clus_phi + 2 * M_PI, cluster_key));
+        it->second.insert(std::make_pair(clus_phi + 2 * M_PI, cluster_key));
       }
       if (M_PI - clus_phi < _clusters_searching_window)
       {
-        it->second.insert(make_pair(clus_phi - 2 * M_PI, cluster_key));
+        it->second.insert(std::make_pair(clus_phi - 2 * M_PI, cluster_key));
       }
     }
   }

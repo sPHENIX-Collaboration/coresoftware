@@ -130,14 +130,14 @@ class JetTruthEval
   CaloEvalStack _fhcalevalstack;
   CaloEvalStack _eemcevalstack;
 
-  PHG4TruthInfoContainer* _truthinfo;
-  JetMap* _truthjets;
+  PHG4TruthInfoContainer* _truthinfo = nullptr;
+  JetMap* _truthjets = nullptr;
 
-  bool _strict;
-  int _verbosity;
-  unsigned int _errors;
+  bool _strict = false;
+  int _verbosity = 1;
+  unsigned int _errors = 0;
 
-  bool _do_cache;
+  bool _do_cache = true;
   std::map<Jet*, std::set<PHG4Particle*> > _cache_all_truth_particles;
   std::map<Jet*, std::set<PHG4Shower*> > _cache_all_truth_showers;
   std::map<Jet*, std::set<PHG4Hit*> > _cache_all_truth_hits;

@@ -94,11 +94,11 @@ class BaseTruthEval
  private:
   void get_node_pointers(PHCompositeNode* topNode);
 
-  PHG4TruthInfoContainer* m_TruthInfo;
+  PHG4TruthInfoContainer* m_TruthInfo = nullptr;
 
-  bool m_Strict;
-  int m_Verbosity;
-  unsigned int m_Errors;
+  bool m_Strict = false;
+  int m_Verbosity = 0;
+  unsigned int m_Errors = 0;
 };
 
 #endif  // G4EVAL_BASETRUTHEVAL_H
