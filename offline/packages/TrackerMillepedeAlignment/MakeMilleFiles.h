@@ -44,7 +44,7 @@ class MakeMilleFiles : public SubsysReco
   int End(PHCompositeNode* topNode) override;
 
   void set_binary(bool bin) { _binary = bin; }
-
+  void set_constraintfile_name(const std::string& file) { m_constraintFileName = file; }
   void set_datafile_name(const std::string& file) { data_outfilename = file; }
   void set_steeringfile_name(const std::string& file) { steering_outfilename = file; }
   void set_silicon_grouping(int group) { si_group = (AlignmentDefs::siliconGrp) group; }

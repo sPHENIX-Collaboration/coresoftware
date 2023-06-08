@@ -206,7 +206,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 
     if (Verbosity() > 2)
     {
-      std::cout << "adding state for ckey " << ckey << std::endl;
+      std::cout << "adding state for ckey " << ckey << " with hitsetkey "
+		<< (int) TrkrDefs::getHitSetKeyFromClusKey(ckey) << std::endl;
     }
     // The global alignment parameters are given initial values of zero by default, we do not specify them
     // We identify the global alignment parameters for this surface
@@ -257,6 +258,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
     if (layer < 7)
     {
       AlignmentDefs::getSiliconGlobalLabels(surf, glbl_label, si_group);
+     
     }
     else if (layer < 55)
     {
@@ -347,7 +349,9 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 	  {
 	    if(m_usedConstraintGlbLbl.find(glbl_label[0]) == m_usedConstraintGlbLbl.end())
 	      {
+        
 		auto surfcent = surf->center(_tGeometry->geometry().getGeoContext());
+        
 		float sensorphi = atan2(surfcent.y(), surfcent.x());
 		m_constraintFile << " Constraint  0.0" << std::endl;
 		for(int temp =0; temp < SvtxAlignmentState::NGL; temp++)
@@ -356,6 +360,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 		    if(temp == 3) factor = std::cos(sensorphi);
 		    else if(temp == 4) factor = std::sin(sensorphi);
 		    else continue;
+
 		    m_constraintFile << "     " << glbl_label[temp] << "   " 
 				     << factor << std::endl;
 		   
