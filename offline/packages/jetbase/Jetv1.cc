@@ -104,6 +104,15 @@ float Jetv1::get_mass2() const
   return get_e() * get_e() - p2;
 }
 
+void Jetv1::set_area(float /*unused parameter*/) {
+    std::cout << "Area not saved in Jetv1" << std::endl;
+}
+
+float Jetv1::get_area() const {
+    std::cout << "Area not saved with Jetv1 defaulting to zero" << std::endl;
+    return 0.;
+}
+
 bool Jetv1::has_property(Jet::PROPERTY prop_id) const
 {
   typ_property_map::const_iterator citer = _property_map.find(prop_id);

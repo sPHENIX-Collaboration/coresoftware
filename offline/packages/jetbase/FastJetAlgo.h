@@ -27,11 +27,11 @@ class FastJetAlgo : public JetAlgo
   std::vector<Jet*> get_jets(std::vector<Jet*> particles) override;
 
  private:
-  int m_Verbosity = 0;
-  Jet::ALGO m_AlgoFlag = Jet::NONE;
-  float m_Par = NAN;
+  int       m_Verbosity = 0;
+  Jet::ALGO m_AlgoFlag  = Jet::NONE;
+  float     m_Par       = NAN;
 
-  bool m_SDFlag = false;
+  bool  m_SDFlag = false;
   float m_SDBeta = NAN;
   float m_SDZCut = NAN;
 };

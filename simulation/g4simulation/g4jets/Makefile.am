@@ -1,6 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
 
-
 AM_CXXFLAGS = `geant4-config --cflags`
 
 AM_CPPFLAGS = \
@@ -9,15 +8,14 @@ AM_CPPFLAGS = \
   -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
-   libg4jets_io.la \
    libg4jets.la
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-libg4jets_io_la_LIBADD = \
-  -lphool
+# libg4jets_io_la_LIBADD = \
+  # -lphool
 
 libg4jets_la_LDFLAGS = \
   -L$(libdir) \
@@ -25,8 +23,8 @@ libg4jets_la_LDFLAGS = \
   `fastjet-config --libs`
 
 libg4jets_la_LIBADD = \
-  libg4jets_io.la \
   -lfun4all \
+  -ljetbase \
   -lphg4hit \
   -lcalo_io \
   -lglobalvertex_io \
@@ -35,48 +33,34 @@ libg4jets_la_LIBADD = \
   -ltrackbase_historic_io
 
 pkginclude_HEADERS = \
-  Jet.h \
-  Jetv1.h \
-  JetMap.h \
-  JetMapv1.h \
-  JetInput.h \
-  JetAlgo.h \
-  JetReco.h \
   TruthJetInput.h \
-  TrackJetInput.h \
-  TowerJetInput.h \
-  ClusterJetInput.h \
-  FastJetAlgo.h \
   JetHepMCLoader.h
 
-ROOTDICTS = \
-  Jet_Dict.cc \
-  Jetv1_Dict.cc \
-  JetMap_Dict.cc \
-  JetMapv1_Dict.cc
+# ROOTDICTS = \       // all of these are now in jetbase
+#   Jet_Dict.cc \
+#   Jetv1_Dict.cc \
+#   JetMap_Dict.cc \
+#   JetMapv1_Dict.cc
 
 pcmdir = $(libdir)
 
-nobase_dist_pcm_DATA = \
-  Jet_Dict_rdict.pcm \
-  Jetv1_Dict_rdict.pcm \
-  JetMap_Dict_rdict.pcm \
-  JetMapv1_Dict_rdict.pcm
+# nobase_dist_pcm_DATA = \  // all these are now in jetbase
+#   Jet_Dict_rdict.pcm \
+#   Jetv1_Dict_rdict.pcm \
+#   JetMap_Dict_rdict.pcm \
+#   JetMapv1_Dict_rdict.pcm
 
-libg4jets_io_la_SOURCES = \
-  $(ROOTDICTS) \
-  Jet.cc \
-  Jetv1.cc \
-  JetMap.cc \
-  JetMapv1.cc
+# libg4jets_io_la_SOURCES = \ // all these are now in jetbase
+#   $(ROOTDICTS) \
+#   Jet.cc \
+#   Jetv1.cc \
+#   JetMap.cc \
+#   JetMapv1.cc
 
+
+# here are the two remaining files -- conclusion:?: keep only libg4jets_la and not lig4jets_io
 libg4jets_la_SOURCES = \
-  ClusterJetInput.cc \
-  FastJetAlgo.cc \
-  JetReco.cc \
   JetHepMCLoader.cc \
-  TowerJetInput.cc \
-  TrackJetInput.cc \
   TruthJetInput.cc
 
 %_Dict.cc: %.h %LinkDef.h
@@ -89,13 +73,12 @@ libg4jets_la_SOURCES = \
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals_g4jets_io \
   testexternals_g4jets
 
 BUILT_SOURCES = testexternals.cc
 
-testexternals_g4jets_io_SOURCES = testexternals.cc
-testexternals_g4jets_io_LDADD = libg4jets_io.la
+# testexternals_g4jets_io_SOURCES = testexternals.cc
+# testexternals_g4jets_io_LDADD = libg4jets_io.la
 
 testexternals_g4jets_SOURCES = testexternals.cc
 testexternals_g4jets_LDADD = libg4jets.la

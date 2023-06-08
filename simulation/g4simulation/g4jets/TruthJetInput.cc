@@ -1,8 +1,8 @@
 
 #include "TruthJetInput.h"
 
-#include "Jet.h"
-#include "Jetv1.h"
+#include <jetbase/Jet.h>
+#include <jetbase/Jetv1.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>

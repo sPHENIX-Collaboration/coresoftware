@@ -121,20 +121,23 @@ class Jet : public PHObject
   virtual float get_e() const { return NAN; }
   virtual void set_e(float) { return; }
 
-  virtual float get_p() const { return NAN; }
-  virtual float get_pt() const { return NAN; }
-  virtual float get_et() const { return NAN; }
-  virtual float get_eta() const { return NAN; }
-  virtual float get_phi() const { return NAN; }
-  virtual float get_mass() const { return NAN; }
+  virtual float get_p()     const { return NAN; }
+  virtual float get_pt()    const { return NAN; }
+  virtual float get_et()    const { return NAN; }
+  virtual float get_eta()   const { return NAN; }
+  virtual float get_phi()   const { return NAN; }
+  virtual float get_mass()  const { return NAN; }
   virtual float get_mass2() const { return NAN; }
+
+  virtual void  set_area(float) { return; };
+  virtual float get_area() const { return NAN; };
 
   // extended jet info ---------------------------------------------------------
 
-  virtual bool has_property(Jet::PROPERTY /*prop_id*/) const { return false; }
-  virtual float get_property(Jet::PROPERTY /*prop_id*/) const { return NAN; }
-  virtual void set_property(Jet::PROPERTY /*prop_id*/, float /*value*/) { return; }
-  virtual void print_property(std::ostream& /*os*/) const { return; }
+  virtual bool  has_property(Jet::PROPERTY   /*prop_id*/) const { return  false; }
+  virtual float get_property(Jet::PROPERTY   /*prop_id*/) const { return  NAN;   }
+  virtual void  set_property(Jet::PROPERTY /*prop_id*/, float /*value*/) { return; }
+  virtual void  print_property(std::ostream& /*os*/)      const { return; }
 
   // component id storage ------------------------------------------------------
 
@@ -148,15 +151,15 @@ class Jet : public PHObject
   typedef typ_comp_ids::const_iterator ConstIter;
   typedef typ_comp_ids::iterator Iter;
 
-  virtual bool empty_comp() const { return true; }
+  virtual bool   empty_comp() const { return true; }
   virtual size_t size_comp() const { return 0; }
   virtual size_t count_comp(Jet::SRC /*source*/) const { return 0; }
 
-  virtual void clear_comp() { return; }
-  virtual void insert_comp(Jet::SRC /*source*/, unsigned int /*compid*/) { return; }
+  virtual void   clear_comp() { return; }
+  virtual void   insert_comp(Jet::SRC /*source*/, unsigned int /*compid*/) { return; }
   virtual size_t erase_comp(Jet::SRC /*source*/) { return 0; }
-  virtual void erase_comp(Iter /*iter*/) { return; }
-  virtual void erase_comp(Iter /*first*/, Iter /*last*/) { return; }
+  virtual void   erase_comp(Iter /*iter*/) { return; }
+  virtual void   erase_comp(Iter /*first*/, Iter /*last*/) { return; }
 
   virtual ConstIter begin_comp() const;
   virtual ConstIter lower_bound_comp(Jet::SRC source) const;

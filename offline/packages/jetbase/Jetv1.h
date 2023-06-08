@@ -60,6 +60,9 @@ class Jetv1 : public Jet
   float get_mass() const override;
   float get_mass2() const override;
 
+  void set_area(float /*unused parameter*/) override;
+  float get_area() const override;
+
   // extended jet info
 
   bool has_property(Jet::PROPERTY prop_id) const override;
