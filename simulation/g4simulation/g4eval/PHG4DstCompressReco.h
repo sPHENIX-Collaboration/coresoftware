@@ -41,7 +41,7 @@ class PHG4DstCompressReco : public SubsysReco
   //! default to false
   bool m_keepRecoTrackMatchedParticles = false;
 
-  PHG4TruthInfoContainer *_truth_info;
+  PHG4TruthInfoContainer *_truth_info = nullptr;
   PHG4ParticleSvtxMap *_truthRecoMap = nullptr;
   SvtxPHG4ParticleMap *_recoTruthMap = nullptr;
   std::set<std::string> _compress_g4hit_names;

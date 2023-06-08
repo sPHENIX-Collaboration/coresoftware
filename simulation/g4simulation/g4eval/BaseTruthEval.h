@@ -83,7 +83,7 @@ class BaseTruthEval
   PHG4Particle* get_primary_particle(PHG4Hit* g4hit);
 
   /// which is the particle associated with this track ID?
-  PHG4Particle* get_particle(const int trackid); 
+  PHG4Particle* get_particle(const int trackid);
 
   /// is this truth hit inside this shower?
   bool is_g4hit_from_primary_shower(PHG4Hit* g4hit, PHG4Shower* shower);
@@ -94,11 +94,11 @@ class BaseTruthEval
  private:
   void get_node_pointers(PHCompositeNode* topNode);
 
-  PHG4TruthInfoContainer* m_TruthInfo;
+  PHG4TruthInfoContainer* m_TruthInfo = nullptr;
 
-  bool m_Strict;
-  int m_Verbosity;
-  unsigned int m_Errors;
+  bool m_Strict = false;
+  int m_Verbosity = 0;
+  unsigned int m_Errors = 0;
 };
 
 #endif  // G4EVAL_BASETRUTHEVAL_H

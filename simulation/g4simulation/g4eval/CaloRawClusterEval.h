@@ -113,14 +113,14 @@ class CaloRawClusterEval
 
   std::string _caloname;
   CaloRawTowerEval _towereval;
-  RawClusterContainer* _clusters;
-  RawTowerContainer* _towers;
+  RawClusterContainer* _clusters = nullptr;
+  RawTowerContainer* _towers = nullptr;
 
-  bool _strict;
-  int _verbosity;
-  unsigned int _errors;
+  bool _strict = false;
+  int _verbosity = 1;
+  unsigned int _errors = 0;
 
-  bool _do_cache;
+  bool _do_cache = true;
   std::map<RawCluster*, std::set<PHG4Shower*> > _cache_all_truth_primary_showers;
   std::map<RawCluster*, PHG4Shower*> _cache_max_truth_primary_shower_by_energy;
   std::map<PHG4Shower*, std::set<RawCluster*> > _cache_all_clusters_from_primary_shower;

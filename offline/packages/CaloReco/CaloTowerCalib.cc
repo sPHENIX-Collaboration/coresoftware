@@ -58,24 +58,32 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   std::cout << "at run" << m_runNumber << std::endl;
   if (m_dettype == CaloTowerCalib::CEMC)
   {
-    // place holder
-    std::string calibdir = CDBInterface::instance()->getUrl("TestBeginValidity");
     m_detector = "CEMC";
+    rc = recoConsts::instance();
+    rc->set_StringFlag("CDB_GLOBALTAG","bseidlitz");
+    rc->set_uint64Flag("TIMESTAMP",0);
+    cdb = CDBInterface::instance();
+    std::string calibdir = cdb->getUrl("cemc_relcalib_cosmic");
     m_DETECTOR = TowerInfoContainer::EMCAL;
-    m_fieldname = "cemc_abscalib_mip";
+    m_fieldname = "cemc_relcalib_cosmic";
     if (calibdir[0] == '/')
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
     else
     {
-      std::cout << calibdir << std::endl;
+      std::cout << "CaloTowerCalib::::InitRun No calibration file found" << std::endl;
       exit(1);
     }
   }
   else if (m_dettype == CaloTowerCalib::HCALIN)
   {
-    std::string calibdir = CDBInterface::instance()->getUrl("TestBeginValidity");
+    rc = recoConsts::instance();
+    rc->set_StringFlag("CDB_GLOBALTAG","bseidlitz");
+    rc->set_uint64Flag("TIMESTAMP",0);
+    cdb = CDBInterface::instance();
+    std::string calibdir = cdb->getUrl("ihcal_abscalib_mip_bldg912");
+    std::cout <<  " calibdir=" <<  calibdir.c_str() << std::endl;
     m_detector = "HCALIN";
     m_DETECTOR = TowerInfoContainer::HCAL;
     m_fieldname = "ihcal_abscalib_mip";
@@ -85,13 +93,17 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     }
     else
     {
-      std::cout << calibdir << std::endl;
+      std::cout << "CaloTowerCalib::::InitRun No calibration file found" << std::endl;
       exit(1);
     }
   }
   else if (m_dettype == CaloTowerCalib::HCALOUT)
   {
-    std::string calibdir = CDBInterface::instance()->getUrl("TestBeginValidity");
+    rc = recoConsts::instance();
+    rc->set_StringFlag("CDB_GLOBALTAG","bseidlitz");
+    rc->set_uint64Flag("TIMESTAMP",0);
+    cdb = CDBInterface::instance();
+    std::string calibdir = cdb->getUrl("ohcal_abscalib_mip_bldg912");
     m_detector = "HCALOUT";
     m_DETECTOR = TowerInfoContainer::HCAL;
     m_fieldname = "ohcal_abscalib_mip";
@@ -101,7 +113,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     }
     else
     {
-      std::cout << calibdir << std::endl;
+      std::cout << "CaloTowerCalib::::InitRun No calibration file found" << std::endl;
       exit(1);
     }
   }
@@ -117,7 +129,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     }
     else
     {
-      std::cout << calibdir << std::endl;
+      std::cout << "CaloTowerCalib::::InitRun No calibration file found" << std::endl;
       exit(1);
     }
   }
