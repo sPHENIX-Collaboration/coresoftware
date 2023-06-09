@@ -26,6 +26,7 @@ libg4dst_la_LDFLAGS = \
   -lglobalvertex_io \
   -lintt_io \
   -ljetbackground_io \
+  -ljetbase_io \
   -lkfparticle_sphenix_io \
   -lmicromegas_io \
   -lmvtx_io \
