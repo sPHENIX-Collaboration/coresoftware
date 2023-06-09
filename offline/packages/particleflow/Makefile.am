@@ -50,7 +50,7 @@ libparticleflow_la_LIBADD = \
   -lgsl \
   -lgslcblas \
   -lphg4hit \
-  -lg4jets_io \
+  -ljetbase \
   -ltrackbase_historic_io \
   -lCLHEP \
   -lglobalvertex_io \

@@ -11,8 +11,8 @@
 #include <calobase/TowerInfov1.h>
 #include <calobase/TowerInfoContainerv1.h>
 
-#include <g4jets/Jet.h>
-#include <g4jets/JetMap.h>
+#include <jetbase/Jet.h>
+#include <jetbase/JetMap.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
