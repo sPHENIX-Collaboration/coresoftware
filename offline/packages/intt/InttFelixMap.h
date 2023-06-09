@@ -1,18 +1,12 @@
-#ifndef FELIX_MAP_H
-#define FELIX_MAP_H
+#ifndef INTT_FELIX_MAP_H
+#define INTT_FELIX_MAP_H
 
-#include <cstdlib>
+#include "InttMapping.h"
 
-namespace INTT_Felix
+namespace InttFelix
 {
-	struct Ladder_s
-	{
-		int barrel;
-		int layer;
-		int ladder;
-	};
-
-	int FelixMap(int const&, int const&, struct Ladder_s&);
+	int RawDataToOnline(struct Intt::RawData_s const&, struct Intt::Online_s&);
+	int OnlineToRawData(struct Intt::Online_s const&, struct Intt::RawData_s&);
 };
 
-#endif//FELIX_MAP_H
+#endif//INTT_FELIX_MAP_H

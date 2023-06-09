@@ -89,7 +89,7 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
   int label_base = 1;  // Mille wants to start at 1
 
   // decide what level of grouping we want
-  if (layer < 7)
+  if (layer < 3)
   {
     if (group == 0)
     {
@@ -103,6 +103,11 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
       // layer and stave, assign all sensors to the stave number
       int stave = sensor / nsensors_stave[layer];
       label_base += layer * 1000000 + stave * 10000;
+      /*
+      std::cout << id << std::endl;
+      std::cout << "    label_base " << label_base << " volume " << volume << " acts_layer " << acts_layer 
+		<< " layer " << layer << " stave " << stave << " sensor " << sensor << std::endl;
+      */
       return label_base;
     }
     if (group == 2)
@@ -110,11 +115,51 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
       label_base += layer * 1000000 + 0;
     return label_base;
   }
+  else if(layer > 2 && layer < 7)
+    {
+      // calculating the stave number from the sensor is different between the INTT and MVTX
+      // There are 4 sensors/stave, but they are mapped to staves in a strange way
+      // sensors 1-> (nstaves/layer)*2 are in staves 1->nstaves/layer in pairs
+      // sensors (nstaves/layer * 2) +1->nstaves/layer)*2 are in staves 1->nstaves/layer in pairs
+
+      int stave;
+      unsigned int breakat = nstaves_layer_intt[layer-3] * 2;
+      if(sensor < breakat)
+	{
+	  stave = sensor/2;  // staves 0 -> (nstaves/layer) -1
+	}
+      else
+	{
+	  stave = (sensor - breakat)/2;  //staves 0 -> (nstaves/layer) -1
+	}
+
+      if (group == 0)
+	{
+	  // every sensor has a different label
+	  label_base += layer * 1000000 + stave * 10000 + sensor * 10;
+	  return label_base;
+	}
+      if (group == 1)
+	{
+	  // layer and stave, assign all sensors to the stave number
+	  label_base += layer * 1000000 + stave * 10000;
+	  /*
+	  std::cout << "    "  << id << std::endl;
+	  std::cout << "    label_base " << label_base << " volume " << volume << " acts_layer " << acts_layer 
+		    << " layer " << layer << " breakat " << breakat << " stave " << stave << " sensor " << sensor << std::endl;
+	  */
+	  return label_base;
+	}
+      if (group == 2)
+	// layer only, assign all sensors to sensor 0
+	label_base += layer * 1000000 + 0;
+      return label_base;
+    }
   else if (layer > 6 && layer < 55)
   {
     if (group == 3)
-    {
-      // want every hitset (layer, sector, side) to have a separate label
+      {
+	// want every hitset (layer, sector, side) to have a separate label
       // each group of 12 subsurfaces (sensors) is in a single hitset
       int hitset = sensor / 12;  // 0-11 on side 0, 12-23 on side 1
       label_base += layer * 1000000 + hitset * 10000;

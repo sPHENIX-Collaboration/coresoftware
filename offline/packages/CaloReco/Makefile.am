@@ -18,6 +18,7 @@ if USE_ONLINE
 
 else
 libcalo_reco_la_LIBADD = \
+  -lbbc_io \
   -lcalo_io \
   -lcdbobjects \
   -lCLHEP \
@@ -44,13 +45,14 @@ else
 pkginclude_HEADERS = \
   CaloWaveformFitting.h \
   CaloWaveformProcessing.h \
+  CaloRecoUtility.h \
   CaloTowerBuilder.h \
   CaloTowerCalib.h \
-  RawClusterBuilderFwd.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
   RawClusterPositionCorrection.h \
+  RawClusterZVertexRecorrect.h \
   RawTowerCalibration.h 
 endif
 
@@ -64,8 +66,7 @@ libcalo_reco_la_SOURCES = \
   BEmcProfile.cc \
   BEmcRec.cc \
   BEmcRecCEMC.cc \
-  BEmcRecFEMC.cc \
-  BEmcRecEEMC.cc \
+  CaloRecoUtility.cc \
   CaloWaveformFitting.cc \
   CaloWaveformProcessing.cc \
   CaloTowerBuilder.cc \
@@ -73,8 +74,8 @@ libcalo_reco_la_SOURCES = \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \
-  RawClusterBuilderFwd.cc \
   RawClusterPositionCorrection.cc \
+  RawClusterZVertexRecorrect.cc \
   RawClusterDeadAreaMask.cc \
   RawTowerCombiner.cc \
   RawTowerCalibration.cc \

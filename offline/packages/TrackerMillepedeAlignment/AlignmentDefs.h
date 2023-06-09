@@ -30,6 +30,7 @@ namespace AlignmentDefs
   //! Map relating Acts::VolumeID to sPHENIX layer
   static const std::map<unsigned int, unsigned int> base_layer_map = {{10, 0}, {12, 3}, {14, 7}, {16, 55}};
   static constexpr int nsensors_stave[7] = {9, 9, 9, 4, 4, 4, 4};
+  static constexpr int nstaves_layer_intt[7] = {12, 12, 16, 16};
 
   int getTpcRegion(int layer);
   void getSiliconGlobalLabels(Surface surf, int glbl_label[], siliconGrp grp);

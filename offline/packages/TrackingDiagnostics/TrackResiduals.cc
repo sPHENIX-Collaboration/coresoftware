@@ -130,11 +130,11 @@ void TrackResiduals::clearClusterStateVectors()
 //____________________________________________________________________________..
 int TrackResiduals::process_event(PHCompositeNode* topNode)
 {
-  auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   auto vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
-  auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, "SvtxAlignmentStateMap");
+  auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
 
   if (!trackmap or !clustermap or !geometry or !vertexmap)
   {
@@ -153,6 +153,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     {
       continue;
     }
+
     m_trackid = key;
     m_crossing = track->get_crossing();
     m_px = track->get_px();
@@ -175,9 +176,11 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     m_ntpc = 0;
     m_nmms = 0;
     m_vertexid = track->get_vertex_id();
-    auto vertex = vertexmap->find(m_vertexid)->second;
-    if (vertex)
+
+    auto vertexit = vertexmap->find(m_vertexid);
+    if (vertexit != vertexmap->end())
     {
+      auto vertex = vertexit->second;
       m_vx = vertex->get_x();
       m_vy = vertex->get_y();
       m_vz = vertex->get_z();
@@ -193,19 +196,21 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       std::cout << "Track " << key << " has cluster/states"
                 << std::endl;
     }
-
-    for (const auto& ckey : get_cluster_keys(track))
+    std::cout << "ckeys" << std::endl;
+    if (!m_doAlignment)
     {
-      fillClusterBranches(ckey, track, topNode);
+      for (const auto& ckey : get_cluster_keys(track))
+      {
+        fillClusterBranches(ckey, track, topNode);
+      }
     }
-
     m_nhits = m_nmaps + m_nintt + m_ntpc + m_nmms;
 
     if (m_doAlignment)
     {
       /// repopulate with info that is going into alignment
       clearClusterStateVectors();
-
+      std::cout << "do alignment" << std::endl;
       if (alignmentmap and alignmentmap->find(key) != alignmentmap->end())
       {
         auto& statevec = alignmentmap->find(key)->second;

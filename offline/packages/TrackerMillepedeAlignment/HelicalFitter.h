@@ -27,6 +27,8 @@ class TFile;
 class TpcDistortionCorrectionContainer;
 class Mille;
 class SvtxTrackSeed;
+class SvtxTrackMap;
+class SvtxAlignmentStateMap;
 
 class HelicalFitter : public SubsysReco, public PHParameterInterface
 {
@@ -79,12 +81,16 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec,  std::vector<TrkrDefs::cluskey> cluskey_vec);
   unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
+  void addGlobalConstraintIntt(int glbl_label[6], Surface surf);
+
+  void set_dca_cut(float dca) {dca_cut = dca;}
+
  private:
 
   Mille* _mille;
 
   int GetNodes(PHCompositeNode* topNode);
-
+  int CreateNodes(PHCompositeNode* topNode);
   void getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
   Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref);
@@ -119,6 +125,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   unsigned int _cluster_version = 5;
   bool test_output = false;
 
+  std::map<int, std::pair<std::pair<int, float>, std::pair<int, float>> > InttConstraints;
+
   ClusterErrorPara _ClusErrPara;
 
   std::set<unsigned int> fixed_layers;
@@ -139,14 +147,17 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   TrkrClusterContainer *_cluster_map{nullptr};
   ActsGeometry *_tGeometry{nullptr};
 
-  std::string  data_outfilename = ("mille_helical_output_data_file.bin");  
-  std::string  steering_outfilename = ("steer_helical.txt");  
+  std::string data_outfilename = ("mille_helical_output_data_file.bin");  
+  std::string steering_outfilename = ("steer_helical.txt");  
 
   bool fitsilicon = true;
   bool fittpc = false;
   bool fitfulltrack = false;
 
-  float dca_cut = 0.1;  // 1 mm
+  float dca_cut = 0.19;  // 1 mm
+
+  SvtxTrackMap* m_trackmap = nullptr;
+  SvtxAlignmentStateMap* m_alignmentmap = nullptr;
 
   std::string _field;
   int _fieldDir = -1;
