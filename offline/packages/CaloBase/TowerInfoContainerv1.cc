@@ -30,6 +30,10 @@ TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
   {
     nchannels = 256;
   }
+  else if (_detector == DETECTOR::ZDC)
+  {
+    nchannels = 16;
+  }
   _clones = new TClonesArray("TowerInfov1", nchannels);
   _clones->SetOwner();
   _clones->SetName("TowerInfoContainerv1");
@@ -107,6 +111,11 @@ unsigned int TowerInfoContainerv1::encode_mbd(unsigned int towerIndex)
   unsigned int key = TowerInfoDefs::encode_mbd(towerIndex);
   return key;
 }
+unsigned int TowerInfoContainerv1::encode_zdc(unsigned int towerIndex)
+{
+  unsigned int key = TowerInfoDefs::encode_zdc(towerIndex);
+  return key;
+}
 
 unsigned int TowerInfoContainerv1::encode_key(unsigned int towerIndex)
 {
@@ -126,6 +135,10 @@ unsigned int TowerInfoContainerv1::encode_key(unsigned int towerIndex)
   else if (_detector == DETECTOR::MBD)
     {
     key = TowerInfoContainerv1::encode_mbd(towerIndex);
+    }
+  else if (_detector == DETECTOR::ZDC)
+    {
+    key = TowerInfoContainerv1::encode_zdc(towerIndex);
     }
   return key;
 }
@@ -154,6 +167,11 @@ unsigned int TowerInfoContainerv1::decode_mbd(unsigned int tower_key)
   unsigned int index = TowerInfoDefs::decode_mbd(tower_key);  
   return index;
 }
+unsigned int TowerInfoContainerv1::decode_zdc(unsigned int tower_key)
+{
+  unsigned int index = TowerInfoDefs::decode_zdc(tower_key);  
+  return index;
+}
 
 unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
 {
@@ -174,6 +192,10 @@ unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
   else if (_detector == DETECTOR::MBD)
   {
     index = TowerInfoContainerv1::decode_mbd(tower_key);
+  }
+  else if (_detector == DETECTOR::ZDC)
+  {
+    index = TowerInfoContainerv1::decode_zdc(tower_key);
   }
   return index;
 }
