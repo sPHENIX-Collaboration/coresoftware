@@ -103,6 +103,8 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 		int N = p->iValue(0, "NR_HITS");
 		full_bco = p->lValue(0, "BCO");
 
+		if(Verbosity() > 20)std::cout << N << std::endl;
+
 		for(int n = 0; n < N; ++n)
 		{
 			rawdata.felix_server = pid - 3001;
