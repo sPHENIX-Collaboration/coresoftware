@@ -113,6 +113,17 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST); 
     }
   }
+  else if (m_dettype == CaloTowerBuilder::ZDC)
+  {
+    m_detector = "ZDC";
+    m_packet_low = 12001;
+    m_packet_high = 12001;
+    m_nchannels = 16;
+    if (_processingtype == CaloWaveformProcessing::NONE)
+    {
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);  // default the ZDC to fast processing
+    }
+  }
   WaveformProcessing->initialize_processing();
   CreateNodeTree(topNode);
   topNode->print();
@@ -141,6 +152,10 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       if (packet)
       {
         int nchannels = packet->iValue(0, "CHANNELS");
+        if ( m_dettype == CaloTowerBuilder::ZDC){ // special condition during zdc commisioning
+          if (nchannels < m_nchannels) return Fun4AllReturnCodes::DISCARDEVENT;
+          nchannels = m_nchannels;
+        }
         if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
         {
           return Fun4AllReturnCodes::DISCARDEVENT;
@@ -230,6 +245,10 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   else if (m_dettype == MBD)
   {
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::MBD);
+  }
+  else if (m_dettype == ZDC)
+  {
+    m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::ZDC);
   }
   else
   {
