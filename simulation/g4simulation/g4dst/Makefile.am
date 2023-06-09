@@ -22,7 +22,6 @@ libg4dst_la_LDFLAGS = \
   -lg4bbc_io \
   -lg4detectors_io \
   -lg4intt_io \
-  -lg4jets_io \
   -lg4tracking_io \
   -lglobalvertex_io \
   -lintt_io \

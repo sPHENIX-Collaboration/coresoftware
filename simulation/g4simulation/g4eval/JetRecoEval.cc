@@ -12,8 +12,8 @@
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 
-#include <g4jets/Jet.h>
-#include <g4jets/JetMap.h>
+#include <jetbase/Jet.h>
+#include <jetbase/JetMap.h>
 
 #include <g4main/PHG4Particle.h>
 
