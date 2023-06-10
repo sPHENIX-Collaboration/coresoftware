@@ -25,12 +25,14 @@ libjetbase_la_LDFLAGS = \
 
 libjetbase_la_LIBADD = \
   libjetbase_io.la \
-  -lfun4all \
   -lcalo_io \
+  -lfun4all \
   -lglobalvertex_io \
   -lRecursiveTools
 
 pkginclude_HEADERS = \
+  ClusterJetInput.h \
+  FastJetAlgo.h \
   Jet.h \
   Jetv1.h \
   JetMap.h \
@@ -39,8 +41,7 @@ pkginclude_HEADERS = \
   JetAlgo.h \
   JetReco.h \
   TowerJetInput.h \
-  ClusterJetInput.h \
-  FastJetAlgo.h
+  TrackJetInput.h
 
 ROOTDICTS = \
   Jet_Dict.cc \
