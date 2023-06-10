@@ -29,7 +29,8 @@ class CaloTowerBuilder : public SubsysReco
     HCALIN = 1,
     HCALOUT = 2,
     EPD = 3,
-    MBD = 4
+    MBD = 4,
+    ZDC = 5
   };
 
   void set_detector_type(CaloTowerBuilder::DetectorSystem dettype)

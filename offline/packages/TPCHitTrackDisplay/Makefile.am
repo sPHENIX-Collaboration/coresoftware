@@ -22,7 +22,7 @@ libTPCHitTrackDisplay_la_LIBADD = \
   -lcentrality_io \
   -lphg4hit \
   -lConstituentSubtractor \
-  -lg4jets_io \
+  -ljetbase \
   -ltrackbase_historic_io \
   -lSubsysReco \
   -lcalo_io

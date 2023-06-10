@@ -25,7 +25,7 @@ libg4eval_la_LIBADD = \
   -lCLHEP \
   -lfun4all \
   -lg4detectors_io \
-  -lg4jets_io \
+  -ljetbase \
   -lglobalvertex_io \
   -lg4tracking_io \
   -lintt_io \

@@ -32,9 +32,9 @@
 #include <TMath.h>
 
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <g4jets/Jet.h>
-#include <g4jets/JetMap.h>
-#include <g4jets/JetMapv1.h>
+#include <jetbase/Jet.h>
+#include <jetbase/JetMap.h>
+#include <jetbase/JetMapv1.h>
 #include <g4main/PHG4Utils.h>
 
 #include <iostream>

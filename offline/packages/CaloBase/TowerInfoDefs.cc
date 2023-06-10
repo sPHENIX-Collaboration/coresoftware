@@ -323,11 +323,13 @@ unsigned int TowerInfoDefs::get_epd_phibin(unsigned int key)
 
 unsigned int TowerInfoDefs::encode_zdc(const unsigned int towerIndex)
 {
-  if (towerIndex > 5)
+  if (towerIndex > 15)
   {
     std::cout << "Attempting to access zdc channel with invalid number " << towerIndex << std::endl;
     exit(1);
   }
+  unsigned int key = towerIndex;
+  /*
   // 3 bits: one for pos/neg z and 2 for the 3 modules
   unsigned int key;
   if (towerIndex == 0) key = 0;
@@ -349,6 +351,7 @@ unsigned int TowerInfoDefs::encode_zdc(const unsigned int towerIndex)
     key = 1 << 2;
     key += 2;
   }
+  */
   return key;
 }
 

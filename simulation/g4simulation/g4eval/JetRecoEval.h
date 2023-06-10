@@ -3,7 +3,7 @@
 
 #include "JetTruthEval.h"
 
-#include <g4jets/Jet.h>
+#include <jetbase/Jet.h>
 
 #include <map>
 #include <set>

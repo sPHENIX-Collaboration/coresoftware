@@ -7,7 +7,7 @@
 /// \author Dennis V. Perepelitsa
 //===========================================================
 
-#include <g4jets/JetInput.h>
+#include <jetbase/JetInput.h>
 
 // finally system includes
 #include <iostream>    // for cout, ostream
