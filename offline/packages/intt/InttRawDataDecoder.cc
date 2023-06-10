@@ -16,6 +16,7 @@
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitSetContainerv1.h>
 
 InttRawDataDecoder::InttRawDataDecoder(std::string const& name):
 	SubsysReco(name)
@@ -24,16 +25,52 @@ InttRawDataDecoder::InttRawDataDecoder(std::string const& name):
 }
 
 //Init
-int InttRawDataDecoder::Init(PHCompositeNode* /*topNode*/)
+int InttRawDataDecoder::Init(PHCompositeNode*)
 {
-	//Do nothing (yet)
+	//Do nothing
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //InitRun
-int InttRawDataDecoder::InitRun(PHCompositeNode* /*topNode*/)
+int InttRawDataDecoder::InitRun(PHCompositeNode* topNode)
 {
-	//Do nothing (yet)
+	if(!topNode)
+	{
+		std::cout << "InttRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
+		std::cout << "\tCould not retrieve topNode; doing nothing" << std::endl;
+
+		return -1;
+	}
+
+	PHNodeIterator dst_itr(topNode);
+	PHCompositeNode* dst_node = dynamic_cast<PHCompositeNode*>(dst_itr.findFirst("PHCompositeNode", "DST"));
+	if(!dst_node)
+	{
+		if(Verbosity())std::cout << "InttRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
+		if(Verbosity())std::cout << "\tCould not retrieve dst_node; doing nothing" << std::endl;
+
+		return -1;
+	}
+
+	PHNodeIterator trkr_itr(dst_node);
+	PHCompositeNode* trkr_node = dynamic_cast<PHCompositeNode*>(trkr_itr.findFirst("PHCompositeNode", "TRKR"));
+	if(!trkr_node)
+	{
+		trkr_node = new PHCompositeNode("TRKR");
+		dst_node->addNode(trkr_node);
+	}
+
+	TrkrHitSetContainer* trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+	if(!trkr_hit_set_container)
+	{
+		if(Verbosity())std::cout << "InttRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
+		if(Verbosity())std::cout << "\tMaking TrkrHitSetContainer" << std::endl;
+
+		trkr_hit_set_container = new TrkrHitSetContainerv1;
+		PHIODataNode<PHObject>* new_node = new PHIODataNode<PHObject>(trkr_hit_set_container, "TRKR_HITSET", "PHObject");
+		trkr_node->addNode(new_node);
+	}
+
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -64,9 +101,9 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 		if(!p)continue;
 
 		int N = p->iValue(0, "NR_HITS");
-		if(!N)continue;
-
 		full_bco = p->lValue(0, "BCO");
+
+		if(Verbosity() > 20)std::cout << N << std::endl;
 
 		for(int n = 0; n < N; ++n)
 		{
@@ -102,7 +139,7 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 //End
 int InttRawDataDecoder::End(PHCompositeNode* /*topNode*/)
 {
-	//Do nothing (yet)
+	//Do nothing
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 

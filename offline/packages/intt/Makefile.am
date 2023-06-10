@@ -23,6 +23,7 @@ pkginclude_HEADERS = \
   InttFelixMap.h \
   InttFelixMapObsolete.h \
   InttMapping.h \
+  InttRawDataConverter.h \
   InttRawDataDecoder.h \
   CylinderGeomIntt.h
 
@@ -40,6 +41,7 @@ libintt_la_SOURCES = \
   InttFelixMap.cc \
   InttFelixMapObsolete.cc \
   InttMapping.cc \
+  InttRawDataConverter.cc \
   InttRawDataDecoder.cc
 
 libintt_la_LIBADD = \
