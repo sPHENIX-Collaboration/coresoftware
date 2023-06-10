@@ -9,16 +9,16 @@ LT_INIT([disable-static])
 CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow"
 dnl leaving this here in case we want to play with different compiler 
 dnl specific flags
-case $CXX in
- *analyzer)
-   CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
- ;;
- clang++)
- ;;
- *g++)
-   CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
- ;;
-esac
+dnl case $CXX in
+dnl  *analyzer)
+dnl    CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
+dnl  ;;
+dnl  clang++)
+dnl  ;;
+dnl  *g++)
+dnl    CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
+dnl  ;;
+dnl esac
 
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
