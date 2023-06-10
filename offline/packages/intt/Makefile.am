@@ -41,7 +41,7 @@ libintt_la_SOURCES = \
   InttFelixMap.cc \
   InttFelixMapObsolete.cc \
   InttMapping.cc \
-  InttRawDataConverter.cc
+  InttRawDataConverter.cc \
   InttRawDataDecoder.cc
 
 libintt_la_LIBADD = \
