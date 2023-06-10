@@ -29,7 +29,7 @@ class EventNumberCheck : public SubsysReco
   void MyPrdfNode(const std::string &name) {m_MyPrdfNode = name;}
 
  private:
-  Packet *plist[10000];
+  Packet *plist[10000] = {0};
   std::string m_MyPrdfNode;
 };
 
