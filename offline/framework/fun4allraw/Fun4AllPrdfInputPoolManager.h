@@ -19,6 +19,7 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
   Fun4AllPrdfInputPoolManager(const std::string &name = "DUMMY", const std::string &prdfnodename = "PRDF", const std::string &topnodename = "TOP");
   ~Fun4AllPrdfInputPoolManager() override;
   int fileopen(const std::string &filenam) override;
+//cppcheck-suppress virtualCallInConstructor
   int fileclose() override;
   int run(const int nevents = 0) override;
 
