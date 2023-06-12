@@ -95,8 +95,24 @@ int HelicalFitter::InitRun(PHCompositeNode *topNode)
    }
  
   // print grouping setup to log file:
-  std::cout << "HelicalFitter::InitRun: Surface groupings are silicon " << si_grp << " tpc " << tpc_grp << " mms " << mms_grp << std::endl; 
-
+  std::cout << "HelicalFitter::InitRun: Surface groupings are mvtx " << mvtx_grp << " intt " << intt_grp << " tpc " << tpc_grp << " mms " << mms_grp << std::endl; 
+  std::cout << " possible groupings are:" << std::endl
+	    << " mvtx " 
+	    << AlignmentDefs::mvtxGrp::snsr << "  " 
+	    << AlignmentDefs::mvtxGrp::stv << "  " 
+	    << AlignmentDefs::mvtxGrp::brrl << "  " << std::endl
+	    << " intt " 
+	    << AlignmentDefs::inttGrp::chp << "  "
+	    << AlignmentDefs::inttGrp::lad << "  "
+	    << AlignmentDefs::inttGrp::intt << "  " << std::endl
+	    << " tpc " 
+	    << AlignmentDefs::tpcGrp::htst << "  "
+	    << AlignmentDefs::tpcGrp::sctr << "  "
+	    << AlignmentDefs::tpcGrp::tp << "  " << std::endl
+	    << " mms " 
+	    << AlignmentDefs::mmsGrp::tl << "  "
+	    << AlignmentDefs::mmsGrp::mm << "  " << std::endl;
+ 
   event=-1;
 
   return ret;
@@ -306,11 +322,14 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  if(isnan(clus_sigma(0)) || isnan(clus_sigma(1)))  { continue; }
 
 	  int glbl_label[AlignmentDefs::NGL];
-	  if(layer < 7)
+	  if(layer < 3)
 	    {
-	      AlignmentDefs::getSiliconGlobalLabels(surf, glbl_label, si_grp);	      
-	      if(layer > 2)
-		{ addGlobalConstraintIntt(glbl_label, surf); }
+	      AlignmentDefs::getMvtxGlobalLabels(surf, glbl_label, mvtx_grp);	      
+	    }
+	  else if(layer > 2 && layer < 7)
+	    {
+	      AlignmentDefs::getInttGlobalLabels(surf, glbl_label, intt_grp);	      
+	      addGlobalConstraintIntt(glbl_label, surf); 
 	    }
 	  else if (layer < 55)
 	    {
