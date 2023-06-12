@@ -286,7 +286,6 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
         if (is_layer_fixed(layer) || 
 	    is_layer_param_fixed(layer, j, fixed_layer_gparams))
         {
-	  std::cout << "Setting " << layer << ", " << j << std::endl;
           glbl_derivative[j] = 0.;
         }
 	if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
@@ -307,8 +306,6 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 
 	if(is_layer_param_fixed(layer, j, fixed_layer_lparams))
 	  {
-	    	std::cout << "Local layer " << layer << ", " << j << std::endl;
-
 	    lcl_derivative[j] = 0.;
 	  }
       }
