@@ -16,7 +16,8 @@ class InttRawDataConverter : public SubsysReco
 public:
 	InttRawDataConverter(std::string const& name = "InttRawDataConverter");
 
-	int WriteOutputFile(std::string const&);
+	int SetOutputFile(std::string const&);
+	int WriteOutputFile();
 
 	int Init(PHCompositeNode*) override;
 	int InitRun(PHCompositeNode*) override;
@@ -24,11 +25,16 @@ public:
 	int End(PHCompositeNode*) override;
 
 private:
+	TFile* file = nullptr;
 	TTree* tree = nullptr;
 
+	Int_t n_evt = 0;
 	Int_t num_hits = 0;
 	Long64_t gtm_bco = 0;
 	Int_t flx_svr = 0;
+
+	Intt::RawData_s raw;
+	Intt::Online_s onl;
 
 	typedef std::map<std::string, Int_t*> Branches_t;
 	Branches_t branches;
