@@ -30,16 +30,16 @@
  *    41 matched clusters, that the reco track had 46 clusters. Match 12->7 key
  *    (18.46) indicates that there were 18 matched clusters (and, again, the reco track had 46 clusters)
  *
- *    Assuming that truth tracks 2, 4, and 7, were matched only to reco track 12, and 
+ *    Assuming that truth tracks 2, 4, and 7, were matched only to reco track 12, and
  *    each had 45, 44, and 47 clusters, respectively, then the corresponding entries
  *    in PHG4ParticleSvtxMap would be:
- *      2 -> 41.45 { 12 } 
- *      4 -> 41.44 { 12 } 
+ *      2 -> 41.45 { 12 }
+ *      4 -> 41.44 { 12 }
  *      7 -> 18.47 { 12 }
  *
  */
 
-#include <fun4all/SubsysReco.h> 
+#include <fun4all/SubsysReco.h>
 
 class EmbRecoMatchContainer;
 class PHCompositeNode;
@@ -61,10 +61,9 @@ class FillTruthRecoMatchMap : public SubsysReco
  private:
   int createNodes(PHCompositeNode *topNode);
 
-  EmbRecoMatchContainer   *m_EmbRecoMatchContainer   {nullptr}; // contianer used to fill the other track matches
-  SvtxPHG4ParticleMap     *m_SvtxPHG4ParticleMap     {nullptr}; // reco to truth map, filled for output
-  PHG4ParticleSvtxMap     *m_PHG4ParticleSvtxMap     {nullptr}; // truth to reco map, filled for output
-
+  EmbRecoMatchContainer *m_EmbRecoMatchContainer{nullptr};  // contianer used to fill the other track matches
+  SvtxPHG4ParticleMap *m_SvtxPHG4ParticleMap{nullptr};      // reco to truth map, filled for output
+  PHG4ParticleSvtxMap *m_PHG4ParticleSvtxMap{nullptr};      // truth to reco map, filled for output
 };
 
 #endif  // FILLTRUTHRECOMATCHMAP_H

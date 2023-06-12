@@ -3,8 +3,10 @@
 #include "BEmcCluster.h"
 #include "BEmcRec.h"
 #include "BEmcRecCEMC.h"
-#include "BEmcRecEEMC.h"
-#include "BEmcRecFEMC.h"
+
+#include <bbc/BbcVertex.h>
+#include <bbc/BbcVertexMap.h>
+#include <bbc/BbcVertexMapv1.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
@@ -64,22 +66,6 @@ void RawClusterBuilderTemplate::Detector(const std::string &d)
   if (detector == "CEMC")
   {
     bemc = new BEmcRecCEMC();
-  }
-  else if (detector == "FEMC")
-  {
-    bemc = new BEmcRecFEMC();
-  }
-  else if (detector == "EEMC")
-  {
-    bemc = new BEmcRecEEMC();
-  }
-  else if (detector == "EEMC_crystal")
-  {
-    bemc = new BEmcRecEEMC();
-  }
-  else if (detector == "EEMC_glass")
-  {
-    bemc = new BEmcRecEEMC();
   }
   else
   {
@@ -323,7 +309,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   float vy = 0;
   float vz = 0;
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
-  if (vertexmap)
+
+  if (vertexmap && m_UseAltZVertex == 0 ) //default
   {
     if (!vertexmap->empty())
     {
@@ -333,6 +320,28 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       vz = vertex->get_z();
     }
   }
+
+  BbcVertexMapv1 *bbcmap = findNode::getClass<BbcVertexMapv1>(topNode, "BbcVertexMap");
+ 
+  if (bbcmap && m_UseAltZVertex == 1)
+    {
+      std::cout << " in bbcmap " << std::endl;
+      
+      BbcVertex *bvertex = NULL;
+      for (BbcVertexMap::ConstIter bbciter = bbcmap->begin();
+           bbciter != bbcmap->end();
+           ++bbciter)
+	{
+	  bvertex = bbciter->second;
+	}
+      //      BbcVertex *bvertex = (bbcmap->begin()->second);
+
+      if (!bvertex) 
+	return Fun4AllReturnCodes::ABORTEVENT;
+
+      vz = bvertex->get_z();
+    }
+
 
   // Set vertex
   float vertex[3] = {vx, vy, vz};
@@ -484,7 +493,19 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       // ecore = pp->GetECore();
       // Center of Gravity etc.
       pp->GetMoments(xcg, ycg, xx, xy, yy);
-      pp->GetGlobalPos(xg, yg, zg);
+
+
+      if (m_UseAltZVertex == 2 )
+	{
+	  xg = -99999; // signal to force zvtx = 0
+	  pp->GetGlobalPos(xg, yg, zg);
+	}
+      else
+	{
+	  xg = 0; // usual mode, uses regular zvtx
+	  pp->GetGlobalPos(xg, yg, zg);
+	}
+
 
       // Tower with max energy
       hmax = pp->GetMaxTower();

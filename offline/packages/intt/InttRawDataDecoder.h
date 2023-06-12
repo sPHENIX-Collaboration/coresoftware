@@ -2,18 +2,13 @@
 #define INTT_RAW_DATA_DECODER_H
 
 //////////////////////////////////////////////////////////////////////////////
-//	Shamelessly imitaged from the micromegas version:
+//	Shamelessly imitated from the micromegas version:
 //
 //	coresoftware/offline/packages/micromegas/MicromegasRawDataDecoder.h
 //
 //	Thank you Hugo
 
-#include "InttFelixMap.h"
-
 #include <fun4all/SubsysReco.h>
-
-#include <cstdint>
-#include <memory>
 #include <string>
 
 class PHCompositeNode;

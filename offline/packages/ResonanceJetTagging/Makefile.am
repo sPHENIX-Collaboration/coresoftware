@@ -25,7 +25,7 @@ libresonancejettagging_la_LDFLAGS = \
   -lcalo_io \
   -lfun4all \
   -lg4detectors_io \
-  -lg4jets \
+  -ljetbase \
   -lkfparticle_sphenix_io \
   -lparticleflow_io \
   -lphg4hit \
