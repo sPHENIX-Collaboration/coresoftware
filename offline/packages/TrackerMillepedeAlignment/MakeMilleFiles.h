@@ -47,7 +47,8 @@ class MakeMilleFiles : public SubsysReco
 
   void set_datafile_name(const std::string& file) { data_outfilename = file; }
   void set_steeringfile_name(const std::string& file) { steering_outfilename = file; }
-  void set_silicon_grouping(int group) { si_group = (AlignmentDefs::siliconGrp) group; }
+  void set_mvtx_grouping(int group) { mvtx_group = (AlignmentDefs::mvtxGrp) group; }
+  void set_intt_grouping(int group) { intt_group = (AlignmentDefs::inttGrp) group; }
   void set_tpc_grouping(int group) { tpc_group = (AlignmentDefs::tpcGrp) group; }
   void set_mms_grouping(int group) { mms_group = (AlignmentDefs::mmsGrp) group; }
   void set_layer_fixed(unsigned int layer);
@@ -91,7 +92,8 @@ class MakeMilleFiles : public SubsysReco
   std::map<unsigned int, float> m_layerMisalignment;
   std::set<unsigned int> fixed_sectors;
   // set default groups to lowest level
-  AlignmentDefs::siliconGrp si_group = AlignmentDefs::siliconGrp::snsr;
+  AlignmentDefs::mvtxGrp mvtx_group = AlignmentDefs::mvtxGrp::snsr;
+  AlignmentDefs::inttGrp intt_group = AlignmentDefs::inttGrp::chp;
   AlignmentDefs::tpcGrp tpc_group = AlignmentDefs::tpcGrp::htst;
   AlignmentDefs::mmsGrp mms_group = AlignmentDefs::mmsGrp::tl;
 

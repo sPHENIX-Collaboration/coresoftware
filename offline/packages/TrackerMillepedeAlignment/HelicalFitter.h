@@ -59,7 +59,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
  void set_datafile_name(const std::string& file) { data_outfilename = file;}
   void set_steeringfile_name(const std::string& file) { steering_outfilename = file;}
-  void set_silicon_grouping(int group) {si_grp = (AlignmentDefs::siliconGrp) group;}
+  void set_mvtx_grouping(int group) {mvtx_grp = (AlignmentDefs::mvtxGrp) group;}
+  void set_intt_grouping(int group) {intt_grp = (AlignmentDefs::inttGrp) group;}
   void set_tpc_grouping(int group) {tpc_grp = (AlignmentDefs::tpcGrp) group;}
   void set_mms_grouping(int group) {mms_grp = (AlignmentDefs::mmsGrp) group;}
   void set_test_output(bool test) {test_output = test;}
@@ -134,7 +135,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   std::set<std::pair<unsigned int,unsigned int>> fixed_layer_params;
 
   // set default groups to lowest level
-  AlignmentDefs::siliconGrp si_grp = AlignmentDefs::siliconGrp::snsr;
+  AlignmentDefs::mvtxGrp mvtx_grp = AlignmentDefs::mvtxGrp::snsr;
+  AlignmentDefs::inttGrp intt_grp = AlignmentDefs::inttGrp::chp;
   AlignmentDefs::tpcGrp tpc_grp = AlignmentDefs::tpcGrp::htst;
   AlignmentDefs::mmsGrp mms_grp = AlignmentDefs::mmsGrp::tl;
 
