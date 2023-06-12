@@ -6,9 +6,9 @@
 #include <calobase/RawClusterUtility.h>
 
 /// Jet includes
-#include <g4jets/Jet.h>
-#include <g4jets/JetMapv1.h>
-#include <g4jets/Jetv1.h>
+#include <jetbase/Jet.h>
+#include <jetbase/JetMapv1.h>
+#include <jetbase/Jetv1.h>
 
 /// Tracking includes
 #include <globalvertex/GlobalVertex.h>

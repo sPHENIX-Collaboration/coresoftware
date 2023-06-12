@@ -58,66 +58,76 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   std::cout << "at run" << m_runNumber << std::endl;
   if (m_dettype == CaloTowerCalib::CEMC)
   {
-    // place holder
-    std::string calibdir = CDBInterface::instance()->getUrl("TestBeginValidity");
     m_detector = "CEMC";
     m_DETECTOR = TowerInfoContainer::EMCAL;
-    m_fieldname = "cemc_abscalib_mip";
+
+    cdb = CDBInterface::instance();
+    if (!m_overrideCalibName) m_calibName = "cemc_relcalib_cosmic";
+    if (!m_overrideFieldName) m_fieldname = "cemc_relcalib_cosmic";
+    std::string calibdir = cdb->getUrl(m_calibName);
     if (calibdir[0] == '/')
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
     else
     {
-      std::cout << calibdir << std::endl;
+      std::cout << "CaloTowerCalib::::InitRun No calibration file found" << std::endl;
       exit(1);
     }
   }
   else if (m_dettype == CaloTowerCalib::HCALIN)
   {
-    std::string calibdir = CDBInterface::instance()->getUrl("TestBeginValidity");
     m_detector = "HCALIN";
     m_DETECTOR = TowerInfoContainer::HCAL;
-    m_fieldname = "ihcal_abscalib_mip";
+
+    if (!m_overrideCalibName) m_calibName = "ihcal_abscalib_mip_bldg912";
+    if (!m_overrideFieldName) m_fieldname = "ihcal_abscalib_mip";
+    cdb = CDBInterface::instance();
+    std::string calibdir = cdb->getUrl(m_calibName);
     if (calibdir[0] == '/')
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
     else
     {
-      std::cout << calibdir << std::endl;
+      std::cout << "CaloTowerCalib::::InitRun No calibration file found" << std::endl;
       exit(1);
     }
   }
   else if (m_dettype == CaloTowerCalib::HCALOUT)
   {
-    std::string calibdir = CDBInterface::instance()->getUrl("TestBeginValidity");
     m_detector = "HCALOUT";
     m_DETECTOR = TowerInfoContainer::HCAL;
-    m_fieldname = "ohcal_abscalib_mip";
+
+    if (!m_overrideCalibName) m_calibName = "ohcal_abscalib_mip_bldg912";
+    if (!m_overrideFieldName) m_fieldname = "ohcal_abscalib_mip";
+    cdb = CDBInterface::instance();
+    std::string calibdir = cdb->getUrl(m_calibName);
     if (calibdir[0] == '/')
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
     else
     {
-      std::cout << calibdir << std::endl;
+      std::cout << "CaloTowerCalib::::InitRun No calibration file found" << std::endl;
       exit(1);
     }
   }
   else if (m_dettype == CaloTowerCalib::EPD)
   {
-    std::string calibdir = CDBInterface::instance()->getUrl("TestBeginValidity");
     m_detector = "EPD";
     m_DETECTOR = TowerInfoContainer::SEPD;
-    m_fieldname = "EPD_abscalib_mip";
+    if (!m_overrideCalibName) m_calibName = "noCalibYet";
+    if (!m_overrideFieldName) m_fieldname = "noCalibYet";
+    cdb = CDBInterface::instance();
+    std::string calibdir = cdb->getUrl(m_calibName);
     if (calibdir[0] == '/')
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
     else
     {
-      std::cout << calibdir << std::endl;
+      std::cout << "CaloTowerCalib::::InitRun No calibration file found" << std::endl;
       exit(1);
     }
   }

@@ -76,8 +76,8 @@ libphnodedump_la_LIBADD = \
   -lffaobjects \
   -lg4detectors_io \
   -lg4bbc_io \
-  -lg4jets_io \
   -lHepMC \
+  -ljetbase_io \
   -lparticleflow_io \
   -lphfield_io \
   -lphg4hit \

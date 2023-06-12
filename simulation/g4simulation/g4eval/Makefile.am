@@ -1,5 +1,5 @@
 ##############################################
-# please add new classes in alphabetical order
+# please use alphabetical order for everything, it's just unreadable for others when in random order
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -25,19 +25,17 @@ libg4eval_la_LIBADD = \
   -lCLHEP \
   -lfun4all \
   -lg4detectors_io \
-  -lg4jets_io \
+  -ljetbase \
   -lglobalvertex_io \
   -lg4tracking_io \
-  -ltrackbase_historic_io \
-  -ltrack_io \
-  -ltpc_io \
-  -lmvtx_io \
   -lintt_io \
   -lmicromegas_io \
-  -lphg4hit \
+  -lmvtx_io \
   -lphhepmc_io \
-  -lgsl \
-  -lgslcblas
+  -lphg4hit \
+  -ltrackbase_historic_io \
+  -ltrack_io \
+  -ltpc_io
 
 pkginclude_HEADERS = \
   BaseTruthEval.h \
@@ -51,6 +49,7 @@ pkginclude_HEADERS = \
   EventEvaluator.h \
   FillTruthRecoMatchMap.h \
   FillTruthRecoMatchTree.h \
+  g4evaltools.h \
   JetEvalStack.h \
   JetEvaluator.h \
   JetRecoEval.h \
@@ -66,7 +65,6 @@ pkginclude_HEADERS = \
   SvtxTruthEval.h \
   SvtxTruthRecoTableEval.h \
   SvtxVertexEval.h \
-  g4evaltools.h \
   TrackEvaluation.h \
   TrackEvaluationContainer.h \
   TrackEvaluationContainerv1.h  \
@@ -98,6 +96,7 @@ libg4eval_la_SOURCES = \
   EventEvaluator.cc \
   FillTruthRecoMatchMap.cc \
   FillTruthRecoMatchTree.cc \
+  g4evaltools.cc \
   JetEvalStack.cc \
   JetEvaluator.cc \
   JetRecoEval.cc \
@@ -113,7 +112,6 @@ libg4eval_la_SOURCES = \
   SvtxTruthEval.cc \
   SvtxTruthRecoTableEval.cc \
   SvtxVertexEval.cc \
-  g4evaltools.cc \
   TrackEvaluation.cc \
   TrackSeedTrackMapConverter.cc \
   TruthRecoTrackMatching.cc

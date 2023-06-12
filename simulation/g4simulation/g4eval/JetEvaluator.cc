@@ -3,8 +3,8 @@
 #include "JetEvalStack.h"
 #include "JetRecoEval.h"
 
-#include <g4jets/Jet.h>
-#include <g4jets/JetMap.h>
+#include <jetbase/Jet.h>
+#include <jetbase/JetMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -15,48 +15,44 @@
 #include <TFile.h>
 #include <TNtuple.h>
 
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <utility>
 
-using namespace std;
-
-JetEvaluator::JetEvaluator(const string &name,
-                           const string &recojetname,
-                           const string &truthjetname,
-                           const string &filename)
+JetEvaluator::JetEvaluator(const std::string &name,
+                           const std::string &recojetname,
+                           const std::string &truthjetname,
+                           const std::string &filename)
   : SubsysReco(name)
   , _recojetname(recojetname)
   , _truthjetname(truthjetname)
-  , _ievent(0)
-  , _jetevalstack(nullptr)
-  , _strict(false)
-  , _do_recojet_eval(true)
-  , _do_truthjet_eval(true)
-  , _ntp_recojet(nullptr)
-  , _ntp_truthjet(nullptr)
   , _filename(filename)
-  , _tfile(nullptr)
 {
 }
 
-int JetEvaluator::Init(PHCompositeNode */*topNode*/)
+int JetEvaluator::Init(PHCompositeNode * /*topNode*/)
 {
   _ievent = 0;
 
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
-  if (_do_recojet_eval) _ntp_recojet = new TNtuple("ntp_recojet", "reco jet => max truth jet",
-                                                   "event:id:ncomp:eta:phi:e:pt:"
-                                                   "gid:gncomp:geta:gphi:ge:gpt:"
-                                                   "efromtruth");
+  if (_do_recojet_eval)
+  {
+    _ntp_recojet = new TNtuple("ntp_recojet", "reco jet => max truth jet",
+                               "event:id:ncomp:eta:phi:e:pt:"
+                               "gid:gncomp:geta:gphi:ge:gpt:"
+                               "efromtruth");
+  }
 
-  if (_do_truthjet_eval) _ntp_truthjet = new TNtuple("ntp_truthjet", "truth jet => best reco jet",
-                                                     "event:gid:gncomp:geta:gphi:ge:gpt:"
-                                                     "id:ncomp:eta:phi:e:pt:"
-                                                     "efromtruth");
+  if (_do_truthjet_eval)
+  {
+    _ntp_truthjet = new TNtuple("ntp_truthjet", "truth jet => best reco jet",
+                                "event:gid:gncomp:geta:gphi:ge:gpt:"
+                                "id:ncomp:eta:phi:e:pt:"
+                                "efromtruth");
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -97,12 +93,18 @@ int JetEvaluator::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int JetEvaluator::End(PHCompositeNode */*topNode*/)
+int JetEvaluator::End(PHCompositeNode * /*topNode*/)
 {
   _tfile->cd();
 
-  if (_do_recojet_eval) _ntp_recojet->Write();
-  if (_do_truthjet_eval) _ntp_truthjet->Write();
+  if (_do_recojet_eval)
+  {
+    _ntp_recojet->Write();
+  }
+  if (_do_truthjet_eval)
+  {
+    _ntp_truthjet->Write();
+  }
 
   _tfile->Close();
 
@@ -110,9 +112,9 @@ int JetEvaluator::End(PHCompositeNode */*topNode*/)
 
   if (Verbosity() > 0)
   {
-    cout << "========================== JetEvaluator::End() ============================" << endl;
-    cout << " " << _ievent << " events of output written to: " << _filename << endl;
-    cout << "===========================================================================" << endl;
+    std::cout << "========================== JetEvaluator::End() ============================" << std::endl;
+    std::cout << " " << _ievent << " events of output written to: " << _filename << std::endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   delete _jetevalstack;
@@ -120,13 +122,13 @@ int JetEvaluator::End(PHCompositeNode */*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void JetEvaluator::printInputInfo(PHCompositeNode */*topNode*/)
+void JetEvaluator::printInputInfo(PHCompositeNode * /*topNode*/)
 {
   // to be implemented later if needed
   return;
 }
 
-void JetEvaluator::printOutputInfo(PHCompositeNode */*topNode*/)
+void JetEvaluator::printOutputInfo(PHCompositeNode * /*topNode*/)
 {
   // to be implemented later if needed
   return;
@@ -134,10 +136,13 @@ void JetEvaluator::printOutputInfo(PHCompositeNode */*topNode*/)
 
 void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 2) cout << "JetEvaluator::fillOutputNtuples() entered" << endl;
+  if (Verbosity() > 2)
+  {
+    std::cout << "JetEvaluator::fillOutputNtuples() entered" << std::endl;
+  }
 
   JetRecoEval *recoeval = _jetevalstack->get_reco_eval();
-  //JetTruthEval* trutheval = _jetevalstack->get_truth_eval();
+  // JetTruthEval* trutheval = _jetevalstack->get_truth_eval();
 
   //-------------------------
   // fill the reco jet ntuple
@@ -145,21 +150,22 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
 
   if (_do_recojet_eval)
   {
-    if (Verbosity() > 1) cout << "JetEvaluator::filling recojet ntuple..." << endl;
+    if (Verbosity() > 1)
+    {
+      std::cout << "JetEvaluator::filling recojet ntuple..." << std::endl;
+    }
 
-    JetMap *recojets = findNode::getClass<JetMap>(topNode, _recojetname.c_str());
+    JetMap *recojets = findNode::getClass<JetMap>(topNode, _recojetname);
     if (!recojets)
     {
-      cerr << PHWHERE << " ERROR: Can't find " << _recojetname << endl;
+      std::cout << PHWHERE << " ERROR: Can't find " << _recojetname << std::endl;
       exit(-1);
     }
 
     // for every recojet
-    for (JetMap::Iter iter = recojets->begin();
-         iter != recojets->end();
-         ++iter)
+    for (auto &iter : *recojets)
     {
-      Jet *recojet = iter->second;
+      Jet *recojet = iter.second;
       Jet *truthjet = recoeval->max_truth_jet_by_energy(recojet);
 
       float id = recojet->get_id();
@@ -213,21 +219,22 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
 
   if (_do_truthjet_eval)
   {
-    if (Verbosity() > 1) cout << "JetEvaluator::filling truthjet ntuple..." << endl;
+    if (Verbosity() > 1)
+    {
+      std::cout << "JetEvaluator::filling truthjet ntuple..." << std::endl;
+    }
 
-    JetMap *truthjets = findNode::getClass<JetMap>(topNode, _truthjetname.c_str());
+    JetMap *truthjets = findNode::getClass<JetMap>(topNode, _truthjetname);
     if (!truthjets)
     {
-      cerr << PHWHERE << " ERROR: Can't find " << _truthjetname << endl;
+      std::cout << PHWHERE << " ERROR: Can't find " << _truthjetname << std::endl;
       exit(-1);
     }
 
     // for every truthjet
-    for (JetMap::Iter iter = truthjets->begin();
-         iter != truthjets->end();
-         ++iter)
+    for (auto &iter : *truthjets)
     {
-      Jet *truthjet = iter->second;
+      Jet *truthjet = iter.second;
       Jet *recojet = recoeval->best_jet_from(truthjet);
 
       float gid = truthjet->get_id();

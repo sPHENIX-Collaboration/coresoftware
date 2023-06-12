@@ -6,6 +6,7 @@
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
 #include <trackbase/TpcDefs.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/InttDefs.h>
 #include <trackbase/TrkrClusterv3.h>   
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterContainer.h>   
@@ -90,12 +91,28 @@ int HelicalFitter::InitRun(PHCompositeNode *topNode)
   if(make_ntuple)
     {
       fout = new TFile("HF_ntuple.root","recreate");
-      ntp = new TNtuple("ntp","HF ntuple","event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
+      ntp = new TNtuple("ntp","HF ntuple","event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
    }
  
   // print grouping setup to log file:
-  std::cout << "HelicalFitter::InitRun: Surface groupings are silicon " << si_grp << " tpc " << tpc_grp << " mms " << mms_grp << std::endl; 
-
+  std::cout << "HelicalFitter::InitRun: Surface groupings are mvtx " << mvtx_grp << " intt " << intt_grp << " tpc " << tpc_grp << " mms " << mms_grp << std::endl; 
+  std::cout << " possible groupings are:" << std::endl
+	    << " mvtx " 
+	    << AlignmentDefs::mvtxGrp::snsr << "  " 
+	    << AlignmentDefs::mvtxGrp::stv << "  " 
+	    << AlignmentDefs::mvtxGrp::brrl << "  " << std::endl
+	    << " intt " 
+	    << AlignmentDefs::inttGrp::chp << "  "
+	    << AlignmentDefs::inttGrp::lad << "  "
+	    << AlignmentDefs::inttGrp::intt << "  " << std::endl
+	    << " tpc " 
+	    << AlignmentDefs::tpcGrp::htst << "  "
+	    << AlignmentDefs::tpcGrp::sctr << "  "
+	    << AlignmentDefs::tpcGrp::tp << "  " << std::endl
+	    << " mms " 
+	    << AlignmentDefs::mmsGrp::tl << "  "
+	    << AlignmentDefs::mmsGrp::mm << "  " << std::endl;
+ 
   event=-1;
 
   return ret;
@@ -258,7 +275,6 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
 	  unsigned int layer = TrkrDefs::getLayer(cluskey_vec[ivec]);	  
 	  float phi =  atan2(global(1), global(0));
-	  float beta =  atan2(global(2), sqrt(pow(global(0),2) + pow(global(1),2)));
 
 	  SvtxTrackState_v1 svtxstate(fitpoint.norm());
 	  svtxstate.set_x(fitpoint(0));
@@ -306,9 +322,14 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  if(isnan(clus_sigma(0)) || isnan(clus_sigma(1)))  { continue; }
 
 	  int glbl_label[AlignmentDefs::NGL];
-	  if(layer < 7)
+	  if(layer < 3)
 	    {
-	      AlignmentDefs::getSiliconGlobalLabels(surf, glbl_label, si_grp);	      
+	      AlignmentDefs::getMvtxGlobalLabels(surf, glbl_label, mvtx_grp);	      
+	    }
+	  else if(layer > 2 && layer < 7)
+	    {
+	      AlignmentDefs::getInttGlobalLabels(surf, glbl_label, intt_grp);	      
+	      addGlobalConstraintIntt(glbl_label, surf); 
 	    }
 	  else if (layer < 55)
 	    {
@@ -388,7 +409,6 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		  unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  
 		  if(is_tpc_sector_fixed(layer, sector, side))
 		    {
-		      //if(i==0) std::cout << " param " << i << " layer " << layer << " sector " << sector << " side " << side << std::endl;
 		      glbl_derivativeX[i] = 0;
 		      glbl_derivativeY[i] = 0;
 		    }
@@ -421,10 +441,21 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	      unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
 	      unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  	      
 	      unsigned int subsurf = cluster->getSubSurfKey();
-	      float ntp_data[69] = {
+	      if(layer < 3)
+		{
+		  sector = MvtxDefs::getStaveId(cluskey_vec[ivec]);
+		  subsurf = MvtxDefs::getChipId(cluskey_vec[ivec]);
+		}
+	      else if(layer >2 && layer < 7)
+		{
+		  sector = InttDefs::getLadderPhiId(cluskey_vec[ivec]);
+		  subsurf = InttDefs::getLadderZId(cluskey_vec[ivec]);
+		}
+	      float ntp_data[75] = {
 		(float) event, (float) trackid,
 		(float) layer, (float) nsilicon, (float) ntpc, (float) nclus, (float) trkrid,  (float) sector,  (float) side,
 		(float) subsurf, phi,
+		(float) glbl_label[0], (float) glbl_label[1], (float) glbl_label[2], (float) glbl_label[3], (float) glbl_label[4], (float) glbl_label[5], 
 		(float) sensorCenter(0), (float) sensorCenter(1), (float) sensorCenter(2),
 		(float) sensorNormal(0), (float) sensorNormal(1), (float) sensorNormal(2),
 		(float) ideal_center(0), (float) ideal_center(1), (float) ideal_center(2),
@@ -453,73 +484,9 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		}
 	    };
 	  
-	  // provides output that can be grep'ed to make plots of input to mille
-	  if(Verbosity() > 1)
-	    {
-	      if(layer > 0 && layer < 55)
-		{
-		  // helix radius = fitpars[0],  X0 = fitpars[1],  Y0 = fitpars[2], zslope = fitpars[3], Z0  = fitpars[4] 
-		  unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
-		  unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  
-		  std::cout << "Local residualsX: layer " << layer << " sector " << sector << " side " << side 
-			    << " phi " << phi * 180 / M_PI << " beta " << beta * 180.90 / M_PI
-			    << " dxloc " << residual(0) << " error " << clus_sigma(0)  << " inflation_factor " << errinf
-			    << " xloc " << xloc << " fitxloc " << fitpoint_local(0) 
-			    << " zglob " << global(2) << " fitzglob " << fitpoint(2) 
-			    << " xglob " << global(0) << " fitxglob " << fitpoint(0)
-			    << " yglob " << global(1)  << " fityglob " << fitpoint(1)
-			    << " dzloc " << residual(1)
-			    << " X0 " << fitpars[1] << " Y0 " << fitpars[2] 
-			    << " derivx R " << lcl_derivativeX[0] << " label " << 1 
-			    << " derivx X0 " << lcl_derivativeX[1] << " label " << 2
- 			    << " derivx Y0 " << lcl_derivativeX[2] << " label " << 3
-			    << " derivx Zslope " << lcl_derivativeX[3] << " label " << 4
-			    << " derivx Z0 " << lcl_derivativeX[4] << " label " << 5
-			    << " glblderivX alpha " << glbl_derivativeX[0] << " label " << glbl_label[0]
-			    << " glblderivX beta " << glbl_derivativeX[1] << " label " << glbl_label[1]
-			    << " glblderivX gamma " << glbl_derivativeX[2] << " label " << glbl_label[2]
-			    << " glblderivX xtrans " << glbl_derivativeX[3] << " label " << glbl_label[3]
-			    << " glblderivX ytrans " << glbl_derivativeX[4] << " label " << glbl_label[4]
-			    << " glblderivX ztrans " << glbl_derivativeX[5] << " label " << glbl_label[5]
-
-			    << std::endl;
-		}
-	    }	  
-    
 	  if( !isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
 	    { 
 	      _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf*clus_sigma(0));
-	    }
-	  
-	  // provides output that can be grep'ed to make plots of input to mille
-	  if(Verbosity() > 1)
-	    {
-	      if(layer > 0 && layer < 55)
-		{
-		  unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
-		  unsigned int side = TpcDefs::getSide(cluskey_vec[ivec]);	  
-		  std::cout << "Local residualsY: layer " << layer << " sector " << sector << " side " << side 
-			    << " phi " << phi * 180 / M_PI << " beta " << beta * 180.90 / M_PI
-			    << " dzloc " << residual(1) << " error " << clus_sigma(1) << " inflation_factor " << errinf
-			    << " zloc " << zloc << " fitzloc " << fitpoint_local(1)
-			    << " zglob " << global(2) << " fitzglob " << fitpoint(2) 
-			    << " xglob " << global(0) << " fitxglob " << fitpoint(0)
-			    << " yglob " << global(1) << " fityglob " << fitpoint(1)
-			    << " dxloc " << residual(0)
-			    << " zslope " << fitpars[3] << " Z0 " << fitpars[4]
-			    << " derivy R " << lcl_derivativeY[0] << " label " << 1 
-			    << " derivy X0 " << lcl_derivativeY[1] << " label " << 2
- 			    << " derivy Y0 " << lcl_derivativeY[2] << " label " << 3
-			    << " derivy Zslope " << lcl_derivativeY[3] << " label " << 4
-			    << " derivy Z0 " << lcl_derivativeY[4] << " label " << 5
-			    << " glblderivY alpha " << glbl_derivativeY[0] << " label " << glbl_label[0]
-			    << " glblderivY beta " << glbl_derivativeY[1] << " label " << glbl_label[1]
-			    << " glblderivY gamma " << glbl_derivativeY[2] << " label " << glbl_label[2]
-			    << " glblderivY xtrans " << glbl_derivativeY[3] << " label " << glbl_label[3]
-			    << " glblderivY ytrans " << glbl_derivativeY[4] << " label " << glbl_label[4]
-			    << " glblderivY ztrans " << glbl_derivativeY[5] << " label " << glbl_label[5]
-			    << std::endl;
-		}
 	    }
 
 	  if(!isnan(residual(1)) && clus_sigma(1) < 1.0 && trkrid != TrkrDefs::inttId)
@@ -536,6 +503,41 @@ int HelicalFitter::process_event(PHCompositeNode*)
     }  // end loop over tracks
   
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void HelicalFitter::addGlobalConstraintIntt(int glbl_label[6], Surface surf)
+{
+  // Add entry for the INTT dx and dy global labels to the constraints file
+
+  // use dx translation parameter as the key
+  int label_dx = glbl_label[3];
+  int label_dy = glbl_label[4];
+
+  // Does this constraint exist already?
+  if(InttConstraints.find(label_dx) != InttConstraints.end())
+    {
+      return;
+    }
+
+  // add it to the map
+  // we need label_dx, label_dy, sensor x and sensor y
+  alignmentTransformationContainer::use_alignment = false;
+  Acts::Vector3 sensorCenter      = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
+  alignmentTransformationContainer::use_alignment = true;
+  /*
+  float phi = atan2(sensorCenter(1), sensorCenter(0));
+  float cosphi = cos(phi);
+  float sinphi = sin(phi);
+  std::cout << "  label_dx " << label_dx << " sensorCenter(0) " << sensorCenter(0) << " cosphi " << cosphi << std::endl;
+  std::cout << "  label_dy " << label_dy << " sensorCenter(1) " << sensorCenter(1) << " sinphi " << sinphi << std::endl;
+  std::cout << "    dx/dy " << -sensorCenter(1)/sensorCenter(0) << "  or  " << -sinphi/cosphi << std::endl;
+  */
+  std::pair<int, float> dx_x = std::make_pair(label_dx, sensorCenter(0));
+  std::pair<int, float> dy_y = std::make_pair(label_dy, sensorCenter(1));
+  auto constraint = std::make_pair(dx_x, dy_y);
+  InttConstraints.insert(std::make_pair(label_dx, constraint));
+
+  return;
 }
 
 Acts::Vector3 HelicalFitter::get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global)
@@ -682,6 +684,18 @@ int HelicalFitter::End(PHCompositeNode* )
      fout->Write();
      fout->Close();
     }
+
+  ofstream fconstraint("mille_global_constraints.txt");
+  for (auto it = InttConstraints.begin(); it != InttConstraints.end(); ++it)
+    {
+      auto xpair = it->second.first;
+      auto ypair = it->second.second;
+
+      fconstraint << "Constraint 0.0" << std::endl;
+      fconstraint << xpair.first << "  " << xpair.second << std::endl;
+      fconstraint << ypair.first << "  " << ypair.second << std::endl;
+    }
+  fconstraint.close();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

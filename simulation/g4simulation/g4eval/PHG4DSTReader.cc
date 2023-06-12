@@ -2,7 +2,7 @@
 
 /*!
  * \file PHG4DSTReader.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.11 $
  * \date $Date: 2015/01/06 02:52:07 $
@@ -24,9 +24,9 @@
 #include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4VtxPointv1.h>
 
-#include <g4jets/Jet.h>
-#include <g4jets/JetMap.h>
-#include <g4jets/Jetv1.h>
+#include <jetbase/Jet.h>
+#include <jetbase/JetMap.h>
+#include <jetbase/Jetv1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
@@ -46,28 +46,15 @@
 #include <sstream>
 #include <utility>
 
-using namespace std;
+using part_type = PHG4Particlev2;
+using hit_type = PHG4HitEval;
+using vertex_type = PHG4VtxPointv1;
+using RawTower_type = RawTowerv1;
+using PHPyJet_type = Jetv1;
 
-typedef PHG4Particlev2 part_type;
-typedef PHG4HitEval hit_type;
-typedef PHG4VtxPointv1 vertex_type;
-typedef RawTowerv1 RawTower_type;
-typedef Jetv1 PHPyJet_type;
-
-PHG4DSTReader::PHG4DSTReader(const string &filename)
+PHG4DSTReader::PHG4DSTReader(const std::string &filename)
   : SubsysReco("PHG4DSTReader")
-  , nblocks(0)
-  , _event(0)
-  ,  //
-  _out_file_name(filename)
-  , /*_file(nullptr), */ _T(nullptr)
-  ,  //
-  _save_particle(true)
-  , _load_all_particle(false)
-  , _load_active_particle(
-        true)
-  , _save_vertex(true)
-  , _tower_zero_sup(.0)
+  , _out_file_name(filename)
 {
   // TODO Auto-generated constructor stub
 }
@@ -76,7 +63,7 @@ PHG4DSTReader::~PHG4DSTReader()
 {
   if (Verbosity() > 1)
   {
-    cout << "PHG4DSTReader::destructor - Clean ups" << endl;
+    std::cout << "PHG4DSTReader::destructor - Clean ups" << std::endl;
   }
   if (_T)
   {
@@ -86,24 +73,21 @@ PHG4DSTReader::~PHG4DSTReader()
   _records.clear();
 }
 
-int PHG4DSTReader::Init(PHCompositeNode *)
+int PHG4DSTReader::Init(PHCompositeNode * /*unused*/)
 {
   const int arr_size = 100;
 
-  //  BOOST_FOREACH(string nodenam, _node_postfix)
-  for (vector<string>::const_iterator it = _node_postfix.begin();
-       it != _node_postfix.end(); ++it)
+  //  BOOST_FOREACH(std::string nodenam, _node_postfix)
+  for (const auto &nodenam : _node_postfix)
   {
     const char *class_name = hit_type::Class()->GetName();
 
-    const string &nodenam = *it;
-
-    string hname = Form("G4HIT_%s", nodenam.c_str());
+    std::string hname = Form("G4HIT_%s", nodenam.c_str());
     //      _node_name.push_back(hname);
     if (Verbosity() > 0)
     {
-      cout << "PHG4DSTReader::Init - saving hits from node: " << hname << " - "
-           << class_name << endl;
+      std::cout << "PHG4DSTReader::Init - saving hits from node: " << hname << " - "
+                << class_name << std::endl;
     }
 
     record rec;
@@ -120,22 +104,19 @@ int PHG4DSTReader::Init(PHCompositeNode *)
 
   if (_tower_postfix.size() && Verbosity() > 0)
   {
-    cout << "PHG4DSTReader::Init - zero suppression for calorimeter towers = "
-         << _tower_zero_sup << " GeV" << endl;
+    std::cout << "PHG4DSTReader::Init - zero suppression for calorimeter towers = "
+              << _tower_zero_sup << " GeV" << std::endl;
   }
-  for (vector<string>::const_iterator it = _tower_postfix.begin();
-       it != _tower_postfix.end(); ++it)
+  for (const auto &nodenam : _tower_postfix)
   {
     const char *class_name = RawTower_type::Class()->GetName();
 
-    const string &nodenam = *it;
-
-    string hname = Form("TOWER_%s", nodenam.c_str());
+    std::string hname = Form("TOWER_%s", nodenam.c_str());
     //      _node_name.push_back(hname);
     if (Verbosity() > 0)
     {
-      cout << "PHG4DSTReader::Init - saving raw tower info from node: " << hname
-           << " - " << class_name << endl;
+      std::cout << "PHG4DSTReader::Init - saving raw tower info from node: " << hname
+                << " - " << class_name << std::endl;
     }
     record rec;
     rec._cnt = 0;
@@ -149,16 +130,14 @@ int PHG4DSTReader::Init(PHCompositeNode *)
     nblocks++;
   }
 
-  for (vector<string>::const_iterator it = _jet_postfix.begin();
-       it != _jet_postfix.end(); ++it)
+  for (const auto &hname : _jet_postfix)
   {
     const char *class_name = PHPyJet_type::Class()->GetName();
 
-    const string &hname = *it;
     if (Verbosity() > 0)
     {
-      cout << "PHG4DSTReader::Init - saving jets from node: " << hname << " - "
-           << class_name << endl;
+      std::cout << "PHG4DSTReader::Init - saving jets from node: " << hname << " - "
+                << class_name << std::endl;
     }
     record rec;
     rec._cnt = 0;
@@ -174,14 +153,14 @@ int PHG4DSTReader::Init(PHCompositeNode *)
 
   if (_save_particle)
   {
-    //save particles
+    // save particles
 
     const char *class_name = part_type::Class()->GetName();
 
     if (Verbosity() > 0)
     {
-      cout << "PHG4DSTReader::Init - saving Particles node:" << class_name
-           << endl;
+      std::cout << "PHG4DSTReader::Init - saving Particles node:" << class_name
+                << std::endl;
     }
     record rec;
     rec._cnt = 0;
@@ -197,14 +176,14 @@ int PHG4DSTReader::Init(PHCompositeNode *)
 
   if (_save_vertex)
   {
-    //save particles
+    // save particles
 
     const char *class_name = vertex_type::Class()->GetName();
 
     if (Verbosity() > 0)
     {
-      cout << "PHG4DSTReader::Init - saving vertex for particles under node:"
-           << class_name << endl;
+      std::cout << "PHG4DSTReader::Init - saving vertex for particles under node:"
+                << class_name << std::endl;
     }
     record rec;
     rec._cnt = 0;
@@ -219,7 +198,7 @@ int PHG4DSTReader::Init(PHCompositeNode *)
   }
   if (Verbosity() > 0)
   {
-    cout << "PHG4DSTReader::Init - requested " << nblocks << " nodes" << endl;
+    std::cout << "PHG4DSTReader::Init - requested " << nblocks << " nodes" << std::endl;
   }
   build_tree();
 
@@ -230,7 +209,7 @@ void PHG4DSTReader::build_tree()
 {
   if (Verbosity() > 0)
   {
-    cout << "PHG4DSTReader::build_tree - output to " << _out_file_name << endl;
+    std::cout << "PHG4DSTReader::build_tree - output to " << _out_file_name << std::endl;
   }
   static const int BUFFER_SIZE = 32000;
 
@@ -240,16 +219,14 @@ void PHG4DSTReader::build_tree()
   _T = new TTree("T", "PHG4DSTReader");
 
   nblocks = 0;
-  for (records_t::iterator it = _records.begin(); it != _records.end(); ++it)
+  for (auto &rec : _records)
   {
-    record &rec = *it;
-
     if (Verbosity() > 0)
     {
-      cout << "PHG4DSTReader::build_tree - Add " << rec._name << endl;
+      std::cout << "PHG4DSTReader::build_tree - Add " << rec._name << std::endl;
     }
-    const string name_cnt = "n_" + rec._name;
-    const string name_cnt_desc = name_cnt + "/I";
+    const std::string name_cnt = "n_" + rec._name;
+    const std::string name_cnt_desc = name_cnt + "/I";
     _T->Branch(name_cnt.c_str(), &(rec._cnt), name_cnt_desc.c_str(),
                BUFFER_SIZE);
     _T->Branch(rec._name.c_str(), &(rec._arr_ptr), BUFFER_SIZE, 99);
@@ -259,7 +236,7 @@ void PHG4DSTReader::build_tree()
 
   if (Verbosity() > 0)
   {
-    cout << "PHG4DSTReader::build_tree - added " << nblocks << " nodes" << endl;
+    std::cout << "PHG4DSTReader::build_tree - added " << nblocks << " nodes" << std::endl;
   }
   _T->SetAutoSave(16000);
 }
@@ -269,10 +246,10 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
   //  const double significand = _event / TMath::Power(10, (int) (log10(_event)));
   //
   //  if (fmod(significand, 1.0) == 0 && significand <= 10)
-  //    cout << "PHG4DSTReader::process_event - " << _event << endl;
+  //    std::cout << "PHG4DSTReader::process_event - " << _event << std::endl;
   _event++;
 
-  //clean ups
+  // clean ups
   _particle_set.clear();
   _vertex_set.clear();
 
@@ -281,16 +258,16 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
   if (!truthInfoList)
   {
     if (_event < 2)
-      cout
+    {
+      std::cout
           << "PHG4DSTReader::process_event - Error - can not find node G4TruthInfo. Quit processing!"
-          << endl;
+          << std::endl;
+    }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  for (records_t::iterator it = _records.begin(); it != _records.end(); ++it)
+  for (auto &rec : _records)
   {
-    record &rec = *it;
-
     rec._cnt = 0;
     assert(rec._arr.get() == rec._arr_ptr);
     assert(rec._arr.get());
@@ -299,26 +276,32 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
     if (rec._type == record::typ_hit)
     {
       if (Verbosity() >= 2)
-        cout << "PHG4DSTReader::process_event - processing " << rec._name
-             << endl;
+      {
+        std::cout << "PHG4DSTReader::process_event - processing " << rec._name
+                  << std::endl;
+      }
 
       PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode,
                                                                     rec._name);
       if (!hits)
       {
         if (_event < 2)
-          cout
+        {
+          std::cout
               << "PHG4DSTReader::process_event - Error - can not find node "
-              << rec._name << endl;
+              << rec._name << std::endl;
+        }
       }
       else
       {
         PHG4HitContainer::ConstRange hit_range = hits->getHits();
 
         if (Verbosity() >= 2)
-          cout << "PHG4DSTReader::process_event - processing "
-               << rec._name << " and received " << hits->size() << " hits"
-               << endl;
+        {
+          std::cout << "PHG4DSTReader::process_event - processing "
+                    << rec._name << " and received " << hits->size() << " hits"
+                    << std::endl;
+        }
 
         for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first;
              hit_iter != hit_range.second; hit_iter++)
@@ -350,12 +333,16 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
           //                  *new_hit = (*hit);
 
           if (_load_active_particle)
+          {
             _particle_set.insert(hit->get_trkid());
+          }
 
           if (Verbosity() >= 2)
-            cout << "PHG4DSTReader::process_event - processing "
-                 << rec._name << " and hit " << hit->get_hit_id()
-                 << " with track id " << hit->get_trkid() << endl;
+          {
+            std::cout << "PHG4DSTReader::process_event - processing "
+                      << rec._name << " and hit " << hit->get_hit_id()
+                      << " with track id " << hit->get_trkid() << std::endl;
+          }
 
           rec._cnt++;
         }
@@ -364,26 +351,32 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
     else if (rec._type == record::typ_tower)
     {
       if (Verbosity() >= 2)
-        cout << "PHG4DSTReader::process_event - processing tower "
-             << rec._name << endl;
+      {
+        std::cout << "PHG4DSTReader::process_event - processing tower "
+                  << rec._name << std::endl;
+      }
 
       RawTowerContainer *hits = findNode::getClass<RawTowerContainer>(
           topNode, rec._name);
       if (!hits)
       {
         if (_event < 2)
-          cout
+        {
+          std::cout
               << "PHG4DSTReader::process_event - Error - can not find node "
-              << rec._name << endl;
+              << rec._name << std::endl;
+        }
       }
       else
       {
         RawTowerContainer::ConstRange hit_range = hits->getTowers();
 
         if (Verbosity() >= 2)
-          cout << "PHG4DSTReader::process_event - processing "
-               << rec._name << " and received " << hits->size()
-               << " tower hits" << endl;
+        {
+          std::cout << "PHG4DSTReader::process_event - processing "
+                    << rec._name << " and received " << hits->size()
+                    << " tower hits" << std::endl;
+        }
 
         for (RawTowerContainer::ConstIterator hit_iter = hit_range.first;
              hit_iter != hit_range.second; hit_iter++)
@@ -398,12 +391,14 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
           if (hit->get_energy() < _tower_zero_sup)
           {
             if (Verbosity() >= 2)
-              cout
+            {
+              std::cout
                   << "PHG4DSTReader::process_event - suppress low energy tower hit "
                   << rec._name << " @ ("
                   //                            << hit->get_thetaMin()
                   //                            << ", " << hit->get_phiMin()
-                  << "), Energy = " << hit->get_energy() << endl;
+                  << "), Energy = " << hit->get_energy() << std::endl;
+            }
 
             continue;
           }
@@ -411,13 +406,15 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
           new ((*(rec._arr.get()))[rec._cnt]) RawTower_type();
 
           if (Verbosity() >= 2)
-            cout
+          {
+            std::cout
                 << "PHG4DSTReader::process_event - processing Tower hit "
                 << rec._name << " @ ("
                 //                        << hit->get_thetaMin() << ", "
                 //                        << hit->get_phiMin()
                 << "), Energy = " << hit->get_energy() << " - "
-                << rec._arr.get()->At(rec._cnt)->ClassName() << endl;
+                << rec._arr.get()->At(rec._cnt)->ClassName() << std::endl;
+          }
 
           //                  rec._arr->Print();
 
@@ -445,40 +442,47 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
     }    //      if (rec._type == record::typ_hit)
     else if (rec._type == record::typ_jets)
     {
-      //          std::cout
+      //          std::std::cout
       //              << "PHG4DSTReader::AddJet - Error - temp. disabled until jet added back to sPHENIX software"
-      //              << std::endl;
+      //              << std::std::endl;
       //
       if (Verbosity() >= 2)
-        cout << "PHG4DSTReader::process_event - processing jets "
-             << rec._name << endl;
+      {
+        std::cout << "PHG4DSTReader::process_event - processing jets "
+                  << rec._name << std::endl;
+      }
 
       JetMap *hits = findNode::getClass<JetMap>(topNode, rec._name);
       if (!hits)
       {
         if (_event < 2)
-          cout
+        {
+          std::cout
               << "PHG4DSTReader::process_event - Error - can not find node "
-              << rec._name << endl;
+              << rec._name << std::endl;
+        }
       }
       else
       {
         if (Verbosity() >= 2)
-          cout << "PHG4DSTReader::process_event - processing "
-               << rec._name << " and received " << hits->size() << " jets"
-               << endl;
+        {
+          std::cout << "PHG4DSTReader::process_event - processing "
+                    << rec._name << " and received " << hits->size() << " jets"
+                    << std::endl;
+        }
 
         // for every recojet
-        for (JetMap::Iter iter = hits->begin(); iter != hits->end();
-             ++iter)
+        for (auto &iter : *hits)
         {
-          Jet *hit_raw = iter->second;
+          Jet *hit_raw = iter.second;
 
           if (Verbosity() >= 2)
-            cout << "PHG4DSTReader::process_event - processing jet "
-                 << rec._name << " @ (" << hit_raw->get_eta() << ", "
-                 << hit_raw->get_phi() << "), pT = " << hit_raw->get_pt()
-                 << " - with raw type " << hit_raw->ClassName() << endl;
+          {
+            std::cout << "PHG4DSTReader::process_event - processing jet "
+                      << rec._name << " @ (" << hit_raw->get_eta() << ", "
+                      << hit_raw->get_phi() << "), pT = " << hit_raw->get_pt()
+                      << " - with raw type " << hit_raw->ClassName() << std::endl;
+          }
 
           PHPyJet_type *hit = dynamic_cast<PHPyJet_type *>(hit_raw);
 
@@ -503,18 +507,16 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
         static bool once = true;
         if (once)
         {
-          cout
+          std::cout
               << "PHG4DSTReader::process_event - will load all particle from G4TruthInfo"
-              << endl;
+              << std::endl;
 
           once = false;
         }
 
-        for (auto particle_iter = truthInfoList->GetMap().begin();
-             particle_iter != truthInfoList->GetMap().end();
-             ++particle_iter)
+        for (auto particle_iter : truthInfoList->GetMap())
         {
-          _particle_set.insert(particle_iter->first);
+          _particle_set.insert(particle_iter.first);
         }
 
       }  //          if (_load_all_particle)
@@ -525,7 +527,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
         {
           if (Verbosity() > 0)
           {
-            cout << "PHG4DSTReader::process_event - will load primary particle from G4TruthInfo" << endl;
+            std::cout << "PHG4DSTReader::process_event - will load primary particle from G4TruthInfo" << std::endl;
           }
           once = false;
         }
@@ -542,15 +544,14 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
 
         }  //          if (_load_all_particle) else
       }
-      for (PartSet_t::const_iterator i = _particle_set.begin();
-           i != _particle_set.end(); ++i)
+      for (int i : _particle_set)
       {
-        auto particle = truthInfoList->GetParticle(*i);
+        auto particle = truthInfoList->GetParticle(i);
         if (!particle)
         {
-          cout
+          std::cout
               << "PHG4DSTReader::process_event - ERROR - can not find particle/track ID "
-              << *i << " in G4TruthInfo" << endl;
+              << i << " in G4TruthInfo" << std::endl;
 
           continue;
         }
@@ -566,20 +567,19 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
       {
         if (Verbosity() > 0)
         {
-          cout << "PHG4DSTReader::process_event - will load vertex from G4TruthInfo" << endl;
+          std::cout << "PHG4DSTReader::process_event - will load vertex from G4TruthInfo" << std::endl;
         }
         once = false;
       }
 
-      for (PartSet_t::const_iterator i = _vertex_set.begin();
-           i != _vertex_set.end(); ++i)
+      for (int i : _vertex_set)
       {
-        PHG4VtxPoint *v = truthInfoList->GetVtx(*i);
+        PHG4VtxPoint *v = truthInfoList->GetVtx(i);
         if (!v)
         {
-          cout
+          std::cout
               << "PHG4DSTReader::process_event - ERROR - can not find vertex ID "
-              << *i << " in G4TruthInfo" << endl;
+              << i << " in G4TruthInfo" << std::endl;
 
           continue;
         }
@@ -587,8 +587,10 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
         new ((*(rec._arr.get()))[rec._cnt]) vertex_type();
 
         if (Verbosity() >= 2)
-          cout << "PHG4DSTReader::process_event - saving vertex id "
-               << *i << endl;
+        {
+          std::cout << "PHG4DSTReader::process_event - saving vertex id "
+                    << i << std::endl;
+        }
 
         vertex_type *new_v =
             static_cast<vertex_type *>(rec._arr.get()->At(rec._cnt));
@@ -608,7 +610,9 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
   }  //  for (records_t::iterator it = _records.begin(); it != _records.end(); ++it)
 
   if (_T)
+  {
     _T->Fill();
+  }
 
   return 0;
 }  //  for (records_t::iterator it = _records.begin(); it != _records.end(); ++it)
@@ -618,9 +622,9 @@ void PHG4DSTReader::add_particle(PHG4DSTReader::record &rec, PHG4Particle *part)
   assert(part);
 
   //              if (Verbosity() >= 2)
-  //                cout << "PHG4DSTReader::process_event - Particle type is "
+  //                std::cout << "PHG4DSTReader::process_event - Particle type is "
   //                    << p_raw->GetName() << " - " << p_raw->ClassName()
-  //                    << " get_track_id = " << p_raw->get_track_id() << endl;
+  //                    << " get_track_id = " << p_raw->get_track_id() << std::endl;
 
   //              part_type * part = dynamic_cast<part_type *>(p_raw);
 
@@ -651,7 +655,7 @@ int PHG4DSTReader::End(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() > 1)
   {
-    cout << "PHG4DSTReader::End - Clean ups" << endl;
+    std::cout << "PHG4DSTReader::End - Clean ups" << std::endl;
   }
 
   if (_T)

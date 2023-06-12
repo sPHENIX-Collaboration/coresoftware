@@ -26,6 +26,8 @@
 #include <calobase/TowerInfov1.h>
 
 #include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>
+#include <phool/recoConsts.h>
 #include <string>
 
 class PHCompositeNode;
@@ -54,6 +56,18 @@ class CaloTowerCalib : public SubsysReco
     m_dettype = dettype;
     return;
   }
+  void setCalibName(std::string name) 
+  {
+    m_calibName = name;
+    m_overrideCalibName = 1;
+    return;
+   } 
+  void setFieldName(std::string name) 
+  {
+    m_fieldname = name;
+    m_overrideFieldName = 1;
+    return;
+   } 
 
  private:
   TowerInfoContainerv1 *_raw_towers = nullptr;
@@ -63,9 +77,13 @@ class CaloTowerCalib : public SubsysReco
 
   std::string m_detector;
   TowerInfoContainer::DETECTOR m_DETECTOR;
-
-  CDBTTree *cdbttree = nullptr;
   std::string m_fieldname;
+  std::string m_calibName;
+  bool m_overrideCalibName = 0;
+  bool m_overrideFieldName = 0;
+
+  CDBInterface *cdb = nullptr;
+  CDBTTree *cdbttree = nullptr;
   int m_runNumber;
 };
 

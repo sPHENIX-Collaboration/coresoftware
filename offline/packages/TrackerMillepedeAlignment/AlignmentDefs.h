@@ -6,12 +6,20 @@
 
 namespace AlignmentDefs
 {
-  enum siliconGrp
+  enum mvtxGrp
   {
     snsr,
     stv,
     brrl
   };
+
+  enum inttGrp
+  {
+    chp,
+    lad,
+    intt
+  };
+
   enum tpcGrp
   {
     htst,
@@ -30,9 +38,11 @@ namespace AlignmentDefs
   //! Map relating Acts::VolumeID to sPHENIX layer
   static const std::map<unsigned int, unsigned int> base_layer_map = {{10, 0}, {12, 3}, {14, 7}, {16, 55}};
   static constexpr int nsensors_stave[7] = {9, 9, 9, 4, 4, 4, 4};
+  static constexpr int nstaves_layer_intt[7] = {12, 12, 16, 16};
 
   int getTpcRegion(int layer);
-  void getSiliconGlobalLabels(Surface surf, int glbl_label[], siliconGrp grp);
+  void getMvtxGlobalLabels(Surface surf, int glbl_label[], mvtxGrp grp);
+  void getInttGlobalLabels(Surface surf, int glbl_label[], inttGrp grp);
   void getTpcGlobalLabels(Surface surf, TrkrDefs::cluskey cluskey, int glbl_label[], tpcGrp grp);
   void getMMGlobalLabels(Surface surf, int glbl_label[], mmsGrp grp);
 
