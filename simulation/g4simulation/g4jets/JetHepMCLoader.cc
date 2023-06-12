@@ -9,10 +9,9 @@
  */
 
 #include "JetHepMCLoader.h"
-
-#include "JetMap.h"  // for JetMap
-#include "JetMapv1.h"
-#include "Jetv1.h"
+#include <jetbase/JetMap.h>  // for JetMap
+#include <jetbase/JetMapv1.h>
+#include <jetbase/Jetv1.h>
 
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>

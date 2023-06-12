@@ -11,7 +11,7 @@
 #ifndef G4JET_JETHEPMCLOADER_H
 #define G4JET_JETHEPMCLOADER_H
 
-#include "Jet.h"
+#include <jetbase/Jet.h>
 
 #include <fun4all/SubsysReco.h>
 #include <string>

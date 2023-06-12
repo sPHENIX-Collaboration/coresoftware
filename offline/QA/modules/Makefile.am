@@ -24,7 +24,7 @@ libqa_modules_la_LIBADD = \
   -lfun4all \
   -lg4detectors_io \
   -lg4eval \
-  -lg4jets_io \
+  -ljetbase \
   -lphg4hit \
   -ltrackbase_historic_io \
   -lCLHEP \

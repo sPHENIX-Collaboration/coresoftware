@@ -4,7 +4,7 @@
 
 #include <Event/Event.h>
 #include <Event/oBuffer.h>  // for oBuffer
-#include <Event/ospBuffer.h>
+#include <Event/ophBuffer.h>
 
 #include <phool/phool.h>
 
@@ -74,7 +74,7 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
       std::cout << "Fun4AllRolloverFileOutStream: opening new file " << outfilename << std::endl;
     }
     MyManager()->SetOutfileName(outfilename);
-    SetoBuffer(new ospBuffer(OutFileDescriptor(), xb(), LENGTH, irun, iSeq()));
+    SetoBuffer(new ophBuffer(OutFileDescriptor(), xb(), LENGTH, irun, iSeq()));
     delete[] outfilename;
   }
 

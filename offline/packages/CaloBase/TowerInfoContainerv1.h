@@ -30,11 +30,13 @@ class TowerInfoContainerv1 : public TowerInfoContainer
   unsigned int encode_hcal(unsigned int towerIndex) override;
   unsigned int encode_emcal(unsigned int towerIndex) override;
   unsigned int encode_mbd(unsigned int towerIndex) override;
+  unsigned int encode_zdc(unsigned int towerIndex) override;
 
   unsigned int decode_epd(unsigned int towerIndex) override;
   unsigned int decode_hcal(unsigned int towerIndex) override;
   unsigned int decode_emcal(unsigned int towerIndex) override;
   unsigned int decode_mbd(unsigned int towerIndex) override;
+  unsigned int decode_zdc(unsigned int towerIndex) override;
 
   size_t size() override { return _clones->GetEntries(); }
 

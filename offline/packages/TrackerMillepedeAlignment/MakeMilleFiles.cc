@@ -72,7 +72,7 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
   m_constraintFile.open(m_constraintFileName);
 
   // print grouping setup to log file:
-  std::cout << "MakeMilleFiles::InitRun: Surface groupings are silicon " << si_group << " tpc " << tpc_group << " mms " << mms_group << std::endl;
+  std::cout << "MakeMilleFiles::InitRun: Surface groupings are mvtx " << mvtx_group << " intt " << intt_group << " tpc " << tpc_group << " mms " << mms_group << std::endl;
 
   return ret;
 }
@@ -255,11 +255,14 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
     auto surf = _tGeometry->maps().getSurface(ckey, cluster);
 
     int glbl_label[SvtxAlignmentState::NGL];
-    if (layer < 7)
+    if (layer < 3)
     {
-      AlignmentDefs::getSiliconGlobalLabels(surf, glbl_label, si_group);
-     
+      AlignmentDefs::getMvtxGlobalLabels(surf, glbl_label, mvtx_group);
     }
+    else if(layer > 2 && layer < 7)
+      {
+      AlignmentDefs::getInttGlobalLabels(surf, glbl_label, intt_group);
+      }
     else if (layer < 55)
     {
       AlignmentDefs::getTpcGlobalLabels(surf, ckey, glbl_label, tpc_group);

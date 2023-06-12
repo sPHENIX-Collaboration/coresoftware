@@ -24,9 +24,9 @@
 #include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4VtxPointv1.h>
 
-#include <g4jets/Jet.h>
-#include <g4jets/JetMap.h>
-#include <g4jets/Jetv1.h>
+#include <jetbase/Jet.h>
+#include <jetbase/JetMap.h>
+#include <jetbase/Jetv1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>

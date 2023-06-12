@@ -1,7 +1,7 @@
 #include "DumpJetMap.h"
 
-#include <g4jets/Jet.h>
-#include <g4jets/JetMap.h>
+#include <jetbase/Jet.h>
+#include <jetbase/JetMap.h>
 
 #include <phool/PHIODataNode.h>
 
