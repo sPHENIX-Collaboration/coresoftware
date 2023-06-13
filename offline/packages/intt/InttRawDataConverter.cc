@@ -16,33 +16,51 @@ InttRawDataConverter::InttRawDataConverter(std::string const& name):
 	//Do nothing
 }
 
-int InttRawDataConverter::WriteOutputFile(std::string const& filename)
+int InttRawDataConverter::SetOutputFile(std::string const& filename)
 {
-	if(!tree)
-	{
-		std::cout << "InttRawDataConverter::WriteOputputFile(std:: string const& filename)" << std::endl;
-		std::cout << "Member \"tree\" is uninitialized" << std::endl;
-		std::cout << "No output was written" << std::endl;
-		return 1;
-	}
-
 	if(filename.empty())
 	{
-		std::cout << "InttRawDataConverter::WriteOputputFile(std:: string const& filename)" << std::endl;
+		std::cout << "InttRawDataConverter::SetOputputFile(std:: string const& filename)" << std::endl;
 		std::cout << "Argument \"filename\" is empty string" << std::endl;
 		std::cout << "No output was written" << std::endl;
 
 		return 1;
 	}
 
-	std::cout << "Writing to file:" << std::endl;
+	std::cout << "Will write to file:" << std::endl;
 	std::cout << "\t" << filename << std::endl;
 
-	TFile* file = TFile::Open(filename.c_str(), "RECREATE");
-	tree->SetDirectory(file);
+	file = TFile::Open(filename.c_str(), "RECREATE");
+	if(tree)tree->SetDirectory(file);
+
+	return 0;
+}
+
+int InttRawDataConverter::WriteOutputFile()
+{
+	if(!file)
+	{
+		std::cout << "InttRawDataConverter::WriteOputputFile()" << std::endl;
+		std::cout << "Member \"file\" is uninitialized" << std::endl;
+		std::cout << "Did you call SetOutputFile()?" << std::endl;
+		std::cout << "No output was written" << std::endl;
+		return 1;
+	}
+
+	if(!tree)
+	{
+		std::cout << "InttRawDataConverter::WriteOputputFile()" << std::endl;
+		std::cout << "Member \"tree\" is uninitialized" << std::endl;
+		std::cout << "Did you call SetOutputFile()?" << std::endl;
+		std::cout << "No output was written" << std::endl;
+		return 1;
+	}
+
+	file->cd();
 	tree->Write();
 	file->Write();
 	file->Close();
+	delete tree;
 
 	return 0;
 }
@@ -50,7 +68,9 @@ int InttRawDataConverter::WriteOutputFile(std::string const& filename)
 int InttRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 {
 	tree = new TTree("prdf_tree", "prdf_tree");
+	if(file)tree->SetDirectory(file);
 
+	tree->Branch("n_evt", &n_evt);
 	tree->Branch("num_hits", &num_hits);
 	tree->Branch("gtm_bco", &gtm_bco);
 	tree->Branch("flx_svr", &flx_svr);
@@ -58,6 +78,9 @@ int InttRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 	branches =
 	{
 		{"flx_chn",	nullptr},
+		{"lyr",		nullptr},
+		{"ldr",		nullptr},
+		{"arm",		nullptr},
 		{"chp",		nullptr},
 		{"chn",		nullptr},
 
@@ -98,10 +121,14 @@ int InttRawDataConverter::process_event(PHCompositeNode* topNode)
 			return Fun4AllReturnCodes::DISCARDEVENT;
 		}
 
-		if(Verbosity() > 20)std::cout << num_hits << std::endl;
+		//if(Verbosity() > 20)std::cout << num_hits << std::endl;
+		std::cout << num_hits << std::endl;
 
+		++n_evt;// = pkt->lValue(0, "");
 		gtm_bco = pkt->lValue(0, "BCO");
 		flx_svr = pkt_itr->second;
+
+		raw.felix_server = flx_svr;
 
 		for(Branches_t::iterator itr = branches.begin(); itr != branches.end(); ++itr)
 		{
@@ -114,6 +141,15 @@ int InttRawDataConverter::process_event(PHCompositeNode* topNode)
 			branches["flx_chn"][n] = pkt->iValue(n, "FEE");
 			branches["chp"][n] = pkt->iValue(n, "CHIP_ID") % 26;
 			branches["chn"][n] = pkt->iValue(n, "CHANNEL_ID");
+
+			raw.felix_channel = branches["flx_chn"][n];
+			raw.chip = branches["chp"][n];
+			raw.channel = branches["chn"][n];
+
+			onl = Intt::ToOnline(raw);
+			branches["lyr"][n] = onl.lyr;
+			branches["ldr"][n] = onl.ldr;
+			branches["arm"][n] = onl.arm;
 
 			branches["flx_bco"][n] = pkt->iValue(n, "FPHX_BCO");
 			branches["adc"][n] = pkt->iValue(n, "ADC");
