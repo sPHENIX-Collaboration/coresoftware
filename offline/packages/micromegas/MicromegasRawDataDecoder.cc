@@ -154,18 +154,21 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
         int strip = m_mapping.get_physical_strip( fee, channel );
         if( strip < 0 ) continue;
 
-        std::cout << "MicromegasRawDataDecoder::process_event -"
-          << " bco: " << bco
-          << " errir: " << checksum_error
-          << " layer: " << int(TrkrDefs::getLayer(hitsetkey)) 
-          << " tile: " << int( MicromegasDefs::getTileId( hitsetkey ))
-          << " sampa_address: " << sampa_address
-          << " sampa_channel: " << sampa_channel
-          << " channel: " << channel 
-          << " strip: " << strip 
-          << " adc: " << max_adc
-          << std::endl;
-
+        if( Verbosity() )
+        {
+          std::cout << "MicromegasRawDataDecoder::process_event -"
+            << " bco: " << bco
+            << " errir: " << checksum_error
+            << " layer: " << int(TrkrDefs::getLayer(hitsetkey)) 
+            << " tile: " << int( MicromegasDefs::getTileId( hitsetkey ))
+            << " sampa_address: " << sampa_address
+            << " sampa_channel: " << sampa_channel
+            << " channel: " << channel 
+            << " strip: " << strip 
+            << " adc: " << max_adc
+            << std::endl;
+        }
+        
         // get matching hitset
         const auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
         
