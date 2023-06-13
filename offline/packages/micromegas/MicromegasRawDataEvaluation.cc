@@ -25,10 +25,30 @@
 #include <memory>
 
 //_________________________________________________________
+void MicromegasRawDataEvaluation::Waveform::copy_from( const MicromegasRawDataEvaluation::Sample& sample )
+{
+  packet_id = sample.packet_id;
+  lvl1_bco = sample.lvl1_bco;
+  fee_bco = sample.fee_bco;
+  checksum = sample.checksum;
+  checksum_error = sample.checksum_error;
+  fee_id = sample.fee_id;
+  layer = sample.layer;
+  tile = sample.tile;
+  sampa_address = sample.sampa_address;
+  sampa_channel = sample.sampa_channel;
+  channel = sample.channel;
+  strip = sample.strip;
+  sample_max = sample.sample;
+  adc_max = sample.adc;
+}
+
+//_________________________________________________________
 void MicromegasRawDataEvaluation::Container::Reset()
 {
   n_waveforms = 0;
   samples.clear();
+  waveforms.clear();
 }
 
 //_________________________________________________________
@@ -38,12 +58,15 @@ MicromegasRawDataEvaluation::MicromegasRawDataEvaluation( const std::string& nam
 
 //_____________________________________________________________________
 int MicromegasRawDataEvaluation::Init(PHCompositeNode* /*topNode*/ )
-{ 
+{
+  // read calibrations
+  m_calibration_data.read( m_calibration_filename );
+
   m_evaluation_file.reset( new TFile( m_evaluation_filename.c_str(), "RECREATE" ) );
   m_evaluation_tree = new TTree( "T", "T" );
   m_container = new Container;
   m_evaluation_tree->Branch( "Event", &m_container );
-  return Fun4AllReturnCodes::EVENT_OK; 
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
@@ -53,34 +76,6 @@ int MicromegasRawDataEvaluation::InitRun(PHCompositeNode* /*topNode*/)
 //___________________________________________________________________________
 int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 {
-  
-  // map fee id to detector index in histogram
-  using fee_map_t = std::map<int,int>;
-  fee_map_t fee_map = {
-    {5, 0},      // SEIP
-    {7, 1},      // SEIZ
-    {6, 2},      // SCOP
-    {8, 3},      // SCOZ
-    {9, 4},      // SCIP
-    
-    // old mapping until May 23
-    /* it is ok to keep it here, to be able to process older files */
-    {10, 5},     // SCIZ 
-    // updated after May 23
-    {23, 5},     // SCIZ
-    {24, 6},     // SWIP
-    {25, 7},     // SWIZ
-
-    {11, 8},     // NEIP
-    {12, 9},     // NEIZ
-    {19, 10},    // NCOP
-    {18, 11},    // NCOZ
-    {0, 12},     // NCIP
-    {1, 13},     // NCIZ
-    {15, 14},    // NWIP
-    {14, 15},    // NWIZ
-  };                 
-
   // load relevant nodes
   // PRDF node
   auto event = findNode::getClass<Event>(topNode, "PRDF");
@@ -91,7 +86,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
   { return Fun4AllReturnCodes::DISCARDEVENT; }
 
   m_container->Reset();
-  
+
   // loop over TPOT packets
   for( const auto& packet_id:MicromegasDefs::m_packet_ids )
   {
@@ -102,26 +97,33 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       std::cout << "MicromegasRawDataEvaluation::process_event - packet " << packet_id << " not found." << std::endl;
       continue;
     }
-        
+
     // taggers
     m_container->n_tagger = packet->lValue(0, "N_TAGGER");
-    
-    
+
+
     // get number of datasets (also call waveforms)
     const auto n_waveforms = packet->iValue(0, "NR_WF" );
     m_container->n_waveforms = n_waveforms;
-    m_container->max_fee_count = packet->iValue(0, "MAX_FEECOUNT"); 
+    m_container->max_fee_count = packet->iValue(0, "MAX_FEECOUNT");
 
     // if( Verbosity() )
-    { 
+    {
       std::cout << "MicromegasRawDataEvaluation::process_event -"
-        << " packet: " << packet_id 
+        << " packet: " << packet_id
         << " max_fee_count: " << m_container->max_fee_count
-        << " n_tagger: " << m_container->n_tagger       
-        << " n_waveforms: " << n_waveforms 
-        << std::endl; 
+        << " n_tagger: " << m_container->n_tagger
+        << " n_waveforms: " << n_waveforms
+        << std::endl;
     }
-    
+
+    // drop events for which waveforms is too large
+    if( m_max_waveforms > 0 && n_waveforms > m_max_waveforms )
+    {
+      std::cout << "icromegasRawDataEvaluation::process_event - too many waveforms: " << n_waveforms << " skipping" << std::endl;
+      continue;
+    }
+
     for (int t = 0; t < m_container->n_tagger; t++)
     {
       const auto tagger_type = static_cast<uint16_t>(packet->lValue(t, "TAGGER_TYPE"));
@@ -134,10 +136,11 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       // const auto modebits = static_cast<uint8_t>(packet->lValue(t, "MODEBITS"));
 
       // only printout the is_lvl1 triggers
-      // if( is_lvl1 )
+      // if( Verbosity() )
+      if( is_lvl1 )
       {
         std::cout << "MicromegasRawDataEvaluation::process_event -"
-          << " packet: " << packet_id 
+          << " packet: " << packet_id
           << " tagger: " << t
           << " type: " << tagger_type
           << " is_enddat: " << (bool) (is_endat)
@@ -148,8 +151,13 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
           << " lvl1_count: " << lvl1_count
           << std::endl;
       }
+
+      // store lvl1 bco into map
+      if( is_lvl1 )
+      { m_packet_bco_map[packet_id] = bco; }
+
     }
-    
+
     for( int iwf=0; iwf<n_waveforms; ++iwf )
     {
       // create running sample, assign packet id
@@ -157,12 +165,13 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       sample.packet_id = packet_id;
 
       // beam crossing, checksum, checksum error
-      sample.bco = packet->iValue(iwf, "BCO");
+      sample.fee_bco = packet->iValue(iwf, "BCO");
+      sample.lvl1_bco = m_packet_bco_map[packet_id];
       sample.checksum = packet->iValue(iwf, "CHECKSUM");
       sample.checksum_error = packet->iValue(iwf, "CHECKSUMERROR");
 
       // increment bco map
-      ++m_bco_map[sample.bco];
+      ++m_bco_map[sample.lvl1_bco];
 
       // get hitsetkey, layer and tile
       sample.fee_id = packet->iValue(iwf, "FEE" );
@@ -175,43 +184,59 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       sample.sampa_channel = packet->iValue( iwf, "SAMPACHANNEL" );
       sample.channel = packet->iValue( iwf, "CHANNEL" );
       sample.strip = m_mapping.get_physical_strip(sample.fee_id, sample.channel);
-      
-      // get detector index and absolute channel number
-      const unsigned short det_index = fee_map[sample.fee_id];
-      sample.absolute_channel = sample.channel + det_index*MicromegasDefs::m_nchannels_fee;
-      
+
       // get number of samples and loop
       const unsigned short samples = packet->iValue( iwf, "SAMPLES" );
 
       if( Verbosity() )
       {
         std::cout << "MicromegasRawDataEvaluation::process_event -"
-          << " bco: " << sample.bco
+          << " lvl1_bco: " << sample.lvl1_bco
+          << " fee_bco: " << sample.fee_bco
           << " error: " << sample.checksum_error
           << " layer: " << sample.layer
           << " tile: " << sample.tile
           << " sampa_address: " << sample.sampa_address
           << " sampa_channel: " << sample.sampa_channel
-          << " channel: " << sample.channel 
-          << " strip: " << sample.strip 
+          << " channel: " << sample.channel
+          << " strip: " << sample.strip
           << " samples: " << samples
           << std::endl;
       }
-        
-      for( unsigned short is = 0; is < samples; ++is )
+
+      Sample sample_max;
+      for( unsigned short is = 0; is < std::min<unsigned short>( samples, 100 ); ++is )
       {
         // assign sample id and corresponding adc, save copy in container
-        unsigned short adc = packet->iValue(iwf,is); 
+        unsigned short adc = packet->iValue(iwf,is);
         sample.sample = is;
         sample.adc = adc;
         m_container->samples.push_back( sample );
-                
+
+        if( sample.adc > sample_max.adc )
+        { sample_max = sample; }
+
       }
+
+      Waveform waveform( sample_max );
+
+      // get channel rms and pedestal from calibration data
+      const double pedestal = m_calibration_data.get_pedestal( waveform.fee_id, waveform.channel );
+      const double rms = m_calibration_data.get_rms( waveform.fee_id, waveform.channel );
+
+      waveform.is_signal =
+        rms > 0 &&
+        waveform.sample_max >= m_sample_min &&
+        waveform.sample_max < m_sample_max &&
+        waveform.adc_max > pedestal+m_n_sigma * rms;
+
+      m_container->waveforms.push_back( waveform );
+
     }
   }
-        
+
   m_evaluation_tree->Fill();
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -224,9 +249,9 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/ )
     m_evaluation_tree->Write();
     m_evaluation_file->Close();
   }
-  
+
   // print bco map
-  if( Verbosity() )
+  // if( Verbosity() )
   {
     for( const auto& [bco,nwaveforms]:m_bco_map )
     { std::cout << "MicromegasRawDataEvaluation::End - bco: " << bco << ", nwaveforms: " << nwaveforms << std::endl; }
