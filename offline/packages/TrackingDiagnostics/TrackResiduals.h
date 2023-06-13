@@ -93,6 +93,23 @@ class TrackResiduals : public SubsysReco
   std::vector<int> m_cluslayer;
   std::vector<int> m_clussize;
   std::vector<uint32_t> m_clushitsetkey;
+  std::vector<float> m_idealsurfcenterx;
+  std::vector<float> m_idealsurfcentery;
+  std::vector<float> m_idealsurfcenterz;
+  std::vector<float> m_idealsurfnormx;
+  std::vector<float> m_idealsurfnormy;
+  std::vector<float> m_idealsurfnormz;
+  std::vector<float> m_missurfcenterx;
+  std::vector<float> m_missurfcentery;
+  std::vector<float> m_missurfcenterz;
+  std::vector<float> m_missurfnormx;
+  std::vector<float> m_missurfnormy;
+  std::vector<float> m_missurfnormz;
+  std::vector<float> m_clusgxideal;
+  std::vector<float> m_clusgyideal;
+  std::vector<float> m_clusgzideal;
+  
+
 
   //! states on track information
   std::vector<float> m_statelx;
