@@ -257,5 +257,25 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/ )
     { std::cout << "MicromegasRawDataEvaluation::End - bco: " << bco << ", nwaveforms: " << nwaveforms << std::endl; }
   }
 
+  // print bco list, for offline processing
+  {
+    std::cout << "const std::vector<uint64_t> lvl1_bco_list = {" << std::endl;
+    bool first = true;
+    int count = 0;
+    for( const auto& [bco,nwaveforms]:m_bco_map )
+    {
+      if( !first ) std::cout << ", ";
+      first = false;
+      if( count == 10 ) 
+      {
+        count = 0;
+        std::cout << std::endl;
+      }
+      std::cout << " " << bco;
+      ++count;
+    }
+    std::cout << std::endl << "};" << std::endl;
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
