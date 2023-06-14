@@ -1,8 +1,6 @@
 #include "InttRawDataDecoder.h"
 #include "InttMapping.h"
 
-#include <cstdio>
-
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/packet.h>
