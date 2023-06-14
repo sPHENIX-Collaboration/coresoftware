@@ -100,11 +100,13 @@ int HelicalFitter::InitRun(PHCompositeNode *topNode)
 	    << " mvtx " 
 	    << AlignmentDefs::mvtxGrp::snsr << "  " 
 	    << AlignmentDefs::mvtxGrp::stv << "  " 
-	    << AlignmentDefs::mvtxGrp::brrl << "  " << std::endl
+	    << AlignmentDefs::mvtxGrp::mvtxlyr << "  "
+	    << AlignmentDefs::mvtxGrp::clamshl << "  " << std::endl
 	    << " intt " 
 	    << AlignmentDefs::inttGrp::chp << "  "
 	    << AlignmentDefs::inttGrp::lad << "  "
-	    << AlignmentDefs::inttGrp::intt << "  " << std::endl
+	    << AlignmentDefs::inttGrp::inttlyr << "  "
+	    << AlignmentDefs::inttGrp::inttbrl << "  " << std::endl
 	    << " tpc " 
 	    << AlignmentDefs::tpcGrp::htst << "  "
 	    << AlignmentDefs::tpcGrp::sctr << "  "
