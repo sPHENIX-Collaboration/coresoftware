@@ -292,7 +292,8 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
 	}
       m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::HCAL);
     }
-  
+  dst_node->addNode(AlgoNode);
+
   PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_" + m_detector, "PHObject");
   dst_node->addNode(emcal_towerNode);
 }
