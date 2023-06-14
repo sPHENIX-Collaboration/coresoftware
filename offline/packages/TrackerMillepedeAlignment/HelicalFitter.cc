@@ -300,7 +300,6 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		    << " cluster local residual x " << residual(0) << " cluster local residual y " <<residual(1) << std::endl;
 	  }
 
-
 	  if(Verbosity() > 1) 
 	    {
 	      Acts::Transform3 transform =  surf->transform(_tGeometry->geometry().getGeoContext());
@@ -834,8 +833,6 @@ void HelicalFitter::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, shor
   if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
 }
 
-
-// this method is an interface to TrackFitUtils
 void HelicalFitter::getTrackletClusters(TrackSeed *tracklet, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
   getTrackletClusterList(tracklet, cluskey_vec);

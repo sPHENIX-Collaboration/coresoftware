@@ -662,7 +662,7 @@ foreach my $tp (sort keys %req_types)
     $allevthash{$tp} = \%evthash;
 }
 
-my $entries = 100000; # given that we have 1000 files max, this value is always higher
+my $entries = 200000000; # given that we have 200k files max, this value is always higher
 my $lowtype;
 # here we find the dst type with the smallest number of entries (segments)
 # so we do not loop too much when finding matches for the other types
@@ -670,7 +670,7 @@ if (defined $verbose)
 {
     print "hashing done, finding hash with lowest number of entries\n";
 }
-foreach my $tp (sort keys %allfilehash)
+foreach my $tp (sort { $a <=> $b } keys %allfilehash)
 {
     if ($entries > keys %{$allfilehash{$tp}})
     {
@@ -687,9 +687,9 @@ if (defined $verbose)
 }
 
 my @segarray = ();
-foreach my $seg (sort keys %{$allfilehash{$lowtype}})
+foreach my $seg (sort { $a <=> $b } keys %{$allfilehash{$lowtype}})
 {
-    foreach my $tp (sort keys %allfilehash)
+    foreach my $tp (sort { $a <=> $b } keys %allfilehash)
     {
 	if ($tp eq $lowtype)
 	{
@@ -726,7 +726,7 @@ if (defined $nEvents)
 }
 # sort list of segments and write to output file
 my $nSelectedEvents = 0;
-foreach my $seg (sort @segarray)
+foreach my $seg (sort { $a <=> $b } @segarray)
 {
     $nSelectedEvents += $allevthash{$lowtype}{$allfilehash{$lowtype}{$seg}};
 #	print "segment $seg is good\n";
@@ -739,7 +739,7 @@ foreach my $seg (sort @segarray)
 
 }
 print "wrote the following list files containing >= $nSelectedEvents events:\n";
-foreach my $tp (sort keys %allfilehash)
+foreach my $tp (sort { $a <=> $b } keys %allfilehash)
 {
     print "$dsttype{$tp}\n";
 }
