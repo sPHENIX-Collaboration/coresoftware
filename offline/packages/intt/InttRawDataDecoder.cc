@@ -78,7 +78,17 @@ int InttRawDataDecoder::InitRun(PHCompositeNode* topNode)
 int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 {
 	TrkrHitSetContainer* trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-	if(!trkr_hit_set_container)return Fun4AllReturnCodes::DISCARDEVENT;
+	if(!trkr_hit_set_container)
+	{
+		std::cout << PHWHERE << std::endl;
+		std::cout << "InttRawDataDecoder::process_event(PHCompositeNode* topNode)" << std::endl;
+		std::cout << "Could not get \"TRKR_HITSET\" from Node Tree" << std::endl;
+		std::cout << "Exiting" << std::endl;
+		exit(1);
+
+		return Fun4AllReturnCodes::DISCARDEVENT;
+	}
+
 
 	Event* evt = findNode::getClass<Event>(topNode, "PRDF");
 	if(!evt)return Fun4AllReturnCodes::DISCARDEVENT;
@@ -119,7 +129,7 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 			offline = Intt::ToOffline(rawdata);
 
 			hit_key = InttDefs::genHitKey(offline.strip_x, offline.strip_y);
-			hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
+			hit_set_key = InttDefs::genHitSetKey(offline.layer + 3, offline.ladder_z, offline.ladder_phi, bco);
 
 			hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
 			hit = hit_set_container_itr->second->getHit(hit_key);
@@ -131,6 +141,14 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 		}
 
 		delete p;
+	}
+
+	if(Verbosity() > 20)
+	{
+		std::cout << std::endl;
+		std::cout << "Identify():" << std::endl;
+		trkr_hit_set_container->identify();
+		std::cout << std::endl;
 	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
