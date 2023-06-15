@@ -245,7 +245,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
         if(layer==0)continue;
 
         double R = M.getR(feeM, channel);
-        double phi = M.getPhi(feeM, channel) + sector * M_PI / 6 ;
+        double phi = M.getPhi(feeM, channel) + (sector - side*12 )* M_PI / 6 ;
         unsigned int key = 256 * (feeM) + channel;
         int pedestal = round(tmap[key].PedMean);
         TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sector, side);
@@ -289,7 +289,8 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
           }
           //if(adc-pedestal<4) continue;
           // generate hit key
-          TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad + sector*pads_per_sector[FEE_R[sector]-1], (unsigned int) t);
+          //std::cout<<(sector - side*12 )<< " " <<(sector - side*12 )*pads_per_sector[FEE_R[fee]-1]<<std::endl;
+          TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad + (sector - side*12 )*pads_per_sector[FEE_R[fee]-1], (unsigned int) t);
           // find existing hit, or create
           auto hit = hitsetit->second->getHit(hitkey);
 
