@@ -24,26 +24,26 @@ struct Intt::Online_s Intt::ToOnline(struct Offline_s const& _s)
 	switch(_s.ladder_z)
 	{
 		case 1:
-		s.chp = _s.strip_x + 13 * (_s.strip_y < 128);
+		s.chp = _s.strip_y + 13 * (_s.strip_x < 128);
 		break;
 
 		case 0:
-		s.chp = _s.strip_x + 13 * (_s.strip_y < 128) + 5;
+		s.chp = _s.strip_y + 13 * (_s.strip_x < 128) + 5;
 		break;
 
 		case 2:
-		s.chp = 13 - _s.strip_x + 13 * !(_s.strip_y < 128);
+		s.chp = 13 - _s.strip_y + 13 * !(_s.strip_x < 128);
 		break;
 
 		case 3:
-		s.chp = 4 - _s.strip_x + 13 * !(_s.strip_y < 128);
+		s.chp = 4 - _s.strip_y + 13 * !(_s.strip_x < 128);
 		break;
 
 		default:
 		break;
 	}
 
-	s.chn = (_s.strip_y < 128) ? _s.strip_y : 255 - _s.strip_y;
+	s.chn = (_s.strip_x < 128) ? _s.strip_x : 255 - _s.strip_x;
 
 	return s;
 }
@@ -59,26 +59,26 @@ struct Intt::Offline_s Intt::ToOffline(struct Online_s const& _s)
 	switch(s.ladder_z)
 	{
 		case 1:
-		s.strip_x = _s.chp % 13;
+		s.strip_y = _s.chp % 13;
 		break;
 
 		case 0:
-		s.strip_x = _s.chp % 13 - 5;
+		s.strip_y = _s.chp % 13 - 5;
 		break;
 
 		case 2:
-		s.strip_x = 7 - (_s.chp % 13);
+		s.strip_y = 7 - (_s.chp % 13);
 		break;
 
 		case 3:
-		s.strip_x = 4 - (_s.chp % 13);
+		s.strip_y = 4 - (_s.chp % 13);
 		break;
 
 		default:
 		break;
 }
 
-	s.strip_y = (!_s.arm != !(_s.chp / 13)) ? _s.chn : 255 - _s.chn;
+	s.strip_x = (!_s.arm != !(_s.chp / 13)) ? _s.chn : 255 - _s.chn;
 
 	return s;
 }

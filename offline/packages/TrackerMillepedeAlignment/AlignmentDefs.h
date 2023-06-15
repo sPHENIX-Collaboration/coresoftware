@@ -10,14 +10,16 @@ namespace AlignmentDefs
   {
     snsr,
     stv,
-    brrl
+    mvtxlyr,
+    clamshl
   };
 
   enum inttGrp
   {
     chp,
     lad,
-    intt
+    inttlyr,
+    inttbrl
   };
 
   enum tpcGrp
@@ -39,6 +41,7 @@ namespace AlignmentDefs
   static const std::map<unsigned int, unsigned int> base_layer_map = {{10, 0}, {12, 3}, {14, 7}, {16, 55}};
   static constexpr int nsensors_stave[7] = {9, 9, 9, 4, 4, 4, 4};
   static constexpr int nstaves_layer_intt[7] = {12, 12, 16, 16};
+  static constexpr int nstaves_layer_mvtx[3] = {12, 16, 20};
 
   int getTpcRegion(int layer);
   void getMvtxGlobalLabels(Surface surf, int glbl_label[], mvtxGrp grp);
