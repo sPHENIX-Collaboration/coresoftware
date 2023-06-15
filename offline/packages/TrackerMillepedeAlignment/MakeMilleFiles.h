@@ -44,7 +44,7 @@ class MakeMilleFiles : public SubsysReco
   int End(PHCompositeNode* topNode) override;
 
   void set_binary(bool bin) { _binary = bin; }
-
+  void set_constraintfile_name(const std::string& file) { m_constraintFileName = file; }
   void set_datafile_name(const std::string& file) { data_outfilename = file; }
   void set_steeringfile_name(const std::string& file) { steering_outfilename = file; }
   void set_mvtx_grouping(int group) { mvtx_group = (AlignmentDefs::mvtxGrp) group; }
@@ -52,7 +52,8 @@ class MakeMilleFiles : public SubsysReco
   void set_tpc_grouping(int group) { tpc_group = (AlignmentDefs::tpcGrp) group; }
   void set_mms_grouping(int group) { mms_group = (AlignmentDefs::mmsGrp) group; }
   void set_layer_fixed(unsigned int layer);
-  void set_layer_param_fixed(unsigned int layer, unsigned int param);
+  void set_layer_gparam_fixed(unsigned int layer, unsigned int param);
+  void set_layer_lparam_fixed(unsigned int layer, unsigned int param);
   void set_cluster_version(unsigned int v) { _cluster_version = v; }
   void set_layers_fixed(unsigned int minlayer, unsigned int maxlayer);
   void set_error_inflation_factor(unsigned int layer, float factor)
@@ -78,7 +79,9 @@ class MakeMilleFiles : public SubsysReco
                                                            Surface surface, int crossing);
 
   bool is_layer_fixed(unsigned int layer);
-  bool is_layer_param_fixed(unsigned int layer, unsigned int param);
+
+  bool is_layer_param_fixed(unsigned int layer, unsigned int param, std::set<std::pair<unsigned int, unsigned int>>& param_fixed);
+
   bool is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side);
   void addTrackToMilleFile(SvtxAlignmentStateMap::StateVec statevec);
 
@@ -98,7 +101,11 @@ class MakeMilleFiles : public SubsysReco
   AlignmentDefs::mmsGrp mms_group = AlignmentDefs::mmsGrp::tl;
 
   std::set<unsigned int> fixed_layers;
-  std::set<std::pair<unsigned int, unsigned int>> fixed_layer_params;
+  std::set<std::pair<unsigned int, unsigned int>> fixed_layer_gparams, fixed_layer_lparams;
+
+  std::string m_constraintFileName = "mp2con.txt";
+  std::ofstream m_constraintFile;
+  std::set<int> m_usedConstraintGlbLbl;
 
   SvtxTrackMap* _track_map{nullptr};
   SvtxAlignmentStateMap* _state_map{nullptr};

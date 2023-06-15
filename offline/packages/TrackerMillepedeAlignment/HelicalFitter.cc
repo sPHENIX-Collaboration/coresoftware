@@ -100,11 +100,13 @@ int HelicalFitter::InitRun(PHCompositeNode *topNode)
 	    << " mvtx " 
 	    << AlignmentDefs::mvtxGrp::snsr << "  " 
 	    << AlignmentDefs::mvtxGrp::stv << "  " 
-	    << AlignmentDefs::mvtxGrp::brrl << "  " << std::endl
+	    << AlignmentDefs::mvtxGrp::mvtxlyr << "  "
+	    << AlignmentDefs::mvtxGrp::clamshl << "  " << std::endl
 	    << " intt " 
 	    << AlignmentDefs::inttGrp::chp << "  "
 	    << AlignmentDefs::inttGrp::lad << "  "
-	    << AlignmentDefs::inttGrp::intt << "  " << std::endl
+	    << AlignmentDefs::inttGrp::inttlyr << "  "
+	    << AlignmentDefs::inttGrp::inttbrl << "  " << std::endl
 	    << " tpc " 
 	    << AlignmentDefs::tpcGrp::htst << "  "
 	    << AlignmentDefs::tpcGrp::sctr << "  "
@@ -297,7 +299,6 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		    << " cluster global to local x " << loc_check(0) << " local y " << loc_check(1) << "  local z " << loc_check(2) << std::endl
 		    << " cluster local residual x " << residual(0) << " cluster local residual y " <<residual(1) << std::endl;
 	  }
-
 
 	  if(Verbosity() > 1) 
 	    {
@@ -832,8 +833,6 @@ void HelicalFitter::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, shor
   if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
 }
 
-
-// this method is an interface to TrackFitUtils
 void HelicalFitter::getTrackletClusters(TrackSeed *tracklet, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
   getTrackletClusterList(tracklet, cluskey_vec);
