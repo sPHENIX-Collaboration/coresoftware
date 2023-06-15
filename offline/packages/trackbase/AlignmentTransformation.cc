@@ -32,8 +32,6 @@
 
 void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 { 
-  localVerbosity = 0;
-
   // The default is to use translation parameters that are in global coordinates
   use_global_millepede_translations = true;
   std::cout << "AlignmentTransformation: use global translation perturbations = " << use_global_millepede_translations  << std::endl;
@@ -77,7 +75,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
      Eigen::Vector3d millepedeTranslation(dx,dy,dz); 
 
      unsigned int trkrId = TrkrDefs::getTrkrId(hitsetkey); // specify between detectors
-
+     std::cout << "Hitsetkey is " << hitsetkey << std::endl;
 
      perturbationAngles      = Eigen::Vector3d(0.0,0.0,0.0);
      perturbationTranslation = Eigen::Vector3d(0.0,0.0,0.0);
@@ -209,7 +207,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 }
 
 // currently used as the transform maker
-Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles)
+Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles)
 {
   //define null matrices
   Eigen::Vector3d nullTranslation(0,0,0);
@@ -231,12 +229,16 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   // It does mean that the order of the rotations is different from (x,y,z), but they are just fitted free parameters
   //=====================================================
 
-  Eigen::AngleAxisd alpha(sensorAngles(0), Eigen::Vector3d::UnitX());
+  //! The millepede matrix is given in (x,y,z). So it needs to be moved 
+  //! to match Acts. This permutation appears to work
+ 
+  Eigen::AngleAxisd alpha(sensorAngles(0), Eigen::Vector3d::UnitZ());
   Eigen::AngleAxisd beta(sensorAngles(1), Eigen::Vector3d::UnitY());
-  Eigen::AngleAxisd gamma(sensorAngles(2), Eigen::Vector3d::UnitZ());
+  Eigen::AngleAxisd gamma(sensorAngles(2), Eigen::Vector3d::UnitX());
   Eigen::Quaternion<double> q       = gamma*beta*alpha;
+ 
   Eigen::Matrix3d millepedeRotation = q.matrix();
-
+    
   Acts::Transform3 mpRotationAffine;   
   mpRotationAffine.linear() = millepedeRotation;
   mpRotationAffine.translation() = nullTranslation;   
@@ -259,7 +261,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   Acts::Transform3 actsTransform = surf->transform(m_tGeometry->geometry().getGeoContext());
   Eigen::Matrix3d actsRotationPart    = actsTransform.rotation();
   Eigen::Vector3d actsTranslationPart    = actsTransform.translation();
-
+  
   // and make affine matrices from each
   Acts::Transform3 actsRotationAffine;
   actsRotationAffine.linear() = actsRotationPart;
@@ -283,7 +285,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
       transform =  actsTranslationAffine *  actsRotationAffine * mpTranslationAffine * mpRotationAffine;
     }
 
-  if(localVerbosity > 2)
+  if(localVerbosity)
     {
       std::cout << "newMakeTransform" << std::endl;
       std::cout << " use_global_translations = " << use_global_millepede_translations << std::endl;
@@ -354,32 +356,32 @@ void AlignmentTransformation::generateRandomPerturbations(Eigen::Vector3d angleD
 
   if(angleDev(0)!=0)
     {
-      std::normal_distribution<double> distribution(0,angleDev(0));
+      std::normal_distribution<float> distribution(0,angleDev(0));
       perturbationAngles(0) = distribution(generator);
     }
   if(angleDev(1)!=0)
     {
-      std::normal_distribution<double> distribution(0,angleDev(1));
+      std::normal_distribution<float> distribution(0,angleDev(1));
       perturbationAngles(1) = distribution(generator);
     }
   if(angleDev(2)!=0)
     {
-      std::normal_distribution<double> distribution(0,angleDev(2));
+      std::normal_distribution<float> distribution(0,angleDev(2));
       perturbationAngles(2) = distribution(generator);
     }
   if(transformDev(0)!=0)
     {
-      std::normal_distribution<double> distribution(0,transformDev(0));
+      std::normal_distribution<float> distribution(0,transformDev(0));
       perturbationTranslation(0) = distribution(generator);
     }
   if(transformDev(1)!=0)
     {
-      std::normal_distribution<double> distribution(0,transformDev(1));
+      std::normal_distribution<float> distribution(0,transformDev(1));
       perturbationTranslation(1) = distribution(generator);
     }
   if(transformDev(2)!=0)
     {
-      std::normal_distribution<double> distribution(0,transformDev(2));
+      std::normal_distribution<float> distribution(0,transformDev(2));
       perturbationTranslation(2) = distribution(generator);
     }
   if(localVerbosity)
