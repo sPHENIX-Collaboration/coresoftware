@@ -490,7 +490,7 @@ void FillClusMatchTree::print_mvtx_diagnostics() {
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-void FillClusMatchTree::clear_clusvecs(std::string tag) {
+void FillClusMatchTree::clear_clusvecs(const std::string& tag) {
   /* cout << " banana |" << tag << "|"<<endl; */
   if (tag != "") {
     for (auto x : b_clus_x) cout << x <<" ";

@@ -56,12 +56,12 @@ struct TrkrClusterIsMatcher {
 
     //multipliers for pixels and bins to cm and times
     std::array<float, 56> pitch_phi {0.}; // the phistep squared
-    float pitch_z_MVTX; // pixel width for MVTX
-    float step_t_TPC;   // time bin width for PTC
+    float pitch_z_MVTX {0.}; // pixel width for MVTX
+    float step_t_TPC {0.};   // time bin width for PTC
 
     std::array<float, 56> tol_pitch_phi {0.}; // pitched times tol_phi_{MVTX,INTT,TPC}
-    float tol_pitch_z_MVTX; // tol * pixel width for MVTX
-    float tol_step_t_TPC;   // tol * time bin width for PTC
+    float tol_pitch_z_MVTX {0.}; // tol * pixel width for MVTX
+    float tol_step_t_TPC {0.};   // tol * time bin width for PTC
 
     // containers to get the clusters from
     TrkrClusterContainer* m_TruthClusters {nullptr};
