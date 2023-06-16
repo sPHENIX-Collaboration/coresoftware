@@ -21,6 +21,7 @@ lib_LTLIBRARIES = \
 
 pkginclude_HEADERS = \
   TpcMap.h
+
 libtpc_la_SOURCES = \
   TpcMap.cc
 
