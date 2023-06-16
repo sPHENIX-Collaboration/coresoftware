@@ -18,7 +18,7 @@ class PHCompositeNode;
 class TrkrClusterContainer;
 class TrackClusEvaluator;
 
-struct TrkrClusterIsMatcher {
+class TrkrClusterIsMatcher {
   public:
     TrkrClusterIsMatcher() {};
 
