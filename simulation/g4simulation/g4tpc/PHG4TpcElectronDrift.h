@@ -31,6 +31,7 @@ class TrkrTruthTrack;
 class DistortedTrackContainer;
 class TpcClusterBuilder;
 class PHG4TpcCylinderGeomContainer;
+class ClusHitsVerbose;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
@@ -69,9 +70,13 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TpcClusterBuilder truth_clusterer {};
   void set_pixel_thresholdrat (double val) { truth_clusterer.set_pixel_thresholdrat(val); };
   void set_max_g4hitstep (float _) { max_g4hitstep =_; };
+  void set_ClusHitsVerbose(bool set=true) { record_ClusHitsVerbose = set; };
+  ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
+
 
  private:
   float max_g4hitstep { 7. };
+  bool  record_ClusHitsVerbose { false };
   //! map a given x,y,z coordinates to plane hits
   /* TpcClusterBuilder MapToPadPlane(const double x, const double y, const */
   /*     double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, */
