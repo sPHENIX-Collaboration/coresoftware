@@ -1,7 +1,7 @@
-#ifndef G4TRACKING_CLUSHITSVERBOSE_H
-#define G4TRACKING_CLUSHITSVERBOSE_H
+#ifndef CLUSHITSVERBOSE__H
+#define CLUSHITSVERBOSE__H
 
-#include <trackbase/TrkrDefs.h>
+#include "TrkrDefs.h"
 #include <phool/PHObject.h>
 #include <map>
 #include <vector>
