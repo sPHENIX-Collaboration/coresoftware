@@ -143,8 +143,14 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
       }
     if (group == 2)
       {
-	// layer only, assign all sensors to sensor 0
-	label_base += layer * 1000000 + 0;
+	// layer only, assign all sensors to sensor 0 in each clamshell
+	int stave = sensor / nsensors_stave[layer];
+	int breakat = nstaves_layer_mvtx[layer] / 2;
+	int clamshell = 1;
+	if(stave < breakat) { clamshell = 0; }
+	label_base += layer * 1000000 + clamshell*10000;
+	//	std::cout << " mvtx group 2 layer " << layer << " sensor " << sensor << " clamshell " << clamshell << " label_base " << label_base << std::endl; 
+
 	return label_base;
       }
     if(group == 3)
