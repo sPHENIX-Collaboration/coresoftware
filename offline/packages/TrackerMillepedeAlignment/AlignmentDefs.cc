@@ -110,6 +110,24 @@ int AlignmentDefs::getTpcRegion(int layer)
 
   return region;
 }
+
+int AlignmentDefs::getClamshell(int layer, int stave)
+{
+  for(int istave=0;istave<nstaves_layer_mvtx[layer];++istave)
+    {
+      for(int ishell = 0; ishell < 2; ++ishell)
+	{
+	  int stave_ref = clamshell_stave_list[layer][ishell][istave];
+	  if(stave == stave_ref)
+	    return ishell;
+	}
+    }
+
+  std::cout << " AlignemntDefs::getClamshell: did not find stave " << stave << std::endl; 
+  return  0;
+
+}
+
 int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey cluskey, int group)
 {
   unsigned int volume = id.volume();
@@ -145,11 +163,10 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
       {
 	// layer only, assign all sensors to sensor 0 in each clamshell
 	int stave = sensor / nsensors_stave[layer];
-	int breakat = nstaves_layer_mvtx[layer] / 2;
-	int clamshell = 1;
-	if(stave < breakat) { clamshell = 0; }
+	int clamshell = getClamshell(layer, stave);
 	label_base += layer * 1000000 + clamshell*10000;
-	//	std::cout << " mvtx group 2 layer " << layer << " sensor " << sensor << " clamshell " << clamshell << " label_base " << label_base << std::endl; 
+	//	std::cout << " mvtx group 2 layer " << layer << " sensor " << sensor << " stave " << stave 
+	//	  << " clamshell " << clamshell << " label_base " << label_base << std::endl; 
 
 	return label_base;
       }
