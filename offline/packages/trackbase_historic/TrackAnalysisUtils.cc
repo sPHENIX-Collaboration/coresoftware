@@ -1,15 +1,14 @@
 #include "TrackAnalysisUtils.h"
 #include "SvtxTrack.h"
-#include <globalvertex/GlobalVertex.h>
 
 namespace TrackAnalysisUtils
 {
 
 TrackAnalysisUtils::DCAPair get_dca(SvtxTrack* track,
-				    GlobalVertex* gvertex)
+				    Acts::Vector3& vertex)
 {
   TrackAnalysisUtils::DCAPair pair;
-  if (!track or !gvertex)
+  if (!track)
   {
     std::cout << "You passed a nullptr, can't calculate DCA" << std::endl;
     return pair;
@@ -21,10 +20,6 @@ TrackAnalysisUtils::DCAPair get_dca(SvtxTrack* track,
   Acts::Vector3 mom(track->get_px(),
                     track->get_py(),
                     track->get_pz());
-
-  Acts::Vector3 vertex(gvertex->get_x(),
-                       gvertex->get_y(),
-                       gvertex->get_z());
 
   pos -= vertex;
 

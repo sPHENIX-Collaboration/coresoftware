@@ -177,8 +177,7 @@ libtrackbase_historic_io_la_LDFLAGS = \
 libtrackbase_historic_io_la_LIBADD = \
   -lphool \
   -lActsCore \
-  -ltrack_io \
-  -lglobalvertex_io
+  -ltrack_io
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

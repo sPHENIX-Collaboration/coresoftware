@@ -2,9 +2,9 @@
 #define _TRACKBASEHISTORIC_TRACKANALYSISUTILS_H
 
 #include <utility>
+#include <Acts/Definitions/Algebra.hpp>
 
 class SvtxTrack;
-class GlobalVertex;
 
 namespace TrackAnalysisUtils
 {
@@ -12,7 +12,7 @@ namespace TrackAnalysisUtils
   using DCA = std::pair<float, float>;
   using DCAPair = std::pair<DCA, DCA>;
 
-  DCAPair get_dca(SvtxTrack* track, GlobalVertex* svtxVertex);
+  DCAPair get_dca(SvtxTrack* track, Acts::Vector3& vertex);
 
 };
 

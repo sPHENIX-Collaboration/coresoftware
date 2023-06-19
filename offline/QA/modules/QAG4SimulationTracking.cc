@@ -664,7 +664,8 @@ void QAG4SimulationTracking::get_dca(SvtxTrack *track, float &dca3dxy,
   auto vtxid = track->get_vertex_id();
   auto glVertex = m_vertexMap->get(vtxid);
   if (!glVertex) return;
-  auto pair = TrackAnalysisUtils::get_dca(track,glVertex);
+  Acts::Vector3 vert(glVertex->get_x(), glVertex->get_y(), glVertex->get_z());
+  auto pair = TrackAnalysisUtils::get_dca(track,vert);
   dca3dxy = pair.first.first;
   dca3dxysigma = pair.first.second;
   dca3dz = pair.second.first;

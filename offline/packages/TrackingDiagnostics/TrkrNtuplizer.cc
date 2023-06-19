@@ -1308,8 +1308,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           vx = vertex->get_x();
           vy = vertex->get_y();
           vz = vertex->get_z();
-
-          auto dcapair = TrackAnalysisUtils::get_dca(track, vertex);
+	  Acts::Vector3 vert(vx,vy,vz);
+          auto dcapair = TrackAnalysisUtils::get_dca(track, vert);
 	  dca3dxy = dcapair.first.first;
 	  dca3dxysigma = dcapair.first.second;
 	  dca3dz = dcapair.second.first;
