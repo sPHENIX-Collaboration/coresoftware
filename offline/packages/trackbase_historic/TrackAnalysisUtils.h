@@ -4,20 +4,16 @@
 #include <utility>
 
 class SvtxTrack;
-class SvtxVertex;
+class GlobalVertex;
 
-class TrackAnalysisUtils
+namespace TrackAnalysisUtils
 {
- public:
+  /// Returns DCA as .first and uncertainty on DCA as .second
   using DCA = std::pair<float, float>;
   using DCAPair = std::pair<DCA, DCA>;
 
-  TrackAnalysisUtils() = default;
-  ~TrackAnalysisUtils() {}
+  DCAPair get_dca(SvtxTrack* track, GlobalVertex* svtxVertex);
 
-  DCAPair get_dca(SvtxTrack* track, SvtxVertex* svtxVertex);
-
- private:
 };
 
 #endif
