@@ -113,7 +113,7 @@ int TpcMap::digest_map(const std::string &fileName, const unsigned int section_o
     while (ss.good())
     {
       getline(ss, next, ',');
-      if (index == 0)
+      if (index == 2)
       {
         abs_pad = std::stoul(next);
       }
