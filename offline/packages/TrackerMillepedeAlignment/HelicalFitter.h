@@ -29,6 +29,7 @@ class Mille;
 class SvtxTrackSeed;
 class SvtxTrackMap;
 class SvtxAlignmentStateMap;
+class SvtxTrack;
 
 class HelicalFitter : public SubsysReco, public PHParameterInterface
 {
@@ -57,7 +58,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_silicon_track_map_name(const std::string &map_name) { _silicon_track_map_name = map_name; }
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
 
- void set_datafile_name(const std::string& file) { data_outfilename = file;}
+  void set_datafile_name(const std::string& file) { data_outfilename = file;}
   void set_steeringfile_name(const std::string& file) { steering_outfilename = file;}
   void set_mvtx_grouping(int group) {mvtx_grp = (AlignmentDefs::mvtxGrp) group;}
   void set_intt_grouping(int group) {intt_grp = (AlignmentDefs::inttGrp) group;}
@@ -75,6 +76,19 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
     _layerMisalignment.insert(std::make_pair(layer,factor));
   }
   
+  void set_vertex(Acts::Vector3 inVertex,  Acts::Vector3 inVertex_uncertainty)
+  {
+    vertexPosition       = inVertex;
+    vertexPosUncertainty = inVertex_uncertainty;
+  }
+
+  void set_vtx_sigma(float x_sigma, float y_sigma)
+  {
+    vtx_sigma(0)= x_sigma;
+    vtx_sigma(1)= y_sigma;
+  }
+
+
   // utility functions for analysis modules
   std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
   void getTrackletClusters(TrackSeed *_track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
@@ -102,6 +116,11 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global, Acts::Vector3& pca, Acts::Vector3& tangent);
 
+
+  //Acts::Vector3 get_helix_vtxsurface_intersection(Acts::Vector3 sensorCenter, Acts::Vector3 sensorNormal, const std::vector<float>& fitpars, Acts::Vector3 global);
+  Acts::Vector3 get_helix_vtx(Acts::Vector3 event_vtx, const std::vector<float>& fitpars);
+
+
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
 
@@ -114,9 +133,20 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   void getLocalDerivativesXY(Surface surf, Acts::Vector3 global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer);
 
+  void getLocalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 track_vtx, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5]);
+
   void getGlobalDerivativesXY(Surface surf, Acts::Vector3 global, Acts::Vector3 fitpoint, const std::vector<float>& fitpars, float glb_derivativeX[6], float glbl_derivativeY[6], unsigned int layer);
 
-  void get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts::Vector3> tangent, Acts::Vector3& projX, Acts::Vector3& projY);
+  void getGlobalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 track_vtx, float glbl_derivativeX[6], float glbl_derivativeY[6]);
+
+  void get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts::Vector3> tangent, Acts::Vector3& projX, Acts::Vector3& projY);  
+  void get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vertex, Acts::Vector3& projX, Acts::Vector3& projY);
+
+  float getVertexResidual(Acts::Vector3 vtx);
+  void get_dca(SvtxTrack& track,  float& dca3dxy, float& dca3dz, float& dca3dxysigma, float& dca3dzsigma, Acts::Vector3 vertex);
+  Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, Acts::Vector3 event_vertex);
+  Acts::Vector3 localvtxToGlobalvtx(SvtxTrack& track, Acts::Vector3 event_vertex);
+
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
   TpcDistortionCorrectionContainer* _dcc_static{nullptr};
@@ -170,9 +200,14 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   bool make_ntuple = true;
   TNtuple *ntp{nullptr};
+  TNtuple *track_ntp{nullptr};
   TFile *fout{nullptr};
 
   int event = 0;
+
+  Acts::Vector3 vertexPosition;
+  Acts::Vector3 vertexPosUncertainty;
+  Acts::Vector2 vtx_sigma;
 
 };
 
