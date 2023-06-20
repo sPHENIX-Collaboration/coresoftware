@@ -54,7 +54,7 @@ pkginclude_HEADERS = \
   RawClusterPositionCorrection.h \
   RawClusterZVertexRecorrect.h \
   RawTowerCalibration.h \
-	RawTowerDeadTowerInterp.h \
+  RawTowerDeadTowerInterp.h \
   RawTowerDeadMapLoader.h
 endif
 
