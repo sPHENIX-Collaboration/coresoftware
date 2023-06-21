@@ -7,6 +7,7 @@
 
 #include <g4tracking/TrkrTruthTrack.h>
 #include <g4tracking/TrkrTruthTrackContainerv1.h>
+#include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterContainerv4.h>
@@ -206,6 +207,25 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
   {
     std::cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << std::endl;
     assert(m_truthinfo);
+  }
+
+  // get cluster hits verbose (the hit and energy) information
+  if (record_ClusHitsVerbose) {
+    // get the node
+    mClusHitsVerbose = findNode::getClass<ClusHitsVerbosev1>(topNode, "Trkr_TruthClusHitsVerbose");
+    if (!mClusHitsVerbose)
+    {
+      PHNodeIterator dstiter(dstNode);
+      auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode("TRKR");
+        dstNode->addNode(DetNode);
+      }
+      mClusHitsVerbose = new ClusHitsVerbosev1();
+      auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_TruthClusHitsVerbose", "PHObject");
+      DetNode->addNode(newNode);
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -707,20 +727,21 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
     double       xlocalsum   = 0.0;
     double       ylocalsum   = 0.0;
     double       zlocalsum   = 0.0;
-    unsigned int clus_energy = 0.0;
+    unsigned int clus_adc = 0.0;
     unsigned     nhits       = 0;
 
     // aggregate the adc values 
-    double sum_energy {0};
+    double sum_adc {0};
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
     for ( auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit) {
-      sum_energy += ihit->second->getEnergy();
+      sum_adc += ihit->second->getAdc();
     }
 
     // tune this energy threshold in the same maner of the MVTX, namely to get the same kind of pixel sizes
     // as the SvtxTrack clusters
-    /* const double threshold = sum_energy * m_truth_pixelthreshold; */
-    const double threshold = sum_energy * m_pixel_thresholdrat; //FIXME -- tune this as needed
+    /* const double threshold = sum_adc * m_truth_pixelthreshold; */
+    const double threshold = sum_adc * m_pixel_thresholdrat; //FIXME -- tune this as needed
+    std::map<int,unsigned int> m_iphi, m_it, m_iphiCut, m_itCut; // FIXME
 
     int layer = TrkrDefs::getLayer ( hitsetkey );
     CylinderGeomIntt* geom = dynamic_cast<CylinderGeomIntt*>(geom_container->GetLayerGeom(layer));
@@ -729,13 +750,23 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
 
     for ( auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit)
     {
-      if (ihit->second->getEnergy() < threshold) continue;
-
-      clus_energy += ihit->second->getEnergy();
-
       int col = InttDefs::getCol ( ihit->first );
       int row = InttDefs::getRow ( ihit->first );
+      auto adc = ihit->second->getAdc();
 
+      if (mClusHitsVerbose) {
+        std::map<int,unsigned int>& m_phi = (adc<threshold) ? m_iphiCut : m_iphi;
+        std::map<int,unsigned int>& m_z   = (adc<threshold) ? m_itCut   : m_it;
+
+        auto pnew = m_phi.try_emplace(row,adc);
+        if (!pnew.second) pnew.first->second += adc;
+
+        pnew = m_z.try_emplace(col,adc);
+        if (!pnew.second) pnew.first->second += adc;
+      }
+      if (adc<threshold) continue;
+
+      clus_adc += adc;
       zbins   .insert(col);
       phibins .insert(row);
 
@@ -772,6 +803,18 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
       /* if(hit_adc > clus_maxadc) clus_maxadc = hit_adc; */ //FIXME: do we want this value to be set?
       /* clus_energy += hit_adc; */
     }
+    if (mClusHitsVerbose) {
+      if (Verbosity()>10) {
+        for (auto& hit : m_iphi) {
+          std::cout << " m_phi(" << hit.first <<" : " << hit.second<<") " << std::endl;
+        }
+      }
+      for (auto& hit : m_iphi)    mClusHitsVerbose->addPhiHit    (hit.first, (float)hit.second);
+      for (auto& hit : m_it)      mClusHitsVerbose->addZHit      (hit.first, (float)hit.second);
+      for (auto& hit : m_iphiCut) mClusHitsVerbose->addPhiCutHit (hit.first, (float)hit.second);
+      for (auto& hit : m_itCut)   mClusHitsVerbose->addZCutHit   (hit.first, (float)hit.second);
+    }
+
 
     // add this cluster-hit association to the association map of (clusterkey,hitkey)
     if (Verbosity() > 2) std::cout << "  nhits = " << nhits << std::endl;
@@ -807,7 +850,7 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
     /* } */
     if ( m_cluster_version==4 ){
       auto clus = std::make_unique<TrkrClusterv4>();
-      clus->setAdc(clus_energy);
+      clus->setAdc(clus_adc);
       clus->setPhiSize(phibins.size());
       clus->setZSize(1);
 
@@ -823,6 +866,11 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
       TrkrDefs::cluskey ckey = TrkrDefs::genClusKey(hitsetkey, cnt);
       m_truthclusters->addClusterSpecifyKey(ckey, clus.release());
       m_current_track->addCluster(ckey);
+      if (mClusHitsVerbose) {
+        mClusHitsVerbose->push_hits(ckey);
+        if (Verbosity()>10) std::cout << " ClusHitsVerbose.size (in INTT): " 
+          << mClusHitsVerbose->getMap().size() << std::endl;
+      }
       ++cnt;
     }  // end loop over hitsets
   }
