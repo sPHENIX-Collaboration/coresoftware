@@ -20,9 +20,11 @@
 #include <phool/PHObject.h>               // for PHObject
 #include <phool/phool.h>           // for PHWHERE
 
+#include <Event/A_Event.h>
 #include <Event/Event.h>
 #include <Event/Eventiterator.h>  // for Eventiterator
 #include <Event/fileEventiterator.h>
+#include <Event/oEvent.h>
 
 #include <cassert>
 #include <cstdlib>
@@ -44,6 +46,7 @@ Fun4AllPrdfInputCombinerManager::Fun4AllPrdfInputCombinerManager(const std::stri
     PHDataNode<Event> *newNode = new PHDataNode<Event>(m_Event, m_PrdfNodeName, "Event");
     m_topNode->addNode(newNode);
   }
+  oph = new oEvent(workmem,4*1024*1024, 1,1,1);
   return;
 }
 
@@ -71,6 +74,23 @@ int Fun4AllPrdfInputCombinerManager::run(const int nevents)
   }
   SetRunNumber(m_RunNumber);
   std::cout << "next event is " << m_PacketMap.begin()->first << std::endl;
+  auto pktinfoiter = m_PacketMap.begin();
+  oph->prepare_next(pktinfoiter->first, m_RunNumber);
+  for (auto pktiter = pktinfoiter->second.PacketVector.begin(); pktiter != pktinfoiter->second.PacketVector.end(); ++pktiter)
+  {
+oph->addPacket((*pktiter));
+  }
+      m_Event = new A_Event(workmem);
+	  m_Event->identify();
+PHNodeIterator iter(m_topNode);
+  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
+PrdfNode->setData(m_Event);
+m_PacketMap.erase(pktinfoiter);
+  for (auto prdfiter : m_PrdfInputVector)
+  {
+    prdfiter->UsedOneEvent();
+  }
+
   return 0;
 // readagain:
 //   if (!IsOpen())
@@ -173,8 +193,7 @@ int Fun4AllPrdfInputCombinerManager::ResetEvent()
   PrdfNode->setData(nullptr);  // set pointer in Node to nullptr before deleting it
   delete m_Event;
   m_Event = nullptr;
-//  m_EventCombiner.erase(m_EventCombiner.begin());
-  m_SyncObject->Reset();
+//  m_SyncObject->Reset();
   return 0;
 }
 

@@ -44,9 +44,9 @@ void SinglePrdfInput::FillPool()
       return;
     }
   }
-  if (m_NumEvents <= m_LowWaterMark)
+  if (m_PoolEvents <= m_LowWaterMark)
   {
-  while (m_NumEvents <=  m_PoolDepth) 
+  while (m_PoolEvents <=  m_PoolDepth)
   {
     Event *evt = m_EventIterator->getNextEvent();
     m_RunNumber = evt->getRunNumber();
@@ -74,7 +74,7 @@ void SinglePrdfInput::FillPool()
 	plist[i] = nullptr;
 	continue;
       }
-
+   plist[i]->convert();
 // calculate "real" event number
 // special events are counted, so the packet event counter is never the
 // Event Sequence (bc the begin run event)
@@ -86,7 +86,7 @@ void SinglePrdfInput::FillPool()
       m_InputMgr->AddPacket(evtno,plist[i]);
       }
     }
-    m_NumEvents++;
+    m_PoolEvents++;
   }
   }
 }
