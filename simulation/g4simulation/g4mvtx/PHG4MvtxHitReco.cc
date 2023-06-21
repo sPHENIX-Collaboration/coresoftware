@@ -18,6 +18,7 @@
 #include <g4tracking/TrkrTruthTrack.h>
 #include <g4tracking/TrkrTruthTrackContainer.h>
 #include <g4tracking/TrkrTruthTrackContainerv1.h>
+#include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv4.h>
@@ -174,6 +175,24 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
   {
     std::cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << std::endl;
     assert(m_truthinfo);
+  }
+
+  if (record_ClusHitsVerbose) {
+    // get the node
+    mClusHitsVerbose = findNode::getClass<ClusHitsVerbosev1>(topNode, "Trkr_TruthClusHitsVerbose");
+    if (!mClusHitsVerbose)
+    {
+      PHNodeIterator dstiter(dstNode);
+      auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode("TRKR");
+        dstNode->addNode(DetNode);
+      }
+      mClusHitsVerbose = new ClusHitsVerbosev1();
+      auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_TruthClusHitsVerbose", "PHObject");
+      DetNode->addNode(newNode);
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1038,40 +1057,65 @@ void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode) {
 
     // make a tunable threshold for energy in a given hit
     //  -- percentage of someting? (total cluster energy)
-    double sum_energy { 0. };
+    double sum_adc { 0. };
 	  for ( auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit) {
-      sum_energy += ihit->second->getEnergy();
+      sum_adc += ihit->second->getAdc();
     }
-    const double threshold = sum_energy * m_pixel_thresholdrat; //FIXME -- tune this as needed
+    const double threshold = sum_adc * m_pixel_thresholdrat; //FIXME -- tune this as needed
+    std::map<int,unsigned int> m_iphi, m_it, m_iphiCut, m_itCut; // FIXME
 	  /* const unsigned int npixels = std::distance( hitrangei.first, hitrangei.second ); */
     // to tune this parameter: run a bunch of tracks and compare truth sizes and reco sizes,
     // should come out the same
     double npixels {0.};
-	  for ( auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit)
-	    {
-        if (ihit->second->getEnergy()<threshold) continue;
-        npixels += 1.;
-	      // size
-	      int col =  MvtxDefs::getCol( ihit->first);
-	      int row = MvtxDefs::getRow(  ihit->first);
-	      zbins.insert(col);
-	      phibins.insert(row);
-	      
-	      // get local coordinates, in stave reference frame, for hit
-	      auto local_coords = layergeom->get_local_coords_from_pixel(row,col);
-	      
-	      /*
-		manually offset position along y (thickness of the sensor),
-		to account for effective hit position in the sensor, resulting from diffusion.
-		Effective position corresponds to 1um above the middle of the sensor
-	      */
-	      local_coords.SetY( 1e-4 );
-	      
-	      // update cluster position
-	      locxsum += local_coords.X();
-	      loczsum += local_coords.Z();
-	      // add the association between this cluster key and this hitkey to the table
-	    }  //mapiter
+    for ( auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit)
+    {
+      const auto adc = ihit->second->getAdc();
+      int col =  MvtxDefs::getCol( ihit->first);
+      int row = MvtxDefs::getRow(  ihit->first);
+
+      if (mClusHitsVerbose) {
+        std::map<int,unsigned int>& m_phi = (adc<threshold) ? m_iphiCut : m_iphi;
+        std::map<int,unsigned int>& m_z   = (adc<threshold) ? m_itCut   : m_it;
+
+        auto pnew = m_phi.try_emplace(row,adc);
+        if (!pnew.second) pnew.first->second += adc;
+
+        pnew = m_z.try_emplace(col,adc);
+        if (!pnew.second) pnew.first->second += adc;
+      }
+      if (adc<threshold) continue;
+
+      // size
+      npixels += 1.;
+      zbins.insert(col);
+      phibins.insert(row);
+
+      // get local coordinates, in stave reference frame, for hit
+      auto local_coords = layergeom->get_local_coords_from_pixel(row,col);
+
+      /*
+         manually offset position along y (thickness of the sensor),
+         to account for effective hit position in the sensor, resulting from diffusion.
+         Effective position corresponds to 1um above the middle of the sensor
+         */
+      local_coords.SetY( 1e-4 );
+
+      // update cluster position
+      locxsum += local_coords.X();
+      loczsum += local_coords.Z();
+      // add the association between this cluster key and this hitkey to the table
+    }  //mapiter
+    if (mClusHitsVerbose) {
+      if (Verbosity()>10) {
+        for (auto& hit : m_iphi) {
+          std::cout << " m_phi(" << hit.first <<" : " << hit.second<<") " << std::endl;
+        }
+      }
+      for (auto& hit : m_iphi)    mClusHitsVerbose->addPhiHit    (hit.first, (float)hit.second);
+      for (auto& hit : m_it)      mClusHitsVerbose->addZHit      (hit.first, (float)hit.second);
+      for (auto& hit : m_iphiCut) mClusHitsVerbose->addPhiCutHit (hit.first, (float)hit.second);
+      for (auto& hit : m_itCut)   mClusHitsVerbose->addZCutHit   (hit.first, (float)hit.second);
+    }
 	  
 	  // This is the local position
 	  locclusx = locxsum / npixels;
@@ -1104,8 +1148,7 @@ void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode) {
 	    // So set subsurface key to 0
 	    clus->setSubSurfKey(0);
 	    
-	    if (Verbosity() > 2)
-	      clus->identify();
+	    if (Verbosity() > 2) clus->identify();
 	    
       // get the count of how many clusters have allready been added to this hitsetkey (possibly from other embedded tracks tracks)
       m_hitsetkey_cnt.try_emplace(hitsetkey,0);
@@ -1113,6 +1156,9 @@ void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode) {
       ckey = TrkrDefs::genClusKey(hitsetkey, cnt);
 	    m_truthclusters->addClusterSpecifyKey(ckey, clus.release());
       m_current_track->addCluster(ckey);
+      if (mClusHitsVerbose) {
+        mClusHitsVerbose->push_hits(ckey);
+      }
       ++cnt;
     } else {
       std::cout << PHWHERE << std::endl;

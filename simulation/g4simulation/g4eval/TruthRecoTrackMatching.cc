@@ -1,6 +1,6 @@
 #include "TruthRecoTrackMatching.h"
-
-#include "g4evaltools.h"
+#include "TrkrClusterIsMatcher.h"
+#include "ClusKeyIter.h"
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
@@ -43,8 +43,17 @@
 // To change:
 // Make the definition of matching clusters to be if the truth cluster center is withing 1/2 of width of the reco track center
 
-TruthRecoTrackMatching::TruthRecoTrackMatching(const unsigned short _nmincluster_match, const float _nmincluster_ratio, const float _cutoff_dphi, const float _same_dphi, const float _cutoff_deta, const float _same_deta, const float _cluster_nzwidths, const float _cluster_nphiwidths, const unsigned short _max_nreco_per_truth, const unsigned short _max_ntruth_per_reco)
-  : m_cluster_comp{_cluster_nphiwidths, _cluster_nzwidths}
+TruthRecoTrackMatching::TruthRecoTrackMatching(
+      TrkrClusterIsMatcher* _ismatcher
+    , const unsigned short _nmincluster_match
+    , const float _nmincluster_ratio
+    , const float _cutoff_dphi
+    , const float _same_dphi
+    , const float _cutoff_deta
+    , const float _same_deta
+    , const unsigned short _max_nreco_per_truth
+    , const unsigned short _max_ntruth_per_reco)
+  : m_ismatcher { _ismatcher }
   , m_nmincluster_match{_nmincluster_match}  // minimum number of clusters to match, default=4
   , m_nmincluster_ratio{_nmincluster_ratio}  // minimum ratio to match a track, default=0.
                                              // -- Track Kinematic Cuts to match --
@@ -52,12 +61,12 @@ TruthRecoTrackMatching::TruthRecoTrackMatching(const unsigned short _nmincluster
   , m_same_dphi{_same_dphi}                  // all tracks in this |dphi| must be tested for matches
   , m_cutoff_deta{_cutoff_deta}              // same as m_cutoff_dphi for deta
   , m_same_deta{_same_deta}                  // same as m_same_dphi for deta
-                                             // cluster matching widths (how close the truth center must be reco center)
+                                             // cluster matching widths ()
                                              // number of truth tracks allowed matched per reco track, and v. versa
   , m_max_nreco_per_truth{_max_nreco_per_truth}
   , m_max_ntruth_per_reco{_max_ntruth_per_reco}
 {
-  m_cluscntr.set_comparer(&m_cluster_comp);
+  m_TCEval.ismatcher = m_ismatcher;
   if (Verbosity() > 50)
   {
     std::cout << " Starting TruthRecoTrackMatching.cc " << std::endl;
@@ -70,7 +79,7 @@ int TruthRecoTrackMatching::InitRun(PHCompositeNode* topNode)  //`
   {
     topNode->print();
   }
-  auto init_status = m_cluster_comp.init(topNode);
+  auto init_status = m_ismatcher->init(topNode);
   if (init_status == Fun4AllReturnCodes::ABORTRUN)
   {
     return init_status;
@@ -285,18 +294,18 @@ int TruthRecoTrackMatching::End(PHCompositeNode* /*topNode*/)
   if (m_write_diag)
   {
     m_diag_file->cd();
-    G4Eval::write_StringToTFile(
-        "trk_match_sel",
-        Form("  Matching criteria:\n"
-             "  min. clusters to match:  %i\n"
-             "  min. clust. match ratio: %4.2f"
-             "  dphi small window:       %4.2f"
-             "  dphi large windows:      %4.2f"
-             "  deta small window:       %4.2f"
-             "  deta large window:       %4.2f"
-             "  nmax phg4 matches per svtx:  %i"
-             "  nmax svtx matches per phg4:  %i",
-             m_nmincluster_match, m_nmincluster_ratio, m_same_dphi, m_cutoff_dphi, m_same_deta, m_cutoff_deta, m_max_ntruth_per_reco, m_max_nreco_per_truth));
+    /* G4Eval::write_StringToTFile( */
+    /*     "trk_match_sel", */
+    /*     Form("  Matching criteria:\n" */
+    /*          "  min. clusters to match:  %i\n" */
+    /*          "  min. clust. match ratio: %4.2f" */
+    /*          "  dphi small window:       %4.2f" */
+    /*          "  dphi large windows:      %4.2f" */
+    /*          "  deta small window:       %4.2f" */
+    /*          "  deta large window:       %4.2f" */
+    /*          "  nmax phg4 matches per svtx:  %i" */
+    /*          "  nmax svtx matches per phg4:  %i", */
+    /*          m_nmincluster_match, m_nmincluster_ratio, m_same_dphi, m_cutoff_dphi, m_same_deta, m_cutoff_deta, m_max_ntruth_per_reco, m_max_nreco_per_truth)); */
     m_diag_tree->Write();
     m_diag_file->Save();
     m_diag_file->Close();
@@ -566,7 +575,7 @@ void TruthRecoTrackMatching::match_tracks_in_box(
 
     // make all possible reco matches matched for this track
     /* std::map<TrkrDefs::hitsetkey,TrkrDefs::cluskey> truth_keys; */
-    m_cluscntr.addClusKeys(m_TrkrTruthTrackContainer->getTruthTrack(id_true));
+    m_TCEval.addClusKeys(m_TrkrTruthTrackContainer->getTruthTrack(id_true));
     // add the truth keys into the track counter
     /* auto truth_track = m_TrkrTruthTrackContainer->getTruthTrack(id_true); */
     /* for (auto& key : truth_track->getClusters()) { */
@@ -588,8 +597,8 @@ void TruthRecoTrackMatching::match_tracks_in_box(
       }  // make sure the reco-track isn't alread matched
       // ok, make a possible match: compare the clusters in the truth track and the reco track
       SvtxTrack* reco_track = m_SvtxTrackMap->get(ipair->second);
-      m_cluscntr.addClusKeys(reco_track);
-      m_cluscntr.find_matches();
+      m_TCEval.addClusKeys(reco_track);
+      m_TCEval.find_matches();
 
       /* unsigned short nclus_match   = 0; // fill in the comparison loop */
       /* unsigned short nclus_nomatch = 0; // number of reco and truth cluster
@@ -609,10 +618,10 @@ void TruthRecoTrackMatching::match_tracks_in_box(
       /*     } */
       /*   } */
       /* } */
-      unsigned short nclus_match = m_cluscntr.phg4_n_matched();
-      unsigned short nclus_true = m_cluscntr.phg4_nclus();
-      unsigned short nclus_reco = m_cluscntr.svtx_nclus();
-      unsigned short nclus_nomatch = (int) (m_cluscntr.svtx_keys.size() - nclus_match);
+      unsigned short nclus_match = m_TCEval.phg4_n_matched();
+      unsigned short nclus_true = m_TCEval.phg4_nclus();
+      unsigned short nclus_reco = m_TCEval.svtx_nclus();
+      unsigned short nclus_nomatch = (int) (m_TCEval.svtx_keys.size() - nclus_match);
 
       if (Verbosity() > 100)
       {
@@ -729,12 +738,12 @@ float TruthRecoTrackMatching::sigma_CompMatchClusters(PossibleMatch& match)
   auto id_true = match[PM_idtrue];
   auto id_reco = match[PM_idreco];
 
-  m_cluscntr.addClusKeys(m_TrkrTruthTrackContainer->getTruthTrack(id_true));
-  m_cluscntr.addClusKeys(m_SvtxTrackMap->get(id_reco));
+  m_TCEval.addClusKeys(m_TrkrTruthTrackContainer->getTruthTrack(id_true));
+  m_TCEval.addClusKeys(m_SvtxTrackMap->get(id_reco));
 
-  m_cluscntr.find_matches();
+  m_TCEval.find_matches();
 
-  int n_matched = m_cluscntr.phg4_n_matched();
+  int n_matched = m_TCEval.phg4_n_matched();
 
   if (n_matched)
   {
@@ -742,7 +751,7 @@ float TruthRecoTrackMatching::sigma_CompMatchClusters(PossibleMatch& match)
   }
   else
   {
-    return m_cluscntr.match_stat / n_matched;
+    return m_TCEval.match_stat / n_matched;
   }
 }
 /* auto truth_track = m_TrkrTruthTrackContainer->getTruthTrack(id_true); */
@@ -959,7 +968,7 @@ void TruthRecoTrackMatching::fill_tree()
     SvtxTrack* reco_track = m_SvtxTrackMap->get(trkid);
     m_i0_reco_matched.push_back(cnt);
 
-    for (auto reco_ckey : G4Eval::ClusKeyIter(reco_track))
+    for (auto reco_ckey : ClusKeyIter(reco_track))
     {
       auto cluster = m_RecoClusterContainer->findCluster(reco_ckey);
       Eigen::Vector3d gloc = m_ActsGeometry->getGlobalPosition(reco_ckey, cluster);
@@ -987,7 +996,7 @@ void TruthRecoTrackMatching::fill_tree()
     m_trkid_reco_notmatched.push_back(trkid);
     SvtxTrack* reco_track = m_SvtxTrackMap->get(trkid);
     m_i0_reco_notmatched.push_back(cnt);
-    for (auto reco_ckey : G4Eval::ClusKeyIter(reco_track))
+    for (auto reco_ckey : ClusKeyIter(reco_track))
     {
       auto cluster = m_RecoClusterContainer->findCluster(reco_ckey);
       Eigen::Vector3d gloc = m_ActsGeometry->getGlobalPosition(reco_ckey, cluster);

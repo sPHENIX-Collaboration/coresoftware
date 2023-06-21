@@ -11,6 +11,7 @@
 #include <string>
 #include <utility>
 
+class ClusHitsVerbosev1;
 class PHCompositeNode;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
@@ -76,7 +77,12 @@ class InttClusterizer : public SubsysReco
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
   void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
 
+  // for saving verbose clusters
+  void set_ClusHitsVerbose(bool set=true) { record_ClusHitsVerbose = set; };
+  ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
+
  private:
+  bool  record_ClusHitsVerbose { false };
   bool ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs, const int layer);
   bool ladder_are_adjacent(RawHit* lhs,  RawHit* rhs, const int layer);
 
