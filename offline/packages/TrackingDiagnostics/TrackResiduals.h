@@ -108,7 +108,12 @@ class TrackResiduals : public SubsysReco
   std::vector<float> m_clusgxideal;
   std::vector<float> m_clusgyideal;
   std::vector<float> m_clusgzideal;
-  
+  std::vector<float> m_idealsurfalpha;
+  std::vector<float> m_idealsurfbeta;
+  std::vector<float> m_idealsurfgamma;
+  std::vector<float> m_missurfalpha;
+  std::vector<float> m_missurfbeta;
+  std::vector<float> m_missurfgamma;
 
 
   //! states on track information
