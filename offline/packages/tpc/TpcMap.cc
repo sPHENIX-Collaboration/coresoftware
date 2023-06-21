@@ -20,7 +20,7 @@ void TpcMap::setMapNames(const std::string &r1, const std::string &r2, const std
     calibrationroot = getenv("TPCCALIB");
     if (calibrationroot)
     {
-      full_path = std::string(calibrationroot);
+      full_path = std::string(calibrationroot) + "/";
     }
     else
     {
