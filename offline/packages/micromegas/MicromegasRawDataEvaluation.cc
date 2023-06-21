@@ -41,13 +41,15 @@ void MicromegasRawDataEvaluation::Waveform::copy_from( const MicromegasRawDataEv
   strip = sample.strip;
   sample_max = sample.sample;
   adc_max = sample.adc;
+  pedestal = sample.pedestal;
+  rms = sample.rms;
 }
 
 //_________________________________________________________
 void MicromegasRawDataEvaluation::Container::Reset()
 {
   n_tagger.clear();
-  n_waveforms.clear();
+  n_waveform.clear();
   samples.clear();
   waveforms.clear();
 }
@@ -104,22 +106,22 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
     m_container->n_tagger.push_back(n_tagger);
 
     // get number of datasets (also call waveforms)
-    const auto n_waveforms = packet->iValue(0, "NR_WF" );
-    m_container->n_waveforms.push_back(n_waveforms);
+    const auto n_waveform = packet->iValue(0, "NR_WF" );
+    m_container->n_waveform.push_back(n_waveform);
 
     // if( Verbosity() )
     {
       std::cout << "MicromegasRawDataEvaluation::process_event -"
         << " packet: " << packet_id
         << " n_tagger: " << n_tagger
-        << " n_waveforms: " << n_waveforms
+        << " n_waveform: " << n_waveform
         << std::endl;
     }
 
     // drop events for which waveforms is too large
-    if( m_max_waveforms > 0 && n_waveforms > m_max_waveforms )
+    if( m_max_waveforms > 0 && n_waveform > m_max_waveforms )
     {
-      std::cout << "icromegasRawDataEvaluation::process_event - too many waveforms: " << n_waveforms << " skipping" << std::endl;
+      std::cout << "icromegasRawDataEvaluation::process_event - too many waveforms: " << n_waveform << " skipping" << std::endl;
       continue;
     }
 
@@ -157,7 +159,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
     }
 
-    for( int iwf=0; iwf<n_waveforms; ++iwf )
+    for( int iwf=0; iwf<n_waveform; ++iwf )
     {
       // create running sample, assign packet id
       Sample sample;
