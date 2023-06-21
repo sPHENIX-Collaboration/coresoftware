@@ -204,124 +204,121 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 
     int nr_of_waveforms = p->iValue(0, "NR_WF");
 
-    for (auto &l : m_hitset)
+
+    int wf;
+    for (wf = 0; wf < nr_of_waveforms; wf++)
     {
-      l = new TrkrHitSetv1();
-
-      int wf;
-      for (wf = 0; wf < nr_of_waveforms; wf++)
+      int current_BCO = p->iValue(wf, "BCO") + rollover_value;
+      if (starting_BCO < 0)
       {
-        int current_BCO = p->iValue(wf, "BCO") + rollover_value;
-        if (starting_BCO < 0)
-        {
-          starting_BCO = current_BCO;
+        starting_BCO = current_BCO;
+      }
+
+      if (current_BCO < starting_BCO)  // we have a rollover
+      {
+        rollover_value += 0x100000;
+        current_BCO = p->iValue(wf, "BCO") + rollover_value;
+        starting_BCO = current_BCO;
+        current_BCOBIN++;
+      }
+      int sampa_nr = p->iValue(wf, "SAMPAADDRESS");
+      int channel = p->iValue(wf, "CHANNEL");
+
+      int fee = p->iValue(wf, "FEE");
+      int samples = p->iValue( wf, "SAMPLES" );
+      // clockwise FEE mapping
+      //int FEE_map[26]={5, 6, 1, 3, 2, 12, 10, 11, 9, 8, 7, 1, 2, 4, 8, 7, 6, 5, 4, 3, 1, 3, 2, 4, 6, 5};
+      int FEE_R[26]={2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
+      // conter clockwise FEE mapping (From Takao)
+      int FEE_map[26]={3, 2, 5, 3, 4, 0, 2, 1, 3, 4, 5, 7, 6, 2, 0, 1, 0, 1, 4, 5, 11, 9, 10, 8, 6, 7};
+      int pads_per_sector[3] = {96, 128, 192};
+
+      // setting the mapp of the FEE
+      int feeM = FEE_map[fee];
+      if(FEE_R[fee]==2) feeM += 6;
+      if(FEE_R[fee]==3) feeM += 14;
+      int layer = M.getLayer(feeM, channel);
+      // antenna pads will be in 0 layer
+      if(layer==0)continue;
+
+      double R = M.getR(feeM, channel);
+      double phi = M.getPhi(feeM, channel) + (sector - side*12 )* M_PI / 6 ;
+      unsigned int key = 256 * (feeM) + channel;
+      int pedestal = round(tmap[key].PedMean);
+      TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sector, side);
+      TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(tpcHitSetKey);
+
+      if( Verbosity() )
+      {
+        int sampaAddress = p->iValue(wf, "SAMPAADDRESS");
+        int sampaChannel = p->iValue(wf, "SAMPACHANNEL");
+        int checksum = p->iValue(wf, "CHECKSUM");
+        int checksumError = p->iValue(wf, "CHECKSUMERROR");
+        std::cout << "TpcRawDataDecoder::Process_Event Samples "<< samples 
+        <<" Chn:"<< channel 
+        <<" layer: " << layer 
+        << " sampa: "<< sampa_nr 
+        << " fee: "<< fee 
+        << " Mapped fee: "<< feeM 
+        << " sampaAddress: "<< sampaAddress 
+        << " sampaChannel: "<< sampaChannel 
+        << " checksum: "<< checksum 
+        << " checksumError: "<< checksumError 
+        << " hitsetkey "<< tpcHitSetKey 
+        << " R = " << R
+        << " phi = " << phi
+        << std::endl;
+      }
+      pedestal = 0;
+      for (int s = 0; s < 5; s++)
+      {
+        int adc = p->iValue(wf,s);
+        pedestal += adc;
+      }
+      pedestal /=5;
+      for (int s = 0; s < samples; s++)
+      {
+        int pad = M.getPad(feeM, channel);
+        int t = s + 2 * (current_BCO - starting_BCO);
+        int adc = p->iValue(wf,s);
+        if(m_Debug==1){
+          _h_hit_XY->Fill(R*cos(phi),R*sin(phi),adc-pedestal);
         }
+        //if(adc-pedestal<4) continue;
+        // generate hit key
+        //std::cout<<(sector - side*12 )<< " " <<(sector - side*12 )*pads_per_sector[FEE_R[fee]-1]<<std::endl;
+        TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad + (sector - side*12 )*pads_per_sector[FEE_R[fee]-1], (unsigned int) t);
+        // find existing hit, or create
+        auto hit = hitsetit->second->getHit(hitkey);
 
-        if (current_BCO < starting_BCO)  // we have a rollover
+        // create hit, assign adc and insert in hitset
+        if (!hit)
         {
-          rollover_value += 0x100000;
-          current_BCO = p->iValue(wf, "BCO") + rollover_value;
-          starting_BCO = current_BCO;
-          current_BCOBIN++;
-        }
-        int sampa_nr = p->iValue(wf, "SAMPAADDRESS");
-        int channel = p->iValue(wf, "CHANNEL");
-
-        int fee = p->iValue(wf, "FEE");
-        int samples = p->iValue( wf, "SAMPLES" );
-        // clockwise FEE mapping
-        //int FEE_map[26]={5, 6, 1, 3, 2, 12, 10, 11, 9, 8, 7, 1, 2, 4, 8, 7, 6, 5, 4, 3, 1, 3, 2, 4, 6, 5};
-        int FEE_R[26]={2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
-        // conter clockwise FEE mapping (From Takao)
-        int FEE_map[26]={3, 2, 5, 3, 4, 0, 2, 1, 3, 4, 5, 7, 6, 2, 0, 1, 0, 1, 4, 5, 11, 9, 10, 8, 6, 7};
-        int pads_per_sector[3] = {96, 128, 192};
-
-        // setting the mapp of the FEE
-        int feeM = FEE_map[fee];
-        if(FEE_R[fee]==2) feeM += 6;
-        if(FEE_R[fee]==3) feeM += 14;
-        int layer = M.getLayer(feeM, channel);
-        // antenna pads will be in 0 layer
-        if(layer==0)continue;
-
-        double R = M.getR(feeM, channel);
-        double phi = M.getPhi(feeM, channel) + (sector - side*12 )* M_PI / 6 ;
-        unsigned int key = 256 * (feeM) + channel;
-        int pedestal = round(tmap[key].PedMean);
-        TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sector, side);
-        TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(tpcHitSetKey);
-
-        if( Verbosity() )
-        {
-          int sampaAddress = p->iValue(wf, "SAMPAADDRESS");
-          int sampaChannel = p->iValue(wf, "SAMPACHANNEL");
-          int checksum = p->iValue(wf, "CHECKSUM");
-          int checksumError = p->iValue(wf, "CHECKSUMERROR");
-          std::cout << "TpcRawDataDecoder::Process_Event Samples "<< samples 
-          <<" Chn:"<< channel 
-          <<" layer: " << layer 
-          << " sampa: "<< sampa_nr 
-          << " fee: "<< fee 
-          << " Mapped fee: "<< feeM 
-          << " sampaAddress: "<< sampaAddress 
-          << " sampaChannel: "<< sampaChannel 
-          << " checksum: "<< checksum 
-          << " checksumError: "<< checksumError 
-          << " hitsetkey "<< tpcHitSetKey 
-          << " R = " << R
-          << " phi = " << phi
-          << std::endl;
-        }
-        pedestal = 0;
-        for (int s = 0; s < 5; s++)
-        {
-          int adc = p->iValue(wf,s);
-          pedestal += adc;
-        }
-        pedestal /=5;
-        for (int s = 0; s < samples; s++)
-        {
-          int pad = M.getPad(feeM, channel);
-          int t = s + 2 * (current_BCO - starting_BCO);
-          int adc = p->iValue(wf,s);
-          if(m_Debug==1){
-            _h_hit_XY->Fill(R*cos(phi),R*sin(phi),adc-pedestal);
-          }
-          //if(adc-pedestal<4) continue;
-          // generate hit key
-          //std::cout<<(sector - side*12 )<< " " <<(sector - side*12 )*pads_per_sector[FEE_R[fee]-1]<<std::endl;
-          TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad + (sector - side*12 )*pads_per_sector[FEE_R[fee]-1], (unsigned int) t);
-          // find existing hit, or create
-          auto hit = hitsetit->second->getHit(hitkey);
-
-          // create hit, assign adc and insert in hitset
-          if (!hit)
-          {
-            // create a new one
-            hit = new TrkrHitv2();
-            hit->setAdc(adc-pedestal);
-            //std::cout<< "ADC = " << adc << " Pedestal = "<< pedestal << "delta = "<< adc-pedestal << std::endl;
-            //if(adc - pedestal > 40) std::cout<< adc - pedestal << "| ";
-            //std::cout<< t << "| ";
-            if(adc-pedestal>2)hitsetit->second->addHitSpecificKey(hitkey, hit);
-          }
-          
-          //else{
-          //  hit->setAdc(adc);
-          //  hitsetit->second->addHitSpecificKey(hitkey, hit);
-          //}
-
-          if(m_Debug==1){
-            if(adc - pedestal > 40){
-              _h_hit_XY_ADCcut->Fill(R*cos(phi),R*sin(phi),adc-pedestal);
-              _h_hit_XYT->Fill(R*cos(phi),R*sin(phi), current_BCO,adc-pedestal);
-            }
-          }
-          //if (s==samples-1) std::cout << std::endl;
+          // create a new one
+          hit = new TrkrHitv2();
+          hit->setAdc(adc-pedestal);
+          //std::cout<< "ADC = " << adc << " Pedestal = "<< pedestal << "delta = "<< adc-pedestal << std::endl;
+          //if(adc - pedestal > 40) std::cout<< adc - pedestal << "| ";
+          //std::cout<< t << "| ";
+          if(adc-pedestal>2)hitsetit->second->addHitSpecificKey(hitkey, hit);
         }
         
+        //else{
+        //  hit->setAdc(adc);
+        //  hitsetit->second->addHitSpecificKey(hitkey, hit);
+        //}
+
+        if(m_Debug==1){
+          if(adc - pedestal > 40){
+            _h_hit_XY_ADCcut->Fill(R*cos(phi),R*sin(phi),adc-pedestal);
+            _h_hit_XYT->Fill(R*cos(phi),R*sin(phi), current_BCO,adc-pedestal);
+          }
+        }
+        //if (s==samples-1) std::cout << std::endl;
       }
+      
     }
+
 
    }// End of run over packets
   }//End of ep loop
