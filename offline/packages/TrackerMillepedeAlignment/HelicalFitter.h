@@ -140,12 +140,16 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void getGlobalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 track_vtx, float glbl_derivativeX[6], float glbl_derivativeY[6]);
 
   void get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts::Vector3> tangent, Acts::Vector3& projX, Acts::Vector3& projY);  
-  void get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vertex, Acts::Vector3& projX, Acts::Vector3& projY);
+  void get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vtx, Acts::Vector3& projX, Acts::Vector3& projY);
 
   float getVertexResidual(Acts::Vector3 vtx);
   void get_dca(SvtxTrack& track,  float& dca3dxy, float& dca3dz, float& dca3dxysigma, float& dca3dzsigma, Acts::Vector3 vertex);
   Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, Acts::Vector3 event_vertex);
-  Acts::Vector3 localvtxToGlobalvtx(SvtxTrack& track, Acts::Vector3 event_vertex);
+  Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, Acts::Vector3 event_vertex, Acts::Vector3 PCA);
+
+  //Acts::Vector3 localvtxToGlobalvtx(SvtxTrack& track, Acts::Vector3 event_vertex);
+  Acts::Vector3 localvtxToGlobalvtx(SvtxTrack& track, Acts::Vector3 event_vtx, Acts::Vector3 PCA);
+
 
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
