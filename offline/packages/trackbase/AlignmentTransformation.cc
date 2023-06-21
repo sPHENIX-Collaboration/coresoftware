@@ -75,8 +75,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
      Eigen::Vector3d millepedeTranslation(dx,dy,dz); 
 
      unsigned int trkrId = TrkrDefs::getTrkrId(hitsetkey); // specify between detectors
-     std::cout << "Hitsetkey is " << hitsetkey << std::endl;
-
+  
      perturbationAngles      = Eigen::Vector3d(0.0,0.0,0.0);
      perturbationTranslation = Eigen::Vector3d(0.0,0.0,0.0);
 
@@ -229,16 +228,13 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   // It does mean that the order of the rotations is different from (x,y,z), but they are just fitted free parameters
   //=====================================================
 
-  //! The millepede matrix is given in (x,y,z). So it needs to be moved 
-  //! to match Acts. This permutation appears to work
- 
-  Eigen::AngleAxisd alpha(sensorAngles(0), Eigen::Vector3d::UnitZ());
+  Eigen::AngleAxisd alpha(sensorAngles(0), Eigen::Vector3d::UnitX());
   Eigen::AngleAxisd beta(sensorAngles(1), Eigen::Vector3d::UnitY());
-  Eigen::AngleAxisd gamma(sensorAngles(2), Eigen::Vector3d::UnitX());
+  Eigen::AngleAxisd gamma(sensorAngles(2), Eigen::Vector3d::UnitZ());
   Eigen::Quaternion<double> q       = gamma*beta*alpha;
  
   Eigen::Matrix3d millepedeRotation = q.matrix();
-    
+
   Acts::Transform3 mpRotationAffine;   
   mpRotationAffine.linear() = millepedeRotation;
   mpRotationAffine.translation() = nullTranslation;   
@@ -261,7 +257,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   Acts::Transform3 actsTransform = surf->transform(m_tGeometry->geometry().getGeoContext());
   Eigen::Matrix3d actsRotationPart    = actsTransform.rotation();
   Eigen::Vector3d actsTranslationPart    = actsTransform.translation();
-  
+ 
   // and make affine matrices from each
   Acts::Transform3 actsRotationAffine;
   actsRotationAffine.linear() = actsRotationPart;
@@ -277,7 +273,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   if(use_global_millepede_translations)
     {
       // put the mp translations in the global frame
-      transform = mpTranslationAffine *  actsTranslationAffine *  actsRotationAffine * mpRotationAffine;
+      transform = mpTranslationAffine *  actsTranslationAffine *  mpRotationAffine * actsRotationAffine;
     }
   else
     {
@@ -287,6 +283,9 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
 
   if(localVerbosity)
     {
+      Acts::Transform3 actstransform = actsTranslationAffine * actsRotationAffine;
+      Acts::Transform3 mptransform = mpTranslationAffine * mpRotationAffine;
+  
       std::cout << "newMakeTransform" << std::endl;
       std::cout << " use_global_translations = " << use_global_millepede_translations << std::endl;
       std::cout << "mpRotationAffine: "<< std::endl<< mpRotationAffine.matrix()  <<std::endl;
@@ -296,13 +295,26 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
 	  std::cout << " mptranslationAffine * mpRotationAffine " << std::endl 
 		    << (mpTranslationAffine * mpRotationAffine).matrix() << std::endl;
 	}
+      std::cout << "millepederotation * acts " << std::endl << millepedeRotation * actsRotationPart << std::endl;
       std::cout << "actsRotationAffine: "<< std::endl<< actsRotationAffine.matrix()  <<std::endl;
       std::cout << "actsTranslationAffine: "<< std::endl<< actsTranslationAffine.matrix()  <<std::endl;
+      std::cout << "full acts transform " << std::endl << actstransform.matrix() << std::endl << "full mp transform " << std::endl << mptransform.matrix() << std::endl;
       if(use_global_millepede_translations)
 	{
 	  std::cout << "mpTranslationAffine: " << std::endl << mpTranslationAffine.matrix() <<std::endl;
 	}
       std::cout << "Overall transform: " << std::endl << transform.matrix() <<std::endl;
+      std::cout << "overall * idealinv " << std::endl << (transform * actstransform.inverse()).matrix() << std::endl;
+      std::cout << "overall - ideal " << std::endl;
+      for(int test = 0; test < transform.matrix().rows(); test++)
+	{
+	  for(int test2 = 0; test2 < transform.matrix().cols(); test2++)
+	    {
+	      std::cout << transform(test,test2) - actstransform(test,test2) << ", ";
+	    }
+	  std::cout << std::endl;
+	}
+      
     }
 
   return transform;   
@@ -356,32 +368,32 @@ void AlignmentTransformation::generateRandomPerturbations(Eigen::Vector3d angleD
 
   if(angleDev(0)!=0)
     {
-      std::normal_distribution<float> distribution(0,angleDev(0));
+      std::normal_distribution<double> distribution(0,angleDev(0));
       perturbationAngles(0) = distribution(generator);
     }
   if(angleDev(1)!=0)
     {
-      std::normal_distribution<float> distribution(0,angleDev(1));
+      std::normal_distribution<double> distribution(0,angleDev(1));
       perturbationAngles(1) = distribution(generator);
     }
   if(angleDev(2)!=0)
     {
-      std::normal_distribution<float> distribution(0,angleDev(2));
+      std::normal_distribution<double> distribution(0,angleDev(2));
       perturbationAngles(2) = distribution(generator);
     }
   if(transformDev(0)!=0)
     {
-      std::normal_distribution<float> distribution(0,transformDev(0));
+      std::normal_distribution<double> distribution(0,transformDev(0));
       perturbationTranslation(0) = distribution(generator);
     }
   if(transformDev(1)!=0)
     {
-      std::normal_distribution<float> distribution(0,transformDev(1));
+      std::normal_distribution<double> distribution(0,transformDev(1));
       perturbationTranslation(1) = distribution(generator);
     }
   if(transformDev(2)!=0)
     {
-      std::normal_distribution<float> distribution(0,transformDev(2));
+      std::normal_distribution<double> distribution(0,transformDev(2));
       perturbationTranslation(2) = distribution(generator);
     }
   if(localVerbosity)
