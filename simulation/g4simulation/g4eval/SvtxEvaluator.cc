@@ -29,6 +29,7 @@
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackAnalysisUtils.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
@@ -3203,8 +3204,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               vx = vertex->get_x();
               vy = vertex->get_y();
               vz = vertex->get_z();
-
-              get_dca(track, gvertexmap, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma);
+	      Acts::Vector3 vert(vx,vy,vz);
+	      auto dcapair = TrackAnalysisUtils::get_dca(track, vert);
+	      dca3dxy = dcapair.first.first;
+	      dca3dxysigma = dcapair.first.second;
+	      dca3dz = dcapair.second.first;
+	      dca3dzsigma = dcapair.second.second;
             }
 
             px = track->get_px();
@@ -3618,9 +3623,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           vx = vertex->get_x();
           vy = vertex->get_y();
           vz = vertex->get_z();
+	  Acts::Vector3 vert(vx,vy,vz);
 
-          get_dca(track, gvertexmap, dca3dxy, dca3dz,
-                  dca3dxysigma, dca3dzsigma);
+          auto dcapair = TrackAnalysisUtils::get_dca(track, vert);
+	  dca3dxy = dcapair.first.first;
+	  dca3dxysigma = dcapair.first.second;
+	  dca3dz = dcapair.second.first;
+	  dca3dzsigma = dcapair.second.second;
         }
         float px = track->get_px();
         float py = track->get_py();
@@ -4150,62 +4159,4 @@ TMatrixF SvtxEvaluator::calculateClusterError(TrkrCluster* c, float& clusphi)
   TMatrixF err(3, 3);
   err = ROT * localErr * ROT_T;
   return err;
-}
-
-void SvtxEvaluator::get_dca(SvtxTrack* track, GlobalVertexMap* vertexmap,
-                            float& dca3dxy, float& dca3dz,
-                            float& dca3dxysigma, float& dca3dzsigma)
-{
-  Acts::Vector3 pos(track->get_x(),
-                    track->get_y(),
-                    track->get_z());
-  Acts::Vector3 mom(track->get_px(),
-                    track->get_py(),
-                    track->get_pz());
-
-  auto vtxid = track->get_vertex_id();
-  auto svtxVertex = vertexmap->get(vtxid);
-  if (!svtxVertex)
-  {
-    return;
-  }
-  Acts::Vector3 vertex(svtxVertex->get_x(),
-                       svtxVertex->get_y(),
-                       svtxVertex->get_z());
-
-  pos -= vertex;
-
-  Acts::ActsSymMatrix<3> posCov;
-  for (int i = 0; i < 3; ++i)
-  {
-    for (int j = 0; j < 3; ++j)
-    {
-      posCov(i, j) = track->get_error(i, j);
-    }
-  }
-
-  Acts::Vector3 r = mom.cross(Acts::Vector3(0., 0., 1.));
-  float phi = atan2(r(1), r(0));
-
-  Acts::RotationMatrix3 rot;
-  Acts::RotationMatrix3 rot_T;
-  rot(0, 0) = cos(phi);
-  rot(0, 1) = -sin(phi);
-  rot(0, 2) = 0;
-  rot(1, 0) = sin(phi);
-  rot(1, 1) = cos(phi);
-  rot(1, 2) = 0;
-  rot(2, 0) = 0;
-  rot(2, 1) = 0;
-  rot(2, 2) = 1;
-
-  rot_T = rot.transpose();
-
-  Acts::Vector3 pos_R = rot * pos;
-  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
-
-  dca3dxy = pos_R(0);
-  dca3dz = pos_R(2);
-  dca3dxysigma = sqrt(rotCov(0, 0));
-  dca3dzsigma = sqrt(rotCov(2, 2));
 }
