@@ -39,7 +39,7 @@ Fun4AllRolloverFileOutStream::Fun4AllRolloverFileOutStream(const std::string &fr
   m_Increment = increment;
   if (m_Increment <= 0)
   {
-    m_Increment = 1;  //safety belt against overwriting files
+    m_Increment = 1;  // safety belt against overwriting files
   }
 }
 

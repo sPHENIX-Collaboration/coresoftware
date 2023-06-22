@@ -41,9 +41,10 @@ int Fun4AllPrdfOutputManager::InitPrdfNode(PHCompositeNode *top_node, const stri
   }
 
   // check name wrt default
-  if (nodeName != "SIMPRDF") {
+  if (nodeName != "SIMPRDF")
+  {
     cout << "Fun4AllPrdfOutputManager::InitPrdfNode - WARNING: nodeName is \"" << nodeName << "\". most systems expect \"SIMPRDF\" and this is most likely not going to work" << endl;
-}
+  }
 
   // create node
   m_PrdfNode = new PHCompositeNode(nodeName.c_str());
@@ -56,15 +57,19 @@ int Fun4AllPrdfOutputManager::outfileopen(const string &fname)
 {
   if (m_PrdfOutManager)
   {
-    if (Verbosity()) { cout << "Fun4AllPrdfOutputManager::outfileopen - closing file \"" << OutFileName() << "\"" << endl;
-}
+    if (Verbosity())
+    {
+      cout << "Fun4AllPrdfOutputManager::outfileopen - closing file \"" << OutFileName() << "\"" << endl;
+    }
     delete m_PrdfOutManager;
     m_PrdfOutManager = nullptr;
   }
 
   OutFileName(fname);
-  if (Verbosity()) { cout << "Fun4AllPrdfOutputManager::outfileopen - writing to file \"" << OutFileName() << "\"" << endl;
-}
+  if (Verbosity())
+  {
+    cout << "Fun4AllPrdfOutputManager::outfileopen - writing to file \"" << OutFileName() << "\"" << endl;
+  }
 
   return 0;
 }
@@ -80,8 +85,10 @@ int Fun4AllPrdfOutputManager::Write(PHCompositeNode * /*node*/)
   }
 
   // check m_PrdfOutManager
-  if (!m_PrdfOutManager) { InitPrdfManager();
-}
+  if (!m_PrdfOutManager)
+  {
+    InitPrdfManager();
+  }
   if (!m_PrdfOutManager)
   {
     cout << "Fun4AllPrdfOutputManager::Write - prdf manager not initialized" << endl;
@@ -96,8 +103,10 @@ int Fun4AllPrdfOutputManager::Write(PHCompositeNode * /*node*/)
 //______________________________________________________
 int Fun4AllPrdfOutputManager::InitPrdfManager()
 {
-  if (m_PrdfOutManager) { return -1;
-}
+  if (m_PrdfOutManager)
+  {
+    return -1;
+  }
 
   // retrieve run number from recoConsts
   recoConsts *rc = recoConsts::instance();
