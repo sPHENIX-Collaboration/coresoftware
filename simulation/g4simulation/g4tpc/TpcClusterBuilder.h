@@ -36,6 +36,7 @@ class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class TrkrTruthTrack;
 class TrkrTruthTrackContainer;
+class ClusHitsVerbosev1;
 
 // This is the basic data for each set of TrkrHits from each TrkrHitsSet 
 // to be used in tpc/TpcClusterizer.cc
@@ -97,6 +98,8 @@ class TpcClusterBuilder {
   // for pixel thresholds
   private:
   double m_pixel_thresholdrat { 0.01 };
+  ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
+
   public:
   void clear_hitsetkey_cnt();
   void set_pixel_thresholdrat (double val) { m_pixel_thresholdrat = val; };
@@ -105,6 +108,7 @@ class TpcClusterBuilder {
       TrkrClusterContainer* _truth_cluster_container
     , ActsGeometry*                 _ActsGeometry
     , PHG4TpcCylinderGeomContainer* _geom_container
+    , ClusHitsVerbosev1*            _clushitsverbose
   );
 };
 

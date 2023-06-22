@@ -1,7 +1,6 @@
 #ifndef TRUTHTRKMATCHER__H
 #define TRUTHTRKMATCHER__H
-
-#include "g4evaltools.h"  // has some G4Eval tools (TrkrClusterComparer)
+#include "TrackClusEvaluator.h"
 
 #include <fun4all/SubsysReco.h>
 
@@ -29,6 +28,7 @@ class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrTruthTrack;
 class TrkrTruthTrackContainer;
+class TrkrClusterIsMatcher;
 class TTree;
 class TFile;
 
@@ -38,21 +38,29 @@ class TruthRecoTrackMatching : public SubsysReco
   // Standard public interface
   //--------------------------------------------------
  public:
-  TruthRecoTrackMatching(                                                                                                                                                                                                                                                                                                                                                           // Criteria to match a TrkrClusterContainer and track
-                                                                                                                                                                                                                                                                                                                                                                                    /*-----------------------------------------------------------------------------------
-                                                                                                                                                                                                                                                                                                                                                                                     * Input criteria for Truth Track (with nT clusters) to reco track (with nR clusters) :
-                                                                                                                                                                                                                                                                                                                                                                                     *  - nmin_match  : minimum number of clusters in Truth and Reco track that must
-                                                                                                                                                                                                                                                                                                                                                                                     *                  match for tracks to match
-                                                                                                                                                                                                                                                                                                                                                                                     *  - cutoff_dphi : maximum distance out in |phi_truth-phi_reco| for a matched track
-                                                                                                                                                                                                                                                                                                                                                                                     *  - same_dphi   : within this distance, all tracks must be checked
-                                                                                                                                                                                                                                                                                                                                                                                     *  - cutoff_deta :   like cutoff_dphi but for eta
-                                                                                                                                                                                                                                                                                                                                                                                     *  - same_deta   :   like same_dphi but for eta
-                                                                                                                                                                                                                                                                                                                                                                                     *  - cluster_nzwidths   : z-distance allowed for the truth center to be from
-                                                                                                                                                                                                                                                                                                                                                                                     *                         reco-cluster center:
-                                                                                                                                                                                                                                                                                                                                                                                     *                         |z_true-z_reco| must be <= dz_reco * cluster_nzwidths
-                                                                                                                                                                                                                                                                                                                                                                                     *  - cluster_nphiwidths : like cluster_nzwidths for phi
-                                                                                                                                                                                                                                                                                                                                                                                     *--------------------------------------------------------*/
-      const unsigned short _nmin_match = 4, const float _nmin_ratio = 0., const float _cutoff_dphi = 0.3, const float _same_dphi = 0.05, const float _cutoff_deta = 0.3, const float _same_deta = 0.05, const float _cluster_nzwidths = 0.5, const float _cluster_nphiwidths = 0.5, const unsigned short _max_nreco_per_truth = 4, const unsigned short _max_ntruth_per_reco = 4);  // for some output kinematis
+  TruthRecoTrackMatching( // Criteria to match a TrkrClusterContainer and track
+      /*-----------------------------------------------------------------------------------
+      * Input criteria for Truth Track (with nT clusters) to reco track (with nR clusters) :
+      *  - nmin_match  : minimum number of clusters in Truth and Reco track that must
+      *                  match for tracks to match
+      *  - cutoff_dphi : maximum distance out in |phi_truth-phi_reco| for a matched track
+      *  - same_dphi   : within this distance, all tracks must be checked
+      *  - cutoff_deta :   like cutoff_dphi but for eta
+      *  - same_deta   :   like same_dphi but for eta
+      *  - cluster_nzwidths   : z-distance allowed for the truth center to be from
+      *                         reco-cluster center:
+      *                         |z_true-z_reco| must be <= dz_reco * cluster_nzwidths
+      *  - cluster_nphiwidths : like cluster_nzwidths for phi
+      *--------------------------------------------------------*/
+        TrkrClusterIsMatcher* _ismatcher 
+      , const unsigned short _nmin_match = 4
+      , const float _nmin_ratio          = 0.
+      , const float _cutoff_dphi         = 0.3
+      , const float _same_dphi           = 0.05
+      , const float _cutoff_deta         = 0.3
+      , const float _same_deta           = 0.05
+      , const unsigned short _max_nreco_per_truth = 4
+      , const unsigned short _max_ntruth_per_reco = 4);  // for some output kinematis
 
   ~TruthRecoTrackMatching() override = default;
   int Init(PHCompositeNode*) override { return 0; };
@@ -60,18 +68,18 @@ class TruthRecoTrackMatching : public SubsysReco
   int process_event(PHCompositeNode*) override;  //`
   int End(PHCompositeNode*) override;
 
-  G4Eval::TrkrClusterComparer m_cluster_comp;
-  G4Eval::ClusCntr m_cluscntr;
+  TrackClusEvaluator    m_TCEval   ;
+  TrkrClusterIsMatcher* m_ismatcher {nullptr};
 
   int createNodes(PHCompositeNode* topNode);
 
-  void set_cluster_nphiwidths(float val) { m_cluster_comp.set_nphi_widths(val); };
-  void set_cluster_nzwidths(float val) { m_cluster_comp.set_nz_widths(val); };
-  void set_cutoff_deta(float val) { m_cutoff_deta = val; };
-  void set_cutoff_dphi(float val) { m_cutoff_dphi = val; };
-  void set_nmin_truth_cluster_ratio(float val) { m_nmincluster_ratio = val; };
-  void set_smallsearch_deta(float val) { m_same_deta = val; };
-  void set_smallsearch_dphi(float val) { m_same_dphi = val; };
+  void set_min_cl_match             (unsigned short val) { m_nmincluster_match = val; };
+  void set_min_cl_ratio             (float val) { m_nmincluster_ratio  = val  ; };
+  void set_cutoff_deta              (float val) { m_cutoff_deta        = val; };
+  void set_cutoff_dphi              (float val) { m_cutoff_dphi        = val; };
+  void set_nmin_truth_cluster_ratio (float val) { m_nmincluster_ratio  = val; };
+  void set_smallsearch_deta         (float val) { m_same_deta          = val; };
+  void set_smallsearch_dphi         (float val) { m_same_dphi          = val; };
 
   void set_max_nreco_per_truth(unsigned short val) { m_max_nreco_per_truth = val; };
   void set_max_ntruth_per_reco(unsigned short val) { m_max_ntruth_per_reco = val; };
@@ -86,7 +94,7 @@ class TruthRecoTrackMatching : public SubsysReco
   //--------------------------------------------------
 
   unsigned short m_nmincluster_match;  // minimum of matched clustered to keep a truth to emb match
-  float m_nmincluster_ratio;           // minimum ratio of truth clustered that must be matched in reconstructed track
+  float          m_nmincluster_ratio;           // minimum ratio of truth clustered that must be matched in reconstructed track
 
   double m_cutoff_dphi;  // how far in |phi_truth-phi_reco| to match
   double m_same_dphi;    // |phi_truth-phi_reco| to auto-evaluate (is < _m_cutoff_dphi)

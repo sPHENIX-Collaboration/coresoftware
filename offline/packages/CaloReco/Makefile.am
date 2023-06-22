@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
-  libcalo_reco.la 
+  libcalo_reco.la
 
 #
 libcalo_reco_la_LDFLAGS = \
@@ -53,7 +53,10 @@ pkginclude_HEADERS = \
   RawClusterBuilderTemplate.h \
   RawClusterPositionCorrection.h \
   RawClusterZVertexRecorrect.h \
-  RawTowerCalibration.h 
+  RawTowerCalibration.h \
+  RawTowerDeadTowerInterp.h \
+  RawTowerDeadMapLoader.h \
+  RawClusterDeadAreaMask.h
 endif
 
 if USE_ONLINE
@@ -76,11 +79,11 @@ libcalo_reco_la_SOURCES = \
   RawClusterBuilderTemplate.cc \
   RawClusterPositionCorrection.cc \
   RawClusterZVertexRecorrect.cc \
-  RawClusterDeadAreaMask.cc \
   RawTowerCombiner.cc \
   RawTowerCalibration.cc \
   RawTowerDeadTowerInterp.cc \
-  RawTowerDeadMapLoader.cc
+  RawTowerDeadMapLoader.cc \
+  RawClusterDeadAreaMask.cc
 endif
 
 ################################################

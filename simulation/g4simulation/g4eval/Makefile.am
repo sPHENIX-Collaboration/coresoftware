@@ -48,8 +48,7 @@ pkginclude_HEADERS = \
   DSTEmulator.h \
   EventEvaluator.h \
   FillTruthRecoMatchMap.h \
-  FillTruthRecoMatchTree.h \
-  g4evaltools.h \
+  FillClusMatchTree.h \
   JetEvalStack.h \
   JetEvaluator.h \
   JetRecoEval.h \
@@ -65,6 +64,11 @@ pkginclude_HEADERS = \
   SvtxTruthEval.h \
   SvtxTruthRecoTableEval.h \
   SvtxVertexEval.h \
+  g4evalfn.h \
+  ClusKeyIter.h \
+  TrackClusEvaluator.h \
+  TrkrClusterIsMatcher.h \
+	TrkrClusLoc.h \
   TrackEvaluation.h \
   TrackEvaluationContainer.h \
   TrackEvaluationContainerv1.h  \
@@ -96,8 +100,7 @@ libg4eval_la_SOURCES = \
   DSTEmulator.cc \
   EventEvaluator.cc \
   FillTruthRecoMatchMap.cc \
-  FillTruthRecoMatchTree.cc \
-  g4evaltools.cc \
+  FillClusMatchTree.cc \
   JetEvalStack.cc \
   JetEvaluator.cc \
   JetRecoEval.cc \
@@ -113,6 +116,10 @@ libg4eval_la_SOURCES = \
   SvtxTruthEval.cc \
   SvtxTruthRecoTableEval.cc \
   SvtxVertexEval.cc \
+  g4evalfn.cc \
+  ClusKeyIter.cc \
+  TrackClusEvaluator.cc \
+  TrkrClusterIsMatcher.cc \
   TrackEvaluation.cc \
   TrackSeedTrackMapConverter.cc \
   TruthRecoTrackMatching.cc
