@@ -56,6 +56,18 @@ Fun4AllPrdfInputPoolManager::~Fun4AllPrdfInputPoolManager()
     fileclose();
   }
   delete m_SyncObject;
+  for (auto iter : m_PrdfInputVector)
+  {
+    delete iter;
+  }
+  for (auto pktinfoiter : m_PacketMap)
+  {
+    for (auto &pktiter : pktinfoiter.second.PacketVector)
+    {
+      delete pktiter;
+    }
+  }
+  delete oph;
 }
 
 int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
@@ -78,6 +90,10 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
   PHNodeIterator iter(m_topNode);
   PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
   PrdfNode->setData(m_Event);
+  for (auto &pktiter : pktinfoiter->second.PacketVector)
+  {
+    delete pktiter;
+  }
   m_PacketMap.erase(pktinfoiter);
   for (auto prdfiter : m_PrdfInputVector)
   {

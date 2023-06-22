@@ -17,6 +17,7 @@ SinglePrdfInput::SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolMa
 SinglePrdfInput::~SinglePrdfInput()
 {
   delete m_EventIterator;
+  delete [] plist;
 }
 
 void SinglePrdfInput::AddPrdfInputFile(const std::string &filename)
@@ -85,7 +86,12 @@ void SinglePrdfInput::FillPool()
           evtno += m_EventNumberOffset + m_NumSpecialEvents + (EventSequence & 0xFFFF0000);
           m_InputMgr->AddPacket(evtno, plist[i]);
         }
+	else
+	{
+	  delete plist[i];
+	}
       }
+      delete evt;
       m_PoolEvents++;
     }
   }
