@@ -88,7 +88,7 @@ int Fun4AllPrdfInputManager::fileopen(const std::string &filenam)
   return 0;
 }
 
-int Fun4AllPrdfInputManager::run(const int nevents)
+int Fun4AllPrdfInputManager::run(const int  /*nevents*/)
 {
 readagain:
   if (!IsOpen())
