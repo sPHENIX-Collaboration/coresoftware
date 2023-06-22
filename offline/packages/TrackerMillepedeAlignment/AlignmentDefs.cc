@@ -111,7 +111,7 @@ int AlignmentDefs::getTpcRegion(int layer)
   return region;
 }
 
-int AlignmentDefs::getClamshell(int layer, int stave)
+int AlignmentDefs::getMvtxClamshell(int layer, int stave)
 {
   for(int istave=0;istave<nstaves_layer_mvtx[layer];++istave)
     {
@@ -123,7 +123,7 @@ int AlignmentDefs::getClamshell(int layer, int stave)
 	}
     }
 
-  std::cout << " AlignemntDefs::getClamshell: did not find stave " << stave << std::endl; 
+  std::cout << " AlignemntDefs::getMvtxClamshell: did not find stave " << stave << std::endl; 
   return  0;
 
 }
@@ -163,7 +163,7 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
       {
 	// layer only, assign all sensors to sensor 0 in each clamshell
 	int stave = sensor / nsensors_stave[layer];
-	int clamshell = getClamshell(layer, stave);
+	int clamshell = getMvtxClamshell(layer, stave);
 	label_base += layer * 1000000 + clamshell*10000;
 	//	std::cout << " mvtx group 2 layer " << layer << " sensor " << sensor << " stave " << stave 
 	//	  << " clamshell " << clamshell << " label_base " << label_base << std::endl; 
@@ -285,6 +285,147 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
     }
   }
   return -1;
+}
+
+std::vector<int> AlignmentDefs::getAllMvtxGlobalLabels(int grp)
+{
+  std::vector<int> labels;
+  std::vector<int> label_base;
+
+  if(grp == mvtxGrp::clamshl)
+    {
+      for(int ishl=0;ishl<2;++ishl)
+	{
+	  int label = 1 + 0 * 1000000 + ishl*10000;
+	  label_base.push_back(label);
+	}
+    }
+  else if(grp == mvtxGrp::mvtxlyr)
+    {
+      for(int ishl=0;ishl<2;++ishl)
+	{
+	  for(int ilyr = 0; ilyr < 3; ++ilyr)
+	    {
+	      int label = 1 + ilyr * 1000000 + ishl * 10000;
+	      label_base.push_back(label);
+	    }
+	}
+    }
+  else if(grp == mvtxGrp::stv)
+    {
+      for(int ilyr = 0; ilyr < 3; ++ilyr)
+	{
+	  for(int istv = 0; istv < nstaves_layer_mvtx[ilyr]; ++istv)
+	    {
+	      int label = 1 + ilyr * 1000000 + istv * 10000;		  
+	      label_base.push_back(label);
+	    }
+	}	
+    }
+  else if(grp == mvtxGrp::snsr)
+    {
+      for(int ilyr = 0; ilyr < 3; ++ilyr)
+	{
+	  for(int istv = 0; istv < nstaves_layer_mvtx[ilyr]; ++istv)
+	    {
+	      for(int isnsr=0; isnsr<nsensors_stave[ilyr]; ++ isnsr)
+		{
+		  int label = 1 + ilyr * 1000000 + istv * 10000 + isnsr * 10;		  
+		  label_base.push_back(label);
+		}
+	    }
+	}	
+    }
+
+  for (unsigned int ilbl = 0; ilbl < label_base.size(); ++ilbl)
+    {
+      for(int ipar = 3; ipar < 6;++ipar)
+	{
+	  int label_plus = label_base[ilbl] + ipar;
+	  labels.push_back(label_plus);
+	}
+    }
+  return labels;
+}
+
+std::vector<int> AlignmentDefs::getAllInttGlobalLabels(int grp)
+{
+  std::vector<int> labels;
+  std::vector<int> label_base;
+
+  if(grp == inttGrp::inttbrl)
+    {
+      int  label = 1 + 3 * 1000000 + 0;
+      label_base.push_back(label);
+    }
+  else if(grp == inttGrp::inttlyr)
+    {
+      for(int ilyr = 3; ilyr < 7; ++ilyr)
+	{
+	  int label = 1 + ilyr * 1000000 + 0;
+	  label_base.push_back(label);
+	}
+    }
+  else if(grp == inttGrp::lad)
+    {
+      for(int ilyr = 3; ilyr < 7; ++ilyr)
+	{
+	  for(int istv = 0; istv < nstaves_layer_intt[ilyr-3]; ++istv)
+	    {
+	      int label = 1 + ilyr * 1000000 + istv * 10000;		  
+	      label_base.push_back(label);
+	    }
+	}	
+    }
+  else if(grp == inttGrp::chp)
+    {
+      for(int ilyr = 3; ilyr < 7; ++ilyr)
+	{
+	  for(int istv = 0; istv < nstaves_layer_intt[ilyr-3]; ++istv)
+	    {
+	      for(int isnsr=0; isnsr<nsensors_stave[ilyr]; ++ isnsr)
+		{
+		  int label = 1 + ilyr * 1000000 + istv * 10000 + isnsr * 10;		  
+		  label_base.push_back(label);
+		}
+	    }
+	}	
+    }
+
+  for (unsigned int ilbl = 0; ilbl < label_base.size(); ++ilbl)
+    {
+      for(int ipar = 3; ipar < 6;++ipar)
+	{
+	  int label_plus = label_base[ilbl] + ipar;
+	  labels.push_back(label_plus);
+	}
+    }
+  return labels;
+}
+
+std::vector<int> AlignmentDefs::getAllTpcGlobalLabels(int grp)
+{
+  std::vector<int> labels;
+  std::vector<int> label_base;
+
+  if(grp == tpcGrp::sctr)
+    {
+      for(int isec = 0; isec < 72; ++isec)
+	{
+	  int label = 1 + 7 * 1000000 + isec * 10000;
+	  label_base.push_back(label);
+	}
+    }
+
+  for (unsigned int ilbl = 0; ilbl < label_base.size(); ++ilbl)
+    {
+      for(int ipar = 3; ipar < 6;++ipar)
+	{
+	  int label_plus = label_base[ilbl] + ipar;
+	  labels.push_back(label_plus);
+	}
+    }
+  return labels;
 }
 
 void AlignmentDefs::printBuffers(int index, Acts::Vector2 residual, Acts::Vector2 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[])
