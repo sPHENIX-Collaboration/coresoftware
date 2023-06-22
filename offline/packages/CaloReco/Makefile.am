@@ -56,7 +56,7 @@ pkginclude_HEADERS = \
   RawTowerCalibration.h \
   RawTowerDeadTowerInterp.h \
   RawTowerDeadMapLoader.h \
-	RawClusterDeadAreaMask.h
+  RawClusterDeadAreaMask.h
 endif
 
 if USE_ONLINE
@@ -83,7 +83,7 @@ libcalo_reco_la_SOURCES = \
   RawTowerCalibration.cc \
   RawTowerDeadTowerInterp.cc \
   RawTowerDeadMapLoader.cc \
-	RawClusterDeadAreaMask.cc
+  RawClusterDeadAreaMask.cc
 endif
 
 ################################################
