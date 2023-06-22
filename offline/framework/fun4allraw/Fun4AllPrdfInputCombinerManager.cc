@@ -17,7 +17,7 @@
 #include <phool/PHDataNode.h>
 #include <phool/PHNode.h>          // for PHNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>               // for PHObject
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/phool.h>           // for PHWHERE
 
 #include <Event/A_Event.h>
@@ -30,7 +30,6 @@
 #include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream, endl
 #include <utility>   // for pair
-
 
 Fun4AllPrdfInputCombinerManager::Fun4AllPrdfInputCombinerManager(const std::string &name, const std::string &prdfnodename, const std::string &topnodename)
   : Fun4AllInputManager(name, prdfnodename, topnodename)
@@ -46,7 +45,7 @@ Fun4AllPrdfInputCombinerManager::Fun4AllPrdfInputCombinerManager(const std::stri
     PHDataNode<Event> *newNode = new PHDataNode<Event>(m_Event, m_PrdfNodeName, "Event");
     m_topNode->addNode(newNode);
   }
-  oph = new oEvent(workmem,4*1024*1024, 1,1,1);
+  oph = new oEvent(workmem, 4 * 1024 * 1024, 1, 1, 1);
   return;
 }
 
@@ -57,117 +56,111 @@ Fun4AllPrdfInputCombinerManager::~Fun4AllPrdfInputCombinerManager()
     fileclose();
   }
   delete m_SyncObject;
-  for (auto &event : m_EventCombiner)
-  {
-    delete event.second;
-  }
-  m_EventCombiner.clear();
 }
 
-
-int Fun4AllPrdfInputCombinerManager::run(const int nevents)
+int Fun4AllPrdfInputCombinerManager::run(const int /*nevents*/)
 {
   for (auto iter : m_PrdfInputVector)
   {
-  iter->FillPool();
-  m_RunNumber = iter->RunNumber();
+    iter->FillPool();
+    m_RunNumber = iter->RunNumber();
   }
   SetRunNumber(m_RunNumber);
   std::cout << "next event is " << m_PacketMap.begin()->first << std::endl;
   auto pktinfoiter = m_PacketMap.begin();
   oph->prepare_next(pktinfoiter->first, m_RunNumber);
-  for (auto pktiter = pktinfoiter->second.PacketVector.begin(); pktiter != pktinfoiter->second.PacketVector.end(); ++pktiter)
+  for (auto &pktiter : pktinfoiter->second.PacketVector)
   {
-oph->addPacket((*pktiter));
+    oph->addPacket(pktiter);
   }
-      m_Event = new A_Event(workmem);
-	  m_Event->identify();
-PHNodeIterator iter(m_topNode);
+  m_Event = new A_Event(workmem);
+  m_Event->identify();
+  PHNodeIterator iter(m_topNode);
   PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
-PrdfNode->setData(m_Event);
-m_PacketMap.erase(pktinfoiter);
+  PrdfNode->setData(m_Event);
+  m_PacketMap.erase(pktinfoiter);
   for (auto prdfiter : m_PrdfInputVector)
   {
     prdfiter->UsedOneEvent();
   }
 
   return 0;
-// readagain:
-//   if (!IsOpen())
-//   {
-//     if (FileListEmpty())
-//     {
-//       if (Verbosity() > 0)
-//       {
-//         std::cout << Name() << ": No Input file open" << std::endl;
-//       }
-//       return -1;
-//     }
-//     else
-//     {
-//       if (OpenNextFile())
-//       {
-//         std::cout << Name() << ": No Input file from filelist opened" << std::endl;
-//         return -1;
-//       }
-//     }
-//   }
-//   if (Verbosity() > 3)
-//   {
-//     std::cout << "Getting Event from " << Name() << std::endl;
-//   }
-// // Fill Event combiner
-//   unsigned int watermark = m_EventCombiner.size();
-//   if (watermark < m_LowWaterMark)
-//   {
-//     for (unsigned int i = watermark; i < m_CombinerDepth; i++)
-//     {
-//       Event *evt = m_EventIterator->getNextEvent();
-//       std::cout << "Filling combiner with event " << evt->getEvtSequence() << std::endl;
-//       m_EventCombiner.insert(std::make_pair(evt->getEvtSequence(), evt));
-//     }
-//   }
-//   //  std::cout << "running event " << nevents << std::endl;
-//   PHNodeIterator iter(m_topNode);
-//   PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
-//   if (m_SaveEvent)  // if an event was pushed back, copy saved pointer and reset m_SaveEvent pointer
-//   {
-//     m_Event = m_SaveEvent;
-//     m_SaveEvent = nullptr;
-//     m_EventsThisFile--;
-//     m_EventsTotal--;
-//   }
-//   else
-//   {
-//     m_Event = m_EventCombiner.begin()->second;
-//   }
-//   PrdfNode->setData(m_Event);
-//   if (!m_Event)
-//   {
-//     fileclose();
-//     goto readagain;
-//   }
-//   if (Verbosity() > 1)
-//   {
-//     std::cout << Name() << " PRDF run " << m_Event->getRunNumber() << ", evt no: " << m_Event->getEvtSequence() << std::endl;
-//   }
-//   m_EventsTotal++;
-//   m_EventsThisFile++;
-//   SetRunNumber(m_Event->getRunNumber());
-//   MySyncManager()->PrdfEvents(m_EventsThisFile);
-//   MySyncManager()->SegmentNumber(m_Segment);
-//   MySyncManager()->CurrentEvent(m_Event->getEvtSequence());
-//   m_SyncObject->EventCounter(m_EventsThisFile);
-//   m_SyncObject->SegmentNumber(m_Segment);
-//   m_SyncObject->RunNumber(m_Event->getRunNumber());
-//   m_SyncObject->EventNumber(m_Event->getEvtSequence());
-//   // check if the local SubsysReco discards this event
-//   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
-//   {
-//     ResetEvent();
-//     goto readagain;
-//   }
-//  return 0;
+  // readagain:
+  //   if (!IsOpen())
+  //   {
+  //     if (FileListEmpty())
+  //     {
+  //       if (Verbosity() > 0)
+  //       {
+  //         std::cout << Name() << ": No Input file open" << std::endl;
+  //       }
+  //       return -1;
+  //     }
+  //     else
+  //     {
+  //       if (OpenNextFile())
+  //       {
+  //         std::cout << Name() << ": No Input file from filelist opened" << std::endl;
+  //         return -1;
+  //       }
+  //     }
+  //   }
+  //   if (Verbosity() > 3)
+  //   {
+  //     std::cout << "Getting Event from " << Name() << std::endl;
+  //   }
+  // // Fill Event combiner
+  //   unsigned int watermark = m_EventCombiner.size();
+  //   if (watermark < m_LowWaterMark)
+  //   {
+  //     for (unsigned int i = watermark; i < m_CombinerDepth; i++)
+  //     {
+  //       Event *evt = m_EventIterator->getNextEvent();
+  //       std::cout << "Filling combiner with event " << evt->getEvtSequence() << std::endl;
+  //       m_EventCombiner.insert(std::make_pair(evt->getEvtSequence(), evt));
+  //     }
+  //   }
+  //   //  std::cout << "running event " << nevents << std::endl;
+  //   PHNodeIterator iter(m_topNode);
+  //   PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
+  //   if (m_SaveEvent)  // if an event was pushed back, copy saved pointer and reset m_SaveEvent pointer
+  //   {
+  //     m_Event = m_SaveEvent;
+  //     m_SaveEvent = nullptr;
+  //     m_EventsThisFile--;
+  //     m_EventsTotal--;
+  //   }
+  //   else
+  //   {
+  //     m_Event = m_EventCombiner.begin()->second;
+  //   }
+  //   PrdfNode->setData(m_Event);
+  //   if (!m_Event)
+  //   {
+  //     fileclose();
+  //     goto readagain;
+  //   }
+  //   if (Verbosity() > 1)
+  //   {
+  //     std::cout << Name() << " PRDF run " << m_Event->getRunNumber() << ", evt no: " << m_Event->getEvtSequence() << std::endl;
+  //   }
+  //   m_EventsTotal++;
+  //   m_EventsThisFile++;
+  //   SetRunNumber(m_Event->getRunNumber());
+  //   MySyncManager()->PrdfEvents(m_EventsThisFile);
+  //   MySyncManager()->SegmentNumber(m_Segment);
+  //   MySyncManager()->CurrentEvent(m_Event->getEvtSequence());
+  //   m_SyncObject->EventCounter(m_EventsThisFile);
+  //   m_SyncObject->SegmentNumber(m_Segment);
+  //   m_SyncObject->RunNumber(m_Event->getRunNumber());
+  //   m_SyncObject->EventNumber(m_Event->getEvtSequence());
+  //   // check if the local SubsysReco discards this event
+  //   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
+  //   {
+  //     ResetEvent();
+  //     goto readagain;
+  //   }
+  //  return 0;
 }
 
 int Fun4AllPrdfInputCombinerManager::fileclose()
@@ -193,11 +186,11 @@ int Fun4AllPrdfInputCombinerManager::ResetEvent()
   PrdfNode->setData(nullptr);  // set pointer in Node to nullptr before deleting it
   delete m_Event;
   m_Event = nullptr;
-//  m_SyncObject->Reset();
+  //  m_SyncObject->Reset();
   return 0;
 }
 
-int Fun4AllPrdfInputCombinerManager::PushBackEvents(const int i)
+int Fun4AllPrdfInputCombinerManager::PushBackEvents(const int /*i*/)
 {
   return 0;
   // PushBackEvents is supposedly pushing events back on the stack which works
@@ -282,7 +275,7 @@ int Fun4AllPrdfInputCombinerManager::SyncIt(const SyncObject *mastersync)
     std::cout << "opened by the Fun4AllDstInputManager with Name " << Name() << " has one" << std::endl;
     std::cout << "Change your macro and use the file opened by this input manager as first input" << std::endl;
     std::cout << "and you will be okay. Fun4All will not process the current configuration" << std::endl
-         << std::endl;
+              << std::endl;
     return Fun4AllReturnCodes::SYNC_FAIL;
   }
   int iret = m_SyncObject->Different(mastersync);
@@ -314,7 +307,7 @@ SinglePrdfInput *Fun4AllPrdfInputCombinerManager::AddPrdfInputFile(const std::st
   SinglePrdfInput *prdfin = new SinglePrdfInput("PRDFIN_" + std::to_string(m_PrdfInputVector.size()), this);
   prdfin->AddPrdfInputFile(filenam);
   m_PrdfInputVector.push_back(prdfin);
-  return  m_PrdfInputVector.back();
+  return m_PrdfInputVector.back();
 }
 
 void Fun4AllPrdfInputCombinerManager::AddPacket(const int evtno, Packet *p)
