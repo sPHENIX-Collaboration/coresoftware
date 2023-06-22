@@ -1,13 +1,13 @@
 #include "SinglePrdfInput.h"
 
-#include "Fun4AllPrdfInputCombinerManager.h"
+#include "Fun4AllPrdfInputPoolManager.h"
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
-SinglePrdfInput::SinglePrdfInput(const std::string &name,  Fun4AllPrdfInputCombinerManager *inman)
+SinglePrdfInput::SinglePrdfInput(const std::string &name,  Fun4AllPrdfInputPoolManager *inman)
 : Fun4AllBase(name)
 , m_InputMgr(inman)
 {

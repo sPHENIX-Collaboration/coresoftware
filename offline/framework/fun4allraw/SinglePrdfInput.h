@@ -9,13 +9,13 @@
 #include <vector>
 
 class Eventiterator;
-class Fun4AllPrdfInputCombinerManager;
+class Fun4AllPrdfInputPoolManager;
 class Packet;
 
 class SinglePrdfInput: public Fun4AllBase
 {
 public:
-  explicit SinglePrdfInput(const std::string &name,  Fun4AllPrdfInputCombinerManager *inman);
+  explicit SinglePrdfInput(const std::string &name,  Fun4AllPrdfInputPoolManager *inman);
   ~SinglePrdfInput() override;
   Eventiterator *GetEventIterator() {return m_EventIterator;}
   void AddPrdfInputFile(const std::string &filename);
@@ -25,7 +25,7 @@ public:
 
 private:
   Eventiterator *m_EventIterator = nullptr;
-  Fun4AllPrdfInputCombinerManager *m_InputMgr = nullptr;
+  Fun4AllPrdfInputPoolManager *m_InputMgr = nullptr;
   Packet **plist = nullptr;
   unsigned int m_NumSpecialEvents = 0;
   unsigned int m_EventNumberOffset = 1; // packet event counters start at 0 but we start with event number 1
