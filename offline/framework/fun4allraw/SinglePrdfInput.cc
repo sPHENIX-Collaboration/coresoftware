@@ -24,38 +24,40 @@ SinglePrdfInput::~SinglePrdfInput()
   delete [] plist;
 }
 
-void SinglePrdfInput::AddPrdfInputFile(const std::string &filename)
-{
-  m_FileList.push_back(filename);
-  m_FileListCopy.push_back(filename);
-}
-
 void SinglePrdfInput::FillPool()
 {
+  if (AllDone()) // no more files and all events read
+  {
+    return;
+  }
   if (m_EventMap.size() > m_LowWaterMark)
   {
     return;
   }
 
-  if (m_EventIterator == nullptr)
+  while (m_EventIterator == nullptr)
   {
-    int status = 0;
-    std::cout << "opening " << m_FileList.front() << std::endl;
-    m_EventIterator = new fileEventiterator(m_FileList.front().c_str(), status);
-    if (status)
-    {
-      delete m_EventIterator;
-      m_EventIterator = nullptr;
-      return;
-    }
+    OpenNextFile();
   }
   if (m_PoolEvents <= m_LowWaterMark)
   {
     while (m_PoolEvents <= m_PoolDepth)
     {
       Event *evt = m_EventIterator->getNextEvent();
+      if (!evt)
+      {
+        fileclose();
+        if (!OpenNextFile())
+	{
+          AllDone(1);
+	  return;
+	}
+      }
       m_RunNumber = evt->getRunNumber();
-      evt->identify();
+      if (GetVerbosity() > 1)
+      {
+        evt->identify();
+      }
       if (evt->getEvtType() != DATAEVENT)
       {
         m_NumSpecialEvents++;
@@ -113,7 +115,7 @@ int SinglePrdfInput::fileopen(const std::string &filenam)
   FileName(filenam);
   FROG frog;
   std::string fname = frog.location(FileName());
-  if (Verbosity() > 0)
+//  if (Verbosity() > 0)
   {
     std::cout << Name() << ": opening file " << FileName() << std::endl;
   }

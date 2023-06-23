@@ -19,12 +19,13 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
   explicit SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman);
   ~SinglePrdfInput() override;
   Eventiterator *GetEventIterator() { return m_EventIterator; }
-  void AddPrdfInputFile(const std::string &filename);
   void FillPool();
   int RunNumber() const { return m_RunNumber; }
   void UsedOneEvent() { m_PoolEvents--; }
   int fileopen(const std::string &filename) override;
   int fileclose() override;
+  int AllDone() const {return m_AllDone;}
+  void AllDone(const int i) {m_AllDone = i;}
 
  private:
   Eventiterator *m_EventIterator = nullptr;
@@ -37,10 +38,8 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
   unsigned int m_LowWaterMark = 5;
   int m_RunNumber = 0;
   int m_EventsThisFile = 0;
+  int m_AllDone = 0;
   std::map<int, std::vector<Packet *>> m_EventMap;
-  std::list<std::string> m_FileList;
-  std::list<std::string> m_FileListCopy;
-  std::list<std::string> m_FileListOpened;  // all files which were opened durin
 };
 
 #endif

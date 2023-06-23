@@ -78,7 +78,12 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
     m_RunNumber = iter->RunNumber();
   }
   SetRunNumber(m_RunNumber);
-  std::cout << "next event is " << m_PacketMap.begin()->first << std::endl;
+  if(m_PacketMap.empty())
+  {
+    std::cout << "we are done" << std::endl;
+    return -1;
+  }
+//  std::cout << "next event is " << m_PacketMap.begin()->first << std::endl;
   auto pktinfoiter = m_PacketMap.begin();
   oph->prepare_next(pktinfoiter->first, m_RunNumber);
   for (auto &pktiter : pktinfoiter->second.PacketVector)
@@ -86,7 +91,10 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
     oph->addPacket(pktiter);
   }
   m_Event = new A_Event(workmem);
-  m_Event->identify();
+  if (Verbosity() > 1)
+  {
+    m_Event->identify();
+  }
   PHNodeIterator iter(m_topNode);
   PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
   PrdfNode->setData(m_Event);
@@ -314,21 +322,26 @@ std::string Fun4AllPrdfInputPoolManager::GetString(const std::string &what) cons
 
 SinglePrdfInput *Fun4AllPrdfInputPoolManager::AddPrdfInputFile(const std::string &filenam)
 {
-  FROG frog;
-  std::string fname = frog.location(filenam);
-  if (Verbosity() > 0)
-  {
-    std::cout << Name() << ": opening file " << filenam << std::endl;
-  }
   SinglePrdfInput *prdfin = new SinglePrdfInput("PRDFIN_" + std::to_string(m_PrdfInputVector.size()), this);
-  prdfin->AddPrdfInputFile(filenam);
+  prdfin->AddFile(filenam);
+  m_PrdfInputVector.push_back(prdfin);
+  return m_PrdfInputVector.back();
+}
+
+SinglePrdfInput *Fun4AllPrdfInputPoolManager::AddPrdfInputList(const std::string &filenam)
+{
+  SinglePrdfInput *prdfin = new SinglePrdfInput("PRDFIN_" + std::to_string(m_PrdfInputVector.size()), this);
+  prdfin->AddListFile(filenam);
   m_PrdfInputVector.push_back(prdfin);
   return m_PrdfInputVector.back();
 }
 
 void Fun4AllPrdfInputPoolManager::AddPacket(const int evtno, Packet *p)
 {
-  std::cout << "Adding packet " << p->getIdentifier() << " to event no " << evtno << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "Adding packet " << p->getIdentifier() << " to event no " << evtno << std::endl;
+  }
   m_PacketMap[evtno].PacketVector.push_back(p);
 }
 
