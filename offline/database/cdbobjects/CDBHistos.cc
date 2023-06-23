@@ -1,7 +1,5 @@
 #include "CDBHistos.h"
 
-#include <phool/phool.h>
-
 #include <TClass.h>       // for TClass
 #include <TCollection.h>  // for TIter
 #include <TDirectory.h>   // for TDirectoryAtomicAdapter, TDirectory, gDirec...
@@ -34,7 +32,7 @@ void CDBHistos::WriteCDBHistos()
 {
   if (m_HistoMap.empty())
   {
-    std::cout << PHWHERE << " no histograms to be saved " << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << " no histograms to be saved " << std::endl;
     return;
   }
   std::string currdir = gDirectory->GetPath();
@@ -53,13 +51,13 @@ void CDBHistos::LoadCalibrations()
   TFile *fin = TFile::Open(m_Filename.c_str());
   if (fin == nullptr)
   {
-    std::cout << PHWHERE << " Could not open " << m_Filename << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << " Could not open " << m_Filename << std::endl;
     return;
   }
   TList *list = fin->GetListOfKeys();
   if (!list)
   {
-    std::cout << PHWHERE << " No keys found in " << m_Filename << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << " No keys found in " << m_Filename << std::endl;
     fin->Close();
     gROOT->cd(currdir.c_str());  // restore previous directory
     return;
@@ -97,7 +95,7 @@ void CDBHistos::registerHisto(TH1 *h1)
   const auto iter = m_HistoMap.find(h1->GetName());
   if (iter != m_HistoMap.end())
   {
-    std::cout << PHWHERE << " Histogram " << h1->GetName() << " already registered, use a different name and try again" << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << " Histogram " << h1->GetName() << " already registered, use a different name and try again" << std::endl;
     gSystem->Exit(1);
   }
   m_HistoMap.insert(std::make_pair(h1->GetName(), h1));
@@ -109,7 +107,7 @@ TH1 *CDBHistos::getHisto(const std::string &name)
   const auto iter = m_HistoMap.find(name);
   if (iter == m_HistoMap.end())
   {
-    std::cout << PHWHERE << ": Histogram " << name << " not found" << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << ": Histogram " << name << " not found" << std::endl;
     return nullptr;
   }
   return iter->second;
