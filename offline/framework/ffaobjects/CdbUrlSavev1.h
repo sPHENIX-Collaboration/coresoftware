@@ -11,6 +11,8 @@
 #include <tuple>
 #include <vector>  // for vector<>::const_iterator, vector
 
+class PHObject;
+
 ///
 class CdbUrlSavev1 : public CdbUrlSave
 {

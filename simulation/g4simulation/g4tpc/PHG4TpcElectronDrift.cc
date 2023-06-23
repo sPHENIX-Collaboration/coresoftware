@@ -10,6 +10,7 @@
 #include <g4main/PHG4Particlev3.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
+#include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
@@ -23,7 +24,6 @@
 #include <g4tracking/TrkrTruthTrackContainerv1.h>
 
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterv4.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterContainerv4.h>
@@ -176,6 +176,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     auto newNode = new PHIODataNode<PHObject>(truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
     DetNode->addNode(newNode);
   }
+
   truthclustercontainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_TRUTHCLUSTERCONTAINER");
   if (!truthclustercontainer)
   {
@@ -194,13 +195,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
   seggeonodename = "CYLINDERCELLGEOM_SVTX";  // + detector;
   seggeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
-  if (!seggeo)
-  {
-    seggeo = new PHG4TpcCylinderGeomContainer();
-    auto newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
-    runNode->addNode(newNode);
-  }
-
+  assert( seggeo );
   
   UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
@@ -302,7 +297,6 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   }
 
   padplane->InitRun(topNode);
-  padplane->CreateReadoutGeometry(topNode, seggeo);
 
   // print all layers radii
   if (Verbosity())
@@ -322,12 +316,32 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     }
     std::cout << std::endl;
   }
+
+  if (record_ClusHitsVerbose) {
+    // get the node
+    mClusHitsVerbose = findNode::getClass<ClusHitsVerbosev1>(topNode, "Trkr_TruthClusHitsVerbose");
+    if (!mClusHitsVerbose)
+    {
+      PHNodeIterator dstiter(dstNode);
+      auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode("TRKR");
+        dstNode->addNode(DetNode);
+      }
+      mClusHitsVerbose = new ClusHitsVerbosev1();
+      auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_TruthClusHitsVerbose", "PHObject");
+      DetNode->addNode(newNode);
+    }
+  }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
+  truth_track = nullptr; // track to which truth clusters are built
+
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_tGeometry)
   {
@@ -335,19 +349,13 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if (truth_clusterer == nullptr)  {
-    /* if (Verbosity()) std::cout << " truth clusterer was a null pointer " << std::endl; */
-    truth_clusterer = new TpcClusterBuilder(truthclustercontainer, m_tGeometry, seggeo);
-  } else {
-    if (Verbosity()) std::cout << " truth clusterer was NOT a null pointer " << std::endl;
+  if (truth_clusterer.needs_input_nodes) {
+    truth_clusterer.set_input_nodes( truthclustercontainer, m_tGeometry,
+        seggeo, mClusHitsVerbose);
   }
 
 
   static constexpr unsigned int print_layer = 18;
-  truth_clusterer->is_embedded_track = false;
-  std::map<TrkrDefs::hitsetkey,unsigned int> hitset_cnt; // needed for indexing the TrkrClusters into the TrkrClusterContainer
-  /* std::map<TrkrDefs::hitsetkey, std::vector<TrkrHitv*>> truthtrack_hits; */
-
 
   // tells m_distortionMap which event to look at
   if (m_distortionMap)
@@ -386,6 +394,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
   int trkid = -1;
 
+  PHG4Hit* prior_g4hit = nullptr; // used to check for jumps in g4hits;
+  // if there is a big jump (such as crossing into the INTT area or out of the TPC)
+  // then cluster the truth clusters before adding a new hit. This prevents
+  // clustering loopers in the same HitSetKey surfaces in multiple passes
   for (auto hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     count_g4hits++;
@@ -400,24 +412,41 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     int trkid_new = hiter->second->get_trkid();
     if (trkid != trkid_new)
     {  // starting a new track
-      truth_clusterer->cluster_and_reset(/*argument is if to reset hitsetkey as well*/ false);
+      prior_g4hit = nullptr;
+      if (truth_track) truth_clusterer.cluster_hits(truth_track);
       trkid = trkid_new;
-      truth_clusterer->is_embedded_track = (truthinfo->isEmbeded(trkid));
-      if (Verbosity() > 1000){
-        std::cout << " New track " << trkid << " is embed? : " 
-          << truth_clusterer->is_embedded_track << std::endl;
+
+      if (Verbosity() > 1000) std::cout << " New track : " << trkid << " is embed? : ";
+
+      if (truthinfo->isEmbeded(trkid)) { 
+        truth_track = truthtracks->getTruthTrack(trkid, truthinfo);
+        truth_clusterer.b_collect_hits = true;
+        if (Verbosity() > 1000) { std::cout << " YES embedded" << std::endl; }
+      } else {
+        truth_track = nullptr;
+        truth_clusterer.b_collect_hits = false;
+        if (Verbosity() > 1000) { std::cout << " NOT embedded" << std::endl; }
       }
-      if (truth_clusterer->is_embedded_track) 
-      { // build new TrkrTruthTrack
-        current_track = truthtracks->getTruthTrack(trkid, truthinfo);
-        truth_clusterer->set_current_track(current_track);
-      } 
     }
+
+    // see if there is a jump in x or y relative to previous PHG4Hit
+    if (truth_clusterer.b_collect_hits) {
+      if (prior_g4hit) {
+        // if the g4hits jump in x or y by > max_g4hit_jump, cluster the truth tracks
+        if ( std::abs(prior_g4hit->get_x(0)-hiter->second->get_x(0)) > max_g4hitstep
+          || std::abs(prior_g4hit->get_y(0)-hiter->second->get_y(0)) > max_g4hitstep 
+        ) {
+          truth_clusterer.cluster_hits(truth_track);
+        }
+      }
+      prior_g4hit = hiter->second;
+    }
+
     // for very high occupancy events, accessing the TrkrHitsets on the node tree 
     // for every drifted electron seems to be very slow
     // Instead, use a temporary map to accumulate the charge from all 
     // drifted electrons, then copy to the node tree later
-    
+
     double eion = hiter->second->get_eion();
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
     //    count_electrons += n_electrons;
@@ -562,7 +591,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         assert(nt);
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
       }
-      // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
       padplane->MapToPadPlane(truth_clusterer, single_hitsetcontainer.get(),
           temp_hitsetcontainer.get(), hittruthassoc, x_final, y_final, t_final,
           side, hiter, ntpad, nthit);
@@ -673,7 +701,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
   }  // end loop over g4hits
 
-  truth_clusterer->cluster_and_reset(/*argument is if to reset hitsetkey as well*/ true);
+  if (truth_track) truth_clusterer.cluster_hits(truth_track);
+  truth_clusterer.clear_hitsetkey_cnt();
 
   if (Verbosity() > 20)
   {
@@ -725,8 +754,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   }
 
   if (Verbosity()>800) {
-    truth_clusterer->print(truthtracks);
-    truth_clusterer->print_file(truthtracks,"drift_clusters.txt");
+    truth_clusterer.print(truthtracks);
+    truth_clusterer.print_file(truthtracks,"drift_clusters.txt");
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -807,9 +836,6 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
   return;
 }
 
-PHG4TpcElectronDrift::~PHG4TpcElectronDrift() {
-  if (truth_clusterer != nullptr) delete truth_clusterer;
-}
 
 void PHG4TpcElectronDrift::setTpcDistortion(PHG4TpcDistortion *distortionMap)
 {

@@ -12,13 +12,13 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainerv1.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-#include <g4vertex/GlobalVertex.h>
-#include <g4vertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
 
 #include <fun4all/Fun4AllBase.h>             // for Fun4AllBase::VERBOSITY_MORE
 #include <fun4all/SubsysReco.h>
@@ -141,21 +141,21 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
     {
       if (Verbosity() >= VERBOSITY_EVEN_MORE) std::cout << Name() << "::ClusterIso starting subtracted calculation" << '\n';
       //get EMCal towers
-      RawTowerContainer *towersEM3old = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER_SUB1");
+      TowerInfoContainer *towersEM3old = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1");
       if (towersEM3old == nullptr)
       {
         m_do_subtracted = false;
         if (Verbosity() >= VERBOSITY_SOME) std::cout << "In " << Name() << "::ClusterIso WARNING substracted towers do not exist subtracted isolation cannot be preformed \n";
       }
-      if (Verbosity() >= VERBOSITY_MORE) std::cout << Name() << "::ClusterIso::process_event: " << towersEM3old->size() << " TOWER_CALIB_CEMC_RETOWER_SUB1 towers" << '\n';
+      if (Verbosity() >= VERBOSITY_MORE) std::cout << Name() << "::ClusterIso::process_event: " << towersEM3old->size() << " TOWERINFO_CALIB_CEMC_RETOWER_SUB1 towers" << '\n';
 
       //get InnerHCal towers
-      RawTowerContainer *towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN_SUB1");
-      if (Verbosity() >= VERBOSITY_MORE) std::cout << Name() << "::ClusterIso::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN_SUB1 towers" << '\n';
+      TowerInfoContainer *towersIH3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN_SUB1");
+      if (Verbosity() >= VERBOSITY_MORE) std::cout << Name() << "::ClusterIso::process_event: " << towersIH3->size() << " TOWERINFO_CALIB_HCALIN_SUB1 towers" << '\n';
 
       //get outerHCal towers
-      RawTowerContainer *towersOH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT_SUB1");
-      if (Verbosity() >= VERBOSITY_MORE) std::cout << Name() << "::ClusterIso::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT_SUB1 towers" << std::endl;
+      TowerInfoContainer *towersOH3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT_SUB1");
+      if (Verbosity() >= VERBOSITY_MORE) std::cout << Name() << "::ClusterIso::process_event: " << towersOH3->size() << " TOWERINFO_CALIB_HCALOUT_SUB1 towers" << std::endl;
 
       //get geometry of calorimeter towers
       RawTowerGeomContainer *geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
@@ -202,11 +202,17 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 
           //calculate EMCal tower contribution to isolation energy
           {
-            RawTowerContainer::ConstRange begin_end = towersEM3old->getTowers();
-            for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+	    unsigned int ntowers = towersEM3old->size();
+	    for (unsigned int channel = 0; channel < ntowers;channel++)
             {
-              RawTower *tower = rtiter->second;
-              RawTowerGeom *tower_geom = geomEM->get_tower_geometry(tower->get_key());
+	      TowerInfo *tower = towersEM3old->get_tower_at_channel(channel);
+	      unsigned int towerkey = towersEM3old->encode_key(channel);
+	      int ieta = towersEM3old->getTowerEtaBin(towerkey);
+	      int iphi = towersEM3old->getTowerPhiBin(towerkey);
+
+	      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta, iphi);
+	      
+              RawTowerGeom *tower_geom = geomEM->get_tower_geometry(key);
               double this_phi = tower_geom->get_phi();
               double this_eta = tower_geom->get_eta();
               if (deltaR(cluster_eta, this_eta, cluster_phi, this_phi) < m_coneSize)
@@ -218,11 +224,15 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 
           //calculate Inner HCal tower contribution to isolation energy
           {
-            RawTowerContainer::ConstRange begin_end = towersIH3->getTowers();
-            for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+	    unsigned int ntowers = towersIH3->size();
+	    for (unsigned int channel = 0; channel < ntowers;channel++)
             {
-              RawTower *tower = rtiter->second;
-              RawTowerGeom *tower_geom = geomIH->get_tower_geometry(tower->get_key());
+ 	      TowerInfo *tower = towersIH3->get_tower_at_channel(channel);
+	      unsigned int towerkey =towersIH3->encode_key(channel);
+	      int ieta = towersIH3->getTowerEtaBin(towerkey);
+	      int iphi = towersIH3->getTowerPhiBin(towerkey);
+	      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta, iphi);
+	      RawTowerGeom *tower_geom = geomIH->get_tower_geometry(key);
               double this_phi = tower_geom->get_phi();
               double this_eta = getTowerEta(tower_geom, m_vx, m_vy, m_vz);
               if (deltaR(cluster_eta, this_eta, cluster_phi, this_phi) < m_coneSize)
@@ -234,11 +244,15 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 
           //calculate Outer HCal tower contribution to isolation energy
           {
-            RawTowerContainer::ConstRange begin_end = towersOH3->getTowers();
-            for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+   	    unsigned int ntowers = towersOH3->size();
+	    for (unsigned int channel = 0; channel < ntowers;channel++)
             {
-              RawTower *tower = rtiter->second;
-              RawTowerGeom *tower_geom = geomOH->get_tower_geometry(tower->get_key());
+   	      TowerInfo *tower = towersOH3->get_tower_at_channel(channel);
+	      unsigned int towerkey =towersOH3->encode_key(channel);
+	      int ieta = towersOH3->getTowerEtaBin(towerkey);
+	      int iphi = towersOH3->getTowerPhiBin(towerkey);
+	      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ieta, iphi);
+	      RawTowerGeom *tower_geom = geomOH->get_tower_geometry(key);
               double this_phi = tower_geom->get_phi();
               double this_eta = getTowerEta(tower_geom, m_vx, m_vy, m_vz);
               if (deltaR(cluster_eta, this_eta, cluster_phi, this_phi) < m_coneSize)
@@ -263,21 +277,21 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
   if (m_do_unsubtracted)
   {
     /**
-		 * This second section repeats the isolation calculation without any background subtraction 
-		 */
+     * This second section repeats the isolation calculation without any background subtraction 
+     */
     if (Verbosity() >= VERBOSITY_EVEN_MORE) std::cout << Name() << "::ClusterIso starting unsubtracted calculation" << '\n';
     {
       //get EMCal towers
-      RawTowerContainer *towersEM3old = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
-      if (Verbosity() >= VERBOSITY_MORE) std::cout << "ClusterIso::process_event: " << towersEM3old->size() << " TOWER_CALIB_CEMC towers" << '\n';
+      TowerInfoContainer *towersEM3old = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC");
+      if (Verbosity() >= VERBOSITY_MORE) std::cout << "ClusterIso::process_event: " << towersEM3old->size() << " TOWERINFO_CALIB_CEMC towers" << '\n';
 
       //get InnerHCal towers
-      RawTowerContainer *towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
-      if (Verbosity() >= VERBOSITY_MORE) std::cout << "ClusterIso::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN towers" << '\n';
+      TowerInfoContainer *towersIH3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN");
+      if (Verbosity() >= VERBOSITY_MORE) std::cout << "ClusterIso::process_event: " << towersIH3->size() << " TOWERINFO_CALIB_HCALIN towers" << '\n';
 
       //get outerHCal towers
-      RawTowerContainer *towersOH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
-      if (Verbosity() >= VERBOSITY_MORE) std::cout << "ClusterIso::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
+      TowerInfoContainer *towersOH3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT");
+      if (Verbosity() >= VERBOSITY_MORE) std::cout << "ClusterIso::process_event: " << towersOH3->size() << " TOWERINFO_CALIB_HCALOUT towers" << std::endl;
 
       //get geometry of calorimeter towers
       RawTowerGeomContainer *geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
@@ -327,27 +341,35 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 
           //calculate EMCal tower contribution to isolation energy
           {
-            RawTowerContainer::ConstRange begin_end = towersEM3old->getTowers();
-            for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
-            {
-              RawTower *tower = rtiter->second;
-              RawTowerGeom *tower_geom = geomEM->get_tower_geometry(tower->get_key());
-              double this_phi = tower_geom->get_phi();
-              double this_eta = getTowerEta(tower_geom, m_vx, m_vy, m_vz);
-              if (deltaR(cluster_eta, this_eta, cluster_phi, this_phi) < m_coneSize)
-              {
-                isoEt += tower->get_energy() / cosh(this_eta);  //if tower is in cone, add energy
-              }
-            }
+	    unsigned int ntowers = towersEM3old->size();
+	    for (unsigned int channel = 0; channel < ntowers;channel++)
+	      {
+		TowerInfo *tower = towersEM3old->get_tower_at_channel(channel);
+		unsigned int towerkey = towersEM3old->encode_key(channel);
+		int ieta = towersEM3old->getTowerEtaBin(towerkey);
+		int iphi = towersEM3old->getTowerPhiBin(towerkey);
+		const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ieta, iphi);
+		RawTowerGeom *tower_geom = geomEM->get_tower_geometry(key);
+		double this_phi = tower_geom->get_phi();
+		double this_eta = getTowerEta(tower_geom, m_vx, m_vy, m_vz);
+		if (deltaR(cluster_eta, this_eta, cluster_phi, this_phi) < m_coneSize)
+		  {
+		    isoEt += tower->get_energy() / cosh(this_eta);  //if tower is in cone, add energy
+		  }
+	      }
           }
           if (Verbosity() >= VERBOSITY_MAX) std::cout << "\t after EMCal isoEt:" << isoEt << '\n';
           //calculate Inner HCal tower contribution to isolation energy
           {
-            RawTowerContainer::ConstRange begin_end = towersIH3->getTowers();
-            for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+	    unsigned int ntowers = towersIH3->size();
+	    for (unsigned int channel = 0; channel < ntowers;channel++)
             {
-              RawTower *tower = rtiter->second;
-              RawTowerGeom *tower_geom = geomIH->get_tower_geometry(tower->get_key());
+	      TowerInfo *tower = towersIH3->get_tower_at_channel(channel);
+	      unsigned int towerkey = towersIH3->encode_key(channel);
+	      int ieta = towersIH3->getTowerEtaBin(towerkey);
+	      int iphi = towersIH3->getTowerPhiBin(towerkey);
+	      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta, iphi);
+	      RawTowerGeom *tower_geom = geomIH->get_tower_geometry(key);
               double this_phi = tower_geom->get_phi();
               double this_eta = getTowerEta(tower_geom, m_vx, m_vy, m_vz);
               if (deltaR(cluster_eta, this_eta, cluster_phi, this_phi) < m_coneSize)
@@ -359,18 +381,22 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
           if (Verbosity() >= VERBOSITY_MAX) std::cout << "\t after innerHCal isoEt:" << isoEt << '\n';
           //calculate Outer HCal tower contribution to isolation energy
           {
-            RawTowerContainer::ConstRange begin_end = towersOH3->getTowers();
-            for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
-            {
-              RawTower *tower = rtiter->second;
-              RawTowerGeom *tower_geom = geomOH->get_tower_geometry(tower->get_key());
-              double this_phi = tower_geom->get_phi();
-              double this_eta = getTowerEta(tower_geom, m_vx, m_vy, m_vz);
-              if (deltaR(cluster_eta, this_eta, cluster_phi, this_phi) < m_coneSize)
-              {
-                isoEt += tower->get_energy() / cosh(this_eta);  //if tower is in cone, add energy
-              }
-            }
+ 	    unsigned int ntowers = towersOH3->size();
+	    for (unsigned int channel = 0; channel < ntowers;channel++)
+	      {
+		TowerInfo *tower = towersOH3->get_tower_at_channel(channel);
+		unsigned int towerkey = towersOH3->encode_key(channel);
+		int ieta = towersOH3->getTowerEtaBin(towerkey);
+		int iphi = towersOH3->getTowerPhiBin(towerkey);
+		const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ieta, iphi);
+		RawTowerGeom *tower_geom = geomOH->get_tower_geometry(key);
+		double this_phi = tower_geom->get_phi();
+		double this_eta = getTowerEta(tower_geom, m_vx, m_vy, m_vz);
+		if (deltaR(cluster_eta, this_eta, cluster_phi, this_phi) < m_coneSize)
+		  {
+		    isoEt += tower->get_energy() / cosh(this_eta);  //if tower is in cone, add energy
+		  }
+	      }
           }
           if (Verbosity() >= VERBOSITY_MAX) std::cout << "\t after outerHCal isoEt:" << isoEt << '\n';
           isoEt -= et;  //Subtract cluster eT from isoET

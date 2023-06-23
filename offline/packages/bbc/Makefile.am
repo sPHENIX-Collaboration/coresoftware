@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
-  libbbc.la
+  libbbc_io.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -19,6 +19,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  BbcDefs.h \
   BbcOut.h \
   BbcOutV1.h \
   BbcNorthSouth.h \
@@ -27,14 +28,49 @@ pkginclude_HEADERS = \
   BbcPmtContainerV1.h \
   BbcPmtHit.h \
   BbcPmtHitV1.h \
-  BbcReturnCodes.h
+  BbcReconstruction.h \
+  BbcReturnCodes.h \
+  BbcVertex.h \
+  BbcVertexv1.h \
+  BbcVertexv2.h \
+  BbcVertexMap.h \
+  BbcVertexMapv1.h
+
+ROOTDICTS = \
+  BbcOut_Dict.cc \
+  BbcOutV1_Dict.cc \
+  BbcNorthSouth_Dict.cc \
+  BbcNorthSouthV1_Dict.cc \
+  BbcPmtHit_Dict.cc \
+  BbcPmtHitV1_Dict.cc \
+  BbcPmtContainer_Dict.cc \
+  BbcPmtContainerV1_Dict.cc \
+  BbcVertex_Dict.cc \
+  BbcVertexv1_Dict.cc \
+  BbcVertexv2_Dict.cc \
+  BbcVertexMap_Dict.cc \
+  BbcVertexMapv1_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  Bbc_Dict_rdict.pcm
 
-libbbc_la_SOURCES = \
-  Bbc_Dict.cc \
+nobase_dist_pcm_DATA = \
+  BbcOut_Dict_rdict.pcm \
+  BbcOutV1_Dict_rdict.pcm \
+  BbcNorthSouth_Dict_rdict.pcm \
+  BbcNorthSouthV1_Dict_rdict.pcm \
+  BbcPmtHit_Dict_rdict.pcm \
+  BbcPmtHitV1_Dict_rdict.pcm \
+  BbcPmtContainer_Dict_rdict.pcm \
+  BbcPmtContainerV1_Dict_rdict.pcm \
+  BbcVertex_Dict_rdict.pcm \
+  BbcVertexv1_Dict_rdict.pcm \
+  BbcVertexv2_Dict_rdict.pcm \
+  BbcVertexMap_Dict_rdict.pcm \
+  BbcVertexMapv1_Dict_rdict.pcm
+
+
+libbbc_io_la_SOURCES = \
+  $(ROOTDICTS) \
   BbcOut.cc \
   BbcOutV1.cc \
   BbcNorthSouth.cc \
@@ -42,17 +78,23 @@ libbbc_la_SOURCES = \
   BbcPmtHit.cc \
   BbcPmtHitV1.cc \
   BbcPmtContainer.cc \
-  BbcPmtContainerV1.cc
+  BbcPmtContainerV1.cc \
+  BbcReconstruction.cc \
+  BbcVertexv1.cc \
+  BbcVertexv2.cc \
+  BbcVertexMap.cc \
+  BbcVertexMapv1.cc
 
-libbbc_la_LIBADD = \
-  -lphool
+libbbc_io_la_LIBADD = \
+  -lphool \
+  -lSubsysReco
 
 # Rule for generating table CINT dictionaries.
-Bbc_Dict.cc: BbcOut.h  BbcOutV1.h BbcNorthSouth.h BbcNorthSouthV1.h BbcPmtContainer.h  BbcPmtContainerV1.h BbcPmtHit.h BbcPmtHitV1.h BbcLinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
-Bbc_Dict_rdict.pcm: Bbc_Dict.cc ;
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 
 ################################################
@@ -62,10 +104,10 @@ BUILT_SOURCES = \
   testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals_bbc
+  testexternals
 
-testexternals_bbc_SOURCES = testexternals.cc
-testexternals_bbc_LDADD = libbbc.la
+testexternals_SOURCES = testexternals.cc
+testexternals_LDADD = libbbc_io.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

@@ -6,8 +6,8 @@
 #include <g4eval/JetRecoEval.h>
 #include <g4eval/JetTruthEval.h>
 
-#include <g4jets/Jet.h>
-#include <g4jets/JetMap.h>
+#include <jetbase/Jet.h>
+#include <jetbase/JetMap.h>
 
 #include <g4main/PHG4HitDefs.h>
 #include <g4main/PHG4Shower.h>

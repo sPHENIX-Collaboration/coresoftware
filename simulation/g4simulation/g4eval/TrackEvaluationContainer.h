@@ -13,23 +13,21 @@
 
 //! track evaluation container base class
 /*! this is the base class. Does nothing */
-class TrackEvaluationContainer: public PHObject
+class TrackEvaluationContainer : public PHObject
 {
-  
-  public:
-  
+ public:
   //! constructor
   explicit TrackEvaluationContainer()
-  {}
-  
-  //! copy constructor
-  explicit TrackEvaluationContainer(const TrackEvaluationContainer &) = delete;
-  
-  //! assignment operator
-  TrackEvaluationContainer& operator = ( const TrackEvaluationContainer& ) = delete;
+  {
+  }
 
-  ClassDefOverride(TrackEvaluationContainer,1)
-    
+  //! copy constructor
+  explicit TrackEvaluationContainer(const TrackEvaluationContainer&) = delete;
+
+  //! assignment operator
+  TrackEvaluationContainer& operator=(const TrackEvaluationContainer&) = delete;
+
+  ClassDefOverride(TrackEvaluationContainer, 1)
 };
 
 #endif

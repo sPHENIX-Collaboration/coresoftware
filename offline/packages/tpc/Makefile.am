@@ -3,18 +3,10 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = \
-  libtpc_io.la \
-  libtpc.la
-
-mydatadir = $(datadir)/$(PACKAGE)
-dist_mydata_DATA = \
-  net_model.pt
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include 
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -22,9 +14,30 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64
 
+if USE_ONLINE
+
+lib_LTLIBRARIES = \
+  libtpc.la
+
+pkginclude_HEADERS = \
+  TpcMap.h
+
+libtpc_la_SOURCES = \
+  TpcMap.cc
+
+noinst_PROGRAMS = \
+  testexternals_tpc
+
+else
+
+lib_LTLIBRARIES = \
+  libtpc_io.la \
+  libtpc.la
+
 pkginclude_HEADERS = \
   TrainingHitsContainer.h \
   TrainingHits.h \
+  TpcRawDataTree.h \
   TpcClusterCleaner.h \
   TpcClusterizer.h \
   TpcClusterMover.h \
@@ -32,6 +45,8 @@ pkginclude_HEADERS = \
   TpcDistortionCorrection.h \
   TpcDistortionCorrectionContainer.h \
   TpcLoadDistortionCorrection.h \
+  TpcMap.h \
+  TpcRawDataDecoder.h \
   TpcRawWriter.h \
   TpcSimpleClusterizer.h
 
@@ -44,11 +59,18 @@ nobase_dist_pcm_DATA = \
   TrainingHitsContainer_Dict_rdict.pcm \
   TrainingHits_Dict_rdict.pcm
 
+mydatadir = $(datadir)/$(PACKAGE)
+dist_mydata_DATA = \
+  net_model.pt
+
 # sources for tpc library
 libtpc_la_SOURCES = \
+  TpcRawDataTree.cc \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
   TpcLoadDistortionCorrection.cc \
+  TpcMap.cc \
+  TpcRawDataDecoder.cc \
   TpcRawWriter.cc \
   TpcSimpleClusterizer.cc
 
@@ -76,6 +98,11 @@ libtpc_io_la_LIBADD = \
   -lg4detectors_io \
   -ltrackbase_historic_io
 
+noinst_PROGRAMS = \
+  testexternals_tpc_io \
+  testexternals_tpc
+
+endif
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -88,10 +115,6 @@ libtpc_io_la_LIBADD = \
 # linking tests
 
 BUILT_SOURCES = testexternals.cc
-
-noinst_PROGRAMS = \
-  testexternals_tpc_io \
-  testexternals_tpc
 
 testexternals_tpc_io_SOURCES = testexternals.cc
 testexternals_tpc_io_LDADD = libtpc_io.la

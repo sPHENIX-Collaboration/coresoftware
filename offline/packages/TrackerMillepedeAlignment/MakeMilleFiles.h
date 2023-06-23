@@ -10,6 +10,8 @@
 #ifndef MAKEMILLEFILES_H
 #define MAKEMILLEFILES_H
 
+#include "AlignmentDefs.h"
+
 #include <fun4all/SubsysReco.h>
 
 #include <string>
@@ -32,24 +34,6 @@ class Mille;
 
 using Trajectory = ActsExamples::Trajectories;
 
-enum siliconGroup
-{
-  sensor,
-  stave,
-  barrel
-};
-enum tpcGroup
-{
-  hitset,
-  sector,
-  tpc
-};
-enum mmsGroup
-{
-  tile,
-  mms
-};
-
 class MakeMilleFiles : public SubsysReco
 {
  public:
@@ -60,15 +44,29 @@ class MakeMilleFiles : public SubsysReco
   int End(PHCompositeNode* topNode) override;
 
   void set_binary(bool bin) { _binary = bin; }
-
+  void set_constraintfile_name(const std::string& file) { m_constraintFileName = file; }
   void set_datafile_name(const std::string& file) { data_outfilename = file; }
   void set_steeringfile_name(const std::string& file) { steering_outfilename = file; }
-  void set_silicon_grouping(int group) { si_group = (siliconGroup) group; }
-  void set_tpc_grouping(int group) { tpc_group = (tpcGroup) group; }
-  void set_mms_grouping(int group) { mms_group = (mmsGroup) group; }
+  void set_mvtx_grouping(int group) { mvtx_group = (AlignmentDefs::mvtxGrp) group; }
+  void set_intt_grouping(int group) { intt_group = (AlignmentDefs::inttGrp) group; }
+  void set_tpc_grouping(int group) { tpc_group = (AlignmentDefs::tpcGrp) group; }
+  void set_mms_grouping(int group) { mms_group = (AlignmentDefs::mmsGrp) group; }
   void set_layer_fixed(unsigned int layer);
-  void set_layer_param_fixed(unsigned int layer, unsigned int param);
+  void set_layer_gparam_fixed(unsigned int layer, unsigned int param);
+  void set_layer_lparam_fixed(unsigned int layer, unsigned int param);
   void set_cluster_version(unsigned int v) { _cluster_version = v; }
+  void set_layers_fixed(unsigned int minlayer, unsigned int maxlayer);
+  void set_error_inflation_factor(unsigned int layer, float factor)
+  {
+    m_layerMisalignment.insert(std::make_pair(layer, factor));
+  }
+  void set_tpc_sector_fixed(unsigned int region, unsigned int sector, 
+			    unsigned int side)
+ {
+   // make a combined subsector index
+   unsigned int subsector = region * 24 + side * 12 + sector;
+   fixed_sectors.insert(subsector);
+ }
 
  private:
   Mille* _mille;
@@ -80,13 +78,11 @@ class MakeMilleFiles : public SubsysReco
                                                            TrkrCluster* cluster,
                                                            Surface surface, int crossing);
 
-  int getLabelBase(Acts::GeometryIdentifier id);
-  int getTpcRegion(int layer);
-
   bool is_layer_fixed(unsigned int layer);
-  bool is_layer_param_fixed(unsigned int layer, unsigned int param);
-  void printBuffers(int index, Acts::Vector3 residual, Acts::Vector3 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[]);
 
+  bool is_layer_param_fixed(unsigned int layer, unsigned int param, std::set<std::pair<unsigned int, unsigned int>>& param_fixed);
+
+  bool is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side);
   void addTrackToMilleFile(SvtxAlignmentStateMap::StateVec statevec);
 
   std::map<int, float> derivativeGL;
@@ -94,21 +90,22 @@ class MakeMilleFiles : public SubsysReco
   std::string steering_outfilename = ("steer.txt");
 
   bool _binary = true;
-  unsigned int _cluster_version = 4;
+  unsigned int _cluster_version = 5;
 
-  bool m_useAnalytic = true;
-
+  std::map<unsigned int, float> m_layerMisalignment;
+  std::set<unsigned int> fixed_sectors;
   // set default groups to lowest level
-  siliconGroup si_group = siliconGroup::sensor;
-  tpcGroup tpc_group = tpcGroup::hitset;
-  mmsGroup mms_group = mmsGroup::tile;
-
-  int nsensors_stave[7] = {9, 9, 9, 4, 4, 4, 4};
+  AlignmentDefs::mvtxGrp mvtx_group = AlignmentDefs::mvtxGrp::snsr;
+  AlignmentDefs::inttGrp intt_group = AlignmentDefs::inttGrp::chp;
+  AlignmentDefs::tpcGrp tpc_group = AlignmentDefs::tpcGrp::htst;
+  AlignmentDefs::mmsGrp mms_group = AlignmentDefs::mmsGrp::tl;
 
   std::set<unsigned int> fixed_layers;
-  std::set<std::pair<unsigned int, unsigned int>> fixed_layer_params;
+  std::set<std::pair<unsigned int, unsigned int>> fixed_layer_gparams, fixed_layer_lparams;
 
-  std::map<unsigned int, unsigned int> base_layer_map = {{10, 0}, {12, 3}, {14, 7}, {16, 55}};
+  std::string m_constraintFileName = "mp2con.txt";
+  std::ofstream m_constraintFile;
+  std::set<int> m_usedConstraintGlbLbl;
 
   SvtxTrackMap* _track_map{nullptr};
   SvtxAlignmentStateMap* _state_map{nullptr};

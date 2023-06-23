@@ -38,6 +38,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
 
  protected:
   bool m_has_intermediates_nTuple;
+  bool m_extrapolateTracksToSV_nTuple;
   bool m_constrain_to_vertex_nTuple;
   bool m_get_all_PVs;
   //int m_num_intermediate_states_nTuple;

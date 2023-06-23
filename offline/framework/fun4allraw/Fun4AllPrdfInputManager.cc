@@ -15,7 +15,7 @@
 #include <phool/PHDataNode.h>
 #include <phool/PHNode.h>          // for PHNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>               // for PHObject
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/phool.h>           // for PHWHERE
 
 #include <Event/Event.h>
@@ -60,8 +60,8 @@ int Fun4AllPrdfInputManager::fileopen(const std::string &filenam)
   if (IsOpen())
   {
     std::cout << "Closing currently open file "
-         << FileName()
-         << " and opening " << filenam << std::endl;
+              << FileName()
+              << " and opening " << filenam << std::endl;
     fileclose();
   }
   FileName(filenam);
@@ -88,7 +88,7 @@ int Fun4AllPrdfInputManager::fileopen(const std::string &filenam)
   return 0;
 }
 
-int Fun4AllPrdfInputManager::run(const int nevents)
+int Fun4AllPrdfInputManager::run(const int /*nevents*/)
 {
 readagain:
   if (!IsOpen())
@@ -206,14 +206,14 @@ int Fun4AllPrdfInputManager::PushBackEvents(const int i)
       return 0;
     }
     std::cout << PHWHERE << Name()
-         << " Fun4AllPrdfInputManager cannot push back " << i << " events into file"
-         << std::endl;
+              << " Fun4AllPrdfInputManager cannot push back " << i << " events into file"
+              << std::endl;
     return -1;
   }
   if (!m_EventIterator)
   {
     std::cout << PHWHERE << Name()
-         << " no file open" << std::endl;
+              << " no file open" << std::endl;
     return -1;
   }
   // Skipping events is implemented as
@@ -227,7 +227,7 @@ int Fun4AllPrdfInputManager::PushBackEvents(const int i)
     if (!m_Event)
     {
       std::cout << "Error after skipping " << i - nevents
-           << " file exhausted?" << std::endl;
+                << " file exhausted?" << std::endl;
       errorflag = -1;
       fileclose();
     }
@@ -275,7 +275,7 @@ int Fun4AllPrdfInputManager::SyncIt(const SyncObject *mastersync)
     std::cout << "opened by the Fun4AllDstInputManager with Name " << Name() << " has one" << std::endl;
     std::cout << "Change your macro and use the file opened by this input manager as first input" << std::endl;
     std::cout << "and you will be okay. Fun4All will not process the current configuration" << std::endl
-         << std::endl;
+              << std::endl;
     return Fun4AllReturnCodes::SYNC_FAIL;
   }
   int iret = m_SyncObject->Different(mastersync);

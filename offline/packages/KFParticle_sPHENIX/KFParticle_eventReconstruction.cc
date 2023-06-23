@@ -26,9 +26,9 @@
 /*****************/
 
 #include "KFParticle_eventReconstruction.h"
-#include "KFParticle_Tools.h" 
+#include "KFParticle_Tools.h"
 
-//KFParticle stuff
+// KFParticle stuff
 #include <KFParticle.h>
 
 #include <algorithm>
@@ -56,9 +56,6 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
                                                  std::vector<std::vector<KFParticle>>& selectedIntermediates,
                                                  int& nPVs, int& multiplicity)
 {
-  //ALICE field is 0.5T but they set it to -5 in KFParticle? Checked momentum sums and -1.4 is more accurate
-  KFParticle::SetField(-1.4e0);
-
   std::vector<KFParticle> primaryVertices;
   if (m_use_fake_pv)
     primaryVertices.push_back(createFakePV());
@@ -137,9 +134,9 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
   for (int i = 0; i < m_num_intermediate_states; ++i) num_tracks_used_by_intermediates += m_num_tracks_from_intermediate[i];
 
   int num_remaining_tracks = m_num_tracks - num_tracks_used_by_intermediates;
-  unsigned int num_pot_inter_a, num_pot_inter_b, num_pot_inter_c, num_pot_inter_d;  //Number of potential intermediates found
+  unsigned int num_pot_inter_a, num_pot_inter_b, num_pot_inter_c, num_pot_inter_d;  // Number of potential intermediates found
   num_pot_inter_a = potentialIntermediates[0].size();
-  num_pot_inter_b = m_num_intermediate_states < 2 ? 1 : potentialIntermediates[1].size();  //Ensure the code inside the loop below is executed
+  num_pot_inter_b = m_num_intermediate_states < 2 ? 1 : potentialIntermediates[1].size();  // Ensure the code inside the loop below is executed
   num_pot_inter_c = m_num_intermediate_states < 3 ? 1 : potentialIntermediates[2].size();
   num_pot_inter_d = m_num_intermediate_states < 4 ? 1 : potentialIntermediates[3].size();
 
@@ -174,7 +171,8 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
             int trackElement_to_remove = -1;
 
             auto it = std::find_if(daughterParticlesAdv.begin(), daughterParticlesAdv.end(),
-                                   [&trackID_to_remove](const KFParticle& obj) { return obj.Id() == trackID_to_remove; });
+                                   [&trackID_to_remove](const KFParticle& obj)
+                                   { return obj.Id() == trackID_to_remove; });
 
             if (it != daughterParticlesAdv.end())
             {
@@ -200,7 +198,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
               required_unique_vertexID += m_daughter_charge[i] * kfp_Tools_evtReco.getParticleMass(m_daughter_name[i].c_str());
             }
 
-            uniqueCombinations = findUniqueDaughterCombinations(num_tracks_used_by_intermediates, m_num_tracks);  //Unique comb of remaining trackIDs
+            uniqueCombinations = findUniqueDaughterCombinations(num_tracks_used_by_intermediates, m_num_tracks);  // Unique comb of remaining trackIDs
 
             listOfTracksToAppend = appendTracksToIntermediates(motherDecayProducts, daughterParticlesAdv, goodTrackIndexAdv_withoutIntermediates, num_remaining_tracks);
 
@@ -237,7 +235,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                   for (int k = 0; k < m_num_intermediate_states; ++k) goodIntermediates[k].push_back(motherDecayProducts[k]);
                   for (int k = 0; k < num_tracks_used_by_intermediates; ++k) goodDaughters[k].push_back(finalTracks[k]);
                   for (int k = 0; k < num_remaining_tracks; ++k)
-                  {  //Need to deal with track mass and PID assignment for extra tracks
+                  {  // Need to deal with track mass and PID assignment for extra tracks
                     int trackArrayID = k + m_num_intermediate_states;
                     KFParticle slowTrack;
                     slowTrack.Create(motherDecayProducts[trackArrayID].Parameters(),
@@ -272,10 +270,10 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
             for (int j = 0; j < m_num_intermediate_states; ++j) goodIntermediates[j].clear();
             for (int j = 0; j < m_num_tracks; ++j) goodDaughters[j].clear();
           }
-        }  //Close forth intermediate
-      }    //Close third intermediate
-    }      //Close second intermediate
-  }        //Close first intermediate
+        }  // Close forth intermediate
+      }    // Close third intermediate
+    }      // Close second intermediate
+  }        // Close first intermediate
 }
 
 void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& selectedMotherCand,
@@ -297,18 +295,18 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
   float required_unique_vertexID = 0;
   for (int i = n_track_start; i < n_track_stop; ++i) required_unique_vertexID += m_daughter_charge[i] * kfp_Tools_evtReco.getParticleMass(m_daughter_name[i].c_str());
 
-  for (unsigned int i_comb = 0; i_comb < goodTracksThatMeetCand.size(); ++i_comb)  //Loop over all good track combinations
+  for (unsigned int i_comb = 0; i_comb < goodTracksThatMeetCand.size(); ++i_comb)  // Loop over all good track combinations
   {
     KFParticle daughterTracks[nTracks];
 
     for (int i_track = 0; i_track < nTracks; ++i_track)
     {
       daughterTracks[i_track] = daughterParticlesCand[goodTracksThatMeetCand[i_comb][i_track]];
-    }  //Build array of the good tracks in that combination
+    }  // Build array of the good tracks in that combination
 
-    for (unsigned int i_uc = 0; i_uc < uniqueCombinations.size(); ++i_uc)  //Loop over unique track PID assignments
+    for (unsigned int i_uc = 0; i_uc < uniqueCombinations.size(); ++i_uc)  // Loop over unique track PID assignments
     {
-      for (unsigned int i_pv = 0; i_pv < primaryVerticesCand.size(); ++i_pv)  //Loop over all PVs in the event
+      for (unsigned int i_pv = 0; i_pv < primaryVerticesCand.size(); ++i_pv)  // Loop over all PVs in the event
       {
         std::string* names = &uniqueCombinations[i_uc][0];
         std::tie(candidate, isGood) = getCombination(daughterTracks, names, primaryVerticesCand[i_pv], m_constrain_to_vertex,
@@ -404,4 +402,9 @@ KFParticle KFParticle_eventReconstruction::createFakePV()
   kfp_vertex.SetId(0);
 
   return kfp_vertex;
+}
+
+void KFParticle_eventReconstruction::setBz(double Bz_Tesla)
+{
+  KFParticle::SetField(Bz_Tesla);
 }

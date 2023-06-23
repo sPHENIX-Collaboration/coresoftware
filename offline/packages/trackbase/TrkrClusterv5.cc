@@ -69,25 +69,15 @@ void TrkrClusterv5::CopyFrom( const TrkrCluster& source )
  
   setLocalX( source.getLocalX() );
   setLocalY( source.getLocalY() );
-  
   setSubSurfKey( source.getSubSurfKey() );
   setAdc( source.getAdc() );
+  setMaxAdc( source.getMaxAdc());
+  setPhiError(source.getPhiError());
+  setZError(source.getZError());
+  setPhiSize(source.getPhiSize());
+  setZSize(source.getZSize());
+  setOverlap(source.getOverlap());
+  setEdge(source.getEdge());
 }
 
-void TrkrClusterv5::CopyFrom( TrkrClusterv5* source )
-{
- 
-  setLocalX( source->getLocalX() );
-  setLocalY( source->getLocalY() );  
-  setSubSurfKey( source->getSubSurfKey() );
-  setAdc( source->getAdc() );
-  setMaxAdc( source->getMaxAdc() );
-  setPhiError( source->getPhiError() );
-  setZError( source->getZError() );
-  setPhiSize( source->getPhiSize() );
-  setZSize( source->getZSize() );
-  setOverlap( source->getOverlap() );
-  setEdge( source->getEdge() );
-
-}
 

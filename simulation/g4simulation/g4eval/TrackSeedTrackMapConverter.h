@@ -4,8 +4,8 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>
 #include <memory>
+#include <string>
 
 class PHCompositeNode;
 class SvtxTrackMap;
@@ -18,7 +18,6 @@ class TrkrClusterContainer;
 class TrackSeedTrackMapConverter : public SubsysReco
 {
  public:
-
   TrackSeedTrackMapConverter(const std::string &name = "TrackSeedTrackMapConverter");
 
   virtual ~TrackSeedTrackMapConverter();
@@ -27,14 +26,13 @@ class TrackSeedTrackMapConverter : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-  void setTrackMapName(const std::string& name) { m_trackMapName = name; }
-  void setTrackSeedName(const std::string& name) { m_trackSeedName = name; }
+  void setTrackMapName(const std::string &name) { m_trackMapName = name; }
+  void setTrackSeedName(const std::string &name) { m_trackSeedName = name; }
 
  private:
-
   int getNodes(PHCompositeNode *topNode);
 
-  void addKeys(std::unique_ptr<SvtxTrack_v4>& track, TrackSeed *seed);
+  void addKeys(std::unique_ptr<SvtxTrack_v4> &track, TrackSeed *seed);
   std::string m_trackMapName = "SvtxTrackMap";
   std::string m_trackSeedName = "TpcTrackSeedContainer";
 
@@ -47,4 +45,4 @@ class TrackSeedTrackMapConverter : public SubsysReco
   ActsGeometry *m_tGeometry = nullptr;
 };
 
-#endif // TRACKSEEDTRACKMAPCONVERTER_H
+#endif  // TRACKSEEDTRACKMAPCONVERTER_H

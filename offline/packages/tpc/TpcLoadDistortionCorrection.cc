@@ -53,22 +53,14 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   // look for distortion calibration object
   PHNodeIterator iter(topNode);
  
-  /// Get the DST node and check
-  auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode)
+  /// Get the RUN node and check
+  auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  if (!runNode)
   {
-    std::cout << "TpcLoadDistortionCorrection::InitRun - DST Node missing, quitting" << std::endl;
+    std::cout << "TpcLoadDistortionCorrection::InitRun - RUN Node missing, quitting" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
  
-  // Get the tracking subnode and create if not found
-  auto svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
-  if (!svtxNode)
-  {
-    svtxNode = new PHCompositeNode("SVTX");
-    dstNode->addNode(svtxNode);
-  }
-
   //create and populate the nodes for each distortion, if present:
   for (int i=0;i<3;i++){
 
@@ -81,7 +73,7 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
 	std::cout << "TpcLoadDistortionCorrection::InitRun - creating TpcDistortionCorrectionContainer in node " << m_node_name[i] << std::endl;
 	distortion_correction_object = new TpcDistortionCorrectionContainer;
 	auto node = new PHDataNode<TpcDistortionCorrectionContainer>(distortion_correction_object, m_node_name[i]);
-	svtxNode->addNode(node);
+	runNode->addNode(node);
       }
 
     std::cout << "TpcLoadDistortionCorrection::InitRun - reading corrections from " << m_correction_filename[i] << std::endl;
@@ -93,11 +85,11 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
       }
 
     const std::array<const std::string,2> extension = {{ "_negz", "_posz" }};
-    for( int i =0; i < 2; ++i )
+    for( int j =0; j < 2; ++j )
       {
-	distortion_correction_object->m_hDPint[i] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionP%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDPint[i] );
-	distortion_correction_object->m_hDRint[i] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionR%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDRint[i] );
-	distortion_correction_object->m_hDZint[i] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionZ%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDZint[i] );
+	distortion_correction_object->m_hDPint[j] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionP%s", extension[j].c_str()))); assert( distortion_correction_object->m_hDPint[j] );
+	distortion_correction_object->m_hDRint[j] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionR%s", extension[j].c_str()))); assert( distortion_correction_object->m_hDRint[j] );
+	distortion_correction_object->m_hDZint[j] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionZ%s", extension[j].c_str()))); assert( distortion_correction_object->m_hDZint[j] );
       }
 
       // assign correction object dimension from histograms dimention, assuming all histograms have the same

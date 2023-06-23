@@ -20,6 +20,8 @@ class TowerInfoContainer : public PHObject
     EMCAL = 0,
     HCAL = 1,
     SEPD = 2,
+    MBD = 3,
+    ZDC = 4,
     DETECTOR_INVALID = 9999
   };
 
@@ -37,10 +39,14 @@ class TowerInfoContainer : public PHObject
   virtual unsigned int encode_epd(unsigned int /*towerIndex*/) { return UINT_MAX; }
   virtual unsigned int encode_hcal(unsigned int /*towerIndex*/) { return UINT_MAX; }
   virtual unsigned int encode_emcal(unsigned int /*towerIndex*/) { return UINT_MAX; }
+  virtual unsigned int encode_mbd(unsigned int /*towerIndex*/) { return UINT_MAX; }
+  virtual unsigned int encode_zdc(unsigned int /*towerIndex*/) { return UINT_MAX; }
 
   virtual unsigned int decode_epd(unsigned int /*towerIndex*/) { return UINT_MAX; }
   virtual unsigned int decode_hcal(unsigned int /*towerIndex*/) { return UINT_MAX; }
   virtual unsigned int decode_emcal(unsigned int /*towerIndex*/) { return UINT_MAX; }
+  virtual unsigned int decode_mbd(unsigned int /*towerIndex*/) { return UINT_MAX; }
+  virtual unsigned int decode_zdc(unsigned int /*towerIndex*/) { return UINT_MAX; }
 
 
   virtual unsigned int getTowerPhiBin(unsigned int /*towerIndex*/) { return UINT_MAX; }

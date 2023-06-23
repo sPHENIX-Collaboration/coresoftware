@@ -1,7 +1,7 @@
 #ifndef RESONANCEJETTAGGING_H__
 #define RESONANCEJETTAGGING_H__
 
-#include <g4jets/Jetv1.h>
+#include <jetbase/Jetv1.h>
 
 #include <fun4all/SubsysReco.h>
 

@@ -26,6 +26,19 @@
 //____________________________________________________________________________..
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
   : SubsysReco(name)
+  , WaveformProcessing(nullptr)
+  , m_dettype(CaloTowerBuilder::CEMC)
+  , m_CaloInfoContainer(nullptr)
+  , m_detector("CEMC")
+  , m_packet_low(INT_MIN)
+  , m_packet_high(INT_MIN)
+  , m_nsamples(16)
+  , m_nchannels(192)
+  , m_nzerosuppsamples(2)
+  , m_isdata(true)
+  , _nsoftwarezerosuppression(40)
+  , _bdosoftwarezerosuppression(false)
+  , _processingtype(CaloWaveformProcessing::NONE)
 {
   WaveformProcessing = new CaloWaveformProcessing();
 }
@@ -39,36 +52,77 @@ CaloTowerBuilder::~CaloTowerBuilder()
 //____________________________________________________________________________..
 int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
 {
-  WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
+  WaveformProcessing->set_processing_type(_processingtype);
+  WaveformProcessing->set_softwarezerosuppression(_bdosoftwarezerosuppression, _nsoftwarezerosuppression);
 
   if (m_dettype == CaloTowerBuilder::CEMC)
   {
     m_detector = "CEMC";
-    m_packet_low = 6017;
-    m_packet_high = 6032;
-    // 6001, 60128
+    m_packet_low = 6001;
+    m_packet_high = 6128;
+    m_nchannels = 192;
     WaveformProcessing->set_template_file("testbeam_cemc_template.root");
+    if (_processingtype == CaloWaveformProcessing::NONE)
+    {
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
+    }
   }
   else if (m_dettype == CaloTowerBuilder::HCALIN)
   {
     m_packet_low = 7001;
     m_packet_high = 7008;
     m_detector = "HCALIN";
+    m_nchannels = 192;
     WaveformProcessing->set_template_file("testbeam_ihcal_template.root");
+    if (_processingtype == CaloWaveformProcessing::NONE)
+    {
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
+    }
   }
   else if (m_dettype == CaloTowerBuilder::HCALOUT)
   {
     m_detector = "HCALOUT";
     m_packet_low = 8001;
     m_packet_high = 8008;
+    m_nchannels = 192;
     WaveformProcessing->set_template_file("testbeam_ohcal_template.root");
+    if (_processingtype == CaloWaveformProcessing::NONE)
+    {
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
+    }
   }
   else if (m_dettype == CaloTowerBuilder::EPD)
   {
     m_detector = "EPD";
     m_packet_low = 9001;
-    m_packet_high = 9016;
-    WaveformProcessing->set_template_file("testbeam_cemc_template.root");  // place holder until we have EPD templates
+    m_packet_high = 9005;
+    m_nchannels = 186;
+    if (_processingtype == CaloWaveformProcessing::NONE)
+    {
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);  // default the EPD to fast processing
+    }
+  }
+  else if (m_dettype == CaloTowerBuilder::MBD)
+  {
+    m_detector = "MBD";
+    m_packet_low = 1001;
+    m_packet_high = 1002;
+    m_nchannels = 128;
+    if (_processingtype == CaloWaveformProcessing::NONE)
+    {
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST); 
+    }
+  }
+  else if (m_dettype == CaloTowerBuilder::ZDC)
+  {
+    m_detector = "ZDC";
+    m_packet_low = 12001;
+    m_packet_high = 12001;
+    m_nchannels = 16;
+    if (_processingtype == CaloWaveformProcessing::NONE)
+    {
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);  // default the ZDC to fast processing
+    }
   }
   WaveformProcessing->initialize_processing();
   CreateNodeTree(topNode);
@@ -83,7 +137,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   if (m_isdata)
   {
     Event *_event = findNode::getClass<Event>(topNode, "PRDF");
-    if (_event == 0)
+    if (_event == nullptr)
     {
       std::cout << "CaloUnpackPRDF::Process_Event - Event not found" << std::endl;
       return -1;
@@ -95,21 +149,58 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     for (int pid = m_packet_low; pid <= m_packet_high; pid++)
     {
       Packet *packet = _event->getPacket(pid);
-      if (!packet)
+      if (packet)
       {
-        return Fun4AllReturnCodes::DISCARDEVENT;
-      }
-      for (int channel = 0; channel < packet->iValue(0, "CHANNELS"); channel++)
-      {
-        std::vector<float> waveform;
-        for (int samp = 0; samp < m_nsamples; samp++)
-        {
-          waveform.push_back(packet->iValue(samp, channel));
+        int nchannels = packet->iValue(0, "CHANNELS");
+        if ( m_dettype == CaloTowerBuilder::ZDC){ // special condition during zdc commisioning
+          if (nchannels < m_nchannels) return Fun4AllReturnCodes::DISCARDEVENT;
+          nchannels = m_nchannels;
         }
-        waveforms.push_back(waveform);
-        waveform.clear();
+        if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
+        {
+          return Fun4AllReturnCodes::DISCARDEVENT;
+        }
+        for (int channel = 0; channel < nchannels; channel++)
+        {
+          std::vector<float> waveform;
+          waveform.reserve(m_nsamples);
+          for (int samp = 0; samp < m_nsamples; samp++)
+          {
+            waveform.push_back(packet->iValue(samp, channel));
+          }
+          waveforms.push_back(waveform);
+          waveform.clear();
+        }
+        if (nchannels < m_nchannels)
+        {
+          for (int channel = 0; channel < m_nchannels - nchannels; channel++)
+          {
+            std::vector<float> waveform;
+            waveform.reserve(m_nsamples);
+            for (int samp = 0; samp < m_nzerosuppsamples; samp++)
+            {
+              waveform.push_back(0);
+            }
+            waveforms.push_back(waveform);
+            waveform.clear();
+          }
+        }
+        delete packet;
       }
-      delete packet;
+      else  // if the packet is missing treat constitutent channels as zero suppressed
+      {
+        for (int channel = 0; channel < m_nchannels; channel++)
+        {
+          std::vector<float> waveform;
+          waveform.reserve(2);
+          for (int samp = 0; samp < m_nzerosuppsamples; samp++)
+          {
+            waveform.push_back(0);
+          }
+          waveforms.push_back(waveform);
+          waveform.clear();
+        }
+      }
     }
   }
   else  // placeholder for adding simulation
@@ -143,18 +234,65 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     topNode->addNode(dst_node);
   }
   // towers
+  PHCompositeNode *AlgoNode;
+
   if (m_dettype == CaloTowerBuilder::CEMC)
   {
+    AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "CEMC"));
+    if (!AlgoNode)
+    {
+      AlgoNode = new PHCompositeNode("CEMC");
+    }
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::EMCAL);
   }
   else if (m_dettype == EPD)
   {
+    AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "EPD"));
+    if (!AlgoNode)
+      {
+	AlgoNode = new PHCompositeNode("EPD");
+      }
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::SEPD);
   }
-  else
+  else if (m_dettype == MBD)
   {
-    m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::HCAL);
+    AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "MBD"));
+    if (!AlgoNode)
+      {
+	AlgoNode = new PHCompositeNode("MBD");
+      }
+    m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::MBD);
   }
+  else if (m_dettype == ZDC)
+  {
+    AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "ZDC"));
+      if (!AlgoNode)
+	{
+	  AlgoNode = new PHCompositeNode("ZDC");
+	}
+    m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::ZDC);
+  }
+  else
+    {
+      if (m_dettype == HCALIN)
+	{
+	  AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "HCALIN"));
+	  if (!AlgoNode)
+	    {
+	      AlgoNode = new PHCompositeNode("HCALIN");
+	    }
+	}
+      else
+	{
+	  AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "HCALOUT"));
+	  if (!AlgoNode)
+	    {
+	      AlgoNode = new PHCompositeNode("HCALOUT");
+	    }
+	}
+      m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::HCAL);
+    }
+  dst_node->addNode(AlgoNode);
 
   PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_" + m_detector, "PHObject");
   dst_node->addNode(emcal_towerNode);

@@ -10,12 +10,12 @@
 
 PHSiliconHelicalPropagator::PHSiliconHelicalPropagator(std::string name) : SubsysReco(name)
 {
-  _fitter = new HelicalFitter();
+
 }
 
 PHSiliconHelicalPropagator::~PHSiliconHelicalPropagator()
 {
-  delete _fitter;
+
 }
 
 int PHSiliconHelicalPropagator::InitRun(PHCompositeNode* topNode)
@@ -24,6 +24,12 @@ int PHSiliconHelicalPropagator::InitRun(PHCompositeNode* topNode)
   if (!_cluster_map)
   {
     std::cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+  _cluster_crossing_map = findNode::getClass<TrkrClusterCrossingAssoc>(topNode, "TRKR_CLUSTERCROSSINGASSOC");
+  if (!_cluster_crossing_map)
+  {
+    std::cerr << PHWHERE << " ERROR: Can't find TRKR_CLUSTERCROSSINGASSOC " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   _tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
@@ -58,7 +64,6 @@ int PHSiliconHelicalPropagator::InitRun(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
-  if(_fitter->InitRun(topNode) != Fun4AllReturnCodes::EVENT_OK) return Fun4AllReturnCodes::ABORTEVENT;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -102,18 +107,35 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
     if(!tpcseed) continue;
     std::vector<Acts::Vector3> clusterPositions;
     std::vector<TrkrDefs::cluskey> clusterKeys;
-    _fitter->getTrackletClusters(tpcseed,clusterPositions,clusterKeys);
-    std::vector<float> fitparams = _fitter->fitClusters(clusterPositions,clusterKeys);
+    TrackFitUtils::getTrackletClusters(_tgeometry,_cluster_map,clusterPositions,clusterKeys);
+    std::vector<float> fitparams = TrackFitUtils::fitClusters(clusterPositions,clusterKeys);
     
     std::vector<TrkrDefs::cluskey> si_clusterKeys;
     std::vector<Acts::Vector3> si_clusterPositions;
-    unsigned int nSiClusters = _fitter->addSiliconClusters(fitparams,si_clusterPositions,si_clusterKeys);
+    unsigned int nSiClusters = TrackFitUtils::addSiliconClusters(fitparams,1000.,_tgeometry,_cluster_map,si_clusterPositions,si_clusterKeys);
     if(nSiClusters>0)
     {
       std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
+      std::map<short,int> crossing_frequency;
       for(auto clusterkey : si_clusterKeys)
       {
         si_seed->insert_cluster_key(clusterkey);
+        if(TrkrDefs::getTrkrId(clusterkey) == TrkrDefs::inttId)
+        {
+          auto hit_crossings = _cluster_crossing_map->getCrossings(clusterkey);
+          for(auto iter = hit_crossings.first; iter != hit_crossings.second; ++iter)
+          {
+            short crossing = iter->second;
+            if(crossing_frequency.count(crossing)==0) crossing_frequency.insert({crossing,1});
+            else crossing_frequency[crossing]++;
+          }
+        }
+      }
+      if(crossing_frequency.size()>0)
+      {
+        short most_common_crossing = (std::max_element(crossing_frequency.begin(),crossing_frequency.end(),
+          [](auto entry1, auto entry2) { return entry1.second > entry2.second; }))->first;
+        si_seed->set_crossing(most_common_crossing);
       }
       si_seed->circleFitByTaubin(_cluster_map,_tgeometry,0,8);
       si_seed->lineFit(_cluster_map,_tgeometry,0,8);

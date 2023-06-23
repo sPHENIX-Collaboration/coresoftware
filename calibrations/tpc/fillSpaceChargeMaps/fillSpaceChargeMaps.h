@@ -5,6 +5,9 @@
 
 #include <fun4all/SubsysReco.h>
 
+//#include <g4tpc/PHG4TpcPadPlane.h>
+//#include <g4tpc/PHG4TpcPadPlaneReadout.h>
+
 #include <map>
 #include <set>
 #include <string>
@@ -102,9 +105,13 @@ class fillSpaceChargeMaps : public SubsysReco
   TH1 *_h_hits = nullptr;
   TH1 *_h_R = nullptr;
   TH2 *_h_DC_E = nullptr;
+  TH2 *_h_SC_XY = nullptr;
   static const int nFrames = 30;
   TH3 *_h_SC_prim[nFrames] = {nullptr};
   TH3 *_h_SC_ibf[nFrames] = {nullptr};
+  
+  //PHG4TpcPadPlaneReadout *padplane = nullptr;
+  //PHG4TpcCylinderGeomContainer *seggeo = nullptr;
 
   float f = 0.5;                    //for now, just pick the middle of the hit.  Do better later.
   float ns = 1e-9, s = 1.0;           // us=1e-6,ms=1e-3,

@@ -88,6 +88,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_alignStates.actsGeometry(m_tGeometry);
   m_alignStates.clusters(m_clusterContainer);
   m_alignStates.stateMap(m_alignmentStateMap);
+  m_alignStates.clusterVersion(m_cluster_version);
   m_alignStates.verbosity(Verbosity());
 
   m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
@@ -426,7 +427,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           unsigned int trid = m_directedTrackMap->size();
           newTrack.set_id(trid);
 
-          if( getTrackFitResult(fitOutput, &newTrack) )
+          if( getTrackFitResult(fitOutput, &newTrack, measurements) )
           { m_directedTrackMap->insertWithKey(&newTrack, trid); }
           
         } else {
@@ -434,7 +435,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           unsigned int trid = m_trackMap->size();
           newTrack.set_id(trid);
 
-          if( getTrackFitResult(fitOutput, &newTrack))
+          if( getTrackFitResult(fitOutput, &newTrack, measurements))
           { m_trackMap->insertWithKey(&newTrack, trid); }
         
         }
@@ -626,7 +627,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       TrkrDefs::cluskey cluskey = global_moved[i].first;
       Acts::Vector3 global = global_moved[i].second;
    
-      if(TrkrDefs::getLayer(cluskey) == m_ignoreLayer)
+      if(m_ignoreLayer.find(TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end())
 	{
 	  if(Verbosity() > 3)
 	    {
@@ -698,16 +699,19 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	  cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
       }else if(m_cluster_version==4){
 	double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-	auto para_errors = _ClusErrPara.get_cluster_error(track,cluster,clusRadius,cluskey);
+	auto para_errors = _ClusErrPara.get_cluster_error(cluster,clusRadius,cluskey, track->get_qOverR(), track->get_slope());
 	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
 	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
 	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
 	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
       }else if(m_cluster_version==5){
-	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = pow(cluster->getRPhiError(),2) * Acts::UnitConstants::cm2;
+	double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+	TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
+	auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5,clusRadius,cluskey);
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
 	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
 	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
-	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = pow(cluster->getZError(),2) * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
       }
 
       ActsSourceLink::Index index = measurements.size();
@@ -746,7 +750,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
   return sourcelinks;
 }
 
-bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* track)
+bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* track, const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
@@ -800,7 +804,7 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
     {
       if(track->get_silicon_seed() && track->get_tpc_seed())
 	{
-	  m_alignStates.fillAlignmentStateMap(trajectory, track);
+	  m_alignStates.fillAlignmentStateMap(trajectory, track, measurements);
 	}
     }
     

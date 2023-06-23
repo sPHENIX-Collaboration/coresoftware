@@ -46,9 +46,6 @@ class TrkrClusterv5 : public TrkrCluster
   void CopyFrom( TrkrCluster* source ) override
   { CopyFrom( *source ); }
 
-  //! copy content 
-  void CopyFrom( TrkrClusterv5* source );
-
   //
   // cluster position
   //
@@ -66,20 +63,18 @@ class TrkrClusterv5 : public TrkrCluster
   // cluster info
   //
   unsigned int getAdc() const override { 
-    uint8_t tmp = m_adc;
-    return tmp ; 
-
+    return m_adc ; 
   }
 
   void setAdc(unsigned int adc) override {
     m_adc = adc; 
   }
 
-  unsigned int getMaxAdc() const { 
+  unsigned int getMaxAdc() const override { 
     return m_maxadc; 
   }
 
-  void setMaxAdc(uint16_t maxadc) {
+  void setMaxAdc(uint16_t maxadc) override {
     m_maxadc = maxadc;
   }
 
@@ -118,7 +113,7 @@ class TrkrClusterv5 : public TrkrCluster
    void setError(unsigned int, unsigned int, float) override 
    { std::cout << "Deprecated seterr trkrcluster function!" << std::endl; }
 
-   char getSize() { return m_phisize * m_zsize; }
+   char getSize() const override { return m_phisize * m_zsize; }
    //   void setSize(char size) { m_size = size; }
  
    float getPhiSize() const override { return (float) m_phisize; }
@@ -127,11 +122,11 @@ class TrkrClusterv5 : public TrkrCluster
    float getZSize() const override { return (float) m_zsize; }
    void setZSize(char zsize) { m_zsize = zsize; }
  
-   char getOverlap() { return m_overlap; }
-   void setOverlap(char overlap) { m_overlap = overlap; }
+   char getOverlap() const override { return m_overlap; }
+   void setOverlap(char overlap) override { m_overlap = overlap; }
  
-   char getEdge() { return m_edge; }
-   void setEdge(char edge) { m_edge = edge; }
+   char getEdge() const override{ return m_edge; }
+   void setEdge(char edge) override { m_edge = edge; }
 
    //float getPhiSize() const override 
    //{ std::cout << "Deprecated size function"<< std::endl; return NAN;}

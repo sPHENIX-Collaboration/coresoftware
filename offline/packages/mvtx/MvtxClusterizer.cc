@@ -10,6 +10,7 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
+#include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterv4.h>
@@ -193,6 +194,26 @@ int MvtxClusterizer::InitRun(PHCompositeNode *topNode)
       DetNode->addNode(newNode);
     }
 
+  // Get the cluster hits verbose node, if required
+  if (record_ClusHitsVerbose) {
+    // get the node
+    mClusHitsVerbose = findNode::getClass<ClusHitsVerbosev1>(topNode, "Trkr_SvtxClusHitsVerbose");
+    if (!mClusHitsVerbose)
+    {
+      PHNodeIterator dstiter(dstNode);
+      auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode("TRKR");
+        dstNode->addNode(DetNode);
+      }
+      mClusHitsVerbose = new ClusHitsVerbosev1();
+      auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_SvtxClusHitsVerbose", "PHObject");
+      DetNode->addNode(newNode);
+    }
+  }
+  
+
 
   //----------------
   // Report Settings
@@ -344,8 +365,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  cluster_ids.insert(component[i]);
 	  clusters.insert(make_pair(component[i], hitvec[i]));
 	}
-      //    cout << "found cluster #: "<< clusters.size()<< endl;
-      // loop over the componenets and make clusters
+  int total_clusters = 0;
       for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter)
 	{
 	  int clusid = *clusiter;
@@ -353,12 +373,13 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  
 	  if (Verbosity() > 2) cout << "Filling cluster id " << clusid << " of " << std::distance(cluster_ids.begin(),clusiter )<< endl;
 	  
-	  // make the cluster directly in the node tree
+    ++total_clusters;
 	  auto ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 	  
 	  // determine the size of the cluster in phi and z
 	  set<int> phibins;
 	  set<int> zbins;
+    std::map<int,unsigned int> m_phi, m_z; // Note, there are no "cut" bins for Svtx Clusters
 	  
 	  // determine the cluster position...
 	  double locxsum = 0.;
@@ -377,10 +398,19 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  for ( auto mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
 	    {
 	      // size
+        const auto energy = (mapiter->second).second->getAdc();
 	      int col =  MvtxDefs::getCol( (mapiter->second).first);
 	      int row = MvtxDefs::getRow( (mapiter->second).first);
 	      zbins.insert(col);
 	      phibins.insert(row);
+
+        if (mClusHitsVerbose) {
+          auto pnew = m_phi.try_emplace(row,energy);
+          if (!pnew.second) pnew.first->second += energy;
+
+          pnew = m_z.try_emplace(col,energy);
+          if (!pnew.second) pnew.first->second += energy;
+        }
 	      
 	      // get local coordinates, in stae reference frame, for hit
 	      auto local_coords = layergeom->get_local_coords_from_pixel(row,col);
@@ -399,15 +429,25 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	      m_clusterhitassoc->addAssoc(ckey, mapiter->second.first);
 	      
 	    }  //mapiter
+
+      if (mClusHitsVerbose) {
+        if (Verbosity()>10) {
+          for (auto& hit : m_phi) {
+            std::cout << " m_phi(" << hit.first <<" : " << hit.second<<") " << std::endl;
+          }
+        }
+        for (auto& hit : m_phi) mClusHitsVerbose->addPhiHit    (hit.first, (float)hit.second);
+        for (auto& hit : m_z)   mClusHitsVerbose->addZHit      (hit.first, (float)hit.second);
+        mClusHitsVerbose->push_hits(ckey);
+      }
+	  
 	  
 	  // This is the local position
 	  locclusx = locxsum / nhits;
 	  locclusz = loczsum / nhits;
 	  
 	  const double pitch = layergeom->get_pixel_x();
-	  //	std::cout << " pitch: " <<  pitch << std::endl;
 	  const double length = layergeom->get_pixel_z();
-	  //	std::cout << " length: " << length << std::endl;
 	  const double phisize = phibins.size() * pitch;
 	  const double zsize = zbins.size() * length;
 	  
