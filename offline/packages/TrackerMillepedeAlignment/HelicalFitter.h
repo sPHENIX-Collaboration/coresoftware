@@ -109,7 +109,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
   Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref);
-  Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
+  //Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
   Acts::Vector3 get_line_plane_intersection(Acts::Vector3 PCA, Acts::Vector3 tangent, 
 					    Acts::Vector3 sensor_center, Acts::Vector3 sensor_normal);
   std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global);
@@ -143,11 +143,10 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vtx, Acts::Vector3& projX, Acts::Vector3& projY);
 
   float getVertexResidual(Acts::Vector3 vtx);
+  
   void get_dca(SvtxTrack& track,  float& dca3dxy, float& dca3dz, float& dca3dxysigma, float& dca3dzsigma, Acts::Vector3 vertex);
   Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, Acts::Vector3 event_vertex);
   Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, Acts::Vector3 event_vertex, Acts::Vector3 PCA);
-
-  //Acts::Vector3 localvtxToGlobalvtx(SvtxTrack& track, Acts::Vector3 event_vertex);
   Acts::Vector3 localvtxToGlobalvtx(SvtxTrack& track, Acts::Vector3 event_vtx, Acts::Vector3 PCA);
 
 
