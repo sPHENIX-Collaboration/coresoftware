@@ -2,6 +2,7 @@
 #define FUN4ALLRAW_SINGLEPRDFINPUT_H
 
 #include <fun4all/Fun4AllBase.h>
+#include <fun4all/InputFileHandler.h>
 
 #include <list>
 #include <map>
@@ -12,7 +13,7 @@ class Eventiterator;
 class Fun4AllPrdfInputPoolManager;
 class Packet;
 
-class SinglePrdfInput : public Fun4AllBase
+class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
 {
  public:
   explicit SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman);
@@ -22,6 +23,8 @@ class SinglePrdfInput : public Fun4AllBase
   void FillPool();
   int RunNumber() const { return m_RunNumber; }
   void UsedOneEvent() { m_PoolEvents--; }
+  int fileopen(const std::string &filename) override;
+  int fileclose() override;
 
  private:
   Eventiterator *m_EventIterator = nullptr;
@@ -33,6 +36,7 @@ class SinglePrdfInput : public Fun4AllBase
   unsigned int m_PoolDepth = 10;
   unsigned int m_LowWaterMark = 5;
   int m_RunNumber = 0;
+  int m_EventsThisFile = 0;
   std::map<int, std::vector<Packet *>> m_EventMap;
   std::list<std::string> m_FileList;
   std::list<std::string> m_FileListCopy;

@@ -2,6 +2,10 @@
 
 #include "Fun4AllPrdfInputPoolManager.h"
 
+#include <frog/FROG.h>
+
+#include <phool/phool.h>
+
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/Eventiterator.h>
@@ -95,4 +99,51 @@ void SinglePrdfInput::FillPool()
       m_PoolEvents++;
     }
   }
+}
+
+int SinglePrdfInput::fileopen(const std::string &filenam)
+{
+  if (IsOpen())
+  {
+    std::cout << "Closing currently open file "
+              << FileName()
+              << " and opening " << filenam << std::endl;
+    fileclose();
+  }
+  FileName(filenam);
+  FROG frog;
+  std::string fname = frog.location(FileName());
+  if (Verbosity() > 0)
+  {
+    std::cout << Name() << ": opening file " << FileName() << std::endl;
+  }
+  int status = 0;
+  m_EventIterator = new fileEventiterator(fname.c_str(), status);
+  m_EventsThisFile = 0;
+  if (status)
+  {
+    delete m_EventIterator;
+    m_EventIterator = nullptr;
+    std::cout << PHWHERE << Name() << ": could not open file " << fname << std::endl;
+    return -1;
+  }
+  IsOpen(1);
+  AddToFileOpened(fname);  // add file to the list of files which were opened
+  return 0;
+}
+
+int SinglePrdfInput::fileclose()
+{
+  if (!IsOpen())
+  {
+    std::cout << Name() << ": fileclose: No Input file open" << std::endl;
+    return -1;
+  }
+  delete m_EventIterator;
+  m_EventIterator = nullptr;
+  IsOpen(0);
+  // if we have a file list, move next entry to top of the list
+  // or repeat the same entry again
+  UpdateFileList();
+  return 0;
 }
