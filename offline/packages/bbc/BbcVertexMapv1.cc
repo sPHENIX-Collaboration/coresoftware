@@ -15,7 +15,7 @@ BbcVertexMapv1::BbcVertexMapv1()
 
 BbcVertexMapv1::~BbcVertexMapv1()
 {
-  clear();
+  BbcVertexMapv1::clear();
 }
 
 void BbcVertexMapv1::identify(ostream& os) const
