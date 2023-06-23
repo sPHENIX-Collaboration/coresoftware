@@ -897,8 +897,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
   use_nn = _use_nn;
   if(use_nn)
   {
-    //const char *offline_main = std::getenv("OFFLINE_MAIN");
-    const char *offline_main = std::getenv("MYINSTALL");
+    const char *offline_main = std::getenv("OFFLINE_MAIN");
     assert(offline_main);
     std::string net_model = std::string(offline_main) + "/share/tpc/net_model.pt";
     try
