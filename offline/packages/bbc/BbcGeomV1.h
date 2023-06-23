@@ -14,11 +14,11 @@ public:
   BbcGeomV1();
   ~BbcGeomV1() override = default;
   
-  float get_x(const unsigned int feech) const override { return pmt_x[feech]; }
-  float get_y(const unsigned int feech) const override { return pmt_y[feech]; }
-  float get_z(const unsigned int feech) const override { return pmt_z[feech]; }
-  float get_r(const unsigned int feech) const override { return pmt_r[feech]; }
-  float get_phi(const unsigned int feech) const override { return pmt_phi[feech]; }
+  float get_x(const unsigned int pmtch) const override { return pmt_x[pmtch]; }
+  float get_y(const unsigned int pmtch) const override { return pmt_y[pmtch]; }
+  float get_z(const unsigned int pmtch) const override { return pmt_z[pmtch]; }
+  float get_r(const unsigned int pmtch) const override { return pmt_r[pmtch]; }
+  float get_phi(const unsigned int pmtch) const override { return pmt_phi[pmtch]; }
   void  set_xyz(const unsigned int ipmt, const float x, const float y, const float z) override;
 
   int get_arm(const unsigned int feech) const override { return feech/64; }

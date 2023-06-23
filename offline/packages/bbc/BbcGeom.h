@@ -15,12 +15,12 @@ class BbcGeom : public PHObject
     BbcGeom() = default;
     ~BbcGeom() override {};
 
-    virtual float get_x(const unsigned int /*feech*/) const {return NAN;};
-    virtual float get_y(const unsigned int /*feech*/) const {return NAN;};
-    virtual float get_z(const unsigned int /*feech*/) const {return NAN;};
-    virtual float get_r(const unsigned int /*feech*/) const {return NAN;};
-    virtual float get_phi(const unsigned int /*feech*/) const {return NAN;};
-    virtual void set_xyz(const unsigned int /*feech*/, const float /*x*/, const float /*y*/, const float /*z*/) {}
+    virtual float get_x(const unsigned int /*pmtch*/) const {return NAN;};
+    virtual float get_y(const unsigned int /*pmtch*/) const {return NAN;};
+    virtual float get_z(const unsigned int /*pmtch*/) const {return NAN;};
+    virtual float get_r(const unsigned int /*pmtch*/) const {return NAN;};
+    virtual float get_phi(const unsigned int /*pmtch*/) const {return NAN;};
+    virtual void set_xyz(const unsigned int /*pmtch*/, const float /*x*/, const float /*y*/, const float /*z*/) {}
 
     virtual int get_arm(const unsigned int /*feech*/) const {return -1;};
     virtual int get_pmt(const unsigned int /*feech*/) const {return -1;};
