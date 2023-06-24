@@ -21,7 +21,7 @@ public:
   void SetVerbosity(const int i) {m_Verbosity = i;}
   int GetVerbosity() const {return m_Verbosity;}
   void UpdateFileList();
-  void FileName(const std::string fn) {m_FileName = fn;}
+  void FileName(const std::string &fn) {m_FileName = fn;}
   const std::string FileName() const {return m_FileName;}
 
 private:
