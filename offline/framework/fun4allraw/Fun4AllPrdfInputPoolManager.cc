@@ -72,12 +72,16 @@ Fun4AllPrdfInputPoolManager::~Fun4AllPrdfInputPoolManager()
 
 int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
 {
-  for (auto iter : m_PrdfInputVector)
+  if (m_PacketMap.size() < 5)
   {
-    iter->FillPool();
-    m_RunNumber = iter->RunNumber();
+    for (auto iter : m_PrdfInputVector)
+    {
+      iter->FillPool(5);
+      m_RunNumber = iter->RunNumber();
+    }
+    SetRunNumber(m_RunNumber);
   }
-  SetRunNumber(m_RunNumber);
+
   if(m_PacketMap.empty())
   {
     std::cout << "we are done" << std::endl;
@@ -103,10 +107,6 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
     delete pktiter;
   }
   m_PacketMap.erase(pktinfoiter);
-  for (auto prdfiter : m_PrdfInputVector)
-  {
-    prdfiter->UsedOneEvent();
-  }
 
   return 0;
   // readagain:
