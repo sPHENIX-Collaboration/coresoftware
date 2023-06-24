@@ -2759,6 +2759,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, TVector3 pos, char w
 }
 
 void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int nSteps, int r_subsamples, int p_subsamples, int z_subsamples, int /*z_substeps*/, bool andCartesian)
+
 {
   //generates the distortion map for one or both sides of the detector, separating them so
   //they do not try to interpolate across the CM.
@@ -2770,6 +2771,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
   float deltap = s.Phi();   //(pf-pi)/np;
   float deltaz = s.Z();     //(zf-zi)/nz;
   TVector3 stepzvec(0, 0, deltaz);
+
 //  int nSteps = 500;  //how many steps to take in the particle path.  hardcoded for now.  Think about this later.
 
   int nSides = 1;

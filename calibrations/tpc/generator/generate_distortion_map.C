@@ -16,7 +16,7 @@ void SurveyFiles(TFileCollection* filelist);
 
 
 
-void generate_distortion_map(const char *inputname, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true){
+void generate_distortion_map(const char *inputname, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge, int nSteps=500){
   printf("generating single distortion map.  Caution:  This is vastly less efficient than re-using the tpc model once it is set up\n");
   
   bool hasTwin=true; //this flag prompts the code to build both a positive-half and a negative-half for the TPC, reusing as much of the calculations as possible.  It is more efficient to 'twin' one half of the TPC than to recalculate/store the greens functions for both.
@@ -58,11 +58,13 @@ void generate_distortion_map(const char *inputname, const char *outputname, cons
   if (hasTwin)  tpc->twin->populate_fieldmap();
 
   //build the distortion maps from the fieldmaps and save it to the output filename.
+
   for(int i=0;i<10;i++){
   	TString study_filestring=Form("%s.steps%d.hist.root","study_file_changinginterval",50*(i+1));
   tpc->GenerateSeparateDistortionMaps(study_filestring,50*(i+1),1,1,1,1,true);
   //tpc->GenerateSeparateDistortionMaps(outputfilename.Data(),1,1,1,1,false);
 }
+
   printf("distortions mapped.\n");
   tpc->PlotFieldSlices(outputfilename.Data(),pos, 'E'); //plot the electric field
   tpc->PlotFieldSlices(outputfilename.Data(),pos,'B'); //plot the magnetic field
@@ -76,7 +78,7 @@ void generate_distortion_map(const char *inputname, const char *outputname, cons
 }
 
   
-void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.root", const char *outputfilebase="./apr07_maps/apr07", bool hasSpacecharge=true, bool isDigitalCurrent=false){
+void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.root", const char *outputfilebase="./apr07_maps/apr07", bool hasSpacecharge, bool isDigitalCurrent, int nSteps=500){
   
 
   int maxmaps=10;
@@ -182,7 +184,9 @@ void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.roo
       //TestSpotDistortion(tpc);
  
       //tpc->GenerateDistortionMaps(outputfilename,2,2,2,1,true);
-      tpc->GenerateSeparateDistortionMaps(outputfilename,500,2,2,2,1,true);
+
+      tpc->GenerateSeparateDistortionMaps(outputfilename,2,2,2,1,true,nSteps);
+
       printf("distortions mapped.\n");
       tpc->PlotFieldSlices(outputfilename.Data(),pos);
       tpc->PlotFieldSlices(outputfilename.Data(),pos,'B');
