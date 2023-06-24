@@ -8,7 +8,7 @@ class InputFileHandler
 {
 public:
   InputFileHandler() = default;
-  ~InputFileHandler() = default;
+  virtual ~InputFileHandler() = default;
   virtual int fileopen(const std::string & /*filename*/) {return 0;}
   virtual int fileclose() { return -1; }
   int OpenNextFile();
