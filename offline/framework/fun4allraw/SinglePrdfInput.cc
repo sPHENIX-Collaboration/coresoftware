@@ -2,6 +2,10 @@
 
 #include "Fun4AllPrdfInputPoolManager.h"
 
+#include <frog/FROG.h>
+
+#include <phool/phool.h>
+
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/Eventiterator.h>
@@ -17,40 +21,43 @@ SinglePrdfInput::SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolMa
 SinglePrdfInput::~SinglePrdfInput()
 {
   delete m_EventIterator;
+  delete [] plist;
 }
 
-void SinglePrdfInput::AddPrdfInputFile(const std::string &filename)
+void SinglePrdfInput::FillPool(const unsigned int nevents)
 {
-  m_FileList.push_back(filename);
-  m_FileListCopy.push_back(filename);
-}
-
-void SinglePrdfInput::FillPool()
-{
-  if (m_EventMap.size() > m_LowWaterMark)
+  if (AllDone()) // no more files and all events read
   {
     return;
   }
-
-  if (m_EventIterator == nullptr)
+  while (m_EventIterator == nullptr) // at startup this is a null pointer
   {
-    int status = 0;
-    std::cout << "opening " << m_FileList.front() << std::endl;
-    m_EventIterator = new fileEventiterator(m_FileList.front().c_str(), status);
-    if (status)
-    {
-      delete m_EventIterator;
-      m_EventIterator = nullptr;
-      return;
-    }
+    OpenNextFile();
   }
-  if (m_PoolEvents <= m_LowWaterMark)
+  for (unsigned int ievt=0; ievt<nevents; ievt++)
   {
-    while (m_PoolEvents <= m_PoolDepth)
-    {
       Event *evt = m_EventIterator->getNextEvent();
+      if (!evt)
+      {
+        fileclose();
+        if (!OpenNextFile())
+	{
+          AllDone(1);
+	  return;
+	}
+        evt = m_EventIterator->getNextEvent();
+	if (!evt)
+	{
+	  std::cout << PHWHERE << "Event is nullptr" << std::endl;
+          AllDone(1);
+	  return;
+	}
+      }
       m_RunNumber = evt->getRunNumber();
-      evt->identify();
+      if (GetVerbosity() > 1)
+      {
+        evt->identify();
+      }
       if (evt->getEvtType() != DATAEVENT)
       {
         m_NumSpecialEvents++;
@@ -85,8 +92,61 @@ void SinglePrdfInput::FillPool()
           evtno += m_EventNumberOffset + m_NumSpecialEvents + (EventSequence & 0xFFFF0000);
           m_InputMgr->AddPacket(evtno, plist[i]);
         }
+	else
+	{
+	  delete plist[i];
+	}
       }
-      m_PoolEvents++;
-    }
+      delete evt;
   }
+  
 }
+
+int SinglePrdfInput::fileopen(const std::string &filenam)
+{
+  std::cout << PHWHERE << "trying to open " << filenam << std::endl;
+  if (IsOpen())
+  {
+    std::cout << "Closing currently open file "
+              << FileName()
+              << " and opening " << filenam << std::endl;
+    fileclose();
+  }
+  FileName(filenam);
+  FROG frog;
+  std::string fname = frog.location(FileName());
+  if (Verbosity() > 0)
+  {
+    std::cout << Name() << ": opening file " << FileName() << std::endl;
+  }
+  int status = 0;
+  m_EventIterator = new fileEventiterator(fname.c_str(), status);
+  m_EventsThisFile = 0;
+  if (status)
+  {
+    delete m_EventIterator;
+    m_EventIterator = nullptr;
+    std::cout << PHWHERE << Name() << ": could not open file " << fname << std::endl;
+    return -1;
+  }
+  IsOpen(1);
+  AddToFileOpened(fname);  // add file to the list of files which were opened
+  return 0;
+}
+
+int SinglePrdfInput::fileclose()
+{
+  if (!IsOpen())
+  {
+    std::cout << Name() << ": fileclose: No Input file open" << std::endl;
+    return -1;
+  }
+  delete m_EventIterator;
+  m_EventIterator = nullptr;
+  IsOpen(0);
+  // if we have a file list, move next entry to top of the list
+  // or repeat the same entry again
+  UpdateFileList();
+  return 0;
+}
+
