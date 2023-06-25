@@ -41,7 +41,7 @@ void G4RootScintillatorTowerContainer::Reset()
 }
 
 G4RootScintillatorTower *
-G4RootScintillatorTowerContainer::AddTower(const RawTower &tower)
+G4RootScintillatorTowerContainer::AddTower(double towerenergy, int ieta, int iphi)
 {
   TClonesArray &cl = *SnglTowers;
   int nextindex = SnglTowers->GetLast() + 1;
@@ -49,7 +49,7 @@ G4RootScintillatorTowerContainer::AddTower(const RawTower &tower)
   {
     SnglTowers->Expand(SnglTowers->GetSize() + 10000);
   }
-  new (cl[nextindex]) G4RootScintillatorTower(tower);
+  new (cl[nextindex]) G4RootScintillatorTower(towerenergy,ieta,iphi);
   return (static_cast<G4RootScintillatorTower *>(cl[nextindex]));
 }
 

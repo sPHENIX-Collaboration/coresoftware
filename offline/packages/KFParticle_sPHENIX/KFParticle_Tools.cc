@@ -32,6 +32,9 @@
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
+#include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertex.h>
+
 #include <phool/getClass.h>
 
 //KFParticle stuff
@@ -68,6 +71,8 @@ KFParticle_Tools::KFParticle_Tools()
   , m_track_ip(-1.)
   , m_track_ipchi2(10.)
   , m_track_chi2ndof(4.)
+  , m_nMVTXHits(3)
+  , m_nTPCHits(20)
   , m_comb_DCA(0.05)
   , m_vertex_chi2ndof(15.)
   , m_fdchi2(50.)
@@ -76,6 +81,7 @@ KFParticle_Tools::KFParticle_Tools()
   , m_mother_pt(0.)
   , m_mother_ipchi2(FLT_MAX)
   , m_get_charge_conjugate(true)
+  , m_extrapolateTracksToSV(true)
   , m_vtx_map_node_name("SvtxVertexMap")
   , m_trk_map_node_name("SvtxTrackMap")
   , m_dst_vertexmap()
@@ -108,7 +114,7 @@ KFParticle KFParticle_Tools::makeVertex(PHCompositeNode * /*topNode*/)
   return kfp_vertex;
 }
 
-std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode *topNode, std::string vertexMapName)
+std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode *topNode, const std::string &vertexMapName)
 {
   std::string vtxMN;
   if (vertexMapName.empty())
@@ -118,14 +124,26 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
 
   std::vector<KFParticle> primaryVertices;
   m_dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, vtxMN);
+  auto globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
+  if(!globalvertexmap) { 
+    std::cout << "Can't continue in KFParticle_Tools::makeAllPrimaryVertices" << std::endl; 
+  }
+
   unsigned int vertexID = 0;
 
-  for (SvtxVertexMap::ConstIter iter = m_dst_vertexmap->begin(); iter != m_dst_vertexmap->end(); ++iter)
+  for (GlobalVertexMap::ConstIter iter = globalvertexmap->begin(); iter != globalvertexmap->end(); ++iter)
   {
-    m_dst_vertex = iter->second;
+    GlobalVertex *gvertex = iter->second;
+    auto svtxv = gvertex->find_vtxids(GlobalVertex::SVTX);
+    // check that it contains a track vertex
+    if(svtxv == gvertex->end_vtxids())
+      { continue; }
+
+    auto svtxvertexid = svtxv->second;
+    m_dst_vertex = m_dst_vertexmap->find(svtxvertexid)->second;
 
     primaryVertices.push_back(makeVertex(topNode));
-    primaryVertices[vertexID].SetId(iter->first);
+    primaryVertices[vertexID].SetId(gvertex->get_id());
     ++vertexID;
   }
 
@@ -134,6 +152,8 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
 
 KFParticle KFParticle_Tools::makeParticle(PHCompositeNode * /*topNode*/)  ///Return a KFPTrack from track vector and covariance matrix. No mass or vertex constraints
 {
+  KFParticle kfp_particle;
+
   float f_trackParameters[6] = {m_dst_track->get_x(),
                                 m_dst_track->get_y(),
                                 m_dst_track->get_z(),
@@ -150,7 +170,6 @@ KFParticle KFParticle_Tools::makeParticle(PHCompositeNode * /*topNode*/)  ///Ret
       ++iterate;
     }
 
-  KFParticle kfp_particle;
   kfp_particle.Create(f_trackParameters, f_trackCovariance, (Int_t) m_dst_track->get_charge(), -1);
   kfp_particle.NDF() = m_dst_track->get_ndf();
   kfp_particle.Chi2() = m_dst_track->get_chisq();
@@ -168,6 +187,37 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
   for (SvtxTrackMap::Iter iter = m_dst_trackmap->begin(); iter != m_dst_trackmap->end(); ++iter)
   {
     m_dst_track = iter->second;
+
+    //First check if we have the required number of MVTX and TPC hits
+    TrackSeed *tpcseed = m_dst_track->get_tpc_seed();
+    TrackSeed *silseed = m_dst_track->get_silicon_seed();
+    int MVTX_hits = 0;
+    int TPC_hits = 0;
+
+    if (silseed)
+    {
+      for (auto cluster_iter = silseed->begin_cluster_keys();
+           cluster_iter != silseed->end_cluster_keys(); ++cluster_iter)
+      {
+        const auto &cluster_key = *cluster_iter;
+        const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+
+        if (trackerID == TrkrDefs::mvtxId) ++MVTX_hits;
+      }
+      if (MVTX_hits < m_nMVTXHits) continue;
+    }
+    if (tpcseed)
+    {
+      for (auto cluster_iter = tpcseed->begin_cluster_keys(); cluster_iter != tpcseed->end_cluster_keys(); ++cluster_iter)
+      {
+        const auto &cluster_key = *cluster_iter;
+        const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+
+        if (trackerID == TrkrDefs::tpcId) ++TPC_hits;
+      }
+      if (TPC_hits < m_nTPCHits) continue;
+    }
+
     daughterParticles.push_back(makeParticle(topNode));  ///Turn all dst tracks in KFP tracks
     daughterParticles[trackID].SetId(iter->first);
     ++trackID;
@@ -176,7 +226,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
   return daughterParticles;
 }
 
-int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex, std::string vertexMapName)
+int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex, const std::string &vertexMapName)
 {
   std::string vtxMN;
   if (vertexMapName.empty())
@@ -186,8 +236,10 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle v
 
   SvtxVertex *associatedVertex = NULL;
   m_dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, vtxMN);
-
-  associatedVertex = m_dst_vertexmap->find(vertex.Id())->second;
+  auto globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  GlobalVertex *associatedgvertex = globalvertexmap->find(vertex.Id())->second;
+  auto svtxvtx_id = associatedgvertex->find_vtxids(GlobalVertex::SVTX)->second;
+  associatedVertex = m_dst_vertexmap->find(svtxvtx_id)->second;
 
   return associatedVertex->size_tracks();
 }
@@ -205,7 +257,11 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle v
   float trackchi2ndof = particle.GetChi2() / particle.GetNDF();
   calcMinIP(particle, primaryVertices, min_ip, min_ipchi2);
 
-  if (pt >= m_track_pt && ptchi2 <= m_track_ptchi2 && min_ip >= m_track_ip && min_ipchi2 >= m_track_ipchi2 && trackchi2ndof <= m_track_chi2ndof)
+  if (pt >= m_track_pt 
+   && ptchi2 <= m_track_ptchi2 
+   && min_ip >= m_track_ip 
+   && min_ipchi2 >= m_track_ipchi2 
+   && trackchi2ndof <= m_track_chi2ndof)
     goodTrack = true;
 
   return goodTrack;
@@ -506,7 +562,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   for (int j = 0; j < nTracks; ++j)
   {
-    inputTracks[j].SetProductionVertex(mother);
+    if (m_extrapolateTracksToSV) inputTracks[j].SetProductionVertex(mother);
     if (!m_allowZeroMassTracks)
     {
       if (inputTracks[j].GetMass() == 0) daughterMassCheck = false;
@@ -562,7 +618,7 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
 
   goodCandidate = false;
 
-  const float speed = 2.99792458e-1;
+  const float speed = 2.99792458e-2;
   calculated_decayTime /= speed;
 
   if (calculated_fdchi2 >= m_fdchi2 && calculated_ipchi2 <= m_mother_ipchi2 && isInRange(m_dira_min, calculated_dira, m_dira_max) && isInRange(m_min_decayTime, calculated_decayTime, m_max_decayTime) && isInRange(m_min_decayLength, calculated_decayLength, m_max_decayLength))

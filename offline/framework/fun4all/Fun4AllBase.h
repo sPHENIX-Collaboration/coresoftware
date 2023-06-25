@@ -8,13 +8,13 @@
 
 /** Base class for all Fun4All Classes
  *
- *  It implements the Name, the Verbosity and the print method  
+ *  It implements the Name, the Verbosity and the print method
  */
 
 class Fun4AllBase
 {
  public:
-  /** dtor. 
+  /** dtor.
       Does nothing as this is a base class only.
   */
   virtual ~Fun4AllBase();
@@ -25,7 +25,7 @@ class Fun4AllBase
   /// Sets the name of this module.
   virtual void Name(const std::string &name) { m_ThisName = name; }
 
-  /** Print out some info about this module. 
+  /** Print out some info about this module.
       @param what can be used to specify what to print exactly.
   */
   virtual void Print(const std::string &what = "ALL") const;
@@ -66,7 +66,7 @@ class Fun4AllBase
 
  protected:
   /** ctor.
-  */
+   */
   Fun4AllBase(const std::string &name = "NONAME");
 
  private:

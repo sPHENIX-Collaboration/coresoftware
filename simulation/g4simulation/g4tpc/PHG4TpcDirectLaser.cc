@@ -25,6 +25,8 @@
 #include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <TVector3.h>  // for TVector3, operator*
+#include <TNtuple.h>
+#include <TFile.h>
 
 #include <gsl/gsl_const_mksa.h>  // for the speed of light
 
@@ -171,6 +173,8 @@ PHG4TpcDirectLaser::PHG4TpcDirectLaser(const std::string& name)
   , PHParameterInterface(name)
 {
   InitializeParameters();
+  theta_p = 0;
+  phi_p = 0;
 }
 
 //_____________________________________________________________
@@ -236,13 +240,29 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode* topNode)
   SetupLasers();
 
   // print configuration
-  std::cout << "PHG4TpcDirectLaser::InitRun - m_autoAdvanceDirectLaser: " << m_autoAdvanceDirectLaser << std::endl;
-  std::cout << "PHG4TpcDirectLaser::InitRun - phi steps: " << nPhiSteps << " min: " << minPhi << " max: " << maxPhi << std::endl;
-  std::cout << "PHG4TpcDirectLaser::InitRun - theta steps: " << nThetaSteps << " min: " << minTheta << " max: " << maxTheta << std::endl;
-  std::cout << "PHG4TpcDirectLaser::InitRun - nTotalSteps: " << nTotalSteps << std::endl;
-
+  if(m_steppingpattern == true)
+  {
+    std::cout<< "PHG4TpcDirectLaser::InitRun - m_steppingpattern: " << m_steppingpattern << std::endl;
+    std::cout<< "PHG4TpcDirectLaser::InitRun - nTotalSteps: " << nTotalSteps << std::endl;
+  }
+  else
+  {
+    std::cout << "PHG4TpcDirectLaser::InitRun - m_autoAdvanceDirectLaser: " << m_autoAdvanceDirectLaser << std::endl;
+    std::cout << "PHG4TpcDirectLaser::InitRun - phi steps: " << nPhiSteps << " min: " << minPhi << " max: " << maxPhi << std::endl;
+    std::cout << "PHG4TpcDirectLaser::InitRun - theta steps: " << nThetaSteps << " min: " << minTheta << " max: " << maxTheta << std::endl;
+    std::cout << "PHG4TpcDirectLaser::InitRun - nTotalSteps: " << nTotalSteps << std::endl;
+  }
   std::cout << "PHG4TpcDirectLaser::InitRun - electrons_per_cm: " << electrons_per_cm << std::endl;
   std::cout << "PHG4TpcDirectLaser::InitRun - electrons_per_gev " << electrons_per_gev << std::endl;
+  
+  //TFile * infile1 = TFile::Open("theta_phi_laser.root");
+  
+  std::string LASER_ANGLES_ROOTFILE = std::string(getenv("CALIBRATIONROOT")) + "/TPC/DirectLaser/theta_phi_laser.root";
+  TFile* infile1 = TFile::Open(LASER_ANGLES_ROOTFILE.c_str());
+
+  pattern = (TNtuple*) infile1->Get("angles");
+  pattern->SetBranchAddress("#theta",&theta_p);
+  pattern->SetBranchAddress("#phi",&phi_p);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -266,10 +286,18 @@ int PHG4TpcDirectLaser::process_event(PHCompositeNode* topNode)
   {
     AimToNextPatternStep();
   }
+  //_________________________________________________
+   
+ else if (m_steppingpattern)
+  {
+    AimToNextPatternStep();   
+  }
+
+  //_________________________________________________
   else
   {
     // use arbitrary direction
-    AimToThetaPhi(M_PI / 180. * arbitrary_theta, M_PI / 180. * arbitrary_phi);
+    AimToThetaPhi(arbitrary_theta, arbitrary_phi);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -329,7 +357,21 @@ void PHG4TpcDirectLaser::SetThetaStepping(int n, double min, double max)
   return;
 }
 
+//_____________________________________________________________                                                                                        
+void PHG4TpcDirectLaser::SetFileStepping(int n)
+{
+  if (n < 0 || n > 13802) //13802 = hard coded number of tuple entries
+    {
+      std::cout << PHWHERE << " - invalid" << std::endl;
+      return;
+    }
+   nTotalSteps = n;
+
+  return;
+}
+
 //_____________________________________________________________
+
 void PHG4TpcDirectLaser::SetupLasers()
 {
   // clear previous lasers
@@ -353,29 +395,41 @@ void PHG4TpcDirectLaser::SetupLasers()
     {
       laser.m_position.SetZ(position_base.z());
       laser.m_direction = -1;
+      laser.m_phi = M_PI / 2 * i + (15 * M_PI/180); //additional offset of 15 deg.
     }
     else
     {
       laser.m_position.SetZ(-position_base.z());
       laser.m_direction = 1;
+      laser.m_phi = M_PI / 2 * i - (15 * M_PI/180); //additional offset of 15 deg.
     }
-
+    
     // rotate around z
-    laser.m_phi = M_PI / 2 * i;
     laser.m_position.RotateZ(laser.m_phi);
 
     // append
-    m_lasers.push_back(laser);
+       m_lasers.push_back(laser); //All lasers
+    //  if(i==0) m_lasers.push_back(laser);//Only laser 1
+    //  if(i==3) m_lasers.push_back(laser);// Laser 4                                                                                      
+    // if(i<4) m_lasers.push_back(laser);//Lasers 1, 2, 3, 4                                               
   }
 }
-
+  
 //_____________________________________________________________
 void PHG4TpcDirectLaser::AimToNextPatternStep()
 {
   if (nTotalSteps >= 1)
   {
-    AimToPatternStep(currentPatternStep);
-    ++currentPatternStep;
+    if (m_steppingpattern)
+    {
+      AimToPatternStep_File(currentPatternStep);
+      ++currentPatternStep;
+    }
+    else
+    {
+      AimToPatternStep(currentPatternStep);
+      ++currentPatternStep;
+    }
   }
 }
 
@@ -422,7 +476,41 @@ void PHG4TpcDirectLaser::AimToPatternStep(int n)
   return;
 }
 
-//_____________________________________________________________
+//_____________________________________________________________           
+                                                                                                                                                                              
+void PHG4TpcDirectLaser::AimToPatternStep_File(int n)
+{
+  //trim against overflows                                                                                                                                                                                                                   
+  n = n % nTotalSteps;
+
+  if (Verbosity())
+    {
+      std::cout << "PHG4TpcDirectLaser::AimToPatternStep_File - step: " << n << "/" << nTotalSteps << std::endl;
+    }
+
+  // store as current pattern                                                                                                                                                                                                                
+  currentPatternStep = n;
+
+  pattern->GetEntry(n);
+                                                                                                                                                                                                                  
+  // calculate theta                                                                                              
+  std::cout << "From file, current entry = " << n << " Theta: " << theta_p <<" Phi: " << phi_p << std::endl;                          
+            
+  const double theta = theta_p*M_PI/180.;
+
+  // calculate phi                                                                                                                                                                                                                           
+  const double phi = phi_p*M_PI/180.;
+
+  
+  // generate laser tracks                                                                                                                                                                                                                   
+  AimToThetaPhi(theta, phi);
+
+  return;
+}
+
+//_____________________________________________________________  
+
+
 void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4TpcDirectLaser::Laser& laser)
 {
   if (!m_g4hitcontainer)
@@ -440,7 +528,9 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
 
   //adjust direction
   dir.RotateY(theta * direction);
-  dir.RotateZ(phi);
+
+  if(laser.m_direction == -1) dir.RotateZ(phi); //if +z facing -z
+  else dir.RotateZ(-phi); //if -z facting +z
 
   // also rotate by laser azimuth
   dir.RotateZ(laser.m_phi);

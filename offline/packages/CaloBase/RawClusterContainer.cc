@@ -8,13 +8,13 @@
 using namespace std;
 
 RawClusterContainer::ConstRange
-RawClusterContainer::getClusters(void) const
+RawClusterContainer::getClusters() const
 {
   return make_pair(_clusters.begin(), _clusters.end());
 }
 
 RawClusterContainer::Range
-RawClusterContainer::getClusters(void)
+RawClusterContainer::getClusters()
 {
   return make_pair(_clusters.begin(), _clusters.end());
 }
@@ -43,7 +43,7 @@ RawClusterContainer::getCluster(const unsigned int key)
   {
     return it->second;
   }
-  return NULL;
+  return nullptr;
 }
 
 const RawCluster*
@@ -54,7 +54,7 @@ RawClusterContainer::getCluster(const unsigned int key) const
   {
     return it->second;
   }
-  return NULL;
+  return nullptr;
 }
 
 int RawClusterContainer::isValid() const

@@ -13,7 +13,7 @@
 class RawTowerv1 : public RawTower
 {
  public:
-  RawTowerv1(){}
+  RawTowerv1() {}
   RawTowerv1(const RawTower& tower);
   RawTowerv1(RawTowerDefs::keytype id);
   RawTowerv1(const unsigned int ieta, const unsigned int iphi);
@@ -29,7 +29,7 @@ class RawTowerv1 : public RawTower
   RawTowerDefs::keytype get_id() const override { return towerid; }
   int get_bineta() const override;
   int get_binphi() const override;
-  int get_binl() const  override { return RawTowerDefs::decode_index3v2(towerid);}
+  int get_binl() const override { return RawTowerDefs::decode_index3v2(towerid); }
   double get_energy() const override { return energy; }
   void set_energy(const double e) override { energy = e; }
   float get_time() const override { return time; }

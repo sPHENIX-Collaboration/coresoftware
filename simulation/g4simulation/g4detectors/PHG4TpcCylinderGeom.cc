@@ -4,6 +4,54 @@
 #include <phool/phool.h>
 #include <cstdlib>
 
+namespace
+{
+  // streamer for internal 2dimensional arrays
+  using array_t = std::array<std::vector<double>, PHG4TpcCylinderGeom::NSides >;
+  std::ostream& operator << (std::ostream& out, const array_t& array )
+  {
+    out << "{ ";
+    for( size_t iside = 0; iside < array.size(); ++iside )
+    {
+      out << "{";
+      bool first = true;
+      for( const auto& value:array[iside] )
+      {
+        if( !first ) out << ", ";
+        first = false;
+        out << value;
+      } 
+      out << "} ";
+    }
+    out << " }";
+    return out;
+  } 
+}
+
+std::ostream& operator << (std::ostream& out, const PHG4TpcCylinderGeom& geom )
+{
+  out << "PHG4TpcCylinderGeom - layer: " << geom.layer << std::endl;
+  out 
+    << "  binnig: " << geom.binning 
+    << ", radius: " << geom.radius
+    << ", nzbins: " << geom.nzbins
+    << ", zmin: " << geom.zmin
+    << ", zstep: " << geom.zstep
+    << ", nphibins: " << geom.nphibins
+    << ", phimin: " << geom.phimin
+    << ", phistep: " << geom.phistep
+    << ", thickness: " << geom.thickness
+    << std::endl;
+ 
+  out << "  sector_R_bias: " << geom.sector_R_bias << std::endl;
+  out << "  sector_Phi_bias: " << geom.sector_Phi_bias << std::endl;
+  out << "  sector_min_Phi: " << geom.sector_min_Phi << std::endl;
+  out << "  sector_max_Phi: " << geom.sector_max_Phi << std::endl;
+  
+  return out;
+}
+
+
 void PHG4TpcCylinderGeom::set_zbins(const int i)
 {
   check_binning_method(PHG4CylinderCellDefs::sizebinning);
@@ -379,6 +427,28 @@ PHG4TpcCylinderGeom::get_phicenter(const int ibin) const
     phi_center += 2*M_PI;
   }
   return phi_center;
+}
+
+double
+PHG4TpcCylinderGeom::get_phi(const float ibin) const
+{
+  //double phi_center = -999;
+  if (ibin < 0 || ibin > nphibins)
+  {
+    std::cout << PHWHERE << "Asking for invalid bin in phi: " << ibin << std::endl;
+    exit(1);
+  }
+
+  check_binning_method_phi();
+
+  const int side = 0 ;
+  unsigned int pads_per_sector = nphibins / 12;
+  unsigned int sector = ibin / pads_per_sector;  
+  double phi = (sector_max_Phi[side][sector] - (ibin +0.5 - sector * pads_per_sector) * phistep);
+  if(phi <= -M_PI){
+    phi += 2*M_PI;
+  }
+  return phi;
 }
 
 std::string

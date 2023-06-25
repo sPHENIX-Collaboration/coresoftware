@@ -527,7 +527,7 @@ int Fun4AllServer::process_event()
   }
   gROOT->cd(default_Tdirectory.c_str());
   std::string currdir = gDirectory->GetPath();
-  for (auto & Subsystem : Subsystems)
+  for (auto &Subsystem : Subsystems)
   {
     if (Verbosity() >= VERBOSITY_MORE)
     {
@@ -711,7 +711,7 @@ int Fun4AllServer::process_event()
       }
     }
   }
-  for (auto & Subsystem : Subsystems)
+  for (auto &Subsystem : Subsystems)
   {
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
@@ -742,7 +742,7 @@ int Fun4AllServer::ResetNodeTree()
   for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
   {
     PHNodeIterator mainIter((*iter).second);
-    for (const auto & nodename : ResetNodeList)
+    for (const auto &nodename : ResetNodeList)
     {
       if (mainIter.cd(nodename))
       {
@@ -803,7 +803,7 @@ int Fun4AllServer::BeginRun(const int runno)
     std::cout << "overriding BOR timestamp by ";
     beginruntimestamp->print();
     std::cout << std::endl;
-    //rc->set_TimeStamp(*beginruntimestamp);
+    // rc->set_TimeStamp(*beginruntimestamp);
   }
   if (Verbosity() >= VERBOSITY_SOME)
   {
@@ -1415,15 +1415,18 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
         {
           if (currentrun != runno)
           {
-            std::cout << "Mixing of Runs within same event is not supported" << std::endl;
-            std::cout << "Here is the list of Sync Managers and their runnumbers:" << std::endl;
-            std::vector<Fun4AllSyncManager *>::const_iterator syiter;
-            for (syiter = SyncManagers.begin(); syiter != SyncManagers.end(); ++syiter)
+            if (!(*iter)->MixRunsOk())
             {
-              std::cout << (*syiter)->Name() << " run number: " << (*syiter)->CurrentRun() << std::endl;
+              std::cout << "Mixing of Runs within same event is not supported" << std::endl;
+              std::cout << "Here is the list of Sync Managers and their runnumbers:" << std::endl;
+              std::vector<Fun4AllSyncManager *>::const_iterator syiter;
+              for (syiter = SyncManagers.begin(); syiter != SyncManagers.end(); ++syiter)
+              {
+                std::cout << (*syiter)->Name() << " run number: " << (*syiter)->CurrentRun() << std::endl;
+              }
+              std::cout << "Exiting now" << std::endl;
+              exit(1);
             }
-            std::cout << "Exiting now" << std::endl;
-            exit(1);
           }
         }
       }
@@ -1477,9 +1480,13 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
       if (std::find(RetCodes.begin(),
                     RetCodes.end(),
                     static_cast<int>(Fun4AllReturnCodes::ABORTEVENT)) == RetCodes.end())
+      {
         icnt_good++;
+      }
       if (iret || (nevnts > 0 && icnt_good >= nevnts))
+      {
         break;
+      }
     }
     else if (iret || (nevnts > 0 && icnt >= nevnts))
     {

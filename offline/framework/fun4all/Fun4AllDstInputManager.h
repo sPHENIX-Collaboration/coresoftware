@@ -24,7 +24,7 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
   int SyncIt(const SyncObject *mastersync) override;
   int BranchSelect(const std::string &branch, const int iflag) override;
   int setBranches() override;
-  virtual int setSyncBranches(PHNodeIOManager *IManager);
+  virtual int setSyncBranches(PHNodeIOManager *iman);
   void Print(const std::string &what = "ALL") const override;
   int PushBackEvents(const int i) override;
   int HasSyncObject() const override;
@@ -32,6 +32,16 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
  protected:
   int ReadNextEventSyncObject();
   void ReadRunTTree(const int i) { m_ReadRunTTree = i; }
+  void IManager(PHNodeIOManager *iman) { m_IManager = iman; }
+  PHNodeIOManager *IManager() { return m_IManager; }
+  void runNode(PHCompositeNode *node) { m_RunNode = node; }
+  PHCompositeNode *runNode() { return m_RunNode; }
+  void runNodeCopy(PHCompositeNode *node) { m_RunNodeCopy = node; }
+  PHCompositeNode *runNodeCopy() { return m_RunNodeCopy; }
+  void runNodeSum(PHCompositeNode *node) { m_RunNodeSum = node; }
+  PHCompositeNode *runNodeSum() { return m_RunNodeSum; }
+  std::string RunNodeName() const { return RunNode; }
+  std::string fullfilename;
 
  private:
   int m_ReadRunTTree = 1;
@@ -39,16 +49,15 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
   int events_thisfile = 0;
   int events_skipped_during_sync = 0;
   int m_HaveSyncObject = 0;
-  std::string fullfilename;
-  std::string RunNode = "RUN";
   std::map<const std::string, int> branchread;
   std::string syncbranchname;
   PHCompositeNode *dstNode = nullptr;
-  PHCompositeNode *runNode = nullptr;
-  PHCompositeNode *runNodeCopy = nullptr;
-  PHCompositeNode *runNodeSum = nullptr;
-  PHNodeIOManager *IManager = nullptr;
+  PHCompositeNode *m_RunNode = nullptr;
+  PHCompositeNode *m_RunNodeCopy = nullptr;
+  PHCompositeNode *m_RunNodeSum = nullptr;
+  PHNodeIOManager *m_IManager = nullptr;
   SyncObject *syncobject = nullptr;
+  std::string RunNode = "RUN";
 };
 
 #endif /* __FUN4ALLDSTINPUTMANAGER_H__ */

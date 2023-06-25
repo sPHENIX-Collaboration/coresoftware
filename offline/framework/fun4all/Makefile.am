@@ -23,9 +23,11 @@ pkginclude_HEADERS = \
   Fun4AllNoSyncDstInputManager.h \
   Fun4AllOutputManager.h \
   Fun4AllReturnCodes.h \
+  Fun4AllRunNodeInputManager.h \
   Fun4AllServer.h \
   Fun4AllSyncManager.h \
   Fun4AllUtils.h \
+  InputFileHandler.h \
   PHTFileServer.h \
   SubsysReco.h \
   TDirectoryHelper.h
@@ -51,9 +53,11 @@ libfun4all_la_SOURCES = \
   Fun4AllMemoryTracker.cc \
   Fun4AllNoSyncDstInputManager.cc \
   Fun4AllOutputManager.cc \
+  Fun4AllRunNodeInputManager.cc \
   Fun4AllServer.cc \
   Fun4AllSyncManager.cc \
   Fun4AllUtils.cc \
+  InputFileHandler.cc \
   PHTFileServer.cc
 
 libfun4all_la_LIBADD = \

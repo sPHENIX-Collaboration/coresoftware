@@ -47,6 +47,7 @@ class Fun4AllOutputManager : public Fun4AllBase
   }
 
   virtual void SaveRunNode(const int) { return; }
+  virtual void SaveDstNode(const int) { return; }
 
   /*! \brief
     add an event selector to the outputmanager.
@@ -100,7 +101,7 @@ class Fun4AllOutputManager : public Fun4AllBase
   void OutFileName(const std::string &name) { m_OutFileName = name; }
 
  protected:
-  /*! 
+  /*!
     constructor.
     is protected since we do not want the  class to be created in root macros
   */

@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 # list of shared libraries to produce
 lib_LTLIBRARIES = \
-  libepd.la
+  libepd_io.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -15,20 +15,38 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(ROOTSYS)/lib \
-  -L$(OFFLINE_MAIN)/lib64
+  -L$(OFFLINE_MAIN)/lib64 \
+  -L$(ROOTSYS)/lib
 
-libepd_la_LIBADD = \
-  -lgsl \
-  -lgslcblas \
-  -lphool
+libepd_io_la_LIBADD = \
+  -lphool \
+  -lcalo_io
 
 pkginclude_HEADERS = \
   EPDDefs.h \
-  EpdGeom.h
+  EpdGeom.h \
+  EpdGeomV1.h
 
-libepd_la_SOURCES = \
-  EpdGeom.cc
+ROOTDICTS = \
+  EpdGeom_Dict.cc \
+  EpdGeomV1_Dict.cc
+
+pcmdir = $(libdir)
+
+nobase_dist_pcm_DATA = \
+  EpdGeom_Dict_rdict.pcm \
+  EpdGeomV1_Dict_rdict.pcm 
+
+libepd_io_la_SOURCES = \
+  $(ROOTDICTS) \
+  EpdGeomV1.cc
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
@@ -36,10 +54,10 @@ libepd_la_SOURCES = \
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals
+  testexternals_io
 
-testexternals_SOURCES = testexternals.cc
-testexternals_LDADD = libepd.la
+testexternals_io_SOURCES = testexternals.cc
+testexternals_io_LDADD = libepd_io.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

@@ -21,6 +21,7 @@ class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
 class SvtxVertexMap;
+class GlobalVertexMap;
 
 /// \class QAG4SimulationTracking
 class QAG4SimulationTracking : public SubsysReco
@@ -60,8 +61,8 @@ class QAG4SimulationTracking : public SubsysReco
   /// load nodes
   int load_nodes(PHCompositeNode *);
 
-  void get_dca(SvtxTrack* track, float& dca3dxy, float& dca3dz, 
-	       float& dca3dxysigma, float& dca3dzsigma);
+  void get_dca(SvtxTrack *track, float &dca3dxy, float &dca3dz,
+               float &dca3dxysigma, float &dca3dzsigma);
   // get geant hits associated to a cluster
   using G4HitSet = std::set<PHG4Hit *>;
   G4HitSet find_g4hits(TrkrDefs::cluskey) const;
@@ -80,7 +81,7 @@ class QAG4SimulationTracking : public SubsysReco
 
   PHG4TruthInfoContainer *m_truthContainer = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
-  SvtxVertexMap* m_vertexMap = nullptr;
+  GlobalVertexMap *m_vertexMap = nullptr;
 
   TrkrClusterContainer *m_cluster_map = nullptr;
   TrkrClusterHitAssoc *m_cluster_hit_map = nullptr;

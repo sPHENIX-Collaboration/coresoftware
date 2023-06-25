@@ -49,6 +49,9 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
   /// adjust central membrane hits delay with respect to trigger time
   void setCentralMembraneDelay(int ns) { m_centralMembraneDelay = ns; };
 
+  /// set modulo for events in which to generate CM hits
+  void setCentralMembraneEventModulo(int mod) { m_eventModulo = mod; };
+
  private:
   /// detector name
   std::string detector = "TPC";
@@ -56,6 +59,9 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
   /// g4hitnode name
   std::string hitnodename = "G4HIT_TPC";
   std::vector<PHG4Hit*> PHG4Hits;
+
+  int m_eventModulo = 10;
+  int m_eventNum = 0;
 
   static constexpr double mm = 1.0;
   static constexpr double cm = 10.0;

@@ -43,6 +43,10 @@ class PHG4TpcDetector : public PHG4Detector
 
   void CreateCompositeMaterial(std::string compositeName, std::vector<std::string> materialName, std::vector<double> thickness);
 
+  //! add geometry node
+  /** this setups the relevant geometry needed for offline reconstruciton */
+  void add_geometry_node();
+
   PHG4TpcDisplayAction *m_DisplayAction = nullptr;
   PHParameters *m_Params = nullptr;
   G4UserLimits *m_G4UserLimits = nullptr;

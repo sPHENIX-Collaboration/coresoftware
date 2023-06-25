@@ -20,6 +20,8 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 
+#include <trackreco/ActsPropagator.h>
+
 #include <micromegas/MicromegasDefs.h>
 
 #include <Acts/Surfaces/PerigeeSurface.hpp>
@@ -106,7 +108,13 @@ PHTpcResiduals::PHTpcResiduals(const std::string &name)
 //___________________________________________________________________________________
 int PHTpcResiduals::Init(PHCompositeNode */*topNode*/)
 {
-  if( m_savehistograms ) makeHistograms();
+
+  // configuration printout
+  std::cout << "PHTpcResiduals::Init - m_maxTAlpha: " << m_maxTAlpha << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_maxTBeta: " << m_maxTBeta << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_maxResidualDrphi: " << m_maxResidualDrphi << " cm" << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_maxResidualDz: " << m_maxResidualDz << " cm" << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_minPt: " << m_minPt << " GeV/c" << std::endl;
   
   // reset counters
   m_total_tracks = 0;
@@ -150,22 +158,6 @@ int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
     std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
     outputfile->cd();
     m_matrix_container->Write( "TpcSpaceChargeMatrixContainer" );
-  }
-
-  // save histograms
-  if( m_savehistograms && m_histogramfile )
-  {
-    m_histogramfile->cd();
-    for( const auto o:std::initializer_list<TObject*>({ h_rphiResid, h_zResid, h_etaResidLayer, h_zResidLayer, h_etaResid, h_index, h_alpha, h_beta, h_deltarphi_layer, h_deltaz_layer, residTup }) )
-    { if( o ) o->Write(); }
-    
-    // also write histograms from vectors
-    for( const auto& [cell,h]:h_drphi ) { if(h) h->Write(); }
-    for( const auto& [cell,h]:h_dz ) { if(h) h->Write(); }
-    for( const auto& [cell,h]:h_drphi_alpha ) { if(h) h->Write(); }
-    for( const auto& [cell,h]:h_dz_beta ) { if(h) h->Write(); }
-    
-    m_histogramfile->Close();
   }
   
   // print counters
@@ -215,8 +207,8 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
   if(Verbosity() > 2)
   { std::cout << "PHTpcResiduals::checkTrack - pt: " << track->get_pt() << std::endl; }
  
-  if(track->get_pt() < 0.5)
-    return false;
+  if(track->get_pt() < m_minPt)
+  { return false; }
 
   // ignore tracks with too few mvtx, intt and micromegas hits
   const auto cluster_keys( get_cluster_keys( track ) );
@@ -233,8 +225,8 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
 Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) const
 {
   Acts::Vector3 momentum(track->get_px(), 
-			  track->get_py(), 
-			  track->get_pz());
+			 track->get_py(), 
+			 track->get_pz());
   double trackQ = track->get_charge() * Acts::UnitConstants::e;
   double p = track->get_p();
 
@@ -265,20 +257,17 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       << " position: (" << track->get_x() << ", " << track->get_y() << ", " << track->get_z() << ")"
       << std::endl;
   }
-  
+  ActsPropagator propagator(m_tGeometry);
+
   // create ACTS parameters from track parameters at origin
   auto trackParams = makeTrackParams(track);
-
+  
   // store crossing. It is used in calculating cluster's global position
   m_crossing = track->get_crossing();
   assert( m_crossing != SHRT_MAX );
-  
-  for( const auto& key:get_cluster_keys( track ) )
-  {
-    
-    // assign to static cluskey
-    cluskey = key;
 
+  for( const auto& cluskey:get_cluster_keys( track ) )
+  {
     // increment counter
     ++m_total_clusters;
     
@@ -287,11 +276,11 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     if(detId != TrkrDefs::tpcId) continue;  
     
     const auto cluster = m_clusterContainer->findCluster(cluskey);      
-    const auto surf = m_tGeometry->maps().getSurface( cluskey, cluster );
-    auto result = propagateTrackState(trackParams, surf);
+    const auto surface = m_tGeometry->maps().getSurface( cluskey, cluster );   
+    auto result = propagator.propagateTrack(trackParams, surface);
     
     // skip if propagation failed
-    if(std::isnan(result.first))
+    if(!result.ok())
     {
       if( Verbosity() > 1 )
       {
@@ -311,8 +300,9 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     }
     
     // get extrapolated track state, convert to sPHENIX and add to track
-    auto pathLength = result.first;
-    auto trackStateParams = result.second;
+    auto& [pathLength, trackStateParams] = result.value();    
+    pathLength /= Acts::UnitConstants::cm;
+
     if(Verbosity() > 1)
     {
       std::cout << "PHTpcResiduals::processTrack -"
@@ -323,20 +313,23 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
         << trackStateParams.momentum()
         << std::endl;
     }
-    
-    addTrackState( track, pathLength, trackStateParams );
+
+
+    addTrackState( track, cluskey, pathLength, trackStateParams );
     
     // calculate residuals with respect to cluster
     // Get all the relevant information for residual calculation
     const auto globClusPos = getGlobalPosition(cluskey, cluster, m_crossing);
-    clusR = get_r(globClusPos(0),globClusPos(1));
-    clusPhi = std::atan2(globClusPos(1), globClusPos(0));
-    clusZ = globClusPos(2);
+    const double clusR = get_r(globClusPos(0),globClusPos(1));
+    const double clusPhi = std::atan2(globClusPos(1), globClusPos(0));
+    const double clusZ = globClusPos(2);
     
     // cluster errors
-    if( m_cluster_version >= 4 )
+    double clusRPhiErr = 0;
+    double clusZErr = 0;
+    if( m_cluster_version == 4 )
     {
-      const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, clusR, cluskey ); 
+      const auto errors_square = m_cluster_error_parametrization.get_cluster_error( cluster, clusR, cluskey, track->get_tpc_seed()->get_qOverR(), track->get_tpc_seed()->get_slope() ); 
       clusRPhiErr = std::sqrt( errors_square.first );
       clusZErr = std::sqrt( errors_square.second );
     } else {
@@ -373,58 +366,46 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     const auto globalStateMom = trackStateParams.momentum();
     const auto globalStateCov = *trackStateParams.covariance();
     
-    stateRPhiErr = std::sqrt(globalStateCov(Acts::eBoundLoc0, Acts::eBoundLoc0))/Acts::UnitConstants::cm;
-    stateZErr = sqrt(globalStateCov(Acts::eBoundLoc1, Acts::eBoundLoc1))/Acts::UnitConstants::cm;
+    const double trackRPhiErr = std::sqrt(globalStateCov(Acts::eBoundLoc0, Acts::eBoundLoc0))/Acts::UnitConstants::cm;
+    const double trackZErr = sqrt(globalStateCov(Acts::eBoundLoc1, Acts::eBoundLoc1))/Acts::UnitConstants::cm;    
     
-    stateZ = globalStatePos.z()/Acts::UnitConstants::cm;
+    const double globStateX = globalStatePos.x()/Acts::UnitConstants::cm;
+    const double globStateY = globalStatePos.y()/Acts::UnitConstants::cm;
+    const double globStateZ = globalStatePos.z()/Acts::UnitConstants::cm;
     
-    const auto globStateX = globalStatePos.x()/Acts::UnitConstants::cm;
-    const auto globStateY = globalStatePos.y()/Acts::UnitConstants::cm;
-    const auto globStateZ = stateZ;
+    const double trackR = std::sqrt(square(globStateX) + square(globStateY));
     
-    stateR = std::sqrt(square(globStateX) + square(globStateY));
+    const double dr = clusR - trackR;
+    const double trackDrDt = (globStateX * globalStateMom(0) + globStateY * globalStateMom(1)) / trackR;
+    const double trackDxDr = globalStateMom(0) / trackDrDt;
+    const double trackDyDr = globalStateMom(1) / trackDrDt;
+    const double trackDzDr = globalStateMom(2) / trackDrDt;
     
-    const auto dr = clusR - stateR;
-    const auto trackDrDt = (globStateX * globalStateMom(0) + globStateY * globalStateMom(1)) / stateR;
-    const auto trackDxDr = globalStateMom(0) / trackDrDt;
-    const auto trackDyDr = globalStateMom(1) / trackDrDt;
-    const auto trackDzDr = globalStateMom(2) / trackDrDt;
-    
-    const auto trackX = globStateX + dr * trackDxDr;
-    const auto trackY = globStateY + dr * trackDyDr;
-    const auto trackZ = globStateZ + dr * trackDzDr;
+    const double trackX = globStateX + dr * trackDxDr;
+    const double trackY = globStateY + dr * trackDyDr;
+    const double trackZ = globStateZ + dr * trackDzDr;
+    const double trackPhi = std::atan2(trackY, trackX);
     
     if(Verbosity() > 2)
     {
       std::cout << "PHTpcResiduals::processTrack -"
-        << " stateR: " << stateR 
+        << " trackR: " << trackR 
         << " dr: " << dr 
         << " trackDrDt: " << trackDrDt 
         << " trackDxDr: " << trackDxDr
         << " trackDyDr: " << trackDyDr 
         << " trackDzDr: " << trackDzDr
+        << " trackPhi: " << trackPhi << "+/-" << trackRPhiErr
         << " track position: (" << trackX << ", " << trackY << ", " << trackZ  << ")"
         << std::endl;
     }
-    
-    statePhi = std::atan2(trackY, trackX);
-    stateZ = trackZ;
-    
-    if(Verbosity() > 3)
-    {
-      std::cout << "PHTpcResiduals::processTrack -" 
-        << " stateR: " << stateR
-        << " statePhi: " << statePhi << "+/-" << stateRPhiErr
-        << " stateZ: " << stateZ << "+/-" << stateZErr 
-        << std::endl;
-    }
-    
-    const auto erp = square(clusRPhiErr) + square(stateRPhiErr);
-    const auto ez = square(clusZErr) + square(stateZErr);
+        
+    const double erp = square(clusRPhiErr) + square(trackRPhiErr);
+    const double ez = square(clusZErr) + square(trackZErr);
     
     // Calculate residuals
-    drphi = clusR * deltaPhi(clusPhi - statePhi);
-    dz  = clusZ - stateZ;
+    const double drphi = clusR * deltaPhi(clusPhi - trackPhi);
+    const double dz  = clusZ - trackZ;
     
     if(Verbosity() > 3)
     {
@@ -433,19 +414,13 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
         << " dz: " << dz 
         << std::endl;
     }
+        
+    const double trackPPhi = -trackStateParams.momentum()(0) * std::sin(trackPhi) + trackStateParams.momentum()(1) * std::cos(trackPhi);
+    const double trackPR = trackStateParams.momentum()(0) * std::cos(trackPhi) + trackStateParams.momentum()(1) * std::sin(trackPhi);
+    const double trackPZ = trackStateParams.momentum()(2);
     
-    const auto trackEta = std::atanh(trackStateParams.momentum().z() / trackStateParams.absoluteMomentum());
-    const auto clusEta = std::atanh(clusZ / std::sqrt(
-      square(globClusPos(0)) +
-      square(globClusPos(1)) +
-      square(globClusPos(2))));
-    
-    const auto trackPPhi = -trackStateParams.momentum()(0) * std::sin(statePhi) + trackStateParams.momentum()(1) * std::cos(statePhi);
-    const auto trackPR = trackStateParams.momentum()(0) * std::cos(statePhi) + trackStateParams.momentum()(1) * std::sin(statePhi);
-    const auto trackPZ = trackStateParams.momentum()(2);
-    
-    const auto trackAlpha = -trackPPhi / trackPR;
-    const auto trackBeta = -trackPZ / trackPR;
+    const double trackAlpha = -trackPPhi / trackPR;
+    const double trackBeta = -trackPZ / trackPR;
     
     if(Verbosity() > 3)
     {
@@ -458,10 +433,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
         << " trackBeta: " << trackBeta
         << std::endl;
     }
-    
-    tanBeta = trackBeta;
-    tanAlpha = trackAlpha;
-    
+        
     // get cell index
     const auto index = getCell(globClusPos);
     if(Verbosity() > 3)
@@ -471,41 +443,18 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     
     if(Verbosity() > 3)
     {
-      std::cout << "PHTpcResiduals::processTrack - layer: " << (int) TrkrDefs::getLayer(key) << std::endl;
+      std::cout << "PHTpcResiduals::processTrack - layer: " << (int) TrkrDefs::getLayer(cluskey) << std::endl;
       std::cout << "PHTpcResiduals::processTrack -"
         << " cluster: (" << clusR << ", " << clusR*clusPhi << ", " << clusZ << ")"
         << " (" << clusRPhiErr << ", " << clusZErr << ")"
         << std::endl;
       
       std::cout << "PHTpcResiduals::processTrack -"
-        << " track: (" << stateR << ", " << clusR*statePhi << ", " << stateZ << ")"
-        << " (" << tanAlpha << ", " << tanBeta << ")"
-        << " (" << stateRPhiErr << ", " << stateZErr << ")"
+        << " track: (" << trackR << ", " << clusR*trackPhi << ", " << trackZ << ")"
+        << " (" << trackAlpha << ", " << trackBeta << ")"
+        << " (" << trackRPhiErr << ", " << trackZErr << ")"
         << std::endl;
       std::cout << std::endl;
-    }
-    
-    if( m_savehistograms )
-    {
-      h_index->Fill(index);
-      h_alpha->Fill(tanAlpha, drphi);
-      h_beta->Fill(tanBeta, dz);
-      h_rphiResid->Fill(clusR , drphi);
-      h_zResid->Fill(stateZ , dz);
-      h_etaResid->Fill(trackEta, clusEta - trackEta);
-      h_zResidLayer->Fill(clusR , dz);
-      h_etaResidLayer->Fill(clusR , clusEta - trackEta);
-      
-      const auto layer =  TrkrDefs::getLayer(key);
-      h_deltarphi_layer->Fill( layer, drphi );
-      h_deltaz_layer->Fill( layer, dz );
-      
-      { const auto iter = h_drphi.find( index ); if( iter != h_drphi.end() ) iter->second->Fill( drphi ); }
-      { const auto iter = h_drphi_alpha.find( index ); if( iter != h_drphi_alpha.end() ) iter->second->Fill( tanAlpha, drphi ); }
-      { const auto iter = h_dz.find( index ); if( iter != h_dz.end() ) iter->second->Fill( dz ); }
-      { const auto iter = h_dz_beta.find( index ); if( iter != h_dz_beta.end() ) iter->second->Fill( tanBeta, dz ); }
-      
-      residTup->Fill();
     }
     
     // check track angles and residuals agains cuts
@@ -542,45 +491,8 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
         
 }
 
-//__________________________________________________________________________________________________________________________________________
-PHTpcResiduals::BoundTrackParamPair  PHTpcResiduals::propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surf) const
-{
- 
-
-  using Stepper = Acts::EigenStepper<>;
-  using Propagator = Acts::Propagator<Stepper, Acts::Navigator>;
-
-  Stepper stepper(m_tGeometry->geometry().magField);
-  Acts::Navigator::Config cfg{m_tGeometry->geometry().tGeometry};
-  Acts::Navigator navigator(cfg);
-  Propagator propagator(stepper, navigator);
-
-  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
-  if(Verbosity() > 10)
-    logLevel = Acts::Logging::VERBOSE;
-
-  auto logger = Acts::getDefaultLogger("PHTpcResiduals", logLevel);
-      
-  Acts::PropagatorOptions<> options(m_tGeometry->geometry().getGeoContext(),
-				    m_tGeometry->geometry().magFieldContext,
-				    Acts::LoggerWrapper{*logger});
-     
-  auto result = propagator.propagate(params, *surf, options);
-   
-  if(result.ok())
-  {
-    const Acts::BoundTrackParameters params = *result.value().endParameters;
-    double pathlength = result.value().pathLength / Acts::UnitConstants::cm;
-    // return both path length and extrapolated parameters
-    return std::make_pair( pathlength, params );
-  } else {
-    return std::make_pair(NAN, Acts::BoundTrackParameters(nullptr, Acts::BoundVector::Zero(),-1));
-
-  }
-}
-
 //_______________________________________________________________________________________________________
-void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Acts::BoundTrackParameters& params )
+void PHTpcResiduals::addTrackState( SvtxTrack* track, TrkrDefs::cluskey key, float pathlength, const Acts::BoundTrackParameters& params )
 {
 
   /* this is essentially a copy of the code from trackbase_historic/ActsTransformations::fillSvtxTrackStates */
@@ -605,6 +517,8 @@ void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Ac
   for (int i = 0; i < 6; ++i)
     for (int j = 0; j < 6; ++j)
   { state.set_error(i, j, globalCov(i,j)); }
+ 
+  state.set_name(std::to_string((TrkrDefs::cluskey) key));
 
   track->insert_state(&state);
 }
@@ -707,107 +621,6 @@ Acts::Vector3 PHTpcResiduals::getGlobalPosition( TrkrDefs::cluskey key, TrkrClus
   }
     
   return globalPosition;
-}
-
-//_______________________________________________________________________________
-void PHTpcResiduals::makeHistograms()
-{  
-  
-  m_histogramfile.reset( new TFile(m_histogramfilename.c_str(), "RECREATE") );
-  m_histogramfile->cd();
-
-  const auto total_bins = m_matrix_container->get_grid_size();  
-  h_beta = new TH2F("betadz",";tan#beta; #Deltaz [cm]",100,-0.5,0.5,100,-0.5,0.5);
-  h_alpha = new TH2F("alphardphi",";tan#alpha; r#Delta#phi [cm]", 100,-0.5,0.5,100,-0.5,0.5);
-  h_index = new TH1F("index",";index",total_bins, 0, total_bins);
-  h_rphiResid = new TH2F("rphiResid", ";r [cm]; #Deltar#phi [cm]", 60, 20, 80, 500, -2, 2);
-  h_zResid = new TH2F("zResid", ";z [cm]; #Deltaz [cm]", 200, -100, 100, 1000, -2, 2);
-  h_etaResid = new TH2F("etaResid", ";#eta;#Delta#eta",	20, -1, 1, 500, -0.2, 0.2);
-  h_etaResidLayer = new TH2F("etaResidLayer", ";r [cm]; #Delta#eta", 60, 20, 80, 500, -0.2, 0.2);
-  h_zResidLayer = new TH2F("zResidLayer", ";r [cm]; #Deltaz [cm]", 60, 20, 80, 1000, -2, 2);
-  h_deltarphi_layer = new TH2F( "deltarphi_layer", ";layer; r.#Delta#phi_{track-cluster} (cm)", 57, 0, 57, 500, -2, 2 );
-  h_deltaz_layer = new TH2F( "deltaz_layer", ";layer; #Deltaz_{track-cluster} (cm)", 57, 0, 57, 100, -2, 2 );
-
-  {
-
-    // get grid dimensions from matrix container
-    int phibins = 0;
-    int rbins = 0;
-    int zbins = 0;
-    m_matrix_container->get_grid_dimensions( phibins, rbins, zbins );
-    
-    // get bins corresponding to selected angles
-    std::set<int> phibin_rec;
-    std::transform( phi_rec.begin(), phi_rec.end(), std::inserter( phibin_rec, phibin_rec.end() ), [&]( const float& phi ) { return phibins*(phi-m_phiMin)/(m_phiMax-m_phiMin); } );
-    
-    std::set<int> zbin_rec;
-    std::transform( z_rec.begin(), z_rec.end(), std::inserter( zbin_rec, zbin_rec.end() ), [&]( const float& z ) { return zbins*(z-m_zMin)/(m_zMax-m_zMin); } );
-
-    // keep track of all cell ids that match selected histograms
-    for( int iphi = 0; iphi < phibins; ++iphi )
-      for( int ir = 0; ir < rbins; ++ir )
-      for( int iz = 0; iz < zbins; ++iz )
-    {
-    
-      if( phibin_rec.find( iphi ) == phibin_rec.end() || zbin_rec.find( iz ) == zbin_rec.end() ) continue;
-      const auto icell = m_matrix_container->get_cell_index( iphi, ir, iz );
-      
-      {
-        // rphi residuals
-        const auto hname = Form( "residual_drphi_p%i_r%i_z%i", iphi, ir, iz );
-        auto h = new TH1F( hname, hname, 100, -m_maxResidualDrphi, +m_maxResidualDrphi );
-        h->GetXaxis()->SetTitle( "r.#Delta#phi_{cluster-track} (cm)" );
-        h_drphi.insert( std::make_pair( icell, h ) );
-      }
-
-      {
-        // 2D histograms
-        const auto hname = Form( "residual_2d_drphi_p%i_r%i_z%i", iphi, ir, iz );
-        auto h = new TH2F( hname, hname, 100, -m_maxTAlpha, m_maxTAlpha, 100, -m_maxResidualDrphi, +m_maxResidualDrphi );
-        h->GetXaxis()->SetTitle( "tan#alpha" );
-        h->GetYaxis()->SetTitle( "r.#Delta#phi_{cluster-track} (cm)" );
-        h_drphi_alpha.insert( std::make_pair( icell, h ) );
-      }
-
-      {
-        // z residuals
-        const auto hname = Form( "residual_dz_p%i_r%i_z%i", iphi, ir, iz );
-        auto h = new TH1F( hname, hname, 100, -m_maxResidualDz, +m_maxResidualDz );
-        h->GetXaxis()->SetTitle( "#Deltaz_{cluster-track} (cm)" );
-        h_dz.insert( std::make_pair( icell, h ) );
-      }
-
-      {
-        // 2D histograms
-        static constexpr double maxTBeta = 0.5;
-        const auto hname = Form( "residual_2d_dz_p%i_r%i_z%i", iphi, ir, iz );
-        auto h = new TH2F( hname, hname, 100, -maxTBeta, maxTBeta, 100, -m_maxResidualDz, +m_maxResidualDz );
-        h->GetXaxis()->SetTitle( "tan#beta" );
-        h->GetYaxis()->SetTitle( "#Deltaz_{cluster-track} (cm)" );
-        h_dz_beta.insert( std::make_pair( icell, h ) );
-      }     
-    }
-    
-  }
-  
-  residTup = new TTree("residTree","tpc residual info");
-  residTup->Branch("tanAlpha",&tanAlpha,"tanAlpha/D");
-  residTup->Branch("tanBeta",&tanBeta,"tanBeta/D");
-  residTup->Branch("drphi",&drphi,"drphi/D");
-  residTup->Branch("dz",&dz,"dz/D");
-  residTup->Branch("clusR",&clusR,"clusR/D");
-  residTup->Branch("clusPhi",&clusPhi,"clusPhi/D");
-  residTup->Branch("clusZ",&clusZ,"clusZ/D");
-  residTup->Branch("statePhi",&statePhi,"statePhi/D");
-  residTup->Branch("stateZ",&stateZ,"stateZ/D");
-  residTup->Branch("stateR",&stateR,"stateR/D");
-  residTup->Branch("stateRPhiErr",&stateRPhiErr,"stateRPhiErr/D");
-  residTup->Branch("stateZErr",&stateZErr,"stateZErr/D");
-  residTup->Branch("clusRPhiErr",&clusRPhiErr,"clusRPhiErr/D");
-  residTup->Branch("clusZErr",&clusZErr,"clusZErr/D");
-  residTup->Branch("cluskey",&cluskey,"cluskey/l");
-  residTup->Branch("event",&m_event,"event/I");
-
 }
 
 void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins, const int zBins)

@@ -11,8 +11,8 @@
 #include <trackbase_historic/SvtxTrackState.h>  // for SvtxTrackState
 
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTower.h>
+#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfo.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterUtility.h>
@@ -176,7 +176,7 @@ int PHGenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 
 		// pull the towers
 		string towernodename = "TOWER_CALIB_" + _cal_names[i];
-		RawTowerContainer *towerList = findNode::getClass<RawTowerContainer>(
+		TowerInfoContainer *towerList = findNode::getClass<TowerInfoContainerv1>(
 				topNode, towernodename.c_str());
 	         
 		if (!towerList) {
@@ -391,8 +391,8 @@ int PHGenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 						continue;
 					if (ieta >= towergeo->get_etabins())
 						continue;
-
-					RawTower* tower = towerList->getTower(ieta, wrapphi);
+					unsigned int towerkey = (ieta << 16U) + wrapphi;
+					TowerInfo* tower = towerList->get_tower_at_key(towerkey);
 					if (tower) {
 
 						energy_5x5 += tower->get_energy();

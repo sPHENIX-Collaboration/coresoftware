@@ -34,7 +34,7 @@ class EmcModule
 // ///////////////////////////////////////////////////////////////////////////
 
 /** The 1-st level of the EMCal clustering: cluster is a set of contiguous
-    towers. 
+    towers.
 
     Only used internally by clustering routines.
     @ingroup clustering

@@ -28,6 +28,12 @@ while(my @res = $getdsttypes->fetchrow_array())
 	unlink $listfile;
     }
 }
+my %exclude_these = (
+    "DST_JOBA" => "Test PanDa",
+    "DST_MDC2_GLOBAL" => "Test PanDa",
+    "DST_PASS1_CLUSTERS" => "Test PanDa",
+    "DST_RECO_CLUSTER" => "Test PanDa"
+    );
 
 my %proddesc = (
 #    "1" => "hijing (0-12fm) pileup 0-12fm DELETED",
@@ -45,7 +51,12 @@ my %proddesc = (
     "13" => "JS pythia8 Photon Jet",
     "14" => "Single Particles",
     "15" => "Special Productions",
-    "16" => "HF pythia8 D0 Jets"
+    "16" => "HF pythia8 D0 Jets",
+    "17" => "HF pythia8 D0 pi-k Jets ptmin = 5GeV ",
+    "18" => "HF pythia8 D0 pi-k Jets ptmin = 12GeV",
+    "19" => "JS pythia8 Jet ptmin = 40GeV",
+    "20" => "hijing pAu (0-10fm) pileup 0-10fm",
+    "21" => "JS pythia8 Jet ptmin = 20GeV"
     );
 
 my %pileupdesc = (
@@ -59,7 +70,7 @@ my $start_segment;
 my $last_segment;
 my $randomize;
 my $prodtype;
-my $runnumber = 40;
+my $runnumber = 6;
 my $verbose;
 my $nopileup;
 my $embed;
@@ -68,14 +79,16 @@ my $particle;
 my $pmin;
 my $pmax;
 my $production;
-
-GetOptions('embed' => \$embed, 'l:i' => \$last_segment, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, "production:s"=>\$production, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
+my $momentum;
+GetOptions('embed:s' => \$embed, 'l:i' => \$last_segment, 'momentum:s' => \$momentum, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, "production:s"=>\$production, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
 my $filenamestring;
 my %filetypes = ();
 my %notlike = ();
 
-my $pileupstring;
+my $AuAu_pileupstring;
 my $pp_pileupstring;
+my $pAu_pileupstring;
+my $pileupstring;
 
 if (defined $embed && defined $nopileup)
 {
@@ -84,16 +97,17 @@ if (defined $embed && defined $nopileup)
 }
 if ($pileup == 1)
 {
-    $pileupstring = sprintf("50kHz");
+    $AuAu_pileupstring = sprintf("50kHz");
     $pp_pileupstring = sprintf("3MHz");
+    $pAu_pileupstring = sprintf("500kHz");
 }
 elsif ($pileup == 2)
 {
-    $pileupstring = sprintf("25kHz");
+    $AuAu_pileupstring = sprintf("25kHz");
 }
 elsif ($pileup == 3)
 {
-    $pileupstring = sprintf("10kHz");
+    $AuAu_pileupstring = sprintf("10kHz");
 }
 else
 {
@@ -107,13 +121,13 @@ if (defined $prodtype)
 {
     if ($prodtype == 1)
     {
-	$filenamestring = sprintf("sHijing_0_12fm_%s_bkg_0_12fm",$pileupstring);
+	$filenamestring = sprintf("sHijing_0_12fm_%s_bkg_0_12fm",$AuAu_pileupstring);
         die "This dataset has been deleted\n";
 	&commonfiletypes();
     }
     elsif ($prodtype == 2)
     {
-	$filenamestring = sprintf("sHijing_0_488fm_%s_bkg_0_12fm",$pileupstring);
+	$filenamestring = sprintf("sHijing_0_488fm_%s_bkg_0_12fm",$AuAu_pileupstring);
         die "Dataset $prodtype has been deleted\n";
 	&commonfiletypes();
     }
@@ -124,6 +138,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 4)
@@ -134,20 +149,22 @@ if (defined $prodtype)
 	}
 	else
 	{
-	    $filenamestring = sprintf("sHijing_0_20fm_%s_bkg_0_20fm",$pileupstring);
+	    $filenamestring = sprintf("sHijing_0_20fm_%s_bkg_0_20fm",$AuAu_pileupstring);
 	}
-        $notlike{$filenamestring} = "pythia8";
+        $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
+        $pileupstring = $AuAu_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 5)
     {
-	$filenamestring = sprintf("sHijing_0_12fm_%s_bkg_0_20fm",$pileupstring);
+	$filenamestring = sprintf("sHijing_0_12fm_%s_bkg_0_20fm",$AuAu_pileupstring);
         die "Dataset $prodtype has been deleted\n";
 	&commonfiletypes();
     }
     elsif ($prodtype == 6)
     {
-	$filenamestring = sprintf("sHijing_0_488fm_%s_bkg_0_20fm",$pileupstring);
+	$filenamestring = sprintf("sHijing_0_488fm_%s_bkg_0_20fm",$AuAu_pileupstring);
+        $pileupstring = $AuAu_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 7)
@@ -157,6 +174,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 8)
@@ -166,6 +184,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 9)
@@ -175,6 +194,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 10)
@@ -184,6 +204,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 11)
@@ -194,13 +215,14 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $pileupstring);
+		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
 	    }
 	    else
 	    {
 		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	    }
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 12)
@@ -211,13 +233,22 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $pileupstring);
+                print "embed is $embed\n";
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
 	    }
 	    else
 	    {
 		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	    }
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 13)
@@ -228,17 +259,19 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $pileupstring);
+		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
 	    }
 	    else
 	    {
 		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	    }
 	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 14)
     {
+        $embedok = 1;
         $nopileup = 1;
         my $bad = 0;
 	$filenamestring = "single";
@@ -247,23 +280,39 @@ if (defined $prodtype)
 	    print "-particle: G4 particle name needs to be set for single particle sims\n";
 	    $bad = 1;
 	}
-	if (!defined $pmin)
-	{
-	    print "-pmin: min mimentum needs to be set for single particle sims\n";
-	    $bad = 1;
-	}
-	if (!defined $pmax)
-	{
-	    print "-pmax: max momentum needs to be set for single particle sims\n";
-	    $bad = 1;
-	}
 	if ($bad > 0)
 	{
             print "\nExisting single particle sims, use:\n";
             print_single_types();
 	    exit(1);
 	}
-	$filenamestring = sprintf("%s_%s_%d_%dMeV",$filenamestring, $particle, $pmin, $pmax);
+	if (defined $pmin && defined $pmax)
+	{
+	    if (defined $momentum)
+	    {
+		$filenamestring = sprintf("%s_%s_%s_%d_%dMeV",$filenamestring, $particle, $momentum, $pmin, $pmax);
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s_%d_%dMeV",$filenamestring, $particle, $pmin, $pmax);
+	    }
+
+	    if (defined $embed)
+	    {
+		$filenamestring = sprintf("%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring);
+	    }
+	}
+	else
+	{
+	    if (defined $embed)
+	    {
+		$filenamestring = sprintf("%s_%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring, $particle);
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring, $particle, $pmin, $pmax);
+	    }
+	}
 	&commonfiletypes();
     }
     elsif ($prodtype == 15)
@@ -291,6 +340,85 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 17)
+    {
+	$filenamestring = "pythia8_CharmD0piKJet5";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 18)
+    {
+	$filenamestring = "pythia8_CharmD0piKJet12";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 19)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Jet40";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 20)
+    {
+	if (defined $nopileup)
+	{
+	    $filenamestring = sprintf("sHijing_pAu_0_10fm");
+	}
+	else
+	{
+	    $filenamestring = sprintf("sHijing_pAu_0_10fm_%s_bkg_0_10fm",$pAu_pileupstring);
+	}
+        $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
+        $pileupstring = $pAu_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 21)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Jet20";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+                print "embed is $embed\n";
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
     else
@@ -306,6 +434,13 @@ if (defined $embed && ! $embedok)
     print "Embedding not implemented for type $prodtype\n";
     exit(1);
 }
+if (defined $embed)
+{
+    if ($embed ne "pau" && $embed ne "auau")
+    {
+	push(@ARGV,$embed);
+    }
+}
 
 my $filenamestring_with_runnumber = sprintf("%s\-%010d-",$filenamestring,$runnumber);
 if ($#ARGV < 0)
@@ -314,7 +449,8 @@ if ($#ARGV < 0)
     {
 	print "usage: CreateFileLists.pl -type <production type> <filetypes>\n";
 	print "parameters:\n";
-	print "-embed : pp embedded into hijing (only for pp types)\n";
+	print "-embed : pp embedded into AuAu hijing (only for pp types)\n";
+	print "-embed pau : embedded into pAu (only for pp types\n";
 	print "-l     : last segment\n";
 	print "-n     : <number of events>\n";
 	print "-nopileup : without pileup\n";
@@ -333,6 +469,7 @@ if ($#ARGV < 0)
 	}
         print "\n Single particle mandatory options:\n";
         print "-particle : G4 particle name\n";
+        print "-mom : (optional) p or pt\n";
         print "-pmin : minimum momentum (in MeV/c)\n";
         print "-pmax : maximum momentum (in MeV/c)\n";
 
@@ -342,7 +479,10 @@ if ($#ARGV < 0)
 	print "\navailable file types (choose at least one, --> means: written to):\n";
 	foreach my $tp (sort keys %dsttype)
 	{
-	    print "$tp  --> $dsttype{$tp}\n";
+	    if (! exists $exclude_these{$tp})
+	    {
+		print "$tp  --> $dsttype{$tp}\n";
+	    }
 	}
     }
     else
@@ -421,7 +561,6 @@ while($#ARGV >= 0)
 	    exit(1);
 	}
     }
-
     $req_types{$ARGV[0]} = 1;
     $allfilehash{$ARGV[0]} = ();
     $allevthash{$ARGV[0]} = ();
@@ -433,7 +572,11 @@ my $conds = sprintf("dsttype = ? and filename like \'\%%%s\%\'",$filenamestring_
 
 if (exists $notlike{$filenamestring})
 {
-    $conds = sprintf("%s and filename not like  \'\%%%s\%\'",$conds,$notlike{$filenamestring});
+    my $ref = $notlike{$filenamestring};
+    foreach my $item  (@$ref)
+    {
+	$conds = sprintf("%s and filename not like  \'\%%%s\%\'",$conds,$item);
+    }
 }
 if (defined $start_segment)
 {
@@ -456,7 +599,7 @@ my $getfilesql = sprintf("select filename,segment,events from datasets where %s 
 my %getfiles = ();
 foreach  my $tp (keys %req_types)
 {
-    if ($tp eq "G4Hits")
+    if ($tp eq "G4Hits" || $tp eq "G4HitsOld")
     {
 	if (defined $embed)
 	{
@@ -471,24 +614,14 @@ foreach  my $tp (keys %req_types)
 	}
 	else
 	{
-	    my @sp1 = split(/_/,$filenamestring_with_runnumber);
-	    if ($#sp1 == 3 || $#sp1 == 6 )
-	    {
-		$newfilenamestring = sprintf("%s_%s_%s\-%010d-",$sp1[0],$sp1[1],$sp1[2],$runnumber);
-	    }
-	    elsif ($#sp1 == 2)
-	    {
-		$newfilenamestring = sprintf("%s_%s\-%010d-",$sp1[0],$sp1[1],$runnumber);
-	    }
-	    else
-	    {
-		print "splitting $filenamestring_with_runnumber gave bad number of _: $#sp1\n";
-		die;
-	    }
+	    my $splitstring = sprintf("_%s",$pileupstring);
+            my @sp2 = split(/$splitstring/,$filenamestring_with_runnumber);
+	    $newfilenamestring = sprintf("%s-%010d-",$sp2[0],$runnumber);
 	}
 	my $newgetfilesql = $getfilesql;
 	$newgetfilesql =~ s/$filenamestring_with_runnumber/$newfilenamestring/;
 	$getfiles{"G4Hits"} = $dbh->prepare($newgetfilesql);
+	$getfiles{"G4HitsOld"} = $dbh->prepare($newgetfilesql);
 	if (defined $verbose)
 	{
 	    print "sql: $newgetfilesql\n";
@@ -529,7 +662,7 @@ foreach my $tp (sort keys %req_types)
     $allevthash{$tp} = \%evthash;
 }
 
-my $entries = 100000; # given that we have 1000 files max, this value is always higher
+my $entries = 200000000; # given that we have 200k files max, this value is always higher
 my $lowtype;
 # here we find the dst type with the smallest number of entries (segments)
 # so we do not loop too much when finding matches for the other types
@@ -537,7 +670,7 @@ if (defined $verbose)
 {
     print "hashing done, finding hash with lowest number of entries\n";
 }
-foreach my $tp (sort keys %allfilehash)
+foreach my $tp (sort { $a <=> $b } keys %allfilehash)
 {
     if ($entries > keys %{$allfilehash{$tp}})
     {
@@ -554,9 +687,9 @@ if (defined $verbose)
 }
 
 my @segarray = ();
-foreach my $seg (sort keys %{$allfilehash{$lowtype}})
+foreach my $seg (sort { $a <=> $b } keys %{$allfilehash{$lowtype}})
 {
-    foreach my $tp (sort keys %allfilehash)
+    foreach my $tp (sort { $a <=> $b } keys %allfilehash)
     {
 	if ($tp eq $lowtype)
 	{
@@ -593,7 +726,7 @@ if (defined $nEvents)
 }
 # sort list of segments and write to output file
 my $nSelectedEvents = 0;
-foreach my $seg (sort @segarray)
+foreach my $seg (sort { $a <=> $b } @segarray)
 {
     $nSelectedEvents += $allevthash{$lowtype}{$allfilehash{$lowtype}{$seg}};
 #	print "segment $seg is good\n";
@@ -606,7 +739,7 @@ foreach my $seg (sort @segarray)
 
 }
 print "wrote the following list files containing >= $nSelectedEvents events:\n";
-foreach my $tp (sort keys %allfilehash)
+foreach my $tp (sort { $a <=> $b } keys %allfilehash)
 {
     print "$dsttype{$tp}\n";
 }
@@ -623,6 +756,7 @@ sub commonfiletypes
 {
 # pass1
     $filetypes{"G4Hits"} = "G4 Hits";
+    $filetypes{"G4HitsOld"} = "Old G4 Hits";
 # pass2
     $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD G4Hits";
     $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
@@ -631,6 +765,8 @@ sub commonfiletypes
     $filetypes{"DST_VERTEX"} = "Pileup Simulated Smeared Vertex";
 # pass3 calo
     $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
+# pass3 global
+    $filetypes{"DST_GLOBAL"} = "Reconstructed Global Detectors (Bbc, Epd)";
 #pass3 trk
     $filetypes{"DST_TRKR_HIT"} = "TPC and Silicon Hits";
     $filetypes{"DST_TRUTH"} = "Truth Info (updated with Clusters)";
@@ -670,17 +806,33 @@ sub fill_other_types
 
 sub print_single_types
 {
-    my $sqlstring = sprintf("select filename from datasets where runnumber = %d and filename like '%%_single_%%'",$runnumber);
+    my $sqlstring = sprintf("select filename from datasets where runnumber = %d and filename like '%%_single_%%' and segment=0",$runnumber);
     my $getallfiles = $dbh->prepare($sqlstring);
     $getallfiles->execute();
     my $runsplit = sprintf("MeV-%010d",$runnumber);
+    my $runsplit_embed = sprintf("_sHijing_0_20fm");
+    my $runsplit_runnumber = sprintf("-%010d",$runnumber);
     my %types = ();
     my %dsts = ();
     while (my @res = $getallfiles->fetchrow_array())
     {
 	my @sp1 = split(/_single_/,$res[0]);
-	my @sp2 = split(/$runsplit/,$sp1[1]);
-	$types{$sp2[0]} = 1;
+        my @sp2;
+        my $typeflag = "";
+	if ($sp1[1] =~ /MeV/)
+	{
+	    @sp2 = split(/$runsplit/,$sp1[1]);
+	}
+	if ($sp1[1] =~ /$runsplit_embed/)
+	{
+	    @sp2 = split(/$runsplit_embed/,$sp1[1]);
+            $typeflag = "-embed ";
+	}
+	else
+	{
+	    @sp2 = split(/$runsplit_runnumber/,$sp1[1]);
+	}
+	$types{$sp2[0]} = $typeflag;
         $dsts{$sp1[0]} = 1;
     }
     $getallfiles->finish();
@@ -688,13 +840,34 @@ sub print_single_types
     {
 	if ($name =~ /(\S+)\_(\d+)\_(\d+).*/ )
 	{
-	    print "CreateFileList.pl -type 14 -particle $1 -pmin $2 -pmax $3\n";
+	    my $part = $1;
+            my $mom;
+            my $minp = $2;
+            my $maxp = $3;
+	    if ($part =~ /(\S+)_(\S+)/)
+	    {
+		$part = $1;
+		$mom = $2;
+	    }
+	    if (defined $mom)
+	    {
+		print "CreateFileList.pl -type 14 $types{$name} -run $runnumber -particle $part -mom $mom -pmin $minp -pmax $maxp\n";
+	    }
+	    else
+            {
+                print "CreateFileList.pl -type 14 $types{$name} -run $runnumber -particle $part -pmin $minp -pmax $maxp\n";
+            }
 	}
+        else
+        {
+            print "CreateFileList.pl -type 14 $types{$name} -run $runnumber -particle $name\n";
+
+        }
     }
     print "\nDST types:\n";
     foreach my $name (sort keys %dsts)
     {
-	    print "$name\n";
+	print "$name\n";
     }
 }
 

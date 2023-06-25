@@ -34,11 +34,17 @@ void BEmcRecCEMC::GetImpactThetaPhi(float xg, float yg, float zg, float& theta, 
   float rg = std::sqrt(xg * xg + yg * yg);
   float theta_twr;
   if (std::fabs(zg) <= 15)
+  {
     theta_twr = 0;
+  }
   else if (zg > 15)
+  {
     theta_twr = std::atan2(zg - 15, rg);
+  }
   else
+  {
     theta_twr = std::atan2(zg + 15, rg);
+  }
   float theta_tr = std::atan2(zg - fVz, rg);
   theta = std::fabs(theta_tr - theta_twr);
   //  phi = atan2(yg,xg);
@@ -244,7 +250,10 @@ void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
   */
 
   float logE = log(0.1);
-  if (E > 0.1) logE = std::log(E);
+  if (E > 0.1)
+  {
+    logE = std::log(E);
+  }
 
   // Rotate by phi (towers are tilted by a fixed angle in phi by ~9 deg?)
   // Just tuned from sim data
@@ -258,11 +267,17 @@ void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
   //  float theta_twr = GetTowerTheta(xA,yA,zA);
   float theta_twr;
   if (std::fabs(zA) <= 15)
+  {
     theta_twr = 0;
+  }
   else if (zA > 15)
+  {
     theta_twr = std::atan2(zA - 15, rA);
+  }
   else
+  {
     theta_twr = std::atan2(zA + 15, rA);
+  }
 
   float theta_tr = std::atan2(zA - fVz, rA);
   float L = -1.3 + 0.7 * logE;  // Shower CG in long. direction
@@ -328,7 +343,10 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   xc = x;
   yc = y;
 
-  if (Energy < 0.01) return;
+  if (Energy < 0.01)
+  {
+    return;
+  }
   /*
   float xA, yA, zA;
   Tower2Global(Energy, x, y, xA, yA, zA);
@@ -343,14 +361,22 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   float sin2Ty = sinTy * sinTy;
 
   if (sinTx > 0)
+  {
     xZero = -0.417 * sinTx - 1.500 * sin2Tx;
+  }
   else
+  {
     xZero = -0.417 * sinTx + 1.500 * sin2Tx;
+  }
 
   if (sinTy > 0)
+  {
     yZero = -0.417 * sinTy - 1.500 * sin2Ty;
+  }
   else
+  {
     yZero = -0.417 * sinTy + 1.500 * sin2Ty;
+  }
 
   t = 0.98 + 0.98 * std::sqrt(Energy);
   bx = 0.15 + t * sin2Tx;
@@ -374,12 +400,21 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   int ix8 = int(x + 0.5) / 8;
   float x8 = x + 0.5 - ix8 * 8 - 4;  // from -4 to +4
   float dx = 0.10 * x8 / 4.;
-  if (std::fabs(x8) > 3.3) dx = 0;  // Don't correct near the module edge
+  if (std::fabs(x8) > 3.3)
+  {
+    dx = 0;  // Don't correct near the module edge
+  }
   //  dx = 0;
 
   xc = x0 - dx;
-  while (xc < -0.5) xc += float(fNx);
-  while (xc >= fNx - 0.5) xc -= float(fNx);
+  while (xc < -0.5)
+  {
+    xc += float(fNx);
+  }
+  while (xc >= fNx - 0.5)
+  {
+    xc -= float(fNx);
+  }
 
   y0 = y + yZero;
   iy0 = EmcCluster::lowint(y0 + 0.5);

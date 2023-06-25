@@ -1,9 +1,8 @@
 #ifndef JETBACKGROUND_FASTJETALGOSUB_H
 #define JETBACKGROUND_FASTJETALGOSUB_H
 
-#include <g4jets/JetAlgo.h>
-
-#include <g4jets/Jet.h>
+#include <jetbase/JetAlgo.h>
+#include <jetbase/Jet.h>
 
 #include <iostream>
 #include <vector>

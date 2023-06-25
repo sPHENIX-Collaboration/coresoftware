@@ -5,58 +5,86 @@ AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
-  libcalo_reco.la 
+  libcalo_reco.la
 
 #
 libcalo_reco_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib64 \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  `root-config --libs`
 
+if USE_ONLINE
+
+else
 libcalo_reco_la_LIBADD = \
+  -lbbc_io \
+  -lcalo_io \
+  -lcdbobjects \
   -lCLHEP \
-  -lphool \
-  -lSubsysReco \
+  -lffamodules \
   -lgsl \
   -lgslcblas \
-  -lg4vertex_io \
-  -lcalo_io \
+  -lglobalvertex_io \
   -lsph_onnx \
-  -lcaloCalibDBFile \
-  -lphparameter
+  -lphparameter \
+  -lphool \
+  -lSubsysReco
+endif
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
+if USE_ONLINE
 pkginclude_HEADERS = \
+  CaloWaveformFitting.h
+
+else
+pkginclude_HEADERS = \
+  CaloWaveformFitting.h \
   CaloWaveformProcessing.h \
-  RawClusterBuilderFwd.h \
+  CaloRecoUtility.h \
+  CaloTowerBuilder.h \
+  CaloTowerCalib.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
   RawClusterPositionCorrection.h \
-  RawTowerCalibration.h 
+  RawClusterZVertexRecorrect.h \
+  RawTowerCalibration.h \
+  RawTowerDeadTowerInterp.h \
+  RawTowerDeadMapLoader.h \
+  RawClusterDeadAreaMask.h
+endif
 
+if USE_ONLINE
+libcalo_reco_la_SOURCES = \
+  CaloWaveformFitting.cc
+
+else
 libcalo_reco_la_SOURCES = \
   BEmcCluster.cc \
   BEmcProfile.cc \
   BEmcRec.cc \
   BEmcRecCEMC.cc \
-  BEmcRecFEMC.cc \
-  BEmcRecEEMC.cc \
+  CaloRecoUtility.cc \
+  CaloWaveformFitting.cc \
   CaloWaveformProcessing.cc \
+  CaloTowerBuilder.cc \
+  CaloTowerCalib.cc \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \
-  RawClusterBuilderFwd.cc \
   RawClusterPositionCorrection.cc \
-  RawClusterDeadAreaMask.cc \
+  RawClusterZVertexRecorrect.cc \
   RawTowerCombiner.cc \
   RawTowerCalibration.cc \
   RawTowerDeadTowerInterp.cc \
-  RawTowerDeadMapLoader.cc
+  RawTowerDeadMapLoader.cc \
+  RawClusterDeadAreaMask.cc
+endif
 
 ################################################
 # linking tests

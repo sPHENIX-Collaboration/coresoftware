@@ -48,11 +48,16 @@ class RawClusterPositionCorrection : public SubsysReco
     _ecore_calib_params = calib_params;
   }
 
+  void set_UseTowerInfo(const int useMode)
+  {  // 0 only old tower, 1 only new (TowerInfo based),
+    m_UseTowerInfo = useMode;
+  }
+
  private:
   PHParameters _eclus_calib_params;
   PHParameters _ecore_calib_params;
   void SetDefaultParameters(PHParameters &param);
-  RawClusterContainer *_recalib_clusters;
+  RawClusterContainer *_recalib_clusters{};
 
   std::string _det_name;
 
@@ -60,6 +65,8 @@ class RawClusterPositionCorrection : public SubsysReco
   std::vector<float> binvals;
   std::vector<std::vector<double> > eclus_calib_constants;
   std::vector<std::vector<double> > ecore_calib_constants;
+
+  int m_UseTowerInfo = 0;  // 0 only old tower, 1 only new (TowerInfo based),
 };
 
 #endif

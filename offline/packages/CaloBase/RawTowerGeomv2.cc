@@ -3,33 +3,15 @@
 #include <cmath>
 #include <iostream>
 
-using namespace std;
-
-RawTowerGeomv2::RawTowerGeomv2()
-  : _towerid(~0)
-  , _center_x(0)
-  , _center_y(0)
-  , _center_z(0)
-  , _size_x(0)
-  , _size_y(0)
-  , _size_z(0)
-{
-}
 RawTowerGeomv2::RawTowerGeomv2(RawTowerDefs::keytype id)
   : _towerid(id)
-  , _center_x(0)
-  , _center_y(0)
-  , _center_z(0)
-  , _size_x(0)
-  , _size_y(0)
-  , _size_z(0)
 {
 }
 
 double RawTowerGeomv2::get_center_radius() const
 {
-  return sqrt(_center_x * _center_x +
-              _center_y * _center_y);
+  return std::sqrt(_center_x * _center_x +
+                   _center_y * _center_y);
 }
 
 double RawTowerGeomv2::get_eta() const
@@ -37,16 +19,16 @@ double RawTowerGeomv2::get_eta() const
   double eta;
   double radius;
   double theta;
-  radius = sqrt(_center_x * _center_x + _center_y * _center_y);
-  theta = atan2(radius, _center_z);
-  eta = -log(tan(theta / 2.));
+  radius = std::sqrt(_center_x * _center_x + _center_y * _center_y);
+  theta = std::atan2(radius, _center_z);
+  eta = -std::log(std::tan(theta / 2.));
 
   return eta;
 }
 
 double RawTowerGeomv2::get_phi() const
 {
-  return atan2(_center_y, _center_x);
+  return std::atan2(_center_y, _center_x);
 }
 
 void RawTowerGeomv2::identify(std::ostream& os) const

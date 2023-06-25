@@ -1,5 +1,12 @@
 #include "TrackFitUtils.h"
 
+#include "ActsGeometry.h"
+#include "TrkrDefs.h"                // for cluskey, getTrkrId, tpcId
+#include "TpcDefs.h"
+#include <trackbase/MvtxDefs.h>
+#include "TrkrClusterv5.h"
+#include "TrkrClusterContainerv4.h"
+
 #include <cmath>
 
 namespace
@@ -167,3 +174,214 @@ TrackFitUtils::circle_circle_intersection_output_t TrackFitUtils::circle_circle_
   return std::make_tuple( xplus, yplus, xminus, yminus );
 
 }
+
+//_________________________________________________________________________________
+unsigned int TrackFitUtils::addSiliconClusters(std::vector<float>& fitpars, 
+					       double dca_cut,
+					       ActsGeometry* _tGeometry, 
+					       TrkrClusterContainer * _cluster_map,
+					       std::vector<Acts::Vector3>& global_vec,  
+					       std::vector<TrkrDefs::cluskey>& cluskey_vec)
+{
+  // project the fit of the TPC clusters to each silicon layer, and find the nearest silicon cluster
+  // iterate over the cluster map and find silicon clusters that match this track fit
+
+  unsigned int nsilicon = 0;
+
+  // We want the best match in each layer
+  std::vector<float> best_layer_dca;
+  best_layer_dca.assign(7, 999.0);
+  std::vector<TrkrDefs::cluskey> best_layer_cluskey;
+  best_layer_cluskey.assign(7, 0);
+
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys())
+    {
+      auto range = _cluster_map->getClusters(hitsetkey);
+      for( auto clusIter = range.first; clusIter != range.second; ++clusIter )
+	{
+	  TrkrDefs::cluskey cluskey = clusIter->first;
+	  unsigned int layer = TrkrDefs::getLayer(cluskey);
+	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
+	  
+	  if(trkrid != TrkrDefs::mvtxId && trkrid != TrkrDefs::inttId)  continue;
+	  
+	  TrkrCluster* cluster = clusIter->second;
+	  auto global = _tGeometry->getGlobalPosition(cluskey, cluster);
+
+	  Acts::Vector3 pca = get_helix_pca(fitpars, global);
+	  float dca = (pca - global).norm();
+	  if(trkrid == TrkrDefs::inttId || trkrid == TrkrDefs::mvtxId)
+	    {
+	      Acts::Vector2 global_xy(global(0), global(1));
+	      Acts::Vector2 pca_xy(pca(0), pca(1));
+	      Acts::Vector2 pca_xy_residual = pca_xy - global_xy;
+	      dca = pca_xy_residual.norm();
+	    }
+
+	  if(dca < best_layer_dca[layer])
+	    {
+	      best_layer_dca[layer] = dca;
+	      best_layer_cluskey[layer] = cluskey;
+	    }
+	}  // end cluster iteration
+    } // end hitsetkey iteration
+
+  for(unsigned int layer = 0; layer < 7; ++layer)
+    {
+      if(best_layer_dca[layer] < dca_cut)
+	{
+	  if(best_layer_cluskey[layer] != 0)
+          {
+            cluskey_vec.push_back(best_layer_cluskey[layer]);
+	    auto clus =  _cluster_map->findCluster(best_layer_cluskey[layer]);
+	    auto global = _tGeometry->getGlobalPosition(best_layer_cluskey[layer], clus);
+	    global_vec.push_back(global);
+	    nsilicon++;
+          }
+	}
+    }
+
+  return nsilicon;
+}
+
+//_________________________________________________________________________________
+Acts::Vector3 TrackFitUtils::get_helix_pca(std::vector<float>& fitpars, 
+					   Acts::Vector3 global)
+{
+  // no analytic solution for the coordinates of the closest approach of a helix to a point
+  // Instead, we get the PCA in x and y to the circle, and the PCA in z to the z vs R line at the R of the PCA 
+
+  float radius = fitpars[0];
+  float x0 = fitpars[1];
+  float y0 = fitpars[2];  
+  float zslope = fitpars[3];
+  float z0 = fitpars[4];
+
+  Acts::Vector2 pca_circle = get_circle_point_pca(radius, x0, y0, global);
+
+  // The radius of the PCA determines the z position:
+  float pca_circle_radius = pca_circle.norm();
+  float pca_z = pca_circle_radius * zslope + z0;
+  Acts::Vector3 pca(pca_circle(0), pca_circle(1), pca_z);
+
+  // now we want a second point on the helix so we can get a local straight line approximation to the track
+  // project the circle PCA vector an additional small amount and find the helix PCA to that point 
+  float projection = 0.25;  // cm
+  Acts::Vector3 second_point = pca + projection * pca/pca.norm();
+  Acts::Vector2 second_point_pca_circle = get_circle_point_pca(radius, x0, y0, second_point);
+  float second_point_pca_z = pca_circle_radius * zslope + z0;
+  Acts::Vector3 second_point_pca(second_point_pca_circle(0), second_point_pca_circle(1), second_point_pca_z);
+
+  // pca and second_point_pca define a straight line approximation to the track
+  Acts::Vector3 tangent = (second_point_pca - pca) /  (second_point_pca - pca).norm();
+
+ // get the PCA of the cluster to that line
+  Acts::Vector3 final_pca = getPCALinePoint(global, tangent, pca);
+
+  return final_pca;
+}
+
+//_________________________________________________________________________________
+Acts::Vector2 TrackFitUtils::get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global)
+{
+  // get the PCA of a cluster (x,y) position to a circle
+  // draw a line from the origin of the circle to the point
+  // the intersection of the line with the circle is at the distance radius from the origin along that line 
+
+  Acts::Vector2 origin(x0, y0);
+  Acts::Vector2 point(global(0), global(1));
+
+  Acts::Vector2 pca = origin + radius * (point - origin) / (point - origin).norm();
+
+  return pca;
+}
+
+//_________________________________________________________________________________
+std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global_vec, 
+					      std::vector<TrkrDefs::cluskey> cluskey_vec)
+{
+     std::vector<float> fitpars;
+
+      // make the helical fit using TrackFitUtils
+      if(global_vec.size() < 3)  
+	{ return fitpars; }
+      std::tuple<double, double, double> circle_fit_pars = TrackFitUtils::circle_fit_by_taubin(global_vec);
+
+      // It is problematic that the large errors on the INTT strip z values are not allowed for - drop the INTT from the z line fit
+      std::vector<Acts::Vector3> global_vec_noINTT;
+      for(unsigned int ivec=0;ivec<global_vec.size(); ++ivec)
+	{
+	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
+	  if(trkrid != TrkrDefs::inttId)
+	    {
+	      global_vec_noINTT.push_back(global_vec[ivec]); 
+	    }
+	}
+      
+      if(global_vec_noINTT.size() < 3) 
+	{ return fitpars; }
+      std::tuple<double,double> line_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
+      
+      fitpars.push_back( std::get<0>(circle_fit_pars));
+      fitpars.push_back( std::get<1>(circle_fit_pars));
+      fitpars.push_back( std::get<2>(circle_fit_pars));
+      fitpars.push_back( std::get<0>(line_fit_pars));
+      fitpars.push_back( std::get<1>(line_fit_pars));
+      
+      return fitpars; 
+}
+
+//_________________________________________________________________________________
+void TrackFitUtils::getTrackletClusters( ActsGeometry * _tGeometry, 
+					TrkrClusterContainer * _cluster_map,
+					std::vector<Acts::Vector3>& global_vec, 
+					std::vector<TrkrDefs::cluskey>& cluskey_vec)
+{
+  for (unsigned int iclus=0;  iclus < cluskey_vec.size(); ++iclus)
+    {
+      auto key = cluskey_vec[iclus];
+      auto cluster = _cluster_map->findCluster(key);
+      if(!cluster)
+	{
+	  std::cout << "Failed to get cluster with key " << key << std::endl;
+	  continue;
+	}	  
+            
+      Acts::Vector3 global  = _tGeometry->getGlobalPosition(key, cluster);	  
+      
+      /*
+      const unsigned int trkrId = TrkrDefs::getTrkrId(key);	  
+      // have to add corrections for TPC clusters after transformation to global
+      if(trkrId == TrkrDefs::tpcId) 
+	{  
+	  int crossing = 0;  // for now
+	  makeTpcGlobalCorrections(key, crossing, global); 
+	}
+      */
+      
+      // add the global positions to a vector to return
+      global_vec.push_back(global);
+      
+    } // end loop over clusters for this track 
+}
+
+//_________________________________________________________________________________
+Acts::Vector3 TrackFitUtils::getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref)
+{
+  // Approximate track with a straight line consisting of the state position posref and the vector (px,py,pz)   
+
+  // The position of the closest point on the line to global is:
+  // posref + projection of difference between the point and posref on the tangent vector
+  Acts::Vector3 pca = posref + ( (global - posref).dot(tangent) ) * tangent;
+  /*
+  if( (pca-posref).norm() > 0.001)
+    {
+      std::cout << " getPCALinePoint: old pca " << posref(0) << "  " << posref(1) << "  " << posref(2) << std::endl;
+      std::cout << " getPCALinePoint: new pca " << pca(0) << "  " << pca(1) << "  " << pca(2) << std::endl;
+      std::cout << " getPCALinePoint: delta pca " << pca(0) - posref(0) << "  " << pca(1)-posref(1) << "  " << pca(2) -posref(2) << std::endl;
+    }
+  */
+
+  return pca;
+}
+

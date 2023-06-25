@@ -46,19 +46,17 @@ void RawTowerGeomContainer_Cylinderv1::identify(std::ostream& os) const
      << ", phibins: " << get_phibins();
 
   int i = 0;
-  for (bound_map_t::const_iterator iter = eta_bound_map.begin();
-       iter != eta_bound_map.end(); ++iter)
+  for (const auto& iter : eta_bound_map)
   {
-    os << "eta_bin[" << i << "](" << iter->first << ", " << iter->second
+    os << "eta_bin[" << i << "](" << iter.first << ", " << iter.second
        << ")  ";
     i++;
   }
   os << endl;
   i = 0;
-  for (bound_map_t::const_iterator iter = phi_bound_map.begin();
-       iter != phi_bound_map.end(); ++iter)
+  for (const auto& iter : phi_bound_map)
   {
-    os << "phi_bin[" << i << "](" << iter->first << ", " << iter->second
+    os << "phi_bin[" << i << "](" << iter.first << ", " << iter.second
        << ")  ";
     i++;
   }
@@ -103,12 +101,11 @@ int RawTowerGeomContainer_Cylinderv1::get_etabin(const double eta) const
   // since in a realistic calorimeter, there could be gaps
   double min_deta = 10;
 
-  for (bound_map_t::const_iterator iter = eta_bound_map.begin();
-       iter != eta_bound_map.end(); ++iter)
+  for (const auto& iter : eta_bound_map)
   {
-    const double mean_eta = 0.5 * (iter->first + iter->second);
+    const double mean_eta = 0.5 * (iter.first + iter.second);
 
-    if (eta >= iter->first && eta < iter->second)
+    if (eta >= iter.first && eta < iter.second)
     {
       // found the bin that the hit belong
       min_deta = 0;
@@ -148,14 +145,13 @@ int RawTowerGeomContainer_Cylinderv1::get_phibin(const double phi) const
   // since in a realistic calorimeter, there could be gaps
   double min_dphi = 10;
 
-  for (bound_map_t::const_iterator iter = phi_bound_map.begin();
-       iter != phi_bound_map.end(); ++iter)
+  for (const auto& iter : phi_bound_map)
   {
-    const double mean_phi = 0.5 * (iter->first + iter->second);
+    const double mean_phi = 0.5 * (iter.first + iter.second);
 
     const double phi_fold = phi - round((phi - mean_phi) / 2. / M_PI) * 2 * M_PI;
 
-    if (phi_fold >= iter->first && phi_fold < iter->second)
+    if (phi_fold >= iter.first && phi_fold < iter.second)
     {
       // found the bin that the hit belong
       min_dphi = 0;

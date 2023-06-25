@@ -3,14 +3,14 @@
 #include <iostream>
 
 const RawTowerDeadMap::Map&
-RawTowerDeadMap::getDeadTowers(void) const
+RawTowerDeadMap::getDeadTowers() const
 {
   static Map tmp_map;
   return tmp_map;
 }
 
 RawTowerDeadMap::Map&
-RawTowerDeadMap::getDeadTowers(void)
+RawTowerDeadMap::getDeadTowers()
 {
   static Map tmp_map;
   return tmp_map;

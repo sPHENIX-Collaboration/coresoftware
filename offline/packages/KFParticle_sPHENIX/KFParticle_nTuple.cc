@@ -27,6 +27,7 @@ KFParticle_Tools kfpTupleTools;
 
 KFParticle_nTuple::KFParticle_nTuple()
   : m_has_intermediates_nTuple(false)
+  , m_extrapolateTracksToSV_nTuple(true)
   , m_constrain_to_vertex_nTuple(false)
   , m_get_all_PVs(false)
   , m_truth_matching(false)
@@ -282,7 +283,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
                                    std::vector<KFParticle> intermediates,
                                    int nPVs, int multiplicity)
 {
-  const float speedOfLight = 2.99792458e-1;
+  const float speedOfLight = 2.99792458e-2;
 
   KFParticle temp;
   KFParticle* daughterArray = &daughters[0];
@@ -345,6 +346,14 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
         daughterArray[particleAElement] = daughterArray[particleBElement];
         daughterArray[particleBElement] = temp;
       }
+    }
+  }
+
+  if (m_extrapolateTracksToSV_nTuple) 
+  {
+    for (unsigned int i = 0; i < daughters.size(); ++i)
+    {  
+      daughterArray[i].SetProductionVertex(motherParticle);
     }
   }
 

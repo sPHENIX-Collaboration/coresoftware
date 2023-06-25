@@ -6,7 +6,7 @@
 #include <string>
 
 class PHCompositeNode;
-class RawTowerContainer;
+class TowerInfoContainer;
 class RawTowerGeomContainer;
 class RawTowerDeadMap;
 
@@ -33,7 +33,7 @@ class RawTowerDeadTowerInterp : public SubsysReco
   void
   CreateNodes(PHCompositeNode *topNode);
 
-  RawTowerContainer *m_calibTowers = nullptr;
+  TowerInfoContainer *m_calibTowers = nullptr;
   RawTowerGeomContainer *m_geometry = nullptr;
   RawTowerDeadMap *m_deadTowerMap = nullptr;
 

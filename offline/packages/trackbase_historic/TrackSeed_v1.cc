@@ -1,4 +1,5 @@
 #include "TrackSeed_v1.h"
+#include <trackbase/TrkrCluster.h>
 
 #include <trackbase/TrackFitUtils.h>
 
@@ -89,10 +90,18 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
       if(layer < startLayer or layer > endLayer)
 	{ continue; }
       
+      auto clus = clusters->findCluster(key);
+
+      if(clus->getEdge() > 0)
+	{ continue; }
       Acts::Vector3 pos = tGeometry->getGlobalPosition(
-           key, clusters->findCluster(key));
+           key, clus);
 
       positions.insert(std::make_pair(key, pos));
+    }
+  if(positions.size() < 3)
+    {
+      return;
     }
 
   circleFitByTaubin(positions, startLayer, endLayer);
@@ -278,13 +287,19 @@ float TrackSeed_v1::get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& position
 float TrackSeed_v1::get_phi(TrkrClusterContainer *clusters,
 			    ActsGeometry *tGeometry) const
 {
+  auto clus1 = clusters->findCluster(*(m_cluster_keys.begin()));  
+  auto key = *std::next(m_cluster_keys.begin(), 1);
+  auto clus2 = clusters->findCluster(key);
+  if(!clus1 or !clus2) 
+    {
+      return NAN;
+    }
+
   Acts::Vector3 pos0 = tGeometry->getGlobalPosition(
 		       *(m_cluster_keys.begin()),
-		       clusters->findCluster(*(m_cluster_keys.begin())));
+		       clus1);
 
-  auto key = *std::next(m_cluster_keys.begin(), 1);
-  Acts::Vector3 pos1 = tGeometry->getGlobalPosition(key,
-					     clusters->findCluster(key));
+  Acts::Vector3 pos1 = tGeometry->getGlobalPosition(key, clus2);
   std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
   positions.insert(std::make_pair(*(m_cluster_keys.begin()), pos0));
   positions.insert(std::make_pair(key, pos1));

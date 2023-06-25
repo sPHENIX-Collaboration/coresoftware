@@ -49,7 +49,6 @@
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 
-#include <ActsExamples/EventData/Index.hpp>
 
 #include <TDatabasePDG.h>
 
@@ -89,6 +88,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_alignStates.actsGeometry(m_tGeometry);
   m_alignStates.clusters(m_clusterContainer);
   m_alignStates.stateMap(m_alignmentStateMap);
+  m_alignStates.clusterVersion(m_cluster_version);
   m_alignStates.verbosity(Verbosity());
 
   m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
@@ -296,7 +296,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       PHTimer trackTimer("TrackTimer");
       trackTimer.stop();
       trackTimer.restart();
-      ActsExamples::MeasurementContainer measurements;
+      ActsTrackFittingAlgorithm::MeasurementContainer measurements;
   
       SourceLinkVec sourceLinks;
       if(siseed) sourceLinks = getSourceLinks(siseed, measurements, crossing);
@@ -362,7 +362,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       { wrappedSls.push_back(std::cref(sl)); }
            
       /// Reset the track seed with the dummy covariance
-      auto seed = ActsExamples::TrackParameters::create(
+      auto seed = ActsTrackFittingAlgorithm::TrackParameters::create(
         pSurface,
         m_tGeometry->geometry().getGeoContext(),
         actsFourPos,
@@ -396,10 +396,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       PHTimer fitTimer("FitTimer");
       fitTimer.stop();
       fitTimer.restart();
-      auto result = fitTrack(wrappedSls, seed, kfOptions, surfaces);
+      auto mtj = std::make_shared<Acts::VectorMultiTrajectory>();
+      auto result = fitTrack(wrappedSls, seed, kfOptions, surfaces,mtj);
       fitTimer.stop();
       auto fitTime = fitTimer.get_accumulated_time();
-            
+   
       if(Verbosity() > 1)
 	{ std::cout << "PHActsTrkFitter Acts fit time " << fitTime << std::endl; }
 
@@ -407,6 +408,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if (result.ok())
       {  
         const FitResult& fitOutput = result.value();
+
         if(m_timeAnalysis)
         {
           h_fitTime->Fill(fitOutput.fittedParameters.value()
@@ -418,14 +420,14 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         newTrack.set_tpc_seed(tpcseed);
         newTrack.set_crossing(crossing);
         newTrack.set_silicon_seed(siseed);
-        
+
         if(m_fitSiliconMMs)
         {
           
           unsigned int trid = m_directedTrackMap->size();
           newTrack.set_id(trid);
 
-          if( getTrackFitResult(fitOutput, &newTrack) )
+          if( getTrackFitResult(fitOutput, &newTrack, measurements) )
           { m_directedTrackMap->insertWithKey(&newTrack, trid); }
           
         } else {
@@ -433,7 +435,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           unsigned int trid = m_trackMap->size();
           newTrack.set_id(trid);
 
-          if( getTrackFitResult(fitOutput, &newTrack))
+          if( getTrackFitResult(fitOutput, &newTrack, measurements))
           { m_trackMap->insertWithKey(&newTrack, trid); }
         
         }
@@ -465,7 +467,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
 //___________________________________________________________________________________
 SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
-					      ActsExamples::MeasurementContainer& measurements,
+					      ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
 				   short int crossing )
 {
 
@@ -625,6 +627,16 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       TrkrDefs::cluskey cluskey = global_moved[i].first;
       Acts::Vector3 global = global_moved[i].second;
    
+      if(m_ignoreLayer.find(TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end())
+	{
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << PHWHERE << "skipping cluster in layer " 
+			<< (unsigned int) TrkrDefs::getLayer(cluskey) << std::endl;
+	    }
+	  continue;
+	}
+
       auto cluster = m_clusterContainer->findCluster(cluskey);
       Surface surf = m_tGeometry->maps().getSurface(cluskey, cluster);
 
@@ -687,14 +699,22 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	  cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
       }else if(m_cluster_version==4){
 	double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-	auto para_errors = _ClusErrPara.get_cluster_error(track,cluster,clusRadius,cluskey);
+	auto para_errors = _ClusErrPara.get_cluster_error(cluster,clusRadius,cluskey, track->get_qOverR(), track->get_slope());
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
+      }else if(m_cluster_version==5){
+	double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+	TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
+	auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5,clusRadius,cluskey);
 	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
 	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
 	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
 	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
       }
 
-      ActsExamples::Index index = measurements.size();
+      ActsSourceLink::Index index = measurements.size();
       
       SourceLink sl(surf->geometryId(), index, cluskey);
       
@@ -730,7 +750,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
   return sourcelinks;
 }
 
-bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* track)
+bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* track, const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
@@ -740,8 +760,8 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
   ActsExamples::Trajectories::IndexedParameters indexedParams;
   if (fitOutput.fittedParameters)
     {
-       indexedParams.emplace(fitOutput.lastMeasurementIndex, 
-			     fitOutput.fittedParameters.value());
+      indexedParams.emplace(fitOutput.lastMeasurementIndex, 
+			    fitOutput.fittedParameters.value());
 
        if (Verbosity() > 2)
         {
@@ -782,7 +802,10 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
   
   if(m_commissioning)
     {
-      m_alignStates.fillAlignmentStateMap(trajectory, track);
+      if(track->get_silicon_seed() && track->get_tpc_seed())
+	{
+	  m_alignStates.fillAlignmentStateMap(trajectory, track, measurements);
+	}
     }
     
   updateTrackTimer.stop();
@@ -800,11 +823,11 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
 
 ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
     const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
-    const ActsExamples::TrackParameters& seed,
+    const ActsTrackFittingAlgorithm::TrackParameters& seed,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
-    const SurfacePtrVec& surfSequence)
+    const SurfacePtrVec& surfSequence,
+    std::shared_ptr<Acts::VectorMultiTrajectory>& mtj)
 {
-  auto mtj = std::make_shared<Acts::VectorMultiTrajectory>();
   if(m_fitSiliconMMs) 
   { 
     return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence, mtj); 
@@ -1044,7 +1067,7 @@ Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance() const
   return cov;
 }
 
-void PHActsTrkFitter::printTrackSeed(const ActsExamples::TrackParameters& seed) const
+void PHActsTrkFitter::printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const
 {
   std::cout 
     << PHWHERE 
