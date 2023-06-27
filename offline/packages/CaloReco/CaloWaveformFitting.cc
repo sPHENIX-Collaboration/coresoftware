@@ -60,7 +60,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       }
     else
       {
-	auto h = new TH1F(Form("h_%d", (int) round(v.at(size1))), "", size1, 0, size1);
+	auto h = new TH1F(Form("h_%d", (int) round(v.at(size1))), "", size1, -0.5, size1 - 0.5);
 	float maxheight = 0;
 	int maxbin = 0;
 	for (int i = 0; i < size1; i++)

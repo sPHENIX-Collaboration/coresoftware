@@ -234,26 +234,65 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     topNode->addNode(dst_node);
   }
   // towers
+  PHCompositeNode *AlgoNode;
+
   if (m_dettype == CaloTowerBuilder::CEMC)
   {
+    AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "CEMC"));
+    if (!AlgoNode)
+    {
+      AlgoNode = new PHCompositeNode("CEMC");
+    }
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::EMCAL);
   }
   else if (m_dettype == EPD)
   {
+    AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "EPD"));
+    if (!AlgoNode)
+      {
+	AlgoNode = new PHCompositeNode("EPD");
+      }
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::SEPD);
   }
   else if (m_dettype == MBD)
   {
+    AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "MBD"));
+    if (!AlgoNode)
+      {
+	AlgoNode = new PHCompositeNode("MBD");
+      }
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::MBD);
   }
   else if (m_dettype == ZDC)
   {
+    AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "ZDC"));
+      if (!AlgoNode)
+	{
+	  AlgoNode = new PHCompositeNode("ZDC");
+	}
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::ZDC);
   }
   else
-  {
-    m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::HCAL);
-  }
+    {
+      if (m_dettype == HCALIN)
+	{
+	  AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "HCALIN"));
+	  if (!AlgoNode)
+	    {
+	      AlgoNode = new PHCompositeNode("HCALIN");
+	    }
+	}
+      else
+	{
+	  AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "HCALOUT"));
+	  if (!AlgoNode)
+	    {
+	      AlgoNode = new PHCompositeNode("HCALOUT");
+	    }
+	}
+      m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::HCAL);
+    }
+  dst_node->addNode(AlgoNode);
 
   PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_" + m_detector, "PHObject");
   dst_node->addNode(emcal_towerNode);

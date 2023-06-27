@@ -13,8 +13,12 @@ void AlignmentDefs::getMvtxGlobalLabels(Surface surf, int glbl_label[], Alignmen
   case AlignmentDefs::mvtxGrp::stv:
     group = 1;
     break;
-  case AlignmentDefs::mvtxGrp::brrl:
+  case AlignmentDefs::mvtxGrp::mvtxlyr:
     group = 2;
+    break;
+
+  case AlignmentDefs::mvtxGrp::clamshl:
+    group = 3;
     break;
   }
 
@@ -32,13 +36,16 @@ void AlignmentDefs::getInttGlobalLabels(Surface surf, int glbl_label[], Alignmen
   switch (grp)
   {
   case AlignmentDefs::inttGrp::chp:
-    group = 3;
-    break;
-  case AlignmentDefs::inttGrp::lad:
     group = 4;
     break;
-  case AlignmentDefs::inttGrp::intt:
+  case AlignmentDefs::inttGrp::lad:
     group = 5;
+    break;
+  case AlignmentDefs::inttGrp::inttlyr:
+    group = 6;
+    break;
+  case AlignmentDefs::inttGrp::inttbrl:
+    group = 7;
     break;
   }
 
@@ -56,13 +63,13 @@ void AlignmentDefs::getTpcGlobalLabels(Surface surf, TrkrDefs::cluskey cluskey, 
   switch (grp)
   {
   case AlignmentDefs::tpcGrp::htst:
-    group = 6;
+    group = 8;
     break;
   case AlignmentDefs::tpcGrp::sctr:
-    group = 7;
+    group = 9;
     break;
   case AlignmentDefs::tpcGrp::tp:
-    group = 8;
+    group = 10;
     break;
   }
 
@@ -79,10 +86,10 @@ void AlignmentDefs::getMMGlobalLabels(Surface surf, int glbl_label[], AlignmentD
   switch (grp)
   {
   case AlignmentDefs::mmsGrp::tl:
-    group = 9;
+    group = 11;
     break;
   case AlignmentDefs::mmsGrp::mm:
-    group = 10;
+    group = 12;
     break;
   }
 
@@ -103,6 +110,24 @@ int AlignmentDefs::getTpcRegion(int layer)
 
   return region;
 }
+
+int AlignmentDefs::getMvtxClamshell(int layer, int stave)
+{
+  for(int istave=0;istave<nstaves_layer_mvtx[layer];++istave)
+    {
+      for(int ishell = 0; ishell < 2; ++ishell)
+	{
+	  int stave_ref = clamshell_stave_list[layer][ishell][istave];
+	  if(stave == stave_ref)
+	    return ishell;
+	}
+    }
+
+  std::cout << " AlignemntDefs::getMvtxClamshell: did not find stave " << stave << std::endl; 
+  return  0;
+
+}
+
 int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey cluskey, int group)
 {
   unsigned int volume = id.volume();
@@ -123,21 +148,41 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
       return label_base;
     }
     if (group == 1)
-    {
-      // layer and stave, assign all sensors to the stave number
-      int stave = sensor / nsensors_stave[layer];
-      label_base += layer * 1000000 + stave * 10000;
-      /*
-      std::cout << id << std::endl;
-      std::cout << "    label_base " << label_base << " volume " << volume << " acts_layer " << acts_layer 
-		<< " layer " << layer << " stave " << stave << " sensor " << sensor << std::endl;
-      */
-      return label_base;
-    }
+      {
+	// layer and stave, assign all sensors to the stave number
+	int stave = sensor / nsensors_stave[layer];
+	label_base += layer * 1000000 + stave * 10000;
+	/*
+	  std::cout << id << std::endl;
+	  std::cout << "    label_base " << label_base << " volume " << volume << " acts_layer " << acts_layer 
+	  << " layer " << layer << " stave " << stave << " sensor " << sensor << std::endl;
+	*/
+	return label_base;
+      }
     if (group == 2)
-      // layer only, assign all sensors to sensor 0
-      label_base += layer * 1000000 + 0;
-    return label_base;
+      {
+	// layer only, assign all sensors to sensor 0 in each clamshell
+	int stave = sensor / nsensors_stave[layer];
+	int clamshell = getMvtxClamshell(layer, stave);
+	label_base += layer * 1000000 + clamshell*10000;
+	//	std::cout << " mvtx group 2 layer " << layer << " sensor " << sensor << " stave " << stave 
+	//	  << " clamshell " << clamshell << " label_base " << label_base << std::endl; 
+
+	return label_base;
+      }
+    if(group == 3)
+      {
+	// group by half-barrel, or clamshell
+	// Assume for now low staves are in clamshell 0 - check!!!
+	int stave = sensor / nsensors_stave[layer];
+	int breakat = nstaves_layer_mvtx[layer] / 2;
+	int clamshell = 1;
+	if(stave < breakat) { clamshell = 0; }
+	label_base += 0 * 1000000 + clamshell * 10000;	
+	//	std::cout << " mvtx group 3 layer " << layer << " sensor " << sensor << " clamshell " << clamshell << " label_base " << label_base << std::endl; 
+
+	return label_base;
+      }
   }
   else if(layer > 2 && layer < 7)
     {
@@ -157,13 +202,13 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
 	  stave = (sensor - breakat)/2;  //staves 0 -> (nstaves/layer) -1
 	}
 
-      if (group == 3)
+      if (group == 4)
 	{
 	  // every sensor has a different label
 	  label_base += layer * 1000000 + stave * 10000 + sensor * 10;
 	  return label_base;
 	}
-      if (group == 4)
+      if (group == 5)
 	{
 	  // layer and stave, assign all sensors to the stave number
 	  label_base += layer * 1000000 + stave * 10000;
@@ -174,14 +219,23 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
 	  */
 	  return label_base;
 	}
-      if (group == 5)
-	// layer only, assign all sensors to sensor 0
-	label_base += layer * 1000000 + 0;
-      return label_base;
+      if (group == 6)
+	{
+	  // layer only, assign all sensors to sensor 0 for this layer
+	  label_base += layer * 1000000 + 0;
+	  return label_base;
+	}
+      if(group == 7)
+	{
+	  // entire INTT
+	  // assign all sensors to layer 3
+	  label_base += 3 * 1000000 + 0;
+	  return label_base;
+	}
     }
   else if (layer > 6 && layer < 55)
   {
-    if (group == 6)
+    if (group == 8)
       {
 	// want every hitset (layer, sector, side) to have a separate label
       // each group of 12 subsurfaces (sensors) is in a single hitset
@@ -189,7 +243,7 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
       label_base += layer * 1000000 + hitset * 10000;
       return label_base;
     }
-    if (group == 7)
+    if (group == 9)
     {
       // group all tpc layers in each region and sector, assign layer 7 and side and sector number to all layers and hitsets
       int side = TpcDefs::getSide(cluskey);
@@ -207,7 +261,7 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
 
       return label_base;
     }
-    if (group == 8)
+    if (group == 10)
     {
       // all tpc layers and all sectors, assign layer 7 and sensor 0 to all layers and sensors
       label_base += 7 * 1000000 + 0;
@@ -216,14 +270,14 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
   }
   else
   {
-    if (group == 9)
+    if (group == 11)
     {
       // every tile has different label
       int tile = sensor;
       label_base += layer * 1000000 + tile * 10000 + sensor * 10;
       return label_base;
     }
-    if (group == 10)
+    if (group == 12)
     {
       // assign layer 55 and tile 0 to all
       label_base += 55 * 1000000 + 0;
@@ -231,6 +285,147 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
     }
   }
   return -1;
+}
+
+std::vector<int> AlignmentDefs::getAllMvtxGlobalLabels(int grp)
+{
+  std::vector<int> labels;
+  std::vector<int> label_base;
+
+  if(grp == mvtxGrp::clamshl)
+    {
+      for(int ishl=0;ishl<2;++ishl)
+	{
+	  int label = 1 + 0 * 1000000 + ishl*10000;
+	  label_base.push_back(label);
+	}
+    }
+  else if(grp == mvtxGrp::mvtxlyr)
+    {
+      for(int ishl=0;ishl<2;++ishl)
+	{
+	  for(int ilyr = 0; ilyr < 3; ++ilyr)
+	    {
+	      int label = 1 + ilyr * 1000000 + ishl * 10000;
+	      label_base.push_back(label);
+	    }
+	}
+    }
+  else if(grp == mvtxGrp::stv)
+    {
+      for(int ilyr = 0; ilyr < 3; ++ilyr)
+	{
+	  for(int istv = 0; istv < nstaves_layer_mvtx[ilyr]; ++istv)
+	    {
+	      int label = 1 + ilyr * 1000000 + istv * 10000;		  
+	      label_base.push_back(label);
+	    }
+	}	
+    }
+  else if(grp == mvtxGrp::snsr)
+    {
+      for(int ilyr = 0; ilyr < 3; ++ilyr)
+	{
+	  for(int istv = 0; istv < nstaves_layer_mvtx[ilyr]; ++istv)
+	    {
+	      for(int isnsr=0; isnsr<nsensors_stave[ilyr]; ++ isnsr)
+		{
+		  int label = 1 + ilyr * 1000000 + istv * 10000 + isnsr * 10;		  
+		  label_base.push_back(label);
+		}
+	    }
+	}	
+    }
+
+  for (unsigned int ilbl = 0; ilbl < label_base.size(); ++ilbl)
+    {
+      for(int ipar = 3; ipar < 6;++ipar)
+	{
+	  int label_plus = label_base[ilbl] + ipar;
+	  labels.push_back(label_plus);
+	}
+    }
+  return labels;
+}
+
+std::vector<int> AlignmentDefs::getAllInttGlobalLabels(int grp)
+{
+  std::vector<int> labels;
+  std::vector<int> label_base;
+
+  if(grp == inttGrp::inttbrl)
+    {
+      int  label = 1 + 3 * 1000000 + 0;
+      label_base.push_back(label);
+    }
+  else if(grp == inttGrp::inttlyr)
+    {
+      for(int ilyr = 3; ilyr < 7; ++ilyr)
+	{
+	  int label = 1 + ilyr * 1000000 + 0;
+	  label_base.push_back(label);
+	}
+    }
+  else if(grp == inttGrp::lad)
+    {
+      for(int ilyr = 3; ilyr < 7; ++ilyr)
+	{
+	  for(int istv = 0; istv < nstaves_layer_intt[ilyr-3]; ++istv)
+	    {
+	      int label = 1 + ilyr * 1000000 + istv * 10000;		  
+	      label_base.push_back(label);
+	    }
+	}	
+    }
+  else if(grp == inttGrp::chp)
+    {
+      for(int ilyr = 3; ilyr < 7; ++ilyr)
+	{
+	  for(int istv = 0; istv < nstaves_layer_intt[ilyr-3]; ++istv)
+	    {
+	      for(int isnsr=0; isnsr<nsensors_stave[ilyr]; ++ isnsr)
+		{
+		  int label = 1 + ilyr * 1000000 + istv * 10000 + isnsr * 10;		  
+		  label_base.push_back(label);
+		}
+	    }
+	}	
+    }
+
+  for (unsigned int ilbl = 0; ilbl < label_base.size(); ++ilbl)
+    {
+      for(int ipar = 3; ipar < 6;++ipar)
+	{
+	  int label_plus = label_base[ilbl] + ipar;
+	  labels.push_back(label_plus);
+	}
+    }
+  return labels;
+}
+
+std::vector<int> AlignmentDefs::getAllTpcGlobalLabels(int grp)
+{
+  std::vector<int> labels;
+  std::vector<int> label_base;
+
+  if(grp == tpcGrp::sctr)
+    {
+      for(int isec = 0; isec < 72; ++isec)
+	{
+	  int label = 1 + 7 * 1000000 + isec * 10000;
+	  label_base.push_back(label);
+	}
+    }
+
+  for (unsigned int ilbl = 0; ilbl < label_base.size(); ++ilbl)
+    {
+      for(int ipar = 3; ipar < 6;++ipar)
+	{
+	  int label_plus = label_base[ilbl] + ipar;
+	  labels.push_back(label_plus);
+	}
+    }
+  return labels;
 }
 
 void AlignmentDefs::printBuffers(int index, Acts::Vector2 residual, Acts::Vector2 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[])

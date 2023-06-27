@@ -96,6 +96,12 @@ void TrackResiduals::clearClusterStateVectors()
   m_clusgxideal.clear();
   m_clusgyideal.clear();
   m_clusgzideal.clear();
+  m_missurfalpha.clear();
+  m_missurfbeta.clear();
+  m_missurfgamma.clear();
+  m_idealsurfalpha.clear();
+  m_idealsurfbeta.clear();
+  m_idealsurfgamma.clear();
 
   m_statelxglobderivdx.clear();
   m_statelxglobderivdy.clear();
@@ -380,20 +386,47 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   Acts::Vector2 stateloc;
   auto misaligncenter = surf->center(geometry->geometry().getGeoContext());
   auto misalignnorm = -1*surf->normal(geometry->geometry().getGeoContext());
+  auto misrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
   auto result = surf->globalToLocal(geometry->geometry().getGeoContext(),
                                     stateglob * Acts::UnitConstants::cm,
                                     misalignnorm);
+
+  float mgamma = atan2(-misrot(1,0),misrot(0,0));
+  float mbeta = -asin(misrot(0,1));
+  float malpha = atan2(misrot(1,1), misrot(2,1));
+  
+  //! Switch to get ideal transforms
   alignmentTransformationContainer::use_alignment = false;
   auto idealcenter = surf->center(geometry->geometry().getGeoContext());
   auto idealnorm = -1*surf->normal(geometry->geometry().getGeoContext());
   Acts::Vector3 ideal_local(cluster->getLocalX(), clusz, 0.0);
   Acts::Vector3 ideal_glob =  surf->transform(geometry->geometry().getGeoContext())* (ideal_local * Acts::UnitConstants::cm);
-    
+  auto idealrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
+  
+  //! These calculations are taken from the wikipedia page for Euler angles,
+  //! under the Tait-Bryan angle explanation. Formulas for the angles 
+  //! calculated from the rotation matrices depending on what order the 
+  //! rotation matrix is constructed are given
+  //! They need to be modified to conform to the Acts basis of (x,z,y), for
+  //! which the wiki page expects (x,y,z). This includes swapping the sign
+  //! of some elements to account for the permutation
+  //! https://en.wikipedia.org/wiki/Euler_angles#Conversion_to_other_orientation_representations
+  float igamma =  atan2(-idealrot(1,0), idealrot(0,0));
+  float ibeta = -asin(idealrot(0,1));
+  float ialpha = atan2(idealrot(1,1),idealrot(2,1));
+
   alignmentTransformationContainer::use_alignment = true;
 
   idealcenter /= Acts::UnitConstants::cm;
   misaligncenter /= Acts::UnitConstants::cm;
   ideal_glob /= Acts::UnitConstants::cm;
+
+  m_idealsurfalpha.push_back(ialpha);
+  m_idealsurfbeta.push_back(ibeta);
+  m_idealsurfgamma.push_back(igamma);
+  m_missurfalpha.push_back(malpha);
+  m_missurfbeta.push_back(mbeta);
+  m_missurfgamma.push_back(mgamma);
 
   m_idealsurfcenterx.push_back(idealcenter.x());
   m_idealsurfcentery.push_back(idealcenter.y());
@@ -492,6 +525,13 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgxideal",&m_clusgxideal);
   m_tree->Branch("clusgyideal",&m_clusgyideal);
   m_tree->Branch("clusgzideal",&m_clusgzideal);
+  m_tree->Branch("missurfalpha",&m_missurfalpha);
+  m_tree->Branch("missurfbeta",&m_missurfbeta);
+  m_tree->Branch("missurfgamma",&m_missurfgamma);
+  m_tree->Branch("idealsurfalpha",&m_idealsurfalpha);
+  m_tree->Branch("idealsurfbeta",&m_idealsurfbeta);
+  m_tree->Branch("idealsurfgamma",&m_idealsurfgamma);
+  
 
   m_tree->Branch("statelx", &m_statelx);
   m_tree->Branch("statelz", &m_statelz);

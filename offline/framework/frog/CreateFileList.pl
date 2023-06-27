@@ -561,7 +561,6 @@ while($#ARGV >= 0)
 	    exit(1);
 	}
     }
-
     $req_types{$ARGV[0]} = 1;
     $allfilehash{$ARGV[0]} = ();
     $allevthash{$ARGV[0]} = ();
@@ -600,7 +599,7 @@ my $getfilesql = sprintf("select filename,segment,events from datasets where %s 
 my %getfiles = ();
 foreach  my $tp (keys %req_types)
 {
-    if ($tp eq "G4Hits")
+    if ($tp eq "G4Hits" || $tp eq "G4HitsOld")
     {
 	if (defined $embed)
 	{
@@ -622,6 +621,7 @@ foreach  my $tp (keys %req_types)
 	my $newgetfilesql = $getfilesql;
 	$newgetfilesql =~ s/$filenamestring_with_runnumber/$newfilenamestring/;
 	$getfiles{"G4Hits"} = $dbh->prepare($newgetfilesql);
+	$getfiles{"G4HitsOld"} = $dbh->prepare($newgetfilesql);
 	if (defined $verbose)
 	{
 	    print "sql: $newgetfilesql\n";
@@ -756,6 +756,7 @@ sub commonfiletypes
 {
 # pass1
     $filetypes{"G4Hits"} = "G4 Hits";
+    $filetypes{"G4HitsOld"} = "Old G4 Hits";
 # pass2
     $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD G4Hits";
     $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";

@@ -64,7 +64,7 @@ class TpcRawDataDecoder : public SubsysReco
 
   static const int layercount = 16;
   static const int layeroffset = 7 + 16;
-
+  int _ievent = 0;
   //TrkrHitSetContainer *m_hits = nullptr;
   TrkrHitSet *m_hitset[layercount] = {};
   //TrkrHit *m_hit = nullptr;

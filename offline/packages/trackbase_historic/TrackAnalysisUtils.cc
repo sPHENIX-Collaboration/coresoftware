@@ -1,12 +1,14 @@
 #include "TrackAnalysisUtils.h"
 #include "SvtxTrack.h"
-#include "SvtxVertex.h"
 
-TrackAnalysisUtils::DCAPair TrackAnalysisUtils::get_dca(SvtxTrack* track,
-                                                        SvtxVertex* svtxVertex)
+namespace TrackAnalysisUtils
+{
+
+TrackAnalysisUtils::DCAPair get_dca(SvtxTrack* track,
+				    Acts::Vector3& vertex)
 {
   TrackAnalysisUtils::DCAPair pair;
-  if (!track or !svtxVertex)
+  if (!track)
   {
     std::cout << "You passed a nullptr, can't calculate DCA" << std::endl;
     return pair;
@@ -18,10 +20,6 @@ TrackAnalysisUtils::DCAPair TrackAnalysisUtils::get_dca(SvtxTrack* track,
   Acts::Vector3 mom(track->get_px(),
                     track->get_py(),
                     track->get_pz());
-
-  Acts::Vector3 vertex(svtxVertex->get_x(),
-                       svtxVertex->get_y(),
-                       svtxVertex->get_z());
 
   pos -= vertex;
 
@@ -36,7 +34,7 @@ TrackAnalysisUtils::DCAPair TrackAnalysisUtils::get_dca(SvtxTrack* track,
 
   Acts::Vector3 r = mom.cross(Acts::Vector3(0., 0., 1.));
   float phi = atan2(r(1), r(0));
-
+  phi*= -1;
   Acts::RotationMatrix3 rot;
   Acts::RotationMatrix3 rot_T;
   rot(0, 0) = cos(phi);
@@ -53,7 +51,6 @@ TrackAnalysisUtils::DCAPair TrackAnalysisUtils::get_dca(SvtxTrack* track,
 
   Acts::Vector3 pos_R = rot * pos;
   Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
-
   //! First pair is DCA_xy +/- DCA_xy_err
   pair.first.first = pos_R(0);
   pair.first.second = sqrt(rotCov(0, 0));
@@ -63,4 +60,5 @@ TrackAnalysisUtils::DCAPair TrackAnalysisUtils::get_dca(SvtxTrack* track,
   pair.second.second = sqrt(rotCov(2, 2));
 
   return pair;
+}
 }

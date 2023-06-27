@@ -112,11 +112,13 @@ int HelicalFitter::InitRun(PHCompositeNode *topNode)
 	    << " mvtx " 
 	    << AlignmentDefs::mvtxGrp::snsr << "  " 
 	    << AlignmentDefs::mvtxGrp::stv << "  " 
-	    << AlignmentDefs::mvtxGrp::brrl << "  " << std::endl
+	    << AlignmentDefs::mvtxGrp::mvtxlyr << "  "
+	    << AlignmentDefs::mvtxGrp::clamshl << "  " << std::endl
 	    << " intt " 
 	    << AlignmentDefs::inttGrp::chp << "  "
 	    << AlignmentDefs::inttGrp::lad << "  "
-	    << AlignmentDefs::inttGrp::intt << "  " << std::endl
+	    << AlignmentDefs::inttGrp::inttlyr << "  "
+	    << AlignmentDefs::inttGrp::inttbrl << "  " << std::endl
 	    << " tpc " 
 	    << AlignmentDefs::tpcGrp::htst << "  "
 	    << AlignmentDefs::tpcGrp::sctr << "  "
@@ -168,7 +170,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
   std::vector<TrackSeed> cumulative_someseed;
   std::vector<SvtxTrack_v4> cumulative_newTrack;
 
-  std::cout << "Entering initial track loop..."<<std::endl;
+  //std::cout << "Entering initial track loop..."<<std::endl;
 
   if(fittpc) { maxtracks =  _track_map_tpc->size();  }
   if(fitsilicon)  { maxtracks =  _track_map_silicon->size(); }
@@ -230,16 +232,22 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	    { std::cout << " Full track " << trackid   << " radius " << fitpars[0] << " X0 " << fitpars[1]<< " Y0 " << fitpars[2]
 			<< " zslope " << fitpars[3]  << " Z0 " << fitpars[4] << std::endl; }
 	}
-      else
-        {
-          nsilicon = cluskey_vec.size();
-        }
+      else if(fitsilicon)
+	{
+	  nsilicon = cluskey_vec.size();
+	}
+      else if(fittpc && !fitfulltrack)
+	{
+	  ntpc = cluskey_vec.size();
+	}
+ 
       Acts::Vector3 beamline(0,0,0);
       Acts::Vector2 pca2d = TrackFitUtils::get_circle_point_pca(fitpars[0], fitpars[1], fitpars[2], beamline);
       Acts::Vector3 track_vtx (pca2d(0),pca2d(1),fitpars[4]);
 
       newTrack.set_crossing(tracklet->get_crossing());
       newTrack.set_id(trackid);
+      //std::cout <<"trackid " << trackid << " setting track id "<<  newTrack.get_id()<<std::endl;
       /// use the track seed functions to help get the track trajectory values
       /// in the usual coordinates
   
@@ -264,15 +272,21 @@ int HelicalFitter::process_event(PHCompositeNode*)
       nclus = ntpc+nsilicon;
 
       // some basic track quality requirements
-      if(fittpc && ntpc < 35) continue;
-      if((fitsilicon || fitfulltrack) && nsilicon < 5) continue;
+      if(fittpc && ntpc < 35) 
+	{
+	  if(Verbosity() > 1) { std::cout << " reject this track, ntpc = " << ntpc << std::endl; } 
+	  continue;
+	}
+      if((fitsilicon || fitfulltrack) && nsilicon < 4) 
+	{
+	  if(Verbosity() > 1) { std::cout << " reject this track, nsilicon = " << nsilicon << std::endl; } 
+	  continue; 
+	}
       
       cumulative_global_vec.push_back(global_vec);
       cumulative_cluskey_vec.push_back(cluskey_vec);
       cumulative_vertex.push_back(track_vtx);
       cumulative_fitpars_vec.push_back(fitpars);
-      //std::cout << "vector size: "<<cumulative_fitpars_vec.size()<<std::endl;
-      //std::cout << "fitpars: "<<fitpars[0] << " vector element: "<<cumulative_fitpars_vec[cumulative_fitpars_vec.size()-1][0]<< std::endl;
       cumulative_someseed.push_back(someseed);
       cumulative_newTrack.push_back(newTrack);
     }
@@ -301,6 +315,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
       auto fitpars     = cumulative_fitpars_vec[trackid];
       auto someseed    = cumulative_someseed[trackid];
       auto newTrack    = cumulative_newTrack[trackid];
+      //std::cout << "trackid " << trackid << " get id " <<newTrack.get_id()<< std::endl;
       SvtxAlignmentStateMap::StateVec statevec;
       
       // get the residuals and derivatives for all clusters
@@ -390,10 +405,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	    }
 	  else if(layer > 2 && layer < 7)
 	    {
-	      std::cout << "intt_grp " << intt_grp <<" sensor_center "<<surf->center(_tGeometry->geometry().getGeoContext())<< std::endl;
 	      AlignmentDefs::getInttGlobalLabels(surf, glbl_label, intt_grp);
-	      std::cout << " global  label "<< glbl_label[3] << std::endl;
-	      std::cout << "layer " << layer << std::endl;
 	      addGlobalConstraintIntt(glbl_label, surf); 
 	    }
 	  else if (layer < 55)
@@ -577,6 +589,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
       float glblvtx_derivativeY[3];
       getGlobalVtxDerivativesXY(newTrack, event_vtx, glblvtx_derivativeX, glblvtx_derivativeY);
 
+
+      //std::cout << "vtx insert " <<newTrack.get_id() << std::endl;
       m_alignmentmap->insertWithKey(newTrack.get_id(), statevec);
       m_trackmap->insertWithKey(&newTrack, trackid);
       // close out this track	

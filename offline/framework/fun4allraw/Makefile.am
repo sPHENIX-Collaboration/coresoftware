@@ -17,7 +17,8 @@ pkginclude_HEADERS = \
   Fun4AllPrdfInputManager.h \
   Fun4AllPrdfInputPoolManager.h \
   Fun4AllPrdfOutputManager.h \
-  Fun4AllRolloverFileOutStream.h
+  Fun4AllRolloverFileOutStream.h \
+  SinglePrdfInput.h
 
 lib_LTLIBRARIES = \
   libfun4allraw.la
@@ -29,7 +30,8 @@ libfun4allraw_la_SOURCES = \
   Fun4AllPrdfInputManager.cc \
   Fun4AllPrdfInputPoolManager.cc \
   Fun4AllPrdfOutputManager.cc \
-  Fun4AllRolloverFileOutStream.cc
+  Fun4AllRolloverFileOutStream.cc \
+  SinglePrdfInput.cc
 
 libfun4allraw_la_LIBADD = \
   -lfun4all \

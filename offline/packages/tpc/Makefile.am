@@ -3,10 +3,6 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = \
-  libtpc_io.la \
-  libtpc.la
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
@@ -17,6 +13,26 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64
+
+if USE_ONLINE
+
+lib_LTLIBRARIES = \
+  libtpc.la
+
+pkginclude_HEADERS = \
+  TpcMap.h
+
+libtpc_la_SOURCES = \
+  TpcMap.cc
+
+noinst_PROGRAMS = \
+  testexternals_tpc
+
+else
+
+lib_LTLIBRARIES = \
+  libtpc_io.la \
+  libtpc.la
 
 pkginclude_HEADERS = \
   TpcRawDataTree.h \
@@ -64,6 +80,11 @@ libtpc_io_la_LIBADD = \
   -lg4detectors_io \
   -ltrackbase_historic_io
 
+noinst_PROGRAMS = \
+  testexternals_tpc_io \
+  testexternals_tpc
+
+endif
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -76,10 +97,6 @@ libtpc_io_la_LIBADD = \
 # linking tests
 
 BUILT_SOURCES = testexternals.cc
-
-noinst_PROGRAMS = \
-  testexternals_tpc_io \
-  testexternals_tpc
 
 testexternals_tpc_io_SOURCES = testexternals.cc
 testexternals_tpc_io_LDADD = libtpc_io.la

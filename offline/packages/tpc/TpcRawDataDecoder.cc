@@ -19,6 +19,12 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <Acts/Definitions/Units.hpp>
+#include <Acts/Surfaces/Surface.hpp>
+
+
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/packet.h>
@@ -29,6 +35,7 @@
 #include <TH2.h>
 #include <TH3.h>
 #include <TNtuple.h>
+#include <limits.h>
 
 //____________________________________________________________________________..
 TpcRawDataDecoder::TpcRawDataDecoder(const std::string &name)
@@ -164,11 +171,30 @@ int TpcRawDataDecoder::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 {
+  _ievent++;
   // load relevant nodes
   // Get the TrkrHitSetContainer node
   auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   assert(trkrhitsetcontainer);
 
+ PHG4TpcCylinderGeomContainer *geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!geom_container)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  /*  auto m_tGeometry = findNode::getClass<ActsGeometry>(topNode,
+						 "ActsGeometry");
+  if(!m_tGeometry)
+    {
+      std::cout << PHWHERE
+		<< "ActsGeometry not found on node tree. Exiting"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  */
   Event *_event = findNode::getClass<Event>(topNode, "PRDF");
   assert( _event );
 
@@ -181,7 +207,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
   {
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
-
+  rollover_value = 0;
   // check all possible TPC packets that we need to analyze
   for(int ep=0;ep<2;ep++){
    for (int sector = 0; sector<=23; sector++)
@@ -197,45 +223,111 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 
     if (p)
     {
-      std::cout << "TpcRawDataDecoder:: Event getPacket: "<< packet << "| Sector"<< sector << "| EndPoint "<< ep << std::endl;
+      std::cout << "My Own TpcRawDataDecoder:: Event getPacket: "<< packet << "| Sector"<< sector << "| EndPoint "<< ep << std::endl;
     }else{
       continue;
     }
-
-    int nr_of_waveforms = p->iValue(0, "NR_WF");
-
-    for (auto &l : m_hitset)
-    {
-      l = new TrkrHitSetv1();
-
-      int wf;
-      for (wf = 0; wf < nr_of_waveforms; wf++)
+    uint64_t triggerBCO = 0;
+    int n_tagger = p->lValue(0, "N_TAGGER");
+    for (int t = 0; t < n_tagger; t++){
+      //  const auto tagger_type = static_cast<uint16_t>(p->lValue(t, "TAGGER_TYPE"));
+      // const auto is_endat = static_cast<uint8_t>(p->lValue(t, "IS_ENDAT"));
+      const auto is_lvl1 = static_cast<uint8_t>(p->lValue(t, "IS_LEVEL1_TRIGGER"));
+      const auto bco = static_cast<uint64_t>(p->lValue(t, "BCO"));
+      // const auto lvl1_count = static_cast<uint32_t>(p->lValue(t, "LEVEL1_COUNT"));
+      // const auto endat_count = static_cast<uint32_t>(p->lValue(t, "ENDAT_COUNT"));
+      // const auto last_bco = static_cast<uint64_t>(p->lValue(t, "LAST_BCO"));
+      // const auto modebits = static_cast<uint8_t>(p->lValue(t, "MODEBITS"));
+      
+      // only printout the is_lvl1 triggers
+      // if( Verbosity() )
+      if( is_lvl1 )
       {
-        int current_BCO = p->iValue(wf, "BCO") + rollover_value;
-        if (starting_BCO < 0)
-        {
-          starting_BCO = current_BCO;
-        }
+	triggerBCO = bco;
+	std::cout << " is_lvl1: " << (bool) (is_lvl1)
+		  << " bco: " << bco
+		  
+		  << std::endl;
+	/*
+        std::cout << "MicromegasRawDataEvaluation::process_event -"
+	  //		  << " packet: " << packet_id
+		  << " tagger: " << t
+		  << " type: " << tagger_type
+		  << " is_enddat: " << (bool) (is_endat)
+		  << " is_lvl1: " << (bool) (is_lvl1)
+		  << " bco: " << bco
+		  << " last bco: " << last_bco
+		  << " endat_count: " << endat_count
+		  << " lvl1_count: " << lvl1_count
+		  << std::endl;
+	*/
+      }
+    }
+    
+    int nr_of_waveforms = p->iValue(0, "NR_WF");
+    
+    //   for (auto &l : m_hitset){
+    // l = new TrkrHitSetv1();
+    
+    int wf;
+    //find waveform with earliest BCO in packet
+    //take earliest BCO as starting BCO - works only for very long waveform setting
+    //current waveforms are ~360 timebins long, eariest BCO == starting BCO should hold for these conditions
+    //Check if BCO of previous event is within 360 time bins or 180 BCO. If yes we we are looking at a truncated event and we use the BCO of the previous one as startingBCO
 
-        if (current_BCO < starting_BCO)  // we have a rollover
-        {
-          rollover_value += 0x100000;
-          current_BCO = p->iValue(wf, "BCO") + rollover_value;
-          starting_BCO = current_BCO;
-          current_BCOBIN++;
-        }
-        int sampa_nr = p->iValue(wf, "SAMPAADDRESS");
-        int channel = p->iValue(wf, "CHANNEL");
+    int earliest_BCO = INT_MAX;
 
-        int fee = p->iValue(wf, "FEE");
-        int samples = p->iValue( wf, "SAMPLES" );
-        // clockwise FEE mapping
-        //int FEE_map[26]={5, 6, 1, 3, 2, 12, 10, 11, 9, 8, 7, 1, 2, 4, 8, 7, 6, 5, 4, 3, 1, 3, 2, 4, 6, 5};
-        int FEE_R[26]={2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
-        // conter clockwise FEE mapping (From Takao)
-        int FEE_map[26]={3, 2, 5, 3, 4, 0, 2, 1, 3, 4, 5, 7, 6, 2, 0, 1, 0, 1, 4, 5, 11, 9, 10, 8, 6, 7};
+    for (wf = 0; wf < nr_of_waveforms; wf++){      
+      int current_BCO = p->iValue(wf, "BCO");
+      if(current_BCO < earliest_BCO)
+	earliest_BCO = current_BCO;
+      //      std::cout << " earliest BCO:  " << earliest_BCO << " current BCO " << current_BCO << std::endl;
+    }
+    //  if((earliest_BCO - starting_BCO > 0) && (earliest_BCO - starting_BCO < 180)){
+    // starting_BCO = starting_BCO;
+    //}else{
+      starting_BCO = earliest_BCO;
+      //}
+      if( Verbosity() )
+	std::cout << " _ievent: " << _ievent << " earliest BCO:  " << earliest_BCO << " ep: " << ep << " sector " << sector << " trigBCO: " << triggerBCO << " diff " << triggerBCO - earliest_BCO << std::endl;
+
+    for (wf = 0; wf < nr_of_waveforms; wf++){
+      
+      int current_BCO = p->iValue(wf, "BCO") + rollover_value;
+      /*
+      std::cout << " BCO:  " << p->iValue(wf, "BCO") << std::endl; 
+      std::cout << " rollover:  " << rollover_value << std::endl;
+      std::cout << " current BCO:  " << current_BCO << std::endl;
+      std::cout << " starting BCO:  " << starting_BCO << std::endl;
+      std::cout << " earliest BCO:  " << earliest_BCO << std::endl;
+      std::cout << " current BCOBIN:  " << current_BCOBIN << std::endl;
+      */
+      if (starting_BCO < 0)
+	{
+	  starting_BCO = current_BCO;
+	}
+      
+      if (current_BCO < starting_BCO)  // we have a rollover
+	{
+	  rollover_value = 0x100000;
+	  current_BCO = p->iValue(wf, "BCO") + rollover_value;
+	  starting_BCO = current_BCO;
+	  current_BCOBIN++;
+	}
+      //      std::cout << " nu current BCO:  " << current_BCO << std::endl;
+      //std::cout << " nu starting BCO:  " << starting_BCO << std::endl;
+      int sampa_nr = p->iValue(wf, "SAMPAADDRESS");
+      int channel = p->iValue(wf, "CHANNEL");
+      
+      int fee = p->iValue(wf, "FEE");
+      int samples = p->iValue( wf, "SAMPLES" );
+      // clockwise FEE mapping
+      //int FEE_map[26]={5, 6, 1, 3, 2, 12, 10, 11, 9, 8, 7, 1, 2, 4, 8, 7, 6, 5, 4, 3, 1, 3, 2, 4, 6, 5};
+      int FEE_R[26]={2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
+      // conter clockwise FEE mapping (From Takao)
+      int FEE_map[26]={3, 2, 5, 3, 4, 0, 2, 1, 3, 4, 5, 7, 6, 2, 0, 1, 0, 1, 4, 5, 11, 9, 10, 8, 6, 7};
         int pads_per_sector[3] = {96, 128, 192};
-
+	
         // setting the mapp of the FEE
         int feeM = FEE_map[fee];
         if(FEE_R[fee]==2) feeM += 6;
@@ -245,90 +337,94 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
         if(layer==0)continue;
 
         double R = M.getR(feeM, channel);
-        double phi = M.getPhi(feeM, channel) + sector * M_PI / 6 ;
+        double phi = M.getPhi(feeM, channel) + (sector - side*12 )* M_PI / 6 ;
         unsigned int key = 256 * (feeM) + channel;
         int pedestal = round(tmap[key].PedMean);
-        TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sector, side);
+        TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, (sector - side*12 ), side);
         TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(tpcHitSetKey);
-
-        if( Verbosity() )
-        {
-          int sampaAddress = p->iValue(wf, "SAMPAADDRESS");
-          int sampaChannel = p->iValue(wf, "SAMPACHANNEL");
-          int checksum = p->iValue(wf, "CHECKSUM");
-          int checksumError = p->iValue(wf, "CHECKSUMERROR");
-          std::cout << "TpcRawDataDecoder::Process_Event Samples "<< samples 
-          <<" Chn:"<< channel 
-          <<" layer: " << layer 
-          << " sampa: "<< sampa_nr 
-          << " fee: "<< fee 
-          << " Mapped fee: "<< feeM 
-          << " sampaAddress: "<< sampaAddress 
-          << " sampaChannel: "<< sampaChannel 
-          << " checksum: "<< checksum 
-          << " checksumError: "<< checksumError 
-          << " hitsetkey "<< tpcHitSetKey 
-          << " R = " << R
-          << " phi = " << phi
-          << std::endl;
-        }
+	
+        if( Verbosity()>1 )
+	  {
+	    int sampaAddress = p->iValue(wf, "SAMPAADDRESS");
+	    int sampaChannel = p->iValue(wf, "SAMPACHANNEL");
+	    int checksum = p->iValue(wf, "CHECKSUM");
+	    int checksumError = p->iValue(wf, "CHECKSUMERROR");
+	    std::cout << "TpcRawDataDecoder::Process_Event Samples "<< samples 
+		      <<" Chn:"<< channel 
+		      <<" layer: " << layer 
+		      << " sampa: "<< sampa_nr 
+		      << " fee: "<< fee 
+		      << " Mapped fee: "<< feeM 
+		      << " sampaAddress: "<< sampaAddress 
+		      << " sampaChannel: "<< sampaChannel 
+		      << " checksum: "<< checksum 
+		      << " checksumError: "<< checksumError 
+		      << " hitsetkey "<< tpcHitSetKey 
+		      << " R = " << R
+		      << " phi = " << phi
+		      << std::endl;
+	  }
         pedestal = 0;
         for (int s = 0; s < 5; s++)
-        {
-          int adc = p->iValue(wf,s);
-          pedestal += adc;
-        }
+	  {
+	    int adc = p->iValue(wf,s);
+	    pedestal += adc;
+	  }
         pedestal /=5;
         for (int s = 0; s < samples; s++)
-        {
-          int pad = M.getPad(feeM, channel);
-          int t = s + 2 * (current_BCO - starting_BCO);
-          int adc = p->iValue(wf,s);
-          if(m_Debug==1){
-            _h_hit_XY->Fill(R*cos(phi),R*sin(phi),adc-pedestal);
-          }
-          //if(adc-pedestal<4) continue;
-          // generate hit key
-          TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad + sector*pads_per_sector[FEE_R[sector]-1], (unsigned int) t);
-          // find existing hit, or create
-          auto hit = hitsetit->second->getHit(hitkey);
-
-          // create hit, assign adc and insert in hitset
-          if (!hit)
-          {
-            // create a new one
-            hit = new TrkrHitv2();
-            hit->setAdc(adc-pedestal);
-            //std::cout<< "ADC = " << adc << " Pedestal = "<< pedestal << "delta = "<< adc-pedestal << std::endl;
-            //if(adc - pedestal > 40) std::cout<< adc - pedestal << "| ";
-            //std::cout<< t << "| ";
-            if(adc-pedestal>2)hitsetit->second->addHitSpecificKey(hitkey, hit);
-          }
-          
-          //else{
-          //  hit->setAdc(adc);
-          //  hitsetit->second->addHitSpecificKey(hitkey, hit);
-          //}
-
-          if(m_Debug==1){
-            if(adc - pedestal > 40){
-              _h_hit_XY_ADCcut->Fill(R*cos(phi),R*sin(phi),adc-pedestal);
-              _h_hit_XYT->Fill(R*cos(phi),R*sin(phi), current_BCO,adc-pedestal);
-            }
-          }
-          //if (s==samples-1) std::cout << std::endl;
-        }
+	  {
+	    int pad = M.getPad(feeM, channel);
+	    int t = s + 2 * (current_BCO - starting_BCO);
+	    int adc = p->iValue(wf,s);
+	    if(m_Debug==1){
+	      _h_hit_XY->Fill(R*cos(phi),R*sin(phi),adc-pedestal);
+	    }
+	    //	    if(adc-pedestal<4) continue;
+	    // generate hit key
+	    if(adc-pedestal>2){
+	      TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad + (sector - side*12 )*pads_per_sector[FEE_R[fee]-1], (unsigned int) t);
+	      // find existing hit, or create
+	      
+	      auto hit = hitsetit->second->getHit(hitkey);
+	      
+	      // create hit, assign adc and insert in hitset
+	      if (!hit)
+		{
+		  
+		  // create a new one
+		  hit = new TrkrHitv2();
+		  hit->setAdc(adc-pedestal);
+		  //std::cout<< "ADC = " << adc << " Pedestal = "<< pedestal << "delta = "<< adc-pedestal << std::endl;
+		  //if(adc - pedestal > 40) std::cout<< adc - pedestal << "| ";
+		  //std::cout<< t << "| ";
+		  
+		  hitsetit->second->addHitSpecificKey(hitkey, hit);
+		}
+	    }
+	    //else{
+	    //  hit->setAdc(adc);
+	    //  hitsetit->second->addHitSpecificKey(hitkey, hit);
+	    //}
+	    
+	    if(m_Debug==1){
+	      if(adc - pedestal > 40){
+		_h_hit_XY_ADCcut->Fill(R*cos(phi),R*sin(phi),adc-pedestal);
+		_h_hit_XYT->Fill(R*cos(phi),R*sin(phi), current_BCO,adc-pedestal);
+	      }
+	    }
+	    //if (s==samples-1) std::cout << std::endl;
+	  }
         
       }
-    }
-
+      //     }//auto l:
+    
    }// End of run over packets
   }//End of ep loop
-
+  
   // we skip the mapping to real pads at first. We just say
   // that we get 16 rows (segment R2) with 128 pads
   // so each FEE fills 2 rows. Not right, but one step at a time.
-
+  std::cout << "My Own TpcRawDataDecoder:: done" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
