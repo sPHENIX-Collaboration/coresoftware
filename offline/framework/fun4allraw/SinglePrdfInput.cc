@@ -61,6 +61,8 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       if (evt->getEvtType() != DATAEVENT)
       {
         m_NumSpecialEvents++;
+        delete evt;
+        continue; // need handling for non data events
       }
       int EventSequence = evt->getEvtSequence();
       int npackets = evt->getPacketList(plist, 100);
