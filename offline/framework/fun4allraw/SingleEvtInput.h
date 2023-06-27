@@ -1,5 +1,5 @@
-#ifndef FUN4ALLRAW_SINGLEPRDFINPUT_H
-#define FUN4ALLRAW_SINGLEPRDFINPUT_H
+#ifndef FUN4ALLRAW_SINGLEEVTINPUT_H
+#define FUN4ALLRAW_SINGLEEVTINPUT_H
 
 #include <fun4all/Fun4AllBase.h>
 #include <fun4all/InputFileHandler.h>
@@ -10,14 +10,14 @@
 #include <vector>
 
 class Eventiterator;
-class Fun4AllPrdfInputPoolManager;
+class Fun4AllEvtInputPoolManager;
 class Packet;
 
-class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
+class SingleEvtInput : public Fun4AllBase, public InputFileHandler
 {
  public:
-  explicit SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman);
-  ~SinglePrdfInput() override;
+  explicit SingleEvtInput(const std::string &name, Fun4AllEvtInputPoolManager *inman);
+  ~SingleEvtInput() override;
   Eventiterator *GetEventIterator() { return m_EventIterator; }
   void FillPool(const unsigned int nevents);
   int RunNumber() const { return m_RunNumber; }
@@ -28,7 +28,7 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
 
  private:
   Eventiterator *m_EventIterator = nullptr;
-  Fun4AllPrdfInputPoolManager *m_InputMgr = nullptr;
+  Fun4AllEvtInputPoolManager *m_InputMgr = nullptr;
   Packet **plist = nullptr;
   unsigned int m_NumSpecialEvents = 0;
   unsigned int m_EventNumberOffset = 1;  // packet event counters start at 0 but we start with event number 1

@@ -1,6 +1,6 @@
-#include "Fun4AllPrdfInputPoolManager.h"
+#include "Fun4AllEvtInputPoolManager.h"
 
-#include "SinglePrdfInput.h"
+#include "SingleEvtInput.h"
 
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -24,39 +24,39 @@
 #include <Event/Event.h>
 #include <Event/Eventiterator.h>  // for Eventiterator
 #include <Event/fileEventiterator.h>
-#include <Event/oEvent.h>
+#include <Event/ospEvent.h>
 
 #include <cassert>
 #include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream, endl
 #include <utility>   // for pair
 
-Fun4AllPrdfInputPoolManager::Fun4AllPrdfInputPoolManager(const std::string &name, const std::string &prdfnodename, const std::string &topnodename)
-  : Fun4AllInputManager(name, prdfnodename, topnodename)
+Fun4AllEvtInputPoolManager::Fun4AllEvtInputPoolManager(const std::string &name, const std::string &evtnodename, const std::string &topnodename)
+  : Fun4AllInputManager(name, evtnodename, topnodename)
   , m_SyncObject(new SyncObjectv1())
-  , m_PrdfNodeName(prdfnodename)
+  , m_EvtNodeName(evtnodename)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
   m_topNode = se->topNode(TopNodeName());
   PHNodeIterator iter(m_topNode);
-  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
-  if (!PrdfNode)
+  PHDataNode<Event> *EvtNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_EvtNodeName));
+  if (!EvtNode)
   {
-    PHDataNode<Event> *newNode = new PHDataNode<Event>(m_Event, m_PrdfNodeName, "Event");
+    PHDataNode<Event> *newNode = new PHDataNode<Event>(m_Event, m_EvtNodeName, "EVT");
     m_topNode->addNode(newNode);
   }
-  oph = new oEvent(workmem, 4 * 1024 * 1024, 1, 1, 1);
+  osp = new ospEvent(workmem.workmem, 4 * 1024 * 1024, 1, 1, 1);
   return;
 }
 
-Fun4AllPrdfInputPoolManager::~Fun4AllPrdfInputPoolManager()
+Fun4AllEvtInputPoolManager::~Fun4AllEvtInputPoolManager()
 {
   if (IsOpen())
   {
     fileclose();
   }
   delete m_SyncObject;
-  for (auto iter : m_PrdfInputVector)
+  for (auto iter : m_EvtInputVector)
   {
     delete iter;
   }
@@ -67,14 +67,14 @@ Fun4AllPrdfInputPoolManager::~Fun4AllPrdfInputPoolManager()
       delete pktiter;
     }
   }
-  delete oph;
+  delete osp;
 }
 
-int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
+int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
 {
   if (m_PacketMap.size() < 5)
   {
-    for (auto iter : m_PrdfInputVector)
+    for (auto iter : m_EvtInputVector)
     {
       iter->FillPool(5);
       m_RunNumber = iter->RunNumber();
@@ -89,19 +89,19 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
   }
 //  std::cout << "next event is " << m_PacketMap.begin()->first << std::endl;
   auto pktinfoiter = m_PacketMap.begin();
-  oph->prepare_next(pktinfoiter->first, m_RunNumber);
+  osp->prepare_next(pktinfoiter->first, m_RunNumber);
   for (auto &pktiter : pktinfoiter->second.PacketVector)
   {
-    oph->addPacket(pktiter);
+    osp->addPacket(pktiter);
   }
-  m_Event = new A_Event(workmem);
+  m_Event = new oncsEvent(workmem.iwmem);
   if (Verbosity() > 1)
   {
     m_Event->identify();
   }
   PHNodeIterator iter(m_topNode);
-  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
-  PrdfNode->setData(m_Event);
+  PHDataNode<Event> *EvtNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_EvtNodeName));
+  EvtNode->setData(m_Event);
   for (auto &pktiter : pktinfoiter->second.PacketVector)
   {
     delete pktiter;
@@ -146,7 +146,7 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
   //   }
   //   //  std::cout << "running event " << nevents << std::endl;
   //   PHNodeIterator iter(m_topNode);
-  //   PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
+  //   PHDataNode<Event> *EvtNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_EvtNodeName));
   //   if (m_SaveEvent)  // if an event was pushed back, copy saved pointer and reset m_SaveEvent pointer
   //   {
   //     m_Event = m_SaveEvent;
@@ -158,7 +158,7 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
   //   {
   //     m_Event = m_EventCombiner.begin()->second;
   //   }
-  //   PrdfNode->setData(m_Event);
+  //   EvtNode->setData(m_Event);
   //   if (!m_Event)
   //   {
   //     fileclose();
@@ -166,12 +166,12 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
   //   }
   //   if (Verbosity() > 1)
   //   {
-  //     std::cout << Name() << " PRDF run " << m_Event->getRunNumber() << ", evt no: " << m_Event->getEvtSequence() << std::endl;
+  //     std::cout << Name() << " EVT run " << m_Event->getRunNumber() << ", evt no: " << m_Event->getEvtSequence() << std::endl;
   //   }
   //   m_EventsTotal++;
   //   m_EventsThisFile++;
   //   SetRunNumber(m_Event->getRunNumber());
-  //   MySyncManager()->PrdfEvents(m_EventsThisFile);
+  //   MySyncManager()->EvtEvents(m_EventsThisFile);
   //   MySyncManager()->SegmentNumber(m_Segment);
   //   MySyncManager()->CurrentEvent(m_Event->getEvtSequence());
   //   m_SyncObject->EventCounter(m_EventsThisFile);
@@ -187,34 +187,34 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
   //  return 0;
 }
 
-int Fun4AllPrdfInputPoolManager::fileclose()
+int Fun4AllEvtInputPoolManager::fileclose()
 {
-  for (auto iter : m_PrdfInputVector)
+  for (auto iter : m_EvtInputVector)
   {
     delete iter;
   }
-  m_PrdfInputVector.clear();
+  m_EvtInputVector.clear();
   return 0;
 }
 
-void Fun4AllPrdfInputPoolManager::Print(const std::string &what) const
+void Fun4AllEvtInputPoolManager::Print(const std::string &what) const
 {
   Fun4AllInputManager::Print(what);
   return;
 }
 
-int Fun4AllPrdfInputPoolManager::ResetEvent()
+int Fun4AllEvtInputPoolManager::ResetEvent()
 {
   PHNodeIterator iter(m_topNode);
-  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
-  PrdfNode->setData(nullptr);  // set pointer in Node to nullptr before deleting it
+  PHDataNode<Event> *EvtNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_EvtNodeName));
+  EvtNode->setData(nullptr);  // set pointer in Node to nullptr before deleting it
   delete m_Event;
   m_Event = nullptr;
   //  m_SyncObject->Reset();
   return 0;
 }
 
-int Fun4AllPrdfInputPoolManager::PushBackEvents(const int /*i*/)
+int Fun4AllEvtInputPoolManager::PushBackEvents(const int /*i*/)
 {
   return 0;
   // PushBackEvents is supposedly pushing events back on the stack which works
@@ -230,7 +230,7 @@ int Fun4AllPrdfInputPoolManager::PushBackEvents(const int /*i*/)
   //     return 0;
   //   }
   //   std::cout << PHWHERE << Name()
-  //        << " Fun4AllPrdfInputPoolManager cannot push back " << i << " events into file"
+  //        << " Fun4AllEvtInputPoolManager cannot push back " << i << " events into file"
   //        << std::endl;
   //   return -1;
   // }
@@ -269,7 +269,7 @@ int Fun4AllPrdfInputPoolManager::PushBackEvents(const int /*i*/)
   // return errorflag;
 }
 
-int Fun4AllPrdfInputPoolManager::GetSyncObject(SyncObject **mastersync)
+int Fun4AllEvtInputPoolManager::GetSyncObject(SyncObject **mastersync)
 {
   // here we copy the sync object from the current file to the
   // location pointed to by mastersync. If mastersync is a 0 pointer
@@ -290,7 +290,7 @@ int Fun4AllPrdfInputPoolManager::GetSyncObject(SyncObject **mastersync)
   return Fun4AllReturnCodes::SYNC_OK;
 }
 
-int Fun4AllPrdfInputPoolManager::SyncIt(const SyncObject *mastersync)
+int Fun4AllEvtInputPoolManager::SyncIt(const SyncObject *mastersync)
 {
   if (!mastersync)
   {
@@ -311,32 +311,32 @@ int Fun4AllPrdfInputPoolManager::SyncIt(const SyncObject *mastersync)
   return Fun4AllReturnCodes::SYNC_OK;
 }
 
-std::string Fun4AllPrdfInputPoolManager::GetString(const std::string &what) const
+std::string Fun4AllEvtInputPoolManager::GetString(const std::string &what) const
 {
-  if (what == "PRDFNODENAME")
+  if (what == "EVTNODENAME")
   {
-    return m_PrdfNodeName;
+    return m_EvtNodeName;
   }
   return "";
 }
 
-SinglePrdfInput *Fun4AllPrdfInputPoolManager::AddPrdfInputFile(const std::string &filenam)
+SingleEvtInput *Fun4AllEvtInputPoolManager::AddEvtInputFile(const std::string &filenam)
 {
-  SinglePrdfInput *prdfin = new SinglePrdfInput("PRDFIN_" + std::to_string(m_PrdfInputVector.size()), this);
-  prdfin->AddFile(filenam);
-  m_PrdfInputVector.push_back(prdfin);
-  return m_PrdfInputVector.back();
+  SingleEvtInput *evtin = new SingleEvtInput("EVTIN_" + std::to_string(m_EvtInputVector.size()), this);
+  evtin->AddFile(filenam);
+  m_EvtInputVector.push_back(evtin);
+  return m_EvtInputVector.back();
 }
 
-SinglePrdfInput *Fun4AllPrdfInputPoolManager::AddPrdfInputList(const std::string &filenam)
+SingleEvtInput *Fun4AllEvtInputPoolManager::AddEvtInputList(const std::string &filenam)
 {
-  SinglePrdfInput *prdfin = new SinglePrdfInput("PRDFIN_" + std::to_string(m_PrdfInputVector.size()), this);
-  prdfin->AddListFile(filenam);
-  m_PrdfInputVector.push_back(prdfin);
-  return m_PrdfInputVector.back();
+  SingleEvtInput *evtin = new SingleEvtInput("EVTIN_" + std::to_string(m_EvtInputVector.size()), this);
+  evtin->AddListFile(filenam);
+  m_EvtInputVector.push_back(evtin);
+  return m_EvtInputVector.back();
 }
 
-void Fun4AllPrdfInputPoolManager::AddPacket(const int evtno, Packet *p)
+void Fun4AllEvtInputPoolManager::AddPacket(const int evtno, Packet *p)
 {
   if (Verbosity() > 1)
   {
@@ -345,7 +345,7 @@ void Fun4AllPrdfInputPoolManager::AddPacket(const int evtno, Packet *p)
   m_PacketMap[evtno].PacketVector.push_back(p);
 }
 
-void Fun4AllPrdfInputPoolManager::UpdateEventFoundCounter(const int evtno)
+void Fun4AllEvtInputPoolManager::UpdateEventFoundCounter(const int evtno)
 {
   m_PacketMap[evtno].EventFoundCounter++;
 }
