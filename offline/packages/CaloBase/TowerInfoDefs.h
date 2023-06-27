@@ -35,9 +35,9 @@ namespace TowerInfoDefs
    int get_smd_xy(const unsigned int key);
    int get_smd_finger_index(const unsigned int key);
 
-   unsigned int get_mbd_side(const unsigned int key);
-   // 0 for time 1 for charge
-   unsigned int get_mbd_type(const unsigned int key);
+   unsigned int get_mbd_arm(const unsigned int key);
+   unsigned int get_mbd_side(const unsigned int key); // side is same as arm
+   unsigned int get_mbd_type(const unsigned int key); // 0 for time 1 for charge
    unsigned int get_mbd_channel(const unsigned int key);
 
 
