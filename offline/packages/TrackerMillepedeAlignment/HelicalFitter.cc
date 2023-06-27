@@ -588,6 +588,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
       float dca3dxysigma; 
       float dca3dzsigma;	  
       get_dca(newTrack,dca3dxy,dca3dz,dca3dxysigma,dca3dzsigma,event_vtx);
+      /*
       Acts::Vector3 mom(newTrack.get_px(),newTrack.get_py(),newTrack.get_pz()); 
       Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
       float perigee_phi       = atan2(r(1), r(0)) * 180.0 / M_PI;
@@ -596,6 +597,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		<< " track x,y,z " << newTrack.get_x() << "  " << newTrack.get_y() << "  " << newTrack.get_z() << std::endl	
 		<< " track px,py,pz " << newTrack.get_px() << "  " << newTrack.get_py() << "  " << newTrack.get_pz() << std::endl
 	       << " track phi " << track_phi << " perigee phi " << perigee_phi << std::endl; 
+      */
 
       Acts::Vector2 vtx_residual(-dca3dxy, -dca3dz);
       
@@ -1277,6 +1279,7 @@ void HelicalFitter::getGlobalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 ev
   glbl_derivativeY[1] = unity.dot(projY);
   glbl_derivativeY[2] = unitz.dot(projY);
 
+  /*
   // The derivation in the ATLAS paper used above gives the derivative of the residual (= measurement - fit)
   // pede wants the derivative of the fit, so we reverse that
   // This is only valid if our residual is (event vertex - track vertex)
@@ -1286,7 +1289,7 @@ void HelicalFitter::getGlobalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 ev
       glbl_derivativeX[i] *= -1.0;
       glbl_derivativeY[i] *= -1.0;
     }
-
+  */
 
   if(Verbosity() > 1)
     {
