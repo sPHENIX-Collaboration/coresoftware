@@ -58,6 +58,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_silicon_track_map_name(const std::string &map_name) { _silicon_track_map_name = map_name; }
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
 
+  void set_use_event_vertex(bool flag){ use_event_vertex = flag; }
   void set_datafile_name(const std::string& file) { data_outfilename = file;}
   void set_steeringfile_name(const std::string& file) { steering_outfilename = file;}
   void set_mvtx_grouping(int group) {mvtx_grp = (AlignmentDefs::mvtxGrp) group;}
@@ -65,7 +66,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_tpc_grouping(int group) {tpc_grp = (AlignmentDefs::tpcGrp) group;}
   void set_mms_grouping(int group) {mms_grp = (AlignmentDefs::mmsGrp) group;}
   void set_test_output(bool test) {test_output = test;}
-  void set_layer_fixed(unsigned int layer);
+  void set_intt_layer_fixed(unsigned int layer);
+  void set_mvtx_layer_fixed(unsigned int layer, unsigned int clamshell);
   void set_tpc_sector_fixed(unsigned int region, unsigned int sector, unsigned int side);
   void set_layer_param_fixed(unsigned int layer, unsigned int param);
   void set_cluster_version(unsigned int v) { _cluster_version = v; }
@@ -127,8 +129,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   Acts::Vector2 getClusterError(TrkrCluster *cluster, TrkrDefs::cluskey cluskey, Acts::Vector3& global);
 
   bool is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side);
-
-  bool is_layer_fixed(unsigned int layer);
+  bool is_mvtx_layer_fixed(unsigned int layer, unsigned int stave);
+  bool is_intt_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
 
   void getLocalDerivativesXY(Surface surf, Acts::Vector3 global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer);
@@ -163,7 +165,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   ClusterErrorPara _ClusErrPara;
 
-  std::set<unsigned int> fixed_layers;
+  std::set<std::pair<unsigned int,unsigned int>> fixed_mvtx_layers;
+  std::set<unsigned int> fixed_intt_layers;
   std::set<unsigned int> fixed_sectors;
   std::set<std::pair<unsigned int,unsigned int>> fixed_layer_params;
 
@@ -205,6 +208,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   TNtuple *ntp{nullptr};
   TNtuple *track_ntp{nullptr};
   TFile *fout{nullptr};
+
+  bool use_event_vertex = false;
 
   int event = 0;
 
