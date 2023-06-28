@@ -482,7 +482,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		{
 		  unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
 		  unsigned int side   = TpcDefs::getSide(cluskey_vec[ivec]);	  
-		  if(is_tpc_sector_fixed(layer, sector, side))
+		  if(is_layer_param_fixed(layer, i) || is_tpc_sector_fixed(layer, sector, side))
 		    {
 		      glbl_derivativeX[i] = 0;
 		      glbl_derivativeY[i] = 0;
@@ -556,7 +556,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		    }
 		  std::cout << std::endl;
 		}
-	    };
+	    }
 
 	  if( !isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
 	    {
