@@ -482,8 +482,10 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		{
 		  unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
 		  unsigned int side   = TpcDefs::getSide(cluskey_vec[ivec]);	  
+		  std::cout << " Testing layer " << layer << " param " << i << std::endl;
 		  if(is_layer_param_fixed(layer, i) || is_tpc_sector_fixed(layer, sector, side))
 		    {
+		      std::cout << "     layer " << layer << " param " << i << " fixed " << std::endl;
 		      glbl_derivativeX[i] = 0;
 		      glbl_derivativeY[i] = 0;
 		    }
@@ -560,6 +562,22 @@ int HelicalFitter::process_event(PHCompositeNode*)
 
 	  if( !isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
 	    {
+	      /*
+	      std::cout << " layer " << layer
+			<< " glb_label[0] " << glbl_label[0]
+			<< " glbl_derivativeX[0] " << glbl_derivativeX[0]
+			<< " glb_label[1] " << glbl_label[1]
+			<< " glbl_derivativeX[1] " << glbl_derivativeX[1]
+			<< " glb_label[2] " << glbl_label[2]
+			<< " glbl_derivativeX[2] " << glbl_derivativeX[2]
+			<< " glb_label[3] " << glbl_label[3]
+			<< " glbl_derivativeX[3] " << glbl_derivativeX[3]
+			<< " glb_label[4] " << glbl_label[4]
+			<< " glbl_derivativeX[4] " << glbl_derivativeX[4]
+			<< " glb_label[5] " << glbl_label[5]
+			<< " glbl_derivativeX[5] " << glbl_derivativeX[5]
+			<< std::endl;
+	      */
 	      _mille->mille(AlignmentDefs::NLC,lcl_derivativeX,AlignmentDefs::NGL,glbl_derivativeX,glbl_label,residual(0), errinf*clus_sigma(0));
 	    }
 	  if(!isnan(residual(1)) && clus_sigma(1) < 1.0 && trkrid != TrkrDefs::inttId)
@@ -1219,7 +1237,8 @@ void HelicalFitter::getGlobalDerivativesXY(Surface surf, Acts::Vector3 global, A
   // rotations
   // need center of sensor to intersection point
   Acts::Vector3 sensorCenter = surf->center(_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;  // convert to cm
-  Acts::Vector3 OM           = sensorCenter - fitpoint;
+  //  Acts::Vector3 OM           = sensorCenter - fitpoint;
+  Acts::Vector3 OM           = fitpoint - sensorCenter;
 
   glbl_derivativeX[0] = (unitx.cross(OM)).dot(projX);
   glbl_derivativeX[1] = (unity.cross(OM)).dot(projX);
@@ -1325,6 +1344,7 @@ void HelicalFitter::get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts
   yglob /=  Acts::UnitConstants::cm;
   Acts::Vector3 X = (xglob-sensorCenter) / (xglob-sensorCenter).norm();
   Acts::Vector3 Y = (yglob-sensorCenter) / (yglob-sensorCenter).norm();
+  // see equation 31 of the ATLAS paper (and discussion) for this
   projX = X - (tanvec.dot(X) / tanvec.dot(Z)) * Z;
   projY = Y - (tanvec.dot(Y) / tanvec.dot(Z)) * Z;
   return;
@@ -1345,6 +1365,7 @@ void HelicalFitter::get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vt
   Acts::Vector3 yglob = yloc + event_vtx;
   Acts::Vector3 X     = (xglob-event_vtx) / (xglob-event_vtx).norm(); // local unit vector transformed to global coordinates
   Acts::Vector3 Y     = (yglob-event_vtx) / (yglob-event_vtx).norm();
+  // see equation 31 of the ATLAS paper (and discussion) for this
   projX = X - (tanvec.dot(X) / tanvec.dot(normal)) * normal;
   projY = Y - (tanvec.dot(Y) / tanvec.dot(normal)) * normal;
 
