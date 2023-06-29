@@ -493,7 +493,7 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
     if(clusterv5->getPhiSize()>=5)
       phierror *= 10;
 
-    if(phierror>0.1) phierror = 0.1;
+    if(phierror>0.1 && clusterv5->getEdge()<=3) phierror = 0.1;
     if(phierror<0.0005) phierror = 0.1;
   }
   return std::make_pair(square(phierror),square(zerror)); 
