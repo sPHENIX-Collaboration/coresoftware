@@ -41,12 +41,15 @@ void MicromegasRawDataEvaluation::Waveform::copy_from( const MicromegasRawDataEv
   strip = sample.strip;
   sample_max = sample.sample;
   adc_max = sample.adc;
+  pedestal = sample.pedestal;
+  rms = sample.rms;
 }
 
 //_________________________________________________________
 void MicromegasRawDataEvaluation::Container::Reset()
 {
-  n_waveforms = 0;
+  n_tagger.clear();
+  n_waveform.clear();
   samples.clear();
   waveforms.clear();
 }
@@ -99,32 +102,30 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
     }
 
     // taggers
-    m_container->n_tagger = packet->lValue(0, "N_TAGGER");
-
+    int n_tagger = packet->lValue(0, "N_TAGGER");
+    m_container->n_tagger.push_back(n_tagger);
 
     // get number of datasets (also call waveforms)
-    const auto n_waveforms = packet->iValue(0, "NR_WF" );
-    m_container->n_waveforms = n_waveforms;
-    m_container->max_fee_count = packet->iValue(0, "MAX_FEECOUNT");
+    const auto n_waveform = packet->iValue(0, "NR_WF" );
+    m_container->n_waveform.push_back(n_waveform);
 
     // if( Verbosity() )
     {
       std::cout << "MicromegasRawDataEvaluation::process_event -"
         << " packet: " << packet_id
-        << " max_fee_count: " << m_container->max_fee_count
-        << " n_tagger: " << m_container->n_tagger
-        << " n_waveforms: " << n_waveforms
+        << " n_tagger: " << n_tagger
+        << " n_waveform: " << n_waveform
         << std::endl;
     }
 
     // drop events for which waveforms is too large
-    if( m_max_waveforms > 0 && n_waveforms > m_max_waveforms )
+    if( m_max_waveforms > 0 && n_waveform > m_max_waveforms )
     {
-      std::cout << "icromegasRawDataEvaluation::process_event - too many waveforms: " << n_waveforms << " skipping" << std::endl;
+      std::cout << "icromegasRawDataEvaluation::process_event - too many waveforms: " << n_waveform << " skipping" << std::endl;
       continue;
     }
 
-    for (int t = 0; t < m_container->n_tagger; t++)
+    for (int t = 0; t < n_tagger; t++)
     {
       const auto tagger_type = static_cast<uint16_t>(packet->lValue(t, "TAGGER_TYPE"));
       const auto is_endat = static_cast<uint8_t>(packet->lValue(t, "IS_ENDAT"));
@@ -158,7 +159,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
     }
 
-    for( int iwf=0; iwf<n_waveforms; ++iwf )
+    for( int iwf=0; iwf<n_waveform; ++iwf )
     {
       // create running sample, assign packet id
       Sample sample;
@@ -185,6 +186,12 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       sample.channel = packet->iValue( iwf, "CHANNEL" );
       sample.strip = m_mapping.get_physical_strip(sample.fee_id, sample.channel);
 
+      // get channel rms and pedestal from calibration data
+      const double pedestal = m_calibration_data.get_pedestal( sample.fee_id, sample.channel );
+      const double rms = m_calibration_data.get_rms( sample.fee_id, sample.channel );
+      sample.pedestal = pedestal;
+      sample.rms = rms;
+      
       // get number of samples and loop
       const unsigned short samples = packet->iValue( iwf, "SAMPLES" );
 
@@ -219,10 +226,6 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       }
 
       Waveform waveform( sample_max );
-
-      // get channel rms and pedestal from calibration data
-      const double pedestal = m_calibration_data.get_pedestal( waveform.fee_id, waveform.channel );
-      const double rms = m_calibration_data.get_rms( waveform.fee_id, waveform.channel );
 
       waveform.is_signal =
         rms > 0 &&

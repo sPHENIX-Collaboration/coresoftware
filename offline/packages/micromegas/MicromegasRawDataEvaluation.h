@@ -96,6 +96,9 @@ class MicromegasRawDataEvaluation : public SubsysReco
 
     unsigned short sample = 0;
     unsigned short adc = 0;
+    
+    double pedestal = 0;
+    double rms = 0;
 
     using List = std::vector<Sample>;
   };
@@ -137,6 +140,9 @@ class MicromegasRawDataEvaluation : public SubsysReco
 
     unsigned short sample_max = 0;
     unsigned short adc_max = 0;
+    
+    double pedestal = 0;
+    double rms = 0;
 
     bool is_signal = false;
 
@@ -158,9 +164,13 @@ class MicromegasRawDataEvaluation : public SubsysReco
   {
     public:
     void Reset();
-    int n_tagger = 0;
-    int max_fee_count = 0;
-    int n_waveforms = 0;
+    
+    // number of taggers for each packet
+    std::vector<int> n_tagger;
+    
+    // number of waveform for each packet
+    std::vector<int> n_waveform;
+
     Waveform::List waveforms;
     Sample::List samples;
     ClassDef(Container,1)
