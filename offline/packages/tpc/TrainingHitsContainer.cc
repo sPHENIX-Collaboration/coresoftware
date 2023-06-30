@@ -2,7 +2,7 @@
 
 TrainingHitsContainer::TrainingHitsContainer()
 {
-  Reset();
+  v_hits.clear();
 }
 
 void TrainingHitsContainer::Reset()

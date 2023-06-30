@@ -792,7 +792,8 @@ namespace
 }
 
 TpcClusterizer::TpcClusterizer(const std::string &name)
-  : SubsysReco(name)
+  : SubsysReco(name),
+    m_training(nullptr)
 {}
 
 bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const

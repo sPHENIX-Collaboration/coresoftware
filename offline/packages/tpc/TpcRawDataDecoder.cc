@@ -374,7 +374,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
         for (int s = 0; s < samples; s++)
 	  {
 	    int pad = M.getPad(feeM, channel);
-	    int t = s + 2 * (current_BCO - starting_BCO);
+	    int t = s; // + 2 * (current_BCO - starting_BCO);
 	    int adc = p->iValue(wf,s);
 	    if(m_Debug==1){
 	      _h_hit_XY->Fill(R*cos(phi),R*sin(phi),adc-pedestal);
