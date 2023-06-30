@@ -227,12 +227,15 @@ class MicromegasEvaluator_hp : public SubsysReco
   /// evaluate hits
   void evaluate_hits();
 
-  /// print micromegas geometry
-  /**
-   * this prints out the begin and end point of the first and last strip of each Micromegas detector
-   * this can be compared to surveyed data
-   */
-  void print_micromegas_geometry();
+  /// print all strips coordinates in a json file
+  void print_micromegas_geometry( const std::string& );
+  
+//   /// print micromegas geometry
+//   /**
+//    * this prints out the begin and end point of the first and last strip of each Micromegas detector
+//    * this can be compared to surveyed data
+//    */
+//   void print_micromegas_geometry();
   
   /// cluster array
   Container* m_container = nullptr;

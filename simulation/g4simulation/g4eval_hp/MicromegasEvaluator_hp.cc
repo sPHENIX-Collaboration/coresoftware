@@ -1,5 +1,7 @@
 #include "MicromegasEvaluator_hp.h"
 
+#include "MicromegasGeometryContainer.h"
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4main/PHG4HitContainer.h>
@@ -19,6 +21,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
+#include <TFile.h>
 #include <TVector3.h>
 
 #include <algorithm>
@@ -77,7 +80,7 @@ namespace
   }
   
   // TVector3 streamer
-  std::ostream& operator << (std::ostream& out, const TVector3& v )
+  inline std::ostream& operator << (std::ostream& out, const TVector3& v )
   {
     out << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
     return out;
@@ -174,7 +177,7 @@ int MicromegasEvaluator_hp::process_event(PHCompositeNode* topNode)
   if( first )
   {
     first = false;
-    if( m_flags & PrintGeometry ) print_micromegas_geometry(); 
+    if( m_flags & PrintGeometry ) print_micromegas_geometry( "micromegas_geometry.root" ); 
   }
   
   return Fun4AllReturnCodes::EVENT_OK;
@@ -348,48 +351,51 @@ void MicromegasEvaluator_hp::evaluate_hits()
 
 
 //_____________________________________________________________________
-void MicromegasEvaluator_hp::print_micromegas_geometry()
+void MicromegasEvaluator_hp::print_micromegas_geometry( const std::string& filename )
 {
   std::cout << "MicromegasEvaluator_hp::print_micromegas_geometry" << std::endl;
 
-  MicromegasMapping mapping;
+  MicromegasGeometryContainer geometry_container;
   
-  // loop over tiles
-  for( uint tileid = 0; tileid < 8; ++tileid )
+  // loop over layers
+  const auto [begin,end] = m_geonode->get_begin_end();
+  for( auto iter = begin; iter != end; ++iter )
   {
     
-    for( int layer:{55,56} )
-    {
-      // get relevant geometry
-      auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_geonode->GetLayerGeom(layer));
-      assert( layergeom );
-      
-      const auto thickness = layergeom->get_thickness();
-      const auto strip_length = layergeom->get_strip_length( tileid, m_tGeometry);      
-            
-      for( const uint stripnum:{0,255} )
-      {
+    auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(iter->second);
+    
+    // get layer
+    const auto layer = layergeom->get_layer();
+    
+    // get tiles
+    const auto tile_count = layergeom->get_tiles_count();
         
+    // loop over tiles
+    for( size_t tileid = 0; tileid < tile_count; ++tileid )
+    {
+      
+      // strip length
+      const auto strip_length = layergeom->get_strip_length( tileid, m_tGeometry);      
+      
+      // strip count
+      const auto strip_count = layergeom->get_strip_count( tileid, m_tGeometry );
+
+      for( unsigned int stripnum = 0; stripnum < strip_count; ++stripnum )
+      {
+      
         // get strip center, local coordinates
         const auto strip_center_local = layergeom->get_local_coordinates( tileid, m_tGeometry, stripnum );
         TVector3 strip_begin_world;
         TVector3 strip_end_world;
-        
-        // delta_z strip accounts for strip position along z with respect to middle of drift space
-        const double delta_z_strip = thickness/2
-          + 18e-4  // mesh
-          + 120e-4 // amplification
-          + 20e-4  // resist layer
-          + 50e-4;  // kapton
-        
+                
         const auto segmentation = layergeom->get_segmentation_type();
         switch( segmentation )
         {
           case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
           {
             
-            const TVector3 strip_begin( strip_center_local.X(), -strip_length/2, delta_z_strip );
-            const TVector3 strip_end( strip_center_local.X(), strip_length/2, delta_z_strip );
+            const TVector3 strip_begin( strip_center_local.X(), -strip_length/2, 0 );
+            const TVector3 strip_end( strip_center_local.X(), strip_length/2, 0 );
             
             // convert to world coordinates and save
             strip_begin_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, strip_begin );
@@ -399,8 +405,8 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
           
           case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
           {
-            const TVector3 strip_begin( -strip_length/2, strip_center_local.Y(), -delta_z_strip );
-            const TVector3 strip_end( strip_length/2, strip_center_local.Y(), -delta_z_strip );
+            const TVector3 strip_begin( -strip_length/2, strip_center_local.Y(), 0 );
+            const TVector3 strip_end( strip_length/2, strip_center_local.Y(), 0 );
 
             // convert to world coordinates and save
             strip_begin_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, strip_begin );
@@ -409,17 +415,15 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
           }
       
         }
-       
-        // get module name from layer and tileid
-        const auto hitsetkey = MicromegasDefs::genHitSetKey(layer, segmentation, tileid );
-        const auto module_name_sphenix = mapping.get_detname_sphenix_from_hitsetkey(hitsetkey);
-        const auto module_name_saclay = mapping.get_detname_saclay_from_hitsetkey(hitsetkey);
 
-        std::cout << layer << " " << tileid << " " << module_name_sphenix << " " << module_name_saclay << " " << stripnum << " " <<  strip_begin_world << std::endl;
-        std::cout << layer << " " << tileid << " " << module_name_sphenix << " " << module_name_saclay << " " << stripnum << " " <<  strip_end_world << std::endl;
+        geometry_container.add_strip( layer, tileid, stripnum, strip_begin_world, strip_end_world );       
       }
-      std::cout << std::endl;
     }
   }
 
+  // print to file
+  auto file = std::unique_ptr<TFile>( TFile::Open( filename.c_str(), "RECREATE" ) );
+  file->cd();
+  geometry_container.Write( "MicromegasGeometryContainer" );
+  file->Close();
 }

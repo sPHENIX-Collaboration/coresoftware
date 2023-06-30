@@ -34,11 +34,13 @@ libg4eval_hp_la_LIBADD = \
 pkginclude_HEADERS = \
   EventCounter_hp.h \
   MicromegasEvaluator_hp.h \
+  MicromegasGeometryContainer.h \
   SimEvaluator_hp.h \
   TrackingEvaluator_hp.h
 
 ROOTDICTS = \
   MicromegasEvaluator_hp_Dict.cc \
+  MicromegasGeometryContainer_Dict.cc \
   SimEvaluator_hp_Dict.cc \
   TrackingEvaluator_hp_Dict.cc
 
@@ -52,6 +54,7 @@ libg4eval_hp_la_SOURCES = \
   $(ROOTDICTS) \
   EventCounter_hp.cc \
   MicromegasEvaluator_hp.cc \
+  MicromegasGeometryContainer.cc \
   SimEvaluator_hp.cc \
   TrackingEvaluator_hp.cc
 
