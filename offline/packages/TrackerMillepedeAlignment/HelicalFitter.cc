@@ -553,6 +553,10 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		}
 	    }
 
+	  // add some cluster cuts
+	  if(residual(0) > 0.2)  continue;   // 2 mm cut
+	  if(residual(1) > 0.2)  continue;   // 2 mm cut
+
 	  if( !isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
 	    {
 	      _mille->mille(AlignmentDefs::NLC,lcl_derivativeX,AlignmentDefs::NGL,glbl_derivativeX,glbl_label,residual(0), errinf*clus_sigma(0));
@@ -576,7 +580,6 @@ int HelicalFitter::process_event(PHCompositeNode*)
       float dca3dxysigma; 
       float dca3dzsigma;	  
       get_dca(newTrack,dca3dxy,dca3dz,dca3dxysigma,dca3dzsigma,event_vtx);
-
       Acts::Vector2 vtx_residual(-dca3dxy, -dca3dz);
       
       float lclvtx_derivativeX[AlignmentDefs::NLC];
@@ -593,13 +596,20 @@ int HelicalFitter::process_event(PHCompositeNode*)
       
       if(use_event_vertex)
 	{	  
-	  if(!isnan(dca3dxy))
+	  // add some track cuts
+	  if(fabs(newTrack.get_z() - event_vtx(2)) > 0.2) continue;  // 2 mm cut
+	  if(fabs(newTrack.get_x()) > 0.2) continue;  // 2 mm cut
+	  if(fabs(newTrack.get_y()) > 0.2) continue;  // 2 mm cut
+	  
+	     if(!isnan(vtx_residual(0)))
 	    {
-	      _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeX,NGL_vtx,glblvtx_derivativeX,glbl_vtx_label,dca3dxy, vtx_sigma(0));
+	      //  _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeX,NGL_vtx,glblvtx_derivativeX,glbl_vtx_label,dca3dxy, vtx_sigma(0));
+	      _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeX,NGL_vtx,glblvtx_derivativeX,glbl_vtx_label,vtx_residual(0), vtx_sigma(0));
 	    }    
-	  if(!isnan(dca3dz))
+	     if(!isnan(vtx_residual(1)))
 	    {  
-	      _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeY,NGL_vtx,glblvtx_derivativeY,glbl_vtx_label,dca3dz, vtx_sigma(1));
+	      //  _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeY,NGL_vtx,glblvtx_derivativeY,glbl_vtx_label,dca3dz, vtx_sigma(1));
+	      _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeY,NGL_vtx,glblvtx_derivativeY,glbl_vtx_label,vtx_residual(1), vtx_sigma(1));
 	    }
 	}
 
@@ -609,19 +619,20 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
 	  float perigee_phi       = atan2(r(1), r(0));
 	  float track_phi = atan2(newTrack.get_py(), newTrack.get_px());
-	  float ntp_data[30] = {(float) trackid,dca3dxy,dca3dz,(float) vtx_sigma(0),(float) vtx_sigma(1),
+	  //	  float ntp_data[30] = {(float) trackid,dca3dxy,dca3dz,(float) vtx_sigma(0),(float) vtx_sigma(1),
+	  float ntp_data[30] = {(float) trackid,(float) vtx_residual(0),(float) vtx_residual(1),(float) vtx_sigma(0),(float) vtx_sigma(1),
 				lclvtx_derivativeX[0],lclvtx_derivativeX[1],lclvtx_derivativeX[2],lclvtx_derivativeX[3],lclvtx_derivativeX[4],
 				glblvtx_derivativeX[0],glblvtx_derivativeX[1],glblvtx_derivativeX[2],
 				lclvtx_derivativeY[0],lclvtx_derivativeY[1],lclvtx_derivativeY[2],lclvtx_derivativeY[3],lclvtx_derivativeY[4],
 				glblvtx_derivativeY[0],glblvtx_derivativeY[1],glblvtx_derivativeY[2],
-				newTrack.get_x(), newTrack.get_y(), newTrack.get_z(),(float) averageVertex(2),track_phi, perigee_phi};
+				newTrack.get_x(), newTrack.get_y(), newTrack.get_z(),(float) event_vtx(2),track_phi, perigee_phi};
 	  
 	  track_ntp->Fill(ntp_data);
 	}
       
       if(Verbosity()>1)
 	{
-	  std::cout << "dca3dxy " << dca3dxy << " dca3dz: " << dca3dz << " dca3dxysigma " << dca3dxysigma << " dca3dzsigma " << dca3dzsigma << std::endl; 
+	  std::cout << "vtx_residual xy: " << vtx_residual(0)<< " vtx_residual z: " << vtx_residual(1) << " vtx_sigma xy: " << vtx_sigma(0) << " vtx_sigma z: " << vtx_sigma(1) << std::endl; 
 	  std::cout << "track_x" << newTrack.get_x()<<"track_y" << newTrack.get_y()<<"track_z" << newTrack.get_z()<<std::endl;
 	}
 
@@ -1172,7 +1183,6 @@ void HelicalFitter::getGlobalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 ev
   Acts::Vector3 unitz(0, 0, 1);
 
   Acts::Vector3 track_vtx (track.get_x(),track.get_y(),track.get_z());
-
   Acts::Vector3 mom(track.get_px(),track.get_py(),track.get_pz());
 
   // calculate projX and projY vectors once for the optimum fit parameters
@@ -1187,17 +1197,15 @@ void HelicalFitter::getGlobalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 ev
   glbl_derivativeY[1] = unity.dot(projY);
   glbl_derivativeY[2] = unitz.dot(projY);
 
-  /*
   // The derivation in the ATLAS paper used above gives the derivative of the residual (= measurement - fit)
-  // pede wants the derivative of the fit, so we reverse that
-  // This is only valid if our residual is (event vertex - track vertex)
-  // this does not work? don't understand why it would not!
+  // pede wants the derivative of the fit, so we reverse that - valid if our residual is (event vertex - track vertex)
+  // tested this by offsetting the simulated event vertex with zero misalignments. Reproduced simulated (xvtx, yvtx) well.
+  //   -- test gave zero fot yvtx param, since this is determined relative to the measured event z vertex. 
   for(int i = 0; i<3;++i)
     {
       glbl_derivativeX[i] *= -1.0;
       glbl_derivativeY[i] *= -1.0;
     }
-  */
 
 }
 
