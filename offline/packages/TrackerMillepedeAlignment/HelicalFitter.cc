@@ -1140,10 +1140,21 @@ void HelicalFitter::getGlobalDerivativesXY(Surface surf, Acts::Vector3 global, A
   glbl_derivativeY[4] = unity.dot(projY);
   glbl_derivativeY[5] = unitz.dot(projY);
 
+  /*
+  // note: the global derivative sign should be reversed from the ATLAS paper 
+  // because mille wants the derivative of the fit, while the ATLAS paper gives the derivative of the residual.
+  // But this sign reversal does NOT work. 
+  // Verified that not reversing the sign here produces the correct sign of the prediction of the residual..
+  for(unsigned int i = 3; i < 6; ++i)
+  {
+  glbl_derivativeX[i] *= -1.0; 
+  glbl_derivativeY[i] *= -1.0; 
+  }
+  */
   // rotations
   // need center of sensor to intersection point
   Acts::Vector3 sensorCenter = surf->center(_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;  // convert to cm
-  Acts::Vector3 OM           = fitpoint - sensorCenter;
+  Acts::Vector3 OM           = fitpoint - sensorCenter;   // this effectively reverses the sign from the ATLAS paper
 
   glbl_derivativeX[0] = (unitx.cross(OM)).dot(projX);
   glbl_derivativeX[1] = (unity.cross(OM)).dot(projX);
@@ -1153,16 +1164,6 @@ void HelicalFitter::getGlobalDerivativesXY(Surface surf, Acts::Vector3 global, A
   glbl_derivativeY[1] = (unity.cross(OM)).dot(projY);
   glbl_derivativeY[2] = (unitz.cross(OM)).dot(projY);
   
-  /* 
-  // note: the global derivative sign must be reversed from the ATLAS paper 
-  // because mille wants the derivative of the fit, while the ATLAS paper gives the derivative of the residual.
-  // why does this not work?
-  for(unsigned int i = 0; i < 6; ++i)
-  {
-  glbl_derivativeX[i] *= -1.0; 
-  glbl_derivativeY[i] *= -1.0; 
-  }
-  */
 
   if(Verbosity() > 1)
     {
@@ -1199,8 +1200,10 @@ void HelicalFitter::getGlobalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 ev
 
   // The derivation in the ATLAS paper used above gives the derivative of the residual (= measurement - fit)
   // pede wants the derivative of the fit, so we reverse that - valid if our residual is (event vertex - track vertex)
-  // tested this by offsetting the simulated event vertex with zero misalignments. Reproduced simulated (xvtx, yvtx) well.
-  //   -- test gave zero fot yvtx param, since this is determined relative to the measured event z vertex. 
+
+  // Verified that reversing these signs produces the correct sign and magnitude for the prediction of the residual.
+  // tested this by offsetting the simulated event vertex with zero misalignments. Pede fit reproduced simulated (xvtx, yvtx) within 7%.
+  //   -- test gave zero for zvtx param, since this is determined relative to the measured event z vertex. 
   for(int i = 0; i<3;++i)
     {
       glbl_derivativeX[i] *= -1.0;
