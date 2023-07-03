@@ -561,7 +561,6 @@ while($#ARGV >= 0)
 	    exit(1);
 	}
     }
-
     $req_types{$ARGV[0]} = 1;
     $allfilehash{$ARGV[0]} = ();
     $allevthash{$ARGV[0]} = ();
@@ -600,7 +599,7 @@ my $getfilesql = sprintf("select filename,segment,events from datasets where %s 
 my %getfiles = ();
 foreach  my $tp (keys %req_types)
 {
-    if ($tp eq "G4Hits")
+    if ($tp eq "G4Hits" || $tp eq "G4HitsOld")
     {
 	if (defined $embed)
 	{
@@ -622,6 +621,7 @@ foreach  my $tp (keys %req_types)
 	my $newgetfilesql = $getfilesql;
 	$newgetfilesql =~ s/$filenamestring_with_runnumber/$newfilenamestring/;
 	$getfiles{"G4Hits"} = $dbh->prepare($newgetfilesql);
+	$getfiles{"G4HitsOld"} = $dbh->prepare($newgetfilesql);
 	if (defined $verbose)
 	{
 	    print "sql: $newgetfilesql\n";
@@ -662,7 +662,7 @@ foreach my $tp (sort keys %req_types)
     $allevthash{$tp} = \%evthash;
 }
 
-my $entries = 100000; # given that we have 1000 files max, this value is always higher
+my $entries = 200000000; # given that we have 200k files max, this value is always higher
 my $lowtype;
 # here we find the dst type with the smallest number of entries (segments)
 # so we do not loop too much when finding matches for the other types
@@ -670,7 +670,7 @@ if (defined $verbose)
 {
     print "hashing done, finding hash with lowest number of entries\n";
 }
-foreach my $tp (sort keys %allfilehash)
+foreach my $tp (sort { $a <=> $b } keys %allfilehash)
 {
     if ($entries > keys %{$allfilehash{$tp}})
     {
@@ -687,9 +687,9 @@ if (defined $verbose)
 }
 
 my @segarray = ();
-foreach my $seg (sort keys %{$allfilehash{$lowtype}})
+foreach my $seg (sort { $a <=> $b } keys %{$allfilehash{$lowtype}})
 {
-    foreach my $tp (sort keys %allfilehash)
+    foreach my $tp (sort { $a <=> $b } keys %allfilehash)
     {
 	if ($tp eq $lowtype)
 	{
@@ -726,7 +726,7 @@ if (defined $nEvents)
 }
 # sort list of segments and write to output file
 my $nSelectedEvents = 0;
-foreach my $seg (sort @segarray)
+foreach my $seg (sort { $a <=> $b } @segarray)
 {
     $nSelectedEvents += $allevthash{$lowtype}{$allfilehash{$lowtype}{$seg}};
 #	print "segment $seg is good\n";
@@ -739,7 +739,7 @@ foreach my $seg (sort @segarray)
 
 }
 print "wrote the following list files containing >= $nSelectedEvents events:\n";
-foreach my $tp (sort keys %allfilehash)
+foreach my $tp (sort { $a <=> $b } keys %allfilehash)
 {
     print "$dsttype{$tp}\n";
 }
@@ -756,6 +756,7 @@ sub commonfiletypes
 {
 # pass1
     $filetypes{"G4Hits"} = "G4 Hits";
+    $filetypes{"G4HitsOld"} = "Old G4 Hits";
 # pass2
     $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD G4Hits";
     $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";

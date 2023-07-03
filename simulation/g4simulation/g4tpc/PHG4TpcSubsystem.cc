@@ -200,4 +200,32 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   // The FR4 should be either 5 or 10 mils thick.  10 mils is 254 microns and 5 mils is 0.127 microns.  I think either of these is mechanically fine...
   set_default_string_param("window_surface2_material", "FR4");
   set_default_double_param("window_surface2_thickness", 0.0127);  // 127  um 2nd shell thickness be default
+
+  // for geonode initialization
+  set_default_double_param("drift_velocity", 8.0e-03);
+  
+  set_default_int_param("ntpc_layers_inner", 16);
+  set_default_int_param("ntpc_layers_mid", 16);
+  set_default_int_param("ntpc_layers_outer", 16);
+  set_default_int_param("tpc_minlayer_inner", 7);
+
+  set_default_double_param("tpc_minradius_inner", 31.105);//30.0);  // cm
+  set_default_double_param("tpc_minradius_mid", 41.153);//40.0);
+  set_default_double_param("tpc_minradius_outer", 58.367);//60.0);
+
+  set_default_double_param("tpc_maxradius_inner", 40.249);//40.0);  // cm
+  set_default_double_param("tpc_maxradius_mid", 57.475);//60.0);
+  set_default_double_param("tpc_maxradius_outer", 75.911);//77.0);  // from Tom
+
+  set_default_double_param("maxdriftlength", 105.5);     // cm
+  set_default_double_param("tpc_adc_clock", 53.0);       // ns, for 18.8 MHz clock
+
+  set_default_double_param("tpc_sector_phi_inner", 0.5024);//2 * M_PI / 12 );//sector size in phi for R1 sector
+  set_default_double_param("tpc_sector_phi_mid",   0.5087);//2 * M_PI / 12 );//sector size in phi for R2 sector
+  set_default_double_param("tpc_sector_phi_outer", 0.5097);//2 * M_PI / 12 );//sector size in phi for R3 sector
+
+  set_default_int_param("ntpc_phibins_inner", 1152);
+  set_default_int_param("ntpc_phibins_mid", 1536);
+  set_default_int_param("ntpc_phibins_outer", 2304);
+
 }

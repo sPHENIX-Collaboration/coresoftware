@@ -287,13 +287,19 @@ float TrackSeed_v1::get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& position
 float TrackSeed_v1::get_phi(TrkrClusterContainer *clusters,
 			    ActsGeometry *tGeometry) const
 {
+  auto clus1 = clusters->findCluster(*(m_cluster_keys.begin()));  
+  auto key = *std::next(m_cluster_keys.begin(), 1);
+  auto clus2 = clusters->findCluster(key);
+  if(!clus1 or !clus2) 
+    {
+      return NAN;
+    }
+
   Acts::Vector3 pos0 = tGeometry->getGlobalPosition(
 		       *(m_cluster_keys.begin()),
-		       clusters->findCluster(*(m_cluster_keys.begin())));
+		       clus1);
 
-  auto key = *std::next(m_cluster_keys.begin(), 1);
-  Acts::Vector3 pos1 = tGeometry->getGlobalPosition(key,
-					     clusters->findCluster(key));
+  Acts::Vector3 pos1 = tGeometry->getGlobalPosition(key, clus2);
   std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
   positions.insert(std::make_pair(*(m_cluster_keys.begin()), pos0));
   positions.insert(std::make_pair(key, pos1));

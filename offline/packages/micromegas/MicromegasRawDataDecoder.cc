@@ -100,29 +100,26 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
     {
       // no data
       std::cout << "MicromegasRawDataDecoder::process_event - event contains no TPOT data" << std::endl;
-      return Fun4AllReturnCodes::EVENT_OK;
+      continue;
     }
     
     // get number of datasets (also call waveforms)
     const auto n_waveforms = packet->iValue(0, "NR_WF" );
     if( Verbosity() )
     { std::cout << "MicromegasRawDataDecoder::process_event - n_waveforms: " << n_waveforms << std::endl; }
-    for( int i=0; i<n_waveforms; ++i )
+    for( int iwf=0; iwf<n_waveforms; ++iwf )
     {
       
-      auto channel = packet->iValue( i, "CHANNEL" );
-      int fee = packet->iValue(i, "FEE" );
-      int samples = packet->iValue( i, "SAMPLES" );
-      if( Verbosity() )
-      {
-        std::cout
-          << "MicromegasRawDataDecoder::process_event -"
-          << " waveform: " << i
-          << " fee: " << fee
-          << " channel: " << channel
-          << " samples: " << samples
-          << std::endl;
-      }
+      const int fee = packet->iValue(iwf, "FEE" );
+      const int sampa_address = packet->iValue( iwf, "SAMPAADDRESS" );
+      const auto sampa_channel = packet->iValue( iwf, "SAMPACHANNEL" );
+      const auto channel = packet->iValue( iwf, "CHANNEL" );      
+      const int samples = packet->iValue( iwf, "SAMPLES" );
+
+      // beam crossing, checksum, checksum error
+      [[maybe_unused]] const int bco = packet->iValue(iwf, "BCO");
+      [[maybe_unused]] const int checksum = packet->iValue(iwf, "CHECKSUM");
+      [[maybe_unused]] const int checksum_error = packet->iValue(iwf, "CHECKSUMERROR");
       
       // get channel rms and pedestal from calibration data
       const double pedestal = m_calibration_data.get_pedestal( fee, channel );
@@ -134,7 +131,7 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
       // loop over samples find maximum
       std::vector<int> adc;
       for( int is = std::max( m_sample_min,0 ); is < std::min( m_sample_max,samples ); ++ is )
-      { adc.push_back( packet->iValue( i, is ) ); }
+      { adc.push_back( packet->iValue( iwf, is ) ); }
       
       if( adc.empty() ) continue;
       
@@ -148,7 +145,6 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
       // compare to threshold
       if( max_adc > m_n_sigma * rms ) 
       {
-        
         // map fee and channel to physical hitsetid and physical strip
         // get hitset key matching this fee
         const TrkrDefs::hitsetkey hitsetkey = m_mapping.get_hitsetkey( fee );     
@@ -157,6 +153,21 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
         // get matching physical strip
         int strip = m_mapping.get_physical_strip( fee, channel );
         if( strip < 0 ) continue;
+
+        if( Verbosity() )
+        {
+          std::cout << "MicromegasRawDataDecoder::process_event -"
+            << " bco: " << bco
+            << " errir: " << checksum_error
+            << " layer: " << int(TrkrDefs::getLayer(hitsetkey)) 
+            << " tile: " << int( MicromegasDefs::getTileId( hitsetkey ))
+            << " sampa_address: " << sampa_address
+            << " sampa_channel: " << sampa_channel
+            << " channel: " << channel 
+            << " strip: " << strip 
+            << " adc: " << max_adc
+            << std::endl;
+        }
         
         // get matching hitset
         const auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
@@ -168,7 +179,7 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
         auto hit = hitset_it->second->getHit(hitkey);
         if( hit ) 
         {
-          std::cout << "MicromegasRawDataDecoder::process_event - duplicated hit, hitsetkey: " << hitsetkey << " strip: " << strip << std::endl;
+          // std::cout << "MicromegasRawDataDecoder::process_event - duplicated hit, hitsetkey: " << hitsetkey << " strip: " << strip << std::endl;
           continue;
         }
         
@@ -193,8 +204,8 @@ int MicromegasRawDataDecoder::End(PHCompositeNode* /*topNode*/ )
   // if( Verbosity() )
   {
     for( const auto& [hitsetkey, count]:m_hitcounts )
-    { std::cout << "MicromegasRawDataDecoder - hitsetkey: " << hitsetkey << ", count: " << count << std::endl; }
+    { std::cout << "MicromegasRawDataDecoder::End - hitsetkey: " << hitsetkey << ", count: " << count << std::endl; }
   }
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -80,6 +80,29 @@ int TrackResiduals::InitRun(PHCompositeNode*)
 }
 void TrackResiduals::clearClusterStateVectors()
 {
+
+  m_idealsurfcenterx.clear();
+  m_idealsurfcentery.clear();
+  m_idealsurfcenterz.clear();
+  m_idealsurfnormx.clear();
+  m_idealsurfnormy.clear();
+  m_idealsurfnormz.clear();
+  m_missurfcenterx.clear();
+  m_missurfcentery.clear();
+  m_missurfcenterz.clear();
+  m_missurfnormx.clear();
+  m_missurfnormy.clear();
+  m_missurfnormz.clear();
+  m_clusgxideal.clear();
+  m_clusgyideal.clear();
+  m_clusgzideal.clear();
+  m_missurfalpha.clear();
+  m_missurfbeta.clear();
+  m_missurfgamma.clear();
+  m_idealsurfalpha.clear();
+  m_idealsurfbeta.clear();
+  m_idealsurfgamma.clear();
+
   m_statelxglobderivdx.clear();
   m_statelxglobderivdy.clear();
   m_statelxglobderivdz.clear();
@@ -115,6 +138,7 @@ void TrackResiduals::clearClusterStateVectors()
   m_clusgz.clear();
   m_cluslayer.clear();
   m_clussize.clear();
+  m_clushitsetkey.clear();
 
   m_statelx.clear();
   m_statelz.clear();
@@ -130,11 +154,11 @@ void TrackResiduals::clearClusterStateVectors()
 //____________________________________________________________________________..
 int TrackResiduals::process_event(PHCompositeNode* topNode)
 {
-  auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   auto vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
-  auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, "SvtxAlignmentStateMap");
+  auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
 
   if (!trackmap or !clustermap or !geometry or !vertexmap)
   {
@@ -153,6 +177,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     {
       continue;
     }
+
     m_trackid = key;
     m_crossing = track->get_crossing();
     m_px = track->get_px();
@@ -175,9 +200,11 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     m_ntpc = 0;
     m_nmms = 0;
     m_vertexid = track->get_vertex_id();
-    auto vertex = vertexmap->find(m_vertexid)->second;
-    if (vertex)
+
+    auto vertexit = vertexmap->find(m_vertexid);
+    if (vertexit != vertexmap->end())
     {
+      auto vertex = vertexit->second;
       m_vx = vertex->get_x();
       m_vy = vertex->get_y();
       m_vz = vertex->get_z();
@@ -193,12 +220,14 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       std::cout << "Track " << key << " has cluster/states"
                 << std::endl;
     }
-
-    for (const auto& ckey : get_cluster_keys(track))
+ 
+    if (!m_doAlignment)
     {
-      fillClusterBranches(ckey, track, topNode);
+      for (const auto& ckey : get_cluster_keys(track))
+      {
+        fillClusterBranches(ckey, track, topNode);
+      }
     }
-
     m_nhits = m_nmaps + m_nintt + m_ntpc + m_nmms;
 
     if (m_doAlignment)
@@ -355,10 +384,66 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   auto surf = geometry->maps().getSurface(ckey, cluster);
   Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
   Acts::Vector2 stateloc;
-  auto norm = surf->normal(geometry->geometry().getGeoContext());
+  auto misaligncenter = surf->center(geometry->geometry().getGeoContext());
+  auto misalignnorm = -1*surf->normal(geometry->geometry().getGeoContext());
+  auto misrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
   auto result = surf->globalToLocal(geometry->geometry().getGeoContext(),
                                     stateglob * Acts::UnitConstants::cm,
-                                    norm);
+                                    misalignnorm);
+
+  float mgamma = atan2(-misrot(1,0),misrot(0,0));
+  float mbeta = -asin(misrot(0,1));
+  float malpha = atan2(misrot(1,1), misrot(2,1));
+  
+  //! Switch to get ideal transforms
+  alignmentTransformationContainer::use_alignment = false;
+  auto idealcenter = surf->center(geometry->geometry().getGeoContext());
+  auto idealnorm = -1*surf->normal(geometry->geometry().getGeoContext());
+  Acts::Vector3 ideal_local(cluster->getLocalX(), clusz, 0.0);
+  Acts::Vector3 ideal_glob =  surf->transform(geometry->geometry().getGeoContext())* (ideal_local * Acts::UnitConstants::cm);
+  auto idealrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
+  
+  //! These calculations are taken from the wikipedia page for Euler angles,
+  //! under the Tait-Bryan angle explanation. Formulas for the angles 
+  //! calculated from the rotation matrices depending on what order the 
+  //! rotation matrix is constructed are given
+  //! They need to be modified to conform to the Acts basis of (x,z,y), for
+  //! which the wiki page expects (x,y,z). This includes swapping the sign
+  //! of some elements to account for the permutation
+  //! https://en.wikipedia.org/wiki/Euler_angles#Conversion_to_other_orientation_representations
+  float igamma =  atan2(-idealrot(1,0), idealrot(0,0));
+  float ibeta = -asin(idealrot(0,1));
+  float ialpha = atan2(idealrot(1,1),idealrot(2,1));
+
+  alignmentTransformationContainer::use_alignment = true;
+
+  idealcenter /= Acts::UnitConstants::cm;
+  misaligncenter /= Acts::UnitConstants::cm;
+  ideal_glob /= Acts::UnitConstants::cm;
+
+  m_idealsurfalpha.push_back(ialpha);
+  m_idealsurfbeta.push_back(ibeta);
+  m_idealsurfgamma.push_back(igamma);
+  m_missurfalpha.push_back(malpha);
+  m_missurfbeta.push_back(mbeta);
+  m_missurfgamma.push_back(mgamma);
+
+  m_idealsurfcenterx.push_back(idealcenter.x());
+  m_idealsurfcentery.push_back(idealcenter.y());
+  m_idealsurfcenterz.push_back(idealcenter.z());
+  m_idealsurfnormx.push_back(idealnorm.x());
+  m_idealsurfnormy.push_back(idealnorm.y());
+  m_idealsurfnormz.push_back(idealnorm.z());
+  m_missurfcenterx.push_back(misaligncenter.x());
+  m_missurfcentery.push_back(misaligncenter.y());
+  m_missurfcenterz.push_back(misaligncenter.z());
+  m_missurfnormx.push_back(misalignnorm.x());
+  m_missurfnormy.push_back(misalignnorm.y());
+  m_missurfnormz.push_back(misalignnorm.z());
+  m_clusgxideal.push_back(ideal_glob.x());
+  m_clusgyideal.push_back(ideal_glob.y());
+  m_clusgzideal.push_back(ideal_glob.z());
+
   if (result.ok())
   {
     stateloc = result.value() / Acts::UnitConstants::cm;
@@ -425,6 +510,28 @@ void TrackResiduals::createBranches()
   m_tree->Branch("cluslayer", &m_cluslayer);
   m_tree->Branch("clussize", &m_clussize);
   m_tree->Branch("clushitsetkey", &m_clushitsetkey);
+  m_tree->Branch("idealsurfcenterx",&m_idealsurfcenterx);
+  m_tree->Branch("idealsurfcentery",&m_idealsurfcentery);
+  m_tree->Branch("idealsurfcenterz",&m_idealsurfcenterz);
+  m_tree->Branch("idealsurfnormx",&m_idealsurfnormx);
+  m_tree->Branch("idealsurfnormy",&m_idealsurfnormy);
+  m_tree->Branch("idealsurfnormz",&m_idealsurfnormz);
+    m_tree->Branch("missurfcenterx",&m_missurfcenterx);
+  m_tree->Branch("missurfcentery",&m_missurfcentery);
+  m_tree->Branch("missurfcenterz",&m_missurfcenterz);
+  m_tree->Branch("missurfnormx",&m_missurfnormx);
+  m_tree->Branch("missurfnormy",&m_missurfnormy);
+  m_tree->Branch("missurfnormz",&m_missurfnormz);
+  m_tree->Branch("clusgxideal",&m_clusgxideal);
+  m_tree->Branch("clusgyideal",&m_clusgyideal);
+  m_tree->Branch("clusgzideal",&m_clusgzideal);
+  m_tree->Branch("missurfalpha",&m_missurfalpha);
+  m_tree->Branch("missurfbeta",&m_missurfbeta);
+  m_tree->Branch("missurfgamma",&m_missurfgamma);
+  m_tree->Branch("idealsurfalpha",&m_idealsurfalpha);
+  m_tree->Branch("idealsurfbeta",&m_idealsurfbeta);
+  m_tree->Branch("idealsurfgamma",&m_idealsurfgamma);
+  
 
   m_tree->Branch("statelx", &m_statelx);
   m_tree->Branch("statelz", &m_statelz);

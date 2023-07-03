@@ -5,7 +5,6 @@
 #include <nlohmann/json.hpp>
 
 #include <iostream>
-#include <stdexcept>
 
 CDBUtils::CDBUtils()
   : cdbclient(new SphenixClient())
@@ -55,7 +54,9 @@ int CDBUtils::unlockGlobalTag(const std::string &tagname)
 
 void CDBUtils::clearCache()
 {
-  cdbclient->clearCache();
+  nlohmann::json resp = cdbclient->clearCache();
+  std::cout << resp["msg"] << std::endl;
+  return;
 }
 
 std::string CDBUtils::getUrl(const std::string &type, uint64_t iov)
@@ -66,32 +67,51 @@ std::string CDBUtils::getUrl(const std::string &type, uint64_t iov)
 
 int CDBUtils::createPayloadType(const std::string &pt)
 {
-  int iret = -1;
-  nlohmann::json resp;
-  if (m_PayloadTypeCache.empty())
+  return cdbclient->createDomain(pt);
+}
+
+void CDBUtils::listPayloadIOVs(uint64_t iov)
+{
+  nlohmann::json resp = cdbclient->getPayloadIOVs(iov);
+  if (resp["code"] != 0)
   {
-    resp = cdbclient->getPayloadTypes();
-    nlohmann::json msgcont = resp["msg"];
-    for (auto &it : msgcont.items())
-    {
-      std::string existent_pt = it.value().at("name");
-      m_PayloadTypeCache.insert(existent_pt);
-    }
+    std::cout << resp["msg"] << std::endl;
+    return;
   }
-  if (m_PayloadTypeCache.find(pt) == m_PayloadTypeCache.end())
+  nlohmann::json payload_iovs = resp["msg"];
+  for (auto &[pt, val] : payload_iovs.items())
   {
-    resp = cdbclient->createPayloadType(pt);
-    iret = resp["code"];
-    if (iret == 0)
-    {
-      m_PayloadTypeCache.insert(pt);
-    }
+    std::cout << pt << ": " << val["payload_url"]
+              << ", begin ts: " << val["minor_iov_start"]
+              << ", end ts: " << val["minor_iov_end"]
+              << std::endl;
   }
-  else
+  return;
+}
+
+int CDBUtils::cloneGlobalTag(const std::string &source, const std::string &target)
+{
+  nlohmann::json resp = cdbclient->getGlobalTags();
+  nlohmann::json msgcont = resp["msg"];
+  std::set<std::string> gtset;
+  for (auto &it : msgcont.items())
   {
-    std::cout << "PayloadTypeCache " << pt << " exists already" << std::endl;
-    iret = 0;
+    std::string exist_gt = it.value().at("name");
+    gtset.insert(exist_gt);
   }
+  if (gtset.find(source) == gtset.end())
+  {
+    std::cout << "source tag " << source << " does not exist" << std::endl;
+    return -1;
+  }
+  if (gtset.find(target) != gtset.end())
+  {
+    std::cout << "Target tag " << target << " exists, delete it first" << std::endl;
+    return -1;
+  }
+  resp = cdbclient->cloneGlobalTag(source, target);
+  int iret = resp["code"];
+  std::cout << resp["msg"] << std::endl;
   return iret;
 }
 
@@ -171,32 +191,6 @@ bool CDBUtils::isGlobalTagSet()
 {
   return cdbclient->isGlobalTagSet();
 }
-
-/*
-int CDBUtils::createPayloadType(const std::string& pl_type)
-{
-  if (! isGlobalTagSet())
-  {
-    std::cout << "No Global Tag Set to add payload " << pl_type << " to" << std::endl;
-    return -1;
-  }
-  nlohmann::json resp = cdbclient->createPayloadType(pl_type);
-  nlohmann::json msgcont = resp["msg"];
-  for (auto &it : msgcont.items())
-  {
-    std::cout << it.value() << std::endl;
-    // std::string exist_pl = it.value().at("name");
-    // std::cout << "payload type: " <<  exist_pl << std::endl;
-  }
-
-  int iret = 0;//resp["code"];
-  if (iret != 0)
-  {
-      std::cout << "Error setting global tag, msg: " << resp["msg"] << std::endl;
-    }
-  return iret;
-}
-*/
 
 void CDBUtils::Verbosity(int i)
 {

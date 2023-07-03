@@ -22,15 +22,18 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
+  MicromegasCalibrationData.h \
   MicromegasDefs.h \
   MicromegasMapping.h
 
 # sources for io library
 libmicromegas_io_la_SOURCES = \
+  MicromegasCalibrationData.cc \
   MicromegasDefs.cc \
   MicromegasMapping.cc
 
 libmicromegas_io_la_LIBADD = \
+  -lcdbobjects \
   -ltrack_io
 
 BUILT_SOURCES = testexternals.cc

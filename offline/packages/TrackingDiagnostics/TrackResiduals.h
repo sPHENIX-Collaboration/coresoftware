@@ -34,6 +34,8 @@ class TrackResiduals : public SubsysReco
   int End(PHCompositeNode *topNode) override;
   void outfileName(std::string &name) { m_outfileName = name; }
   void alignment(bool align) { m_doAlignment = align; }
+  void alignmentmapName(std::string name) { m_alignmentMapName = name; }
+  void trackmapName(std::string name) { m_trackMapName = name; }
 
  private:
   void clearClusterStateVectors();
@@ -46,6 +48,9 @@ class TrackResiduals : public SubsysReco
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
+
+  std::string m_alignmentMapName = "SvtxAlignmentStateMap";
+  std::string m_trackMapName = "SvtxTrackMap";
 
   bool m_doAlignment = false;
 
@@ -88,6 +93,28 @@ class TrackResiduals : public SubsysReco
   std::vector<int> m_cluslayer;
   std::vector<int> m_clussize;
   std::vector<uint32_t> m_clushitsetkey;
+  std::vector<float> m_idealsurfcenterx;
+  std::vector<float> m_idealsurfcentery;
+  std::vector<float> m_idealsurfcenterz;
+  std::vector<float> m_idealsurfnormx;
+  std::vector<float> m_idealsurfnormy;
+  std::vector<float> m_idealsurfnormz;
+  std::vector<float> m_missurfcenterx;
+  std::vector<float> m_missurfcentery;
+  std::vector<float> m_missurfcenterz;
+  std::vector<float> m_missurfnormx;
+  std::vector<float> m_missurfnormy;
+  std::vector<float> m_missurfnormz;
+  std::vector<float> m_clusgxideal;
+  std::vector<float> m_clusgyideal;
+  std::vector<float> m_clusgzideal;
+  std::vector<float> m_idealsurfalpha;
+  std::vector<float> m_idealsurfbeta;
+  std::vector<float> m_idealsurfgamma;
+  std::vector<float> m_missurfalpha;
+  std::vector<float> m_missurfbeta;
+  std::vector<float> m_missurfgamma;
+
 
   //! states on track information
   std::vector<float> m_statelx;

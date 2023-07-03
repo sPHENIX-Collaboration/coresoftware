@@ -236,7 +236,11 @@ class AnnularFieldSim
 
   //file-writing functions for complex mapping questions:
   void GenerateDistortionMaps(const char *filebase, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
+
+
   void GenerateSeparateDistortionMaps(const char *filebase, int nSteps = 500, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
+
+
   void PlotFieldSlices(const char *filebase, TVector3 pos, char which = 'E');
 
   void load_spacecharge(const std::string &filename, const std::string &histname, float zoffset = 0, float chargescale = 1, float cmscale = 1, bool isChargeDensity = true);

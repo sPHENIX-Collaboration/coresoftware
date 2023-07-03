@@ -32,8 +32,6 @@
 
 void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 { 
-  localVerbosity = 0;
-
   // The default is to use translation parameters that are in global coordinates
   use_global_millepede_translations = true;
   std::cout << "AlignmentTransformation: use global translation perturbations = " << use_global_millepede_translations  << std::endl;
@@ -77,8 +75,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
      Eigen::Vector3d millepedeTranslation(dx,dy,dz); 
 
      unsigned int trkrId = TrkrDefs::getTrkrId(hitsetkey); // specify between detectors
-
-
+  
      perturbationAngles      = Eigen::Vector3d(0.0,0.0,0.0);
      perturbationTranslation = Eigen::Vector3d(0.0,0.0,0.0);
 
@@ -142,12 +139,16 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	   }
 	 unsigned int sector         = TpcDefs::getSectorId(hitsetkey);
 	 unsigned int side           = TpcDefs::getSide(hitsetkey);
-	 unsigned int subsurfkey_min = sector * 12 + (1-side) * 144;
-	 unsigned int subsurfkey_max = subsurfkey_min + 12;
+	 int subsurfkey_min = (1-side)*144 + (144-sector*12) - 12 - 6;
+	 int subsurfkey_max = subsurfkey_min + 12;
+	 //std::cout << " sector " << sector << " side " << side << " subsurfkey_min " << subsurfkey_min << " subsurfkey_max " << subsurfkey_max << std::endl;
 
-	 for(unsigned int subsurfkey = subsurfkey_min; subsurfkey<subsurfkey_max; subsurfkey++)
+	 for(int subsurfkey = subsurfkey_min; subsurfkey<subsurfkey_max; subsurfkey++)
 	   {
-             surf                        = surfMaps.getTpcSurface(hitsetkey,subsurfkey);
+	     int sskey = subsurfkey;
+	     if(sskey < 0) { sskey += 288; }
+
+             surf                        = surfMaps.getTpcSurface(hitsetkey,(unsigned int) sskey);
 	     
 	     Acts::Transform3 transform;
 	     transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
@@ -155,7 +156,13 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	     
 	     if(localVerbosity) 
 	       {
-		 std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+		 unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+		 std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << std::endl 
+			   << " trkrid " << trkrId << " hitsetkey " << hitsetkey  << " layer " << layer << " sector " << sector << " side " << side 
+			   << " subsurfkey " << subsurfkey << std::endl;
+		 Acts::Vector3 center =  surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
+		 std::cout << "Ideal surface center: " << std::endl <<center << std::endl;
+		 std::cout << "transform matrix: " << std::endl <<  transform.matrix() << std::endl;
 	       }
 	     transformMap->addTransform(id,transform);
 	   }
@@ -199,7 +206,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 }
 
 // currently used as the transform maker
-Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles)
+Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles)
 {
   //define null matrices
   Eigen::Vector3d nullTranslation(0,0,0);
@@ -225,6 +232,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   Eigen::AngleAxisd beta(sensorAngles(1), Eigen::Vector3d::UnitY());
   Eigen::AngleAxisd gamma(sensorAngles(2), Eigen::Vector3d::UnitZ());
   Eigen::Quaternion<double> q       = gamma*beta*alpha;
+ 
   Eigen::Matrix3d millepedeRotation = q.matrix();
 
   Acts::Transform3 mpRotationAffine;   
@@ -234,7 +242,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   // create alignment translation matrix
   Acts::Transform3 mpTranslationAffine;   
   mpTranslationAffine.linear() = nullRotation;
-  if(use_global_millepede_translations > 0) 
+  if(use_global_millepede_translations) 
     {   
       mpTranslationAffine.translation() = millepedeTranslation;   
     }
@@ -249,7 +257,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   Acts::Transform3 actsTransform = surf->transform(m_tGeometry->geometry().getGeoContext());
   Eigen::Matrix3d actsRotationPart    = actsTransform.rotation();
   Eigen::Vector3d actsTranslationPart    = actsTransform.translation();
-
+ 
   // and make affine matrices from each
   Acts::Transform3 actsRotationAffine;
   actsRotationAffine.linear() = actsRotationPart;
@@ -262,10 +270,10 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
 
 
   Acts::Transform3 transform;
-  if(use_global_millepede_translations > 0)
+  if(use_global_millepede_translations)
     {
       // put the mp translations in the global frame
-      transform = mpTranslationAffine *  actsTranslationAffine *  actsRotationAffine * mpRotationAffine;
+      transform = mpTranslationAffine *  actsTranslationAffine *  mpRotationAffine * actsRotationAffine;
     }
   else
     {
@@ -273,24 +281,40 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
       transform =  actsTranslationAffine *  actsRotationAffine * mpTranslationAffine * mpRotationAffine;
     }
 
-  if(localVerbosity > 2)
+  if(localVerbosity)
     {
+      Acts::Transform3 actstransform = actsTranslationAffine * actsRotationAffine;
+      Acts::Transform3 mptransform = mpTranslationAffine * mpRotationAffine;
+  
       std::cout << "newMakeTransform" << std::endl;
       std::cout << " use_global_translations = " << use_global_millepede_translations << std::endl;
       std::cout << "mpRotationAffine: "<< std::endl<< mpRotationAffine.matrix()  <<std::endl;
-      if(use_global_millepede_translations == 0)
+      if(!use_global_millepede_translations)
 	{
 	  std::cout << "mpTranslationAffine: " << std::endl << mpTranslationAffine.matrix() <<std::endl;
 	  std::cout << " mptranslationAffine * mpRotationAffine " << std::endl 
 		    << (mpTranslationAffine * mpRotationAffine).matrix() << std::endl;
 	}
+      std::cout << "millepederotation * acts " << std::endl << millepedeRotation * actsRotationPart << std::endl;
       std::cout << "actsRotationAffine: "<< std::endl<< actsRotationAffine.matrix()  <<std::endl;
       std::cout << "actsTranslationAffine: "<< std::endl<< actsTranslationAffine.matrix()  <<std::endl;
-      if(use_global_millepede_translations > 0)
+      std::cout << "full acts transform " << std::endl << actstransform.matrix() << std::endl << "full mp transform " << std::endl << mptransform.matrix() << std::endl;
+      if(use_global_millepede_translations)
 	{
 	  std::cout << "mpTranslationAffine: " << std::endl << mpTranslationAffine.matrix() <<std::endl;
 	}
       std::cout << "Overall transform: " << std::endl << transform.matrix() <<std::endl;
+      std::cout << "overall * idealinv " << std::endl << (transform * actstransform.inverse()).matrix() << std::endl;
+      std::cout << "overall - ideal " << std::endl;
+      for(int test = 0; test < transform.matrix().rows(); test++)
+	{
+	  for(int test2 = 0; test2 < transform.matrix().cols(); test2++)
+	    {
+	      std::cout << transform(test,test2) - actstransform(test,test2) << ", ";
+	    }
+	  std::cout << std::endl;
+	}
+      
     }
 
   return transform;   

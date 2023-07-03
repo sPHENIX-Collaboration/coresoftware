@@ -323,11 +323,13 @@ unsigned int TowerInfoDefs::get_epd_phibin(unsigned int key)
 
 unsigned int TowerInfoDefs::encode_zdc(const unsigned int towerIndex)
 {
-  if (towerIndex > 5)
+  if (towerIndex > 15)
   {
     std::cout << "Attempting to access zdc channel with invalid number " << towerIndex << std::endl;
     exit(1);
   }
+  unsigned int key = towerIndex;
+  /*
   // 3 bits: one for pos/neg z and 2 for the 3 modules
   unsigned int key;
   if (towerIndex == 0) key = 0;
@@ -349,6 +351,7 @@ unsigned int TowerInfoDefs::encode_zdc(const unsigned int towerIndex)
     key = 1 << 2;
     key += 2;
   }
+  */
   return key;
 }
 
@@ -461,42 +464,47 @@ int TowerInfoDefs::get_smd_finger_index(const unsigned int key)
 }
 
 // 128 channels per side, goes 8 times and 8 charges and so on
-unsigned int TowerInfoDefs::encode_mbd(const unsigned int towerIndex)
+unsigned int TowerInfoDefs::encode_mbd(const unsigned int pmtIndex)
 {
-  unsigned int side = towerIndex / 128;
-  unsigned int type = (towerIndex % 16) / 8;
-  unsigned int channel = (towerIndex % 8) + ((towerIndex / 16) * 8);
+  unsigned int arm = pmtIndex / 128;
+  unsigned int type = (pmtIndex % 16) / 8;
+  unsigned int channel = (pmtIndex % 8) + ((pmtIndex / 16) * 8);
   if (channel > 63) channel -= 64;
 
-  unsigned int key = (side << 7) | (type << 6) | channel;
+  unsigned int key = (arm << 7) | (type << 6) | channel;
 
   return key;
 }
 
 unsigned int TowerInfoDefs::decode_mbd(const unsigned int key)
 {
-  unsigned int side = (key >> 7) & 1;
-  unsigned int type = (key >> 6) & 1;
-  unsigned int channel = key & 63;
+  unsigned int arm = (key >> 7) & 0x1;
+  unsigned int type = (key >> 6) & 0x1;
+  unsigned int channel = key & 0x3f;
 
-  unsigned int index = (side * 128) + (type * 8) + (channel % 8) + (channel / 8) * 16;
+  unsigned int index = (arm * 128) + (type * 8) + (channel % 8) + (channel / 8) * 16;
 
   return index;
 }
 
+unsigned int TowerInfoDefs::get_mbd_arm(const unsigned int key)
+{
+  return (key >> 7) & 0x1;
+}
+
 unsigned int TowerInfoDefs::get_mbd_side(const unsigned int key)
 {
-  return (key >> 7) & 1;
+  return get_mbd_arm(key);
 }
 
 unsigned int TowerInfoDefs::get_mbd_type(const unsigned int key)
 {
-  return (key >> 6) & 1;
+  return (key >> 6) & 0x1;
 }
 
 unsigned int TowerInfoDefs::get_mbd_channel(const unsigned int key)
 {
-  return key & 63;
+  return key & 0x3f;
 }
 
 // convienent for interface to geometry class

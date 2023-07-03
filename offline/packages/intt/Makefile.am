@@ -21,6 +21,9 @@ pkginclude_HEADERS = \
   InttClusterizer.h \
   InttDeadMapHelper.h \
   InttFelixMap.h \
+  InttFelixMapObsolete.h \
+  InttMapping.h \
+  InttRawDataConverter.h \
   InttRawDataDecoder.h \
   CylinderGeomIntt.h
 
@@ -36,6 +39,9 @@ libintt_la_SOURCES = \
   InttClusterizer.cc \
   InttDeadMapHelper.cc \
   InttFelixMap.cc \
+  InttFelixMapObsolete.cc \
+  InttMapping.cc \
+  InttRawDataConverter.cc \
   InttRawDataDecoder.cc
 
 libintt_la_LIBADD = \

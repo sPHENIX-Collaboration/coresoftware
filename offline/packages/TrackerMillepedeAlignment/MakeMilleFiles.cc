@@ -66,10 +66,13 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
   // Write the steering file here, and add the data file path to it
   std::ofstream steering_file(steering_outfilename);
   steering_file << data_outfilename << std::endl;
+  steering_file << m_constraintFileName << std::endl;
   steering_file.close();
 
+  m_constraintFile.open(m_constraintFileName);
+
   // print grouping setup to log file:
-  std::cout << "MakeMilleFiles::InitRun: Surface groupings are silicon " << si_group << " tpc " << tpc_group << " mms " << mms_group << std::endl;
+  std::cout << "MakeMilleFiles::InitRun: Surface groupings are mvtx " << mvtx_group << " intt " << intt_group << " tpc " << tpc_group << " mms " << mms_group << std::endl;
 
   return ret;
 }
@@ -142,6 +145,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 int MakeMilleFiles::End(PHCompositeNode*)
 {
   delete _mille;
+  m_constraintFile.close();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -202,7 +206,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 
     if (Verbosity() > 2)
     {
-      std::cout << "adding state for ckey " << ckey << std::endl;
+      std::cout << "adding state for ckey " << ckey << " with hitsetkey "
+		<< (int) TrkrDefs::getHitSetKeyFromClusKey(ckey) << std::endl;
     }
     // The global alignment parameters are given initial values of zero by default, we do not specify them
     // We identify the global alignment parameters for this surface
@@ -250,13 +255,17 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
     auto surf = _tGeometry->maps().getSurface(ckey, cluster);
 
     int glbl_label[SvtxAlignmentState::NGL];
-    if (layer < 7)
+    if (layer < 3)
     {
-      AlignmentDefs::getSiliconGlobalLabels(surf, glbl_label, si_group);
+      AlignmentDefs::getMvtxGlobalLabels(surf, glbl_label, mvtx_group);
     }
+    else if(layer > 2 && layer < 7)
+      {
+      AlignmentDefs::getInttGlobalLabels(surf, glbl_label, intt_group);
+      }
     else if (layer < 55)
     {
-      AlignmentDefs::getTpcGlobalLabels(surf, glbl_label, tpc_group);
+      AlignmentDefs::getTpcGlobalLabels(surf, ckey, glbl_label, tpc_group);
     }
     else if (layer < 57)
     {
@@ -277,16 +286,31 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       {
         glbl_derivative[j] = state->get_global_derivative_matrix()(i, j);
 
-        if (is_layer_fixed(layer) || is_layer_param_fixed(layer, j))
+        if (is_layer_fixed(layer) || 
+	    is_layer_param_fixed(layer, j, fixed_layer_gparams))
         {
-          glbl_derivative[j] = 0.0;
+          glbl_derivative[j] = 0.;
         }
+	if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
+	  {
+	    auto sector = TpcDefs::getSectorId(ckey);
+	    auto side = TpcDefs::getSide(ckey);
+	    if(is_tpc_sector_fixed(layer, sector, side))
+	      {
+		glbl_derivative[j] = 0.0;
+	      }
+	  }
       }
 
       float lcl_derivative[SvtxAlignmentState::NLOC];
       for (int j = 0; j < SvtxAlignmentState::NLOC; ++j)
       {
         lcl_derivative[j] = state->get_local_derivative_matrix()(i, j);
+
+	if(is_layer_param_fixed(layer, j, fixed_layer_lparams))
+	  {
+	    lcl_derivative[j] = 0.;
+	  }
       }
       if (Verbosity() > 2)
       {
@@ -320,8 +344,35 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
         {
           errinf = m_layerMisalignment.find(layer)->second;
         }
+        
+	if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::inttId)
+	  {
+	    if(m_usedConstraintGlbLbl.find(glbl_label[0]) == m_usedConstraintGlbLbl.end())
+	      {
+        
+		auto surfcent = surf->center(_tGeometry->geometry().getGeoContext());
+        
+		float sensorphi = atan2(surfcent.y(), surfcent.x());
+		m_constraintFile << " Constraint  0.0" << std::endl;
+		for(int temp =0; temp < SvtxAlignmentState::NGL; temp++)
+		  {
+		    float factor = 0.;
+		    if(temp == 3) factor = std::cos(sensorphi);
+		    else if(temp == 4) factor = std::sin(sensorphi);
+		    else continue;
 
-        _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), errinf * clus_sigma(i));
+		    m_constraintFile << "     " << glbl_label[temp] << "   " 
+				     << factor << std::endl;
+		   
+		    
+		  }
+
+		m_usedConstraintGlbLbl.insert(glbl_label[0]);
+
+	      }
+	  }
+      
+      _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), errinf * clus_sigma(i));
       }
     }
   }
@@ -351,19 +402,33 @@ void MakeMilleFiles::set_layer_fixed(unsigned int layer)
   fixed_layers.insert(layer);
 }
 
-bool MakeMilleFiles::is_layer_param_fixed(unsigned int layer, unsigned int param)
+bool MakeMilleFiles::is_layer_param_fixed(unsigned int layer, unsigned int param, std::set<std::pair<unsigned int, unsigned int>>& param_fixed)
 {
   bool ret = false;
   std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
-  auto it = fixed_layer_params.find(pair);
-  if (it != fixed_layer_params.end())
+  auto it = param_fixed.find(pair);
+  if (it != param_fixed.end())
     ret = true;
 
   return ret;
 }
 
-void MakeMilleFiles::set_layer_param_fixed(unsigned int layer, unsigned int param)
+void MakeMilleFiles::set_layer_gparam_fixed(unsigned int layer, unsigned int param)
 {
-  std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
-  fixed_layer_params.insert(pair);
+  fixed_layer_gparams.insert(std::make_pair(layer,param));
 }
+void MakeMilleFiles::set_layer_lparam_fixed(unsigned int layer, unsigned int param)
+{
+  fixed_layer_lparams.insert(std::make_pair(layer,param));
+}
+bool MakeMilleFiles::is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side)
+ {
+   bool ret = false;
+   unsigned int region = AlignmentDefs::getTpcRegion(layer);
+   unsigned int subsector = region * 24 + side * 12 + sector;
+   auto it = fixed_sectors.find(subsector);
+   if(it != fixed_sectors.end()) 
+     ret = true;
+
+   return ret;
+ }

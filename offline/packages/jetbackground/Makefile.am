@@ -25,7 +25,7 @@ libjetbackground_la_LIBADD = \
   libjetbackground_io.la \
   -lcalo_io \
   -lConstituentSubtractor \
-  -lg4jets_io \
+  -ljetbase \
   -lphg4hit \
   -lSubsysReco
 

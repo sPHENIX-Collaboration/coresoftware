@@ -113,16 +113,16 @@ class CaloRawTowerEval
 
   std::string _caloname;
   CaloTruthEval _trutheval;
-  RawTowerContainer* _towers;
-  PHG4CellContainer* _g4cells;
-  PHG4HitContainer* _g4hits;
-  PHG4TruthInfoContainer* _truthinfo;
+  RawTowerContainer* _towers = nullptr;
+  PHG4CellContainer* _g4cells = nullptr;
+  PHG4HitContainer* _g4hits = nullptr;
+  PHG4TruthInfoContainer* _truthinfo = nullptr;
 
-  bool _strict;
-  int _verbosity;
-  unsigned int _errors;
+  bool _strict = false;
+  int _verbosity = 1;
+  unsigned int _errors = 0;
 
-  bool _do_cache;
+  bool _do_cache = true;
 
   std::map<RawTower*, std::set<PHG4Shower*> > _cache_all_truth_primary_showers;
   std::map<RawTower*, PHG4Shower*> _cache_max_truth_primary_shower_by_energy;

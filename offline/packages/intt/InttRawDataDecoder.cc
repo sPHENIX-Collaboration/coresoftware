@@ -1,4 +1,5 @@
 #include "InttRawDataDecoder.h"
+#include "InttMapping.h"
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -15,6 +16,7 @@
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitSetContainerv1.h>
 
 InttRawDataDecoder::InttRawDataDecoder(std::string const& name):
 	SubsysReco(name)
@@ -23,16 +25,52 @@ InttRawDataDecoder::InttRawDataDecoder(std::string const& name):
 }
 
 //Init
-int InttRawDataDecoder::Init(PHCompositeNode* /*topNode*/)
+int InttRawDataDecoder::Init(PHCompositeNode*)
 {
-	//Do nothing (yet)
+	//Do nothing
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //InitRun
-int InttRawDataDecoder::InitRun(PHCompositeNode* /*topNode*/)
+int InttRawDataDecoder::InitRun(PHCompositeNode* topNode)
 {
-	//Do nothing (yet)
+	if(!topNode)
+	{
+		std::cout << "InttRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
+		std::cout << "\tCould not retrieve topNode; doing nothing" << std::endl;
+
+		return -1;
+	}
+
+	PHNodeIterator dst_itr(topNode);
+	PHCompositeNode* dst_node = dynamic_cast<PHCompositeNode*>(dst_itr.findFirst("PHCompositeNode", "DST"));
+	if(!dst_node)
+	{
+		if(Verbosity())std::cout << "InttRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
+		if(Verbosity())std::cout << "\tCould not retrieve dst_node; doing nothing" << std::endl;
+
+		return -1;
+	}
+
+	PHNodeIterator trkr_itr(dst_node);
+	PHCompositeNode* trkr_node = dynamic_cast<PHCompositeNode*>(trkr_itr.findFirst("PHCompositeNode", "TRKR"));
+	if(!trkr_node)
+	{
+		trkr_node = new PHCompositeNode("TRKR");
+		dst_node->addNode(trkr_node);
+	}
+
+	TrkrHitSetContainer* trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+	if(!trkr_hit_set_container)
+	{
+		if(Verbosity())std::cout << "InttRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
+		if(Verbosity())std::cout << "\tMaking TrkrHitSetContainer" << std::endl;
+
+		trkr_hit_set_container = new TrkrHitSetContainerv1;
+		PHIODataNode<PHObject>* new_node = new PHIODataNode<PHObject>(trkr_hit_set_container, "TRKR_HITSET", "PHObject");
+		trkr_node->addNode(new_node);
+	}
+
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -40,60 +78,55 @@ int InttRawDataDecoder::InitRun(PHCompositeNode* /*topNode*/)
 int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 {
 	TrkrHitSetContainer* trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-	if(!trkr_hit_set_container)return Fun4AllReturnCodes::DISCARDEVENT;
+	if(!trkr_hit_set_container)
+	{
+		std::cout << PHWHERE << std::endl;
+		std::cout << "InttRawDataDecoder::process_event(PHCompositeNode* topNode)" << std::endl;
+		std::cout << "Could not get \"TRKR_HITSET\" from Node Tree" << std::endl;
+		std::cout << "Exiting" << std::endl;
+		exit(1);
+
+		return Fun4AllReturnCodes::DISCARDEVENT;
+	}
+
 
 	Event* evt = findNode::getClass<Event>(topNode, "PRDF");
 	if(!evt)return Fun4AllReturnCodes::DISCARDEVENT;
 
+	struct Intt::RawData_s rawdata;
+	struct Intt::Offline_s offline;
+
 	int adc = 0;
 	//int amp = 0;
 	int bco = 0;
-	int chp = 0;
-	int chn = 0;
-	int fee = 0;
-
-	struct INTT_Felix::Ladder_s ldr_struct;
-	int layer = 0;
-	int ladder_z = 0;
-	int ladder_phi = 0;
-	int arm = 0;
-	int strip_x = 0;
-	int strip_y = 0;
 
 	TrkrDefs::hitsetkey hit_set_key = 0;
 	TrkrDefs::hitkey hit_key = 0;
 	TrkrHitSetContainer::Iterator hit_set_container_itr;
 	TrkrHit* hit = nullptr;
 
-	for(int pid = 3001; pid < 3009; ++pid)
+	for(std::map<int, int>::const_iterator itr = Intt::Packet_Id.begin(); itr != Intt::Packet_Id.end(); ++itr)
 	{
-		Packet* p = evt->getPacket(pid);
+		Packet* p = evt->getPacket(itr->first);
 		if(!p)continue;
 
 		int N = p->iValue(0, "NR_HITS");
-		if(!N)continue;
-
 		full_bco = p->lValue(0, "BCO");
+
+		if(Verbosity() > 20)std::cout << N << std::endl;
 
 		for(int n = 0; n < N; ++n)
 		{
+			rawdata = Intt::RawFromPacket(itr->second, n, p);
+
 			adc = p->iValue(n, "ADC");
 			//amp = p->iValue(n, "AMPLITUE");
 			bco = p->iValue(n, "FPHX_BCO");
-			chp = p->iValue(n, "CHIP_ID");
-			chn = p->iValue(n, "CHANNEL_ID");
-			fee = p->iValue(n, "FEE");
 
-			INTT_Felix::FelixMap(pid - 3001, fee, ldr_struct);
-			layer = 2 * ldr_struct.barrel + ldr_struct.ladder;
-			ladder_phi = ldr_struct.ladder;				//        B  A  A  B
-			ladder_z = arm * 2 + (chp % 13 < 5);			//South<- 1, 0, 2, 3 ->North
-			arm = (pid - 3001) / 4;
-			strip_x = 25 * arm - (2 * arm - 1) * chp % 13;
-			strip_y = 128 * ((arm + chp / 13) % 2) + chn; //need to check this is the convention
+			offline = Intt::ToOffline(rawdata);
 
-			hit_key = InttDefs::genHitKey(strip_x, strip_y);
-			hit_set_key = InttDefs::genHitSetKey(layer, ladder_z, ladder_phi, bco);
+			hit_key = InttDefs::genHitKey(offline.strip_x, offline.strip_y);
+			hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
 
 			hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
 			hit = hit_set_container_itr->second->getHit(hit_key);
@@ -103,6 +136,16 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 			hit->setAdc(adc);
 			hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
 		}
+
+		delete p;
+	}
+
+	if(Verbosity() > 20)
+	{
+		std::cout << std::endl;
+		std::cout << "Identify():" << std::endl;
+		trkr_hit_set_container->identify();
+		std::cout << std::endl;
 	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -111,7 +154,7 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 //End
 int InttRawDataDecoder::End(PHCompositeNode* /*topNode*/)
 {
-	//Do nothing (yet)
+	//Do nothing
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 

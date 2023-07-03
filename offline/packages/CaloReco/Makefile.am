@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
-  libcalo_reco.la 
+  libcalo_reco.la
 
 #
 libcalo_reco_la_LDFLAGS = \
@@ -18,6 +18,7 @@ if USE_ONLINE
 
 else
 libcalo_reco_la_LIBADD = \
+  -lbbc_io \
   -lcalo_io \
   -lcdbobjects \
   -lCLHEP \
@@ -44,14 +45,18 @@ else
 pkginclude_HEADERS = \
   CaloWaveformFitting.h \
   CaloWaveformProcessing.h \
+  CaloRecoUtility.h \
   CaloTowerBuilder.h \
   CaloTowerCalib.h \
-  RawClusterBuilderFwd.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
   RawClusterPositionCorrection.h \
-  RawTowerCalibration.h 
+  RawClusterZVertexRecorrect.h \
+  RawTowerCalibration.h \
+  RawTowerDeadTowerInterp.h \
+  RawTowerDeadMapLoader.h \
+  RawClusterDeadAreaMask.h
 endif
 
 if USE_ONLINE
@@ -64,8 +69,7 @@ libcalo_reco_la_SOURCES = \
   BEmcProfile.cc \
   BEmcRec.cc \
   BEmcRecCEMC.cc \
-  BEmcRecFEMC.cc \
-  BEmcRecEEMC.cc \
+  CaloRecoUtility.cc \
   CaloWaveformFitting.cc \
   CaloWaveformProcessing.cc \
   CaloTowerBuilder.cc \
@@ -73,13 +77,13 @@ libcalo_reco_la_SOURCES = \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \
-  RawClusterBuilderFwd.cc \
   RawClusterPositionCorrection.cc \
-  RawClusterDeadAreaMask.cc \
+  RawClusterZVertexRecorrect.cc \
   RawTowerCombiner.cc \
   RawTowerCalibration.cc \
   RawTowerDeadTowerInterp.cc \
-  RawTowerDeadMapLoader.cc
+  RawTowerDeadMapLoader.cc \
+  RawClusterDeadAreaMask.cc
 endif
 
 ################################################

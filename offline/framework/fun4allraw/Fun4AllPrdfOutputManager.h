@@ -29,8 +29,8 @@ class Fun4AllPrdfOutputManager : public Fun4AllOutputManager
   int Write(PHCompositeNode *startNode);
 
  private:
-  /*! 
-    initialize prdf output manager every time 
+  /*!
+    initialize prdf output manager every time
     the output file name is changed including first event
   */
   int InitPrdfManager();

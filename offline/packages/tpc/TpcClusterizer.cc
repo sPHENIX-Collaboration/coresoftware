@@ -1,5 +1,6 @@
 #include "TpcClusterizer.h"
 
+#include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv3.h>
@@ -10,6 +11,7 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/alignmentTransformationContainer.h>
 
 #include <trackbase/RawHit.h>
 #include <trackbase/RawHitSet.h>
@@ -64,6 +66,8 @@ namespace
     unsigned short edge = 0;
   };
 
+  using vec_dVerbose = std::vector<std::vector<std::pair<int,int>>>;
+
   struct thread_data 
   {
     PHG4TpcCylinderGeom *layergeom = nullptr;
@@ -94,6 +98,9 @@ namespace
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster*> cluster_vector;
     int verbosity = 0;
+    bool fillClusHitsVerbose = false;
+    vec_dVerbose phivec_ClusHitsVerbose ; // only fill if fillClusHitsVerbose
+    vec_dVerbose zvec_ClusHitsVerbose   ;// only fill if fillClusHitsVerbose
   };
   
   pthread_mutex_t mythreadlock;
@@ -312,6 +319,11 @@ namespace
       if(clus_size == 1) return;
       //      std::cout << "process list" << std::endl;    
       std::vector<TrkrDefs::hitkey> hitkeyvec;
+
+      // keep track of the hit locations in a given cluster
+  std::map<int,unsigned int> m_phi {};
+  std::map<int,unsigned int> m_z   {};
+
       for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
 	double adc = iter->adc; 
 	
@@ -334,16 +346,24 @@ namespace
 	iphi_sum += iphi * adc;
 	iphi2_sum += square(iphi)*adc;
 
-	// update t sums
-	double t = my_data.layergeom->get_zcenter(it);
-	t_sum += t*adc;
-	t2_sum += square(t)*adc;
-	
-	adc_sum += adc;
-	
-	// capture the hitkeys for all adc values above a certain threshold
-	TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
-	// if(adc>5)
+  // update t sums
+  double t = my_data.layergeom->get_zcenter(it);
+  t_sum += t*adc;
+  t2_sum += square(t)*adc;
+
+  adc_sum += adc;
+
+  if (my_data.fillClusHitsVerbose) {
+    auto pnew = m_phi.try_emplace(iphi,adc);
+    if (!pnew.second) pnew.first->second += adc;
+
+    pnew = m_z.try_emplace(it,adc);
+    if (!pnew.second) pnew.first->second += adc;
+  }
+
+  // capture the hitkeys for all adc values above a certain threshold
+  TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
+  // if(adc>5)
 	hitkeyvec.push_back(hitkey);
       }
       //      std::cout << "done process list" << std::endl;
@@ -416,6 +436,8 @@ namespace
       //std::cout << "done transform" << std::endl;
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
       
+  bool b_made_cluster { false };
+
       if(my_data.cluster_version==3){
 	//std::cout << "ver3" << std::endl;
 	// Fill in the cluster details
@@ -431,6 +453,7 @@ namespace
 	clus->setActsLocalError(0,1, 0);
 	clus->setActsLocalError(1,1, t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2));
 	my_data.cluster_vector.push_back(clus);
+  b_made_cluster = true;
       }else if(my_data.cluster_version==4){
 	//std::cout << "ver4" << std::endl;
 	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
@@ -449,6 +472,7 @@ namespace
 	//	clus->setPhiErr(sqrt(phi_err_square));
 	//clus->setZErr(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2)));
 	my_data.cluster_vector.push_back(clus);
+  b_made_cluster = true;
 	}
       }else if(my_data.cluster_version==5){
 	//std::cout << "ver5" << std::endl;
@@ -467,7 +491,20 @@ namespace
 	clus->setPhiError(sqrt(phi_err_square));
 	clus->setZError(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2)));
 	my_data.cluster_vector.push_back(clus);
+  b_made_cluster = true;
 	}
+      }
+
+      if (my_data.fillClusHitsVerbose && b_made_cluster) {
+        // push the data back to 
+        my_data.phivec_ClusHitsVerbose .push_back( std::vector<std::pair<int,int>> {} );
+        my_data.zvec_ClusHitsVerbose   .push_back( std::vector<std::pair<int,int>> {} );
+
+        auto& vphi = my_data.phivec_ClusHitsVerbose .back();
+        auto& vz   = my_data.zvec_ClusHitsVerbose   .back();
+
+        for (auto& entry : m_phi ) vphi.push_back({entry.first, entry.second});
+        for (auto& entry : m_z   ) vz  .push_back({entry.first, entry.second});
       }
 	
       //std::cout << "end clus out" << std::endl;
@@ -760,11 +797,34 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(newNode);
   }
 
+  if (record_ClusHitsVerbose) {
+    // get the node
+    mClusHitsVerbose = findNode::getClass<ClusHitsVerbosev1>(topNode, "Trkr_SvtxClusHitsVerbose");
+    if (!mClusHitsVerbose)
+    {
+      PHNodeIterator dstiter(dstNode);
+      auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode("TRKR");
+        dstNode->addNode(DetNode);
+      }
+      mClusHitsVerbose = new ClusHitsVerbosev1();
+      auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_SvtxClusHitsVerbose", "PHObject");
+      DetNode->addNode(newNode);
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TpcClusterizer::process_event(PHCompositeNode *topNode)
 {
+  // The TPC is the only subsystem that clusters in global coordinates. For consistency,
+  // we must use the construction transforms to get the local coordinates.
+  // Set the flag to use ideal transforms for the duration of this process_event, for thread safety
+  alignmentTransformationContainer::use_alignment = false;
+
   //  int print_layer = 18;
 
   if (Verbosity() > 1000)
@@ -880,6 +940,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	
 	// instanciate new thread pair, at the end of thread vector
 	thread_pair_t& thread_pair = threads.emplace_back();
+  if (mClusHitsVerbose) { thread_pair.data.fillClusHitsVerbose = true; };
 	
 	thread_pair.data.layergeom = layergeom;
 	thread_pair.data.hitset = hitset;
@@ -945,6 +1006,16 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	      
 	      // insert in map
 	      m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+
+        if (mClusHitsVerbose) {
+          for (auto& hit : data.phivec_ClusHitsVerbose[index]) {
+            mClusHitsVerbose->addPhiHit (hit.first, hit.second);
+          }
+          for (auto& hit : data.zvec_ClusHitsVerbose[index]) {
+            mClusHitsVerbose->addZHit (hit.first, hit.second);
+          }
+          mClusHitsVerbose->push_hits(ckey);
+        }
 	    }
 	  
 	  // copy hit associations to map
@@ -1105,6 +1176,17 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	    // insert in map
 	    //std::cout << "X: " << cluster->getLocalX() << "Y: " << cluster->getLocalY() << std::endl;
 	    m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+
+      if (mClusHitsVerbose) {
+        for (auto& hit : data.phivec_ClusHitsVerbose[index]) {
+          mClusHitsVerbose->addPhiHit (hit.first, (float)hit.second);
+        }
+        for (auto& hit : data.zvec_ClusHitsVerbose[index]) {
+          mClusHitsVerbose->addZHit (hit.first, (float)hit.second);
+        }
+        mClusHitsVerbose->push_hits(ckey);
+      }
+
 	  }
 	
 	// copy hit associations to map
@@ -1119,6 +1201,9 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
       }
   }
+
+  // set the flag to use alignment transformations, needed by the rest of reconstruction
+  alignmentTransformationContainer::use_alignment = true;
 
   if (Verbosity() > 0)
     std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;
