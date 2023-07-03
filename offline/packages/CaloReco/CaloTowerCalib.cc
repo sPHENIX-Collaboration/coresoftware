@@ -80,7 +80,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     m_detector = "HCALIN";
     m_DETECTOR = TowerInfoContainer::HCAL;
 
-    if (!m_overrideCalibName) m_calibName = "ihcal_abscalib_mip_bldg912";
+    if (!m_overrideCalibName) m_calibName = "ihcal_abscalib_cosmic";
     if (!m_overrideFieldName) m_fieldname = "ihcal_abscalib_mip";
     cdb = CDBInterface::instance();
     std::string calibdir = cdb->getUrl(m_calibName);
@@ -99,7 +99,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     m_detector = "HCALOUT";
     m_DETECTOR = TowerInfoContainer::HCAL;
 
-    if (!m_overrideCalibName) m_calibName = "ohcal_abscalib_mip_bldg912";
+    if (!m_overrideCalibName) m_calibName = "ohcal_abscalib_cosmic";
     if (!m_overrideFieldName) m_fieldname = "ohcal_abscalib_mip";
     cdb = CDBInterface::instance();
     std::string calibdir = cdb->getUrl(m_calibName);
