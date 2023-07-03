@@ -2352,6 +2352,7 @@ TVector3 AnnularFieldSim::swimToInAnalyticSteps(float zdest, TVector3 start, int
     //printf("AnnularFieldSim::swimToInAnalyticSteps at step %d, asked to swim particle from (%f,%f,%f) (rphiz)=(%f,%f,%f).\n",i,ret.X(),ret.Y(),ret.Z(),ret.Perp(),ret.Phi(),ret.Z());
     //rcc note: once I put the z distoriton back in, I need to check that ret.Z+zstep is still in bounds:
     accumulated_distortion += GetStepDistortion(ret.Z() + zstep, ret, true, true);
+    
     accumulated_drift += drift_step;
 
     //this seems redundant, but if the distortions are small they may lose precision and stop actually changing the position when step size is small.  This allows them to accumulate separately so they can grow properly:
@@ -2414,7 +2415,14 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, TVector3 start, int st
 
   //now we are guaranteed the z limits are in range, and don't need to check them again.
 
-  double zstep = (zdest - start.Z()) / steps;
+double zstep = (zmax-zmin)/steps;// always a positive number
+if ((zdest-start.Z())<0) zstep=-zstep;// It goes two directions, so there will be positive and negative value
+int integernumbersteps=(zdest-start.Z())/zstep;
+
+//printf("Hello, this is the zmax-zmin length: %f\n", (zmax-zmin));
+//printf("Hello, this is the zdest-start.Z(): %f\n", (zdest-start.Z()));
+//printf("Hello, this is the zstep number: %f\n", zstep); 
+//printf("Hello, this is the integernumbersteps number: %d\n", integernumbersteps);
 
   TVector3 position = start;
   TVector3 accumulated_distortion(0, 0, 0);
@@ -2423,7 +2431,18 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, TVector3 start, int st
 
   //the conceptual approach here is to get the vector distortion in each z step, and use the transverse component of that to update the position of the particle for the next step, while accumulating the total distortion separately from the position.  This allows a small residual to accumulate, rather than being lost.  We do not correct the z position, so that the stepping does not 'skip' parts of the trajectory.
 
-  for (int i = 0; i < steps; i++)
+// describe what you're doing here: 
+//printf("Hello again, this is the zdest: %f\n", (zdest));
+//printf("Hello again, this is the start.Z(): %f\n", (start.Z()));
+
+    accumulated_distortion += GetStepDistortion(zdest-(integernumbersteps*zstep), position, true, false);
+
+  //short-circuit if there's no travel length:
+
+    position.SetX(start.X() + accumulated_distortion.X());
+    position.SetY(start.Y() + accumulated_distortion.Y());
+    position.SetZ(zdest-(integernumbersteps*zstep));
+  for (int i = 0; i <integernumbersteps ; i++)
   {
     //check if we are in bounds
     if (GetRindexAndCheckBounds(position.Perp(), &rt) != InBounds || GetPhiIndexAndCheckBounds(FilterPhiPos(position.Phi()), &pt) != InBounds || (zBound == OutOfBounds))
@@ -2437,11 +2456,12 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, TVector3 start, int st
     }
 
     //as we accumulate distortions, add these to the x and y positions, but do not change the z position, otherwise we will 'skip' parts of the drift, which is not the intended behavior.
-    accumulated_distortion += GetStepDistortion(start.Z() + zstep * (i + 1), position, true, false);
+    accumulated_distortion += GetStepDistortion(position.Z() + zstep, position, true, false);
     position.SetX(start.X() + accumulated_distortion.X());
     position.SetY(start.Y() + accumulated_distortion.Y());
     position.SetZ(position.Z() + zstep);
   }
+
   *goodToStep = steps;
   return accumulated_distortion;
 }
@@ -2598,6 +2618,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, TVector3 pos, char w
 }
 
 void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int nSteps, int r_subsamples, int p_subsamples, int z_subsamples, int /*z_substeps*/, bool andCartesian)
+
 {
   //generates the distortion map for one or both sides of the detector, separating them so
   //they do not try to interpolate across the CM.
@@ -2609,7 +2630,10 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
   float deltap = s.Phi();   //(pf-pi)/np;
   float deltaz = s.Z();     //(zf-zi)/nz;
   TVector3 stepzvec(0, 0, deltaz);
-  //int nSteps = 500;  //how many steps to take in the particle path.  hardcoded for now.  Think about this later.
+
+
+//  int nSteps = 500;  //how many steps to take in the particle path.  hardcoded for now.  Think about this later.
+
 
   int nSides = 1;
   if (hasTwin) nSides = 2;
@@ -3655,7 +3679,7 @@ TVector3 AnnularFieldSim::swimTo(float zdest, TVector3 start, bool interpolate, 
 TVector3 AnnularFieldSim::GetStepDistortion(float zdest, TVector3 start, bool interpolate, bool useAnalytic)
 {
   //getting the distortion instead of the post-step position allows us to accumulate small deviations from the original position that might be lost in the large number
-
+  
   //using second order langevin expansion from http://skipper.physics.sunysb.edu/~prakhar/tpc/Papers/ALICE-INT-2010-016.pdf
   //TVector3 (*field)[nr][ny][nz]=field_;
   int rt, pt, zt;  //these are filled by the checkbounds that follow, but are not used.
@@ -3669,14 +3693,15 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, TVector3 start, bool in
   }
 
   //set the direction of the external fields.
-
+  
   double zdist = zdest - start.Z();
 
   //short-circuit if there's no travel length:
-  if (fabs(zdist) < ALMOST_ZERO * step.Z())
+  
+ if (fabs(zdist) < ALMOST_ZERO * step.Z())
   {
-    printf("Asked  particle from (%f,%f,%f) to z=%f, which is a distance of %fcm.  Returning zero.\n", start.X(), start.Y(), start.Z(), zdest, zdist);
-    return zero_vector;
+ //   printf("Asked  particle from (%f,%f,%f) to z=%f, which is a distance of %fcm.  Returning zero.\n", start.X(), start.Y(), start.Z(), zdest, zdist);
+   return zero_vector;
   }
 
   TVector3 fieldInt;   //integral of E field along path

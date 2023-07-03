@@ -1,6 +1,6 @@
-#include "SinglePrdfInput.h"
+#include "SingleEvtInput.h"
 
-#include "Fun4AllPrdfInputPoolManager.h"
+#include "Fun4AllEvtInputPoolManager.h"
 
 #include <frog/FROG.h>
 
@@ -11,20 +11,20 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
-SinglePrdfInput::SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman)
+SingleEvtInput::SingleEvtInput(const std::string &name, Fun4AllEvtInputPoolManager *inman)
   : Fun4AllBase(name)
   , m_InputMgr(inman)
 {
   plist = new Packet *[100];
 }
 
-SinglePrdfInput::~SinglePrdfInput()
+SingleEvtInput::~SingleEvtInput()
 {
   delete m_EventIterator;
   delete [] plist;
 }
 
-void SinglePrdfInput::FillPool(const unsigned int nevents)
+void SingleEvtInput::FillPool(const unsigned int nevents)
 {
   if (AllDone()) // no more files and all events read
   {
@@ -61,8 +61,6 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       if (evt->getEvtType() != DATAEVENT)
       {
         m_NumSpecialEvents++;
-        delete evt;
-        continue; // need handling for non data events
       }
       int EventSequence = evt->getEvtSequence();
       int npackets = evt->getPacketList(plist, 100);
@@ -72,7 +70,8 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       }
       for (int i = 0; i < npackets; i++)
       {
-        if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
+	plist[i]->identify();
+//        if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
         {
           int evtno = plist[i]->iValue(0, "EVTNR");
           // dummy check for the first event which is the problem for the calorimeters
@@ -94,17 +93,17 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
           evtno += m_EventNumberOffset + m_NumSpecialEvents + (EventSequence & 0xFFFF0000);
           m_InputMgr->AddPacket(evtno, plist[i]);
         }
-	else
-	{
-	  delete plist[i];
-	}
+	// else
+	// {
+	//   delete plist[i];
+	// }
       }
       delete evt;
   }
   
 }
 
-int SinglePrdfInput::fileopen(const std::string &filenam)
+int SingleEvtInput::fileopen(const std::string &filenam)
 {
   std::cout << PHWHERE << "trying to open " << filenam << std::endl;
   if (IsOpen())
@@ -136,7 +135,7 @@ int SinglePrdfInput::fileopen(const std::string &filenam)
   return 0;
 }
 
-int SinglePrdfInput::fileclose()
+int SingleEvtInput::fileclose()
 {
   if (!IsOpen())
   {
