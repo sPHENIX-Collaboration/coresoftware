@@ -3,7 +3,11 @@
 
 //___________________________________________________________
 void MicromegasGeometryContainer::identify( std::ostream& out ) const
-{ out << "MicromegasGeometryContainer" << std::endl; }
+{ 
+  out << "MicromegasGeometryContainer" << std::endl; 
+  out << " m_strip_begin entries: " << m_strip_begin.size() << std::endl;
+  out << " m_strip_end entries: " << m_strip_end.size() << std::endl;
+}
 
 //___________________________________________________________
 TVector3 MicromegasGeometryContainer::get_strip_begin( unsigned int layer, unsigned int tile, unsigned int strip ) const
