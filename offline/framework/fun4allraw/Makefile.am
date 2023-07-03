@@ -13,11 +13,14 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   Fun4AllEventOutStream.h \
   Fun4AllEventOutputManager.h \
+  Fun4AllEvtInputPoolManager.h \
   Fun4AllFileOutStream.h \
   Fun4AllPrdfInputManager.h \
   Fun4AllPrdfInputPoolManager.h \
   Fun4AllPrdfOutputManager.h \
-  Fun4AllRolloverFileOutStream.h
+  Fun4AllRolloverFileOutStream.h \
+  SingleEvtInput.h \
+  SinglePrdfInput.h
 
 lib_LTLIBRARIES = \
   libfun4allraw.la
@@ -25,11 +28,14 @@ lib_LTLIBRARIES = \
 libfun4allraw_la_SOURCES = \
   Fun4AllEventOutStream.cc \
   Fun4AllEventOutputManager.cc \
+  Fun4AllEvtInputPoolManager.cc \
   Fun4AllFileOutStream.cc \
   Fun4AllPrdfInputManager.cc \
   Fun4AllPrdfInputPoolManager.cc \
   Fun4AllPrdfOutputManager.cc \
-  Fun4AllRolloverFileOutStream.cc
+  Fun4AllRolloverFileOutStream.cc \
+  SingleEvtInput.cc \
+  SinglePrdfInput.cc
 
 libfun4allraw_la_LIBADD = \
   -lfun4all \

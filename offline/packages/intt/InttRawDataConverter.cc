@@ -99,6 +99,8 @@ int InttRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 
 int InttRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)
 {
+	n_evt = -1;
+
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -115,20 +117,12 @@ int InttRawDataConverter::process_event(PHCompositeNode* topNode)
 		if(!pkt)continue;
 
 		num_hits = pkt->iValue(0, "NR_HITS");
-		if(!num_hits)
-		{
-			delete pkt;
-			return Fun4AllReturnCodes::DISCARDEVENT;
-		}
 
-		//if(Verbosity() > 20)std::cout << num_hits << std::endl;
-		std::cout << num_hits << std::endl;
+		if(Verbosity() > 20)std::cout << num_hits << std::endl;
 
 		++n_evt;// = pkt->lValue(0, "");
 		gtm_bco = pkt->lValue(0, "BCO");
 		flx_svr = pkt_itr->second;
-
-		raw.felix_server = flx_svr;
 
 		for(Branches_t::iterator itr = branches.begin(); itr != branches.end(); ++itr)
 		{
@@ -138,18 +132,15 @@ int InttRawDataConverter::process_event(PHCompositeNode* topNode)
 	
 		for(int n = 0; n < num_hits; ++n)
 		{
-			branches["flx_chn"][n] = pkt->iValue(n, "FEE");
-			branches["chp"][n] = pkt->iValue(n, "CHIP_ID") % 26;
-			branches["chn"][n] = pkt->iValue(n, "CHANNEL_ID");
-
-			raw.felix_channel = branches["flx_chn"][n];
-			raw.chip = branches["chp"][n];
-			raw.channel = branches["chn"][n];
+			raw = Intt::RawFromPacket(pkt_itr->second, n, pkt);
+			branches["flx_chn"][n] = raw.felix_channel;
 
 			onl = Intt::ToOnline(raw);
 			branches["lyr"][n] = onl.lyr;
 			branches["ldr"][n] = onl.ldr;
 			branches["arm"][n] = onl.arm;
+			branches["chp"][n] = onl.chp;
+			branches["chn"][n] = onl.chn;
 
 			branches["flx_bco"][n] = pkt->iValue(n, "FPHX_BCO");
 			branches["adc"][n] = pkt->iValue(n, "ADC");

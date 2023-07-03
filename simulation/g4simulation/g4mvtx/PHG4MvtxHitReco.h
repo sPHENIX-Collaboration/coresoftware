@@ -12,13 +12,14 @@
 #include <memory>  // for unique_ptr
 #include <string>
 
+class ClusHitsVerbosev1;
 class PHCompositeNode;
+class PHG4Hit;
 class PHG4TruthInfoContainer;
 class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class TrkrTruthTrack;
 class TrkrTruthTrackContainer;
-class PHG4Hit;
 
 class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 {
@@ -94,8 +95,13 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 
   double m_pixel_thresholdrat { 0.01 };
   float  max_g4hitstep        { 3.5  };
+  bool  record_ClusHitsVerbose { false };
+
   public:
   void set_pixel_thresholdrat (double val) { m_pixel_thresholdrat = val; };
+
+  void set_ClusHitsVerbose(bool set=true) { record_ClusHitsVerbose = set; };
+  ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
 };
 
 #endif

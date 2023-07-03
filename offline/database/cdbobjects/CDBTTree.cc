@@ -1,7 +1,5 @@
 #include "CDBTTree.h"
 
-#include <phool/phool.h>
-
 #include <TBranch.h>      // for TBranch
 #include <TCollection.h>  // for TIter
 #include <TDirectory.h>   // for TDirectoryAtomicAdapter, TDirectory, gDirec...
@@ -514,7 +512,7 @@ void CDBTTree::LoadCalibrations()
       }
       else
       {
-        std::cout << PHWHERE << " data type " << DataType
+        std::cout << __PRETTY_FUNCTION__ << " data type " << DataType
                   << " in " << m_TTree[SingleEntries]->GetName()
                   << " from " << f->GetName()
                   << " not implemented" << std::endl;

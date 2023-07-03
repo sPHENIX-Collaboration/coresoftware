@@ -16,6 +16,7 @@
 #include <string>
 
 class PHCompositeNode;
+class CDBTTree;
 
 /*!
  * \brief RawTowerDeadMapLoader loads dead map at inti run
@@ -29,16 +30,6 @@ class RawTowerDeadMapLoader : public SubsysReco
 
   int InitRun(PHCompositeNode* topNode) override;
 
-  const std::string& deadMapPath() const
-  {
-    return m_deadMapPath;
-  }
-
-  void deadMapPath(const std::string& deadMapPath)
-  {
-    m_deadMapPath = deadMapPath;
-  }
-
   const std::string& detector() const
   {
     return m_detector;
@@ -51,7 +42,7 @@ class RawTowerDeadMapLoader : public SubsysReco
 
  private:
   std::string m_detector;
-  std::string m_deadMapPath;
+  CDBTTree *m_CDBTTree = nullptr;
 };
 
 #endif

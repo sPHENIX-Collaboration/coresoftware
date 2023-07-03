@@ -147,6 +147,12 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 
       auto vertexId = tr1->get_vertex_id();
       const SvtxVertex* svtxVertex = _svtx_vertex_map->get(vertexId);
+      if(!svtxVertex)
+	{
+	  if(Verbosity() > 1)
+	    { std::cout << PHWHERE << " Failed to find vertex id " << vertexId << " skip this track " << std::endl; }
+	  continue;
+	}
       if(svtxVertex->size_tracks() == 0) continue;  // event did not have a reconstructed vertex, vertex is bogus 
 
       // Reverse or remove this to consider TPC-only tracks too
@@ -634,6 +640,7 @@ void SecondaryVertexFinder::get_dca(SvtxTrack* track,
   
   Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
   float phi = atan2(r(1), r(0));
+  phi *= -1.0;  // rotates vector clockwise to x axis
   
   Acts::RotationMatrix3 rot;
   Acts::RotationMatrix3 rot_T;
@@ -656,7 +663,6 @@ void SecondaryVertexFinder::get_dca(SvtxTrack* track,
   dca3dz = pos_R(2);
   dca3dxysigma = sqrt(rotCov(0,0));
   dca3dzsigma = sqrt(rotCov(2,2));
-  
 }
 
 void SecondaryVertexFinder::findPcaTwoLines(Eigen::Vector3d pos1, Eigen::Vector3d mom1, Eigen::Vector3d pos2, Eigen::Vector3d mom2,

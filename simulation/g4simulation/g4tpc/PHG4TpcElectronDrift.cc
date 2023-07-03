@@ -10,6 +10,7 @@
 #include <g4main/PHG4Particlev3.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
+#include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
@@ -175,6 +176,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     auto newNode = new PHIODataNode<PHObject>(truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
     DetNode->addNode(newNode);
   }
+
   truthclustercontainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_TRUTHCLUSTERCONTAINER");
   if (!truthclustercontainer)
   {
@@ -307,6 +309,24 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       std::cout << *layeriter->second << std::endl;
     }
   }
+
+  if (record_ClusHitsVerbose) {
+    // get the node
+    mClusHitsVerbose = findNode::getClass<ClusHitsVerbosev1>(topNode, "Trkr_TruthClusHitsVerbose");
+    if (!mClusHitsVerbose)
+    {
+      PHNodeIterator dstiter(dstNode);
+      auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode("TRKR");
+        dstNode->addNode(DetNode);
+      }
+      mClusHitsVerbose = new ClusHitsVerbosev1();
+      auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_TruthClusHitsVerbose", "PHObject");
+      DetNode->addNode(newNode);
+    }
+  }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -323,7 +343,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   }
 
   if (truth_clusterer.needs_input_nodes) {
-    truth_clusterer.set_input_nodes( truthclustercontainer, m_tGeometry, seggeo);
+    truth_clusterer.set_input_nodes( truthclustercontainer, m_tGeometry,
+        seggeo, mClusHitsVerbose);
   }
 
 
@@ -408,9 +429,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         if ( std::abs(prior_g4hit->get_x(0)-hiter->second->get_x(0)) > max_g4hitstep
           || std::abs(prior_g4hit->get_y(0)-hiter->second->get_y(0)) > max_g4hitstep 
         ) {
-	  if(truth_track) {
-	    truth_clusterer.cluster_hits(truth_track);
-	  }
+          truth_clusterer.cluster_hits(truth_track);
         }
       }
       prior_g4hit = hiter->second;

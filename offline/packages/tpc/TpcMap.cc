@@ -17,7 +17,15 @@ void TpcMap::setMapNames(const std::string &r1, const std::string &r2, const std
   }
   else
   {
-    full_path = "./";
+    calibrationroot = getenv("TPCCALIB");
+    if (calibrationroot)
+    {
+      full_path = std::string(calibrationroot) + "/";
+    }
+    else
+    {
+      full_path = "./";
+    }
   }
   std::string full_path_r1 = full_path + r1;
   std::string full_path_r2 = full_path + r2;
@@ -105,7 +113,7 @@ int TpcMap::digest_map(const std::string &fileName, const unsigned int section_o
     while (ss.good())
     {
       getline(ss, next, ',');
-      if (index == 0)
+      if (index == 2)
       {
         abs_pad = std::stoul(next);
       }

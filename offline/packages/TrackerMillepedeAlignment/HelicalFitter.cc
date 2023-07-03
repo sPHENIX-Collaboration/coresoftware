@@ -210,8 +210,16 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  if(Verbosity() > 1)  
 	    { std::cout << " Full track " << trackid   << " radius " << fitpars[0] << " X0 " << fitpars[1]<< " Y0 " << fitpars[2]
 					   << " zslope " << fitpars[3]  << " Z0 " << fitpars[4] << std::endl; }
-	} 
-
+	}
+      else if(fitsilicon)
+	{
+	  nsilicon = cluskey_vec.size();
+	}
+      else if(fittpc && !fitfulltrack)
+	{
+	  ntpc = cluskey_vec.size();
+	}
+ 
       newTrack.set_crossing(tracklet->get_crossing());
       newTrack.set_id(trackid);
       /// use the track seed functions to help get the track trajectory values
@@ -240,8 +248,16 @@ int HelicalFitter::process_event(PHCompositeNode*)
       nclus = ntpc+nsilicon;
 
       // some basic track quality requirements
-      if(fittpc && ntpc < 35) continue;
-      if((fitsilicon || fitfulltrack) && nsilicon < 5) continue;
+      if(fittpc && ntpc < 35) 
+	{
+	  if(Verbosity() > 1) { std::cout << " reject this track, ntpc = " << ntpc << std::endl; } 
+	  continue;
+	}
+      if((fitsilicon || fitfulltrack) && nsilicon < 4) 
+	{
+	  if(Verbosity() > 1) { std::cout << " reject this track, nsilicon = " << nsilicon << std::endl; } 
+	  continue; 
+	}
 
       // get the residuals and derivatives for all clusters
       for(unsigned int ivec=0;ivec<global_vec.size(); ++ivec)

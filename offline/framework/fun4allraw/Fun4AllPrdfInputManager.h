@@ -26,7 +26,7 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   int PushBackEvents(const int i) override;
   int GetSyncObject(SyncObject **mastersync) override;
   int SyncIt(const SyncObject *mastersync) override;
-  int HasSyncObject() const  override {return 1;}
+  int HasSyncObject() const override { return 1; }
   std::string GetString(const std::string &what) const override;
 
  private:
