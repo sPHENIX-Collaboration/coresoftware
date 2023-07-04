@@ -790,18 +790,6 @@ int HelicalFitter::End(PHCompositeNode* )
       fout->Close();
     }
 
-  ofstream fconstraint("mille_global_constraints.txt");
-  for (auto it = InttConstraints.begin(); it != InttConstraints.end(); ++it)
-    {
-      auto xpair = it->second.first;
-      auto ypair = it->second.second;
-
-      fconstraint << "Constraint 0.0" << std::endl;
-      fconstraint << xpair.first << "  " << xpair.second << std::endl;
-      fconstraint << ypair.first << "  " << ypair.second << std::endl;
-    }
-  fconstraint.close();
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int HelicalFitter::CreateNodes(PHCompositeNode* topNode)

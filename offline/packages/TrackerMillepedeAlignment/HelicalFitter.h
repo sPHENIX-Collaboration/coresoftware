@@ -155,8 +155,6 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   unsigned int _cluster_version = 5;
   bool test_output = false;
 
-  std::map<int, std::pair<std::pair<int, float>, std::pair<int, float>> > InttConstraints;
-
   ClusterErrorPara _ClusErrPara;
 
   std::set<std::pair<unsigned int,unsigned int>> fixed_mvtx_layers;
