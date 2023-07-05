@@ -98,8 +98,6 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec,  std::vector<TrkrDefs::cluskey> cluskey_vec);
   unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
-  void addGlobalConstraintIntt(int glbl_label[6], Surface surf);
-
   void set_dca_cut(float dca) {dca_cut = dca;}
 
  private:
@@ -111,17 +109,13 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
   Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref);
-  //Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
   Acts::Vector3 get_line_plane_intersection(Acts::Vector3 PCA, Acts::Vector3 tangent, 
 					    Acts::Vector3 sensor_center, Acts::Vector3 sensor_normal);
   std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global, Acts::Vector3& pca, Acts::Vector3& tangent);
 
-
-  //Acts::Vector3 get_helix_vtxsurface_intersection(Acts::Vector3 sensorCenter, Acts::Vector3 sensorNormal, const std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 get_helix_vtx(Acts::Vector3 event_vtx, const std::vector<float>& fitpars);
-
 
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
@@ -160,8 +154,6 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   unsigned int _cluster_version = 5;
   bool test_output = false;
-
-  std::map<int, std::pair<std::pair<int, float>, std::pair<int, float>> > InttConstraints;
 
   ClusterErrorPara _ClusErrPara;
 
