@@ -232,7 +232,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  if(Verbosity() > 1)  
 	    { std::cout << " Full track " << trackid   << " radius " << fitpars[0] << " X0 " << fitpars[1]<< " Y0 " << fitpars[2]
 			<< " zslope " << fitpars[3]  << " Z0 " << fitpars[4] << std::endl; }
-
+	}
       else if(fitsilicon)
 	{
 	  nsilicon = cluskey_vec.size();
@@ -560,7 +560,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		    }
 		  std::cout << std::endl;
 		}
-	    };
+	    }
 
 	  if( !isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
 	    {
@@ -654,7 +654,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
   
       // close out this track	
       _mille->end();
-      
+          
     }  // end loop over tracks
   
   
@@ -1268,7 +1268,6 @@ void HelicalFitter::getGlobalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 ev
   Acts::Vector3 unitz(0, 0, 1);
 
   Acts::Vector3 track_vtx (track.get_x(),track.get_y(),track.get_z());
-
   Acts::Vector3 mom(track.get_px(),track.get_py(),track.get_pz());
 
   // calculate projX and projY vectors once for the optimum fit parameters
