@@ -105,9 +105,9 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 	TrkrHitSetContainer::Iterator hit_set_container_itr;
 	TrkrHit* hit = nullptr;
 
-	for(int pid = 3001; pid < 3009; ++pid)
+	for(std::map<int, int>::const_iterator itr = Intt::Packet_Id.begin(); itr != Intt::Packet_Id.end(); ++itr)
 	{
-		Packet* p = evt->getPacket(pid);
+		Packet* p = evt->getPacket(itr->first);
 		if(!p)continue;
 
 		int N = p->iValue(0, "NR_HITS");
@@ -117,10 +117,7 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 
 		for(int n = 0; n < N; ++n)
 		{
-			rawdata.felix_server = pid - 3001;
-			rawdata.felix_channel = p->iValue(n, "FEE");
-			rawdata.chip = p->iValue(n, "CHIP_ID");
-			rawdata.channel = p->iValue(n, "CHANNEL_ID");
+			rawdata = Intt::RawFromPacket(itr->second, n, p);
 
 			adc = p->iValue(n, "ADC");
 			//amp = p->iValue(n, "AMPLITUE");
@@ -129,7 +126,7 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 			offline = Intt::ToOffline(rawdata);
 
 			hit_key = InttDefs::genHitKey(offline.strip_x, offline.strip_y);
-			hit_set_key = InttDefs::genHitSetKey(offline.layer + 3, offline.ladder_z, offline.ladder_phi, bco);
+			hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
 
 			hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
 			hit = hit_set_container_itr->second->getHit(hit_key);

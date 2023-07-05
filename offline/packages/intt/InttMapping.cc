@@ -13,30 +13,44 @@ const std::map<int, int> Intt::Packet_Id =
 	{3008, 7},
 };
 
+struct Intt::RawData_s Intt::RawFromPacket(int const _i, int const _n, Packet* _p)
+{
+	struct RawData_s s;
+
+	if(!_p)return s;
+
+	s.felix_server = _i;
+	s.felix_channel = _p->iValue(_n, "FEE");
+	s.chip = (_p->iValue(_n, "CHIP_ID") + 25) % 26;
+	s.channel = _p->iValue(_n, "CHANNEL_ID");
+
+	return s;
+}
+
 struct Intt::Online_s Intt::ToOnline(struct Offline_s const& _s)
 {
 	struct Online_s s;
 
-	s.lyr = _s.layer;
+	s.lyr = _s.layer - 3;
 	s.ldr = _s.ladder_phi;
 
 	s.arm = _s.ladder_z / 2;
 	switch(_s.ladder_z)
 	{
 		case 1:
-		s.chp = _s.strip_y + 13 * (_s.strip_x < 128);
+		s.chp = _s.strip_y + 13 * !(_s.strip_x < 128);
 		break;
 
 		case 0:
-		s.chp = _s.strip_y + 13 * (_s.strip_x < 128) + 5;
+		s.chp = _s.strip_y + 13 * !(_s.strip_x < 128) + 5;
 		break;
 
 		case 2:
-		s.chp = 13 - _s.strip_y + 13 * !(_s.strip_x < 128);
+		s.chp = 12 - _s.strip_y + 13 * (_s.strip_x < 128);
 		break;
 
 		case 3:
-		s.chp = 4 - _s.strip_y + 13 * !(_s.strip_x < 128);
+		s.chp = 4 - _s.strip_y + 13 * (_s.strip_x < 128);
 		break;
 
 		default:
@@ -52,7 +66,7 @@ struct Intt::Offline_s Intt::ToOffline(struct Online_s const& _s)
 {
 	struct Offline_s s;
 
-	s.layer = _s.lyr;
+	s.layer = _s.lyr + 3;
 	s.ladder_phi = _s.ldr;
 
 	s.ladder_z = 2 * _s.arm + (_s.chp % 13 < 5);
@@ -67,7 +81,7 @@ struct Intt::Offline_s Intt::ToOffline(struct Online_s const& _s)
 		break;
 
 		case 2:
-		s.strip_y = 7 - (_s.chp % 13);
+		s.strip_y = 12 - (_s.chp % 13);
 		break;
 
 		case 3:
@@ -76,9 +90,9 @@ struct Intt::Offline_s Intt::ToOffline(struct Online_s const& _s)
 
 		default:
 		break;
-}
+	}
 
-	s.strip_x = (!_s.arm != !(_s.chp / 13)) ? _s.chn : 255 - _s.chn;
+	s.strip_x = (_s.arm == (_s.chp / 13)) ? _s.chn : 255 - _s.chn;
 
 	return s;
 }
