@@ -75,6 +75,8 @@ void ActsEvaluator::next_event(PHCompositeNode* topNode)
   }
 
   m_svtxEvalStack->next_event(topNode);
+  
+  m_eventNr++;
 }
 void ActsEvaluator::process_track(const Trajectory& traj,
                                   SvtxTrack* track,
@@ -89,7 +91,6 @@ void ActsEvaluator::process_track(const Trajectory& traj,
 
   evaluateTrackFit(traj, track, seed, measurements);
 
-  m_eventNr++;
 
   if (m_verbosity > 1)
   {
