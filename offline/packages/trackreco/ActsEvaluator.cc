@@ -897,11 +897,13 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
 	} 
       else
 	{
-	  m_t_SL_lx.push_back(-9999.);
-	  m_t_SL_ly.push_back(-9999.);
-	  m_t_SL_gx.push_back(-9999.);
-	  m_t_SL_gy.push_back(-9999.);
-	  m_t_SL_gz.push_back(-9999.);
+	  Acts::Vector3 loct = (*surf).transform(m_tGeometry->geometry().getGeoContext()).inverse() * globalTruthPos;
+	  
+	  m_t_SL_lx.push_back(loct(0));
+	  m_t_SL_ly.push_back(loct(1));
+	  m_t_SL_gx.push_back(gx);
+	  m_t_SL_gy.push_back(gy);
+	  m_t_SL_gz.push_back(gz);
 	}
     }
     }

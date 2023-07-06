@@ -119,16 +119,16 @@ std::string m_filename;
   unsigned long m_t_barcode{0};  /// Truth particle barcode
   int m_t_charge{0};             /// Truth particle charge
   float m_t_time{0};             /// Truth particle time
-  float m_t_vx{-99.};            /// Truth particle vertex x
-  float m_t_vy{-99.};            /// Truth particle vertex y
-  float m_t_vz{-99.};            /// Truth particle vertex z
-  float m_t_px{-99.};            /// Truth particle initial momentum px
-  float m_t_py{-99.};            /// Truth particle initial momentum py
-  float m_t_pz{-99.};            /// Truth particle initial momentum pz
-  float m_t_theta{-99.};         /// Truth particle initial momentum theta
-  float m_t_phi{-99.};           /// Truth particle initial momentum phi
-  float m_t_pT{-99.};            /// Truth particle initial momentum pT
-  float m_t_eta{-99.};           /// Truth particle initial momentum eta
+  float m_t_vx{NAN};            /// Truth particle vertex x
+  float m_t_vy{NAN};            /// Truth particle vertex y
+  float m_t_vz{NAN};            /// Truth particle vertex z
+  float m_t_px{NAN};            /// Truth particle initial momentum px
+  float m_t_py{NAN};            /// Truth particle initial momentum py
+  float m_t_pz{NAN};            /// Truth particle initial momentum pz
+  float m_t_theta{NAN};         /// Truth particle initial momentum theta
+  float m_t_phi{NAN};           /// Truth particle initial momentum phi
+  float m_t_pT{NAN};            /// Truth particle initial momentum pT
+  float m_t_eta{NAN};           /// Truth particle initial momentum eta
 
   std::vector<float> m_t_x;  /// Global truth hit position x
   std::vector<float> m_t_y;  /// Global truth hit position y
@@ -170,32 +170,32 @@ std::string m_filename;
   std::vector<int> m_dim_hit;       /// dimension of measurement
 
   bool m_hasFittedParams{false};  /// if the track has fitted parameter
-  float m_eLOC0_fit{-99.};        /// fitted parameter eLOC_0
-  float m_eLOC1_fit{-99.};        /// fitted parameter eLOC_1
-  float m_ePHI_fit{-99.};         /// fitted parameter ePHI
-  float m_eTHETA_fit{-99.};       /// fitted parameter eTHETA
-  float m_eQOP_fit{-99.};         /// fitted parameter eQOP
-  float m_eT_fit{-99.};           /// fitted parameter eT
-  float m_err_eLOC0_fit{-99.};    /// fitted parameter eLOC_-99.err
-  float m_err_eLOC1_fit{-99.};    /// fitted parameter eLOC_1 err
-  float m_err_ePHI_fit{-99.};     /// fitted parameter ePHI err
-  float m_err_eTHETA_fit{-99.};   /// fitted parameter eTHETA err
-  float m_err_eQOP_fit{-99.};     /// fitted parameter eQOP err
-  float m_err_eT_fit{-99.};       /// fitted parameter eT err
-  float m_px_fit{-99.};           /// fitted parameter global px
-  float m_py_fit{-99.};           /// fitted parameter global py
-  float m_pz_fit{-99.};           /// fitted parameter global pz
-  float m_x_fit{-99.};            /// fitted parameter global PCA x
-  float m_y_fit{-99.};            /// fitted parameter global PCA y
-  float m_z_fit{-99.};            /// fitted parameter global PCA z
-  float m_chi2_fit{-99.};         /// fitted parameter chi2
-  float m_quality{-99.};          /// SvtxTrack quality parameter
-  float m_ndf_fit{-99.};          /// fitted parameter ndf
-  float m_dca3Dxy{-99.};          /// fitted parameter 3D DCA in xy plane
-  float m_dca3Dz{-99.};           /// fitted parameter 3D DCA in z plane
-  float m_dca3DxyCov{-99.};       /// fitted parameter 3D DCA covariance in xy
-  float m_dca3DzCov{-99.};        /// fitted parameter 3D DCA covariance in z
-  int m_charge_fit{-99};          /// fitted parameter charge
+  float m_eLOC0_fit{NAN};        /// fitted parameter eLOC_0
+  float m_eLOC1_fit{NAN};        /// fitted parameter eLOC_1
+  float m_ePHI_fit{NAN};         /// fitted parameter ePHI
+  float m_eTHETA_fit{NAN};       /// fitted parameter eTHETA
+  float m_eQOP_fit{NAN};         /// fitted parameter eQOP
+  float m_eT_fit{NAN};           /// fitted parameter eT
+  float m_err_eLOC0_fit{NAN};    /// fitted parameter eLOC_NANerr
+  float m_err_eLOC1_fit{NAN};    /// fitted parameter eLOC_1 err
+  float m_err_ePHI_fit{NAN};     /// fitted parameter ePHI err
+  float m_err_eTHETA_fit{NAN};   /// fitted parameter eTHETA err
+  float m_err_eQOP_fit{NAN};     /// fitted parameter eQOP err
+  float m_err_eT_fit{NAN};       /// fitted parameter eT err
+  float m_px_fit{NAN};           /// fitted parameter global px
+  float m_py_fit{NAN};           /// fitted parameter global py
+  float m_pz_fit{NAN};           /// fitted parameter global pz
+  float m_x_fit{NAN};            /// fitted parameter global PCA x
+  float m_y_fit{NAN};            /// fitted parameter global PCA y
+  float m_z_fit{NAN};            /// fitted parameter global PCA z
+  float m_chi2_fit{NAN};         /// fitted parameter chi2
+  float m_quality{NAN};          /// SvtxTrack quality parameter
+  float m_ndf_fit{NAN};          /// fitted parameter ndf
+  float m_dca3Dxy{NAN};          /// fitted parameter 3D DCA in xy plane
+  float m_dca3Dz{NAN};           /// fitted parameter 3D DCA in z plane
+  float m_dca3DxyCov{NAN};       /// fitted parameter 3D DCA covariance in xy
+  float m_dca3DzCov{NAN};        /// fitted parameter 3D DCA covariance in z
+  int m_charge_fit{NAN};          /// fitted parameter charge
 
   int m_nPredicted{0};                   /// number of states with predicted parameter
   std::vector<bool> m_prt;               /// predicted status
@@ -303,17 +303,17 @@ std::string m_filename;
   std::vector<float> m_eta_smt;          /// smoothed momentum eta
   std::vector<float> m_pT_smt;           /// smoothed momentum pT
 
-  float m_protoTrackPx{-9999.};          /// Proto track px
-  float m_protoTrackPy{-9999.};          /// Proto track py
-  float m_protoTrackPz{-9999.};          /// Proto track pz
-  float m_protoTrackX{-9999.};           /// Proto track PCA x
-  float m_protoTrackY{-9999.};           /// Proto track PCA y
-  float m_protoTrackZ{-9999.};           /// Proto track PCA z
-  float m_protoD0Cov{-9999.};            /// Proto track loc0 covariance
-  float m_protoZ0Cov{-9999.};            /// Proto track loc1 covariance
-  float m_protoPhiCov{-9999.};           /// Proto track phi covariance
-  float m_protoThetaCov{-9999.};         /// Proto track theta covariance
-  float m_protoQopCov{-9999.};           /// Proto track q/p covariance
+  float m_protoTrackPx{NAN};          /// Proto track px
+  float m_protoTrackPy{NAN};          /// Proto track py
+  float m_protoTrackPz{NAN};          /// Proto track pz
+  float m_protoTrackX{NAN};           /// Proto track PCA x
+  float m_protoTrackY{NAN};           /// Proto track PCA y
+  float m_protoTrackZ{NAN};           /// Proto track PCA z
+  float m_protoD0Cov{NAN};            /// Proto track loc0 covariance
+  float m_protoZ0Cov{NAN};            /// Proto track loc1 covariance
+  float m_protoPhiCov{NAN};           /// Proto track phi covariance
+  float m_protoThetaCov{NAN};         /// Proto track theta covariance
+  float m_protoQopCov{NAN};           /// Proto track q/p covariance
   
   
   std::vector<float> m_SL_lx;            /// Proto track source link local x pos
