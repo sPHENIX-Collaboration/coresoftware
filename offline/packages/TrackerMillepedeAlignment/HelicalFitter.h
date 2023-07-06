@@ -133,7 +133,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   void getGlobalDerivativesXY(Surface surf, Acts::Vector3 global, Acts::Vector3 fitpoint, const std::vector<float>& fitpars, float glb_derivativeX[6], float glbl_derivativeY[6], unsigned int layer);
 
-  void getGlobalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 track_vtx, float glbl_derivativeX[6], float glbl_derivativeY[6]);
+  void getGlobalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 track_vtx, float glbl_derivativeX[3], float glbl_derivativeY[3]);
 
   void get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts::Vector3> tangent, Acts::Vector3& projX, Acts::Vector3& projY);  
   void get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vtx, Acts::Vector3& projX, Acts::Vector3& projY);
