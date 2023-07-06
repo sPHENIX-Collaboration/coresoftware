@@ -9,36 +9,36 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 
-#include <trackbase/MvtxDefs.h>
 #include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
 #include <g4eval/SvtxTrackEval.h>
 
-#include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxVertexMap.h>
 
 #include <g4main/PHG4VtxPoint.h>
 
-#include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Definitions/Units.hpp>
+#include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 
 #include <TFile.h>
 #include <TTree.h>
 
-ActsEvaluator::ActsEvaluator(const std::string &name)
-:  m_filename(name)
+ActsEvaluator::ActsEvaluator(const std::string& name)
+  : m_filename(name)
 {
 }
 
@@ -52,72 +52,69 @@ void ActsEvaluator::Init(PHCompositeNode* topNode)
   {
     std::cout << "Starting ActsEvaluator::Init" << std::endl;
   }
-    
+
   if (getNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
-    {
-      std::cout << "Error: Nodes not available in ActsEvaluator::Init"
-		<< std::endl;
-      return;
-    }
-  
+  {
+    std::cout << "Error: Nodes not available in ActsEvaluator::Init"
+              << std::endl;
+    return;
+  }
+
   initializeTree();
 
   if (m_verbosity > 1)
   {
     std::cout << "Finished ActsEvaluator::Init" << std::endl;
   }
-
 }
 void ActsEvaluator::next_event(PHCompositeNode* topNode)
 {
-  if(!m_svtxEvalStack)
-    {
-      m_svtxEvalStack = new SvtxEvalStack(topNode);
-    }
+  if (!m_svtxEvalStack)
+  {
+    m_svtxEvalStack = new SvtxEvalStack(topNode);
+  }
 
   m_svtxEvalStack->next_event(topNode);
-
 }
 void ActsEvaluator::process_track(const Trajectory& traj,
-				  SvtxTrack* track,
-				  const TrackSeed* seed,
-				  const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
+                                  SvtxTrack* track,
+                                  const TrackSeed* seed,
+                                  const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
   if (m_verbosity > 1)
   {
     std::cout << "Starting ActsEvaluator at event " << m_eventNr
               << std::endl;
   }
- 
+
   evaluateTrackFit(traj, track, seed, measurements);
-    
+
   m_eventNr++;
 
   if (m_verbosity > 1)
-    {
-      std::cout << "Finished ActsEvaluator::process_event" << std::endl;
-    }
+  {
+    std::cout << "Finished ActsEvaluator::process_event" << std::endl;
+  }
 }
 
-
 void ActsEvaluator::evaluateTrackFit(const Trajectory& traj,
-				     SvtxTrack* track,
-				      const TrackSeed* seed,
-				      const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
+                                     SvtxTrack* track,
+                                     const TrackSeed* seed,
+                                     const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
-  if(m_verbosity > 5)
+  if (m_verbosity > 5)
     std::cout << "Evaluating Acts track fits" << std::endl;
 
-  SvtxTrackEval *trackeval = m_svtxEvalStack->get_track_eval();
+  SvtxTrackEval* trackeval = m_svtxEvalStack->get_track_eval();
 
   int iTrack = track->get_id();
   int iTraj = iTrack;
-  if(m_verbosity > 2)
-    {
-      std::cout << "Starting trajectory with trackKey " << track->get_id()
-		<< " and corresponding to tpc track seed "
-		<< seed->get_tpc_seed_index() << std::endl;
-    }
+  if (m_verbosity > 2)
+  {
+    std::cout << "Starting trajectory with trackKey " << track->get_id()
+              << " and corresponding to tpc track seed "
+              << seed->get_tpc_seed_index() << std::endl;
+  }
 
   const auto& trackTips = traj.tips();
   const auto& mj = traj.multiTrajectory();
@@ -126,59 +123,61 @@ void ActsEvaluator::evaluateTrackFit(const Trajectory& traj,
 
   /// Skip failed fits
   if (trackTips.empty())
+  {
+    if (m_verbosity > 1)
     {
-      if (m_verbosity > 1)
-        { std::cout << "TrackTips empty in ActsEvaluator" << std::endl; }
-      return;
-    }  
-  
-  if(m_verbosity > 2)
-    {
-      std::cout << "beginning trackTip " << trackTip 
-		<< " corresponding to track " << iTrack 
-		<< " in trajectroy " << iTraj << std::endl;
+      std::cout << "TrackTips empty in ActsEvaluator" << std::endl;
     }
-  
-  if(m_verbosity > 2)
-    {
-      std::cout<<"Evaluating track key " << iTrack
-	       << " for track tip " << trackTip << std::endl;
-    }
+    return;
+  }
 
-  PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
- 
-  if(m_verbosity > 1)
-    {
-      std::cout << "Analyzing SvtxTrack "<< iTrack << std::endl;
-      
-      std::cout << "TruthParticle : " << g4particle->get_px()
-		<< ", " << g4particle->get_py() << ", "
-		<< g4particle->get_pz() << ", "<< g4particle->get_e() 
-		<< std::endl;
-    }
-  
+  if (m_verbosity > 2)
+  {
+    std::cout << "beginning trackTip " << trackTip
+              << " corresponding to track " << iTrack
+              << " in trajectroy " << iTraj << std::endl;
+  }
+
+  if (m_verbosity > 2)
+  {
+    std::cout << "Evaluating track key " << iTrack
+              << " for track tip " << trackTip << std::endl;
+  }
+
+  PHG4Particle* g4particle = trackeval->max_truth_particle_by_nclusters(track);
+
+  if (m_verbosity > 1)
+  {
+    std::cout << "Analyzing SvtxTrack " << iTrack << std::endl;
+
+    std::cout << "TruthParticle : " << g4particle->get_px()
+              << ", " << g4particle->get_py() << ", "
+              << g4particle->get_pz() << ", " << g4particle->get_e()
+              << std::endl;
+  }
+
   m_trackNr = iTrack;
-  
-	
+
   auto trajState =
-    Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
-  
-  if(m_verbosity > 1)
+      Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
+
+  if (m_verbosity > 1)
+  {
+    if (traj.hasTrackParameters(trackTip))
     {
-      if(traj.hasTrackParameters(trackTip))
-	{
-	  std::cout << "Fitted params : " 
-		    << traj.trackParameters(trackTip).position(m_tGeometry->geometry().getGeoContext()) 
-		    << std::endl << traj.trackParameters(trackTip).momentum()
-		    << std::endl;
-	  std::cout << "Track has " << trajState.nMeasurements
-		    << " measurements and " << trajState.nHoles
-		    << " holes and " << trajState.nOutliers 
-		    << " outliers and " << trajState.nStates
-		    << " states " << std::endl;
-	}
+      std::cout << "Fitted params : "
+                << traj.trackParameters(trackTip).position(m_tGeometry->geometry().getGeoContext())
+                << std::endl
+                << traj.trackParameters(trackTip).momentum()
+                << std::endl;
+      std::cout << "Track has " << trajState.nMeasurements
+                << " measurements and " << trajState.nHoles
+                << " holes and " << trajState.nOutliers
+                << " outliers and " << trajState.nStates
+                << " states " << std::endl;
     }
-  
+  }
+
   m_nMeasurements = trajState.nMeasurements;
   m_nStates = trajState.nStates;
   m_nOutliers = trajState.nOutliers;
@@ -187,58 +186,52 @@ void ActsEvaluator::evaluateTrackFit(const Trajectory& traj,
   m_chi2_fit = trajState.chi2Sum;
   m_ndf_fit = trajState.NDF;
   m_quality = track->get_quality();
-  
+
   fillG4Particle(g4particle);
   fillProtoTrack(seed);
   fillFittedTrackParams(traj, trackTip);
-  visitTrackStates(mj,trackTip, measurements);
-	
+  visitTrackStates(mj, trackTip, measurements);
+
   m_trackTree->Fill();
-  
+
   /// Start fresh for the next track
   clearTrackVariables();
-  if(m_verbosity > 1)
-    {
-      std::cout << "Finished track " << iTrack <<std::endl;
-    }
+  if (m_verbosity > 1)
+  {
+    std::cout << "Finished track " << iTrack << std::endl;
+  }
 
-  
-  if(m_verbosity > 1)
-    {
-      std::cout << "Analyzed " << iTrack << " tracks in trajectory number "
-		<< iTraj << std::endl;
-    }
-  
-  if(m_verbosity > 5)
-    {
-      std::cout << "Finished evaluating track fits" << std::endl;
-    }
+  if (m_verbosity > 1)
+  {
+    std::cout << "Analyzed " << iTrack << " tracks in trajectory number "
+              << iTraj << std::endl;
+  }
+
+  if (m_verbosity > 5)
+  {
+    std::cout << "Finished evaluating track fits" << std::endl;
+  }
   return;
 }
-
 
 void ActsEvaluator::End()
 {
   m_trackFile->cd();
   m_trackTree->Write();
   m_trackFile->Close();
-
 }
 
-
-
-
-void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj, 
-				     const size_t &trackTip,
-				     const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
+void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj,
+                                     const size_t& trackTip,
+                                     const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
+  if (m_verbosity > 2)
+  {
+    std::cout << "Begin visit track states" << std::endl;
+  }
 
-  if(m_verbosity > 2)
-    {
-      std::cout << "Begin visit track states" << std::endl;
-    }
-
-  traj.visitBackwards(trackTip, [&](const auto &state) {
+  traj.visitBackwards(trackTip, [&](const auto& state)
+                      {
     /// Only fill the track states with non-outlier measurement
     auto typeFlags = state.typeFlags();
     if (not typeFlags.test(Acts::TrackStateFlag::MeasurementFlag))
@@ -733,64 +726,56 @@ void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory<Acts::VectorMul
     m_flt.push_back(filtered);
     m_smt.push_back(smoothed);
 
-    return true;
-  }   /// Finish lambda function
-  );  /// Finish multi trajectory visitBackwards call
+    return true; }  /// Finish lambda function
+  );                       /// Finish multi trajectory visitBackwards call
 
-
-  if(m_verbosity > 2)
+  if (m_verbosity > 2)
     std::cout << "Finished track states" << std::endl;
 
   return;
 }
 
-
-
 Acts::Vector3 ActsEvaluator::getGlobalTruthHit(TrkrDefs::cluskey cluskey,
-						float &_gt)
+                                               float& _gt)
 {
-  SvtxClusterEval *clustereval = m_svtxEvalStack->get_cluster_eval();
+  SvtxClusterEval* clustereval = m_svtxEvalStack->get_cluster_eval();
 
   const auto [truth_ckey, truth_cluster] = clustereval->max_truth_cluster_by_energy(cluskey);
-  
+
   float gx = -9999;
   float gy = -9999;
   float gz = -9999;
   float gt = -9999;
-  
+
   if (truth_cluster)
-    {
-      gx = truth_cluster->getX();
-      gy = truth_cluster->getY();
-      gz = truth_cluster->getZ();
-    }
-  
+  {
+    gx = truth_cluster->getX();
+    gy = truth_cluster->getY();
+    gz = truth_cluster->getZ();
+  }
+
   /// Convert to acts units of mm
   gx *= Acts::UnitConstants::cm;
   gy *= Acts::UnitConstants::cm;
   gz *= Acts::UnitConstants::cm;
-  
+
   Acts::Vector3 globalPos(gx, gy, gz);
   _gt = gt;
   return globalPos;
-  
 }
-
 
 //___________________________________________________________________________________
 Surface ActsEvaluator::getSurface(TrkrDefs::cluskey cluskey, TrkrCluster* cluster)
 {
   return m_tGeometry->maps().getSurface(cluskey, cluster);
-  
 }
 
 void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
 {
-
-  if(m_verbosity > 2)
-    {
-      std::cout << "Filling proto track seed quantities" << std::endl;
-    }
+  if (m_verbosity > 2)
+  {
+    std::cout << "Filling proto track seed quantities" << std::endl;
+  }
 
   unsigned int tpcid = seed->get_tpc_seed_index();
   unsigned int siid = seed->get_silicon_seed_index();
@@ -799,137 +784,136 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
   auto tpcseed = m_tpcSeeds->get(tpcid);
 
   Acts::Vector3 position = Acts::Vector3::Zero();
-  
-  if(siseed)
-    {
-      position(0) = siseed->get_x() * Acts::UnitConstants::cm;
-      position(1) = siseed->get_y() * Acts::UnitConstants::cm;
-      position(2) = siseed->get_z() * Acts::UnitConstants::cm;
-    }
+
+  if (siseed)
+  {
+    position(0) = siseed->get_x() * Acts::UnitConstants::cm;
+    position(1) = siseed->get_y() * Acts::UnitConstants::cm;
+    position(2) = siseed->get_z() * Acts::UnitConstants::cm;
+  }
   else
-    {
-      position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
-      position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
-      position(2) = tpcseed->get_z() * Acts::UnitConstants::cm;
-    }
-  
+  {
+    position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
+    position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
+    position(2) = tpcseed->get_z() * Acts::UnitConstants::cm;
+  }
+
   Acts::Vector3 momentum(tpcseed->get_px(m_clusterContainer,
-				      m_tGeometry), 
-			 tpcseed->get_py(m_clusterContainer,
-				       m_tGeometry),
-			 tpcseed->get_pz());
+                                         m_tGeometry),
+                         tpcseed->get_py(m_clusterContainer,
+                                         m_tGeometry),
+                         tpcseed->get_pz());
 
   m_protoTrackPx = momentum(0);
   m_protoTrackPy = momentum(1);
   m_protoTrackPz = momentum(2);
-  m_protoTrackX  = position(0);
-  m_protoTrackY  = position(1);
-  m_protoTrackZ  = position(2);
+  m_protoTrackX = position(0);
+  m_protoTrackY = position(1);
+  m_protoTrackZ = position(2);
 
-  for(auto svtxseed : {siseed, tpcseed})
+  for (auto svtxseed : {siseed, tpcseed})
+  {
+    //! protect against tpc only tracks
+    if (!svtxseed)
     {
-      //! protect against tpc only tracks
-      if(!svtxseed) 
-	{
-	  continue;
-	}
-  for(auto clusIter = svtxseed->begin_cluster_keys();
-      clusIter != svtxseed->end_cluster_keys();
-      ++clusIter)
+      continue;
+    }
+    for (auto clusIter = svtxseed->begin_cluster_keys();
+         clusIter != svtxseed->end_cluster_keys();
+         ++clusIter)
     {
       auto key = *clusIter;
       auto cluster = m_clusterContainer->findCluster(key);
-      
+
       /// Get source link global position
       Acts::Vector2 loc(cluster->getLocalX(),
-			cluster->getLocalY());
+                        cluster->getLocalY());
 
-      if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::tpcId)
-	{
-	  // must convert local Y from cluster average time of arival to local cluster z position
-	  double drift_velocity = m_tGeometry->get_drift_velocity();
-	  double zdriftlength = cluster->getLocalY() * drift_velocity;
-	  double surfCenterZ = 52.89; // 52.89 is where G4 thinks the surface center is
-	  double zloc = surfCenterZ - zdriftlength;   // converts z drift length to local z position in the TPC in north
-	  unsigned int side = TpcDefs::getSide(key);
-	  if(side == 0) zloc = -zloc;
-	  loc(1) = zloc * Acts::UnitConstants::cm;
-	}
+      if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::tpcId)
+      {
+        // must convert local Y from cluster average time of arival to local cluster z position
+        double drift_velocity = m_tGeometry->get_drift_velocity();
+        double zdriftlength = cluster->getLocalY() * drift_velocity;
+        double surfCenterZ = 52.89;                // 52.89 is where G4 thinks the surface center is
+        double zloc = surfCenterZ - zdriftlength;  // converts z drift length to local z position in the TPC in north
+        unsigned int side = TpcDefs::getSide(key);
+        if (side == 0) zloc = -zloc;
+        loc(1) = zloc * Acts::UnitConstants::cm;
+      }
 
-      Acts::Vector3 mom(0,0,0);
-      Acts::Vector3 globalPos = m_tGeometry->getGlobalPosition(key, cluster)
-	* Acts::UnitConstants::cm;
-   
+      Acts::Vector3 mom(0, 0, 0);
+      Acts::Vector3 globalPos = m_tGeometry->getGlobalPosition(key, cluster) * Acts::UnitConstants::cm;
+
       m_SLx.push_back(globalPos(0));
       m_SLy.push_back(globalPos(1));
       m_SLz.push_back(globalPos(2));
       m_SL_lx.push_back(loc(0));
       m_SL_ly.push_back(loc(1));
-      
+
       /// Get corresponding truth hit position
       float gt = -9999;
-  
+
       Acts::Vector3 globalTruthPos = getGlobalTruthHit(key, gt);
- 
+
       float gx = globalTruthPos(0);
       float gy = globalTruthPos(1);
       float gz = globalTruthPos(2);
-      
+
       /// Get local truth position
       const float r = sqrt(gx * gx + gy * gy + gz * gz);
       Acts::Vector3 globalTruthUnitDir(gx / r, gy / r, gz / r);
-      
+
       auto surf = getSurface(key, cluster);
 
       auto truthLocal = (*surf).globalToLocal(m_tGeometry->geometry().getGeoContext(),
-					      globalTruthPos,
-					      globalTruthUnitDir);
-    
-      if(truthLocal.ok())
-	{
-	  Acts::Vector2 truthLocalVec = truthLocal.value();
-	  
-	  m_t_SL_lx.push_back(truthLocalVec(0));
-	  m_t_SL_ly.push_back(truthLocalVec(1));
-	  m_t_SL_gx.push_back(gx);
-	  m_t_SL_gy.push_back(gy);
-	  m_t_SL_gz.push_back(gz);   
-	} 
+                                              globalTruthPos,
+                                              globalTruthUnitDir);
+
+      if (truthLocal.ok())
+      {
+        Acts::Vector2 truthLocalVec = truthLocal.value();
+
+        m_t_SL_lx.push_back(truthLocalVec(0));
+        m_t_SL_ly.push_back(truthLocalVec(1));
+        m_t_SL_gx.push_back(gx);
+        m_t_SL_gy.push_back(gy);
+        m_t_SL_gz.push_back(gz);
+      }
       else
-	{
-	  Acts::Vector3 loct = (*surf).transform(m_tGeometry->geometry().getGeoContext()).inverse() * globalTruthPos;
-	  
-	  m_t_SL_lx.push_back(loct(0));
-	  m_t_SL_ly.push_back(loct(1));
-	  m_t_SL_gx.push_back(gx);
-	  m_t_SL_gy.push_back(gy);
-	  m_t_SL_gz.push_back(gz);
-	}
+      {
+        Acts::Vector3 loct = (*surf).transform(m_tGeometry->geometry().getGeoContext()).inverse() * globalTruthPos;
+
+        m_t_SL_lx.push_back(loct(0));
+        m_t_SL_ly.push_back(loct(1));
+        m_t_SL_gx.push_back(gx);
+        m_t_SL_gy.push_back(gy);
+        m_t_SL_gz.push_back(gz);
+      }
     }
-    }
-  if(m_verbosity > 2)
-    {
-      std::cout << "Filled proto track" << std::endl;
-    }
+  }
+  if (m_verbosity > 2)
+  {
+    std::cout << "Filled proto track" << std::endl;
+  }
 }
 
-void ActsEvaluator::fillFittedTrackParams(const Trajectory traj, 
-					  const size_t &trackTip)
+void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
+                                          const size_t& trackTip)
 {
   m_hasFittedParams = false;
 
-  if(m_verbosity > 2)
-    {
-      std::cout << "Filling fitted track parameters" << std::endl;
-    }
+  if (m_verbosity > 2)
+  {
+    std::cout << "Filling fitted track parameters" << std::endl;
+  }
 
   /// If it has track parameters, fill the values
   if (traj.hasTrackParameters(trackTip))
   {
     m_hasFittedParams = true;
-    const auto &boundParam = traj.trackParameters(trackTip);
-    const auto &parameter = boundParam.parameters();
-    const auto &covariance = *boundParam.covariance();
+    const auto& boundParam = traj.trackParameters(trackTip);
+    const auto& parameter = boundParam.parameters();
+    const auto& covariance = *boundParam.covariance();
     m_charge_fit = boundParam.charge();
     m_eLOC0_fit = parameter[Acts::eBoundLoc0];
     m_eLOC1_fit = parameter[Acts::eBoundLoc1];
@@ -950,10 +934,10 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
     m_px_fit = boundParam.momentum()(0);
     m_py_fit = boundParam.momentum()(1);
     m_pz_fit = boundParam.momentum()(2);
-    m_x_fit  = boundParam.position(m_tGeometry->geometry().getGeoContext())(0);
-    m_y_fit  = boundParam.position(m_tGeometry->geometry().getGeoContext())(1);
-    m_z_fit  = boundParam.position(m_tGeometry->geometry().getGeoContext())(2);
-    
+    m_x_fit = boundParam.position(m_tGeometry->geometry().getGeoContext())(0);
+    m_y_fit = boundParam.position(m_tGeometry->geometry().getGeoContext())(1);
+    m_z_fit = boundParam.position(m_tGeometry->geometry().getGeoContext())(2);
+
     return;
   }
 
@@ -978,16 +962,16 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
   m_y_fit = -9999;
   m_z_fit = -9999;
 
-  if(m_verbosity > 2)
-    {
-      std::cout << "Finished fitted track params" << std::endl;
-    }
+  if (m_verbosity > 2)
+  {
+    std::cout << "Finished fitted track params" << std::endl;
+  }
   return;
 }
 
-void ActsEvaluator::fillG4Particle(PHG4Particle *part)
+void ActsEvaluator::fillG4Particle(PHG4Particle* part)
 {
-  SvtxTruthEval *trutheval = m_svtxEvalStack->get_truth_eval();
+  SvtxTruthEval* trutheval = m_svtxEvalStack->get_truth_eval();
 
   if (part)
   {
@@ -998,9 +982,9 @@ void ActsEvaluator::fillG4Particle(PHG4Particle *part)
     m_t_vx = vtx->get_x() * Acts::UnitConstants::cm;
     m_t_vy = vtx->get_y() * Acts::UnitConstants::cm;
     m_t_vz = vtx->get_z() * Acts::UnitConstants::cm;
-    if(m_verbosity > 1)
-      std::cout << "truth vertex : (" << m_t_vx << ", " << m_t_vy 
-		<< ", " << m_t_vz << ")" << std::endl;
+    if (m_verbosity > 1)
+      std::cout << "truth vertex : (" << m_t_vx << ", " << m_t_vy
+                << ", " << m_t_vz << ")" << std::endl;
     m_t_px = part->get_px();
     m_t_py = part->get_py();
     m_t_pz = part->get_pz();
@@ -1030,17 +1014,17 @@ void ActsEvaluator::fillG4Particle(PHG4Particle *part)
   return;
 }
 
-int ActsEvaluator::getNodes(PHCompositeNode *topNode)
+int ActsEvaluator::getNodes(PHCompositeNode* topNode)
 {
   m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
-  
-  if(!m_tpcSeeds or !m_siliconSeeds)
-    {
-      std::cout << PHWHERE << "Seed containers not found, cannot continue!"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+
+  if (!m_tpcSeeds or !m_siliconSeeds)
+  {
+    std::cout << PHWHERE << "Seed containers not found, cannot continue!"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
@@ -1074,19 +1058,19 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
 
   m_actsProtoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SeedTrackMap");
   if (!m_actsProtoTrackMap)
-    {
-      std::cout << PHWHERE << "No Acts proto tracks on node tree. Bailing."
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  
-  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
-  if(!m_clusterContainer)
-    {
-      std::cout << PHWHERE << "No clusters, bailing"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+  {
+    std::cout << PHWHERE << "No Acts proto tracks on node tree. Bailing."
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  if (!m_clusterContainer)
+  {
+    std::cout << PHWHERE << "No clusters, bailing"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1236,18 +1220,18 @@ void ActsEvaluator::clearTrackVariables()
   m_t_SL_gx.clear();
   m_t_SL_gy.clear();
   m_t_SL_gz.clear();
-  
+
   m_protoTrackPx = -9999.;
   m_protoTrackPy = -9999.;
   m_protoTrackPz = -9999.;
-  m_protoTrackX  = -9999.;
-  m_protoTrackY  = -9999.;
-  m_protoTrackZ  = -9999.;
-  m_protoD0Cov   = -9999.;
-  m_protoZ0Cov   = -9999.;
-  m_protoPhiCov  = -9999.;
-  m_protoThetaCov= -9999.;
-  m_protoQopCov  = -9999.;
+  m_protoTrackX = -9999.;
+  m_protoTrackY = -9999.;
+  m_protoTrackZ = -9999.;
+  m_protoD0Cov = -9999.;
+  m_protoZ0Cov = -9999.;
+  m_protoPhiCov = -9999.;
+  m_protoThetaCov = -9999.;
+  m_protoQopCov = -9999.;
 
   return;
 }
@@ -1274,7 +1258,7 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_phi", &m_t_phi);
   m_trackTree->Branch("t_eta", &m_t_eta);
   m_trackTree->Branch("t_pT", &m_t_pT);
-  
+
   m_trackTree->Branch("t_x", &m_t_x);
   m_trackTree->Branch("t_y", &m_t_y);
   m_trackTree->Branch("t_z", &m_t_z);
@@ -1288,7 +1272,6 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_eTHETA", &m_t_eTHETA);
   m_trackTree->Branch("t_eQOP", &m_t_eQOP);
   m_trackTree->Branch("t_eT", &m_t_eT);
-
 
   m_trackTree->Branch("hasFittedParams", &m_hasFittedParams);
   m_trackTree->Branch("chi2_fit", &m_chi2_fit);
@@ -1310,13 +1293,13 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("g_px_fit", &m_px_fit);
   m_trackTree->Branch("g_py_fit", &m_py_fit);
   m_trackTree->Branch("g_pz_fit", &m_pz_fit);
-  m_trackTree->Branch("g_x_fit" , &m_x_fit);
-  m_trackTree->Branch("g_y_fit" , &m_y_fit);
-  m_trackTree->Branch("g_z_fit" , &m_z_fit);
-  m_trackTree->Branch("g_dca3Dxy_fit" , &m_dca3Dxy);
-  m_trackTree->Branch("g_dca3Dz_fit" , &m_dca3Dz);
-  m_trackTree->Branch("g_dca3Dxy_cov" , &m_dca3DxyCov);
-  m_trackTree->Branch("g_dca3Dz_cov" , &m_dca3DzCov);
+  m_trackTree->Branch("g_x_fit", &m_x_fit);
+  m_trackTree->Branch("g_y_fit", &m_y_fit);
+  m_trackTree->Branch("g_z_fit", &m_z_fit);
+  m_trackTree->Branch("g_dca3Dxy_fit", &m_dca3Dxy);
+  m_trackTree->Branch("g_dca3Dz_fit", &m_dca3Dz);
+  m_trackTree->Branch("g_dca3Dxy_cov", &m_dca3DxyCov);
+  m_trackTree->Branch("g_dca3Dz_cov", &m_dca3DzCov);
 
   m_trackTree->Branch("g_protoTrackPx", &m_protoTrackPx);
   m_trackTree->Branch("g_protoTrackPy", &m_protoTrackPy);
@@ -1340,7 +1323,7 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_SL_gy", &m_t_SL_gy);
   m_trackTree->Branch("t_SL_gz", &m_t_SL_gz);
 
-  m_trackTree->Branch("nSharedHits",&m_nSharedHits);
+  m_trackTree->Branch("nSharedHits", &m_nSharedHits);
   m_trackTree->Branch("nHoles", &m_nHoles);
   m_trackTree->Branch("nOutliers", &m_nOutliers);
   m_trackTree->Branch("nStates", &m_nStates);

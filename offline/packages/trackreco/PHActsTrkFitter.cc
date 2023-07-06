@@ -138,7 +138,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
     {
       m_evaluator = std::make_unique<ActsEvaluator>(m_evalname);
       m_evaluator->Init(topNode);
-      m_evaluator->verbosity(Verbosity() + 3);
+      m_evaluator->verbosity(Verbosity());
     }
 
   if(Verbosity() > 1)

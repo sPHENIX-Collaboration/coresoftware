@@ -3,10 +3,10 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ActsSourceLink.h>
 #include <trackbase/ActsTrackFittingAlgorithm.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <Acts/Utilities/Helpers.hpp>
 
@@ -32,84 +32,82 @@ class TrackSeedContainer;
 using SourceLink = ActsSourceLink;
 using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
 using Trajectory = ActsExamples::Trajectories;
-using Measurement = Acts::Measurement<Acts::BoundIndices,2>;
+using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using Acts::VectorHelpers::eta;
 using Acts::VectorHelpers::perp;
 using Acts::VectorHelpers::phi;
 using Acts::VectorHelpers::theta;
 
-
 /**
  * This class is an analyzing class for the Acts track fitting, and produces
- * a tree with many branches useful for debugging what Acts is doing. 
- * The truth G4Particle, reconstructed Acts track fit result from 
+ * a tree with many branches useful for debugging what Acts is doing.
+ * The truth G4Particle, reconstructed Acts track fit result from
  * PHActsTrkFitter, and the comparison between truth and reconstructed states
  * throughout the track fit are written out to the tree.
- * Note that this module works and outputs in Acts units of mm and GeV, 
+ * Note that this module works and outputs in Acts units of mm and GeV,
  */
-class ActsEvaluator 
+class ActsEvaluator
 {
  public:
-  ActsEvaluator(const std::string &name = "ActsEvaluator.root");
-~ActsEvaluator();
+  ActsEvaluator(const std::string& name = "ActsEvaluator.root");
+  ~ActsEvaluator();
 
   void Init(PHCompositeNode* topNode);
   void process_track(const Trajectory& traj,
-		       SvtxTrack* track,
-		     const TrackSeed* seed,
-		    const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
+                     SvtxTrack* track,
+                     const TrackSeed* seed,
+                     const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
   void End();
-  void setEvalCKF(bool evalCKF) {m_evalCKF = evalCKF;}
-void verbosity(int verb) { m_verbosity = verb; }
-void next_event(PHCompositeNode* topNode);
+  void setEvalCKF(bool evalCKF) { m_evalCKF = evalCKF; }
+  void verbosity(int verb) { m_verbosity = verb; }
+  void next_event(PHCompositeNode* topNode);
 
   /// Function to evaluate Trajectories fit results from the KF
   void evaluateTrackFit(const Trajectory& traj,
-			  SvtxTrack* track,
-			  const TrackSeed* seed,
-			  const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
-  
+                        SvtxTrack* track,
+                        const TrackSeed* seed,
+                        const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
  private:
-  int getNodes(PHCompositeNode *topNode);
-  
+  int getNodes(PHCompositeNode* topNode);
+
   void initializeTree();
 
-  void fillG4Particle(PHG4Particle *part);
+  void fillG4Particle(PHG4Particle* part);
 
   void fillProtoTrack(const TrackSeed* seed);
 
   void fillFittedTrackParams(const Trajectory traj,
-			     const size_t &trackTip);
+                             const size_t& trackTip);
 
   void visitTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj,
-			const size_t &trackTip, 
-			const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
+                        const size_t& trackTip,
+                        const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
   void clearTrackVariables();
-  
+
   Surface getSurface(TrkrDefs::cluskey cluskey, TrkrCluster* cluster);
 
   Acts::Vector3 getGlobalTruthHit(TrkrDefs::cluskey cluskey,
-				   float &_gt);
+                                  float& _gt);
 
-  SvtxEvaluator *m_svtxEvaluator{nullptr};
-  PHG4TruthInfoContainer *m_truthInfo{nullptr};
+  SvtxEvaluator* m_svtxEvaluator{nullptr};
+  PHG4TruthInfoContainer* m_truthInfo{nullptr};
   SvtxTrackMap *m_trackMap{nullptr}, *m_actsProtoTrackMap{nullptr};
-  SvtxEvalStack *m_svtxEvalStack{nullptr};
+  SvtxEvalStack* m_svtxEvalStack{nullptr};
 
-  ActsGeometry *m_tGeometry{nullptr};
-  TrkrClusterContainer *m_clusterContainer{nullptr};
-TrackSeedContainer* m_tpcSeeds{nullptr}, *m_siliconSeeds{nullptr};
+  ActsGeometry* m_tGeometry{nullptr};
+  TrkrClusterContainer* m_clusterContainer{nullptr};
+  TrackSeedContainer *m_tpcSeeds{nullptr}, *m_siliconSeeds{nullptr};
 
   /// boolean indicating whether or not to evaluate the CKF or
   /// the KF. Must correspond with what was run to do fitting
   /// i.e. PHActsTrkFitter or PHActsTrkProp
   bool m_evalCKF = false;
-int m_verbosity = 0;
-std::string m_filename;
-  TFile *m_trackFile{nullptr};
-  TTree *m_trackTree{nullptr};
+  int m_verbosity = 0;
+  std::string m_filename;
+  TFile* m_trackFile{nullptr};
+  TTree* m_trackTree{nullptr};
 
   /// Acts tree values
   int m_eventNr{0};
@@ -119,16 +117,16 @@ std::string m_filename;
   unsigned long m_t_barcode{0};  /// Truth particle barcode
   int m_t_charge{0};             /// Truth particle charge
   float m_t_time{0};             /// Truth particle time
-  float m_t_vx{NAN};            /// Truth particle vertex x
-  float m_t_vy{NAN};            /// Truth particle vertex y
-  float m_t_vz{NAN};            /// Truth particle vertex z
-  float m_t_px{NAN};            /// Truth particle initial momentum px
-  float m_t_py{NAN};            /// Truth particle initial momentum py
-  float m_t_pz{NAN};            /// Truth particle initial momentum pz
-  float m_t_theta{NAN};         /// Truth particle initial momentum theta
-  float m_t_phi{NAN};           /// Truth particle initial momentum phi
-  float m_t_pT{NAN};            /// Truth particle initial momentum pT
-  float m_t_eta{NAN};           /// Truth particle initial momentum eta
+  float m_t_vx{NAN};             /// Truth particle vertex x
+  float m_t_vy{NAN};             /// Truth particle vertex y
+  float m_t_vz{NAN};             /// Truth particle vertex z
+  float m_t_px{NAN};             /// Truth particle initial momentum px
+  float m_t_py{NAN};             /// Truth particle initial momentum py
+  float m_t_pz{NAN};             /// Truth particle initial momentum pz
+  float m_t_theta{NAN};          /// Truth particle initial momentum theta
+  float m_t_phi{NAN};            /// Truth particle initial momentum phi
+  float m_t_pT{NAN};             /// Truth particle initial momentum pT
+  float m_t_eta{NAN};            /// Truth particle initial momentum eta
 
   std::vector<float> m_t_x;  /// Global truth hit position x
   std::vector<float> m_t_y;  /// Global truth hit position y
@@ -170,32 +168,32 @@ std::string m_filename;
   std::vector<int> m_dim_hit;       /// dimension of measurement
 
   bool m_hasFittedParams{false};  /// if the track has fitted parameter
-  float m_eLOC0_fit{NAN};        /// fitted parameter eLOC_0
-  float m_eLOC1_fit{NAN};        /// fitted parameter eLOC_1
-  float m_ePHI_fit{NAN};         /// fitted parameter ePHI
-  float m_eTHETA_fit{NAN};       /// fitted parameter eTHETA
-  float m_eQOP_fit{NAN};         /// fitted parameter eQOP
-  float m_eT_fit{NAN};           /// fitted parameter eT
-  float m_err_eLOC0_fit{NAN};    /// fitted parameter eLOC_NANerr
-  float m_err_eLOC1_fit{NAN};    /// fitted parameter eLOC_1 err
-  float m_err_ePHI_fit{NAN};     /// fitted parameter ePHI err
-  float m_err_eTHETA_fit{NAN};   /// fitted parameter eTHETA err
-  float m_err_eQOP_fit{NAN};     /// fitted parameter eQOP err
-  float m_err_eT_fit{NAN};       /// fitted parameter eT err
-  float m_px_fit{NAN};           /// fitted parameter global px
-  float m_py_fit{NAN};           /// fitted parameter global py
-  float m_pz_fit{NAN};           /// fitted parameter global pz
-  float m_x_fit{NAN};            /// fitted parameter global PCA x
-  float m_y_fit{NAN};            /// fitted parameter global PCA y
-  float m_z_fit{NAN};            /// fitted parameter global PCA z
-  float m_chi2_fit{NAN};         /// fitted parameter chi2
-  float m_quality{NAN};          /// SvtxTrack quality parameter
-  float m_ndf_fit{NAN};          /// fitted parameter ndf
-  float m_dca3Dxy{NAN};          /// fitted parameter 3D DCA in xy plane
-  float m_dca3Dz{NAN};           /// fitted parameter 3D DCA in z plane
-  float m_dca3DxyCov{NAN};       /// fitted parameter 3D DCA covariance in xy
-  float m_dca3DzCov{NAN};        /// fitted parameter 3D DCA covariance in z
-  int m_charge_fit{NAN};          /// fitted parameter charge
+  float m_eLOC0_fit{NAN};         /// fitted parameter eLOC_0
+  float m_eLOC1_fit{NAN};         /// fitted parameter eLOC_1
+  float m_ePHI_fit{NAN};          /// fitted parameter ePHI
+  float m_eTHETA_fit{NAN};        /// fitted parameter eTHETA
+  float m_eQOP_fit{NAN};          /// fitted parameter eQOP
+  float m_eT_fit{NAN};            /// fitted parameter eT
+  float m_err_eLOC0_fit{NAN};     /// fitted parameter eLOC_NANerr
+  float m_err_eLOC1_fit{NAN};     /// fitted parameter eLOC_1 err
+  float m_err_ePHI_fit{NAN};      /// fitted parameter ePHI err
+  float m_err_eTHETA_fit{NAN};    /// fitted parameter eTHETA err
+  float m_err_eQOP_fit{NAN};      /// fitted parameter eQOP err
+  float m_err_eT_fit{NAN};        /// fitted parameter eT err
+  float m_px_fit{NAN};            /// fitted parameter global px
+  float m_py_fit{NAN};            /// fitted parameter global py
+  float m_pz_fit{NAN};            /// fitted parameter global pz
+  float m_x_fit{NAN};             /// fitted parameter global PCA x
+  float m_y_fit{NAN};             /// fitted parameter global PCA y
+  float m_z_fit{NAN};             /// fitted parameter global PCA z
+  float m_chi2_fit{NAN};          /// fitted parameter chi2
+  float m_quality{NAN};           /// SvtxTrack quality parameter
+  float m_ndf_fit{NAN};           /// fitted parameter ndf
+  float m_dca3Dxy{NAN};           /// fitted parameter 3D DCA in xy plane
+  float m_dca3Dz{NAN};            /// fitted parameter 3D DCA in z plane
+  float m_dca3DxyCov{NAN};        /// fitted parameter 3D DCA covariance in xy
+  float m_dca3DzCov{NAN};         /// fitted parameter 3D DCA covariance in z
+  int m_charge_fit{-9999999};     /// fitted parameter charge
 
   int m_nPredicted{0};                   /// number of states with predicted parameter
   std::vector<bool> m_prt;               /// predicted status
@@ -303,30 +301,28 @@ std::string m_filename;
   std::vector<float> m_eta_smt;          /// smoothed momentum eta
   std::vector<float> m_pT_smt;           /// smoothed momentum pT
 
-  float m_protoTrackPx{NAN};          /// Proto track px
-  float m_protoTrackPy{NAN};          /// Proto track py
-  float m_protoTrackPz{NAN};          /// Proto track pz
-  float m_protoTrackX{NAN};           /// Proto track PCA x
-  float m_protoTrackY{NAN};           /// Proto track PCA y
-  float m_protoTrackZ{NAN};           /// Proto track PCA z
-  float m_protoD0Cov{NAN};            /// Proto track loc0 covariance
-  float m_protoZ0Cov{NAN};            /// Proto track loc1 covariance
-  float m_protoPhiCov{NAN};           /// Proto track phi covariance
-  float m_protoThetaCov{NAN};         /// Proto track theta covariance
-  float m_protoQopCov{NAN};           /// Proto track q/p covariance
-  
-  
-  std::vector<float> m_SL_lx;            /// Proto track source link local x pos
-  std::vector<float> m_SL_ly;            /// Proto track source link local y pos
-  std::vector<float> m_SLx;              /// Proto track source link global x pos
-  std::vector<float> m_SLy;              /// Proto track source link global y pos
-  std::vector<float> m_SLz;              /// Proto track source link global z pos
-  std::vector<float> m_t_SL_lx;          /// Proto track truth hit local x
-  std::vector<float> m_t_SL_ly;          /// Proto track truth hit local y
-  std::vector<float> m_t_SL_gx;          /// Proto track truth hit global x
-  std::vector<float> m_t_SL_gy;          /// Proto track truth hit global y
-  std::vector<float> m_t_SL_gz;          /// Proto track truth hit global z
+  float m_protoTrackPx{NAN};   /// Proto track px
+  float m_protoTrackPy{NAN};   /// Proto track py
+  float m_protoTrackPz{NAN};   /// Proto track pz
+  float m_protoTrackX{NAN};    /// Proto track PCA x
+  float m_protoTrackY{NAN};    /// Proto track PCA y
+  float m_protoTrackZ{NAN};    /// Proto track PCA z
+  float m_protoD0Cov{NAN};     /// Proto track loc0 covariance
+  float m_protoZ0Cov{NAN};     /// Proto track loc1 covariance
+  float m_protoPhiCov{NAN};    /// Proto track phi covariance
+  float m_protoThetaCov{NAN};  /// Proto track theta covariance
+  float m_protoQopCov{NAN};    /// Proto track q/p covariance
 
+  std::vector<float> m_SL_lx;    /// Proto track source link local x pos
+  std::vector<float> m_SL_ly;    /// Proto track source link local y pos
+  std::vector<float> m_SLx;      /// Proto track source link global x pos
+  std::vector<float> m_SLy;      /// Proto track source link global y pos
+  std::vector<float> m_SLz;      /// Proto track source link global z pos
+  std::vector<float> m_t_SL_lx;  /// Proto track truth hit local x
+  std::vector<float> m_t_SL_ly;  /// Proto track truth hit local y
+  std::vector<float> m_t_SL_gx;  /// Proto track truth hit global x
+  std::vector<float> m_t_SL_gy;  /// Proto track truth hit global y
+  std::vector<float> m_t_SL_gz;  /// Proto track truth hit global z
 };
 
 #endif
