@@ -23,7 +23,6 @@
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
-#include <g4eval/SvtxEvaluator.h>
 #include <g4eval/SvtxTrackEval.h>
 
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -38,10 +37,8 @@
 #include <TFile.h>
 #include <TTree.h>
 
-ActsEvaluator::ActsEvaluator(const std::string &name,
-			     SvtxEvaluator *svtxEvaluator)
-: m_svtxEvaluator(svtxEvaluator)
-  , m_truthInfo(nullptr)
+ActsEvaluator::ActsEvaluator(const std::string &name)
+: m_truthInfo(nullptr)
   , m_trackMap(nullptr)
   , m_svtxEvalStack(nullptr)
   , m_actsTrackKeyMap(nullptr)
@@ -55,13 +52,20 @@ ActsEvaluator::~ActsEvaluator()
 {
 }
 
-void ActsEvaluator::Init()
+void ActsEvaluator::Init(PHCompositeNode* topNode)
 {
   if (m_verbosity > 1)
   {
     std::cout << "Starting ActsEvaluator::Init" << std::endl;
   }
-
+    
+  if (getNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
+    {
+      std::cout << "Nodes not available in ActsEvaluator::Init"
+		<< std::endl;
+      return;
+    }
+  
   initializeTree();
 
   if (m_verbosity > 1)
@@ -70,9 +74,17 @@ void ActsEvaluator::Init()
   }
 
 }
+void ActsEvaluator::next_event(PHCompositeNode* topNode)
+{
+  if(!m_svtxEvalStack)
+    {
+      m_svtxEvalStack = new SvtxEvalStack(topNode);
+    }
 
-void ActsEvaluator::process_track(PHCompositeNode *topNode,
-				  const Trajectory& traj,
+  m_svtxEvalStack->next_event(topNode);
+
+}
+void ActsEvaluator::process_track(const Trajectory& traj,
 				  SvtxTrack* track,
 				  const TrackSeed* seed,
 				  const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
@@ -82,18 +94,8 @@ void ActsEvaluator::process_track(PHCompositeNode *topNode,
     std::cout << "Starting ActsEvaluator at event " << m_eventNr
               << std::endl;
   }
-  
-  if (getNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
-    {
-      std::cout << "Nodes not available in ActsEvaluator::process_track"
-		<< std::endl;
-      return;
-    }
-
-  m_svtxEvalStack = new SvtxEvalStack(topNode);
-  m_svtxEvalStack->next_event(topNode);
-
-  evaluateTrackFit(topNode, traj, track, seed, measurements);
+ 
+  evaluateTrackFit(traj, track, seed, measurements);
     
   m_eventNr++;
 
@@ -104,8 +106,7 @@ void ActsEvaluator::process_track(PHCompositeNode *topNode,
 }
 
 
-void ActsEvaluator::evaluateTrackFit(PHCompositeNode *topNode,
-				      const Trajectory& traj,
+void ActsEvaluator::evaluateTrackFit(const Trajectory& traj,
 				     SvtxTrack* track,
 				      const TrackSeed* seed,
 				      const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
@@ -202,9 +203,9 @@ void ActsEvaluator::evaluateTrackFit(PHCompositeNode *topNode,
   m_quality = track->get_quality();
   
   fillG4Particle(g4particle);
-  fillProtoTrack(seed, topNode);
+  fillProtoTrack(seed);
   fillFittedTrackParams(traj, trackTip);
-  visitTrackStates(mj,trackTip, measurements, topNode);
+  visitTrackStates(mj,trackTip, measurements);
 	
   m_trackTree->Fill();
   
@@ -243,8 +244,7 @@ void ActsEvaluator::End()
 
 void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj, 
 				     const size_t &trackTip,
-				     const ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-				     PHCompositeNode *topNode)
+				     const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
 
   if(m_verbosity > 2)
@@ -307,7 +307,7 @@ void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory<Acts::VectorMul
     /// We go backwards from hitID -> TrkrDefs::cluskey to g4hit with
     /// the map created in PHActsSourceLinks
     float gt = -9999;
-    Acts::Vector3 globalTruthPos = getGlobalTruthHit(topNode, cluskey, gt);
+    Acts::Vector3 globalTruthPos = getGlobalTruthHit(cluskey, gt);
     float gx = globalTruthPos(0);
     float gy = globalTruthPos(1);
     float gz = globalTruthPos(2);
@@ -760,8 +760,7 @@ void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory<Acts::VectorMul
 
 
 
-Acts::Vector3 ActsEvaluator::getGlobalTruthHit(PHCompositeNode */*topNode*/,
-						TrkrDefs::cluskey cluskey,
+Acts::Vector3 ActsEvaluator::getGlobalTruthHit(TrkrDefs::cluskey cluskey,
 						float &_gt)
 {
   SvtxClusterEval *clustereval = m_svtxEvalStack->get_cluster_eval();
@@ -799,7 +798,7 @@ Surface ActsEvaluator::getSurface(TrkrDefs::cluskey cluskey, TrkrCluster* cluste
   
 }
 
-void ActsEvaluator::fillProtoTrack(const TrackSeed* seed, PHCompositeNode *topNode)
+void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
 {
 
   if(m_verbosity > 2)
@@ -827,12 +826,9 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed, PHCompositeNode *topNo
 
   unsigned int tpcid = seed->get_tpc_seed_index();
   unsigned int siid = seed->get_silicon_seed_index();
-
-  auto tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
-  auto siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
       
-  auto siseed = siliconSeeds->get(siid);
-  auto tpcseed = tpcSeeds->get(tpcid);
+  auto siseed = m_siliconSeeds->get(siid);
+  auto tpcseed = m_tpcSeeds->get(tpcid);
   
   for(auto svtxseed : {siseed, tpcseed})
     {
@@ -872,7 +868,7 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed, PHCompositeNode *topNo
       /// Get corresponding truth hit position
       float gt = -9999;
   
-      Acts::Vector3 globalTruthPos = getGlobalTruthHit(topNode, key, gt);
+      Acts::Vector3 globalTruthPos = getGlobalTruthHit(key, gt);
  
       float gx = globalTruthPos(0);
       float gy = globalTruthPos(1);
@@ -1033,7 +1029,16 @@ void ActsEvaluator::fillG4Particle(PHG4Particle *part)
 
 int ActsEvaluator::getNodes(PHCompositeNode *topNode)
 {
+  m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   
+  if(!m_tpcSeeds or !m_siliconSeeds)
+    {
+      std::cout << PHWHERE << "Seed containers not found, cannot continue!"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if(!m_vertexMap)
     {

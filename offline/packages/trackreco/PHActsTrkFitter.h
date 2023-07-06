@@ -9,6 +9,7 @@
 #define TRACKRECO_ACTSTRKFITTER_H
 
 #include "ActsAlignmentStates.h"
+#include "ActsEvaluator.h"
 
 #include <fun4all/SubsysReco.h>
 
@@ -143,7 +144,8 @@ class PHActsTrkFitter : public SubsysReco
 				 SurfacePtrVec& surfaces) const;
   void checkSurfaceVec(SurfacePtrVec& surfaces) const;
 
-  bool getTrackFitResult(const FitResult& fitOutput, SvtxTrack* track,
+  bool getTrackFitResult(const FitResult& fitOutput, TrackSeed* seed, 
+			 SvtxTrack* track,
 			 const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
   Acts::BoundSymMatrix setDefaultCovariance() const;
@@ -188,6 +190,9 @@ class PHActsTrkFitter : public SubsysReco
   bool m_pp_mode = false;
 
   bool m_actsEvaluator = false;
+  std::unique_ptr<ActsEvaluator> m_evaluator = nullptr;
+  std::string m_evalname = "ActsEvaluator.root";
+
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
   SvtxTrackMap *m_seedTracks = nullptr;
 

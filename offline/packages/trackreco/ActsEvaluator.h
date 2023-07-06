@@ -23,6 +23,7 @@ class PHG4TruthInfoContainer;
 class TrkrClusterContainer;
 class SvtxEvaluator;
 class TrackSeed;
+class TrackSeedContainer;
 
 #include <map>
 #include <string>
@@ -49,49 +50,47 @@ using Acts::VectorHelpers::theta;
 class ActsEvaluator 
 {
  public:
-  ActsEvaluator(const std::string &name = "ActsEvaluator.root",
-		  SvtxEvaluator *svtxEvaluator = nullptr);
+  ActsEvaluator(const std::string &name = "ActsEvaluator.root");
 ~ActsEvaluator();
 
-  void Init();
-  void process_track(PHCompositeNode *topNode,
-		    const Trajectory& traj,
+  void Init(PHCompositeNode* topNode);
+  void process_track(const Trajectory& traj,
 		       SvtxTrack* track,
 		     const TrackSeed* seed,
 		    const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
   void End();
   void setEvalCKF(bool evalCKF) {m_evalCKF = evalCKF;}
 void verbosity(int verb) { m_verbosity = verb; }
- private:
-  int getNodes(PHCompositeNode *topNode);
-  
+void next_event(PHCompositeNode* topNode);
+
   /// Function to evaluate Trajectories fit results from the KF
-  void evaluateTrackFit(PHCompositeNode *topNode,
-			const Trajectory& traj,
+  void evaluateTrackFit(const Trajectory& traj,
 			  SvtxTrack* track,
 			  const TrackSeed* seed,
 			  const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
+  
+
+ private:
+  int getNodes(PHCompositeNode *topNode);
   
   void initializeTree();
 
   void fillG4Particle(PHG4Particle *part);
 
-  void fillProtoTrack(const TrackSeed* seed, PHCompositeNode *topNode);
+  void fillProtoTrack(const TrackSeed* seed);
 
   void fillFittedTrackParams(const Trajectory traj,
 			     const size_t &trackTip);
 
   void visitTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj,
 			const size_t &trackTip, 
-			const ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-			PHCompositeNode *topNode);
+			const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
   void clearTrackVariables();
   
   Surface getSurface(TrkrDefs::cluskey cluskey, TrkrCluster* cluster);
 
-  Acts::Vector3 getGlobalTruthHit(PHCompositeNode *topNode, 
-				   TrkrDefs::cluskey cluskey,
+  Acts::Vector3 getGlobalTruthHit(TrkrDefs::cluskey cluskey,
 				   float &_gt);
 
   SvtxEvaluator *m_svtxEvaluator{nullptr};
@@ -105,6 +104,8 @@ void verbosity(int verb) { m_verbosity = verb; }
   ActsGeometry *m_tGeometry{nullptr};
   SvtxVertexMap *m_vertexMap{nullptr};
   TrkrClusterContainer *m_clusterContainer{nullptr};
+TrackSeedContainer* m_tpcSeeds{nullptr};
+TrackSeedContainer* m_siliconSeeds{nullptr};
 
   /// boolean indicating whether or not to evaluate the CKF or
   /// the KF. Must correspond with what was run to do fitting
