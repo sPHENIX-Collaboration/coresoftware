@@ -1170,7 +1170,6 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
 
 void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap& /*positions*/)
 {
-  int i=0;
   for(auto& seed: seeds )
   { 
     /// The ALICEKF gives a better charge determination at high pT
@@ -1179,10 +1178,7 @@ void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap&
     seed.lineFit(_cluster_map,_tgeometry, 7, 55);
     
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
-    std::cout << "set pt momentum to " << seed.get_pt() << std::endl;
-    std::cout << "set track p to " << seed.get_p() << std::endl;
     _track_map->insert(&seed); 
-    i++;
   }
 }
 
