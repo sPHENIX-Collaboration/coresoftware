@@ -38,13 +38,7 @@
 #include <TTree.h>
 
 ActsEvaluator::ActsEvaluator(const std::string &name)
-: m_truthInfo(nullptr)
-  , m_trackMap(nullptr)
-  , m_svtxEvalStack(nullptr)
-  , m_actsTrackKeyMap(nullptr)
-  , m_actsFitResults(nullptr)
-  , m_tGeometry(nullptr)
-  , m_filename(name)
+:  m_filename(name)
 {
 }
 
@@ -61,7 +55,7 @@ void ActsEvaluator::Init(PHCompositeNode* topNode)
     
   if (getNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
     {
-      std::cout << "Nodes not available in ActsEvaluator::Init"
+      std::cout << "Error: Nodes not available in ActsEvaluator::Init"
 		<< std::endl;
       return;
     }
@@ -152,15 +146,7 @@ void ActsEvaluator::evaluateTrackFit(const Trajectory& traj,
     }
 
   PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
-  unsigned int vertexId = track->get_vertex_id();
-  if(vertexId == UINT_MAX)
-    vertexId = 0;
-  const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
-  Acts::Vector3 vertex;
-  vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
-  vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm;
-  vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
-  
+ 
   if(m_verbosity > 1)
     {
       std::cout << "Analyzing SvtxTrack "<< iTrack << std::endl;
@@ -805,17 +791,33 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
     {
       std::cout << "Filling proto track seed quantities" << std::endl;
     }
+
+  unsigned int tpcid = seed->get_tpc_seed_index();
+  unsigned int siid = seed->get_silicon_seed_index();
+
+  auto siseed = m_siliconSeeds->get(siid);
+  auto tpcseed = m_tpcSeeds->get(tpcid);
+
+  Acts::Vector3 position = Acts::Vector3::Zero();
   
-  Acts::Vector3 position(seed->get_x(), 
-			 seed->get_y(),
-			 seed->get_z());
-  position *= Acts::UnitConstants::cm;
- 
-  Acts::Vector3 momentum(seed->get_px(m_clusterContainer,
+  if(siseed)
+    {
+      position(0) = siseed->get_x() * Acts::UnitConstants::cm;
+      position(1) = siseed->get_y() * Acts::UnitConstants::cm;
+      position(2) = siseed->get_z() * Acts::UnitConstants::cm;
+    }
+  else
+    {
+      position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
+      position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
+      position(2) = tpcseed->get_z() * Acts::UnitConstants::cm;
+    }
+  
+  Acts::Vector3 momentum(tpcseed->get_px(m_clusterContainer,
 				      m_tGeometry), 
-			 seed->get_py(m_clusterContainer,
+			 tpcseed->get_py(m_clusterContainer,
 				       m_tGeometry),
-			 seed->get_pz());
+			 tpcseed->get_pz());
 
   m_protoTrackPx = momentum(0);
   m_protoTrackPy = momentum(1);
@@ -824,14 +826,13 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
   m_protoTrackY  = position(1);
   m_protoTrackZ  = position(2);
 
-  unsigned int tpcid = seed->get_tpc_seed_index();
-  unsigned int siid = seed->get_silicon_seed_index();
-      
-  auto siseed = m_siliconSeeds->get(siid);
-  auto tpcseed = m_tpcSeeds->get(tpcid);
-  
   for(auto svtxseed : {siseed, tpcseed})
     {
+      //! protect against tpc only tracks
+      if(!svtxseed) 
+	{
+	  continue;
+	}
   for(auto clusIter = svtxseed->begin_cluster_keys();
       clusIter != svtxseed->end_cluster_keys();
       ++clusIter)
@@ -1039,14 +1040,6 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if(!m_vertexMap)
-    {
-      std::cout << PHWHERE << "SvtxVertexMap not found, cannot continue!" 
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
   m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   if (!m_truthInfo)
@@ -1064,31 +1057,6 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
     std::cout << PHWHERE << "No Acts Tracking geometry on node tree. Bailing"
               << std::endl;
 
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  m_actsTrackKeyMap = findNode::getClass<std::map<const unsigned int,
-				         std::map<const size_t, 
-						  const unsigned int>>>
-    (topNode, "ActsTrackKeys");
-
-  if (!m_actsTrackKeyMap)
-    {
-      if(m_verbosity > 1)
-	std::cout << PHWHERE << "No acts CKF track map on node tree."
-		  << std::endl 
-		  << "If you are analyzing the CKF, your results will be incorrect."
-		  << std::endl;
-
-    }
-
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
-                     (topNode, "ActsTrajectories");
-
-  if (!m_actsFitResults)
-  {
-    std::cout << PHWHERE << "No Acts fit results on node tree. Bailing."
-              << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

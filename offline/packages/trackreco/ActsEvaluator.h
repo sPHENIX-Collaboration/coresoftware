@@ -97,15 +97,10 @@ void next_event(PHCompositeNode* topNode);
   PHG4TruthInfoContainer *m_truthInfo{nullptr};
   SvtxTrackMap *m_trackMap{nullptr}, *m_actsProtoTrackMap{nullptr};
   SvtxEvalStack *m_svtxEvalStack{nullptr};
-  std::map<const unsigned int, std::map<const size_t, 
-    const unsigned int>> *m_actsTrackKeyMap{nullptr};
-  std::map<const unsigned int, Trajectory> *m_actsFitResults{nullptr};
 
   ActsGeometry *m_tGeometry{nullptr};
-  SvtxVertexMap *m_vertexMap{nullptr};
   TrkrClusterContainer *m_clusterContainer{nullptr};
-TrackSeedContainer* m_tpcSeeds{nullptr};
-TrackSeedContainer* m_siliconSeeds{nullptr};
+TrackSeedContainer* m_tpcSeeds{nullptr}, *m_siliconSeeds{nullptr};
 
   /// boolean indicating whether or not to evaluate the CKF or
   /// the KF. Must correspond with what was run to do fitting
