@@ -52,6 +52,8 @@ void MicromegasRawDataEvaluation::Container::Reset()
   n_waveform.clear();
   samples.clear();
   waveforms.clear();
+  lvl1_bco_list.clear();
+  lvl1_count_list.clear();
 }
 
 //_________________________________________________________
@@ -118,13 +120,6 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         << std::endl;
     }
 
-    // drop events for which waveforms is too large
-    if( m_max_waveforms > 0 && n_waveform > m_max_waveforms )
-    {
-      std::cout << "icromegasRawDataEvaluation::process_event - too many waveforms: " << n_waveform << " skipping" << std::endl;
-      continue;
-    }
-
     for (int t = 0; t < n_tagger; t++)
     {
       const auto tagger_type = static_cast<uint16_t>(packet->lValue(t, "TAGGER_TYPE"));
@@ -155,8 +150,22 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
       // store lvl1 bco into map
       if( is_lvl1 )
-      { m_packet_bco_map[packet_id] = bco; }
+      {
+        m_packet_bco_map[packet_id] = bco; 
+        m_packet_lvl1_count_map[packet_id] = lvl1_count;
+      }
 
+    }
+
+    // store current bco and trigger count in tree
+    m_container->lvl1_bco_list.push_back(m_packet_bco_map[packet_id]);
+    m_container->lvl1_count_list.push_back(m_packet_lvl1_count_map[packet_id]);
+    
+    // drop events for which waveforms is too large
+    if( m_max_waveforms > 0 && n_waveform > m_max_waveforms )
+    {
+      std::cout << "icromegasRawDataEvaluation::process_event - too many waveforms: " << n_waveform << " skipping" << std::endl;
+      continue;
     }
 
     for( int iwf=0; iwf<n_waveform; ++iwf )

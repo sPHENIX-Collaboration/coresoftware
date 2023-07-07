@@ -68,7 +68,6 @@ class MicromegasRawDataEvaluation : public SubsysReco
     /// packet
     unsigned int packet_id = 0;
 
-
     /// ll1 bco
     uint64_t lvl1_bco = 0;
 
@@ -173,6 +172,13 @@ class MicromegasRawDataEvaluation : public SubsysReco
 
     Waveform::List waveforms;
     Sample::List samples;
+    
+    // bco for this event
+    std::vector<uint64_t> lvl1_bco_list;
+    
+    // lvl1 count for this event
+    std::vector<uint32_t> lvl1_count_list;
+    
     ClassDef(Container,1)
   };
 
@@ -210,8 +216,10 @@ class MicromegasRawDataEvaluation : public SubsysReco
   Container* m_container = nullptr;
 
   //! map bco to packet
-  using packet_map_t = std::map<unsigned int, uint64_t>;
-  packet_map_t m_packet_bco_map;
+  std::map<unsigned int, uint64_t> m_packet_bco_map;
+
+  //! lvl1 counter bco to packet
+  std::map<unsigned int, uint32_t> m_packet_lvl1_count_map;
 
   // map bco to waveforms
   using bco_map_t = std::map<uint64_t,unsigned int>;
