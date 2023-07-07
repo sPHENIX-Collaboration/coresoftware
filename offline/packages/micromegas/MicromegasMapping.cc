@@ -107,6 +107,13 @@ m_detectors( {
 {
   std::cout << "MicromegasMapping::MicromegasMapping." << std::endl;
 
+  // sort vector based on layer/tile
+  std::sort( m_detectors.begin(), m_detectors.end(), []( const DetectorId& lhs, const DetectorId& rhs )
+  {
+    if(TrkrDefs::getLayer( lhs.m_hitsetkey ) != TrkrDefs::getLayer( rhs.m_hitsetkey ) ) return TrkrDefs::getLayer( lhs.m_hitsetkey ) < TrkrDefs::getLayer( rhs.m_hitsetkey );
+    else return MicromegasDefs::getTileId( lhs.m_hitsetkey ) < MicromegasDefs::getTileId( rhs.m_hitsetkey );
+  } );
+  
   // fill detector map from vector
   for( const auto& detector_id:m_detectors )
   { m_detector_map.emplace( detector_id.m_fee_id, detector_id ); }
