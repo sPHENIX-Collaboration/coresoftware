@@ -1149,11 +1149,11 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
 
     //fit a circle through x,y coordinates and calculate residuals
     const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin( xy_pts );
-    const std::vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
+    const std::vector<double> xy_resid = TrackFitUtils::getCircleClusterResiduals(xy_pts,R,X0,Y0);
 
     // fit a line through r,z coordinates and calculate residuals
     const auto [A, B] = TrackFitUtils::line_fit( rz_pts );
-    const std::vector<double> rz_resid = fitter->GetLineClusterResiduals(rz_pts,A,B);
+    const std::vector<double> rz_resid = TrackFitUtils::getLineClusterResiduals(rz_pts,A,B);
     
     for(size_t i=0;i<chain.size();i++)
     {
@@ -1174,13 +1174,11 @@ void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap&
   { 
     /// The ALICEKF gives a better charge determination at high pT
     int q = seed.get_charge();
-   
     seed.circleFitByTaubin(_cluster_map, _tgeometry, 7, 55);
     seed.lineFit(_cluster_map,_tgeometry, 7, 55);
-
+    
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
     _track_map->insert(&seed); 
-
   }
 }
 
