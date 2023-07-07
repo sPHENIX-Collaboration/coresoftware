@@ -311,11 +311,14 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
       std::vector<Acts::Vector3> global_vec_noINTT;
       for(unsigned int ivec=0;ivec<global_vec.size(); ++ivec)
 	{
+	  
 	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
-	  if(trkrid != TrkrDefs::inttId)
+	  
+	  if(trkrid != TrkrDefs::inttId and cluskey_vec[ivec] != 0)
 	    {
 	      global_vec_noINTT.push_back(global_vec[ivec]); 
 	    }
+
 	}
       
       if(global_vec_noINTT.size() < 3) 
