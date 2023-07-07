@@ -40,6 +40,7 @@ libphnodedump_la_SOURCES = \
   DumpPHG4HitContainer.cc \
   DumpPHG4ParticleSvtxMap.cc \
   DumpPHG4ScintillatorSlatContainer.cc \
+  DumpPHG4TpcCylinderGeomContainer.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
   DumpPHGenIntegral.cc \

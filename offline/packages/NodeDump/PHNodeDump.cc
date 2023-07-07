@@ -25,6 +25,7 @@
 #include "DumpPHG4InEvent.h"
 #include "DumpPHG4ParticleSvtxMap.h"
 #include "DumpPHG4ScintillatorSlatContainer.h"
+#include "DumpPHG4TpcCylinderGeomContainer.h"
 #include "DumpPHG4TruthInfoContainer.h"
 #include "DumpPHGenIntegral.h"
 #include "DumpPHHepMCGenEventMap.h"
@@ -290,6 +291,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("PHG4ScintillatorSlatContainer"))
       {
         newdump = new DumpPHG4ScintillatorSlatContainer(NodeName);
+      }
+      else if (tmp->InheritsFrom("PHG4TpcCylinderGeomContainer"))
+      {
+        newdump = new DumpPHG4TpcCylinderGeomContainer(NodeName);
       }
       else if (tmp->InheritsFrom("PHG4TruthInfoContainer"))
       {
