@@ -6,6 +6,7 @@
 
 #include <ostream>
 #include <string>
+#include <utility>  // for pair
 
 using MyNode_t = PHIODataNode<EpInfo>;
 

@@ -131,13 +131,22 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
     _clusterMover.initialize_geometry(cellgeo);
   }
 
-  if(Verbosity() > 1)
-    std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
+  if(m_actsEvaluator)
+    {
+      m_evaluator = std::make_unique<ActsEvaluator>(m_evalname);
+      m_evaluator->Init(topNode);
+      m_evaluator->verbosity(Verbosity());
+    }
 
+  if(Verbosity() > 1)
+    {
+      std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
+    }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrkFitter::process_event(PHCompositeNode */*topNode*/)
+int PHActsTrkFitter::process_event(PHCompositeNode *topNode)
 {
   PHTimer eventTimer("eventTimer");
   eventTimer.stop();
@@ -146,6 +155,11 @@ int PHActsTrkFitter::process_event(PHCompositeNode */*topNode*/)
   m_event++;
 
   auto logLevel = Acts::Logging::FATAL;
+
+  if(m_actsEvaluator)
+    {
+      m_evaluator->next_event(topNode);
+    }
 
   if (Verbosity() > 1)
   {
@@ -223,6 +237,11 @@ int PHActsTrkFitter::End(PHCompositeNode */*topNode*/)
       m_timeFile->Write();
       m_timeFile->Close();
     } 
+
+  if(m_actsEvaluator)
+    {
+      m_evaluator->End();
+    }
 
   if (Verbosity() > 0)
   {
@@ -424,7 +443,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           unsigned int trid = m_directedTrackMap->size();
           newTrack.set_id(trid);
 
-          if( getTrackFitResult(fitOutput, &newTrack, measurements) )
+          if( getTrackFitResult(fitOutput, track, &newTrack, measurements) )
           { m_directedTrackMap->insertWithKey(&newTrack, trid); }
           
         } else {
@@ -432,11 +451,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           unsigned int trid = m_trackMap->size();
           newTrack.set_id(trid);
 
-          if( getTrackFitResult(fitOutput, &newTrack, measurements))
+          if( getTrackFitResult(fitOutput, track, &newTrack, measurements))
           { m_trackMap->insertWithKey(&newTrack, trid); }
         
         }
-        
+	        
       } else if (!m_fitSiliconMMs) {
 
         /// Track fit failed, get rid of the track from the map
@@ -747,7 +766,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
   return sourcelinks;
 }
 
-bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* track, const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
+bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, TrackSeed* seed, SvtxTrack* track, const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
@@ -815,6 +834,12 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
   if(m_timeAnalysis)
     h_updateTime->Fill(updateTime);
   
+  if(m_actsEvaluator)
+    {
+      m_evaluator->evaluateTrackFit(trajectory, track,
+				    seed, measurements);
+    }
+
   return true;
 }
 

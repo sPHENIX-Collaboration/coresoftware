@@ -14,7 +14,8 @@ lib_LTLIBRARIES = \
 ## TODO: check with Chris where headers are installed (TrkrDefs.h) in "online" build
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include 
+  -I$(OFFLINE_MAIN)/include \
+  -isystem$(ROOTSYS)/include
 
 ## TODO: check with Chris where libraries are installed (TrkrDefs.h) in "online" build
 AM_LDFLAGS = \

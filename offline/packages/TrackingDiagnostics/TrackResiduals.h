@@ -11,6 +11,7 @@
 #include <string>
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <cmath>
 #include <iostream>
@@ -49,6 +50,7 @@ class TrackResiduals : public SubsysReco
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
 
+  ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";
   std::string m_trackMapName = "SvtxTrackMap";
 
@@ -92,6 +94,8 @@ class TrackResiduals : public SubsysReco
   std::vector<float> m_clusgz;
   std::vector<int> m_cluslayer;
   std::vector<int> m_clussize;
+  std::vector<int> m_clusedge;
+  std::vector<int> m_clusoverlap;
   std::vector<uint32_t> m_clushitsetkey;
   std::vector<float> m_idealsurfcenterx;
   std::vector<float> m_idealsurfcentery;

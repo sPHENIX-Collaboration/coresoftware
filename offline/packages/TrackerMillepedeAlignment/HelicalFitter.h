@@ -29,6 +29,7 @@ class Mille;
 class SvtxTrackSeed;
 class SvtxTrackMap;
 class SvtxAlignmentStateMap;
+class SvtxTrack;
 
 class HelicalFitter : public SubsysReco, public PHParameterInterface
 {
@@ -57,14 +58,16 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_silicon_track_map_name(const std::string &map_name) { _silicon_track_map_name = map_name; }
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
 
- void set_datafile_name(const std::string& file) { data_outfilename = file;}
+  void set_use_event_vertex(bool flag){ use_event_vertex = flag; }
+  void set_datafile_name(const std::string& file) { data_outfilename = file;}
   void set_steeringfile_name(const std::string& file) { steering_outfilename = file;}
   void set_mvtx_grouping(int group) {mvtx_grp = (AlignmentDefs::mvtxGrp) group;}
   void set_intt_grouping(int group) {intt_grp = (AlignmentDefs::inttGrp) group;}
   void set_tpc_grouping(int group) {tpc_grp = (AlignmentDefs::tpcGrp) group;}
   void set_mms_grouping(int group) {mms_grp = (AlignmentDefs::mmsGrp) group;}
   void set_test_output(bool test) {test_output = test;}
-  void set_layer_fixed(unsigned int layer);
+  void set_intt_layer_fixed(unsigned int layer);
+  void set_mvtx_layer_fixed(unsigned int layer, unsigned int clamshell);
   void set_tpc_sector_fixed(unsigned int region, unsigned int sector, unsigned int side);
   void set_layer_param_fixed(unsigned int layer, unsigned int param);
   void set_cluster_version(unsigned int v) { _cluster_version = v; }
@@ -75,14 +78,25 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
     _layerMisalignment.insert(std::make_pair(layer,factor));
   }
   
+  void set_vertex(Acts::Vector3 inVertex,  Acts::Vector3 inVertex_uncertainty)
+  {
+    vertexPosition       = inVertex;
+    vertexPosUncertainty = inVertex_uncertainty;
+  }
+
+  void set_vtx_sigma(float x_sigma, float y_sigma)
+  {
+    vtx_sigma(0)= x_sigma;
+    vtx_sigma(1)= y_sigma;
+  }
+
+
   // utility functions for analysis modules
   std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
   void getTrackletClusters(TrackSeed *_track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
   Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, Acts::Vector3 global);
   void correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec,  std::vector<TrkrDefs::cluskey> cluskey_vec);
   unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec);
-
-  void addGlobalConstraintIntt(int glbl_label[6], Surface surf);
 
   void set_dca_cut(float dca) {dca_cut = dca;}
 
@@ -95,12 +109,13 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
   Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref);
-  Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
   Acts::Vector3 get_line_plane_intersection(Acts::Vector3 PCA, Acts::Vector3 tangent, 
 					    Acts::Vector3 sensor_center, Acts::Vector3 sensor_normal);
   std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global, Acts::Vector3& pca, Acts::Vector3& tangent);
+
+  Acts::Vector3 get_helix_vtx(Acts::Vector3 event_vtx, const std::vector<float>& fitpars);
 
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
@@ -108,15 +123,29 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   Acts::Vector2 getClusterError(TrkrCluster *cluster, TrkrDefs::cluskey cluskey, Acts::Vector3& global);
 
   bool is_tpc_sector_fixed(unsigned int layer, unsigned int sector, unsigned int side);
-
-  bool is_layer_fixed(unsigned int layer);
+  bool is_mvtx_layer_fixed(unsigned int layer, unsigned int stave);
+  bool is_intt_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
 
   void getLocalDerivativesXY(Surface surf, Acts::Vector3 global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer);
 
+  void getLocalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 track_vtx, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5]);
+
   void getGlobalDerivativesXY(Surface surf, Acts::Vector3 global, Acts::Vector3 fitpoint, const std::vector<float>& fitpars, float glb_derivativeX[6], float glbl_derivativeY[6], unsigned int layer);
 
-  void get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts::Vector3> tangent, Acts::Vector3& projX, Acts::Vector3& projY);
+  void getGlobalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 track_vtx, float glbl_derivativeX[3], float glbl_derivativeY[3]);
+
+  void get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts::Vector3> tangent, Acts::Vector3& projX, Acts::Vector3& projY);  
+  void get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vtx, Acts::Vector3& projX, Acts::Vector3& projY);
+
+  float getVertexResidual(Acts::Vector3 vtx);
+  
+  void get_dca(SvtxTrack& track,  float& dca3dxy, float& dca3dz, float& dca3dxysigma, float& dca3dzsigma, Acts::Vector3 vertex);
+  Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, Acts::Vector3 event_vertex);
+  Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, Acts::Vector3 event_vertex, Acts::Vector3 PCA);
+  Acts::Vector3 localvtxToGlobalvtx(SvtxTrack& track, Acts::Vector3 event_vtx, Acts::Vector3 PCA);
+
+
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
   TpcDistortionCorrectionContainer* _dcc_static{nullptr};
@@ -126,11 +155,10 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   unsigned int _cluster_version = 5;
   bool test_output = false;
 
-  std::map<int, std::pair<std::pair<int, float>, std::pair<int, float>> > InttConstraints;
-
   ClusterErrorPara _ClusErrPara;
 
-  std::set<unsigned int> fixed_layers;
+  std::set<std::pair<unsigned int,unsigned int>> fixed_mvtx_layers;
+  std::set<unsigned int> fixed_intt_layers;
   std::set<unsigned int> fixed_sectors;
   std::set<std::pair<unsigned int,unsigned int>> fixed_layer_params;
 
@@ -156,7 +184,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool fittpc = false;
   bool fitfulltrack = false;
 
-  float dca_cut = 0.19;  // 1 mm
+  float dca_cut = 0.19;  // cm
 
   SvtxTrackMap* m_trackmap = nullptr;
   SvtxAlignmentStateMap* m_alignmentmap = nullptr;
@@ -170,9 +198,16 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   bool make_ntuple = true;
   TNtuple *ntp{nullptr};
+  TNtuple *track_ntp{nullptr};
   TFile *fout{nullptr};
 
+  bool use_event_vertex = false;
+
   int event = 0;
+
+  Acts::Vector3 vertexPosition;
+  Acts::Vector3 vertexPosUncertainty;
+  Acts::Vector2 vtx_sigma;
 
 };
 
