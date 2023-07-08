@@ -26,6 +26,15 @@ void MicromegasCalibrationData::read( const std::string& filename )
 
   // clear existing data
   m_calibration_map.clear();
+
+  // make sure file exists before loading, otherwise crashes
+  if( !std::ifstream( filename.c_str() ).good() ) 
+  {
+    std::cout << "MicromegasCalibrationData::read -"
+      << " filename: " << filename << " does not exist."
+      << " No calibration loaded" << std::endl;
+    return;
+  }
   
   // use generic CDBTree to load 
   CDBTTree cdbttree( filename );
@@ -47,7 +56,7 @@ void MicromegasCalibrationData::read( const std::string& filename )
       if( !std::isnan( rms ) )
       { m_calibration_map[fee].at(i) = calibration_data_t( pedestal, rms ); }
     }
-  }
+  }  
 }
 
 //________________________________________________________________________-
