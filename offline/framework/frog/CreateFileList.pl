@@ -758,7 +758,7 @@ sub commonfiletypes
     $filetypes{"G4Hits"} = "G4 Hits";
     $filetypes{"G4HitsOld"} = "Old G4 Hits";
 # pass2
-    $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD G4Hits";
+    $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD, EPD G4Hits";
     $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
     $filetypes{"DST_TRKR_G4HIT"} = "Pileup Tracking Detector G4 Hits";
     $filetypes{"DST_TRUTH_G4HIT"} = "temporary Pileup Truth info, use DST_TRUTH";
@@ -766,7 +766,9 @@ sub commonfiletypes
 # pass3 calo
     $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
 # pass3 global
-    $filetypes{"DST_GLOBAL"} = "Reconstructed Global Detectors (Bbc, Epd)";
+    $filetypes{"DST_GLOBAL"} = "Old Reconstructed Global Detectors (Bbc, Epd)";
+# pass3 bbcepd
+    $filetypes{"DST_BBC_EPD"} = "Reconstructed Bbc, Epd";
 #pass3 trk
     $filetypes{"DST_TRKR_HIT"} = "TPC and Silicon Hits";
     $filetypes{"DST_TRUTH"} = "Truth Info (updated with Clusters)";
