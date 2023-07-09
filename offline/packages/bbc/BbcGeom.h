@@ -1,7 +1,7 @@
 #ifndef __BBC_GEOM_H__
 #define __BBC_GEOM_H__
 
-//#include <phool/PHObject.h>
+#include <phool/PHObject.h>
 
 #include <vector>
 #include <utility>
@@ -9,11 +9,11 @@
 #include <iostream>
 #include <cmath>
 
-class BbcGeom
+class BbcGeom : public PHObject
 {
   public:
     BbcGeom() = default;
-    virtual ~BbcGeom() {}
+    ~BbcGeom() override {};
 
     virtual float get_x(const unsigned int /*pmtch*/) const {return NAN;};
     virtual float get_y(const unsigned int /*pmtch*/) const {return NAN;};
@@ -29,7 +29,7 @@ class BbcGeom
     virtual int get_type(const unsigned int /*feech*/) const {return -1;}; // 0=T-channel, 1=Q-channel
 
   private:
-    //ClassDefOverride(BbcGeom, 1)
+    ClassDefOverride(BbcGeom, 1);
 };
 
 

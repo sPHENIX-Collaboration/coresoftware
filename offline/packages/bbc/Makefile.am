@@ -46,11 +46,16 @@ pkginclude_HEADERS = \
 endif
 
 if USE_ONLINE
+ROOTDICTS = \
+  BbcGeom_Dict.cc \
+  BbcGeomV1_Dict.cc
 
 else
 ROOTDICTS = \
   BbcOut_Dict.cc \
   BbcOutV1_Dict.cc \
+  BbcGeom_Dict.cc \
+  BbcGeomV1_Dict.cc \
   BbcNorthSouth_Dict.cc \
   BbcNorthSouthV1_Dict.cc \
   BbcPmtHit_Dict.cc \
@@ -67,11 +72,16 @@ endif
 pcmdir = $(libdir)
 
 if USE_ONLINE
+nobase_dist_pcm_DATA = \
+  BbcGeom_Dict_rdict.pcm \
+  BbcGeomV1_Dict_rdict.pcm
 
 else
 nobase_dist_pcm_DATA = \
   BbcOut_Dict_rdict.pcm \
   BbcOutV1_Dict_rdict.pcm \
+  BbcGeom_Dict_rdict.pcm \
+  BbcGeomV1_Dict_rdict.pcm \
   BbcNorthSouth_Dict_rdict.pcm \
   BbcNorthSouthV1_Dict_rdict.pcm \
   BbcPmtHit_Dict_rdict.pcm \
@@ -87,6 +97,7 @@ endif
 
 if USE_ONLINE
 libbbc_io_la_SOURCES = \
+  $(ROOTDICTS) \
   BbcGeomV1.cc
 
 else
@@ -109,6 +120,8 @@ libbbc_io_la_SOURCES = \
 endif
 
 if USE_ONLINE
+libbbc_io_la_LIBADD = \
+  -lphool
 
 else
 libbbc_io_la_LIBADD = \

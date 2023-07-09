@@ -3,18 +3,12 @@
 
 #include "BbcGeom.h"
 
-/*
-#include <utility>
-#include <tuple>
-#include <iostream>
-*/
-
 
 class BbcGeomV1 : public BbcGeom {
 
 public:
   BbcGeomV1();
-  ~BbcGeomV1() {}
+  ~BbcGeomV1() override = default;
   
   float get_x(const unsigned int pmtch) const override { return pmt_x[pmtch]; }
   float get_y(const unsigned int pmtch) const override { return pmt_y[pmtch]; }
@@ -36,7 +30,7 @@ private:
   float pmt_r[128];
   float pmt_phi[128];
 
-  //ClassDefOverride(BbcGeomV1, 1)
+  ClassDefOverride(BbcGeomV1, 1)
 
 };
 
