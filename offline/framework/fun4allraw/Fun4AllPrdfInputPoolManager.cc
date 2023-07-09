@@ -82,12 +82,12 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
     SetRunNumber(m_RunNumber);
   }
 
-  if(m_PacketMap.empty())
+  if (m_PacketMap.empty())
   {
     std::cout << "we are done" << std::endl;
     return -1;
   }
-//  std::cout << "next event is " << m_PacketMap.begin()->first << std::endl;
+  //  std::cout << "next event is " << m_PacketMap.begin()->first << std::endl;
   auto pktinfoiter = m_PacketMap.begin();
   oph->prepare_next(pktinfoiter->first, m_RunNumber);
   for (auto &pktiter : pktinfoiter->second.PacketVector)
