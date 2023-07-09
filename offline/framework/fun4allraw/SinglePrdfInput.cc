@@ -57,7 +57,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
 	}
       }
       m_RunNumber = evt->getRunNumber();
-      if (GetVerbosity() > 1)
+      if (Verbosity() > 1)
       {
         evt->identify();
       }
@@ -79,8 +79,11 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
         {
           int evtno = plist[i]->iValue(0, "EVTNR");
           unsigned int bclk = plist[i]->iValue(0, "CLOCK");
+	  if (Verbosity() > 1)
+	  {
 	  std::cout << "packet " << plist[i]->getIdentifier() << " evt: " << evtno
 		    << std::hex << " clock: 0x" << bclk << std::dec << std::endl;
+	  }
           // dummy check for the first event which is the problem for the calorimeters
           // it is the last event from the previous run, so it's event number is > 0
           // if (evtno > EventSequence)
@@ -99,8 +102,6 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
           evtno += m_EventNumberOffset + m_PacketEventNumberOffset[i] + m_NumSpecialEvents + (EventSequence & 0xFFFF0000);
           m_PacketMap[bclk].push_back(plist[i]);
           m_EvtSet.insert(evtno);
-	  std::cout << "added evtno " << evtno << " beam clock 0x" << std::hex << bclk << std::dec
-		    << ", size: " << m_EvtSet.size() << std::endl;
           m_Event.push_back(std::make_pair(evtno,bclk));
         }
 	else
@@ -110,47 +111,116 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       }
 // here we have all packets of a given event in our maps/vectors
 // first pass - check if beam clocks are identical
-      std::cout << "pktmap size : " << m_PacketMap.size() << std::endl;
-      std::cout << "evt set size : " << m_EvtSet.size() << std::endl;
+      if (Verbosity() > 1)
+      {
+	std::cout << "pktmap size : " << m_PacketMap.size() << std::endl;
+	std::cout << "evt set size : " << m_EvtSet.size() << std::endl;
+      }
       int common_event_number = *(m_EvtSet.begin());
       if (m_PacketMap.size() == 1) // all packets from the same beam clock
       {
 	if (m_EvtSet.size() == 1)
 	{
-	  std::cout << "we are good evtno: " << *(m_EvtSet.begin())
-                    << ", clock: " << m_PacketMap.begin()->first << std::endl;
+	  if (Verbosity() > 1)
+	  {
+	    std::cout << "we are good evtno: " << *(m_EvtSet.begin())
+		      << ", clock: " << m_PacketMap.begin()->first << std::endl;
+	  }
 	}
 	else
 	{
-	  std::cout << "We have multiple event numbers for bclk: 0x" << std::hex
-		    << m_PacketMap.begin()->first << std::dec << std::endl;
-	  for (auto iter : m_EvtSet)
+	  if (Verbosity() > 1)
 	  {
-	    std::cout << "Event " << iter << std::endl;
+	    std::cout << "We have multiple event numbers for bclk: 0x" << std::hex
+		      << m_PacketMap.begin()->first << std::dec << std::endl;
+	    for (auto iter : m_EvtSet)
+	    {
+	      std::cout << "Event " << iter << std::endl;
+	    }
 	  }
           common_event_number = majority_eventnumber();
-	  std::cout << "picked event no " << common_event_number << std::endl;
+	  if (Verbosity() > 1)
+	  {
+	    std::cout << "picked event no " << common_event_number << std::endl;
+	  }
           adjust_eventnumber_offset(common_event_number);
 	}
 	for (auto iter : m_PacketMap)
 	{
 	  for (auto pktiter : iter.second)
 	  {
-          m_InputMgr->AddPacket(common_event_number, pktiter);
+	    m_InputMgr->AddPacket(common_event_number, pktiter);
 	  }
 	}
       }
+      else
+      {
+
+	if (Verbosity() > 1)
+	{
+	std::cout << "We have multiple beam clocks per event" << std::endl;
+	}
+	if (m_EvtSet.size() == 1)
+	{
+	  if (Verbosity() > 1)
+	  {
+	    std::cout << "we are good evtno: " << *(m_EvtSet.begin())
+		      << ", clock: " << m_PacketMap.begin()->first << std::endl;
+	  }
+	}
 	else
 	{
-	  std::cout << "We have multiple beam clocks per event" << std::endl;
-	  std::cout << "This is not handled yet" << std::endl;
-	  // for(auto iter : m_PacketMap)
-	  // {
-	  //   std::cout << "0x" << std::hex << iter.first << std::dec << std::endl;
-	  // }
+	  if (Verbosity() > 1)
+	  {
+	    std::cout << "We have multiple event numbers for bclk: 0x" << std::hex
+		      << m_PacketMap.begin()->first << std::dec << std::endl;
+	    for (auto iter : m_EvtSet)
+	    {
+	      std::cout << "Event " << iter << std::endl;
+	    }
+	  }
+          common_event_number = majority_eventnumber();
+	  if (Verbosity() > 1)
+	  {
+	    std::cout << "picked event no " << common_event_number << std::endl;
+	  }
+          adjust_eventnumber_offset(common_event_number);
 	}
+	int common_beam_clock =  majority_beamclock();
+	if (Verbosity() > 1)
+	{
+        std::cout << "picked bclk: " << std::hex << common_beam_clock << std::dec << std::endl;
+	}
+// for time being clean out packets which do not match
+	for (auto iter : m_PacketMap)
+	{
+	  for (auto pktiter : iter.second)
+	  {
+	    if (pktiter->iValue(0, "CLOCK") == common_beam_clock)
+	    {
+	      if (Verbosity() > 1)
+	      {
+		std::cout << "adding packet " << pktiter->getIdentifier() << " beam clock "
+			  << std::hex << pktiter->iValue(0, "CLOCK") << std::dec << std::endl;
+	      }
+	      m_InputMgr->AddPacket(common_event_number, pktiter);
+	    }
+	    else
+	    {
+	      if (Verbosity() > 1)
+	      {
+		std::cout << "Deleting packet " << pktiter->getIdentifier() << " beam clock "
+			  << std::hex << pktiter->iValue(0, "CLOCK") << " common bclk: "
+			  << common_beam_clock << std::dec << std::endl;
+	      }
+	      delete pktiter;
+	    }
+	  }
+	}
+      }
       m_PacketMap.clear();
       m_EvtSet.clear();
+      m_Event.clear();
       delete evt;
   }
   
@@ -162,10 +232,13 @@ void SinglePrdfInput::adjust_eventnumber_offset(const int decided_evtno)
   {
     if (m_Event[i].first != decided_evtno)
     {
+      m_PacketEventNumberOffset[i] -=  (m_Event[i].first-decided_evtno);
+      if (Verbosity() > 1)
+      {
       std::cout << "my evtno: " << m_Event[i].first << ", decided: " << decided_evtno
 		<< ", adjustment: " << m_Event[i].first-decided_evtno << std::endl;
-      m_PacketEventNumberOffset[i] -=  (m_Event[i].first-decided_evtno);
       std::cout << "adjusting event number offset for " << i << " to " << m_PacketEventNumberOffset[i] << std::endl;
+      }
     }
   }
 }
@@ -188,6 +261,31 @@ int SinglePrdfInput::majority_eventnumber()
     }
   }
   return evtno;
+}
+
+int SinglePrdfInput::majority_beamclock()
+{
+  std::map<int, int> evtcnt;
+  for (auto iter : m_Event)
+  {
+    evtcnt[iter.second]++;
+    if (Verbosity() > 1)
+    {
+    std::cout << "adding clk: " << std::hex << iter.second << std::dec
+	      << " current counter: "  << evtcnt[iter.second] << std::endl;
+    }
+  }
+  int imax = -1;
+  int bclk = INT_MAX;
+  for (auto iter : evtcnt)
+  {
+    if (iter.second > imax)
+    {
+      bclk = iter.first;
+      imax = iter.second;
+    }
+  }
+  return bclk;
 }
 
 int SinglePrdfInput::fileopen(const std::string &filenam)

@@ -30,6 +30,7 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
 
  private:
   int majority_eventnumber();
+  int majority_beamclock();
   void adjust_eventnumber_offset(const int decided_evtno);
   struct PacketInfo
   {
@@ -45,7 +46,7 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
   int m_RunNumber = 0;
   int m_EventsThisFile = 0;
   int m_AllDone = 0;
-  std::map<unsigned int, std::vector<Packet *>> m_PacketMap;
+  std::map<int, std::vector<Packet *>> m_PacketMap;
   std::set<int> m_EvtSet;
   std::vector<std::pair<int,int>> m_Event;
 };
