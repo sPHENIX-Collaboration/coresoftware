@@ -38,6 +38,7 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
   SinglePrdfInput *AddPrdfInputFile(const std::string &filename);
   void AddPacket(const int evtno, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
+  void UpdateDroppedPacket(const int packetid);
 
  private:
   struct PacketInfo
@@ -56,6 +57,7 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
 
   std::map<int, PacketInfo> m_PacketMap;
   std::string m_PrdfNodeName;
+  std::map<int, int> m_DroppedPacketMap;
 };
 
 #endif /* FUN4ALL_FUN4ALLPRDFINPUTPOOLMANAGER_H */
