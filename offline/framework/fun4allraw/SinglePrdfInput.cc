@@ -212,6 +212,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
                         << std::hex << pktiter->iValue(0, "CLOCK") << " common bclk: "
                         << common_beam_clock << std::dec << std::endl;
             }
+	    m_InputMgr->UpdateDroppedPacket(pktiter->getIdentifier());
             delete pktiter;
           }
         }

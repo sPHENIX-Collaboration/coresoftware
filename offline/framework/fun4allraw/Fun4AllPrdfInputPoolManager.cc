@@ -199,7 +199,16 @@ int Fun4AllPrdfInputPoolManager::fileclose()
 
 void Fun4AllPrdfInputPoolManager::Print(const std::string &what) const
 {
-  Fun4AllInputManager::Print(what);
+//  Fun4AllInputManager::Print(what);
+  if (what == "ALL" || what == "DROPPED")
+  {
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "dropped packets:" << std::endl;
+    for (auto iter : m_DroppedPacketMap)
+    {
+      std::cout << "Packet " << iter.first << " was dropped " << iter.second << " times" << std::endl;
+    }
+  }
   return;
 }
 
@@ -348,4 +357,9 @@ void Fun4AllPrdfInputPoolManager::AddPacket(const int evtno, Packet *p)
 void Fun4AllPrdfInputPoolManager::UpdateEventFoundCounter(const int evtno)
 {
   m_PacketMap[evtno].EventFoundCounter++;
+}
+
+void Fun4AllPrdfInputPoolManager::UpdateDroppedPacket(const int packetid)
+{
+  m_DroppedPacketMap[packetid]++;
 }
