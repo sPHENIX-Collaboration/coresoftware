@@ -111,8 +111,6 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
     {
       
       const int fee = packet->iValue(iwf, "FEE" );
-      const int sampa_address = packet->iValue( iwf, "SAMPAADDRESS" );
-      const auto sampa_channel = packet->iValue( iwf, "SAMPACHANNEL" );
       const auto channel = packet->iValue( iwf, "CHANNEL" );      
       const int samples = packet->iValue( iwf, "SAMPLES" );
 
@@ -161,8 +159,6 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
             << " errir: " << checksum_error
             << " layer: " << int(TrkrDefs::getLayer(hitsetkey)) 
             << " tile: " << int( MicromegasDefs::getTileId( hitsetkey ))
-            << " sampa_address: " << sampa_address
-            << " sampa_channel: " << sampa_channel
             << " channel: " << channel 
             << " strip: " << strip 
             << " adc: " << max_adc

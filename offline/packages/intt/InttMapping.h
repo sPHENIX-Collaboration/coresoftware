@@ -3,6 +3,10 @@
 
 #include <map>
 
+#include <Event/Event.h>
+#include <Event/EventTypes.h>
+#include <Event/packet.h>
+
 namespace Intt
 {
 	extern const std::map<int, int> Packet_Id;
@@ -32,6 +36,8 @@ namespace Intt
 		int strip_x = 0;
 		int strip_y = 0;
 	};
+
+	struct RawData_s RawFromPacket(int const, int const, Packet*);
 
 	//nontrivial
 	struct Online_s ToOnline(struct Offline_s const&);

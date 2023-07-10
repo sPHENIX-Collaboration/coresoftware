@@ -19,6 +19,8 @@
 #include <iostream>
 #include <string>
 
+
+ROOT::TThreadExecutor *t = new ROOT::TThreadExecutor(1);
 double CaloWaveformFitting::template_function(double *x, double *par)
 {
   Double_t v1 = par[0] * h_template->Interpolate(x[0] - par[1]) + par[2];
@@ -31,6 +33,7 @@ void CaloWaveformFitting::initialize_processing(const std::string &templatefile)
   assert(fin);
   assert(fin->IsOpen());
   h_template = static_cast<TProfile *>(fin->Get("waveform_template"));
+  t = new ROOT::TThreadExecutor(_nthreads);
 }
 
 std::vector<std::vector<float>> CaloWaveformFitting::process_waveform(std::vector<std::vector<float>> waveformvector)
@@ -47,7 +50,6 @@ std::vector<std::vector<float>> CaloWaveformFitting::process_waveform(std::vecto
 
 std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit(std::vector<std::vector<float>> chnlvector)
 {
-  ROOT::TThreadExecutor t(_nthreads);
   auto func = [&](std::vector<float> &v)
   {
     int size1 = v.size() - 1;
@@ -60,7 +62,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       }
     else
       {
-	auto h = new TH1F(Form("h_%d", (int) round(v.at(size1))), "", size1, 0, size1);
+	auto h = new TH1F(Form("h_%d", (int) round(v.at(size1))), "", size1, -0.5, size1 - 0.5);
 	float maxheight = 0;
 	int maxbin = 0;
 	for (int i = 0; i < size1; i++)
@@ -119,8 +121,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       }
   };
 
-  t.Foreach(func, chnlvector);
-
+  t->Foreach(func, chnlvector);
   int size3 = chnlvector.size();
   std::vector<std::vector<float>> fit_params;
   std::vector<float> fit_params_tmp;

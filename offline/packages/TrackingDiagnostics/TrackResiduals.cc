@@ -6,6 +6,7 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterv5.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
@@ -96,6 +97,12 @@ void TrackResiduals::clearClusterStateVectors()
   m_clusgxideal.clear();
   m_clusgyideal.clear();
   m_clusgzideal.clear();
+  m_missurfalpha.clear();
+  m_missurfbeta.clear();
+  m_missurfgamma.clear();
+  m_idealsurfalpha.clear();
+  m_idealsurfbeta.clear();
+  m_idealsurfgamma.clear();
 
   m_statelxglobderivdx.clear();
   m_statelxglobderivdy.clear();
@@ -123,6 +130,8 @@ void TrackResiduals::clearClusterStateVectors()
   m_statelzlocderivtheta.clear();
   m_statelzlocderivqop.clear();
 
+  m_clusedge.clear();
+  m_clusoverlap.clear();
   m_cluslx.clear();
   m_cluslz.clear();
   m_cluselx.clear();
@@ -353,6 +362,8 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
 
   //! have cluster and state, fill vectors
   m_cluslx.push_back(cluster->getLocalX());
+  m_clusedge.push_back(cluster->getEdge());
+  m_clusoverlap.push_back(cluster->getOverlap());
   float clusz = cluster->getLocalY();
 
   if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
@@ -360,8 +371,12 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     clusz = convertTimeToZ(geometry, ckey, cluster);
   }
   m_cluslz.push_back(clusz);
-  m_cluselx.push_back(cluster->getRPhiError());
-  m_cluselz.push_back(cluster->getZError());
+
+  TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
+  auto para_errors = m_clusErrPara.get_clusterv5_modified_error(clusterv5,
+							       clusr,ckey);
+  m_cluselx.push_back(sqrt(para_errors.first));
+  m_cluselz.push_back(sqrt(para_errors.second));
   m_clusgx.push_back(clusglob.x());
   m_clusgy.push_back(clusglob.y());
   m_clusgz.push_back(clusglob.z());
@@ -380,20 +395,47 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   Acts::Vector2 stateloc;
   auto misaligncenter = surf->center(geometry->geometry().getGeoContext());
   auto misalignnorm = -1*surf->normal(geometry->geometry().getGeoContext());
+  auto misrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
   auto result = surf->globalToLocal(geometry->geometry().getGeoContext(),
                                     stateglob * Acts::UnitConstants::cm,
                                     misalignnorm);
+
+  float mgamma = atan2(-misrot(1,0),misrot(0,0));
+  float mbeta = -asin(misrot(0,1));
+  float malpha = atan2(misrot(1,1), misrot(2,1));
+  
+  //! Switch to get ideal transforms
   alignmentTransformationContainer::use_alignment = false;
   auto idealcenter = surf->center(geometry->geometry().getGeoContext());
   auto idealnorm = -1*surf->normal(geometry->geometry().getGeoContext());
   Acts::Vector3 ideal_local(cluster->getLocalX(), clusz, 0.0);
   Acts::Vector3 ideal_glob =  surf->transform(geometry->geometry().getGeoContext())* (ideal_local * Acts::UnitConstants::cm);
-    
+  auto idealrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
+  
+  //! These calculations are taken from the wikipedia page for Euler angles,
+  //! under the Tait-Bryan angle explanation. Formulas for the angles 
+  //! calculated from the rotation matrices depending on what order the 
+  //! rotation matrix is constructed are given
+  //! They need to be modified to conform to the Acts basis of (x,z,y), for
+  //! which the wiki page expects (x,y,z). This includes swapping the sign
+  //! of some elements to account for the permutation
+  //! https://en.wikipedia.org/wiki/Euler_angles#Conversion_to_other_orientation_representations
+  float igamma =  atan2(-idealrot(1,0), idealrot(0,0));
+  float ibeta = -asin(idealrot(0,1));
+  float ialpha = atan2(idealrot(1,1),idealrot(2,1));
+
   alignmentTransformationContainer::use_alignment = true;
 
   idealcenter /= Acts::UnitConstants::cm;
   misaligncenter /= Acts::UnitConstants::cm;
   ideal_glob /= Acts::UnitConstants::cm;
+
+  m_idealsurfalpha.push_back(ialpha);
+  m_idealsurfbeta.push_back(ibeta);
+  m_idealsurfgamma.push_back(igamma);
+  m_missurfalpha.push_back(malpha);
+  m_missurfbeta.push_back(mbeta);
+  m_missurfgamma.push_back(mgamma);
 
   m_idealsurfcenterx.push_back(idealcenter.x());
   m_idealsurfcentery.push_back(idealcenter.y());
@@ -442,6 +484,7 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
 void TrackResiduals::createBranches()
 {
   m_tree = new TTree("residualtree", "A tree with track, cluster, and state info");
+  m_tree->Branch("event", &m_event,"m_event/I");
   m_tree->Branch("trackid", &m_trackid, "m_trackid/I");
   m_tree->Branch("crossing", &m_crossing, "m_crossing/I");
   m_tree->Branch("px", &m_px, "m_px/F");
@@ -467,6 +510,8 @@ void TrackResiduals::createBranches()
   m_tree->Branch("pcay", &m_pcay, "m_pcay/F");
   m_tree->Branch("pcaz", &m_pcaz, "m_pcaz/F");
 
+  m_tree->Branch("clusedge",&m_clusedge);
+  m_tree->Branch("clusoverlap",&m_clusoverlap);
   m_tree->Branch("cluslx", &m_cluslx);
   m_tree->Branch("cluslz", &m_cluslz);
   m_tree->Branch("cluselx", &m_cluselx);
@@ -492,6 +537,13 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgxideal",&m_clusgxideal);
   m_tree->Branch("clusgyideal",&m_clusgyideal);
   m_tree->Branch("clusgzideal",&m_clusgzideal);
+  m_tree->Branch("missurfalpha",&m_missurfalpha);
+  m_tree->Branch("missurfbeta",&m_missurfbeta);
+  m_tree->Branch("missurfgamma",&m_missurfgamma);
+  m_tree->Branch("idealsurfalpha",&m_idealsurfalpha);
+  m_tree->Branch("idealsurfbeta",&m_idealsurfbeta);
+  m_tree->Branch("idealsurfgamma",&m_idealsurfgamma);
+  
 
   m_tree->Branch("statelx", &m_statelx);
   m_tree->Branch("statelz", &m_statelz);

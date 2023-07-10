@@ -14,7 +14,6 @@ AnnularFieldSim *SetupDigitalCurrentSphenixTpc(bool twinMe=false, bool useSpacec
 void TestSpotDistortion(AnnularFieldSim *t);
 void SurveyFiles(TFileCollection* filelist);
 
-
   
 void generate_distortion_map(const char *inputname, const char* gainName, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true, bool isAdc=false, int nSteps=500){
   printf("generating single distortion map.  Caution:  This is vastly less efficient than re-using the tpc model once it is set up\n");
@@ -74,8 +73,13 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   if (hasTwin)  tpc->twin->populate_fieldmap();
 
   //build the distortion maps from the fieldmaps and save it to the output filename.
-  tpc->GenerateSeparateDistortionMaps(outputfilename.Data(),1,1,1,1,true);
+
+  for(int i=0;i<10;i++){
+  	TString study_filestring=Form("%s.steps%d.hist.root","study_file_changinginterval",50*(i+1));
+  tpc->GenerateSeparateDistortionMaps(study_filestring,50*(i+1),1,1,1,1,true);
   //tpc->GenerateSeparateDistortionMaps(outputfilename.Data(),1,1,1,1,false);
+}
+
   printf("distortions mapped.\n");
   tpc->PlotFieldSlices(outputfilename.Data(),pos, 'E'); //plot the electric field
   tpc->PlotFieldSlices(outputfilename.Data(),pos,'B'); //plot the magnetic field
@@ -100,7 +104,7 @@ void generate_distortion_map(const char *inputname, const char *outputname, cons
 }
 
   
-void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.root", const char *outputfilebase="./apr07_maps/apr07", bool hasSpacecharge=true, bool isDigitalCurrent=false){
+void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.root", const char *outputfilebase="./apr07_maps/apr07", bool hasSpacecharge, bool isDigitalCurrent, int nSteps=500){
   
 
   int maxmaps=10;
@@ -206,7 +210,10 @@ void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.roo
       //TestSpotDistortion(tpc);
  
       //tpc->GenerateDistortionMaps(outputfilename,2,2,2,1,true);
-      tpc->GenerateSeparateDistortionMaps(outputfilename,500,2,2,2,1,true);
+
+
+      tpc->GenerateSeparateDistortionMaps(outputfilename,2,2,2,1,true,nSteps);
+
       printf("distortions mapped.\n");
       tpc->PlotFieldSlices(outputfilename.Data(),pos);
       tpc->PlotFieldSlices(outputfilename.Data(),pos,'B');
@@ -294,11 +301,11 @@ AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe, bool useSpacecharge){
   sprintf(field_string,"flat_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
 
   if (realE){
-    tpc->loadEfield("/sphenix/user/rcorliss/field/externalEfield.ttree.root","fTree");
+    tpc->loadEfield("/mntt/c/linuxshare/externalEfield.ttree.root","fTree");
     sprintf(field_string,"realE_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
   }
    if (realB){
-    tpc->load3dBfield("/sphenix/user/rcorliss/field/sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5);
+    tpc->load3dBfield("/mntt/c/linuxshare/sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5);
         //tpc->loadBfield("sPHENIX.2d.root","fieldmap");
     sprintf(field_string,"realB_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
   } 
@@ -314,7 +321,7 @@ AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe, bool useSpacecharge){
   sprintf(lookup_string,"ross_phi1_%s_phislice_lookup_r%dxp%dxz%d",detgeoname,nr,nphi,nz);
   char lookupFilename[300];
   //sprintf(lookupFilename,"%s.root",lookup_string);
-  sprintf(lookupFilename,"/sphenix/user/rcorliss/rossegger/%s.root",lookup_string); //hardcoded for racf
+  sprintf(lookupFilename,"/mntt/c/linuxshare/%s.root",lookup_string); //hardcoded for racf
   TFile *fileptr=TFile::Open(lookupFilename,"READ");
 
   if (!fileptr){ //generate the lookuptable
@@ -357,8 +364,8 @@ AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe, bool useSpacecharge){
     twin->setFlatFields(tpc_magField,-tpc_cmVolt/tpc_z);
     //sprintf(field_string,"flat_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
     //twin->loadBfield("sPHENIX.2d.root","fieldmap");
-    twin->load3dBfield("/sphenix/user/rcorliss/rossegger/sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5);
-    twin->loadEfield("/sphenix/user/rcorliss/rossegger/externalEfield.ttree.root","fTree",-1);//final '-1' tells it to flip z and the field z coordinate. r coordinate doesn't change, and we assume phi won't either, though the latter is less true.
+    twin->load3dBfield("/mntt/c/linuxshare/sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5);
+    twin->loadEfield("/mntt/c/linuxshare/externalEfield.ttree.root","fTree",-1);//final '-1' tells it to flip z and the field z coordinate. r coordinate doesn't change, and we assume phi won't either, though the latter is less true.
 
 
 

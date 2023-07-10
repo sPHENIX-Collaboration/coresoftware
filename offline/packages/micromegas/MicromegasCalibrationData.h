@@ -18,8 +18,7 @@ class MicromegasCalibrationData
   public:
 
   /// constructor
-  MicromegasCalibrationData()
-  {}
+  MicromegasCalibrationData() = default;
 
   ///@name modifiers
   //@{

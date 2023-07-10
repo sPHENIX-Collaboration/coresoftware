@@ -19,7 +19,6 @@ class ActsGeometry;
 class AlignmentTransformation {
 
  public:
-
   AlignmentTransformation() = default;
 
   ~AlignmentTransformation(){} 
@@ -124,7 +123,7 @@ void setTPCParams(double tpcDevs[6])
 
   bool use_global_millepede_translations = true;
 
-  Acts::Transform3 newMakeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles);
+  Acts::Transform3 newMakeTransform(Surface surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles);
 
   alignmentTransformationContainer* transformMap = NULL;
   ActsGeometry* m_tGeometry = NULL;

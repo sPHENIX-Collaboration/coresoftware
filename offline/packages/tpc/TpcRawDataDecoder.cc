@@ -320,6 +320,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, (sector - side*12 ), side);
       TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(tpcHitSetKey);
 	
+
       if( Verbosity()>1 ){
 	      int sampaAddress = p->iValue(wf, "SAMPAADDRESS");
 	      int sampaChannel = p->iValue(wf, "SAMPACHANNEL");
@@ -339,6 +340,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 		        << " R = " << R
 		        << " phi = " << phi
 		        << std::endl;
+
 	    }
       pedestal = 0;
       for (int s = 0; s < 5; s++)
@@ -350,7 +352,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       for (int s = 0; s < samples; s++)
 	    {
 	      int pad = M.getPad(feeM, channel);
-	      int t = s + 2 * (current_BCO - starting_BCO);
+	      int t = s; // + 2 * (current_BCO - starting_BCO);
 	      int adc = p->iValue(wf,s);
 	      if(m_Debug==1){
 	        _h_hit_XY->Fill(R*cos(phi),R*sin(phi),adc-pedestal);

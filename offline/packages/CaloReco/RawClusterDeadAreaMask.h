@@ -10,6 +10,7 @@ class RawClusterContainer;
 class RawTowerContainer;
 class RawTowerGeomContainer;
 class RawTowerDeadMap;
+class TowerInfoContainer;
 
 class RawClusterDeadAreaMask : public SubsysReco
 {
@@ -31,6 +32,11 @@ class RawClusterDeadAreaMask : public SubsysReco
     m_detector = detector;
   }
 
+  void set_UseTowerInfo(const bool useMode)
+  {
+    m_UseTowerInfo = useMode;
+  }
+
  private:
   void CreateNodeTree(PHCompositeNode *topNode);
 
@@ -40,9 +46,12 @@ class RawClusterDeadAreaMask : public SubsysReco
   double m_deadTowerMaskHalfWidth;
 
   RawClusterContainer *m_rawClusters;
+  RawClusterContainer *m_towerinfoClusters;
   RawTowerDeadMap *m_deadMap;
   RawTowerContainer *m_calibTowers;
+  TowerInfoContainer *m_calibTowerInfos;
   RawTowerGeomContainer *m_geometry;
+  bool m_UseTowerInfo = true;
 };
 
 #endif
