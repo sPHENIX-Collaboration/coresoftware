@@ -3,7 +3,7 @@
 #ifndef TPCRAWDATADECODER_H
 #define TPCRAWDATADECODER_H
 
-#include "TpcMap.h"
+//#include "TpcMap.h"
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
@@ -13,6 +13,7 @@
 #include <memory>
 #include <string>
 
+class CDBTTree;
 class PHCompositeNode;
 class Fun4AllHistoManager;
 //class TrkrHitSetContainer;
@@ -71,9 +72,10 @@ class TpcRawDataDecoder : public SubsysReco
 
   // RawHitSetContainer *m_rawhits __attribute__ ((unused)) = nullptr;
 
-  TpcMap M;
+  //TpcMap M;
   TNtuple *h_Alive = nullptr;
-
+  CDBTTree *m_cdbttree = nullptr;
+  
   struct ped_tpc_map
   {
     unsigned int CHN_ID;
