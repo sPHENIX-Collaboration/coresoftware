@@ -25,6 +25,7 @@
 class SvtxTrack;
 class SvtxVertex;
 class SvtxVertexMap;
+class SvtxTrackState;
 
 class ActsPropagator
 {
@@ -49,6 +50,8 @@ class ActsPropagator
   /// functions below
   SurfacePtr makeVertexSurface(const SvtxVertex* vertex);
   BoundTrackParam makeTrackParams(SvtxTrack* track, SvtxVertexMap* vertexMap);
+  BoundTrackParam makeTrackParams(SvtxTrackState* state, int trackCharge,
+				  SurfacePtr surf);
 
   /// The return type is an Acts::Result of a std::pair, where the pair is
   /// a path length and the track parameters at the surface in units of mm 
