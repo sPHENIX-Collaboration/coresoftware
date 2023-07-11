@@ -8,13 +8,13 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/MvtxDefs.h>
+#include <trackbase/TpcDefs.h>  // for side
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-
-#include <trackbase/TpcDefs.h>  // for side
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
@@ -107,6 +107,12 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
     std::cout << "state map size " << _state_map->size() << std::endl;
   }
 
+  Acts::Vector3 eventVertex = Acts::Vector3::Zero();  
+  if(m_useEventVertex)
+    {
+      eventVertex = getEventVertex();
+    }
+  
   for (auto [key, statevec] : *_state_map)
   {
     // Check if track was removed from cleaner
@@ -125,12 +131,38 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
                 << ": Total tracks: " << _track_map->size() << ": phi: " << track->get_phi() << std::endl;
     }
 
-    // Make any desired track cuts here
-    // Maybe set a lower pT limit - low pT tracks are not very sensitive to alignment
+    //! Make any desired track cuts here
+    //! Maybe set a lower pT limit - low pT tracks are not very sensitive to alignment
+   addTrackToMilleFile(statevec);
 
-    addTrackToMilleFile(statevec);
-
-    /// Finish this track
+   //! Only take tracks that have 2 mm within event vertex
+   if(m_useEventVertex && 
+      fabs(track->get_z() - eventVertex.z()) < 0.2 &&
+      fabs(track->get_x()) < 0.2 && 
+      fabs(track->get_y()) < 0.2)
+      {
+	auto dcapair = TrackAnalysisUtils::get_dca(track, eventVertex);
+	Acts::Vector2 vtx_residual(dcapair.first.first, dcapair.second.first);
+	
+	float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC];
+	
+	// The global derivs dimensions are [alpha/beta/gamma](x/y/z)
+	float glblvtx_derivative[SvtxAlignmentState::NRES][3];
+	getGlobalVtxDerivativesXY(track, eventVertex, glblvtx_derivative);
+	for(int i=0; i<2; i++)
+	  {
+	    
+	    if(!isnan(vtx_residual(i)))
+	      {
+	    _mille->mille(SvtxAlignmentState::NLOC,lclvtx_derivative[i],
+			  AlignmentDefs::NGLVTX,glblvtx_derivative[i],
+			  AlignmentDefs::glbl_vtx_label,vtx_residual(i), 
+			  m_vtxSigma(i));
+	      }    
+	  }
+      }
+   
+    //! Finish this track
     _mille->end();
   }
 
@@ -183,22 +215,117 @@ int MakeMilleFiles::GetNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-Acts::Vector3 MakeMilleFiles::getPCALinePoint(Acts::Vector3 global, SvtxTrackState* state)
+void MakeMilleFiles::getGlobalVtxDerivativesXY(SvtxTrack* track,
+					       const Acts::Vector3& vertex,
+					       float glblvtx_derivative[SvtxAlignmentState::NRES][3])
 {
-  // Approximate track with a straight line consisting of the state position and the vector (px,py,pz)
+  Acts::SymMatrix3 identity = Acts::SymMatrix3::Identity();
+  
+  Acts::Vector3 track_vtx(track->get_x(),
+			  track->get_y(),
+			  track->get_z());
+  Acts::Vector3 track_mom(track->get_px(),
+			  track->get_py(),
+			  track->get_pz());
+  Acts::Vector3 projx = Acts::Vector3::Zero();
+  Acts::Vector3 projy = Acts::Vector3::Zero();
+  getProjectionVtxXY(track, vertex, projx, projy);
+  
+  glblvtx_derivative[0][0] = identity.col(0).dot(projx);
+  glblvtx_derivative[0][1] = identity.col(1).dot(projx);
+  glblvtx_derivative[0][2] = identity.col(2).dot(projx);
+  glblvtx_derivative[1][0] = identity.col(0).dot(projy);
+  glblvtx_derivative[1][1] = identity.col(1).dot(projy);
+  glblvtx_derivative[1][2] = identity.col(2).dot(projy);
 
-  Acts::Vector3 track_dir(state->get_px(), state->get_py(), state->get_pz());
-  track_dir = track_dir / track_dir.norm();
-  Acts::Vector3 track_base(state->get_x(), state->get_y(), state->get_z());
+}
+void MakeMilleFiles::getProjectionVtxXY(SvtxTrack* track,
+					const Acts::Vector3& vertex,
+					Acts::Vector3& projx,
+					Acts::Vector3& projy)
+{
+  Acts::Vector3 tangent(track->get_px(), track->get_py(), track->get_pz());
+  Acts::Vector3 normal(track->get_px(), track->get_py(), 0);
+  tangent /= tangent.norm();
+  normal /= normal.norm();
+  
+  Acts::Vector3 localx(1,0,0);
+  Acts::Vector3 localz(0,0,1);
+  
+  Acts::Vector3 xglob = localToGlobalVertex(track, vertex, localx);
+  Acts::Vector3 yglob = localz + vertex;
+  Acts::Vector3 X = (xglob-vertex) / (xglob-vertex).norm(); 
+  Acts::Vector3 Y = (yglob-vertex) / (yglob-vertex).norm();
+  // see equation 31 of the ATLAS paper (and discussion) for this
+  projx = X - (tangent.dot(X) / tangent.dot(normal)) * normal;
+  projy = Y - (tangent.dot(Y) / tangent.dot(normal)) * normal;
 
-  // The position of the closest point on the line is:
-  // track_base + projection of difference between the point and track_base on the line vector
-  Acts::Vector3 pca = track_base + ((global - track_base).dot(track_dir)) * track_dir;
+  return;
 
-  return pca;
+}
+Acts::Vector3 MakeMilleFiles::localToGlobalVertex(SvtxTrack* track,
+						  const Acts::Vector3& vertex,
+						  const Acts::Vector3& localx) const
+{
+   Acts::Vector3 mom(track->get_px(),
+		     track->get_py(),
+		     track->get_pz());
+
+  Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
+  float phi = atan2(r(1), r(0));
+  Acts::RotationMatrix3 rot;
+  Acts::RotationMatrix3 rot_T;
+ 
+  rot(0,0) = cos(phi);
+  rot(0,1) = -sin(phi);
+  rot(0,2) = 0;
+  rot(1,0) = sin(phi);
+  rot(1,1) = cos(phi);
+  rot(1,2) = 0;
+  rot(2,0) = 0;
+  rot(2,1) = 0;
+  rot(2,2) = 1;
+  
+  rot_T = rot.transpose();
+
+  Acts::Vector3 pos_R = rot * localx;
+  pos_R += vertex;
+
+  return pos_R; 
+}
+						  
+
+Acts::Vector3 MakeMilleFiles::getEventVertex()
+{
+  float xsum = 0;
+  float ysum = 0;
+  float zsum = 0;
+  int nacceptedtracks = 0;
+
+  for( auto [ key, statevec] : *_state_map)
+    {
+      // Check if track was removed from cleaner
+      auto iter = _track_map->find(key);
+      if (iter == _track_map->end())
+	{
+	  continue;
+	}
+      
+      SvtxTrack* track = iter->second;
+      
+      /// The track vertex is given by the fit as the PCA to the beamline
+      xsum += track->get_x();
+      ysum += track->get_y();
+      zsum += track->get_z();
+         
+    }
+
+  return Acts::Vector3 (xsum/nacceptedtracks,
+			ysum/nacceptedtracks,
+			zsum/nacceptedtracks);
 }
 
-void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec statevec)
+void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statevec)
 {
   for (auto state : statevec)
   {
@@ -214,7 +341,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 
     TrkrCluster* cluster = _cluster_map->findCluster(ckey);
     const unsigned int layer = TrkrDefs::getLayer(ckey);
-
+    const unsigned int trkrid = TrkrDefs::getTrkrId(ckey);
     const SvtxAlignmentState::ResidualVector residual = state->get_residual();
     const Acts::Vector3 global = _tGeometry->getGlobalPosition(ckey, cluster);
 
@@ -291,11 +418,33 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
         {
           glbl_derivative[j] = 0.;
         }
-	if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
+
+	if(trkrid == TrkrDefs::mvtxId)
+	  {
+	    // need stave to get clamshell
+	    auto stave  = MvtxDefs::getStaveId(ckey);
+	    auto clamshell = AlignmentDefs::getMvtxClamshell(layer, stave);
+	    if( is_layer_param_fixed(layer, j, fixed_layer_gparams) || 
+		is_mvtx_layer_fixed(layer,clamshell) )
+	      {
+		glbl_derivative[j] = 0;
+	      }
+	  }
+	else if(trkrid == TrkrDefs::inttId)
+	  {
+	    if( is_layer_param_fixed(layer, j, fixed_layer_gparams) || 
+		is_layer_fixed(layer) )
+	      {
+		glbl_derivative[j] = 0;
+	      }
+	  }
+	if(trkrid == TrkrDefs::tpcId)
 	  {
 	    auto sector = TpcDefs::getSectorId(ckey);
 	    auto side = TpcDefs::getSide(ckey);
-	    if(is_tpc_sector_fixed(layer, sector, side))
+	    if(is_layer_param_fixed(layer, j, fixed_layer_gparams) || 
+	       is_tpc_sector_fixed(layer, sector, side) ||
+	       is_layer_fixed(layer))
 	      {
 		glbl_derivative[j] = 0.0;
 	      }
@@ -377,6 +526,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
     }
   }
 
+  
   return;
 }
 
@@ -402,6 +552,21 @@ void MakeMilleFiles::set_layer_fixed(unsigned int layer)
   fixed_layers.insert(layer);
 }
 
+bool MakeMilleFiles::is_mvtx_layer_fixed(unsigned int layer, unsigned int clamshell)
+{
+  bool ret = false;
+
+  std::pair pair = std::make_pair(layer,clamshell);
+  auto it = fixed_mvtx_layers.find(pair);
+  if(it != fixed_mvtx_layers.end()) 
+    ret = true;
+
+  return ret;
+}
+void MakeMilleFiles::set_mvtx_layer_fixed(unsigned int layer, unsigned int clamshell)
+{
+  fixed_mvtx_layers.insert(std::make_pair(layer,clamshell));
+}
 bool MakeMilleFiles::is_layer_param_fixed(unsigned int layer, unsigned int param, std::set<std::pair<unsigned int, unsigned int>>& param_fixed)
 {
   bool ret = false;
