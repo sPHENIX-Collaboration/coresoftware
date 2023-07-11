@@ -4,6 +4,7 @@
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterv4.h>
+#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitv2.h>
@@ -13,6 +14,7 @@
 #include <trackbase/InttDefs.h>
 #include <trackbase/TpcDefs.h>
 
+#include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/RawHit.h>
 #include <trackbase/RawHitSet.h>
 #include <trackbase/RawHitSetContainer.h>
@@ -236,6 +238,24 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
     cout << "===========================================================================" << endl;
   }
 
+  if (record_ClusHitsVerbose) {
+    // get the node
+    mClusHitsVerbose = findNode::getClass<ClusHitsVerbosev1>(topNode, "Trkr_SvtxClusHitsVerbose");
+    if (!mClusHitsVerbose)
+    {
+      PHNodeIterator dstiter(dstNode);
+      auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode("TRKR");
+        dstNode->addNode(DetNode);
+      }
+      mClusHitsVerbose = new ClusHitsVerbosev1();
+      auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_SvtxClusHitsVerbose", "PHObject");
+      DetNode->addNode(newNode);
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -448,6 +468,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	double ylocalsum = 0.0;
 	double zlocalsum = 0.0;
 	unsigned int clus_adc = 0.0;
+	unsigned int clus_maxadc = 0.0;
 	unsigned nhits = 0;
 
 	//std::cout << PHWHERE << " ckey " << ckey << ":" << std::endl;	
@@ -484,7 +505,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 		ylocalsum += local_hit_location[1];
 		zlocalsum += local_hit_location[2];
 	      }
-
+	    if(hit_adc > clus_maxadc)
+	      clus_maxadc = hit_adc;
 	    clus_adc += hit_adc;
 	    ++nhits;
 
@@ -565,6 +587,24 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	  clus->setSubSurfKey(0);
 	  m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
 	  
+	}else if(m_cluster_version==5){
+	  auto clus = std::make_unique<TrkrClusterv5>();
+	  clus->setAdc(clus_adc);
+	  clus->setMaxAdc(clus_maxadc);
+	  clus->setLocalX(cluslocaly);
+	  clus->setLocalY(cluslocalz);
+	  clus->setPhiError(phierror);
+	  clus->setZError(zerror);
+	  clus->setPhiSize(phibins.size());
+	  clus->setZSize(1);
+	  // All silicon surfaces have a 1-1 map to hitsetkey. 
+	  // So set subsurface key to 0
+	  clus->setSubSurfKey(0);
+	  
+	  if (Verbosity() > 2)
+	    clus->identify();
+	  
+	  m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
 	}
       } // end loop over cluster ID's
   }  // end loop over hitsets
@@ -710,15 +750,26 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 	unsigned nhits = 0;
 
 	//std::cout << PHWHERE << " ckey " << ckey << ":" << std::endl;	
+  
+  std::map<int,unsigned int> m_phi, m_z; // hold data for 
 	for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
 	  {
 	    // mapiter->second.first  is the hit key
 	    //cout << " adding hitkey " << mapiter->second.first << endl; 
+      const auto energy = (mapiter->second)->getAdc();
 	    int col = (mapiter->second)->getPhiBin();
 	    int row = (mapiter->second)->getTBin();
 	    //	    cout << " found Tbin(row) " << row << " Phibin(col) " << col << endl; 
 	    zbins.insert(col);
 	    phibins.insert(row);
+
+      if (mClusHitsVerbose) {
+        auto pnew = m_phi.try_emplace(row,energy);
+        if (!pnew.second) pnew.first->second += energy;
+
+        pnew = m_z.try_emplace(col,energy);
+        if (!pnew.second) pnew.first->second += energy;
+      }
 
 	    // mapiter->second.second is the hit
 	    unsigned int hit_adc = (mapiter->second)->getAdc();
@@ -759,6 +810,17 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 		
 	      }
 	  }
+
+    if (mClusHitsVerbose) {
+      if (Verbosity()>10) {
+        for (auto& hit : m_phi) {
+          std::cout << " m_phi(" << hit.first <<" : " << hit.second<<") " << std::endl;
+        }
+      }
+      for (auto& hit : m_phi) mClusHitsVerbose->addPhiHit    (hit.first, (float)hit.second);
+      for (auto& hit : m_z)   mClusHitsVerbose->addZHit      (hit.first, (float)hit.second);
+      mClusHitsVerbose->push_hits(ckey);
+    }
 
 	static const float invsqrt12 = 1./sqrt(12);
 	

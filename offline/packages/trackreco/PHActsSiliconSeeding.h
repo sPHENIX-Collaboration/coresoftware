@@ -85,6 +85,20 @@ class PHActsSiliconSeeding : public SubsysReco
   {m_gridFactor = gridFactor;}
   void sigmaScattering(const float sigma)
   { m_sigmaScattering = sigma; }
+  void maxPtScattering(const float pt)
+  { m_maxPtScattering = pt; }
+  void sigmaError(const float sigma)
+  { m_sigmaError = sigma; }
+  void zalign(const float z)
+  { m_zalign = z; }
+  void ralign(const float r) 
+  { m_ralign = r; }
+  void tolerance(const float tolerance)
+  { m_tolerance = tolerance; }
+  void helixcut(const float cut)
+  { m_helixcut = cut; }
+
+  
   /// A function to run the seeder with large (true)
   /// or small (false) grid spacing
   void largeGridSpacing(const bool spacing);
@@ -148,19 +162,27 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Configurable parameters
   /// seed pt has to be in MeV
   float m_minSeedPt = 100 * Acts::UnitConstants::MeV;
-  float m_uncfactor = 3.175;
+  float m_uncfactor = 3.18;
     
   /// How many seeds a given hit can be the middle hit of the seed
   /// MVTX can only have the middle layer be the middle hit
   int m_maxSeedsPerSpM = 1;
 
-  float m_sigmaScattering = 5.;
   /// Limiting location of measurements (e.g. detector constraints)
   /// We limit to the MVTX
   float m_rMax = 200. * Acts::UnitConstants::mm;
   float m_rMin = 23. * Acts::UnitConstants::mm;
   float m_zMax = 300. * Acts::UnitConstants::mm;
   float m_zMin = -300. * Acts::UnitConstants::mm;
+
+  /// misalignment parameters
+  float m_helixcut = 1;
+  float m_tolerance = 1.1 * Acts::UnitConstants::mm;
+  float m_ralign = 0;
+  float m_zalign = 0;
+  float m_maxPtScattering = 10;
+  float m_sigmaScattering = 5.;
+  float m_sigmaError = 5;
 
   /// Value tuned to provide as large of phi bins as possible. 
   /// Increases the secondary finding efficiency

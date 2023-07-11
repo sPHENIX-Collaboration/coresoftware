@@ -25,7 +25,8 @@ libg4micromegas_la_SOURCES = \
   PHG4MicromegasDisplayAction.cc \
   PHG4MicromegasHitReco.cc \
   PHG4MicromegasSteppingAction.cc \
-  PHG4MicromegasSubsystem.cc
+  PHG4MicromegasSubsystem.cc \
+  PHG4MicromegasSurvey.cc
 
 libg4micromegas_la_LIBADD = \
   -lphool \

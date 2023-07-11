@@ -69,6 +69,7 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
   }
 
  private:
+  PHParameters* m_Params = nullptr;
   //  SpacalGeom_t* _geom;
   //! get the v3 cast of the geometry object
   SpacalGeom_t*

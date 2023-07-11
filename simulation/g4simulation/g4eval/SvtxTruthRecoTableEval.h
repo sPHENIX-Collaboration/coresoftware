@@ -6,8 +6,8 @@
 #include <trackbase_historic/PHG4ParticleSvtxMap.h>
 #include <trackbase_historic/SvtxPHG4ParticleMap.h>
 
-#include <string>
 #include <memory>
+#include <string>
 
 class PHCompositeNode;
 class PHG4TruthInfoContainer;

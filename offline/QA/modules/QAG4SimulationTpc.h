@@ -3,8 +3,8 @@
 
 #include <g4eval/SvtxEvalStack.h>  // for SvtxEvalStack
 
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <fun4all/SubsysReco.h>
 

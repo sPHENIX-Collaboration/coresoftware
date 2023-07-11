@@ -127,7 +127,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 }
 
 //_______________________________________________________________________________
-Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack( const ActsExamples::TrackParameters& params ) const
+Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack( const ActsTrackFittingAlgorithm::TrackParameters& params ) const
 { 
   const auto covarianceMatrix = *params.covariance();
   printMatrix("Initial Acts covariance: ", covarianceMatrix);

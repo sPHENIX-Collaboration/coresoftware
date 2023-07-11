@@ -61,8 +61,8 @@ class Calibrator
 
           auto cov = uncalibmeas.covariance();
           const auto& cluskey = sourceLink.cluskey();
-          const auto trkrid = TrkrDefs::getTrkrId(cluskey);
-          const double misalignmentFactor = gctx.get<alignmentTransformationContainer*>()->getMisalignmentFactor(trkrid);
+          const auto layer = TrkrDefs::getLayer(cluskey);
+          const double misalignmentFactor = gctx.get<alignmentTransformationContainer*>()->getMisalignmentFactor(layer);
 
           Acts::ActsSymMatrix<2> expandedCov = Acts::ActsSymMatrix<2>::Zero();
 
@@ -78,9 +78,10 @@ class Calibrator
               uncalibmeas.sourceLink(), indices,
               loc, expandedCov);
 
-          trackState.setCalibrated(meas);
 	  trackState.allocateCalibrated(meas.size());
-        },
+          trackState.setCalibrated(meas);
+
+    },
         (*m_measurements)[sourceLink.index()]);
   }
     

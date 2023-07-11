@@ -200,9 +200,9 @@ class RawClusterBuilderTopo : public SubsysReco
 
   RawClusterContainer *_clusters = nullptr;
 
-  RawTowerGeomContainer *_geom_containers[3];
+  RawTowerGeomContainer *_geom_containers[3]{};
 
-  float _noise_LAYER[3];
+  float _noise_LAYER[3]{};
 
   float _sigma_seed;
   float _sigma_grow;
@@ -214,7 +214,7 @@ class RawClusterBuilderTopo : public SubsysReco
   bool _enable_EMCal;
 
   bool _do_split;
-  float _local_max_minE_LAYER[3];
+  float _local_max_minE_LAYER[3]{};
   float _R_shower;
 
   std::string ClusterNodeName;

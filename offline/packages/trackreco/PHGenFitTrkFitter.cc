@@ -1174,7 +1174,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     // get cluster errors
     double cluster_rphi_error = 0;
     double cluster_z_error = 0;
-    if( m_cluster_version >= 4 )
+    if( m_cluster_version == 4 )
     {
       // get error from cluster error parametrization 
       // get cluster radius
@@ -1186,7 +1186,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
         case TrkrDefs::mvtxId:
         case TrkrDefs::inttId:
         {
-          const auto errors_square = m_cluster_error_parametrization.get_cluster_error( intrack->get_silicon_seed(), cluster, cluster_r, cluster_key ); 
+          const auto errors_square = m_cluster_error_parametrization.get_cluster_error(cluster, cluster_r, cluster_key, intrack->get_silicon_seed()->get_qOverR(), intrack->get_silicon_seed()->get_slope() ); 
           cluster_rphi_error = std::sqrt( errors_square.first );
           cluster_z_error = std::sqrt( errors_square.second );
           break;
@@ -1195,7 +1195,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
         case TrkrDefs::micromegasId:
         case TrkrDefs::tpcId:
         {
-          const auto errors_square = m_cluster_error_parametrization.get_cluster_error( intrack->get_tpc_seed(), cluster, cluster_r, cluster_key ); 
+          const auto errors_square = m_cluster_error_parametrization.get_cluster_error(cluster, cluster_r, cluster_key, intrack->get_tpc_seed()->get_qOverR(), intrack->get_tpc_seed()->get_slope() ); 
           cluster_rphi_error = std::sqrt( errors_square.first );
           cluster_z_error = std::sqrt( errors_square.second );
           break;

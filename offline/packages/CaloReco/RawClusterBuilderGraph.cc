@@ -39,9 +39,9 @@
 class twrs
 {
  public:
-  explicit twrs(RawTower *);
+  explicit twrs(RawTower * /*rt*/);
   virtual ~twrs() = default;
-  bool is_adjacent(const twrs &);
+  bool is_adjacent(const twrs & /*tower*/);
   void set_id(const int i)
   {
     id = i;

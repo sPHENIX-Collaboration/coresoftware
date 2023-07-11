@@ -10,6 +10,10 @@
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+
+//#include <g4tpc/PHG4TpcPadPlane.h>
+//#include <g4tpc/PHG4TpcPadPlaneReadout.h>
 
 #include <TAxis.h>  // for TAxis
 #include <TFile.h>
@@ -92,18 +96,20 @@ int fillSpaceChargeMaps::Init(PHCompositeNode * /*topNode*/)
     z_bins[z] = -z_rdo + z_rdo / nz * z;
   }
 
-  _h_R = new TH1F("_h_R", "_h_R;R, [m]", r_bins_N+2, r_bins_edges);
+  _h_R = new TH1F("_h_R", "_h_R;R, [mm]", r_bins_N+2, r_bins_edges);
   _h_hits = new TH1F("_h_hits", "_h_hits;N, [hit]", 1000, 0, 1e6);
   _h_DC_E = new TH2F("_h_DC_E", "_h_DC_E;SC;E#times10^{6}", 2000, -100, 2e5 - 100, 1000, -50, 1e3 - 50);
+  _h_SC_XY = new TH2F("_h_SC_XY" ,"_h_SC_XY;X, [mm];Y, [mm];ADC;"   ,4*159,-1*78*cm,78*cm,4*159,-1*78*cm,78*cm);
+
   char name[100];
   char name_ax[100];
   for (int iz = 0; iz < 30; iz++)
   {
     sprintf(name, "_h_SC_ibf_%d", iz);
-    sprintf(name_ax, "_h_SC_ibf_%d;#phi, [rad];R, [m];Z, [m]", iz);
+    sprintf(name_ax, "_h_SC_ibf_%d;#phi, [rad];R, [mm];Z, [mm]", iz);
     _h_SC_ibf[iz] = new TH3F(name, name_ax, nphi, phi_bins, r_bins_N, r_bins, 2 * nz, z_bins);
     sprintf(name, "_h_SC_prim_%d", iz);
-    sprintf(name_ax, "_h_SC_prim_%d;#phi, [rad];R, [m];Z, [m]", iz);
+    sprintf(name_ax, "_h_SC_prim_%d;#phi, [rad];R, [mm];Z, [mm]", iz);
     _h_SC_prim[iz] = new TH3F(name, name_ax, nphi, phi_bins, r_bins_N, r_bins, 2 * nz, z_bins);
 
     hm->registerHisto(_h_SC_prim[iz]);
@@ -112,7 +118,7 @@ int fillSpaceChargeMaps::Init(PHCompositeNode * /*topNode*/)
   hm->registerHisto(_h_hits);
   hm->registerHisto(_h_R);
   hm->registerHisto(_h_DC_E);
-
+  hm->registerHisto(_h_SC_XY);
   //_event_timestamp = 0;
   _hit_eion = 0;
   _hit_r = 0;
@@ -134,6 +140,8 @@ int fillSpaceChargeMaps::Init(PHCompositeNode * /*topNode*/)
     _rawHits->Branch("event_timestamp", &_event_timestamp);
     _rawHits->Branch("event_bunchXing", &_event_bunchXing);
   }
+  //padplane = new PHG4TpcPadPlaneReadout;
+  //seggeo = new PHG4TpcCylinderGeomContainer();
   return 0;
 }
 
@@ -192,7 +200,7 @@ int fillSpaceChargeMaps::InitRun(PHCompositeNode * /*topNode*/)
   _mbRate = _freqKhz * kHz;
   _xingRate = 9.383 * MHz;
   _mean = mbRate / xingRate;
-
+  //padplane->CreateReadoutGeometry( PHCompositeNode *, seggeo);
   return 0;
 }
 
@@ -407,11 +415,13 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
 
             _ibf_vol = N_electrons * w_gain_tmp * _ampGain * w_ibf_tmp * _ampIBFfrac;
             _h_SC_ibf[iz]->Fill(_hit_phi, _hit_r, z_ibf[iz], _ibf_vol);
+            if(iz==0)_h_SC_XY->Fill(_hit_r * cos(_hit_phi),_hit_r * sin(_hit_phi));//,_ibf_vol);
             
           }
           else
           {
             _h_SC_ibf[iz]->Fill(new_phi, new_r, z_ibf[iz], _ibf_vol);
+            if(iz==0)_h_SC_XY->Fill(new_r * cos(new_phi),new_r * sin(new_phi));//,_ibf_vol);
           }
         }
       }
@@ -447,6 +457,7 @@ int fillSpaceChargeMaps::End(PHCompositeNode * /*topNode*/)
       _h_SC_ibf[iz]->Sumw2(false);
     }
 
+    _h_SC_XY->Sumw2(false);
     _h_hits->Sumw2(false);
     _h_DC_E->Sumw2(false);
     _h_R->Sumw2(false);

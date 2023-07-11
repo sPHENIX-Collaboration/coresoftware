@@ -32,7 +32,6 @@
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 #include <Acts/TrackFitting/BetheHeitlerApprox.hpp>
-#include <ActsExamples/EventData/Index.hpp>
 
 #include <TDatabasePDG.h>
 
@@ -87,7 +86,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
     auto pSurface = makePerigee(track);
     const auto seed = makeSeed(track, pSurface);
 
-    ActsExamples::MeasurementContainer measurements;
+    ActsTrackFittingAlgorithm::MeasurementContainer measurements;
     TrackSeed* tpcseed = track->get_tpc_seed();
     TrackSeed* silseed = track->get_silicon_seed();
 
@@ -167,7 +166,7 @@ std::shared_ptr<Acts::PerigeeSurface> PHActsGSF::makePerigee(SvtxTrack* track) c
       vertexpos);
 }
 
-ActsExamples::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
+ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
                                                   std::shared_ptr<Acts::PerigeeSurface> psurf) const
 {
   Acts::Vector4 fourpos(track->get_x() * Acts::UnitConstants::cm,
@@ -183,7 +182,7 @@ ActsExamples::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
   ActsTransformations transformer;
   auto cov = transformer.rotateSvtxTrackCovToActs(track);
 
-  return ActsExamples::TrackParameters::create(psurf,
+  return ActsTrackFittingAlgorithm::TrackParameters::create(psurf,
                                                m_tGeometry->geometry().getGeoContext(),
                                                fourpos,
                                                momentum,
@@ -193,7 +192,7 @@ ActsExamples::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
 }
 
 SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
-                                        ActsExamples::MeasurementContainer& measurements,
+                                        ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
                                         const short int& crossing)
 {
   SourceLinkVec sls;
@@ -339,14 +338,24 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
     else if (m_cluster_version == 4)
     {
       double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
-      auto para_errors = _ClusErrPara.get_cluster_error(track, cluster, clusRadius, cluskey);
+      auto para_errors = _ClusErrPara.get_cluster_error(cluster, clusRadius, cluskey, track->get_qOverR(), track->get_slope());
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
+    }
+    else if (m_cluster_version == 5)
+    {
+      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+      TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
+      auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5,clusRadius,cluskey);
       cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
       cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
       cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
       cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
     }
 
-    ActsExamples::Index index = measurements.size();
+    ActsSourceLink::Index index = measurements.size();
 
     SourceLink sl(surf->geometryId(), index, cluskey);
 
@@ -375,7 +384,7 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
 
 ActsTrackFittingAlgorithm::TrackFitterResult PHActsGSF::fitTrack(
     const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks,
-    const ActsExamples::TrackParameters& seed,
+    const ActsTrackFittingAlgorithm::TrackParameters& seed,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
 {
   auto mtj = std::make_shared<Acts::VectorMultiTrajectory>();

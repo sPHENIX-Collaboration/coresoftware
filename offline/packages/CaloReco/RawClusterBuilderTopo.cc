@@ -3,10 +3,11 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterv1.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawClusterUtility.h>
+#include <calobase/TowerInfov1.h>
+#include <calobase/TowerInfoContainerv1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -360,25 +361,27 @@ int RawClusterBuilderTopo::InitRun(PHCompositeNode *topNode)
 
 int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 {
-  RawTowerContainer *towersEM = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
-  RawTowerContainer *towersIH = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
-  RawTowerContainer *towersOH = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
+  TowerInfoContainer *towerinfosEM = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
+  TowerInfoContainer *towerinfosIH = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
+  TowerInfoContainer *towerinfosOH = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
 
-  if (!towersEM)
+  if (!towerinfosEM)
   {
-    std::cout << " RawClusterBuilderTopo::process_event : container TOWER_CALIB_CEMC does not exist, aborting " << std::endl;
+    std::cout << " RawClusterBuilderTopo::process_event : container TOWERINFO_CALIB_CEMC does not exist, aborting " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  if (!towersIH)
+  if (!towerinfosIH)
   {
-    std::cout << " RawClusterBuilderTopo::process_event : container TOWER_CALIB_HCALIN does not exist, aborting " << std::endl;
+    std::cout << " RawClusterBuilderTopo::process_event : container TOWERINFO_CALIB_HCALIN does not exist, aborting " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  if (!towersOH)
+  if (!towerinfosOH)
   {
-    std::cout << " RawClusterBuilderTopo::process_event : container TOWER_CALIB_HCALOUT does not exist, aborting " << std::endl;
+    std::cout << " RawClusterBuilderTopo::process_event : container TOWERINFO_CALIB_HCALOUT does not exist, aborting " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+
 
   _geom_containers[0] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
   _geom_containers[1] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
@@ -402,9 +405,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
   if (Verbosity() > 10)
   {
-    std::cout << "RawClusterBuilderTopo::process_event: " << towersEM->size() << " TOWER_CALIB_CEMC towers" << std::endl;
-    std::cout << "RawClusterBuilderTopo::process_event: " << towersIH->size() << " TOWER_CALIB_HCALIN towers" << std::endl;
-    std::cout << "RawClusterBuilderTopo::process_event: " << towersOH->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
+    std::cout << "RawClusterBuilderTopo::process_event: " << towerinfosEM->size() << " TOWERINFO_CALIB_CEMC towers" << std::endl;
+    std::cout << "RawClusterBuilderTopo::process_event: " << towerinfosIH->size() << " TOWERINFO_CALIB_HCALIN towers" << std::endl;
+    std::cout << "RawClusterBuilderTopo::process_event: " << towerinfosOH->size() << " TOWERINFO_CALIB_HCALOUT towers" << std::endl;
 
     std::cout << "RawClusterBuilderTopo::process_event: pointer to TOWERGEOM_CEMC: " << _geom_containers[2] << std::endl;
     std::cout << "RawClusterBuilderTopo::process_event: pointer to TOWERGEOM_HCALIN: " << _geom_containers[0] << std::endl;
@@ -461,19 +464,26 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
   // translate towers to our internal representation
   if (_enable_EMCal)
   {
-    RawTowerContainer::ConstRange begin_end_EM = towersEM->getTowers();
-    for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+    TowerInfo *towerInfo = nullptr;
+    for(unsigned int iEM = 0; iEM < towerinfosEM->size(); iEM++)
     {
-      RawTower *tower = rtiter->second;
-      RawTowerGeom *tower_geom = _geom_containers[2]->get_tower_geometry(tower->get_key());
+      towerInfo = towerinfosEM->get_tower_at_channel(iEM);
+      unsigned int towerinfo_key = towerinfosEM->encode_key(iEM);
+      int ti_ieta = towerinfosEM->getTowerEtaBin(towerinfo_key);
+      int ti_iphi = towerinfosEM->getTowerPhiBin(towerinfo_key);
+      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ti_ieta, ti_iphi);
+
+      RawTowerGeom *tower_geom = _geom_containers[2]->get_tower_geometry(key);
 
       int ieta = _geom_containers[2]->get_etabin(tower_geom->get_eta());
       int iphi = _geom_containers[2]->get_phibin(tower_geom->get_phi());
-      float this_E = tower->get_energy();
+      float this_E = towerInfo->get_energy();
+
+      if(this_E < 1.E-10) continue;
 
       _EMTOWERMAP_STATUS_ETA_PHI[ieta][iphi] = -1;  // change status to unknown
       _EMTOWERMAP_E_ETA_PHI[ieta][iphi] = this_E;
-      _EMTOWERMAP_KEY_ETA_PHI[ieta][iphi] = tower->get_key();
+      _EMTOWERMAP_KEY_ETA_PHI[ieta][iphi] = key;
 
       if (this_E > _sigma_seed * _noise_LAYER[2])
       {
@@ -491,19 +501,26 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
   // translate towers to our internal representation
   if (_enable_HCal)
   {
-    RawTowerContainer::ConstRange begin_end_IH = towersIH->getTowers();
-    for (RawTowerContainer::ConstIterator rtiter = begin_end_IH.first; rtiter != begin_end_IH.second; ++rtiter)
+    TowerInfo *towerInfo = nullptr;
+    for(unsigned int iIH = 0; iIH < towerinfosIH->size(); iIH++)
     {
-      RawTower *tower = rtiter->second;
-      RawTowerGeom *tower_geom = _geom_containers[0]->get_tower_geometry(tower->get_key());
+      towerInfo = towerinfosIH->get_tower_at_channel(iIH);
+      unsigned int towerinfo_key = towerinfosIH->encode_key(iIH);
+      int ti_ieta = towerinfosIH->getTowerEtaBin(towerinfo_key);
+      int ti_iphi = towerinfosIH->getTowerPhiBin(towerinfo_key);
+      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ti_ieta, ti_iphi);
+
+      RawTowerGeom *tower_geom = _geom_containers[0]->get_tower_geometry(key);
 
       int ieta = _geom_containers[0]->get_etabin(tower_geom->get_eta());
       int iphi = _geom_containers[0]->get_phibin(tower_geom->get_phi());
-      float this_E = tower->get_energy();
+      float this_E = towerInfo->get_energy();
+
+      if(this_E < 1.E-10) continue;
 
       _TOWERMAP_STATUS_LAYER_ETA_PHI[0][ieta][iphi] = -1;  // change status to unknown
       _TOWERMAP_E_LAYER_ETA_PHI[0][ieta][iphi] = this_E;
-      _TOWERMAP_KEY_LAYER_ETA_PHI[0][ieta][iphi] = tower->get_key();
+      _TOWERMAP_KEY_LAYER_ETA_PHI[0][ieta][iphi] = key;
 
       if (this_E > _sigma_seed * _noise_LAYER[0])
       {
@@ -517,19 +534,25 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       }
     }
 
-    RawTowerContainer::ConstRange begin_end_OH = towersOH->getTowers();
-    for (RawTowerContainer::ConstIterator rtiter = begin_end_OH.first; rtiter != begin_end_OH.second; ++rtiter)
+    for(unsigned int iOH = 0; iOH < towerinfosOH->size(); iOH++)
     {
-      RawTower *tower = rtiter->second;
-      RawTowerGeom *tower_geom = _geom_containers[1]->get_tower_geometry(tower->get_key());
+      towerInfo = towerinfosOH->get_tower_at_channel(iOH);
+      unsigned int towerinfo_key = towerinfosOH->encode_key(iOH);
+      int ti_ieta = towerinfosOH->getTowerEtaBin(towerinfo_key);
+      int ti_iphi = towerinfosOH->getTowerPhiBin(towerinfo_key);
+      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ti_ieta, ti_iphi);
+
+      RawTowerGeom *tower_geom = _geom_containers[1]->get_tower_geometry(key);
 
       int ieta = _geom_containers[1]->get_etabin(tower_geom->get_eta());
       int iphi = _geom_containers[1]->get_phibin(tower_geom->get_phi());
-      float this_E = tower->get_energy();
+      float this_E = towerInfo->get_energy();
+
+      if(this_E < 1.E-10) continue;
 
       _TOWERMAP_STATUS_LAYER_ETA_PHI[1][ieta][iphi] = -1;  // change status to unknown
       _TOWERMAP_E_LAYER_ETA_PHI[1][ieta][iphi] = this_E;
-      _TOWERMAP_KEY_LAYER_ETA_PHI[1][ieta][iphi] = tower->get_key();
+      _TOWERMAP_KEY_LAYER_ETA_PHI[1][ieta][iphi] = key;
 
       if (this_E > _sigma_seed * _noise_LAYER[1])
       {
@@ -718,6 +741,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         if (Verbosity() > 10) std::cout << "add this tower ( ID " << this_adjacent_tower_ID << " ) to cluster " << std::endl;
       }
 
+
+
       if (Verbosity() > 5) std::cout << " --> after examining perimeter neighbors, # of towers in cluster is now = " << cluster_tower_ID.size() << std::endl;
     }
 
@@ -730,8 +755,10 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
   if (Verbosity() > 0) std::cout << "RawClusterBuilderTopo::process_event: " << cluster_index << " topo-clusters initially reconstructed, entering splitting step" << std::endl;
 
-  // now entering cluster splitting stage
   int original_cluster_index = cluster_index;  // since it may be updated
+
+  // now entering cluster splitting stage
+
   for (int cl = 0; cl < original_cluster_index; cl++)
   {
     std::vector<int> original_towers = all_cluster_towers.at(cl);
@@ -791,7 +818,6 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     }
 
     // check for possible EMCal-OHCal seed overlaps
-
     for (unsigned int n = 0; n < local_maxima_ID.size(); n++)
     {
       // only look at I/OHCal local maxima
@@ -940,9 +966,11 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
           }
           // look over all towers THIS one is adjacent to, and count up...
           std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(neighbor_ID);
+
           for (int this_adjacent_tower_ID : adjacent_tower_IDs)
           {
             if (get_status_from_ID(this_adjacent_tower_ID) != cl) continue;
+
             if (tower_ownership[this_adjacent_tower_ID].first > -1)
             {
               if (Verbosity() > 20)

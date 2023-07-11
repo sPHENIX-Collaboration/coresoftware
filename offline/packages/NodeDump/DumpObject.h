@@ -10,7 +10,7 @@ class PHNodeDump;
 class DumpObject
 {
  public:
-  DumpObject(const std::string &NodeName = "DUMMY");
+  explicit DumpObject(const std::string &NodeName = "DUMMY");
   virtual ~DumpObject() {}
 
   virtual int Init();  // called during intialization

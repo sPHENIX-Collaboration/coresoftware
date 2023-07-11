@@ -5,10 +5,10 @@
 
 #include "RawTowerDefs.h"
 
-#include <cmath>
-#include <iostream>
 #include <TRotation.h>
 #include <TVector3.h>
+#include <cmath>
+#include <iostream>
 
 class RawTowerGeomv4 : public RawTowerGeom
 {
@@ -37,7 +37,7 @@ class RawTowerGeomv4 : public RawTowerGeom
     _center_y = y;
     return;
   }
-    void set_center_z(double z) override
+  void set_center_z(double z) override
   {
     _center_z = z;
     return;
@@ -52,14 +52,13 @@ class RawTowerGeomv4 : public RawTowerGeom
     _rotz = rotz;
     return;
   }
-  
+
   double get_center_x() const override { return _center_x; }
   double get_center_y() const override { return _center_y; }
   double get_center_z() const override { return _center_z; }
   double get_roty() const override { return _roty; }
   double get_rotz() const override { return _rotz; }
 
-  
   TVector3 get_final_position() const;
   double get_center_radius() const override;
   double get_eta() const override;
@@ -67,7 +66,7 @@ class RawTowerGeomv4 : public RawTowerGeom
   double get_theta() const override;
 
   void set_tower_type(int tt) override { _tower_type = tt; }
-  int  get_tower_type() const override { return _tower_type; }
+  int get_tower_type() const override { return _tower_type; }
 
  protected:
   RawTowerDefs::keytype _towerid = ~0;  // complement = 0xFFFFF... independent of integer type (32/64/... bits)
@@ -76,8 +75,8 @@ class RawTowerGeomv4 : public RawTowerGeom
   double _center_y = NAN;
   double _center_z = NAN;
   double _roty = NAN;
-  double _rotz = NAN; 
- 
+  double _rotz = NAN;
+
   int _tower_type = -1;
 
   ClassDefOverride(RawTowerGeomv4, 5)

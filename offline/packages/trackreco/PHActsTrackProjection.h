@@ -7,14 +7,10 @@
 
 #include <trackbase/ActsGeometry.h>
 
+#include "ActsPropagator.h"
+
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <Acts/Propagator/Propagator.hpp>
-#pragma GCC diagnostic pop
-
 #include <Acts/Surfaces/CylinderSurface.hpp>
 #include <Acts/Utilities/Result.hpp>
 
@@ -22,7 +18,7 @@
 
 class PHCompositeNode;
 class RawClusterContainer;
-class RawTowerContainer;
+class TowerInfoContainer;
 class RawTowerGeomContainer;
 class SvtxTrackMap;
 class SvtxTrack;
@@ -31,12 +27,6 @@ class SvtxVertexMap;
 #include <map>
 #include <memory>
 #include <string>
-
-using BoundTrackParam =
-    const Acts::BoundTrackParameters;
-using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
-using SurfacePtr = std::shared_ptr<const Acts::Surface>;
-using Trajectory = ActsExamples::Trajectories;
 
 /**
  * This class takes final fitted tracks from the Acts track fitting
@@ -48,6 +38,12 @@ using Trajectory = ActsExamples::Trajectories;
 class PHActsTrackProjection : public SubsysReco
 {
  public:
+  using BoundTrackParam =
+      const Acts::BoundTrackParameters;
+  using SurfacePtr = std::shared_ptr<const Acts::Surface>;
+  using Trajectory = ActsExamples::Trajectories;
+  using BoundTrackParamResult = ActsPropagator::BoundTrackParamResult;
+
   PHActsTrackProjection(const std::string &name = "PHActsTrackProjection");
 
   int Init(PHCompositeNode *topNode) override;
@@ -78,6 +74,7 @@ class PHActsTrackProjection : public SubsysReco
   /// Propagate the fitted track parameters to a surface with Acts
   BoundTrackParamResult propagateTrack(
       const Acts::BoundTrackParameters &params,
+      const int caloLayer,
       const SurfacePtr &targetSurf);
 
   /// Set the particular calo nodes depending on which layer
@@ -88,7 +85,7 @@ class PHActsTrackProjection : public SubsysReco
   int makeCaloSurfacePtrs(PHCompositeNode *topNode);
 
   /// Update the SvtxTrack object with the track-cluster match
-  void updateSvtxTrack(const Acts::BoundTrackParameters &params,
+  void updateSvtxTrack(const ActsPropagator::BoundTrackParamPair &params,
                        SvtxTrack *svtxTrack,
                        const int caloLayer);
 
@@ -101,10 +98,8 @@ class PHActsTrackProjection : public SubsysReco
   void getClusterProperties(double phi, double eta,
                             double &minIndex, double &minDphi,
                             double &minDeta, double &minE);
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack *track);
   double deltaPhi(const double &phi);
-  Acts::Vector3 getVertex(SvtxTrack *track);
-
+ 
   /// Objects containing the Acts track fit results
   ActsGeometry *m_tGeometry = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
@@ -121,7 +116,7 @@ class PHActsTrackProjection : public SubsysReco
   std::map<SvtxTrack::CAL_LAYER, float> m_caloRadii;
 
   RawTowerGeomContainer *m_towerGeomContainer = nullptr;
-  RawTowerContainer *m_towerContainer = nullptr;
+  TowerInfoContainer *m_towerContainer = nullptr;
   RawClusterContainer *m_clusterContainer = nullptr;
 
   bool m_constField = true;

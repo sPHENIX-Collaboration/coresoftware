@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I`root-config --incdir`
+  -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
    libg4bbc_io.la \
@@ -17,37 +17,21 @@ libg4bbc_io_la_LIBADD = \
   -lphool
 
 libg4bbc_la_LIBADD = \
+  libg4bbc_io.la \
+  -lbbc_io \
   -lg4detectors \
-  -lfun4all \
-  libg4bbc_io.la
+  -lSubsysReco
 
 pkginclude_HEADERS = \
-  BbcVertex.h \
-  BbcVertexv1.h \
-  BbcVertexMap.h \
-  BbcVertexMapv1.h \
+  BbcDigitization.h \
   BbcVertexFastSimReco.h
 
-ROOTDICTS = \
-  BbcVertex_Dict.cc \
-  BbcVertexv1_Dict.cc \
-  BbcVertexMap_Dict.cc \
-  BbcVertexMapv1_Dict.cc
-
-pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  BbcVertex_Dict_rdict.pcm \
-  BbcVertexv1_Dict_rdict.pcm \
-  BbcVertexMap_Dict_rdict.pcm \
-  BbcVertexMapv1_Dict_rdict.pcm
 
 libg4bbc_io_la_SOURCES = \
-  $(ROOTDICTS) \
-  BbcVertexv1.cc \
-  BbcVertexMap.cc \
-  BbcVertexMapv1.cc
+  $(ROOTDICTS)
 
 libg4bbc_la_SOURCES = \
+  BbcDigitization.cc \
   BbcVertexFastSimReco.cc
 
 # Rule for generating table CINT dictionaries.

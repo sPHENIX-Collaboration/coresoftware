@@ -170,10 +170,12 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
   
   /// Covariance converter functor needed by seed finder
   auto covConverter = 
-    [=](const SpacePoint& sp, float, float, float)
+    [=](const SpacePoint& sp, float zAlign, float rAlign, float sigmaError)
     -> std::pair<Acts::Vector3, Acts::Vector2> { 
        Acts::Vector3 position{sp.x(), sp.y(), sp.z()};
-       Acts::Vector2 cov{sp.m_varianceR, sp.m_varianceZ};
+       Acts::Vector2 cov;
+       cov[0] = (sp.m_varianceR + rAlign*rAlign) * sigmaError;
+       cov[1] = (sp.m_varianceZ + zAlign*zAlign) * sigmaError;
        return std::make_pair(position, cov);
   };
 
@@ -197,10 +199,8 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
 
   /// variable middle SP radial region of interest
   const Acts::Range1D<float> rMiddleSPRange(
-      std::floor(rRangeSPExtent.min(Acts::binR) / 2) * 2 +
-          1.5,
-      std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 -
-          1.5);
+	 std::floor(rRangeSPExtent.min(Acts::binR) / 2) * 2 + 1.5, 
+	 std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 - 1.5);
 
   GridSeeds seedVector;
   auto groupIt = spGroup.begin();
@@ -572,6 +572,9 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
     auto para_errors = _ClusErrPara.get_si_cluster_error(clus,key);
     localCov(0,0) = para_errors.first* Acts::UnitConstants::cm2;
     localCov(1,1) = para_errors.second* Acts::UnitConstants::cm2;
+  }else if(m_cluster_version==5){
+    localCov(0,0) = pow(clus->getRPhiError(),2) * Acts::UnitConstants::cm2;
+    localCov(1,1) = pow(clus->getZError(),2) * Acts::UnitConstants::cm2;
   }
     
   float x = globalPos.x();
@@ -697,7 +700,12 @@ Acts::SeedFilterConfig PHActsSiliconSeeding::configureSeedFilter()
 Acts::SeedFinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
 {
   Acts::SeedFinderConfig<SpacePoint> config;
-  
+  /// these are default values that used to be set in Acts
+  config.deltaRMinTopSP = 5 * Acts::UnitConstants::mm;
+  config.deltaRMaxTopSP = 270 * Acts::UnitConstants::mm;
+  config.deltaRMinBottomSP = 5 * Acts::UnitConstants::mm;
+  config.deltaRMaxBottomSP = 270 * Acts::UnitConstants::mm;
+
   /// Limiting location of measurements (e.g. detector constraints)
   config.rMax = m_rMax;
   config.rMin = m_rMin;
@@ -722,6 +730,14 @@ Acts::SeedFinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
 
   /// Maximum impact parameter must be smaller than rMin
   config.impactMax = m_impactMax;
+
+  /// Configurations for dealing with misalignment
+  config.zAlign = m_zalign;
+  config.rAlign = m_ralign;
+  config.toleranceParam = m_tolerance;
+  config.maxPtScattering = m_maxPtScattering;
+  config.sigmaError = m_sigmaError;
+  config.helixcut = m_helixcut;
 
   return config;
 }

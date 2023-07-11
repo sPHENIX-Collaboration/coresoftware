@@ -54,7 +54,8 @@ pkginclude_HEADERS = \
   SvtxVertex.h \
   SvtxVertex_v1.h \
   SvtxVertexMap.h \
-  SvtxVertexMap_v1.h 
+  SvtxVertexMap_v1.h \
+  TrackAnalysisUtils.h 
 
 ROOTDICTS = \
   TrackSeed_Dict.cc \
@@ -165,7 +166,8 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxVertex.cc \
   SvtxVertex_v1.cc \
   SvtxVertexMap.cc \
-  SvtxVertexMap_v1.cc
+  SvtxVertexMap_v1.cc \
+  TrackAnalysisUtils.cc
 
 libtrackbase_historic_io_la_LDFLAGS = \
   -L$(libdir) \
@@ -175,9 +177,7 @@ libtrackbase_historic_io_la_LDFLAGS = \
 libtrackbase_historic_io_la_LIBADD = \
   -lphool \
   -lActsCore \
-  -lActsFatras \
-  -ltrack_io \
-  -lActsExamplesFramework
+  -ltrack_io
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

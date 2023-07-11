@@ -33,10 +33,10 @@
 #include "KFParticle_DST.h"
 #include "KFParticle_nTuple.h"
 
-//sPHENIX stuff
+// sPHENIX stuff
 #include <fun4all/SubsysReco.h>
 
-//KFParticle stuff
+// KFParticle stuff
 #include <KFParticle.h>
 
 #include <algorithm>  // for max
@@ -59,6 +59,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   int Init(PHCompositeNode *topNode);
 
+  int InitRun(PHCompositeNode *topNode);
+
   int process_event(PHCompositeNode *topNode);
 
   int End(PHCompositeNode *topNode);
@@ -68,15 +70,15 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
    * masses, momenta and positions for mothers, intermediates and final state tracks,
    * PV position, number of vertices and number of tracks in the event (multiplicity)
    */
-  void printParticles(const KFParticle motherParticle,
-                      const KFParticle chosenVertex,
+  void printParticles(const KFParticle &motherParticle,
+                      const KFParticle &chosenVertex,
                       const std::vector<KFParticle> &daughterParticles,
                       const std::vector<KFParticle> &intermediateParticles,
                       const int numPVs, const int numTracks);
 
   int parseDecayDescriptor();
 
-  ///Parameters for the user to vary
+  /// Parameters for the user to vary
 
   void setDecayDescriptor(const std::string &decayDescriptor) { m_decayDescriptor = decayDescriptor; }
 
@@ -170,6 +172,10 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMaximumTrackchi2nDOF(float trackchi2ndof) { m_track_chi2ndof = trackchi2ndof; }
 
+  void setMinMVTXhits(int nHits) { m_nMVTXHits = nHits; }
+
+  void setMinTPChits(int nHits) { m_nTPCHits = nHits; }
+
   void setMaximumDaughterDCA(float dca) { m_comb_DCA = dca; }
 
   void setMaximumVertexchi2nDOF(float vertexchi2nDOF) { m_vertex_chi2ndof = vertexchi2nDOF; }
@@ -194,6 +200,12 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void useFakePrimaryVertex(bool use_fake) { m_use_fake_pv = use_fake; }
 
   void allowZeroMassTracks(bool allow) { m_allowZeroMassTracks = allow; }
+
+  void extraolateTracksToSV(bool extrapolate)
+  {
+    m_extrapolateTracksToSV = extrapolate;
+    m_extrapolateTracksToSV_nTuple = extrapolate;
+  }
 
   void constrainIntermediateMasses(bool constrain_int_mass) { m_constrain_int_mass = constrain_int_mass; }
 
@@ -280,10 +292,10 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void getAllPVInfo(bool pvinfo) { m_get_all_PVs = pvinfo; }
 
-  ///Use alternate vertex and track fitters
+  /// Use alternate vertex and track fitters
   void setVertexMapNodeName(const std::string &vtx_map_node_name) { m_vtx_map_node_name = m_vtx_map_node_name_nTuple = vtx_map_node_name; }
 
-  ///Use alternate vertex and track fitters
+  /// Use alternate vertex and track fitters
   void setTrackMapNodeName(const std::string &trk_map_node_name) { m_trk_map_node_name = m_trk_map_node_name_nTuple = trk_map_node_name; }
 
  private:
@@ -292,9 +304,10 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   bool m_require_mva;
   bool m_save_dst;
   bool m_save_output;
+  float m_Bz = 0;
   std::string m_outfile_name;
   TFile *m_outfile;
   std::string m_decayDescriptor;
 };
 
-#endif  //KFPARTICLESPHENIX_KFPARTICLESPHENIX_H
+#endif  // KFPARTICLESPHENIX_KFPARTICLESPHENIX_H

@@ -50,10 +50,10 @@ libparticleflow_la_LIBADD = \
   -lgsl \
   -lgslcblas \
   -lphg4hit \
-  -lg4jets_io \
+  -ljetbase \
   -ltrackbase_historic_io \
   -lCLHEP \
-  -lg4vertex_io \
+  -lglobalvertex_io \
   -lSubsysReco
 
 %_Dict.cc: %.h %LinkDef.h

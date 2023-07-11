@@ -75,7 +75,7 @@ class JetTruthEval
     _eemcevalstack.set_verbosity(verbosity);
   }
 
-  //set track node name
+  // set track node name
   void set_track_nodename(const std::string& name)
   {
     _svtxevalstack.set_track_nodename(name);
@@ -129,15 +129,15 @@ class JetTruthEval
   CaloEvalStack _femcevalstack;
   CaloEvalStack _fhcalevalstack;
   CaloEvalStack _eemcevalstack;
-  
-  PHG4TruthInfoContainer* _truthinfo;
-  JetMap* _truthjets;
 
-  bool _strict;
-  int _verbosity;
-  unsigned int _errors;
+  PHG4TruthInfoContainer* _truthinfo = nullptr;
+  JetMap* _truthjets = nullptr;
 
-  bool _do_cache;
+  bool _strict = false;
+  int _verbosity = 1;
+  unsigned int _errors = 0;
+
+  bool _do_cache = true;
   std::map<Jet*, std::set<PHG4Particle*> > _cache_all_truth_particles;
   std::map<Jet*, std::set<PHG4Shower*> > _cache_all_truth_showers;
   std::map<Jet*, std::set<PHG4Hit*> > _cache_all_truth_hits;

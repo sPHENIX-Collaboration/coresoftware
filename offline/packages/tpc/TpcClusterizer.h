@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 
+class ClusHitsVerbosev1;
 class PHCompositeNode;
 class TrkrHitSet;
 class TrkrHitSetContainer;
@@ -38,14 +39,18 @@ class TpcClusterizer : public SubsysReco
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
   void set_do_wedge_emulation(bool do_wedge){ do_wedge_emulation = do_wedge;}
   void set_do_sequential(bool do_seq){ do_sequential = do_seq;}
+  void set_threshold(float val) { threshold = val;}
   void set_remove_singles(bool do_sing){ do_singles = do_sing;}
   void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size ;}
   void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeT = size ;}
   void set_cluster_version(int value) { cluster_version = value; }
+  void set_ClusHitsVerbose(bool set=true) { record_ClusHitsVerbose = set; };
+  ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
   
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
+  bool record_ClusHitsVerbose { false };
 
   TrkrHitSetContainer *m_hits = nullptr;
   RawHitSetContainer *m_rawhits = nullptr;
@@ -58,6 +63,7 @@ class TpcClusterizer : public SubsysReco
   bool do_read_raw = false;
   bool do_singles = false;
   double pedestal = 74.4;
+  double threshold = 0;
   double SectorFiducialCut = 0.5;
   unsigned short MaxClusterHalfSizePhi = 3;
   unsigned short MaxClusterHalfSizeT = 5;

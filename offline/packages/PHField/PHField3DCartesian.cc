@@ -4,12 +4,8 @@
 
 #include <TDirectory.h>  // for TDirectory, gDirectory
 #include <TFile.h>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TNtuple.h>
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 #include <Geant4/G4SystemOfUnits.hh>
 
@@ -26,7 +22,6 @@
 #include <iterator>
 #include <set>
 #include <utility>
-
 
 PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float magfield_rescale, const float innerradius, const float outerradius, const float size_z)
   : filename(fname)
@@ -68,7 +63,7 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   if (field_map == nullptr)
   {
     std::cout << PHWHERE << " Could not load fieldmap ntuple from "
-	      << filename << " exiting now" << std::endl;
+              << filename << " exiting now" << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
@@ -89,8 +84,8 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
     yvals.insert(ROOT_Y * cm);
     zvals.insert(ROOT_Z * cm);
     if ((std::sqrt(ROOT_X * cm * ROOT_X * cm + ROOT_Y * cm * ROOT_Y * cm) >= innerradius &&
-	 std::sqrt(ROOT_X * cm * ROOT_X * cm + ROOT_Y * cm * ROOT_Y * cm) <= outerradius) ||
-	std::abs(ROOT_Z * cm) > size_z )
+         std::sqrt(ROOT_X * cm * ROOT_X * cm + ROOT_Y * cm * ROOT_Y * cm) <= outerradius) ||
+        std::abs(ROOT_Z * cm) > size_z)
     {
       fieldmap[coord_key] = field_val;
     }
@@ -238,7 +233,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
     ykey_save = ykey[0];
     zkey_save = zkey[0];
 
-    std::map<boost::tuple<float, float, float>, boost::tuple<float, float, float> >::const_iterator magval;
+    std::map<std::tuple<float, float, float>, std::tuple<float, float, float> >::const_iterator magval;
     trio key;
     for (int i = 0; i < 2; i++)
     {
@@ -246,22 +241,22 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
       {
         for (int k = 0; k < 2; k++)
         {
-          key = boost::make_tuple(xkey[i], ykey[j], zkey[k]);
+          key = std::make_tuple(xkey[i], ykey[j], zkey[k]);
           magval = fieldmap.find(key);
           if (magval == fieldmap.end())
           {
             std::cout << PHWHERE << " could not locate key in " << filename
-		      << " value: x: " << xkey[i] / cm
+                      << " value: x: " << xkey[i] / cm
                       << ", y: " << ykey[j] / cm
                       << ", z: " << zkey[k] / cm << std::endl;
             return;
           }
-          xyz[i][j][k][0] = (magval->first).get<0>();
-          xyz[i][j][k][1] = (magval->first).get<1>();
-          xyz[i][j][k][2] = (magval->first).get<2>();
-          bf[i][j][k][0] = (magval->second).get<0>();
-          bf[i][j][k][1] = (magval->second).get<1>();
-          bf[i][j][k][2] = (magval->second).get<2>();
+          xyz[i][j][k][0] = std::get<0>(magval->first);
+          xyz[i][j][k][1] = std::get<1>(magval->first);
+          xyz[i][j][k][2] = std::get<2>(magval->first);
+          bf[i][j][k][0] = std::get<0>(magval->second);
+          bf[i][j][k][1] = std::get<1>(magval->second);
+          bf[i][j][k][2] = std::get<2>(magval->second);
           if (Verbosity() > 0)
           {
             std::cout << "read x/y/z: " << xyz[i][j][k][0] / cm << "/"
@@ -297,15 +292,15 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
 
   // linear extrapolation in cube:
 
-  //Vxyz =
-  //V000 * x * y * z +
-  //V100 * (1 - x) * y * z +
-  //V010 * x * (1 - y) * z +
-  //V001 * x y * (1 - z) +
-  //V101 * (1 - x) * y * (1 - z) +
-  //V011 * x * (1 - y) * (1 - z) +
-  //V110 * (1 - x) * (1 - y) * z +
-  //V111 * (1 - x) * (1 - y) * (1 - z)
+  // Vxyz =
+  // V000 * x * y * z +
+  // V100 * (1 - x) * y * z +
+  // V010 * x * (1 - y) * z +
+  // V001 * x y * (1 - z) +
+  // V101 * (1 - x) * y * (1 - z) +
+  // V011 * x * (1 - y) * (1 - z) +
+  // V110 * (1 - x) * (1 - y) * z +
+  // V111 * (1 - x) * (1 - y) * (1 - z)
 
   for (int i = 0; i < 3; i++)
   {

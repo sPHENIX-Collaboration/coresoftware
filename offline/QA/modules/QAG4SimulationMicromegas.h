@@ -1,8 +1,8 @@
 #ifndef QA_QAG4SIMULATIONMICROMEGAS_H
 #define QA_QAG4SIMULATIONMICROMEGAS_H
 
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <fun4all/SubsysReco.h>
 

@@ -26,9 +26,8 @@ class RawTowerGeomv3 : public RawTowerGeom
   int get_column() const override { return get_bineta(); }
   int get_row() const override { return get_binphi(); }
 
-  int get_binl() const  override { return RawTowerDefs::decode_index3v2(_towerid);}
+  int get_binl() const override { return RawTowerDefs::decode_index3v2(_towerid); }
 
-  
   void set_center_x(double x) override
   {
     _center_x = x;

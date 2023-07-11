@@ -20,8 +20,8 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainerv1.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <phgeom/PHGeomUtility.h>
 
@@ -215,12 +215,12 @@ int PHTrackClusterAssociator::getCaloNodes(PHCompositeNode* topNode,
                                            const int caloLayer)
 {
   std::string towerGeoNodeName = "TOWERGEOM_" + m_caloNames.at(caloLayer);
-  std::string towerNodeName = "TOWER_CALIB_" + m_caloNames.at(caloLayer);
+  std::string towerNodeName = "TOWERINFO_CALIB_" + m_caloNames.at(caloLayer);
   std::string clusterNodeName = "CLUSTER_" + m_caloNames.at(caloLayer);
 
   m_towerGeomContainer = findNode::getClass<RawTowerGeomContainer>(topNode, towerGeoNodeName.c_str());
 
-  m_towerContainer = findNode::getClass<RawTowerContainer>(topNode, towerNodeName.c_str());
+  m_towerContainer = findNode::getClass<TowerInfoContainerv1>(topNode, towerNodeName.c_str());
 
   m_clusterContainer = findNode::getClass<RawClusterContainer>(topNode, clusterNodeName.c_str());
 
