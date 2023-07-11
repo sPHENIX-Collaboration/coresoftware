@@ -594,10 +594,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
       float glblvtx_derivativeX[3];
       float glblvtx_derivativeY[3];
       getGlobalVtxDerivativesXY(newTrack, event_vtx, glblvtx_derivativeX, glblvtx_derivativeY);
-
-      int glbl_vtx_label[3] = {60000000,60000001,60000002};
-      int NGL_vtx           = 3;
-      
+  
       if(use_event_vertex)
 	{	  
 	  // add some track cuts
@@ -605,15 +602,13 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  if(fabs(newTrack.get_x()) > 0.2) continue;  // 2 mm cut
 	  if(fabs(newTrack.get_y()) > 0.2) continue;  // 2 mm cut
 	  
-	     if(!isnan(vtx_residual(0)))
+	  if(!isnan(vtx_residual(0)))
 	    {
-	      //  _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeX,NGL_vtx,glblvtx_derivativeX,glbl_vtx_label,dca3dxy, vtx_sigma(0));
-	      _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeX,NGL_vtx,glblvtx_derivativeX,glbl_vtx_label,vtx_residual(0), vtx_sigma(0));
+	      _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeX,AlignmentDefs::NGLVTX,glblvtx_derivativeX,AlignmentDefs::glbl_vtx_label,vtx_residual(0), vtx_sigma(0));
 	    }    
-	     if(!isnan(vtx_residual(1)))
+	  if(!isnan(vtx_residual(1)))
 	    {  
-	      //  _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeY,NGL_vtx,glblvtx_derivativeY,glbl_vtx_label,dca3dz, vtx_sigma(1));
-	      _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeY,NGL_vtx,glblvtx_derivativeY,glbl_vtx_label,vtx_residual(1), vtx_sigma(1));
+	      _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeY,AlignmentDefs::NGLVTX,glblvtx_derivativeY,AlignmentDefs::glbl_vtx_label,vtx_residual(1), vtx_sigma(1));
 	    }
 	}
 
