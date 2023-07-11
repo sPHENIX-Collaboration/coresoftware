@@ -54,6 +54,9 @@ class CaloGeomMapping : public SubsysReco
   // Create tower geometry mapping node
   void CreateGeomNode(PHCompositeNode* topNode);
 
+  void set_detector_name(std::string name);
+  std::string get_detector_name();
+
  protected:
   std::string m_Detector; // CEMC, HCALIN or HCALOUT
   std::string m_TowerGeomNodeName;
