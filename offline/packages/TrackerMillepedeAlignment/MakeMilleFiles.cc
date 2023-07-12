@@ -116,6 +116,8 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
       eventVertex = getEventVertex();
     }
   
+  ActsPropagator propagator(_tGeometry);
+
   for (auto [key, statevec] : *_state_map)
   {
     // Check if track was removed from cleaner
@@ -139,17 +141,18 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
    addTrackToMilleFile(statevec);
 
    //! Only take tracks that have 2 mm within event vertex
-   if(m_useEventVertex )
-      //&& 
-      //fabs(track->get_z() - eventVertex.z()) < 0.2 &&
-      //fabs(track->get_x()) < 0.2 && 
-      //fabs(track->get_y()) < 0.2)
+   if(m_useEventVertex && 
+      fabs(track->get_z() - eventVertex.z()) < 0.2 &&
+      fabs(track->get_x()) < 0.2 && 
+      fabs(track->get_y()) < 0.2)
       {
 	auto dcapair = get_dca(track, eventVertex);
 	Acts::Vector2 vtx_residual(-dcapair.first, -dcapair.second);
+	vtx_residual *= Acts::UnitConstants::cm;
 	std::cout << "test event vertex"<<std::endl;
 	float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC];
-	bool success = getLocalVtxDerivativesXY(track, eventVertex, lclvtx_derivative);
+	bool success = getLocalVtxDerivativesXY(track, propagator,
+						eventVertex, lclvtx_derivative);
 	
 	// The global derivs dimensions are [alpha/beta/gamma](x/y/z)
 	float glblvtx_derivative[SvtxAlignmentState::NRES][3];
@@ -244,7 +247,6 @@ std::pair<float, float> MakeMilleFiles::get_dca(SvtxTrack* track,
   Acts::Vector3 mom(track->get_px(),track->get_py(),track->get_pz());
   track_vtx -= vertex;
 
-  
   Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
   float phi = atan2(r(1), r(0));
 
@@ -269,10 +271,10 @@ std::pair<float, float> MakeMilleFiles::get_dca(SvtxTrack* track,
 }
 
 bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
+					      ActsPropagator& propagator,
 					      const Acts::Vector3& vertex,
 					      float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC])
 {
-
   //! Get the first track state beyond the vertex, which will be the 
   //! innermost track state and propagate it to the vertex surface to
   //! get the jacobian at the vertex
@@ -281,8 +283,7 @@ bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
   TrkrDefs::cluskey ckey = firststate->get_cluskey();
   auto cluster = _cluster_map->findCluster(ckey);
   auto surf = _tGeometry->maps().getSurface(ckey, cluster);
-  ActsPropagator propagator(_tGeometry);
-  
+
   auto param = propagator.makeTrackParams(firststate,track->get_charge(),surf);
   auto perigee = propagator.makeVertexSurface(vertex);
   auto actspropagator = propagator.makePropagator();
@@ -347,10 +348,11 @@ void MakeMilleFiles::getGlobalVtxDerivativesXY(SvtxTrack* track,
   
   /// swap sign to fit expectation of pede to have derivative of fit rather than
   /// residual
-  for(int i=0; i<2; i++)
-    for(int j=0; j<3; j++)
-      glblvtx_derivative[i][j] *= -1;
-
+  for(int i=0; i<2; i++) {
+    for(int j=0; j<3; j++) {
+      glblvtx_derivative[i][j] *= -1 * Acts::UnitConstants::cm;
+    }
+  }
 }
 void MakeMilleFiles::getProjectionVtxXY(SvtxTrack* track,
 					const Acts::Vector3& vertex,
@@ -411,6 +413,9 @@ Acts::Vector3 MakeMilleFiles::localToGlobalVertex(SvtxTrack* track,
 
 Acts::Vector3 MakeMilleFiles::getEventVertex()
 {
+  /**
+   * Returns event vertex in cm as averaged track positions
+   */
   float xsum = 0;
   float ysum = 0;
   float zsum = 0;

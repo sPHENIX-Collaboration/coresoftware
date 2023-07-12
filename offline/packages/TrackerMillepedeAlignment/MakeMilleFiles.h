@@ -31,6 +31,7 @@ class SvtxTrackMap;
 class TrkrCluster;
 class TrkrClusterContainer;
 class Mille;
+class ActsPropagator;
 
 using Trajectory = ActsExamples::Trajectories;
 
@@ -92,6 +93,7 @@ class MakeMilleFiles : public SubsysReco
 				 const Acts::Vector3& vertex,
 				 float glblvtx_derivative[SvtxAlignmentState::NRES][3]);
   bool getLocalVtxDerivativesXY(SvtxTrack* track,
+				ActsPropagator& propagator,
 				const Acts::Vector3& vertex,
 				float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC]);
   Acts::Vector3 localToGlobalVertex(SvtxTrack* track,
