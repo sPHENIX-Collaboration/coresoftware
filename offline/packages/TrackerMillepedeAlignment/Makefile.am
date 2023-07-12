@@ -26,7 +26,6 @@ libtrackeralign_la_LIBADD = \
   -ltrack_io \
   -ltrackbase_historic_io \
   -ltrack_reco \
-  -ltrack_reco_io \
   -ltpc_io
 
 pkginclude_HEADERS = \

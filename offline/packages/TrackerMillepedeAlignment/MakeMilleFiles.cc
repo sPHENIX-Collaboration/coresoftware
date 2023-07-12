@@ -149,7 +149,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 	auto dcapair = get_dca(track, eventVertex);
 	Acts::Vector2 vtx_residual(-dcapair.first, -dcapair.second);
 	vtx_residual *= Acts::UnitConstants::cm;
-	std::cout << "test event vertex"<<std::endl;
+
 	float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC];
 	bool success = getLocalVtxDerivativesXY(track, propagator,
 						eventVertex, lclvtx_derivative);
