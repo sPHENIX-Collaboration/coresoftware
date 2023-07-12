@@ -23,6 +23,13 @@ ActsPropagator::makeVertexSurface(const SvtxVertex* vertex)
 		   vertex->get_y() * Acts::UnitConstants::cm,
 		   vertex->get_z() * Acts::UnitConstants::cm));
 }
+ActsPropagator::SurfacePtr
+ActsPropagator::makeVertexSurface(const Acts::Vector3& vertex)
+{
+  return Acts::Surface::makeShared<Acts::PerigeeSurface>(
+         vertex * Acts::UnitConstants::cm);
+							 
+}
 ActsPropagator::BoundTrackParam
 ActsPropagator::makeTrackParams(SvtxTrackState* state,
 				int trackCharge,
@@ -38,7 +45,7 @@ ActsPropagator::makeTrackParams(SvtxTrackState* state,
   
   ActsTransformations transformer;
   Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(state);
-
+  
   return ActsTrackFittingAlgorithm::TrackParameters::create(
          surf,
 	 m_geometry->geometry().getGeoContext(),

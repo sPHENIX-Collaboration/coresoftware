@@ -49,6 +49,7 @@ class ActsPropagator
   /// Helper functions for creating needed input for track propagation
   /// functions below
   SurfacePtr makeVertexSurface(const SvtxVertex* vertex);
+  SurfacePtr makeVertexSurface(const Acts::Vector3& vertex);
   BoundTrackParam makeTrackParams(SvtxTrack* track, SvtxVertexMap* vertexMap);
   BoundTrackParam makeTrackParams(SvtxTrackState* state, int trackCharge,
 				  SurfacePtr surf);
@@ -76,9 +77,10 @@ class ActsPropagator
   void setConstFieldValue(float field) { m_fieldval = field; }
   void constField() { m_constField = true; }
 
- private:
   SphenixPropagator makePropagator();
   FastPropagator makeFastPropagator();
+
+ private:
   void printTrackParams(const Acts::BoundTrackParameters& params);
 
   int m_verbosity = 0;
