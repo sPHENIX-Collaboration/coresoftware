@@ -124,9 +124,9 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
     {
       continue;
     }
-
+    
     SvtxTrack* track = iter->second;
-
+    
     if (Verbosity() > 0)
     {
       std::cout << std::endl
@@ -277,20 +277,23 @@ bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
   //! innermost track state and propagate it to the vertex surface to
   //! get the jacobian at the vertex
   SvtxTrackState* firststate = (*std::next(track->begin_states(),1)).second;
+ 
   TrkrDefs::cluskey ckey = firststate->get_cluskey();
   auto cluster = _cluster_map->findCluster(ckey);
   auto surf = _tGeometry->maps().getSurface(ckey, cluster);
   ActsPropagator propagator(_tGeometry);
+  
   auto param = propagator.makeTrackParams(firststate,track->get_charge(),surf);
   auto perigee = propagator.makeVertexSurface(vertex);
-
   auto actspropagator = propagator.makePropagator();
-  Acts::Logging::Level logLevel = Acts::Logging::VERBOSE;
+
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
   auto logger = Acts::getDefaultLogger("MakeMilleFiles", logLevel);
   Acts::PropagatorOptions<> options(_tGeometry->geometry().getGeoContext(),
 				    _tGeometry->geometry().magFieldContext,
 				    Acts::LoggerWrapper{*logger});
-  auto result = actspropagator.propagate(param, *surf, options);
+
+  auto result = actspropagator.propagate(param, *perigee, options);
 
   if(result.ok())
     {
@@ -303,8 +306,6 @@ bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
       if(Verbosity() > 2)
 	{
 	  std::cout << "local vtxderiv " << std::endl << deriv << std::endl;
-	  std::cout << "original jacobian " << std::endl
-		    << jacobian << std::endl;
 	}
 
       for(int i=0; i<deriv.rows(); i++)
