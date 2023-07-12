@@ -66,7 +66,10 @@ libtpc_la_LIBADD = \
   -lmicromegas_io \
   -lfun4all \
   -lSpectrum \
-  -lpthread
+  -lpthread \
+  -ltpc \
+  -lphool \
+  -lSubsysReco
 
 # sources for io library
 libtpc_io_la_SOURCES = \
