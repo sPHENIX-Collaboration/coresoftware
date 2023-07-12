@@ -15,6 +15,9 @@
 #include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackState.h>
+
+#include <trackreco/ActsPropagator.h>
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
@@ -136,29 +139,47 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
    addTrackToMilleFile(statevec);
 
    //! Only take tracks that have 2 mm within event vertex
-   if(m_useEventVertex && 
-      fabs(track->get_z() - eventVertex.z()) < 0.2 &&
-      fabs(track->get_x()) < 0.2 && 
-      fabs(track->get_y()) < 0.2)
+   if(m_useEventVertex )
+      //&& 
+      //fabs(track->get_z() - eventVertex.z()) < 0.2 &&
+      //fabs(track->get_x()) < 0.2 && 
+      //fabs(track->get_y()) < 0.2)
       {
-	auto dcapair = TrackAnalysisUtils::get_dca(track, eventVertex);
-	Acts::Vector2 vtx_residual(dcapair.first.first, dcapair.second.first);
-	
+	auto dcapair = get_dca(track, eventVertex);
+	Acts::Vector2 vtx_residual(-dcapair.first, -dcapair.second);
+	std::cout << "test event vertex"<<std::endl;
 	float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC];
+	bool success = getLocalVtxDerivativesXY(track, eventVertex, lclvtx_derivative);
 	
 	// The global derivs dimensions are [alpha/beta/gamma](x/y/z)
 	float glblvtx_derivative[SvtxAlignmentState::NRES][3];
 	getGlobalVtxDerivativesXY(track, eventVertex, glblvtx_derivative);
-	for(int i=0; i<2; i++)
+	if(Verbosity() > 2)
 	  {
-	    
-	    if(!isnan(vtx_residual(i)))
-	      {
-	    _mille->mille(SvtxAlignmentState::NLOC,lclvtx_derivative[i],
-			  AlignmentDefs::NGLVTX,glblvtx_derivative[i],
-			  AlignmentDefs::glbl_vtx_label,vtx_residual(i), 
-			  m_vtxSigma(i));
-	      }    
+	    std::cout << "vertex info for trakc " << track->get_id() << std::endl;
+	    std::cout << "vertex is " << eventVertex.transpose()<<std::endl;
+	    std::cout << "vertex residuals " << vtx_residual.transpose() 
+		      << std::endl;
+	    std::cout << "global vtx derivatives " << std::endl;
+	    for(int i=0; i<2;i++) {
+	      for(int j=0; j<3; j++) {
+		std::cout << glblvtx_derivative[i][j] << ", ";
+	      }
+	      std::cout << std::endl;
+	    }
+	  }
+	if(success)
+	  {
+	    for(int i=0; i<2; i++)
+	      {	    
+		if(!isnan(vtx_residual(i)))
+		  {
+		    _mille->mille(SvtxAlignmentState::NLOC,lclvtx_derivative[i],
+				  AlignmentDefs::NGLVTX,glblvtx_derivative[i],
+				  AlignmentDefs::glbl_vtx_label,vtx_residual(i), 
+				  m_vtxSigma(i));
+		  }    
+	      }
 	  }
       }
    
@@ -215,6 +236,91 @@ int MakeMilleFiles::GetNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+std::pair<float, float> MakeMilleFiles::get_dca(SvtxTrack* track, 
+						const Acts::Vector3& vertex)
+{
+
+  Acts::Vector3 track_vtx(track->get_x(),track->get_y(),track->get_z());
+  Acts::Vector3 mom(track->get_px(),track->get_py(),track->get_pz());
+  track_vtx -= vertex;
+
+  
+  Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
+  float phi = atan2(r(1), r(0));
+
+  Acts::RotationMatrix3 rot;
+  Acts::RotationMatrix3 rot_T;
+
+  phi *= -1;
+  rot(0,0) = cos(phi);
+  rot(0,1) = -sin(phi);
+  rot(0,2) = 0;
+  rot(1,0) = sin(phi);
+  rot(1,1) = cos(phi);
+  rot(1,2) = 0;
+  rot(2,0) = 0;
+  rot(2,1) = 0;
+  rot(2,2) = 1;
+  rot_T    = rot.transpose();
+
+  Acts::Vector3 pos_R = rot * track_vtx;
+  return std::make_pair(pos_R(0), pos_R(2));
+  
+}
+
+bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
+					      const Acts::Vector3& vertex,
+					      float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC])
+{
+
+  //! Get the first track state beyond the vertex, which will be the 
+  //! innermost track state and propagate it to the vertex surface to
+  //! get the jacobian at the vertex
+  SvtxTrackState* firststate = (*std::next(track->begin_states(),1)).second;
+  TrkrDefs::cluskey ckey = firststate->get_cluskey();
+  auto cluster = _cluster_map->findCluster(ckey);
+  auto surf = _tGeometry->maps().getSurface(ckey, cluster);
+  ActsPropagator propagator(_tGeometry);
+  auto param = propagator.makeTrackParams(firststate,track->get_charge(),surf);
+  auto perigee = propagator.makeVertexSurface(vertex);
+
+  auto actspropagator = propagator.makePropagator();
+  Acts::Logging::Level logLevel = Acts::Logging::VERBOSE;
+  auto logger = Acts::getDefaultLogger("MakeMilleFiles", logLevel);
+  Acts::PropagatorOptions<> options(_tGeometry->geometry().getGeoContext(),
+				    _tGeometry->geometry().magFieldContext,
+				    Acts::LoggerWrapper{*logger});
+  auto result = actspropagator.propagate(param, *surf, options);
+
+  if(result.ok())
+    {
+      auto jacobian = *result.value().transportJacobian;
+
+      Eigen::Matrix<double,2,6> projector = Eigen::Matrix<double,2,6>::Zero();
+      projector(0,0) = 1;
+      projector(1,1) = 1;
+      auto deriv = projector * jacobian;
+      if(Verbosity() > 2)
+	{
+	  std::cout << "local vtxderiv " << std::endl << deriv << std::endl;
+	  std::cout << "original jacobian " << std::endl
+		    << jacobian << std::endl;
+	}
+
+      for(int i=0; i<deriv.rows(); i++)
+	{
+	for(int j=0; j<deriv.cols(); j++)
+	  {
+	    lclvtx_derivative[i][j] = deriv(i,j);
+	  }
+	}
+      
+      return true;
+    }
+
+  return false;
+}
+
 void MakeMilleFiles::getGlobalVtxDerivativesXY(SvtxTrack* track,
 					       const Acts::Vector3& vertex,
 					       float glblvtx_derivative[SvtxAlignmentState::NRES][3])
@@ -237,6 +343,12 @@ void MakeMilleFiles::getGlobalVtxDerivativesXY(SvtxTrack* track,
   glblvtx_derivative[1][0] = identity.col(0).dot(projy);
   glblvtx_derivative[1][1] = identity.col(1).dot(projy);
   glblvtx_derivative[1][2] = identity.col(2).dot(projy);
+  
+  /// swap sign to fit expectation of pede to have derivative of fit rather than
+  /// residual
+  for(int i=0; i<2; i++)
+    for(int j=0; j<3; j++)
+      glblvtx_derivative[i][j] *= -1;
 
 }
 void MakeMilleFiles::getProjectionVtxXY(SvtxTrack* track,
@@ -246,6 +358,7 @@ void MakeMilleFiles::getProjectionVtxXY(SvtxTrack* track,
 {
   Acts::Vector3 tangent(track->get_px(), track->get_py(), track->get_pz());
   Acts::Vector3 normal(track->get_px(), track->get_py(), 0);
+
   tangent /= tangent.norm();
   normal /= normal.norm();
   
@@ -317,7 +430,8 @@ Acts::Vector3 MakeMilleFiles::getEventVertex()
       xsum += track->get_x();
       ysum += track->get_y();
       zsum += track->get_z();
-         
+
+      nacceptedtracks++;
     }
 
   return Acts::Vector3 (xsum/nacceptedtracks,

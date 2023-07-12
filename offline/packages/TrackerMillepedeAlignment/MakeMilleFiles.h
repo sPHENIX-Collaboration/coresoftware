@@ -22,7 +22,6 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
-#include <trackbase_historic/TrackAnalysisUtils.h>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 class PHCompositeNode;
@@ -92,13 +91,16 @@ class MakeMilleFiles : public SubsysReco
   void getGlobalVtxDerivativesXY(SvtxTrack* track,
 				 const Acts::Vector3& vertex,
 				 float glblvtx_derivative[SvtxAlignmentState::NRES][3]);
+  bool getLocalVtxDerivativesXY(SvtxTrack* track,
+				const Acts::Vector3& vertex,
+				float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC]);
   Acts::Vector3 localToGlobalVertex(SvtxTrack* track,
 				    const Acts::Vector3& vertex,
 				    const Acts::Vector3& localx) const;
   void getProjectionVtxXY(SvtxTrack* track, const Acts::Vector3& vertex,
 			  Acts::Vector3& projx, Acts::Vector3& projy);
 
- 
+  std::pair<float, float> get_dca(SvtxTrack* track, const Acts::Vector3& vertex);
   std::string data_outfilename = ("mille_output_data_file.bin");
   std::string steering_outfilename = ("steer.txt");
 
