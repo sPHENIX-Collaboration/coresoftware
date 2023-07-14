@@ -17,6 +17,18 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
+if USE_ONLINE
+
+pkginclude_HEADERS = \
+  InttFelixMap.h \
+  InttMapping.h
+
+libintt_la_SOURCES = \
+  InttFelixMap.cc \
+  InttMapping.cc
+
+else
+
 pkginclude_HEADERS = \
   InttClusterizer.h \
   InttDeadMapHelper.h \
@@ -62,6 +74,7 @@ libintt_io_la_LIBADD = \
   -ltrack_io \
   -ltrackbase_historic_io
 
+endif
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
