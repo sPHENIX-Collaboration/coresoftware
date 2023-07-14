@@ -29,9 +29,13 @@ Jetv2::Jetv2(unsigned int n_prop) :
 Jetv2::Jetv2(const Jetv2& rhs) 
   /* : FnIsEqual  { rhs.FnIsEqual } */
   /* , FnCompare  { rhs.FnCompare } */
-  : _id        { rhs._id }
-  , _e         { rhs._e }
-  , _is_sorted { rhs._is_sorted }
+  : _id               { rhs._id               }
+  , _e                { rhs._e                }
+  , _is_sorted        { rhs._is_sorted        }
+  , _print_v2_warning { rhs._print_v2_warning }
+  , _which_sort       { rhs._which_sort       }
+  , _isort_prop_index { rhs._isort_prop_index }
+  , _sort_sign        { rhs._sort_sign        }
 {
   std::copy ( rhs._mom, rhs._mom+3, _mom);
   std::copy ( rhs._comp_ids.begin(),   rhs._comp_ids.end(),   _comp_ids.begin() );
@@ -40,7 +44,7 @@ Jetv2::Jetv2(const Jetv2& rhs)
 
 void Jetv2::identify(std::ostream& os) const
 {
-  os << "---Jet v1-----------------------" << std::endl;
+  os << "---Jet v2-----------------------" << std::endl;
   os << "jetid: " << get_id() << std::endl;
   os << " (px,py,pz,e) =  (" << get_px() << ", " << get_py() << ", ";
   os << get_pz() << ", " << get_e() << ") GeV" << std::endl;

@@ -143,10 +143,6 @@ class Jetv2 : public Jet
   std::vector<std::pair<Jet::SRC, unsigned int>> _comp_ids;
   void sort_comp_ids();
 
-  typedef std::map<Jet::PROPERTY, float> typ_property_map;
-  /// map that contains extra properties
-  typ_property_map _property_map;
-
   //
   bool _print_v2_warning { true };
 
@@ -182,4 +178,4 @@ class Jetv2 : public Jet
   ClassDefOverride(Jetv2, 1);
 };
 
-#endif  // G4JET_JETV1_H
+#endif  // G4JET_JETV2_H

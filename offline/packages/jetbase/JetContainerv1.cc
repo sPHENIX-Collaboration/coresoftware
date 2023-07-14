@@ -25,16 +25,14 @@ JetContainerv1::JetContainerv1(const JetContainer &rhs)
   , m_RhoMedian     { rhs.get_rho_median()            }
 {
   m_clones = rhs.clone_data();
-  if (m_clones != nullptr && m_clones->GetEntriesFast()!=0) {
-    m_current_jet = get_jet(0);
-  } else {
-    m_current_jet = nullptr;
-  }
+  m_current_jet = nullptr;
+  if (m_clones->GetEntriesFast()>0) m_current_jet = (Jetv2*) m_clones->UncheckedAt(0);
 
   for (auto src = rhs.begin_src(); src != rhs.end_src(); ++src) {
-    insert_src(*src);
+    m_src.insert(*src);
   }
-  set_jetpar_R(rhs.get_jetpar_R());
+
+  m_jetpar_R = rhs.get_jetpar_R();
 }
 
 JetContainerv1::~JetContainerv1()
@@ -115,11 +113,8 @@ void JetContainerv1::print_missing_prop(Jet::PROPERTY prop) const {
 
 // Add properties to the jets. 
 size_t JetContainerv1::add_property(Jet::PROPERTY prop) {
-    if (m_pindex.find(prop) == m_pindex.end()) {
-        m_pindex[prop] = m_psize;
-        m_pvec.push_back(prop);
-        ++m_psize;
-    }
+    auto emplace = m_pindex.try_emplace(prop, m_psize);
+    if (!emplace.second) emplace.first->second += m_psize;
     resize_jet_pvecs();
     return m_pvec.size();
 }
