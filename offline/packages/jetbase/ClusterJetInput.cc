@@ -1,4 +1,3 @@
-
 #include "ClusterJetInput.h"
 
 #include "Jet.h"

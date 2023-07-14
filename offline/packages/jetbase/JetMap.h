@@ -1,5 +1,5 @@
-#ifndef G4JET_JETMAP_H
-#define G4JET_JETMAP_H
+#ifndef JETBASE_JETMAP_H
+#define JETBASE_JETMAP_H
 
 #include "Jet.h"
 

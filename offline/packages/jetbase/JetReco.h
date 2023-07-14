@@ -1,5 +1,5 @@
-#ifndef G4JET_JETRECO_H
-#define G4JET_JETRECO_H
+#ifndef JETBASE_JETRECO_H
+#define JETBASE_JETRECO_H
 
 //===========================================================
 /// \file JetReco.h
@@ -31,7 +31,7 @@ class PHCompositeNode;
 class JetReco : public SubsysReco
 {
  public:
-  JetReco(const std::string &name = "JetReco");
+  JetReco(const std::string &name = "JetReco", bool fill_JetContainer=false);
   ~JetReco() override;
 
   int InitRun(PHCompositeNode *topNode) override;
@@ -46,10 +46,15 @@ class JetReco : public SubsysReco
 
   void set_algo_node(const std::string &algonode) { _algonode = algonode; }
   void set_input_node(const std::string &inputnode) { _inputnode = inputnode; }
+  void set_fill_JetContainer(bool b) { _fill_JetContainer = b; }
+
+  JetAlgo* get_algo(unsigned int which_algo=0);
 
  private:
+  bool _fill_JetContainer;
   int CreateNodes(PHCompositeNode *topNode);
   void FillJetNode(PHCompositeNode *topNode, int ialgo, std::vector<Jet *> jets);
+  void FillJetContainer(PHCompositeNode *topNode, int ialgo, std::vector<Jet*>& jets);
 
   std::vector<JetInput *> _inputs;
   std::vector<JetAlgo *> _algos;
@@ -58,4 +63,4 @@ class JetReco : public SubsysReco
   std::vector<std::string> _outputs;
 };
 
-#endif  // G4JET_JETRECO_H
+#endif  // JETBASE_JETRECO_H

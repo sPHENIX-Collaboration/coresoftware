@@ -1,5 +1,5 @@
-#ifndef G4JET_JET_H
-#define G4JET_JET_H
+#ifndef JETBASE_JET_H
+#define JETBASE_JET_H
 
 #include <phool/PHObject.h>
 
@@ -55,12 +55,9 @@ class Jet : public PHObject
     CEMC_TOWERINFO_SUB1 = 29,
     HCALIN_TOWERINFO_SUB1 = 30,
     HCALOUT_TOWERINFO_SUB1 = 31, /* needed for HI jet reco */
-
-
   };
 
-
-  enum SORT  // used as criteria for sorting output in JetMap
+  enum class SORT  // used as criteria for sorting output in JetMap
   {
     NO_SORT = 0, // a blank input to not sort input
     PT   = 1, // PT descending order
@@ -68,11 +65,14 @@ class Jet : public PHObject
     P    = 3, // P descending order
     MASS = 4, // Mass descending order
     AREA = 5, // AREA descending order --> maybe used in future, as jets don't have area for now...
+    PROPERTY = 6, // doesn't say which property; a second parameter of
+                  // Jet::PROPERTY will be needed the sorting algorithm
+    MASS2 = 7, // Mass descending order
+    ETA   = 8, // Mass descending order
   };
 
   enum PROPERTY
   {
-
     //! jet charge
     prop_JetCharge = 1,
 
@@ -95,6 +95,11 @@ class Jet : public PHObject
     prop_gamma = 8,
     prop_JetHadronFlavor = 9,
     prop_JetHadronZT = 10,
+
+    //! jet area
+    prop_area = 11,
+
+    no_property = 12,
   };
 
   Jet() {}
