@@ -30,10 +30,10 @@ struct Intt::RawData_s Intt::RawFromPacket(int const _i, int const _n, Packet* _
 struct Intt::Online_s Intt::ToOnline(struct Offline_s const& _s)
 {
 	struct Online_s s;
-	int n_ldr = _s.lyr < 2 ? 12 : 16;
+	int n_ldr = _s.layer < 5 ? 12 : 16;
 
 	s.lyr = _s.layer - 3;
-	s.ladder_phi = (_s.ldr + n_ldr / 4) % n_ldr;
+	s.ldr = (_s.ladder_phi + n_ldr / 4) % n_ldr;
 
 	s.arm = _s.ladder_z / 2;
 	switch(_s.ladder_z)
