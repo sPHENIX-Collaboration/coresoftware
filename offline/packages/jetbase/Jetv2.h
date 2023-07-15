@@ -40,19 +40,19 @@ class Jetv2 : public Jet
   // jet info
 
   unsigned int get_id() const override { return _id; }
-  void set_id(unsigned int id) override { _id = id; }
+  void  set_id(unsigned int id) override { _id = id; }
 
   float get_px() const override { return _mom[0]; }
-  void set_px(float px) override { _mom[0] = px; }
+  void  set_px(float px) override { _mom[0] = px; }
 
   float get_py() const override { return _mom[1]; }
-  void set_py(float py) override { _mom[1] = py; }
+  void  set_py(float py) override { _mom[1] = py; }
 
   float get_pz() const override { return _mom[2]; }
-  void set_pz(float pz) override { _mom[2] = pz; }
+  void  set_pz(float pz) override { _mom[2] = pz; }
 
   float get_e() const override { return _e; }
-  void set_e(float e) override { _e = e; }
+  void  set_e(float e) override { _e = e; }
 
   float get_p() const override;
   float get_pt() const override;
@@ -165,10 +165,10 @@ class Jetv2 : public Jet
   unsigned int _isort_prop_index { 0 };
   int _sort_sign { -1 }; // sort sign -- for large to small or small to large
 
-  bool IsEqual(TObject* obj) const;
-  int  Compare(TObject* obj) ;
+  bool IsEqual(const TObject* obj) const override;
+  Int_t  Compare(const TObject* obj) const override;
 
-  inline int intCompare (float a, float b)  {
+  inline int intCompare (float a, float b) const {
     float val = _sort_sign*(a-b);
     if (val < 0) return -1;
     else if (val > 0) return 1;

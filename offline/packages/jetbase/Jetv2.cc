@@ -292,7 +292,7 @@ void Jetv2::set_sort_criteria (Jet::SORT which_sort, bool large_to_small, unsign
   _isort_prop_index = index;
 };
 
-bool Jetv2::IsEqual(TObject* obj) const {
+bool Jetv2::IsEqual(const TObject* obj) const {
   Jetv2* rhs { (Jetv2*) obj };
   switch (_which_sort) {
     case Jet::SORT::PT:
@@ -324,7 +324,7 @@ bool Jetv2::IsEqual(TObject* obj) const {
   return true;
 }
 
-int Jetv2::Compare(TObject* obj) {
+int Jetv2::Compare(const TObject* obj) const {
   Jetv2* rhs { (Jetv2*) obj };
   switch (_which_sort) {
     case Jet::SORT::PT:
