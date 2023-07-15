@@ -125,7 +125,7 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 
 			offline = Intt::ToOffline(rawdata);
 
-			hit_key = InttDefs::genHitKey(offline.strip_x, offline.strip_y);
+			hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
 			hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
 
 			hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
