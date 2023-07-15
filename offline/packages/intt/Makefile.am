@@ -3,10 +3,6 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = \
-  libintt_io.la \
-  libintt.la 
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
@@ -19,6 +15,9 @@ AM_LDFLAGS = \
 
 if USE_ONLINE
 
+lib_LTLIBRARIES = \
+  libintt.la 
+
 pkginclude_HEADERS = \
   InttFelixMap.h \
   InttMapping.h
@@ -28,6 +27,10 @@ libintt_la_SOURCES = \
   InttMapping.cc
 
 else
+
+lib_LTLIBRARIES = \
+  libintt_io.la \
+  libintt.la 
 
 pkginclude_HEADERS = \
   InttClusterizer.h \
