@@ -482,11 +482,15 @@ int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_i
   {
     rowid = 75 + layer_id;
   }
+  //shift the row index up by 5
+  rowid += 5;
+  if(rowid > 319) rowid -= 320;
   if (rowid < 0 || rowid > 319)
   {
     std::cout << "bad rowid " << rowid << " for sector " << isector << ", layer_id " << layer_id << std::endl;
     gSystem->Exit(1);
   }
+
   return rowid;
 }
 
@@ -535,7 +539,9 @@ void PHG4OHCalDetector::AddGeometryNode()
     double phiend = phistart + 2. * M_PI / m_Params->get_int_param(PHG4HcalDefs::n_towers);
     std::pair<double, double> range = std::make_pair(phiend, phistart);
     phistart = phiend;
-    m_RawTowerGeom->set_phibounds(i, range);
+    int tempi = i+1;
+    if(tempi >= m_Params->get_int_param(PHG4HcalDefs::n_towers)) tempi -= m_Params->get_int_param(PHG4HcalDefs::n_towers);
+    m_RawTowerGeom->set_phibounds(tempi, range);
   }
   double etalowbound = -m_Params->get_double_param("scinti_eta_coverage_neg");
   for (int i = 0; i < m_Params->get_int_param("etabins"); i++)
