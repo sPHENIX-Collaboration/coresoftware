@@ -22,7 +22,7 @@ class TrackFitUtils
 
   /// circle fit output [R, x0, y0]
   using circle_fit_output_t = std::tuple<double, double, double>;
-
+  
   /**
    * Circle fit to a given set of data points (in 2D)
    * This is an algebraic fit, due to Taubin, based on the journal article
@@ -91,6 +91,9 @@ class TrackFitUtils
 				  std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
   static Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref); 
+
+  static std::vector<double> getLineClusterResiduals(position_vector_t& rz_pts, float slope, float intercept);
+  static std::vector<double> getCircleClusterResiduals(position_vector_t& xy_pts, float R, float X0, float Y0);
 };
 
 #endif

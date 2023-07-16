@@ -61,6 +61,7 @@ namespace AlignmentDefs
   std::vector<int> getAllMvtxGlobalLabels(int grp);
   std::vector<int> getAllInttGlobalLabels(int grp);
   std::vector<int> getAllTpcGlobalLabels(int grp);
+  std::vector<int> makeLabelsFromBase(std::vector<int>& label_base);
 
   int getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey cluskey, int group);
 

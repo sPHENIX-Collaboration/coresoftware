@@ -43,6 +43,7 @@ pkginclude_HEADERS = \
 
 else
 pkginclude_HEADERS = \
+  CaloGeomMapping.h \
   CaloWaveformFitting.h \
   CaloWaveformProcessing.h \
   CaloRecoUtility.h \
@@ -69,6 +70,7 @@ libcalo_reco_la_SOURCES = \
   BEmcProfile.cc \
   BEmcRec.cc \
   BEmcRecCEMC.cc \
+  CaloGeomMapping.cc \
   CaloRecoUtility.cc \
   CaloWaveformFitting.cc \
   CaloWaveformProcessing.cc \

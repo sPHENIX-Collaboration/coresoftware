@@ -311,11 +311,14 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
       std::vector<Acts::Vector3> global_vec_noINTT;
       for(unsigned int ivec=0;ivec<global_vec.size(); ++ivec)
 	{
+	  
 	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
-	  if(trkrid != TrkrDefs::inttId)
+	  
+	  if(trkrid != TrkrDefs::inttId and cluskey_vec[ivec] != 0)
 	    {
 	      global_vec_noINTT.push_back(global_vec[ivec]); 
 	    }
+
 	}
       
       if(global_vec_noINTT.size() < 3) 
@@ -385,3 +388,40 @@ Acts::Vector3 TrackFitUtils::getPCALinePoint(Acts::Vector3 global, Acts::Vector3
   return pca;
 }
 
+std::vector<double> TrackFitUtils::getLineClusterResiduals(TrackFitUtils::position_vector_t& rz_pts, float slope, float intercept)
+{
+  std::vector<double> residuals;
+   // calculate cluster residuals from the fitted circle
+  std::transform( rz_pts.begin(), rz_pts.end(), 
+		  std::back_inserter(residuals), [slope,intercept]( 
+				     const std::pair<double,double>& point )
+  {
+    double r = point.first;
+    double z = point.second;
+    
+    // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
+    
+    double a = -slope;
+    double b = 1.0;
+    double c = -intercept;
+    return std::abs(a*r+b*z+c)/sqrt(square(a)+square(b));
+  });
+  return residuals;
+}
+
+std::vector<double> TrackFitUtils::getCircleClusterResiduals(TrackFitUtils::position_vector_t& xy_pts, float R, float X0, float Y0)
+{
+  std::vector<double> residuals;
+  std::transform(xy_pts.begin(), xy_pts.end(), 
+		 std::back_inserter(residuals), [R,X0,Y0]( 
+				    const std::pair<double,double>& point )
+  {
+    double x = point.first;
+    double y = point.second;
+
+    // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
+    return std::sqrt( square(x-X0) + square(y-Y0) )  -  R;  
+  } );
+ 
+  return residuals;
+}

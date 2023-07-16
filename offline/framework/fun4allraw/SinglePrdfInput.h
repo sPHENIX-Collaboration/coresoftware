@@ -6,6 +6,7 @@
 
 #include <list>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -23,18 +24,31 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
   int RunNumber() const { return m_RunNumber; }
   int fileopen(const std::string &filename) override;
   int fileclose() override;
-  int AllDone() const {return m_AllDone;}
-  void AllDone(const int i) {m_AllDone = i;}
+  int AllDone() const { return m_AllDone; }
+  void AllDone(const int i) { m_AllDone = i; }
+  void EventNumberOffset(const int i) { m_EventNumberOffset = i; }  // if beam clk are out of sync, tweak this one
 
  private:
+  int majority_eventnumber();
+  int majority_beamclock();
+  void adjust_eventnumber_offset(const int decided_evtno);
+  struct PacketInfo
+  {
+    std::vector<Packet *> PacketVector;
+    unsigned int EventFoundCounter = 0;
+  };
   Eventiterator *m_EventIterator = nullptr;
   Fun4AllPrdfInputPoolManager *m_InputMgr = nullptr;
   Packet **plist = nullptr;
   unsigned int m_NumSpecialEvents = 0;
-  unsigned int m_EventNumberOffset = 1;  // packet event counters start at 0 but we start with event number 1
+  int m_EventNumberOffset = 1;               // packet event counters start at 0 but we start with event number 1
+  int *m_PacketEventNumberOffset = nullptr;  // packet event counters start at 0 but we start with event number 1
   int m_RunNumber = 0;
   int m_EventsThisFile = 0;
   int m_AllDone = 0;
+  std::map<int, std::vector<Packet *>> m_PacketMap;
+  std::set<int> m_EvtSet;
+  std::vector<std::pair<int, int>> m_Event;
 };
 
 #endif

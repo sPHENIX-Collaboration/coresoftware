@@ -18,6 +18,29 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64
 
+if USE_ONLINE
+
+pkginclude_HEADERS = \
+  BbcGeom.h \
+  BbcGeomV1.h
+
+ROOTDICTS = \
+  BbcGeom_Dict.cc \
+  BbcGeomV1_Dict.cc
+
+nobase_dist_pcm_DATA = \
+  BbcGeom_Dict_rdict.pcm \
+  BbcGeomV1_Dict_rdict.pcm
+
+libbbc_io_la_SOURCES = \
+  $(ROOTDICTS) \
+  BbcGeomV1.cc
+
+libbbc_io_la_LIBADD = \
+  -lphool
+
+else
+
 pkginclude_HEADERS = \
   BbcDefs.h \
   BbcOut.h \
@@ -55,8 +78,6 @@ ROOTDICTS = \
   BbcVertexMap_Dict.cc \
   BbcVertexMapv1_Dict.cc
 
-pcmdir = $(libdir)
-
 nobase_dist_pcm_DATA = \
   BbcOut_Dict_rdict.pcm \
   BbcOutV1_Dict_rdict.pcm \
@@ -73,7 +94,6 @@ nobase_dist_pcm_DATA = \
   BbcVertexv2_Dict_rdict.pcm \
   BbcVertexMap_Dict_rdict.pcm \
   BbcVertexMapv1_Dict_rdict.pcm
-
 
 libbbc_io_la_SOURCES = \
   $(ROOTDICTS) \
@@ -95,6 +115,14 @@ libbbc_io_la_SOURCES = \
 libbbc_io_la_LIBADD = \
   -lphool \
   -lSubsysReco
+
+endif
+
+
+pcmdir = $(libdir)
+
+
+
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

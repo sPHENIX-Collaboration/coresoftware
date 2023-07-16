@@ -491,8 +491,7 @@ void FillClusMatchTree::print_mvtx_diagnostics() {
   }
 
 void FillClusMatchTree::clear_clusvecs(const std::string& tag) {
-  /* cout << " banana |" << tag << "|"<<endl; */
-  if (tag != "") {
+  if (tag != "" && b_clus_x.size()>0) {
     for (auto x : b_clus_x) cout << x <<" ";
     cout << endl;
   }

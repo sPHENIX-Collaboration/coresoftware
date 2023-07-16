@@ -878,7 +878,7 @@ std::vector<TrackSeed_v1> PHCASeeding::RemoveBadClusters(const std::vector<keyli
     if( std::isnan( R ) ) continue;
 
     // calculate residuals
-    const std::vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
+    const std::vector<double> xy_resid = TrackFitUtils::getCircleClusterResiduals(xy_pts,R,X0,Y0);
     
     // assign clusters to seed
     TrackSeed_v1 trackseed;

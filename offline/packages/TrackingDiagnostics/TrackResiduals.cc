@@ -6,6 +6,7 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterv5.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
@@ -129,6 +130,8 @@ void TrackResiduals::clearClusterStateVectors()
   m_statelzlocderivtheta.clear();
   m_statelzlocderivqop.clear();
 
+  m_clusedge.clear();
+  m_clusoverlap.clear();
   m_cluslx.clear();
   m_cluslz.clear();
   m_cluselx.clear();
@@ -359,6 +362,8 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
 
   //! have cluster and state, fill vectors
   m_cluslx.push_back(cluster->getLocalX());
+  m_clusedge.push_back(cluster->getEdge());
+  m_clusoverlap.push_back(cluster->getOverlap());
   float clusz = cluster->getLocalY();
 
   if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
@@ -366,8 +371,12 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     clusz = convertTimeToZ(geometry, ckey, cluster);
   }
   m_cluslz.push_back(clusz);
-  m_cluselx.push_back(cluster->getRPhiError());
-  m_cluselz.push_back(cluster->getZError());
+
+  TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
+  auto para_errors = m_clusErrPara.get_clusterv5_modified_error(clusterv5,
+							       clusr,ckey);
+  m_cluselx.push_back(sqrt(para_errors.first));
+  m_cluselz.push_back(sqrt(para_errors.second));
   m_clusgx.push_back(clusglob.x());
   m_clusgy.push_back(clusglob.y());
   m_clusgz.push_back(clusglob.z());
@@ -475,6 +484,7 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
 void TrackResiduals::createBranches()
 {
   m_tree = new TTree("residualtree", "A tree with track, cluster, and state info");
+  m_tree->Branch("event", &m_event,"m_event/I");
   m_tree->Branch("trackid", &m_trackid, "m_trackid/I");
   m_tree->Branch("crossing", &m_crossing, "m_crossing/I");
   m_tree->Branch("px", &m_px, "m_px/F");
@@ -500,6 +510,8 @@ void TrackResiduals::createBranches()
   m_tree->Branch("pcay", &m_pcay, "m_pcay/F");
   m_tree->Branch("pcaz", &m_pcaz, "m_pcaz/F");
 
+  m_tree->Branch("clusedge",&m_clusedge);
+  m_tree->Branch("clusoverlap",&m_clusoverlap);
   m_tree->Branch("cluslx", &m_cluslx);
   m_tree->Branch("cluslz", &m_cluslz);
   m_tree->Branch("cluselx", &m_cluselx);
