@@ -9,7 +9,7 @@ class Packet;
 
 class PacketList
 {
-public:
+ public:
   PacketList() = default;
   virtual ~PacketList();
   std::vector<Packet *>::const_iterator begin(const int packet_id);
@@ -18,9 +18,8 @@ public:
   void Reset();
   void identify(std::ostream &os = std::cout);
 
-private:
+ private:
   std::map<int, std::vector<Packet *>> m_PacketMap;
 };
 
 #endif
-

@@ -6,9 +6,9 @@ std::vector<Packet *> empty_vector;
 
 PacketList::~PacketList()
 {
-  for (auto iditer: m_PacketMap)
+  for (auto iditer : m_PacketMap)
   {
-    for (auto pktiter: iditer.second)
+    for (auto pktiter : iditer.second)
     {
       delete pktiter;
     }
@@ -25,9 +25,9 @@ void PacketList::AddPacket(const int packet_id, Packet *pkt)
 
 void PacketList::Reset()
 {
-  for (auto iditer: m_PacketMap)
+  for (auto iditer : m_PacketMap)
   {
-    for (auto pktiter: iditer.second)
+    for (auto pktiter : iditer.second)
     {
       delete pktiter;
     }
@@ -38,9 +38,9 @@ void PacketList::Reset()
 
 void PacketList::identify(std::ostream &os)
 {
-  for (auto const &iditer: m_PacketMap)
+  for (auto const &iditer : m_PacketMap)
   {
-    os << "Packet " << iditer.first << " number of packets: " 
+    os << "Packet " << iditer.first << " number of packets: "
        << iditer.second.size() << std::endl;
   }
 }
