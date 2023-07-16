@@ -20,7 +20,7 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>           // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <Event/A_Event.h>
 #include <Event/Event.h>
@@ -62,7 +62,7 @@ Fun4AllEvtInputPoolManager::~Fun4AllEvtInputPoolManager()
   {
     delete iter;
   }
-  for (auto pktinfoiter : m_PacketMap)
+  for (auto const &pktinfoiter : m_PacketMap)
   {
     for (auto &pktiter : pktinfoiter.second.PacketVector)
     {
@@ -83,17 +83,17 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
     SetRunNumber(m_RunNumber);
   }
 
-  if(m_PacketMap.empty())
+  if (m_PacketMap.empty())
   {
     std::cout << "we are done" << std::endl;
     return -1;
   }
-//  std::cout << "next event is " << m_PacketMap.begin()->first << std::endl;
-//  auto pktinfoiter = m_PacketMap.begin();
-  PacketList *pktlist = findNode::getClass<PacketList>(m_topNode,m_EvtNodeName);
+  //  std::cout << "next event is " << m_PacketMap.begin()->first << std::endl;
+  //  auto pktinfoiter = m_PacketMap.begin();
+  PacketList *pktlist = findNode::getClass<PacketList>(m_topNode, m_EvtNodeName);
   for (auto pktiter : m_PacketMap.begin()->second.PacketVector)
   {
-    pktlist->AddPacket(pktiter->getIdentifier(),pktiter);
+    pktlist->AddPacket(pktiter->getIdentifier(), pktiter);
   }
   m_PacketMap.erase(m_PacketMap.begin());
   return 0;
@@ -188,10 +188,10 @@ int Fun4AllEvtInputPoolManager::fileclose()
 void Fun4AllEvtInputPoolManager::Print(const std::string &what) const
 {
   std::cout << "Current list of beamclks: " << std::endl;
-  for (auto mapiter : m_PacketMap)
+  for (auto const &mapiter : m_PacketMap)
   {
-    std::cout << "clk: 0x" << std::hex <<  mapiter.first
-	      << std::dec << std::endl;
+    std::cout << "clk: 0x" << std::hex << mapiter.first
+              << std::dec << std::endl;
     for (auto pktiter : mapiter.second.PacketVector)
     {
       std::cout << "pktid: " << pktiter->getIdentifier() << std::endl;
@@ -203,7 +203,7 @@ void Fun4AllEvtInputPoolManager::Print(const std::string &what) const
 
 int Fun4AllEvtInputPoolManager::ResetEvent()
 {
-  PacketList *pktlist = findNode::getClass<PacketList>(m_topNode,m_EvtNodeName);
+  PacketList *pktlist = findNode::getClass<PacketList>(m_topNode, m_EvtNodeName);
   pktlist->Reset();
   //  m_SyncObject->Reset();
   return 0;
@@ -335,8 +335,8 @@ void Fun4AllEvtInputPoolManager::AddPacket(uint64_t bclk, Packet *p)
 {
   if (Verbosity() > 1)
   {
-    std::cout << "Adding packet " << p->getIdentifier() << " to bclk 0x" 
-	      << std::hex << bclk << std::dec << std::endl;
+    std::cout << "Adding packet " << p->getIdentifier() << " to bclk 0x"
+              << std::hex << bclk << std::dec << std::endl;
   }
   m_PacketMap[bclk].PacketVector.push_back(p);
 }
