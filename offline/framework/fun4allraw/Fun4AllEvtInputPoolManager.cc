@@ -62,7 +62,7 @@ Fun4AllEvtInputPoolManager::~Fun4AllEvtInputPoolManager()
   {
     delete iter;
   }
-  for (auto pktinfoiter : m_PacketMap)
+  for (auto const &pktinfoiter : m_PacketMap)
   {
     for (auto &pktiter : pktinfoiter.second.PacketVector)
     {
@@ -188,7 +188,7 @@ int Fun4AllEvtInputPoolManager::fileclose()
 void Fun4AllEvtInputPoolManager::Print(const std::string &what) const
 {
   std::cout << "Current list of beamclks: " << std::endl;
-  for (auto mapiter : m_PacketMap)
+  for (auto const &mapiter : m_PacketMap)
   {
     std::cout << "clk: 0x" << std::hex <<  mapiter.first
 	      << std::dec << std::endl;
