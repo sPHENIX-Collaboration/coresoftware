@@ -25,6 +25,7 @@ class SingleEvtInput : public Fun4AllBase, public InputFileHandler
   int fileclose() override;
   int AllDone() const {return m_AllDone;}
   void AllDone(const int i) {m_AllDone = i;}
+  void EventNumberOffset(const int i) {m_EventNumberOffset = i;}
 
  private:
   Eventiterator *m_EventIterator = nullptr;
@@ -35,6 +36,8 @@ class SingleEvtInput : public Fun4AllBase, public InputFileHandler
   int m_RunNumber = 0;
   int m_EventsThisFile = 0;
   int m_AllDone = 0;
+  uint64_t previousclock = 0;
+  uint64_t rollover = 0;
 };
 
 #endif
