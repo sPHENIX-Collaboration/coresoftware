@@ -72,7 +72,7 @@ int TowerInfoDeadHotMask::process_event(PHCompositeNode * /*topNode*/)
 void TowerInfoDeadHotMask::CreateNodeTree(PHCompositeNode *topNode)
 {
   m_calibTowerInfos = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_" + m_detector);
-  if (!m_calibTowerInfos && m_UseTowerInfo == true)
+  if (!m_calibTowerInfos)
   {
     std::cout << Name() << "::" << m_detector << "::" << "CreateNodeTree " << "No calibrated " << m_detector << " tower info found while in TowerInfoDeadHotMask, can't proceed!!!" << std::endl;
     throw std::runtime_error("failed to find TOWERINFO_CALIB node in TowerInfoDeadHotMask::CreateNodeTree");
