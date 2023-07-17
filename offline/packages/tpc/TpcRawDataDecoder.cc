@@ -364,9 +364,10 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       //<<"\n  \t  FEE "<< feeM_cdbt          <<"  "<< feeM    << " delta =" << feeM_cdbt       - feeM    
       //<<"\n  \t  layer "<< layer_cdbt       <<"  "<< layer   << " delta =" << layer_cdbt      - layer 
       //<< std::endl;        
-      
+      int mc_sectors[12] = {5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6};
+
       int pedestal = round(tmap[key].PedMean);
-      TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, (sector - side*12 ), side);
+      TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, (mc_sectors[sector - side*12] ), side);
       TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(tpcHitSetKey);
 	
 
@@ -409,7 +410,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 	      //	    if(adc-pedestal<4) continue;
 	      // generate hit key
 	      if(adc-pedestal>2){
-	        TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad + (sector - side*12 )*pads_per_sector[FEE_R[fee]-1], (unsigned int) t);
+	        TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int)( pads_per_sector[FEE_R[fee]-1] - pad + (mc_sectors[sector - side*12] )*pads_per_sector[FEE_R[fee]-1] ), (unsigned int) t);
 	        // find existing hit, or create
   
 	        auto hit = hitsetit->second->getHit(hitkey);
