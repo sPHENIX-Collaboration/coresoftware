@@ -14,6 +14,7 @@
 #include <string>
 
 class CDBTTree;
+class CDBInterface;
 class PHCompositeNode;
 class Fun4AllHistoManager;
 //class TrkrHitSetContainer;
@@ -75,7 +76,8 @@ class TpcRawDataDecoder : public SubsysReco
   //TpcMap M;
   TNtuple *h_Alive = nullptr;
   CDBTTree *m_cdbttree = nullptr;
-  
+  CDBInterface *m_cdb = nullptr;
+
   struct ped_tpc_map
   {
     unsigned int CHN_ID;

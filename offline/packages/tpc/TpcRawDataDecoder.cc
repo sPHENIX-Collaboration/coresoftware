@@ -25,7 +25,7 @@
 #include <Acts/Surfaces/Surface.hpp>
 
 #include <cdbobjects/CDBTTree.h>
-
+#include <ffamodules/CDBInterface.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -52,12 +52,6 @@ TpcRawDataDecoder::TpcRawDataDecoder(const std::string &name)
   rollover_value = 0;
   current_BCOBIN = 0;
   //M.setMapNames("AutoPad-R1-RevA.sch.ChannelMapping.csv", "AutoPad-R2-RevA-Pads.sch.ChannelMapping.csv", "AutoPad-R3-RevA.sch.ChannelMapping.csv");
-  
-  // use generic CDBTree to load 
-  m_cdbttree = new CDBTTree( "/sphenix/user/shulga/Work/TpcPadPlane_phi_coresoftware/macros/CDBTest/test.root" );
-  m_cdbttree->LoadCalibrations();
-
-
 
   // Open a file, save the ntuple and close the file
   TFile in_file("/sphenix/user/shulga/Work/Files/pedestal-10616-outfile.root");
@@ -115,6 +109,23 @@ TpcRawDataDecoder::~TpcRawDataDecoder()
 int TpcRawDataDecoder::Init(PHCompositeNode * /*topNode*/)
 {
   std::cout << "TpcRawDataDecoder::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+
+  m_cdb = CDBInterface::instance();
+  std::string calibdir = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
+  if (calibdir[0] == '/')
+  {
+    // use generic CDBTree to load
+    m_cdbttree = new CDBTTree(calibdir.c_str());
+    m_cdbttree->LoadCalibrations();
+  }
+  else
+  {
+    std::cout << "TpcRawDataDecoder::::InitRun No calibration file found" << std::endl;
+    exit(1);
+  }
+ 
+  //m_cdbttree = new CDBTTree( "/sphenix/user/shulga/Work/TpcPadPlane_phi_coresoftware/macros/CDBTest/test.root" );
+  
   if(m_Debug==1){
     hm = new Fun4AllHistoManager("HITHIST");
 
@@ -319,7 +330,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       unsigned int key = 256 * (feeM) + channel;
       //int layer = M.getLayer(feeM, channel);
 
-      std::string varname = "layer" + std::to_string(key);
+      std::string varname = "layer";// + std::to_string(key);
       int layer = m_cdbttree->GetIntValue(key,varname);
       // antenna pads will be in 0 layer
       if(layer==0)continue;
@@ -331,10 +342,10 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       //varname = "channel" + std::to_string(key);
       //int feeM_chn_cdbt = m_cdbttree->GetIntValue(key,varname);
       
-      varname = "padR" + std::to_string(key);
+      varname = "R";// + std::to_string(key);
       double R = m_cdbttree->GetDoubleValue(key,varname);
       
-      varname = "padPhi" + std::to_string(key);
+      varname = "phi";// + std::to_string(key);
       double phi = m_cdbttree->GetDoubleValue(key,varname) + (sector - side*12 )* M_PI / 6 ;;
       
       //varname = "padN" + std::to_string(key);
@@ -342,6 +353,17 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 
       //double R = M.getR(feeM, channel);
       //double phi = M.getPhi(feeM, channel) + (sector - side*12 )* M_PI / 6 ;
+	    //int pad = M.getPad(feeM, channel);
+      varname = "pad";// + std::to_string(key);
+      int pad = m_cdbttree->GetIntValue(key,varname);
+
+      //std::cout<<"pad "<< padn_cdbt          <<"  "<< pad     << " delta =" << padn_cdbt       - pad     
+      //<<"\n  \t  phi "<< phi_cdbt           <<"  "<< phi     << " delta =" << phi_cdbt        - phi     
+      //<<"\n  \t  R "<< R_cdbt               <<"  "<< R       << " delta =" << R_cdbt          - R       
+      //<<"\n  \t  FEE chn"<< feeM_chn_cdbt   <<"  "<< channel << " delta =" << feeM_chn_cdbt   - channel 
+      //<<"\n  \t  FEE "<< feeM_cdbt          <<"  "<< feeM    << " delta =" << feeM_cdbt       - feeM    
+      //<<"\n  \t  layer "<< layer_cdbt       <<"  "<< layer   << " delta =" << layer_cdbt      - layer 
+      //<< std::endl;        
       
       int pedestal = round(tmap[key].PedMean);
       TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, (sector - side*12 ), side);
@@ -378,17 +400,6 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       pedestal /=5;
       for (int s = 0; s < samples; s++)
 	    {
-	      //int pad = M.getPad(feeM, channel);
-        varname = "padN" + std::to_string(key);
-        int pad = m_cdbttree->GetIntValue(key,varname);
-
-        //std::cout<<"pad "<< padn_cdbt          <<"  "<< pad     << " delta =" << padn_cdbt       - pad     
-        //<<"\n  \t  phi "<< phi_cdbt           <<"  "<< phi     << " delta =" << phi_cdbt        - phi     
-        //<<"\n  \t  R "<< R_cdbt               <<"  "<< R       << " delta =" << R_cdbt          - R       
-        //<<"\n  \t  FEE chn"<< feeM_chn_cdbt   <<"  "<< channel << " delta =" << feeM_chn_cdbt   - channel 
-        //<<"\n  \t  FEE "<< feeM_cdbt          <<"  "<< feeM    << " delta =" << feeM_cdbt       - feeM    
-        //<<"\n  \t  layer "<< layer_cdbt       <<"  "<< layer   << " delta =" << layer_cdbt      - layer 
-        //<< std::endl;        
 
 	      int t = s; // + 2 * (current_BCO - starting_BCO);
 	      int adc = p->iValue(wf,s);
