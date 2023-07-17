@@ -50,23 +50,18 @@ void JetContainer::identify(std::ostream& os) const
 TClonesArray* JetContainer::clone_data() const 
 { return (TClonesArray*) DummyTClonesArray.Clone(); };
 
-IterJetTCA DummyIterJetTCA { &DummyTClonesArray, DummyJetV2 };
+IterJetv2TCA DummyIterJetTCA { &DummyTClonesArray, DummyJetV2 };
 
 Jetv2* JetContainer::current_jet() { return DummyJetV2; };
 
 /* std::vector<float>& JetContainer::jet_properties() { return DummyFloatVec; }; */
 
-IterJetTCA JetContainer::begin()
+IterJetv2TCA JetContainer::begin()
 {
-  return DummyIterJetTCA.end();
+  return DummyIterJetTCA;
 }
 
-IterJetTCA JetContainer::end()
-{
-  return DummyIterJetTCA.end();
-}
-
-IterJetTCA JetContainer::iter_jets()
+IterJetv2TCA JetContainer::end()
 {
   return DummyIterJetTCA;
 }

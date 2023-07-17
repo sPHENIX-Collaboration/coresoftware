@@ -33,9 +33,7 @@ Jetv2::Jetv2(const Jetv2& rhs)
   , _e                { rhs._e                }
   , _is_sorted        { rhs._is_sorted        }
   , _print_v2_warning { rhs._print_v2_warning }
-  , _which_sort       { rhs._which_sort       }
-  , _isort_prop_index { rhs._isort_prop_index }
-  , _sort_sign        { rhs._sort_sign        }
+  , _sortopt          { rhs._sortopt          }
 {
   std::copy ( rhs._mom, rhs._mom+3, _mom);
   std::copy ( rhs._comp_ids.begin(),   rhs._comp_ids.end(),   _comp_ids.begin() );
@@ -52,6 +50,8 @@ void Jetv2::identify(std::ostream& os) const
   os << " Jet Properties:";
   for (auto& val : _properties) { os << " " << val; }
   os << std::endl;
+
+  os << " Jet Components:";
 
   for (ConstIter citer = begin_comp(); citer != end_comp(); ++citer)
   {
@@ -142,6 +142,12 @@ void Jetv2::print_property(std::ostream& os) const
 size_t Jetv2::cnt_comp(Jet::SRC iSRC) {
   if (!_is_sorted) { sort_comp_ids(); }
   return (comp_end(iSRC)-comp_begin(iSRC));
+}
+
+void Jetv2::insert_comp (SRC iSRC, unsigned int compid)
+{ 
+  _is_sorted = false; 
+  _comp_ids.push_back(std::make_pair(iSRC, compid)); 
 }
 
 
@@ -256,12 +262,12 @@ void Jetv2::sort_comp_ids() {
     );
     _is_sorted = true;
 }
-Jetv2::TYP_Iter_comp_vec Jetv2::comp_begin(Jet::SRC iSRC) {
+Jetv2::ITER_comp_vec Jetv2::comp_begin(Jet::SRC iSRC) {
   if (!_is_sorted) sort_comp_ids();
   return std::lower_bound(_comp_ids.begin(), _comp_ids.end(), iSRC, CompareSRC());
 }
 
-Jetv2::TYP_Iter_comp_vec Jetv2::comp_end(Jet::SRC iSRC) {
+Jetv2::ITER_comp_vec Jetv2::comp_end(Jet::SRC iSRC) {
   if (!_is_sorted) sort_comp_ids();
   return std::upper_bound(_comp_ids.begin(), _comp_ids.end(), iSRC, CompareSRC());
 }
@@ -285,16 +291,10 @@ void Jetv2::set_property(Jet::PROPERTY /**/, float /**/)
 }
 
 
-void Jetv2::set_sort_criteria (Jet::SORT which_sort, bool large_to_small, unsigned int index)
-{ 
-  _which_sort = which_sort; 
-  _sort_sign = (large_to_small) ? -1 : 1.;
-  _isort_prop_index = index;
-};
 
 bool Jetv2::IsEqual(const TObject* obj) const {
   Jetv2* rhs { (Jetv2*) obj };
-  switch (_which_sort) {
+  switch (_sortopt->criteria) {
     case Jet::SORT::PT:
       return get_pt()    == rhs->get_pt();
 
@@ -314,7 +314,7 @@ bool Jetv2::IsEqual(const TObject* obj) const {
       return get_eta() == rhs->get_eta();
 
     case Jet::SORT::PROPERTY:
-      return _properties[_isort_prop_index] == rhs->_properties[_isort_prop_index];
+      return _properties[_sortopt->prop_index] == rhs->_properties[_sortopt->prop_index];
 
     default:
       std::cout << PHWHERE << std::endl;
@@ -326,7 +326,7 @@ bool Jetv2::IsEqual(const TObject* obj) const {
 
 int Jetv2::Compare(const TObject* obj) const {
   Jetv2* rhs { (Jetv2*) obj };
-  switch (_which_sort) {
+  switch (_sortopt->criteria) {
     case Jet::SORT::PT:
       return intCompare(get_pt(), rhs->get_pt());
 
@@ -346,7 +346,7 @@ int Jetv2::Compare(const TObject* obj) const {
       return intCompare(get_eta(),   rhs->get_eta());
 
     case Jet::SORT::PROPERTY:
-      return intCompare(_properties[_isort_prop_index], rhs->_properties[_isort_prop_index]);
+      return intCompare(_properties[_sortopt->prop_index], rhs->_properties[_sortopt->prop_index]);
 
     default:
       std::cout << PHWHERE << std::endl;

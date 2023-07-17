@@ -2,7 +2,7 @@
 #define JETBASE_JETCONTAINER_H
 
 #include "Jet.h"
-/* #include "Jetv2.h" */
+#include "JetStructs.h"
 
 #include <phool/PHObject.h>
 
@@ -20,32 +20,7 @@
 class Jet;
 class Jetv2;
 
-// ---------------------------------------------------------------------------------------
-// Convenience class for iterating over jets in TClonesArray in JetContainer
-// ---------------------------------------------------------------------------------------
-struct IterJetTCA {
-  TClonesArray* tca   { nullptr };
-  Jetv2*& current_jet ;
-  int index { 0 };
-  int size;
 
-  // build Iterator -- capture reference to current_jet pointer from JetContainer
-  IterJetTCA  (TClonesArray* _tca, Jetv2*& _in_jet) 
-      : tca{_tca}, current_jet{_in_jet}, size { tca->GetEntriesFast() }
-  {}
-
-  IterJetTCA begin() { return *this; };
-
-  IterJetTCA end() { return *this; };
-
-  void operator++() {
-      current_jet = (Jetv2*) tca->UncheckedAt(++index);
-  };
-
-  Jetv2* operator*() { return current_jet; };
-
-  bool operator!=(const IterJetTCA& rhs) { return index!=rhs.size;};
-};
 
 
 // ---------------------------------------------------------------------------------------
@@ -119,7 +94,7 @@ public:
 
     // Get and queary the map of indices of the vector<properties> in the jets
     virtual std::map<Jet::PROPERTY, unsigned int> prop_indices_map() const { return {}; };
-    virtual std::vector<Jet::PROPERTY> vec_jet_properties() const { return {}; }; // values from the prop_map
+    virtual std::vector<Jet::PROPERTY> vec_jet_properties() const { return {}; }; // same data from map, but in order as used
     virtual void print_property_types(std::ostream& /*os*/) const {}; // print the order of properties in jet
     virtual bool has_property(Jet::PROPERTY /*-*/) const { return false; }; 
     virtual size_t n_properties() const { return UINT_MAX; }; // number of properties in the jet
@@ -137,7 +112,7 @@ public:
     virtual float get_prop_by_index (unsigned int /*index*/) const { return NAN; };
     virtual void  set_prop_by_index (unsigned int /*index*/, float /*value*/) {};
 
-    // Get and set values of properties by selections (always on current_jet)
+    // Get and set values of property(/ies) by selections (always on current_jet)
     virtual void select_property(Jet::PROPERTY/**/) {}; // select this property for the current jet
     virtual void select_property(std::vector<Jet::PROPERTY>/**/) {}; // order matters
     virtual float get_selected_property(unsigned int/*selection index=0*/) { return FLT_MAX;};
@@ -153,20 +128,22 @@ public:
     //     ... }
     // ```
     // In the loop, current_jet in JetContainer will be updated, too. So, you can reference 
-    // values like get_property.
-    virtual IterJetTCA iter_jets() ;
-    virtual IterJetTCA begin()     ;
-    virtual IterJetTCA end()       ;
+    // members using the JetContainer, just as {get,set}_selected_property
+    /* virtual IterJetTCA iter_jets() ; */
+    virtual IterJetv2TCA begin()     ;
+    virtual IterJetv2TCA end()       ;
     // ---------------------------------------------------------------------------------------
 
     // Methods to sort the TClonesArray of jets
-    virtual void sort_jets(Jet::SORT /**/,     bool /*descending */) {};
-    virtual void sort_jets(Jet::PROPERTY /**/, bool /*descending */) {};
+    virtual void sort_jets(Jet::SORT /**/,     Jet::SORT_ORDER /*ASCENDING or DESCENDING */) {};
+    virtual void sort_jets(Jet::PROPERTY /**/, Jet::SORT_ORDER /*ASCENDING or DESCENDING */) {};
     virtual bool is_sorted() const {return false;} ;
     virtual void set_is_sorted(bool /*-*/) {};
 
     virtual void print_sorted_by(std::ostream&/**/) {};
-    virtual void set_sorted_by(Jet::SORT /**/, bool /*is_inverse*/, Jet::PROPERTY=Jet::PROPERTY::no_property) {};
+    virtual void set_sorted_by(Jet::SORT /**/, 
+        Jet::SORT_ORDER=Jet::SORT_ORDER::DESCENDING, 
+        Jet::PROPERTY=Jet::PROPERTY::no_property) {};
 
     virtual unsigned int get_index_single() const { return UINT_MAX; };
     virtual std::vector<unsigned int> get_index_vec()    const { return {}; };

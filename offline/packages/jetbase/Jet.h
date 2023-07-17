@@ -71,6 +71,12 @@ class Jet : public PHObject
     ETA   = 8, // Mass descending order
   };
 
+  enum class SORT_ORDER
+  {
+    DESCENDING = 0,
+    ASCENDING  = 1,
+  };
+
   enum PROPERTY
   {
     //! jet charge

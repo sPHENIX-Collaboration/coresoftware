@@ -1,7 +1,9 @@
 #include "JetContainerv1.h"
-#include "Jetv2.h"
+#include "Jetv2.h" // for JetV2SortingCriteria
 #include <phool/phool.h>  // for PHWHERE
 #include <string>
+
+#include "JetStructs.h"
 
 JetContainerv1::JetContainerv1() {
     m_clones = new TClonesArray("Jetv2", 50);
@@ -54,6 +56,10 @@ Jetv2* JetContainerv1::add_jet() {
     return m_current_jet;
 }
 
+void JetContainerv1::add_component(Jet::SRC src, unsigned int id) {
+  m_current_jet->insert_comp(src, id);
+}
+
 Jetv2* JetContainerv1::get_jet(unsigned int ijet) {
     if (ijet < m_njets) {
         return (Jetv2*) m_clones->At(ijet);
@@ -76,7 +82,7 @@ void JetContainerv1::print_jets(std::ostream& os) {
   os << std::endl;
 
   int ijet = 0;
-  for (auto jet : iter_jets()) {
+  for (auto jet : *this) {
     os << Form("  jet(%2i) : pT(%6.2f)  eta(%6.2f)  phi(%6.2f)", 
         ijet, jet->get_pt(), jet->get_eta(), jet->get_phi());
     ++ijet;
@@ -113,16 +119,20 @@ void JetContainerv1::print_missing_prop(Jet::PROPERTY prop) const {
 
 // Add properties to the jets. 
 size_t JetContainerv1::add_property(Jet::PROPERTY prop) {
-    auto emplace = m_pindex.try_emplace(prop, m_psize);
-    if (!emplace.second) emplace.first->second += m_psize;
+  auto [iter, is_new] = m_pindex.try_emplace(prop, m_psize);
+  if (is_new) {
+    m_pvec.push_back(prop);
+    ++m_psize;
     resize_jet_pvecs();
-    return m_pvec.size();
+  }
+  return m_psize;
 }
 
 size_t JetContainerv1::add_property(std::set<Jet::PROPERTY> prop) {
-    for (auto p : prop) { add_property(p); }
-    resize_jet_pvecs();
-    return m_pvec.size();
+  auto old_size = m_psize;
+  for (auto p : prop) { add_property(p); }
+  if (old_size != m_psize) { resize_jet_pvecs(); }
+  return m_psize;
 }
 
 // Get and set values of properties by index (always on current_jet)
@@ -136,26 +146,26 @@ unsigned int JetContainerv1::find_prop_index(Jet::PROPERTY prop) {
     }
 }
 
-void JetContainerv1::set_sorted_by(Jet::SORT sort, bool is_inverse, Jet::PROPERTY sorting_prop) { 
+void JetContainerv1::set_sorted_by(Jet::SORT sort, Jet::SORT_ORDER _order, Jet::PROPERTY sorting_prop) { 
   m_is_sorted = true; 
-  m_sorted_by = sort; 
-  m_sorted_inverse= is_inverse;
-  m_sorting_prop = sorting_prop;
+  m_sortopt.criteria = sort;
+  m_sortopt.order = _order;
+  m_sortopt.property = sorting_prop;
 }
 
 void JetContainerv1::print_sorted_by(std::ostream& os) {
-  std::string inversely = (m_sorted_inverse ? "large to small" : "small to large");
-  switch (m_sorted_by) {
+  std::string sort_order = (m_sortopt.order == Jet::SORT_ORDER::DESCENDING ? "large to small" : "small to large");
+  switch (m_sortopt.criteria) {
     case Jet::SORT::PT:
     case Jet::SORT::E:
     case Jet::SORT::P:
     case Jet::SORT::MASS:
     case Jet::SORT::MASS2:
     case Jet::SORT::ETA:
-      os << " Jets in container sorted by " << str_Jet_SORT(m_sorted_by) << " " << inversely << std::endl;
+      os << " Jets in container sorted by " << str_Jet_SORT(m_sortopt.criteria) << " " << sort_order << std::endl;
       break;
     case Jet::SORT::PROPERTY: // for AREA and others
-      os << " Jets in container sorted by PROPERTY " << str_Jet_PROPERTY(m_sorting_prop) << " " << inversely << std::endl;
+      os << " Jets in container sorted by PROPERTY " << str_Jet_PROPERTY(m_sortopt.property) << " " << sort_order << std::endl;
       break;
     default:
       os << " Jet sorting information not set for jet container. " << std::endl;
@@ -206,11 +216,20 @@ void JetContainerv1::set_selected_property(float value, unsigned int index) {
     else m_current_jet->set_prop_by_index(m_sel_index_vec[index], value);
 }
 
-void JetContainerv1::sort_jets(Jet::SORT isort, bool descending) {
+IterJetv2TCA JetContainerv1::begin() {
+  if (m_clones->GetEntriesFast() > 1) m_current_jet = get_UncheckedAt(0);
+  return IterJetv2TCA(m_clones, m_current_jet); 
+}
+
+IterJetv2TCA JetContainerv1::end() {
+  return begin();
+}
+
+
+void JetContainerv1::sort_jets(Jet::SORT isort, Jet::SORT_ORDER _order) {
   // check that it's an ok sorting criteria:
-  m_is_sorted = true;
-  m_sorted_by = isort;
-  m_sorted_inverse = descending;
+  m_sortopt.criteria = isort;
+  m_sortopt.order = _order;
   switch (isort) {
     case Jet::SORT::PT:
     case Jet::SORT::E:
@@ -218,8 +237,8 @@ void JetContainerv1::sort_jets(Jet::SORT isort, bool descending) {
     case Jet::SORT::MASS:
     case Jet::SORT::MASS2:
     case Jet::SORT::ETA:
-      for (auto jet : iter_jets()) {
-          jet->set_sort_criteria(isort, descending);
+      for (auto jet : *this) {
+          jet->set_sortopt_ptr(&m_sortopt);
       }
       m_clones->UnSort();
       m_clones->Sort();
@@ -227,7 +246,7 @@ void JetContainerv1::sort_jets(Jet::SORT isort, bool descending) {
       break;
 
     case Jet::SORT::AREA:
-      sort_jets(Jet::PROPERTY::prop_area, descending);
+      sort_jets(Jet::PROPERTY::prop_area, Jet::SORT_ORDER::DESCENDING);
       break;
 
     default:
@@ -237,19 +256,18 @@ void JetContainerv1::sort_jets(Jet::SORT isort, bool descending) {
   return;
 }
 
-void JetContainerv1::sort_jets(Jet::PROPERTY prop, bool descending) {
+void JetContainerv1::sort_jets(Jet::PROPERTY prop, Jet::SORT_ORDER _order) {
   if (has_property(prop)) {
+    m_sortopt.criteria = Jet::SORT::PROPERTY;
+    m_sortopt.order = _order;
+    m_sortopt.property = prop;
+    m_sortopt.prop_index = m_pindex[prop];
+    for (auto jet : *this) {
+        jet->set_sortopt_ptr(&m_sortopt);
+    }
+    m_clones->UnSort();
+    m_clones->Sort();
     m_is_sorted = true;
-    m_sorted_by = Jet::SORT::PROPERTY;
-    m_sorted_inverse = descending;
-    m_sorting_prop = prop;
-      auto index = m_pindex[prop];
-      for (auto jet : iter_jets()) {
-          jet->set_sort_criteria(Jet::SORT::PROPERTY, descending, index);
-      }
-      m_clones->UnSort();
-      m_clones->Sort();
-      m_is_sorted = true;
   } else {
     m_is_sorted = false;
       std::cout << PHWHERE << std::endl
@@ -318,10 +336,10 @@ void JetContainerv1::sort_jets(Jet::PROPERTY prop, bool descending) {
 /* } */
 
 void JetContainerv1::resize_jet_pvecs() {
-    for (auto j : iter_jets()) {
-        j->resize_properties(m_psize);
-    }
-    return;
+  for (auto jet : *this) {
+      jet->resize_properties(m_psize);
+  }
+  return;
 }
 
 std::string JetContainerv1::str_Jet_PROPERTY(Jet::PROPERTY prop) const {

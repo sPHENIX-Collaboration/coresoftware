@@ -2,6 +2,7 @@
 #define JETBASE_JetContainerv1__h
 
 #include "JetContainer.h"
+#include "Jetv2.h"
 
 class JetContainerv1 : public JetContainer
 {
@@ -73,21 +74,22 @@ public:
     // ```
     // In the loop, current_jet in JetContainer will be updated, too. So, you can reference 
     // values like get_property.
-    IterJetTCA iter_jets() override { 
-      if (m_clones->GetEntriesFast() > 1) m_current_jet = get_UncheckedAt(0);
-      return IterJetTCA(m_clones, m_current_jet); 
-    }
+    IterJetv2TCA begin() override;
+    IterJetv2TCA end()   override;
     // ---------------------------------------------------------------------------------------
 
     // Methods to sort the TClonesArray of jets
-    void sort_jets(Jet::SORT,     bool descending=true) override;
-    void sort_jets(Jet::PROPERTY, bool descending=true) override;
+    void sort_jets(Jet::SORT,     Jet::SORT_ORDER order=Jet::SORT_ORDER::DESCENDING) override;
+    void sort_jets(Jet::PROPERTY, Jet::SORT_ORDER order=Jet::SORT_ORDER::DESCENDING) override;
 
     bool is_sorted() const override { return m_is_sorted; };
     void set_is_sorted(bool _) override { m_is_sorted = _; };
     
     void print_sorted_by(std::ostream& os=std::cout) override;
-    void set_sorted_by(Jet::SORT sorting_crit, bool is_inverse, Jet::PROPERTY sorting_prop=Jet::PROPERTY::no_property) override; 
+    void set_sorted_by(Jet::SORT sorting_crit, Jet::SORT_ORDER=Jet::SORT_ORDER::DESCENDING, 
+        Jet::PROPERTY=Jet::PROPERTY::no_property) override; 
+
+    void add_component(Jet::SRC /*-*/, unsigned int /*component id*/) override;
 
     // -legacy-set-parameters-----------------------------------------------------------------
     void set_algo(Jet::ALGO algo) override { m_algo = algo; };
@@ -131,9 +133,11 @@ private:
 
     // status of post-input sorting
     bool m_is_sorted { false };
-    bool m_sorted_inverse { true };
-    Jet::SORT m_sorted_by { Jet::SORT::NO_SORT };
-    Jet::PROPERTY m_sorting_prop { Jet::PROPERTY::no_property }; // i.e. no property; it doesn't matter
+    JetV2SortingCriteria m_sortopt {}; 
+
+    /* bool m_sorted_inverse { true }; */
+    /* Jet::SORT m_sorted_by { Jet::SORT::NO_SORT }; */
+    /* Jet::PROPERTY m_sorting_prop { Jet::PROPERTY::no_property }; // i.e. no property; it doesn't matter */
 
     Jetv2* m_current_jet {nullptr};
 

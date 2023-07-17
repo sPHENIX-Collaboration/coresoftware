@@ -36,6 +36,7 @@ pkginclude_HEADERS = \
   Jet.h \
   Jetv1.h \
   Jetv2.h \
+  JetStructs.h \
   JetContainer.h \
   JetContainerv1.h \
   JetMap.h \

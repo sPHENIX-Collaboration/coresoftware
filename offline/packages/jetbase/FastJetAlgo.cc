@@ -135,7 +135,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
       if (m_whichsort == Jet::SORT::PT 
       ||  m_whichsort == Jet::SORT::ETA
       ||  m_whichsort == Jet::SORT::E) {
-        jetcont->set_sorted_by(m_whichsort, true);
+        jetcont->set_sorted_by(m_whichsort, Jet::SORT_ORDER::DESCENDING);
       } else {
           std::cout << PHWHERE << std::endl;
           std::cout << " Unknown sort option (only Jet::SORT::PT,E,ETA,NO_SORT supported." << std::endl;
