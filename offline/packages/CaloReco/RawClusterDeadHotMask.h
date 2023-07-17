@@ -1,5 +1,5 @@
-#ifndef CALORECO_RAWCLUSTERDEADAREAMASK_H
-#define CALORECO_RAWCLUSTERDEADAREAMASK_H
+#ifndef CALORECO_RAWCLUSTERDEADHOTMASK_H
+#define CALORECO_RAWCLUSTERDEADHOTMASK_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -12,10 +12,10 @@ class RawTowerGeomContainer;
 class RawTowerDeadMap;
 class TowerInfoContainer;
 
-class RawClusterDeadAreaMask : public SubsysReco
+class RawClusterDeadHotMask : public SubsysReco
 {
  public:
-  explicit RawClusterDeadAreaMask(const std::string &name = "RawClusterDeadAreaMask");
+  explicit RawClusterDeadHotMask(const std::string &name = "RawClusterDeadHotMask");
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;

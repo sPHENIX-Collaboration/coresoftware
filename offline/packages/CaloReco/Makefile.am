@@ -56,8 +56,8 @@ pkginclude_HEADERS = \
   RawClusterZVertexRecorrect.h \
   RawTowerCalibration.h \
   RawTowerDeadTowerInterp.h \
-  RawTowerDeadMapLoader.h \
-  RawClusterDeadAreaMask.h
+  DeadHotMapLoader.h \
+  RawClusterDeadHotMask.h
 endif
 
 if USE_ONLINE
@@ -84,8 +84,8 @@ libcalo_reco_la_SOURCES = \
   RawTowerCombiner.cc \
   RawTowerCalibration.cc \
   RawTowerDeadTowerInterp.cc \
-  RawTowerDeadMapLoader.cc \
-  RawClusterDeadAreaMask.cc
+  DeadHotMapLoader.cc \
+  RawClusterDeadHotMask.cc
 endif
 
 ################################################
