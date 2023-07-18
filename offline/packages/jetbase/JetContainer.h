@@ -2,7 +2,6 @@
 #define JETBASE_JETCONTAINER_H
 
 #include "Jet.h"
-#include "JetStructs.h"
 
 #include <phool/PHObject.h>
 
@@ -18,10 +17,6 @@
 #include <limits.h>
 
 class Jet;
-class Jetv2;
-
-
-
 
 // ---------------------------------------------------------------------------------------
 // JetContainer class -- used to fill, update, and sort TClonesArray of jets
@@ -40,14 +35,14 @@ public:
     virtual size_t size()  const { return 0;    }
 
     // adding/access jets
-    virtual Jetv2* current_jet() ; // points to most recently accessed jet
-    virtual Jetv2* add_jet()                  { return nullptr; }; // Add a new jet to the TClonesArray and return the pointer
-    virtual Jetv2* get_jet(unsigned int /*index*/)         { return nullptr; }; // Get jet at loc. return nullptr is out of range 
-    virtual Jetv2* get_UncheckedAt(unsigned int /*index*/) { return nullptr; }; // Get get at location; no range checking
+    virtual Jet* current_jet() ; // points to most recently accessed jet
+    virtual Jet* add_jet()                  { return nullptr; }; // Add a new jet to the TClonesArray and return the pointer
+    virtual Jet* get_jet(unsigned int /*index*/)         { return nullptr; }; // Get jet at loc. return nullptr is out of range 
+    virtual Jet* get_UncheckedAt(unsigned int /*index*/) { return nullptr; }; // Get get at location; no range checking
                                                 
     // convenience shortcuts of get_{jet,UncheckedAt}
-    virtual Jetv2* operator()(int /*index*/) { return nullptr; }; // synonym for get_get()
-    virtual Jetv2* operator[](int /*index*/) { return nullptr; }; // get jet, don't check for length
+    virtual Jet* operator()(int /*index*/) { return nullptr; }; // synonym for get_get()
+    virtual Jet* operator[](int /*index*/) { return nullptr; }; // get jet, don't check for length
 
     // add compondent to the jet source components
     virtual void add_component(Jet::SRC /*-*/, unsigned int /*component id*/) {};
@@ -61,7 +56,7 @@ public:
     virtual void set_algo(Jet::ALGO /*algo*/) { return; }
     virtual Jet::ALGO get_algo() const { return Jet::ALGO::NONE; }
 
-    virtual void set_jetpar_R(float) { return; }
+    virtual void  set_jetpar_R(float) { return; }
     virtual float get_jetpar_R() const { return NAN; }
 
     // ---------------------------------------------------------------------------
@@ -86,7 +81,7 @@ public:
     // ----------------------------------------------------------------------------------------
     //  Interface for adding, setting, and getting jet properties
     // ----------------------------------------------------------------------------------------
-    // The optional properties in each Jetv2 are stored in a vector of floats,
+    // The optional properties in each Jet are stored in a vector of floats,
     // e.g. { Rg_value, mg_value, area, .... }
     // The JetContainer generates the jet and keeps a map of which properties in which location.
     // Default values in the Jet Properties are set to NAN
@@ -124,14 +119,14 @@ public:
     // Use:
     // ```
     //     for (jet : jet_containter->iter_jets()) { 
-    //     // jet will increment as Jetv2* through all jets
+    //     // jet will increment as Jet* through all jets
     //     ... }
     // ```
     // In the loop, current_jet in JetContainer will be updated, too. So, you can reference 
     // members using the JetContainer, just as {get,set}_selected_property
     /* virtual IterJetTCA iter_jets() ; */
-    virtual IterJetv2TCA begin()     ;
-    virtual IterJetv2TCA end()       ;
+    virtual Jet::IterJetTCA begin()     ;
+    virtual Jet::IterJetTCA end()       ;
     // ---------------------------------------------------------------------------------------
 
     // Methods to sort the TClonesArray of jets

@@ -2,7 +2,7 @@
 #define JETBASE_JetContainerv1__h
 
 #include "JetContainer.h"
-#include "Jetv2.h"
+#include "Jet.h"
 
 class JetContainerv1 : public JetContainer
 {
@@ -22,19 +22,19 @@ public:
     size_t size()  const override { return m_njets; };
 
     // adding/access jets
-    Jetv2* current_jet() override { return m_current_jet; }; // points to most recently accessed jet
-    Jetv2* add_jet()                  override; // Add a new jet to the TClonesArray and return the pointer
-    Jetv2* get_jet(unsigned int index)         override; // Get get at location. Update current_jet. If not there, then generate it
-    Jetv2* get_UncheckedAt(unsigned int index) override; // Get get at location. Update current_jet. No safety checks
+    Jet* current_jet() override { return m_current_jet; }; // points to most recently accessed jet
+    Jet* add_jet()                  override; // Add a new jet to the TClonesArray and return the pointer
+    Jet* get_jet(unsigned int index)         override; // Get get at location. Update current_jet. If not there, then generate it
+    Jet* get_UncheckedAt(unsigned int index) override; // Get get at location. Update current_jet. No safety checks
                                                 
     // convenience shortcuts of get_{jet,UncheckedAt}
-    inline Jetv2* operator()(int index) override { return get_jet(index); }; // synonym for get_get()
-    inline Jetv2* operator[](int index) override { return get_UncheckedAt(index); }; // get jet, don't check for length
+    inline Jet* operator()(int index) override { return get_jet(index); }; // synonym for get_get()
+    inline Jet* operator[](int index) override { return get_UncheckedAt(index); }; // get jet, don't check for length
                                                                                      //
     // ----------------------------------------------------------------------------------------
     //  Interface for adding, setting, and getting jet properties
     // ----------------------------------------------------------------------------------------
-    // The optional properties in each Jetv2 are stored in a vector of floats,
+    // The optional properties in each Jet are stored in a vector of floats,
     // e.g. { Rg_value, mg_value, area, .... }
     // The JetContainer generates the jet and keeps a map of which properties in which location.
     // Default values in the Jet Properties are set to NAN
@@ -69,13 +69,13 @@ public:
     // Use:
     // ```
     //     for (jet : jet_containter->iter_jets()) { 
-    //     // jet will increment as Jetv2* through all jets
+    //     // jet will increment as Jet* through all jets
     //     ... }
     // ```
     // In the loop, current_jet in JetContainer will be updated, too. So, you can reference 
     // values like get_property.
-    IterJetv2TCA begin() override;
-    IterJetv2TCA end()   override;
+    Jet::IterJetTCA begin() override;
+    Jet::IterJetTCA end()   override;
     // ---------------------------------------------------------------------------------------
 
     // Methods to sort the TClonesArray of jets
@@ -119,7 +119,7 @@ private:
     std::string str_Jet_PROPERTY(Jet::PROPERTY) const;
     std::string str_Jet_SORT(Jet::SORT) const;
 
-    TClonesArray* m_clones {nullptr}; // TClonesArray of Jetv2 objects
+    TClonesArray* m_clones {nullptr}; // TClonesArray of Jet objects
     size_t m_njets {0}; // size of jet_array
 
     // properties contained in vectors of all jets
@@ -133,13 +133,13 @@ private:
 
     // status of post-input sorting
     bool m_is_sorted { false };
-    JetV2SortingCriteria m_sortopt {}; 
+    Jet::SortSelections m_sortopt {}; 
 
     /* bool m_sorted_inverse { true }; */
     /* Jet::SORT m_sorted_by { Jet::SORT::NO_SORT }; */
     /* Jet::PROPERTY m_sorting_prop { Jet::PROPERTY::no_property }; // i.e. no property; it doesn't matter */
 
-    Jetv2* m_current_jet {nullptr};
+    Jet* m_current_jet {nullptr};
 
     void resize_jet_pvecs();
 

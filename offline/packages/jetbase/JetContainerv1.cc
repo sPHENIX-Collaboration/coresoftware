@@ -1,9 +1,7 @@
 #include "JetContainerv1.h"
-#include "Jetv2.h" // for JetV2SortingCriteria
 #include <phool/phool.h>  // for PHWHERE
 #include <string>
-
-#include "JetStructs.h"
+#include "Jetv2.h"
 
 JetContainerv1::JetContainerv1() {
     m_clones = new TClonesArray("Jetv2", 50);
@@ -50,8 +48,8 @@ void JetContainerv1::Reset() {
     m_RhoMedian = NAN;
 }
 
-Jetv2* JetContainerv1::add_jet() {
-    m_current_jet = (Jetv2*) m_clones->ConstructedAt(m_njets++);
+Jet* JetContainerv1::add_jet() {
+    m_current_jet = (Jet*) m_clones->ConstructedAt(m_njets++);
     m_current_jet->resize_properties(m_psize);
     return m_current_jet;
 }
@@ -60,16 +58,16 @@ void JetContainerv1::add_component(Jet::SRC src, unsigned int id) {
   m_current_jet->insert_comp(src, id);
 }
 
-Jetv2* JetContainerv1::get_jet(unsigned int ijet) {
+Jet* JetContainerv1::get_jet(unsigned int ijet) {
     if (ijet < m_njets) {
-        return (Jetv2*) m_clones->At(ijet);
+        return (Jet*) m_clones->At(ijet);
     } else {
         return nullptr;
     }
 }
 
-Jetv2* JetContainerv1::get_UncheckedAt(unsigned int index) {
-    return (Jetv2*) m_clones->UncheckedAt(index);
+Jet* JetContainerv1::get_UncheckedAt(unsigned int index) {
+    return (Jet*) m_clones->UncheckedAt(index);
 } 
 
 // ----------------------------------------------------------------------------------------
@@ -97,7 +95,7 @@ void JetContainerv1::print_jets(std::ostream& os) {
 }
 
 void JetContainerv1::print_property_types(std::ostream& os) const {
-    os << " Jet properties in Jetv2 vectors: " << std::endl;
+    os << " Jet properties in Jet vectors: " << std::endl;
     int i {0};
     for (auto p : m_pvec) {
         os << " ("<<i++<<") -> " << str_Jet_PROPERTY(p) << std::endl;
@@ -216,12 +214,12 @@ void JetContainerv1::set_selected_property(float value, unsigned int index) {
     else m_current_jet->set_prop_by_index(m_sel_index_vec[index], value);
 }
 
-IterJetv2TCA JetContainerv1::begin() {
+Jet::IterJetTCA JetContainerv1::begin() {
   if (m_clones->GetEntriesFast() > 1) m_current_jet = get_UncheckedAt(0);
-  return IterJetv2TCA(m_clones, m_current_jet); 
+  return Jet::IterJetTCA(m_clones, m_current_jet); 
 }
 
-IterJetv2TCA JetContainerv1::end() {
+Jet::IterJetTCA JetContainerv1::end() {
   return begin();
 }
 
@@ -238,7 +236,7 @@ void JetContainerv1::sort_jets(Jet::SORT isort, Jet::SORT_ORDER _order) {
     case Jet::SORT::MASS2:
     case Jet::SORT::ETA:
       for (auto jet : *this) {
-          jet->set_sortopt_ptr(&m_sortopt);
+          jet->set_sort_selptr(&m_sortopt);
       }
       m_clones->UnSort();
       m_clones->Sort();
@@ -262,8 +260,9 @@ void JetContainerv1::sort_jets(Jet::PROPERTY prop, Jet::SORT_ORDER _order) {
     m_sortopt.order = _order;
     m_sortopt.property = prop;
     m_sortopt.prop_index = m_pindex[prop];
+
     for (auto jet : *this) {
-        jet->set_sortopt_ptr(&m_sortopt);
+        jet->set_sort_selptr(&m_sortopt);
     }
     m_clones->UnSort();
     m_clones->Sort();

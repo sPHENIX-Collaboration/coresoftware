@@ -1,13 +1,13 @@
 #include "JetContainer.h"
 #include <ostream>  // for operator<<, endl, ostream, basic_ostream
 
-class Jetv2;
+class Jet;
 
 // Dummy members for virtual classes to return in base implementation
-Jetv2* DummyJetV2 ;
+Jet* DummyJetV2 ;
 std::map<Jet::PROPERTY,unsigned int> DummyMap ;
 std::vector<float> DummyFloatVec;
-TClonesArray DummyTClonesArray ("Jetv2",1);
+TClonesArray DummyTClonesArray ("Jet",1);
 std::set<Jet::SRC> DummyJetContSourceSet;
 // N.B. this will seg fault if used... so don't use it!
 
@@ -50,18 +50,18 @@ void JetContainer::identify(std::ostream& os) const
 TClonesArray* JetContainer::clone_data() const 
 { return (TClonesArray*) DummyTClonesArray.Clone(); };
 
-IterJetv2TCA DummyIterJetTCA { &DummyTClonesArray, DummyJetV2 };
+Jet::IterJetTCA DummyIterJetTCA { &DummyTClonesArray, DummyJetV2 };
 
-Jetv2* JetContainer::current_jet() { return DummyJetV2; };
+Jet* JetContainer::current_jet() { return DummyJetV2; };
 
 /* std::vector<float>& JetContainer::jet_properties() { return DummyFloatVec; }; */
 
-IterJetv2TCA JetContainer::begin()
+Jet::IterJetTCA JetContainer::begin()
 {
   return DummyIterJetTCA;
 }
 
-IterJetv2TCA JetContainer::end()
+Jet::IterJetTCA JetContainer::end()
 {
   return DummyIterJetTCA;
 }

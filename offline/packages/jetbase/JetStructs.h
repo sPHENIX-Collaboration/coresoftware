@@ -8,6 +8,14 @@
 
 class Jetv2;
 
+
+struct JetV2SortingCriteria {
+  Jet::SORT       criteria   { Jet::SORT::PT };
+  Jet::PROPERTY   property   { Jet::PROPERTY::no_property }; // when sorted by property
+  Jet::SORT_ORDER order      { Jet::SORT_ORDER::DESCENDING }; // 
+  unsigned int    prop_index { 0 }; // for use when sorting by criteria
+};
+
 // ---------------------------------------------------------------------------------------
 // Convenience class for iterating over jets in TClonesArray in a JetContainer
 // ---------------------------------------------------------------------------------------
@@ -38,13 +46,6 @@ struct IterJetv2TCA {
       return true;
     }
   };
-};
-
-struct JetV2SortingCriteria {
-  Jet::SORT       criteria   { Jet::SORT::PT };
-  Jet::PROPERTY   property   { Jet::PROPERTY::no_property }; // when sorted by property
-  unsigned int    prop_index { 0 }; // for use when sorting by criteria
-  Jet::SORT_ORDER order      { Jet::SORT_ORDER::DESCENDING }; // 
 };
 
 #endif

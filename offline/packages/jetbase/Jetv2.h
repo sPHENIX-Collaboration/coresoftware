@@ -16,7 +16,6 @@
 #include <iostream>
 #include <map>
 #include <utility>  // for pair, make_pair
-#include "JetStructs.h"
 
 class PHObject;
 
@@ -56,84 +55,42 @@ class Jetv2 : public Jet
   float get_e() const override { return _e; }
   void  set_e(float e) override { _e = e; }
 
-  float get_p() const override;
-  float get_pt() const override;
-  float get_et() const override;
-  float get_eta() const override;
-  float get_phi() const override;
-  float get_mass() const override;
+  float get_p()     const override;
+  float get_pt()    const override;
+  float get_et()    const override;
+  float get_eta()   const override;
+  float get_phi()   const override;
+  float get_mass()  const override;
   float get_mass2() const override;
 
-  // extended jet info
-
-  bool  has_property(Jet::PROPERTY prop_id) const override;      // deprecated -- vector needs to sort
-  float get_property(Jet::PROPERTY prop_id) const override;      // deprecated -- deprecated vec to sort
-  void  set_property(Jet::PROPERTY index, float value) override; // deprecated -- index provided by JetContainer
-  void  print_property(std::ostream& os=std::cout) const override;
-
-  // ---------------------------------------------------------------
-  // Components:
-  //   data has moved into a vector<pair<Jet::SRC, int>> from a
-  //   multimap
-  //
-  //   The change types of iterators for the data has deprecated many
-  //   old methods and required adding new iterator methods.
-  //   
-  //   The simplest methd is to just iterate over using the 
-  //   for (auto _ : this->operator() or this->operator(Jet::SRC))
-  //   syntax
-  // ---------------------------------------------------------------
-
-  bool   empty_comp() const override { return _comp_ids.empty(); }
-  size_t size_comp()  const override { return _comp_ids.size(); }
-  size_t cnt_comp(SRC iSRC); // new in v2
-  void   clear_comp() override { _comp_ids.clear(); }
-  void   insert_comp (SRC iSRC, unsigned int compid) override;
-  size_t erase_comp  (SRC iSRC) override; // THIS IS VERY EXPENSIVE ON VECTORS--shouldn't be used 
-  void print_comp(std::ostream& os = std::cout, bool single_line=false);
-
-  typedef std::vector<std::pair<Jet::SRC, unsigned int>> TYPE_comp_vec;
-  typedef TYPE_comp_vec::iterator ITER_comp_vec;
-
-  ITER_comp_vec  comp_begin() { return _comp_ids.begin(); } // new in v2
-  ITER_comp_vec  comp_begin(Jet::SRC);                      // new in v2
-  ITER_comp_vec  comp_end()   { return _comp_ids.end();   } // new in v2
-  ITER_comp_vec  comp_end(Jet::SRC);                        // new in v2
-  TYPE_comp_vec& get_comp_vec() { return _comp_ids; }; // new in v2
-
-  void disable_v2_warning () { _print_v2_warning = false; } // new in v2
-
-
-
-  // -- deprecated methods for jet commponents -------------------------------------------
-  size_t count_comp(SRC source) const override;             // deprecated; use cnt_comp instead
-  void erase_comp(Iter /*iter*/) override;                  // deprecated
-  void erase_comp(Iter /*first*/, Iter /*last*/) override;  // deprecated
-  ConstIter begin_comp() const override;                    // deprecated!
-  ConstIter lower_bound_comp(Jet::SRC iSRC) const override; // deprecated!
-  ConstIter upper_bound_comp(Jet::SRC iSRC) const override; // deprecated!
-  ConstIter find(SRC iSRC) const override;                  // deprecated!
-  ConstIter end_comp() const override;                      // deprecated!
-  Iter begin_comp() override;                               // deprecated!
-  Iter lower_bound_comp(SRC iSRC) override;                 // deprecated!
-  Iter upper_bound_comp(SRC iSRC) override;                 // deprecated!
-  Iter find(SRC iSRC) override;                             // deprecated!
-  Iter end_comp() override;                                 // deprecated!
-  //----------------------------------------------------------------------------------------------
-
-
-  // -- propertiesare now contained inthe jet 
-  void resize_properties(size_t size) { _properties.resize(size, NAN); };
-  std::vector<float>& get_vec_properties() { return _properties; } // new in v2
-  unsigned int n_properties() { return _properties.size(); } // new in v2
-  inline float get_prop_by_index(unsigned int index) const        { return _properties[index]; }; // new in v2
-  inline void  set_prop_by_index(unsigned int index, float value) { 
+  // Jet properties
+  void resize_properties(size_t size) override { _properties.resize(size, NAN); };
+  std::vector<float>& get_vec_properties() override { return _properties; } // new in v2
+  size_t n_properties() override { return _properties.size(); } // new in v2
+  inline float get_prop_by_index(unsigned int index) const override { return _properties[index]; }; // new in v2
+  inline void  set_prop_by_index(unsigned int index, float value) override { 
     _properties[index]=value; 
-  }; // new in v2
+  }; 
+
+  // Jet components
+  void   clear_comp() override { _comp_ids.clear(); }
+  void   insert_comp(SRC iSRC, unsigned int compid) override;
+  void   print_comp(std::ostream& os = std::cout, bool single_line=false) override;
+  size_t cnt_comp(SRC iSRC) override; 
+  std::vector<Jet::SRC> comp_src_vec() override;
+  std::map<Jet::SRC,size_t> comp_src_sizemap() override; // map of Jet::SRC to number of entries
+
+  // FYI: ITER_comp_vec = vector<pair<Jet::SRC, unsigned int>>::iterator
+  ITER_comp_vec  comp_begin() override { return _comp_ids.begin(); } // new in v2
+  ITER_comp_vec  comp_begin(Jet::SRC) override;                      // new in v2
+  ITER_comp_vec  comp_end()  override  { return _comp_ids.end();   } // new in v2
+  ITER_comp_vec  comp_end(Jet::SRC) override;                        // new in v2
+  TYPE_comp_vec& get_comp_vec()  override{ return _comp_ids; }; // new in v2
+  void sort_comp_ids() override;
 
   Bool_t IsSortable() const override { return kTRUE; }
-
-  void set_sortopt_ptr (JetV2SortingCriteria* _) { _sortopt = _; }; // does tree preserve the pointer when getting the map? probably not...
+  void set_sort_selptr (Jet::SortSelections* _) override { _sortopt = _; }
+  Jet::SortSelections* get_sort_selptr() override { return _sortopt; }
 
  private:
   /// unique identifier within container
@@ -151,10 +108,9 @@ class Jetv2 : public Jet
   /// source id -> component id
   /* typ_comp_ids _comp_ids; */
   std::vector<std::pair<Jet::SRC, unsigned int>> _comp_ids;
-  void sort_comp_ids();
 
   //
-  bool _print_v2_warning { true };
+  /* bool _print_v2_warning { true }; */
 
   struct CompareSRC {
       bool operator()(const std::pair<Jet::SRC,int> &lhs, const unsigned int rhs) {
@@ -171,11 +127,7 @@ class Jetv2 : public Jet
   std::vector<float> _properties {};
 
   // member data to allow sorting and comparison
-  JetV2SortingCriteria* _sortopt; // pointes to an int[3] location in the JetContainer for the sake of sorting the jets
-                    
-  /* Jet::SORT    _which_sort       { Jet::SORT::PT }; */
-  /* unsigned int _isort_prop_index { 0 }; */
-  /* int          _sort_sign        { -1 }; // sort sign -- for large to small or small to large */
+  Jet::SortSelections* _sortopt; // pointes to an int[3] location in the JetContainer for the sake of sorting the jets
 
   bool  IsEqual(const TObject* obj) const override;
   Int_t Compare(const TObject* obj) const override;

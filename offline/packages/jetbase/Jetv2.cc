@@ -32,7 +32,6 @@ Jetv2::Jetv2(const Jetv2& rhs)
   : _id               { rhs._id               }
   , _e                { rhs._e                }
   , _is_sorted        { rhs._is_sorted        }
-  , _print_v2_warning { rhs._print_v2_warning }
   , _sortopt          { rhs._sortopt          }
 {
   std::copy ( rhs._mom, rhs._mom+3, _mom);
@@ -61,6 +60,35 @@ void Jetv2::print_comp(std::ostream& os, bool single_line) {
     if (!single_line) os << std::endl;
   }
   if (single_line) os << std::endl;
+}
+
+std::vector<Jet::SRC> Jetv2::comp_src_vec() {
+  std::vector<Jet::SRC> vec{};
+  if (!_is_sorted) sort_comp_ids();
+  auto iter = comp_begin();
+  auto iter_end = comp_end();
+  if (iter == iter_end) return vec;
+  while (iter != iter_end) {
+    Jet::SRC src = iter->first;
+    vec.push_back(src);
+    iter = comp_end(src);
+  }
+  return vec;
+}
+
+std::map<Jet::SRC,size_t> Jetv2::comp_src_sizemap() {
+  std::map<Jet::SRC,size_t> sizemap{};
+  if (!_is_sorted) sort_comp_ids();
+  auto iter = comp_begin();
+  auto iter_end = comp_end();
+  if (iter == iter_end) return sizemap;
+  while (iter != iter_end) {
+    Jet::SRC src = iter->first;
+    auto iter_ub = comp_end(src);
+    sizemap.insert(std::make_pair(src, static_cast<size_t>(iter_ub-iter)));
+    iter = iter_ub;
+  }
+  return sizemap;
 }
 
 void Jetv2::Reset()
@@ -134,12 +162,6 @@ float Jetv2::get_mass2() const
   return get_e() * get_e() - p2;
 }
 
-void Jetv2::print_property(std::ostream& os) const
-{
-  os << " ::print_property() deprecated in Jetv2; see JetContainer" << std::endl;
-  return;
-}
-
 size_t Jetv2::cnt_comp(Jet::SRC iSRC) {
   if (!_is_sorted) { sort_comp_ids(); }
   return (comp_end(iSRC)-comp_begin(iSRC));
@@ -152,108 +174,11 @@ void Jetv2::insert_comp (SRC iSRC, unsigned int compid)
 }
 
 
-// --deprecated-----------
-Jet::typ_comp_ids DummyJetMapv2;
-
-Jet::ConstIter Jetv2::begin_comp() const
-{
-  if (_print_v2_warning) std::cout << PHWHERE 
-    << " ::begin_comp() deprecated in Jetv2, getting dummy value" << std::endl;
-  return DummyJetMapv2.end();
-}
-// --deprecated-----------------
-Jet::ConstIter Jetv2::lower_bound_comp(Jetv2::SRC /*source*/) const
-{
-  if (_print_v2_warning) std::cout << PHWHERE 
-    << " ::lower_bound_comp() deprecated in Jetv2, getting dummy value" << std::endl;
-  return DummyJetMapv2.end();
-}
-// --deprecated-----------------
-Jet::ConstIter Jetv2::upper_bound_comp(Jetv2::SRC /*source*/) const
-{
-  if (_print_v2_warning) std::cout << PHWHERE 
-    << " ::upper_bound_comp() deprecated in Jetv2, getting dummy value" << std::endl;
-  return DummyJetMapv2.end();
-}
-// --deprecated-----------------
-Jet::ConstIter Jetv2::find(Jetv2::SRC /*source*/) const
-{
-  if (_print_v2_warning) std::cout << PHWHERE 
-    << " ::find() deprecated in Jetv2, getting dummy value" << std::endl;
-  return DummyJetMapv2.end();
-}
-// --deprecated-----------------
-Jet::ConstIter Jetv2::end_comp() const
-{
-  if (_print_v2_warning) std::cout << PHWHERE 
-    << " ::end_comp() deprecated in Jetv2, getting dummy value" << std::endl;
-  return DummyJetMapv2.end();
-}
-// --deprecated-----------------
-Jet::Iter Jetv2::begin_comp()
-{
-  if (_print_v2_warning) std::cout << PHWHERE 
-    << " ::begin_comp() deprecated in Jetv2, getting dummy value" << std::endl;
-  return DummyJetMapv2.end();
-}
-// --deprecated-----------------
-Jet::Iter Jetv2::lower_bound_comp(Jetv2::SRC /*source*/)
-{
-  if (_print_v2_warning) std::cout << PHWHERE 
-    << " ::lower_bound_comp() deprecated in Jetv2, getting dummy value" << std::endl;
-  return DummyJetMapv2.end();
-}
-// --deprecated-----------------
-Jet::Iter Jetv2::upper_bound_comp(Jetv2::SRC /*source*/)
-{
-  if (_print_v2_warning) std::cout << PHWHERE 
-    << " ::upper_bound_comp() deprecated in Jetv2, getting dummy value" << std::endl;
-  return DummyJetMapv2.end();
-}
-// --deprecated-----------------
-Jet::Iter Jetv2::find(Jetv2::SRC /*source*/)
-{
-  if (_print_v2_warning) std::cout << PHWHERE 
-    << " ::find() deprecated in Jetv2, getting dummy value" << std::endl;
-  return DummyJetMapv2.end();
-}
-// --deprecated-----------------
-Jet::Iter Jetv2::end_comp()
-{
-  if (_print_v2_warning) std::cout << PHWHERE 
-    << " ::end_comp() deprecated in Jetv2, getting dummy value" << std::endl;
-  return DummyJetMapv2.end();
-}
-// --deprecated-----------------
-size_t Jetv2::count_comp(Jet::SRC /*-*/) const
-{
-  if (_print_v2_warning) std::cout << PHWHERE 
-    << " ::count_comp() deprecated in Jetv2. Use ::cnt_cmp instead" << std::endl;
-  return 0;
-}
-
-// --deprecated-----------------
-void Jetv2::erase_comp(Iter /*first*/, Iter /*last*/) {
-  if (_print_v2_warning) {
-    std::cout << PHWHERE << " ::erase_comp(Iter,Iter) deprecated in Jetv2" << std::endl;
-  }
-}
-// --deprecated-----------------
-void Jetv2::erase_comp(Iter /*first*/) {
-  if (_print_v2_warning) { 
-    std::cout << PHWHERE << " ::erase_comp(Iter) deprecated in Jetv2" << std::endl;
-  }
-}
-size_t Jetv2::erase_comp(SRC iSRC) {
-  if (_print_v2_warning) {
-    std::cout << PHWHERE << std::endl;
-    std::cout << " Warning: Jetv2 uses vectors for data, and calling"
-      << " erase_comp() is very expensive." << std::endl;
-  }
-  auto ndel = comp_end(iSRC) - comp_begin(iSRC); 
-  _comp_ids.erase(comp_begin(iSRC), comp_end(iSRC));
-  return ndel;
-}
+/* size_t Jetv2::erase_comp(SRC iSRC) { */
+/*   size_t n = (comp_end(iSRC) - comp_begin(iSRC)); */
+/*   _comp_ids.erase(comp_begin(iSRC), comp_end(iSRC)); */
+/*   return n; */
+/* } */
 
 void Jetv2::sort_comp_ids() {
     std::sort(_comp_ids.begin(), _comp_ids.end(),
@@ -272,26 +197,6 @@ Jetv2::ITER_comp_vec Jetv2::comp_end(Jet::SRC iSRC) {
   if (!_is_sorted) sort_comp_ids();
   return std::upper_bound(_comp_ids.begin(), _comp_ids.end(), iSRC, CompareSRC());
 }
-
-// -- deprecated 
-bool Jetv2::has_property(Jet::PROPERTY /*prop_id*/) const
-{
-  std::cout << " ::has_property deprecated in Jetv2. Check value in JetContainer " << std::endl;
-  return false;
-}
-
-float Jetv2::get_property(Jet::PROPERTY index) const
-{
-  return _properties[index];
-}
-
-// -- deprecated 
-void Jetv2::set_property(Jet::PROPERTY /**/, float /**/)
-{
-  std::cout << " ::has_property deprecated in Jetv2. use set_prop_by_index; index per prop from JetContainer " << std::endl;
-}
-
-
 
 bool Jetv2::IsEqual(const TObject* obj) const {
   Jetv2* rhs { (Jetv2*) obj };
