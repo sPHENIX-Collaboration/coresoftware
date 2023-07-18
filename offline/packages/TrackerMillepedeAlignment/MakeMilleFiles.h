@@ -24,6 +24,11 @@
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
+
+
+#include <TFile.h>
+#include <TH2.h>
+
 class PHCompositeNode;
 class PHG4TpcCylinderGeomContainer;
 class SvtxTrack;
@@ -109,6 +114,9 @@ class MakeMilleFiles : public SubsysReco
   bool m_useEventVertex = false;
   bool _binary = true;
   unsigned int _cluster_version = 5;
+
+  TFile *_file = nullptr;
+  TH2 *_xyresid = nullptr, *_zresid = nullptr;
 
   Acts::Vector2 m_vtxSigma = {0.1, 0.1};
 

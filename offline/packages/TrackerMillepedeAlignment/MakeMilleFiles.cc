@@ -74,6 +74,12 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
 
   m_constraintFile.open(m_constraintFileName);
 
+  _file = new TFile("makemillefile.root","recreate");
+  _xyresid = new TH2F("xyresid",";residual; prediction",
+		      1000,-1,1,1000,-1,1);
+  _zresid = new TH2F("zresid",";residual;prediction",
+		     1000,-1,1,1000,-1,1);
+
   // print grouping setup to log file:
   std::cout << "MakeMilleFiles::InitRun: Surface groupings are mvtx " << mvtx_group << " intt " << intt_group << " tpc " << tpc_group << " mms " << mms_group << std::endl;
 
@@ -146,6 +152,9 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
       fabs(track->get_x()) < 0.2 && 
       fabs(track->get_y()) < 0.2)
       {
+	//! set x and y to 0 since we are constraining to the x-y origin
+	//! and add constraints to pede later
+	eventVertex(0) = 0; eventVertex(1) = 0;
 	auto dcapair = get_dca(track, eventVertex);
 	Acts::Vector2 vtx_residual(-dcapair.first, -dcapair.second);
 	vtx_residual *= Acts::UnitConstants::cm;
@@ -157,6 +166,14 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 	// The global derivs dimensions are [alpha/beta/gamma](x/y/z)
 	float glblvtx_derivative[SvtxAlignmentState::NRES][3];
 	getGlobalVtxDerivativesXY(track, eventVertex, glblvtx_derivative);
+
+	float predictxres = glblvtx_derivative[0][0] * (1) + 
+	  glblvtx_derivative[0][1] * (-1);
+	float predictyres = glblvtx_derivative[1][0] * (1) +
+	  glblvtx_derivative[1][1] * (-1);
+	std::cout << "prediction is " << predictxres << ", " << predictyres << std::endl;
+	_xyresid->Fill(vtx_residual(0), predictxres);
+	_zresid->Fill(vtx_residual(1), predictyres);
 	if(Verbosity() > 2)
 	  {
 	    std::cout << "vertex info for trakc " << track->get_id() << std::endl;
@@ -202,6 +219,10 @@ int MakeMilleFiles::End(PHCompositeNode*)
 {
   delete _mille;
   m_constraintFile.close();
+  _file->cd();
+  _xyresid->Write();
+  _zresid->Write();
+  _file->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -328,13 +349,7 @@ void MakeMilleFiles::getGlobalVtxDerivativesXY(SvtxTrack* track,
 					       float glblvtx_derivative[SvtxAlignmentState::NRES][3])
 {
   Acts::SymMatrix3 identity = Acts::SymMatrix3::Identity();
-  
-  Acts::Vector3 track_vtx(track->get_x(),
-			  track->get_y(),
-			  track->get_z());
-  Acts::Vector3 track_mom(track->get_px(),
-			  track->get_py(),
-			  track->get_pz());
+
   Acts::Vector3 projx = Acts::Vector3::Zero();
   Acts::Vector3 projy = Acts::Vector3::Zero();
   getProjectionVtxXY(track, vertex, projx, projy);
@@ -350,7 +365,7 @@ void MakeMilleFiles::getGlobalVtxDerivativesXY(SvtxTrack* track,
   /// residual
   for(int i=0; i<2; i++) {
     for(int j=0; j<3; j++) {
-      glblvtx_derivative[i][j] *= -1 * Acts::UnitConstants::cm;
+      glblvtx_derivative[i][j] *= -1;
     }
   }
 }
