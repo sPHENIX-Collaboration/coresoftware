@@ -2364,13 +2364,12 @@ TVector3 AnnularFieldSim::swimToInAnalyticSteps(float zdest, TVector3 start, int
 
 TVector3 AnnularFieldSim::swimToInSteps(float zdest, TVector3 start, int steps = 1, bool interpolate = false, int *goodToStep = 0)
 {
-  int *success=0;
   TVector3 straightline(start.X(), start.Y(), zdest);
-  TVector3 distortion = GetTotalDistortion(zdest, start, steps, interpolate, goodToStep, success);
+  TVector3 distortion = GetTotalDistortion(zdest, start, steps, interpolate, goodToStep);
   return straightline + distortion;
 }
 
-TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, TVector3 start, int steps, bool interpolate, int *goodToStep, int *success)
+TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, TVector3 start, int steps, bool interpolate, int *goodToStep)
 {
   //work in native units is automatic.
   //double zdist=(zdest-start.Z())*cm;
@@ -2388,15 +2387,13 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, TVector3 start, int st
       if (zBound == InBounds || zBound == OnLowEdge)
       {
         //destination is in the twin
-        return twin->GetTotalDistortion(zdest, start, steps, interpolate, goodToStep, success);
+        return twin->GetTotalDistortion(zdest, start, steps, interpolate, goodToStep);
       }
     }
     //otherwise, we're not in the twin, and default to our usual gripe:
     printf("AnnularFieldSim::GetTotalDistortion starting at (%f,%f,%f)=(r%f,p%f,z%f) asked to drift to z=%f, which is outside the ROI.  hasTwin= %d.  Returning zero_vector.\n", start.X(), start.Y(), start.Z(), start.Perp(), FilterPhiPos(start.Phi()), start.Z(), zdest, (int) hasTwin);
     printf(" -- %f <= r < %f \t%f <= phi < %f \t%f <= z < %f \n", rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin, phimin_roi * step.Phi(), phimax_roi * step.Phi(), zmin_roi * step.Z(), zmax_roi * step.Z());
-    *goodToStep=0;
-    *success=0;
-	return zero_vector;
+    return zero_vector;  //rcchere
   }
   else if (zBound == OnLowEdge)
   {
@@ -2408,9 +2405,7 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, TVector3 start, int st
   {
     printf("AnnularFieldSim::GetTotalDistortion starting at (%f,%f,%f)=(r%f,p%f,z%f) asked to drift from z=%f, which is outside the ROI.  Returning zero_vector.\n", start.X(), start.Y(), start.Z(), start.Perp(), FilterPhiPos(start.Phi()), start.Z(), start.Z());
     printf(" -- %f <= r < %f \t%f <= phi < %f \t%f <= z < %f \n", rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin, phimin_roi * step.Phi(), phimax_roi * step.Phi(), zmin_roi * step.Z(), zmax_roi * step.Z());
-    *goodToStep=0;
-    *success=0;
-	return zero_vector;
+    return zero_vector;
   }
   else if (zBound == OnLowEdge)
   {
@@ -2447,7 +2442,7 @@ int integernumbersteps=(zdest-start.Z())/zstep;
     position.SetX(start.X() + accumulated_distortion.X());
     position.SetY(start.Y() + accumulated_distortion.Y());
     position.SetZ(zdest-(integernumbersteps*zstep));
-  for (int i = 0; i <integernumbersteps; i++)
+  for (int i = 0; i <integernumbersteps ; i++)
   {
     //check if we are in bounds
     if (GetRindexAndCheckBounds(position.Perp(), &rt) != InBounds || GetPhiIndexAndCheckBounds(FilterPhiPos(position.Phi()), &pt) != InBounds || (zBound == OutOfBounds))
@@ -2455,7 +2450,7 @@ int integernumbersteps=(zdest-start.Z())/zstep;
       // printf("AnnularFieldSim::GetTotalDistortion starting at (%f,%f,%f)=(r%f,p%f,z%f) with drift_step=%f, at step %d, asked to swim particle from (%f,%f,%f) (rphiz)=(%f,%f,%f)which is outside the ROI.\n", start.X(), start.Y(), start.Z(), start.Perp(), FilterPhiPos(start.Phi()), start.Z(), zstep, i, position.X(), position.Y(), position.Z(), position.Perp(), position.Phi(), position.Z());
       //printf(" -- %f <= r < %f \t%f <= phi < %f \t%f <= z < %f \n", rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin, phimin_roi * step.Phi(), phimax_roi * step.Phi(), zmin_roi * step.Z(), zmax_roi * step.Z());
       //printf("Returning last good position.\n");
-      if (!(goodToStep == 0)) *goodToStep = i, *success=0;
+      if (!(goodToStep == 0)) *goodToStep = i - 1;
       //assert (1==2);
       return (accumulated_distortion);
     }
@@ -2464,18 +2459,10 @@ int integernumbersteps=(zdest-start.Z())/zstep;
     accumulated_distortion += GetStepDistortion(position.Z() + zstep, position, true, false);
     position.SetX(start.X() + accumulated_distortion.X());
     position.SetY(start.Y() + accumulated_distortion.Y());
-    position.SetZ(position.Z() + zstep);  
+    position.SetZ(position.Z() + zstep);
   }
-    if (GetRindexAndCheckBounds(position.Perp(), &rt) != InBounds || GetPhiIndexAndCheckBounds(FilterPhiPos(position.Phi()), &pt) != InBounds || (zBound == OutOfBounds))
-    {
-      *goodToStep = integernumbersteps-1;
-      *success=0;
-      return (accumulated_distortion);
-    }
-  
 
-  *goodToStep = integernumbersteps;
-  *success=1;
+  *goodToStep = steps;
   return accumulated_distortion;
 }
 
@@ -2702,8 +2689,6 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
 
   const int nMapComponents = 6;
   TH3F *hSeparatedMapComponent[2][6];  //side, then xyzrp
-  TH3F *hValidToStepComponent[2];
-  TH3F *hSuccessCheckComponent[2];
   TString side[2];
   side[0] = "soloz";
   if (hasTwin)
@@ -2728,15 +2713,9 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
     for (int j = 0; j < nMapComponents; j++)
     {
       hSeparatedMapComponent[i][j] = new TH3F(Form("hIntDistortion%s_%s", sepAxis[j].Data(), side[i].Data()),
-                                              Form("Integrated %s Deflection drifting from (phi,r,z) to z=endcap;phi;r;z (%s side)", sepAxis[j].Data(), side[i].Data()),
+                                              Form("Integrated %s Deflection drifting from (phi,r,z) to z=endcap);phi;r;z (%s side)", sepAxis[j].Data(), side[i].Data()),
                                               nph, pih, pfh, nrh, rih, rfh, nzh, zlower, zupper);
     }
-    hValidToStepComponent[i] = new TH3F(Form("hValidToStep_%s",side[i].Data()),
-                                              Form("Step before out of bounds drifting from (phi,r,z) to z=endcap;phi;r;z (%s side)", side[i].Data()),
-	                                          nph, pih, pfh, nrh, rih, rfh, nzh, zlower, zupper);
-	hSuccessCheckComponent[i] = new TH3F(Form("hSuccessCheck_%s",side[i].Data()),
-                                              Form("Bool value for checking if successfuly drifting from (phi,r,z) to z=endcap;phi;r;z (%s side)", side[i].Data()),
-	                                          nph, pih, pfh, nrh, rih, rfh, nzh, zlower, zupper);                                          
   }
 
   //monitor plots, and the position that that plot monitors at:
@@ -2798,7 +2777,6 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
   TVector3 inpart, outpart;
   TVector3 diffdistort, distort;
   int validToStep;
-  int successCheck;
 
   //TTree version:
   float partR, partP, partZ;
@@ -2877,8 +2855,8 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
         {
           if (side == 0)
           {
-            diffdistort = GetTotalDistortion(inpart.Z() + deltaz, inpart, nSteps, true, &validToStep, &successCheck);
-            distort = GetTotalDistortion(z_readout, inpart, nSteps, true, &validToStep, &successCheck);
+            diffdistort = GetTotalDistortion(inpart.Z() + deltaz, inpart, nSteps, true, &validToStep);
+            distort = GetTotalDistortion(z_readout, inpart, nSteps, true, &validToStep);
           }
           else
           {
@@ -2886,8 +2864,8 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
             //flip z coords and do the twin instead:
             partZ *= -1;                   //position to place in histogram
             inpart.SetZ(-1 * inpart.Z());  //position to seek in sim
-            diffdistort = twin->GetTotalDistortion(inpart.Z() - deltaz, inpart, nSteps, true, &validToStep, &successCheck);
-            distort = twin->GetTotalDistortion(-z_readout, inpart, nSteps, true, &validToStep, &successCheck);
+            diffdistort = twin->GetTotalDistortion(inpart.Z() - deltaz, inpart, nSteps, true, &validToStep);
+            distort = twin->GetTotalDistortion(-z_readout, inpart, nSteps, true, &validToStep);
           }
 
           diffdistort.RotateZ(-inpart.Phi());  //rotate so that distortion components are wrt the x axis
@@ -2914,10 +2892,6 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
           {
             hSeparatedMapComponent[side][c]->Fill(partP, partR, partZ, distComp[c]);
           }
-          
-          hValidToStepComponent[side]->Fill(partP, partR, partZ, validToStep);
-          hSuccessCheckComponent[side]->Fill(partP, partR, partZ, successCheck);
-          
 
           //recursive integral distortion:
           //get others working first!
@@ -3147,11 +3121,6 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
       hSeparatedMapComponent[i][j]->GetSumw2()->Set(0);
       hSeparatedMapComponent[i][j]->Write();
     }
-    hValidToStepComponent[i]->GetSumw2()->Set(0);
-    hValidToStepComponent[i]->Write();
-    
-    hSuccessCheckComponent[i]->GetSumw2()->Set(0);
-    hSuccessCheckComponent[i]->Write();
   }
   hDistortionR->GetSumw2()->Set(0);
   hDistortionP->GetSumw2()->Set(0);
@@ -3335,8 +3304,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
   TVector3 inpart, outpart;
   TVector3 distort;
   int validToStep;
-  int successCheck;
-  
+
   //TTree version:
   float partR, partP, partZ;
   int ir, ip, iz;
@@ -3414,11 +3382,11 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
         //be careful with the math of a distortion.  The R distortion is NOT the perp() component of outpart-inpart -- that's the transverse magnitude of the distortion!
         if (hasTwin && inpart.Z() < 0)
         {
-          distort = twin->GetTotalDistortion(inpart.Z(), inpart + stepzvec, nSteps, true, &validToStep, &successCheck);  //step across the cell in the opposite direction, starting at the high side and going to the low side..
+          distort = twin->GetTotalDistortion(inpart.Z(), inpart + stepzvec, nSteps, true, &validToStep);  //step across the cell in the opposite direction, starting at the high side and going to the low side..
         }
         else
         {
-          distort = GetTotalDistortion(inpart.Z() + deltaz, inpart, nSteps, true, &validToStep, &successCheck);
+          distort = GetTotalDistortion(inpart.Z() + deltaz, inpart, nSteps, true, &validToStep);
         }
         distort.RotateZ(-inpart.Phi());  //rotate so that that is on the x axis
         diffdistP = distort.Y();         //the phi component is now the y component.
@@ -3432,11 +3400,11 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
         //integral distortion:
         if (hasTwin && makeUnifiedMap && inpart.Z() < 0)
         {
-          distort = twin->GetTotalDistortion(-z_readout, inpart + stepzvec, nSteps, true, &validToStep, &successCheck);
+          distort = twin->GetTotalDistortion(-z_readout, inpart + stepzvec, nSteps, true, &validToStep);
         }
         else
         {
-          distort = GetTotalDistortion(z_readout, inpart, nSteps, true, &validToStep, &successCheck);
+          distort = GetTotalDistortion(z_readout, inpart, nSteps, true, &validToStep);
         }
         distortX = distort.X();
         distortY = distort.Y();
