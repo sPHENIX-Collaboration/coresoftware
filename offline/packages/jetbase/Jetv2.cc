@@ -51,15 +51,16 @@ void Jetv2::identify(std::ostream& os) const
   for (auto& val : _properties) { os << " " << val; }
   os << std::endl;
 
-  os << " Jet Components:";
-
-  for (ConstIter citer = begin_comp(); citer != end_comp(); ++citer)
-  {
-    os << citer->first << " -> " << citer->second << std::endl;
-  }
-  os << "-----------------------------------------------" << std::endl;
-
+  os << " Jet Components: " << size_comp() << std::endl;;
   return;
+}
+
+void Jetv2::print_comp(std::ostream& os, bool single_line) {
+  for (auto iter = comp_begin(); iter != comp_end(); ++iter) {
+    os << " (" << iter->first << "->" << static_cast<int>(iter->second) << ")";
+    if (!single_line) os << std::endl;
+  }
+  if (single_line) os << std::endl;
 }
 
 void Jetv2::Reset()

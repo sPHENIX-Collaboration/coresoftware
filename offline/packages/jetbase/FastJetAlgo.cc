@@ -75,35 +75,6 @@ void FastJetAlgo::identify(std::ostream& os)
   os << std::endl;
 }
 
-//can make these fastjet properties, which are inserted into the jet container
-/* void FastJetAlgo::init_prop() { */
-/*   int cnt_prop { 0 }; */
-/*   if (m_SDFlag) { */
-/*     m_properties[Jet::PROPERTY::prop_zg] = cnt_prop++; */
-/*     m_properties[Jet::PROPERTY::prop_Rg] = cnt_prop++; */
-/*     m_properties[Jet::PROPERTY::prop_mu] = cnt_prop++; */
-/*   } */
-/*   if (m_JetAreaFlag) { */
-/*     m_properties[Jet::PROPERTY::prop_area] = cnt_prop++; */
-/*   } */
-
-/*   // use local indices (only for efficiency and convenience -- could just ready from map, too) */
-/*   index_zg = m_properties[Jet::PROPERTY::prop_zg]; */
-/*   index_Rg = m_properties[Jet::PROPERTY::prop_Rg]; */
-/*   index_mu = m_properties[Jet::PROPERTY::prop_mu]; */
-/*   index_area = m_properties[Jet::PROPERTY::prop_area]; */
-
-/*   n_properties = m_properties.size(); */
-
-/*   if (m_JetAreaFlag && m_GhostMaxRap == 0) { */
-/*     m_GhostMaxRap = 1.1 - m_Par; */
-/*   } */
-
-/*   if (m_RhoMedianFlag && m_RapCutHardest==0) { */
-/*     m_RapCutHardest = 1.1 - m_Par; */
-/*   } */
-/* } */
-
 void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* jetcont)
 {
   if (m_first_cluster_call) {
@@ -234,7 +205,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
   } else { // aren't clustering with areas
     fastjet::ClusterSequence jetFinder { pseudojets, *jetdef };
 
-    // check about fastjet's sorting
+    // use fastjet's sorting, if requested
     // -- make the inclusive jets --
     if (m_whichsort == Jet::SORT::NO_SORT) {
       fastjets = jetFinder.inclusive_jets();
@@ -265,7 +236,7 @@ void FastJetAlgo::fillJetContainer(std::vector<fastjet::PseudoJet>* pfastjets,
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
   {
     if (fastjets[ijet].is_pure_ghost()) continue;
-    auto* jet = jetcont->add_jet();
+    auto* jet = jetcont->add_jet(); // put a new Jetv2 into the TClonesArray
     jet->set_px(fastjets[ijet].px());
     jet->set_py(fastjets[ijet].py());
     jet->set_pz(fastjets[ijet].pz());

@@ -90,6 +90,7 @@ class Jetv2 : public Jet
   void   clear_comp() override { _comp_ids.clear(); }
   void   insert_comp (SRC iSRC, unsigned int compid) override;
   size_t erase_comp  (SRC iSRC) override; // THIS IS VERY EXPENSIVE ON VECTORS--shouldn't be used 
+  void print_comp(std::ostream& os = std::cout, bool single_line=false);
 
   typedef std::vector<std::pair<Jet::SRC, unsigned int>> TYPE_comp_vec;
   typedef TYPE_comp_vec::iterator ITER_comp_vec;
@@ -99,8 +100,6 @@ class Jetv2 : public Jet
   ITER_comp_vec  comp_end()   { return _comp_ids.end();   } // new in v2
   ITER_comp_vec  comp_end(Jet::SRC);                        // new in v2
   TYPE_comp_vec& get_comp_vec() { return _comp_ids; }; // new in v2
-
-
 
   void disable_v2_warning () { _print_v2_warning = false; } // new in v2
 
@@ -134,8 +133,6 @@ class Jetv2 : public Jet
 
   Bool_t IsSortable() const override { return kTRUE; }
 
-
-  // FIXME here: the sort crit
   void set_sortopt_ptr (JetV2SortingCriteria* _) { _sortopt = _; }; // does tree preserve the pointer when getting the map? probably not...
 
  private:

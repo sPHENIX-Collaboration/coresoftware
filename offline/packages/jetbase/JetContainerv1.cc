@@ -275,66 +275,6 @@ void JetContainerv1::sort_jets(Jet::PROPERTY prop, Jet::SORT_ORDER _order) {
   }
 }
 
-// ----------------------------------------------------------------------------------------
-//  Sorting the jets
-// ----------------------------------------------------------------------------------------
-/* void JetContainerv1::sort_jets(Jet::SORT iSort, bool desc) */ 
-/* { */
-/*     int neg = (desc) ? -1 : 1; */
-/*     if (iSort == Jet::SORT::PT) { */
-/*       sort_jets( [neg](const Jetv2* lhs, const Jetv2* rhs)->bool{ return lhs->get_pt() == rhs->get_pt();}, */
-/*                  [neg](const Jetv2* lhs, const Jetv2* rhs)->int { return neg*(lhs->get_pt()-rhs->get_pt());} ); */
-/*     } else if (iSort == Jet::SORT::E) { */
-/*       sort_jets( [neg](const Jetv2* lhs, const Jetv2* rhs)->bool{ return lhs->get_e() == rhs->get_e();}, */
-/*                  [neg](const Jetv2* lhs, const Jetv2* rhs)->int { return neg*(lhs->get_e()-rhs->get_e());} ); */
-/*     } else if (iSort == Jet::SORT::P) { */
-/*       sort_jets( [neg](const Jetv2* lhs, const Jetv2* rhs)->bool{ return lhs->get_p() == rhs->get_p();}, */
-/*                  [neg](const Jetv2* lhs, const Jetv2* rhs)->int { return neg*(lhs->get_p()-rhs->get_p());} ); */
-/*     } else if (iSort == Jet::SORT::MASS) { */
-/*       sort_jets( [neg](const Jetv2* lhs, const Jetv2* rhs)->bool{ return lhs->get_mass() == rhs->get_mass();}, */
-/*                  [neg](const Jetv2* lhs, const Jetv2* rhs)->int { return neg*(lhs->get_mass()-rhs->get_mass());} ); */
-/*     } else if (iSort == Jet::SORT::MASS2) { */
-/*       sort_jets( [neg](const Jetv2* lhs, const Jetv2* rhs)->bool{ return lhs->get_mass2() == rhs->get_mass2();}, */
-/*                  [neg](const Jetv2* lhs, const Jetv2* rhs)->int { return neg*(lhs->get_mass2()-rhs->get_mass2());} ); */
-/*     } else if (iSort == Jet::SORT::AREA) { */
-/*       sort_jets(Jet::PROPERTY::prop_area, desc); */
-/*       return; */
-/*     } */ 
-
-/*     std::cout << "JetContainerv1::sort_jets - unrecognized sort type " << ((int)iSort) << std::endl; */
-/*     return; */
-/* } */
-
-/* void JetContainerv1::sort_jets(Jet::PROPERTY iProp, bool desc) { */
-/*     if (!has_property(iProp)) { */
-/*         std::cout << " Because can't find property, aborting jet sorting." << std::endl; */
-/*         return; */
-/*     } */
-
-/*     auto pin = m_pindex[iProp]; */
-/*     int neg = (desc) ? -1 : 1; */
-
-/*     // Note: any jets with value FLT_MAX will be sorted to the end of the list automatically */
-/*     sort_jets( */ 
-/*       //lambda function for equal */
-/*       [pin](const Jetv2* lhs, const Jetv2* rhs)->bool */
-/*         { return lhs->get_prop_by_index(pin) == rhs->get_prop_by_index(pin); }, */
-/*       //lambda function for compare */
-/*       [pin,neg] (const Jetv2* lhs, const Jetv2* rhs)->int */
-/*         { if      (lhs->get_prop_by_index(pin) == NAN) return -neg; // FIXME -- think this logic is correct, but should check */
-/*           else if (rhs->get_prop_by_index(pin) == NAN) return neg; */
-/*           return neg*(lhs->get_prop_by_index(pin)-rhs->get_prop_by_index(pin)); */ 
-/*         } */
-/*     ); */
-/*     return; */
-/* } */
-
-/* void JetContainerv1::sort_jets( */ 
-/*   std::function<bool(const Jetv2*, const Jetv2*)> fnIsEqual, */
-/*   std::function<int (const Jetv2*, const Jetv2*)> fnCompare */
-/* ) { */
-/* } */
-
 void JetContainerv1::resize_jet_pvecs() {
   for (auto jet : *this) {
       jet->resize_properties(m_psize);
