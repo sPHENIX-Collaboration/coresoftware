@@ -127,7 +127,7 @@ class Jetv2 : public Jet
   std::vector<float> _properties {};
 
   // member data to allow sorting and comparison
-  Jet::SortSelections* _sortopt { nullptr }; // pointes to an int[3] location in the JetContainer for the sake of sorting the jets
+  Jet::SortSelections* _sortopt { nullptr }; // points to sorting options set in JetContainer
 
   bool  IsEqual(const TObject* obj) const override;
   Int_t Compare(const TObject* obj) const override;

@@ -15,13 +15,15 @@
 
 class PHObject;
 
-Jetv2::Jetv2()
+Jetv2::Jetv2() :
+  _sortopt { nullptr }
 {
   std::fill(std::begin(_mom), std::end(_mom), NAN);
 }
 
-Jetv2::Jetv2(unsigned int n_prop) :
-  _properties (  n_prop, NAN )
+Jetv2::Jetv2(unsigned int n_prop)
+  : _properties (  n_prop, NAN )
+  , _sortopt { nullptr }
 {
   std::fill(std::begin(_mom), std::end(_mom), NAN);
 }
