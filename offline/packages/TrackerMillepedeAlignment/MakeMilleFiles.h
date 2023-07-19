@@ -25,10 +25,6 @@
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 
-
-#include <TFile.h>
-#include <TH2.h>
-
 class PHCompositeNode;
 class PHG4TpcCylinderGeomContainer;
 class SvtxTrack;
@@ -107,16 +103,12 @@ class MakeMilleFiles : public SubsysReco
   void getProjectionVtxXY(SvtxTrack* track, const Acts::Vector3& vertex,
 			  Acts::Vector3& projx, Acts::Vector3& projy);
 
-  std::pair<float, float> get_dca(SvtxTrack* track, const Acts::Vector3& vertex);
   std::string data_outfilename = ("mille_output_data_file.bin");
   std::string steering_outfilename = ("steer.txt");
 
   bool m_useEventVertex = false;
   bool _binary = true;
   unsigned int _cluster_version = 5;
-
-  TFile *_file = nullptr;
-  TH2 *_xyresid = nullptr, *_zresid = nullptr;
 
   Acts::Vector2 m_vtxSigma = {0.1, 0.1};
 

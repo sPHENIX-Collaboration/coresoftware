@@ -16,6 +16,7 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
+#include <trackbase_historic/TrackAnalysisUtils.h>
 
 #include <trackreco/ActsPropagator.h>
 
@@ -73,12 +74,6 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
   steering_file.close();
 
   m_constraintFile.open(m_constraintFileName);
-
-  _file = new TFile("makemillefile.root","recreate");
-  _xyresid = new TH2F("xyresid",";residual; prediction",
-		      1000,-1,1,1000,-1,1);
-  _zresid = new TH2F("zresid",";residual;prediction",
-		     1000,-1,1,1000,-1,1);
 
   // print grouping setup to log file:
   std::cout << "MakeMilleFiles::InitRun: Surface groupings are mvtx " << mvtx_group << " intt " << intt_group << " tpc " << tpc_group << " mms " << mms_group << std::endl;
@@ -155,8 +150,9 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 	//! set x and y to 0 since we are constraining to the x-y origin
 	//! and add constraints to pede later
 	eventVertex(0) = 0; eventVertex(1) = 0;
-	auto dcapair = get_dca(track, eventVertex);
-	Acts::Vector2 vtx_residual(-dcapair.first, -dcapair.second);
+
+	auto dcapair = TrackAnalysisUtils::get_dca(track,eventVertex);
+	Acts::Vector2 vtx_residual(-dcapair.first.first, -dcapair.second.first);
 	vtx_residual *= Acts::UnitConstants::cm;
 
 	float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC];
@@ -167,16 +163,9 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 	float glblvtx_derivative[SvtxAlignmentState::NRES][3];
 	getGlobalVtxDerivativesXY(track, eventVertex, glblvtx_derivative);
 
-	float predictxres = glblvtx_derivative[0][0] * (1) + 
-	  glblvtx_derivative[0][1] * (-1);
-	float predictyres = glblvtx_derivative[1][0] * (1) +
-	  glblvtx_derivative[1][1] * (-1);
-	std::cout << "prediction is " << predictxres << ", " << predictyres << std::endl;
-	_xyresid->Fill(vtx_residual(0), predictxres);
-	_zresid->Fill(vtx_residual(1), predictyres);
-	if(Verbosity() > 2)
+     	if(Verbosity() > 2)
 	  {
-	    std::cout << "vertex info for trakc " << track->get_id() << std::endl;
+	    std::cout << "vertex info for trakc " << track->get_id() << " with charge " << track->get_charge() << std::endl;
 	    std::cout << "vertex is " << eventVertex.transpose()<<std::endl;
 	    std::cout << "vertex residuals " << vtx_residual.transpose() 
 		      << std::endl;
@@ -219,10 +208,6 @@ int MakeMilleFiles::End(PHCompositeNode*)
 {
   delete _mille;
   m_constraintFile.close();
-  _file->cd();
-  _xyresid->Write();
-  _zresid->Write();
-  _file->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -258,37 +243,6 @@ int MakeMilleFiles::GetNodes(PHCompositeNode* topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-std::pair<float, float> MakeMilleFiles::get_dca(SvtxTrack* track, 
-						const Acts::Vector3& vertex)
-{
-
-  Acts::Vector3 track_vtx(track->get_x(),track->get_y(),track->get_z());
-  Acts::Vector3 mom(track->get_px(),track->get_py(),track->get_pz());
-  track_vtx -= vertex;
-
-  Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
-  float phi = atan2(r(1), r(0));
-
-  Acts::RotationMatrix3 rot;
-  Acts::RotationMatrix3 rot_T;
-
-  phi *= -1;
-  rot(0,0) = cos(phi);
-  rot(0,1) = -sin(phi);
-  rot(0,2) = 0;
-  rot(1,0) = sin(phi);
-  rot(1,1) = cos(phi);
-  rot(1,2) = 0;
-  rot(2,0) = 0;
-  rot(2,1) = 0;
-  rot(2,2) = 1;
-  rot_T    = rot.transpose();
-
-  Acts::Vector3 pos_R = rot * track_vtx;
-  return std::make_pair(pos_R(0), pos_R(2));
-  
 }
 
 bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
@@ -376,17 +330,19 @@ void MakeMilleFiles::getProjectionVtxXY(SvtxTrack* track,
 {
   Acts::Vector3 tangent(track->get_px(), track->get_py(), track->get_pz());
   Acts::Vector3 normal(track->get_px(), track->get_py(), 0);
-
+ 
   tangent /= tangent.norm();
   normal /= normal.norm();
-  
+
   Acts::Vector3 localx(1,0,0);
   Acts::Vector3 localz(0,0,1);
   
   Acts::Vector3 xglob = localToGlobalVertex(track, vertex, localx);
   Acts::Vector3 yglob = localz + vertex;
+ 
   Acts::Vector3 X = (xglob-vertex) / (xglob-vertex).norm(); 
   Acts::Vector3 Y = (yglob-vertex) / (yglob-vertex).norm();
+
   // see equation 31 of the ATLAS paper (and discussion) for this
   projx = X - (tangent.dot(X) / tangent.dot(normal)) * normal;
   projy = Y - (tangent.dot(Y) / tangent.dot(normal)) * normal;
@@ -420,6 +376,7 @@ Acts::Vector3 MakeMilleFiles::localToGlobalVertex(SvtxTrack* track,
   rot_T = rot.transpose();
 
   Acts::Vector3 pos_R = rot * localx;
+
   pos_R += vertex;
 
   return pos_R; 
