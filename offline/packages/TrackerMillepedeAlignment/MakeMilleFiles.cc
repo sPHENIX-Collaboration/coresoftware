@@ -74,7 +74,14 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
   steering_file.close();
 
   m_constraintFile.open(m_constraintFileName);
-
+  if(m_useEventVertex)
+    {
+      for(int i=0; i<AlignmentDefs::NGLVTX; i++)
+	{
+	  m_constraintFile << " Constraint   0.0" << std::endl;
+	  m_constraintFile << "       " << AlignmentDefs::glbl_vtx_label[i] << "   1" << std::endl;
+	}
+    }
   // print grouping setup to log file:
   std::cout << "MakeMilleFiles::InitRun: Surface groupings are mvtx " << mvtx_group << " intt " << intt_group << " tpc " << tpc_group << " mms " << mms_group << std::endl;
 
@@ -585,34 +592,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
         {
           errinf = m_layerMisalignment.find(layer)->second;
         }
-        
-	if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::inttId)
-	  {
-	    if(m_usedConstraintGlbLbl.find(glbl_label[0]) == m_usedConstraintGlbLbl.end())
-	      {
-        
-		auto surfcent = surf->center(_tGeometry->geometry().getGeoContext());
-        
-		float sensorphi = atan2(surfcent.y(), surfcent.x());
-		m_constraintFile << " Constraint  0.0" << std::endl;
-		for(int temp =0; temp < SvtxAlignmentState::NGL; temp++)
-		  {
-		    float factor = 0.;
-		    if(temp == 3) factor = std::cos(sensorphi);
-		    else if(temp == 4) factor = std::sin(sensorphi);
-		    else continue;
-
-		    m_constraintFile << "     " << glbl_label[temp] << "   " 
-				     << factor << std::endl;
-		   
-		    
-		  }
-
-		m_usedConstraintGlbLbl.insert(glbl_label[0]);
-
-	      }
-	  }
-      
+              
       _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), errinf * clus_sigma(i));
       }
     }

@@ -126,7 +126,6 @@ class MakeMilleFiles : public SubsysReco
 
   std::string m_constraintFileName = "mp2con.txt";
   std::ofstream m_constraintFile;
-  std::set<int> m_usedConstraintGlbLbl;
 
   SvtxTrackMap* _track_map{nullptr};
   SvtxAlignmentStateMap* _state_map{nullptr};
