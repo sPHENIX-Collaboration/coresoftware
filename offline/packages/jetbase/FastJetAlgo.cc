@@ -235,13 +235,14 @@ void FastJetAlgo::fillJetContainer(std::vector<fastjet::PseudoJet>* pfastjets,
   if (m_Verbosity > 8) std::cout << "   Verbosity>8 fastjets: " << fastjets.size() << std::endl;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
   {
-    if (fastjets[ijet].is_pure_ghost()) continue;
+    if (m_JetAreaFlag && fastjets[ijet].is_pure_ghost()) continue;
     auto* jet = jetcont->add_jet(); // put a new Jetv2 into the TClonesArray
     jet->set_px(fastjets[ijet].px());
     jet->set_py(fastjets[ijet].py());
     jet->set_pz(fastjets[ijet].pz());
     jet->set_e(fastjets[ijet].e());
     jet->set_id(ijet);
+
 
     if (m_JetAreaFlag) {
       jetcont->set_prop_by_index(m_area_index, fastjets[ijet].area());
@@ -283,7 +284,7 @@ void FastJetAlgo::fillJetContainer(std::vector<fastjet::PseudoJet>* pfastjets,
     std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
     for (auto & comp : comps)
     {
-      if (comp.is_pure_ghost()) continue;
+      if (m_JetAreaFlag && comp.is_pure_ghost()) continue;
       Jet* particle = particles[comp.user_index()];
 
       for (Jet::Iter iter = particle->begin_comp();
