@@ -54,7 +54,7 @@ class SvtxTrackState_v2 : public SvtxTrackState
   void set_error(unsigned int i, unsigned int j, float value) override;
 
   TrkrDefs::cluskey get_cluskey() const override { return _ckey; }
-  void set_cluskey(TrkrDefs::cluskey ckey) { _ckey = ckey; }
+  void set_cluskey(TrkrDefs::cluskey ckey) override { _ckey = ckey; }
 
   std::string get_name() const override { return state_name; }
   void set_name(const std::string &name) override { state_name = name; }
