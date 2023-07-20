@@ -23,8 +23,8 @@ public:
 
     // adding/access jets
     Jet* current_jet() override { return m_current_jet; }; // points to most recently accessed jet
-    Jet* add_jet()                  override; // Add a new jet to the TClonesArray and return the pointer
-    Jet* get_jet(unsigned int index)         override; // Get get at location. Update current_jet. If not there, then generate it
+    Jet* add_jet()                   override; // Add a new jet to the TClonesArray and return the pointer
+    Jet* get_jet(unsigned int index) override; // Get get at location. Update current_jet. If not there, then generate it
     Jet* get_UncheckedAt(unsigned int index) override; // Get get at location. Update current_jet. No safety checks
                                                 
     // convenience shortcuts of get_{jet,UncheckedAt}

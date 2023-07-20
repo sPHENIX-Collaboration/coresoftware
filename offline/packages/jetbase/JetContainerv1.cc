@@ -60,14 +60,16 @@ void JetContainerv1::add_component(Jet::SRC src, unsigned int id) {
 
 Jet* JetContainerv1::get_jet(unsigned int ijet) {
     if (ijet < m_njets) {
-        return (Jet*) m_clones->At(ijet);
+      m_current_jet = m_clones->At(ijet);
+      return m_current_jet;
     } else {
         return nullptr;
     }
 }
 
 Jet* JetContainerv1::get_UncheckedAt(unsigned int index) {
-    return (Jet*) m_clones->UncheckedAt(index);
+    m_current_jet = m_clones->UncheckedAt(index);
+    return m_current_jet;
 } 
 
 // ----------------------------------------------------------------------------------------
