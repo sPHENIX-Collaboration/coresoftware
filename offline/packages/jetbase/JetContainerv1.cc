@@ -26,7 +26,7 @@ JetContainerv1::JetContainerv1(const JetContainer &rhs)
 {
   m_clones = rhs.clone_data();
   m_current_jet = nullptr;
-  if (m_clones->GetEntriesFast()>0) m_current_jet = (Jetv2*) m_clones->UncheckedAt(0);
+  if (m_clones->GetEntriesFast()>0) m_current_jet = (Jet*) m_clones->UncheckedAt(0);
 
   for (auto src = rhs.begin_src(); src != rhs.end_src(); ++src) {
     m_src.insert(*src);
@@ -60,7 +60,7 @@ void JetContainerv1::add_component(Jet::SRC src, unsigned int id) {
 
 Jet* JetContainerv1::get_jet(unsigned int ijet) {
     if (ijet < m_njets) {
-      m_current_jet = m_clones->At(ijet);
+      m_current_jet = (Jet*) m_clones->At(ijet);
       return m_current_jet;
     } else {
         return nullptr;
@@ -68,7 +68,7 @@ Jet* JetContainerv1::get_jet(unsigned int ijet) {
 }
 
 Jet* JetContainerv1::get_UncheckedAt(unsigned int index) {
-    m_current_jet = m_clones->UncheckedAt(index);
+    m_current_jet = (Jet*) m_clones->UncheckedAt(index);
     return m_current_jet;
 } 
 
