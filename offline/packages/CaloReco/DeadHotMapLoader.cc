@@ -1,14 +1,14 @@
 // $Id: $
 
 /*!
- * \file RawTowerDeadMapLoader.cc
+ * \file DeadHotMapLoader.cc
  * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
 
-#include "RawTowerDeadMapLoader.h"
+#include "DeadHotMapLoader.h"
 
 #include <calobase/RawTowerDeadMap.h>
 #include <calobase/RawTowerDeadMapv1.h>
@@ -36,13 +36,13 @@
 #include <string>
 #include <utility>
 
-RawTowerDeadMapLoader::RawTowerDeadMapLoader(const std::string &detector)
-  : SubsysReco("RawTowerDeadMapLoader_" + detector)
+DeadHotMapLoader::DeadHotMapLoader(const std::string &detector)
+  : SubsysReco("DeadHotMapLoader_" + detector)
   , m_detector(detector)
 {
 }
 
-int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
+int DeadHotMapLoader::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode = static_cast<PHCompositeNode *>(iter.findFirst(
@@ -107,7 +107,7 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
       {
         unsigned int key = TowerInfoDefs::encode_hcal(ieta, iphi);
         int isDead = m_CDBTTree->GetIntValue(key,"status");
-        if(isDead == 1)
+        if(isDead > 0)
         {
           m_deadmap->addDeadTower(ieta, iphi);
         }
@@ -125,7 +125,7 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
       {
         unsigned int key = TowerInfoDefs::encode_emcal(ieta, iphi);
         int isDead = m_CDBTTree->GetIntValue(key,"status");
-        if(isDead == 1)
+        if(isDead > 0)
         {
           m_deadmap->addDeadTower(ieta, iphi);
         }
@@ -135,7 +135,7 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity())
   {
-    std::cout << "RawTowerDeadMapLoader::" << m_detector << "::InitRun - loading dead map completed : ";
+    std::cout << "DeadHotMapLoader::" << m_detector << "::InitRun - loading dead map completed : ";
     m_deadmap->identify();
   }
   return Fun4AllReturnCodes::EVENT_OK;

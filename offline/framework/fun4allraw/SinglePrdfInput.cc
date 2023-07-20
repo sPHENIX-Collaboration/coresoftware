@@ -102,7 +102,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
         evtno += m_EventNumberOffset + m_PacketEventNumberOffset[i] + m_NumSpecialEvents + (EventSequence & 0xFFFF0000);
         m_PacketMap[bclk].push_back(plist[i]);
         m_EvtSet.insert(evtno);
-        m_Event.push_back(std::make_pair(evtno, bclk));
+        m_Event.emplace_back(std::make_pair(evtno, bclk));
       }
       else
       {
@@ -145,9 +145,9 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
         }
         adjust_eventnumber_offset(common_event_number);
       }
-      for (auto iter : m_PacketMap)
+      for (auto const &iter : m_PacketMap)
       {
-        for (auto pktiter : iter.second)
+        for (auto const &pktiter : iter.second)
         {
           m_InputMgr->AddPacket(common_event_number, pktiter);
         }
@@ -191,7 +191,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
         std::cout << "picked bclk: " << std::hex << common_beam_clock << std::dec << std::endl;
       }
       // for time being clean out packets which do not match
-      for (auto iter : m_PacketMap)
+      for (auto const &iter : m_PacketMap)
       {
         for (auto pktiter : iter.second)
         {

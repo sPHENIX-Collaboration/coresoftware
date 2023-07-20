@@ -3,10 +3,6 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = \
-  libintt_io.la \
-  libintt.la 
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
@@ -16,6 +12,25 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
+
+if USE_ONLINE
+
+lib_LTLIBRARIES = \
+  libintt.la 
+
+pkginclude_HEADERS = \
+  InttFelixMap.h \
+  InttMapping.h
+
+libintt_la_SOURCES = \
+  InttFelixMap.cc \
+  InttMapping.cc
+
+else
+
+lib_LTLIBRARIES = \
+  libintt_io.la \
+  libintt.la 
 
 pkginclude_HEADERS = \
   InttClusterizer.h \
@@ -62,6 +77,7 @@ libintt_io_la_LIBADD = \
   -ltrack_io \
   -ltrackbase_historic_io
 
+endif
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

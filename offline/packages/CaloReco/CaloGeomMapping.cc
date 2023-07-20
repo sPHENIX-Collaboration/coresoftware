@@ -263,3 +263,12 @@ void CaloGeomMapping::CreateGeomNode(PHCompositeNode* topNode)
   }  // end loop over eta, phi bins
 }  // end of building RawTowerGeomContainer
 
+void CaloGeomMapping::set_detector_name(std::string name)
+{
+  m_Detector = name;
+}
+
+std::string CaloGeomMapping::get_detector_name()
+{
+  return m_Detector;
+}
