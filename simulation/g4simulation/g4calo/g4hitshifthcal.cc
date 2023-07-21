@@ -1,44 +1,15 @@
 #include "g4hitshifthcal.h"
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <fun4all/Fun4AllHistoManager.h>
-
-#include <phool/PHCompositeNode.h>
 
 // G4Hits includes
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4HitDefs.h>  // for hit_idbits
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
 
-// G4Cells includes
-#include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CellContainer.h>
-#include <g4detectors/PHG4CellDefs.h>  // for genkey, keytype
-
-// Tower includes
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerDefs.h>
-#include <calobase/RawTowerGeom.h>
-#include <calobase/RawTowerGeomContainer.h>
-// Cluster includes
-#include <calobase/RawCluster.h>
-#include <calobase/RawClusterContainer.h>
-
-#include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <TF1.h>
-#include <TFile.h>
-#include <TMath.h>
-#include <TNtuple.h>
-#include <TProfile.h>
+#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+
 #include <cassert>
 #include <sstream>
 #include <string>
@@ -46,11 +17,6 @@
 //____________________________________________________________________________..
 g4hitshifthcal::g4hitshifthcal(const std::string &name)
   : SubsysReco(name)
-{
-}
-
-//____________________________________________________________________________..
-g4hitshifthcal::~g4hitshifthcal()
 {
 }
 
@@ -72,7 +38,7 @@ int g4hitshifthcal::process_event(PHCompositeNode *topNode)
       PHG4HitDefs::keytype original_hit_id = hit_iter->second->get_hit_id();
 
       // Get the lowBits from the original hit_id
-      PHG4HitDefs::keytype lowBits = original_hit_id & ((1ull << PHG4HitDefs::hit_idbits) - 1);
+      PHG4HitDefs::keytype lowBits = original_hit_id & ((1ULL << PHG4HitDefs::hit_idbits) - 1);
       ;
 
       // shift row up by 4
@@ -104,8 +70,7 @@ int g4hitshifthcal::process_event(PHCompositeNode *topNode)
       PHG4HitDefs::keytype original_hit_id = hit_iter->second->get_hit_id();
 
       // Get the lowBits from the original hit_id
-      PHG4HitDefs::keytype lowBits = original_hit_id & ((1ull << PHG4HitDefs::hit_idbits) - 1);
-      ;
+      PHG4HitDefs::keytype lowBits = original_hit_id & ((1ULL << PHG4HitDefs::hit_idbits) - 1);
 
       // shift row up by 5
       int newrow = introw + 5;

@@ -2,7 +2,6 @@
 #define G4CALO_RAWTOWERBUILDER_H
 
 #include <fun4all/SubsysReco.h>
-#include <calobase/TowerInfoContainer.h>
 
 #include <g4detectors/PHG4CellDefs.h>
 

@@ -15,7 +15,7 @@ class g4hitshifthcal : public SubsysReco
 
   g4hitshifthcal(const std::string &name = "g4hitshifthcal");
 
-  ~g4hitshifthcal() override;
+  ~g4hitshifthcal() override = default;
 
   int process_event(PHCompositeNode *topNode) override;
 
