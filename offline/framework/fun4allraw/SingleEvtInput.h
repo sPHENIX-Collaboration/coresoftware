@@ -4,8 +4,10 @@
 #include <fun4all/Fun4AllBase.h>
 #include <fun4all/InputFileHandler.h>
 
+#include <array>
 #include <list>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -26,6 +28,8 @@ class SingleEvtInput : public Fun4AllBase, public InputFileHandler
   int AllDone() const { return m_AllDone; }
   void AllDone(const int i) { m_AllDone = i; }
   void EventNumberOffset(const int i) { m_EventNumberOffset = i; }
+  void Print(const std::string &what = "ALL");
+  void CleanupUsedPackets(const uint64_t bclk);
 
  private:
   Eventiterator *m_EventIterator = nullptr;
@@ -36,8 +40,10 @@ class SingleEvtInput : public Fun4AllBase, public InputFileHandler
   int m_RunNumber = 0;
   int m_EventsThisFile = 0;
   int m_AllDone = 0;
-  uint64_t previousclock = 0;
-  uint64_t rollover = 0;
+  std::array<uint64_t, 14> m_PreviousClock{};
+  std::array<uint64_t, 14> m_Rollover{};
+  std::map<uint64_t, std::set<int>> m_BeamClockFEE;
+  std::map<uint64_t, std::vector<Packet *>> m_PacketStorageMap;
 };
 
 #endif

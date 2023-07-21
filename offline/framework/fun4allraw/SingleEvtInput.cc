@@ -11,6 +11,8 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
+#include <set>
+
 SingleEvtInput::SingleEvtInput(const std::string &name, Fun4AllEvtInputPoolManager *inman)
   : Fun4AllBase(name)
   , m_InputMgr(inman)
@@ -34,7 +36,7 @@ void SingleEvtInput::FillPool(const unsigned int nbclks)
   {
     OpenNextFile();
   }
-  unsigned int numbclks = 0;
+  std::set<uint64_t> saved_beamclocks;
   do
   {
     Event *evt = m_EventIterator->getNextEvent();
@@ -66,7 +68,6 @@ void SingleEvtInput::FillPool(const unsigned int nbclks)
     }
     int EventSequence = evt->getEvtSequence();
     int npackets = evt->getPacketList(plist, 100);
-    numbclks++;
 
     if (npackets == 100)
     {
@@ -78,35 +79,66 @@ void SingleEvtInput::FillPool(const unsigned int nbclks)
       //        if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
       {
         int num_hits = plist[i]->iValue(0, "NR_HITS");
-        uint64_t gtm_bco = plist[i]->lValue(0, "BCO");
-        if (gtm_bco < previousclock)
-        {
-          rollover += 0x100000000;
-        }
-        previousclock = gtm_bco;
-        gtm_bco |= rollover;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+	std::set<uint64_t> bclk_set;
+	for (int j=0; j<num_hits; j++)
+	{
+	  int FEE =  plist[i]->iValue(j, "FEE");
+	  uint64_t gtm_bco = plist[i]->lValue(j, "BCO") + m_Rollover[FEE];
+	  bclk_set.insert(gtm_bco);
+	  if (gtm_bco < m_PreviousClock[FEE])
+	  {
+	    m_Rollover[FEE] += 0x100000000;
+	    gtm_bco += m_Rollover[FEE];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+	  }
+	  m_PreviousClock[FEE] = gtm_bco;
+	  m_BeamClockFEE[gtm_bco].insert(FEE);
+	  std::cout << "evtno: " << EventSequence
+		    << ", nr_hits: " << num_hits
+		    << ", bco: 0x" << std::hex << gtm_bco << std::dec 
+		    << ", FEE: " << FEE << std::endl;
+	  // dummy check for the first event which is the problem for the calorimeters
+	  // it is the last event from the previous run, so it's event number is > 0
+	  // if (evtno > EventSequence)
+	  // {
+	  //   delete plist[i];
+	  //   plist[i] = nullptr;
+	  //   continue;
+	  // }
+	  plist[i]->convert();
+	  // calculate "real" event number
+	  // special events are counted, so the packet event counter is never the
+	  // Event Sequence (bc the begin run event)
+	  // also our packets are just 16bit counters, so we need to add the upper bits
+	  // from the event sequence
+	  // and our packet counters start at 0, while our events start at 1
 
-        std::cout << "evtno: " << EventSequence
-                  << ", nr_hits: " << num_hits
-                  << ", bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
-        // dummy check for the first event which is the problem for the calorimeters
-        // it is the last event from the previous run, so it's event number is > 0
-        // if (evtno > EventSequence)
-        // {
-        //   delete plist[i];
-        //   plist[i] = nullptr;
-        //   continue;
-        // }
-        plist[i]->convert();
-        // calculate "real" event number
-        // special events are counted, so the packet event counter is never the
-        // Event Sequence (bc the begin run event)
-        // also our packets are just 16bit counters, so we need to add the upper bits
-        // from the event sequence
-        // and our packet counters start at 0, while our events start at 1
-
-        //          evtno += m_EventNumberOffset + m_NumSpecialEvents + (EventSequence & 0xFFFF0000);
-        m_InputMgr->AddPacket(gtm_bco, plist[i]);
+	  //          evtno += m_EventNumberOffset + m_NumSpecialEvents + (EventSequence & 0xFFFF0000);
+	}
+	uint64_t latestbclk = 0;
+	if (bclk_set.empty())
+	{
+	  delete plist[i];
+	}
+	else
+	{
+	for (auto bco_iter: bclk_set)
+	{
+	  saved_beamclocks.insert(bco_iter);
+	  if (m_InputMgr)
+	  {
+	    m_InputMgr->AddPacket(bco_iter, plist[i]);
+	  }
+	}
+        latestbclk = *bclk_set.rbegin();
+        auto packetvector = m_PacketStorageMap.find(latestbclk);
+	if (packetvector == m_PacketStorageMap.end())
+	{
+	  std::vector<Packet *> packets;
+	m_PacketStorageMap[latestbclk] = packets;
+        packetvector =  m_PacketStorageMap.find(latestbclk);
+	}
+	packetvector->second.push_back(plist[i]);
+	}
       }
       // else
       // {
@@ -114,7 +146,7 @@ void SingleEvtInput::FillPool(const unsigned int nbclks)
       // }
     }
     delete evt;
-  } while (numbclks < nbclks);
+  } while (saved_beamclocks.size() < nbclks);
 }
 
 int SingleEvtInput::fileopen(const std::string &filenam)
@@ -163,4 +195,55 @@ int SingleEvtInput::fileclose()
   // or repeat the same entry again
   UpdateFileList();
   return 0;
+}
+
+void SingleEvtInput::Print(const std::string &what)
+{
+  if (what == "ALL" || what == "FEE")
+  {
+  for (auto bcliter : m_BeamClockFEE)
+  {
+    std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
+    for (auto feeiter:  bcliter.second)
+    {
+      std::cout << "FEM: " << feeiter << std::endl;
+    }
+  }
+  }
+  if (what == "ALL" || what == "STORAGE")
+  {
+  for (auto bcliter : m_PacketStorageMap)
+  {
+    std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
+    for (auto feeiter:  bcliter.second)
+    {
+      std::cout << "Packet: " << feeiter->getIdentifier() 
+		<< " at " << std::hex << feeiter << std::dec << std::endl;
+    }
+  }
+  }
+}
+
+void SingleEvtInput::CleanupUsedPackets(const uint64_t bclk)
+{
+  std::vector<uint64_t> toclearbclk;
+  for (auto iter : m_PacketStorageMap)
+  {
+    if (iter.first <= bclk)
+    {
+      for (auto pktiter: iter.second)
+      {
+	delete pktiter;
+      }
+      toclearbclk.push_back(iter.first);
+    }
+    else
+    {
+      break;
+    }
+  }
+  for (auto iter : toclearbclk)
+  {
+      m_PacketStorageMap.erase(iter);
+  }
 }

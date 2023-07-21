@@ -2,7 +2,7 @@
 #define FUN4ALLRAW_PACKETLIST_H
 
 #include <iostream>
-#include <map>
+#include <set>
 #include <vector>
 
 class Packet;
@@ -10,16 +10,14 @@ class Packet;
 class PacketList
 {
  public:
+
   PacketList() = default;
   virtual ~PacketList();
-  std::vector<Packet *>::const_iterator begin(const int packet_id);
-  std::vector<Packet *>::const_iterator end(const int packet_id);
-  void AddPacket(const int packet_id, Packet *pkt);
-  void Reset();
-  void identify(std::ostream &os = std::cout);
+//  void identify(std::ostream &os = std::cout);
 
- private:
-  std::map<int, std::vector<Packet *>> m_PacketMap;
+// private:
+  std::set<uint64_t> m_BeamClockSet;
+  std::vector<Packet *> m_PacketVector;
 };
 
 #endif
