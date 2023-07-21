@@ -93,7 +93,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
 
     // set values if calculating jet areas and rapidities
     if (m_JetAreaFlag && m_GhostMaxRap == 0) {
-      m_GhostMaxRap = 1.1 - m_Par;
+      m_GhostMaxRap = 1.1;
     }
 
     if (m_RhoMedianFlag && m_RapCutHardest==0) {

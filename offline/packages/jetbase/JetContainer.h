@@ -110,8 +110,8 @@ public:
     // Get and set values of property(/ies) by selections (always on current_jet)
     virtual void select_property(Jet::PROPERTY/**/) {}; // select this property for the current jet
     virtual void select_property(std::vector<Jet::PROPERTY>/**/) {}; // order matters
-    virtual float get_selected_property(unsigned int/*selection index=0*/) { return FLT_MAX;};
-    virtual void  set_selected_property(float /*set-value*/, unsigned int/*=0*/) {};
+    virtual float get_selected_property(unsigned int=0/*selection index=0*/) { return FLT_MAX;};
+    virtual void  set_selected_property(float /*set-value*/, unsigned int=0/*=0*/) {};
                                                
     // ---------------------------------------------------------------------------------------
     //  Add ability for: ```for (auto jet : jet_container->iter_jets()) { ... }```
