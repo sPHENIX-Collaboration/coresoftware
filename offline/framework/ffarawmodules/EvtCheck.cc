@@ -4,13 +4,15 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <fun4allraw/PacketList.h>
+#include <fun4allraw/PacketMap.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHNode.h>          // for PHNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
+
+#include <Event/packet.h>
 
 #include <TSystem.h>
 
@@ -33,15 +35,20 @@ int EvtCheck::Init(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int EvtCheck::process_event(PHCompositeNode *topNode)
 {
-  PacketList *pktlist = findNode::getClass<PacketList>(topNode,m_EvtNodeName);
-  if (!pktlist)
+  PacketMap *pktmap = findNode::getClass<PacketMap>(topNode,m_EvtNodeName);
+  if (!pktmap)
   {
     std::cout << "could not find node " << m_EvtNodeName << std::endl;
   }
   else
   {
-  pktlist->identify();
+  pktmap->identify();
   }
+  for (auto iter = pktmap->begin_end(3004).first; iter !=  pktmap->begin_end(3004).second; ++iter)
+  {
+    (*iter)->identify();
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
