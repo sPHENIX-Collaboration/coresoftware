@@ -1,38 +1,19 @@
 #include "g4hitshift.h"
 
-#include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CellContainer.h>
-#include <g4detectors/PHG4CellDefs.h>  // for genkey, keytype
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
-#include <g4detectors/PHG4CylinderCellGeom_Spacalv1.h>
-#include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4CylinderGeom_Spacalv1.h>  // for PHG4CylinderGeom_Spaca...
 #include <g4detectors/PHG4CylinderGeom_Spacalv3.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4HitDefs.h>  // for hit_idbits
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
 
-// Tower includes
-#include <calobase/RawCluster.h>
-#include <calobase/RawClusterContainer.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerDefs.h>
-#include <calobase/RawTowerGeom.h>
-#include <calobase/RawTowerGeomContainer.h>
-
-#include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                     // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <cassert>
-#include <sstream>
+#include <map>                                      // for operator!=, _Rb_t...
 #include <string>
+#include <utility>                                  // for pair
 
 //____________________________________________________________________________..
 g4hitshift::g4hitshift(const std::string &name)
