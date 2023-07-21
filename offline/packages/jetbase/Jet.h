@@ -5,7 +5,7 @@
 // Moving the jets into TClonesArrays with Jetv2 implementation. Major changes:
 // 1. Overload IsSortable, IsEqual, Compare for sake of sorting through ROOT::TClonesArrays
 // 2. Internally, store jet components in vector<Jet::SRC,unsigned int>, and optional
-//    jet properties in  vector<float>; instead of maps as used in Jetv1. The map of 
+//    jet properties in  vector<float>; instead of maps as used in Jetv1. The map of
 //    jet properties (i.e. linking which property is stored in which vector location)
 //    is moved into the JetContainer.
 //
