@@ -196,7 +196,9 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
       fastjet::JetDefinition jet_def_bkgd(fastjet::kt_algorithm, m_Par); // <--
       fastjet::JetMedianBackgroundEstimator bge {rho_select, jet_def_bkgd, area_def};
       bge.set_particles(pseudojets);
-      jetcont->set_rho_median(bge.rho());
+      m_RhoMedian = bge.rho();
+      jetcont->set_rho_median(m_RhoMedian);
+      
     }
 
     std::vector<fastjet::PseudoJet> comps = fastjets[0].constituents();
