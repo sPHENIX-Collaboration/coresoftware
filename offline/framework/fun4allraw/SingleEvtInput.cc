@@ -23,7 +23,15 @@ SingleEvtInput::SingleEvtInput(const std::string &name, Fun4AllEvtInputPoolManag
 SingleEvtInput::~SingleEvtInput()
 {
   delete m_EventIterator;
-  delete[] plist;
+  for (auto iter : m_PacketStorageMap)
+  {
+    for (auto pktiter: iter.second)
+    {
+      delete pktiter;
+    }
+  }
+  m_PacketStorageMap.clear();
+  delete [] plist;
 }
 
 void SingleEvtInput::FillPool(const unsigned int nbclks)
@@ -40,7 +48,10 @@ void SingleEvtInput::FillPool(const unsigned int nbclks)
   do
   {
     Event *evt = m_EventIterator->getNextEvent();
-    std::cout << "Fetching next Event" << std::endl;
+    if (Verbosity() > 2)
+    {
+      std::cout << "Fetching next Event" <<  evt->getEvtSequence() << std::endl;
+    }
     if (!evt)
     {
       fileclose();
@@ -75,7 +86,10 @@ void SingleEvtInput::FillPool(const unsigned int nbclks)
     }
     for (int i = 0; i < npackets; i++)
     {
-      plist[i]->identify();
+      if (Verbosity() > 1)
+      {
+        plist[i]->identify();
+      }
       //        if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
       {
         int num_hits = plist[i]->iValue(0, "NR_HITS");
@@ -93,27 +107,14 @@ void SingleEvtInput::FillPool(const unsigned int nbclks)
 	  m_PreviousClock[FEE] = gtm_bco;
 	  m_BeamClockFEE[gtm_bco].insert(FEE);
           m_FEEBclkMap[FEE] = gtm_bco;
+	  if (Verbosity() > 2)
+	  {
 	  std::cout << "evtno: " << EventSequence
 		    << ", nr_hits: " << num_hits
 		    << ", bco: 0x" << std::hex << gtm_bco << std::dec 
 		    << ", FEE: " << FEE << std::endl;
-	  // dummy check for the first event which is the problem for the calorimeters
-	  // it is the last event from the previous run, so it's event number is > 0
-	  // if (evtno > EventSequence)
-	  // {
-	  //   delete plist[i];
-	  //   plist[i] = nullptr;
-	  //   continue;
-	  // }
+	  }
 	  plist[i]->convert();
-	  // calculate "real" event number
-	  // special events are counted, so the packet event counter is never the
-	  // Event Sequence (bc the begin run event)
-	  // also our packets are just 16bit counters, so we need to add the upper bits
-	  // from the event sequence
-	  // and our packet counters start at 0, while our events start at 1
-
-	  //          evtno += m_EventNumberOffset + m_NumSpecialEvents + (EventSequence & 0xFFFF0000);
 	}
 	uint64_t latestbclk = 0;
 	if (bclk_set.empty())
@@ -122,27 +123,27 @@ void SingleEvtInput::FillPool(const unsigned int nbclks)
 	}
 	else
 	{
-	for (auto bco_iter: bclk_set)
-	{
-	  saved_beamclocks.insert(bco_iter);
-	  if (m_InputMgr)
+	  for (auto bco_iter: bclk_set)
 	  {
-	    m_InputMgr->AddPacket(bco_iter, plist[i]);
+	    saved_beamclocks.insert(bco_iter);
+	    if (m_InputMgr)
+	    {
+	      m_InputMgr->AddPacket(bco_iter, plist[i]);
+	    }
+	    else
+	    {
+	      m_BclkStack.insert(bco_iter);
+	    }
 	  }
-          else
+	  latestbclk = *bclk_set.rbegin();
+	  auto packetvector = m_PacketStorageMap.find(latestbclk);
+	  if (packetvector == m_PacketStorageMap.end())
 	  {
-	    m_BclkStack.insert(bco_iter);
+	    std::vector<Packet *> packets;
+	    m_PacketStorageMap[latestbclk] = packets;
+	    packetvector =  m_PacketStorageMap.find(latestbclk);
 	  }
-	}
-        latestbclk = *bclk_set.rbegin();
-        auto packetvector = m_PacketStorageMap.find(latestbclk);
-	if (packetvector == m_PacketStorageMap.end())
-	{
-	  std::vector<Packet *> packets;
-	m_PacketStorageMap[latestbclk] = packets;
-        packetvector =  m_PacketStorageMap.find(latestbclk);
-	}
-	packetvector->second.push_back(plist[i]);
+	  packetvector->second.push_back(plist[i]);
 	}
       }
       // else
@@ -151,7 +152,7 @@ void SingleEvtInput::FillPool(const unsigned int nbclks)
       // }
     }
     delete evt;
-  } while (CheckPoolDepth(m_PacketStorageMap.begin()->first));
+  } while (m_PacketStorageMap.size() < 10 || CheckPoolDepth(m_PacketStorageMap.begin()->first));
 }
 
 int SingleEvtInput::fileopen(const std::string &filenam)
@@ -269,19 +270,25 @@ void SingleEvtInput::CleanupUsedPackets(const uint64_t bclk)
 }
 bool SingleEvtInput::CheckPoolDepth(const uint64_t bclk)
 {
-  if (m_FEEBclkMap.size() < 14)
-  {
-    std::cout << "not all FEEs in map: " << m_FEEBclkMap.size() << std::endl;
-    return true;
-  }
+  // if (m_FEEBclkMap.size() < 10)
+  // {
+  //   std::cout << "not all FEEs in map: " << m_FEEBclkMap.size() << std::endl;
+  //   return true;
+  // }
   for (auto iter : m_FEEBclkMap)
   {
+    if (Verbosity() > 2)
+    {
     std::cout << "my bclk 0x" << std::hex << iter.second
 	      << " req: 0x" << bclk << std::dec << std::endl;
+    }
     if (iter.second < bclk)
     {
-      std::cout << "my beamclock 0x" << std::hex << iter.second
+      if (Verbosity() > 1)
+      {
+      std::cout << "FEE " << iter.first<< " beamclock 0x" << std::hex << iter.second
 		<< " smaller than req bclk: 0x" << bclk << std::dec << std::endl;
+      }
       return true;
     }
   }

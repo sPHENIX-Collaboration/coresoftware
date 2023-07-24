@@ -23,6 +23,12 @@ void PacketMap::AddPacket(const int packet_id, Packet *pkt)
   return;
 }
 
+void PacketMap::AddBclk(const int packet_id, uint64_t bclk)
+{
+  m_PacketMap[packet_id].m_BeamClockSet.insert(bclk);
+  return;
+}
+
 void PacketMap::Reset()
 {
 //   for (auto iditer : m_PacketMap)
@@ -42,6 +48,10 @@ void PacketMap::identify(std::ostream &os)
   {
     os << "Packet " << iditer.first << " number of packets: "
        << iditer.second.m_PacketVector.size() << std::endl;
+    for (auto const setiter: iditer.second.m_BeamClockSet)
+    {
+      os << "BeamClock 0x"  <<  std::hex << setiter << std::dec << std::endl;
+    }
   }
 }
 
@@ -54,3 +64,9 @@ PacketMap::ConstRange PacketMap::begin_end(const int packet_id)
   }
   return std::make_pair(mapiter->second.m_PacketVector.begin(),mapiter->second.m_PacketVector.end());
 }
+
+PacketMap::PacketRange PacketMap::first_last_packet()
+{
+  return std::make_pair(m_PacketMap.begin(),m_PacketMap.end());
+}
+

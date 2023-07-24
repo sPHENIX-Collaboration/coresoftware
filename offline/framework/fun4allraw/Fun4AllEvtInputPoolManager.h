@@ -53,6 +53,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   PacketMap *m_PacketMap = nullptr;
   std::map<uint64_t, PacketInfo> m_PacketInfoMap;
   std::string m_EvtNodeName;
+  uint64_t m_CurrentBeamClock = 0;
 };
 
 #endif /* FUN4ALL_FUN4ALLEVTINPUTPOOLMANAGER_H */

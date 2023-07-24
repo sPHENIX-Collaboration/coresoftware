@@ -77,7 +77,7 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
   {
     for (auto iter : m_EvtInputVector)
     {
-      iter->FillPool(5);
+      iter->FillPool();
       m_RunNumber = iter->RunNumber();
     }
     SetRunNumber(m_RunNumber);
@@ -94,6 +94,11 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
   for (auto pktiter : m_PacketInfoMap.begin()->second.PacketVector)
   {
     pktmap->AddPacket(pktiter->getIdentifier(), pktiter);
+  }
+  m_CurrentBeamClock = m_PacketInfoMap.begin()->first;
+  for (auto pktiter : m_PacketInfoMap.begin()->second.PacketVector)
+  {
+    pktmap->AddBclk(pktiter->getIdentifier(), m_CurrentBeamClock);
   }
   m_PacketInfoMap.erase(m_PacketInfoMap.begin());
   return 0;
@@ -204,6 +209,10 @@ void Fun4AllEvtInputPoolManager::Print(const std::string &what) const
 int Fun4AllEvtInputPoolManager::ResetEvent()
 {
   PacketMap *pktmap = findNode::getClass<PacketMap>(m_topNode, m_EvtNodeName);
+    for (auto iter : m_EvtInputVector)
+    {
+      iter->CleanupUsedPackets(m_CurrentBeamClock);
+    }
   pktmap->Reset();
   //  m_SyncObject->Reset();
   return 0;
