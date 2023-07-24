@@ -28,7 +28,7 @@ class SingleEvtInput : public Fun4AllBase, public InputFileHandler
   int AllDone() const { return m_AllDone; }
   void AllDone(const int i) { m_AllDone = i; }
   void EventNumberOffset(const int i) { m_EventNumberOffset = i; }
-  void Print(const std::string &what = "ALL");
+  void Print(const std::string &what = "ALL") const override;
   void CleanupUsedPackets(const uint64_t bclk);
   bool CheckPoolDepth(const uint64_t bclk);
   void ClearCurrentEvent();

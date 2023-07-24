@@ -209,10 +209,10 @@ void Fun4AllEvtInputPoolManager::Print(const std::string &what) const
 int Fun4AllEvtInputPoolManager::ResetEvent()
 {
   PacketMap *pktmap = findNode::getClass<PacketMap>(m_topNode, m_EvtNodeName);
-    for (auto iter : m_EvtInputVector)
-    {
-      iter->CleanupUsedPackets(m_CurrentBeamClock);
-    }
+  for (auto iter : m_EvtInputVector)
+  {
+    iter->CleanupUsedPackets(m_CurrentBeamClock);
+  }
   pktmap->Reset();
   //  m_SyncObject->Reset();
   return 0;

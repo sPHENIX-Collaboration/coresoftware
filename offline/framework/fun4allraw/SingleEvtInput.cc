@@ -25,16 +25,16 @@ SingleEvtInput::~SingleEvtInput()
   delete m_EventIterator;
   for (auto iter : m_PacketStorageMap)
   {
-    for (auto pktiter: iter.second)
+    for (auto pktiter : iter.second)
     {
       delete pktiter;
     }
   }
   m_PacketStorageMap.clear();
-  delete [] plist;
+  delete[] plist;
 }
 
-void SingleEvtInput::FillPool(const unsigned int nbclks)
+void SingleEvtInput::FillPool(const unsigned int /*nbclks*/)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -50,7 +50,7 @@ void SingleEvtInput::FillPool(const unsigned int nbclks)
     Event *evt = m_EventIterator->getNextEvent();
     if (Verbosity() > 2)
     {
-      std::cout << "Fetching next Event" <<  evt->getEvtSequence() << std::endl;
+      std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl;
     }
     if (!evt)
     {
@@ -93,58 +93,58 @@ void SingleEvtInput::FillPool(const unsigned int nbclks)
       //        if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
       {
         int num_hits = plist[i]->iValue(0, "NR_HITS");
-	std::set<uint64_t> bclk_set;
-	for (int j=0; j<num_hits; j++)
-	{
-	  int FEE =  plist[i]->iValue(j, "FEE");
-	  uint64_t gtm_bco = plist[i]->lValue(j, "BCO") + m_Rollover[FEE];
-	  bclk_set.insert(gtm_bco);
-	  if (gtm_bco < m_PreviousClock[FEE])
-	  {
-	    m_Rollover[FEE] += 0x100000000;
-	    gtm_bco += m_Rollover[FEE];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
-	  }
-	  m_PreviousClock[FEE] = gtm_bco;
-	  m_BeamClockFEE[gtm_bco].insert(FEE);
+        std::set<uint64_t> bclk_set;
+        for (int j = 0; j < num_hits; j++)
+        {
+          int FEE = plist[i]->iValue(j, "FEE");
+          uint64_t gtm_bco = plist[i]->lValue(j, "BCO") + m_Rollover[FEE];
+          bclk_set.insert(gtm_bco);
+          if (gtm_bco < m_PreviousClock[FEE])
+          {
+            m_Rollover[FEE] += 0x100000000;
+            gtm_bco += m_Rollover[FEE];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+          }
+          m_PreviousClock[FEE] = gtm_bco;
+          m_BeamClockFEE[gtm_bco].insert(FEE);
           m_FEEBclkMap[FEE] = gtm_bco;
-	  if (Verbosity() > 2)
-	  {
-	  std::cout << "evtno: " << EventSequence
-		    << ", nr_hits: " << num_hits
-		    << ", bco: 0x" << std::hex << gtm_bco << std::dec 
-		    << ", FEE: " << FEE << std::endl;
-	  }
-	  plist[i]->convert();
-	}
-	uint64_t latestbclk = 0;
-	if (bclk_set.empty())
-	{
-	  delete plist[i];
-	}
-	else
-	{
-	  for (auto bco_iter: bclk_set)
-	  {
-	    saved_beamclocks.insert(bco_iter);
-	    if (m_InputMgr)
-	    {
-	      m_InputMgr->AddPacket(bco_iter, plist[i]);
-	    }
-	    else
-	    {
-	      m_BclkStack.insert(bco_iter);
-	    }
-	  }
-	  latestbclk = *bclk_set.rbegin();
-	  auto packetvector = m_PacketStorageMap.find(latestbclk);
-	  if (packetvector == m_PacketStorageMap.end())
-	  {
-	    std::vector<Packet *> packets;
-	    m_PacketStorageMap[latestbclk] = packets;
-	    packetvector =  m_PacketStorageMap.find(latestbclk);
-	  }
-	  packetvector->second.push_back(plist[i]);
-	}
+          if (Verbosity() > 2)
+          {
+            std::cout << "evtno: " << EventSequence
+                      << ", nr_hits: " << num_hits
+                      << ", bco: 0x" << std::hex << gtm_bco << std::dec
+                      << ", FEE: " << FEE << std::endl;
+          }
+          plist[i]->convert();
+        }
+        uint64_t latestbclk = 0;
+        if (bclk_set.empty())
+        {
+          delete plist[i];
+        }
+        else
+        {
+          for (auto bco_iter : bclk_set)
+          {
+            saved_beamclocks.insert(bco_iter);
+            if (m_InputMgr)
+            {
+              m_InputMgr->AddPacket(bco_iter, plist[i]);
+            }
+            else
+            {
+              m_BclkStack.insert(bco_iter);
+            }
+          }
+          latestbclk = *bclk_set.rbegin();
+          auto packetvector = m_PacketStorageMap.find(latestbclk);
+          if (packetvector == m_PacketStorageMap.end())
+          {
+            std::vector<Packet *> packets;
+            m_PacketStorageMap[latestbclk] = packets;
+            packetvector = m_PacketStorageMap.find(latestbclk);
+          }
+          packetvector->second.push_back(plist[i]);
+        }
       }
       // else
       // {
@@ -203,16 +203,16 @@ int SingleEvtInput::fileclose()
   return 0;
 }
 
-void SingleEvtInput::Print(const std::string &what)
+void SingleEvtInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "FEE")
   {
     for (auto bcliter : m_BeamClockFEE)
     {
       std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
-      for (auto feeiter:  bcliter.second)
+      for (auto feeiter : bcliter.second)
       {
-	std::cout << "FEM: " << feeiter << std::endl;
+        std::cout << "FEM: " << feeiter << std::endl;
       }
     }
   }
@@ -221,7 +221,7 @@ void SingleEvtInput::Print(const std::string &what)
     for (auto bcliter : m_FEEBclkMap)
     {
       std::cout << "FEE" << bcliter.first << " bclk: 0x"
-		<< std::hex << bcliter.second << std::dec << std::endl;
+                << std::hex << bcliter.second << std::dec << std::endl;
     }
   }
   if (what == "ALL" || what == "STORAGE")
@@ -229,10 +229,10 @@ void SingleEvtInput::Print(const std::string &what)
     for (auto bcliter : m_PacketStorageMap)
     {
       std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
-      for (auto feeiter:  bcliter.second)
+      for (auto feeiter : bcliter.second)
       {
-	std::cout << "Packet: " << feeiter->getIdentifier()
-		  << " at " << std::hex << feeiter << std::dec << std::endl;
+        std::cout << "Packet: " << feeiter->getIdentifier()
+                  << " at " << std::hex << feeiter << std::dec << std::endl;
       }
     }
   }
@@ -252,9 +252,9 @@ void SingleEvtInput::CleanupUsedPackets(const uint64_t bclk)
   {
     if (iter.first <= bclk)
     {
-      for (auto pktiter: iter.second)
+      for (auto pktiter : iter.second)
       {
-	delete pktiter;
+        delete pktiter;
       }
       toclearbclk.push_back(iter.first);
     }
@@ -265,7 +265,7 @@ void SingleEvtInput::CleanupUsedPackets(const uint64_t bclk)
   }
   for (auto iter : toclearbclk)
   {
-      m_PacketStorageMap.erase(iter);
+    m_PacketStorageMap.erase(iter);
   }
 }
 bool SingleEvtInput::CheckPoolDepth(const uint64_t bclk)
@@ -279,15 +279,15 @@ bool SingleEvtInput::CheckPoolDepth(const uint64_t bclk)
   {
     if (Verbosity() > 2)
     {
-    std::cout << "my bclk 0x" << std::hex << iter.second
-	      << " req: 0x" << bclk << std::dec << std::endl;
+      std::cout << "my bclk 0x" << std::hex << iter.second
+                << " req: 0x" << bclk << std::dec << std::endl;
     }
     if (iter.second < bclk)
     {
       if (Verbosity() > 1)
       {
-      std::cout << "FEE " << iter.first<< " beamclock 0x" << std::hex << iter.second
-		<< " smaller than req bclk: 0x" << bclk << std::dec << std::endl;
+        std::cout << "FEE " << iter.first << " beamclock 0x" << std::hex << iter.second
+                  << " smaller than req bclk: 0x" << bclk << std::dec << std::endl;
       }
       return true;
     }
@@ -297,7 +297,7 @@ bool SingleEvtInput::CheckPoolDepth(const uint64_t bclk)
 
 void SingleEvtInput::ClearCurrentEvent()
 {
-// called interactively, to get rid of the current event
+  // called interactively, to get rid of the current event
   uint64_t currentbclk = *m_BclkStack.begin();
   std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
   CleanupUsedPackets(currentbclk);
