@@ -44,11 +44,21 @@ int EvtCheck::process_event(PHCompositeNode *topNode)
   {
   pktmap->identify();
   }
-  for (auto iter = pktmap->begin_end(3004).first; iter !=  pktmap->begin_end(3004).second; ++iter)
+  PacketMap::PacketRange pktrange = pktmap->first_last_packet();
+  for (auto iter = pktrange.first; iter != pktrange.second; iter++)
   {
-    (*iter)->identify();
-  }
+    std::cout << "Packet " << iter->first << std::endl;
+    for (auto bclkiter : iter->second.m_BeamClockSet)
+    {
+      std::cout << "bclks: 0x" << std::hex << bclkiter << std::dec << std::endl;
+    }
+    for (auto pktiter : iter->second.m_PacketVector)
+    {
+      std::cout << "Packet " <<  pktiter->getIdentifier() << " at "
+		<< std::hex << pktiter << std::dec << std::endl;
+    }
 
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
