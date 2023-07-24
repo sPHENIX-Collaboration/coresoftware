@@ -10,12 +10,11 @@ class Packet;
 class PacketList
 {
  public:
-
   PacketList() = default;
   virtual ~PacketList();
-//  void identify(std::ostream &os = std::cout);
+  //  void identify(std::ostream &os = std::cout);
 
-// private:
+  // private:
   std::set<uint64_t> m_BeamClockSet;
   std::vector<Packet *> m_PacketVector;
 };

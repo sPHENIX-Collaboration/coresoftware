@@ -2,7 +2,7 @@
 
 #include <Event/packet.h>
 
-//std::vector<Packet *> empty_vector;
+// std::vector<Packet *> empty_vector;
 
 PacketList::~PacketList()
 {

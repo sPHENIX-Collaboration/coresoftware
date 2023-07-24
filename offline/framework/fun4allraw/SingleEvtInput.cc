@@ -116,7 +116,6 @@ void SingleEvtInput::FillPool(const unsigned int /*nbclks*/)
           }
           plist[i]->convert();
         }
-        uint64_t latestbclk = 0;
         if (bclk_set.empty())
         {
           delete plist[i];
@@ -135,7 +134,7 @@ void SingleEvtInput::FillPool(const unsigned int /*nbclks*/)
               m_BclkStack.insert(bco_iter);
             }
           }
-          latestbclk = *bclk_set.rbegin();
+          uint64_t latestbclk = *bclk_set.rbegin();
           auto packetvector = m_PacketStorageMap.find(latestbclk);
           if (packetvector == m_PacketStorageMap.end())
           {
