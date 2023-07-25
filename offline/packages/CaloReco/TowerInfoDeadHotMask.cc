@@ -2,8 +2,6 @@
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfov1.h>
-#include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfoDefs.h>
 #include <calobase/RawTowerDeadMap.h>
 #include <calobase/RawTowerGeomContainer.h>
@@ -13,21 +11,14 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNode.h>
-#include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
-#include <cassert>
-#include <cmath>
 #include <fstream>
 #include <iostream>
-#include <map>
+#include <set>                               // for _Rb_tree_const_iterator
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <utility>  // for pair
-#include <vector>
 
 TowerInfoDeadHotMask::TowerInfoDeadHotMask(const std::string &name)
   : SubsysReco(name)

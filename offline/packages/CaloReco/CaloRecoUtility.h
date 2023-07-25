@@ -25,7 +25,7 @@ class CaloRecoUtility
   ~CaloRecoUtility();
   CaloRecoUtility();
   CaloRecoUtility(CaloRecoUtility & cru);
-  CaloRecoUtility & operator=(CaloRecoUtility &);
+  CaloRecoUtility & operator=(CaloRecoUtility const&);
 
   //! corrects cluster Z (implicitly also eta) for updated z vertex
   // assuming 

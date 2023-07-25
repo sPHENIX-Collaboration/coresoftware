@@ -4,8 +4,6 @@
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv1.h>
 
-#include <caloreco/CaloWaveformProcessing.h>  // for CaloWaveformProcessing
-
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
@@ -19,6 +17,7 @@
 #include <Event/Event.h>
 #include <Event/packet.h>
 
+#include <climits>
 #include <iostream>  // for operator<<, endl, basic...
 #include <memory>    // for allocator_traits<>::val...
 #include <vector>    // for vector
@@ -153,7 +152,10 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
         int nchannels = packet->iValue(0, "CHANNELS");
         if (m_dettype == CaloTowerBuilder::ZDC)
         {  // special condition during zdc commisioning
-          if (nchannels < m_nchannels) return Fun4AllReturnCodes::DISCARDEVENT;
+          if (nchannels < m_nchannels)
+	  {
+	    return Fun4AllReturnCodes::DISCARDEVENT;
+	  }
           nchannels = m_nchannels;
         }
         if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
@@ -234,41 +236,41 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   }
   // towers
   PHNodeIterator nodeItr(dstNode);
-  PHCompositeNode *AlgoNode;
+  PHCompositeNode *DetNode;
 
   if (m_dettype == CaloTowerBuilder::CEMC)
   {
-    AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "CEMC"));
-    if (!AlgoNode)
+    DetNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "CEMC"));
+    if (!DetNode)
     {
-      AlgoNode = new PHCompositeNode("CEMC");
+      DetNode = new PHCompositeNode("CEMC");
     }
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::EMCAL);
   }
   else if (m_dettype == EPD)
   {
-    AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "EPD"));
-    if (!AlgoNode)
+    DetNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "EPD"));
+    if (!DetNode)
     {
-      AlgoNode = new PHCompositeNode("EPD");
+      DetNode = new PHCompositeNode("EPD");
     }
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::SEPD);
   }
   else if (m_dettype == MBD)
   {
-    AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "MBD"));
-    if (!AlgoNode)
+    DetNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "MBD"));
+    if (!DetNode)
     {
-      AlgoNode = new PHCompositeNode("MBD");
+      DetNode = new PHCompositeNode("MBD");
     }
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::MBD);
   }
   else if (m_dettype == ZDC)
   {
-    AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "ZDC"));
-    if (!AlgoNode)
+    DetNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "ZDC"));
+    if (!DetNode)
     {
-      AlgoNode = new PHCompositeNode("ZDC");
+      DetNode = new PHCompositeNode("ZDC");
     }
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::ZDC);
   }
@@ -276,24 +278,24 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   {
     if (m_dettype == HCALIN)
     {
-      AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "HCALIN"));
-      if (!AlgoNode)
+      DetNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "HCALIN"));
+      if (!DetNode)
       {
-        AlgoNode = new PHCompositeNode("HCALIN");
+        DetNode = new PHCompositeNode("HCALIN");
       }
     }
     else
     {
-      AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "HCALOUT"));
-      if (!AlgoNode)
+      DetNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "HCALOUT"));
+      if (!DetNode)
       {
-        AlgoNode = new PHCompositeNode("HCALOUT");
+        DetNode = new PHCompositeNode("HCALOUT");
       }
     }
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::HCAL);
   }
-  dstNode->addNode(AlgoNode);
+  dstNode->addNode(DetNode);
 
-  PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_" + m_detector, "PHObject");
-  AlgoNode->addNode(emcal_towerNode);
+  PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_" + m_detector, "PHObject");
+  DetNode->addNode(newTowerNode);
 }

@@ -1,15 +1,23 @@
 #include "CaloRecoUtility.h"
 
+#include "BEmcRec.h"                  // for BEmcRec
+#include "BEmcRecCEMC.h"
+#include "BEmcCluster.h"
+
 #include <calobase/RawCluster.h>
-#include <calobase/RawTower.h>
-#include <BEmcRecCEMC.h>
-#include <BEmcCluster.h>
+#include <calobase/RawTowerDefs.h>    // for decode_index1, decode_index2
 
 #include <ffamodules/CDBInterface.h>
 
-#include <cassert>
+#include <phool/phool.h>              // for PHWHERE
+
+#include <cmath>                      // for atan2, log, cos, fabs, sin, sqrt
+#include <cstdlib>                   // for exit, getenv
 #include <iostream>
+#include <map>                        // for _Rb_tree_const_iterator, operat...
 #include <string>
+#include <utility>                    // for pair
+#include <vector>                     // for vector
 
 void CaloRecoUtility::ShowerDepthCorrZVertex(RawCluster * clus, float vz)
 {
@@ -193,7 +201,7 @@ CaloRecoUtility::CaloRecoUtility(CaloRecoUtility & cru)
 
 }
 
-CaloRecoUtility& CaloRecoUtility::operator=(CaloRecoUtility & cru)
+CaloRecoUtility& CaloRecoUtility::operator=(const CaloRecoUtility & cru)
 {
 
   if (this == &cru)
@@ -221,8 +229,5 @@ CaloRecoUtility& CaloRecoUtility::operator=(CaloRecoUtility & cru)
 
 CaloRecoUtility::~CaloRecoUtility()
 {
-
-  if (_bemc)
-    delete _bemc;
-
+  delete _bemc;
 }
