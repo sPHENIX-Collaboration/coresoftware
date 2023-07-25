@@ -207,7 +207,7 @@ class MakeActsGeometry : public SubsysReco
   PHG4TpcCylinderGeomContainer* m_geomContainerTpc = nullptr;
   TGeoManager* m_geoManager = nullptr;
 
-  bool m_inttSurvey = true;
+  bool m_inttSurvey = false;
 
   bool m_useField = true;
   std::map<uint8_t, double> m_misalignmentFactor;
