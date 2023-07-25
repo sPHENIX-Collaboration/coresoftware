@@ -18,6 +18,8 @@
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitv2.h>
 
+#include <TSystem.h>
+
 InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)
 {
@@ -85,7 +87,9 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
   PacketMap* pktmap = findNode::getClass<PacketMap>(topNode, m_EvtNodeName);
   if (!pktmap)
   {
-    std::cout << "could not find node " << m_EvtNodeName << std::endl;
+    std::cout <<  PHWHERE << " could not find node " << m_EvtNodeName << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
 
   // struct Intt::RawData_s rawdata;
