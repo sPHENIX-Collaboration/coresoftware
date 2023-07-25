@@ -12,7 +12,7 @@
 
 class SingleEvtInput;
 class ospEvent;
-class PacketList;
+class PacketMap;
 class Packet;
 class PHCompositeNode;
 class SyncObject;
@@ -50,9 +50,10 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   std::vector<SingleEvtInput *> m_EvtInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
-  PacketList *m_PacketList = nullptr;
-  std::map<uint64_t, PacketInfo> m_PacketMap;
+  PacketMap *m_PacketMap = nullptr;
+  std::map<uint64_t, PacketInfo> m_PacketInfoMap;
   std::string m_EvtNodeName;
+  uint64_t m_CurrentBeamClock = 0;
 };
 
 #endif /* FUN4ALL_FUN4ALLEVTINPUTPOOLMANAGER_H */
