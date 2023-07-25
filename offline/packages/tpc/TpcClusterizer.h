@@ -81,8 +81,8 @@ class TpcClusterizer : public SubsysReco
   bool do_singles = false;
   bool do_split = true;
   double pedestal = 74.4;
-  double seed_threshold = 10;
-  double edge_threshold = 5;
+  double seed_threshold = 5;
+  double edge_threshold = 0;
   double min_err_squared = 0.01;
   double min_clus_size = 1;
   double min_adc_sum = 10;
