@@ -3,6 +3,7 @@
 #include <Event/packet.h>
 
 std::vector<Packet *> empty_vector;
+std::set<uint64_t> empty_set;
 
 PacketMap::~PacketMap()
 {
@@ -55,7 +56,7 @@ void PacketMap::identify(std::ostream &os)
   }
 }
 
-PacketMap::ConstRange PacketMap::begin_end(const int packet_id)
+PacketMap::PacketRange PacketMap::begin_end(const int packet_id)
 {
   auto mapiter = m_PacketMap.find(packet_id);
   if (mapiter == m_PacketMap.end())
@@ -65,7 +66,17 @@ PacketMap::ConstRange PacketMap::begin_end(const int packet_id)
   return std::make_pair(mapiter->second.m_PacketVector.begin(), mapiter->second.m_PacketVector.end());
 }
 
-PacketMap::PacketRange PacketMap::first_last_packet()
+PacketMap::BclkRange PacketMap::begin_end_bclk(const int packet_id)
+{
+  auto mapiter = m_PacketMap.find(packet_id);
+  if (mapiter == m_PacketMap.end())
+  {
+    return std::make_pair(empty_set.end(), empty_set.end());
+  }
+  return std::make_pair(mapiter->second.m_BeamClockSet.begin(), mapiter->second.m_BeamClockSet.end());
+}
+
+PacketMap::PacketListRange PacketMap::first_last_packet()
 {
   return std::make_pair(m_PacketMap.begin(), m_PacketMap.end());
 }
