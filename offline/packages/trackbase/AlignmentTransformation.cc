@@ -228,19 +228,11 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   Eigen::AngleAxisd alpha(sensorAngles(0), Eigen::Vector3d::UnitX());
   Eigen::AngleAxisd beta(sensorAngles(1), Eigen::Vector3d::UnitY());
   Eigen::AngleAxisd gamma(sensorAngles(2), Eigen::Vector3d::UnitZ());
-  
+
   Eigen::Quaternion<double> q       = gamma*beta*alpha;
  
   Eigen::Matrix3d millepedeRotation = q.matrix();
-  if(survey)
-    {
-      //! Permute the matrix to make it match acts definition
-      Eigen::PermutationMatrix<3,3> perm;
-      perm.indices() = {0,2,1};
-      millepedeRotation = perm * millepedeRotation;
-      millepedeRotation.col(2) = millepedeRotation.col(2)* -1;
-    }
-  
+
   Acts::Transform3 mpRotationAffine;   
   mpRotationAffine.linear() = millepedeRotation;
   mpRotationAffine.translation() = nullTranslation;   
@@ -253,12 +245,12 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
       mpTranslationAffine.translation() = millepedeTranslation;   
     }
   else
-      {
-	// offsets should now be in local frame, so (dx,dz,dy)
-	Eigen::Vector3d millepedeTranslationxzy(millepedeTranslation(0), millepedeTranslation(2), millepedeTranslation(1));
-	mpTranslationAffine.translation() = millepedeTranslationxzy;   
-      }
-
+    {
+      // offsets should now be in local frame, so (dx,dz,dy)
+      Eigen::Vector3d millepedeTranslationxzy(millepedeTranslation(0), millepedeTranslation(2), millepedeTranslation(1));
+      mpTranslationAffine.translation() = millepedeTranslationxzy;   
+    }
+  
   // get the acts transform components
   Acts::Transform3 actsTransform = surf->transform(m_tGeometry->geometry().getGeoContext());
   Eigen::Matrix3d actsRotationPart    = actsTransform.rotation();
