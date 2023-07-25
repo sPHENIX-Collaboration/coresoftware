@@ -101,7 +101,7 @@ void SingleEvtInput::FillPool(const unsigned int /*nbclks*/)
           bclk_set.insert(gtm_bco);
           if (gtm_bco < m_PreviousClock[FEE])
           {
-            m_Rollover[FEE] += 0x100000000;
+            m_Rollover[FEE] += 0x10000000000;
             gtm_bco += m_Rollover[FEE];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
           }
           m_PreviousClock[FEE] = gtm_bco;
