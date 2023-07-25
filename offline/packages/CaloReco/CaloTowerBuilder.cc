@@ -126,7 +126,6 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
   }
   WaveformProcessing->initialize_processing();
   CreateNodeTree(topNode);
-  topNode->print();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -223,17 +222,17 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
 
 void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
 {
-  PHNodeIterator nodeItr(topNode);
+  PHNodeIterator topNodeItr(topNode);
   // DST node
-  PHCompositeNode *dst_node = dynamic_cast<PHCompositeNode *>(
-      nodeItr.findFirst("PHCompositeNode", "DST"));
-  if (!dst_node)
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(topNodeItr.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
   {
     std::cout << "PHComposite node created: DST" << std::endl;
-    dst_node = new PHCompositeNode("DST");
-    topNode->addNode(dst_node);
+    dstNode = new PHCompositeNode("DST");
+    topNode->addNode(dstNode);
   }
   // towers
+  PHNodeIterator nodeItr(dstNode);
   PHCompositeNode *AlgoNode;
 
   if (m_dettype == CaloTowerBuilder::CEMC)
@@ -292,7 +291,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
 	}
       m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::HCAL);
     }
-  dst_node->addNode(AlgoNode);
+  dstNode->addNode(AlgoNode);
 
   PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_" + m_detector, "PHObject");
   AlgoNode->addNode(emcal_towerNode);
