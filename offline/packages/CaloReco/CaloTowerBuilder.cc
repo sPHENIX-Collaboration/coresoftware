@@ -110,7 +110,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_nchannels = 128;
     if (_processingtype == CaloWaveformProcessing::NONE)
     {
-      WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST); 
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);
     }
   }
   else if (m_dettype == CaloTowerBuilder::ZDC)
@@ -151,7 +151,8 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       if (packet)
       {
         int nchannels = packet->iValue(0, "CHANNELS");
-        if ( m_dettype == CaloTowerBuilder::ZDC){ // special condition during zdc commisioning
+        if (m_dettype == CaloTowerBuilder::ZDC)
+        {  // special condition during zdc commisioning
           if (nchannels < m_nchannels) return Fun4AllReturnCodes::DISCARDEVENT;
           nchannels = m_nchannels;
         }
@@ -248,49 +249,49 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   {
     AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "EPD"));
     if (!AlgoNode)
-      {
-	AlgoNode = new PHCompositeNode("EPD");
-      }
+    {
+      AlgoNode = new PHCompositeNode("EPD");
+    }
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::SEPD);
   }
   else if (m_dettype == MBD)
   {
     AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "MBD"));
     if (!AlgoNode)
-      {
-	AlgoNode = new PHCompositeNode("MBD");
-      }
+    {
+      AlgoNode = new PHCompositeNode("MBD");
+    }
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::MBD);
   }
   else if (m_dettype == ZDC)
   {
     AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "ZDC"));
-      if (!AlgoNode)
-	{
-	  AlgoNode = new PHCompositeNode("ZDC");
-	}
+    if (!AlgoNode)
+    {
+      AlgoNode = new PHCompositeNode("ZDC");
+    }
     m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::ZDC);
   }
   else
+  {
+    if (m_dettype == HCALIN)
     {
-      if (m_dettype == HCALIN)
-	{
-	  AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "HCALIN"));
-	  if (!AlgoNode)
-	    {
-	      AlgoNode = new PHCompositeNode("HCALIN");
-	    }
-	}
-      else
-	{
-	  AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "HCALOUT"));
-	  if (!AlgoNode)
-	    {
-	      AlgoNode = new PHCompositeNode("HCALOUT");
-	    }
-	}
-      m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::HCAL);
+      AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "HCALIN"));
+      if (!AlgoNode)
+      {
+        AlgoNode = new PHCompositeNode("HCALIN");
+      }
     }
+    else
+    {
+      AlgoNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "HCALOUT"));
+      if (!AlgoNode)
+      {
+        AlgoNode = new PHCompositeNode("HCALOUT");
+      }
+    }
+    m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::HCAL);
+  }
   dstNode->addNode(AlgoNode);
 
   PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_" + m_detector, "PHObject");
