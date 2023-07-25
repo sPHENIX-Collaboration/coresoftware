@@ -88,17 +88,17 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     std::cout << "could not find node " << m_EvtNodeName << std::endl;
   }
 
-  struct Intt::RawData_s rawdata;
-  struct Intt::Offline_s offline;
+  // struct Intt::RawData_s rawdata;
+  // struct Intt::Offline_s offline;
 
-  int adc = 0;
-  // int amp = 0;
-  int bco = 0;
+  // int adc = 0;
+  // // int amp = 0;
+  // int bco = 0;
 
-  TrkrDefs::hitsetkey hit_set_key = 0;
-  TrkrDefs::hitkey hit_key = 0;
-  TrkrHitSetContainer::Iterator hit_set_container_itr;
-  TrkrHit* hit = nullptr;
+  // TrkrDefs::hitsetkey hit_set_key = 0;
+  // TrkrDefs::hitkey hit_key = 0;
+  // TrkrHitSetContainer::Iterator hit_set_container_itr;
+  // TrkrHit* hit = nullptr;
 
   for (int pktid = 3001; pktid <= 3007; pktid++)
   {
