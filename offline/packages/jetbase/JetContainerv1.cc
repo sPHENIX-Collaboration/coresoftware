@@ -41,7 +41,7 @@ JetContainerv1::~JetContainerv1()
 }
 
 void JetContainerv1::Reset() {
-    m_clones->Clear();
+    m_clones->Clear("C");
     m_njets = 0;
     m_is_sorted = false;
     m_current_jet = nullptr;
@@ -50,6 +50,7 @@ void JetContainerv1::Reset() {
 
 Jet* JetContainerv1::add_jet() {
     m_current_jet = (Jet*) m_clones->ConstructedAt(m_njets++);
+    /* m_current_jet = new ((*m_clones)[m_njets++]) Jetv2(); */
     m_current_jet->resize_properties(m_psize);
     return m_current_jet;
 }

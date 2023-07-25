@@ -38,6 +38,7 @@ class FastJetAlgo : public JetAlgo
   // Fastjet calculate jet area
   void set_do_JetArea(bool do_JA) { m_JetAreaFlag = do_JA; }
   void set_do_JetArea(float ghostArea, float ghostMaxRap=0) { 
+    m_JetAreaFlag = true;
     m_GhostArea = ghostArea; m_GhostMaxRap=ghostMaxRap;
   }
 

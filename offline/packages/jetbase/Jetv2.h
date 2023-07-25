@@ -76,7 +76,7 @@ class Jetv2 : public Jet
   void   clear_comp() override { _comp_ids.clear(); }
   void   insert_comp(SRC iSRC, unsigned int compid) override;
   void   print_comp(std::ostream& os = std::cout, bool single_line=false) override;
-  size_t cnt_comp(SRC iSRC) override; 
+  size_t num_comp(SRC iSRC=Jet::SRC::VOID) override; 
   std::vector<Jet::SRC> comp_src_vec() override;
   std::map<Jet::SRC,size_t> comp_src_sizemap() override; // map of Jet::SRC to number of entries
 
@@ -91,6 +91,8 @@ class Jetv2 : public Jet
   Bool_t IsSortable() const override { return kTRUE; }
   void set_sort_selptr (Jet::SortSelections* _) override { _sortopt = _; }
   Jet::SortSelections* get_sort_selptr() override { return _sortopt; }
+
+  inline void Clear(Option_t* =nullptr) override { Reset(); }
 
  private:
   /// unique identifier within container
@@ -131,6 +133,7 @@ class Jetv2 : public Jet
 
   bool  IsEqual(const TObject* obj) const override;
   Int_t Compare(const TObject* obj) const override;
+
 
   inline int intCompare (float a, float b) const {
     if (_sortopt->order == Jet::SORT_ORDER::ASCENDING) {

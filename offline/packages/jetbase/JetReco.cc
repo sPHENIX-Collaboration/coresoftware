@@ -146,8 +146,8 @@ int JetReco::CreateNodes(PHCompositeNode *topNode)
         if (!jetconn)
         {
           jetconn = new JetContainerv1();
-          PHIODataNode<PHObject> *JetMapNode = new PHIODataNode<PHObject>(jetconn, _output, "PHObject");
-          InputNode->addNode(JetMapNode);
+          PHIODataNode<PHObject> *JetContainerNode = new PHIODataNode<PHObject>(jetconn, _output, "PHObject");
+          InputNode->addNode(JetContainerNode);
         }
       }
   } else {
@@ -163,8 +163,6 @@ int JetReco::CreateNodes(PHCompositeNode *topNode)
         }
       }
   }
-
-
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

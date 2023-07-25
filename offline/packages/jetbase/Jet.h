@@ -182,7 +182,7 @@ class Jet : public PHObject
   virtual void clear_comp() { }
   virtual void insert_comp(Jet::SRC, unsigned int) { }
   // -- new with Jetv2 --------------------------------------------------------
-  virtual size_t cnt_comp(SRC /**/) { mv2("cnt_comp()"); return 0; }
+  virtual size_t num_comp(SRC=Jet::SRC::VOID /**/) { mv2("num_comp()"); return 0; }
   virtual void   print_comp(std::ostream& /**/, bool /**/) { mv2("print_comp()"); }
   virtual std::vector<Jet::SRC> comp_src_vec() { mv2("comp_src_vec()"); return {}; }
   virtual std::map<Jet::SRC,size_t> comp_src_sizemap() { mv2("comp_src_sizemap()"); return {}; }

@@ -103,7 +103,6 @@ void Jetv2::Reset()
   _is_sorted = false;
 }
 
-
 int Jetv2::isValid() const
 {
   if (_id == 0xFFFFFFFF) return 0;
@@ -164,7 +163,8 @@ float Jetv2::get_mass2() const
   return get_e() * get_e() - p2;
 }
 
-size_t Jetv2::cnt_comp(Jet::SRC iSRC) {
+size_t Jetv2::num_comp(Jet::SRC iSRC) {
+  if (iSRC==Jet::SRC::VOID) return (comp_end()-comp_begin());
   if (!_is_sorted) { sort_comp_ids(); }
   return (comp_end(iSRC)-comp_begin(iSRC));
 }

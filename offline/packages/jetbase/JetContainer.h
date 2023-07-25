@@ -24,7 +24,8 @@ class Jet;
 class JetContainer : public PHObject
 {
 public:
-    ~JetContainer() = default;
+    JetContainer() = default;
+    ~JetContainer() override = default;
     virtual void identify(std::ostream&/*-*/) const override;
     int isValid() const override { return 0; }
     PHObject* CloneMe() const override { return nullptr; }
@@ -145,6 +146,8 @@ public:
 
     virtual void set_rho_median(float /**/) {};
     virtual float get_rho_median() const { return NAN; };
+
+  private:
   ClassDefOverride(JetContainer, 1);
 };
 

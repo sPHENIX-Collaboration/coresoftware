@@ -150,6 +150,8 @@ private:
     std::set<Jet::SRC> m_src;      //< set of sources (clusters, towers, etc)
     
     float m_RhoMedian {NAN};
+
+    ClassDefOverride(JetContainerv1, 1);
 };
 
 #endif
