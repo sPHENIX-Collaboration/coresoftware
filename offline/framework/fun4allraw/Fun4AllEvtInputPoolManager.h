@@ -10,9 +10,9 @@
 #include <map>
 #include <string>
 
-class Event;
 class SingleEvtInput;
 class ospEvent;
+class PacketMap;
 class Packet;
 class PHCompositeNode;
 class SyncObject;
@@ -36,7 +36,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   std::string GetString(const std::string &what) const override;
   SingleEvtInput *AddEvtInputList(const std::string &listfile);
   SingleEvtInput *AddEvtInputFile(const std::string &filename);
-  void AddPacket(const int evtno, Packet *p);
+  void AddPacket(uint64_t bclk, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
 
  private:
@@ -50,16 +50,10 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   std::vector<SingleEvtInput *> m_EvtInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
-  Event *m_Event = nullptr;
-union wrk
-{
-  PHDWORD workmem[4 * 1024 * 1024];
-int iwmem[4 * 1024 * 1024];
-};
-  ospEvent *osp;
-  wrk workmem = {};
-  std::map<int, PacketInfo> m_PacketMap;
+  PacketMap *m_PacketMap = nullptr;
+  std::map<uint64_t, PacketInfo> m_PacketInfoMap;
   std::string m_EvtNodeName;
+  uint64_t m_CurrentBeamClock = 0;
 };
 
 #endif /* FUN4ALL_FUN4ALLEVTINPUTPOOLMANAGER_H */

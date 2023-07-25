@@ -2,6 +2,8 @@
 #define __SVTXTRACKSTATE_H__
 
 #include <phool/PHObject.h>
+#include <trackbase/TrkrDefs.h>
+
 #include <cmath>
 
 class SvtxTrackState : public PHObject
@@ -49,6 +51,9 @@ class SvtxTrackState : public PHObject
   virtual float get_error(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
   virtual void set_error(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
 
+  virtual TrkrDefs::cluskey get_cluskey() const { return UINT32_MAX; }
+  virtual void set_cluskey(TrkrDefs::cluskey) {}
+  
   virtual std::string get_name() const { return ""; }
   virtual void set_name(const std::string &/*name*/) {}
 

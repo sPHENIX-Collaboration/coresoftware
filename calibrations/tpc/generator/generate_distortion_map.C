@@ -92,19 +92,8 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   
 }
 
-
-
-void generate_distortion_map(const char *inputname, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true){
-  //this is a legacy interface so that old macros can run unchanged even though I now ask for flags about the gain map
-  printf("generating single distortion map:  InputType=IBF+Primaries denominated in ions per voxel.\n");
-
-  generate_distortion_map(inputname, "", outputname, ibfName, primName, hasSpacecharge,false);
-
-  return;
-}
-
   
-void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.root", const char *outputfilebase="./apr07_maps/apr07", bool hasSpacecharge, bool isDigitalCurrent, int nSteps=500){
+void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.root", const char *outputfilebase="./apr07_maps/apr07", bool hasSpacecharge=true, bool isDigitalCurrent=false, int nSteps=500){
   
 
   int maxmaps=10;

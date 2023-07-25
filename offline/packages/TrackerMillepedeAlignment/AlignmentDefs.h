@@ -34,6 +34,7 @@ namespace AlignmentDefs
     mm
   };
 
+  static constexpr int NGLVTX = 3;
   static constexpr int NGL = 6;
   static constexpr int NLC = 5;
 
@@ -50,6 +51,8 @@ namespace AlignmentDefs
      {0,1,2,3,12,13,14,15,0,0}},
     {{5,6,7,8,9,10,11,12,13,14},
      {0,1,2,3,4,15,16,17,18,19 }} };
+
+  static constexpr int glbl_vtx_label[NGLVTX] = {60000000,60000001,60000002};
 
   int getTpcRegion(int layer);
   void getMvtxGlobalLabels(Surface surf, int glbl_label[], mvtxGrp grp);
