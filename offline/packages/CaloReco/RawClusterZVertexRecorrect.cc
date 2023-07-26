@@ -100,7 +100,9 @@ int RawClusterZVertexRecorrect::process_event(PHCompositeNode *topNode)
 	}
       //      BbcVertex *bvertex = (bbcmap->begin()->second);
       if (!bvertex) 
+      {
 	return Fun4AllReturnCodes::ABORTEVENT;
+      }
       vz = bvertex->get_z();
     }
 

@@ -68,7 +68,7 @@ class twrs
     return binphi;
   }
 
- protected:
+ private:
   int bineta;
   int binphi;
   int maxphibin;

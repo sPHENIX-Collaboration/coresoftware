@@ -11,7 +11,6 @@
 #include <iostream>
 #include <string>
 
-
 class CDBInterface;
 class CDBTTree;
 class PHCompositeNode;
@@ -46,13 +45,13 @@ class CaloTowerCalib : public SubsysReco
     m_calibName = name;
     m_overrideCalibName = 1;
     return;
-   } 
+  }
   void setFieldName(const std::string &name)
   {
     m_fieldname = name;
     m_overrideFieldName = 1;
     return;
-   } 
+  }
 
  private:
   TowerInfoContainerv1 *_raw_towers = nullptr;

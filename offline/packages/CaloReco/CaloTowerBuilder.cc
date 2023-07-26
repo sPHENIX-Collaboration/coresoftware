@@ -153,9 +153,9 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
         if (m_dettype == CaloTowerBuilder::ZDC)
         {  // special condition during zdc commisioning
           if (nchannels < m_nchannels)
-	  {
-	    return Fun4AllReturnCodes::DISCARDEVENT;
-	  }
+          {
+            return Fun4AllReturnCodes::DISCARDEVENT;
+          }
           nchannels = m_nchannels;
         }
         if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels

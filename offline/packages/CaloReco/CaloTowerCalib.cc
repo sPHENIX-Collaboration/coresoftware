@@ -1,10 +1,10 @@
 #include "CaloTowerCalib.h"
 
-#include <calobase/TowerInfo.h>             // for TowerInfo
+#include <calobase/TowerInfo.h>  // for TowerInfo
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfov1.h>
 
-#include <cdbobjects/CDBTTree.h>            // for CDBTTree
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
 #include <ffamodules/CDBInterface.h>
 
@@ -15,17 +15,17 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
-#include <phool/PHNode.h>                   // for PHNode
+#include <phool/PHNode.h>          // for PHNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
-#include <cstdlib>                         // for exit
-#include <exception>                        // for exception
-#include <iostream>                         // for operator<<, basic_ostream
-#include <stdexcept>                        // for runtime_error
+#include <cstdlib>    // for exit
+#include <exception>  // for exception
+#include <iostream>   // for operator<<, basic_ostream
+#include <stdexcept>  // for runtime_error
 
 //____________________________________________________________________________..
 CaloTowerCalib::CaloTowerCalib(const std::string &name)
@@ -67,10 +67,14 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     m_DETECTOR = TowerInfoContainer::EMCAL;
 
     cdb = CDBInterface::instance();
-    if (!m_overrideCalibName) { m_calibName = "cemc_relcalib_cosmic";
-}
-    if (!m_overrideFieldName) { m_fieldname = "cemc_relcalib_cosmic";
-}
+    if (!m_overrideCalibName)
+    {
+      m_calibName = "cemc_relcalib_cosmic";
+    }
+    if (!m_overrideFieldName)
+    {
+      m_fieldname = "cemc_relcalib_cosmic";
+    }
     std::string calibdir = cdb->getUrl(m_calibName);
     if (calibdir[0] == '/')
     {
@@ -87,10 +91,14 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     m_detector = "HCALIN";
     m_DETECTOR = TowerInfoContainer::HCAL;
 
-    if (!m_overrideCalibName) { m_calibName = "ihcal_abscalib_cosmic";
-}
-    if (!m_overrideFieldName) { m_fieldname = "ihcal_abscalib_mip";
-}
+    if (!m_overrideCalibName)
+    {
+      m_calibName = "ihcal_abscalib_cosmic";
+    }
+    if (!m_overrideFieldName)
+    {
+      m_fieldname = "ihcal_abscalib_mip";
+    }
     cdb = CDBInterface::instance();
     std::string calibdir = cdb->getUrl(m_calibName);
     if (calibdir[0] == '/')
@@ -108,10 +116,14 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     m_detector = "HCALOUT";
     m_DETECTOR = TowerInfoContainer::HCAL;
 
-    if (!m_overrideCalibName) { m_calibName = "ohcal_abscalib_cosmic";
-}
-    if (!m_overrideFieldName) { m_fieldname = "ohcal_abscalib_mip";
-}
+    if (!m_overrideCalibName)
+    {
+      m_calibName = "ohcal_abscalib_cosmic";
+    }
+    if (!m_overrideFieldName)
+    {
+      m_fieldname = "ohcal_abscalib_mip";
+    }
     cdb = CDBInterface::instance();
     std::string calibdir = cdb->getUrl(m_calibName);
     if (calibdir[0] == '/')
@@ -128,10 +140,14 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   {
     m_detector = "EPD";
     m_DETECTOR = TowerInfoContainer::SEPD;
-    if (!m_overrideCalibName) { m_calibName = "noCalibYet";
-}
-    if (!m_overrideFieldName) { m_fieldname = "noCalibYet";
-}
+    if (!m_overrideCalibName)
+    {
+      m_calibName = "noCalibYet";
+    }
+    if (!m_overrideFieldName)
+    {
+      m_fieldname = "noCalibYet";
+    }
     cdb = CDBInterface::instance();
     std::string calibdir = cdb->getUrl(m_calibName);
     if (calibdir[0] == '/')
