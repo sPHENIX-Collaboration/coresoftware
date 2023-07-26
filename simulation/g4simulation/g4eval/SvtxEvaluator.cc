@@ -3551,7 +3551,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         SvtxTrack* track = iter.second;
         float trackID = track->get_id();
-	std::cout << " trackId: " << trackID << std::endl;
+        
         TrackSeed* tpcseed = track->get_tpc_seed();
         TrackSeed* silseed = track->get_silicon_seed();
         short int crossing_int = track->get_crossing();
@@ -3731,15 +3731,18 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      msize+=rphisize;
 	    }
 	    if(local_layer==7||local_layer==22||local_layer==23||local_layer==38||local_layer==39) nredge++;
-	    std::cout << " lay: "  << local_layer
-		      << " pedge " << pedge   
-		      << " | " << npedge  
-		      << " nredge " << nredge 
-		      << " rphisize " << rphisize  
-		      << " | " << nbig 
-		      << " rovlp " << rovlp  
-		      << "  | " << novlp  
-		      << std::endl;
+	    if(Verbosity() > 2)
+	      {
+		std::cout << " lay: "  << local_layer
+			  << " pedge " << pedge   
+			  << " | " << npedge  
+			  << " nredge " << nredge 
+			  << " rphisize " << rphisize  
+			  << " | " << nbig 
+			  << " rovlp " << rovlp  
+			  << "  | " << novlp  
+			  << std::endl;
+	      }
 	  }
 	}
       
@@ -4088,11 +4091,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track, g4particle);
           }
         }
-	std::cout << " npedge "  << npedge  
-		  << " nredge "  << nredge  
-		  << " nbig " << nbig 
-		  << " novlp "<< novlp  
-		  << std::endl;
+	if(Verbosity() > 2)
+	  {
+	    std::cout << " npedge "  << npedge  
+		      << " nredge "  << nredge  
+		      << " nbig " << nbig 
+		      << " novlp "<< novlp  
+		      << std::endl;
+	  }
         float track_data[] = {(float) _ievent, m_fSeed,
                               trackID,
                               crossing,
