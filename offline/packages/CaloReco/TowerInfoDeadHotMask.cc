@@ -54,7 +54,7 @@ int TowerInfoDeadHotMask::process_event(PHCompositeNode * /*topNode*/)
     int ieta = m_geometry->get_tower_geometry(*itr)->get_bineta();
     unsigned int key = TowerInfoDefs::encode_emcal(ieta, iphi);
     m_calibTowerInfos->get_tower_at_key(key)->set_energy(0.);
-    m_calibTowerInfos->get_tower_at_key(key)->set_time(0);
+    m_calibTowerInfos->get_tower_at_key(key)->set_time(-10);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
