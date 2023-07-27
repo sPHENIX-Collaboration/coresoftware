@@ -88,7 +88,7 @@ class TpcRawDataDecoder : public SubsysReco
     unsigned int SEC_ID;
   };
 
-  std::map<unsigned int, struct ped_tpc_map> tmap;  
+  //std::map<unsigned int, struct ped_tpc_map> tmap;  
 
   int starting_BCO;
   int rollover_value;

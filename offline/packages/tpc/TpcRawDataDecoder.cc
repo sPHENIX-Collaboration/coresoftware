@@ -54,48 +54,48 @@ TpcRawDataDecoder::TpcRawDataDecoder(const std::string &name)
   //M.setMapNames("AutoPad-R1-RevA.sch.ChannelMapping.csv", "AutoPad-R2-RevA-Pads.sch.ChannelMapping.csv", "AutoPad-R3-RevA.sch.ChannelMapping.csv");
 
   // Open a file, save the ntuple and close the file
-  TFile in_file("/sphenix/user/shulga/Work/Files/pedestal-10616-outfile.root");
-  in_file.GetObject("h_Alive",h_Alive);
-  float chan_id,fee_id,module_id,pedMean,pedStdi, sec_id; 
-  float* row_content;
-
-    if( Verbosity() )std::cout << "chan_id\t fee_id\t module_id\t pedMean\t pedStdi\t sec_id\n";
-    for (int irow=0;irow<h_Alive->GetEntries();++irow)
-    {
-      h_Alive->GetEntry(irow);
-      row_content = h_Alive->GetArgs();
-      chan_id = row_content[0];
-      fee_id = row_content[1];
-      module_id = row_content[2];
-      pedMean = row_content[3];
-      pedStdi = row_content[4];
-      sec_id = row_content[5];
-      if( Verbosity() )
-      {
-        std::cout
-        << chan_id   << "\t"
-        << fee_id    << "\t" 
-        << module_id << "\t"
-        << pedMean   << "\t"
-        << pedStdi   << "\t"
-        << sec_id    << "\t"
-        << std::endl;
-      }
-
-      struct ped_tpc_map x
-      {
-      };
-
-      x.CHN_ID = chan_id  ; 
-      x.FEE_ID = fee_id   ; 
-      x.MOD_ID = module_id; 
-      x.PedMean = pedMean  ; 
-      x.PedStdi = pedStdi  ; 
-      x.SEC_ID = sec_id   ; 
-
-      unsigned int key = 256 * (fee_id) + chan_id;
-      tmap[key] = x;
-    }
+  //TFile in_file("/sphenix/user/shulga/Work/Files/pedestal-10616-outfile.root");
+  //in_file.GetObject("h_Alive",h_Alive);
+  //float chan_id,fee_id,module_id,pedMean,pedStdi, sec_id; 
+  //float* row_content;
+//
+  //  if( Verbosity() )std::cout << "chan_id\t fee_id\t module_id\t pedMean\t pedStdi\t sec_id\n";
+  //  for (int irow=0;irow<h_Alive->GetEntries();++irow)
+  //  {
+  //    h_Alive->GetEntry(irow);
+  //    row_content = h_Alive->GetArgs();
+  //    chan_id = row_content[0];
+  //    fee_id = row_content[1];
+  //    module_id = row_content[2];
+  //    pedMean = row_content[3];
+  //    pedStdi = row_content[4];
+  //    sec_id = row_content[5];
+  //    if( Verbosity() )
+  //    {
+  //      std::cout
+  //      << chan_id   << "\t"
+  //      << fee_id    << "\t" 
+  //      << module_id << "\t"
+  //      << pedMean   << "\t"
+  //      << pedStdi   << "\t"
+  //      << sec_id    << "\t"
+  //      << std::endl;
+  //    }
+//
+  //    struct ped_tpc_map x
+  //    {
+  //    };
+//
+  //    x.CHN_ID = chan_id  ; 
+  //    x.FEE_ID = fee_id   ; 
+  //    x.MOD_ID = module_id; 
+  //    x.PedMean = pedMean  ; 
+  //    x.PedStdi = pedStdi  ; 
+  //    x.SEC_ID = sec_id   ; 
+//
+  //    unsigned int key = 256 * (fee_id) + chan_id;
+  //    tmap[key] = x;
+  //  }
 }
 
 //____________________________________________________________________________..
@@ -366,7 +366,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       //<< std::endl;        
       int mc_sectors[12] = {5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6};
 
-      int pedestal = round(tmap[key].PedMean);
+      int pedestal = 72.4;//round(tmap[key].PedMean);
       TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, (mc_sectors[sector - side*12] ), side);
       TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(tpcHitSetKey);
 	
