@@ -5,8 +5,11 @@
 
 #include <phool/onnxlib.h>
 
+#include <algorithm>                  // for max
 #include <cassert>
+#include <cstdlib>                   // for getenv
 #include <iostream>
+#include <memory>                     // for allocator_traits<>::value_type
 #include <string>
 
 Ort::Session *onnxmodule;

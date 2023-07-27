@@ -9,31 +9,18 @@
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerGeomContainer.h>
-
-#include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfov1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>
 #include <phool/getClass.h>
-#include <phool/phool.h>
 
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
+#include <utility>                         // for pair
 
 RawClusterZVertexRecorrect::RawClusterZVertexRecorrect(const std::string &name)
   : SubsysReco(std::string("RawClusterZVertexRecorrect_") + name)
@@ -103,7 +90,7 @@ int RawClusterZVertexRecorrect::process_event(PHCompositeNode *topNode)
     {
       //      std::cout << " in bbcmap ccpi0 " << std::endl;
       
-      BbcVertex *bvertex = NULL;
+      BbcVertex *bvertex = nullptr;
       for (BbcVertexMap::ConstIter bbciter = bbcmap->begin();
            bbciter != bbcmap->end();
            ++bbciter)
@@ -113,7 +100,9 @@ int RawClusterZVertexRecorrect::process_event(PHCompositeNode *topNode)
 	}
       //      BbcVertex *bvertex = (bbcmap->begin()->second);
       if (!bvertex) 
+      {
 	return Fun4AllReturnCodes::ABORTEVENT;
+      }
       vz = bvertex->get_z();
     }
 

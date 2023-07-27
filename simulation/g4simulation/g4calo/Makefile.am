@@ -16,6 +16,7 @@ AM_CPPFLAGS = \
 
 pkginclude_HEADERS = \
   g4hitshift.h \
+  g4hitshifthcal.h \
   HcalRawTowerBuilder.h \
   RawTowerBuilder.h \
   RawTowerBuilderByHitIndex.h \
@@ -23,6 +24,7 @@ pkginclude_HEADERS = \
 
 libg4calo_la_SOURCES = \
   g4hitshift.cc \
+  g4hitshifthcal.cc \
   HcalRawTowerBuilder.cc \
   RawTowerBuilder.cc \
   RawTowerBuilderByHitIndex.cc \

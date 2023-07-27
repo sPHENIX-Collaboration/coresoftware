@@ -1,15 +1,15 @@
 // $Id: $
 
 /*!
- * \file RawTowerDeadMapLoader.h
+ * \file DeadHotMapLoader.h
  * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
 
-#ifndef CALORECO_RAWTOWERDEADMAPLOADER_H
-#define CALORECO_RAWTOWERDEADMAPLOADER_H
+#ifndef CALORECO_DEADHOTMAPLOADER_H
+#define CALORECO_DEADHOTMAPLOADER_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -19,14 +19,14 @@ class PHCompositeNode;
 class CDBTTree;
 
 /*!
- * \brief RawTowerDeadMapLoader loads dead map at inti run
+ * \brief DeadHotMapLoader loads dead map at inti run
  */
-class RawTowerDeadMapLoader : public SubsysReco
+class DeadHotMapLoader : public SubsysReco
 {
  public:
-  explicit RawTowerDeadMapLoader(const std::string& detector);
+  explicit DeadHotMapLoader(const std::string& detector);
 
-  ~RawTowerDeadMapLoader() override {}
+  ~DeadHotMapLoader() override {}
 
   int InitRun(PHCompositeNode* topNode) override;
 

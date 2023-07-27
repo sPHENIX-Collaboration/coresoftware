@@ -20,6 +20,7 @@ pkginclude_HEADERS = \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
   PacketList.h \
+  PacketMap.h \
   SingleEvtInput.h \
   SinglePrdfInput.h
 
@@ -36,6 +37,7 @@ libfun4allraw_la_SOURCES = \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
   PacketList.cc \
+  PacketMap.cc \
   SingleEvtInput.cc \
   SinglePrdfInput.cc
 
