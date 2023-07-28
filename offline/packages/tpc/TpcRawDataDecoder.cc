@@ -366,7 +366,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       //<< std::endl;        
       int mc_sectors[12] = {5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6};
 
-      int pedestal = 72.4;//round(tmap[key].PedMean);
+      float pedestal = 72.4;//round(tmap[key].PedMean);
       TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, (mc_sectors[sector - side*12] ), side);
       TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(tpcHitSetKey);
 	
@@ -392,7 +392,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 		        << std::endl;
 
 	    }
-      pedestal = 0;
+      pedestal = 0.0;
       for (int s = 0; s < 5; s++)
 	    {
 	      int adc = p->iValue(wf,s);
@@ -405,11 +405,11 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 	      int t = s; // + 2 * (current_BCO - starting_BCO);
 	      int adc = p->iValue(wf,s);
 	      if(m_Debug==1){
-	        _h_hit_XY->Fill(R*cos(phi),R*sin(phi),adc-pedestal);
+	        _h_hit_XY->Fill(R*cos(phi),R*sin(phi),float(adc)-pedestal);
 	      }
 	      //	    if(adc-pedestal<4) continue;
 	      // generate hit key
-	      if(adc-pedestal>2){
+	      if(float(adc)-pedestal>2){
 	        TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int)( pads_per_sector[FEE_R[fee]-1] - pad + (mc_sectors[sector - side*12] )*pads_per_sector[FEE_R[fee]-1] ), (unsigned int) t);
 	        // find existing hit, or create
   
@@ -421,7 +421,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 		  
 		        // create a new one
 		        hit = new TrkrHitv2();
-		        hit->setAdc(adc-pedestal);
+		        hit->setAdc(float(adc)-pedestal);
 		        //std::cout<< "ADC = " << adc << " Pedestal = "<< pedestal << "delta = "<< adc-pedestal << std::endl;
 		        //if(adc - pedestal > 40) std::cout<< adc - pedestal << "| ";
 		        //std::cout<< t << "| ";
@@ -433,8 +433,8 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 	    
 	      if(m_Debug==1){
 	        if(adc - pedestal > 40){
-		        _h_hit_XY_ADCcut->Fill(R*cos(phi),R*sin(phi),adc-pedestal);
-		        _h_hit_XYT->Fill(R*cos(phi),R*sin(phi), current_BCO,adc-pedestal);
+		        _h_hit_XY_ADCcut->Fill(R*cos(phi),R*sin(phi),float(adc)-pedestal);
+		        _h_hit_XYT->Fill(R*cos(phi),R*sin(phi), current_BCO,float(adc)-pedestal);
 	        }
 	      }
 	      //if (s==samples-1) std::cout << std::endl;
