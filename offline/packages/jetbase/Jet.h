@@ -91,6 +91,7 @@ class Jet : public PHObject
   {
     DESCENDING = 0,
     ASCENDING  = 1,
+    UNORDERED  = 3,
   };
 
   enum PROPERTY
@@ -224,16 +225,19 @@ class Jet : public PHObject
   //-- new with Jetv2: Used for allowing TClonesArray to sort jets. Each jet will
   // point to the JetSortSels (Jet Sort Selections) object in JetContainer and then
   // the TClonesArray will sort the jets based on the criteria in the JetSortSels.
-  struct SortSelections {
-      Jet::SORT       criteria   { Jet::SORT::PT };
-      Jet::PROPERTY   property   { Jet::PROPERTY::no_property }; // when sorted by property
-      Jet::SORT_ORDER order      { Jet::SORT_ORDER::DESCENDING }; // 
-      unsigned int    prop_index { 0 }; // for use when sorting by criteria
-  };
+  /* std::tuple<Jet::SORT, Jet::PROPERTY, Jet::SORT_ORDER, unsigned int prop_index> SortSelections; // { */
+      /* Jet::SORT       criteria   { Jet::SORT::PT }; */
+      /* Jet::PROPERTY   property   { Jet::PROPERTY::no_property }; // when sorted by property */
+      /* Jet::SORT_ORDER order      { Jet::SORT_ORDER::DESCENDING }; // */ 
+      /* unsigned int    prop_index { 0 }; // for use when sorting by criteria */
+      /* /1* ClassDefOverride(SortSelections, 1); *1/ */
+  /* }; */
+  virtual void set_sort_ptr (void* /*ptr*/)  { mv2("set_sort_ptr()"); }
+  virtual void* get_sort_ptr() { mv2("get_sort_ptr()"); return 0; };
+
+  using JetSortSelections = std::tuple<Jet::SORT,Jet::PROPERTY, Jet::SORT_ORDER,unsigned int>;
 
   virtual Bool_t IsSortable() const override { mv2("IsSortable()"); return false; }
-  virtual void set_sort_selptr (Jet::SortSelections* /*sortopt*/) { mv2("set_sort_selptr()"); }
-  virtual Jet::SortSelections* get_sort_selptr() { mv2("get_sort_selptr"); return {}; }
   protected:
   virtual bool  IsEqual(const TObject* /**/) const override {mv2("IsEqual()"); return false;}
   virtual Int_t Compare(const TObject* /**/) const override {mv2("Compare()"); return 0;}

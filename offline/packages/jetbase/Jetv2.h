@@ -88,9 +88,9 @@ class Jetv2 : public Jet
   TYPE_comp_vec& get_comp_vec()  override{ return _comp_ids; }; // new in v2
   void sort_comp_ids() override;
 
-  Bool_t IsSortable() const override { return kTRUE; }
-  void set_sort_selptr (Jet::SortSelections* _) override { _sortopt = _; }
-  Jet::SortSelections* get_sort_selptr() override { return _sortopt; }
+  Bool_t IsSortable() const override   { return kTRUE; }
+  void  set_sort_ptr (void* _) override { _sort_ptr = reinterpret_cast<intptr_t>(_); }
+  void* get_sort_ptr() override        { return reinterpret_cast<void*>(_sort_ptr); }
 
   inline void Clear(Option_t* =nullptr) override { Reset(); }
 
@@ -111,9 +111,7 @@ class Jetv2 : public Jet
   /* typ_comp_ids _comp_ids; */
   std::vector<std::pair<Jet::SRC, unsigned int>> _comp_ids;
 
-  //
-  /* bool _print_v2_warning { true }; */
-
+  // compare the source components for sorting
   struct CompareSRC {
       bool operator()(const std::pair<Jet::SRC,int> &lhs, const unsigned int rhs) {
           return lhs.first < rhs;
@@ -129,14 +127,36 @@ class Jetv2 : public Jet
   std::vector<float> _properties {};
 
   // member data to allow sorting and comparison
-  Jet::SortSelections* _sortopt { nullptr }; // points to sorting options set in JetContainer
+  intptr_t _sort_ptr { 0 }; // points to sorting options set in JetContainer -- really a void pointer
 
   bool  IsEqual(const TObject* obj) const override;
   Int_t Compare(const TObject* obj) const override;
 
+   friend struct SortFnJetv2;
+  ClassDefOverride(Jetv2, 1);
+};
+
+struct SortFnJetv2 {
+  SortFnJetv2() {};
+  // state
+  Jet::SORT sort{};
+  Jet::SORT_ORDER order{};
+  unsigned int index{};
+
+  SortFnJetv2(
+      Jet::SORT _sort
+    , Jet::SORT_ORDER _order
+    , unsigned int _propery_index=0) :
+    sort {_sort}
+  , order {_order}
+  , index {_propery_index} 
+  {};
+
+  int Compare(const Jetv2* lhs, const Jetv2* rhs) const;
+  bool IsEqual(const Jetv2* lhs, const Jetv2* rhs) const;
 
   inline int intCompare (float a, float b) const {
-    if (_sortopt->order == Jet::SORT_ORDER::ASCENDING) {
+    if (order == Jet::SORT_ORDER::ASCENDING) {
       if      (a<b) return -1; // will fail for either number NAN
       else if (b<a) return  1; // will fail for either number NAN
       else if (b==a) return 0;
@@ -154,8 +174,6 @@ class Jetv2 : public Jet
       else               return  0;
     }
   }
-
-  ClassDefOverride(Jetv2, 1);
 };
 
 #endif  // G4JET_JETV2_H

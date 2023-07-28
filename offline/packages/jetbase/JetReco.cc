@@ -28,11 +28,15 @@
 #include <memory>  // for allocator_traits<>::value_type
 #include <vector>
 
-JetReco::JetReco(const std::string &name, bool fill_JetContainer)
-  : SubsysReco(name)
-  , _fill_JetContainer(fill_JetContainer)
-{
-}
+JetReco::JetReco(const std::string &name, TRANSITION _which) : 
+  SubsysReco(name)
+  , which_fill { _which }
+  , use_jetcon { _which==TRANSITION::JET_CONTAINER 
+        || _which==TRANSITION::BOTH 
+        || _which==TRANSITION::PRETEND_BOTH }
+  , use_jetmap { _which==TRANSITION::JET_MAP
+        || _which==TRANSITION::BOTH }
+{ }
 
 JetReco::~JetReco()
 {
@@ -90,13 +94,14 @@ int JetReco::process_event(PHCompositeNode *topNode)
   for (unsigned int ialgo = 0; ialgo < _algos.size(); ++ialgo)
   {
     // send the output somewhere on the DST
-    if (_fill_JetContainer) {
-      if (Verbosity()>5) std::cout << " Verbosity>5:: filling JetContainter for " << _outputs[ialgo] << std::endl;
+    /* if (_fill_JetContainer) { */
+    if (use_jetcon) {
+      if (Verbosity()>5) std::cout << " Verbosity>5:: filling JetContainter for " << JC_name(_outputs[ialgo]) << std::endl;
       FillJetContainer(topNode, ialgo, inputs);
-    } else {
+    }
+    if (use_jetmap) {
       if (Verbosity()>5) std::cout << " Verbosity>5:: filling jetnode for " << _outputs[ialgo] << std::endl;
       std::vector<Jet *> jets = _algos[ialgo]->get_jets(inputs);  // owns memory
-      FillJetNode(topNode, ialgo, jets);
     }
   }
 
@@ -138,30 +143,26 @@ int JetReco::CreateNodes(PHCompositeNode *topNode)
     AlgoNode->addNode(InputNode);
   }
 
-  if (_fill_JetContainer) { // using TClonesArray's
-      // Fill JetContainer nodes
-      for (auto & _output : _outputs)
+  for (auto & _output : _outputs)
+  {
+    if (use_jetcon) {
+      JetContainer *jetconn = findNode::getClass<JetContainer>(topNode, JC_name(_output));
+      if (!jetconn)
       {
-        JetContainer *jetconn = findNode::getClass<JetContainer>(topNode, _output);
-        if (!jetconn)
-        {
-          jetconn = new JetContainerv1();
-          PHIODataNode<PHObject> *JetContainerNode = new PHIODataNode<PHObject>(jetconn, _output, "PHObject");
-          InputNode->addNode(JetContainerNode);
-        }
+        jetconn = new JetContainerv1();
+        PHIODataNode<PHObject> *JetContainerNode = new PHIODataNode<PHObject>(jetconn, JC_name(_output), "PHObject");
+        InputNode->addNode(JetContainerNode);
       }
-  } else {
-      // Fill JetMap nodes
-      for (auto & _output : _outputs)
+    }
+    if (use_jetmap) {
+      JetMap *jets = findNode::getClass<JetMap>(topNode, _output);
+      if (!jets)
       {
-        JetMap *jets = findNode::getClass<JetMap>(topNode, _output);
-        if (!jets)
-        {
-          jets = new JetMapv1();
-          PHIODataNode<PHObject> *JetMapNode = new PHIODataNode<PHObject>(jets, _output, "PHObject");
-          InputNode->addNode(JetMapNode);
-        }
+        jets = new JetMapv1();
+        PHIODataNode<PHObject> *JetMapNode = new PHIODataNode<PHObject>(jets, _output, "PHObject");
+        InputNode->addNode(JetMapNode);
       }
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -193,16 +194,13 @@ void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet *>
 
 void JetReco::FillJetContainer(PHCompositeNode *topNode, int ipos, std::vector<Jet*>& inputs)
 {
-  JetContainer *jetconn = findNode::getClass<JetContainer>(topNode, _outputs[ipos]);
+  JetContainer *jetconn = findNode::getClass<JetContainer>(topNode, JC_name(_outputs[ipos]));
   if (!jetconn)
   {
     std::cout << PHWHERE << " ERROR: Can't find JetContainer: " << _outputs[ipos] << std::endl;
     exit(-1);
   }
-
   _algos[ipos]->cluster_and_fill(inputs, jetconn); // fills the jet container with clustered jets
-  jetconn->set_algo(_algos[ipos]->get_algo());
-  jetconn->set_jetpar_R(_algos[ipos]->get_par());
   for (auto & _input : _inputs)
   {
     jetconn->insert_src(_input->get_src());

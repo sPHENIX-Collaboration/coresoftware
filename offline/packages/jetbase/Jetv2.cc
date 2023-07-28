@@ -16,25 +16,23 @@
 class PHObject;
 
 Jetv2::Jetv2() :
-  _sortopt { nullptr }
+  _sort_ptr { 0 }
 {
   std::fill(std::begin(_mom), std::end(_mom), NAN);
 }
 
 Jetv2::Jetv2(unsigned int n_prop)
   : _properties (  n_prop, NAN )
-  , _sortopt { nullptr }
+  , _sort_ptr { 0 }
 {
   std::fill(std::begin(_mom), std::end(_mom), NAN);
 }
 
 Jetv2::Jetv2(const Jetv2& rhs) 
-  /* : FnIsEqual  { rhs.FnIsEqual } */
-  /* , FnCompare  { rhs.FnCompare } */
-  : _id               { rhs._id               }
-  , _e                { rhs._e                }
-  , _is_sorted        { rhs._is_sorted        }
-  , _sortopt          { rhs._sortopt          }
+  : _id               { rhs._id        }
+  , _e                { rhs._e         }
+  , _is_sorted        { rhs._is_sorted }
+  , _sort_ptr         { rhs._sort_ptr  }
 {
   std::copy ( rhs._mom, rhs._mom+3, _mom);
   std::copy ( rhs._comp_ids.begin(),   rhs._comp_ids.end(),   _comp_ids.begin() );
@@ -201,28 +199,33 @@ Jetv2::ITER_comp_vec Jetv2::comp_end(Jet::SRC iSRC) {
 }
 
 bool Jetv2::IsEqual(const TObject* obj) const {
-  Jetv2* rhs { (Jetv2*) obj };
-  switch (_sortopt->criteria) {
+  return reinterpret_cast<SortFnJetv2*>(_sort_ptr)->IsEqual(
+      const_cast<Jetv2*>(this), static_cast<const Jetv2*>(obj));
+}
+
+bool SortFnJetv2::IsEqual(const Jetv2* lhs, const Jetv2* rhs) const {
+  switch (sort) {
     case Jet::SORT::PT:
-      return get_pt()    == rhs->get_pt();
+      return lhs->get_pt()    == rhs->get_pt();
 
     case Jet::SORT::E:
-      return get_e()     == rhs->get_e();
+      return lhs->get_e()     == rhs->get_e();
 
     case Jet::SORT::P:
-      return get_p()     == rhs->get_p();
+      return lhs->get_p()     == rhs->get_p();
 
     case Jet::SORT::MASS:
-      return get_mass()  == rhs->get_mass();
+      return lhs->get_mass()  == rhs->get_mass();
 
     case Jet::SORT::MASS2:
-      return get_mass2() == rhs->get_mass2();
+      return lhs->get_mass2() == rhs->get_mass2();
 
     case Jet::SORT::ETA:
-      return get_eta() == rhs->get_eta();
+      return lhs->get_eta() == rhs->get_eta();
 
     case Jet::SORT::PROPERTY:
-      return _properties[_sortopt->prop_index] == rhs->_properties[_sortopt->prop_index];
+      return lhs->_properties[index] 
+           == rhs->_properties[index];
 
     default:
       std::cout << PHWHERE << std::endl;
@@ -232,34 +235,38 @@ bool Jetv2::IsEqual(const TObject* obj) const {
   return true;
 }
 
-int Jetv2::Compare(const TObject* obj) const {
-  Jetv2* rhs { (Jetv2*) obj };
-  switch (_sortopt->criteria) {
-    case Jet::SORT::PT:
-      return intCompare(get_pt(), rhs->get_pt());
+ int Jetv2::Compare(const TObject* obj) const { 
+   return reinterpret_cast<SortFnJetv2*>(_sort_ptr)->Compare(
+       const_cast<Jetv2*>(this), static_cast<const Jetv2*>(obj)); 
+ } 
 
-    case Jet::SORT::E:
-      return intCompare(get_e(), rhs->get_e());
-
-    case Jet::SORT::P:
-      return intCompare(get_p(), rhs->get_p());
-
-    case Jet::SORT::MASS:
-      return intCompare(get_mass(), rhs->get_mass());
-
-    case Jet::SORT::MASS2:
-      return intCompare(get_mass2(), rhs->get_mass2());
-      
-    case Jet::SORT::ETA:
-      return intCompare(get_eta(),   rhs->get_eta());
-
-    case Jet::SORT::PROPERTY:
-      return intCompare(_properties[_sortopt->prop_index], rhs->_properties[_sortopt->prop_index]);
-
-    default:
-      std::cout << PHWHERE << std::endl;
-      std::cout << " Unrecognized sorting parameter for Jetv2 types."
-        << " Must be Jet::SORT::(PT,E,P,MASS,MASS2) or Jet::SORT::PROPERTY with index within range " << std::endl;
-  }
-  return 0;
-}
+int SortFnJetv2::Compare(const Jetv2* lhs, const Jetv2* rhs) const {
+   switch (sort) {
+     case Jet::SORT::PT:
+       return intCompare(lhs->get_pt(), rhs->get_pt());
+ 
+     case Jet::SORT::E:
+       return intCompare(lhs->get_e(), rhs->get_e());
+ 
+     case Jet::SORT::P:
+       return intCompare(lhs->get_p(), rhs->get_p());
+ 
+     case Jet::SORT::MASS:
+       return intCompare(lhs->get_mass(), rhs->get_mass());
+ 
+     case Jet::SORT::MASS2:
+       return intCompare(lhs->get_mass2(), rhs->get_mass2());
+       
+     case Jet::SORT::ETA:
+       return intCompare(lhs->get_eta(),   rhs->get_eta());
+ 
+     case Jet::SORT::PROPERTY:
+       return intCompare(lhs->_properties[index], rhs->_properties[index]);
+ 
+     default:
+       std::cout << PHWHERE << std::endl;
+       std::cout << " Unrecognized sorting parameter for Jetv2 types."
+         << " Must be Jet::SORT::(PT,E,P,MASS,MASS2) or Jet::SORT::PROPERTY with index within range " << std::endl;
+   }
+   return 0;
+ }

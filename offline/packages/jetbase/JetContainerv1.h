@@ -79,7 +79,7 @@ public:
     // ---------------------------------------------------------------------------------------
 
     // Methods to sort the TClonesArray of jets
-    void sort_jets(Jet::SORT,     Jet::SORT_ORDER order=Jet::SORT_ORDER::DESCENDING) override;
+    void sort_jets(Jet::SORT,     Jet::SORT_ORDER order=Jet::SORT_ORDER::DESCENDING, Jet::PROPERTY _prop=Jet::PROPERTY::no_property) override;
     void sort_jets(Jet::PROPERTY, Jet::SORT_ORDER order=Jet::SORT_ORDER::DESCENDING) override;
 
     bool is_sorted() const override { return m_is_sorted; };
@@ -133,8 +133,10 @@ private:
 
     // status of post-input sorting
     bool m_is_sorted { false };
-    Jet::SortSelections m_sortopt {}; 
-
+    Jet::SORT m_sort { Jet::SORT::NO_SORT };
+    Jet::PROPERTY m_sort_prop { Jet::PROPERTY::no_property };
+    Jet::SORT_ORDER m_sort_order { Jet::SORT_ORDER::DESCENDING };
+    /* Jet::JetSortSelections m_sortopt { Jet::SORT::PT, Jet::PROPERTY::no_property, Jet::SORT_ORDER::DESCENDING, 0 }; */
     /* bool m_sorted_inverse { true }; */
     /* Jet::SORT m_sorted_by { Jet::SORT::NO_SORT }; */
     /* Jet::PROPERTY m_sorting_prop { Jet::PROPERTY::no_property }; // i.e. no property; it doesn't matter */

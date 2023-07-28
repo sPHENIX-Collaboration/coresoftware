@@ -131,7 +131,7 @@ public:
     // ---------------------------------------------------------------------------------------
 
     // Methods to sort the TClonesArray of jets
-    virtual void sort_jets(Jet::SORT /**/,     Jet::SORT_ORDER /*ASCENDING or DESCENDING */) {};
+    virtual void sort_jets(Jet::SORT /**/,     Jet::SORT_ORDER /*ASCENDING or DESCENDING */, Jet::PROPERTY/**/=Jet::PROPERTY::no_property) {};
     virtual void sort_jets(Jet::PROPERTY /**/, Jet::SORT_ORDER /*ASCENDING or DESCENDING */) {};
     virtual bool is_sorted() const {return false;} ;
     virtual void set_is_sorted(bool /*-*/) {};

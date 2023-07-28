@@ -147,26 +147,31 @@ unsigned int JetContainerv1::find_prop_index(Jet::PROPERTY prop) {
     }
 }
 
-void JetContainerv1::set_sorted_by(Jet::SORT sort, Jet::SORT_ORDER _order, Jet::PROPERTY sorting_prop) { 
+void JetContainerv1::set_sorted_by(Jet::SORT sort, Jet::SORT_ORDER _order, 
+    Jet::PROPERTY sorting_prop) { 
   m_is_sorted = true; 
-  m_sortopt.criteria = sort;
-  m_sortopt.order = _order;
-  m_sortopt.property = sorting_prop;
+  m_sort = sort;
+  m_sort_order = _order;
+  m_sort_prop = sorting_prop;
 }
 
 void JetContainerv1::print_sorted_by(std::ostream& os) {
-  std::string sort_order = (m_sortopt.order == Jet::SORT_ORDER::DESCENDING ? "large to small" : "small to large");
-  switch (m_sortopt.criteria) {
+  std::string sort_order = (
+      m_sort_order == Jet::SORT_ORDER::DESCENDING ? 
+      "large to small" : "small to large");
+  switch (m_sort) {
     case Jet::SORT::PT:
     case Jet::SORT::E:
     case Jet::SORT::P:
     case Jet::SORT::MASS:
     case Jet::SORT::MASS2:
     case Jet::SORT::ETA:
-      os << " Jets in container sorted by " << str_Jet_SORT(m_sortopt.criteria) << " " << sort_order << std::endl;
+      os << " Jets in container sorted by " << 
+        str_Jet_SORT(m_sort) << " " << sort_order << std::endl;
       break;
     case Jet::SORT::PROPERTY: // for AREA and others
-      os << " Jets in container sorted by PROPERTY " << str_Jet_PROPERTY(m_sortopt.property) << " " << sort_order << std::endl;
+      os << " Jets in container sorted by PROPERTY " << 
+        str_Jet_PROPERTY(m_sort_prop) << " " << sort_order << std::endl;
       break;
     default:
       os << " Jet sorting information not set for jet container. " << std::endl;
@@ -226,56 +231,79 @@ Jet::IterJetTCA JetContainerv1::end() {
   return begin();
 }
 
+void JetContainerv1::sort_jets(
+    Jet::PROPERTY _prop,
+    Jet::SORT_ORDER _order) 
+{
+  sort_jets(Jet::SORT::PROPERTY, _order, _prop);
+}
 
-void JetContainerv1::sort_jets(Jet::SORT isort, Jet::SORT_ORDER _order) {
-  // check that it's an ok sorting criteria:
-  m_sortopt.criteria = isort;
-  m_sortopt.order = _order;
-  switch (isort) {
-    case Jet::SORT::PT:
-    case Jet::SORT::E:
-    case Jet::SORT::P:
-    case Jet::SORT::MASS:
-    case Jet::SORT::MASS2:
-    case Jet::SORT::ETA:
-      for (auto jet : *this) {
-          jet->set_sort_selptr(&m_sortopt);
-      }
-      m_clones->UnSort();
-      m_clones->Sort();
-      m_is_sorted = true;
-      break;
+void JetContainerv1::sort_jets(
+    Jet::SORT _sort
+    , Jet::SORT_ORDER _order
+    , Jet::PROPERTY _prop) {
 
-    case Jet::SORT::AREA:
-      sort_jets(Jet::PROPERTY::prop_area, Jet::SORT_ORDER::DESCENDING);
-      break;
-
-    default:
-      std::cout << PHWHERE << std::endl
-        << "Error in options passed to sort_jets. See options in code." << std::endl;
+  SortFnJetv2 sort_fn;
+  sort_fn.order = _order;
+  if (_sort == Jet::SORT::PROPERTY) {
+    if (!has_property(_prop)) {
+      std::cout << PHWHERE << std::endl;
+      std::cout << "Jets don't have property " << str_Jet_PROPERTY(_prop)
+        << " not sorting jets." << std::endl;
+      return;
+    }
+    sort_fn.sort = Jet::SORT::PROPERTY;
+    sort_fn.index = find_prop_index(_prop);
+  } else if (
+      _sort == Jet::SORT::PT
+   || _sort == Jet::SORT::E
+   || _sort == Jet::SORT::P
+   || _sort == Jet::SORT::MASS
+   || _sort == Jet::SORT::MASS2
+   || _sort == Jet::SORT::ETA
+  ) {
+    sort_fn.sort = _sort;
+  } else {
+      std::cout << PHWHERE << std::endl;
+      std::cout << "Jets can't sort on " << str_Jet_SORT(_sort)
+        << ", just PT, E, P, MASS, MASS2, and ETA (or a calculated jet property)." << std::endl
+        << " -> Not sorting jets" << std::endl;
+      return;
   }
+  // do the actual sorting with pointers to the sorting functor and TClonesArray->Sort()
+  for (auto jet : (*this)) {
+    jet->set_sort_ptr(&sort_fn); // yes this should be void*, but ROOT streamers don't like void*
+  }
+
+  m_clones->UnSort();
+  m_clones->Sort();
+  m_is_sorted = true;
+  m_sort = _sort;
+  m_sort_order = _order;
+  m_sort_prop = _prop;
   return;
 }
 
-void JetContainerv1::sort_jets(Jet::PROPERTY prop, Jet::SORT_ORDER _order) {
-  if (has_property(prop)) {
-    m_sortopt.criteria = Jet::SORT::PROPERTY;
-    m_sortopt.order = _order;
-    m_sortopt.property = prop;
-    m_sortopt.prop_index = m_pindex[prop];
+/* void JetContainerv1::sort_jets(Jet::PROPERTY prop, Jet::SORT_ORDER _order) { */
+/*   if (has_property(prop)) { */
+/*     m_sortopt = { Jet::SORT::PROPERTY, prop, _order, m_pindex[prop] }; */
+/*     /1* m_sortopt.criteria = Jet::SORT::PROPERTY; *1/ */
+/*     /1* m_sortopt.order = _order; *1/ */
+/*     /1* m_sortopt.property = prop; *1/ */
+/*     /1* m_sortopt.prop_index = m_pindex[prop]; *1/ */
 
-    for (auto jet : *this) {
-        jet->set_sort_selptr(&m_sortopt);
-    }
-    m_clones->UnSort();
-    m_clones->Sort();
-    m_is_sorted = true;
-  } else {
-    m_is_sorted = false;
-      std::cout << PHWHERE << std::endl
-        << "Error: property selected for sorting not set for these jets. " << std::endl;
-  }
-}
+/*     for (auto jet : *this) { */
+/*         jet->set_sort_selptr(&m_sortopt); */
+/*     } */
+/*     m_clones->UnSort(); */
+/*     m_clones->Sort(); */
+/*     m_is_sorted = true; */
+/*   } else { */
+/*     m_is_sorted = false; */
+/*       std::cout << PHWHERE << std::endl */
+/*         << "Error: property selected for sorting not set for these jets. " << std::endl; */
+/*   } */
+/* } */
 
 void JetContainerv1::resize_jet_pvecs() {
   for (auto jet : *this) {

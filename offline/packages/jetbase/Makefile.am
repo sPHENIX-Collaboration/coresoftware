@@ -33,6 +33,7 @@ libjetbase_la_LIBADD = \
 pkginclude_HEADERS = \
   ClusterJetInput.h \
   FastJetAlgo.h \
+  FastJetOptions.h \
   Jet.h \
   Jetv1.h \
   Jetv2.h \
@@ -80,6 +81,7 @@ libjetbase_la_SOURCES = \
   ClusterJetInput.cc \
   JetAlgo.cc \
   FastJetAlgo.cc \
+  FastJetOptions.cc \
   JetReco.cc \
   TowerJetInput.cc \
   TrackJetInput.cc
