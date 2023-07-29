@@ -4,7 +4,6 @@
 #include <fun4all/SubsysReco.h>
 
 #include <phparameter/PHParameters.h>
-#include <calobase/TowerInfoContainer.h>
 
 #include <gsl/gsl_rng.h>
 
@@ -15,6 +14,7 @@ class CDBTTree;
 class PHCompositeNode;
 class RawTower;
 class TowerInfo;
+class TowerInfoContainer;
 class RawTowerContainer;
 class RawTowerGeomContainer;
 class RawTowerDeadMap;

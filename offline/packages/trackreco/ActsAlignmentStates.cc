@@ -34,6 +34,10 @@ namespace
   {
     return x * x;
   }
+  template <class T> inline constexpr T get_r(const T& x, const T& y)
+  {
+    return std::sqrt(square(x) + square(y));
+  }
 }  // namespace
 
 void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
@@ -71,6 +75,11 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
     }
 
   if(nmaps < 2 or nintt < 2) 
+    { return; }
+ 
+  //! make sure the track was fully fit through the mvtx
+  SvtxTrackState* firststate = (*std::next(track->begin_states(),1)).second;
+  if(get_r(firststate->get_x(), firststate->get_y()) > 5.)
     { return; }
 
   mj.visitBackwards(trackTip, [&](const auto& state)

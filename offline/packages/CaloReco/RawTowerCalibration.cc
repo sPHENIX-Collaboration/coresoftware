@@ -26,6 +26,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <TSystem.h>
 

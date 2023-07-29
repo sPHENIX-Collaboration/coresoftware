@@ -91,7 +91,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
          surf                        = surfMaps.getSiliconSurface(hitsetkey);
 	 
 	 Acts::Transform3 transform;
-	 transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
+	 transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles, false);
 
          Acts::GeometryIdentifier id = surf->geometryId();
 	 
@@ -117,8 +117,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
          surf                        = surfMaps.getSiliconSurface(hitsetkey);
 	 
 	 Acts::Transform3 transform;
-	 transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
-         Acts::GeometryIdentifier id = surf->geometryId();
+	 transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles, use_intt_survey_geometry);
+	 Acts::GeometryIdentifier id = surf->geometryId();
 	 
 	 if(localVerbosity) 
 	   {
@@ -151,7 +151,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
              surf                        = surfMaps.getTpcSurface(hitsetkey,(unsigned int) sskey);
 	     
 	     Acts::Transform3 transform;
-	     transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
+	     transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles, false);
 	     Acts::GeometryIdentifier id = surf->geometryId();
 	     
 	     if(localVerbosity) 
@@ -179,7 +179,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	surf                        = surfMaps.getMMSurface(hitsetkey);
 
 	Acts::Transform3 transform;
-	transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles);
+	transform  = newMakeTransform(surf, millepedeTranslation, sensorAngles, false);
 	Acts::GeometryIdentifier id = surf->geometryId();
 
 	if(localVerbosity)
@@ -206,7 +206,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 }
 
 // currently used as the transform maker
-Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles)
+Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, bool survey)
 {
   //define null matrices
   Eigen::Vector3d nullTranslation(0,0,0);
@@ -223,14 +223,12 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   // If we use a local alignment translation vector (dx,dy,dz) it
   // should be converted to (dx,dz,dy) before applying the Acts transform to global
   // It seems we can just interchange the x and y coordinates for this
-  // Swapping y and z is a rotation around the x axis, resulting in a left handed coordinate system
-  // why is this not a problem???
-  // It does mean that the order of the rotations is different from (x,y,z), but they are just fitted free parameters
   //=====================================================
 
   Eigen::AngleAxisd alpha(sensorAngles(0), Eigen::Vector3d::UnitX());
   Eigen::AngleAxisd beta(sensorAngles(1), Eigen::Vector3d::UnitY());
   Eigen::AngleAxisd gamma(sensorAngles(2), Eigen::Vector3d::UnitZ());
+
   Eigen::Quaternion<double> q       = gamma*beta*alpha;
  
   Eigen::Matrix3d millepedeRotation = q.matrix();
@@ -247,12 +245,12 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
       mpTranslationAffine.translation() = millepedeTranslation;   
     }
   else
-      {
-	// offsets should now be in local frame, so (dx,dz,dy)
-	Eigen::Vector3d millepedeTranslationxzy(millepedeTranslation(0), millepedeTranslation(2), millepedeTranslation(1));
-	mpTranslationAffine.translation() = millepedeTranslationxzy;   
-      }
-
+    {
+      // offsets should now be in local frame, so (dx,dz,dy)
+      Eigen::Vector3d millepedeTranslationxzy(millepedeTranslation(0), millepedeTranslation(2), millepedeTranslation(1));
+      mpTranslationAffine.translation() = millepedeTranslationxzy;   
+    }
+  
   // get the acts transform components
   Acts::Transform3 actsTransform = surf->transform(m_tGeometry->geometry().getGeoContext());
   Eigen::Matrix3d actsRotationPart    = actsTransform.rotation();
@@ -267,18 +265,28 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::
   actsTranslationAffine.translation() = actsTranslationPart;
 
   //Put them together into a combined transform
-
-
   Acts::Transform3 transform;
-  if(use_global_millepede_translations)
+  //! If we read the survey parameters direcly, that is the full transform
+  if(survey)
     {
-      // put the mp translations in the global frame
-      transform = mpTranslationAffine *  actsTranslationAffine *  mpRotationAffine * actsRotationAffine;
+      //! The millepede affines will just be what was read in, which was the 
+      //! survey information. This should (in principle) be equivalent to
+      //! the ideal position + any misalignment
+      transform = mpTranslationAffine * mpRotationAffine;
     }
+  //! Otherwise in sim we use the ideal * misalignment transforms
   else
     {
-      // put the mp translations in the local coordinate frame
-      transform =  actsTranslationAffine *  actsRotationAffine * mpTranslationAffine * mpRotationAffine;
+      if(use_global_millepede_translations)
+	{
+	  // put the mp translations in the global frame
+	  transform = mpTranslationAffine *  actsTranslationAffine *  mpRotationAffine * actsRotationAffine;
+	}
+      else
+	{
+	  // put the mp translations in the local coordinate frame
+	  transform =  actsTranslationAffine *  actsRotationAffine * mpTranslationAffine * mpRotationAffine;
+	}
     }
 
   if(localVerbosity)

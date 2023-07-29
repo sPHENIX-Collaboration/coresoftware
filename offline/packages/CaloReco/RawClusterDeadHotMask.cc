@@ -1,4 +1,4 @@
-#include "RawClusterDeadAreaMask.h"
+#include "RawClusterDeadHotMask.h"
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -6,8 +6,6 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfov1.h>
-#include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfoDefs.h>
 #include <calobase/RawTowerDeadMap.h>
 #include <calobase/RawTowerGeomContainer.h>
@@ -33,7 +31,7 @@
 #include <utility>  // for pair
 #include <vector>
 
-RawClusterDeadAreaMask::RawClusterDeadAreaMask(const std::string &name)
+RawClusterDeadHotMask::RawClusterDeadHotMask(const std::string &name)
   : SubsysReco(name)
   , m_detector("NONE")
   , m_deadTowerMaskHalfWidth(1.6)
@@ -46,14 +44,14 @@ RawClusterDeadAreaMask::RawClusterDeadAreaMask(const std::string &name)
 {
 }
 
-int RawClusterDeadAreaMask::InitRun(PHCompositeNode *topNode)
+int RawClusterDeadHotMask::InitRun(PHCompositeNode *topNode)
 {
   CreateNodeTree(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawClusterDeadAreaMask::process_event(PHCompositeNode * /*topNode*/)
+int RawClusterDeadHotMask::process_event(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() >= VERBOSITY_SOME)
   {
@@ -270,7 +268,7 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode * /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void RawClusterDeadAreaMask::CreateNodeTree(PHCompositeNode *topNode)
+void RawClusterDeadHotMask::CreateNodeTree(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
@@ -281,7 +279,7 @@ void RawClusterDeadAreaMask::CreateNodeTree(PHCompositeNode *topNode)
   if (!dstNode)
   {
     std::cout << "DST Node missing, quitting" << std::endl;
-    throw std::runtime_error("failed to find DST node in RawClusterDeadAreaMask::CreateNodeTree");
+    throw std::runtime_error("failed to find DST node in RawClusterDeadHotMask::CreateNodeTree");
   }
 
   m_rawClusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_" + m_detector);
@@ -290,9 +288,9 @@ void RawClusterDeadAreaMask::CreateNodeTree(PHCompositeNode *topNode)
     std::cout << Name() << "::" << m_detector << "::"
               << "CreateNodeTree "
                  "No "
-              << m_detector << " Cluster Container found while in RawClusterDeadAreaMask, can't proceed!!!" << std::endl;
+              << m_detector << " Cluster Container found while in RawClusterDeadHotMask, can't proceed!!!" << std::endl;
     topNode->print();
-    throw std::runtime_error("failed to find CLUSTER node in RawClusterDeadAreaMask::CreateNodeTree");
+    throw std::runtime_error("failed to find CLUSTER node in RawClusterDeadHotMask::CreateNodeTree");
   }
 
   m_towerinfoClusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_" + m_detector);
@@ -301,9 +299,9 @@ void RawClusterDeadAreaMask::CreateNodeTree(PHCompositeNode *topNode)
     std::cout << Name() << "::" << m_detector << "::"
               << "CreateNodeTree "
                  "No "
-              << m_detector << " Cluster Container found while in RawClusterDeadAreaMask, can't proceed!!!" << std::endl;
+              << m_detector << " Cluster Container found while in RawClusterDeadHotMask, can't proceed!!!" << std::endl;
     topNode->print();
-    throw std::runtime_error("failed to find CLUSTERINFO node in RawClusterDeadAreaMask::CreateNodeTree");
+    throw std::runtime_error("failed to find CLUSTERINFO node in RawClusterDeadHotMask::CreateNodeTree");
   }
 
   m_calibTowers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_" + m_detector);
@@ -311,8 +309,8 @@ void RawClusterDeadAreaMask::CreateNodeTree(PHCompositeNode *topNode)
   {
     std::cout << Name() << "::" << m_detector << "::"
               << "CreateNodeTree "
-              << "No calibrated " << m_detector << " tower info found while in RawClusterDeadAreaMask, can't proceed!!!" << std::endl;
-    throw std::runtime_error("failed to find TOWER_CALIB node in RawClusterDeadAreaMask::CreateNodeTree");
+              << "No calibrated " << m_detector << " tower info found while in RawClusterDeadHotMask, can't proceed!!!" << std::endl;
+    throw std::runtime_error("failed to find TOWER_CALIB node in RawClusterDeadHotMask::CreateNodeTree");
   }
 
   m_calibTowerInfos = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_" + m_detector);
@@ -320,8 +318,8 @@ void RawClusterDeadAreaMask::CreateNodeTree(PHCompositeNode *topNode)
   {
     std::cout << Name() << "::" << m_detector << "::"
               << "CreateNodeTree "
-              << "No calibrated " << m_detector << " tower info found while in RawClusterDeadAreaMask, can't proceed!!!" << std::endl;
-    throw std::runtime_error("failed to find TOWERINFO_CALIB node in RawClusterDeadAreaMask::CreateNodeTree");
+              << "No calibrated " << m_detector << " tower info found while in RawClusterDeadHotMask, can't proceed!!!" << std::endl;
+    throw std::runtime_error("failed to find TOWERINFO_CALIB node in RawClusterDeadHotMask::CreateNodeTree");
   }
 
   std::string towergeomnodename = "TOWERGEOM_" + m_detector;
@@ -331,7 +329,7 @@ void RawClusterDeadAreaMask::CreateNodeTree(PHCompositeNode *topNode)
     std::cout << Name() << "::" << m_detector << "::"
               << "CreateNodeTree"
               << ": Could not find node " << towergeomnodename << std::endl;
-    throw std::runtime_error("failed to find TOWERGEOM node in RawClusterDeadAreaMask::CreateNodeTree");
+    throw std::runtime_error("failed to find TOWERGEOM node in RawClusterDeadHotMask::CreateNodeTree");
   }
 
   const std::string deadMapName = "DEADMAP_" + m_detector;
@@ -345,7 +343,7 @@ void RawClusterDeadAreaMask::CreateNodeTree(PHCompositeNode *topNode)
   }
 }
 
-int RawClusterDeadAreaMask::End(PHCompositeNode * /*topNode*/)
+int RawClusterDeadHotMask::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

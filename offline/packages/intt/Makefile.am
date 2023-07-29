@@ -3,10 +3,6 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = \
-  libintt_io.la \
-  libintt.la 
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
@@ -17,8 +13,28 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
+if USE_ONLINE
+
+lib_LTLIBRARIES = \
+  libintt.la 
+
+pkginclude_HEADERS = \
+  InttFelixMap.h \
+  InttMapping.h
+
+libintt_la_SOURCES = \
+  InttFelixMap.cc \
+  InttMapping.cc
+
+else
+
+lib_LTLIBRARIES = \
+  libintt_io.la \
+  libintt.la 
+
 pkginclude_HEADERS = \
   InttClusterizer.h \
+  InttCombinedRawDataDecoder.h \
   InttDeadMapHelper.h \
   InttFelixMap.h \
   InttFelixMapObsolete.h \
@@ -37,6 +53,7 @@ nobase_dist_pcm_DATA = \
 # sources for intt library
 libintt_la_SOURCES = \
   InttClusterizer.cc \
+  InttCombinedRawDataDecoder.cc \
   InttDeadMapHelper.cc \
   InttFelixMap.cc \
   InttFelixMapObsolete.cc \
@@ -57,11 +74,13 @@ libintt_io_la_SOURCES = \
 
 libintt_io_la_LIBADD = \
   -lCLHEP \
+  -lfun4allraw \
   -lg4detectors_io \
   -lphool \
   -ltrack_io \
   -ltrackbase_historic_io
 
+endif
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

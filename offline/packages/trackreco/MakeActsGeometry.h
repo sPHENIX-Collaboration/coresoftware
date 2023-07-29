@@ -136,7 +136,8 @@ class MakeActsGeometry : public SubsysReco
 
   void set_nSurfPhi( unsigned int value )
   { m_nSurfPhi = value; }
-  
+  void set_intt_survey(bool surv) { m_inttSurvey = surv; }
+
  private:
   /// Main function to build all acts geometry for use in the fitting modules
   int buildAllGeometry(PHCompositeNode *topNode);
@@ -205,6 +206,8 @@ class MakeActsGeometry : public SubsysReco
   PHG4CylinderGeomContainer* m_geomContainerMicromegas = nullptr;
   PHG4TpcCylinderGeomContainer* m_geomContainerTpc = nullptr;
   TGeoManager* m_geoManager = nullptr;
+
+  bool m_inttSurvey = false;
 
   bool m_useField = true;
   std::map<uint8_t, double> m_misalignmentFactor;

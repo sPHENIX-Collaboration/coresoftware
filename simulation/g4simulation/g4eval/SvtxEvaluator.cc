@@ -168,7 +168,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
   if (_do_gtrack_eval)
   {
     _ntp_gtrack = new TNtuple("ntp_gtrack", "g4particle => best svtxtrack",
-                              "event:seed:gntracks:gtrackID:gflavor:gnhits:gnmaps:gnintt:gnmms:"
+                              "event:seed:gntracks:gnchghad:gtrackID:gflavor:gnhits:gnmaps:gnintt:gnmms:"
                               "gnintt1:gnintt2:gnintt3:gnintt4:"
                               "gnintt5:gnintt6:gnintt7:gnintt8:"
                               "gntpc:gnlmaps:gnlintt:gnltpc:gnlmms:"
@@ -2760,6 +2760,26 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
 
       Float_t gntracks = (Float_t) truthinfo->GetNumPrimaryVertexParticles();
+      Float_t gnchghad = 0;
+      for(auto iter = range.first; iter!= range.second; ++iter)
+	{
+	   PHG4Particle* g4particle = iter->second;
+
+	   if (_scan_for_embedded)
+	     {
+	       if (trutheval->get_embed(g4particle) <= 0)
+		 {
+		   continue;
+		 }
+	     }
+
+	   float gflavor = g4particle->get_pid();
+	  if(fabs(gflavor)==211 || fabs(gflavor)==321 || fabs(gflavor)==2212)
+	    {
+	      gnchghad++;
+	    }
+	}
+
       for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
            iter != range.second;
            ++iter)
@@ -3376,6 +3396,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         float gtrack_data[] = {(float) _ievent, m_fSeed,
                                gntracks,
+			       gnchghad,
                                gtrackID,
                                gflavor,
                                ng4hits,
@@ -3530,7 +3551,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         SvtxTrack* track = iter.second;
         float trackID = track->get_id();
-	std::cout << " trackId: " << trackID << std::endl;
+        
         TrackSeed* tpcseed = track->get_tpc_seed();
         TrackSeed* silseed = track->get_silicon_seed();
         short int crossing_int = track->get_crossing();
@@ -3710,15 +3731,18 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      msize+=rphisize;
 	    }
 	    if(local_layer==7||local_layer==22||local_layer==23||local_layer==38||local_layer==39) nredge++;
-	    std::cout << " lay: "  << local_layer
-		      << " pedge " << pedge   
-		      << " | " << npedge  
-		      << " nredge " << nredge 
-		      << " rphisize " << rphisize  
-		      << " | " << nbig 
-		      << " rovlp " << rovlp  
-		      << "  | " << novlp  
-		      << std::endl;
+	    if(Verbosity() > 2)
+	      {
+		std::cout << " lay: "  << local_layer
+			  << " pedge " << pedge   
+			  << " | " << npedge  
+			  << " nredge " << nredge 
+			  << " rphisize " << rphisize  
+			  << " | " << nbig 
+			  << " rovlp " << rovlp  
+			  << "  | " << novlp  
+			  << std::endl;
+	      }
 	  }
 	}
       
@@ -4067,11 +4091,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track, g4particle);
           }
         }
-	std::cout << " npedge "  << npedge  
-		  << " nredge "  << nredge  
-		  << " nbig " << nbig 
-		  << " novlp "<< novlp  
-		  << std::endl;
+	if(Verbosity() > 2)
+	  {
+	    std::cout << " npedge "  << npedge  
+		      << " nredge "  << nredge  
+		      << " nbig " << nbig 
+		      << " novlp "<< novlp  
+		      << std::endl;
+	  }
         float track_data[] = {(float) _ievent, m_fSeed,
                               trackID,
                               crossing,
