@@ -92,17 +92,17 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     exit(1);
   }
 
-  // struct Intt::RawData_s rawdata;
-  // struct Intt::Offline_s offline;
+  struct Intt::RawData_s rawdata;
+  struct Intt::Offline_s offline;
 
-  // int adc = 0;
-  // // int amp = 0;
-  // int bco = 0;
+  int adc = 0;
+  // int amp = 0;
+  int bco = 0;
 
-  // TrkrDefs::hitsetkey hit_set_key = 0;
-  // TrkrDefs::hitkey hit_key = 0;
-  // TrkrHitSetContainer::Iterator hit_set_container_itr;
-  // TrkrHit* hit = nullptr;
+  TrkrDefs::hitsetkey hit_set_key = 0;
+  TrkrDefs::hitkey hit_key = 0;
+  TrkrHitSetContainer::Iterator hit_set_container_itr;
+  TrkrHit* hit = nullptr;
 
   for (int pktid = 3001; pktid <= 3007; pktid++)
   {
@@ -128,6 +128,24 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
           {
             std::cout << "Chosen hit: FEE " << FEE << " bclk 0x" << std::hex
                       << gtm_bco << std::dec << std::endl;
+
+            rawdata = Intt::RawFromPacket(Intt::PacketId[pktid], j, (*pktiter));
+            adc = p->iValue(n, "ADC");
+            //amp = p->iValue(n, "AMPLITUE");
+            bco = p->iValue(n, "FPHX_BCO");
+        
+            offline = Intt::ToOffline(rawdata);
+        
+            hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
+            hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
+        
+            hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
+            hit = hit_set_container_itr->second->getHit(hit_key);
+            if(hit)continue;
+        
+            hit = new TrkrHitv2;
+            hit->setAdc(adc);
+            hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
           }
         }
       }
