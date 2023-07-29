@@ -129,10 +129,10 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
             std::cout << "Chosen hit: FEE " << FEE << " bclk 0x" << std::hex
                       << gtm_bco << std::dec << std::endl;
 
-            rawdata = Intt::RawFromPacket(Intt::PacketId[pktid], j, (*pktiter));
-            adc = p->iValue(n, "ADC");
-            //amp = p->iValue(n, "AMPLITUE");
-            bco = p->iValue(n, "FPHX_BCO");
+            rawdata = Intt::RawFromPacket(Intt::Packet_Id.find(pktid) != Intt::Packet_Id.end() ? Intt::Packet_Id.find(pktid)->second : -1, j, (*pktiter));
+            adc = (*pktiter)->iValue(j, "ADC");
+            //amp = p->iValue(j, "AMPLITUE");
+            bco = (*pktiter)->iValue(j, "FPHX_BCO");
         
             offline = Intt::ToOffline(rawdata);
         
