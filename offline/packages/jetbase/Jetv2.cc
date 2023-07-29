@@ -16,14 +16,14 @@
 class PHObject;
 
 Jetv2::Jetv2() :
-  _sort_ptr { 0 }
+  _sort_ptr { nullptr }
 {
   std::fill(std::begin(_mom), std::end(_mom), NAN);
 }
 
 Jetv2::Jetv2(unsigned int n_prop)
   : _properties (  n_prop, NAN )
-  , _sort_ptr { 0 }
+  , _sort_ptr { nullptr }
 {
   std::fill(std::begin(_mom), std::end(_mom), NAN);
 }
@@ -199,7 +199,7 @@ Jetv2::ITER_comp_vec Jetv2::comp_end(Jet::SRC iSRC) {
 }
 
 bool Jetv2::IsEqual(const TObject* obj) const {
-  return reinterpret_cast<SortFnJetv2*>(_sort_ptr)->IsEqual(
+  return static_cast<SortFnJetv2*>(_sort_ptr)->IsEqual(
       const_cast<Jetv2*>(this), static_cast<const Jetv2*>(obj));
 }
 
@@ -236,7 +236,7 @@ bool SortFnJetv2::IsEqual(const Jetv2* lhs, const Jetv2* rhs) const {
 }
 
  int Jetv2::Compare(const TObject* obj) const { 
-   return reinterpret_cast<SortFnJetv2*>(_sort_ptr)->Compare(
+   return static_cast<SortFnJetv2*>(_sort_ptr)->Compare(
        const_cast<Jetv2*>(this), static_cast<const Jetv2*>(obj)); 
  } 
 

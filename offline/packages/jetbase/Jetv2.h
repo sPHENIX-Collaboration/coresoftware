@@ -88,9 +88,9 @@ class Jetv2 : public Jet
   TYPE_comp_vec& get_comp_vec()  override{ return _comp_ids; }; // new in v2
   void sort_comp_ids() override;
 
-  Bool_t IsSortable() const override   { return kTRUE; }
-  void  set_sort_ptr (void* _) override { _sort_ptr = reinterpret_cast<intptr_t>(_); }
-  void* get_sort_ptr() override        { return reinterpret_cast<void*>(_sort_ptr); }
+  Bool_t IsSortable() const override    { return kTRUE; }
+  void  set_sort_ptr (void* _) override { _sort_ptr = _; }
+  void* get_sort_ptr() override         { return _sort_ptr; }
 
   inline void Clear(Option_t* =nullptr) override { Reset(); }
 
@@ -127,7 +127,7 @@ class Jetv2 : public Jet
   std::vector<float> _properties {};
 
   // member data to allow sorting and comparison
-  intptr_t _sort_ptr { 0 }; // points to sorting options set in JetContainer -- really a void pointer
+  void* _sort_ptr { nullptr }; ///<!
 
   bool  IsEqual(const TObject* obj) const override;
   Int_t Compare(const TObject* obj) const override;

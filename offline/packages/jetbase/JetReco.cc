@@ -102,6 +102,7 @@ int JetReco::process_event(PHCompositeNode *topNode)
     if (use_jetmap) {
       if (Verbosity()>5) std::cout << " Verbosity>5:: filling jetnode for " << _outputs[ialgo] << std::endl;
       std::vector<Jet *> jets = _algos[ialgo]->get_jets(inputs);  // owns memory
+      FillJetNode(topNode, ialgo, jets);
     }
   }
 

@@ -66,9 +66,9 @@ struct FastJetOptItem { // All the things you can feed into FastJetAlgo
 
 struct FastJetOptions {
   FastJetOptions () {};
-  FastJetOptions(std::vector<FastJetOptItem>_) { update(_); };
+  FastJetOptions(const std::vector<FastJetOptItem>&_) { update(_); };
   FastJetOptions& update(std::vector<FastJetOptItem>);
-  FastJetOptions& operator()(std::vector<FastJetOptItem>_) { return update(_); };
+  FastJetOptions& operator()(const std::vector<FastJetOptItem>& _) { return update(_); };
 
   void print(std::ostream& os=std::cout);
 
@@ -103,7 +103,7 @@ struct FastJetOptions {
   int   verbosity                   = 0;
 
   // for convenience when running FastJetAlgo
-  bool             has_jet_selection; // set when initialized
+  bool             has_jet_selection  = false; // set when initialized
   bool             jet_eta_iscut      = false;
   bool             min_const_pt_iscut = false;
   bool             jet_min_pt_iscut   = false;

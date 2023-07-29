@@ -272,7 +272,7 @@ void JetContainerv1::sort_jets(
   }
   // do the actual sorting with pointers to the sorting functor and TClonesArray->Sort()
   for (auto jet : (*this)) {
-    jet->set_sort_ptr(&sort_fn); // yes this should be void*, but ROOT streamers don't like void*
+    jet->set_sort_ptr(&sort_fn); // 
   }
 
   m_clones->UnSort();

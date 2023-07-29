@@ -34,7 +34,7 @@
 #include <utility>  // for pair
 #include <vector>
 
-FastJetAlgo::FastJetAlgo(FastJetOptions options) :
+FastJetAlgo::FastJetAlgo(const FastJetOptions& options) :
   m_opt { options }
 {
   fastjet::ClusterSequence clusseq;
@@ -220,9 +220,11 @@ void FastJetAlgo::first_call_init(JetContainer* jetcont) {
   if (m_opt.sort==Jet::SORT::PT ||m_opt.sort==Jet::SORT::E) order = Jet::SORT_ORDER::DESCENDING;
   else if (m_opt.sort == Jet::SORT::ETA) order = Jet::SORT_ORDER::ASCENDING;
 
+  if (jetcont == nullptr) return;
+
   jetcont->set_sorted_by(m_opt.sort, order);
 
-  if (m_opt.doSoftDrop && jetcont!=nullptr) {
+  if (m_opt.doSoftDrop) {
     jetcont->add_property( {Jet::PROPERTY::prop_zg, Jet::PROPERTY::prop_Rg, Jet::PROPERTY::prop_mu} );
     m_zg_index = jetcont->find_prop_index(Jet::PROPERTY::prop_zg);
     m_Rg_index = jetcont->find_prop_index(Jet::PROPERTY::prop_Rg);
@@ -321,6 +323,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
 
 std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
 {
+  if (m_first_cluster_call) first_call_init();
   if (m_opt.verbosity > 1) std::cout << "FastJetAlgo::process_event -- entered" << std::endl;
 
   // translate to fastjet

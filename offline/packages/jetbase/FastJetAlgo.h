@@ -21,7 +21,7 @@ class JetContainer;
 class FastJetAlgo : public JetAlgo
 {
  public:
-  FastJetAlgo(FastJetOptions options);
+  FastJetAlgo(const FastJetOptions& options);
   ~FastJetAlgo() override {}
 
   void identify(std::ostream& os = std::cout) override;
