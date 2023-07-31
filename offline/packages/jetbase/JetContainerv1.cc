@@ -38,6 +38,7 @@ JetContainerv1::JetContainerv1(const JetContainer &rhs)
 JetContainerv1::~JetContainerv1()
 {
   JetContainerv1::Reset();
+  delete m_clones;
 }
 
 void JetContainerv1::Reset() {
