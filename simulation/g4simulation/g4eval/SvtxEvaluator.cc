@@ -1982,16 +1982,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           }
           else if (m_cluster_version == 5)
           {
-            TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-            auto para_errors = ClusErrPara.get_clusterv5_modified_error(clusterv5, r, cluster_key);
-            phisize = clusterv5->getPhiSize();
-            zsize = clusterv5->getZSize();
+            auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
+            phisize = cluster->getPhiSize();
+            zsize = cluster->getZSize();
             // double clusRadius = r;
             ez = sqrt(para_errors.second);
             ephi = sqrt(para_errors.first);
-            maxadc = clusterv5->getMaxAdc();
-	    pedge = clusterv5->getEdge();
-	    ovlp = clusterv5->getOverlap();
+            maxadc = cluster->getMaxAdc();
+	    pedge = cluster->getEdge();
+	    ovlp = cluster->getOverlap();
           }
 	  if(layer==7||layer==22||layer==23||layer==38||layer==39) redge = 1;
 
@@ -2347,16 +2346,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           }
           else if (m_cluster_version == 5)
           {
-            TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-            auto para_errors = ClusErrPara.get_clusterv5_modified_error(clusterv5, r, cluster_key);
-            phisize = clusterv5->getPhiSize();
-            zsize = clusterv5->getZSize();
+            auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
+            phisize = cluster->getPhiSize();
+            zsize = cluster->getZSize();
             // double clusRadius = r;
             ez = sqrt(para_errors.second);
             ephi = sqrt(para_errors.first);
-            maxadc = clusterv5->getMaxAdc();
-	    pedge = clusterv5->getEdge();
-	    ovlp = clusterv5->getOverlap();
+            maxadc = cluster->getMaxAdc();
+	    pedge = cluster->getEdge();
+	    ovlp = cluster->getOverlap();
           }
 	  if(layer==7||layer==22||layer==23||layer==38||layer==39) redge = 1;
 
@@ -2667,8 +2665,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           }
           else if (m_cluster_version == 5)
           {
-            TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(reco_cluster);
-            auto para_errors = ClusErrPara.get_clusterv5_modified_error(clusterv5, r, ckey);
+          
+            auto para_errors = ClusErrPara.get_clusterv5_modified_error(reco_cluster, r, ckey);
             // std::cout << " ver v4 " <<  std::endl;
             phisize = reco_cluster->getPhiSize();
             zsize = reco_cluster->getZSize();
@@ -3200,14 +3198,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		    //zsize = clusterv4->getZSize();
 		    
 		  }else if(m_cluster_version==5){
-		    TrkrClusterv5 *clusterv5 = dynamic_cast<TrkrClusterv5 *>(cluster);
-		    gphisize = clusterv5->getPhiSize();
+		    
+		    gphisize = cluster->getPhiSize();
 		    //zsize = clusterv5->getZSize();
-		    auto para_errors = ClusErrPara.get_clusterv5_modified_error(clusterv5,r,cluster_key);
+		    auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster,r,cluster_key);
 		    //zerr = sqrt(para_errors.second);
 		    gphierr = sqrt(para_errors.first);
-		    govlp = clusterv5->getOverlap();
-		    gedge = clusterv5->getEdge();
+		    govlp = cluster->getOverlap();
+		    gedge = cluster->getEdge();
 		  } 
 		  if(gedge>0) npedge++;
 		  if(gphisize>=4) nbig++;
@@ -3715,14 +3713,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		//zsize = clusterv4->getZSize();
 		
 	      }else if(m_cluster_version==5){
-		TrkrClusterv5 *clusterv5 = dynamic_cast<TrkrClusterv5 *>(cluster);
-		rphisize = clusterv5->getPhiSize();
+        
+		rphisize = cluster->getPhiSize();
 		//zsize = clusterv5->getZSize();
-		auto para_errors = ClusErrPara.get_clusterv5_modified_error(clusterv5,r,cluster_key);
+		auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster,r,cluster_key);
 		//zerr = sqrt(para_errors.second);
 		rphierr = sqrt(para_errors.first);
-		rovlp = clusterv5->getOverlap();
-		pedge = clusterv5->getEdge();
+		rovlp = cluster->getOverlap();
+		pedge = cluster->getEdge();
 	      } 
 	      if(pedge>0) npedge++;
 	      if(rphisize>=4) nbig++;

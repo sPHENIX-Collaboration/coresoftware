@@ -824,11 +824,10 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster(TrkrDe
 
     if (cluster_struct.layer >= 7)
     {
-      TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-      auto para_errors_mm = ClusErrPara.get_clusterv5_modified_error(clusterv5, r, key);
+      auto para_errors_mm = ClusErrPara.get_clusterv5_modified_error(cluster, r, key);
 
-      cluster_struct.phi_error = clusterv5->getRPhiError() / cluster_struct.r;
-      cluster_struct.z_error = clusterv5->getZError();
+      cluster_struct.phi_error = cluster->getRPhiError() / cluster_struct.r;
+      cluster_struct.z_error = cluster->getZError();
       cluster_struct.para_phi_error = sqrt(para_errors_mm.first) / cluster_struct.r;
       cluster_struct.para_z_error = sqrt(para_errors_mm.second);
       //	float R = TMath::Abs(1.0/tpc_seed->get_qOverR());
