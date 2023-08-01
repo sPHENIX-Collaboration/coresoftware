@@ -472,25 +472,25 @@ ClusterErrorPara::ClusterErrorPara()
 }
 
 //_________________________________________________________________________________
-ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClusterv5* clusterv5, double, TrkrDefs::cluskey key)
+ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrCluster* cluster, double, TrkrDefs::cluskey key)
 {
 
   int layer = TrkrDefs::getLayer(key);
 
-  double phierror = clusterv5->getRPhiError();
-  double zerror = clusterv5->getZError();
+  double phierror = cluster->getRPhiError();
+  double zerror = cluster->getZError();
   if( TrkrDefs::getTrkrId( key )== TrkrDefs::tpcId){
     if(layer==7||layer==22||layer==23||layer==38||layer==39){
       phierror *= 4;
       zerror*= 4;
     }
-    if(clusterv5->getEdge()>=3)
+    if(cluster->getEdge()>=3)
       phierror *= 4;
-    if(clusterv5->getOverlap()>=2)
+    if(cluster->getOverlap()>=2)
       phierror *= 2;
-    if(clusterv5->getPhiSize()==1)
+    if(cluster->getPhiSize()==1)
       phierror *= 10;
-    if(clusterv5->getPhiSize()>=5)
+    if(cluster->getPhiSize()>=5)
       phierror *= 10;
 
     if(phierror>0.1) phierror = 0.1;
