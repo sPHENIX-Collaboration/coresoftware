@@ -84,8 +84,7 @@ double ALICEKF::getClusterError(TrkrCluster* c, TrkrDefs::cluskey key, Acts::Vec
 	localErr[2][2] = para_errors.second;
       }else if(m_cluster_version==5){
 	double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-	TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(c);
-	auto para_errors = _ClusErrPara->get_clusterv5_modified_error(clusterv5,clusRadius,key);
+	auto para_errors = _ClusErrPara->get_clusterv5_modified_error(c,clusRadius,key);
 
 	localErr[0][0] = 0.;
 	localErr[0][1] = 0.;

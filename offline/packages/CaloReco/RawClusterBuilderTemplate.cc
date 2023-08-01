@@ -21,8 +21,6 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfov1.h>
 
 #include <ffamodules/CDBInterface.h>
 
@@ -327,7 +325,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     {
       std::cout << " in bbcmap " << std::endl;
       
-      BbcVertex *bvertex = NULL;
+      BbcVertex *bvertex = nullptr;
       for (BbcVertexMap::ConstIter bbciter = bbcmap->begin();
            bbciter != bbcmap->end();
            ++bbciter)
@@ -600,7 +598,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   }
   else if (chkenergyconservation)
   {
-    std::cout << "RawClusterBuilderTemplate : energy conservation check asked for but tower or cluster container is NULL " << std::endl;
+    std::cout << "RawClusterBuilderTemplate : energy conservation check asked for but tower or cluster container is NULL" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

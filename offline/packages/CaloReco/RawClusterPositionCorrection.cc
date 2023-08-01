@@ -4,12 +4,11 @@
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerDefs.h>           // for decode_index1, decode_in...
 #include <calobase/RawTowerGeomContainer.h>
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfov1.h>
 
 #include <phparameter/PHParameters.h>
 
