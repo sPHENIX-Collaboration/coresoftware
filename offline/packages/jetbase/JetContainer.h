@@ -19,7 +19,7 @@
 class Jet;
 
 // ---------------------------------------------------------------------------------------
-// JetContainer class -- used to fill, update, and sort TClonesArray of jets
+// JetContainer class -- used to fill, update, and access TClonesArray of jets
 // ---------------------------------------------------------------------------------------
 class JetContainer : public PHObject
 {
@@ -129,17 +129,6 @@ public:
     virtual Jet::IterJetTCA begin()     ;
     virtual Jet::IterJetTCA end()       ;
     // ---------------------------------------------------------------------------------------
-
-    // Methods to sort the TClonesArray of jets
-    virtual void sort_jets(Jet::SORT /**/,     Jet::SORT_ORDER /*ASCENDING or DESCENDING */, Jet::PROPERTY/**/=Jet::PROPERTY::no_property) {};
-    virtual void sort_jets(Jet::PROPERTY /**/, Jet::SORT_ORDER /*ASCENDING or DESCENDING */) {};
-    virtual bool is_sorted() const {return false;} ;
-    virtual void set_is_sorted(bool /*-*/) {};
-
-    virtual void print_sorted_by(std::ostream&/**/) {};
-    virtual void set_sorted_by(Jet::SORT /**/, 
-        Jet::SORT_ORDER=Jet::SORT_ORDER::DESCENDING, 
-        Jet::PROPERTY=Jet::PROPERTY::no_property) {};
 
     virtual unsigned int get_index_single() const { return UINT_MAX; };
     virtual std::vector<unsigned int> get_index_vec()    const { return {}; };

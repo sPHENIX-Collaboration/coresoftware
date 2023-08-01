@@ -78,17 +78,6 @@ public:
     Jet::IterJetTCA end()   override;
     // ---------------------------------------------------------------------------------------
 
-    // Methods to sort the TClonesArray of jets
-    void sort_jets(Jet::SORT,     Jet::SORT_ORDER order=Jet::SORT_ORDER::DESCENDING, Jet::PROPERTY _prop=Jet::PROPERTY::no_property) override;
-    void sort_jets(Jet::PROPERTY, Jet::SORT_ORDER order=Jet::SORT_ORDER::DESCENDING) override;
-
-    bool is_sorted() const override { return m_is_sorted; };
-    void set_is_sorted(bool _) override { m_is_sorted = _; };
-    
-    void print_sorted_by(std::ostream& os=std::cout) override;
-    void set_sorted_by(Jet::SORT sorting_crit, Jet::SORT_ORDER=Jet::SORT_ORDER::DESCENDING, 
-        Jet::PROPERTY=Jet::PROPERTY::no_property) override; 
-
     void add_component(Jet::SRC /*-*/, unsigned int /*component id*/) override;
 
     // -legacy-set-parameters-----------------------------------------------------------------
@@ -117,7 +106,6 @@ public:
     float get_rho_median() const override { return m_RhoMedian; };
 private:
     std::string str_Jet_PROPERTY(Jet::PROPERTY) const;
-    std::string str_Jet_SORT(Jet::SORT) const;
 
     TClonesArray* m_clones {nullptr}; // TClonesArray of Jet objects
     size_t m_njets {0}; // size of jet_array
@@ -130,16 +118,6 @@ private:
     // indices for select_property() PROPERTIES to access in current_jet via get_property() and set_property() methods.
     unsigned int m_sel_index {0};
     std::vector<unsigned int> m_sel_index_vec {};
-
-    // status of post-input sorting
-    bool m_is_sorted { false };
-    Jet::SORT m_sort { Jet::SORT::NO_SORT };
-    Jet::PROPERTY m_sort_prop { Jet::PROPERTY::no_property };
-    Jet::SORT_ORDER m_sort_order { Jet::SORT_ORDER::DESCENDING };
-    /* Jet::JetSortSelections m_sortopt { Jet::SORT::PT, Jet::PROPERTY::no_property, Jet::SORT_ORDER::DESCENDING, 0 }; */
-    /* bool m_sorted_inverse { true }; */
-    /* Jet::SORT m_sorted_by { Jet::SORT::NO_SORT }; */
-    /* Jet::PROPERTY m_sorting_prop { Jet::PROPERTY::no_property }; // i.e. no property; it doesn't matter */
 
     Jet* m_current_jet {nullptr};
 

@@ -8,12 +8,8 @@ FastJetOptions& FastJetOptions::update(std::vector<FastJetOptItem> input) {
   int i =0;
   while (i<size) {
     auto& item = input[i];
-    if (item.is_sort) {
-      sort = item.sort;
-    } else if (item.is_algo) {
+    if (item.is_algo) {
       algo = item.algo;
-    /* } else if (item.is_sort_order) { */
-      /* sort_order = item.sort_order; */
     } else if (item.is_opt) {
       if (item.opt == JET_R) {
         jet_R = next_val(i, input);
@@ -82,16 +78,6 @@ void FastJetOptions::print(std::ostream& os) {
   if (min_const_pt_iscut) {
     os << " - minimum constituent pT cut: " << constituent_min_pt << std::endl;
   }
-  if (sort!=Jet::SORT::NO_SORT) {
-     os << " - sorting by " <<
-         /* (sort_order==Jet::SORT_ORDER::ASCENDING ? "ascending" : "descending") */
-        /* << " " << */
-         (sort == Jet::SORT::PT ? "PT"
-        : sort == Jet::SORT::E  ? "E"
-        : sort == Jet::SORT::ETA   ? "ETA"
-        : " UNSUPPORTED OPTIONS, only PT, E and ETA are currently supported");
-     os << std::endl;
-  }
   os << " - minimum jet pt: " << jet_min_pt << std::endl;
   if (jet_max_eta != 1.1) os << " - maximum |eta_jet|: " << jet_max_eta << std::endl;
   if (doSoftDrop) {
@@ -119,18 +105,6 @@ void FastJetOptions::initialize() {
   if (calc_jetmedbkgdens) {
     if (jet_eta_iscut) etahardestcut_jetmedbkgdens = jet_max_eta;
     else etahardestcut_jetmedbkgdens = 1.1 - jet_R;
-  }
-
-  // set if fastjet is doing any sorting
-  if (sort != Jet::SORT::NO_SORT) {
-    if ( sort != Jet::SORT::PT 
-        &&  sort != Jet::SORT::ETA
-        &&  sort != Jet::SORT::E) {
-      std::cout << PHWHERE << std::endl;
-      std::cout << " Unknown sort option (only Jet::SORT::PT,E,ETA,NO_SORT) supported." << std::endl;
-      std::cout << " -> setting sort to Jet::SORT::NO_SORT. " << std::endl;
-      sort = Jet::SORT::NO_SORT;
-    }
   }
 
   jet_eta_iscut = (jet_max_eta != 1.1);

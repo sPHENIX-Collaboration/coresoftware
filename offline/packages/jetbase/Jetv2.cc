@@ -15,15 +15,13 @@
 
 class PHObject;
 
-Jetv2::Jetv2() :
-  _sort_ptr { nullptr }
+Jetv2::Jetv2() 
 {
   std::fill(std::begin(_mom), std::end(_mom), NAN);
 }
 
 Jetv2::Jetv2(unsigned int n_prop)
   : _properties (  n_prop, NAN )
-  , _sort_ptr { nullptr }
 {
   std::fill(std::begin(_mom), std::end(_mom), NAN);
 }
@@ -32,7 +30,6 @@ Jetv2::Jetv2(const Jetv2& rhs)
   : _id               { rhs._id        }
   , _e                { rhs._e         }
   , _is_sorted        { rhs._is_sorted }
-  , _sort_ptr         { rhs._sort_ptr  }
 {
   std::copy ( rhs._mom, rhs._mom+3, _mom);
   std::copy ( rhs._comp_ids.begin(),   rhs._comp_ids.end(),   _comp_ids.begin() );
@@ -173,13 +170,6 @@ void Jetv2::insert_comp (SRC iSRC, unsigned int compid)
   _comp_ids.push_back(std::make_pair(iSRC, compid)); 
 }
 
-
-/* size_t Jetv2::erase_comp(SRC iSRC) { */
-/*   size_t n = (comp_end(iSRC) - comp_begin(iSRC)); */
-/*   _comp_ids.erase(comp_begin(iSRC), comp_end(iSRC)); */
-/*   return n; */
-/* } */
-
 void Jetv2::sort_comp_ids() {
     std::sort(_comp_ids.begin(), _comp_ids.end(),
         [](const std::pair<Jet::SRC,unsigned int> &a, 
@@ -198,75 +188,3 @@ Jetv2::ITER_comp_vec Jetv2::comp_end(Jet::SRC iSRC) {
   return std::upper_bound(_comp_ids.begin(), _comp_ids.end(), iSRC, CompareSRC());
 }
 
-bool Jetv2::IsEqual(const TObject* obj) const {
-  return static_cast<SortFnJetv2*>(_sort_ptr)->IsEqual(
-      const_cast<Jetv2*>(this), static_cast<const Jetv2*>(obj));
-}
-
-bool SortFnJetv2::IsEqual(const Jetv2* lhs, const Jetv2* rhs) const {
-  switch (sort) {
-    case Jet::SORT::PT:
-      return lhs->get_pt()    == rhs->get_pt();
-
-    case Jet::SORT::E:
-      return lhs->get_e()     == rhs->get_e();
-
-    case Jet::SORT::P:
-      return lhs->get_p()     == rhs->get_p();
-
-    case Jet::SORT::MASS:
-      return lhs->get_mass()  == rhs->get_mass();
-
-    case Jet::SORT::MASS2:
-      return lhs->get_mass2() == rhs->get_mass2();
-
-    case Jet::SORT::ETA:
-      return lhs->get_eta() == rhs->get_eta();
-
-    case Jet::SORT::PROPERTY:
-      return lhs->_properties[index] 
-           == rhs->_properties[index];
-
-    default:
-      std::cout << PHWHERE << std::endl;
-      std::cout << " Unrecognized sorting parameter for Jetv2 types."
-        << " Must be Jet::SORT::(PT,E,P,MASS,MASS2) or Jet::SORT::PROPERTY with index within range " << std::endl;
-  }
-  return true;
-}
-
- int Jetv2::Compare(const TObject* obj) const { 
-   return static_cast<SortFnJetv2*>(_sort_ptr)->Compare(
-       const_cast<Jetv2*>(this), static_cast<const Jetv2*>(obj)); 
- } 
-
-int SortFnJetv2::Compare(const Jetv2* lhs, const Jetv2* rhs) const {
-   switch (sort) {
-     case Jet::SORT::PT:
-       return intCompare(lhs->get_pt(), rhs->get_pt());
- 
-     case Jet::SORT::E:
-       return intCompare(lhs->get_e(), rhs->get_e());
- 
-     case Jet::SORT::P:
-       return intCompare(lhs->get_p(), rhs->get_p());
- 
-     case Jet::SORT::MASS:
-       return intCompare(lhs->get_mass(), rhs->get_mass());
- 
-     case Jet::SORT::MASS2:
-       return intCompare(lhs->get_mass2(), rhs->get_mass2());
-       
-     case Jet::SORT::ETA:
-       return intCompare(lhs->get_eta(),   rhs->get_eta());
- 
-     case Jet::SORT::PROPERTY:
-       return intCompare(lhs->_properties[index], rhs->_properties[index]);
- 
-     default:
-       std::cout << PHWHERE << std::endl;
-       std::cout << " Unrecognized sorting parameter for Jetv2 types."
-         << " Must be Jet::SORT::(PT,E,P,MASS,MASS2) or Jet::SORT::PROPERTY with index within range " << std::endl;
-   }
-   return 0;
- }

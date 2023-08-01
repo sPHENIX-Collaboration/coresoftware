@@ -73,27 +73,6 @@ class Jet : public PHObject
     HCALOUT_TOWERINFO_SUB1 = 31, /* needed for HI jet reco */
   };
 
-  enum class SORT  // used as criteria for sorting output in JetMap
-  {
-    NO_SORT = 0, // a blank input to not sort input
-    PT   = 1, // PT descending order
-    E    = 2, // E  descending order
-    P    = 3, // P descending order
-    MASS = 4, // Mass descending order
-    AREA = 5, // AREA descending order --> maybe used in future, as jets don't have area for now...
-    PROPERTY = 6, // doesn't say which property; a second parameter of
-                  // Jet::PROPERTY will be needed the sorting algorithm
-    MASS2 = 7, // Mass descending order
-    ETA   = 8, // Mass descending order
-  };
-
-  enum class SORT_ORDER
-  {
-    DESCENDING = 0,
-    ASCENDING  = 1,
-    UNORDERED  = 3,
-  };
-
   enum PROPERTY
   {
     //! jet charge
@@ -222,25 +201,7 @@ class Jet : public PHObject
   virtual void erase_comp(Iter /*first*/, Iter /*last*/) { mv1("erase_comp"); return; }
   //----------------------------------------------------------------------------------
  
-  //-- new with Jetv2: Used for allowing TClonesArray to sort jets. Each jet will
-  // point to the JetSortSels (Jet Sort Selections) object in JetContainer and then
-  // the TClonesArray will sort the jets based on the criteria in the JetSortSels.
-  /* std::tuple<Jet::SORT, Jet::PROPERTY, Jet::SORT_ORDER, unsigned int prop_index> SortSelections; // { */
-      /* Jet::SORT       criteria   { Jet::SORT::PT }; */
-      /* Jet::PROPERTY   property   { Jet::PROPERTY::no_property }; // when sorted by property */
-      /* Jet::SORT_ORDER order      { Jet::SORT_ORDER::DESCENDING }; // */ 
-      /* unsigned int    prop_index { 0 }; // for use when sorting by criteria */
-      /* /1* ClassDefOverride(SortSelections, 1); *1/ */
-  /* }; */
-  virtual void set_sort_ptr (void* /*ptr*/)  { mv2("set_sort_ptr()"); }
-  virtual void* get_sort_ptr() { mv2("get_sort_ptr()"); return 0; };
-
-  using JetSortSelections = std::tuple<Jet::SORT,Jet::PROPERTY, Jet::SORT_ORDER,unsigned int>;
-
-  virtual Bool_t IsSortable() const override { mv2("IsSortable()"); return false; }
-  protected:
-  virtual bool  IsEqual(const TObject* /**/) const override {mv2("IsEqual()"); return false;}
-  virtual Int_t Compare(const TObject* /**/) const override {mv2("Compare()"); return 0;}
+  Bool_t IsSortable() const override { return false; }
 
   public:
   // structure to iterate over ther jets in a TClonesArray in the JetContainer

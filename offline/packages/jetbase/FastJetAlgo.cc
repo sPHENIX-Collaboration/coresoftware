@@ -114,25 +114,9 @@ std::vector<fastjet::PseudoJet> FastJetAlgo::cluster_jets(
 
   if (m_opt.has_jet_selection) {
     auto selector = get_selector();
-    if (m_opt.sort == Jet::SORT::PT) {
-      return fastjet::sorted_by_pt(selector(m_cluseq->inclusive_jets()));
-    } else if (m_opt.sort == Jet::SORT::E) {
-      return fastjet::sorted_by_E(selector(m_cluseq->inclusive_jets()));
-    } else if (m_opt.sort == Jet::SORT::ETA) {
-      return sorted_by_rapidity(selector(m_cluseq->inclusive_jets()));
-    } else {
-      return selector(m_cluseq->inclusive_jets());
-    }
+    return fastjet::sorted_by_pt(selector(m_cluseq->inclusive_jets()));
   } else {
-    if (m_opt.sort == Jet::SORT::PT) {
-      return fastjet::sorted_by_pt(m_cluseq->inclusive_jets());
-    } else if (m_opt.sort == Jet::SORT::E) {
-      return fastjet::sorted_by_E(m_cluseq->inclusive_jets());
-    } else if (m_opt.sort == Jet::SORT::ETA) {
-      return sorted_by_rapidity(m_cluseq->inclusive_jets());
-    } else {
-      return m_cluseq->inclusive_jets();
-    }
+    return fastjet::sorted_by_pt(m_cluseq->inclusive_jets());
   }
 }
 
@@ -155,15 +139,8 @@ std::vector<fastjet::PseudoJet> FastJetAlgo::cluster_area_jets(
       : !fastjet::SelectorIsPureGhost()
   );
 
-  if (m_opt.sort == Jet::SORT::PT) {
-    return fastjet::sorted_by_pt(selector(m_cluseqarea->inclusive_jets()));
-  } else if (m_opt.sort == Jet::SORT::E) {
-    return fastjet::sorted_by_E(selector(m_cluseqarea->inclusive_jets()));
-  } else if (m_opt.sort == Jet::SORT::ETA) {
-    return sorted_by_rapidity(selector(m_cluseqarea->inclusive_jets()));
-  } else {
-    return selector(m_cluseqarea->inclusive_jets());
-  }
+  return fastjet::sorted_by_pt(selector(m_cluseqarea->inclusive_jets()));
+
 }
 
 float FastJetAlgo::calc_rhomeddens(std::vector<fastjet::PseudoJet>& constituents) {
@@ -216,13 +193,7 @@ void FastJetAlgo::first_call_init(JetContainer* jetcont) {
   m_first_cluster_call = false;
   m_opt.initialize();
 
-  Jet::SORT_ORDER order = Jet::SORT_ORDER::UNORDERED;
-  if (m_opt.sort==Jet::SORT::PT ||m_opt.sort==Jet::SORT::E) order = Jet::SORT_ORDER::DESCENDING;
-  else if (m_opt.sort == Jet::SORT::ETA) order = Jet::SORT_ORDER::ASCENDING;
-
   if (jetcont == nullptr) return;
-
-  jetcont->set_sorted_by(m_opt.sort, order);
 
   if (m_opt.doSoftDrop) {
     jetcont->add_property( {Jet::PROPERTY::prop_zg, Jet::PROPERTY::prop_Rg, Jet::PROPERTY::prop_mu} );

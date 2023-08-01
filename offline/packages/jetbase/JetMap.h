@@ -78,8 +78,7 @@ class JetMap : public PHObject
   virtual Iter find(unsigned int idkey);
   virtual Iter end();
 
-  virtual std::vector<Jet*> vec(Jet::SORT=Jet::SORT::PT)=0;
-  virtual std::vector<Jet*> vec(std::function<bool (Jet*, Jet*)> custom_sort)=0;
+  virtual std::vector<Jet*> vec()=0;
 
  private:
   ClassDefOverride(JetMap, 1);

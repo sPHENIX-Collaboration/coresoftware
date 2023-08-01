@@ -88,10 +88,6 @@ class Jetv2 : public Jet
   TYPE_comp_vec& get_comp_vec()  override{ return _comp_ids; }; // new in v2
   void sort_comp_ids() override;
 
-  Bool_t IsSortable() const override    { return kTRUE; }
-  void  set_sort_ptr (void* _) override { _sort_ptr = _; }
-  void* get_sort_ptr() override         { return _sort_ptr; }
-
   inline void Clear(Option_t* =nullptr) override { Reset(); }
 
  private:
@@ -126,54 +122,7 @@ class Jetv2 : public Jet
 
   std::vector<float> _properties {};
 
-  // member data to allow sorting and comparison
-  void* _sort_ptr { nullptr }; ///<!
-
-  bool  IsEqual(const TObject* obj) const override;
-  Int_t Compare(const TObject* obj) const override;
-
-   friend struct SortFnJetv2;
   ClassDefOverride(Jetv2, 1);
-};
-
-struct SortFnJetv2 {
-  SortFnJetv2() {};
-  // state
-  Jet::SORT sort{};
-  Jet::SORT_ORDER order{};
-  unsigned int index{};
-
-  SortFnJetv2(
-      Jet::SORT _sort
-    , Jet::SORT_ORDER _order
-    , unsigned int _propery_index=0) :
-    sort {_sort}
-  , order {_order}
-  , index {_propery_index} 
-  {};
-
-  int Compare(const Jetv2* lhs, const Jetv2* rhs) const;
-  bool IsEqual(const Jetv2* lhs, const Jetv2* rhs) const;
-
-  inline int intCompare (float a, float b) const {
-    if (order == Jet::SORT_ORDER::ASCENDING) {
-      if      (a<b) return -1; // will fail for either number NAN
-      else if (b<a) return  1; // will fail for either number NAN
-      else if (b==a) return 0;
-      else if (isnan(a) && isnan(b)) return 0;
-      else if (isnan(a)) return  1;
-      else if (isnan(b)) return -1;
-      else               return  0;
-    } else {
-      if      (a<b) return  1; // will fail for either number NAN
-      else if (b<a) return -1; // will fail for either number NAN
-      else if (b==a) return 0;
-      else if (isnan(a) && isnan(b)) return 0;
-      else if (isnan(a)) return  1;
-      else if (isnan(b)) return -1;
-      else               return  0;
-    }
-  }
 };
 
 #endif  // G4JET_JETV2_H

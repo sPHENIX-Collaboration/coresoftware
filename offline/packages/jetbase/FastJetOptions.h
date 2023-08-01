@@ -8,10 +8,9 @@
 
 // This is a structure that the FastJetAlgo class uses for its optoins. The users
 // can initialize it as a double-brace enclosed list which is a mix of 
-// Jet::ALGO, Jet::SORT, Jet::SORT_ORDER, fastjet_options (below), and floats,
 // Something like this:
 //
-// FastJetOptions fj_opt {{ Jet::ALGO::ANTIKT, Jet::SORT::PT, DO_SOFTDROP, SD_BETA, 0.0, SD_ZCUT 0.1, JET_R, 0.4 }};
+// FastJetOptions fj_opt {{ Jet::ALGO::ANTIKT, DO_SOFTDROP, SD_BETA, 0.0, SD_ZCUT 0.1, JET_R, 0.4 }};
 // jet_reco_obj->add_algo(new FastJetAlgo(fj_opt), "AntiKt_Tower_r04");
 // /* can also update it */
 // jet_reco_obj->add_algo(new FastJetAlgo(fj_opt({{JET_R,0.5}}), "AntiKt_Tower_r05");
@@ -50,20 +49,11 @@ struct FastJetOptItem { // All the things you can feed into FastJetAlgo
   float val {0.};
   bool is_val { false };
 
-  Jet::SORT sort {};
-  bool is_sort { false };
-
   Jet::ALGO algo {};
   bool is_algo { false };
 
-  // fastjet doesn't let you pick a order when sorting
-  /* Jet::SORT_ORDER sort_order {}; */
-  /* bool is_sort_order { false }; */
-
   FastJetOptItem (float           _) : val{_},        is_val{true}        {};
-  FastJetOptItem (Jet::SORT       _) : sort{_},       is_sort{true}       {};
   FastJetOptItem (Jet::ALGO       _) : algo{_},       is_algo{true}       {};
-  /* FastJetOptItem (Jet::SORT_ORDER _) : sort_order{_}, is_sort_order{true} {}; */
   FastJetOptItem (FastJetOptEnum  _) : opt{_},        is_opt{true}        {};
 };
 
@@ -79,8 +69,7 @@ struct FastJetOptions {
                                      // default options
   float            jet_R             = 0.4;
   Jet::ALGO        algo              = Jet::ALGO::ANTIKT;
-  Jet::SORT        sort              = Jet::SORT::NO_SORT;
-  /* Jet::SORT_ORDER  sort_order        = Jet::SORT_ORDER::DESCENDING; */
+
   float            jet_max_eta       = 1.1;
   bool             handset_maxeta    = false; // If user uses jet_max_eta, then cut_edge_eta won't reset eta at all
   bool             cut_edge_eta      = false;
@@ -112,7 +101,6 @@ struct FastJetOptions {
   bool             jet_eta_iscut      = false;
   bool             min_const_pt_iscut = false;
   bool             jet_min_pt_iscut   = false;
-
 
   void initialize(); // updates run with the first call
 };
