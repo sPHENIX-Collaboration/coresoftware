@@ -15,7 +15,7 @@ void TestSpotDistortion(AnnularFieldSim *t);
 void SurveyFiles(TFileCollection* filelist);
 
   
-void generate_distortion_map(const char *inputname, const char* gainName, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true, bool isAdc=false, int nSteps=500){
+void generate_distortion_map(const char *inputname, const char* gainName, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true, bool isAdc=false, int nSteps=500, bool scanSteps=false){
   printf("generating single distortion map.  Caution:  This is vastly less efficient than re-using the tpc model once it is set up\n");
  
   bool hasTwin=true; //this flag prompts the code to build both a positive-half and a negative-half for the TPC, reusing as much of the calculations as possible.  It is more efficient to 'twin' one half of the TPC than to recalculate/store the greens functions for both.
@@ -73,11 +73,15 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   if (hasTwin)  tpc->twin->populate_fieldmap();
 
   //build the distortion maps from the fieldmaps and save it to the output filename.
-
+  if (scanSteps){
   for(int i=0;i<10;i++){
   	TString study_filestring=Form("%s.steps%d.hist.root","study_file_changinginterval",50*(i+1));
   tpc->GenerateSeparateDistortionMaps(study_filestring,50*(i+1),1,1,1,1,true);
   //tpc->GenerateSeparateDistortionMaps(outputfilename.Data(),1,1,1,1,false);
+}
+}
+  else{
+   tpc->GenerateSeparateDistortionMaps(outputfilename.Data(),250,1,1,1,1,false);
 }
 
   printf("distortions mapped.\n");
