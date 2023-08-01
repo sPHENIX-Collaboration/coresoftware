@@ -37,6 +37,9 @@ enum FastJetOptEnum {
   , CUT_RhoMedNHardest
   , NONE
 
+  , SAVE_JET_COMPONENTS
+  , DONT_SAVE_JET_COMPONENTS
+
   , VERBOSITY
 };
 
@@ -85,6 +88,8 @@ struct FastJetOptions {
   float            jet_min_pt        = 5;
 
   float            constituent_min_pt = 0.;
+
+  bool  save_jet_components         = true;
 
   bool  doSoftDrop                  = false;
   float SD_beta                     = 0;

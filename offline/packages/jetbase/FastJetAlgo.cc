@@ -302,18 +302,20 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
     }
 
     // copy components into output jet
-    std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
-    for (auto & comp : comps)
-    {
-      if (m_opt.calc_area && comp.is_pure_ghost()) continue;
-      
-      Jet* particle = particles[comp.user_index()];
-
-      for (Jet::Iter iter = particle->begin_comp();
-           iter != particle->end_comp();
-           ++iter)
+    if (m_opt.save_jet_components) {
+      std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
+      for (auto & comp : comps)
       {
-        jetcont->add_component(iter->first, iter->second);
+        if (m_opt.calc_area && comp.is_pure_ghost()) continue;
+        
+        Jet* particle = particles[comp.user_index()];
+
+        for (Jet::Iter iter = particle->begin_comp();
+             iter != particle->end_comp();
+             ++iter)
+        {
+          jetcont->add_component(iter->first, iter->second);
+        }
       }
     }
   }
@@ -370,16 +372,18 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
     }
 
     // copy components into output jet
-    std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
-    for (auto & comp : comps)
-    {
-      Jet* particle = particles[comp.user_index()];
-
-      for (Jet::Iter iter = particle->begin_comp();
-           iter != particle->end_comp();
-           ++iter)
+    if (m_opt.save_jet_components) {
+      std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
+      for (auto & comp : comps)
       {
-        jet->insert_comp(iter->first, iter->second);
+        Jet* particle = particles[comp.user_index()];
+
+        for (Jet::Iter iter = particle->begin_comp();
+             iter != particle->end_comp();
+             ++iter)
+        {
+          jet->insert_comp(iter->first, iter->second);
+        }
       }
     }
 

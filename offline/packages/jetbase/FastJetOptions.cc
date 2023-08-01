@@ -47,6 +47,10 @@ FastJetOptions& FastJetOptions::update(std::vector<FastJetOptItem> input) {
         nhardestcut_jetmedbkgdens = static_cast<int>(next_val(i, input));
       } else if (item.opt == VERBOSITY) {
         verbosity = static_cast<int>(next_val(i, input));
+      } else if (item.opt == DONT_SAVE_JET_COMPONENTS) {
+        save_jet_components = false;
+      } else if (item.opt == SAVE_JET_COMPONENTS) {
+        save_jet_components = true;
       }
     }
     ++i;
@@ -73,7 +77,8 @@ void FastJetOptions::print(std::ostream& os) {
        : algo==Jet::ALGO::KT     ? "KT"
        : algo==Jet::ALGO::CAMBRIDGE ? "CAMBRIDGE"
        : "none") << std::endl
-      << " - berbosity: " << verbosity << std::endl;
+      << " - save jet components ids: " << (save_jet_components ? "yes" : "no") << std::endl
+      << " - verbosity: " << verbosity << std::endl;
   if (min_const_pt_iscut) {
     os << " - minimum constituent pT cut: " << constituent_min_pt << std::endl;
   }
