@@ -49,7 +49,6 @@ int TowerInfoDeadHotMask::process_event(PHCompositeNode * /*topNode*/)
 
   for(itr = map.begin(); itr != map.end(); ++itr)
   {
-    std::cout << *itr << std::endl;
     int iphi = m_geometry->get_tower_geometry(*itr)->get_binphi();
     int ieta = m_geometry->get_tower_geometry(*itr)->get_bineta();
     unsigned int key = TowerInfoDefs::encode_emcal(ieta, iphi);
