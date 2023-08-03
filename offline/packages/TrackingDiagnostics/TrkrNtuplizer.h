@@ -62,7 +62,6 @@ class TrkrNtuplizer : public SubsysReco
   void do_tpcseed_eval(bool b) { _do_tpcseed_eval = b; }
   void do_siseed_eval(bool b) { _do_siseed_eval = b; }
 
-  void set_cluster_version(int value) { m_cluster_version = value; }
   SvtxTrack* best_track_from(TrkrDefs::cluskey cluster_key);
   std::set<SvtxTrack*> all_tracks_from(TrkrDefs::cluskey cluster_key);
   void create_cache_track_from_cluster();
@@ -119,7 +118,7 @@ class TrkrNtuplizer : public SubsysReco
   void printInputInfo(PHCompositeNode *topNode);     ///< print out the input object information (debugging upstream components)
   void printOutputInfo(PHCompositeNode *topNode);    ///< print out the ancestry information for detailed diagnosis
   double AdcClockPeriod = 53.0;                      // ns
-  int m_cluster_version = 5;
+ 
   bool _cache_track_from_cluster_exists = false;
   std::map<TrkrDefs::cluskey, std::set<SvtxTrack*> > _cache_all_tracks_from_cluster;
   std::map<TrkrDefs::cluskey, SvtxTrack*> _cache_best_track_from_cluster;

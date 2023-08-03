@@ -2,8 +2,6 @@
 #include "CylinderGeomIntt.h"
 
 #include <trackbase/TrkrClusterContainerv4.h>
-#include <trackbase/TrkrClusterv3.h>
-#include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
@@ -551,59 +549,25 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    cluslocaly = ylocalsum / nhits;
 	    cluslocalz = zlocalsum / nhits;
 	  }
-	if(m_cluster_version==3){
-	  auto clus = std::make_unique<TrkrClusterv3>();
-	  // Fill the cluster fields
-	  clus->setAdc(clus_adc);
-	  
-	  if(Verbosity() > 10) clus->identify();
-	  
-	  clus->setLocalX(cluslocaly);
-	  clus->setLocalY(cluslocalz);
-	  /// silicon has a 1-1 map between hitsetkey and surfaces. So set to 
-	    /// 0
-	    clus->setSubSurfKey(0);
-	    clus->setActsLocalError(0,0, square(phierror));
-	    clus->setActsLocalError(0,1, 0.);
-	    clus->setActsLocalError(1,0, 0.);
-	    clus->setActsLocalError(1,1, square(zerror));
-	    m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
-	}
-	else if(m_cluster_version==4){
-	  auto clus = std::make_unique<TrkrClusterv4>();
-	  // Fill the cluster fields
-	  clus->setAdc(clus_adc);
-	  clus->setPhiSize(phibins.size());
-	  clus->setZSize(1);
 
-	  if(Verbosity() > 10) clus->identify();
-	  
-	  clus->setLocalX(cluslocaly);
-	  clus->setLocalY(cluslocalz);
-	  // silicon has a 1-1 map between hitsetkey and surfaces. So set to 
-	  // 0
-	  clus->setSubSurfKey(0);
-	  m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
-	  
-	}else if(m_cluster_version==5){
-	  auto clus = std::make_unique<TrkrClusterv5>();
-	  clus->setAdc(clus_adc);
-	  clus->setMaxAdc(clus_maxadc);
-	  clus->setLocalX(cluslocaly);
-	  clus->setLocalY(cluslocalz);
-	  clus->setPhiError(phierror);
-	  clus->setZError(zerror);
-	  clus->setPhiSize(phibins.size());
-	  clus->setZSize(1);
-	  // All silicon surfaces have a 1-1 map to hitsetkey. 
-	  // So set subsurface key to 0
-	  clus->setSubSurfKey(0);
-	  
-	  if (Verbosity() > 2)
-	    clus->identify();
-	  
-	  m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
-	}
+	auto clus = std::make_unique<TrkrClusterv5>();
+	clus->setAdc(clus_adc);
+	clus->setMaxAdc(clus_maxadc);
+	clus->setLocalX(cluslocaly);
+	clus->setLocalY(cluslocalz);
+	clus->setPhiError(phierror);
+	clus->setZError(zerror);
+	clus->setPhiSize(phibins.size());
+	clus->setZSize(1);
+	// All silicon surfaces have a 1-1 map to hitsetkey. 
+	// So set subsurface key to 0
+	clus->setSubSurfKey(0);
+	
+	if (Verbosity() > 2)
+	  clus->identify();
+	
+	m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+	
       } // end loop over cluster ID's
   }  // end loop over hitsets
 
@@ -849,41 +813,24 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 	    cluslocaly = ylocalsum / nhits;
 	    cluslocalz = zlocalsum / nhits;
 	  }
-	if(m_cluster_version==3){
-	  auto clus = std::make_unique<TrkrClusterv3>();
-	  // Fill the cluster fields
-	  clus->setAdc(clus_adc);
-	  
-	  if(Verbosity() > 10) clus->identify();
-	  
-	  clus->setLocalX(cluslocaly);
-	  clus->setLocalY(cluslocalz);
-	  /// silicon has a 1-1 map between hitsetkey and surfaces. So set to 
-	    /// 0
-	    clus->setSubSurfKey(0);
-	    clus->setActsLocalError(0,0, square(phierror));
-	    clus->setActsLocalError(0,1, 0.);
-	    clus->setActsLocalError(1,0, 0.);
-	    clus->setActsLocalError(1,1, square(zerror));
-	    m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
-	}
-	else if(m_cluster_version==4){
-	  auto clus = std::make_unique<TrkrClusterv4>();
-	  // Fill the cluster fields
-	  clus->setAdc(clus_adc);
-	  clus->setPhiSize(phibins.size());
-	  clus->setZSize(1);
 
-	  if(Verbosity() > 10) clus->identify();
-	  
-	  clus->setLocalX(cluslocaly);
-	  clus->setLocalY(cluslocalz);
-	  // silicon has a 1-1 map between hitsetkey and surfaces. So set to 
-	  // 0
-	  clus->setSubSurfKey(0);
-	  m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
-	  
-	}
+	auto clus = std::make_unique<TrkrClusterv5>();
+	clus->setAdc(clus_adc);
+	clus->setLocalX(cluslocaly);
+	clus->setLocalY(cluslocalz);
+	clus->setPhiError(phierror);
+	clus->setZError(zerror);
+	clus->setPhiSize(phibins.size());
+	clus->setZSize(1);
+	// All silicon surfaces have a 1-1 map to hitsetkey. 
+	// So set subsurface key to 0
+	clus->setSubSurfKey(0);
+	
+	if (Verbosity() > 2)
+	  clus->identify();
+	
+	m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+
       } // end loop over cluster ID's
   }  // end loop over hitsets
 

@@ -447,31 +447,14 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
     // need standard deviation of measurements
     SvtxAlignmentState::ResidualVector clus_sigma = SvtxAlignmentState::ResidualVector::Zero();
 
-    if (_cluster_version == 3)
-    {
-      clus_sigma(1) = cluster->getZError() * Acts::UnitConstants::cm;
-      clus_sigma(0) = cluster->getRPhiError() * Acts::UnitConstants::cm;
-    }
-    else if (_cluster_version == 4)
-    {
-      double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
-      auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster, clusRadius, ckey);
-      float exy2 = para_errors.first * Acts::UnitConstants::cm2;
-      float ez2 = para_errors.second * Acts::UnitConstants::cm2;
-      clus_sigma(1) = sqrt(ez2);
-      clus_sigma(0) = sqrt(exy2);
-    }
-    else if (_cluster_version == 5)
-    {
-      double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
-      TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-      auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5, clusRadius, ckey);
-      double phierror = sqrt(para_errors.first);
-      double zerror = sqrt(para_errors.second);
-      clus_sigma(1) = zerror * Acts::UnitConstants::cm;
-      clus_sigma(0) = phierror * Acts::UnitConstants::cm;
-    }
-
+    double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
+    auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, ckey);
+    double phierror = sqrt(para_errors.first);
+    double zerror = sqrt(para_errors.second);
+    clus_sigma(1) = zerror * Acts::UnitConstants::cm;
+    clus_sigma(0) = phierror * Acts::UnitConstants::cm;
+    
+    
     if (std::isnan(clus_sigma(0)) ||
         std::isnan(clus_sigma(1)))
     {
