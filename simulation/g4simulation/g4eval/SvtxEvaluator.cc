@@ -1957,7 +1957,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  pedge = cluster->getEdge();
 	  ovlp = cluster->getOverlap();
 	
-	  if(layer==7||layer==22||layer==23||layer==38||layer==39) redge = 1;
+	  if(hitsetlayer==7||hitsetlayer==22||hitsetlayer==23||hitsetlayer==38||hitsetlayer==39) redge = 1;
 
           float e = cluster->getAdc();
           float adc = cluster->getAdc();
