@@ -89,7 +89,21 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
   }
   //  std::cout << "next event is " << m_PacketMap.begin()->first << std::endl;
   auto pktinfoiter = m_PacketMap.begin();
+  int eventnumber = pktinfoiter->first;
+  int bclk = m_ClockCounters[eventnumber].begin()->first;
+  for (auto veciter : m_ClockCounters[eventnumber])
+  {
+    // std::cout << "name " << veciter.second->Name() << ", bclk: 0x" << std::hex
+    // 	      << veciter.first << std::dec << std::endl;
+    if (bclk != veciter.first)
+    {
+      std::cout << "beam clk mismatch for event " << eventnumber 
+		<< " ref: 0x" << bclk << ", read back 0x" << veciter.first << std::dec 
+		<< ", name: " << veciter.second->Name() << std::endl;
+    }
+  }
   oph->prepare_next(pktinfoiter->first, m_RunNumber);
+
   for (auto &pktiter : pktinfoiter->second.PacketVector)
   {
     oph->addPacket(pktiter);
@@ -352,6 +366,13 @@ void Fun4AllPrdfInputPoolManager::AddPacket(const int evtno, Packet *p)
     std::cout << "Adding packet " << p->getIdentifier() << " to event no " << evtno << std::endl;
   }
   m_PacketMap[evtno].PacketVector.push_back(p);
+}
+
+void Fun4AllPrdfInputPoolManager::AddBeamClock(const int evtno, const int bclk, SinglePrdfInput *prdfin)
+{
+  std::cout << "Adding event " << evtno << ", clock 0x" << std::hex << bclk << std::dec
+	    << " snglinput: " << prdfin->Name() << std::endl;
+  m_ClockCounters[evtno].push_back(std::make_pair(bclk, prdfin));
 }
 
 void Fun4AllPrdfInputPoolManager::UpdateEventFoundCounter(const int evtno)

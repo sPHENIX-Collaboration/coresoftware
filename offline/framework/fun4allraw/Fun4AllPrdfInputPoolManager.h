@@ -39,6 +39,7 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
   void AddPacket(const int evtno, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
   void UpdateDroppedPacket(const int packetid);
+  void AddBeamClock(const int evtno, const int bclk, SinglePrdfInput *prdfin);
 
  private:
   struct PacketInfo
@@ -58,6 +59,7 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
   std::map<int, PacketInfo> m_PacketMap;
   std::string m_PrdfNodeName;
   std::map<int, int> m_DroppedPacketMap;
+  std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;
 };
 
 #endif /* FUN4ALL_FUN4ALLPRDFINPUTPOOLMANAGER_H */

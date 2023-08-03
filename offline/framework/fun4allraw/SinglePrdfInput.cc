@@ -152,6 +152,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
           m_InputMgr->AddPacket(common_event_number, pktiter);
         }
       }
+      m_InputMgr->AddBeamClock(common_event_number, m_PacketMap.begin()->first, this);
     }
     else
     {
@@ -217,6 +218,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
           }
         }
       }
+      m_InputMgr->AddBeamClock(common_event_number, common_beam_clock, this);
     }
     m_PacketMap.clear();
     m_EvtSet.clear();
