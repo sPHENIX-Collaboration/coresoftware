@@ -31,8 +31,7 @@ class QAG4SimulationMicromegas : public SubsysReco
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
-  void set_cluster_version(int value) { m_cluster_version = value; }
-
+ 
  private:
   /// common prefix for QA histograms
   std::string get_histo_prefix() const;
@@ -79,7 +78,6 @@ class QAG4SimulationMicromegas : public SubsysReco
   /* it is filled at Init stage. It should not change for the full run */
   std::set<int> m_layers;
   ClusterErrorPara _ClusErrPara;
-  int m_cluster_version = 4;
 };
 
 #endif
