@@ -2290,14 +2290,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  pedge = cluster->getEdge();
 	  ovlp = cluster->getOverlap();
           
-	  if(layer==7||layer==22||layer==23||layer==38||layer==39) redge = 1;
-
-          float e = cluster->getAdc();
+	  float e = cluster->getAdc();
           float adc = cluster->getAdc();
           float local_layer = (float) TrkrDefs::getLayer(cluster_key);
           float sector = TpcDefs::getSectorId(cluster_key);
           float side = TpcDefs::getSide(cluster_key);
           // count all hits for this cluster
+	  if(local_layer==7||local_layer==22||local_layer==23||local_layer==38||local_layer==39) redge = 1;
 
           // count all hits for this cluster
           TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
