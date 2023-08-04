@@ -923,18 +923,20 @@ std::pair<unsigned int, unsigned int> SvtxTrackEval::get_layer_range_contributio
 
     // loop over all particles
     std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster_key);
+    int matched = 0;
     for (auto candidate : particles)
     {
       if (get_truth_eval()->are_same_particle(candidate, particle))
       {
         //	nmatches |= (0x3FFFFFFF & (0x1 << cluster_layer));
         layers[cluster_layer - start_layer] = 1;
+	matched = 1;
       }
-      else
-	{
-	  layers_wrong[cluster_layer - start_layer] = 1;
-	}
     }
+    if(matched == 0)
+      {
+	layers_wrong[cluster_layer - start_layer] = 1;
+      }
   }
   for (unsigned int i = 0; i < nlayers; i++)
   {
