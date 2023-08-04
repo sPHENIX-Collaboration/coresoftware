@@ -105,8 +105,6 @@ class PHActsTrkFitter : public SubsysReco
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void set_seed_track_map_name(const std::string &map_name) { _seed_track_map_name = map_name; }
 
-  void set_cluster_version(int value) { m_cluster_version = value; }
-
   /// Set flag for pp running
   void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
 
@@ -231,7 +229,6 @@ class PHActsTrkFitter : public SubsysReco
   TH1 *h_updateTime = nullptr;
   TH1 *h_stateTime = nullptr;
   TH1 *h_rotTime = nullptr;
-  int m_cluster_version = 4;
 };
 
 #endif

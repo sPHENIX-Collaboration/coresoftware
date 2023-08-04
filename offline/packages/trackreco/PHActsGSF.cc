@@ -324,37 +324,14 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
     indices[0] = Acts::BoundIndices::eBoundLoc0;
     indices[1] = Acts::BoundIndices::eBoundLoc1;
     Acts::ActsSymMatrix<2> cov = Acts::ActsSymMatrix<2>::Zero();
-    if (m_cluster_version == 3)
-    {
-      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) =
-          cluster->getActsLocalError(0, 0) * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
-          cluster->getActsLocalError(0, 1) * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) =
-          cluster->getActsLocalError(1, 0) * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) =
-          cluster->getActsLocalError(1, 1) * Acts::UnitConstants::cm2;
-    }
-    else if (m_cluster_version == 4)
-    {
-      double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
-      auto para_errors = _ClusErrPara.get_cluster_error(cluster, clusRadius, cluskey, track->get_qOverR(), track->get_slope());
-      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
-      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
-      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
-    }
-    else if (m_cluster_version == 5)
-    {
-      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-      TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-      auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5,clusRadius,cluskey);
-      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
-      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
-      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
-    }
-
+  
+    double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+    auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster,clusRadius,cluskey);
+    cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
+    cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
+    cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
+    cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
+    
     ActsSourceLink::Index index = measurements.size();
 
     SourceLink sl(surf->geometryId(), index, cluskey);

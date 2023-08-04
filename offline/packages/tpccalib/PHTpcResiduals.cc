@@ -327,15 +327,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     // cluster errors
     double clusRPhiErr = 0;
     double clusZErr = 0;
-    if( m_cluster_version == 4 )
-    {
-      const auto errors_square = m_cluster_error_parametrization.get_cluster_error( cluster, clusR, cluskey, track->get_tpc_seed()->get_qOverR(), track->get_tpc_seed()->get_slope() ); 
-      clusRPhiErr = std::sqrt( errors_square.first );
-      clusZErr = std::sqrt( errors_square.second );
-    } else {
-      clusRPhiErr = cluster->getRPhiError();
-      clusZErr = cluster->getZError();
-    }
+ 
+    clusRPhiErr = cluster->getRPhiError();
+    clusZErr = cluster->getZError();
+    
     
     if(Verbosity() > 3)
     {
@@ -351,16 +346,6 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
      * as instructed by Christof, it should not be necessary to cut on small
      * cluster errors any more with clusters of version 4 or higher 
      */ 
-    if( m_cluster_version < 4 )
-    {
-      /*
-       * remove clusters with too small errors since they are likely pathological
-       * and have a large contribution to the chisquare
-       * TODO: make these cuts configurable
-       */
-      if(clusRPhiErr < 0.015) continue;
-      if(clusZErr < 0.05) continue;
-    }
     
     const auto globalStatePos = trackStateParams.position(m_tGeometry->geometry().getGeoContext());
     const auto globalStateMom = trackStateParams.momentum();

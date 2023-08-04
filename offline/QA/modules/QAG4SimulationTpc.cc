@@ -356,8 +356,7 @@ void QAG4SimulationTpc::evaluate_clusters()
 
     // fit a circle through x,y coordinates
     const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin(xy_pts);
-    const auto [slope, intercept] = TrackFitUtils::line_fit(rz_pts);
-
+    
     // skip chain entirely if fit fails
     if (std::isnan(R)) continue;
 
@@ -401,25 +400,9 @@ void QAG4SimulationTpc::evaluate_clusters()
         const auto z_cluster = global(2);
         const auto phi_cluster = (float) std::atan2(global(1), global(0));
 
-        double phi_error = 0;
-        double z_error = 0;
-
-        if (m_cluster_version == 4)
-        {
-          float r = r_cluster;
-          double alpha = (r * r) / (2 * r * R);
-          double beta = slope;
-
-          auto para_errors = _ClusErrPara.get_cluster_error(rclus, rkey, alpha, beta);
-          phi_error = sqrt(para_errors.first) / r_cluster;
-          z_error = sqrt(para_errors.second);
-        }
-        else
-        {
-          phi_error = rclus->getRPhiError() / r_cluster;
-          z_error = rclus->getZError();
-        }
-
+	double phi_error = rclus->getRPhiError() / r_cluster;
+	double z_error = rclus->getZError();
+        
         const auto dphi = QAG4Util::delta_phi(phi_cluster, gphi);
         const auto dz = z_cluster - gz;
 

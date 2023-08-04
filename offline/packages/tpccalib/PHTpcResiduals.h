@@ -83,10 +83,6 @@ class PHTpcResiduals : public SubsysReco
   void setUseMicromegas( bool value )
   { m_useMicromegas = value; }
 
-  /// cluster version
-  /* Note: this could be retrived automatically using dynamic casts from TrkrCluster objects */
-  void setClusterVersion(int value) { m_cluster_version = value; }
-
   private:
 
   using BoundTrackParam = 
@@ -159,9 +155,6 @@ class PHTpcResiduals : public SubsysReco
   /// cluster error parametrisation
   ClusterErrorPara m_cluster_error_parametrization;
   
-  /// cluster version
-  int m_cluster_version = 4;
-
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
   

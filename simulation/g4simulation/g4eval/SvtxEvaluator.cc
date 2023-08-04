@@ -15,9 +15,6 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
-#include <trackbase/TrkrClusterv3.h>
-#include <trackbase/TrkrClusterv4.h>
-#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
@@ -1949,50 +1946,18 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  float pedge = NAN;
 	  float ovlp = NAN;
 
-          if (m_cluster_version == 3)
-          {
-            auto globerr = calculateClusterError(cluster, phi);
-            ex = sqrt(globerr[0][0]);
-            ey = sqrt(globerr[1][1]);
-            ez = cluster->getZError();
-            ephi = cluster->getRPhiError();
-          }
-          else if (m_cluster_version == 4)
-          {
-            phisize = cluster->getPhiSize();
-            zsize = cluster->getZSize();
-            TrackSeed* seed = nullptr;
-            if (track != nullptr)
-            {
-              if (layer < 7)
-              {
-                seed = track->get_silicon_seed();
-              }
-              else
-              {
-                seed = track->get_tpc_seed();
-              }
-              if (seed != nullptr)
-              {
-                auto para_errors = ClusErrPara.get_cluster_error(cluster, r, cluster_key, seed->get_qOverR(), seed->get_slope());
-                pephi = sqrt(para_errors.first * Acts::UnitConstants::cm2);
-                pez = sqrt(para_errors.second * Acts::UnitConstants::cm2);
-              }
-            }
-          }
-          else if (m_cluster_version == 5)
-          {
-            auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
-            phisize = cluster->getPhiSize();
-            zsize = cluster->getZSize();
-            // double clusRadius = r;
-            ez = sqrt(para_errors.second);
-            ephi = sqrt(para_errors.first);
-            maxadc = cluster->getMaxAdc();
-	    pedge = cluster->getEdge();
-	    ovlp = cluster->getOverlap();
-          }
-	  if(layer==7||layer==22||layer==23||layer==38||layer==39) redge = 1;
+
+	  auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
+	  phisize = cluster->getPhiSize();
+	  zsize = cluster->getZSize();
+	  // double clusRadius = r;
+	  ez = sqrt(para_errors.second);
+	  ephi = sqrt(para_errors.first);
+	  maxadc = cluster->getMaxAdc();
+	  pedge = cluster->getEdge();
+	  ovlp = cluster->getOverlap();
+	
+	  if(hitsetlayer==7||hitsetlayer==22||hitsetlayer==23||hitsetlayer==38||hitsetlayer==39) redge = 1;
 
           float e = cluster->getAdc();
           float adc = cluster->getAdc();
@@ -2315,55 +2280,23 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  float pedge = NAN;
 	  float ovlp = NAN;
 
-          if (m_cluster_version == 3)
-          {
-            auto globerr = calculateClusterError(cluster, phi);
-            ex = sqrt(globerr[0][0]);
-            ey = sqrt(globerr[1][1]);
-            ez = cluster->getZError();
-            ephi = cluster->getRPhiError();
-          }
-          else if (m_cluster_version == 4)
-          {
-            phisize = cluster->getPhiSize();
-            zsize = cluster->getZSize();
-            double clusRadius = r;
-            TrackSeed* seed = nullptr;
-            if (layer < 7)
-            {
-              seed = track->get_silicon_seed();
-            }
-            else
-            {
-              seed = track->get_tpc_seed();
-            }
-            if (seed != nullptr)
-            {
-              auto para_errors = ClusErrPara.get_cluster_error(cluster, clusRadius, cluster_key, seed->get_qOverR(), seed->get_slope());
-              pephi = sqrt(para_errors.first * Acts::UnitConstants::cm2);
-              pez = sqrt(para_errors.second * Acts::UnitConstants::cm2);
-            }
-          }
-          else if (m_cluster_version == 5)
-          {
-            auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
-            phisize = cluster->getPhiSize();
-            zsize = cluster->getZSize();
-            // double clusRadius = r;
-            ez = sqrt(para_errors.second);
-            ephi = sqrt(para_errors.first);
-            maxadc = cluster->getMaxAdc();
-	    pedge = cluster->getEdge();
-	    ovlp = cluster->getOverlap();
-          }
-	  if(layer==7||layer==22||layer==23||layer==38||layer==39) redge = 1;
-
-          float e = cluster->getAdc();
+	  auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
+	  phisize = cluster->getPhiSize();
+	  zsize = cluster->getZSize();
+	  // double clusRadius = r;
+	  ez = sqrt(para_errors.second);
+	  ephi = sqrt(para_errors.first);
+	  maxadc = cluster->getMaxAdc();
+	  pedge = cluster->getEdge();
+	  ovlp = cluster->getOverlap();
+          
+	  float e = cluster->getAdc();
           float adc = cluster->getAdc();
           float local_layer = (float) TrkrDefs::getLayer(cluster_key);
           float sector = TpcDefs::getSectorId(cluster_key);
           float side = TpcDefs::getSide(cluster_key);
           // count all hits for this cluster
+	  if(local_layer==7||local_layer==22||local_layer==23||local_layer==38||local_layer==39) redge = 1;
 
           // count all hits for this cluster
           TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
@@ -2649,30 +2582,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           r = sqrt(x * x + y * y);
           phi = pos.Phi();
           eta = pos.Eta();
-          if (m_cluster_version == 3)
-          {
-            auto globerr = calculateClusterError(reco_cluster, phi);
-            ex = sqrt(globerr[0][0]);
-            ey = sqrt(globerr[1][1]);
-            ez = reco_cluster->getZError();
-            ephi = reco_cluster->getRPhiError();
-          }
-          else if (m_cluster_version == 4)
-          {
-            // std::cout << " ver v4 " <<  std::endl;
-            phisize = reco_cluster->getPhiSize();
-            zsize = reco_cluster->getZSize();
-          }
-          else if (m_cluster_version == 5)
-          {
+                 
+	  auto para_errors = ClusErrPara.get_clusterv5_modified_error(reco_cluster, r, ckey);
+	  // std::cout << " ver v4 " <<  std::endl;
+	  phisize = reco_cluster->getPhiSize();
+	  zsize = reco_cluster->getZSize();
+	  ez = sqrt(para_errors.second);
+	  ephi = sqrt(para_errors.first);
           
-            auto para_errors = ClusErrPara.get_clusterv5_modified_error(reco_cluster, r, ckey);
-            // std::cout << " ver v4 " <<  std::endl;
-            phisize = reco_cluster->getPhiSize();
-            zsize = reco_cluster->getZSize();
-            ez = sqrt(para_errors.second);
-            ephi = sqrt(para_errors.first);
-          }
 
           adc = reco_cluster->getAdc();
 
@@ -3192,21 +3109,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		float govlp = 0 ;
 		float gedge = 0;
 		if(cluster!=nullptr){
-		  if(m_cluster_version==4){
-		    TrkrClusterv4 *clusterv4 = dynamic_cast<TrkrClusterv4 *>(cluster);
-		    gphisize = clusterv4->getPhiSize();
-		    //zsize = clusterv4->getZSize();
-		    
-		  }else if(m_cluster_version==5){
-		    
-		    gphisize = cluster->getPhiSize();
-		    //zsize = clusterv5->getZSize();
-		    auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster,r,cluster_key);
-		    //zerr = sqrt(para_errors.second);
-		    gphierr = sqrt(para_errors.first);
-		    govlp = cluster->getOverlap();
-		    gedge = cluster->getEdge();
-		  } 
+        
+		  gphisize = cluster->getPhiSize();
+		  //zsize = clusterv5->getZSize();
+		  auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster,r,cluster_key);
+		  //zerr = sqrt(para_errors.second);
+		  gphierr = sqrt(para_errors.first);
+		  govlp = cluster->getOverlap();
+		  gedge = cluster->getEdge();
+		 
 		  if(gedge>0) npedge++;
 		  if(gphisize>=4) nbig++;
 		  if(govlp>=2) novlp++;
@@ -3707,21 +3618,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    float rovlp = 0 ;
 	    float pedge = 0;
 	    if(cluster!=nullptr){
-	      if(m_cluster_version==4){
-		TrkrClusterv4 *clusterv4 = dynamic_cast<TrkrClusterv4 *>(cluster);
-		rphisize = clusterv4->getPhiSize();
-		//zsize = clusterv4->getZSize();
-		
-	      }else if(m_cluster_version==5){
-        
-		rphisize = cluster->getPhiSize();
-		//zsize = clusterv5->getZSize();
-		auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster,r,cluster_key);
-		//zerr = sqrt(para_errors.second);
-		rphierr = sqrt(para_errors.first);
-		rovlp = cluster->getOverlap();
-		pedge = cluster->getEdge();
-	      } 
+	     
+	      rphisize = cluster->getPhiSize();
+	      //zsize = clusterv5->getZSize();
+	      auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster,r,cluster_key);
+	      //zerr = sqrt(para_errors.second);
+	      rphierr = sqrt(para_errors.first);
+	      rovlp = cluster->getOverlap();
+	      pedge = cluster->getEdge();
+	       
 	      if(pedge>0) npedge++;
 	      if(rphisize>=4) nbig++;
 	      if(rovlp>=2) novlp++;
