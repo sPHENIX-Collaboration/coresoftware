@@ -176,7 +176,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                               "trackID:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:"
 			      "siqr:siphi:sithe:six0:siy0:tpqr:tpphi:tpthe:tpx0:tpy0:"
                               "charge:quality:chisq:ndf:nhits:layers:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:"
-                              "vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:ntruintt:ntrutpc:ntrumms:ntrutpc1:ntrutpc11:ntrutpc2:ntrutpc3:layersfromtruth:"
+                              "vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:nwrongmaps:ntruintt:nwrongintt:ntrutpc:nwrongtpc:ntrumms:nwrongmms:ntrutpc1:nwrongtpc1:ntrutpc11:nwrongtpc11:ntrutpc2:nwrongtpc2:ntrutpc3:nwrongtpc3:layersfromtruth:"
 			      "npedge:nredge:nbig:novlp:merr:msize:"
                               "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
@@ -192,8 +192,8 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                              "gpx:gpy:gpz:gpt:geta:gphi:"
                              "gvx:gvy:gvz:gvt:"
                              "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
-                             "gembed:gprimary:nfromtruth:nwrong:ntrumaps:ntruintt:"
-                             "ntrutpc:ntrumms:ntrutpc1:ntrutpc11:ntrutpc2:ntrutpc3:layersfromtruth:"
+                             "gembed:gprimary:nfromtruth:nwrong:ntrumaps:nwrongmaps:ntruintt:nwrongintt:"
+                             "ntrutpc:nwrongtpc:ntrumms:nwrongmms:ntrutpc1:nwrongtpc1:ntrutpc11:nwrongtpc11:ntrutpc2:nwrongtpc2:ntrutpc3:nwrongtpc3:layersfromtruth:"
 			     "npedge:nredge:nbig:novlp:merr:msize:"
                              "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
@@ -2952,13 +2952,21 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float nfromtruth = NAN;
         float nwrong = NAN;
         float ntrumaps = NAN;
+	float nwrongmaps = NAN;
         float ntruintt = NAN;
+	float nwrongintt = NAN;
         float ntrumms = NAN;
+	float nwrongmms = NAN;
         float ntrutpc = NAN;
+	float nwrongtpc = NAN;
         float ntrutpc1 = NAN;
+	float nwrongtpc1 = NAN;
         float ntrutpc11 = NAN;
+	float nwrongtpc11 =NAN;
         float ntrutpc2 = NAN;
+	float nwrongtpc2 = NAN;
         float ntrutpc3 = NAN;
+	float nwrongtpc3 = NAN;
         float layersfromtruth = NAN;
 	float npedge = 0;
 	float nredge = 0;
@@ -3275,7 +3283,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             }
             else
             {
-              ntrumaps = trackeval->get_layer_range_contribution(track, g4particle, 0, _nlayers_maps);
+	      auto pair = trackeval->get_layer_range_contribution(track, g4particle, 0, _nlayers_maps);
+	      ntrumaps = pair.first;
+	      nwrongmaps = pair.second;
             }
             if (_nlayers_intt == 0)
             {
@@ -3283,7 +3293,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             }
             else
             {
-              ntruintt = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps, _nlayers_maps + _nlayers_intt);
+              auto pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps, _nlayers_maps + _nlayers_intt);
+	      ntruintt = pair.first;
+	      nwrongintt = pair.second;
             }
             if (_nlayers_mms == 0)
             {
@@ -3291,14 +3303,25 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             }
             else
             {
-              ntrumms = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + _nlayers_tpc, _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms);
+	      auto pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + _nlayers_tpc, _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms);
+	      ntrumms = pair.first;
+	      nwrongmms = pair.second;
             }
-            ntrutpc = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + _nlayers_tpc);
-            ntrutpc1 = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + 16);
-            ntrutpc11 = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + 8);
-            ntrutpc2 = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + 16, _nlayers_maps + _nlayers_intt + 32);
-            ntrutpc3 = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + 32, _nlayers_maps + _nlayers_intt + _nlayers_tpc);
-
+            auto pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + _nlayers_tpc);
+	    ntrutpc = pair.first;
+	    nwrongtpc = pair.second;
+            pair  = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + 16);
+	    ntrutpc1 = pair.first;
+	    nwrongtpc1 = pair.second;
+            pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + 8);
+	    ntrutpc11 = pair.first;
+	    nwrongtpc11 = pair.second;
+            pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + 16, _nlayers_maps + _nlayers_intt + 32);
+	    ntrutpc2 = pair.first;
+	    nwrongtpc2 = pair.second;
+            pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + 32, _nlayers_maps + _nlayers_intt + _nlayers_tpc);
+	    ntrutpc3 = pair.first;
+	    nwrongtpc3 = pair.first;
             layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track, g4particle);
           }
         }
@@ -3397,13 +3420,21 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                nfromtruth,
                                nwrong,
                                ntrumaps,
+			       nwrongmaps,
                                ntruintt,
+			       nwrongintt,
                                ntrutpc,
+			       nwrongtpc,
                                ntrumms,
+			       nwrongmms,
                                ntrutpc1,
+			       nwrongtpc1,
                                ntrutpc11,
+			       nwrongtpc11,
                                ntrutpc2,
+			       nwrongtpc2,
                                ntrutpc3,
+			       nwrongtpc3,
                                layersfromtruth,
 			       npedge,
 			       nredge,
@@ -3810,13 +3841,21 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float nfromtruth = NAN;
         float nwrong = NAN;
         float ntrumaps = NAN;
+	float nwrongmaps = NAN;
         float ntruintt = NAN;
+	float nwrongintt = NAN;
         float ntrumms = NAN;
+	float nwrongmms = NAN;
         float ntrutpc = NAN;
+	float nwrongtpc = NAN;
         float ntrutpc1 = NAN;
+	float nwrongtpc1 = NAN;
         float ntrutpc11 = NAN;
+	float nwrongtpc11 = NAN;
         float ntrutpc2 = NAN;
+	float nwrongtpc2 = NAN;
         float ntrutpc3 = NAN;
+	float nwrongtpc3 = NAN;
         float layersfromtruth = NAN;
 
         if (_do_track_match)
@@ -3968,7 +4007,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             }
             else
             {
-              ntrumaps = trackeval->get_layer_range_contribution(track, g4particle, 0, _nlayers_maps);
+	      auto pair = trackeval->get_layer_range_contribution(track, g4particle, 0, _nlayers_maps);
+	      ntrumaps = pair.first;
+	      nwrongmaps = pair.second;
             }
             if (_nlayers_intt == 0)
             {
@@ -3976,7 +4017,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             }
             else
             {
-              ntruintt = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps, _nlayers_maps + _nlayers_intt);
+              auto pair =  trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps, _nlayers_maps + _nlayers_intt);
+	      ntruintt = pair.first;
+	      nwrongintt = pair.second;
             }
             if (_nlayers_mms == 0)
             {
@@ -3984,13 +4027,25 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             }
             else
             {
-              ntrumms = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + _nlayers_tpc, _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms);
+              auto pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + _nlayers_tpc, _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms);
+	      ntrumms = pair.first;
+	      nwrongmms = pair.second;
             }
-            ntrutpc = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + _nlayers_tpc);
-            ntrutpc1 = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + 16);
-            ntrutpc11 = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + 8);
-            ntrutpc2 = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + 16, _nlayers_maps + _nlayers_intt + 32);
-            ntrutpc3 = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + 32, _nlayers_maps + _nlayers_intt + _nlayers_tpc);
+            auto pair  = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + _nlayers_tpc);
+	    ntrutpc = pair.first;
+	    nwrongtpc = pair.second;
+            pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + 16);
+	    ntrutpc1 = pair.first;
+	    nwrongtpc1 = pair.second;
+            pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + 8);
+	    ntrutpc11 = pair.first;
+	    nwrongtpc11 = pair.second;
+            pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + 16, _nlayers_maps + _nlayers_intt + 32);
+	    ntrutpc2 = pair.first;
+	    nwrongtpc2 = pair.second;
+            pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + 32, _nlayers_maps + _nlayers_intt + _nlayers_tpc);
+	    ntrutpc3 = pair.first;
+	    nwrongtpc3 = pair.second;
             layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track, g4particle);
           }
         }
@@ -4077,13 +4132,21 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                               nfromtruth,
 			      nwrong,
                               ntrumaps,
+			      nwrongmaps,
                               ntruintt,
+			      nwrongintt,
                               ntrutpc,
+			      nwrongtpc,
                               ntrumms,
+			      nwrongmms,
                               ntrutpc1,
+			      nwrongtpc1,
                               ntrutpc11,
+			      nwrongtpc11,
                               ntrutpc2,
+			      nwrongtpc2,
                               ntrutpc3,
+			      nwrongtpc3,
                               layersfromtruth,
 			      npedge,
 			      nredge,
