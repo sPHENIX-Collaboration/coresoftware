@@ -70,7 +70,7 @@ my $start_segment;
 my $last_segment;
 my $randomize;
 my $prodtype;
-my $runnumber = 6;
+my $runnumber = 7;
 my $verbose;
 my $nopileup;
 my $embed;
@@ -754,30 +754,31 @@ $dbh->disconnect;
 
 sub commonfiletypes
 {
+# for no pileup pass(X) --> pass(X-1)
 # pass1
     $filetypes{"G4Hits"} = "G4 Hits";
-    $filetypes{"G4HitsOld"} = "Old G4 Hits";
+#    $filetypes{"G4HitsOld"} = "Old G4 Hits";
 # pass2
     $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD, EPD G4Hits";
     $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
     $filetypes{"DST_TRKR_G4HIT"} = "Pileup Tracking Detector G4 Hits";
     $filetypes{"DST_TRUTH_G4HIT"} = "temporary Pileup Truth info, use DST_TRUTH";
-    $filetypes{"DST_VERTEX"} = "Pileup Simulated Smeared Vertex";
-# pass3 calo
-    $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
-# pass3 global
-    $filetypes{"DST_GLOBAL"} = "Old Reconstructed Global Detectors (Bbc, Epd)";
 # pass3 bbcepd
     $filetypes{"DST_BBC_EPD"} = "Reconstructed Bbc, Epd";
+# pass3 calo
+    $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
 #pass3 trk
     $filetypes{"DST_TRKR_HIT"} = "TPC and Silicon Hits";
     $filetypes{"DST_TRUTH"} = "Truth Info (updated with Clusters)";
+#pass4 truth jets
+    $filetypes{"DST_TRUTH_JET"} = "Truth Jets";
 #pass4 tracks
     $filetypes{"DST_TRKR_CLUSTER"} = "pass0 output: tpc clusters";
     $filetypes{"DST_TRACKSEEDS"} = "passA output: track seeds";
     $filetypes{"DST_TRACKS"} = "passC output: Reconstructed Tracks";
-#analysis pass
-    $filetypes{"DST_TRUTH_JET"} = "Truth Jets";
+#pass5 tracks/clusters
+    $filetypes{"DST_GLOBAL"} = "Global Info (MBD, sEPD, Vertex)";
+    $filetypes{"DST_TRUTH_RECO"} = "digested track truth info";
 }
 
 
