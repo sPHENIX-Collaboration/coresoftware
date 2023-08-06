@@ -48,7 +48,7 @@ class PHActsGSF : public SubsysReco
   PHActsGSF(const std::string& name = "PHActsGSF");
 
   ~PHActsGSF() override;
-  void set_cluster_version(int version) { m_cluster_version = version; }
+  
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
   int End(PHCompositeNode* topNode) override;
@@ -83,7 +83,7 @@ class PHActsGSF : public SubsysReco
 
   std::string m_trackMapName = "SvtxTrackMap";
   unsigned int m_pHypothesis = 11;
-  int m_cluster_version = 4;
+ 
   ClusterErrorPara _ClusErrPara;
 
   ActsTrackFittingAlgorithm::Config m_fitCfg;

@@ -62,7 +62,7 @@ class ALICEKF
   std::vector<double> GetCircleClusterResiduals(const std::vector<std::pair<double,double>>& pts, double R, double X0, double Y0) const;
   std::vector<double> GetLineClusterResiduals(const std::vector<std::pair<double,double>>& pts, double A, double B) const; 
   double get_Bzconst() const { return _Bzconst; }
-  void set_cluster_version(int value) { m_cluster_version = value; }
+  
   ClusterErrorPara *_ClusErrPara;
   private:
   PHField* _B = nullptr;
@@ -79,7 +79,6 @@ class ALICEKF
   bool _use_fixed_clus_error = true;
   std::array<double,3> _fixed_clus_error = {.1,.1,.1};
 
-  int m_cluster_version = 4;
 };
 
 #endif

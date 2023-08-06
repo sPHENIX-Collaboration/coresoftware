@@ -58,7 +58,7 @@ class MakeMilleFiles : public SubsysReco
   void set_mvtx_layer_fixed(unsigned int layer, unsigned int clamshell);
   void set_layer_gparam_fixed(unsigned int layer, unsigned int param);
   void set_layer_lparam_fixed(unsigned int layer, unsigned int param);
-  void set_cluster_version(unsigned int v) { _cluster_version = v; }
+  
   void set_layers_fixed(unsigned int minlayer, unsigned int maxlayer);
   void set_error_inflation_factor(unsigned int layer, float factor)
   {
@@ -108,7 +108,6 @@ class MakeMilleFiles : public SubsysReco
 
   bool m_useEventVertex = false;
   bool _binary = true;
-  unsigned int _cluster_version = 5;
 
   Acts::Vector2 m_vtxSigma = {0.1, 0.1};
 

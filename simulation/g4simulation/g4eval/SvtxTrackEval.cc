@@ -867,12 +867,12 @@ unsigned int SvtxTrackEval::get_nclusters_contribution_by_layer(SvtxTrack* track
   return nclusters_by_layer;
 }
 
-unsigned int SvtxTrackEval::get_layer_range_contribution(SvtxTrack* track, PHG4Particle* particle, unsigned int start_layer, unsigned int end_layer)
+std::pair<unsigned int, unsigned int> SvtxTrackEval::get_layer_range_contribution(SvtxTrack* track, PHG4Particle* particle, unsigned int start_layer, unsigned int end_layer)
 {
   if (!has_node_pointers())
   {
     ++_errors;
-    return 0;
+    return std::make_pair(0,0);
   }
 
   if (_strict)
@@ -883,16 +883,19 @@ unsigned int SvtxTrackEval::get_layer_range_contribution(SvtxTrack* track, PHG4P
   else if (!track || !particle)
   {
     ++_errors;
-    return 0;
+    return std::make_pair(0,0);
   }
 
   unsigned int nmatches = 0;
+  unsigned int nwrong = 0;
   unsigned int nlayers = end_layer - start_layer;
 
   int layers[nlayers];
+  int layers_wrong[nlayers];
   for (unsigned int i = 0; i < nlayers; i++)
   {
     layers[i] = 0;
+    layers_wrong[i] = 0;
   }
   // loop over all clusters
   std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
@@ -920,14 +923,20 @@ unsigned int SvtxTrackEval::get_layer_range_contribution(SvtxTrack* track, PHG4P
 
     // loop over all particles
     std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster_key);
+    int matched = 0;
     for (auto candidate : particles)
     {
       if (get_truth_eval()->are_same_particle(candidate, particle))
       {
         //	nmatches |= (0x3FFFFFFF & (0x1 << cluster_layer));
         layers[cluster_layer - start_layer] = 1;
+	matched = 1;
       }
     }
+    if(matched == 0)
+      {
+	layers_wrong[cluster_layer - start_layer] = 1;
+      }
   }
   for (unsigned int i = 0; i < nlayers; i++)
   {
@@ -935,9 +944,14 @@ unsigned int SvtxTrackEval::get_layer_range_contribution(SvtxTrack* track, PHG4P
     {
       nmatches++;
     }
+    if(layers_wrong[i] == 1)
+      {
+	nwrong++;
+      }
   }
+  
 
-  return nmatches;
+  return std::make_pair(nmatches,nwrong);
 }
 
 void SvtxTrackEval::get_node_pointers(PHCompositeNode* topNode)

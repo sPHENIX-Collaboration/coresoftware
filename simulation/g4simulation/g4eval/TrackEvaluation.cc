@@ -27,8 +27,6 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
-#include <trackbase/TrkrClusterv4.h>
-#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
@@ -236,14 +234,13 @@ namespace
   //! number of hits associated to cluster
   void add_cluster_size(TrackEvaluationContainerv1::ClusterStruct& cluster, TrkrCluster* trk_clus)
   {
-    TrkrClusterv5* trk_clusv5 = dynamic_cast<TrkrClusterv5*>(trk_clus);
-    cluster.size = trk_clusv5->getSize();
-    cluster.phi_size = trk_clusv5->getPhiSize();
-    cluster.z_size = trk_clusv5->getZSize();
-    cluster.ovlp = trk_clusv5->getOverlap();
-    cluster.edge = trk_clusv5->getEdge();
-    cluster.adc = trk_clusv5->getAdc();
-    cluster.max_adc = trk_clusv5->getMaxAdc();
+    cluster.size = trk_clus->getSize();
+    cluster.phi_size = trk_clus->getPhiSize();
+    cluster.z_size = trk_clus->getZSize();
+    cluster.ovlp = trk_clus->getOverlap();
+    cluster.edge = trk_clus->getEdge();
+    cluster.adc = trk_clus->getAdc();
+    cluster.max_adc = trk_clus->getMaxAdc();
   }
 
   //! hit energy for a given cluster
