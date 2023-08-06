@@ -41,7 +41,7 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
   void UpdateDroppedPacket(const int packetid);
   void AddBeamClock(const int evtno, const int bclk, SinglePrdfInput *prdfin);
   void SetReferenceClock(const int evtno, const int bclk);
-  void SetReferenceInputMgr(SinglePrdfInput *inp) {m_RefPrdfInput = inp;}
+  void SetReferenceInputMgr(SinglePrdfInput *inp) { m_RefPrdfInput = inp; }
   void CreateBclkOffsets();
   int CalcDiffBclk(const int bclk1, const int bclk2);
   void DitchEvent(const int eventno);
@@ -63,7 +63,7 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
   bool m_StartUpFlag = true;
   int m_RunNumber = 0;
   unsigned int m_PoolDepth = 5;
-  unsigned int m_InitialPoolDepth = 20;  
+  unsigned int m_InitialPoolDepth = 20;
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
