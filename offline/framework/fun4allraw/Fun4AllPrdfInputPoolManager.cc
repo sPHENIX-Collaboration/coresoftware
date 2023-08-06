@@ -111,10 +111,11 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
     int diffclock = CalcDiffBclk(veciter.first,refclock);
     if (diffclock != m_SinglePrdfInputInfo[veciter.second].bclkoffset)
     {
-      std::cout << "Houston we have a problem" << std::endl;
+      std::cout << "Houston we have a problem with event " << eventnumber << std::endl;
       std::cout << "name " << veciter.second->Name() << ", diffclk: 0x" << std::hex 
 		<< diffclock << ", my bclk: 0x" << veciter.first 
 		<< ", ref clk: 0x" << refclock << std::dec << std::endl;
+      Resynchronize();
       DitchEvent(eventnumber);
       event_ok = false;
       break;
@@ -140,8 +141,9 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
   {
     delete pktiter;
   }
+  m_ClockCounters.erase(pktinfoiter->first);
+  m_RefClockCounters.erase(pktinfoiter->first);
   m_PacketMap.erase(pktinfoiter);
-
   return 0;
   // readagain:
   //   if (!IsOpen())
@@ -479,5 +481,53 @@ void Fun4AllPrdfInputPoolManager::DitchEvent(const int eventno)
     delete pktiter;
   }
   m_PacketMap.erase(pktinfoiter);
+  return;
+}
+
+void Fun4AllPrdfInputPoolManager::Resynchronize()
+{
+// just load events to give us a chance to find the match
+  for (auto iter : m_PrdfInputVector)
+  {
+    iter->FillPool(2);
+//    iter->FillPool(m_InitialPoolDepth);
+    m_RunNumber = iter->RunNumber();
+  }
+  std::map<SinglePrdfInput *,int> matchevent;
+  for (auto iter : m_RefClockCounters)
+  {
+    std::cout << "looking for matching event " << iter.first 
+	      << std::hex << " with clk 0x" << iter.second << std::dec << std::endl;
+    for (auto clockiter : m_ClockCounters)
+    {
+      for (auto eventiter : clockiter.second)
+      {
+	  int diffclock = CalcDiffBclk(eventiter.first,iter.second);
+	std::cout << "Event " << iter.first << " match with event " <<  clockiter.first
+		  << " clock 0x" << std::hex << eventiter.first << ", ref clock 0x" << iter.second
+		  << " diff 0x" << diffclock << std::dec 
+		  << " for " << eventiter.second->Name() << std::endl;
+         if (diffclock == m_SinglePrdfInputInfo[eventiter.second].bclkoffset)
+       {
+       	std::cout << "looking good for " << eventiter.second->Name() << std::endl;
+        matchevent[eventiter.second] = clockiter.first;
+       }
+       else
+       {
+       	std::cout << "not so great for " << eventiter.second->Name() << std::endl;
+       }
+      }
+      if (matchevent.size() == m_SinglePrdfInputInfo.size())
+      {
+	std::cout << "found all matches" << std::endl;
+	break;
+      }
+    }
+      if (matchevent.size() == m_SinglePrdfInputInfo.size())
+      {
+	std::cout << "found all matches" << std::endl;
+	break;
+      }
+  }
   return;
 }
