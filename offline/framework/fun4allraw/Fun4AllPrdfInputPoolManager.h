@@ -62,7 +62,7 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
 
   bool m_StartUpFlag = true;
   int m_RunNumber = 0;
-  unsigned int m_PoolDepth = 5;
+  unsigned int m_PoolDepth = 100;
   unsigned int m_InitialPoolDepth = 20;
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
   SyncObject *m_SyncObject = nullptr;
