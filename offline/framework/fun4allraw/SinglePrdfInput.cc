@@ -295,7 +295,7 @@ int SinglePrdfInput::majority_beamclock()
 
 int SinglePrdfInput::fileopen(const std::string &filenam)
 {
-  std::cout << PHWHERE << "trying to open " << filenam << std::endl;
+  std::cout << PHWHERE << Name() << ": trying to open " << filenam << std::endl;
   if (IsOpen())
   {
     std::cout << "Closing currently open file "

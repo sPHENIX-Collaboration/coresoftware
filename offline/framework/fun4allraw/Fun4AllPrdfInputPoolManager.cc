@@ -60,7 +60,7 @@ Fun4AllPrdfInputPoolManager::~Fun4AllPrdfInputPoolManager()
   {
     delete iter;
   }
-  for (auto pktinfoiter : m_PacketMap)
+  for (const auto& pktinfoiter : m_PacketMap)
   {
     for (auto &pktiter : pktinfoiter.second.PacketVector)
     {
@@ -428,7 +428,7 @@ void Fun4AllPrdfInputPoolManager::CreateBclkOffsets()
     exit(1);
   }
   std::map<SinglePrdfInput *, std::map<int,int>> clockcounters;
-  for (auto iter : m_ClockCounters)
+  for (const auto& iter : m_ClockCounters)
   {
     int refclock = m_RefClockCounters[iter.first];
     for (auto veciter : iter.second)
@@ -446,7 +446,7 @@ void Fun4AllPrdfInputPoolManager::CreateBclkOffsets()
     }
   }
 // now loop over the clock counter diffs for each input manager and find the majority vote
-  for (auto iter : clockcounters)
+  for (const auto& iter : clockcounters)
   {
     int imax = -1;
     int diffmax = INT_MAX;
@@ -514,7 +514,7 @@ void Fun4AllPrdfInputPoolManager::Resynchronize()
   {
     std::cout << "looking for matching event " << iter.first 
 	      << std::hex << " with clk 0x" << iter.second << std::dec << std::endl;
-    for (auto clockiter : m_ClockCounters)
+    for (const auto& clockiter : m_ClockCounters)
     {
       std::cout << "testing for matching with event " << clockiter.first << std::endl;
       for (auto eventiter : clockiter.second)
@@ -582,7 +582,7 @@ void Fun4AllPrdfInputPoolManager::Resynchronize()
 
 void Fun4AllPrdfInputPoolManager::ClearAllEvents()
 {
-  for (auto pktinfoiter : m_PacketMap)
+  for (const auto& pktinfoiter : m_PacketMap)
   {
     for (auto &pktiter : pktinfoiter.second.PacketVector)
     {
