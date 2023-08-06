@@ -116,7 +116,8 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
 		<< diffclock << ", my bclk: 0x" << veciter.first 
 		<< ", ref clk: 0x" << refclock << std::dec << std::endl;
       DitchEvent(eventnumber);
-  event_ok = false;
+      event_ok = false;
+      break;
     }
   }
   }
