@@ -72,11 +72,25 @@ Fun4AllPrdfInputPoolManager::~Fun4AllPrdfInputPoolManager()
 
 int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
 {
-  if (m_PacketMap.size() < 5)
+  if (m_StartUpFlag)
   {
     for (auto iter : m_PrdfInputVector)
     {
-      iter->FillPool(5);
+      iter->FillPool(m_InitialPoolDepth);
+      m_RunNumber = iter->RunNumber();
+    }
+    CreateBclkOffsets();
+    m_StartUpFlag = false;
+  }
+  bool event_ok = false;
+  while(! event_ok)
+  {
+  event_ok = true;
+  if (m_PacketMap.size() < m_PoolDepth)
+  {
+    for (auto iter : m_PrdfInputVector)
+    {
+      iter->FillPool(m_PoolDepth);
       m_RunNumber = iter->RunNumber();
     }
     SetRunNumber(m_RunNumber);
@@ -90,18 +104,23 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
   //  std::cout << "next event is " << m_PacketMap.begin()->first << std::endl;
   auto pktinfoiter = m_PacketMap.begin();
   int eventnumber = pktinfoiter->first;
-  int bclk = m_ClockCounters[eventnumber].begin()->first;
+//  int bclk = m_ClockCounters[eventnumber].begin()->first;
+  int refclock = m_RefClockCounters[eventnumber];
   for (auto veciter : m_ClockCounters[eventnumber])
   {
-    // std::cout << "name " << veciter.second->Name() << ", bclk: 0x" << std::hex
-    // 	      << veciter.first << std::dec << std::endl;
-    if (bclk != veciter.first)
+    int diffclock = CalcDiffBclk(veciter.first,refclock);
+    if (diffclock != m_SinglePrdfInputInfo[veciter.second].bclkoffset)
     {
-      std::cout << "beam clk mismatch for event " << eventnumber 
-		<< " ref: 0x" << bclk << ", read back 0x" << veciter.first << std::dec 
-		<< ", name: " << veciter.second->Name() << std::endl;
+      std::cout << "Houston we have a problem" << std::endl;
+      std::cout << "name " << veciter.second->Name() << ", diffclk: 0x" << std::hex 
+		<< diffclock << ", my bclk: 0x" << veciter.first 
+		<< ", ref clk: 0x" << refclock << std::dec << std::endl;
+      DitchEvent(eventnumber);
+  event_ok = false;
     }
   }
+  }
+  auto pktinfoiter = m_PacketMap.begin();
   oph->prepare_next(pktinfoiter->first, m_RunNumber);
 
   for (auto &pktiter : pktinfoiter->second.PacketVector)
@@ -383,4 +402,81 @@ void Fun4AllPrdfInputPoolManager::UpdateEventFoundCounter(const int evtno)
 void Fun4AllPrdfInputPoolManager::UpdateDroppedPacket(const int packetid)
 {
   m_DroppedPacketMap[packetid]++;
+}
+
+void Fun4AllPrdfInputPoolManager::SetReferenceClock(const int evtno, const int bclk)
+{
+  m_RefClockCounters[evtno] = bclk;
+}
+
+void Fun4AllPrdfInputPoolManager::CreateBclkOffsets()
+{
+  if (! m_RefPrdfInput)
+  {
+    std::cout << PHWHERE << " No reference input manager given" << std::endl;
+    exit(1);
+  }
+  std::map<SinglePrdfInput *, std::map<int,int>> clockcounters;
+  for (auto iter : m_ClockCounters)
+  {
+    int refclock = m_RefClockCounters[iter.first];
+    for (auto veciter : iter.second)
+    {
+      int diffclk = CalcDiffBclk(veciter.first,refclock);
+      std::cout << "diffclk for " << veciter.second->Name() << ": " << std::hex
+		<< diffclk << std::dec << std::endl;
+      auto clkiter = clockcounters.find(veciter.second);
+      if (clkiter == clockcounters.end())
+      {
+        std::map<int,int> mymap;
+	clkiter = clockcounters.insert(std::make_pair(veciter.second, mymap)).first;//std::make_pair(veciter.first,1);
+      }
+      clkiter->second[diffclk]++;
+    }
+  }
+// now loop over the clock counter diffs for each input manager and find the majority vote
+  for (auto iter : clockcounters)
+  {
+    int imax = -1;
+    int diffmax = INT_MAX;
+    for (auto initer : iter.second)
+    {
+      std::cout << iter.first->Name() << " initer.second " << initer.second  << std::hex
+		<< " initer.first: " << initer.first << std::dec << std::endl;
+      if (initer.second > imax)
+      {
+	diffmax = initer.first;
+	imax = initer.second;
+      }
+      m_SinglePrdfInputInfo[iter.first].bclkoffset = diffmax;
+    }
+  }
+  for (auto iter : m_SinglePrdfInputInfo)
+  {
+    std::cout << "prdf mgr " << iter.first->Name() << " clkdiff: 0x" << std::hex
+	      << iter.second.bclkoffset << std::dec << std::endl;
+  }
+}
+    
+int Fun4AllPrdfInputPoolManager::CalcDiffBclk(const int bclk1, const int bclk2)
+{
+  int diffclk = bclk1 - bclk2;
+  if (abs(diffclk) > 0xFFF0)
+  {
+    std::cout << "large beam clock diff: 0x" << std::hex << diffclk << ", clk1: 0x" << bclk1
+	      << ", clk2: 0x" << bclk2 << std::dec << std::endl;
+  }
+  return diffclk;
+}
+
+void Fun4AllPrdfInputPoolManager::DitchEvent(const int eventno)
+{
+  std::cout << "Killing event " << eventno << std::endl;
+  auto pktinfoiter = m_PacketMap.find(eventno);
+  for (auto &pktiter : pktinfoiter->second.PacketVector)
+  {
+    delete pktiter;
+  }
+  m_PacketMap.erase(pktinfoiter);
+  return;
 }
