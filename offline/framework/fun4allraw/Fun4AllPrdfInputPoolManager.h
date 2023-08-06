@@ -46,6 +46,7 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
   int CalcDiffBclk(const int bclk1, const int bclk2);
   void DitchEvent(const int eventno);
   void Resynchronize();
+  void ClearAllEvents();
 
  private:
   struct PacketInfo
