@@ -27,6 +27,9 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
   int AllDone() const { return m_AllDone; }
   void AllDone(const int i) { m_AllDone = i; }
   void EventNumberOffset(const int i) { m_EventNumberOffset = i; }  // if beam clk are out of sync, tweak this one
+  int EventNumberOffset() const {return m_EventNumberOffset;}
+
+  void MakeReference(const bool b);
 
  private:
   int majority_eventnumber();
@@ -46,6 +49,7 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
   int m_RunNumber = 0;
   int m_EventsThisFile = 0;
   int m_AllDone = 0;
+  bool m_MeReferenceFlag = false;
   std::map<int, std::vector<Packet *>> m_PacketMap;
   std::set<int> m_EvtSet;
   std::vector<std::pair<int, int>> m_Event;
