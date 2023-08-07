@@ -564,10 +564,16 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	}  
     }
 
-  matchedClusters.push_back(matchedClusterLay0);
-  matchedClusters.push_back(matchedClusterLay1);
-  clusters.push_back(matchedGlobPosLay0);
-  clusters.push_back(matchedGlobPosLay1);
+  if(minResidLay0 < std::numeric_limits<float>::max())
+    {
+      matchedClusters.push_back(matchedClusterLay0);
+      clusters.push_back(matchedGlobPosLay0);
+    }
+  if(minResidLay1 < std::numeric_limits<float>::max())
+    {
+      matchedClusters.push_back(matchedClusterLay1);
+      clusters.push_back(matchedGlobPosLay1);
+    }
 
   if(m_seedAnalysis) {
     h_nMatchedClusters->Fill(matchedClusters.size());
