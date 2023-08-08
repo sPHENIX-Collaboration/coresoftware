@@ -80,6 +80,43 @@ my $pmin;
 my $pmax;
 my $production;
 my $momentum;
+# that should teach me a lesson to not give a flag an optional strign value
+# just using embed:s leads to the next ARGV to be used as argument, even if it
+# is the next option. Sadly getopt swallows the - so parsing this becomes
+# quickly a nightmare, The only solution I see is to read the ARGV's - check for
+# the argument in question with a string compare (=~/em/) and then have a look
+# at the next argument (if it exists) and check if is is another option (=~/-/)
+# and if so use "auau" as default for $embed and push the modified option
+# into the new command line ARGV. It defaults to auau if -emb is set but
+# neither pau nor auau is given
+my @newargs = ();
+my $iarg = 0;
+foreach my $argument (@ARGV)
+{
+    if ($argument =~ /em/)
+    {
+	my $firstchar = substr($ARGV[$iarg+1],0,1);
+	if (! exists $ARGV[$iarg+1] || substr($ARGV[$iarg+1],0,1) eq "-")
+	{
+	    push(@newargs, $argument);
+	    push(@newargs,"auau");
+	}
+	else
+	{
+	    push(@newargs, $argument);
+	    if ($ARGV[$iarg+1] ne "pau" && $ARGV[$iarg+1] ne "auau")
+	    {
+		push(@newargs,"auau");
+	    }
+	}
+    }
+    else
+    {
+	push(@newargs,$argument);
+    }
+    $iarg++;
+}
+
 GetOptions('embed:s' => \$embed, 'l:i' => \$last_segment, 'momentum:s' => \$momentum, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, "production:s"=>\$production, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
 my $filenamestring;
 my %filetypes = ();
@@ -233,7 +270,6 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-                print "embed is $embed\n";
 		if ($embed eq "pau")
 		{
 		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
@@ -433,13 +469,6 @@ if (defined $embed && ! $embedok)
 {
     print "Embedding not implemented for type $prodtype\n";
     exit(1);
-}
-if (defined $embed)
-{
-    if ($embed ne "pau" && $embed ne "auau")
-    {
-	push(@ARGV,$embed);
-    }
 }
 
 my $filenamestring_with_runnumber = sprintf("%s\-%010d-",$filenamestring,$runnumber);
