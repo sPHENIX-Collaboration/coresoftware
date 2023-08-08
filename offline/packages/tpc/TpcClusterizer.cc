@@ -99,7 +99,6 @@ namespace
     unsigned short maxHalfSizePhi = 0;
     double m_tdriftmax = 0;
     double sampa_tbias = 0;
-    int cluster_version = 4;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster*> cluster_vector;
     int verbosity = 0;
@@ -450,63 +449,28 @@ namespace
       
   bool b_made_cluster { false };
 
-      if(my_data.cluster_version==3){
-	//std::cout << "ver3" << std::endl;
-	// Fill in the cluster details
-	//================
-	auto clus = new TrkrClusterv3;
-	//auto clus = std::make_unique<TrkrClusterv3>();
-	clus->setAdc(adc_sum);      
-	clus->setSubSurfKey(subsurfkey);      
-	clus->setLocalX(local(0));
-	clus->setLocalY(clust);
-	clus->setActsLocalError(0,0, phi_err_square);
-	clus->setActsLocalError(1,0, 0);
-	clus->setActsLocalError(0,1, 0);
-	clus->setActsLocalError(1,1, t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2));
-	my_data.cluster_vector.push_back(clus);
-  b_made_cluster = true;
-      }else if(my_data.cluster_version==4){
-	//std::cout << "ver4" << std::endl;
-	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
-	if(sqrt(phi_err_square) > my_data.min_err_squared){
-	auto clus = new TrkrClusterv4;
-	//auto clus = std::make_unique<TrkrClusterv3>();
-	clus->setAdc(adc_sum);  
-	clus->setMaxAdc(max_adc);  
-	clus->setOverlap(ntouch);
-	clus->setEdge(nedge);
-	clus->setPhiSize(phisize);
-	clus->setZSize(tsize);
-	clus->setSubSurfKey(subsurfkey);      
-	clus->setLocalX(local(0));
-	clus->setLocalY(clust);
-	//	clus->setPhiErr(sqrt(phi_err_square));
-	//clus->setZErr(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2)));
-	my_data.cluster_vector.push_back(clus);
-  b_made_cluster = true;
-	}
-      }else if(my_data.cluster_version==5){
-	//std::cout << "ver5" << std::endl;
-	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
-	if(sqrt(phi_err_square) > my_data.min_err_squared){
-	auto clus = new TrkrClusterv5;
-	//auto clus = std::make_unique<TrkrClusterv3>();
-	clus->setAdc(adc_sum);  
-	clus->setMaxAdc(max_adc); 
-	clus->setEdge(nedge);
-	clus->setPhiSize(phisize);
-	clus->setZSize(tsize);
-	clus->setSubSurfKey(subsurfkey);      
-	clus->setLocalX(local(0));
-	clus->setLocalY(clust);
-	clus->setPhiError(sqrt(phi_err_square));
-	clus->setZError(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2)));
-	my_data.cluster_vector.push_back(clus);
-  b_made_cluster = true;
-	}
-      }
-
+  
+  //std::cout << "ver5" << std::endl;
+  //	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
+  if(sqrt(phi_err_square) > my_data.min_err_squared){
+    auto clus = new TrkrClusterv5;
+    //auto clus = std::make_unique<TrkrClusterv3>();
+    clus->setAdc(adc_sum);  
+    clus->setMaxAdc(max_adc); 
+    clus->setEdge(nedge);
+    clus->setPhiSize(phisize);
+    clus->setZSize(tsize);
+    clus->setSubSurfKey(subsurfkey);  
+    clus->setOverlap(ntouch);
+    clus->setLocalX(local(0));
+    clus->setLocalY(clust);
+    clus->setPhiError(sqrt(phi_err_square));
+    clus->setZError(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2)));
+    my_data.cluster_vector.push_back(clus);
+    b_made_cluster = true;
+    
+  }
+  
       if (my_data.fillClusHitsVerbose && b_made_cluster) {
         // push the data back to 
         my_data.phivec_ClusHitsVerbose .push_back( std::vector<std::pair<int,int>> {} );
@@ -985,7 +949,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	thread_pair.data.maxHalfSizeT =  MaxClusterHalfSizeT;
 	thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
 	thread_pair.data.sampa_tbias = m_sampa_tbias;
-	thread_pair.data.cluster_version = cluster_version;
 	thread_pair.data.verbosity = Verbosity();
 	thread_pair.data.do_split = do_split;
 	thread_pair.data.min_err_squared = min_err_squared;
@@ -1092,7 +1055,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.maxHalfSizeT =  MaxClusterHalfSizeT;
       thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
       thread_pair.data.sampa_tbias = m_sampa_tbias;
-      thread_pair.data.cluster_version = cluster_version;
       thread_pair.data.verbosity = Verbosity();
 
       unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();

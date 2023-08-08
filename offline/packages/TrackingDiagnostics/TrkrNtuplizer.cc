@@ -3,9 +3,6 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterv3.h>
-#include <trackbase/TrkrClusterv4.h>
-#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
@@ -937,49 +934,16 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           float phisize = 0;
           float zsize = 0;
           float maxadc = -999;
-          if (m_cluster_version == 3)
-          {
-            auto globerr = calculateClusterError(cluster, phi);
-            ex = sqrt(globerr[0][0]);
-            ey = sqrt(globerr[1][1]);
-            ez = cluster->getZError();
-            ephi = cluster->getRPhiError();
-          }
-          else if (m_cluster_version == 4)
-          {
-            phisize = cluster->getPhiSize();
-            zsize = cluster->getZSize();
-            TrackSeed* seed = nullptr;
-            if (track != nullptr)
-            {
-              if (layer < 7)
-              {
-                seed = track->get_silicon_seed();
-              }
-              else
-              {
-                seed = track->get_tpc_seed();
-              }
-              if (seed != nullptr)
-              {
-                auto para_errors = ClusErrPara.get_cluster_error(cluster, r, cluster_key, seed->get_qOverR(), seed->get_slope());
-                pephi = sqrt(para_errors.first * Acts::UnitConstants::cm2);
-                pez = sqrt(para_errors.second * Acts::UnitConstants::cm2);
-              }
-            }
-          }
-          else if (m_cluster_version == 5)
-          {
-            TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-	    auto para_errors = ClusErrPara.get_clusterv5_modified_error(clusterv5,r ,cluster_key);
+         
+	  auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster,r ,cluster_key);
 
-            phisize = clusterv5->getPhiSize();
-            zsize = clusterv5->getZSize();
-            // double clusRadius = r;
-            ez = sqrt(para_errors.second);
-            ephi = sqrt(para_errors.first);
-            maxadc = clusterv5->getMaxAdc();
-          }
+	  phisize = cluster->getPhiSize();
+	  zsize = cluster->getZSize();
+	  // double clusRadius = r;
+	  ez = sqrt(para_errors.second);
+	  ephi = sqrt(para_errors.first);
+	  maxadc = cluster->getMaxAdc();
+          
           float e = cluster->getAdc();
           float adc = cluster->getAdc();
           float layer_local = (float) TrkrDefs::getLayer(cluster_key);

@@ -970,31 +970,13 @@ Acts::Vector2 HelicalFitter::getClusterError(TrkrCluster *cluster, TrkrDefs::clu
 {
   Acts::Vector2 clus_sigma(0,0);
 
-  if(_cluster_version==3)
-    {
-      clus_sigma(1) = cluster->getZError();
-      clus_sigma(0) = cluster->getRPhiError();
-    }
-  else if(_cluster_version==4)
-    {
-      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-      auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster,clusRadius,cluskey);
-      float exy2 = para_errors.first * Acts::UnitConstants::cm2;
-      float ez2 = para_errors.second * Acts::UnitConstants::cm2;
-      clus_sigma(1) = sqrt(ez2);
-      clus_sigma(0) = sqrt(exy2);
-    }
-  else if(_cluster_version == 5)
-    {
-      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-      TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-      auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5,clusRadius,cluskey);
-      double phierror = sqrt(para_errors.first);
-      double zerror = sqrt(para_errors.second);
-      clus_sigma(1) = zerror;
-      clus_sigma(0) = phierror;
-    }
-
+  double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+  auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster,clusRadius,cluskey);
+  double phierror = sqrt(para_errors.first);
+  double zerror = sqrt(para_errors.second);
+  clus_sigma(1) = zerror;
+  clus_sigma(0) = phierror;
+  
   return clus_sigma; 
 }
 
