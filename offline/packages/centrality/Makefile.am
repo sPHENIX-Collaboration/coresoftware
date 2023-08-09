@@ -10,27 +10,34 @@ lib_LTLIBRARIES = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(ROOTSYS)/lib
 
 libcentrality_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lfun4all \
+  -lcalo_io
 
 pkginclude_HEADERS = \
   CentralityInfo.h \
-  CentralityInfov1.h
+  CentralityInfov1.h \
+  CentralityReco.h
 
 ROOTDICTS = \
   CentralityInfo_Dict.cc \
-  CentralityInfov1_Dict.cc
+  CentralityInfov1_Dict.cc \
+  CentralityReco_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CentralityInfo_Dict_rdict.pcm \
-  CentralityInfov1_Dict_rdict.pcm
+  CentralityInfov1_Dict_rdict.pcm \
+  CentralityReco_Dict_rdict.pcm
 
 libcentrality_io_la_SOURCES = \
   $(ROOTDICTS) \
-  CentralityInfov1.cc
+  CentralityInfov1.cc \
+  CentralityReco.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
