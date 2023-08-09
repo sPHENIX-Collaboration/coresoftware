@@ -483,13 +483,18 @@ int Fun4AllPrdfInputPoolManager::CalcDiffBclk(const int bclk1, const int bclk2)
 void Fun4AllPrdfInputPoolManager::DitchEvent(const int eventno)
 {
   std::cout << "Killing event " << eventno << std::endl;
+  m_ClockCounters.erase(eventno);
+  m_RefClockCounters.erase(eventno);
   auto pktinfoiter = m_PacketMap.find(eventno);
+  if (pktinfoiter == m_PacketMap.end())
+  {
+
+    return;
+  }
   for (auto &pktiter : pktinfoiter->second.PacketVector)
   {
     delete pktiter;
   }
-  m_ClockCounters.erase(pktinfoiter->first);
-  m_RefClockCounters.erase(pktinfoiter->first);
   m_PacketMap.erase(pktinfoiter);
   return;
 }
