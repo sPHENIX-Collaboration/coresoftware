@@ -93,7 +93,7 @@ my @newargs = ();
 my $iarg = 0;
 foreach my $argument (@ARGV)
 {
-    if ($argument =~ /em/)
+    if (substr($argument,1,2) eq "em")
     {
 	my $firstchar = substr($ARGV[$iarg+1],0,1);
 	if (! exists $ARGV[$iarg+1] || substr($ARGV[$iarg+1],0,1) eq "-")
@@ -116,7 +116,7 @@ foreach my $argument (@ARGV)
     }
     $iarg++;
 }
-
+@ARGV=@newargs;
 GetOptions('embed:s' => \$embed, 'l:i' => \$last_segment, 'momentum:s' => \$momentum, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, "production:s"=>\$production, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
 my $filenamestring;
 my %filetypes = ();
