@@ -435,7 +435,8 @@ void Fun4AllPrdfInputPoolManager::CreateBclkOffsets()
     {
       int diffclk = CalcDiffBclk(veciter.first, refclock);
       std::cout << "diffclk for " << veciter.second->Name() << ": " << std::hex
-                << diffclk << std::dec << std::endl;
+                << diffclk << ", clk: 0x" << veciter.first
+		<< ", refclk: 0x" << refclock << std::dec << std::endl;
       auto clkiter = clockcounters.find(veciter.second);
       if (clkiter == clockcounters.end())
       {
@@ -471,12 +472,7 @@ void Fun4AllPrdfInputPoolManager::CreateBclkOffsets()
 
 int Fun4AllPrdfInputPoolManager::CalcDiffBclk(const int bclk1, const int bclk2)
 {
-  int diffclk = bclk1 - bclk2;
-  if (abs(diffclk) > 0xFFF0)
-  {
-    std::cout << "large beam clock diff: 0x" << std::hex << diffclk << ", clk1: 0x" << bclk1
-              << ", clk2: 0x" << bclk2 << std::dec << std::endl;
-  }
+  int diffclk = (bclk1 - bclk2) & 0xFFFF;
   return diffclk;
 }
 
