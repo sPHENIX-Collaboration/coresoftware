@@ -78,6 +78,7 @@ TrkrNtuplizer::TrkrNtuplizer(const string& /*name*/, const string& filename, con
   , _ntp_vertex(nullptr)
   , _ntp_hit(nullptr)
   , _ntp_cluster(nullptr)
+  , _ntp_clus_trk(nullptr)
   , _ntp_track(nullptr)
   , _ntp_tpcseed(nullptr)
   , _ntp_siseed(nullptr)
