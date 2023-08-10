@@ -47,7 +47,7 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
   void DitchEvent(const int eventno);
   void Resynchronize();
   void ClearAllEvents();
-  void SetPoolDepth(unsigned int d) {m_PoolDepth = p;}
+  void SetPoolDepth(unsigned int d) {m_PoolDepth = d;}
 
  private:
   struct PacketInfo
@@ -63,7 +63,7 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
 
   bool m_StartUpFlag = true;
   int m_RunNumber = 0;
-  unsigned int m_PoolDepth = 150;
+  unsigned int m_PoolDepth = 100;
   unsigned int m_InitialPoolDepth = 20;
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
   SyncObject *m_SyncObject = nullptr;
