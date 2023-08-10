@@ -62,9 +62,18 @@ class CentralityReco : public SubsysReco
   std::string _hist_filename;
 
   TFile *outfile;
-  TTree *tree;
+  TTree *ttree;
   std::string _tree_filename;
 
+  int mbd_ring_index[64] = 
+    {2,2,2,1,1,2,1,0,
+     0,2,1,0,2,1,0,1,
+     0,2,1,0,2,1,0,2,
+     1,0,0,2,1,1,2,2,
+     2,2,2,1,1,2,1,0,
+     0,2,1,0,2,1,0,1,
+     0,2,1,0,2,1,0,2,
+     1,0,0,2,1,1,2,2};
 
   int _verbose;
   int _op_mode;
@@ -84,7 +93,8 @@ class CentralityReco : public SubsysReco
   float _energy;
   unsigned int _key;
   int _side, _channel, _type;
-  float _zdc_coeff[2];
+  float _zdc_gain_factors[6];
+  
   float gaincorr[128] {};
   float tq_t0_offsets[128] {};
 
