@@ -464,12 +464,15 @@ void MakeActsGeometry::buildActsSurfaces()
   setMaterialResponseFile(responseFile, materialFile);
 
   // Response file contains arguments necessary for geometry building
+  std::ostringstream fld;
+  fld.str("");
+  fld<<"0:0:"<<m_magField;
   std::string argstr[argc]{
     "-n1",
     "--geo-tgeo-jsonconfig", responseFile,
       "--mat-input-type","file",
       "--mat-input-file", materialFile,
-      "--bf-constant-tesla","0:0:1.4",
+      "--bf-constant-tesla",fld.str().c_str(),
       "--bf-bscalor"};
   
   argstr[9] = std::to_string(m_magFieldRescale);
