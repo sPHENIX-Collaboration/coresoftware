@@ -55,7 +55,7 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
 
   // access the cdb and get cdbtree
   cdb = CDBInterface::instance();
-  std::string  m_calibName = "cemc_PDC_NorthSouth_8x8_uninstr";
+  std::string  m_calibName = "cemc_PDC_NorthSouth_8x8_23instru";
   std::string calibdir = cdb->getUrl(m_calibName);
 
   if (calibdir[0] == '/')
