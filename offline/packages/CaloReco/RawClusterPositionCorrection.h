@@ -79,8 +79,6 @@ class RawClusterPositionCorrection : public SubsysReco
 
   int m_UseTowerInfo = 0;  // 0 only old tower, 1 only new (TowerInfo based),
 
-  int nTowersPhi;
-  int nTowersEta;
   int bins_eta;
   int bins_phi;
   int iEvent;
@@ -90,7 +88,6 @@ class RawClusterPositionCorrection : public SubsysReco
 
   CDBInterface *cdb = nullptr;
   CDBTTree *cdbttree = nullptr;
-  int m_runNumber;
 
 };
 

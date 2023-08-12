@@ -41,8 +41,6 @@
 RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &name)
   : SubsysReco(std::string("RawClusterPositionCorrection_") + name)
   , _det_name(name)
-  , nTowersPhi(256)
-  , nTowersEta(96)
   , bins_eta(384)
   , bins_phi(64)
   , iEvent(0)
