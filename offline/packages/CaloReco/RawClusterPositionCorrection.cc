@@ -211,6 +211,8 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
         int ieta = RawTowerDefs::decode_index1(toweriter->first);  // index1 is eta in CYL
         unsigned int towerkey = iphi + (ieta << 16U);
 
+        assert(_towerinfos);
+
         unsigned int towerindex = _towerinfos->decode_key(towerkey);
 
         TowerInfo *towinfo = _towerinfos->get_tower_at_channel(towerindex);
