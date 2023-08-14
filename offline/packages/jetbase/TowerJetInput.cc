@@ -325,6 +325,8 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	  int ieta = towerinfos->getTowerEtaBin(calokey);
 	  int iphi = towerinfos->getTowerPhiBin(calokey);
 	  const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(geocaloid, ieta, iphi);
+	  //skip masked towers
+	  if (tower->get_time()==-10 || tower->get_time()==-11) continue;
 	  RawTowerGeom *tower_geom = geom->get_tower_geometry(key);
 	  assert(tower_geom);
 
