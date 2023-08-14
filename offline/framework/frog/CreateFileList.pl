@@ -70,7 +70,7 @@ my $start_segment;
 my $last_segment;
 my $randomize;
 my $prodtype;
-my $runnumber = 6;
+my $runnumber = 7;
 my $verbose;
 my $nopileup;
 my $embed;
@@ -80,6 +80,43 @@ my $pmin;
 my $pmax;
 my $production;
 my $momentum;
+# that should teach me a lesson to not give a flag an optional strign value
+# just using embed:s leads to the next ARGV to be used as argument, even if it
+# is the next option. Sadly getopt swallows the - so parsing this becomes
+# quickly a nightmare, The only solution I see is to read the ARGV's - check for
+# the argument in question with a string compare (=~/em/) and then have a look
+# at the next argument (if it exists) and check if is is another option (=~/-/)
+# and if so use "auau" as default for $embed and push the modified option
+# into the new command line ARGV. It defaults to auau if -emb is set but
+# neither pau nor auau is given
+my @newargs = ();
+my $iarg = 0;
+foreach my $argument (@ARGV)
+{
+    if (substr($argument,1,2) eq "em")
+    {
+	my $firstchar = substr($ARGV[$iarg+1],0,1);
+	if (! exists $ARGV[$iarg+1] || substr($ARGV[$iarg+1],0,1) eq "-")
+	{
+	    push(@newargs, $argument);
+	    push(@newargs,"auau");
+	}
+	else
+	{
+	    push(@newargs, $argument);
+	    if ($ARGV[$iarg+1] ne "pau" && $ARGV[$iarg+1] ne "auau")
+	    {
+		push(@newargs,"auau");
+	    }
+	}
+    }
+    else
+    {
+	push(@newargs,$argument);
+    }
+    $iarg++;
+}
+@ARGV=@newargs;
 GetOptions('embed:s' => \$embed, 'l:i' => \$last_segment, 'momentum:s' => \$momentum, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, "production:s"=>\$production, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
 my $filenamestring;
 my %filetypes = ();
@@ -233,7 +270,6 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-                print "embed is $embed\n";
 		if ($embed eq "pau")
 		{
 		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
@@ -433,13 +469,6 @@ if (defined $embed && ! $embedok)
 {
     print "Embedding not implemented for type $prodtype\n";
     exit(1);
-}
-if (defined $embed)
-{
-    if ($embed ne "pau" && $embed ne "auau")
-    {
-	push(@ARGV,$embed);
-    }
 }
 
 my $filenamestring_with_runnumber = sprintf("%s\-%010d-",$filenamestring,$runnumber);
@@ -754,30 +783,31 @@ $dbh->disconnect;
 
 sub commonfiletypes
 {
+# for no pileup pass(X) --> pass(X-1)
 # pass1
     $filetypes{"G4Hits"} = "G4 Hits";
-    $filetypes{"G4HitsOld"} = "Old G4 Hits";
+#    $filetypes{"G4HitsOld"} = "Old G4 Hits";
 # pass2
     $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD, EPD G4Hits";
     $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
     $filetypes{"DST_TRKR_G4HIT"} = "Pileup Tracking Detector G4 Hits";
     $filetypes{"DST_TRUTH_G4HIT"} = "temporary Pileup Truth info, use DST_TRUTH";
-    $filetypes{"DST_VERTEX"} = "Pileup Simulated Smeared Vertex";
-# pass3 calo
-    $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
-# pass3 global
-    $filetypes{"DST_GLOBAL"} = "Old Reconstructed Global Detectors (Bbc, Epd)";
 # pass3 bbcepd
     $filetypes{"DST_BBC_EPD"} = "Reconstructed Bbc, Epd";
+# pass3 calo
+    $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
 #pass3 trk
     $filetypes{"DST_TRKR_HIT"} = "TPC and Silicon Hits";
     $filetypes{"DST_TRUTH"} = "Truth Info (updated with Clusters)";
+#pass4 truth jets
+    $filetypes{"DST_TRUTH_JET"} = "Truth Jets";
 #pass4 tracks
     $filetypes{"DST_TRKR_CLUSTER"} = "pass0 output: tpc clusters";
     $filetypes{"DST_TRACKSEEDS"} = "passA output: track seeds";
     $filetypes{"DST_TRACKS"} = "passC output: Reconstructed Tracks";
-#analysis pass
-    $filetypes{"DST_TRUTH_JET"} = "Truth Jets";
+#pass5 tracks/clusters
+    $filetypes{"DST_GLOBAL"} = "Global Info (MBD, sEPD, Vertex)";
+    $filetypes{"DST_TRUTH_RECO"} = "digested track truth info";
 }
 
 

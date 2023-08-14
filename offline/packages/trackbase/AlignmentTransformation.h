@@ -102,7 +102,9 @@ void setTPCParams(double tpcDevs[6])
       }
   }
 
+ void verbosity() { localVerbosity = 1;}
  void misalignmentFactor(uint8_t layer, const double factor);
+ void useInttSurveyGeometry(bool sur) { use_intt_survey_geometry = sur;} 
 
  private:
 
@@ -122,8 +124,9 @@ void setTPCParams(double tpcDevs[6])
   int localVerbosity = 0;
 
   bool use_global_millepede_translations = true;
+  bool use_intt_survey_geometry = false;
 
-  Acts::Transform3 newMakeTransform(Surface surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles);
+  Acts::Transform3 newMakeTransform(Surface surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, bool survey);
 
   alignmentTransformationContainer* transformMap = NULL;
   ActsGeometry* m_tGeometry = NULL;

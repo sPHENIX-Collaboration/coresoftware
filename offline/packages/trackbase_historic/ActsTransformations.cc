@@ -1,11 +1,12 @@
 #include "ActsTransformations.h"
 #include "SvtxTrack.h"
 #include "SvtxTrackState.h"
-#include "SvtxTrackState_v1.h"
+#include "SvtxTrackState_v2.h"
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/ActsSourceLink.h>
 
 namespace
 {
@@ -275,7 +276,7 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory<Acts::
 
       // create svtx state vector with relevant pathlength
       const float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
-      SvtxTrackState_v1 out( pathlength );
+      SvtxTrackState_v2 out( pathlength );
     
       // get smoothed fitted parameters
       const Acts::BoundTrackParameters params(state.referenceSurface().getSharedPtr(),
@@ -293,6 +294,8 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory<Acts::
       out.set_px(momentum.x());
       out.set_py(momentum.y());
       out.set_pz(momentum.z());
+      const auto& sourceLink = static_cast<const ActsSourceLink&>(state.uncalibrated());
+      out.set_cluskey(sourceLink.cluskey());
       
       /// covariance    
       const auto globalCov = rotateActsCovToSvtxTrack(params);

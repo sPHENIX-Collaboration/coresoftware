@@ -99,7 +99,8 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
     if( !packet )
     {
       // no data
-      std::cout << "MicromegasRawDataEvaluation::process_event - packet " << packet_id << " not found." << std::endl;
+      if( Verbosity() )
+      { std::cout << "MicromegasRawDataEvaluation::process_event - packet " << packet_id << " not found." << std::endl; }
       continue;
     }
 

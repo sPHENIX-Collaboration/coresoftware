@@ -39,6 +39,15 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
   void AddPacket(const int evtno, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
   void UpdateDroppedPacket(const int packetid);
+  void AddBeamClock(const int evtno, const int bclk, SinglePrdfInput *prdfin);
+  void SetReferenceClock(const int evtno, const int bclk);
+  void SetReferenceInputMgr(SinglePrdfInput *inp) { m_RefPrdfInput = inp; }
+  void CreateBclkOffsets();
+  int CalcDiffBclk(const int bclk1, const int bclk2);
+  void DitchEvent(const int eventno);
+  void Resynchronize();
+  void ClearAllEvents();
+  void SetPoolDepth(unsigned int d) {m_PoolDepth = d;}
 
  private:
   struct PacketInfo
@@ -47,17 +56,28 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
     unsigned int EventFoundCounter = 0;
   };
 
+  struct SinglePrdfInputInfo
+  {
+    int bclkoffset = 0;
+  };
+
+  bool m_StartUpFlag = true;
   int m_RunNumber = 0;
+  unsigned int m_PoolDepth = 100;
+  unsigned int m_InitialPoolDepth = 20;
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
   Event *m_Event = nullptr;
   PHDWORD workmem[4 * 1024 * 1024] = {};
-  oEvent *oph;
-
+  oEvent *oph = nullptr;
+  SinglePrdfInput *m_RefPrdfInput = nullptr;
   std::map<int, PacketInfo> m_PacketMap;
   std::string m_PrdfNodeName;
   std::map<int, int> m_DroppedPacketMap;
+  std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;
+  std::map<int, int> m_RefClockCounters;
+  std::map<SinglePrdfInput *, SinglePrdfInputInfo> m_SinglePrdfInputInfo;
 };
 
 #endif /* FUN4ALL_FUN4ALLPRDFINPUTPOOLMANAGER_H */

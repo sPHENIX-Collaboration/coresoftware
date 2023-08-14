@@ -34,6 +34,10 @@ namespace
   {
     return x * x;
   }
+  template <class T> inline constexpr T get_r(const T& x, const T& y)
+  {
+    return std::sqrt(square(x) + square(y));
+  }
 }  // namespace
 
 void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
@@ -71,6 +75,11 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
     }
 
   if(nmaps < 2 or nintt < 2) 
+    { return; }
+ 
+  //! make sure the track was fully fit through the mvtx
+  SvtxTrackState* firststate = (*std::next(track->begin_states(),1)).second;
+  if(get_r(firststate->get_x(), firststate->get_y()) > 5.)
     { return; }
 
   mj.visitBackwards(trackTip, [&](const auto& state)
@@ -120,24 +129,10 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
 
     Acts::Vector3 clus_sigma(0, 0, 0);
 
-    if (m_clusterVersion != 4)
-      {
-        clus_sigma(2) = clus->getZError() * Acts::UnitConstants::cm;
-        clus_sigma(0) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
-        clus_sigma(1) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
-      }
-    else 
-      {
-        double clusRadius = sqrt(clusGlobal(0) * clusGlobal(0) + clusGlobal(1) * clusGlobal(1)) / Acts::UnitConstants::cm;
-        auto para_errors = m_clusErrPara.get_simple_cluster_error(clus, clusRadius, ckey);
-        float exy2 = para_errors.first * Acts::UnitConstants::cm2;
-        float ez2 = para_errors.second * Acts::UnitConstants::cm2;
-        clus_sigma(2) = sqrt(ez2);
-        clus_sigma(0) = sqrt(exy2 / 2.0);
-        clus_sigma(1) = sqrt(exy2 / 2.0);
-      }
-  
- 
+    clus_sigma(2) = clus->getZError() * Acts::UnitConstants::cm;
+    clus_sigma(0) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
+    clus_sigma(1) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
+           
     if (m_verbosity > 2)
     {
       std::cout << "clus global is " << clusGlobal.transpose() << std::endl

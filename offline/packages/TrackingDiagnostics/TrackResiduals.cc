@@ -6,7 +6,6 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv5.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
@@ -372,8 +371,7 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   }
   m_cluslz.push_back(clusz);
 
-  TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-  auto para_errors = m_clusErrPara.get_clusterv5_modified_error(clusterv5,
+  auto para_errors = m_clusErrPara.get_clusterv5_modified_error(cluster,
 							       clusr,ckey);
   m_cluselx.push_back(sqrt(para_errors.first));
   m_cluselz.push_back(sqrt(para_errors.second));

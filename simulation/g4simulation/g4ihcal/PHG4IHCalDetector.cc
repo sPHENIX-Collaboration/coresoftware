@@ -13,11 +13,11 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>  // for PHNode
+#include <phool/PHNode.h>    // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h> 
+#include <phool/phool.h>
 #include <phool/recoConsts.h>
 
 #include <g4gdml/PHG4GDMLConfig.hh>
@@ -143,7 +143,7 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
       }
     }
   }
-  if(!m_Params->get_int_param("saveg4hit")) AddGeometryNode();
+  if (!m_Params->get_int_param("saveg4hit")) AddGeometryNode();
   return;
 }
 
@@ -428,6 +428,10 @@ int PHG4IHCalDetector::map_layerid(const int layer_id)
   {
     rowid = layer_id - 188;
   }
+  // shift the row index up by 4
+  rowid += 4;
+  if (rowid > 255) rowid -= 256;
+
   if (rowid > 255 || rowid < 0)
   {
     std::cout << PHWHERE << " row id out of range: " << rowid << std::endl;
@@ -436,7 +440,7 @@ int PHG4IHCalDetector::map_layerid(const int layer_id)
   return rowid;
 }
 
-//This is dulplicated code, we can get rid of it when we have the code to make towergeom for real data reco.
+// This is dulplicated code, we can get rid of it when we have the code to make towergeom for real data reco.
 void PHG4IHCalDetector::AddGeometryNode()
 {
   PHNodeIterator iter(topNode());
@@ -476,17 +480,19 @@ void PHG4IHCalDetector::AddGeometryNode()
               << ", exiting now (this will crash anyway)" << std::endl;
     gSystem->Exit(1);
   }
-    for (int i = 0; i < m_Params->get_int_param(PHG4HcalDefs::n_towers); i++)
+  for (int i = 0; i < m_Params->get_int_param(PHG4HcalDefs::n_towers); i++)
   {
     double phiend = phistart + 2. * M_PI / m_Params->get_int_param(PHG4HcalDefs::n_towers);
     std::pair<double, double> range = std::make_pair(phiend, phistart);
     phistart = phiend;
-    m_RawTowerGeom->set_phibounds(i, range);
+    int tempi = i + 1;
+    if (tempi >= m_Params->get_int_param(PHG4HcalDefs::n_towers)) tempi -= m_Params->get_int_param(PHG4HcalDefs::n_towers);
+    m_RawTowerGeom->set_phibounds(tempi, range);
   }
-  double etalowbound = - m_Params->get_double_param("scinti_eta_coverage_neg");
+  double etalowbound = -m_Params->get_double_param("scinti_eta_coverage_neg");
   for (int i = 0; i < m_Params->get_int_param("etabins"); i++)
   {
-    //double etahibound = etalowbound + 2.2 / get_int_param("etabins");
+    // double etahibound = etalowbound + 2.2 / get_int_param("etabins");
     double etahibound = etalowbound +
                         (m_Params->get_double_param("scinti_eta_coverage_neg") + m_Params->get_double_param("scinti_eta_coverage_pos")) / m_Params->get_int_param("etabins");
     std::pair<double, double> range = std::make_pair(etalowbound, etahibound);
@@ -551,5 +557,4 @@ void PHG4IHCalDetector::AddGeometryNode()
   {
     m_RawTowerGeom->identify();
   }
-
 }

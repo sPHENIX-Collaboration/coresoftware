@@ -105,7 +105,6 @@ class PHActsSiliconSeeding : public SubsysReco
 
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void SetIteration(int iter){_n_iteration = iter;}
-  void set_cluster_version(int value) { m_cluster_version = value; }
 
  private:
 
@@ -250,7 +249,7 @@ class PHActsSiliconSeeding : public SubsysReco
   TH2 *h_projHits = nullptr;
   TH2 *h_zprojHits = nullptr;
   TH2 *h_resids = nullptr;
-  int m_cluster_version = 3;
+
 };
 
 

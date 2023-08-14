@@ -98,7 +98,8 @@ int HelicalFitter::InitRun(PHCompositeNode *topNode)
 
   if(make_ntuple)
     {
-      fout = new TFile("HF_ntuple.root","recreate");
+      //fout = new TFile("HF_ntuple.root","recreate");
+      fout = new TFile(ntuple_outfilename.c_str(),"recreate");
       ntp  = new TNtuple("ntp","HF ntuple","event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
 
       track_ntp = new TNtuple("track_ntp","HF track ntuple","track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:xvtx:yvtx:zvtx:event_zvtx:track_phi:perigee_phi");
@@ -479,10 +480,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		{
 		  unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
 		  unsigned int side   = TpcDefs::getSide(cluskey_vec[ivec]);	  
-		  std::cout << " Testing layer " << layer << " param " << i << std::endl;
 		  if(is_layer_param_fixed(layer, i) || is_tpc_sector_fixed(layer, sector, side))
 		    {
-		      std::cout << "     layer " << layer << " param " << i << " fixed " << std::endl;
 		      glbl_derivativeX[i] = 0;
 		      glbl_derivativeY[i] = 0;
 		    }
@@ -594,26 +593,40 @@ int HelicalFitter::process_event(PHCompositeNode*)
       float glblvtx_derivativeX[3];
       float glblvtx_derivativeY[3];
       getGlobalVtxDerivativesXY(newTrack, event_vtx, glblvtx_derivativeX, glblvtx_derivativeY);
-
-      int glbl_vtx_label[3] = {60000000,60000001,60000002};
-      int NGL_vtx           = 3;
-      
+  
       if(use_event_vertex)
 	{	  
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << "vertex info for track " << trackid << " with charge " << newTrack.get_charge() << std::endl;
+	      
+	      std::cout << "vertex is " << event_vtx.transpose() << std::endl;
+	      std::cout << "vertex residuals " << vtx_residual.transpose() 
+			<< std::endl;
+	      std::cout << "local derivatives " << std::endl;
+	      for(int i=0; i<AlignmentDefs::NLC; i++)
+		std::cout << lclvtx_derivativeX[i] << ", ";
+	      std::cout << std::endl;
+	      for(int i=0; i<AlignmentDefs::NLC; i++)
+		std::cout << lclvtx_derivativeY[i] << ", ";
+	      std::cout << "global vtx derivaties " << std::endl;
+	      for(int i=0; i<3; i++) std::cout << glblvtx_derivativeX[i] << ", ";
+	      std::cout << std::endl;
+	      for(int i=0; i<3; i++) std::cout << glblvtx_derivativeY[i] << ", ";
+	    }
+
 	  // add some track cuts
 	  if(fabs(newTrack.get_z() - event_vtx(2)) > 0.2) continue;  // 2 mm cut
 	  if(fabs(newTrack.get_x()) > 0.2) continue;  // 2 mm cut
 	  if(fabs(newTrack.get_y()) > 0.2) continue;  // 2 mm cut
 	  
-	     if(!isnan(vtx_residual(0)))
+	  if(!isnan(vtx_residual(0)))
 	    {
-	      //  _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeX,NGL_vtx,glblvtx_derivativeX,glbl_vtx_label,dca3dxy, vtx_sigma(0));
-	      _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeX,NGL_vtx,glblvtx_derivativeX,glbl_vtx_label,vtx_residual(0), vtx_sigma(0));
+	      _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeX,AlignmentDefs::NGLVTX,glblvtx_derivativeX,AlignmentDefs::glbl_vtx_label,vtx_residual(0), vtx_sigma(0));
 	    }    
-	     if(!isnan(vtx_residual(1)))
+	  if(!isnan(vtx_residual(1)))
 	    {  
-	      //  _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeY,NGL_vtx,glblvtx_derivativeY,glbl_vtx_label,dca3dz, vtx_sigma(1));
-	      _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeY,NGL_vtx,glblvtx_derivativeY,glbl_vtx_label,vtx_residual(1), vtx_sigma(1));
+	      _mille->mille(AlignmentDefs::NLC,lclvtx_derivativeY,AlignmentDefs::NGLVTX,glblvtx_derivativeY,AlignmentDefs::glbl_vtx_label,vtx_residual(1), vtx_sigma(1));
 	    }
 	}
 
@@ -959,31 +972,13 @@ Acts::Vector2 HelicalFitter::getClusterError(TrkrCluster *cluster, TrkrDefs::clu
 {
   Acts::Vector2 clus_sigma(0,0);
 
-  if(_cluster_version==3)
-    {
-      clus_sigma(1) = cluster->getZError();
-      clus_sigma(0) = cluster->getRPhiError();
-    }
-  else if(_cluster_version==4)
-    {
-      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-      auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster,clusRadius,cluskey);
-      float exy2 = para_errors.first * Acts::UnitConstants::cm2;
-      float ez2 = para_errors.second * Acts::UnitConstants::cm2;
-      clus_sigma(1) = sqrt(ez2);
-      clus_sigma(0) = sqrt(exy2);
-    }
-  else if(_cluster_version == 5)
-    {
-      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-      TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-      auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5,clusRadius,cluskey);
-      double phierror = sqrt(para_errors.first);
-      double zerror = sqrt(para_errors.second);
-      clus_sigma(1) = zerror;
-      clus_sigma(0) = phierror;
-    }
-
+  double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+  auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster,clusRadius,cluskey);
+  double phierror = sqrt(para_errors.first);
+  double zerror = sqrt(para_errors.second);
+  clus_sigma(1) = zerror;
+  clus_sigma(0) = phierror;
+  
   return clus_sigma; 
 }
 
@@ -1122,7 +1117,7 @@ void HelicalFitter::getGlobalDerivativesXY(Surface surf, Acts::Vector3 global, A
 
   Acts::Vector3 projX(0,0,0), projY(0,0,0);
   get_projectionXY(surf, tangent, projX, projY);
-
+  
   // translations
   glbl_derivativeX[3] = unitx.dot(projX);
   glbl_derivativeX[4] = unity.dot(projX);
@@ -1235,7 +1230,7 @@ void HelicalFitter::get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vt
 
   tanvec /= tanvec.norm();
   normal /= normal.norm();
-  
+
   // get surface X and Y unit vectors in global frame
   Acts::Vector3 xloc(1.0,0.0,0.0);
   Acts::Vector3 yloc(0.0,0.0,1.0); // local y 
@@ -1243,6 +1238,7 @@ void HelicalFitter::get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vt
   Acts::Vector3 yglob = yloc + event_vtx;
   Acts::Vector3 X     = (xglob-event_vtx) / (xglob-event_vtx).norm(); // local unit vector transformed to global coordinates
   Acts::Vector3 Y     = (yglob-event_vtx) / (yglob-event_vtx).norm();
+
   // see equation 31 of the ATLAS paper (and discussion) for this
   projX = X - (tanvec.dot(X) / tanvec.dot(normal)) * normal;
   projY = Y - (tanvec.dot(Y) / tanvec.dot(normal)) * normal;
@@ -1362,8 +1358,9 @@ void HelicalFitter::get_dca(SvtxTrack& track,float& dca3dxy, float& dca3dz, floa
   dca3dxy = NAN;
   Acts::Vector3 track_vtx(track.get_x(),track.get_y(),track.get_z());
   Acts::Vector3 mom(track.get_px(),track.get_py(),track.get_pz());
-  track_vtx -= event_vertex; // difference between track_vertex and event_vtx
 
+  track_vtx -= event_vertex; // difference between track_vertex and event_vtx
+  
   Acts::ActsSymMatrix<3> posCov;
   for(int i = 0; i < 3; ++i)
     {
@@ -1374,6 +1371,7 @@ void HelicalFitter::get_dca(SvtxTrack& track,float& dca3dxy, float& dca3dz, floa
     }
   
   Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
+
   float phi       = atan2(r(1), r(0));
   Acts::RotationMatrix3 rot;
   Acts::RotationMatrix3 rot_T;
@@ -1391,7 +1389,6 @@ void HelicalFitter::get_dca(SvtxTrack& track,float& dca3dxy, float& dca3dz, floa
 
   Acts::Vector3 pos_R           = rot * track_vtx;
   Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
-
   dca3dxy      = pos_R(0);
   dca3dz       = pos_R(2);
   dca3dxysigma = sqrt(rotCov(0,0));
@@ -1497,7 +1494,6 @@ Acts::Vector3 HelicalFitter::localvtxToGlobalvtx(SvtxTrack& track, Acts::Vector3
 
   Acts::Vector3 pos_R = rot * local;
   pos_R += event_vtx;
-
   if(Verbosity()>1)
     {
       std::cout << " momentum X z: "<<r<< " phi: " << phi*180/M_PI << std::endl;

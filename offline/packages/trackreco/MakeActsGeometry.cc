@@ -172,8 +172,13 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->setGeometry(trackingGeometry);
   m_actsGeometry->setSurfMaps(surfMaps);
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
-
+  alignment_transformation.useInttSurveyGeometry(m_inttSurvey);
+   if(Verbosity() > 1)
+    {
+      alignment_transformation.verbosity();
+    }
   alignment_transformation.createMap(topNode);
+ 
   for(auto& [layer, factor] : m_misalignmentFactor)
     {
       alignment_transformation.misalignmentFactor(layer, factor);
@@ -459,12 +464,15 @@ void MakeActsGeometry::buildActsSurfaces()
   setMaterialResponseFile(responseFile, materialFile);
 
   // Response file contains arguments necessary for geometry building
+  std::ostringstream fld;
+  fld.str("");
+  fld<<"0:0:"<<m_magField;
   std::string argstr[argc]{
     "-n1",
     "--geo-tgeo-jsonconfig", responseFile,
       "--mat-input-type","file",
       "--mat-input-file", materialFile,
-      "--bf-constant-tesla","0:0:1.4",
+      "--bf-constant-tesla",fld.str().c_str(),
       "--bf-bscalor"};
   
   argstr[9] = std::to_string(m_magFieldRescale);

@@ -1185,7 +1185,7 @@ void AnnularFieldSim::load_and_resample_spacecharge(int new_nphi, int new_nr, in
       }  //k (z loop)
     }    //j (r loop)
   }      //i (phi loop)
-
+  printf("here in load_and_resample_spacecharge, I am going to call load_spacecharge.\n");
   load_spacecharge(resampled, zoffset, chargescale, cmscale, true);
 }
 
