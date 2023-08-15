@@ -10,12 +10,10 @@
 
 PHSiliconHelicalPropagator::PHSiliconHelicalPropagator(std::string name) : SubsysReco(name)
 {
-
 }
 
 PHSiliconHelicalPropagator::~PHSiliconHelicalPropagator()
 {
-
 }
 
 int PHSiliconHelicalPropagator::InitRun(PHCompositeNode* topNode)
@@ -105,18 +103,27 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
   {
     TrackSeed* tpcseed = _tpc_seeds->get(seedID);
     if(!tpcseed) continue;
+
     std::vector<Acts::Vector3> clusterPositions;
     std::vector<TrkrDefs::cluskey> clusterKeys;
     TrackFitUtils::getTrackletClusters(_tgeometry,_cluster_map,clusterPositions,clusterKeys);
+
     std::vector<float> fitparams = TrackFitUtils::fitClusters(clusterPositions,clusterKeys);
-    
+    //! There weren't enough clusters to fit
+    if(fitparams.size() == 0)
+      {
+	continue;
+      }
     std::vector<TrkrDefs::cluskey> si_clusterKeys;
     std::vector<Acts::Vector3> si_clusterPositions;
+    
     unsigned int nSiClusters = TrackFitUtils::addSiliconClusters(fitparams,1000.,_tgeometry,_cluster_map,si_clusterPositions,si_clusterKeys);
+    
     if(nSiClusters>0)
     {
       std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
       std::map<short,int> crossing_frequency;
+   
       for(auto clusterkey : si_clusterKeys)
       {
         si_seed->insert_cluster_key(clusterkey);
@@ -131,6 +138,7 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
           }
         }
       }
+ 
       if(crossing_frequency.size()>0)
       {
         short most_common_crossing = (std::max_element(crossing_frequency.begin(),crossing_frequency.end(),
@@ -139,9 +147,9 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
       }
       si_seed->circleFitByTaubin(_cluster_map,_tgeometry,0,8);
       si_seed->lineFit(_cluster_map,_tgeometry,0,8);
-    
+      
       TrackSeed* mapped_seed = _si_seeds->insert(si_seed.get());
-
+      
       std::unique_ptr<SvtxTrackSeed_v1> full_seed = std::make_unique<SvtxTrackSeed_v1>();
       int tpc_seed_index = _tpc_seeds->find(tpcseed);
       int si_seed_index = _si_seeds->find(mapped_seed);
