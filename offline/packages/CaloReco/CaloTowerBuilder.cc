@@ -94,8 +94,8 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
   {
     m_detector = "EPD";
     m_packet_low = 9001;
-    m_packet_high = 9005;
-    m_nchannels = 186;
+    m_packet_high = 9006;
+    m_nchannels = 128;
     if (_processingtype == CaloWaveformProcessing::NONE)
     {
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);  // default the EPD to fast processing
