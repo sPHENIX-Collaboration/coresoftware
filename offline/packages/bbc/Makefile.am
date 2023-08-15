@@ -34,7 +34,9 @@ pkginclude_HEADERS = \
   BbcPmtContainerV1.h \
   BbcPmtHit.h \
   BbcPmtHitV1.h \
-  BbcReconstruction.h \
+  BbcPmtInfoContainerV1.h \
+  BbcPmtInfoV1.h \
+  BbcReco.h \
   BbcGeom.h \
   BbcGeomV1.h \
   BbcReturnCodes.h \
@@ -62,6 +64,8 @@ ROOTDICTS = \
   BbcPmtHitV1_Dict.cc \
   BbcPmtContainer_Dict.cc \
   BbcPmtContainerV1_Dict.cc \
+  BbcPmtInfoV1_Dict.cc \
+  BbcPmtInfoContainerV1_Dict.cc \
   BbcVertex_Dict.cc \
   BbcVertexv1_Dict.cc \
   BbcVertexv2_Dict.cc \
@@ -111,8 +115,10 @@ libbbc_io_la_SOURCES = \
   BbcPmtHitV1.cc \
   BbcPmtContainer.cc \
   BbcPmtContainerV1.cc \
+  BbcPmtInfoV1.cc \
+  BbcPmtInfoContainerV1.cc \
   BbcGeomV1.cc \
-  BbcReconstruction.cc \
+  BbcReco.cc \
   BbcVertexv1.cc \
   BbcVertexv2.cc \
   BbcVertexMap.cc \
@@ -126,6 +132,7 @@ libbbc_io_la_LIBADD = \
 else
 libbbc_io_la_LIBADD = \
   -lphool \
+  -lcalo_io \
   -lSubsysReco
 endif
 
