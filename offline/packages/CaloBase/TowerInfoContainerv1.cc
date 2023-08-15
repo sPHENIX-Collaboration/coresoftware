@@ -16,7 +16,7 @@ TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
   int nchannels = 744;
   if (_detector == DETECTOR::SEPD)
   {
-    nchannels = 768;
+    nchannels = 744;
   }
   else if (_detector == DETECTOR::EMCAL)
   {
