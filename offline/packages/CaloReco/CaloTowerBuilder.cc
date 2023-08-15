@@ -177,6 +177,12 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
         {
           for (int channel = 0; channel < m_nchannels - nchannels; channel++)
           {
+            //mask empty channels
+            if (m_dettype == CaloTowerBuilder::EPD && pid == 9001 && (channel < 64 || channel == 78 || channel == 110)) {
+              continue;
+            }
+
+
             std::vector<float> waveform;
             waveform.reserve(m_nsamples);
             for (int samp = 0; samp < m_nzerosuppsamples; samp++)
