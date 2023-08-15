@@ -97,14 +97,12 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
 				     _min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->useConstBField(_use_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
-  fitter->set_cluster_version( m_cluster_version );
-  std::cout << "simple kf cluster version " << m_cluster_version << std::endl;
   fitter->setFixedClusterError(0,_fixed_clus_err.at(0));
   fitter->setFixedClusterError(1,_fixed_clus_err.at(1));
   fitter->setFixedClusterError(2,_fixed_clus_err.at(2));
   //  _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
   // m_Cache = magField->makeCache(m_tGeometry->magFieldContext);
-  std::cout << "done init " << m_cluster_version << std::endl;
+ 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

@@ -32,7 +32,7 @@ class ActsAlignmentStates
 
   ActsAlignmentStates() {}
   ~ActsAlignmentStates() {}
-  void clusterVersion(const int v) { m_clusterVersion = v; }
+  
   void fillAlignmentStateMap(const Trajectory& traj,
                              SvtxTrack* track,
                              const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
@@ -56,7 +56,6 @@ class ActsAlignmentStates
   SvtxAlignmentState::GlobalMatrix makeGlobalDerivatives(const Acts::Vector3& OM, const std::pair<Acts::Vector3, Acts::Vector3>& projxy);
 
   int m_verbosity = 0;
-  int m_clusterVersion = 4;
 
   float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
 

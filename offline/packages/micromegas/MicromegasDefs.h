@@ -94,8 +94,15 @@ namespace MicromegasDefs
   uint8_t getTileId(TrkrDefs::cluskey);
 
   //! TPOT packet ids
-  static constexpr int m_npackets = 2;
-  static constexpr std::array<unsigned int,m_npackets> m_packet_ids = {5000, 5001};
+  /** 
+   * note: TPOT only uses 2 packets. 
+   * For early runs (before 07/28/2023) they are 5000 and 5001
+   * For later run, (after 07/28/2023) and because, as instructed by Martin, they are 5001 and 5002
+   * We keep all 3 values here in order to be able to read both type of runs
+   * One might need to change this in the future when 5000 becomes used by a different subsystem
+   */
+  static constexpr int m_npackets = 3;
+  static constexpr std::array<unsigned int,m_npackets> m_packet_ids = {5000, 5001, 5002};
   
   //! number of channels per fee board
   static constexpr int m_nchannels_fee = 256;

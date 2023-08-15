@@ -23,6 +23,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <algorithm>                         // for sort
 #include <cassert>
 #include <cmath>
 #include <exception>
@@ -67,7 +68,7 @@ class twrs
     return binphi;
   }
 
- protected:
+ private:
   int bineta;
   int binphi;
   int maxphibin;

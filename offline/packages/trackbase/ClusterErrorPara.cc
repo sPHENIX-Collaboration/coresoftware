@@ -472,25 +472,25 @@ ClusterErrorPara::ClusterErrorPara()
 }
 
 //_________________________________________________________________________________
-ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClusterv5* clusterv5, double, TrkrDefs::cluskey key)
+ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrCluster* cluster, double, TrkrDefs::cluskey key)
 {
 
   int layer = TrkrDefs::getLayer(key);
 
-  double phierror = clusterv5->getRPhiError();
-  double zerror = clusterv5->getZError();
+  double phierror = cluster->getRPhiError();
+  double zerror = cluster->getZError();
   if( TrkrDefs::getTrkrId( key )== TrkrDefs::tpcId){
     if(layer==7||layer==22||layer==23||layer==38||layer==39){
       phierror *= 4;
       zerror*= 4;
     }
-    if(clusterv5->getEdge()>=3)
+    if(cluster->getEdge()>=3)
       phierror *= 4;
-    if(clusterv5->getOverlap()>=2)
+    if(cluster->getOverlap()>=2)
       phierror *= 2;
-    if(clusterv5->getPhiSize()==1)
+    if(cluster->getPhiSize()==1)
       phierror *= 10;
-    if(clusterv5->getPhiSize()>=5)
+    if(cluster->getPhiSize()>=5)
       phierror *= 10;
 
     if(phierror>0.1) phierror = 0.1;
@@ -511,9 +511,6 @@ ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrkrCluster* clust
 
 double ClusterErrorPara::tpc_phi_error(int layer, double alpha, TrkrCluster* cluster){
   double phierror = 0;
-
-  TrkrClusterv4 *clusterv4 = dynamic_cast<TrkrClusterv4 *>(cluster);
-  assert( clusterv4 );
   
   int sector = -1;
   if(layer >=7 && layer < 23){
@@ -531,22 +528,22 @@ double ClusterErrorPara::tpc_phi_error(int layer, double alpha, TrkrCluster* clu
   if(sector==0){
     //phierror = 0.019886;
     phierror = f0->Eval(alpha);
-    if(clusterv4->getMaxAdc()!=0){
-      if(clusterv4->getMaxAdc()>150)
+    if(cluster->getMaxAdc()!=0){
+      if(cluster->getMaxAdc()>150)
 	phierror *=  0.54*0.9;
       else{
-	phierror *= fadcphi0->Eval(clusterv4->getMaxAdc());
-	phierror *= fadcphi0fine->Eval(clusterv4->getMaxAdc());
+	phierror *= fadcphi0->Eval(cluster->getMaxAdc());
+	phierror *= fadcphi0fine->Eval(cluster->getMaxAdc());
       }
     }
-    if(clusterv4->getEdge()>=5)
+    if(cluster->getEdge()>=5)
       phierror *= 2;
     
-    if(clusterv4->getPhiSize()==1)
+    if(cluster->getPhiSize()==1)
       phierror *= 1.5;
-    if(clusterv4->getPhiSize()==4)
+    if(cluster->getPhiSize()==4)
       phierror *= 1.5;
-    if(clusterv4->getPhiSize()>=5)
+    if(cluster->getPhiSize()>=5)
       phierror *= 2.5;
     
     phierror *= f0fine->Eval(alpha);
@@ -555,24 +552,24 @@ double ClusterErrorPara::tpc_phi_error(int layer, double alpha, TrkrCluster* clu
   if(sector==1){
     //phierror = 0.018604;
     phierror = f1->Eval(alpha);
-    if(clusterv4->getMaxAdc()!=0){
-      if(clusterv4->getMaxAdc()>160)
+    if(cluster->getMaxAdc()!=0){
+      if(cluster->getMaxAdc()>160)
 	phierror *=  0.6;
       else
-	phierror *= fadcphi1->Eval(clusterv4->getMaxAdc());
-      if(clusterv4->getEdge()>=5)
+	phierror *= fadcphi1->Eval(cluster->getMaxAdc());
+      if(cluster->getEdge()>=5)
 	phierror *= 2;
-      if(clusterv4->getMaxAdc()>140)
+      if(cluster->getMaxAdc()>140)
 	phierror *=  0.95;
       else
-	phierror *= fadcphi1fine->Eval(clusterv4->getMaxAdc());
+	phierror *= fadcphi1fine->Eval(cluster->getMaxAdc());
     }
     phierror *= 0.975;	
-    if(clusterv4->getPhiSize()==1)
+    if(cluster->getPhiSize()==1)
       phierror *= 4;
-    if(clusterv4->getPhiSize()==4)
+    if(cluster->getPhiSize()==4)
       phierror *= 1.2;
-    if(clusterv4->getPhiSize()>=5)
+    if(cluster->getPhiSize()>=5)
       phierror *= 2;
     
     phierror *= f1fine->Eval(alpha);
@@ -583,21 +580,21 @@ double ClusterErrorPara::tpc_phi_error(int layer, double alpha, TrkrCluster* clu
     //phierror = 0.02043;
     
     phierror = f2->Eval(alpha);
-    if(clusterv4->getMaxAdc()){
-      if(clusterv4->getMaxAdc()>170)
+    if(cluster->getMaxAdc()){
+      if(cluster->getMaxAdc()>170)
 	phierror *=  0.6*0.95;
       else{
-	phierror *= fadcphi2->Eval(clusterv4->getMaxAdc());
-	if(clusterv4->getMaxAdc()<100)
-	  phierror *= fadcphi2fine1->Eval(clusterv4->getMaxAdc());
+	phierror *= fadcphi2->Eval(cluster->getMaxAdc());
+	if(cluster->getMaxAdc()<100)
+	  phierror *= fadcphi2fine1->Eval(cluster->getMaxAdc());
       }
     }
-    if(clusterv4->getEdge()>=5)
+    if(cluster->getEdge()>=5)
       phierror *= 2;
     
-    if(clusterv4->getPhiSize()==1)
+    if(cluster->getPhiSize()==1)
       phierror *= 10;
-    if(clusterv4->getPhiSize()>=6)
+    if(cluster->getPhiSize()>=6)
       phierror *= 10;
     
     
@@ -616,8 +613,6 @@ double ClusterErrorPara::tpc_phi_error(int layer, double alpha, TrkrCluster* clu
 }
 double ClusterErrorPara::tpc_z_error(int layer, double beta, TrkrCluster* cluster){
   double zerror   = 0.05;
-  TrkrClusterv4 *clusterv4 = dynamic_cast<TrkrClusterv4 *>(cluster);
-  assert( clusterv4 );
   
   int sector = -1;
   if(layer >=7 && layer < 23){
@@ -632,33 +627,33 @@ double ClusterErrorPara::tpc_z_error(int layer, double beta, TrkrCluster* cluste
 
   if(sector==0){
     zerror = fz0->Eval(beta);
-    if(clusterv4->getMaxAdc()>180)
+    if(cluster->getMaxAdc()>180)
       zerror *=  0.5;
     else
-      zerror *= fadcz0->Eval(clusterv4->getMaxAdc());
+      zerror *= fadcz0->Eval(cluster->getMaxAdc());
     zerror *= fz0fine->Eval(beta);
-    zerror *= fadcz0fine->Eval(clusterv4->getMaxAdc());
+    zerror *= fadcz0fine->Eval(cluster->getMaxAdc());
   }
 
   if(sector==1){
     zerror = fz1->Eval(beta);
-    if(clusterv4->getMaxAdc()>180)
+    if(cluster->getMaxAdc()>180)
       zerror *=  0.6;
     else
-      zerror *= fadcz1->Eval(clusterv4->getMaxAdc());
+      zerror *= fadcz1->Eval(cluster->getMaxAdc());
     zerror *= fz1fine->Eval(beta);
-    zerror *= fadcz1fine->Eval(clusterv4->getMaxAdc());
+    zerror *= fadcz1fine->Eval(cluster->getMaxAdc());
     zerror *= 0.98;
     //    zerror *= 1.05913
   }    
   if(sector==2){
     zerror = fz2->Eval(beta);
-    if(clusterv4->getMaxAdc()>170)
+    if(cluster->getMaxAdc()>170)
       zerror *=  0.6;
     else
-      zerror *= fadcz2->Eval(clusterv4->getMaxAdc());
+      zerror *= fadcz2->Eval(cluster->getMaxAdc());
     zerror *= fz2fine->Eval(beta);
-    zerror *= fadcz2fine->Eval(clusterv4->getMaxAdc());
+    zerror *= fadcz2fine->Eval(cluster->getMaxAdc());
     // zerrror *= 1.15575;
   }
   if(layer==7)  zerror *= (3.5*1.13);
@@ -848,8 +843,8 @@ ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrkrCluster* clust
       phierror = tpc_phi_error(layer,alpha,cluster);
       zerror = tpc_z_error(layer,beta,cluster);
       /*
-      std::cout << " phi: " << phierror << " | " << phierror2 << " l: " << layer << " a " << alpha << " maxadc: " << clusterv4->getMaxAdc() << std::endl;
-      std::cout << "   z: " << zerror  << " | " << zerror2 << " l: " << layer << " b " << beta << " maxadc: " << clusterv4->getMaxAdc() << " adc: " << clusterv4->getAdc() << std::endl;
+      std::cout << " phi: " << phierror << " | " << phierror2 << " l: " << layer << " a " << alpha << " maxadc: " << cluster->getMaxAdc() << std::endl;
+      std::cout << "   z: " << zerror  << " | " << zerror2 << " l: " << layer << " b " << beta << " maxadc: " << cluster->getMaxAdc() << " adc: " << cluster->getAdc() << std::endl;
       */
       break;
       

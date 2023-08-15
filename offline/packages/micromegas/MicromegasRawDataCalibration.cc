@@ -60,7 +60,8 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
     if( !packet )
     {
       // no data
-      std::cout << "MicromegasRawDataCalibration::process_event - event contains no TPOT data" << std::endl;
+      if( Verbosity() )
+      { std::cout << "MicromegasRawDataCalibration::process_event - event contains no TPOT data" << std::endl; }
       continue;
     }
     

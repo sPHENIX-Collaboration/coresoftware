@@ -73,7 +73,7 @@ class InttClusterizer : public SubsysReco
     if (_make_e_weights.find(layer) == _make_e_weights.end()) return false;
     return _make_e_weights.find(layer)->second;
   }
-  void set_cluster_version(int value) { m_cluster_version = value; }
+
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
   void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
 
@@ -105,7 +105,7 @@ class InttClusterizer : public SubsysReco
   std::map<int, bool> _make_e_weights;        // layer->energy_weighting_option
   bool do_hit_assoc = true;
   bool do_read_raw = false;
-  int m_cluster_version = 4;
+
 };
 
 #endif

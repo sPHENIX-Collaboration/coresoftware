@@ -36,8 +36,7 @@ class TpcClusterCleaner : public SubsysReco
 
   void set_new_rphi_error(double err){_new_rphi_error = err;}
   void set_new_z_error(double err){_new_z_error = err;}
-  void set_cluster_version(int value) { m_cluster_version = value; }
-
+ 
  private:
 
   void rotate_error(double erphi, double ez, double phi, double error[][3]);
@@ -50,7 +49,6 @@ class TpcClusterCleaner : public SubsysReco
 
   double _new_rphi_error = 0.05;
   double _new_z_error = 0.1;
-  int m_cluster_version = 4;
 };
 
 #endif // TPCCLUSTERCLEANER_H

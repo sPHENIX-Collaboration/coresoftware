@@ -444,32 +444,13 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto cluster_z = global_position.z();
 
     // cluster errors
-    double cluster_rphi_error = 0;
-    double cluster_z_error = 0;
-    if( m_cluster_version >= 4 )
-    {
-      const auto errors_square = m_cluster_error_parametrization.get_cluster_error(cluster, cluster_r, cluster_key, track->get_tpc_seed()->get_qOverR(), track->get_tpc_seed()->get_slope() ); 
-      cluster_rphi_error = std::sqrt( errors_square.first );
-      cluster_z_error = std::sqrt( errors_square.second );
-    } else {
-      cluster_rphi_error = cluster->getRPhiError();
-      cluster_z_error = cluster->getZError();
-    }
-
+    double cluster_rphi_error = cluster->getRPhiError();
+    double cluster_z_error = cluster->getZError();
+    
     /* 
      * as instructed by Christof, it should not be necessary to cut on small
      * cluster errors any more with clusters of version 4 or higher 
-     */ 
-    if( m_cluster_version < 4 )
-    {
-      /*
-       * remove clusters with too small errors since they are likely pathological
-       * and have a large contribution to the chisquare
-       * TODO: make these cuts configurable
-       */
-      if( cluster_rphi_error < 0.015 ) continue;
-      if( cluster_z_error < 0.05 ) continue;
-    }
+     */
     
     // find track state that is the closest to cluster
     /* this assumes that both clusters and states are sorted along r */

@@ -28,13 +28,12 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>                 // for PHWHERE
 
 #include <cassert>
 #include <iostream>
-#include <map>
 #include <stdexcept>
 #include <string>
-#include <utility>
 
 DeadHotMapLoader::DeadHotMapLoader(const std::string &detector)
   : SubsysReco("DeadHotMapLoader_" + detector)

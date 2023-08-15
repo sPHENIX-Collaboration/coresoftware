@@ -6,8 +6,6 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfov1.h>
-#include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfoDefs.h>
 #include <calobase/RawTowerDeadMap.h>
 #include <calobase/RawTowerGeomContainer.h>

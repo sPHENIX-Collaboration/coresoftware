@@ -2,8 +2,6 @@
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfov1.h>
-#include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfoDefs.h>
 #include <calobase/RawTowerDeadMap.h>
 #include <calobase/RawTowerGeomContainer.h>
@@ -13,21 +11,14 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNode.h>
-#include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
-#include <cassert>
-#include <cmath>
 #include <fstream>
 #include <iostream>
-#include <map>
+#include <set>                               // for _Rb_tree_const_iterator
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <utility>  // for pair
-#include <vector>
 
 TowerInfoDeadHotMask::TowerInfoDeadHotMask(const std::string &name)
   : SubsysReco(name)
@@ -58,12 +49,11 @@ int TowerInfoDeadHotMask::process_event(PHCompositeNode * /*topNode*/)
 
   for(itr = map.begin(); itr != map.end(); ++itr)
   {
-    std::cout << *itr << std::endl;
     int iphi = m_geometry->get_tower_geometry(*itr)->get_binphi();
     int ieta = m_geometry->get_tower_geometry(*itr)->get_bineta();
     unsigned int key = TowerInfoDefs::encode_emcal(ieta, iphi);
     m_calibTowerInfos->get_tower_at_key(key)->set_energy(0.);
-    m_calibTowerInfos->get_tower_at_key(key)->set_time(0);
+    m_calibTowerInfos->get_tower_at_key(key)->set_time(-10);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

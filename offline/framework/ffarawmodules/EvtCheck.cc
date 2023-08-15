@@ -44,18 +44,29 @@ int EvtCheck::process_event(PHCompositeNode *topNode)
   {
   pktmap->identify();
   }
-  PacketMap::PacketRange pktrange = pktmap->first_last_packet();
+  PacketMap::PacketListRange pktrange = pktmap->first_last_packet();
   for (auto iter = pktrange.first; iter != pktrange.second; iter++)
   {
     std::cout << "Packet " << iter->first << std::endl;
     for (auto bclkiter : iter->second.m_BeamClockSet)
     {
       std::cout << "bclks: 0x" << std::hex << bclkiter << std::dec << std::endl;
-    }
-    for (auto pktiter : iter->second.m_PacketVector)
-    {
-      std::cout << "Packet " <<  pktiter->getIdentifier() << " at "
-		<< std::hex << pktiter << std::dec << std::endl;
+      for (auto pktiter : iter->second.m_PacketVector)
+      {
+	std::cout << "Packet " <<  pktiter->getIdentifier() << " at "
+		  << std::hex << pktiter << std::dec << std::endl;
+	int num_hits = pktiter->iValue(0, "NR_HITS");
+        for (int j = 0; j < num_hits; j++)
+        {
+          int FEE = pktiter->iValue(j, "FEE");
+          uint64_t gtm_bco = pktiter->lValue(j, "BCO");
+	  if ((bclkiter & 0xFFFFFFFFFF) == gtm_bco)
+	  {
+	    std::cout << "FEE " << FEE << " bclk 0x" << std::hex
+		      << gtm_bco << std::dec << std::endl;
+	  }
+	}
+      }
     }
 
   }

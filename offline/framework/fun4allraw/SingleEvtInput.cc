@@ -23,7 +23,7 @@ SingleEvtInput::SingleEvtInput(const std::string &name, Fun4AllEvtInputPoolManag
 SingleEvtInput::~SingleEvtInput()
 {
   delete m_EventIterator;
-  for (auto iter : m_PacketStorageMap)
+  for (const auto &iter : m_PacketStorageMap)
   {
     for (auto pktiter : iter.second)
     {
@@ -101,7 +101,7 @@ void SingleEvtInput::FillPool(const unsigned int /*nbclks*/)
           bclk_set.insert(gtm_bco);
           if (gtm_bco < m_PreviousClock[FEE])
           {
-            m_Rollover[FEE] += 0x100000000;
+            m_Rollover[FEE] += 0x10000000000;
             gtm_bco += m_Rollover[FEE];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
           }
           m_PreviousClock[FEE] = gtm_bco;
@@ -206,7 +206,7 @@ void SingleEvtInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "FEE")
   {
-    for (auto bcliter : m_BeamClockFEE)
+    for (const auto &bcliter : m_BeamClockFEE)
     {
       std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
       for (auto feeiter : bcliter.second)
@@ -225,7 +225,7 @@ void SingleEvtInput::Print(const std::string &what) const
   }
   if (what == "ALL" || what == "STORAGE")
   {
-    for (auto bcliter : m_PacketStorageMap)
+    for (const auto &bcliter : m_PacketStorageMap)
     {
       std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
       for (auto feeiter : bcliter.second)
@@ -247,7 +247,7 @@ void SingleEvtInput::Print(const std::string &what) const
 void SingleEvtInput::CleanupUsedPackets(const uint64_t bclk)
 {
   std::vector<uint64_t> toclearbclk;
-  for (auto iter : m_PacketStorageMap)
+  for (const auto &iter : m_PacketStorageMap)
   {
     if (iter.first <= bclk)
     {

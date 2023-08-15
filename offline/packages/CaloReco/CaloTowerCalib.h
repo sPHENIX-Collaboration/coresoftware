@@ -3,34 +3,18 @@
 #ifndef CALOTOWERCALIB_H
 #define CALOTOWERCALIB_H
 
+#include <calobase/TowerInfoContainer.h>  // for TowerInfoContainer, TowerIn...
+
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>    // for PHIODataNode
-#include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>        // for PHObject
-#include <phool/getClass.h>
-#include <phool/phool.h>
-
-#include <Event/Event.h>
-#include <Event/EventTypes.h>
-#include <Event/packet.h>
-
 #include <cassert>
-#include <cmath>  // for NAN
 #include <iostream>
-#include <map>      // for _Rb_tree_const_iterator
-#include <utility>  // for pair
-
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfov1.h>
-
-#include <cdbobjects/CDBTTree.h>
-#include <ffamodules/CDBInterface.h>
-#include <phool/recoConsts.h>
 #include <string>
 
+class CDBInterface;
+class CDBTTree;
 class PHCompositeNode;
+class TowerInfoContainerv1;
 
 class CaloTowerCalib : public SubsysReco
 {
@@ -56,18 +40,18 @@ class CaloTowerCalib : public SubsysReco
     m_dettype = dettype;
     return;
   }
-  void setCalibName(std::string name) 
+  void setCalibName(const std::string &name)
   {
     m_calibName = name;
     m_overrideCalibName = 1;
     return;
-   } 
-  void setFieldName(std::string name) 
+  }
+  void setFieldName(const std::string &name)
   {
     m_fieldname = name;
     m_overrideFieldName = 1;
     return;
-   } 
+  }
 
  private:
   TowerInfoContainerv1 *_raw_towers = nullptr;

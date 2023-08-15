@@ -41,8 +41,7 @@ class TpcRawWriter : public SubsysReco
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size ;}
   void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeZ = size ;}
   void set_drift_velocity_scale(double value) { m_drift_velocity_scale = value; }
-  void set_cluster_version(int value) { cluster_version = value; }
-  
+ 
  private:
   
   TrkrHitSetContainer *m_hits = nullptr;
@@ -58,7 +57,7 @@ class TpcRawWriter : public SubsysReco
   double SectorFiducialCut = 0.5;
   unsigned short MaxClusterHalfSizePhi = 3;
   unsigned short MaxClusterHalfSizeZ = 5;
-  int cluster_version = 3;
+ 
   /// drift velocity scale factor
 
   double m_drift_velocity_scale = 1.0;
