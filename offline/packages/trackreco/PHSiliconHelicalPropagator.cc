@@ -107,8 +107,12 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
 
     std::vector<Acts::Vector3> clusterPositions;
     std::vector<TrkrDefs::cluskey> clusterKeys;
+    for (auto iter = tpcseed->begin_cluster_keys();
+         iter != tpcseed->end_cluster_keys(); ++iter)
+    {
+      clusterKeys.push_back(*iter);
+    }
     TrackFitUtils::getTrackletClusters(_tgeometry, _cluster_map, clusterPositions, clusterKeys);
-
     std::vector<float> fitparams = TrackFitUtils::fitClusters(clusterPositions, clusterKeys);
     //! There weren't enough clusters to fit
     if (fitparams.size() == 0)
@@ -176,6 +180,8 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
       _svtx_seeds->insert(partial_seed.get());
     }
   }
+  if (Verbosity() > 2)
+    std::cout << "svtx seed map size is " << _svtx_seeds->size() << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
