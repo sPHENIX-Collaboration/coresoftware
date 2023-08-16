@@ -4,6 +4,7 @@
 #include "BbcReturnCodes.h"
 #include "BbcVertexMapv1.h"
 #include "BbcVertexv2.h"
+#include "BbcOutV1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -171,9 +172,16 @@ int BbcReco::createNodes(PHCompositeNode *topNode)
   PHCompositeNode *bbcNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "BBC"));
   if (!bbcNode)
   {
-    m_bbcout = new BbcOutV1();
-    PHIODataNode<PHObject> *bbcNode = new PHIODataNode<PHObject>(m_bbcout, "BbcOut", "PHObject");
+    bbcNode = new PHCompositeNode("BBC");
     dstNode->addNode(bbcNode);
+  }
+
+  m_bbcout = findNode::getClass<BbcOut>(bbcNode, "BbcOut");
+  if (!m_bbcout)
+  {
+    m_bbcout = new BbcOutV1();
+    PHIODataNode<PHObject> *BbcOutNode = new PHIODataNode<PHObject>(m_bbcout, "BbcOut", "PHObject");
+    bbcNode->addNode(BbcOutNode);
   }
 
   m_bbcvertexmap = findNode::getClass<BbcVertexMap>(bbcNode, "BbcVertexMap");
