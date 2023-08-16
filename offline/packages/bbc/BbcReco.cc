@@ -171,7 +171,8 @@ int BbcReco::createNodes(PHCompositeNode *topNode)
   PHCompositeNode *bbcNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "BBC"));
   if (!bbcNode)
   {
-    bbcNode = new PHCompositeNode("BBC");
+    m_bbcout = new BbcOutV1();
+    PHIODataNode<PHObject> *bbcNode = new PHIODataNode<PHObject>(m_bbcout, "BbcOut", "PHObject");
     dstNode->addNode(bbcNode);
   }
 
@@ -185,6 +186,7 @@ int BbcReco::createNodes(PHCompositeNode *topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 int BbcReco::getNodes(PHCompositeNode *topNode)
 {
   // BbcPmtContainer
