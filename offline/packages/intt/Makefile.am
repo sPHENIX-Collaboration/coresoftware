@@ -34,6 +34,7 @@ lib_LTLIBRARIES = \
 
 pkginclude_HEADERS = \
   InttClusterizer.h \
+  InttCombinedRawDataConverter.h \
   InttCombinedRawDataDecoder.h \
   InttDeadMapHelper.h \
   InttFelixMap.h \
@@ -53,6 +54,7 @@ nobase_dist_pcm_DATA = \
 # sources for intt library
 libintt_la_SOURCES = \
   InttClusterizer.cc \
+  InttCombinedRawDataConverter.cc \
   InttCombinedRawDataDecoder.cc \
   InttDeadMapHelper.cc \
   InttFelixMap.cc \
