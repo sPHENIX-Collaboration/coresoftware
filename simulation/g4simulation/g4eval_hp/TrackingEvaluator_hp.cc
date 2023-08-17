@@ -792,36 +792,6 @@ void TrackingEvaluator_hp::evaluate_tracks()
       auto cluster_struct = create_cluster( cluster_key, cluster );
       add_cluster_size( cluster_struct, cluster_key, m_cluster_hit_map );
       add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, m_hitsetcontainer );
-
-      // assign cluster error from parametrisation
-      if( m_cluster_version == 4 )
-      {
-//         switch( TrkrDefs::getTrkrId(cluster_key) )
-//         {
-//           case TrkrDefs::tpcId:
-//           case TrkrDefs::micromegasId:
-//           {
-//             if( track->get_tpc_seed() )
-//             {
-//               const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, cluster_struct._r, cluster_key ); 
-//               cluster_struct._phi_error = std::sqrt( errors_square.first )/cluster_struct._r;
-//               cluster_struct._z_error = std::sqrt( errors_square.second );
-//             }
-//             break;
-//           }
-//         
-//           default:
-//           {
-//             if( track->get_silicon_seed() )
-//             {
-//               const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, cluster_struct._r, cluster_key ); 
-//               cluster_struct._phi_error = std::sqrt( errors_square.first )/cluster_struct._r;
-//               cluster_struct._z_error = std::sqrt( errors_square.second );
-//             }
-//             break;
-//           }        
-//         }
-      }
       
       // truth information
       const auto g4hits = find_g4hits( cluster_key );
@@ -1220,12 +1190,8 @@ TrackingEvaluator_hp::ClusterStruct TrackingEvaluator_hp::create_cluster( TrkrDe
   cluster_struct._z = global.z();
   cluster_struct._r = get_r( cluster_struct._x, cluster_struct._y );
   cluster_struct._phi = std::atan2( cluster_struct._y, cluster_struct._x );
-  
-  if( m_cluster_version != 4 )
-  {
-    cluster_struct._phi_error = cluster->getRPhiError()/cluster_struct._r;
-    cluster_struct._z_error = cluster->getZError();
-  }
+  cluster_struct._phi_error = cluster->getRPhiError()/cluster_struct._r;
+  cluster_struct._z_error = cluster->getZError();
   
   if(TrkrDefs::getTrkrId(key) == TrkrDefs::micromegasId)
   { cluster_struct._tileid = MicromegasDefs::getTileId(key); }

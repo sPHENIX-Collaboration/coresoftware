@@ -514,10 +514,6 @@ class TrackingEvaluator_hp : public SubsysReco
   static int get_nclusters_micromegas( int64_t mask )
   { return get_nclusters( mask, 55, 57 ); }
 
-  /// cluster version
-  /* Note: this could be retrived automatically using dynamic casts from TrkrCluster objects */
-  void set_cluster_version(int value) { m_cluster_version = value; }
-
   private:
 
   //! load nodes
@@ -661,9 +657,6 @@ class TrackingEvaluator_hp : public SubsysReco
   
   /// cluster error parametrisation
   ClusterErrorPara m_cluster_error_parametrization;
-  
-  /// cluster version
-  int m_cluster_version = 4;
   
 };
 
