@@ -459,8 +459,11 @@ void Fun4AllPrdfInputPoolManager::CreateBclkOffsets()
     int diffmax = INT_MAX;
     for (auto initer : iter.second)
     {
-      std::cout << iter.first->Name() << " initer.second " << initer.second << std::hex
-                << " initer.first: " << initer.first << std::dec << std::endl;
+      if (Verbosity() > 0)
+      {
+	std::cout << iter.first->Name() << " initer.second " << initer.second << std::hex
+		  << " initer.first: " << initer.first << std::dec << std::endl;
+      }
       if (initer.second > imax)
       {
         diffmax = initer.first;
@@ -471,8 +474,11 @@ void Fun4AllPrdfInputPoolManager::CreateBclkOffsets()
   }
   for (auto iter : m_SinglePrdfInputInfo)
   {
-    std::cout << "prdf mgr " << iter.first->Name() << " clkdiff: 0x" << std::hex
-              << iter.second.bclkoffset << std::dec << std::endl;
+    if (Verbosity() > 0)
+    {
+      std::cout << "prdf mgr " << iter.first->Name() << " clkdiff: 0x" << std::hex
+		<< iter.second.bclkoffset << std::dec << std::endl;
+    }
   }
 }
 
