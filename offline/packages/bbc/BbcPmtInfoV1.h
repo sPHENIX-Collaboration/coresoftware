@@ -18,18 +18,17 @@ class BbcPmtInfoV1 : public TowerInfo
   //! Clear is used by TClonesArray to reset the tower to initial state without calling destructor/constructor
   void Clear(Option_t* = "") override;
 
-  //! Identify object
+  //! Prints out exact identity of object
   void identify(std::ostream& os = std::cout) const override;
 
   //! isValid returns non zero if object contains vailid data
   virtual int isValid() const override { if ( bq == NAN ) return 0; return 1; }
 
-  /*
-  void set_time(short t) override;
-  short get_time() override { return _time; }
-  void set_energy(float energy) override { _energy = energy; }
-  float get_energy() override { return _energy; }
-  */
+  //short get_time() override { return get_t(); } // deprecated for MBD since MBD returns time in ns
+  Float_t get_energy() override { return get_q(); }
+
+  //void set_time(short t) override;  // too simple to be used for MBD
+  void set_energy(float energy) override { set_q(energy); }
 
   Short_t get_pmt() { return bpmt; }
   Float_t get_q()   { return bq; }
@@ -49,7 +48,7 @@ class BbcPmtInfoV1 : public TowerInfo
   }
 
  private:
-  Short_t bpmt {-1};
+  Short_t bpmt {-1};  /// 
   Float_t bq   {NAN};
   Float_t btt  {NAN};
   Float_t btq  {NAN};
