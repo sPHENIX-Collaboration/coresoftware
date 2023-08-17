@@ -69,6 +69,7 @@ int MicromegasRawDataEvaluation::Init(PHCompositeNode* /*topNode*/ )
 
   m_evaluation_file.reset( new TFile( m_evaluation_filename.c_str(), "RECREATE" ) );
   m_evaluation_tree = new TTree( "T", "T" );
+  m_evaluation_tree->SetAutoSave( 5000 );
   m_container = new Container;
   m_evaluation_tree->Branch( "Event", &m_container );
   return Fun4AllReturnCodes::EVENT_OK;
