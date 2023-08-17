@@ -1,9 +1,10 @@
-#include "BbcReconstruction.h"
+#include "BbcReco.h"
 #include "BbcDefs.h"
 #include "BbcPmtContainer.h"
 #include "BbcReturnCodes.h"
 #include "BbcVertexMapv1.h"
 #include "BbcVertexv2.h"
+#include "BbcOutV1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -20,7 +21,7 @@
 #include <TH1.h>
 
 //____________________________________________________________________________..
-BbcReconstruction::BbcReconstruction(const std::string &name)
+BbcReco::BbcReco(const std::string &name)
   : SubsysReco(name)
 {
   h_evt_bbct[0] = nullptr;
@@ -28,12 +29,12 @@ BbcReconstruction::BbcReconstruction(const std::string &name)
 }
 
 //____________________________________________________________________________..
-BbcReconstruction::~BbcReconstruction()
+BbcReco::~BbcReco()
 {
 }
 
 //____________________________________________________________________________..
-int BbcReconstruction::Init(PHCompositeNode *)
+int BbcReco::Init(PHCompositeNode *)
 {
   m_gaussian = std::make_unique<TF1>("gaussian", "gaus", 0, 20);
   m_gaussian->FixParameter(2, m_tres);
@@ -54,7 +55,7 @@ int BbcReconstruction::Init(PHCompositeNode *)
 }
 
 //____________________________________________________________________________..
-int BbcReconstruction::InitRun(PHCompositeNode *topNode)
+int BbcReco::InitRun(PHCompositeNode *topNode)
 {
   if (createNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
   {
@@ -66,7 +67,7 @@ int BbcReconstruction::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int BbcReconstruction::process_event(PHCompositeNode *)
+int BbcReco::process_event(PHCompositeNode *)
 {
 
   std::vector<float> hit_times[2];
@@ -153,12 +154,12 @@ int BbcReconstruction::process_event(PHCompositeNode *)
 }
 
 //____________________________________________________________________________..
-int BbcReconstruction::End(PHCompositeNode *)
+int BbcReco::End(PHCompositeNode *)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int BbcReconstruction::createNodes(PHCompositeNode *topNode)
+int BbcReco::createNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -175,6 +176,14 @@ int BbcReconstruction::createNodes(PHCompositeNode *topNode)
     dstNode->addNode(bbcNode);
   }
 
+  m_bbcout = findNode::getClass<BbcOut>(bbcNode, "BbcOut");
+  if (!m_bbcout)
+  {
+    m_bbcout = new BbcOutV1();
+    PHIODataNode<PHObject> *BbcOutNode = new PHIODataNode<PHObject>(m_bbcout, "BbcOut", "PHObject");
+    bbcNode->addNode(BbcOutNode);
+  }
+
   m_bbcvertexmap = findNode::getClass<BbcVertexMap>(bbcNode, "BbcVertexMap");
   if (!m_bbcvertexmap)
   {
@@ -185,7 +194,8 @@ int BbcReconstruction::createNodes(PHCompositeNode *topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-int BbcReconstruction::getNodes(PHCompositeNode *topNode)
+
+int BbcReco::getNodes(PHCompositeNode *topNode)
 {
   // BbcPmtContainer
   m_bbcpmts = findNode::getClass<BbcPmtContainer>(topNode, "BbcPmtContainer");
