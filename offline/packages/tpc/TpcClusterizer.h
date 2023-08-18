@@ -20,6 +20,10 @@ class TrkrClusterHitAssoc;
 class PHG4TpcCylinderGeom;
 class PHG4TpcCylinderGeomContainer;
 
+class TFile;
+class TList;
+class TTree;
+
 //typedef std::pair<int, int> iphiz;
 //typedef std::pair<double, iphiz> ihit;
 typedef std::pair<unsigned short, unsigned short> iphiz;
@@ -65,6 +69,9 @@ class TpcClusterizer : public SubsysReco
   };
   ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
   
+  void set_debug(bool debug) { m_debug = debug ;}
+  void set_debug_name(std::string debugName) { m_debugName = debugName ;}
+
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
   bool record_ClusHitsVerbose { false };
@@ -96,6 +103,16 @@ class TpcClusterizer : public SubsysReco
   // TPC shaping offset correction parameter
   // From Tony Frawley July 5, 2022
   double m_sampa_tbias = 39.6;  // ns  
+  
+  //Debugging variables
+  bool m_debug = false;
+  std::string m_debugName = "ClusterizerDebug.root";
+  TFile *m_debugFile = nullptr;
+  TTree *m_hitTree = nullptr;
+  TTree *m_clusTree = nullptr;
+  TList *m_hitList = new TList;
+  TList *m_clusList = new TList;
+
 };
 
 #endif

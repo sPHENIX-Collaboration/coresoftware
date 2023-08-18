@@ -40,6 +40,8 @@
 #include <TMatrixTUtils.h>  // for TMatrixTRow
 
 #include <TFile.h>  
+#include <TList.h>
+#include <TTree.h>
 
 #include <cmath>  // for sqrt, cos, sin
 #include <iostream>
@@ -105,6 +107,8 @@ namespace
     bool fillClusHitsVerbose = false;
     vec_dVerbose phivec_ClusHitsVerbose ; // only fill if fillClusHitsVerbose
     vec_dVerbose zvec_ClusHitsVerbose   ;// only fill if fillClusHitsVerbose
+    TTree *hitTree;
+    TTree *clusTree;
   };
   
   pthread_mutex_t mythreadlock;
@@ -961,6 +965,10 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	thread_pair.data.drift_velocity = m_tGeometry->get_drift_velocity();
 	thread_pair.data.pads_per_sector = 0;
 	thread_pair.data.phistep = 0;
+
+	thread_pair.data.hitTree = nullptr;
+	thread_pair.data.clusTree = nullptr;
+	
 	int rc;
 	rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *)&thread_pair.data);
 
@@ -976,6 +984,11 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	  const auto& data( thread_pair.data );
 	  const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
 	  
+	  if(m_debug){
+	    m_hitList->Add(data.hitTree);
+	    m_clusList->Add(data.clusTree);
+	  }
+
 	  // copy clusters to map
 	  for( uint32_t index = 0; index < data.cluster_vector.size(); ++index )
 	    {
@@ -1060,6 +1073,9 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.tbins     = NTBinsSide;
       thread_pair.data.toffset   = TOffset ;
 
+      thread_pair.data.hitTree = nullptr;
+      thread_pair.data.clusTree = nullptr;
+
       /*
       PHG4TpcCylinderGeom *testlayergeom = geom_container->GetLayerCellGeom(32);
       for( float iphi = 1408; iphi < 1408+ 128;iphi+=0.1){
@@ -1101,7 +1117,12 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	// get the hitsetkey from thread data
 	const auto& data( thread_pair.data );
 	const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
-	
+
+	if(m_debug){
+	  m_hitList->Add(data.hitTree);
+	  m_clusList->Add(data.clusTree);
+	}
+
 	// copy clusters to map
 	for( uint32_t index = 0; index < data.cluster_vector.size(); ++index )
 	  {
@@ -1144,6 +1165,11 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	const auto& data( thread_pair.data );
 	const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
 	
+	if(m_debug){
+	  m_hitList->Add(data.hitTree);
+	  m_clusList->Add(data.clusTree);
+	}
+
 	// copy clusters to map
 	for( uint32_t index = 0; index < data.cluster_vector.size(); ++index )
 	  {
@@ -1192,5 +1218,17 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
 int TpcClusterizer::End(PHCompositeNode */*topNode*/)
 {
+
+  m_debugFile = new TFile(m_debugName.c_str(),"RECREATE");
+  m_hitTree = TTree::MergeTrees(m_hitList);
+  m_hitTree->SetName("hitTree");
+  m_hitTree->Write();
+
+  m_clusTree = TTree::MergeTrees(m_clusList);
+  m_clusTree->SetName("clusTree");
+  m_clusTree->Write();
+
+  m_debugFile->Close();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
