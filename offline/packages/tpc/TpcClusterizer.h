@@ -70,7 +70,7 @@ class TpcClusterizer : public SubsysReco
   ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
   
   void set_debug(bool debug) { m_debug = debug ;}
-  void set_debug_name(std::string debugName) { m_debugName = debugName ;}
+  void set_debugName(std::string debugName) { m_debugName = debugName ;}
 
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
@@ -109,10 +109,10 @@ class TpcClusterizer : public SubsysReco
   int m_event = 0;
   std::string m_debugName = "ClusterizerDebug.root";
   TFile *m_debugFile = nullptr;
-  TTree *m_hitTree = nullptr;
-  TTree *m_clusTree = nullptr;
-  TList *m_hitList = new TList;
-  TList *m_clusList = new TList;
+  TList *m_hitList = nullptr;
+  TList *m_clusList = nullptr;
+  std::vector<TTree*> m_hitTrees;
+  std::vector<TTree*> m_clusTrees;
 
 };
 
