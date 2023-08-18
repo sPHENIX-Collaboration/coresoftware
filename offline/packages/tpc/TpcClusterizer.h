@@ -106,6 +106,7 @@ class TpcClusterizer : public SubsysReco
   
   //Debugging variables
   bool m_debug = false;
+  int m_event = 0;
   std::string m_debugName = "ClusterizerDebug.root";
   TFile *m_debugFile = nullptr;
   TTree *m_hitTree = nullptr;

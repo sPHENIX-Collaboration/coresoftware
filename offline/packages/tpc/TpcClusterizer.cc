@@ -109,6 +109,8 @@ namespace
     vec_dVerbose zvec_ClusHitsVerbose   ;// only fill if fillClusHitsVerbose
     TTree *hitTree;
     TTree *clusTree;
+    bool debug = false;
+    int event = 0;
   };
   
   pthread_mutex_t mythreadlock;
@@ -340,6 +342,8 @@ namespace
       // keep track of the hit locations in a given cluster
       std::map<int,unsigned int> m_phi {};
       std::map<int,unsigned int> m_z   {};
+
+      if(my_data.debug && !my_data.clusTree) my_data.clusTree = new TTree("clusTree","cluster tree");
       
       for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
 	double adc = iter->adc; 
@@ -401,6 +405,26 @@ namespace
       double clusz  =  my_data.m_tdriftmax * my_data.tGeometry->get_drift_velocity() - zdriftlength; 
       if(my_data.side == 0) 
 	clusz = -clusz;
+
+      if(my_data.debug){
+
+        int tmpEvent = my_data.event;
+        int tmpLayer = my_data.layer;
+
+	double clusX = clusx;
+        double clusY = clusy;
+
+        my_data.clusTree->SetBranchAddress("event",&tmpEvent);
+        my_data.clusTree->SetBranchAddress("X",&clusX);
+	my_data.clusTree->SetBranchAddress("Y",&clusY);
+        my_data.clusTree->SetBranchAddress("Z",&clusz);
+        my_data.clusTree->SetBranchAddress("ADC",&adc_sum);
+	my_data.clusTree->SetBranchAddress("layer",&tmpLayer);
+
+        my_data.clusTree->Fill();
+
+      }
+
 
       const double phi_cov = (iphi2_sum/adc_sum - square(clusiphi))* pow(my_data.layergeom->get_phistep(),2);
       const double t_cov = t2_sum/adc_sum - square(clust);
@@ -797,6 +821,8 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
     }
   }
 
+  m_event = 0;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -966,6 +992,9 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	thread_pair.data.pads_per_sector = 0;
 	thread_pair.data.phistep = 0;
 
+	thread_pair.data.event = m_event;
+	thread_pair.data.debug = m_debug;
+
 	thread_pair.data.hitTree = nullptr;
 	thread_pair.data.clusTree = nullptr;
 	
@@ -1072,6 +1101,9 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.phioffset = PhiOffset;
       thread_pair.data.tbins     = NTBinsSide;
       thread_pair.data.toffset   = TOffset ;
+
+      thread_pair.data.event = m_event;
+      thread_pair.data.debug = m_debug;
 
       thread_pair.data.hitTree = nullptr;
       thread_pair.data.clusTree = nullptr;
@@ -1213,6 +1245,9 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
     std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;
+
+  m_event++;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
