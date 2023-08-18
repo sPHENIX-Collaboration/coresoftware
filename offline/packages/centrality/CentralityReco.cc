@@ -24,8 +24,8 @@ CentralityReco::CentralityReco(const std::string& name, const std::string &hist_
   : SubsysReco(name)
   , _verbose(0)
   , _op_mode(0)
-  , _mbd_charge_threshold(100.)
-  , _zdc_energy_threshold(40.)
+  , _mbd_charge_threshold(.3)
+  , _zdc_energy_threshold(1.)
 {
   _zdc_gain_factors[0] = 1.37;
   _zdc_gain_factors[1] = 0.64;
@@ -35,6 +35,7 @@ CentralityReco::CentralityReco(const std::string& name, const std::string &hist_
   _zdc_gain_factors[5] = 0.29;
 
   _offset = 28.52;
+
   float mbd_vertex_cuts[5] = {50, 30, 20, 10, 5};
   for (int i = 0; i < 5; i++) _mbd_vertex_cuts[i] = mbd_vertex_cuts[i];
 
@@ -80,10 +81,12 @@ int CentralityReco::Init(PHCompositeNode*)
     tfile >> pmtnum >> tq_t0_offsets[ipmt] >> meanerr >> sigma >> sigmaerr;
 
   }
-
+  cd ce  outfile = new TFile(_tree_filename.c_str(), "RECREATE");
   // ttree
   ttree = new TTree("T","a perservering date tree");
 
+  ttree->Branch("z_vertex", &_z_vertex);
+  ttree->Branch("isMinBias", &_isMinBias);
   ttree->Branch("mbd_charge_sum", &_mbd_charge_sum);
   ttree->Branch("mbd_charge_sum_n", &_mbd_charge_sum_n);
   ttree->Branch("mbd_charge_sum_s", &_mbd_charge_sum_s);
@@ -94,15 +97,18 @@ int CentralityReco::Init(PHCompositeNode*)
   ttree->Branch("zdc_energy_sum_n", &_zdc_energy_sum_n);
   ttree->Branch("zdc_energy_sum_s", &_zdc_energy_sum_s);
 
-  ttree->Branch("mbd_charge", &m_mbd_charge);
-  ttree->Branch("mbd_time", &m_mbd_time);
-  ttree->Branch("mbd_side", &m_mbd_side);
-  ttree->Branch("mbd_channel", &m_mbd_channel);
+  ttree->Branch("mbd_charge", m_mbd_charge, "mbd_charge[128]/F");
+  ttree->Branch("mbd_time", m_mbd_time, "mbd_time[128]/F");
+  ttree->Branch("mbd_charge_raw", m_mbd_charge_raw, "mbd_charge_raw[128]/F");
+  ttree->Branch("mbd_time_raw", m_mbd_time_raw, "mbd_time_raw[128]/F");
 
-  ttree->Branch("zdc_energy_low", &m_zdc_energy_low);
-  ttree->Branch("zdc_energy_high", &m_zdc_energy_high);
-  ttree->Branch("zdc_sum_low", &m_zdc_sum_low);
-  ttree->Branch("zdc_sum_high", &m_zdc_sum_high);
+  ttree->Branch("mbd_side", m_mbd_side, "mbd_side[128]/I");
+  ttree->Branch("mbd_channel", m_mbd_channel, "mbd_channel[128]/I");
+
+  ttree->Branch("zdc_energy_low", m_zdc_energy_low, "zdc_energy_low[6]/F");
+  ttree->Branch("zdc_energy_high", m_zdc_energy_high, "zdc_energy_high[6]/F");
+  ttree->Branch("zdc_sum_low", m_zdc_sum_low, "zdc_sum_low[2]/F");
+  ttree->Branch("zdc_sum_high", m_zdc_sum_high, "zdc_sum_high[2]/F");
 
   // histograms
 
@@ -232,6 +238,7 @@ void CentralityReco::ResetVars()
   if (_verbose) std::cout << __FILE__ << " :: "<<__FUNCTION__ << std::endl;
   _z_vertex = 0;
   _quality = 0;
+  _isMinBias = 0;
   _tubes_hit[0] = 0;
   _tubes_hit[1] = 0;
   _mbd_charge_sum = 0. ;
@@ -245,16 +252,25 @@ void CentralityReco::ResetVars()
       _mbd_ring_charge_sum_n[i] = 0.;
       _mbd_ring_charge_sum_s[i] = 0.;
     }
-  m_mbd_charge.clear();
-  m_mbd_time.clear();
-  m_mbd_side.clear();
-  m_mbd_channel.clear();
-
-  m_zdc_energy_low.clear();
-  m_zdc_sum_low.clear();
-  m_zdc_energy_high.clear();
-  m_zdc_sum_high.clear();
-
+  for (int i = 0; i<128; i++)
+    {
+      m_mbd_charge[i] = 0.;
+      m_mbd_time[i] = 0.;
+      m_mbd_charge_raw[i] = 0.;
+      m_mbd_time_raw[i] = 0.;
+      m_mbd_side[i] = 0;
+      m_mbd_channel[i] = 0;
+    }
+  for (int i = 0; i < 6;i++)
+    {
+      m_zdc_energy_low[i] = 0;
+      m_zdc_energy_high[i] = 0;
+    }
+  for (int i = 0; i < 2;i++)
+    {
+      m_zdc_sum_low[i] = 0;
+      m_zdc_sum_high[i] = 0;
+    }
   return;
 }
 
@@ -274,20 +290,20 @@ int CentralityReco::FillVars()
       _tmp_tower = _towers_mbd->get_tower_at_channel(i);
       _key = TowerInfoDefs::encode_mbd(i);
       _type = TowerInfoDefs::get_mbd_type(_key);
+      _side = TowerInfoDefs::get_mbd_side(_key);
+      _channel = TowerInfoDefs::get_mbd_channel(_key);
+      _energy = _tmp_tower->get_energy();
       if (_type)
 	{
-	  _energy = _tmp_tower->get_energy();
-	  m_mbd_charge.push_back(_energy);
+	  m_mbd_charge_raw[_channel + _side*64] =  _energy;
+	  m_mbd_charge[_channel + _side*64] =  gaincorr[_channel + _side*64]*_energy;
 	}
       else
 	{
-	  _energy = _tmp_tower->get_energy();
-	  _side = TowerInfoDefs::get_mbd_side(_key);
-	  _channel = TowerInfoDefs::get_mbd_channel(_key);
-	  m_mbd_time.push_back(_energy);
-	  m_mbd_side.push_back(_side);
-	  m_mbd_channel.push_back(_channel);
-	  
+	  m_mbd_time_raw[_channel + _side*64] = _energy;
+	  m_mbd_time[_channel + _side*64] = (25. - _energy*(9.0/5000.) - tq_t0_offsets[_channel + _side*64]);
+	  m_mbd_side[_channel + _side*64] = _side;
+	  m_mbd_channel[_channel + _side*64] = _channel;
 	}
     }
 
@@ -297,47 +313,63 @@ int CentralityReco::FillVars()
     {
 
       _tmp_tower = _towers_zdc->get_tower_at_channel(i);
-
       _energy = _tmp_tower->get_energy();
 
       if (!(i%2))
 	{
 	  if ((i/2)%4 == 3)
 	    {
-	      m_zdc_sum_low.push_back(_energy);
+	      m_zdc_sum_low[i/8] = _energy;
 	    }
 	  else
 	    {
-	      m_zdc_energy_low.push_back(_energy);
+	      m_zdc_energy_low[i/2] =  _zdc_gain_factors[i/2]*_energy;
 	    }
 	}
       else {
 	if ((i/2)%4 == 3)
 	  {
-	    m_zdc_sum_high.push_back(_energy);
+	    m_zdc_sum_high[i/8] = _energy;
 	  }
 	else
 	  {
-	    m_zdc_energy_high.push_back(_energy);
+	    m_zdc_energy_high[i/2] =  _zdc_gain_factors[i/2]*_energy;
 	  }
       }
     }
+
   if (_verbose)
     {
       std::cout << "--------- ZDC data: ----------"<<std::endl;
       std::cout << "South:"<<std::endl;
       for (int i = 0; i < 3; i++)
 	{
-	  std::cout << i << " : " << m_zdc_energy_low.at(i) << " ("<<m_zdc_energy_high.at(i)<<") "<<std::endl;
+	  std::cout << i << " : " << m_zdc_energy_low[i] << " ("<<m_zdc_energy_high[i]<<") "<<std::endl;
 	}
-	  std::cout << "Sum : " << m_zdc_sum_low.at(0) << " ("<<m_zdc_sum_high.at(0)<<") "<<std::endl;
+	  std::cout << "Sum : " << m_zdc_sum_low[0] << " ("<<m_zdc_sum_high[0]<<") "<<std::endl;
       std::cout << "North:"<<std::endl;
       for (int i = 0; i < 3; i++)
 	{
-	  std::cout << i << " : " << m_zdc_energy_low.at(i+3) << " ("<<m_zdc_energy_high.at(i+3)<<") "<<std::endl;
+	  std::cout << i << " : " << m_zdc_energy_low[i+3] << " ("<<m_zdc_energy_high[i+3]<<") "<<std::endl;
 	}
-	  std::cout << "Sum : " << m_zdc_sum_low.at(1) << " ("<<m_zdc_sum_high.at(1)<<") "<<std::endl;
+	  std::cout << "Sum : " << m_zdc_sum_low[1] << " ("<<m_zdc_sum_high[1]<<") "<<std::endl;
     }
+  if (_verbose)
+    {
+      std::cout << "--------- MBD data: ----------"<<std::endl;
+      std::cout << "South:"<<std::endl;
+      for (int i = 0; i < 64; i++)
+	{
+	  std::cout << m_mbd_channel[i] << " : " << m_mbd_charge[i] << "  "<<m_mbd_time[i]<<") "<<std::endl;
+	}
+      std::cout << "North:"<<std::endl;
+      for (int i = 64; i < 128; i++)
+	{
+	  std::cout << m_mbd_channel[i] << " : " << m_mbd_charge[i] << "  "<<m_mbd_time[i]<<") "<<std::endl;
+	}
+
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 
 }
@@ -384,9 +416,9 @@ void CentralityReco::FillHistograms()
   h_zdc_mbd_corr_ns_w_zdc_cut->Fill(_mbd_charge_sum, _zdc_energy_sum);
   h_zdc_mbd_corr_n_w_zdc_cut->Fill(_mbd_charge_sum_n, _zdc_energy_sum_n);
   h_zdc_mbd_corr_s_w_zdc_cut->Fill(_mbd_charge_sum_s, _zdc_energy_sum_s);
-
+  if (_verbose) std::cout << "tubes hit in N/S : "<<_tubes_hit[1] <<" / " <<_tubes_hit[0]<<std::endl;
   if (_tubes_hit[0] < 2 || _tubes_hit[1] < 2) return;
-
+  
   h_mbd_charge_ns_w_zdc_cut_w_mbd_cut->Fill(_mbd_charge_sum);
   h_mbd_charge_n_w_zdc_cut_w_mbd_cut->Fill(_mbd_charge_sum_n);
   h_mbd_charge_s_w_zdc_cut_w_mbd_cut->Fill(_mbd_charge_sum_s);
@@ -455,31 +487,34 @@ int CentralityReco::GetMBDVertexAndCharge()
   for (unsigned int i = 0; i < size/2; i++)
     {
 
-      side = m_mbd_side.at(i);
-      if (m_mbd_charge.at(i) < _mbd_charge_threshold) continue;
+      side = m_mbd_side[i];
+      if (m_mbd_charge[i] < _mbd_charge_threshold) continue;
 
-      tdc[side] += (25. - m_mbd_time.at(i)*(9.0/5000.) - tq_t0_offsets[m_mbd_channel.at(i) + side*64]);
+      tdc[side] += m_mbd_time[i];//(25. - m_mbd_time[i]*(9.0/5000.) - tq_t0_offsets[m_mbd_channel[i] + side*64]);
       
       _tubes_hit[side]++;
 					     
     }
 
+  if ((_tubes_hit[0] >= 2) && (_tubes_hit[1] >= 2)) _isMinBias = 1;
+  else _isMinBias = 0;
+
   _z_vertex = _offset + 15*(tdc[1]/_tubes_hit[1] - tdc[0]/_tubes_hit[0]);
-  
+
   if (_verbose) std::cout << "Z-vertex = "<<_z_vertex << std::endl;
   for (unsigned int i = 0; i < size/2; i++)
     {
-      side = m_mbd_side.at(i);
+      side = m_mbd_side[i];
       
     if (side)
 	{
-	  _mbd_charge_sum_n += gaincorr[i]*m_mbd_charge.at(i);
-	  _mbd_ring_charge_sum_n[mbd_ring_index[i%64]] += gaincorr[i]*m_mbd_charge.at(i);
+	  _mbd_charge_sum_n += m_mbd_charge[i];
+	  _mbd_ring_charge_sum_n[mbd_ring_index[i%64]] += m_mbd_charge[i];
 	}
       else
 	{
-	  _mbd_charge_sum_s += gaincorr[i]*m_mbd_charge.at(i);
-	  _mbd_ring_charge_sum_n[mbd_ring_index[i%64]] += gaincorr[i]*m_mbd_charge.at(i);
+	  _mbd_charge_sum_s += m_mbd_charge[i];
+	  _mbd_ring_charge_sum_s[mbd_ring_index[i%64]] += m_mbd_charge[i];
 	}
     }
 
@@ -496,13 +531,13 @@ int CentralityReco::CheckZDC()
     {
       if (i/3) 
 	{
-	  _zdc_energy_sum_n += _zdc_gain_factors[i]*m_zdc_energy_low.at(i);
-      	  _zdc_energy_sum +=  _zdc_gain_factors[i]*m_zdc_energy_low.at(i);
+	  _zdc_energy_sum_n += m_zdc_energy_low[i];
+      	  _zdc_energy_sum += m_zdc_energy_low[i];
 	}
       else 
 	{
-	  _zdc_energy_sum_s +=  _zdc_gain_factors[i]*m_zdc_energy_low.at(i);
-	  _zdc_energy_sum +=  _zdc_gain_factors[i]*m_zdc_energy_low.at(i);
+	  _zdc_energy_sum_s +=  m_zdc_energy_low[i];
+	  _zdc_energy_sum +=  m_zdc_energy_low[i];
 
 	}
     }
@@ -550,6 +585,7 @@ int CentralityReco::process_event(PHCompositeNode* topNode)
   FillHistograms();
   
   ttree->Fill();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -624,8 +660,8 @@ void CentralityReco::CreateNodes(PHCompositeNode* topNode)
 
 int CentralityReco::End(PHCompositeNode* /* topNode*/)
 {
-  outfile = new TFile(_tree_filename.c_str(), "RECREATE");
-  ttree->Write();
+
+  outfile->Write();
   outfile->Close();
 
   PrintCentiles();

@@ -84,6 +84,7 @@ class CentralityReco : public SubsysReco
   std::vector<float> _centiles;
 
   float _z_vertex;
+  int _isMinBias;
   int _quality;
   bool _zdc_check;
   int _tubes_hit[2] {};
@@ -112,15 +113,18 @@ class CentralityReco : public SubsysReco
   float _zdc_energy_sum_n;
   float _zdc_energy_sum_s;
 
-  std::vector<float> m_mbd_charge;
-  std::vector<float> m_mbd_time;
-  std::vector<int> m_mbd_side;
-  std::vector<int> m_mbd_channel;
+  float m_mbd_charge[128];
+  float m_mbd_time[128];
+  float m_mbd_charge_raw[128];
+  float m_mbd_time_raw[128];
 
-  std::vector<float> m_zdc_energy_low;
-  std::vector<float> m_zdc_energy_high;
-  std::vector<float> m_zdc_sum_low;
-  std::vector<float> m_zdc_sum_high;
+  int m_mbd_side[128];
+  int m_mbd_channel[128];
+
+  float m_zdc_energy_low[6];
+  float m_zdc_energy_high[6];
+  float m_zdc_sum_low[2];
+  float m_zdc_sum_high[2];
 
 
   //Histograms
