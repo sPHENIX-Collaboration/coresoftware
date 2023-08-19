@@ -92,6 +92,8 @@ nobase_dist_pcm_DATA = \
   BbcPmtHitV1_Dict_rdict.pcm \
   BbcPmtContainer_Dict_rdict.pcm \
   BbcPmtContainerV1_Dict_rdict.pcm \
+  BbcPmtInfoV1_Dict_rdict.pcm \
+  BbcPmtInfoContainerV1_Dict_rdict.pcm \
   BbcVertex_Dict_rdict.pcm \
   BbcVertexv1_Dict_rdict.pcm \
   BbcVertexv2_Dict_rdict.pcm \
