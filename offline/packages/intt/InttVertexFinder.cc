@@ -59,6 +59,7 @@ InttVertexFinder::~InttVertexFinder()
 int InttVertexFinder::Init(PHCompositeNode* /*topNode*/)
 {
 
+  delete h_zvtxseed_;
   h_zvtxseed_ = new TH1F("h_zvtxseed", "Zvertex Seed histogram", 200, -50, 50);
 
   return Fun4AllReturnCodes::EVENT_OK;
