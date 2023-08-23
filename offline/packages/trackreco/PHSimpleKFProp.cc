@@ -451,7 +451,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   double track_pz = NAN;
   if(_use_const_field)
     {
-      float pt = track->get_qOverR() * (0.3/100) * _const_field;
+      float pt = fabs(1./track->get_qOverR()) * (0.3/100) * _const_field;
       float phi = track->get_phi(_cluster_map, _tgeometry);
       track_px = pt * std::cos(phi);
       track_py = pt * std::sin(phi);
