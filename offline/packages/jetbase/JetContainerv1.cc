@@ -1,7 +1,7 @@
 #include "JetContainerv1.h"
+#include "Jetv2.h"
 #include <phool/phool.h>  // for PHWHERE
 #include <string>
-#include "Jetv2.h"
 
 JetContainerv1::JetContainerv1() {
     m_clones = new TClonesArray("Jetv2", 50);

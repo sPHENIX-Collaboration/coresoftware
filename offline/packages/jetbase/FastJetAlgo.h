@@ -5,13 +5,14 @@
 #include "JetAlgo.h"
 #include "FastJetOptions.h"
 
+#include "fastjet/PseudoJet.hh"
+#include "fastjet/JetDefinition.hh"
+
 #include <cmath>     // for NAN
 #include <climits>     // for NAN
 #include <iostream>  // for cout, ostream
 #include <vector>    // for vector
                      
-#include "fastjet/PseudoJet.hh"
-#include "fastjet/JetDefinition.hh"
 
 namespace fastjet {
   class PseudoJet;

@@ -6,8 +6,9 @@
 #include "Jet.h"
 
 #include <iostream>  // for cout, ostream
-#include <vector>
 #include <calobase/RawTowerDefs.h>
+
+#include <vector>
 // forward declarations
 class PHCompositeNode;
 class TowerJetInput : public JetInput

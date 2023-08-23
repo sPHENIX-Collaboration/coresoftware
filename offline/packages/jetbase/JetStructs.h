@@ -3,8 +3,8 @@
 
 // A few convenience structures for either iterating over data, or referencing between classes
 
-#include <TClonesArray.h>
 #include "Jet.h"
+#include <TClonesArray.h>
 
 class Jetv2;
 

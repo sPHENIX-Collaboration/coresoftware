@@ -3,17 +3,17 @@
 #include "Jet.h"
 #include "Jetv1.h"
 #include "Jetv2.h"
-#include "JetContainer.h"
-
-#include <TClonesArray.h>
-#include <assert.h>
-#include <phool/phool.h>
-
 // fastjet includes
 #include "fastjet/AreaDefinition.hh"
 #include "fastjet/ClusterSequenceArea.hh"
 #include "fastjet/tools/BackgroundEstimatorBase.hh"
 #include "fastjet/tools/JetMedianBackgroundEstimator.hh"
+#include "JetContainer.h"
+
+#include <TClonesArray.h>
+#include <phool/phool.h>
+
+// fastjet includes
 #include <fastjet/ClusterSequence.hh>
 #include <fastjet/FunctionOfPseudoJet.hh>  // for FunctionOfPse...
 #include <fastjet/JetDefinition.hh>
@@ -33,6 +33,7 @@
 #include <string>   // for operator<<
 #include <utility>  // for pair
 #include <vector>
+#include <assert.h>
 
 FastJetAlgo::FastJetAlgo(const FastJetOptions& options) :
   m_opt { options }

@@ -2,7 +2,6 @@
 #define JETBASE_TRACKJETINPUT_H
 
 #include "JetInput.h"
-
 #include "Jet.h"
 
 #include <iostream>  // for cout, ostream

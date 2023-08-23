@@ -5,6 +5,8 @@
 
 #include <phool/PHObject.h>
 
+#include <TClonesArray.h>
+
 #include <cmath>
 #include <cfloat>
 #include <cstddef>  // for size_t
@@ -12,7 +14,6 @@
 #include <map>
 #include <vector>
 #include <functional>
-#include <TClonesArray.h>
 #include <set>
 #include <limits.h>
 
