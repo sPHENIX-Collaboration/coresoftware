@@ -175,7 +175,7 @@ class Jet : public PHObject
   virtual ITER_comp_vec  comp_end()   ;
   virtual ITER_comp_vec  comp_end(Jet::SRC); 
   virtual TYPE_comp_vec& get_comp_vec() ;
-  virtual void sort_comp_ids() { mv2("sort_comp_ids()"); return; }
+  /* virtual void sort_comp_ids() { mv2("sort_comp_ids()"); return; } */
   //-- deprecated with Jetv2 ---------------------------------------------------------
   virtual bool empty_comp() const  { mv1("empty_comp()"); return true; }
   virtual size_t size_comp() const { mv1("size_comp()"); return 0; }

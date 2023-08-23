@@ -29,7 +29,6 @@ Jetv2::Jetv2(unsigned int n_prop)
 Jetv2::Jetv2(const Jetv2& rhs) 
   : _id               { rhs._id        }
   , _e                { rhs._e         }
-  , _is_sorted        { rhs._is_sorted }
 {
   std::copy ( rhs._mom, rhs._mom+3, _mom);
   std::copy ( rhs._comp_ids.begin(),   rhs._comp_ids.end(),   _comp_ids.begin() );
@@ -61,7 +60,6 @@ void Jetv2::print_comp(std::ostream& os, bool single_line) {
 
 std::vector<Jet::SRC> Jetv2::comp_src_vec() {
   std::vector<Jet::SRC> vec{};
-  if (!_is_sorted) sort_comp_ids();
   auto iter = comp_begin();
   auto iter_end = comp_end();
   if (iter == iter_end) return vec;
@@ -75,7 +73,6 @@ std::vector<Jet::SRC> Jetv2::comp_src_vec() {
 
 std::map<Jet::SRC,size_t> Jetv2::comp_src_sizemap() {
   std::map<Jet::SRC,size_t> sizemap{};
-  if (!_is_sorted) sort_comp_ids();
   auto iter = comp_begin();
   auto iter_end = comp_end();
   if (iter == iter_end) return sizemap;
@@ -95,7 +92,6 @@ void Jetv2::Reset()
   _e = NAN;
   _comp_ids.clear();
   _properties.clear();
-  _is_sorted = false;
 }
 
 int Jetv2::isValid() const
@@ -160,31 +156,27 @@ float Jetv2::get_mass2() const
 
 size_t Jetv2::num_comp(Jet::SRC iSRC) {
   if (iSRC==Jet::SRC::VOID) return (comp_end()-comp_begin());
-  if (!_is_sorted) { sort_comp_ids(); }
   return (comp_end(iSRC)-comp_begin(iSRC));
 }
 
 void Jetv2::insert_comp (SRC iSRC, unsigned int compid)
 { 
-  _is_sorted = false; 
   _comp_ids.push_back(std::make_pair(iSRC, compid)); 
 }
 
-void Jetv2::sort_comp_ids() {
-    std::sort(_comp_ids.begin(), _comp_ids.end(),
+void Jetv2::CompareSRC::sort_comp_ids(Jetv2* jet) {
+    std::sort(jet->_comp_ids.begin(), jet->_comp_ids.end(),
         [](const std::pair<Jet::SRC,unsigned int> &a, 
            const std::pair<Jet::SRC,unsigned int> &b)
         { return a.first < b.first; }
     );
-    _is_sorted = true;
 }
+
 Jetv2::ITER_comp_vec Jetv2::comp_begin(Jet::SRC iSRC) {
-  if (!_is_sorted) sort_comp_ids();
   return std::lower_bound(_comp_ids.begin(), _comp_ids.end(), iSRC, CompareSRC());
 }
 
 Jetv2::ITER_comp_vec Jetv2::comp_end(Jet::SRC iSRC) {
-  if (!_is_sorted) sort_comp_ids();
   return std::upper_bound(_comp_ids.begin(), _comp_ids.end(), iSRC, CompareSRC());
 }
 

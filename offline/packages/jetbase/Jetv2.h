@@ -86,7 +86,6 @@ class Jetv2 : public Jet
   ITER_comp_vec  comp_end()  override  { return _comp_ids.end();   } // new in v2
   ITER_comp_vec  comp_end(Jet::SRC) override;                        // new in v2
   TYPE_comp_vec& get_comp_vec()  override{ return _comp_ids; }; // new in v2
-  void sort_comp_ids() override;
 
   inline void Clear(Option_t* =nullptr) override { Reset(); }
 
@@ -100,25 +99,25 @@ class Jetv2 : public Jet
   /// jet energy
   float _e = NAN;
 
-  /// keep track if sorted
-  mutable bool _is_sorted { false }; // if the _comp_ids (component ids) are sorted
-
   /// source id -> component id
   /* typ_comp_ids _comp_ids; */
   std::vector<std::pair<Jet::SRC, unsigned int>> _comp_ids;
 
   // compare the source components for sorting
+ public:
   struct CompareSRC {
-      bool operator()(const std::pair<Jet::SRC,int> &lhs, const unsigned int rhs) {
-          return lhs.first < rhs;
-      }
-      bool operator()(const unsigned int lhs, const std::pair<Jet::SRC,int> &rhs) {
-          return lhs < rhs.first;
-      }
-     bool operator()(const std::pair<Jet::SRC,int> &lhs, const std::pair<Jet::SRC,int> &rhs) {
-          return lhs.first < rhs.first;
-      }
+    bool operator()(const std::pair<Jet::SRC,int> &lhs, const unsigned int rhs) {
+      return lhs.first < rhs;
+    }
+    bool operator()(const unsigned int lhs, const std::pair<Jet::SRC,int> &rhs) {
+      return lhs < rhs.first;
+    }
+    bool operator()(const std::pair<Jet::SRC,int> &lhs, const std::pair<Jet::SRC,int> &rhs) {
+      return lhs.first < rhs.first;
+    }
+    static void sort_comp_ids(Jetv2* jet);
   };
+ private:
 
   std::vector<float> _properties {};
 
