@@ -39,8 +39,6 @@ pkginclude_HEADERS = \
   Jetv2.h \
   JetContainer.h \
   JetContainerv1.h \
-  SubjetIndices.h \
-  SubjetIndicesv1.h \
   JetMap.h \
   JetMapv1.h \
   JetInput.h \
@@ -55,8 +53,6 @@ ROOTDICTS = \
   Jetv2_Dict.cc \
   JetContainer_Dict.cc \
   JetContainerv1_Dict.cc \
-  SubjetIndices_Dict.cc \
-  SubjetIndicesv1_Dict.cc \
   JetMap_Dict.cc \
   JetMapv1_Dict.cc
 
@@ -68,8 +64,6 @@ nobase_dist_pcm_DATA = \
   Jetv2_Dict_rdict.pcm \
   JetContainer_Dict_rdict.pcm \
   JetContainerv1_Dict_rdict.pcm \
-  SubjetIndices_Dict_rdict.pcm \
-  SubjetIndicesv1_Dict_rdict.pcm \
   JetMap_Dict_rdict.pcm \
   JetMapv1_Dict_rdict.pcm
 
@@ -80,8 +74,6 @@ libjetbase_io_la_SOURCES = \
   Jetv2.cc \
   JetContainer.cc \
   JetContainerv1.cc \
-  SubjetIndices.cc \
-  SubjetIndicesv1.cc \
   JetMap.cc \
   JetMapv1.cc
 
