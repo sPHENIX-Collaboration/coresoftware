@@ -139,7 +139,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 	}
       else
 	{
-	  float pt = tpcseed->get_qOverR() * (0.3/100) * std::stod(m_fieldMap);
+	  float pt = fabs(1./tpcseed->get_qOverR()) * (0.3/100) * std::stod(m_fieldMap);
 	  float phi = tpcseed->get_phi(m_clusters, m_tGeometry);
 	  svtxtrack->set_px(pt * std::cos(phi));
 	  svtxtrack->set_py( pt * std::sin(phi));
