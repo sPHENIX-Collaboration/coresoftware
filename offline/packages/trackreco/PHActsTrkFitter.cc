@@ -386,9 +386,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       Acts::BoundSymMatrix cov = setDefaultCovariance();
  
       int charge = tpcseed->get_charge();
-      if(m_fieldMap.find("3d") != std::string::npos)
-	{ charge *= -1; }
-
+  
       /// Acts requires a wrapped vector, so we need to replace the
       /// std::vector contents with a wrapper vector to get the memory
       /// access correct
