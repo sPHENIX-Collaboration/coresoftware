@@ -154,6 +154,7 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
 			for(auto pktiter : iter->second.m_PacketVector)
 			{
 				num_hits = pktiter->iValue(0, "NR_HITS");
+				if(Verbosity() > 20)std::cout << "num_hits: " << num_hits << std::endl;
 				for(int j = 0; j < num_hits; j++)
 				{
 					uint64_t gtm_bco = pktiter->lValue(j, "BCO");

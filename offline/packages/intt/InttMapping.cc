@@ -21,7 +21,9 @@ struct Intt::RawData_s Intt::RawFromPacket(int const _i, int const _n, Packet* _
 
 	if(!_p)return s;
 
-	s.felix_server = _i;
+	//s.felix_server = _i;
+	std::map<int, int>::const_iterator itr = Packet_Id.find(_i);
+	s.felix_server = itr != Packet_Id.end() ? itr->second : -1;
 	s.felix_channel = _p->iValue(_n, "FEE");
 	s.chip = (_p->iValue(_n, "CHIP_ID") + 25) % 26;
 	s.channel = _p->iValue(_n, "CHANNEL_ID");
