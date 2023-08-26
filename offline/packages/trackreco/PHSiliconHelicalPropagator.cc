@@ -8,6 +8,15 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
+namespace 
+{
+  template <typename T> int sgn(const T& x)
+  { 
+    if(x > 0) return 1;
+    else return -1;
+  }
+}
+
 PHSiliconHelicalPropagator::PHSiliconHelicalPropagator(std::string name)
   : SubsysReco(name)
 {
@@ -126,13 +135,24 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
 
     if (nSiClusters > 0)
     {
+      
       std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
       std::map<short, int> crossing_frequency;
 
+      Acts::Vector3 layer0global;
+
       for (auto clusterkey : si_clusterKeys)
       {
-        si_seed->insert_cluster_key(clusterkey);
-        if (TrkrDefs::getTrkrId(clusterkey) == TrkrDefs::inttId)
+	if(TrkrDefs::getLayer(clusterkey) == 0)
+	  {
+	    auto cluster = _cluster_map->findCluster(clusterkey);
+	    layer0global = _tgeometry->getGlobalPosition(clusterkey, cluster);
+	  }
+	if(TrkrDefs::getTrkrId(clusterkey) == TrkrDefs::mvtxId)
+	  {
+	    si_seed->insert_cluster_key(clusterkey);
+	  }
+        else if (TrkrDefs::getTrkrId(clusterkey) == TrkrDefs::inttId)
         {
           auto hit_crossings = _cluster_crossing_map->getCrossings(clusterkey);
           for (auto iter = hit_crossings.first; iter != hit_crossings.second; ++iter)
@@ -143,7 +163,16 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
             else
               crossing_frequency[crossing]++;
           }
-        }
+
+	  //! Check that the INTT clusters are in the same quadrant
+	  auto cluster = _cluster_map->findCluster(clusterkey);
+	  auto global = _tgeometry->getGlobalPosition(clusterkey, cluster);
+	  if(sgn(global.x()) == sgn(layer0global.x()) && sgn(global.y()) == sgn(layer0global.y()))
+	    {
+	      si_seed->insert_cluster_key(clusterkey);
+	    }
+	}
+
       }
 
       if (crossing_frequency.size() > 0)
