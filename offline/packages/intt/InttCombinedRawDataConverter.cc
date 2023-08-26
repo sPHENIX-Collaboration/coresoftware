@@ -74,26 +74,36 @@ int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 	tree->Branch("n_evt", &n_evt);
 	tree->Branch("num_hits", &num_hits);
 
-	branches =
+	branches_i =
 	{
-		{"flx_svr",	new std::vector<Long64_t>()},
-		{"flx_chn",	new std::vector<Long64_t>()},
-		{"lyr",		new std::vector<Long64_t>()},
-		{"ldr",		new std::vector<Long64_t>()},
-		{"arm",		new std::vector<Long64_t>()},
-		{"chp",		new std::vector<Long64_t>()},
-		{"chn",		new std::vector<Long64_t>()},
+		{"flx_svr",	new std::vector<Int_t>()},
+		{"flx_chn",	new std::vector<Int_t>()},
+		{"lyr",		new std::vector<Int_t>()},
+		{"ldr",		new std::vector<Int_t>()},
+		{"arm",		new std::vector<Int_t>()},
+		{"chp",		new std::vector<Int_t>()},
+		{"chn",		new std::vector<Int_t>()},
 
-		{"gtm_bco",	new std::vector<Long64_t>()},
-		{"flx_bco",	new std::vector<Long64_t>()},
-		{"adc",		new std::vector<Long64_t>()},
-		{"amp",		new std::vector<Long64_t>()},
+		{"flx_bco",	new std::vector<Int_t>()},
+		{"adc",		new std::vector<Int_t>()},
+		{"amp",		new std::vector<Int_t>()},
 	};
 
-	for(Branches_t::iterator itr = branches.begin(); itr != branches.end(); ++itr)
+	branches_l =
 	{
-		tree->Branch(itr->first.c_str(), &(itr->second));
-	}
+		{"gtm_bco",	new std::vector<Long64_t>()},
+	};
+
+	branches_d =
+	{
+		{"x_s",		new std::vector<Double_t>()},
+		{"y_s",		new std::vector<Double_t>()},
+		{"z_s",		new std::vector<Double_t>()},
+	};
+
+	for(Branches_i_t::iterator itr = branches_i.begin(); itr != branches_i.end(); ++itr)tree->Branch(itr->first.c_str(), &(itr->second));
+	for(Branches_l_t::iterator itr = branches_l.begin(); itr != branches_l.end(); ++itr)tree->Branch(itr->first.c_str(), &(itr->second));
+	for(Branches_d_t::iterator itr = branches_d.begin(); itr != branches_d.end(); ++itr)tree->Branch(itr->first.c_str(), &(itr->second));
 
 	if(Verbosity() > 20)std::cout << "int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)" << std::endl;
 	if(Verbosity() > 20)std::cout << "\tDone";
@@ -104,7 +114,9 @@ int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 int InttCombinedRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)
 {
 	n_evt = 0;
-	for(Branches_t::iterator itr = branches.begin(); itr != branches.end(); ++itr)itr->second->clear();
+	for(Branches_i_t::iterator itr = branches_i.begin(); itr != branches_i.end(); ++itr)itr->second->clear();
+	for(Branches_l_t::iterator itr = branches_l.begin(); itr != branches_l.end(); ++itr)itr->second->clear();
+	for(Branches_d_t::iterator itr = branches_d.begin(); itr != branches_d.end(); ++itr)itr->second->clear();
 
 	if(Verbosity() > 20)std::cout << "int InttCombinedRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)" << std::endl;
 	if(Verbosity() > 20)std::cout << "\tDone";
@@ -130,7 +142,9 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
 		exit(1);
 	}
 
-	for(Branches_t::iterator itr = branches.begin(); itr != branches.end(); ++itr)itr->second->clear();
+	for(Branches_i_t::iterator itr = branches_i.begin(); itr != branches_i.end(); ++itr)itr->second->clear();
+	for(Branches_l_t::iterator itr = branches_l.begin(); itr != branches_l.end(); ++itr)itr->second->clear();
+	for(Branches_d_t::iterator itr = branches_d.begin(); itr != branches_d.end(); ++itr)itr->second->clear();
 
 	PacketMap::PacketListRange pktrange = pktmap->first_last_packet();
 	for(auto iter = pktrange.first; iter != pktrange.second; iter++)
@@ -139,7 +153,7 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
 		{
 			for(auto pktiter : iter->second.m_PacketVector)
 			{
-				int num_hits = pktiter->iValue(0, "NR_HITS");
+				num_hits = pktiter->iValue(0, "NR_HITS");
 				for(int j = 0; j < num_hits; j++)
 				{
 					uint64_t gtm_bco = pktiter->lValue(j, "BCO");
@@ -150,26 +164,32 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
 
 					raw = Intt::RawFromPacket(iter->first, j, pktiter);
 
-					branches["flx_svr"]->push_back(raw.felix_channel);
-					branches["flx_chn"]->push_back(raw.felix_channel);
+					branches_i["flx_svr"]->push_back(raw.felix_server);
+					branches_i["flx_chn"]->push_back(raw.felix_channel);
 
 					onl = Intt::ToOnline(raw);
-					branches["lyr"]->push_back(onl.lyr);
-					branches["ldr"]->push_back(onl.ldr);
-					branches["arm"]->push_back(onl.arm);
-					branches["chp"]->push_back(onl.chp);
-					branches["chn"]->push_back(onl.chn);
+					branches_i["lyr"]->push_back(onl.lyr);
+					branches_i["ldr"]->push_back(onl.ldr);
+					branches_i["arm"]->push_back(onl.arm);
+					branches_i["chp"]->push_back(onl.chp);
+					branches_i["chn"]->push_back(onl.chn);
 
-					branches["gtm_bco"]->push_back(gtm_bco);
-					branches["flx_bco"]->push_back(pktiter->iValue(j, "FPHX_BCO"));
-					branches["adc"]->push_back(pktiter->iValue(j, "ADC"));
-					branches["amp"]->push_back(pktiter->iValue(j, "AMPLITUDE"));
+					branches_i["flx_bco"]->push_back(pktiter->iValue(j, "FPHX_BCO"));
+					branches_i["adc"]->push_back(pktiter->iValue(j, "ADC"));
+					branches_i["amp"]->push_back(pktiter->iValue(j, "AMPLITUDE"));
+
+					branches_l["gtm_bco"]->push_back(gtm_bco);
+
+					Eigen::Vector4d pos = Intt::GetPos(onl);
+					branches_d["x_s"]->push_back(pos(0));
+					branches_d["y_s"]->push_back(pos(1));
+					branches_d["z_s"]->push_back(pos(2));
 				}
 			}
 		}
 	}
 
-	num_hits = branches.begin()->second->size();
+	num_hits = branches_l.begin()->second->size();
 	tree->Fill();
 	++n_evt;
 

@@ -3,6 +3,11 @@
 
 #include <map>
 
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+#include <Eigen/SVD>
+
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/packet.h>
@@ -49,6 +54,18 @@ namespace Intt
 	//trivial
 	struct RawData_s ToRawData(struct Offline_s const&);
 	struct Offline_s ToOffline(struct RawData_s const&);
+
+	Eigen::Affine3d GetTransform(struct Offline_s const&);
+	Eigen::Affine3d GetTransform(struct Online_s const&);
+	Eigen::Affine3d GetTransform(struct RawData_s const&);
+
+	Eigen::Vector4d GetLocalPos(struct Offline_s const&);
+	Eigen::Vector4d GetLocalPos(struct Online_s const&);
+	Eigen::Vector4d GetLocalPos(struct RawData_s const&);
+
+	Eigen::Vector4d GetPos(struct Offline_s const&);
+	Eigen::Vector4d GetPos(struct Online_s const&);
+	Eigen::Vector4d GetPos(struct RawData_s const&);
 };
 
 bool operator==(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
