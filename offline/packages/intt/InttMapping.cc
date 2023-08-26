@@ -160,6 +160,9 @@ Eigen::Vector4d Intt::GetLocalPos(struct Intt::Offline_s const& _s)
 	u(0) = (2.0 * _s.strip_x + 1.0) / 512.0 - 0.5;
 	u(0) *= 19.968;
 
+	//Offset by ladder thickness (to be implemented)
+	u(1) = 0.0;
+
 	return u;
 }
 
