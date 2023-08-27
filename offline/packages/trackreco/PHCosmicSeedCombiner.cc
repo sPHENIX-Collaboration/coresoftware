@@ -35,9 +35,6 @@ PHCosmicSeedCombiner::~PHCosmicSeedCombiner()
 //____________________________________________________________________________..
 int PHCosmicSeedCombiner::Init(PHCompositeNode*)
 {
-  file = new TFile("somefile.root","recreate");
-  h_deta = new TH1F("h_deta",";#Delta#eta",1000,-1,1);
-  h_dphi = new TH1F("h_dphi",";#Delta#phi",1000,-1,1);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -46,8 +43,10 @@ int PHCosmicSeedCombiner::InitRun(PHCompositeNode *topNode)
 {
     int ret = getNodes(topNode);
     if(ret != Fun4AllReturnCodes::EVENT_OK)
-      return ret;
-    
+      {
+	return ret;
+      }
+
     return createNodes(topNode);
            
 }
@@ -73,7 +72,7 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
       const float phi1 = tpcseed1->get_phi(m_clusterContainer, m_tGeometry);
       const float eta1 = tpcseed1->get_eta();
 
-      for (auto trackiter2 = m_seedMap->begin(); trackiter2 != m_seedMap->end(); ++trackiter2)
+      for (auto trackiter2 = trackiter; trackiter2 != m_seedMap->end(); ++trackiter2)
 	{
 	  if(trackiter == trackiter2) continue;
 	  TrackSeed *track2 = *trackiter2;
@@ -96,14 +95,22 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
 	  const float eta2 = tpcseed2->get_eta();
 	  
 	  //! phis are the same, so we subtract to check
-	  const float dphi = phi1-phi2;
+	  float dphi = phi1-phi2;
+	  if(dphi > M_PI)
+	    {
+	      dphi -= 2. * M_PI;
+	    }
+	  else if(dphi < -1*M_PI)
+	    {
+	      dphi += 2. * M_PI;
+	    }
+	  //! If they are back to back, dphi=pi
+	  dphi = fabs(dphi) - M_PI;
+	  
 	  //! etas are opposite each other, so we add them
 	  const float deta = eta1+eta2;
 
-	  h_dphi->Fill(dphi);
-	  h_deta->Fill(deta);
-
-	  if(fabs(dphi)<0.02 && fabs(deta)<0.015)
+	  if(fabs(dphi)<0.02 && fabs(deta)<0.01)
 	    {
 	      auto seed = std::make_unique<CosmicTrackSeed_v1>();
 	      seed->set_silicon_seed_index(siid1);
@@ -114,12 +121,8 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
 	      m_cosmicContainer->insert(seed.get());
 
 	    }
-
 	}
-
     }
-  
-  
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -127,10 +130,7 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
 //____________________________________________________________________________..
 int PHCosmicSeedCombiner::End(PHCompositeNode*)
 {
-  file->cd();
-  h_dphi->Write();
-  h_deta->Write();
-  file->Close();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHCosmicSeedCombiner::createNodes(PHCompositeNode* topNode)

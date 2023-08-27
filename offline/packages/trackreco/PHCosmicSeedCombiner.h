@@ -6,8 +6,6 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
-#include <TH1.h>
-#include <TFile.h>
 
 class ActsGeometry;
 class TrkrClusterContainer;
@@ -39,9 +37,6 @@ class PHCosmicSeedCombiner : public SubsysReco
   TrackSeedContainer *m_siliconSeeds = nullptr;
   TrackSeedContainer *m_cosmicContainer = nullptr;
   
-  TFile *file = nullptr;
-  TH1 *h_deta = nullptr;
-  TH1 *h_dphi = nullptr;
 };
 
 #endif // PHCOSMICSEEDCOMBINER_H
