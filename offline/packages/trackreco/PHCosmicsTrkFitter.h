@@ -8,19 +8,19 @@
 #include <fun4all/SubsysReco.h>
 
 #include <trackbase/ActsGeometry.h>
-#include <trackbase/ClusterErrorPara.h>
-#include <trackbase/ActsTrackFittingAlgorithm.h>
-#include <trackbase/alignmentTransformationContainer.h>
 #include <trackbase/ActsSourceLink.h>
+#include <trackbase/ActsTrackFittingAlgorithm.h>
+#include <trackbase/ClusterErrorPara.h>
+#include <trackbase/alignmentTransformationContainer.h>
 
-#include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterMover.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
+#include <tpc/TpcDistortionCorrection.h>
 
-#include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
-#include <Acts/Utilities/Logger.hpp>
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
+#include <Acts/Utilities/BinnedArray.hpp>
+#include <Acts/Utilities/Logger.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 
@@ -41,7 +41,7 @@ class SvtxAlignmentStateMap;
 using SourceLink = ActsSourceLink;
 using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
 using Trajectory = ActsExamples::Trajectories;
-using Measurement = Acts::Measurement<Acts::BoundIndices,2>;
+using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
 using SourceLinkVec = std::vector<SourceLink>;
 
@@ -55,51 +55,58 @@ class PHCosmicsTrkFitter : public SubsysReco
   ~PHCosmicsTrkFitter() override = default;
 
   /// End, write and close files
-  int End(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode* topNode) override;
 
   /// Get and create nodes
   int InitRun(PHCompositeNode* topNode) override;
 
   /// Process each event by calling the fitter
-  int process_event(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode* topNode) override;
 
-  int ResetEvent(PHCompositeNode *topNode) override;
+  int ResetEvent(PHCompositeNode* topNode) override;
 
   void setUpdateSvtxTrackStates(bool fillSvtxTrackStates)
-       { m_fillSvtxTrackStates = fillSvtxTrackStates; }   
+  {
+    m_fillSvtxTrackStates = fillSvtxTrackStates;
+  }
 
   void useActsEvaluator(bool actsEvaluator)
-  { m_actsEvaluator = actsEvaluator; }
-  
-  void setEvaluatorName(std::string name) {m_evalname = name; }
+  {
+    m_actsEvaluator = actsEvaluator;
+  }
+
+  void setEvaluatorName(std::string name) { m_evalname = name; }
   void setFieldMap(std::string& fieldMap)
-  { m_fieldMap = fieldMap; }
+  {
+    m_fieldMap = fieldMap;
+  }
 
   void setAbsPdgHypothesis(unsigned int pHypothesis)
-  { m_pHypothesis = pHypothesis; }
+  {
+    m_pHypothesis = pHypothesis;
+  }
 
   void commissioning(bool com) { m_commissioning = com; }
 
   void useOutlierFinder(bool outlier) { m_useOutlierFinder = outlier; }
 
-  void SetIteration(int iter){_n_iteration = iter;}
-  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
-  void set_seed_track_map_name(const std::string &map_name) { _seed_track_map_name = map_name; }
+  void SetIteration(int iter) { _n_iteration = iter; }
+  void set_track_map_name(const std::string& map_name) { _track_map_name = map_name; }
+  void set_seed_track_map_name(const std::string& map_name) { _seed_track_map_name = map_name; }
 
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
 
  private:
-
   /// Get all the nodes
-  int getNodes(PHCompositeNode *topNode);
+  int getNodes(PHCompositeNode* topNode);
 
   /// Create new nodes
-  int createNodes(PHCompositeNode *topNode);
+  int createNodes(PHCompositeNode* topNode);
 
   void loopTracks(Acts::Logging::Level logLevel);
-  SourceLinkVec getSourceLinks(TrackSeed *track, 
-			       ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-			       short int crossing);
+  SourceLinkVec getSourceLinks(TrackSeed* track,
+                               ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
+                               short int crossing);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(Trajectory traj, SvtxTrack* track);
@@ -107,15 +114,15 @@ class PHCosmicsTrkFitter : public SubsysReco
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
   inline ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
-           const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
-	   const ActsTrackFittingAlgorithm::TrackParameters& seed,
-	   const ActsTrackFittingAlgorithm::GeneralFitterOptions& 
-	     kfOptions,
-	   std::shared_ptr<Acts::VectorMultiTrajectory>& mtj);
+      const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks,
+      const ActsTrackFittingAlgorithm::TrackParameters& seed,
+      const ActsTrackFittingAlgorithm::GeneralFitterOptions&
+          kfOptions,
+      std::shared_ptr<Acts::VectorMultiTrajectory>& mtj);
 
-  bool getTrackFitResult(const FitResult& fitOutput, TrackSeed* seed1, 
-			 SvtxTrack* track,
-			 const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
+  bool getTrackFitResult(const FitResult& fitOutput, TrackSeed* seed1,
+                         SvtxTrack* track,
+                         const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
   Acts::BoundSymMatrix setDefaultCovariance() const;
   void printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const;
@@ -124,20 +131,20 @@ class PHCosmicsTrkFitter : public SubsysReco
   int m_event = 0;
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
-  ActsGeometry *m_tGeometry = nullptr;
+  ActsGeometry* m_tGeometry = nullptr;
 
   /// Configuration containing the fitting function instance
   ActsTrackFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
-  alignmentTransformationContainer *m_alignmentTransformationMap = nullptr;  // added for testing purposes
-  SvtxTrackMap *m_trackMap = nullptr;
-  SvtxTrackMap *m_directedTrackMap = nullptr;
-  TrkrClusterContainer *m_clusterContainer = nullptr;
-  TrackSeedContainer *m_seedMap = nullptr;
-  TrackSeedContainer *m_tpcSeeds = nullptr;
-  TrackSeedContainer *m_siliconSeeds = nullptr;
-  
+  alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
+  SvtxTrackMap* m_trackMap = nullptr;
+  SvtxTrackMap* m_directedTrackMap = nullptr;
+  TrkrClusterContainer* m_clusterContainer = nullptr;
+  TrackSeedContainer* m_seedMap = nullptr;
+  TrackSeedContainer* m_tpcSeeds = nullptr;
+  TrackSeedContainer* m_siliconSeeds = nullptr;
+
   /// Number of acts fits that returned an error
   int m_nBadFits = 0;
 
@@ -155,15 +162,15 @@ class PHCosmicsTrkFitter : public SubsysReco
   std::unique_ptr<ActsEvaluator> m_evaluator = nullptr;
   std::string m_evalname = "ActsEvaluator.root";
 
-  std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
-  SvtxTrackMap *m_seedTracks = nullptr;
+  std::map<const unsigned int, Trajectory>* m_trajectories = nullptr;
+  SvtxTrackMap* m_seedTracks = nullptr;
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
   TpcDistortionCorrectionContainer* _dcc_static{nullptr};
   TpcDistortionCorrectionContainer* _dcc_average{nullptr};
   TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
 
- /// tpc distortion correction utility class
+  /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;
 
   // cluster mover utility class
@@ -171,7 +178,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   ClusterErrorPara _ClusErrPara;
 
   std::set<int> m_ignoreLayer;
- 
+
   std::string m_fieldMap = "";
 
   int _n_iteration = 0;
@@ -183,7 +190,6 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
   ActsAlignmentStates m_alignStates;
- 
 };
 
 #endif

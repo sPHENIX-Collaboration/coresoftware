@@ -15,7 +15,6 @@ class PHCompositeNode;
 class PHCosmicSeedCombiner : public SubsysReco
 {
  public:
-
   PHCosmicSeedCombiner(const std::string &name = "PHCosmicSeedCombiner");
 
   ~PHCosmicSeedCombiner() override;
@@ -26,7 +25,6 @@ class PHCosmicSeedCombiner : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
  private:
-  
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 
@@ -36,7 +34,6 @@ class PHCosmicSeedCombiner : public SubsysReco
   TrackSeedContainer *m_tpcSeeds = nullptr;
   TrackSeedContainer *m_siliconSeeds = nullptr;
   TrackSeedContainer *m_cosmicContainer = nullptr;
-  
 };
 
-#endif // PHCOSMICSEEDCOMBINER_H
+#endif  // PHCOSMICSEEDCOMBINER_H
