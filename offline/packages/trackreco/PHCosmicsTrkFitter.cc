@@ -444,12 +444,11 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
   // loop over all clusters
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
   int i = 0;
-  std::cout << "checking sls" << std::endl;
+
   for (auto clusIter = track->begin_cluster_keys();
        clusIter != track->end_cluster_keys();
        ++clusIter)
   {
-    std::cout << "processing key " << i << std::endl;
     i++;
     auto key = *clusIter;
     auto cluster = m_clusterContainer->findCluster(key);
@@ -469,7 +468,6 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
     auto surf = m_tGeometry->maps().getSurface(key, cluster);
     if (!surf)
     {
-      std::cout << " no surf...?" << std::endl;
       continue;
     }
 
@@ -482,7 +480,6 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
 
     if (trkrid == TrkrDefs::tpcId)
     {
-      std::cout << "tpc cluster" << std::endl;
       // make all corrections to global position of TPC cluster
       float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
       global[2] = z;
