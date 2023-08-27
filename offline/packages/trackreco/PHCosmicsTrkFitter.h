@@ -113,7 +113,7 @@ class PHCosmicsTrkFitter : public SubsysReco
 	     kfOptions,
 	   std::shared_ptr<Acts::VectorMultiTrajectory>& mtj);
 
-  bool getTrackFitResult(const FitResult& fitOutput, TrackSeed* seed, 
+  bool getTrackFitResult(const FitResult& fitOutput, TrackSeed* seed1, 
 			 SvtxTrack* track,
 			 const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 

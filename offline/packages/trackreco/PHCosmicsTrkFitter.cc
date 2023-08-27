@@ -634,9 +634,7 @@ bool PHCosmicsTrkFitter::getTrackFitResult(const FitResult &fitOutput, TrackSeed
  
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
-  PHTimer updateTrackTimer("UpdateTrackTimer");
-  updateTrackTimer.stop();
-  updateTrackTimer.restart();
+ 
   if(fitOutput.fittedParameters)
     { updateSvtxTrack(trajectory, track); }
   
@@ -647,14 +645,7 @@ bool PHCosmicsTrkFitter::getTrackFitResult(const FitResult &fitOutput, TrackSeed
 	  m_alignStates.fillAlignmentStateMap(trajectory, track, measurements);
 	}
     }
-    
-  updateTrackTimer.stop();
-  auto updateTime = updateTrackTimer.get_accumulated_time();
-  
-  if(Verbosity() > 1)
-    std::cout << "PHCosmicsTrkFitter update SvtxTrack time "
-	      << updateTime << std::endl;
-
+   
   if(m_actsEvaluator)
     {
       m_evaluator->evaluateTrackFit(trajectory, track,
