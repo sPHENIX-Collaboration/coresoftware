@@ -8,6 +8,7 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/Calibrator.h>
+#include <trackbase/TrackFitUtils.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
@@ -41,7 +42,6 @@
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
-
 
 #include <TDatabasePDG.h>
 
@@ -219,15 +219,21 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       
       unsigned int tpcid = track->get_tpc_seed_index();
       unsigned int siid = track->get_silicon_seed_index();
+      unsigned int tpcid2 = track->get_tpc_seed_index2();
+      unsigned int siid2 = track->get_silicon_seed_index2();
       
-      if(Verbosity() >1)
-	{ std::cout << "tpc and si id " << tpcid << ", " << siid << std::endl; }
-
       // get the crossing number
       auto siseed = m_siliconSeeds->get(siid);
       short crossing = 0;
 
       auto tpcseed = m_tpcSeeds->get(tpcid);
+      auto siseed2 = m_siliconSeeds->get(siid2);
+      auto tpcseed2 = m_tpcSeeds->get(tpcid2);
+      if(Verbosity() > 1)
+	{
+	  std::cout << "TPC ids " << tpcid << ", " << tpcid2 << std::endl;
+	  std::cout << "Silicon ids " << siid << ", " << siid2 << std::endl;
+	}
 
       /// Need to also check that the tpc seed wasn't removed by the ghost finder
       if(!tpcseed)
@@ -246,22 +252,49 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       SourceLinkVec sourceLinks;
       if(siseed) sourceLinks = getSourceLinks(siseed, measurements, crossing);
       const auto tpcSourceLinks = getSourceLinks(tpcseed, measurements, crossing);
+      
+      SourceLinkVec tpcSourceLinks2;
+      if(tpcseed2) tpcSourceLinks2 = getSourceLinks(tpcseed2, measurements, crossing);
+      SourceLinkVec siseed2sls;
+      if(siseed2) siseed2sls = getSourceLinks(siseed2, measurements, crossing);
+	
       sourceLinks.insert( sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end() );
+      sourceLinks.insert( sourceLinks.end(), tpcSourceLinks2.begin(), tpcSourceLinks2.end() );
+      sourceLinks.insert( sourceLinks.end() , siseed2sls.begin(), siseed2sls.end() );
 
-      // position comes from the silicon seed, unless there is no silicon seed
-      Acts::Vector3 position(0,0,0);
-      if(siseed)
-        {
-          position(0) = siseed->get_x() * Acts::UnitConstants::cm;
-          position(1) = siseed->get_y() * Acts::UnitConstants::cm;
-          position(2) = siseed->get_z() * Acts::UnitConstants::cm;
-        }
-      else
-        {
-          position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
-          position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
-          position(2) = tpcseed->get_z() * Acts::UnitConstants::cm;
-        }
+      
+      float perigeeYLoc = -100 * Acts::UnitConstants::cm;
+
+      float tpcR = fabs(1./tpcseed->get_qOverR());
+      float tpcx = tpcseed->get_X0();
+      float tpcy = tpcseed->get_Y0();
+      //! propagate the track out to somewhere beyond the HCal, so that
+      //! we fit it from outside sphenix all the way through the ~100 layers
+      //! The OHCal has an outer radius of 2.7m
+      auto circleout = TrackFitUtils::circle_circle_intersection(fabs(perigeeYLoc)/10., tpcR, tpcx, tpcy);
+      float trackx = std::get<0>(circleout);
+      float tracky = std::get<1>(circleout);
+      float trackx2 = std::get<2>(circleout);
+      float tracky2 = std::get<3>(circleout);
+      if(tracky2 < tracky)
+	{
+	  trackx = trackx2;
+	  tracky = tracky2;
+	}
+
+      //! the z value is given by the intersection of the r-z straight line fit
+      //! with a flat line at radius = perigeeYLoc
+      float trackz = -1* std::sqrt(square(trackx) + square(tracky)) *
+	tpcseed->get_slope() + tpcseed->get_Z0();
+      float otrackz = -1*std::sqrt(square(trackx) + square(tracky)) * (-1)*tpcseed->get_slope() + tpcseed->get_Z0();
+      /// this is necessarily wrong, because it assumes we know the track
+      /// originated from -z. Kludge for now to test if we can fit
+      if(otrackz < trackz)
+	trackz = otrackz;
+    
+      Acts::Vector3 position(trackx* Acts::UnitConstants::cm, 
+			     tracky* Acts::UnitConstants::cm,
+			     trackz* Acts::UnitConstants::cm);
 
       if( !is_valid( position ) ) continue;
 
@@ -285,16 +318,21 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  pz = pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta());
 	}
 
-      //! The track reconstruction nominally assumes the track comes from the
-      //! beamline. We flip the 
+      //! The momentum was determined at the beamline. To determine it properly
+      //! we would have to propagate the track from the beamline to R=300cm
+      //! when we have no covariance, which will be already subject to 
+      //! uncertainty. Since cosmics are in general pretty straight, we just 
+      //! swap the sign of px, py, pz
       Acts::Vector3 momentum(px, py, pz);
+      if(momentum.y() < 0) momentum *= -1;
       if( !is_valid( momentum ) ) continue;
- 
+
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-		      Acts::Vector3(0,0,0));
+		      Acts::Vector3(0,perigeeYLoc,0));
       auto actsFourPos = Acts::Vector4(position(0), position(1),
 				       position(2),
 				       10 * Acts::UnitConstants::ns);
+
       Acts::BoundSymMatrix cov = setDefaultCovariance();
  
       int charge = tpcseed->get_charge();
@@ -865,7 +903,7 @@ int PHCosmicsTrkFitter::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode,"SvtxTrackSeedContainer");
+  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode,"CosmicSeedContainer");
   if(!m_seedMap)
     {
       std::cout << "No Svtx seed map on node tree. Exiting."
