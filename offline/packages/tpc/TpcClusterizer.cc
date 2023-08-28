@@ -343,7 +343,26 @@ namespace
       std::map<int,unsigned int> m_phi {};
       std::map<int,unsigned int> m_z   {};
 
-      if(my_data.debug && !my_data.clusTree) my_data.clusTree = new TTree("clusTree","cluster tree");
+      int tmpEvent = my_data.event;
+      int tmpLayer = my_data.layer;
+      
+      double clusX = 0.0;
+      double clusY = 0.0;
+      double clusZ = 0.0;
+      double clusADC = 0.0;
+   
+
+      if(my_data.debug && !my_data.clusTree){
+	my_data.clusTree = new TTree(Form("clusTree_layer%02d_event%d",my_data.layer, my_data.event),"cluster tree");
+
+
+        my_data.clusTree->Branch("event",&tmpEvent);
+        my_data.clusTree->Branch("X",&clusX);
+	my_data.clusTree->Branch("Y",&clusY);
+        my_data.clusTree->Branch("Z",&clusZ);
+        my_data.clusTree->Branch("ADC",&clusADC);
+	my_data.clusTree->Branch("layer",&tmpLayer);
+      }
       
       for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
 	double adc = iter->adc; 
@@ -408,18 +427,10 @@ namespace
 
       if(my_data.debug){
 
-        int tmpEvent = my_data.event;
-        int tmpLayer = my_data.layer;
-
-	double clusX = clusx;
-        double clusY = clusy;
-
-        my_data.clusTree->Branch("event",&tmpEvent);
-        my_data.clusTree->Branch("X",&clusX);
-	my_data.clusTree->Branch("Y",&clusY);
-        my_data.clusTree->Branch("Z",&clusz);
-        my_data.clusTree->Branch("ADC",&adc_sum);
-	my_data.clusTree->Branch("layer",&tmpLayer);
+	clusX = clusx;
+        clusY = clusy;
+	clusZ = clusz;
+	clusADC = adc_sum;
 
         my_data.clusTree->Fill();
 
@@ -556,7 +567,28 @@ namespace
       }
     }
 
-    if(my_data->debug && !my_data->hitTree) my_data->hitTree = new TTree("hitTree","hit tree");
+    double rVal = 0.0;
+    double phiVal = 0.0;
+    
+    double hitX = 0.0;
+    double hitY = 0.0;
+    double hitZ = 0.0;
+    double hitADC = 0.0;
+    int hitPad = 0;
+    int tmpEvent = my_data->event;
+    int tmpLayer = my_data->layer;
+   
+    if(my_data->debug && !my_data->hitTree){
+      my_data->hitTree = new TTree(Form("hitTree_layer%02d_event%d",layer, my_data->event),"hit tree");
+          
+      my_data->hitTree->Branch("event",&tmpEvent);
+      my_data->hitTree->Branch("X",&hitX);
+      my_data->hitTree->Branch("Y",&hitY);
+      my_data->hitTree->Branch("Z",&hitZ);
+      my_data->hitTree->Branch("ADC",&hitADC);
+      my_data->hitTree->Branch("layer",&tmpLayer);
+      my_data->hitTree->Branch("pad",&hitPad);
+    }
 
     if( my_data->hitset!=nullptr){
       TrkrHitSet *hitset = my_data->hitset;
@@ -597,27 +629,16 @@ namespace
 
 	    if(my_data->debug){
 
-	      double rVal = my_data->radius;
-              double phiVal = my_data->layergeom->get_phicenter(TpcDefs::getPad(hitr->first));
+	      rVal = my_data->radius;
+              phiVal = my_data->layergeom->get_phicenter(TpcDefs::getPad(hitr->first));
 	      
-              double hitX = rVal*cos(phiVal);
-              double hitY = rVal*sin(phiVal);
+              hitX = rVal*cos(phiVal);
+              hitY = rVal*sin(phiVal);
               double hitT = my_data->layergeom->get_zcenter(tbin);
-              double hitZ = my_data->m_tdriftmax * my_data->tGeometry->get_drift_velocity() - (hitT *  my_data->tGeometry->get_drift_velocity());
+              hitZ = my_data->m_tdriftmax * my_data->tGeometry->get_drift_velocity() - (hitT *  my_data->tGeometry->get_drift_velocity());
               if(my_data->side == 0) hitZ = -hitZ;
-              double hitADC = 1.0*adc;
-              int hitPad = TpcDefs::getPad(hitr->first);
-
-              int tmpEvent = my_data->event;
-              int tmpLayer = my_data->layer;
-
-              my_data->hitTree->Branch("event",&tmpEvent);
-              my_data->hitTree->Branch("X",&hitX);
-              my_data->hitTree->Branch("Y",&hitY);
-              my_data->hitTree->Branch("Z",&hitZ);
-              my_data->hitTree->Branch("ADC",&hitADC);
-              my_data->hitTree->Branch("layer",&tmpLayer);
-              my_data->hitTree->Branch("pad",&hitPad);
+              hitADC = 1.0*adc;
+              hitPad = TpcDefs::getPad(hitr->first);
 
               my_data->hitTree->Fill();
 
@@ -857,6 +878,9 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
   if(m_debug){
     m_hitList = new TList;
     m_clusList = new TList;
+
+    m_hitListEvents = new TList;
+    m_clusListEvents = new TList;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1052,7 +1076,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	  const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
 	  
 	  if(m_debug){
-	    if(data.hitTree){
+	    if(data.hitTree && data.hitTree->GetEntries() > 0){
 	      m_hitTrees.push_back((TTree*)data.hitTree->Clone());
 	      m_hitList->Add(m_hitTrees[(int)m_hitTrees.size()-1]);
 	      std::cout << "event " << m_event << " side " << data.side << " sector " << data.sector << " layer " << data.layer << " adding to hit list " << m_hitTrees[(int)m_hitTrees.size()-1] << std::endl;
@@ -1196,7 +1220,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
 
 	if(m_debug){
-	  if(data.hitTree){
+	  if(data.hitTree && data.hitTree->GetEntries() > 0){
 	    m_hitTrees.push_back((TTree*)data.hitTree->Clone());
 	    m_hitList->Add(m_hitTrees[(int)m_hitTrees.size()-1]);
 	    std::cout << "event " << m_event << " side " << data.side << " sector " << data.sector << " layer " << data.layer << " adding to hit list " << m_hitTrees[(int)m_hitTrees.size()-1] << std::endl;
@@ -1250,7 +1274,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
 	
 	if(m_debug){
-	  if(data.hitTree){
+	  if(data.hitTree && data.hitTree->GetEntries() > 0){
 	    m_hitTrees.push_back((TTree*)data.hitTree->Clone());
 	    m_hitList->Add(m_hitTrees[(int)m_hitTrees.size()-1]);
 	    std::cout << "event " << m_event << " side " << data.side << " sector " << data.sector << " layer " << data.layer << " adding to hit list " << m_hitTrees[(int)m_hitTrees.size()-1] << std::endl;
@@ -1305,6 +1329,38 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   if (Verbosity() > 0)
     std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;
 
+
+  if (m_debug){
+
+    if(m_hitList->GetEntries() > 0){
+
+      for(int i=0; i<(int)m_hitTrees.size(); i++){
+	std::cout << "hit tree " << i << " name: " << m_hitTrees[i]->GetName() << " "  << m_hitTrees[i] << " number of hits: " << m_hitTrees[i]->GetEntries() << std::endl;
+	m_hitTrees[i]->Print();
+      }
+
+      TTree *hitTree = TTree::MergeTrees(m_hitList);
+      m_hitTrees.clear();
+      m_hitList->Clear();
+      hitTree->SetName(Form("hitTree_event%d",m_event));
+      std::cout << "merged tree " << hitTree->GetName() << " print: " << std::endl;
+      hitTree->Print();
+      m_hitTreesEvents.push_back((TTree*)hitTree->Clone());
+      m_hitListEvents->Add(m_hitTreesEvents[(int)m_hitTreesEvents.size()-1]);
+    }
+
+
+    if(m_clusList->GetEntries() > 0){
+      TTree *clusTree = TTree::MergeTrees(m_clusList);
+      m_clusTrees.clear();
+      m_clusList->Clear();
+      clusTree->SetName("clusTree");
+      m_clusTreesEvents.push_back((TTree*)clusTree->Clone());
+      m_clusListEvents->Add(m_clusTreesEvents[(int)m_clusTreesEvents.size()-1]);
+    }
+
+  }
+
   m_event++;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1322,29 +1378,30 @@ int TpcClusterizer::End(PHCompositeNode */*topNode*/)
 
   std::cout << "made " << m_debugName.c_str() << std::endl;
 
-  if(m_hitList->GetEntries() > 0){
-    std::cout << "have hit Trees" << std::endl;
+  if(m_hitListEvents->GetEntries() > 0){
     
-    TTree *hitTree = TTree::MergeTrees(m_hitList);
-    
-    std::cout << "merged hit trees" << std::endl;
-    
-    hitTree->SetName("hitTree");
-    hitTree->Write();
- 
-    std::cout << "wrote hit tree" << std::endl;
-  }
+    int numEvents = 0;
 
-  if(m_clusList->GetEntries() > 0){
-    std::cout << "have clus Trees" << std::endl;
-    TTree *clusTree = TTree::MergeTrees(m_clusList);
+    for(int i=0; i<(int)m_hitTreesEvents.size(); i++){
+      std::cout << "hit tree events " << i << " name " << m_hitTreesEvents[i]->GetName() << " "  << m_hitTreesEvents[i] << " number of hits: " << m_hitTreesEvents[i]->GetEntries() << std::endl;
+      numEvents += m_hitTreesEvents[i]->GetEntries();
+    }
     
-    std::cout << "made clus tree" << std::endl;
+    m_debugFile->cd();
+    TTree *hitTreeFinal = TTree::MergeTrees(m_hitListEvents);
+    hitTreeFinal->SetName("hitTree");
+    std::cout << "counting entries: " << numEvents << "   merged entries: " << hitTreeFinal->GetEntries() << std::endl;
+    hitTreeFinal->Write();
     
-    clusTree->SetName("clusTree");
-    clusTree->Write();
-    
-    std::cout << "wrote clus tree" << std::endl;
+  }
+  
+  if(m_clusListEvents->GetEntries() > 0){
+
+    m_debugFile->cd();
+    TTree *clusTreeFinal = TTree::MergeTrees(m_clusListEvents);    
+    clusTreeFinal->SetName("clusTree");
+    clusTreeFinal->Write();
+  
   }
 
   std::cout << "closing file" << std::endl;
