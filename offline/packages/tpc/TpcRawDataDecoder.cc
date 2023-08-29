@@ -191,7 +191,7 @@ int TpcRawDataDecoder::InitRun(PHCompositeNode *topNode)
 int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 {
   _ievent++;
-  if(_ievent<1270 || _ievent>1270+200) return Fun4AllReturnCodes::DISCARDEVENT;
+  //if(_ievent<1270 || _ievent>1270+200) return Fun4AllReturnCodes::DISCARDEVENT;
   // load relevant nodes
   // Get the TrkrHitSetContainer node
   auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -266,7 +266,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
         << std::endl;
       }
     }
-    if (triggerBCO != 128330850912) return Fun4AllReturnCodes::DISCARDEVENT;
+    //if (triggerBCO != 128330850912) return Fun4AllReturnCodes::DISCARDEVENT;
     int nr_of_waveforms = p->iValue(0, "NR_WF");
     
     //   for (auto &l : m_hitset){
