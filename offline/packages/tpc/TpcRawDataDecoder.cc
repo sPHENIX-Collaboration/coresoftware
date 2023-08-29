@@ -112,7 +112,7 @@ int TpcRawDataDecoder::Init(PHCompositeNode * /*topNode*/)
 
   m_cdb = CDBInterface::instance();
   std::string calibdir = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
-  calibdir = "/sphenix/user/shulga/Work/TpcPadPlane_phi_coresoftware/macros/CDBTest/TPCChannelMap.root";
+  //calibdir = "/sphenix/user/shulga/Work/TpcPadPlane_phi_coresoftware/macros/CDBTest/TPCChannelMap.root";
   if (calibdir[0] == '/')
   {
     // use generic CDBTree to load
@@ -130,11 +130,13 @@ int TpcRawDataDecoder::Init(PHCompositeNode * /*topNode*/)
   if(m_Debug==1){
     hm = new Fun4AllHistoManager("HITHIST");
 
-    _h_hit_XYT = new TH3F("_h_hit_XYT" ,"_h_hit_XYT;X, [mm];Y, [mm]; T [BCO]", 400, -800, 800, 400, -800, 800, 100, 0,1e8);
+    _h_hit_XYT = new TH3F("_h_hit_XYT" ,"_h_hit_XYT;X, [mm];Y, [mm]; T [BCO]", 400, -800, 800, 400, -800, 800, 500, 128000000000,128050000000);
     _h_hit_XY = new TH2F("_h_hit_XY" ,"_h_hit_XY;X, [mm];Y, [mm]", 400, -800, 800, 400, -800, 800);
     _h_hit_XY_ADCcut = new TH2F("_h_hit_XY_ADCcut" ,"_h_hit_XY_ADCcut;X, [mm];Y, [mm]", 400, -800, 800, 400, -800, 800);
+    _h_hit_PT_ADCcut = new TH3F("_h_hit_PT_ADCcut" ,"_h_hit_PT_ADCcut;Pad number;time [50 ns];BCO;", 400, -0.5, 399.5, 400, -0.5, 399.5, 500, 128000000000,128050000000);
 
     hm->registerHisto(_h_hit_XYT );
+    hm->registerHisto(_h_hit_PT_ADCcut);
     hm->registerHisto(_h_hit_XY );
     hm->registerHisto(_h_hit_XY_ADCcut);
   }
@@ -439,9 +441,11 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 	    
 	    
 	      if(m_Debug==1){
+          if(layer==16 ) _h_hit_PT_ADCcut->Fill(pad, s, triggerBCO,float(adc));
 	        if(adc - pedestal > 15){
 		        _h_hit_XY_ADCcut->Fill(R*cos(phi),R*sin(phi),float(adc)-pedestal);
-		        _h_hit_XYT->Fill(R*cos(phi),R*sin(phi), current_BCO,float(adc)-pedestal);
+		        _h_hit_XYT->Fill(R*cos(phi),R*sin(phi), triggerBCO,float(adc)-pedestal);
+            
 	        }
 	      }
 	      //if (s==samples-1) std::cout << std::endl;
