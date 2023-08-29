@@ -892,8 +892,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
   //  int print_layer = 18;
 
-  std::cout << PHWHERE << " working on event " << m_event << std::endl;
-
   if (Verbosity() > 1000)
     std::cout << "TpcClusterizer::Process_Event" << std::endl;
 
@@ -1076,7 +1074,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	    if(data.hitTree && data.hitTree->GetEntries() > 0){
 	      m_hitTrees.push_back((TTree*)data.hitTree->Clone());
 	      m_hitList->Add(m_hitTrees[(int)m_hitTrees.size()-1]);
-	      std::cout << "event " << m_event << " side " << data.side << " sector " << data.sector << " layer " << data.layer << " adding to hit list " << m_hitTrees[(int)m_hitTrees.size()-1] << std::endl;
 	    }
 	    if(data.clusTree){
 	      m_clusTrees.push_back((TTree*)data.clusTree->Clone());
@@ -1220,7 +1217,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	  if(data.hitTree && data.hitTree->GetEntries() > 0){
 	    m_hitTrees.push_back((TTree*)data.hitTree->Clone());
 	    m_hitList->Add(m_hitTrees[(int)m_hitTrees.size()-1]);
-	    std::cout << "event " << m_event << " side " << data.side << " sector " << data.sector << " layer " << data.layer << " adding to hit list " << m_hitTrees[(int)m_hitTrees.size()-1] << std::endl;
 	  }
 	  if(data.clusTree){
 	    m_clusTrees.push_back((TTree*)data.clusTree->Clone());
@@ -1274,7 +1270,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	  if(data.hitTree && data.hitTree->GetEntries() > 0){
 	    m_hitTrees.push_back((TTree*)data.hitTree->Clone());
 	    m_hitList->Add(m_hitTrees[(int)m_hitTrees.size()-1]);
-	    std::cout << "event " << m_event << " side " << data.side << " sector " << data.sector << " layer " << data.layer << " adding to hit list " << m_hitTrees[(int)m_hitTrees.size()-1] << std::endl;
 	  }
 	  if(data.clusTree){
 	    m_clusTrees.push_back((TTree*)data.clusTree->Clone());
@@ -1334,46 +1329,23 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 int TpcClusterizer::End(PHCompositeNode */*topNode*/)
 {
 
-  std::cout << PHWHERE << std::endl;
-
-  std::cout << "making file: " << m_debugName.c_str() << std::endl;
-
-
   m_debugFile = new TFile(m_debugName.c_str(),"RECREATE");
 
-  std::cout << "made " << m_debugName.c_str() << std::endl;
-
   if(m_hitList->GetEntries() > 0){
-    
-    int numEvents = 0;
-
-    for(int i=0; i<(int)m_hitTrees.size(); i++){
-      std::cout << "hit tree " << i << " name " << m_hitTrees[i]->GetName() << " "  << m_hitTrees[i] << " number of hits: " << m_hitTrees[i]->GetEntries() << std::endl;
-      numEvents += m_hitTrees[i]->GetEntries();
-    }
-    
     m_debugFile->cd();
     TTree *hitTreeFinal = TTree::MergeTrees(m_hitList);
     hitTreeFinal->SetName("hitTree");
-    std::cout << "counting entries: " << numEvents << "   merged entries: " << hitTreeFinal->GetEntries() << std::endl;
-    hitTreeFinal->Write();
-    
+    hitTreeFinal->Write();  
   }
   
   if(m_clusList->GetEntries() > 0){
-
     m_debugFile->cd();
     TTree *clusTreeFinal = TTree::MergeTrees(m_clusList);    
     clusTreeFinal->SetName("clusTree");
     clusTreeFinal->Write();
-  
   }
-
-  std::cout << "closing file" << std::endl;
 
   m_debugFile->Close();
   
-  std::cout << "done!" << std::endl;
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
