@@ -114,14 +114,6 @@ class TpcClusterizer : public SubsysReco
   
   std::vector<TTree*> m_hitTrees;
   std::vector<TTree*> m_clusTrees;
-
-  TList *m_hitListEvents = nullptr;
-  TList *m_clusListEvents = nullptr;
-
-  std::vector<TTree*> m_hitTreesEvents;
-  std::vector<TTree*> m_clusTreesEvents;
-
-
 };
 
 #endif

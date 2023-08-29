@@ -878,9 +878,6 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
   if(m_debug){
     m_hitList = new TList;
     m_clusList = new TList;
-
-    m_hitListEvents = new TList;
-    m_clusListEvents = new TList;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1329,38 +1326,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   if (Verbosity() > 0)
     std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;
 
-
-  if (m_debug){
-
-    if(m_hitList->GetEntries() > 0){
-
-      for(int i=0; i<(int)m_hitTrees.size(); i++){
-	std::cout << "hit tree " << i << " name: " << m_hitTrees[i]->GetName() << " "  << m_hitTrees[i] << " number of hits: " << m_hitTrees[i]->GetEntries() << std::endl;
-	m_hitTrees[i]->Print();
-      }
-
-      TTree *hitTree = TTree::MergeTrees(m_hitList);
-      m_hitTrees.clear();
-      m_hitList->Clear();
-      hitTree->SetName(Form("hitTree_event%d",m_event));
-      std::cout << "merged tree " << hitTree->GetName() << " print: " << std::endl;
-      hitTree->Print();
-      m_hitTreesEvents.push_back((TTree*)hitTree->Clone());
-      m_hitListEvents->Add(m_hitTreesEvents[(int)m_hitTreesEvents.size()-1]);
-    }
-
-
-    if(m_clusList->GetEntries() > 0){
-      TTree *clusTree = TTree::MergeTrees(m_clusList);
-      m_clusTrees.clear();
-      m_clusList->Clear();
-      clusTree->SetName("clusTree");
-      m_clusTreesEvents.push_back((TTree*)clusTree->Clone());
-      m_clusListEvents->Add(m_clusTreesEvents[(int)m_clusTreesEvents.size()-1]);
-    }
-
-  }
-
   m_event++;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1378,27 +1343,27 @@ int TpcClusterizer::End(PHCompositeNode */*topNode*/)
 
   std::cout << "made " << m_debugName.c_str() << std::endl;
 
-  if(m_hitListEvents->GetEntries() > 0){
+  if(m_hitList->GetEntries() > 0){
     
     int numEvents = 0;
 
-    for(int i=0; i<(int)m_hitTreesEvents.size(); i++){
-      std::cout << "hit tree events " << i << " name " << m_hitTreesEvents[i]->GetName() << " "  << m_hitTreesEvents[i] << " number of hits: " << m_hitTreesEvents[i]->GetEntries() << std::endl;
-      numEvents += m_hitTreesEvents[i]->GetEntries();
+    for(int i=0; i<(int)m_hitTrees.size(); i++){
+      std::cout << "hit tree " << i << " name " << m_hitTrees[i]->GetName() << " "  << m_hitTrees[i] << " number of hits: " << m_hitTrees[i]->GetEntries() << std::endl;
+      numEvents += m_hitTrees[i]->GetEntries();
     }
     
     m_debugFile->cd();
-    TTree *hitTreeFinal = TTree::MergeTrees(m_hitListEvents);
+    TTree *hitTreeFinal = TTree::MergeTrees(m_hitList);
     hitTreeFinal->SetName("hitTree");
     std::cout << "counting entries: " << numEvents << "   merged entries: " << hitTreeFinal->GetEntries() << std::endl;
     hitTreeFinal->Write();
     
   }
   
-  if(m_clusListEvents->GetEntries() > 0){
+  if(m_clusList->GetEntries() > 0){
 
     m_debugFile->cd();
-    TTree *clusTreeFinal = TTree::MergeTrees(m_clusListEvents);    
+    TTree *clusTreeFinal = TTree::MergeTrees(m_clusList);    
     clusTreeFinal->SetName("clusTree");
     clusTreeFinal->Write();
   
