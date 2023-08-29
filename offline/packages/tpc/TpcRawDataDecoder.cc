@@ -112,6 +112,7 @@ int TpcRawDataDecoder::Init(PHCompositeNode * /*topNode*/)
 
   m_cdb = CDBInterface::instance();
   std::string calibdir = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
+  calibdir = "/sphenix/user/shulga/Work/TpcPadPlane_phi_coresoftware/macros/CDBTest/TPCChannelMap.root";
   if (calibdir[0] == '/')
   {
     // use generic CDBTree to load
@@ -190,6 +191,7 @@ int TpcRawDataDecoder::InitRun(PHCompositeNode *topNode)
 int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 {
   _ievent++;
+  if(_ievent<1270 || _ievent>1270+200) return Fun4AllReturnCodes::DISCARDEVENT;
   // load relevant nodes
   // Get the TrkrHitSetContainer node
   auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -229,7 +231,11 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
     // Figure out which side
     int side = 0;   
     if(sector>11) side=1;
-
+    if(m_Debug==1){
+      char buff[100];
+      snprintf(buff, sizeof(buff), "./outputfile_%i.root",sector );
+      if(p) _filename = buff;
+    }
     if (p)
     {
       std::cout << "My Own TpcRawDataDecoder:: Event getPacket: "<< packet << "| Sector"<< sector << "| EndPoint "<< ep << std::endl;
@@ -256,10 +262,11 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
         triggerBCO = bco;
         std::cout << " is_lvl1: " << (bool) (is_lvl1)
         << " bco: " << bco
+        << "_ievent: " << _ievent
         << std::endl;
       }
     }
-    
+    if (triggerBCO != 128330850912) return Fun4AllReturnCodes::DISCARDEVENT;
     int nr_of_waveforms = p->iValue(0, "NR_WF");
     
     //   for (auto &l : m_hitset){
@@ -287,8 +294,8 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       std::cout << " _ievent: " << _ievent << " earliest BCO:  " << earliest_BCO << " ep: " << ep << " sector " << sector << " trigBCO: " << triggerBCO << " diff " << triggerBCO - earliest_BCO << std::endl;
 
     for (wf = 0; wf < nr_of_waveforms; wf++){
-      
       int current_BCO = p->iValue(wf, "BCO") + rollover_value;
+
       /*
       std::cout << " BCO:  " << p->iValue(wf, "BCO") << std::endl; 
       std::cout << " rollover:  " << rollover_value << std::endl;
@@ -320,9 +327,9 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       //int FEE_map[26]={5, 6, 1, 3, 2, 12, 10, 11, 9, 8, 7, 1, 2, 4, 8, 7, 6, 5, 4, 3, 1, 3, 2, 4, 6, 5};
       int FEE_R[26]={2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
       // conter clockwise FEE mapping (From Takao)
-      int FEE_map[26]={3, 2, 5, 3, 4, 0, 2, 1, 3, 4, 5, 7, 6, 2, 0, 1, 0, 1, 4, 5, 11, 9, 10, 8, 6, 7};
+      //int FEE_map[26]={3, 2, 5, 3, 4, 0, 2, 1, 3, 4, 5, 7, 6, 2, 0, 1, 0, 1, 4, 5, 11, 9, 10, 8, 6, 7};
       int pads_per_sector[3] = {96, 128, 192};
-	
+      int FEE_map[26] = { 4,  5,  0,  2,  1,  11,  9,  10,  8,  7,  6,  0,  1,  3,  7,  6,  5,  4,  3,  2,  0,  2,  1,  3,  5,  4};	
       // setting the mapp of the FEE
       int feeM = FEE_map[fee];
       if(FEE_R[fee]==2) feeM += 6;
@@ -346,7 +353,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       double R = m_cdbttree->GetDoubleValue(key,varname);
       
       varname = "phi";// + std::to_string(key);
-      double phi = m_cdbttree->GetDoubleValue(key,varname) + (sector - side*12 )* M_PI / 6 ;;
+      double phi = pow(-1,side)*m_cdbttree->GetDoubleValue(key,varname) + (sector - side*12 )* M_PI / 6 ;;
       
       //varname = "padN" + std::to_string(key);
       //int padn_cdbt = m_cdbttree->GetIntValue(key,varname);
@@ -432,7 +439,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 	    
 	    
 	      if(m_Debug==1){
-	        if(adc - pedestal > 40){
+	        if(adc - pedestal > 15){
 		        _h_hit_XY_ADCcut->Fill(R*cos(phi),R*sin(phi),float(adc)-pedestal);
 		        _h_hit_XYT->Fill(R*cos(phi),R*sin(phi), current_BCO,float(adc)-pedestal);
 	        }

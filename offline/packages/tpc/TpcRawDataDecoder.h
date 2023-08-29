@@ -95,7 +95,7 @@ class TpcRawDataDecoder : public SubsysReco
   int current_BCOBIN;
 
   private:
-    int m_Debug = 0;
+    int m_Debug = 1;//0;
     TH3*   _h_hit_XYT = nullptr;
     TH2*   _h_hit_XY = nullptr;
     TH2*   _h_hit_XY_ADCcut = nullptr;
