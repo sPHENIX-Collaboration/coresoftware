@@ -50,6 +50,11 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
   const auto crossing = track->get_silicon_seed()->get_crossing();
 
   ActsPropagator propagator(m_tGeometry);
+  if(m_fieldMap.find(".root") == std::string::npos)
+    {
+      propagator.constField();
+      propagator.setConstFieldValue(std::stod(m_fieldMap));
+    }
 
   SvtxAlignmentStateMap::StateVec statevec;
   if (m_verbosity > 2)

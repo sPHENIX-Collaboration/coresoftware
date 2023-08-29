@@ -26,6 +26,7 @@ class TrackSeedTrackMapConverter : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void setFieldMap(const std::string& name) {m_fieldMap = name; }
   void setTrackMapName(const std::string &name) { m_trackMapName = name; }
   void setTrackSeedName(const std::string &name) { m_trackSeedName = name; }
 
@@ -40,7 +41,7 @@ class TrackSeedTrackMapConverter : public SubsysReco
   TrackSeedContainer *m_seedContainer = nullptr;
   TrackSeedContainer *m_tpcContainer = nullptr;
   TrackSeedContainer *m_siContainer = nullptr;
-
+  std::string m_fieldMap = "";
   TrkrClusterContainer *m_clusters = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
 };

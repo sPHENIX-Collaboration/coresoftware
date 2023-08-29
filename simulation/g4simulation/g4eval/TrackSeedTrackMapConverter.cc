@@ -131,9 +131,20 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       }
 
       svtxtrack->set_charge(tpcseed->get_qOverR() > 0 ? 1 : -1);
-      svtxtrack->set_px(tpcseed->get_px(m_clusters, m_tGeometry));
-      svtxtrack->set_py(tpcseed->get_py(m_clusters, m_tGeometry));
-      svtxtrack->set_pz(tpcseed->get_pz());
+      if(m_fieldMap.find(".root") != std::string::npos)
+	{
+	  svtxtrack->set_px(tpcseed->get_px(m_clusters, m_tGeometry));
+	  svtxtrack->set_py(tpcseed->get_py(m_clusters, m_tGeometry));
+	  svtxtrack->set_pz(tpcseed->get_pz());
+	}
+      else
+	{
+	  float pt = fabs(1./tpcseed->get_qOverR()) * (0.3/100) * std::stod(m_fieldMap);
+	  float phi = tpcseed->get_phi(m_clusters, m_tGeometry);
+	  svtxtrack->set_px(pt * std::cos(phi));
+	  svtxtrack->set_py( pt * std::sin(phi));
+	  svtxtrack->set_pz(pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta()));
+	}
 
       addKeys(svtxtrack, tpcseed);
       svtxtrack->set_tpc_seed(tpcseed);
@@ -146,9 +157,21 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       svtxtrack->set_y(trackSeed->get_y());
       svtxtrack->set_z(trackSeed->get_z());
       svtxtrack->set_charge(trackSeed->get_qOverR() > 0 ? 1 : -1);
-      svtxtrack->set_px(trackSeed->get_px(m_clusters, m_tGeometry));
-      svtxtrack->set_py(trackSeed->get_py(m_clusters, m_tGeometry));
-      svtxtrack->set_pz(trackSeed->get_pz());
+       if(m_fieldMap.find(".root") != std::string::npos)
+	{
+	  svtxtrack->set_px(trackSeed->get_px(m_clusters, m_tGeometry));
+	  svtxtrack->set_py(trackSeed->get_py(m_clusters, m_tGeometry));
+	  svtxtrack->set_pz(trackSeed->get_pz());
+	}
+      else
+	{
+	  float pt = fabs(1./trackSeed->get_qOverR()) * (0.3/100) * std::stod(m_fieldMap);
+	  
+	 	  float phi = trackSeed->get_phi(m_clusters, m_tGeometry);
+	  svtxtrack->set_px(pt * std::cos(phi));
+	  svtxtrack->set_py( pt * std::sin(phi));
+	  svtxtrack->set_pz(pt * std::cosh(trackSeed->get_eta()) * std::cos(trackSeed->get_theta()));
+	}
 
       // calculate chisq and ndf
       double R = 1. / std::fabs(trackSeed->get_qOverR());

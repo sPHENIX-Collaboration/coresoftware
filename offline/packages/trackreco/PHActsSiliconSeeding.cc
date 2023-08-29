@@ -290,7 +290,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	      m_nBadInitialFits++;
 	      continue;
 	    }
-        
+	 
 	  trackSeed->lineFit(positions, 0, 8);
 	  z = trackSeed->get_Z0();
 
@@ -299,21 +299,27 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  fitTimer->restart();
 	  
 	  /// Project to INTT and find matches
+	  int mvtxsize = globalPositions.size();
 	  auto additionalClusters = findInttMatches(globalPositions, *trackSeed);
 
 	  /// Add possible matches to cluster list to be parsed when
 	  /// Svtx tracks are made
-	  for(auto& cluskey : additionalClusters)
-	    { 
-	      trackSeed->insert_cluster_key(cluskey); 
+	  for(int newkey = 0; newkey < additionalClusters.size(); newkey++)
+	    {
+	      trackSeed->insert_cluster_key(additionalClusters[newkey]);
+	      positions.insert(std::make_pair(additionalClusters[newkey],globalPositions[mvtxsize+newkey]));
+	      
 	      if(Verbosity() > 1)
-		{ std::cout << "adding additional intt key " << cluskey << std::endl; }
+		{ std::cout << "adding additional intt key " << additionalClusters[newkey] << std::endl; }
 	    }
 
 	  fitTimer->stop();
 	  auto addClusters = fitTimer->get_accumulated_time();
 	  fitTimer->restart();
-	  
+
+	  //! Circle fit again to take advantage of INTT lever arm
+	  trackSeed->circleFitByTaubin(positions, 0, 8);
+
 	  if(Verbosity() > 0)
 	    { std::cout << "find intt clusters time " << addClusters << std::endl; }
 

@@ -90,6 +90,7 @@ class PHCASeeding : public PHTrackSeeding
   }
 
   void useConstBField(bool opt){_use_const_field = opt;}
+  void constBField(float b){_const_field = b;}
   void useFixedClusterError(bool opt){_use_fixed_clus_err = opt;}
   void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
 
@@ -146,6 +147,7 @@ class PHCASeeding : public PHTrackSeeding
   double _xy_outlier_threshold = 0.1;
   double _fieldDir = -1;
   bool _use_const_field = false;
+  float _const_field = 1.4;
   bool _use_fixed_clus_err = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
 
