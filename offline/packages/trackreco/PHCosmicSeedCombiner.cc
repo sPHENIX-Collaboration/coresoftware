@@ -153,11 +153,11 @@ int PHCosmicSeedCombiner::createNodes(PHCompositeNode* topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_cosmicContainer = findNode::getClass<TrackSeedContainer>(topNode, "CosmicSeedContainer");
+  m_cosmicContainer = findNode::getClass<TrackSeedContainer>(topNode, "CosmicTrackSeedContainer");
   if (!m_cosmicContainer)
   {
     m_cosmicContainer = new TrackSeedContainer_v1;
-    PHIODataNode<PHObject>* trackNode = new PHIODataNode<PHObject>(m_cosmicContainer, "CosmicSeedContainer", "PHObject");
+    PHIODataNode<PHObject>* trackNode = new PHIODataNode<PHObject>(m_cosmicContainer, "CosmicTrackSeedContainer", "PHObject");
     svtxNode->addNode(trackNode);
   }
 

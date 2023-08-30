@@ -273,34 +273,34 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     sourceLinks.insert(sourceLinks.end(), siseed2sls.begin(), siseed2sls.end());
 
     float perigeeYLoc = -100 * Acts::UnitConstants::cm;
-
+    Acts::Vector3 globperigee(0,perigeeYLoc/10.,0);
+      
     float tpcR = fabs(1. / tpcseed->get_qOverR());
     float tpcx = tpcseed->get_X0();
     float tpcy = tpcseed->get_Y0();
     //! propagate the track out to somewhere beyond the HCal, so that
     //! we fit it from outside sphenix all the way through the ~100 layers
     //! The OHCal has an outer radius of 2.7m
-    auto circleout = TrackFitUtils::circle_circle_intersection(fabs(perigeeYLoc) / 10., tpcR, tpcx, tpcy);
-    float trackx = std::get<0>(circleout);
-    float tracky = std::get<1>(circleout);
-    float trackx2 = std::get<2>(circleout);
-    float tracky2 = std::get<3>(circleout);
-    if (tracky2 < tracky)
-    {
-      trackx = trackx2;
-      tracky = tracky2;
-    }
-
-    //! the z value is given by the intersection of the r-z straight line fit
-    //! with a flat line at radius = perigeeYLoc
-    float trackz = -1 * std::sqrt(square(trackx) + square(tracky)) *
-                       tpcseed->get_slope() +
-                   tpcseed->get_Z0();
-    float otrackz = -1 * std::sqrt(square(trackx) + square(tracky)) * (-1) * tpcseed->get_slope() + tpcseed->get_Z0();
-    /// this is necessarily wrong, because it assumes we know the track
-    /// originated from -z. Kludge for now to test if we can fit
-    if (otrackz < trackz)
-      trackz = otrackz;
+    const auto pcaCircle = TrackFitUtils::get_circle_point_pca(tpcR,tpcx,tpcy,globperigee);
+    float pcaCircleRadius = pcaCircle.norm();
+    float pcaz = pcaCircleRadius * tpcseed->get_slope() + tpcseed->get_Z0();
+    
+    float trackx = pcaCircle.x();
+    float tracky = pcaCircle.y();
+    float trackz = pcaz;
+    
+    float angle_pca = atan2(pcaCircle.y() - tpcy, pcaCircle.x() - tpcx);
+    float dAngle = 0.005;
+    float newx = tpcR * cos(angle_pca+dAngle) + tpcx;
+    float newy = tpcR * sin(angle_pca+dAngle) + tpcy;
+    float newz = sqrt(square(newx)+square(newy)) * tpcseed->get_slope() + tpcseed->get_Z0();
+    
+    //! We got the other track segment, so it is backwards
+    if(tpcseed->get_slope() > 0)
+      {newz *= -1; trackz *= -1;}
+    Acts::Vector3 pcacircle = Acts::Vector3(pcaCircle.x(), pcaCircle.y(), trackz);
+    Acts::Vector3 secondpca = Acts::Vector3(newx,newy,newz);
+    Acts::Vector3 tangent = (secondpca-pcacircle) / (secondpca-pcacircle).norm();
 
     Acts::Vector3 position(trackx * Acts::UnitConstants::cm,
                            tracky * Acts::UnitConstants::cm,
@@ -313,31 +313,10 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       continue;
     }
 
-    float px = NAN;
-    float py = NAN;
-    float pz = NAN;
-    if (m_fieldMap.find(".root") != std::string::npos)
-    {
-      px = tpcseed->get_px(m_clusterContainer, m_tGeometry);
-      py = tpcseed->get_py(m_clusterContainer, m_tGeometry);
-      pz = tpcseed->get_pz();
-    }
-    else
-    {
-      float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
-      float phi = tpcseed->get_phi(m_clusterContainer, m_tGeometry);
-      px = pt * std::cos(phi);
-      py = pt * std::sin(phi);
-      pz = pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta());
-    }
+    Acts::Vector3 momentum(tangent.x() * tpcseed->get_p(),
+			   tangent.y() * tpcseed->get_p(),
+			   tangent.z() * tpcseed->get_p());
 
-    //! The momentum was determined at the beamline. To determine it properly
-    //! we would have to propagate the track from the beamline to R=300cm
-    //! when we have no covariance, which will be already subject to
-    //! uncertainty. Since cosmics are in general pretty straight, we just
-    //! swap the sign of px, py, pz
-    Acts::Vector3 momentum(px, py, pz);
-    if (momentum.y() < 0) momentum *= -1;
     if (!is_valid(momentum)) continue;
 
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
@@ -349,7 +328,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     Acts::BoundSymMatrix cov = setDefaultCovariance();
 
     int charge = tpcseed->get_charge();
-
+    charge = -1;
     //! Acts requires a wrapped vector, so we need to replace the
     //! std::vector contents with a wrapper vector to get the memory
     //! access correct
@@ -783,10 +762,10 @@ Acts::BoundSymMatrix PHCosmicsTrkFitter::setDefaultCovariance() const
   /// but if it is too tight, it will just "believe" the track seed over
   /// the hit data
 
-  double sigmaD0 = 50 * Acts::UnitConstants::um;
-  double sigmaZ0 = 50 * Acts::UnitConstants::um;
-  double sigmaPhi = 1 * Acts::UnitConstants::degree;
-  double sigmaTheta = 1 * Acts::UnitConstants::degree;
+  double sigmaD0 = 200 * Acts::UnitConstants::um;
+  double sigmaZ0 = 200 * Acts::UnitConstants::um;
+  double sigmaPhi = 2 * Acts::UnitConstants::degree;
+  double sigmaTheta = 2 * Acts::UnitConstants::degree;
   double sigmaT = 1. * Acts::UnitConstants::ns;
 
   cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = sigmaD0 * sigmaD0;
@@ -795,7 +774,7 @@ Acts::BoundSymMatrix PHCosmicsTrkFitter::setDefaultCovariance() const
   cov(Acts::eBoundPhi, Acts::eBoundPhi) = sigmaPhi * sigmaPhi;
   cov(Acts::eBoundTheta, Acts::eBoundTheta) = sigmaTheta * sigmaTheta;
   /// Acts takes this value very seriously - tuned to be in a "sweet spot"
-  cov(Acts::eBoundQOverP, Acts::eBoundQOverP) = 0.0001;
+  cov(Acts::eBoundQOverP, Acts::eBoundQOverP) = 0.001;
 
   return cov;
 }
@@ -916,7 +895,7 @@ int PHCosmicsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode, "CosmicSeedContainer");
+  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode, "CosmicTrackSeedContainer");
   if (!m_seedMap)
   {
     std::cout << "No Svtx seed map on node tree. Exiting."
