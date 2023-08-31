@@ -203,7 +203,6 @@ class Jet : public PHObject
  
   Bool_t IsSortable() const override { return false; }
 
-  public:
   // structure to iterate over ther jets in a TClonesArray in the JetContainer
   struct IterJetTCA {
     TClonesArray* tca   { nullptr };

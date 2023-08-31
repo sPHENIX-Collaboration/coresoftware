@@ -30,6 +30,20 @@ class Jetv2 : public Jet
   Jetv2(unsigned int);
   ~Jetv2() override {}
   Jetv2(const Jetv2&);
+ 
+  // method used to sort the consistuents of the jet -- to be used when generating the jets only
+  struct CompareSRC {
+    bool operator()(const std::pair<Jet::SRC,int> &lhs, const unsigned int rhs) {
+      return lhs.first < rhs;
+    }
+    bool operator()(const unsigned int lhs, const std::pair<Jet::SRC,int> &rhs) {
+      return lhs < rhs.first;
+    }
+    bool operator()(const std::pair<Jet::SRC,int> &lhs, const std::pair<Jet::SRC,int> &rhs) {
+      return lhs.first < rhs.first;
+    }
+    static void sort_comp_ids(Jetv2* jet);
+  };
 
   // PHObject virtual overloads
 
@@ -102,22 +116,6 @@ class Jetv2 : public Jet
   /// source id -> component id
   /* typ_comp_ids _comp_ids; */
   std::vector<std::pair<Jet::SRC, unsigned int>> _comp_ids;
-
-  // compare the source components for sorting
- public:
-  struct CompareSRC {
-    bool operator()(const std::pair<Jet::SRC,int> &lhs, const unsigned int rhs) {
-      return lhs.first < rhs;
-    }
-    bool operator()(const unsigned int lhs, const std::pair<Jet::SRC,int> &rhs) {
-      return lhs < rhs.first;
-    }
-    bool operator()(const std::pair<Jet::SRC,int> &lhs, const std::pair<Jet::SRC,int> &rhs) {
-      return lhs.first < rhs.first;
-    }
-    static void sort_comp_ids(Jetv2* jet);
-  };
- private:
 
   std::vector<float> _properties {};
 

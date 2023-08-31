@@ -104,6 +104,7 @@ public:
 
     void set_rho_median(float _) override { m_RhoMedian = _; };
     float get_rho_median() const override { return m_RhoMedian; };
+
 private:
     std::string str_Jet_PROPERTY(Jet::PROPERTY) const;
 
