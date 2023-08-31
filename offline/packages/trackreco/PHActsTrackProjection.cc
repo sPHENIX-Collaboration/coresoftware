@@ -265,7 +265,7 @@ PHActsTrackProjection::propagateTrack(
   ActsPropagator propagator(m_tGeometry);
   propagator.constField();
   propagator.verbosity(Verbosity());
-  propagator.setConstFieldValue(1.4 * Acts::UnitConstants::T);
+  propagator.setConstFieldValue(m_constFieldVal * Acts::UnitConstants::T);
 
   return propagator.propagateTrackFast(params, targetSurf);
 }
