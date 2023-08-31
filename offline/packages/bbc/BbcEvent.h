@@ -12,8 +12,6 @@ class BbcOut;
 class TF1;
 class TCanvas;
 
-using namespace BbcDefs;
-
 class BbcEvent
 {
 public:
@@ -58,10 +56,10 @@ private:
   int Read_TT_CLK_Offsets( const char *calfname );
   int DoQuickClockOffsetCalib();
 
-  float gaincorr[BBC_N_PMT] {};             // gain corrections
-  float tq_t0_offsets[BBC_N_PMT] {};  // t0 offsets in charge channels
-  float tq_clk_offsets[BBC_N_PMT] {};
-  float tt_clk_offsets[BBC_N_PMT] {};
+  float gaincorr[BbcDefs::BBC_N_PMT] {};             // gain corrections
+  float tq_t0_offsets[BbcDefs::BBC_N_PMT] {};  // t0 offsets in charge channels
+  float tq_clk_offsets[BbcDefs::BBC_N_PMT] {};
+  float tt_clk_offsets[BbcDefs::BBC_N_PMT] {};
 
   float bz_offset{0.};
 
@@ -77,9 +75,9 @@ private:
 
   std::vector<BbcSig> bbcsig;
   
-  Float_t m_pmtq[BBC_N_PMT]{};   // npe in each arm
-  Float_t m_pmttt[BBC_N_PMT]{};  // time in each arm
-  Float_t m_pmttq[BBC_N_PMT]{};  // time in each arm
+  Float_t m_pmtq[BbcDefs::BBC_N_PMT]{};   // npe in each arm
+  Float_t m_pmttt[BbcDefs::BBC_N_PMT]{};  // time in each arm
+  Float_t m_pmttq[BbcDefs::BBC_N_PMT]{};  // time in each arm
   Short_t m_bbcn[2]{};      // num hits for each arm (north and south)
   Float_t m_bbcq[2]{};      // total charge (currently npe) in each arm
   Float_t m_bbct[2]{};      // time in arm

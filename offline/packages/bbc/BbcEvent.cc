@@ -284,7 +284,7 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
   
   // calculate bbc global variables
   if ( verbose>=10 ) cout << "Hit PMT info " << endl;
-  for (int ipmt=0; ipmt<BBC_N_PMT; ipmt++)
+  for (int ipmt=0; ipmt<BbcDefs::BBC_N_PMT; ipmt++)
   {
     BbcPmtInfoV1 *bbcpmt = bbcpmts->get_pmt( ipmt );
     int arm = ipmt/64;
@@ -479,7 +479,7 @@ int BbcEvent::Read_TQ_T0_Offsets(const char *t0cal_fname)
   float meanerr;
   float sigma;
   float sigmaerr;
-  for (int ipmt=0; ipmt<BBC_N_PMT; ipmt++)
+  for (int ipmt=0; ipmt<BbcDefs::BBC_N_PMT; ipmt++)
   {
     tcalibfile >> pmtnum >> tq_t0_offsets[ipmt] >> meanerr >> sigma >> sigmaerr;
     if ( pmtnum != ipmt )
@@ -501,7 +501,7 @@ int BbcEvent::Read_TQ_CLK_Offsets(const char *t0cal_fname)
   cout << "Reading tq_clk offset calibrations from " << t0cal_fname << endl;
 
   int pmtnum;
-  for (int ipmt=0; ipmt<BBC_N_PMT; ipmt++)
+  for (int ipmt=0; ipmt<BbcDefs::BBC_N_PMT; ipmt++)
   {
     tcalibfile >> pmtnum >> tq_clk_offsets[ipmt];
     if ( pmtnum != ipmt )
@@ -524,7 +524,7 @@ int BbcEvent::Read_TT_CLK_Offsets(const char *t0cal_fname)
   cout << "Reading tq_clk offset calibrations from " << t0cal_fname << endl;
 
   int pmtnum;
-  for (int ipmt=0; ipmt<BBC_N_PMT; ipmt++)
+  for (int ipmt=0; ipmt<BbcDefs::BBC_N_PMT; ipmt++)
   {
     tcalibfile >> pmtnum >> tt_clk_offsets[ipmt];
     if ( pmtnum != ipmt )
