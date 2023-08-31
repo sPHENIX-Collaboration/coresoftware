@@ -386,7 +386,7 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
     m_bbct0 = (m_bbcte[0] + m_bbcte[1]) / 2.0;
     */
 
-    cout << "bbcz " << m_bbcz << endl;
+    if ( verbose>10 ) cout << "bbcz " << m_bbcz << endl;
   }
 
   // Fill rest of BbcOut
