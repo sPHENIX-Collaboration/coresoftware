@@ -40,7 +40,7 @@ BbcSig::BbcSig(const int chnum, const int nsamp) :
   maxped0samp{-9999},
   minped0x{0.},
   maxped0x{0.},
-  time_calib{0},
+  //time_calib{0},
   h2Template{nullptr},
   h2Residuals{nullptr},
   // range of good amplitudes for templates

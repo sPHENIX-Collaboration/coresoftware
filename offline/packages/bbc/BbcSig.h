@@ -141,7 +141,7 @@ private:
   Double_t maxped0x;          //! max x for event-by-event ped, inclusive
 
   /** for time calibration */
-  Double_t time_calib;
+  //Double_t time_calib;
 
   /** For pulse template extraction */
   TH2     *h2Template;

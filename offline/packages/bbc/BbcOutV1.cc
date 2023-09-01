@@ -5,8 +5,6 @@
 
 #include <iostream>
 
-static const int NBBC = 2;
-
 //______________________________________
 BbcOutV1::BbcOutV1()
 {
