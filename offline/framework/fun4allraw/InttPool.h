@@ -42,9 +42,9 @@ protected:
   
   static const int MAX_FEECOUNT =16;
   
-  int _broken;
+//  int _broken = 0;
   
-  int _is_decoded;
+  int _is_decoded = 0;
   
   unsigned int _depth;
   

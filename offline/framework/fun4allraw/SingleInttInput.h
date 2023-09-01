@@ -1,6 +1,8 @@
 #ifndef FUN4ALLRAW_SINGLEINTTINPUT_H
 #define FUN4ALLRAW_SINGLEINTTINPUT_H
 
+#include "InttPool.h"
+
 #include <fun4all/Fun4AllBase.h>
 #include <fun4all/InputFileHandler.h>
 
@@ -48,6 +50,7 @@ class SingleInttInput : public Fun4AllBase, public InputFileHandler
   std::map<uint64_t, std::vector<Packet *>> m_PacketStorageMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
+  InttPool pool;
 };
 
 #endif
