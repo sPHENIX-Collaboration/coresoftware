@@ -1,6 +1,6 @@
 /*!
  * \file Jetv2.C
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -15,24 +15,24 @@
 
 class PHObject;
 
-Jetv2::Jetv2() 
+Jetv2::Jetv2()
 {
   std::fill(std::begin(_mom), std::end(_mom), NAN);
 }
 
 Jetv2::Jetv2(unsigned int n_prop)
-  : _properties (  n_prop, NAN )
+  : _properties(n_prop, NAN)
 {
   std::fill(std::begin(_mom), std::end(_mom), NAN);
 }
 
-Jetv2::Jetv2(const Jetv2& rhs) 
-  : _id               { rhs._id        }
-  , _e                { rhs._e         }
+Jetv2::Jetv2(const Jetv2& rhs)
+  : _id{rhs._id}
+  , _e{rhs._e}
 {
-  std::copy ( rhs._mom, rhs._mom+3, _mom);
-  std::copy ( rhs._comp_ids.begin(),   rhs._comp_ids.end(),   _comp_ids.begin() );
-  std::copy ( rhs._properties.begin(), rhs._properties.end(), _properties.begin() );
+  std::copy(rhs._mom, rhs._mom + 3, _mom);
+  std::copy(rhs._comp_ids.begin(), rhs._comp_ids.end(), _comp_ids.begin());
+  std::copy(rhs._properties.begin(), rhs._properties.end(), _properties.begin());
 }
 
 void Jetv2::identify(std::ostream& os) const
@@ -43,27 +43,35 @@ void Jetv2::identify(std::ostream& os) const
   os << get_pz() << ", " << get_e() << ") GeV" << std::endl;
 
   os << " Jet Properties:";
-  for (auto& val : _properties) { os << " " << val; }
+  for (auto& val : _properties)
+  {
+    os << " " << val;
+  }
   os << std::endl;
 
-  os << " Jet Components: " << size_comp() << std::endl;;
+  os << " Jet Components: " << size_comp() << std::endl;
+  ;
   return;
 }
 
-void Jetv2::print_comp(std::ostream& os, bool single_line) {
-  for (auto iter = comp_begin(); iter != comp_end(); ++iter) {
+void Jetv2::print_comp(std::ostream& os, bool single_line)
+{
+  for (auto iter = comp_begin(); iter != comp_end(); ++iter)
+  {
     os << " (" << iter->first << "->" << static_cast<int>(iter->second) << ")";
     if (!single_line) os << std::endl;
   }
   if (single_line) os << std::endl;
 }
 
-std::vector<Jet::SRC> Jetv2::comp_src_vec() {
+std::vector<Jet::SRC> Jetv2::comp_src_vec()
+{
   std::vector<Jet::SRC> vec{};
   auto iter = comp_begin();
   auto iter_end = comp_end();
   if (iter == iter_end) return vec;
-  while (iter != iter_end) {
+  while (iter != iter_end)
+  {
     Jet::SRC src = iter->first;
     vec.push_back(src);
     iter = comp_end(src);
@@ -71,15 +79,17 @@ std::vector<Jet::SRC> Jetv2::comp_src_vec() {
   return vec;
 }
 
-std::map<Jet::SRC,size_t> Jetv2::comp_src_sizemap() {
-  std::map<Jet::SRC,size_t> sizemap{};
+std::map<Jet::SRC, size_t> Jetv2::comp_src_sizemap()
+{
+  std::map<Jet::SRC, size_t> sizemap{};
   auto iter = comp_begin();
   auto iter_end = comp_end();
   if (iter == iter_end) return sizemap;
-  while (iter != iter_end) {
+  while (iter != iter_end)
+  {
     Jet::SRC src = iter->first;
     auto iter_ub = comp_end(src);
-    sizemap.insert(std::make_pair(src, static_cast<size_t>(iter_ub-iter)));
+    sizemap.insert(std::make_pair(src, static_cast<size_t>(iter_ub - iter)));
     iter = iter_ub;
   }
   return sizemap;
@@ -154,29 +164,31 @@ float Jetv2::get_mass2() const
   return get_e() * get_e() - p2;
 }
 
-size_t Jetv2::num_comp(Jet::SRC iSRC) {
-  if (iSRC==Jet::SRC::VOID) return (comp_end()-comp_begin());
-  return (comp_end(iSRC)-comp_begin(iSRC));
+size_t Jetv2::num_comp(Jet::SRC iSRC)
+{
+  if (iSRC == Jet::SRC::VOID) return (comp_end() - comp_begin());
+  return (comp_end(iSRC) - comp_begin(iSRC));
 }
 
-void Jetv2::insert_comp (SRC iSRC, unsigned int compid)
-{ 
-  _comp_ids.push_back(std::make_pair(iSRC, compid)); 
+void Jetv2::insert_comp(SRC iSRC, unsigned int compid)
+{
+  _comp_ids.push_back(std::make_pair(iSRC, compid));
 }
 
-void Jetv2::CompareSRC::sort_comp_ids(Jetv2* jet) {
-    std::sort(jet->_comp_ids.begin(), jet->_comp_ids.end(),
-        [](const std::pair<Jet::SRC,unsigned int> &a, 
-           const std::pair<Jet::SRC,unsigned int> &b)
-        { return a.first < b.first; }
-    );
+void Jetv2::CompareSRC::sort_comp_ids(Jetv2* jet)
+{
+  std::sort(jet->_comp_ids.begin(), jet->_comp_ids.end(),
+            [](const std::pair<Jet::SRC, unsigned int>& a,
+               const std::pair<Jet::SRC, unsigned int>& b)
+            { return a.first < b.first; });
 }
 
-Jetv2::ITER_comp_vec Jetv2::comp_begin(Jet::SRC iSRC) {
+Jetv2::ITER_comp_vec Jetv2::comp_begin(Jet::SRC iSRC)
+{
   return std::lower_bound(_comp_ids.begin(), _comp_ids.end(), iSRC, CompareSRC());
 }
 
-Jetv2::ITER_comp_vec Jetv2::comp_end(Jet::SRC iSRC) {
+Jetv2::ITER_comp_vec Jetv2::comp_end(Jet::SRC iSRC)
+{
   return std::upper_bound(_comp_ids.begin(), _comp_ids.end(), iSRC, CompareSRC());
 }
-

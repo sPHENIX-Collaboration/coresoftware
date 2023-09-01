@@ -1,7 +1,7 @@
 #ifndef JETBASE_JetContainerv1__h
 #define JETBASE_JetContainerv1__h
-
 #include "JetContainer.h"
+
 #include "Jet.h"
 
 class JetContainerv1 : public JetContainer

@@ -12,7 +12,7 @@
 #include <utility>   // for pair, make_pair
 #include <vector>
 
-JetMapv1::JetMapv1(const JetMap &jets)
+JetMapv1::JetMapv1(const JetMap& jets)
   : _algo(jets.get_algo())
   , _par(jets.get_par())
 {
@@ -114,7 +114,8 @@ std::vector<Jet*> JetMapv1::vec()
 {
   std::vector<Jet*> v_data;
   for (auto& _ : _map)
-  { v_data.push_back(_.second); }
+  {
+    v_data.push_back(_.second);
+  }
   return v_data;
 }
-

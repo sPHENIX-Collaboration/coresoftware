@@ -15,7 +15,7 @@
 #include <vector>
 #include <functional>
 #include <set>
-#include <limits.h>
+#include <climits>
 
 class Jet;
 

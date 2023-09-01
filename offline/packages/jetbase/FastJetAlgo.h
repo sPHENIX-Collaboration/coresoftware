@@ -5,8 +5,8 @@
 #include "JetAlgo.h"
 #include "FastJetOptions.h"
 
-#include "fastjet/PseudoJet.hh"
-#include "fastjet/JetDefinition.hh"
+#include <fastjet/PseudoJet.hh>
+#include <fastjet/JetDefinition.hh>
 
 #include <cmath>     // for NAN
 #include <climits>     // for NAN

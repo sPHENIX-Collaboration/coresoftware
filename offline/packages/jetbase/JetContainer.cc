@@ -4,10 +4,10 @@
 class Jet;
 
 // Dummy members for virtual classes to return in base implementation
-Jet* DummyJetV2 ;
-std::map<Jet::PROPERTY,unsigned int> DummyMap ;
+Jet* DummyJetV2;
+std::map<Jet::PROPERTY, unsigned int> DummyMap;
 std::vector<float> DummyFloatVec;
-TClonesArray DummyTClonesArray ("Jet",1);
+TClonesArray DummyTClonesArray("Jet", 1);
 std::set<Jet::SRC> DummyJetContSourceSet;
 // N.B. this will seg fault if used... so don't use it!
 
@@ -41,16 +41,17 @@ JetContainer::SrcIter JetContainer::end_src()
   return DummyJetContSourceSet.end();
 }
 
-
 void JetContainer::identify(std::ostream& os) const
 {
   os << "JetContainer" << std::endl;
 }
 
-TClonesArray* JetContainer::clone_data() const 
-{ return (TClonesArray*) DummyTClonesArray.Clone(); };
+TClonesArray* JetContainer::clone_data() const
+{
+  return (TClonesArray*) DummyTClonesArray.Clone();
+};
 
-Jet::IterJetTCA DummyIterJetTCA { &DummyTClonesArray, DummyJetV2 };
+Jet::IterJetTCA DummyIterJetTCA{&DummyTClonesArray, DummyJetV2};
 
 Jet* JetContainer::current_jet() { return DummyJetV2; };
 

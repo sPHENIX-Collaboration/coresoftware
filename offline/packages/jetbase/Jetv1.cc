@@ -1,6 +1,6 @@
 /*!
  * \file Jetv1.C
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -133,7 +133,7 @@ void Jetv1::print_property(std::ostream& os) const
 {
   for (auto citer : _property_map)
   {
-    os << " ";  //indent
+    os << " ";  // indent
 
     switch (citer.first)
     {
