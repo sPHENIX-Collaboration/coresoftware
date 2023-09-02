@@ -93,6 +93,9 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
   m_container->Reset();
 
+  // store fee_bco vs fee_id
+  std::map<unsigned short, unsigned int> fee_bco_map;
+  
   // loop over TPOT packets
   for( const auto& packet_id:MicromegasDefs::m_packet_ids )
   {
@@ -134,7 +137,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       // const auto modebits = static_cast<uint8_t>(packet->lValue(t, "MODEBITS"));
 
       // only printout the is_lvl1 triggers
-      // if( Verbosity() )
+      if( Verbosity() )
       if( is_lvl1 )
       {
         std::cout << "MicromegasRawDataEvaluation::process_event -"
@@ -206,16 +209,28 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       // get number of samples and loop
       const unsigned short samples = packet->iValue( iwf, "SAMPLES" );
 
+      
+      // check fee bco consistency
+      const auto iter = fee_bco_map.find( sample.fee_id );
+      if( iter == fee_bco_map.end() ) fee_bco_map.emplace(sample.fee_id, sample.fee_bco );
+      else if( iter->second != sample.fee_bco  )
+      {
+        std::cout << "MicromegasRawDataEvaluation::process_event -"
+          << " fee_id: " <<  sample.fee_id
+          << " inconsistent bco: " << sample.fee_bco << " vs " << iter->second
+          << std::endl;
+      }
+      
       if( Verbosity() )
       {
         std::cout << "MicromegasRawDataEvaluation::process_event -"
+          << " fee: " << sample.fee_id
+          << " tile: " << sample.tile
+          << " layer: " << sample.layer
+          << " tile: " << sample.tile
           << " lvl1_bco: " << sample.lvl1_bco
           << " fee_bco: " << sample.fee_bco
           << " error: " << sample.checksum_error
-          << " layer: " << sample.layer
-          << " tile: " << sample.tile
-          << " sampa_address: " << sample.sampa_address
-          << " sampa_channel: " << sample.sampa_channel
           << " channel: " << sample.channel
           << " strip: " << sample.strip
           << " samples: " << samples
@@ -251,6 +266,27 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
   m_evaluation_tree->Fill();
 
+  // print bco maps
+  for( const auto& [packet, bco]: m_packet_bco_map )
+  {
+    std::cout << "MicromegasRawDataEvaluation::process_event -"
+      << " packet: " << packet 
+      << " bco: " << bco
+      << std::endl; 
+  }
+  
+  for( const auto& [fee, bco]: fee_bco_map )
+  { 
+    std::cout << "MicromegasRawDataEvaluation::process_event -"
+      << " fee: " << fee 
+      << " bco: " << bco 
+      << std::endl;
+  }
+  
+  const auto fee_bco_min = std::min_element( fee_bco_map.begin(), fee_bco_map.end(), []( const auto& lhs, const auto&rhs ){ return lhs.second < rhs.second; } )->second;
+  const auto fee_bco_max = std::max_element( fee_bco_map.begin(), fee_bco_map.end(), []( const auto& lhs, const auto&rhs ){ return lhs.second < rhs.second; } )->second;
+  std::cout << "MicromegasRawDataEvaluation::process_event - range: " << fee_bco_max - fee_bco_min << std::endl;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

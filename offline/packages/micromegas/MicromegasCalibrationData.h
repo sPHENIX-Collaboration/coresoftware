@@ -45,7 +45,7 @@ class MicromegasCalibrationData
  
   /// get rms for a given channel
   double get_rms( int /*fee*/, int /*channel*/ ) const;
-
+  
   //@}
    
   private:
