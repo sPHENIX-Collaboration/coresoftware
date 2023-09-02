@@ -42,7 +42,6 @@ PHTpcDeltaZCorrection::PHTpcDeltaZCorrection(const std::string &name)
 int PHTpcDeltaZCorrection::InitRun(PHCompositeNode*)
 {
   UpdateParametersWithMacro();
-  m_bz_const = get_double_param("bz_const");
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -68,7 +67,6 @@ void PHTpcDeltaZCorrection::SetDefaultParameters()
   // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
   // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
   // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
-  set_default_double_param("bz_const", 1.4);  // Tesla
   return;
 }
 

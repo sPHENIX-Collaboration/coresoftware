@@ -94,8 +94,8 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
   {
     m_detector = "EPD";
     m_packet_low = 9001;
-    m_packet_high = 9005;
-    m_nchannels = 186;
+    m_packet_high = 9006;
+    m_nchannels = 128;
     if (_processingtype == CaloWaveformProcessing::NONE)
     {
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);  // default the EPD to fast processing
@@ -162,8 +162,20 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
         {
           return Fun4AllReturnCodes::DISCARDEVENT;
         }
+        //int sector = 0;
+        
         for (int channel = 0; channel < nchannels; channel++)
         {
+          //mask empty channels
+          
+          if(m_dettype == CaloTowerBuilder::EPD){
+            int sector = ((channel + 1)/ 32);
+            if (channel == (14 + 32*sector)) {
+              continue;
+            }
+            
+            
+          }
           std::vector<float> waveform;
           waveform.reserve(m_nsamples);
           for (int samp = 0; samp < m_nsamples; samp++)
@@ -177,8 +189,17 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
         {
           for (int channel = 0; channel < m_nchannels - nchannels; channel++)
           {
+
+            if(m_dettype == CaloTowerBuilder::EPD){
+              int sector = ((channel + 1) / 32);
+              
+              if (channel == (14 + 32*sector)) {
+                continue;
+              }
+            }
             std::vector<float> waveform;
             waveform.reserve(m_nsamples);
+            
             for (int samp = 0; samp < m_nzerosuppsamples; samp++)
             {
               waveform.push_back(0);
@@ -193,6 +214,12 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       {
         for (int channel = 0; channel < m_nchannels; channel++)
         {
+          if(m_dettype == CaloTowerBuilder::EPD){
+            int sector = ((channel + 1)/ 32);
+            if (channel == (14 + 32*sector)) {
+              continue;
+            }  
+          }
           std::vector<float> waveform;
           waveform.reserve(2);
           for (int samp = 0; samp < m_nzerosuppsamples; samp++)
@@ -214,6 +241,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   int n_channels = processed_waveforms.size();
   for (int i = 0; i < n_channels; i++)
   {
+    
     m_CaloInfoContainer->get_tower_at_channel(i)->set_time(processed_waveforms.at(i).at(1));
     m_CaloInfoContainer->get_tower_at_channel(i)->set_energy(processed_waveforms.at(i).at(0));
   }

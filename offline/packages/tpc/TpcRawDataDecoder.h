@@ -97,6 +97,7 @@ class TpcRawDataDecoder : public SubsysReco
   private:
     int m_Debug = 0;
     TH3*   _h_hit_XYT = nullptr;
+    TH3*   _h_hit_PT_ADCcut = nullptr;
     TH2*   _h_hit_XY = nullptr;
     TH2*   _h_hit_XY_ADCcut = nullptr;
 

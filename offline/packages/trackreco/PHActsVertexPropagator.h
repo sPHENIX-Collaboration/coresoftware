@@ -34,6 +34,8 @@ class PHActsVertexPropagator : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void fieldMap(std::string& fieldmap){m_fieldMap = fieldmap;}
+
  private:
   int getNodes(PHCompositeNode *topNode);
   ActsPropagator::BoundTrackParamResult
@@ -48,6 +50,7 @@ class PHActsVertexPropagator : public SubsysReco
   SvtxVertexMap *m_vertexMap = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
+  std::string m_fieldMap = "";
 };
 
 #endif

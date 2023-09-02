@@ -247,6 +247,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   diffusion_long = get_double_param("diffusion_long");
   added_smear_sigma_long = get_double_param("added_smear_long");
   diffusion_trans = get_double_param("diffusion_trans");
+  if(zero_bfield) diffusion_trans *= zero_bfield_diffusion_factor;
   added_smear_sigma_trans = get_double_param("added_smear_trans");
   drift_velocity = get_double_param("drift_velocity");
   // min_time to max_time is the time window for accepting drifted electrons after the trigger
