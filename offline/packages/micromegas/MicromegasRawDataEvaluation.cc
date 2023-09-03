@@ -213,7 +213,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       // check fee bco consistency
       const auto iter = fee_bco_map.find( sample.fee_id );
       if( iter == fee_bco_map.end() ) fee_bco_map.emplace(sample.fee_id, sample.fee_bco );
-      else if( iter->second != sample.fee_bco  )
+      else if( iter->second != sample.fee_bco )
       {
         std::cout << "MicromegasRawDataEvaluation::process_event -"
           << " fee_id: " <<  sample.fee_id
@@ -255,6 +255,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
       waveform.is_signal =
         rms > 0 &&
+        waveform.adc_max >= m_min_adc &&
         waveform.sample_max >= m_sample_min &&
         waveform.sample_max < m_sample_max &&
         waveform.adc_max > pedestal+m_n_sigma * rms;

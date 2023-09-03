@@ -50,6 +50,10 @@ class MicromegasRawDataEvaluation : public SubsysReco
   /// set number of RMS sigma used to defined static threshold on a given channel
   void set_n_sigma( double value ) { m_n_sigma = value; }
 
+  /// set minimum ADC value, disregarding pedestal and RMS. 
+  /** This removes faulty channels for which calibration has failed */
+  void set_min_adc( double value ) { m_min_adc = value; }
+
   /// set min sample for noise estimation
   void set_sample_min( int value ) { m_sample_min = value; }
 
@@ -196,6 +200,10 @@ class MicromegasRawDataEvaluation : public SubsysReco
   /// number of RMS sigma used to define threshold
   double m_n_sigma = 5;
 
+  //! minimum ADC value, disregarding pedestal and RMS. 
+  /* This removes faulty channels for which calibration has failed */
+  double m_min_adc = 50;
+  
   /// min sample for signal
   int m_sample_min = 0;
 
