@@ -143,7 +143,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
     // store tagged lvl1 bcos into a vector
     using bco_list_t = std::list<uint64_t>;
-    bco_list_t bco_list;
+    bco_list_t main_bco_list;
     for (int t = 0; t < n_tagger; t++)
     {
       const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
@@ -151,7 +151,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       const auto lvl1_count = static_cast<uint32_t>(packet->lValue(t, "LEVEL1_COUNT"));
       if( is_lvl1 )
       {
-        bco_list.push_back( bco );
+        main_bco_list.push_back( bco );
 
         // also store in evaluation container
         m_container->lvl1_bco_list.push_back(bco);
@@ -163,17 +163,20 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
     {
       std::cout << "MicromegasRawDataEvaluation::process_event -"
         << " packet: " << packet_id
-        << " n_lvl1_bco: " << bco_list.size()
+        << " n_lvl1_bco: " << main_bco_list.size()
         << " n_waveform: " << n_waveform
         << std::endl;
 
       std::cout << "MicromegasRawDataEvaluation::process_event -"
         << " packet: " << packet_id
-        << " bco: " << bco_list
+        << " bco: " << main_bco_list
         << std::endl;
 
     }
 
+    // store available bco list for each fee
+    std::map<unsigned short, bco_list_t> bco_list_map;
+    
     for( int iwf=0; iwf<n_waveform; ++iwf )
     {
       // create running sample, assign packet, fee, layer and tile id
@@ -185,16 +188,33 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       sample.tile = MicromegasDefs::getTileId( hitsetkey );
 
       // for now only focus on fee_id == 0
-      if( sample.fee_id != 0 ) continue;
+      // if( sample.fee_id != 0 ) continue;
 
       // beam crossing, checksum, checksum error
       sample.fee_bco = packet->iValue(iwf, "BCO");
       sample.lvl1_bco = 0;
-
+      
+      // find bco matching map corresponding to fee
+      auto bco_matching_map_iter = m_fee_bco_matching_map.lower_bound( sample.fee_id );
+      if( bco_matching_map_iter == m_fee_bco_matching_map.end() || sample.fee_id < bco_matching_map_iter->first )
+      { bco_matching_map_iter = m_fee_bco_matching_map.insert( bco_matching_map_iter, std::make_pair( sample.fee_id, bco_matching_map_t() ) ); }
+      auto& bco_matching_map = bco_matching_map_iter->second;
+      
       // find matching lvl1 bco
-      auto iter = m_fee_lvl1_bco_map.lower_bound(sample.fee_bco );
-      if( iter == m_fee_lvl1_bco_map.end() || sample.fee_bco < iter->first )
+      auto bco_matching_iter = bco_matching_map.lower_bound(sample.fee_bco );
+      if( bco_matching_iter == bco_matching_map.end() || sample.fee_bco < bco_matching_iter->first )
       {
+        
+        // find bco list corresponding to fee
+        auto bco_list_iter = bco_list_map.lower_bound( sample.fee_id );
+        if( bco_list_iter == bco_list_map.end() || sample.fee_id < bco_list_iter->first )
+        {
+          // insert main list if not found
+          bco_list_iter = bco_list_map.insert( bco_list_iter, std::make_pair( sample.fee_id, main_bco_list ) ); 
+        }
+      
+        // get local reference to fee's bco list
+        auto& bco_list = bco_list_iter->second;
         if( !bco_list.empty() )
         {
 
@@ -204,22 +224,22 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
             << std::endl;
 
           // fee_bco not found in list. Assume it corresponds to the first available lvl1 bco
-          iter = m_fee_lvl1_bco_map.insert( iter, std::make_pair( sample.fee_bco, bco_list.front() ) );
+          const auto lvl1_bco = bco_list.front();
+          bco_matching_iter = bco_matching_map.insert( bco_matching_iter, std::make_pair( sample.fee_bco, lvl1_bco ) );
           bco_list.pop_front();
-          sample.lvl1_bco = iter->second;
+          sample.lvl1_bco = lvl1_bco;
 
         } else {
-
           std::cout << "MicromegasRawDataEvaluation::process_event -"
+            << " fee_id: " << sample.fee_id
             << " fee_bco: " << sample.fee_bco
             << " lvl1_bco: none"
             << std::endl;
-
         }
 
       } else {
         
-        sample.lvl1_bco = iter->second;
+        sample.lvl1_bco = bco_matching_iter->second;
 
       }
       
