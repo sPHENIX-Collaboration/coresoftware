@@ -22,7 +22,36 @@
 
 #include <cassert>
 #include <fstream>
+#include <list>
 #include <memory>
+
+namespace
+{
+
+  // streamer for lists
+  template< class T >
+    std::ostream& operator << ( std::ostream& out, const std::list<T>& list )
+  {
+    if( list.empty() ) out << "{}";
+    else
+    {
+      out << "{ ";
+      bool first = true;
+      for( const auto& value:list )
+      {
+        if( !first ) out << ", ";
+        out << value;
+        first = false;
+      }
+
+      out << " }";
+    }
+
+    return out;
+  }
+
+}
+
 
 //_________________________________________________________
 void MicromegasRawDataEvaluation::Waveform::copy_from( const MicromegasRawDataEvaluation::Sample& sample )
@@ -92,9 +121,6 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
   m_container->Reset();
 
-  // store fee_bco vs fee_id
-  std::map<unsigned short, unsigned int> fee_bco_map;
-  
   // loop over TPOT packets
   for( const auto& packet_id:MicromegasDefs::m_packet_ids )
   {
@@ -115,83 +141,93 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
     const auto n_waveform = packet->iValue(0, "NR_WF" );
     m_container->n_waveform.push_back(n_waveform);
 
+    // store tagged lvl1 bcos into a vector
+    using bco_list_t = std::list<uint64_t>;
+    bco_list_t bco_list;
+    for (int t = 0; t < n_tagger; t++)
+    {
+      const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
+      const auto bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+      const auto lvl1_count = static_cast<uint32_t>(packet->lValue(t, "LEVEL1_COUNT"));
+      if( is_lvl1 )
+      {
+        bco_list.push_back( bco );
+
+        // also store in evaluation container
+        m_container->lvl1_bco_list.push_back(bco);
+        m_container->lvl1_count_list.push_back(lvl1_count);
+      }
+    }
+
     // if( Verbosity() )
     {
       std::cout << "MicromegasRawDataEvaluation::process_event -"
         << " packet: " << packet_id
-        << " n_tagger: " << n_tagger
+        << " n_lvl1_bco: " << bco_list.size()
         << " n_waveform: " << n_waveform
         << std::endl;
-    }
 
-    for (int t = 0; t < n_tagger; t++)
-    {
-      const auto tagger_type = static_cast<uint16_t>(packet->lValue(t, "TAGGER_TYPE"));
-      const auto is_endat = static_cast<uint8_t>(packet->lValue(t, "IS_ENDAT"));
-      const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
-      const auto bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
-      const auto lvl1_count = static_cast<uint32_t>(packet->lValue(t, "LEVEL1_COUNT"));
-      const auto endat_count = static_cast<uint32_t>(packet->lValue(t, "ENDAT_COUNT"));
-      const auto last_bco = static_cast<uint64_t>(packet->lValue(t, "LAST_BCO"));
-      // const auto modebits = static_cast<uint8_t>(packet->lValue(t, "MODEBITS"));
+      std::cout << "MicromegasRawDataEvaluation::process_event -"
+        << " packet: " << packet_id
+        << " bco: " << bco_list
+        << std::endl;
 
-      // only printout the is_lvl1 triggers
-      if( Verbosity() )
-      if( is_lvl1 )
-      {
-        std::cout << "MicromegasRawDataEvaluation::process_event -"
-          << " packet: " << packet_id
-          << " tagger: " << t
-          << " type: " << tagger_type
-          << " is_enddat: " << (bool) (is_endat)
-          << " is_lvl1: " << (bool) (is_lvl1)
-          << " bco: " << bco
-          << " last bco: " << last_bco
-          << " endat_count: " << endat_count
-          << " lvl1_count: " << lvl1_count
-          << std::endl;
-      }
-
-      // store lvl1 bco into map
-      if( is_lvl1 )
-      {
-        m_packet_bco_map[packet_id] = bco; 
-        m_packet_lvl1_count_map[packet_id] = lvl1_count;
-      }
-
-    }
-
-    // store current bco and trigger count in tree
-    m_container->lvl1_bco_list.push_back(m_packet_bco_map[packet_id]);
-    m_container->lvl1_count_list.push_back(m_packet_lvl1_count_map[packet_id]);
-    
-    // drop events for which waveforms is too large
-    if( m_max_waveforms > 0 && n_waveform > m_max_waveforms )
-    {
-      std::cout << "icromegasRawDataEvaluation::process_event - too many waveforms: " << n_waveform << " skipping" << std::endl;
-      continue;
     }
 
     for( int iwf=0; iwf<n_waveform; ++iwf )
     {
-      // create running sample, assign packet id
+      // create running sample, assign packet, fee, layer and tile id
       Sample sample;
       sample.packet_id = packet_id;
+      sample.fee_id = packet->iValue(iwf, "FEE" );
+      const auto hitsetkey = m_mapping.get_hitsetkey(sample.fee_id);
+      sample.layer = TrkrDefs::getLayer( hitsetkey );
+      sample.tile = MicromegasDefs::getTileId( hitsetkey );
+
+      // for now only focus on fee_id == 0
+      if( sample.fee_id != 0 ) continue;
 
       // beam crossing, checksum, checksum error
       sample.fee_bco = packet->iValue(iwf, "BCO");
-      sample.lvl1_bco = m_packet_bco_map[packet_id];
+      sample.lvl1_bco = 0;
+
+      // find matching lvl1 bco
+      auto iter = m_fee_lvl1_bco_map.lower_bound(sample.fee_bco );
+      if( iter == m_fee_lvl1_bco_map.end() || sample.fee_bco < iter->first )
+      {
+        if( !bco_list.empty() )
+        {
+
+          std::cout << "MicromegasRawDataEvaluation::process_event -"
+            << " fee_bco: " << sample.fee_bco
+            << " lvl1_bco: " << bco_list.front()
+            << std::endl;
+
+          // fee_bco not found in list. Assume it corresponds to the first available lvl1 bco
+          iter = m_fee_lvl1_bco_map.insert( iter, std::make_pair( sample.fee_bco, bco_list.front() ) );
+          bco_list.pop_front();
+          sample.lvl1_bco = iter->second;
+
+        } else {
+
+          std::cout << "MicromegasRawDataEvaluation::process_event -"
+            << " fee_bco: " << sample.fee_bco
+            << " lvl1_bco: none"
+            << std::endl;
+
+        }
+
+      } else {
+        
+        sample.lvl1_bco = iter->second;
+
+      }
+      
       sample.checksum = packet->iValue(iwf, "CHECKSUM");
       sample.checksum_error = packet->iValue(iwf, "CHECKSUMERROR");
 
       // increment bco map
       ++m_bco_map[sample.lvl1_bco];
-
-      // get hitsetkey, layer and tile
-      sample.fee_id = packet->iValue(iwf, "FEE" );
-      const auto hitsetkey = m_mapping.get_hitsetkey(sample.fee_id);
-      sample.layer = TrkrDefs::getLayer( hitsetkey );
-      sample.tile = MicromegasDefs::getTileId( hitsetkey );
 
       // channel, sampa_channel, sampa address and strip
       sample.sampa_address = packet->iValue( iwf, "SAMPAADDRESS" );
@@ -204,22 +240,9 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       const double rms = m_calibration_data.get_rms( sample.fee_id, sample.channel );
       sample.pedestal = pedestal;
       sample.rms = rms;
-      
+
       // get number of samples and loop
       const unsigned short samples = packet->iValue( iwf, "SAMPLES" );
-
-      
-      // check fee bco consistency
-      const auto iter = fee_bco_map.find( sample.fee_id );
-      if( iter == fee_bco_map.end() ) fee_bco_map.emplace(sample.fee_id, sample.fee_bco );
-      else if( iter->second != sample.fee_bco )
-      {
-        std::cout << "MicromegasRawDataEvaluation::process_event -"
-          << " fee_id: " <<  sample.fee_id
-          << " inconsistent bco: " << sample.fee_bco << " vs " << iter->second
-          << std::endl;
-      }
-      
       if( Verbosity() )
       {
         std::cout << "MicromegasRawDataEvaluation::process_event -"
@@ -266,27 +289,14 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
   m_evaluation_tree->Fill();
 
-  // print bco maps
-  for( const auto& [packet, bco]: m_packet_bco_map )
-  {
-    std::cout << "MicromegasRawDataEvaluation::process_event -"
-      << " packet: " << packet 
-      << " bco: " << bco
-      << std::endl; 
-  }
-  
-  for( const auto& [fee, bco]: fee_bco_map )
-  { 
-    std::cout << "MicromegasRawDataEvaluation::process_event -"
-      << " fee: " << fee 
-      << " bco: " << bco 
-      << std::endl;
-  }
-  
-  const auto fee_bco_min = std::min_element( fee_bco_map.begin(), fee_bco_map.end(), []( const auto& lhs, const auto&rhs ){ return lhs.second < rhs.second; } )->second;
-  const auto fee_bco_max = std::max_element( fee_bco_map.begin(), fee_bco_map.end(), []( const auto& lhs, const auto&rhs ){ return lhs.second < rhs.second; } )->second;
-  std::cout << "MicromegasRawDataEvaluation::process_event - range: " << fee_bco_max - fee_bco_min << std::endl;
-  
+//   for( const auto& [fee, bco]: fee_bco_map )
+//   {
+//     std::cout << "MicromegasRawDataEvaluation::process_event -"
+//       << " fee: " << fee
+//       << " bco: " << bco
+//       << std::endl;
+//   }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -316,7 +326,7 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/ )
     {
       if( !first ) std::cout << ", ";
       first = false;
-      if( count == 10 ) 
+      if( count == 10 )
       {
         count = 0;
         std::cout << std::endl;
@@ -326,6 +336,6 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/ )
     }
     std::cout << std::endl << "};" << std::endl;
   }
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }

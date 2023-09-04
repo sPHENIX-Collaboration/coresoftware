@@ -60,9 +60,6 @@ class MicromegasRawDataEvaluation : public SubsysReco
   /// set min sample for noise estimation
   void set_sample_max( int value ) { m_sample_max = value; }
 
-  /// max number  of waveforms allowed
-  void set_max_waveforms( int value ) { m_max_waveforms = value; }
-
   /// output file name for evaluation histograms
   void set_evaluation_outputfile(const std::string &outputfile) {m_evaluation_filename = outputfile;}
 
@@ -210,9 +207,6 @@ class MicromegasRawDataEvaluation : public SubsysReco
   /// max sample for signal
   int m_sample_max = 100;
 
-  /// max waveforms allowed in a given event
-  int m_max_waveforms = 0;
-
   //! evaluation output filename
   std::string m_evaluation_filename = "MicromegasRawDataEvaluation.root";
   std::unique_ptr<TFile> m_evaluation_file;
@@ -222,14 +216,12 @@ class MicromegasRawDataEvaluation : public SubsysReco
 
   //! main branch
   Container* m_container = nullptr;
+  
+  //! map fee bco to lvl1 bco
+  using fee_lvl1_bco_map_t = std::map<unsigned int, uint64_t>;
+  fee_lvl1_bco_map_t m_fee_lvl1_bco_map;
 
-  //! map bco to packet
-  std::map<unsigned int, uint64_t> m_packet_bco_map;
-
-  //! lvl1 counter bco to packet
-  std::map<unsigned int, uint32_t> m_packet_lvl1_count_map;
-
-  // map bco to waveforms
+  // map waveforms to bco
   using bco_map_t = std::map<uint64_t,unsigned int>;
   bco_map_t m_bco_map;
 
