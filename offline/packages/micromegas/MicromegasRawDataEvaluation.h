@@ -218,10 +218,14 @@ class MicromegasRawDataEvaluation : public SubsysReco
   Container* m_container = nullptr;
   
   //! map fee bco to lvl1 bco
-  using fee_lvl1_bco_map_t = std::map<unsigned int, uint64_t>;
-  fee_lvl1_bco_map_t m_fee_lvl1_bco_map;
+  using bco_matching_map_t = std::map<unsigned int, uint64_t>;
 
-  // map waveforms to bco
+  //! map fee_id to bco maps
+  using fee_bco_matching_map_t = std::map<unsigned short, bco_matching_map_t>;
+  fee_bco_matching_map_t m_fee_bco_matching_map;
+  
+  /// map waveforms to bco
+  /** this is used to count how many waveforms are found for a given lvl1 bco */
   using bco_map_t = std::map<uint64_t,unsigned int>;
   bco_map_t m_bco_map;
 
