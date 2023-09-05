@@ -94,12 +94,12 @@ int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 		{"gtm_bco",	new std::vector<Long64_t>()},
 	};
 
-	branches_d =
-	{
-		{"x_s",		new std::vector<Double_t>()},
-		{"y_s",		new std::vector<Double_t>()},
-		{"z_s",		new std::vector<Double_t>()},
-	};
+	//branches_d =
+	//{
+	//	{"g_x",		new std::vector<Double_t>()},
+	//	{"g_y",		new std::vector<Double_t>()},
+	//	{"g_z",		new std::vector<Double_t>()},
+	//};
 
 	for(Branches_i_t::iterator itr = branches_i.begin(); itr != branches_i.end(); ++itr)tree->Branch(itr->first.c_str(), &(itr->second));
 	for(Branches_l_t::iterator itr = branches_l.begin(); itr != branches_l.end(); ++itr)tree->Branch(itr->first.c_str(), &(itr->second));
@@ -181,10 +181,10 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
 
 					branches_l["gtm_bco"]->push_back(gtm_bco);
 
-					Eigen::Vector4d pos = Intt::GetPos(onl);
-					branches_d["x_s"]->push_back(pos(0));
-					branches_d["y_s"]->push_back(pos(1));
-					branches_d["z_s"]->push_back(pos(2));
+					//Eigen::Vector4d pos = Intt::GetPos(onl);
+					//branches_d["g_x"]->push_back(pos(0));
+					//branches_d["g_y"]->push_back(pos(1));
+					//branches_d["g_z"]->push_back(pos(2));
 				}
 			}
 		}

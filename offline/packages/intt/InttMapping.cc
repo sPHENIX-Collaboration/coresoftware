@@ -1,7 +1,7 @@
 #include "InttMapping.h"
 
 #include "InttFelixMap.h"
-#include "InttSurveyMap.h"
+//#include "InttSurveyMap.h"
 
 const std::map<int, int> Intt::Packet_Id =
 {
@@ -135,20 +135,20 @@ struct Intt::Offline_s Intt::ToOffline(struct RawData_s const& _s)
 	return ToOffline(ToOnline(_s));
 }
 
-Eigen::Affine3d Intt::GetTransform(struct Intt::Offline_s const& _s)
-{
-	return InttSurvey::GetTransform(_s);
-}
-
-Eigen::Affine3d Intt::GetTransform(struct Intt::Online_s const& _s)
-{
-	return InttSurvey::GetTransform(ToOffline(_s));
-}
-
-Eigen::Affine3d Intt::GetTransform(struct Intt::RawData_s const& _s)
-{
-	return InttSurvey::GetTransform(ToOffline(_s));
-}
+//Eigen::Affine3d Intt::GetTransform(struct Intt::Offline_s const& _s)
+//{
+//	return InttSurvey::GetTransform(_s);
+//}
+//
+//Eigen::Affine3d Intt::GetTransform(struct Intt::Online_s const& _s)
+//{
+//	return InttSurvey::GetTransform(ToOffline(_s));
+//}
+//
+//Eigen::Affine3d Intt::GetTransform(struct Intt::RawData_s const& _s)
+//{
+//	return InttSurvey::GetTransform(ToOffline(_s));
+//}
 
 Eigen::Vector4d Intt::GetLocalPos(struct Intt::Offline_s const& _s)
 {
@@ -178,20 +178,20 @@ Eigen::Vector4d Intt::GetLocalPos(struct Intt::RawData_s const& _s)
 	return Intt::GetLocalPos(Intt::ToOffline(_s));
 }
 
-Eigen::Vector4d Intt::GetPos(struct Intt::Offline_s const& _s)
-{
-	return Intt::GetTransform(_s) * Intt::GetLocalPos(_s);
-}
-
-Eigen::Vector4d Intt::GetPos(struct Intt::Online_s const& _s)
-{
-	return Intt::GetTransform(_s) * Intt::GetLocalPos(_s);
-}
-
-Eigen::Vector4d Intt::GetPos(struct Intt::RawData_s const& _s)
-{
-	return Intt::GetTransform(_s) * Intt::GetLocalPos(_s);
-}
+//Eigen::Vector4d Intt::GetPos(struct Intt::Offline_s const& _s)
+//{
+//	return Intt::GetTransform(_s) * Intt::GetLocalPos(_s);
+//}
+//
+//Eigen::Vector4d Intt::GetPos(struct Intt::Online_s const& _s)
+//{
+//	return Intt::GetTransform(_s) * Intt::GetLocalPos(_s);
+//}
+//
+//Eigen::Vector4d Intt::GetPos(struct Intt::RawData_s const& _s)
+//{
+//	return Intt::GetTransform(_s) * Intt::GetLocalPos(_s);
+//}
 
 bool operator==(struct Intt::RawData_s const& lhs, struct Intt::RawData_s const& rhs)
 {

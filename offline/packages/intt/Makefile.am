@@ -42,7 +42,6 @@ pkginclude_HEADERS = \
   InttMapping.h \
   InttRawDataConverter.h \
   InttRawDataDecoder.h \
-  InttSurveyMap.h \
   InttVertexFinder.h \
   InttVertexMap.h \
   InttVertexMapv1.h \
@@ -76,7 +75,6 @@ libintt_la_SOURCES = \
   InttMapping.cc \
   InttRawDataConverter.cc \
   InttRawDataDecoder.cc \
-  InttSurveyMap.cc \
   InttVertexFinder.cc
 
 libintt_la_LIBADD = \
