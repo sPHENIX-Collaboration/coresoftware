@@ -17,6 +17,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 
 class PHCompositeNode;
 class TFile;
@@ -218,10 +219,10 @@ class MicromegasRawDataEvaluation : public SubsysReco
   Container* m_container = nullptr;
   
   //! map fee bco to lvl1 bco
-  using bco_matching_map_t = std::map<unsigned int, uint64_t>;
+  using bco_matching_pair_t = std::pair<unsigned int, uint64_t>;
 
   //! map fee_id to bco maps
-  using fee_bco_matching_map_t = std::map<unsigned short, bco_matching_map_t>;
+  using fee_bco_matching_map_t = std::map<unsigned short, bco_matching_pair_t>;
   fee_bco_matching_map_t m_fee_bco_matching_map;
   
   /// map waveforms to bco
