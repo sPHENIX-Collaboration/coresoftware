@@ -122,6 +122,10 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
   m_container->Reset();
 
+  // temporary storage for samples and waveforms, sorted by lvl1 bco
+  std::multimap<uint64_t, Sample> sample_map;
+  std::multimap<uint64_t, Waveform> waveform_map;
+  
   // loop over TPOT packets
   for( const auto& packet_id:MicromegasDefs::m_packet_ids )
   {
@@ -287,8 +291,8 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         unsigned short adc = packet->iValue(iwf,is);
         sample.sample = is;
         sample.adc = adc;
-        m_container->samples.push_back( sample );
-
+        sample_map.emplace( sample.lvl1_bco, sample );
+        
         if( sample.adc > sample_max.adc )
         { sample_max = sample; }
 
@@ -303,20 +307,19 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         waveform.sample_max < m_sample_max &&
         waveform.adc_max > pedestal+m_n_sigma * rms;
 
-      m_container->waveforms.push_back( waveform );
-
+      waveform_map.emplace( waveform.lvl1_bco, waveform );
     }
   }
 
-  m_evaluation_tree->Fill();
+  // copy all samples and waveform to container
+  for( auto&& [lvl_bco, sample]:sample_map )
+  { m_container->samples.push_back(std::move(sample)); }
 
-//   for( const auto& [fee, bco]: fee_bco_map )
-//   {
-//     std::cout << "MicromegasRawDataEvaluation::process_event -"
-//       << " fee: " << fee
-//       << " bco: " << bco
-//       << std::endl;
-//   }
+  for( auto&& [lvl1_bco, waveform]:waveform_map )
+  { m_container->waveforms.push_back(std::move(waveform)); }
+  
+  // fill evaluation tree
+  m_evaluation_tree->Fill();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
