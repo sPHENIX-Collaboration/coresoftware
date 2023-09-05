@@ -196,10 +196,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       sample.lvl1_bco = 0;
       
       // find bco matching map corresponding to fee
-      auto bco_matching_map_iter = m_fee_bco_matching_map.lower_bound( sample.fee_id );
-      if( bco_matching_map_iter == m_fee_bco_matching_map.end() || sample.fee_id < bco_matching_map_iter->first )
-      { bco_matching_map_iter = m_fee_bco_matching_map.insert( bco_matching_map_iter, std::make_pair( sample.fee_id, bco_matching_map_t() ) ); }
-      auto& bco_matching_map = bco_matching_map_iter->second;
+      auto& bco_matching_map = m_fee_bco_matching_map[sample.fee_id];
       
       // find matching lvl1 bco
       auto bco_matching_iter = bco_matching_map.lower_bound(sample.fee_bco );
@@ -220,6 +217,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         {
 
           std::cout << "MicromegasRawDataEvaluation::process_event -"
+            << " fee_id: " << sample.fee_id
             << " fee_bco: " << sample.fee_bco
             << " lvl1_bco: " << bco_list.front()
             << std::endl;
@@ -231,11 +229,13 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
           sample.lvl1_bco = lvl1_bco;
 
         } else {
+          
           std::cout << "MicromegasRawDataEvaluation::process_event -"
             << " fee_id: " << sample.fee_id
             << " fee_bco: " << sample.fee_bco
             << " lvl1_bco: none"
             << std::endl;
+
         }
 
       } else {
