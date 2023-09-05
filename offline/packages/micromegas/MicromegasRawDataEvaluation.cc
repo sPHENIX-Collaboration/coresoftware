@@ -192,28 +192,25 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       sample.layer = TrkrDefs::getLayer( hitsetkey );
       sample.tile = MicromegasDefs::getTileId( hitsetkey );
 
-      // for now only focus on fee_id == 0
-      // if( sample.fee_id != 0 ) continue;
-
       // beam crossing, checksum, checksum error
       sample.fee_bco = packet->iValue(iwf, "BCO");
       sample.lvl1_bco = 0;
 
       // find bco matching map corresponding to fee
-      auto& bco_matching_map = m_fee_bco_matching_map[sample.fee_id];
+      auto& bco_matching_pair = m_fee_bco_matching_map[sample.fee_id];
 
       // find matching lvl1 bco
-      auto bco_matching_iter = bco_matching_map.lower_bound(sample.fee_bco );
-      if( bco_matching_iter == bco_matching_map.end() || sample.fee_bco < bco_matching_iter->first )
+      if( bco_matching_pair.first == sample.fee_bco )
       {
 
-        // find bco list corresponding to fee
+        sample.lvl1_bco = bco_matching_pair.second;
+
+      } else {
+
+        // find bco list corresponding to fee, insert main list if not found
         auto bco_list_iter = bco_list_map.lower_bound( sample.fee_id );
         if( bco_list_iter == bco_list_map.end() || sample.fee_id < bco_list_iter->first )
-        {
-          // insert main list if not found
-          bco_list_iter = bco_list_map.insert( bco_list_iter, std::make_pair( sample.fee_id, main_bco_list ) );
-        }
+        { bco_list_iter = bco_list_map.insert( bco_list_iter, std::make_pair( sample.fee_id, main_bco_list ) ); }
 
         // get local reference to fee's bco list
         auto& bco_list = bco_list_iter->second;
@@ -229,10 +226,11 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
               << std::endl;
           }
 
-          // fee_bco not found in list. Assume it corresponds to the first available lvl1 bco
+          // fee_bco is new. Assume it corresponds to the first available lvl1 bco
+          // update running fee_bco and lvl1_bco pair accordingly
           const auto lvl1_bco = bco_list.front();
-          bco_matching_iter = bco_matching_map.insert( bco_matching_iter, std::make_pair( sample.fee_bco, lvl1_bco ) );
-          bco_list.pop_front();
+          bco_matching_pair.first = sample.fee_bco;
+          bco_matching_pair.second = lvl1_bco;
           sample.lvl1_bco = lvl1_bco;
 
         } else {
@@ -245,13 +243,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
               << " lvl1_bco: none"
               << std::endl;
           }
-
         }
-
-      } else {
-
-        sample.lvl1_bco = bco_matching_iter->second;
-
       }
 
       sample.checksum = packet->iValue(iwf, "CHECKSUM");
