@@ -132,7 +132,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
     if( !packet )
     {
       // no data
-      if( Verbosity() )
+      if( Verbosity() > 1 )
       { std::cout << "MicromegasRawDataEvaluation::process_event - packet " << packet_id << " not found." << std::endl; }
       continue;
     }
@@ -232,6 +232,9 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
           bco_matching_pair.second = lvl1_bco;
           sample.lvl1_bco = lvl1_bco;
 
+          // remove bco from running list
+          bco_list.pop_front();
+
         } else {
 
           if( Verbosity() )
@@ -265,7 +268,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
       // get number of samples and loop
       const unsigned short samples = packet->iValue( iwf, "SAMPLES" );
-      if( Verbosity() )
+      if( Verbosity() > 1 )
       {
         std::cout << "MicromegasRawDataEvaluation::process_event -"
           << " fee: " << sample.fee_id
@@ -332,7 +335,7 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/ )
   }
 
   // print bco map
-  // if( Verbosity() )
+  if( Verbosity() )
   {
     for( const auto& [bco,nwaveforms]:m_bco_map )
     { std::cout << "MicromegasRawDataEvaluation::End - bco: " << bco << ", nwaveforms: " << nwaveforms << std::endl; }
