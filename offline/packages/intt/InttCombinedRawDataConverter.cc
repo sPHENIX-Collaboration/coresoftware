@@ -94,12 +94,12 @@ int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 		{"gtm_bco",	new std::vector<Long64_t>()},
 	};
 
-	//branches_d =
-	//{
+	branches_d =
+	{
 	//	{"g_x",		new std::vector<Double_t>()},
 	//	{"g_y",		new std::vector<Double_t>()},
 	//	{"g_z",		new std::vector<Double_t>()},
-	//};
+	};
 
 	for(Branches_i_t::iterator itr = branches_i.begin(); itr != branches_i.end(); ++itr)tree->Branch(itr->first.c_str(), &(itr->second));
 	for(Branches_l_t::iterator itr = branches_l.begin(); itr != branches_l.end(); ++itr)tree->Branch(itr->first.c_str(), &(itr->second));
