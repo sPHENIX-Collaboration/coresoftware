@@ -125,7 +125,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
   // temporary storage for samples and waveforms, sorted by lvl1 bco
   std::multimap<uint64_t, Sample> sample_map;
   std::multimap<uint64_t, Waveform> waveform_map;
-  
+
   // loop over TPOT packets
   for( const auto& packet_id:MicromegasDefs::m_packet_ids )
   {
@@ -164,7 +164,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       }
     }
 
-    // if( Verbosity() )
+    if( Verbosity() )
     {
       std::cout << "MicromegasRawDataEvaluation::process_event -"
         << " packet: " << packet_id
@@ -181,7 +181,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
     // store available bco list for each fee
     std::map<unsigned short, bco_list_t> bco_list_map;
-    
+
     for( int iwf=0; iwf<n_waveform; ++iwf )
     {
       // create running sample, assign packet, fee, layer and tile id
@@ -198,33 +198,36 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       // beam crossing, checksum, checksum error
       sample.fee_bco = packet->iValue(iwf, "BCO");
       sample.lvl1_bco = 0;
-      
+
       // find bco matching map corresponding to fee
       auto& bco_matching_map = m_fee_bco_matching_map[sample.fee_id];
-      
+
       // find matching lvl1 bco
       auto bco_matching_iter = bco_matching_map.lower_bound(sample.fee_bco );
       if( bco_matching_iter == bco_matching_map.end() || sample.fee_bco < bco_matching_iter->first )
       {
-        
+
         // find bco list corresponding to fee
         auto bco_list_iter = bco_list_map.lower_bound( sample.fee_id );
         if( bco_list_iter == bco_list_map.end() || sample.fee_id < bco_list_iter->first )
         {
           // insert main list if not found
-          bco_list_iter = bco_list_map.insert( bco_list_iter, std::make_pair( sample.fee_id, main_bco_list ) ); 
+          bco_list_iter = bco_list_map.insert( bco_list_iter, std::make_pair( sample.fee_id, main_bco_list ) );
         }
-      
+
         // get local reference to fee's bco list
         auto& bco_list = bco_list_iter->second;
         if( !bco_list.empty() )
         {
 
-          std::cout << "MicromegasRawDataEvaluation::process_event -"
-            << " fee_id: " << sample.fee_id
-            << " fee_bco: " << sample.fee_bco
-            << " lvl1_bco: " << bco_list.front()
-            << std::endl;
+          if( Verbosity() )
+          {
+            std::cout << "MicromegasRawDataEvaluation::process_event -"
+              << " fee_id: " << sample.fee_id
+              << " fee_bco: " << sample.fee_bco
+              << " lvl1_bco: " << bco_list.front()
+              << std::endl;
+          }
 
           // fee_bco not found in list. Assume it corresponds to the first available lvl1 bco
           const auto lvl1_bco = bco_list.front();
@@ -233,21 +236,24 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
           sample.lvl1_bco = lvl1_bco;
 
         } else {
-          
-          std::cout << "MicromegasRawDataEvaluation::process_event -"
-            << " fee_id: " << sample.fee_id
-            << " fee_bco: " << sample.fee_bco
-            << " lvl1_bco: none"
-            << std::endl;
+
+          if( Verbosity() )
+          {
+            std::cout << "MicromegasRawDataEvaluation::process_event -"
+              << " fee_id: " << sample.fee_id
+              << " fee_bco: " << sample.fee_bco
+              << " lvl1_bco: none"
+              << std::endl;
+          }
 
         }
 
       } else {
-        
+
         sample.lvl1_bco = bco_matching_iter->second;
 
       }
-      
+
       sample.checksum = packet->iValue(iwf, "CHECKSUM");
       sample.checksum_error = packet->iValue(iwf, "CHECKSUMERROR");
 
@@ -292,7 +298,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         sample.sample = is;
         sample.adc = adc;
         sample_map.emplace( sample.lvl1_bco, sample );
-        
+
         if( sample.adc > sample_max.adc )
         { sample_max = sample; }
 
@@ -317,7 +323,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
   for( auto&& [lvl1_bco, waveform]:waveform_map )
   { m_container->waveforms.push_back(std::move(waveform)); }
-  
+
   // fill evaluation tree
   m_evaluation_tree->Fill();
 
