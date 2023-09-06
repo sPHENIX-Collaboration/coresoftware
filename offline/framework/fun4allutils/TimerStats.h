@@ -18,7 +18,7 @@ class TimerStats : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
-  void OutFileName(const std::string &name) {outfilename = name;}
+  void OutFileName(const std::string &name) { outfilename = name; }
 
  private:
   CDBTTree *cdbttree = nullptr;
