@@ -21,6 +21,7 @@ TimerStats::TimerStats(const std::string &name)
 
 int TimerStats::InitRun(PHCompositeNode * /*topNode*/)
 {
+  delete cdbttree; // make cppcheck happy, deleting a null ptr
   cdbttree = new CDBTTree(outfilename);
   return Fun4AllReturnCodes::EVENT_OK;
 }
