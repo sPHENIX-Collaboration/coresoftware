@@ -120,7 +120,7 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
   {
     _ntp_hit = new TNtuple("ntp_hit", "svtxhit => max truth",
                            "event:seed:hitID:e:adc:layer:phielem:zelem:"
-                           "cellID:ecell:phibin:tbin:phi:z:y:z"
+                           "cellID:ecell:phibin:tbin:phi:x:y:z:"
                            "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
 
