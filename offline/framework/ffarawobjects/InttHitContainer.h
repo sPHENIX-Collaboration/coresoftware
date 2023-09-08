@@ -11,7 +11,7 @@ public:
   InttHitContainer() = default;
   virtual ~InttHitContainer() = default;
 
-  virtual void AddInttHit(InttHit *) {return;}
+  virtual InttHit *AddHit() {return nullptr;}
   virtual unsigned int get_nhits() {return 0;}
   virtual InttHit *get_hit(unsigned int) {return nullptr;}
 

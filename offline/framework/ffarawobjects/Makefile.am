@@ -18,21 +18,25 @@ libffarawobjects_la_LIBADD = \
 ROOTDICTS = \
   InttHit_Dict.cc \
   InttHitContainer_Dict.cc \
+  InttHitContainerv1_Dict.cc \
   InttHitv1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   InttHit_Dict_rdict.pcm \
   InttHitContainer_Dict_rdict.pcm \
+  InttHitContainerv1_Dict_rdict.pcm \
   InttHitv1_Dict_rdict.pcm
 
 pkginclude_HEADERS = \
   InttHit.h \
   InttHitContainer.h \
+  InttHitContainerv1.h \
   InttHitv1.h
 
 libffarawobjects_la_SOURCES = \
-  $(ROOTDICTS)
+  $(ROOTDICTS) \
+  InttHitContainerv1.cc
 
 BUILT_SOURCES = testexternals.cc
 
