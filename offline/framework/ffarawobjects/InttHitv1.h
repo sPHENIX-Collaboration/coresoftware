@@ -44,9 +44,6 @@ public:
   uint16_t get_amplitude() const override {return amplitude;}
   void set_amplitude(uint16_t val) override {amplitude = val;}
 
-  uint16_t get_full_fphx() const override {return full_fphx;}
-  void set_full_fphx(uint16_t val) override {full_fphx = val;}
-
 
 protected:
     uint64_t bco = std::numeric_limits<uint64_t>::max();
@@ -59,7 +56,6 @@ protected:
     uint16_t full_FPHX = std::numeric_limits<uint16_t>::max();
     uint16_t full_ROC = std::numeric_limits<uint16_t>::max();
     uint16_t amplitude = std::numeric_limits<uint16_t>::max();
-    uint16_t full_fphx = std::numeric_limits<uint16_t>::max();
 
   ClassDefOverride(InttHitv1,1)    
 };

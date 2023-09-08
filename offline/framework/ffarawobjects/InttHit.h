@@ -44,10 +44,6 @@ public:
   virtual uint16_t get_amplitude() const {return std::numeric_limits<uint16_t>::max();}
   virtual void set_amplitude(uint16_t) {return;}
 
-  virtual uint16_t get_full_fphx() const {return std::numeric_limits<uint16_t>::max();}
-  virtual void set_full_fphx(uint16_t) {return;}
-
-
 private:
   ClassDefOverride(InttHit,1)    
 };
