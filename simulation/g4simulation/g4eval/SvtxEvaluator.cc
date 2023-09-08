@@ -3838,7 +3838,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float gembed = NAN;
         float gprimary = NAN;
 
-	float ispure = NAN;
+	int ispure = 0;
         float nfromtruth = NAN;
         float nwrong = NAN;
         float ntrumaps = NAN;
@@ -3872,13 +3872,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               }
             }
 	    SvtxTrack* truthrecotrk = trackeval->best_track_from(g4particle);
-	    if(truthrecotrk->get_id() == track->get_id())
+	    if(truthrecotrk)
 	      {
-		ispure = 1;
-	      }
-	    else
-	      {
-		ispure = 0;
+		if(truthrecotrk->get_id() == track->get_id())
+		  {
+		    ispure = 1;
+		  }
 	      }
             gtrackID = g4particle->get_track_id();
             gflavor = g4particle->get_pid();
@@ -4110,7 +4109,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                               pcay,
                               pcaz,
                               gtrackID,
-			      ispure,
+			      (float)ispure,
                               gflavor,
                               ng4hits,
                               (float) ngmaps,
