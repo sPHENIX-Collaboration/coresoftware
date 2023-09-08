@@ -2,6 +2,9 @@
 
 #include "Fun4AllEvtInputPoolManager.h"
 
+#include <ffarawobjects/InttHitContainerv1.h>
+#include <ffarawobjects/InttHitv1.h>
+
 #include <frog/FROG.h>
 
 #include <phool/phool.h>
@@ -96,8 +99,21 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
         std::set<uint64_t> bclk_set;
         for (int j = 0; j < num_hits; j++)
         {
+          InttHit *newhit = new InttHitv1();
           int FEE = plist[i]->iValue(j, "FEE");
-          uint64_t gtm_bco = plist[i]->lValue(j, "BCO") + m_Rollover[FEE];
+          uint64_t gtm_bco = plist[i]->lValue(j, "BCO");
+          newhit->set_fee(FEE);
+          newhit->set_bco(gtm_bco);
+          newhit->set_adc(plist[i]->iValue(j,"ADC"));
+	  newhit->set_amplitude(plist[i]->iValue(j,"AMPLITUDE"));
+          newhit->set_chip_id(plist[i]->iValue(j,"CHIP_ID"));
+          newhit->set_channel_id(plist[i]->iValue(j,"CHANNEL_ID"));
+	  newhit->set_word(plist[i]->iValue(j,"DATAWORD"));
+	  newhit->set_FPHX_BCO(plist[i]->iValue(j,"FPHX_BCO"));
+	  newhit->set_full_FPHX(plist[i]->iValue(j,"FULL_FPHX"));
+	  newhit->set_full_ROC(plist[i]->iValue(j,"FULL_ROC"));
+
+          gtm_bco += m_Rollover[FEE];
           bclk_set.insert(gtm_bco);
           if (gtm_bco < m_PreviousClock[FEE])
           {
@@ -114,7 +130,15 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
                       << ", bco: 0x" << std::hex << gtm_bco << std::dec
                       << ", FEE: " << FEE << std::endl;
           }
-          plist[i]->convert();
+//          plist[i]->convert();
+            if (m_InputMgr)
+            {
+              m_InputMgr->AddInttHit(gtm_bco, newhit);
+            }
+            // else
+            // {
+            //   m_BclkStack.insert(bco_iter);
+            // }
         }
         if (bclk_set.empty())
         {
@@ -125,14 +149,6 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
           for (auto bco_iter : bclk_set)
           {
             saved_beamclocks.insert(bco_iter);
-            if (m_InputMgr)
-            {
-              m_InputMgr->AddPacket(bco_iter, plist[i]);
-            }
-            else
-            {
-              m_BclkStack.insert(bco_iter);
-            }
           }
           uint64_t latestbclk = *bclk_set.rbegin();
           auto packetvector = m_PacketStorageMap.find(latestbclk);

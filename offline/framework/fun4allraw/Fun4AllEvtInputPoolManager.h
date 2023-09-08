@@ -12,6 +12,7 @@
 
 class SingleEvtInput;
 class ospEvent;
+class InttHit;
 class PacketMap;
 class Packet;
 class PHCompositeNode;
@@ -38,11 +39,17 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   SingleEvtInput *AddEvtInputFile(const std::string &filename);
   void AddPacket(uint64_t bclk, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
+  void AddInttHit(uint64_t bclk, InttHit *hit);
 
  private:
   struct PacketInfo
   {
     std::vector<Packet *> PacketVector;
+    unsigned int EventFoundCounter = 0;
+  };
+  struct InttHitInfo
+  {
+    std::vector<InttHit *> InttHitVector;
     unsigned int EventFoundCounter = 0;
   };
 
@@ -52,6 +59,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   PHCompositeNode *m_topNode = nullptr;
   PacketMap *m_PacketMap = nullptr;
   std::map<uint64_t, PacketInfo> m_PacketInfoMap;
+  std::map<uint64_t, InttHitInfo> m_InttHitMap;
   std::string m_EvtNodeName;
   uint64_t m_CurrentBeamClock = 0;
 };
