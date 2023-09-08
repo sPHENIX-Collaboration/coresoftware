@@ -1635,6 +1635,8 @@ std::set<SvtxTrack*> TrkrNtuplizer::all_tracks_from(TrkrDefs::cluskey cluster_ke
 void TrkrNtuplizer::create_cache_track_from_cluster()
 {
 
+  if(!_trackmap) return;
+
   // loop over all SvtxTracks
   for (SvtxTrackMap::Iter iter = _trackmap->begin();
        iter != _trackmap->end();
