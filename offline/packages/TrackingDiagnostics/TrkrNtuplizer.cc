@@ -120,7 +120,7 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
   {
     _ntp_hit = new TNtuple("ntp_hit", "svtxhit => max truth",
                            "event:seed:hitID:e:adc:layer:phielem:zelem:"
-                           "cellID:ecell:phibin:tbin:phi:z:y:z"
+                           "cellID:ecell:phibin:tbin:phi:x:y:z:"
                            "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
 
@@ -1634,6 +1634,8 @@ std::set<SvtxTrack*> TrkrNtuplizer::all_tracks_from(TrkrDefs::cluskey cluster_ke
 
 void TrkrNtuplizer::create_cache_track_from_cluster()
 {
+
+  if(!_trackmap) return;
 
   // loop over all SvtxTracks
   for (SvtxTrackMap::Iter iter = _trackmap->begin();
