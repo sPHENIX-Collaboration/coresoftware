@@ -151,7 +151,7 @@ class Fun4AllServer : public Fun4AllBase
   std::vector<TDirectory *> TDirCollection;
   std::vector<Fun4AllHistoManager *> HistoManager;
   std::map<std::string, PHCompositeNode *> topnodemap;
-  std::string default_Tdirectory;
+  std::string default_Tdirectory = "Rint:/";
   std::vector<Fun4AllSyncManager *> SyncManagers;
   std::map<int, int> retcodesmap;
   std::map<const std::string, PHTimer> timer_map;
