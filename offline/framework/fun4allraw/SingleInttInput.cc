@@ -140,10 +140,7 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
 	  m_InttHitMap[gtm_bco] = intthitvector;
 	}
 	m_InttHitMap[gtm_bco].push_back(newhit);
-	// else
-	// {
-	//   m_BclkStack.insert(bco_iter);
-	// }
+	m_BclkStack.insert(gtm_bco);
       }
       delete plist[i];
       // else
