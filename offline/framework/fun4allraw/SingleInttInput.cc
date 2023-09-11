@@ -26,14 +26,14 @@ SingleInttInput::SingleInttInput(const std::string &name, Fun4AllEvtInputPoolMan
 SingleInttInput::~SingleInttInput()
 {
   delete m_EventIterator;
-  for (const auto &iter : m_PacketStorageMap)
+  for (const auto &iter : m_InttHitMap)
   {
     for (auto pktiter : iter.second)
     {
       delete pktiter;
     }
   }
-  m_PacketStorageMap.clear();
+  m_InttHitMap.clear();
   delete[] plist;
 }
 
@@ -93,81 +93,66 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
       {
         plist[i]->identify();
       }
-      //        if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
+      int num_hits = plist[i]->iValue(0, "NR_HITS");
+      std::set<uint64_t> bclk_set;
+      for (int j = 0; j < num_hits; j++)
       {
-        int num_hits = plist[i]->iValue(0, "NR_HITS");
-        std::set<uint64_t> bclk_set;
-        for (int j = 0; j < num_hits; j++)
-        {
-          InttHit *newhit = new InttHitv1();
-          int FEE = plist[i]->iValue(j, "FEE");
-          uint64_t gtm_bco = plist[i]->lValue(j, "BCO");
-          newhit->set_fee(FEE);
-          newhit->set_bco(gtm_bco);
-          newhit->set_adc(plist[i]->iValue(j,"ADC"));
-	  newhit->set_amplitude(plist[i]->iValue(j,"AMPLITUDE"));
-          newhit->set_chip_id(plist[i]->iValue(j,"CHIP_ID"));
-          newhit->set_channel_id(plist[i]->iValue(j,"CHANNEL_ID"));
-	  newhit->set_word(plist[i]->iValue(j,"DATAWORD"));
-	  newhit->set_FPHX_BCO(plist[i]->iValue(j,"FPHX_BCO"));
-	  newhit->set_full_FPHX(plist[i]->iValue(j,"FULL_FPHX"));
-	  newhit->set_full_ROC(plist[i]->iValue(j,"FULL_ROC"));
+	InttHit *newhit = new InttHitv1();
+	int FEE = plist[i]->iValue(j, "FEE");
+	uint64_t gtm_bco = plist[i]->lValue(j, "BCO");
+	newhit->set_fee(FEE);
+	newhit->set_bco(gtm_bco);
+	newhit->set_adc(plist[i]->iValue(j,"ADC"));
+	newhit->set_amplitude(plist[i]->iValue(j,"AMPLITUDE"));
+	newhit->set_chip_id(plist[i]->iValue(j,"CHIP_ID"));
+	newhit->set_channel_id(plist[i]->iValue(j,"CHANNEL_ID"));
+	newhit->set_word(plist[i]->iValue(j,"DATAWORD"));
+	newhit->set_FPHX_BCO(plist[i]->iValue(j,"FPHX_BCO"));
+	newhit->set_full_FPHX(plist[i]->iValue(j,"FULL_FPHX"));
+	newhit->set_full_ROC(plist[i]->iValue(j,"FULL_ROC"));
 
-          gtm_bco += m_Rollover[FEE];
-          bclk_set.insert(gtm_bco);
-          if (gtm_bco < m_PreviousClock[FEE])
-          {
-            m_Rollover[FEE] += 0x10000000000;
-            gtm_bco += m_Rollover[FEE];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
-          }
-          m_PreviousClock[FEE] = gtm_bco;
-          m_BeamClockFEE[gtm_bco].insert(FEE);
-          m_FEEBclkMap[FEE] = gtm_bco;
-          if (Verbosity() > 2)
-          {
-            std::cout << "evtno: " << EventSequence
-                      << ", nr_hits: " << num_hits
-                      << ", bco: 0x" << std::hex << gtm_bco << std::dec
-                      << ", FEE: " << FEE << std::endl;
-          }
+	gtm_bco += m_Rollover[FEE];
+	bclk_set.insert(gtm_bco);
+	if (gtm_bco < m_PreviousClock[FEE])
+	{
+	  m_Rollover[FEE] += 0x10000000000;
+	  gtm_bco += m_Rollover[FEE];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+	}
+	m_PreviousClock[FEE] = gtm_bco;
+	m_BeamClockFEE[gtm_bco].insert(FEE);
+	m_FEEBclkMap[FEE] = gtm_bco;
+	if (Verbosity() > 2)
+	{
+	  std::cout << "evtno: " << EventSequence
+		    << ", hits: " << j
+		    << ", nr_hits: " << num_hits
+		    << ", bco: 0x" << std::hex << gtm_bco << std::dec
+		    << ", FEE: " << FEE << std::endl;
+	}
 //          plist[i]->convert();
-            if (m_InputMgr)
-            {
-              m_InputMgr->AddInttHit(gtm_bco, newhit);
-            }
-            // else
-            // {
-            //   m_BclkStack.insert(bco_iter);
-            // }
-        }
-        if (bclk_set.empty())
-        {
-          delete plist[i];
-        }
-        else
-        {
-          for (auto bco_iter : bclk_set)
-          {
-            saved_beamclocks.insert(bco_iter);
-          }
-          uint64_t latestbclk = *bclk_set.rbegin();
-          auto packetvector = m_PacketStorageMap.find(latestbclk);
-          if (packetvector == m_PacketStorageMap.end())
-          {
-            std::vector<Packet *> packets;
-            m_PacketStorageMap[latestbclk] = packets;
-            packetvector = m_PacketStorageMap.find(latestbclk);
-          }
-          packetvector->second.push_back(plist[i]);
-        }
+	if (m_InputMgr)
+	{
+	  m_InputMgr->AddInttHit(gtm_bco, newhit);
+	}
+	if (m_InttHitMap.find(gtm_bco) == m_InttHitMap.end())
+	{
+	  std::vector<InttHit *> intthitvector;
+	  m_InttHitMap[gtm_bco] = intthitvector;
+	}
+	m_InttHitMap[gtm_bco].push_back(newhit);
+	// else
+	// {
+	//   m_BclkStack.insert(bco_iter);
+	// }
       }
+      delete plist[i];
       // else
       // {
       //   delete plist[i];
       // }
     }
     delete evt;
-  } while (m_PacketStorageMap.size() < 10 || CheckPoolDepth(m_PacketStorageMap.begin()->first));
+  } while (m_InttHitMap.size() < 10 || CheckPoolDepth(m_InttHitMap.begin()->first));
 }
 
 int SingleInttInput::fileopen(const std::string &filenam)
@@ -241,12 +226,12 @@ void SingleInttInput::Print(const std::string &what) const
   }
   if (what == "ALL" || what == "STORAGE")
   {
-    for (const auto &bcliter : m_PacketStorageMap)
+    for (const auto &bcliter : m_InttHitMap)
     {
       std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
       for (auto feeiter : bcliter.second)
       {
-        std::cout << "Packet: " << feeiter->getIdentifier()
+        std::cout << "fee: " << feeiter->get_fee()
                   << " at " << std::hex << feeiter << std::dec << std::endl;
       }
     }
@@ -263,7 +248,7 @@ void SingleInttInput::Print(const std::string &what) const
 void SingleInttInput::CleanupUsedPackets(const uint64_t bclk)
 {
   std::vector<uint64_t> toclearbclk;
-  for (const auto &iter : m_PacketStorageMap)
+  for (const auto &iter : m_InttHitMap)
   {
     if (iter.first <= bclk)
     {
@@ -280,7 +265,7 @@ void SingleInttInput::CleanupUsedPackets(const uint64_t bclk)
   }
   for (auto iter : toclearbclk)
   {
-    m_PacketStorageMap.erase(iter);
+    m_InttHitMap.erase(iter);
   }
 }
 bool SingleInttInput::CheckPoolDepth(const uint64_t bclk)
