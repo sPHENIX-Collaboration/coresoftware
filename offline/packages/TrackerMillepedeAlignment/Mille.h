@@ -68,7 +68,7 @@ class Mille
   bool myAsBinary;         ///< if false output as text
   bool myWriteZero;        ///< if true also write out derivatives/labels ==0
   /// buffer size for ints and floats
-  enum {myBufferSize = 5000};  ///< buffer size for ints and floats
+  enum {myBufferSize = 10000};  ///< buffer size for ints and floats
   int   myBufferInt[myBufferSize];   ///< to collect labels etc.
   float myBufferFloat[myBufferSize]; ///< to collect derivatives etc.
   int   myBufferPos; ///< position in buffer

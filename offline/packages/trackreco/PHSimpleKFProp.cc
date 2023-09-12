@@ -96,6 +96,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_field_map.get(), _fieldDir,
 				     _min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->useConstBField(_use_const_field);
+  fitter->setConstBField(_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
   fitter->setFixedClusterError(0,_fixed_clus_err.at(0));
   fitter->setFixedClusterError(1,_fixed_clus_err.at(1));
@@ -108,7 +109,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
 
 double PHSimpleKFProp::get_Bz(double x, double y, double z) const
 {
-  if(_use_const_field) return 1.4;
+  if(_use_const_field) return _const_field;
   double p[4] = {x*cm,y*cm,z*cm,0.*cm};
   double bfield[3];
   _field_map->GetFieldValue(p,bfield);
@@ -445,9 +446,23 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 
   if(Verbosity()>0) std::cout << "track (x,y,z) = (" << track_x << ", " << track_y << ", " << track_z << ")" << std::endl;
 
-  double track_px = track->get_px(_cluster_map,_tgeometry);
-  double track_py = track->get_py(_cluster_map,_tgeometry);
-  double track_pz = track->get_pz();
+  double track_px = NAN;
+  double track_py = NAN;
+  double track_pz = NAN;
+  if(_use_const_field)
+    {
+      float pt = fabs(1./track->get_qOverR()) * (0.3/100) * _const_field;
+      float phi = track->get_phi(_cluster_map, _tgeometry);
+      track_px = pt * std::cos(phi);
+      track_py = pt * std::sin(phi);
+      track_pz = pt * std::cosh(track->get_eta()) * std::cos(track->get_theta());
+    }
+  else
+    {
+      track_px = track->get_px(_cluster_map,_tgeometry);
+      track_py = track->get_py(_cluster_map,_tgeometry);
+      track_pz = track->get_pz();
+    }
 
   if(Verbosity()>0) std::cout << "track (px,py,pz) = (" << track_px << ", " << track_py << ", " << track_pz << ")" << std::endl;
 

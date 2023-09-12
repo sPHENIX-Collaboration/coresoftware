@@ -186,7 +186,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
     char tsize = tbinhi - tbinlo + 1;
     char phisize = phibinhi - phibinlo + 1;
 
-    if (tsize < 0) cout << " FIXME z4 tsize: " << ((int)tsize) << " " << tbinlo << " to " << tbinhi << endl;
+    if (tsize < 0 && verbosity > 1) std::cout << " FIXME z4 tsize: " << ((int)tsize) << " " << tbinlo << " to " << tbinhi << std::endl;
     
     // -------------------------------------------------
     // -------------------------------------------------

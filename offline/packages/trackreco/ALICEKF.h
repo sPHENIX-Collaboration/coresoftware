@@ -56,6 +56,7 @@ class ALICEKF
   bool checknan(double val, const std::string &msg, int num) const;
   double get_Bz(double x, double y, double z) const;
   void useConstBField(bool opt) {_use_const_field = opt;}
+  void setConstBField(float b) {_const_field = b; }
   void useFixedClusterError(bool opt) {_use_fixed_clus_error = opt;}
   void setFixedClusterError(int i,double val) {_fixed_clus_error.at(i)=val;}
   double getClusterError(TrkrCluster* c, TrkrDefs::cluskey key, Acts::Vector3 global, int i, int j) const;
@@ -76,6 +77,7 @@ class ALICEKF
   double _fieldDir = -1;
   double _max_sin_phi = 1.;
   bool _use_const_field = false;
+  float _const_field = 1.4;
   bool _use_fixed_clus_error = true;
   std::array<double,3> _fixed_clus_error = {.1,.1,.1};
 
