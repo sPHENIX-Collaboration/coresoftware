@@ -12,6 +12,9 @@
 #include <Event/EventTypes.h>
 #include <Event/packet.h>
 
+#include <TTree.h>
+#include <Math/Transform3D.h>
+
 namespace Intt
 {
 	extern const std::map<int, int> Packet_Id;
@@ -55,9 +58,9 @@ namespace Intt
 	struct RawData_s ToRawData(struct Offline_s const&);
 	struct Offline_s ToOffline(struct RawData_s const&);
 
-	//Eigen::Affine3d GetTransform(struct Offline_s const&);
-	//Eigen::Affine3d GetTransform(struct Online_s const&);
-	//Eigen::Affine3d GetTransform(struct RawData_s const&);
+	Eigen::Affine3d GetTransform(TTree*, struct Offline_s const&);
+	Eigen::Affine3d GetTransform(TTree*, struct Online_s const&);
+	Eigen::Affine3d GetTransform(TTree*, struct RawData_s const&);
 
 	Eigen::Vector4d GetLocalPos(struct Offline_s const&);
 	Eigen::Vector4d GetLocalPos(struct Online_s const&);

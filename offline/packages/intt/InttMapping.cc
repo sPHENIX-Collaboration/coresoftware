@@ -135,20 +135,68 @@ struct Intt::Offline_s Intt::ToOffline(struct RawData_s const& _s)
 	return ToOffline(ToOnline(_s));
 }
 
-//Eigen::Affine3d Intt::GetTransform(struct Intt::Offline_s const& _s)
-//{
-//	return InttSurvey::GetTransform(_s);
-//}
-//
-//Eigen::Affine3d Intt::GetTransform(struct Intt::Online_s const& _s)
-//{
-//	return InttSurvey::GetTransform(ToOffline(_s));
-//}
-//
-//Eigen::Affine3d Intt::GetTransform(struct Intt::RawData_s const& _s)
-//{
-//	return InttSurvey::GetTransform(ToOffline(_s));
-//}
+Eigen::Affine3d Intt::GetTransform(TTree* tree, struct Intt::Offline_s const& _s)
+{
+	Eigen::Affine3d t;
+
+	if(!tree)return t;
+
+	TBranch* b = tree->GetBranch("transform");
+	if(!b)return t;
+
+	ROOT::Math::Transform3D** m = (ROOT::Math::Transform3D**)b->GetAddress();
+	if(!m)return t;
+
+	Int_t i = _s.ladder_phi;
+	switch(_s.layer)
+	{
+		case 3:
+		i += 0;
+		break;
+
+		case 4:
+		i += 12;
+		break;
+
+		case 5:
+		i += 24;
+		break;
+
+		case 6:
+		i += 40;
+		break;
+
+		default:
+		break;
+	}
+	i *= 4;
+	i += _s.ladder_z;
+
+	tree->GetEntry(i);
+	(*m)->GetTransformMatrix(t);
+
+	//Debugging
+	TBranch* b_ = tree->GetBranch("hitsetkey");
+	if(!b_)return t;
+
+	Int_t* k_ = (Int_t*)b_->GetAddress();
+	if(!k_)return t;
+
+	std::cout << "hitsetkey: " << *k_ << std::endl;
+	std::cout << "entry:     " << i << std::endl;
+
+	return t;
+}
+
+Eigen::Affine3d Intt::GetTransform(TTree* tree, struct Intt::Online_s const& _s)
+{
+	return Intt::GetTransform(tree, ToOffline(_s));
+}
+
+Eigen::Affine3d Intt::GetTransform(TTree* tree, struct Intt::RawData_s const& _s)
+{
+	return Intt::GetTransform(tree, ToOffline(_s));
+}
 
 Eigen::Vector4d Intt::GetLocalPos(struct Intt::Offline_s const& _s)
 {
