@@ -38,8 +38,12 @@ private:
 	Intt::RawData_s raw;
 	Intt::Online_s onl;
 
-	typedef std::map<std::string, std::vector<Long64_t>*> Branches_t;
-	Branches_t branches;
+	typedef std::map<std::string, std::vector<Int_t>*> Branches_i_t;
+	typedef std::map<std::string, std::vector<Long64_t>*> Branches_l_t;
+	typedef std::map<std::string, std::vector<Double_t>*> Branches_d_t;
+	Branches_i_t branches_i;
+	Branches_l_t branches_l;
+	Branches_d_t branches_d;
 };
 
 #endif//INTT_COMBINED_RAW_DATA_CONVERTER_H

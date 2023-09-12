@@ -19,9 +19,11 @@ pkginclude_HEADERS = \
   Fun4AllPrdfInputPoolManager.h \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
+  InttPool.h \
   PacketList.h \
   PacketMap.h \
   SingleEvtInput.h \
+  SingleInttInput.h \
   SinglePrdfInput.h
 
 lib_LTLIBRARIES = \
@@ -36,12 +38,15 @@ libfun4allraw_la_SOURCES = \
   Fun4AllPrdfInputPoolManager.cc \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
+  InttPool.cc \
   PacketList.cc \
   PacketMap.cc \
   SingleEvtInput.cc \
+  SingleInttInput.cc \
   SinglePrdfInput.cc
 
 libfun4allraw_la_LIBADD = \
+  -lffarawobjects \
   -lfun4all \
   -lEvent \
   -lphoolraw

@@ -3,6 +3,8 @@
 #include "PacketMap.h"
 #include "SingleEvtInput.h"
 
+#include <ffarawobjects/InttHit.h>
+
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -348,6 +350,16 @@ void Fun4AllEvtInputPoolManager::AddPacket(uint64_t bclk, Packet *p)
               << std::hex << bclk << std::dec << std::endl;
   }
   m_PacketInfoMap[bclk].PacketVector.push_back(p);
+}
+
+void Fun4AllEvtInputPoolManager::AddInttHit(uint64_t bclk, InttHit *hit)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "Adding intt hit to bclk 0x"
+              << std::hex << bclk << std::dec << std::endl;
+  }
+  m_InttHitMap[bclk].InttHitVector.push_back(hit);
 }
 
 void Fun4AllEvtInputPoolManager::UpdateEventFoundCounter(const int evtno)
