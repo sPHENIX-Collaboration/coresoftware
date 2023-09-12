@@ -618,7 +618,7 @@ int CentralityReco::process_event(PHCompositeNode* topNode)
   if (_op_mode == OperationMode::Performance)
     {
       if (FillCentralityInfo()) return Fun4AllReturnCodes::ABORTEVENT;
-      _central->identify();
+      if (_verbose) _central->identify();
     }
   else if (_op_mode == OperationMode::QA)
     {
