@@ -17,9 +17,14 @@ class CentralityInfov2 : public CentralityInfov1
 
   bool isMinBias() { return _isMinBias; }
   void setMinBias(bool isminbias) { _isMinBias = isminbias;}
+
+  float getVertex() { return _vertex;}
+  void setVertex(float vertex) {_vertex = vertex;}
   
  private:
-  bool _isMinBias();
+  bool _isMinBias;
+  float _vertex;
+
   ClassDefOverride(CentralityInfov2, 1);
 };
 

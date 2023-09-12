@@ -1,7 +1,7 @@
 #ifndef CENTRALITYRECO_H__
 #define CENTRALITYRECO_H__
 
-#include "CentralityInfov1.h"
+#include "CentralityInfov2.h"
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllHistoManager.h>
 #include <TTree.h>
@@ -38,6 +38,7 @@ class CentralityReco : public SubsysReco
   void PrintCentiles();
   int CheckZDC();
   int GetMBDVertexAndCharge();
+  int FillCentralityInfo();
   void FillHistograms();
   int FillVars();
   int GetNodes(PHCompositeNode *);
@@ -81,7 +82,7 @@ class CentralityReco : public SubsysReco
   float _zdc_energy_threshold;
   float _mbd_vertex_cuts[5] {};
   
-  std::vector<float> _centiles;
+  float _centrality_map[20];
 
   float _z_vertex;
   int _isMinBias;
@@ -99,7 +100,7 @@ class CentralityReco : public SubsysReco
   float gaincorr[128] {};
   float tq_t0_offsets[128] {};
 
-  CentralityInfov1 *_central;
+  CentralityInfov2 *_central;
   TowerInfoContainerv1 *_towers_mbd;
   TowerInfoContainerv1 *_towers_zdc;
   
