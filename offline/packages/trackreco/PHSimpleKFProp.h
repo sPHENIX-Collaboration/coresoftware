@@ -53,6 +53,7 @@ class PHSimpleKFProp : public SubsysReco
   }
   void set_max_window(double s){_max_dist = s;}
   void useConstBField(bool opt){_use_const_field = opt;}
+  void setConstBField(float b) { _const_field = b; }
   void useFixedClusterError(bool opt){_use_fixed_clus_err = opt;}
   void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
   void use_truth_clusters(bool truth)
@@ -148,6 +149,7 @@ class PHSimpleKFProp : public SubsysReco
 //   void MoveToVertex();
 
   bool _use_const_field = false;
+  float _const_field = 1.4;
   bool _use_fixed_clus_err = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
   TrkrClusterIterationMapv1* _iteration_map = nullptr;

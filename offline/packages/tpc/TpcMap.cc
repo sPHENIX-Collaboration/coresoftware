@@ -27,6 +27,7 @@ void TpcMap::setMapNames(const std::string &r1, const std::string &r2, const std
       full_path = "./";
     }
   }
+
   std::string full_path_r1 = full_path + r1;
   std::string full_path_r2 = full_path + r2;
   std::string full_path_r3 = full_path + r3;

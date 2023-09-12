@@ -58,9 +58,11 @@ class TrkrNtuplizer : public SubsysReco
   void do_vertex_eval(bool b) { _do_vertex_eval = b; }
   void do_hit_eval(bool b) { _do_hit_eval = b; }
   void do_cluster_eval(bool b) { _do_cluster_eval = b; }
+  void do_clus_trk_eval(bool b) { _do_clus_trk_eval = b; }
   void do_track_eval(bool b) { _do_track_eval = b; }
   void do_tpcseed_eval(bool b) { _do_tpcseed_eval = b; }
   void do_siseed_eval(bool b) { _do_siseed_eval = b; }
+  void set_first_event(int value) { _ievent = value; }
 
   SvtxTrack* best_track_from(TrkrDefs::cluskey cluster_key);
   std::set<SvtxTrack*> all_tracks_from(TrkrDefs::cluskey cluster_key);
@@ -86,6 +88,7 @@ class TrkrNtuplizer : public SubsysReco
   bool _do_vertex_eval;
   bool _do_hit_eval;
   bool _do_cluster_eval;
+  bool _do_clus_trk_eval;
   bool _do_track_eval;
   bool _do_tpcseed_eval;
   bool _do_siseed_eval;
@@ -99,6 +102,7 @@ class TrkrNtuplizer : public SubsysReco
   TNtuple *_ntp_vertex;
   TNtuple *_ntp_hit;
   TNtuple *_ntp_cluster;
+  TNtuple *_ntp_clus_trk;
   TNtuple *_ntp_track;
   TNtuple *_ntp_tpcseed;
   TNtuple *_ntp_siseed;

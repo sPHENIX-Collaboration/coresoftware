@@ -34,6 +34,7 @@ lib_LTLIBRARIES = \
 
 pkginclude_HEADERS = \
   InttClusterizer.h \
+  InttCombinedRawDataConverter.h \
   InttCombinedRawDataDecoder.h \
   InttDeadMapHelper.h \
   InttFelixMap.h \
@@ -41,25 +42,40 @@ pkginclude_HEADERS = \
   InttMapping.h \
   InttRawDataConverter.h \
   InttRawDataDecoder.h \
+  InttVertexFinder.h \
+  InttVertexMap.h \
+  InttVertexMapv1.h \
+  InttVertex.h \
+  InttVertexv1.h \
   CylinderGeomIntt.h
 
 ROOTDICTS = \
-  CylinderGeomIntt_Dict.cc
+  CylinderGeomIntt_Dict.cc \
+  InttVertexMap_Dict.cc \
+  InttVertexMapv1_Dict.cc \
+  InttVertex_Dict.cc \
+  InttVertexv1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  CylinderGeomIntt_Dict_rdict.pcm
+  CylinderGeomIntt_Dict_rdict.pcm \
+  InttVertexMap_Dict_rdict.pcm \
+  InttVertexMapv1_Dict_rdict.pcm \
+  InttVertex_Dict_rdict.pcm \
+  InttVertexv1_Dict_rdict.pcm
 
 # sources for intt library
 libintt_la_SOURCES = \
   InttClusterizer.cc \
+  InttCombinedRawDataConverter.cc \
   InttCombinedRawDataDecoder.cc \
   InttDeadMapHelper.cc \
   InttFelixMap.cc \
   InttFelixMapObsolete.cc \
   InttMapping.cc \
   InttRawDataConverter.cc \
-  InttRawDataDecoder.cc
+  InttRawDataDecoder.cc \
+  InttVertexFinder.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \
@@ -70,7 +86,10 @@ libintt_la_LIBADD = \
 # sources for io library
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
-  CylinderGeomIntt.cc
+  CylinderGeomIntt.cc \
+  InttVertexMap.cc \
+  InttVertexMapv1.cc \
+  InttVertexv1.cc
 
 libintt_io_la_LIBADD = \
   -lCLHEP \

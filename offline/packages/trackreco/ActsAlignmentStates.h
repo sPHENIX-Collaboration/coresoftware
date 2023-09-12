@@ -16,6 +16,8 @@
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
 
+#include <string>
+
 class PHCompositeNode;
 class SvtxTrack;
 class SvtxAlignmentStateMap;
@@ -48,6 +50,7 @@ class ActsAlignmentStates
   void actsGeometry(ActsGeometry* geom) { m_tGeometry = geom; }
   void clusters(TrkrClusterContainer* clus) { m_clusterMap = clus; }
   void stateMap(SvtxAlignmentStateMap* map) { m_alignmentStateMap = map; }
+  void fieldMap(std::string& fieldmap) {m_fieldMap = fieldmap; }
 
  private:
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
@@ -69,6 +72,7 @@ class ActsAlignmentStates
   TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
   TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
   TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
+  std::string m_fieldMap = "";
 };
 
 #endif

@@ -69,11 +69,11 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     cdb = CDBInterface::instance();
     if (!m_overrideCalibName)
     {
-      m_calibName = "cemc_relcalib_cosmic";
+      m_calibName = "cemc_pi0_twrSlope_v1";
     }
     if (!m_overrideFieldName)
     {
-      m_fieldname = "cemc_relcalib_cosmic";
+      m_fieldname = "Femc_datadriven_qm1_correction";
     }
     std::string calibdir = cdb->getUrl(m_calibName);
     if (calibdir[0] == '/')
@@ -195,8 +195,15 @@ int CaloTowerCalib::process_event(PHCompositeNode * /*topNode*/)
     unsigned int key = _raw_towers->encode_key(channel);
     TowerInfo *caloinfo_raw = _raw_towers->get_tower_at_channel(channel);
     float raw_amplitude = caloinfo_raw->get_energy();
+    short raw_time = caloinfo_raw->get_time();
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
     _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst);
+    if (calibconst == 0){
+      _calib_towers->get_tower_at_channel(channel)->set_time(-10);
+    }
+    else {
+      _calib_towers->get_tower_at_channel(channel)->set_time(raw_time);
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
