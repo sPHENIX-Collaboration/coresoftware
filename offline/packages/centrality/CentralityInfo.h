@@ -49,11 +49,11 @@ class CentralityInfo : public PHObject
   virtual float get_centile(const PROP /*prop_id*/) const { return -99; }
   virtual void set_centile(const PROP /*prop_id*/, const float /*value*/) { return; }
 
-  virtual bool isMinBias() const {return false;}
-  virtual void setMinBias(bool) {return;}
+  virtual bool isMinBias() const { return false; }
+  virtual void setMinBias(bool) { return; }
 
-  virtual float getVertex() const {return std::numeric_limits<float>::signaling_NaN();}
-  virtual void setVertex(float)  {return;}
+  virtual float getVertex() const { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual void setVertex(float) { return; }
 
  protected:
   CentralityInfo() {}

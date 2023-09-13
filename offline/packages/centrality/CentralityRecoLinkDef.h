@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class CentralityRecoLinkDef-!;
+#pragma link C++ class CentralityRecoLinkDef - !;
 
 #endif /* __CINT__ */
