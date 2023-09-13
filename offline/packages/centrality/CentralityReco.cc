@@ -50,7 +50,8 @@ CentralityReco::CentralityReco(const std::string& name, const std::string &hist_
   _offset = 28.52;
 
   const float mbd_vertex_cuts[5] = {50, 30, 20, 10, 5};
-  for (int i = 0; i < 5; i++) _mbd_vertex_cuts[i] = mbd_vertex_cuts[i];
+  for (int i = 0; i < 5; i++) { _mbd_vertex_cuts[i] = mbd_vertex_cuts[i];
+}
 
   _hist_filename = hist_name;
   _tree_filename = tree_name;
@@ -62,7 +63,7 @@ CentralityReco::~CentralityReco()
   delete hm;
 }
 
-int CentralityReco::Init(PHCompositeNode*)
+int CentralityReco::Init(PHCompositeNode* /*unused*/)
 {
   // Histograms
 
@@ -131,8 +132,8 @@ std::ifstream tfile (bbc_tq_t0_filename);
   float meanerr;
   float sigma;
   float sigmaerr;
-  for (int ipmt = 0; ipmt < 128; ipmt++) {
-    tfile >> pmtnum >> tq_t0_offsets[ipmt] >> meanerr >> sigma >> sigmaerr;
+  for (float & tq_t0_offset : tq_t0_offsets) {
+    tfile >> pmtnum >> tq_t0_offset >> meanerr >> sigma >> sigmaerr;
 
   }
   if (_op_mode == OperationMode::QA)
@@ -283,7 +284,8 @@ std::ifstream tfile (bbc_tq_t0_filename);
 int CentralityReco::InitRun(PHCompositeNode* topNode)
 {
 
-  if (Verbosity()) std::cout << __FILE__ << " :: "<<__FUNCTION__ << std::endl;
+  if (Verbosity()) { std::cout << __FILE__ << " :: "<<__FUNCTION__ << std::endl;
+}
   CreateNodes(topNode);
   return 0;
 }
@@ -291,7 +293,8 @@ int CentralityReco::InitRun(PHCompositeNode* topNode)
 void CentralityReco::ResetVars()
 {
 
-  if (Verbosity()) std::cout << __FILE__ << " :: "<<__FUNCTION__ << std::endl;
+  if (Verbosity()) { std::cout << __FILE__ << " :: "<<__FUNCTION__ << std::endl;
+}
   _z_vertex = 0;
   _quality = 0;
   _isMinBias = 0;
@@ -333,7 +336,8 @@ void CentralityReco::ResetVars()
 int CentralityReco::FillVars()
 {
   unsigned int size;
-  if (Verbosity()) std::cout << __FILE__ << " :: "<<__FUNCTION__ << std::endl;
+  if (Verbosity()) { std::cout << __FILE__ << " :: "<<__FUNCTION__ << std::endl;
+}
   size = _towers_mbd->size();
 
   if (size != 256)
@@ -432,7 +436,8 @@ int CentralityReco::FillVars()
 
 void CentralityReco::FillHistograms()
 {
-  if (Verbosity()) std::cout << __FILE__ << " :: "<<__FUNCTION__ << std::endl;
+  if (Verbosity()) { std::cout << __FILE__ << " :: "<<__FUNCTION__ << std::endl;
+}
   h_mbd_vertex->Fill(_z_vertex);
 
   h_mbd_charge_ns->Fill(_mbd_charge_sum);
@@ -454,7 +459,8 @@ void CentralityReco::FillHistograms()
   h_zdc_mbd_corr_n->Fill(_mbd_charge_sum_n, _zdc_energy_sum_n);
   h_zdc_mbd_corr_s->Fill(_mbd_charge_sum_s, _zdc_energy_sum_s);
   
-  if (!_zdc_check) return;
+  if (!_zdc_check) { return;
+}
 
   h_mbd_vertex_w_zdc_cut->Fill(_z_vertex);
 
@@ -472,8 +478,10 @@ void CentralityReco::FillHistograms()
   h_zdc_mbd_corr_ns_w_zdc_cut->Fill(_mbd_charge_sum, _zdc_energy_sum);
   h_zdc_mbd_corr_n_w_zdc_cut->Fill(_mbd_charge_sum_n, _zdc_energy_sum_n);
   h_zdc_mbd_corr_s_w_zdc_cut->Fill(_mbd_charge_sum_s, _zdc_energy_sum_s);
-  if (Verbosity()) std::cout << "tubes hit in N/S : "<<_tubes_hit[1] <<" / " <<_tubes_hit[0]<<std::endl;
-  if (_tubes_hit[0] < 2 || _tubes_hit[1] < 2) return;
+  if (Verbosity()) { std::cout << "tubes hit in N/S : "<<_tubes_hit[1] <<" / " <<_tubes_hit[0]<<std::endl;
+}
+  if (_tubes_hit[0] < 2 || _tubes_hit[1] < 2) { return;
+}
   
   h_mbd_charge_ns_w_zdc_cut_w_mbd_cut->Fill(_mbd_charge_sum);
   h_mbd_charge_n_w_zdc_cut_w_mbd_cut->Fill(_mbd_charge_sum_n);
@@ -492,7 +500,8 @@ void CentralityReco::FillHistograms()
 
   for (int j = 0; j < 5; j++)
     {
-      if (std::abs(_z_vertex) > _mbd_vertex_cuts[j]) continue;
+      if (std::abs(_z_vertex) > _mbd_vertex_cuts[j]) { continue;
+}
       h_mbd_charge_ns_w_zdc_cut_w_mbd_cut_and_vertex[j]->Fill(_mbd_charge_sum);
       h_mbd_charge_n_w_zdc_cut_w_mbd_cut_and_vertex[j]->Fill(_mbd_charge_sum_n);
       h_mbd_charge_s_w_zdc_cut_w_mbd_cut_and_vertex[j]->Fill(_mbd_charge_sum_s);
@@ -535,7 +544,8 @@ void CentralityReco::PrintCentiles()
 
 int CentralityReco::GetMBDVertexAndCharge()
 {
-  if (Verbosity()) std::cout << __FILE__ << " :: "<<__FUNCTION__ << std::endl;
+  if (Verbosity()) { std::cout << __FILE__ << " :: "<<__FUNCTION__ << std::endl;
+}
   float tdc[2] = {0., 0.};
   unsigned int size = _towers_mbd->size();  
   int side;
@@ -544,7 +554,8 @@ int CentralityReco::GetMBDVertexAndCharge()
     {
 
       side = m_mbd_side[i];
-      if (m_mbd_charge[i] < _mbd_charge_threshold) continue;
+      if (m_mbd_charge[i] < _mbd_charge_threshold) { continue;
+}
 
       tdc[side] += m_mbd_time[i];//(25. - m_mbd_time[i]*(9.0/5000.) - tq_t0_offsets[m_mbd_channel[i] + side*64]);
       
@@ -552,12 +563,14 @@ int CentralityReco::GetMBDVertexAndCharge()
 					     
     }
 
-  if ((_tubes_hit[0] >= 2) && (_tubes_hit[1] >= 2)) _isMinBias = 1;
-  else _isMinBias = 0;
+  if ((_tubes_hit[0] >= 2) && (_tubes_hit[1] >= 2)) { _isMinBias = 1;
+  } else { _isMinBias = 0;
+}
 
   _z_vertex = _offset + 15*(tdc[1]/_tubes_hit[1] - tdc[0]/_tubes_hit[0]);
 
-  if (Verbosity()) std::cout << "Z-vertex = "<<_z_vertex << std::endl;
+  if (Verbosity()) { std::cout << "Z-vertex = "<<_z_vertex << std::endl;
+}
   for (unsigned int i = 0; i < size/2; i++)
     {
       side = m_mbd_side[i];
@@ -575,14 +588,16 @@ int CentralityReco::GetMBDVertexAndCharge()
     }
 
   _mbd_charge_sum = _mbd_charge_sum_s + _mbd_charge_sum_n;;
-  if (Verbosity()) std::cout << "mbd charge = "<<_mbd_charge_sum << std::endl;
+  if (Verbosity()) { std::cout << "mbd charge = "<<_mbd_charge_sum << std::endl;
+}
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int CentralityReco::CheckZDC()
 {
 
-  if (Verbosity()) std::cout << __FILE__ << " :: "<<__FUNCTION__ << std::endl;
+  if (Verbosity()) { std::cout << __FILE__ << " :: "<<__FUNCTION__ << std::endl;
+}
   for (unsigned int i = 0; i < 6; i++)
     {
       if (i/3) 
@@ -626,14 +641,16 @@ int CentralityReco::FillCentralityInfo()
 	  break;
 	} 
     }
-  if (!value)     return Fun4AllReturnCodes::ABORTEVENT;
+  if (!value) {     return Fun4AllReturnCodes::ABORTEVENT;
+}
   _central->set_centile(CentralityInfo::PROP::mbd_NS, value);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int CentralityReco::process_event(PHCompositeNode* topNode)
 {
-  if (Verbosity()) std::cout << __FILE__ << " :: "<<__FUNCTION__ <<" :: " << __LINE__ << std::endl;
+  if (Verbosity()) { std::cout << __FILE__ << " :: "<<__FUNCTION__ <<" :: " << __LINE__ << std::endl;
+}
 
   // Get Nodes from the Tree
   if (GetNodes(topNode))
@@ -665,8 +682,10 @@ int CentralityReco::process_event(PHCompositeNode* topNode)
 
   if (_op_mode == OperationMode::Performance)
     {
-      if (FillCentralityInfo()) return Fun4AllReturnCodes::ABORTEVENT;
-      if (Verbosity()) _central->identify();
+      if (FillCentralityInfo()) { return Fun4AllReturnCodes::ABORTEVENT;
+}
+      if (Verbosity()) { _central->identify();
+}
     }
   else if (_op_mode == OperationMode::QA)
     {
@@ -682,7 +701,8 @@ int CentralityReco::process_event(PHCompositeNode* topNode)
 int CentralityReco::GetNodes(PHCompositeNode* topNode)
 {
 
-  if (Verbosity()) std::cout << __FILE__ << " :: "<<__FUNCTION__ <<" :: " << __LINE__ << std::endl;
+  if (Verbosity()) { std::cout << __FILE__ << " :: "<<__FUNCTION__ <<" :: " << __LINE__ << std::endl;
+}
   if (_op_mode == OperationMode::Performance)
     {
       _central = findNode::getClass<CentralityInfov2>(topNode, "CentralityInfo");
@@ -716,7 +736,8 @@ int CentralityReco::GetNodes(PHCompositeNode* topNode)
 void CentralityReco::CreateNodes(PHCompositeNode* topNode)
 {
 
-  if (Verbosity()) std::cout << __FILE__ << " :: "<<__FUNCTION__ <<" :: " << __LINE__ << std::endl;
+  if (Verbosity()) { std::cout << __FILE__ << " :: "<<__FUNCTION__ <<" :: " << __LINE__ << std::endl;
+}
 
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
