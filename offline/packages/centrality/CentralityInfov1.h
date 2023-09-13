@@ -9,8 +9,8 @@
 class CentralityInfov1 : public CentralityInfo
 {
  public:
-  CentralityInfov1();
-  ~CentralityInfov1() override {}
+  CentralityInfov1() = default;
+  ~CentralityInfov1() override = default;
 
   void identify(std::ostream &os = std::cout) const override;
   void Reset() override {}

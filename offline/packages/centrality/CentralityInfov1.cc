@@ -1,9 +1,5 @@
 #include "CentralityInfov1.h"
 
-CentralityInfov1::CentralityInfov1()
-{
-}
-
 void CentralityInfov1::identify(std::ostream& os) const
 {
   os << "CentralityInfo: " << std::endl;

@@ -6,7 +6,8 @@ AM_CPPFLAGS = \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
-   libcentrality_io.la
+   libcentrality_io.la \
+   libcentrality.la
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -14,7 +15,10 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib
 
 libcentrality_io_la_LIBADD = \
-  -lphool \
+  -lphool
+
+libcentrality_la_LIBADD = \
+  libcentrality_io.la \
   -lfun4all \
   -lcalo_io
 
@@ -24,23 +28,28 @@ pkginclude_HEADERS = \
   CentralityInfov2.h \
   CentralityReco.h
 
+# temporarily install data files (to be replaced by CDB)
+pkgdata_DATA = \
+  bbc_tq_t0.calib \
+  gainfile.calib
+
 ROOTDICTS = \
   CentralityInfo_Dict.cc \
   CentralityInfov1_Dict.cc \
-  CentralityInfov2_Dict.cc \
-  CentralityReco_Dict.cc
+  CentralityInfov2_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CentralityInfo_Dict_rdict.pcm \
   CentralityInfov1_Dict_rdict.pcm \
-  CentralityInfov2_Dict_rdict.pcm \
-  CentralityReco_Dict_rdict.pcm
+  CentralityInfov2_Dict_rdict.pcm
 
 libcentrality_io_la_SOURCES = \
   $(ROOTDICTS) \
   CentralityInfov1.cc \
-  CentralityInfov2.cc \
+  CentralityInfov2.cc
+
+libcentrality_la_SOURCES = \
   CentralityReco.cc
 
 # Rule for generating table CINT dictionaries.
@@ -55,10 +64,14 @@ libcentrality_io_la_SOURCES = \
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
+  testexternals_centrality_io \
   testexternals_centrality
 
 testexternals_centrality_SOURCES = testexternals.cc
-testexternals_centrality_LDADD = libcentrality_io.la
+testexternals_centrality_LDADD = libcentrality.la
+
+testexternals_centrality_io_SOURCES = testexternals.cc
+testexternals_centrality_io_LDADD = libcentrality_io.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
