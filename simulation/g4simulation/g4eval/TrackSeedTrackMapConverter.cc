@@ -121,112 +121,103 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 
       unsigned int seedindex = trackSeed->get_tpc_seed_index();
       TrackSeed* tpcseed = m_tpcContainer->get(seedindex);
-      if (trackSeed->get_silicon_seed_index() == std::numeric_limits<unsigned int>::max())
-      {
-        /// Didn't find a match, so just use the tpc seed
-        svtxtrack->set_x(tpcseed->get_x());
-        svtxtrack->set_y(tpcseed->get_y());
-        svtxtrack->set_z(tpcseed->get_z());
-      }
-      else
-      {
-        TrackSeed* siseed = m_siContainer->get(trackSeed->get_silicon_seed_index());
-        svtxtrack->set_x(siseed->get_x());
-        svtxtrack->set_y(siseed->get_y());
-        svtxtrack->set_z(siseed->get_z());
-        addKeys(svtxtrack, siseed);
-        svtxtrack->set_silicon_seed(siseed);
-      }
-
-      svtxtrack->set_charge(tpcseed->get_qOverR() > 0 ? 1 : -1);
-      if(m_fieldMap.find(".root") != std::string::npos)
+      if(!m_cosmics)
 	{
-	  svtxtrack->set_px(tpcseed->get_px(m_clusters, m_tGeometry));
-	  svtxtrack->set_py(tpcseed->get_py(m_clusters, m_tGeometry));
-	  svtxtrack->set_pz(tpcseed->get_pz());
+	  if (trackSeed->get_silicon_seed_index() == std::numeric_limits<unsigned int>::max())
+	    {
+	      /// Didn't find a match, so just use the tpc seed
+	      svtxtrack->set_x(tpcseed->get_x());
+	      svtxtrack->set_y(tpcseed->get_y());
+	      svtxtrack->set_z(tpcseed->get_z());
+	    }
+	  else
+	    {
+	      TrackSeed* siseed = m_siContainer->get(trackSeed->get_silicon_seed_index());
+	      svtxtrack->set_x(siseed->get_x());
+	      svtxtrack->set_y(siseed->get_y());
+	      svtxtrack->set_z(siseed->get_z());
+	      addKeys(svtxtrack, siseed);
+	      svtxtrack->set_silicon_seed(siseed);
+	    }
+	  
+	  svtxtrack->set_charge(tpcseed->get_qOverR() > 0 ? 1 : -1);
+	  if(m_fieldMap.find(".root") != std::string::npos)
+	    {
+	      svtxtrack->set_px(tpcseed->get_px(m_clusters, m_tGeometry));
+	      svtxtrack->set_py(tpcseed->get_py(m_clusters, m_tGeometry));
+	      svtxtrack->set_pz(tpcseed->get_pz());
+	    }
+	  else
+	    {
+	      float pt = fabs(1./tpcseed->get_qOverR()) * (0.3/100) * std::stod(m_fieldMap);
+	      float phi = tpcseed->get_phi(m_clusters, m_tGeometry);
+	      svtxtrack->set_px(pt * std::cos(phi));
+	      svtxtrack->set_py( pt * std::sin(phi));
+	      svtxtrack->set_pz(pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta()));
+	    }
 	}
       else
 	{
-	  float pt = fabs(1./tpcseed->get_qOverR()) * (0.3/100) * std::stod(m_fieldMap);
-	  float phi = tpcseed->get_phi(m_clusters, m_tGeometry);
-	  svtxtrack->set_px(pt * std::cos(phi));
-	  svtxtrack->set_py( pt * std::sin(phi));
-	  svtxtrack->set_pz(pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta()));
+        
+	  unsigned int silseedindex = trackSeed->get_silicon_seed_index();
+	  TrackSeed* silseed = m_siContainer->get(silseedindex);
+	  
+	  float perigeeYLoc = -100 * Acts::UnitConstants::cm;
+	  Acts::Vector3 globperigee(0,perigeeYLoc/10.,0);
+	  
+	  tpcseed->circleFitByTaubin(m_clusters, m_tGeometry,0,58);
+	 
+	  float tpcR = fabs(1. / tpcseed->get_qOverR());
+	  float tpcx = tpcseed->get_X0();
+	  float tpcy = tpcseed->get_Y0();
+	  //! propagate the track out to somewhere beyond the HCal, so that
+	  //! we fit it from outside sphenix all the way through the ~100 layers
+	  //! The OHCal has an outer radius of 2.7m
+	  const auto pcaCircle = TrackFitUtils::get_circle_point_pca(tpcR,tpcx,tpcy,globperigee);
+	  float pcaCircleRadius = pcaCircle.norm();
+	  float pcaz = pcaCircleRadius * tpcseed->get_slope() + tpcseed->get_Z0();
+	  
+	  float trackx = pcaCircle.x();
+	  float tracky = pcaCircle.y();
+	  float trackz = pcaz;
+	  
+	  
+	  float angle_pca = atan2(pcaCircle.y() - tpcy, pcaCircle.x() - tpcx);
+	  float dAngle = 0.005;
+	  float newx = tpcR * cos(angle_pca+dAngle) + tpcx;
+	  float newy = tpcR * sin(angle_pca+dAngle) + tpcy;
+	  float newz = sqrt(square(newx)+square(newy)) * tpcseed->get_slope() + tpcseed->get_Z0();
+	  
+	  //! We got the other track segment, so it is backwards
+	  if(tpcseed->get_slope() > 0)
+	    {newz *= -1; trackz *= -1;}
+	  Acts::Vector3 pcacircle = Acts::Vector3(pcaCircle.x(), pcaCircle.y(), trackz);
+	  Acts::Vector3 secondpca = Acts::Vector3(newx,newy,newz);
+	  
+	  Acts::Vector3 tangent = (secondpca-pcacircle) / (secondpca-pcacircle).norm();
+	  
+	  svtxtrack->set_x(trackx);
+	  svtxtrack->set_y(tracky);
+	  svtxtrack->set_z(trackz);
+	  
+	  tangent *= tpcseed->get_p();
+	  
+	  svtxtrack->set_px(tangent.x());
+	  svtxtrack->set_py(tangent.y());
+	  svtxtrack->set_pz(tangent.z());
+	  
+	  addKeys(svtxtrack, tpcseed);
+	  if(silseed)  addKeys(svtxtrack, silseed);
+	  
+	  svtxtrack->set_tpc_seed(tpcseed);
+	  svtxtrack->set_silicon_seed(silseed);
+	  if(Verbosity() > 5)
+	    svtxtrack->identify();
 	}
-
       addKeys(svtxtrack, tpcseed);
       svtxtrack->set_tpc_seed(tpcseed);
     }
-    else if(m_trackSeedName.find("CosmicTrackSeed") != std::string::npos)
-      {
-	if (Verbosity() > 0)
-	  {
-	    std::cout << "tpc seed id " << trackSeed->get_tpc_seed_index() << std::endl;
-	    std::cout << "si seed id " << trackSeed->get_silicon_seed_index() << std::endl;
-	    std::cout << "tpc 2 seed id " << trackSeed->get_tpc_seed_index2() << std::endl;
-	    std::cout << "si 2 seed id " << trackSeed->get_silicon_seed_index2() << std::endl;
-	  }
-
-      unsigned int tpcseedindex = trackSeed->get_tpc_seed_index();
-      unsigned int tpcseedindex2= trackSeed->get_tpc_seed_index2();
-      unsigned int silseedindex = trackSeed->get_silicon_seed_index();
-      unsigned int silseedindex2= trackSeed->get_silicon_seed_index2();
-      
-      TrackSeed* tpcseed = m_tpcContainer->get(tpcseedindex);
-      TrackSeed* tpcseed2 = m_tpcContainer->get(tpcseedindex2);
-      TrackSeed* silseed = m_siContainer->get(silseedindex);
-      TrackSeed* silseed2 = m_siContainer->get(silseedindex2);
-
-      float perigeeYLoc = -100 * Acts::UnitConstants::cm;
-      Acts::Vector3 globperigee(0,perigeeYLoc/10.,0);
-      
-      float tpcR = fabs(1. / tpcseed->get_qOverR());
-      float tpcx = tpcseed->get_X0();
-      float tpcy = tpcseed->get_Y0();
-      //! propagate the track out to somewhere beyond the HCal, so that
-      //! we fit it from outside sphenix all the way through the ~100 layers
-      //! The OHCal has an outer radius of 2.7m
-      const auto pcaCircle = TrackFitUtils::get_circle_point_pca(tpcR,tpcx,tpcy,globperigee);
-      float pcaCircleRadius = pcaCircle.norm();
-      float pcaz = pcaCircleRadius * tpcseed->get_slope() + tpcseed->get_Z0();
-      
-      float trackx = pcaCircle.x();
-      float tracky = pcaCircle.y();
-      float trackz = pcaz;
-   
-      
-      float angle_pca = atan2(pcaCircle.y() - tpcy, pcaCircle.x() - tpcx);
-      float dAngle = 0.005;
-      float newx = tpcR * cos(angle_pca+dAngle) + tpcx;
-      float newy = tpcR * sin(angle_pca+dAngle) + tpcy;
-      float newz = sqrt(square(newx)+square(newy)) * tpcseed->get_slope() + tpcseed->get_Z0();
-     
-      //! We got the other track segment, so it is backwards
-      if(tpcseed->get_slope() > 0)
-	{newz *= -1; trackz *= -1;}
-      Acts::Vector3 pcacircle = Acts::Vector3(pcaCircle.x(), pcaCircle.y(), trackz);
-      Acts::Vector3 secondpca = Acts::Vector3(newx,newy,newz);
-      Acts::Vector3 tangent = (secondpca-pcacircle) / (secondpca-pcacircle).norm();
-
-      svtxtrack->set_x(trackx);
-      svtxtrack->set_y(tracky);
-      svtxtrack->set_z(trackz);
-      
-      tangent *= tpcseed->get_p();
-      
-      svtxtrack->set_px(tangent.x());
-      svtxtrack->set_py(tangent.y());
-      svtxtrack->set_pz(tangent.z());
-     
-      addKeys(svtxtrack, tpcseed);
-      if(silseed)  addKeys(svtxtrack, silseed);
-      if(tpcseed2) addKeys(svtxtrack, tpcseed2);
-      if(silseed2) addKeys(svtxtrack, silseed2);
-      
-      svtxtrack->set_tpc_seed(tpcseed);
-      svtxtrack->set_silicon_seed(silseed);
-
-      }
+  
     else
     {
       /// Otherwise we are using an individual subdetectors container
@@ -338,7 +329,16 @@ int TrackSeedTrackMapConverter::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
+void TrackSeedTrackMapConverter::addKeys(TrackSeed* seedToAddTo,
+					 TrackSeed* seedToAdd)
+{
+  for(auto iter = seedToAdd->begin_cluster_keys();
+      iter != seedToAdd->end_cluster_keys();
+      ++iter)
+    {
+      seedToAddTo->insert_cluster_key(*iter);
+    }
+}
 void TrackSeedTrackMapConverter::addKeys(std::unique_ptr<SvtxTrack_v4>& track, TrackSeed* seed)
 {
   for (TrackSeed::ConstClusterKeyIter iter = seed->begin_cluster_keys();

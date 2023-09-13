@@ -10,7 +10,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <trackbase_historic/CosmicTrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 
@@ -70,6 +70,8 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
     }
 
     auto tpcseed1 = m_tpcSeeds->get(tpcid1);
+    auto silseed1 = m_siliconSeeds->get(siid1);
+
     const float phi1 = tpcseed1->get_phi(m_clusterContainer, m_tGeometry);
     const float eta1 = tpcseed1->get_eta();
 
@@ -91,7 +93,7 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
       }
 
       auto tpcseed2 = m_tpcSeeds->get(tpcid2);
-
+      auto silseed2 = m_siliconSeeds->get(siid2);
       const float phi2 = tpcseed2->get_phi(m_clusterContainer, m_tGeometry);
       const float eta2 = tpcseed2->get_eta();
 
@@ -113,20 +115,40 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
 
       if (fabs(dphi) < 0.02 && fabs(deta) < 0.01)
       {
-        auto seed = std::make_unique<CosmicTrackSeed_v1>();
-        seed->set_silicon_seed_index(siid1);
-        seed->set_silicon_seed_index2(siid2);
-        seed->set_tpc_seed_index(tpcid1);
-        seed->set_tpc_seed_index2(tpcid2);
-
-        m_cosmicContainer->insert(seed.get());
+	//! add the clusters to the tpc seed and delete seed 2 since it is 
+	//! from the same track
+	addKeys(tpcseed1, tpcseed2);
+	if(silseed1)
+	  {
+	    if(silseed2)
+	      {
+		addKeys(silseed1,silseed2);
+	      }
+	  }
+	else
+	  {
+	    if(silseed2)
+	      {
+		track1->set_silicon_seed_index(siid2);
+	      }
+	  }
+	
+	m_seedMap->erase(m_seedMap->index(trackiter2));
       }
     }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
+void PHCosmicSeedCombiner::addKeys(TrackSeed* seedToAddTo, TrackSeed* seedToAdd)
+{
+  for(auto citer = seedToAdd->begin_cluster_keys();
+      citer != seedToAdd->end_cluster_keys();
+      ++citer)
+    {
+      seedToAddTo->insert_cluster_key(*citer);
+    }
+}
 //____________________________________________________________________________..
 int PHCosmicSeedCombiner::End(PHCompositeNode*)
 {

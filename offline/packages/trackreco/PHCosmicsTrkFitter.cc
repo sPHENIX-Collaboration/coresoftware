@@ -229,20 +229,16 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     unsigned int tpcid = track->get_tpc_seed_index();
     unsigned int siid = track->get_silicon_seed_index();
-    unsigned int tpcid2 = track->get_tpc_seed_index2();
-    unsigned int siid2 = track->get_silicon_seed_index2();
 
     // get the crossing number
     auto siseed = m_siliconSeeds->get(siid);
     short crossing = 0;
 
     auto tpcseed = m_tpcSeeds->get(tpcid);
-    auto siseed2 = m_siliconSeeds->get(siid2);
-    auto tpcseed2 = m_tpcSeeds->get(tpcid2);
     if (Verbosity() > 1)
     {
-      std::cout << "TPC ids " << tpcid << ", " << tpcid2 << std::endl;
-      std::cout << "Silicon ids " << siid << ", " << siid2 << std::endl;
+      std::cout << "TPC id " << tpcid <<  std::endl;
+      std::cout << "Silicon id " << siid << std::endl;
     }
 
     /// Need to also check that the tpc seed wasn't removed by the ghost finder
@@ -895,7 +891,7 @@ int PHCosmicsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode, "CosmicTrackSeedContainer");
+  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
   if (!m_seedMap)
   {
     std::cout << "No Svtx seed map on node tree. Exiting."
