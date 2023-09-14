@@ -557,6 +557,7 @@ void BbcSig::LocMax(Double_t& x_at_max, Double_t& ymax, Double_t xminrange, Doub
     xmaxrange = DBL_MAX;
   }
 
+  x_at_max = -DBL_MAX;
   ymax = -DBL_MAX;
 
   for (int i=0; i<n; i++)
