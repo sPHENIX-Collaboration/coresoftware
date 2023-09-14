@@ -16,7 +16,7 @@ class PHCompositeNode;
 class PHG4HitContainer;
 class PHG4TruthInfoContainer;
 class EventHeader;
-class BbcPmtContainer;
+class BbcPmtInfoContainerV1;
 class TDatabasePDG;
 class TRandom3;
 class TH1;
@@ -76,7 +76,7 @@ class BbcDigitization : public SubsysReco
   PHG4HitContainer *_bbchits = nullptr;
 
   // Output to DST
-  BbcPmtContainer *_bbcpmts = nullptr;
+  BbcPmtInfoContainerV1 *_bbcpmts = nullptr;
 };
 
 #endif  //* __BBCDIGITIZATION_H__ *//
