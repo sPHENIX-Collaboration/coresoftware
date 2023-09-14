@@ -137,59 +137,59 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
       // get max adc value in range
       /* TODO: use more advanced signal processing */
       auto max_adc = *std::max_element( adc.begin(), adc.end() );
+            
+      // compare to hard min_adc value
+      if( max_adc < m_min_adc ) continue;
+
+      // compare to threshold
+      if( max_adc < pedestal - m_n_sigma * rms ) continue;
       
       // subtract pedestal
       max_adc -= pedestal;
       
-      // compare to threshold
-      if( max_adc > m_n_sigma * rms ) 
+      // map fee and channel to physical hitsetid and physical strip
+      // get hitset key matching this fee
+      const TrkrDefs::hitsetkey hitsetkey = m_mapping.get_hitsetkey( fee );     
+      if( !hitsetkey ) continue;
+      
+      // get matching physical strip
+      int strip = m_mapping.get_physical_strip( fee, channel );
+      if( strip < 0 ) continue;
+      
+      if( Verbosity() )
       {
-        // map fee and channel to physical hitsetid and physical strip
-        // get hitset key matching this fee
-        const TrkrDefs::hitsetkey hitsetkey = m_mapping.get_hitsetkey( fee );     
-        if( !hitsetkey ) continue;
+        std::cout << "MicromegasRawDataDecoder::process_event -"
+          << " bco: " << bco
+          << " errir: " << checksum_error
+          << " layer: " << int(TrkrDefs::getLayer(hitsetkey)) 
+          << " tile: " << int( MicromegasDefs::getTileId( hitsetkey ))
+          << " channel: " << channel 
+          << " strip: " << strip 
+          << " adc: " << max_adc
+          << std::endl;
+      }
         
-        // get matching physical strip
-        int strip = m_mapping.get_physical_strip( fee, channel );
-        if( strip < 0 ) continue;
-
-        if( Verbosity() )
-        {
-          std::cout << "MicromegasRawDataDecoder::process_event -"
-            << " bco: " << bco
-            << " errir: " << checksum_error
-            << " layer: " << int(TrkrDefs::getLayer(hitsetkey)) 
-            << " tile: " << int( MicromegasDefs::getTileId( hitsetkey ))
-            << " channel: " << channel 
-            << " strip: " << strip 
-            << " adc: " << max_adc
-            << std::endl;
-        }
-        
-        // get matching hitset
-        const auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
-        
-        // generate hit key
-        const TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip);
-        
-        // find existing hit, or create
-        auto hit = hitset_it->second->getHit(hitkey);
-        if( hit ) 
-        {
-          // std::cout << "MicromegasRawDataDecoder::process_event - duplicated hit, hitsetkey: " << hitsetkey << " strip: " << strip << std::endl;
-          continue;
-        }
-        
-        // create hit, assign adc and insert in hitset
-        hit = new TrkrHitv2;
-        hit->setAdc( max_adc );
-        hitset_it->second->addHitSpecificKey(hitkey, hit);
-        
-        // increment counter
-        ++m_hitcounts[hitsetkey];
-        
+      // get matching hitset
+      const auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
+      
+      // generate hit key
+      const TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip);
+      
+      // find existing hit, or create
+      auto hit = hitset_it->second->getHit(hitkey);
+      if( hit ) 
+      {
+        // std::cout << "MicromegasRawDataDecoder::process_event - duplicated hit, hitsetkey: " << hitsetkey << " strip: " << strip << std::endl;
+        continue;
       }
       
+      // create hit, assign adc and insert in hitset
+      hit = new TrkrHitv2;
+      hit->setAdc( max_adc );
+      hitset_it->second->addHitSpecificKey(hitkey, hit);
+      
+      // increment counter
+      ++m_hitcounts[hitsetkey];
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;

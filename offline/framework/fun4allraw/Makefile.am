@@ -46,6 +46,7 @@ libfun4allraw_la_SOURCES = \
   SinglePrdfInput.cc
 
 libfun4allraw_la_LIBADD = \
+  -lffarawobjects \
   -lfun4all \
   -lEvent \
   -lphoolraw
