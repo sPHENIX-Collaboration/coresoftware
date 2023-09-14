@@ -731,42 +731,14 @@ Acts::Vector3 HelicalFitter::get_line_plane_intersection(Acts::Vector3 PCA, Acts
 
 std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global)
 {
-  // no analytic solution for the coordinates of the closest approach of a helix to a point
-  // Instead, we get the PCA in x and y to the circle, and the PCA in z to the z vs R line at the R of the PCA 
-
-  float radius = fitpars[0];
-  float x0 = fitpars[1];
-  float y0 = fitpars[2];  
-  float zslope = fitpars[3];
-  float z0 = fitpars[4];
-
-  Acts::Vector2 pca_circle = TrackFitUtils::get_circle_point_pca(radius, x0, y0, global);
-
-  // The radius of the PCA determines the z position:
-  float pca_circle_radius = pca_circle.norm();  // radius of the PCA of the circle to the point
-  float pca_z = pca_circle_radius * zslope + z0;
-  Acts::Vector3 pca(pca_circle(0), pca_circle(1), pca_z);
-
-  // now we want a second point on the helix so we can get a local straight line approximation to the track
-  // Get the angle of the PCA relative to the fitted circle center
-  float angle_pca = atan2(pca_circle(1) - y0, pca_circle(0) - x0);
-  // calculate coords of a point at a slightly larger angle
-  float d_angle = 0.005;
-  float newx = radius * cos(angle_pca + d_angle) + x0;
-  float newy = radius * sin(angle_pca + d_angle) + y0;
-  float newz = sqrt(newx*newx+newy*newy) * zslope + z0;
-  Acts::Vector3 second_point_pca(newx, newy, newz);
-
-  // pca and second_point_pca define a straight line approximation to the track
-  Acts::Vector3 tangent = (second_point_pca - pca) /  (second_point_pca - pca).norm();
-
-  // get the PCA of the cluster to that line
-  Acts::Vector3 final_pca = getPCALinePoint(global, tangent, pca);
-
+  auto pair = TrackFitUtils::get_helix_tangent(fitpars, global);
+  /*
+    save for posterity purposes
   if(Verbosity() > 2)
     {
       // different method for checking:
       // project the circle PCA vector an additional small amount and find the helix PCA to that point 
+      
       float projection = 0.25;  // cm
       Acts::Vector3 second_point = pca + projection * pca/pca.norm();
       Acts::Vector2 second_point_pca_circle = TrackFitUtils::get_circle_point_pca(radius, x0, y0, second_point);
@@ -788,12 +760,12 @@ std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_helix_tangent(const s
 			<< "    check final pca from line " << final_pca2(0) << "  " << final_pca2(1) << "  " << final_pca2(2) 
 			<< std::endl;
 	}
+      
     }
+  */
 
 
-  std::pair<Acts::Vector3, Acts::Vector3> line = std::make_pair(final_pca, tangent);
-
-  return line;
+  return pair;
 }
   
 int HelicalFitter::End(PHCompositeNode* )
