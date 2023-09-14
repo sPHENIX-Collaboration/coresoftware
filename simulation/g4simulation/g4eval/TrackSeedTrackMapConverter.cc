@@ -163,8 +163,8 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 	  TrackSeed* silseed = m_siContainer->get(silseedindex);
 	  
 	  float perigeeYLoc = -100 * Acts::UnitConstants::cm;
-	  Acts::Vector3 globperigee(0,perigeeYLoc/10.,0);
-	  
+	  Acts::Vector3 globperigee(2.5,perigeeYLoc/10.,-1);
+	  std::cout << "propagating to " << globperigee.transpose() << std::endl;
 	  tpcseed->circleFitByTaubin(m_clusters, m_tGeometry,0,58);
 	 
 	  float tpcR = fabs(1. / tpcseed->get_qOverR());
@@ -174,6 +174,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 	  //! we fit it from outside sphenix all the way through the ~100 layers
 	  //! The OHCal has an outer radius of 2.7m
 	  const auto pcaCircle = TrackFitUtils::get_circle_point_pca(tpcR,tpcx,tpcy,globperigee);
+	  
 	  float pcaCircleRadius = pcaCircle.norm();
 	  float pcaz = pcaCircleRadius * tpcseed->get_slope() + tpcseed->get_Z0();
 	  
@@ -195,6 +196,22 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 	  Acts::Vector3 secondpca = Acts::Vector3(newx,newy,newz);
 	  
 	  Acts::Vector3 tangent = (secondpca-pcacircle) / (secondpca-pcacircle).norm();
+
+	  const auto intersect = TrackFitUtils::circle_circle_intersection(
+                100, tpcR, tpcx, tpcy);   
+	  float intx, inty;
+	  if(std::get<2>(intersect) < std::get<3>(intersect))
+	    {
+	      intx = std::get<0>(intersect);
+	      inty = std::get<2>(intersect);
+	    }
+	  else
+	    {
+	      intx = std::get<1>(intersect);
+	      inty = std::get<3>(intersect);
+	    }
+	  float intz = 100 * tpcseed->get_slope() + tpcseed->get_Z0();
+	  auto tangent = 
 	  
 	  svtxtrack->set_x(trackx);
 	  svtxtrack->set_y(tracky);

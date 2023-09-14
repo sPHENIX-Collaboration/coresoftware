@@ -259,15 +259,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     if (siseed) sourceLinks = getSourceLinks(siseed, measurements, crossing);
     const auto tpcSourceLinks = getSourceLinks(tpcseed, measurements, crossing);
 
-    SourceLinkVec tpcSourceLinks2;
-    if (tpcseed2) tpcSourceLinks2 = getSourceLinks(tpcseed2, measurements, crossing);
-    SourceLinkVec siseed2sls;
-    if (siseed2) siseed2sls = getSourceLinks(siseed2, measurements, crossing);
-
     sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
-    sourceLinks.insert(sourceLinks.end(), tpcSourceLinks2.begin(), tpcSourceLinks2.end());
-    sourceLinks.insert(sourceLinks.end(), siseed2sls.begin(), siseed2sls.end());
-
+   
     float perigeeYLoc = -100 * Acts::UnitConstants::cm;
     Acts::Vector3 globperigee(0,perigeeYLoc/10.,0);
       
