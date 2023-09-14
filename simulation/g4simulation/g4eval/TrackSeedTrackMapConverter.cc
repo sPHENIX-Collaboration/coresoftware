@@ -161,67 +161,54 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         
 	  unsigned int silseedindex = trackSeed->get_silicon_seed_index();
 	  TrackSeed* silseed = m_siContainer->get(silseedindex);
-	  
-	  float perigeeYLoc = -100 * Acts::UnitConstants::cm;
-	  Acts::Vector3 globperigee(2.5,perigeeYLoc/10.,-1);
-	  std::cout << "propagating to " << globperigee.transpose() << std::endl;
+
 	  tpcseed->circleFitByTaubin(m_clusters, m_tGeometry,0,58);
 	 
 	  float tpcR = fabs(1. / tpcseed->get_qOverR());
 	  float tpcx = tpcseed->get_X0();
 	  float tpcy = tpcseed->get_Y0();
-	  //! propagate the track out to somewhere beyond the HCal, so that
-	  //! we fit it from outside sphenix all the way through the ~100 layers
-	  //! The OHCal has an outer radius of 2.7m
-	  const auto pcaCircle = TrackFitUtils::get_circle_point_pca(tpcR,tpcx,tpcy,globperigee);
-	  
-	  float pcaCircleRadius = pcaCircle.norm();
-	  float pcaz = pcaCircleRadius * tpcseed->get_slope() + tpcseed->get_Z0();
-	  
-	  float trackx = pcaCircle.x();
-	  float tracky = pcaCircle.y();
-	  float trackz = pcaz;
-	  
-	  
-	  float angle_pca = atan2(pcaCircle.y() - tpcy, pcaCircle.x() - tpcx);
-	  float dAngle = 0.005;
-	  float newx = tpcR * cos(angle_pca+dAngle) + tpcx;
-	  float newy = tpcR * sin(angle_pca+dAngle) + tpcy;
-	  float newz = sqrt(square(newx)+square(newy)) * tpcseed->get_slope() + tpcseed->get_Z0();
-	  
-	  //! We got the other track segment, so it is backwards
-	  if(tpcseed->get_slope() > 0)
-	    {newz *= -1; trackz *= -1;}
-	  Acts::Vector3 pcacircle = Acts::Vector3(pcaCircle.x(), pcaCircle.y(), trackz);
-	  Acts::Vector3 secondpca = Acts::Vector3(newx,newy,newz);
-	  
-	  Acts::Vector3 tangent = (secondpca-pcacircle) / (secondpca-pcacircle).norm();
-
-	  const auto intersect = TrackFitUtils::circle_circle_intersection(
-                100, tpcR, tpcx, tpcy);   
+	 
+	  const auto intersect = 
+	    TrackFitUtils::circle_circle_intersection(sqrt(100*100+2.5*2.5), 
+						      tpcR, tpcx, tpcy);   
 	  float intx, inty;
-	  if(std::get<2>(intersect) < std::get<3>(intersect))
+        
+	  if(std::get<1>(intersect) < std::get<3>(intersect))
 	    {
 	      intx = std::get<0>(intersect);
-	      inty = std::get<2>(intersect);
+	      inty = std::get<1>(intersect);
 	    }
 	  else
 	    {
-	      intx = std::get<1>(intersect);
+	      intx = std::get<2>(intersect);
 	      inty = std::get<3>(intersect);
 	    }
-	  float intz = 100 * tpcseed->get_slope() + tpcseed->get_Z0();
-	  auto tangent = 
+	  float intz = std::sqrt(100*100+2.5*2.5) * tpcseed->get_slope() + tpcseed->get_Z0();
+	  Acts::Vector3 inter(intx, inty, intz);
+	  std::vector<float> tpcparams{tpcR, tpcx, tpcy, tpcseed->get_slope(),
+	      tpcseed->get_Z0()};
+	  auto tangent = TrackFitUtils::get_helix_tangent(tpcparams,
+							   inter);
+
+	  auto tan = tangent.second;
+	  auto pca = tangent.first;
+	  svtxtrack->set_x(pca.x());
+	  svtxtrack->set_y(pca.y());
+	  svtxtrack->set_z((tpcseed->get_slope() > 0 ? pca.z() * -1 : pca.z()));
+	  float p;
+	  if(m_fieldMap.find(".root") != std::string::npos)
+	    {
+	      p = tpcseed->get_p();
+	    }
+	  else
+	    {
+	      p = cosh(tpcseed->get_eta()) * fabs(1./tpcseed->get_qOverR()) * (0.3/100) * std::stod(m_fieldMap);
+	    }
 	  
-	  svtxtrack->set_x(trackx);
-	  svtxtrack->set_y(tracky);
-	  svtxtrack->set_z(trackz);
-	  
-	  tangent *= tpcseed->get_p();
-	  
-	  svtxtrack->set_px(tangent.x());
-	  svtxtrack->set_py(tangent.y());
-	  svtxtrack->set_pz(tangent.z());
+	  tan *= p;
+	  svtxtrack->set_px(tan.x());
+	  svtxtrack->set_py(tan.y());
+	  svtxtrack->set_pz((tpcseed->get_slope() > 0 ? -1* tan.z() : tan.z()));
 	  
 	  addKeys(svtxtrack, tpcseed);
 	  if(silseed)  addKeys(svtxtrack, silseed);
@@ -243,7 +230,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       svtxtrack->set_y(trackSeed->get_y());
       svtxtrack->set_z(trackSeed->get_z());
       svtxtrack->set_charge(trackSeed->get_qOverR() > 0 ? 1 : -1);
-       if(m_fieldMap.find(".root") != std::string::npos)
+      if(m_fieldMap.find(".root") != std::string::npos)
 	{
 	  svtxtrack->set_px(trackSeed->get_px(m_clusters, m_tGeometry));
 	  svtxtrack->set_py(trackSeed->get_py(m_clusters, m_tGeometry));
