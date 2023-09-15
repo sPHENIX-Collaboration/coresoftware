@@ -167,9 +167,9 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 	  float tpcR = fabs(1. / tpcseed->get_qOverR());
 	  float tpcx = tpcseed->get_X0();
 	  float tpcy = tpcseed->get_Y0();
-	 
+	  float vertexradius = 80;
 	  const auto intersect = 
-	    TrackFitUtils::circle_circle_intersection(sqrt(100*100+2.5*2.5), 
+	    TrackFitUtils::circle_circle_intersection(vertexradius, 
 						      tpcR, tpcx, tpcy);   
 	  float intx, inty;
         
@@ -183,8 +183,13 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 	      intx = std::get<2>(intersect);
 	      inty = std::get<3>(intersect);
 	    }
-	  float intz = std::sqrt(100*100+2.5*2.5) * tpcseed->get_slope() + tpcseed->get_Z0();
+	  float slope = tpcseed->get_slope();
+	  //if(slope < 0) slope *=-1;
+
+	  float intz = vertexradius * slope + tpcseed->get_Z0();
+          std::cout << "the slope " << slope << " , " << intz <<std::endl;
 	  Acts::Vector3 inter(intx, inty, intz);
+
 	  std::vector<float> tpcparams{tpcR, tpcx, tpcy, tpcseed->get_slope(),
 	      tpcseed->get_Z0()};
 	  auto tangent = TrackFitUtils::get_helix_tangent(tpcparams,
@@ -194,7 +199,8 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 	  auto pca = tangent.first;
 	  svtxtrack->set_x(pca.x());
 	  svtxtrack->set_y(pca.y());
-	  svtxtrack->set_z((tpcseed->get_slope() > 0 ? pca.z() * -1 : pca.z()));
+	  svtxtrack->set_z(slope > 0 ? intz : vertexradius*slope*-1+tpcseed->get_Z0());
+
 	  float p;
 	  if(m_fieldMap.find(".root") != std::string::npos)
 	    {
@@ -208,7 +214,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 	  tan *= p;
 	  svtxtrack->set_px(tan.x());
 	  svtxtrack->set_py(tan.y());
-	  svtxtrack->set_pz((tpcseed->get_slope() > 0 ? -1* tan.z() : tan.z()));
+	  svtxtrack->set_pz(tpcseed->get_slope() > 0 ? tan.z() : tan.z() * -1);
 	  
 	  addKeys(svtxtrack, tpcseed);
 	  if(silseed)  addKeys(svtxtrack, silseed);
