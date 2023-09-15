@@ -327,7 +327,11 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     Acts::BoundSymMatrix cov = setDefaultCovariance();
 
     int charge = tpcseed->get_charge();
- 
+    if(m_fieldMap.find(".root") != std::string::npos)
+      {
+	charge *=-1;
+      }
+    
     //! Acts requires a wrapped vector, so we need to replace the
     //! std::vector contents with a wrapper vector to get the memory
     //! access correct
@@ -761,10 +765,10 @@ Acts::BoundSymMatrix PHCosmicsTrkFitter::setDefaultCovariance() const
   /// but if it is too tight, it will just "believe" the track seed over
   /// the hit data
 
-  double sigmaD0 = 200 * Acts::UnitConstants::um;
-  double sigmaZ0 = 200 * Acts::UnitConstants::um;
-  double sigmaPhi = 2 * Acts::UnitConstants::degree;
-  double sigmaTheta = 2 * Acts::UnitConstants::degree;
+  double sigmaD0 = 300 * Acts::UnitConstants::um;
+  double sigmaZ0 = 300 * Acts::UnitConstants::um;
+  double sigmaPhi = 1 * Acts::UnitConstants::degree;
+  double sigmaTheta = 1 * Acts::UnitConstants::degree;
   double sigmaT = 1. * Acts::UnitConstants::ns;
 
   cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = sigmaD0 * sigmaD0;
@@ -773,7 +777,7 @@ Acts::BoundSymMatrix PHCosmicsTrkFitter::setDefaultCovariance() const
   cov(Acts::eBoundPhi, Acts::eBoundPhi) = sigmaPhi * sigmaPhi;
   cov(Acts::eBoundTheta, Acts::eBoundTheta) = sigmaTheta * sigmaTheta;
   /// Acts takes this value very seriously - tuned to be in a "sweet spot"
-  cov(Acts::eBoundQOverP, Acts::eBoundQOverP) = 0.001;
+  cov(Acts::eBoundQOverP, Acts::eBoundQOverP) = 0.0001;
 
   return cov;
 }
