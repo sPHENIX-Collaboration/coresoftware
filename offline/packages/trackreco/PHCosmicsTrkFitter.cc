@@ -260,64 +260,74 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     const auto tpcSourceLinks = getSourceLinks(tpcseed, measurements, crossing);
 
     sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
-   
-    float perigeeYLoc = -100 * Acts::UnitConstants::cm;
-    Acts::Vector3 globperigee(0,perigeeYLoc/10.,0);
-      
+
+    tpcseed->circleFitByTaubin(m_clusterContainer, m_tGeometry,0,58);
+    
     float tpcR = fabs(1. / tpcseed->get_qOverR());
     float tpcx = tpcseed->get_X0();
     float tpcy = tpcseed->get_Y0();
-    //! propagate the track out to somewhere beyond the HCal, so that
-    //! we fit it from outside sphenix all the way through the ~100 layers
-    //! The OHCal has an outer radius of 2.7m
-    const auto pcaCircle = TrackFitUtils::get_circle_point_pca(tpcR,tpcx,tpcy,globperigee);
-    float pcaCircleRadius = pcaCircle.norm();
-    float pcaz = pcaCircleRadius * tpcseed->get_slope() + tpcseed->get_Z0();
+    float vertexradius = 80;
+    const auto intersect = 
+      TrackFitUtils::circle_circle_intersection(vertexradius, 
+						tpcR, tpcx, tpcy);   
+    float intx, inty;
     
-    float trackx = pcaCircle.x();
-    float tracky = pcaCircle.y();
-    float trackz = pcaz;
+    if(std::get<1>(intersect) < std::get<3>(intersect))
+      {
+	intx = std::get<0>(intersect);
+	inty = std::get<1>(intersect);
+      }
+    else
+      {
+	intx = std::get<2>(intersect);
+	inty = std::get<3>(intersect);
+      }
+
+    float slope = tpcseed->get_slope();    
+    float intz = vertexradius * slope + tpcseed->get_Z0();
     
-    float angle_pca = atan2(pcaCircle.y() - tpcy, pcaCircle.x() - tpcx);
-    float dAngle = 0.005;
-    float newx = tpcR * cos(angle_pca+dAngle) + tpcx;
-    float newy = tpcR * sin(angle_pca+dAngle) + tpcy;
-    float newz = sqrt(square(newx)+square(newy)) * tpcseed->get_slope() + tpcseed->get_Z0();
+    Acts::Vector3 inter(intx, inty, intz);
     
-    //! We got the other track segment, so it is backwards
-    if(tpcseed->get_slope() > 0)
-      {newz *= -1; trackz *= -1;}
-    Acts::Vector3 pcacircle = Acts::Vector3(pcaCircle.x(), pcaCircle.y(), trackz);
-    Acts::Vector3 secondpca = Acts::Vector3(newx,newy,newz);
-    Acts::Vector3 tangent = (secondpca-pcacircle) / (secondpca-pcacircle).norm();
-
-    Acts::Vector3 position(trackx * Acts::UnitConstants::cm,
-                           tracky * Acts::UnitConstants::cm,
-                           trackz * Acts::UnitConstants::cm);
-
-    if (!is_valid(position)) continue;
-
-    if (sourceLinks.empty())
-    {
-      continue;
-    }
-
-    Acts::Vector3 momentum(tangent.x() * tpcseed->get_p(),
-			   tangent.y() * tpcseed->get_p(),
-			   tangent.z() * tpcseed->get_p());
-
+    std::vector<float> tpcparams{tpcR, tpcx, tpcy, tpcseed->get_slope(),
+	tpcseed->get_Z0()};
+    auto tangent = TrackFitUtils::get_helix_tangent(tpcparams,
+						    inter);
+    
+    auto tan = tangent.second;
+    auto pca = tangent.first;
+    
+    float p;
+    if(m_fieldMap.find(".root") != std::string::npos)
+      {
+	p = tpcseed->get_p();
+      }
+    else
+      {
+	p = cosh(tpcseed->get_eta()) * fabs(1./tpcseed->get_qOverR()) * (0.3/100) * std::stod(m_fieldMap);
+      }
+    
+    tan *= p;
+    
+    //! if we got the opposite seed then z will be backwards, so we double
+    //! check which way the seed is pointing
+    Acts::Vector3 momentum(tan.x(), tan.y(), 
+			   tpcseed->get_slope() > 0 ? tan.z() : -1 * tan.z());
+    Acts::Vector3 position(pca.x(), pca.y(),
+			   slope > 0 ? intz : vertexradius*slope*-1+tpcseed->get_Z0());
+  
+    position *= Acts::UnitConstants::cm;
     if (!is_valid(momentum)) continue;
 
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-        Acts::Vector3(0, perigeeYLoc, 0));
+	        Acts::Vector3(0, -1*vertexradius * Acts::UnitConstants::cm, 0));
     auto actsFourPos = Acts::Vector4(position(0), position(1),
                                      position(2),
                                      10 * Acts::UnitConstants::ns);
-
+   
     Acts::BoundSymMatrix cov = setDefaultCovariance();
 
     int charge = tpcseed->get_charge();
-    charge = -1;
+ 
     //! Acts requires a wrapped vector, so we need to replace the
     //! std::vector contents with a wrapper vector to get the memory
     //! access correct

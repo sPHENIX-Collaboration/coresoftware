@@ -184,12 +184,11 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 	      inty = std::get<3>(intersect);
 	    }
 	  float slope = tpcseed->get_slope();
-	  //if(slope < 0) slope *=-1;
 
 	  float intz = vertexradius * slope + tpcseed->get_Z0();
-          std::cout << "the slope " << slope << " , " << intz <<std::endl;
-	  Acts::Vector3 inter(intx, inty, intz);
 
+	  Acts::Vector3 inter(intx, inty, intz);
+        
 	  std::vector<float> tpcparams{tpcR, tpcx, tpcy, tpcseed->get_slope(),
 	      tpcseed->get_Z0()};
 	  auto tangent = TrackFitUtils::get_helix_tangent(tpcparams,
@@ -197,6 +196,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 
 	  auto tan = tangent.second;
 	  auto pca = tangent.first;
+	  
 	  svtxtrack->set_x(pca.x());
 	  svtxtrack->set_y(pca.y());
 	  svtxtrack->set_z(slope > 0 ? intz : vertexradius*slope*-1+tpcseed->get_Z0());
