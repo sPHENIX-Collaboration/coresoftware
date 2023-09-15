@@ -212,10 +212,16 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 	    }
 	  
 	  tan *= p;
-	  svtxtrack->set_px(tan.x());
-	  svtxtrack->set_py(tan.y());
-	  svtxtrack->set_pz(tpcseed->get_slope() > 0 ? tan.z() : tan.z() * -1);
-	  
+	  svtxtrack->set_px(tpcseed->get_charge() < 0 ? tan.x() : tan.x() * -1);
+	  svtxtrack->set_py(tpcseed->get_charge() < 0 ? tan.y() : tan.y() * -1);
+	  if(tpcseed->get_charge() < 0){
+	    svtxtrack->set_pz(tpcseed->get_slope() > 0 ? tan.z() : tan.z() * -1);
+	  }
+	  else
+	    {
+	      svtxtrack->set_pz(tpcseed->get_slope() < 0 ? tan.z() : tan.z() * -1);
+	    }
+	  svtxtrack->set_charge(tpcseed->get_charge());
 	  addKeys(svtxtrack, tpcseed);
 	  if(silseed)  addKeys(svtxtrack, silseed);
 	  
