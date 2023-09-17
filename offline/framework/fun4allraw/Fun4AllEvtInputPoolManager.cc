@@ -4,7 +4,7 @@
 #include "SingleInttInput.h"
 #include "SingleEvtInput.h"
 
-#include <ffarawobjects/InttHit.h>
+#include <ffarawobjects/InttRawHit.h>
 
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -50,6 +50,16 @@ Fun4AllEvtInputPoolManager::Fun4AllEvtInputPoolManager(const std::string &name, 
     PHDataNode<PacketMap> *newNode = new PHDataNode<PacketMap>(m_PacketMap, m_EvtNodeName, "PacketMap");
     m_topNode->addNode(newNode);
   }
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (! dstNode)
+  {
+    dstNode = new PHCompositeNode("DST");
+    m_topNode->addNode(dstNode);
+  }
+//  InttRawHit *intthit = findNode::getClass<InttRawHit>(m_topNode,"INTTRAWHIT");
+//   if (!intthit)
+//   {
+// PHIODataNode InttRawHitNode = 
   m_topNode->print();
   return;
 }
@@ -369,14 +379,14 @@ void Fun4AllEvtInputPoolManager::AddPacket(uint64_t bclk, Packet *p)
   m_PacketInfoMap[bclk].PacketVector.push_back(p);
 }
 
-void Fun4AllEvtInputPoolManager::AddInttHit(uint64_t bclk, InttHit *hit)
+void Fun4AllEvtInputPoolManager::AddInttRawHit(uint64_t bclk, InttRawHit *hit)
 {
   if (Verbosity() > 1)
   {
     std::cout << "Adding intt hit to bclk 0x"
               << std::hex << bclk << std::dec << std::endl;
   }
-  m_InttHitMap[bclk].InttHitVector.push_back(hit);
+  m_InttRawHitMap[bclk].InttRawHitVector.push_back(hit);
 }
 
 void Fun4AllEvtInputPoolManager::UpdateEventFoundCounter(const int evtno)

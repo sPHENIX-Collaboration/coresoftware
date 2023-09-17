@@ -12,7 +12,7 @@
 
 class SingleStreamingInput;
 class ospEvent;
-class InttHit;
+class InttRawHit;
 class PacketMap;
 class Packet;
 class PHCompositeNode;
@@ -40,7 +40,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   void registerStreamingInput(SingleStreamingInput *evtin);
   void AddPacket(uint64_t bclk, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
-  void AddInttHit(uint64_t bclk, InttHit *hit);
+  void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
 
  private:
   struct PacketInfo
@@ -48,9 +48,9 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
     std::vector<Packet *> PacketVector;
     unsigned int EventFoundCounter = 0;
   };
-  struct InttHitInfo
+  struct InttRawHitInfo
   {
-    std::vector<InttHit *> InttHitVector;
+    std::vector<InttRawHit *> InttRawHitVector;
     unsigned int EventFoundCounter = 0;
   };
 
@@ -60,7 +60,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   PHCompositeNode *m_topNode = nullptr;
   PacketMap *m_PacketMap = nullptr;
   std::map<uint64_t, PacketInfo> m_PacketInfoMap;
-  std::map<uint64_t, InttHitInfo> m_InttHitMap;
+  std::map<uint64_t, InttRawHitInfo> m_InttRawHitMap;
   std::string m_EvtNodeName;
   uint64_t m_CurrentBeamClock = 0;
 };

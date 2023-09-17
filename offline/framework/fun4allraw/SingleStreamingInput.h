@@ -13,7 +13,7 @@
 
 class Eventiterator;
 class Fun4AllEvtInputPoolManager;
-class InttHit;
+class InttRawHit;
 class Packet;
 
 class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
@@ -51,7 +51,7 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   std::array<uint64_t, 14> m_PreviousClock{};
   std::array<uint64_t, 14> m_Rollover{};
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
-  std::map<uint64_t, std::vector<InttHit *>> m_InttHitMap;
+  std::map<uint64_t, std::vector<InttRawHit *>> m_InttRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
 };

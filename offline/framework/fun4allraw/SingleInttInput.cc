@@ -2,8 +2,8 @@
 
 #include "Fun4AllEvtInputPoolManager.h"
 
-#include <ffarawobjects/InttHitContainerv1.h>
-#include <ffarawobjects/InttHitv1.h>
+#include <ffarawobjects/InttRawHitContainerv1.h>
+#include <ffarawobjects/InttRawHitv1.h>
 
 #include <frog/FROG.h>
 
@@ -81,7 +81,7 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
       std::set<uint64_t> bclk_set;
       for (int j = 0; j < num_hits; j++)
       {
-	InttHit *newhit = new InttHitv1();
+	InttRawHit *newhit = new InttRawHitv1();
 	int FEE = plist[i]->iValue(j, "FEE");
 	uint64_t gtm_bco = plist[i]->lValue(j, "BCO");
 	newhit->set_fee(FEE);
@@ -116,14 +116,14 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
 //          plist[i]->convert();
 	if (InputManager())
 	{
-	  InputManager()->AddInttHit(gtm_bco, newhit);
+	  InputManager()->AddInttRawHit(gtm_bco, newhit);
 	}
-	if (m_InttHitMap.find(gtm_bco) == m_InttHitMap.end())
+	if (m_InttRawHitMap.find(gtm_bco) == m_InttRawHitMap.end())
 	{
-	  std::vector<InttHit *> intthitvector;
-	  m_InttHitMap[gtm_bco] = intthitvector;
+	  std::vector<InttRawHit *> intthitvector;
+	  m_InttRawHitMap[gtm_bco] = intthitvector;
 	}
-	m_InttHitMap[gtm_bco].push_back(newhit);
+	m_InttRawHitMap[gtm_bco].push_back(newhit);
 	m_BclkStack.insert(gtm_bco);
       }
       delete plist[i];
@@ -133,7 +133,7 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
       // }
     }
     delete evt;
-  } while (m_InttHitMap.size() < 10 || CheckPoolDepth(m_InttHitMap.begin()->first));
+  } while (m_InttRawHitMap.size() < 10 || CheckPoolDepth(m_InttRawHitMap.begin()->first));
 }
 
 void SingleInttInput::Print(const std::string &what) const
@@ -159,7 +159,7 @@ void SingleInttInput::Print(const std::string &what) const
   }
   if (what == "ALL" || what == "STORAGE")
   {
-    for (const auto &bcliter : m_InttHitMap)
+    for (const auto &bcliter : m_InttRawHitMap)
     {
       std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
       for (auto feeiter : bcliter.second)
@@ -181,7 +181,7 @@ void SingleInttInput::Print(const std::string &what) const
 void SingleInttInput::CleanupUsedPackets(const uint64_t bclk)
 {
   std::vector<uint64_t> toclearbclk;
-  for (const auto &iter : m_InttHitMap)
+  for (const auto &iter : m_InttRawHitMap)
   {
     if (iter.first <= bclk)
     {
@@ -198,7 +198,7 @@ void SingleInttInput::CleanupUsedPackets(const uint64_t bclk)
   }
   for (auto iter : toclearbclk)
   {
-    m_InttHitMap.erase(iter);
+    m_InttRawHitMap.erase(iter);
   }
 }
 
