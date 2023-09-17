@@ -80,6 +80,10 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
   {
     for (auto iter : m_EvtInputVector)
     {
+      if (Verbosity() > 0)
+      {
+	std::cout << "fill pool for " << iter->Name() << std::endl;
+      }
       iter->FillPool();
       m_RunNumber = iter->RunNumber();
     }
@@ -343,9 +347,16 @@ SingleEvtInput *Fun4AllEvtInputPoolManager::AddEvtInputList(const std::string &f
   return m_EvtInputVector.back();
 }
 */
-void Fun4AllEvtInputPoolManager::registerEvtInput(SingleEvtInput *evtin)
+void Fun4AllEvtInputPoolManager::registerStreamingInput(SingleStreamingInput *evtin)
 {
   m_EvtInputVector.push_back(evtin);
+  evtin->InputManager(this);
+  if (Verbosity() > 3)
+  {
+    std::cout << "registering " << evtin->Name()
+	      << " number of registered inputs: " << m_EvtInputVector.size()
+	      << std::endl;
+  }
 }
 
 void Fun4AllEvtInputPoolManager::AddPacket(uint64_t bclk, Packet *p)

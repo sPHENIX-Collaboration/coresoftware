@@ -24,6 +24,7 @@ SingleInttInput::SingleInttInput(const std::string &name)
 
 SingleInttInput::~SingleInttInput()
 {
+  delete[] plist;
 }
 
 void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
@@ -113,9 +114,9 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
 		    << ", FEE: " << FEE << std::endl;
 	}
 //          plist[i]->convert();
-	if (m_InputMgr)
+	if (InputManager())
 	{
-	  m_InputMgr->AddInttHit(gtm_bco, newhit);
+	  InputManager()->AddInttHit(gtm_bco, newhit);
 	}
 	if (m_InttHitMap.find(gtm_bco) == m_InttHitMap.end())
 	{

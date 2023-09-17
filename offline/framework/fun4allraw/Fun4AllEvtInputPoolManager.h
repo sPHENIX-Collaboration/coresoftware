@@ -10,7 +10,7 @@
 #include <map>
 #include <string>
 
-class SingleEvtInput;
+class SingleStreamingInput;
 class ospEvent;
 class InttHit;
 class PacketMap;
@@ -37,7 +37,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   std::string GetString(const std::string &what) const override;
 //  SingleEvtInput *AddEvtInputList(const std::string &listfile);
 //  SingleEvtInput *AddEvtInputFile(const std::string &filename);
-  void registerEvtInput(SingleEvtInput *evtin);
+  void registerStreamingInput(SingleStreamingInput *evtin);
   void AddPacket(uint64_t bclk, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
   void AddInttHit(uint64_t bclk, InttHit *hit);
@@ -55,7 +55,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   };
 
   int m_RunNumber = 0;
-  std::vector<SingleEvtInput *> m_EvtInputVector;
+  std::vector<SingleStreamingInput *> m_EvtInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
   PacketMap *m_PacketMap = nullptr;
