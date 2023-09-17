@@ -1,18 +1,18 @@
-#ifndef FUN4ALLRAW_INTTHITV1_H
-#define FUN4ALLRAW_INTTHITV1_H
+#ifndef FUN4ALLRAW_INTTRAWHITV1_H
+#define FUN4ALLRAW_INTTRAWHITV1_H
 
-#include "InttHit.h"
+#include "InttRawHit.h"
 
 #include <limits>
 
 
-class  InttHitv1: public InttHit  
+class  InttRawHitv1: public InttRawHit
 {
 
 
 public:
-  InttHitv1() {}
-  ~InttHitv1() override {};
+  InttRawHitv1() {}
+  ~InttRawHitv1() override {};
 
   uint64_t get_bco() const override {return bco;}
   void set_bco(const uint64_t val) override {bco = val;}
@@ -57,8 +57,7 @@ protected:
     uint16_t full_ROC = std::numeric_limits<uint16_t>::max();
     uint16_t amplitude = std::numeric_limits<uint16_t>::max();
 
-  ClassDefOverride(InttHitv1,1)    
+  ClassDefOverride(InttRawHitv1,1)
 };
 
- 
 #endif 
