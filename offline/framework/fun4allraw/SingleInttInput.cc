@@ -18,7 +18,9 @@
 
 SingleInttInput::SingleInttInput(const std::string &name)
   : SingleStreamingInput(name)
-{}
+{
+  plist = new Packet *[100];
+}
 
 SingleInttInput::~SingleInttInput()
 {
@@ -30,18 +32,14 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
   {
     return;
   }
-  while (m_EventIterator == nullptr)  // at startup this is a null pointer
+  while (GetEventiterator() == nullptr)  // at startup this is a null pointer
   {
     OpenNextFile();
   }
   std::set<uint64_t> saved_beamclocks;
   do
   {
-    Event *evt = m_EventIterator->getNextEvent();
-    if (Verbosity() > 2)
-    {
-      std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl;
-    }
+    Event *evt = GetEventiterator()->getNextEvent();
     while (!evt)
     {
       fileclose();
@@ -50,7 +48,11 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
         AllDone(1);
         return;
       }
-      evt = m_EventIterator->getNextEvent();
+      evt = GetEventiterator()->getNextEvent();
+    }
+    if (Verbosity() > 2)
+    {
+      std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl;
     }
     RunNumber(evt->getRunNumber());
     if (GetVerbosity() > 1)

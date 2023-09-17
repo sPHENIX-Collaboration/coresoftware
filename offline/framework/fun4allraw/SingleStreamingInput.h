@@ -35,6 +35,7 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual void CleanupUsedPackets(const uint64_t bclk);
   virtual bool CheckPoolDepth(const uint64_t bclk);
   virtual void ClearCurrentEvent();
+  virtual Eventiterator *GetEventiterator() const {return m_EventIterator;}
 
  private:
   Eventiterator *m_EventIterator = nullptr;

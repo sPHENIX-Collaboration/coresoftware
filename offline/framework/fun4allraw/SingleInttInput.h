@@ -17,7 +17,7 @@ class Fun4AllEvtInputPoolManager;
 class InttHit;
 class Packet;
 
-class SingleInttInput : SingleStreamingInput
+class SingleInttInput : public SingleStreamingInput
 {
  public:
   explicit SingleInttInput(const std::string &name);
@@ -29,7 +29,6 @@ class SingleInttInput : SingleStreamingInput
   void Print(const std::string &what = "ALL") const override;
 
  private:
-  Eventiterator *m_EventIterator = nullptr;
   Fun4AllEvtInputPoolManager *m_InputMgr = nullptr;
   Packet **plist = nullptr;
   InttPool pool;
