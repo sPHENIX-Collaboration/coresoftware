@@ -1,6 +1,7 @@
 #include "Fun4AllEvtInputPoolManager.h"
 
 #include "PacketMap.h"
+#include "SingleInttInput.h"
 #include "SingleEvtInput.h"
 
 #include <ffarawobjects/InttHit.h>
@@ -325,7 +326,7 @@ std::string Fun4AllEvtInputPoolManager::GetString(const std::string &what) const
   }
   return "";
 }
-
+/*
 SingleEvtInput *Fun4AllEvtInputPoolManager::AddEvtInputFile(const std::string &filenam)
 {
   SingleEvtInput *evtin = new SingleEvtInput("EVTIN_" + std::to_string(m_EvtInputVector.size()), this);
@@ -340,6 +341,11 @@ SingleEvtInput *Fun4AllEvtInputPoolManager::AddEvtInputList(const std::string &f
   evtin->AddListFile(filenam);
   m_EvtInputVector.push_back(evtin);
   return m_EvtInputVector.back();
+}
+*/
+void Fun4AllEvtInputPoolManager::registerEvtInput(SingleEvtInput *evtin)
+{
+  m_EvtInputVector.push_back(evtin);
 }
 
 void Fun4AllEvtInputPoolManager::AddPacket(uint64_t bclk, Packet *p)

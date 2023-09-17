@@ -1,4 +1,4 @@
-#include "SingleInttInput.h"
+#include "SingleStreamingInput.h"
 
 #include "Fun4AllEvtInputPoolManager.h"
 
@@ -16,15 +16,34 @@
 
 #include <set>
 
-SingleInttInput::SingleInttInput(const std::string &name)
-  : SingleStreamingInput(name)
-{}
-
-SingleInttInput::~SingleInttInput()
+SingleStreamingInput::SingleStreamingInput(const std::string &name, Fun4AllEvtInputPoolManager *inman)
+  : Fun4AllBase(name)
+  , m_InputMgr(inman)
 {
+  plist = new Packet *[100];
 }
 
-void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
+SingleStreamingInput::SingleStreamingInput(const std::string &name)
+  : Fun4AllBase(name)
+{
+  plist = new Packet *[100];
+}
+
+SingleStreamingInput::~SingleStreamingInput()
+{
+  delete m_EventIterator;
+  for (const auto &iter : m_InttHitMap)
+  {
+    for (auto pktiter : iter.second)
+    {
+      delete pktiter;
+    }
+  }
+  m_InttHitMap.clear();
+  delete[] plist;
+}
+
+void SingleStreamingInput::FillPool(const unsigned int /*nbclks*/)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -52,7 +71,7 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
       }
       evt = m_EventIterator->getNextEvent();
     }
-    RunNumber(evt->getRunNumber());
+    m_RunNumber = evt->getRunNumber();
     if (GetVerbosity() > 1)
     {
       evt->identify();
@@ -133,7 +152,55 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
   } while (m_InttHitMap.size() < 10 || CheckPoolDepth(m_InttHitMap.begin()->first));
 }
 
-void SingleInttInput::Print(const std::string &what) const
+int SingleStreamingInput::fileopen(const std::string &filenam)
+{
+  std::cout << PHWHERE << "trying to open " << filenam << std::endl;
+  if (IsOpen())
+  {
+    std::cout << "Closing currently open file "
+              << FileName()
+              << " and opening " << filenam << std::endl;
+    fileclose();
+  }
+  FileName(filenam);
+  FROG frog;
+  std::string fname = frog.location(FileName());
+  if (Verbosity() > 0)
+  {
+    std::cout << Name() << ": opening file " << FileName() << std::endl;
+  }
+  int status = 0;
+  m_EventIterator = new fileEventiterator(fname.c_str(), status);
+  m_EventsThisFile = 0;
+  if (status)
+  {
+    delete m_EventIterator;
+    m_EventIterator = nullptr;
+    std::cout << PHWHERE << Name() << ": could not open file " << fname << std::endl;
+    return -1;
+  }
+  IsOpen(1);
+  AddToFileOpened(fname);  // add file to the list of files which were opened
+  return 0;
+}
+
+int SingleStreamingInput::fileclose()
+{
+  if (!IsOpen())
+  {
+    std::cout << Name() << ": fileclose: No Input file open" << std::endl;
+    return -1;
+  }
+  delete m_EventIterator;
+  m_EventIterator = nullptr;
+  IsOpen(0);
+  // if we have a file list, move next entry to top of the list
+  // or repeat the same entry again
+  UpdateFileList();
+  return 0;
+}
+
+void SingleStreamingInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "FEE")
   {
@@ -175,7 +242,7 @@ void SingleInttInput::Print(const std::string &what) const
   }
 }
 
-void SingleInttInput::CleanupUsedPackets(const uint64_t bclk)
+void SingleStreamingInput::CleanupUsedPackets(const uint64_t bclk)
 {
   std::vector<uint64_t> toclearbclk;
   for (const auto &iter : m_InttHitMap)
@@ -198,8 +265,7 @@ void SingleInttInput::CleanupUsedPackets(const uint64_t bclk)
     m_InttHitMap.erase(iter);
   }
 }
-
-bool SingleInttInput::CheckPoolDepth(const uint64_t bclk)
+bool SingleStreamingInput::CheckPoolDepth(const uint64_t bclk)
 {
   // if (m_FEEBclkMap.size() < 10)
   // {
@@ -226,7 +292,7 @@ bool SingleInttInput::CheckPoolDepth(const uint64_t bclk)
   return false;
 }
 
-void SingleInttInput::ClearCurrentEvent()
+void SingleStreamingInput::ClearCurrentEvent()
 {
   // called interactively, to get rid of the current event
   uint64_t currentbclk = *m_BclkStack.begin();

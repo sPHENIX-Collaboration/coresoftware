@@ -35,8 +35,9 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   int SyncIt(const SyncObject *mastersync) override;
   int HasSyncObject() const override { return 1; }
   std::string GetString(const std::string &what) const override;
-  SingleEvtInput *AddEvtInputList(const std::string &listfile);
-  SingleEvtInput *AddEvtInputFile(const std::string &filename);
+//  SingleEvtInput *AddEvtInputList(const std::string &listfile);
+//  SingleEvtInput *AddEvtInputFile(const std::string &filename);
+  void registerEvtInput(SingleEvtInput *evtin);
   void AddPacket(uint64_t bclk, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
   void AddInttHit(uint64_t bclk, InttHit *hit);
