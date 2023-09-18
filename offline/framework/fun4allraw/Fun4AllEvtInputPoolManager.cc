@@ -5,6 +5,7 @@
 #include "SingleEvtInput.h"
 
 #include <ffarawobjects/InttRawHit.h>
+#include <ffarawobjects/InttRawHitContainerv1.h>
 
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -56,10 +57,22 @@ Fun4AllEvtInputPoolManager::Fun4AllEvtInputPoolManager(const std::string &name, 
     dstNode = new PHCompositeNode("DST");
     m_topNode->addNode(dstNode);
   }
-//  InttRawHit *intthit = findNode::getClass<InttRawHit>(m_topNode,"INTTRAWHIT");
-//   if (!intthit)
-//   {
-// PHIODataNode InttRawHitNode = 
+  PHNodeIterator iterDst(dstNode);
+PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "INTT"));
+if (!detNode)
+{
+  detNode = new PHCompositeNode("INTT");
+  dstNode->addNode(detNode);
+}
+
+  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode,"INTTRAWHIT");
+  if (!intthitcont)
+  {
+    intthitcont = new InttRawHitContainerv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
+    detNode->addNode(newNode);
+  }
+
   m_topNode->print();
   return;
 }
@@ -86,7 +99,7 @@ Fun4AllEvtInputPoolManager::~Fun4AllEvtInputPoolManager()
 
 int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
 {
-  if (m_PacketInfoMap.size() < 5)
+  if (m_InttRawHitMap.size() < 5)
   {
     for (auto iter : m_EvtInputVector)
     {
@@ -100,24 +113,31 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
     SetRunNumber(m_RunNumber);
   }
 
-  if (m_PacketInfoMap.empty())
+  if (m_InttRawHitMap.empty())
   {
     std::cout << "we are done" << std::endl;
     return -1;
   }
   //  std::cout << "next event is " << m_PacketInfoMap.begin()->first << std::endl;
   //  auto pktinfoiter = m_PacketInfoMap.begin();
-  PacketMap *pktmap = findNode::getClass<PacketMap>(m_topNode, m_EvtNodeName);
-  for (auto pktiter : m_PacketInfoMap.begin()->second.PacketVector)
+
+  // PacketMap *pktmap = findNode::getClass<PacketMap>(m_topNode, m_EvtNodeName);
+  // for (auto pktiter : m_PacketInfoMap.begin()->second.PacketVector)
+  // {
+  //   pktmap->AddPacket(pktiter->getIdentifier(), pktiter);
+  // }
+  // m_CurrentBeamClock = m_PacketInfoMap.begin()->first;
+  // for (auto pktiter : m_PacketInfoMap.begin()->second.PacketVector)
+  // {
+  //   pktmap->AddBclk(pktiter->getIdentifier(), m_CurrentBeamClock);
+  // }
+  // m_PacketInfoMap.erase(m_PacketInfoMap.begin());
+  InttRawHitContainer *inttcont =  findNode::getClass<InttRawHitContainer>(m_topNode,"INTTRAWHIT");
+  for (auto intthititer :  m_InttRawHitMap.begin()->second.InttRawHitVector)
   {
-    pktmap->AddPacket(pktiter->getIdentifier(), pktiter);
+    inttcont->AddHit(intthititer);
   }
-  m_CurrentBeamClock = m_PacketInfoMap.begin()->first;
-  for (auto pktiter : m_PacketInfoMap.begin()->second.PacketVector)
-  {
-    pktmap->AddBclk(pktiter->getIdentifier(), m_CurrentBeamClock);
-  }
-  m_PacketInfoMap.erase(m_PacketInfoMap.begin());
+  m_InttRawHitMap.erase(m_InttRawHitMap.begin());
   return 0;
   // readagain:
   //   if (!IsOpen())

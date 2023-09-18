@@ -29,7 +29,6 @@ class SingleInttInput : public SingleStreamingInput
   void Print(const std::string &what = "ALL") const override;
 
  private:
-  Fun4AllEvtInputPoolManager *m_InputMgr = nullptr;
   Packet **plist = nullptr;
   InttPool pool;
   unsigned int m_NumSpecialEvents = 0;
