@@ -35,6 +35,8 @@ class TrackSeedTrackMapConverter : public SubsysReco
 
   void addKeys(std::unique_ptr<SvtxTrack_v4> &track, TrackSeed *seed);
   void addKeys(TrackSeed* seedToAddTo, TrackSeed* seedToAdd);
+  int getCosmicCharge(TrackSeed* seed, float vertexradius) const;
+
   std::string m_trackMapName = "SvtxTrackMap";
   std::string m_trackSeedName = "TpcTrackSeedContainer";
 

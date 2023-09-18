@@ -212,16 +212,17 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 	    }
 	  
 	  tan *= p;
-	  svtxtrack->set_px(tpcseed->get_charge() < 0 ? tan.x() : tan.x() * -1);
-	  svtxtrack->set_py(tpcseed->get_charge() < 0 ? tan.y() : tan.y() * -1);
-	  if(tpcseed->get_charge() < 0){
+	  int charge = getCosmicCharge(tpcseed, vertexradius);
+	  svtxtrack->set_px(charge < 0 ? tan.x() : tan.x() * -1);
+	  svtxtrack->set_py(charge < 0 ? tan.y() : tan.y() * -1);
+	  if(charge < 0){
 	    svtxtrack->set_pz(tpcseed->get_slope() > 0 ? tan.z() : tan.z() * -1);
 	  }
 	  else
 	    {
 	      svtxtrack->set_pz(tpcseed->get_slope() < 0 ? tan.z() : tan.z() * -1);
 	    }
-	  svtxtrack->set_charge(tpcseed->get_charge());
+	  svtxtrack->set_charge(charge);
 	  addKeys(svtxtrack, tpcseed);
 	  if(silseed)  addKeys(svtxtrack, silseed);
 	  
@@ -446,4 +447,57 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int TrackSeedTrackMapConverter::getCosmicCharge(TrackSeed* seed,
+						float vertexradius) const
+{
+  Acts::Vector3 globalMostOuter;
+  Acts::Vector3 globalSecondMostOuter(0,999999,0);
+  std::vector<Acts::Vector3> globpos;
+  float largestR = 0;
+  for(auto it = seed->begin_cluster_keys();
+      it != seed->end_cluster_keys();
+      ++it)
+    {
+      auto ckey = *it;
+      auto clus = m_clusters->findCluster(ckey);
+      auto glob = m_tGeometry->getGlobalPosition(ckey, clus);
+      globpos.push_back(glob);
+      float r = std::sqrt(square(glob.x()) + square(glob.y()));
+      if(r > largestR && glob.y() < 0)
+	{
+	  globalMostOuter = glob;
+	  largestR = r;
+	}
+    }
+  
+  float maxdr = std::numeric_limits<float>::max();
+  for(auto& glob : globpos)
+    {
+      if(glob.y() > 0) continue;
+      float dr = std::sqrt(square(globalMostOuter.x())+square(globalMostOuter.y())) - std::sqrt(square(glob.x()) + square(glob.y()));
+      if(dr < maxdr && dr > 10)
+	{
+	  maxdr = dr;
+	  globalSecondMostOuter = glob;
+	}
+    }
+  
+  Acts::Vector3 vertex(0,-1*vertexradius,0);
+  globalMostOuter -= vertex;
+  globalSecondMostOuter -= vertex;
+  
+  const auto firstphi = atan2(globalMostOuter.y(), globalMostOuter.x());
+  const auto secondphi = atan2(globalSecondMostOuter.y(),
+			       globalSecondMostOuter.x());
+  auto dphi = secondphi - firstphi;
+  if(dphi > M_PI) dphi = 2.* M_PI - dphi;
+  if(dphi < -M_PI) dphi = 2. * M_PI + dphi;
+  
+  if(dphi > 0) {
+    return -1;
+  }
+  
+  return 1;
 }
