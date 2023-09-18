@@ -36,7 +36,8 @@ pkginclude_HEADERS = \
 
 libffarawobjects_la_SOURCES = \
   $(ROOTDICTS) \
-  InttRawHitContainerv1.cc
+  InttRawHitContainerv1.cc \
+  InttRawHitv1.cc
 
 BUILT_SOURCES = testexternals.cc
 

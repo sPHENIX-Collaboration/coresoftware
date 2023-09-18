@@ -7,7 +7,7 @@ static const int NINTTHITS = 100;
 
 InttRawHitContainerv1::InttRawHitContainerv1()
 {
-  InttRawHitsTCArray = new TClonesArray("InttRawHitsv1",NINTTHITS);
+  InttRawHitsTCArray = new TClonesArray("InttRawHitv1",NINTTHITS);
 }
 
 InttRawHitContainerv1::~InttRawHitContainerv1()
@@ -39,5 +39,11 @@ unsigned int InttRawHitContainerv1::get_nhits()
 InttRawHit *InttRawHitContainerv1::AddHit()
 {
   InttRawHit *newhit = new ((*InttRawHitsTCArray)[InttRawHitsTCArray->GetSize()]) InttRawHitv1();
+  return newhit;
+}
+
+InttRawHit *InttRawHitContainerv1::AddHit(InttRawHit *intthit)
+{
+  InttRawHit *newhit = new ((*InttRawHitsTCArray)[InttRawHitsTCArray->GetSize()]) InttRawHitv1(intthit);
   return newhit;
 }

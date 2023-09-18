@@ -24,6 +24,7 @@ public:
   int isValid() const override;
 
   InttRawHit *AddHit() override;
+  InttRawHit *AddHit(InttRawHit *intthit) override;
   unsigned int get_nhits() override;
   InttRawHit *get_hit(unsigned int) override {return nullptr;}
 

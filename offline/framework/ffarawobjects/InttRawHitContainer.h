@@ -12,6 +12,7 @@ public:
   virtual ~InttRawHitContainer() = default;
 
   virtual InttRawHit *AddHit() {return nullptr;}
+  virtual InttRawHit *AddHit(InttRawHit *) {return nullptr;}
   virtual unsigned int get_nhits() {return 0;}
   virtual InttRawHit *get_hit(unsigned int) {return nullptr;}
 

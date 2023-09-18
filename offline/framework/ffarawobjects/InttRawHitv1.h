@@ -12,6 +12,7 @@ class  InttRawHitv1: public InttRawHit
 
 public:
   InttRawHitv1() {}
+  InttRawHitv1(InttRawHit *intthit);
   ~InttRawHitv1() override {};
 
   uint64_t get_bco() const override {return bco;}
