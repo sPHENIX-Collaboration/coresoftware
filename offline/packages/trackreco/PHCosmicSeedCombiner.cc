@@ -112,40 +112,40 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
 
       //! etas are opposite each other, so we add them
       const float deta = eta1 + eta2;
-      if(Verbosity() > 3)
-	{
-	  std::cout << "phi 1 and phi2  " << phi1 << " , " << phi2<<std::endl;
-	  std::cout << "eta 1 and eta2 " << eta1 << " , " << eta2 << std::endl;
-	  std::cout << "dphi and deta " << dphi << " , " << deta << std::endl;
-	}
+      if (Verbosity() > 3)
+      {
+        std::cout << "phi 1 and phi2  " << phi1 << " , " << phi2 << std::endl;
+        std::cout << "eta 1 and eta2 " << eta1 << " , " << eta2 << std::endl;
+        std::cout << "dphi and deta " << dphi << " , " << deta << std::endl;
+      }
       if (fabs(dphi) < 0.02 && fabs(deta) < 0.01)
       {
-	//! add the clusters to the tpc seed and delete seed 2 since it is 
-	//! from the same track
-	addKeys(tpcseed1, tpcseed2);
-	if(silseed1)
-	  {
-	    if(silseed2)
-	      {
-		addKeys(silseed1,silseed2);
-	      }
-	  }
-	else
-	  {
-	    if(silseed2)
-	      {
-		track1->set_silicon_seed_index(siid2);
-	      }
-	  }
-	
-	m_seedMap->erase(m_seedMap->index(trackiter2));
+        //! add the clusters to the tpc seed and delete seed 2 since it is
+        //! from the same track
+        addKeys(tpcseed1, tpcseed2);
+        if (silseed1)
+        {
+          if (silseed2)
+          {
+            addKeys(silseed1, silseed2);
+          }
+        }
+        else
+        {
+          if (silseed2)
+          {
+            track1->set_silicon_seed_index(siid2);
+          }
+        }
+
+        m_seedMap->erase(m_seedMap->index(trackiter2));
       }
-      if(Verbosity() > 3)
-	{
-	  track1->identify();
-	  tpcseed1->identify();
-	  silseed1->identify();
-	}
+      if (Verbosity() > 3)
+      {
+        track1->identify();
+        tpcseed1->identify();
+        silseed1->identify();
+      }
     }
   }
 
@@ -153,12 +153,12 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
 }
 void PHCosmicSeedCombiner::addKeys(TrackSeed* seedToAddTo, TrackSeed* seedToAdd)
 {
-  for(auto citer = seedToAdd->begin_cluster_keys();
-      citer != seedToAdd->end_cluster_keys();
-      ++citer)
-    {
-      seedToAddTo->insert_cluster_key(*citer);
-    }
+  for (auto citer = seedToAdd->begin_cluster_keys();
+       citer != seedToAdd->end_cluster_keys();
+       ++citer)
+  {
+    seedToAddTo->insert_cluster_key(*citer);
+  }
 }
 //____________________________________________________________________________..
 int PHCosmicSeedCombiner::End(PHCompositeNode*)

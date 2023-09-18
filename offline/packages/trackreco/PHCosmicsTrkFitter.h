@@ -96,6 +96,7 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
   void setVertexRadius(const float rad) { m_vertexRadius = rad; }
+
  private:
   /// Get all the nodes
   int getNodes(PHCompositeNode* topNode);
@@ -107,7 +108,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   SourceLinkVec getSourceLinks(TrackSeed* track,
                                ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
                                short int crossing,
-			       int& charge);
+                               int& charge);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(Trajectory traj, SvtxTrack* track);

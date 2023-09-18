@@ -2,9 +2,9 @@
 #include "TrackSeedTrackMapConverter.h"
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrackFitUtils.h>
 
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
@@ -27,7 +27,7 @@ namespace
   {
     return x * x;
   }
-}
+}  // namespace
 //____________________________________________________________________________..
 TrackSeedTrackMapConverter::TrackSeedTrackMapConverter(const std::string& name)
   : SubsysReco(name)
@@ -121,120 +121,120 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 
       unsigned int seedindex = trackSeed->get_tpc_seed_index();
       TrackSeed* tpcseed = m_tpcContainer->get(seedindex);
-      if(!m_cosmics)
-	{
-	  if (trackSeed->get_silicon_seed_index() == std::numeric_limits<unsigned int>::max())
-	    {
-	      /// Didn't find a match, so just use the tpc seed
-	      svtxtrack->set_x(tpcseed->get_x());
-	      svtxtrack->set_y(tpcseed->get_y());
-	      svtxtrack->set_z(tpcseed->get_z());
-	    }
-	  else
-	    {
-	      TrackSeed* siseed = m_siContainer->get(trackSeed->get_silicon_seed_index());
-	      svtxtrack->set_x(siseed->get_x());
-	      svtxtrack->set_y(siseed->get_y());
-	      svtxtrack->set_z(siseed->get_z());
-	      addKeys(svtxtrack, siseed);
-	      svtxtrack->set_silicon_seed(siseed);
-	    }
-	  
-	  svtxtrack->set_charge(tpcseed->get_qOverR() > 0 ? 1 : -1);
-	  if(m_fieldMap.find(".root") != std::string::npos)
-	    {
-	      svtxtrack->set_px(tpcseed->get_px(m_clusters, m_tGeometry));
-	      svtxtrack->set_py(tpcseed->get_py(m_clusters, m_tGeometry));
-	      svtxtrack->set_pz(tpcseed->get_pz());
-	    }
-	  else
-	    {
-	      float pt = fabs(1./tpcseed->get_qOverR()) * (0.3/100) * std::stod(m_fieldMap);
-	      float phi = tpcseed->get_phi(m_clusters, m_tGeometry);
-	      svtxtrack->set_px(pt * std::cos(phi));
-	      svtxtrack->set_py( pt * std::sin(phi));
-	      svtxtrack->set_pz(pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta()));
-	    }
-	}
+      if (!m_cosmics)
+      {
+        if (trackSeed->get_silicon_seed_index() == std::numeric_limits<unsigned int>::max())
+        {
+          /// Didn't find a match, so just use the tpc seed
+          svtxtrack->set_x(tpcseed->get_x());
+          svtxtrack->set_y(tpcseed->get_y());
+          svtxtrack->set_z(tpcseed->get_z());
+        }
+        else
+        {
+          TrackSeed* siseed = m_siContainer->get(trackSeed->get_silicon_seed_index());
+          svtxtrack->set_x(siseed->get_x());
+          svtxtrack->set_y(siseed->get_y());
+          svtxtrack->set_z(siseed->get_z());
+          addKeys(svtxtrack, siseed);
+          svtxtrack->set_silicon_seed(siseed);
+        }
+
+        svtxtrack->set_charge(tpcseed->get_qOverR() > 0 ? 1 : -1);
+        if (m_fieldMap.find(".root") != std::string::npos)
+        {
+          svtxtrack->set_px(tpcseed->get_px(m_clusters, m_tGeometry));
+          svtxtrack->set_py(tpcseed->get_py(m_clusters, m_tGeometry));
+          svtxtrack->set_pz(tpcseed->get_pz());
+        }
+        else
+        {
+          float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
+          float phi = tpcseed->get_phi(m_clusters, m_tGeometry);
+          svtxtrack->set_px(pt * std::cos(phi));
+          svtxtrack->set_py(pt * std::sin(phi));
+          svtxtrack->set_pz(pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta()));
+        }
+      }
       else
-	{
-        
-	  unsigned int silseedindex = trackSeed->get_silicon_seed_index();
-	  TrackSeed* silseed = m_siContainer->get(silseedindex);
+      {
+        unsigned int silseedindex = trackSeed->get_silicon_seed_index();
+        TrackSeed* silseed = m_siContainer->get(silseedindex);
 
-	  tpcseed->circleFitByTaubin(m_clusters, m_tGeometry,0,58);
-	 
-	  float tpcR = fabs(1. / tpcseed->get_qOverR());
-	  float tpcx = tpcseed->get_X0();
-	  float tpcy = tpcseed->get_Y0();
-	  float vertexradius = 80;
-	  const auto intersect = 
-	    TrackFitUtils::circle_circle_intersection(vertexradius, 
-						      tpcR, tpcx, tpcy);   
-	  float intx, inty;
-        
-	  if(std::get<1>(intersect) < std::get<3>(intersect))
-	    {
-	      intx = std::get<0>(intersect);
-	      inty = std::get<1>(intersect);
-	    }
-	  else
-	    {
-	      intx = std::get<2>(intersect);
-	      inty = std::get<3>(intersect);
-	    }
-	  float slope = tpcseed->get_slope();
+        tpcseed->circleFitByTaubin(m_clusters, m_tGeometry, 0, 58);
 
-	  float intz = vertexradius * slope + tpcseed->get_Z0();
+        float tpcR = fabs(1. / tpcseed->get_qOverR());
+        float tpcx = tpcseed->get_X0();
+        float tpcy = tpcseed->get_Y0();
+        float vertexradius = 80;
+        const auto intersect =
+            TrackFitUtils::circle_circle_intersection(vertexradius,
+                                                      tpcR, tpcx, tpcy);
+        float intx, inty;
 
-	  Acts::Vector3 inter(intx, inty, intz);
-        
-	  std::vector<float> tpcparams{tpcR, tpcx, tpcy, tpcseed->get_slope(),
-	      tpcseed->get_Z0()};
-	  auto tangent = TrackFitUtils::get_helix_tangent(tpcparams,
-							   inter);
+        if (std::get<1>(intersect) < std::get<3>(intersect))
+        {
+          intx = std::get<0>(intersect);
+          inty = std::get<1>(intersect);
+        }
+        else
+        {
+          intx = std::get<2>(intersect);
+          inty = std::get<3>(intersect);
+        }
+        float slope = tpcseed->get_slope();
 
-	  auto tan = tangent.second;
-	  auto pca = tangent.first;
-	  
-	  svtxtrack->set_x(pca.x());
-	  svtxtrack->set_y(pca.y());
-	  svtxtrack->set_z(slope > 0 ? intz : vertexradius*slope*-1+tpcseed->get_Z0());
+        float intz = vertexradius * slope + tpcseed->get_Z0();
 
-	  float p;
-	  if(m_fieldMap.find(".root") != std::string::npos)
-	    {
-	      p = tpcseed->get_p();
-	    }
-	  else
-	    {
-	      p = cosh(tpcseed->get_eta()) * fabs(1./tpcseed->get_qOverR()) * (0.3/100) * std::stod(m_fieldMap);
-	    }
-	  
-	  tan *= p;
-	  int charge = getCosmicCharge(tpcseed, vertexradius);
-	  svtxtrack->set_px(charge < 0 ? tan.x() : tan.x() * -1);
-	  svtxtrack->set_py(charge < 0 ? tan.y() : tan.y() * -1);
-	  if(charge < 0){
-	    svtxtrack->set_pz(tpcseed->get_slope() > 0 ? tan.z() : tan.z() * -1);
-	  }
-	  else
-	    {
-	      svtxtrack->set_pz(tpcseed->get_slope() < 0 ? tan.z() : tan.z() * -1);
-	    }
-	  svtxtrack->set_charge(charge);
-	  addKeys(svtxtrack, tpcseed);
-	  if(silseed)  addKeys(svtxtrack, silseed);
-	  
-	  svtxtrack->set_tpc_seed(tpcseed);
-	  svtxtrack->set_silicon_seed(silseed);
-	  if(Verbosity() > 5)
-	    svtxtrack->identify();
-	}
+        Acts::Vector3 inter(intx, inty, intz);
+
+        std::vector<float> tpcparams{tpcR, tpcx, tpcy, tpcseed->get_slope(),
+                                     tpcseed->get_Z0()};
+        auto tangent = TrackFitUtils::get_helix_tangent(tpcparams,
+                                                        inter);
+
+        auto tan = tangent.second;
+        auto pca = tangent.first;
+
+        svtxtrack->set_x(pca.x());
+        svtxtrack->set_y(pca.y());
+        svtxtrack->set_z(slope > 0 ? intz : vertexradius * slope * -1 + tpcseed->get_Z0());
+
+        float p;
+        if (m_fieldMap.find(".root") != std::string::npos)
+        {
+          p = tpcseed->get_p();
+        }
+        else
+        {
+          p = cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
+        }
+
+        tan *= p;
+        int charge = getCosmicCharge(tpcseed, vertexradius);
+        svtxtrack->set_px(charge < 0 ? tan.x() : tan.x() * -1);
+        svtxtrack->set_py(charge < 0 ? tan.y() : tan.y() * -1);
+        if (charge < 0)
+        {
+          svtxtrack->set_pz(tpcseed->get_slope() > 0 ? tan.z() : tan.z() * -1);
+        }
+        else
+        {
+          svtxtrack->set_pz(tpcseed->get_slope() < 0 ? tan.z() : tan.z() * -1);
+        }
+        svtxtrack->set_charge(charge);
+        addKeys(svtxtrack, tpcseed);
+        if (silseed) addKeys(svtxtrack, silseed);
+
+        svtxtrack->set_tpc_seed(tpcseed);
+        svtxtrack->set_silicon_seed(silseed);
+        if (Verbosity() > 5)
+          svtxtrack->identify();
+      }
       addKeys(svtxtrack, tpcseed);
       svtxtrack->set_tpc_seed(tpcseed);
     }
-  
+
     else
     {
       /// Otherwise we are using an individual subdetectors container
@@ -243,21 +243,21 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       svtxtrack->set_y(trackSeed->get_y());
       svtxtrack->set_z(trackSeed->get_z());
       svtxtrack->set_charge(trackSeed->get_qOverR() > 0 ? 1 : -1);
-      if(m_fieldMap.find(".root") != std::string::npos)
-	{
-	  svtxtrack->set_px(trackSeed->get_px(m_clusters, m_tGeometry));
-	  svtxtrack->set_py(trackSeed->get_py(m_clusters, m_tGeometry));
-	  svtxtrack->set_pz(trackSeed->get_pz());
-	}
+      if (m_fieldMap.find(".root") != std::string::npos)
+      {
+        svtxtrack->set_px(trackSeed->get_px(m_clusters, m_tGeometry));
+        svtxtrack->set_py(trackSeed->get_py(m_clusters, m_tGeometry));
+        svtxtrack->set_pz(trackSeed->get_pz());
+      }
       else
-	{
-	  float pt = fabs(1./trackSeed->get_qOverR()) * (0.3/100) * std::stod(m_fieldMap);
-	  
-	 	  float phi = trackSeed->get_phi(m_clusters, m_tGeometry);
-	  svtxtrack->set_px(pt * std::cos(phi));
-	  svtxtrack->set_py( pt * std::sin(phi));
-	  svtxtrack->set_pz(pt * std::cosh(trackSeed->get_eta()) * std::cos(trackSeed->get_theta()));
-	}
+      {
+        float pt = fabs(1. / trackSeed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
+
+        float phi = trackSeed->get_phi(m_clusters, m_tGeometry);
+        svtxtrack->set_px(pt * std::cos(phi));
+        svtxtrack->set_py(pt * std::sin(phi));
+        svtxtrack->set_pz(pt * std::cosh(trackSeed->get_eta()) * std::cos(trackSeed->get_theta()));
+      }
 
       // calculate chisq and ndf
       double R = 1. / std::fabs(trackSeed->get_qOverR());
@@ -347,14 +347,14 @@ int TrackSeedTrackMapConverter::End(PHCompositeNode* /*unused*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 void TrackSeedTrackMapConverter::addKeys(TrackSeed* seedToAddTo,
-					 TrackSeed* seedToAdd)
+                                         TrackSeed* seedToAdd)
 {
-  for(auto iter = seedToAdd->begin_cluster_keys();
-      iter != seedToAdd->end_cluster_keys();
-      ++iter)
-    {
-      seedToAddTo->insert_cluster_key(*iter);
-    }
+  for (auto iter = seedToAdd->begin_cluster_keys();
+       iter != seedToAdd->end_cluster_keys();
+       ++iter)
+  {
+    seedToAddTo->insert_cluster_key(*iter);
+  }
 }
 void TrackSeedTrackMapConverter::addKeys(std::unique_ptr<SvtxTrack_v4>& track, TrackSeed* seed)
 {
@@ -450,54 +450,55 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode* topNode)
 }
 
 int TrackSeedTrackMapConverter::getCosmicCharge(TrackSeed* seed,
-						float vertexradius) const
+                                                float vertexradius) const
 {
   Acts::Vector3 globalMostOuter;
-  Acts::Vector3 globalSecondMostOuter(0,999999,0);
+  Acts::Vector3 globalSecondMostOuter(0, 999999, 0);
   std::vector<Acts::Vector3> globpos;
   float largestR = 0;
-  for(auto it = seed->begin_cluster_keys();
-      it != seed->end_cluster_keys();
-      ++it)
+  for (auto it = seed->begin_cluster_keys();
+       it != seed->end_cluster_keys();
+       ++it)
+  {
+    auto ckey = *it;
+    auto clus = m_clusters->findCluster(ckey);
+    auto glob = m_tGeometry->getGlobalPosition(ckey, clus);
+    globpos.push_back(glob);
+    float r = std::sqrt(square(glob.x()) + square(glob.y()));
+    if (r > largestR && glob.y() < 0)
     {
-      auto ckey = *it;
-      auto clus = m_clusters->findCluster(ckey);
-      auto glob = m_tGeometry->getGlobalPosition(ckey, clus);
-      globpos.push_back(glob);
-      float r = std::sqrt(square(glob.x()) + square(glob.y()));
-      if(r > largestR && glob.y() < 0)
-	{
-	  globalMostOuter = glob;
-	  largestR = r;
-	}
+      globalMostOuter = glob;
+      largestR = r;
     }
-  
+  }
+
   float maxdr = std::numeric_limits<float>::max();
-  for(auto& glob : globpos)
+  for (auto& glob : globpos)
+  {
+    if (glob.y() > 0) continue;
+    float dr = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y())) - std::sqrt(square(glob.x()) + square(glob.y()));
+    if (dr < maxdr && dr > 10)
     {
-      if(glob.y() > 0) continue;
-      float dr = std::sqrt(square(globalMostOuter.x())+square(globalMostOuter.y())) - std::sqrt(square(glob.x()) + square(glob.y()));
-      if(dr < maxdr && dr > 10)
-	{
-	  maxdr = dr;
-	  globalSecondMostOuter = glob;
-	}
+      maxdr = dr;
+      globalSecondMostOuter = glob;
     }
-  
-  Acts::Vector3 vertex(0,-1*vertexradius,0);
+  }
+
+  Acts::Vector3 vertex(0, -1 * vertexradius, 0);
   globalMostOuter -= vertex;
   globalSecondMostOuter -= vertex;
-  
+
   const auto firstphi = atan2(globalMostOuter.y(), globalMostOuter.x());
   const auto secondphi = atan2(globalSecondMostOuter.y(),
-			       globalSecondMostOuter.x());
+                               globalSecondMostOuter.x());
   auto dphi = secondphi - firstphi;
-  if(dphi > M_PI) dphi = 2.* M_PI - dphi;
-  if(dphi < -M_PI) dphi = 2. * M_PI + dphi;
-  
-  if(dphi > 0) {
+  if (dphi > M_PI) dphi = 2. * M_PI - dphi;
+  if (dphi < -M_PI) dphi = 2. * M_PI + dphi;
+
+  if (dphi > 0)
+  {
     return -1;
   }
-  
+
   return 1;
 }

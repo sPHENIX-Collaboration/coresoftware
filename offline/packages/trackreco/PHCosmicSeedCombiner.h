@@ -28,7 +28,7 @@ class PHCosmicSeedCombiner : public SubsysReco
  private:
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
-  void addKeys(TrackSeed* seedToAddTo, TrackSeed *seedToAdd);
+  void addKeys(TrackSeed *seedToAddTo, TrackSeed *seedToAdd);
 
   ActsGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;

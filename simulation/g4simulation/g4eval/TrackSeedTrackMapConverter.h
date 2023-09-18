@@ -26,16 +26,17 @@ class TrackSeedTrackMapConverter : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-  void setFieldMap(const std::string& name) {m_fieldMap = name; }
+  void setFieldMap(const std::string &name) { m_fieldMap = name; }
   void setTrackMapName(const std::string &name) { m_trackMapName = name; }
   void setTrackSeedName(const std::string &name) { m_trackSeedName = name; }
   void cosmics() { m_cosmics = true; }
+
  private:
   int getNodes(PHCompositeNode *topNode);
 
   void addKeys(std::unique_ptr<SvtxTrack_v4> &track, TrackSeed *seed);
-  void addKeys(TrackSeed* seedToAddTo, TrackSeed* seedToAdd);
-  int getCosmicCharge(TrackSeed* seed, float vertexradius) const;
+  void addKeys(TrackSeed *seedToAddTo, TrackSeed *seedToAdd);
+  int getCosmicCharge(TrackSeed *seed, float vertexradius) const;
 
   std::string m_trackMapName = "SvtxTrackMap";
   std::string m_trackSeedName = "TpcTrackSeedContainer";
