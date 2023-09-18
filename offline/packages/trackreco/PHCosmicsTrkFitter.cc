@@ -255,9 +255,10 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     ActsTrackFittingAlgorithm::MeasurementContainer measurements;
     int charge = 0;
+    float cosmicslope = 0;
     SourceLinkVec sourceLinks;
-    if (siseed) sourceLinks = getSourceLinks(siseed, measurements, crossing, charge);
-    const auto tpcSourceLinks = getSourceLinks(tpcseed, measurements, crossing, charge);
+    if (siseed) sourceLinks = getSourceLinks(siseed, measurements, crossing, charge, cosmicslope);
+    const auto tpcSourceLinks = getSourceLinks(tpcseed, measurements, crossing, charge, cosmicslope);
 
     sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
 
@@ -308,17 +309,17 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     tan *= p;
 
-    //! if we got the opposite seed then z will be backwards, so we double
-    //! check which way the seed is pointing
+    //! if we got the opposite seed then z will be backwards, so we take the
+    //! value of tan.z() multiplied by the sign of the slope determined for
+    //! the full cosmic track
     //! same with px/py since a single cosmic produces two seeds that bend
     //! in opposite directions
 
     Acts::Vector3 momentum(charge < 0 ? tan.x() : tan.x() * -1,
                            charge < 0 ? tan.y() : tan.y() * -1,
-                           charge < 0 ? (tpcseed->get_slope() > 0 ? tan.z() : -1 * tan.z())
-                                      : (tpcseed->get_slope() < 0 ? tan.z() : tan.z() * -1));
+                           cosmicslope > 0 ? fabs(tan.z()) : -1 * fabs(tan.z()));
     Acts::Vector3 position(pca.x(), pca.y(),
-                           slope > 0 ? intz : m_vertexRadius * slope * -1 + tpcseed->get_Z0());
+                           momentum.z() > 0 ? (slope < 0 ? intz : m_vertexRadius * slope * -1 + tpcseed->get_Z0()) : (slope > 0 ? intz : m_vertexRadius * slope * -1 + tpcseed->get_Z0()));
 
     position *= Acts::UnitConstants::cm;
     if (!is_valid(momentum)) continue;
@@ -419,7 +420,8 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
     TrackSeed* track,
     ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
     short int crossing,
-    int& charge)
+    int& charge,
+    float& cosmicslope)
 {
   SourceLinkVec sourcelinks;
 
@@ -638,9 +640,20 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
   if (dphi < -M_PI) dphi = 2 * M_PI + dphi;
 
   if (dphi > 0)
+  {
     charge = -1;
+  }
   else
+  {
     charge = 1;
+  }
+
+  float r1 = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y()));
+  float r2 = std::sqrt(square(globalSecondMostOuter.x()) + square(globalSecondMostOuter.y()));
+  float z1 = globalMostOuter.z();
+  float z2 = globalSecondMostOuter.z();
+
+  cosmicslope = (r2 - r1) / (z2 - z1);
 
   return sourcelinks;
 }

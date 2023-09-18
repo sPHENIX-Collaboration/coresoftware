@@ -144,7 +144,10 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
       {
         track1->identify();
         tpcseed1->identify();
-        silseed1->identify();
+        if (silseed1)
+        {
+          silseed1->identify();
+        }
       }
     }
   }

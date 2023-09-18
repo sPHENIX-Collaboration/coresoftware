@@ -108,7 +108,8 @@ class PHCosmicsTrkFitter : public SubsysReco
   SourceLinkVec getSourceLinks(TrackSeed* track,
                                ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
                                short int crossing,
-                               int& charge);
+                               int& charge,
+                               float& cosmicslope);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(Trajectory traj, SvtxTrack* track);

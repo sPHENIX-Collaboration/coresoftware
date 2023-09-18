@@ -198,7 +198,6 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 
         svtxtrack->set_x(pca.x());
         svtxtrack->set_y(pca.y());
-        svtxtrack->set_z(slope > 0 ? intz : vertexradius * slope * -1 + tpcseed->get_Z0());
 
         float p;
         if (m_fieldMap.find(".root") != std::string::npos)
@@ -211,17 +210,12 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         }
 
         tan *= p;
-        int charge = getCosmicCharge(tpcseed, vertexradius);
+        auto [charge, cosmicslope] = getCosmicCharge(tpcseed, vertexradius);
+
         svtxtrack->set_px(charge < 0 ? tan.x() : tan.x() * -1);
         svtxtrack->set_py(charge < 0 ? tan.y() : tan.y() * -1);
-        if (charge < 0)
-        {
-          svtxtrack->set_pz(tpcseed->get_slope() > 0 ? tan.z() : tan.z() * -1);
-        }
-        else
-        {
-          svtxtrack->set_pz(tpcseed->get_slope() < 0 ? tan.z() : tan.z() * -1);
-        }
+        svtxtrack->set_pz(cosmicslope > 0 ? fabs(tan.z()) : -1 * fabs(tan.z()));
+        svtxtrack->set_z(svtxtrack->get_pz() > 0 ? (slope < 0 ? intz : m_vertexRadius * slope * -1 + tpcseed->get_Z0()) : (slope > 0 ? intz : m_vertexRadius * slope * -1 + tpcseed->get_Z0()));
         svtxtrack->set_charge(charge);
         addKeys(svtxtrack, tpcseed);
         if (silseed) addKeys(svtxtrack, silseed);
@@ -449,10 +443,10 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int TrackSeedTrackMapConverter::getCosmicCharge(TrackSeed* seed,
-                                                float vertexradius) const
+std::pair<int, float> TrackSeedTrackMapConverter::getCosmicCharge(TrackSeed* seed,
+                                                                  float vertexradius) const
 {
-  Acts::Vector3 globalMostOuter;
+  Acts::Vector3 globalMostOuter = Acts::Vector3::Zero();
   Acts::Vector3 globalSecondMostOuter(0, 999999, 0);
   std::vector<Acts::Vector3> globpos;
   float largestR = 0;
@@ -495,10 +489,19 @@ int TrackSeedTrackMapConverter::getCosmicCharge(TrackSeed* seed,
   if (dphi > M_PI) dphi = 2. * M_PI - dphi;
   if (dphi < -M_PI) dphi = 2. * M_PI + dphi;
 
+  float r1 = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y()));
+  float r2 = std::sqrt(square(globalSecondMostOuter.x()) + square(globalSecondMostOuter.y()));
+  float z1 = globalMostOuter.z();
+  float z2 = globalSecondMostOuter.z();
+
+  float slope = (r2 - r1) / (z2 - z1);
+  int charge = 1;
+
   if (dphi > 0)
   {
-    return -1;
+    charge = -1;
   }
 
-  return 1;
+  return std::make_pair(charge, slope);
+  ;
 }
