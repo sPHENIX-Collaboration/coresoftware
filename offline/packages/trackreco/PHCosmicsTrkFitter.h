@@ -95,7 +95,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   void set_seed_track_map_name(const std::string& map_name) { _seed_track_map_name = map_name; }
 
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
-
+  void setVertexRadius(const float rad) { m_vertexRadius = rad; }
  private:
   /// Get all the nodes
   int getNodes(PHCompositeNode* topNode);
@@ -106,7 +106,8 @@ class PHCosmicsTrkFitter : public SubsysReco
   void loopTracks(Acts::Logging::Level logLevel);
   SourceLinkVec getSourceLinks(TrackSeed* track,
                                ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-                               short int crossing);
+                               short int crossing,
+			       int& charge);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(Trajectory traj, SvtxTrack* track);
@@ -157,6 +158,8 @@ class PHCosmicsTrkFitter : public SubsysReco
   /// A bool to use the chi2 outlier finder in the track fitting
   bool m_useOutlierFinder = false;
   ResidualOutlierFinder m_outlierFinder;
+
+  float m_vertexRadius = 80;
 
   bool m_actsEvaluator = false;
   std::unique_ptr<ActsEvaluator> m_evaluator = nullptr;

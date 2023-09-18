@@ -112,7 +112,12 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
 
       //! etas are opposite each other, so we add them
       const float deta = eta1 + eta2;
-
+      if(Verbosity() > 3)
+	{
+	  std::cout << "phi 1 and phi2  " << phi1 << " , " << phi2<<std::endl;
+	  std::cout << "eta 1 and eta2 " << eta1 << " , " << eta2 << std::endl;
+	  std::cout << "dphi and deta " << dphi << " , " << deta << std::endl;
+	}
       if (fabs(dphi) < 0.02 && fabs(deta) < 0.01)
       {
 	//! add the clusters to the tpc seed and delete seed 2 since it is 
@@ -135,6 +140,12 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
 	
 	m_seedMap->erase(m_seedMap->index(trackiter2));
       }
+      if(Verbosity() > 3)
+	{
+	  track1->identify();
+	  tpcseed1->identify();
+	  silseed1->identify();
+	}
     }
   }
 

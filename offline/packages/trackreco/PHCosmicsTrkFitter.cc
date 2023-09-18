@@ -254,21 +254,21 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     }
 
     ActsTrackFittingAlgorithm::MeasurementContainer measurements;
-
+    int charge = 0;
     SourceLinkVec sourceLinks;
-    if (siseed) sourceLinks = getSourceLinks(siseed, measurements, crossing);
-    const auto tpcSourceLinks = getSourceLinks(tpcseed, measurements, crossing);
+    if (siseed) sourceLinks = getSourceLinks(siseed, measurements, crossing,charge);
+    const auto tpcSourceLinks = getSourceLinks(tpcseed, measurements, crossing, charge);
 
     sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
-
+  
     tpcseed->circleFitByTaubin(m_clusterContainer, m_tGeometry,0,58);
     
     float tpcR = fabs(1. / tpcseed->get_qOverR());
     float tpcx = tpcseed->get_X0();
     float tpcy = tpcseed->get_Y0();
-    float vertexradius = 80;
+
     const auto intersect = 
-      TrackFitUtils::circle_circle_intersection(vertexradius, 
+      TrackFitUtils::circle_circle_intersection(m_vertexRadius, 
 						tpcR, tpcx, tpcy);   
     float intx, inty;
     
@@ -284,7 +284,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
 
     float slope = tpcseed->get_slope();    
-    float intz = vertexradius * slope + tpcseed->get_Z0();
+    float intz = m_vertexRadius * slope + tpcseed->get_Z0();
     
     Acts::Vector3 inter(intx, inty, intz);
     
@@ -310,27 +310,27 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     
     //! if we got the opposite seed then z will be backwards, so we double
     //! check which way the seed is pointing
-    Acts::Vector3 momentum(tan.x(), tan.y(), 
-			   tpcseed->get_slope() > 0 ? tan.z() : -1 * tan.z());
+    //! same with px/py since a single cosmic produces two seeds that bend
+    //! in opposite directions
+    
+    Acts::Vector3 momentum(charge < 0 ? tan.x() : tan.x() * -1,
+			   charge < 0 ? tan.y() : tan.y() * -1, 
+			   charge < 0 ? 
+			   (tpcseed->get_slope() > 0 ? tan.z() : -1 * tan.z())
+			   : (tpcseed->get_slope() < 0 ? tan.z() : tan.z() * -1));
     Acts::Vector3 position(pca.x(), pca.y(),
-			   slope > 0 ? intz : vertexradius*slope*-1+tpcseed->get_Z0());
+			   slope > 0 ? intz : m_vertexRadius*slope*-1+tpcseed->get_Z0());
   
     position *= Acts::UnitConstants::cm;
     if (!is_valid(momentum)) continue;
 
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-	        Acts::Vector3(0, -1*vertexradius * Acts::UnitConstants::cm, 0));
+	        Acts::Vector3(0, -1*m_vertexRadius * Acts::UnitConstants::cm, 0));
     auto actsFourPos = Acts::Vector4(position(0), position(1),
                                      position(2),
                                      10 * Acts::UnitConstants::ns);
    
     Acts::BoundSymMatrix cov = setDefaultCovariance();
-
-    int charge = tpcseed->get_charge();
-    if(m_fieldMap.find(".root") != std::string::npos)
-      {
-	charge *=-1;
-      }
     
     //! Acts requires a wrapped vector, so we need to replace the
     //! std::vector contents with a wrapper vector to get the memory
@@ -419,7 +419,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
     TrackSeed* track,
     ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-    short int crossing)
+    short int crossing,
+    int& charge)
 {
   SourceLinkVec sourcelinks;
 
@@ -495,12 +496,23 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
   // move the cluster positions back to the original readout surface
   auto global_moved = _clusterMover.processTrack(global_raw);
 
+  Acts::Vector3 globalMostOuter;
+  Acts::Vector3 globalSecondMostOuter(0,999999,0);
+  float largestR = 0;
   // loop over global positions returned by cluster mover
   for (int i = 0; i < global_moved.size(); ++i)
   {
     TrkrDefs::cluskey cluskey = global_moved[i].first;
     Acts::Vector3 global = global_moved[i].second;
+    float r = std::sqrt(square(global.x()) + square(global.y()));
 
+    /// use the bottom hemisphere to determine the charge
+    if(r > largestR && global.y() < 0)
+      {
+	globalMostOuter = global_moved[i].second;
+	largestR = r;
+      }
+  
     if (m_ignoreLayer.find(TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end())
     {
       if (Verbosity() > 3)
@@ -595,6 +607,40 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
     sourcelinks.push_back(sl);
     measurements.push_back(meas);
   }
+
+  //! find the closest cluster to the outermost cluster
+  float maxdr = std::numeric_limits<float>::max();
+  for(int i=0; i<global_moved.size(); i++)
+    {
+      if(global_moved[i].second.y() >0) continue;
+  
+      float dr = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y())) - std::sqrt(square(global_moved[i].second.x()) + square(global_moved[i].second.y()));
+      //! Place a dr cut to get maximum bend due to TPC clusters having 
+      //! larger fluctuations
+      if(dr < maxdr && dr > 10)
+	{
+	  maxdr = dr;
+	  globalSecondMostOuter = global_moved[i].second;
+
+	}
+    }
+ 
+  //! we have to calculate phi WRT the vertex position outside the detector,
+  //! not at (0,0)
+  Acts::Vector3 vertex(0,-1*m_vertexRadius, 0);
+  globalMostOuter -= vertex;
+  globalSecondMostOuter -= vertex;
+ 
+  const auto firstphi = atan2(globalMostOuter.y(), globalMostOuter.x());
+  const auto secondphi = atan2(globalSecondMostOuter.y(), 
+			       globalSecondMostOuter.x());
+  auto dphi = secondphi - firstphi;
+ 
+  if(dphi > M_PI) dphi = 2.*M_PI - dphi;
+  if(dphi < -M_PI) dphi = 2*M_PI + dphi;
+
+  if(dphi > 0) charge = -1;
+  else charge = 1;
 
   return sourcelinks;
 }
