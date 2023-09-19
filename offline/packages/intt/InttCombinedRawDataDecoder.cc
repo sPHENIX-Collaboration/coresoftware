@@ -40,8 +40,10 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
 	PHCompositeNode* dst_node = dynamic_cast<PHCompositeNode*>(dst_itr.findFirst("PHCompositeNode", "DST"));
 	if (!dst_node)
 	{
-		if (Verbosity()) std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
-		if (Verbosity()) std::cout << "\tCould not retrieve dst_node; doing nothing" << std::endl;
+		if (Verbosity()) { std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
+}
+		if (Verbosity()) { std::cout << "\tCould not retrieve dst_node; doing nothing" << std::endl;
+}
 		exit(1);
 		gSystem->Exit(1);
 
@@ -59,8 +61,10 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
 	TrkrHitSetContainer* trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
 	if (!trkr_hit_set_container)
 	{
-		if (Verbosity()) std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
-		if (Verbosity()) std::cout << "\tMaking TrkrHitSetContainer" << std::endl;
+		if (Verbosity()) { std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
+}
+		if (Verbosity()) { std::cout << "\tMaking TrkrHitSetContainer" << std::endl;
+}
 
 		trkr_hit_set_container = new TrkrHitSetContainerv1;
 		PHIODataNode<PHObject>* new_node = new PHIODataNode<PHObject>(trkr_hit_set_container, "TRKR_HITSET", "PHObject");
@@ -121,7 +125,8 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 					
 	  hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
 	  hit = hit_set_container_itr->second->getHit(hit_key);
-	  if(hit)continue;
+	  if(hit) {continue;
+}
 					
 	  hit = new TrkrHitv2;
 	  hit->setAdc(adc);

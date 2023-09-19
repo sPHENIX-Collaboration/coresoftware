@@ -30,7 +30,8 @@ int InttCombinedRawDataConverter::SetOutputFile(std::string const& filename)
 	std::cout << "\t" << filename << std::endl;
 
 	file = TFile::Open(filename.c_str(), "RECREATE");
-	if(tree)tree->SetDirectory(file);
+	if(tree) {tree->SetDirectory(file);
+}
 
 	return 0;
 }
@@ -65,7 +66,8 @@ int InttCombinedRawDataConverter::WriteOutputFile()
 int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 {
 	tree = new TTree("prdf_tree", "prdf_tree");
-	if(file)tree->SetDirectory(file);
+	if(file) {tree->SetDirectory(file);
+}
 
 	tree->Branch("n_evt", &n_evt);
 	tree->Branch("num_hits", &num_hits);
@@ -97,12 +99,17 @@ int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 	//	{"g_z",		new std::vector<Double_t>()},
 	};
 
-	for(Branches_i_t::iterator itr = branches_i.begin(); itr != branches_i.end(); ++itr)tree->Branch(itr->first.c_str(), &(itr->second));
-	for(Branches_l_t::iterator itr = branches_l.begin(); itr != branches_l.end(); ++itr)tree->Branch(itr->first.c_str(), &(itr->second));
-	for(Branches_d_t::iterator itr = branches_d.begin(); itr != branches_d.end(); ++itr)tree->Branch(itr->first.c_str(), &(itr->second));
+	for(auto & itr : branches_i) {tree->Branch(itr.first.c_str(), &(itr.second));
+}
+	for(auto & itr : branches_l) {tree->Branch(itr.first.c_str(), &(itr.second));
+}
+	for(auto & itr : branches_d) {tree->Branch(itr.first.c_str(), &(itr.second));
+}
 
-	if(Verbosity() > 20)std::cout << "int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)" << std::endl;
-	if(Verbosity() > 20)std::cout << "\tDone";
+	if(Verbosity() > 20) {std::cout << "int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)" << std::endl;
+}
+	if(Verbosity() > 20) {std::cout << "\tDone";
+}
 
 	return 0;
 }
@@ -110,22 +117,30 @@ int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 int InttCombinedRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)
 {
 	n_evt = 0;
-	for(Branches_i_t::iterator itr = branches_i.begin(); itr != branches_i.end(); ++itr)itr->second->clear();
-	for(Branches_l_t::iterator itr = branches_l.begin(); itr != branches_l.end(); ++itr)itr->second->clear();
-	for(Branches_d_t::iterator itr = branches_d.begin(); itr != branches_d.end(); ++itr)itr->second->clear();
+	for(auto & itr : branches_i) {itr.second->clear();
+}
+	for(auto & itr : branches_l) {itr.second->clear();
+}
+	for(auto & itr : branches_d) {itr.second->clear();
+}
 
-	if(Verbosity() > 20)std::cout << "int InttCombinedRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)" << std::endl;
-	if(Verbosity() > 20)std::cout << "\tDone";
+	if(Verbosity() > 20) {std::cout << "int InttCombinedRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)" << std::endl;
+}
+	if(Verbosity() > 20) {std::cout << "\tDone";
+}
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
 {
-	if(!tree)return Fun4AllReturnCodes::DISCARDEVENT;
+	if(!tree) {return Fun4AllReturnCodes::DISCARDEVENT;
+}
 
-	if(Verbosity() > 20)std::cout << "int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)" << std::endl;
-	if(Verbosity() > 20)std::cout << "\t" << n_evt << std::endl;
+	if(Verbosity() > 20) {std::cout << "int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)" << std::endl;
+}
+	if(Verbosity() > 20) {std::cout << "\t" << n_evt << std::endl;
+}
 
   InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(topNode,m_InttRawNodeName);
 	if(!inttcont)
@@ -138,9 +153,12 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
 		exit(1);
 	}
 
-	for(Branches_i_t::iterator itr = branches_i.begin(); itr != branches_i.end(); ++itr)itr->second->clear();
-	for(Branches_l_t::iterator itr = branches_l.begin(); itr != branches_l.end(); ++itr)itr->second->clear();
-	for(Branches_d_t::iterator itr = branches_d.begin(); itr != branches_d.end(); ++itr)itr->second->clear();
+	for(auto & itr : branches_i) {itr.second->clear();
+}
+	for(auto & itr : branches_l) {itr.second->clear();
+}
+	for(auto & itr : branches_d) {itr.second->clear();
+}
 
 	for (unsigned int i=0; i<inttcont->get_nhits(); i++)
 	{
