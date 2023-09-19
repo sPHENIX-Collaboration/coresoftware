@@ -21,10 +21,10 @@ public:
   virtual void set_packetid(const int32_t) {return;}
 
   virtual uint16_t get_fee() const {return std::numeric_limits<uint16_t>::max();}
-  virtual void set_fee(uint16_t) {return;}
+  virtual void set_fee(const uint16_t) {return;}
 
   virtual uint16_t get_channel() const {return std::numeric_limits<uint16_t>::max();}
-  virtual void set_channel(uint16_t) {return;}
+  virtual void set_channel(const uint16_t) {return;}
 
 private:
   ClassDefOverride(TpcRawHit,1)
