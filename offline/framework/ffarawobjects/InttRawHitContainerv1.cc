@@ -18,12 +18,19 @@ InttRawHitContainerv1::~InttRawHitContainerv1()
 
 void InttRawHitContainerv1::Reset()
 {
-InttRawHitsTCArray->Clear();
+ InttRawHitsTCArray->Clear();
+ InttRawHitsTCArray->Expand(NINTTHITS);
 }
 
 void InttRawHitContainerv1::identify(std::ostream &os) const
 {
   os << "InttRawHitContainerv1" << std::endl;
+  os << "containing " << InttRawHitsTCArray->GetEntries() << " Intt hits" << std::endl;
+  InttRawHit *intthit = static_cast< InttRawHit *> (InttRawHitsTCArray->At(0));
+  if (intthit)
+   {
+     os << "for beam clock: " << std::hex << intthit->get_bco() << std::dec << std::endl;
+   }
 }
 
 int InttRawHitContainerv1::isValid() const
@@ -33,17 +40,22 @@ int InttRawHitContainerv1::isValid() const
 
 unsigned int InttRawHitContainerv1::get_nhits()
 {
-  return InttRawHitsTCArray->GetSize();
+  return InttRawHitsTCArray->GetEntries();
 }
 
 InttRawHit *InttRawHitContainerv1::AddHit()
 {
-  InttRawHit *newhit = new ((*InttRawHitsTCArray)[InttRawHitsTCArray->GetSize()]) InttRawHitv1();
+  InttRawHit *newhit = new ((*InttRawHitsTCArray)[InttRawHitsTCArray->GetLast()+1]) InttRawHitv1();
   return newhit;
 }
 
 InttRawHit *InttRawHitContainerv1::AddHit(InttRawHit *intthit)
 {
-  InttRawHit *newhit = new ((*InttRawHitsTCArray)[InttRawHitsTCArray->GetSize()]) InttRawHitv1(intthit);
+  InttRawHit *newhit = new ((*InttRawHitsTCArray)[InttRawHitsTCArray->GetLast()+1]) InttRawHitv1(intthit);
   return newhit;
+}
+
+InttRawHit *InttRawHitContainerv1::get_hit(unsigned int index)
+{
+  return (InttRawHit *) InttRawHitsTCArray->At(index);
 }

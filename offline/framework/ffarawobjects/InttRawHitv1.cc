@@ -13,3 +13,9 @@ InttRawHitv1::InttRawHitv1(InttRawHit *intthit)
   set_full_ROC(intthit->get_full_ROC());
   set_amplitude(intthit->get_amplitude());
 }
+
+void InttRawHitv1::identify(std::ostream &os) const
+{
+  os << "BCO: 0x" << std::hex << bco << std::dec << std::endl;
+  os << "fee: " << fee << std::endl;
+}

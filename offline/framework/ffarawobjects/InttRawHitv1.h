@@ -15,6 +15,11 @@ public:
   InttRawHitv1(InttRawHit *intthit);
   ~InttRawHitv1() override {};
 
+  /** identify Function from PHObject
+      @param os Output Stream
+   */
+  void identify(std::ostream &os = std::cout) const override;
+
   uint64_t get_bco() const override {return bco;}
   void set_bco(const uint64_t val) override {bco = val;}
 
