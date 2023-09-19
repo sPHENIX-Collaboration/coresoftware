@@ -84,6 +84,7 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
 	InttRawHit *newhit = new InttRawHitv1();
 	int FEE = plist[i]->iValue(j, "FEE");
 	uint64_t gtm_bco = plist[i]->lValue(j, "BCO");
+        newhit->set_packetid(plist[i]->getIdentifier());
 	newhit->set_fee(FEE);
 	newhit->set_bco(gtm_bco);
 	newhit->set_adc(plist[i]->iValue(j,"ADC"));
