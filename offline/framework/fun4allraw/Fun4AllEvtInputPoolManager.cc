@@ -134,9 +134,14 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
   // m_PacketInfoMap.erase(m_PacketInfoMap.begin());
   InttRawHitContainer *inttcont =  findNode::getClass<InttRawHitContainer>(m_topNode,"INTTRAWHIT");
   for (auto intthititer :  m_InttRawHitMap.begin()->second.InttRawHitVector)
-  {
-    inttcont->AddHit(intthititer);
-  }
+   {
+     if (Verbosity() > 1)
+     {
+       intthititer->identify();
+     }
+     inttcont->AddHit(intthititer);
+     delete intthititer;
+   }
   m_InttRawHitMap.erase(m_InttRawHitMap.begin());
   return 0;
   // readagain:
