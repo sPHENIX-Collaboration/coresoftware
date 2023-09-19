@@ -1,15 +1,4 @@
 #include "InttCombinedRawDataDecoder.h"
-#include "InttMapping.h"
-
-#include <Event/packet.h>
-
-#include <fun4allraw/PacketMap.h>
-
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/getClass.h>
 
 #include <trackbase/InttDefs.h>
 #include <trackbase/TrkrHit.h>
@@ -17,6 +6,15 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitv2.h>
+
+#include <ffarawobjects/InttRawHitContainer.h>
+#include <ffarawobjects/InttRawHit.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
 
 #include <TSystem.h>
 
@@ -87,67 +85,49 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 		return Fun4AllReturnCodes::DISCARDEVENT;
 	}
 
-	PacketMap* pktmap = findNode::getClass<PacketMap>(topNode, m_EvtNodeName);
-	if (!pktmap)
+  InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(topNode,m_InttRawNodeName);
+	if(!inttcont)
 	{
 		std::cout << PHWHERE << std::endl;
 		std::cout << "InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)" << std::endl;
-		std::cout << "Could not get \"" << m_EvtNodeName << "\" from Node Tree" << std::endl;
+		std::cout << "Could not get \"" << m_InttRawNodeName << "\" from Node Tree" << std::endl;
 		std::cout << "Exiting" << std::endl;
 
 		gSystem->Exit(1);
 		exit(1);
 
-		return Fun4AllReturnCodes::DISCARDEVENT;
 	}
 
-	struct Intt::RawData_s rawdata;
-	struct Intt::Offline_s offline;
-
-	int adc = 0;
+//	int adc = 0;
 	// int amp = 0;
-	int bco = 0;
+//	int bco = 0;
 
 	TrkrDefs::hitsetkey hit_set_key = 0;
 	TrkrDefs::hitkey hit_key = 0;
 	TrkrHitSetContainer::Iterator hit_set_container_itr;
 	TrkrHit* hit = nullptr;
 
-	PacketMap::PacketListRange pktrange = pktmap->first_last_packet();
-	for(auto iter = pktrange.first; iter != pktrange.second; iter++)
+	for (unsigned int i=0; i<inttcont->get_nhits(); i++)
 	{
-		for(auto bclkiter : iter->second.m_BeamClockSet)
-		{
-			for(auto pktiter : iter->second.m_PacketVector)
-			{
-				int num_hits = pktiter->iValue(0, "NR_HITS");
-				for(int j = 0; j < num_hits; j++)
-				{
-					uint64_t gtm_bco = pktiter->lValue(j, "BCO");
+          InttRawHit *intthit = inttcont->get_hit(i);
+//	  uint64_t gtm_bco = intthit->get_bco();
 
-					if((bclkiter & 0xFFFFFFFFFF) != gtm_bco)continue;
-
-					rawdata = Intt::RawFromPacket(iter->first, j, pktiter);
-					adc = pktiter->iValue(j, "ADC");
-					//amp = p->iValue(j, "AMPLITUE");
-					bco = pktiter->iValue(j, "FPHX_BCO");
+	  int adc = intthit->get_adc();
+	  //amp = intthit->get_amplitude();
+	  //int bco = intthit->get_FPHX_BCO();
 					
-					offline = Intt::ToOffline(rawdata);
+	  // hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
+	  // hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
 					
-					hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
-					hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
+	  hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
+	  hit = hit_set_container_itr->second->getHit(hit_key);
+	  if(hit)continue;
 					
-					hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
-					hit = hit_set_container_itr->second->getHit(hit_key);
-					if(hit)continue;
-					
-					hit = new TrkrHitv2;
-					hit->setAdc(adc);
-					hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
-				}
-			}
-		}
+	  hit = new TrkrHitv2;
+	  hit->setAdc(adc);
+	  hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
 	}
+
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
