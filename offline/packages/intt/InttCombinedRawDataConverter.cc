@@ -1,18 +1,16 @@
 #include "InttCombinedRawDataConverter.h"
 
-#include <Event/Event.h>
-#include <Event/EventTypes.h>
-#include <Event/packet.h>
+#include <ffarawobjects/InttRawHitContainer.h>
+#include <ffarawobjects/InttRawHit.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4allraw/PacketMap.h>
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 
-InttCombinedRawDataConverter::InttCombinedRawDataConverter(std::string const& name):
-	SubsysReco(name)
+InttCombinedRawDataConverter::InttCombinedRawDataConverter(std::string const& name)
+  :SubsysReco(name)
 {
 	//Do nothing
 }
@@ -61,8 +59,6 @@ int InttCombinedRawDataConverter::WriteOutputFile()
 	tree->Write();
 	file->Write();
 	file->Close();
-	delete tree;
-
 	return 0;
 }
 
@@ -131,11 +127,11 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
 	if(Verbosity() > 20)std::cout << "int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)" << std::endl;
 	if(Verbosity() > 20)std::cout << "\t" << n_evt << std::endl;
 
-	PacketMap* pktmap = findNode::getClass<PacketMap>(topNode, m_EvtNodeName);
-	if(!pktmap)
+  InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(topNode,m_InttRawNodeName);
+	if(!inttcont)
 	{
 		std::cout << "int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)" << std::endl;
-		std::cout << "\t" << PHWHERE << " could not find node " << m_EvtNodeName << std::endl;
+		std::cout << "\t" << PHWHERE << " could not find node " << m_InttRawNodeName << std::endl;
 		std::cout << "\tExiting" << std::endl; 
 
 		gSystem->Exit(1);
@@ -146,48 +142,23 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
 	for(Branches_l_t::iterator itr = branches_l.begin(); itr != branches_l.end(); ++itr)itr->second->clear();
 	for(Branches_d_t::iterator itr = branches_d.begin(); itr != branches_d.end(); ++itr)itr->second->clear();
 
-	PacketMap::PacketListRange pktrange = pktmap->first_last_packet();
-	for(auto iter = pktrange.first; iter != pktrange.second; iter++)
+	for (unsigned int i=0; i<inttcont->get_nhits(); i++)
 	{
-		for(auto bclkiter : iter->second.m_BeamClockSet)
-		{
-			for(auto pktiter : iter->second.m_PacketVector)
-			{
-				num_hits = pktiter->iValue(0, "NR_HITS");
-				if(Verbosity() > 20)std::cout << "num_hits: " << num_hits << std::endl;
-				for(int j = 0; j < num_hits; j++)
-				{
-					uint64_t gtm_bco = pktiter->lValue(j, "BCO");
+          InttRawHit *intthit = inttcont->get_hit(i);
+	  branches_i["flx_svr"]->push_back(-9999);
+	  branches_i["flx_chn"]->push_back(intthit->get_channel_id());
 
-					if((bclkiter & 0xFFFFFFFFFF) != gtm_bco)continue;
+	  branches_i["lyr"]->push_back(-9999);
+	  branches_i["ldr"]->push_back(-9999);
+	  branches_i["arm"]->push_back(-9999);
+	  branches_i["chp"]->push_back(intthit->get_chip_id());
+	  branches_i["chn"]->push_back(-9999);
 
-					if(Verbosity() > 40)std::cout << "\tfound match at bclk 0x" << std::hex << gtm_bco << std::dec << std::endl;
+	  branches_i["flx_bco"]->push_back(intthit->get_FPHX_BCO());
+	  branches_i["adc"]->push_back(intthit->get_adc());
+	  branches_i["amp"]->push_back(intthit->get_amplitude());
 
-					raw = Intt::RawFromPacket(iter->first, j, pktiter);
-
-					branches_i["flx_svr"]->push_back(raw.felix_server);
-					branches_i["flx_chn"]->push_back(raw.felix_channel);
-
-					onl = Intt::ToOnline(raw);
-					branches_i["lyr"]->push_back(onl.lyr);
-					branches_i["ldr"]->push_back(onl.ldr);
-					branches_i["arm"]->push_back(onl.arm);
-					branches_i["chp"]->push_back(onl.chp);
-					branches_i["chn"]->push_back(onl.chn);
-
-					branches_i["flx_bco"]->push_back(pktiter->iValue(j, "FPHX_BCO"));
-					branches_i["adc"]->push_back(pktiter->iValue(j, "ADC"));
-					branches_i["amp"]->push_back(pktiter->iValue(j, "AMPLITUDE"));
-
-					branches_l["gtm_bco"]->push_back(gtm_bco);
-
-					//Eigen::Vector4d pos = Intt::GetPos(onl);
-					//branches_d["g_x"]->push_back(pos(0));
-					//branches_d["g_y"]->push_back(pos(1));
-					//branches_d["g_z"]->push_back(pos(2));
-				}
-			}
-		}
+	  branches_l["gtm_bco"]->push_back(intthit->get_bco());
 	}
 
 	num_hits = branches_l.begin()->second->size();

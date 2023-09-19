@@ -1,17 +1,16 @@
-#ifndef INTT_COMBINED_RAW_DATA_CONVERTER_H
-#define INTT_COMBINED_RAW_DATA_CONVERTER_H
+#ifndef INTT_INTTCOMBINEDRAWDATACONVERTER_H
+#define INTT_INTTCOMBINEDRAWDATACONVERTER_H
 
-#include "InttMapping.h"
+#include <fun4all/SubsysReco.h>
+
+#include <TSystem.h>
+#include <TFile.h>
+#include <TTree.h>
 
 #include <iostream>
 #include <string>
 #include <map>
 #include <vector>
-
-#include <TSystem.h>
-#include <TFile.h>
-#include <TTree.h>
-#include <fun4all/SubsysReco.h>
 
 class InttCombinedRawDataConverter : public SubsysReco
 {
@@ -27,16 +26,13 @@ public:
 	int End(PHCompositeNode*) override;
 
 private:
-	std::string m_EvtNodeName = "EVT";
+	std::string m_InttRawNodeName = "INTTRAWHIT";
 
 	TFile* file = nullptr;
 	TTree* tree = nullptr;
 
 	Int_t n_evt = 0;
 	Int_t num_hits = 0;
-
-	Intt::RawData_s raw;
-	Intt::Online_s onl;
 
 	typedef std::map<std::string, std::vector<Int_t>*> Branches_i_t;
 	typedef std::map<std::string, std::vector<Long64_t>*> Branches_l_t;
@@ -46,4 +42,4 @@ private:
 	Branches_d_t branches_d;
 };
 
-#endif//INTT_COMBINED_RAW_DATA_CONVERTER_H
+#endif//INTT_INTTCOMBINEDRAWDATACONVERTER_H
