@@ -10,9 +10,9 @@
 #include <map>
 #include <string>
 
-class Event;
-class SingleEvtInput;
+class SingleStreamingInput;
 class ospEvent;
+class InttRawHit;
 class Packet;
 class PHCompositeNode;
 class SyncObject;
@@ -34,10 +34,12 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   int SyncIt(const SyncObject *mastersync) override;
   int HasSyncObject() const override { return 1; }
   std::string GetString(const std::string &what) const override;
-  SingleEvtInput *AddEvtInputList(const std::string &listfile);
-  SingleEvtInput *AddEvtInputFile(const std::string &filename);
-  void AddPacket(const int evtno, Packet *p);
+//  SingleEvtInput *AddEvtInputList(const std::string &listfile);
+//  SingleEvtInput *AddEvtInputFile(const std::string &filename);
+  void registerStreamingInput(SingleStreamingInput *evtin);
+  void AddPacket(uint64_t bclk, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
+  void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
 
  private:
   struct PacketInfo
@@ -45,21 +47,20 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
     std::vector<Packet *> PacketVector;
     unsigned int EventFoundCounter = 0;
   };
+  struct InttRawHitInfo
+  {
+    std::vector<InttRawHit *> InttRawHitVector;
+    unsigned int EventFoundCounter = 0;
+  };
 
   int m_RunNumber = 0;
-  std::vector<SingleEvtInput *> m_EvtInputVector;
+  std::vector<SingleStreamingInput *> m_EvtInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
-  Event *m_Event = nullptr;
-union wrk
-{
-  PHDWORD workmem[4 * 1024 * 1024];
-int iwmem[4 * 1024 * 1024];
-};
-  ospEvent *osp;
-  wrk workmem = {};
-  std::map<int, PacketInfo> m_PacketMap;
+  std::map<uint64_t, PacketInfo> m_PacketInfoMap;
+  std::map<uint64_t, InttRawHitInfo> m_InttRawHitMap;
   std::string m_EvtNodeName;
+  uint64_t m_CurrentBeamClock = 0;
 };
 
 #endif /* FUN4ALL_FUN4ALLEVTINPUTPOOLMANAGER_H */

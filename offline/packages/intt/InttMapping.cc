@@ -1,5 +1,7 @@
 #include "InttMapping.h"
+
 #include "InttFelixMap.h"
+//#include "InttSurveyMap.h"
 
 const std::map<int, int> Intt::Packet_Id =
 {
@@ -19,7 +21,9 @@ struct Intt::RawData_s Intt::RawFromPacket(int const _i, int const _n, Packet* _
 
 	if(!_p)return s;
 
-	s.felix_server = _i;
+	//s.felix_server = _i;
+	std::map<int, int>::const_iterator itr = Packet_Id.find(_i);
+	s.felix_server = itr != Packet_Id.end() ? itr->second : -1;
 	s.felix_channel = _p->iValue(_n, "FEE");
 	s.chip = (_p->iValue(_n, "CHIP_ID") + 25) % 26;
 	s.channel = _p->iValue(_n, "CHANNEL_ID");
@@ -30,9 +34,10 @@ struct Intt::RawData_s Intt::RawFromPacket(int const _i, int const _n, Packet* _
 struct Intt::Online_s Intt::ToOnline(struct Offline_s const& _s)
 {
 	struct Online_s s;
+	int n_ldr = _s.layer < 5 ? 12 : 16;
 
 	s.lyr = _s.layer - 3;
-	s.ldr = _s.ladder_phi;
+	s.ldr = (7 * n_ldr / 4 - _s.ladder_phi + (_s.layer % 2 ? n_ldr - 1 : 0)) % n_ldr;
 
 	s.arm = _s.ladder_z / 2;
 	switch(_s.ladder_z)
@@ -65,9 +70,10 @@ struct Intt::Online_s Intt::ToOnline(struct Offline_s const& _s)
 struct Intt::Offline_s Intt::ToOffline(struct Online_s const& _s)
 {
 	struct Offline_s s;
+	int n_ldr = _s.lyr < 2 ? 12 : 16;
 
 	s.layer = _s.lyr + 3;
-	s.ladder_phi = _s.ldr;
+	s.ladder_phi = (7 * n_ldr / 4 - _s.ldr + (_s.lyr % 2 ? 0 : n_ldr - 1)) % n_ldr;
 
 	s.ladder_z = 2 * _s.arm + (_s.chp % 13 < 5);
 	switch(s.ladder_z)
@@ -128,6 +134,64 @@ struct Intt::Offline_s Intt::ToOffline(struct RawData_s const& _s)
 {
 	return ToOffline(ToOnline(_s));
 }
+
+//Eigen::Affine3d Intt::GetTransform(struct Intt::Offline_s const& _s)
+//{
+//	return InttSurvey::GetTransform(_s);
+//}
+//
+//Eigen::Affine3d Intt::GetTransform(struct Intt::Online_s const& _s)
+//{
+//	return InttSurvey::GetTransform(ToOffline(_s));
+//}
+//
+//Eigen::Affine3d Intt::GetTransform(struct Intt::RawData_s const& _s)
+//{
+//	return InttSurvey::GetTransform(ToOffline(_s));
+//}
+
+Eigen::Vector4d Intt::GetLocalPos(struct Intt::Offline_s const& _s)
+{
+	Eigen::Vector4d u = {0.0, 0.0, 0.0, 1.0};
+
+	//strip_y corresponds to z in local frame of sensor	
+	u(2) = (2.0 * _s.strip_y + 1.0) / ((_s.ladder_z % 2) ? 10.0 : 16.0) - 0.5;
+	u(2) *= (_s.ladder_z % 2) ? 100.0 : 128.0;
+
+	//strip_x corresponds to x in local frame of sensor
+	u(0) = (2.0 * _s.strip_x + 1.0) / 512.0 - 0.5;
+	u(0) *= 19.968;
+
+	//Offset by ladder thickness (to be implemented)
+	u(1) = 0.0;
+
+	return u;
+}
+
+Eigen::Vector4d Intt::GetLocalPos(struct Intt::Online_s const& _s)
+{
+	return Intt::GetLocalPos(Intt::ToOffline(_s));
+}
+
+Eigen::Vector4d Intt::GetLocalPos(struct Intt::RawData_s const& _s)
+{
+	return Intt::GetLocalPos(Intt::ToOffline(_s));
+}
+
+//Eigen::Vector4d Intt::GetPos(struct Intt::Offline_s const& _s)
+//{
+//	return Intt::GetTransform(_s) * Intt::GetLocalPos(_s);
+//}
+//
+//Eigen::Vector4d Intt::GetPos(struct Intt::Online_s const& _s)
+//{
+//	return Intt::GetTransform(_s) * Intt::GetLocalPos(_s);
+//}
+//
+//Eigen::Vector4d Intt::GetPos(struct Intt::RawData_s const& _s)
+//{
+//	return Intt::GetTransform(_s) * Intt::GetLocalPos(_s);
+//}
 
 bool operator==(struct Intt::RawData_s const& lhs, struct Intt::RawData_s const& rhs)
 {

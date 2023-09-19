@@ -1,9 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = \
-  libphool.la \
-  libsph_onnx.la
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
@@ -14,16 +10,37 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64
 
-libphool_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  `root-config --libs`
+if USE_ONLINE
+lib_LTLIBRARIES = \
+  libphool.la
+
+ROOTDICTS = \
+  PHObject_Dict.cc
+
+nobase_dist_pcm_DATA = \
+  PHObject_Dict_rdict.pcm
+
+libphool_la_SOURCES = \
+  $(ROOTDICTS) \
+  PHObject.cc
+
+pkginclude_HEADERS =  \
+  PHObject.h \
+  phool.h
+
+noinst_PROGRAMS = \
+  testexternals_phool
+
+else
+
+lib_LTLIBRARIES = \
+  libphool.la \
+  libsph_onnx.la
 
 ROOTDICTS = \
   PHObject_Dict.cc \
   PHTimeStamp_Dict.cc
 
-pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   PHObject_Dict_rdict.pcm \
   PHTimeStamp_Dict_rdict.pcm
@@ -44,9 +61,6 @@ libphool_la_SOURCES = \
   PHTimeServer.cc \
   PHTimeStamp.cc \
   recoConsts.cc
-
-libsph_onnx_la_SOURCES = \
-  onnxlib.cc
 
 pkginclude_HEADERS =  \
   getClass.h \
@@ -76,6 +90,25 @@ pkginclude_HEADERS =  \
   PHTypedNodeIterator.h \
   recoConsts.h
 
+noinst_PROGRAMS = \
+  testexternals_phool \
+  testexternals_sph_onnx
+
+endif
+
+libphool_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  `root-config --libs`
+
+
+pcmdir = $(libdir)
+
+
+libsph_onnx_la_SOURCES = \
+  onnxlib.cc
+
+
 libsph_onnx_la_LIBADD = \
   -lonnxruntime
 
@@ -83,9 +116,6 @@ libsph_onnx_la_LIBADD = \
 BUILT_SOURCES = \
   testexternals.cc
 
-noinst_PROGRAMS = \
-  testexternals_phool \
-  testexternals_sph_onnx
 
 
 testexternals_phool_SOURCES = testexternals.cc

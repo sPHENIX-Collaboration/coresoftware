@@ -3,6 +3,7 @@
 
 #include "DumpBbcOut.h"
 #include "DumpBbcPmtContainer.h"
+#include "DumpBbcPmtInfoContainer.h"
 #include "DumpBbcVertexMap.h"
 #include "DumpCaloTriggerInfo.h"
 #include "DumpCdbUrlSave.h"
@@ -25,6 +26,7 @@
 #include "DumpPHG4InEvent.h"
 #include "DumpPHG4ParticleSvtxMap.h"
 #include "DumpPHG4ScintillatorSlatContainer.h"
+#include "DumpPHG4TpcCylinderGeomContainer.h"
 #include "DumpPHG4TruthInfoContainer.h"
 #include "DumpPHGenIntegral.h"
 #include "DumpPHHepMCGenEventMap.h"
@@ -191,6 +193,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       {
         newdump = new DumpBbcPmtContainer(NodeName);
       }
+      else if (tmp->InheritsFrom("BbcPmtInfoContainerV1"))
+      {
+        newdump = new DumpBbcPmtInfoContainer(NodeName);
+      }
       else if (tmp->InheritsFrom("BbcVertexMap"))
       {
         newdump = new DumpBbcVertexMap(NodeName);
@@ -290,6 +296,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("PHG4ScintillatorSlatContainer"))
       {
         newdump = new DumpPHG4ScintillatorSlatContainer(NodeName);
+      }
+      else if (tmp->InheritsFrom("PHG4TpcCylinderGeomContainer"))
+      {
+        newdump = new DumpPHG4TpcCylinderGeomContainer(NodeName);
       }
       else if (tmp->InheritsFrom("PHG4TruthInfoContainer"))
       {

@@ -17,6 +17,50 @@ namespace
     inline constexpr T square( const T& x ) { return x*x; }
 }
 
+std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global) 
+{
+   // no analytic solution for the coordinates of the closest approach of a helix to a point
+  // Instead, we get the PCA in x and y to the circle, and the PCA in z to the z vs R line at the R of the PCA 
+
+  float radius = fitpars[0];
+  float x0 = fitpars[1];
+  float y0 = fitpars[2];  
+  float zslope = fitpars[3];
+  float z0 = fitpars[4];
+
+  Acts::Vector2 pca_circle = TrackFitUtils::get_circle_point_pca(radius, x0, y0, global);
+
+  // The radius of the PCA determines the z position:
+  float pca_circle_radius = pca_circle.norm();  // radius of the PCA of the circle to the point
+  float pca_z = pca_circle_radius * zslope + z0;
+  Acts::Vector3 pca(pca_circle(0), pca_circle(1), pca_z);
+
+  // now we want a second point on the helix so we can get a local straight line approximation to the track
+  // Get the angle of the PCA relative to the fitted circle center
+  float angle_pca = atan2(pca_circle(1) - y0, pca_circle(0) - x0);
+  // calculate coords of a point at a slightly larger angle
+  float d_angle = 0.005;
+  float newx = radius * cos(angle_pca + d_angle) + x0;
+  float newy = radius * sin(angle_pca + d_angle) + y0;
+  float newz = sqrt(newx*newx+newy*newy) * zslope + z0;
+  Acts::Vector3 second_point_pca(newx, newy, newz);
+
+  // pca and second_point_pca define a straight line approximation to the track
+  Acts::Vector3 tangent = (second_point_pca - pca) /  (second_point_pca - pca).norm();
+
+  // get the PCA of the cluster to that line
+// Approximate track with a straight line consisting of the state position posref and the vector (px,py,pz)   
+
+  // The position of the closest point on the line to global is:
+  // posref + projection of difference between the point and posref on the tangent vector
+  Acts::Vector3 final_pca = pca + ( (global - pca).dot(tangent) ) * tangent;
+
+  auto line = std::make_pair(final_pca, tangent);
+
+  return line;
+
+}
+
 //_________________________________________________________________________________
 TrackFitUtils::circle_fit_output_t TrackFitUtils::circle_fit_by_taubin( const TrackFitUtils::position_vector_t& positions )
 {
@@ -311,11 +355,14 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
       std::vector<Acts::Vector3> global_vec_noINTT;
       for(unsigned int ivec=0;ivec<global_vec.size(); ++ivec)
 	{
+	  
 	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
-	  if(trkrid != TrkrDefs::inttId)
+	  
+	  if(trkrid != TrkrDefs::inttId and cluskey_vec[ivec] != 0)
 	    {
 	      global_vec_noINTT.push_back(global_vec[ivec]); 
 	    }
+
 	}
       
       if(global_vec_noINTT.size() < 3) 
@@ -385,3 +432,40 @@ Acts::Vector3 TrackFitUtils::getPCALinePoint(Acts::Vector3 global, Acts::Vector3
   return pca;
 }
 
+std::vector<double> TrackFitUtils::getLineClusterResiduals(TrackFitUtils::position_vector_t& rz_pts, float slope, float intercept)
+{
+  std::vector<double> residuals;
+   // calculate cluster residuals from the fitted circle
+  std::transform( rz_pts.begin(), rz_pts.end(), 
+		  std::back_inserter(residuals), [slope,intercept]( 
+				     const std::pair<double,double>& point )
+  {
+    double r = point.first;
+    double z = point.second;
+    
+    // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
+    
+    double a = -slope;
+    double b = 1.0;
+    double c = -intercept;
+    return std::abs(a*r+b*z+c)/sqrt(square(a)+square(b));
+  });
+  return residuals;
+}
+
+std::vector<double> TrackFitUtils::getCircleClusterResiduals(TrackFitUtils::position_vector_t& xy_pts, float R, float X0, float Y0)
+{
+  std::vector<double> residuals;
+  std::transform(xy_pts.begin(), xy_pts.end(), 
+		 std::back_inserter(residuals), [R,X0,Y0]( 
+				    const std::pair<double,double>& point )
+  {
+    double x = point.first;
+    double y = point.second;
+
+    // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
+    return std::sqrt( square(x-X0) + square(y-Y0) )  -  R;  
+  } );
+ 
+  return residuals;
+}

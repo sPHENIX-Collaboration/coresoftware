@@ -82,10 +82,15 @@ namespace
     unsigned short pads_per_sector = 0;
     float phistep = 0;
     float pedestal = 0;
-    float threshold = 0;
+    float seed_threshold = 0;
+    float edge_threshold = 0;
+    float min_err_squared = 0;
+    float min_clus_size = 0;
+    float min_adc_sum = 0;
     bool do_assoc = true;
     bool do_wedge_emulation = true;
     bool do_singles = true;
+    bool do_split = true;
     unsigned short phibins = 0;
     unsigned short phioffset = 0;
     unsigned short tbins = 0;
@@ -94,7 +99,6 @@ namespace
     unsigned short maxHalfSizePhi = 0;
     double m_tdriftmax = 0;
     double sampa_tbias = 0;
-    int cluster_version = 4;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster*> cluster_vector;
     int verbosity = 0;
@@ -155,14 +159,16 @@ namespace
 	touch++;
 	break;
       }
-      //check local minima and break at minimum.
-      if(ct<NTBinsMax-4){//make sure we stay clear from the edge
-	if(adcval[phibin][ct]+adcval[phibin][ct+1] < 
-	   adcval[phibin][ct+2]+adcval[phibin][ct+3]){//rising again
-	  tup = it+1;
-	  touch++;
-	  break;
-	      }
+      if(my_data.do_split){
+	//check local minima and break at minimum.
+	if(ct<NTBinsMax-4){//make sure we stay clear from the edge
+	  if(adcval[phibin][ct]+adcval[phibin][ct+1] < 
+	     adcval[phibin][ct+2]+adcval[phibin][ct+3]){//rising again
+	    tup = it+1;
+	    touch++;
+	    break;
+	  }
+	}
       }
       tup = it;
     }
@@ -180,12 +186,14 @@ namespace
 	touch++;
 	break;
       }
-      if(ct>4){//make sure we stay clear from the edge
-	if(adcval[phibin][ct]+adcval[phibin][ct-1] < 
-	   adcval[phibin][ct-2]+adcval[phibin][ct-3]){//rising again
-	  tdown = it+1;
-	  touch++;
+      if(my_data.do_split){//check local minima and break at minimum.
+	if(ct>4){//make sure we stay clear from the edge
+	  if(adcval[phibin][ct]+adcval[phibin][ct-1] < 
+	     adcval[phibin][ct-2]+adcval[phibin][ct-3]){//rising again
+	    tdown = it+1;
+	    touch++;
 	  break;
+	  }
 	}
       }
       tdown = it;
@@ -217,13 +225,14 @@ namespace
 	touch++;
 	break;
       }
-      //check local minima and break at minimum.
-      if(cphi<NPhiBinsMax-4){//make sure we stay clear from the edge
-	if(adcval[cphi][tbin]+adcval[cphi+1][tbin] < 
-	   adcval[cphi+2][tbin]+adcval[cphi+3][tbin]){//rising again
-	  phiup = iphi+1;
-	  touch++;
-	  break;
+      if(my_data.do_split){//check local minima and break at minimum.
+	if(cphi<NPhiBinsMax-4){//make sure we stay clear from the edge
+	  if(adcval[cphi][tbin]+adcval[cphi+1][tbin] < 
+	     adcval[cphi+2][tbin]+adcval[cphi+3][tbin]){//rising again
+	    phiup = iphi+1;
+	    touch++;
+	    break;
+	  }
 	}
       }
       phiup = iphi;
@@ -245,12 +254,14 @@ namespace
 	touch++;
 	break;
       }
-      if(cphi>4){//make sure we stay clear from the edge
-	if(adcval[cphi][tbin]+adcval[cphi-1][tbin] < 
-	   adcval[cphi-2][tbin]+adcval[cphi-3][tbin]){//rising again
-	  phidown = iphi+1;
-	  touch++;
-	  break;
+      if(my_data.do_split){//check local minima and break at minimum.
+	if(cphi>4){//make sure we stay clear from the edge
+	  if(adcval[cphi][tbin]+adcval[cphi-1][tbin] < 
+	     adcval[cphi-2][tbin]+adcval[cphi-3][tbin]){//rising again
+	    phidown = iphi+1;
+	    touch++;
+	    break;
+	  }
 	}
       }
       phidown = iphi;
@@ -316,14 +327,16 @@ namespace
       int tbinlo = 666666;
       int clus_size = ihit_list.size();
       int max_adc  = 0;
-      if(clus_size == 1) return;
+      if(clus_size <= my_data.min_clus_size){
+	return;
+      }
       //      std::cout << "process list" << std::endl;    
       std::vector<TrkrDefs::hitkey> hitkeyvec;
 
       // keep track of the hit locations in a given cluster
-  std::map<int,unsigned int> m_phi {};
-  std::map<int,unsigned int> m_z   {};
-
+      std::map<int,unsigned int> m_phi {};
+      std::map<int,unsigned int> m_z   {};
+      
       for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
 	double adc = iter->adc; 
 	
@@ -345,29 +358,29 @@ namespace
 	//	std::cout << "phi_center: " << phi_center << " adc: " << adc <<std::endl;
 	iphi_sum += iphi * adc;
 	iphi2_sum += square(iphi)*adc;
-
-  // update t sums
-  double t = my_data.layergeom->get_zcenter(it);
-  t_sum += t*adc;
-  t2_sum += square(t)*adc;
-
-  adc_sum += adc;
-
-  if (my_data.fillClusHitsVerbose) {
-    auto pnew = m_phi.try_emplace(iphi,adc);
-    if (!pnew.second) pnew.first->second += adc;
-
-    pnew = m_z.try_emplace(it,adc);
-    if (!pnew.second) pnew.first->second += adc;
-  }
-
-  // capture the hitkeys for all adc values above a certain threshold
-  TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
-  // if(adc>5)
+	
+	// update t sums
+	double t = my_data.layergeom->get_zcenter(it);
+	t_sum += t*adc;
+	t2_sum += square(t)*adc;
+	
+	adc_sum += adc;
+	
+	if (my_data.fillClusHitsVerbose) {
+	  auto pnew = m_phi.try_emplace(iphi,adc);
+	  if (!pnew.second) pnew.first->second += adc;
+	  
+	  pnew = m_z.try_emplace(it,adc);
+	  if (!pnew.second) pnew.first->second += adc;
+	}
+	
+	// capture the hitkeys for all adc values above a certain threshold
+	TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
+	// if(adc>5)
 	hitkeyvec.push_back(hitkey);
       }
       //      std::cout << "done process list" << std::endl;
-      if (adc_sum < 10){
+      if (adc_sum < my_data.min_adc_sum){
 	hitkeyvec.clear();
 	return;  // skip obvious noise "clusters"
       }  
@@ -438,63 +451,28 @@ namespace
       
   bool b_made_cluster { false };
 
-      if(my_data.cluster_version==3){
-	//std::cout << "ver3" << std::endl;
-	// Fill in the cluster details
-	//================
-	auto clus = new TrkrClusterv3;
-	//auto clus = std::make_unique<TrkrClusterv3>();
-	clus->setAdc(adc_sum);      
-	clus->setSubSurfKey(subsurfkey);      
-	clus->setLocalX(local(0));
-	clus->setLocalY(clust);
-	clus->setActsLocalError(0,0, phi_err_square);
-	clus->setActsLocalError(1,0, 0);
-	clus->setActsLocalError(0,1, 0);
-	clus->setActsLocalError(1,1, t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2));
-	my_data.cluster_vector.push_back(clus);
-  b_made_cluster = true;
-      }else if(my_data.cluster_version==4){
-	//std::cout << "ver4" << std::endl;
-	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
-	if(sqrt(phi_err_square) > 0.01){
-	auto clus = new TrkrClusterv4;
-	//auto clus = std::make_unique<TrkrClusterv3>();
-	clus->setAdc(adc_sum);  
-	clus->setMaxAdc(max_adc);  
-	clus->setOverlap(ntouch);
-	clus->setEdge(nedge);
-	clus->setPhiSize(phisize);
-	clus->setZSize(tsize);
-	clus->setSubSurfKey(subsurfkey);      
-	clus->setLocalX(local(0));
-	clus->setLocalY(clust);
-	//	clus->setPhiErr(sqrt(phi_err_square));
-	//clus->setZErr(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2)));
-	my_data.cluster_vector.push_back(clus);
-  b_made_cluster = true;
-	}
-      }else if(my_data.cluster_version==5){
-	//std::cout << "ver5" << std::endl;
-	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
-	if(sqrt(phi_err_square) > 0.01){
-	auto clus = new TrkrClusterv5;
-	//auto clus = std::make_unique<TrkrClusterv3>();
-	clus->setAdc(adc_sum);  
-	clus->setMaxAdc(max_adc); 
-	clus->setEdge(nedge);
-	clus->setPhiSize(phisize);
-	clus->setZSize(tsize);
-	clus->setSubSurfKey(subsurfkey);      
-	clus->setLocalX(local(0));
-	clus->setLocalY(clust);
-	clus->setPhiError(sqrt(phi_err_square));
-	clus->setZError(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2)));
-	my_data.cluster_vector.push_back(clus);
-  b_made_cluster = true;
-	}
-      }
-
+  
+  //std::cout << "ver5" << std::endl;
+  //	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
+  if(sqrt(phi_err_square) > my_data.min_err_squared){
+    auto clus = new TrkrClusterv5;
+    //auto clus = std::make_unique<TrkrClusterv3>();
+    clus->setAdc(adc_sum);  
+    clus->setMaxAdc(max_adc); 
+    clus->setEdge(nedge);
+    clus->setPhiSize(phisize);
+    clus->setZSize(tsize);
+    clus->setSubSurfKey(subsurfkey);  
+    clus->setOverlap(ntouch);
+    clus->setLocalX(local(0));
+    clus->setLocalY(clust);
+    clus->setPhiError(sqrt(phi_err_square));
+    clus->setZError(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2)));
+    my_data.cluster_vector.push_back(clus);
+    b_made_cluster = true;
+    
+  }
+  
       if (my_data.fillClusHitsVerbose && b_made_cluster) {
         // push the data back to 
         my_data.phivec_ClusHitsVerbose .push_back( std::vector<std::pair<int,int>> {} );
@@ -585,7 +563,7 @@ namespace
 	if(tbin   >= tbins) continue; // tbin is unsigned int, <0 cannot happen
 	
 	if(adc>0){
-	  if(adc>(5+my_data->threshold)){
+	  if(adc>(my_data->seed_threshold)){
 	    ihit  thisHit;
 	    
 	    thisHit.iphi = phibin;
@@ -594,7 +572,7 @@ namespace
 	    thisHit.edge = 0;
 	    all_hit_map.insert(std::make_pair(adc, thisHit));
 	  }
-	  if(adc>my_data->threshold){
+	  if(adc>my_data->edge_threshold){
 	    adcval[phibin][tbin] = (unsigned short) adc;
 	  }
 	}
@@ -947,7 +925,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	thread_pair.data.rawhitset = nullptr;
 	thread_pair.data.layer = layer;
 	thread_pair.data.pedestal = pedestal;
-	thread_pair.data.threshold = threshold;
+	thread_pair.data.seed_threshold = seed_threshold;
+	thread_pair.data.edge_threshold = edge_threshold;
 	thread_pair.data.sector = sector;
 	thread_pair.data.side = side;
 	thread_pair.data.do_assoc = do_hit_assoc;
@@ -957,9 +936,11 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	thread_pair.data.maxHalfSizeT =  MaxClusterHalfSizeT;
 	thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
 	thread_pair.data.sampa_tbias = m_sampa_tbias;
-	thread_pair.data.cluster_version = cluster_version;
 	thread_pair.data.verbosity = Verbosity();
-	
+	thread_pair.data.do_split = do_split;
+	thread_pair.data.min_err_squared = min_err_squared;
+	thread_pair.data.min_clus_size = min_clus_size; 
+	thread_pair.data.min_adc_sum = min_adc_sum;
 	unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
 	unsigned short NPhiBinsSector = NPhiBins/12;
 	unsigned short NTBins = (unsigned short)layergeom->get_zbins();
@@ -1061,7 +1042,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.maxHalfSizeT =  MaxClusterHalfSizeT;
       thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
       thread_pair.data.sampa_tbias = m_sampa_tbias;
-      thread_pair.data.cluster_version = cluster_version;
       thread_pair.data.verbosity = Verbosity();
 
       unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();

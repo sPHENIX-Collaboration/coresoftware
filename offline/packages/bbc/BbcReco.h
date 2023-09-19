@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef BBCRECONSTRUCTION_H
-#define BBCRECONSTRUCTION_H
+#ifndef __BBCRECO_H__
+#define __BBCRECO_H__
 
 #include <fun4all/SubsysReco.h>
 
@@ -9,17 +9,20 @@
 #include <string>
 
 class PHCompositeNode;
-class BbcPmtContainer;
+class BbcEvent;
+class BbcPmtInfoContainerV1;
 class BbcVertexMap;
+class BbcOut;
+class Event;
 class TF1;
 class TH1;
 
-class BbcReconstruction : public SubsysReco
+class BbcReco : public SubsysReco
 {
  public:
-  BbcReconstruction(const std::string &name = "BbcReconstruction");
+  BbcReco(const std::string &name = "BbcReco");
 
-  ~BbcReconstruction() override;
+  ~BbcReco() override;
 
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
@@ -31,10 +34,13 @@ class BbcReconstruction : public SubsysReco
   int getNodes(PHCompositeNode *topNode);
   std::unique_ptr<TF1> m_gaussian = nullptr;
 
+
   float m_tres = 0.05;
-  TH1 *h_evt_bbct[2];
-  BbcVertexMap *m_bbcvertexmap = nullptr;
-  BbcPmtContainer *m_bbcpmts = nullptr;
+  BbcEvent              *m_bbcevent {nullptr};
+  Event                 *m_event {nullptr};
+  BbcVertexMap          *m_bbcvertexmap {nullptr};
+  BbcOut                *m_bbcout {nullptr};
+  BbcPmtInfoContainerV1 *m_bbcpmts {nullptr};
 };
 
-#endif  // BBCRECONSTRUCTION_H
+#endif  // __BBCRECO_H__

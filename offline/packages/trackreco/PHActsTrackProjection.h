@@ -52,6 +52,7 @@ class PHActsTrackProjection : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
   void useConstField(bool field) { m_constField = field; }
+  void setConstFieldVal(float b) { m_constFieldVal = b; }
 
   /// Set an arbitrary radius to project to, in cm
   void setLayerRadius(SvtxTrack::CAL_LAYER layer,
@@ -120,6 +121,7 @@ class PHActsTrackProjection : public SubsysReco
   RawClusterContainer *m_clusterContainer = nullptr;
 
   bool m_constField = true;
+  float m_constFieldVal = 1.4;
   bool m_useCemcPosRecalib = false;
   bool m_calosAvailable = true;
 

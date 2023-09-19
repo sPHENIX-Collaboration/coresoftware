@@ -31,6 +31,7 @@
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
 
@@ -803,12 +804,9 @@ void RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
 	     std::cout << PHWHERE << "Detector not implemented into the TowerInfoContainer object, defaulting to HCal implementation." << std::endl;
 	     detec = TowerInfoContainer::DETECTOR::HCAL;
 	   }
-	 if (!m_RawTowerInfos)
-	   {
-	     m_RawTowerInfos = new TowerInfoContainerv1(detec);
-	     PHIODataNode<PHObject> *towerinfoNode = new PHIODataNode<PHObject>(m_RawTowerInfos, TowerInfoNodeName, "PHObject");
-	     DetNode->addNode(towerinfoNode);
-	   }
+	 m_RawTowerInfos = new TowerInfoContainerv1(detec);
+	 PHIODataNode<PHObject> *towerinfoNode = new PHIODataNode<PHObject>(m_RawTowerInfos, TowerInfoNodeName, "PHObject");
+	 DetNode->addNode(towerinfoNode);
        }
     }
     

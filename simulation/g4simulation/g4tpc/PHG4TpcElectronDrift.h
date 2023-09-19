@@ -71,8 +71,9 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   void set_pixel_thresholdrat (double val) { truth_clusterer.set_pixel_thresholdrat(val); };
   void set_max_g4hitstep (float _) { max_g4hitstep =_; };
   void set_ClusHitsVerbose(bool set=true) { record_ClusHitsVerbose = set; };
+  void set_zero_bfield_flag(bool flag) { zero_bfield = flag; };
+  void set_zero_bfield_diffusion_factor(double f) {zero_bfield_diffusion_factor = f ; };
   ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
-
 
  private:
   float max_g4hitstep { 7. };
@@ -141,6 +142,9 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double max_active_radius = NAN;
   double min_time = NAN;
   double max_time = NAN;
+
+  bool zero_bfield = false;
+  double zero_bfield_diffusion_factor = 3.5;  // at drift voltage of 400 V
 
   //! rng de-allocator
   class Deleter

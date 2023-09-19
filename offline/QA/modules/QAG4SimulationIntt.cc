@@ -263,17 +263,10 @@ void QAG4SimulationIntt::evaluate_clusters()
 
       double phi_error = 0;
       double z_error = 0;
-      if (m_cluster_version == 4)
-      {
-        auto para_errors = _ClusErrPara.get_si_cluster_error(cluster, key);
-        phi_error = sqrt(para_errors.first) / r_cluster;
-        z_error = sqrt(para_errors.second);
-      }
-      else
-      {
-        phi_error = cluster->getRPhiError() / r_cluster;
-        z_error = cluster->getZError();
-      }
+   
+      phi_error = cluster->getRPhiError() / r_cluster;
+      z_error = cluster->getZError();
+      
 
       // find associated g4hits
       const auto g4hits = find_g4hits(key);
