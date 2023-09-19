@@ -23,7 +23,8 @@ pkginclude_HEADERS = \
   SingleEvtInput.h \
   SingleInttInput.h \
   SinglePrdfInput.h \
-  SingleStreamingInput.h
+  SingleStreamingInput.h \
+  SingleTPCInput.h
 
 lib_LTLIBRARIES = \
   libfun4allraw.la
@@ -41,7 +42,8 @@ libfun4allraw_la_SOURCES = \
   SingleEvtInput.cc \
   SingleInttInput.cc \
   SinglePrdfInput.cc \
-  SingleStreamingInput.cc
+  SingleStreamingInput.cc \
+  SingleTPCInput.cc
 
 libfun4allraw_la_LIBADD = \
   -lffarawobjects \
