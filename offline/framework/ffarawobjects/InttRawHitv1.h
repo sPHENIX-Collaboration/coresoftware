@@ -23,6 +23,9 @@ public:
   uint64_t get_bco() const override {return bco;}
   void set_bco(const uint64_t val) override {bco = val;}
 
+  int32_t get_packetid() const override {return packetid;}
+  void set_packetid(const int32_t val) override {packetid = val;}
+
   uint32_t get_word() const override {return word;}
   void set_word(uint32_t val) override {word = val;}
 
@@ -53,6 +56,7 @@ public:
 
 protected:
     uint64_t bco = std::numeric_limits<uint64_t>::max();
+    int32_t packetid = std::numeric_limits<int32_t>::max();
     uint32_t word = std::numeric_limits<uint32_t>::max();
     uint16_t fee = std::numeric_limits<uint16_t>::max();
     uint16_t channel_id = std::numeric_limits<uint16_t>::max();
