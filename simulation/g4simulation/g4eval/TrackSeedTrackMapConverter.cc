@@ -215,7 +215,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         svtxtrack->set_px(charge < 0 ? tan.x() : tan.x() * -1);
         svtxtrack->set_py(charge < 0 ? tan.y() : tan.y() * -1);
         svtxtrack->set_pz(cosmicslope > 0 ? fabs(tan.z()) : -1 * fabs(tan.z()));
-        svtxtrack->set_z(svtxtrack->get_pz() > 0 ? (slope < 0 ? intz : m_vertexRadius * slope * -1 + tpcseed->get_Z0()) : (slope > 0 ? intz : m_vertexRadius * slope * -1 + tpcseed->get_Z0()));
+        svtxtrack->set_z(svtxtrack->get_pz() > 0 ? (slope < 0 ? intz : vertexradius * slope * -1 + tpcseed->get_Z0()) : (slope > 0 ? intz : vertexradius * slope * -1 + tpcseed->get_Z0()));
         svtxtrack->set_charge(charge);
         addKeys(svtxtrack, tpcseed);
         if (silseed) addKeys(svtxtrack, silseed);
