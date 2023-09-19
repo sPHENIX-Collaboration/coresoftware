@@ -59,16 +59,7 @@ namespace Intt
 	struct Offline_s ToOffline(struct RawData_s const&);
 
 	Eigen::Affine3d GetTransform(TTree*, struct Offline_s const&);
-	Eigen::Affine3d GetTransform(TTree*, struct Online_s const&);
-	Eigen::Affine3d GetTransform(TTree*, struct RawData_s const&);
-
 	Eigen::Vector4d GetLocalPos(struct Offline_s const&);
-	Eigen::Vector4d GetLocalPos(struct Online_s const&);
-	Eigen::Vector4d GetLocalPos(struct RawData_s const&);
-
-	//Eigen::Vector4d GetPos(struct Offline_s const&);
-	//Eigen::Vector4d GetPos(struct Online_s const&);
-	//Eigen::Vector4d GetPos(struct RawData_s const&);
 };
 
 bool operator==(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
