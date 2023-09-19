@@ -1,18 +1,18 @@
-#ifndef FUN4ALLRAW_INTTHIT_H
-#define FUN4ALLRAW_INTTHIT_H
+#ifndef FUN4ALLRAW_INTRAWTHIT_H
+#define FUN4ALLRAW_INTRAWTHIT_H
 
 #include <phool/PHObject.h>
 
 #include <limits>
 
 
-class  InttHit: public PHObject
+class  InttRawHit: public PHObject
   {
 
 
 public:
-    InttHit() = default;
-  virtual ~InttHit() = default;
+    InttRawHit() = default;
+  virtual ~InttRawHit() = default;
 
   virtual uint64_t get_bco() const {return std::numeric_limits<uint64_t>::max();}
   virtual void set_bco(const uint64_t) {return;}
@@ -45,8 +45,7 @@ public:
   virtual void set_amplitude(uint16_t) {return;}
 
 private:
-  ClassDefOverride(InttHit,1)    
+  ClassDefOverride(InttRawHit,1)
 };
 
- 
 #endif 

@@ -1,9 +1,11 @@
 #include "Fun4AllEvtInputPoolManager.h"
 
 #include "PacketMap.h"
+#include "SingleInttInput.h"
 #include "SingleEvtInput.h"
 
-#include <ffarawobjects/InttHit.h>
+#include <ffarawobjects/InttRawHit.h>
+#include <ffarawobjects/InttRawHitContainerv1.h>
 
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -49,6 +51,28 @@ Fun4AllEvtInputPoolManager::Fun4AllEvtInputPoolManager(const std::string &name, 
     PHDataNode<PacketMap> *newNode = new PHDataNode<PacketMap>(m_PacketMap, m_EvtNodeName, "PacketMap");
     m_topNode->addNode(newNode);
   }
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (! dstNode)
+  {
+    dstNode = new PHCompositeNode("DST");
+    m_topNode->addNode(dstNode);
+  }
+  PHNodeIterator iterDst(dstNode);
+PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "INTT"));
+if (!detNode)
+{
+  detNode = new PHCompositeNode("INTT");
+  dstNode->addNode(detNode);
+}
+
+  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode,"INTTRAWHIT");
+  if (!intthitcont)
+  {
+    intthitcont = new InttRawHitContainerv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
+    detNode->addNode(newNode);
+  }
+
   m_topNode->print();
   return;
 }
@@ -75,34 +99,50 @@ Fun4AllEvtInputPoolManager::~Fun4AllEvtInputPoolManager()
 
 int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
 {
-  if (m_PacketInfoMap.size() < 5)
+  if (m_InttRawHitMap.size() < 5)
   {
     for (auto iter : m_EvtInputVector)
     {
+      if (Verbosity() > 0)
+      {
+	std::cout << "fill pool for " << iter->Name() << std::endl;
+      }
       iter->FillPool();
       m_RunNumber = iter->RunNumber();
     }
     SetRunNumber(m_RunNumber);
   }
 
-  if (m_PacketInfoMap.empty())
+  if (m_InttRawHitMap.empty())
   {
     std::cout << "we are done" << std::endl;
     return -1;
   }
   //  std::cout << "next event is " << m_PacketInfoMap.begin()->first << std::endl;
   //  auto pktinfoiter = m_PacketInfoMap.begin();
-  PacketMap *pktmap = findNode::getClass<PacketMap>(m_topNode, m_EvtNodeName);
-  for (auto pktiter : m_PacketInfoMap.begin()->second.PacketVector)
-  {
-    pktmap->AddPacket(pktiter->getIdentifier(), pktiter);
-  }
-  m_CurrentBeamClock = m_PacketInfoMap.begin()->first;
-  for (auto pktiter : m_PacketInfoMap.begin()->second.PacketVector)
-  {
-    pktmap->AddBclk(pktiter->getIdentifier(), m_CurrentBeamClock);
-  }
-  m_PacketInfoMap.erase(m_PacketInfoMap.begin());
+
+  // PacketMap *pktmap = findNode::getClass<PacketMap>(m_topNode, m_EvtNodeName);
+  // for (auto pktiter : m_PacketInfoMap.begin()->second.PacketVector)
+  // {
+  //   pktmap->AddPacket(pktiter->getIdentifier(), pktiter);
+  // }
+  // m_CurrentBeamClock = m_PacketInfoMap.begin()->first;
+  // for (auto pktiter : m_PacketInfoMap.begin()->second.PacketVector)
+  // {
+  //   pktmap->AddBclk(pktiter->getIdentifier(), m_CurrentBeamClock);
+  // }
+  // m_PacketInfoMap.erase(m_PacketInfoMap.begin());
+  InttRawHitContainer *inttcont =  findNode::getClass<InttRawHitContainer>(m_topNode,"INTTRAWHIT");
+  for (auto intthititer :  m_InttRawHitMap.begin()->second.InttRawHitVector)
+   {
+     if (Verbosity() > 1)
+     {
+       intthititer->identify();
+     }
+     inttcont->AddHit(intthititer);
+     delete intthititer;
+   }
+  m_InttRawHitMap.erase(m_InttRawHitMap.begin());
   return 0;
   // readagain:
   //   if (!IsOpen())
@@ -325,7 +365,7 @@ std::string Fun4AllEvtInputPoolManager::GetString(const std::string &what) const
   }
   return "";
 }
-
+/*
 SingleEvtInput *Fun4AllEvtInputPoolManager::AddEvtInputFile(const std::string &filenam)
 {
   SingleEvtInput *evtin = new SingleEvtInput("EVTIN_" + std::to_string(m_EvtInputVector.size()), this);
@@ -341,6 +381,18 @@ SingleEvtInput *Fun4AllEvtInputPoolManager::AddEvtInputList(const std::string &f
   m_EvtInputVector.push_back(evtin);
   return m_EvtInputVector.back();
 }
+*/
+void Fun4AllEvtInputPoolManager::registerStreamingInput(SingleStreamingInput *evtin)
+{
+  m_EvtInputVector.push_back(evtin);
+  evtin->InputManager(this);
+  if (Verbosity() > 3)
+  {
+    std::cout << "registering " << evtin->Name()
+	      << " number of registered inputs: " << m_EvtInputVector.size()
+	      << std::endl;
+  }
+}
 
 void Fun4AllEvtInputPoolManager::AddPacket(uint64_t bclk, Packet *p)
 {
@@ -352,14 +404,14 @@ void Fun4AllEvtInputPoolManager::AddPacket(uint64_t bclk, Packet *p)
   m_PacketInfoMap[bclk].PacketVector.push_back(p);
 }
 
-void Fun4AllEvtInputPoolManager::AddInttHit(uint64_t bclk, InttHit *hit)
+void Fun4AllEvtInputPoolManager::AddInttRawHit(uint64_t bclk, InttRawHit *hit)
 {
   if (Verbosity() > 1)
   {
     std::cout << "Adding intt hit to bclk 0x"
               << std::hex << bclk << std::dec << std::endl;
   }
-  m_InttHitMap[bclk].InttHitVector.push_back(hit);
+  m_InttRawHitMap[bclk].InttRawHitVector.push_back(hit);
 }
 
 void Fun4AllEvtInputPoolManager::UpdateEventFoundCounter(const int evtno)

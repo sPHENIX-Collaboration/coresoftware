@@ -1,4 +1,4 @@
-#include "SingleInttInput.h"
+#include "SingleStreamingInput.h"
 
 #include "Fun4AllEvtInputPoolManager.h"
 
@@ -16,31 +16,51 @@
 
 #include <set>
 
-SingleInttInput::SingleInttInput(const std::string &name)
-  : SingleStreamingInput(name)
+SingleStreamingInput::SingleStreamingInput(const std::string &name, Fun4AllEvtInputPoolManager *inman)
+  : Fun4AllBase(name)
+  , m_InputMgr(inman)
 {
   plist = new Packet *[100];
 }
 
-SingleInttInput::~SingleInttInput()
+SingleStreamingInput::SingleStreamingInput(const std::string &name)
+  : Fun4AllBase(name)
 {
+  plist = new Packet *[100];
+}
+
+SingleStreamingInput::~SingleStreamingInput()
+{
+  delete m_EventIterator;
+  for (const auto &iter : m_InttRawHitMap)
+  {
+    for (auto pktiter : iter.second)
+    {
+      delete pktiter;
+    }
+  }
+  m_InttRawHitMap.clear();
   delete[] plist;
 }
 
-void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
+void SingleStreamingInput::FillPool(const unsigned int /*nbclks*/)
 {
   if (AllDone())  // no more files and all events read
   {
     return;
   }
-  while (GetEventiterator() == nullptr)  // at startup this is a null pointer
+  while (m_EventIterator == nullptr)  // at startup this is a null pointer
   {
     OpenNextFile();
   }
   std::set<uint64_t> saved_beamclocks;
   do
   {
-    Event *evt = GetEventiterator()->getNextEvent();
+    Event *evt = m_EventIterator->getNextEvent();
+    if (Verbosity() > 2)
+    {
+      std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl;
+    }
     while (!evt)
     {
       fileclose();
@@ -49,13 +69,9 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
         AllDone(1);
         return;
       }
-      evt = GetEventiterator()->getNextEvent();
+      evt = m_EventIterator->getNextEvent();
     }
-    if (Verbosity() > 2)
-    {
-      std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl;
-    }
-    RunNumber(evt->getRunNumber());
+    m_RunNumber = evt->getRunNumber();
     if (GetVerbosity() > 1)
     {
       evt->identify();
@@ -114,9 +130,9 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
 		    << ", FEE: " << FEE << std::endl;
 	}
 //          plist[i]->convert();
-	if (InputManager())
+	if (m_InputMgr)
 	{
-	  InputManager()->AddInttRawHit(gtm_bco, newhit);
+	  m_InputMgr->AddInttRawHit(gtm_bco, newhit);
 	}
 	if (m_InttRawHitMap.find(gtm_bco) == m_InttRawHitMap.end())
 	{
@@ -136,7 +152,55 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
   } while (m_InttRawHitMap.size() < 10 || CheckPoolDepth(m_InttRawHitMap.begin()->first));
 }
 
-void SingleInttInput::Print(const std::string &what) const
+int SingleStreamingInput::fileopen(const std::string &filenam)
+{
+  std::cout << PHWHERE << "trying to open " << filenam << std::endl;
+  if (IsOpen())
+  {
+    std::cout << "Closing currently open file "
+              << FileName()
+              << " and opening " << filenam << std::endl;
+    fileclose();
+  }
+  FileName(filenam);
+  FROG frog;
+  std::string fname = frog.location(FileName());
+  if (Verbosity() > 0)
+  {
+    std::cout << Name() << ": opening file " << FileName() << std::endl;
+  }
+  int status = 0;
+  m_EventIterator = new fileEventiterator(fname.c_str(), status);
+  m_EventsThisFile = 0;
+  if (status)
+  {
+    delete m_EventIterator;
+    m_EventIterator = nullptr;
+    std::cout << PHWHERE << Name() << ": could not open file " << fname << std::endl;
+    return -1;
+  }
+  IsOpen(1);
+  AddToFileOpened(fname);  // add file to the list of files which were opened
+  return 0;
+}
+
+int SingleStreamingInput::fileclose()
+{
+  if (!IsOpen())
+  {
+    std::cout << Name() << ": fileclose: No Input file open" << std::endl;
+    return -1;
+  }
+  delete m_EventIterator;
+  m_EventIterator = nullptr;
+  IsOpen(0);
+  // if we have a file list, move next entry to top of the list
+  // or repeat the same entry again
+  UpdateFileList();
+  return 0;
+}
+
+void SingleStreamingInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "FEE")
   {
@@ -178,7 +242,7 @@ void SingleInttInput::Print(const std::string &what) const
   }
 }
 
-void SingleInttInput::CleanupUsedPackets(const uint64_t bclk)
+void SingleStreamingInput::CleanupUsedPackets(const uint64_t bclk)
 {
   std::vector<uint64_t> toclearbclk;
   for (const auto &iter : m_InttRawHitMap)
@@ -201,8 +265,7 @@ void SingleInttInput::CleanupUsedPackets(const uint64_t bclk)
     m_InttRawHitMap.erase(iter);
   }
 }
-
-bool SingleInttInput::CheckPoolDepth(const uint64_t bclk)
+bool SingleStreamingInput::CheckPoolDepth(const uint64_t bclk)
 {
   // if (m_FEEBclkMap.size() < 10)
   // {
@@ -229,7 +292,7 @@ bool SingleInttInput::CheckPoolDepth(const uint64_t bclk)
   return false;
 }
 
-void SingleInttInput::ClearCurrentEvent()
+void SingleStreamingInput::ClearCurrentEvent()
 {
   // called interactively, to get rid of the current event
   uint64_t currentbclk = *m_BclkStack.begin();
