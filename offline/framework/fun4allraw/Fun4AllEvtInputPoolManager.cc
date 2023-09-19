@@ -80,21 +80,16 @@ Fun4AllEvtInputPoolManager::~Fun4AllEvtInputPoolManager()
   {
     delete iter;
   }
-  // for (auto const &pktinfoiter : m_PacketInfoMap)
-  // {
-  //   for (auto &pktiter : pktinfoiter.second.PacketVector)
-  //   {
-  //     delete pktiter;
-  //   }
-  // }
 }
 
 int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
 {
-  if (m_InttRawHitMap.size() < 5)
+  while (m_InttRawHitMap.size() < 5) // pooling at least 5 events
   {
+    unsigned int alldone = 0;
     for (auto iter : m_EvtInputVector)
     {
+      alldone += iter->AllDone();
       if (Verbosity() > 0)
       {
 	std::cout << "fill pool for " << iter->Name() << std::endl;
@@ -102,9 +97,12 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
       iter->FillPool();
       m_RunNumber = iter->RunNumber();
     }
+    if (alldone >= m_EvtInputVector.size())
+    {
+      break;
+    }
     SetRunNumber(m_RunNumber);
   }
-
   if (m_InttRawHitMap.empty())
   {
     std::cout << "we are done" << std::endl;
