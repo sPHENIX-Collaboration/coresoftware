@@ -269,7 +269,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
       double tpc_phi = _tracklet_tpc->get_phi(_cluster_map,_tGeometry);
       double tpc_eta = _tracklet_tpc->get_eta();
-      double tpc_pt = _tracklet_tpc->get_pt();
+      double tpc_pt = fabs(1./_tracklet_tpc->get_qOverR()) *( 0.3/100. ) * std::stod(m_fieldMap);
       if(Verbosity() > 8)
 	std::cout << " tpc stub: " << tpcid << " eta " << tpc_eta << " pt " << tpc_pt << " tpc z " << _tracklet_tpc->get_z() << std::endl; 
 

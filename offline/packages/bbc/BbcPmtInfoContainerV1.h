@@ -20,7 +20,12 @@ public:
 
   BbcPmtInfoV1 *get_tower_at_channel(int pos) override;
 
+  BbcPmtInfoV1 *get_pmt(int ich) { return (BbcPmtInfoV1*) _clones->At(ich); }
+  TClonesArray *getarray() const { return _clones; }
+
   size_t size() override { return _clones->GetEntries(); }
+
+  //void AddBbcPmtInfo(const short ipmt, const Float_t q, const Float_t tt, const Float_t tq);
 
 protected:
   TClonesArray *_clones = nullptr;

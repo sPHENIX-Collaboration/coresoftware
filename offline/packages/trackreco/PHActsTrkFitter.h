@@ -91,6 +91,7 @@ class PHActsTrkFitter : public SubsysReco
   void useActsEvaluator(bool actsEvaluator)
   { m_actsEvaluator = actsEvaluator; }
   
+  void setEvaluatorName(std::string name) {m_evalname = name; }
   void setFieldMap(std::string& fieldMap)
   { m_fieldMap = fieldMap; }
 

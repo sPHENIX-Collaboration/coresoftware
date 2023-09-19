@@ -61,6 +61,7 @@ namespace
   // check vector validity
   inline bool is_valid( const Acts::Vector3 vec )
   {  return !( std::isnan( vec.x() ) || std::isnan( vec.y() ) || std::isnan( vec.z() ) ); }  
+  template<class T> inline T square(const T& x) { return x*x;}
 }
 
 #include <Eigen/Dense>
@@ -89,6 +90,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_alignStates.clusters(m_clusterContainer);
   m_alignStates.stateMap(m_alignmentStateMap);
   m_alignStates.verbosity(Verbosity());
+  m_alignStates.fieldMap(m_fieldMap);
 
   m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
     m_tGeometry->geometry().tGeometry,
@@ -355,10 +357,25 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         { continue; }
       }
 
-      Acts::Vector3 momentum(
-	       tpcseed->get_px(m_clusterContainer, m_tGeometry), 
-	       tpcseed->get_py(m_clusterContainer, m_tGeometry),
-	       tpcseed->get_pz());
+      float px = NAN;
+      float py = NAN;
+      float pz = NAN;
+      if(m_fieldMap.find(".root") != std::string::npos)
+	{
+	  px = tpcseed->get_px(m_clusterContainer, m_tGeometry);
+	  py = tpcseed->get_py(m_clusterContainer, m_tGeometry);
+	  pz = tpcseed->get_pz();
+	}
+      else
+	{
+	  float pt = fabs(1./tpcseed->get_qOverR()) * (0.3/100) * std::stod(m_fieldMap);
+	  float phi = tpcseed->get_phi(m_clusterContainer, m_tGeometry);
+	  px = pt * std::cos(phi);
+	  py = pt * std::sin(phi);
+	  pz = pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta());
+	}
+
+      Acts::Vector3 momentum(px, py, pz);
       if( !is_valid( momentum ) ) continue;
  
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
@@ -369,9 +386,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       Acts::BoundSymMatrix cov = setDefaultCovariance();
  
       int charge = tpcseed->get_charge();
-      if(m_fieldMap.find("3d") != std::string::npos)
-	{ charge *= -1; }
-
+  
       /// Acts requires a wrapped vector, so we need to replace the
       /// std::vector contents with a wrapper vector to get the memory
       /// access correct
