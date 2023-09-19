@@ -1,6 +1,5 @@
 #include "Fun4AllEvtInputPoolManager.h"
 
-#include "PacketMap.h"
 #include "SingleInttInput.h"
 #include "SingleEvtInput.h"
 
@@ -44,13 +43,6 @@ Fun4AllEvtInputPoolManager::Fun4AllEvtInputPoolManager(const std::string &name, 
   Fun4AllServer *se = Fun4AllServer::instance();
   m_topNode = se->topNode(TopNodeName());
   PHNodeIterator iter(m_topNode);
-  PHDataNode<PacketMap> *EvtNode = dynamic_cast<PHDataNode<PacketMap> *>(iter.findFirst("PHDataNode", m_EvtNodeName));
-  if (!EvtNode)
-  {
-    m_PacketMap = new PacketMap();
-    PHDataNode<PacketMap> *newNode = new PHDataNode<PacketMap>(m_PacketMap, m_EvtNodeName, "PacketMap");
-    m_topNode->addNode(newNode);
-  }
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (! dstNode)
   {
@@ -250,12 +242,10 @@ void Fun4AllEvtInputPoolManager::Print(const std::string &what) const
 
 int Fun4AllEvtInputPoolManager::ResetEvent()
 {
-  PacketMap *pktmap = findNode::getClass<PacketMap>(m_topNode, m_EvtNodeName);
   for (auto iter : m_EvtInputVector)
   {
     iter->CleanupUsedPackets(m_CurrentBeamClock);
   }
-  pktmap->Reset();
   //  m_SyncObject->Reset();
   return 0;
 }

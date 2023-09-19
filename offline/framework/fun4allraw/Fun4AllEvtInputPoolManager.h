@@ -13,7 +13,6 @@
 class SingleStreamingInput;
 class ospEvent;
 class InttRawHit;
-class PacketMap;
 class Packet;
 class PHCompositeNode;
 class SyncObject;
@@ -58,7 +57,6 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   std::vector<SingleStreamingInput *> m_EvtInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
-  PacketMap *m_PacketMap = nullptr;
   std::map<uint64_t, PacketInfo> m_PacketInfoMap;
   std::map<uint64_t, InttRawHitInfo> m_InttRawHitMap;
   std::string m_EvtNodeName;
