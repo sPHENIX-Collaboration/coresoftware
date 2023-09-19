@@ -44,6 +44,12 @@ int InttCheck::process_event(PHCompositeNode *topNode)
   else
   {
   inttcont->identify();
+
+  for (unsigned int i=0; i<inttcont->get_nhits(); i++)
+  {
+    inttcont->get_hit(i)->identify();
+  }
+
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
