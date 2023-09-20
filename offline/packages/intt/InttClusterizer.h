@@ -3,8 +3,8 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <climits>
 #include <map>
@@ -71,17 +71,17 @@ class InttClusterizer : public SubsysReco
     return _make_e_weights.find(layer)->second;
   }
 
-  void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
-  void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
+  void set_do_hit_association(bool do_assoc) { do_hit_assoc = do_assoc; }
+  void set_read_raw(bool read_raw) { do_read_raw = read_raw; }
 
   // for saving verbose clusters
-  void set_ClusHitsVerbose(bool set=true) { record_ClusHitsVerbose = set; };
-  ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
+  void set_ClusHitsVerbose(bool set = true) { record_ClusHitsVerbose = set; };
+  ClusHitsVerbosev1 *mClusHitsVerbose{nullptr};
 
  private:
-  bool  record_ClusHitsVerbose { false };
-  bool ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs, const int layer);
-  bool ladder_are_adjacent(RawHit* lhs,  RawHit* rhs, const int layer);
+  bool record_ClusHitsVerbose{false};
+  bool ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit *> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit *> &rhs, const int layer);
+  bool ladder_are_adjacent(RawHit *lhs, RawHit *rhs, const int layer);
 
   void CalculateLadderThresholds(PHCompositeNode *topNode);
   void ClusterLadderCells(PHCompositeNode *topNode);
@@ -102,7 +102,6 @@ class InttClusterizer : public SubsysReco
   std::map<int, bool> _make_e_weights;        // layer->energy_weighting_option
   bool do_hit_assoc = true;
   bool do_read_raw = false;
-
 };
 
 #endif
