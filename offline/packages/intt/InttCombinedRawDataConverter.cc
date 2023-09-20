@@ -1,4 +1,5 @@
 #include "InttCombinedRawDataConverter.h"
+#include "InttMapping.h"
 
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
@@ -196,17 +197,26 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
     itr.second->clear();
   }
 
+  Intt::RawData_s raw;
+  Intt::Online_s onl;
   for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
   {
     InttRawHit* intthit = inttcont->get_hit(i);
-    branches_i["flx_svr"]->push_back(-9999);
-    branches_i["flx_chn"]->push_back(intthit->get_channel_id());
 
-    branches_i["lyr"]->push_back(-9999);
-    branches_i["ldr"]->push_back(-9999);
-    branches_i["arm"]->push_back(-9999);
-    branches_i["chp"]->push_back(intthit->get_chip_id());
-    branches_i["chn"]->push_back(-9999);
+    raw.felix_server = Intt::FelixFromPacket(intthit->get_packetid());
+    raw.felix_channel = intthit->get_fee();
+    raw.chip = intthit->get_chip_id();
+    raw.channel = intthit->get_channel_id();
+    onl = Intt::ToOnline(raw);
+
+    branches_i["flx_svr"]->push_back(raw.felix_server);
+    branches_i["flx_chn"]->push_back(raw.felix_channel);
+
+    branches_i["lyr"]->push_back(onl.lyr);
+    branches_i["ldr"]->push_back(onl.ldr);
+    branches_i["arm"]->push_back(onl.arm);
+    branches_i["chp"]->push_back(onl.chp);
+    branches_i["chn"]->push_back(onl.chn);
 
     branches_i["flx_bco"]->push_back(intthit->get_FPHX_BCO());
     branches_i["adc"]->push_back(intthit->get_adc());

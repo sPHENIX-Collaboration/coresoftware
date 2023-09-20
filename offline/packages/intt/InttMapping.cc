@@ -15,6 +15,16 @@ const std::map<int, int> Intt::Packet_Id =
 	{3008, 7},
 };
 
+int Intt::FelixFromPacket(int packetid)
+{
+	packetid -= 3001;
+
+	if(packetid < 0)return 8;
+	if(packetid > 7)return 8;
+
+	return packetid;
+}
+
 struct Intt::RawData_s Intt::RawFromPacket(int const _i, int const _n, Packet* _p)
 {
 	struct RawData_s s;
