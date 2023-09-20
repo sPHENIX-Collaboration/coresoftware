@@ -77,6 +77,7 @@ int InttCombinedRawDataConverter::WriteOutputFile()
 
 int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 {
+  delete tree;
   tree = new TTree("prdf_tree", "prdf_tree");
   if (file)
   {
