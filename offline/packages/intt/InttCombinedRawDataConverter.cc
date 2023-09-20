@@ -4,10 +4,20 @@
 #include <ffarawobjects/InttRawHitContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
+
+#include <TFile.h>
+#include <TSystem.h>
+#include <TTree.h>
+
+#include <cstdlib>    // for exit
+#include <iostream>   // for operator<<, endl, bas...
+#include <utility>    // for pair
+
+class PHCompositeNode;
 
 InttCombinedRawDataConverter::InttCombinedRawDataConverter(std::string const& name)
   : SubsysReco(name)

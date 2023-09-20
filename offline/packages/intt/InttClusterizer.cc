@@ -2,15 +2,13 @@
 #include "CylinderGeomIntt.h"
 
 #include <trackbase/InttDefs.h>
-#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterCrossingAssocv1.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrClusterv5.h>
-#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrHitv2.h>
 
 #include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/RawHit.h>
@@ -31,10 +29,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <TMatrixFfwd.h>    // for TMatrixF
-#include <TMatrixT.h>       // for TMatrixT, operator*
-#include <TMatrixTUtils.h>  // for TMatrixTRow
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #pragma GCC diagnostic ignored "-Wshadow"
@@ -45,6 +39,7 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <memory>  // for unique_ptr, make_...
 #include <set>
 #include <vector>  // for vector
 

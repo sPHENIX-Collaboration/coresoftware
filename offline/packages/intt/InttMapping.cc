@@ -1,7 +1,10 @@
 #include "InttMapping.h"
 
 #include "InttFelixMap.h"
-//#include "InttSurveyMap.h"
+
+#include <Event/packet.h>
+
+#include <utility>   // for pair
 
 const std::map<int, int> Intt::Packet_Id =
 {

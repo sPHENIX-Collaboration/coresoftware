@@ -3,7 +3,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <climits>
@@ -19,7 +18,6 @@ class TrkrClusterHitAssoc;
 class TrkrClusterCrossingAssoc;
 class TrkrHit;
 class RawHit;
-class RawHitSet;
 class RawHitSetContainer;
 
 class InttClusterizer : public SubsysReco

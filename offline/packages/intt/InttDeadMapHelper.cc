@@ -1,5 +1,10 @@
 #include "InttDeadMapHelper.h"
 
+#include <cmath>    // for ceil, sqrtl, floor, log, sqrt, cos, erfl, sin
+#include <cstdio>   // for printf
+#include <cstdlib>  // for rand, EXIT_FAILURE, EXIT_SUCCESS, RAND_MAX
+#include <iostream>  // for operator<<, basic_ostream, basic_ostream<>::__os...
+
 InttDeadMapHelper::InttDeadMapHelper()
 {
 	N = 0;
