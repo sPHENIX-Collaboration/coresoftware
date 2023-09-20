@@ -80,6 +80,7 @@ libintt_la_SOURCES = \
 libintt_la_LIBADD = \
   libintt_io.la \
   -lCLHEP \
+  -lffarawobjects \
   -lphg4hit \
   -lSubsysReco
 
@@ -92,8 +93,6 @@ libintt_io_la_SOURCES = \
   InttVertexv1.cc
 
 libintt_io_la_LIBADD = \
-  -lCLHEP \
-  -lfun4allraw \
   -lg4detectors_io \
   -lphool \
   -ltrack_io \
