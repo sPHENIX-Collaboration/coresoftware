@@ -37,19 +37,16 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/graph/adjacency_list.hpp>
-#pragma GCC diagnostic pop
-
 #include <boost/graph/connected_components.hpp>
+#pragma GCC diagnostic pop
 
 #include <array>
 #include <cmath>
 #include <iostream>
 #include <set>
 #include <vector>                                   // for vector
-
-using namespace boost;
-using namespace std;
 
 namespace
 {
@@ -107,20 +104,11 @@ bool InttClusterizer::ladder_are_adjacent( RawHit* lhs, RawHit* rhs, const int l
   return false;
 }
 
-InttClusterizer::InttClusterizer(const string& name,
+InttClusterizer::InttClusterizer(const std::string& name,
                                  unsigned int /*min_layer*/,
                                  unsigned int /*max_layer*/)
   : SubsysReco(name)
-  , m_hits(nullptr)
-  , m_rawhits(nullptr)
-  , m_clusterlist(nullptr)
-  , m_clusterhitassoc(nullptr)
-  , _fraction_of_mip(0.5)
-  , _thresholds_by_layer()
-  , _make_z_clustering()
-  , _make_e_weights()
-{
-}
+{}
 
 int InttClusterizer::InitRun(PHCompositeNode* topNode)
 {
@@ -129,7 +117,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
   _hits = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
   if (!_hits)
   {
-    cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
+    std::cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   */
@@ -144,7 +132,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   PHNodeIterator iter_dst(dstNode);
@@ -213,27 +201,21 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "====================== InttClusterizer::InitRun() =====================" << endl;
-    cout << " Fraction of expected thickness MIP energy = " << _fraction_of_mip << endl;
-    for (std::map<int, float>::iterator iter_tmp = _thresholds_by_layer.begin();
-         iter_tmp != _thresholds_by_layer.end();
-         ++iter_tmp)
+    std::cout << "====================== InttClusterizer::InitRun() =====================" << std::endl;
+    std::cout << " Fraction of expected thickness MIP energy = " << _fraction_of_mip << std::endl;
+    for (auto & iter_tmp : _thresholds_by_layer)
     {
-      cout << " Cluster Threshold in Layer #" << iter_tmp->first << " = " << 1.0e6 * iter_tmp->second << " keV" << endl;
+      std::cout << " Cluster Threshold in Layer #" << iter_tmp.first << " = " << 1.0e6 * iter_tmp.second << " keV" << std::endl;
     }
-    for (std::map<int, bool>::iterator iter_tmp = _make_z_clustering.begin();
-         iter_tmp != _make_z_clustering.end();
-         ++iter_tmp)
+    for (auto & iter_tmp : _make_z_clustering)
     {
-      cout << " Z-dimension Clustering in Layer #" << iter_tmp->first << " = " << boolalpha << iter_tmp->second << noboolalpha << endl;
+      std::cout << " Z-dimension Clustering in Layer #" << iter_tmp.first << " = " << std::boolalpha << iter_tmp.second << std::noboolalpha << std::endl;
     }
-    for (std::map<int, bool>::iterator iter_tmp = _make_e_weights.begin();
-         iter_tmp != _make_e_weights.end();
-         ++iter_tmp)
+    for (auto & _make_e_weight : _make_e_weights)
     {
-      cout << " Energy weighting clusters in Layer #" << iter_tmp->first << " = " << boolalpha << iter_tmp->second << noboolalpha << endl;
+      std::cout << " Energy weighting clusters in Layer #" << _make_e_weight.first << " = " << std::boolalpha << _make_e_weight.second << std::noboolalpha << std::endl;
     }
-    cout << "===========================================================================" << endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   if (record_ClusHitsVerbose) {
@@ -265,7 +247,7 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
     m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
     if (!m_hits)
       {
-	cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << endl;
+	std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
 	return Fun4AllReturnCodes::ABORTRUN;
       }
   }else{
@@ -282,7 +264,7 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
   m_clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_clusterlist)
   {
-    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER." << endl;
+    std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -290,7 +272,7 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
   m_clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   if (!m_clusterhitassoc)
   {
-    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << endl;
+    std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -298,7 +280,7 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
   m_clustercrossingassoc = findNode::getClass<TrkrClusterCrossingAssoc>(topNode, "TRKR_CLUSTERCROSSINGASSOC");
   if (!m_clustercrossingassoc)
   {
-    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERCROSINGASSOC" << endl;
+    std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERCROSINGASSOC" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   
@@ -321,7 +303,8 @@ void InttClusterizer::CalculateLadderThresholds(PHCompositeNode* topNode)
   */
 
   PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
-  if (!geom_container) return;
+  if (!geom_container) { return;
+}
 
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for (PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -353,8 +336,9 @@ void InttClusterizer::CalculateLadderThresholds(PHCompositeNode* topNode)
 
 void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 0)
-    cout << "Entering InttClusterizer::ClusterLadderCells " << endl;
+  if (Verbosity() > 0) {
+    std::cout << "Entering InttClusterizer::ClusterLadderCells " << std::endl;
+}
 
   //----------
   // Get Nodes
@@ -362,7 +346,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
   // get the geometry node
   PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
-  if (!geom_container) return;
+  if (!geom_container) { return;
+}
 
   //-----------
   // Clustering
@@ -378,9 +363,11 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
     // Each hitset contains only hits that are clusterizable - i.e. belong to a single sensor
     TrkrHitSet *hitset = hitsetitr->second;
 
-    if(Verbosity() > 1) cout << "InttClusterizer found hitsetkey " << hitsetitr->first << endl;
-    if (Verbosity() > 2)
+    if(Verbosity() > 1) { std::cout << "InttClusterizer found hitsetkey " << hitsetitr->first << std::endl;
+}
+    if (Verbosity() > 2) {
       hitset->identify();
+}
 
     // we have a single hitset, get the info that identifies the sensor
     int layer = TrkrDefs::getLayer(hitsetitr->first);
@@ -398,12 +385,13 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
          hitr != hitrangei.second;
          ++hitr)
       {
-	hitvec.push_back(make_pair(hitr->first, hitr->second));
+	hitvec.emplace_back(hitr->first, hitr->second);
       }
-    if (Verbosity() > 2)
-      cout << "hitvec.size(): " << hitvec.size() << endl;
+    if (Verbosity() > 2) {
+      std::cout << "hitvec.size(): " << hitvec.size() << std::endl;
+}
     
-    typedef adjacency_list<vecS, vecS, undirectedS> Graph;
+    using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
     Graph G;
     
     // Find adjacent strips
@@ -422,43 +410,43 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
     
     // Find the connections between the vertices of the graph (vertices are the rawhits,
     // connections are made when they are adjacent to one another)
-    vector<int> component(num_vertices(G));
+    std::vector<int> component(num_vertices(G));
     
     // this is the actual clustering, performed by boost
     connected_components(G, &component[0]);
     
     // Loop over the components(hit cells) compiling a list of the
     // unique connected groups (ie. clusters).
-    set<int> cluster_ids;  // unique components
+    std::set<int> cluster_ids;  // unique components
     
-    multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*> >  clusters;
+    std::multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*> >  clusters;
     for (unsigned int i = 0; i < component.size(); i++)
       {
 	cluster_ids.insert(component[i]); // one entry per unique cluster id
-	clusters.insert(make_pair(component[i], hitvec[i]));  // multiple entries per unique cluster id
+	clusters.insert(std::make_pair(component[i], hitvec[i]));  // multiple entries per unique cluster id
       }
 
     // loop over the cluster ID's and make the clusters from the connected hits
-    for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter)
+    for (int clusid : cluster_ids)
       {
-	int clusid = *clusiter;
-	//cout << " intt clustering: add cluster number " << clusid << endl; 
+		//std::cout << " intt clustering: add cluster number " << clusid << std::endl;
 	// get all hits for this cluster ID only
-	pair<multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator,  
-	     multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator>  clusrange = clusters.equal_range(clusid);
+	std::pair<std::multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator,
+	     std::multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator>  clusrange = clusters.equal_range(clusid);
 	
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 
-	if (Verbosity() > 2)
-	  cout << "Filling cluster with key " << ckey << endl;
+	if (Verbosity() > 2) {
+	  std::cout << "Filling cluster with key " << ckey << std::endl;
+}
 
 	// get the bunch crossing number from the hitsetkey
 	short int crossing = InttDefs::getTimeBucketId(hitset->getHitSetKey());
 
 	// determine the size of the cluster in phi and z, useful for track fitting the cluster
-	set<int> phibins;
-	set<int> zbins;
+	std::set<int> phibins;
+	std::set<int> zbins;
 
 	// determine the cluster position...
 	double xlocalsum = 0.0;
@@ -467,11 +455,11 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	unsigned int clus_adc = 0.0;
 	unsigned int clus_maxadc = 0.0;
 	unsigned nhits = 0;
-	//std::cout << PHWHERE << " ckey " << ckey << ":" << std::endl;	
-	for (multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
+	//std::cout << PHWHERE << " ckey " << ckey << ":" << std::endl;
+	for (std::multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
 	  {
 	    // mapiter->second.first  is the hit key
-	    //cout << " adding hitkey " << mapiter->second.first << endl; 
+	    //std::cout << " adding hitkey " << mapiter->second.first << std::endl;
 	    int col =  InttDefs::getCol( (mapiter->second).first);
 	    int row = InttDefs::getRow( (mapiter->second).first);
 	    zbins.insert(col);
@@ -501,19 +489,21 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 		ylocalsum += local_hit_location[1];
 		zlocalsum += local_hit_location[2];
 	      }
-	    if(hit_adc > clus_maxadc)
+	    if(hit_adc > clus_maxadc) {
 	      clus_maxadc = hit_adc;
+}
 	    clus_adc += hit_adc;
 	    ++nhits;
 
 	    // add this cluster-hit association to the association map of (clusterkey,hitkey)
 	    m_clusterhitassoc->addAssoc(ckey, mapiter->second.first);
 
-	    if (Verbosity() > 2) cout << "     nhits = " << nhits << endl;
+	    if (Verbosity() > 2) { std::cout << "     nhits = " << nhits << std::endl;
+}
 	    if (Verbosity() > 2)
 	      {
-		cout << "  From  geometry object: hit x " << local_hit_location[0] << " hit y " << local_hit_location[1] << " hit z " << local_hit_location[2] << endl;
-		cout << "     nhits " << nhits << " clusx  = " << xlocalsum / nhits << " clusy " << ylocalsum / nhits << " clusz " << zlocalsum / nhits << " hit_adc " << hit_adc << endl;
+		std::cout << "  From  geometry object: hit x " << local_hit_location[0] << " hit y " << local_hit_location[1] << " hit z " << local_hit_location[2] << std::endl;
+		std::cout << "     nhits " << nhits << " clusx  = " << xlocalsum / nhits << " clusy " << ylocalsum / nhits << " clusz " << zlocalsum / nhits << " hit_adc " << hit_adc << std::endl;
 		
 	      }
 	  }
@@ -530,9 +520,10 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	float phierror = pitch * invsqrt12;
 	
 	static constexpr std::array<double, 3> scalefactors_phi = {{ 0.85, 0.4, 0.33 }};
-	if( phibins.size() == 1 && layer < 5) phierror*=scalefactors_phi[0];
-	else if( phibins.size() == 2 && layer < 5) phierror*=scalefactors_phi[1];
-	else if( phibins.size() == 2 && layer > 4) phierror*=scalefactors_phi[2]; 
+	if( phibins.size() == 1 && layer < 5) { phierror*=scalefactors_phi[0];
+	} else if( phibins.size() == 2 && layer < 5) { phierror*=scalefactors_phi[1];
+	} else if( phibins.size() == 2 && layer > 4) { phierror*=scalefactors_phi[2];
+}
 	// z error. All clusters have a z-size of 1.
 	const float zerror = length * invsqrt12;
 
@@ -563,8 +554,9 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	// So set subsurface key to 0
 	clus->setSubSurfKey(0);
 	
-	if (Verbosity() > 2)
+	if (Verbosity() > 2) {
 	  clus->identify();
+}
 	
 	m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
 	
@@ -575,7 +567,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
   if(Verbosity() > 2)
     {
       // check that the associations were written correctly
-      cout << "After InttClusterizer, cluster-hit associations are:" << endl;
+      std::cout << "After InttClusterizer, cluster-hit associations are:" << std::endl;
       m_clusterhitassoc->identify();
     }
 
@@ -590,8 +582,9 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 }
 void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 0)
-    cout << "Entering InttClusterizer::ClusterLadderCells " << endl;
+  if (Verbosity() > 0) {
+    std::cout << "Entering InttClusterizer::ClusterLadderCells " << std::endl;
+}
 
   //----------
   // Get Nodes
@@ -599,7 +592,8 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 
   // get the geometry node
   PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
-  if (!geom_container) return;
+  if (!geom_container) { return;
+}
 
   //-----------
   // Clustering
@@ -615,9 +609,11 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
     // Each hitset contains only hits that are clusterizable - i.e. belong to a single sensor
     RawHitSet *hitset = hitsetitr->second;
 
-    if(Verbosity() > 1) cout << "InttClusterizer found hitsetkey " << hitsetitr->first << endl;
-    if (Verbosity() > 2)
+    if(Verbosity() > 1) { std::cout << "InttClusterizer found hitsetkey " << hitsetitr->first << std::endl;
+}
+    if (Verbosity() > 2) {
       hitset->identify();
+}
 
     // we have a single hitset, get the info that identifies the sensor
     int layer = TrkrDefs::getLayer(hitsetitr->first);
@@ -640,13 +636,14 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
       {
 	//unsigned short iphi = (*hitr)->getPhiBin();
 	//unsigned short it = (*hitr)->getTBin();
-	//	cout << " intt layer " << layer << " sector: " << sector << " side " << side << " col: " << iphi << " row " << it << endl;
+	//	std::cout << " intt layer " << layer << " sector: " << sector << " side " << side << " col: " << iphi << " row " << it << std::endl;
 	hitvec.push_back((*hitr));
       }
-    if (Verbosity() > 2)
-      cout << "hitvec.size(): " << hitvec.size() << endl;
+    if (Verbosity() > 2) {
+      std::cout << "hitvec.size(): " << hitvec.size() << std::endl;
+}
     
-    typedef adjacency_list<vecS, vecS, undirectedS> Graph;
+    using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
     Graph G;
     
     // Find adjacent strips
@@ -665,42 +662,42 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 
     // Find the connections between the vertices of the graph (vertices are the rawhits,
     // connections are made when they are adjacent to one another)
-    vector<int> component(num_vertices(G));
+    std::vector<int> component(num_vertices(G));
 
     // this is the actual clustering, performed by boost
     connected_components(G, &component[0]);
 
     // Loop over the components(hit cells) compiling a list of the
     // unique connected groups (ie. clusters).
-    set<int> cluster_ids;  // unique components
+    std::set<int> cluster_ids;  // unique components
 
-    multimap<int, RawHit* >  clusters;
+    std::multimap<int, RawHit* >  clusters;
     for (unsigned int i = 0; i < component.size(); i++)
       {
 	cluster_ids.insert(component[i]); // one entry per unique cluster id
-	clusters.insert(make_pair(component[i], hitvec[i]));  // multiple entries per unique cluster id
+	clusters.insert(std::make_pair(component[i], hitvec[i]));  // multiple entries per unique cluster id
       }
 
     // loop over the cluster ID's and make the clusters from the connected hits
-    for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter)
+    for (int clusid : cluster_ids)
       {
-	int clusid = *clusiter;
-	//cout << " intt clustering: add cluster number " << clusid << endl; 
+		//std::cout << " intt clustering: add cluster number " << clusid << std::endl;
 	// get all hits for this cluster ID only
 	auto clusrange = clusters.equal_range(clusid);
 	
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 
-	if (Verbosity() > 2)
-	  cout << "Filling cluster with key " << ckey << endl;
+	if (Verbosity() > 2) {
+	  std::cout << "Filling cluster with key " << ckey << std::endl;
+}
 
 	// get the bunch crossing number from the hitsetkey
 	short int crossing = InttDefs::getTimeBucketId(hitset->getHitSetKey());
 
 	// determine the size of the cluster in phi and z, useful for track fitting the cluster
-	set<int> phibins;
-	set<int> zbins;
+	std::set<int> phibins;
+	std::set<int> zbins;
 
 	// determine the cluster position...
 	double xlocalsum = 0.0;
@@ -715,20 +712,22 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 	for (auto mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
 	  {
 	    // mapiter->second.first  is the hit key
-	    //cout << " adding hitkey " << mapiter->second.first << endl; 
+	    //std::cout << " adding hitkey " << mapiter->second.first << std::endl;
       const auto energy = (mapiter->second)->getAdc();
 	    int col = (mapiter->second)->getPhiBin();
 	    int row = (mapiter->second)->getTBin();
-	    //	    cout << " found Tbin(row) " << row << " Phibin(col) " << col << endl; 
+	    //	    std::cout << " found Tbin(row) " << row << " Phibin(col) " << col << std::endl;
 	    zbins.insert(col);
 	    phibins.insert(row);
 
       if (mClusHitsVerbose) {
         auto pnew = m_phi.try_emplace(row,energy);
-        if (!pnew.second) pnew.first->second += energy;
+        if (!pnew.second) { pnew.first->second += energy;
+}
 
         pnew = m_z.try_emplace(col,energy);
-        if (!pnew.second) pnew.first->second += energy;
+        if (!pnew.second) { pnew.first->second += energy;
+}
       }
 
 	    // mapiter->second.second is the hit
@@ -762,11 +761,12 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 	    // add this cluster-hit association to the association map of (clusterkey,hitkey)
 	    //	    m_clusterhitassoc->addAssoc(ckey, mapiter->second.first);
 
-	    if (Verbosity() > 2) cout << "     nhits = " << nhits << endl;
+	    if (Verbosity() > 2) { std::cout << "     nhits = " << nhits << std::endl;
+}
 	    if (Verbosity() > 2)
 	      {
-		cout << "  From  geometry object: hit x " << local_hit_location[0] << " hit y " << local_hit_location[1] << " hit z " << local_hit_location[2] << endl;
-		cout << "     nhits " << nhits << " clusx  = " << xlocalsum / nhits << " clusy " << ylocalsum / nhits << " clusz " << zlocalsum / nhits << " hit_adc " << hit_adc << endl;
+		std::cout << "  From  geometry object: hit x " << local_hit_location[0] << " hit y " << local_hit_location[1] << " hit z " << local_hit_location[2] << std::endl;
+		std::cout << "     nhits " << nhits << " clusx  = " << xlocalsum / nhits << " clusy " << ylocalsum / nhits << " clusz " << zlocalsum / nhits << " hit_adc " << hit_adc << std::endl;
 		
 	      }
 	  }
@@ -777,8 +777,10 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
           std::cout << " m_phi(" << hit.first <<" : " << hit.second<<") " << std::endl;
         }
       }
-      for (auto& hit : m_phi) mClusHitsVerbose->addPhiHit    (hit.first, (float)hit.second);
-      for (auto& hit : m_z)   mClusHitsVerbose->addZHit      (hit.first, (float)hit.second);
+      for (auto& hit : m_phi) { mClusHitsVerbose->addPhiHit    (hit.first, (float)hit.second);
+}
+      for (auto& hit : m_z) {   mClusHitsVerbose->addZHit      (hit.first, (float)hit.second);
+}
       mClusHitsVerbose->push_hits(ckey);
     }
 
@@ -794,9 +796,10 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 	float phierror = pitch * invsqrt12;
 	
 	static constexpr std::array<double, 3> scalefactors_phi = {{ 0.85, 0.4, 0.33 }};
-	if( phibins.size() == 1 && layer < 5) phierror*=scalefactors_phi[0];
-	else if( phibins.size() == 2 && layer < 5) phierror*=scalefactors_phi[1];
-	else if( phibins.size() == 2 && layer > 4) phierror*=scalefactors_phi[2]; 
+	if( phibins.size() == 1 && layer < 5) { phierror*=scalefactors_phi[0];
+	} else if( phibins.size() == 2 && layer < 5) { phierror*=scalefactors_phi[1];
+	} else if( phibins.size() == 2 && layer > 4) { phierror*=scalefactors_phi[2];
+}
 	// z error. All clusters have a z-size of 1.
 	const float zerror = length * invsqrt12;
 
@@ -826,8 +829,9 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 	// So set subsurface key to 0
 	clus->setSubSurfKey(0);
 	
-	if (Verbosity() > 2)
+	if (Verbosity() > 2) {
 	  clus->identify();
+}
 	
 	m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
 
@@ -838,7 +842,7 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
   if(Verbosity() > 2)
     {
       // check that the associations were written correctly
-      cout << "After InttClusterizer, cluster-hit associations are:" << endl;
+      std::cout << "After InttClusterizer, cluster-hit associations are:" << std::endl;
       m_clusterhitassoc->identify();
     }
 
@@ -857,15 +861,16 @@ void InttClusterizer::PrintClusters(PHCompositeNode* topNode)
   if (Verbosity() > 1)
   {
     TrkrClusterContainer *clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-    if (!clusterlist) return;
+    if (!clusterlist) { return;
+}
 
-    cout << "================= After InttClusterizer::process_event() ====================" << endl;
+    std::cout << "================= After InttClusterizer::process_event() ====================" << std::endl;
 
-    cout << " There are " << clusterlist->size() << " clusters recorded: " << endl;
+    std::cout << " There are " << clusterlist->size() << " clusters recorded: " << std::endl;
 
     clusterlist->identify();
 
-    cout << "===========================================================================" << endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   return;
