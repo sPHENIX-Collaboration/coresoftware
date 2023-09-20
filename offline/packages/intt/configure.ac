@@ -9,7 +9,7 @@ LT_INIT([disable-static])
 dnl   no point in suppressing warnings people should 
 dnl   at least see them, so here we go for g++: -Wall
 if test $ac_cv_prog_gxx = yes; then
-   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+   CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wshadow -Werror"
 fi
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-unknown-warning-option"

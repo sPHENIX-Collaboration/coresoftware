@@ -1,6 +1,6 @@
 #include "InttCombinedRawDataDecoder.h"
 
-#include <trackbase/InttDefs.h>
+#include <trackbase/TrkrDefs.h>    // for hitkey, hitsetkey
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
@@ -13,10 +13,16 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>      // for PHIODataNode
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>             // for PHWHERE
 
 #include <TSystem.h>
+
+#include <cstdlib>   // for exit
+#include <iostream>  // for operator<<, endl, bas...
+#include <map>       // for _Rb_tree_iterator
 
 InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)

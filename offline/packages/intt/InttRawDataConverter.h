@@ -3,13 +3,16 @@
 
 #include "InttMapping.h"
 
-#include <iostream>
+#include <fun4all/SubsysReco.h>
+
+#include <Rtypes.h>
+
 #include <string>
 #include <map>
 
-#include <TFile.h>
-#include <TTree.h>
-#include <fun4all/SubsysReco.h>
+class PHCompositeNode;
+class TFile;
+class TTree;
 
 class InttRawDataConverter : public SubsysReco
 {

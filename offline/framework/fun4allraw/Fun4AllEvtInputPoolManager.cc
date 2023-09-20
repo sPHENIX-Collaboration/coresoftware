@@ -76,6 +76,16 @@ Fun4AllEvtInputPoolManager::~Fun4AllEvtInputPoolManager()
     fileclose();
   }
   delete m_SyncObject;
+// clear leftover event maps
+  for (auto mapiter : m_InttRawHitMap)
+  {
+    for (auto intthititer :  mapiter.second.InttRawHitVector)
+    {
+      delete intthititer;
+    }
+  }
+  m_InttRawHitMap.clear();
+
   for (auto iter : m_EvtInputVector)
   {
     delete iter;
@@ -130,9 +140,14 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
        intthititer->identify();
      }
      inttcont->AddHit(intthititer);
-     delete intthititer;
+//     delete intthititer; // cleanup up done in Single Input Mgrs
    }
+    for (auto iter : m_EvtInputVector)
+    {
+      iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
+    }
   m_InttRawHitMap.erase(m_InttRawHitMap.begin());
+
   return 0;
   // readagain:
   //   if (!IsOpen())
