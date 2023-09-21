@@ -1,14 +1,20 @@
 #include "InttRawDataConverter.h"
 
 #include <Event/Event.h>
-#include <Event/EventTypes.h>
 #include <Event/packet.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
+
+#include <TFile.h>
+#include <TString.h> // for Form
+#include <TTree.h>
+
+#include <iostream>  // for operator<<, endl, basic_ostream
+#include <utility>   // for pair
+
+class PHCompositeNode;
 
 InttRawDataConverter::InttRawDataConverter(std::string const& name):
 	SubsysReco(name)

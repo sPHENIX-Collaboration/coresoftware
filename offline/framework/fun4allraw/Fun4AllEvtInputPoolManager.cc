@@ -76,25 +76,30 @@ Fun4AllEvtInputPoolManager::~Fun4AllEvtInputPoolManager()
     fileclose();
   }
   delete m_SyncObject;
+// clear leftover event maps
+  for (auto mapiter : m_InttRawHitMap)
+  {
+    for (auto intthititer :  mapiter.second.InttRawHitVector)
+    {
+      delete intthititer;
+    }
+  }
+  m_InttRawHitMap.clear();
+
   for (auto iter : m_EvtInputVector)
   {
     delete iter;
   }
-  // for (auto const &pktinfoiter : m_PacketInfoMap)
-  // {
-  //   for (auto &pktiter : pktinfoiter.second.PacketVector)
-  //   {
-  //     delete pktiter;
-  //   }
-  // }
 }
 
 int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
 {
-  if (m_InttRawHitMap.size() < 5)
+  while (m_InttRawHitMap.size() < 5) // pooling at least 5 events
   {
+    unsigned int alldone = 0;
     for (auto iter : m_EvtInputVector)
     {
+      alldone += iter->AllDone();
       if (Verbosity() > 0)
       {
 	std::cout << "fill pool for " << iter->Name() << std::endl;
@@ -102,9 +107,12 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
       iter->FillPool();
       m_RunNumber = iter->RunNumber();
     }
+    if (alldone >= m_EvtInputVector.size())
+    {
+      break;
+    }
     SetRunNumber(m_RunNumber);
   }
-
   if (m_InttRawHitMap.empty())
   {
     std::cout << "we are done" << std::endl;
@@ -132,9 +140,14 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
        intthititer->identify();
      }
      inttcont->AddHit(intthititer);
-     delete intthititer;
+//     delete intthititer; // cleanup up done in Single Input Mgrs
    }
+    for (auto iter : m_EvtInputVector)
+    {
+      iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
+    }
   m_InttRawHitMap.erase(m_InttRawHitMap.begin());
+
   return 0;
   // readagain:
   //   if (!IsOpen())

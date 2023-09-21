@@ -6,15 +6,7 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <trackbase/InttDefs.h>
-#include <trackbase/TpcDefs.h>
-
 #include <trackbase/ActsGeometry.h>
-
-
-
-#include <g4detectors/PHG4CylinderGeom.h>
-#include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -27,33 +19,22 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <TH1F.h>
-#include <TMath.h>
-
-
+#include <TH1.h>
 
 #include <cmath>
 #include <iostream>
-#include <vector>                                   // for vector
+#include <map>       // for _Rb_tree_const_i...
+#include <memory>    // for make_unique, uni...
+#include <utility>   // for move, pair
+#include <vector>    // for vector
 
-//using namespace boost;
-using namespace std;
-
-
-InttVertexFinder::InttVertexFinder(const string& name)
+InttVertexFinder::InttVertexFinder(const std::string& name)
   : SubsysReco(name)
-  , m_inttvertexmap(nullptr)
-  , m_tGeometry(nullptr)
-  , m_clusterlist(nullptr)
-  , h_zvtxseed_(nullptr)
-{
-  xbeam_ = ybeam_ = 0.0;
-
-}
+{}
 
 InttVertexFinder::~InttVertexFinder()
 {
-  if(h_zvtxseed_!=nullptr) delete h_zvtxseed_;
+  delete h_zvtxseed_;
 }
 
 int InttVertexFinder::Init(PHCompositeNode* /*topNode*/)
@@ -78,9 +59,9 @@ int InttVertexFinder::InitRun(PHCompositeNode* topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "====================== InttVertexFinder::InitRun() =====================" << endl;
-    cout<<"            beamcenter "<<xbeam_<<" "<<ybeam_<<endl;
-    cout << "===========================================================================" << endl;
+    std::cout << "====================== InttVertexFinder::InitRun() =====================" << std::endl;
+    std::cout<<"            beamcenter "<<xbeam_<<" "<<ybeam_<<std::endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -137,7 +118,7 @@ int InttVertexFinder::process_event(PHCompositeNode* topNode)
   m_clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_clusterlist)
   {
-    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER." << endl;
+    std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -195,12 +176,12 @@ double InttVertexFinder::calculateZvertex(
         //int size       = cluster->getSize();
 
         //--if(nCluster<5) {
-        //--  cout<<"xyz : "<<globalPos.x()<<" "<< globalPos.y()<<" "<< globalPos.z()<<" :  "
-        //--    <<cluster->getAdc()<<" "<<size<<" "<<inttlayer<<" "<<ladder_z<<" "<<ladder_phi<<endl;
+        //--  std::cout<<"xyz : "<<globalPos.x()<<" "<< globalPos.y()<<" "<< globalPos.z()<<" :  "
+        //--    <<cluster->getAdc()<<" "<<size<<" "<<inttlayer<<" "<<ladder_z<<" "<<ladder_phi<<std::endl;
         //--}
         //--else {
         //--  if(!exceedNwrite) {
-        //--    cout<<" exceed : ncluster limit.  no more cluster xyz printed"<<endl;
+        //--    std::cout<<" exceed : ncluster limit.  no more cluster xyz printed"<<std::endl;
         //--    exceedNwrite=true;
         //--  }
         //--}
@@ -212,10 +193,10 @@ double InttVertexFinder::calculateZvertex(
 
 	double phi = atan2(globalPos.y(), globalPos.x());
 
-	int iphi = (phi + TMath::Pi())/TMath::PiOver4();
+	int iphi = (phi + M_PI)/M_PI/4.;
 	if(iphi<0)  iphi+=8;
 	iphi%=8;
-	//cout<<"phi : "<<phi<<" "<<iphi<<endl;
+	//std::cout<<"phi : "<<phi<<" "<<iphi<<std::endl;
 
 
 	clusters[iphi][inout].push_back(info);
@@ -227,7 +208,7 @@ double InttVertexFinder::calculateZvertex(
 
 
   Acts::Vector3 beamspot(xbeam_, ybeam_, 0);
-  vector<double> vz_array;
+  std::vector<double> vz_array;
 
   for(int iphi=0; iphi<8; iphi++){
     for(auto c1=clusters[iphi][0].begin(); c1!=clusters[iphi][0].end(); ++c1) // inner
@@ -311,13 +292,13 @@ double InttVertexFinder::calculateZvertex(
 
     if (Verbosity() > 0)
     {
-      cout<<"ZVTX: "<<zvtx<<" "<<zcenter1<<" "<<zmean1<<" "<<zrms1<<" "<<zbin<<endl; //" "<<mbdt.bz<<endl;
+      std::cout<<"ZVTX: "<<zvtx<<" "<<zcenter1<<" "<<zmean1<<" "<<zrms1<<" "<<zbin<<std::endl; //" "<<mbdt.bz<<std::endl;
     }
   }
 
-  if(zcenter!=NULL) *zcenter = zcenter1;
-  if(zrms   !=NULL) *zrms    = zrms1;
-  if(zmean  !=NULL) *zmean   = zmean1;
+  if(zcenter!=nullptr) *zcenter = zcenter1;
+  if(zrms   !=nullptr) *zrms    = zrms1;
+  if(zmean  !=nullptr) *zmean   = zmean1;
 
   return zvtx;
 }

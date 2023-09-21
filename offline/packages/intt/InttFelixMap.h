@@ -1,7 +1,8 @@
 #ifndef INTT_FELIX_MAP_H
 #define INTT_FELIX_MAP_H
 
-#include "InttMapping.h"
+namespace Intt { struct Online_s; }
+namespace Intt { struct RawData_s; }
 
 namespace InttFelix
 {

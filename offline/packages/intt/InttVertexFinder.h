@@ -3,9 +3,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrCluster.h>
-
 #include <string>
 
 class PHCompositeNode;
@@ -38,19 +35,20 @@ class InttVertexFinder : public SubsysReco
 
  private:
   int    createNodes(PHCompositeNode *topNode);
-  double calculateZvertex(double* zcenter=NULL, double* zrms=NULL, double* zmean=NULL);
+  double calculateZvertex(double* zcenter=nullptr, double* zrms=nullptr, double* zmean=nullptr);
 
  private:
   // node tree storage pointers
-  InttVertexMap        *m_inttvertexmap;
-  ActsGeometry         *m_tGeometry;
-  TrkrClusterContainer *m_clusterlist; 
+  InttVertexMap        *m_inttvertexmap = nullptr;
+  ActsGeometry         *m_tGeometry = nullptr;
+  TrkrClusterContainer *m_clusterlist = nullptr; 
 
-  TH1*                  h_zvtxseed_;
+  TH1*                  h_zvtxseed_ = nullptr;
 
   // settings
   //
-  double xbeam_, ybeam_;
+  double xbeam_ = 0.;
+  double ybeam_ = 0.;
 };
 
 #endif

@@ -2,30 +2,19 @@
 
 #include <cmath>
 
-using namespace std;
-
-InttVertexv1::InttVertexv1()
-  : _id(0xFFFFFFFF)
-  , _z(NAN)
-  , _z_err(NAN)
+void InttVertexv1::identify(std::ostream& os) const
 {
-}
-
-InttVertexv1::~InttVertexv1() = default;
-
-void InttVertexv1::identify(ostream& os) const
-{
-  os << "---InttVertexv1--------------------------------" << endl;
-  os << "vertexid: " << get_id() << endl;
-  os << " z =  " << get_z() << " +/- " << get_z_err() << endl;
-  os << "-----------------------------------------------" << endl;
+  os << "---InttVertexv1--------------------------------" << std::endl;
+  os << "vertexid: " << get_id() << std::endl;
+  os << " z =  " << get_z() << " +/- " << get_z_err() << std::endl;
+  os << "-----------------------------------------------" << std::endl;
 
   return;
 }
 
 int InttVertexv1::isValid() const
 {
-  if (_id == 0xFFFFFFFF)
+  if (_id ==  std::numeric_limits<unsigned int>::max())
   {
     return 0;
   }
