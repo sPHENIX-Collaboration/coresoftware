@@ -1,6 +1,7 @@
 #ifndef TRACKBASE_EVT_HEADER_V1_H
 #define TRACKBASE_EVT_HEADER_V1_H
 
+#include "EvtHeader.h"
 #include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
