@@ -118,21 +118,8 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
     std::cout << "we are done" << std::endl;
     return -1;
   }
-  //  std::cout << "next event is " << m_PacketInfoMap.begin()->first << std::endl;
-  //  auto pktinfoiter = m_PacketInfoMap.begin();
-
-  // PacketMap *pktmap = findNode::getClass<PacketMap>(m_topNode, m_EvtNodeName);
-  // for (auto pktiter : m_PacketInfoMap.begin()->second.PacketVector)
-  // {
-  //   pktmap->AddPacket(pktiter->getIdentifier(), pktiter);
-  // }
-  // m_CurrentBeamClock = m_PacketInfoMap.begin()->first;
-  // for (auto pktiter : m_PacketInfoMap.begin()->second.PacketVector)
-  // {
-  //   pktmap->AddBclk(pktiter->getIdentifier(), m_CurrentBeamClock);
-  // }
-  // m_PacketInfoMap.erase(m_PacketInfoMap.begin());
   InttRawHitContainer *inttcont =  findNode::getClass<InttRawHitContainer>(m_topNode,"INTTRAWHIT");
+//  std::cout << "before filling m_InttRawHitMap size: " <<  m_InttRawHitMap.size() << std::endl;
   for (auto intthititer :  m_InttRawHitMap.begin()->second.InttRawHitVector)
    {
      if (Verbosity() > 1)
@@ -146,8 +133,10 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
     {
       iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
     }
+    m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
   m_InttRawHitMap.erase(m_InttRawHitMap.begin());
-
+  // std::cout << "size  m_InttRawHitMap: " <<  m_InttRawHitMap.size()
+  // 	    << std::endl;
   return 0;
   // readagain:
   //   if (!IsOpen())
@@ -255,10 +244,10 @@ void Fun4AllEvtInputPoolManager::Print(const std::string &what) const
 
 int Fun4AllEvtInputPoolManager::ResetEvent()
 {
-  for (auto iter : m_EvtInputVector)
-  {
-    iter->CleanupUsedPackets(m_CurrentBeamClock);
-  }
+  // for (auto iter : m_EvtInputVector)
+  // {
+  //   iter->CleanupUsedPackets(m_CurrentBeamClock);
+  // }
   //  m_SyncObject->Reset();
   return 0;
 }
