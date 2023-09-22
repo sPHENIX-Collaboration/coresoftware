@@ -52,6 +52,8 @@ pkginclude_HEADERS = \
   ClusHitsVerbose.h \
   ClusHitsVerbosev1.h \
   ClusterErrorPara.h \
+  EvtHeader.h \
+  EvtHeaderv1.h \
   InttDefs.h \
   MvtxDefs.h \
   RawHit.h \
@@ -221,6 +223,8 @@ libtrack_io_la_SOURCES = \
   ClusterErrorPara.cc \
   ClusHitsVerbose.cc \
   ClusHitsVerbosev1.cc \
+  EvtHeader.cc \
+  EvtHeaderv1.cc \
   InttDefs.cc \
   MvtxDefs.cc \
   RawHitSet.cc \
