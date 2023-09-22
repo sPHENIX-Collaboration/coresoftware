@@ -10,6 +10,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <tuple>
 #include <vector>
 
 class InttCombinedRawDataConverter : public SubsysReco
