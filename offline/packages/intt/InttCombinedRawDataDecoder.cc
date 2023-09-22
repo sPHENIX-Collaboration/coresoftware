@@ -1,6 +1,7 @@
 #include "InttCombinedRawDataDecoder.h"
 #include "InttMapping.h"
 
+#include <trackbase/InttDefs.h>
 #include <trackbase/TrkrDefs.h>    // for hitkey, hitsetkey
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
