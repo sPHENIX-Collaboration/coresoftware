@@ -1,5 +1,4 @@
 #include "InttMapping.h"
-
 #include "InttFelixMap.h"
 
 #include <Event/packet.h>
@@ -17,6 +16,16 @@ const std::map<int, int> Intt::Packet_Id =
 	{3007, 6},
 	{3008, 7},
 };
+
+int Intt::FelixFromPacket(int packetid)
+{
+	packetid -= 3001;
+
+	if(packetid < 0)return 8;
+	if(packetid > 7)return 8;
+
+	return packetid;
+}
 
 struct Intt::RawData_s Intt::RawFromPacket(int const _i, int const _n, Packet* _p)
 {
@@ -138,62 +147,75 @@ struct Intt::Offline_s Intt::ToOffline(struct RawData_s const& _s)
 	return ToOffline(ToOnline(_s));
 }
 
-//Eigen::Affine3d Intt::GetTransform(struct Intt::Offline_s const& _s)
+//Eigen::Affine3d Intt::GetTransform(TTree* tree, struct Intt::Offline_s const& _s)
 //{
-//	return InttSurvey::GetTransform(_s);
+//	Eigen::Affine3d t;
+//
+//	if(!tree)return t;
+//
+//	TBranch* b = tree->GetBranch("transform");
+//	if(!b)return t;
+//
+//	ROOT::Math::Transform3D** m = (ROOT::Math::Transform3D**)b->GetAddress();
+//	if(!m)return t;
+//
+//	Int_t i = _s.ladder_phi;
+//	switch(_s.layer)
+//	{
+//		case 3:
+//		i += 0;
+//		break;
+//
+//		case 4:
+//		i += 12;
+//		break;
+//
+//		case 5:
+//		i += 24;
+//		break;
+//
+//		case 6:
+//		i += 40;
+//		break;
+//
+//		default:
+//		break;
+//	}
+//	i *= 4;
+//	i += _s.ladder_z;
+//
+//	tree->GetEntry(i);
+//	(*m)->GetTransformMatrix(t);
+//
+//	//Debugging
+//	TBranch* b_ = tree->GetBranch("hitsetkey");
+//	if(!b_)return t;
+//
+//	Int_t* k_ = (Int_t*)b_->GetAddress();
+//	if(!k_)return t;
+//
+//	std::cout << "hitsetkey: " << *k_ << std::endl;
+//	std::cout << "entry:     " << i << std::endl;
+//
+//	return t;
 //}
 //
-//Eigen::Affine3d Intt::GetTransform(struct Intt::Online_s const& _s)
+//Eigen::Vector4d Intt::GetLocalPos(struct Intt::Offline_s const& _s)
 //{
-//	return InttSurvey::GetTransform(ToOffline(_s));
-//}
+//	Eigen::Vector4d u = {0.0, 0.0, 0.0, 1.0};
 //
-//Eigen::Affine3d Intt::GetTransform(struct Intt::RawData_s const& _s)
-//{
-//	return InttSurvey::GetTransform(ToOffline(_s));
-//}
-
-Eigen::Vector4d Intt::GetLocalPos(struct Intt::Offline_s const& _s)
-{
-	Eigen::Vector4d u = {0.0, 0.0, 0.0, 1.0};
-
-	//strip_y corresponds to z in local frame of sensor	
-	u(2) = (2.0 * _s.strip_y + 1.0) / ((_s.ladder_z % 2) ? 10.0 : 16.0) - 0.5;
-	u(2) *= (_s.ladder_z % 2) ? 100.0 : 128.0;
-
-	//strip_x corresponds to x in local frame of sensor
-	u(0) = (2.0 * _s.strip_x + 1.0) / 512.0 - 0.5;
-	u(0) *= 19.968;
-
-	//Offset by ladder thickness (to be implemented)
-	u(1) = 0.0;
-
-	return u;
-}
-
-Eigen::Vector4d Intt::GetLocalPos(struct Intt::Online_s const& _s)
-{
-	return Intt::GetLocalPos(Intt::ToOffline(_s));
-}
-
-Eigen::Vector4d Intt::GetLocalPos(struct Intt::RawData_s const& _s)
-{
-	return Intt::GetLocalPos(Intt::ToOffline(_s));
-}
-
-//Eigen::Vector4d Intt::GetPos(struct Intt::Offline_s const& _s)
-//{
-//	return Intt::GetTransform(_s) * Intt::GetLocalPos(_s);
-//}
+//	//strip_y corresponds to z in local frame of sensor	
+//	u(2) = (2.0 * _s.strip_y + 1.0) / ((_s.ladder_z % 2) ? 10.0 : 16.0) - 0.5;
+//	u(2) *= (_s.ladder_z % 2) ? 100.0 : 128.0;
 //
-//Eigen::Vector4d Intt::GetPos(struct Intt::Online_s const& _s)
-//{
-//	return Intt::GetTransform(_s) * Intt::GetLocalPos(_s);
-//}
+//	//strip_x corresponds to x in local frame of sensor
+//	u(0) = (2.0 * _s.strip_x + 1.0) / 512.0 - 0.5;
+//	u(0) *= 19.968;
 //
-//Eigen::Vector4d Intt::GetPos(struct Intt::RawData_s const& _s)
-//{
-//	return Intt::GetTransform(_s) * Intt::GetLocalPos(_s);
+//	//Offset by ladder thickness (to be implemented)
+//	u(1) = 0.0;
+//
+//	return u;
 //}
 
 bool operator==(struct Intt::RawData_s const& lhs, struct Intt::RawData_s const& rhs)

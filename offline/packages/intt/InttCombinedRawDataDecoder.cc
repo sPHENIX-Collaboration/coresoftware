@@ -1,5 +1,7 @@
 #include "InttCombinedRawDataDecoder.h"
+#include "InttMapping.h"
 
+#include <trackbase/InttDefs.h>
 #include <trackbase/TrkrDefs.h>    // for hitkey, hitsetkey
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
@@ -115,26 +117,30 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     exit(1);
   }
 
-  //	int adc = 0;
-  // int amp = 0;
-  //	int bco = 0;
-
   TrkrDefs::hitsetkey hit_set_key = 0;
   TrkrDefs::hitkey hit_key = 0;
   TrkrHitSetContainer::Iterator hit_set_container_itr;
   TrkrHit* hit = nullptr;
 
+  Intt::RawData_s raw;
+  Intt::Offline_s ofl;
   for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
   {
     InttRawHit* intthit = inttcont->get_hit(i);
-    //	  uint64_t gtm_bco = intthit->get_bco();
+    // uint64_t gtm_bco = intthit->get_bco();
+
+    raw.felix_server = Intt::FelixFromPacket(intthit->get_packetid());
+    raw.felix_channel = intthit->get_fee();
+    raw.chip = intthit->get_chip_id();
+    raw.channel = intthit->get_channel_id();
+    ofl = Intt::ToOffline(raw);
 
     int adc = intthit->get_adc();
     // amp = intthit->get_amplitude();
     // int bco = intthit->get_FPHX_BCO();
 
-    // hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
-    // hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
+    hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x); //col, row <trackbase/InttDefs.h>
+    hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, intthit->get_FPHX_BCO());
 
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
     hit = hit_set_container_itr->second->getHit(hit_key);
@@ -152,92 +158,44 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 }
 
 /*
-        for (int pktid = 3001; pktid <= 3007; pktid++)
+        Packet* p = evt->getPacket(itr->first);
+        if(!p)continue;
+
+        int N = p->iValue(0, "NR_HITS");
+        full_bco = p->lValue(0, "BCO");
+
+        if(Verbosity() > 20)std::cout << N << std::endl;
+
+        for(int n = 0; n < N; ++n)
         {
-                for (PacketMap::PacketIterator pktiter = pktmap->begin_end(pktid).first;
-                                 pktiter != pktmap->begin_end(pktid).second;
-                                 ++pktiter)
-                {
-                        for (PacketMap::BclkIterator bclkitr = pktmap->begin_end_bclk(pktid).first;
-                                         bclkitr != pktmap->begin_end_bclk(pktid).second;
-                                         ++bclkitr)
-                        {
-                                uint64_t bit40bclk = *bclkitr & 0xFFFFFFFFFF;
-                                std::cout << "going over packet " << std::endl;	//<< pktiter->getIdentifier()
-                                std::cout << "bclk: " << *bclkitr << std::endl;
-                                std::cout << "packet : " << (*pktiter)->getIdentifier() << std::endl;
-                                //<< " for bclk 0x" << std::hex << bclkitr << std::dec << std::endl;
-                                int num_hits = (*pktiter)->iValue(0, "NR_HITS");
-                                for (int j = 0; j < num_hits; j++)
-                                {
-                                        int FEE = (*pktiter)->iValue(j, "FEE");
-                                        uint64_t gtm_bco = (*pktiter)->lValue(j, "BCO");
-                                        if (bit40bclk == gtm_bco)
-                                        {
-                                                std::cout << "Chosen hit: FEE " << FEE << " bclk 0x" << std::hex
-                                                                                        << gtm_bco << std::dec << std::endl;
+        rawdata = Intt::RawFromPacket(itr->second, n, p);
 
-                                                rawdata = Intt::RawFromPacket(Intt::Packet_Id.find(pktid) != Intt::Packet_Id.end() ? Intt::Packet_Id.find(pktid)->second : -1, j, (*pktiter));
-                                                adc = (*pktiter)->iValue(j, "ADC");
-                                                //amp = p->iValue(j, "AMPLITUE");
-                                                bco = (*pktiter)->iValue(j, "FPHX_BCO");
+        adc = p->iValue(n, "ADC");
+        //amp = p->iValue(n, "AMPLITUE");
+        bco = p->iValue(n, "FPHX_BCO");
 
-                                                offline = Intt::ToOffline(rawdata);
+        offline = Intt::ToOffline(rawdata);
 
-                                                hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
-                                                hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
+        hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
+        hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
 
-                                                hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
-                                                hit = hit_set_container_itr->second->getHit(hit_key);
-                                                if(hit)continue;
+        hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
+        hit = hit_set_container_itr->second->getHit(hit_key);
+        if(hit)continue;
 
-                                                hit = new TrkrHitv2;
-                                                hit->setAdc(adc);
-                                                hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
-                                        }
-                                }
-                        }
-                }
+        hit = new TrkrHitv2;
+        hit->setAdc(adc);
+        hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
         }
 
-                Packet* p = evt->getPacket(itr->first);
-                if(!p)continue;
-
-                int N = p->iValue(0, "NR_HITS");
-                full_bco = p->lValue(0, "BCO");
-
-                if(Verbosity() > 20)std::cout << N << std::endl;
-
-                for(int n = 0; n < N; ++n)
-                {
-                rawdata = Intt::RawFromPacket(itr->second, n, p);
-
-                adc = p->iValue(n, "ADC");
-                //amp = p->iValue(n, "AMPLITUE");
-                bco = p->iValue(n, "FPHX_BCO");
-
-                offline = Intt::ToOffline(rawdata);
-
-                hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
-                hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
-
-                hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
-                hit = hit_set_container_itr->second->getHit(hit_key);
-                if(hit)continue;
-
-                hit = new TrkrHitv2;
-                hit->setAdc(adc);
-                hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
-                }
-
-                delete p;
-                }
-                }
-                if(Verbosity() > 20)
-                {
-                std::cout << std::endl;
-                std::cout << "Identify():" << std::endl;
-                trkr_hit_set_container->identify();
-                std::cout << std::endl;
-                }
-        */
+        delete p;
+        }
+        }
+        if(Verbosity() > 20)
+        {
+        std::cout << std::endl;
+        std::cout << "Identify():" << std::endl;
+        trkr_hit_set_container->identify();
+        std::cout << std::endl;
+        }
+*/
