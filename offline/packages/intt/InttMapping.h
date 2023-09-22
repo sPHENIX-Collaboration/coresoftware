@@ -3,12 +3,7 @@
 
 #include <map>
 
-#include <Eigen/Dense>
-
 class Packet;
-
-#include <TTree.h>
-#include <Math/Transform3D.h>
 
 namespace Intt
 {
