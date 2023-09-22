@@ -189,8 +189,6 @@ void TPCPedestalCalibration::CDBInsert()
 {
    recoConsts *rc = recoConsts::instance();
    
-   rc->set_StringFlag("CDB_GLOBALTAG",m_username);
-   rc->set_uint64Flag("TIMESTAMP",6);
    CDBUtils *cdbInsert = new CDBUtils(rc->get_StringFlag("CDB_GLOBALTAG"));
    cdbInsert->createPayloadType("TPCPedestalCalibration");
    cdbInsert->insertPayload("TPCPedestalCalibration",m_fname,m_BCO); // uses first BCO value from first waveform
