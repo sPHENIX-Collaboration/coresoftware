@@ -3,14 +3,16 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <TFile.h>
-#include <TSystem.h>
-#include <TTree.h>
+#include <Rtypes.h> // for ROOT data types
 
-#include <iostream>
 #include <map>
 #include <string>
+#include <tuple>
 #include <vector>
+
+class PHCompositeNode;
+class TTree;
+class TFile;
 
 class InttCombinedRawDataConverter : public SubsysReco
 {
