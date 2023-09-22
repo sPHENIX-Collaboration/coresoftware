@@ -190,6 +190,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMotherIPchi2(float mother_ipchi2) { m_mother_ipchi2 = mother_ipchi2; }
 
+  void setMaximumMotherVertexVolume(float vertexvol) { m_mother_vertex_volume = vertexvol; }
+
   void constrainToPrimaryVertex(bool constrain_to_vertex)
   {
     m_constrain_to_vertex = constrain_to_vertex;
@@ -255,6 +257,11 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void setIntermediateMinFDchi2(const std::vector<float> &intermediate_min_FDchi2)
   {
     for (unsigned int i = 0; i < intermediate_min_FDchi2.size(); ++i) m_intermediate_min_fdchi2.push_back(intermediate_min_FDchi2[i]);
+  }
+
+  void setIntermediateMaxVertexVolume(const std::vector<float> &intermediate_max_vertexvol)
+  {
+    for (unsigned int i = 0; i < intermediate_max_vertexvol.size(); ++i) m_intermediate_vertex_volume.push_back(intermediate_max_vertexvol[i]);
   }
 
   void useMVA(bool require_mva) { m_require_mva = require_mva; }

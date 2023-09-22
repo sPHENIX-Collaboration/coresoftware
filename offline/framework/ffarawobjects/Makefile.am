@@ -16,27 +16,42 @@ libffarawobjects_la_LIBADD = \
   -lphool
 
 ROOTDICTS = \
-  InttHit_Dict.cc \
-  InttHitContainer_Dict.cc \
-  InttHitContainerv1_Dict.cc \
-  InttHitv1_Dict.cc
+  InttRawHit_Dict.cc \
+  InttRawHitContainer_Dict.cc \
+  InttRawHitContainerv1_Dict.cc \
+  InttRawHitv1_Dict.cc \
+  TpcRawHit_Dict.cc \
+  TpcRawHitContainer_Dict.cc \
+  TpcRawHitContainerv1_Dict.cc \
+  TpcRawHitv1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  InttHit_Dict_rdict.pcm \
-  InttHitContainer_Dict_rdict.pcm \
-  InttHitContainerv1_Dict_rdict.pcm \
-  InttHitv1_Dict_rdict.pcm
+  InttRawHit_Dict_rdict.pcm \
+  InttRawHitContainer_Dict_rdict.pcm \
+  InttRawHitContainerv1_Dict_rdict.pcm \
+  InttRawHitv1_Dict_rdict.pcm \
+  TpcRawHit_Dict_rdict.pcm \
+  TpcRawHitContainer_Dict_rdict.pcm \
+  TpcRawHitContainerv1_Dict_rdict.pcm \
+  TpcRawHitv1_Dict_rdict.pcm
 
 pkginclude_HEADERS = \
-  InttHit.h \
-  InttHitContainer.h \
-  InttHitContainerv1.h \
-  InttHitv1.h
+  InttRawHit.h \
+  InttRawHitContainer.h \
+  InttRawHitContainerv1.h \
+  InttRawHitv1.h \
+  TpcRawHit.h \
+  TpcRawHitContainer.h \
+  TpcRawHitContainerv1.h \
+  TpcRawHitv1.h
 
 libffarawobjects_la_SOURCES = \
   $(ROOTDICTS) \
-  InttHitContainerv1.cc
+  InttRawHitContainerv1.cc \
+  InttRawHitv1.cc \
+  TpcRawHitContainerv1.cc \
+  TpcRawHitv1.cc
 
 BUILT_SOURCES = testexternals.cc
 

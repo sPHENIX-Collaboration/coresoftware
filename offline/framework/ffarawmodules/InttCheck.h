@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef FFARAWMODULES_EVTCHECK_H
-#define FFARAWMODULES_EVTCHECK_H
+#ifndef FFARAWMODULES_INTTCHECK_H
+#define FFARAWMODULES_INTTCHECK_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -11,12 +11,12 @@
 class Fun4AllInputManager;
 class PHCompositeNode;
 
-class EvtCheck : public SubsysReco
+class InttCheck : public SubsysReco
 {
  public:
-  EvtCheck(const std::string &name = "EvtCheck");
+  InttCheck(const std::string &name = "InttCheck");
 
-  ~EvtCheck() override {}
+  ~InttCheck() override {}
 
   int Init(PHCompositeNode *topNode) override;
 
@@ -27,7 +27,7 @@ class EvtCheck : public SubsysReco
   void MyEvtNode(const std::string &name) {m_EvtNodeName = name;}
 
  private:
-  std::string m_EvtNodeName = "EVT";
+  std::string m_EvtNodeName = "INTTRAWHIT";
 };
 
 #endif  // FFARAWMODULES_EVENTCOMBINER_H

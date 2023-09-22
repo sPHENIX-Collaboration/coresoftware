@@ -30,65 +30,69 @@ class BbcOutV1 : public BbcOut
   int isValid() const override;
 
   /// get ZVertex determined by Bbc
-  float get_VertexPoint() const override { return Bbc_ZVertex; }
+  float get_zvtx() const override { return bz; }
 
   /// get Error on ZVertex determined by Bbc
-  float get_dVertexPoint() const override { return Bbc_dZVertex; }
+  float get_zvtxerr() const override { return bzerr; }
 
   /// get T0 determined by Bbc
-  float get_TimeZero() const override { return Bbc_TimeZero; }
+  float get_t0() const override { return bt0; }
 
   /// get Error on T0 determined by Bbc
-  float get_dTimeZero() const override { return Bbc_dTimeZero; }
+  float get_t0err() const override { return bt0err; }
 
   /** set T0 for Bbc
       @param t0 Bbc T0
       @param t0err Bbc T0 error
    */
-  void set_TimeZero(const float t0, const float t0err = 0) override;
+  void set_t0(const float t0, const float t0err = 0) override;
 
   //! set vertex
-  void set_Vertex(const float vtx, const float vtxerr = 0) override;
+  void set_zvtx(const float vtx, const float vtxerr = 0) override;
 
   /** set Vtx Error for Bbc
       @param vtxerr Bbc Vtx Error
   */
-  void set_dZVertex(const float vtxerr) override;
+  void set_zvtxerr(const float vtxerr) override;
 
-  /** Add Bbc North/South object containing Number of pmt's, Energy and Timing
+  /** Add Bbc North/South data containing Number of pmt's, Energy and Timing
       @param npmt Number of PMT's fired
       @param energy Energy in North/South
       @param timing Timing of North/South
-      @param nBbc  Arm, use Bbc::North and Bbc::South
+      @param iarm  Arm, use Bbc::North and Bbc::South
    */
-  void AddBbcNS(const int nBbc, const short npmt, const float chargesum, const float timing) override;
+  void set_arm(const int iarm, const short npmt, const float chargesum, const float timing) override;
 
   /** get Number of PMT's fired in North/South Bbc
-      @param nBbc  Arm, use Bbc::North and Bbc::South
+      @param iarm  Arm, use Bbc::North and Bbc::South
    */
-  short get_nPMT(const int nBbc) const override;
+  short get_npmt(const int iarm) const override;
 
   /** get Number of Charged Particles into North/South Bbc
-      @param nBbc  Arm, use Bbc::North and Bbc::South
+      @param iarm  Arm, use Bbc::North and Bbc::South
    */
-  float get_nCharge(const int nBbc) const override;
+  float get_q(const int iarm) const override;
 
   /** get Timing of North/South Bbc
-      @param nBbc  Arm, use Bbc::North and Bbc::South
+      @param iarm  Arm, use Bbc::North and Bbc::South
    */
-  float get_Timing(const int nBbc) const override;
+  float get_time(const int iarm) const override;
 
 
  private:
 
-  TClonesArray *GetBbcNS() const { return BbcNS; }
   void Init();
 
-  float Bbc_ZVertex{};
-  float Bbc_dZVertex{};
-  float Bbc_TimeZero{};
-  float Bbc_dTimeZero{};
-  TClonesArray *BbcNS;
+  float bz{};
+  float bzerr{};
+  float bt0{};
+  float bt0err{};
+  float bns{};
+  float bnn{};
+  float bqs{};
+  float bqn{};
+  float bts{};
+  float btn{};
 
   ClassDefOverride(BbcOutV1, 1)
 };

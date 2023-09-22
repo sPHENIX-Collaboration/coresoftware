@@ -12,7 +12,7 @@
 class InttVertexMapv1 : public InttVertexMap
 {
  public:
-  InttVertexMapv1();
+  InttVertexMapv1() = default;
   ~InttVertexMapv1() override;
 
   void identify(std::ostream& os = std::cout) const override;

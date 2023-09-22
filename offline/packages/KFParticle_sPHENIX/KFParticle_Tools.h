@@ -121,6 +121,7 @@ class KFParticle_Tools : protected KFParticle_MVA
   std::vector<float> m_intermediate_max_ip;
   std::vector<float> m_intermediate_min_ipchi2;
   std::vector<float> m_intermediate_max_ipchi2;
+  std::vector<float> m_intermediate_vertex_volume;
 
   float m_min_mass = -1;
 
@@ -161,6 +162,8 @@ class KFParticle_Tools : protected KFParticle_MVA
   float m_mother_pt = -1;
 
   float m_mother_ipchi2 = FLT_MAX;
+
+  float m_mother_vertex_volume = FLT_MAX;
 
   float m_mva_cut_value = -1;
 
