@@ -19,7 +19,7 @@
 SingleInttInput::SingleInttInput(const std::string &name)
   : SingleStreamingInput(name)
 {
-  plist = new Packet *[100];
+  plist = new Packet *[10];
 }
 
 SingleInttInput::~SingleInttInput()
@@ -38,7 +38,9 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
     OpenNextFile();
   }
   std::set<uint64_t> saved_beamclocks;
-  do
+//   while (m_InttRawHitMap.size() < 10 || CheckPoolDepth(m_InttRawHitMap.begin()->first));
+   while (GetSomeMoreEvents())
+//  do
   {
     Event *evt = GetEventiterator()->getNextEvent();
     while (!evt)
@@ -65,9 +67,9 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
       m_NumSpecialEvents++;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, 100);
+    int npackets = evt->getPacketList(plist, 10);
 
-    if (npackets == 100)
+    if (npackets == 10)
     {
       exit(1);
     }
@@ -128,13 +130,10 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
 	m_BclkStack.insert(gtm_bco);
       }
       delete plist[i];
-      // else
-      // {
-      //   delete plist[i];
-      // }
     }
     delete evt;
-  } while (m_InttRawHitMap.size() < 10 || CheckPoolDepth(m_InttRawHitMap.begin()->first));
+  }
+//  } while (m_InttRawHitMap.size() < 10 || CheckPoolDepth(m_InttRawHitMap.begin()->first));
 }
 
 void SingleInttInput::Print(const std::string &what) const
@@ -197,8 +196,15 @@ void SingleInttInput::CleanupUsedPackets(const uint64_t bclk)
       break;
     }
   }
+  // for (auto iter :  m_BeamClockFEE)
+  // {
+  //   iter.second.clear();
+  // }
+
   for (auto iter : toclearbclk)
   {
+  m_BclkStack.erase(iter);
+  m_BeamClockFEE.erase(iter);
     m_InttRawHitMap.erase(iter);
   }
 }
@@ -224,19 +230,35 @@ bool SingleInttInput::CheckPoolDepth(const uint64_t bclk)
         std::cout << "FEE " << iter.first << " beamclock 0x" << std::hex << iter.second
                   << " smaller than req bclk: 0x" << bclk << std::dec << std::endl;
       }
-      return true;
+      return false;
     }
   }
-  return false;
+  return true;
 }
 
 void SingleInttInput::ClearCurrentEvent()
 {
   // called interactively, to get rid of the current event
   uint64_t currentbclk = *m_BclkStack.begin();
-  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
+//  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
   CleanupUsedPackets(currentbclk);
-  m_BclkStack.erase(currentbclk);
-  m_BeamClockFEE.erase(currentbclk);
+  // m_BclkStack.erase(currentbclk);
+  // m_BeamClockFEE.erase(currentbclk);
   return;
+}
+
+bool SingleInttInput::GetSomeMoreEvents()
+{
+  if (AllDone())
+  {
+    return false;
+  }
+  if (CheckPoolDepth(m_InttRawHitMap.begin()->first))
+  {
+    if (m_InttRawHitMap.size() >= 10)
+    {
+      return false;
+    }
+  }
+  return true;
 }
