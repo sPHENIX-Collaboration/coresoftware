@@ -5,6 +5,7 @@
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
+#include <phool/recoConsts.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
@@ -29,6 +30,7 @@
 TPCPedestalCalibration::TPCPedestalCalibration(const std::string &name)
  :SubsysReco("TPCPedestalCalibration")
  , m_fname(name)
+ , m_writeToCDB(false)
 {
   // reserve memory for max ADC samples
   m_adcSamples.resize(1024, 0);
@@ -48,20 +50,8 @@ TPCPedestalCalibration::TPCPedestalCalibration(const std::string &name)
 
 int TPCPedestalCalibration::InitRun(PHCompositeNode *)
 {
-  m_file = TFile::Open(m_fname.c_str(), "recreate");
-  assert(m_file->IsOpen());
- 
-  m_pedestalTree = new TTree("pedestalTree", "Each entry is one TPC Channel");
+  m_cdbttree = new CDBTTree(m_fname);  
 
-  m_pedestalTree->Branch("isAlive",&m_isAlive,"isAlive/I");
-  m_pedestalTree->Branch("pedMean",&m_pedMean,"pedMean/F");
-  m_pedestalTree->Branch("pedStd",&m_pedStd,"pedStd/F");
-  m_pedestalTree->Branch("sector",&m_sector,"sector/I");
-  m_pedestalTree->Branch("fee",&m_outFEE,"fee/I");
-  m_pedestalTree->Branch("channel",&m_chan,"channel/I");
-  m_pedestalTree->Branch("module",&m_module,"module/I");
-  m_pedestalTree->Branch("slot",&m_slot,"slot/I");
-  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -103,6 +93,12 @@ int TPCPedestalCalibration::process_event(PHCompositeNode *topNode)
   
     for (int wf = 0; wf < m_nWaveormInFrame; wf++)
     {
+      if (m_firstBCO == true)
+      {
+        m_BCO = p->iValue(wf, "BCO");
+        m_firstBCO = false;
+      }
+
       m_nSamples = p->iValue(wf, "SAMPLES");
       m_fee = p->iValue(wf, "FEE");
       m_Channel = p->iValue(wf, "CHANNEL");
@@ -166,7 +162,7 @@ int TPCPedestalCalibration::EndRun(const int runnumber)
       {
         m_aliveArrayFeeChannel[fee_no][channel_no]=0;
       }
-
+      
       m_pedMean=m_aveADCFeeChannel[fee_no][channel_no];
       m_pedStd=sqrt(m_stdADCFeeChannel[fee_no][channel_no] - pow(m_aveADCFeeChannel[fee_no][channel_no],2));
       m_isAlive=m_aliveArrayFeeChannel[fee_no][channel_no];
@@ -174,24 +170,48 @@ int TPCPedestalCalibration::EndRun(const int runnumber)
       m_outFEE=fee_no;
       m_module=mod_arr[fee_no];
       m_slot=slot_arr[fee_no];
-      m_pedestalTree->Fill();
+      
+      m_cdbttree->SetIntValue(fee_no*256 + channel_no,"isAlive",m_isAlive);
+      m_cdbttree->SetFloatValue(fee_no*256 + channel_no,"pedMean",m_pedMean);
+      m_cdbttree->SetFloatValue(fee_no*256 + channel_no,"pedStd",m_pedStd);
+      m_cdbttree->SetIntValue(fee_no*256 + channel_no,"sector",m_sector);
+      m_cdbttree->SetIntValue(fee_no*256 + channel_no,"fee",m_outFEE);
+      m_cdbttree->SetIntValue(fee_no*256 + channel_no,"channel",m_chan);
+      m_cdbttree->SetIntValue(fee_no*256 + channel_no,"module",m_module);
+      m_cdbttree->SetIntValue(fee_no*256 + channel_no,"slot",m_slot);
     }
   }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void TPCPedestalCalibration::CDBInsert()
+{
+   recoConsts *rc = recoConsts::instance();
+   
+   CDBUtils *cdbInsert = new CDBUtils(rc->get_StringFlag("CDB_GLOBALTAG"));
+   cdbInsert->createPayloadType("TPCPedestalCalibration");
+   cdbInsert->insertPayload("TPCPedestalCalibration",m_fname,m_BCO); // uses first BCO value from first waveform
+   
+   return;
+}
+
 //____________________________________________________________________________..
 int TPCPedestalCalibration::End(PHCompositeNode *topNode)
 {
-  std::cout << "TPCPedestalCalibration::End(PHCompositeNode *topNode) This is the End..." << std::endl;
-
-  m_file->Write();
-
-  std::cout << __PRETTY_FUNCTION__ << " : completed saving to " << m_file->GetName() << std::endl;
-  m_file->ls();
-
-  m_file->Close();  
+  m_cdbttree->Commit();
+  if (Verbosity())
+  {
+    m_cdbttree->Print();
+  }
+  m_cdbttree->WriteCDBTTree();
+  delete m_cdbttree;
+ 
+  if (m_writeToCDB)
+  {
+    std::cout << "Inserting file " << m_fname << " in CDB under username " << m_username << std::endl;
+    CDBInsert(); 
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
