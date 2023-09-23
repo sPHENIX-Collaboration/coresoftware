@@ -2,9 +2,12 @@
 
 #include "SingleInttInput.h"
 #include "SingleEvtInput.h"
+#include "SingleTpcInput.h"
 
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainerv1.h>
+#include <ffarawobjects/TpcRawHit.h>
+#include <ffarawobjects/TpcRawHitContainerv1.h>
 
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -404,6 +407,16 @@ void Fun4AllEvtInputPoolManager::AddInttRawHit(uint64_t bclk, InttRawHit *hit)
               << std::hex << bclk << std::dec << std::endl;
   }
   m_InttRawHitMap[bclk].InttRawHitVector.push_back(hit);
+}
+
+void Fun4AllEvtInputPoolManager::AddTpcRawHit(uint64_t bclk, TpcRawHit *hit)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "Adding intt hit to bclk 0x"
+              << std::hex << bclk << std::dec << std::endl;
+  }
+  m_TpcRawHitMap[bclk].TpcRawHitVector.push_back(hit);
 }
 
 void Fun4AllEvtInputPoolManager::UpdateEventFoundCounter(const int evtno)
