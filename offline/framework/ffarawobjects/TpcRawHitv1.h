@@ -33,13 +33,26 @@ public:
   uint16_t get_channel() const override {return channel;}
   void set_channel(uint16_t const val) override {channel = val;}
 
+  uint16_t get_sampaaddress() const override {return sampaaddress;}
+  void set_sampaaddress(uint16_t const val) override {sampaaddress = val;}
+
+  uint16_t get_sampachannel() const override {return sampachannel;}
+  void set_sampachannel(uint16_t const val) override {sampachannel = val;}
+
+  uint16_t get_samples() const override {return samples;}
+  void set_samples(uint16_t const val) override {samples = val;}
+
+
+
 private:
 
   uint64_t bco = std::numeric_limits<uint64_t>::max();
   int32_t packetid = std::numeric_limits<int32_t>::max();
   uint16_t fee = std::numeric_limits<uint16_t>::max();
   uint16_t channel = std::numeric_limits<uint16_t>::max();
-
+  uint16_t sampaaddress = std::numeric_limits<uint16_t>::max();
+  uint16_t sampachannel = std::numeric_limits<uint16_t>::max();
+  uint16_t samples  = std::numeric_limits<uint16_t>::max();
   ClassDefOverride(TpcRawHitv1,1)
 };
 
