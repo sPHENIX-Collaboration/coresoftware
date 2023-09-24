@@ -40,10 +40,8 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
   {
     OpenNextFile();
   }
-  std::set<uint64_t> saved_beamclocks;
-//   while (m_InttRawHitMap.size() < 10 || CheckPoolDepth(m_InttRawHitMap.begin()->first));
+//  std::set<uint64_t> saved_beamclocks;
    while (GetSomeMoreEvents())
-//  do
   {
     Event *evt = GetEventiterator()->getNextEvent();
     while (!evt)

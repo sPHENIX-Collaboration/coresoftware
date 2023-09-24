@@ -37,10 +37,8 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
   {
     OpenNextFile();
   }
-  std::set<uint64_t> saved_beamclocks;
-//   while (m_TpcRawHitMap.size() < 10 || CheckPoolDepth(m_TpcRawHitMap.begin()->first));
+//  std::set<uint64_t> saved_beamclocks;
    while (GetSomeMoreEvents())
-//  do
   {
     Event *evt = GetEventiterator()->getNextEvent();
     while (!evt)
@@ -81,7 +79,7 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
       }
      int m_nWaveormInFrame = plist[i]->iValue(0, "NR_WF");
       uint64_t m_nTaggerInFrame = plist[i]->lValue(0, "N_TAGGER");
-      int m_maxFEECount = plist[i]->iValue(0, "MAX_FEECOUNT");
+//      int m_maxFEECount = plist[i]->iValue(0, "MAX_FEECOUNT");
       std::set<uint64_t> bclk_set;
 uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
     for (int t = 0; t < m_nTaggerInFrame; t++)
