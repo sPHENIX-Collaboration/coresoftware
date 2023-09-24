@@ -3,8 +3,6 @@
 
 #include "SingleStreamingInput.h"
 
-#include "InttPool.h"
-
 #include <array>
 #include <list>
 #include <map>
@@ -32,7 +30,6 @@ class SingleInttInput : public SingleStreamingInput
 
  private:
   Packet **plist = nullptr;
-  InttPool pool;
   unsigned int m_NumSpecialEvents = 0;
   std::array<uint64_t, 14> m_PreviousClock{};
   std::array<uint64_t, 14> m_Rollover{};
