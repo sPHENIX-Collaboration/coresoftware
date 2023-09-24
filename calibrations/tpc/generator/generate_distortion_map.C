@@ -4,6 +4,7 @@
 #include "TTree.h" //this prevents a lazy binding issue and/or is a magic spell.
 #include "TCanvas.h" //this prevents a lazy binding issue and/or is a magic spell.
 //R__LOAD_LIBRARY(.libs/libfieldsim)
+// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(build/.libs/libfieldsim)
 
   char field_string[200];
