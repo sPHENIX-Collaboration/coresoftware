@@ -7,6 +7,9 @@
 
 #include <frog/FROG.h>
 
+#include <phool/PHCompositeNode.h>
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/getClass.h>
 #include <phool/phool.h>
 
 #include <Event/Event.h>
@@ -274,4 +277,30 @@ bool SingleTpcInput::GetSomeMoreEvents()
     }
   }
   return true;
+}
+
+void SingleTpcInput::CreateDSTNode(PHCompositeNode *topNode)
+{
+  PHNodeIterator iter(topNode);
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (! dstNode)
+  {
+    dstNode = new PHCompositeNode("DST");
+    topNode->addNode(dstNode);
+  }
+  PHNodeIterator iterDst(dstNode);
+PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "TPC"));
+if (!detNode)
+{
+  detNode = new PHCompositeNode("INTT");
+  dstNode->addNode(detNode);
+}
+  TpcRawHitContainer *tpchitcont = findNode::getClass<TpcRawHitContainer>(detNode,"TPCRAWHIT");
+  if (!tpchitcont)
+  {
+    tpchitcont = new TpcRawHitContainerv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(tpchitcont, "TPCRAWHIT", "PHObject");
+    detNode->addNode(newNode);
+  }
+
 }

@@ -23,6 +23,9 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
  public:
   Fun4AllEvtInputPoolManager(const std::string &name = "DUMMY", const std::string &dstnodename = "DST", const std::string &topnodename = "TOP");
   ~Fun4AllEvtInputPoolManager() override;
+
+  enum enu_subsystem { MVTX = 1, INTT = 2, TPC = 3, TPOT = 4};
+
   int fileopen(const std::string & /*filenam*/) override { return 0; }
   // cppcheck-suppress virtualCallInConstructor
   int fileclose() override;
@@ -37,9 +40,11 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   std::string GetString(const std::string &what) const override;
 //  SingleEvtInput *AddEvtInputList(const std::string &listfile);
 //  SingleEvtInput *AddEvtInputFile(const std::string &filename);
-  void registerStreamingInput(SingleStreamingInput *evtin);
+  void registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem system = INTT);
   void AddPacket(uint64_t bclk, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
+  int FillIntt();
+  int FillTpc();
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
 
@@ -62,6 +67,10 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   };
 
   int m_RunNumber = 0;
+  bool m_mvtx_registered_flag = false;
+  bool m_intt_registered_flag = false;
+  bool m_tpc_registered_flag = false;
+  bool m_tpot_registered_flag = false;
   std::vector<SingleStreamingInput *> m_EvtInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;

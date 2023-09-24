@@ -33,6 +33,8 @@
 #include <Event/Eventiterator.h>  // for Eventiterator
 #include <Event/fileEventiterator.h>
 
+#include <TSystem.h>
+
 #include <cassert>
 #include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream, endl
@@ -72,50 +74,19 @@ Fun4AllEvtInputPoolManager::~Fun4AllEvtInputPoolManager()
 
 int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
 {
-  while (m_InttRawHitMap.size() < 5) // pooling at least 5 events
+  int iret = 0;
+  if (m_intt_registered_flag)
   {
-    unsigned int alldone = 0;
-    for (auto iter : m_EvtInputVector)
-    {
-      alldone += iter->AllDone();
-      if (Verbosity() > 0)
-      {
-	std::cout << "fill pool for " << iter->Name() << std::endl;
-      }
-      iter->FillPool();
-      m_RunNumber = iter->RunNumber();
-    }
-    if (alldone >= m_EvtInputVector.size())
-    {
-      break;
-    }
-    SetRunNumber(m_RunNumber);
+    iret += FillIntt();
   }
-  if (m_InttRawHitMap.empty())
+  if (m_tpc_registered_flag)
   {
-    std::cout << "we are done" << std::endl;
-    return -1;
+    iret += FillTpc();
   }
-  InttRawHitContainer *inttcont =  findNode::getClass<InttRawHitContainer>(m_topNode,"INTTRAWHIT");
-//  std::cout << "before filling m_InttRawHitMap size: " <<  m_InttRawHitMap.size() << std::endl;
-  for (auto intthititer :  m_InttRawHitMap.begin()->second.InttRawHitVector)
-   {
-     if (Verbosity() > 1)
-     {
-       intthititer->identify();
-     }
-     inttcont->AddHit(intthititer);
-//     delete intthititer; // cleanup up done in Single Input Mgrs
-   }
-    for (auto iter : m_EvtInputVector)
-    {
-      iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
-    }
-    m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
-  m_InttRawHitMap.erase(m_InttRawHitMap.begin());
+
   // std::cout << "size  m_InttRawHitMap: " <<  m_InttRawHitMap.size()
   // 	    << std::endl;
-  return 0;
+  return iret;
   // readagain:
   //   if (!IsOpen())
   //   {
@@ -349,11 +320,29 @@ SingleEvtInput *Fun4AllEvtInputPoolManager::AddEvtInputList(const std::string &f
   return m_EvtInputVector.back();
 }
 */
-void Fun4AllEvtInputPoolManager::registerStreamingInput(SingleStreamingInput *evtin)
+void Fun4AllEvtInputPoolManager::registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem system)
 {
   m_EvtInputVector.push_back(evtin);
   evtin->InputManager(this);
   evtin->CreateDSTNode(m_topNode);
+  switch (system)
+  {
+    case Fun4AllEvtInputPoolManager::MVTX:
+    m_mvtx_registered_flag = true;
+    break;
+    case Fun4AllEvtInputPoolManager::INTT:
+    m_intt_registered_flag = true;
+    break;
+    case Fun4AllEvtInputPoolManager::TPC:
+    m_tpc_registered_flag = true;
+    case Fun4AllEvtInputPoolManager::TPOT:
+    m_tpot_registered_flag = true;
+    break;
+  default:
+    std::cout << "invalid subsystem flag " << system << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
   if (Verbosity() > 3)
   {
     std::cout << "registering " << evtin->Name()
@@ -395,4 +384,100 @@ void Fun4AllEvtInputPoolManager::AddTpcRawHit(uint64_t bclk, TpcRawHit *hit)
 void Fun4AllEvtInputPoolManager::UpdateEventFoundCounter(const int evtno)
 {
   m_PacketInfoMap[evtno].EventFoundCounter++;
+}
+
+int Fun4AllEvtInputPoolManager::FillIntt()
+{
+    while (m_InttRawHitMap.size() < 5) // pooling at least 5 events
+    {
+      unsigned int alldone = 0;
+      for (auto iter : m_EvtInputVector)
+      {
+	alldone += iter->AllDone();
+	if (Verbosity() > 0)
+	{
+	  std::cout << "fill pool for " << iter->Name() << std::endl;
+	}
+	iter->FillPool();
+	m_RunNumber = iter->RunNumber();
+      }
+      if (alldone >= m_EvtInputVector.size())
+      {
+	break;
+      }
+      SetRunNumber(m_RunNumber);
+    }
+    if (m_InttRawHitMap.empty())
+    {
+      std::cout << "we are done" << std::endl;
+      return -1;
+    }
+    InttRawHitContainer *inttcont =  findNode::getClass<InttRawHitContainer>(m_topNode,"INTTRAWHIT");
+//  std::cout << "before filling m_InttRawHitMap size: " <<  m_InttRawHitMap.size() << std::endl;
+    for (auto intthititer :  m_InttRawHitMap.begin()->second.InttRawHitVector)
+    {
+      if (Verbosity() > 1)
+      {
+	intthititer->identify();
+      }
+      inttcont->AddHit(intthititer);
+//     delete intthititer; // cleanup up done in Single Input Mgrs
+    }
+    for (auto iter : m_EvtInputVector)
+    {
+      iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
+    }
+    m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
+    m_InttRawHitMap.erase(m_InttRawHitMap.begin());
+  // std::cout << "size  m_InttRawHitMap: " <<  m_InttRawHitMap.size()
+  // 	    << std::endl;
+  return 0;
+}
+
+int Fun4AllEvtInputPoolManager::FillTpc()
+{
+    while (m_TpcRawHitMap.size() < 5) // pooling at least 5 events
+    {
+      unsigned int alldone = 0;
+      for (auto iter : m_EvtInputVector)
+      {
+	alldone += iter->AllDone();
+	if (Verbosity() > 0)
+	{
+	  std::cout << "fill pool for " << iter->Name() << std::endl;
+	}
+	iter->FillPool();
+	m_RunNumber = iter->RunNumber();
+      }
+      if (alldone >= m_EvtInputVector.size())
+      {
+	break;
+      }
+      SetRunNumber(m_RunNumber);
+    }
+    if (m_TpcRawHitMap.empty())
+    {
+      std::cout << "we are done" << std::endl;
+      return -1;
+    }
+    TpcRawHitContainer *tpccont =  findNode::getClass<TpcRawHitContainer>(m_topNode,"TPCRAWHIT");
+//  std::cout << "before filling m_TpcRawHitMap size: " <<  m_TpcRawHitMap.size() << std::endl;
+    for (auto tpchititer :  m_TpcRawHitMap.begin()->second.TpcRawHitVector)
+    {
+      if (Verbosity() > 1)
+      {
+	tpchititer->identify();
+      }
+      tpccont->AddHit(tpchititer);
+//     delete tpchititer; // cleanup up done in Single Input Mgrs
+    }
+    for (auto iter : m_EvtInputVector)
+    {
+      iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
+    }
+    m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
+    m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
+  // std::cout << "size  m_TpcRawHitMap: " <<  m_TpcRawHitMap.size()
+  // 	    << std::endl;
+  return 0;
 }
