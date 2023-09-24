@@ -55,7 +55,7 @@ Fun4AllEvtInputPoolManager::~Fun4AllEvtInputPoolManager()
   }
   delete m_SyncObject;
 // clear leftover event maps
-  for (auto mapiter : m_InttRawHitMap)
+  for (auto const &mapiter : m_InttRawHitMap)
   {
     for (auto intthititer :  mapiter.second.InttRawHitVector)
     {
