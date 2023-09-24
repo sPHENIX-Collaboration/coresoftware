@@ -3,8 +3,6 @@
 
 #include "SingleStreamingInput.h"
 
-#include "InttPool.h"
-
 #include <array>
 #include <list>
 #include <map>
@@ -14,28 +12,28 @@
 
 class Eventiterator;
 class Fun4AllEvtInputPoolManager;
-class InttRawHit;
+class TpcRawHit;
 class Packet;
 
-class SingleTPCInput : public SingleStreamingInput
+class SingleTpcInput : public SingleStreamingInput
 {
  public:
-  explicit SingleTPCInput(const std::string &name);
-  ~SingleTPCInput() override;
+  explicit SingleTpcInput(const std::string &name);
+  ~SingleTpcInput() override;
   void FillPool(const unsigned int nevents = 1) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   bool CheckPoolDepth(const uint64_t bclk) override;
   void ClearCurrentEvent() override;
+  bool GetSomeMoreEvents();
   void Print(const std::string &what = "ALL") const override;
 
  private:
   Packet **plist = nullptr;
-  InttPool pool;
   unsigned int m_NumSpecialEvents = 0;
   std::array<uint64_t, 14> m_PreviousClock{};
   std::array<uint64_t, 14> m_Rollover{};
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
-  std::map<uint64_t, std::vector<InttRawHit *>> m_InttRawHitMap;
+  std::map<uint64_t, std::vector<TpcRawHit *>> m_TpcRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
 };

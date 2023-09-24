@@ -16,13 +16,14 @@ class InttRawHit;
 class Packet;
 class PHCompositeNode;
 class SyncObject;
+class TpcRawHit;
 
 class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
 {
  public:
-  Fun4AllEvtInputPoolManager(const std::string &name = "DUMMY", const std::string &evtnodename = "EVT", const std::string &topnodename = "TOP");
+  Fun4AllEvtInputPoolManager(const std::string &name = "DUMMY", const std::string &dstnodename = "DST", const std::string &topnodename = "TOP");
   ~Fun4AllEvtInputPoolManager() override;
-  int fileopen(const std::string &filenam) override { return 0; }
+  int fileopen(const std::string & /*filenam*/) override { return 0; }
   // cppcheck-suppress virtualCallInConstructor
   int fileclose() override;
   int run(const int nevents = 0) override;
@@ -40,6 +41,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   void AddPacket(uint64_t bclk, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
+  void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
 
  private:
   struct PacketInfo
@@ -53,13 +55,19 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
     unsigned int EventFoundCounter = 0;
   };
 
+  struct TpcRawHitInfo
+  {
+    std::vector<TpcRawHit *> TpcRawHitVector;
+    unsigned int EventFoundCounter = 0;
+  };
+
   int m_RunNumber = 0;
   std::vector<SingleStreamingInput *> m_EvtInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
   std::map<uint64_t, PacketInfo> m_PacketInfoMap;
   std::map<uint64_t, InttRawHitInfo> m_InttRawHitMap;
-  std::string m_EvtNodeName;
+  std::map<uint64_t, TpcRawHitInfo> m_TpcRawHitMap;
 };
 
 #endif /* FUN4ALL_FUN4ALLEVTINPUTPOOLMANAGER_H */
