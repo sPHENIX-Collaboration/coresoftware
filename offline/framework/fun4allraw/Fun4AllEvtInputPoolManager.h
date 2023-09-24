@@ -21,7 +21,7 @@ class TpcRawHit;
 class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
 {
  public:
-  Fun4AllEvtInputPoolManager(const std::string &name = "DUMMY", const std::string &evtnodename = "EVT", const std::string &topnodename = "TOP");
+  Fun4AllEvtInputPoolManager(const std::string &name = "DUMMY", const std::string &dstnodename = "DST", const std::string &topnodename = "TOP");
   ~Fun4AllEvtInputPoolManager() override;
   int fileopen(const std::string &filenam) override { return 0; }
   // cppcheck-suppress virtualCallInConstructor
@@ -68,7 +68,6 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   std::map<uint64_t, PacketInfo> m_PacketInfoMap;
   std::map<uint64_t, InttRawHitInfo> m_InttRawHitMap;
   std::map<uint64_t, TpcRawHitInfo> m_TpcRawHitMap;
-  std::string m_EvtNodeName;
 };
 
 #endif /* FUN4ALL_FUN4ALLEVTINPUTPOOLMANAGER_H */

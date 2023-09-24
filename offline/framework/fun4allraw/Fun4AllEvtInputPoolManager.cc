@@ -38,37 +38,12 @@
 #include <iostream>  // for operator<<, basic_ostream, endl
 #include <utility>   // for pair
 
-Fun4AllEvtInputPoolManager::Fun4AllEvtInputPoolManager(const std::string &name, const std::string &evtnodename, const std::string &topnodename)
-  : Fun4AllInputManager(name, evtnodename, topnodename)
+Fun4AllEvtInputPoolManager::Fun4AllEvtInputPoolManager(const std::string &name, const std::string &dstnodename, const std::string &topnodename)
+  : Fun4AllInputManager(name, dstnodename, topnodename)
   , m_SyncObject(new SyncObjectv1())
-  , m_EvtNodeName(evtnodename)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
   m_topNode = se->topNode(TopNodeName());
-  PHNodeIterator iter(m_topNode);
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  if (! dstNode)
-  {
-    dstNode = new PHCompositeNode("DST");
-    m_topNode->addNode(dstNode);
-  }
-  PHNodeIterator iterDst(dstNode);
-PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "INTT"));
-if (!detNode)
-{
-  detNode = new PHCompositeNode("INTT");
-  dstNode->addNode(detNode);
-}
-
-  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode,"INTTRAWHIT");
-  if (!intthitcont)
-  {
-    intthitcont = new InttRawHitContainerv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
-    detNode->addNode(newNode);
-  }
-
-  m_topNode->print();
   return;
 }
 
@@ -354,10 +329,7 @@ int Fun4AllEvtInputPoolManager::SyncIt(const SyncObject *mastersync)
 
 std::string Fun4AllEvtInputPoolManager::GetString(const std::string &what) const
 {
-  if (what == "EVTNODENAME")
-  {
-    return m_EvtNodeName;
-  }
+  std::cout << PHWHERE << " called with " << what << " , returning empty string" << std::endl;
   return "";
 }
 /*
@@ -381,6 +353,7 @@ void Fun4AllEvtInputPoolManager::registerStreamingInput(SingleStreamingInput *ev
 {
   m_EvtInputVector.push_back(evtin);
   evtin->InputManager(this);
+  evtin->CreateDSTNode(m_topNode);
   if (Verbosity() > 3)
   {
     std::cout << "registering " << evtin->Name()
