@@ -23,7 +23,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
  public:
   Fun4AllEvtInputPoolManager(const std::string &name = "DUMMY", const std::string &dstnodename = "DST", const std::string &topnodename = "TOP");
   ~Fun4AllEvtInputPoolManager() override;
-  int fileopen(const std::string &filenam) override { return 0; }
+  int fileopen(const std::string & /*filenam*/) override { return 0; }
   // cppcheck-suppress virtualCallInConstructor
   int fileclose() override;
   int run(const int nevents = 0) override;

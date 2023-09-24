@@ -13,7 +13,6 @@
 
 class Eventiterator;
 class Fun4AllEvtInputPoolManager;
-//class InttRawHit;
 class Packet;
 class PHCompositeNode;
 
@@ -44,15 +43,11 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
  private:
   Eventiterator *m_EventIterator = nullptr;
   Fun4AllEvtInputPoolManager *m_InputMgr = nullptr;
-  unsigned int m_NumSpecialEvents = 0;
   unsigned int m_EventNumberOffset = 1;  // packet event counters start at 0 but we start with event number 1
   int m_RunNumber = 0;
   int m_EventsThisFile = 0;
   int m_AllDone = 0;
-  std::array<uint64_t, 14> m_PreviousClock{};
-  std::array<uint64_t, 14> m_Rollover{};
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
-//  std::map<uint64_t, std::vector<InttRawHit *>> m_InttRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
 };

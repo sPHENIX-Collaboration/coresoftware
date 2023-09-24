@@ -82,7 +82,7 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
 //      int m_maxFEECount = plist[i]->iValue(0, "MAX_FEECOUNT");
       std::set<uint64_t> bclk_set;
 uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
-    for (int t = 0; t < m_nTaggerInFrame; t++)
+    for (uint64_t t = 0; t < m_nTaggerInFrame; t++)
     {
       std::cout << "bco: 0x" << std::hex << plist[i]->lValue(t, "BCO")
 		<< std::dec << std::endl;
