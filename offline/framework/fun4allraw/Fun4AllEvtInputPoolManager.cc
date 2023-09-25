@@ -327,15 +327,16 @@ void Fun4AllEvtInputPoolManager::registerStreamingInput(SingleStreamingInput *ev
   evtin->CreateDSTNode(m_topNode);
   switch (system)
   {
-    case Fun4AllEvtInputPoolManager::MVTX:
+  case Fun4AllEvtInputPoolManager::MVTX:
     m_mvtx_registered_flag = true;
     break;
-    case Fun4AllEvtInputPoolManager::INTT:
+  case Fun4AllEvtInputPoolManager::INTT:
     m_intt_registered_flag = true;
     break;
-    case Fun4AllEvtInputPoolManager::TPC:
+  case Fun4AllEvtInputPoolManager::TPC:
     m_tpc_registered_flag = true;
-    case Fun4AllEvtInputPoolManager::TPOT:
+    break;
+  case Fun4AllEvtInputPoolManager::TPOT:
     m_tpot_registered_flag = true;
     break;
   default:
