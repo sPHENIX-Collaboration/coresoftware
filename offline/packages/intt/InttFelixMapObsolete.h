@@ -1,7 +1,5 @@
-#ifndef FELIX_MAP_H
-#define FELIX_MAP_H
-
-#include <cstdlib>
+#ifndef INTT_FELIXMAPOBSOLETE_H
+#define INTT_FELIXMAPOBSOLETE_H
 
 namespace INTT_Felix
 {
@@ -15,4 +13,4 @@ namespace INTT_Felix
 	int FelixMap(int const&, int const&, struct Ladder_s&);
 };
 
-#endif//FELIX_MAP_H
+#endif//INTT_FELIXMAPOBSOLETE_H

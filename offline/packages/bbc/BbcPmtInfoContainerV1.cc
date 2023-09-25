@@ -57,6 +57,6 @@ void BbcPmtInfoContainerV1::Reset()
 
 BbcPmtInfoV1* BbcPmtInfoContainerV1::get_tower_at_channel(int pos)
 {
-  return (BbcPmtInfoV1*) _clones->At(pos);
+  return (BbcPmtInfoV1*)_clones->At(pos);
 }
 

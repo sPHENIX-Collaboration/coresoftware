@@ -4,13 +4,8 @@
 #include <map>
 
 #include <Eigen/Dense>
-#include <Eigen/Geometry>
-#include <Eigen/LU>
-#include <Eigen/SVD>
 
-#include <Event/Event.h>
-#include <Event/EventTypes.h>
-#include <Event/packet.h>
+class Packet;
 
 namespace Intt
 {

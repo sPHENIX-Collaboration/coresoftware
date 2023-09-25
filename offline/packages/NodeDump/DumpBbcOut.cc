@@ -25,17 +25,16 @@ int DumpBbcOut::process_Node(PHNode *myNode)
   }
   if (bbcout && bbcout->isValid())
   {
-    *fout << "BbcOut->get_VertexPoint: " << bbcout->get_VertexPoint() << std::endl;
-    *fout << "BbcOut->get_dVertexPoint: " << bbcout->get_dVertexPoint() << std::endl;
-    *fout << "BbcOut->get_TimeZero: " << bbcout->get_TimeZero() << std::endl;
-    *fout << "BbcOut->get_dTimeZero: " << bbcout->get_dTimeZero() << std::endl;
-
-    for (int j = 0; j < 2; j++)
-    {
-      *fout << "BbcOut->get_nPMT(" << j << "): " << bbcout->get_nPMT(j) << std::endl;
-      *fout << "BbcOut->get_nCharge(" << j << "): " << bbcout->get_nCharge(j) << std::endl;
-      *fout << "BbcOut->get_Timing(" << j << "): " << bbcout->get_Timing(j) << std::endl;
-    }
+    *fout << "BbcOut->get_bz: " << bbcout->get_zvtx() << std::endl;
+    *fout << "BbcOut->get_bzerr: " << bbcout->get_zvtxerr() << std::endl;
+    *fout << "BbcOut->get_t0: " << bbcout->get_t0() << std::endl;
+    *fout << "BbcOut->get_t0err: " << bbcout->get_t0err() << std::endl;
+    *fout << "BbcOut->get_bns: " << bbcout->get_npmt(0) << std::endl;
+    *fout << "BbcOut->get_bnn: " << bbcout->get_npmt(1) << std::endl;
+    *fout << "BbcOut->get_bqs: " << bbcout->get_q(0) << std::endl;
+    *fout << "BbcOut->get_bqn: " << bbcout->get_q(1) << std::endl;
+    *fout << "BbcOut->get_bts: " << bbcout->get_time(0) << std::endl;
+    *fout << "BbcOut->get_btn: " << bbcout->get_time(1) << std::endl;
   }
   return 0;
 }

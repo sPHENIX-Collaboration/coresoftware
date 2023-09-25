@@ -16,7 +16,7 @@ class InttCombinedRawDataDecoder : public SubsysReco
   int process_event(PHCompositeNode*) override;
 
  private:
-  std::string m_EvtNodeName = "EVT";
+  std::string m_InttRawNodeName = "INTTRAWHIT";
 };
 
 #endif  // INTT_COMBINEDRAWDATADECODER_H

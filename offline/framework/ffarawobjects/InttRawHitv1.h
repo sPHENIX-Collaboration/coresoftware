@@ -1,21 +1,30 @@
-#ifndef FUN4ALLRAW_INTTHITV1_H
-#define FUN4ALLRAW_INTTHITV1_H
+#ifndef FUN4ALLRAW_INTTRAWHITV1_H
+#define FUN4ALLRAW_INTTRAWHITV1_H
 
-#include "InttHit.h"
+#include "InttRawHit.h"
 
 #include <limits>
 
 
-class  InttHitv1: public InttHit  
+class  InttRawHitv1: public InttRawHit
 {
 
 
 public:
-  InttHitv1() {}
-  ~InttHitv1() override {};
+  InttRawHitv1() {}
+  InttRawHitv1(InttRawHit *intthit);
+  ~InttRawHitv1() override {};
+
+  /** identify Function from PHObject
+      @param os Output Stream
+   */
+  void identify(std::ostream &os = std::cout) const override;
 
   uint64_t get_bco() const override {return bco;}
   void set_bco(const uint64_t val) override {bco = val;}
+
+  int32_t get_packetid() const override {return packetid;}
+  void set_packetid(const int32_t val) override {packetid = val;}
 
   uint32_t get_word() const override {return word;}
   void set_word(uint32_t val) override {word = val;}
@@ -47,6 +56,7 @@ public:
 
 protected:
     uint64_t bco = std::numeric_limits<uint64_t>::max();
+    int32_t packetid = std::numeric_limits<int32_t>::max();
     uint32_t word = std::numeric_limits<uint32_t>::max();
     uint16_t fee = std::numeric_limits<uint16_t>::max();
     uint16_t channel_id = std::numeric_limits<uint16_t>::max();
@@ -57,8 +67,7 @@ protected:
     uint16_t full_ROC = std::numeric_limits<uint16_t>::max();
     uint16_t amplitude = std::numeric_limits<uint16_t>::max();
 
-  ClassDefOverride(InttHitv1,1)    
+  ClassDefOverride(InttRawHitv1,1)
 };
 
- 
 #endif 

@@ -36,6 +36,8 @@ pkginclude_HEADERS = \
   BbcPmtHitV1.h \
   BbcPmtInfoContainerV1.h \
   BbcPmtInfoV1.h \
+  BbcSig.h \
+  BbcEvent.h \
   BbcReco.h \
   BbcGeom.h \
   BbcGeomV1.h \
@@ -120,6 +122,8 @@ libbbc_io_la_SOURCES = \
   BbcPmtInfoV1.cc \
   BbcPmtInfoContainerV1.cc \
   BbcGeomV1.cc \
+  BbcSig.cc \
+  BbcEvent.cc \
   BbcReco.cc \
   BbcVertexv1.cc \
   BbcVertexv2.cc \
