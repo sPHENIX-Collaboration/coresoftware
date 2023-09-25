@@ -11,9 +11,9 @@
 
 #include <Acts/EventData/SourceLink.hpp>
 
+#include "ActsSourceLink.h"
 #include "TrkrDefs.h"
 #include "alignmentTransformationContainer.h"
-#include "ActsSourceLink.h"
 
 class Calibrator
 {
@@ -43,8 +43,8 @@ class Calibrator
   void calibrate(const Acts::GeometryContext& gctx,
                  Acts::MultiTrajectory<Acts::VectorMultiTrajectory>::TrackStateProxy trackState) const
   {
-    const auto& sourceLink =
-        static_cast<const ActsSourceLink&>(trackState.uncalibrated());
+    const ActsSourceLink& sourceLink = trackState.getUncalibratedSourceLink().get<ActsSourceLink>();
+
     assert(m_measurements and
            "Undefined measurement container in DigitizedCalibrator");
     assert((sourceLink.index() < m_measurements->size()) and
