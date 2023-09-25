@@ -25,6 +25,7 @@
 
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/EventData/SourceLink.hpp>
+#include <Acts/EventData/VectorTrackContainer.hpp>
 
 #include <functional>
 #include <memory>
@@ -128,14 +129,18 @@ class ActsTrackFittingAlgorithm final
       bool multipleScattering = true, bool energyLoss = true,
       double reverseFilteringMomThreshold = 0.0,
       Acts::FreeToBoundCorrection freeToBoundCorrection =
-          Acts::FreeToBoundCorrection());
+      Acts::FreeToBoundCorrection(),
+      const Acts::Logger& logger = *Acts::getDefaultLogger("Kalman",
+							   Acts::Logging::FATAL));
 
   static std::shared_ptr<DirectedTrackFitterFunction> makeKalmanFitterFunction(
       std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
       bool multipleScattering = true, bool energyLoss = true,
       double reverseFilteringMomThreshold = 0.0,
       Acts::FreeToBoundCorrection freeToBoundCorrection =
-          Acts::FreeToBoundCorrection());
+      Acts::FreeToBoundCorrection(),
+      const Acts::Logger& logger = *Acts::getDefaultLogger("Kalman",
+							   Acts::Logging::FATAL));
 
  private:
   /// Helper function to call correct FitterFunction
