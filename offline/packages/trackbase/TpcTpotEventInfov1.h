@@ -28,7 +28,17 @@ class TpcTpotEventInfov1 : public TpcTpotEventInfo
   ~TpcTpotEventInfov1() override = default;
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override;
-  void Reset() override {}
+  void Reset() override 
+  {
+    memset(m_tagger_type,0,sizeof(m_tagger_type));
+    memset(m_is_endat,0,sizeof(m_is_endat));
+    memset(m_is_lvl1,0,sizeof(m_is_lvl1));
+    memset(m_bco,0,sizeof(m_bco));
+    memset(m_lvl1_count,0,sizeof(m_lvl1_count));
+    memset(m_endat_count,0,sizeof(m_endat_count));
+    memset(m_last_bco,0,sizeof(m_last_bco));
+    memset(m_modebits,0,sizeof(m_modebits));
+  }
   int isValid() const override;
   PHObject* CloneMe() const override { return new TpcTpotEventInfov1(*this); }
  
@@ -62,14 +72,14 @@ class TpcTpotEventInfov1 : public TpcTpotEventInfo
 
  protected:
 
-  uint16_t m_tagger_type[25][2][2];
-  uint8_t m_is_endat[25][2][2];
-  uint8_t m_is_lvl1[25][2][2];
-  uint64_t m_bco[25][2][2];
-  uint32_t m_lvl1_count[25][2][2];
-  uint32_t m_endat_count[25][2][2];
-  uint64_t m_last_bco[25][2][2];
-  uint8_t m_modebits[25][2][2];
+  uint16_t m_tagger_type[25][2][2]{};
+  uint8_t m_is_endat[25][2][2]{};
+  uint8_t m_is_lvl1[25][2][2]{};
+  uint64_t m_bco[25][2][2]{};
+  uint32_t m_lvl1_count[25][2][2]{};
+  uint32_t m_endat_count[25][2][2]{};
+  uint64_t m_last_bco[25][2][2]{};
+  uint8_t m_modebits[25][2][2]{};
 
   ClassDefOverride(TpcTpotEventInfov1, 1)
 };
