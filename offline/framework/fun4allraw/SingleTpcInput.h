@@ -26,6 +26,7 @@ class SingleTpcInput : public SingleStreamingInput
   void ClearCurrentEvent() override;
   bool GetSomeMoreEvents();
   void Print(const std::string &what = "ALL") const override;
+  void CreateDSTNode(PHCompositeNode *topNode) override;
 
  private:
   Packet **plist = nullptr;
