@@ -6,6 +6,9 @@ TpcRawHitv1::TpcRawHitv1(TpcRawHit *tpchit)
   set_packetid(tpchit->get_packetid());
   set_fee(tpchit->get_fee());
   set_channel(tpchit->get_channel());
+  set_sampaaddress(tpchit->get_sampaaddress());
+  set_sampachannel(tpchit->get_sampachannel());
+  set_samples(tpchit->get_samples());
 }
 
 void TpcRawHitv1::identify(std::ostream &os) const

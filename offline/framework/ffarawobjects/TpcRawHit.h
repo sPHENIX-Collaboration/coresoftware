@@ -26,6 +26,15 @@ public:
   virtual uint16_t get_channel() const {return std::numeric_limits<uint16_t>::max();}
   virtual void set_channel(const uint16_t) {return;}
 
+  virtual uint16_t get_sampaaddress() const {return std::numeric_limits<uint16_t>::max();}
+  virtual void set_sampaaddress(const uint16_t) {return;}
+
+  virtual uint16_t get_sampachannel() const {return std::numeric_limits<uint16_t>::max();}
+  virtual void set_sampachannel(const uint16_t) {return;}
+
+  virtual uint16_t get_samples() const {return std::numeric_limits<uint16_t>::max();}
+  virtual void set_samples(const uint16_t) {return;}
+
 private:
   ClassDefOverride(TpcRawHit,1)
 };

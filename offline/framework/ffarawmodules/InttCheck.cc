@@ -23,7 +23,7 @@
 
 //____________________________________________________________________________..
 InttCheck::InttCheck(const std::string &name)
-  : SubsysReco(name)
+: SubsysReco(name)
 {
 }
 
@@ -43,14 +43,28 @@ int InttCheck::process_event(PHCompositeNode *topNode)
   }
   else
   {
-  inttcont->identify();
-
-  for (unsigned int i=0; i<inttcont->get_nhits(); i++)
-  {
-    inttcont->get_hit(i)->identify();
-  }
+//  inttcont->identify();
+    uint64_t refbco = std::numeric_limits<uint64_t>::max();
+    bool ifirst = true;
+    for (unsigned int i=0; i<inttcont->get_nhits(); i++)
+    {
+      InttRawHit *inh = inttcont->get_hit(i);
+      if (ifirst)
+      {
+	refbco = inh->get_bco();
+        ifirst = false;
+      }
+      else
+      {
+	if (refbco != inh->get_bco())
+	{
+	  std::cout << "scream, refbco: 0x" << std::hex << refbco
+		    << " current bco: 0x" << inh->get_bco()
+		    << std::dec << std::endl;
+	}
+      }
+    }
 
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
-

@@ -1,4 +1,5 @@
 #include "InttCombinedRawDataConverter.h"
+#include "InttMapping.h"
 
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
@@ -88,44 +89,35 @@ int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
   tree->Branch("num_hits", &num_hits);
 
   branches_i =
-      {
-          {"flx_svr", new std::vector<Int_t>()},
-          {"flx_chn", new std::vector<Int_t>()},
-          {"lyr", new std::vector<Int_t>()},
-          {"ldr", new std::vector<Int_t>()},
-          {"arm", new std::vector<Int_t>()},
-          {"chp", new std::vector<Int_t>()},
-          {"chn", new std::vector<Int_t>()},
+  {
+     {"flx_svr", new std::vector<Int_t>()},
+     {"flx_chn", new std::vector<Int_t>()},
+     {"lyr",     new std::vector<Int_t>()},
+     {"ldr",     new std::vector<Int_t>()},
+     {"arm",     new std::vector<Int_t>()},
+     {"chp",     new std::vector<Int_t>()},
+     {"chn",     new std::vector<Int_t>()},
 
-          {"flx_bco", new std::vector<Int_t>()},
-          {"adc", new std::vector<Int_t>()},
-          {"amp", new std::vector<Int_t>()},
-      };
+     {"flx_bco", new std::vector<Int_t>()},
+     {"adc",     new std::vector<Int_t>()},
+     {"amp",     new std::vector<Int_t>()},
+  };
 
   branches_l =
-      {
-          {"gtm_bco", new std::vector<Long64_t>()},
-      };
+  {
+     {"gtm_bco", new std::vector<Long64_t>()},
+  };
 
   branches_d =
-      {
-          //	{"g_x",		new std::vector<Double_t>()},
-          //	{"g_y",		new std::vector<Double_t>()},
-          //	{"g_z",		new std::vector<Double_t>()},
-      };
+  {
+     //{"g_x",   new std::vector<Double_t>()},
+     //{"g_y",   new std::vector<Double_t>()},
+     //{"g_z",   new std::vector<Double_t>()},
+  };
 
-  for (auto& itr : branches_i)
-  {
-    tree->Branch(itr.first.c_str(), &(itr.second));
-  }
-  for (auto& itr : branches_l)
-  {
-    tree->Branch(itr.first.c_str(), &(itr.second));
-  }
-  for (auto& itr : branches_d)
-  {
-    tree->Branch(itr.first.c_str(), &(itr.second));
-  }
+  for (auto& itr : branches_i)tree->Branch(itr.first.c_str(), &(itr.second));
+  for (auto& itr : branches_l)tree->Branch(itr.first.c_str(), &(itr.second));
+  for (auto& itr : branches_d)tree->Branch(itr.first.c_str(), &(itr.second));
 
   if (Verbosity() > 20)
   {
@@ -142,18 +134,9 @@ int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 int InttCombinedRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)
 {
   n_evt = 0;
-  for (auto& itr : branches_i)
-  {
-    itr.second->clear();
-  }
-  for (auto& itr : branches_l)
-  {
-    itr.second->clear();
-  }
-  for (auto& itr : branches_d)
-  {
-    itr.second->clear();
-  }
+  for (auto& itr : branches_i)itr.second->clear();
+  for (auto& itr : branches_l)itr.second->clear();
+  for (auto& itr : branches_d)itr.second->clear();
 
   if (Verbosity() > 20)
   {
@@ -194,30 +177,41 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
     exit(1);
   }
 
-  for (auto& itr : branches_i)
-  {
-    itr.second->clear();
-  }
-  for (auto& itr : branches_l)
-  {
-    itr.second->clear();
-  }
-  for (auto& itr : branches_d)
-  {
-    itr.second->clear();
-  }
+  for (auto& itr : branches_i)itr.second->clear();
+  for (auto& itr : branches_l)itr.second->clear();
+  for (auto& itr : branches_d)itr.second->clear();
 
+  Intt::RawData_s raw;
+  Intt::Online_s onl;
+  std::map<std::tuple<int, int, int, int, int>, char> hits;
   for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
   {
     InttRawHit* intthit = inttcont->get_hit(i);
-    branches_i["flx_svr"]->push_back(-9999);
-    branches_i["flx_chn"]->push_back(intthit->get_channel_id());
 
-    branches_i["lyr"]->push_back(-9999);
-    branches_i["ldr"]->push_back(-9999);
-    branches_i["arm"]->push_back(-9999);
-    branches_i["chp"]->push_back(intthit->get_chip_id());
-    branches_i["chn"]->push_back(-9999);
+    raw.felix_server = Intt::FelixFromPacket(intthit->get_packetid());
+    raw.felix_channel = intthit->get_fee();
+    raw.chip = intthit->get_chip_id();
+    raw.channel = intthit->get_channel_id();
+    onl = Intt::ToOnline(raw);
+
+    std::tuple<int, int, int, int, int> tpl;
+    std::get<0>(tpl) = onl.lyr;
+    std::get<1>(tpl) = onl.ldr;
+    std::get<2>(tpl) = onl.arm;
+    std::get<3>(tpl) = onl.chp;
+    std::get<4>(tpl) = onl.chn;
+
+    if(hits.find(tpl) != hits.end())continue;
+    hits[tpl] = 0;
+
+    branches_i["flx_svr"]->push_back(raw.felix_server);
+    branches_i["flx_chn"]->push_back(raw.felix_channel);
+
+    branches_i["lyr"]->push_back(onl.lyr);
+    branches_i["ldr"]->push_back(onl.ldr);
+    branches_i["arm"]->push_back(onl.arm);
+    branches_i["chp"]->push_back(onl.chp);
+    branches_i["chn"]->push_back(onl.chn);
 
     branches_i["flx_bco"]->push_back(intthit->get_FPHX_BCO());
     branches_i["adc"]->push_back(intthit->get_adc());
