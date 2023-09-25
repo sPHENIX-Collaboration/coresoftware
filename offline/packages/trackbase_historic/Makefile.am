@@ -17,7 +17,7 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
+  -L$(MYINSTALL)/lib64
 
 pkginclude_HEADERS = \
   ActsTransformations.h \

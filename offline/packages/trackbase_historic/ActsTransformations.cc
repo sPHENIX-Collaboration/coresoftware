@@ -294,7 +294,7 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory<Acts::
       out.set_px(momentum.x());
       out.set_py(momentum.y());
       out.set_pz(momentum.z());
-      const auto& sourceLink = static_cast<const ActsSourceLink&>(state.uncalibrated());
+      auto sourceLink = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
       out.set_cluskey(sourceLink.cluskey());
       
       /// covariance    
