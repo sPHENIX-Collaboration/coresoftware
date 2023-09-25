@@ -911,23 +911,18 @@ void HelicalFitter::getTrackletClusters(TrackSeed *tracklet, std::vector<Acts::V
 
 void HelicalFitter::getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
-  std::cout << " get list" << std::endl;
+  //  std::cout << " get list" << std::endl;
   for (auto clusIter = tracklet->begin_cluster_keys();
        clusIter != tracklet->end_cluster_keys();
        ++clusIter)
     {
       auto key = *clusIter;
-      std::cout << " got cluskey: " << key << std::endl;
-      if(_cluster_map==nullptr)
-	std::cout << " no map " << std::endl;
       auto cluster = _cluster_map->findCluster(key);
-      std::cout << " got clus pointer" << std::endl;
       if(!cluster)
 	{
-	  std::cout << "Failed to get cluster with key " << key << std::endl;
+	  //	  std::cout << "Failed to get cluster with key " << key << std::endl;
 	  continue;
 	}	  
-            std::cout << " got clus" << std::endl;
       /// Make a safety check for clusters that couldn't be attached to a surface
       auto surf = _tGeometry->maps().getSurface(key, cluster);
       if(!surf)  { continue; }

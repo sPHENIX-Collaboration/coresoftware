@@ -1140,10 +1140,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       float tZ0 = tpcseed->get_Z0();
       
       float nhits_local = 0;
-      if (tpcseed)
-	{
-	  nhits_local += tpcseed->size_cluster_keys();
-	}
+      nhits_local += tpcseed->size_cluster_keys();
       
       std::cout << " process clusters " << std::endl;
 
