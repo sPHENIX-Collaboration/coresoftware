@@ -333,7 +333,7 @@ class AnnularFieldSim
   TVector3 swimToInSteps(float zdest, TVector3 start, int steps, bool interpolate, int *goodToStep);
   TVector3 swimTo(float zdest, TVector3 start, bool interpolate = true, bool useAnalytic = false);
   TVector3 GetStepDistortion(float zdest, TVector3 start, bool interpolate = true, bool useAnalytic = false);
-  TVector3 GetTotalDistortion(float zdest, TVector3 start, int nsteps, bool interpolate = true, int *goodToStep = 0);
+  TVector3 GetTotalDistortion(float zdest, TVector3 start, int nsteps, bool interpolate = true, int *goodToStep = 0, int *success = 0);
 
  private:
   BoundsCase GetRindexAndCheckBounds(float pos, int *r);
