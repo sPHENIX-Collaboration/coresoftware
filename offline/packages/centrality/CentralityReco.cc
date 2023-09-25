@@ -1,6 +1,9 @@
 #include "CentralityReco.h"
 
 #include "CentralityInfov2.h"
+#include "bbc/BbcDefs.h"
+#include "bbc/BbcVertexMapv1.h"
+#include "bbc/BbcVertexv2.h"
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
@@ -337,33 +340,33 @@ int CentralityReco::FillVars()
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
   size = _towers_mbd->size();
-
+  
   if (size != 256)
-  {
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
   for (unsigned int i = 0; i < size; i++)
-  {
-    _tmp_tower = _towers_mbd->get_tower_at_channel(i);
-    _key = TowerInfoDefs::encode_mbd(i);
-    _type = TowerInfoDefs::get_mbd_type(_key);
-    _side = TowerInfoDefs::get_mbd_side(_key);
-    _channel = TowerInfoDefs::get_mbd_channel(_key);
-    _energy = _tmp_tower->get_energy();
-    if (_type)
     {
-      m_mbd_charge_raw[_channel + _side * 64] = _energy;
-      m_mbd_charge[_channel + _side * 64] = gaincorr[_channel + _side * 64] * _energy;
+      _tmp_tower = _towers_mbd->get_tower_at_channel(i);
+      _key = TowerInfoDefs::encode_mbd(i);
+      _type = TowerInfoDefs::get_mbd_type(_key);
+      _side = TowerInfoDefs::get_mbd_side(_key);
+      _channel = TowerInfoDefs::get_mbd_channel(_key);
+      _energy = _tmp_tower->get_energy();
+      if (_type)
+	{
+	  m_mbd_charge_raw[_channel + _side * 64] = _energy;
+	  m_mbd_charge[_channel + _side * 64] = gaincorr[_channel + _side * 64] * _energy;
+	}
+      else
+	{
+	  m_mbd_time_raw[_channel + _side * 64] = _energy;
+	  m_mbd_time[_channel + _side * 64] = (25. - _energy * (9.0 / 5000.) - tq_t0_offsets[_channel + _side * 64]);
+	  m_mbd_side[_channel + _side * 64] = _side;
+	  m_mbd_channel[_channel + _side * 64] = _channel;
+	}
     }
-    else
-    {
-      m_mbd_time_raw[_channel + _side * 64] = _energy;
-      m_mbd_time[_channel + _side * 64] = (25. - _energy * (9.0 / 5000.) - tq_t0_offsets[_channel + _side * 64]);
-      m_mbd_side[_channel + _side * 64] = _side;
-      m_mbd_channel[_channel + _side * 64] = _channel;
-    }
-  }
 
   size = _towers_zdc->size();
 
@@ -396,7 +399,7 @@ int CentralityReco::FillVars()
     }
   }
 
-  if (Verbosity())
+  if (Verbosity() > 5)
   {
     std::cout << "--------- ZDC data: ----------" << std::endl;
     std::cout << "South:" << std::endl;
@@ -412,7 +415,7 @@ int CentralityReco::FillVars()
     }
     std::cout << "Sum : " << m_zdc_sum_low[1] << " (" << m_zdc_sum_high[1] << ") " << std::endl;
   }
-  if (Verbosity())
+  if (Verbosity() > 5)
   {
     std::cout << "--------- MBD data: ----------" << std::endl;
     std::cout << "South:" << std::endl;
@@ -529,8 +532,9 @@ void CentralityReco::FillHistograms()
 
 void CentralityReco::PrintCentiles()
 {
-  std::cout << " --------- CentralityReco::PrintCentiles --------- " << std::endl;
 
+  std::cout << " --------- CentralityReco::PrintCentiles --------- " << std::endl;
+  
   float totalevents = h_mbd_charge_ns->Integral();
   int ipercentbin = 1;
   for (int i = 0; i < h_mbd_charge_ns->GetNbinsX(); i++)
@@ -551,19 +555,20 @@ int CentralityReco::GetMBDVertexAndCharge()
   {
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
-  float tdc[2] = {0., 0.};
+  _tdc[0] = 0.;
+  _tdc[1] = 0.;
   unsigned int size = _towers_mbd->size();
   int side;
 
   for (unsigned int i = 0; i < size / 2; i++)
   {
     side = m_mbd_side[i];
-    if (m_mbd_charge[i] < _mbd_charge_threshold)
+    if (m_mbd_charge[i] <= _mbd_charge_threshold)
     {
       continue;
     }
 
-    tdc[side] += m_mbd_time[i];  //(25. - m_mbd_time[i]*(9.0/5000.) - tq_t0_offsets[m_mbd_channel[i] + side*64]);
+    _tdc[side] += m_mbd_time[i];  //(25. - m_mbd_time[i]*(9.0/5000.) - tq_t0_offsets[m_mbd_channel[i] + side*64]);
 
     _tubes_hit[side]++;
   }
@@ -577,7 +582,7 @@ int CentralityReco::GetMBDVertexAndCharge()
     _isMinBias = 0;
   }
 
-  _z_vertex = _offset + 15 * (tdc[1] / _tubes_hit[1] - tdc[0] / _tubes_hit[0]);
+  _z_vertex = _offset + 15 * (_tdc[1] / _tubes_hit[1] - _tdc[0] / _tubes_hit[0]);
 
   if (Verbosity())
   {
@@ -600,7 +605,7 @@ int CentralityReco::GetMBDVertexAndCharge()
   }
 
   _mbd_charge_sum = _mbd_charge_sum_s + _mbd_charge_sum_n;
-  ;
+  
   if (Verbosity())
   {
     std::cout << "mbd charge = " << _mbd_charge_sum << std::endl;
@@ -644,8 +649,16 @@ int CentralityReco::FillCentralityInfo()
   _central->setMinBias(final_check);
 
   // Fill z-vertex
-  _central->setVertex(_z_vertex);
 
+  auto vtx = std::make_unique<BbcVertexv2>();
+
+  vtx->set_z(_z_vertex);
+  vtx->set_t((_tdc[0] + _tdc[1])/2.);
+  vtx->set_bbc_ns(0, _tubes_hit[0], _mbd_charge_sum_s, _tdc[0]);
+  vtx->set_bbc_ns(1, _tubes_hit[1], _mbd_charge_sum_n, _tdc[1]);
+
+  _bbc_vertex_map->insert(vtx.release());
+  
   // Fill Centrality
 
   float value = 0;
@@ -662,6 +675,9 @@ int CentralityReco::FillCentralityInfo()
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   _central->set_centile(CentralityInfo::PROP::mbd_NS, value);
+
+  if (Verbosity()) _bbc_vertex_map->identify();
+  if (Verbosity()) _bbc_vertex_map->begin()->second->identify();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -725,6 +741,15 @@ int CentralityReco::GetNodes(PHCompositeNode *topNode)
   {
     std::cout << __FILE__ << " :: " << __FUNCTION__ << " :: " << __LINE__ << std::endl;
   }
+
+  _bbc_vertex_map = findNode::getClass<BbcVertexMapv1>(topNode, "BbcVertexMap");
+  
+  if (!_bbc_vertex_map)
+    {
+      std::cout << "no mbd vertex node" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  
   if (_op_mode == OperationMode::Performance)
   {
     _central = findNode::getClass<CentralityInfov2>(topNode, "CentralityInfo");
@@ -737,12 +762,12 @@ int CentralityReco::GetNodes(PHCompositeNode *topNode)
   }
 
   _towers_mbd = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_MBD");
-
+  
   if (!_towers_mbd)
-  {
-    std::cout << "no mbd towers node " << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
+    {
+      std::cout << "no mbd towers node " << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
 
   _towers_zdc = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_ZDC");
 
@@ -786,6 +811,23 @@ void CentralityReco::CreateNodes(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *centralityNode = new PHIODataNode<PHObject>(central, "CentralityInfo", "PHObject");
     detNode->addNode(centralityNode);
   }
+
+  PHCompositeNode *bbcNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", "BBC"));
+  if (!bbcNode)
+  {
+    std::cout << PHWHERE << "Detector Node missing, making one" << std::endl;
+    bbcNode = new PHCompositeNode("BBC");
+    dstNode->addNode(bbcNode);
+  }
+
+  _bbc_vertex_map = findNode::getClass<BbcVertexMapv1>(topNode, "BbcVertexMap");
+  if (!_bbc_vertex_map)
+    {
+      _bbc_vertex_map = new BbcVertexMapv1();
+      PHIODataNode<PHObject> *vertexNode = new PHIODataNode<PHObject>(_bbc_vertex_map, "BbcVertexMap", "PHObject");
+      detNode->addNode(vertexNode);
+    }
+
   return;
 }
 

@@ -17,6 +17,8 @@ class TowerInfo;
 class TowerInfoContainer;
 class TH1;
 class TH2;
+class BbcVertex;
+class BbcVertexMapv1;
 
 class CentralityReco : public SubsysReco
 {
@@ -59,6 +61,7 @@ class CentralityReco : public SubsysReco
   TFile *outfile = nullptr;
   TTree *ttree = nullptr;
   TowerInfo *_tmp_tower = nullptr;
+  BbcVertexMapv1 *_bbc_vertex_map = nullptr;
   CentralityInfo *_central = nullptr;
   TowerInfoContainer *_towers_mbd = nullptr;
   TowerInfoContainer *_towers_zdc = nullptr;
@@ -141,10 +144,12 @@ class CentralityReco : public SubsysReco
        1, 0, 0, 2, 1, 1, 2, 2};
 
   int _tubes_hit[2]{};
+  int _tdc[2]{};
   int m_mbd_side[128]{};
   int m_mbd_channel[128]{};
 
   float _mbd_charge_threshold = 0.3;
+  float _mbd_time_threshold = 15.0;
   float _zdc_energy_threshold = 1.;
   float _z_vertex = std::numeric_limits<float>::signaling_NaN();
   float _offset = std::numeric_limits<float>::signaling_NaN();
