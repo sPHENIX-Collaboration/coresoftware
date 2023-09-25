@@ -9,6 +9,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackermillepedealignment/HelicalFitter.h>
 
 #include <TMatrixFfwd.h>
 #include <TMatrixT.h>
@@ -114,7 +115,7 @@ class TrkrNtuplizer : public SubsysReco
   SvtxTrackMap* _trackmap = nullptr;
 
   TFile *_tfile;
-
+  HelicalFitter* _fitter = nullptr;
   PHTimer *_timer;
 
   // output subroutines
