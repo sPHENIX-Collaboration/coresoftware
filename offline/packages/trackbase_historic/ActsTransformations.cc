@@ -258,7 +258,7 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 }
 
 
-void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj,
+void ActsTransformations::fillSvtxTrackStates(const Acts::ConstVectorMultiTrajectory& traj,
 					      const size_t& trackTip,
 					      SvtxTrack *svtxTrack,
 					      Acts::GeometryContext& geoContext) const

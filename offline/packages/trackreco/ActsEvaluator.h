@@ -80,7 +80,7 @@ class ActsEvaluator
   void fillFittedTrackParams(const Trajectory traj,
                              const size_t& trackTip);
 
-  void visitTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj,
+  void visitTrackStates(const Acts::ConstVectorMultiTrajectory& traj,
                         const size_t& trackTip,
                         const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 

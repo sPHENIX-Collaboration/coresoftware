@@ -222,7 +222,7 @@ void ActsEvaluator::End()
   m_trackFile->Close();
 }
 
-void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj,
+void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& traj,
                                      const size_t& trackTip,
                                      const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
@@ -254,7 +254,7 @@ void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory<Acts::VectorMul
 		<< " : " << geoID.layer() << " : " 
 		<< geoID.sensitive() << std::endl;
       }
-    const auto& sourceLink = static_cast<const SourceLink&>(state.uncalibrated());
+    auto sourceLink = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
     const auto& cluskey = sourceLink.cluskey();
         
     Acts::Vector2 local = Acts::Vector2::Zero();

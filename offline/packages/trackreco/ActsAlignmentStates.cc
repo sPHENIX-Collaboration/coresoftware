@@ -97,7 +97,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
     }
       
     const auto& surface = state.referenceSurface();
-    const auto& sl = static_cast<const ActsSourceLink&>(state.uncalibrated());
+    auto sl = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
     auto ckey = sl.cluskey();
     Acts::Vector2 localMeas = Acts::Vector2::Zero();
     /// get the local measurement that acts used
