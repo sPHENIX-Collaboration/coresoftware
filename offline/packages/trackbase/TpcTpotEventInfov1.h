@@ -30,14 +30,14 @@ class TpcTpotEventInfov1 : public TpcTpotEventInfo
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override 
   {
-    memset(m_tagger_type,0,sizeof(m_tagger_type));
-    memset(m_is_endat,0,sizeof(m_is_endat));
-    memset(m_is_lvl1,0,sizeof(m_is_lvl1));
-    memset(m_bco,0,sizeof(m_bco));
-    memset(m_lvl1_count,0,sizeof(m_lvl1_count));
-    memset(m_endat_count,0,sizeof(m_endat_count));
-    memset(m_last_bco,0,sizeof(m_last_bco));
-    memset(m_modebits,0,sizeof(m_modebits));
+    std::fill_n(&m_tagger_type[0][0][0],100,UINT16_MAX);
+    std::fill_n(&m_is_endat[0][0][0],100,UINT8_MAX);
+    std::fill_n(&m_is_lvl1[0][0][0],100,UINT8_MAX);
+    std::fill_n(&m_bco[0][0][0],100,UINT64_MAX);
+    std::fill_n(&m_lvl1_count[0][0][0],100,UINT32_MAX);
+    std::fill_n(&m_endat_count[0][0][0],100,UINT32_MAX);
+    std::fill_n(&m_last_bco[0][0][0],100,UINT64_MAX);
+    std::fill_n(&m_modebits[0][0][0],100,UINT8_MAX);
   }
   int isValid() const override;
   PHObject* CloneMe() const override { return new TpcTpotEventInfov1(*this); }
@@ -53,22 +53,24 @@ class TpcTpotEventInfov1 : public TpcTpotEventInfo
   // event tagger info
   //
 
-  uint16_t getTaggerType(int sector, int PCIe, int tagger) const override { return m_tagger_type[sector][PCIe][tagger]; }
-  void setTaggerType(uint16_t type, int sector, int PCIe, int tagger) override { m_tagger_type[sector][PCIe][tagger] = type; }
-  uint8_t getEnDat(int sector, int PCIe, int tagger) const override { return m_is_endat[sector][PCIe][tagger]; }
-  void setEnDat(uint8_t endat, int sector, int PCIe, int tagger) override { m_is_endat[sector][PCIe][tagger] = endat; }
-  uint8_t getIsLevel1(int sector, int PCIe, int tagger) const override { return m_is_lvl1[sector][PCIe][tagger]; }
-  void setIsLevel1(uint8_t islvl1, int sector, int PCIe, int tagger) override { m_is_lvl1[sector][PCIe][tagger] = islvl1; }
-  uint64_t getBCO(int sector, int PCIe, int tagger) const override { return m_bco[sector][PCIe][tagger]; }
-  void setBCO(uint64_t bco, int sector, int PCIe, int tagger) override { m_bco[sector][PCIe][tagger] = bco; }
-  uint32_t getLevel1Count(int sector, int PCIe, int tagger) const override { return m_lvl1_count[sector][PCIe][tagger]; }
-  void setLevel1Count(uint32_t lvl1count, int sector, int PCIe, int tagger) override { m_lvl1_count[sector][PCIe][tagger] = lvl1count; }
-  uint32_t getEnDatCount(int sector, int PCIe, int tagger) const override { return m_endat_count[sector][PCIe][tagger]; }
-  void setEnDatCount(uint32_t endatcount, int sector, int PCIe, int tagger) override { m_endat_count[sector][PCIe][tagger] = endatcount; }
-  uint64_t getLastBCO(int sector, int PCIe, int tagger) const override { return m_last_bco[sector][PCIe][tagger]; }
-  void setLastBCO(uint64_t lastbco, int sector, int PCIe, int tagger) override { m_last_bco[sector][PCIe][tagger] = lastbco; }
-  uint8_t getModebits(int sector, int PCIe, int tagger) const override { return m_modebits[sector][PCIe][tagger]; }
-  void setModebits(uint8_t modebits, int sector, int PCIe, int tagger) override { m_modebits[sector][PCIe][tagger] = modebits; }
+  void checkIndexes(SectorID, PCIeEndPointID, TaggerID) override;
+
+  uint16_t getTaggerType(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_tagger_type[sector][PCIe][tagger]; }
+  void setTaggerType(uint16_t type, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_tagger_type[sector][PCIe][tagger] = type; }
+  uint8_t getEnDat(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_is_endat[sector][PCIe][tagger]; }
+  void setEnDat(uint8_t endat, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_is_endat[sector][PCIe][tagger] = endat; }
+  uint8_t getIsLevel1(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_is_lvl1[sector][PCIe][tagger]; }
+  void setIsLevel1(uint8_t islvl1, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_is_lvl1[sector][PCIe][tagger] = islvl1; }
+  uint64_t getBCO(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_bco[sector][PCIe][tagger]; }
+  void setBCO(uint64_t bco, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_bco[sector][PCIe][tagger] = bco; }
+  uint32_t getLevel1Count(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_lvl1_count[sector][PCIe][tagger]; }
+  void setLevel1Count(uint32_t lvl1count, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_lvl1_count[sector][PCIe][tagger] = lvl1count; }
+  uint32_t getEnDatCount(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_endat_count[sector][PCIe][tagger]; }
+  void setEnDatCount(uint32_t endatcount, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_endat_count[sector][PCIe][tagger] = endatcount; }
+  uint64_t getLastBCO(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_last_bco[sector][PCIe][tagger]; }
+  void setLastBCO(uint64_t lastbco, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_last_bco[sector][PCIe][tagger] = lastbco; }
+  uint8_t getModebits(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_modebits[sector][PCIe][tagger]; }
+  void setModebits(uint8_t modebits, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_modebits[sector][PCIe][tagger] = modebits; }
 
  protected:
 

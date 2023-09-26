@@ -8,9 +8,19 @@
 
 #include <cmath>
 #include <utility>          // for swap
+#include <cassert>
 
 TpcTpotEventInfov1::TpcTpotEventInfov1()
-{}
+{
+  std::fill_n(&m_tagger_type[0][0][0],100,UINT16_MAX);
+  std::fill_n(&m_is_endat[0][0][0],100,UINT8_MAX);
+  std::fill_n(&m_is_lvl1[0][0][0],100,UINT8_MAX);
+  std::fill_n(&m_bco[0][0][0],100,UINT64_MAX);
+  std::fill_n(&m_lvl1_count[0][0][0],100,UINT32_MAX);
+  std::fill_n(&m_endat_count[0][0][0],100,UINT32_MAX);
+  std::fill_n(&m_last_bco[0][0][0],100,UINT64_MAX);
+  std::fill_n(&m_modebits[0][0][0],100,UINT8_MAX);
+}
 
 void TpcTpotEventInfov1::identify(std::ostream& os) const
 {
@@ -54,16 +64,25 @@ void TpcTpotEventInfov1::CopyFrom( const TpcTpotEventInfo& source )
     {
       for (int k = 0; k < 2; k++)
       {
-        setTaggerType(source.getTaggerType(i, j, k), i, j, k);
-        setEnDat(source.getEnDat(i, j, k), i, j, k);
-        setIsLevel1(source.getIsLevel1(i, j, k), i, j, k);
-        setBCO(source.getBCO(i, j, k), i, j, k);
-        setLevel1Count(source.getLevel1Count(i, j, k), i, j, k);
-        setEnDatCount(source.getEnDatCount(i, j, k), i, j, k);
-        setLastBCO(source.getLastBCO(i, j, k), i, j, k);
-        setModebits(source.getModebits(i, j, k), i, j, k);
+        setTaggerType(source.getTaggerType(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)), static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));
+        setEnDat(source.getEnDat(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)),static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));
+        setIsLevel1(source.getIsLevel1(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)),static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));
+        setBCO(source.getBCO(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)),static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));
+        setLevel1Count(source.getLevel1Count(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)),static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));
+        setEnDatCount(source.getEnDatCount(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)), static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));
+        setLastBCO(source.getLastBCO(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)),static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));
+        setModebits(source.getModebits(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)),static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));
       } 
     }
   }
 }
 
+void TpcTpotEventInfov1::checkIndexes(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger)
+{
+  assert( sector>=kTPCSector0 );
+  assert( sector<=kTPOT );
+  assert( PCIe>=kEndPoint0 );
+  assert( PCIe<=kEndPoint1 );
+  assert( tagger>=kLVL1Tagger );
+  assert( tagger<=kEnDatTagger );
+}
