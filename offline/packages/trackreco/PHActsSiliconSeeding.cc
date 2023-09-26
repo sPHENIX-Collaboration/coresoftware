@@ -55,9 +55,8 @@ int PHActsSiliconSeeding::Init(PHCompositeNode */*topNode*/)
   configureSPGrid();
  
   Acts::SeedFilterConfig sfCfg = configureSeedFilter();
-
+  sfCfg = sfCfg.toInternalUnits();
   // vector containing the map of z bins in the top and bottom layers
-  
 
   m_bottomBinFinder = std::make_shared<const Acts::BinFinder<SpacePoint>>(
       zBinNeighborsBottom, nphineighbors);
@@ -721,7 +720,8 @@ void PHActsSiliconSeeding::configureSPGrid()
   m_gridCfg.phiBinDeflectionCoverage = m_numPhiNeighbors;
 
   m_gridOptions.bFieldInZ = m_bField;
-  
+  m_gridCfg = m_gridCfg.toInternalUnits();
+  m_gridOptions = m_gridOptions.toInternalUnits();
 }
 
 Acts::SeedFilterConfig PHActsSiliconSeeding::configureSeedFilter()
@@ -772,6 +772,10 @@ void PHActsSiliconSeeding::configureSeeder()
   m_seedFinderCfg.sigmaError = m_sigmaError;
   m_seedFinderCfg.helixcut = m_helixcut;
 
+  m_seedFinderCfg = 
+    m_seedFinderCfg.toInternalUnits().calculateDerivedQuantities();
+  m_seedFinderOptions = m_seedFinderOptions.toInternalUnits().calculateDerivedQuantities(m_seedFinderCfg);
+  
 }
 
 int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
