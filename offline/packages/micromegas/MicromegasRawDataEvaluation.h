@@ -218,7 +218,7 @@ class MicromegasRawDataEvaluation : public SubsysReco
   //! main branch
   Container* m_container = nullptr;
   
-  //! map fee bco to lvl1 bco
+  //! match fee bco to lvl1 bco
   using bco_matching_pair_t = std::pair<unsigned int, uint64_t>;
 
   //! map fee_id to bco maps
