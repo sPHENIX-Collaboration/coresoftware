@@ -191,7 +191,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       sample.layer = TrkrDefs::getLayer( hitsetkey );
       sample.tile = MicromegasDefs::getTileId( hitsetkey );
 
-      // beam crossing, checksum, checksum error
+      // beam crossing
       sample.fee_bco = packet->iValue(iwf, "BCO");
       sample.lvl1_bco = 0;
 
@@ -249,6 +249,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         }
       }
 
+      // checksum and checksum error
       sample.checksum = packet->iValue(iwf, "CHECKSUM");
       sample.checksum_error = packet->iValue(iwf, "CHECKSUMERROR");
 
@@ -338,9 +339,10 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/ )
   // print bco map
   if( Verbosity() )
   for( const auto& [bco,nwaveforms]:m_bco_map )
-  { std::cout << "MicromegasRawDataEvaluation::End - bco: 0x" << std::hex << bco << std::dec << ", nwaveforms: " << nwaveforms << std::endl; }
+  { std::cout << "MicromegasRawDataEvaluation::End - bco: " << bco << ", nwaveforms: " << nwaveforms << std::endl; }
 
   // print bco list, for offline processing
+  if( Verbosity() )
   {
     std::cout << "const std::vector<uint64_t> lvl1_bco_list = {" << std::endl;
     bool first = true;
