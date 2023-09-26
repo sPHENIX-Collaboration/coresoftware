@@ -30,7 +30,6 @@ class TrackSeedContainer;
 #include <vector>
 
 using SourceLink = ActsSourceLink;
-using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using Acts::VectorHelpers::eta;

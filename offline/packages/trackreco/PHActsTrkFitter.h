@@ -48,7 +48,7 @@ class TpcDistortionCorrectionContainer;
 class SvtxAlignmentStateMap;
 
 using SourceLink = ActsSourceLink;
-using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
+using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices,2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
@@ -130,12 +130,12 @@ class PHActsTrkFitter : public SubsysReco
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
   ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
-           const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
+           const std::vector<Acts::SourceLink>& sourceLinks, 
 	   const ActsTrackFittingAlgorithm::TrackParameters& seed,
 	   const ActsTrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
 	   const SurfacePtrVec& surfSequence,
-	   std::shared_ptr<Acts::VectorMultiTrajectory>& mtj);
+	   ActsTrackFittingAlgorithm::TrackContainer& tracks);
 
   /// Functions to get list of sorted surfaces for direct navigation, if
   /// applicable
@@ -143,8 +143,9 @@ class PHActsTrkFitter : public SubsysReco
 				 SurfacePtrVec& surfaces) const;
   void checkSurfaceVec(SurfacePtrVec& surfaces) const;
 
-  bool getTrackFitResult(const FitResult& fitOutput, TrackSeed* seed, 
+  bool getTrackFitResult(FitResult& fitOutput, TrackSeed* seed, 
 			 SvtxTrack* track,
+			 const ActsTrackFittingAlgorithm::TrackContainer& tracks,
 			 const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
   Acts::BoundSymMatrix setDefaultCovariance() const;

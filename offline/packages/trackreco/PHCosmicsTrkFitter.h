@@ -39,7 +39,7 @@ class TpcDistortionCorrectionContainer;
 class SvtxAlignmentStateMap;
 
 using SourceLink = ActsSourceLink;
-using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
+using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
@@ -117,14 +117,15 @@ class PHCosmicsTrkFitter : public SubsysReco
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
   inline ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
-      const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks,
+      const std::vector<Acts::SourceLink>& sourceLinks,
       const ActsTrackFittingAlgorithm::TrackParameters& seed,
       const ActsTrackFittingAlgorithm::GeneralFitterOptions&
           kfOptions,
-      std::shared_ptr<Acts::VectorMultiTrajectory>& mtj);
+      ActsTrackFittingAlgorithm::TrackContainer& tracks);
 
-  bool getTrackFitResult(const FitResult& fitOutput, TrackSeed* seed1,
+  bool getTrackFitResult(FitResult& fitOutput, TrackSeed* seed,
                          SvtxTrack* track,
+			 ActsTrackFittingAlgorithm::TrackContainer& tracks,
                          const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
   Acts::BoundSymMatrix setDefaultCovariance() const;

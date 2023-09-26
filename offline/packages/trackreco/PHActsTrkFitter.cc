@@ -40,9 +40,9 @@
 
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
+#include <Acts/EventData/SourceLink.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
-#include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
@@ -390,9 +390,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Acts requires a wrapped vector, so we need to replace the
       /// std::vector contents with a wrapper vector to get the memory
       /// access correct
-      std::vector<std::reference_wrapper<const SourceLink>>  wrappedSls;
+      std::vector<Acts::SourceLink>  wrappedSls;
       for(const auto& sl : sourceLinks)
-      { wrappedSls.push_back(std::cref(sl)); }
+	{ 
+	  wrappedSls.push_back(Acts::SourceLink{sl}); 
+	}
            
       /// Reset the track seed with the dummy covariance
       auto seed = ActsTrackFittingAlgorithm::TrackParameters::create(
@@ -424,13 +426,19 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         calibcontext,
         calibrator,
         &(*pSurface),
-        Acts::LoggerWrapper(*logger),ppPlainOptions};
+	ppPlainOptions};
       
       PHTimer fitTimer("FitTimer");
       fitTimer.stop();
       fitTimer.restart();
-      auto mtj = std::make_shared<Acts::VectorMultiTrajectory>();
-      auto result = fitTrack(wrappedSls, seed, kfOptions, surfaces,mtj);
+
+      auto trackContainer = 
+	std::make_shared<Acts::VectorTrackContainer>();
+      auto trackStateContainer = 
+	std::make_shared<Acts::VectorMultiTrajectory>();
+      ActsTrackFittingAlgorithm::TrackContainer 
+	tracks(trackContainer, trackStateContainer);
+      auto result = fitTrack(wrappedSls, seed, kfOptions, surfaces, tracks);
       fitTimer.stop();
       auto fitTime = fitTimer.get_accumulated_time();
    
@@ -440,16 +448,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Check that the track fit result did not return an error
       if (result.ok())
       {  
-        const FitResult& fitOutput = result.value();
-
-        if(m_timeAnalysis)
-        {
-          h_fitTime->Fill(fitOutput.fittedParameters.value()
-            .transverseMomentum(), 
-            fitTime);
-        }
-	  
-        SvtxTrack_v4 newTrack;
+	SvtxTrack_v4 newTrack;
         newTrack.set_tpc_seed(tpcseed);
         newTrack.set_crossing(crossing);
         newTrack.set_silicon_seed(siseed);
@@ -460,7 +459,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           unsigned int trid = m_directedTrackMap->size();
           newTrack.set_id(trid);
 
-          if( getTrackFitResult(fitOutput, track, &newTrack, measurements) )
+          if(getTrackFitResult(result, track, &newTrack, tracks, measurements))
           { m_directedTrackMap->insertWithKey(&newTrack, trid); }
           
         } else {
@@ -468,7 +467,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           unsigned int trid = m_trackMap->size();
           newTrack.set_id(trid);
 
-          if( getTrackFitResult(fitOutput, track, &newTrack, measurements))
+          if( getTrackFitResult(result, track, &newTrack, tracks, measurements))
           { m_trackMap->insertWithKey(&newTrack, trid); }
         
         }
@@ -731,8 +730,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       ActsSourceLink::Index index = measurements.size();
       
       SourceLink sl(surf->geometryId(), index, cluskey);
-      
-      Acts::Measurement<Acts::BoundIndices,2> meas(sl, indices, loc, cov);
+      Acts::SourceLink actsSL{sl.geometryId(), sl};
+      Acts::Measurement<Acts::BoundIndices,2> meas(std::move(actsSL), indices, loc, cov);
       if(Verbosity() > 3)
 	{
 	  std::cout << "source link " << sl.index() << ", loc : " 
@@ -764,44 +763,36 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
   return sourcelinks;
 }
 
-bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, TrackSeed* seed, SvtxTrack* track, const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
+bool PHActsTrkFitter::getTrackFitResult(FitResult &fitOutput, 
+					TrackSeed* seed, SvtxTrack* track, 
+					const ActsTrackFittingAlgorithm::TrackContainer& tracks,
+					const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
   std::vector<Acts::MultiTrajectoryTraits::IndexType> trackTips;
   trackTips.reserve(1);
-  trackTips.emplace_back(fitOutput.lastMeasurementIndex);
+  auto& outtrack = fitOutput.value();
+  trackTips.emplace_back(outtrack.tipIndex());
   ActsExamples::Trajectories::IndexedParameters indexedParams;
-  if (fitOutput.fittedParameters)
+ 
+  indexedParams.emplace(std::pair{outtrack.tipIndex(),
+	ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
+	  outtrack.parameters(), outtrack.covariance()}});
+  
+  if (Verbosity() > 2)
     {
-      indexedParams.emplace(fitOutput.lastMeasurementIndex, 
-			    fitOutput.fittedParameters.value());
-
-       if (Verbosity() > 2)
-        {
-	  const auto& params = fitOutput.fittedParameters.value();
-      
-          std::cout << "Fitted parameters for track" << std::endl;
-          std::cout << " position : " << params.position(m_tGeometry->geometry().getGeoContext()).transpose()
-	    
-                    << std::endl;
-	  std::cout << "charge: "<<params.charge()<<std::endl;
-          std::cout << " momentum : " << params.momentum().transpose()
-                    << std::endl;
-	  std::cout << "For trackTip == " << fitOutput.lastMeasurementIndex << std::endl;
-        }
-    }
-  else 
-    {
-      /// Track fit failed in some way if there are no fit parameters. Remove
-      m_trackMap->erase(track->get_id());
-      if(Verbosity() > 2)
-	{ std::cout << " track fit failed for track " << track->get_id() << std::endl; }
+      std::cout << "Fitted parameters for track" << std::endl;
+      std::cout << " position : " << outtrack.referenceSurface().localToGlobal(m_tGeometry->geometry().getGeoContext(), Acts::Vector2(outtrack.loc0(), outtrack.loc1()), Acts::Vector3(1,1,1)).transpose()
 	
-      return false;
+		<< std::endl;
+      std::cout << "charge: "<<outtrack.charge()<<std::endl;
+      std::cout << " momentum : " << outtrack.momentum().transpose()
+		<< std::endl;
+      std::cout << "For trackTip == " << outtrack.tipIndex() << std::endl;
     }
-
-  Trajectory trajectory(fitOutput.fittedStates,
+  
+  Trajectory trajectory(tracks.trackStateContainer(),
 			trackTips, indexedParams);
  
   m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
@@ -811,8 +802,7 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, TrackSeed* s
   PHTimer updateTrackTimer("UpdateTrackTimer");
   updateTrackTimer.stop();
   updateTrackTimer.restart();
-  if(fitOutput.fittedParameters)
-    { updateSvtxTrack(trajectory, track); }
+  updateSvtxTrack(trajectory, track); 
   
   if(m_commissioning)
     {
@@ -842,17 +832,17 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, TrackSeed* s
 }
 
 ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
-    const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
+    const std::vector<Acts::SourceLink>& sourceLinks, 
     const ActsTrackFittingAlgorithm::TrackParameters& seed,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
     const SurfacePtrVec& surfSequence,
-    std::shared_ptr<Acts::VectorMultiTrajectory>& mtj)
+    ActsTrackFittingAlgorithm::TrackContainer& tracks)
 {
   if(m_fitSiliconMMs) 
   { 
-    return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence, mtj); 
+    return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence, tracks); 
   } else {
-    return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions, mtj); 
+    return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions, tracks); 
   }
 }
 
