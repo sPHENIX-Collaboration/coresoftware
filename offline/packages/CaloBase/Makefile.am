@@ -125,6 +125,7 @@ libcalo_io_la_SOURCES = \
   RawTowerGeomContainer_Cylinderv1.cc \
   TowerInfov1.cc \
   TowerInfoDefs.cc \
+  TowerInfoContainer.cc \
   TowerInfoContainerv1.cc
 endif
 
