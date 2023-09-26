@@ -1,6 +1,9 @@
 #include "InttMapping.h"
 #include "InttFelixMap.h"
 
+#include <ffarawobjects/InttRawHit.h>
+#include <ffarawobjects/InttRawHitContainer.h>
+
 #include <Event/packet.h>
 
 #include <utility>   // for pair
@@ -41,6 +44,14 @@ struct Intt::RawData_s Intt::RawFromPacket(int const _i, int const _n, Packet* _
 	s.channel = _p->iValue(_n, "CHANNEL_ID");
 
 	return s;
+}
+
+void Intt::RawFromHit(struct Intt::RawData_s& s, InttRawHit* h)
+{
+	s.felix_server = Intt::FelixFromPacket(h->get_packetid());
+	s.felix_channel = h->get_fee();
+	s.chip = (h->get_chip_id() + 25) % 26;
+	s.channel = h->get_channel_id();
 }
 
 struct Intt::Online_s Intt::ToOnline(struct Offline_s const& _s)
