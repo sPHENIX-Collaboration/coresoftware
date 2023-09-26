@@ -132,7 +132,7 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Get all space points for the seeder
   std::vector<const SpacePoint*> getMvtxSpacePoints(Acts::Extent& rRangeSPExtent);
 
-
+  void printSeedConfigs(Acts::SeedFilterConfig& sfconfig);
 
   /// Projects circle fit to INTT radii to find possible INTT clusters
   /// belonging to MVTX track stub
