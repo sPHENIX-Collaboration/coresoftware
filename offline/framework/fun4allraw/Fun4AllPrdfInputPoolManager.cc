@@ -62,7 +62,7 @@ Fun4AllPrdfInputPoolManager::~Fun4AllPrdfInputPoolManager()
   }
   for (const auto &pktinfoiter : m_PacketMap)
   {
-    for (auto &pktiter : pktinfoiter.second.PacketVector)
+    for (auto const &pktiter : pktinfoiter.second.PacketVector)
     {
       delete pktiter;
     }
@@ -502,7 +502,7 @@ void Fun4AllPrdfInputPoolManager::DitchEvent(const int eventno)
 
     return;
   }
-  for (auto &pktiter : pktinfoiter->second.PacketVector)
+  for (auto const &pktiter : pktinfoiter->second.PacketVector)
   {
     delete pktiter;
   }
@@ -630,7 +630,7 @@ void Fun4AllPrdfInputPoolManager::ClearAllEvents()
 {
   for (const auto &pktinfoiter : m_PacketMap)
   {
-    for (auto &pktiter : pktinfoiter.second.PacketVector)
+    for (auto const &pktiter : pktinfoiter.second.PacketVector)
     {
       delete pktiter;
     }

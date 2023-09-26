@@ -2,21 +2,28 @@
 #include "InttMapping.h"
 
 #include <Event/Event.h>
-#include <Event/EventTypes.h>
 #include <Event/packet.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include "fun4all/SubsysReco.h"               // for SubsysReco
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/phool.h>          // for PHWHERE
 
 #include <trackbase/InttDefs.h>
+#include <trackbase/TrkrDefs.h>  // for hitkey, hitsetkey
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
+
+#include <cstdlib>    // for exit
+#include <iostream>   // for operator<<, endl, cout
+#include <map>        // for map, operator!=, _Rb_tr...
+#include <utility>    // for pair
 
 InttRawDataDecoder::InttRawDataDecoder(std::string const& name):
 	SubsysReco(name)

@@ -1,9 +1,9 @@
-#include "SingleInttInput.h"
+#include "SingleTpcInput.h"
 
 #include "Fun4AllEvtInputPoolManager.h"
 
-#include <ffarawobjects/InttRawHitContainerv1.h>
-#include <ffarawobjects/InttRawHitv1.h>
+#include <ffarawobjects/TpcRawHitContainerv1.h>
+#include <ffarawobjects/TpcRawHitv1.h>
 
 #include <frog/FROG.h>
 
@@ -19,18 +19,18 @@
 
 #include <set>
 
-SingleInttInput::SingleInttInput(const std::string &name)
+SingleTpcInput::SingleTpcInput(const std::string &name)
   : SingleStreamingInput(name)
 {
   plist = new Packet *[10];
 }
 
-SingleInttInput::~SingleInttInput()
+SingleTpcInput::~SingleTpcInput()
 {
   delete[] plist;
 }
 
-void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
+void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -80,69 +80,79 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
       {
         plist[i]->identify();
       }
-      int num_hits = plist[i]->iValue(0, "NR_HITS");
-      if (Verbosity() > 1)
-      {
-	std::cout << "Number of Hits: " << num_hits << " for packet "
-		  << plist[i]->getIdentifier() << std::endl;
-      }
+     int m_nWaveormInFrame = plist[i]->iValue(0, "NR_WF");
+      uint64_t m_nTaggerInFrame = plist[i]->lValue(0, "N_TAGGER");
+//      int m_maxFEECount = plist[i]->iValue(0, "MAX_FEECOUNT");
       std::set<uint64_t> bclk_set;
-      for (int j = 0; j < num_hits; j++)
-      {
-	InttRawHit *newhit = new InttRawHitv1();
-	int FEE = plist[i]->iValue(j, "FEE");
-	uint64_t gtm_bco = plist[i]->lValue(j, "BCO");
-        newhit->set_packetid(plist[i]->getIdentifier());
-	newhit->set_fee(FEE);
-	newhit->set_bco(gtm_bco);
-	newhit->set_adc(plist[i]->iValue(j,"ADC"));
-	newhit->set_amplitude(plist[i]->iValue(j,"AMPLITUDE"));
-	newhit->set_chip_id(plist[i]->iValue(j,"CHIP_ID"));
-	newhit->set_channel_id(plist[i]->iValue(j,"CHANNEL_ID"));
-	newhit->set_word(plist[i]->iValue(j,"DATAWORD"));
-	newhit->set_FPHX_BCO(plist[i]->iValue(j,"FPHX_BCO"));
-	newhit->set_full_FPHX(plist[i]->iValue(j,"FULL_FPHX"));
-	newhit->set_full_ROC(plist[i]->iValue(j,"FULL_ROC"));
-
-	gtm_bco += m_Rollover[FEE];
+uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
+    for (uint64_t t = 0; t < m_nTaggerInFrame; t++)
+    {
+      std::cout << "bco: 0x" << std::hex << plist[i]->lValue(t, "BCO")
+		<< std::dec << std::endl;
+      gtm_bco = plist[i]->lValue(t, "BCO");
+      std::cout << "last bco: 0x" << std::hex << plist[i]->lValue(t, "LAST_BCO")
+		<< std::dec << std::endl;
+	gtm_bco += m_Rollover[0];
 	bclk_set.insert(gtm_bco);
-	if (gtm_bco < m_PreviousClock[FEE])
+	if (gtm_bco < m_PreviousClock[0])
 	{
-	  m_Rollover[FEE] += 0x10000000000;
-	  gtm_bco += m_Rollover[FEE];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+	  m_Rollover[0] += 0x10000000000;
+	  gtm_bco += m_Rollover[0];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
 	}
-	m_PreviousClock[FEE] = gtm_bco;
-	m_BeamClockFEE[gtm_bco].insert(FEE);
-	m_FEEBclkMap[FEE] = gtm_bco;
-	if (Verbosity() > 2)
-	{
-	  std::cout << "evtno: " << EventSequence
-		    << ", hits: " << j
-		    << ", nr_hits: " << num_hits
-		    << ", bco: 0x" << std::hex << gtm_bco << std::dec
-		    << ", FEE: " << FEE << std::endl;
-	}
-//          plist[i]->convert();
-	if (InputManager())
-	{
-	  InputManager()->AddInttRawHit(gtm_bco, newhit);
-	}
-	if (m_InttRawHitMap.find(gtm_bco) == m_InttRawHitMap.end())
-	{
-	  std::vector<InttRawHit *> intthitvector;
-	  m_InttRawHitMap[gtm_bco] = intthitvector;
-	}
-	m_InttRawHitMap[gtm_bco].push_back(newhit);
-	m_BclkStack.insert(gtm_bco);
+/*
+       m_tagger_type = (uint16_t) (p->lValue(t, "TAGGER_TYPE"));
+       m_is_endat = (uint8_t) (p->lValue(t, "IS_ENDAT"));
+       m_is_lvl1 = (uint8_t) (p->lValue(t, "IS_LEVEL1_TRIGGER"));
+       m_bco = (uint64_t) (p->lValue(t, "BCO"));
+       m_lvl1_count = (uint32_t) (p->lValue(t, "LEVEL1_COUNT"));
+       m_endat_count = (uint32_t) (p->lValue(t, "ENDAT_COUNT"));
+       m_last_bco = (uint64_t) (p->lValue(t, "LAST_BCO"));
+       m_modebits = (uint8_t) (p->lValue(t, "MODEBITS"));
+*/
+    }
+    for (int wf = 0; wf < m_nWaveormInFrame; wf++)
+    {
+      TpcRawHit *newhit = new TpcRawHitv1();
+      int FEE = plist[i]->iValue(wf, "FEE");
+      newhit->set_bco(plist[i]->iValue(wf, "BCO"));
+      newhit->set_packetid(plist[i]->getIdentifier());
+      newhit->set_samples(plist[i]->iValue(wf, "SAMPLES"));
+      newhit->set_fee(FEE);
+      newhit->set_channel(plist[i]->iValue(wf, "CHANNEL"));
+      newhit->set_sampaaddress(plist[i]->iValue(wf, "SAMPAADDRESS"));
+      newhit->set_sampachannel(plist[i]->iValue(wf, "CHANNEL"));
+      m_PreviousClock[FEE] = gtm_bco;
+      m_BeamClockFEE[gtm_bco].insert(FEE);
+      m_FEEBclkMap[FEE] = gtm_bco;
+      if (Verbosity() > 2)
+      {
+	std::cout << "evtno: " << EventSequence
+		  << ", hits: " << wf
+		  << ", num waveforms: " << m_nWaveormInFrame
+		  << ", bco: 0x" << std::hex << gtm_bco << std::dec
+		  << ", FEE: " << FEE << std::endl;
       }
-      delete plist[i];
+//          plist[i]->convert();
+      if (InputManager())
+      {
+	InputManager()->AddTpcRawHit(gtm_bco, newhit);
+      }
+      if (m_TpcRawHitMap.find(gtm_bco) == m_TpcRawHitMap.end())
+      {
+	std::vector<TpcRawHit *> intthitvector;
+	m_TpcRawHitMap[gtm_bco] = intthitvector;
+      }
+      m_TpcRawHitMap[gtm_bco].push_back(newhit);
+      m_BclkStack.insert(gtm_bco);
+    }
+    delete plist[i];
     }
     delete evt;
   }
-//  } while (m_InttRawHitMap.size() < 10 || CheckPoolDepth(m_InttRawHitMap.begin()->first));
+//  } while (m_TpcRawHitMap.size() < 10 || CheckPoolDepth(m_TpcRawHitMap.begin()->first));
 }
 
-void SingleInttInput::Print(const std::string &what) const
+void SingleTpcInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "FEE")
   {
@@ -165,7 +175,7 @@ void SingleInttInput::Print(const std::string &what) const
   }
   if (what == "ALL" || what == "STORAGE")
   {
-    for (const auto &bcliter : m_InttRawHitMap)
+    for (const auto &bcliter : m_TpcRawHitMap)
     {
       std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
       for (auto feeiter : bcliter.second)
@@ -184,10 +194,10 @@ void SingleInttInput::Print(const std::string &what) const
   }
 }
 
-void SingleInttInput::CleanupUsedPackets(const uint64_t bclk)
+void SingleTpcInput::CleanupUsedPackets(const uint64_t bclk)
 {
   std::vector<uint64_t> toclearbclk;
-  for (const auto &iter : m_InttRawHitMap)
+  for (const auto &iter : m_TpcRawHitMap)
   {
     if (iter.first <= bclk)
     {
@@ -211,11 +221,11 @@ void SingleInttInput::CleanupUsedPackets(const uint64_t bclk)
   {
   m_BclkStack.erase(iter);
   m_BeamClockFEE.erase(iter);
-    m_InttRawHitMap.erase(iter);
+    m_TpcRawHitMap.erase(iter);
   }
 }
 
-bool SingleInttInput::CheckPoolDepth(const uint64_t bclk)
+bool SingleTpcInput::CheckPoolDepth(const uint64_t bclk)
 {
   // if (m_FEEBclkMap.size() < 10)
   // {
@@ -242,7 +252,7 @@ bool SingleInttInput::CheckPoolDepth(const uint64_t bclk)
   return true;
 }
 
-void SingleInttInput::ClearCurrentEvent()
+void SingleTpcInput::ClearCurrentEvent()
 {
   // called interactively, to get rid of the current event
   uint64_t currentbclk = *m_BclkStack.begin();
@@ -253,15 +263,15 @@ void SingleInttInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleInttInput::GetSomeMoreEvents()
+bool SingleTpcInput::GetSomeMoreEvents()
 {
   if (AllDone())
   {
     return false;
   }
-  if (CheckPoolDepth(m_InttRawHitMap.begin()->first))
+  if (CheckPoolDepth(m_TpcRawHitMap.begin()->first))
   {
-    if (m_InttRawHitMap.size() >= 10)
+    if (m_TpcRawHitMap.size() >= 10)
     {
       return false;
     }
@@ -269,7 +279,7 @@ bool SingleInttInput::GetSomeMoreEvents()
   return true;
 }
 
-void SingleInttInput::CreateDSTNode(PHCompositeNode *topNode)
+void SingleTpcInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -279,17 +289,17 @@ void SingleInttInput::CreateDSTNode(PHCompositeNode *topNode)
     topNode->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
-PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "INTT"));
+PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "TPC"));
 if (!detNode)
 {
   detNode = new PHCompositeNode("INTT");
   dstNode->addNode(detNode);
 }
-  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode,"INTTRAWHIT");
-  if (!intthitcont)
+  TpcRawHitContainer *tpchitcont = findNode::getClass<TpcRawHitContainer>(detNode,"TPCRAWHIT");
+  if (!tpchitcont)
   {
-    intthitcont = new InttRawHitContainerv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
+    tpchitcont = new TpcRawHitContainerv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(tpchitcont, "TPCRAWHIT", "PHObject");
     detNode->addNode(newNode);
   }
 

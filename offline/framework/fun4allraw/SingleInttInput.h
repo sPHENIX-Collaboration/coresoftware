@@ -3,8 +3,6 @@
 
 #include "SingleStreamingInput.h"
 
-#include "InttPool.h"
-
 #include <array>
 #include <list>
 #include <map>
@@ -26,11 +24,12 @@ class SingleInttInput : public SingleStreamingInput
   void CleanupUsedPackets(const uint64_t bclk) override;
   bool CheckPoolDepth(const uint64_t bclk) override;
   void ClearCurrentEvent() override;
+  bool GetSomeMoreEvents();
   void Print(const std::string &what = "ALL") const override;
+  void CreateDSTNode(PHCompositeNode *topNode) override;
 
  private:
   Packet **plist = nullptr;
-  InttPool pool;
   unsigned int m_NumSpecialEvents = 0;
   std::array<uint64_t, 14> m_PreviousClock{};
   std::array<uint64_t, 14> m_Rollover{};

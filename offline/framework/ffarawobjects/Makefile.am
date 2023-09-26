@@ -19,25 +19,39 @@ ROOTDICTS = \
   InttRawHit_Dict.cc \
   InttRawHitContainer_Dict.cc \
   InttRawHitContainerv1_Dict.cc \
-  InttRawHitv1_Dict.cc
+  InttRawHitv1_Dict.cc \
+  TpcRawHit_Dict.cc \
+  TpcRawHitContainer_Dict.cc \
+  TpcRawHitContainerv1_Dict.cc \
+  TpcRawHitv1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   InttRawHit_Dict_rdict.pcm \
   InttRawHitContainer_Dict_rdict.pcm \
   InttRawHitContainerv1_Dict_rdict.pcm \
-  InttRawHitv1_Dict_rdict.pcm
+  InttRawHitv1_Dict_rdict.pcm \
+  TpcRawHit_Dict_rdict.pcm \
+  TpcRawHitContainer_Dict_rdict.pcm \
+  TpcRawHitContainerv1_Dict_rdict.pcm \
+  TpcRawHitv1_Dict_rdict.pcm
 
 pkginclude_HEADERS = \
   InttRawHit.h \
   InttRawHitContainer.h \
   InttRawHitContainerv1.h \
-  InttRawHitv1.h
+  InttRawHitv1.h \
+  TpcRawHit.h \
+  TpcRawHitContainer.h \
+  TpcRawHitContainerv1.h \
+  TpcRawHitv1.h
 
 libffarawobjects_la_SOURCES = \
   $(ROOTDICTS) \
   InttRawHitContainerv1.cc \
-  InttRawHitv1.cc
+  InttRawHitv1.cc \
+  TpcRawHitContainerv1.cc \
+  TpcRawHitv1.cc
 
 BUILT_SOURCES = testexternals.cc
 
