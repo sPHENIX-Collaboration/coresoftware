@@ -11,6 +11,7 @@
 #include <trackbase/ClusterErrorPara.h>
 
 #include <Acts/Seeding/SeedFilterConfig.hpp>
+#include <Acts/Seeding/SeedFinderConfig.hpp>
 #include <Acts/Seeding/SeedFinderOrthogonalConfig.hpp>
 
 #include <string>
@@ -39,7 +40,7 @@ class PHActsKDTreeSeeding : public SubsysReco
   void useTruthClusters(bool truth) { m_useTruthClusters = truth; }
  private:
 
-  Acts::SeedFinderOrthogonalConfig<SpacePoint> configureSeedFinder();
+  void configureSeedFinder();
   int getNodes(PHCompositeNode* topNode);
   int createNodes(PHCompositeNode* topNode);
   SeedContainer runSeeder();
@@ -61,7 +62,8 @@ class PHActsKDTreeSeeding : public SubsysReco
 
   Acts::SeedFilterConfig m_seedFilterConfig;
   Acts::SeedFinderOrthogonalConfig<SpacePoint> m_seedFinderConfig;
-  
+  Acts::SeedFinderOptions m_seedFinderOptions;
+
   /// configured to seed in the MVTX using the middle layer 
   /// as the seed anchor
   /// Defines volume to search for seeds in
