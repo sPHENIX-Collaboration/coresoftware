@@ -1,26 +1,18 @@
 #include "InttVertexMapv1.h"
 
 #include "InttVertex.h"
-//#include "InttVertexMap.h"
 
 #include <iterator>  // for reverse_iterator
 #include <utility>   // for pair, make_pair
-
-using namespace std;
-
-InttVertexMapv1::InttVertexMapv1()
-  : _map()
-{
-}
 
 InttVertexMapv1::~InttVertexMapv1()
 {
   InttVertexMapv1::clear();
 }
 
-void InttVertexMapv1::identify(ostream& os) const
+void InttVertexMapv1::identify(std::ostream& os) const
 {
-  os << "InttVertexMapv1: size = " << _map.size() << endl;
+  os << "InttVertexMapv1: size = " << _map.size() << std::endl;
   return;
 }
 
@@ -61,7 +53,7 @@ InttVertex* InttVertexMapv1::insert(InttVertex* clus)
   {
     index = _map.rbegin()->first + 1;
   }
-  _map.insert(make_pair(index, clus));
+  _map.insert(std::make_pair(index, clus));
   _map[index]->set_id(index);
   return _map[index];
 }

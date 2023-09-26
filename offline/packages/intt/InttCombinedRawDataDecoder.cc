@@ -1,24 +1,30 @@
 #include "InttCombinedRawDataDecoder.h"
 #include "InttMapping.h"
 
-#include <Event/packet.h>
-
-#include <fun4allraw/PacketMap.h>
-
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/getClass.h>
-
 #include <trackbase/InttDefs.h>
+#include <trackbase/TrkrDefs.h>    // for hitkey, hitsetkey
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitv2.h>
 
+#include <ffarawobjects/InttRawHit.h>
+#include <ffarawobjects/InttRawHitContainer.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>      // for PHIODataNode
+#include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>             // for PHWHERE
+
 #include <TSystem.h>
+
+#include <cstdlib>   // for exit
+#include <iostream>  // for operator<<, endl, bas...
+#include <map>       // for _Rb_tree_iterator
 
 InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)
@@ -26,25 +32,34 @@ InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   // Do nothing
 }
 
-// InitRun
 int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
 {
   if (!topNode)
   {
     std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
     std::cout << "\tCould not retrieve topNode; doing nothing" << std::endl;
+    exit(1);
+    gSystem->Exit(1);
 
-    return -1;
+    return 1;
   }
 
   PHNodeIterator dst_itr(topNode);
   PHCompositeNode* dst_node = dynamic_cast<PHCompositeNode*>(dst_itr.findFirst("PHCompositeNode", "DST"));
   if (!dst_node)
   {
-    if (Verbosity()) std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
-    if (Verbosity()) std::cout << "\tCould not retrieve dst_node; doing nothing" << std::endl;
+    if (Verbosity())
+    {
+      std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
+    }
+    if (Verbosity())
+    {
+      std::cout << "\tCould not retrieve dst_node; doing nothing" << std::endl;
+    }
+    exit(1);
+    gSystem->Exit(1);
 
-    return -1;
+    return 1;
   }
 
   PHNodeIterator trkr_itr(dst_node);
@@ -58,8 +73,14 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   TrkrHitSetContainer* trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!trkr_hit_set_container)
   {
-    if (Verbosity()) std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
-    if (Verbosity()) std::cout << "\tMaking TrkrHitSetContainer" << std::endl;
+    if (Verbosity())
+    {
+      std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
+    }
+    if (Verbosity())
+    {
+      std::cout << "\tMaking TrkrHitSetContainer" << std::endl;
+    }
 
     trkr_hit_set_container = new TrkrHitSetContainerv1;
     PHIODataNode<PHObject>* new_node = new PHIODataNode<PHObject>(trkr_hit_set_container, "TRKR_HITSET", "PHObject");
@@ -69,7 +90,6 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-// process_event
 int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 {
   TrkrHitSetContainer* trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -79,119 +99,103 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     std::cout << "InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)" << std::endl;
     std::cout << "Could not get \"TRKR_HITSET\" from Node Tree" << std::endl;
     std::cout << "Exiting" << std::endl;
+    gSystem->Exit(1);
     exit(1);
 
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
 
-  PacketMap* pktmap = findNode::getClass<PacketMap>(topNode, m_EvtNodeName);
-  if (!pktmap)
+  InttRawHitContainer* inttcont = findNode::getClass<InttRawHitContainer>(topNode, m_InttRawNodeName);
+  if (!inttcont)
   {
-    std::cout <<  PHWHERE << " could not find node " << m_EvtNodeName << std::endl;
+    std::cout << PHWHERE << std::endl;
+    std::cout << "InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)" << std::endl;
+    std::cout << "Could not get \"" << m_InttRawNodeName << "\" from Node Tree" << std::endl;
+    std::cout << "Exiting" << std::endl;
+
     gSystem->Exit(1);
     exit(1);
   }
-
-  struct Intt::RawData_s rawdata;
-  struct Intt::Offline_s offline;
-
-  int adc = 0;
-  // int amp = 0;
-  int bco = 0;
 
   TrkrDefs::hitsetkey hit_set_key = 0;
   TrkrDefs::hitkey hit_key = 0;
   TrkrHitSetContainer::Iterator hit_set_container_itr;
   TrkrHit* hit = nullptr;
 
-  for (int pktid = 3001; pktid <= 3007; pktid++)
+  Intt::RawData_s raw;
+  Intt::Offline_s ofl;
+  for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
   {
-    for (PacketMap::PacketIterator pktiter = pktmap->begin_end(pktid).first;
-         pktiter != pktmap->begin_end(pktid).second;
-         ++pktiter)
-    {
-      for (PacketMap::BclkIterator bclkitr = pktmap->begin_end_bclk(pktid).first;
-           bclkitr != pktmap->begin_end_bclk(pktid).second;
-           ++bclkitr)
-      {
-        uint64_t bit40bclk = *bclkitr & 0xFFFFFFFFFF;
-        std::cout << "going over packet " << std::endl;  //<< pktiter->getIdentifier()
-        std::cout << "bclk: " << *bclkitr << std::endl;
-        std::cout << "packet : " << (*pktiter)->getIdentifier() << std::endl;
-        //<< " for bclk 0x" << std::hex << bclkitr << std::dec << std::endl;
-        int num_hits = (*pktiter)->iValue(0, "NR_HITS");
-        for (int j = 0; j < num_hits; j++)
-        {
-          int FEE = (*pktiter)->iValue(j, "FEE");
-          uint64_t gtm_bco = (*pktiter)->lValue(j, "BCO");
-          if (bit40bclk == gtm_bco)
-          {
-            std::cout << "Chosen hit: FEE " << FEE << " bclk 0x" << std::hex
-                      << gtm_bco << std::dec << std::endl;
+    InttRawHit* intthit = inttcont->get_hit(i);
+    // uint64_t gtm_bco = intthit->get_bco();
 
-            rawdata = Intt::RawFromPacket(Intt::Packet_Id.find(pktid) != Intt::Packet_Id.end() ? Intt::Packet_Id.find(pktid)->second : -1, j, (*pktiter));
-            adc = (*pktiter)->iValue(j, "ADC");
-            //amp = p->iValue(j, "AMPLITUE");
-            bco = (*pktiter)->iValue(j, "FPHX_BCO");
-        
-            offline = Intt::ToOffline(rawdata);
-        
-            hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
-            hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
-        
-            hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
-            hit = hit_set_container_itr->second->getHit(hit_key);
-            if(hit)continue;
-        
-            hit = new TrkrHitv2;
-            hit->setAdc(adc);
-            hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
-          }
-        }
-      }
-    }
-  }
-  /*
-    Packet* p = evt->getPacket(itr->first);
-    if(!p)continue;
+    raw.felix_server = Intt::FelixFromPacket(intthit->get_packetid());
+    raw.felix_channel = intthit->get_fee();
+    raw.chip = intthit->get_chip_id();
+    raw.channel = intthit->get_channel_id();
+    ofl = Intt::ToOffline(raw);
 
-    int N = p->iValue(0, "NR_HITS");
-    full_bco = p->lValue(0, "BCO");
+    int adc = intthit->get_adc();
+    // amp = intthit->get_amplitude();
+    // int bco = intthit->get_FPHX_BCO();
 
-    if(Verbosity() > 20)std::cout << N << std::endl;
-
-    for(int n = 0; n < N; ++n)
-    {
-    rawdata = Intt::RawFromPacket(itr->second, n, p);
-
-    adc = p->iValue(n, "ADC");
-    //amp = p->iValue(n, "AMPLITUE");
-    bco = p->iValue(n, "FPHX_BCO");
-
-    offline = Intt::ToOffline(rawdata);
-
-    hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
-    hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
+    hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x); //col, row <trackbase/InttDefs.h>
+    hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, intthit->get_FPHX_BCO());
 
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
     hit = hit_set_container_itr->second->getHit(hit_key);
-    if(hit)continue;
+    if (hit)
+    {
+      continue;
+    }
 
     hit = new TrkrHitv2;
     hit->setAdc(adc);
     hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
-    }
+  }
 
-    delete p;
-    }
-    }
-    if(Verbosity() > 20)
-    {
-    std::cout << std::endl;
-    std::cout << "Identify():" << std::endl;
-    trkr_hit_set_container->identify();
-    std::cout << std::endl;
-    }
-  */
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
+/*
+        Packet* p = evt->getPacket(itr->first);
+        if(!p)continue;
+
+        int N = p->iValue(0, "NR_HITS");
+        full_bco = p->lValue(0, "BCO");
+
+        if(Verbosity() > 20)std::cout << N << std::endl;
+
+        for(int n = 0; n < N; ++n)
+        {
+        rawdata = Intt::RawFromPacket(itr->second, n, p);
+
+        adc = p->iValue(n, "ADC");
+        //amp = p->iValue(n, "AMPLITUE");
+        bco = p->iValue(n, "FPHX_BCO");
+
+        offline = Intt::ToOffline(rawdata);
+
+        hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
+        hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
+
+        hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
+        hit = hit_set_container_itr->second->getHit(hit_key);
+        if(hit)continue;
+
+        hit = new TrkrHitv2;
+        hit->setAdc(adc);
+        hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
+        }
+
+        delete p;
+        }
+        }
+        if(Verbosity() > 20)
+        {
+        std::cout << std::endl;
+        std::cout << "Identify():" << std::endl;
+        trkr_hit_set_container->identify();
+        std::cout << std::endl;
+        }
+*/

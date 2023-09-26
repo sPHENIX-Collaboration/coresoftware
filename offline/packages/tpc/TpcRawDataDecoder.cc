@@ -130,13 +130,13 @@ int TpcRawDataDecoder::Init(PHCompositeNode * /*topNode*/)
   if(m_Debug==1){
     hm = new Fun4AllHistoManager("HITHIST");
 
-    _h_hit_XYT = new TH3F("_h_hit_XYT" ,"_h_hit_XYT;X, [mm];Y, [mm]; T [BCO]", 400, -800, 800, 400, -800, 800, 500, 128000000000,128050000000);
+    //_h_hit_XYT = new TH3F("_h_hit_XYT" ,"_h_hit_XYT;X, [mm];Y, [mm]; T [BCO]", 400, -800, 800, 400, -800, 800, 500, 128000000000,128050000000);
     _h_hit_XY = new TH2F("_h_hit_XY" ,"_h_hit_XY;X, [mm];Y, [mm]", 400, -800, 800, 400, -800, 800);
     _h_hit_XY_ADCcut = new TH2F("_h_hit_XY_ADCcut" ,"_h_hit_XY_ADCcut;X, [mm];Y, [mm]", 400, -800, 800, 400, -800, 800);
-    _h_hit_PT_ADCcut = new TH3F("_h_hit_PT_ADCcut" ,"_h_hit_PT_ADCcut;Pad number;time [50 ns];BCO;", 400, -0.5, 399.5, 400, -0.5, 399.5, 500, 128000000000,128050000000);
+    //_h_hit_PT_ADCcut = new TH3F("_h_hit_PT_ADCcut" ,"_h_hit_PT_ADCcut;Pad number;time [50 ns];BCO;", 400, -0.5, 399.5, 400, -0.5, 399.5, 500, 128000000000,128050000000);
 
-    hm->registerHisto(_h_hit_XYT );
-    hm->registerHisto(_h_hit_PT_ADCcut);
+    //hm->registerHisto(_h_hit_XYT );
+    //hm->registerHisto(_h_hit_PT_ADCcut);
     hm->registerHisto(_h_hit_XY );
     hm->registerHisto(_h_hit_XY_ADCcut);
   }
@@ -223,7 +223,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
   rollover_value = 0;
   // check all possible TPC packets that we need to analyze
   for(int ep=0;ep<2;ep++){
-   for (int sector = 0; sector<=23; sector++)
+   for (int sector = 0; sector<24; sector++)
    {
     const int packet = 4000 + sector*10 + ep;
 
@@ -330,7 +330,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       int FEE_R[26]={2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
       // conter clockwise FEE mapping (From Takao)
       //int FEE_map[26]={3, 2, 5, 3, 4, 0, 2, 1, 3, 4, 5, 7, 6, 2, 0, 1, 0, 1, 4, 5, 11, 9, 10, 8, 6, 7};
-      int pads_per_sector[3] = {96, 128, 192};
+      //int pads_per_sector[3] = {96, 128, 192};
       int FEE_map[26] = { 4,  5,  0,  2,  1,  11,  9,  10,  8,  7,  6,  0,  1,  3,  7,  6,  5,  4,  3,  2,  0,  2,  1,  3,  5,  4};	
       // setting the mapp of the FEE
       int feeM = FEE_map[fee];
@@ -344,7 +344,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       // antenna pads will be in 0 layer
       if(layer==0)continue;
 
-      
+      PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
       //varname = "fee" + std::to_string(key);
       //int feeM_cdbt = m_cdbttree->GetIntValue(key,varname);
       
@@ -363,8 +363,8 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       //double R = M.getR(feeM, channel);
       //double phi = M.getPhi(feeM, channel) + (sector - side*12 )* M_PI / 6 ;
 	    //int pad = M.getPad(feeM, channel);
-      varname = "pad";// + std::to_string(key);
-      int pad = m_cdbttree->GetIntValue(key,varname);
+      //varname = "pad";// + std::to_string(key);
+      //int pad = m_cdbttree->GetIntValue(key,varname);
 
       //std::cout<<"pad "<< padn_cdbt          <<"  "<< pad     << " delta =" << padn_cdbt       - pad     
       //<<"\n  \t  phi "<< phi_cdbt           <<"  "<< phi     << " delta =" << phi_cdbt        - phi     
@@ -373,7 +373,8 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       //<<"\n  \t  FEE "<< feeM_cdbt          <<"  "<< feeM    << " delta =" << feeM_cdbt       - feeM    
       //<<"\n  \t  layer "<< layer_cdbt       <<"  "<< layer   << " delta =" << layer_cdbt      - layer 
       //<< std::endl;        
-      int mc_sectors[12] = {5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6};
+      int mc_sectors[12] = { 5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6};
+      //int mc_sectors[12] = {5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4};
 
       float pedestal = 72.4;//round(tmap[key].PedMean);
       TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, (mc_sectors[sector - side*12] ), side);
@@ -419,9 +420,13 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 	      //	    if(adc-pedestal<4) continue;
 	      // generate hit key
 	      if(float(adc)-pedestal>2){
-	        TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int)( pads_per_sector[FEE_R[fee]-1] - pad + (mc_sectors[sector - side*12] )*pads_per_sector[FEE_R[fee]-1] ), (unsigned int) t);
+          unsigned int phibin = layergeom->find_phibin(phi);
+          //if((int)phibin > pads_per_sector[FEE_R[fee]-1]*12) std::cout << "TpcRawDataDecoder:: phibin is out of range > "<< pads_per_sector[FEE_R[fee]-1]*12 << std::endl;
+	        TrkrDefs::hitkey hitkey = TpcDefs::genHitKey( phibin, (unsigned int) t);
+          //double phi_center = layergeom->get_phicenter(phibin);
+          //if(phi_center<0) phi_center += 2*M_PI;
+          //int phibin_mc = layergeom->find_phibin(phi);
 	        // find existing hit, or create
-  
 	        auto hit = hitsetit->second->getHit(hitkey);
   
 	        // create hit, assign adc and insert in hitset
@@ -437,17 +442,19 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 
 		        hitsetit->second->addHitSpecificKey(hitkey, hit);
 		      }
-	      }
+	      
 	    
 	    
-	      if(m_Debug==1){
-          if(layer==16 ) _h_hit_PT_ADCcut->Fill(pad, s, triggerBCO,float(adc));
-	        if(adc - pedestal > 15){
-		        _h_hit_XY_ADCcut->Fill(R*cos(phi),R*sin(phi),float(adc)-pedestal);
-		        _h_hit_XYT->Fill(R*cos(phi),R*sin(phi), triggerBCO,float(adc)-pedestal);
-            
+	        if(m_Debug==1){
+            //if(layer==16 ) _h_hit_PT_ADCcut->Fill(pad, s, triggerBCO,float(adc));
+	          if(adc - pedestal > 15){
+              //std::cout << "pad = " << pad << "phibin = " << phibin << " phibin_mc = " << phibin_mc << " sector = " << sector << "mc_sectors = " << mc_sectors[sector - side*12] << "phibin/pads_per_sector = " << phibin/pads_per_sector[FEE_R[fee]-1] << " phi_center = " << phi_center << " phi = " << phi << std::endl;
+		          _h_hit_XY_ADCcut->Fill(R*cos(phi),R*sin(phi),float(adc)-pedestal);
+		          //_h_hit_XYT->Fill(R*cos(phi),R*sin(phi), triggerBCO,float(adc)-pedestal);
+
+	          }
 	        }
-	      }
+        }
 	      //if (s==samples-1) std::cout << std::endl;
 	    }
         
@@ -460,7 +467,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
   // we skip the mapping to real pads at first. We just say
   // that we get 16 rows (segment R2) with 128 pads
   // so each FEE fills 2 rows. Not right, but one step at a time.
-  std::cout << "My Own TpcRawDataDecoder:: done" << std::endl;
+  std::cout << "TpcRawDataDecoder:: done" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

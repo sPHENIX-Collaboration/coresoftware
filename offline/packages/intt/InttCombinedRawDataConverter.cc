@@ -1,182 +1,233 @@
 #include "InttCombinedRawDataConverter.h"
+#include "InttMapping.h"
 
-#include <Event/Event.h>
-#include <Event/EventTypes.h>
-#include <Event/packet.h>
+#include <ffarawobjects/InttRawHit.h>
+#include <ffarawobjects/InttRawHitContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4allraw/PacketMap.h>
+#include <fun4all/SubsysReco.h>
 
 #include <phool/getClass.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
+#include <phool/phool.h>
 
-InttCombinedRawDataConverter::InttCombinedRawDataConverter(std::string const& name):
-	SubsysReco(name)
+#include <TFile.h>
+#include <TSystem.h>
+#include <TTree.h>
+
+#include <cstdlib>    // for exit
+#include <iostream>   // for operator<<, endl, bas...
+#include <utility>    // for pair
+
+class PHCompositeNode;
+
+InttCombinedRawDataConverter::InttCombinedRawDataConverter(std::string const& name)
+  : SubsysReco(name)
 {
-	//Do nothing
+  // Do nothing
 }
 
 int InttCombinedRawDataConverter::SetOutputFile(std::string const& filename)
 {
-	if(filename.empty())
-	{
-		std::cout << "InttCombinedRawDataConverter::SetOputputFile(std:: string const& filename)" << std::endl;
-		std::cout << "Argument \"filename\" is empty string" << std::endl;
-		std::cout << "No output was written" << std::endl;
+  if (filename.empty())
+  {
+    std::cout << "InttCombinedRawDataConverter::SetOputputFile(std:: string const& filename)" << std::endl;
+    std::cout << "Argument \"filename\" is empty string" << std::endl;
+    std::cout << "No output was written" << std::endl;
 
-		return 1;
-	}
+    return 1;
+  }
 
-	std::cout << "Will write to file:" << std::endl;
-	std::cout << "\t" << filename << std::endl;
+  std::cout << "Will write to file:" << std::endl;
+  std::cout << "\t" << filename << std::endl;
 
-	file = TFile::Open(filename.c_str(), "RECREATE");
-	if(tree)tree->SetDirectory(file);
+  file = TFile::Open(filename.c_str(), "RECREATE");
+  if (tree)
+  {
+    tree->SetDirectory(file);
+  }
 
-	return 0;
+  return 0;
 }
 
 int InttCombinedRawDataConverter::WriteOutputFile()
 {
-	if(!file)
-	{
-		std::cout << "InttCombinedRawDataConverter::WriteOputputFile()" << std::endl;
-		std::cout << "Member \"file\" is uninitialized" << std::endl;
-		std::cout << "Did you call SetOutputFile()?" << std::endl;
-		std::cout << "No output was written" << std::endl;
-		return 1;
-	}
+  if (!file)
+  {
+    std::cout << "InttCombinedRawDataConverter::WriteOputputFile()" << std::endl;
+    std::cout << "Member \"file\" is uninitialized" << std::endl;
+    std::cout << "Did you call SetOutputFile()?" << std::endl;
+    std::cout << "No output was written" << std::endl;
+    return 1;
+  }
 
-	if(!tree)
-	{
-		std::cout << "InttCombinedRawDataConverter::WriteOputputFile()" << std::endl;
-		std::cout << "Member \"tree\" is uninitialized" << std::endl;
-		std::cout << "Did you call SetOutputFile()?" << std::endl;
-		std::cout << "No output was written" << std::endl;
-		return 1;
-	}
+  if (!tree)
+  {
+    std::cout << "InttCombinedRawDataConverter::WriteOputputFile()" << std::endl;
+    std::cout << "Member \"tree\" is uninitialized" << std::endl;
+    std::cout << "Did you call SetOutputFile()?" << std::endl;
+    std::cout << "No output was written" << std::endl;
+    return 1;
+  }
 
-	file->cd();
-	tree->Write();
-	file->Write();
-	file->Close();
-	delete tree;
-
-	return 0;
+  file->cd();
+  tree->Write();
+  file->Write();
+  file->Close();
+  return 0;
 }
 
 int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 {
-	tree = new TTree("prdf_tree", "prdf_tree");
-	if(file)tree->SetDirectory(file);
+  delete tree;
+  tree = new TTree("prdf_tree", "prdf_tree");
+  if (file)
+  {
+    tree->SetDirectory(file);
+  }
 
-	tree->Branch("n_evt", &n_evt);
-	tree->Branch("num_hits", &num_hits);
+  tree->Branch("n_evt", &n_evt);
+  tree->Branch("num_hits", &num_hits);
 
-	branches =
-	{
-		{"flx_svr",	new std::vector<Long64_t>()},
-		{"flx_chn",	new std::vector<Long64_t>()},
-		{"lyr",		new std::vector<Long64_t>()},
-		{"ldr",		new std::vector<Long64_t>()},
-		{"arm",		new std::vector<Long64_t>()},
-		{"chp",		new std::vector<Long64_t>()},
-		{"chn",		new std::vector<Long64_t>()},
+  branches_i =
+  {
+     {"flx_svr", new std::vector<Int_t>()},
+     {"flx_chn", new std::vector<Int_t>()},
+     {"lyr",     new std::vector<Int_t>()},
+     {"ldr",     new std::vector<Int_t>()},
+     {"arm",     new std::vector<Int_t>()},
+     {"chp",     new std::vector<Int_t>()},
+     {"chn",     new std::vector<Int_t>()},
 
-		{"gtm_bco",	new std::vector<Long64_t>()},
-		{"flx_bco",	new std::vector<Long64_t>()},
-		{"adc",		new std::vector<Long64_t>()},
-		{"amp",		new std::vector<Long64_t>()},
-	};
+     {"flx_bco", new std::vector<Int_t>()},
+     {"adc",     new std::vector<Int_t>()},
+     {"amp",     new std::vector<Int_t>()},
+  };
 
-	for(Branches_t::iterator itr = branches.begin(); itr != branches.end(); ++itr)
-	{
-		tree->Branch(itr->first.c_str(), &(itr->second));
-	}
+  branches_l =
+  {
+     {"gtm_bco", new std::vector<Long64_t>()},
+  };
 
-	if(Verbosity() > 20)std::cout << "int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)" << std::endl;
-	if(Verbosity() > 20)std::cout << "\tDone";
+  branches_d =
+  {
+     //{"g_x",   new std::vector<Double_t>()},
+     //{"g_y",   new std::vector<Double_t>()},
+     //{"g_z",   new std::vector<Double_t>()},
+  };
 
-	return 0;
+  for (auto& itr : branches_i)tree->Branch(itr.first.c_str(), &(itr.second));
+  for (auto& itr : branches_l)tree->Branch(itr.first.c_str(), &(itr.second));
+  for (auto& itr : branches_d)tree->Branch(itr.first.c_str(), &(itr.second));
+
+  if (Verbosity() > 20)
+  {
+    std::cout << "int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)" << std::endl;
+  }
+  if (Verbosity() > 20)
+  {
+    std::cout << "\tDone";
+  }
+
+  return 0;
 }
 
 int InttCombinedRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)
 {
-	n_evt = 0;
-	for(Branches_t::iterator itr = branches.begin(); itr != branches.end(); ++itr)itr->second->clear();
+  n_evt = 0;
+  for (auto& itr : branches_i)itr.second->clear();
+  for (auto& itr : branches_l)itr.second->clear();
+  for (auto& itr : branches_d)itr.second->clear();
 
-	if(Verbosity() > 20)std::cout << "int InttCombinedRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)" << std::endl;
-	if(Verbosity() > 20)std::cout << "\tDone";
+  if (Verbosity() > 20)
+  {
+    std::cout << "int InttCombinedRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)" << std::endl;
+  }
+  if (Verbosity() > 20)
+  {
+    std::cout << "\tDone";
+  }
 
-	return Fun4AllReturnCodes::EVENT_OK;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
 {
-	if(!tree)return Fun4AllReturnCodes::DISCARDEVENT;
+  if (!tree)
+  {
+    return Fun4AllReturnCodes::DISCARDEVENT;
+  }
 
-	if(Verbosity() > 20)std::cout << "int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)" << std::endl;
-	if(Verbosity() > 20)std::cout << "\t" << n_evt << std::endl;
+  if (Verbosity() > 20)
+  {
+    std::cout << "int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)" << std::endl;
+  }
+  if (Verbosity() > 20)
+  {
+    std::cout << "\t" << n_evt << std::endl;
+  }
 
-	PacketMap* pktmap = findNode::getClass<PacketMap>(topNode, m_EvtNodeName);
-	if(!pktmap)
-	{
-		std::cout << "int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)" << std::endl;
-		std::cout << "\t" << PHWHERE << " could not find node " << m_EvtNodeName << std::endl;
-		std::cout << "\tExiting" << std::endl; 
+  InttRawHitContainer* inttcont = findNode::getClass<InttRawHitContainer>(topNode, m_InttRawNodeName);
+  if (!inttcont)
+  {
+    std::cout << "int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)" << std::endl;
+    std::cout << "\t" << PHWHERE << " could not find node " << m_InttRawNodeName << std::endl;
+    std::cout << "\tExiting" << std::endl;
 
-		gSystem->Exit(1);
-		exit(1);
-	}
+    gSystem->Exit(1);
+    exit(1);
+  }
 
-	for(Branches_t::iterator itr = branches.begin(); itr != branches.end(); ++itr)itr->second->clear();
+  for (auto& itr : branches_i)itr.second->clear();
+  for (auto& itr : branches_l)itr.second->clear();
+  for (auto& itr : branches_d)itr.second->clear();
 
-	PacketMap::PacketListRange pktrange = pktmap->first_last_packet();
-	for(auto iter = pktrange.first; iter != pktrange.second; iter++)
-	{
-		for(auto bclkiter : iter->second.m_BeamClockSet)
-		{
-			for(auto pktiter : iter->second.m_PacketVector)
-			{
-				int num_hits = pktiter->iValue(0, "NR_HITS");
-				for(int j = 0; j < num_hits; j++)
-				{
-					uint64_t gtm_bco = pktiter->lValue(j, "BCO");
+  Intt::RawData_s raw;
+  Intt::Online_s onl;
+  std::map<std::tuple<int, int, int, int, int>, char> hits;
+  for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
+  {
+    InttRawHit* intthit = inttcont->get_hit(i);
 
-					if((bclkiter & 0xFFFFFFFFFF) != gtm_bco)continue;
+    raw.felix_server = Intt::FelixFromPacket(intthit->get_packetid());
+    raw.felix_channel = intthit->get_fee();
+    raw.chip = intthit->get_chip_id();
+    raw.channel = intthit->get_channel_id();
+    onl = Intt::ToOnline(raw);
 
-					if(Verbosity() > 40)std::cout << "\tfound match at bclk 0x" << std::hex << gtm_bco << std::dec << std::endl;
+    std::tuple<int, int, int, int, int> tpl;
+    std::get<0>(tpl) = onl.lyr;
+    std::get<1>(tpl) = onl.ldr;
+    std::get<2>(tpl) = onl.arm;
+    std::get<3>(tpl) = onl.chp;
+    std::get<4>(tpl) = onl.chn;
 
-					raw = Intt::RawFromPacket(iter->first, j, pktiter);
+    if(hits.find(tpl) != hits.end())continue;
+    hits[tpl] = 0;
 
-					branches["flx_svr"]->push_back(raw.felix_channel);
-					branches["flx_chn"]->push_back(raw.felix_channel);
+    branches_i["flx_svr"]->push_back(raw.felix_server);
+    branches_i["flx_chn"]->push_back(raw.felix_channel);
 
-					onl = Intt::ToOnline(raw);
-					branches["lyr"]->push_back(onl.lyr);
-					branches["ldr"]->push_back(onl.ldr);
-					branches["arm"]->push_back(onl.arm);
-					branches["chp"]->push_back(onl.chp);
-					branches["chn"]->push_back(onl.chn);
+    branches_i["lyr"]->push_back(onl.lyr);
+    branches_i["ldr"]->push_back(onl.ldr);
+    branches_i["arm"]->push_back(onl.arm);
+    branches_i["chp"]->push_back(onl.chp);
+    branches_i["chn"]->push_back(onl.chn);
 
-					branches["gtm_bco"]->push_back(gtm_bco);
-					branches["flx_bco"]->push_back(pktiter->iValue(j, "FPHX_BCO"));
-					branches["adc"]->push_back(pktiter->iValue(j, "ADC"));
-					branches["amp"]->push_back(pktiter->iValue(j, "AMPLITUDE"));
-				}
-			}
-		}
-	}
+    branches_i["flx_bco"]->push_back(intthit->get_FPHX_BCO());
+    branches_i["adc"]->push_back(intthit->get_adc());
+    branches_i["amp"]->push_back(intthit->get_amplitude());
 
-	num_hits = branches.begin()->second->size();
-	tree->Fill();
-	++n_evt;
+    branches_l["gtm_bco"]->push_back(intthit->get_bco());
+  }
 
-	return Fun4AllReturnCodes::EVENT_OK;
+  num_hits = branches_l.begin()->second->size();
+  tree->Fill();
+  ++n_evt;
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int InttCombinedRawDataConverter::End(PHCompositeNode* /*topNode*/)
 {
-	return Fun4AllReturnCodes::EVENT_OK;
+  return Fun4AllReturnCodes::EVENT_OK;
 }

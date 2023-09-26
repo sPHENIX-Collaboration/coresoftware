@@ -1,45 +1,47 @@
-#ifndef INTT_COMBINED_RAW_DATA_CONVERTER_H
-#define INTT_COMBINED_RAW_DATA_CONVERTER_H
+#ifndef INTT_INTTCOMBINEDRAWDATACONVERTER_H
+#define INTT_INTTCOMBINEDRAWDATACONVERTER_H
 
-#include "InttMapping.h"
+#include <fun4all/SubsysReco.h>
 
-#include <iostream>
-#include <string>
+#include <Rtypes.h> // for ROOT data types
+
 #include <map>
+#include <string>
+#include <tuple>
 #include <vector>
 
-#include <TSystem.h>
-#include <TFile.h>
-#include <TTree.h>
-#include <fun4all/SubsysReco.h>
+class PHCompositeNode;
+class TTree;
+class TFile;
 
 class InttCombinedRawDataConverter : public SubsysReco
 {
-public:
-	InttCombinedRawDataConverter(std::string const& name = "InttRawDataConverter");
+ public:
+  InttCombinedRawDataConverter(std::string const& name = "InttRawDataConverter");
 
-	int SetOutputFile(std::string const&);
-	int WriteOutputFile();
+  int SetOutputFile(std::string const&);
+  int WriteOutputFile();
 
-	int Init(PHCompositeNode*) override;
-	int InitRun(PHCompositeNode*) override;
-	int process_event(PHCompositeNode*) override;
-	int End(PHCompositeNode*) override;
+  int Init(PHCompositeNode*) override;
+  int InitRun(PHCompositeNode*) override;
+  int process_event(PHCompositeNode*) override;
+  int End(PHCompositeNode*) override;
 
-private:
-	std::string m_EvtNodeName = "EVT";
+ private:
+  std::string m_InttRawNodeName = "INTTRAWHIT";
 
-	TFile* file = nullptr;
-	TTree* tree = nullptr;
+  TFile* file = nullptr;
+  TTree* tree = nullptr;
 
-	Int_t n_evt = 0;
-	Int_t num_hits = 0;
+  Int_t n_evt = 0;
+  Int_t num_hits = 0;
 
-	Intt::RawData_s raw;
-	Intt::Online_s onl;
-
-	typedef std::map<std::string, std::vector<Long64_t>*> Branches_t;
-	Branches_t branches;
+  typedef std::map<std::string, std::vector<Int_t>*> Branches_i_t;
+  typedef std::map<std::string, std::vector<Long64_t>*> Branches_l_t;
+  typedef std::map<std::string, std::vector<Double_t>*> Branches_d_t;
+  Branches_i_t branches_i;
+  Branches_l_t branches_l;
+  Branches_d_t branches_d;
 };
 
-#endif//INTT_COMBINED_RAW_DATA_CONVERTER_H
+#endif  // INTT_INTTCOMBINEDRAWDATACONVERTER_H

@@ -79,6 +79,8 @@ class TrackFitUtils
 					 std::vector<Acts::Vector3>& global_vec,  
 					 std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
+    static std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global);
+
   static Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, Acts::Vector3 global);
 
   static Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);

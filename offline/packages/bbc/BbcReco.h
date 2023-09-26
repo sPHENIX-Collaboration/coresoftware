@@ -9,9 +9,11 @@
 #include <string>
 
 class PHCompositeNode;
-class BbcPmtContainer;
+class BbcEvent;
+class BbcPmtInfoContainerV1;
 class BbcVertexMap;
 class BbcOut;
+class Event;
 class TF1;
 class TH1;
 
@@ -32,11 +34,13 @@ class BbcReco : public SubsysReco
   int getNodes(PHCompositeNode *topNode);
   std::unique_ptr<TF1> m_gaussian = nullptr;
 
+
   float m_tres = 0.05;
-  TH1 *h_evt_bbct[2];
-  BbcVertexMap *m_bbcvertexmap = nullptr;
-  BbcOut *m_bbcout {nullptr};
-  BbcPmtContainer *m_bbcpmts = nullptr;
+  BbcEvent              *m_bbcevent {nullptr};
+  Event                 *m_event {nullptr};
+  BbcVertexMap          *m_bbcvertexmap {nullptr};
+  BbcOut                *m_bbcout {nullptr};
+  BbcPmtInfoContainerV1 *m_bbcpmts {nullptr};
 };
 
 #endif  // __BBCRECO_H__
