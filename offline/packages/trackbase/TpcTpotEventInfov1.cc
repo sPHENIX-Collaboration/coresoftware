@@ -12,9 +12,6 @@
 
 TpcTpotEventInfov1::TpcTpotEventInfov1()
 {
-  std::fill_n(&m_tagger_type[0][0][0],100,UINT16_MAX);
-  std::fill_n(&m_is_endat[0][0][0],100,UINT8_MAX);
-  std::fill_n(&m_is_lvl1[0][0][0],100,UINT8_MAX);
   std::fill_n(&m_bco[0][0][0],100,UINT64_MAX);
   std::fill_n(&m_lvl1_count[0][0][0],100,UINT32_MAX);
   std::fill_n(&m_endat_count[0][0][0],100,UINT32_MAX);
@@ -29,9 +26,6 @@ void TpcTpotEventInfov1::identify(std::ostream& os) const
   for (int i = 0; i < 25; i++)
   {
     os << "Sector " << i << ": (PCIe 0 lvl1, PCIe 0 EnDat, PCIe 1 lvl1, PCIe 1 EnDat)" << std::endl;
-    os << "Tagger Type - " << m_tagger_type[i][0][0] << ", " << m_tagger_type[i][0][1] << ", " << m_tagger_type[i][1][0] << ", " << m_tagger_type[i][1][1] << std::endl;
-    os << "Is EnDat - " << m_is_endat[i][0][0] << ", " << m_is_endat[i][0][1] << ", " << m_is_endat[i][1][0] << ", " << m_is_endat[i][1][1] << std::endl;
-    os << "Is Level 1 - " << m_is_lvl1[i][0][0] << ", " << m_is_lvl1[i][0][1] << ", " << m_is_lvl1[i][1][0] << ", " << m_is_lvl1[i][1][1] << std::endl;
     os << "BCO - " << m_bco[i][0][0] << ", " << m_bco[i][0][1] << ", " << m_bco[i][1][0] << ", " << m_bco[i][1][1] << std::endl;
     os << "Level 1 Count - " << m_lvl1_count[i][0][0] << ", " << m_lvl1_count[i][0][1] << ", " << m_lvl1_count[i][1][0] << ", " << m_lvl1_count[i][1][1] << std::endl;
     os << "EnDat Count - " << m_endat_count[i][0][0] << ", " << m_endat_count[i][0][1] << ", " << m_endat_count[i][1][0] << ", " << m_endat_count[i][1][1] << std::endl;
@@ -64,9 +58,6 @@ void TpcTpotEventInfov1::CopyFrom( const TpcTpotEventInfo& source )
     {
       for (int k = 0; k < 2; k++)
       {
-        setTaggerType(source.getTaggerType(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)), static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));
-        setEnDat(source.getEnDat(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)),static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));
-        setIsLevel1(source.getIsLevel1(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)),static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));
         setBCO(source.getBCO(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)),static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));
         setLevel1Count(source.getLevel1Count(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)),static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));
         setEnDatCount(source.getEnDatCount(static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k)), static_cast<SectorID>(i), static_cast<PCIeEndPointID>(j), static_cast<TaggerID>(k));

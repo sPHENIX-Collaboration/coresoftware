@@ -58,20 +58,14 @@ class TpcTpotEventInfo : public PHObject
                  kTPCSector5,kTPCSector6,kTPCSector7,kTPCSector8,kTPCSector9,
                  kTPCSector10,kTPCSector11,kTPCSector12,kTPCSector13,kTPCSector14,
                  kTPCSector15,kTPCSector16,kTPCSector17,kTPCSector18,kTPCSector19,
-                 kTPCSector20,kTPCSector21,kTPCSector22,kTPCSector23,kTPOT}; 
+                 kTPCSector20,kTPCSector21,kTPCSector22,kTPCSector23,kTPOT = 24}; 
   // TPC has sectors 0..23, TPOT uses index 24 in this storage
-  enum PCIeEndPointID {kEndPoint0 = 0,kEndPoint1} ;
-  enum TaggerID {kLVL1Tagger = 0, kEnDatTagger} ;
+  enum PCIeEndPointID {kEndPoint0 = 0,kEndPoint1 = 1} ;
+  enum TaggerID {kLVL1Tagger = 0, kEnDatTagger = 1} ;
   
   virtual void checkIndexes(SectorID, PCIeEndPointID, TaggerID)
   {}
 
-  virtual uint16_t getTaggerType(SectorID, PCIeEndPointID, TaggerID) const { return UINT16_MAX; } 
-  virtual void setTaggerType(uint16_t, SectorID, PCIeEndPointID, TaggerID) {} 
-  virtual uint8_t getEnDat(SectorID, PCIeEndPointID, TaggerID) const { return UINT8_MAX; } 
-  virtual void setEnDat(uint8_t, SectorID, PCIeEndPointID, TaggerID) {} 
-  virtual uint8_t getIsLevel1(SectorID, PCIeEndPointID, TaggerID) const { return UINT8_MAX; } 
-  virtual void setIsLevel1(uint8_t, SectorID, PCIeEndPointID, TaggerID) {} 
   virtual uint64_t getBCO(SectorID, PCIeEndPointID, TaggerID) const { return UINT64_MAX; } 
   virtual void setBCO(uint64_t, SectorID, PCIeEndPointID, TaggerID) {} 
   virtual uint32_t getLevel1Count(SectorID, PCIeEndPointID, TaggerID) const { return UINT32_MAX; } 

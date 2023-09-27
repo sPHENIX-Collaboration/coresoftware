@@ -30,9 +30,6 @@ class TpcTpotEventInfov1 : public TpcTpotEventInfo
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override 
   {
-    std::fill_n(&m_tagger_type[0][0][0],100,UINT16_MAX);
-    std::fill_n(&m_is_endat[0][0][0],100,UINT8_MAX);
-    std::fill_n(&m_is_lvl1[0][0][0],100,UINT8_MAX);
     std::fill_n(&m_bco[0][0][0],100,UINT64_MAX);
     std::fill_n(&m_lvl1_count[0][0][0],100,UINT32_MAX);
     std::fill_n(&m_endat_count[0][0][0],100,UINT32_MAX);
@@ -55,12 +52,6 @@ class TpcTpotEventInfov1 : public TpcTpotEventInfo
 
   void checkIndexes(SectorID, PCIeEndPointID, TaggerID) override;
 
-  uint16_t getTaggerType(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_tagger_type[sector][PCIe][tagger]; }
-  void setTaggerType(uint16_t type, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_tagger_type[sector][PCIe][tagger] = type; }
-  uint8_t getEnDat(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_is_endat[sector][PCIe][tagger]; }
-  void setEnDat(uint8_t endat, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_is_endat[sector][PCIe][tagger] = endat; }
-  uint8_t getIsLevel1(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_is_lvl1[sector][PCIe][tagger]; }
-  void setIsLevel1(uint8_t islvl1, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_is_lvl1[sector][PCIe][tagger] = islvl1; }
   uint64_t getBCO(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_bco[sector][PCIe][tagger]; }
   void setBCO(uint64_t bco, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_bco[sector][PCIe][tagger] = bco; }
   uint32_t getLevel1Count(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_lvl1_count[sector][PCIe][tagger]; }
@@ -74,9 +65,6 @@ class TpcTpotEventInfov1 : public TpcTpotEventInfo
 
  protected:
 
-  uint16_t m_tagger_type[25][2][2]{};
-  uint8_t m_is_endat[25][2][2]{};
-  uint8_t m_is_lvl1[25][2][2]{};
   uint64_t m_bco[25][2][2]{};
   uint32_t m_lvl1_count[25][2][2]{};
   uint32_t m_endat_count[25][2][2]{};
