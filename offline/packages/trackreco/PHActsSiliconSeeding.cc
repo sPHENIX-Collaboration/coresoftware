@@ -217,7 +217,8 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
   SeedContainer seeds;
   seeds.clear();
   decltype(seedFinder)::SeedingState state;
-
+  state.spacePointData.resize(spVec.size(),
+			      m_seedFinderCfg.useDetailedDoubleMeasurementInfo);
   for(const auto [bottom, middle, top] : spGroup)
     {
     
@@ -767,6 +768,9 @@ void PHActsSiliconSeeding::configureSeeder()
 
   /// Maximum impact parameter must be smaller than rMin
   m_seedFinderCfg.impactMax = m_impactMax;
+
+  m_seedFinderCfg.rMinMiddle = 3. * Acts::UnitConstants::cm;
+  m_seedFinderCfg.rMaxMiddle = 3.7 * Acts::UnitConstants::cm;
 
   /// Configurations for dealing with misalignment
   m_seedFinderCfg.zAlign = m_zalign;
