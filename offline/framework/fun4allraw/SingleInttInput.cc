@@ -1,4 +1,5 @@
 #include "SingleInttInput.h"
+#include "intt_pool.h"
 
 #include "Fun4AllEvtInputPoolManager.h"
 
@@ -17,6 +18,7 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
+
 #include <set>
 
 SingleInttInput::SingleInttInput(const std::string &name)
@@ -28,6 +30,14 @@ SingleInttInput::SingleInttInput(const std::string &name)
 SingleInttInput::~SingleInttInput()
 {
   delete[] plist;
+  for ( auto iter : poolmap)
+    {
+      if (Verbosity() > 2)
+	{
+	  std::cout << "deleting intt pool for id  " << (iter.second)->getIdentifier() << std::endl;
+	}
+      delete (iter.second);
+    }
 }
 
 void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
@@ -40,8 +50,10 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
   {
     OpenNextFile();
   }
-//  std::set<uint64_t> saved_beamclocks;
-   while (GetSomeMoreEvents())
+
+  std::set<uint64_t> saved_beamclocks;
+
+  while (GetSomeMoreEvents())
   {
     Event *evt = GetEventiterator()->getNextEvent();
     while (!evt)
@@ -63,10 +75,15 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
     {
       evt->identify();
     }
+    
+    // not interested in special events, really
     if (evt->getEvtType() != DATAEVENT)
     {
       m_NumSpecialEvents++;
+      delete evt;
+      return;
     }
+
     int EventSequence = evt->getEvtSequence();
     int npackets = evt->getPacketList(plist, 10);
 
@@ -74,73 +91,98 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
     {
       exit(1);
     }
-    for (int i = 0; i < npackets; i++)
-    {
-      if (Verbosity() > 1)
-      {
-        plist[i]->identify();
-      }
-      int num_hits = plist[i]->iValue(0, "NR_HITS");
-      if (Verbosity() > 1)
-      {
-	std::cout << "Number of Hits: " << num_hits << " for packet "
-		  << plist[i]->getIdentifier() << std::endl;
-      }
-      std::set<uint64_t> bclk_set;
-      for (int j = 0; j < num_hits; j++)
-      {
-	InttRawHit *newhit = new InttRawHitv1();
-	int FEE = plist[i]->iValue(j, "FEE");
-	uint64_t gtm_bco = plist[i]->lValue(j, "BCO");
-        newhit->set_packetid(plist[i]->getIdentifier());
-	newhit->set_fee(FEE);
-	newhit->set_bco(gtm_bco);
-	newhit->set_adc(plist[i]->iValue(j,"ADC"));
-	newhit->set_amplitude(plist[i]->iValue(j,"AMPLITUDE"));
-	newhit->set_chip_id(plist[i]->iValue(j,"CHIP_ID"));
-	newhit->set_channel_id(plist[i]->iValue(j,"CHANNEL_ID"));
-	newhit->set_word(plist[i]->iValue(j,"DATAWORD"));
-	newhit->set_FPHX_BCO(plist[i]->iValue(j,"FPHX_BCO"));
-	newhit->set_full_FPHX(plist[i]->iValue(j,"FULL_FPHX"));
-	newhit->set_full_ROC(plist[i]->iValue(j,"FULL_ROC"));
 
-	gtm_bco += m_Rollover[FEE];
-	bclk_set.insert(gtm_bco);
-	if (gtm_bco < m_PreviousClock[FEE])
-	{
-	  m_Rollover[FEE] += 0x10000000000;
-	  gtm_bco += m_Rollover[FEE];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
-	}
-	m_PreviousClock[FEE] = gtm_bco;
-	m_BeamClockFEE[gtm_bco].insert(FEE);
-	m_FEEBclkMap[FEE] = gtm_bco;
+    for (int i = 0; i < npackets; i++)
+      {
 	if (Verbosity() > 2)
-	{
-	  std::cout << "evtno: " << EventSequence
-		    << ", hits: " << j
-		    << ", nr_hits: " << num_hits
-		    << ", bco: 0x" << std::hex << gtm_bco << std::dec
-		    << ", FEE: " << FEE << std::endl;
-	}
-//          plist[i]->convert();
-	if (InputManager())
-	{
-	  InputManager()->AddInttRawHit(gtm_bco, newhit);
-	}
-	if (m_InttRawHitMap.find(gtm_bco) == m_InttRawHitMap.end())
-	{
-	  std::vector<InttRawHit *> intthitvector;
-	  m_InttRawHitMap[gtm_bco] = intthitvector;
-	}
-	m_InttRawHitMap[gtm_bco].push_back(newhit);
-	m_BclkStack.insert(gtm_bco);
+	  {
+	    plist[i]->identify();
+	  }
+
+	if ( poolmap.find( plist[i]->getIdentifier() ) == poolmap.end()) // we haven't seen this one yet
+	  {
+	    if (Verbosity() > 1)
+	      {
+		std::cout << "starting new intt pool for packet " << plist[i]->getIdentifier() << std::endl;
+	      }
+	    poolmap[plist[i]->getIdentifier()] = new intt_pool(1000,100);
+	  }
+	poolmap[plist[i]->getIdentifier()]->addPacket(plist[i]);
+
+	delete plist[i];
+
       }
-      delete plist[i];
-    }
+
     delete evt;
-  }
-//  } while (m_InttRawHitMap.size() < 10 || CheckPoolDepth(m_InttRawHitMap.begin()->first));
+
+
+    for ( auto iter : poolmap )
+      {
+	intt_pool * pool = iter.second; // less typing
+	if ( pool->depth_ok() )
+	  {
+
+	    int num_hits = pool->iValue(0, "NR_HITS");
+	    if (Verbosity() > 1)
+	      {
+		std::cout << "Number of Hits: " << num_hits << " for packet "
+			  << pool->getIdentifier() << std::endl;
+	      }
+	    std::set<uint64_t> bclk_set;
+	    for (int j = 0; j < num_hits; j++)
+	      {
+		InttRawHit *newhit = new InttRawHitv1();
+		int FEE = pool->iValue(j, "FEE");
+		uint64_t gtm_bco = pool->lValue(j, "BCO");
+		newhit->set_packetid(pool->getIdentifier());
+		newhit->set_fee(FEE);
+		newhit->set_bco(gtm_bco);
+		newhit->set_adc(pool->iValue(j,"ADC"));
+		newhit->set_amplitude(pool->iValue(j,"AMPLITUDE"));
+		newhit->set_chip_id(pool->iValue(j,"CHIP_ID"));
+		newhit->set_channel_id(pool->iValue(j,"CHANNEL_ID"));
+		newhit->set_word(pool->iValue(j,"DATAWORD"));
+		newhit->set_FPHX_BCO(pool->iValue(j,"FPHX_BCO"));
+		newhit->set_full_FPHX(pool->iValue(j,"FULL_FPHX"));
+		newhit->set_full_ROC(pool->iValue(j,"FULL_ROC"));
+	      
+		gtm_bco += m_Rollover[FEE];
+		bclk_set.insert(gtm_bco);
+		if (gtm_bco < m_PreviousClock[FEE])
+		  {
+		    m_Rollover[FEE] += 0x10000000000;
+		    gtm_bco += m_Rollover[FEE];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+		  }
+		m_PreviousClock[FEE] = gtm_bco;
+		m_BeamClockFEE[gtm_bco].insert(FEE);
+		m_FEEBclkMap[FEE] = gtm_bco;
+		if (Verbosity() > 2)
+		  {
+		    std::cout << "evtno: " << EventSequence
+			      << ", hits: " << j
+			      << ", nr_hits: " << num_hits
+			      << ", bco: 0x" << std::hex << gtm_bco << std::dec
+			      << ", FEE: " << FEE << std::endl;
+		  }
+		//          plist[i]->convert();
+		if (InputManager())
+		  {
+		    InputManager()->AddInttRawHit(gtm_bco, newhit);
+		  }
+		if (m_InttRawHitMap.find(gtm_bco) == m_InttRawHitMap.end())
+		  {
+		    std::vector<InttRawHit *> intthitvector;
+		    m_InttRawHitMap[gtm_bco] = intthitvector;
+		  }
+		m_InttRawHitMap[gtm_bco].push_back(newhit);
+		m_BclkStack.insert(gtm_bco);
+	      }
+	  }
+	pool->next();
+      }
+  } 	  
 }
+
 
 void SingleInttInput::Print(const std::string &what) const
 {

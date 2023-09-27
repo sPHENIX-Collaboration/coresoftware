@@ -14,6 +14,7 @@ class Eventiterator;
 class Fun4AllEvtInputPoolManager;
 class InttRawHit;
 class Packet;
+class intt_pool;
 
 class SingleInttInput : public SingleStreamingInput
 {
@@ -37,6 +38,7 @@ class SingleInttInput : public SingleStreamingInput
   std::map<uint64_t, std::vector<InttRawHit *>> m_InttRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
+  std::map<int,intt_pool *> poolmap; 
 };
 
 #endif
