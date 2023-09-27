@@ -25,7 +25,6 @@ class TowerInfoContainer : public PHObject
     DETECTOR_INVALID = 9999
   };
 
-  TowerInfoContainer(DETECTOR detec): _detector(detec) {}
   TowerInfoContainer() = default;
   ~TowerInfoContainer() override = default;
 
@@ -34,8 +33,8 @@ class TowerInfoContainer : public PHObject
   virtual TowerInfo* get_tower_at_key(int /*key*/) { return nullptr; }
   virtual size_t size() { return 0; }
 
-  virtual unsigned int encode_key(unsigned int /*towerIndex*/);
-  virtual unsigned int decode_key(unsigned int /*towerIndex*/);
+  virtual unsigned int encode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
+  virtual unsigned int decode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
 
   virtual unsigned int encode_epd(unsigned int /*towerIndex*/);
   virtual unsigned int encode_hcal(unsigned int /*towerIndex*/);
@@ -51,9 +50,6 @@ class TowerInfoContainer : public PHObject
 
   virtual unsigned int getTowerPhiBin(unsigned int /*towerIndex*/);
   virtual unsigned int getTowerEtaBin(unsigned int /*towerIndex*/);
-
- protected:
-  DETECTOR _detector = DETECTOR_INVALID;
 
  private:
   ClassDefOverride(TowerInfoContainer, 1);

@@ -22,10 +22,14 @@ class TowerInfoContainerv1 : public TowerInfoContainer
   TowerInfov1 *get_tower_at_channel(int pos) override;
   TowerInfov1 *get_tower_at_key(int pos) override;
 
+  unsigned int encode_key(unsigned int towerIndex) override;
+  unsigned int decode_key(unsigned int tower_key) override;
+
   size_t size() override { return _clones->GetEntries(); }
 
  protected:
   TClonesArray *_clones = nullptr;
+  DETECTOR _detector = DETECTOR_INVALID;
 
  private:
   ClassDefOverride(TowerInfoContainerv1, 1);

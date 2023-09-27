@@ -11,7 +11,7 @@
 
 
 TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
-  : TowerInfoContainer(detec)
+  : _detector(detec)
 {
   int nchannels = 744;
   if (_detector == DETECTOR::SEPD)
@@ -87,4 +87,58 @@ TowerInfov1* TowerInfoContainerv1::get_tower_at_key(int pos)
   int index = decode_key(pos);
   return (TowerInfov1*) _clones->At(index);
 }
+
+unsigned int TowerInfoContainerv1::encode_key(unsigned int towerIndex)
+{
+  int key = 0;
+  if (_detector == DETECTOR::EMCAL)
+    {
+      key = TowerInfoContainerv1::encode_emcal(towerIndex);
+    }
+  else if (_detector == DETECTOR::HCAL)
+    {
+      key = TowerInfoContainerv1::encode_hcal(towerIndex);
+    }
+  else if (_detector == DETECTOR::SEPD)
+    {
+    key = TowerInfoContainerv1::encode_epd(towerIndex);
+    }
+  else if (_detector == DETECTOR::MBD)
+    {
+    key = TowerInfoContainerv1::encode_mbd(towerIndex);
+    }
+  else if (_detector == DETECTOR::ZDC)
+    {
+    key = TowerInfoContainerv1::encode_zdc(towerIndex);
+    }
+  return key;
+}
+
+unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
+{
+  int index = 0;
+
+  if (_detector == DETECTOR::EMCAL)
+  {
+    index = TowerInfoContainerv1::decode_emcal(tower_key);
+  }
+  else if (_detector == DETECTOR::HCAL)
+  {
+    index = TowerInfoContainerv1::decode_hcal(tower_key);
+  }
+  else if (_detector == DETECTOR::SEPD)
+  {
+    index = TowerInfoContainerv1::decode_epd(tower_key);
+  }
+  else if (_detector == DETECTOR::MBD)
+  {
+    index = TowerInfoContainerv1::decode_mbd(tower_key);
+  }
+  else if (_detector == DETECTOR::ZDC)
+  {
+    index = TowerInfoContainerv1::decode_zdc(tower_key);
+  }
+  return index;
+}
+
 
