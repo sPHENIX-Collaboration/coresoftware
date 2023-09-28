@@ -48,8 +48,6 @@ protected:
 
   static const int MAX_FEECOUNT =16;
   
-  int _broken;
-  
   int _is_decoded;
   int _last_accessed_hit;
   
