@@ -393,7 +393,7 @@ int intt_pool::intt_decode ()
       //coutfl << "FEE " << fee << " erasing  " << last_index[fee] << " words, size is  " << fee_data[fee].size() << endl;
       for ( unsigned int j = 0; j < last_index[fee]; j++)
 	{
-	  fee_data[fee].erase(fee_data[fee].begin());
+	  if ( fee_data[fee].size() ) fee_data[fee].erase(fee_data[fee].begin());
 	}
       //coutfl << "FEE " << fee << " size is now " << fee_data[fee].size() << endl;
       
