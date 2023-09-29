@@ -13,7 +13,7 @@ PHObject* MvtxEventInfov1::CloneMe() const
 void MvtxEventInfov1::Reset()
 {
   m_strobe_BCO.clear();
-  m_number_LL1 = -1;
+  m_L1_BCO_BC.clear();
   m_StringEventProperties.clear();
   m_IntEventProperties.clear();
   m_Int64EventProperties.clear();
@@ -35,6 +35,22 @@ void MvtxEventInfov1::identify(std::ostream &out) const
     out << iters->first << ": " << iters->second << std::endl;
     ++iters;
   }
+    
+  out << "Number of LL1 triggers in this event" << std::endl;
+  out << m_number_LL1_name << ": " << m_L1_BCO_BC.size() << std::endl;
+    
+  out << "Number of heart beats in this event" << std::endl;
+  out << m_number_HB_name << ": " << m_number_HB << std::endl;
+
+  out << "List of triggers, BCOs and BCs in this event" << std::endl;
+  auto iterLL1BCOBC = m_L1_BCO_BC.begin();
+  while (iterLL1BCOBC != m_L1_BCO_BC.end())
+  {
+    out <<   "LL1: " << iterLL1BCOBC->first 
+        << ", BCO: " << iterLL1BCOBC->second.first 
+        << ", BC: "  << iterLL1BCOBC->second.second << std::endl;
+    ++iterLL1BCOBC;
+  }
 
   out << "List of strobe BCOs in this event" << std::endl;
   auto iterBCO = m_strobe_BCO.begin();
@@ -43,9 +59,6 @@ void MvtxEventInfov1::identify(std::ostream &out) const
     out << iterBCO->first << ": " << iterBCO->second << std::endl;
     ++iterBCO;
   }
-    
-  out << "Number of LL1 triggers in this event" << std::endl;
-  out << m_number_LL1_name << ": " << m_number_LL1 << std::endl;
 
   auto iteri = m_IntEventProperties.begin();
   while (iteri != m_IntEventProperties.end())
@@ -90,14 +103,19 @@ int MvtxEventInfov1::isValid() const
   return 0;
 }
 
-void MvtxEventInfov1::set_number_LL1(const int ival)
-{
-  m_number_LL1 = ival;
-}
-
 int MvtxEventInfov1::get_number_LL1() const
 {
-  return m_number_LL1;
+  return m_L1_BCO_BC.size();
+}
+
+void MvtxEventInfov1::set_number_HB(const int ival)
+{
+  m_number_HB = ival;
+}
+
+int MvtxEventInfov1::get_number_HB() const
+{
+  return m_number_HB;
 }
 
 void MvtxEventInfov1::set_strobe_BCO(const uint64_t ival)
@@ -118,4 +136,30 @@ uint64_t MvtxEventInfov1::get_strobe_BCO(const uint32_t ival) const
 uint32_t MvtxEventInfov1::get_number_strobe_BCO() const
 {
   return m_strobe_BCO.size();
+}
+
+void MvtxEventInfov1::set_L1_BCO_BC(const int LL1, const int64_t BCO, const int BC)
+{
+  std::pair<int64_t, int> BCO_BC_pair(BCO, BC);
+  m_L1_BCO_BC[LL1] = BCO_BC_pair;
+}
+
+int64_t MvtxEventInfov1::get_BCO_from_L1(const int ival) const
+{
+  std::map<int, std::pair<int64_t, int>>::const_iterator iter = m_L1_BCO_BC.find(ival);
+  if (iter != m_L1_BCO_BC.end())
+  {
+    return iter->second.first;
+  }
+  return 0;
+}
+
+int MvtxEventInfov1::get_BC_from_L1(const int ival) const
+{
+  std::map<int, std::pair<int64_t, int>>::const_iterator iter = m_L1_BCO_BC.find(ival);
+  if (iter != m_L1_BCO_BC.end())
+  {
+    return iter->second.second;
+  }
+  return 0;
 }
