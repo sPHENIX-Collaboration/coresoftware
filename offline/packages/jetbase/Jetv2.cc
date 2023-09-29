@@ -49,7 +49,7 @@ void Jetv2::identify(std::ostream& os) const
   }
   os << std::endl;
 
-  os << " Jet Components: " << size_comp() << std::endl;
+  os << " Jet Components: " << _comp_ids.size() << std::endl;
   ;
   return;
 }
