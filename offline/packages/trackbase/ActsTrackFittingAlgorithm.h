@@ -71,7 +71,7 @@ class ActsTrackFittingAlgorithm final
     virtual TrackFitterResult operator()(
         const std::vector<Acts::SourceLink>&,
         const TrackParameters&, const GeneralFitterOptions&,
-        TrackContainer& tracks) const = 0;
+        TrackContainer&) const = 0;
 
     virtual void outlierFinder(const ResidualOutlierFinder&) {}
   };
@@ -89,7 +89,7 @@ class ActsTrackFittingAlgorithm final
         const std::vector<Acts::SourceLink>&,
         const TrackParameters&, const GeneralFitterOptions&,
         const std::vector<const Acts::Surface*>&,
-        TrackContainer& tracks) const = 0;
+        TrackContainer&) const = 0;
   };
 
   struct Config
