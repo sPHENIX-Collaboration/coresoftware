@@ -54,6 +54,7 @@ pkginclude_HEADERS = \
   ClusterErrorPara.h \
   InttDefs.h \
   MvtxDefs.h \
+  MvtxEventInfov1.h \
   RawHit.h \
   RawHitSet.h \
   RawHitSetContainer.h \
@@ -64,6 +65,7 @@ pkginclude_HEADERS = \
   ResidualOutlierFinder.h \
   SpacePoint.h \
   sPHENIXActsDetectorElement.h \
+  SubdetectorEventInfo.h \
   TpcDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
@@ -115,6 +117,8 @@ ROOTDICTS = \
   CMFlashDifferencev1_Dict.cc \
   ClusHitsVerbose_Dict.cc \
   ClusHitsVerbosev1_Dict.cc \
+  MvtxEventInfov1_Dict.cc \
+  SubdetectorEventInfo_Dict.cc \
   RawHitSetContainer_Dict.cc \
   RawHitSetContainerv1_Dict.cc \
   RawHitSet_Dict.cc \
@@ -171,6 +175,8 @@ nobase_dist_pcm_DATA = \
   CMFlashDifferencev1_Dict_rdict.pcm \
   ClusHitsVerbose_Dict_rdict.pcm \
   ClusHitsVerbosev1_Dict_rdict.pcm \
+  MvtxEventInfov1_Dict_rdict.pcm \
+  SubdetectorEventInfo_Dict_rdict.pcm \
   RawHitSetContainer_Dict_rdict.pcm \
   RawHitSetContainerv1_Dict_rdict.pcm \
   RawHitSet_Dict_rdict.pcm \
@@ -229,6 +235,7 @@ libtrack_io_la_SOURCES = \
   ClusHitsVerbosev1.cc \
   InttDefs.cc \
   MvtxDefs.cc \
+  MvtxEventInfov1.cc \
   RawHitSet.cc \
   RawHitSetContainer.cc \
   RawHitSetContainerv1.cc \
@@ -236,6 +243,7 @@ libtrack_io_la_SOURCES = \
   RawHitTpc.cc \
   RawHitv1.cc \
   sPHENIXActsDetectorElement.cc \
+  SubdetectorEventInfo.cc \
   TpcDefs.cc \
   TpcSeedTrackMap.cc \
   TpcSeedTrackMapv1.cc \
