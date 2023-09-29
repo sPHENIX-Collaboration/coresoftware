@@ -91,10 +91,13 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_alignStates.stateMap(m_alignmentStateMap);
   m_alignStates.verbosity(Verbosity());
   m_alignStates.fieldMap(m_fieldMap);
+  auto level = Acts::Logging::FATAL;
+  if(Verbosity() > 5) level = Acts::Logging::VERBOSE;
 
   m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
     m_tGeometry->geometry().tGeometry,
-    m_tGeometry->geometry().magField);
+    m_tGeometry->geometry().magField,
+    true, true, 0.0, Acts::FreeToBoundCorrection(), *Acts::getDefaultLogger("Kalman", level));
 
   m_fitCfg.dFit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(m_tGeometry->geometry().magField);
 
@@ -386,16 +389,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       Acts::BoundSymMatrix cov = setDefaultCovariance();
  
       int charge = tpcseed->get_charge();
-  
-      /// Acts requires a wrapped vector, so we need to replace the
-      /// std::vector contents with a wrapper vector to get the memory
-      /// access correct
-      std::vector<Acts::SourceLink>  wrappedSls;
-      for(const auto& sl : sourceLinks)
-	{ 
-	  wrappedSls.push_back(Acts::SourceLink{sl}); 
-	}
-           
+      
       /// Reset the track seed with the dummy covariance
       auto seed = ActsTrackFittingAlgorithm::TrackParameters::create(
         pSurface,
@@ -438,7 +432,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	std::make_shared<Acts::VectorMultiTrajectory>();
       ActsTrackFittingAlgorithm::TrackContainer 
 	tracks(trackContainer, trackStateContainer);
-      auto result = fitTrack(wrappedSls, seed, kfOptions, surfaces, tracks);
+      auto result = fitTrack(sourceLinks, seed, kfOptions, surfaces, tracks);
       fitTimer.stop();
       auto fitTime = fitTimer.get_accumulated_time();
    
@@ -730,8 +724,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       ActsSourceLink::Index index = measurements.size();
       
       SourceLink sl(surf->geometryId(), index, cluskey);
-      Acts::SourceLink actsSL{sl.geometryId(), sl};
-      Acts::Measurement<Acts::BoundIndices,2> meas(std::move(actsSL), indices, loc, cov);
+      Acts::SourceLink actsSL{sl};
+      Acts::Measurement<Acts::BoundIndices,2> meas(actsSL, indices, loc, cov);
       if(Verbosity() > 3)
 	{
 	  std::cout << "source link " << sl.index() << ", loc : " 
@@ -747,7 +741,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 		    << std::endl;
 	}
       
-      sourcelinks.push_back(sl);
+      sourcelinks.push_back(actsSL);
       measurements.push_back(meas);
  
     }
@@ -773,62 +767,69 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult &fitOutput,
   std::vector<Acts::MultiTrajectoryTraits::IndexType> trackTips;
   trackTips.reserve(1);
   auto& outtrack = fitOutput.value();
-  trackTips.emplace_back(outtrack.tipIndex());
-  ActsExamples::Trajectories::IndexedParameters indexedParams;
- 
-  indexedParams.emplace(std::pair{outtrack.tipIndex(),
-	ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
-	  outtrack.parameters(), outtrack.covariance()}});
-  
-  if (Verbosity() > 2)
+  if(outtrack.hasReferenceSurface())
     {
-      std::cout << "Fitted parameters for track" << std::endl;
-      std::cout << " position : " << outtrack.referenceSurface().localToGlobal(m_tGeometry->geometry().getGeoContext(), Acts::Vector2(outtrack.loc0(), outtrack.loc1()), Acts::Vector3(1,1,1)).transpose()
-	
-		<< std::endl;
-      std::cout << "charge: "<<outtrack.charge()<<std::endl;
-      std::cout << " momentum : " << outtrack.momentum().transpose()
-		<< std::endl;
-      std::cout << "For trackTip == " << outtrack.tipIndex() << std::endl;
-    }
-  
-  Trajectory trajectory(tracks.trackStateContainer(),
-			trackTips, indexedParams);
- 
-  m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
- 
-  /// Get position, momentum from the Acts output. Update the values of
-  /// the proto track
-  PHTimer updateTrackTimer("UpdateTrackTimer");
-  updateTrackTimer.stop();
-  updateTrackTimer.restart();
-  updateSvtxTrack(trajectory, track); 
-  
-  if(m_commissioning)
-    {
-      if(track->get_silicon_seed() && track->get_tpc_seed())
+      trackTips.emplace_back(outtrack.tipIndex());
+      ActsExamples::Trajectories::IndexedParameters indexedParams;
+      std::cout << "track container size " << tracks.size() << std::endl;
+      std::stringstream ss;
+      tracks.trackStateContainer().statistics().toStream(ss);
+      indexedParams.emplace(std::pair{outtrack.tipIndex(),
+	    ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
+	      outtrack.parameters(), outtrack.covariance()}});
+      
+      if (Verbosity() > 2)
 	{
-	  m_alignStates.fillAlignmentStateMap(trajectory, track, measurements);
+	  std::cout << "Fitted parameters for track" << std::endl;
+	  std::cout << " position : " << outtrack.referenceSurface().localToGlobal(m_tGeometry->geometry().getGeoContext(), Acts::Vector2(outtrack.loc0(), outtrack.loc1()), Acts::Vector3(1,1,1)).transpose()
+	    
+		    << std::endl;
+	  std::cout << "charge: "<<outtrack.charge()<<std::endl;
+	  std::cout << " momentum : " << outtrack.momentum().transpose()
+		    << std::endl;
+	  std::cout << "For trackTip == " << outtrack.tipIndex() << std::endl;
 	}
-    }
-    
-  updateTrackTimer.stop();
-  auto updateTime = updateTrackTimer.get_accumulated_time();
-  
-  if(Verbosity() > 1)
-    std::cout << "PHActsTrkFitter update SvtxTrack time "
-	      << updateTime << std::endl;
+      
+      Trajectory trajectory(tracks.trackStateContainer(),
+			    trackTips, indexedParams);
+      
+      m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
+      
+      /// Get position, momentum from the Acts output. Update the values of
+      /// the proto track
+      PHTimer updateTrackTimer("UpdateTrackTimer");
+      updateTrackTimer.stop();
+      updateTrackTimer.restart();
+      updateSvtxTrack(trajectory, track); 
+      
+      if(m_commissioning)
+	{
+	  if(track->get_silicon_seed() && track->get_tpc_seed())
+	    {
+	      m_alignStates.fillAlignmentStateMap(trajectory, track, measurements);
+	    }
+	}
+      
+      updateTrackTimer.stop();
+      auto updateTime = updateTrackTimer.get_accumulated_time();
+      
+      if(Verbosity() > 1)
+	std::cout << "PHActsTrkFitter update SvtxTrack time "
+		  << updateTime << std::endl;
+      
+      if(m_timeAnalysis)
+	h_updateTime->Fill(updateTime);
+      
+      if(m_actsEvaluator)
+	{
+	  m_evaluator->evaluateTrackFit(trajectory, track,
+					seed, measurements);
+	}
 
-  if(m_timeAnalysis)
-    h_updateTime->Fill(updateTime);
-  
-  if(m_actsEvaluator)
-    {
-      m_evaluator->evaluateTrackFit(trajectory, track,
-				    seed, measurements);
+      return true;
     }
-
-  return true;
+ 
+  return false;
 }
 
 ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
@@ -963,10 +964,10 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
   out.set_y(0.0);
   out.set_z(0.0);
   track->insert_state(&out);   
-
+  std::cout << "make traj state at tip "<<trackTip << std::endl;
   auto trajState =
-    Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
-
+    Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip-1);
+  std::cout << "get params"<<std::endl;
   const auto& params = traj.trackParameters(trackTip);
 
   /// Acts default unit is mm. So convert to cm
@@ -980,7 +981,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
   track->set_px(params.momentum()(0));
   track->set_py(params.momentum()(1));
   track->set_pz(params.momentum()(2));
-  
+
   track->set_charge(params.charge());
   track->set_chisq(trajState.chi2Sum);
   track->set_ndf(trajState.NDF);
@@ -1001,7 +1002,6 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
 
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
-
   PHTimer trackStateTimer("TrackStateTimer");
   trackStateTimer.stop();
   trackStateTimer.restart();
