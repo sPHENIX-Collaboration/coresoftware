@@ -49,6 +49,8 @@ pkginclude_HEADERS = \
   SvtxTrackCaloClusterMap_v1.h \
   SvtxAlignmentState.h \
   SvtxAlignmentState_v1.h \
+  SvtxTrackArray.h \
+  SvtxTrackArray_v1.h \
   SvtxTrackState.h \
   SvtxTrackState_v1.h \
   SvtxVertex.h \
@@ -56,6 +58,7 @@ pkginclude_HEADERS = \
   SvtxVertexMap.h \
   SvtxVertexMap_v1.h \
   TrackAnalysisUtils.h 
+  
 
 ROOTDICTS = \
   TrackSeed_Dict.cc \
@@ -77,6 +80,8 @@ ROOTDICTS = \
   SvtxTrack_v2_Dict.cc \
   SvtxTrack_v3_Dict.cc \
   SvtxTrack_v4_Dict.cc \
+  SvtxTrackArray_Dict.cc \
+  SvtxTrackArray_v1_Dict.cc \
   SvtxTrack_FastSim_Dict.cc \
   SvtxTrack_FastSim_v1_Dict.cc \
   SvtxTrack_FastSim_v2_Dict.cc \
@@ -114,6 +119,8 @@ nobase_dist_pcm_DATA = \
   SvtxTrack_v2_Dict_rdict.pcm \
   SvtxTrack_v3_Dict_rdict.pcm \
   SvtxTrack_v4_Dict_rdict.pcm \
+  SvtxTrackArray_Dict_rdict.pcm \
+  SvtxTrackArray_v1_Dict_rdict.pcm \
   SvtxTrack_FastSim_Dict_rdict.pcm \
   SvtxTrack_FastSim_v1_Dict_rdict.pcm \
   SvtxTrack_FastSim_v2_Dict_rdict.pcm \
@@ -152,6 +159,7 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxTrack_v2.cc \
   SvtxTrack_v3.cc \
   SvtxTrack_v4.cc \
+  SvtxTrackArray_v1.cc \
   SvtxTrack_FastSim.cc \
   SvtxTrack_FastSim_v1.cc \
   SvtxTrack_FastSim_v2.cc \
