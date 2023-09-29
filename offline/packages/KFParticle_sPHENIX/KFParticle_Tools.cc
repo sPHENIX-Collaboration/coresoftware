@@ -66,17 +66,17 @@ KFParticle_Tools::KFParticle_Tools()
   , m_max_decayTime(FLT_MAX)
   , m_min_decayLength(-1 * FLT_MAX)
   , m_max_decayLength(FLT_MAX)
-  , m_track_pt(0.25)
+  , m_track_pt(0.2)
   , m_track_ptchi2(FLT_MAX)
   , m_track_ip(-1.)
-  , m_track_ipchi2(10.)
+  , m_track_ipchi2(0.)
   , m_track_chi2ndof(4.)
   , m_nMVTXHits(3)
   , m_nTPCHits(20)
   , m_comb_DCA(0.05)
   , m_vertex_chi2ndof(15.)
-  , m_fdchi2(50.)
-  , m_dira_min(0.95)
+  , m_fdchi2(0.)
+  , m_dira_min(0.90)
   , m_dira_max(1.01)
   , m_mother_pt(0.)
   , m_mother_ipchi2(FLT_MAX)
@@ -577,9 +577,11 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
   float max_mass = isIntermediate ? m_intermediate_mass_range[intermediateNumber].second : m_max_mass;
   float min_pt = isIntermediate ? m_intermediate_min_pt[intermediateNumber] : m_mother_pt;
 
+  float max_vertex_volume = isIntermediate ? m_intermediate_vertex_volume[intermediateNumber] : m_mother_vertex_volume; 
+
   bool goodCandidate = false;
   if (calculated_mass >= min_mass && calculated_mass <= max_mass &&
-      calculated_pt >= min_pt && daughterMassCheck && chargeCheck)
+      calculated_pt >= min_pt && daughterMassCheck && chargeCheck && calculateEllipsoidVolume(mother) <= max_vertex_volume)
     goodCandidate = true;
 
   // Check the requirements of an intermediate states against this mother and re-do goodCandidate

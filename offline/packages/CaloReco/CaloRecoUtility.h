@@ -16,7 +16,7 @@ class BEmcRec;
 
 /*!
  * \brief CaloRecoUtility
- 
+
  */
 
 class CaloRecoUtility
@@ -24,21 +24,18 @@ class CaloRecoUtility
  public:
   ~CaloRecoUtility();
   CaloRecoUtility();
-  CaloRecoUtility(CaloRecoUtility & cru);
-  CaloRecoUtility & operator=(CaloRecoUtility &);
+  CaloRecoUtility(CaloRecoUtility& cru);
+  CaloRecoUtility& operator=(CaloRecoUtility const&);
 
   //! corrects cluster Z (implicitly also eta) for updated z vertex
-  // assuming 
-  void ShowerDepthCorrZVertex(RawCluster * clus, float zvtx);
-  void ProbCorrsZVertex(RawCluster * clus, float zvtx);
+  // assuming
+  void ShowerDepthCorrZVertex(RawCluster* clus, float zvtx);
+  void ProbCorrsZVertex(RawCluster* clus, float zvtx);
   void LoadProfile();
-  
 
  private:
-
   bool _profLoaded;
-  BEmcRec * _bemc = nullptr;
-
+  BEmcRec* _bemc = nullptr;
 };
 
 #endif

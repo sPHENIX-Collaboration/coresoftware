@@ -61,6 +61,7 @@ namespace
   // check vector validity
   inline bool is_valid( const Acts::Vector3 vec )
   {  return !( std::isnan( vec.x() ) || std::isnan( vec.y() ) || std::isnan( vec.z() ) ); }  
+  template<class T> inline T square(const T& x) { return x*x;}
 }
 
 #include <Eigen/Dense>
@@ -88,8 +89,8 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_alignStates.actsGeometry(m_tGeometry);
   m_alignStates.clusters(m_clusterContainer);
   m_alignStates.stateMap(m_alignmentStateMap);
-  m_alignStates.clusterVersion(m_cluster_version);
   m_alignStates.verbosity(Verbosity());
+  m_alignStates.fieldMap(m_fieldMap);
 
   m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
     m_tGeometry->geometry().tGeometry,
@@ -356,10 +357,25 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         { continue; }
       }
 
-      Acts::Vector3 momentum(
-	       tpcseed->get_px(m_clusterContainer, m_tGeometry), 
-	       tpcseed->get_py(m_clusterContainer, m_tGeometry),
-	       tpcseed->get_pz());
+      float px = NAN;
+      float py = NAN;
+      float pz = NAN;
+      if(m_fieldMap.find(".root") != std::string::npos)
+	{
+	  px = tpcseed->get_px(m_clusterContainer, m_tGeometry);
+	  py = tpcseed->get_py(m_clusterContainer, m_tGeometry);
+	  pz = tpcseed->get_pz();
+	}
+      else
+	{
+	  float pt = fabs(1./tpcseed->get_qOverR()) * (0.3/100) * std::stod(m_fieldMap);
+	  float phi = tpcseed->get_phi(m_clusterContainer, m_tGeometry);
+	  px = pt * std::cos(phi);
+	  py = pt * std::sin(phi);
+	  pz = pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta());
+	}
+
+      Acts::Vector3 momentum(px, py, pz);
       if( !is_valid( momentum ) ) continue;
  
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
@@ -370,9 +386,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       Acts::BoundSymMatrix cov = setDefaultCovariance();
  
       int charge = tpcseed->get_charge();
-      if(m_fieldMap.find("3d") != std::string::npos)
-	{ charge *= -1; }
-
+  
       /// Acts requires a wrapped vector, so we need to replace the
       /// std::vector contents with a wrapper vector to get the memory
       /// access correct
@@ -707,32 +721,13 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       indices[1] = Acts::BoundIndices::eBoundLoc1;
       Acts::ActsSymMatrix<2> cov = Acts::ActsSymMatrix<2>::Zero();
 
-      if(m_cluster_version==3){
-	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
-	  cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
-	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
-	  cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
-	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
-	  cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
-	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
-	  cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
-      }else if(m_cluster_version==4){
-	double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-	auto para_errors = _ClusErrPara.get_cluster_error(cluster,clusRadius,cluskey, track->get_qOverR(), track->get_slope());
-	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
-	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
-	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
-	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
-      }else if(m_cluster_version==5){
-	double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-	TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-	auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5,clusRadius,cluskey);
-	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
-	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
-	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
-	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
-      }
-
+      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+      auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster,clusRadius,cluskey);
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
+      
       ActsSourceLink::Index index = measurements.size();
       
       SourceLink sl(surf->geometryId(), index, cluskey);

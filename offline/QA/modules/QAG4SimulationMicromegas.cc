@@ -434,7 +434,6 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
     // fit a circle through x,y coordinates
     const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin(xy_pts);
-    const auto [slope, intercept] = TrackFitUtils::line_fit(rz_pts);
 
     // skip chain entirely if fit fails
     if (std::isnan(R)) continue;
@@ -462,27 +461,14 @@ void QAG4SimulationMicromegas::evaluate_clusters()
       // get cluster
       const auto cluster = m_cluster_map->findCluster(ckey);
       const auto global = m_tGeometry->getGlobalPosition(ckey, cluster);
-      const auto cluster_r = QAG4Util::get_r(global(0), global(1));
+
       // get segmentation type
       const auto segmentation_type = MicromegasDefs::getSegmentationType(ckey);
 
       // get relevant cluster information
-      double rphi_error = 0;
-      double z_error = 0;
-      if (m_cluster_version == 4)
-      {
-        float r = cluster_r;
-        double alpha = (r * r) / (2 * r * R);
-        double beta = slope;
-        auto para_errors = _ClusErrPara.get_cluster_error(cluster, ckey, alpha, beta);
-        rphi_error = sqrt(para_errors.first);
-        z_error = sqrt(para_errors.second);
-      }
-      else
-      {
-        rphi_error = cluster->getRPhiError();
-        z_error = cluster->getZError();
-      }
+      double rphi_error = cluster->getRPhiError();
+      double z_error = cluster->getZError();
+      
       // convert cluster position to local tile coordinates
       const TVector3 cluster_world(global(0), global(1), global(2));
       const auto cluster_local = layergeom->get_local_from_world_coords(tileid, m_tGeometry, cluster_world);

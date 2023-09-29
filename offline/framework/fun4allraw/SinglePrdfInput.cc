@@ -117,6 +117,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       std::cout << "evt set size : " << m_EvtSet.size() << std::endl;
     }
     int common_event_number = *(m_EvtSet.begin());
+    int common_beam_clock = m_PacketMap.begin()->first;
     if (m_PacketMap.size() == 1)  // all packets from the same beam clock
     {
       if (m_EvtSet.size() == 1)
@@ -185,7 +186,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
         }
         adjust_eventnumber_offset(common_event_number);
       }
-      int common_beam_clock = majority_beamclock();
+      common_beam_clock = majority_beamclock();
       if (Verbosity() > 1)
       {
         std::cout << "picked bclk: " << std::hex << common_beam_clock << std::dec << std::endl;
@@ -217,6 +218,11 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
           }
         }
       }
+    }
+    m_InputMgr->AddBeamClock(common_event_number, common_beam_clock, this);
+    if (m_MeReferenceFlag)
+    {
+      m_InputMgr->SetReferenceClock(common_event_number, common_beam_clock);
     }
     m_PacketMap.clear();
     m_EvtSet.clear();
@@ -289,7 +295,7 @@ int SinglePrdfInput::majority_beamclock()
 
 int SinglePrdfInput::fileopen(const std::string &filenam)
 {
-  std::cout << PHWHERE << "trying to open " << filenam << std::endl;
+  std::cout << PHWHERE << Name() << ": trying to open " << filenam << std::endl;
   if (IsOpen())
   {
     std::cout << "Closing currently open file "
@@ -333,4 +339,14 @@ int SinglePrdfInput::fileclose()
   // or repeat the same entry again
   UpdateFileList();
   return 0;
+}
+
+void SinglePrdfInput::MakeReference(const bool b)
+{
+  m_MeReferenceFlag = b;
+  if (b && m_InputMgr)
+  {
+    m_InputMgr->SetReferenceInputMgr(this);
+  }
+  return;
 }

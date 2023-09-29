@@ -384,17 +384,10 @@ SpacePointPtr PHActsKDTreeSeeding::makeSpacePoint(const Surface& surf,
 				  localPos, mom);
 
   Acts::SymMatrix2 localCov = Acts::SymMatrix2::Zero();
-  if(m_clusterVersion==3)
-    {
-      localCov(0,0) = clus->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
-      localCov(1,1) = clus->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
-    }
-  else if(m_clusterVersion==4)
-    {
-      auto para_errors = m_clusErrPara.get_si_cluster_error(clus,key);
-      localCov(0,0) = para_errors.first * Acts::UnitConstants::cm2;
-      localCov(1,1) = para_errors.second * Acts::UnitConstants::cm2;
-    }
+
+  localCov(0,0) = clus->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
+  localCov(1,1) = clus->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+  
     
   float x = globalPos.x();
   float y = globalPos.y();

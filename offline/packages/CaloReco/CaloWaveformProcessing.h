@@ -3,9 +3,8 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <TProfile.h>
-
 #include <string>
+#include <vector>
 
 class CaloWaveformFitting;
 

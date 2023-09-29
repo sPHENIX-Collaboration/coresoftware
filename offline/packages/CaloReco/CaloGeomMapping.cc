@@ -1,8 +1,11 @@
 #include "CaloGeomMapping.h"
+
 #include <cdbobjects/CDBTTree.h>
+
 #include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -18,8 +21,12 @@
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/RawTowerGeomv1.h>
 
-#include <g4main/PHG4Utils.h>
-
+#include <exception>                                    // for exception
+#include <iostream>                                     // for operator<<, endl
+#include <cmath>                                       // for fabs, atan, cos
+#include <stdexcept>                                    // for runtime_error
+#include <stdlib.h>                                     // for exit
+#include <utility>                                      // for pair
 
 //____________________________________________________________________________..
 CaloGeomMapping::CaloGeomMapping(const std::string &name):
@@ -263,7 +270,7 @@ void CaloGeomMapping::CreateGeomNode(PHCompositeNode* topNode)
   }  // end loop over eta, phi bins
 }  // end of building RawTowerGeomContainer
 
-void CaloGeomMapping::set_detector_name(std::string name)
+void CaloGeomMapping::set_detector_name(const std::string &name)
 {
   m_Detector = name;
 }

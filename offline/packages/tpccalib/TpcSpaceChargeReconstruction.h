@@ -82,10 +82,6 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   /// output file name for evaluation histograms
   void set_histogram_outputfile(const std::string &outputfile) {m_histogramfilename = outputfile;}
   
-  /// cluster version
-  /* Note: this could be retrived automatically using dynamic casts from TrkrCluster objects */
-  void set_cluster_version(int value) { m_cluster_version = value; }
-
   /// output file
   /**
    * this is the file where space charge matrix container is stored
@@ -165,10 +161,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
  
   /// cluster error parametrisation
   ClusterErrorPara m_cluster_error_parametrization;
-  
-  /// cluster version
-  int m_cluster_version = 4;
-  
+ 
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
 

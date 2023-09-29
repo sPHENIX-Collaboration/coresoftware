@@ -783,6 +783,7 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
 
   auto siseed = m_siliconSeeds->get(siid);
   auto tpcseed = m_tpcSeeds->get(tpcid);
+  if(!tpcseed) return;
 
   Acts::Vector3 position = Acts::Vector3::Zero();
 
