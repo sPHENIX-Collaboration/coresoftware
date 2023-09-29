@@ -33,6 +33,7 @@
 
 using namespace std;
 
+// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libphgeom.so)
 R__LOAD_LIBRARY(libg4dst.so)
 R__LOAD_LIBRARY(libfun4all.so)
