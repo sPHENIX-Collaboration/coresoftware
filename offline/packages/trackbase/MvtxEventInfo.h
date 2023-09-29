@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef SUBDETECTOREVENTINFO_H
-#define SUBDETECTOREVENTINFO_H
+#ifndef MVTXEVENTINFO_H
+#define MVTXEVENTINFO_H
 
      /********************************/
     /* Subsystem event header class */
@@ -18,13 +18,13 @@
 #include <map>
 
 ///
-class SubdetectorEventInfo : public PHObject
+class MvtxEventInfo : public PHObject
 {
  public:
-  SubdetectorEventInfo() = default;
+  MvtxEventInfo() = default;
 
   /// dtor
-  virtual ~SubdetectorEventInfo() = default;
+  virtual ~MvtxEventInfo() = default;
 
   PHObject *CloneMe() const override;
 
@@ -71,7 +71,7 @@ class SubdetectorEventInfo : public PHObject
  private:
   void warning(const std::string &func) const;
 
-  //ClassDefOverride(SubdetectorEventInfo, 1)
+  //ClassDefOverride(MvtxEventInfo, 1)
 };
 
 #endif

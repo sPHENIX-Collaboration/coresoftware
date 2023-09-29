@@ -17,10 +17,10 @@
 //#include <string>  // for string
 //#include <map>
 
-#include <SubdetectorEventInfo.h>
+#include <MvtxEventInfo.h>
 
 ///
-class MvtxEventInfov1 : public SubdetectorEventInfo 
+class MvtxEventInfov1 : public MvtxEventInfo 
 {
  public:
   MvtxEventInfov1() = default;
