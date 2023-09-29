@@ -1,25 +1,25 @@
-#include "SubdetectorEventInfo.h"
+#include "MvtxEventInfo.h"
 
 #include <cmath>    // for NAN
 #include <utility>  // for pair
 #include <phool/phool.h>
 
-PHObject* SubdetectorEventInfo::CloneMe() const
+PHObject* MvtxEventInfo::CloneMe() const
 {
   std::cout << PHWHERE << "::" << __func__ << " is not implemented in daughter class" << std::endl;
   return nullptr;
 }
 
-void SubdetectorEventInfo::Reset()
+void MvtxEventInfo::Reset()
 {
   std::cout << PHWHERE << "::" << __func__ << " is not implemented in daughter class" << std::endl;
   return;
 }
 
 
-void SubdetectorEventInfo::identify(std::ostream &out) const
+void MvtxEventInfo::identify(std::ostream &out) const
 {
-  out << "SubdetectorEventInfo information" << std::endl;
+  out << "MvtxEventInfo information" << std::endl;
 
   auto iters = m_StringEventProperties.begin();
   while (iters != m_StringEventProperties.end())
@@ -65,18 +65,18 @@ void SubdetectorEventInfo::identify(std::ostream &out) const
   return;
 }
 
-int SubdetectorEventInfo::isValid() const
+int MvtxEventInfo::isValid() const
 {
   std::cout << PHWHERE << " isValid not implemented by daughter class" << std::endl;
   return 0;
 }
 
-void SubdetectorEventInfo::set_floatval(const std::string &name, const float fval)
+void MvtxEventInfo::set_floatval(const std::string &name, const float fval)
 {
   m_FloatEventProperties[name] = fval;
 }
 
-float SubdetectorEventInfo::get_floatval(const std::string &name) const
+float MvtxEventInfo::get_floatval(const std::string &name) const
 {
   std::map<std::string, float>::const_iterator iter = m_FloatEventProperties.find(name);
   if (iter != m_FloatEventProperties.end())
@@ -86,12 +86,12 @@ float SubdetectorEventInfo::get_floatval(const std::string &name) const
   return NAN;
 }
 
-void SubdetectorEventInfo::set_intval(const std::string &name, const int32_t ival)
+void MvtxEventInfo::set_intval(const std::string &name, const int32_t ival)
 {
   m_IntEventProperties[name] = ival;
 }
 
-int SubdetectorEventInfo::get_intval(const std::string &name) const
+int MvtxEventInfo::get_intval(const std::string &name) const
 {
   std::map<std::string, int32_t>::const_iterator iter = m_IntEventProperties.find(name);
   if (iter != m_IntEventProperties.end())
@@ -101,12 +101,12 @@ int SubdetectorEventInfo::get_intval(const std::string &name) const
   return -999999;
 }
 
-void SubdetectorEventInfo::set_int64val(const std::string &name, const int64_t ival)
+void MvtxEventInfo::set_int64val(const std::string &name, const int64_t ival)
 {
   m_Int64EventProperties[name] = ival;
 }
 
-int SubdetectorEventInfo::get_int64val(const std::string &name) const
+int MvtxEventInfo::get_int64val(const std::string &name) const
 {
   std::map<std::string, int64_t>::const_iterator iter = m_Int64EventProperties.find(name);
   if (iter != m_Int64EventProperties.end())
@@ -116,12 +116,12 @@ int SubdetectorEventInfo::get_int64val(const std::string &name) const
   return -999999;
 }
 
-void SubdetectorEventInfo::set_uintval(const std::string &name, const uint32_t ival)
+void MvtxEventInfo::set_uintval(const std::string &name, const uint32_t ival)
 {
   m_UintEventProperties[name] = ival;
 }
 
-int SubdetectorEventInfo::get_uintval(const std::string &name) const
+int MvtxEventInfo::get_uintval(const std::string &name) const
 {
   std::map<std::string, uint32_t>::const_iterator iter = m_UintEventProperties.find(name);
   if (iter != m_UintEventProperties.end())
@@ -131,12 +131,12 @@ int SubdetectorEventInfo::get_uintval(const std::string &name) const
   return 999999;
 }
 
-void SubdetectorEventInfo::set_uint64val(const std::string &name, const uint64_t ival)
+void MvtxEventInfo::set_uint64val(const std::string &name, const uint64_t ival)
 {
   m_Int64EventProperties[name] = ival;
 }
 
-int SubdetectorEventInfo::get_uint64val(const std::string &name) const
+int MvtxEventInfo::get_uint64val(const std::string &name) const
 {
   std::map<std::string, uint64_t>::const_iterator iter = m_Uint64EventProperties.find(name);
   if (iter != m_Uint64EventProperties.end())
@@ -146,12 +146,12 @@ int SubdetectorEventInfo::get_uint64val(const std::string &name) const
   return 999999;
 }
 
-void SubdetectorEventInfo::set_stringval(const std::string &name, const std::string &sval)
+void MvtxEventInfo::set_stringval(const std::string &name, const std::string &sval)
 {
   m_StringEventProperties[name] = sval;
 }
 
-std::string SubdetectorEventInfo::get_stringval(const std::string &name) const
+std::string MvtxEventInfo::get_stringval(const std::string &name) const
 {
   std::map<std::string, std::string>::const_iterator iter = m_StringEventProperties.find(name);
   if (iter != m_StringEventProperties.end())
