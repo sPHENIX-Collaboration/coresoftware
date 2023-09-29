@@ -33,7 +33,7 @@ intt_pool::intt_pool( const unsigned int depth, const unsigned int low_mark )
     {
       last_index[fee] = 0;
     }
-
+  _is_decoded  = 0;
   _myPacketid = -1;  // we are not locked in yet
 }
 
@@ -197,7 +197,6 @@ int intt_pool::iValue(const int hit, const int field)
   intt_decode();
   if ( hit < 0 || hit >= (int) intt_hits.size()) return 0;
 
-  _last_accessed_hit = hit;
   
   switch (field)
     {
