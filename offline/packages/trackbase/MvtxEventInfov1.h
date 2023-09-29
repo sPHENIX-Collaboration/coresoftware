@@ -44,9 +44,16 @@ class MvtxEventInfov1 : public SubdetectorEventInfo
   void set_number_LL1(const int /*ival*/);
   int get_number_LL1() const;
 
+  void set_number_HB(const int /*ival*/);
+  int get_number_HB() const;
+
   void set_strobe_BCO(const uint64_t /*ival*/);
   uint64_t get_strobe_BCO(const uint32_t /*ival*/) const;
   uint32_t get_number_strobe_BCO() const;
+
+  void set_L1_BCO_BC(const int, const int64_t, const int);
+  int64_t get_BCO_from_L1(const int) const;
+  int get_BC_from_L1(const int) const;
 
   /// switches off the pesky virtual warning messages
   void NoWarning(const int i = 1);
@@ -54,10 +61,12 @@ class MvtxEventInfov1 : public SubdetectorEventInfo
  private:
   void warning(const std::string &func) const;
 
-  int m_number_LL1 = -1;
+  int m_number_HB = -1;
   std::map<uint32_t, uint64_t> m_strobe_BCO;
+  std::map<int, std::pair<int64_t, int>> m_L1_BCO_BC;
 
   std::string m_number_LL1_name = "Number LL1";
+  std::string m_number_HB_name = "Number HB";
 
   //ClassDefOverride(MvtxEventInfov1, 1)
 };
