@@ -7,10 +7,7 @@ class TowerInfov2 : public TowerInfov1
 {
  public:
   TowerInfov2() {}
-  TowerInfov2(TowerInfo& tower)
-    : TowerInfov1(tower)
-  {
-  }
+ 
   ~TowerInfov2() override {}
 
   void Reset() override;
@@ -44,6 +41,9 @@ class TowerInfov2 : public TowerInfov1
   uint8_t get_status() const { return _status; }
 
   void set_status(uint8_t status) { _status = status; }
+
+
+  void copy_tower(TowerInfov2* tower);
 
  private:
   float _chi2 = 0;
