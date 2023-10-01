@@ -76,16 +76,16 @@ void TowerInfoContainerv3::Reset()
   }
 }
 
-TowerInfov2* TowerInfoContainerv3::get_tower_at_channel(int pos)
+TowerInfov3* TowerInfoContainerv3::get_tower_at_channel(int pos)
 {
-  return (TowerInfov2*) _clones->At(pos);
+  return (TowerInfov3*) _clones->At(pos);
 }
 
 
-TowerInfov2* TowerInfoContainerv3::get_tower_at_key(int pos)
+TowerInfov3* TowerInfoContainerv3::get_tower_at_key(int pos)
 {
   int index = decode_key(pos);
-  return (TowerInfov2*) _clones->At(index);
+  return (TowerInfov3*) _clones->At(index);
 }
 
 unsigned int TowerInfoContainerv3::encode_key(unsigned int towerIndex)

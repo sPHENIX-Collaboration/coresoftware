@@ -19,8 +19,8 @@ class TowerInfoContainerv3 : public TowerInfoContainer
   ~TowerInfoContainerv3() override;
 
   void Reset() override;
-  TowerInfov2 *get_tower_at_channel(int pos) override;
-  TowerInfov2 *get_tower_at_key(int pos) override;
+  TowerInfov3 *get_tower_at_channel(int pos) override;
+  TowerInfov3 *get_tower_at_key(int pos) override;
 
   unsigned int encode_key(unsigned int towerIndex) override;
   unsigned int decode_key(unsigned int tower_key) override;
