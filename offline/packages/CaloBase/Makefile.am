@@ -137,8 +137,8 @@ libcalo_io_la_SOURCES = \
   RawTowerGeomContainerv1.cc \
   RawTowerGeomContainer_Cylinderv1.cc \
   TowerInfov1.cc \
-  TowerInfov2.cc \  
-  TowerInfov3.cc \  
+  TowerInfov2.cc \
+  TowerInfov3.cc \
   TowerInfoDefs.cc \
   TowerInfoContainer.cc \
   TowerInfoContainerv1.cc \

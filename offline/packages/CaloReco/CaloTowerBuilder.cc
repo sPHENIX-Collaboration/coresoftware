@@ -342,7 +342,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     }
     else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
     {
-      m_CaloInfoContainer = new TowerInfoContainerv3(TowerInfoContainer::DETECTOR::EMCAL);
+      m_CaloInfoContainer = new TowerInfoContainerv2(TowerInfoContainer::DETECTOR::EMCAL);
     }
   }
   else if (m_dettype == EPD)
@@ -362,7 +362,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     }
     else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
     {
-      m_CaloInfoContainer = new TowerInfoContainerv3(TowerInfoContainer::DETECTOR::SEPD);
+      m_CaloInfoContainer = new TowerInfoContainerv2(TowerInfoContainer::DETECTOR::SEPD);
     }
   }
   else if (m_dettype == MBD)
@@ -382,7 +382,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     }
     else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
     {
-      m_CaloInfoContainer = new TowerInfoContainerv3(TowerInfoContainer::DETECTOR::MBD);
+      m_CaloInfoContainer = new TowerInfoContainerv2(TowerInfoContainer::DETECTOR::MBD);
     }
   }
   else if (m_dettype == ZDC)
@@ -402,7 +402,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     }
     else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
     {
-      m_CaloInfoContainer = new TowerInfoContainerv3(TowerInfoContainer::DETECTOR::ZDC);
+      m_CaloInfoContainer = new TowerInfoContainerv2(TowerInfoContainer::DETECTOR::ZDC);
     }
   }
   else
@@ -433,7 +433,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     }
     else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
     {
-      m_CaloInfoContainer = new TowerInfoContainerv3(TowerInfoContainer::DETECTOR::HCAL);
+      m_CaloInfoContainer = new TowerInfoContainerv2(TowerInfoContainer::DETECTOR::HCAL);
     }
   }
   dstNode->addNode(DetNode);
