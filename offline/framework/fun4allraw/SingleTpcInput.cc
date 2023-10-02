@@ -287,7 +287,7 @@ void SingleTpcInput::CreateDSTNode(PHCompositeNode *topNode)
 PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "TPC"));
 if (!detNode)
 {
-  detNode = new PHCompositeNode("INTT");
+  detNode = new PHCompositeNode("TPC");
   dstNode->addNode(detNode);
 }
   TpcRawHitContainer *tpchitcont = findNode::getClass<TpcRawHitContainer>(detNode,"TPCRAWHIT");
