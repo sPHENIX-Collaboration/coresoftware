@@ -5,7 +5,7 @@ namespace
   EvtHeader::Map dummy_map;
 }
 
-void 
+void
 EvtHeader::identify(std::ostream& os) const
 {
   os << "EvtHeader base class" << std::endl;

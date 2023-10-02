@@ -115,6 +115,8 @@ ROOTDICTS = \
   CMFlashDifferencev1_Dict.cc \
   ClusHitsVerbose_Dict.cc \
   ClusHitsVerbosev1_Dict.cc \
+  EvtHeader_Dict.cc \
+  EvtHeaderv1_Dict.cc \
   RawHitSetContainer_Dict.cc \
   RawHitSetContainerv1_Dict.cc \
   RawHitSet_Dict.cc \
@@ -169,6 +171,8 @@ nobase_dist_pcm_DATA = \
   CMFlashDifferencev1_Dict_rdict.pcm \
   ClusHitsVerbose_Dict_rdict.pcm \
   ClusHitsVerbosev1_Dict_rdict.pcm \
+  EvtHeader_Dict_rdict.pcm \
+  EvtHeaderv1_Dict_rdict.pcm \
   RawHitSetContainer_Dict_rdict.pcm \
   RawHitSetContainerv1_Dict_rdict.pcm \
   RawHitSet_Dict_rdict.pcm \
