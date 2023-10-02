@@ -109,7 +109,7 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
 	if (gtm_bco < m_PreviousClock[FEE])
 	{
 	  m_Rollover[FEE] += 0x10000000000;
-	  gtm_bco += m_Rollover[FEE];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+	  gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
 	}
 	m_PreviousClock[FEE] = gtm_bco;
 	m_BeamClockFEE[gtm_bco].insert(FEE);
@@ -124,14 +124,7 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
 	}
 //          plist[i]->convert();
 	if (InputManager())
-	{
-	  InputManager()->AddInttRawHit(gtm_bco, newhit);
-	}
-	if (m_InttRawHitMap.find(gtm_bco) == m_InttRawHitMap.end())
-	{
-	  std::vector<InttRawHit *> intthitvector;
-	  m_InttRawHitMap[gtm_bco] = intthitvector;
-	}
+	{ InputManager()->AddInttRawHit(gtm_bco, newhit); }
 	m_InttRawHitMap[gtm_bco].push_back(newhit);
 	m_BclkStack.insert(gtm_bco);
       }
