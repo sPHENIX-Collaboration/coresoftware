@@ -137,11 +137,6 @@ uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
       {
 	InputManager()->AddTpcRawHit(gtm_bco, newhit);
       }
-      if (m_TpcRawHitMap.find(gtm_bco) == m_TpcRawHitMap.end())
-      {
-	std::vector<TpcRawHit *> intthitvector;
-	m_TpcRawHitMap[gtm_bco] = intthitvector;
-      }
       m_TpcRawHitMap[gtm_bco].push_back(newhit);
       m_BclkStack.insert(gtm_bco);
     }
