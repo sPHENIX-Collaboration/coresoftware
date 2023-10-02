@@ -75,15 +75,20 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
     for (int i = 0; i < npackets; i++)
     {
       
+      // keep pointer to local packet
       auto& packet = plist[i];
       
+      // get packet id
+      const auto packet_id = packet->getIdentifier();
+        
       if (Verbosity() > 1)
       { packet->identify(); }
       
       int m_nWaveormInFrame = packet->iValue(0, "NR_WF");
 
       // by default use previous bco clock for gtm bco
-      uint64_t gtm_bco = m_PreviousClock;
+      auto& previous_bco = m_packet_bco[packet_id];
+      uint64_t gtm_bco = previous_bco;
 
       // loop over taggers
       const int ntagger = packet->lValue(0, "N_TAGGER");
@@ -94,19 +99,12 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
         if( is_lvl1 )
         {
+          
           gtm_bco = packet->lValue(t, "BCO");
           std::cout << "bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
           
-          gtm_bco += m_Rollover;
-          if (gtm_bco < m_PreviousClock)
-          {
-            // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
-            m_Rollover += 0x10000000000;
-            gtm_bco += 0x10000000000;  
-          }
-          
           // store
-          m_PreviousClock = gtm_bco;
+          previous_bco = gtm_bco;
           
         }
       }
