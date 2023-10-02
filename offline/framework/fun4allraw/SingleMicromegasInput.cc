@@ -61,6 +61,7 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
     
     if (evt->getEvtType() != DATAEVENT)
     { m_NumSpecialEvents++; }
+    
     int EventSequence = evt->getEvtSequence();
     int npackets = evt->getPacketList(plist, 10);
     
@@ -76,35 +77,36 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
       { packet->identify(); }
       
       int m_nWaveormInFrame = packet->iValue(0, "NR_WF");
-      uint64_t m_nTaggerInFrame = packet->lValue(0, "N_TAGGER");
-      //      int m_maxFEECount = packet->iValue(0, "MAX_FEECOUNT");
-      std::set<uint64_t> bclk_set;
-      uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
-      for (uint64_t t = 0; t < m_nTaggerInFrame; t++)
+
+      // by default use previous bco clock for gtm bco
+      uint64_t gtm_bco = m_PreviousClock;
+
+      // loop over taggers
+      const int ntagger = packet->lValue(0, "N_TAGGER");
+      for (int t = 0; t < ntagger; t++)
       {
-        std::cout << "bco: 0x" << std::hex << packet->lValue(t, "BCO")
-          << std::dec << std::endl;
-        gtm_bco = packet->lValue(t, "BCO");
-        std::cout << "last bco: 0x" << std::hex << packet->lValue(t, "LAST_BCO")
-          << std::dec << std::endl;
-        gtm_bco += m_Rollover[0];
-        bclk_set.insert(gtm_bco);
-        if (gtm_bco < m_PreviousClock[0])
+        
+        // only store gtm_bco for level1 type of taggers (not ENDDAT)
+        const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
+        if( is_lvl1 )
         {
-          m_Rollover[0] += 0x10000000000;
-          gtm_bco += m_Rollover[0];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+          gtm_bco = packet->lValue(t, "BCO");
+          std::cout << "bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
+          
+          gtm_bco += m_Rollover;
+          if (gtm_bco < m_PreviousClock)
+          {
+            // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+            m_Rollover += 0x10000000000;
+            gtm_bco += 0x10000000000;  
+          }
+          
+          // store
+          m_PreviousClock = gtm_bco;
+          
         }
-        /*
-        m_tagger_type = (uint16_t) (p->lValue(t, "TAGGER_TYPE"));
-        m_is_endat = (uint8_t) (p->lValue(t, "IS_ENDAT"));
-        m_is_lvl1 = (uint8_t) (p->lValue(t, "IS_LEVEL1_TRIGGER"));
-        m_bco = (uint64_t) (p->lValue(t, "BCO"));
-        m_lvl1_count = (uint32_t) (p->lValue(t, "LEVEL1_COUNT"));
-        m_endat_count = (uint32_t) (p->lValue(t, "ENDAT_COUNT"));
-        m_last_bco = (uint64_t) (p->lValue(t, "LAST_BCO"));
-        m_modebits = (uint8_t) (p->lValue(t, "MODEBITS"));
-        */
       }
+      
       for (int wf = 0; wf < m_nWaveormInFrame; wf++)
       {
         
@@ -117,7 +119,6 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         newhit->set_channel(packet->iValue(wf, "CHANNEL"));
         newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
         newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
-        m_PreviousClock[FEE] = gtm_bco;
         m_BeamClockFEE[gtm_bco].insert(FEE);
         m_FEEBclkMap[FEE] = gtm_bco;
         if (Verbosity() > 2)
@@ -128,16 +129,10 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
             << ", bco: 0x" << std::hex << gtm_bco << std::dec
             << ", FEE: " << FEE << std::endl;
           }
-          //          packet->convert();
+          
           if (InputManager())
-          {
-            InputManager()->AddMicromegasRawHit(gtm_bco, newhit);
-          }
-//           if (m_MicromegasRawHitMap.find(gtm_bco) == m_MicromegasRawHitMap.end())
-//           {
-//             std::vector<MicromegasRawHit *> intthitvector;
-//             m_MicromegasRawHitMap[gtm_bco] = intthitvector;
-//           }
+          { InputManager()->AddMicromegasRawHit(gtm_bco, newhit); }
+          
           m_MicromegasRawHitMap[gtm_bco].push_back(newhit);
           m_BclkStack.insert(gtm_bco);
         }

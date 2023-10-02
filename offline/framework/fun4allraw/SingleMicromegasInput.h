@@ -31,8 +31,8 @@ class SingleMicromegasInput : public SingleStreamingInput
  private:
   Packet **plist = nullptr;
   unsigned int m_NumSpecialEvents = 0;
-  std::array<uint64_t, 14> m_PreviousClock{};
-  std::array<uint64_t, 14> m_Rollover{};
+  uint64_t m_PreviousClock = 0;
+  uint64_t m_Rollover = 0;
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<uint64_t, std::vector<MicromegasRawHit *>> m_MicromegasRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
