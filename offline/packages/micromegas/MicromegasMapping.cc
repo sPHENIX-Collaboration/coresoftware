@@ -81,7 +81,7 @@ namespace
 MicromegasMapping::MicromegasMapping():
 m_detectors( {
   /*
-   * see https://wiki.sphenix.bnl.gov/index.php/TPc_Outer_Tracker_(TPOT)#Fiber_mapping.2C_as_of_2023.2F3.2F22
+   * see https://wiki.sphenix.bnl.gov/index.php/TPc_Outer_Tracker_(TPOT)#Fiber_mapping
    */
   // south side
   {5,  MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 4 ), "sec20.0", "R3.1", "M9P",  "SEIP" },
