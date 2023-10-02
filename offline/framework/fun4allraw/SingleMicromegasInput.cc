@@ -279,28 +279,31 @@ bool SingleMicromegasInput::GetSomeMoreEvents()
   return true;
 }
 
+//_______________________________________________________
 void SingleMicromegasInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (! dstNode)
   {
     dstNode = new PHCompositeNode("DST");
     topNode->addNode(dstNode);
   }
+  
   PHNodeIterator iterDst(dstNode);
-PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "TPC"));
-if (!detNode)
-{
-  detNode = new PHCompositeNode("INTT");
-  dstNode->addNode(detNode);
-}
-  MicromegasRawHitContainer *tpchitcont = findNode::getClass<MicromegasRawHitContainer>(detNode,"TPCRAWHIT");
-  if (!tpchitcont)
+  auto detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "MICROMEGAS"));
+  if (!detNode)
   {
-    tpchitcont = new MicromegasRawHitContainerv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(tpchitcont, "TPCRAWHIT", "PHObject");
+    detNode = new PHCompositeNode("MICROMEGAS");
+    dstNode->addNode(detNode);
+  }
+  
+  auto container = findNode::getClass<MicromegasRawHitContainer>(detNode,"MICROMEGASRAWHIT");
+  if (!container)
+  {
+    container = new MicromegasRawHitContainerv1();
+    auto newNode = new PHIODataNode<PHObject>(container, "MICROMEGASRAWHIT", "PHObject");
     detNode->addNode(newNode);
   }
-
+  
 }
