@@ -85,6 +85,11 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
   {
     iret += FillTpc();
   }
+  
+  if (m_micromegas_registered_flag)
+  {
+    iret += FillMicromegas();
+  }
 
   // std::cout << "size  m_InttRawHitMap: " <<  m_InttRawHitMap.size()
   // 	    << std::endl;
@@ -409,7 +414,7 @@ int Fun4AllEvtInputPoolManager::FillIntt()
 	alldone += iter->AllDone();
 	if (Verbosity() > 0)
 	{
-	  std::cout << "fill pool for " << iter->Name() << std::endl;
+	  std::cout << "Fun4AllEvtInputPoolManager::FillIntt - fill pool for " << iter->Name() << std::endl;
 	}
 	iter->FillPool();
 	m_RunNumber = iter->RunNumber();
@@ -500,7 +505,7 @@ int Fun4AllEvtInputPoolManager::FillTpc()
 	alldone += iter->AllDone();
 	if (Verbosity() > 0)
 	{
-	  std::cout << "fill pool for " << iter->Name() << std::endl;
+	  std::cout << "Fun4AllEvtInputPoolManager::FillTpc - fill pool for " << iter->Name() << std::endl;
 	}
 	iter->FillPool();
 	m_RunNumber = iter->RunNumber();

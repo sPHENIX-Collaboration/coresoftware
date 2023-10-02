@@ -41,7 +41,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   std::string GetString(const std::string &what) const override;
 //  SingleEvtInput *AddEvtInputList(const std::string &listfile);
 //  SingleEvtInput *AddEvtInputFile(const std::string &filename);
-  void registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem system = INTT);
+  void registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem);
   void AddPacket(uint64_t bclk, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
   int FillIntt();
