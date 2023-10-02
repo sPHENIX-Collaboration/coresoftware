@@ -24,6 +24,9 @@ class  MicromegasRawHitv1: public MicromegasRawHit
   
   uint64_t get_bco() const override {return bco;}
   void set_bco(const uint64_t val) override {bco = val;}
+
+  uint64_t get_gtm_bco() const override {return gtm_bco;}
+  void set_gtm_bco(const uint64_t val) override {gtm_bco = val;}
   
   int32_t get_packetid() const override {return packetid;}
   void set_packetid(const int32_t val) override {packetid = val;}
@@ -65,6 +68,7 @@ class  MicromegasRawHitv1: public MicromegasRawHit
   private:
   
   uint64_t bco = std::numeric_limits<uint64_t>::max();
+  uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
   int32_t packetid = std::numeric_limits<int32_t>::max();
   uint16_t fee = std::numeric_limits<uint16_t>::max();
   uint16_t channel = std::numeric_limits<uint16_t>::max();
