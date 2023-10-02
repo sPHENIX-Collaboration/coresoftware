@@ -124,14 +124,7 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
 	}
 //          plist[i]->convert();
 	if (InputManager())
-	{
-	  InputManager()->AddInttRawHit(gtm_bco, newhit);
-	}
-	if (m_InttRawHitMap.find(gtm_bco) == m_InttRawHitMap.end())
-	{
-	  std::vector<InttRawHit *> intthitvector;
-	  m_InttRawHitMap[gtm_bco] = intthitvector;
-	}
+	{ InputManager()->AddInttRawHit(gtm_bco, newhit); }
 	m_InttRawHitMap[gtm_bco].push_back(newhit);
 	m_BclkStack.insert(gtm_bco);
       }
