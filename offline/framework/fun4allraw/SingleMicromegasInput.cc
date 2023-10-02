@@ -104,7 +104,8 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         {
           
           gtm_bco = packet->lValue(t, "BCO");
-          std::cout << "SingleMicromegasInput::FillPool - bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
+          // std::cout << "SingleMicromegasInput::FillPool - bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
+          std::cout << "SingleMicromegasInput::FillPool - bco: " << gtm_bco << std::endl;
           
           // store
           previous_bco = gtm_bco;
