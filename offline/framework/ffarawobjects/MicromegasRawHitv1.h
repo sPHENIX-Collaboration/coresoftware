@@ -5,6 +5,7 @@
 
 #include <phool/PHObject.h>
 
+#include <cassert>
 #include <limits>
 
 class  MicromegasRawHitv1: public MicromegasRawHit
@@ -40,9 +41,26 @@ class  MicromegasRawHitv1: public MicromegasRawHit
   void set_sampachannel(uint16_t const val) override {sampachannel = val;}
   
   uint16_t get_samples() const override {return samples;}
-  void set_samples(uint16_t const val) override {samples = val;}
+  void set_samples(uint16_t const val) override 
+  {
+    // assign
+    samples = val;
+    
+    // resize adc vector
+    adc.resize( val, 0 );  
+  }
   
+  uint16_t get_adc( size_t sample ) const override 
+  { 
+    assert( sample < adc.size() );
+    return adc[sample];
+  }
   
+  void set_adc( size_t sample, uint16_t val ) override
+  { 
+    assert( sample < adc.size() );
+    adc[sample] = val;
+  }
   
   private:
   
@@ -53,6 +71,10 @@ class  MicromegasRawHitv1: public MicromegasRawHit
   uint16_t sampaaddress = std::numeric_limits<uint16_t>::max();
   uint16_t sampachannel = std::numeric_limits<uint16_t>::max();
   uint16_t samples  = std::numeric_limits<uint16_t>::max();
+  
+  //! adc value for each sample
+  std::vector<uint16_t> adc;
+  
   ClassDefOverride(MicromegasRawHitv1,1)
 };
 
