@@ -97,7 +97,7 @@ uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
 	if (gtm_bco < m_PreviousClock[0])
 	{
 	  m_Rollover[0] += 0x10000000000;
-	  gtm_bco += m_Rollover[0];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+	  gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
 	}
 /*
        m_tagger_type = (uint16_t) (p->lValue(t, "TAGGER_TYPE"));

@@ -109,7 +109,7 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
 	if (gtm_bco < m_PreviousClock[FEE])
 	{
 	  m_Rollover[FEE] += 0x10000000000;
-	  gtm_bco += m_Rollover[FEE];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+	  gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
 	}
 	m_PreviousClock[FEE] = gtm_bco;
 	m_BeamClockFEE[gtm_bco].insert(FEE);
