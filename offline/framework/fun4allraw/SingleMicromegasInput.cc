@@ -17,31 +17,32 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
+#include <memory>
 #include <set>
 
+//______________________________________________________________
 SingleMicromegasInput::SingleMicromegasInput(const std::string &name)
 : SingleStreamingInput(name)
 {
   plist = new Packet *[10];
 }
 
+//______________________________________________________________
 SingleMicromegasInput::~SingleMicromegasInput()
-{
-  delete[] plist;
-}
+{ delete[] plist; }
 
+//______________________________________________________________
 void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
 {
   if (AllDone())  // no more files and all events read
   { return; }
   
-  while (GetEventiterator() == nullptr)  // at startup this is a null pointer
+  while( !GetEventiterator() )  // at startup this is a null pointer
   { OpenNextFile(); }
   
-  //  std::set<uint64_t> saved_beamclocks;
   while (GetSomeMoreEvents())
   {
-    Event *evt = GetEventiterator()->getNextEvent();
+    std::unique_ptr<Event> evt( GetEventiterator()->getNextEvent() );
     while (!evt)
     {
       fileclose();
@@ -50,8 +51,11 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         AllDone(1);
         return;
       }
-      evt = GetEventiterator()->getNextEvent();
+      
+      // get next event
+      evt.reset( GetEventiterator()->getNextEvent() );
     }
+    
     if (Verbosity() > 2)
     { std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl; }
     
@@ -128,175 +132,178 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
             << ", num waveforms: " << m_nWaveormInFrame
             << ", bco: 0x" << std::hex << gtm_bco << std::dec
             << ", FEE: " << FEE << std::endl;
-          }
-          
-          if (InputManager())
-          { InputManager()->AddMicromegasRawHit(gtm_bco, newhit); }
-          
-          m_MicromegasRawHitMap[gtm_bco].push_back(newhit);
-          m_BclkStack.insert(gtm_bco);
         }
+          
+        if (InputManager())
+        { InputManager()->AddMicromegasRawHit(gtm_bco, newhit); }
         
-        delete packet;
+        m_MicromegasRawHitMap[gtm_bco].push_back(newhit);
+        m_BclkStack.insert(gtm_bco);
       }
-      delete evt;
+      
+      delete packet;
     }
-    //  } while (m_MicromegasRawHitMap.size() < 10 || CheckPoolDepth(m_MicromegasRawHitMap.begin()->first));
+  }
+}
+
+//______________________________________________________________
+void SingleMicromegasInput::Print(const std::string &what) const
+{
+  if (what == "ALL" || what == "FEE")
+  {
+    for (const auto &bcliter : m_BeamClockFEE)
+    {
+      std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
+      for (auto feeiter : bcliter.second)
+      {
+        std::cout << "FEM: " << feeiter << std::endl;
+      }
+    }
   }
   
-  void SingleMicromegasInput::Print(const std::string &what) const
+  if (what == "ALL" || what == "FEEBCLK")
   {
-    if (what == "ALL" || what == "FEE")
+    for (auto bcliter : m_FEEBclkMap)
     {
-      for (const auto &bcliter : m_BeamClockFEE)
+      std::cout << "FEE" << bcliter.first << " bclk: 0x"
+        << std::hex << bcliter.second << std::dec << std::endl;
+    }
+  }
+  
+  if (what == "ALL" || what == "STORAGE")
+  {
+    for (const auto &bcliter : m_MicromegasRawHitMap)
+    {
+      std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
+      for (auto feeiter : bcliter.second)
       {
-        std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
-        for (auto feeiter : bcliter.second)
-        {
-          std::cout << "FEM: " << feeiter << std::endl;
-        }
+        std::cout
+          << "fee: " << feeiter->get_fee() 
+          << " at " << std::hex << feeiter << std::dec
+          << std::endl;
       }
     }
-    if (what == "ALL" || what == "FEEBCLK")
+  }
+  
+  if (what == "ALL" || what == "STACK")
+  {
+    for( const auto& iter : m_BclkStack)
     {
-      for (auto bcliter : m_FEEBclkMap)
-      {
-        std::cout << "FEE" << bcliter.first << " bclk: 0x"
-          << std::hex << bcliter.second << std::dec << std::endl;
-      }
+      std::cout << "stacked bclk: 0x" << std::hex << iter << std::dec << std::endl;
     }
-    if (what == "ALL" || what == "STORAGE")
-    {
-      for (const auto &bcliter : m_MicromegasRawHitMap)
-      {
-        std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
-        for (auto feeiter : bcliter.second)
-        {
-          std::cout << "fee: " << feeiter->get_fee()
-            << " at " << std::hex << feeiter << std::dec << std::endl;
-          }
-        }
-      }
-      if (what == "ALL" || what == "STACK")
-      {
-        for (auto iter : m_BclkStack)
-        {
-          std::cout << "stacked bclk: 0x" << std::hex << iter << std::dec << std::endl;
-        }
-      }
-    }
+  }
+}
     
-    void SingleMicromegasInput::CleanupUsedPackets(const uint64_t bclk)
+//____________________________________________________________________________
+void SingleMicromegasInput::CleanupUsedPackets(const uint64_t bclk)
+{
+  std::vector<uint64_t> toclearbclk;
+  for (const auto &iter : m_MicromegasRawHitMap)
+  {
+    if (iter.first <= bclk)
     {
-      std::vector<uint64_t> toclearbclk;
-      for (const auto &iter : m_MicromegasRawHitMap)
-      {
-        if (iter.first <= bclk)
-        {
-          for (auto pktiter : iter.second)
-          {
-            delete pktiter;
-          }
-          toclearbclk.push_back(iter.first);
-        }
-        else
-        {
-          break;
-        }
-      }
-      // for (auto iter :  m_BeamClockFEE)
-      // {
-      //   iter.second.clear();
-      // }
+      for (auto pktiter : iter.second)
+      { delete pktiter; }
       
-      for (auto iter : toclearbclk)
-      {
-        m_BclkStack.erase(iter);
-        m_BeamClockFEE.erase(iter);
-        m_MicromegasRawHitMap.erase(iter);
-      }
+      toclearbclk.push_back(iter.first);
+    } else {
+      break;
     }
     
-    bool SingleMicromegasInput::CheckPoolDepth(const uint64_t bclk)
+  }
+  
+  for (auto iter : toclearbclk)
+  {
+    m_BclkStack.erase(iter);
+    m_BeamClockFEE.erase(iter);
+    m_MicromegasRawHitMap.erase(iter);
+  }
+}
+
+//____________________________________________________________________________
+bool SingleMicromegasInput::CheckPoolDepth(const uint64_t bclk)
+{
+  // if (m_FEEBclkMap.size() < 10)
+  // {
+  //   std::cout << "not all FEEs in map: " << m_FEEBclkMap.size() << std::endl;
+  //   return true;
+  // }
+  for (auto iter : m_FEEBclkMap)
+  {
+    if (Verbosity() > 2)
     {
-      // if (m_FEEBclkMap.size() < 10)
-      // {
-      //   std::cout << "not all FEEs in map: " << m_FEEBclkMap.size() << std::endl;
-      //   return true;
-      // }
-      for (auto iter : m_FEEBclkMap)
+      std::cout 
+        << "my bclk 0x" << std::hex << iter.second
+        << " req: 0x" << bclk << std::dec << std::endl;
+    }
+    
+    if (iter.second < bclk)
+    {
+      if (Verbosity() > 1)
       {
-        if (Verbosity() > 2)
-        {
-          std::cout << "my bclk 0x" << std::hex << iter.second
-            << " req: 0x" << bclk << std::dec << std::endl;
-          }
-          if (iter.second < bclk)
-          {
-            if (Verbosity() > 1)
-            {
-              std::cout << "FEE " << iter.first << " beamclock 0x" << std::hex << iter.second
-                << " smaller than req bclk: 0x" << bclk << std::dec << std::endl;
-              }
-              return false;
-            }
-          }
-          return true;
-        }
-        
-        void SingleMicromegasInput::ClearCurrentEvent()
-        {
-          // called interactively, to get rid of the current event
-          uint64_t currentbclk = *m_BclkStack.begin();
-          //  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
-          CleanupUsedPackets(currentbclk);
-          // m_BclkStack.erase(currentbclk);
-          // m_BeamClockFEE.erase(currentbclk);
-          return;
-        }
-        
-        bool SingleMicromegasInput::GetSomeMoreEvents()
-        {
-          if (AllDone())
-          {
-            return false;
-          }
-          if (CheckPoolDepth(m_MicromegasRawHitMap.begin()->first))
-          {
-            if (m_MicromegasRawHitMap.size() >= 10)
-            {
-              return false;
-            }
-          }
-          return true;
-        }
-        
-        //_______________________________________________________
-        void SingleMicromegasInput::CreateDSTNode(PHCompositeNode *topNode)
-        {
-          PHNodeIterator iter(topNode);
-          auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-          if (! dstNode)
-          {
-            dstNode = new PHCompositeNode("DST");
-            topNode->addNode(dstNode);
-          }
-          
-          PHNodeIterator iterDst(dstNode);
-          auto detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "MICROMEGAS"));
-          if (!detNode)
-          {
-            detNode = new PHCompositeNode("MICROMEGAS");
-            dstNode->addNode(detNode);
-          }
-          
-          auto container = findNode::getClass<MicromegasRawHitContainer>(detNode,"MICROMEGASRAWHIT");
-          if (!container)
-          {
-            container = new MicromegasRawHitContainerv1();
-            auto newNode = new PHIODataNode<PHObject>(container, "MICROMEGASRAWHIT", "PHObject");
-            detNode->addNode(newNode);
-          }
-          
-        }
-        
+        std::cout << "FEE " << iter.first << " beamclock 0x" << std::hex << iter.second
+          << " smaller than req bclk: 0x" << bclk << std::dec << std::endl;
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
+//_______________________________________________________
+void SingleMicromegasInput::ClearCurrentEvent()
+{
+  // called interactively, to get rid of the current event
+  uint64_t currentbclk = *m_BclkStack.begin();
+  //  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
+  CleanupUsedPackets(currentbclk);
+  // m_BclkStack.erase(currentbclk);
+  // m_BeamClockFEE.erase(currentbclk);
+  return;
+}
+
+//_______________________________________________________
+bool SingleMicromegasInput::GetSomeMoreEvents()
+{
+  if (AllDone())
+  {
+    return false;
+  }
+  if (CheckPoolDepth(m_MicromegasRawHitMap.begin()->first))
+  {
+    if (m_MicromegasRawHitMap.size() >= 10)
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+//_______________________________________________________
+void SingleMicromegasInput::CreateDSTNode(PHCompositeNode *topNode)
+{
+  PHNodeIterator iter(topNode);
+  auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (! dstNode)
+  {
+    dstNode = new PHCompositeNode("DST");
+    topNode->addNode(dstNode);
+  }
+  
+  PHNodeIterator iterDst(dstNode);
+  auto detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "MICROMEGAS"));
+  if (!detNode)
+  {
+    detNode = new PHCompositeNode("MICROMEGAS");
+    dstNode->addNode(detNode);
+  }
+  
+  auto container = findNode::getClass<MicromegasRawHitContainer>(detNode,"MICROMEGASRAWHIT");
+  if (!container)
+  {
+    container = new MicromegasRawHitContainerv1();
+    auto newNode = new PHIODataNode<PHObject>(container, "MICROMEGASRAWHIT", "PHObject");
+    detNode->addNode(newNode);
+  }
+  
+}
