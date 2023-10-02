@@ -183,8 +183,11 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
     
     ClassDef(Container,1)
   };
-
+  
   private:
+  
+  //! raw node
+  std::string m_rawhitnodename = "MICROMEGASRAWHIT";
 
   //! calibration filename
   std::string m_calibration_filename = "TPOT_Pedestal_000.root";
@@ -217,14 +220,7 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
 
   //! main branch
   Container* m_container = nullptr;
-  
-  //! match fee bco to lvl1 bco
-  using bco_matching_pair_t = std::pair<unsigned int, uint64_t>;
-
-  //! map fee_id to bco maps
-  using fee_bco_matching_map_t = std::map<unsigned short, bco_matching_pair_t>;
-  fee_bco_matching_map_t m_fee_bco_matching_map;
-  
+    
   /// map waveforms to bco
   /** this is used to count how many waveforms are found for a given lvl1 bco */
   using bco_map_t = std::map<uint64_t,unsigned int>;

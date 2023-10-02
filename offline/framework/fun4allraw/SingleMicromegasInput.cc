@@ -115,12 +115,29 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         auto newhit = new MicromegasRawHitv1();
         int FEE = packet->iValue(wf, "FEE");
         newhit->set_bco(packet->iValue(wf, "BCO"));
-        newhit->set_packetid(packet->getIdentifier());
-        newhit->set_samples(packet->iValue(wf, "SAMPLES"));
+        
+        // store gtm bco in hit
+        newhit->set_gtm_bco(gtm_bco);
+
+        // packet id, fee id, channel, etc.
+        newhit->set_packetid(packet_id);
         newhit->set_fee(FEE);
         newhit->set_channel(packet->iValue(wf, "CHANNEL"));
         newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
         newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
+
+//         // checksum and checksum error
+//         newhit->set_checksum( packet->iValue(iwf, "CHECKSUM") );
+//         newhit->set_checksum_error( packet->iValue(iwf, "CHECKSUMERROR") );
+
+        // samples
+        const uint16_t samples = packet->iValue(wf, "SAMPLES");
+        newhit->set_samples( samples );
+
+        // adc values
+        for( uint16_t is =0; is < samples; ++is )
+        { newhit->set_adc( is, packet->iValue( wf, is ) ); }
+        
         m_BeamClockFEE[gtm_bco].insert(FEE);
         m_FEEBclkMap[FEE] = gtm_bco;
         if (Verbosity() > 2)

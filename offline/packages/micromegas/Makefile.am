@@ -111,6 +111,7 @@ libmicromegas_la_SOURCES = \
 
 libmicromegas_la_LIBADD = \
   libmicromegas_io.la \
+  -lffarawobjects \
   -lphg4hit \
   -lSubsysReco
 
