@@ -34,6 +34,9 @@ SingleMicromegasInput::~SingleMicromegasInput()
 //______________________________________________________________
 void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
 {
+  
+  std::cout << "SingleMicromegasInput::FillPool" << std::endl;
+  
   if (AllDone())  // no more files and all events read
   { return; }
   
@@ -101,7 +104,7 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         {
           
           gtm_bco = packet->lValue(t, "BCO");
-          std::cout << "bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
+          std::cout << "SingleMicromegasInput::FillPool - bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
           
           // store
           previous_bco = gtm_bco;
@@ -159,6 +162,9 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
       delete packet;
     }
   }
+  
+  std::cout << "SingleMicromegasInput::FillPool - done." << std::endl;
+
 }
 
 //______________________________________________________________

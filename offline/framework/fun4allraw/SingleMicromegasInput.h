@@ -18,7 +18,7 @@ class Packet;
 class SingleMicromegasInput : public SingleStreamingInput
 {
  public:
-  explicit SingleMicromegasInput(const std::string &name);
+  explicit SingleMicromegasInput(const std::string &name = "SingleMicromegasInput" );
   ~SingleMicromegasInput() override;
   void FillPool(const unsigned int nevents = 1) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
