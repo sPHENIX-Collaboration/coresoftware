@@ -53,7 +53,7 @@ class SingleMicromegasInput : public SingleStreamingInput
   };
 
   //! max number of fees per single micromegas input
-  static constexpr unsigned short m_max_fee = 24;
+  static constexpr unsigned short m_max_fee = 26;
 
   //! keep one bco alignment object per fee
   std::array<bco_alignment_t, m_max_fee> m_bco_alignment_list;

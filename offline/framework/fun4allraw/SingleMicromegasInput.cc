@@ -203,6 +203,10 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         m_BclkStack.insert(gtm_bco);
       }
       
+      // clear all stored bco list
+      for( auto&& bco_alignment:m_bco_alignment_list )
+      { bco_alignment.gtm_bco_list.clear(); }
+      
       delete packet;
     }
   }
