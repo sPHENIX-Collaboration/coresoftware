@@ -6,6 +6,8 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrackFitUtils.h>
+
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 
 #include <trackbase/TpcDefs.h>
@@ -86,10 +88,8 @@ TrkrNtuplizer::TrkrNtuplizer(const string& /*name*/, const string& filename, con
   , _filename(filename)
   , _trackmapname(trackmapname)
   , _tfile(nullptr)
-  , _fitter(nullptr)
   , _timer(nullptr)
 {
-  _fitter = new HelicalFitter;
 }
 
 TrkrNtuplizer::~TrkrNtuplizer()
@@ -190,9 +190,8 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int TrkrNtuplizer::InitRun(PHCompositeNode* topNode)
+int TrkrNtuplizer::InitRun(PHCompositeNode*)
 {
-  _fitter->InitRun(topNode);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -245,7 +244,6 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
 
 int TrkrNtuplizer::End(PHCompositeNode* /*topNode*/)
 {
-  delete _fitter;
   _tfile->cd();
 
   if (_ntp_info)
@@ -1093,11 +1091,11 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     {
       clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     }
-    cout << "got clustermap" << endl;
+ 
 
     ClusterErrorPara ClusErrPara;
-    cout << "got err para" << endl;
-    //  if (Verbosity() > 1)
+
+    if (Verbosity() > 1)
     {
       if (clustermap != nullptr) cout << "got clustermap" << endl;
       else cout << "no clustermap" << endl;
@@ -1109,28 +1107,29 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	cerr << PHWHERE << " ERROR: Can't find " << "TpcTrackSeedContainer" << endl;
 	return ;
       }
-    int nseed = 0;
-    cout << "filling clus on track: " <<  _tpc_seeds->size() << endl;
+   
+
     for (unsigned int phtrk_iter = 0; phtrk_iter < _tpc_seeds->size(); ++phtrk_iter){
-      std::cout << "processing seed " << nseed++ << std::endl; 
+
       TrackSeed *tpcseed = _tpc_seeds->get(phtrk_iter);
       if(!tpcseed) { 
-	std::cout << " seed null " << std::endl;
 	continue; 
       }  
 
-      std::cout << "fitter init " << std::endl;
+    
       std::vector<Acts::Vector3> clusterPositions;
       std::vector<TrkrDefs::cluskey> clusterKeys;
-      _fitter->getTrackletClusters(tpcseed, clusterPositions, clusterKeys);
-      std::cout << "got tracklet clusters " << std::endl;
-      std::vector<float> fitparams = _fitter->fitClusters(clusterPositions, clusterKeys);
-      std::cout << "fitter got params " << std::endl;
+      clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+			 tpcseed->end_cluster_keys());
+      TrackFitUtils::getTrackletClusters(tgeometry, clustermap, 
+					 clusterPositions, clusterKeys);
+      std::vector<float> fitparams = TrackFitUtils::fitClusters(clusterPositions, clusterKeys);
+ 
       float charge = NAN;
       if(tpcseed->get_qOverR()>0)
-	charge = 1;
+	{ charge = 1; }
       else
-	charge = -1;
+	{ charge = -1; }
       //	      "pt:eta:phi:X0:Y0:charge:nhits:"
       float tpt = tpcseed->get_pt();
       float teta = tpcseed->get_eta();
@@ -1141,8 +1140,6 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       
       float nhits_local = 0;
       nhits_local += tpcseed->size_cluster_keys();
-      
-      std::cout << " process clusters " << std::endl;
 
       for (size_t i = 0; i < clusterPositions.size(); i++)
 	{/*
@@ -1155,7 +1152,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	  // TrkrCluster* cluster = clustermap->findCluster(cluster_key);
 	  // unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
 	   Acts::Vector3 position = clusterPositions[i];
-	   Acts::Vector3 pca = _fitter->get_helix_pca(fitparams, position);
+	   Acts::Vector3 pca = TrackFitUtils::get_helix_pca(fitparams,position);
 	   float cluster_phi = atan2(position(1), position(0));
 	   float pca_phi = atan2(pca(1), pca(0));
 	   float dphi = cluster_phi - pca_phi;
@@ -1276,7 +1273,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	  _ntp_clus_trk->Fill(clus_trk_data);
 	  
 	}
-      std::cout << " done clusters " << std::endl;
+
     }
   }
 
