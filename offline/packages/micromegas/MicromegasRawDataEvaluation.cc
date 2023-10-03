@@ -336,10 +336,8 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/ )
 
   // print bco map
   if( Verbosity() )
-  {
-    for( const auto& [bco,nwaveforms]:m_bco_map )
-    { std::cout << "MicromegasRawDataEvaluation::End - bco: " << bco << ", nwaveforms: " << nwaveforms << std::endl; }
-  }
+  for( const auto& [bco,nwaveforms]:m_bco_map )
+  { std::cout << "MicromegasRawDataEvaluation::End - bco: 0x" << std::hex << bco << std::dec << ", nwaveforms: " << nwaveforms << std::endl; }
 
   // print bco list, for offline processing
   {
@@ -355,7 +353,7 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/ )
         count = 0;
         std::cout << std::endl;
       }
-      std::cout << " " << bco;
+      std::cout << " 0x" << std::hex << bco << std::dec;
       ++count;
     }
     std::cout << std::endl << "};" << std::endl;

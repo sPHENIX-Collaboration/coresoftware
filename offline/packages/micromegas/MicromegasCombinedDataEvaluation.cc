@@ -126,6 +126,7 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
   std::map<unsigned int, size_t> packet_waveforms;
   
   // loop over raw hits
+  std::cout << "MicromegasCombinedDataEvaluation::process_event - hits: " << rawhitcontainer->get_nhits() << std::endl;
   for( unsigned int ihit = 0; ihit < rawhitcontainer->get_nhits(); ++ihit )
   {
     const auto rawhit = rawhitcontainer->get_hit(ihit);
@@ -246,7 +247,7 @@ int MicromegasCombinedDataEvaluation::End(PHCompositeNode* /*topNode*/ )
   // print bco map
   if( Verbosity() )
   for( const auto& [bco,nwaveforms]:m_bco_map )
-  { std::cout << "MicromegasCombinedDataEvaluation::End - bco: " << bco << ", nwaveforms: " << nwaveforms << std::endl; }
+  { std::cout << "MicromegasCombinedDataEvaluation::End - bco: 0x" << std::hex << bco << std::dec << ", nwaveforms: " << nwaveforms << std::endl; }
 
   // print bco list, for offline processing
   if( Verbosity() )
@@ -263,7 +264,7 @@ int MicromegasCombinedDataEvaluation::End(PHCompositeNode* /*topNode*/ )
         count = 0;
         std::cout << std::endl;
       }
-      std::cout << " " << bco;
+      std::cout << " 0x" << std::hex << bco << std::dec;
       ++count;
     }
     std::cout << std::endl << "};" << std::endl;
