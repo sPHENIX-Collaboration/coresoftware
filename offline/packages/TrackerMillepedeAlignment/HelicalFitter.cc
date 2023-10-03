@@ -824,7 +824,22 @@ int  HelicalFitter::GetNodes(PHCompositeNode* topNode)
   //---------------------------------
   // Get additional objects off the Node Tree
   //---------------------------------
+  
+  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  
+  if (!_cluster_map)
+    {
+      std::cout << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
+  _tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
+  if(!_tGeometry)
+    {
+      std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
   _track_map_silicon = findNode::getClass<TrackSeedContainer>(topNode, _silicon_track_map_name);
   if (!_track_map_silicon)
     {
@@ -839,20 +854,6 @@ int  HelicalFitter::GetNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  if (!_cluster_map)
-    {
-      std::cout << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  _tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
-  if(!_tGeometry)
-    {
-      std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  
   return Fun4AllReturnCodes::EVENT_OK;
 } 
 
@@ -910,6 +911,7 @@ void HelicalFitter::getTrackletClusters(TrackSeed *tracklet, std::vector<Acts::V
 
 void HelicalFitter::getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
+  //  std::cout << " get list" << std::endl;
   for (auto clusIter = tracklet->begin_cluster_keys();
        clusIter != tracklet->end_cluster_keys();
        ++clusIter)
@@ -918,10 +920,9 @@ void HelicalFitter::getTrackletClusterList(TrackSeed *tracklet, std::vector<Trkr
       auto cluster = _cluster_map->findCluster(key);
       if(!cluster)
 	{
-	  std::cout << "Failed to get cluster with key " << key << std::endl;
+	  //	  std::cout << "Failed to get cluster with key " << key << std::endl;
 	  continue;
 	}	  
-      
       /// Make a safety check for clusters that couldn't be attached to a surface
       auto surf = _tGeometry->maps().getSurface(key, cluster);
       if(!surf)  { continue; }
