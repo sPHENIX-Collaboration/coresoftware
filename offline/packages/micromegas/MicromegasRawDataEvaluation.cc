@@ -220,8 +220,9 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
           {
             std::cout << "MicromegasRawDataEvaluation::process_event -"
               << " fee_id: " << sample.fee_id
-              << " fee_bco: " << sample.fee_bco
-              << " lvl1_bco: " << bco_list.front()
+              << " fee_bco: 0x" << std::hex << sample.fee_bco
+              << " gtm_bco: 0x" << bco_list.front()
+              << std::dec
               << std::endl;
           }
 
@@ -241,8 +242,8 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
           {
             std::cout << "MicromegasRawDataEvaluation::process_event -"
               << " fee_id: " << sample.fee_id
-              << " fee_bco: " << sample.fee_bco
-              << " lvl1_bco: none"
+              << " fee_bco: 0x" << std::hex << sample.fee_bco << std::dec
+              << " gtm_bco: none"
               << std::endl;
           }
         }
