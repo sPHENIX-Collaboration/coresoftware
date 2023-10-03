@@ -24,8 +24,10 @@ class TowerInfov1 : public TowerInfo
   float get_energy() override { return _energy; }
 
  private:
-  short _time = 0;
   float _energy = 0;
+
+ protected:
+  short _time = 0;
 
   ClassDefOverride(TowerInfov1, 1);
 };
