@@ -192,13 +192,13 @@ ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
     Acts::FreeToBoundCorrection freeToBoundCorrection,
     const Acts::Logger& logger)
 {
-  const Stepper stepper(std::move(magneticField));
-  Acts::Navigator::Config cfg{std::move(trackingGeometry)};
+  Stepper stepper(std::move(magneticField));
+  Acts::Navigator::Config cfg{trackingGeometry};
   cfg.resolvePassive = false;
   cfg.resolveMaterial = true;
   cfg.resolveSensitive = true;
   Acts::Navigator navigator(cfg, logger.cloneWithSuffix("Navigator"));
-  Propagator propagator(stepper, std::move(navigator),
+  Propagator propagator(std::move(stepper), std::move(navigator),
 			logger.cloneWithSuffix("Propagator"));
   Fitter trackFitter(std::move(propagator), logger.cloneWithSuffix("Fitter"));
 

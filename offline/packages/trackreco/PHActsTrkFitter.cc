@@ -442,6 +442,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Check that the track fit result did not return an error
       if (result.ok())
       {  
+        
 	SvtxTrack_v4 newTrack;
         newTrack.set_tpc_seed(tpcseed);
         newTrack.set_crossing(crossing);
@@ -759,7 +760,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 
 bool PHActsTrkFitter::getTrackFitResult(FitResult &fitOutput, 
 					TrackSeed* seed, SvtxTrack* track, 
-					const ActsTrackFittingAlgorithm::TrackContainer& tracks,
+					ActsTrackFittingAlgorithm::TrackContainer& tracks,
 					const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
@@ -770,10 +771,7 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult &fitOutput,
   if(outtrack.hasReferenceSurface())
     {
       trackTips.emplace_back(outtrack.tipIndex());
-      ActsExamples::Trajectories::IndexedParameters indexedParams;
-      std::cout << "track container size " << tracks.size() << std::endl;
-      std::stringstream ss;
-      tracks.trackStateContainer().statistics().toStream(ss);
+      Trajectory::IndexedParameters indexedParams;
       indexedParams.emplace(std::pair{outtrack.tipIndex(),
 	    ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
 	      outtrack.parameters(), outtrack.covariance()}});
@@ -791,8 +789,8 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult &fitOutput,
 	}
       
       Trajectory trajectory(tracks.trackStateContainer(),
-			    trackTips, indexedParams);
-      
+			    std::move(trackTips), std::move(indexedParams));
+          
       m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
       
       /// Get position, momentum from the Acts output. Update the values of
@@ -800,13 +798,14 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult &fitOutput,
       PHTimer updateTrackTimer("UpdateTrackTimer");
       updateTrackTimer.stop();
       updateTrackTimer.restart();
-      updateSvtxTrack(trajectory, track); 
+      updateSvtxTrack(trackTips,indexedParams, tracks, track); 
       
       if(m_commissioning)
 	{
 	  if(track->get_silicon_seed() && track->get_tpc_seed())
 	    {
-	      m_alignStates.fillAlignmentStateMap(trajectory, track, measurements);
+	      m_alignStates.fillAlignmentStateMap(tracks, trackTips, 
+						  track, measurements);
 	    }
 	}
       
@@ -939,10 +938,12 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces) const
 
 }
 
-void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
+void PHActsTrkFitter::updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+				      Trajectory::IndexedParameters& paramsMap,
+				      ActsTrackFittingAlgorithm::TrackContainer& tracks,
+				      SvtxTrack* track)
 {
-  const auto& mj = traj.multiTrajectory();
-  const auto& tips = traj.tips();
+  const auto& mj = tracks.trackStateContainer();
 
   /// only one track tip in the track fit Trajectory
   auto &trackTip = tips.front();
@@ -964,11 +965,11 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
   out.set_y(0.0);
   out.set_z(0.0);
   track->insert_state(&out);   
-  std::cout << "make traj state at tip "<<trackTip << std::endl;
+
   auto trajState =
-    Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip-1);
-  std::cout << "get params"<<std::endl;
-  const auto& params = traj.trackParameters(trackTip);
+    Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
+
+  const auto& params = paramsMap.find(trackTip)->second;
 
   /// Acts default unit is mm. So convert to cm
   track->set_x(params.position(m_tGeometry->geometry().getGeoContext())(0)

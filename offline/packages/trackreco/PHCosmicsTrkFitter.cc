@@ -672,7 +672,7 @@ bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput,
   std::vector<Acts::MultiTrajectoryTraits::IndexType> trackTips;
   trackTips.reserve(1);
   trackTips.emplace_back(outtrack.tipIndex());
-  ActsExamples::Trajectories::IndexedParameters indexedParams;
+  Trajectory::IndexedParameters indexedParams;
 
    indexedParams.emplace(std::pair{outtrack.tipIndex(),
 	 ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
@@ -698,14 +698,15 @@ bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput,
 
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
-  updateSvtxTrack(trajectory, track);
+  updateSvtxTrack(trackTips, indexedParams, tracks, track);
   
 
   if (m_commissioning)
   {
     if (track->get_silicon_seed() && track->get_tpc_seed())
     {
-      m_alignStates.fillAlignmentStateMap(trajectory, track, measurements);
+      m_alignStates.fillAlignmentStateMap(tracks, trackTips,
+					  track, measurements);
     }
   }
 
@@ -727,10 +728,13 @@ inline ActsTrackFittingAlgorithm::TrackFitterResult PHCosmicsTrkFitter::fitTrack
   return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions, tracks);
 }
 
-void PHCosmicsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
+void PHCosmicsTrkFitter::updateSvtxTrack(
+     std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+     Trajectory::IndexedParameters& paramsMap,
+     ActsTrackFittingAlgorithm::TrackContainer& tracks, 
+     SvtxTrack* track)
 {
-  const auto& mj = traj.multiTrajectory();
-  const auto& tips = traj.tips();
+  const auto& mj = tracks.trackStateContainer();
 
   /// only one track tip in the track fit Trajectory
   auto& trackTip = tips.front();
@@ -753,7 +757,7 @@ void PHCosmicsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
   auto trajState =
       Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
 
-  const auto& params = traj.trackParameters(trackTip);
+  const auto& params = paramsMap.find(trackTip)->second;
 
   /// Acts default unit is mm. So convert to cm
   track->set_x(params.position(m_tGeometry->geometry().getGeoContext())(0) / Acts::UnitConstants::cm);

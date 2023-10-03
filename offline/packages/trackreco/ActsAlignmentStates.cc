@@ -40,12 +40,12 @@ namespace
   }
 }  // namespace
 
-void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
+void ActsAlignmentStates::fillAlignmentStateMap(const ActsTrackFittingAlgorithm::TrackContainer &tracks,
+						const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
                                                 SvtxTrack* track,
                                                 const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
-  const auto mj = traj.multiTrajectory();
-  const auto& tips = traj.tips();
+  const auto& mj = tracks.trackStateContainer();
   const auto& trackTip = tips.front();
   const auto crossing = track->get_silicon_seed()->get_crossing();
 
