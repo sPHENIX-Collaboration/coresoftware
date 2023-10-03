@@ -6,6 +6,8 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrackFitUtils.h>
+
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 
 #include <trackbase/TpcDefs.h>
@@ -28,6 +30,7 @@
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <trackermillepedealignment/HelicalFitter.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -106,6 +109,7 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
                             "event:seed:"
                             "occ11:occ116:occ21:occ216:occ31:occ316:"
                             "ntrk:"
+			    "nhitmvtx:nhitintt:nhittpot:"
                             "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
 
@@ -121,7 +125,8 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
     _ntp_hit = new TNtuple("ntp_hit", "svtxhit => max truth",
                            "event:seed:hitID:e:adc:layer:phielem:zelem:"
                            "cellID:ecell:phibin:tbin:phi:x:y:z:"
-                           "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+                           "nhitmvtx:nhitintt:nhittpot:"
+			   "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
 
   if (_do_cluster_eval)
@@ -130,24 +135,29 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
                                "event:seed:hitID:locx:locy:x:y:z:r:phi:eta:theta:phibin:tbin:ex:ey:ez:ephi:pez:pephi:"
                                "e:adc:maxadc:layer:phielem:zelem:size:phisize:zsize:"
                                "trackID:niter:"
-                               "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+                               "nhitmvtx:nhitintt:nhittpot:"
+			       "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
   if (_do_clus_trk_eval)
   {
     _ntp_clus_trk = new TNtuple("ntp_clus_trk", "cluster on track",
-                               "event:seed:locx:locy:x:y:z:r:phi:eta:theta:phibin:tbin:ex:ey:ez:ephi:pez:pephi:"
-                               "e:adc:maxadc:layer:phielem:zelem:size:phisize:zsize:"
-                               "trackID:niter:"
-                               "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+				"event:seed:locx:locy:x:y:z:r:phi:eta:theta:phibin:tbin:ex:ey:ez:ephi:pez:pephi:"
+				"e:adc:maxadc:layer:phielem:zelem:size:phisize:zsize:"
+				"resphi:resz:"
+				"trackID:niter:pt:eta:phi:X0:Y0:Z0:charge:nhits:"
+				"vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:"
+				"nhitmvtx:nhitintt:nhittpot:"
+				"nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
-
+  
   if (_do_track_eval)
   {
     _ntp_track = new TNtuple("ntp_track", "svtxtrack => max truth",
                              "event:seed:trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:"
                              "quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:layers:"
                              "vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:"
-                             "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+                             "nhitmvtx:nhitintt:nhittpot:"
+			     "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
 
   if (_do_tpcseed_eval)
@@ -159,7 +169,8 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
                                "gvx:gvy:gvz:"
                                "gembed:gprimary:gflav:"
                                "dphiprev:detaprev:"
-                               "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+                               "nhitmvtx:nhitintt:nhittpot:"
+			       "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
   if (_do_siseed_eval)
   {
@@ -170,7 +181,8 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
                                "gvx:gvy:gvz:"
                                "gembed:gprimary:gflav:"
                                "dphiprev:detaprev:"
-                               "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+                               "nhitmvtx:nhitintt:nhittpot:"
+			       "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
   _timer = new PHTimer("_eval_timer");
   _timer->stop();
@@ -178,7 +190,7 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int TrkrNtuplizer::InitRun(PHCompositeNode* /*topNode*/)
+int TrkrNtuplizer::InitRun(PHCompositeNode*)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -516,6 +528,11 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   float nhit_tpc_in = 0;
   float nhit_tpc_mid = 0;
   float nhit_tpc_out = 0;
+
+  float nhit_intt = 0;
+  float nhit_maps = 0;
+  float nhit_mms  = 0;
+
   float nclus_all = 0;
   float nclus_tpc = 0;
   float nclus_intt = 0;
@@ -540,30 +557,38 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     {
       // we have a single hitset, get the layer
       unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
-      if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
-      {
-        // count all hits in this hitset
-        TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
-        for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-             hitr != hitrangei.second;
-             ++hitr)
+
+      TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
+      for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+	   hitr != hitrangei.second;
+	   ++hitr)
         {
           nhit[layer]++;
-          nhit_tpc_all++;
+          
+	  if(layer<_nlayers_maps){
+	    nhit_maps++;
+	  }
+	  if(layer>=_nlayers_maps&&layer<_nlayers_maps + _nlayers_intt){
+	    nhit_intt++;
+	  }
+	  if ((float) layer >= _nlayers_maps + _nlayers_intt &&
+	      (float) layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+	    nhit_tpc_all++;
+	  if((float) layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+	    nhit_mms++;
           if ((float) layer == _nlayers_maps + _nlayers_intt)
-          {
-            nhit_tpc_in++;
-          }
+	    {
+	      nhit_tpc_in++;
+	    }
           if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc - 1)
-          {
-            nhit_tpc_out++;
-          }
+	    {
+	      nhit_tpc_out++;
+	    }
           if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1)
-          {
-            nhit_tpc_mid++;
-          }
+	    {
+	      nhit_tpc_mid++;
+	    }
         }
-      }
     }
   }
   /**********/
@@ -652,21 +677,21 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         }
         if (_nlayers_intt > 0)
         {
-          if (layer_local >= _nlayers_maps && layer_local < _nlayers_maps + _nlayers_intt)
+          if ((layer_local >= _nlayers_maps) && (layer_local < (_nlayers_maps + _nlayers_intt)))
           {
             nclus_intt++;
           }
         }
         if (_nlayers_tpc > 0)
         {
-          if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+          if (layer_local >= (_nlayers_maps + _nlayers_intt) && layer_local < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
           {
             nclus_tpc++;
           }
         }
         if (_nlayers_mms > 0)
         {
-          if (layer_local >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+          if (layer_local >= (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
           {
             nclus_mms++;
           }
@@ -693,11 +718,15 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     {
       cout << "EVENTINFO SEED: " << m_fSeed << endl;
       cout << "EVENTINFO NHIT: " << setprecision(9) << nhit_tpc_all << endl;
+      cout << "EVENTINFO CLUSTPC: " << nclus_tpc << endl;
       cout << "EVENTINFO NTRKREC: " << ntrk << endl;
     }
     float info_data[] = {(float) _ievent, m_fSeed,
                          occ11, occ116, occ21, occ216, occ31, occ316,
                          ntrk,
+			 nhit_maps,
+			 nhit_intt,
+			 nhit_mms,
                          nhit_tpc_all,
                          nhit_tpc_in,
                          nhit_tpc_mid,
@@ -738,6 +767,9 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
                            vy,
                            vz,
                            ntracks,
+			   nhit_maps,
+			   nhit_intt,
+			   nhit_mms,
                            nhit_tpc_all,
                            nhit_tpc_in,
                            nhit_tpc_mid,
@@ -841,6 +873,9 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	      x,
 	      y,
               z,
+	      nhit_maps,
+	      nhit_intt,
+	      nhit_mms,
               nhit_tpc_all,
               nhit_tpc_in,
               nhit_tpc_mid,
@@ -915,7 +950,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         {
           TrkrDefs::cluskey cluster_key = iter->first;
           TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-	  SvtxTrack* track = best_track_from(cluster_key);
+	  SvtxTrack* track = nullptr;//best_track_from(cluster_key);
           float niter = 0;
          
           float hitID = (float) cluster_key;
@@ -1025,6 +1060,9 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
                                   zsize,
                                   trackID,
                                   niter,
+				  nhit_maps,
+				  nhit_intt,
+				  nhit_mms,
                                   nhit_tpc_all,
                                   nhit_tpc_in,
                                   nhit_tpc_mid,
@@ -1053,118 +1091,189 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     {
       clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     }
-    cout << "got clustermap" << endl;
+ 
 
     ClusterErrorPara ClusErrPara;
-    cout << "got err para" << endl;
-    //  if (Verbosity() > 1)
+
+    if (Verbosity() > 1)
     {
       if (clustermap != nullptr) cout << "got clustermap" << endl;
       else cout << "no clustermap" << endl;
     }
+
     TrackSeedContainer *_tpc_seeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
     if (!_tpc_seeds)
       {
 	cerr << PHWHERE << " ERROR: Can't find " << "TpcTrackSeedContainer" << endl;
 	return ;
       }
-    cout << "filling clus on track: " <<  _tpc_seeds->size() << endl;
+   
+
     for (unsigned int phtrk_iter = 0; phtrk_iter < _tpc_seeds->size(); ++phtrk_iter){
+
       TrackSeed *tpcseed = _tpc_seeds->get(phtrk_iter);
-      if(!tpcseed) { continue; }
-      for (auto local_iter = tpcseed->begin_cluster_keys(); local_iter != tpcseed->end_cluster_keys();++local_iter){
-	TrkrDefs::cluskey cluster_key = *local_iter;
-	TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-	Acts::Vector3 cglob;
-	cglob = tgeometry->getGlobalPosition(cluster_key, cluster);
-	float x = cglob(0);
-	float y = cglob(1);
-	float z = cglob(2);
-	float locx = cluster->getLocalX();
-	float locy = cluster->getLocalY();
-	TVector3 pos(x, y, z);
-	float r = pos.Perp();
-	float phi = pos.Phi();
-	float eta = pos.Eta();
-	float theta = pos.Theta();
-	
-	float ex = 0;
-	float ey = 0;
-	float ez = 0;
-	float ephi = 0;
-	float pez = 0;
-	float pephi = 0;
-	float size = 0;
-	float phisize = 0;
-	float zsize = 0;
-	float maxadc = -999;
+      if(!tpcseed) { 
+	continue; 
+      }  
 
-	auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster,r ,cluster_key);
-	  
-	phisize = cluster->getPhiSize();
-	zsize = cluster->getZSize();
-	// double clusRadius = r;
-	ez = sqrt(para_errors.second);
-	ephi = sqrt(para_errors.first);
-	maxadc = cluster->getMaxAdc();
-	
-	float e = cluster->getAdc();
-	float adc = cluster->getAdc();
-	float layer_local = (float) TrkrDefs::getLayer(cluster_key);
-	float sector = TpcDefs::getSectorId(cluster_key);
-	float side = TpcDefs::getSide(cluster_key);
-	
-	float trackID = phtrk_iter;
-	float phibin = NAN;
-	float tbin  = NAN;
-	if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
-          {
-	    PHG4TpcCylinderGeom* GeoLayer_local = geom_container->GetLayerCellGeom(layer_local);
-	    phibin = GeoLayer_local->get_pad_float(phi,side);
-	    tbin   = GeoLayer_local->get_tbin_float(locy-39.6);
-	  }
-	else{
-	  phibin = locx;
-	  tbin = locy;
-	}
+    
+      std::vector<Acts::Vector3> clusterPositions;
+      std::vector<TrkrDefs::cluskey> clusterKeys;
+      clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+			 tpcseed->end_cluster_keys());
+      TrackFitUtils::getTrackletClusters(tgeometry, clustermap, 
+					 clusterPositions, clusterKeys);
+      std::vector<float> fitparams = TrackFitUtils::fitClusters(clusterPositions, clusterKeys);
+ 
+      float charge = NAN;
+      if(tpcseed->get_qOverR()>0)
+	{ charge = 1; }
+      else
+	{ charge = -1; }
+      //	      "pt:eta:phi:X0:Y0:charge:nhits:"
+      float tpt = tpcseed->get_pt();
+      float teta = tpcseed->get_eta();
+      float tphi = tpcseed->get_phi(clustermap,tgeometry);
+      float tX0 = tpcseed->get_X0();
+      float tY0 = tpcseed->get_Y0();
+      float tZ0 = tpcseed->get_Z0();
+      
+      float nhits_local = 0;
+      nhits_local += tpcseed->size_cluster_keys();
 
-	float clus_trk_data[] = {(float) _ievent,
-				(float) _iseed,
+      for (size_t i = 0; i < clusterPositions.size(); i++)
+	{/*
+	   for (SvtxTrack::ConstClusterKeyIter iter_local = tpcseed->begin_cluster_keys();
+	   iter_local != tpcseed->end_cluster_keys();
+	   ++iter_local){
+	 */
+
+	  TrkrDefs::cluskey cluster_key = clusterKeys[i];//*iter_local;
+	  // TrkrCluster* cluster = clustermap->findCluster(cluster_key);
+	  // unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+	   Acts::Vector3 position = clusterPositions[i];
+	   Acts::Vector3 pca = TrackFitUtils::get_helix_pca(fitparams,position);
+	   float cluster_phi = atan2(position(1), position(0));
+	   float pca_phi = atan2(pca(1), pca(0));
+	   float dphi = cluster_phi - pca_phi;
+	   if (dphi > M_PI)
+	     {
+	       dphi = 2 * M_PI - dphi;
+	     }
+	   if (dphi < -M_PI)
+	     {
+	       dphi = 2 * M_PI + dphi;
+	     }
+	   float dz = position(2) - pca(2);
+	   
+	   TrkrCluster* cluster = clustermap->findCluster(cluster_key);
+	   Acts::Vector3 cglob;
+	   cglob = tgeometry->getGlobalPosition(cluster_key, cluster);
+	   float x = cglob(0);
+	   float y = cglob(1);
+	   float z = cglob(2);
+	   float locx = cluster->getLocalX();
+	   float locy = cluster->getLocalY();
+	   TVector3 pos(x, y, z);
+	   float r = pos.Perp();
+	   float phi = pos.Phi();
+	   float eta = pos.Eta();
+	   float theta = pos.Theta();
+	   
+	   float ex = 0;
+	   float ey = 0;
+	   float ez = 0;
+	   float ephi = 0;
+	   float pez = 0;
+	   float pephi = 0;
+	   float size = 0;
+	   float phisize = 0;
+	   float zsize = 0;
+	   float maxadc = -999;
+	   
+	   auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster,r ,cluster_key);
+	   
+	   phisize = cluster->getPhiSize();
+	   zsize = cluster->getZSize();
+	   // double clusRadius = r;
+	   ez = sqrt(para_errors.second);
+	   ephi = sqrt(para_errors.first);
+	   maxadc = cluster->getMaxAdc();
+	   
+	   float e = cluster->getAdc();
+	   float adc = cluster->getAdc();
+	   float layer_local = (float) TrkrDefs::getLayer(cluster_key);
+	   float sector = TpcDefs::getSectorId(cluster_key);
+	   float side = TpcDefs::getSide(cluster_key);
+	   
+	   float trackID = phtrk_iter;
+	   float phibin = NAN;
+	   float tbin  = NAN;
+	   if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+	     {
+	       PHG4TpcCylinderGeom* GeoLayer_local = geom_container->GetLayerCellGeom(layer_local);
+	       phibin = GeoLayer_local->get_pad_float(phi,side);
+	       tbin   = GeoLayer_local->get_tbin_float(locy-39.6);
+	     }
+	   else{
+	     phibin = locx;
+	     tbin = locy;
+	   }
+	   /*
+	     "pt:eta:phi:X0:Y0:charge:nhits:"
+	   */
+	  float clus_trk_data[] = {(float) _ievent,
+				 (float) _iseed,
 				 locx,
 				 locy,
-				x,
-				y,
-				z,
-				r,
-				phi,
-				eta,
-				theta,
+				 x,
+				 y,
+				 z,
+				 r,
+				 phi,
+				 eta,
+				 theta,
 				 phibin,
 				 tbin,
-				ex,
-				ey,
-				ez,
-				ephi,
-				pez,
-				pephi,
-				e,
-				adc,
-				maxadc,
-				layer_local,
-				sector,
-				side,
-				size,
-				phisize,
-				zsize,
-				trackID,
-				0,
-				nhit_tpc_all,
-				nhit_tpc_in,
-				nhit_tpc_mid,
-				nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
+				 ex,
+				 ey,
+				 ez,
+				 ephi,
+				 pez,
+				 pephi,
+				 e,
+				 adc,
+				 maxadc,
+				 layer_local,
+				 sector,
+				 side,
+				 size,
+				 phisize,
+				 zsize,
+				   dphi,
+				   dz,
+				   trackID,
+				   0,
+				   tpt,
+				   teta,
+				   tphi,
+				   tX0,
+				   tY0,
+				   tZ0,
+				   charge,
+				   nhit_maps,
+				   nhit_intt,
+				   nhit_mms,
+				   nhits_local,
+				   nhit_tpc_all,
+				   nhit_tpc_in,
+				   nhit_tpc_mid,
+				   nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
+	  
+	  _ntp_clus_trk->Fill(clus_trk_data);
+	  
+	}
 
-	_ntp_clus_trk->Fill(clus_trk_data);
-      }
     }
   }
 
@@ -1467,6 +1576,9 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
                               pcax,
                               pcay,
                               pcaz,
+			      nhit_maps,
+			      nhit_intt,
+			      nhit_mms,
                               nhit_tpc_all,
                               nhit_tpc_in,
                               nhit_tpc_mid,
