@@ -4,6 +4,8 @@
 #define TPCPedestalCalibration_H
 
 #include <fun4all/SubsysReco.h>
+#include <cdbobjects/CDBTTree.h>
+#include <sphenixnpc/CDBUtils.h>
 
 #include <string>
 #include <vector>
@@ -25,7 +27,9 @@ class TPCPedestalCalibration : public SubsysReco
 
   int EndRun(const int runnumber) override;
 
-  int End(PHCompositeNode *topNode) override;
+  void CDBInsert();
+
+  int End(PHCompositeNode *topNode) override; 
 
   void AddPacket(int packet)
   {
@@ -36,6 +40,18 @@ class TPCPedestalCalibration : public SubsysReco
   {
     m_sector = sectorNum;
   }
+
+  void InsertCDBTTree(std::string username) // username for CDB record of who uploaded the file
+  {
+    m_writeToCDB = true;
+    m_username = username; 
+  }
+
+  void NewCDBGlobalTag(std::string username)
+  {
+    CDBUtils *uti = new CDBUtils();
+    uti->createGlobalTag(username); 
+  }
  
  protected:
   //! which packet to decode
@@ -43,9 +59,10 @@ class TPCPedestalCalibration : public SubsysReco
 
  private:
   std::string m_fname;
-  TFile * m_file = nullptr;
-  TTree * m_pedestalTree = nullptr;
+  bool m_writeToCDB;
+  CDBTTree * m_cdbttree = nullptr;
 
+  int m_BCO = 0;
   int m_packet = 0;
   int m_nWaveormInFrame = 0;
   int m_nSamples = 0;
@@ -58,6 +75,8 @@ class TPCPedestalCalibration : public SubsysReco
   float m_countsADCFeeChannel[26][256];
   int m_aliveArrayFeeChannel[26][256];
 
+  std::string m_username = "test";
+  bool m_firstBCO = true;
   int m_isAlive = 1;
   float m_pedMean = 0;
   float m_pedStd = 0;
@@ -67,7 +86,7 @@ class TPCPedestalCalibration : public SubsysReco
   int m_module = 9;
   int m_slot = 99;
  
-  int mod_arr[26]={2,2,1,1,1,3,3,3,3,3,3,2,2,1,2,2,1,1,2,2,3,3,3,3,3,3};
+  int mod_arr[26] = {2,2,1,1,1,3,3,3,3,3,3,2,2,1,2,2,1,1,2,2,3,3,3,3,3,3};
   int slot_arr[26] = {5,6,1,3,2,12,10,11,9,8,7,1,2,4,8,7,6,5,4,3,1,3,2,4,6,5};
 };
 

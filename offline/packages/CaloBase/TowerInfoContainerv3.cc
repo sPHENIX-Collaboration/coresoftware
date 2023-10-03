@@ -1,5 +1,5 @@
-#include "TowerInfoContainerv1.h"
-#include "TowerInfov1.h"
+#include "TowerInfoContainerv3.h"
+#include "TowerInfov3.h"
 #include "TowerInfoDefs.h"
 
 #include <phool/PHObject.h>
@@ -10,7 +10,7 @@
 #include <cassert>
 
 
-TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
+TowerInfoContainerv3::TowerInfoContainerv3(DETECTOR detec)
   : _detector(detec)
 {
   int nchannels = 744;
@@ -34,9 +34,9 @@ TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
   {
     nchannels = 16;
   }
-  _clones = new TClonesArray("TowerInfov1", nchannels);
+  _clones = new TClonesArray("TowerInfov3", nchannels);
   _clones->SetOwner();
-  _clones->SetName("TowerInfoContainerv1");
+  _clones->SetName("TowerInfoContainerv3");
   for (int i = 0; i < nchannels; ++i)
   {
     // as tower numbers are fixed per event
@@ -45,12 +45,12 @@ TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
   }
 }
 
-TowerInfoContainerv1::~TowerInfoContainerv1()
+TowerInfoContainerv3::~TowerInfoContainerv3()
 {
   delete _clones;
 }
 
-void TowerInfoContainerv1::Reset()
+void TowerInfoContainerv3::Reset()
 {
   // clear content of towers in the container for the next event
 
@@ -76,67 +76,67 @@ void TowerInfoContainerv1::Reset()
   }
 }
 
-TowerInfov1* TowerInfoContainerv1::get_tower_at_channel(int pos)
+TowerInfov3* TowerInfoContainerv3::get_tower_at_channel(int pos)
 {
-  return (TowerInfov1*) _clones->At(pos);
+  return (TowerInfov3*) _clones->At(pos);
 }
 
 
-TowerInfov1* TowerInfoContainerv1::get_tower_at_key(int pos)
+TowerInfov3* TowerInfoContainerv3::get_tower_at_key(int pos)
 {
   int index = decode_key(pos);
-  return (TowerInfov1*) _clones->At(index);
+  return (TowerInfov3*) _clones->At(index);
 }
 
-unsigned int TowerInfoContainerv1::encode_key(unsigned int towerIndex)
+unsigned int TowerInfoContainerv3::encode_key(unsigned int towerIndex)
 {
   int key = 0;
   if (_detector == DETECTOR::EMCAL)
     {
-      key = TowerInfoContainerv1::encode_emcal(towerIndex);
+      key = TowerInfoContainer::encode_emcal(towerIndex);
     }
   else if (_detector == DETECTOR::HCAL)
     {
-      key = TowerInfoContainerv1::encode_hcal(towerIndex);
+      key = TowerInfoContainer::encode_hcal(towerIndex);
     }
   else if (_detector == DETECTOR::SEPD)
     {
-    key = TowerInfoContainerv1::encode_epd(towerIndex);
+    key = TowerInfoContainer::encode_epd(towerIndex);
     }
   else if (_detector == DETECTOR::MBD)
     {
-    key = TowerInfoContainerv1::encode_mbd(towerIndex);
+    key = TowerInfoContainer::encode_mbd(towerIndex);
     }
   else if (_detector == DETECTOR::ZDC)
     {
-    key = TowerInfoContainerv1::encode_zdc(towerIndex);
+    key = TowerInfoContainer::encode_zdc(towerIndex);
     }
   return key;
 }
 
-unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
+unsigned int TowerInfoContainerv3::decode_key(unsigned int tower_key)
 {
   int index = 0;
 
   if (_detector == DETECTOR::EMCAL)
   {
-    index = TowerInfoContainerv1::decode_emcal(tower_key);
+    index = TowerInfoContainer::decode_emcal(tower_key);
   }
   else if (_detector == DETECTOR::HCAL)
   {
-    index = TowerInfoContainerv1::decode_hcal(tower_key);
+    index = TowerInfoContainer::decode_hcal(tower_key);
   }
   else if (_detector == DETECTOR::SEPD)
   {
-    index = TowerInfoContainerv1::decode_epd(tower_key);
+    index = TowerInfoContainer::decode_epd(tower_key);
   }
   else if (_detector == DETECTOR::MBD)
   {
-    index = TowerInfoContainerv1::decode_mbd(tower_key);
+    index = TowerInfoContainer::decode_mbd(tower_key);
   }
   else if (_detector == DETECTOR::ZDC)
   {
-    index = TowerInfoContainerv1::decode_zdc(tower_key);
+    index = TowerInfoContainer::decode_zdc(tower_key);
   }
   return index;
 }
