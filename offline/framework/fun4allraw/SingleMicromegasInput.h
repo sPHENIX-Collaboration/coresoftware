@@ -32,13 +32,32 @@ class SingleMicromegasInput : public SingleStreamingInput
   Packet **plist = nullptr;
   unsigned int m_NumSpecialEvents = 0;
 
-  //! map bco to packet
-  std::map<unsigned int, uint64_t> m_packet_bco;
-  
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<uint64_t, std::vector<MicromegasRawHit *>> m_MicromegasRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
+  
+  //! keep track of matching between fee and gtm_bco 
+  class bco_alignment_t
+  {
+    public:
+    
+    //! available gtm bcos
+    std::list<uint64_t> gtm_bco_list;
+
+    //! current fee bco
+    unsigned int fee_bco = 0;
+    
+    //! current gtm bco
+    uint64_t gtm_bco = 0;      
+  };
+
+  //! max number of fees per single micromegas input
+  static constexpr unsigned short m_max_fee = 24;
+
+  //! keep one bco alignment object per fee
+  std::array<bco_alignment_t, m_max_fee> m_bco_alignment_list;
+  
 };
 
 #endif

@@ -86,12 +86,6 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         
       if (Verbosity() > 1)
       { packet->identify(); }
-      
-      int m_nWaveormInFrame = packet->iValue(0, "NR_WF");
-
-      // by default use previous bco clock for gtm bco
-      auto& previous_bco = m_packet_bco[packet_id];
-      uint64_t gtm_bco = previous_bco;
 
       // loop over taggers
       const int ntagger = packet->lValue(0, "N_TAGGER");
@@ -102,30 +96,79 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
         if( is_lvl1 )
         {
-          
-          gtm_bco = packet->lValue(t, "BCO");
-          // std::cout << "SingleMicromegasInput::FillPool - bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
-          std::cout << "SingleMicromegasInput::FillPool - bco: " << gtm_bco << std::endl;
-          
-          // store
-          previous_bco = gtm_bco;
-          
+          // get gtm_bco
+          const auto gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+
+          // store as available bco for all FEE's bco alignment objects
+          for( auto&& bco_alignment:m_bco_alignment_list )
+          { bco_alignment.gtm_bco_list.push_back(gtm_bco); }
         }
       }
       
-      for (int wf = 0; wf < m_nWaveormInFrame; wf++)
+      // loop over waveforms
+      const int nwf = packet->iValue(0, "NR_WF");
+      for (int wf = 0; wf < nwf; wf++)
       {
         
-        auto newhit = new MicromegasRawHitv1();
-        int FEE = packet->iValue(wf, "FEE");
-        newhit->set_bco(packet->iValue(wf, "BCO"));
+        const int fee_id = packet->iValue(wf, "FEE");
+
+        // get fee bco
+        const unsigned int fee_bco = packet->iValue(wf, "BCO");
+
+        // get matching gtm bco, from bco alignment object
+        uint64_t gtm_bco = 0;
+        auto&& bco_alignment = m_bco_alignment_list.at(fee_id);
+        if( bco_alignment.fee_bco == fee_bco ) 
+        {
+          // assign gtm bco
+          gtm_bco = bco_alignment.gtm_bco;
+          
+        } else if( !bco_alignment.gtm_bco_list.empty() ) {
+            
+          // get first available gtm_bco from list
+          gtm_bco = bco_alignment.gtm_bco_list.front();
+
+          if( Verbosity() )
+          {
+            std::cout << "SingleMicromegasInput::FillPool -"
+              << " fee_id: " << fee_id
+              << " fee_bco: 0x" << std::hex << fee_bco
+              << " gtm_bco: 0x" << gtm_bco
+              << std::dec
+              << std::endl;
+          }
+
+          // store as current gtm/fee bco
+          bco_alignment.fee_bco = fee_bco;
+          bco_alignment.gtm_bco = gtm_bco;
+
+          // remove from list of availables gtm_bco
+          bco_alignment.gtm_bco_list.pop_front();
+            
+        } else {
+
+          if( Verbosity() )
+          {
+            std::cout << "SingleMicromegasInput::FillPool -"
+              << " fee_id: " << fee_id
+              << " fee_bco: 0x" << std::hex << fee_bco << std::dec
+              << " gtm_bco: none"
+              << std::endl;
+          }
+          
+          // skip the waverform
+          continue;
+          
+        }
         
-        // store gtm bco in hit
+        // create new hit
+        auto newhit = new MicromegasRawHitv1();
+        newhit->set_bco(fee_bco);
         newhit->set_gtm_bco(gtm_bco);
 
         // packet id, fee id, channel, etc.
         newhit->set_packetid(packet_id);
-        newhit->set_fee(FEE);
+        newhit->set_fee(fee_id);
         newhit->set_channel(packet->iValue(wf, "CHANNEL"));
         newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
         newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
@@ -142,15 +185,15 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         for( uint16_t is =0; is < samples; ++is )
         { newhit->set_adc( is, packet->iValue( wf, is ) ); }
         
-        m_BeamClockFEE[gtm_bco].insert(FEE);
-        m_FEEBclkMap[FEE] = gtm_bco;
+        m_BeamClockFEE[gtm_bco].insert(fee_id);
+        m_FEEBclkMap[fee_id] = gtm_bco;
         if (Verbosity() > 2)
         {
           std::cout << "evtno: " << EventSequence
             << ", hits: " << wf
-            << ", num waveforms: " << m_nWaveormInFrame
+            << ", num waveforms: " << nwf
             << ", bco: 0x" << std::hex << gtm_bco << std::dec
-            << ", FEE: " << FEE << std::endl;
+            << ", FEE: " << fee_id << std::endl;
         }
           
         if (InputManager())
@@ -250,22 +293,24 @@ bool SingleMicromegasInput::CheckPoolDepth(const uint64_t bclk)
   //   std::cout << "not all FEEs in map: " << m_FEEBclkMap.size() << std::endl;
   //   return true;
   // }
-  for (auto iter : m_FEEBclkMap)
+  for (const auto& [fee,bco] : m_FEEBclkMap)
   {
     if (Verbosity() > 2)
     {
       std::cout 
-        << "my bclk 0x" << std::hex << iter.second
+        << "SingleMicromegasInput::CheckPoolDepth -"
+        << " my bclk 0x" << std::hex << bco
         << " req: 0x" << bclk << std::dec << std::endl;
     }
     
-    if (iter.second < bclk)
+    if (bco < bclk)
     {
       if (Verbosity() > 1)
       {
-        std::cout << "FEE " << iter.first << " beamclock 0x" << std::hex << iter.second
+        std::cout << "SingleMicromegasInput::CheckPoolDepth -"
+          << " FEE " << fee << " beamclock 0x" << std::hex << bco
           << " smaller than req bclk: 0x" << bclk << std::dec << std::endl;
-      }
+      }     
       return false;
     }
   }
@@ -275,29 +320,19 @@ bool SingleMicromegasInput::CheckPoolDepth(const uint64_t bclk)
 //_______________________________________________________
 void SingleMicromegasInput::ClearCurrentEvent()
 {
-  // called interactively, to get rid of the current event
   uint64_t currentbclk = *m_BclkStack.begin();
-  //  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
   CleanupUsedPackets(currentbclk);
-  // m_BclkStack.erase(currentbclk);
-  // m_BeamClockFEE.erase(currentbclk);
   return;
 }
 
 //_______________________________________________________
 bool SingleMicromegasInput::GetSomeMoreEvents()
 {
-  if (AllDone())
-  {
-    return false;
-  }
+  if (AllDone()) return false; 
+  
   if (CheckPoolDepth(m_MicromegasRawHitMap.begin()->first))
-  {
-    if (m_MicromegasRawHitMap.size() >= 10)
-    {
-      return false;
-    }
-  }
+  { if (m_MicromegasRawHitMap.size() >= 10) return false; }
+  
   return true;
 }
 
