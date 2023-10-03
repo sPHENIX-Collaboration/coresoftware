@@ -278,7 +278,8 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       int n_samples = waveforms.at(i).size();
       for (int j = 0; j < n_samples; j++)
       {
-        m_CaloWaveformContainer->get_tower_at_channel(i)->set_waveform_value(j, waveforms.at(i).at(j));
+        TowerInfov3 *raw_tower_v3 = dynamic_cast<TowerInfov3 *> (m_CaloInfoContainer->get_tower_at_channel(i));
+        raw_tower_v3->set_waveform_value(j, waveforms.at(i).at(j));
       }
     }
   }
