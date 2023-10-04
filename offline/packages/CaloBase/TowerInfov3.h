@@ -24,6 +24,7 @@ private:
     static const int nsample = 31;
     int16_t _waveform[nsample] = {0}; // Initializes the entire array to zero
 
+    ClassDefOverride(TowerInfov3, 1);
     // Inherit other methods and properties from TowerInfov2
 };
 
