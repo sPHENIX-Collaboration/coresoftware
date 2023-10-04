@@ -1,8 +1,8 @@
-#ifndef MVTX_MVTXRAWDATADECODER_H
-#define MVTX_MVTXRAWDATADECODER_H
+#ifndef MVTX_MVTXCOMBINEDRAWDATADECODER_H
+#define MVTX_MVTXCOMBINEDRAWDATADECODER_H
 
 /*!
- * \file MvtxRawDataDecoder.h
+ * \file MvtxCombinedRawDataDecoder.h
  * \author Jakub Kvapil <jakub.kvapil@cern.ch>
  */
 
@@ -16,12 +16,12 @@
 class PHCompositeNode;
 
 /// mvtx raw data decoder
-class MvtxRawDataDecoder : public SubsysReco
+class MvtxCombinedRawDataDecoder : public SubsysReco
 {
   public:
 
   /// constructor
-  MvtxRawDataDecoder( const std::string &name = "MvtxRawDataDecoder" );
+  MvtxCombinedRawDataDecoder( const std::string &name = "MvtxCombinedRawDataDecoder" );
 
   /// global initialization
   int Init(PHCompositeNode*) override;
@@ -35,10 +35,14 @@ class MvtxRawDataDecoder : public SubsysReco
   /// end of processing
   int End(PHCompositeNode*) override;
 
+  void useRawHitNodeName(const std::string &name){ m_MvtxRawNodeName = name; }
+
   private:
   /// keep track of number of hits per hitsetid
   using hitcountmap_t = std::map<TrkrDefs::hitsetkey,int>;
   hitcountmap_t m_hitcounts;
+
+  std::string m_MvtxRawNodeName = "MVTXRAWHIT";
   
 };
 

@@ -1,9 +1,9 @@
 /*!
- * \file MvtxRawDataDecoder.cc
+ * \file MvtxCombinedRawDataDecoder.cc
  * \author Jakub Kvapil <jakub.kvapil@cern.ch>
  */
 
-#include "MvtxRawDataDecoder.h"
+#include "MvtxCombinedRawDataDecoder.h"
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -20,22 +20,25 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 
+#include <ffarawobjects/MvtxRawHit.h>
+#include <ffarawobjects/MvtxRawHitContainer.h>
+
 #include <algorithm>
 #include <cassert>
 
 //_________________________________________________________
-MvtxRawDataDecoder::MvtxRawDataDecoder( const std::string& name ):
+MvtxCombinedRawDataDecoder::MvtxCombinedRawDataDecoder( const std::string& name ):
   SubsysReco( name )
 {}
 
 //_____________________________________________________________________
-int MvtxRawDataDecoder::Init(PHCompositeNode* /*topNode*/ )
+int MvtxCombinedRawDataDecoder::Init(PHCompositeNode* /*topNode*/ )
 { 
   return Fun4AllReturnCodes::EVENT_OK; 
 }
 
 //____________________________________________________________________________..
-int MvtxRawDataDecoder::InitRun(PHCompositeNode *topNode)
+int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
 {
 
   // get dst node
@@ -43,7 +46,7 @@ int MvtxRawDataDecoder::InitRun(PHCompositeNode *topNode)
   auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    std::cout << "MvtxRawDataDecoder::InitRun - DST Node missing, doing nothing." << std::endl;
+    std::cout << "MvtxCombinedRawDataDecoder::InitRun - DST Node missing, doing nothing." << std::endl;
     exit(1);
   }
 
@@ -71,84 +74,76 @@ int MvtxRawDataDecoder::InitRun(PHCompositeNode *topNode)
 }
 
 //___________________________________________________________________________
-int MvtxRawDataDecoder::process_event(PHCompositeNode *topNode)
+int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 {
-
   // load relevant nodes
   // Get the TrkrHitSetContainer node
   auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   assert(trkrhitsetcontainer);
 
-  // PRDF node
-  auto event = findNode::getClass<Event>(topNode, "PRDF");
-  assert(event);
-  // check event type
-
-
-//UNCOMMENT THIS ONCE HAVING DECODER!!!!
-/*  if(event->getEvtType() >= 8)
-  { return Fun4AllReturnCodes::DISCARDEVENT; }
-
-  // get MVTX packet number
-  auto packet = event->getPacket(2001);
-  if( !packet )
+  MvtxRawHitContainer* mvtx_hit_container = findNode::getClass<MvtxRawHitContainer>(topNode, m_MvtxRawNodeName);
+  if (!mvtx_hit_container)
   {
-    // no data
-    std::cout << "MvtxRawDataDecoder::process_event - event contains no MVTX data" << std::endl;
-   // return Fun4AllReturnCodes::EVENT_OK;
+    std::cout << PHWHERE << "::" << __func__ <<  ": Could not get \"" << m_MvtxRawNodeName << "\" from Node Tree" << std::endl;
+    std::cout << "Have you built this yet?" << std::endl;
+    exit(1);
   }
+  
+  if (Verbosity() >= VERBOSITY_MORE) mvtx_hit_container->identify();
 
-*/
+  int strobe = -1; //Initialise to -1 for debugging
+  uint8_t layer = 0; 
+  uint8_t stave = 0;
+  uint8_t chip = 0;
+  uint16_t row = 0;
+  uint16_t col = 0;
 
-  //loop over triggers ADD
-  //loop over chips 
-  for( int i=0; i<1; i++ )
-  {  
-    int strobe = 11+i; //get from decoder;
-    int layer = 0;//get from decoder;
-    int stave = 1;//get from decoder;
-    int chip = 2;//get from decoder;
+  for (unsigned int i = 0; i < mvtx_hit_container->get_nhits(); i++)
+  {
+    MvtxRawHit* mvtx_hit = mvtx_hit_container->get_hit(i);
 
-    if( Verbosity() ){
+    strobe = mvtx_hit->get_bco();
+    layer = mvtx_hit->get_layer_id();
+    stave = mvtx_hit->get_stave_id();
+    chip = mvtx_hit->get_chip_id();
+    row = mvtx_hit->get_chip_id();
+    col = mvtx_hit->get_col();
+
+    if( Verbosity() >= VERBOSITY_A_LOT ){
       std::cout
-        << "MvtxRawDataDecoder::process_event -"
+        << "MVTX raw hit:"
         << " strobe: " << strobe
         << " layer: " << layer
         << " stave: " << stave
         << " chip: " << chip
+        << " row: " << row
+        << " col: " << col
         << std::endl;
     }
         
-    // map fee and channel to physical hitsetid and physical strip
-    // get hitset key matching this fee
     const TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, strobe);     
     if( !hitsetkey ) continue;
 
     // get matching hitset
     const auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
 
-    for( int ihit=0; ihit<10/*nhit in chip from decoder*/; ++ihit ){
-      uint16_t col = 150;//get from decoder;
-      uint16_t row = ihit*10;//get from decoder;
-
-      // generate hit key
-      const TrkrDefs::hitkey hitkey = MvtxDefs::genHitKey(col,row);
+    // generate hit key
+    const TrkrDefs::hitkey hitkey = MvtxDefs::genHitKey(col,row);
     
-      // find existing hit, or create
-      auto hit = hitset_it->second->getHit(hitkey);
-      if( hit ){
-        std::cout << "MvtxRawDataDecoder::process_event - duplicated hit, hitsetkey: " << hitsetkey << " hitkey: " << hitkey << std::endl;
-        continue;
-      }
-
-      // create hit and insert in hitset
-      hit = new TrkrHitv2;
-      hitset_it->second->addHitSpecificKey(hitkey, hit);
-      
-      // increment counter
-      ++m_hitcounts[hitsetkey];
-             
+    // find existing hit, or create
+    auto hit = hitset_it->second->getHit(hitkey);
+    if( hit ){
+      std::cout << PHWHERE << "::" << __func__ << " - duplicated hit, hitsetkey: " << hitsetkey << " hitkey: " << hitkey << std::endl;
+      continue;
     }
+
+    // create hit and insert in hitset
+    hit = new TrkrHitv2;
+    hitset_it->second->addHitSpecificKey(hitkey, hit);
+    
+    // increment counter
+    ++m_hitcounts[hitsetkey];
+             
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -156,12 +151,12 @@ int MvtxRawDataDecoder::process_event(PHCompositeNode *topNode)
 }
 
 //_____________________________________________________________________
-int MvtxRawDataDecoder::End(PHCompositeNode* /*topNode*/ )
+int MvtxCombinedRawDataDecoder::End(PHCompositeNode* /*topNode*/ )
 {
   if( Verbosity() )
   {
     for( const auto& [hitsetkey, count]:m_hitcounts )
-    { std::cout << "MvtxRawDataDecoder - hitsetkey: " << hitsetkey << ", count: " << count << std::endl; }
+    { std::cout << "MvtxCombinedRawDataDecoder - hitsetkey: " << hitsetkey << ", count: " << count << std::endl; }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
