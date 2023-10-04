@@ -20,6 +20,29 @@
 #include <memory>
 #include <set>
 
+namespace
+{
+  // streamer for lists
+  template< class T >
+    std::ostream& operator << ( std::ostream& out, const std::list<T>& list )
+  {
+    if( list.empty() ) out << "{}";
+    else
+    {
+      out << "{ ";
+      bool first = true;
+      for( const auto& value:list )
+      {
+        if( !first ) out << ", ";
+        out << value;
+        first = false;
+      }
+      out << " }";
+    }
+    return out;
+  }
+}
+
 //______________________________________________________________
 SingleMicromegasInput::SingleMicromegasInput(const std::string &name)
 : SingleStreamingInput(name)
@@ -34,15 +57,15 @@ SingleMicromegasInput::~SingleMicromegasInput()
 //______________________________________________________________
 void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
 {
-  
+
   std::cout << "SingleMicromegasInput::FillPool" << std::endl;
-  
+
   if (AllDone())  // no more files and all events read
   { return; }
-  
+
   while( !GetEventiterator() )  // at startup this is a null pointer
   { OpenNextFile(); }
-  
+
   while (GetSomeMoreEvents())
   {
     std::unique_ptr<Event> evt( GetEventiterator()->getNextEvent() );
@@ -54,36 +77,36 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         AllDone(1);
         return;
       }
-      
+
       // get next event
       evt.reset( GetEventiterator()->getNextEvent() );
     }
-    
+
     if (Verbosity() > 2)
     { std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl; }
-    
+
     RunNumber(evt->getRunNumber());
     if (GetVerbosity() > 1)
     { evt->identify(); }
-    
+
     if (evt->getEvtType() != DATAEVENT)
     { m_NumSpecialEvents++; }
-    
+
     int EventSequence = evt->getEvtSequence();
     int npackets = evt->getPacketList(plist, 10);
-    
+
     if (npackets == 10)
     { exit(1); }
-    
+
     for (int i = 0; i < npackets; i++)
     {
-      
+
       // keep pointer to local packet
       auto& packet = plist[i];
-      
+
       // get packet id
       const auto packet_id = packet->getIdentifier();
-        
+
       if (Verbosity() > 1)
       { packet->identify(); }
 
@@ -91,7 +114,7 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
       const int ntagger = packet->lValue(0, "N_TAGGER");
       for (int t = 0; t < ntagger; t++)
       {
-        
+
         // only store gtm_bco for level1 type of taggers (not ENDDAT)
         const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
         if( is_lvl1 )
@@ -104,12 +127,31 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
           { bco_alignment.gtm_bco_list.push_back(gtm_bco); }
         }
       }
-      
+
       // loop over waveforms
       const int nwf = packet->iValue(0, "NR_WF");
+
+      if( Verbosity() )
+      {
+        std::cout << "SingleMicromegasInput::FillPool -"
+          << " packet: " << packet_id
+          << " n_lvl1_bco: " << m_bco_alignment_list[0].gtm_bco_list.size()
+          << " n_waveform: " << nwf
+          << std::endl;
+
+        std::cout << "SingleMicromegasInput::FillPool -"
+          << " packet: " << packet_id
+          << " bco: " << std::hex << m_bco_alignment_list[0].gtm_bco_list << std::dec
+          << std::endl;
+      }
+
+      // keep track of orphans
+      using fee_pair_t = std::pair< unsigned int, unsigned int>;
+      std::set<fee_pair_t> orphans;
+
       for (int wf = 0; wf < nwf; wf++)
       {
-        
+
         const int fee_id = packet->iValue(wf, "FEE");
 
         // get fee bco
@@ -118,13 +160,13 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         // get matching gtm bco, from bco alignment object
         uint64_t gtm_bco = 0;
         auto&& bco_alignment = m_bco_alignment_list.at(fee_id);
-        if( bco_alignment.fee_bco == fee_bco ) 
+        if( bco_alignment.fee_bco == fee_bco )
         {
           // assign gtm bco
           gtm_bco = bco_alignment.gtm_bco;
-          
+
         } else if( !bco_alignment.gtm_bco_list.empty() ) {
-            
+
           // get first available gtm_bco from list
           gtm_bco = bco_alignment.gtm_bco_list.front();
 
@@ -144,10 +186,10 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
 
           // remove from list of availables gtm_bco
           bco_alignment.gtm_bco_list.pop_front();
-            
+
         } else {
 
-          if( Verbosity() )
+          if( Verbosity() && orphans.insert( std::make_pair( fee_id, fee_bco ) ).second )
           {
             std::cout << "SingleMicromegasInput::FillPool -"
               << " fee_id: " << fee_id
@@ -155,12 +197,12 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
               << " gtm_bco: none"
               << std::endl;
           }
-          
+
           // skip the waverform
           continue;
-          
+
         }
-        
+
         // create new hit
         auto newhit = new MicromegasRawHitv1();
         newhit->set_bco(fee_bco);
@@ -184,7 +226,7 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         // adc values
         for( uint16_t is =0; is < samples; ++is )
         { newhit->set_adc( is, packet->iValue( wf, is ) ); }
-        
+
         m_BeamClockFEE[gtm_bco].insert(fee_id);
         m_FEEBclkMap[fee_id] = gtm_bco;
         if (Verbosity() > 2)
@@ -195,22 +237,22 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
             << ", bco: 0x" << std::hex << gtm_bco << std::dec
             << ", FEE: " << fee_id << std::endl;
         }
-          
+
         if (InputManager())
         { InputManager()->AddMicromegasRawHit(gtm_bco, newhit); }
-        
+
         m_MicromegasRawHitMap[gtm_bco].push_back(newhit);
         m_BclkStack.insert(gtm_bco);
       }
-      
+
       // clear all stored bco list
       for( auto&& bco_alignment:m_bco_alignment_list )
       { bco_alignment.gtm_bco_list.clear(); }
-      
+
       delete packet;
     }
   }
-  
+
   std::cout << "SingleMicromegasInput::FillPool - done." << std::endl;
 
 }
@@ -229,7 +271,7 @@ void SingleMicromegasInput::Print(const std::string &what) const
       }
     }
   }
-  
+
   if (what == "ALL" || what == "FEEBCLK")
   {
     for (auto bcliter : m_FEEBclkMap)
@@ -238,7 +280,7 @@ void SingleMicromegasInput::Print(const std::string &what) const
         << std::hex << bcliter.second << std::dec << std::endl;
     }
   }
-  
+
   if (what == "ALL" || what == "STORAGE")
   {
     for (const auto &bcliter : m_MicromegasRawHitMap)
@@ -247,13 +289,13 @@ void SingleMicromegasInput::Print(const std::string &what) const
       for (auto feeiter : bcliter.second)
       {
         std::cout
-          << "fee: " << feeiter->get_fee() 
+          << "fee: " << feeiter->get_fee()
           << " at " << std::hex << feeiter << std::dec
           << std::endl;
       }
     }
   }
-  
+
   if (what == "ALL" || what == "STACK")
   {
     for( const auto& iter : m_BclkStack)
@@ -262,7 +304,7 @@ void SingleMicromegasInput::Print(const std::string &what) const
     }
   }
 }
-    
+
 //____________________________________________________________________________
 void SingleMicromegasInput::CleanupUsedPackets(const uint64_t bclk)
 {
@@ -273,14 +315,14 @@ void SingleMicromegasInput::CleanupUsedPackets(const uint64_t bclk)
     {
       for (auto pktiter : iter.second)
       { delete pktiter; }
-      
+
       toclearbclk.push_back(iter.first);
     } else {
       break;
     }
-    
+
   }
-  
+
   for (auto iter : toclearbclk)
   {
     m_BclkStack.erase(iter);
@@ -301,12 +343,12 @@ bool SingleMicromegasInput::CheckPoolDepth(const uint64_t bclk)
   {
     if (Verbosity() > 2)
     {
-      std::cout 
+      std::cout
         << "SingleMicromegasInput::CheckPoolDepth -"
         << " my bclk 0x" << std::hex << bco
         << " req: 0x" << bclk << std::dec << std::endl;
     }
-    
+
     if (bco < bclk)
     {
       if (Verbosity() > 1)
@@ -314,7 +356,7 @@ bool SingleMicromegasInput::CheckPoolDepth(const uint64_t bclk)
         std::cout << "SingleMicromegasInput::CheckPoolDepth -"
           << " FEE " << fee << " beamclock 0x" << std::hex << bco
           << " smaller than req bclk: 0x" << bclk << std::dec << std::endl;
-      }     
+      }
       return false;
     }
   }
@@ -332,11 +374,11 @@ void SingleMicromegasInput::ClearCurrentEvent()
 //_______________________________________________________
 bool SingleMicromegasInput::GetSomeMoreEvents()
 {
-  if (AllDone()) return false; 
-  
+  if (AllDone()) return false;
+
   if (CheckPoolDepth(m_MicromegasRawHitMap.begin()->first))
   { if (m_MicromegasRawHitMap.size() >= 10) return false; }
-  
+
   return true;
 }
 
@@ -350,7 +392,7 @@ void SingleMicromegasInput::CreateDSTNode(PHCompositeNode *topNode)
     dstNode = new PHCompositeNode("DST");
     topNode->addNode(dstNode);
   }
-  
+
   PHNodeIterator iterDst(dstNode);
   auto detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "MICROMEGAS"));
   if (!detNode)
@@ -358,7 +400,7 @@ void SingleMicromegasInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode = new PHCompositeNode("MICROMEGAS");
     dstNode->addNode(detNode);
   }
-  
+
   auto container = findNode::getClass<MicromegasRawHitContainer>(detNode,"MICROMEGASRAWHIT");
   if (!container)
   {
@@ -366,5 +408,5 @@ void SingleMicromegasInput::CreateDSTNode(PHCompositeNode *topNode)
     auto newNode = new PHIODataNode<PHObject>(container, "MICROMEGASRAWHIT", "PHObject");
     detNode->addNode(newNode);
   }
-  
+
 }
