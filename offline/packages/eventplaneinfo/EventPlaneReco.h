@@ -22,7 +22,7 @@ class EventPlaneReco : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  void Reset();
+  void ResetMe();
 
 
  private:

@@ -34,9 +34,7 @@
 #include <set>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
 
-using namespace std;
-
-EventPlaneReco::EventPlaneReco(const string &name)
+EventPlaneReco::EventPlaneReco(const std::string &name)
   : SubsysReco(name)
 , m_MaxOrder(3)
 {
@@ -60,8 +58,8 @@ int EventPlaneReco::InitRun(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-    cout << "======================= EventPlaneReco::InitRun() =======================" << endl;
-    cout << "===========================================================================" << endl;
+    std::cout << "======================= EventPlaneReco::InitRun() =======================" << std::endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   return CreateNodes(topNode);
@@ -71,7 +69,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 1)
   {
-    cout << "EventPlaneReco::process_event -- entered" << endl;
+    std::cout << "EventPlaneReco::process_event -- entered" << std::endl;
   }
 
   //---------------------------------
@@ -80,21 +78,21 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
   EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
   if (!epmap)
   {
-    cout << PHWHERE << "::ERROR - cannot find EventplaneinfoMap" << endl;
+    std::cout << PHWHERE << "::ERROR - cannot find EventplaneinfoMap" << std::endl;
     exit(-1);
   }
 
   TowerInfoContainer *epd_towerinfo = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_EPD");
   if (!epd_towerinfo)
   {
-    cout << PHWHERE << "::ERROR - cannot find TOWERINFO_CALIB_EPD" << endl;
+    std::cout << PHWHERE << "::ERROR - cannot find TOWERINFO_CALIB_EPD" << std::endl;
     exit(-1);
   }
 
   EpdGeom *_epdgeom = findNode::getClass<EpdGeom>(topNode,"TOWERGEOM_EPD");
   if (!_epdgeom)
   {
-    cout << PHWHERE << "::ERROR - cannot find TOWERGEOM_EPD" << endl;
+    std::cout << PHWHERE << "::ERROR - cannot find TOWERGEOM_EPD" << std::endl;
     exit(-1);
   }
     
@@ -103,7 +101,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
   BbcPmtInfoContainerV1 *m_bbcpmts = findNode::getClass<BbcPmtInfoContainerV1>(topNode, "BbcPmtInfoContainerV1");
   if (!m_bbcpmts)
   {
-    std::cout << PHWHERE << ":: No BbcPmtInfoContainerV1!" << std::endl; exit(1);
+    std::std::cout << PHWHERE << ":: No BbcPmtInfoContainerV1!" << std::std::endl; exit(1);
   }
     
   if (m_bbcpmts)
@@ -115,11 +113,11 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
       float mbd_e = bbcpmt->get_q();
       if(arm == 0)
       {
-        std::cout<<"this is mbd south \t"<<mbd_e<<std::endl;
+        std::std::cout<<"this is mbd south \t"<<mbd_e<<std::std::endl;
       }
       else if(arm == 1)
       {
-        std::cout<<"this is mbd north \t"<<mbd_e<<std::endl;
+        std::std::cout<<"this is mbd north \t"<<mbd_e<<std::std::endl;
       }
             
     }
@@ -130,7 +128,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
      {
          if (Verbosity())
          {
-             cout << "EventPlaneReco::process_event -  epd_towerinfo" << endl;
+             std::cout << "EventPlaneReco::process_event -  epd_towerinfo" << std::endl;
          }
          
          unsigned int ntowers = epd_towerinfo->size();
@@ -179,7 +177,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
     }
         
     
-    Reset();
+    ResetMe();
 
    if (epd_towerinfo)
    {
@@ -237,7 +235,7 @@ int EventPlaneReco::CreateNodes(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -280,7 +278,7 @@ double EventPlaneReco::GetPsiInRange(double Qx, double Qy, unsigned int order) c
 }
 
 
-void EventPlaneReco::Reset()
+void EventPlaneReco::ResetMe()
 {
   for (auto &vec : south_qraw)
   {
@@ -291,5 +289,4 @@ void EventPlaneReco::Reset()
   {
     std::fill(vec.begin(), vec.end(), 0.);
   }
-
 }

@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I`root-config --incdir`
+  -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
    libeventplaneinfo_io.la \
@@ -14,14 +14,12 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libeventplaneinfo_io_la_LIBADD = \
-  -lphool \
-  -ltrackbase_historic_io
+  -lphool
 
 libeventplaneinfo_la_LIBADD = \
   libeventplaneinfo_io.la \
-  -lepd_io \ 
+  -lepd_io \
   -lbbc_io \
-  -lg4detectors \
   -lfun4all \
   -lg4bbc_io \
   -ltrackbase_historic_io
