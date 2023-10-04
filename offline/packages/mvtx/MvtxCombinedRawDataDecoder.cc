@@ -69,6 +69,18 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
     trkrnode->addNode(newNode);
   }
 
+  //Check if MVTX event header already exists
+  if (m_writeMvtxEventHeader)
+  {
+    mvtx_event_info = findNode::getClass<MvtxEventInfov1>(topNode, "MVTX_EVENTHEADER");
+    if (!mvtx_event_info)
+    {
+      mvtx_event_info = new MvtxEventInfov1();
+      auto newHeader = new PHIODataNode<PHObject>(mvtx_event_info, "MVTX_EVENTHEADER", "PHObject");
+      topNode->addNode(newHeader);
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 
 }
@@ -91,23 +103,38 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   
   if (Verbosity() >= VERBOSITY_MORE) mvtx_hit_container->identify();
 
-  int strobe = -1; //Initialise to -1 for debugging
+  uint64_t strobe = -1; //Initialise to -1 for debugging
+  uint32_t strobe_bc = -1;
   uint8_t layer = 0; 
   uint8_t stave = 0;
   uint8_t chip = 0;
   uint16_t row = 0;
   uint16_t col = 0;
+  std::vector<std::pair<uint64_t, uint32_t>> strobe_bc_pairs;
+
+  if (m_writeMvtxEventHeader)
+  {
+    mvtx_event_info = findNode::getClass<MvtxEventInfov1>(topNode, "MVTX_EVENTHEADER");
+    assert(mvtx_event_info);
+  }
 
   for (unsigned int i = 0; i < mvtx_hit_container->get_nhits(); i++)
   {
     MvtxRawHit* mvtx_hit = mvtx_hit_container->get_hit(i);
 
     strobe = mvtx_hit->get_bco();
+    strobe_bc = mvtx_hit->get_strobe_bc();
     layer = mvtx_hit->get_layer_id();
     stave = mvtx_hit->get_stave_id();
     chip = mvtx_hit->get_chip_id();
     row = mvtx_hit->get_row();
     col = mvtx_hit->get_col();
+
+    if (m_writeMvtxEventHeader)
+    {
+      std::pair<uint64_t, uint32_t> this_pair(strobe, strobe_bc);
+      strobe_bc_pairs.push_back(this_pair);
+    } 
 
     if( Verbosity() >= VERBOSITY_A_LOT ){
       std::cout
@@ -146,6 +173,15 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
              
   }
 
+  if (m_writeMvtxEventHeader)
+  {
+    removeDuplicates(strobe_bc_pairs);
+    for (unsigned int i = 0; i < strobe_bc_pairs.size(); ++i)
+    {
+      mvtx_event_info->set_L1_BCO_BC(i, strobe_bc_pairs[i].first, strobe_bc_pairs[i].second);
+    }
+  } 
+  
   return Fun4AllReturnCodes::EVENT_OK;
 
 }
@@ -160,4 +196,14 @@ int MvtxCombinedRawDataDecoder::End(PHCompositeNode* /*topNode*/ )
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void MvtxCombinedRawDataDecoder::removeDuplicates(std::vector<std::pair<uint64_t, uint32_t>> &v)
+{
+  auto end = v.end();
+  for (auto it = v.begin(); it != end; ++it)
+  {
+    end = remove(it + 1, end, *it);
+  }
+  v.erase(end, v.end());
 }
