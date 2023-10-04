@@ -106,7 +106,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     layer = mvtx_hit->get_layer_id();
     stave = mvtx_hit->get_stave_id();
     chip = mvtx_hit->get_chip_id();
-    row = mvtx_hit->get_chip_id();
+    row = mvtx_hit->get_row();
     col = mvtx_hit->get_col();
 
     if( Verbosity() >= VERBOSITY_A_LOT ){
