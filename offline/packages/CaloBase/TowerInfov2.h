@@ -7,17 +7,16 @@ class TowerInfov2 : public TowerInfov1
 {
  public:
   TowerInfov2() {}
- 
+
   ~TowerInfov2() override {}
 
   void Reset() override;
   void Clear(Option_t* = "") override;
+  void set_time(short t) override { set_time(t * 1000); }
+  short get_time() override { return get_time() / 1000; }
 
-  void set_time(short t) override { _time = t * 1000; }
-  short get_time() override { return _time / 1000; }
-
-  void set_time_float(float t) { _time = t * 1000; }
-  float get_time_float() { return _time / 1000.; }
+  void set_time_float(float t) { set_time(t * 1000); }
+  float get_time_float() { return get_time() / 1000.; }
 
   void set_chi2(float chi2) { _chi2 = chi2; }
   float get_chi2() { return _chi2; }
@@ -41,7 +40,6 @@ class TowerInfov2 : public TowerInfov1
   uint8_t get_status() const { return _status; }
 
   void set_status(uint8_t status) { _status = status; }
-
 
   void copy_tower(TowerInfov2* tower);
 
