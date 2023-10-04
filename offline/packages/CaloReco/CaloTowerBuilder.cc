@@ -276,9 +276,12 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     for (int i = 0; i < n_channels; i++)
     {
       int n_samples = waveforms.at(i).size();
+      TowerInfov3 *raw_tower_v3 = dynamic_cast<TowerInfov3 *>(m_CaloInfoContainer->get_tower_at_channel(i));
+      //right not the missing packets are treated as zero suppressed, we need to change the behavior of empty packets in the future
+      if (n_samples == m_nzerosuppsamples) raw_tower_v3->set_isNotInstr(true);
       for (int j = 0; j < n_samples; j++)
       {
-        m_CaloWaveformContainer->get_tower_at_channel(i)->set_waveform_value(j, waveforms.at(i).at(j));
+        raw_tower_v3->set_waveform_value(j, waveforms.at(i).at(j));
       }
     }
   }
@@ -294,7 +297,9 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
       {
         TowerInfov2 *raw_tower_v2 = dynamic_cast<TowerInfov2 *>(m_CaloInfoContainer->get_tower_at_channel(i));
+        raw_tower_v2->set_time_float(processed_waveforms.at(i).at(1));
         raw_tower_v2->set_status(m_CaloWaveformContainer->get_tower_at_channel(i)->get_status());
+        
       }
     }
   }

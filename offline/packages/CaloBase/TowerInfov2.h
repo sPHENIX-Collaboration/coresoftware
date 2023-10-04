@@ -12,11 +12,11 @@ class TowerInfov2 : public TowerInfov1
 
   void Reset() override;
   void Clear(Option_t* = "") override;
-  void set_time(short t) override { set_time(t * 1000); }
-  short get_time() override { return get_time() / 1000; }
+  void set_time(short t) override { TowerInfov1::set_time(t * 1000); }
+  short get_time() override { return TowerInfov1::get_time() / 1000; }
 
-  void set_time_float(float t) { set_time(t * 1000); }
-  float get_time_float() { return get_time() / 1000.; }
+  void set_time_float(float t) { TowerInfov1::set_time(t * 1000); }
+  float get_time_float() { return TowerInfov1::get_time() / 1000.; }
 
   void set_chi2(float chi2) { _chi2 = chi2; }
   float get_chi2() { return _chi2; }
@@ -67,6 +67,7 @@ class TowerInfov2 : public TowerInfov1
     return (_status & ((uint8_t) 1 << bit)) != 0;
   }
 
+  ClassDefOverride(TowerInfov2, 1);
   // Inherit other methods and properties from TowerInfov1
 };
 
