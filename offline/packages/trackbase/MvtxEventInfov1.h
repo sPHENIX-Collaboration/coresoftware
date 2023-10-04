@@ -10,14 +10,9 @@
  /*          29/09/2023     */
 /***************************/
 
-//#include <phool/PHObject.h>
-//
-//#include <cmath>
 #include <iostream>
-//#include <string>  // for string
-//#include <map>
 
-#include <MvtxEventInfo.h>
+#include "MvtxEventInfo.h"
 
 ///
 class MvtxEventInfov1 : public MvtxEventInfo 
