@@ -126,7 +126,9 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
   std::map<unsigned int, size_t> packet_waveforms;
   
   // loop over raw hits
-  std::cout << "MicromegasCombinedDataEvaluation::process_event - hits: " << rawhitcontainer->get_nhits() << std::endl;
+  if( Verbosity() )
+  { std::cout << "MicromegasCombinedDataEvaluation::process_event - hits: " << rawhitcontainer->get_nhits() << std::endl; }
+  
   for( unsigned int ihit = 0; ihit < rawhitcontainer->get_nhits(); ++ihit )
   {
     const auto rawhit = rawhitcontainer->get_hit(ihit);
