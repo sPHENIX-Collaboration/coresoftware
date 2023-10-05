@@ -1,4 +1,6 @@
+#include "TowerInfo.h"
 #include "TowerInfov3.h"
+
 
 void TowerInfov3::Reset()
 {
@@ -36,7 +38,7 @@ void TowerInfov3::set_waveform_value(int index, int16_t value)
   return;
 }
 
-void TowerInfov3::copy_tower(TowerInfov3* tower)
+void TowerInfov3::copy_tower(TowerInfo* tower)
 {
   TowerInfov2::copy_tower(tower);
   for (int i = 0; i < nsample; ++i)
