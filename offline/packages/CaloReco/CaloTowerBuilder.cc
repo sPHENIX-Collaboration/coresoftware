@@ -299,6 +299,8 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
         TowerInfov2 *raw_tower_v2 = dynamic_cast<TowerInfov2 *>(m_CaloInfoContainer->get_tower_at_channel(i));
         raw_tower_v2->set_time_float(processed_waveforms.at(i).at(1));
         raw_tower_v2->set_status(m_CaloWaveformContainer->get_tower_at_channel(i)->get_status());
+        raw_tower_v2->set_pedestal(processed_waveforms.at(i).at(2));
+        raw_tower_v2->set_chi2(processed_waveforms.at(i).at(3));
         
       }
     }
