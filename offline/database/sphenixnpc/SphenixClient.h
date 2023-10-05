@@ -28,6 +28,9 @@ class SphenixClient : public nopayloadclient::NoPayloadClient
   std::string getCalibration(const std::string& pl_type, long long iov);
   nlohmann::json unlockGlobalTag(const std::string& tagname) override;
   nlohmann::json lockGlobalTag(const std::string& tagname) override;
+  nlohmann::json getUrlDict(long long iov);
+  nlohmann::json deletePayloadIOV(const std::string& pl_type, long long iov_start);
+  nlohmann::json deletePayloadIOV(const std::string& pl_type, long long iov_start, long long iov_end);
 
   bool existGlobalTag(const std::string& tagname);
   int createDomain(const std::string& domain);
