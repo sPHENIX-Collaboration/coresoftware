@@ -13,6 +13,7 @@
 class SingleStreamingInput;
 class ospEvent;
 class InttRawHit;
+class MicromegasRawHit;
 class Packet;
 class PHCompositeNode;
 class SyncObject;
@@ -24,7 +25,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   Fun4AllEvtInputPoolManager(const std::string &name = "DUMMY", const std::string &dstnodename = "DST", const std::string &topnodename = "TOP");
   ~Fun4AllEvtInputPoolManager() override;
 
-  enum enu_subsystem { MVTX = 1, INTT = 2, TPC = 3, TPOT = 4};
+  enum enu_subsystem { MVTX = 1, INTT = 2, TPC = 3, MICROMEGAS = 4};
 
   int fileopen(const std::string & /*filenam*/) override { return 0; }
   // cppcheck-suppress virtualCallInConstructor
@@ -40,12 +41,14 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   std::string GetString(const std::string &what) const override;
 //  SingleEvtInput *AddEvtInputList(const std::string &listfile);
 //  SingleEvtInput *AddEvtInputFile(const std::string &filename);
-  void registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem system = INTT);
+  void registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem);
   void AddPacket(uint64_t bclk, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
   int FillIntt();
+  int FillMicromegas();
   int FillTpc();
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
+  void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit* /* hit */);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
 
  private:
@@ -54,9 +57,16 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
     std::vector<Packet *> PacketVector;
     unsigned int EventFoundCounter = 0;
   };
+  
   struct InttRawHitInfo
   {
     std::vector<InttRawHit *> InttRawHitVector;
+    unsigned int EventFoundCounter = 0;
+  };
+
+  struct MicromegasRawHitInfo
+  {
+    std::vector<MicromegasRawHit *> MicromegasRawHitVector;
     unsigned int EventFoundCounter = 0;
   };
 
@@ -69,13 +79,14 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   int m_RunNumber = 0;
   bool m_mvtx_registered_flag = false;
   bool m_intt_registered_flag = false;
+  bool m_micromegas_registered_flag = false;
   bool m_tpc_registered_flag = false;
-  bool m_tpot_registered_flag = false;
   std::vector<SingleStreamingInput *> m_EvtInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
   std::map<uint64_t, PacketInfo> m_PacketInfoMap;
   std::map<uint64_t, InttRawHitInfo> m_InttRawHitMap;
+  std::map<uint64_t, MicromegasRawHitInfo> m_MicromegasRawHitMap;
   std::map<uint64_t, TpcRawHitInfo> m_TpcRawHitMap;
 };
 

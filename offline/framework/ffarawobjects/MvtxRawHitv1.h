@@ -29,30 +29,30 @@ public:
   uint32_t get_chip_bc() const override {return chip_bc;}
   void set_chip_bc(const uint32_t val) override {chip_bc = val;}
 
-  uint32_t get_layer_id() const override {return layer_id;}
-  void set_layer_id(uint32_t val) override {layer_id = val;}
+  uint8_t get_layer_id() const override {return layer_id;}
+  void set_layer_id(uint8_t val) override {layer_id = val;}
 
-  uint32_t get_stave_id() const override {return stave_id;}
-  void set_stave_id(uint32_t val) override {stave_id = val;}
+  uint8_t get_stave_id() const override {return stave_id;}
+  void set_stave_id(uint8_t val) override {stave_id = val;}
 
-  uint32_t get_chip_id() const override {return chip_id;}
-  void set_chip_id(uint32_t val) override {chip_id = val;}
+  uint8_t get_chip_id() const override {return chip_id;}
+  void set_chip_id(uint8_t val) override {chip_id = val;}
 
-  uint32_t get_row() const override {return row;}
-  void set_row(uint32_t val) override {row = val;}
+  uint16_t get_row() const override {return row;}
+  void set_row(uint16_t val) override {row = val;}
 
-  uint32_t get_col() const override {return col;}
-  void set_col(uint32_t val) override {col = val;}
+  uint16_t get_col() const override {return col;}
+  void set_col(uint16_t val) override {col = val;}
 
 protected:
     uint64_t bco = std::numeric_limits<uint64_t>::max();
     uint32_t strobe_bc = std::numeric_limits<uint32_t>::max();
     uint32_t chip_bc = std::numeric_limits<uint32_t>::max();
-    uint32_t layer_id = std::numeric_limits<uint32_t>::max();
-    uint32_t stave_id = std::numeric_limits<uint32_t>::max();
-    uint32_t chip_id = std::numeric_limits<uint32_t>::max();
-    uint32_t row = std::numeric_limits<uint32_t>::max();
-    uint32_t col = std::numeric_limits<uint32_t>::max();
+    uint8_t layer_id = std::numeric_limits<uint8_t>::max();
+    uint8_t stave_id = std::numeric_limits<uint8_t>::max();
+    uint8_t chip_id = std::numeric_limits<uint8_t>::max();
+    uint16_t row = std::numeric_limits<uint16_t>::max();
+    uint16_t col = std::numeric_limits<uint16_t>::max();
 
   ClassDefOverride(MvtxRawHitv1,1)
 };
