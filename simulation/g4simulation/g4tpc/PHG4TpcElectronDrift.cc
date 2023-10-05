@@ -247,6 +247,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   diffusion_long = get_double_param("diffusion_long");
   added_smear_sigma_long = get_double_param("added_smear_long");
   diffusion_trans = get_double_param("diffusion_trans");
+  if(zero_bfield) diffusion_trans *= zero_bfield_diffusion_factor;
   added_smear_sigma_trans = get_double_param("added_smear_trans");
   drift_velocity = get_double_param("drift_velocity");
   // min_time to max_time is the time window for accepting drifted electrons after the trigger
@@ -436,8 +437,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         if ( std::abs(prior_g4hit->get_x(0)-hiter->second->get_x(0)) > max_g4hitstep
           || std::abs(prior_g4hit->get_y(0)-hiter->second->get_y(0)) > max_g4hitstep 
         ) {
-          truth_clusterer.cluster_hits(truth_track);
-        }
+	  if(truth_track)
+	    {
+	      truth_clusterer.cluster_hits(truth_track);
+	    }
+	}
       }
       prior_g4hit = hiter->second;
     }

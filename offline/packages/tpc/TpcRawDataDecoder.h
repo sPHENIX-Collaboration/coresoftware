@@ -3,7 +3,7 @@
 #ifndef TPCRAWDATADECODER_H
 #define TPCRAWDATADECODER_H
 
-#include "TpcMap.h"
+//#include "TpcMap.h"
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
@@ -13,6 +13,8 @@
 #include <memory>
 #include <string>
 
+class CDBTTree;
+class CDBInterface;
 class PHCompositeNode;
 class Fun4AllHistoManager;
 //class TrkrHitSetContainer;
@@ -66,13 +68,15 @@ class TpcRawDataDecoder : public SubsysReco
   static const int layeroffset = 7 + 16;
   int _ievent = 0;
   //TrkrHitSetContainer *m_hits = nullptr;
-  TrkrHitSet *m_hitset[layercount] = {};
+  //TrkrHitSet *m_hitset;
   //TrkrHit *m_hit = nullptr;
 
   // RawHitSetContainer *m_rawhits __attribute__ ((unused)) = nullptr;
 
-  TpcMap M;
+  //TpcMap M;
   TNtuple *h_Alive = nullptr;
+  CDBTTree *m_cdbttree = nullptr;
+  CDBInterface *m_cdb = nullptr;
 
   struct ped_tpc_map
   {
@@ -84,7 +88,7 @@ class TpcRawDataDecoder : public SubsysReco
     unsigned int SEC_ID;
   };
 
-  std::map<unsigned int, struct ped_tpc_map> tmap;  
+  //std::map<unsigned int, struct ped_tpc_map> tmap;  
 
   int starting_BCO;
   int rollover_value;
@@ -92,7 +96,8 @@ class TpcRawDataDecoder : public SubsysReco
 
   private:
     int m_Debug = 0;
-    TH3*   _h_hit_XYT = nullptr;
+    //TH3*   _h_hit_XYT = nullptr;
+    //TH3*   _h_hit_PT_ADCcut = nullptr;
     TH2*   _h_hit_XY = nullptr;
     TH2*   _h_hit_XY_ADCcut = nullptr;
 

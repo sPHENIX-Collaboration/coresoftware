@@ -2,21 +2,28 @@
 #include "InttMapping.h"
 
 #include <Event/Event.h>
-#include <Event/EventTypes.h>
 #include <Event/packet.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include "fun4all/SubsysReco.h"               // for SubsysReco
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/phool.h>          // for PHWHERE
 
 #include <trackbase/InttDefs.h>
+#include <trackbase/TrkrDefs.h>  // for hitkey, hitsetkey
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
+
+#include <cstdlib>    // for exit
+#include <iostream>   // for operator<<, endl, cout
+#include <map>        // for map, operator!=, _Rb_tr...
+#include <utility>    // for pair
 
 InttRawDataDecoder::InttRawDataDecoder(std::string const& name):
 	SubsysReco(name)
@@ -125,7 +132,7 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 
 			offline = Intt::ToOffline(rawdata);
 
-			hit_key = InttDefs::genHitKey(offline.strip_x, offline.strip_y);
+			hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
 			hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
 
 			hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);

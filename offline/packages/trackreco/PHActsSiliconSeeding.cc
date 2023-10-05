@@ -290,7 +290,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	      m_nBadInitialFits++;
 	      continue;
 	    }
-        
+	 
 	  trackSeed->lineFit(positions, 0, 8);
 	  z = trackSeed->get_Z0();
 
@@ -299,21 +299,27 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  fitTimer->restart();
 	  
 	  /// Project to INTT and find matches
+	  int mvtxsize = globalPositions.size();
 	  auto additionalClusters = findInttMatches(globalPositions, *trackSeed);
 
 	  /// Add possible matches to cluster list to be parsed when
 	  /// Svtx tracks are made
-	  for(auto& cluskey : additionalClusters)
-	    { 
-	      trackSeed->insert_cluster_key(cluskey); 
+	  for(int newkey = 0; newkey < additionalClusters.size(); newkey++)
+	    {
+	      trackSeed->insert_cluster_key(additionalClusters[newkey]);
+	      positions.insert(std::make_pair(additionalClusters[newkey],globalPositions[mvtxsize+newkey]));
+	      
 	      if(Verbosity() > 1)
-		{ std::cout << "adding additional intt key " << cluskey << std::endl; }
+		{ std::cout << "adding additional intt key " << additionalClusters[newkey] << std::endl; }
 	    }
 
 	  fitTimer->stop();
 	  auto addClusters = fitTimer->get_accumulated_time();
 	  fitTimer->restart();
-	  
+
+	  //! Circle fit again to take advantage of INTT lever arm
+	  trackSeed->circleFitByTaubin(positions, 0, 8);
+
 	  if(Verbosity() > 0)
 	    { std::cout << "find intt clusters time " << addClusters << std::endl; }
 
@@ -455,7 +461,13 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
   const double zProj[])
 {
   std::vector<TrkrDefs::cluskey> matchedClusters;
-
+  TrkrDefs::cluskey matchedClusterLay0;
+  Acts::Vector3 matchedGlobPosLay0;
+  TrkrDefs::cluskey matchedClusterLay1;
+  Acts::Vector3 matchedGlobPosLay1;
+  float minResidLay0 = std::numeric_limits<float>::max();
+  float minResidLay1 = std::numeric_limits<float>::max();
+  
   for(int inttlayer = 0; inttlayer < m_nInttLayers; inttlayer++)
     {
       const double projR = std::sqrt(square(xProj[inttlayer]) + square(yProj[inttlayer]));
@@ -517,16 +529,29 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	     
 	      /// Z strip spacing is the entire strip, so because we use fabs
 	      /// we divide by two
-	      if(fabs(projectionLocal[1] - cluster->getLocalX()) < m_rPhiSearchWin and
-		 fabs(projectionLocal[2] - cluster->getLocalY()) < stripZSpacing / 2.)
+	      float rphiresid = fabs(projectionLocal[1] - cluster->getLocalX());
+	      float zresid = fabs(projectionLocal[2] - cluster->getLocalY());
+	      if(rphiresid < m_rPhiSearchWin and
+		 zresid < stripZSpacing / 2.)
 		{
-	
-		  matchedClusters.push_back(cluskey);
-		  /// Cache INTT global positions with seed
+		  
 		  const auto globalPos = m_tGeometry->getGlobalPosition(
                     cluskey, cluster);
-		  clusters.push_back(globalPos);
-
+		  
+		  if(inttlayer<2 && rphiresid < minResidLay0)
+		    {
+		      matchedClusterLay0 = cluskey;
+		      /// Cache INTT global positions with seed
+		      matchedGlobPosLay0 = globalPos;
+		      minResidLay0 = rphiresid;
+		    }
+		  if(inttlayer>1 && rphiresid < minResidLay1)
+		    {
+		      matchedClusterLay1 = cluskey;
+		      matchedGlobPosLay1 = globalPos;
+		      minResidLay1 = rphiresid;
+		    }
+		    
 		 		  	      
 		  if(Verbosity() > 4)
 		    {
@@ -544,7 +569,18 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	    }
 	}  
     }
-  
+
+  if(minResidLay0 < std::numeric_limits<float>::max())
+    {
+      matchedClusters.push_back(matchedClusterLay0);
+      clusters.push_back(matchedGlobPosLay0);
+    }
+  if(minResidLay1 < std::numeric_limits<float>::max())
+    {
+      matchedClusters.push_back(matchedClusterLay1);
+      clusters.push_back(matchedGlobPosLay1);
+    }
+
   if(m_seedAnalysis) {
     h_nMatchedClusters->Fill(matchedClusters.size());
   }
@@ -565,17 +601,9 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
 				  localPos, mom);
 
   Acts::SymMatrix2 localCov = Acts::SymMatrix2::Zero();
-  if(m_cluster_version==3){
-    localCov(0,0) = clus->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
-    localCov(1,1) = clus->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
-  }else if(m_cluster_version==4){
-    auto para_errors = _ClusErrPara.get_si_cluster_error(clus,key);
-    localCov(0,0) = para_errors.first* Acts::UnitConstants::cm2;
-    localCov(1,1) = para_errors.second* Acts::UnitConstants::cm2;
-  }else if(m_cluster_version==5){
-    localCov(0,0) = pow(clus->getRPhiError(),2) * Acts::UnitConstants::cm2;
-    localCov(1,1) = pow(clus->getZError(),2) * Acts::UnitConstants::cm2;
-  }
+  localCov(0,0) = pow(clus->getRPhiError(),2) * Acts::UnitConstants::cm2;
+  localCov(1,1) = pow(clus->getZError(),2) * Acts::UnitConstants::cm2;
+  
     
   float x = globalPos.x();
   float y = globalPos.y();

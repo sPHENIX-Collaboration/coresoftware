@@ -12,6 +12,8 @@
 class CaloWaveformProcessing;
 class PHCompositeNode;
 class TowerInfoContainer;
+class TowerInfoContainerv3;
+
 
 class CaloTowerBuilder : public SubsysReco
 {
@@ -33,9 +35,22 @@ class CaloTowerBuilder : public SubsysReco
     ZDC = 5
   };
 
+  enum BuilderType
+  {
+    kPRDFTowerv1 = 0,
+    kPRDFWaveform = 1,
+    kWaveformTowerv2 = 2
+  };
+
   void set_detector_type(CaloTowerBuilder::DetectorSystem dettype)
   {
     m_dettype = dettype;
+    return;
+  }
+
+  void set_builder_type(CaloTowerBuilder::BuilderType buildertype)
+  {
+    m_buildertype = buildertype;
     return;
   }
 
@@ -50,12 +65,12 @@ class CaloTowerBuilder : public SubsysReco
     return;
   }
 
-  void set_processing_type( CaloWaveformProcessing::process processingtype)
+  void set_processing_type(CaloWaveformProcessing::process processingtype)
   {
     _processingtype = processingtype;
   }
 
-  void set_softwarezerosuppression(bool usezerosuppression,int softwarezerosuppression)
+  void set_softwarezerosuppression(bool usezerosuppression, int softwarezerosuppression)
   {
     _nsoftwarezerosuppression = softwarezerosuppression;
     _bdosoftwarezerosuppression = usezerosuppression;
@@ -64,8 +79,10 @@ class CaloTowerBuilder : public SubsysReco
  private:
   CaloWaveformProcessing *WaveformProcessing;
   CaloTowerBuilder::DetectorSystem m_dettype;
+  CaloTowerBuilder::BuilderType m_buildertype;
   TowerInfoContainer *m_CaloInfoContainer;  //! Calo info
-  std::string m_detector; 
+  TowerInfoContainerv3 *m_CaloWaveformContainer; 
+  std::string m_detector;
   int m_packet_low;
   int m_packet_high;
   int m_nsamples;
@@ -75,7 +92,6 @@ class CaloTowerBuilder : public SubsysReco
   int _nsoftwarezerosuppression;
   bool _bdosoftwarezerosuppression;
   CaloWaveformProcessing::process _processingtype;
-
 };
 
 #endif  // CALOTOWERBUILDER_H

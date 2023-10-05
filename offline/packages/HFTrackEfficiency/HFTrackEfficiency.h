@@ -88,6 +88,8 @@ class HFTrackEfficiency : public SubsysReco
   PHHepMCGenEventMap *m_geneventmap = nullptr;
   PHHepMCGenEvent *m_genevt = nullptr;
 
+  PHG4ParticleSvtxMap_v1 *m_dst_truth_reco_map = nullptr;
+
   DecayFinderContainer_v1 *m_decayMap = nullptr;
   std::string m_df_module_name;
 
@@ -121,6 +123,7 @@ class HFTrackEfficiency : public SubsysReco
 
   static const int m_maxTracks = 5;
   bool m_all_tracks_reconstructed = false;
+  float m_true_mother_mass = 0.;
   float m_reco_mother_mass = 0.;
   float m_true_mother_pT = 0.;
   float m_true_mother_eta = 0.;
@@ -129,9 +132,11 @@ class HFTrackEfficiency : public SubsysReco
   float m_max_true_track_pT = -1. * FLT_MAX;
   float m_max_reco_track_pT = -1. * FLT_MAX;
   bool m_reco_track_exists[m_maxTracks] = {false};
+  bool m_used_truth_reco_map[m_maxTracks] = {false};
   float m_true_track_pT[m_maxTracks] = {0.};
   float m_reco_track_pT[m_maxTracks] = {0.};
   float m_true_track_eta[m_maxTracks] = {0.};
+  float m_reco_track_eta[m_maxTracks] = {0.};
   float m_true_track_PID[m_maxTracks] = {0.};
   float m_reco_track_chi2nDoF[m_maxTracks] = {0.};
   int m_reco_track_silicon_seeds[m_maxTracks] = {0};

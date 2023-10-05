@@ -16,6 +16,8 @@
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
 
+#include <string>
+
 class PHCompositeNode;
 class SvtxTrack;
 class SvtxAlignmentStateMap;
@@ -32,7 +34,7 @@ class ActsAlignmentStates
 
   ActsAlignmentStates() {}
   ~ActsAlignmentStates() {}
-  void clusterVersion(const int v) { m_clusterVersion = v; }
+  
   void fillAlignmentStateMap(const Trajectory& traj,
                              SvtxTrack* track,
                              const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
@@ -48,6 +50,7 @@ class ActsAlignmentStates
   void actsGeometry(ActsGeometry* geom) { m_tGeometry = geom; }
   void clusters(TrkrClusterContainer* clus) { m_clusterMap = clus; }
   void stateMap(SvtxAlignmentStateMap* map) { m_alignmentStateMap = map; }
+  void fieldMap(std::string& fieldmap) {m_fieldMap = fieldmap; }
 
  private:
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
@@ -56,7 +59,6 @@ class ActsAlignmentStates
   SvtxAlignmentState::GlobalMatrix makeGlobalDerivatives(const Acts::Vector3& OM, const std::pair<Acts::Vector3, Acts::Vector3>& projxy);
 
   int m_verbosity = 0;
-  int m_clusterVersion = 4;
 
   float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
 
@@ -70,6 +72,7 @@ class ActsAlignmentStates
   TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
   TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
   TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
+  std::string m_fieldMap = "";
 };
 
 #endif

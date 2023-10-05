@@ -232,10 +232,6 @@ class PHGenFitTrkFitter : public SubsysReco
     _vertex_min_ndf = vertexMinPT;
   }
 
-  /// cluster version
-  /* Note: this could be retrived automatically using dynamic casts from TrkrCluster objects */
-  void set_cluster_version(int value) { m_cluster_version = value; }
-
   //!@name disabled layers interface
   //@{
 
@@ -369,9 +365,6 @@ class PHGenFitTrkFitter : public SubsysReco
  
   /// cluster error parametrisation
   ClusterErrorPara m_cluster_error_parametrization;
-  
-  /// cluster version
-  int m_cluster_version = 4;
 
   //! Evaluation
   //! switch eval out

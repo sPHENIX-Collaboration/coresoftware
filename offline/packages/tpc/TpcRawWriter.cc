@@ -6,8 +6,7 @@
 #include <micromegas/MicromegasDefs.h>
 
 #include <trackbase/TrkrClusterContainerv4.h>
-#include <trackbase/TrkrClusterv3.h>
-#include <trackbase/TrkrClusterv4.h>
+#include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHit.h>

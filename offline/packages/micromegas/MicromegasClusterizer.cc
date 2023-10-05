@@ -12,8 +12,6 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrClusterContainerv4.h>        // for TrkrCluster
-#include <trackbase/TrkrClusterv3.h>
-#include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
@@ -345,77 +343,33 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       }
 
       
-      if(m_cluster_version==3)
-      {
-        auto cluster = std::make_unique<TrkrClusterv3>();
-        cluster->setAdc( adc_sum );
-        cluster->setLocalX(local_coordinates.X());
-        cluster->setLocalY(local_coordinates.Y());
-        
-        // assign errors
-        cluster->setActsLocalError(0,0, error_sq_x);
-        cluster->setActsLocalError(1,1, error_sq_y);
-        cluster->setActsLocalError(0,1, 0);
-        cluster->setActsLocalError(1,0, 0);
-
-        // add to container
-        trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
-
-      } else if(m_cluster_version==4) {
-
-        auto cluster = std::make_unique<TrkrClusterv4>();
-        cluster->setAdc( adc_sum );
-        cluster->setLocalX(local_coordinates.X());
-        cluster->setLocalY(local_coordinates.Y());
-
-        // store cluster size
-        switch( segmentation_type )
+      auto cluster = std::make_unique<TrkrClusterv5>();
+      cluster->setAdc( adc_sum );
+      cluster->setMaxAdc( max_adc );
+      cluster->setLocalX(local_coordinates.X());
+      cluster->setLocalY(local_coordinates.Y());
+      cluster->setPhiError(sqrt(error_sq_x));
+      cluster->setZError(sqrt(error_sq_y));
+      // store cluster size
+      switch( segmentation_type )
         {
-          case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+	case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
           {
             cluster->setPhiSize(strip_count);
             cluster->setZSize(1);
             break;
           }
-
-          case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+	  
+	case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
           {
             cluster->setPhiSize(1);
             cluster->setZSize(strip_count);
             break;
           }
         }
-        // add to container
-        trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
-      } else if(m_cluster_version==5) {
-
-        auto cluster = std::make_unique<TrkrClusterv5>();
-        cluster->setAdc( adc_sum );
-        cluster->setMaxAdc( max_adc );
-        cluster->setLocalX(local_coordinates.X());
-        cluster->setLocalY(local_coordinates.Y());
-        cluster->setPhiError(sqrt(error_sq_x));
-        cluster->setZError(sqrt(error_sq_y));
-        // store cluster size
-        switch( segmentation_type )
-        {
-          case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-          {
-            cluster->setPhiSize(strip_count);
-            cluster->setZSize(1);
-            break;
-          }
-
-          case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-          {
-            cluster->setPhiSize(1);
-            cluster->setZSize(strip_count);
-            break;
-          }
-        }
-        // add to container
-        trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
-      }
+      // add to container
+      trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
+      
 
     }
 

@@ -22,26 +22,10 @@ class TowerInfoContainerv1 : public TowerInfoContainer
   TowerInfov1 *get_tower_at_channel(int pos) override;
   TowerInfov1 *get_tower_at_key(int pos) override;
 
-
   unsigned int encode_key(unsigned int towerIndex) override;
   unsigned int decode_key(unsigned int tower_key) override;
 
-  unsigned int encode_epd(unsigned int towerIndex) override;
-  unsigned int encode_hcal(unsigned int towerIndex) override;
-  unsigned int encode_emcal(unsigned int towerIndex) override;
-  unsigned int encode_mbd(unsigned int towerIndex) override;
-  unsigned int encode_zdc(unsigned int towerIndex) override;
-
-  unsigned int decode_epd(unsigned int towerIndex) override;
-  unsigned int decode_hcal(unsigned int towerIndex) override;
-  unsigned int decode_emcal(unsigned int towerIndex) override;
-  unsigned int decode_mbd(unsigned int towerIndex) override;
-  unsigned int decode_zdc(unsigned int towerIndex) override;
-
   size_t size() override { return _clones->GetEntries(); }
-
-  unsigned int getTowerPhiBin(unsigned int towerIndex) override;
-  unsigned int getTowerEtaBin(unsigned int towerIndex) override;
 
  protected:
   TClonesArray *_clones = nullptr;

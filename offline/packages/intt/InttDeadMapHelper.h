@@ -1,17 +1,6 @@
 #ifndef INTT_DEAD_MAP_HELPER_H
 #define INTT_DEAD_MAP_HELPER_H
 
-//C style includes
-#include <stdlib.h>
-#include <math.h>
-
-//CPP style includes
-#include <iostream>
-
-//ROOT and sPHENIX includes
-#include <trackbase/InttDefs.h>	//for getHitSetKey
-
-//class TrkrHitSetKey; or whatever it is
 
 class InttDeadMapHelper
 {

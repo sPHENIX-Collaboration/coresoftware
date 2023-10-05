@@ -37,7 +37,6 @@ class PHActsKDTreeSeeding : public SubsysReco
   int End(PHCompositeNode *topNode) override;
   
   void useTruthClusters(bool truth) { m_useTruthClusters = truth; }
-  void set_cluster_version(int ver) { m_clusterVersion = ver; }
  private:
 
   Acts::SeedFinderOrthogonalConfig<SpacePoint> configureSeedFinder();
@@ -96,7 +95,7 @@ class PHActsKDTreeSeeding : public SubsysReco
   int m_nIteration = 0;
   std::string m_trackMapName = "SiliconTrackSeedContainer";
   bool m_useTruthClusters = false;
-  int m_clusterVersion = 4;
+
   ClusterErrorPara m_clusErrPara;
   float m_uncfactor = 3.175;
   const static int m_nInttLayers = 4;

@@ -21,7 +21,9 @@ libTPCPedestalCalibration_la_SOURCES = \
 
 libTPCPedestalCalibration_la_LIBADD = \
   -lphool \
-  -lSubsysReco
+  -lSubsysReco \
+  -lcdbobjects \
+  -lsphenixnpc
 
 BUILT_SOURCES = testexternals.cc
 

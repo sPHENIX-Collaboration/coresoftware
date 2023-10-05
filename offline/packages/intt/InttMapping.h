@@ -3,13 +3,12 @@
 
 #include <map>
 
-#include <Event/Event.h>
-#include <Event/EventTypes.h>
-#include <Event/packet.h>
+class Packet;
 
 namespace Intt
 {
 	extern const std::map<int, int> Packet_Id;
+	int FelixFromPacket(int);
 
 	struct RawData_s
 	{
@@ -49,6 +48,9 @@ namespace Intt
 	//trivial
 	struct RawData_s ToRawData(struct Offline_s const&);
 	struct Offline_s ToOffline(struct RawData_s const&);
+
+	//Eigen::Affine3d GetTransform(TTree*, struct Offline_s const&);
+	//Eigen::Vector4d GetLocalPos(struct Offline_s const&);
 };
 
 bool operator==(struct Intt::RawData_s const&, struct Intt::RawData_s const&);

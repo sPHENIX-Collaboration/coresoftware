@@ -104,7 +104,7 @@ int InputFileHandler::OpenNextFile()
 void InputFileHandler::Print(const std::string &/* what */) const
 {
   std::cout << "file list: " << std::endl;
-  for (auto iter : m_FileList)
+  for (const auto& iter : m_FileList)
   {
     std::cout << iter << std::endl;
   }

@@ -46,17 +46,17 @@ class HepMCFlowAfterBurner : public SubsysReco
 
  protected:
   std::string config_filename;
-  std::string algorithmName;
+  std::string algorithmName = "MINBIAS";
 
-  float mineta;
-  float maxeta;
+  float mineta = -5.;
+  float maxeta = 5.;
 
-  float minpt;
-  float maxpt;
+  float minpt = 0.;
+  float maxpt = 100.;
 
-  int seedset;
-  long seed;
-  long randomSeed;
+  int seedset = 0;
+  long seed = 0;
+  long randomSeed = 11793;
 };
 
 #endif

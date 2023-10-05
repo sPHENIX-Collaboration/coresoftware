@@ -4,6 +4,7 @@
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeom_Spacalv1.h>  // for PHG4CylinderGeom_...
 #include <g4detectors/PHG4CylinderGeom_Spacalv3.h>
 
 #include <map>
