@@ -33,12 +33,14 @@ libg4eval_hp_la_LIBADD = \
 
 pkginclude_HEADERS = \
   EventCounter_hp.h \
+  MicromegasClusterEvaluator_hp.h \
   MicromegasEvaluator_hp.h \
   MicromegasGeometryContainer.h \
   SimEvaluator_hp.h \
   TrackingEvaluator_hp.h
 
 ROOTDICTS = \
+  MicromegasClusterEvaluator_hp_Dict.cc \
   MicromegasEvaluator_hp_Dict.cc \
   MicromegasGeometryContainer_Dict.cc \
   SimEvaluator_hp_Dict.cc \
@@ -46,6 +48,7 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  MicromegasClusterEvaluator_hp_Dict_rdict.pcm \
   MicromegasEvaluator_hp_Dict_rdict.pcm \
   MicromegasGeometryContainer_Dict_rdict.pcm \
   SimEvaluator_hp_Dict_rdict.pcm \
@@ -54,6 +57,7 @@ nobase_dist_pcm_DATA = \
 libg4eval_hp_la_SOURCES = \
   $(ROOTDICTS) \
   EventCounter_hp.cc \
+  MicromegasClusterEvaluator_hp.cc \
   MicromegasEvaluator_hp.cc \
   MicromegasGeometryContainer.cc \
   SimEvaluator_hp.cc \
