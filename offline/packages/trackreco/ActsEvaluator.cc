@@ -108,7 +108,18 @@ void ActsEvaluator::evaluateTrackFit(const ActsTrackFittingAlgorithm::TrackConta
                                      const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
   if (m_verbosity > 5)
-    std::cout << "Evaluating Acts track fits" << std::endl;
+    {
+      std::cout << "Evaluating Acts track fits" << std::endl;
+    }
+  /// Skip failed fits
+  if (trackTips.empty())
+  {
+    if (m_verbosity > 1)
+    {
+      std::cout << "TrackTips empty in ActsEvaluator" << std::endl;
+    }
+    return;
+  }
 
   SvtxTrackEval* trackeval = m_svtxEvalStack->get_track_eval();
 
@@ -124,16 +135,6 @@ void ActsEvaluator::evaluateTrackFit(const ActsTrackFittingAlgorithm::TrackConta
   const auto& mj = tracks.trackStateContainer();
   const auto& trackTip = trackTips.front();
   m_trajNr = iTraj;
-
-  /// Skip failed fits
-  if (trackTips.empty())
-  {
-    if (m_verbosity > 1)
-    {
-      std::cout << "TrackTips empty in ActsEvaluator" << std::endl;
-    }
-    return;
-  }
 
   if (m_verbosity > 2)
   {
