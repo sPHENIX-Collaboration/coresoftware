@@ -349,7 +349,7 @@ sub CreateMakefile()
     print F "AM_CPPFLAGS = \\\n";
     print F "  -I\$(includedir) \\\n";
     print F "  -I\$(OFFLINE_MAIN)/include \\\n";
-    print F "  -I\$(ROOTSYS)/include\n";
+    print F "  -isystem\$(ROOTSYS)/include\n";
     print F "\n";
 
     print F "AM_LDFLAGS = \\\n";
