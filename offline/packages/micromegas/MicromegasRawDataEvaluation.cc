@@ -24,10 +24,10 @@
 #include <fstream>
 #include <list>
 #include <memory>
+#include <set>
 
 namespace
 {
-
   // streamer for lists
   template< class T >
     std::ostream& operator << ( std::ostream& out, const std::list<T>& list )
@@ -43,15 +43,11 @@ namespace
         out << value;
         first = false;
       }
-
       out << " }";
     }
-
     return out;
   }
-
 }
-
 
 //_________________________________________________________
 void MicromegasRawDataEvaluation::Waveform::copy_from( const MicromegasRawDataEvaluation::Sample& sample )
@@ -173,13 +169,17 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
       std::cout << "MicromegasRawDataEvaluation::process_event -"
         << " packet: " << packet_id
-        << " bco: " << main_bco_list
+        << " bco: " << std::hex << main_bco_list << std::dec
         << std::endl;
 
     }
 
     // store available bco list for each fee
     std::map<unsigned short, bco_list_t> bco_list_map;
+
+    // keep track of orphans
+    using fee_pair_t = std::pair< unsigned int, unsigned int>;
+    std::set<fee_pair_t> orphans;
 
     for( int iwf=0; iwf<n_waveform; ++iwf )
     {
@@ -220,8 +220,9 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
           {
             std::cout << "MicromegasRawDataEvaluation::process_event -"
               << " fee_id: " << sample.fee_id
-              << " fee_bco: " << sample.fee_bco
-              << " lvl1_bco: " << bco_list.front()
+              << " fee_bco: 0x" << std::hex << sample.fee_bco
+              << " gtm_bco: 0x" << bco_list.front()
+              << std::dec
               << std::endl;
           }
 
@@ -237,12 +238,12 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
 
         } else {
 
-          if( Verbosity() )
+          if( Verbosity() && orphans.insert( std::make_pair( sample.fee_id, sample.fee_bco ) ).second )
           {
             std::cout << "MicromegasRawDataEvaluation::process_event -"
               << " fee_id: " << sample.fee_id
-              << " fee_bco: " << sample.fee_bco
-              << " lvl1_bco: none"
+              << " fee_bco: 0x" << std::hex << sample.fee_bco << std::dec
+              << " gtm_bco: none"
               << std::endl;
           }
         }
@@ -336,10 +337,8 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/ )
 
   // print bco map
   if( Verbosity() )
-  {
-    for( const auto& [bco,nwaveforms]:m_bco_map )
-    { std::cout << "MicromegasRawDataEvaluation::End - bco: " << bco << ", nwaveforms: " << nwaveforms << std::endl; }
-  }
+  for( const auto& [bco,nwaveforms]:m_bco_map )
+  { std::cout << "MicromegasRawDataEvaluation::End - bco: 0x" << std::hex << bco << std::dec << ", nwaveforms: " << nwaveforms << std::endl; }
 
   // print bco list, for offline processing
   {
@@ -355,7 +354,7 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/ )
         count = 0;
         std::cout << std::endl;
       }
-      std::cout << " " << bco;
+      std::cout << " 0x" << std::hex << bco << std::dec;
       ++count;
     }
     std::cout << std::endl << "};" << std::endl;
