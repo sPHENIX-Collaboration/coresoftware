@@ -212,8 +212,6 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
 	 std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 - 1.5);
 
   GridSeeds seedVector;
-  auto groupIt = spGroup.begin();
-  auto endGroup = spGroup.end();
   SeedContainer seeds;
   seeds.clear();
   decltype(seedFinder)::SeedingState state;
