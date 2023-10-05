@@ -30,10 +30,10 @@ class TowerInfov2 : public TowerInfov1
   void set_isBadTime(bool isBadTime) override { set_status_bit(1, isBadTime); }
   bool get_isBadTime() const override { return get_status_bit(1); }
 
-  void set_isBadChi2(bool isBadChi2) { set_status_bit(2, isBadChi2); }
+  void set_isBadChi2(bool isBadChi2) override { set_status_bit(2, isBadChi2); }
   bool get_isBadChi2() const override { return get_status_bit(2); }
 
-  void set_isNotInstr(bool isNotInstr) { set_status_bit(3, isNotInstr); }
+  void set_isNotInstr(bool isNotInstr) override { set_status_bit(3, isNotInstr); }
   bool get_isNotInstr() const override { return get_status_bit(3); }
 
   bool get_isGood() const override { return !((bool) _status); }
