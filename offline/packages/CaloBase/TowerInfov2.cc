@@ -1,3 +1,4 @@
+#include "TowerInfo.h"
 #include "TowerInfov2.h"
 
 void TowerInfov2::Reset()
@@ -16,8 +17,9 @@ void TowerInfov2::Clear(Option_t* )
   _status = 0;
 }
 
-void TowerInfov2::copy_tower(TowerInfov2* tower)
+void TowerInfov2::copy_tower(TowerInfo* tower)
 {
+  TowerInfov1::copy_tower(tower);
   set_time_float(tower->get_time_float());
   set_energy(tower->get_energy());
   set_chi2(tower->get_chi2());
