@@ -78,7 +78,9 @@ void ActsEvaluator::next_event(PHCompositeNode* topNode)
   
   m_eventNr++;
 }
-void ActsEvaluator::process_track(const Trajectory& traj,
+void ActsEvaluator::process_track(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
+				  std::vector<Acts::MultiTrajectoryTraits::IndexType>& trackTips,
+				  Trajectory::IndexedParameters& paramsMap,
                                   SvtxTrack* track,
                                   const TrackSeed* seed,
                                   const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
@@ -89,7 +91,7 @@ void ActsEvaluator::process_track(const Trajectory& traj,
               << std::endl;
   }
 
-  evaluateTrackFit(traj, track, seed, measurements);
+  evaluateTrackFit(tracks,trackTips,paramsMap, track, seed, measurements);
 
 
   if (m_verbosity > 1)
@@ -98,7 +100,9 @@ void ActsEvaluator::process_track(const Trajectory& traj,
   }
 }
 
-void ActsEvaluator::evaluateTrackFit(const Trajectory& traj,
+void ActsEvaluator::evaluateTrackFit(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
+				     std::vector<Acts::MultiTrajectoryTraits::IndexType>& trackTips,
+				     Trajectory::IndexedParameters& paramsMap,
                                      SvtxTrack* track,
                                      const TrackSeed* seed,
                                      const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
@@ -117,8 +121,7 @@ void ActsEvaluator::evaluateTrackFit(const Trajectory& traj,
               << seed->get_tpc_seed_index() << std::endl;
   }
 
-  const auto& trackTips = traj.tips();
-  const auto& mj = traj.multiTrajectory();
+  const auto& mj = tracks.trackStateContainer();
   const auto& trackTip = trackTips.front();
   m_trajNr = iTraj;
 
@@ -161,22 +164,23 @@ void ActsEvaluator::evaluateTrackFit(const Trajectory& traj,
 
   auto trajState =
       Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
+  
+  const auto& params = paramsMap.find(trackTip)->second;
 
   if (m_verbosity > 1)
   {
-    if (traj.hasTrackParameters(trackTip))
-    {
+   
       std::cout << "Fitted params : "
-                << traj.trackParameters(trackTip).position(m_tGeometry->geometry().getGeoContext())
+                << params.position(m_tGeometry->geometry().getGeoContext())
                 << std::endl
-                << traj.trackParameters(trackTip).momentum()
+                << params.momentum()
                 << std::endl;
       std::cout << "Track has " << trajState.nMeasurements
                 << " measurements and " << trajState.nHoles
                 << " holes and " << trajState.nOutliers
                 << " outliers and " << trajState.nStates
                 << " states " << std::endl;
-    }
+    
   }
 
   m_nMeasurements = trajState.nMeasurements;
@@ -190,7 +194,7 @@ void ActsEvaluator::evaluateTrackFit(const Trajectory& traj,
 
   fillG4Particle(g4particle);
   fillProtoTrack(seed);
-  fillFittedTrackParams(traj, trackTip);
+  fillFittedTrackParams(paramsMap, trackTip);
   visitTrackStates(mj, trackTip, measurements);
 
   m_trackTree->Fill();
@@ -899,7 +903,7 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
   }
 }
 
-void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
+void ActsEvaluator::fillFittedTrackParams(const Trajectory::IndexedParameters& paramsMap,
                                           const size_t& trackTip)
 {
   m_hasFittedParams = false;
@@ -910,10 +914,10 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
   }
 
   /// If it has track parameters, fill the values
-  if (traj.hasTrackParameters(trackTip))
+  if (paramsMap.find(trackTip) != paramsMap.end())
   {
     m_hasFittedParams = true;
-    const auto& boundParam = traj.trackParameters(trackTip);
+    const auto& boundParam = paramsMap.find(trackTip)->second;
     const auto& parameter = boundParam.parameters();
     const auto& covariance = *boundParam.covariance();
     m_charge_fit = boundParam.charge();

@@ -812,19 +812,22 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult &fitOutput,
 		  << updateTime << std::endl;
       
       if(m_timeAnalysis)
-	h_updateTime->Fill(updateTime);
-      
-      if(m_actsEvaluator)
 	{
-	  m_evaluator->evaluateTrackFit(trajectory, track,
-					seed, measurements);
+	  h_updateTime->Fill(updateTime);
 	}
-
+      
       Trajectory trajectory(tracks.trackStateContainer(),
-			    std::move(trackTips), std::move(indexedParams));
+			    trackTips, indexedParams);
           
       m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
       
+      if(m_actsEvaluator)
+	{
+	  m_evaluator->evaluateTrackFit(tracks, trackTips, indexedParams, track,
+					seed, measurements);
+	}
+
+   
 
       return true;
     }

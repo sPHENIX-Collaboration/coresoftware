@@ -712,7 +712,7 @@ bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput,
 
   if (m_actsEvaluator)
   {
-    m_evaluator->evaluateTrackFit(trajectory, track,
+    m_evaluator->evaluateTrackFit(tracks,trackTips,indexedParams, track,
                                   seed, measurements);
   }
 
