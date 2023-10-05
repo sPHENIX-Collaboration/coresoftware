@@ -156,8 +156,8 @@ private:
   Int_t    template_npointsy;
   Double_t template_begintime;
   Double_t template_endtime;
-  Double_t template_min_good_amplitude;  //! for template, in original units of waveform data
-  Double_t template_max_good_amplitude;  //! for template, in original units of waveform data
+  //Double_t template_min_good_amplitude;  //! for template, in original units of waveform data
+  //Double_t template_max_good_amplitude;  //! for template, in original units of waveform data
   Double_t template_min_xrange;          //! for template, in original units of waveform data
   Double_t template_max_xrange;          //! for template, in original units of waveform data
   std::vector<Double_t> template_y;

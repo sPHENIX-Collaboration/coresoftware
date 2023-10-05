@@ -47,8 +47,8 @@ private:
   recoConsts   *_rc {nullptr};
 
   int          _status {0};
-  int          _run_number {0};
-  uint64_t     _timestamp {0};
+  //int          _run_number {0};
+  //uint64_t     _timestamp {0};
   std::string  _dbfilename;
 
   // Assumes Landau fit
