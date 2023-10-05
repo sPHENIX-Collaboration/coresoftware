@@ -81,9 +81,10 @@ namespace
   using vec_dVerbose = std::vector<std::vector<std::pair<int,int>>>;
 
   // Neural network parameters and modules
+  bool gen_hits = false;
   bool use_nn = false;
   const int nd = 5;
-  torch::jit::script::Module *module_pos = nullptr;
+  torch::jit::script::Module module_pos;
 
   struct thread_data 
   {
@@ -351,19 +352,23 @@ namespace
       }
 
       // training information
-      auto training_hits = new TrainingHits;
-      training_hits->radius = radius;
-      training_hits->phi = my_data.layergeom->get_phicenter(iphi_center+my_data.phioffset);
-      double center_t = my_data.layergeom->get_zcenter(it_center+my_data.toffset) + my_data.sampa_tbias;
-      training_hits->z = (my_data.m_tdriftmax - center_t) * my_data.tGeometry->get_drift_velocity();
-      if(my_data.side == 0)
-        training_hits->z = -training_hits->z;
-      training_hits->phistep = my_data.layergeom->get_phistep();
-      training_hits->zstep = my_data.layergeom->get_zstep() * my_data.tGeometry->get_drift_velocity();
-      training_hits->layer = my_data.layer;
-      training_hits->ntouch = ntouch;
-      training_hits->nedge = nedge;
-      training_hits->v_adc.fill(0);
+      TrainingHits *training_hits = nullptr;
+      if(gen_hits)
+      {
+        training_hits = new TrainingHits;
+        training_hits->radius = radius;
+        training_hits->phi = my_data.layergeom->get_phicenter(iphi_center+my_data.phioffset);
+        double center_t = my_data.layergeom->get_zcenter(it_center+my_data.toffset) + my_data.sampa_tbias;
+        training_hits->z = (my_data.m_tdriftmax - center_t) * my_data.tGeometry->get_drift_velocity();
+        if(my_data.side == 0)
+          training_hits->z = -training_hits->z;
+        training_hits->phistep = my_data.layergeom->get_phistep();
+        training_hits->zstep = my_data.layergeom->get_zstep() * my_data.tGeometry->get_drift_velocity();
+        training_hits->layer = my_data.layer;
+        training_hits->ntouch = ntouch;
+        training_hits->nedge = nedge;
+        training_hits->v_adc.fill(0);
+      }
 
       //      std::cout << "process list" << std::endl;    
       std::vector<TrkrDefs::hitkey> hitkeyvec;
@@ -415,10 +420,13 @@ namespace
 	hitkeyvec.push_back(hitkey);
 
         // training adc
-        int iphi_diff = iter->iphi - iphi_center;
-        int it_diff = iter->it - it_center;
-        if( std::abs(iphi_diff) <= nd && std::abs(it_diff) <= nd)
-          training_hits->v_adc[(iphi_diff+nd)*(2*nd+1)+(it_diff+nd)] = adc;
+        if(gen_hits)
+        {
+          int iphi_diff = iter->iphi - iphi_center;
+          int it_diff = iter->it - it_center;
+          if( std::abs(iphi_diff) <= nd && std::abs(it_diff) <= nd)
+            training_hits->v_adc[(iphi_diff+nd)*(2*nd+1)+(it_diff+nd)] = adc;
+        }
       }
       //      std::cout << "done process list" << std::endl;
       if (adc_sum < my_data.min_adc_sum){
@@ -529,7 +537,7 @@ namespace
                 }, 1));
 
           // Execute the model and turn its output into a tensor
-          at::Tensor ten_pos = module_pos->forward(inputs).toTensor();
+          at::Tensor ten_pos = module_pos.forward(inputs).toTensor();
           float nn_phi = training_hits->phi + std::clamp(ten_pos[0][0][0].item<float>(), -(float)nd, (float)nd) * training_hits->phistep;
           float nn_z = training_hits->z + std::clamp(ten_pos[0][1][0].item<float>(), -(float)nd, (float)nd) * training_hits->zstep;
           float nn_x = radius * cos(nn_phi);
@@ -569,10 +577,12 @@ namespace
         for (unsigned int i = 0; i < hitkeyvec.size(); i++){
           my_data.association_vector.emplace_back(index, hitkeyvec[i]);
         }
-        training_hits->cluskey = TrkrDefs::genClusKey(tpcHitSetKey, index);
+        if(gen_hits)
+          training_hits->cluskey = TrkrDefs::genClusKey(tpcHitSetKey, index);
       }
       hitkeyvec.clear();
-      my_data.v_hits.emplace_back(training_hits);
+      if(gen_hits)
+        my_data.v_hits.emplace_back(training_hits);
       //      std::cout << "done calc" << std::endl;
     }
   
@@ -871,6 +881,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(TrainingHitsContainerNode);
   }
 
+  gen_hits = _store_hits || _use_nn;
   use_nn = _use_nn;
   if(use_nn)
   {
@@ -880,8 +891,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
     try
     {
       // Deserialize the ScriptModule from a file using torch::jit::load()
-      torch::jit::script::Module module_tmp = torch::jit::load(net_model);
-      module_pos = new torch::jit::script::Module(module_tmp);
+      module_pos = torch::jit::load(net_model);
       std::cout << PHWHERE << "Load NN module: " << net_model << std::endl;
     }
     catch(const c10::Error &e)
@@ -1307,8 +1317,12 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	    m_clusterhitassoc->addAssoc(ckey,hkey); 
 	  }
 
-    for(auto hiter = thread_pair.data.v_hits.begin(); hiter != thread_pair.data.v_hits.end(); hiter++)
-      m_training->v_hits.emplace_back(**hiter);
+        for(auto hiter = thread_pair.data.v_hits.begin(); hiter != thread_pair.data.v_hits.end(); hiter++)
+        {
+          if(_store_hits)
+            m_training->v_hits.emplace_back(**hiter);
+          delete *hiter;
+        }
       }
   }
 
