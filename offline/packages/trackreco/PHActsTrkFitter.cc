@@ -787,12 +787,7 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult &fitOutput,
 		    << std::endl;
 	  std::cout << "For trackTip == " << outtrack.tipIndex() << std::endl;
 	}
-      
-      Trajectory trajectory(tracks.trackStateContainer(),
-			    std::move(trackTips), std::move(indexedParams));
-          
-      m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
-      
+
       /// Get position, momentum from the Acts output. Update the values of
       /// the proto track
       PHTimer updateTrackTimer("UpdateTrackTimer");
@@ -824,6 +819,12 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult &fitOutput,
 	  m_evaluator->evaluateTrackFit(trajectory, track,
 					seed, measurements);
 	}
+
+      Trajectory trajectory(tracks.trackStateContainer(),
+			    std::move(trackTips), std::move(indexedParams));
+          
+      m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
+      
 
       return true;
     }
