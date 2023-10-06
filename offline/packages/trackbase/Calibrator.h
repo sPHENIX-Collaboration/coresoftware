@@ -41,7 +41,7 @@ class Calibrator
   void calibrate(const Acts::GeometryContext& gctx,
                  Acts::MultiTrajectory<Acts::VectorMultiTrajectory>::TrackStateProxy trackState) const
   {
-    const ActsSourceLink& sourceLink = trackState.getUncalibratedSourceLink().get<ActsSourceLink>();
+    const ActsSourceLink sourceLink = trackState.getUncalibratedSourceLink().get<ActsSourceLink>();
 
     assert(m_measurements and
            "Undefined measurement container in Calibrator");
