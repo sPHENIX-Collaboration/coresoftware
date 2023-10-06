@@ -41,7 +41,7 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
     OpenNextFile();
   }
 //  std::set<uint64_t> saved_beamclocks;
-   while (GetSomeMoreEvents())
+  while (GetSomeMoreEvents())
   {
     Event *evt = GetEventiterator()->getNextEvent();
     while (!evt)
@@ -93,7 +93,7 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
       }
       if (num_feeId > 0)
       {
-        for (int i_fee{0}; i < num_feeId; ++i_fee)
+        for (int i_fee{0}; i_fee < num_feeId; ++i_fee)
         {
           auto feeId = plist[i]->iValue(i_fee, "FEEID");
 
@@ -109,9 +109,19 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
           for (int i_strb{0}; i_strb < num_strobes; ++i_strb)
           {
             //TODO: need to add virtual function lvalue(const int, const int , char*)
-            //auto strb_bco = plist[i]->lValue(feeId, i_strb, "TRG_IR_BCO");
+            // using 0 by now
+            auto strb_bco = 0; //plist[i]->lValue(feeId, i_strb, "TRG_IR_BCO");
             auto strb_bc  = plist[i]->iValue(feeId, i_strb, "TRG_IR_BC");
             auto num_hits = plist[i]->iValue(feeId, i_strb, "TRG_NR_HITS");
+            //	if (Verbosity() > 2)
+            //	{
+            //	  std::cout << "evtno: " << EventSequence
+            //		    << ", hits: " << j
+            //		    << ", nr_hits: " << num_hits
+            //		    << ", bco: 0x" << std::hex << gtm_bco << std::dec
+            //		    << ", FEE: " << FEE << std::endl;
+            //	}
+
             for (int i_hit{0}; i_hit < num_hits; ++i_hit)
             {
               MvtxRawHit *newhit = new MvtxRawHitv1();
@@ -124,57 +134,17 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
 //              newhit->set_chip_id();
               newhit->set_row(plist[i]->iValue(feeId, i_strb, i_hit, "HIT_ROW"));
               newhit->set_col(plist[i]->iValue(feeId, i_strb, i_hit, "HIT_COL"));
-             }
-           }
-         }
+              if (InputManager())
+              {
+                InputManager()->AddMvtxRawHit(strb_bco, newhit);
+              }
+              m_MvtxRawHitMap[strb_bco].push_back(newhit);
+            }
+            m_BclkStack.insert(strb_bco);
+          }
+        }
       }
-//      int num_hits = plist[i]->iValue(0, "NR_HITS");
-//      if (Verbosity() > 1)
-//      {
-//      std::cout << "Number of Hits: " << num_hits << " for packet "
-//		  << plist[i]->getIdentifier() << std::endl;
-//      }
-//      std::set<uint64_t> bclk_set;
-//      for (int j = 0; j < num_hits; j++)
-//      {
-//	int FEE = plist[i]->iValue(j, "FEE");
-//	uint64_t gtm_bco = plist[i]->lValue(j, "BCO");
-//        newhit->set_packetid(plist[i]->getIdentifier());
-//	newhit->set_fee(FEE);
-//	newhit->set_bco(gtm_bco);
-//	newhit->set_adc(plist[i]->iValue(j,"ADC"));
-//	newhit->set_amplitude(plist[i]->iValue(j,"AMPLITUDE"));
-//	newhit->set_chip_id(plist[i]->iValue(j,"CHIP_ID"));
-//	newhit->set_channel_id(plist[i]->iValue(j,"CHANNEL_ID"));
-//	newhit->set_word(plist[i]->iValue(j,"DATAWORD"));
-//	newhit->set_FPHX_BCO(plist[i]->iValue(j,"FPHX_BCO"));
-//	newhit->set_full_FPHX(plist[i]->iValue(j,"FULL_FPHX"));
-//	newhit->set_full_ROC(plist[i]->iValue(j,"FULL_ROC"));
-//
-//	gtm_bco += m_Rollover[FEE];
-//	bclk_set.insert(gtm_bco);
-//	if (gtm_bco < m_PreviousClock[FEE])
-//	{
-//	  m_Rollover[FEE] += 0x10000000000;
-//	  gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
-//	}
-//	m_PreviousClock[FEE] = gtm_bco;
-//	m_BeamClockFEE[gtm_bco].insert(FEE);
-//	m_FEEBclkMap[FEE] = gtm_bco;
-//	if (Verbosity() > 2)
-//	{
-//	  std::cout << "evtno: " << EventSequence
-//		    << ", hits: " << j
-//		    << ", nr_hits: " << num_hits
-//		    << ", bco: 0x" << std::hex << gtm_bco << std::dec
-//		    << ", FEE: " << FEE << std::endl;
-//	}
-//          plist[i]->convert();
-//	if (InputManager())
-//	{ InputManager()->AddMvtxRawHit(gtm_bco, newhit); }
-//	m_MvtxRawHitMap[gtm_bco].push_back(newhit);
-//	m_BclkStack.insert(gtm_bco);
-//      }
+      plist[i]->convert();
       delete plist[i];
     }
     delete evt;
