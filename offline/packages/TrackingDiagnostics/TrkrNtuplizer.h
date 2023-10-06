@@ -114,7 +114,6 @@ class TrkrNtuplizer : public SubsysReco
   SvtxTrackMap* _trackmap = nullptr;
 
   TFile *_tfile;
-
   PHTimer *_timer;
 
   // output subroutines

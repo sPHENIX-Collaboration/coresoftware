@@ -31,8 +31,10 @@ class SingleTpcInput : public SingleStreamingInput
  private:
   Packet **plist = nullptr;
   unsigned int m_NumSpecialEvents = 0;
-  std::array<uint64_t, 14> m_PreviousClock{};
-  std::array<uint64_t, 14> m_Rollover{};
+
+  //! map bco to packet
+  std::map<unsigned int, uint64_t> m_packet_bco;
+  
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<uint64_t, std::vector<TpcRawHit *>> m_TpcRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;

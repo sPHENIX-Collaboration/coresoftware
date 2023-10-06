@@ -88,35 +88,6 @@ TowerInfov1* TowerInfoContainerv1::get_tower_at_key(int pos)
   return (TowerInfov1*) _clones->At(index);
 }
 
-unsigned int TowerInfoContainerv1::encode_epd(unsigned int towerIndex)
-{
-  unsigned int key = TowerInfoDefs::encode_epd(towerIndex);
-  return key;
-}
-
-unsigned int TowerInfoContainerv1::encode_emcal(unsigned int towerIndex)
-{
-  unsigned int key = TowerInfoDefs::encode_emcal(towerIndex);
-  return key;
-}
-
-unsigned int TowerInfoContainerv1::encode_hcal(unsigned int towerIndex)
-{
-  unsigned int key = TowerInfoDefs::encode_hcal(towerIndex);
-  return key;
-}
-
-unsigned int TowerInfoContainerv1::encode_mbd(unsigned int towerIndex)
-{
-  unsigned int key = TowerInfoDefs::encode_mbd(towerIndex);
-  return key;
-}
-unsigned int TowerInfoContainerv1::encode_zdc(unsigned int towerIndex)
-{
-  unsigned int key = TowerInfoDefs::encode_zdc(towerIndex);
-  return key;
-}
-
 unsigned int TowerInfoContainerv1::encode_key(unsigned int towerIndex)
 {
   int key = 0;
@@ -141,36 +112,6 @@ unsigned int TowerInfoContainerv1::encode_key(unsigned int towerIndex)
     key = TowerInfoContainerv1::encode_zdc(towerIndex);
     }
   return key;
-}
-
-unsigned int TowerInfoContainerv1::decode_epd(unsigned int tower_key)
-{
-  unsigned int index = TowerInfoDefs::decode_epd(tower_key);  
-  return index;
-}
-
-unsigned int TowerInfoContainerv1::decode_emcal(unsigned int tower_key)
-{
-
-  unsigned int index = TowerInfoDefs::decode_emcal(tower_key);  
-  return index;
-}
-
-unsigned int TowerInfoContainerv1::decode_hcal(unsigned int tower_key)
-{
-  unsigned int index = TowerInfoDefs::decode_hcal(tower_key);  
-  return index;
-}
-
-unsigned int TowerInfoContainerv1::decode_mbd(unsigned int tower_key)
-{
-  unsigned int index = TowerInfoDefs::decode_mbd(tower_key);  
-  return index;
-}
-unsigned int TowerInfoContainerv1::decode_zdc(unsigned int tower_key)
-{
-  unsigned int index = TowerInfoDefs::decode_zdc(tower_key);  
-  return index;
 }
 
 unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
@@ -200,14 +141,4 @@ unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
   return index;
 }
 
-unsigned int TowerInfoContainerv1::getTowerPhiBin(unsigned int key)
-{
-  unsigned int phibin = TowerInfoDefs::getCaloTowerPhiBin(key);
-  return phibin;
-}
 
-unsigned int TowerInfoContainerv1::getTowerEtaBin(unsigned int key)
-{
-  unsigned int etabin = TowerInfoDefs::getCaloTowerEtaBin(key);
-  return etabin;
-}
