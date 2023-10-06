@@ -15,6 +15,13 @@
 class MvtxRawHit;
 class Packet;
 
+typedef struct linkId
+{
+  uint32_t layer = 0xFF;
+  uint32_t stave = 0xFF;
+  uint32_t gbtid = 0xFF;
+} LinkId_t;
+
 class SingleMvtxInput : public SingleStreamingInput
 {
  public:
@@ -28,15 +35,23 @@ class SingleMvtxInput : public SingleStreamingInput
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
+ protected:
+  LinkId_t DecodeFeeid(const uint16_t& feeid)
+  {
+    LinkId_t ret = {};
+    ret.layer = (feeid >> 12) & 0x7;
+    ret.stave = feeid & 0x1F;
+    ret.gbtid = (feeid >> 8) & 0x3;
+    return ret;
+  }
+
  private:
   Packet **plist = nullptr;
   unsigned int m_NumSpecialEvents = 0;
-//  std::array<uint64_t, 14> m_PreviousClock{};
-//  std::array<uint64_t, 14> m_Rollover{};
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<uint64_t, std::vector<MvtxRawHit *>> m_MvtxRawHitMap;
-  std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
+  std::map<int, size_t> m_FeeStrobeMap;
 };
 
 #endif
