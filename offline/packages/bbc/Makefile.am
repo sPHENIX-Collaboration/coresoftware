@@ -136,7 +136,6 @@ endif
 if USE_ONLINE
 libbbc_io_la_LIBADD = \
   -lphool \
-  -lffamodules \
   -lcdbobjects
 
 else
