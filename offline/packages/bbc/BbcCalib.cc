@@ -21,30 +21,11 @@
 using namespace std;
 using namespace BbcDefs;
 
-BbcCalib *BbcCalib::_instance = nullptr;
-
-BbcCalib *BbcCalib::instance()
-{
-  if (_instance)
-    {
-      return _instance;
-    }
-
-  // instantiate new BbcCalib on first call
-  _instance = new BbcCalib();
-
-  return _instance;
-}
-
 BbcCalib::BbcCalib()
 {
   Reset();
-
   _rc = recoConsts::instance();
-
   _cdb = CDBInterface::instance();
-
-  _instance = this;
 }
 
 int BbcCalib::Download_All()

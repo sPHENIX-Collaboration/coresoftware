@@ -7,7 +7,6 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
-//#include <ffamodules/CDBInterface.h>
 
 class TTree;
 class CDBInterface;
@@ -15,12 +14,12 @@ class CDBInterface;
 class BbcCalib
 {
 public:
-  BbcCalib(BbcCalib &other) = delete;
-  void operator=(const BbcCalib &) = delete;
+  BbcCalib();
+
+  //BbcCalib(BbcCalib &other) = delete;
+  //void operator=(const BbcCalib &) = delete;
 
   virtual ~BbcCalib() {}
-
-  static BbcCalib *instance();
 
   float get_qgain(const int ipmt) const { return _qfit_mpv[ipmt]; }
   float get_tq0(const int ipmt) const { return _tqfit_t0mean[ipmt]; }
@@ -40,8 +39,6 @@ public:
   //void Print(Option_t* option) const;
 
 private:
-  BbcCalib();
-  static BbcCalib *_instance;
 
   CDBInterface *_cdb {nullptr};
   recoConsts   *_rc {nullptr};

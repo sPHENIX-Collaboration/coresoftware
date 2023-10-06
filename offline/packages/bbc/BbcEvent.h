@@ -53,7 +53,6 @@ private:
 
   BbcGeom *_bbcgeom {nullptr};
   BbcCalib *_bbccal {nullptr};
-  CDBUtils *_cdbutils { nullptr };
 
   int Read_Charge_Calib( const char *calfname );
   int Read_TQ_T0_Offsets( const char *calfname );

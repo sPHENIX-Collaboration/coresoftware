@@ -41,7 +41,7 @@ BbcEvent::BbcEvent(void) :
     
     // Do evt-by-evt pedestal using sample range below
     //bbcsig[ifeech].SetEventPed0Range(0,1);
-    bbcsig[ifeech].SetEventPed0PreSamp(6,4);
+    bbcsig[ifeech].SetEventPed0PreSamp(6,2);
   }
 
   TString name, title;
@@ -113,7 +113,7 @@ BbcEvent::~BbcEvent()
   delete ac;
   delete gaussian;
   delete _bbcgeom;
-  delete _cdbutils;
+  delete _bbccal;
 
 }
 
@@ -126,31 +126,8 @@ int BbcEvent::InitRun()
 
   recoConsts *rc = recoConsts::instance();
   _runnum = rc->get_IntFlag("RUNNUMBER");
-  cout << "RUNNUMBER " << _runnum << endl;
+  if ( _verbose ) cout << "RUNNUMBER " << _runnum << endl;
   
-  /*
-  if ( _cdbutils == nullptr )
-  {
-    _cdbutils = new CDBUtils();
-  }
-  _cdbutils = new CDBUtils;
-  _cdbutils->setGlobalTag("chiu2");
-  _cdbutils->Verbosity( 10000 );
-  _cdbutils->listPayloadIOVs(708);
-  */
-
-  // kludge until we can figure out what is going on with CDB
-  //rc->set_uint64Flag("TIMESTAMP",_runnum-20000);
-  //
-  //cout << "CDB " << rc->get_StringFlag("CDB_GLOBALTAG") << "\t" << rc->get_uint64Flag("TIMESTAMP") << endl;
-  /*
-  if ( _runnum==0 )
-  {
-    cerr << "ERROR: Bad run number " << _runnum << endl;
-  }
-  //_bbccal->Set_CDB_Timestamp( _runnum );
-  */
-
   if ( _bbcgeom == nullptr )
   {
     _bbcgeom = new BbcGeomV1();
@@ -161,7 +138,7 @@ int BbcEvent::InitRun()
   {
     delete _bbccal;
   }
-  _bbccal = BbcCalib::instance();
+  _bbccal = new BbcCalib();
   _bbccal->Download_All();
 
   return 0;
