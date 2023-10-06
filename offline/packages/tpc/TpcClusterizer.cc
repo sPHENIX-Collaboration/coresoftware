@@ -356,6 +356,7 @@ namespace
       if(gen_hits)
       {
         training_hits = new TrainingHits;
+        assert(training_hits);
         training_hits->radius = radius;
         training_hits->phi = my_data.layergeom->get_phicenter(iphi_center+my_data.phioffset);
         double center_t = my_data.layergeom->get_zcenter(it_center+my_data.toffset) + my_data.sampa_tbias;
