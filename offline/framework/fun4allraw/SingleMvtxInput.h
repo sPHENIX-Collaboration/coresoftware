@@ -31,8 +31,8 @@ class SingleMvtxInput : public SingleStreamingInput
  private:
   Packet **plist = nullptr;
   unsigned int m_NumSpecialEvents = 0;
-  std::array<uint64_t, 14> m_PreviousClock{};
-  std::array<uint64_t, 14> m_Rollover{};
+//  std::array<uint64_t, 14> m_PreviousClock{};
+//  std::array<uint64_t, 14> m_Rollover{};
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<uint64_t, std::vector<MvtxRawHit *>> m_MvtxRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
