@@ -214,7 +214,9 @@ void MicromegasClusterEvaluator_hp::evaluate_clusters()
 
     const auto cluster_range = m_cluster_map->getClusters(hitsetkey);
     const auto nclusters = std::distance( cluster_range.first, cluster_range.second );
-    
+
+    m_container->n_clusters += nclusters;
+
     if( Verbosity() )
     {
       std::cout 
