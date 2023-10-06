@@ -160,14 +160,17 @@ int MicromegasClusterEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 
   // hitset container
   m_hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  assert(m_hitsetcontainer);
 
   // cluster map
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
   if( !m_cluster_map )
   { m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER"); }
-
+  assert( m_cluster_map );
+  
   // cluster hit association map
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+  assert( m_cluster_hit_map );
 
   // local container
   m_container = findNode::getClass<Container>(topNode, "MicromegasClusterEvaluator_hp::Container");
@@ -178,11 +181,16 @@ int MicromegasClusterEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 //_____________________________________________________________________
 void MicromegasClusterEvaluator_hp::evaluate_clusters()
 {
-
   if(!(m_cluster_map&&m_hitsetcontainer&&m_container)) return;
 
   // clear array
   m_container->Reset();
+
+  m_container->n_detector_clusters.resize(16,0);
+  m_container->n_region_clusters.resize(64,0);
+  m_container->min_cluster_size.resize(16,0);
+  m_container->min_cluster_charge.resize(16,0);
+  m_container->first_cluster_strip.resize(16,0);
 
   // first loop over hitsets
   for( const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
@@ -190,7 +198,7 @@ void MicromegasClusterEvaluator_hp::evaluate_clusters()
     // process only micromegas clusters
     const bool is_micromegas( TrkrDefs::getTrkrId(hitsetkey) == TrkrDefs::micromegasId );
     if( !is_micromegas ) continue;
-
+      
     // increment total number of hits
     m_container->n_waveforms_signal += hitset->size();
 
@@ -202,10 +210,23 @@ void MicromegasClusterEvaluator_hp::evaluate_clusters()
 
     const auto layer = TrkrDefs::getLayer(hitsetkey);
     const auto tile = MicromegasDefs::getTileId(hitsetkey);
-    const int detid = tile + 8*(layer-55);
+    const int detid = int(tile) + 8*(int(layer)-55);
 
+    const auto cluster_range = m_cluster_map->getClusters(hitsetkey);
+    const auto nclusters = std::distance( cluster_range.first, cluster_range.second );
+    
+    if( Verbosity() )
+    {
+      std::cout 
+        << "MicromegasClusterEvaluator_hp::evaluate_clusters -"
+        << " layer: " << int(layer) << " tile: " << int(tile) << " detid: " << detid
+        << " hits: " << hitset->size() 
+        << " clusters: " << nclusters
+        << std::endl;
+    }
+    
     bool first = true;
-    for( const auto& [key,cluster]:range_adaptor(m_cluster_map->getClusters(hitsetkey)))
+    for( const auto& [key,cluster]:range_adaptor(cluster_range))
     {
 
       Cluster cluster_struct;
@@ -221,9 +242,9 @@ void MicromegasClusterEvaluator_hp::evaluate_clusters()
       // find associated hits
       const auto range = m_cluster_hit_map->getHits(key);
       cluster_struct.size = std::distance( range.first, range.second );
-
+      
       // loop over assiciated hits
-      unsigned int adc_max = 0;
+      unsigned int adc_max = 0;      
       for( auto iter = range.first; iter != range.second; ++iter )
       {
         const auto& [cluskey,hitkey] = *iter;
@@ -262,6 +283,7 @@ void MicromegasClusterEvaluator_hp::evaluate_clusters()
 
       // increment number of clusters in region (0 to 63)
       int region_id = cluster_struct.region+4*detid;
+
       ++m_container->n_region_clusters[region_id];
 
       // get cluster position
