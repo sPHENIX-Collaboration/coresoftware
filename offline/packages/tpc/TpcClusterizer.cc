@@ -421,7 +421,7 @@ namespace
 	hitkeyvec.push_back(hitkey);
 
         // training adc
-        if(gen_hits)
+        if(gen_hits && training_hits)
         {
           int iphi_diff = iter->iphi - iphi_center;
           int it_diff = iter->it - it_center;
@@ -525,7 +525,7 @@ namespace
     
   }
   
-      if(use_nn && clus_base)
+      if(use_nn && clus_base && training_hits)
       {
         try
         {
@@ -578,11 +578,11 @@ namespace
         for (unsigned int i = 0; i < hitkeyvec.size(); i++){
           my_data.association_vector.emplace_back(index, hitkeyvec[i]);
         }
-        if(gen_hits)
+        if(gen_hits && training_hits)
           training_hits->cluskey = TrkrDefs::genClusKey(tpcHitSetKey, index);
       }
       hitkeyvec.clear();
-      if(gen_hits)
+      if(gen_hits && training_hits)
         my_data.v_hits.emplace_back(training_hits);
       //      std::cout << "done calc" << std::endl;
     }
