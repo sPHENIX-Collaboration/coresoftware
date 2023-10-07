@@ -60,8 +60,13 @@ public:
     minped0x = minx;
     maxped0x = maxx;
   }
+  void SetEventPed0PreSamp(const Int_t presample, const Int_t nsamps = 1) {
+    ped_presamp = presample;
+    ped_presamp_nsamps = nsamps;
+  }
   void CalcEventPed0(const Int_t minsamp, const Int_t maxsamp);
   void CalcEventPed0(const Double_t minx, const Double_t maxx);
+  void CalcEventPed0_PreSamp(const Int_t pre_samp, const Int_t nsamps = 1);
 
   /** Leading Edge Discriminator signal */
   Double_t LeadingEdge(const Double_t threshold);  // Leading Edge Discriminator Time
@@ -91,12 +96,7 @@ public:
 
   /** Make template waveforms for later fits */
   void  SetTemplateSize(const Int_t nptsx, const Int_t nptsy, const Double_t begt, const Double_t endt);
-  int   FillSplineTemplate();
-  void  FillFcnTemplate();
-  void  MakeAndWriteTemplate(std::ostream& out, std::ostream& oerr);
   Int_t ReadTemplate(std::ifstream& shapefile, std::ifstream& sherrfile);
-  void  SetTemplateMinMaxGoodADC(const Double_t min, const Double_t max); // This is used in making templates only
-  void  SetTemplateMinMaxFitRange(const Double_t min, const Double_t max); // This is used in making templates only
 
   //Double_t FitPulse();
   void     SetTimeOffset(const Double_t o) { f_time_offset = o; }
@@ -112,6 +112,7 @@ private:
 
   int ch;
   int nsamples;
+  int _status {0};
 
   /** fit values*/
   // should make an array for the different methods
@@ -139,6 +140,8 @@ private:
   Int_t    maxped0samp;       //! max sample for event-by-event ped, inclusive
   Double_t minped0x;          //! min x for event-by-event ped, inclusive
   Double_t maxped0x;          //! max x for event-by-event ped, inclusive
+  Double_t ped_presamp;       //! presamples for ped calculation
+  Double_t ped_presamp_nsamps; //! num of presamples for ped calculation
 
   /** for time calibration */
   //Double_t time_calib;
@@ -153,8 +156,8 @@ private:
   Int_t    template_npointsy;
   Double_t template_begintime;
   Double_t template_endtime;
-  Double_t template_min_good_amplitude;  //! for template, in original units of waveform data
-  Double_t template_max_good_amplitude;  //! for template, in original units of waveform data
+  //Double_t template_min_good_amplitude;  //! for template, in original units of waveform data
+  //Double_t template_max_good_amplitude;  //! for template, in original units of waveform data
   Double_t template_min_xrange;          //! for template, in original units of waveform data
   Double_t template_max_xrange;          //! for template, in original units of waveform data
   std::vector<Double_t> template_y;
