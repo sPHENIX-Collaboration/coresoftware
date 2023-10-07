@@ -12,6 +12,7 @@
 
 class SingleStreamingInput;
 class ospEvent;
+class MvtxRawHit;
 class InttRawHit;
 class MicromegasRawHit;
 class Packet;
@@ -44,9 +45,11 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   void registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem);
   void AddPacket(uint64_t bclk, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
+  int FillMvtx();
   int FillIntt();
   int FillMicromegas();
   int FillTpc();
+  void AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit);
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
   void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit* /* hit */);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
@@ -57,7 +60,13 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
     std::vector<Packet *> PacketVector;
     unsigned int EventFoundCounter = 0;
   };
-  
+
+  struct MvtxRawHitInfo
+  {
+    std::vector<MvtxRawHit *> MvtxRawHitVector;
+    unsigned int EventFoundCounter = 0;
+  };
+
   struct InttRawHitInfo
   {
     std::vector<InttRawHit *> InttRawHitVector;
@@ -85,6 +94,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
   std::map<uint64_t, PacketInfo> m_PacketInfoMap;
+  std::map<uint64_t, MvtxRawHitInfo> m_MvtxRawHitMap;
   std::map<uint64_t, InttRawHitInfo> m_InttRawHitMap;
   std::map<uint64_t, MicromegasRawHitInfo> m_MicromegasRawHitMap;
   std::map<uint64_t, TpcRawHitInfo> m_TpcRawHitMap;

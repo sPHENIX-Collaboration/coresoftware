@@ -17,6 +17,7 @@
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 #include <Acts/Utilities/Helpers.hpp>
+#include <Acts/EventData/VectorTrackContainer.hpp>
 
 #include "ActsTrackFittingAlgorithm.h"
 
@@ -38,6 +39,9 @@ namespace
       Acts::Experimental::GaussianSumFitter<DirectPropagator,
                                             BetheHeitlerApprox,
                                             Acts::VectorMultiTrajectory>;
+  using TrackContainer =
+    Acts::TrackContainer<Acts::VectorTrackContainer,
+                         Acts::VectorMultiTrajectory, std::shared_ptr>;
 
   struct GsfFitterFunctionImpl
     : public ActsTrackFittingAlgorithm::TrackFitterFunction
@@ -69,10 +73,10 @@ namespace
           options.magFieldContext,
           options.calibrationContext,
           extensions,
-          options.logger,
           options.propOptions,
           &(*options.referenceSurface),
           maxComponents,
+	    weightCutoff,
           abortOnError,
           disableAllMaterialHandling};
 
@@ -84,15 +88,14 @@ namespace
     }
 
     ActsTrackFittingAlgorithm::TrackFitterResult operator()(
-        const std::vector<std::reference_wrapper<
-            const ActsSourceLink>>& sourceLinks,
+        const std::vector<Acts::SourceLink>& sourceLinks,
         const ActsTrackFittingAlgorithm::TrackParameters& initialParameters,
         const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
-        std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory) const override
+        TrackContainer& tracks) const override
     {
       const auto gsfOptions = makeGsfOptions(options);
       return fitter.fit(sourceLinks.begin(), sourceLinks.end(), initialParameters,
-                        gsfOptions, trajectory);
+                        gsfOptions, tracks);
     }
   };
 

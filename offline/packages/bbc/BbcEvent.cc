@@ -1,9 +1,13 @@
 #include "BbcEvent.h"
 #include "BbcPmtInfoContainerV1.h"
 #include "BbcOut.h"
+#include "BbcGeomV1.h"
+#include "BbcCalib.h"
 
 #include <Event/Event.h>
-//#include <recoConsts.h>
+#include <Event/EventTypes.h>
+#include <phool/recoConsts.h>
+#include <sphenixnpc/CDBUtils.h>
 
 #include <TRandom.h>
 #include <TString.h>
@@ -17,28 +21,27 @@
 #include <iomanip>
 
 using namespace std;
-
-// light velocity [cm/ns]
-//static const float C = GSL_CONST_CGS_SPEED_OF_LIGHT / 1e9;
+using namespace BbcDefs;
 
 BbcEvent::BbcEvent(void) :
-  verbose(0),
-  EventNumber(0),
+  _verbose(0),
+  _runnum(0),
+  _eventnum(0),
   p{nullptr,nullptr},
   _tres(0.05),
   ac(nullptr)
 {
   //set default values
 
-  int nch = 256;
-  int nsamples = 31;
-  for (int ich=0; ich<nch; ich++)
+  int nsamples = 31;  /// NEED TO MAKE THIS FLEXIBLE
+  for (int ifeech=0; ifeech<BBC_N_FEECH; ifeech++)
   {
-    //cout << "Creating bbcsig " << ich << endl;
-    bbcsig.push_back( BbcSig(ich,nsamples) );
+    //cout << "Creating bbcsig " << ifeech << endl;
+    bbcsig.push_back( BbcSig(ifeech,nsamples) );
     
     // Do evt-by-evt pedestal using sample range below
-    bbcsig[ich].SetEventPed0Range(0,1);
+    //bbcsig[ifeech].SetEventPed0Range(0,1);
+    bbcsig[ifeech].SetEventPed0PreSamp(6,2);
   }
 
   TString name, title;
@@ -52,10 +55,10 @@ BbcEvent::BbcEvent(void) :
     hevt_bbct[iarm] = new TH1F(name, title, 2000, -50., 50.);
     hevt_bbct[iarm]->SetLineColor(4);
   }
-  h2_tmax[0] = new TH2F("h2_ttmax","time tmax vs ch",NSAMPLES,-0.5,NSAMPLES-0.5,128,0,128);
+  h2_tmax[0] = new TH2F("h2_ttmax","time tmax vs ch",MAX_SAMPLES,-0.5,MAX_SAMPLES-0.5,128,0,128);
   h2_tmax[0]->SetXTitle("sample");
   h2_tmax[0]->SetYTitle("ch");
-  h2_tmax[1] = new TH2F("h2_qtmax","chg tmax vs ch",NSAMPLES,-0.5,NSAMPLES-0.5,128,0,128);
+  h2_tmax[1] = new TH2F("h2_qtmax","chg tmax vs ch",MAX_SAMPLES,-0.5,MAX_SAMPLES-0.5,128,0,128);
   h2_tmax[1]->SetXTitle("sample");
   h2_tmax[1]->SetYTitle("ch");
 
@@ -67,24 +70,24 @@ BbcEvent::BbcEvent(void) :
   gaussian = nullptr;
 
   // BBCCALIB is used in offline to read in our calibrations 
-  const char *bbccalib = getenv("BBCCALIB");
-  if ( bbccalib )
+  const char *bbccaldir = getenv("BBCCALIB");
+  if ( bbccaldir )
   {
     // Online calibrations
-    std::string gainfile = std::string(bbccalib) + "/" + "bbc_mip.calib";
+    std::string gainfile = std::string(bbccaldir) + "/" + "bbc_mip.calib";
     Read_Charge_Calib( gainfile.c_str() );
 
-    std::string tq_t0_offsetfile = std::string(bbccalib) + "/" + "bbc_tq_t0.calib";
+    std::string tq_t0_offsetfile = std::string(bbccaldir) + "/" + "bbc_tq_t0.calib";
     Read_TQ_T0_Offsets( tq_t0_offsetfile.c_str() );
 
-    std::string tq_clk_offsetfile = std::string(bbccalib) + "/" + "bbc_tq_clk.calib";
+    std::string tq_clk_offsetfile = std::string(bbccaldir) + "/" + "bbc_tq_clk.calib";
     Read_TQ_CLK_Offsets( tq_clk_offsetfile.c_str() );
 
-    std::string tt_clk_offsetfile = std::string(bbccalib) + "/" + "bbc_tt_clk.calib";
+    std::string tt_clk_offsetfile = std::string(bbccaldir) + "/" + "bbc_tt_clk.calib";
     Read_TT_CLK_Offsets( tt_clk_offsetfile.c_str() );
 
     /*
-    std::string mondata_fname = std::string(bbccalib) + "/" + "BbcMonData.dat";
+    std::string mondata_fname = std::string(bbccaldir) + "/" + "BbcMonData.dat";
     ifstream mondatafile( mondata_fname );
     string label;
     mondatafile >> label >> bz_offset;
@@ -109,6 +112,8 @@ BbcEvent::~BbcEvent()
   delete h2_tmax[1];
   delete ac;
   delete gaussian;
+  delete _bbcgeom;
+  delete _bbccal;
 
 }
 
@@ -118,6 +123,24 @@ int BbcEvent::InitRun()
   h2_tmax[1]->Reset();
 
   Clear();
+
+  recoConsts *rc = recoConsts::instance();
+  _runnum = rc->get_IntFlag("RUNNUMBER");
+  if ( _verbose ) cout << "RUNNUMBER " << _runnum << endl;
+  
+  if ( _bbcgeom == nullptr )
+  {
+    _bbcgeom = new BbcGeomV1();
+  }
+
+  // Always reload calibrations on InitRun()
+  if ( _bbccal != nullptr )
+  {
+    delete _bbccal;
+  }
+  _bbccal = new BbcCalib();
+  _bbccal->Download_All();
+
   return 0;
 }
 
@@ -151,9 +174,14 @@ void BbcEvent::Clear()
 int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
 {
   // First check if there is any event (ie, reading from PRDF)
-  if ( event==0 ) return 0;
+  if ( event==0 || event==nullptr ) return -1;
 
-  bbcpmts->Reset();
+  int evt_type = event->getEvtType();
+  if ( evt_type != DATAEVENT )
+  {
+    cout << "BbcEvent: Event type is not DATAEVENT, skipping" << endl;
+    return -2;
+  }
 
   // Get the relevant packets from the Event object and transfer the
   // data to the subsystem-specific table.
@@ -163,114 +191,104 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
   {
     int pktid = 1001 + ipkt;    // packet id
     p[ipkt] = event->getPacket( pktid );
-    //cout << "Found packet " << 2001+ipkt << "\t" << p[ipkt] << endl;
+
+    static int counter = 0;
+    if ( counter<4 )
+    {
+      cout << "Found packet " << pktid << "\t" << p[ipkt] << endl;
+      counter++;
+    }
 
     if ( p[ipkt] )
     {
       for (int ich=0; ich<NCHPERPKT; ich++)
       {
         int feech = ipkt*NCHPERPKT + ich;
-        //cout << feech << endl;
-        for (int isamp=0; isamp<NSAMPLES; isamp++)
+        //cout << "feech " << feech << endl;
+        for (int isamp=0; isamp<BbcDefs::MAX_SAMPLES; isamp++)
         {
           m_adc[feech][isamp] = p[ipkt]->iValue(isamp,ich);
           m_samp[feech][isamp] = isamp;
 
+          /*
           if ( m_adc[feech][isamp] <= 100 )
           {
             //flag_err = 1;
-            //cout << "BAD " << m_evt << "\t" << feech << "\t" << m_samp[feech][isamp]
+            //cout << "BAD " << _eventnum << "\t" << feech << "\t" << m_samp[feech][isamp]
             //    << "\t" << m_adc[feech][isamp] << endl;
           }
+          */
         }
+
+        bbcsig[feech].SetXY(m_samp[feech],m_adc[feech]);
       }
+
+      delete p[ipkt];
+      p[ipkt] = nullptr;
     }
     else
     {
       //flag_err = 1;
-      //cout << "ERROR, evt " << m_evt << " Missing Packet " << pktid << endl;
+      cout << "ERROR, evt " << _eventnum << " Missing Packet " << pktid << endl;
     }
   }
 
-  // Delete the packets
-  for (int ipkt=0; ipkt<2; ipkt++)
+  for (int ifeech=0; ifeech<BBC_N_FEECH; ifeech++)
   {
-    if ( p[ipkt]!=0 ) delete p[ipkt];
+    int pmtch = _bbcgeom->get_pmt(ifeech);
+    int tq = _bbcgeom->get_type(ifeech);   // 0 = T-channel, 1 = Q-channel
+
+    if ( tq == 0 ) continue;
+    // Use dCFD method to get time for now in charge channels
+    //Double_t threshold = 4.0*sig->GetPed0RMS();
+
+    //cout << "getspline " << ifeech << endl;
+    bbcsig[ifeech].GetSplineAmpl();
+    Double_t threshold = 0.5;
+    m_pmttq[pmtch] = bbcsig[ifeech].dCFD( threshold );
+    m_ampl[ifeech] = bbcsig[ifeech].GetAmpl();
+
+    if ( m_ampl[ifeech]<24 || ( fabs( m_pmttq[pmtch] ) >25 ) )
+    {
+      //m_t0[ifeech] = -9999.;
+      m_pmttq[pmtch] = -9999.;
+    }
+    else
+    {
+      //if ( m_pmttq[pmtch]<-50. && ifeech==255 ) cout << "hit_times " << ifeech << "\t" << m_pmttq[pmtch] << endl;
+      //if ( arm==1 ) cout << "hit_times " << ifeech << "\t" << setw(10) << m_pmttq[pmtch] << "\t" << board << "\t" << TRIG_SAMP[board] << endl;
+      m_pmttq[pmtch] -= (_bbccal->get_sampmax(ifeech) - 2);
+      m_pmttq[pmtch] *= 17.7623;               // convert from sample to ns (1 sample = 1/56.299 MHz)
+      m_pmttq[pmtch] = m_pmttq[pmtch] - _bbccal->get_tq0(pmtch);
+    }
+
+    m_pmtq[pmtch] = m_ampl[ifeech] * _bbccal->get_qgain(pmtch);
+
+    /*
+    if ( _eventnum<3 && ifeech==255 && m_ampl[ifeech] )
+    {
+      cout << "dcfdcalc " << _eventnum << "\t" << ifeech << "\t" << m_pmttq[pmtch] << "\t" << m_ampl[ifeech] << endl;
+    }
+    */
   }
 
-  for (int ich=0; ich<256; ich++)
+  //bbcpmts->Reset();
+  //cout << "q10 " << bbcpmts->get_tower_at_channel(10)->get_q() << endl;
+
+  // Copy to output
+  for (int ipmt=0; ipmt<BBC_N_PMT; ipmt++)
   {
-    int board = ich/16;    // south or north
-    //int quad = ich/64;    // quadrant
-    int pmtch = (ich/16)*8 + ich%8;
-    int tq = (ich/8)%2;   // 0 = T-channel, 1 = Q-channel
-
-    if ( tq == 1 ) // Use dCFD method to get time for now in charge channels
-    {
-      //Double_t threshold = 4.0*sig->GetPed0RMS();
-      //
-      bbcsig[ich].GetSplineAmpl();
-      Double_t threshold = 0.5;
-      m_pmttq[pmtch] = bbcsig[ich].dCFD( threshold );
-
-      m_ampl[ich] = bbcsig[ich].GetAmpl();
-
-      if ( m_ampl[ich]<24 || ( fabs( m_pmttq[pmtch] ) >25 ) )
-      {
-        //m_t0[ich] = -9999.;
-        m_pmttq[pmtch] = -9999.;
-      }
-      else
-      {
-        //if ( m_pmttq[pmtch]<-50. && ich==255 ) cout << "hit_times " << ich << "\t" << m_pmttq[pmtch] << endl;
-        //if ( arm==1 ) cout << "hit_times " << ich << "\t" << setw(10) << m_pmttq[pmtch] << "\t" << board << "\t" << TRIG_SAMP[board] << endl;
-        m_pmttq[pmtch] -= (TRIG_SAMP[board] - 2);
-        m_pmttq[pmtch] *= 17.7623;               // convert from sample to ns (1 sample = 1/56.299 MHz)
-        m_pmttq[pmtch] = m_pmttq[pmtch] - tq_t0_offsets[pmtch];
-
-      }
-
-      m_pmtq[pmtch] = m_ampl[ich]*gaincorr[pmtch]; 
-
-      if ( EventNumber<3 && ich==255 && m_ampl[ich] )
-      {
-          cout << "dcfdcalc " << EventNumber << "\t" << ich << "\t" << m_pmttq[pmtch] << "\t" << m_ampl[ich] << endl;
-      }
-    }
-    else // Use MBD method to get time in time channels
-    {
-      //Double_t threshold = 4.0*bbcsig[ich].GetPed0RMS();
-      //Double_t threshold = 0.5
-
-      Double_t tdc = bbcsig[ich].MBD( TRIG_SAMP[board] );
-      //Double_t ampl = bbcsig[ich].GetSplineAmpl();
-      //if ( ich==0 ) cout << "XXX " << tdc << endl;
-
-      if ( tdc<100 )
-      {
-          m_pmttt[pmtch] = -9999.;   // No Hit
-      }
-      else
-      {
-          //chiu Skip for now
-          // Convert TDC to ns
-          //m_pmttt[pmtch] = tdc2time[ich]->Eval( tdc );
-          m_pmttt[pmtch] = 12.5 - tdc*0.00189;  // simple linear correction
-          //hit_times[arm].push_back( m_pmttt[pmtch] );
-          //hevt_bbct[arm]->Fill( m_pmttt[pmtch] );
-          //m_bbcn[arm]++;
-      }
-    }
+    bbcpmts->get_tower_at_channel(ipmt)->set_pmt(ipmt, m_pmtq[ipmt], m_pmttt[ipmt], m_pmttq[ipmt]);
   }
 
-  EventNumber++;
-  return EventNumber;
+  _eventnum++;
+  return _eventnum;
 }
 
 ///
 int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
 {
-  if ( verbose>=10 ) cout << "In BbcEvent::Calculate()" << endl;
+  if ( _verbose>=10 ) cout << "In BbcEvent::Calculate()" << endl;
   Clear();
   if ( bbcout!=0 ) bbcout->Reset();
 
@@ -281,9 +299,9 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
   }
 
   std::vector<float> hit_times[2];  // times of the hits in each [arm]
-  
+
   // calculate bbc global variables
-  if ( verbose>=10 ) cout << "Hit PMT info " << endl;
+  if ( _verbose>=10 ) cout << "Hit PMT info " << endl;
   for (int ipmt=0; ipmt<BbcDefs::BBC_N_PMT; ipmt++)
   {
     BbcPmtInfoV1 *bbcpmt = bbcpmts->get_pmt( ipmt );
@@ -292,7 +310,7 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
     float t_pmt = bbcpmt->get_t();  // hit time of pmt
     float q_pmt = bbcpmt->get_q();  // charge in pmt
 
-    if ( verbose>=10 ) cout << ipmt << "\t" << t_pmt << endl;
+    if ( _verbose>=10 ) cout << ipmt << "\t" << t_pmt << endl;
     //if ( m_q[ipmt] > 20 && m_tq[ipmt] > 0. && m_tq[ipmt] < 35. )
     //if ( m_tq[ipmt] > 0. && m_tq[ipmt] < 35. )
     if ( fabs(t_pmt) < 25. )
@@ -303,7 +321,7 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
       m_bbcn[arm]++;
       m_bbcq[arm] += q_pmt;
 
-      if ( verbose>=10 )
+      if ( _verbose>=10 )
       {
         cout << ipmt << "\t" << t_pmt << "\t" << q_pmt << endl;
       }
@@ -312,7 +330,7 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
 
   }
 
-  if ( verbose>=10 ) cout << "nhits " << m_bbcn[0] << "\t" << m_bbcn[1] << endl;
+  if ( _verbose>=10 ) cout << "nhits " << m_bbcn[0] << "\t" << m_bbcn[1] << endl;
   //cout << "bbcte " << m_bbcte[0] << "\t" << m_bbcte[1] << endl;
 
   for (int iarm = 0; iarm < 2; iarm++)
@@ -337,7 +355,7 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
     gaussian->SetParameter(2,hevt_bbct[iarm]->GetRMS());
     gaussian->SetRange(hevt_bbct[iarm]->GetMean()-5,hevt_bbct[iarm]->GetMean()+5);
 
-    if ( verbose ) 
+    if ( _verbose ) 
     {
       if ( ac == nullptr )
       {
@@ -348,7 +366,7 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
     }
 
     hevt_bbct[iarm]->Fit(gaussian, "BNQLR");
-    if ( verbose ) hevt_bbct[iarm]->Draw();
+    if ( _verbose ) hevt_bbct[iarm]->Draw();
 
     // m_bbct[iarm] = m_bbct[iarm] / m_bbcn[iarm];
     m_bbct[iarm] = gaussian->GetParameter(1);
@@ -361,9 +379,9 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
   if (m_bbcn[0] > 0 && m_bbcn[1] > 0)
   {
     // Now calculate zvtx, t0 from best times
-    if ( verbose>=10 ) 
+    if ( _verbose>=10 ) 
     {
-      cout << "Evt " << EventNumber << "\tt0\t" << m_bbct[0] << "\t" << m_bbct[1] << endl;
+      cout << "Evt " << _eventnum << "\tt0\t" << m_bbct[0] << "\t" << m_bbct[1] << endl;
       cout << "bbcn " << m_bbcn[0] << "\t" << m_bbcn[1] << endl;
       cout << "bbcq " << m_bbcq[0] << "\t" << m_bbcq[1] << endl;
     }
@@ -386,7 +404,7 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
     m_bbct0 = (m_bbcte[0] + m_bbcte[1]) / 2.0;
     */
 
-    if ( verbose>10 ) cout << "bbcz " << m_bbcz << endl;
+    if ( _verbose>10 ) cout << "bbcz " << m_bbcz << endl;
   }
 
   // Fill rest of BbcOut
@@ -395,7 +413,7 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
     for (int iarm=0; iarm<2; iarm++)
     {
       bbcout->set_arm( iarm, get_bbcn(iarm), get_bbcq(iarm), get_bbct(iarm) );
-      if (verbose>10 ) cout <<  get_bbcn(iarm) << "\t" << get_bbcq(iarm) << "\t" << get_bbct(iarm) << endl;
+      if (_verbose>10 ) cout <<  get_bbcn(iarm) << "\t" << get_bbcq(iarm) << "\t" << get_bbct(iarm) << endl;
     }
 
     if ( get_bbcn(0) > 0 && get_bbcn(1) > 0 )
@@ -413,16 +431,16 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
 // Only used in online monitoring
 int BbcEvent::DoQuickClockOffsetCalib()
 {
-  for (int ich=0; ich<256; ich++)
+  for (int ifeech=0; ifeech<256; ifeech++)
   {
-    bbcsig[ich].SetXY(m_samp[ich],m_adc[ich]);
+    bbcsig[ifeech].SetXY(m_samp[ifeech],m_adc[ifeech]);
 
     // determine the trig_samp board by board
-    int tq = (ich/8)%2;   // 0 = T-channel, 1 = Q-channel
-    int pmtch = (ich/16)*8 + ich%8;
+    int tq = (ifeech/8)%2;   // 0 = T-channel, 1 = Q-channel
+    int pmtch = (ifeech/16)*8 + ifeech%8;
 
     double x, y;
-    bbcsig[ich].LocMax(x,y);
+    bbcsig[ifeech].LocMax(x,y);
     h2_tmax[tq]->Fill(x,pmtch);
   }
 
