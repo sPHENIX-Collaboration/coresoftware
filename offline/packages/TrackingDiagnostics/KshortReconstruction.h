@@ -79,10 +79,6 @@ class KshortReconstruction : public SubsysReco
   bool projectTrackToCylinder(SvtxTrack* track, double Radius, Eigen::Vector3d& pos, Eigen::Vector3d& mom);
   bool projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d PCA, Eigen::Vector3d& pos, Eigen::Vector3d& mom);
 
-  BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params, const SurfacePtr& targetSurf);
-
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
-
   Acts::Vector3 getVertex(SvtxTrack* track);
 
   TNtuple* ntp_reco_info = nullptr;

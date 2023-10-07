@@ -270,11 +270,8 @@ bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
   auto perigee = propagator.makeVertexSurface(vertex);
   auto actspropagator = propagator.makePropagator();
 
-  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
-  auto logger = Acts::getDefaultLogger("MakeMilleFiles", logLevel);
   Acts::PropagatorOptions<> options(_tGeometry->geometry().getGeoContext(),
-				    _tGeometry->geometry().magFieldContext,
-				    Acts::LoggerWrapper{*logger});
+				    _tGeometry->geometry().magFieldContext);
 
   auto result = actspropagator.propagate(param, *perigee, options);
 

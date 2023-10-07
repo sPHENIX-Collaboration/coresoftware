@@ -75,7 +75,7 @@ int PHActsKDTreeSeeding::InitRun(PHCompositeNode* topNode)
   if(ret != Fun4AllReturnCodes::EVENT_OK)
     return ret;
 
-  m_seedFinderConfig = configureSeedFinder();
+  configureSeedFinder();
 
   auto beginend = m_geomContainerIntt->get_begin_end();
   int i = 0;
@@ -111,9 +111,18 @@ SeedContainer PHActsKDTreeSeeding::runSeeder()
   Acts::SeedFinderOrthogonal<SpacePoint> finder(m_seedFinderConfig);
 
   auto spacePoints = getMvtxSpacePoints();
+  
+  std::function<std::pair<Acts::Vector3, Acts::Vector2>(
+      const SpacePoint *sp)>
+      create_coordinates = [](const SpacePoint *sp) {
+        Acts::Vector3 position(sp->x(), sp->y(), sp->z());
+        Acts::Vector2 variance(sp->varianceR(), sp->varianceZ());
+        return std::make_pair(position, variance);
+      };
 
   /// Call acts seeding algo
-  SeedContainer seeds = finder.createSeeds(spacePoints);
+  SeedContainer seeds = finder.createSeeds(m_seedFinderOptions,
+					   spacePoints, create_coordinates);
   if(Verbosity() > 1)
     {
       std::cout << "Acts::OrthogonalSeeder found " << seeds.size() 
@@ -522,62 +531,40 @@ int PHActsKDTreeSeeding::createNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-Acts::SeedFinderOrthogonalConfig<SpacePoint> PHActsKDTreeSeeding::configureSeedFinder()
+void PHActsKDTreeSeeding::configureSeedFinder()
 {
-  Acts::SeedFinderOrthogonalConfig<SpacePoint> cfg;
 
   Acts::SeedFilterConfig filterCfg;
   filterCfg.maxSeedsPerSpM = m_maxSeedsPerSpM;
 
-  cfg.seedFilter =
+  m_seedFinderConfig.seedFilter =
       std::make_unique<Acts::SeedFilter<SpacePoint>>(
           Acts::SeedFilter<SpacePoint>(filterCfg));
 
-  cfg.rMax = m_rMax;
-  cfg.deltaRMinTopSP = m_deltaRMinTopSP;
-  cfg.deltaRMaxTopSP = m_deltaRMaxTopSP;
-  cfg.deltaRMinBottomSP = m_deltaRMinBottomSP;
-  cfg.deltaRMaxBottomSP = m_deltaRMaxBottomSP;
-  cfg.collisionRegionMin = m_collisionRegionMin;
-  cfg.collisionRegionMax = m_collisionRegionMax;
-  cfg.zMin = m_zMin;
-  cfg.zMax = m_zMax;
-  cfg.maxSeedsPerSpM = m_maxSeedsPerSpM;
-  cfg.cotThetaMax = m_cotThetaMax;
-  cfg.sigmaScattering = m_sigmaScattering;
-  cfg.radLengthPerSeed = m_radLengthPerSeed;
-  cfg.minPt = m_minPt;
-  cfg.bFieldInZ = m_bFieldInZ;
-  cfg.beamPos =
+  m_seedFinderConfig.rMax = m_rMax;
+  m_seedFinderConfig.deltaRMinTopSP = m_deltaRMinTopSP;
+  m_seedFinderConfig.deltaRMaxTopSP = m_deltaRMaxTopSP;
+  m_seedFinderConfig.deltaRMinBottomSP = m_deltaRMinBottomSP;
+  m_seedFinderConfig.deltaRMaxBottomSP = m_deltaRMaxBottomSP;
+  m_seedFinderConfig.collisionRegionMin = m_collisionRegionMin;
+  m_seedFinderConfig.collisionRegionMax = m_collisionRegionMax;
+  m_seedFinderConfig.zMin = m_zMin;
+  m_seedFinderConfig.zMax = m_zMax;
+  m_seedFinderConfig.maxSeedsPerSpM = m_maxSeedsPerSpM;
+  m_seedFinderConfig.cotThetaMax = m_cotThetaMax;
+  m_seedFinderConfig.sigmaScattering = m_sigmaScattering;
+  m_seedFinderConfig.radLengthPerSeed = m_radLengthPerSeed;
+  m_seedFinderConfig.minPt = m_minPt;
+  m_seedFinderOptions.bFieldInZ = m_bFieldInZ;
+  m_seedFinderOptions.beamPos =
       Acts::Vector2(m_beamPosX, m_beamPosY);
-  cfg.impactMax = m_impactMax;
-  cfg.rMinMiddle = m_rMinMiddle;
-  cfg.rMaxMiddle = m_rMaxMiddle;
+  m_seedFinderConfig.impactMax = m_impactMax;
+  m_seedFinderConfig.rMinMiddle = m_rMinMiddle;
+  m_seedFinderConfig.rMaxMiddle = m_rMaxMiddle;
 
-  // Taken from SeedingOrthogonalAlgorithm.cpp, e.g.
-  // https://github.com/acts-project/acts/blob/4b9d9c408158d09bc413e50fc41dbf3277bd751b/Examples/Algorithms/TrackFinding/src/SeedingOrthogonalAlgorithm.cpp
-  // calculation of scattering using the highland formula
-  // convert pT to p once theta angle is known
-  cfg.highland =
-      13.6 * std::sqrt(cfg.radLengthPerSeed) *
-      (1 + 0.038 * std::log(cfg.radLengthPerSeed));
-  float maxScatteringAngle =
-      cfg.highland / cfg.minPt;
-  cfg.maxScatteringAngle2 =
-      maxScatteringAngle * maxScatteringAngle;
-  // helix radius in homogeneous magnetic field. Units are Kilotesla, MeV and
-  // millimeter
-  // TODO: change using ACTS units
-  cfg.pTPerHelixRadius =
-      300. * cfg.bFieldInZ;
-  cfg.minHelixDiameter2 =
-      std::pow(cfg.minPt * 2 /
-                   cfg.pTPerHelixRadius,
-               2);
+  m_seedFinderConfig = 
+    m_seedFinderConfig.toInternalUnits().calculateDerivedQuantities();
+  m_seedFinderOptions = 
+    m_seedFinderOptions.toInternalUnits().calculateDerivedQuantities(m_seedFinderConfig);
 
-  cfg.pT2perRadius = std::pow(
-      cfg.highland / cfg.pTPerHelixRadius,
-      2);
-
-  return cfg;
 }
