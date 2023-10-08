@@ -592,7 +592,7 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
 
     SourceLink sl(surf->geometryId(), index, cluskey);
     Acts::SourceLink actsSL{sl.geometryId(), sl};
-    Acts::Measurement<Acts::BoundIndices, 2> meas(std::move(actsSL), indices, loc, cov);
+    Acts::Measurement<Acts::BoundIndices, 2> meas(actsSL, indices, loc, cov);
     if (Verbosity() > 3)
     {
       std::cout << "source link " << sl.index() << ", loc : "
