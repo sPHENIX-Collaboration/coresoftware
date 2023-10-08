@@ -332,15 +332,6 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     Acts::BoundSymMatrix cov = setDefaultCovariance();
 
-    //! Acts requires a wrapped vector, so we need to replace the
-    //! std::vector contents with a wrapper vector to get the memory
-    //! access correct
-    std::vector<Acts::SourceLink> wrappedSls;
-    for (const auto& sl : sourceLinks)
-    {
-      wrappedSls.push_back(Acts::SourceLink{sl});
-    }
-
     //! Reset the track seed with the dummy covariance
     auto seed = ActsTrackFittingAlgorithm::TrackParameters::create(
                     pSurface,
@@ -384,7 +375,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	std::make_shared<Acts::VectorMultiTrajectory>();
       ActsTrackFittingAlgorithm::TrackContainer 
 	tracks(trackContainer, trackStateContainer);
-    auto result = fitTrack(wrappedSls, seed, kfOptions, tracks);
+    auto result = fitTrack(sourceLinks, seed, kfOptions, tracks);
 
     /// Check that the track fit result did not return an error
     if (result.ok())
@@ -591,8 +582,8 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
     ActsSourceLink::Index index = measurements.size();
 
     SourceLink sl(surf->geometryId(), index, cluskey);
-    Acts::SourceLink actsSL{sl.geometryId(), sl};
-    Acts::Measurement<Acts::BoundIndices, 2> meas(std::move(actsSL), indices, loc, cov);
+    Acts::SourceLink actsSL{sl};
+    Acts::Measurement<Acts::BoundIndices, 2> meas(actsSL, indices, loc, cov);
     if (Verbosity() > 3)
     {
       std::cout << "source link " << sl.index() << ", loc : "
@@ -608,7 +599,7 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
                 << std::endl;
     }
 
-    sourcelinks.push_back(sl);
+    sourcelinks.push_back(actsSL);
     measurements.push_back(meas);
   }
 

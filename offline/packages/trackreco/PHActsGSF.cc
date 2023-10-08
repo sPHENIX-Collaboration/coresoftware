@@ -338,8 +338,8 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
     ActsSourceLink::Index index = measurements.size();
 
     SourceLink sl(surf->geometryId(), index, cluskey);
-    Acts::SourceLink actsSL{sl.geometryId(), sl};
-    Acts::Measurement<Acts::BoundIndices, 2> meas(std::move(actsSL), indices, loc, cov);
+    Acts::SourceLink actsSL{sl};
+    Acts::Measurement<Acts::BoundIndices, 2> meas(actsSL, indices, loc, cov);
     if (Verbosity() > 3)
     {
       std::cout << "source link " << sl.index() << ", loc : "
