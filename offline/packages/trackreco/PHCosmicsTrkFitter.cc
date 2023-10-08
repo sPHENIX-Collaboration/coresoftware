@@ -599,7 +599,7 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
                 << std::endl;
     }
 
-    sourcelinks.push_back(sl);
+    sourcelinks.push_back(actsSL);
     measurements.push_back(meas);
   }
 

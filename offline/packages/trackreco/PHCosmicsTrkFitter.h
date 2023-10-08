@@ -43,7 +43,7 @@ using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
-using SourceLinkVec = std::vector<SourceLink>;
+using SourceLinkVec = std::vector<Acts::SourceLink>;
 
 class PHCosmicsTrkFitter : public SubsysReco
 {
