@@ -1,4 +1,16 @@
+// One-stop header
+// Must include first to avoid conflict with "ClassDef" in Rtypes.h
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <torch/script.h>
+#pragma GCC diagnostic pop
+
 #include "TpcClusterizer.h"
+
+#include "TrainingHitsContainer.h"
+#include "TrainingHits.h"
 
 #include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/TpcDefs.h>
@@ -68,6 +80,12 @@ namespace
 
   using vec_dVerbose = std::vector<std::vector<std::pair<int,int>>>;
 
+  // Neural network parameters and modules
+  bool gen_hits = false;
+  bool use_nn = false;
+  const int nd = 5;
+  torch::jit::script::Module module_pos;
+
   struct thread_data 
   {
     PHG4TpcCylinderGeom *layergeom = nullptr;
@@ -101,6 +119,7 @@ namespace
     double sampa_tbias = 0;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster*> cluster_vector;
+    std::vector<TrainingHits*> v_hits;
     int verbosity = 0;
     bool fillClusHitsVerbose = false;
     vec_dVerbose phivec_ClusHitsVerbose ; // only fill if fillClusHitsVerbose
@@ -301,7 +320,8 @@ namespace
 	  return;
 	}
 
-    void calc_cluster_parameter(const std::vector<ihit> &ihit_list, thread_data& my_data, int ntouch, int nedge )
+    void calc_cluster_parameter(const int iphi_center, const int it_center,
+        const std::vector<ihit> &ihit_list, thread_data& my_data, int ntouch, int nedge )
     {
       //
       // get z range from layer geometry
@@ -330,6 +350,27 @@ namespace
       if(clus_size <= my_data.min_clus_size){
 	return;
       }
+
+      // training information
+      TrainingHits *training_hits = nullptr;
+      if(gen_hits)
+      {
+        training_hits = new TrainingHits;
+        assert(training_hits);
+        training_hits->radius = radius;
+        training_hits->phi = my_data.layergeom->get_phicenter(iphi_center+my_data.phioffset);
+        double center_t = my_data.layergeom->get_zcenter(it_center+my_data.toffset) + my_data.sampa_tbias;
+        training_hits->z = (my_data.m_tdriftmax - center_t) * my_data.tGeometry->get_drift_velocity();
+        if(my_data.side == 0)
+          training_hits->z = -training_hits->z;
+        training_hits->phistep = my_data.layergeom->get_phistep();
+        training_hits->zstep = my_data.layergeom->get_zstep() * my_data.tGeometry->get_drift_velocity();
+        training_hits->layer = my_data.layer;
+        training_hits->ntouch = ntouch;
+        training_hits->nedge = nedge;
+        training_hits->v_adc.fill(0);
+      }
+
       //      std::cout << "process list" << std::endl;    
       std::vector<TrkrDefs::hitkey> hitkeyvec;
 
@@ -378,6 +419,15 @@ namespace
 	TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
 	// if(adc>5)
 	hitkeyvec.push_back(hitkey);
+
+        // training adc
+        if(gen_hits && training_hits)
+        {
+          int iphi_diff = iter->iphi - iphi_center;
+          int it_diff = iter->it - it_center;
+          if( std::abs(iphi_diff) <= nd && std::abs(it_diff) <= nd)
+            training_hits->v_adc[(iphi_diff+nd)*(2*nd+1)+(it_diff+nd)] = adc;
+        }
       }
       //      std::cout << "done process list" << std::endl;
       if (adc_sum < my_data.min_adc_sum){
@@ -449,6 +499,7 @@ namespace
       //std::cout << "done transform" << std::endl;
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
       
+      TrkrCluster *clus_base = nullptr;
   bool b_made_cluster { false };
 
   
@@ -457,6 +508,7 @@ namespace
   if(sqrt(phi_err_square) > my_data.min_err_squared){
     auto clus = new TrkrClusterv5;
     //auto clus = std::make_unique<TrkrClusterv3>();
+    clus_base = clus;
     clus->setAdc(adc_sum);  
     clus->setMaxAdc(max_adc); 
     clus->setEdge(nedge);
@@ -473,6 +525,38 @@ namespace
     
   }
   
+      if(use_nn && clus_base && training_hits)
+      {
+        try
+        {
+          // Create a vector of inputs
+          std::vector<torch::jit::IValue> inputs;
+          inputs.emplace_back(torch::stack({
+                torch::from_blob(std::vector<float>(training_hits->v_adc.begin(), training_hits->v_adc.end()).data(), {1, 2*nd+1, 2*nd+1}, torch::kFloat32),
+                torch::full({1, 2*nd+1, 2*nd+1}, std::clamp((training_hits->layer - 7) / 16, 0, 2), torch::kFloat32),
+                torch::full({1, 2*nd+1, 2*nd+1}, training_hits->z / radius, torch::kFloat32)
+                }, 1));
+
+          // Execute the model and turn its output into a tensor
+          at::Tensor ten_pos = module_pos.forward(inputs).toTensor();
+          float nn_phi = training_hits->phi + std::clamp(ten_pos[0][0][0].item<float>(), -(float)nd, (float)nd) * training_hits->phistep;
+          float nn_z = training_hits->z + std::clamp(ten_pos[0][1][0].item<float>(), -(float)nd, (float)nd) * training_hits->zstep;
+          float nn_x = radius * cos(nn_phi);
+          float nn_y = radius * sin(nn_phi);
+          Acts::Vector3 nn_global(nn_x, nn_y, nn_z);
+          nn_global *= Acts::UnitConstants::cm;
+          Acts::Vector3 nn_local = surface->transform(my_data.tGeometry->geometry().geoContext).inverse() * nn_global;
+          nn_local /= Acts::UnitConstants::cm;
+          float nn_t = my_data.m_tdriftmax - fabs(nn_z) / my_data.tGeometry->get_drift_velocity();
+          clus_base->setLocalX(nn_local(0));
+          clus_base->setLocalY(nn_t);
+        }
+        catch(const c10::Error &e)
+        {
+          std::cout << PHWHERE << "Error: Failed to execute NN modules" << std::endl;
+        }
+      } // use_nn
+
       if (my_data.fillClusHitsVerbose && b_made_cluster) {
         // push the data back to 
         my_data.phivec_ClusHitsVerbose .push_back( std::vector<std::pair<int,int>> {} );
@@ -494,8 +578,12 @@ namespace
         for (unsigned int i = 0; i < hitkeyvec.size(); i++){
           my_data.association_vector.emplace_back(index, hitkeyvec[i]);
         }
+        if(gen_hits && training_hits)
+          training_hits->cluskey = TrkrDefs::genClusKey(tpcHitSetKey, index);
       }
       hitkeyvec.clear();
+      if(gen_hits && training_hits)
+        my_data.v_hits.emplace_back(training_hits);
       //      std::cout << "done calc" << std::endl;
     }
   
@@ -665,7 +753,7 @@ namespace
       // -> add hits to truth association
       // remove hits from all_hit_map
       // repeat untill all_hit_map empty
-      calc_cluster_parameter(ihit_list, *my_data, ntouch, nedge );
+      calc_cluster_parameter(iphi, it, ihit_list, *my_data, ntouch, nedge );
       remove_hits(ihit_list,all_hit_map, adcval);
       ihit_list.clear();
     }
@@ -691,7 +779,8 @@ namespace
 }
 
 TpcClusterizer::TpcClusterizer(const std::string &name)
-  : SubsysReco(name)
+  : SubsysReco(name),
+    m_training(nullptr)
 {}
 
 bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const
@@ -775,6 +864,48 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(newNode);
   }
 
+  auto training_container = findNode::getClass<TrainingHitsContainer>(dstNode, "TRAINING_HITSET");
+  if (!training_container)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
+    }
+
+    training_container = new TrainingHitsContainer;
+    PHIODataNode<PHObject> *TrainingHitsContainerNode =
+        new PHIODataNode<PHObject>(training_container, "TRAINING_HITSET", "PHObject");
+    DetNode->addNode(TrainingHitsContainerNode);
+  }
+
+  gen_hits = _store_hits || _use_nn;
+  use_nn = _use_nn;
+  if(use_nn)
+  {
+    const char *offline_main = std::getenv("OFFLINE_MAIN");
+    assert(offline_main);
+    std::string net_model = std::string(offline_main) + "/share/tpc/net_model.pt";
+    try
+    {
+      // Deserialize the ScriptModule from a file using torch::jit::load()
+      module_pos = torch::jit::load(net_model);
+      std::cout << PHWHERE << "Load NN module: " << net_model << std::endl;
+    }
+    catch(const c10::Error &e)
+    {
+      std::cout << PHWHERE << "Error: Cannot load module " << net_model << std::endl;
+      exit(1);
+    }
+  }
+  else
+  {
+    std::cout << PHWHERE << "Use traditional clustering" << std::endl;
+  }
+
   if (record_ClusHitsVerbose) {
     // get the node
     mClusHitsVerbose = findNode::getClass<ClusHitsVerbosev1>(topNode, "Trkr_SvtxClusHitsVerbose");
@@ -846,6 +977,14 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   if (!m_clusterhitassoc)
   {
     std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  // get node for training hits
+  m_training = findNode::getClass<TrainingHitsContainer>(topNode, "TRAINING_HITSET");
+  if (!m_training)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find TRAINING_HITSET." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -1179,6 +1318,12 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	    m_clusterhitassoc->addAssoc(ckey,hkey); 
 	  }
 
+        for(auto hiter = thread_pair.data.v_hits.begin(); hiter != thread_pair.data.v_hits.end(); hiter++)
+        {
+          if(_store_hits)
+            m_training->v_hits.emplace_back(**hiter);
+          delete *hiter;
+        }
       }
   }
 
