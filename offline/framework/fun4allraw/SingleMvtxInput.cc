@@ -17,8 +17,6 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
-#include <Event/oncsSub_idmvtxv3.h>
-
 #include <set>
 
 SingleMvtxInput::SingleMvtxInput(const std::string &name)
