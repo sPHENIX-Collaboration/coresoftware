@@ -55,15 +55,23 @@ int BbcReco::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  m_bbcevent->InitRun();
+
   int ret = getNodes(topNode);
   return ret;
 }
 
 //____________________________________________________________________________..
-int BbcReco::process_event(PHCompositeNode *)
+int BbcReco::process_event(PHCompositeNode *topNode)
 {
 
-  if ( m_event!=0 && m_bbcpmts!=0 ) m_bbcevent->SetRawData( m_event, m_bbcpmts );
+  getNodes(topNode);
+
+  if ( m_event!=nullptr && m_bbcpmts!=nullptr )
+  {
+    int status = m_bbcevent->SetRawData( m_event, m_bbcpmts );
+    if ( status<0 ) return EVENT_OK; // there wasn't good data in BBC/MBD
+  }
   m_bbcevent->Calculate( m_bbcpmts, m_bbcout );
 
   // This seems to exactly duplicate bbcout. Why?
@@ -147,7 +155,7 @@ int BbcReco::getNodes(PHCompositeNode *topNode)
   m_event = findNode::getClass<Event>(topNode,"PRDF");
   //cout << "event addr " << (unsigned int)m_event << endl;
 
-  if ( m_event==0 )
+  if ( m_event==nullptr )
   {
     static int counter = 0;
     if ( counter < 1 )

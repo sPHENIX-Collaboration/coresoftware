@@ -38,6 +38,38 @@ nlohmann::json SphenixClient::getUrl(const std::string& pl_type, long long iov)
   return makeResp(payload_iov["payload_url"]);
 }
 
+nlohmann::json SphenixClient::getUrlDict(long long iov)
+{
+  nlohmann::json resp = getPayloadIOVs(iov);
+  if (resp["code"] != 0) return resp;
+  for (auto it = resp["msg"].begin(); it != resp["msg"].end();)
+  {
+    if (it.value()["minor_iov_end"] < iov)
+    {
+      it = resp["msg"].erase(it);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+  for (auto& piov : resp["msg"].items())
+  {
+    piov.value() = piov.value()["payload_url"];
+  }
+  return resp;
+}
+
+nlohmann::json SphenixClient::deletePayloadIOV(const std::string& pl_type, long long iov_start)
+{
+  return nopayloadclient::NoPayloadClient::deletePayloadIOV(pl_type, 0, iov_start);
+}
+
+nlohmann::json SphenixClient::deletePayloadIOV(const std::string& pl_type, long long iov_start, long long iov_end)
+{
+  return nopayloadclient::NoPayloadClient::deletePayloadIOV(pl_type, 0, iov_start, 0, iov_end);
+}
+
 std::string SphenixClient::getCalibration(const std::string& pl_type, long long iov)
 {
   nlohmann::json resp = getUrl(pl_type, iov);

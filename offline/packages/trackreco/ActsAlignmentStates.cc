@@ -40,12 +40,12 @@ namespace
   }
 }  // namespace
 
-void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
+void ActsAlignmentStates::fillAlignmentStateMap(const ActsTrackFittingAlgorithm::TrackContainer &tracks,
+						const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
                                                 SvtxTrack* track,
                                                 const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
-  const auto mj = traj.multiTrajectory();
-  const auto& tips = traj.tips();
+  const auto& mj = tracks.trackStateContainer();
   const auto& trackTip = tips.front();
   const auto crossing = track->get_silicon_seed()->get_crossing();
 
@@ -97,7 +97,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
     }
       
     const auto& surface = state.referenceSurface();
-    const auto& sl = static_cast<const ActsSourceLink&>(state.uncalibrated());
+    auto sl = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
     auto ckey = sl.cluskey();
     Acts::Vector2 localMeas = Acts::Vector2::Zero();
     /// get the local measurement that acts used

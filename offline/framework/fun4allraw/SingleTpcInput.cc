@@ -17,6 +17,7 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
+#include <memory>
 #include <set>
 
 SingleTpcInput::SingleTpcInput(const std::string &name)
@@ -43,7 +44,7 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
 //  std::set<uint64_t> saved_beamclocks;
    while (GetSomeMoreEvents())
   {
-    Event *evt = GetEventiterator()->getNextEvent();
+    std::unique_ptr<Event> evt( GetEventiterator()->getNextEvent() );
     while (!evt)
     {
       fileclose();
@@ -52,7 +53,7 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
         AllDone(1);
         return;
       }
-      evt = GetEventiterator()->getNextEvent();
+      evt.reset( GetEventiterator()->getNextEvent() );
     }
     if (Verbosity() > 2)
     {
@@ -76,52 +77,65 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
     }
     for (int i = 0; i < npackets; i++)
     {
+      
+      // keep pointer to local packet
+      auto& packet = plist[i];
+
+      // get packet id
+      const auto packet_id = packet->getIdentifier();
+
       if (Verbosity() > 1)
       {
-        plist[i]->identify();
+        packet->identify();
       }
-     int m_nWaveormInFrame = plist[i]->iValue(0, "NR_WF");
-      uint64_t m_nTaggerInFrame = plist[i]->lValue(0, "N_TAGGER");
-//      int m_maxFEECount = plist[i]->iValue(0, "MAX_FEECOUNT");
-      std::set<uint64_t> bclk_set;
-uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
-    for (uint64_t t = 0; t < m_nTaggerInFrame; t++)
-    {
-      std::cout << "bco: 0x" << std::hex << plist[i]->lValue(t, "BCO")
-		<< std::dec << std::endl;
-      gtm_bco = plist[i]->lValue(t, "BCO");
-      std::cout << "last bco: 0x" << std::hex << plist[i]->lValue(t, "LAST_BCO")
-		<< std::dec << std::endl;
-	gtm_bco += m_Rollover[0];
-	bclk_set.insert(gtm_bco);
-	if (gtm_bco < m_PreviousClock[0])
-	{
-	  m_Rollover[0] += 0x10000000000;
-	  gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
-	}
-/*
-       m_tagger_type = (uint16_t) (p->lValue(t, "TAGGER_TYPE"));
-       m_is_endat = (uint8_t) (p->lValue(t, "IS_ENDAT"));
-       m_is_lvl1 = (uint8_t) (p->lValue(t, "IS_LEVEL1_TRIGGER"));
-       m_bco = (uint64_t) (p->lValue(t, "BCO"));
-       m_lvl1_count = (uint32_t) (p->lValue(t, "LEVEL1_COUNT"));
-       m_endat_count = (uint32_t) (p->lValue(t, "ENDAT_COUNT"));
-       m_last_bco = (uint64_t) (p->lValue(t, "LAST_BCO"));
-       m_modebits = (uint8_t) (p->lValue(t, "MODEBITS"));
-*/
-    }
+
+      // by default use previous bco clock for gtm bco
+      auto& previous_bco = m_packet_bco[packet_id];
+      uint64_t gtm_bco = previous_bco;
+      
+      uint64_t m_nTaggerInFrame = packet->lValue(0, "N_TAGGER");
+      for (uint64_t t = 0; t < m_nTaggerInFrame; t++)
+      {
+        // only store gtm_bco for level1 type of taggers (not ENDDAT)
+        const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
+        if( is_lvl1 )
+        {
+          gtm_bco = packet->lValue(t, "BCO");
+          std::cout << "bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
+
+          // store
+          previous_bco = gtm_bco;
+        }
+      }
+    
+    int m_nWaveormInFrame = packet->iValue(0, "NR_WF");
     for (int wf = 0; wf < m_nWaveormInFrame; wf++)
     {
       TpcRawHit *newhit = new TpcRawHitv1();
-      int FEE = plist[i]->iValue(wf, "FEE");
-      newhit->set_bco(plist[i]->iValue(wf, "BCO"));
-      newhit->set_packetid(plist[i]->getIdentifier());
-      newhit->set_samples(plist[i]->iValue(wf, "SAMPLES"));
+      int FEE = packet->iValue(wf, "FEE");
+      newhit->set_bco(packet->iValue(wf, "BCO"));
+      
+      // store gtm bco in hit
+      newhit->set_gtm_bco(gtm_bco);
+
+      newhit->set_packetid(packet->getIdentifier());
       newhit->set_fee(FEE);
-      newhit->set_channel(plist[i]->iValue(wf, "CHANNEL"));
-      newhit->set_sampaaddress(plist[i]->iValue(wf, "SAMPAADDRESS"));
-      newhit->set_sampachannel(plist[i]->iValue(wf, "CHANNEL"));
-      m_PreviousClock[FEE] = gtm_bco;
+      newhit->set_channel(packet->iValue(wf, "CHANNEL"));
+      newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
+      newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
+
+//         // checksum and checksum error
+//         newhit->set_checksum( packet->iValue(iwf, "CHECKSUM") );
+//         newhit->set_checksum_error( packet->iValue(iwf, "CHECKSUMERROR") );
+
+      // samples
+      const uint16_t samples = packet->iValue(wf, "SAMPLES");
+      newhit->set_samples( samples );
+
+      // adc values
+      for( uint16_t is =0; is < samples; ++is )
+      { newhit->set_adc( is, packet->iValue( wf, is ) ); }
+        
       m_BeamClockFEE[gtm_bco].insert(FEE);
       m_FEEBclkMap[FEE] = gtm_bco;
       if (Verbosity() > 2)
@@ -132,7 +146,7 @@ uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
 		  << ", bco: 0x" << std::hex << gtm_bco << std::dec
 		  << ", FEE: " << FEE << std::endl;
       }
-//          plist[i]->convert();
+//          packet->convert();
       if (InputManager())
       {
 	InputManager()->AddTpcRawHit(gtm_bco, newhit);
@@ -140,9 +154,8 @@ uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
       m_TpcRawHitMap[gtm_bco].push_back(newhit);
       m_BclkStack.insert(gtm_bco);
     }
-    delete plist[i];
+      delete packet;
     }
-    delete evt;
   }
 //  } while (m_TpcRawHitMap.size() < 10 || CheckPoolDepth(m_TpcRawHitMap.begin()->first));
 }
