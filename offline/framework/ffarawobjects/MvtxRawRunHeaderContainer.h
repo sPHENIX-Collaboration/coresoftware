@@ -6,31 +6,8 @@
 #include <cstdint>
 #include <set>
 
-struct MvtxL1Trg
-{
-  uint64_t bco : 40; // 40 bits gl1/gtm bco
-  uint16_t bc  : 12; // 12 bits mvtx internal bc counter
-
-  MvtxL1Trg() = default;
-  ~MvtxL1Trg() = default;
-
-  MvtxL1Trg(uint64_t _bco, uint16_t _bc) : bco(_bco), bc(_bc) {};
-
-  bool operator<(const MvtxL1Trg& other) const
-  {
-    return (bco == other.bco) ? (bc < other.bc) : (bco < other.bco);
-  }
-
-  bool operator==(const MvtxL1Trg& other) const
-  {
-    return (bco == other.bco) ? (bc == other.bc) : false;
-  }
-
-};
-
 class  MvtxRawRunHeaderContainer: public PHObject
 {
-  using l1_type_set = std::set<MvtxL1Trg>;
 
 public:
   MvtxRawRunHeaderContainer() = default;
@@ -47,14 +24,14 @@ public:
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;
 
-  void AddL1Trg(const MvtxL1Trg& gtmL1Trg)
+  void AddL1Trg(const uint64_t& gtmL1_bco)
   {
-    m_MvtxL1TrgSet.insert(gtmL1Trg);
+    m_MvtxL1TrgSet.insert(gtmL1_bco);
   };
-  void AddL1Trg(const l1_type_set& mvtxL1TrgSet);
+  void AddL1Trg(const std::set<uint64_t>& mvtxL1TrgSet);
 
 private:
-  l1_type_set m_MvtxL1TrgSet;
+  std::set<uint64_t> m_MvtxL1TrgSet;
 
   ClassDefOverride(MvtxRawRunHeaderContainer,1)
 };

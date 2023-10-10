@@ -7,6 +7,7 @@
 
 #include <ffarawobjects/MvtxRawHit.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
+#include <ffarawobjects/MvtxRawRunHeaderContainer.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainerv1.h>
 #include <ffarawobjects/MicromegasRawHit.h>
@@ -456,7 +457,21 @@ int Fun4AllEvtInputPoolManager::FillMvtx()
   }
   if (m_MvtxRawHitMap.empty())
   {
+    //Filling RunHeader information like gtmL1Trg.
+    auto* mvtxRHC = findNode::getClass<MvtxRawRunHeaderContainer>(m_topNode, "MVTXRAWRUNHEADER");
+    if ( !mvtxRHC)
+    {
+      std::cout << "ERROR: MVTXRAWRUNHEADER node not found, exit. " << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
+    for (const auto evtId : m_MvtxEvtInputList)
+    {
+      mvtxRHC->AddL1Trg(dynamic_cast<SingleMvtxInput*>(m_EvtInputVector.at(evtId))->getGtmL1BcoSet());
+    }
+
     std::cout << "we are done" << std::endl;
+    std::cout << "L1 Trg: " << mvtxRHC->isValid() << std::endl;
     return -1;
   }
   MvtxRawHitContainer *mvtxcont =  findNode::getClass<MvtxRawHitContainer>(m_topNode,"MVTXRAWHIT");

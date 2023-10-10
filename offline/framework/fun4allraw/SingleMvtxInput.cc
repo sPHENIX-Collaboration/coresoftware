@@ -4,6 +4,7 @@
 
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/MvtxRawHitv1.h>
+#include <ffarawobjects/MvtxRawRunHeaderContainer.h>
 
 #include <frog/FROG.h>
 
@@ -99,12 +100,13 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
           auto link = DecodeFeeid(feeId);
 //          auto hbfSize = plist[i]->iValue(feeId, "NR_HBF");
           auto num_strobes = plist[i]->iValue(feeId, "NR_STROBES");
-//          auto num_L1Trgs = plist[i]->iValue(feeId, "NR_PHYS_TRG");
-//          for ( int iL1 = 0; iL1 < num_L1Trgs; ++iL1 )
-//          {
-//            os << "L1: " << iL1  << std::hex << " BCO: 0x" << lValue(feeId, iL1, "L1_IR_BCO");
-//            os << std::dec << " BC: " << iValue(feeId, iL1, "L1_IR_BC") << endl;
-//          }
+          auto num_L1Trgs = plist[i]->iValue(feeId, "NR_PHYS_TRG");
+          for ( int iL1 = 0; iL1 < num_L1Trgs; ++iL1 )
+          {
+            auto l1Trg_bco = plist[i]->lValue(feeId, iL1, "L1_IR_BCO");
+//            auto l1Trg_bc  = plist[i]->iValue(feeId, iL1, "L1_IR_BC");
+            m_GtmL1BcoSet.emplace(l1Trg_bco);
+          }
 
           m_FeeStrobeMap[feeId] += num_strobes;
           for (int i_strb{0}; i_strb < num_strobes; ++i_strb)
@@ -234,6 +236,7 @@ void SingleMvtxInput::ClearCurrentEvent()
   CleanupUsedPackets(currentbclk);
   // m_BclkStack.erase(currentbclk);
   // m_BeamClockFEE.erase(currentbclk);
+  m_GtmL1BcoSet.clear();
   return;
 }
 
@@ -270,6 +273,14 @@ void SingleMvtxInput::CreateDSTNode(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
+  MvtxRawRunHeaderContainer* mvtxRHC = findNode::getClass<MvtxRawRunHeaderContainer>(detNode,"MVTXRAWRUNHEADER");
+  if (! mvtxRHC)
+  {
+    mvtxRHC = new MvtxRawRunHeaderContainer();
+    PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(mvtxRHC, "MVTXRAWRUNHEADER", "PHObject");
+    detNode->addNode(newNode);
+  }
+
   MvtxRawHitContainer* mvtxhitcont = findNode::getClass<MvtxRawHitContainer>(detNode,"MVTXRAWHIT");
   if (! mvtxhitcont)
   {
@@ -277,4 +288,9 @@ void SingleMvtxInput::CreateDSTNode(PHCompositeNode *topNode)
     PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(mvtxhitcont, "MVTXRAWHIT", "PHObject");
     detNode->addNode(newNode);
   }
+}
+
+void SingleMvtxInput::clearGtmL1BcoSet()
+{
+  m_GtmL1BcoSet.clear();
 }

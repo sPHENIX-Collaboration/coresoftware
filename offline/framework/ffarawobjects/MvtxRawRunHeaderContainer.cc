@@ -16,7 +16,7 @@ int MvtxRawRunHeaderContainer::isValid() const
   return  m_MvtxL1TrgSet.size();
 }
 
-void MvtxRawRunHeaderContainer::AddL1Trg( const l1_type_set& mvtxL1TrgSet)
+void MvtxRawRunHeaderContainer::AddL1Trg( const std::set<uint64_t>& mvtxL1TrgSet)
 {
   m_MvtxL1TrgSet.insert(mvtxL1TrgSet.cbegin(), mvtxL1TrgSet.cend());
 }
