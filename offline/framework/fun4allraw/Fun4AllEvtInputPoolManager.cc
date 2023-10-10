@@ -101,14 +101,14 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
   {
     iret += FillTpc();
   }
-  
+
   if (m_micromegas_registered_flag)
   {
     iret += FillMicromegas();
   }
 
   // std::cout << "size  m_InttRawHitMap: " <<  m_InttRawHitMap.size()
-  // 	    << std::endl;
+  //	    << std::endl;
   return iret;
   // readagain:
   //   if (!IsOpen())
@@ -352,6 +352,7 @@ void Fun4AllEvtInputPoolManager::registerStreamingInput(SingleStreamingInput *ev
   {
   case Fun4AllEvtInputPoolManager::MVTX:
     m_mvtx_registered_flag = true;
+    m_MvtxEvtInputList.push_back(m_EvtInputVector.size() - 1);
     break;
   case Fun4AllEvtInputPoolManager::INTT:
     m_intt_registered_flag = true;
@@ -433,37 +434,23 @@ void Fun4AllEvtInputPoolManager::UpdateEventFoundCounter(const int evtno)
 int Fun4AllEvtInputPoolManager::FillMvtx()
 {
   //TODO: Find a better placement for this counter that dont need to be executed every call
-  unsigned int nMvtxEvtInputs = 0;
-  for (auto& evtInput : m_EvtInputVector)
-  {
-    if (dynamic_cast<SingleMvtxInput*>(evtInput))
-    {
-      ++nMvtxEvtInputs;
-    }
-  }
   while (m_MvtxRawHitMap.size() < 5) // pooling at least 5 events
   {
     unsigned int alldone = 0;
-    for (auto iter : m_EvtInputVector)
+    for (const auto evtId : m_MvtxEvtInputList)
     {
-      if ( dynamic_cast<SingleMvtxInput*>(iter) )
+      auto* evtIn = m_EvtInputVector.at(evtId);
+      alldone += evtIn->AllDone();
+      if (Verbosity() > 0)
       {
-	      alldone += iter->AllDone();
-        if (Verbosity() > 0)
-        {
-	        std::cout << "fill pool for " << iter->Name() << std::endl;
-	      }
-	      iter->FillPool();
-	      m_RunNumber = iter->RunNumber();
+        std::cout << "fill pool for " << evtIn->Name() << std::endl;
       }
-      else
-      {
-        continue;
-      }
+      evtIn->FillPool();
+      m_RunNumber = evtIn->RunNumber();
     }
-    if (alldone >= nMvtxEvtInputs)
+    if (alldone >= m_MvtxEvtInputList.size())
     {
-	    break;
+      break;
     }
     SetRunNumber(m_RunNumber);
   }
@@ -484,14 +471,14 @@ int Fun4AllEvtInputPoolManager::FillMvtx()
   {
     if (Verbosity() > 1)
     {
-	    mvtxhititer->identify();
+      mvtxhititer->identify();
     }
     mvtxcont->AddHit(mvtxhititer);
 //  delete intthititer; // cleanup up done in Single Input Mgrs
   }
-  for (auto iter : m_EvtInputVector)
+  for (const auto evtId : m_MvtxEvtInputList)
   {
-    iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
+    m_EvtInputVector.at(evtId)->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
   }
   m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
   m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
@@ -562,30 +549,30 @@ int Fun4AllEvtInputPoolManager::FillMicromegas()
       iter->FillPool();
       m_RunNumber = iter->RunNumber();
     }
-    
+
     if (alldone >= m_EvtInputVector.size())
     { break; }
     SetRunNumber(m_RunNumber);
   }
-  
+
   if (m_MicromegasRawHitMap.empty())
   {
     std::cout << "we are done" << std::endl;
     return -1;
   }
-  
+
   auto container =  findNode::getClass<MicromegasRawHitContainer>(m_topNode,"MICROMEGASRAWHIT");
   for( auto hititer :  m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector)
   {
     if (Verbosity() > 1)
     {  hititer->identify(); }
-    
+
     container->AddHit(hititer);
   }
-  
+
   for (auto iter : m_EvtInputVector)
   { iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first); }
-  
+
   m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
   m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
   return 0;
