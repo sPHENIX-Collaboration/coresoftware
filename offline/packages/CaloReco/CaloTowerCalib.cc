@@ -60,7 +60,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   {
     m_runNumber = -1;
   }
-  std::cout << "at run " << m_runNumber << std::endl;
+
   if (m_dettype == CaloTowerCalib::CEMC)
   {
     m_detector = "CEMC";
