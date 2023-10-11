@@ -66,6 +66,7 @@ class PHActsGSF : public SubsysReco
       const std::vector<Acts::SourceLink>& sourceLinks,
       const ActsTrackFittingAlgorithm::TrackParameters& seed,
       const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
+      const CalibratorAdapter& calibrator,
       ActsTrackFittingAlgorithm::TrackContainer& tracks);
 
   void updateTrack(FitResult& result, SvtxTrack* track,

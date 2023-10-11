@@ -138,6 +138,7 @@ class PHActsTrkFitter : public SubsysReco
 	   const ActsTrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
 	   const SurfacePtrVec& surfSequence,
+	   const CalibratorAdapter& calibrator,
 	   ActsTrackFittingAlgorithm::TrackContainer& tracks);
 
   /// Functions to get list of sorted surfaces for direct navigation, if
@@ -151,7 +152,7 @@ class PHActsTrkFitter : public SubsysReco
 			 ActsTrackFittingAlgorithm::TrackContainer& tracks,
 			 const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
-  Acts::BoundSymMatrix setDefaultCovariance() const;
+  Acts::BoundSquareMatrix setDefaultCovariance() const;
   void printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const;
 
   /// Event counter

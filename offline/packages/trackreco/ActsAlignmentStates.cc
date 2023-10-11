@@ -153,7 +153,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(const ActsTrackFittingAlgorithm:
     double phi = state.smoothed()[Acts::eBoundPhi];
     double theta = state.smoothed()[Acts::eBoundTheta];
 
-    Acts::Vector3 tangent = Acts::makeDirectionUnitFromPhiTheta(phi,theta);
+    Acts::Vector3 tangent = Acts::makeDirectionFromPhiTheta(phi,theta);
     //! opposite convention for coordinates in Acts
     tangent *= -1;
 
@@ -215,7 +215,7 @@ ActsAlignmentStates::makeGlobalDerivatives(const Acts::Vector3& OM,
                                            const std::pair<Acts::Vector3, Acts::Vector3>& projxy)
 {
   SvtxAlignmentState::GlobalMatrix globalder = SvtxAlignmentState::GlobalMatrix::Zero();
-  Acts::SymMatrix3 unit = Acts::SymMatrix3::Identity();
+  Acts::SquareMatrix3 unit = Acts::SquareMatrix3::Identity();
 
   //! x residual rotations
   globalder(0, 0) = ((unit.col(0)).cross(OM)).dot(projxy.first);

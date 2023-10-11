@@ -99,7 +99,9 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
     m_tGeometry->geometry().magField,
     true, true, 0.0, Acts::FreeToBoundCorrection(), *Acts::getDefaultLogger("Kalman", level));
 
-  m_fitCfg.dFit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(m_tGeometry->geometry().magField);
+  m_fitCfg.dFit = ActsTrackFittingAlgorithm::makeDirectedKalmanFitterFunction(
+    m_tGeometry->geometry().tGeometry,
+    m_tGeometry->geometry().magField);
 
   m_outlierFinder.verbosity = Verbosity();
   std::map<long unsigned int, float> chi2Cuts;
@@ -386,7 +388,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       auto actsFourPos = Acts::Vector4(position(0), position(1),
 				       position(2),
 				       10 * Acts::UnitConstants::ns);
-      Acts::BoundSymMatrix cov = setDefaultCovariance();
+      Acts::BoundSquareMatrix cov = setDefaultCovariance();
  
       int charge = tpcseed->get_charge();
       
@@ -397,18 +399,17 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         actsFourPos,
         momentum,
         charge / momentum.norm(),
-        cov).value();
+        cov,
+	Acts::ParticleHypothesis::pion()).value();
       
       if(Verbosity() > 2)
       { printTrackSeed(seed); }
 
       /// Set host of propagator options for Acts to do e.g. material integration
       Acts::PropagatorPlainOptions ppPlainOptions;
-      ppPlainOptions.absPdgCode = m_pHypothesis;
-      ppPlainOptions.mass = TDatabasePDG::Instance()->GetParticle(
-        m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
-       
-      Calibrator calibrator{measurements};
+   
+      std::shared_ptr<Calibrator> calibptr;
+      CalibratorAdapter calibrator{*calibptr, measurements};
 
       auto magcontext = m_tGeometry->geometry().magFieldContext;
       auto calibcontext = m_tGeometry->geometry().calibContext;
@@ -418,7 +419,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	m_tGeometry->geometry().getGeoContext(),
         magcontext,
         calibcontext,
-        calibrator,
         &(*pSurface),
 	ppPlainOptions};
       
@@ -432,7 +432,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	std::make_shared<Acts::VectorMultiTrajectory>();
       ActsTrackFittingAlgorithm::TrackContainer 
 	tracks(trackContainer, trackStateContainer);
-      auto result = fitTrack(sourceLinks, seed, kfOptions, surfaces, tracks);
+      auto result = fitTrack(sourceLinks, seed, kfOptions, 
+			     surfaces, calibrator, tracks);
       fitTimer.stop();
       auto fitTime = fitTimer.get_accumulated_time();
    
@@ -713,7 +714,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       std::array<Acts::BoundIndices,2> indices;
       indices[0] = Acts::BoundIndices::eBoundLoc0;
       indices[1] = Acts::BoundIndices::eBoundLoc1;
-      Acts::ActsSymMatrix<2> cov = Acts::ActsSymMatrix<2>::Zero();
+      Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
 
       double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
       auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster,clusRadius,cluskey);
@@ -774,7 +775,7 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult &fitOutput,
       Trajectory::IndexedParameters indexedParams;
       indexedParams.emplace(std::pair{outtrack.tipIndex(),
 	    ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
-	      outtrack.parameters(), outtrack.covariance()}});
+	      outtrack.parameters(), outtrack.covariance(), outtrack.particleHypothesis()}});
       
       if (Verbosity() > 2)
 	{
@@ -782,7 +783,8 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult &fitOutput,
 	  std::cout << " position : " << outtrack.referenceSurface().localToGlobal(m_tGeometry->geometry().getGeoContext(), Acts::Vector2(outtrack.loc0(), outtrack.loc1()), Acts::Vector3(1,1,1)).transpose()
 	    
 		    << std::endl;
-	  std::cout << "charge: "<<outtrack.charge()<<std::endl;
+	  int otcharge = outtrack.qOverP() > 0 ? 1 : -1;
+	  std::cout << "charge: "<< otcharge <<std::endl;
 	  std::cout << " momentum : " << outtrack.momentum().transpose()
 		    << std::endl;
 	  std::cout << "For trackTip == " << outtrack.tipIndex() << std::endl;
@@ -840,14 +842,19 @@ ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
     const ActsTrackFittingAlgorithm::TrackParameters& seed,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
     const SurfacePtrVec& surfSequence,
+    const CalibratorAdapter& calibrator,
     ActsTrackFittingAlgorithm::TrackContainer& tracks)
 {
   if(m_fitSiliconMMs) 
   { 
-    return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence, tracks); 
-  } else {
-    return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions, tracks); 
-  }
+    return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, 
+			    surfSequence, calibrator, tracks); 
+  } 
+  else 
+    {
+      return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions, 
+			     calibrator, tracks); 
+    }
 }
 
 SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks,
@@ -860,10 +867,11 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
   
   for(const auto& sl : sourceLinks)
   {
+    const ActsSourceLink asl = sl.get<ActsSourceLink>();
     if(Verbosity() > 1)
-    { std::cout << "SL available on : " << sl.geometryId() << std::endl; }
+    { std::cout << "SL available on : " << asl.geometryId() << std::endl; }
       
-    const auto surf = m_tGeometry->geometry().tGeometry->findSurface(sl.geometryId());
+    const auto surf = m_tGeometry->geometry().tGeometry->findSurface(asl.geometryId());
     // skip TPC surfaces
     if( m_tGeometry->maps().isTpcSurface( surf ) ) continue;
     
@@ -1038,9 +1046,9 @@ void PHActsTrkFitter::updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::I
   
 }
 
-Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance() const
+Acts::BoundSquareMatrix PHActsTrkFitter::setDefaultCovariance() const
 {
-  Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
+  Acts::BoundSquareMatrix cov = Acts::BoundSquareMatrix::Zero();
    
   /// Acts cares about the track covariance as it helps the KF
   /// know whether or not to trust the initial track seed or not.

@@ -60,13 +60,13 @@ int PHActsGSF::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  auto bha = Acts::Experimental::makeDefaultBetheHeitlerApprox();
+  auto bha = Acts::makeDefaultBetheHeitlerApprox();
   ActsGsfTrackFittingAlgorithm gsf;
   m_fitCfg.fit = gsf.makeGsfFitterFunction(
       m_tGeometry->geometry().tGeometry,
       m_tGeometry->geometry().magField,
       bha, 
-      4, Acts::FinalReductionMethod::eMean, true, false);
+      12, 1e-4, Acts::MixtureReductionMethod::eMaxWeight, false, false);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -120,21 +120,18 @@ int PHActsGSF::process_event(PHCompositeNode*)
       wrappedSls.push_back(Acts::SourceLink{sl});
     }
 
-    Calibrator calibrator(measurements);
+    std::shared_ptr<Calibrator> calibptr;
+    CalibratorAdapter calibrator(*calibptr, measurements);
     auto magcontext = m_tGeometry->geometry().magFieldContext;
     auto calcontext = m_tGeometry->geometry().calibContext;
 
     auto ppoptions = Acts::PropagatorPlainOptions();
-    ppoptions.absPdgCode = m_pHypothesis;
-    ppoptions.mass = TDatabasePDG::Instance()->GetParticle(
-                                                 m_pHypothesis)
-                         ->Mass() *
-                     Acts::UnitConstants::GeV;
+
     ActsTrackFittingAlgorithm::GeneralFitterOptions options{
         m_tGeometry->geometry().getGeoContext(),
         magcontext,
         calcontext,
-        calibrator, &(*pSurface), 
+	&(*pSurface), 
         ppoptions};
     if (Verbosity() > 2)
     {
@@ -146,7 +143,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
     auto trackContainer = std::make_shared<Acts::VectorTrackContainer>();
     auto trackStateContainer = std::make_shared<Acts::VectorMultiTrajectory>();
     ActsTrackFittingAlgorithm::TrackContainer tracks(trackContainer, trackStateContainer);
-    auto result = fitTrack(wrappedSls, seed, options,tracks);
+    auto result = fitTrack(wrappedSls, seed, options, calibrator,tracks);
     std::cout << "result returned" << std::endl;
     if (result.ok())
     {
@@ -190,7 +187,8 @@ ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
                                                fourpos,
                                                momentum,
                                                charge / momentum.norm(),
-                                               cov)
+							    cov,
+							    Acts::ParticleHypothesis::electron())
       .value();
 }
 
@@ -326,7 +324,7 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
     std::array<Acts::BoundIndices, 2> indices;
     indices[0] = Acts::BoundIndices::eBoundLoc0;
     indices[1] = Acts::BoundIndices::eBoundLoc1;
-    Acts::ActsSymMatrix<2> cov = Acts::ActsSymMatrix<2>::Zero();
+    Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
   
     double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
     auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster,clusRadius,cluskey);
@@ -366,9 +364,10 @@ ActsTrackFittingAlgorithm::TrackFitterResult PHActsGSF::fitTrack(
     const std::vector<Acts::SourceLink>& sourceLinks,
     const ActsTrackFittingAlgorithm::TrackParameters& seed,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
+    const CalibratorAdapter& calibrator,
     ActsTrackFittingAlgorithm::TrackContainer& tracks)
 {
-  return (*m_fitCfg.fit)(sourceLinks, seed, options,tracks);
+  return (*m_fitCfg.fit)(sourceLinks, seed, options, calibrator, tracks);
 }
 
 void PHActsGSF::updateTrack(FitResult& result, SvtxTrack* track,
@@ -383,7 +382,7 @@ void PHActsGSF::updateTrack(FitResult& result, SvtxTrack* track,
 
   indexedParams.emplace(std::pair{outtrack.tipIndex(),
 	ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
-	  outtrack.parameters(), outtrack.covariance()}});
+	  outtrack.parameters(), outtrack.covariance(), Acts::ParticleHypothesis::electron()}});
   Trajectory traj(tracks.trackStateContainer(), trackTips, indexedParams);
   
   updateSvtxTrack(traj, track);

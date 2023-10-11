@@ -124,6 +124,7 @@ class PHCosmicsTrkFitter : public SubsysReco
       const ActsTrackFittingAlgorithm::TrackParameters& seed,
       const ActsTrackFittingAlgorithm::GeneralFitterOptions&
           kfOptions,
+      const CalibratorAdapter& calibrator,
       ActsTrackFittingAlgorithm::TrackContainer& tracks);
 
   bool getTrackFitResult(FitResult& fitOutput, TrackSeed* seed,
@@ -131,7 +132,7 @@ class PHCosmicsTrkFitter : public SubsysReco
 			 ActsTrackFittingAlgorithm::TrackContainer& tracks,
                          const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
-  Acts::BoundSymMatrix setDefaultCovariance() const;
+  Acts::BoundSquareMatrix setDefaultCovariance() const;
   void printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const;
 
   /// Event counter

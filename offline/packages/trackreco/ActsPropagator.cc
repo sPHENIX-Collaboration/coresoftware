@@ -15,6 +15,7 @@
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Propagator/detail/VoidPropagatorComponents.hpp>
+#include <Acts/EventData/ParticleHypothesis.hpp>
 
 ActsPropagator::SurfacePtr
 ActsPropagator::makeVertexSurface(const SvtxVertex* vertex)
@@ -45,14 +46,15 @@ ActsPropagator::makeTrackParams(SvtxTrackState* state,
 					    10 * Acts::UnitConstants::ns);
   
   ActsTransformations transformer;
-  Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(state);
+  Acts::BoundSquareMatrix cov = transformer.rotateSvtxTrackCovToActs(state);
   
   return ActsTrackFittingAlgorithm::TrackParameters::create(
          surf,
 	 m_geometry->geometry().getGeoContext(),
 	 actsFourPos, momentum,
 	 trackCharge / momentum.norm(),
-	 cov)
+	 cov,
+	 Acts::ParticleHypothesis::pion())
     .value();
 }
 ActsPropagator::BoundTrackParam
@@ -83,13 +85,14 @@ ActsPropagator::makeTrackParams(SvtxTrack* track,
 
   ActsTransformations transformer;
 
-  Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
+  Acts::BoundSquareMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
 
   return ActsTrackFittingAlgorithm::TrackParameters::create(perigee,
                                                             m_geometry->geometry().getGeoContext(),
                                                             actsFourPos, momentum,
                                                             track->get_charge() / track->get_p(),
-                                                            cov)
+                                                            cov,
+							    Acts::ParticleHypothesis::pion())
       .value();
 }
 

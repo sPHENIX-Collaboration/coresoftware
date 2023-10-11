@@ -330,7 +330,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
                                      position(2),
                                      10 * Acts::UnitConstants::ns);
 
-    Acts::BoundSymMatrix cov = setDefaultCovariance();
+    Acts::BoundSquareMatrix cov = setDefaultCovariance();
 
     //! Reset the track seed with the dummy covariance
     auto seed = ActsTrackFittingAlgorithm::TrackParameters::create(
@@ -339,7 +339,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
                     actsFourPos,
                     momentum,
                     charge / momentum.norm(),
-                    cov)
+                    cov,
+		    Acts::ParticleHypothesis::muon())
                     .value();
 
     if (Verbosity() > 2)
@@ -349,13 +350,9 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     //! Set host of propagator options for Acts to do e.g. material integration
     Acts::PropagatorPlainOptions ppPlainOptions;
-    ppPlainOptions.absPdgCode = m_pHypothesis;
-    ppPlainOptions.mass = TDatabasePDG::Instance()->GetParticle(
-                                                      m_pHypothesis)
-                              ->Mass() *
-                          Acts::UnitConstants::GeV;
 
-    Calibrator calibrator{measurements};
+    std::shared_ptr<Calibrator> calibptr;
+    CalibratorAdapter calibrator{*calibptr, measurements};
 
     auto magcontext = m_tGeometry->geometry().magFieldContext;
     auto calibcontext = m_tGeometry->geometry().calibContext;
@@ -365,17 +362,16 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
             m_tGeometry->geometry().getGeoContext(),
             magcontext,
             calibcontext,
-            calibrator,
             &(*pSurface),
 	    ppPlainOptions};
 
     auto trackContainer = 
 	std::make_shared<Acts::VectorTrackContainer>();
-      auto trackStateContainer = 
-	std::make_shared<Acts::VectorMultiTrajectory>();
-      ActsTrackFittingAlgorithm::TrackContainer 
-	tracks(trackContainer, trackStateContainer);
-    auto result = fitTrack(sourceLinks, seed, kfOptions, tracks);
+    auto trackStateContainer = 
+      std::make_shared<Acts::VectorMultiTrajectory>();
+    ActsTrackFittingAlgorithm::TrackContainer 
+      tracks(trackContainer, trackStateContainer);
+    auto result = fitTrack(sourceLinks, seed, kfOptions, calibrator, tracks);
 
     /// Check that the track fit result did not return an error
     if (result.ok())
@@ -570,7 +566,7 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
     std::array<Acts::BoundIndices, 2> indices;
     indices[0] = Acts::BoundIndices::eBoundLoc0;
     indices[1] = Acts::BoundIndices::eBoundLoc1;
-    Acts::ActsSymMatrix<2> cov = Acts::ActsSymMatrix<2>::Zero();
+    Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
 
     double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
     auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, cluskey);
@@ -667,7 +663,7 @@ bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput,
 
    indexedParams.emplace(std::pair{outtrack.tipIndex(),
 	 ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
-	   outtrack.parameters(), outtrack.covariance()}});
+	   outtrack.parameters(), outtrack.covariance(), outtrack.particleHypothesis()}});
   
  if (Verbosity() > 2)
     {
@@ -675,7 +671,9 @@ bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput,
       std::cout << " position : " << outtrack.referenceSurface().localToGlobal(m_tGeometry->geometry().getGeoContext(), Acts::Vector2(outtrack.loc0(), outtrack.loc1()), Acts::Vector3(1,1,1)).transpose()
 	
 		<< std::endl;
-      std::cout << "charge: "<<outtrack.charge()<<std::endl;
+      
+      int otcharge = outtrack.qOverP() > 0 ? 1 : -1;
+      std::cout << "charge: "<< otcharge<<std::endl;
       std::cout << " momentum : " << outtrack.momentum().transpose()
 		<< std::endl;
       std::cout << "For trackTip == " << outtrack.tipIndex() << std::endl;
@@ -714,9 +712,10 @@ inline ActsTrackFittingAlgorithm::TrackFitterResult PHCosmicsTrkFitter::fitTrack
     const std::vector<Acts::SourceLink>& sourceLinks,
     const ActsTrackFittingAlgorithm::TrackParameters& seed,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& kfOptions,
+    const CalibratorAdapter& calibrator,
     ActsTrackFittingAlgorithm::TrackContainer& tracks)
 {
-  return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions, tracks);
+  return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions, calibrator, tracks);
 }
 
 void PHCosmicsTrkFitter::updateSvtxTrack(
@@ -798,9 +797,9 @@ void PHCosmicsTrkFitter::updateSvtxTrack(
   return;
 }
 
-Acts::BoundSymMatrix PHCosmicsTrkFitter::setDefaultCovariance() const
+Acts::BoundSquareMatrix PHCosmicsTrkFitter::setDefaultCovariance() const
 {
-  Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
+  Acts::BoundSquareMatrix cov = Acts::BoundSquareMatrix::Zero();
 
   /// Acts cares about the track covariance as it helps the KF
   /// know whether or not to trust the initial track seed or not.

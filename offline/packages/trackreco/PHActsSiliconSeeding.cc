@@ -610,7 +610,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   globalPos = surf->localToGlobal(m_tGeometry->geometry().getGeoContext(),
 				  localPos, mom);
 
-  Acts::SymMatrix2 localCov = Acts::SymMatrix2::Zero();
+  Acts::SquareMatrix2 localCov = Acts::SquareMatrix2::Zero();
   localCov(0,0) = pow(clus->getRPhiError(),2) * Acts::UnitConstants::cm2;
   localCov(1,1) = pow(clus->getZError(),2) * Acts::UnitConstants::cm2;
   
@@ -776,7 +776,7 @@ void PHActsSiliconSeeding::configureSeeder()
   m_seedFinderCfg.toleranceParam = m_tolerance;
   m_seedFinderCfg.maxPtScattering = m_maxPtScattering;
   m_seedFinderCfg.sigmaError = m_sigmaError;
-  m_seedFinderCfg.helixcut = m_helixcut;
+  m_seedFinderCfg.helixCut = m_helixcut;
 
   m_seedFinderCfg = 
     m_seedFinderCfg.toInternalUnits().calculateDerivedQuantities();

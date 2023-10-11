@@ -392,7 +392,7 @@ SpacePointPtr PHActsKDTreeSeeding::makeSpacePoint(const Surface& surf,
   globalPos = surf->localToGlobal(m_tGeometry->geometry().getGeoContext(),
 				  localPos, mom);
 
-  Acts::SymMatrix2 localCov = Acts::SymMatrix2::Zero();
+  Acts::SquareMatrix2 localCov = Acts::SquareMatrix2::Zero();
 
   localCov(0,0) = clus->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
   localCov(1,1) = clus->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
