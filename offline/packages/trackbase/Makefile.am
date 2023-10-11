@@ -25,7 +25,7 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(ROOTSYS)/lib \
-  -L$(OFFLINE_MAIN)/lib64
+  -L$(MYINSTALL)/lib64
 
 
 pkginclude_HEADERS = \
@@ -224,6 +224,7 @@ libtrack_io_la_SOURCES = \
   ActsSurfaceMaps.cc \
   alignmentTransformationContainer.cc \
   AlignmentTransformation.cc \
+  Calibrator.cc \
   CMFlashClusterContainerv1.cc \
   CMFlashClusterv1.cc \
   CMFlashClusterv2.cc \
