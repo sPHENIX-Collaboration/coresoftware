@@ -40,27 +40,27 @@ class ActsTransformations
   /// cartesian coordinates to (d0, z0, phi, theta, q/p, time) coordinates for
   /// Acts. The track fitter performs the fitting with respect to the nominal
   /// origin of sPHENIX, so we rotate accordingly
-  Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrack* ) const;
+  Acts::BoundSquareMatrix rotateSvtxTrackCovToActs(const SvtxTrack* ) const;
   
   /// Rotates an SvtxTrack state covariance matrix from (x,y,z,px,py,pz) global
   /// cartesian coordinates to (d0, z0, phi, theta, q/p, time) coordinates for
   /// Acts. The track fitter performs the fitting with respect to the nominal
   /// origin of sPHENIX, so we rotate accordingly
-  Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrackState* ) const;
+  Acts::BoundSquareMatrix rotateSvtxTrackCovToActs(const SvtxTrackState* ) const;
 
   /// Rotates an Acts covariance matrix from (d0, z0, phi, theta, q/p, time) local curvilinear coordinates
   /// to global cartesian coordinates (x,y,z,px,py,pz) coordinates
-  Acts::BoundSymMatrix rotateActsCovToSvtxTrack( const ActsTrackFittingAlgorithm::TrackParameters& ) const;
+  Acts::BoundSquareMatrix rotateActsCovToSvtxTrack( const ActsTrackFittingAlgorithm::TrackParameters& ) const;
 
   void setVerbosity(int verbosity) {m_verbosity = verbosity;}
 
-  void printMatrix(const std::string &message, const Acts::BoundSymMatrix& matrix) const;
+  void printMatrix(const std::string &message, const Acts::BoundSquareMatrix& matrix) const;
 
   /// Calculate the DCA for a given Acts fitted track parameters and 
   /// vertex
   void calculateDCA(const ActsTrackFittingAlgorithm::TrackParameters param,
 		    Acts::Vector3 vertex,
-		    Acts::BoundSymMatrix cov,
+		    Acts::BoundSquareMatrix cov,
 		    Acts::GeometryContext& geoCtxt,
 		    float &dca3Dxy,
 		    float &dca3Dz,
