@@ -435,7 +435,7 @@ void Fun4AllEvtInputPoolManager::UpdateEventFoundCounter(const int evtno)
 int Fun4AllEvtInputPoolManager::FillMvtx()
 {
   //TODO: Find a better placement for this counter that dont need to be executed every call
-  while (m_MvtxRawHitMap.size() < 5) // pooling at least 5 events
+  while (m_MvtxRawHitMap.size() < 150) // pooling at least 5 events
   {
     unsigned int alldone = 0;
     for (const auto evtId : m_MvtxEvtInputList)

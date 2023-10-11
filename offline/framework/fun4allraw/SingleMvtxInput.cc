@@ -114,10 +114,7 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
             auto strb_bco = plist[i]->lValue(feeId, i_strb, "TRG_IR_BCO");
             auto strb_bc  = plist[i]->iValue(feeId, i_strb, "TRG_IR_BC");
             auto num_hits = plist[i]->iValue(feeId, i_strb, "TRG_NR_HITS");
-            m_BeamClockFEE[strb_bco].insert(feeId);
-            m_BclkStack.insert(strb_bc);
-
-            if (Verbosity() > 2)
+            if (Verbosity() > 4)
             {
               std::cout << "evtno: " << EventSequence << ", Fee: " << feeId;
               std::cout << " Layer: " << link.layer << " Stave: " << link.stave;
@@ -145,16 +142,17 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
               }
               m_MvtxRawHitMap[strb_bco].push_back(newhit);
             }
+            m_BeamClockFEE[strb_bco].insert(feeId);
             m_BclkStack.insert(strb_bco);
+            m_FEEBclkMap[feeId] = strb_bco;
           }
         }
       }
-      plist[i]->convert();
+//      plist[i]->convert();
       delete plist[i];
     }
     delete evt;
   }
-//  } while (m_MvtxRawHitMap.size() < 10 || CheckPoolDepth(m_MvtxRawHitMap.begin()->first));
 }
 
 void SingleMvtxInput::Print(const std::string &what) const
@@ -169,6 +167,14 @@ void SingleMvtxInput::Print(const std::string &what) const
       {
         std::cout << "FEM: " << feeiter << std::endl;
       }
+    }
+  }
+  if (what == "ALL" || what == "FEEBCLK")
+  {
+    for (auto bcliter : m_FEEBclkMap)
+    {
+      std::cout << "FEE" << bcliter.first << " bclk: 0x"
+                << std::hex << bcliter.second << std::dec << std::endl;
     }
   }
   if (what == "ALL" || what == "STORAGE")
@@ -223,8 +229,32 @@ void SingleMvtxInput::CleanupUsedPackets(const uint64_t bclk)
   }
 }
 
-bool SingleMvtxInput::CheckPoolDepth(const uint64_t /*bclk*/)
+bool SingleMvtxInput::CheckPoolDepth(const uint64_t bclk)
 {
+  // if (m_FEEBclkMap.size() < 10)
+  // {
+  //   std::cout << "not all FEEs in map: " << m_FEEBclkMap.size() << std::endl;
+  //   return true;
+  // }
+  for (auto iter : m_FEEBclkMap)
+  {
+    if (Verbosity() > 2)
+    {
+      std::cout << iter.first << " my bclk 0x" << std::hex << iter.second
+                << " req: 0x" << bclk << std::dec << std::endl;
+    }
+    // equal case when we have more strobe with same bco
+    // due not synchronization
+    if (iter.second <= bclk)
+    {
+      if (Verbosity() > 1)
+      {
+        std::cout << "FEE " << iter.first << " beamclock 0x" << std::hex << iter.second
+                  << " smaller than req bclk: 0x" << bclk << std::dec << std::endl;
+      }
+      return false;
+    }
+  }
   return true;
 }
 
@@ -236,7 +266,7 @@ void SingleMvtxInput::ClearCurrentEvent()
   CleanupUsedPackets(currentbclk);
   // m_BclkStack.erase(currentbclk);
   // m_BeamClockFEE.erase(currentbclk);
-  m_GtmL1BcoSet.clear();
+  clearGtmL1BcoSet();
   return;
 }
 
@@ -248,10 +278,10 @@ bool SingleMvtxInput::GetSomeMoreEvents()
   }
 //  if (CheckPoolDepth(m_MvtxRawHitMap.begin()->first))
 //  {
-//    if (m_MvtxRawHitMap.size() >= 10)
-//    {
-//      return false;
-//    }
+    if (m_MvtxRawHitMap.size() >= 200)
+    {
+      return false;
+    }
 //  }
   return true;
 }

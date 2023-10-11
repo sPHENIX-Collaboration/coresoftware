@@ -6,6 +6,7 @@
 //#include <array>
 //#include <list>
 #include <map>
+#include <algorithm>
 //#include <set>
 //#include <string>
 //#include <vector>
@@ -75,9 +76,10 @@ class SingleMvtxInput : public SingleStreamingInput
   unsigned int m_NumSpecialEvents = 0;
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<uint64_t, std::vector<MvtxRawHit *>> m_MvtxRawHitMap;
-  std::set<uint64_t> m_GtmL1BcoSet;
+  std::map<int, uint64_t> m_FEEBclkMap;
+  std::map<int, uint64_t> m_FeeStrobeMap;
   std::set<uint64_t> m_BclkStack;
-  std::map<int, size_t> m_FeeStrobeMap;
+  std::set<uint64_t> m_GtmL1BcoSet;
 };
 
 #endif
