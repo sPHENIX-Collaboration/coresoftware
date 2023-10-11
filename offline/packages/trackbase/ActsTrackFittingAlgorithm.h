@@ -56,7 +56,6 @@ class ActsTrackFittingAlgorithm final
     std::reference_wrapper<const Acts::GeometryContext> geoContext;
     std::reference_wrapper<const Acts::MagneticFieldContext> magFieldContext;
     std::reference_wrapper<const Acts::CalibrationContext> calibrationContext;
-    std::reference_wrapper<const Calibrator> calibrator;
     const Acts::Surface* referenceSurface = nullptr;
     Acts::PropagatorPlainOptions propOptions;
   };
@@ -71,6 +70,7 @@ class ActsTrackFittingAlgorithm final
     virtual TrackFitterResult operator()(
         const std::vector<Acts::SourceLink>&,
         const TrackParameters&, const GeneralFitterOptions&,
+	const CalibratorAdapter&,
         TrackContainer&) const = 0;
 
     virtual void outlierFinder(const ResidualOutlierFinder&) {}
@@ -89,6 +89,7 @@ class ActsTrackFittingAlgorithm final
         const std::vector<Acts::SourceLink>&,
         const TrackParameters&, const GeneralFitterOptions&,
         const std::vector<const Acts::Surface*>&,
+	const CalibratorAdapter&,
         TrackContainer&) const = 0;
   };
 
@@ -145,6 +146,7 @@ class ActsTrackFittingAlgorithm final
       const TrackParameters& initialParameters,
       const GeneralFitterOptions& options,
       const std::vector<const Acts::Surface*>& surfSequence,
+      const CalibratorAdapter& calibrator,
       TrackContainer& tracks) const;
 
   Config m_cfg;
@@ -156,14 +158,15 @@ ActsTrackFittingAlgorithm::fitTrack(
     const TrackParameters& initialParameters,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
     const std::vector<const Acts::Surface*>& surfSequence,
+    const CalibratorAdapter& calibrator,
     TrackContainer& tracks) const
 {
   if (m_cfg.directNavigation)
   {
-    return (*m_cfg.dFit)(sourceLinks, initialParameters, options, surfSequence, tracks);
+    return (*m_cfg.dFit)(sourceLinks, initialParameters, options, surfSequence, calibrator, tracks);
   }
 
-  return (*m_cfg.fit)(sourceLinks, initialParameters, options, tracks);
+  return (*m_cfg.fit)(sourceLinks, initialParameters, options, calibrator, tracks);
 }
 
 #endif
