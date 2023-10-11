@@ -130,7 +130,8 @@ class ActsTrackFittingAlgorithm final
       const Acts::Logger& logger = *Acts::getDefaultLogger("Kalman",
 							   Acts::Logging::FATAL));
 
-  static std::shared_ptr<DirectedTrackFitterFunction> makeKalmanFitterFunction(
+  static std::shared_ptr<DirectedTrackFitterFunction> makeDirectedKalmanFitterFunction(
+      std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
       std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
       bool multipleScattering = true, bool energyLoss = true,
       double reverseFilteringMomThreshold = 0.0,

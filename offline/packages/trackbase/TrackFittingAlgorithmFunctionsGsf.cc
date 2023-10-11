@@ -11,6 +11,7 @@ ActsGsfTrackFittingAlgorithm::makeGsfFitterFunction(
 
   MultiStepper stepper(magneticField, finalReductionMethod,
 		       logger.cloneWithSuffix("GSFStep"));
+  const auto& geo = *trackingGeometry;
 
   // Standard fitter
   Acts::Navigator::Config cfg{trackingGeometry};
@@ -26,7 +27,7 @@ ActsGsfTrackFittingAlgorithm::makeGsfFitterFunction(
 
   // build the fitter functions. owns the fitter object.
   auto fitterFunction = std::make_shared<GsfFitterFunctionImpl>(
-								std::move(trackFitter), *trackingGeometry);
+								std::move(trackFitter), geo);
   fitterFunction->maxComponents = maxComponents;
   fitterFunction->weightCutoff = weightCutoff;
   fitterFunction->abortOnError = abortOnError;

@@ -99,7 +99,7 @@ namespace
         const ActsTrackFittingAlgorithm::TrackParameters& initialParameters,
         const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
 	const CalibratorAdapter& calibrator,
-        TrackContainer& tracks) const override
+        ActsTrackFittingAlgorithm::TrackContainer& tracks) const override
     {
       const auto gsfOptions = makeGsfOptions(options, calibrator);
       using namespace Acts::GsfConstants;
