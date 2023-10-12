@@ -59,6 +59,7 @@ class SingleMvtxInput : public SingleStreamingInput
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
   std::set<uint64_t>& getGtmL1BcoSet() {return m_GtmL1BcoSet; };
+  std::set<int>& getFeeIdSet(const uint64_t& bco) { return m_BeamClockFEE[bco]; };
   void clearGtmL1BcoSet();
 
  protected:

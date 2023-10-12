@@ -4,7 +4,8 @@
 
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/MvtxRawHitv1.h>
-#include <ffarawobjects/MvtxRawRunHeaderContainer.h>
+#include <ffarawobjects/MvtxRawRunHeader.h>
+#include <ffarawobjects/MvtxRawEvtHeader.h>
 
 #include <frog/FROG.h>
 
@@ -303,11 +304,19 @@ void SingleMvtxInput::CreateDSTNode(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
-  MvtxRawRunHeaderContainer* mvtxRHC = findNode::getClass<MvtxRawRunHeaderContainer>(detNode,"MVTXRAWRUNHEADER");
-  if (! mvtxRHC)
+  MvtxRawRunHeader* mvtxRH = findNode::getClass<MvtxRawRunHeader>(detNode,"MVTXRAWRUNHEADER");
+  if (! mvtxRH)
   {
-    mvtxRHC = new MvtxRawRunHeaderContainer();
-    PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(mvtxRHC, "MVTXRAWRUNHEADER", "PHObject");
+    mvtxRH = new MvtxRawRunHeader();
+    PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(mvtxRH, "MVTXRAWRUNHEADER", "PHObject");
+    detNode->addNode(newNode);
+  }
+
+  MvtxRawEvtHeader* mvtxEH = findNode::getClass<MvtxRawEvtHeader>(detNode,"MVTXRAWEVTHEADER");
+  if (! mvtxEH)
+  {
+    mvtxEH = new MvtxRawEvtHeader();
+    PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(mvtxEH, "MVTXRAWEVTHEADER", "PHObject");
     detNode->addNode(newNode);
   }
 

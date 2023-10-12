@@ -1,17 +1,17 @@
-#ifndef FUN4ALLRAW_MVTXRAWRUNHEADERCONTAINER_H
-#define FUN4ALLRAW_MVTXRAWRUNHEADERCONTAINER_H
+#ifndef FUN4ALLRAW_MVTXRAWRUNHEADER_H
+#define FUN4ALLRAW_MVTXRAWRUNHEADER_H
 
 #include <phool/PHObject.h>
 
 #include <cstdint>
 #include <set>
 
-class  MvtxRawRunHeaderContainer: public PHObject
+class  MvtxRawRunHeader: public PHObject
 {
 
 public:
-  MvtxRawRunHeaderContainer() = default;
-  virtual ~MvtxRawRunHeaderContainer() = default;
+  MvtxRawRunHeader() = default;
+  virtual ~MvtxRawRunHeader() = default;
 
   ///Clear Event
   void Reset() override;
@@ -33,7 +33,7 @@ public:
 private:
   std::set<uint64_t> m_MvtxL1TrgSet;
 
-  ClassDefOverride(MvtxRawRunHeaderContainer,1)
+  ClassDefOverride(MvtxRawRunHeader,1)
 };
 
 #endif
