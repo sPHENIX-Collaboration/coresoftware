@@ -385,6 +385,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
  
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 					  position);
+
       auto actsFourPos = Acts::Vector4(position(0), position(1),
 				       position(2),
 				       10 * Acts::UnitConstants::ns);
@@ -419,7 +420,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	m_tGeometry->geometry().getGeoContext(),
         magcontext,
         calibcontext,
-        &(*pSurface),
+	  pSurface.get(),
 	ppPlainOptions};
       
       PHTimer fitTimer("FitTimer");
@@ -432,6 +433,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	std::make_shared<Acts::VectorMultiTrajectory>();
       ActsTrackFittingAlgorithm::TrackContainer 
 	tracks(trackContainer, trackStateContainer);
+     
       auto result = fitTrack(sourceLinks, seed, kfOptions, 
 			     surfaces, calibrator, tracks);
       fitTimer.stop();
