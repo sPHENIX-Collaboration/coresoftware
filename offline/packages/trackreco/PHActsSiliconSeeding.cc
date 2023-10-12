@@ -51,11 +51,14 @@ PHActsSiliconSeeding::PHActsSiliconSeeding(const std::string& name)
 
 int PHActsSiliconSeeding::Init(PHCompositeNode */*topNode*/)
 {
-  configureSeeder();
-  configureSPGrid();
- 
   Acts::SeedFilterConfig sfCfg = configureSeedFilter();
   sfCfg = sfCfg.toInternalUnits();
+   
+  m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePoint>>(
+     Acts::SeedFilter<SpacePoint>(sfCfg));
+
+  configureSeeder();
+  configureSPGrid();
   
   if(Verbosity() > 5)
     {
@@ -66,9 +69,6 @@ int PHActsSiliconSeeding::Init(PHCompositeNode */*topNode*/)
       zBinNeighborsBottom, nphineighbors);
   m_topBinFinder = std::make_shared<const Acts::BinFinder<SpacePoint>>(
       zBinNeighborsTop, nphineighbors);
-
-  m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePoint>>(
-     Acts::SeedFilter<SpacePoint>(sfCfg));
 
   if(m_seedAnalysis)
     {    
