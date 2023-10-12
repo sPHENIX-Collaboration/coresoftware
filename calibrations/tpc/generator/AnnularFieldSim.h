@@ -1,6 +1,7 @@
 #include "Rossegger.h"
 
 #include <TVector3.h>
+#include <TH2.h>
 
 #include <cmath>   // for NAN, abs
 #include <string>  // for string
@@ -167,6 +168,7 @@ class AnnularFieldSim
                                  //  MultiArray<double> *q;                    //space charge in each f-bin in the whole volume
   MultiArray<double> *q_local;   //temporary holder of space charge in each f-bin and summed bin of the high-res region.
   MultiArray<double> *q_lowres;  //space charge in each l-bin. = sums over sets of f-bins.
+  TH2F *hRdeltaRComponent;
 
  public:
   //constructors with history for backwards compatibility
@@ -233,6 +235,7 @@ class AnnularFieldSim
   int GetFieldStepsZ() { return nz_roi; };
   TVector3 GetInnerEdge() { return TVector3(rmin, 0, zmin); };
   TVector3 GetOuterEdge() { return TVector3(rmax, 0, zmax); };
+  
 
   //file-writing functions for complex mapping questions:
   void GenerateDistortionMaps(const char *filebase, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
