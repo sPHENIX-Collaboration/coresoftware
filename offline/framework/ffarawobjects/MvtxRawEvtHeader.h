@@ -30,6 +30,8 @@ public:
   };
   void AddFeeId(const std::set<int>& mvtxFeeIds);
 
+  std::set<int>& getMvtxFeeIdSet() { return m_MvtxFeeIdSet; };
+
 private:
   std::set<int> m_MvtxFeeIdSet;
 

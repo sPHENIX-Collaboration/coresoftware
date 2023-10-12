@@ -30,6 +30,8 @@ public:
   };
   void AddL1Trg(const std::set<uint64_t>& mvtxL1TrgSet);
 
+  std::set<uint64_t>& getMvtxLvL1BCO() { return m_MvtxL1TrgSet; };
+
 private:
   std::set<uint64_t> m_MvtxL1TrgSet;
 
