@@ -187,7 +187,9 @@ struct sPHENIXTrackFitterFunctionImpl : public TrackFitterFunctionImpl
     auto kfOptions = makeKfOptions(*this, options);
     kfOptions.extensions.calibrator.connect<&CalibratorAdapter::calibrate>(
         &calibrator);
-
+    kfOptions.extensions.surfaceAccessor
+      .connect<&ActsSourceLink::SurfaceAccessor::operator()>(
+	      &m_slSurfaceAccessor);
     if (use_OF)
     {
       kfOptions.extensions.outlierFinder.connect<&ResidualOutlierFinder::operator()>(&m_oFinder);
