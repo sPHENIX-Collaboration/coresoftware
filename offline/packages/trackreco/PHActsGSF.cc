@@ -120,7 +120,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
       wrappedSls.push_back(Acts::SourceLink{sl});
     }
 
-    std::shared_ptr<Calibrator> calibptr;
+    auto calibptr = std::make_unique<Calibrator>();
     CalibratorAdapter calibrator(*calibptr, measurements);
     auto magcontext = m_tGeometry->geometry().magFieldContext;
     auto calcontext = m_tGeometry->geometry().calibContext;
