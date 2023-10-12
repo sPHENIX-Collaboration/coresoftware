@@ -35,7 +35,8 @@ class ActsAlignmentStates
   ActsAlignmentStates() {}
   ~ActsAlignmentStates() {}
   
-  void fillAlignmentStateMap(const Trajectory& traj,
+  void fillAlignmentStateMap(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
+			     const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
                              SvtxTrack* track,
                              const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
   void verbosity(const int verb) { m_verbosity = verb; }

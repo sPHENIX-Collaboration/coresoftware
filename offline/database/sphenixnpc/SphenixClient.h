@@ -17,17 +17,21 @@ class SphenixClient : public nopayloadclient::NoPayloadClient
   // make clang happy, since we use our own without overriding the base class methods
   using nopayloadclient::NoPayloadClient::getPayloadIOVs;
 
-  nlohmann::json getPayloadIOVs(long long iov);
-  nlohmann::json getUrl(const std::string& pl_type, long long iov);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
   nlohmann::json insertPayload(const std::string& pl_type, const std::string& file_url, long long iov_start);
+  nlohmann::json getUrlDict(long long iov);
+  nlohmann::json deletePayloadIOV(const std::string& pl_type, long long iov_start);
 #pragma GCC diagnostic pop
+
+  nlohmann::json getPayloadIOVs(long long iov);
+  nlohmann::json getUrl(const std::string& pl_type, long long iov);
   nlohmann::json insertPayload(const std::string& pl_type, const std::string& file_url, long long iov_start, long long iov_end) override;
   nlohmann::json setGlobalTag(const std::string& name) override;
   std::string getCalibration(const std::string& pl_type, long long iov);
   nlohmann::json unlockGlobalTag(const std::string& tagname) override;
   nlohmann::json lockGlobalTag(const std::string& tagname) override;
+  nlohmann::json deletePayloadIOV(const std::string& pl_type, long long iov_start, long long iov_end) override;
 
   bool existGlobalTag(const std::string& tagname);
   int createDomain(const std::string& domain);

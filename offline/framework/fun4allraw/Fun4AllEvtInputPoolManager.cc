@@ -1,9 +1,12 @@
 #include "Fun4AllEvtInputPoolManager.h"
 
+#include "SingleMvtxInput.h"
 #include "SingleInttInput.h"
 #include "SingleEvtInput.h"
 #include "SingleTpcInput.h"
 
+#include <ffarawobjects/MvtxRawHit.h>
+#include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainerv1.h>
 #include <ffarawobjects/MicromegasRawHit.h>
@@ -59,6 +62,15 @@ Fun4AllEvtInputPoolManager::~Fun4AllEvtInputPoolManager()
   }
   delete m_SyncObject;
 // clear leftover event maps
+  for (auto const &mapiter : m_MvtxRawHitMap)
+  {
+    for (auto mvtxhititer :  mapiter.second.MvtxRawHitVector)
+    {
+      delete mvtxhititer;
+    }
+  }
+  m_MvtxRawHitMap.clear();
+
   for (auto const &mapiter : m_InttRawHitMap)
   {
     for (auto intthititer :  mapiter.second.InttRawHitVector)
@@ -77,6 +89,10 @@ Fun4AllEvtInputPoolManager::~Fun4AllEvtInputPoolManager()
 int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
 {
   int iret = 0;
+  if (m_mvtx_registered_flag)
+  {
+    iret += FillMvtx();
+  }
   if (m_intt_registered_flag)
   {
     iret += FillIntt();
@@ -369,6 +385,16 @@ void Fun4AllEvtInputPoolManager::AddPacket(uint64_t bclk, Packet *p)
   m_PacketInfoMap[bclk].PacketVector.push_back(p);
 }
 
+void Fun4AllEvtInputPoolManager::AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "Adding mvtx hit to bclk 0x"
+              << std::hex << bclk << std::dec << std::endl;
+  }
+  m_MvtxRawHitMap[bclk].MvtxRawHitVector.push_back(hit);
+}
+
 void Fun4AllEvtInputPoolManager::AddInttRawHit(uint64_t bclk, InttRawHit *hit)
 {
   if (Verbosity() > 1)
@@ -402,6 +428,76 @@ void Fun4AllEvtInputPoolManager::AddTpcRawHit(uint64_t bclk, TpcRawHit *hit)
 void Fun4AllEvtInputPoolManager::UpdateEventFoundCounter(const int evtno)
 {
   m_PacketInfoMap[evtno].EventFoundCounter++;
+}
+
+int Fun4AllEvtInputPoolManager::FillMvtx()
+{
+  //TODO: Find a better placement for this counter that dont need to be executed every call
+  unsigned int nMvtxEvtInputs = 0;
+  for (auto& evtInput : m_EvtInputVector)
+  {
+    if (dynamic_cast<SingleMvtxInput*>(evtInput))
+    {
+      ++nMvtxEvtInputs;
+    }
+  }
+  while (m_MvtxRawHitMap.size() < 5) // pooling at least 5 events
+  {
+    unsigned int alldone = 0;
+    for (auto iter : m_EvtInputVector)
+    {
+      if ( dynamic_cast<SingleMvtxInput*>(iter) )
+      {
+	      alldone += iter->AllDone();
+        if (Verbosity() > 0)
+        {
+	        std::cout << "fill pool for " << iter->Name() << std::endl;
+	      }
+	      iter->FillPool();
+	      m_RunNumber = iter->RunNumber();
+      }
+      else
+      {
+        continue;
+      }
+    }
+    if (alldone >= nMvtxEvtInputs)
+    {
+	    break;
+    }
+    SetRunNumber(m_RunNumber);
+  }
+  if (m_MvtxRawHitMap.empty())
+  {
+    std::cout << "we are done" << std::endl;
+    return -1;
+  }
+  MvtxRawHitContainer *mvtxcont =  findNode::getClass<MvtxRawHitContainer>(m_topNode,"MVTXRAWHIT");
+  if (! mvtxcont)
+  {
+    std::cout << "ERROR: MVTXRAWHIT node not found, exit. " << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+//  std::cout << "before filling m_InttRawHitMap size: " <<  m_InttRawHitMap.size() << std::endl;
+  for (auto mvtxhititer :  m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
+  {
+    if (Verbosity() > 1)
+    {
+	    mvtxhititer->identify();
+    }
+    mvtxcont->AddHit(mvtxhititer);
+//  delete intthititer; // cleanup up done in Single Input Mgrs
+  }
+  for (auto iter : m_EvtInputVector)
+  {
+    iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
+  }
+  m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
+  m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
+  // std::cout << "size  m_MvtxRawHitMap: " <<  m_MvtxRawHitMap.size()
+  //	    << std::endl;
+  return 0;
 }
 
 int Fun4AllEvtInputPoolManager::FillIntt()

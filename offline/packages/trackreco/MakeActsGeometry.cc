@@ -571,7 +571,7 @@ void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
 
 }
 void MakeActsGeometry::makeGeometry(int argc, char* argv[], 
-				    ActsExamples::TGeoDetector &detector)
+				    ActsExamples::TGeoDetectorWithOptions &detector)
 {
   
   /// setup and parse options
@@ -605,7 +605,7 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[],
 std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
           std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
 MakeActsGeometry::build(const boost::program_options::variables_map& vm,
-			ActsExamples::TGeoDetector& detector) {
+			ActsExamples::TGeoDetectorWithOptions& detector) {
   // Material decoration
   std::shared_ptr<const Acts::IMaterialDecorator> matDeco = nullptr;
  
@@ -637,7 +637,7 @@ MakeActsGeometry::build(const boost::program_options::variables_map& vm,
   readTGeoLayerBuilderConfigsFile(path, config);
 
   /// Return the geometry and context decorators
-  return detector.finalize(config, matDeco);
+  return detector.m_detector.finalize(config, matDeco);
  }
   
 void MakeActsGeometry::readTGeoLayerBuilderConfigsFile(const std::string& path,

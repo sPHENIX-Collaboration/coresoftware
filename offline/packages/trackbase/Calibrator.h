@@ -9,11 +9,9 @@
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
 #pragma GCC diagnostic pop
 
-#include <Acts/EventData/SourceLink.hpp>
-
+#include "ActsSourceLink.h"
 #include "TrkrDefs.h"
 #include "alignmentTransformationContainer.h"
-#include "ActsSourceLink.h"
 
 class Calibrator
 {
@@ -43,12 +41,11 @@ class Calibrator
   void calibrate(const Acts::GeometryContext& gctx,
                  Acts::MultiTrajectory<Acts::VectorMultiTrajectory>::TrackStateProxy trackState) const
   {
-    const auto& sourceLink =
-        static_cast<const ActsSourceLink&>(trackState.uncalibrated());
+    const ActsSourceLink sourceLink = trackState.getUncalibratedSourceLink().get<ActsSourceLink>();
+
     assert(m_measurements and
-           "Undefined measurement container in DigitizedCalibrator");
-    assert((sourceLink.index() < m_measurements->size()) and
-           "Source link index is outside the container bounds");
+           "Undefined measurement container in Calibrator");
+    const ActsSourceLink::Index index = sourceLink.index();
     std::visit(
         [&](const auto& uncalibmeas) {
           std::array<Acts::BoundIndices, 2> indices;
@@ -60,8 +57,8 @@ class Calibrator
           loc(1) = uncalibmeas.parameters()[Acts::eBoundLoc1];
 
           auto cov = uncalibmeas.covariance();
-          const auto& cluskey = sourceLink.cluskey();
-          const auto layer = TrkrDefs::getLayer(cluskey);
+          const TrkrDefs::cluskey cluskey = sourceLink.cluskey();
+          const uint8_t layer = TrkrDefs::getLayer(cluskey);
           const double misalignmentFactor = gctx.get<alignmentTransformationContainer*>()->getMisalignmentFactor(layer);
 
           Acts::ActsSymMatrix<2> expandedCov = Acts::ActsSymMatrix<2>::Zero();
@@ -82,7 +79,7 @@ class Calibrator
           trackState.setCalibrated(meas);
 
     },
-        (*m_measurements)[sourceLink.index()]);
+        (*m_measurements)[index]);
   }
     
  private:

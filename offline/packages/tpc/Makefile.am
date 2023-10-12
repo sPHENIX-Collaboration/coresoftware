@@ -35,6 +35,8 @@ lib_LTLIBRARIES = \
   libtpc.la
 
 pkginclude_HEADERS = \
+  TrainingHitsContainer.h \
+  TrainingHits.h \
   TpcRawDataTree.h \
   TpcClusterCleaner.h \
   TpcClusterizer.h \
@@ -48,7 +50,18 @@ pkginclude_HEADERS = \
   TpcRawWriter.h \
   TpcSimpleClusterizer.h
 
+ROOTDICTS = \
+  TrainingHitsContainer_Dict.cc \
+  TrainingHits_Dict.cc
+
 pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  TrainingHitsContainer_Dict_rdict.pcm \
+  TrainingHits_Dict_rdict.pcm
+
+mydatadir = $(datadir)/$(PACKAGE)
+dist_mydata_DATA = \
+  net_model.pt
 
 # sources for tpc library
 libtpc_la_SOURCES = \
@@ -63,6 +76,9 @@ libtpc_la_SOURCES = \
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
+  -lc10 \
+  -ltorch_cpu \
+  -ltorch \
   -lmicromegas_io \
   -lfun4all \
   -lSpectrum \
@@ -71,6 +87,8 @@ libtpc_la_LIBADD = \
 # sources for io library
 libtpc_io_la_SOURCES = \
   $(ROOTDICTS) \
+  TrainingHitsContainer.cc \
+  TrainingHits.cc \
   TpcDistortionCorrection.cc \
   TpcClusterMover.cc \
   TpcClusterZCrossingCorrection.cc

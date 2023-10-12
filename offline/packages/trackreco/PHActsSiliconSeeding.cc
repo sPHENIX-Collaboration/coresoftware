@@ -30,7 +30,10 @@
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
  
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overread"
 #include <Acts/Seeding/BinnedSPGroup.hpp>
+#pragma GCC diagnostic pop
 #include <Acts/Seeding/InternalSeed.hpp>
 #include <Acts/Seeding/InternalSpacePoint.hpp>
 #include <Acts/Seeding/Seed.hpp>
@@ -48,18 +51,21 @@ PHActsSiliconSeeding::PHActsSiliconSeeding(const std::string& name)
 
 int PHActsSiliconSeeding::Init(PHCompositeNode */*topNode*/)
 {
-  m_seedFinderCfg = configureSeeder();
-  m_gridCfg = configureSPGrid();
+  configureSeeder();
+  configureSPGrid();
+ 
   Acts::SeedFilterConfig sfCfg = configureSeedFilter();
-
+  sfCfg = sfCfg.toInternalUnits();
+  
+  if(Verbosity() > 5)
+    {
+      printSeedConfigs(sfCfg);
+    }
   // vector containing the map of z bins in the top and bottom layers
-  std::vector<std::pair<int, int> > zBinNeighborsTop;
-  std::vector<std::pair<int, int> > zBinNeighborsBottom;
-  int nphineighbors = 1;
-  m_bottomBinFinder = 
-    std::make_shared<Acts::BinFinder<SpacePoint>>(Acts::BinFinder<SpacePoint>(zBinNeighborsBottom, nphineighbors));
-  m_topBinFinder = 
-    std::make_shared<Acts::BinFinder<SpacePoint>>(Acts::BinFinder<SpacePoint>(zBinNeighborsTop, nphineighbors));
+  m_bottomBinFinder = std::make_shared<const Acts::BinFinder<SpacePoint>>(
+      zBinNeighborsBottom, nphineighbors);
+  m_topBinFinder = std::make_shared<const Acts::BinFinder<SpacePoint>>(
+      zBinNeighborsTop, nphineighbors);
 
   m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePoint>>(
      Acts::SeedFilter<SpacePoint>(sfCfg));
@@ -187,15 +193,18 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
     { h_nInputMeas->Fill(spVec.size()); }
   
   auto grid = 
-    Acts::SpacePointGridCreator::createGrid<SpacePoint>(m_gridCfg);
+    Acts::SpacePointGridCreator::createGrid<SpacePoint>(m_gridCfg,
+							m_gridOptions);
   
   auto spGroup = Acts::BinnedSPGroup<SpacePoint>(spVec.begin(),
 						 spVec.end(),
 						 covConverter,
 						 m_bottomBinFinder,
 						 m_topBinFinder,
-						 std::move(grid), rRangeSPExtent,
-						 m_seedFinderCfg);
+						 std::move(grid), 
+						 rRangeSPExtent,
+						 m_seedFinderCfg,
+						 m_seedFinderOptions);
 
   /// variable middle SP radial region of interest
   const Acts::Range1D<float> rMiddleSPRange(
@@ -203,19 +212,20 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
 	 std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 - 1.5);
 
   GridSeeds seedVector;
-  auto groupIt = spGroup.begin();
-  auto endGroup = spGroup.end();
   SeedContainer seeds;
   seeds.clear();
   decltype(seedFinder)::SeedingState state;
-
-  for(; !(groupIt == endGroup); ++groupIt)
+  state.spacePointData.resize(spVec.size(),
+			      m_seedFinderCfg.useDetailedDoubleMeasurementInfo);
+  for(const auto [bottom, middle, top] : spGroup)
     {
     
-      seedFinder.createSeedsForGroup(state, std::back_inserter(seeds),
-				     groupIt.bottom(),
-				     groupIt.middle(),
-				     groupIt.top(),
+      seedFinder.createSeedsForGroup(m_seedFinderOptions,
+				     state, spGroup.grid(),
+				     std::back_inserter(seeds),
+				     bottom,
+				     middle,
+				     top,
 				     rMiddleSPRange);
 
     }
@@ -253,7 +263,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
 	  for(auto& spacePoint : seed.sp())
 	    {
-	      const auto& cluskey = spacePoint->m_clusKey;
+	      const auto& cluskey = spacePoint->Id();
 	      cluster_keys.push_back(cluskey);
 	  
 	      trackSeed->insert_cluster_key(cluskey);
@@ -700,22 +710,21 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
   return spVec;
 }
 
-Acts::SpacePointGridConfig PHActsSiliconSeeding::configureSPGrid()
+void PHActsSiliconSeeding::configureSPGrid()
 {
-  Acts::SpacePointGridConfig config;
 
-  config.bFieldInZ = m_bField;
-  config.minPt = m_minSeedPt / m_gridFactor;
-  config.rMax = m_rMax;
-  config.zMax = m_zMax;
-  config.zMin = m_zMin;
-  config.deltaRMax = m_deltaRMax;
-  config.cotThetaMax = m_cotThetaMax;
-  config.impactMax = m_impactMax;
-  config.phiBinDeflectionCoverage = m_numPhiNeighbors;
+  m_gridCfg.minPt = m_minSeedPt / m_gridFactor;
+  m_gridCfg.rMax = m_rMax;
+  m_gridCfg.zMax = m_zMax;
+  m_gridCfg.zMin = m_zMin;
+  m_gridCfg.deltaRMax = m_deltaRMax;
+  m_gridCfg.cotThetaMax = m_cotThetaMax;
+  m_gridCfg.impactMax = m_impactMax;
+  m_gridCfg.phiBinDeflectionCoverage = m_numPhiNeighbors;
 
-
-  return config;
+  m_gridOptions.bFieldInZ = m_bField;
+  m_gridCfg = m_gridCfg.toInternalUnits();
+  m_gridOptions = m_gridOptions.toInternalUnits();
 }
 
 Acts::SeedFilterConfig PHActsSiliconSeeding::configureSeedFilter()
@@ -725,49 +734,54 @@ Acts::SeedFilterConfig PHActsSiliconSeeding::configureSeedFilter()
   return config;
 }
 
-Acts::SeedFinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
+void PHActsSiliconSeeding::configureSeeder()
 {
-  Acts::SeedFinderConfig<SpacePoint> config;
   /// these are default values that used to be set in Acts
-  config.deltaRMinTopSP = 5 * Acts::UnitConstants::mm;
-  config.deltaRMaxTopSP = 270 * Acts::UnitConstants::mm;
-  config.deltaRMinBottomSP = 5 * Acts::UnitConstants::mm;
-  config.deltaRMaxBottomSP = 270 * Acts::UnitConstants::mm;
+  m_seedFinderCfg.deltaRMinTopSP = 5 * Acts::UnitConstants::mm;
+  m_seedFinderCfg.deltaRMaxTopSP = 270 * Acts::UnitConstants::mm;
+  m_seedFinderCfg.deltaRMinBottomSP = 5 * Acts::UnitConstants::mm;
+  m_seedFinderCfg.deltaRMaxBottomSP = 270 * Acts::UnitConstants::mm;
 
   /// Limiting location of measurements (e.g. detector constraints)
-  config.rMax = m_rMax;
-  config.rMin = m_rMin;
-  config.zMin = m_zMin;
-  config.zMax = m_zMax;
+  m_seedFinderCfg.rMax = m_rMax;
+  m_seedFinderCfg.rMin = m_rMin;
+  m_seedFinderCfg.zMin = m_zMin;
+  m_seedFinderCfg.zMax = m_zMax;
 
   /// Min/max distance between two measurements in one seed
-  config.deltaRMin = m_deltaRMin;
-  config.deltaRMax = m_deltaRMax;
+  m_seedFinderCfg.deltaRMin = m_deltaRMin;
+  m_seedFinderCfg.deltaRMax = m_deltaRMax;
 
   /// Limiting collision region in z
-  config.collisionRegionMin = -300. * Acts::UnitConstants::mm;
-  config.collisionRegionMax = 300. * Acts::UnitConstants::mm;
-  config.sigmaScattering = m_sigmaScattering;
-  config.maxSeedsPerSpM = m_maxSeedsPerSpM;
-  config.cotThetaMax = m_cotThetaMax;
-  config.minPt = m_minSeedPt;
-  config.bFieldInZ = m_bField;
+  m_seedFinderCfg.collisionRegionMin = -300. * Acts::UnitConstants::mm;
+  m_seedFinderCfg.collisionRegionMax = 300. * Acts::UnitConstants::mm;
+  m_seedFinderCfg.sigmaScattering = m_sigmaScattering;
+  m_seedFinderCfg.maxSeedsPerSpM = m_maxSeedsPerSpM;
+  m_seedFinderCfg.cotThetaMax = m_cotThetaMax;
+  m_seedFinderCfg.minPt = m_minSeedPt;
+  m_seedFinderOptions.bFieldInZ = m_bField;
 
   /// Average radiation length traversed per seed
-  config.radLengthPerSeed = 0.05;
+  m_seedFinderCfg.radLengthPerSeed = 0.05;
 
   /// Maximum impact parameter must be smaller than rMin
-  config.impactMax = m_impactMax;
+  m_seedFinderCfg.impactMax = m_impactMax;
+
+  m_seedFinderCfg.rMinMiddle = 3. * Acts::UnitConstants::cm;
+  m_seedFinderCfg.rMaxMiddle = 3.7 * Acts::UnitConstants::cm;
 
   /// Configurations for dealing with misalignment
-  config.zAlign = m_zalign;
-  config.rAlign = m_ralign;
-  config.toleranceParam = m_tolerance;
-  config.maxPtScattering = m_maxPtScattering;
-  config.sigmaError = m_sigmaError;
-  config.helixcut = m_helixcut;
+  m_seedFinderCfg.zAlign = m_zalign;
+  m_seedFinderCfg.rAlign = m_ralign;
+  m_seedFinderCfg.toleranceParam = m_tolerance;
+  m_seedFinderCfg.maxPtScattering = m_maxPtScattering;
+  m_seedFinderCfg.sigmaError = m_sigmaError;
+  m_seedFinderCfg.helixcut = m_helixcut;
 
-  return config;
+  m_seedFinderCfg = 
+    m_seedFinderCfg.toInternalUnits().calculateDerivedQuantities();
+  m_seedFinderOptions = m_seedFinderOptions.toInternalUnits().calculateDerivedQuantities(m_seedFinderCfg);
+  
 }
 
 int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
@@ -914,4 +928,86 @@ void PHActsSiliconSeeding::largeGridSpacing(const bool spacing)
       m_maxSeedPCA = 0.1;
     }
 
+}
+
+void PHActsSiliconSeeding::printSeedConfigs(Acts::SeedFilterConfig& sfconfig)
+{
+
+  // helper function for when updating acts to ensure all seeding parameters
+  // are actually the same as before
+
+  std::cout << " --------------- SeedFilterConfig ------------------ " << std::endl;
+  std::cout << "deltaInvHelixDiameter = " 
+	    << sfconfig.deltaInvHelixDiameter << std::endl 
+	    << "impactWeightFactor = " << sfconfig.impactWeightFactor 
+	    << std::endl << "zOriginWeightFactor = " 
+	    << sfconfig.zOriginWeightFactor << std::endl 
+	    << "compatSeedWeight = " << sfconfig.compatSeedWeight 
+	    << std::endl << "deltaRMin = " << sfconfig.deltaRMin 
+	    << std::endl << "maxSeedsPerSpM = " 
+	    << sfconfig.maxSeedsPerSpM << std::endl 
+	    << "compatSeedLimit = " << sfconfig.compatSeedLimit 
+	    << std::endl << "seedWeightIncrement = " 
+	    << sfconfig.seedWeightIncrement << std::endl 
+	    << "numSeedIncrement = " << sfconfig.numSeedIncrement 
+	    << std::endl;
+
+  std::cout << " --------------- SeedFinderConfig ------------------ " << std::endl;
+
+  std::cout << "deltaRMinTopSp = " << m_seedFinderCfg.deltaRMinTopSP 
+	    << std::endl << "deltaRMaxTopSP = " << m_seedFinderCfg.deltaRMaxTopSP 
+	    << std::endl << "deltaRMinBottomSP = " << m_seedFinderCfg.deltaRMinBottomSP 
+	    << std::endl << "deltaRMaxBottomSP = " << m_seedFinderCfg.deltaRMaxBottomSP 
+	    << std::endl << "minpt = " << m_seedFinderCfg.minPt
+	    << std::endl << "cotThetaMax = " << m_seedFinderCfg.cotThetaMax
+	    << std::endl << "deltaRMin = " << m_seedFinderCfg.deltaRMin
+	    << std::endl << "deltaRMax = " << m_seedFinderCfg.deltaRMax
+	    << std::endl << "binSizeR = " << m_seedFinderCfg.binSizeR
+	    << std::endl << "deltaRMiddleMinSPRange = " << m_seedFinderCfg.deltaRMiddleMinSPRange
+	    << std::endl << "deltaRMiddleMaxSPRange = " << m_seedFinderCfg.deltaRMiddleMaxSPRange
+	    << std::endl << "rMinMiddle = " << m_seedFinderCfg.rMinMiddle
+	    << std::endl << "rMaxMiddle = " << m_seedFinderCfg.rMaxMiddle
+	    << std::endl << "deltaZMax = " << m_seedFinderCfg.deltaZMax
+	    << std::endl << "rMax = " << m_seedFinderCfg.rMax
+	    << std::endl << "rMin = " << m_seedFinderCfg.rMin
+	    << std::endl << "zMin = " << m_seedFinderCfg.zMin
+	    << std::endl << "zMax = " << m_seedFinderCfg.zMax
+	    << std::endl << "collisionRegionMin = " << m_seedFinderCfg.collisionRegionMin
+	    << std::endl << "collisionRegionMax = " << m_seedFinderCfg.collisionRegionMax
+	    << std::endl << "sigmaScattering = " << m_seedFinderCfg.sigmaScattering
+	    << std::endl << "maxSeedsPerSpM = " << m_seedFinderCfg.maxSeedsPerSpM
+	    << std::endl << "bFieldInZ = " << m_seedFinderOptions.bFieldInZ 
+	    << std::endl << "radLengthPerSeed = " << m_seedFinderCfg.radLengthPerSeed
+	    << std::endl << "impactMax = " << m_seedFinderCfg.impactMax
+	    << std::endl << "zAlign = " << m_seedFinderCfg.zAlign
+	    << std::endl << "rAlign = " << m_seedFinderCfg.rAlign
+	    << std::endl << "toleranceParam = " << m_seedFinderCfg.toleranceParam
+	    << std::endl << "maxPtScattering = " << m_seedFinderCfg.maxPtScattering
+	    << std::endl << "sigmaError = " << m_seedFinderCfg.sigmaError
+	    << std::endl << "helixcut = " << m_seedFinderCfg.helixcut 
+	    << std::endl;
+
+ std::cout << " --------------- SeedFinderOptions ------------------ " << std::endl;
+ std::cout << "beamPos = " << m_seedFinderOptions.beamPos.transpose()
+	   << std::endl << "bFieldInZ = " << m_seedFinderOptions.bFieldInZ
+	   << std::endl << "pTPerHelixRadius = " << m_seedFinderOptions.pTPerHelixRadius
+	   << std::endl << "minHelixDiameter2 = " << m_seedFinderOptions.minHelixDiameter2
+	   << std::endl << "pT2perRadius = " << m_seedFinderOptions.pT2perRadius
+	   << std::endl << "sigmapT2perRadius = " << m_seedFinderOptions.sigmapT2perRadius
+	   << std::endl;
+
+
+   std::cout << " --------------- SpacePointGridConfig ------------------ " << std::endl;
+
+   std::cout << "minpt = " << m_gridCfg.minPt << std::endl
+	     << "rMax = " << m_gridCfg.rMax << std::endl
+	     << "zMax = " << m_gridCfg.zMax << std::endl
+	     << "zMin = " << m_gridCfg.zMin << std::endl
+	     << "deltaRMax = " << m_gridCfg.deltaRMax << std::endl
+	     << "cotThetaMax = " << m_gridCfg.cotThetaMax << std::endl
+	     << "impactMax = " << m_gridCfg.impactMax << std::endl
+	     << "phiBinDeflectionCoverage = " << m_gridCfg.phiBinDeflectionCoverage << std::endl
+	     << "bFieldInZ = " << m_gridOptions.bFieldInZ << std::endl;
+
+   
 }

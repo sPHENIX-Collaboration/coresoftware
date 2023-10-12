@@ -107,11 +107,14 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
 	    double params[] = {static_cast<double>(maxheight - pedestal), static_cast<double>(maxbin - 6), static_cast<double>(pedestal)};
 	    fitter->Config().SetParamsSettings(3, params);
 	    fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
+            ROOT::Fit::FitResult fitres = fitter->Result();
+            double chi2min = fitres.MinFcnValue();
 	    for (int i = 0; i < 3; i++)
-	      {
-		v.push_back(f->GetParameter(i));
-	      }
-        
+	    {
+		    v.push_back(f->GetParameter(i));
+	    }
+
+      v.push_back(chi2min);
 	    h->Delete();
 	    f->Delete();
 	    delete fitFunction;
@@ -129,7 +132,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
   {
     std::vector<float> tv = chnlvector.at(i);
     int size2 = tv.size();
-    for (int q = 3; q > 0; q--)
+    for (int q = 4; q > 0; q--)
     {
       fit_params_tmp.push_back(tv.at(size2 - q));
     }
