@@ -54,6 +54,8 @@ pkginclude_HEADERS = \
   ClusterErrorPara.h \
   InttDefs.h \
   MvtxDefs.h \
+  MvtxEventInfo.h \
+  MvtxEventInfov1.h \
   RawHit.h \
   RawHitSet.h \
   RawHitSetContainer.h \
@@ -67,6 +69,8 @@ pkginclude_HEADERS = \
   TpcDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
+  TpcTpotEventInfo.h \
+  TpcTpotEventInfov1.h \
   TrackFitUtils.h \
   TrkrCluster.h \
   TrkrClusterContainer.h \
@@ -113,6 +117,8 @@ ROOTDICTS = \
   CMFlashDifferencev1_Dict.cc \
   ClusHitsVerbose_Dict.cc \
   ClusHitsVerbosev1_Dict.cc \
+  MvtxEventInfo_Dict.cc \
+  MvtxEventInfov1_Dict.cc \
   RawHitSetContainer_Dict.cc \
   RawHitSetContainerv1_Dict.cc \
   RawHitSet_Dict.cc \
@@ -122,6 +128,8 @@ ROOTDICTS = \
   RawHitv1_Dict.cc \
   TpcSeedTrackMap_Dict.cc \
   TpcSeedTrackMapv1_Dict.cc \
+  TpcTpotEventInfo_Dict.cc \
+  TpcTpotEventInfov1_Dict.cc \
   TrkrClusterContainer_Dict.cc \
   TrkrClusterContainerv1_Dict.cc \
   TrkrClusterContainerv2_Dict.cc \
@@ -167,6 +175,8 @@ nobase_dist_pcm_DATA = \
   CMFlashDifferencev1_Dict_rdict.pcm \
   ClusHitsVerbose_Dict_rdict.pcm \
   ClusHitsVerbosev1_Dict_rdict.pcm \
+  MvtxEventInfo_Dict_rdict.pcm \
+  MvtxEventInfov1_Dict_rdict.pcm \
   RawHitSetContainer_Dict_rdict.pcm \
   RawHitSetContainerv1_Dict_rdict.pcm \
   RawHitSet_Dict_rdict.pcm \
@@ -176,6 +186,8 @@ nobase_dist_pcm_DATA = \
   RawHitv1_Dict_rdict.pcm \
   TpcSeedTrackMap_Dict_rdict.pcm \
   TpcSeedTrackMapv1_Dict_rdict.pcm \
+  TpcTpotEventInfo_Dict_rdict.pcm \
+  TpcTpotEventInfov1_Dict_rdict.pcm \
   TrkrClusterContainer_Dict_rdict.pcm \
   TrkrClusterContainerv1_Dict_rdict.pcm \
   TrkrClusterContainerv2_Dict_rdict.pcm \
@@ -223,6 +235,8 @@ libtrack_io_la_SOURCES = \
   ClusHitsVerbosev1.cc \
   InttDefs.cc \
   MvtxDefs.cc \
+  MvtxEventInfo.cc \
+  MvtxEventInfov1.cc \
   RawHitSet.cc \
   RawHitSetContainer.cc \
   RawHitSetContainerv1.cc \
@@ -233,6 +247,7 @@ libtrack_io_la_SOURCES = \
   TpcDefs.cc \
   TpcSeedTrackMap.cc \
   TpcSeedTrackMapv1.cc \
+  TpcTpotEventInfov1.cc \
   TrackFitUtils.cc \
   TrackFittingAlgorithmFunctionsGsf.cc \
   TrackFittingAlgorithmFunctionsKalman.cc \

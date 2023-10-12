@@ -67,7 +67,7 @@ class ActsTransformations
 		    float &dca3DxyCov,
 		    float &dca3DzCov) const;
 
-  void fillSvtxTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj, 
+  void fillSvtxTrackStates(const Acts::ConstVectorMultiTrajectory& traj, 
 			   const size_t& trackTip,
 			   SvtxTrack *svtxTrack,
 			   Acts::GeometryContext& geoContext) const;

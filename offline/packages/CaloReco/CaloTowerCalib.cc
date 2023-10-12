@@ -60,7 +60,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   {
     m_runNumber = -1;
   }
-  std::cout << "at run" << m_runNumber << std::endl;
+
   if (m_dettype == CaloTowerCalib::CEMC)
   {
     m_detector = "CEMC";
@@ -236,7 +236,7 @@ void CaloTowerCalib::CreateNodeTree(PHCompositeNode *topNode)
         "Failed to find " + RawTowerNodeName + " node in RawTowerCalibration::CreateNodes");
   }
 
-  std::string CalibTowerNodeName = "TOWERS_Calib_" + m_detector;
+  std::string CalibTowerNodeName = "TOWERINFO_CALIB_" + m_detector;
   _calib_towers = findNode::getClass<TowerInfoContainerv1>(dstNode,
                                                            CalibTowerNodeName);
   if (!_calib_towers)

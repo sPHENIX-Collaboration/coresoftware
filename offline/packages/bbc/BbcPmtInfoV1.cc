@@ -1,12 +1,5 @@
 #include "BbcPmtInfoV1.h"
-
-/*
-BbcPmtInfoV1::BbcPmtInfoV1(TowerInfo& tower)
-{
-  _time = (tower.get_time());
-  _energy = (tower.get_energy());
-}
-*/
+//#include <iostream>
 
 void BbcPmtInfoV1::Reset()
 {
@@ -15,6 +8,7 @@ void BbcPmtInfoV1::Reset()
 
 void BbcPmtInfoV1::Clear(Option_t* )
 {
+  //std::cout << "clearing " << bpmt << std::endl;
   bpmt = -1;
   bq = NAN;
   btt = NAN;

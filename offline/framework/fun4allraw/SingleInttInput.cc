@@ -7,6 +7,9 @@
 
 #include <frog/FROG.h>
 
+#include <phool/PHCompositeNode.h>
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/getClass.h>
 #include <phool/phool.h>
 
 #include <Event/Event.h>
@@ -37,10 +40,8 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
   {
     OpenNextFile();
   }
-  std::set<uint64_t> saved_beamclocks;
-//   while (m_InttRawHitMap.size() < 10 || CheckPoolDepth(m_InttRawHitMap.begin()->first));
+//  std::set<uint64_t> saved_beamclocks;
    while (GetSomeMoreEvents())
-//  do
   {
     Event *evt = GetEventiterator()->getNextEvent();
     while (!evt)
@@ -80,6 +81,11 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
         plist[i]->identify();
       }
       int num_hits = plist[i]->iValue(0, "NR_HITS");
+      if (Verbosity() > 1)
+      {
+	std::cout << "Number of Hits: " << num_hits << " for packet "
+		  << plist[i]->getIdentifier() << std::endl;
+      }
       std::set<uint64_t> bclk_set;
       for (int j = 0; j < num_hits; j++)
       {
@@ -103,7 +109,7 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
 	if (gtm_bco < m_PreviousClock[FEE])
 	{
 	  m_Rollover[FEE] += 0x10000000000;
-	  gtm_bco += m_Rollover[FEE];  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+	  gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
 	}
 	m_PreviousClock[FEE] = gtm_bco;
 	m_BeamClockFEE[gtm_bco].insert(FEE);
@@ -118,14 +124,7 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
 	}
 //          plist[i]->convert();
 	if (InputManager())
-	{
-	  InputManager()->AddInttRawHit(gtm_bco, newhit);
-	}
-	if (m_InttRawHitMap.find(gtm_bco) == m_InttRawHitMap.end())
-	{
-	  std::vector<InttRawHit *> intthitvector;
-	  m_InttRawHitMap[gtm_bco] = intthitvector;
-	}
+	{ InputManager()->AddInttRawHit(gtm_bco, newhit); }
 	m_InttRawHitMap[gtm_bco].push_back(newhit);
 	m_BclkStack.insert(gtm_bco);
       }
@@ -261,4 +260,30 @@ bool SingleInttInput::GetSomeMoreEvents()
     }
   }
   return true;
+}
+
+void SingleInttInput::CreateDSTNode(PHCompositeNode *topNode)
+{
+  PHNodeIterator iter(topNode);
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (! dstNode)
+  {
+    dstNode = new PHCompositeNode("DST");
+    topNode->addNode(dstNode);
+  }
+  PHNodeIterator iterDst(dstNode);
+PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "INTT"));
+if (!detNode)
+{
+  detNode = new PHCompositeNode("INTT");
+  dstNode->addNode(detNode);
+}
+  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode,"INTTRAWHIT");
+  if (!intthitcont)
+  {
+    intthitcont = new InttRawHitContainerv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
+    detNode->addNode(newNode);
+  }
+
 }

@@ -6,8 +6,8 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <Acts/Propagator/EigenStepper.hpp>
-#include <Acts/Surfaces/PerigeeSurface.hpp>
+#include <trackreco/ActsPropagator.h>
+
 #include <utility>
 
 #include <TLorentzVector.h>
@@ -238,16 +238,16 @@ bool KshortReconstruction::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d
   PCA *= Acts::UnitConstants::cm;
 
   /// create perigee surface
-  auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(PCA);
+  ActsPropagator actsPropagator(_tGeometry);
+  auto perigee = actsPropagator.makeVertexSurface(PCA);
+  const auto params = actsPropagator.makeTrackParams(track, m_vertexMap);
 
-  const auto params = makeTrackParams(track);
+  auto result = actsPropagator.propagateTrack(params, perigee);
 
-  //  auto result = propagateTrack(params, cylSurf);
-  auto result = propagateTrack(params, perigee);
   if (result.ok())
   {
-    auto projectionPos = result.value().position(_tGeometry->geometry().getGeoContext());
-    const auto momentum = result.value().momentum();
+    auto projectionPos = result.value().second.position(_tGeometry->geometry().getGeoContext());
+    const auto momentum = result.value().second.momentum();
     pos(0) = projectionPos.x() / Acts::UnitConstants::cm;
     pos(1) = projectionPos.y() / Acts::UnitConstants::cm;
     pos(2) = projectionPos.z() / Acts::UnitConstants::cm;
@@ -284,14 +284,14 @@ bool KshortReconstruction::projectTrackToCylinder(SvtxTrack* track, double Radiu
       Acts::Surface::makeShared<Acts::CylinderSurface>(transform,
                                                        Radius,
                                                        halfZ);
+  ActsPropagator actsPropagator(_tGeometry);
+  const auto params = actsPropagator.makeTrackParams(track, m_vertexMap);
 
-  const auto params = makeTrackParams(track);
-
-  auto result = propagateTrack(params, cylSurf);
+  auto result = actsPropagator.propagateTrack(params, cylSurf);
   if (result.ok())
   {
-    auto projectionPos = result.value().position(_tGeometry->geometry().getGeoContext());
-    const auto momentum = result.value().momentum();
+    auto projectionPos = result.value().second.position(_tGeometry->geometry().getGeoContext());
+    const auto momentum = result.value().second.momentum();
     pos(0) = projectionPos.x() / Acts::UnitConstants::cm;
     pos(1) = projectionPos.y() / Acts::UnitConstants::cm;
     pos(2) = projectionPos.z() / Acts::UnitConstants::cm;
@@ -306,76 +306,6 @@ bool KshortReconstruction::projectTrackToCylinder(SvtxTrack* track, double Radiu
   }
 
   return ret;
-}
-
-BoundTrackParamResult KshortReconstruction::propagateTrack(
-    const Acts::BoundTrackParameters& params,
-    const SurfacePtr& targetSurf)
-{
-  if (Verbosity() > 1)
-  {
-    std::cout << "Propagating final track fit with momentum: "
-              << params.momentum() << " and position "
-              << params.position(_tGeometry->geometry().getGeoContext())
-              << std::endl
-              << "track fit phi/eta "
-              << atan2(params.momentum()(1),
-                       params.momentum()(0))
-              << " and "
-              << atanh(params.momentum()(2) / params.momentum().norm())
-              << std::endl;
-  }
-
-  using Stepper = Acts::EigenStepper<>;
-  using Propagator = Acts::Propagator<Stepper>;
-
-  auto field = _tGeometry->geometry().magField;
-
-  Stepper stepper(field);
-  Propagator propagator(stepper);
-
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
-  if (Verbosity() > 3)
-  {
-    logLevel = Acts::Logging::VERBOSE;
-  }
-
-  auto logger = Acts::getDefaultLogger("PHActsTrackProjection", logLevel);
-
-  Acts::PropagatorOptions<> options(_tGeometry->geometry().getGeoContext(),
-                                    _tGeometry->geometry().magFieldContext,
-                                    Acts::LoggerWrapper{*logger});
-
-  auto result = propagator.propagate(params, *targetSurf, options);
-  if (result.ok())
-  {
-    return Acts::Result<BoundTrackParam>::success(std::move((*result).endParameters.value()));
-  }
-
-  return result.error();
-}
-
-Acts::BoundTrackParameters KshortReconstruction::makeTrackParams(SvtxTrack* track)
-{
-  Acts::Vector3 momentum(track->get_px(), track->get_py(), track->get_pz());
-
-  auto actsVertex = getVertex(track);
-  auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(actsVertex);
-  auto actsFourPos =
-      Acts::Vector4(track->get_x() * Acts::UnitConstants::cm,
-                    track->get_y() * Acts::UnitConstants::cm,
-                    track->get_z() * Acts::UnitConstants::cm,
-                    10 * Acts::UnitConstants::ns);
-
-  ActsTransformations transformer;
-
-  Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
-
-  return ActsExamples::TrackParameters::create(perigee, _tGeometry->geometry().getGeoContext(),
-                                               actsFourPos, momentum,
-                                               track->get_charge() / track->get_p(),
-                                               cov)
-      .value();
 }
 
 Acts::Vector3 KshortReconstruction::getVertex(SvtxTrack* track)

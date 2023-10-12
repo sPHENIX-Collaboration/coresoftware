@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
+  -isystem$(ROOTSYS)/include \
   -I$(OPT_SPHENIX)/include
 
 AM_LDFLAGS = \
@@ -19,12 +19,14 @@ pkginclude_HEADERS = \
   Fun4AllPrdfInputPoolManager.h \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
-  InttPool.h \
   SingleEvtInput.h \
+  SingleMvtxInput.h \
   SingleInttInput.h \
+  SingleInttPoolInput.h \
+  SingleMicromegasInput.h \
   SinglePrdfInput.h \
   SingleStreamingInput.h \
-  SingleTPCInput.h
+  SingleTpcInput.h
 
 lib_LTLIBRARIES = \
   libfun4allraw.la
@@ -38,12 +40,15 @@ libfun4allraw_la_SOURCES = \
   Fun4AllPrdfInputPoolManager.cc \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
-  InttPool.cc \
+  intt_pool.cc \
   SingleEvtInput.cc \
+  SingleMvtxInput.cc \
   SingleInttInput.cc \
+  SingleInttPoolInput.cc \
+  SingleMicromegasInput.cc \
   SinglePrdfInput.cc \
   SingleStreamingInput.cc \
-  SingleTPCInput.cc
+  SingleTpcInput.cc
 
 libfun4allraw_la_LIBADD = \
   -lffarawobjects \

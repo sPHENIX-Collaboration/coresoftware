@@ -14,6 +14,7 @@
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
+#include <Acts/Propagator/detail/VoidPropagatorComponents.hpp>
 
 ActsPropagator::SurfacePtr
 ActsPropagator::makeVertexSurface(const SvtxVertex* vertex)
@@ -109,21 +110,12 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto propagator = makePropagator();
 
-  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
-  if (m_verbosity > 3)
-  {
-    logLevel = Acts::Logging::VERBOSE;
-  }
-
-  auto logger = Acts::getDefaultLogger("ActsPropagator",
-                                       logLevel);
   using Actors = Acts::ActionList<>;
   using Aborters = Acts::AbortList<ActsAborter>;
 
   Acts::PropagatorOptions<Actors, Aborters> options(
       m_geometry->geometry().getGeoContext(),
-      m_geometry->geometry().magFieldContext,
-      Acts::LoggerWrapper{*logger});
+      m_geometry->geometry().magFieldContext);
 
   options.abortList.get<ActsAborter>().abortlayer = actslayer;
   options.abortList.get<ActsAborter>().abortvolume = actsvolume;
@@ -153,18 +145,8 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   auto propagator = makePropagator();
 
-  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
-  if (m_verbosity > 3)
-  {
-    logLevel = Acts::Logging::VERBOSE;
-  }
-
-  auto logger = Acts::getDefaultLogger("ActsPropagator",
-                                       logLevel);
-
   Acts::PropagatorOptions<> options(m_geometry->geometry().getGeoContext(),
-                                    m_geometry->geometry().magFieldContext,
-                                    Acts::LoggerWrapper{*logger});
+                                    m_geometry->geometry().magFieldContext);
 
   auto result = propagator.propagate(params, *surface,
                                      options);
@@ -192,18 +174,8 @@ ActsPropagator::propagateTrackFast(const Acts::BoundTrackParameters& params,
 
   auto propagator = makeFastPropagator();
 
-  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
-  if (m_verbosity > 3)
-  {
-    logLevel = Acts::Logging::VERBOSE;
-  }
-
-  auto logger = Acts::getDefaultLogger("ActsPropagator",
-                                       logLevel);
-
   Acts::PropagatorOptions<> options(m_geometry->geometry().getGeoContext(),
-                                    m_geometry->geometry().magFieldContext,
-                                    Acts::LoggerWrapper{*logger});
+                                    m_geometry->geometry().magFieldContext);
 
   auto result = propagator.propagate(params, *surface,
                                      options);
@@ -236,7 +208,17 @@ ActsPropagator::FastPropagator ActsPropagator::makeFastPropagator()
 
   ActsPropagator::Stepper stepper(field);
 
-  return ActsPropagator::FastPropagator(stepper);
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
+  if (m_verbosity > 3)
+  {
+    logLevel = Acts::Logging::VERBOSE;
+  }
+
+  std::shared_ptr<const Acts::Logger> logger 
+    = Acts::getDefaultLogger("ActsPropagator", logLevel);
+  
+  return ActsPropagator::FastPropagator(stepper, Acts::detail::VoidNavigator(),
+    logger);
 }
 ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
 {
@@ -255,8 +237,16 @@ ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
   cfg.resolveMaterial = true;
   cfg.resolveSensitive = true;
   Acts::Navigator navigator(cfg);
+  
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
+  if (m_verbosity > 3)
+  {
+    logLevel = Acts::Logging::VERBOSE;
+  }
 
-  return SphenixPropagator(stepper, navigator);
+  std::shared_ptr<const Acts::Logger> logger 
+    = Acts::getDefaultLogger("ActsPropagator", logLevel);
+  return SphenixPropagator(stepper, navigator, logger);
 }
 
 bool ActsPropagator::checkLayer(const unsigned int& sphenixlayer,

@@ -24,7 +24,7 @@ dnl gcc 8.3 creates warning in boost header, needs -Wno-class-memaccess
 dnl need to check for *g++ since $CXX contains full path to g++
 case $CXX in
  clang++)
-   CXXFLAGS="$CXXFLAGS -Werror -Wno-undefined-var-template -Wno-unused-private-field -Wno-range-loop-construct -Wno-unused-local-typedef -Wno-deprecated-copy -Wno-sign-compare -Wno-unused-parameter -Wno-unused-value -Wno-bitwise-instead-of-logical -Wno-unknown-warning-option"
+   CXXFLAGS="$CXXFLAGS -Werror -Wno-undefined-var-template -Wno-unused-private-field -Wno-range-loop-construct -Wno-unused-local-typedef -Wno-deprecated-copy -Wno-sign-compare -Wno-unused-parameter -Wno-unused-value -Wno-bitwise-instead-of-logical -Wno-unknown-warning-option -Wno-deprecated-declarations"
  ;;
  *analyzer)
    CXXFLAGS="$CXXFLAGS"
