@@ -72,6 +72,10 @@ public:
   /** MBD method to get time, max_samp is the sample to use */
   Double_t MBD(const Int_t max_samp);
  
+
+  /** MBD method to get time, max_samp is the max sample */
+  Double_t MBD();
+ 
   /** Get pulse amplitude with spline fit */
   Double_t GetSplineAmpl();
 

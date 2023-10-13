@@ -34,7 +34,7 @@ BbcEvent::BbcEvent(void) :
   int nsamples = 31;
   for (int ich=0; ich<nch; ich++)
   {
-    //cout << "Creating bbcsig " << ich << endl;
+    //    cout << "Creating bbcsig " << ich << endl;
     bbcsig.push_back( BbcSig(ich,nsamples) );
     
     // Do evt-by-evt pedestal using sample range below
@@ -61,7 +61,7 @@ BbcEvent::BbcEvent(void) :
 
   for (int iboard=0; iboard<16; iboard++)
   {
-    TRIG_SAMP[iboard] = -1;
+    TRIG_SAMP[iboard] = 14;
   }
 
   gaussian = nullptr;
@@ -163,7 +163,6 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
   {
     int pktid = 1001 + ipkt;    // packet id
     p[ipkt] = event->getPacket( pktid );
-    //cout << "Found packet " << 2001+ipkt << "\t" << p[ipkt] << endl;
 
     if ( p[ipkt] )
     {
@@ -182,6 +181,7 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
             //cout << "BAD " << m_evt << "\t" << feech << "\t" << m_samp[feech][isamp]
             //    << "\t" << m_adc[feech][isamp] << endl;
           }
+	  bbcsig[ich].SetXY(&m_samp[ich][0], &m_adc[ich][0], 1);
         }
       }
     }
@@ -191,28 +191,29 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
       //cout << "ERROR, evt " << m_evt << " Missing Packet " << pktid << endl;
     }
   }
-
+  //  cout <<" finished packets"<<endl;
   // Delete the packets
   for (int ipkt=0; ipkt<2; ipkt++)
   {
-    if ( p[ipkt]!=0 ) delete p[ipkt];
+    delete p[ipkt];
   }
-
+  //  cout <<" deleted packets"<<endl;
   for (int ich=0; ich<256; ich++)
   {
+
     int board = ich/16;    // south or north
     //int quad = ich/64;    // quadrant
     int pmtch = (ich/16)*8 + ich%8;
     int tq = (ich/8)%2;   // 0 = T-channel, 1 = Q-channel
-
+    //cout << "board/pmtch/tq="<<board<<"/"<<pmtch<<"/"<<tq<<endl;
     if ( tq == 1 ) // Use dCFD method to get time for now in charge channels
     {
-      //Double_t threshold = 4.0*sig->GetPed0RMS();
+  //Double_t threshold = 4.0*sig->GetPed0RMS();
       //
+            
       bbcsig[ich].GetSplineAmpl();
       Double_t threshold = 0.5;
       m_pmttq[pmtch] = bbcsig[ich].dCFD( threshold );
-
       m_ampl[ich] = bbcsig[ich].GetAmpl();
 
       if ( m_ampl[ich]<24 || ( fabs( m_pmttq[pmtch] ) >25 ) )
@@ -222,19 +223,18 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
       }
       else
       {
+	//	cout <<__LINE__<<endl;    
         //if ( m_pmttq[pmtch]<-50. && ich==255 ) cout << "hit_times " << ich << "\t" << m_pmttq[pmtch] << endl;
-        //if ( arm==1 ) cout << "hit_times " << ich << "\t" << setw(10) << m_pmttq[pmtch] << "\t" << board << "\t" << TRIG_SAMP[board] << endl;
+
         m_pmttq[pmtch] -= (TRIG_SAMP[board] - 2);
         m_pmttq[pmtch] *= 17.7623;               // convert from sample to ns (1 sample = 1/56.299 MHz)
         m_pmttq[pmtch] = m_pmttq[pmtch] - tq_t0_offsets[pmtch];
-
       }
-
       m_pmtq[pmtch] = m_ampl[ich]*gaincorr[pmtch]; 
-
+      //cout << "CHARGE "<<pmtch<<" "<<m_pmtq[pmtch]<<endl;
       if ( EventNumber<3 && ich==255 && m_ampl[ich] )
       {
-          cout << "dcfdcalc " << EventNumber << "\t" << ich << "\t" << m_pmttq[pmtch] << "\t" << m_ampl[ich] << endl;
+	//    cout << "dcfdcalc " << EventNumber << "\t" << ich << "\t" << m_pmttq[pmtch] << "\t" << m_ampl[ich] << endl;
       }
     }
     else // Use MBD method to get time in time channels
@@ -242,9 +242,9 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
       //Double_t threshold = 4.0*bbcsig[ich].GetPed0RMS();
       //Double_t threshold = 0.5
 
-      Double_t tdc = bbcsig[ich].MBD( TRIG_SAMP[board] );
+      Double_t tdc = bbcsig[ich].MBD();
       //Double_t ampl = bbcsig[ich].GetSplineAmpl();
-      //if ( ich==0 ) cout << "XXX " << tdc << endl;
+      //      cout << "XXX " << tdc << endl;
 
       if ( tdc<100 )
       {
@@ -260,8 +260,14 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
           //hevt_bbct[arm]->Fill( m_pmttt[pmtch] );
           //m_bbcn[arm]++;
       }
+      //      cout << "TIME "<<pmtch<<" "<<m_pmttt[pmtch]<<endl;
     }
   }
+
+  for (int ipmt=0; ipmt<128; ipmt++)
+    {
+      bbcpmts->get_tower_at_channel(ipmt)->set_pmt(ipmt, m_pmtq[ipmt], m_pmttt[ipmt], m_pmttq[ipmt]);
+    }
 
   EventNumber++;
   return EventNumber;
@@ -271,6 +277,8 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
 int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
 {
   if ( verbose>=10 ) cout << "In BbcEvent::Calculate()" << endl;
+
+
   Clear();
   if ( bbcout!=0 ) bbcout->Reset();
 

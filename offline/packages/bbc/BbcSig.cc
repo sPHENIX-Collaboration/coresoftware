@@ -193,6 +193,7 @@ void BbcSig::SetY(const Float_t *y, const int invert)
       gSubPulse->SetPoint( isamp, (Double_t)isamp, invert*(y[isamp]-ped0) );
       gSubPulse->SetPointError( isamp, 0., ped0rms );
     }
+
   }
 }
 
@@ -395,7 +396,6 @@ void BbcSig::CalcEventPed0(const Int_t minpedsamp, const Int_t maxpedsamp)
   //SetPed0( ped0stats->Mean(), ped0stats->RMS() );
 
   SetPed0( mean, rms );
-  //if (ch==8) cout << "ped0stats mean, rms " << mean << "\t" << rms << endl;
 }
 
 // Get Event by Event Ped0 if requested
@@ -506,21 +506,26 @@ Double_t BbcSig::MBD(const Int_t max_samp)
 {
   // Get the amplitude of the sample number to get time
   Double_t *y = gSubPulse->GetY();
-
-  if ( y==0 ) { 
-      cout << "ERROR y == 0" << endl; 
-      return 0;
-  }
-
-  // SHOULD INCLUDE TIME CALIBRATION HERE
-  Double_t t0 = y[max_samp];
-
-  // Get max amplitude, and set it if it hasn't already been set
+// SHOULD INCLUDE TIME CALIBRATION HERE
+    // Get max amplitude, and set it if it hasn't already been set
   int n = gSubPulse->GetN();
+  Double_t t0 = y[max_samp]; 
   Double_t ymax = TMath::MaxElement(n,y);
   if ( f_ampl == -9999. ) f_ampl = ymax;
-
   return t0;
+}
+
+Double_t BbcSig::MBD()
+{
+  // Get the amplitude of the sample number to get time
+  Double_t *y = gSubPulse->GetY();
+// SHOULD INCLUDE TIME CALIBRATION HERE
+    // Get max amplitude, and set it if it hasn't already been set
+  int n = gSubPulse->GetN();
+  
+  Double_t ymax = TMath::MaxElement(n,y);
+  if ( f_ampl == -9999. ) f_ampl = ymax;
+  return ymax;
 }
 
 Double_t BbcSig::Integral(const Double_t xmin, const Double_t xmax)

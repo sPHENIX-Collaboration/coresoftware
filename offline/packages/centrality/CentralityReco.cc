@@ -1,11 +1,14 @@
 #include "CentralityReco.h"
 
 #include "CentralityInfov2.h"
+
 #include <bbc/BbcDefs.h>
 #include <bbc/BbcVertexMapv1.h>
 #include <bbc/BbcVertexv2.h>
 #include <bbc/BbcPmtInfoV1.h>
 #include <bbc/BbcPmtInfoContainerV1.h>
+#include "bbc/BbcOutV1.h"
+
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
@@ -51,8 +54,6 @@ CentralityReco::CentralityReco(const std::string &name)
     _centrality_map[i] = centrality_map[i];
   }
 
-  _offset = 28.52;
-
 }
 
 CentralityReco::~CentralityReco()
@@ -62,78 +63,6 @@ CentralityReco::~CentralityReco()
 
 int CentralityReco::Init(PHCompositeNode * /*unused*/)
 {
-  // Histograms
-
-  std::fill_n(gaincorr, 128, 1);
-  std::fill_n(tq_t0_offsets, 128, 1);
-  const char *gaincalib = getenv("CENTRALITY_GAINCALIB");
-  std::string gainfilename;
-  if (gaincalib == nullptr)
-  {
-    const char *offline_main = getenv("OFFLINE_MAIN");
-    assert(offline_main);  // make cppcheck happy
-    gainfilename = offline_main;
-    gainfilename += "/share/centrality/gainfile.calib";
-  }
-  else
-  {
-    gainfilename = gaincalib;
-  }
-  if (!std::filesystem::exists(gainfilename))
-  {
-    std::cout << PHWHERE << gainfilename << " does not exist" << std::endl;
-    gSystem->Exit(1);
-    exit(1);
-  }
-
-  std::ifstream gainfile(gainfilename);
-
-  int ch;
-  float integ;
-  float integerr;
-  float peak;
-  float peakerr;
-  float mbd_width;
-  float widtherr;
-  float chi2ndf;
-
-  while (gainfile >> ch >> integ >> peak >> mbd_width >> integerr >> peakerr >> widtherr >> chi2ndf)
-  {
-    gaincorr[ch] = 1.0 / peak;
-  }
-
-  gainfile.close();
-
-  const char *bbc_tq_t0calib = getenv("CENTRALITY_BBC_TQ_T0CALIB");
-  std::string bbc_tq_t0_filename;
-  if (bbc_tq_t0calib == nullptr)
-  {
-    const char *offline_main = getenv("OFFLINE_MAIN");
-    assert(offline_main);  // make cppcheck happy
-    bbc_tq_t0_filename = offline_main;
-    bbc_tq_t0_filename += "/share/centrality/bbc_tq_t0.calib";
-  }
-  else
-  {
-    bbc_tq_t0_filename = bbc_tq_t0calib;
-  }
-  if (!std::filesystem::exists(bbc_tq_t0_filename))
-  {
-    std::cout << PHWHERE << bbc_tq_t0_filename << " does not exist" << std::endl;
-    gSystem->Exit(1);
-    exit(1);
-  }
-
-  std::ifstream tfile(bbc_tq_t0_filename);
-
-  int pmtnum;
-  float meanerr;
-  float sigma;
-  float sigmaerr;
-  for (float &tq_t0_offset : tq_t0_offsets)
-  {
-    tfile >> pmtnum >> tq_t0_offset >> meanerr >> sigma >> sigmaerr;
-  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -156,8 +85,8 @@ void CentralityReco::ResetVars()
   }
   _quality = 0;
   _isMinBias = 0;
-  _tubes_hit[0] = 0;
-  _tubes_hit[1] = 0;
+  _tubes_hit_s = 0;
+  _tubes_hit_n = 0;
   _mbd_charge_sum = 0.;
   _mbd_charge_sum_n = 0.;
   _mbd_charge_sum_s = 0.;
@@ -165,24 +94,9 @@ void CentralityReco::ResetVars()
   _zdc_energy_sum_n = 0.;
   _zdc_energy_sum_s = 0.;
 
-  for (int i = 0; i < 128; i++)
-  {
-    m_mbd_charge[i] = 0.;
-    m_mbd_time[i] = 0.;
-    m_mbd_charge_raw[i] = 0.;
-    m_mbd_time_raw[i] = 0.;
-    m_mbd_side[i] = 0;
-    m_mbd_channel[i] = 0;
-  }
   for (int i = 0; i < 6; i++)
   {
     m_zdc_energy_low[i] = 0;
-    m_zdc_energy_high[i] = 0;
-  }
-  for (int i = 0; i < 2; i++)
-  {
-    m_zdc_sum_low[i] = 0;
-    m_zdc_sum_high[i] = 0;
   }
   return;
 }
@@ -194,86 +108,78 @@ int CentralityReco::FillVars()
   {
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
-  size = _towers_mbd->size();
-  
-  if (size != 256)
-    {
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  
-  for (unsigned int i = 0; i < size; i++)
-    {
-      _tmp_tower = _towers_mbd->get_tower_at_channel(i);
-      _key = TowerInfoDefs::encode_mbd(i);
-      _type = TowerInfoDefs::get_mbd_type(_key);
-      _side = TowerInfoDefs::get_mbd_side(_key);
-      _channel = TowerInfoDefs::get_mbd_channel(_key);
-      _energy = _tmp_tower->get_energy();
-      if (_type)
-	{
-	  m_mbd_charge_raw[_channel + _side * 64] = _energy;
-	  m_mbd_charge[_channel + _side * 64] = gaincorr[_channel + _side * 64] * _energy;
-	}
-      else
-	{
-	  m_mbd_time_raw[_channel + _side * 64] = _energy;
-	  m_mbd_time[_channel + _side * 64] = (25. - _energy * (9.0 / 5000.) - tq_t0_offsets[_channel + _side * 64]);
-	  m_mbd_side[_channel + _side * 64] = _side;
-	  m_mbd_channel[_channel + _side * 64] = _channel;
-	}
-    }
-  if (_use_ZDC){
 
-    size = _towers_zdc->size();
+  _mbd_charge_sum_s = _bbc_out->get_q(0);
+  _mbd_charge_sum_n = _bbc_out->get_q(1);
 
-    for (unsigned int i = 0; i < size; i++)
-      {
-	_tmp_tower = _towers_zdc->get_tower_at_channel(i);
-	_energy = _tmp_tower->get_energy();
+  _mbd_charge_sum = _mbd_charge_sum_n + _mbd_charge_sum_s;
 
-	if (!(i % 2))
-	  {
-	    if ((i / 2) % 4 == 3)
-	      {
-		m_zdc_sum_low[i / 8] = _energy;
-	      }
-	    else
-	      {
-		m_zdc_energy_low[i / 2] = _zdc_gain_factors[i / 2] * _energy;
-	      }
-	  }
-	else
-	  {
-	    if ((i / 2) % 4 == 3)
-	      {
-		m_zdc_sum_high[i / 8] = _energy;
-	      }
-	    else
-	      {
-		m_zdc_energy_high[i / 2] = _zdc_gain_factors[i / 2] * _energy;
-	      }
-	  }
-      }
-  
-    if (Verbosity() > 5)
-      {
-	std::cout << "--------- ZDC data: ----------" << std::endl;
-	std::cout << "South:" << std::endl;
-	for (int i = 0; i < 3; i++)
-	  {
-	    std::cout << i << " : " << m_zdc_energy_low[i] << " (" << m_zdc_energy_high[i] << ") " << std::endl;
-	  }
-	std::cout << "Sum : " << m_zdc_sum_low[0] << " (" << m_zdc_sum_high[0] << ") " << std::endl;
-	std::cout << "North:" << std::endl;
-	for (int i = 0; i < 3; i++)
-	  {
-	    std::cout << i << " : " << m_zdc_energy_low[i + 3] << " (" << m_zdc_energy_high[i + 3] << ") " << std::endl;
-	  }
-	std::cout << "Sum : " << m_zdc_sum_low[1] << " (" << m_zdc_sum_high[1] << ") " << std::endl;
-      }
-  }
-  if (Verbosity() > 5)
+  _tubes_hit_s = _bbc_out->get_npmt(0);
+  _tubes_hit_n = _bbc_out->get_npmt(1);
+
+  _isMinBias = _tubes_hit_s >=2 && _tubes_hit_n >= 2;
+
+  size = _towers_zdc->size();
+
+  if (Verbosity())
   {
+    std::cout << "  MBD sum = " <<_mbd_charge_sum<<std::endl;
+    std::cout << "      North: " << _mbd_charge_sum_n << std::endl;
+    std::cout << "      South: " << _mbd_charge_sum_s << std::endl;
+  }
+  if (_use_ZDC)
+    {
+      for (unsigned int i = 0; i < size; i++)
+	{
+
+	  _tmp_tower = _towers_zdc->get_tower_at_channel(i);
+	  _energy = _tmp_tower->get_energy();
+
+	  if (!(i % 2))
+	    {
+	      if ((i / 2) % 4 == 3)
+		{
+		  m_zdc_sum_low[i / 8] = _energy;
+		}
+	      else
+		{
+		  m_zdc_energy_low[i / 2] = _zdc_gain_factors[i / 2] * _energy;
+		}
+	    }
+	  else
+	    {
+	      if ((i / 2) % 4 == 3)
+		{
+		  m_zdc_sum_high[i / 8] = _energy;
+		}
+	      else
+		{
+		  m_zdc_energy_high[i / 2] = _zdc_gain_factors[i / 2] * _energy;
+		}
+	    }
+	}
+
+  
+      if (Verbosity() > 5)
+	{
+	  std::cout << "--------- ZDC data: ----------" << std::endl;
+	  std::cout << "South:" << std::endl;
+	  for (int i = 0; i < 3; i++)
+	    {
+	      std::cout << i << " : " << m_zdc_energy_low[i] << " (" << m_zdc_energy_high[i] << ") " << std::endl;
+	    }
+	  std::cout << "Sum : " << m_zdc_sum_low[0] << " (" << m_zdc_sum_high[0] << ") " << std::endl;
+	  std::cout << "North:" << std::endl;
+	  for (int i = 0; i < 3; i++)
+	    {
+	      std::cout << i << " : " << m_zdc_energy_low[i + 3] << " (" << m_zdc_energy_high[i + 3] << ") " << std::endl;
+	    }
+	  std::cout << "Sum : " << m_zdc_sum_low[1] << " (" << m_zdc_sum_high[1] << ") " << std::endl;
+	}
+    }
+
+  if (Verbosity() > 5)
+    {
     std::cout << "--------- MBD data: ----------" << std::endl;
     std::cout << "South:" << std::endl;
     for (int i = 0; i < 64; i++)
@@ -290,61 +196,6 @@ int CentralityReco::FillVars()
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int CentralityReco::GetMBDCharge()
-{
-
-  if (Verbosity() > 1)
-  {
-    std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
-  }
-  _tdc[0] = 0.;
-  _tdc[1] = 0.;
-  unsigned int size = _towers_mbd->size();
-  int side;
-
-  for (unsigned int i = 0; i < size / 2; i++)
-  {
-    side = m_mbd_side[i];
-    if (m_mbd_charge[i] <= _mbd_charge_threshold)
-    {
-      continue;
-    }
-
-    _tubes_hit[side]++;
-  }
-
-  if ((_tubes_hit[0] >= 2) && (_tubes_hit[1] >= 2))
-  {
-    _isMinBias = 1;
-  }
-  else
-  {
-    _isMinBias = 0;
-  }
-
-  for (unsigned int i = 0; i < size / 2; i++)
-  {
-    side = m_mbd_side[i];
-
-    if (side)
-    {
-      _mbd_charge_sum_n += m_mbd_charge[i];
-    }
-    else
-    {
-      _mbd_charge_sum_s += m_mbd_charge[i];
-    }
-  }
-
-  _mbd_charge_sum = _mbd_charge_sum_s + _mbd_charge_sum_n;
-  
-  if (Verbosity())
-  {
-    std::cout << "  Mbd Charge Sum = " << _mbd_charge_sum << std::endl;
-  }
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 int CentralityReco::CheckZDC()
 {
@@ -352,6 +203,7 @@ int CentralityReco::CheckZDC()
   {
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
+
   for (unsigned int i = 0; i < 6; i++)
   {
     if (i / 3)
@@ -371,6 +223,7 @@ int CentralityReco::CheckZDC()
     std::cout << "      North: " << _zdc_energy_sum_n << std::endl;
     std::cout << "      South: " << _zdc_energy_sum_s << std::endl;
   }
+
   _zdc_check = (_zdc_energy_sum_n > _zdc_energy_threshold) && (_zdc_energy_sum_s > _zdc_energy_threshold);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -443,6 +296,7 @@ int CentralityReco::process_event(PHCompositeNode *topNode)
 	  return Fun4AllReturnCodes::ABORTEVENT;
 	}
     }
+
   if (FillCentralityInfo())
     {
       return Fun4AllReturnCodes::ABORTEVENT;
@@ -471,11 +325,11 @@ int CentralityReco::GetNodes(PHCompositeNode *topNode)
     }
     
   
-  _towers_mbd = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_MBD");
+  _bbc_out = findNode::getClass<BbcOutV1>(topNode, "BbcOut");
   
-  if (!_towers_mbd)
+  if (!_bbc_out)
     {
-      std::cout << "no mbd towers node " << std::endl;
+      std::cout << "no BBC out node " << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
 

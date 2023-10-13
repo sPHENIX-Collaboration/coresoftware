@@ -39,6 +39,7 @@ BbcReco::~BbcReco()
 //____________________________________________________________________________..
 int BbcReco::Init(PHCompositeNode *)
 {
+  if (Verbosity() > 10)std::cout << __FILE__<<"::"<<__FUNCTION__<<std::endl;
   m_gaussian = std::make_unique<TF1>("gaussian", "gaus", 0, 20);
   m_gaussian->FixParameter(2, m_tres);
 
@@ -50,6 +51,7 @@ int BbcReco::Init(PHCompositeNode *)
 //____________________________________________________________________________..
 int BbcReco::InitRun(PHCompositeNode *topNode)
 {
+  if (Verbosity() > 10)std::cout << __FILE__<<"::"<<__FUNCTION__<<std::endl;
   if (createNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -62,7 +64,7 @@ int BbcReco::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int BbcReco::process_event(PHCompositeNode *)
 {
-
+  if (Verbosity() > 10)std::cout << __FILE__<<"::"<<__FUNCTION__<<std::endl;
   if ( m_event!=0 && m_bbcpmts!=0 ) m_bbcevent->SetRawData( m_event, m_bbcpmts );
   m_bbcevent->Calculate( m_bbcpmts, m_bbcout );
 
@@ -143,9 +145,10 @@ int BbcReco::createNodes(PHCompositeNode *topNode)
 
 int BbcReco::getNodes(PHCompositeNode *topNode)
 {
+  if (Verbosity() > 10)std::cout << __FILE__<<"::"<<__FUNCTION__<<std::endl;
   // Get the bbc prdf data to mpcRawContent
   m_event = findNode::getClass<Event>(topNode,"PRDF");
-  //cout << "event addr " << (unsigned int)m_event << endl;
+  //  cout << "event addr " << (unsigned int)m_event << endl;
 
   if ( m_event==0 )
   {
