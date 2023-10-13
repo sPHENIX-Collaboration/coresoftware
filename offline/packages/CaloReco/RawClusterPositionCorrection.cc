@@ -118,7 +118,6 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
     {
       cdbHisto = new CDBHistos(calibdir.c_str());
       cdbHisto -> LoadCalibrations();
-      cdbHisto -> Print();
       pdcCorrFlat = (TH1D*)cdbHisto->getHisto("h1_res_p");
 
     }
@@ -325,14 +324,23 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     recalibcluster->set_ecore(cluster->get_ecore() / ecore_recalib_val);
     if(cluster->get_ecore() >= 1 && cluster -> get_ecore() <=6)
       {
-	
+	//CLHEP::Hep3Vector vertex(0,0,0);
+	//CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recalibcluster, vertex);
+    
+	//int ecoreBin = pdcCorr -> GetXaxis() -> FindBin(cluster->get_ecore());
 	int ecoreBin = pdcCorrFlat -> GetXaxis() -> FindBin(recalibcluster->get_ecore());
-	
+	//float pseudo = E_vec_cluster.pseudoRapidity();
+	//if(pseudo > 1)pseudo = 0.99;
+	//int etaBin = pdcCorr -> GetYaxis() -> FindBin(pseudo);
+	//float pdcCalib =  pdcCorr -> GetBinContent(ecoreBin, etaBin);
 	float pdcCalib = pdcCorrFlat -> GetBinContent(ecoreBin);
 	if(pdcCalib < 0.1) pdcCalib = 1;
 	
-	
+	std::cout << "Original cluster energy: " << cluster->get_ecore() << std::endl;
+	std::cout << "First PDC pass: " << recalibcluster -> get_ecore() << std::endl;
+	std::cout << "Applying additional correction factor: " << pdcCalib << "; for ecore: " << recalibcluster->get_ecore() << std::endl;//"; eta: " << E_vec_cluster.pseudoRapidity() << std::endl;
 	recalibcluster->set_ecore(recalibcluster->get_ecore() /pdcCalib);
+	std::cout << "New  ecore: " << recalibcluster->get_ecore() << std::endl;
 
       }
     _recalib_clusters->AddCluster(recalibcluster);
