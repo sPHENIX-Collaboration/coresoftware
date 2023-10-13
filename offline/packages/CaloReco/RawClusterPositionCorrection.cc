@@ -2,6 +2,7 @@
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
+#include <calobase/RawClusterUtility.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>           // for decode_index1, decode_in...
@@ -35,6 +36,7 @@
 #include <utility>  // for pair
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
+#include <cdbobjects/CDBHistos.h> // for CDBHistos
 #include <ffamodules/CDBInterface.h>
 
 
@@ -59,12 +61,13 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
   std::string calibdir = cdb->getUrl(m_calibName);
 
   if (calibdir[0] == '/')
-  {
-    cdbttree = new CDBTTree(calibdir.c_str());
-  }
-  else{ 
-    std::cout << std::endl << "did not find CDB tree" << std::endl;
-  }
+    {
+      cdbttree = new CDBTTree(calibdir.c_str());
+    }
+  else
+    { 
+      std::cout << std::endl << "did not find CDB tree" << std::endl;
+    }
 
   h2NorthSector = new TH2F("h2NorthSector", "Cluster; towerid #eta; towerid #phi", bins_eta, 47.5, 95.5, bins_phi, -0.5, 7.5);
   h2SouthSector = new TH2F("h2SouthSector", "Cluster; towerid #eta; towerid #phi", bins_eta, -0.5, 47.5, bins_phi, -0.5, 7.5);
@@ -107,7 +110,22 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
     calib_constants_south.push_back(dumvec);
     calib_constants_south_ecore.push_back(dumvec2);
   }
+  
+  //Load PDC final stage correction
+  std::string pdcResidName = "cemc_PDC_ResidualCorr";
+  calibdir = cdb -> getUrl(calibdir.c_str());
+  if(calibdir[0] == '/')
+    {
+      cdbHisto = new CDBHistos(calibdir.c_str());
+      cdbHisto -> LoadCalibrations();
+      cdbHisto -> Print();
+      pdcCorrFlat = (TH1D*)cdbHisto->getHisto("h1_res_p");
 
+    }
+  else
+    {
+      std::cout << std::endl << "did not find CDB histo" << std::endl;
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -305,6 +323,18 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     //    if (m_UseTowerInfo)
     recalibcluster->set_energy(clus_energy / eclus_recalib_val);
     recalibcluster->set_ecore(cluster->get_ecore() / ecore_recalib_val);
+    if(cluster->get_ecore() >= 1 && cluster -> get_ecore() <=6)
+      {
+	
+	int ecoreBin = pdcCorrFlat -> GetXaxis() -> FindBin(recalibcluster->get_ecore());
+	
+	float pdcCalib = pdcCorrFlat -> GetBinContent(ecoreBin);
+	if(pdcCalib < 0.1) pdcCalib = 1;
+	
+	
+	recalibcluster->set_ecore(recalibcluster->get_ecore() /pdcCalib);
+
+      }
     _recalib_clusters->AddCluster(recalibcluster);
 
     if (Verbosity() >= Fun4AllBase::VERBOSITY_EVEN_MORE && clus_energy > 1)
@@ -368,5 +398,6 @@ void RawClusterPositionCorrection::CreateNodeTree(PHCompositeNode *topNode)
 }
 int RawClusterPositionCorrection::End(PHCompositeNode * /*topNode*/)
 {
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
