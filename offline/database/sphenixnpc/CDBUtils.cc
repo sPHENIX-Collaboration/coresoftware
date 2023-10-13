@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp>
 
 #include <iostream>
+#include <stdexcept>  // for out_of_range
 
 CDBUtils::CDBUtils()
   : cdbclient(new SphenixClient())
@@ -199,4 +200,39 @@ void CDBUtils::Verbosity(int i)
     cdbclient->Verbosity(i);
   }
   m_Verbosity = i;
+}
+
+int CDBUtils::deletePayloadIOV(const std::string &pl_type, uint64_t iov_start)
+{
+  nlohmann::json resp = cdbclient->deletePayloadIOV(pl_type, iov_start);
+  int iret = resp["code"];
+  if (iret != 0)
+  {
+    std::cout << "Error deleting payload iov, type " << pl_type
+              << ", iov_start: " << iov_start
+              << ", msg: " << resp["msg"] << std::endl;
+  }
+  else
+  {
+    std::cout << resp["msg"] << std::endl;
+  }
+  return iret;
+}
+
+int CDBUtils::deletePayloadIOV(const std::string &pl_type, uint64_t iov_start, uint64_t iov_end)
+{
+  nlohmann::json resp = cdbclient->deletePayloadIOV(pl_type, iov_start, iov_end);
+  int iret = resp["code"];
+  if (iret != 0)
+  {
+    std::cout << "Error deleting payload iov, type " << pl_type
+              << ", iov_start: " << iov_start
+              << ", iov_end: " << iov_end
+              << ", msg: " << resp["msg"] << std::endl;
+  }
+  else
+  {
+    std::cout << resp["msg"] << std::endl;
+  }
+  return iret;
 }
