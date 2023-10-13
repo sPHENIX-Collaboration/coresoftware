@@ -86,7 +86,6 @@ class RawClusterPositionCorrection : public SubsysReco
 
   TH2F* h2NorthSector;
   TH2F* h2SouthSector;
-  TH2F* pdcCorr;
   TH1D* pdcCorrFlat;
   CDBInterface *cdb = nullptr;
   
