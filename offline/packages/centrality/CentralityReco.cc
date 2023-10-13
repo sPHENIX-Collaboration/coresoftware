@@ -1,10 +1,11 @@
 #include "CentralityReco.h"
 
 #include "CentralityInfov2.h"
-#include "bbc/BbcDefs.h"
-#include "bbc/BbcVertexMapv1.h"
-#include "bbc/BbcVertexv2.h"
-
+#include <bbc/BbcDefs.h>
+#include <bbc/BbcVertexMapv1.h>
+#include <bbc/BbcVertexv2.h>
+#include <bbc/BbcPmtInfoV1.h>
+#include <bbc/BbcPmtInfoContainerV1.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
@@ -221,53 +222,55 @@ int CentralityReco::FillVars()
 	  m_mbd_channel[_channel + _side * 64] = _channel;
 	}
     }
+  if (_use_ZDC){
 
-  size = _towers_zdc->size();
+    size = _towers_zdc->size();
 
-  for (unsigned int i = 0; i < size; i++)
-  {
-    _tmp_tower = _towers_zdc->get_tower_at_channel(i);
-    _energy = _tmp_tower->get_energy();
+    for (unsigned int i = 0; i < size; i++)
+      {
+	_tmp_tower = _towers_zdc->get_tower_at_channel(i);
+	_energy = _tmp_tower->get_energy();
 
-    if (!(i % 2))
-    {
-      if ((i / 2) % 4 == 3)
-      {
-        m_zdc_sum_low[i / 8] = _energy;
+	if (!(i % 2))
+	  {
+	    if ((i / 2) % 4 == 3)
+	      {
+		m_zdc_sum_low[i / 8] = _energy;
+	      }
+	    else
+	      {
+		m_zdc_energy_low[i / 2] = _zdc_gain_factors[i / 2] * _energy;
+	      }
+	  }
+	else
+	  {
+	    if ((i / 2) % 4 == 3)
+	      {
+		m_zdc_sum_high[i / 8] = _energy;
+	      }
+	    else
+	      {
+		m_zdc_energy_high[i / 2] = _zdc_gain_factors[i / 2] * _energy;
+	      }
+	  }
       }
-      else
+  
+    if (Verbosity() > 5)
       {
-        m_zdc_energy_low[i / 2] = _zdc_gain_factors[i / 2] * _energy;
+	std::cout << "--------- ZDC data: ----------" << std::endl;
+	std::cout << "South:" << std::endl;
+	for (int i = 0; i < 3; i++)
+	  {
+	    std::cout << i << " : " << m_zdc_energy_low[i] << " (" << m_zdc_energy_high[i] << ") " << std::endl;
+	  }
+	std::cout << "Sum : " << m_zdc_sum_low[0] << " (" << m_zdc_sum_high[0] << ") " << std::endl;
+	std::cout << "North:" << std::endl;
+	for (int i = 0; i < 3; i++)
+	  {
+	    std::cout << i << " : " << m_zdc_energy_low[i + 3] << " (" << m_zdc_energy_high[i + 3] << ") " << std::endl;
+	  }
+	std::cout << "Sum : " << m_zdc_sum_low[1] << " (" << m_zdc_sum_high[1] << ") " << std::endl;
       }
-    }
-    else
-    {
-      if ((i / 2) % 4 == 3)
-      {
-        m_zdc_sum_high[i / 8] = _energy;
-      }
-      else
-      {
-        m_zdc_energy_high[i / 2] = _zdc_gain_factors[i / 2] * _energy;
-      }
-    }
-  }
-
-  if (Verbosity() > 5)
-  {
-    std::cout << "--------- ZDC data: ----------" << std::endl;
-    std::cout << "South:" << std::endl;
-    for (int i = 0; i < 3; i++)
-    {
-      std::cout << i << " : " << m_zdc_energy_low[i] << " (" << m_zdc_energy_high[i] << ") " << std::endl;
-    }
-    std::cout << "Sum : " << m_zdc_sum_low[0] << " (" << m_zdc_sum_high[0] << ") " << std::endl;
-    std::cout << "North:" << std::endl;
-    for (int i = 0; i < 3; i++)
-    {
-      std::cout << i << " : " << m_zdc_energy_low[i + 3] << " (" << m_zdc_energy_high[i + 3] << ") " << std::endl;
-    }
-    std::cout << "Sum : " << m_zdc_sum_low[1] << " (" << m_zdc_sum_high[1] << ") " << std::endl;
   }
   if (Verbosity() > 5)
   {
@@ -376,7 +379,9 @@ int CentralityReco::CheckZDC()
 int CentralityReco::FillCentralityInfo()
 {
   // Fill is minbias
-  bool final_check = _zdc_check && _isMinBias;
+  
+  bool final_check = _isMinBias;
+  if (_use_ZDC) final_check |= _zdc_check;
   _central->setMinBias(final_check);
 
   float value = 0;
@@ -430,13 +435,14 @@ int CentralityReco::process_event(PHCompositeNode *topNode)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
-  // Check the ZDC coincidence
-  if (CheckZDC())
-  {
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
+  if (_use_ZDC)
+    {
+      // Check the ZDC coincidence
+      if (CheckZDC())
+	{
+	  return Fun4AllReturnCodes::ABORTEVENT;
+	}
+    }
   if (FillCentralityInfo())
     {
       return Fun4AllReturnCodes::ABORTEVENT;
@@ -473,14 +479,16 @@ int CentralityReco::GetNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
-  _towers_zdc = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_ZDC");
-
-  if (!_towers_zdc)
-  {
-    std::cout << "no zdc towers node " << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
+  if (_use_ZDC)
+    {
+      _towers_zdc = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_ZDC");
+      
+      if (!_towers_zdc)
+	{
+	  std::cout << "no zdc towers node " << std::endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

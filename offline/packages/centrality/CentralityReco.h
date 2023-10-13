@@ -14,6 +14,8 @@ class TNtuple;
 class TTree;
 class TowerInfo;
 class TowerInfoContainer;
+class BbcPmtInfoV1;
+class BbcPmtInfoContainerV1;
 class BbcVertex;
 class BbcVertexMapv1;
 
@@ -44,18 +46,21 @@ class CentralityReco : public SubsysReco
 
   void ResetVars();
 
+  void useZDC(int use_zdc) { _use_ZDC = use_zdc; }
+
  protected:
 
   TowerInfo *_tmp_tower = nullptr;
-  
+  BbcPmtInfoV1 *_tmp_pmt = nullptr;
   CentralityInfo *_central = nullptr;
-  TowerInfoContainer *_towers_mbd = nullptr;
+  BbcPmtInfoContainerV1 *_pmts_mbd = nullptr;
   TowerInfoContainer *_towers_zdc = nullptr;
 
   bool _zdc_check = false;
   unsigned int _key = std::numeric_limits<unsigned int>::max();
 
   int _op_mode = 0;
+  int _use_ZDC = true;
   int _isMinBias = std::numeric_limits<int>::max();
   int _quality = std::numeric_limits<int>::max();
   int _side = std::numeric_limits<int>::max();
@@ -64,8 +69,6 @@ class CentralityReco : public SubsysReco
 
   int _tubes_hit[2]{};
   int _tdc[2]{};
-  int m_mbd_side[128]{};
-  int m_mbd_channel[128]{};
 
   float _mbd_charge_threshold = 0.4;
 
@@ -81,13 +84,13 @@ class CentralityReco : public SubsysReco
 
   float _centrality_map[20]{};
   float _zdc_gain_factors[6]{};
-  float gaincorr[128]{};
-  float tq_t0_offsets[128]{};
 
+  int m_mbd_side[128]{};
+  int m_mbd_channel[128]{};
   float m_mbd_charge[128]{};
+  float m_mbd_time_t[128]{};
+  float m_mbd_time_q[128]{};
   float m_mbd_time[128]{};
-  float m_mbd_charge_raw[128]{};
-  float m_mbd_time_raw[128]{};
 
   float m_zdc_energy_low[6]{};
   float m_zdc_energy_high[6]{};
