@@ -16,6 +16,7 @@ class PHCompositeNode;
 class RawClusterContainer;
 class CDBInterface;
 class CDBTTree;
+class CDBHistos;
 
 class RawClusterPositionCorrection : public SubsysReco
 {
@@ -85,10 +86,13 @@ class RawClusterPositionCorrection : public SubsysReco
 
   TH2F* h2NorthSector;
   TH2F* h2SouthSector;
-
+  TH2F* pdcCorr;
+  TH1D* pdcCorrFlat;
   CDBInterface *cdb = nullptr;
+  
   CDBTTree *cdbttree = nullptr;
-
+  CDBHistos *cdbHisto = nullptr;
+  TFile *pdcCorrIn = nullptr;
 };
 
 #endif
