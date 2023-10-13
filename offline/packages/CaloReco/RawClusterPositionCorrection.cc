@@ -48,6 +48,7 @@ RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &na
   , iEvent(0)
   , h2NorthSector(0)
   , h2SouthSector(0)
+  , pdcCorrFlat(0)
 {
 }
 
