@@ -65,7 +65,7 @@ private:
   float tq_clk_offsets[BbcDefs::BBC_N_PMT] {};
   float tt_clk_offsets[BbcDefs::BBC_N_PMT] {};
 
-  float bz_offset{0.};
+  //float bz_offset{0.};
 
   int _verbose;
   int _runnum;
