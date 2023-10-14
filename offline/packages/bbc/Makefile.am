@@ -28,6 +28,7 @@ pkginclude_HEADERS = \
   BbcDefs.h \
   BbcOut.h \
   BbcOutV1.h \
+  BbcOutV2.h \
   BbcNorthSouth.h \
   BbcNorthSouthV1.h \
   BbcPmtContainer.h \
@@ -59,6 +60,7 @@ else
 ROOTDICTS = \
   BbcOut_Dict.cc \
   BbcOutV1_Dict.cc \
+  BbcOutV2_Dict.cc \
   BbcGeom_Dict.cc \
   BbcGeomV1_Dict.cc \
   BbcNorthSouth_Dict.cc \
@@ -87,6 +89,7 @@ else
 nobase_dist_pcm_DATA = \
   BbcOut_Dict_rdict.pcm \
   BbcOutV1_Dict_rdict.pcm \
+  BbcOutV2_Dict_rdict.pcm \
   BbcGeom_Dict_rdict.pcm \
   BbcGeomV1_Dict_rdict.pcm \
   BbcNorthSouth_Dict_rdict.pcm \
@@ -114,6 +117,7 @@ libbbc_io_la_SOURCES = \
   $(ROOTDICTS) \
   BbcOut.cc \
   BbcOutV1.cc \
+  BbcOutV2.cc \
   BbcNorthSouth.cc \
   BbcNorthSouthV1.cc \
   BbcPmtHit.cc \
