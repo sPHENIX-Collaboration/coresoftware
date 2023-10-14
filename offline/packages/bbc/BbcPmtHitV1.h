@@ -31,7 +31,7 @@ public:
   //! Time from charge channel
   Float_t get_tq() const override { return btq; }
 
-  void set_pmt(const Short_t pmt, const Float_t q, const Float_t tt, const Float_t tq) {
+  void set_pmt(const Short_t pmt, const Float_t q, const Float_t tt, const Float_t tq) override {
     bpmt = pmt;
     bq = q;
     btt = tt;

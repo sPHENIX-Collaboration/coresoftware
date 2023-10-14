@@ -20,7 +20,7 @@ class BbcOut : public PHObject
   void identify(std::ostream& os = std::cout) const override;
 
   /// Clear Event
-  void Reset() override;
+  virtual void Reset() override;
 
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;

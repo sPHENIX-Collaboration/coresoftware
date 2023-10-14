@@ -6,6 +6,7 @@
 #include "BbcOut.h"
 
 #include <iostream>
+#include <limits>
 
 class TClonesArray;
 
@@ -68,7 +69,7 @@ public:
       @param iclk    XMIT clock
       @param ifemclk FEM clock
    */
-  virtual void set_clocks(const Int_t ievt, const UShort_t iclk, const UShort_t ifemclk);
+  virtual void set_clocks(const Int_t ievt, const UShort_t iclk, const UShort_t ifemclk) override;
 
   /** get Number of PMT's fired in North/South Bbc
       @param iarm  Arm, use Bbc::North and Bbc::South
@@ -100,19 +101,19 @@ public:
 
 private:
 
-  Float_t  bz{};
-  Float_t  bzerr{};
-  Float_t  bt0{};
-  Float_t  bt0err{};
-  Float_t  bqs{};
-  Float_t  bqn{};
-  Float_t  bts{};
-  Float_t  btn{};
-  Short_t  bns{};
-  Short_t  bnn{};
-  Int_t    evt{};
-  UShort_t clk{};
-  UShort_t femclk{};
+  Float_t  bz{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t  bzerr{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t  bt0{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t  bt0err{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t  bqs{0};
+  Float_t  bqn{0};
+  Float_t  bts{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t  btn{std::numeric_limits<Float_t>::quiet_NaN()};
+  Short_t  bns{0};
+  Short_t  bnn{0};
+  Int_t    evt{-1};
+  UShort_t clk{0};
+  UShort_t femclk{0};
 
   ClassDefOverride(BbcOutV2, 1)
 };

@@ -6,6 +6,7 @@
 #include "BbcOut.h"
 
 #include <iostream>
+#include <limits>
 
 class TClonesArray;
 
@@ -19,7 +20,7 @@ public:
   ~BbcOutV1() override;
 
   /// Clear Event from memory
-  void Reset() override;
+  virtual void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream
@@ -81,16 +82,16 @@ public:
 
 private:
 
-  Float_t bz{};
-  Float_t bzerr{};
-  Float_t bt0{};
-  Float_t bt0err{};
-  Float_t bns{};
-  Float_t bnn{};
-  Float_t bqs{};
-  Float_t bqn{};
-  Float_t bts{};
-  Float_t btn{};
+  Float_t bz{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t bzerr{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t bt0{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t bt0err{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t bns{0};
+  Float_t bnn{0};
+  Float_t bqs{0};
+  Float_t bqn{0};
+  Float_t bts{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t btn{std::numeric_limits<Float_t>::quiet_NaN()};
 
   ClassDefOverride(BbcOutV1, 1)
 };
