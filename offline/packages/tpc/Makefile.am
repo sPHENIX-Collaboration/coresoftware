@@ -78,6 +78,7 @@ libtpc_la_SOURCES = \
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
+  -lffarawobjects \
   -lc10 \
   -ltorch_cpu \
   -ltorch \

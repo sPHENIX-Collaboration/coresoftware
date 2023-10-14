@@ -1,7 +1,15 @@
+// Tell emacs that this is a C++ source
+// //  -*- C++ -*-.
 #ifndef TPC_COMBINEDRAWDATAUNPACKER_H
 #define TPC_COMBINEDRAWDATAUNPACKER_H
 
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHitSet.h>
+
 #include <fun4all/SubsysReco.h>
+
+#include <ffarawobjects/TpcRawHit.h>
+#include <ffarawobjects/TpcRawHitContainer.h>
 
 #include <TFile.h>
 #include <memory>
@@ -11,6 +19,8 @@ class PHCompositeNode;
 class CDBTTree;
 class CDBInterface;
 class TNtuple;
+//class TpcRawHit;
+//class TpcRawHitContainer;
 
 class TpcCombinedRawDataUnpacker : public SubsysReco
 {
@@ -23,11 +33,12 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   int End(PHCompositeNode *topNode) override;  
 
  protected:
+  std::string outfile_name;
+  
   CDBTTree *m_cdbttree = nullptr;
   CDBInterface *m_cdb = nullptr;
 
   int _ievent = 0;
-  std::string outfile_name;
 
  private:
   std::string m_TpcRawNodeName = "TPCRAWHIT";

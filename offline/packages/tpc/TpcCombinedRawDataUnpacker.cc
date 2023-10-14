@@ -10,12 +10,18 @@
 #include <trackbase/TrkrHitv2.h>
 
 #include <ffarawobjects/TpcRawHit.h>
+#include <ffarawobjects/TpcRawHitv1.h>
 #include <ffarawobjects/TpcRawHitContainer.h>
+#include <ffarawobjects/TpcRawHitContainerv1.h>
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
+#include <Event/Event.h>
+#include <Event/EventTypes.h>
+#include <Event/packet.h>
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
@@ -25,6 +31,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>      // for PHIODataNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>             // for PHWHERE
 
@@ -145,7 +152,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
 
-  TpcRawHitContainer* tpccont = findNode::getClass<TpcRawHitContainer>(topNode, m_TpcRawNodeName);
+  TpcRawHitContainerv1 *tpccont = findNode::getClass<TpcRawHitContainerv1>(topNode, m_TpcRawNodeName);
   if (!tpccont)
   {
     std::cout << PHWHERE << std::endl;
@@ -175,7 +182,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
   for (unsigned int i = 0; i < tpccont->get_nhits(); i++)
   {
-    TpcRawHit* tpchit = tpccont->get_hit(i);
+    TpcRawHit *tpchit = tpccont->get_hit(i);
     uint64_t gtm_bco = tpchit->get_gtm_bco();
 
     if(gtm_bco<bco_min){
@@ -192,7 +199,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     if(FEE_R[fee]==3) feeM += 14;
 
     int side = 0;
-    int packet_id = tpchit->get_packetid();
+    int32_t packet_id = tpchit->get_packetid();
     int ep = (packet_id - 4000) % 10;
     int sector = (packet_id - 4000 - ep) / 10;
     if (sector>11) side = 1;
@@ -209,6 +216,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
     varname = "phi";// + std::to_string(key);
     double phi = pow(-1,side)*m_cdbttree->GetDoubleValue(key,varname) + (sector - side*12)*M_PI/6;
+    
     PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
     unsigned int phibin = layergeom->find_phibin(phi);
 
