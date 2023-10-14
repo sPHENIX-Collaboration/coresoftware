@@ -8,22 +8,22 @@
 //______________________________________
 BbcOutV1::BbcOutV1()
 {
-  Init();
+  Reset();
 }
 
 //______________________________________
-void BbcOutV1::Init()
+void BbcOutV1::Reset()
 {
-  bz = std::numeric_limits<float>::quiet_NaN();
-  bzerr = std::numeric_limits<float>::quiet_NaN();
-  bt0 = std::numeric_limits<float>::quiet_NaN();
-  bt0err = std::numeric_limits<float>::quiet_NaN();
+  bz = std::numeric_limits<Float_t>::quiet_NaN();
+  bzerr = std::numeric_limits<Float_t>::quiet_NaN();
+  bt0 = std::numeric_limits<Float_t>::quiet_NaN();
+  bt0err = std::numeric_limits<Float_t>::quiet_NaN();
   bns = 0.;
   bnn = 0.;
   bqs = 0.;
   bqn = 0.;
-  bts = std::numeric_limits<float>::quiet_NaN();
-  btn = std::numeric_limits<float>::quiet_NaN();
+  bts = std::numeric_limits<Float_t>::quiet_NaN();
+  btn = std::numeric_limits<Float_t>::quiet_NaN();
 }
 
 //______________________________________
@@ -39,12 +39,6 @@ int BbcOutV1::isValid() const
 }
 
 //______________________________________
-void BbcOutV1::Reset()
-{
-  Init();
-}
-
-//______________________________________
 void BbcOutV1::identify(std::ostream &out) const
 {
   out << "identify yourself: I am a BbcOutV1 object" << std::endl;
@@ -53,27 +47,27 @@ void BbcOutV1::identify(std::ostream &out) const
 }
 
 //______________________________________
-void BbcOutV1::set_t0(const float t0, const float t0err)
+void BbcOutV1::set_t0(const Float_t t0, const Float_t t0err)
 {
   bt0 = t0;
   bt0err = t0err;
 }
 
 //______________________________________
-void BbcOutV1::set_zvtx(const float vtx, const float vtxerr)
+void BbcOutV1::set_zvtx(const Float_t vtx, const Float_t vtxerr)
 {
   bz = vtx;
   bzerr = vtxerr;
 }
 
 //______________________________________
-void BbcOutV1::set_zvtxerr(const float vtxerr)
+void BbcOutV1::set_zvtxerr(const Float_t vtxerr)
 {
   bzerr = vtxerr;
 }
 
 //______________________________________
-void BbcOutV1::set_arm(const int iarm, const short npmt, const float charge, const float timing)
+void BbcOutV1::set_arm(const int iarm, const Short_t npmt, const Float_t charge, const Float_t timing)
 {
   if (iarm==0)
   {
@@ -94,18 +88,19 @@ void BbcOutV1::set_arm(const int iarm, const short npmt, const float charge, con
 }
 
 //______________________________________
-short BbcOutV1::get_npmt(const int iarm) const
+Short_t BbcOutV1::get_npmt(const int iarm) const
 {
   return (iarm==0) ? bns : bnn;
 }
 
 //______________________________________
-float BbcOutV1::get_q(const int iarm) const
+Float_t BbcOutV1::get_q(const int iarm) const
 {
   return (iarm==0) ? bqs : bqn;
 }
 
-float BbcOutV1::get_time(const int iarm) const
+Float_t BbcOutV1::get_time(const int iarm) const
 {
   return (iarm==0) ? bts : btn;
 }
+

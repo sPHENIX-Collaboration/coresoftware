@@ -7,7 +7,7 @@
 class PHCompositeNode;
 class Event;
 class Packet;
-class BbcPmtInfoContainerV1;
+class BbcPmtContainer;
 class BbcOut;
 class BbcCalib;
 class BbcGeom;
@@ -21,8 +21,8 @@ public:
   BbcEvent ();
   ~BbcEvent ();
 
-  int SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts);
-  int Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout);
+  int SetRawData(Event *event, BbcPmtContainer *bbcpmts);
+  int Calculate(BbcPmtContainer *bbcpmts, BbcOut *bbcout);
   int InitRun();
   void Clear();
 
@@ -42,7 +42,7 @@ public:
 
   int get_EventNumber (void) const
   {
-    return _eventnum;
+    return m_evt;
   }
 
   BbcSig* GetSig(const int ipmt) { return &bbcsig[ipmt]; }
@@ -69,8 +69,12 @@ private:
 
   int _verbose;
   int _runnum;
-  int _eventnum;
   Packet *p[2] {nullptr,nullptr} ;
+
+  //alignment data
+  Int_t   m_evt;
+  Short_t m_clk;
+  Short_t m_femclk;
 
   //raw data
   Float_t m_adc[BbcDefs::BBC_N_FEECH][BbcDefs::MAX_SAMPLES];     // raw waveform, adc values
@@ -83,6 +87,7 @@ private:
   Float_t m_pmttt[BbcDefs::BBC_N_PMT]{};  // time in each arm
   Float_t m_pmttq[BbcDefs::BBC_N_PMT]{};  // time in each arm
 
+  //output data
   Short_t m_bbcn[2]{};      // num hits for each arm (north and south)
   Float_t m_bbcq[2]{};      // total charge (currently npe) in each arm
   Float_t m_bbct[2]{};      // time in arm
@@ -91,9 +96,10 @@ private:
   Float_t m_bbczerr {NAN};  // z-vertex error
   Float_t m_bbct0 {NAN};    // start time
   Float_t m_bbct0err {NAN}; // start time error
+  Float_t _tres = NAN;  // time resolution of one channel
+
   TH1 *hevt_bbct[2]{};  // time in each bbc, per event
   TF1 *gaussian {nullptr};
-  Float_t _tres = NAN;  // time resolution of one channel
 
   TH2 *h2_tmax[2] = {};  // [0 == time ch, 1 == chg ch], max sample in evt vs ch
 

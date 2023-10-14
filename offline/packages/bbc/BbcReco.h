@@ -10,7 +10,7 @@
 
 class PHCompositeNode;
 class BbcEvent;
-class BbcPmtInfoContainerV1;
+class BbcPmtContainer;
 class BbcVertexMap;
 class BbcOut;
 class Event;
@@ -40,7 +40,7 @@ class BbcReco : public SubsysReco
   Event                 *m_event {nullptr};
   BbcVertexMap          *m_bbcvertexmap {nullptr};
   BbcOut                *m_bbcout {nullptr};
-  BbcPmtInfoContainerV1 *m_bbcpmts {nullptr};
+  BbcPmtContainer       *m_bbcpmts {nullptr};
 };
 
 #endif  // __BBCRECO_H__

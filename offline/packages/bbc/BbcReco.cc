@@ -1,11 +1,11 @@
 #include "BbcReco.h"
 #include "BbcDefs.h"
 #include "BbcEvent.h"
-#include "BbcPmtInfoContainerV1.h"
+#include "BbcPmtContainerV1.h"
 #include "BbcReturnCodes.h"
 #include "BbcVertexMapv1.h"
 #include "BbcVertexv2.h"
-#include "BbcOutV1.h"
+#include "BbcOutV2.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -125,17 +125,17 @@ int BbcReco::createNodes(PHCompositeNode *topNode)
   m_bbcout = findNode::getClass<BbcOut>(bbcNode, "BbcOut");
   if (!m_bbcout)
   {
-    m_bbcout = new BbcOutV1();
+    m_bbcout = new BbcOutV2();
     PHIODataNode<PHObject> *BbcOutNode = new PHIODataNode<PHObject>(m_bbcout, "BbcOut", "PHObject");
     bbcNode->addNode(BbcOutNode);
   }
 
-  m_bbcpmts = findNode::getClass<BbcPmtInfoContainerV1>(topNode, "BbcPmtInfoContainer");
+  m_bbcpmts = findNode::getClass<BbcPmtContainerV1>(topNode, "BbcPmtContainer");
   if (!m_bbcpmts)
   {
-    m_bbcpmts = new BbcPmtInfoContainerV1();
-    PHIODataNode<PHObject> *BbcPmtInfoContainerNode = new PHIODataNode<PHObject>(m_bbcpmts, "BbcPmtInfoContainer", "PHObject");
-    bbcNode->addNode(BbcPmtInfoContainerNode);
+    m_bbcpmts = new BbcPmtContainerV1();
+    PHIODataNode<PHObject> *BbcPmtContainerNode = new PHIODataNode<PHObject>(m_bbcpmts, "BbcPmtContainer", "PHObject");
+    bbcNode->addNode(BbcPmtContainerNode);
   }
 
   m_bbcvertexmap = findNode::getClass<BbcVertexMap>(bbcNode, "BbcVertexMap");
@@ -166,10 +166,10 @@ int BbcReco::getNodes(PHCompositeNode *topNode)
   }
 
   // BbcPmtContainer
-  m_bbcpmts = findNode::getClass<BbcPmtInfoContainerV1>(topNode, "BbcPmtInfoContainer");
+  m_bbcpmts = findNode::getClass<BbcPmtContainer>(topNode, "BbcPmtContainer");
   if (!m_bbcpmts)
   {
-    std::cout << PHWHERE << " BbcPmtInfoContainer node not found on node tree" << std::endl;
+    std::cout << PHWHERE << " BbcPmtContainer node not found on node tree" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

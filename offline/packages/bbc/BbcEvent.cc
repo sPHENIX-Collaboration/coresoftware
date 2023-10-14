@@ -1,5 +1,6 @@
 #include "BbcEvent.h"
-#include "BbcPmtInfoContainerV1.h"
+#include "BbcPmtContainer.h"
+#include "BbcPmtHit.h"
 #include "BbcOut.h"
 #include "BbcGeomV1.h"
 #include "BbcCalib.h"
@@ -26,8 +27,10 @@ using namespace BbcDefs;
 BbcEvent::BbcEvent(void) :
   _verbose(0),
   _runnum(0),
-  _eventnum(0),
   p{nullptr,nullptr},
+  m_evt(0),
+  m_clk(0),
+  m_femclk(0),
   _tres(0.05),
   ac(nullptr)
 {
@@ -171,7 +174,7 @@ void BbcEvent::Clear()
 }
 
 
-int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
+int BbcEvent::SetRawData(Event *event, BbcPmtContainer *bbcpmts)
 {
   // First check if there is any event (ie, reading from PRDF)
   if ( event==0 || event==nullptr ) return -1;
@@ -182,6 +185,10 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
     cout << "BbcEvent: Event type is not DATAEVENT, skipping" << endl;
     return -2;
   }
+
+  m_evt = event->getEvtSequence();
+  UShort_t xmitclocks[2];    // [ipkt]
+  UShort_t femclocks[2][2];  // [ipkt][iadc]
 
   // Get the relevant packets from the Event object and transfer the
   // data to the subsystem-specific table.
@@ -201,6 +208,11 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
 
     if ( p[ipkt] )
     {
+      xmitclocks[ipkt] = static_cast<UShort_t>( p[ipkt]->iValue(0,"CLOCK") );
+
+      femclocks[ipkt][0] = static_cast<UShort_t>( p[ipkt]->iValue(0,"FEMCLOCK") );
+      femclocks[ipkt][1] = static_cast<UShort_t>( p[ipkt]->iValue(1,"FEMCLOCK") );
+
       for (int ich=0; ich<NCHPERPKT; ich++)
       {
         int feech = ipkt*NCHPERPKT + ich;
@@ -214,7 +226,7 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
           if ( m_adc[feech][isamp] <= 100 )
           {
             //flag_err = 1;
-            //cout << "BAD " << _eventnum << "\t" << feech << "\t" << m_samp[feech][isamp]
+            //cout << "BAD " << m_evt << "\t" << feech << "\t" << m_samp[feech][isamp]
             //    << "\t" << m_adc[feech][isamp] << endl;
           }
           */
@@ -229,16 +241,36 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
     else
     {
       //flag_err = 1;
-      cout << "ERROR, evt " << _eventnum << " Missing Packet " << pktid << endl;
+      cout << "ERROR, evt " << m_evt << " Missing Packet " << pktid << endl;
     }
   }
+
+  //Do a quick sanity check that all fem counters agree
+  if ( xmitclocks[0] != xmitclocks[1] )
+  {
+    cout << __FILE__ << ":" << __LINE__ << " ERROR, xmitclocks don't agree" << endl;
+  }
+  for (int ipkt=0; ipkt<2; ipkt++)
+  {
+    for (int iadc=0; iadc<2; iadc++)
+    {
+      if ( femclocks[ipkt][iadc] != femclocks[0][0] )
+      {
+        cout << __FILE__ << ":" << __LINE__ << " ERROR, femclocks don't agree" << endl;
+      }
+    }
+  }
+
+  // Store the clock info. We use just the first one, and assume all are consistent.
+  m_clk = xmitclocks[0];
+  m_femclk = femclocks[0][0];
 
   for (int ifeech=0; ifeech<BBC_N_FEECH; ifeech++)
   {
     int pmtch = _bbcgeom->get_pmt(ifeech);
-    int tq = _bbcgeom->get_type(ifeech);   // 0 = T-channel, 1 = Q-channel
+    int type = _bbcgeom->get_type(ifeech);   // 0 = T-channel, 1 = Q-channel
 
-    if ( tq == 0 ) continue;
+    if ( type == 0 ) continue;
     // Use dCFD method to get time for now in charge channels
     //Double_t threshold = 4.0*sig->GetPed0RMS();
 
@@ -262,7 +294,7 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
       m_pmttq[pmtch] = m_pmttq[pmtch] - _bbccal->get_tq0(pmtch);
     }
 
-    m_pmtq[pmtch] = m_ampl[ifeech] * _bbccal->get_qgain(pmtch);
+    m_pmtq[pmtch] = m_ampl[ifeech] / _bbccal->get_qgain(pmtch);
 
     if ( m_pmtq[pmtch]<0.25 )
     {
@@ -270,10 +302,13 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
       m_pmttq[pmtch] = NAN;
     }
 
+    // set tt to tq for now
+    m_pmttt[pmtch] = m_pmttq[pmtch];
+
     /*
-    if ( _eventnum<3 && ifeech==255 && m_ampl[ifeech] )
+    if ( m_evt<3 && ifeech==255 && m_ampl[ifeech] )
     {
-      cout << "dcfdcalc " << _eventnum << "\t" << ifeech << "\t" << m_pmttq[pmtch] << "\t" << m_ampl[ifeech] << endl;
+      cout << "dcfdcalc " << m_evt << "\t" << ifeech << "\t" << m_pmttq[pmtch] << "\t" << m_ampl[ifeech] << endl;
     }
     */
   }
@@ -284,15 +319,16 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
   // Copy to output
   for (int ipmt=0; ipmt<BBC_N_PMT; ipmt++)
   {
-    bbcpmts->get_tower_at_channel(ipmt)->set_pmt(ipmt, m_pmtq[ipmt], m_pmttt[ipmt], m_pmttq[ipmt]);
+    bbcpmts->get_pmt(ipmt)->set_pmt(ipmt, m_pmtq[ipmt], m_pmttt[ipmt], m_pmttq[ipmt]);
   }
+  bbcpmts->set_npmt( BBC_N_PMT );
 
-  _eventnum++;
-  return _eventnum;
+  m_evt++;
+  return m_evt;
 }
 
 ///
-int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
+int BbcEvent::Calculate(BbcPmtContainer *bbcpmts, BbcOut *bbcout)
 {
   if ( _verbose>=10 ) cout << "In BbcEvent::Calculate()" << endl;
   Clear();
@@ -310,10 +346,10 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
   if ( _verbose>=10 ) cout << "Hit PMT info " << endl;
   for (int ipmt=0; ipmt<BbcDefs::BBC_N_PMT; ipmt++)
   {
-    BbcPmtInfoV1 *bbcpmt = bbcpmts->get_pmt( ipmt );
+    BbcPmtHit *bbcpmt = bbcpmts->get_pmt( ipmt );
     int arm = ipmt/64;
 
-    float t_pmt = bbcpmt->get_t();  // hit time of pmt
+    float t_pmt = bbcpmt->get_time();  // hit time of pmt
     float q_pmt = bbcpmt->get_q();  // charge in pmt
 
     if ( _verbose>=10 ) cout << ipmt << "\t" << t_pmt << endl;
@@ -386,7 +422,7 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
     // Now calculate zvtx, t0 from best times
     if ( _verbose>=10 ) 
     {
-      cout << "Evt " << _eventnum << "\tt0\t" << m_bbct[0] << "\t" << m_bbct[1] << endl;
+      cout << "Evt " << m_evt << "\tt0\t" << m_bbct[0] << "\t" << m_bbct[1] << endl;
       cout << "bbcn " << m_bbcn[0] << "\t" << m_bbcn[1] << endl;
       cout << "bbcq " << m_bbcq[0] << "\t" << m_bbcq[1] << endl;
     }
@@ -418,6 +454,7 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
     for (int iarm=0; iarm<2; iarm++)
     {
       bbcout->set_arm( iarm, get_bbcn(iarm), get_bbcq(iarm), get_bbct(iarm) );
+      bbcout->set_clocks( m_evt, m_clk, m_femclk ); // only for V2
       if (_verbose>10 ) cout <<  get_bbcn(iarm) << "\t" << get_bbcq(iarm) << "\t" << get_bbct(iarm) << endl;
     }
 
