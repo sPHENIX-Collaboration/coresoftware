@@ -248,10 +248,10 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
     m_pmttq[pmtch] = bbcsig[ifeech].dCFD( threshold );
     m_ampl[ifeech] = bbcsig[ifeech].GetAmpl();
 
-    if ( m_ampl[ifeech]<24 || ( fabs( m_pmttq[pmtch] ) >25 ) )
+    if ( m_ampl[ifeech]<24 )
     {
       //m_t0[ifeech] = -9999.;
-      m_pmttq[pmtch] = -9999.;
+      m_pmttq[pmtch] = NAN;
     }
     else
     {
@@ -263,6 +263,12 @@ int BbcEvent::SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts)
     }
 
     m_pmtq[pmtch] = m_ampl[ifeech] * _bbccal->get_qgain(pmtch);
+
+    if ( m_pmtq[pmtch]<0.25 )
+    {
+      m_pmtq[pmtch] = 0.;
+      m_pmttq[pmtch] = NAN;
+    }
 
     /*
     if ( _eventnum<3 && ifeech==255 && m_ampl[ifeech] )
@@ -311,9 +317,8 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
     float q_pmt = bbcpmt->get_q();  // charge in pmt
 
     if ( _verbose>=10 ) cout << ipmt << "\t" << t_pmt << endl;
-    //if ( m_q[ipmt] > 20 && m_tq[ipmt] > 0. && m_tq[ipmt] < 35. )
-    //if ( m_tq[ipmt] > 0. && m_tq[ipmt] < 35. )
-    if ( fabs(t_pmt) < 25. )
+
+    if ( fabs(t_pmt) < 25. && q_pmt>0. )
     {
       hit_times[arm].push_back( t_pmt );
       hevt_bbct[arm]->Fill( t_pmt );
@@ -389,7 +394,7 @@ int BbcEvent::Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout)
     m_bbct0 = (m_bbct[0] + m_bbct[1]) / 2.0;
 
     // correct z-vertex
-    m_bbcz += bz_offset;
+    //m_bbcz += bz_offset;
 
     // hard code these for now
     // need study to determine muliplicity dependence

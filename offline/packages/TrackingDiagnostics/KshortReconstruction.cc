@@ -109,39 +109,38 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
       float pseudorapidity;
 
       // Initial calculation of point of closest approach between the two tracks
+      // This presently assumes straight line tracks to get a rough answer
+      // Should update to use circles instead?
       findPcaTwoTracks(pos1, pos2, mom1, mom2, pca_rel1, pca_rel2, pair_dca);
 
       // tracks with small relative pca are k short candidates
       if (abs(pair_dca) < pair_dca_cut)
       {
-        // Pair dca was calculated with nominal track parameters and is approximate
+        // Pair pca and dca were calculated with nominal track parameters and are approximate
+	// Project tracks to this rough pca
         Eigen::Vector3d projected_pos1;
         Eigen::Vector3d projected_mom1;
         Eigen::Vector3d projected_pos2;
         Eigen::Vector3d projected_mom2;
 
-        // Moved away from this method because cylinder projection has two possible solutions
-        // Eigen::Vector3d average_pca = (pca_rel1 + pca_rel2)/2.0;
-        // double radius = sqrt(pow(average_pca(0),2)+ pow(average_pca(1),2));
-        // bool ret1 = projectTrackToCylinder(tr1, radius, projected_pos1, projected_mom1);
-        // bool ret2 = projectTrackToCylinder(tr2, radius, projected_pos2, projected_mom2);
-
         bool ret1 = projectTrackToPoint(tr1, pca_rel1, projected_pos1, projected_mom1);
         bool ret2 = projectTrackToPoint(tr2, pca_rel2, projected_pos2, projected_mom2);
-
-        double pair_dca_proj;
-        Acts::Vector3 pca_rel1_proj;
-        Acts::Vector3 pca_rel2_proj;
 
         if (!ret1 or !ret2)
         {
           continue;
         }
 
-        // recalculate pca with projected position and momentum
+        // recalculate pca starting with projected position and momentum
+        double pair_dca_proj;
+        Acts::Vector3 pca_rel1_proj;
+        Acts::Vector3 pca_rel2_proj;
         findPcaTwoTracks(projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj);
 
-        fillHistogram(projected_mom1, projected_mom2, recomass, invariantMass, invariantPt, rapidity, pseudorapidity);  // invariant mass is calculated in this method
+	//if(pair_dca_proj > pair_dca_cut) continue;
+
+	// invariant mass is calculated in this method
+        fillHistogram(projected_mom1, projected_mom2, recomass, invariantMass, invariantPt, rapidity, pseudorapidity);  
         fillNtp(tr1, tr2, dcaVals1, dcaVals2, pca_rel1, pca_rel2, pair_dca, invariantMass, invariantPt, rapidity, pseudorapidity, projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj);
 
         if (Verbosity() > 2)
@@ -151,10 +150,13 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
           std::cout << " track1 dca_cut: " << this_dca_cut << " track2 dca_cut: " << this_dca_cut2 << std::endl;
           std::cout << " dca3dxy1,dca3dz1,phi1: " << dcaVals1 << std::endl;
           std::cout << " dca3dxy2,dca3dz2,phi2: " << dcaVals2 << std::endl;
+          std::cout << "Initial:  pca_rel1: " << pca_rel1 << " pca_rel2: " << pca_rel2 << std::endl;
+	  std::cout << " Initial: mom1: " << mom1 << " mom2: " << mom2 << std::endl;
+          std::cout << "Proj_pca_rel:  proj_pos1: " << projected_pos1 << " proj_pos2: " << projected_pos2 << " proj_mom1: " << projected_mom1 << " proj_mom2: " << projected_mom2 << std::endl;
           std::cout << " Relative PCA = " << abs(pair_dca) << " pca_cut = " << pair_dca_cut << std::endl;
           std::cout << " charge 1: " << tr1->get_charge() << " charge2: " << tr2->get_charge() << std::endl;
-          std::cout << "found viable projection";
-          std::cout << "pos1: " << projected_pos1 << " pos2: " << projected_pos2 << " mom1: " << projected_mom1 << " mom2: " << projected_mom2 << std::endl;
+          std::cout << "found viable projection" << std::endl;
+          std::cout << "Final: pca_rel1_proj: " << pca_rel1_proj << " pca_rel2_proj: " << pca_rel2_proj << " mom1: " << projected_mom1 << " mom2: " << projected_mom2 << std::endl << std::endl;
         }
       }
     }
@@ -235,11 +237,10 @@ void KshortReconstruction::fillHistogram(Eigen::Vector3d mom1, Eigen::Vector3d m
 bool KshortReconstruction::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d PCA, Eigen::Vector3d& pos, Eigen::Vector3d& mom)
 {
   bool ret = true;
-  PCA *= Acts::UnitConstants::cm;
 
   /// create perigee surface
   ActsPropagator actsPropagator(_tGeometry);
-  auto perigee = actsPropagator.makeVertexSurface(PCA);
+  auto perigee = actsPropagator.makeVertexSurface(PCA);  // PCA is in cm here
   const auto params = actsPropagator.makeTrackParams(track, m_vertexMap);
 
   auto result = actsPropagator.propagateTrack(params, perigee);
@@ -251,6 +252,11 @@ bool KshortReconstruction::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d
     pos(0) = projectionPos.x() / Acts::UnitConstants::cm;
     pos(1) = projectionPos.y() / Acts::UnitConstants::cm;
     pos(2) = projectionPos.z() / Acts::UnitConstants::cm;
+
+    if(Verbosity() > 2)
+      {
+	std::cout << "                 Input PCA " << PCA  << "  projection out " << pos << std::endl; 
+      }
 
     mom(0) = momentum.x();
     mom(1) = momentum.y();
@@ -395,7 +401,8 @@ KshortReconstruction::KshortReconstruction(const std::string& name)
 
 Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack* track, const Acts::Vector3& momentum, Acts::Vector3 position)
 {
-  Acts::Vector3 outVals(999, 999, 999);
+  // For the purposes of this module, we set default values of zero to cause this track to be rejected if the dca calc fails
+  Acts::Vector3 outVals(0, 0, 0);
   auto vtxid = track->get_vertex_id();
   if (!m_vertexMap)
   {
@@ -432,7 +439,7 @@ Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack* track, const Acts::V
   outVals(1) = abs(dca3dz);
   outVals(2) = phi;
 
-  if (Verbosity() > 2)
+  if (Verbosity() > 4)
   {
     std::cout << " pre-position: " << position << std::endl;
     std::cout << " vertex: " << vertex << std::endl;

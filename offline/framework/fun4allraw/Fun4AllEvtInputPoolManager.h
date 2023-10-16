@@ -91,6 +91,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   bool m_micromegas_registered_flag = false;
   bool m_tpc_registered_flag = false;
   std::vector<SingleStreamingInput *> m_EvtInputVector;
+  std::vector<int> m_MvtxEvtInputList;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
   std::map<uint64_t, PacketInfo> m_PacketInfoMap;
