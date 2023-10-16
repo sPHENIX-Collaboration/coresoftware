@@ -76,7 +76,7 @@ class ActsPropagator
   void verbosity(int verb) { m_verbosity = verb; }
   void setConstFieldValue(float field) { m_fieldval = field; }
   void constField() { m_constField = true; }
-
+  void setOverstepLimit(const double overstep) { m_overstepLimit = overstep; }
   SphenixPropagator makePropagator();
   FastPropagator makeFastPropagator();
 
@@ -90,6 +90,8 @@ class ActsPropagator
   ActsGeometry* m_geometry = nullptr;
 
   float m_fieldval = 1.4 * Acts::UnitConstants::T;
+
+  float m_overstepLimit = 0.02; // sphenix units cm
 };
 
 #endif

@@ -234,7 +234,7 @@ ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
   }
 
   auto trackingGeometry = m_geometry->geometry().tGeometry;
-  Stepper stepper(field);
+  Stepper stepper(field, m_overstepLimit * Acts::UnitConstants::cm);
   Acts::Navigator::Config cfg{trackingGeometry};
   cfg.resolvePassive = false;
   cfg.resolveMaterial = true;
