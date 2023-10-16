@@ -1,7 +1,7 @@
 #include "SingleInttPoolInput.h"
 #include "intt_pool.h"
 
-#include "Fun4AllEvtInputPoolManager.h"
+#include "Fun4AllStreamingInputManager.h"
 
 #include <ffarawobjects/InttRawHitContainerv1.h>
 #include <ffarawobjects/InttRawHitv1.h>
@@ -74,7 +74,6 @@ void SingleInttPoolInput::FillPool(const unsigned int)
     {
       evt->identify();
     }
-    
     // not interested in special events, really
     if (evt->getEvtType() != DATAEVENT)
     {
@@ -165,14 +164,14 @@ void SingleInttPoolInput::FillPool(const unsigned int)
 			      << ", bco: 0x" << std::hex << gtm_bco << std::dec
 			      << ", channel: " << newhit->get_channel_id() << std::endl;
 		  }
-		if (InputManager())
+		if (StreamingInputManager())
 		  {
-		    InputManager()->AddInttRawHit(gtm_bco, newhit);
+		    StreamingInputManager()->AddInttRawHit(gtm_bco, newhit);
 		  }
 		m_InttRawHitMap[gtm_bco].push_back(newhit);
 		m_BclkStack.insert(gtm_bco);
 	      }
-	    Print("FEEBCLK");
+//	    Print("FEEBCLK");
 	  }
 	pool->next();
       }
@@ -308,14 +307,6 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
     std::cout << "poolmap is empty" << std::endl;
     return true;
   }
-  static int i=0;
-  if (i>100)
-  {
-    i = 0;
-    std::cout << "100 " << std::endl;
-    return false;
-  }
-  i++;
   uint64_t localbclk = ibclk;
   if (ibclk == 0)
   {
@@ -330,9 +321,9 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
   {
     if (bcliter.second <= localbclk)
     {
-      std::cout << "FEE " << bcliter.first << " bclk: "
-		<< std::hex << bcliter.second << ", req: " << localbclk
-		<< std::dec << std::endl;
+      // std::cout << "FEE " << bcliter.first << " bclk: "
+      // 		<< std::hex << bcliter.second << ", req: " << localbclk
+      // 		<< std::dec << std::endl;
       return true;
     }
   }
@@ -345,17 +336,7 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
   //     return true;
   //   }
   // }
-  std::cout << "returning false" << std::endl;
   return false;
-
-  if (CheckPoolDepth(m_InttRawHitMap.begin()->first))
-  {
-    if (m_InttRawHitMap.size() >= 10)
-    {
-      return false;
-    }
-  }
-  return true;
 }
 
 void SingleInttPoolInput::CreateDSTNode(PHCompositeNode *topNode)
