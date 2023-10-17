@@ -141,7 +141,7 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     // int bco = intthit->get_FPHX_BCO();
 
     hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x); //col, row <trackbase/InttDefs.h>
-    hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, intthit->get_FPHX_BCO());
+    hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, (intthit->get_BCO()) & 0x3ff);
 
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
     hit = hit_set_container_itr->second->getHit(hit_key);
