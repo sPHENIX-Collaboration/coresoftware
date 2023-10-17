@@ -136,6 +136,32 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
       exit(1);
     }
   }
+  else if (m_dettype == CaloTowerCalib::ZDC)
+  {
+    m_detector = "ZDC";
+    m_DETECTOR = TowerInfoContainer::ZDC;
+
+    if (!m_overrideCalibName)
+    {
+      m_calibName = "data_driven_zdc_calib";
+    }
+    if (!m_overrideFieldName)
+    {
+      m_fieldname = "zdc_calib";
+    }
+    cdb = CDBInterface::instance();
+    std::string calibdir = cdb->getUrl(m_calibName);
+    if (calibdir[0] == '/')
+    {
+      cdbttree = new CDBTTree(calibdir.c_str());
+    }
+    else
+    {
+      std::cout << "CaloTowerCalib::::InitRun No calibration file found" << std::endl;
+      exit(1);
+    }
+  }
+  
   else if (m_dettype == CaloTowerCalib::EPD)
   {
     m_detector = "EPD";
