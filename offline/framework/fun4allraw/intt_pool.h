@@ -1,12 +1,16 @@
-#ifndef __INTT_POOL_H__
-#define __INTT_POOL_H__
+#ifndef FUN4ALLRAW_INTT_POOL_H
+#define FUN4ALLRAW_INTT_POOL_H
 
 #include <Event/packet.h>
-#include <vector>
-#include <set>
+
 #include <algorithm>
+#include <array>
+#include <cstdint>
 #include <functional>
-#include <stdint.h>
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
 
 
 class  intt_pool  {
@@ -40,19 +44,24 @@ public:
 
   
   //int    iValue(const int , const int, const char * what);
+  void Verbosity(const int i) {verbosity = i;}
+  void Name(const std::string &n) {name = n;}
+  std::string Name() const {return name;}
+
 
 protected:
   int intt_decode ();
 
   int intt_decode_hitlist (std::vector<unsigned int> & /*hitlist*/ , const int /*fee*/);
 
-  static const int MAX_FEECOUNT =16;
+  static const int MAX_FEECOUNT {16};
   
-  int _is_decoded;
+  int verbosity {0};
+  int _is_decoded {0};
   
   unsigned int _required_depth;
   unsigned int _low_mark;
-  int _myPacketid;
+  int _myPacketid {-1};  // we are not locked in yet
 
   struct intt_hit
   {
@@ -74,9 +83,9 @@ protected:
   std::vector<unsigned int> fee_data[MAX_FEECOUNT];
   std::vector<intt_hit *> intt_hits;
 
-  unsigned int last_index[MAX_FEECOUNT];
-
-  
+  std::array<unsigned int,MAX_FEECOUNT> last_index;
+  std::map<unsigned int, uint64_t> last_bco;
+  std::string name;
 };
 
  

@@ -1,7 +1,7 @@
 #include "SingleInttPoolInput.h"
 #include "intt_pool.h"
 
-#include "Fun4AllEvtInputPoolManager.h"
+#include "Fun4AllStreamingInputManager.h"
 
 #include <ffarawobjects/InttRawHitContainerv1.h>
 #include <ffarawobjects/InttRawHitv1.h>
@@ -40,7 +40,7 @@ SingleInttPoolInput::~SingleInttPoolInput()
     }
 }
 
-void SingleInttPoolInput::FillPool(const unsigned int /*nbclks*/)
+void SingleInttPoolInput::FillPool(const unsigned int)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -52,8 +52,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*nbclks*/)
   }
 
   std::set<uint64_t> saved_beamclocks;
-
-  while (GetSomeMoreEvents())
+  while (GetSomeMoreEvents(0))
   {
     Event *evt = GetEventiterator()->getNextEvent();
     while (!evt)
@@ -75,13 +74,12 @@ void SingleInttPoolInput::FillPool(const unsigned int /*nbclks*/)
     {
       evt->identify();
     }
-    
     // not interested in special events, really
     if (evt->getEvtType() != DATAEVENT)
     {
       m_NumSpecialEvents++;
       delete evt;
-      return;
+      continue;
     }
 
     int EventSequence = evt->getEvtSequence();
@@ -106,6 +104,8 @@ void SingleInttPoolInput::FillPool(const unsigned int /*nbclks*/)
 		std::cout << "starting new intt pool for packet " << plist[i]->getIdentifier() << std::endl;
 	      }
 	    poolmap[plist[i]->getIdentifier()] = new intt_pool(1000,100);
+            poolmap[plist[i]->getIdentifier()]->Verbosity(Verbosity());
+            poolmap[plist[i]->getIdentifier()]->Name(std::to_string(plist[i]->getIdentifier()));
 	  }
 	poolmap[plist[i]->getIdentifier()]->addPacket(plist[i]);
 
@@ -160,28 +160,28 @@ void SingleInttPoolInput::FillPool(const unsigned int /*nbclks*/)
 		    std::cout << "evtno: " << EventSequence
 			      << ", hits: " << j
 			      << ", nr_hits: " << num_hits
+			      << ", FEE: " << FEE 
 			      << ", bco: 0x" << std::hex << gtm_bco << std::dec
-			      << ", FEE: " << FEE << std::endl;
+			      << ", channel: " << newhit->get_channel_id() << std::endl;
 		  }
-		//          plist[i]->convert();
-		if (InputManager())
+		if (StreamingInputManager())
 		  {
-		    InputManager()->AddInttRawHit(gtm_bco, newhit);
-		  }
-		if (m_InttRawHitMap.find(gtm_bco) == m_InttRawHitMap.end())
-		  {
-		    std::vector<InttRawHit *> intthitvector;
-		    m_InttRawHitMap[gtm_bco] = intthitvector;
+		    StreamingInputManager()->AddInttRawHit(gtm_bco, newhit);
 		  }
 		m_InttRawHitMap[gtm_bco].push_back(newhit);
 		m_BclkStack.insert(gtm_bco);
 	      }
+//	    Print("FEEBCLK");
 	  }
 	pool->next();
       }
   } 	  
 }
 
+void SingleInttPoolInput::HandleBeamClock(const uint64_t bclk)
+{
+  std::cout << "bclk: " << std::hex << bclk << std::dec << std::endl;
+}
 
 void SingleInttPoolInput::Print(const std::string &what) const
 {
@@ -198,6 +198,7 @@ void SingleInttPoolInput::Print(const std::string &what) const
   }
   if (what == "ALL" || what == "FEEBCLK")
   {
+    std::cout << "Printing last beamclock for every FEE" << std::endl;
     for (auto bcliter : m_FEEBclkMap)
     {
       std::cout << "FEE" << bcliter.first << " bclk: 0x"
@@ -294,20 +295,48 @@ void SingleInttPoolInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleInttPoolInput::GetSomeMoreEvents()
+bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
 {
   if (AllDone())
   {
+    std::cout << "bclk: " << ibclk << std::endl;
     return false;
   }
-  if (CheckPoolDepth(m_InttRawHitMap.begin()->first))
+  if (poolmap.empty())
   {
-    if (m_InttRawHitMap.size() >= 10)
+    std::cout << "poolmap is empty" << std::endl;
+    return true;
+  }
+  uint64_t localbclk = ibclk;
+  if (ibclk == 0)
+  {
+    if (m_InttRawHitMap.empty())
     {
-      return false;
+    return true;
+    }
+    localbclk = m_InttRawHitMap.begin()->first;
+  }
+
+  for (auto bcliter : m_FEEBclkMap)
+  {
+    if (bcliter.second <= localbclk)
+    {
+      // std::cout << "FEE " << bcliter.first << " bclk: "
+      // 		<< std::hex << bcliter.second << ", req: " << localbclk
+      // 		<< std::dec << std::endl;
+      return true;
     }
   }
-  return true;
+  // for ( auto iter : poolmap )
+  // {
+  //   intt_pool * pool = iter.second; // less typing
+  //   if (!pool->depth_ok())
+  //   {
+  //     std::cout << "pool depth not ok" << std::endl;
+  //     return true;
+  //   }
+  // }
+  return false;
 }
 
 void SingleInttPoolInput::CreateDSTNode(PHCompositeNode *topNode)

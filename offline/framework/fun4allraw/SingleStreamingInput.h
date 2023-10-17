@@ -13,6 +13,7 @@
 
 class Eventiterator;
 class Fun4AllEvtInputPoolManager;
+class Fun4AllStreamingInputManager;
 class Packet;
 class PHCompositeNode;
 
@@ -23,6 +24,7 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   explicit SingleStreamingInput(const std::string &name);
   ~SingleStreamingInput() override;
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
+  virtual void FillPool(const uint64_t) {return;}
   virtual void FillPool(const unsigned int = 1) {return;}
   virtual void RunNumber(const int runno) { m_RunNumber = runno; }
   virtual int RunNumber() const { return m_RunNumber; }
@@ -38,11 +40,14 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual Eventiterator *GetEventiterator() const {return m_EventIterator;}
   virtual Fun4AllEvtInputPoolManager *InputManager() {return m_InputMgr;}
   virtual void InputManager(Fun4AllEvtInputPoolManager *in) {m_InputMgr = in;}
+  virtual Fun4AllStreamingInputManager *StreamingInputManager() {return m_StreamingInputMgr;}
+  virtual void StreamingInputManager(Fun4AllStreamingInputManager *in) {m_StreamingInputMgr = in;}
   virtual void CreateDSTNode(PHCompositeNode *) {return;}
 
  private:
   Eventiterator *m_EventIterator = nullptr;
   Fun4AllEvtInputPoolManager *m_InputMgr = nullptr;
+  Fun4AllStreamingInputManager *m_StreamingInputMgr = nullptr;
   unsigned int m_EventNumberOffset = 1;  // packet event counters start at 0 but we start with event number 1
   int m_RunNumber = 0;
   int m_EventsThisFile = 0;
