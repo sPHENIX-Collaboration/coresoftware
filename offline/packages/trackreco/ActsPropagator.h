@@ -91,7 +91,8 @@ class ActsPropagator
 
   float m_fieldval = 1.4 * Acts::UnitConstants::T;
 
-  float m_overstepLimit = 0.02; // sphenix units cm
+  /// Default Acts limit
+  float m_overstepLimit = 0.01 * Acts::UnitConstants::cm; // sphenix units cm
 };
 
 #endif

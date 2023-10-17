@@ -183,6 +183,7 @@ PHActsVertexPropagator::propagateTrack(
 
   ActsPropagator propagator(m_tGeometry);
   propagator.verbosity(Verbosity());
+  propagator.setOverstepLimit(0.1 * Acts::UnitConstants::cm);
   if(m_fieldMap.find(".root") == std::string::npos)
     {
       propagator.constField();
