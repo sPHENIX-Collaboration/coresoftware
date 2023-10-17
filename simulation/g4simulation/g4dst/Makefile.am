@@ -19,6 +19,7 @@ libg4dst_la_LDFLAGS = \
   -lepd_io \
   -leventplane_io \
   -lffaobjects \
+  -lffarawobjects \
   -lg4bbc_io \
   -lg4detectors_io \
   -lg4intt_io \

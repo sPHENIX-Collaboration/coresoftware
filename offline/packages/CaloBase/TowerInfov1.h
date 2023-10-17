@@ -22,12 +22,11 @@ class TowerInfov1 : public TowerInfo
   short get_time() override { return _time; }
   void set_energy(float energy) override { _energy = energy; }
   float get_energy() override { return _energy; }
+  void copy_tower(TowerInfo* tower) override;
 
  private:
-  float _energy = 0;
-
- protected:
   short _time = 0;
+  float _energy = 0;
 
   ClassDefOverride(TowerInfov1, 1);
 };

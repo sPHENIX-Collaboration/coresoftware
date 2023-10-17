@@ -36,7 +36,7 @@ class SvtxTrackMap;
 class SvtxVertexMap;
 
 using SourceLink = ActsSourceLink;
-using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
+using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
@@ -63,11 +63,13 @@ class PHActsGSF : public SubsysReco
                                ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
                                const short int& crossing);
   ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
-      const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks,
+      const std::vector<Acts::SourceLink>& sourceLinks,
       const ActsTrackFittingAlgorithm::TrackParameters& seed,
-      const ActsTrackFittingAlgorithm::GeneralFitterOptions& options);
+      const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
+      ActsTrackFittingAlgorithm::TrackContainer& tracks);
 
-  void updateTrack(const FitResult& result, SvtxTrack* track);
+  void updateTrack(FitResult& result, SvtxTrack* track,
+		   ActsTrackFittingAlgorithm::TrackContainer& tracks);
   void updateSvtxTrack(const Trajectory& traj, SvtxTrack* track);
   ActsGeometry* m_tGeometry = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;

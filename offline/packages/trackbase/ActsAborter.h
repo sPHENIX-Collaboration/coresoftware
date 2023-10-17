@@ -11,15 +11,18 @@ struct ActsAborter
   unsigned int abortlayer = std::numeric_limits<unsigned int>::max();
   unsigned int abortvolume = std::numeric_limits<unsigned int>::max();
 
-  template <typename propagator_state_t, typename stepper_t>
-  bool operator()(propagator_state_t& state, const stepper_t& /*stepper*/) const
+  template <typename propagator_state_t, typename stepper_t,
+    typename navigator_t>
+    bool operator()(propagator_state_t& state, const stepper_t& /*stepper*/,
+		    const navigator_t& navigator, const Acts::Logger&/*logger*/) const
   {
-    if (state.navigation.targetReached)
+    if (navigator.targetReached(state.navigation))
     {
       return true;
     }
 
-    if (!state.navigation.currentSurface)
+    //if (!state.navigation.currentSurface)
+    if(!navigator.currentSurface(state.navigation))
     {
       return false;
     }
@@ -32,7 +35,7 @@ struct ActsAborter
     /// a sensitive surface
     if (layerno == abortlayer and volumeno == abortvolume and sensitive != 0)
     {
-      state.navigation.targetReached = true;
+      navigator.targetReached(state.navigation, true);
       return true;
     }
 

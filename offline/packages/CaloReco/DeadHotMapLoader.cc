@@ -74,10 +74,9 @@ int DeadHotMapLoader::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(towerNode);
   }
 
-  assert(m_deadmap);
+  // assert(m_deadmap);
 
-  std::string url = CDBInterface::instance()->getUrl(m_detector + "DEADMAP");
-
+  std::string url = CDBInterface::instance()->getUrl(m_detector + "BadTowerMap");
   if(url.empty())
   {
     std::cout << PHWHERE << " Could not get Dead Map for CDB. Detector: " << m_detector << std::endl;
@@ -96,41 +95,42 @@ int DeadHotMapLoader::InitRun(PHCompositeNode *topNode)
   int phibins;
 
   if (m_detector.c_str()[0] == 'H')
-  {
-    etabins = 24;
-    phibins = 64;
+    {//HCal towers
+      etabins = 24;
+      phibins = 64;
 
-    for(int ieta = 0; ieta < etabins; ieta++)
-    {
-      for(int iphi = 0; iphi < phibins; iphi++)
-      {
-        unsigned int key = TowerInfoDefs::encode_hcal(ieta, iphi);
-        int isDead = m_CDBTTree->GetIntValue(key,"status");
-        if(isDead > 0)
-        {
-          m_deadmap->addDeadTower(ieta, iphi);
-        }
-      }
+     
+      for(int i = 0; i < etabins*phibins; i++)
+	{
+	  int isDead = m_CDBTTree->GetIntValue(i,"status");
+	  if(isDead > 0)
+	    {
+	      unsigned int key = TowerInfoDefs::encode_hcal(i);
+	      int ieta = TowerInfoDefs::getCaloTowerEtaBin(key);
+	      int iphi = TowerInfoDefs::getCaloTowerPhiBin(key);
+	      m_deadmap->addDeadTower(ieta, iphi);
+	    }
+	}
     }
-  }
+  
   else if(m_detector.c_str()[0] == 'C')
-  {
-    etabins = 96;
-    phibins = 256;
-
-    for(int ieta = 0; ieta < etabins; ieta++)
     {
-      for(int iphi = 0; iphi < phibins; iphi++)
-      {
-        unsigned int key = TowerInfoDefs::encode_emcal(ieta, iphi);
-        int isDead = m_CDBTTree->GetIntValue(key,"status");
-        if(isDead > 0)
-        {
-          m_deadmap->addDeadTower(ieta, iphi);
-        }
-      }
+      etabins = 96;
+      phibins = 256;
+
+      for(int i = 0; i < 96*256; i++)
+	{
+	  int isDead = m_CDBTTree->GetIntValue(i,"status");
+	  if(isDead > 0)
+	    {
+	      unsigned int key = TowerInfoDefs::encode_emcal(i);
+	      int ieta = TowerInfoDefs::getCaloTowerEtaBin(key);
+	      int iphi = TowerInfoDefs::getCaloTowerPhiBin(key);
+	      m_deadmap->addDeadTower(ieta, iphi);
+	    }
+	}
     }
-  }
+  
 
   if (Verbosity())
   {
