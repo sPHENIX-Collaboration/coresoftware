@@ -32,7 +32,8 @@ class CaloTowerCalib : public SubsysReco
     CEMC = 0,
     HCALIN = 1,
     HCALOUT = 2,
-    EPD = 3
+    EPD = 3,
+    ZDC = 4
   };
 
   void set_detector_type(CaloTowerCalib::DetectorSystem dettype)
