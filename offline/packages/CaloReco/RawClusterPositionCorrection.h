@@ -91,7 +91,6 @@ class RawClusterPositionCorrection : public SubsysReco
   
   CDBTTree *cdbttree = nullptr;
   CDBHistos *cdbHisto = nullptr;
-  TFile *pdcCorrIn = nullptr;
 };
 
 #endif
