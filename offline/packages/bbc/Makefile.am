@@ -38,6 +38,7 @@ pkginclude_HEADERS = \
   BbcPmtInfoV1.h \
   BbcSig.h \
   BbcEvent.h \
+  BbcCalib.h \
   BbcReco.h \
   BbcGeom.h \
   BbcGeomV1.h \
@@ -124,6 +125,7 @@ libbbc_io_la_SOURCES = \
   BbcGeomV1.cc \
   BbcSig.cc \
   BbcEvent.cc \
+  BbcCalib.cc \
   BbcReco.cc \
   BbcVertexv1.cc \
   BbcVertexv2.cc \
@@ -133,12 +135,15 @@ endif
 
 if USE_ONLINE
 libbbc_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lcdbobjects
 
 else
 libbbc_io_la_LIBADD = \
   -lphool \
   -lcalo_io \
+  -lffamodules \
+  -lcdbobjects \
   -lSubsysReco
 endif
 

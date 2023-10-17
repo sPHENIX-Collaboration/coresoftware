@@ -20,6 +20,16 @@ ROOTDICTS = \
   InttRawHitContainer_Dict.cc \
   InttRawHitContainerv1_Dict.cc \
   InttRawHitv1_Dict.cc \
+  MicromegasRawHit_Dict.cc \
+  MicromegasRawHitContainer_Dict.cc \
+  MicromegasRawHitContainerv1_Dict.cc \
+  MicromegasRawHitv1_Dict.cc \
+  MvtxRawHit_Dict.cc \
+  MvtxRawHitContainer_Dict.cc \
+  MvtxRawHitContainerv1_Dict.cc \
+  MvtxRawHitv1_Dict.cc \
+  MvtxRawRunHeader_Dict.cc \
+  MvtxRawEvtHeader_Dict.cc \
   TpcRawHit_Dict.cc \
   TpcRawHitContainer_Dict.cc \
   TpcRawHitContainerv1_Dict.cc \
@@ -31,6 +41,16 @@ nobase_dist_pcm_DATA = \
   InttRawHitContainer_Dict_rdict.pcm \
   InttRawHitContainerv1_Dict_rdict.pcm \
   InttRawHitv1_Dict_rdict.pcm \
+  MicromegasRawHit_Dict_rdict.pcm \
+  MicromegasRawHitContainer_Dict_rdict.pcm \
+  MicromegasRawHitContainerv1_Dict_rdict.pcm \
+  MicromegasRawHitv1_Dict_rdict.pcm \
+  MvtxRawHit_Dict_rdict.pcm \
+  MvtxRawHitContainer_Dict_rdict.pcm \
+  MvtxRawHitContainerv1_Dict_rdict.pcm \
+  MvtxRawHitv1_Dict_rdict.pcm \
+  MvtxRawRunHeader_Dict_rdict.pcm \
+  MvtxRawEvtHeader_Dict_rdict.pcm \
   TpcRawHit_Dict_rdict.pcm \
   TpcRawHitContainer_Dict_rdict.pcm \
   TpcRawHitContainerv1_Dict_rdict.pcm \
@@ -41,6 +61,16 @@ pkginclude_HEADERS = \
   InttRawHitContainer.h \
   InttRawHitContainerv1.h \
   InttRawHitv1.h \
+  MicromegasRawHit.h \
+  MicromegasRawHitContainer.h \
+  MicromegasRawHitContainerv1.h \
+  MicromegasRawHitv1.h \
+  MvtxRawHit.h \
+  MvtxRawHitContainer.h \
+  MvtxRawHitContainerv1.h \
+  MvtxRawHitv1.h \
+  MvtxRawRunHeader.h \
+  MvtxRawEvtHeader.h \
   TpcRawHit.h \
   TpcRawHitContainer.h \
   TpcRawHitContainerv1.h \
@@ -50,6 +80,12 @@ libffarawobjects_la_SOURCES = \
   $(ROOTDICTS) \
   InttRawHitContainerv1.cc \
   InttRawHitv1.cc \
+  MicromegasRawHitContainerv1.cc \
+  MicromegasRawHitv1.cc \
+  MvtxRawHitContainerv1.cc \
+  MvtxRawHitv1.cc \
+  MvtxRawRunHeader.cc \
+  MvtxRawEvtHeader.cc \
   TpcRawHitContainerv1.cc \
   TpcRawHitv1.cc
 

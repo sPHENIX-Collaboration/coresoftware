@@ -48,11 +48,11 @@ class TpcDistortionCorrectionContainer;
 class SvtxAlignmentStateMap;
 
 using SourceLink = ActsSourceLink;
-using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
+using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices,2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
-using SourceLinkVec = std::vector<SourceLink>;
+using SourceLinkVec = std::vector<Acts::SourceLink>;
 
 class PHActsTrkFitter : public SubsysReco
 {
@@ -125,17 +125,20 @@ class PHActsTrkFitter : public SubsysReco
 			       short int crossing);
 
   /// Convert the acts track fit result to an svtx track
-  void updateSvtxTrack(Trajectory traj, SvtxTrack* track);
+  void updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+		       Trajectory::IndexedParameters& paramsMap,
+		       ActsTrackFittingAlgorithm::TrackContainer& tracks, 
+		       SvtxTrack* track);
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
   ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
-           const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
+           const std::vector<Acts::SourceLink>& sourceLinks, 
 	   const ActsTrackFittingAlgorithm::TrackParameters& seed,
 	   const ActsTrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
 	   const SurfacePtrVec& surfSequence,
-	   std::shared_ptr<Acts::VectorMultiTrajectory>& mtj);
+	   ActsTrackFittingAlgorithm::TrackContainer& tracks);
 
   /// Functions to get list of sorted surfaces for direct navigation, if
   /// applicable
@@ -143,8 +146,9 @@ class PHActsTrkFitter : public SubsysReco
 				 SurfacePtrVec& surfaces) const;
   void checkSurfaceVec(SurfacePtrVec& surfaces) const;
 
-  bool getTrackFitResult(const FitResult& fitOutput, TrackSeed* seed, 
+  bool getTrackFitResult(FitResult& fitOutput, TrackSeed* seed, 
 			 SvtxTrack* track,
+			 ActsTrackFittingAlgorithm::TrackContainer& tracks,
 			 const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
   Acts::BoundSymMatrix setDefaultCovariance() const;

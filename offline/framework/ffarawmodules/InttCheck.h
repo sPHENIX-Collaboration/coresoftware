@@ -28,6 +28,7 @@ class InttCheck : public SubsysReco
 
  private:
   std::string m_EvtNodeName = "INTTRAWHIT";
+  std::set<uint64_t> bclk_seen;
 };
 
 #endif  // FFARAWMODULES_EVENTCOMBINER_H

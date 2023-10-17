@@ -93,6 +93,12 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   /// get the GEM module where cluster hit
   int Locate(float r , float phi , float z);
 
+  float GetRelPhi( float xorig, float yorig, float x, float y, float phiorig );
+
+  float GetRelTheta( float xorig, float yorig, float zorig, float x, float y, float z, float thetaorig, float phiorig );
+
+  bool sameSign(float num1, float num2);
+
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
@@ -162,8 +168,12 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   /// number of entries per cell
   TH3 *h_entries = nullptr;
   TNtuple *h_hits = nullptr;
-  TNtuple *h_origins = nullptr;
-  TNtuple *h_assoc_hits = nullptr;
+  //TNtuple *h_origins = nullptr;
+  //TNtuple *h_assoc_hits = nullptr;
+  TNtuple *h_bright_hits_laser1 = nullptr;
+  TNtuple *h_bright_hits_laser2 = nullptr;
+  TNtuple *h_bright_hits_laser3 = nullptr;
+  TNtuple *h_bright_hits_laser4 = nullptr;
 
   /// for diagnosing separation b/w laser starting points and tpc volume hits
   TH2 *h_deltheta_delphi = nullptr;
@@ -180,6 +190,10 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   TH1 *h_GEMs_hit = nullptr;
   TH1 *h_layers_hit = nullptr;
 
+  TH2 *h_relangle_lasrangle = nullptr;
+  TH2 *h_relangle_theta_lasrangle = nullptr;
+  TH2 *h_relangle_phi_lasrangle = nullptr;
+
   TH2* h_xy = nullptr;
   TH2* h_xz = nullptr;
   TH2* h_xy_pca = nullptr;
@@ -188,7 +202,7 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   TH2* h_zr = nullptr;
   TH2* h_zr_pca = nullptr;
   TH2* h_dz_z = nullptr;
-  TNtuple *h_clusters = nullptr;
+  //TNtuple *h_clusters = nullptr;
 
   //@}
 

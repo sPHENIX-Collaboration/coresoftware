@@ -1,6 +1,7 @@
 #ifndef TOWERINFOV3_H
 #define TOWERINFOV3_H
 
+#include "TowerInfo.h"
 #include "TowerInfov2.h"
 
 #include <cstdint> // For int16_t
@@ -15,15 +16,16 @@ public:
     void Clear(Option_t* = "") override;
     
     // Getter and setter for waveform
-    int16_t get_waveform_value(int index) const;
-    void set_waveform_value(int index, int16_t value);
+    int16_t get_waveform_value(int index) const override;
+    void set_waveform_value(int index, int16_t value) override;
 
-    void copy_tower(TowerInfov3* tower);
+    void copy_tower(TowerInfo* tower) override;
     
 private:
     static const int nsample = 31;
     int16_t _waveform[nsample] = {0}; // Initializes the entire array to zero
 
+    ClassDefOverride(TowerInfov3, 1);
     // Inherit other methods and properties from TowerInfov2
 };
 
