@@ -29,10 +29,6 @@ pkginclude_HEADERS = \
   CentralityInfov2.h \
   CentralityReco.h
 
-# temporarily install data files (to be replaced by CDB)
-pkgdata_DATA = \
-  bbc_tq_t0.calib \
-  gainfile.calib
 
 ROOTDICTS = \
   CentralityInfo_Dict.cc \
