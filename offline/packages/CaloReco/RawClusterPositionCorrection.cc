@@ -322,7 +322,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     //    if (m_UseTowerInfo)
     recalibcluster->set_energy(clus_energy / eclus_recalib_val);
     recalibcluster->set_ecore(cluster->get_ecore() / ecore_recalib_val);
-    if(cluster->get_ecore() >= 1 && cluster -> get_ecore() <=10)
+    if(cluster->get_ecore() >= 0.5 && cluster -> get_ecore() <=10)
       {
 	//CLHEP::Hep3Vector vertex(0,0,0);
 	//CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recalibcluster, vertex);
