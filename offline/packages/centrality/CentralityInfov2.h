@@ -15,11 +15,7 @@ class CentralityInfov2 : public CentralityInfov1
   void identify(std::ostream &os = std::cout) const override;
   void Reset() override {}
 
-  bool isMinBias() const override { return _isMinBias; }
-  void setMinBias(bool isminbias) override { _isMinBias = isminbias; }
-
  private:
-  bool _isMinBias = false;
 
   ClassDefOverride(CentralityInfov2, 1);
 };
