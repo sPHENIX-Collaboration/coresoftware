@@ -53,7 +53,6 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
   auto func = [&](std::vector<float> &v)
   {
     int size1 = v.size() - 1;
-    
     if (size1 == _nzerosuppresssamples)
       {
 	v.push_back(v.at(0) - v.at(1)); //returns peak sample - pedestal sample
@@ -92,26 +91,30 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
 	  {
 	    // std::cout << "software zero suppression happened " << std::endl;
 	    h->Delete();
-	    v.push_back(v.at(6) - pedestal);
+	    v.push_back(v.at(6) - v.at(0));
 	    v.push_back(-1);
-	    v.push_back(pedestal);		
+	    v.push_back(v.at(0));
 	  }
 	else
 	  {
-	    auto f = new TF1(Form("f_%d", (int) round(v.at(size1))), this,&CaloWaveformFitting::template_function, 0, 31, 3,"CaloWaveformFitting","template_function");
+      auto f = new TF1(Form("f_%d", (int) round(v.at(size1))), this,&CaloWaveformFitting::template_function, 0, 31, 3,"CaloWaveformFitting","template_function");
 	    ROOT::Math::WrappedMultiTF1 *fitFunction = new ROOT::Math::WrappedMultiTF1(*f, 3);
 	    ROOT::Fit::BinData data(v.size() - 1, 1);
 	    ROOT::Fit::FillData(data, h);
 	    ROOT::Fit::Chi2Function *EPChi2 = new ROOT::Fit::Chi2Function(data, *fitFunction);
 	    ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
 	    fitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
-	    double params[] = {static_cast<double>(maxheight), static_cast<double>(maxbin - 5), static_cast<double>(pedestal)};
+	    double params[] = {static_cast<double>(maxheight - pedestal), static_cast<double>(maxbin - 6), static_cast<double>(pedestal)};
 	    fitter->Config().SetParamsSettings(3, params);
 	    fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
+            ROOT::Fit::FitResult fitres = fitter->Result();
+            double chi2min = fitres.MinFcnValue();
 	    for (int i = 0; i < 3; i++)
-	      {
-		v.push_back(f->GetParameter(i));
-	      }
+	    {
+		    v.push_back(f->GetParameter(i));
+	    }
+
+      v.push_back(chi2min);
 	    h->Delete();
 	    f->Delete();
 	    delete fitFunction;
@@ -129,7 +132,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
   {
     std::vector<float> tv = chnlvector.at(i);
     int size2 = tv.size();
-    for (int q = 3; q > 0; q--)
+    for (int q = 4; q > 0; q--)
     {
       fit_params_tmp.push_back(tv.at(size2 - q));
     }
