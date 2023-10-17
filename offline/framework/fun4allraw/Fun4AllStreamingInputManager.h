@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef FUN4ALLRAW_FUN4ALLEVTINPUTPOOLMANAGER_H
-#define FUN4ALLRAW_FUN4ALLEVTINPUTPOOLMANAGER_H
+#ifndef FUN4ALLRAW_FUN4ALLSTREAMINGINPUTMANAGER_H
+#define FUN4ALLRAW_FUN4ALLSTREAMINGINPUTMANAGER_H
 
 #include <fun4all/Fun4AllInputManager.h>
 
@@ -20,11 +20,11 @@ class PHCompositeNode;
 class SyncObject;
 class TpcRawHit;
 
-class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
+class Fun4AllStreamingInputManager : public Fun4AllInputManager
 {
  public:
-  Fun4AllEvtInputPoolManager(const std::string &name = "DUMMY", const std::string &dstnodename = "DST", const std::string &topnodename = "TOP");
-  ~Fun4AllEvtInputPoolManager() override;
+  Fun4AllStreamingInputManager(const std::string &name = "DUMMY", const std::string &dstnodename = "DST", const std::string &topnodename = "TOP");
+  ~Fun4AllStreamingInputManager() override;
 
   enum enu_subsystem { MVTX = 1, INTT = 2, TPC = 3, MICROMEGAS = 4};
 
@@ -53,6 +53,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
   void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit* /* hit */);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
+  bool GetMoreInttEvents();
 
  private:
   struct PacketInfo
@@ -91,7 +92,6 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   bool m_micromegas_registered_flag = false;
   bool m_tpc_registered_flag = false;
   std::vector<SingleStreamingInput *> m_EvtInputVector;
-  std::vector<int> m_MvtxEvtInputList;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
   std::map<uint64_t, PacketInfo> m_PacketInfoMap;
@@ -99,6 +99,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   std::map<uint64_t, InttRawHitInfo> m_InttRawHitMap;
   std::map<uint64_t, MicromegasRawHitInfo> m_MicromegasRawHitMap;
   std::map<uint64_t, TpcRawHitInfo> m_TpcRawHitMap;
+  std::map<int, std::map<int, uint64_t>> m_InttPacketFeeBcoMap;
 };
 
-#endif /* FUN4ALL_FUN4ALLEVTINPUTPOOLMANAGER_H */
+#endif /* FUN4ALL_FUN4ALLSTREAMINGINPUTMANAGER_H */
