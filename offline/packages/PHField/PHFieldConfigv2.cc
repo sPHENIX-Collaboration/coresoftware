@@ -2,7 +2,7 @@
 
 /*!
  * \file PHFieldConfigv2.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $

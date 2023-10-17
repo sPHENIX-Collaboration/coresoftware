@@ -2,16 +2,15 @@
 #ifndef TRACKBASE_ACTSTRACKFITTINGALGORITHM_H
 #define TRACKBASE_ACTSTRACKFITTINGALGORITHM_H
 
-
 #include "Calibrator.h"
 #include "ResidualOutlierFinder.h"
-#include "ActsSourceLink.h"
 
 #include <Acts/EventData/detail/CorrectedTransformationFreeToBound.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wunused-value"
 #include <Acts/TrackFitting/KalmanFitter.hpp>
 #pragma GCC diagnostic pop
 
@@ -24,10 +23,9 @@
 #include <Acts/Propagator/MultiEigenStepperLoop.hpp>
 #pragma GCC diagnostic pop
 
-#include <ActsExamples/EventData/Measurement.hpp>
-#include <ActsExamples/EventData/Track.hpp>
-#include <ActsExamples/Framework/BareAlgorithm.hpp>
-#include <ActsExamples/MagneticField/MagneticField.hpp>
+#include <Acts/EventData/TrackParameters.hpp>
+#include <Acts/EventData/SourceLink.hpp>
+#include <Acts/EventData/VectorTrackContainer.hpp>
 
 #include <functional>
 #include <memory>
@@ -38,16 +36,18 @@ namespace Acts
   class TrackingGeometry;
 }
 
-using namespace ActsExamples;
-
-class ActsTrackFittingAlgorithm final : public BareAlgorithm
+class ActsTrackFittingAlgorithm final
 {
  public:
-  /// Track fitter function that takes input measurements, initial trackstate
-  /// and fitter options and returns some track-fitter-specific result.
-  using TrackFitterOptions = Acts::KalmanFitterOptions<Acts::VectorMultiTrajectory>;
+  using TrackParameters = ::Acts::BoundTrackParameters;
+  using Measurement = ::Acts::BoundVariantMeasurement;
+  using MeasurementContainer = std::vector<Measurement>;
 
-  using TrackFitterResult = Acts::Result<Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>>;
+  using TrackContainer =
+    Acts::TrackContainer<Acts::VectorTrackContainer,
+                         Acts::VectorMultiTrajectory, std::shared_ptr>;
+  
+  using TrackFitterResult = Acts::Result<TrackContainer::TrackProxy>;
 
   /// General options that do not depend on the fitter type, but need to be
   /// handed over by the algorithm
@@ -58,7 +58,6 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
     std::reference_wrapper<const Acts::CalibrationContext> calibrationContext;
     std::reference_wrapper<const Calibrator> calibrator;
     const Acts::Surface* referenceSurface = nullptr;
-    Acts::LoggerWrapper logger;
     Acts::PropagatorPlainOptions propOptions;
   };
 
@@ -70,9 +69,9 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
    public:
     virtual ~TrackFitterFunction() = default;
     virtual TrackFitterResult operator()(
-        const std::vector<std::reference_wrapper<const ActsSourceLink>>&,
+        const std::vector<Acts::SourceLink>&,
         const TrackParameters&, const GeneralFitterOptions&,
-	std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory) const = 0;
+        TrackContainer&) const = 0;
 
     virtual void outlierFinder(const ResidualOutlierFinder&) {}
   };
@@ -87,10 +86,10 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
     virtual ~DirectedTrackFitterFunction() = default;
 
     virtual TrackFitterResult operator()(
-        const std::vector<std::reference_wrapper<const ActsSourceLink>>&,
+        const std::vector<Acts::SourceLink>&,
         const TrackParameters&, const GeneralFitterOptions&,
         const std::vector<const Acts::Surface*>&,
-	std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory) const = 0;
+        TrackContainer&) const = 0;
   };
 
   struct Config
@@ -107,12 +106,6 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
   /// @param config is the config struct to configure the algorihtm
   /// @param level is the logging level
   ActsTrackFittingAlgorithm(Config config, Acts::Logging::Level level);
-
-  /// Framework execute method of the fitting algorithm
-  ///
-  /// @param ctx is the algorithm context that holds event-wise information
-  /// @return a process code to steer the algporithm flow
-  ActsExamples::ProcessCode execute(const AlgorithmContext& ctx) const final;
 
   /// Get readonly access to the config parameters
   const Config& config() const { return m_cfg; }
@@ -132,43 +125,45 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
       bool multipleScattering = true, bool energyLoss = true,
       double reverseFilteringMomThreshold = 0.0,
       Acts::FreeToBoundCorrection freeToBoundCorrection =
-          Acts::FreeToBoundCorrection());
+      Acts::FreeToBoundCorrection(),
+      const Acts::Logger& logger = *Acts::getDefaultLogger("Kalman",
+							   Acts::Logging::FATAL));
 
   static std::shared_ptr<DirectedTrackFitterFunction> makeKalmanFitterFunction(
       std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
       bool multipleScattering = true, bool energyLoss = true,
       double reverseFilteringMomThreshold = 0.0,
       Acts::FreeToBoundCorrection freeToBoundCorrection =
-          Acts::FreeToBoundCorrection());
+      Acts::FreeToBoundCorrection(),
+      const Acts::Logger& logger = *Acts::getDefaultLogger("Kalman",
+							   Acts::Logging::FATAL));
 
  private:
   /// Helper function to call correct FitterFunction
   TrackFitterResult fitTrack(
-      const std::vector<std::reference_wrapper<
-          const ActsSourceLink>>& sourceLinks,
-      const ActsExamples::TrackParameters& initialParameters,
+      const std::vector<Acts::SourceLink>& sourceLinks,
+      const TrackParameters& initialParameters,
       const GeneralFitterOptions& options,
       const std::vector<const Acts::Surface*>& surfSequence,
-      std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory) const;
+      TrackContainer& tracks) const;
 
   Config m_cfg;
 };
 
 inline ActsTrackFittingAlgorithm::TrackFitterResult
 ActsTrackFittingAlgorithm::fitTrack(
-    const std::vector<std::reference_wrapper<
-        const ActsSourceLink>>& sourceLinks,
-    const ActsExamples::TrackParameters& initialParameters,
+    const std::vector<Acts::SourceLink>& sourceLinks,
+    const TrackParameters& initialParameters,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
     const std::vector<const Acts::Surface*>& surfSequence,
-    std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory) const
+    TrackContainer& tracks) const
 {
   if (m_cfg.directNavigation)
   {
-    return (*m_cfg.dFit)(sourceLinks, initialParameters, options, surfSequence, trajectory);
+    return (*m_cfg.dFit)(sourceLinks, initialParameters, options, surfSequence, tracks);
   }
 
-  return (*m_cfg.fit)(sourceLinks, initialParameters, options, trajectory);
+  return (*m_cfg.fit)(sourceLinks, initialParameters, options, tracks);
 }
 
 #endif

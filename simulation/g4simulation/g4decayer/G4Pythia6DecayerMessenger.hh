@@ -30,12 +30,11 @@
 /// \brief Definition of the G4Pythia6DecayerMessenger class
 
 #ifndef G4_PYTHIA6_DECAYER_MESSENGER_H
-#define G4_PYTHIA6_DECAYER_MESSENGER_H 
+#define G4_PYTHIA6_DECAYER_MESSENGER_H
 
 #include <Geant4/G4UImessenger.hh>
 
-#include <Geant4/G4String.hh>              // for G4String
-
+#include <Geant4/G4String.hh>  // for G4String
 
 class G4Pythia6Decayer;
 class G4UIcmdWithAnInteger;
@@ -50,28 +49,25 @@ class G4UIdirectory;
 
 class G4Pythia6DecayerMessenger : public G4UImessenger
 {
-  public:
+ public:
+  G4Pythia6DecayerMessenger(G4Pythia6Decayer* pythia6Decayer);
+  virtual ~G4Pythia6DecayerMessenger();
 
-    G4Pythia6DecayerMessenger(G4Pythia6Decayer* pythia6Decayer);
-    virtual ~G4Pythia6DecayerMessenger();
-   
-    virtual void SetNewValue(G4UIcommand* command, G4String string);
-    
-  private:
+  virtual void SetNewValue(G4UIcommand* command, G4String string);
 
-    /// Not implemented
-    G4Pythia6DecayerMessenger();
-    /// Not implemented
-    G4Pythia6DecayerMessenger(const G4Pythia6DecayerMessenger& right);
-    /// Not implemented
-    G4Pythia6DecayerMessenger& operator=(const G4Pythia6DecayerMessenger& r);
+ private:
+  /// Not implemented
+  G4Pythia6DecayerMessenger();
+  /// Not implemented
+  G4Pythia6DecayerMessenger(const G4Pythia6DecayerMessenger& right);
+  /// Not implemented
+  G4Pythia6DecayerMessenger& operator=(const G4Pythia6DecayerMessenger& r);
 
-  private:
-
-    G4Pythia6Decayer*      fPythia6Decayer;    ///< associated class 
-    G4UIdirectory*         fDirectory;         ///< command directory
-    G4UIcmdWithAnInteger*  fVerboseCmd;        ///< command: verbose
-    G4UIcmdWithAnInteger*  fDecayTypeCmd;      ///< command: forceDEcayeType
+ private:
+  G4Pythia6Decayer* fPythia6Decayer;    ///< associated class
+  G4UIdirectory* fDirectory;            ///< command directory
+  G4UIcmdWithAnInteger* fVerboseCmd;    ///< command: verbose
+  G4UIcmdWithAnInteger* fDecayTypeCmd;  ///< command: forceDEcayeType
 };
 
 // ----------------------------------------------------------------------------

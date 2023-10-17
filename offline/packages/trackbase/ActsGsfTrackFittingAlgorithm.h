@@ -10,103 +10,109 @@
 #include <Acts/TrackFitting/GaussianSumFitter.hpp>
 #pragma GCC diagnostic pop
 
-#include <Acts/TrackFitting/BetheHeitlerApprox.hpp>
 #include <Acts/Propagator/Navigator.hpp>
 #include <Acts/Propagator/Propagator.hpp>
 #include <Acts/Surfaces/Surface.hpp>
+#include <Acts/TrackFitting/BetheHeitlerApprox.hpp>
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 #include <Acts/Utilities/Helpers.hpp>
-#include <ActsExamples/MagneticField/MagneticField.hpp>
+#include <Acts/EventData/VectorTrackContainer.hpp>
 
 #include "ActsTrackFittingAlgorithm.h"
 
-using namespace ActsExamples;
+namespace
+{
+  /// This type is used in the Examples framework for the Bethe-Heitler
+  /// approximation
+  using BetheHeitlerApprox = Acts::Experimental::AtlasBetheHeitlerApprox<6, 5>;
 
-namespace {
-/// This type is used in the Examples framework for the Bethe-Heitler
-/// approximation
-using BetheHeitlerApprox = Acts::Experimental::AtlasBetheHeitlerApprox<6, 5>;
+  using MultiStepper = Acts::MultiEigenStepperLoop<>;
+  using Propagator = Acts::Propagator<MultiStepper, Acts::Navigator>;
+  using DirectPropagator = Acts::Propagator<MultiStepper, Acts::DirectNavigator>;
 
-using MultiStepper = Acts::MultiEigenStepperLoop<>;
-using Propagator = Acts::Propagator<MultiStepper, Acts::Navigator>;
-using DirectPropagator = Acts::Propagator<MultiStepper, Acts::DirectNavigator>;
+  using Fitter =
+      Acts::Experimental::GaussianSumFitter<Propagator,
+                                            BetheHeitlerApprox,
+                                            Acts::VectorMultiTrajectory>;
+  using DirectFitter =
+      Acts::Experimental::GaussianSumFitter<DirectPropagator,
+                                            BetheHeitlerApprox,
+                                            Acts::VectorMultiTrajectory>;
+  using TrackContainer =
+    Acts::TrackContainer<Acts::VectorTrackContainer,
+                         Acts::VectorMultiTrajectory, std::shared_ptr>;
 
-using Fitter =
-  Acts::Experimental::GaussianSumFitter<Propagator, 
-				        BetheHeitlerApprox,
-					Acts::VectorMultiTrajectory>;
-using DirectFitter =
-  Acts::Experimental::GaussianSumFitter<DirectPropagator, 
-				        BetheHeitlerApprox,
-					Acts::VectorMultiTrajectory>;
-  
-struct GsfFitterFunctionImpl
-    : public ActsTrackFittingAlgorithm::TrackFitterFunction {
-  Fitter fitter;
+  struct GsfFitterFunctionImpl
+    : public ActsTrackFittingAlgorithm::TrackFitterFunction
+  {
+    Fitter fitter;
 
-  Acts::GainMatrixUpdater updater;
+    Acts::GainMatrixUpdater updater;
 
-  std::size_t maxComponents = 0;
-  double weightCutoff = 0;
-  bool abortOnError = false;
-  bool disableAllMaterialHandling = false;
+    std::size_t maxComponents = 0;
+    double weightCutoff = 0;
+    bool abortOnError = false;
+    bool disableAllMaterialHandling = false;
 
-  GsfFitterFunctionImpl(Fitter&& f)
-      : fitter(std::move(f)) {}
+    GsfFitterFunctionImpl(Fitter&& f)
+      : fitter(std::move(f))
+    {
+    }
 
-  auto makeGsfOptions(
-      const ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
-      const {
-    Acts::Experimental::GsfExtensions<Acts::VectorMultiTrajectory> extensions;
-    // cppcheck-suppress constStatement
-    extensions.updater.connect<&Acts::GainMatrixUpdater::operator()<Acts::VectorMultiTrajectory>>(&updater);
+    auto makeGsfOptions(
+        const ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
+        const
+    {
+      Acts::Experimental::GsfExtensions<Acts::VectorMultiTrajectory> extensions;
+      // cppcheck-suppress constStatement
+      extensions.updater.connect<&Acts::GainMatrixUpdater::operator()<Acts::VectorMultiTrajectory>>(&updater);
 
-    Acts::Experimental::GsfOptions<Acts::VectorMultiTrajectory> gsfOptions{
-        options.geoContext,
-        options.magFieldContext,
-        options.calibrationContext,
-        extensions,
-        options.logger,
-        options.propOptions,
-        &(*options.referenceSurface),
-        maxComponents,
-        abortOnError,
-        disableAllMaterialHandling};
+      Acts::Experimental::GsfOptions<Acts::VectorMultiTrajectory> gsfOptions{
+          options.geoContext,
+          options.magFieldContext,
+          options.calibrationContext,
+          extensions,
+          options.propOptions,
+          &(*options.referenceSurface),
+          maxComponents,
+	    weightCutoff,
+          abortOnError,
+          disableAllMaterialHandling};
 
-    gsfOptions.extensions.calibrator
-        .template connect<&Calibrator::calibrate>(
-            &options.calibrator.get());
+      gsfOptions.extensions.calibrator
+          .template connect<&Calibrator::calibrate>(
+              &options.calibrator.get());
 
-    return gsfOptions;
-  }
+      return gsfOptions;
+    }
 
-  ActsTrackFittingAlgorithm::TrackFitterResult operator()(
-      const std::vector<std::reference_wrapper<
-          const ActsSourceLink>>& sourceLinks,
-      const ActsExamples::TrackParameters& initialParameters,
-      const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
-      std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory) const override {
-    const auto gsfOptions = makeGsfOptions(options);
-    return fitter.fit(sourceLinks.begin(), sourceLinks.end(), initialParameters,
-                      gsfOptions, trajectory);
-  }
-};
+    ActsTrackFittingAlgorithm::TrackFitterResult operator()(
+        const std::vector<Acts::SourceLink>& sourceLinks,
+        const ActsTrackFittingAlgorithm::TrackParameters& initialParameters,
+        const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
+        TrackContainer& tracks) const override
+    {
+      const auto gsfOptions = makeGsfOptions(options);
+      return fitter.fit(sourceLinks.begin(), sourceLinks.end(), initialParameters,
+                        gsfOptions, tracks);
+    }
+  };
 
-}
+}  // namespace
 
 // Have a separate class befriend the main class to ensure that GSF specific
 // track fitting headers only stay here to avoid library clashes
-class ActsGsfTrackFittingAlgorithm 
+class ActsGsfTrackFittingAlgorithm
 {
-  public:
+ public:
   friend class ActsTrackFittingAlgorithm;
 
   std::shared_ptr<ActsTrackFittingAlgorithm::TrackFitterFunction>
-    makeGsfFitterFunction(
-    std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
-    std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
-    BetheHeitlerApprox betheHeitlerApprox, std::size_t maxComponents,
-    Acts::FinalReductionMethod finalReductionMethod, bool abortOnError,
-    bool disableAllMaterialHandling);
+  makeGsfFitterFunction(
+      std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
+      std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
+      BetheHeitlerApprox betheHeitlerApprox, std::size_t maxComponents,
+      Acts::FinalReductionMethod finalReductionMethod, bool abortOnError,
+      bool disableAllMaterialHandling);
 };

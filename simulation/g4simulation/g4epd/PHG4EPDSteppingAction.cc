@@ -22,6 +22,7 @@
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4StepPoint.hh>
 #include <Geant4/G4StepStatus.hh>
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4TouchableHandle.hh>

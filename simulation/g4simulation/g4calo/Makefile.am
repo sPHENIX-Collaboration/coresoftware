@@ -15,12 +15,16 @@ AM_CPPFLAGS = \
   -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
+  g4hitshift.h \
+  g4hitshifthcal.h \
   HcalRawTowerBuilder.h \
   RawTowerBuilder.h \
   RawTowerBuilderByHitIndex.h \
   RawTowerDigitizer.h 
 
 libg4calo_la_SOURCES = \
+  g4hitshift.cc \
+  g4hitshifthcal.cc \
   HcalRawTowerBuilder.cc \
   RawTowerBuilder.cc \
   RawTowerBuilderByHitIndex.cc \
@@ -31,17 +35,17 @@ libg4calo_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libg4calo_la_LIBADD = \
-  -lphool \
-  -lSubsysReco \
+  -lcalo_io \
+  -lcdbobjects \
   -lfun4all \
   -lg4detectors_io \
   -lg4testbench \
-  -lphg4hit \
-  -lphparameter \
   -lgsl \
   -lgslcblas \
-  -lcaloCalibDBFile \
-  -lcalo_io
+  -lphool \
+  -lphg4hit \
+  -lphparameter \
+  -lSubsysReco
 
 ################################################
 # linking tests

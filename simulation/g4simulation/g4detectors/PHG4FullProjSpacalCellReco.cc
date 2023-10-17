@@ -1,10 +1,11 @@
 #include "PHG4FullProjSpacalCellReco.h"
 
+#include "LightCollectionModel.h"
 #include "PHG4Cell.h"  // for PHG4Cell
 #include "PHG4CylinderCellGeom.h"
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderCellGeom_Spacalv1.h"
-#include "PHG4CylinderGeom.h"  // for PHG4CylinderGeom
+#include "PHG4CylinderGeom.h"           // for PHG4CylinderGeom
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_Spacalv1.h"  // for PHG4CylinderGeom_Spaca...
 #include "PHG4CylinderGeom_Spacalv3.h"
@@ -25,14 +26,14 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>  // for PHNode
+#include <phool/PHNode.h>    // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>  // for PHWHERE
+#include <phool/phool.h>     // for PHWHERE
 #include <phool/recoConsts.h>
 
-#include <xpload/xpload.h>
+#include <ffamodules/CDBInterface.h>
 
 #include <TAxis.h>  // for TAxis
 #include <TFile.h>
@@ -181,14 +182,14 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
 
     if (tower_ID_phi == 0)
     {
-      //assign phi min according phi bin 0
+      // assign phi min according phi bin 0
       phi_min = M_PI_2 - deltaphi * (layergeom->get_max_phi_bin_in_sec() * layergeom->get_n_subtower_phi() / 2)  // shift of first tower in sector
                 + sector_map.begin()->second;
     }
 
     if (tower_ID_phi == layergeom->get_max_phi_bin_in_sec() / 2)
     {
-      //assign eta min according phi bin 0
+      // assign eta min according phi bin 0
       map_z_tower_z_ID[tower.centralZ] = tower_ID_z;
     }
     // ...
@@ -211,7 +212,7 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
   layerseggeo->set_etamin(NAN);
   layerseggeo->set_etastep(NAN);
 
-  //build eta bin maps
+  // build eta bin maps
   for (const auto &tower_pair : tower_map)
   {
     const int &tower_ID = tower_pair.first;
@@ -229,7 +230,8 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       const double dz = fabs(0.5 * (tower.pDy1 + tower.pDy2) / sin(tower.pRotationAngleX));
       const double tower_radial = layergeom->get_tower_radial_position(tower);
 
-      auto z_to_eta = [&tower_radial](const double &z) { return -log(tan(0.5 * atan2(tower_radial, z))); };
+      auto z_to_eta = [&tower_radial](const double &z)
+      { return -log(tan(0.5 * atan2(tower_radial, z))); };
 
       const double eta_central = z_to_eta(tower.centralZ);
       // half eta-range
@@ -421,6 +423,7 @@ int PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
     double light_yield = hiter->second->get_light_yield();
 
     // light yield correction from fiber attenuation:
+    
     if (light_collection_model.use_fiber_model())
     {
       const double z = 0.5 * (hiter->second->get_local_z(0) + hiter->second->get_local_z(1));
@@ -428,6 +431,7 @@ int PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
 
       light_yield *= light_collection_model.get_fiber_transmission(z);
     }
+  
 
     // light yield correction from light guide collection efficiency:
     if (light_collection_model.use_fiber_model())
@@ -437,7 +441,6 @@ int PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
 
       light_yield *= light_collection_model.get_light_guide_efficiency(x, y);
     }
-
     cell->add_edep(hiter->first, hiter->second->get_edep());
     cell->add_edep(hiter->second->get_edep());
     cell->add_light_yield(light_yield);
@@ -512,117 +515,6 @@ int PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
     }
   }
   return 0;
-}
-
-PHG4FullProjSpacalCellReco::LightCollectionModel::LightCollectionModel()
-{
-  data_grid_light_guide_efficiency_verify = new TH2F("data_grid_light_guide_efficiency_verify",
-                                                     "light collection efficiency as used in PHG4FullProjSpacalCellReco::LightCollectionModel;x positio fraction;y position fraction",  //
-                                                     100, 0., 1., 100, 0., 1.);
-
-  data_grid_fiber_trans_verify = new TH1F("data_grid_fiber_trans",
-                                          "SCSF-78 Fiber Transmission as used in PHG4FullProjSpacalCellReco::LightCollectionModel;position in fiber (cm);Effective transmission",
-                                          100, -15, 15);
-
-  // register histograms
-  Fun4AllServer *se = Fun4AllServer::instance();
-
-  se->registerHisto(data_grid_light_guide_efficiency_verify);
-  se->registerHisto(data_grid_fiber_trans_verify);
-}
-
-PHG4FullProjSpacalCellReco::LightCollectionModel::~LightCollectionModel()
-{
-  delete data_grid_light_guide_efficiency;
-  delete data_grid_fiber_trans;
-}
-
-void PHG4FullProjSpacalCellReco::LightCollectionModel::load_data_from_CDB(
-    const std::string &domain,
-    const std::string &histogram_light_guide_model,
-    const std::string &histogram_fiber_model)
-{
-  recoConsts *rc = recoConsts::instance();
-  xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), domain, rc->get_uint64Flag("TIMESTAMP"), xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
-  if (result.payload.empty())
-  {
-    std::cout << "No calibration for domain " << domain << " for timestamp " << rc->get_uint64Flag("TIMESTAMP") << std::endl;
-    gSystem->Exit(1);
-  }
-  TFile *fin = TFile::Open(result.payload.c_str());
-  if (!fin)
-  {
-    std::cout << "could not open " << result.payload << std::endl;
-    gSystem->Exit(1);
-  }
-  if (data_grid_light_guide_efficiency) delete data_grid_light_guide_efficiency;
-  data_grid_light_guide_efficiency = dynamic_cast<TH2 *>(fin->Get(histogram_light_guide_model.c_str()));
-  assert(data_grid_light_guide_efficiency);
-  data_grid_light_guide_efficiency->SetDirectory(nullptr);
-  if (data_grid_fiber_trans) delete data_grid_fiber_trans;
-  data_grid_fiber_trans = dynamic_cast<TH1 *>(fin->Get(histogram_fiber_model.c_str()));
-  assert(data_grid_fiber_trans);
-  data_grid_fiber_trans->SetDirectory(nullptr);
-  delete fin;
-}
-
-void PHG4FullProjSpacalCellReco::LightCollectionModel::load_data_file(
-    const std::string &input_file,
-    const std::string &histogram_light_guide_model,
-    const std::string &histogram_fiber_model)
-{
-  TFile *fin = TFile::Open(input_file.c_str());
-
-  assert(fin);
-  assert(fin->IsOpen());
-
-  if (data_grid_light_guide_efficiency) delete data_grid_light_guide_efficiency;
-  data_grid_light_guide_efficiency = dynamic_cast<TH2 *>(fin->Get(histogram_light_guide_model.c_str()));
-  assert(data_grid_light_guide_efficiency);
-  data_grid_light_guide_efficiency->SetDirectory(nullptr);
-
-  if (data_grid_fiber_trans) delete data_grid_fiber_trans;
-  data_grid_fiber_trans = dynamic_cast<TH1 *>(fin->Get(histogram_fiber_model.c_str()));
-  assert(data_grid_fiber_trans);
-  data_grid_fiber_trans->SetDirectory(nullptr);
-
-  delete fin;
-}
-
-double
-PHG4FullProjSpacalCellReco::LightCollectionModel::get_light_guide_efficiency(const double x_fraction, const double y_fraction)
-{
-  assert(data_grid_light_guide_efficiency);
-  assert(x_fraction >= 0);
-  assert(x_fraction <= 1);
-  assert(y_fraction >= 0);
-  assert(y_fraction <= 1);
-
-  const double eff = data_grid_light_guide_efficiency->Interpolate(x_fraction,
-                                                                   y_fraction);
-
-  data_grid_light_guide_efficiency_verify->SetBinContent(                        //
-      data_grid_light_guide_efficiency_verify->GetXaxis()->FindBin(x_fraction),  //
-      data_grid_light_guide_efficiency_verify->GetYaxis()->FindBin(y_fraction),  //
-      eff                                                                        //
-  );
-
-  return eff;
-}
-
-double
-PHG4FullProjSpacalCellReco::LightCollectionModel::get_fiber_transmission(const double z_distance)
-{
-  assert(data_grid_fiber_trans);
-
-  const double eff = data_grid_fiber_trans->Interpolate(z_distance);
-
-  data_grid_fiber_trans_verify->SetBinContent(                        //
-      data_grid_fiber_trans_verify->GetXaxis()->FindBin(z_distance),  //
-      eff                                                             //
-  );
-
-  return eff;
 }
 
 void PHG4FullProjSpacalCellReco::SetDefaultParameters()

@@ -23,10 +23,12 @@ class CMFlashClusterContainer;
 class CMFlashDifferenceContainer;
 
 class TF1;
-class TNtuple;
 class TFile;
 class TH1F;
+class TH1D;
 class TH2F;
+class TGraph;
+class TNtuple;
 class TVector3;
 
 class PHTpcCentralMembraneMatcher : public SubsysReco
@@ -48,6 +50,10 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   /// output file name for storing the space charge reconstruction matrices
   void setOutputfile(const std::string &outputfile)
   {m_outputfile = outputfile;}
+
+  void setNMatchIter( int val ){ m_nMatchIter = val; }
+
+  void set_useOnly_nClus2( bool val ){ m_useOnly_nClus2 = val; }
   
   void set_grid_dimensions( int phibins, int rbins );
 
@@ -72,7 +78,8 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
   /// static distortion container
   /** used in input to correct CM clusters before calculating residuals */
-  TpcDistortionCorrectionContainer* m_dcc_in{nullptr};
+  TpcDistortionCorrectionContainer* m_dcc_in_static{nullptr};
+  TpcDistortionCorrectionContainer* m_dcc_in_average{nullptr};
 
   /// fluctuation distortion container
   /** used in output to write fluctuation distortions */
@@ -110,10 +117,23 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   
   std::unique_ptr<TFile> fout;
 
+
+  std::unique_ptr<TFile> fout2;
+  std::string m_histogramfilename2 = "CMMatcher.root";
+
+  TH2F *hit_r_phi;
+
+  TH2F *clust_r_phi_pos;
+  TH2F *clust_r_phi_neg;
+
+  TNtuple *match_ntup = nullptr;
+
+  int m_event_index = 0;
+
   //@}
     
   /// radius cut for matching clusters to pad, for size 2 clusters
-  double m_rad_cut= 0.5;
+  //  double m_rad_cut= 0.5;
   
   /// phi cut for matching clusters to pad
   /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
@@ -123,16 +143,16 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   //@{
 
   /// distortion correction grid size along phi
-  int m_phibins = 36;
+  int m_phibins = 24;
 
   static constexpr float m_phiMin = 0;
   static constexpr float m_phiMax = 2.*M_PI;
 
   /// distortion correction grid size along r
-  int m_rbins = 16;
+  int m_rbins = 12;
 
   static constexpr float m_rMin = 20; // cm
-  static constexpr float m_rMax = 78; // cm
+  static constexpr float m_rMax = 80; // cm
   
   //@} 
   
@@ -208,6 +228,18 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
   //@}
 
+  bool m_useOnly_nClus2 = false;
+
+  int m_nMatchIter = 2;
+  
+  double m_clustRotation_pos[3];
+  double m_clustRotation_neg[3];
+
+  double getPhiRotation_smoothed( TH1D *hitHist, TH1D *clustHist );
+
+  std::vector<double> getRPeaks(TH2F *r_phi);
+
+  int getClusterRMatch( std::vector<int> hitMatches, std::vector<double> clusterPeaks, double clusterR);
 };
 
 #endif // PHTPCCENTRALMEMBRANEMATCHER_H

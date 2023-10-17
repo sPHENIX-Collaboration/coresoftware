@@ -1,31 +1,31 @@
 
 #include "BbcVertexFastSimReco.h"
 
-#include "BbcVertexMap.h"                   // for BbcVertexMap
-#include "BbcVertexMapv1.h"
-#include "BbcVertex.h"                      // for BbcVertex
-#include "BbcVertexv1.h"
+#include <bbc/BbcVertex.h>     // for BbcVertex
+#include <bbc/BbcVertexMap.h>  // for BbcVertexMap
+#include <bbc/BbcVertexMapv1.h>
+#include <bbc/BbcVertexv1.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>             // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                   // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                 // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
-#include <phool/phool.h>                    // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>                    // for gsl_rng_uniform_pos, gsl_...
+#include <gsl/gsl_rng.h>  // for gsl_rng_uniform_pos, gsl_...
 
-#include <cstdlib>                         // for exit
 #include <cmath>
+#include <cstdlib>  // for exit
 #include <iostream>
 
 using namespace std;
@@ -43,7 +43,7 @@ BbcVertexFastSimReco::~BbcVertexFastSimReco()
   gsl_rng_free(RandomGenerator);
 }
 
-int BbcVertexFastSimReco::Init(PHCompositeNode */*topNode*/)
+int BbcVertexFastSimReco::Init(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -73,7 +73,10 @@ int BbcVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 
 int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 1) cout << "BbcVertexFastSimReco::process_event -- entered" << endl;
+  if (Verbosity() > 1)
+  {
+    cout << "BbcVertexFastSimReco::process_event -- entered" << endl;
+  }
 
   //---------------------------------
   // Get Objects off of the Node Tree
@@ -97,7 +100,10 @@ int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode)
   //---------------------
 
   PHG4VtxPoint *point = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
-  if (!point) return Fun4AllReturnCodes::EVENT_OK;
+  if (!point)
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   BbcVertex *vertex = new BbcVertexv1();
 
@@ -128,7 +134,7 @@ int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int BbcVertexFastSimReco::End(PHCompositeNode */*topNode*/)
+int BbcVertexFastSimReco::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

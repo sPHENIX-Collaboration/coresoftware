@@ -48,13 +48,13 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   KFParticle makeVertex(PHCompositeNode *topNode);
 
-  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode, std::string vertexMapName);
+  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode, const std::string &vertexMapName);
 
   KFParticle makeParticle(PHCompositeNode *topNode);
 
   std::vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
 
-  int getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex, std::string vertexMapName);
+  int getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex, const std::string &vertexMapName);
 
   /*const*/ bool isGoodTrack(KFParticle particle, const std::vector<KFParticle> &primaryVertices);
 
@@ -121,6 +121,7 @@ class KFParticle_Tools : protected KFParticle_MVA
   std::vector<float> m_intermediate_max_ip;
   std::vector<float> m_intermediate_min_ipchi2;
   std::vector<float> m_intermediate_max_ipchi2;
+  std::vector<float> m_intermediate_vertex_volume;
 
   float m_min_mass = -1;
 
@@ -144,6 +145,10 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   float m_track_chi2ndof = FLT_MAX;
 
+  int m_nMVTXHits = 3;
+
+  int m_nTPCHits = 20;
+
   float m_comb_DCA = FLT_MAX;
 
   float m_vertex_chi2ndof = FLT_MAX;
@@ -158,9 +163,13 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   float m_mother_ipchi2 = FLT_MAX;
 
+  float m_mother_vertex_volume = FLT_MAX;
+
   float m_mva_cut_value = -1;
 
   bool m_get_charge_conjugate = true;
+
+  bool m_extrapolateTracksToSV = true;
 
   bool m_allowZeroMassTracks = false;
 

@@ -7,6 +7,9 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerv1.h>
 
+#include <calobase/TowerInfov1.h>
+#include <calobase/TowerInfoContainerv1.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
@@ -45,16 +48,27 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
     std::cout << "RetowerCEMC::process_event: entering" << std::endl;
 
   // pull out the tower containers and geometry objects at the start
+  RawTowerContainer *towersEM3 = nullptr; 
+  TowerInfoContainer *towerinfosEM3 = nullptr; 
+  if (m_use_towerinfo)
+    {
+      towerinfosEM3= findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC");
 
-  RawTowerContainer *towersEM3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
+    }
+  else
+    {
+      towersEM3= findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
+      if (Verbosity() > 0)
+	{ 
+	  std::cout << "RetowerCEMC::process_event: " << towersEM3->size() << " TOWER_CALIB_CEMC towers" << std::endl;
+	}
+    }
+
 
   RawTowerGeomContainer *geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
   RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
 
-  if (Verbosity() > 0)
-  {
-    std::cout << "RetowerCEMC::process_event: " << towersEM3->size() << " TOWER_CALIB_CEMC towers" << std::endl;
-  }
+
 
   // setup grid
 
@@ -75,80 +89,163 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
   }
 
   // partition existing CEMC energies among grid
-
-  RawTowerContainer::ConstRange begin_end_EM = towersEM3->getTowers();
-  for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
-  {
-    RawTower *tower = rtiter->second;
-    RawTowerGeom *tower_geom = geomEM->get_tower_geometry(tower->get_key());
-
-    int this_IHetabin = geomIH->get_etabin(tower_geom->get_eta());
-  double fractionalcontribution[3] = {0};
-
-    // distribute energy based on shadowing of the inner hcal geometry
-    if (_WEIGHTED_ENERGY_DISTRIBUTION == 1)
-      {
-	std::pair<double, double> range_embin= geomEM->get_etabounds(tower_geom->get_bineta());
-	for (int etabin_iter = -1;etabin_iter <= 1;etabin_iter++)
-	  {
-	    if (this_IHetabin+etabin_iter < 0 || this_IHetabin+etabin_iter >= _NETA){continue;}
-	    std::pair<double, double> range_ihbin= geomIH->get_etabounds(this_IHetabin + etabin_iter);
-	    if (range_ihbin.first <= range_embin.first && range_ihbin.second >= range_embin.second)
-	      {
-		fractionalcontribution[etabin_iter+1] = 1;
-	      }
-	    else if  ( range_ihbin.first <= range_embin.first && range_ihbin.second < range_embin.second  && range_embin.first < range_ihbin.second)
-	      {
-		fractionalcontribution[etabin_iter+1] =  (range_ihbin.second - range_embin.first) / (range_embin.second- range_embin.first);
-	      }
-	    else if (range_ihbin.first > range_embin.first && range_ihbin.second >= range_embin.second && range_embin.second > range_ihbin.first)
-	      {
-		fractionalcontribution[etabin_iter+1] =  (range_embin.second - range_ihbin.first) / (range_embin.second- range_embin.first);
-	      }
-	    else
-	      {
-		fractionalcontribution[etabin_iter+1] = 0;
-	      }
-	  }
-      }
-    else
-      {
-	fractionalcontribution[0] = 0;
- 	fractionalcontribution[1] = 1;
-	fractionalcontribution[2] = 0;
-     }
-
-    int this_IHphibin = geomIH->get_phibin(tower_geom->get_phi());
-    float this_E = tower->get_energy();
-
-    for (int etabin_iter = -1 ; etabin_iter <= 1;etabin_iter++)
-      {
-	if (this_IHetabin+etabin_iter < 0 || this_IHetabin+etabin_iter >= _NETA){continue;}
-	_EMCAL_RETOWER_E[this_IHetabin+etabin_iter][this_IHphibin] += this_E * fractionalcontribution[etabin_iter+1];
-      }
-  }
-
-  RawTowerContainer *emcal_retower = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
-
-  if (Verbosity() > 0) std::cout << "RetowerCEMC::process_event: filling TOWER_CALIB_CEMC_RETOWER node, with initial size = " << emcal_retower->size() << std::endl;
-
-  // create new towers
-  for (int eta = 0; eta < _NETA; eta++)
-  {
-    for (int phi = 0; phi < _NPHI; phi++)
+ if (m_use_towerinfo)
     {
-      RawTower *new_tower = new RawTowerv1();
+      if (!towerinfosEM3)
+	{
+	  std::cout <<  PHWHERE << "no emcal tower info object, doing nothing" << std::endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
+      unsigned int nchannels = towerinfosEM3->size();
+      for (unsigned int channel = 0; channel < nchannels;channel++)
+	{
+	  TowerInfo *tower = towerinfosEM3->get_tower_at_channel(channel);
+	  unsigned int channelkey = towerinfosEM3->encode_key(channel);
+	  int ieta = towerinfosEM3->getTowerEtaBin(channelkey);
+	  int iphi = towerinfosEM3->getTowerPhiBin(channelkey);
+	  const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ieta, iphi);
+	  RawTowerGeom *tower_geom = geomEM->get_tower_geometry(key);
+	  int this_IHetabin = geomIH->get_etabin(tower_geom->get_eta());
+	  double fractionalcontribution[3] = {0};
 
-      new_tower->set_energy(_EMCAL_RETOWER_E[eta][phi]);
-      emcal_retower->AddTower(eta, phi, new_tower);
+	  if (_WEIGHTED_ENERGY_DISTRIBUTION == 1)
+	    {
+	      std::pair<double, double> range_embin= geomEM->get_etabounds(tower_geom->get_bineta());
+	      for (int etabin_iter = -1;etabin_iter <= 1;etabin_iter++)
+		{
+		  if (this_IHetabin+etabin_iter < 0 || this_IHetabin+etabin_iter >= _NETA){continue;}
+		  std::pair<double, double> range_ihbin= geomIH->get_etabounds(this_IHetabin + etabin_iter);
+		  if (range_ihbin.first <= range_embin.first && range_ihbin.second >= range_embin.second)
+		    {
+		      fractionalcontribution[etabin_iter+1] = 1;
+		    }
+		  else if  ( range_ihbin.first <= range_embin.first && range_ihbin.second < range_embin.second  && range_embin.first < range_ihbin.second)
+		    {
+		      fractionalcontribution[etabin_iter+1] =  (range_ihbin.second - range_embin.first) / (range_embin.second- range_embin.first);
+		    }
+		  else if (range_ihbin.first > range_embin.first && range_ihbin.second >= range_embin.second && range_embin.second > range_ihbin.first)
+		    {
+		      fractionalcontribution[etabin_iter+1] =  (range_embin.second - range_ihbin.first) / (range_embin.second- range_embin.first);
+		    }
+		  else
+		    {
+		      fractionalcontribution[etabin_iter+1] = 0;
+		    }
+		}
+	    }
+	  else
+	    {
+	      fractionalcontribution[0] = 0;
+	      fractionalcontribution[1] = 1;
+	      fractionalcontribution[2] = 0;
+	    }
+	  
+	  int this_IHphibin = geomIH->get_phibin(tower_geom->get_phi());
+	  float this_E = tower->get_energy();
+	  
+	  for (int etabin_iter = -1 ; etabin_iter <= 1;etabin_iter++)
+	    {
+	      if (this_IHetabin+etabin_iter < 0 || this_IHetabin+etabin_iter >= _NETA){continue;}
+	      _EMCAL_RETOWER_E[this_IHetabin+etabin_iter][this_IHphibin] += this_E * fractionalcontribution[etabin_iter+1];
+	    }
+	}
+      
     }
-  }
+ 
+ else
+   {
+     RawTowerContainer::ConstRange begin_end_EM = towersEM3->getTowers();
+     for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+       {
+	 RawTower *tower = rtiter->second;
+	 RawTowerGeom *tower_geom = geomEM->get_tower_geometry(tower->get_key());
+	 
+	 int this_IHetabin = geomIH->get_etabin(tower_geom->get_eta());
+	 double fractionalcontribution[3] = {0};
+	 
+	 // distribute energy based on shadowing of the inner hcal geometry
+	 if (_WEIGHTED_ENERGY_DISTRIBUTION == 1)
+	   {
+	     std::pair<double, double> range_embin= geomEM->get_etabounds(tower_geom->get_bineta());
+	     for (int etabin_iter = -1;etabin_iter <= 1;etabin_iter++)
+	       {
+		 if (this_IHetabin+etabin_iter < 0 || this_IHetabin+etabin_iter >= _NETA){continue;}
+		 std::pair<double, double> range_ihbin= geomIH->get_etabounds(this_IHetabin + etabin_iter);
+		 if (range_ihbin.first <= range_embin.first && range_ihbin.second >= range_embin.second)
+		   {
+		     fractionalcontribution[etabin_iter+1] = 1;
+		   }
+		 else if  ( range_ihbin.first <= range_embin.first && range_ihbin.second < range_embin.second  && range_embin.first < range_ihbin.second)
+		   {
+		     fractionalcontribution[etabin_iter+1] =  (range_ihbin.second - range_embin.first) / (range_embin.second- range_embin.first);
+		   }
+		 else if (range_ihbin.first > range_embin.first && range_ihbin.second >= range_embin.second && range_embin.second > range_ihbin.first)
+		   {
+		     fractionalcontribution[etabin_iter+1] =  (range_embin.second - range_ihbin.first) / (range_embin.second- range_embin.first);
+		   }
+		 else
+		   {
+		     fractionalcontribution[etabin_iter+1] = 0;
+		   }
+	       }
+	   }
+	 else
+	   {
+	     fractionalcontribution[0] = 0;
+	     fractionalcontribution[1] = 1;
+	     fractionalcontribution[2] = 0;
+	   }
+	 
+	 int this_IHphibin = geomIH->get_phibin(tower_geom->get_phi());
+	 float this_E = tower->get_energy();
+	 
+	 for (int etabin_iter = -1 ; etabin_iter <= 1;etabin_iter++)
+	   {
+	     if (this_IHetabin+etabin_iter < 0 || this_IHetabin+etabin_iter >= _NETA){continue;}
+	     _EMCAL_RETOWER_E[this_IHetabin+etabin_iter][this_IHphibin] += this_E * fractionalcontribution[etabin_iter+1];
+	   }
+       }
+     
+   }
+ 
+ 
 
-  if (Verbosity() > 0) std::cout << "RetowerCEMC::process_event: finished filling TOWER_CALIB_CEMC_RETOWER node, with final size = " << emcal_retower->size() << std::endl;
-
-  if (Verbosity() > 0) std::cout << "RetowerCEMC::process_event: exiting" << std::endl;
-
-  return Fun4AllReturnCodes::EVENT_OK;
+ if (m_use_towerinfo)
+   {
+     TowerInfoContainerv1 *emcal_retower =  findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
+     if (Verbosity() > 0) std::cout << "RetowerCEMC::process_event: filling TOWERINFO_CALIB_CEMC_RETOWER node" << std::endl;
+  // create new towers
+     for (int eta = 0; eta < _NETA; eta++)
+       {
+	 for (int phi = 0; phi < _NPHI; phi++)
+	   {
+	     unsigned int towerkey = (eta << 16U) + phi;
+	     unsigned int towerindex = emcal_retower->decode_key(towerkey);
+	     TowerInfo *towerinfo = emcal_retower->get_tower_at_channel(towerindex);
+	     towerinfo->set_energy(_EMCAL_RETOWER_E[eta][phi]);
+	   }
+       }
+   }
+ else
+   {
+     RawTowerContainer *emcal_retower =  findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
+     if (Verbosity() > 0) std::cout << "RetowerCEMC::process_event: filling TOWER_CALIB_CEMC_RETOWER node, with initial size = " << emcal_retower->size() << std::endl;
+     // create new towers
+     for (int eta = 0; eta < _NETA; eta++)
+       {
+	 for (int phi = 0; phi < _NPHI; phi++)
+	   {
+	     RawTower *new_tower = new RawTowerv1();
+	     
+	     new_tower->set_energy(_EMCAL_RETOWER_E[eta][phi]);
+	     emcal_retower->AddTower(eta, phi, new_tower);
+	   }
+       }
+     
+     if (Verbosity() > 0) std::cout << "RetowerCEMC::process_event: finished filling TOWER_CALIB_CEMC_RETOWER node, with final size = " << emcal_retower->size() << std::endl;
+   }
+ if (Verbosity() > 0) std::cout << "RetowerCEMC::process_event: exiting" << std::endl;
+ return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
@@ -170,19 +267,44 @@ int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
     std::cout << PHWHERE << "EMCal Node note found, doing nothing." << std::endl;
   }
 
-  RawTowerContainer *test_emcal_retower = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
-  if (!test_emcal_retower)
-  {
-    if (Verbosity() > 0) std::cout << "RetowerCEMC::CreateNode : creating TOWER_CALIB_CEMC_RETOWER node " << std::endl;
 
-    RawTowerContainer *emcal_retower = new RawTowerContainer(RawTowerDefs::CalorimeterId::HCALIN);
-    PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>(emcal_retower, "TOWER_CALIB_CEMC_RETOWER", "PHObject");
-    emcalNode->addNode(emcalTowerNode);
-  }
+
+  if (m_use_towerinfo)
+    {
+      TowerInfoContainer *test_emcal_retower = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
+      if (!test_emcal_retower)
+	{
+	  if (Verbosity() > 0) std::cout << "RetowerCEMC::CreateNode : creating TOWERINFO_CALIB_CEMC_RETOWER node " << std::endl;
+	  
+	  TowerInfoContainerv1 *emcal_retower = new TowerInfoContainerv1(TowerInfoContainerv1::DETECTOR::HCAL);
+	  PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>(emcal_retower, "TOWERINFO_CALIB_CEMC_RETOWER", "PHObject");
+	  emcalNode->addNode(emcalTowerNode);
+	}
+      else
+	{
+	  std::cout << "RetowerCEMC::CreateNode : TOWERINFO_CALIB_CEMC_RETOWER already exists! " << std::endl;
+	}
+    }
   else
-  {
-    std::cout << "RetowerCEMC::CreateNode : TOWER_CALIB_CEMC_RETOWER already exists! " << std::endl;
-  }
+    {
+      RawTowerContainer *test_emcal_retower = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
+      if (!test_emcal_retower)
+	{
+	  if (Verbosity() > 0) std::cout << "RetowerCEMC::CreateNode : creating TOWER_CALIB_CEMC_RETOWER node " << std::endl;
+	  
+	  RawTowerContainer *emcal_retower = new RawTowerContainer(RawTowerDefs::CalorimeterId::HCALIN);
+	  PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>(emcal_retower, "TOWER_CALIB_CEMC_RETOWER", "PHObject");
+	  emcalNode->addNode(emcalTowerNode);
+	}
+      else
+	{
+	  std::cout << "RetowerCEMC::CreateNode : TOWER_CALIB_CEMC_RETOWER already exists! " << std::endl;
+	}
+    }
+
+
+
+
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -1,11 +1,6 @@
 #include "BbcNorthSouth.h"
 
-using namespace std;
-
-ClassImp(BbcNorthSouth)
-
-void BbcNorthSouth::identify(ostream& out) const
+void BbcNorthSouth::identify(std::ostream& out) const
 {
-  out << "identify yourself: I am a BbcNorthSouth object" << endl;
+  out << "identify yourself: I am a BbcNorthSouth object" << std::endl;
 }
-

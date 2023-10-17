@@ -26,8 +26,8 @@ class Fun4AllSyncManager : public Fun4AllBase
   //! run n events (0 means up to end of file
   int run(const int nevnts = 0);
 
-  /*! 
-    \brief skip n events (0 means up to the end of file). 
+  /*!
+    \brief skip n events (0 means up to the end of file).
     Skip means read, don't process.
   */
   int skip(const int nevnts = 0);
@@ -53,6 +53,8 @@ class Fun4AllSyncManager : public Fun4AllBase
   void PushBackInputMgrsEvents(const int i);
   int ResetEvent();
   const std::vector<Fun4AllInputManager *> GetInputManagers() const { return m_InManager; }
+  bool MixRunsOk() const { return m_MixRunsOkFlag; }
+  void MixRunsOk(bool b) { m_MixRunsOkFlag = b; }
 
  private:
   void PrintSyncProblem() const;
@@ -63,6 +65,7 @@ class Fun4AllSyncManager : public Fun4AllBase
   int m_CurrentRun = 0;
   int m_CurrentEvent = 0;
   int m_Repeat = 0;
+  bool m_MixRunsOkFlag = false;
   SyncObject *m_MasterSync = nullptr;
   std::vector<Fun4AllInputManager *> m_InManager;
   std::vector<int> m_iretInManager;

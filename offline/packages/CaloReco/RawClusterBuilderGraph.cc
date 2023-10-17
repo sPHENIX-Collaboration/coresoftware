@@ -23,6 +23,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <algorithm>                         // for sort
 #include <cassert>
 #include <cmath>
 #include <exception>
@@ -39,9 +40,9 @@
 class twrs
 {
  public:
-  explicit twrs(RawTower *);
+  explicit twrs(RawTower * /*rt*/);
   virtual ~twrs() = default;
-  bool is_adjacent(const twrs &);
+  bool is_adjacent(const twrs & /*tower*/);
   void set_id(const int i)
   {
     id = i;
@@ -67,7 +68,7 @@ class twrs
     return binphi;
   }
 
- protected:
+ private:
   int bineta;
   int binphi;
   int maxphibin;

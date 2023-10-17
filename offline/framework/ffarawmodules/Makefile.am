@@ -11,16 +11,22 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  EventCombiner.h
+  EventCombiner.h \
+  EventNumberCheck.h \
+  InttCheck.h
 
 lib_LTLIBRARIES = \
   libffarawmodules.la
 
 libffarawmodules_la_SOURCES = \
-  EventCombiner.cc
+  EventCombiner.cc \
+  EventNumberCheck.cc \
+  InttCheck.cc
 
 libffarawmodules_la_LIBADD = \
   -lEvent \
+  -lffarawobjects \
+  -lfun4allraw \
   -lphool \
   -lSubsysReco
 

@@ -12,8 +12,20 @@
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
-#include <ffamodules/XploadInterface.h>
+#include <ffamodules/CDBInterface.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfoDefs.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
 #include <TSystem.h>
@@ -26,21 +38,21 @@
 #include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh>   // for G4StepPoint
-#include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fAtRest...
-#include <Geant4/G4String.hh>      // for G4String
+#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fAtRest...
+#include <Geant4/G4String.hh>                  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
-#include <Geant4/G4TouchableHandle.hh>  // for G4TouchableHandle
-#include <Geant4/G4Track.hh>            // for G4Track
-#include <Geant4/G4TrackStatus.hh>      // for fStopAndKill
+#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                   // for G4Track
+#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
 #include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4Types.hh>                  // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
-#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
-#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
+#include <Geant4/G4Types.hh>                   // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
 
-#include <cmath>  // for isfinite
+#include <cmath>                               // for isfinite
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -57,6 +69,10 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* 
   , m_IsActive(m_Params->get_int_param("active"))
   , m_IsBlackHole(m_Params->get_int_param("blackhole"))
   , m_LightScintModelFlag(m_Params->get_int_param("light_scint_model"))
+  , m_doG4Hit(m_Params->get_int_param("saveg4hit"))
+  , m_tmin(m_Params->get_double_param("tmin"))
+  , m_tmax(m_Params->get_double_param("tmax"))
+  , m_dt(m_Params->get_double_param("dt"))
 {
   SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
                      m_Params->get_double_param("light_balance_inner_corr"),
@@ -76,7 +92,7 @@ PHG4InnerHcalSteppingAction::~PHG4InnerHcalSteppingAction()
 }
 
 //____________________________________________________________________________..
-int PHG4InnerHcalSteppingAction::Init()
+int PHG4InnerHcalSteppingAction::InitWithNode(PHCompositeNode* topNode)
 {
   if (m_LightScintModelFlag)
   {
@@ -85,7 +101,7 @@ int PHG4InnerHcalSteppingAction::Init()
     {
       return 0;
     }
-    std::string url = XploadInterface::instance()->getUrl("OLD_INNER_HCAL_TILEMAP", ihcalmapname);
+    std::string url = CDBInterface::instance()->getUrl("OLD_INNER_HCAL_TILEMAP", ihcalmapname);
     if (!std::filesystem::exists(url))
     {
       std::cout << PHWHERE << " Could not locate " << url << std::endl;
@@ -98,18 +114,137 @@ int PHG4InnerHcalSteppingAction::Init()
     {
       std::cout << "ERROR: could not find Histogram " << m_Params->get_string_param("MapHistoName") << " in " << m_Params->get_string_param("MapFileName") << std::endl;
       gSystem->Exit(1);
-      exit(1);  // make code checkers which do not know gSystem->Exit() happy
+      exit(1);                             // make code checkers which do not know gSystem->Exit() happy
     }
     m_MapCorrHist->SetDirectory(nullptr);  // rootism: this needs to be set otherwise histo vanished when closing the file
     file->Close();
     delete file;
   }
+  if (!m_doG4Hit)
+  {
+    try
+    {
+      CreateNodeTree(topNode);
+    }
+    catch (std::exception& e)
+    {
+      std::cout << e.what() << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    if (Verbosity() > 1) topNode->print();
+  }
+
   return 0;
+}
+
+//____________________________________________________________________________..
+bool PHG4InnerHcalSteppingAction::NoHitSteppingAction(const G4Step* aStep)
+{
+  G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
+  G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
+  // get volume of the current step
+  G4VPhysicalVolume* volume = touch->GetVolume();
+
+  // m_Detector->IsInIHCal(volume)
+  // returns
+  //  0 is outside of IHCal
+  //  1 is inside scintillator
+  // -1 is steel absorber
+
+  int whichactive = m_Detector->IsInInnerHcal(volume);
+
+  if (!whichactive)
+  {
+    return false;
+  }
+  int layer_id = -1;
+  int tower_id = -1;
+  if (whichactive > 0)  // scintillator
+  {
+    std::pair<int, int> layer_tower = m_Detector->GetLayerTowerId(volume);
+    layer_id = layer_tower.first;
+    tower_id = layer_tower.second;
+
+    //    std::cout<<"******** Inner HCal\t"<<volume->GetName()<<"\t"<<layer_id<<"\t"<<tower_id<<std::endl;
+  }
+  else
+  {
+    // absorber hit, do nothing
+    return false;
+  }
+
+  if (!m_IsActive) return false;
+
+  G4StepPoint* prePoint = aStep->GetPreStepPoint();
+  G4StepPoint* postPoint = aStep->GetPostStepPoint();
+  // time window cut
+  double pretime = prePoint->GetGlobalTime() / nanosecond;
+  double posttime = postPoint->GetGlobalTime() / nanosecond;
+  if (posttime < m_tmin || pretime > m_tmax) return false;
+  if ((posttime - pretime) > m_dt) return false;
+  G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
+  const G4Track* aTrack = aStep->GetTrack();
+  // we only need visible energy here
+  double light_yield = eion;
+
+  // correct evis using light map
+  if (m_LightScintModelFlag)
+  {
+    light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
+    if (m_MapCorrHist)
+    {
+      const G4TouchableHandle& theTouchable = prePoint->GetTouchableHandle();
+      const G4ThreeVector& worldPosition = postPoint->GetPosition();
+      G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
+      float lx = (localPosition.x() / cm);
+      float lz = fabs(localPosition.z() / cm);
+      // adjust to tilemap coordinates
+      int lcz = (int) (5.0 * lz) + 1;
+      int lcx = (int) (5.0 * (lx + 12.1)) + 1;
+
+      if ((lcx >= 1) && (lcx <= m_MapCorrHist->GetNbinsY()) &&
+          (lcz >= 1) && (lcz <= m_MapCorrHist->GetNbinsX()))
+      {
+        light_yield *= (double) (m_MapCorrHist->GetBinContent(lcz, lcx));
+      }
+      else
+      {
+        light_yield = 0.0;
+      }
+    }
+    else
+    {
+      // old correction (linear ligh yield dependence along r), never tested
+      light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x(), postPoint->GetPosition().y());
+    }
+  }
+  // find the tower index for this step, tower_id is ieta, layer_id/4 is iphi
+  unsigned int ieta = tower_id;
+  unsigned int iphi = (unsigned int) layer_id / 4;
+  unsigned int tower_key = TowerInfoDefs::encode_hcal(ieta, iphi);
+  m_CaloInfoContainer->get_tower_at_key(tower_key)->set_energy(m_CaloInfoContainer->get_tower_at_key(tower_key)->get_energy() + light_yield);
+  // set keep for the track
+  if (light_yield > 0)
+  {
+    if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
+    {
+      if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
+      {
+        pp->SetKeep(1);  // we want to keep the track
+      }
+    }
+  }
+
+  return true;
 }
 
 //____________________________________________________________________________..
 bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 {
+  if ((!m_doG4Hit) && (!m_IsBlackHole))
+  {
+    return NoHitSteppingAction(aStep);
+  }
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
   // get volume of the current step
@@ -203,18 +338,18 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         m_Hit = new PHG4Hitv1();
       }
-      //here we set the entrance values in cm
+      // here we set the entrance values in cm
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
       m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
       m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
       // time in ns
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-      //set and save the track ID
+      // set and save the track ID
       m_Hit->set_trkid(aTrack->GetTrackID());
       m_SaveTrackId = aTrack->GetTrackID();
-      //set the initial energy deposit
+      // set the initial energy deposit
       m_Hit->set_edep(0);
-      if (whichactive > 0)  // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
+      if (whichactive > 0)              // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
         m_Hit->set_scint_id(tower_id);  // the slat id
         m_Hit->set_eion(0);             // only implemented for v5 otherwise empty
@@ -282,7 +417,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
-    //sum up the energy to get total deposited
+    // sum up the energy to get total deposited
     m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (whichactive > 0)  // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
     {
@@ -299,7 +434,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
           float lx = (localPosition.x() / cm);
           float lz = fabs(localPosition.z() / cm);
-          //adjust to tilemap coordinates
+          // adjust to tilemap coordinates
           int lcz = (int) (5.0 * lz) + 1;
           int lcx = (int) (5.0 * (lx + 12.1)) + 1;
 
@@ -396,7 +531,7 @@ void PHG4InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
     absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
   }
 
-  //now look for the map and grab a pointer to it.
+  // now look for the map and grab a pointer to it.
   m_Hits = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
 
@@ -412,4 +547,27 @@ void PHG4InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
       std::cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << std::endl;
     }
   }
+}
+
+void PHG4InnerHcalSteppingAction::CreateNodeTree(PHCompositeNode* topNode)
+{
+  PHNodeIterator nodeItr(topNode);
+  PHCompositeNode* dst_node = dynamic_cast<PHCompositeNode*>(
+      nodeItr.findFirst("PHCompositeNode", "DST"));
+  if (!dst_node)
+  {
+    std::cout << "PHComposite node created: DST" << std::endl;
+    dst_node = new PHCompositeNode("DST");
+    topNode->addNode(dst_node);
+  }
+  PHNodeIterator dstiter(dst_node);
+  PHCompositeNode* DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", m_Detector->SuperDetector()));
+  if (!DetNode)
+  {
+    DetNode = new PHCompositeNode(m_Detector->SuperDetector());
+    dst_node->addNode(DetNode);
+  }
+  m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::HCAL);
+  PHIODataNode<PHObject>* towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERINFO_SIM_" + m_Detector->SuperDetector(), "PHObject");
+  DetNode->addNode(towerNode);
 }

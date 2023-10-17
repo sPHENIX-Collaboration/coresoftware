@@ -13,6 +13,18 @@
 
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>  // for PHNode
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>  // for PHObject
+#include <phool/getClass.h>
+
+#include <calobase/RawTowerDefs.h>           // for convert_name_...
+#include <calobase/RawTowerGeom.h>           // for RawTowerGeom
+#include <calobase/RawTowerGeomContainer.h>  // for RawTowerGeomC...
+#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
+#include <calobase/RawTowerGeomv1.h>
 
 #include <TSystem.h>
 
@@ -479,6 +491,7 @@ void PHG4OuterHcalDetector::ConstructMe(G4LogicalVolume *logicWorld)
     }
     ++it;
   }
+  if(!m_Params->get_int_param("saveg4hit")) AddGeometryNode();
   return;
 }
 
@@ -977,4 +990,121 @@ std::pair<int, int> PHG4OuterHcalDetector::GetLayerTowerId(G4VPhysicalVolume *vo
   // that's dumb but code checkers do not know that gSystem->Exit()
   // terminates, so using the standard exit() makes them happy
   exit(1);
+}
+
+// This is dulplicated code, we can get rid of it when we have the code to make towergeom for real data reco.
+void PHG4OuterHcalDetector::AddGeometryNode()
+{
+  PHNodeIterator iter(topNode());
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  if (!runNode)
+  {
+    std::cout << PHWHERE << "Run Node missing, exiting." << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+  PHNodeIterator runIter(runNode);
+  PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", m_SuperDetector));
+  if (!RunDetNode)
+  {
+    RunDetNode = new PHCompositeNode(m_SuperDetector);
+    runNode->addNode(RunDetNode);
+  }
+  m_TowerGeomNodeName = "TOWERGEOM_" + m_SuperDetector;
+  m_RawTowerGeom = findNode::getClass<RawTowerGeomContainer>(topNode(), m_TowerGeomNodeName);
+  if (!m_RawTowerGeom)
+  {
+    m_RawTowerGeom = new RawTowerGeomContainer_Cylinderv1(RawTowerDefs::convert_name_to_caloid(m_SuperDetector));
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(m_RawTowerGeom, m_TowerGeomNodeName, "PHObject");
+    RunDetNode->addNode(newNode);
+  }
+  double innerrad = m_Params->get_double_param(PHG4HcalDefs::innerrad);
+  double thickness = m_Params->get_double_param(PHG4HcalDefs::outerrad) - innerrad;
+  m_RawTowerGeom->set_radius(innerrad);
+  m_RawTowerGeom->set_thickness(thickness);
+  m_RawTowerGeom->set_phibins(m_Params->get_int_param(PHG4HcalDefs::n_towers));
+  m_RawTowerGeom->set_etabins(m_Params->get_int_param("etabins"));
+  double geom_ref_radius = innerrad + thickness / 2.;
+  double phistart = m_Params->get_double_param("phistart");
+  if (!std::isfinite(phistart))
+  {
+    std::cout << PHWHERE << " phistart is not finite: " << phistart
+              << ", exiting now (this will crash anyway)" << std::endl;
+    gSystem->Exit(1);
+  }
+  for (int i = 0; i < m_Params->get_int_param(PHG4HcalDefs::n_towers); i++)
+  {
+    double phiend = phistart + 2. * M_PI / m_Params->get_int_param(PHG4HcalDefs::n_towers);
+    std::pair<double, double> range = std::make_pair(phiend, phistart);
+    phistart = phiend;
+    m_RawTowerGeom->set_phibounds(i, range);
+  }
+  double etalowbound = -m_Params->get_double_param("scinti_eta_coverage_neg");
+  for (int i = 0; i < m_Params->get_int_param("etabins"); i++)
+  {
+    // double etahibound = etalowbound + 2.2 / get_int_param("etabins");
+    double etahibound = etalowbound +
+                        (m_Params->get_double_param("scinti_eta_coverage_neg") + m_Params->get_double_param("scinti_eta_coverage_pos")) / m_Params->get_int_param("etabins");
+    std::pair<double, double> range = std::make_pair(etalowbound, etahibound);
+    m_RawTowerGeom->set_etabounds(i, range);
+    etalowbound = etahibound;
+  }
+  for (int iphi = 0; iphi < m_RawTowerGeom->get_phibins(); iphi++)
+  {
+    for (int ieta = 0; ieta < m_RawTowerGeom->get_etabins(); ieta++)
+    {
+      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::convert_name_to_caloid(m_SuperDetector), ieta, iphi);
+
+      const double x(geom_ref_radius * cos(m_RawTowerGeom->get_phicenter(iphi)));
+      const double y(geom_ref_radius * sin(m_RawTowerGeom->get_phicenter(iphi)));
+      const double z(geom_ref_radius / tan(PHG4Utils::get_theta(m_RawTowerGeom->get_etacenter(ieta))));
+
+      RawTowerGeom *tg = m_RawTowerGeom->get_tower_geometry(key);
+      if (tg)
+      {
+        if (Verbosity() > 0)
+        {
+          std::cout << "IHCalDetector::InitRun - Tower geometry " << key << " already exists" << std::endl;
+        }
+
+        if (fabs(tg->get_center_x() - x) > 1e-4)
+        {
+          std::cout << "IHCalDetector::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
+                    << std::endl;
+
+          return;
+        }
+        if (fabs(tg->get_center_y() - y) > 1e-4)
+        {
+          std::cout << "IHCalDetector::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
+                    << std::endl;
+          return;
+        }
+        if (fabs(tg->get_center_z() - z) > 1e-4)
+        {
+          std::cout << "IHCalDetector::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
+                    << std::endl;
+          return;
+        }
+      }
+      else
+      {
+        if (Verbosity() > 0)
+        {
+          std::cout << "IHCalDetector::InitRun - building tower geometry " << key << "" << std::endl;
+        }
+
+        tg = new RawTowerGeomv1(key);
+
+        tg->set_center_x(x);
+        tg->set_center_y(y);
+        tg->set_center_z(z);
+        m_RawTowerGeom->add_tower_geometry(tg);
+      }
+    }
+  }
+  if (Verbosity() > 0)
+  {
+    m_RawTowerGeom->identify();
+  }
 }

@@ -1,97 +1,100 @@
-#ifndef __BBCOUTV1_H
-#define __BBCOUTV1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef BBC_BBCOUTV1_H
+#define BBC_BBCOUTV1_H
 
 #include "BbcOut.h"
+
+#include <iostream>
+
 class TClonesArray;
 
 ///
-class BbcOutV1: public BbcOut
+class BbcOutV1 : public BbcOut
 {
-public:
-
+ public:
   ///
   BbcOutV1();
   ///
-  virtual ~BbcOutV1();
+  ~BbcOutV1() override;
 
   /// Clear Event from memory
-  virtual void Reset() override;
+  void Reset() override;
 
   /** identify Function from PHObject
-      @param os Output Stream 
+      @param os Output Stream
    */
-  virtual void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   /// isValid returns non zero if object contains vailid data
-  virtual int isValid() const override;
+  int isValid() const override;
 
   /// get ZVertex determined by Bbc
-  virtual Float_t get_VertexPoint() const override {return Bbc_ZVertex;}
+  float get_zvtx() const override { return bz; }
 
   /// get Error on ZVertex determined by Bbc
-  virtual Float_t get_dVertexPoint() const override {return Bbc_dZVertex;}
+  float get_zvtxerr() const override { return bzerr; }
 
   /// get T0 determined by Bbc
-  virtual Float_t get_TimeZero() const override {return Bbc_TimeZero;}
+  float get_t0() const override { return bt0; }
 
   /// get Error on T0 determined by Bbc
-  virtual Float_t get_dTimeZero() const override {return Bbc_dTimeZero;}
+  float get_t0err() const override { return bt0err; }
 
   /** set T0 for Bbc
       @param t0 Bbc T0
       @param t0err Bbc T0 error
    */
-  virtual void set_TimeZero(const Float_t t0, const Float_t t0err = 0) override;
+  void set_t0(const float t0, const float t0err = 0) override;
 
   //! set vertex
-  virtual void set_Vertex( const Float_t vtx, const Float_t vtxerr = 0) override;
-  
+  void set_zvtx(const float vtx, const float vtxerr = 0) override;
+
   /** set Vtx Error for Bbc
       @param vtxerr Bbc Vtx Error
   */
-  virtual void set_dZVertex(const Float_t vtxerr) override;
+  void set_zvtxerr(const float vtxerr) override;
 
-  /** Add Bbc North/South object containing Number of pmt's, Energy and Timing
+  /** Add Bbc North/South data containing Number of pmt's, Energy and Timing
       @param npmt Number of PMT's fired
       @param energy Energy in North/South
       @param timing Timing of North/South
-      @param nBbc  Arm, use Bbc::North and Bbc::South
+      @param iarm  Arm, use Bbc::North and Bbc::South
    */
-  virtual void AddBbcNS(const int nBbc, const Short_t npmt, const Float_t chargesum, const Float_t timing) override;
+  void set_arm(const int iarm, const short npmt, const float chargesum, const float timing) override;
 
   /** get Number of PMT's fired in North/South Bbc
-      @param nBbc  Arm, use Bbc::North and Bbc::South
+      @param iarm  Arm, use Bbc::North and Bbc::South
    */
-  virtual Short_t get_nPMT(const int nBbc) const override;
-
+  short get_npmt(const int iarm) const override;
 
   /** get Number of Charged Particles into North/South Bbc
-      @param nBbc  Arm, use Bbc::North and Bbc::South
+      @param iarm  Arm, use Bbc::North and Bbc::South
    */
-  virtual Float_t get_nCharge(const int nBbc) const override;
+  float get_q(const int iarm) const override;
 
   /** get Timing of North/South Bbc
-      @param nBbc  Arm, use Bbc::North and Bbc::South
+      @param iarm  Arm, use Bbc::North and Bbc::South
    */
-  virtual Float_t get_Timing(const int nBbc) const override;
+  float get_time(const int iarm) const override;
 
-protected:
-  
-  virtual void Init();
-  
-  TClonesArray *GetBbcNS() const { return BbcNS; }
 
-private:
-  
-  Float_t Bbc_ZVertex;
-  Float_t Bbc_dZVertex;
-  Float_t Bbc_TimeZero;
-  Float_t Bbc_dTimeZero;
-  TClonesArray *BbcNS;
+ private:
 
-private: // so the ClassDef does not show up with doc++
-  ClassDefOverride(BbcOutV1,1)
+  void Init();
 
+  float bz{};
+  float bzerr{};
+  float bt0{};
+  float bt0err{};
+  float bns{};
+  float bnn{};
+  float bqs{};
+  float bqn{};
+  float bts{};
+  float btn{};
+
+  ClassDefOverride(BbcOutV1, 1)
 };
 
 #endif

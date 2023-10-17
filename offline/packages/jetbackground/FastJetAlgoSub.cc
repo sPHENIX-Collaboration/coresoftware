@@ -1,8 +1,8 @@
 
 #include "FastJetAlgoSub.h"
 
-#include <g4jets/Jet.h>
-#include <g4jets/Jetv1.h>
+#include <jetbase/Jet.h>
+#include <jetbase/Jetv1.h>
 
 // fastjet includes
 #include <fastjet/ClusterSequence.hh>

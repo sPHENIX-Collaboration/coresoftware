@@ -7,7 +7,7 @@
 #include <pdbcalbase/PdbParameterMap.h>
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
-#include <ffamodules/XploadInterface.h>
+#include <ffamodules/CDBInterface.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -502,11 +502,12 @@ int PHParameters::ReadFromDB()
 
 int PHParameters::ReadFromCDB(const std::string &domain)
 {
-  std::string url = XploadInterface::instance()->getUrl(domain);
+  std::string url =  CDBInterface::instance()->getUrl(domain);
   TFile *f = TFile::Open(url.c_str());
   if (!f)
   {
-    std::cout << "could not open " << url << std::endl;
+    std::cout << "could not open " << url
+	      << " for domain " << domain << std::endl;
     gSystem->Exit(1);
   }
   PdbParameterMap *myparm = static_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));

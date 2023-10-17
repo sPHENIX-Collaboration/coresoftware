@@ -37,8 +37,16 @@ class PHG4UIsession;
 class PHG4Reco : public SubsysReco
 {
  public:
+  enum DecayerOptions
+  {
+    kGEANTInternalDecayer = 0,
+    kPYTHIA6Decayer = 1,
+    kEvtGenDecayer = 2,
+
+  };  // Decayer Option for User to Choose: 0 - GEANT 4 Internal Decayer (with momentum conservation issues), 1, PYTHIA 6 Decayer, 2 - EvtGen Decayer
+
   //! constructor
-  PHG4Reco(const std::string &name = "PHG4RECO");
+  explicit PHG4Reco(const std::string &name = "PHG4RECO");
 
   //! destructor
   ~PHG4Reco() override;
@@ -89,21 +97,21 @@ class PHG4Reco : public SubsysReco
   //! set default scaling factor for input magnetic field map. If available, Field map setting on DST take higher priority.
   void set_field_rescale(const float rescale) { m_MagneticFieldRescale = rescale; }
 
-  void set_decayer_active(bool b) { m_ActiveDecayerFlag = b; }
   void set_force_decay(EDecayType force_decay_type)
   {
-    m_ActiveDecayerFlag = true;
     m_ActiveForceDecayFlag = true;
     m_ForceDecayType = force_decay_type;
   }
 
+  void set_decayer(DecayerOptions type) { m_Decayer = type; }
+
   //! export geometry to root file
-  void export_geometry( bool b, const std::string& filename = "sPHENIXGeom.root" )
+  void export_geometry(bool b, const std::string &filename = "sPHENIXGeom.root")
   {
     m_ExportGeometry = b;
     m_ExportGeomFilename = filename;
   }
-  
+
   //! Save geometry from Geant4 to DST
   void save_DST_geometry(bool b) { m_SaveDstGeometryFlag = b; }
   void SetWorldSizeX(const double sx) { m_WorldSize[0] = sx; }
@@ -132,6 +140,12 @@ class PHG4Reco : public SubsysReco
   void setDisableUserActions(bool b = true) { m_disableUserActions = b; }
   void ApplyDisplayAction();
 
+  void CustomizeEvtGenDecay(const std::string &DecayFile)
+  {
+    EvtGenDecayFile = DecayFile;
+    if (!EvtGenDecayFile.empty()) CustomizeDecay = true;
+  }
+
  private:
   static void g4guithread(void *ptr);
   int InitUImanager();
@@ -140,7 +154,7 @@ class PHG4Reco : public SubsysReco
 
   float m_MagneticField = 0.;
   float m_MagneticFieldRescale = 1.0;
-  double m_WorldSize[3];
+  double m_WorldSize[3]{1000., 1000., 1000.};
 
   //! magnetic field
   G4TBMagneticFieldSetup *m_Field = nullptr;
@@ -193,10 +207,15 @@ class PHG4Reco : public SubsysReco
 
   bool m_ExportGeometry = false;
   std::string m_ExportGeomFilename = "sPHENIXGeom.root";
-  
+
   // settings for the external Pythia6 decayer
-  bool m_ActiveDecayerFlag = true;     //< turn on/off decayer
+  // bool m_ActiveDecayerFlag = true;     //< turn on/off decayer
   bool m_ActiveForceDecayFlag = false;  //< turn on/off force decay channels
+
+  DecayerOptions m_Decayer = kEvtGenDecayer;  // Here we use EvtGen as default
+  std::string EvtGenDecayFile = "";
+  bool CustomizeDecay = false;
+
   EDecayType m_ForceDecayType = kAll;  //< forced decay channel setting
 
   bool m_SaveDstGeometryFlag = true;

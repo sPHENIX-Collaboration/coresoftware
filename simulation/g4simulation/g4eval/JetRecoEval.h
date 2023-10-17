@@ -3,7 +3,7 @@
 
 #include "JetTruthEval.h"
 
-#include <g4jets/Jet.h>
+#include <jetbase/Jet.h>
 
 #include <map>
 #include <set>
@@ -135,28 +135,28 @@ class JetRecoEval
   std::string _recojetname;
   std::string _truthjetname;
 
-  JetMap* _recojets;
-  JetMap* _truthjets;
+  JetMap* _recojets = nullptr;
+  JetMap* _truthjets = nullptr;
 
-  SvtxTrackMap* _trackmap;
-  RawTowerContainer* _cemctowers;
-  RawClusterContainer* _cemcclusters;
-  RawTowerContainer* _hcalintowers;
-  RawClusterContainer* _hcalinclusters;
-  RawTowerContainer* _hcalouttowers;
-  RawClusterContainer* _hcaloutclusters;
-  RawTowerContainer* _femctowers;
-  RawClusterContainer* _femcclusters;
-  RawTowerContainer* _fhcaltowers;
-  RawClusterContainer* _fhcalclusters;
-  RawTowerContainer* _eemctowers;
-  RawClusterContainer* _eemcclusters;
+  SvtxTrackMap* _trackmap = nullptr;
+  RawTowerContainer* _cemctowers = nullptr;
+  RawClusterContainer* _cemcclusters = nullptr;
+  RawTowerContainer* _hcalintowers = nullptr;
+  RawClusterContainer* _hcalinclusters = nullptr;
+  RawTowerContainer* _hcalouttowers = nullptr;
+  RawClusterContainer* _hcaloutclusters = nullptr;
+  RawTowerContainer* _femctowers = nullptr;
+  RawClusterContainer* _femcclusters = nullptr;
+  RawTowerContainer* _fhcaltowers = nullptr;
+  RawClusterContainer* _fhcalclusters = nullptr;
+  RawTowerContainer* _eemctowers = nullptr;
+  RawClusterContainer* _eemcclusters = nullptr;
 
-  bool _strict;
-  int _verbosity;
-  unsigned int _errors;
+  bool _strict = false;
+  int _verbosity = 1;
+  unsigned int _errors = 0;
 
-  bool _do_cache;
+  bool _do_cache = true;
   std::map<Jet*, std::set<PHG4Shower*> > _cache_all_truth_showers;
   std::map<Jet*, std::set<PHG4Particle*> > _cache_all_truth_particles;
   std::map<Jet*, std::set<Jet*> > _cache_all_truth_jets;

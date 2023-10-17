@@ -14,10 +14,14 @@ pkginclude_HEADERS = \
 
 libphnodedump_la_SOURCES = \
   Dumper.cc \
+  DumpBbcOut.cc \
+  DumpBbcPmtContainer.cc \
+  DumpBbcPmtInfoContainer.cc \
   DumpBbcVertexMap.cc \
   DumpCaloTriggerInfo.cc \
   DumpCdbUrlSave.cc \
   DumpCentralityInfo.cc \
+  DumpEpdGeom.cc \
   DumpEpInfo.cc \
   DumpEventHeader.cc \
   DumpFlagSave.cc \
@@ -37,6 +41,7 @@ libphnodedump_la_SOURCES = \
   DumpPHG4HitContainer.cc \
   DumpPHG4ParticleSvtxMap.cc \
   DumpPHG4ScintillatorSlatContainer.cc \
+  DumpPHG4TpcCylinderGeomContainer.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
   DumpPHGenIntegral.cc \
@@ -50,12 +55,12 @@ libphnodedump_la_SOURCES = \
   DumpSvtxVertexMap.cc \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
+  DumpTowerInfoContainer.cc \
   DumpTpcSeedTrackMap.cc \
   DumpTrackSeedContainer.cc \
   DumpTrkrClusterContainer.cc \
   DumpTrkrClusterHitAssoc.cc \
   DumpTrkrHitSetContainer.cc \
-  DumpTrkrHitTruthClusters.cc \
   DumpTrkrClusterCrossingAssoc.cc \
   DumpTrkrHitTruthAssoc.cc \
   DumpVariableArray.cc \
@@ -65,16 +70,18 @@ libphnodedump_la_SOURCES = \
 AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib
 
 libphnodedump_la_LIBADD = \
-  -lg4bbc_io \
+  -lbbc_io \
   -lcalo_io \
   -lcalotrigger_io \
+  -lepd_io \
   -leventplane_io \
   -lffaobjects \
   -lg4detectors_io \
-  -lphfield_io \
-  -lg4jets_io \
+  -lg4bbc_io \
   -lHepMC \
+  -ljetbase_io \
   -lparticleflow_io \
+  -lphfield_io \
   -lphg4hit \
   -lSubsysReco \
   -ltrackbase_historic_io \

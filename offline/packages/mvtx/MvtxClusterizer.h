@@ -13,6 +13,8 @@
 
 #include <string>                // for string
 #include <utility>
+
+class ClusHitsVerbosev1;
 class PHCompositeNode;
 class TrkrHit;
 class TrkrHitSetContainer;
@@ -54,12 +56,15 @@ class MvtxClusterizer : public SubsysReco
   {
     return m_makeZClustering;
   }
-  void set_cluster_version(int value) { m_cluster_version = value; }
+
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
   void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
+  void set_ClusHitsVerbose(bool set=true) { record_ClusHitsVerbose = set; };
+  ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
 
  private:
   //bool are_adjacent(const pixel lhs, const pixel rhs);
+  bool  record_ClusHitsVerbose { false };
   bool are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs);
   bool are_adjacent(RawHit* lhs,  RawHit* rhs);
 
@@ -78,7 +83,6 @@ class MvtxClusterizer : public SubsysReco
   bool m_makeZClustering;  // z_clustering_option
   bool do_hit_assoc = true;
   bool do_read_raw = false;
-  int m_cluster_version = 4;
 };
 
 #endif  // MVTX_MVTXCLUSTERIZER_H

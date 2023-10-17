@@ -1,6 +1,6 @@
 #include "HcalRawTowerBuilder.h"
 
-#include <calobase/RawTower.h>  // for RawTower
+#include <calobase/RawTower.h>               // for RawTower
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>           // for convert_name_...
 #include <calobase/RawTowerGeom.h>           // for RawTowerGeom
@@ -8,6 +8,9 @@
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/RawTowerGeomv1.h>
 #include <calobase/RawTowerv1.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoContainerv1.h>
 
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
@@ -27,11 +30,11 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>  // for PHNode
+#include <phool/PHNode.h>    // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>  // for PHWHERE
+#include <phool/phool.h>     // for PHWHERE
 
 #include <TSystem.h>
 
@@ -41,7 +44,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <memory>  // for allocator_tra...
+#include <memory>   // for allocator_tra...
 #include <stdexcept>
 #include <utility>  // for make_pair, pair
 
@@ -74,18 +77,17 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   }
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   std::string paramnodename = "TOWERPARAM_" + m_OutputDetector;
-
   try
   {
     CreateNodes(topNode);
   }
+
   catch (std::exception &e)
   {
     std::cout << e.what() << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
-
   // order first default,
   // then parameter from g4detector on node tree
   ReadParamsFromNodeTree(topNode);
@@ -168,13 +170,15 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
     double phiend = phistart + 2. * M_PI / get_int_param(PHG4HcalDefs::n_towers);
     std::pair<double, double> range = std::make_pair(phiend, phistart);
     phistart = phiend;
-    m_RawTowerGeom->set_phibounds(i, range);
+    int tempi = i + 1;
+    if (tempi >= get_int_param(PHG4HcalDefs::n_towers)) tempi -= get_int_param(PHG4HcalDefs::n_towers);
+    m_RawTowerGeom->set_phibounds(tempi, range);
   }
-  //double etalowbound = -1.1;
+  // double etalowbound = -1.1;
   double etalowbound = -get_double_param("scinti_eta_coverage_neg");
   for (int i = 0; i < get_int_param("etabins"); i++)
   {
-    //double etahibound = etalowbound + 2.2 / get_int_param("etabins");
+    // double etahibound = etalowbound + 2.2 / get_int_param("etabins");
     double etahibound = etalowbound +
                         (get_double_param("scinti_eta_coverage_neg") + get_double_param("scinti_eta_coverage_pos")) / get_int_param("etabins");
     std::pair<double, double> range = std::make_pair(etalowbound, etahibound);
@@ -299,6 +303,14 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << "Process event entered" << std::endl;
   }
 
+  // load get TowerInfoContainer node from node tree:
+  TowerInfoContainer *m_TowerInfoContainer = findNode::getClass<TowerInfoContainer>(topNode, m_TowerInfoNodeName);
+  if (!m_TowerInfoContainer && m_UseTowerInfo > 0)
+  {
+    std::cout << PHWHERE << "TowerInfoContainer Node missing, doing nothing." << std::endl;
+    exit(1);
+  }
+
   // get cells
   std::string cellnodename = "G4CELL_" + m_InputDetector;
   PHG4CellContainer *slats = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
@@ -319,14 +331,6 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     PHG4Cell *cell = cell_iter->second;
 
     short twrrow = get_tower_row(PHG4CellDefs::ScintillatorSlatBinning::get_row(cell->get_cellid()));
-
-    RawTower *tower = m_Towers->getTower(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid()), twrrow);
-    if (!tower)
-    {
-      tower = new RawTowerv1();
-      tower->set_energy(0.0);
-      m_Towers->AddTower(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid()), twrrow, tower);
-    }
 
     if (m_TowerEnergySrc == kEnergyDeposition)
     {
@@ -353,17 +357,48 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     }
 
     cell_weight *= m_DecalArray.at(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid())).at(PHG4CellDefs::ScintillatorSlatBinning::get_row(cell->get_cellid()));
-    tower->add_ecell(cell->get_cellid(), cell_weight);
 
-    PHG4Cell::ShowerEdepConstRange range = cell->get_g4showers();
-    for (PHG4Cell::ShowerEdepConstIterator shower_iter = range.first;
-         shower_iter != range.second;
-         ++shower_iter)
+    if (m_UseTowerInfo != 1)
     {
-      tower->add_eshower(shower_iter->first, shower_iter->second);
+      RawTower *tower = m_Towers->getTower(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid()), twrrow);
+      if (!tower)
+      {
+        tower = new RawTowerv1();
+        tower->set_energy(0.0);
+        m_Towers->AddTower(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid()), twrrow, tower);
+      }
+
+      tower->add_ecell(cell->get_cellid(), cell_weight);
+
+      PHG4Cell::ShowerEdepConstRange range = cell->get_g4showers();
+      for (PHG4Cell::ShowerEdepConstIterator shower_iter = range.first;
+           shower_iter != range.second;
+           ++shower_iter)
+      {
+        tower->add_eshower(shower_iter->first, shower_iter->second);
+      }
+      tower->set_energy(tower->get_energy() + cell_weight);
     }
 
-    tower->set_energy(tower->get_energy() + cell_weight);
+    if (m_UseTowerInfo > 0)
+    {
+      TowerInfo *towerinfo;
+      unsigned int etabin = PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid());
+      unsigned int phibin = twrrow;
+
+      unsigned int towerkey = (etabin << 16U) + phibin;
+
+      towerinfo = m_TowerInfoContainer->get_tower_at_key(towerkey);
+      if (!towerinfo)
+      {
+        std::cout << __PRETTY_FUNCTION__ << ": missing towerkey = " << towerkey << " in m_TowerInfoContainer!";
+        exit(1);
+      }
+      else
+      {
+        towerinfo->set_energy(towerinfo->get_energy() + cell_weight);
+      }
+    }
   }
 
   double towerE = 0;
@@ -427,24 +462,65 @@ void HcalRawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
     dstNode->addNode(DetNode);
   }
 
-  // Create the tower nodes on the tree
-  if (m_SimTowerNodePrefix.empty())
+  if (m_UseTowerInfo != 1)
   {
-    // no prefix, consistent with older convension
-    m_TowerNodeName = "TOWER_" + m_OutputDetector;
-  }
-  else
-  {
-    m_TowerNodeName = "TOWER_" + m_SimTowerNodePrefix + "_" + m_OutputDetector;
-  }
-  m_Towers = findNode::getClass<RawTowerContainer>(DetNode, m_TowerNodeName);
-  if (!m_Towers)
-  {
-    m_Towers = new RawTowerContainer(RawTowerDefs::convert_name_to_caloid(m_InputDetector));
+    // Create the tower nodes on the tree
+    if (m_SimTowerNodePrefix.empty())
+    {
+      // no prefix, consistent with older convension
+      m_TowerNodeName = "TOWER_" + m_OutputDetector;
+    }
+    else
+    {
+      m_TowerNodeName = "TOWER_" + m_SimTowerNodePrefix + "_" + m_OutputDetector;
+    }
+    m_Towers = findNode::getClass<RawTowerContainer>(DetNode, m_TowerNodeName);
+    if (!m_Towers)
+    {
+      m_Towers = new RawTowerContainer(RawTowerDefs::convert_name_to_caloid(m_InputDetector));
 
-    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_Towers, m_TowerNodeName, "PHObject");
-    DetNode->addNode(towerNode);
+      PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_Towers, m_TowerNodeName, "PHObject");
+      DetNode->addNode(towerNode);
+    }
   }
+
+  if (m_UseTowerInfo > 0)
+  {
+    if (m_SimTowerNodePrefix.empty())
+    {
+      // no prefix, consistent with older convension
+      m_TowerInfoNodeName = "TOWERINFO_" + m_OutputDetector;
+    }
+    else
+    {
+      m_TowerInfoNodeName = "TOWERINFO_" + m_SimTowerNodePrefix + "_" + m_OutputDetector;
+    }
+
+    TowerInfoContainer *m_TowerInfoContainer = findNode::getClass<TowerInfoContainer>(DetNode, m_TowerInfoNodeName);
+
+    RawTowerDefs::CalorimeterId caloid = RawTowerDefs::convert_name_to_caloid(m_InputDetector);
+    if (m_TowerInfoContainer == nullptr)
+    {
+      TowerInfoContainer::DETECTOR detec;
+      if (caloid == RawTowerDefs::CalorimeterId::CEMC)
+      {
+        detec = TowerInfoContainer::DETECTOR::EMCAL;
+      }
+      else if (caloid == RawTowerDefs::CalorimeterId::HCALIN || caloid == RawTowerDefs::CalorimeterId::HCALOUT)
+      {
+        detec = TowerInfoContainer::DETECTOR::HCAL;
+      }
+      else
+      {
+        std::cout << PHWHERE << "Detector not implemented into the TowerInfoContainer object, defaulting to HCal implementation." << std::endl;
+        detec = TowerInfoContainer::DETECTOR::HCAL;
+      }
+      m_TowerInfoContainer = new TowerInfoContainerv1(detec);
+      PHIODataNode<PHObject> *TowerInfoNode = new PHIODataNode<PHObject>(m_TowerInfoContainer, m_TowerInfoNodeName, "PHObject");
+      DetNode->addNode(TowerInfoNode);
+    }
+  }
+
   return;
 }
 

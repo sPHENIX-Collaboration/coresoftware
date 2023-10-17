@@ -20,6 +20,8 @@
 // tpc distortion correction
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
+#include <phfield/PHFieldConfigv2.h>
+
 // trackbase_historic includes
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
@@ -231,6 +233,10 @@ void PHCASeeding::QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtre
 
 PositionMap PHCASeeding::FillTree()
 { 
+  if(Verbosity()>1)
+    {
+      std::cout << "fill tree..." << std::endl;
+    }
   t_fill->stop();
   int n_dupli = 0;
   int nlayer[60];
@@ -297,6 +303,10 @@ PositionMap PHCASeeding::FillTree()
 
 int PHCASeeding::Process(PHCompositeNode */*topNode*/)
 {
+  if(Verbosity() > 1)
+    {
+      std::cout << " Process...  " << std::endl;
+    }
 //  TFile fpara("CA_para.root", "RECREATE");
   if(_n_iteration>0){
     if (!_iteration_map){
@@ -870,7 +880,7 @@ std::vector<TrackSeed_v1> PHCASeeding::RemoveBadClusters(const std::vector<keyli
     if( std::isnan( R ) ) continue;
 
     // calculate residuals
-    const std::vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
+    const std::vector<double> xy_resid = TrackFitUtils::getCircleClusterResiduals(xy_pts,R,X0,Y0);
     
     // assign clusters to seed
     TrackSeed_v1 trackseed;
@@ -902,7 +912,8 @@ void PHCASeeding::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
 
 int PHCASeeding::Setup(PHCompositeNode *topNode)
 {
-  if(Verbosity()>0) std::cout << "Called Setup" << std::endl;
+  //  if(Verbosity()>0)
+    std::cout << "Called Setup" << std::endl;
   if(Verbosity()>0) std::cout << "topNode:" << topNode << std::endl;
   PHTrackSeeding::Setup(topNode);
   
@@ -920,18 +931,30 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   t_seed = std::make_unique<PHTimer>("t_seed");
   t_fill->stop();
   t_seed->stop();
-  PHFieldConfigv1 fcfg;
-  fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
-  char *calibrationsroot = getenv("CALIBRATIONROOT");
-  assert(calibrationsroot);
-  auto magField = std::string(calibrationsroot) +
-    std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
-  fcfg.set_filename(magField);
+
   //  fcfg.set_rescale(1);
-  std::unique_ptr<PHField> field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
+  std::unique_ptr<PHField> field_map;
+  if(_use_const_field)
+    {
+      PHFieldConfigv2 fcfg(0,0,_const_field);
+      field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg)); 
+    }
+  else
+    {
+      
+      PHFieldConfigv1 fcfg;
+      fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
+      char *calibrationsroot = getenv("CALIBRATIONROOT");
+      assert(calibrationsroot);
+      auto magField = std::string(calibrationsroot) +
+	std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
+      fcfg.set_filename(magField);
+      field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
+    }
 
   fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,field_map.get(),_fieldDir,_min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->useConstBField(_use_const_field);
+  fitter->setConstBField(_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
   fitter->setFixedClusterError(0,_fixed_clus_err.at(0));
   fitter->setFixedClusterError(1,_fixed_clus_err.at(1));

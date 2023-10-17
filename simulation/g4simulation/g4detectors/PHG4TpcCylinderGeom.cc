@@ -4,6 +4,54 @@
 #include <phool/phool.h>
 #include <cstdlib>
 
+namespace
+{
+  // streamer for internal 2dimensional arrays
+  using array_t = std::array<std::vector<double>, PHG4TpcCylinderGeom::NSides >;
+  std::ostream& operator << (std::ostream& out, const array_t& array )
+  {
+    out << "{ ";
+    for( size_t iside = 0; iside < array.size(); ++iside )
+    {
+      out << "{";
+      bool first = true;
+      for( const auto& value:array[iside] )
+      {
+        if( !first ) out << ", ";
+        first = false;
+        out << value;
+      } 
+      out << "} ";
+    }
+    out << " }";
+    return out;
+  } 
+}
+
+std::ostream& operator << (std::ostream& out, const PHG4TpcCylinderGeom& geom )
+{
+  out << "PHG4TpcCylinderGeom - layer: " << geom.layer << std::endl;
+  out 
+    << "  binnig: " << geom.binning 
+    << ", radius: " << geom.radius
+    << ", nzbins: " << geom.nzbins
+    << ", zmin: " << geom.zmin
+    << ", zstep: " << geom.zstep
+    << ", nphibins: " << geom.nphibins
+    << ", phimin: " << geom.phimin
+    << ", phistep: " << geom.phistep
+    << ", thickness: " << geom.thickness
+    << std::endl;
+ 
+  out << "  sector_R_bias: " << geom.sector_R_bias << std::endl;
+  out << "  sector_Phi_bias: " << geom.sector_Phi_bias << std::endl;
+  out << "  sector_min_Phi: " << geom.sector_min_Phi << std::endl;
+  out << "  sector_max_Phi: " << geom.sector_max_Phi << std::endl;
+  
+  return out;
+}
+
+
 void PHG4TpcCylinderGeom::set_zbins(const int i)
 {
   check_binning_method(PHG4CylinderCellDefs::sizebinning);
@@ -271,6 +319,56 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side ) const
   return phi_bin;
 }
 
+float PHG4TpcCylinderGeom::get_pad_float(const double phi, int side ) const
+{
+  double norm_phi = phi;
+  if (phi < phimin || phi > (phimin + nphibins * phistep))
+  {
+    int nwraparound = -floor((phi - phimin) * 0.5 / M_PI);
+    norm_phi += 2 * M_PI * nwraparound;
+  }
+  //if (phi >  M_PI){
+  //  norm_phi = phi - 2* M_PI;
+  //}  
+  //if (phi < phimin){
+  //  norm_phi = phi + 2* M_PI;
+  //}  
+  side = 0 ;
+
+  float phi_bin = -1;
+
+  for(std::size_t s=0;s<sector_max_Phi[side].size();s++){
+    if(norm_phi < sector_max_Phi[side][s] && norm_phi > sector_min_Phi[side][s]){
+      phi_bin = ( std::abs(sector_max_Phi[side][s] - norm_phi)/phistep)  + nphibins/12 * s;
+      break;
+    }
+    if (s==11){
+      if(norm_phi < sector_max_Phi[side][s] && norm_phi >= -M_PI){
+        phi_bin = ( std::abs(sector_max_Phi[side][s] - norm_phi)/phistep ) + nphibins/12 * s;
+        break;
+      }
+      if(norm_phi > sector_min_Phi[side][s]+2*M_PI ){
+        phi_bin = ( std::abs(sector_max_Phi[side][s] - (norm_phi - 2*M_PI))/phistep ) + nphibins/12 * s;
+        break;
+      }
+
+    }
+  }
+  return phi_bin - 0.5;
+}
+
+float PHG4TpcCylinderGeom::get_tbin_float(const double z) const
+{
+  if (z < zmin || z > (zmin + nzbins * zstep))
+  {
+    //    cout << PHWHERE << "Asking for bin for z outside of z range: " << z << endl;
+    return -1;
+  }
+
+  check_binning_method(PHG4CylinderCellDefs::sizebinning);
+  return ((z - zmin) / zstep)-0.5;
+}
+
 int PHG4TpcCylinderGeom::get_phibin(const double phi, int side ) const
 {
   double new_phi = phi;
@@ -379,6 +477,28 @@ PHG4TpcCylinderGeom::get_phicenter(const int ibin) const
     phi_center += 2*M_PI;
   }
   return phi_center;
+}
+
+double
+PHG4TpcCylinderGeom::get_phi(const float ibin) const
+{
+  //double phi_center = -999;
+  if (ibin < 0 || ibin > nphibins)
+  {
+    std::cout << PHWHERE << "Asking for invalid bin in phi: " << ibin << std::endl;
+    exit(1);
+  }
+
+  check_binning_method_phi();
+
+  const int side = 0 ;
+  unsigned int pads_per_sector = nphibins / 12;
+  unsigned int sector = ibin / pads_per_sector;  
+  double phi = (sector_max_Phi[side][sector] - (ibin +0.5 - sector * pads_per_sector) * phistep);
+  if(phi <= -M_PI){
+    phi += 2*M_PI;
+  }
+  return phi;
 }
 
 std::string

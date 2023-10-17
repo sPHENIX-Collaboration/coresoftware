@@ -1,7 +1,6 @@
 // This is the new trackbase container version
 
 #include "PHG4InttDigitizer.h"
-
 #include "InttDeadMap.h"
 
 #include <g4detectors/PHG4CylinderGeom.h>
@@ -264,16 +263,14 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       }
       const float mip_e = _energy_scale[layer];
 
-      std::vector<std::pair<double, double> > vadcrange = _max_fphx_adc[layer];
+      std::vector<double>& vadcrange = _max_fphx_adc[layer];
 
-      int adc = 0;
-      for (unsigned int irange = 0; irange < vadcrange.size(); ++irange)
-      {
-        if (hit->getEnergy() / TrkrDefs::InttEnergyScaleup >= vadcrange[irange].first * (double) mip_e && hit->getEnergy() / TrkrDefs::InttEnergyScaleup < vadcrange[irange].second * (double) mip_e)
-        {
-          adc = (unsigned short) irange;
-        }
-      }
+      // c++ upper_bound finds the bin location above the test value (or vadcrange.end() if there isn't one)
+      auto irange = std::upper_bound(vadcrange.begin(), vadcrange.end(), 
+          hit->getEnergy() / TrkrDefs::InttEnergyScaleup * (double) mip_e);
+      int adc = (irange-vadcrange.begin())-1;
+      if (adc == -1) adc = 0;
+
       hit->setAdc(adc);
 
       if (Verbosity() > 2)
@@ -334,26 +331,13 @@ float PHG4InttDigitizer::added_noise()
   return noise;
 }
 
-void PHG4InttDigitizer::set_adc_scale(const int &layer, const std::vector<double> &userrange)
+void PHG4InttDigitizer::set_adc_scale(const int &layer, std::vector<double> userrange)
 {
   if (userrange.size() != nadcbins)
   {
     std::cout << "Error: vector in set_fphx_adc_scale(vector) must have eight elements." << std::endl;
     gSystem->Exit(1);
   }
-  //sort(userrange.begin(), userrange.end()); // TODO, causes GLIBC error
-
-  std::vector<std::pair<double, double> > vadcrange;
-  for (unsigned int irange = 0; irange < userrange.size(); ++irange)
-  {
-    if (irange == userrange.size() - 1)
-    {
-      vadcrange.push_back(std::make_pair(userrange[irange], FLT_MAX));
-    }
-    else
-    {
-      vadcrange.push_back(std::make_pair(userrange[irange], userrange[irange + 1]));
-    }
-  }
-  _max_fphx_adc.insert(std::make_pair(layer, vadcrange));
+  std::sort(userrange.begin(), userrange.end());
+  _max_fphx_adc.insert(std::make_pair(layer, userrange));
 }

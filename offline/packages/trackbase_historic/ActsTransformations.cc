@@ -1,11 +1,12 @@
 #include "ActsTransformations.h"
 #include "SvtxTrack.h"
 #include "SvtxTrackState.h"
-#include "SvtxTrackState_v1.h"
+#include "SvtxTrackState_v2.h"
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/ActsSourceLink.h>
 
 namespace
 {
@@ -127,7 +128,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 }
 
 //_______________________________________________________________________________
-Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack( const ActsExamples::TrackParameters& params ) const
+Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack( const ActsTrackFittingAlgorithm::TrackParameters& params ) const
 { 
   const auto covarianceMatrix = *params.covariance();
   printMatrix("Initial Acts covariance: ", covarianceMatrix);
@@ -257,7 +258,7 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 }
 
 
-void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj,
+void ActsTransformations::fillSvtxTrackStates(const Acts::ConstVectorMultiTrajectory& traj,
 					      const size_t& trackTip,
 					      SvtxTrack *svtxTrack,
 					      Acts::GeometryContext& geoContext) const
@@ -275,7 +276,7 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory<Acts::
 
       // create svtx state vector with relevant pathlength
       const float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
-      SvtxTrackState_v1 out( pathlength );
+      SvtxTrackState_v2 out( pathlength );
     
       // get smoothed fitted parameters
       const Acts::BoundTrackParameters params(state.referenceSurface().getSharedPtr(),
@@ -293,6 +294,8 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory<Acts::
       out.set_px(momentum.x());
       out.set_py(momentum.y());
       out.set_pz(momentum.z());
+      auto sourceLink = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
+      out.set_cluskey(sourceLink.cluskey());
       
       /// covariance    
       const auto globalCov = rotateActsCovToSvtxTrack(params);

@@ -22,7 +22,9 @@
 #include <Acts/Utilities/CalibrationContext.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
-#include <ActsExamples/TGeoDetector/TGeoDetector.hpp>
+#include <ActsExamples/Detector/TGeoDetectorWithOptions.hpp>
+
+#include <boost/program_options.hpp>
 
 #include <map>
 #include <memory>            
@@ -35,12 +37,6 @@ class PHG4TpcCylinderGeomContainer;
 class TGeoManager;
 class TGeoNode;
 class TGeoVolume;
-
-namespace ActsExamples 
-{
-  class IBaseDetector;
-  class IContextDecorator;
-}
 
 namespace Acts 
 {
@@ -71,9 +67,6 @@ class MakeActsGeometry : public SubsysReco
 
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
-
-  std::vector<std::shared_ptr<ActsExamples::IContextDecorator>> getContextDecorators()
-    { return m_contextDecorators; }
 
   void loadMagField(const bool field) { m_useField = field; }
   void setMagField(const std::string &magField)
@@ -128,16 +121,14 @@ class MakeActsGeometry : public SubsysReco
   }
 
 
-  void misalignmentFactor(TrkrDefs::TrkrId id, const double misalignment)
+  void misalignmentFactor(uint8_t layer, const double misalignment)
   {
-    auto it = m_misalignmentFactor.find(id);
+    auto it = m_misalignmentFactor.find(layer);
     if(it != m_misalignmentFactor.end())
       {
 	it->second = misalignment;
 	return;
       }
-
-    std::cout << "Passed an unknown trkr id, misalignment factor will not be set for " << id << std::endl;
   }
 
   double getSurfStepPhi() {return m_surfStepPhi;}
@@ -145,12 +136,10 @@ class MakeActsGeometry : public SubsysReco
 
   void set_drift_velocity(double vd){m_drift_velocity = vd;}
 
-  void build_mm_surfaces( bool value )
-  { m_buildMMs = value; }
-    
   void set_nSurfPhi( unsigned int value )
   { m_nSurfPhi = value; }
-  
+  void set_intt_survey(bool surv) { m_inttSurvey = surv; }
+
  private:
   /// Main function to build all acts geometry for use in the fitting modules
   int buildAllGeometry(PHCompositeNode *topNode);
@@ -172,12 +161,11 @@ class MakeActsGeometry : public SubsysReco
 
   /// Function that mimics ActsExamples::GeometryExampleBase
   void makeGeometry(int argc, char* argv[], 
-		    ActsExamples::TGeoDetector& detector);
+		    ActsExamples::TGeoDetectorWithOptions& detector);
   std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
-    //std::pair<std::shared_ptr<Acts::TrackingGeometry>,
           std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
     build(const boost::program_options::variables_map& vm,
-			ActsExamples::TGeoDetector& detector);
+			ActsExamples::TGeoDetectorWithOptions& detector);
 
   void readTGeoLayerBuilderConfigsFile(const std::string& path,
 				       ActsExamples::TGeoDetector::Config& config);
@@ -221,12 +209,10 @@ class MakeActsGeometry : public SubsysReco
   PHG4TpcCylinderGeomContainer* m_geomContainerTpc = nullptr;
   TGeoManager* m_geoManager = nullptr;
 
-  bool m_useField = true;
-  std::map<TrkrDefs::TrkrId, double> m_misalignmentFactor;
+  bool m_inttSurvey = false;
 
-  /// Acts Context decorators, which may contain e.g. calibration information
-  std::vector<std::shared_ptr<ActsExamples::IContextDecorator> > 
-    m_contextDecorators;
+  bool m_useField = true;
+  std::map<uint8_t, double> m_misalignmentFactor;
 
   /// Several maps that connect Acts world to sPHENIX G4 world 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> m_clusterNodeMap;
@@ -267,14 +253,12 @@ class MakeActsGeometry : public SubsysReco
   const double half_width_clearance_z = 0.5;
 
   /// The acts geometry object
-  ActsExamples::TGeoDetector m_detector;
+  ActsExamples::TGeoDetectorWithOptions m_detector;
 
   /// Acts geometry objects that are needed to create (for example) the fitter
   TrackingGeometry m_tGeometry;
   std::shared_ptr<Acts::MagneticFieldProvider> m_magneticField;
   Acts::GeometryContext  m_geoCtxt;  
-  Acts::CalibrationContext m_calibContext;
-  Acts::MagneticFieldContext m_magFieldContext;
 
   /// Structs to put on the node tree which carry around ActsGeom info
   ActsGeometry *m_actsGeometry = nullptr;
@@ -287,8 +271,6 @@ class MakeActsGeometry : public SubsysReco
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField ="1.4" ;
   double m_magFieldRescale = -1.;
-
-  bool m_buildMMs = false;
 
   double m_mvtxDevs[6] = {0};
   double m_inttDevs[6] = {0};

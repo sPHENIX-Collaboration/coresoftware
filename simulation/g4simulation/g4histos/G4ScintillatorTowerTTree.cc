@@ -1,9 +1,9 @@
 #include "G4ScintillatorTowerTTree.h"
-
 #include "G4RootScintillatorTowerContainer.h"
 
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainerv1.h>
+
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/SubsysReco.h>                // for SubsysReco
@@ -59,24 +59,30 @@ int G4ScintillatorTowerTTree::process_event(PHCompositeNode *topNode)
   evtno++;
   G4RootScintillatorTowerContainer *towers = findNode::getClass<G4RootScintillatorTowerContainer>(topNode, _outnodename);
 
-  RawTowerContainer *g4towers = findNode::getClass<RawTowerContainer>(topNode, _towernodename);
+  TowerInfoContainer *g4towers = findNode::getClass<TowerInfoContainerv1>(topNode, _towernodename);
   if (!g4towers)
   {
     cout << "could not find " << _towernodename << endl;
     gSystem->Exit(1);
   }
-  RawTowerContainer::ConstRange tower_range = g4towers->getTowers();
 
   double etot = 0;
-  for (RawTowerContainer::ConstIterator tower_iter = tower_range.first; tower_iter != tower_range.second; tower_iter++)
-  {
-    RawTower *intower = tower_iter->second;
-    if (savetowers)
+
+ 
+  unsigned int nchannels = g4towers->size();
+  for (unsigned int channel = 0; channel < nchannels;channel++)
     {
-      towers->AddTower(*intower);
+      TowerInfo *intower =g4towers->get_tower_at_channel(channel);
+      if (savetowers)
+	{
+	  unsigned int towerkey = g4towers->encode_key(channel);
+	  int ieta = g4towers->getTowerEtaBin(towerkey);
+	  int iphi = g4towers->getTowerPhiBin(towerkey);
+	  double towerenergy = intower->get_energy();
+	  towers->AddTower(towerenergy,ieta,iphi);
+	}
+      etot += intower->get_energy();
     }
-    etot += intower->get_energy();
-  }
   etot_hist->Fill(etot);
   towers->set_etotal(etot);
   towers->set_event(evtno);
@@ -94,7 +100,7 @@ void G4ScintillatorTowerTTree::Detector(const std::string &det)
 {
   _detector = det;
   _outnodename = "G4RootScintillatorTower_" + det;
-  _towernodename = "TOWER_" + det;
+  _towernodename = "TOWERINFO_" + det;
   if (!_histofilename.size())
   {
     _histofilename = "ScintillatorTowerHistos_" + det + ".root";

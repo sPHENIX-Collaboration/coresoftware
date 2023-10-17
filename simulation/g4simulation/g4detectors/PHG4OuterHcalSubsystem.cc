@@ -7,7 +7,7 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>   // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
@@ -98,14 +98,14 @@ int PHG4OuterHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
     // create stepping action
     m_SteppingAction = new PHG4OuterHcalSteppingAction(m_Detector, GetParams());
-    m_SteppingAction->Init();
+    m_SteppingAction->InitWithNode(topNode);
   }
   else
   {
     if (GetParams()->get_int_param("blackhole"))
     {
       m_SteppingAction = new PHG4OuterHcalSteppingAction(m_Detector, GetParams());
-      m_SteppingAction->Init();
+      m_SteppingAction->InitWithNode(topNode);
     }
   }
 
@@ -157,6 +157,9 @@ void PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("light_balance_inner_radius", NAN);
   set_default_double_param("light_balance_outer_corr", NAN);
   set_default_double_param("light_balance_outer_radius", NAN);
+  set_default_double_param("phistart", NAN);
+  set_default_double_param("scinti_eta_coverage_neg", 1.1);
+  set_default_double_param("scinti_eta_coverage_pos", 1.1);
   // some math issue in the code does not subtract the magnet cutout correctly
   // (maybe some factor of 2 in a G4 volume creation)
   // The engineering drawing values are:
@@ -173,6 +176,9 @@ void PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
+  set_default_double_param("tmin", -20.);
+  set_default_double_param("tmax", 60.);
+  set_default_double_param("dt", 100.);
   set_default_double_param("scinti_eta_coverage", 1.1);
   set_default_double_param("scinti_gap", 0.85);
   set_default_double_param("scinti_gap_neighbor", 0.1);
@@ -190,6 +196,8 @@ void PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_int_param("field_check", 0);
   set_default_int_param("light_scint_model", 1);
   set_default_int_param("magnet_cutout_first_scinti", 8);  // tile start at 0, drawing tile starts at 1
+  set_default_int_param("etabins", 24);
+  set_default_int_param("saveg4hit", 1);
 
   // if ncross is set (and tilt_angle is NAN) tilt_angle is calculated
   // from number of crossings

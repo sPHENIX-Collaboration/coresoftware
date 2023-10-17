@@ -1,14 +1,29 @@
+// One-stop header
+// Must include first to avoid conflict with "ClassDef" in Rtypes.h
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <torch/script.h>
+#pragma GCC diagnostic pop
+
 #include "TpcClusterizer.h"
 
+#include "TrainingHitsContainer.h"
+#include "TrainingHits.h"
+
+#include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterv4.h>
+#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/alignmentTransformationContainer.h>
 
 #include <trackbase/RawHit.h>
 #include <trackbase/RawHitSet.h>
@@ -63,6 +78,14 @@ namespace
     unsigned short edge = 0;
   };
 
+  using vec_dVerbose = std::vector<std::vector<std::pair<int,int>>>;
+
+  // Neural network parameters and modules
+  bool gen_hits = false;
+  bool use_nn = false;
+  const int nd = 5;
+  torch::jit::script::Module module_pos;
+
   struct thread_data 
   {
     PHG4TpcCylinderGeom *layergeom = nullptr;
@@ -72,10 +95,20 @@ namespace
     unsigned int layer = 0;
     int side = 0;
     unsigned int sector = 0;
+    float radius = 0;
+    float drift_velocity = 0;
+    unsigned short pads_per_sector = 0;
+    float phistep = 0;
     float pedestal = 0;
+    float seed_threshold = 0;
+    float edge_threshold = 0;
+    float min_err_squared = 0;
+    float min_clus_size = 0;
+    float min_adc_sum = 0;
     bool do_assoc = true;
     bool do_wedge_emulation = true;
     bool do_singles = true;
+    bool do_split = true;
     unsigned short phibins = 0;
     unsigned short phioffset = 0;
     unsigned short tbins = 0;
@@ -84,10 +117,13 @@ namespace
     unsigned short maxHalfSizePhi = 0;
     double m_tdriftmax = 0;
     double sampa_tbias = 0;
-    int cluster_version = 4;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster*> cluster_vector;
+    std::vector<TrainingHits*> v_hits;
     int verbosity = 0;
+    bool fillClusHitsVerbose = false;
+    vec_dVerbose phivec_ClusHitsVerbose ; // only fill if fillClusHitsVerbose
+    vec_dVerbose zvec_ClusHitsVerbose   ;// only fill if fillClusHitsVerbose
   };
   
   pthread_mutex_t mythreadlock;
@@ -142,14 +178,16 @@ namespace
 	touch++;
 	break;
       }
-      //check local minima and break at minimum.
-      if(ct<NTBinsMax-4){//make sure we stay clear from the edge
-	if(adcval[phibin][ct]+adcval[phibin][ct+1] < 
-	   adcval[phibin][ct+2]+adcval[phibin][ct+3]){//rising again
-	  tup = it+1;
-	  touch++;
-	  break;
-	      }
+      if(my_data.do_split){
+	//check local minima and break at minimum.
+	if(ct<NTBinsMax-4){//make sure we stay clear from the edge
+	  if(adcval[phibin][ct]+adcval[phibin][ct+1] < 
+	     adcval[phibin][ct+2]+adcval[phibin][ct+3]){//rising again
+	    tup = it+1;
+	    touch++;
+	    break;
+	  }
+	}
       }
       tup = it;
     }
@@ -167,12 +205,14 @@ namespace
 	touch++;
 	break;
       }
-      if(ct>4){//make sure we stay clear from the edge
-	if(adcval[phibin][ct]+adcval[phibin][ct-1] < 
-	   adcval[phibin][ct-2]+adcval[phibin][ct-3]){//rising again
-	  tdown = it+1;
-	  touch++;
+      if(my_data.do_split){//check local minima and break at minimum.
+	if(ct>4){//make sure we stay clear from the edge
+	  if(adcval[phibin][ct]+adcval[phibin][ct-1] < 
+	     adcval[phibin][ct-2]+adcval[phibin][ct-3]){//rising again
+	    tdown = it+1;
+	    touch++;
 	  break;
+	  }
 	}
       }
       tdown = it;
@@ -204,13 +244,14 @@ namespace
 	touch++;
 	break;
       }
-      //check local minima and break at minimum.
-      if(cphi<NPhiBinsMax-4){//make sure we stay clear from the edge
-	if(adcval[cphi][tbin]+adcval[cphi+1][tbin] < 
-	   adcval[cphi+2][tbin]+adcval[cphi+3][tbin]){//rising again
-	  phiup = iphi+1;
-	  touch++;
-	  break;
+      if(my_data.do_split){//check local minima and break at minimum.
+	if(cphi<NPhiBinsMax-4){//make sure we stay clear from the edge
+	  if(adcval[cphi][tbin]+adcval[cphi+1][tbin] < 
+	     adcval[cphi+2][tbin]+adcval[cphi+3][tbin]){//rising again
+	    phiup = iphi+1;
+	    touch++;
+	    break;
+	  }
 	}
       }
       phiup = iphi;
@@ -232,12 +273,14 @@ namespace
 	touch++;
 	break;
       }
-      if(cphi>4){//make sure we stay clear from the edge
-	if(adcval[cphi][tbin]+adcval[cphi-1][tbin] < 
-	   adcval[cphi-2][tbin]+adcval[cphi-3][tbin]){//rising again
-	  phidown = iphi+1;
-	  touch++;
-	  break;
+      if(my_data.do_split){//check local minima and break at minimum.
+	if(cphi>4){//make sure we stay clear from the edge
+	  if(adcval[cphi][tbin]+adcval[cphi-1][tbin] < 
+	     adcval[cphi-2][tbin]+adcval[cphi-3][tbin]){//rising again
+	    phidown = iphi+1;
+	    touch++;
+	    break;
+	  }
 	}
       }
       phidown = iphi;
@@ -277,21 +320,25 @@ namespace
 	  return;
 	}
 
-    void calc_cluster_parameter(const std::vector<ihit> &ihit_list, thread_data& my_data, int ntouch, int nedge )
+    void calc_cluster_parameter(const int iphi_center, const int it_center,
+        const std::vector<ihit> &ihit_list, thread_data& my_data, int ntouch, int nedge )
     {
-    
+      //
       // get z range from layer geometry
       /* these are used for rescaling the drift velocity */
       //const double z_min = -105.5;
       //const double z_max = 105.5;
-      
+      // std::cout << "calc clus" << std::endl;    
       // loop over the hits in this cluster
       double t_sum = 0.0;
-      double phi_sum = 0.0;
+      //double phi_sum = 0.0;
       double adc_sum = 0.0;
       double t2_sum = 0.0;
-      double phi2_sum = 0.0;
-      
+      // double phi2_sum = 0.0;
+
+      double iphi_sum = 0.0;
+      double iphi2_sum = 0.0;
+
       double radius = my_data.layergeom->get_radius();  // returns center of layer
       
       int phibinhi = -1;
@@ -299,15 +346,44 @@ namespace
       int tbinhi = -1;
       int tbinlo = 666666;
       int clus_size = ihit_list.size();
-      
-      if(clus_size == 1) return;
-      
+      int max_adc  = 0;
+      if(clus_size <= my_data.min_clus_size){
+	return;
+      }
+
+      // training information
+      TrainingHits *training_hits = nullptr;
+      if(gen_hits)
+      {
+        training_hits = new TrainingHits;
+        assert(training_hits);
+        training_hits->radius = radius;
+        training_hits->phi = my_data.layergeom->get_phicenter(iphi_center+my_data.phioffset);
+        double center_t = my_data.layergeom->get_zcenter(it_center+my_data.toffset) + my_data.sampa_tbias;
+        training_hits->z = (my_data.m_tdriftmax - center_t) * my_data.tGeometry->get_drift_velocity();
+        if(my_data.side == 0)
+          training_hits->z = -training_hits->z;
+        training_hits->phistep = my_data.layergeom->get_phistep();
+        training_hits->zstep = my_data.layergeom->get_zstep() * my_data.tGeometry->get_drift_velocity();
+        training_hits->layer = my_data.layer;
+        training_hits->ntouch = ntouch;
+        training_hits->nedge = nedge;
+        training_hits->v_adc.fill(0);
+      }
+
+      //      std::cout << "process list" << std::endl;    
       std::vector<TrkrDefs::hitkey> hitkeyvec;
+
+      // keep track of the hit locations in a given cluster
+      std::map<int,unsigned int> m_phi {};
+      std::map<int,unsigned int> m_z   {};
+      
       for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
 	double adc = iter->adc; 
 	
 	if (adc <= 0) continue;
-	
+	if(adc > max_adc)
+	  max_adc = adc;
 	int iphi = iter->iphi + my_data.phioffset;
 	int it   = iter->it + my_data.toffset;
 	if(iphi > phibinhi) phibinhi = iphi;
@@ -316,9 +392,13 @@ namespace
 	if(it < tbinlo) tbinlo = it;
 	
 	// update phi sums
-	double phi_center = my_data.layergeom->get_phicenter(iphi);
-	phi_sum += phi_center * adc;
-	phi2_sum += square(phi_center)*adc;
+	//	double phi_center = my_data.layergeom->get_phicenter(iphi);
+	
+	//phi_sum += phi_center * adc;
+	//phi2_sum += square(phi_center)*adc;
+	//	std::cout << "phi_center: " << phi_center << " adc: " << adc <<std::endl;
+	iphi_sum += iphi * adc;
+	iphi2_sum += square(iphi)*adc;
 	
 	// update t sums
 	double t = my_data.layergeom->get_zcenter(it);
@@ -327,17 +407,37 @@ namespace
 	
 	adc_sum += adc;
 	
+	if (my_data.fillClusHitsVerbose) {
+	  auto pnew = m_phi.try_emplace(iphi,adc);
+	  if (!pnew.second) pnew.first->second += adc;
+	  
+	  pnew = m_z.try_emplace(it,adc);
+	  if (!pnew.second) pnew.first->second += adc;
+	}
+	
 	// capture the hitkeys for all adc values above a certain threshold
 	TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
 	// if(adc>5)
 	hitkeyvec.push_back(hitkey);
+
+        // training adc
+        if(gen_hits && training_hits)
+        {
+          int iphi_diff = iter->iphi - iphi_center;
+          int it_diff = iter->it - it_center;
+          if( std::abs(iphi_diff) <= nd && std::abs(it_diff) <= nd)
+            training_hits->v_adc[(iphi_diff+nd)*(2*nd+1)+(it_diff+nd)] = adc;
+        }
       }
-      if (adc_sum < 10){
+      //      std::cout << "done process list" << std::endl;
+      if (adc_sum < my_data.min_adc_sum){
 	hitkeyvec.clear();
 	return;  // skip obvious noise "clusters"
       }  
       // This is the global position
-      double clusphi = phi_sum / adc_sum;
+      double clusiphi = iphi_sum / adc_sum;
+      double clusphi = my_data.layergeom->get_phi(clusiphi);
+
       float clusx = radius * cos(clusphi);
       float clusy = radius * sin(clusphi);
       double clust = t_sum / adc_sum;
@@ -348,19 +448,19 @@ namespace
       if(my_data.side == 0) 
 	clusz = -clusz;
 
-      const double phi_cov = phi2_sum/adc_sum - square(clusphi);
+      const double phi_cov = (iphi2_sum/adc_sum - square(clusiphi))* pow(my_data.layergeom->get_phistep(),2);
       const double t_cov = t2_sum/adc_sum - square(clust);
 
        // Get the surface key to find the surface from the 
       TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey( my_data.layer, my_data.sector, my_data.side );      
       Acts::Vector3 global(clusx, clusy, clusz);
       TrkrDefs::subsurfkey subsurfkey = 0;
-    
+
       Surface surface = my_data.tGeometry->get_tpc_surface_from_coords(
          tpcHitSetKey,
 	 global,
 	 subsurfkey);
-    
+
       if(!surface)
 	{
 	  /// If the surface can't be found, we can't track with it. So 
@@ -393,44 +493,83 @@ namespace
 
       /// convert to Acts units
       global *= Acts::UnitConstants::cm;
-
+      //std::cout << "transform" << std::endl;
       Acts::Vector3 local = surface->transform(my_data.tGeometry->geometry().getGeoContext()).inverse() * global;
       local /= Acts::UnitConstants::cm;     
-      
+      //std::cout << "done transform" << std::endl;
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
       
-      if(my_data.cluster_version==3){
-	
-	// Fill in the cluster details
-	//================
-	auto clus = new TrkrClusterv3;
-	//auto clus = std::make_unique<TrkrClusterv3>();
-	clus->setAdc(adc_sum);      
-	clus->setSubSurfKey(subsurfkey);      
-	clus->setLocalX(local(0));
-	clus->setLocalY(clust);
-	clus->setActsLocalError(0,0, phi_err_square);
-	clus->setActsLocalError(1,0, 0);
-	clus->setActsLocalError(0,1, 0);
-	clus->setActsLocalError(1,1, t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2));
-	my_data.cluster_vector.push_back(clus);
-      }else if(my_data.cluster_version==4){
-	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
-	if(sqrt(phi_err_square) > 0.01){
-	auto clus = new TrkrClusterv4;
-	//auto clus = std::make_unique<TrkrClusterv3>();
-	clus->setAdc(adc_sum);  
-	clus->setOverlap(ntouch);
-	clus->setEdge(nedge);
-	clus->setPhiSize(phisize);
-	clus->setZSize(tsize);
-	clus->setSubSurfKey(subsurfkey);      
-	clus->setLocalX(local(0));
-	clus->setLocalY(clust);
-	my_data.cluster_vector.push_back(clus);
-	}
+      TrkrCluster *clus_base = nullptr;
+  bool b_made_cluster { false };
+
+  
+  //std::cout << "ver5" << std::endl;
+  //	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
+  if(sqrt(phi_err_square) > my_data.min_err_squared){
+    auto clus = new TrkrClusterv5;
+    //auto clus = std::make_unique<TrkrClusterv3>();
+    clus_base = clus;
+    clus->setAdc(adc_sum);  
+    clus->setMaxAdc(max_adc); 
+    clus->setEdge(nedge);
+    clus->setPhiSize(phisize);
+    clus->setZSize(tsize);
+    clus->setSubSurfKey(subsurfkey);  
+    clus->setOverlap(ntouch);
+    clus->setLocalX(local(0));
+    clus->setLocalY(clust);
+    clus->setPhiError(sqrt(phi_err_square));
+    clus->setZError(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2)));
+    my_data.cluster_vector.push_back(clus);
+    b_made_cluster = true;
+    
+  }
+  
+      if(use_nn && clus_base && training_hits)
+      {
+        try
+        {
+          // Create a vector of inputs
+          std::vector<torch::jit::IValue> inputs;
+          inputs.emplace_back(torch::stack({
+                torch::from_blob(std::vector<float>(training_hits->v_adc.begin(), training_hits->v_adc.end()).data(), {1, 2*nd+1, 2*nd+1}, torch::kFloat32),
+                torch::full({1, 2*nd+1, 2*nd+1}, std::clamp((training_hits->layer - 7) / 16, 0, 2), torch::kFloat32),
+                torch::full({1, 2*nd+1, 2*nd+1}, training_hits->z / radius, torch::kFloat32)
+                }, 1));
+
+          // Execute the model and turn its output into a tensor
+          at::Tensor ten_pos = module_pos.forward(inputs).toTensor();
+          float nn_phi = training_hits->phi + std::clamp(ten_pos[0][0][0].item<float>(), -(float)nd, (float)nd) * training_hits->phistep;
+          float nn_z = training_hits->z + std::clamp(ten_pos[0][1][0].item<float>(), -(float)nd, (float)nd) * training_hits->zstep;
+          float nn_x = radius * cos(nn_phi);
+          float nn_y = radius * sin(nn_phi);
+          Acts::Vector3 nn_global(nn_x, nn_y, nn_z);
+          nn_global *= Acts::UnitConstants::cm;
+          Acts::Vector3 nn_local = surface->transform(my_data.tGeometry->geometry().geoContext).inverse() * nn_global;
+          nn_local /= Acts::UnitConstants::cm;
+          float nn_t = my_data.m_tdriftmax - fabs(nn_z) / my_data.tGeometry->get_drift_velocity();
+          clus_base->setLocalX(nn_local(0));
+          clus_base->setLocalY(nn_t);
+        }
+        catch(const c10::Error &e)
+        {
+          std::cout << PHWHERE << "Error: Failed to execute NN modules" << std::endl;
+        }
+      } // use_nn
+
+      if (my_data.fillClusHitsVerbose && b_made_cluster) {
+        // push the data back to 
+        my_data.phivec_ClusHitsVerbose .push_back( std::vector<std::pair<int,int>> {} );
+        my_data.zvec_ClusHitsVerbose   .push_back( std::vector<std::pair<int,int>> {} );
+
+        auto& vphi = my_data.phivec_ClusHitsVerbose .back();
+        auto& vz   = my_data.zvec_ClusHitsVerbose   .back();
+
+        for (auto& entry : m_phi ) vphi.push_back({entry.first, entry.second});
+        for (auto& entry : m_z   ) vz  .push_back({entry.first, entry.second});
       }
-      
+	
+      //std::cout << "end clus out" << std::endl;
       //      if(my_data.do_assoc && my_data.clusterhitassoc){
       if(my_data.do_assoc)
 	{
@@ -439,8 +578,13 @@ namespace
         for (unsigned int i = 0; i < hitkeyvec.size(); i++){
           my_data.association_vector.emplace_back(index, hitkeyvec[i]);
         }
+        if(gen_hits && training_hits)
+          training_hits->cluskey = TrkrDefs::genClusKey(tpcHitSetKey, index);
       }
       hitkeyvec.clear();
+      if(gen_hits && training_hits)
+        my_data.v_hits.emplace_back(training_hits);
+      //      std::cout << "done calc" << std::endl;
     }
   
   void ProcessSectorData(thread_data* my_data) {
@@ -507,7 +651,7 @@ namespace
 	if(tbin   >= tbins) continue; // tbin is unsigned int, <0 cannot happen
 	
 	if(adc>0){
-	  if(adc>5){
+	  if(adc>(my_data->seed_threshold)){
 	    ihit  thisHit;
 	    
 	    thisHit.iphi = phibin;
@@ -516,7 +660,9 @@ namespace
 	    thisHit.edge = 0;
 	    all_hit_map.insert(std::make_pair(adc, thisHit));
 	  }
-	  adcval[phibin][tbin] = (unsigned short) adc;
+	  if(adc>my_data->edge_threshold){
+	    adcval[phibin][tbin] = (unsigned short) adc;
+	  }
 	}
       }
     }else  if( my_data->rawhitset!=nullptr){
@@ -607,7 +753,7 @@ namespace
       // -> add hits to truth association
       // remove hits from all_hit_map
       // repeat untill all_hit_map empty
-      calc_cluster_parameter(ihit_list, *my_data, ntouch, nedge );
+      calc_cluster_parameter(iphi, it, ihit_list, *my_data, ntouch, nedge );
       remove_hits(ihit_list,all_hit_map, adcval);
       ihit_list.clear();
     }
@@ -633,7 +779,8 @@ namespace
 }
 
 TpcClusterizer::TpcClusterizer(const std::string &name)
-  : SubsysReco(name)
+  : SubsysReco(name),
+    m_training(nullptr)
 {}
 
 bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const
@@ -717,11 +864,76 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(newNode);
   }
 
+  auto training_container = findNode::getClass<TrainingHitsContainer>(dstNode, "TRAINING_HITSET");
+  if (!training_container)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
+    }
+
+    training_container = new TrainingHitsContainer;
+    PHIODataNode<PHObject> *TrainingHitsContainerNode =
+        new PHIODataNode<PHObject>(training_container, "TRAINING_HITSET", "PHObject");
+    DetNode->addNode(TrainingHitsContainerNode);
+  }
+
+  gen_hits = _store_hits || _use_nn;
+  use_nn = _use_nn;
+  if(use_nn)
+  {
+    const char *offline_main = std::getenv("OFFLINE_MAIN");
+    assert(offline_main);
+    std::string net_model = std::string(offline_main) + "/share/tpc/net_model.pt";
+    try
+    {
+      // Deserialize the ScriptModule from a file using torch::jit::load()
+      module_pos = torch::jit::load(net_model);
+      std::cout << PHWHERE << "Load NN module: " << net_model << std::endl;
+    }
+    catch(const c10::Error &e)
+    {
+      std::cout << PHWHERE << "Error: Cannot load module " << net_model << std::endl;
+      exit(1);
+    }
+  }
+  else
+  {
+    std::cout << PHWHERE << "Use traditional clustering" << std::endl;
+  }
+
+  if (record_ClusHitsVerbose) {
+    // get the node
+    mClusHitsVerbose = findNode::getClass<ClusHitsVerbosev1>(topNode, "Trkr_SvtxClusHitsVerbose");
+    if (!mClusHitsVerbose)
+    {
+      PHNodeIterator dstiter(dstNode);
+      auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode("TRKR");
+        dstNode->addNode(DetNode);
+      }
+      mClusHitsVerbose = new ClusHitsVerbosev1();
+      auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_SvtxClusHitsVerbose", "PHObject");
+      DetNode->addNode(newNode);
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TpcClusterizer::process_event(PHCompositeNode *topNode)
 {
+  // The TPC is the only subsystem that clusters in global coordinates. For consistency,
+  // we must use the construction transforms to get the local coordinates.
+  // Set the flag to use ideal transforms for the duration of this process_event, for thread safety
+  alignmentTransformationContainer::use_alignment = false;
+
   //  int print_layer = 18;
 
   if (Verbosity() > 1000)
@@ -765,6 +977,14 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   if (!m_clusterhitassoc)
   {
     std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  // get node for training hits
+  m_training = findNode::getClass<TrainingHitsContainer>(topNode, "TRAINING_HITSET");
+  if (!m_training)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find TRAINING_HITSET." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -837,12 +1057,15 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	
 	// instanciate new thread pair, at the end of thread vector
 	thread_pair_t& thread_pair = threads.emplace_back();
+  if (mClusHitsVerbose) { thread_pair.data.fillClusHitsVerbose = true; };
 	
 	thread_pair.data.layergeom = layergeom;
 	thread_pair.data.hitset = hitset;
 	thread_pair.data.rawhitset = nullptr;
 	thread_pair.data.layer = layer;
 	thread_pair.data.pedestal = pedestal;
+	thread_pair.data.seed_threshold = seed_threshold;
+	thread_pair.data.edge_threshold = edge_threshold;
 	thread_pair.data.sector = sector;
 	thread_pair.data.side = side;
 	thread_pair.data.do_assoc = do_hit_assoc;
@@ -852,9 +1075,11 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	thread_pair.data.maxHalfSizeT =  MaxClusterHalfSizeT;
 	thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
 	thread_pair.data.sampa_tbias = m_sampa_tbias;
-	thread_pair.data.cluster_version = cluster_version;
 	thread_pair.data.verbosity = Verbosity();
-	
+	thread_pair.data.do_split = do_split;
+	thread_pair.data.min_err_squared = min_err_squared;
+	thread_pair.data.min_clus_size = min_clus_size; 
+	thread_pair.data.min_adc_sum = min_adc_sum;
 	unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
 	unsigned short NPhiBinsSector = NPhiBins/12;
 	unsigned short NTBins = (unsigned short)layergeom->get_zbins();
@@ -870,8 +1095,14 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	thread_pair.data.phioffset = PhiOffset;
 	thread_pair.data.tbins     = NTBinsSide;
 	thread_pair.data.toffset   = TOffset ;
-	
-	int rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *)&thread_pair.data);
+
+	thread_pair.data.radius = layergeom->get_radius();
+	thread_pair.data.drift_velocity = m_tGeometry->get_drift_velocity();
+	thread_pair.data.pads_per_sector = 0;
+	thread_pair.data.phistep = 0;
+	int rc;
+	rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *)&thread_pair.data);
+
 	if (rc) {
 	  std::cout << "Error:unable to create thread," << rc << std::endl;
 	}
@@ -895,6 +1126,16 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	      
 	      // insert in map
 	      m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+
+        if (mClusHitsVerbose) {
+          for (auto& hit : data.phivec_ClusHitsVerbose[index]) {
+            mClusHitsVerbose->addPhiHit (hit.first, hit.second);
+          }
+          for (auto& hit : data.zvec_ClusHitsVerbose[index]) {
+            mClusHitsVerbose->addZHit (hit.first, hit.second);
+          }
+          mClusHitsVerbose->push_hits(ckey);
+        }
 	    }
 	  
 	  // copy hit associations to map
@@ -940,7 +1181,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.maxHalfSizeT =  MaxClusterHalfSizeT;
       thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
       thread_pair.data.sampa_tbias = m_sampa_tbias;
-      thread_pair.data.cluster_version = cluster_version;
       thread_pair.data.verbosity = Verbosity();
 
       unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
@@ -959,7 +1199,35 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.tbins     = NTBinsSide;
       thread_pair.data.toffset   = TOffset ;
 
-      int rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *)&thread_pair.data);
+      /*
+      PHG4TpcCylinderGeom *testlayergeom = geom_container->GetLayerCellGeom(32);
+      for( float iphi = 1408; iphi < 1408+ 128;iphi+=0.1){
+	double clusiphi = iphi;
+	double clusphi = testlayergeom->get_phi(clusiphi);
+	double radius = layergeom->get_radius(); 
+	float clusx = radius * cos(clusphi);
+	float clusy = radius * sin(clusphi);
+	float clusz  = -37.524;
+	
+	TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey( 32,11, 0 );      
+	Acts::Vector3 global(clusx, clusy, clusz);
+	TrkrDefs::subsurfkey subsurfkey = 0;
+
+	Surface surface = m_tGeometry->get_tpc_surface_from_coords(
+								   tpcHitSetKey,
+								   global,
+								   subsurfkey);
+	std::cout << " iphi: " << iphi << " clusphi: " << clusphi << " surfkey " << subsurfkey << std::endl;
+	//	std::cout << "surfkey" << subsurfkey << std::endl;
+      }
+      continue;
+      */
+      int rc = 0;
+      //      if(layer==32)
+      rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *)&thread_pair.data);	  
+      //      else
+      //continue;
+      
       if (rc) {
 	std::cout << "Error:unable to create thread," << rc << std::endl;
       }
@@ -1027,6 +1295,17 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	    // insert in map
 	    //std::cout << "X: " << cluster->getLocalX() << "Y: " << cluster->getLocalY() << std::endl;
 	    m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+
+      if (mClusHitsVerbose) {
+        for (auto& hit : data.phivec_ClusHitsVerbose[index]) {
+          mClusHitsVerbose->addPhiHit (hit.first, (float)hit.second);
+        }
+        for (auto& hit : data.zvec_ClusHitsVerbose[index]) {
+          mClusHitsVerbose->addZHit (hit.first, (float)hit.second);
+        }
+        mClusHitsVerbose->push_hits(ckey);
+      }
+
 	  }
 	
 	// copy hit associations to map
@@ -1039,8 +1318,17 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	    m_clusterhitassoc->addAssoc(ckey,hkey); 
 	  }
 
+        for(auto hiter = thread_pair.data.v_hits.begin(); hiter != thread_pair.data.v_hits.end(); hiter++)
+        {
+          if(_store_hits)
+            m_training->v_hits.emplace_back(**hiter);
+          delete *hiter;
+        }
       }
   }
+
+  // set the flag to use alignment transformations, needed by the rest of reconstruction
+  alignmentTransformationContainer::use_alignment = true;
 
   if (Verbosity() > 0)
     std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;

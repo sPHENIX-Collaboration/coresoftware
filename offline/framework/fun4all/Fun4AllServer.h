@@ -83,8 +83,8 @@ class Fun4AllServer : public Fun4AllBase
   //! run n events (0 means up to end of file)
   int run(const int nevnts = 0, const bool require_nevents = false);
 
-  /*! 
-    \brief skip n events (0 means up to the end of file). 
+  /*!
+    \brief skip n events (0 means up to the end of file).
     Skip means read, don't process.
   */
   int skip(const int nevnts = 0);
@@ -114,6 +114,8 @@ class Fun4AllServer : public Fun4AllBase
   void PrintMemoryTracker(const std::string &name = "") const;
   int RunNumber() const { return runnumber; }
   int EventCounter() const { return eventcounter; }
+  std::map<const std::string, PHTimer>::const_iterator timer_begin() {return timer_map.begin();}
+  std::map<const std::string, PHTimer>::const_iterator timer_end() {return timer_map.end();}
 
  protected:
   Fun4AllServer(const std::string &name = "Fun4AllServer");
@@ -149,7 +151,7 @@ class Fun4AllServer : public Fun4AllBase
   std::vector<TDirectory *> TDirCollection;
   std::vector<Fun4AllHistoManager *> HistoManager;
   std::map<std::string, PHCompositeNode *> topnodemap;
-  std::string default_Tdirectory;
+  std::string default_Tdirectory = "Rint:/";
   std::vector<Fun4AllSyncManager *> SyncManagers;
   std::map<int, int> retcodesmap;
   std::map<const std::string, PHTimer> timer_map;

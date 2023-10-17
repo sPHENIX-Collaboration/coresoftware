@@ -171,6 +171,8 @@ void PHG4CylinderSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
+  set_default_double_param("start_phi_rad", 0.);
+  set_default_double_param("delta_phi_rad", M_PI * 2);
   set_default_int_param("lengthviarapidity", 1);
   set_default_int_param("lightyield", 0);
   set_default_int_param("use_g4steps", 0);

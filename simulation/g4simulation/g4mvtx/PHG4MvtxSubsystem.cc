@@ -221,11 +221,4 @@ void PHG4MvtxSubsystem::SetDefaultParameters()
     end_wheels_sideS =  string(calibrationsroot) + string("/Tracking/geometry/") + end_wheels_sideS;
     end_wheels_sideN = string(calibrationsroot) + string("/Tracking/geometry/") + end_wheels_sideN;
   }
-  set_default_string_param(GLOBAL, "end_wheels_sideS", end_wheels_sideS);
-  set_default_string_param(GLOBAL, "end_wheels_sideN", end_wheels_sideN);
-  /*
-  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_x", NAN);
-  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_z", NAN);
-  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_thickness", NAN);
-  */
 }

@@ -3,8 +3,8 @@
 #include "ParticleFlowElement.h"
 #include "ParticleFlowElementContainer.h"
 
-#include <g4jets/Jet.h>
-#include <g4jets/Jetv1.h>
+#include <jetbase/Jet.h>
+#include <jetbase/Jetv1.h>
 
 #include <phool/getClass.h>
 

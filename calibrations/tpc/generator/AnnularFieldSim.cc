@@ -1185,7 +1185,7 @@ void AnnularFieldSim::load_and_resample_spacecharge(int new_nphi, int new_nr, in
       }  //k (z loop)
     }    //j (r loop)
   }      //i (phi loop)
-
+  printf("here in load_and_resample_spacecharge, I am going to call load_spacecharge.\n");
   load_spacecharge(resampled, zoffset, chargescale, cmscale, true);
 }
 
@@ -1207,156 +1207,15 @@ void AnnularFieldSim::load_spacecharge(TH3 *hist, float zoffset, float chargesca
   sprintf(chargestring, "SC loaded externally: %s.", inputchargestring);
   return;
 
-  /*
-commenting this out for now, until we see if it works.
-  
-  //load spacecharge densities from a histogram, where scalefactor translates into local units of C/cm^3
-  //and cmscale translate (hist coord) --> (hist position in cm)
-  //noting that the histogram limits may differ from the simulation size, and have different granularity
-  //hist is assumed/required to be x=phi, y=r, z=z
-  //z offset 'drifts' the charge by that distance toward z=0.
+}
 
-  //Get dimensions of input
-  float hrmin = hist->GetYaxis()->GetXmin() * cmscale;
-  float hrmax = hist->GetYaxis()->GetXmax() * cmscale;
-  float hphimin = hist->GetXaxis()->GetXmin();
-  float hphimax = hist->GetXaxis()->GetXmax();
-  float hzmin = hist->GetZaxis()->GetXmin() * cmscale;
-  float hzmax = hist->GetZaxis()->GetXmax() * cmscale;
+void AnnularFieldSim::load_digital_current(TH3 *hist, TH2* gainHist, float chargescale, float cmscale, const char *inputchargestring)
+{
+  q->ReadSourceAdc(hist, gainHist, cmscale, chargescale);
 
-  //Get number of bins in each dimension
-  int hrn = hist->GetNbinsY();
-  int hphin = hist->GetNbinsX();
-  int hzn = hist->GetNbinsZ();
-  printf("From histogram, native r dimensions: %f<r<%f, hrn (Y axis)=%d\n", hrmin, hrmax, hrn);
-  printf("From histogram, native phi dimensions: %f<phi<%f, hrn (X axis)=%d\n", hphimin, hphimax, hphin);
-  printf("From histogram, native z dimensions: %f<z<%f, hrn (Z axis)=%d\n", hzmin, hzmax, hzn);
-
-  //do some computation of steps:
-  float hrstep = (hrmax - hrmin) / hrn;
-  float hphistep = (hphimax - hphimin) / hphin;
-  float hzstep = (hzmax - hzmin) / hzn;
-
-  //calculate the useful bound in z:
-  int hnzmin = (zmin - hzmin) / hzstep;  //how many stepsin the hist does it take to reach our model region's lower bound?
-  int hnzmax = ((dim.Z() + zmin) - hzmin) / hzstep;
-  printf("We are interested in z bins %d to %d,  %f<z<%f\n", hnzmin, hnzmax, hnzmin * hzstep + hzmin, hnzmax * hzstep + hzmin);
-
-  //clear the previous spacecharge dist:
-  
-  for (int i = 0; i < q->Length(); i++)
-   *(q->GetFlat(i)) = 0;
-
-  //loop over every bin and add that to the internal model:
-  //note that bin 0 is the underflow, so we need the +1 internally
-
-  //the minimum r we need is localr=0, hence:
-  //hr=localr*dr+rmin
-  //localr*dr+rmin-hrmin=hrstep*(i+0.5)
-  //i=(localr*dr+rmin-hrmin)/hrstep
-
-  double totalcharge = 0;
-
-  float hr, hphi, hz;            //the center of the histogram bin in histogram units (not indices)
-  int localr, localphi, localz;  //the f-bin of our local structure that contains that center.
-  //start r at the first index that corresponds to a position in our grid's r-range.
-  for (int i = (rmin - hrmin) / hrstep; i < hrn; i++)
-  {
-    hr = hrmin + hrstep * (i + 0.5);     //histogram bin center in cm
-    localr = (hr - rmin) / step.Perp();  //index of histogram bin center in our internal storage
-    //printf("loading r=%d into charge from histogram bin %d\n",localr,i);
-    if (localr < 0)
-    {
-      printf("Loading from histogram has r out of range! r=%f < rmin=%f\n", hr, rmin);
-      continue;
-    }
-    if (localr >= nr)
-    {
-      printf("Loading from histogram has r out of range! r=%f > rmax=%f\n", hr, rmax);
-      i = hrn;  //no reason to keep looking at larger r.
-      continue;
-    }
-    for (int j = 0; j < hphin; j++)
-    {
-      hphi = hphimin + hphistep * (j + 0.5);  //bin center
-      localphi = hphi / step.Phi();
-      if (localphi >= nphi)
-      {  //handle wrap-around:
-        localphi -= nphi;
-      }
-      if (localphi < 0)
-      {  //handle wrap-around:
-        localphi += nphi;
-      }
-      //todo:  should add ability to take in a phi- slice only
-      for (int k = hnzmin; k < hnzmax; k++)
-      {
-        hz = hzmin + hzstep * (k + 0.5);  //bin center,
-        localz = (hz + zoffset - zmin) / step.Z();
-        //I am allowing a z-wraparound because I allow a manual offset.
-        if (localz < 0)
-        {
-          localz += nz;
-          //printf("Loading from histogram has z out of range! z=%f < zmin=%f\n",hz,zmin);
-          //continue;
-        }
-        if (localz >= nz)
-        {
-          localz -= nz;
-          //printf("Loading from histogram has z out of range! z=%f > zmax=%f\n",hz,zmax);
-          //k=hzn;//no reason to keep looking at larger z.
-          //continue;
-        }
-        //volume is simplified from the basic formula:  float vol=hzstep*(hphistep*(hr+hrstep)*(hr+hrstep) - hphistep*hr*hr);
-        //should be lower radius and higher radius.  I'm off by a 0.5 on both of those.  Oops.
-        double qbin;
-        if (isChargeDensity)
-        {  //hist is charge per unit volume
-          double vol = hzstep * hphistep * (hr + 0.5 * hrstep) * hrstep;
-          qbin = chargescale * vol * hist->GetBinContent(hist->GetBin(j + 1, i + 1, k + 1)) * C;  //store locally as Coulombs per bin.
-        }
-        else
-        {                                                                                   //hist is total charge, not charge per unit volume
-          qbin = chargescale * hist->GetBinContent(hist->GetBin(j + 1, i + 1, k + 1)) * C;  //store locally as Coulombs per bin.
-        }
-        //float qold=q->Get(localr,localphi,localz);
-        totalcharge += qbin;
-        //if(debugFlag()) printf("%d: AnnularFieldSim::load_spacecharge adding Q=%f from hist(%d,%d,%d) into cell (%d,%d,%d)\n",__LINE__,qbin,i,j,k,localr,localphi,localz);
-        q->Add(localr, localphi, localz, qbin);
-      }
-    }
-  }
-
-  printf("AnnularFieldSim::load_spacecharge:  Total charge Q=%E Coulombs\n", totalcharge / C);
-
-  sprintf(chargestring, "SC from file: %s. Qtot=%E Coulombs.  native dims: (%d,%d,%d)(%2.1fcm,%2.1f,%2.1fcm)-(%2.1fcm,%2.1f,%2.1fcm)",
-          chargesourcename.c_str(), totalcharge / C, hrn, hphin, hzn, hrmin, hphimin, hzmin, hrmax, hphimax, hzmax);
-
-  if (lookupCase == HybridRes)
-  {
-    //go through the q array and build q_lowres.
-    for (int i = 0; i < q_lowres->Length(); i++)
-      *(q_lowres->GetFlat(i)) = 0;
-
-    //fill our low-res
-    //note that this assumes the last bin is short or normal length, not long.
-    for (int ifr = 0; ifr < nr; ifr++)
-    {
-      int r_low = ifr / r_spacing;  //index of our l-bin is just the integer division of the index of our f-bin
-      for (int ifphi = 0; ifphi < nphi; ifphi++)
-      {
-        int phi_low = ifphi / phi_spacing;
-        for (int ifz = 0; ifz < nz; ifz++)
-        {
-          int z_low = ifz / z_spacing;
-          q_lowres->Add(r_low, phi_low, z_low, q->Get(ifr, ifphi, ifz));
-        }
-      }
-    }
-  }
-
+  sprintf(chargestring, "SC loaded externally: %s.", inputchargestring);
   return;
-  */
+
 }
 
 
@@ -2493,6 +2352,7 @@ TVector3 AnnularFieldSim::swimToInAnalyticSteps(float zdest, TVector3 start, int
     //printf("AnnularFieldSim::swimToInAnalyticSteps at step %d, asked to swim particle from (%f,%f,%f) (rphiz)=(%f,%f,%f).\n",i,ret.X(),ret.Y(),ret.Z(),ret.Perp(),ret.Phi(),ret.Z());
     //rcc note: once I put the z distoriton back in, I need to check that ret.Z+zstep is still in bounds:
     accumulated_distortion += GetStepDistortion(ret.Z() + zstep, ret, true, true);
+    
     accumulated_drift += drift_step;
 
     //this seems redundant, but if the distortions are small they may lose precision and stop actually changing the position when step size is small.  This allows them to accumulate separately so they can grow properly:
@@ -2555,7 +2415,14 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, TVector3 start, int st
 
   //now we are guaranteed the z limits are in range, and don't need to check them again.
 
-  double zstep = (zdest - start.Z()) / steps;
+double zstep = (zmax-zmin)/steps;// always a positive number
+if ((zdest-start.Z())<0) zstep=-zstep;// It goes two directions, so there will be positive and negative value
+int integernumbersteps=(zdest-start.Z())/zstep;
+
+//printf("Hello, this is the zmax-zmin length: %f\n", (zmax-zmin));
+//printf("Hello, this is the zdest-start.Z(): %f\n", (zdest-start.Z()));
+//printf("Hello, this is the zstep number: %f\n", zstep); 
+//printf("Hello, this is the integernumbersteps number: %d\n", integernumbersteps);
 
   TVector3 position = start;
   TVector3 accumulated_distortion(0, 0, 0);
@@ -2564,7 +2431,18 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, TVector3 start, int st
 
   //the conceptual approach here is to get the vector distortion in each z step, and use the transverse component of that to update the position of the particle for the next step, while accumulating the total distortion separately from the position.  This allows a small residual to accumulate, rather than being lost.  We do not correct the z position, so that the stepping does not 'skip' parts of the trajectory.
 
-  for (int i = 0; i < steps; i++)
+// describe what you're doing here: 
+//printf("Hello again, this is the zdest: %f\n", (zdest));
+//printf("Hello again, this is the start.Z(): %f\n", (start.Z()));
+
+    accumulated_distortion += GetStepDistortion(zdest-(integernumbersteps*zstep), position, true, false);
+
+  //short-circuit if there's no travel length:
+
+    position.SetX(start.X() + accumulated_distortion.X());
+    position.SetY(start.Y() + accumulated_distortion.Y());
+    position.SetZ(zdest-(integernumbersteps*zstep));
+  for (int i = 0; i <integernumbersteps ; i++)
   {
     //check if we are in bounds
     if (GetRindexAndCheckBounds(position.Perp(), &rt) != InBounds || GetPhiIndexAndCheckBounds(FilterPhiPos(position.Phi()), &pt) != InBounds || (zBound == OutOfBounds))
@@ -2578,11 +2456,12 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, TVector3 start, int st
     }
 
     //as we accumulate distortions, add these to the x and y positions, but do not change the z position, otherwise we will 'skip' parts of the drift, which is not the intended behavior.
-    accumulated_distortion += GetStepDistortion(start.Z() + zstep * (i + 1), position, true, false);
+    accumulated_distortion += GetStepDistortion(position.Z() + zstep, position, true, false);
     position.SetX(start.X() + accumulated_distortion.X());
     position.SetY(start.Y() + accumulated_distortion.Y());
     position.SetZ(position.Z() + zstep);
   }
+
   *goodToStep = steps;
   return accumulated_distortion;
 }
@@ -2738,7 +2617,8 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, TVector3 pos, char w
   return;
 }
 
-void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int r_subsamples, int p_subsamples, int z_subsamples, int /*z_substeps*/, bool andCartesian)
+void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int nSteps, int r_subsamples, int p_subsamples, int z_subsamples, int /*z_substeps*/, bool andCartesian)
+
 {
   //generates the distortion map for one or both sides of the detector, separating them so
   //they do not try to interpolate across the CM.
@@ -2750,7 +2630,10 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int r
   float deltap = s.Phi();   //(pf-pi)/np;
   float deltaz = s.Z();     //(zf-zi)/nz;
   TVector3 stepzvec(0, 0, deltaz);
-  int nSteps = 500;  //how many steps to take in the particle path.  hardcoded for now.  Think about this later.
+
+
+//  int nSteps = 500;  //how many steps to take in the particle path.  hardcoded for now.  Think about this later.
+
 
   int nSides = 1;
   if (hasTwin) nSides = 2;
@@ -3796,7 +3679,7 @@ TVector3 AnnularFieldSim::swimTo(float zdest, TVector3 start, bool interpolate, 
 TVector3 AnnularFieldSim::GetStepDistortion(float zdest, TVector3 start, bool interpolate, bool useAnalytic)
 {
   //getting the distortion instead of the post-step position allows us to accumulate small deviations from the original position that might be lost in the large number
-
+  
   //using second order langevin expansion from http://skipper.physics.sunysb.edu/~prakhar/tpc/Papers/ALICE-INT-2010-016.pdf
   //TVector3 (*field)[nr][ny][nz]=field_;
   int rt, pt, zt;  //these are filled by the checkbounds that follow, but are not used.
@@ -3810,14 +3693,15 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, TVector3 start, bool in
   }
 
   //set the direction of the external fields.
-
+  
   double zdist = zdest - start.Z();
 
   //short-circuit if there's no travel length:
-  if (fabs(zdist) < ALMOST_ZERO * step.Z())
+  
+ if (fabs(zdist) < ALMOST_ZERO * step.Z())
   {
-    printf("Asked  particle from (%f,%f,%f) to z=%f, which is a distance of %fcm.  Returning zero.\n", start.X(), start.Y(), start.Z(), zdest, zdist);
-    return zero_vector;
+ //   printf("Asked  particle from (%f,%f,%f) to z=%f, which is a distance of %fcm.  Returning zero.\n", start.X(), start.Y(), start.Z(), zdest, zdist);
+   return zero_vector;
   }
 
   TVector3 fieldInt;   //integral of E field along path

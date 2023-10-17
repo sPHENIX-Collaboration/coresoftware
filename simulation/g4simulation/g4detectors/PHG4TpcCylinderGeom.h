@@ -43,12 +43,15 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   virtual double get_zcenter(const int ibin) const;
   virtual double get_phicenter(const int ibin) const;
   virtual double get_phicenter_new(const int ibin) const;
+  virtual double get_phi(const float ibin) const;
 
   virtual int get_etabin(const double eta) const;
   virtual int get_zbin(const double z) const;
   virtual int get_phibin(const double phi, int side = 0) const;
   virtual int get_phibin_new(const double phi) const;
-  
+
+  virtual float get_pad_float(const double phi, int side = 0) const;
+  virtual float get_tbin_float(const double z) const;
   virtual int find_phibin(const double phi, int side = 0) const;
 
   void set_layer(const int i) override { layer = i; }
@@ -100,6 +103,8 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   std::array<std::vector<double>, NSides > sector_min_Phi;
   std::array<std::vector<double>, NSides > sector_max_Phi;
 
+  // streamer
+  friend std::ostream& operator << (std::ostream&, const PHG4TpcCylinderGeom& );
 
   ClassDefOverride(PHG4TpcCylinderGeom, 2)
 };

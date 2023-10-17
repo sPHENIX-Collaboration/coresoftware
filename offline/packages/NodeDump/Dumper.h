@@ -11,7 +11,7 @@ class PHNodeDump;
 class Dumper : public SubsysReco
 {
  public:
-  Dumper(const std::string &name = "DUMPER");
+  explicit Dumper(const std::string &name = "DUMPER");
   ~Dumper() override;
   int End(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;

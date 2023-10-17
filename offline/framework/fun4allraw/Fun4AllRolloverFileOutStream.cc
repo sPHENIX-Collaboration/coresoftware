@@ -4,7 +4,7 @@
 
 #include <Event/Event.h>
 #include <Event/oBuffer.h>  // for oBuffer
-#include <Event/ospBuffer.h>
+#include <Event/ophBuffer.h>
 
 #include <phool/phool.h>
 
@@ -31,7 +31,7 @@ Fun4AllRolloverFileOutStream::Fun4AllRolloverFileOutStream(const std::string &fr
   {
     if (m_MaxFileFize > MaxSize())
     {
-      unsigned long long maxmb = MaxSize() / (1024 * 1024);
+      unsigned long long maxmb = MaxSize() / (1024ULL * 1024ULL);
       std::cout << "setting maximum size to current max (in MB): " << maxmb << std::endl;
     }
     m_MaxFileFize = MaxSize();
@@ -39,7 +39,7 @@ Fun4AllRolloverFileOutStream::Fun4AllRolloverFileOutStream(const std::string &fr
   m_Increment = increment;
   if (m_Increment <= 0)
   {
-    m_Increment = 1;  //safety belt against overwriting files
+    m_Increment = 1;  // safety belt against overwriting files
   }
 }
 
@@ -74,7 +74,7 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
       std::cout << "Fun4AllRolloverFileOutStream: opening new file " << outfilename << std::endl;
     }
     MyManager()->SetOutfileName(outfilename);
-    SetoBuffer(new ospBuffer(OutFileDescriptor(), xb(), LENGTH, irun, iSeq()));
+    SetoBuffer(new ophBuffer(OutFileDescriptor(), xb(), LENGTH, irun, iSeq()));
     delete[] outfilename;
   }
 

@@ -2,7 +2,7 @@
 
 /*!
  * \file PHG4DSTReader.h
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.7 $
  * \date $Date: 2015/02/27 23:42:23 $
@@ -116,7 +116,7 @@ class PHG4DSTReader : public SubsysReco
   std::vector<std::string> _tower_postfix;
   std::vector<std::string> _jet_postfix;
   //  std::vector<std::string> _node_name;
-  int nblocks;
+  int nblocks = 0;
 
   typedef boost::shared_ptr<TClonesArray> arr_ptr;
 
@@ -140,31 +140,31 @@ class PHG4DSTReader : public SubsysReco
   typedef std::vector<record> records_t;
   records_t _records;
 
-  int _event;
+  int _event = 0;
 
   std::string _out_file_name;
 
   //  TFile * _file;
-  TTree *_T;
+  TTree *_T = nullptr;
 
   //! master switch to save particles
-  bool _save_particle;
+  bool _save_particle = true;
 
   //! load all particle in truth info module?
-  bool _load_all_particle;
+  bool _load_all_particle = true;
 
   //! load all particle that produced a saved hit
-  bool _load_active_particle;
+  bool _load_active_particle = true;
 
   typedef std::set<int> PartSet_t;
   PartSet_t _particle_set;
   PartSet_t _vertex_set;
 
   //! save vertex for particles?
-  bool _save_vertex;
+  bool _save_vertex = true;
 
   //! zero suppression for all calorimeters
-  double _tower_zero_sup;
+  double _tower_zero_sup = 0.;
 
   //! add a particle and associated vertex if _save_vertex
   void

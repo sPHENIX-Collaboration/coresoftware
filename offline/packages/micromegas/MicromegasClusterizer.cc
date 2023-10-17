@@ -1,5 +1,5 @@
 /*!
- * \file MicromegasClusterizer.h
+ * \file MicromegasClusterizer.cc
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
@@ -12,8 +12,7 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrClusterContainerv4.h>        // for TrkrCluster
-#include <trackbase/TrkrClusterv3.h>
-#include <trackbase/TrkrClusterv4.h>
+#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHit.h>
@@ -83,9 +82,8 @@ namespace
 }
 
 //_______________________________________________________________________________
-MicromegasClusterizer::MicromegasClusterizer(const std::string &name, const std::string& detector)
+MicromegasClusterizer::MicromegasClusterizer(const std::string &name )
   : SubsysReco(name)
-  , m_detector( detector )
 {}
 
 //_______________________________________________________________________________
@@ -139,7 +137,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
   // geometry
   PHG4CylinderGeomContainer* geonode = nullptr;
-  for( const std::string& geonodename: {"CYLINDERGEOM_" + m_detector + "_FULL", "CYLINDERGEOM_" + m_detector } )
+  for( std::string geonodename: {"CYLINDERGEOM_MICROMEGAS_FULL", "CYLINDERGEOM_MICROMEGAS" } )
   { if(( geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str()) )) break; }
   assert(geonode);
 
@@ -243,11 +241,9 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
     // initialize cluster count
     int cluster_count = 0;
-    int strip_count = 0;
     // loop over found hit ranges and create clusters
     for( const auto& range : ranges )
     {
-      strip_count++;
       // create cluster key and corresponding cluster
       const auto ckey = TrkrDefs::genClusKey( hitsetkey, cluster_count++ );
 
@@ -261,11 +257,12 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       // also store adc value
       unsigned int adc_sum = 0;
-      strip_count = 0;
+      unsigned int max_adc = 0;
+      unsigned int strip_count = 0;
       // loop over constituting hits
       for( auto hit_it = range.first; hit_it != range.second; ++hit_it )
       {
-	strip_count++;
+        ++strip_count;
         // get hit key
         const auto hitkey = hit_it->first;
         const auto hit = hit_it->second;
@@ -282,7 +279,9 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         const double weight = double(hit->getAdc()) - pedestal;
 
         // increment cluster adc
-        adc_sum += hit->getAdc();
+        const auto hit_adc = hit->getAdc();
+        if( hit_adc > max_adc) { max_adc = hit_adc; }
+        adc_sum += hit_adc;
 
         // get strip local coordinate and update relevant sums
         const auto strip_local_coordinate = layergeom->get_local_coordinates( tileid, acts_geometry, strip );
@@ -344,49 +343,33 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       }
 
       
-      if(m_cluster_version==3)
-      {
-        auto cluster = std::make_unique<TrkrClusterv3>();
-        cluster->setAdc( adc_sum );
-        cluster->setLocalX(local_coordinates.X());
-        cluster->setLocalY(local_coordinates.Y());
-        
-        // assign errors
-        cluster->setActsLocalError(0,0, error_sq_x);
-        cluster->setActsLocalError(1,1, error_sq_y);
-        cluster->setActsLocalError(0,1, 0);
-        cluster->setActsLocalError(1,0, 0);
-
-        // add to container
-        trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
-
-      } else if(m_cluster_version==4) {
-
-        auto cluster = std::make_unique<TrkrClusterv4>();
-        cluster->setAdc( adc_sum );
-        cluster->setLocalX(local_coordinates.X());
-        cluster->setLocalY(local_coordinates.Y());
-
-        // store cluster size
-        switch( segmentation_type )
+      auto cluster = std::make_unique<TrkrClusterv5>();
+      cluster->setAdc( adc_sum );
+      cluster->setMaxAdc( max_adc );
+      cluster->setLocalX(local_coordinates.X());
+      cluster->setLocalY(local_coordinates.Y());
+      cluster->setPhiError(sqrt(error_sq_x));
+      cluster->setZError(sqrt(error_sq_y));
+      // store cluster size
+      switch( segmentation_type )
         {
-          case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+	case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
           {
             cluster->setPhiSize(strip_count);
             cluster->setZSize(1);
             break;
           }
-
-          case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+	  
+	case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
           {
             cluster->setPhiSize(1);
             cluster->setZSize(strip_count);
             break;
           }
         }
-        // add to container
-        trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
-      }
+      // add to container
+      trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
+      
 
     }
 

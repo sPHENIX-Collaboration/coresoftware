@@ -1,21 +1,19 @@
-#include "BbcReturnCodes.h"
 #include "BbcOut.h"
+#include "BbcReturnCodes.h"
 
 #include <cmath>
 #include <iostream>
 
-ClassImp(BbcOut)
-
 void BbcOut::identify(std::ostream& os) const
 {
-  os << "virtual BbcOut object";
-  return ;
+  os << "virtual BbcOut object" << std::endl;
+  return;
 }
 
 void BbcOut::Reset()
 {
   std::cout << "ERROR BbcOut: Reset() not implemented by daughter class" << std::endl;
-  return ;
+  return;
 }
 
 int BbcOut::isValid() const
@@ -24,90 +22,89 @@ int BbcOut::isValid() const
   return 0;
 }
 
-Float_t BbcOut::get_VertexPoint() const
+float BbcOut::get_zvtx() const
 {
-  virtual_warning("get_VertexPoint()");
+  virtual_warning("get_zvtx()");
   return NAN;
 }
 
-Float_t BbcOut::get_dVertexPoint() const
+float BbcOut::get_zvtxerr() const
 {
-  virtual_warning("get_dVertexPoint()");
+  virtual_warning("get_zvtxerr()");
   return NAN;
 }
 
-Float_t BbcOut::get_TimeZero() const
+float BbcOut::get_t0() const
 {
-  virtual_warning("get_TimeZero()");
-  return NAN;
-}
-
-//__________________________________________
-Float_t BbcOut::get_dTimeZero() const
-{
-  virtual_warning("get_dTimeZero()");
+  virtual_warning("get_t0()");
   return NAN;
 }
 
 //__________________________________________
-void BbcOut::set_TimeZero(const Float_t, const Float_t)
+float BbcOut::get_t0err() const
 {
-  virtual_warning("set_TimeZero(const Float_t t0, const Float_t t0err)");
-  return ;
+  virtual_warning("get_t0err()");
+  return NAN;
 }
 
 //__________________________________________
-void BbcOut::set_Vertex( const Float_t, const Float_t )
+void BbcOut::set_t0(const float /*unused*/, const float /*unused*/)
 {
-  virtual_warning("set_Vertex(const Float_t vtx, const Float_t vtxerr)");
-  return ;
+  virtual_warning("set_t0(const float t0, const float t0err)");
+  return;
 }
 
 //__________________________________________
-void BbcOut::set_dZVertex(const Float_t )
+void BbcOut::set_zvtx(const float /*unused*/, const float /*unused*/)
 {
-  virtual_warning("set_dZVertex(const Float_t vtxerr)");
-  return ;
+  virtual_warning("set_zvtx(const float vtx, const float vtxerr)");
+  return;
+}
+
+//__________________________________________
+void BbcOut::set_zvtxerr(const float /*unused*/)
+{
+  virtual_warning("set_zvtxerr(const float vtxerr)");
+  return;
 }
 
 //________________________________________________________________
-void BbcOut::AddBbcNS(const int /*nBbc*/, const Short_t /*npmt*/, const Float_t /*energy*/, const Float_t /*timing*/)
+void BbcOut::set_arm(const int /*iarm*/, const short /*npmt*/, const float /*energy*/, const float /*timing*/)
 {
-  virtual_warning("AddBbcNS(const int iBBC, const Short_t npmt, const Float_t energy, const Float_t timing)");
-  return ;
+  virtual_warning("set_arm(const int iBBC, const short npmt, const float energy, const float timing)");
+  return;
 }
 
-Short_t BbcOut::get_nPMT(const int /*nBbc*/) const
+short BbcOut::get_npmt(const int /*iarm*/) const
 {
-  virtual_warning("get_nPMT(const int nBbc)");
-  return BBC_INVALID_SHORT;
+  virtual_warning("get_npmt(const int iarm)");
+  return BbcReturnCodes::BBC_INVALID_SHORT;
 }
 
-Float_t BbcOut::get_nCharge(const int /*nBbc*/) const
+float BbcOut::get_q(const int /*iarm*/) const
 {
-  virtual_warning("get_nCharge(const int nBbc)");
+  virtual_warning("get_q(const int iarm)");
   return NAN;
 }
 
-Float_t BbcOut::get_Timing(const int /*nBbc*/) const
+float BbcOut::get_time(const int /*iarm*/) const
 {
-  virtual_warning("get_Timing(const int nBbc)");
+  virtual_warning("get_time(const int iarm)");
   return NAN;
 }
 
-void BbcOut::virtual_warning(const char *funcsname) const
+void BbcOut::virtual_warning(const std::string& funcsname) const
 {
   std::cout << "BbcOut::" << funcsname << " is virtual, doing nothing" << std::endl;
-  return ;
+  return;
 }
 
 void BbcOut::FillFromClass(const BbcOut& old)
 {
-  for(int iarm = 0; iarm < 2; iarm++)
+  for (int iarm = 0; iarm < 2; iarm++)
   {
-    AddBbcNS( iarm, old.get_nPMT(iarm), old.get_nCharge(iarm), old.get_Timing(iarm) );
+    set_arm(iarm, old.get_npmt(iarm), old.get_q(iarm), old.get_time(iarm));
   }
 
-  set_TimeVertex( old.get_TimeZero(), old.get_dTimeZero(), old.get_VertexPoint(), old.get_dVertexPoint() );
-
+  set_t0zvtx(old.get_t0(), old.get_t0err(), old.get_zvtx(), old.get_zvtxerr());
 }

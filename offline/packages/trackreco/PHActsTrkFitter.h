@@ -9,6 +9,7 @@
 #define TRACKRECO_ACTSTRKFITTER_H
 
 #include "ActsAlignmentStates.h"
+#include "ActsEvaluator.h"
 
 #include <fun4all/SubsysReco.h>
 
@@ -28,7 +29,6 @@
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
-#include <ActsExamples/EventData/Track.hpp>
 
 #include <memory>
 #include <string>
@@ -48,11 +48,11 @@ class TpcDistortionCorrectionContainer;
 class SvtxAlignmentStateMap;
 
 using SourceLink = ActsSourceLink;
-using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
+using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices,2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
-using SourceLinkVec = std::vector<SourceLink>;
+using SourceLinkVec = std::vector<Acts::SourceLink>;
 
 class PHActsTrkFitter : public SubsysReco
 {
@@ -91,6 +91,7 @@ class PHActsTrkFitter : public SubsysReco
   void useActsEvaluator(bool actsEvaluator)
   { m_actsEvaluator = actsEvaluator; }
   
+  void setEvaluatorName(std::string name) {m_evalname = name; }
   void setFieldMap(std::string& fieldMap)
   { m_fieldMap = fieldMap; }
 
@@ -105,10 +106,10 @@ class PHActsTrkFitter : public SubsysReco
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void set_seed_track_map_name(const std::string &map_name) { _seed_track_map_name = map_name; }
 
-  void set_cluster_version(int value) { m_cluster_version = value; }
-
   /// Set flag for pp running
   void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
+
+  void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
 
  private:
 
@@ -120,21 +121,24 @@ class PHActsTrkFitter : public SubsysReco
 
   void loopTracks(Acts::Logging::Level logLevel);
   SourceLinkVec getSourceLinks(TrackSeed *track, 
-			       ActsExamples::MeasurementContainer& measurements,
+			       ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
 			       short int crossing);
 
   /// Convert the acts track fit result to an svtx track
-  void updateSvtxTrack(Trajectory traj, SvtxTrack* track);
+  void updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+		       Trajectory::IndexedParameters& paramsMap,
+		       ActsTrackFittingAlgorithm::TrackContainer& tracks, 
+		       SvtxTrack* track);
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
   ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
-           const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
-	   const ActsExamples::TrackParameters& seed,
+           const std::vector<Acts::SourceLink>& sourceLinks, 
+	   const ActsTrackFittingAlgorithm::TrackParameters& seed,
 	   const ActsTrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
 	   const SurfacePtrVec& surfSequence,
-	   std::shared_ptr<Acts::VectorMultiTrajectory>& mtj);
+	   ActsTrackFittingAlgorithm::TrackContainer& tracks);
 
   /// Functions to get list of sorted surfaces for direct navigation, if
   /// applicable
@@ -142,10 +146,13 @@ class PHActsTrkFitter : public SubsysReco
 				 SurfacePtrVec& surfaces) const;
   void checkSurfaceVec(SurfacePtrVec& surfaces) const;
 
-  bool getTrackFitResult(const FitResult& fitOutput, SvtxTrack* track);
+  bool getTrackFitResult(FitResult& fitOutput, TrackSeed* seed, 
+			 SvtxTrack* track,
+			 ActsTrackFittingAlgorithm::TrackContainer& tracks,
+			 const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
   Acts::BoundSymMatrix setDefaultCovariance() const;
-  void printTrackSeed(const ActsExamples::TrackParameters& seed) const;
+  void printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const;
 
   /// Event counter
   int m_event = 0;
@@ -186,6 +193,9 @@ class PHActsTrkFitter : public SubsysReco
   bool m_pp_mode = false;
 
   bool m_actsEvaluator = false;
+  std::unique_ptr<ActsEvaluator> m_evaluator = nullptr;
+  std::string m_evalname = "ActsEvaluator.root";
+
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
   SvtxTrackMap *m_seedTracks = nullptr;
 
@@ -201,6 +211,8 @@ class PHActsTrkFitter : public SubsysReco
   TpcClusterMover _clusterMover;
   ClusterErrorPara _ClusErrPara;
 
+  std::set<int> m_ignoreLayer;
+ 
   std::string m_fieldMap = "";
 
   int _n_iteration = 0;
@@ -222,7 +234,6 @@ class PHActsTrkFitter : public SubsysReco
   TH1 *h_updateTime = nullptr;
   TH1 *h_stateTime = nullptr;
   TH1 *h_rotTime = nullptr;
-  int m_cluster_version = 4;
 };
 
 #endif

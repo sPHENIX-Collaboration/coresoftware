@@ -1,30 +1,41 @@
-#ifndef __BBCNORTHSOUTH_H__
-#define __BBCNORTHSOUTH_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef BBC_BBCNORTHSOUTH_H
+#define BBC_BBCNORTHSOUTH_H
 
-#include "phool/phool.h"
-#include <TObject.h>
+#include "BbcReturnCodes.h"
 
+#include <phool/PHObject.h>
+#include <phool/phool.h>
 
-class BbcNorthSouth : public TObject
+#include <iostream>
+
+class BbcNorthSouth : public PHObject
 {
-public:
-  BbcNorthSouth() { }
-  BbcNorthSouth(const Short_t /*npmts*/, const Float_t /*ncharge*/, const Float_t /*meantime*/) {}
-  virtual ~BbcNorthSouth() { }
-  virtual void identify(std::ostream& os = std::cout) const;
+ public:
+  BbcNorthSouth() = default;
 
-  virtual Short_t get_nPMT() const { PHOOL_VIRTUAL_WARNING; return -9999; }
-  virtual Float_t get_nCharge() const { PHOOL_VIRTUAL_WARNING; return -9999; }
-  virtual Float_t get_MeanTime() const { PHOOL_VIRTUAL_WARNING; return -9999; }
+  ~BbcNorthSouth() override = default;
+  virtual void identify(std::ostream& os = std::cout) const override;
 
-protected:
+  virtual short get_nPMT() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    return BbcReturnCodes::BBC_INVALID_SHORT;
+  }
+  virtual float get_nCharge() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    return BbcReturnCodes::BBC_INVALID_FLOAT;
+  }
+  virtual float get_MeanTime() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    return BbcReturnCodes::BBC_INVALID_FLOAT;
+  }
 
-  virtual void Clear(Option_t * /*option*/ = "") override { PHOOL_VIRTUAL_WARNING; }
-
-private:
-
-  ClassDefOverride(BbcNorthSouth,1)
-
+ private:
+  ClassDefOverride(BbcNorthSouth, 1)
 };
 
 #endif

@@ -1,32 +1,34 @@
-#ifndef __BBCPMTHITV1_H__
-#define __BBCPMTHITV1_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef BBC_BBCPMTHITV1_H
+#define BBC_BBCPMTHITV1_H
 
 #include "BbcPmtHit.h"
+
 #include <iostream>
+#include <limits>
 
 class BbcPmtHitV1 : public BbcPmtHit
 {
+ public:
+  BbcPmtHitV1() = default;
+  BbcPmtHitV1(const short pmt, const float adc, const float tdc0, const float tdc1);
+  ~BbcPmtHitV1() override = default;
 
-public:
-  BbcPmtHitV1() { }
-  BbcPmtHitV1(const Short_t pmt, const Float_t adc, const Float_t tdc0, const Float_t tdc1);
-  virtual ~BbcPmtHitV1() { }
+  short get_pmt() const override { return pmt; }
+  float get_adc() const override { return adc; }
+  float get_tdc0() const override { return tdc0; }
+  float get_tdc1() const override { return tdc1; }
 
-  Short_t get_pmt()  const override {return pmt;}
-  Float_t get_adc()  const override {return adc;}
-  Float_t get_tdc0() const override {return tdc0;}
-  Float_t get_tdc1() const override {return tdc1;}
+  void identify(std::ostream& os = std::cout) const override;
 
-  void identify(std::ostream& os = std::cout) const;
+ private:
+  short pmt = 0;
+  float adc = std::numeric_limits<float>::quiet_NaN();
+  float tdc0 = std::numeric_limits<float>::quiet_NaN();
+  float tdc1 = std::numeric_limits<float>::quiet_NaN();
 
-protected:
-  Short_t pmt;
-  Float_t adc;
-  Float_t tdc0;
-  Float_t tdc1;
-
-private:
-  ClassDefOverride(BbcPmtHitV1,1)
+  ClassDefOverride(BbcPmtHitV1, 1)
 };
 
 #endif

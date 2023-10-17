@@ -11,6 +11,7 @@
 #include <trackbase/ClusterErrorPara.h>
 
 #include <Acts/Seeding/SeedFilterConfig.hpp>
+#include <Acts/Seeding/SeedFinderConfig.hpp>
 #include <Acts/Seeding/SeedFinderOrthogonalConfig.hpp>
 
 #include <string>
@@ -22,6 +23,7 @@ class TrkrClusterContainer;
 class TrackSeedContainer;
 class TrkrCluster;
 class PHG4CylinderGeomContainer;
+class TrackSeed;
 
 class PHActsKDTreeSeeding : public SubsysReco
 {
@@ -36,10 +38,9 @@ class PHActsKDTreeSeeding : public SubsysReco
   int End(PHCompositeNode *topNode) override;
   
   void useTruthClusters(bool truth) { m_useTruthClusters = truth; }
-  void set_cluster_version(int ver) { m_clusterVersion = ver; }
  private:
 
-  Acts::SeedFinderOrthogonalConfig<SpacePoint> configureSeedFinder();
+  void configureSeedFinder();
   int getNodes(PHCompositeNode* topNode);
   int createNodes(PHCompositeNode* topNode);
   SeedContainer runSeeder();
@@ -61,7 +62,8 @@ class PHActsKDTreeSeeding : public SubsysReco
 
   Acts::SeedFilterConfig m_seedFilterConfig;
   Acts::SeedFinderOrthogonalConfig<SpacePoint> m_seedFinderConfig;
-  
+  Acts::SeedFinderOptions m_seedFinderOptions;
+
   /// configured to seed in the MVTX using the middle layer 
   /// as the seed anchor
   /// Defines volume to search for seeds in
@@ -95,7 +97,7 @@ class PHActsKDTreeSeeding : public SubsysReco
   int m_nIteration = 0;
   std::string m_trackMapName = "SiliconTrackSeedContainer";
   bool m_useTruthClusters = false;
-  int m_clusterVersion = 4;
+
   ClusterErrorPara m_clusErrPara;
   float m_uncfactor = 3.175;
   const static int m_nInttLayers = 4;
