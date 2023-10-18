@@ -7,7 +7,7 @@
 #include <map>
 #include <set>
 #include <string>
-#include <utility>                     // for pair
+#include <utility>  // for pair
 #include <vector>
 
 class Eventiterator;
@@ -27,7 +27,7 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
   int AllDone() const { return m_AllDone; }
   void AllDone(const int i) { m_AllDone = i; }
   void EventNumberOffset(const int i) { m_EventNumberOffset = i; }  // if beam clk are out of sync, tweak this one
-  int EventNumberOffset() const {return m_EventNumberOffset;}
+  int EventNumberOffset() const { return m_EventNumberOffset; }
 
   void MakeReference(const bool b);
 

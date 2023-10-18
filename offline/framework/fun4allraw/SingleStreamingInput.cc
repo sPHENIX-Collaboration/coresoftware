@@ -7,10 +7,10 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
-#include <cstdint>                    // for uint64_t
-#include <iostream>                   // for operator<<, basic_ostream, endl
+#include <cstdint>   // for uint64_t
+#include <iostream>  // for operator<<, basic_ostream, endl
 #include <set>
-#include <utility>                    // for pair
+#include <utility>  // for pair
 
 SingleStreamingInput::SingleStreamingInput(const std::string &name, Fun4AllEvtInputPoolManager *inman)
   : Fun4AllBase(name)
