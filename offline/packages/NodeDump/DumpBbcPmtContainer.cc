@@ -1,6 +1,7 @@
 #include "DumpBbcPmtContainer.h"
 
-#include <bbc/BbcPmtContainer.h>
+#include "bbc/BbcPmtContainer.h"
+#include "bbc/BbcPmtHit.h"
 
 #include <phool/PHIODataNode.h>
 
@@ -28,10 +29,10 @@ int DumpBbcPmtContainer::process_Node(PHNode *myNode)
     *fout << "BbcPmtContainer->get_npmt: " << bbcpmtcontainer->get_npmt() << std::endl;
     for (int j = 0; j < bbcpmtcontainer->get_npmt(); j++)
     {
-      *fout << "BbcPmtContainer->get_pmt(" << j << "): " << bbcpmtcontainer->get_pmt(j) << std::endl;
-      *fout << "BbcPmtContainer->get_adc(" << j << "): " << bbcpmtcontainer->get_adc(j) << std::endl;
-      *fout << "BbcPmtContainer->get_tdc0(" << j << "): " << bbcpmtcontainer->get_tdc0(j) << std::endl;
-      *fout << "BbcPmtContainer->get_tdc1(" << j << "): " << bbcpmtcontainer->get_tdc1(j) << std::endl;
+      BbcPmtHit *bbcpmt = bbcpmtcontainer->get_pmt(j);
+      *fout << "BbcPmtHit->get_pmt(" << j << "): " << bbcpmt->get_pmt() << std::endl;
+      *fout << "BbcPmtHit->get_q(" << j << "): " << bbcpmt->get_q() << std::endl;
+      *fout << "BbcPmtHit->get_time(" << j << "): " << bbcpmt->get_time() << std::endl;
     }
   }
   return 0;
