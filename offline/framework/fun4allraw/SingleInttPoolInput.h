@@ -28,7 +28,6 @@ class SingleInttPoolInput : public SingleStreamingInput
   bool GetSomeMoreEvents(const uint64_t ibclk);
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
-  void HandleBeamClock(const uint64_t bclk);
 
  private:
   Packet **plist = nullptr;
