@@ -2,67 +2,68 @@
 
 #include <trackbase/ActsAborter.h>
 
+#include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxVertexMap.h>
 
+#include <Acts/EventData/ParticleHypothesis.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
-#include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Propagator/detail/VoidPropagatorComponents.hpp>
+#include <Acts/Surfaces/PerigeeSurface.hpp>
 
 ActsPropagator::SurfacePtr
 ActsPropagator::makeVertexSurface(const SvtxVertex* vertex)
 {
   return Acts::Surface::makeShared<Acts::PerigeeSurface>(
-     Acts::Vector3(vertex->get_x() * Acts::UnitConstants::cm,
-		   vertex->get_y() * Acts::UnitConstants::cm,
-		   vertex->get_z() * Acts::UnitConstants::cm));
+      Acts::Vector3(vertex->get_x() * Acts::UnitConstants::cm,
+                    vertex->get_y() * Acts::UnitConstants::cm,
+                    vertex->get_z() * Acts::UnitConstants::cm));
 }
 ActsPropagator::SurfacePtr
 ActsPropagator::makeVertexSurface(const Acts::Vector3& vertex)
 {
   return Acts::Surface::makeShared<Acts::PerigeeSurface>(
-         vertex * Acts::UnitConstants::cm);
-							 
+      vertex * Acts::UnitConstants::cm);
 }
 ActsPropagator::BoundTrackParam
 ActsPropagator::makeTrackParams(SvtxTrackState* state,
-				int trackCharge,
-				ActsPropagator::SurfacePtr surf)
+                                int trackCharge,
+                                ActsPropagator::SurfacePtr surf)
 {
   Acts::Vector3 momentum(state->get_px(),
-			 state->get_py(),
-			 state->get_pz());
+                         state->get_py(),
+                         state->get_pz());
   Acts::Vector4 actsFourPos = Acts::Vector4(state->get_x() * Acts::UnitConstants::cm,
-					    state->get_y() * Acts::UnitConstants::cm,
-					    state->get_z() * Acts::UnitConstants::cm,
-					    10 * Acts::UnitConstants::ns);
-  
+                                            state->get_y() * Acts::UnitConstants::cm,
+                                            state->get_z() * Acts::UnitConstants::cm,
+                                            10 * Acts::UnitConstants::ns);
+
   ActsTransformations transformer;
-  Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(state);
-  
+  Acts::BoundSquareMatrix cov = transformer.rotateSvtxTrackCovToActs(state);
+
   return ActsTrackFittingAlgorithm::TrackParameters::create(
-         surf,
-	 m_geometry->geometry().getGeoContext(),
-	 actsFourPos, momentum,
-	 trackCharge / momentum.norm(),
-	 cov)
-    .value();
+             surf,
+             m_geometry->geometry().getGeoContext(),
+             actsFourPos, momentum,
+             trackCharge / momentum.norm(),
+             cov,
+             Acts::ParticleHypothesis::pion())
+      .value();
 }
 ActsPropagator::BoundTrackParam
 ActsPropagator::makeTrackParams(SvtxTrack* track,
-				SvtxVertexMap* vertexMap)
+                                SvtxVertexMap* vertexMap)
 {
   Acts::Vector3 momentum(track->get_px(),
                          track->get_py(),
                          track->get_pz());
-  
+
   auto vertexId = track->get_vertex_id();
   const SvtxVertex* svtxVertex = vertexMap->get(vertexId);
   Acts::Vector3 vertex = Acts::Vector3::Zero();
@@ -72,7 +73,7 @@ ActsPropagator::makeTrackParams(SvtxTrack* track,
     vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm;
     vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
   }
- 
+
   auto perigee =
       Acts::Surface::makeShared<Acts::PerigeeSurface>(vertex);
   auto actsFourPos =
@@ -83,13 +84,14 @@ ActsPropagator::makeTrackParams(SvtxTrack* track,
 
   ActsTransformations transformer;
 
-  Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
+  Acts::BoundSquareMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
 
   return ActsTrackFittingAlgorithm::TrackParameters::create(perigee,
                                                             m_geometry->geometry().getGeoContext(),
                                                             actsFourPos, momentum,
                                                             track->get_charge() / track->get_p(),
-                                                            cov)
+                                                            cov,
+                                                            Acts::ParticleHypothesis::pion())
       .value();
 }
 
@@ -214,11 +216,10 @@ ActsPropagator::FastPropagator ActsPropagator::makeFastPropagator()
     logLevel = Acts::Logging::VERBOSE;
   }
 
-  std::shared_ptr<const Acts::Logger> logger 
-    = Acts::getDefaultLogger("ActsPropagator", logLevel);
-  
+  std::shared_ptr<const Acts::Logger> logger = Acts::getDefaultLogger("ActsPropagator", logLevel);
+
   return ActsPropagator::FastPropagator(stepper, Acts::detail::VoidNavigator(),
-    logger);
+                                        logger);
 }
 ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
 {
@@ -231,21 +232,20 @@ ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
   }
 
   auto trackingGeometry = m_geometry->geometry().tGeometry;
-  Stepper stepper(field);
+  Stepper stepper(field, m_overstepLimit);
   Acts::Navigator::Config cfg{trackingGeometry};
   cfg.resolvePassive = false;
   cfg.resolveMaterial = true;
   cfg.resolveSensitive = true;
   Acts::Navigator navigator(cfg);
-  
+
   Acts::Logging::Level logLevel = Acts::Logging::FATAL;
   if (m_verbosity > 3)
   {
     logLevel = Acts::Logging::VERBOSE;
   }
 
-  std::shared_ptr<const Acts::Logger> logger 
-    = Acts::getDefaultLogger("ActsPropagator", logLevel);
+  std::shared_ptr<const Acts::Logger> logger = Acts::getDefaultLogger("ActsPropagator", logLevel);
   return SphenixPropagator(stepper, navigator, logger);
 }
 

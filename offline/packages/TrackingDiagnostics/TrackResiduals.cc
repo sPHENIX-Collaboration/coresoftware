@@ -464,7 +464,7 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     stateloc(1) = loct(1);
   }
 
-  const Acts::BoundSymMatrix actscov =
+  const auto actscov =
       transformer.rotateSvtxTrackCovToActs(state);
 
   m_statelx.push_back(stateloc(0));
