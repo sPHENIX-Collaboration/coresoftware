@@ -155,6 +155,10 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   track->set_y(position(1) / Acts::UnitConstants::cm);
   track->set_z(position(2) / Acts::UnitConstants::cm);
 
+  track->set_px(params.momentum().x());
+  track->set_py(params.momentum().y());
+  track->set_pz(params.momentum().z());
+
   ActsTransformations rotater;
   rotater.setVerbosity(Verbosity());
   if (params.covariance())
@@ -183,7 +187,7 @@ PHActsVertexPropagator::propagateTrack(
 
   ActsPropagator propagator(m_tGeometry);
   propagator.verbosity(Verbosity());
-  propagator.setOverstepLimit(0.1 * Acts::UnitConstants::cm);
+  propagator.setOverstepLimit(1 * Acts::UnitConstants::cm);
   if(m_fieldMap.find(".root") == std::string::npos)
     {
       propagator.constField();
