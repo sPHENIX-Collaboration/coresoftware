@@ -4,7 +4,7 @@
 #include "SingleStreamingInput.h"
 
 #include <array>
-#include <cstdint>                // for uint64_t
+#include <cstdint>  // for uint64_t
 #include <map>
 #include <set>
 #include <string>
@@ -37,7 +37,7 @@ class SingleInttPoolInput : public SingleStreamingInput
   std::map<uint64_t, std::vector<InttRawHit *>> m_InttRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
-  std::map<int,intt_pool *> poolmap; 
+  std::map<int, intt_pool *> poolmap;
 };
 
 #endif

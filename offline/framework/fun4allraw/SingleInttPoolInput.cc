@@ -3,11 +3,11 @@
 
 #include "Fun4AllStreamingInputManager.h"
 
-#include <ffarawobjects/InttRawHitv1.h>
 #include <ffarawobjects/InttRawHitContainerv1.h>
+#include <ffarawobjects/InttRawHitv1.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>                   // for PHIODataNode
+#include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
 
@@ -15,12 +15,12 @@
 #include <Event/EventTypes.h>
 #include <Event/Eventiterator.h>
 
-#include <algorithm>                              // for max
-#include <cstdint>                                // for uint64_t
-#include <cstdlib>                               // for exit
-#include <iostream>                               // for operator<<, basic_o...
+#include <algorithm>  // for max
+#include <cstdint>    // for uint64_t
+#include <cstdlib>    // for exit
+#include <iostream>   // for operator<<, basic_o...
 #include <set>
-#include <utility>                                // for pair
+#include <utility>  // for pair
 
 SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
   : SingleStreamingInput(name)
@@ -31,14 +31,14 @@ SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
 SingleInttPoolInput::~SingleInttPoolInput()
 {
   delete[] plist;
-  for ( auto iter : poolmap)
+  for (auto iter : poolmap)
+  {
+    if (Verbosity() > 2)
     {
-      if (Verbosity() > 2)
-	{
-	  std::cout << "deleting intt pool for id  " << (iter.second)->getIdentifier() << std::endl;
-	}
-      delete (iter.second);
+      std::cout << "deleting intt pool for id  " << (iter.second)->getIdentifier() << std::endl;
     }
+    delete (iter.second);
+  }
 }
 
 void SingleInttPoolInput::FillPool(const unsigned int)
@@ -92,91 +92,89 @@ void SingleInttPoolInput::FillPool(const unsigned int)
     }
 
     for (int i = 0; i < npackets; i++)
+    {
+      if (Verbosity() > 2)
       {
-	if (Verbosity() > 2)
-	  {
-	    plist[i]->identify();
-	  }
-
-	if ( poolmap.find( plist[i]->getIdentifier() ) == poolmap.end()) // we haven't seen this one yet
-	  {
-	    if (Verbosity() > 1)
-	      {
-		std::cout << "starting new intt pool for packet " << plist[i]->getIdentifier() << std::endl;
-	      }
-	    poolmap[plist[i]->getIdentifier()] = new intt_pool(1000,100);
-            poolmap[plist[i]->getIdentifier()]->Verbosity(Verbosity());
-            poolmap[plist[i]->getIdentifier()]->Name(std::to_string(plist[i]->getIdentifier()));
-	  }
-	poolmap[plist[i]->getIdentifier()]->addPacket(plist[i]);
-
-	delete plist[i];
-
+        plist[i]->identify();
       }
+
+      if (poolmap.find(plist[i]->getIdentifier()) == poolmap.end())  // we haven't seen this one yet
+      {
+        if (Verbosity() > 1)
+        {
+          std::cout << "starting new intt pool for packet " << plist[i]->getIdentifier() << std::endl;
+        }
+        poolmap[plist[i]->getIdentifier()] = new intt_pool(1000, 100);
+        poolmap[plist[i]->getIdentifier()]->Verbosity(Verbosity());
+        poolmap[plist[i]->getIdentifier()]->Name(std::to_string(plist[i]->getIdentifier()));
+      }
+      poolmap[plist[i]->getIdentifier()]->addPacket(plist[i]);
+
+      delete plist[i];
+    }
 
     delete evt;
 
-
-    for ( auto iter : poolmap )
+    for (auto iter : poolmap)
+    {
+      intt_pool *pool = iter.second;  // less typing
+      if (pool->depth_ok())
       {
-	intt_pool * pool = iter.second; // less typing
-	if ( pool->depth_ok() )
-	  {
-	    int num_hits = pool->iValue(0, "NR_HITS");
-	    if (Verbosity() > 1)
-	      {
-		std::cout << "Number of Hits: " << num_hits << " for packet "
-			  << pool->getIdentifier() << std::endl;
-	      }
-	    std::set<uint64_t> bclk_set;
-	    for (int j = 0; j < num_hits; j++)
-	      {
-		InttRawHit *newhit = new InttRawHitv1();
-		int FEE = pool->iValue(j, "FEE");
-		uint64_t gtm_bco = pool->lValue(j, "BCO");
-		newhit->set_packetid(pool->getIdentifier());
-		newhit->set_fee(FEE);
-		newhit->set_bco(gtm_bco);
-		newhit->set_adc(pool->iValue(j,"ADC"));
-		newhit->set_amplitude(pool->iValue(j,"AMPLITUDE"));
-		newhit->set_chip_id(pool->iValue(j,"CHIP_ID"));
-		newhit->set_channel_id(pool->iValue(j,"CHANNEL_ID"));
-		newhit->set_word(pool->iValue(j,"DATAWORD"));
-		newhit->set_FPHX_BCO(pool->iValue(j,"FPHX_BCO"));
-		newhit->set_full_FPHX(pool->iValue(j,"FULL_FPHX"));
-		newhit->set_full_ROC(pool->iValue(j,"FULL_ROC"));
-	      
-		gtm_bco += m_Rollover[FEE];
-		bclk_set.insert(gtm_bco);
-		if (gtm_bco < m_PreviousClock[FEE])
-		  {
-		    m_Rollover[FEE] += 0x10000000000;
-		    gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
-		  }
-		m_PreviousClock[FEE] = gtm_bco;
-		m_BeamClockFEE[gtm_bco].insert(FEE);
-		m_FEEBclkMap[FEE] = gtm_bco;
-		if (Verbosity() > 2)
-		  {
-		    std::cout << "evtno: " << EventSequence
-			      << ", hits: " << j
-			      << ", nr_hits: " << num_hits
-			      << ", FEE: " << FEE 
-			      << ", bco: 0x" << std::hex << gtm_bco << std::dec
-			      << ", channel: " << newhit->get_channel_id() << std::endl;
-		  }
-		if (StreamingInputManager())
-		  {
-		    StreamingInputManager()->AddInttRawHit(gtm_bco, newhit);
-		  }
-		m_InttRawHitMap[gtm_bco].push_back(newhit);
-		m_BclkStack.insert(gtm_bco);
-	      }
-//	    Print("FEEBCLK");
-	  }
-	pool->next();
+        int num_hits = pool->iValue(0, "NR_HITS");
+        if (Verbosity() > 1)
+        {
+          std::cout << "Number of Hits: " << num_hits << " for packet "
+                    << pool->getIdentifier() << std::endl;
+        }
+        std::set<uint64_t> bclk_set;
+        for (int j = 0; j < num_hits; j++)
+        {
+          InttRawHit *newhit = new InttRawHitv1();
+          int FEE = pool->iValue(j, "FEE");
+          uint64_t gtm_bco = pool->lValue(j, "BCO");
+          newhit->set_packetid(pool->getIdentifier());
+          newhit->set_fee(FEE);
+          newhit->set_bco(gtm_bco);
+          newhit->set_adc(pool->iValue(j, "ADC"));
+          newhit->set_amplitude(pool->iValue(j, "AMPLITUDE"));
+          newhit->set_chip_id(pool->iValue(j, "CHIP_ID"));
+          newhit->set_channel_id(pool->iValue(j, "CHANNEL_ID"));
+          newhit->set_word(pool->iValue(j, "DATAWORD"));
+          newhit->set_FPHX_BCO(pool->iValue(j, "FPHX_BCO"));
+          newhit->set_full_FPHX(pool->iValue(j, "FULL_FPHX"));
+          newhit->set_full_ROC(pool->iValue(j, "FULL_ROC"));
+
+          gtm_bco += m_Rollover[FEE];
+          bclk_set.insert(gtm_bco);
+          if (gtm_bco < m_PreviousClock[FEE])
+          {
+            m_Rollover[FEE] += 0x10000000000;
+            gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+          }
+          m_PreviousClock[FEE] = gtm_bco;
+          m_BeamClockFEE[gtm_bco].insert(FEE);
+          m_FEEBclkMap[FEE] = gtm_bco;
+          if (Verbosity() > 2)
+          {
+            std::cout << "evtno: " << EventSequence
+                      << ", hits: " << j
+                      << ", nr_hits: " << num_hits
+                      << ", FEE: " << FEE
+                      << ", bco: 0x" << std::hex << gtm_bco << std::dec
+                      << ", channel: " << newhit->get_channel_id() << std::endl;
+          }
+          if (StreamingInputManager())
+          {
+            StreamingInputManager()->AddInttRawHit(gtm_bco, newhit);
+          }
+          m_InttRawHitMap[gtm_bco].push_back(newhit);
+          m_BclkStack.insert(gtm_bco);
+        }
+        //	    Print("FEEBCLK");
       }
-  } 	  
+      pool->next();
+    }
+  }
 }
 
 void SingleInttPoolInput::Print(const std::string &what) const
@@ -242,8 +240,8 @@ void SingleInttPoolInput::CleanupUsedPackets(const uint64_t bclk)
   }
   for (auto iter : toclearbclk)
   {
-  m_BclkStack.erase(iter);
-  m_BeamClockFEE.erase(iter);
+    m_BclkStack.erase(iter);
+    m_BeamClockFEE.erase(iter);
     m_InttRawHitMap.erase(iter);
   }
 }
@@ -274,7 +272,7 @@ void SingleInttPoolInput::ClearCurrentEvent()
 {
   // called interactively, to get rid of the current event
   uint64_t currentbclk = *m_BclkStack.begin();
-//  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
+  //  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
   CleanupUsedPackets(currentbclk);
   // m_BclkStack.erase(currentbclk);
   // m_BeamClockFEE.erase(currentbclk);
@@ -318,24 +316,23 @@ void SingleInttPoolInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  if (! dstNode)
+  if (!dstNode)
   {
     dstNode = new PHCompositeNode("DST");
     topNode->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
-PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "INTT"));
-if (!detNode)
-{
-  detNode = new PHCompositeNode("INTT");
-  dstNode->addNode(detNode);
-}
-  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode,"INTTRAWHIT");
+  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "INTT"));
+  if (!detNode)
+  {
+    detNode = new PHCompositeNode("INTT");
+    dstNode->addNode(detNode);
+  }
+  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode, "INTTRAWHIT");
   if (!intthitcont)
   {
     intthitcont = new InttRawHitContainerv1();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
     detNode->addNode(newNode);
   }
-
 }
