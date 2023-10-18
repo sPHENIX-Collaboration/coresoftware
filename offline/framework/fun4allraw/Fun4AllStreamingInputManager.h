@@ -53,7 +53,6 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
   void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit* /* hit */);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
-  bool GetMoreInttEvents();
 
  private:
   struct PacketInfo
