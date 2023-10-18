@@ -24,7 +24,7 @@
 SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
-  plist = new Packet *[10];
+  plist = new Packet *[1];
 }
 
 SingleInttPoolInput::~SingleInttPoolInput()
@@ -83,9 +83,9 @@ void SingleInttPoolInput::FillPool(const unsigned int)
     }
 
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, 10);
+    int npackets = evt->getPacketList(plist, 1);
 
-    if (npackets == 10)
+    if (npackets > 1)
     {
       exit(1);
     }
@@ -178,11 +178,6 @@ void SingleInttPoolInput::FillPool(const unsigned int)
   } 	  
 }
 
-void SingleInttPoolInput::HandleBeamClock(const uint64_t bclk)
-{
-  std::cout << "bclk: " << std::hex << bclk << std::dec << std::endl;
-}
-
 void SingleInttPoolInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "FEE")
@@ -244,11 +239,6 @@ void SingleInttPoolInput::CleanupUsedPackets(const uint64_t bclk)
       break;
     }
   }
-  // for (auto iter :  m_BeamClockFEE)
-  // {
-  //   iter.second.clear();
-  // }
-
   for (auto iter : toclearbclk)
   {
   m_BclkStack.erase(iter);
@@ -259,11 +249,6 @@ void SingleInttPoolInput::CleanupUsedPackets(const uint64_t bclk)
 
 bool SingleInttPoolInput::CheckPoolDepth(const uint64_t bclk)
 {
-  // if (m_FEEBclkMap.size() < 10)
-  // {
-  //   std::cout << "not all FEEs in map: " << m_FEEBclkMap.size() << std::endl;
-  //   return true;
-  // }
   for (auto iter : m_FEEBclkMap)
   {
     if (Verbosity() > 2)
@@ -299,12 +284,10 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
 {
   if (AllDone())
   {
-    std::cout << "bclk: " << ibclk << std::endl;
     return false;
   }
   if (poolmap.empty())
   {
-    std::cout << "poolmap is empty" << std::endl;
     return true;
   }
   uint64_t localbclk = ibclk;
@@ -312,7 +295,7 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
   {
     if (m_InttRawHitMap.empty())
     {
-    return true;
+      return true;
     }
     localbclk = m_InttRawHitMap.begin()->first;
   }
@@ -327,15 +310,6 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
       return true;
     }
   }
-  // for ( auto iter : poolmap )
-  // {
-  //   intt_pool * pool = iter.second; // less typing
-  //   if (!pool->depth_ok())
-  //   {
-  //     std::cout << "pool depth not ok" << std::endl;
-  //     return true;
-  //   }
-  // }
   return false;
 }
 
