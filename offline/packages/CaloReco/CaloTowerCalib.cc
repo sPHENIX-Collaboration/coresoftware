@@ -76,7 +76,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
       m_fieldname = "Femc_datadriven_qm1_correction";
     }
     std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -101,7 +101,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     }
     cdb = CDBInterface::instance();
     std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -126,7 +126,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     }
     cdb = CDBInterface::instance();
     std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -151,7 +151,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     }
     cdb = CDBInterface::instance();
     std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -176,7 +176,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     }
     cdb = CDBInterface::instance();
     std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
