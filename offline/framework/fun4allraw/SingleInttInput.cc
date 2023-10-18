@@ -5,17 +5,14 @@
 #include <ffarawobjects/InttRawHitContainerv1.h>
 #include <ffarawobjects/InttRawHitv1.h>
 
-#include <frog/FROG.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
-#include <phool/phool.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/Eventiterator.h>
-#include <Event/fileEventiterator.h>
+#include <Event/packet.h>
 
 #include <set>
 

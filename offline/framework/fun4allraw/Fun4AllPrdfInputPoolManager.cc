@@ -5,13 +5,9 @@
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
-#include <fun4all/Fun4AllSyncManager.h>
-#include <fun4all/Fun4AllUtils.h>
 
 #include <ffaobjects/SyncObject.h>  // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>
-
-#include <frog/FROG.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -22,11 +18,11 @@
 
 #include <Event/A_Event.h>
 #include <Event/Event.h>
-#include <Event/Eventiterator.h>  // for Eventiterator
-#include <Event/fileEventiterator.h>
 #include <Event/oEvent.h>
+#include <Event/packet.h>
 
 #include <cassert>
+#include <climits>
 #include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream, endl
 #include <utility>   // for pair

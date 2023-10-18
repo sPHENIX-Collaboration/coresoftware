@@ -4,16 +4,15 @@
 #include "SingleStreamingInput.h"
 
 #include <array>
-#include <list>
+#include <cstdint>                // for uint64_t
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
 
-class Eventiterator;
-class Fun4AllEvtInputPoolManager;
 class InttRawHit;
 class Packet;
+class PHCompositeNode;
 class intt_pool;
 
 class SingleInttPoolInput : public SingleStreamingInput

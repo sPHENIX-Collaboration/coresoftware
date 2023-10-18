@@ -4,10 +4,10 @@
 #include <fun4all/Fun4AllBase.h>
 #include <fun4all/InputFileHandler.h>
 
-#include <list>
 #include <map>
 #include <set>
 #include <string>
+#include <utility>                     // for pair
 #include <vector>
 
 class Eventiterator;

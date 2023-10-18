@@ -4,17 +4,14 @@
 #include <fun4all/Fun4AllBase.h>
 #include <fun4all/InputFileHandler.h>
 
-#include <array>
-#include <list>
+#include <cstdint>                    // for uint64_t
 #include <map>
 #include <set>
 #include <string>
-#include <vector>
 
 class Eventiterator;
 class Fun4AllEvtInputPoolManager;
 class Fun4AllStreamingInputManager;
-class Packet;
 class PHCompositeNode;
 
 class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
