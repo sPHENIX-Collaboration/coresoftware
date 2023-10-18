@@ -105,8 +105,6 @@ class TpcRawDataTree : public SubsysReco
   uint64_t m_last_bco = 0;
   uint8_t m_modebits = 0;
 
-  uint64_t m_last_lvl1_bco = 0;
-
   std::vector<unsigned short> m_adcSamples;
 
   int FEE_R[26]={2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
