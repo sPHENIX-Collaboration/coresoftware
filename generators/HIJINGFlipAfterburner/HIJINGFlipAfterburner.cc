@@ -67,6 +67,7 @@ void HIJINGFlipAfterburner::flipZDirection(HepMC::GenEvent *event)
     HepMC::FourVector position = (*v)->position();
 
     position.setZ(-position.z());
+    position.setX(-position.x());
 
     (*v)->set_position(position);
   }
@@ -76,6 +77,7 @@ void HIJINGFlipAfterburner::flipZDirection(HepMC::GenEvent *event)
     HepMC::FourVector momentum = (*p)->momentum();
 
     momentum.setPz(-momentum.pz());
+    momentum.setPx(-momentum.px());
 
     (*p)->set_momentum(momentum);
   }
