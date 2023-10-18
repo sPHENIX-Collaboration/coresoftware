@@ -42,6 +42,7 @@ pkginclude_HEADERS = \
   TpcClusterizer.h \
   TpcClusterMover.h \
   TpcClusterZCrossingCorrection.h \
+  TpcCombinedRawDataUnpacker.h \
   TpcDistortionCorrection.h \
   TpcDistortionCorrectionContainer.h \
   TpcLoadDistortionCorrection.h \
@@ -68,6 +69,7 @@ libtpc_la_SOURCES = \
   TpcRawDataTree.cc \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
+  TpcCombinedRawDataUnpacker.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \
   TpcRawDataDecoder.cc \
@@ -76,6 +78,7 @@ libtpc_la_SOURCES = \
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
+  -lffarawobjects \
   -lc10 \
   -ltorch_cpu \
   -ltorch \
@@ -89,8 +92,8 @@ libtpc_io_la_SOURCES = \
   $(ROOTDICTS) \
   TrainingHitsContainer.cc \
   TrainingHits.cc \
-  TpcDistortionCorrection.cc \
   TpcClusterMover.cc \
+  TpcDistortionCorrection.cc \
   TpcClusterZCrossingCorrection.cc
 
 libtpc_io_la_LIBADD = \
