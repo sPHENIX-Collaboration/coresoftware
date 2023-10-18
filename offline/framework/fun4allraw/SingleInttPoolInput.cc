@@ -3,23 +3,24 @@
 
 #include "Fun4AllStreamingInputManager.h"
 
-#include <ffarawobjects/InttRawHitContainerv1.h>
 #include <ffarawobjects/InttRawHitv1.h>
-
-#include <frog/FROG.h>
+#include <ffarawobjects/InttRawHitContainerv1.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>                   // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
-#include <phool/phool.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/Eventiterator.h>
-#include <Event/fileEventiterator.h>
 
-
+#include <algorithm>                              // for max
+#include <cstdint>                                // for uint64_t
+#include <cstdlib>                               // for exit
+#include <iostream>                               // for operator<<, basic_o...
 #include <set>
+#include <utility>                                // for pair
 
 SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
   : SingleStreamingInput(name)
