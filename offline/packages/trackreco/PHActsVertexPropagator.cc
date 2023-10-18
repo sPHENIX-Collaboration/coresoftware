@@ -188,11 +188,11 @@ PHActsVertexPropagator::propagateTrack(
   ActsPropagator propagator(m_tGeometry);
   propagator.verbosity(Verbosity());
   propagator.setOverstepLimit(1 * Acts::UnitConstants::cm);
-  if(m_fieldMap.find(".root") == std::string::npos)
-    {
-      propagator.constField();
-      propagator.setConstFieldValue(std::stod(m_fieldMap));
-    }
+  if (m_fieldMap.find(".root") == std::string::npos)
+  {
+    propagator.constField();
+    propagator.setConstFieldValue(std::stod(m_fieldMap));
+  }
 
   return propagator.propagateTrack(params, perigee);
 }

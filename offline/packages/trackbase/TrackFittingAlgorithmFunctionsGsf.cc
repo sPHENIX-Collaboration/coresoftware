@@ -7,10 +7,10 @@ ActsGsfTrackFittingAlgorithm::makeGsfFitterFunction(
     BetheHeitlerApprox betheHeitlerApprox, std::size_t maxComponents,
     double weightCutoff,
     Acts::MixtureReductionMethod finalReductionMethod, bool abortOnError,
-    bool disableAllMaterialHandling, const Acts::Logger& logger) {
-
+    bool disableAllMaterialHandling, const Acts::Logger& logger)
+{
   MultiStepper stepper(magneticField, finalReductionMethod,
-		       logger.cloneWithSuffix("GSFStep"));
+                       logger.cloneWithSuffix("GSFStep"));
   const auto& geo = *trackingGeometry;
 
   // Standard fitter
@@ -20,14 +20,14 @@ ActsGsfTrackFittingAlgorithm::makeGsfFitterFunction(
   cfg.resolveSensitive = true;
   Acts::Navigator navigator(cfg, logger.cloneWithSuffix("GSFNavigator"));
   Propagator propagator(std::move(stepper), std::move(navigator),
-			logger.cloneWithSuffix("GSFPropagator"));
+                        logger.cloneWithSuffix("GSFPropagator"));
   Fitter trackFitter(std::move(propagator),
                      BetheHeitlerApprox(betheHeitlerApprox),
-		     logger.cloneWithSuffix("GSFFitter"));
+                     logger.cloneWithSuffix("GSFFitter"));
 
   // build the fitter functions. owns the fitter object.
   auto fitterFunction = std::make_shared<GsfFitterFunctionImpl>(
-								std::move(trackFitter), geo);
+      std::move(trackFitter), geo);
   fitterFunction->maxComponents = maxComponents;
   fitterFunction->weightCutoff = weightCutoff;
   fitterFunction->abortOnError = abortOnError;

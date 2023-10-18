@@ -340,7 +340,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
                     momentum,
                     charge / momentum.norm(),
                     cov,
-		    Acts::ParticleHypothesis::muon())
+                    Acts::ParticleHypothesis::muon())
                     .value();
 
     if (Verbosity() > 2)
@@ -363,14 +363,14 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
             magcontext,
             calibcontext,
             &(*pSurface),
-	    ppPlainOptions};
+            ppPlainOptions};
 
-    auto trackContainer = 
-	std::make_shared<Acts::VectorTrackContainer>();
-    auto trackStateContainer = 
-      std::make_shared<Acts::VectorMultiTrajectory>();
-    ActsTrackFittingAlgorithm::TrackContainer 
-      tracks(trackContainer, trackStateContainer);
+    auto trackContainer =
+        std::make_shared<Acts::VectorTrackContainer>();
+    auto trackStateContainer =
+        std::make_shared<Acts::VectorMultiTrajectory>();
+    ActsTrackFittingAlgorithm::TrackContainer
+        tracks(trackContainer, trackStateContainer);
     auto result = fitTrack(sourceLinks, seed, kfOptions, calibrator, tracks);
 
     /// Check that the track fit result did not return an error
@@ -648,10 +648,10 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
   return sourcelinks;
 }
 
-bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput, 
-					   TrackSeed* seed, SvtxTrack* track, 
-					   ActsTrackFittingAlgorithm::TrackContainer& tracks,
-					   const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
+bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput,
+                                           TrackSeed* seed, SvtxTrack* track,
+                                           ActsTrackFittingAlgorithm::TrackContainer& tracks,
+                                           const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
@@ -661,47 +661,45 @@ bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput,
   trackTips.emplace_back(outtrack.tipIndex());
   Trajectory::IndexedParameters indexedParams;
 
-   indexedParams.emplace(std::pair{outtrack.tipIndex(),
-	 ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
-	   outtrack.parameters(), outtrack.covariance(), outtrack.particleHypothesis()}});
-  
- if (Verbosity() > 2)
-    {
-      std::cout << "Fitted parameters for track" << std::endl;
-      std::cout << " position : " << outtrack.referenceSurface().localToGlobal(m_tGeometry->geometry().getGeoContext(), Acts::Vector2(outtrack.loc0(), outtrack.loc1()), Acts::Vector3(1,1,1)).transpose()
-	
-		<< std::endl;
-      
-      int otcharge = outtrack.qOverP() > 0 ? 1 : -1;
-      std::cout << "charge: "<< otcharge<<std::endl;
-      std::cout << " momentum : " << outtrack.momentum().transpose()
-		<< std::endl;
-      std::cout << "For trackTip == " << outtrack.tipIndex() << std::endl;
-    }  
-  
-    
+  indexedParams.emplace(std::pair{outtrack.tipIndex(),
+                                  ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
+                                                                outtrack.parameters(), outtrack.covariance(), outtrack.particleHypothesis()}});
+
+  if (Verbosity() > 2)
+  {
+    std::cout << "Fitted parameters for track" << std::endl;
+    std::cout << " position : " << outtrack.referenceSurface().localToGlobal(m_tGeometry->geometry().getGeoContext(), Acts::Vector2(outtrack.loc0(), outtrack.loc1()), Acts::Vector3(1, 1, 1)).transpose()
+
+              << std::endl;
+
+    int otcharge = outtrack.qOverP() > 0 ? 1 : -1;
+    std::cout << "charge: " << otcharge << std::endl;
+    std::cout << " momentum : " << outtrack.momentum().transpose()
+              << std::endl;
+    std::cout << "For trackTip == " << outtrack.tipIndex() << std::endl;
+  }
+
   Trajectory trajectory(tracks.trackStateContainer(),
-			trackTips, indexedParams);
+                        trackTips, indexedParams);
 
   m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
 
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
   updateSvtxTrack(trackTips, indexedParams, tracks, track);
-  
 
   if (m_commissioning)
   {
     if (track->get_silicon_seed() && track->get_tpc_seed())
     {
       m_alignStates.fillAlignmentStateMap(tracks, trackTips,
-					  track, measurements);
+                                          track, measurements);
     }
   }
 
   if (m_actsEvaluator)
   {
-    m_evaluator->evaluateTrackFit(tracks,trackTips,indexedParams, track,
+    m_evaluator->evaluateTrackFit(tracks, trackTips, indexedParams, track,
                                   seed, measurements);
   }
 
@@ -719,10 +717,10 @@ inline ActsTrackFittingAlgorithm::TrackFitterResult PHCosmicsTrkFitter::fitTrack
 }
 
 void PHCosmicsTrkFitter::updateSvtxTrack(
-     std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
-     Trajectory::IndexedParameters& paramsMap,
-     ActsTrackFittingAlgorithm::TrackContainer& tracks, 
-     SvtxTrack* track)
+    std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+    Trajectory::IndexedParameters& paramsMap,
+    ActsTrackFittingAlgorithm::TrackContainer& tracks,
+    SvtxTrack* track)
 {
   const auto& mj = tracks.trackStateContainer();
 

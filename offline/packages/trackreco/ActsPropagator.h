@@ -52,12 +52,12 @@ class ActsPropagator
   SurfacePtr makeVertexSurface(const Acts::Vector3& vertex);
   BoundTrackParam makeTrackParams(SvtxTrack* track, SvtxVertexMap* vertexMap);
   BoundTrackParam makeTrackParams(SvtxTrackState* state, int trackCharge,
-				  SurfacePtr surf);
+                                  SurfacePtr surf);
 
   /// The return type is an Acts::Result of a std::pair, where the pair is
-  /// a path length and the track parameters at the surface in units of mm 
-  /// and GeV. For an example of how to unpack this, see 
-  /// PHActsTrackProjection::propagateTrack and 
+  /// a path length and the track parameters at the surface in units of mm
+  /// and GeV. For an example of how to unpack this, see
+  /// PHActsTrackProjection::propagateTrack and
   /// PHActsTrackProjection::updateSvtxTrack
   BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params,
                                        const unsigned int sphenixLayer);
@@ -92,7 +92,7 @@ class ActsPropagator
   float m_fieldval = 1.4 * Acts::UnitConstants::T;
 
   /// Default Acts limit
-  float m_overstepLimit = 0.01 * Acts::UnitConstants::cm; // sphenix units cm
+  float m_overstepLimit = 0.01 * Acts::UnitConstants::cm;  // sphenix units cm
 };
 
 #endif

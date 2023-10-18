@@ -113,9 +113,9 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
-		       Trajectory::IndexedParameters& paramsMap,
-		       ActsTrackFittingAlgorithm::TrackContainer& tracks, 
-		       SvtxTrack* track);
+                       Trajectory::IndexedParameters& paramsMap,
+                       ActsTrackFittingAlgorithm::TrackContainer& tracks,
+                       SvtxTrack* track);
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
@@ -129,7 +129,7 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   bool getTrackFitResult(FitResult& fitOutput, TrackSeed* seed,
                          SvtxTrack* track,
-			 ActsTrackFittingAlgorithm::TrackContainer& tracks,
+                         ActsTrackFittingAlgorithm::TrackContainer& tracks,
                          const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
 
   Acts::BoundSquareMatrix setDefaultCovariance() const;

@@ -23,8 +23,8 @@
 #include <Acts/Propagator/MultiEigenStepperLoop.hpp>
 #pragma GCC diagnostic pop
 
-#include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/EventData/SourceLink.hpp>
+#include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/EventData/VectorTrackContainer.hpp>
 
 #include <functional>
@@ -44,9 +44,9 @@ class ActsTrackFittingAlgorithm final
   using MeasurementContainer = std::vector<Measurement>;
 
   using TrackContainer =
-    Acts::TrackContainer<Acts::VectorTrackContainer,
-                         Acts::VectorMultiTrajectory, std::shared_ptr>;
-  
+      Acts::TrackContainer<Acts::VectorTrackContainer,
+                           Acts::VectorMultiTrajectory, std::shared_ptr>;
+
   using TrackFitterResult = Acts::Result<TrackContainer::TrackProxy>;
 
   /// General options that do not depend on the fitter type, but need to be
@@ -70,7 +70,7 @@ class ActsTrackFittingAlgorithm final
     virtual TrackFitterResult operator()(
         const std::vector<Acts::SourceLink>&,
         const TrackParameters&, const GeneralFitterOptions&,
-	const CalibratorAdapter&,
+        const CalibratorAdapter&,
         TrackContainer&) const = 0;
 
     virtual void outlierFinder(const ResidualOutlierFinder&) {}
@@ -89,7 +89,7 @@ class ActsTrackFittingAlgorithm final
         const std::vector<Acts::SourceLink>&,
         const TrackParameters&, const GeneralFitterOptions&,
         const std::vector<const Acts::Surface*>&,
-	const CalibratorAdapter&,
+        const CalibratorAdapter&,
         TrackContainer&) const = 0;
   };
 
@@ -126,9 +126,9 @@ class ActsTrackFittingAlgorithm final
       bool multipleScattering = true, bool energyLoss = true,
       double reverseFilteringMomThreshold = 0.0,
       Acts::FreeToBoundCorrection freeToBoundCorrection =
-      Acts::FreeToBoundCorrection(),
+          Acts::FreeToBoundCorrection(),
       const Acts::Logger& logger = *Acts::getDefaultLogger("Kalman",
-							   Acts::Logging::FATAL));
+                                                           Acts::Logging::FATAL));
 
   static std::shared_ptr<DirectedTrackFitterFunction> makeDirectedKalmanFitterFunction(
       std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
@@ -136,9 +136,9 @@ class ActsTrackFittingAlgorithm final
       bool multipleScattering = true, bool energyLoss = true,
       double reverseFilteringMomThreshold = 0.0,
       Acts::FreeToBoundCorrection freeToBoundCorrection =
-      Acts::FreeToBoundCorrection(),
+          Acts::FreeToBoundCorrection(),
       const Acts::Logger& logger = *Acts::getDefaultLogger("Kalman",
-							   Acts::Logging::FATAL));
+                                                           Acts::Logging::FATAL));
 
  private:
   /// Helper function to call correct FitterFunction

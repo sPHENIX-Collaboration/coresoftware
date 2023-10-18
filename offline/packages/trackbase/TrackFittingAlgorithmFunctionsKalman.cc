@@ -45,29 +45,28 @@ namespace
 
   template <typename TrackFitterFunction>
   auto makeKfOptions(const TrackFitterFunction& f,
-		     ActsTrackFittingAlgorithm::GeneralFitterOptions options)
-    {
-      Acts::KalmanFitterExtensions<Acts::VectorMultiTrajectory> extensions;
-      // cppcheck-suppress constStatement
-      extensions.updater.connect<&Acts::GainMatrixUpdater::operator()<Acts::VectorMultiTrajectory>>(&f.kfUpdater);
-      // cppcheck-suppress constStatement
-      extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()<Acts::VectorMultiTrajectory>>(&f.kfSmoother);
-      extensions.reverseFilteringLogic
+                     ActsTrackFittingAlgorithm::GeneralFitterOptions options)
+  {
+    Acts::KalmanFitterExtensions<Acts::VectorMultiTrajectory> extensions;
+    // cppcheck-suppress constStatement
+    extensions.updater.connect<&Acts::GainMatrixUpdater::operator()<Acts::VectorMultiTrajectory>>(&f.kfUpdater);
+    // cppcheck-suppress constStatement
+    extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()<Acts::VectorMultiTrajectory>>(&f.kfSmoother);
+    extensions.reverseFilteringLogic
         .connect<&SimpleReverseFilteringLogic::doBackwardFiltering>(
-								    &f.reverseFilteringLogic);
-      
-      Acts::KalmanFitterOptions<Acts::VectorMultiTrajectory> kfOptions(
-								       options.geoContext, options.magFieldContext, options.calibrationContext,
-								       extensions, options.propOptions,
-								       &(*options.referenceSurface));
-      
-      kfOptions.multipleScattering = f.multipleScattering;
-      kfOptions.energyLoss = f.energyLoss;
-      kfOptions.freeToBoundCorrection = f.freeToBoundCorrection;
+            &f.reverseFilteringLogic);
+
+    Acts::KalmanFitterOptions<Acts::VectorMultiTrajectory> kfOptions(
+        options.geoContext, options.magFieldContext, options.calibrationContext,
+        extensions, options.propOptions,
+        &(*options.referenceSurface));
+
+    kfOptions.multipleScattering = f.multipleScattering;
+    kfOptions.energyLoss = f.energyLoss;
+    kfOptions.freeToBoundCorrection = f.freeToBoundCorrection;
 
     return kfOptions;
   }
-
 
   struct TrackFitterFunctionImpl
     : public ActsTrackFittingAlgorithm::TrackFitterFunction
@@ -82,9 +81,9 @@ namespace
     bool multipleScattering;
     bool energyLoss;
     Acts::FreeToBoundCorrection freeToBoundCorrection;
-    
-    TrackFitterFunctionImpl(Fitter&& f, 
-			    const Acts::TrackingGeometry& trkGeo)
+
+    TrackFitterFunctionImpl(Fitter&& f,
+                            const Acts::TrackingGeometry& trkGeo)
       : trackFitter(std::move(f))
       , m_slSurfaceAccessor{trkGeo}
       , multipleScattering(true)
@@ -97,13 +96,13 @@ namespace
         const std::vector<Acts::SourceLink>& sourceLinks,
         const ActsTrackFittingAlgorithm::TrackParameters& initialParameters,
         const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
-	const CalibratorAdapter& calibrator,
+        const CalibratorAdapter& calibrator,
         ActsTrackFittingAlgorithm::TrackContainer& tracks) const override
     {
       auto kfOptions = makeKfOptions(*this, options);
       kfOptions.extensions.surfaceAccessor
-	.connect<&ActsSourceLink::SurfaceAccessor::operator()>(
-	      &m_slSurfaceAccessor);
+          .connect<&ActsSourceLink::SurfaceAccessor::operator()>(
+              &m_slSurfaceAccessor);
       kfOptions.extensions.calibrator
           .connect<&CalibratorAdapter::calibrate>(
               &calibrator);
@@ -117,7 +116,7 @@ namespace
   {
     DirectFitter fitter;
     ActsSourceLink::SurfaceAccessor m_slSurfaceAccessor;
-    
+
     Acts::GainMatrixUpdater kfUpdater;
     Acts::GainMatrixSmoother kfSmoother;
     SimpleReverseFilteringLogic reverseFilteringLogic;
@@ -127,7 +126,7 @@ namespace
     Acts::FreeToBoundCorrection freeToBoundCorrection;
 
     DirectedFitterFunctionImpl(DirectFitter&& f,
-			       const Acts::TrackingGeometry& trkGeo)
+                               const Acts::TrackingGeometry& trkGeo)
       : fitter(std::move(f))
       , m_slSurfaceAccessor{trkGeo}
       , multipleScattering(true)
@@ -141,16 +140,16 @@ namespace
         const ActsTrackFittingAlgorithm::TrackParameters& initialParameters,
         const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
         const std::vector<const Acts::Surface*>& sSequence,
-	const CalibratorAdapter& calibrator,
+        const CalibratorAdapter& calibrator,
         ActsTrackFittingAlgorithm::TrackContainer& tracks) const override
     {
       auto kfOptions = makeKfOptions(*this, options);
       kfOptions.extensions.calibrator
           .connect<&CalibratorAdapter::calibrate>(
               &calibrator);
-       kfOptions.extensions.surfaceAccessor
-	.connect<&ActsSourceLink::SurfaceAccessor::operator()>(
-	      &m_slSurfaceAccessor);
+      kfOptions.extensions.surfaceAccessor
+          .connect<&ActsSourceLink::SurfaceAccessor::operator()>(
+              &m_slSurfaceAccessor);
       return fitter.fit(sourceLinks.begin(), sourceLinks.end(), initialParameters,
                         kfOptions, sSequence, tracks);
     };
@@ -170,8 +169,8 @@ struct sPHENIXTrackFitterFunctionImpl : public TrackFitterFunctionImpl
     use_OF = true;
   }
 
-  sPHENIXTrackFitterFunctionImpl(Fitter&& f, 
-				 const Acts::TrackingGeometry& trkGeo)
+  sPHENIXTrackFitterFunctionImpl(Fitter&& f,
+                                 const Acts::TrackingGeometry& trkGeo)
     : TrackFitterFunctionImpl(std::move(f), trkGeo)
   {
   }
@@ -188,8 +187,8 @@ struct sPHENIXTrackFitterFunctionImpl : public TrackFitterFunctionImpl
     kfOptions.extensions.calibrator.connect<&CalibratorAdapter::calibrate>(
         &calibrator);
     kfOptions.extensions.surfaceAccessor
-      .connect<&ActsSourceLink::SurfaceAccessor::operator()>(
-	      &m_slSurfaceAccessor);
+        .connect<&ActsSourceLink::SurfaceAccessor::operator()>(
+            &m_slSurfaceAccessor);
     if (use_OF)
     {
       kfOptions.extensions.outlierFinder.connect<&ResidualOutlierFinder::operator()>(&m_oFinder);
@@ -211,19 +210,19 @@ ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
 {
   Stepper stepper(std::move(magneticField));
   const auto& geo = *trackingGeometry;
-  
+
   Acts::Navigator::Config cfg{trackingGeometry};
   cfg.resolvePassive = false;
   cfg.resolveMaterial = true;
   cfg.resolveSensitive = true;
   Acts::Navigator navigator(cfg, logger.cloneWithSuffix("Navigator"));
   Propagator propagator(std::move(stepper), std::move(navigator),
-			logger.cloneWithSuffix("Propagator"));
+                        logger.cloneWithSuffix("Propagator"));
   Fitter trackFitter(std::move(propagator), logger.cloneWithSuffix("Fitter"));
 
   // build the fitter functions. owns the fitter object.
   auto fitterFunction =
-    std::make_shared<sPHENIXTrackFitterFunctionImpl>(std::move(trackFitter), geo);
+      std::make_shared<sPHENIXTrackFitterFunctionImpl>(std::move(trackFitter), geo);
   fitterFunction->multipleScattering = multipleScattering;
   fitterFunction->energyLoss = energyLoss;
   fitterFunction->reverseFilteringLogic.momentumThreshold =
@@ -246,17 +245,17 @@ ActsTrackFittingAlgorithm::makeDirectedKalmanFitterFunction(
   // construct all components for the fitter
   const Stepper stepper(std::move(magneticField));
   const auto& geo = *trackingGeometry;
-  
+
   Acts::DirectNavigator navigator{
       logger.cloneWithSuffix("DirectNavigator")};
   DirectPropagator propagator(stepper, std::move(navigator),
-                                    logger.cloneWithSuffix("DirectPropagator"));
+                              logger.cloneWithSuffix("DirectPropagator"));
   DirectFitter fitter(std::move(propagator),
-                                 logger.cloneWithSuffix("DirectFitter"));
+                      logger.cloneWithSuffix("DirectFitter"));
 
   // build the fitter functions. owns the fitter object.
   auto fitterFunction =
-    std::make_shared<DirectedFitterFunctionImpl>(std::move(fitter), geo);
+      std::make_shared<DirectedFitterFunctionImpl>(std::move(fitter), geo);
   fitterFunction->multipleScattering = multipleScattering;
   fitterFunction->energyLoss = energyLoss;
   fitterFunction->reverseFilteringLogic.momentumThreshold =

@@ -10,15 +10,15 @@
 #include <Acts/TrackFitting/GaussianSumFitter.hpp>
 #pragma GCC diagnostic pop
 
+#include <Acts/EventData/VectorTrackContainer.hpp>
 #include <Acts/Propagator/Navigator.hpp>
 #include <Acts/Propagator/Propagator.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/TrackFitting/BetheHeitlerApprox.hpp>
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
-#include <Acts/Utilities/Helpers.hpp>
-#include <Acts/EventData/VectorTrackContainer.hpp>
 #include <Acts/TrackFitting/GsfMixtureReduction.hpp>
+#include <Acts/Utilities/Helpers.hpp>
 
 #include "ActsTrackFittingAlgorithm.h"
 
@@ -30,16 +30,16 @@ namespace
   using DirectPropagator = Acts::Propagator<MultiStepper, Acts::DirectNavigator>;
 
   using Fitter =
-    Acts::GaussianSumFitter<Propagator,
-    BetheHeitlerApprox,
-    Acts::VectorMultiTrajectory>;
+      Acts::GaussianSumFitter<Propagator,
+                              BetheHeitlerApprox,
+                              Acts::VectorMultiTrajectory>;
   using DirectFitter =
       Acts::GaussianSumFitter<DirectPropagator,
-                                            BetheHeitlerApprox,
-                                            Acts::VectorMultiTrajectory>;
+                              BetheHeitlerApprox,
+                              Acts::VectorMultiTrajectory>;
   using TrackContainer =
-    Acts::TrackContainer<Acts::VectorTrackContainer,
-                         Acts::VectorMultiTrajectory, std::shared_ptr>;
+      Acts::TrackContainer<Acts::VectorTrackContainer,
+                           Acts::VectorMultiTrajectory, std::shared_ptr>;
 
   struct GsfFitterFunctionImpl
     : public ActsTrackFittingAlgorithm::TrackFitterFunction
@@ -52,22 +52,22 @@ namespace
     double weightCutoff = 0;
     bool abortOnError = false;
     bool disableAllMaterialHandling = false;
-    Acts::MixtureReductionMethod reductionMethod = 
-      Acts::MixtureReductionMethod::eMaxWeight;
+    Acts::MixtureReductionMethod reductionMethod =
+        Acts::MixtureReductionMethod::eMaxWeight;
 
     ActsSourceLink::SurfaceAccessor m_slSurfaceAccessor;
 
-  GsfFitterFunctionImpl(Fitter&& f,
-			const Acts::TrackingGeometry& trkGeo)
-      : fitter(std::move(f)),
-      m_slSurfaceAccessor{trkGeo}
+    GsfFitterFunctionImpl(Fitter&& f,
+                          const Acts::TrackingGeometry& trkGeo)
+      : fitter(std::move(f))
+      , m_slSurfaceAccessor{trkGeo}
     {
     }
 
     template <typename calibrator_t>
     auto makeGsfOptions(
-			const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
-			const calibrator_t& calibrator)
+        const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
+        const calibrator_t& calibrator)
         const
     {
       Acts::GsfExtensions<Acts::VectorMultiTrajectory> extensions;
@@ -82,7 +82,7 @@ namespace
           options.propOptions,
           &(*options.referenceSurface),
           maxComponents,
-	    weightCutoff,
+          weightCutoff,
           abortOnError,
           disableAllMaterialHandling};
 
@@ -98,16 +98,17 @@ namespace
         const std::vector<Acts::SourceLink>& sourceLinks,
         const ActsTrackFittingAlgorithm::TrackParameters& initialParameters,
         const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
-	const CalibratorAdapter& calibrator,
+        const CalibratorAdapter& calibrator,
         ActsTrackFittingAlgorithm::TrackContainer& tracks) const override
     {
       const auto gsfOptions = makeGsfOptions(options, calibrator);
       using namespace Acts::GsfConstants;
-      if(not tracks.hasColumn(Acts::hashString(kFinalMultiComponentStateColumn))) {
-	std::string key(kFinalMultiComponentStateColumn);
-	tracks.template addColumn<FinalMultiComponentState>(key);
+      if (not tracks.hasColumn(Acts::hashString(kFinalMultiComponentStateColumn)))
+      {
+        std::string key(kFinalMultiComponentStateColumn);
+        tracks.template addColumn<FinalMultiComponentState>(key);
       }
-      
+
       return fitter.fit(sourceLinks.begin(), sourceLinks.end(), initialParameters,
                         gsfOptions, tracks);
     }
