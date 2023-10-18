@@ -224,6 +224,7 @@ libtrack_io_la_SOURCES = \
   ActsSurfaceMaps.cc \
   alignmentTransformationContainer.cc \
   AlignmentTransformation.cc \
+  Calibrator.cc \
   CMFlashClusterContainerv1.cc \
   CMFlashClusterv1.cc \
   CMFlashClusterv2.cc \

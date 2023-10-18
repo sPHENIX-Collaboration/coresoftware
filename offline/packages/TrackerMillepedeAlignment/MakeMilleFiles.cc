@@ -306,7 +306,7 @@ void MakeMilleFiles::getGlobalVtxDerivativesXY(SvtxTrack* track,
 					       const Acts::Vector3& vertex,
 					       float glblvtx_derivative[SvtxAlignmentState::NRES][3])
 {
-  Acts::SymMatrix3 identity = Acts::SymMatrix3::Identity();
+  Acts::SquareMatrix3 identity = Acts::SquareMatrix3::Identity();
 
   Acts::Vector3 projx = Acts::Vector3::Zero();
   Acts::Vector3 projy = Acts::Vector3::Zero();
