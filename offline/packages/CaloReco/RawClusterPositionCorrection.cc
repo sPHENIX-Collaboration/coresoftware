@@ -114,7 +114,7 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
   
   //Load PDC final stage correction
   calibdir = cdb -> getUrl("cemc_PDC_ResidualCorr");
-  if(calibdir[0] == '/')
+  if(!calibdir.empty())
     {
       cdbHisto = new CDBHistos(calibdir.c_str());
       cdbHisto -> LoadCalibrations();
