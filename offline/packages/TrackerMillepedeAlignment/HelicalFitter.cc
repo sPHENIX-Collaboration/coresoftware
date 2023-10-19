@@ -1333,7 +1333,7 @@ void HelicalFitter::get_dca(SvtxTrack& track,float& dca3dxy, float& dca3dz, floa
 
   track_vtx -= event_vertex; // difference between track_vertex and event_vtx
   
-  Acts::ActsSymMatrix<3> posCov;
+  Acts::ActsSquareMatrix<3> posCov;
   for(int i = 0; i < 3; ++i)
     {
       for(int j = 0; j < 3; ++j)
@@ -1360,7 +1360,7 @@ void HelicalFitter::get_dca(SvtxTrack& track,float& dca3dxy, float& dca3dz, floa
   rot_T    = rot.transpose();
 
   Acts::Vector3 pos_R           = rot * track_vtx;
-  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
+  Acts::ActsSquareMatrix<3> rotCov = rot * posCov * rot_T;
   dca3dxy      = pos_R(0);
   dca3dz       = pos_R(2);
   dca3dxysigma = sqrt(rotCov(0,0));

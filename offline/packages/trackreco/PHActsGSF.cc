@@ -11,11 +11,11 @@
 #include <phool/phool.h>
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ActsGsfTrackFittingAlgorithm.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsGsfTrackFittingAlgorithm.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -23,16 +23,16 @@
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
-#include <Acts/EventData/SourceLink.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
+#include <Acts/EventData/SourceLink.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
+#include <Acts/TrackFitting/BetheHeitlerApprox.hpp>
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
-#include <Acts/TrackFitting/BetheHeitlerApprox.hpp>
 
 #include <TDatabasePDG.h>
 
@@ -60,13 +60,13 @@ int PHActsGSF::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  auto bha = Acts::Experimental::makeDefaultBetheHeitlerApprox();
+  auto bha = Acts::makeDefaultBetheHeitlerApprox();
   ActsGsfTrackFittingAlgorithm gsf;
   m_fitCfg.fit = gsf.makeGsfFitterFunction(
       m_tGeometry->geometry().tGeometry,
       m_tGeometry->geometry().magField,
-      bha, 
-      4, Acts::FinalReductionMethod::eMean, true, false);
+      bha,
+      12, 1e-4, Acts::MixtureReductionMethod::eMaxWeight, false, false);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -120,21 +120,18 @@ int PHActsGSF::process_event(PHCompositeNode*)
       wrappedSls.push_back(Acts::SourceLink{sl});
     }
 
-    Calibrator calibrator(measurements);
+    auto calibptr = std::make_unique<Calibrator>();
+    CalibratorAdapter calibrator(*calibptr, measurements);
     auto magcontext = m_tGeometry->geometry().magFieldContext;
     auto calcontext = m_tGeometry->geometry().calibContext;
 
     auto ppoptions = Acts::PropagatorPlainOptions();
-    ppoptions.absPdgCode = m_pHypothesis;
-    ppoptions.mass = TDatabasePDG::Instance()->GetParticle(
-                                                 m_pHypothesis)
-                         ->Mass() *
-                     Acts::UnitConstants::GeV;
+
     ActsTrackFittingAlgorithm::GeneralFitterOptions options{
         m_tGeometry->geometry().getGeoContext(),
         magcontext,
         calcontext,
-        calibrator, &(*pSurface), 
+        &(*pSurface),
         ppoptions};
     if (Verbosity() > 2)
     {
@@ -146,7 +143,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
     auto trackContainer = std::make_shared<Acts::VectorTrackContainer>();
     auto trackStateContainer = std::make_shared<Acts::VectorMultiTrajectory>();
     ActsTrackFittingAlgorithm::TrackContainer tracks(trackContainer, trackStateContainer);
-    auto result = fitTrack(wrappedSls, seed, options,tracks);
+    auto result = fitTrack(wrappedSls, seed, options, calibrator, tracks);
     std::cout << "result returned" << std::endl;
     if (result.ok())
     {
@@ -170,7 +167,7 @@ std::shared_ptr<Acts::PerigeeSurface> PHActsGSF::makePerigee(SvtxTrack* track) c
 }
 
 ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
-                                                  std::shared_ptr<Acts::PerigeeSurface> psurf) const
+                                                               std::shared_ptr<Acts::PerigeeSurface> psurf) const
 {
   Acts::Vector4 fourpos(track->get_x() * Acts::UnitConstants::cm,
                         track->get_y() * Acts::UnitConstants::cm,
@@ -186,11 +183,12 @@ ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
   auto cov = transformer.rotateSvtxTrackCovToActs(track);
 
   return ActsTrackFittingAlgorithm::TrackParameters::create(psurf,
-                                               m_tGeometry->geometry().getGeoContext(),
-                                               fourpos,
-                                               momentum,
-                                               charge / momentum.norm(),
-                                               cov)
+                                                            m_tGeometry->geometry().getGeoContext(),
+                                                            fourpos,
+                                                            momentum,
+                                                            charge / momentum.norm(),
+                                                            cov,
+                                                            Acts::ParticleHypothesis::electron())
       .value();
 }
 
@@ -326,15 +324,15 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
     std::array<Acts::BoundIndices, 2> indices;
     indices[0] = Acts::BoundIndices::eBoundLoc0;
     indices[1] = Acts::BoundIndices::eBoundLoc1;
-    Acts::ActsSymMatrix<2> cov = Acts::ActsSymMatrix<2>::Zero();
-  
-    double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-    auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster,clusRadius,cluskey);
+    Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
+
+    double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
+    auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, cluskey);
     cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
     cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
     cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
     cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
-    
+
     ActsSourceLink::Index index = measurements.size();
 
     SourceLink sl(surf->geometryId(), index, cluskey);
@@ -366,28 +364,27 @@ ActsTrackFittingAlgorithm::TrackFitterResult PHActsGSF::fitTrack(
     const std::vector<Acts::SourceLink>& sourceLinks,
     const ActsTrackFittingAlgorithm::TrackParameters& seed,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
+    const CalibratorAdapter& calibrator,
     ActsTrackFittingAlgorithm::TrackContainer& tracks)
 {
-  return (*m_fitCfg.fit)(sourceLinks, seed, options,tracks);
+  return (*m_fitCfg.fit)(sourceLinks, seed, options, calibrator, tracks);
 }
 
 void PHActsGSF::updateTrack(FitResult& result, SvtxTrack* track,
-			    ActsTrackFittingAlgorithm::TrackContainer& tracks)
+                            ActsTrackFittingAlgorithm::TrackContainer& tracks)
 {
   std::vector<Acts::MultiTrajectoryTraits::IndexType> trackTips;
   trackTips.reserve(1);
   auto& outtrack = result.value();
   trackTips.emplace_back(outtrack.tipIndex());
   ActsExamples::Trajectories::IndexedParameters indexedParams;
-  
 
   indexedParams.emplace(std::pair{outtrack.tipIndex(),
-	ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
-	  outtrack.parameters(), outtrack.covariance()}});
+                                  ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
+                                                                outtrack.parameters(), outtrack.covariance(), Acts::ParticleHypothesis::electron()}});
   Trajectory traj(tracks.trackStateContainer(), trackTips, indexedParams);
-  
+
   updateSvtxTrack(traj, track);
-  
 }
 
 void PHActsGSF::updateSvtxTrack(const Trajectory& traj, SvtxTrack* track)
