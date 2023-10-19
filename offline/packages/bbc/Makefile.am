@@ -33,6 +33,7 @@ pkginclude_HEADERS = \
   BbcPmtContainer.h \
   BbcPmtContainerV1.h \
   BbcPmtHit.h \
+  MbdPmtHit.h \
   BbcPmtHitV1.h \
   BbcPmtInfoContainerV1.h \
   BbcPmtInfoV1.h \
@@ -43,6 +44,7 @@ pkginclude_HEADERS = \
   BbcGeom.h \
   BbcGeomV1.h \
   BbcReturnCodes.h \
+  MbdReturnCodes.h \
   BbcVertex.h \
   BbcVertexv1.h \
   BbcVertexv2.h \
@@ -64,6 +66,7 @@ ROOTDICTS = \
   BbcNorthSouth_Dict.cc \
   BbcNorthSouthV1_Dict.cc \
   BbcPmtHit_Dict.cc \
+  MbdPmtHit_Dict.cc \
   BbcPmtHitV1_Dict.cc \
   BbcPmtContainer_Dict.cc \
   BbcPmtContainerV1_Dict.cc \
@@ -92,6 +95,7 @@ nobase_dist_pcm_DATA = \
   BbcNorthSouth_Dict_rdict.pcm \
   BbcNorthSouthV1_Dict_rdict.pcm \
   BbcPmtHit_Dict_rdict.pcm \
+  MbdPmtHit_Dict_rdict.pcm \
   BbcPmtHitV1_Dict_rdict.pcm \
   BbcPmtContainer_Dict_rdict.pcm \
   BbcPmtContainerV1_Dict_rdict.pcm \
@@ -117,6 +121,7 @@ libbbc_io_la_SOURCES = \
   BbcNorthSouth.cc \
   BbcNorthSouthV1.cc \
   BbcPmtHit.cc \
+  MbdPmtHit.cc \
   BbcPmtHitV1.cc \
   BbcPmtContainer.cc \
   BbcPmtContainerV1.cc \
