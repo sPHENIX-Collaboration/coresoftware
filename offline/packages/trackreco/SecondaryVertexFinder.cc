@@ -629,7 +629,7 @@ void SecondaryVertexFinder::get_dca(SvtxTrack* track,
 
   pos -= vertex;
 
-  Acts::ActsSymMatrix<3> posCov;
+  Acts::ActsSquareMatrix<3> posCov;
   for(int i = 0; i < 3; ++i)
     {
       for(int j = 0; j < 3; ++j)
@@ -657,7 +657,7 @@ void SecondaryVertexFinder::get_dca(SvtxTrack* track,
   rot_T = rot.transpose();
 
   Acts::Vector3 pos_R = rot * pos;
-  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
+  Acts::ActsSquareMatrix<3> rotCov = rot * posCov * rot_T;
 
   dca3dxy = pos_R(0);
   dca3dz = pos_R(2);
@@ -742,12 +742,15 @@ Acts::BoundTrackParameters SecondaryVertexFinder::makeTrackParams(SvtxTrack* tra
 
   ActsTransformations transformer;
 
-  Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
+  Acts::BoundSquareMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
 
-  return ActsExamples::TrackParameters::create(perigee, _tGeometry->geometry().getGeoContext(),
-                                               actsFourPos, momentum,
-                                               track->get_charge() / track->get_p(),
-                                               cov).value();
+  return ActsTrackFittingAlgorithm::TrackParameters::create(
+         perigee, 
+	 _tGeometry->geometry().getGeoContext(),
+	 actsFourPos, momentum,
+	 track->get_charge() / track->get_p(),
+	 cov,
+	 Acts::ParticleHypothesis::pion()).value();
 }
 
 //===========================

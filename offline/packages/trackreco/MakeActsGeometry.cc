@@ -58,6 +58,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wuninitialized"
 #include <ActsExamples/Options/CommonOptions.hpp>
 #pragma GCC diagnostic pop
 
