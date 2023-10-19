@@ -433,23 +433,20 @@ unsigned int TowerInfoDefs::decode_zdc(const unsigned int key)
 int get_zdc_side(const unsigned int key)
 {
   if (key & 8) return 1;
-  if (!(key & 8)) return 0;
-  return -999;
+  return 0;
 }
 
 // convert from calorimeter key to smd side
 int TowerInfoDefs::get_smd_side(const unsigned int key)
 {
   if (key & (1 << 4)) return 1;
-  if (!(key & (1 << 4))) return -1;
-  return -999;
+  return -1;
 }
 // convert from calorimeter key to smd xy bin
 int TowerInfoDefs::get_smd_xy(const unsigned int key)
 {
   if (key & (1 << 3)) return 0;
-  if (!(key & (1 << 3))) return 1;
-  return -999;
+  return 1;
 }
 // convert from calorimeter key to smd finger
 int TowerInfoDefs::get_smd_finger_index(const unsigned int key)
