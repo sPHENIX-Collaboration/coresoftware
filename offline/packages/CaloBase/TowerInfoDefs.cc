@@ -414,33 +414,12 @@ unsigned int TowerInfoDefs::decode_smd(const unsigned int key)
   return index;
 }
 
-// convert from zdc tower key to channel number
-unsigned int TowerInfoDefs::decode_zdc(const unsigned int key)
+// get zdc side, 0 = south, 1 = north
+int get_zdc_side(const unsigned int key)
 {
-  unsigned int index = 999;
-  for (unsigned int i = 0; i < 6; i++)
-  {
-    if (encode_zdc(i) == key)
-    {
-      index = i;
-      break;
-    }
-  }
-  return index;
-}
-
-// convert from calorimeter key to zdc side
-int TowerInfoDefs::get_zdc_side(const unsigned int key)
-{
-  if (key & 4) return 1;
-  if (!(key & 4)) return -1;
+  if (key & 8) return 1;
+  if (!(key & 8)) return 0;
   return -999;
-}
-
-// convert from calorimeter key to zdc module number
-unsigned int TowerInfoDefs::get_zdc_module_index(const unsigned int key)
-{
-  return key & 3;
 }
 
 // convert from calorimeter key to smd side
