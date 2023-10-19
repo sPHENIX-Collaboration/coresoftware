@@ -4,17 +4,14 @@
 #include <fun4all/Fun4AllBase.h>
 #include <fun4all/InputFileHandler.h>
 
-#include <array>
-#include <list>
+#include <cstdint>  // for uint64_t
 #include <map>
 #include <set>
 #include <string>
-#include <vector>
 
 class Eventiterator;
 class Fun4AllEvtInputPoolManager;
 class Fun4AllStreamingInputManager;
-class Packet;
 class PHCompositeNode;
 
 class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
@@ -24,8 +21,8 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   explicit SingleStreamingInput(const std::string &name);
   ~SingleStreamingInput() override;
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
-  virtual void FillPool(const uint64_t) {return;}
-  virtual void FillPool(const unsigned int = 1) {return;}
+  virtual void FillPool(const uint64_t) { return; }
+  virtual void FillPool(const unsigned int = 1) { return; }
   virtual void RunNumber(const int runno) { m_RunNumber = runno; }
   virtual int RunNumber() const { return m_RunNumber; }
   virtual int fileopen(const std::string &filename) override;
@@ -34,15 +31,15 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual void AllDone(const int i) { m_AllDone = i; }
   virtual void EventNumberOffset(const int i) { m_EventNumberOffset = i; }
   virtual void Print(const std::string &what = "ALL") const override;
-  virtual void CleanupUsedPackets(const uint64_t) {return;}
+  virtual void CleanupUsedPackets(const uint64_t) { return; }
   virtual bool CheckPoolDepth(const uint64_t bclk);
   virtual void ClearCurrentEvent();
-  virtual Eventiterator *GetEventiterator() const {return m_EventIterator;}
-  virtual Fun4AllEvtInputPoolManager *InputManager() {return m_InputMgr;}
-  virtual void InputManager(Fun4AllEvtInputPoolManager *in) {m_InputMgr = in;}
-  virtual Fun4AllStreamingInputManager *StreamingInputManager() {return m_StreamingInputMgr;}
-  virtual void StreamingInputManager(Fun4AllStreamingInputManager *in) {m_StreamingInputMgr = in;}
-  virtual void CreateDSTNode(PHCompositeNode *) {return;}
+  virtual Eventiterator *GetEventiterator() const { return m_EventIterator; }
+  virtual Fun4AllEvtInputPoolManager *InputManager() { return m_InputMgr; }
+  virtual void InputManager(Fun4AllEvtInputPoolManager *in) { m_InputMgr = in; }
+  virtual Fun4AllStreamingInputManager *StreamingInputManager() { return m_StreamingInputMgr; }
+  virtual void StreamingInputManager(Fun4AllStreamingInputManager *in) { m_StreamingInputMgr = in; }
+  virtual void CreateDSTNode(PHCompositeNode *) { return; }
 
  private:
   Eventiterator *m_EventIterator = nullptr;

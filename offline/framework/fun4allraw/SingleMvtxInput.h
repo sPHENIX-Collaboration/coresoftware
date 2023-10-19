@@ -9,7 +9,7 @@
 #include <algorithm>
 //#include <set>
 //#include <string>
-//#include <vector>
+#include <vector>
 //
 //class Eventiterator;
 //class Fun4AllEvtInputPoolManager;
