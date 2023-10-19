@@ -414,6 +414,21 @@ unsigned int TowerInfoDefs::decode_smd(const unsigned int key)
   return index;
 }
 
+// convert from zdc tower key to channel number
+unsigned int TowerInfoDefs::decode_zdc(const unsigned int key)
+{
+  unsigned int index = 999;
+  for (unsigned int i = 0; i < 16; i++)
+  {
+    if (encode_zdc(i) == key)
+    {
+      index = i;
+      break;
+    }
+  }
+  return index;
+}
+
 // get zdc side, 0 = south, 1 = north
 int get_zdc_side(const unsigned int key)
 {
