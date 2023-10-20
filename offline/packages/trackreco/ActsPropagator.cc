@@ -31,7 +31,7 @@ ActsPropagator::makeVertexSurface(const Acts::Vector3& vertex)
   return Acts::Surface::makeShared<Acts::PerigeeSurface>(
       vertex * Acts::UnitConstants::cm);
 }
-ActsPropagator::BoundTrackParam
+ActsPropagator::BoundTrackParamResult
 ActsPropagator::makeTrackParams(SvtxTrackState* state,
                                 int trackCharge,
                                 ActsPropagator::SurfacePtr surf)
@@ -53,10 +53,9 @@ ActsPropagator::makeTrackParams(SvtxTrackState* state,
              actsFourPos, momentum,
              trackCharge / momentum.norm(),
              cov,
-             Acts::ParticleHypothesis::pion())
-      .value();
+             Acts::ParticleHypothesis::pion());
 }
-ActsPropagator::BoundTrackParam
+ActsPropagator::BoundTrackParamResult
 ActsPropagator::makeTrackParams(SvtxTrack* track,
                                 SvtxVertexMap* vertexMap)
 {
@@ -91,11 +90,10 @@ ActsPropagator::makeTrackParams(SvtxTrack* track,
                                                             actsFourPos, momentum,
                                                             track->get_charge() / track->get_p(),
                                                             cov,
-                                                            Acts::ParticleHypothesis::pion())
-      .value();
+                                                            Acts::ParticleHypothesis::pion());
 }
 
-ActsPropagator::BoundTrackParamResult
+ActsPropagator::BTPPairResult
 ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
                                const unsigned int sphenixLayer)
 {
@@ -136,7 +134,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
   return result.error();
 }
 
-ActsPropagator::BoundTrackParamResult
+ActsPropagator::BTPPairResult
 ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
                                const SurfacePtr& surface)
 {
@@ -165,7 +163,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
   return result.error();
 }
 
-ActsPropagator::BoundTrackParamResult
+ActsPropagator::BTPPairResult
 ActsPropagator::propagateTrackFast(const Acts::BoundTrackParameters& params,
                                    const SurfacePtr& surface)
 {
