@@ -266,7 +266,7 @@ bool MakeMilleFiles::getLocalVtxDerivativesXY(SvtxTrack* track,
   auto cluster = _cluster_map->findCluster(ckey);
   auto surf = _tGeometry->maps().getSurface(ckey, cluster);
 
-  auto param = propagator.makeTrackParams(firststate,track->get_charge(),surf);
+  auto param = propagator.makeTrackParams(firststate,track->get_charge(),surf).value();
   auto perigee = propagator.makeVertexSurface(vertex);
   auto actspropagator = propagator.makePropagator();
 

@@ -30,7 +30,7 @@ class SvtxTrackState;
 class ActsPropagator
 {
  public:
-  using BoundTrackParam = const Acts::BoundTrackParameters;
+  using BoundTrackParam = Acts::BoundTrackParameters;
   using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
   /// Return type of std::pair<path length, parameters>
   using BoundTrackParamPair = std::pair<float, BoundTrackParam>;
