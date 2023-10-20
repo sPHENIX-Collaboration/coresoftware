@@ -20,10 +20,12 @@
 #include <memory>
 #include <set>
 
+const int NPACKETS = 2;
+
 SingleTpcPoolInput::SingleTpcPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
-  plist = new Packet *[10];
+  plist = new Packet *[NPACKETS];
 }
 
 SingleTpcPoolInput::~SingleTpcPoolInput()
@@ -70,9 +72,9 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, 10);
+    int npackets = evt->getPacketList(plist, NPACKETS);
 
-    if (npackets == 10)
+    if (npackets > NPACKETS)
     {
       exit(1);
     }
@@ -284,7 +286,7 @@ bool SingleTpcPoolInput::GetSomeMoreEvents()
   }
 
   uint64_t lowest_bclk = m_TpcRawHitMap.begin()->first;
-  lowest_bclk += 0xF0000;
+  lowest_bclk += m_BcoRange;
   for (auto bcliter : m_FEEBclkMap)
   {
     if (bcliter.second <= lowest_bclk)
@@ -329,5 +331,13 @@ if (!detNode)
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(tpchitcont, "TPCRAWHIT", "PHObject");
     detNode->addNode(newNode);
   }
+}
 
+void SingleTpcPoolInput::ConfigureStreamingInpurManager()
+{
+  if (StreamingInputManager())
+  {
+    StreamingInputManager()->SetTpcBcoRange(m_BcoRange);
+  }
+  return;
 }

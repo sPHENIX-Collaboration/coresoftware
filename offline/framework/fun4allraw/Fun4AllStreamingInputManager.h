@@ -53,6 +53,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
   void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit* /* hit */);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
+  void SetTpcBcoRange(const unsigned int i);
 
  private:
   struct PacketInfo
@@ -90,6 +91,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   bool m_intt_registered_flag = false;
   bool m_micromegas_registered_flag = false;
   bool m_tpc_registered_flag = false;
+  unsigned int m_tpc_bco_range {0};
   std::vector<SingleStreamingInput *> m_EvtInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;

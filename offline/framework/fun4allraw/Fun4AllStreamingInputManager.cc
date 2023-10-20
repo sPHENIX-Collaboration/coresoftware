@@ -348,6 +348,7 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
   m_EvtInputVector.push_back(evtin);
   evtin->StreamingInputManager(this);
   evtin->CreateDSTNode(m_topNode);
+  evtin->ConfigureStreamingInpurManager();
   switch (system)
   {
   case Fun4AllStreamingInputManager::MVTX:
@@ -605,8 +606,8 @@ int Fun4AllStreamingInputManager::FillTpc()
     }
     TpcRawHitContainer *tpccont =  findNode::getClass<TpcRawHitContainer>(m_topNode,"TPCRAWHIT");
 //  std::cout << "before filling m_TpcRawHitMap size: " <<  m_TpcRawHitMap.size() << std::endl;
-    uint64_t select_crossings =  m_TpcRawHitMap.begin() + 0xF0000;
-    while(m_TpcRawHitMap.begin() <= select_crossings)
+    uint64_t select_crossings =  m_TpcRawHitMap.begin()->first + m_tpc_bco_range;
+    while(m_TpcRawHitMap.begin()->first <= select_crossings)
     {
       for (auto tpchititer :  m_TpcRawHitMap.begin()->second.TpcRawHitVector)
       {
@@ -627,4 +628,9 @@ int Fun4AllStreamingInputManager::FillTpc()
   // std::cout << "size  m_TpcRawHitMap: " <<  m_TpcRawHitMap.size()
   // 	    << std::endl;
   return 0;
+}
+
+void Fun4AllStreamingInputManager::SetTpcBcoRange(const unsigned int i)
+{
+  m_tpc_bco_range = std::max(i,m_tpc_bco_range);
 }
