@@ -40,6 +40,7 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual Fun4AllStreamingInputManager *StreamingInputManager() { return m_StreamingInputMgr; }
   virtual void StreamingInputManager(Fun4AllStreamingInputManager *in) { m_StreamingInputMgr = in; }
   virtual void CreateDSTNode(PHCompositeNode *) { return; }
+  virtual void ConfigureStreamingInpurManager() {return;}
 
  private:
   Eventiterator *m_EventIterator = nullptr;

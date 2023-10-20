@@ -348,6 +348,7 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
   m_EvtInputVector.push_back(evtin);
   evtin->StreamingInputManager(this);
   evtin->CreateDSTNode(m_topNode);
+  evtin->ConfigureStreamingInpurManager();
   switch (system)
   {
   case Fun4AllStreamingInputManager::MVTX:
@@ -588,23 +589,14 @@ int Fun4AllStreamingInputManager::FillMicromegas()
 
 int Fun4AllStreamingInputManager::FillTpc()
 {
-    while (m_TpcRawHitMap.size() < 5) // pooling at least 5 events
-    {
-      unsigned int alldone = 0;
       for (auto iter : m_EvtInputVector)
       {
-	alldone += iter->AllDone();
 	if (Verbosity() > 0)
 	{
 	  std::cout << "Fun4AllStreamingInputManager::FillTpc - fill pool for " << iter->Name() << std::endl;
 	}
 	iter->FillPool();
 	m_RunNumber = iter->RunNumber();
-      }
-      if (alldone >= m_EvtInputVector.size())
-      {
-	break;
-      }
       SetRunNumber(m_RunNumber);
     }
     if (m_TpcRawHitMap.empty())
@@ -614,44 +606,31 @@ int Fun4AllStreamingInputManager::FillTpc()
     }
     TpcRawHitContainer *tpccont =  findNode::getClass<TpcRawHitContainer>(m_topNode,"TPCRAWHIT");
 //  std::cout << "before filling m_TpcRawHitMap size: " <<  m_TpcRawHitMap.size() << std::endl;
-    for (auto tpchititer :  m_TpcRawHitMap.begin()->second.TpcRawHitVector)
+    uint64_t select_crossings =  m_TpcRawHitMap.begin()->first + m_tpc_bco_range;
+    while(m_TpcRawHitMap.begin()->first <= select_crossings)
     {
-      if (Verbosity() > 1)
+      for (auto tpchititer :  m_TpcRawHitMap.begin()->second.TpcRawHitVector)
       {
-	tpchititer->identify();
-      }
-      tpccont->AddHit(tpchititer);
+	if (Verbosity() > 1)
+	{
+	  tpchititer->identify();
+	}
+	tpccont->AddHit(tpchititer);
 //     delete tpchititer; // cleanup up done in Single Input Mgrs
+      }
+      for (auto iter : m_EvtInputVector)
+      {
+	iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
+      }
+      m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
+      m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
     }
-    for (auto iter : m_EvtInputVector)
-    {
-      iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
-    }
-    m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
-    m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
   // std::cout << "size  m_TpcRawHitMap: " <<  m_TpcRawHitMap.size()
   // 	    << std::endl;
   return 0;
 }
 
-bool Fun4AllStreamingInputManager::GetMoreInttEvents()
+void Fun4AllStreamingInputManager::SetTpcBcoRange(const unsigned int i)
 {
-  if (m_InttRawHitMap.empty())
-  {
-    return true;
-  }
-// here we have entries in the m_InttRawHitMap, the first entry is the 
-// lowest beam clock which will be send upstream next
-  uint64_t current_bco = m_InttRawHitMap.begin()->first;
-  for (const auto &iter : m_InttPacketFeeBcoMap)
-  {
-    for (const auto &iter1 : iter.second)
-    {
-    if (iter1.second <= current_bco)
-    {
-      return true;
-    }
-    }
-  }
-  return false;
+  m_tpc_bco_range = std::max(i,m_tpc_bco_range);
 }
