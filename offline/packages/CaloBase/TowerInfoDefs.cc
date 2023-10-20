@@ -430,7 +430,7 @@ unsigned int TowerInfoDefs::decode_zdc(const unsigned int key)
 }
 
 // get zdc side, 0 = south, 1 = north
-int get_zdc_side(const unsigned int key)
+int TowerInfoDefs::get_zdc_side(const unsigned int key)
 {
   if (key & 8) return 1;
   return 0;
