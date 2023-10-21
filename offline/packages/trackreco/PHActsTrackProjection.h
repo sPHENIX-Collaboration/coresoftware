@@ -42,7 +42,7 @@ class PHActsTrackProjection : public SubsysReco
       const Acts::BoundTrackParameters;
   using SurfacePtr = std::shared_ptr<const Acts::Surface>;
   using Trajectory = ActsExamples::Trajectories;
-  using BoundTrackParamResult = ActsPropagator::BoundTrackParamResult;
+  using BoundTrackParamResult = ActsPropagator::BTPPairResult;
 
   PHActsTrackProjection(const std::string &name = "PHActsTrackProjection");
 

@@ -56,9 +56,12 @@ int PHActsTrackPropagator::process_event(PHCompositeNode *)
   ActsPropagator prop(m_tGeometry);
   for (auto &[key, track] : *m_trackMap)
   {
-    const auto params = prop.makeTrackParams(track, m_vertexMap);
-
-    auto result = propagateTrack(params);
+    auto params = prop.makeTrackParams(track, m_vertexMap);
+    if(!params.ok())
+      {
+	continue;
+      }
+    auto result = propagateTrack(params.value());
     if (result.ok())
     {
       addTrackState(result, track);
