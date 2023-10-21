@@ -3,6 +3,8 @@
 
 #include "SingleStreamingInput.h"
 
+#include <trackbase/TpcTpotEventInfov1.h>
+
 #include <array>
 #include <list>
 #include <map>
@@ -13,6 +15,7 @@
 class Eventiterator;
 class Fun4AllEvtInputPoolManager;
 class TpcRawHit;
+class TpcTpotEventInfo;
 class Packet;
 
 class SingleTpcInput : public SingleStreamingInput
@@ -28,6 +31,9 @@ class SingleTpcInput : public SingleStreamingInput
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
+ protected:
+  uint32_t m_event = 0;
+
  private:
   Packet **plist = nullptr;
   unsigned int m_NumSpecialEvents = 0;
@@ -37,6 +43,7 @@ class SingleTpcInput : public SingleStreamingInput
   
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<uint64_t, std::vector<TpcRawHit *>> m_TpcRawHitMap;
+  std::map<uint64_t, std::vector<TpcTpotEventInfov1 *>> m_TpcTpotEventInfoMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
 };

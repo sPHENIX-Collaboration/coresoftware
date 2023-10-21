@@ -5,6 +5,8 @@
 
 #include <fun4all/Fun4AllInputManager.h>
 
+#include <trackbase/TpcTpotEventInfov1.h>
+
 #include <Event/phenixTypes.h>
 
 #include <map>
@@ -53,6 +55,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
   void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit* /* hit */);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
+  TpcTpotEventInfov1 * GetTpcTpotEventInfo(uint64_t bclk);
 
  private:
   struct PacketInfo
@@ -99,6 +102,7 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   std::map<uint64_t, InttRawHitInfo> m_InttRawHitMap;
   std::map<uint64_t, MicromegasRawHitInfo> m_MicromegasRawHitMap;
   std::map<uint64_t, TpcRawHitInfo> m_TpcRawHitMap;
+  std::map<uint64_t, TpcTpotEventInfov1> m_TpcTpotEventInfoMap;
 };
 
 #endif /* FUN4ALL_FUN4ALLEVTINPUTPOOLMANAGER_H */

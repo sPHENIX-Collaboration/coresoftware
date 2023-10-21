@@ -428,6 +428,16 @@ void Fun4AllEvtInputPoolManager::AddTpcRawHit(uint64_t bclk, TpcRawHit *hit)
   m_TpcRawHitMap[bclk].TpcRawHitVector.push_back(hit);
 }
 
+TpcTpotEventInfov1 * Fun4AllEvtInputPoolManager::GetTpcTpotEventInfo(uint64_t bclk)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "Getting tpc tpot event info from bclk 0x"
+              << std::hex << bclk << std::dec << std::endl;
+  }
+  return &m_TpcTpotEventInfoMap[bclk];
+}
+
 void Fun4AllEvtInputPoolManager::UpdateEventFoundCounter(const int evtno)
 {
   m_PacketInfoMap[evtno].EventFoundCounter++;

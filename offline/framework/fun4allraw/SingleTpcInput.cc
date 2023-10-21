@@ -75,6 +75,9 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
     {
       exit(1);
     }
+ 
+    m_event++;
+ 
     for (int i = 0; i < npackets; i++)
     {
       
@@ -83,6 +86,9 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
 
       // get packet id
       const auto packet_id = packet->getIdentifier();
+
+      TpcTpotEventInfo::PCIeEndPointID PCIe_id = static_cast<TpcTpotEventInfo::PCIeEndPointID>(packet_id % 10);
+      TpcTpotEventInfo::SectorID sector_id = static_cast<TpcTpotEventInfo::SectorID>(((packet_id % 1000) - PCIe_id) / 10);
 
       if (Verbosity() > 1)
       {
@@ -96,16 +102,48 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
       uint64_t m_nTaggerInFrame = packet->lValue(0, "N_TAGGER");
       for (uint64_t t = 0; t < m_nTaggerInFrame; t++)
       {
+        TpcTpotEventInfov1 *newEventInfo = new TpcTpotEventInfov1(); 
         // only store gtm_bco for level1 type of taggers (not ENDDAT)
         const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
         if( is_lvl1 )
         {
           gtm_bco = packet->lValue(t, "BCO");
           std::cout << "bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
+          uint8_t modebits = (uint8_t)(packet->lValue(t, "MODEBITS"));
+
+          newEventInfo->setBCO(gtm_bco,sector_id,PCIe_id,kLVL1Tagger);
+          newEventInfo->setEvent(m_event,sector_id,PCIe_id,kLVL1Tagger);
+          newEventInfo->setLevel1Count(1,sector_id,PCIe_id,kLVL1Tagger);
+          newEventInfo->setEnDatCount(0,sector_id,PCIe_id,kLVL1Tagger);
+          newEventInfo->setLastBCO(previous_bco,sector_id,PCIe_id,kLVL1Tagger);
+          newEventInfo->setModebits(modebits,sector_id,PCIe_id,kLVL1Tagger);
 
           // store
           previous_bco = gtm_bco;
         }
+        const auto is_endat = static_cast<uint8_t>(packet->lValue(t, "IS_ENDAT"));
+        if( is_endat )
+        {
+          gtm_bco = packet->lValue(t, "BCO");
+          uint8_t modebits = (uint8_t)(packet->lValue(t, "MODEBITS"));
+
+          newEventInfo->setBCO(gtm_bco,sector_id,PCIe_id,kEnDatTagger);
+          newEventInfo->setEvent(m_event,sector_id,PCIe_id,kEnDatTagger);
+          newEventInfo->setLevel1Count(0,sector_id,PCIe_id,kEnDatTagger);
+          newEventInfo->setEnDatCount(1,sector_id,PCIe_id,kEnDatTagger);
+          newEventInfo->setLastBCO(previous_bco,sector_id,PCIe_id,kEnDatTagger);
+          newEventInfo->setModebits(modebits,sector_id,PCIe_id,kEnDatTagger);
+
+          // store
+          previous_bco = gtm_bco;
+        }
+
+        if (InputManager())
+        {
+          InputManager()->GetTpcTpotEventInfo(gtm_bco)->CopyFrom(newEventInfo);
+        }
+
+        m_TpcTpotEventInfoMap[gtm_bco].push_back(newEventInfo);       
       }
     
     int m_nWaveormInFrame = packet->iValue(0, "NR_WF");
@@ -220,6 +258,21 @@ void SingleTpcInput::CleanupUsedPackets(const uint64_t bclk)
       break;
     }
   }
+  for (const auto &iter : m_TpcTpotEventInfoMap)
+  {
+    if (iter.first <= bclk)
+    {
+      for (auto pktiter : iter.second)
+      {
+        delete pktiter;
+      }
+      toclearbclk.push_back(iter.first);
+    }
+    else
+    {
+      break;
+    }
+  }
   // for (auto iter :  m_BeamClockFEE)
   // {
   //   iter.second.clear();
@@ -230,6 +283,7 @@ void SingleTpcInput::CleanupUsedPackets(const uint64_t bclk)
   m_BclkStack.erase(iter);
   m_BeamClockFEE.erase(iter);
     m_TpcRawHitMap.erase(iter);
+    m_TpcTpotEventInfo.erase(iter);
   }
 }
 
