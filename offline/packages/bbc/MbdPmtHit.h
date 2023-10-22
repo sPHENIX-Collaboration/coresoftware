@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef MBD_MBDPMTHIT_H
 #define MBD_MBDPMTHIT_H
 
