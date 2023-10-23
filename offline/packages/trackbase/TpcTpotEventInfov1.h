@@ -31,6 +31,7 @@ class TpcTpotEventInfov1 : public TpcTpotEventInfo
   void Reset() override 
   {
     std::fill_n(&m_bco[0][0][0],100,UINT64_MAX);
+    std::fill_n(&m_event[0][0][0],100,UINT32_MAX);
     std::fill_n(&m_lvl1_count[0][0][0],100,UINT32_MAX);
     std::fill_n(&m_endat_count[0][0][0],100,UINT32_MAX);
     std::fill_n(&m_last_bco[0][0][0],100,UINT64_MAX);
@@ -54,6 +55,8 @@ class TpcTpotEventInfov1 : public TpcTpotEventInfo
 
   uint64_t getBCO(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_bco[sector][PCIe][tagger]; }
   void setBCO(uint64_t bco, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_bco[sector][PCIe][tagger] = bco; }
+  uint32_t getEvent(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_event[sector][PCIe][tagger]; }
+  void setEvent(uint32_t event, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_event[sector][PCIe][tagger] = event; }
   uint32_t getLevel1Count(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_lvl1_count[sector][PCIe][tagger]; }
   void setLevel1Count(uint32_t lvl1count, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_lvl1_count[sector][PCIe][tagger] = lvl1count; }
   uint32_t getEnDatCount(SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) const override { return m_endat_count[sector][PCIe][tagger]; }
@@ -66,6 +69,7 @@ class TpcTpotEventInfov1 : public TpcTpotEventInfo
  protected:
 
   uint64_t m_bco[25][2][2]{};
+  uint32_t m_event[25][2][2]{};
   uint32_t m_lvl1_count[25][2][2]{};
   uint32_t m_endat_count[25][2][2]{};
   uint64_t m_last_bco[25][2][2]{};

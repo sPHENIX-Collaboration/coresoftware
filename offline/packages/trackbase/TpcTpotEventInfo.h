@@ -68,6 +68,8 @@ class TpcTpotEventInfo : public PHObject
 
   virtual uint64_t getBCO(SectorID, PCIeEndPointID, TaggerID) const { return UINT64_MAX; } 
   virtual void setBCO(uint64_t, SectorID, PCIeEndPointID, TaggerID) {} 
+  virtual uint32_t getEvent(SectorID, PCIeEndPointID, TaggerID) const { return UINT32_MAX; } 
+  virtual void setEvent(uint32_t, SectorID, PCIeEndPointID, TaggerID) {} 
   virtual uint32_t getLevel1Count(SectorID, PCIeEndPointID, TaggerID) const { return UINT32_MAX; } 
   virtual void setLevel1Count(uint32_t, SectorID, PCIeEndPointID, TaggerID) {} 
   virtual uint32_t getEnDatCount(SectorID, PCIeEndPointID, TaggerID) const { return UINT32_MAX; } 
