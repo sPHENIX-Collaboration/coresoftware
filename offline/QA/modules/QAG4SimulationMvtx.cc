@@ -1,6 +1,6 @@
 #include "QAG4SimulationMvtx.h"
-#include "QAG4Util.h"
-#include "QAHistManagerDef.h"
+#include <qautils/QAUtil.h>
+#include <qautils/QAHistManagerDef.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
