@@ -30,7 +30,8 @@ pkginclude_HEADERS = \
   GlobalVertexv1.h \
   GlobalVertexMap.h \
   GlobalVertexMapv1.h \
-  GlobalVertexReco.h
+  GlobalVertexReco.h \
+  Vertex.h
 
 ROOTDICTS = \
   GlobalVertex_Dict.cc \
@@ -50,7 +51,8 @@ libglobalvertex_io_la_SOURCES = \
   GlobalVertex.cc \
   GlobalVertexv1.cc \
   GlobalVertexMap.cc \
-  GlobalVertexMapv1.cc
+  GlobalVertexMapv1.cc \
+  Vertex.cc
 
 libglobalvertex_la_SOURCES = \
   GlobalVertexReco.cc

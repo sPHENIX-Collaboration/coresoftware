@@ -49,7 +49,7 @@ class Vertex : public PHObject
   virtual void set_error(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
 
   //beam crossing methods
-  virtual float get_beam_crossing() {}
+  virtual float get_beam_crossing() { return NAN; }
   virtual void set_beam_crossing(float) {}
 
   //bbcvertex methods
@@ -70,9 +70,6 @@ class Vertex : public PHObject
   virtual TrackIter begin_tracks();
   virtual TrackIter find_track(unsigned int trackid);
   virtual TrackIter end_tracks();
-
- protected:
-  Vertex() {}
 
  private:
   ClassDefOverride(Vertex, 1);
