@@ -12,13 +12,14 @@ TpcRawHitContainerv1::TpcRawHitContainerv1()
 
 TpcRawHitContainerv1::~TpcRawHitContainerv1()
 {
+  TpcRawHitsTCArray->Clear("C");
   delete TpcRawHitsTCArray;
 }
 
 
 void TpcRawHitContainerv1::Reset()
 {
- TpcRawHitsTCArray->Clear();
+ TpcRawHitsTCArray->Clear("C");
  TpcRawHitsTCArray->Expand(NTPCHITS);
 }
 

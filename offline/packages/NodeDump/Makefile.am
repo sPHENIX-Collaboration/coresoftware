@@ -27,6 +27,7 @@ libphnodedump_la_SOURCES = \
   DumpFlagSave.cc \
   DumpGlobalVertexMap.cc \
   DumpInttDeadMap.cc \
+  DumpInttRawHitContainer.cc \
   DumpJetMap.cc \
   DumpParticleFlowElementContainer.cc \
   DumpPdbParameterMap.cc \
@@ -56,6 +57,7 @@ libphnodedump_la_SOURCES = \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
   DumpTowerInfoContainer.cc \
+  DumpTpcRawHitContainer.cc \
   DumpTpcSeedTrackMap.cc \
   DumpTrackSeedContainer.cc \
   DumpTrkrClusterContainer.cc \
@@ -76,6 +78,7 @@ libphnodedump_la_LIBADD = \
   -lepd_io \
   -leventplane_io \
   -lffaobjects \
+  -lffarawobjects \
   -lg4detectors_io \
   -lg4bbc_io \
   -lHepMC \
