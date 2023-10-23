@@ -4,10 +4,17 @@
 #include <phool/PHObject.h>
 #include <cmath>
 #include <iostream>
+#include <climits>
+#include <set>
+#include <vector>
 
 class Vertex : public PHObject
 {
  public:
+  typedef std::set<unsigned int> TrackSet;
+  typedef std::set<unsigned int>::const_iterator ConstTrackIter;
+  typedef std::set<unsigned int>::iterator TrackIter;
+  
   ~Vertex() override {}
 
   //PHObject virtual overloads
