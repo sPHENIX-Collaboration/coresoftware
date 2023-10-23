@@ -5,17 +5,14 @@
 #include <ffarawobjects/InttRawHitContainerv1.h>
 #include <ffarawobjects/InttRawHitv1.h>
 
-#include <frog/FROG.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
-#include <phool/phool.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/Eventiterator.h>
-#include <Event/fileEventiterator.h>
+#include <Event/packet.h>
 
 #include <set>
 
@@ -40,8 +37,8 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
   {
     OpenNextFile();
   }
-//  std::set<uint64_t> saved_beamclocks;
-   while (GetSomeMoreEvents())
+  //  std::set<uint64_t> saved_beamclocks;
+  while (GetSomeMoreEvents())
   {
     Event *evt = GetEventiterator()->getNextEvent();
     while (!evt)
@@ -83,56 +80,58 @@ void SingleInttInput::FillPool(const unsigned int /*nbclks*/)
       int num_hits = plist[i]->iValue(0, "NR_HITS");
       if (Verbosity() > 1)
       {
-	std::cout << "Number of Hits: " << num_hits << " for packet "
-		  << plist[i]->getIdentifier() << std::endl;
+        std::cout << "Number of Hits: " << num_hits << " for packet "
+                  << plist[i]->getIdentifier() << std::endl;
       }
       std::set<uint64_t> bclk_set;
       for (int j = 0; j < num_hits; j++)
       {
-	InttRawHit *newhit = new InttRawHitv1();
-	int FEE = plist[i]->iValue(j, "FEE");
-	uint64_t gtm_bco = plist[i]->lValue(j, "BCO");
+        InttRawHit *newhit = new InttRawHitv1();
+        int FEE = plist[i]->iValue(j, "FEE");
+        uint64_t gtm_bco = plist[i]->lValue(j, "BCO");
         newhit->set_packetid(plist[i]->getIdentifier());
-	newhit->set_fee(FEE);
-	newhit->set_bco(gtm_bco);
-	newhit->set_adc(plist[i]->iValue(j,"ADC"));
-	newhit->set_amplitude(plist[i]->iValue(j,"AMPLITUDE"));
-	newhit->set_chip_id(plist[i]->iValue(j,"CHIP_ID"));
-	newhit->set_channel_id(plist[i]->iValue(j,"CHANNEL_ID"));
-	newhit->set_word(plist[i]->iValue(j,"DATAWORD"));
-	newhit->set_FPHX_BCO(plist[i]->iValue(j,"FPHX_BCO"));
-	newhit->set_full_FPHX(plist[i]->iValue(j,"FULL_FPHX"));
-	newhit->set_full_ROC(plist[i]->iValue(j,"FULL_ROC"));
+        newhit->set_fee(FEE);
+        newhit->set_bco(gtm_bco);
+        newhit->set_adc(plist[i]->iValue(j, "ADC"));
+        newhit->set_amplitude(plist[i]->iValue(j, "AMPLITUDE"));
+        newhit->set_chip_id(plist[i]->iValue(j, "CHIP_ID"));
+        newhit->set_channel_id(plist[i]->iValue(j, "CHANNEL_ID"));
+        newhit->set_word(plist[i]->iValue(j, "DATAWORD"));
+        newhit->set_FPHX_BCO(plist[i]->iValue(j, "FPHX_BCO"));
+        newhit->set_full_FPHX(plist[i]->iValue(j, "FULL_FPHX"));
+        newhit->set_full_ROC(plist[i]->iValue(j, "FULL_ROC"));
 
-	gtm_bco += m_Rollover[FEE];
-	bclk_set.insert(gtm_bco);
-	if (gtm_bco < m_PreviousClock[FEE])
-	{
-	  m_Rollover[FEE] += 0x10000000000;
-	  gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
-	}
-	m_PreviousClock[FEE] = gtm_bco;
-	m_BeamClockFEE[gtm_bco].insert(FEE);
-	m_FEEBclkMap[FEE] = gtm_bco;
-	if (Verbosity() > 2)
-	{
-	  std::cout << "evtno: " << EventSequence
-		    << ", hits: " << j
-		    << ", nr_hits: " << num_hits
-		    << ", bco: 0x" << std::hex << gtm_bco << std::dec
-		    << ", FEE: " << FEE << std::endl;
-	}
-//          plist[i]->convert();
-	if (InputManager())
-	{ InputManager()->AddInttRawHit(gtm_bco, newhit); }
-	m_InttRawHitMap[gtm_bco].push_back(newhit);
-	m_BclkStack.insert(gtm_bco);
+        gtm_bco += m_Rollover[FEE];
+        bclk_set.insert(gtm_bco);
+        if (gtm_bco < m_PreviousClock[FEE])
+        {
+          m_Rollover[FEE] += 0x10000000000;
+          gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+        }
+        m_PreviousClock[FEE] = gtm_bco;
+        m_BeamClockFEE[gtm_bco].insert(FEE);
+        m_FEEBclkMap[FEE] = gtm_bco;
+        if (Verbosity() > 2)
+        {
+          std::cout << "evtno: " << EventSequence
+                    << ", hits: " << j
+                    << ", nr_hits: " << num_hits
+                    << ", bco: 0x" << std::hex << gtm_bco << std::dec
+                    << ", FEE: " << FEE << std::endl;
+        }
+        //          plist[i]->convert();
+        if (InputManager())
+        {
+          InputManager()->AddInttRawHit(gtm_bco, newhit);
+        }
+        m_InttRawHitMap[gtm_bco].push_back(newhit);
+        m_BclkStack.insert(gtm_bco);
       }
       delete plist[i];
     }
     delete evt;
   }
-//  } while (m_InttRawHitMap.size() < 10 || CheckPoolDepth(m_InttRawHitMap.begin()->first));
+  //  } while (m_InttRawHitMap.size() < 10 || CheckPoolDepth(m_InttRawHitMap.begin()->first));
 }
 
 void SingleInttInput::Print(const std::string &what) const
@@ -202,8 +201,8 @@ void SingleInttInput::CleanupUsedPackets(const uint64_t bclk)
 
   for (auto iter : toclearbclk)
   {
-  m_BclkStack.erase(iter);
-  m_BeamClockFEE.erase(iter);
+    m_BclkStack.erase(iter);
+    m_BeamClockFEE.erase(iter);
     m_InttRawHitMap.erase(iter);
   }
 }
@@ -239,7 +238,7 @@ void SingleInttInput::ClearCurrentEvent()
 {
   // called interactively, to get rid of the current event
   uint64_t currentbclk = *m_BclkStack.begin();
-//  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
+  //  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
   CleanupUsedPackets(currentbclk);
   // m_BclkStack.erase(currentbclk);
   // m_BeamClockFEE.erase(currentbclk);
@@ -266,24 +265,23 @@ void SingleInttInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  if (! dstNode)
+  if (!dstNode)
   {
     dstNode = new PHCompositeNode("DST");
     topNode->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
-PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "INTT"));
-if (!detNode)
-{
-  detNode = new PHCompositeNode("INTT");
-  dstNode->addNode(detNode);
-}
-  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode,"INTTRAWHIT");
+  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "INTT"));
+  if (!detNode)
+  {
+    detNode = new PHCompositeNode("INTT");
+    dstNode->addNode(detNode);
+  }
+  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode, "INTTRAWHIT");
   if (!intthitcont)
   {
     intthitcont = new InttRawHitContainerv1();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
     detNode->addNode(newNode);
   }
-
 }

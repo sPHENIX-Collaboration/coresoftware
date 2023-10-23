@@ -1,6 +1,9 @@
 #include "InttMapping.h"
 #include "InttFelixMap.h"
 
+#include <ffarawobjects/InttRawHit.h>
+#include <ffarawobjects/InttRawHitContainer.h>
+
 #include <Event/packet.h>
 
 #include <utility>   // for pair
@@ -43,6 +46,14 @@ struct Intt::RawData_s Intt::RawFromPacket(int const _i, int const _n, Packet* _
 	return s;
 }
 
+void Intt::RawFromHit(struct Intt::RawData_s& s, InttRawHit* h)
+{
+	s.felix_server = Intt::FelixFromPacket(h->get_packetid());
+	s.felix_channel = h->get_fee();
+	s.chip = (h->get_chip_id() + 25) % 26;
+	s.channel = h->get_channel_id();
+}
+
 struct Intt::Online_s Intt::ToOnline(struct Offline_s const& _s)
 {
 	struct Online_s s;
@@ -55,19 +66,19 @@ struct Intt::Online_s Intt::ToOnline(struct Offline_s const& _s)
 	switch(_s.ladder_z)
 	{
 		case 1:
-		s.chp = _s.strip_y + 13 * !(_s.strip_x < 128);
+		s.chp = _s.strip_y + 13 * (_s.strip_x < 128);
 		break;
 
 		case 0:
-		s.chp = _s.strip_y + 13 * !(_s.strip_x < 128) + 5;
+		s.chp = _s.strip_y + 13 * (_s.strip_x < 128) + 5;
 		break;
 
 		case 2:
-		s.chp = 12 - _s.strip_y + 13 * (_s.strip_x < 128);
+		s.chp = 12 - _s.strip_y + 13 * !(_s.strip_x < 128);
 		break;
 
 		case 3:
-		s.chp = 4 - _s.strip_y + 13 * (_s.strip_x < 128);
+		s.chp = 4 - _s.strip_y + 13 * !(_s.strip_x < 128);
 		break;
 
 		default:
@@ -110,7 +121,7 @@ struct Intt::Offline_s Intt::ToOffline(struct Online_s const& _s)
 		break;
 	}
 
-	s.strip_x = (_s.arm == (_s.chp / 13)) ? _s.chn : 255 - _s.chn;
+	s.strip_x = (_s.arm == (_s.chp / 13)) ? 255 - _s.chn : _s.chn;
 
 	return s;
 }

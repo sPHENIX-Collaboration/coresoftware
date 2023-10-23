@@ -176,7 +176,7 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   }
 }
 
-ActsPropagator::BoundTrackParamResult
+ActsPropagator::BTPPairResult
 PHActsVertexPropagator::propagateTrack(
     const Acts::BoundTrackParameters& params,
     const unsigned int vtxid)

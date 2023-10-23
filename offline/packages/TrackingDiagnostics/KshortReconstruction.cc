@@ -241,9 +241,12 @@ bool KshortReconstruction::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d
   /// create perigee surface
   ActsPropagator actsPropagator(_tGeometry);
   auto perigee = actsPropagator.makeVertexSurface(PCA);  // PCA is in cm here
-  const auto params = actsPropagator.makeTrackParams(track, m_vertexMap);
-
-  auto result = actsPropagator.propagateTrack(params, perigee);
+  auto params = actsPropagator.makeTrackParams(track, m_vertexMap);
+  if(!params.ok())
+    {
+      return false;
+    }
+  auto result = actsPropagator.propagateTrack(params.value(), perigee);
 
   if (result.ok())
   {
@@ -291,9 +294,13 @@ bool KshortReconstruction::projectTrackToCylinder(SvtxTrack* track, double Radiu
                                                        Radius,
                                                        halfZ);
   ActsPropagator actsPropagator(_tGeometry);
-  const auto params = actsPropagator.makeTrackParams(track, m_vertexMap);
+  auto params = actsPropagator.makeTrackParams(track, m_vertexMap);
+  if(!params.ok())
+    {
+      return false;
+    }
 
-  auto result = actsPropagator.propagateTrack(params, cylSurf);
+  auto result = actsPropagator.propagateTrack(params.value(), cylSurf);
   if (result.ok())
   {
     auto projectionPos = result.value().second.position(_tGeometry->geometry().getGeoContext());
