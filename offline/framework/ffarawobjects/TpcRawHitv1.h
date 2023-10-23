@@ -22,6 +22,8 @@ public:
    */
   void identify(std::ostream &os = std::cout) const override;
 
+  void Clear(Option_t *) override;
+
   uint64_t get_bco() const override {return bco;}
   void set_bco(const uint64_t val) override {bco = val;}
 
