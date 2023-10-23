@@ -10,18 +10,18 @@
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
-#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/ActsSourceLink.h>
 #include <trackbase/Calibrator.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
-#include <Acts/EventData/VectorMultiTrajectory.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 
@@ -48,7 +48,7 @@ class PHActsGSF : public SubsysReco
   PHActsGSF(const std::string& name = "PHActsGSF");
 
   ~PHActsGSF() override;
-  
+
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
   int End(PHCompositeNode* topNode) override;
@@ -66,10 +66,11 @@ class PHActsGSF : public SubsysReco
       const std::vector<Acts::SourceLink>& sourceLinks,
       const ActsTrackFittingAlgorithm::TrackParameters& seed,
       const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
+      const CalibratorAdapter& calibrator,
       ActsTrackFittingAlgorithm::TrackContainer& tracks);
 
   void updateTrack(FitResult& result, SvtxTrack* track,
-		   ActsTrackFittingAlgorithm::TrackContainer& tracks);
+                   ActsTrackFittingAlgorithm::TrackContainer& tracks);
   void updateSvtxTrack(const Trajectory& traj, SvtxTrack* track);
   ActsGeometry* m_tGeometry = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
@@ -85,7 +86,7 @@ class PHActsGSF : public SubsysReco
 
   std::string m_trackMapName = "SvtxTrackMap";
   unsigned int m_pHypothesis = 11;
- 
+
   ClusterErrorPara _ClusErrPara;
 
   ActsTrackFittingAlgorithm::Config m_fitCfg;

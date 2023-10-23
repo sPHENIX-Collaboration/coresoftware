@@ -113,3 +113,13 @@ void Fun4AllEventOutputManager::SetOutfileName(const std::string &fname)
   OutFileName(fname);
   return;
 }
+
+void Fun4AllEventOutputManager::Verbosity(const int i)
+{
+  Fun4AllBase::Verbosity(i);
+  if (m_OutStream)
+  {
+    m_OutStream->Verbosity(i);
+  }
+  return;
+}
