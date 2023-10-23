@@ -625,7 +625,6 @@ int Fun4AllStreamingInputManager::FillTpc()
 	  tpchititer->identify();
 	}
 	tpccont->AddHit(tpchititer);
-//     delete tpchititer; // cleanup up done in Single Input Mgrs
       }
       for (auto iter : m_EvtInputVector)
       {
