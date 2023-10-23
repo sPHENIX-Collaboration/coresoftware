@@ -5,6 +5,8 @@
 #include <ffarawobjects/TpcRawHitContainerv1.h>
 #include <ffarawobjects/TpcRawHitv1.h>
 
+#include <trackbase/TpcTpotEventInfov1.h>
+
 #include <frog/FROG.h>
 
 #include <phool/PHCompositeNode.h>
@@ -111,12 +113,12 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
           std::cout << "bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
           uint8_t modebits = (uint8_t)(packet->lValue(t, "MODEBITS"));
 
-          newEventInfo->setBCO(gtm_bco,sector_id,PCIe_id,kLVL1Tagger);
-          newEventInfo->setEvent(m_event,sector_id,PCIe_id,kLVL1Tagger);
-          newEventInfo->setLevel1Count(1,sector_id,PCIe_id,kLVL1Tagger);
-          newEventInfo->setEnDatCount(0,sector_id,PCIe_id,kLVL1Tagger);
-          newEventInfo->setLastBCO(previous_bco,sector_id,PCIe_id,kLVL1Tagger);
-          newEventInfo->setModebits(modebits,sector_id,PCIe_id,kLVL1Tagger);
+          newEventInfo->setBCO(gtm_bco,sector_id,PCIe_id,TpcTpotEventInfo::kLVL1Tagger);
+          newEventInfo->setEvent(m_event,sector_id,PCIe_id,TpcTpotEventInfo::kLVL1Tagger);
+          newEventInfo->setLevel1Count(1,sector_id,PCIe_id,TpcTpotEventInfo::kLVL1Tagger);
+          newEventInfo->setEnDatCount(0,sector_id,PCIe_id,TpcTpotEventInfo::kLVL1Tagger);
+          newEventInfo->setLastBCO(previous_bco,sector_id,PCIe_id,TpcTpotEventInfo::kLVL1Tagger);
+          newEventInfo->setModebits(modebits,sector_id,PCIe_id,TpcTpotEventInfo::kLVL1Tagger);
 
           // store
           previous_bco = gtm_bco;
@@ -127,12 +129,12 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
           gtm_bco = packet->lValue(t, "BCO");
           uint8_t modebits = (uint8_t)(packet->lValue(t, "MODEBITS"));
 
-          newEventInfo->setBCO(gtm_bco,sector_id,PCIe_id,kEnDatTagger);
-          newEventInfo->setEvent(m_event,sector_id,PCIe_id,kEnDatTagger);
-          newEventInfo->setLevel1Count(0,sector_id,PCIe_id,kEnDatTagger);
-          newEventInfo->setEnDatCount(1,sector_id,PCIe_id,kEnDatTagger);
-          newEventInfo->setLastBCO(previous_bco,sector_id,PCIe_id,kEnDatTagger);
-          newEventInfo->setModebits(modebits,sector_id,PCIe_id,kEnDatTagger);
+          newEventInfo->setBCO(gtm_bco,sector_id,PCIe_id,TpcTpotEventInfo::kEnDatTagger);
+          newEventInfo->setEvent(m_event,sector_id,PCIe_id,TpcTpotEventInfo::kEnDatTagger);
+          newEventInfo->setLevel1Count(0,sector_id,PCIe_id,TpcTpotEventInfo::kEnDatTagger);
+          newEventInfo->setEnDatCount(1,sector_id,PCIe_id,TpcTpotEventInfo::kEnDatTagger);
+          newEventInfo->setLastBCO(previous_bco,sector_id,PCIe_id,TpcTpotEventInfo::kEnDatTagger);
+          newEventInfo->setModebits(modebits,sector_id,PCIe_id,TpcTpotEventInfo::kEnDatTagger);
 
           // store
           previous_bco = gtm_bco;
@@ -283,7 +285,7 @@ void SingleTpcInput::CleanupUsedPackets(const uint64_t bclk)
   m_BclkStack.erase(iter);
   m_BeamClockFEE.erase(iter);
     m_TpcRawHitMap.erase(iter);
-    m_TpcTpotEventInfo.erase(iter);
+    m_TpcTpotEventInfoMap.erase(iter);
   }
 }
 

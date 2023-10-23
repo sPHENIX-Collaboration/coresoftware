@@ -15,7 +15,7 @@
 class Eventiterator;
 class Fun4AllEvtInputPoolManager;
 class TpcRawHit;
-class TpcTpotEventInfo;
+class TpcTpotEventInfov1;
 class Packet;
 
 class SingleTpcInput : public SingleStreamingInput
