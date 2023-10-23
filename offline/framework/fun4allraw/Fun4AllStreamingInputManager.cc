@@ -71,6 +71,15 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
   }
   m_MvtxRawHitMap.clear();
 
+  for (auto const &mapiter : m_TpcRawHitMap)
+  {
+    for (auto tpchititer :  mapiter.second.TpcRawHitVector)
+    {
+      delete tpchititer;
+    }
+  }
+  m_TpcRawHitMap.clear();
+
   for (auto const &mapiter : m_InttRawHitMap)
   {
     for (auto intthititer :  mapiter.second.InttRawHitVector)
