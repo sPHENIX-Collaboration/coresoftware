@@ -4,6 +4,7 @@
 #include <map>
 
 class Packet;
+class InttRawHit;
 
 namespace Intt
 {
@@ -36,7 +37,8 @@ namespace Intt
 		int strip_y = 0;
 	};
 
-	struct RawData_s RawFromPacket(int const, int const, Packet*);
+	struct Intt::RawData_s RawFromPacket(int const, int const, Packet*);
+	void RawFromHit(struct Intt::RawData_s&, InttRawHit*);
 
 	//nontrivial
 	struct Online_s ToOnline(struct Offline_s const&);
