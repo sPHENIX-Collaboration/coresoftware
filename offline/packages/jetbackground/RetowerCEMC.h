@@ -43,6 +43,7 @@ class RetowerCEMC : public SubsysReco
   int _NPHI;
   bool m_use_towerinfo = false;
   std::vector<std::vector<float> > _EMCAL_RETOWER_E;
+  std::vector<std::vector<int> > _EMCAL_RETOWER_T;
 };
 
 #endif
