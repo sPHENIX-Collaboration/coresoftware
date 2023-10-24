@@ -426,7 +426,7 @@ void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
   Double_t rms = hPed0->GetRMS();
   SetPed0( mean, rms );
   static int counter = 0;
-  if (counter<10)
+  if (verbose>0 && counter<10)
   {
     cout << "CalcEventPed0_PreSamp: ped0stats " << mean << "\t" << rms << endl;
     counter++;
