@@ -11,6 +11,7 @@ class MbdEvent;
 class MbdPmtContainer;
 class MbdVertexMap;
 class MbdOut;
+class MbdGeom;
 class Event;
 class TF1;
 class TH1;
@@ -36,9 +37,10 @@ class MbdReco : public SubsysReco
   float m_tres = 0.05;
   MbdEvent              *m_mbdevent {nullptr};
   Event                 *m_event {nullptr};
-  MbdVertexMap          *m_mbdvtxmap {nullptr};
   MbdOut                *m_mbdout {nullptr};
   MbdPmtContainer       *m_mbdpmts {nullptr};
+  MbdGeom               *m_mbdgeom {nullptr};
+  MbdVertexMap          *m_mbdvtxmap {nullptr};
 };
 
 #endif  // __MBDRECO_H__

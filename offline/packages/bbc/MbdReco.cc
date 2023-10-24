@@ -4,6 +4,7 @@
 #include "MbdVertexMapv1.h"
 #include "MbdVertexv1.h"
 #include "MbdOutV1.h"
+#include "MbdGeomV1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -130,7 +131,7 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
     bbcNode->addNode(MbdOutNode);
   }
 
-  m_mbdpmts = findNode::getClass<MbdPmtContainerV1>(topNode, "MbdPmtContainer");
+  m_mbdpmts = findNode::getClass<MbdPmtContainerV1>(bbcNode, "MbdPmtContainer");
   if (!m_mbdpmts)
   {
     m_mbdpmts = new MbdPmtContainerV1();
@@ -144,6 +145,14 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
     m_mbdvtxmap = new MbdVertexMapv1();
     PHIODataNode<PHObject> *VertexMapNode = new PHIODataNode<PHObject>(m_mbdvtxmap, "MbdVertexMap", "PHObject");
     bbcNode->addNode(VertexMapNode);
+  }
+
+  m_mbdgeom = findNode::getClass<MbdGeom>(bbcNode, "MbdGeom");
+  if (!m_mbdgeom)
+  {
+    m_mbdgeom = new MbdGeomV1();
+    PHIODataNode<PHObject> *MbdGeomNode = new PHIODataNode<PHObject>(m_mbdgeom, "MbdGeom", "PHObject");
+    bbcNode->addNode(MbdGeomNode);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
