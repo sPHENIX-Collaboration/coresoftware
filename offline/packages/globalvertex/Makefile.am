@@ -31,30 +31,46 @@ pkginclude_HEADERS = \
   GlobalVertexMap.h \
   GlobalVertexMapv1.h \
   GlobalVertexReco.h \
+  SvtxVertex.h \
+  SvtxVertex_v1.h \
+  SvtxVertexMap.h \
+  SvtxVertexMap_v1.h \
   Vertex.h
 
 ROOTDICTS = \
+  Vertex_Dict.cc \
   GlobalVertex_Dict.cc \
   GlobalVertexv1_Dict.cc \
   GlobalVertexMap_Dict.cc \
   GlobalVertexMapv1_Dict.cc \
-  Vertex_Dict.cc
+  SvtxVertex_Dict.cc \
+  SvtxVertex_v1_Dict.cc \
+  SvtxVertexMap_Dict.cc \
+  SvtxVertexMap_v1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  Vertex_Dict_rdict.pcm \
   GlobalVertex_Dict_rdict.pcm \
   GlobalVertexv1_Dict_rdict.pcm \
   GlobalVertexMap_Dict_rdict.pcm \
   GlobalVertexMapv1_Dict_rdict.pcm \
-  Vertex_Dict_rdict.pcm
+  SvtxVertex_Dict_rdict.pcm \
+  SvtxVertex_v1_Dict_rdict.pcm \
+  SvtxVertexMap_Dict_rdict.pcm \
+  SvtxVertexMap_v1_Dict_rdict.pcm
 
 libglobalvertex_io_la_SOURCES = \
   $(ROOTDICTS) \
+  Vertex.cc \
   GlobalVertex.cc \
   GlobalVertexv1.cc \
   GlobalVertexMap.cc \
   GlobalVertexMapv1.cc \
-  Vertex.cc
+  SvtxVertex.cc \
+  SvtxVertex_v1.cc \
+  SvtxVertexMap.cc \
+  SvtxVertexMap_v1.cc
 
 libglobalvertex_la_SOURCES = \
   GlobalVertexReco.cc
