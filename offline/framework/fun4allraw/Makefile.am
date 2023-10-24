@@ -44,6 +44,7 @@ libfun4allraw_la_SOURCES = \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
   intt_pool.cc \
+  tpc_pool.cc \
   SingleEvtInput.cc \
   SingleMvtxInput.cc \
   SingleInttInput.cc \
