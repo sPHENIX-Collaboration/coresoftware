@@ -67,6 +67,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
 	for (int i = 0; i < size1; i++)
 	  {
 	    h->SetBinContent(i + 1, v.at(i));
+	    h->SetBinError(i + 1, 1);
 	    if (v.at(i) > maxheight)
 	      {
 		maxheight = v.at(i);
