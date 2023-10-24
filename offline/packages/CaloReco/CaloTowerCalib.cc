@@ -262,10 +262,13 @@ void CaloTowerCalib::CreateNodeTree(PHCompositeNode *topNode)
   if (!_calib_towers)
   {
     if(m_use_TowerInfov2)
+    {
       _calib_towers = new TowerInfoContainerv2(m_DETECTOR);
+    }
     else
+    {
       _calib_towers = new TowerInfoContainerv1(m_DETECTOR);
-   
+    }   
 
     PHIODataNode<PHObject> *calibtowerNode = new PHIODataNode<PHObject>(_calib_towers, CalibTowerNodeName, "PHObject");
     std::cout << "adding calib tower" << std::endl;

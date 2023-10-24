@@ -16,7 +16,6 @@ class PHCompositeNode;
 class RawClusterContainer;
 class CDBInterface;
 class CDBTTree;
-class CDBHistos;
 
 class RawClusterPositionCorrection : public SubsysReco
 {
@@ -78,19 +77,17 @@ class RawClusterPositionCorrection : public SubsysReco
   std::vector<std::vector<float>> calib_constants_south;
   std::vector<std::vector<float>> calib_constants_south_ecore;
 
-  int m_UseTowerInfo = 0;  // 0 only old tower, 1 only new (TowerInfo based),
+  int m_UseTowerInfo {0};  // 0 only old tower, 1 only new (TowerInfo based),
 
   int bins_eta;
   int bins_phi;
   int iEvent;
 
-  TH2F* h2NorthSector;
-  TH2F* h2SouthSector;
-  TH1D* pdcCorrFlat;
-  CDBInterface *cdb = nullptr;
+  TH2F* h2NorthSector{nullptr};
+  TH2F* h2SouthSector{nullptr};
+  TH1D* pdcCorrFlat{nullptr};
   
-  CDBTTree *cdbttree = nullptr;
-  CDBHistos *cdbHisto = nullptr;
+  CDBTTree *cdbttree{nullptr};
 };
 
 #endif

@@ -11,6 +11,11 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
+#include <cdbobjects/CDBHistos.h> // for CDBHistos
+
+#include <ffamodules/CDBInterface.h>
+
 #include <phparameter/PHParameters.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -24,6 +29,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <TSystem.h>
+
 #include <cassert>
 #include <cmath>
 #include <fstream>
@@ -35,10 +42,6 @@
 #include <string>
 #include <utility>  // for pair
 
-#include <cdbobjects/CDBTTree.h>  // for CDBTTree
-#include <cdbobjects/CDBHistos.h> // for CDBHistos
-#include <ffamodules/CDBInterface.h>
-
 
 RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &name)
   : SubsysReco(std::string("RawClusterPositionCorrection_") + name)
@@ -46,9 +49,6 @@ RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &na
   , bins_eta(384)
   , bins_phi(64)
   , iEvent(0)
-  , h2NorthSector(0)
-  , h2SouthSector(0)
-  , pdcCorrFlat(0)
 {
 }
 
@@ -57,17 +57,18 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
   CreateNodeTree(topNode);
 
   // access the cdb and get cdbtree
-  cdb = CDBInterface::instance();
   std::string  m_calibName = "cemc_PDC_NorthSouth_8x8_23instru";
-  std::string calibdir = cdb->getUrl(m_calibName);
+  std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
 
-  if (calibdir[0] == '/')
+  if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
   else
     { 
       std::cout << std::endl << "did not find CDB tree" << std::endl;
+      gSystem->Exit(1);
+      exit(1);
     }
 
   h2NorthSector = new TH2F("h2NorthSector", "Cluster; towerid #eta; towerid #phi", bins_eta, 47.5, 95.5, bins_phi, -0.5, 7.5);
@@ -113,17 +114,19 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
   }
   
   //Load PDC final stage correction
-  calibdir = cdb -> getUrl("cemc_PDC_ResidualCorr");
+  calibdir = CDBInterface::instance()->getUrl("cemc_PDC_ResidualCorr");
   if(!calibdir.empty())
     {
-      cdbHisto = new CDBHistos(calibdir.c_str());
+      CDBHistos *cdbHisto = new CDBHistos(calibdir.c_str());
       cdbHisto -> LoadCalibrations();
       pdcCorrFlat = (TH1D*)cdbHisto->getHisto("h1_res_p");
-
+      delete cdbHisto;
     }
   else
     {
       std::cout << std::endl << "did not find CDB histo" << std::endl;
+      gSystem->Exit(1);
+      exit(1);
     }
   return Fun4AllReturnCodes::EVENT_OK;
 }
