@@ -1,4 +1,4 @@
-AC_INIT(bbc,[0.20])
+AC_INIT(mbd,[0.20])
 AC_CONFIG_SRCDIR([configure.ac])
 
 AM_INIT_AUTOMAKE

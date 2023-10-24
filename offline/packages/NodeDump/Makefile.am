@@ -14,8 +14,6 @@ pkginclude_HEADERS = \
 
 libphnodedump_la_SOURCES = \
   Dumper.cc \
-  DumpBbcOut.cc \
-  DumpBbcPmtContainer.cc \
   DumpBbcPmtInfoContainer.cc \
   DumpBbcVertexMap.cc \
   DumpCaloTriggerInfo.cc \
@@ -29,6 +27,9 @@ libphnodedump_la_SOURCES = \
   DumpInttDeadMap.cc \
   DumpInttRawHitContainer.cc \
   DumpJetMap.cc \
+  DumpMbdOut.cc \
+  DumpMbdPmtContainer.cc \
+  DumpMbdVertexMap.cc \
   DumpParticleFlowElementContainer.cc \
   DumpPdbParameterMap.cc \
   DumpPdbParameterMapContainer.cc \
