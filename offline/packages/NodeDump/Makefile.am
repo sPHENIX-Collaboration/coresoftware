@@ -73,7 +73,6 @@ libphnodedump_la_SOURCES = \
 AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib
 
 libphnodedump_la_LIBADD = \
-  -lbbc_io \
   -lcalo_io \
   -lcalotrigger_io \
   -lepd_io \
@@ -81,9 +80,10 @@ libphnodedump_la_LIBADD = \
   -lffaobjects \
   -lffarawobjects \
   -lg4detectors_io \
-  -lg4bbc_io \
+  -lg4mbd_io \
   -lHepMC \
   -ljetbase_io \
+  -lmbd_io \
   -lparticleflow_io \
   -lphfield_io \
   -lphg4hit \
