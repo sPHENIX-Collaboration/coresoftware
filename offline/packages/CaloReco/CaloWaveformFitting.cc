@@ -105,7 +105,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
 	    ROOT::Fit::Chi2Function *EPChi2 = new ROOT::Fit::Chi2Function(data, *fitFunction);
 	    ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
 	    fitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
-	    double params[] = {static_cast<double>(maxheight - pedestal), static_cast<double>(maxbin - 6), static_cast<double>(pedestal)};
+	    double params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
 	    fitter->Config().SetParamsSettings(3, params);
 	    fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
             ROOT::Fit::FitResult fitres = fitter->Result();
@@ -252,7 +252,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
       }
     }
     amp -= ped;
-    std::vector<float> val = {amp, time, ped};
+    std::vector<float> val = {amp, time, ped, 0};
     fit_values.push_back(val);
     val.clear();
   }
