@@ -33,6 +33,7 @@ pkginclude_HEADERS = \
   GlobalVertexReco.h \
   SvtxVertex.h \
   SvtxVertex_v1.h \
+  SvtxVertex_v2.h \
   SvtxVertexMap.h \
   SvtxVertexMap_v1.h \
   Vertex.h
@@ -45,6 +46,7 @@ ROOTDICTS = \
   GlobalVertexMapv1_Dict.cc \
   SvtxVertex_Dict.cc \
   SvtxVertex_v1_Dict.cc \
+  SvtxVertex_v2_Dict.cc \
   SvtxVertexMap_Dict.cc \
   SvtxVertexMap_v1_Dict.cc
 
@@ -57,6 +59,7 @@ nobase_dist_pcm_DATA = \
   GlobalVertexMapv1_Dict_rdict.pcm \
   SvtxVertex_Dict_rdict.pcm \
   SvtxVertex_v1_Dict_rdict.pcm \
+  SvtxVertex_v2_Dict_rdict.pcm \
   SvtxVertexMap_Dict_rdict.pcm \
   SvtxVertexMap_v1_Dict_rdict.pcm
 
@@ -69,6 +72,7 @@ libglobalvertex_io_la_SOURCES = \
   GlobalVertexMapv1.cc \
   SvtxVertex.cc \
   SvtxVertex_v1.cc \
+  SvtxVertex_v2.cc \
   SvtxVertexMap.cc \
   SvtxVertexMap_v1.cc
 

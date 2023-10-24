@@ -61,13 +61,12 @@
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
 #include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
-#include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
-#include <trackbase_historic/SvtxVertexMap.h>       // for SvtxVertexMap
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+
+#include <globalvertex/SvtxVertexMap_v1.h>
+#include <globalvertex/SvtxVertex_v1.h>
 
 #include <GenFit/AbsMeasurement.h>                  // for AbsMeasurement
 #include <GenFit/EventDisplay.h>                    // for EventDisplay

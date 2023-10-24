@@ -1,11 +1,11 @@
-#include "SvtxVertex_v1.h"
+#include "SvtxVertex_v2.h"
 
 #include <cmath>
 #include <utility>  // for swap
 
 using namespace std;
 
-SvtxVertex_v1::SvtxVertex_v1()
+SvtxVertex_v2::SvtxVertex_v2()
   : _id(0xFFFFFFFF)
   , _t0(NAN)
   , _pos()
@@ -24,13 +24,13 @@ SvtxVertex_v1::SvtxVertex_v1()
   }
 }
 
-void SvtxVertex_v1::identify(ostream& os) const
+void SvtxVertex_v2::identify(ostream& os) const
 {
-  os << "---SvtxVertex_v1--------------------" << endl;
+  os << "---SvtxVertex_v2--------------------" << endl;
   os << "vertexid: " << get_id() << endl;
 
   os << " t0 = " << get_t() << endl;
-
+  os << " beam crossing = " << get_beam_crossing() << endl;
   os << " (x,y,z) =  (" << get_position(0);
   os << ", " << get_position(1) << ", ";
   os << get_position(2) << ") cm" << endl;
@@ -62,7 +62,7 @@ void SvtxVertex_v1::identify(ostream& os) const
   return;
 }
 
-int SvtxVertex_v1::isValid() const
+int SvtxVertex_v2::isValid() const
 {
   if (_id == 0xFFFFFFFF) return 0;
   if (std::isnan(_t0)) return 0;
@@ -84,18 +84,18 @@ int SvtxVertex_v1::isValid() const
   return 1;
 }
 
-void SvtxVertex_v1::set_error(unsigned int i, unsigned int j, float value)
+void SvtxVertex_v2::set_error(unsigned int i, unsigned int j, float value)
 {
   _err[covar_index(i, j)] = value;
   return;
 }
 
-float SvtxVertex_v1::get_error(unsigned int i, unsigned int j) const
+float SvtxVertex_v2::get_error(unsigned int i, unsigned int j) const
 {
   return _err[covar_index(i, j)];
 }
 
-unsigned int SvtxVertex_v1::covar_index(unsigned int i, unsigned int j) const
+unsigned int SvtxVertex_v2::covar_index(unsigned int i, unsigned int j) const
 {
   if (i > j) std::swap(i, j);
   return i + 1 + (j + 1) * (j) / 2 - 1;

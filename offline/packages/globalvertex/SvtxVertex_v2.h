@@ -9,18 +9,18 @@
 
 class PHObject;
 
-class SvtxVertex_v1 : public SvtxVertex
+class SvtxVertex_v2 : public SvtxVertex
 {
  public:
-  SvtxVertex_v1();
-  ~SvtxVertex_v1() override {}
+  SvtxVertex_v2();
+  ~SvtxVertex_v2() override {}
 
   // PHObject virtual overloads
 
   void identify(std::ostream& os = std::cout) const override;
-  void Reset() override { *this = SvtxVertex_v1(); }
+  void Reset() override { *this = SvtxVertex_v2(); }
   int isValid() const override;
-  PHObject* CloneMe() const override { return new SvtxVertex_v1(*this); }
+  PHObject* CloneMe() const override { return new SvtxVertex_v2(*this); }
 
   // vertex info
 
@@ -51,6 +51,9 @@ class SvtxVertex_v1 : public SvtxVertex
   float get_error(unsigned int i, unsigned int j) const override;        //< get vertex error covar
   void set_error(unsigned int i, unsigned int j, float value) override;  //< set vertex error covar
 
+  unsigned int get_beam_crossing() const override { return _beamcrossing; }
+  void set_beam_crossing(unsigned int cross) override { _beamcrossing = cross; }
+
   //
   // associated track ids methods
   //
@@ -65,7 +68,7 @@ class SvtxVertex_v1 : public SvtxVertex
   TrackIter begin_tracks() override { return _track_ids.begin(); }
   TrackIter find_track(unsigned int trackid) override { return _track_ids.find(trackid); }
   TrackIter end_tracks() override { return _track_ids.end(); }
-
+  
  private:
   unsigned int covar_index(unsigned int i, unsigned int j) const;
 
@@ -76,8 +79,9 @@ class SvtxVertex_v1 : public SvtxVertex
   unsigned int _ndof;                 //< degrees of freedom
   float _err[6];                      //< error covariance matrix (packed storage) (+/- cm^2)
   std::set<unsigned int> _track_ids;  //< list of track ids
+  unsigned int _beamcrossing;
 
-  ClassDefOverride(SvtxVertex_v1, 1);
+  ClassDefOverride(SvtxVertex_v2, 2);
 };
 
 #endif
