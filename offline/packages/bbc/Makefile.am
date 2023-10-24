@@ -33,6 +33,7 @@ pkginclude_HEADERS = \
   BbcOutV1.h \
   MbdOut.h \
   MbdOutV1.h \
+  MbdOutV2.h \
   BbcPmtContainer.h \
   BbcPmtContainerV1.h \
   BbcPmtHit.h \
@@ -90,6 +91,7 @@ ROOTDICTS = \
   BbcVertexMapv1_Dict.cc \
   MbdOut_Dict.cc \
   MbdOutV1_Dict.cc \
+  MbdOutV2_Dict.cc \
   MbdGeom_Dict.cc \
   MbdGeomV1_Dict.cc \
   MbdPmtHit_Dict.cc \
@@ -130,6 +132,7 @@ nobase_dist_pcm_DATA = \
   BbcVertexMapv1_Dict_rdict.pcm \
   MbdOut_Dict_rdict.pcm \
   MbdOutV1_Dict_rdict.pcm \
+  MbdOutV2_Dict_rdict.pcm \
   MbdGeom_Dict_rdict.pcm \
   MbdGeomV1_Dict_rdict.pcm \
   MbdPmtHit_Dict_rdict.pcm \
@@ -162,6 +165,7 @@ libmbd_io_la_SOURCES = \
   BbcGeomV1.cc \
   MbdOut.cc \
   MbdOutV1.cc \
+  MbdOutV2.cc \
   MbdPmtHit.cc \
   MbdPmtHitV1.cc \
   MbdPmtContainer.cc \
