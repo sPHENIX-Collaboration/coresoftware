@@ -14,6 +14,7 @@
 
 class PHCompositeNode;
 class RawClusterContainer;
+class CDBHistos;
 class CDBInterface;
 class CDBTTree;
 
@@ -21,7 +22,7 @@ class RawClusterPositionCorrection : public SubsysReco
 {
  public:
   explicit RawClusterPositionCorrection(const std::string &name);
-
+  ~RawClusterPositionCorrection() override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
@@ -85,9 +86,10 @@ class RawClusterPositionCorrection : public SubsysReco
 
   TH2F* h2NorthSector{nullptr};
   TH2F* h2SouthSector{nullptr};
-  TH1D* pdcCorrFlat{nullptr};
+  TH1* pdcCorrFlat{nullptr};
   
   CDBTTree *cdbttree{nullptr};
+  CDBHistos *cdbHisto{nullptr};
 };
 
 #endif

@@ -51,6 +51,10 @@ RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &na
   , iEvent(0)
 {
 }
+RawClusterPositionCorrection::~RawClusterPositionCorrection()
+{
+  delete cdbHisto;
+}
 
 int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
 {
@@ -117,10 +121,9 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
   calibdir = CDBInterface::instance()->getUrl("cemc_PDC_ResidualCorr");
   if(!calibdir.empty())
     {
-      CDBHistos *cdbHisto = new CDBHistos(calibdir.c_str());
+      cdbHisto = new CDBHistos(calibdir.c_str());
       cdbHisto -> LoadCalibrations();
-      pdcCorrFlat = (TH1D*)cdbHisto->getHisto("h1_res_p");
-      delete cdbHisto;
+      pdcCorrFlat = cdbHisto->getHisto("h1_res_p");
     }
   else
     {
