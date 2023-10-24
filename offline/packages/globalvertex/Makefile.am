@@ -28,6 +28,7 @@ libglobalvertex_la_LIBADD = \
 pkginclude_HEADERS = \
   GlobalVertex.h \
   GlobalVertexv1.h \
+  GlobalVertexv2.h \
   GlobalVertexMap.h \
   GlobalVertexMapv1.h \
   GlobalVertexReco.h \
@@ -42,6 +43,7 @@ ROOTDICTS = \
   Vertex_Dict.cc \
   GlobalVertex_Dict.cc \
   GlobalVertexv1_Dict.cc \
+  GlobalVertexv2_Dict.cc \
   GlobalVertexMap_Dict.cc \
   GlobalVertexMapv1_Dict.cc \
   SvtxVertex_Dict.cc \
@@ -55,6 +57,7 @@ nobase_dist_pcm_DATA = \
   Vertex_Dict_rdict.pcm \
   GlobalVertex_Dict_rdict.pcm \
   GlobalVertexv1_Dict_rdict.pcm \
+  GlobalVertexv2_Dict_rdict.pcm \
   GlobalVertexMap_Dict_rdict.pcm \
   GlobalVertexMapv1_Dict_rdict.pcm \
   SvtxVertex_Dict_rdict.pcm \
@@ -68,6 +71,7 @@ libglobalvertex_io_la_SOURCES = \
   Vertex.cc \
   GlobalVertex.cc \
   GlobalVertexv1.cc \
+  GlobalVertexv2.cc \
   GlobalVertexMap.cc \
   GlobalVertexMapv1.cc \
   SvtxVertex.cc \
