@@ -10,7 +10,6 @@
 #include <map>
 
 class PHCompositeNode;
-class TrkrClusterContainer;
 
 class TpcClusterQA : public SubsysReco
 {
@@ -29,7 +28,6 @@ class TpcClusterQA : public SubsysReco
   
   void createHistos();
   
-  TrkrClusterContainer *m_clusterContainer = nullptr;
   std::string getHistoPrefix() const;
   std::set<int> m_layers;
   std::multimap<int, int> m_layerRegionMap;
