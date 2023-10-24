@@ -1,6 +1,6 @@
 #include "QAG4SimulationMicromegas.h"
-#include "QAG4Util.h"
-#include "QAHistManagerDef.h"
+#include <qautils/QAUtil.h>
+#include <qautils/QAHistManagerDef.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>

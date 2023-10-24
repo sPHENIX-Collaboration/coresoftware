@@ -1,6 +1,6 @@
 #include "QAG4SimulationKFParticle.h"
 
-#include "QAHistManagerDef.h"  // for getHistoManager
+#include <qautils/QAHistManagerDef.h>  // for getHistoManager
 
 #include <kfparticle_sphenix/KFParticle_Container.h>
 #include <kfparticle_sphenix/KFParticle_Tools.h>
