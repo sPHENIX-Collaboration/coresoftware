@@ -28,6 +28,8 @@ class MbdGeom : public PHObject
     virtual int get_pmt(const unsigned int /*feech*/) const {return -1;};
     virtual int get_type(const unsigned int /*feech*/) const {return -1;}; // 0=T-channel, 1=Q-channel
 
+    virtual void Reset() override {}
+
   private:
     ClassDefOverride(MbdGeom, 1);
 };
