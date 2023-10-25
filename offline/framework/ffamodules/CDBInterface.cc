@@ -132,7 +132,24 @@ std::string CDBInterface::getUrl(const std::string &domain, const std::string &f
     cdbclient = new SphenixClient(rc->get_StringFlag("CDB_GLOBALTAG"));
   }
   uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP");
+  if (Verbosity() > 0)
+  {
+    std::cout << "Global Tag: " <<  rc->get_StringFlag("CDB_GLOBALTAG")
+	      << ", domain: " << domain
+	      << ", timestamp: " << timestamp;
+  }
   std::string return_url = cdbclient->getCalibration(domain,timestamp);
+  if (Verbosity() > 0)
+  {
+    if (return_url.empty())
+    {
+      std::cout << "... reply: no file found" << std::endl;
+    }
+    else
+    {
+      std::cout << "... reply: " <<  return_url << std::endl;
+    }
+  }
   if (return_url.empty())
   {
     return_url = filename;
