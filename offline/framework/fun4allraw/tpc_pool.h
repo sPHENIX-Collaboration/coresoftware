@@ -13,7 +13,7 @@ class  tpc_pool  {
 
 public:
   tpc_pool( const unsigned int required_depth, const unsigned int low_mark =1000000);
-  ~tpc_pool();
+  virtual ~tpc_pool();
 
   virtual int addPacket( Packet *);
 
@@ -56,7 +56,7 @@ protected:
   int find_header ( const unsigned int xx,  const std::vector<unsigned short> &orig);
   int decode_gtm_data(unsigned short gtm[16]);
   
-  int _broken;
+//  int _broken {0};
   
   int _is_decoded;
 
