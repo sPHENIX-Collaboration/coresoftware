@@ -30,27 +30,31 @@ pkginclude_HEADERS = \
   GlobalVertexv1.h \
   GlobalVertexMap.h \
   GlobalVertexMapv1.h \
-  GlobalVertexReco.h
+  GlobalVertexReco.h \
+  Vertex.h
 
 ROOTDICTS = \
   GlobalVertex_Dict.cc \
   GlobalVertexv1_Dict.cc \
   GlobalVertexMap_Dict.cc \
-  GlobalVertexMapv1_Dict.cc
+  GlobalVertexMapv1_Dict.cc \
+  Vertex_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   GlobalVertex_Dict_rdict.pcm \
   GlobalVertexv1_Dict_rdict.pcm \
   GlobalVertexMap_Dict_rdict.pcm \
-  GlobalVertexMapv1_Dict_rdict.pcm
+  GlobalVertexMapv1_Dict_rdict.pcm \
+  Vertex_Dict_rdict.pcm
 
 libglobalvertex_io_la_SOURCES = \
   $(ROOTDICTS) \
   GlobalVertex.cc \
   GlobalVertexv1.cc \
   GlobalVertexMap.cc \
-  GlobalVertexMapv1.cc
+  GlobalVertexMapv1.cc \
+  Vertex.cc
 
 libglobalvertex_la_SOURCES = \
   GlobalVertexReco.cc
