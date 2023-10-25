@@ -2,6 +2,7 @@
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
+#include <calobase/RawClusterUtility.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>           // for decode_index1, decode_in...
@@ -12,6 +13,12 @@
 #include <ffamodules/CDBInterface.h>
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
+#include <cdbobjects/CDBHistos.h> // for CDBHistos
+
+#include <ffamodules/CDBInterface.h>
+
+#include <phparameter/PHParameters.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -24,9 +31,12 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <TH1.h>
 #include <TH2.h>
+#include <TSystem.h>
 
 #include <algorithm>                         // for max
+
 #include <cassert>
 #include <cmath>
 #include <fstream>
@@ -46,22 +56,28 @@ RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &na
   , iEvent(0)
 {
 }
+RawClusterPositionCorrection::~RawClusterPositionCorrection()
+{
+  delete cdbHisto;
+}
 
 int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
 {
   CreateNodeTree(topNode);
 
   // access the cdb and get cdbtree
-  cdb = CDBInterface::instance();
   std::string  m_calibName = "cemc_PDC_NorthSouth_8x8_23instru";
-  std::string calibdir = cdb->getUrl(m_calibName);
+  std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
 
   if (!calibdir.empty())
   {
     cdbttree = new CDBTTree(calibdir);
   }
-  else{ 
+  else
+  { 
     std::cout << std::endl << "did not find CDB tree" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
 
   h2NorthSector = new TH2F("h2NorthSector", "Cluster; towerid #eta; towerid #phi", bins_eta, 47.5, 95.5, bins_phi, -0.5, 7.5);
@@ -105,7 +121,21 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
     calib_constants_south.push_back(dumvec);
     calib_constants_south_ecore.push_back(dumvec2);
   }
-
+  
+  //Load PDC final stage correction
+  calibdir = CDBInterface::instance()->getUrl("cemc_PDC_ResidualCorr");
+  if(!calibdir.empty())
+    {
+      cdbHisto = new CDBHistos(calibdir.c_str());
+      cdbHisto -> LoadCalibrations();
+      pdcCorrFlat = cdbHisto->getHisto("h1_res_p");
+    }
+  else
+    {
+      std::cout << std::endl << "did not find CDB histo" << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -303,6 +333,24 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     //    if (m_UseTowerInfo)
     recalibcluster->set_energy(clus_energy / eclus_recalib_val);
     recalibcluster->set_ecore(cluster->get_ecore() / ecore_recalib_val);
+    if(cluster->get_ecore() >= 0.5 && cluster -> get_ecore() <=10)
+      {
+	//CLHEP::Hep3Vector vertex(0,0,0);
+	//CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recalibcluster, vertex);
+    
+	//int ecoreBin = pdcCorr -> GetXaxis() -> FindBin(cluster->get_ecore());
+	int ecoreBin = pdcCorrFlat -> GetXaxis() -> FindBin(recalibcluster->get_ecore());
+	//float pseudo = E_vec_cluster.pseudoRapidity();
+	//if(pseudo > 1)pseudo = 0.99;
+	//int etaBin = pdcCorr -> GetYaxis() -> FindBin(pseudo);
+	//float pdcCalib =  pdcCorr -> GetBinContent(ecoreBin, etaBin);
+	float pdcCalib = pdcCorrFlat -> GetBinContent(ecoreBin);
+	if(pdcCalib < 0.1) pdcCalib = 1;
+	
+
+	recalibcluster->set_ecore(recalibcluster->get_ecore() /pdcCalib);
+
+      }
     _recalib_clusters->AddCluster(recalibcluster);
 
     if (Verbosity() >= Fun4AllBase::VERBOSITY_EVEN_MORE && clus_energy > 1)
@@ -366,5 +414,6 @@ void RawClusterPositionCorrection::CreateNodeTree(PHCompositeNode *topNode)
 }
 int RawClusterPositionCorrection::End(PHCompositeNode * /*topNode*/)
 {
+
   return Fun4AllReturnCodes::EVENT_OK;
 }

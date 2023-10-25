@@ -46,6 +46,7 @@ CaloTowerCalib::CaloTowerCalib(const std::string &name)
 //____________________________________________________________________________..
 CaloTowerCalib::~CaloTowerCalib()
 {
+  delete cdbttree;
   std::cout << "CaloTowerCalib::~CaloTowerCalib() Calling dtor" << std::endl;
 }
 
@@ -70,7 +71,6 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     m_detector = "CEMC";
     m_DETECTOR = TowerInfoContainer::EMCAL;
 
-    cdb = CDBInterface::instance();
     if (!m_overrideCalibName)
     {
       m_calibName = "cemc_pi0_twrSlope_v1";
@@ -79,8 +79,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     {
       m_fieldname = "Femc_datadriven_qm1_correction";
     }
-    std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -103,9 +103,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     {
       m_fieldname = "ihcal_abscalib_mip";
     }
-    cdb = CDBInterface::instance();
-    std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -128,9 +127,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     {
       m_fieldname = "ohcal_abscalib_mip";
     }
-    cdb = CDBInterface::instance();
-    std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -153,9 +151,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     {
       m_fieldname = "zdc_calib";
     }
-    cdb = CDBInterface::instance();
-    std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -178,9 +175,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     {
       m_fieldname = "noCalibYet";
     }
-    cdb = CDBInterface::instance();
-    std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -230,7 +226,6 @@ int CaloTowerCalib::process_event(PHCompositeNode * /*topNode*/)
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
     _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst);
   }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -267,10 +262,13 @@ void CaloTowerCalib::CreateNodeTree(PHCompositeNode *topNode)
   if (!_calib_towers)
   {
     if(m_use_TowerInfov2)
+    {
       _calib_towers = new TowerInfoContainerv2(m_DETECTOR);
+    }
     else
+    {
       _calib_towers = new TowerInfoContainerv1(m_DETECTOR);
-   
+    }   
 
     PHIODataNode<PHObject> *calibtowerNode = new PHIODataNode<PHObject>(_calib_towers, CalibTowerNodeName, "PHObject");
     std::cout << "adding calib tower" << std::endl;
