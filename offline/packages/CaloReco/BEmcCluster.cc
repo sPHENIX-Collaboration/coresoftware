@@ -321,6 +321,7 @@ float EmcCluster::GetProb(float& chi2, int& ndf)
 {
   float e, xg, yg, zg;
   e = GetTotalEnergy();
+  xg = 0; 
   GetGlobalPos(xg, yg, zg);
   return fOwner->GetProb(fHitList, e, xg, yg, zg, chi2, ndf);
 }

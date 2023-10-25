@@ -11,7 +11,6 @@
 #include <iostream>
 #include <string>
 
-class CDBInterface;
 class CDBTTree;
 class PHCompositeNode;
 class TowerInfoContainer;
@@ -82,7 +81,6 @@ class CaloTowerCalib : public SubsysReco
   std::string m_outputNodePrefix = "TOWERINFO_CALIB_";
   bool m_use_TowerInfov2 = 0;
 
-  CDBInterface *cdb = nullptr;
   CDBTTree *cdbttree = nullptr;
   int m_runNumber;
 };
