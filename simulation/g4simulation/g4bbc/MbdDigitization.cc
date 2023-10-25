@@ -265,10 +265,10 @@ void MbdDigitization::GetNodes(PHCompositeNode *topNode)
   }
 
   // BBC hit container
-  _bbchits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MBD");
+  _bbchits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_BBC");
   if (!_bbchits)
   {
-    std::cout << PHWHERE << " G4HIT_MBD node not found on node tree" << std::endl;
+    std::cout << PHWHERE << " G4HIT_BBC node not found on node tree" << std::endl;
     gSystem->Exit(1);
   }
 

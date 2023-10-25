@@ -3,7 +3,8 @@
 #include "MbdPmtContainerV1.h"
 #include "MbdVertexMapv1.h"
 #include "MbdVertexv1.h"
-#include "MbdOutV2.h"
+//#include "MbdOutV2.h"
+#include "MbdOutV1.h"
 #include "MbdGeomV1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -126,7 +127,7 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
   m_mbdout = findNode::getClass<MbdOut>(bbcNode, "MbdOut");
   if (!m_mbdout)
   {
-    m_mbdout = new MbdOutV2();
+    m_mbdout = new MbdOutV1();
     PHIODataNode<PHObject> *MbdOutNode = new PHIODataNode<PHObject>(m_mbdout, "MbdOut", "PHObject");
     bbcNode->addNode(MbdOutNode);
   }

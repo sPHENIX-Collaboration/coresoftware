@@ -454,7 +454,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     for (int iarm=0; iarm<2; iarm++)
     {
       bbcout->set_arm( iarm, get_bbcn(iarm), get_bbcq(iarm), get_bbct(iarm) );
-      bbcout->set_clocks( m_evt, m_clk, m_femclk ); // only for V2
+      //bbcout->set_clocks( m_evt, m_clk, m_femclk ); // only for V2
       if (_verbose>10 ) cout <<  get_bbcn(iarm) << "\t" << get_bbcq(iarm) << "\t" << get_bbct(iarm) << endl;
     }
 
