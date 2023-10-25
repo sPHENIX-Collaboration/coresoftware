@@ -34,15 +34,15 @@ int MbdCalib::Download_All()
   if ( bbc_caldir.empty() )
   {
     string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
-    cout << "sampmax_url " << sampmax_url << endl;
+    //cout << "sampmax_url " << sampmax_url << endl;
     Download_SampMax( sampmax_url );
 
     string qfit_url = _cdb->getUrl("MBD_QFIT");
-    cout << "qfit_url " << qfit_url << endl;
+    //cout << "qfit_url " << qfit_url << endl;
     Download_Gains( qfit_url );
 
     string tq_t0_url = _cdb->getUrl("MBD_TQ_T0");
-    cout << "tq_t0_url " << tq_t0_url << endl;
+    //cout << "tq_t0_url " << tq_t0_url << endl;
     Download_TQT0( tq_t0_url );
   }
   else
@@ -206,7 +206,7 @@ int MbdCalib::Download_SampMax(const string& dbase_location)
     for (int ifeech=0; ifeech<MBD_N_FEECH; ifeech++)
     {
       _sampmax[ifeech] = cdbttree->GetIntValue(ifeech,"sampmax");
-      if (ifeech%8==0 ) cout << ifeech << "\t" << _sampmax[ifeech] << endl;
+      if (ifeech<5 || ifeech>=MBD_N_FEECH-5) cout << ifeech << "\t" << _sampmax[ifeech] << endl;
     }
     delete cdbttree;
   }
