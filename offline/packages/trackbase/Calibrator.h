@@ -15,6 +15,7 @@
 
 class Calibrator
 {
+ public:
   using Measurement = ::Acts::BoundVariantMeasurement;
   /// Container of measurements.
   ///
@@ -23,68 +24,35 @@ class Calibrator
   /// as opaque here and no ordering is enforced on the stored measurements.
   using MeasurementContainer = std::vector<Measurement>;
 
+  void calibrate(const MeasurementContainer& measurements,
+                 const Acts::GeometryContext& gctx,
+                 const Acts::CalibrationContext&,
+                 const Acts::SourceLink& sourceLink,
+                 Acts::VectorMultiTrajectory::TrackStateProxy& trackState) const;
+  virtual ~Calibrator() = default;
+};
+
+class CalibratorAdapter
+{
  public:
-  /// Construct an invalid calibrator. Required to allow copying.
-  Calibrator() = default;
   /// Construct using a user-provided container to chose measurements from.
-  Calibrator(const MeasurementContainer& measurements)
-    : m_measurements(&measurements)
+  CalibratorAdapter(const Calibrator& calibrator,
+                    const Calibrator::MeasurementContainer& measurements)
+    : m_calibrator{calibrator}
+    , m_measurements{measurements}
   {
   }
 
-  /// Find the measurement corresponding to the source link.
-  ///
-  /// @tparam parameters_t Track parameters type
-  /// @param gctx The geometry context (unused)
-  /// @param trackState The track state to calibrate
+  CalibratorAdapter() = delete;
 
   void calibrate(const Acts::GeometryContext& gctx,
-                 Acts::MultiTrajectory<Acts::VectorMultiTrajectory>::TrackStateProxy trackState) const
-  {
-    const ActsSourceLink sourceLink = trackState.getUncalibratedSourceLink().get<ActsSourceLink>();
+                 const Acts::CalibrationContext& cctx,
+                 const Acts::SourceLink& sourceLink,
+                 Acts::VectorMultiTrajectory::TrackStateProxy trackState) const;
 
-    assert(m_measurements and
-           "Undefined measurement container in Calibrator");
-    const ActsSourceLink::Index index = sourceLink.index();
-    std::visit(
-        [&](const auto& uncalibmeas) {
-          std::array<Acts::BoundIndices, 2> indices;
-          indices[0] = Acts::BoundIndices::eBoundLoc0;
-          indices[1] = Acts::BoundIndices::eBoundLoc1;
-
-          Acts::ActsVector<2> loc;
-          loc(0) = uncalibmeas.parameters()[Acts::eBoundLoc0];
-          loc(1) = uncalibmeas.parameters()[Acts::eBoundLoc1];
-
-          auto cov = uncalibmeas.covariance();
-          const TrkrDefs::cluskey cluskey = sourceLink.cluskey();
-          const uint8_t layer = TrkrDefs::getLayer(cluskey);
-          const double misalignmentFactor = gctx.get<alignmentTransformationContainer*>()->getMisalignmentFactor(layer);
-
-          Acts::ActsSymMatrix<2> expandedCov = Acts::ActsSymMatrix<2>::Zero();
-
-          for (int i = 0; i < cov.rows(); i++)
-          {
-            for (int j = 0; j < cov.cols(); j++)
-            {
-              expandedCov(i, j) = cov(i, j) * misalignmentFactor;
-            }
-          }
-
-          Acts::Measurement<Acts::BoundIndices, 2> meas(
-              uncalibmeas.sourceLink(), indices,
-              loc, expandedCov);
-
-	  trackState.allocateCalibrated(meas.size());
-          trackState.setCalibrated(meas);
-
-    },
-        (*m_measurements)[index]);
-  }
-    
  private:
-  // use pointer so the calibrator is copyable and default constructible.
-  const MeasurementContainer* m_measurements = nullptr;
+  const Calibrator& m_calibrator;
+  const Calibrator::MeasurementContainer& m_measurements;
 };
 
 #endif

@@ -518,11 +518,16 @@ bool SecondaryVertexFinder::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3
   /// create perigee surface
   auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(PCA);
 
-  const auto params = makeTrackParams(track);
-
   ActsPropagator propagator(_tGeometry);
+  auto params = propagator.makeTrackParams(track, _svtx_vertex_map);
+  if(!params.ok())
+    {
+      /// Couldn't construct strict PCA track parameter requirement
+      return false;
+    }
+
   propagator.verbosity(Verbosity());
-  auto result = propagator.propagateTrack(params, perigee);\
+  auto result = propagator.propagateTrack(params.value(), perigee);	\
   if(result.ok())
     {
       auto resultparams = result.value().second;
@@ -629,7 +634,7 @@ void SecondaryVertexFinder::get_dca(SvtxTrack* track,
 
   pos -= vertex;
 
-  Acts::ActsSymMatrix<3> posCov;
+  Acts::ActsSquareMatrix<3> posCov;
   for(int i = 0; i < 3; ++i)
     {
       for(int j = 0; j < 3; ++j)
@@ -657,7 +662,7 @@ void SecondaryVertexFinder::get_dca(SvtxTrack* track,
   rot_T = rot.transpose();
 
   Acts::Vector3 pos_R = rot * pos;
-  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
+  Acts::ActsSquareMatrix<3> rotCov = rot * posCov * rot_T;
 
   dca3dxy = pos_R(0);
   dca3dz = pos_R(2);
@@ -710,45 +715,7 @@ void SecondaryVertexFinder::findPcaTwoLines(Eigen::Vector3d pos1, Eigen::Vector3
   return;
 }
 
- Acts::Vector3 SecondaryVertexFinder::getVertex(SvtxTrack* track)
-{
-  auto vertexId = track->get_vertex_id();
-  const SvtxVertex* svtxVertex = _svtx_vertex_map->get(vertexId);
-  Acts::Vector3 vertex = Acts::Vector3::Zero();
-  if (svtxVertex)
-  {
-    vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
-    vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm;
-    vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
-  }
 
-  return vertex;
-}
-
-Acts::BoundTrackParameters SecondaryVertexFinder::makeTrackParams(SvtxTrack* track)
-{
-  Acts::Vector3 momentum(track->get_px(),
-                         track->get_py(),
-                         track->get_pz());
-
-  auto actsVertex = getVertex(track);
-  auto perigee =
-      Acts::Surface::makeShared<Acts::PerigeeSurface>(actsVertex);
-  auto actsFourPos =
-      Acts::Vector4(track->get_x() * Acts::UnitConstants::cm,
-                    track->get_y() * Acts::UnitConstants::cm,
-                    track->get_z() * Acts::UnitConstants::cm,
-                    10 * Acts::UnitConstants::ns);
-
-  ActsTransformations transformer;
-
-  Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
-
-  return ActsExamples::TrackParameters::create(perigee, _tGeometry->geometry().getGeoContext(),
-                                               actsFourPos, momentum,
-                                               track->get_charge() / track->get_p(),
-                                               cov).value();
-}
 
 //===========================
 // replace with a call to TrackFitUtils

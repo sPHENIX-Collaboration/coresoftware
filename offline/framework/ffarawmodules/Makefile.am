@@ -13,7 +13,8 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   EventCombiner.h \
   EventNumberCheck.h \
-  InttCheck.h
+  InttCheck.h \
+  TpcCheck.h
 
 lib_LTLIBRARIES = \
   libffarawmodules.la
@@ -21,7 +22,8 @@ lib_LTLIBRARIES = \
 libffarawmodules_la_SOURCES = \
   EventCombiner.cc \
   EventNumberCheck.cc \
-  InttCheck.cc
+  InttCheck.cc \
+  TpcCheck.cc
 
 libffarawmodules_la_LIBADD = \
   -lEvent \

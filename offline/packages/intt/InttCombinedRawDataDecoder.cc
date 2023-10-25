@@ -129,10 +129,11 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     InttRawHit* intthit = inttcont->get_hit(i);
     // uint64_t gtm_bco = intthit->get_bco();
 
-    raw.felix_server = Intt::FelixFromPacket(intthit->get_packetid());
-    raw.felix_channel = intthit->get_fee();
-    raw.chip = intthit->get_chip_id();
-    raw.channel = intthit->get_channel_id();
+    Intt::RawFromHit(raw, intthit);
+    //raw.felix_server = Intt::FelixFromPacket(intthit->get_packetid());
+    //raw.felix_channel = intthit->get_fee();
+    //raw.chip = (intthit->get_chip_id() + 25) % 26;
+    //raw.channel = intthit->get_channel_id();
     ofl = Intt::ToOffline(raw);
 
     int adc = intthit->get_adc();
@@ -140,7 +141,7 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     // int bco = intthit->get_FPHX_BCO();
 
     hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x); //col, row <trackbase/InttDefs.h>
-    hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, intthit->get_FPHX_BCO());
+    hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, (intthit->get_bco()) & 0x3ff);
 
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
     hit = hit_set_container_itr->second->getHit(hit_key);

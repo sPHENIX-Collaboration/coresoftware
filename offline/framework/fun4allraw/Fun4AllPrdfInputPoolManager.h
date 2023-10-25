@@ -7,8 +7,10 @@
 
 #include <Event/phenixTypes.h>
 
+#include <utility>
 #include <map>
 #include <string>
+#include <vector>
 
 class Event;
 class SinglePrdfInput;

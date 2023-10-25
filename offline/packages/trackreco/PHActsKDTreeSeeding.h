@@ -28,18 +28,18 @@ class TrackSeed;
 class PHActsKDTreeSeeding : public SubsysReco
 {
  public:
-  PHActsKDTreeSeeding(const std::string &name = "PHActsKDTreeSeeding");
+  PHActsKDTreeSeeding(const std::string& name = "PHActsKDTreeSeeding");
 
   ~PHActsKDTreeSeeding() override;
 
-  int Init(PHCompositeNode *topNode) override;
-  int InitRun(PHCompositeNode *topNode) override;
-  int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
-  
-  void useTruthClusters(bool truth) { m_useTruthClusters = truth; }
- private:
+  int Init(PHCompositeNode* topNode) override;
+  int InitRun(PHCompositeNode* topNode) override;
+  int process_event(PHCompositeNode* topNode) override;
+  int End(PHCompositeNode* topNode) override;
 
+  void useTruthClusters(bool truth) { m_useTruthClusters = truth; }
+
+ private:
   void configureSeedFinder();
   int getNodes(PHCompositeNode* topNode);
   int createNodes(PHCompositeNode* topNode);
@@ -47,24 +47,24 @@ class PHActsKDTreeSeeding : public SubsysReco
   void fillTrackSeedContainer(SeedContainer& seeds);
   std::vector<const SpacePoint*> getMvtxSpacePoints();
   SpacePointPtr makeSpacePoint(const Surface& surf,
-			       const TrkrDefs::cluskey key,
-			       TrkrCluster* clus);
+                               const TrkrDefs::cluskey key,
+                               TrkrCluster* clus);
 
   /// Projects circle fit to INTT radii to find possible INTT clusters
   /// belonging to MVTX track stub
   void findInttMatches(std::map<TrkrDefs::cluskey, Acts::Vector3>& clusters,
-		       TrackSeed& seed);
+                       TrackSeed& seed);
 
   void matchInttClusters(std::map<TrkrDefs::cluskey, Acts::Vector3>& clusters,
-			 const double xProj[],
-			 const double yProj[],
-			 const double zProj[]);
+                         const double xProj[],
+                         const double yProj[],
+                         const double zProj[]);
 
   Acts::SeedFilterConfig m_seedFilterConfig;
   Acts::SeedFinderOrthogonalConfig<SpacePoint> m_seedFinderConfig;
   Acts::SeedFinderOptions m_seedFinderOptions;
 
-  /// configured to seed in the MVTX using the middle layer 
+  /// configured to seed in the MVTX using the middle layer
   /// as the seed anchor
   /// Defines volume to search for seeds in
   float m_rMax = 200. * Acts::UnitConstants::mm;
@@ -79,11 +79,11 @@ class PHActsKDTreeSeeding : public SubsysReco
 
   /// max number of seeds a single middle sp can belong to
   float m_maxSeedsPerSpM = 1;
-  float m_cotThetaMax = 2.9; 
+  float m_cotThetaMax = 2.9;
   float m_sigmaScattering = 5;
   float m_radLengthPerSeed = 0.05;
-  float m_minPt = 100.; // MeV
-  float m_bFieldInZ = 0.0014; //kTesla
+  float m_minPt = 100.;        // MeV
+  float m_bFieldInZ = 0.0014;  // kTesla
   float m_beamPosX = 0;
   float m_beamPosY = 0;
 
@@ -109,7 +109,6 @@ class PHActsKDTreeSeeding : public SubsysReco
   ActsGeometry* m_tGeometry = nullptr;
   TrkrClusterContainer* m_clusterMap = nullptr;
   TrackSeedContainer* m_seedContainer = nullptr;
-  
 };
 
-#endif // PHACTSKDTREESEEDING_H
+#endif  // PHACTSKDTREESEEDING_H
