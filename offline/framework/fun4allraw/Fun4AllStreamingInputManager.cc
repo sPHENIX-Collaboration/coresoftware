@@ -71,6 +71,15 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
   }
   m_MvtxRawHitMap.clear();
 
+  for (auto const &mapiter : m_TpcRawHitMap)
+  {
+    for (auto tpchititer :  mapiter.second.TpcRawHitVector)
+    {
+      delete tpchititer;
+    }
+  }
+  m_TpcRawHitMap.clear();
+
   for (auto const &mapiter : m_InttRawHitMap)
   {
     for (auto intthititer :  mapiter.second.InttRawHitVector)
@@ -200,14 +209,16 @@ int Fun4AllStreamingInputManager::fileclose()
 
 void Fun4AllStreamingInputManager::Print(const std::string &what) const
 {
-  std::cout << "Current list of beamclks: " << std::endl;
-  for (auto const &mapiter : m_PacketInfoMap)
+  if (what == "TPC")
   {
-    std::cout << "clk: 0x" << std::hex << mapiter.first
-              << std::dec << std::endl;
-    for (auto pktiter : mapiter.second.PacketVector)
+    for (auto &iter :   m_TpcRawHitMap)
     {
-      std::cout << "pktid: " << pktiter->getIdentifier() << std::endl;
+      std::cout << "bco: " << std::hex << iter.first << std::dec << std::endl;
+      for (auto &itervec : iter.second.TpcRawHitVector)
+      {
+	std::cout << "hit: " << std::hex << itervec << std::dec << std::endl;
+	itervec->identify();
+      }
     }
   }
   Fun4AllInputManager::Print(what);
@@ -348,7 +359,7 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
   m_EvtInputVector.push_back(evtin);
   evtin->StreamingInputManager(this);
   evtin->CreateDSTNode(m_topNode);
-  evtin->ConfigureStreamingInpurManager();
+  evtin->ConfigureStreamingInputManager();
   switch (system)
   {
   case Fun4AllStreamingInputManager::MVTX:
@@ -374,16 +385,6 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
 	      << " number of registered inputs: " << m_EvtInputVector.size()
 	      << std::endl;
   }
-}
-
-void Fun4AllStreamingInputManager::AddPacket(uint64_t bclk, Packet *p)
-{
-  if (Verbosity() > 1)
-  {
-    std::cout << "Adding packet " << p->getIdentifier() << " to bclk 0x"
-              << std::hex << bclk << std::dec << std::endl;
-  }
-  m_PacketInfoMap[bclk].PacketVector.push_back(p);
 }
 
 void Fun4AllStreamingInputManager::AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit)
@@ -427,21 +428,17 @@ void Fun4AllStreamingInputManager::AddTpcRawHit(uint64_t bclk, TpcRawHit *hit)
   m_TpcRawHitMap[bclk].TpcRawHitVector.push_back(hit);
 }
 
-void Fun4AllStreamingInputManager::UpdateEventFoundCounter(const int evtno)
-{
-  m_PacketInfoMap[evtno].EventFoundCounter++;
-}
-
 int Fun4AllStreamingInputManager::FillMvtx()
 {
   //TODO: Find a better placement for this counter that dont need to be executed every call
   unsigned int nMvtxEvtInputs = 0;
-  for (auto& evtInput : m_EvtInputVector)
+  for (auto iter : m_EvtInputVector)
   {
-    if (dynamic_cast<SingleMvtxInput*>(evtInput))
+    if (iter->SubsystemEnum() != Fun4AllStreamingInputManager::MVTX)
     {
-      ++nMvtxEvtInputs;
+      return 0;
     }
+      ++nMvtxEvtInputs;
   }
   while (m_MvtxRawHitMap.size() < 5) // pooling at least 5 events
   {
@@ -507,7 +504,10 @@ int Fun4AllStreamingInputManager::FillIntt()
 //unsigned int alldone = 0;
   for (auto iter : m_EvtInputVector)
   {
-//    alldone += iter->AllDone();
+    if (iter->SubsystemEnum() != Fun4AllStreamingInputManager::INTT)
+    {
+      return 0;
+    }
     if (Verbosity() > 0)
     {
       std::cout << "Fun4AllStreamingInputManager::FillIntt - fill pool for " << iter->Name() << std::endl;
@@ -591,6 +591,10 @@ int Fun4AllStreamingInputManager::FillTpc()
 {
       for (auto iter : m_EvtInputVector)
       {
+	if (iter->SubsystemEnum() != Fun4AllStreamingInputManager::TPC)
+	{
+	  return 0;
+	}
 	if (Verbosity() > 0)
 	{
 	  std::cout << "Fun4AllStreamingInputManager::FillTpc - fill pool for " << iter->Name() << std::endl;
@@ -607,6 +611,13 @@ int Fun4AllStreamingInputManager::FillTpc()
     TpcRawHitContainer *tpccont =  findNode::getClass<TpcRawHitContainer>(m_topNode,"TPCRAWHIT");
 //  std::cout << "before filling m_TpcRawHitMap size: " <<  m_TpcRawHitMap.size() << std::endl;
     uint64_t select_crossings =  m_TpcRawHitMap.begin()->first + m_tpc_bco_range;
+    if (Verbosity() > 2)
+    {
+      std::cout << "select TPC crossings"
+		<< " from 0x" << std::hex << m_TpcRawHitMap.begin()->first
+		<< " to 0x" << select_crossings
+		<< std::dec << std::endl;
+    }
     while(m_TpcRawHitMap.begin()->first <= select_crossings)
     {
       for (auto tpchititer :  m_TpcRawHitMap.begin()->second.TpcRawHitVector)
@@ -616,7 +627,6 @@ int Fun4AllStreamingInputManager::FillTpc()
 	  tpchititer->identify();
 	}
 	tpccont->AddHit(tpchititer);
-//     delete tpchititer; // cleanup up done in Single Input Mgrs
       }
       for (auto iter : m_EvtInputVector)
       {

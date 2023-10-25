@@ -27,7 +27,7 @@ class SingleTpcPoolInput : public SingleStreamingInput
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
   void SetBcoRange(const unsigned int i) {m_BcoRange = i;}
-  void ConfigureStreamingInpurManager() override;
+  void ConfigureStreamingInputManager() override;
 
  private:
   Packet **plist {nullptr};

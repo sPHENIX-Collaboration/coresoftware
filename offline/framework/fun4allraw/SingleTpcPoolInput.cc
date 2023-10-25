@@ -25,6 +25,7 @@ const int NPACKETS = 2;
 SingleTpcPoolInput::SingleTpcPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
+  SubsystemEnum(Fun4AllStreamingInputManager::TPC);
   plist = new Packet *[NPACKETS];
 }
 
@@ -333,7 +334,7 @@ if (!detNode)
   }
 }
 
-void SingleTpcPoolInput::ConfigureStreamingInpurManager()
+void SingleTpcPoolInput::ConfigureStreamingInputManager()
 {
   if (StreamingInputManager())
   {

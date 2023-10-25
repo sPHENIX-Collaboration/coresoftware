@@ -1,6 +1,6 @@
 #include "QAG4SimulationCalorimeter.h"
 
-#include "QAHistManagerDef.h"
+#include <qautils/QAHistManagerDef.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>

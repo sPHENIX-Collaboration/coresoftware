@@ -25,6 +25,7 @@
 SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
+  SubsystemEnum(Fun4AllStreamingInputManager::INTT);
   plist = new Packet *[1];
 }
 

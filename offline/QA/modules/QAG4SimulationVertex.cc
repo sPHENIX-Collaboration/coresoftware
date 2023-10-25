@@ -1,6 +1,6 @@
 #include "QAG4SimulationVertex.h"
 
-#include "QAHistManagerDef.h"
+#include <qautils/QAHistManagerDef.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
