@@ -6,11 +6,12 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>           // for decode_index1, decode_in...
 #include <calobase/RawTowerGeomContainer.h>
-
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
-#include <phparameter/PHParameters.h>
+#include <ffamodules/CDBInterface.h>
+
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -23,19 +24,18 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <TH2.h>
+
+#include <algorithm>                         // for max
 #include <cassert>
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>  // for pair
-
-#include <cdbobjects/CDBTTree.h>  // for CDBTTree
-#include <ffamodules/CDBInterface.h>
 
 
 RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &name)
@@ -44,8 +44,6 @@ RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &na
   , bins_eta(384)
   , bins_phi(64)
   , iEvent(0)
-  , h2NorthSector(0)
-  , h2SouthSector(0)
 {
 }
 
@@ -58,9 +56,9 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
   std::string  m_calibName = "cemc_PDC_NorthSouth_8x8_23instru";
   std::string calibdir = cdb->getUrl(m_calibName);
 
-  if (calibdir[0] == '/')
+  if (!calibdir.empty())
   {
-    cdbttree = new CDBTTree(calibdir.c_str());
+    cdbttree = new CDBTTree(calibdir);
   }
   else{ 
     std::cout << std::endl << "did not find CDB tree" << std::endl;
