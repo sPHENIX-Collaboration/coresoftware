@@ -185,7 +185,7 @@ int CentralityReco::GetNodes(PHCompositeNode *topNode)
     }
     
   
-  _bbc_out = findNode::getClass<BbcOutV1>(topNode, "BbcOut");
+  _bbc_out = findNode::getClass<BbcOut>(topNode, "BbcOut");
   
   if (!_bbc_out)
     {
