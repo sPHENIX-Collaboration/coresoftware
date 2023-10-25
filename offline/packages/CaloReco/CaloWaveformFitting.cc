@@ -57,7 +57,8 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       {
 	v.push_back(v.at(0) - v.at(1)); //returns peak sample - pedestal sample
 	v.push_back(-1); // set time to -1 to indicate zero suppressed 
-	v.push_back(v.at(1));    
+	v.push_back(v.at(1)); 
+	v.push_back(0);
       }
     else
       {
@@ -67,6 +68,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
 	for (int i = 0; i < size1; i++)
 	  {
 	    h->SetBinContent(i + 1, v.at(i));
+	    h->SetBinError(i + 1, 1);
 	    if (v.at(i) > maxheight)
 	      {
 		maxheight = v.at(i);
@@ -94,6 +96,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
 	    v.push_back(v.at(6) - v.at(0));
 	    v.push_back(-1);
 	    v.push_back(v.at(0));
+	    v.push_back(0);
 	  }
 	else
 	  {
@@ -104,7 +107,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
 	    ROOT::Fit::Chi2Function *EPChi2 = new ROOT::Fit::Chi2Function(data, *fitFunction);
 	    ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
 	    fitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
-	    double params[] = {static_cast<double>(maxheight - pedestal), static_cast<double>(maxbin - 6), static_cast<double>(pedestal)};
+	    double params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
 	    fitter->Config().SetParamsSettings(3, params);
 	    fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
             ROOT::Fit::FitResult fitres = fitter->Result();
@@ -251,7 +254,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
       }
     }
     amp -= ped;
-    std::vector<float> val = {amp, time, ped};
+    std::vector<float> val = {amp, time, ped, 0};
     fit_values.push_back(val);
     val.clear();
   }
