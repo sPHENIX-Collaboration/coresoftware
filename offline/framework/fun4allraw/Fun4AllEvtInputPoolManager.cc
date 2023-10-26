@@ -387,6 +387,26 @@ void Fun4AllEvtInputPoolManager::AddPacket(uint64_t bclk, Packet *p)
   m_PacketInfoMap[bclk].PacketVector.push_back(p);
 }
 
+void Fun4AllEvtInputPoolManager::AddMvtxFeeId(uint64_t bclk, uint16_t feeid)
+{
+  if ( Verbosity() > 1 )
+  {
+    std::cout << "Adding mvtx feeid to bclk 0x"
+              << std::hex << bclk << std::dec << std::endl;
+  }
+  m_MvtxRawHitMap[bclk].MvtxFeeIds.insert(feeid);
+}
+
+void Fun4AllEvtInputPoolManager::AddMvtxL1TrgBco(uint64_t bclk, uint64_t lv1Bco)
+{
+  if ( Verbosity() > 1 )
+  {
+    std::cout << "Adding mvtx L1Trg to bclk 0x"
+              << std::hex << bclk << std::dec << std::endl;
+  }
+  m_MvtxRawHitMap[bclk].MvtxL1TrgBco.insert(lv1Bco);
+}
+
 void Fun4AllEvtInputPoolManager::AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit)
 {
   if (Verbosity() > 1)
@@ -467,13 +487,6 @@ int Fun4AllEvtInputPoolManager::FillMvtx()
     gSystem->Exit(1);
     exit(1);
   }
-  for (const auto evtId : m_MvtxEvtInputList)
-  {
-    auto* mvtxEvtIn = dynamic_cast<SingleMvtxInput*>(m_EvtInputVector.at(evtId));
-    mvtxEvtHeader->AddFeeId(mvtxEvtIn->getFeeIdSet(m_MvtxRawHitMap.begin()->first));
-    mvtxEvtHeader->AddL1Trg(mvtxEvtIn->getGtmL1BcoSet());
-  }
-
   MvtxRawHitContainer *mvtxcont =  findNode::getClass<MvtxRawHitContainer>(m_topNode,"MVTXRAWHIT");
   if (! mvtxcont)
   {
@@ -481,8 +494,14 @@ int Fun4AllEvtInputPoolManager::FillMvtx()
     gSystem->Exit(1);
     exit(1);
   }
+
+  auto mvtxRawHitInfoIt = m_MvtxRawHitMap.begin();
+
+  mvtxEvtHeader->AddFeeId(mvtxRawHitInfoIt->second.MvtxFeeIds);
+  mvtxEvtHeader->AddL1Trg(mvtxRawHitInfoIt->second.MvtxL1TrgBco);
+
 //  std::cout << "before filling m_InttRawHitMap size: " <<  m_InttRawHitMap.size() << std::endl;
-  for (auto mvtxhititer :  m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
+  for (auto mvtxhititer :  mvtxRawHitInfoIt->second.MvtxRawHitVector)
   {
     if (Verbosity() > 1)
     {
@@ -493,10 +512,12 @@ int Fun4AllEvtInputPoolManager::FillMvtx()
   }
   for (const auto evtId : m_MvtxEvtInputList)
   {
-    m_EvtInputVector.at(evtId)->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
+    m_EvtInputVector.at(evtId)->CleanupUsedPackets(mvtxRawHitInfoIt->first);
   }
-  m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
-  m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
+  mvtxRawHitInfoIt->second.MvtxFeeIds.clear();
+  mvtxRawHitInfoIt->second.MvtxL1TrgBco.clear();
+  mvtxRawHitInfoIt->second.MvtxRawHitVector.clear();
+  m_MvtxRawHitMap.erase(mvtxRawHitInfoIt);
   // std::cout << "size  m_MvtxRawHitMap: " <<  m_MvtxRawHitMap.size()
   //	    << std::endl;
   return 0;

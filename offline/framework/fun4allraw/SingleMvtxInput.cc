@@ -19,6 +19,7 @@
 #include <Event/fileEventiterator.h>
 
 #include <set>
+#include <cassert>
 
 SingleMvtxInput::SingleMvtxInput(const std::string &name)
   : SingleStreamingInput(name)
@@ -75,6 +76,8 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
     {
       exit(1);
     }
+    std::set<uint64_t> gtmL1BcoSet; // GTM L1 BCO
+    std::set<uint64_t> strobeBcoStack;
     for (int i = 0; i < npackets; i++)
     {
       // Ignoring packet not from MVTX detector
@@ -105,7 +108,7 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
           {
             auto l1Trg_bco = plist[i]->lValue(feeId, iL1, "L1_IR_BCO");
 //            auto l1Trg_bc  = plist[i]->iValue(feeId, iL1, "L1_IR_BC");
-            m_GtmL1BcoSet.emplace(l1Trg_bco);
+            gtmL1BcoSet.emplace(l1Trg_bco);
           }
 
           m_FeeStrobeMap[feeId] += num_strobes;
@@ -142,6 +145,11 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
               }
               m_MvtxRawHitMap[strb_bco].push_back(newhit);
             }
+            if (InputManager())
+            {
+              InputManager()->AddMvtxFeeId(strb_bco, feeId);
+            }
+            strobeBcoStack.insert(strb_bco);
             m_BeamClockFEE[strb_bco].insert(feeId);
             m_BclkStack.insert(strb_bco);
             m_FEEBclkMap[feeId] = strb_bco;
@@ -150,6 +158,28 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
       }
 //      plist[i]->convert();
       delete plist[i];
+    }
+    // Assign L1 trg to Strobe windows data.
+    for ( auto& lv1Bco : gtmL1BcoSet )
+    {
+      auto it = strobeBcoStack.lower_bound(lv1Bco);
+      auto const strb_it = (it == strobeBcoStack.begin()) ?
+                           (*it == lv1Bco ? it : strobeBcoStack.cend()) : --it;
+      if (strb_it != strobeBcoStack.cend())
+      {
+        if (InputManager())
+        {
+          InputManager()->AddMvtxL1TrgBco(*strb_it, lv1Bco);
+        }
+      }
+      else
+      {
+        std::cout << "ERROR: lv1Bco: 0x" << std::hex << lv1Bco << std::dec
+                  << " is less than minimun strobe bco 0x" << std::hex
+                  << *strobeBcoStack.begin() << std::dec << std::endl;
+        assert(0);
+      }
+
     }
     delete evt;
   }
@@ -266,7 +296,6 @@ void SingleMvtxInput::ClearCurrentEvent()
   CleanupUsedPackets(currentbclk);
   // m_BclkStack.erase(currentbclk);
   // m_BeamClockFEE.erase(currentbclk);
-  clearGtmL1BcoSet();
   return;
 }
 
@@ -318,9 +347,4 @@ void SingleMvtxInput::CreateDSTNode(PHCompositeNode *topNode)
     PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(mvtxhitcont, "MVTXRAWHIT", "PHObject");
     detNode->addNode(newNode);
   }
-}
-
-void SingleMvtxInput::clearGtmL1BcoSet()
-{
-  m_GtmL1BcoSet.clear();
 }

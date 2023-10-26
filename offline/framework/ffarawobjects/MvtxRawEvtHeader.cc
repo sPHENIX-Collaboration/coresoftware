@@ -18,7 +18,7 @@ int MvtxRawEvtHeader::isValid() const
   return  m_MvtxFeeIdSet.size();
 }
 
-void MvtxRawEvtHeader::AddFeeId( const std::set<int>& mvtxFeeIds)
+void MvtxRawEvtHeader::AddFeeId( const std::set<uint16_t>& mvtxFeeIds)
 {
   m_MvtxFeeIdSet.insert(mvtxFeeIds.cbegin(), mvtxFeeIds.cend());
 }
