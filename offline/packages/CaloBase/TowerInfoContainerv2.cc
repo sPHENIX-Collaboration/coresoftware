@@ -50,6 +50,11 @@ TowerInfoContainerv2::~TowerInfoContainerv2()
   delete _clones;
 }
 
+void TowerInfoContainerv2::identify(std::ostream& os) const
+{
+  os << "TowerInfoContainerv2 of size " << size() << std::endl;
+}
+
 void TowerInfoContainerv2::Reset()
 {
   // clear content of towers in the container for the next event
@@ -140,5 +145,3 @@ unsigned int TowerInfoContainerv2::decode_key(unsigned int tower_key)
   }
   return index;
 }
-
-
