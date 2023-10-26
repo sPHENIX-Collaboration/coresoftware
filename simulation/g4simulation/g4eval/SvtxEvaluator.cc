@@ -1190,9 +1190,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  }
 
 	GlobalVertex::VertexVector vertices = svtxviter->second;
-	std::cout << "vertices size " << vertices.size() << std::endl;
-	auto vertex = vertices.at(0);
-      
+	for(auto& vertex : vertices)
+	  {
         PHG4VtxPoint* point = vertexeval->max_truth_point_by_ntracks(vertex);
         int vertexID = vertex->get_id();
         float vx = vertex->get_x();
@@ -1251,6 +1250,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
 
         _ntp_vertex->Fill(vertex_data);
+	  }
       }
 
       if (!_scan_for_embedded)
