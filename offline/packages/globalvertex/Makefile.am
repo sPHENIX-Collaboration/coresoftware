@@ -21,9 +21,7 @@ libglobalvertex_la_LIBADD = \
   libglobalvertex_io.la \
   -lmbd_io \
   -lg4detectors \
-  -lfun4all \
-  -lg4mbd_io \
-  -ltrackbase_historic_io
+  -lfun4all
 
 pkginclude_HEADERS = \
   GlobalVertex.h \
