@@ -24,18 +24,20 @@ public:
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;
 
-  void AddFeeId(const int& feeid)
-  {
-    m_MvtxFeeIdSet.insert(feeid);
-  };
+  void AddFeeId(const int& feeid) { m_MvtxFeeIdSet.insert(feeid); };
+  void AddL1Trg(const uint64_t& gtmL1_bco) { m_MvtxL1TrgSet.insert(gtmL1_bco); };
+
   void AddFeeId(const std::set<int>& mvtxFeeIds);
+  void AddL1Trg(const std::set<uint64_t>& mvtxL1TrgSet);
 
   std::set<int>& getMvtxFeeIdSet() { return m_MvtxFeeIdSet; };
+  std::set<uint64_t>& getMvtxLvL1BCO() { return m_MvtxL1TrgSet; };
 
 private:
   std::set<int> m_MvtxFeeIdSet;
+  std::set<uint64_t> m_MvtxL1TrgSet;
 
-  ClassDefOverride(MvtxRawEvtHeader,1)
+  ClassDefOverride(MvtxRawEvtHeader, 2)
 };
 
 #endif

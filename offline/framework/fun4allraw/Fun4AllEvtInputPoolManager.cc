@@ -7,7 +7,6 @@
 
 #include <ffarawobjects/MvtxRawHit.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
-#include <ffarawobjects/MvtxRawRunHeader.h>
 #include <ffarawobjects/MvtxRawEvtHeader.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainerv1.h>
@@ -472,6 +471,7 @@ int Fun4AllEvtInputPoolManager::FillMvtx()
   {
     auto* mvtxEvtIn = dynamic_cast<SingleMvtxInput*>(m_EvtInputVector.at(evtId));
     mvtxEvtHeader->AddFeeId(mvtxEvtIn->getFeeIdSet(m_MvtxRawHitMap.begin()->first));
+    mvtxEvtHeader->AddL1Trg(mvtxEvtIn->getGtmL1BcoSet());
   }
 
   MvtxRawHitContainer *mvtxcont =  findNode::getClass<MvtxRawHitContainer>(m_topNode,"MVTXRAWHIT");
@@ -497,22 +497,6 @@ int Fun4AllEvtInputPoolManager::FillMvtx()
   }
   m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
   m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
-  if (m_MvtxRawHitMap.empty())
-  {
-    //Filling RunHeader information like gtmL1Trg.
-    auto* mvtxRH = findNode::getClass<MvtxRawRunHeader>(m_topNode, "MVTXRAWRUNHEADER");
-    if ( !mvtxRH)
-    {
-      std::cout << "ERROR: MVTXRAWRUNHEADER node not found, exit. " << std::endl;
-      gSystem->Exit(1);
-      exit(1);
-    }
-    for (const auto evtId : m_MvtxEvtInputList)
-    {
-      mvtxRH->AddL1Trg(dynamic_cast<SingleMvtxInput*>(m_EvtInputVector.at(evtId))->getGtmL1BcoSet());
-    }
-    std::cout << "L1 Trg: " << mvtxRH->isValid() << std::endl;
-  }
   // std::cout << "size  m_MvtxRawHitMap: " <<  m_MvtxRawHitMap.size()
   //	    << std::endl;
   return 0;

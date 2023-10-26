@@ -4,7 +4,6 @@
 
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/MvtxRawHitv1.h>
-#include <ffarawobjects/MvtxRawRunHeader.h>
 #include <ffarawobjects/MvtxRawEvtHeader.h>
 
 #include <frog/FROG.h>
@@ -302,14 +301,6 @@ void SingleMvtxInput::CreateDSTNode(PHCompositeNode *topNode)
   {
     detNode = new PHCompositeNode("MVTX");
     dstNode->addNode(detNode);
-  }
-
-  MvtxRawRunHeader* mvtxRH = findNode::getClass<MvtxRawRunHeader>(detNode,"MVTXRAWRUNHEADER");
-  if (! mvtxRH)
-  {
-    mvtxRH = new MvtxRawRunHeader();
-    PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(mvtxRH, "MVTXRAWRUNHEADER", "PHObject");
-    detNode->addNode(newNode);
   }
 
   MvtxRawEvtHeader* mvtxEH = findNode::getClass<MvtxRawEvtHeader>(detNode,"MVTXRAWEVTHEADER");
