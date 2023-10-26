@@ -309,7 +309,7 @@ const Vertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint)
   }
 
   std::set<const Vertex*>::iterator best_vertex_iter;
-  Vertex* best_vertex = nullptr;
+ 
   unsigned int best_count = 0;
   std::set<const Vertex*> tracks = all_vertexes_from(truthpoint);
   for (auto it = tracks.begin(); it != tracks.end(); ++it)
@@ -330,7 +330,7 @@ const Vertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint)
     _cache_best_vertex_from_point.insert(std::make_pair(truthpoint, the_best));
   }
 
-  return best_vertex;
+  return the_best;
 }
 
 // overlap calculations
