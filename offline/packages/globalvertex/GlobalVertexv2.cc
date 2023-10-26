@@ -88,7 +88,7 @@ int GlobalVertexv2::isValid() const
   }
   return 1;
 }
-void GlobalVertexv2::insert_vtx(GlobalVertex::VTXTYPE type, Vertex* vertex)
+void GlobalVertexv2::insert_vtx(GlobalVertex::VTXTYPE type, const Vertex* vertex)
 {
   auto it = _vtxs.find(type);
   if( it == _vtxs.end())

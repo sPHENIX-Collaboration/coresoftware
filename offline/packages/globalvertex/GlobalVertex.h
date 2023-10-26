@@ -18,12 +18,12 @@ class GlobalVertex : public PHObject
     UNDEFINED = 0,
     TRUTH = 100,
     SMEARED = 200,
-    BBC = 300,
+    MBD = 300,
     SVTX = 400,
-    SVTX_BBC = 500
+    SVTX_MBD = 500
   };
   
-  typedef std::vector<Vertex*> VertexVector;
+  typedef std::vector<const Vertex*> VertexVector;
   typedef std::map<GlobalVertex::VTXTYPE, VertexVector>::const_iterator ConstVertexIter;
   typedef std::map<GlobalVertex::VTXTYPE, VertexVector>::iterator VertexIter;
 
@@ -81,7 +81,7 @@ class GlobalVertex : public PHObject
   virtual size_t size_vtxs() const { return 0; }
   virtual size_t count_vtxs(VTXTYPE) const { return 0; }
   virtual void clear_vtxs() {}
-  virtual void insert_vtx(VTXTYPE, Vertex*) {}
+  virtual void insert_vtx(VTXTYPE, const Vertex*) {}
   virtual size_t erase_vtxs(VTXTYPE) { return 0; }
   virtual void erase_vtxs(VertexIter) {}
 

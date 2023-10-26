@@ -62,9 +62,12 @@ class Vertex : public PHObject
   //bbcvertex methods
   virtual void set_bbc_ns(int, int, float, float) {}
   virtual int get_bbc_npmt(int) const { return std::numeric_limits<int>::max(); }
+  virtual float get_z_err() const { return NAN; }
+  virtual void set_z_err(float) {}
+
   virtual float get_bbc_q(int) const { return NAN; }
   virtual float get_bbc_t(int) const { return NAN; }
-
+  
   //svtxvertex methods
   virtual void clear_tracks() {}
   virtual bool empty_tracks() { return true; }
