@@ -1183,16 +1183,16 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       for (auto& iter : *gvertexmap)
       {
         GlobalVertex* gvertex = iter.second;
-        auto svtxv = gvertex->find_vtxids(GlobalVertex::SVTX);
-        // check that it contains a track vertex
-        if (svtxv == gvertex->end_vtxids())
-        {
-          continue;
-        }
+        auto svtxviter = gvertex->find_vertexes(GlobalVertex::SVTX);
+	if(svtxviter == gvertex->end_vertexes())
+	  {
+	    continue;
+	  }
 
-        auto svtxvertexid = svtxv->second;
-        auto vertex = vertexmap->find(svtxvertexid)->second;
-
+	GlobalVertex::VertexVector vertices = svtxviter->second;
+	std::cout << "vertices size " << vertices.size() << std::endl;
+	auto vertex = vertices.at(0);
+      
         PHG4VtxPoint* point = vertexeval->max_truth_point_by_ntracks(vertex);
         int vertexID = vertex->get_id();
         float vx = vertex->get_x();
@@ -1366,7 +1366,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         if (point)
         {
-          SvtxVertex* vertex = vertexeval->best_vertex_from(point);
+          const Vertex* vertex = vertexeval->best_vertex_from(point);
 
           float gvx = point->get_x();
           float gvy = point->get_y();
