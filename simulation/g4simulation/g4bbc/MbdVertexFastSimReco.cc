@@ -1,10 +1,10 @@
 
-#include "BbcVertexFastSimReco.h"
+#include "MbdVertexFastSimReco.h"
 
-#include <bbc/BbcVertex.h>     // for BbcVertex
-#include <bbc/BbcVertexMap.h>  // for BbcVertexMap
-#include <bbc/BbcVertexMapv1.h>
-#include <bbc/BbcVertexv1.h>
+#include <mbd/MbdVertex.h>     // for MbdVertex
+#include <mbd/MbdVertexMap.h>  // for MbdVertexMap
+#include <mbd/MbdVertexMapv1.h>
+#include <mbd/MbdVertexv1.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
@@ -30,7 +30,7 @@
 
 using namespace std;
 
-BbcVertexFastSimReco::BbcVertexFastSimReco(const string &name)
+MbdVertexFastSimReco::MbdVertexFastSimReco(const string &name)
   : SubsysReco(name)
   , m_T_Smear(NAN)
   , m_Z_Smear(NAN)
@@ -38,17 +38,17 @@ BbcVertexFastSimReco::BbcVertexFastSimReco(const string &name)
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
 }
 
-BbcVertexFastSimReco::~BbcVertexFastSimReco()
+MbdVertexFastSimReco::~MbdVertexFastSimReco()
 {
   gsl_rng_free(RandomGenerator);
 }
 
-int BbcVertexFastSimReco::Init(PHCompositeNode * /*topNode*/)
+int MbdVertexFastSimReco::Init(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int BbcVertexFastSimReco::InitRun(PHCompositeNode *topNode)
+int MbdVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 {
   if (isnan(m_T_Smear) || isnan(m_Z_Smear))
   {
@@ -61,7 +61,7 @@ int BbcVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "===================== BbcVertexFastSimReco::InitRun() =====================" << endl;
+    cout << "===================== MbdVertexFastSimReco::InitRun() =====================" << endl;
     cout << " t smearing: " << m_T_Smear << " cm " << endl;
     cout << "  z smearing: " << m_Z_Smear << " cm " << endl;
     cout << " random seed: " << seed << endl;
@@ -71,11 +71,11 @@ int BbcVertexFastSimReco::InitRun(PHCompositeNode *topNode)
   return CreateNodes(topNode);
 }
 
-int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode)
+int MbdVertexFastSimReco::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 1)
   {
-    cout << "BbcVertexFastSimReco::process_event -- entered" << endl;
+    cout << "MbdVertexFastSimReco::process_event -- entered" << endl;
   }
 
   //---------------------------------
@@ -88,10 +88,10 @@ int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode)
     exit(-1);
   }
 
-  BbcVertexMap *vertexes = findNode::getClass<BbcVertexMap>(topNode, "BbcVertexMap");
+  MbdVertexMap *vertexes = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
   if (!vertexes)
   {
-    cout << PHWHERE << "::ERROR - cannot find BbcVertexMap" << endl;
+    cout << PHWHERE << "::ERROR - cannot find MbdVertexMap" << endl;
     exit(-1);
   }
 
@@ -105,7 +105,7 @@ int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  BbcVertex *vertex = new BbcVertexv1();
+  MbdVertex *vertex = new MbdVertexv1();
 
   if (m_T_Smear >= 0.0)
   {
@@ -134,12 +134,12 @@ int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int BbcVertexFastSimReco::End(PHCompositeNode * /*topNode*/)
+int MbdVertexFastSimReco::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int BbcVertexFastSimReco::CreateNodes(PHCompositeNode *topNode)
+int MbdVertexFastSimReco::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
@@ -159,17 +159,17 @@ int BbcVertexFastSimReco::CreateNodes(PHCompositeNode *topNode)
     dstNode->addNode(bbcNode);
   }
 
-  // create the BbcVertexMap
-  BbcVertexMap *vertexes = findNode::getClass<BbcVertexMap>(topNode, "BbcVertexMap");
+  // create the MbdVertexMap
+  MbdVertexMap *vertexes = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
   if (!vertexes)
   {
-    vertexes = new BbcVertexMapv1();
-    PHIODataNode<PHObject> *VertexMapNode = new PHIODataNode<PHObject>(vertexes, "BbcVertexMap", "PHObject");
+    vertexes = new MbdVertexMapv1();
+    PHIODataNode<PHObject> *VertexMapNode = new PHIODataNode<PHObject>(vertexes, "MbdVertexMap", "PHObject");
     bbcNode->addNode(VertexMapNode);
   }
   else
   {
-    cout << PHWHERE << "::ERROR - BbcVertexMap pre-exists, but should not if running FastSim" << endl;
+    cout << PHWHERE << "::ERROR - MbdVertexMap pre-exists, but should not if running FastSim" << endl;
     exit(-1);
   }
 

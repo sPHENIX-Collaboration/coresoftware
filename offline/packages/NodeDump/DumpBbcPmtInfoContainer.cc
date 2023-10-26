@@ -1,6 +1,6 @@
 #include "DumpBbcPmtInfoContainer.h"
 
-#include <bbc/BbcPmtInfoContainerV1.h>
+#include <mbd/BbcPmtInfoContainerV1.h>
 
 #include <phool/PHIODataNode.h>
 

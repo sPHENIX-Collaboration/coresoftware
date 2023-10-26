@@ -1,8 +1,8 @@
 #include "RawClusterZVertexRecorrect.h"
 
-#include <bbc/BbcVertex.h>
-#include <bbc/BbcVertexMap.h>
-#include <bbc/BbcVertexMapv1.h>
+#include <mbd/MbdVertex.h>
+#include <mbd/MbdVertexMap.h>
+#include <mbd/MbdVertexMapv1.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
@@ -84,21 +84,21 @@ int RawClusterZVertexRecorrect::process_event(PHCompositeNode *topNode)
     }
   
   
-  BbcVertexMapv1 *bbcmap = findNode::getClass<BbcVertexMapv1>(topNode, "BbcVertexMap");
+  MbdVertexMapv1 *mbdmap = findNode::getClass<MbdVertexMapv1>(topNode, "MbdVertexMap");
  
-  if (m_UseBbcZVtx && bbcmap && m_UseTowerInfo < 2)
+  if (m_UseBbcZVtx && mbdmap && m_UseTowerInfo < 2)
     {
-      //      std::cout << " in bbcmap ccpi0 " << std::endl;
+      //      std::cout << " in mbdmap ccpi0 " << std::endl;
       
-      BbcVertex *bvertex = nullptr;
-      for (BbcVertexMap::ConstIter bbciter = bbcmap->begin();
-           bbciter != bbcmap->end();
-           ++bbciter)
+      MbdVertex *bvertex = nullptr;
+      for (MbdVertexMap::ConstIter mbditer = mbdmap->begin();
+           mbditer != mbdmap->end();
+           ++mbditer)
 	{
 
-	  bvertex = bbciter->second;
+	  bvertex = mbditer->second;
 	}
-      //      BbcVertex *bvertex = (bbcmap->begin()->second);
+      //      MbdVertex *bvertex = (mbdmap->begin()->second);
       if (!bvertex) 
       {
 	return Fun4AllReturnCodes::ABORTEVENT;

@@ -1,9 +1,7 @@
-// Tell emacs that this is a C++ source
-//  -*- C++ -*-.
-#ifndef BBC_BBCOUTV1_H
-#define BBC_BBCOUTV1_H
+#ifndef MBD_MBDOUTV2_H
+#define MBD_MBDOUTV2_H
 
-#include "BbcOut.h"
+#include "MbdOut.h"
 
 #include <iostream>
 #include <limits>
@@ -11,16 +9,16 @@
 class TClonesArray;
 
 ///
-class BbcOutV1 : public BbcOut
+class MbdOutV2 : public MbdOut
 {
 public:
   ///
-  BbcOutV1();
+  MbdOutV2();
   ///
-  ~BbcOutV1() override;
+  ~MbdOutV2() override;
 
   /// Clear Event from memory
-  virtual void Reset() override;
+  void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream
@@ -64,6 +62,13 @@ public:
    */
   void set_arm(const int iarm, const Short_t npmt, const Float_t chargesum, const Float_t timing) override;
 
+  /** Add Bbc data containing evt, clk, and femclk
+      @param ievt   Event number
+      @param iclk    XMIT clock
+      @param ifemclk FEM clock
+   */
+  virtual void set_clocks(const Int_t ievt, const UShort_t iclk, const UShort_t ifemclk) override;
+
   /** get Number of PMT's fired in North/South Bbc
       @param iarm  Arm, use Bbc::North and Bbc::South
    */
@@ -79,21 +84,36 @@ public:
    */
   Float_t get_time(const int iarm) const override;
 
+  /** get Event Number
+   */
+  virtual Int_t get_evt() const override;
+
+  /** get XMIT Clock Counter
+   */
+  virtual UShort_t get_clock() const override;
+
+  /** get FEM Clock Counter
+   */
+  virtual UShort_t get_femclock() const override;
+
 
 private:
 
-  Float_t bz{std::numeric_limits<Float_t>::quiet_NaN()};
-  Float_t bzerr{std::numeric_limits<Float_t>::quiet_NaN()};
-  Float_t bt0{std::numeric_limits<Float_t>::quiet_NaN()};
-  Float_t bt0err{std::numeric_limits<Float_t>::quiet_NaN()};
-  Float_t bns{0};
-  Float_t bnn{0};
-  Float_t bqs{0};
-  Float_t bqn{0};
-  Float_t bts{std::numeric_limits<Float_t>::quiet_NaN()};
-  Float_t btn{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t  bz{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t  bzerr{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t  bt0{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t  bt0err{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t  bqs{0};
+  Float_t  bqn{0};
+  Float_t  bts{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t  btn{std::numeric_limits<Float_t>::quiet_NaN()};
+  Short_t  bns{0};
+  Short_t  bnn{0};
+  Int_t    evt{-1};
+  UShort_t clk{0};
+  UShort_t femclk{0};
 
-  ClassDefOverride(BbcOutV1, 1)
+  ClassDefOverride(MbdOutV2, 1)
 };
 
 #endif

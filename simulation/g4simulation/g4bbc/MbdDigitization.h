@@ -1,5 +1,5 @@
-#ifndef G4BBC_BBCDIGITIZATION_H
-#define G4BBC_BBCDIGITIZATION_H
+#ifndef G4MBD_BBCDIGITIZATION_H
+#define G4MBD_BBCDIGITIZATION_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -16,20 +16,20 @@ class PHCompositeNode;
 class PHG4HitContainer;
 class PHG4TruthInfoContainer;
 class EventHeader;
-class BbcPmtInfoContainerV1;
+class MbdPmtContainer;
 class TDatabasePDG;
 class TRandom3;
 class TH1;
 class TH2;
 class TF1;
 
-class BbcDigitization : public SubsysReco
+class MbdDigitization : public SubsysReco
 {
  public:
   // Default constructor
-  BbcDigitization(const std::string &name = "BbcDigitization");
+  MbdDigitization(const std::string &name = "MbdDigitization");
 
-  ~BbcDigitization() override;
+  ~MbdDigitization() override;
 
   //! Initialization, called for at overall initialization
   int Init(PHCompositeNode *) override;
@@ -72,11 +72,11 @@ class BbcDigitization : public SubsysReco
   std::map<int, int> _pids;  // PIDs of tracks in the BBC
 
   // Input Objects from DST
-  PHG4TruthInfoContainer *_truth_container = nullptr;
-  PHG4HitContainer *_bbchits = nullptr;
+  PHG4TruthInfoContainer *_truth_container {nullptr};
+  PHG4HitContainer *_bbchits {nullptr};
 
   // Output to DST
-  BbcPmtInfoContainerV1 *_bbcpmts = nullptr;
+  MbdPmtContainer *_bbcpmts {nullptr};
 };
 
 #endif  //* __BBCDIGITIZATION_H__ *//
