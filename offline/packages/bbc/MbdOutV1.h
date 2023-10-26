@@ -86,12 +86,12 @@ private:
   Float_t bzerr{std::numeric_limits<Float_t>::quiet_NaN()};
   Float_t bt0{std::numeric_limits<Float_t>::quiet_NaN()};
   Float_t bt0err{std::numeric_limits<Float_t>::quiet_NaN()};
-  Float_t bns{0};
-  Float_t bnn{0};
   Float_t bqs{0};
   Float_t bqn{0};
   Float_t bts{std::numeric_limits<Float_t>::quiet_NaN()};
   Float_t btn{std::numeric_limits<Float_t>::quiet_NaN()};
+  Short_t bns{0};
+  Short_t bnn{0};
 
   ClassDefOverride(MbdOutV1, 1)
 };

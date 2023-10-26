@@ -40,7 +40,7 @@ CaloTowerCalib::CaloTowerCalib(const std::string &name)
   , m_fieldname("")
   , m_runNumber(-1)
 {
-  std::cout << "CaloTowerCalib::CaloTowerCalib(const std::string &name) Calling ctor" << std::endl;
+  if (Verbosity() > 0) std::cout << "CaloTowerCalib::CaloTowerCalib(const std::string &name) Calling ctor" << std::endl;
 }
 
 //____________________________________________________________________________..
@@ -208,7 +208,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     std::cout << e.what() << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  topNode->print();
+  if (Verbosity() > 0) topNode->print();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -242,6 +242,16 @@ void CaloTowerCalib::CreateNodeTree(PHCompositeNode *topNode)
     throw std::runtime_error(
         "Failed to find DST node in RawTowerCalibration::CreateNodes");
   }
+  //detector node
+
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(iter.findFirst(
+      "PHCompositeNode", m_detector));
+  
+  if (!DetNode)
+  {
+    DetNode = new PHCompositeNode(m_detector);
+    dstNode->addNode(DetNode);
+  }
 
   // towers
   std::string RawTowerNodeName = m_inputNodePrefix + m_detector;
@@ -272,7 +282,7 @@ void CaloTowerCalib::CreateNodeTree(PHCompositeNode *topNode)
 
     PHIODataNode<PHObject> *calibtowerNode = new PHIODataNode<PHObject>(_calib_towers, CalibTowerNodeName, "PHObject");
     std::cout << "adding calib tower" << std::endl;
-    dstNode->addNode(calibtowerNode);
+    DetNode->addNode(calibtowerNode);
   }
 
   return;

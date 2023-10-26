@@ -1,4 +1,4 @@
-#include "BbcSig.h"
+#include "MbdSig.h"
 
 #include <TFile.h>
 #include <TTree.h>
@@ -17,7 +17,7 @@
 using namespace std;
 
 
-BbcSig::BbcSig(const int chnum, const int nsamp) :
+MbdSig::MbdSig(const int chnum, const int nsamp) :
   ch{chnum},
   nsamples{nsamp},
   f_ampl{0},
@@ -56,12 +56,12 @@ BbcSig::BbcSig(const int chnum, const int nsamp) :
   template_fcn{nullptr},
   verbose{0}
 {
-  //cout << "In BbcSig::BbcSig(" << ch << "," << nsamples << ")" << endl;
+  //cout << "In MbdSig::MbdSig(" << ch << "," << nsamples << ")" << endl;
 
 }
 
 
-void BbcSig::Init()
+void MbdSig::Init()
 {
   TString name;
 
@@ -90,7 +90,7 @@ void BbcSig::Init()
   SetTemplateSize(120,2048,-2,9.9);
 }
 
-void  BbcSig::SetTemplateSize(const Int_t nptsx, const Int_t nptsy, const Double_t begt, const Double_t endt)
+void  MbdSig::SetTemplateSize(const Int_t nptsx, const Int_t nptsy, const Double_t begt, const Double_t endt)
 {
   template_npointsx = nptsx;
   template_npointsy = nptsy;
@@ -123,7 +123,7 @@ void  BbcSig::SetTemplateSize(const Int_t nptsx, const Int_t nptsy, const Double
 
 }
 
-BbcSig::~BbcSig()
+MbdSig::~MbdSig()
 {
   delete hRawPulse;
   delete hSubPulse;
@@ -141,7 +141,7 @@ BbcSig::~BbcSig()
 }
 
 // This sets y, and x to sample number (starts at 0)
-void BbcSig::SetY(const Float_t *y, const int invert)
+void MbdSig::SetY(const Float_t *y, const int invert)
 {
   if ( hRawPulse == nullptr )
   {
@@ -186,7 +186,7 @@ void BbcSig::SetY(const Float_t *y, const int invert)
   }
 }
 
-void BbcSig::SetXY(const Float_t *x, const Float_t *y, const int invert)
+void MbdSig::SetXY(const Float_t *x, const Float_t *y, const int invert)
 {
   if ( hRawPulse == nullptr )
   {
@@ -238,7 +238,7 @@ void BbcSig::SetXY(const Float_t *x, const Float_t *y, const int invert)
   }
 }
 
-Double_t BbcSig::GetSplineAmpl()
+Double_t MbdSig::GetSplineAmpl()
 {
   if ( gSubPulse==nullptr)
   {
@@ -264,7 +264,7 @@ Double_t BbcSig::GetSplineAmpl()
   return f_ampl;
 }
 
-void BbcSig::FillPed0(const Int_t sampmin, const Int_t sampmax)
+void MbdSig::FillPed0(const Int_t sampmin, const Int_t sampmax)
 {
   Double_t x, y;
   for (int isamp=sampmin; isamp<=sampmax; isamp++)
@@ -287,7 +287,7 @@ void BbcSig::FillPed0(const Int_t sampmin, const Int_t sampmax)
 }
 
 
-void BbcSig::FillPed0(const Double_t begin, const Double_t end)
+void MbdSig::FillPed0(const Double_t begin, const Double_t end)
 {
   Double_t x, y;
   Int_t n = gRawPulse->GetN();
@@ -314,7 +314,7 @@ void BbcSig::FillPed0(const Double_t begin, const Double_t end)
 }
 
 
-void BbcSig::SetPed0(const Double_t mean, const Double_t rms)
+void MbdSig::SetPed0(const Double_t mean, const Double_t rms)
 {
   ped0 = mean;
   ped0rms = rms;
@@ -325,9 +325,9 @@ void BbcSig::SetPed0(const Double_t mean, const Double_t rms)
 }
 
 // Get Event by Event Ped0 if requested
-void BbcSig::CalcEventPed0(const Int_t minpedsamp, const Int_t maxpedsamp)
+void MbdSig::CalcEventPed0(const Int_t minpedsamp, const Int_t maxpedsamp)
 {
-  //if (ch==8) cout << "In BbcSig::CalcEventPed0(int,int)" << endl;
+  //if (ch==8) cout << "In MbdSig::CalcEventPed0(int,int)" << endl;
   hPed0->Reset();
   //ped0stats->Clear();
 
@@ -354,7 +354,7 @@ void BbcSig::CalcEventPed0(const Int_t minpedsamp, const Int_t maxpedsamp)
 }
 
 // Get Event by Event Ped0 if requested
-void BbcSig::CalcEventPed0(const Double_t minpedx, const Double_t maxpedx)
+void MbdSig::CalcEventPed0(const Double_t minpedx, const Double_t maxpedx)
 {
   hPed0->Reset();
   //ped0stats->Clear();
@@ -386,7 +386,7 @@ void BbcSig::CalcEventPed0(const Double_t minpedx, const Double_t maxpedx)
 
 // Get Event by Event Ped0, num samples before peak
 // presample is number of samples before peak, nsamps is how many samples
-void BbcSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
+void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
 {
   hPed0->Reset();
   //ped0stats->Clear();
@@ -426,14 +426,14 @@ void BbcSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
   Double_t rms = hPed0->GetRMS();
   SetPed0( mean, rms );
   static int counter = 0;
-  if (counter<10)
+  if (verbose>0 && counter<10)
   {
     cout << "CalcEventPed0_PreSamp: ped0stats " << mean << "\t" << rms << endl;
     counter++;
   }
 }
 
-Double_t BbcSig::LeadingEdge(const Double_t threshold)
+Double_t MbdSig::LeadingEdge(const Double_t threshold)
 {
   // Find first point above threshold
   // We also make sure the next point is above threshold
@@ -466,7 +466,7 @@ Double_t BbcSig::LeadingEdge(const Double_t threshold)
   return t0;
 }
 
-Double_t BbcSig::dCFD(const Double_t fraction_threshold)
+Double_t MbdSig::dCFD(const Double_t fraction_threshold)
 {
   // Find first point above threshold
   // We also make sure the next point is above threshold
@@ -506,7 +506,7 @@ Double_t BbcSig::dCFD(const Double_t fraction_threshold)
   return t0;
 }
 
-Double_t BbcSig::MBD(const Int_t max_samp)
+Double_t MbdSig::MBD(const Int_t max_samp)
 {
   // Get the amplitude of the sample number to get time
   Double_t *y = gSubPulse->GetY();
@@ -527,7 +527,7 @@ Double_t BbcSig::MBD(const Int_t max_samp)
   return t0;
 }
 
-Double_t BbcSig::Integral(const Double_t xmin, const Double_t xmax)
+Double_t MbdSig::Integral(const Double_t xmin, const Double_t xmax)
 {
   Int_t n = gSubPulse->GetN();
   Double_t* x = gSubPulse->GetX();
@@ -547,7 +547,7 @@ Double_t BbcSig::Integral(const Double_t xmin, const Double_t xmax)
   return f_integral;
 }
 
-void BbcSig::LocMax(Double_t& x_at_max, Double_t& ymax, Double_t xminrange, Double_t xmaxrange)
+void MbdSig::LocMax(Double_t& x_at_max, Double_t& ymax, Double_t xminrange, Double_t xmaxrange)
 {
   // Find index of maximum peak
   Int_t n = gSubPulse->GetN();
@@ -579,7 +579,7 @@ void BbcSig::LocMax(Double_t& x_at_max, Double_t& ymax, Double_t xminrange, Doub
 
 }
 
-void BbcSig::LocMin(Double_t& x_at_max, Double_t& ymin, Double_t xminrange, Double_t xmaxrange)
+void MbdSig::LocMin(Double_t& x_at_max, Double_t& ymin, Double_t xminrange, Double_t xmaxrange)
 {
   // Find index of minimum peak (for neg signals)
   Int_t n = gSubPulse->GetN();
@@ -612,7 +612,7 @@ void BbcSig::LocMin(Double_t& x_at_max, Double_t& ymin, Double_t xminrange, Doub
   //int locmax = TMath::LocMin(n,y);
 }
 
-void BbcSig::Print()
+void MbdSig::Print()
 {
   Double_t x, y;
   cout << "CH " << ch << endl;
@@ -623,7 +623,7 @@ void BbcSig::Print()
   }
 }
 
-void BbcSig::PadUpdate()
+void MbdSig::PadUpdate()
 {
   // Make sure TCanvas is created externally!
   gPad->Modified();
@@ -639,7 +639,7 @@ void BbcSig::PadUpdate()
   }
 }
 
-Double_t BbcSig::TemplateFcn(const Double_t *x, const Double_t *par)
+Double_t MbdSig::TemplateFcn(const Double_t *x, const Double_t *par)
 {
   // par[0] is the amplitude (relative to the spline amplitude)
   // par[1] is the start time (in sample number)
@@ -713,7 +713,7 @@ Double_t BbcSig::TemplateFcn(const Double_t *x, const Double_t *par)
   return f;
 }
 
-int BbcSig::FitTemplate()
+int MbdSig::FitTemplate()
 {
   //verbose = 100;	// uncomment to see fits
   if ( verbose>0 ) cout << "Fitting ch " << ch << endl;
@@ -754,7 +754,7 @@ int BbcSig::FitTemplate()
   return 1;
 }
 
-int BbcSig::ReadTemplate(ifstream& shapefile, ifstream& sherrfile)
+int MbdSig::ReadTemplate(ifstream& shapefile, ifstream& sherrfile)
 {
   //verbose = 100;
   Int_t temp_ch = -9999;
@@ -816,7 +816,7 @@ int BbcSig::ReadTemplate(ifstream& shapefile, ifstream& sherrfile)
   }
 
   TString name = "template_fcn"; name += ch;
-  template_fcn = new TF1(name,this,&BbcSig::TemplateFcn,0,nsamples,2,"BbcSig","TemplateFcn");
+  template_fcn = new TF1(name,this,&MbdSig::TemplateFcn,0,nsamples,2,"MbdSig","TemplateFcn");
   template_fcn->SetParameters(1,8);
 
   return 1;

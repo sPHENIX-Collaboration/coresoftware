@@ -21,11 +21,11 @@
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/RawTowerGeomv1.h>
 
+#include <cstdlib>                                     // for exit
 #include <exception>                                    // for exception
 #include <iostream>                                     // for operator<<, endl
 #include <cmath>                                       // for fabs, atan, cos
 #include <stdexcept>                                    // for runtime_error
-#include <stdlib.h>                                     // for exit
 #include <utility>                                      // for pair
 
 //____________________________________________________________________________..

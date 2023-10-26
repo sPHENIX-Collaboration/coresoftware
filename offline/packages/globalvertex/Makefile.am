@@ -19,10 +19,10 @@ libglobalvertex_io_la_LIBADD = \
 
 libglobalvertex_la_LIBADD = \
   libglobalvertex_io.la \
-  -lbbc_io \
+  -lmbd_io \
   -lg4detectors \
   -lfun4all \
-  -lg4bbc_io \
+  -lg4mbd_io \
   -ltrackbase_historic_io
 
 pkginclude_HEADERS = \

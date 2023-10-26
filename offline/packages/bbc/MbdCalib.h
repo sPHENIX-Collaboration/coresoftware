@@ -1,7 +1,7 @@
-#ifndef __BBCCALIB_H__
-#define __BBCCALIB_H__
+#ifndef __MBDCALIB_H__
+#define __MBDCALIB_H__
 
-#include "BbcDefs.h"
+#include "MbdDefs.h"
 #include <phool/recoConsts.h>
 
 #include <cmath>
@@ -11,15 +11,15 @@
 class TTree;
 class CDBInterface;
 
-class BbcCalib
+class MbdCalib
 {
 public:
-  BbcCalib();
+  MbdCalib();
 
-  //BbcCalib(BbcCalib &other) = delete;
-  //void operator=(const BbcCalib &) = delete;
+  //MbdCalib(MbdCalib &other) = delete;
+  //void operator=(const MbdCalib &) = delete;
 
-  virtual ~BbcCalib() {}
+  virtual ~MbdCalib() {}
 
   float get_qgain(const int ipmt) const { return _qfit_mpv[ipmt]; }
   float get_tq0(const int ipmt) const { return _tqfit_t0mean[ipmt]; }
@@ -49,24 +49,24 @@ private:
   std::string  _dbfilename;
 
   // Assumes Landau fit
-  float _qfit_integ[BbcDefs::BBC_N_PMT];
-  float _qfit_mpv[BbcDefs::BBC_N_PMT];
-  float _qfit_sigma[BbcDefs::BBC_N_PMT];
-  float _qfit_integerr[BbcDefs::BBC_N_PMT];
-  float _qfit_mpverr[BbcDefs::BBC_N_PMT];
-  float _qfit_sigmaerr[BbcDefs::BBC_N_PMT];
-  float _qfit_chi2ndf[BbcDefs::BBC_N_PMT];
+  float _qfit_integ[MbdDefs::BBC_N_PMT];
+  float _qfit_mpv[MbdDefs::BBC_N_PMT];
+  float _qfit_sigma[MbdDefs::BBC_N_PMT];
+  float _qfit_integerr[MbdDefs::BBC_N_PMT];
+  float _qfit_mpverr[MbdDefs::BBC_N_PMT];
+  float _qfit_sigmaerr[MbdDefs::BBC_N_PMT];
+  float _qfit_chi2ndf[MbdDefs::BBC_N_PMT];
 
   // T0 offsets, charge channels
-  float _tqfit_t0mean[BbcDefs::BBC_N_PMT];
-  float _tqfit_t0meanerr[BbcDefs::BBC_N_PMT];
-  float _tqfit_t0sigma[BbcDefs::BBC_N_PMT];
-  float _tqfit_t0sigmaerr[BbcDefs::BBC_N_PMT];
+  float _tqfit_t0mean[MbdDefs::BBC_N_PMT];
+  float _tqfit_t0meanerr[MbdDefs::BBC_N_PMT];
+  float _tqfit_t0sigma[MbdDefs::BBC_N_PMT];
+  float _tqfit_t0sigmaerr[MbdDefs::BBC_N_PMT];
 
   // Peak of waveform
-  int   _sampmax[BbcDefs::BBC_N_FEECH];
+  int   _sampmax[MbdDefs::BBC_N_FEECH];
 };
 
 
-#endif	// __BBCCALIB_H__
+#endif	// __MBDCALIB_H__
 

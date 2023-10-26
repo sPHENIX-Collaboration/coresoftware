@@ -1,8 +1,8 @@
-#ifndef G4BBC_BBCVERTEXFASTSIMRECO_H
-#define G4BBC_BBCVERTEXFASTSIMRECO_H
+#ifndef G4MBD_MBDVERTEXFASTSIMRECO_H
+#define G4MBD_MBDVERTEXFASTSIMRECO_H
 
 //===========================================================
-/// \file BbcVertexFastSimReco.h
+/// \file MbdVertexFastSimReco.h
 /// \brief simple truth vertex smearing algorithm
 /// \author Mike McCumber
 //===========================================================
@@ -15,15 +15,15 @@
 
 class PHCompositeNode;
 
-/// \class BbcVertexFastSimReco
+/// \class MbdVertexFastSimReco
 ///
 /// \brief simple truth vertex smearing algorithm
 ///
-class BbcVertexFastSimReco : public SubsysReco
+class MbdVertexFastSimReco : public SubsysReco
 {
  public:
-  BbcVertexFastSimReco(const std::string &name = "BbcVertexFastSimReco");
-  ~BbcVertexFastSimReco() override;
+  MbdVertexFastSimReco(const std::string &name = "MbdVertexFastSimReco");
+  ~MbdVertexFastSimReco() override;
 
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
@@ -42,4 +42,4 @@ class BbcVertexFastSimReco : public SubsysReco
   gsl_rng *RandomGenerator;
 };
 
-#endif  // G4BBC_BBCVERTEXFASTSIMRECO_H
+#endif  // G4MBD_MBDVERTEXFASTSIMRECO_H

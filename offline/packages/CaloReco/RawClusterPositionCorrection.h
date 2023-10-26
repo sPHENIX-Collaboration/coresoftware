@@ -3,20 +3,16 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <phparameter/PHParameters.h>
-
 #include <string>
 #include <vector>
-
-#include <TNtuple.h>
-#include <TFile.h>
-#include <TH2F.h>
 
 class PHCompositeNode;
 class RawClusterContainer;
 class CDBHistos;
 class CDBInterface;
 class CDBTTree;
+class TH1;
+class TH2;
 
 class RawClusterPositionCorrection : public SubsysReco
 {
@@ -84,8 +80,8 @@ class RawClusterPositionCorrection : public SubsysReco
   int bins_phi;
   int iEvent;
 
-  TH2F* h2NorthSector{nullptr};
-  TH2F* h2SouthSector{nullptr};
+  TH2* h2NorthSector{nullptr};
+  TH2* h2SouthSector{nullptr};
   TH1* pdcCorrFlat{nullptr};
   
   CDBTTree *cdbttree{nullptr};
