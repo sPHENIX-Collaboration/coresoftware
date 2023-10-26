@@ -242,7 +242,7 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track, Svt
   double p = state->get_p();
   
   // covariance
-  const Acts::BoundSymMatrix cov = m_transformer.rotateSvtxTrackCovToActs(state);
+  const auto cov = m_transformer.rotateSvtxTrackCovToActs(state);
 
   // position
   const Acts::Vector3 position(
