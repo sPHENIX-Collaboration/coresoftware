@@ -7,10 +7,12 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>           // for decode_index1, decode_in...
 #include <calobase/RawTowerGeomContainer.h>
-
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
+#include <ffamodules/CDBInterface.h>
+
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 #include <cdbobjects/CDBHistos.h> // for CDBHistos
 
@@ -29,14 +31,17 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <TH1.h>
+#include <TH2.h>
 #include <TSystem.h>
+
+#include <algorithm>                         // for max
 
 #include <cassert>
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -65,15 +70,15 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
   std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
 
   if (!calibdir.empty())
-    {
-      cdbttree = new CDBTTree(calibdir.c_str());
-    }
+  {
+    cdbttree = new CDBTTree(calibdir);
+  }
   else
-    { 
-      std::cout << std::endl << "did not find CDB tree" << std::endl;
-      gSystem->Exit(1);
-      exit(1);
-    }
+  { 
+    std::cout << std::endl << "did not find CDB tree" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
 
   h2NorthSector = new TH2F("h2NorthSector", "Cluster; towerid #eta; towerid #phi", bins_eta, 47.5, 95.5, bins_phi, -0.5, 7.5);
   h2SouthSector = new TH2F("h2SouthSector", "Cluster; towerid #eta; towerid #phi", bins_eta, -0.5, 47.5, bins_phi, -0.5, 7.5);

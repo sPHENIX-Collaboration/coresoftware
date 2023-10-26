@@ -64,7 +64,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_packet_low = 6001;
     m_packet_high = 6128;
     m_nchannels = 192;
-    WaveformProcessing->set_template_file("testbeam_cemc_template.root");
+    WaveformProcessing->set_template_name("CEMC_TEMPLATE");
     if (_processingtype == CaloWaveformProcessing::NONE)
     {
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
@@ -76,7 +76,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_packet_high = 7008;
     m_detector = "HCALIN";
     m_nchannels = 192;
-    WaveformProcessing->set_template_file("testbeam_ihcal_template.root");
+    WaveformProcessing->set_template_name("IHCAL_TEMPLATE");
     if (_processingtype == CaloWaveformProcessing::NONE)
     {
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
@@ -88,7 +88,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_packet_low = 8001;
     m_packet_high = 8008;
     m_nchannels = 192;
-    WaveformProcessing->set_template_file("testbeam_ohcal_template.root");
+    WaveformProcessing->set_template_name("OHCAL_TEMPLATE");
     if (_processingtype == CaloWaveformProcessing::NONE)
     {
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
