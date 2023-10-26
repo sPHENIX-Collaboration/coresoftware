@@ -1,8 +1,9 @@
 #ifndef __BBCPMTINFOCONTAINERV1_H__
 #define __BBCPMTINFOCONTAINERV1_H__
 
-#include <calobase/TowerInfoContainer.h>
 #include "BbcPmtInfoV1.h"
+
+#include <calobase/TowerInfoContainer.h>
 
 #include <phool/PHObject.h>
 
