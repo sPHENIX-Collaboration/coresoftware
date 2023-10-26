@@ -31,6 +31,10 @@ class Vertex : public PHObject
   virtual float get_t() const { return NAN; }
   virtual void set_t(float) {}
 
+  // Interface functions to maintain backwards compatibility with svtxvertex_v1
+  virtual float get_t0() const { return get_t(); }
+  virtual void set_t0(float t0) { set_t(t0); }
+
   virtual float get_t_err() const { return NAN; }
   virtual void set_t_err(float) {}
 

@@ -30,6 +30,9 @@ class SvtxVertex : public Vertex
   virtual unsigned int get_id() const override { return UINT_MAX; }
   virtual void set_id(unsigned int) override {}
 
+  virtual float get_t0() const override { return get_t(); }
+  virtual void set_t0(float t0) override { set_t(t0); }
+
   virtual float get_t() const override { return NAN; }
   virtual void set_t(float) override {}
 

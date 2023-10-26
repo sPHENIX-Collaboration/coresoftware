@@ -4,7 +4,7 @@
 #include <trackbase_historic/TrackSeedContainer.h>  
 #include <trackbase_historic/TrackSeed_FastSim_v1.h>
 
-#include <trackbase_historic/SvtxVertexMap.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrClusterContainer.h>
