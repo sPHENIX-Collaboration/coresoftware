@@ -19,7 +19,6 @@ libglobalvertex_io_la_LIBADD = \
 
 libglobalvertex_la_LIBADD = \
   libglobalvertex_io.la \
-  -lmbd_io \
   -lg4detectors \
   -lfun4all
 
@@ -35,6 +34,10 @@ pkginclude_HEADERS = \
   SvtxVertex_v2.h \
   SvtxVertexMap.h \
   SvtxVertexMap_v1.h \
+  MbdVertex.h \
+  MbdVertexv1.h \
+  MbdVertexMap.h \
+  MbdVertexMapv1.h \
   Vertex.h
 
 ROOTDICTS = \
@@ -48,7 +51,11 @@ ROOTDICTS = \
   SvtxVertex_v1_Dict.cc \
   SvtxVertex_v2_Dict.cc \
   SvtxVertexMap_Dict.cc \
-  SvtxVertexMap_v1_Dict.cc
+  SvtxVertexMap_v1_Dict.cc \
+  MbdVertex_Dict.cc \
+  MbdVertexv1_Dict.cc \
+  MbdVertexMap_Dict.cc \
+  MbdVertexMapv1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
@@ -62,7 +69,11 @@ nobase_dist_pcm_DATA = \
   SvtxVertex_v1_Dict_rdict.pcm \
   SvtxVertex_v2_Dict_rdict.pcm \
   SvtxVertexMap_Dict_rdict.pcm \
-  SvtxVertexMap_v1_Dict_rdict.pcm
+  SvtxVertexMap_v1_Dict_rdict.pcm \
+  MbdVertex_Dict_rdict.pcm \
+  MbdVertexv1_Dict_rdict.pcm \
+  MbdVertexMap_Dict_rdict.pcm \
+  MbdVertexMapv1_Dict_rdict.pcm
 
 libglobalvertex_io_la_SOURCES = \
   $(ROOTDICTS) \
@@ -76,7 +87,10 @@ libglobalvertex_io_la_SOURCES = \
   SvtxVertex_v1.cc \
   SvtxVertex_v2.cc \
   SvtxVertexMap.cc \
-  SvtxVertexMap_v1.cc
+  SvtxVertexMap_v1.cc \
+  MbdVertexv1.cc \
+  MbdVertexMap.cc \
+  MbdVertexMapv1.cc
 
 libglobalvertex_la_SOURCES = \
   GlobalVertexReco.cc

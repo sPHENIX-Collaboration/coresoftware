@@ -4,14 +4,13 @@
 #include "GlobalVertexMap.h"  // for GlobalVertexMap
 #include "GlobalVertexMapv1.h"
 #include "GlobalVertexv1.h"
-
-#include <mbd/MbdVertex.h>
-#include <mbd/MbdVertexMap.h>
+#include "SvtxVertex.h"
+#include "SvtxVertexMap.h"
+#include "MbdVertex.h"
+#include "MbdVertexMap.h"
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
