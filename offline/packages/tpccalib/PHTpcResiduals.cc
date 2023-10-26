@@ -272,9 +272,10 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track, Svt
   
   const auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(position);
   const auto actsFourPos = Acts::Vector4(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
-  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geometry().geoContext,
-    actsFourPos, momentum,
-    p, trackQ, cov).value();
+  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geometry().getGeoContext(),
+					    actsFourPos, momentum,
+					    trackQ/p, cov,
+					    Acts::ParticleHypothesis::pion()).value();
 }
 
 //_____________________________________________________________________________________________

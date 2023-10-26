@@ -14,7 +14,7 @@
 class CDBInterface;
 class CDBTTree;
 class PHCompositeNode;
-class TowerInfoContainerv1;
+class TowerInfoContainer;
 
 class CaloTowerCalib : public SubsysReco
 {
@@ -32,7 +32,8 @@ class CaloTowerCalib : public SubsysReco
     CEMC = 0,
     HCALIN = 1,
     HCALOUT = 2,
-    EPD = 3
+    EPD = 3,
+    ZDC = 4
   };
 
   void set_detector_type(CaloTowerCalib::DetectorSystem dettype)
@@ -52,10 +53,22 @@ class CaloTowerCalib : public SubsysReco
     m_overrideFieldName = 1;
     return;
   }
+  void set_inputNodePrefix(const std::string &name)
+  {
+    m_inputNodePrefix = name;
+    return;
+  }
+  void set_outputNodePrefix(const std::string &name)
+  {
+    m_outputNodePrefix = name;
+    return;
+  }
+
+  void set_use_TowerInfov2(bool use) {m_use_TowerInfov2=use; return;}
 
  private:
-  TowerInfoContainerv1 *_raw_towers = nullptr;
-  TowerInfoContainerv1 *_calib_towers = nullptr;
+  TowerInfoContainer *_raw_towers = nullptr;
+  TowerInfoContainer *_calib_towers = nullptr;
 
   CaloTowerCalib::DetectorSystem m_dettype;
 
@@ -65,6 +78,9 @@ class CaloTowerCalib : public SubsysReco
   std::string m_calibName;
   bool m_overrideCalibName = 0;
   bool m_overrideFieldName = 0;
+  std::string m_inputNodePrefix = "TOWERS_";
+  std::string m_outputNodePrefix = "TOWERINFO_CALIB_";
+  bool m_use_TowerInfov2 = 0;
 
   CDBInterface *cdb = nullptr;
   CDBTTree *cdbttree = nullptr;

@@ -34,14 +34,15 @@ namespace
   {
     return x * x;
   }
-  template <class T> inline constexpr T get_r(const T& x, const T& y)
+  template <class T>
+  inline constexpr T get_r(const T& x, const T& y)
   {
     return std::sqrt(square(x) + square(y));
   }
 }  // namespace
 
-void ActsAlignmentStates::fillAlignmentStateMap(const ActsTrackFittingAlgorithm::TrackContainer &tracks,
-						const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+void ActsAlignmentStates::fillAlignmentStateMap(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
+                                                const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
                                                 SvtxTrack* track,
                                                 const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
@@ -50,11 +51,11 @@ void ActsAlignmentStates::fillAlignmentStateMap(const ActsTrackFittingAlgorithm:
   const auto crossing = track->get_silicon_seed()->get_crossing();
 
   ActsPropagator propagator(m_tGeometry);
-  if(m_fieldMap.find(".root") == std::string::npos)
-    {
-      propagator.constField();
-      propagator.setConstFieldValue(std::stod(m_fieldMap));
-    }
+  if (m_fieldMap.find(".root") == std::string::npos)
+  {
+    propagator.constField();
+    propagator.setConstFieldValue(std::stod(m_fieldMap));
+  }
 
   SvtxAlignmentStateMap::StateVec statevec;
   if (m_verbosity > 2)
@@ -68,24 +69,32 @@ void ActsAlignmentStates::fillAlignmentStateMap(const ActsTrackFittingAlgorithm:
   auto silseed = track->get_silicon_seed();
   int nmaps = 0;
   int nintt = 0;
-  for(auto iter = silseed->begin_cluster_keys(); 
-      iter != silseed->end_cluster_keys();
-      ++iter)
+  for (auto iter = silseed->begin_cluster_keys();
+       iter != silseed->end_cluster_keys();
+       ++iter)
+  {
+    TrkrDefs::cluskey ckey = *iter;
+    if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
     {
-      TrkrDefs::cluskey ckey = *iter;
-      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
-	{ nmaps++; }
-      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::inttId)
-	{ nintt++; }
+      nmaps++;
     }
+    if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::inttId)
+    {
+      nintt++;
+    }
+  }
 
-  if(nmaps < 2 or nintt < 2) 
-    { return; }
- 
+  if (nmaps < 2 or nintt < 2)
+  {
+    return;
+  }
+
   //! make sure the track was fully fit through the mvtx
-  SvtxTrackState* firststate = (*std::next(track->begin_states(),1)).second;
-  if(get_r(firststate->get_x(), firststate->get_y()) > 5.)
-    { return; }
+  SvtxTrackState* firststate = (*std::next(track->begin_states(), 1)).second;
+  if (get_r(firststate->get_x(), firststate->get_y()) > 5.)
+  {
+    return;
+  }
 
   mj.visitBackwards(trackTip, [&](const auto& state)
                     {
@@ -153,7 +162,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(const ActsTrackFittingAlgorithm:
     double phi = state.smoothed()[Acts::eBoundPhi];
     double theta = state.smoothed()[Acts::eBoundTheta];
 
-    Acts::Vector3 tangent = Acts::makeDirectionUnitFromPhiTheta(phi,theta);
+    Acts::Vector3 tangent = Acts::makeDirectionFromPhiTheta(phi,theta);
     //! opposite convention for coordinates in Acts
     tangent *= -1;
 
@@ -215,7 +224,7 @@ ActsAlignmentStates::makeGlobalDerivatives(const Acts::Vector3& OM,
                                            const std::pair<Acts::Vector3, Acts::Vector3>& projxy)
 {
   SvtxAlignmentState::GlobalMatrix globalder = SvtxAlignmentState::GlobalMatrix::Zero();
-  Acts::SymMatrix3 unit = Acts::SymMatrix3::Identity();
+  Acts::SquareMatrix3 unit = Acts::SquareMatrix3::Identity();
 
   //! x residual rotations
   globalder(0, 0) = ((unit.col(0)).cross(OM)).dot(projxy.first);
@@ -261,7 +270,7 @@ std::pair<Acts::Vector3, Acts::Vector3> ActsAlignmentStates::get_projectionXY(co
 
   projx = X - (tangent.dot(X) / tangent.dot(Z)) * Z;
   projy = Y - (tangent.dot(Y) / tangent.dot(Z)) * Z;
-  if(m_verbosity > 2)
+  if (m_verbosity > 2)
     std::cout << "projxy " << projx.transpose() << ", " << projy.transpose() << std::endl;
   return std::make_pair(projx, projy);
 }

@@ -4,16 +4,15 @@
 #include "SingleStreamingInput.h"
 
 #include <array>
-#include <list>
+#include <cstdint>  // for uint64_t
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
 
-class Eventiterator;
-class Fun4AllEvtInputPoolManager;
 class InttRawHit;
 class Packet;
+class PHCompositeNode;
 class intt_pool;
 
 class SingleInttPoolInput : public SingleStreamingInput
@@ -21,11 +20,11 @@ class SingleInttPoolInput : public SingleStreamingInput
  public:
   explicit SingleInttPoolInput(const std::string &name);
   ~SingleInttPoolInput() override;
-  void FillPool(const unsigned int nevents = 1) override;
+  void FillPool(const unsigned int) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   bool CheckPoolDepth(const uint64_t bclk) override;
   void ClearCurrentEvent() override;
-  bool GetSomeMoreEvents();
+  bool GetSomeMoreEvents(const uint64_t ibclk);
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
@@ -38,7 +37,7 @@ class SingleInttPoolInput : public SingleStreamingInput
   std::map<uint64_t, std::vector<InttRawHit *>> m_InttRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
-  std::map<int,intt_pool *> poolmap; 
+  std::map<int, intt_pool *> poolmap;
 };
 
 #endif

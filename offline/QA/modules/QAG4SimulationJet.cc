@@ -1,6 +1,6 @@
 #include "QAG4SimulationJet.h"
 
-#include "QAHistManagerDef.h"
+#include <qautils/QAHistManagerDef.h>
 
 #include <g4eval/JetEvalStack.h>
 #include <g4eval/JetRecoEval.h>

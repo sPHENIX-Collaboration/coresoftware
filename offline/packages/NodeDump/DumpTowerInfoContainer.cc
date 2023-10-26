@@ -5,10 +5,8 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
-#include <map>
 #include <ostream>
 #include <string>
-#include <utility>
 
 using MyNode_t = PHIODataNode<TowerInfoContainer>;
 

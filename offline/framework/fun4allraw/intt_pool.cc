@@ -28,13 +28,11 @@ intt_pool::intt_pool( const unsigned int depth, const unsigned int low_mark )
 {
   _required_depth = depth;
   _low_mark=low_mark;
-  
-  for ( int fee = 0; fee < MAX_FEECOUNT; fee++)
-    {
-      last_index[fee] = 0;
-    }
-  _is_decoded  = 0;
-  _myPacketid = -1;  // we are not locked in yet
+  //last_index.fill(0);
+    for ( int fee = 0; fee < MAX_FEECOUNT; fee++)
+      {
+        last_index[fee] = 0;
+      }
 }
 
 int intt_pool::addPacket( Packet *p)
@@ -243,6 +241,12 @@ int intt_pool::iValue(const int hit, const int field)
 
 bool intt_pool::depth_ok() const
 {
+  if (verbosity > 5)
+  {
+    std::cout << "current Pool depth " << min_depth()
+	      << " required depth: " << _required_depth
+	      << std::endl;
+  }
   return ( min_depth() >= _required_depth);
 }
 
@@ -543,8 +547,18 @@ int intt_pool::intt_decode_hitlist (std::vector<unsigned int> &hitlist , const i
       hit->full_ROC   = (x >> 8) & 0x1;   // 1
       hit->amplitude  = (x >> 9) & 0x3f;   // 1
       hit->word      = x;
-      // coutfl << "pushing back hit for FEE " << fee << " with BCO 0x" << hex << BCO << dec
-      // 	     << " channel " << hit->channel_id << " hit length now " << intt_hits.size() << endl;
+      if (verbosity > 1)
+      {
+	if (last_bco[fee] > BCO)
+	{
+	  coutfl << "fee " << fee << " old bco : 0x" << std::hex 
+		 <<  last_bco[fee] << ", current: 0x" << BCO
+		 << std::dec << std::endl;
+	}
+	cout << Name() << " pushing back hit for FEE " << fee << " with BCO 0x" << hex << BCO << dec
+	       << " channel " << hit->channel_id << " hit length now " << intt_hits.size() << ", last bco: 0x" << hex << last_bco[fee] << dec << endl;
+        last_bco[fee] = BCO;
+      }
       intt_hits.push_back(hit);
       count++;
     }	  
