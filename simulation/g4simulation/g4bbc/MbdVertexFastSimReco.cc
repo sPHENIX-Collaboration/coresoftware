@@ -1,10 +1,8 @@
 
 #include "MbdVertexFastSimReco.h"
 
-#include <mbd/MbdVertex.h>     // for MbdVertex
-#include <mbd/MbdVertexMap.h>  // for MbdVertexMap
-#include <mbd/MbdVertexMapv1.h>
-#include <mbd/MbdVertexv1.h>
+#include <globalvertex/MbdVertexMapv1.h>
+#include <globalvertex/MbdVertexv1.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
