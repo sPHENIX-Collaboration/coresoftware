@@ -1,7 +1,7 @@
 #include "DumpMbdVertexMap.h"
 
-#include <mbd/MbdVertex.h>
-#include <mbd/MbdVertexMap.h>
+#include <globalvertex/MbdVertex.h>
+#include <globalvertex/MbdVertexMap.h>
 
 #include <phool/PHIODataNode.h>
 
