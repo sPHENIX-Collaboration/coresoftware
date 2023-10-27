@@ -31,7 +31,7 @@ class CaloTowerBuilder : public SubsysReco
     CEMC = 0,
     HCALIN = 1,
     HCALOUT = 2,
-    EPD = 3,
+    SEPD = 3,
     MBD = 4,
     ZDC = 5
   };
