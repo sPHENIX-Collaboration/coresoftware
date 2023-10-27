@@ -6,7 +6,7 @@
 class Packet;
 class InttRawHit;
 
-namespace Intt
+namespace InttDefs
 {
 	extern const std::map<int, int> Packet_Id;
 	int FelixFromPacket(int);
@@ -37,8 +37,8 @@ namespace Intt
 		int strip_y = 0;
 	};
 
-	struct Intt::RawData_s RawFromPacket(int const, int const, Packet*);
-	void RawFromHit(struct Intt::RawData_s&, InttRawHit*);
+	struct InttDefs::RawData_s RawFromPacket(int const, int const, Packet*);
+	void RawFromHit(struct InttDefs::RawData_s&, InttRawHit*);
 
 	//nontrivial
 	struct Online_s ToOnline(struct Offline_s const&);
@@ -55,29 +55,29 @@ namespace Intt
 	//Eigen::Vector4d GetLocalPos(struct Offline_s const&);
 };
 
-bool operator==(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
-bool operator==(struct Intt::Online_s const&, struct Intt::Online_s const&);
-bool operator==(struct Intt::Offline_s const&, struct Intt::Offline_s const&);
+bool operator==(struct InttDefs::RawData_s const&, struct InttDefs::RawData_s const&);
+bool operator==(struct InttDefs::Online_s const&, struct InttDefs::Online_s const&);
+bool operator==(struct InttDefs::Offline_s const&, struct InttDefs::Offline_s const&);
 
-bool operator!=(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
-bool operator!=(struct Intt::Online_s const&, struct Intt::Online_s const&);
-bool operator!=(struct Intt::Offline_s const&, struct Intt::Offline_s const&);
+bool operator!=(struct InttDefs::RawData_s const&, struct InttDefs::RawData_s const&);
+bool operator!=(struct InttDefs::Online_s const&, struct InttDefs::Online_s const&);
+bool operator!=(struct InttDefs::Offline_s const&, struct InttDefs::Offline_s const&);
 
-bool operator<(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
-bool operator<(struct Intt::Online_s const&, struct Intt::Online_s const&);
-bool operator<(struct Intt::Offline_s const&, struct Intt::Offline_s const&);
+bool operator<(struct InttDefs::RawData_s const&, struct InttDefs::RawData_s const&);
+bool operator<(struct InttDefs::Online_s const&, struct InttDefs::Online_s const&);
+bool operator<(struct InttDefs::Offline_s const&, struct InttDefs::Offline_s const&);
 
-bool operator>(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
-bool operator>(struct Intt::Online_s const&, struct Intt::Online_s const&);
-bool operator>(struct Intt::Offline_s const&, struct Intt::Offline_s const&);
+bool operator>(struct InttDefs::RawData_s const&, struct InttDefs::RawData_s const&);
+bool operator>(struct InttDefs::Online_s const&, struct InttDefs::Online_s const&);
+bool operator>(struct InttDefs::Offline_s const&, struct InttDefs::Offline_s const&);
 
-bool operator<=(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
-bool operator<=(struct Intt::Online_s const&, struct Intt::Online_s const&);
-bool operator<=(struct Intt::Offline_s const&, struct Intt::Offline_s const&);
+bool operator<=(struct InttDefs::RawData_s const&, struct InttDefs::RawData_s const&);
+bool operator<=(struct InttDefs::Online_s const&, struct InttDefs::Online_s const&);
+bool operator<=(struct InttDefs::Offline_s const&, struct InttDefs::Offline_s const&);
 
-bool operator>=(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
-bool operator>=(struct Intt::Online_s const&, struct Intt::Online_s const&);
-bool operator>=(struct Intt::Offline_s const&, struct Intt::Offline_s const&);
+bool operator>=(struct InttDefs::RawData_s const&, struct InttDefs::RawData_s const&);
+bool operator>=(struct InttDefs::Online_s const&, struct InttDefs::Online_s const&);
+bool operator>=(struct InttDefs::Offline_s const&, struct InttDefs::Offline_s const&);
 
 #endif//INTT_MAPPING_H
 

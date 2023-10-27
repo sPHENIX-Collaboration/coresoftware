@@ -122,19 +122,19 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
   TrkrHitSetContainer::Iterator hit_set_container_itr;
   TrkrHit* hit = nullptr;
 
-  Intt::RawData_s raw;
-  Intt::Offline_s ofl;
+  InttDefs::RawData_s raw;
+  InttDefs::Offline_s ofl;
   for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
   {
     InttRawHit* intthit = inttcont->get_hit(i);
     // uint64_t gtm_bco = intthit->get_bco();
 
-    Intt::RawFromHit(raw, intthit);
-    //raw.felix_server = Intt::FelixFromPacket(intthit->get_packetid());
+    InttDefs::RawFromHit(raw, intthit);
+    //raw.felix_server = InttDefs::FelixFromPacket(intthit->get_packetid());
     //raw.felix_channel = intthit->get_fee();
     //raw.chip = (intthit->get_chip_id() + 25) % 26;
     //raw.channel = intthit->get_channel_id();
-    ofl = Intt::ToOffline(raw);
+    ofl = InttDefs::ToOffline(raw);
 
     int adc = intthit->get_adc();
     // amp = intthit->get_amplitude();
@@ -169,13 +169,13 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 
         for(int n = 0; n < N; ++n)
         {
-        rawdata = Intt::RawFromPacket(itr->second, n, p);
+        rawdata = InttDefs::RawFromPacket(itr->second, n, p);
 
         adc = p->iValue(n, "ADC");
         //amp = p->iValue(n, "AMPLITUE");
         bco = p->iValue(n, "FPHX_BCO");
 
-        offline = Intt::ToOffline(rawdata);
+        offline = InttDefs::ToOffline(rawdata);
 
         hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
         hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
