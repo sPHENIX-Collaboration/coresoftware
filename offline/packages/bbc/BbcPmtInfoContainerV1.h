@@ -1,8 +1,9 @@
 #ifndef __BBCPMTINFOCONTAINERV1_H__
 #define __BBCPMTINFOCONTAINERV1_H__
 
-#include <calobase/TowerInfoContainer.h>
 #include "BbcPmtInfoV1.h"
+
+#include <calobase/TowerInfoContainer.h>
 
 #include <phool/PHObject.h>
 
@@ -23,7 +24,7 @@ public:
   BbcPmtInfoV1 *get_pmt(int ich) { return (BbcPmtInfoV1*) _clones->ConstructedAt(ich); }
   TClonesArray *getarray() const { return _clones; }
 
-  size_t size() override { return _clones->GetEntries(); }
+  size_t size() const override { return _clones->GetEntries(); }
 
   //void AddBbcPmtInfo(const short ipmt, const Float_t q, const Float_t tt, const Float_t tq);
 

@@ -18,6 +18,9 @@ class TowerInfoContainerv2 : public TowerInfoContainer
 
   ~TowerInfoContainerv2() override;
 
+  PHObject* CloneMe() const override { return new TowerInfoContainerv2(*this); };
+  void identify(std::ostream& os = std::cout) const override;
+
   void Reset() override;
   TowerInfov2 *get_tower_at_channel(int pos) override;
   TowerInfov2 *get_tower_at_key(int pos) override;
@@ -25,7 +28,7 @@ class TowerInfoContainerv2 : public TowerInfoContainer
   unsigned int encode_key(unsigned int towerIndex) override;
   unsigned int decode_key(unsigned int tower_key) override;
 
-  size_t size() override { return _clones->GetEntries(); }
+  size_t size() const override { return _clones->GetEntries(); }
 
  protected:
   TClonesArray *_clones = nullptr;
