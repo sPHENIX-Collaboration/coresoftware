@@ -27,11 +27,8 @@
 //____________________________________________________________________________..
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
   : SubsysReco(name)
-  , WaveformProcessing(nullptr)
   , m_dettype(CaloTowerBuilder::CEMC)
   , m_buildertype(CaloTowerBuilder::kPRDFTowerv1)
-  , m_CaloInfoContainer(nullptr)
-  , m_CaloWaveformContainer(nullptr)
   , m_detector("CEMC")
   , m_packet_low(INT_MIN)
   , m_packet_high(INT_MIN)
@@ -105,17 +102,6 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);  // default the EPD to fast processing
     }
   }
-  else if (m_dettype == CaloTowerBuilder::MBD)
-  {
-    m_detector = "MBD";
-    m_packet_low = 1001;
-    m_packet_high = 1002;
-    m_nchannels = 128;
-    if (_processingtype == CaloWaveformProcessing::NONE)
-    {
-      WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);
-    }
-  }
   else if (m_dettype == CaloTowerBuilder::ZDC)
   {
     m_detector = "ZDC";
@@ -144,8 +130,8 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       Event *_event = findNode::getClass<Event>(topNode, "PRDF");
       if (_event == nullptr)
       {
-        std::cout << "CaloUnpackPRDF::Process_Event - Event not found" << std::endl;
-        return -1;
+        std::cout << PHWHERE << " Event not found" << std::endl;
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
       if (_event->getEvtType() >= 8)  /// special event where we do not read out the calorimeters
       {
@@ -329,9 +315,13 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     std::string WaveformNodeName = "WAVEFORMS_" + m_detector;
     m_CaloWaveformContainer = findNode::getClass<TowerInfoContainerv3>(topNode, WaveformNodeName);
   }
-
+  int DetectorEnum = TowerInfoContainer::DETECTOR::DETECTOR_INVALID;
+  std::string DetectorName;
   if (m_dettype == CaloTowerBuilder::CEMC)
   {
+    DetectorEnum = TowerInfoContainer::DETECTOR::EMCAL;
+    DetectorNodeName = "CEMC";
+    std::cout << DetectorEnum << std::endl;
     DetNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "CEMC"));
     if (!DetNode)
     {
@@ -368,26 +358,6 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
     {
       m_CaloInfoContainer = new TowerInfoContainerv2(TowerInfoContainer::DETECTOR::SEPD);
-    }
-  }
-  else if (m_dettype == MBD)
-  {
-    DetNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", "MBD"));
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode("MBD");
-    }
-    if (m_buildertype == CaloTowerBuilder::kPRDFTowerv1)
-    {
-      m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::MBD);
-    }
-    else if (m_buildertype == CaloTowerBuilder::kPRDFWaveform)
-    {
-      m_CaloInfoContainer = new TowerInfoContainerv3(TowerInfoContainer::DETECTOR::MBD);
-    }
-    else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
-    {
-      m_CaloInfoContainer = new TowerInfoContainerv2(TowerInfoContainer::DETECTOR::MBD);
     }
   }
   else if (m_dettype == ZDC)

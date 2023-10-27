@@ -3,8 +3,9 @@
 #ifndef CALOTOWERBUILDER_H
 #define CALOTOWERBUILDER_H
 
-#include <fun4all/SubsysReco.h>
 #include "CaloWaveformProcessing.h"
+
+#include <fun4all/SubsysReco.h>
 
 #include <climits>
 #include <string>
@@ -77,11 +78,11 @@ class CaloTowerBuilder : public SubsysReco
   }
 
  private:
-  CaloWaveformProcessing *WaveformProcessing;
+  CaloWaveformProcessing *WaveformProcessing {nullptr};
   CaloTowerBuilder::DetectorSystem m_dettype;
   CaloTowerBuilder::BuilderType m_buildertype;
-  TowerInfoContainer *m_CaloInfoContainer;  //! Calo info
-  TowerInfoContainerv3 *m_CaloWaveformContainer; 
+  TowerInfoContainer *m_CaloInfoContainer {nullptr};  //! Calo info
+  TowerInfoContainerv3 *m_CaloWaveformContainer {nullptr}; 
   std::string m_detector;
   int m_packet_low;
   int m_packet_high;
