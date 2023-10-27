@@ -1,18 +1,24 @@
 #include "BbcPmtHitV1.h"
 
-#include <iostream>
 
-BbcPmtHitV1::BbcPmtHitV1(const short ipmt, const float iadc, const float itdc0, const float itdc1)
-  : pmt(ipmt)
-  , adc(iadc)
-  , tdc0(itdc0)
-  , tdc1(itdc1)
+void BbcPmtHitV1::Reset()
 {
+  Clear();
 }
+
+void BbcPmtHitV1::Clear(Option_t* )
+{
+  //std::cout << "clearing " << bpmt << std::endl;
+  bpmt = -1;
+  bq = std::numeric_limits<float>::quiet_NaN();
+  btt = std::numeric_limits<float>::quiet_NaN();
+  btq = std::numeric_limits<float>::quiet_NaN();
+}
+
 
 void BbcPmtHitV1::identify(std::ostream& out) const
 {
   out << "identify yourself: I am a BbcPmtHitV1 object" << std::endl;
-  out << "Pmt: " << pmt << ", adc: " << adc << ", tdc0: "
-      << tdc0 << ", tdc1: " << tdc1 << std::endl;
+  out << "Pmt: " << bpmt << ", Q: " << bq << ", tt: "
+      << btt << ", btq: " << btq << std::endl;
 }

@@ -27,7 +27,8 @@ pkginclude_HEADERS = \
   SingleMicromegasInput.h \
   SinglePrdfInput.h \
   SingleStreamingInput.h \
-  SingleTpcInput.h
+  SingleTpcInput.h \
+  SingleTpcPoolInput.h
 
 lib_LTLIBRARIES = \
   libfun4allraw.la
@@ -43,6 +44,7 @@ libfun4allraw_la_SOURCES = \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
   intt_pool.cc \
+  tpc_pool.cc \
   SingleEvtInput.cc \
   SingleMvtxInput.cc \
   SingleInttInput.cc \
@@ -50,6 +52,7 @@ libfun4allraw_la_SOURCES = \
   SingleMicromegasInput.cc \
   SinglePrdfInput.cc \
   SingleStreamingInput.cc \
+  SingleTpcPoolInput.cc \
   SingleTpcInput.cc
 
 libfun4allraw_la_LIBADD = \

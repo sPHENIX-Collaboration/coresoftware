@@ -10,6 +10,8 @@
 #ifndef SECONDARYVERTEXFINDER_H
 #define SECONDARYVERTEXFINDER_H
 
+#include <ActsPropagator.h>
+
 #include <fun4all/SubsysReco.h>
 
 #include <trackbase/TrkrDefs.h>
@@ -91,8 +93,7 @@ bool passConversionElectronCuts(TLorentzVector tsum,
   void outputTrackDetails(SvtxTrack *tr);
   void get_dca(SvtxTrack* track, float& dca3dxy, float& dca3dz, float& dca3dxysigma, float& dca3dzsigma);
   bool circle_circle_intersection(double r0, double x0, double y0, double r1, double x1, double y1, std::vector<double>& intersectionXY);
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
-  Acts::Vector3 getVertex(SvtxTrack* track);
+ 
   void findPcaTwoLines(Eigen::Vector3d pos1, Eigen::Vector3d mom1, Eigen::Vector3d pos2, Eigen::Vector3d mom2,
 		       double &dca, Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);
   void getCircleXYTrack(SvtxTrack *track, double& R, Eigen::Vector2d& center);

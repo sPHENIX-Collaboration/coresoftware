@@ -6,33 +6,33 @@ AM_CPPFLAGS = \
   -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
-   libg4bbc_io.la \
-   libg4bbc.la
+   libg4mbd_io.la \
+   libg4mbd.la
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-libg4bbc_io_la_LIBADD = \
+libg4mbd_io_la_LIBADD = \
   -lphool
 
-libg4bbc_la_LIBADD = \
-  libg4bbc_io.la \
-  -lbbc_io \
+libg4mbd_la_LIBADD = \
+  libg4mbd_io.la \
+  -lmbd_io \
   -lg4detectors \
   -lSubsysReco
 
 pkginclude_HEADERS = \
-  BbcDigitization.h \
-  BbcVertexFastSimReco.h
+  MbdDigitization.h \
+  MbdVertexFastSimReco.h
 
 
-libg4bbc_io_la_SOURCES = \
+libg4mbd_io_la_SOURCES = \
   $(ROOTDICTS)
 
-libg4bbc_la_SOURCES = \
-  BbcDigitization.cc \
-  BbcVertexFastSimReco.cc
+libg4mbd_la_SOURCES = \
+  MbdDigitization.cc \
+  MbdVertexFastSimReco.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -45,16 +45,16 @@ libg4bbc_la_SOURCES = \
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternalsg4bbc_io \
-  testexternalsg4bbc
+  testexternalsg4mbd_io \
+  testexternalsg4mbd
 
 BUILT_SOURCES = testexternals.cc
 
-testexternalsg4bbc_io_SOURCES = testexternals.cc
-testexternalsg4bbc_io_LDADD = libg4bbc_io.la
+testexternalsg4mbd_io_SOURCES = testexternals.cc
+testexternalsg4mbd_io_LDADD = libg4mbd_io.la
 
-testexternalsg4bbc_SOURCES = testexternals.cc
-testexternalsg4bbc_LDADD = libg4bbc_io.la
+testexternalsg4mbd_SOURCES = testexternals.cc
+testexternalsg4mbd_LDADD = libg4mbd_io.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

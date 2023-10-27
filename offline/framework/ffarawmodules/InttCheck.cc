@@ -52,6 +52,11 @@ int InttCheck::process_event(PHCompositeNode *topNode)
       if (ifirst)
       {
 	refbco = inh->get_bco();
+	if (Verbosity() > 0)
+	{
+	  std::cout << "current bco: 0x" << std::hex << refbco
+		    << std::dec << std::endl;
+	}
 	if (bclk_seen.find(refbco) != bclk_seen.end())
 	{
 	  std::cout << "bco 0x" << std::hex << refbco << std::dec

@@ -1,18 +1,16 @@
-// Tell emacs that this is a C++ source
-//  -*- C++ -*-.
-#ifndef BBC_BBCPMTCONTAINERV1_H
-#define BBC_BBCPMTCONTAINERV1_H
+#ifndef __BBC_BBCPMTCONTAINERV1_H__
+#define __BBC_BBCPMTCONTAINERV1_H__
 
 #include "BbcPmtContainer.h"
 
 #include <iostream>
 
-class TClonesArray;
+#include <TClonesArray.h>
 
 ///
 class BbcPmtContainerV1 : public BbcPmtContainer
 {
- public:
+public:
   /// ctor
   BbcPmtContainerV1();
 
@@ -30,51 +28,27 @@ class BbcPmtContainerV1 : public BbcPmtContainer
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;
 
-  /** set T0 for Bbc
+  /** set number of pmts for Bbc
       @param ival Number of Bbc Pmt's
    */
-  void set_npmt(const short ival) override
+  void set_npmt(const Short_t ival) override
   {
     npmt = ival;
     return;
   }
 
   /// get Number of Bbc Pmt's
-  short get_npmt() const override { return npmt; }
+  Short_t get_npmt() const override { return npmt; }
 
-  /** get id of Pmt iPmt in TClonesArray
+  /** get BbcHitPmt of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray
    */
-  short get_pmt(const int iPmt) const override;
+  BbcPmtHit *get_pmt(const int iPmt) const override { return (BbcPmtHit*)BbcPmtHits->ConstructedAt(iPmt); }
 
-  /** get Adc of Pmt iPmt in TClonesArray
-      @param iPmt no of Pmt in TClonesArray
-   */
-  float get_adc(const int iPmt) const override;
-
-  /** get Tdc0 of Pmt iPmt in TClonesArray
-      @param iPmt no of Pmt in TClonesArray
-   */
-  float get_tdc0(const int iPmt) const override;
-
-  /** get Tdc1 of Pmt iPmt in TClonesArray
-      @param iPmt no of Pmt in TClonesArray
-   */
-  float get_tdc1(const int iPmt) const override;
-
-  /** Add Bbc Raw hit object to TCLonesArray
-      @param pmt Pmt id
-      @param adc Adc value
-      @param tdc0 Tdc0 value
-      @param tdc1 Tdc1 value
-      @param ipmt no of pmt
-  */
-  void AddBbcPmt(const short ipmt, const float adc, const float tdc0, const float tdc1) override;
-
- private:
+private:
   TClonesArray *GetBbcPmtHits() const { return BbcPmtHits; }
 
-  short npmt = 0;
+  Short_t npmt = 0;
   TClonesArray *BbcPmtHits = nullptr;
 
   ClassDefOverride(BbcPmtContainerV1, 1)

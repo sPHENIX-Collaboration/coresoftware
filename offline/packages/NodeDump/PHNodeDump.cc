@@ -1,8 +1,6 @@
 #include "PHNodeDump.h"
 #include "DumpObject.h"
 
-#include "DumpBbcOut.h"
-#include "DumpBbcPmtContainer.h"
 #include "DumpBbcPmtInfoContainer.h"
 #include "DumpBbcVertexMap.h"
 #include "DumpCaloTriggerInfo.h"
@@ -14,7 +12,11 @@
 #include "DumpFlagSave.h"
 #include "DumpGlobalVertexMap.h"
 #include "DumpInttDeadMap.h"
+#include "DumpInttRawHitContainer.h"
 #include "DumpJetMap.h"
+#include "DumpMbdOut.h"
+#include "DumpMbdPmtContainer.h"
+#include "DumpMbdVertexMap.h"
 #include "DumpPHFieldConfig.h"
 #include "DumpPHG4BlockCellGeomContainer.h"
 #include "DumpPHG4BlockGeomContainer.h"
@@ -43,6 +45,7 @@
 #include "DumpSyncObject.h"
 #include "DumpTowerBackground.h"
 #include "DumpTowerInfoContainer.h"
+#include "DumpTpcRawHitContainer.h"
 #include "DumpTpcSeedTrackMap.h"
 #include "DumpTrackSeedContainer.h"
 #include "DumpTrkrClusterContainer.h"
@@ -185,15 +188,7 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       // need a static cast since only from DST these guys are of type PHIODataNode<TObject*>
       // when created they are normally  PHIODataNode<PHObject*> but can be anything else as well
       TObject *tmp = static_cast<TObject *>((static_cast<PHIODataNode<TObject> *>(node))->getData());
-      if (tmp->InheritsFrom("BbcOut"))
-      {
-        newdump = new DumpBbcOut(NodeName);
-      }
-      else if (tmp->InheritsFrom("BbcPmtContainer"))
-      {
-        newdump = new DumpBbcPmtContainer(NodeName);
-      }
-      else if (tmp->InheritsFrom("BbcPmtInfoContainerV1"))
+      if (tmp->InheritsFrom("BbcPmtInfoContainerV1"))
       {
         newdump = new DumpBbcPmtInfoContainer(NodeName);
       }
@@ -237,9 +232,25 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       {
         newdump = new DumpInttDeadMap(NodeName);
       }
+      else if (tmp->InheritsFrom("InttRawHitContainer"))
+      {
+        newdump = new DumpInttRawHitContainer(NodeName);
+      }
       else if (tmp->InheritsFrom("JetMap"))
       {
         newdump = new DumpJetMap(NodeName);
+      }
+      else if (tmp->InheritsFrom("MbdOut"))
+      {
+        newdump = new DumpMbdOut(NodeName);
+      }
+      else if (tmp->InheritsFrom("MbdPmtContainer"))
+      {
+        newdump = new DumpMbdPmtContainer(NodeName);
+      }
+      else if (tmp->InheritsFrom("MbdVertexMap"))
+      {
+        newdump = new DumpMbdVertexMap(NodeName);
       }
       else if (tmp->InheritsFrom("ParticleFlowElementContainer"))
       {
@@ -352,6 +363,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("TowerInfoContainer"))
       {
         newdump = new DumpTowerInfoContainer(NodeName);
+      }
+      else if (tmp->InheritsFrom("TpcRawHitContainer"))
+      {
+        newdump = new DumpTpcRawHitContainer(NodeName);
       }
       else if (tmp->InheritsFrom("TpcSeedTrackMap"))
       {

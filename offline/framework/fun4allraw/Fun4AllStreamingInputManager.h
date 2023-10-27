@@ -40,11 +40,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   int SyncIt(const SyncObject *mastersync) override;
   int HasSyncObject() const override { return 1; }
   std::string GetString(const std::string &what) const override;
-//  SingleEvtInput *AddEvtInputList(const std::string &listfile);
-//  SingleEvtInput *AddEvtInputFile(const std::string &filename);
   void registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem);
-  void AddPacket(uint64_t bclk, Packet *p);
-  void UpdateEventFoundCounter(const int evtno);
   int FillMvtx();
   int FillIntt();
   int FillMicromegas();
@@ -53,15 +49,9 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
   void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit* /* hit */);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
-  bool GetMoreInttEvents();
+  void SetTpcBcoRange(const unsigned int i);
 
  private:
-  struct PacketInfo
-  {
-    std::vector<Packet *> PacketVector;
-    unsigned int EventFoundCounter = 0;
-  };
-
   struct MvtxRawHitInfo
   {
     std::vector<MvtxRawHit *> MvtxRawHitVector;
@@ -91,10 +81,10 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   bool m_intt_registered_flag = false;
   bool m_micromegas_registered_flag = false;
   bool m_tpc_registered_flag = false;
+  unsigned int m_tpc_bco_range {0};
   std::vector<SingleStreamingInput *> m_EvtInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
-  std::map<uint64_t, PacketInfo> m_PacketInfoMap;
   std::map<uint64_t, MvtxRawHitInfo> m_MvtxRawHitMap;
   std::map<uint64_t, InttRawHitInfo> m_InttRawHitMap;
   std::map<uint64_t, MicromegasRawHitInfo> m_MicromegasRawHitMap;

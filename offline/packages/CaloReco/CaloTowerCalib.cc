@@ -1,8 +1,12 @@
 #include "CaloTowerCalib.h"
 
 #include <calobase/TowerInfo.h>  // for TowerInfo
+#include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfoContainerv2.h>
 #include <calobase/TowerInfov1.h>
+#include <calobase/TowerInfov2.h>
+#include <calobase/TowerInfo.h>
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
@@ -36,12 +40,13 @@ CaloTowerCalib::CaloTowerCalib(const std::string &name)
   , m_fieldname("")
   , m_runNumber(-1)
 {
-  std::cout << "CaloTowerCalib::CaloTowerCalib(const std::string &name) Calling ctor" << std::endl;
+  if (Verbosity() > 0) std::cout << "CaloTowerCalib::CaloTowerCalib(const std::string &name) Calling ctor" << std::endl;
 }
 
 //____________________________________________________________________________..
 CaloTowerCalib::~CaloTowerCalib()
 {
+  delete cdbttree;
   std::cout << "CaloTowerCalib::~CaloTowerCalib() Calling dtor" << std::endl;
 }
 
@@ -66,7 +71,6 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     m_detector = "CEMC";
     m_DETECTOR = TowerInfoContainer::EMCAL;
 
-    cdb = CDBInterface::instance();
     if (!m_overrideCalibName)
     {
       m_calibName = "cemc_pi0_twrSlope_v1";
@@ -75,8 +79,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     {
       m_fieldname = "Femc_datadriven_qm1_correction";
     }
-    std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -99,9 +103,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     {
       m_fieldname = "ihcal_abscalib_mip";
     }
-    cdb = CDBInterface::instance();
-    std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -124,9 +127,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     {
       m_fieldname = "ohcal_abscalib_mip";
     }
-    cdb = CDBInterface::instance();
-    std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -149,9 +151,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     {
       m_fieldname = "zdc_calib";
     }
-    cdb = CDBInterface::instance();
-    std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -174,9 +175,8 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     {
       m_fieldname = "noCalibYet";
     }
-    cdb = CDBInterface::instance();
-    std::string calibdir = cdb->getUrl(m_calibName);
-    if (calibdir[0] == '/')
+    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
+    if (!calibdir.empty())
     {
       cdbttree = new CDBTTree(calibdir.c_str());
     }
@@ -208,7 +208,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     std::cout << e.what() << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  topNode->print();
+  if (Verbosity() > 0) topNode->print();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -216,22 +216,16 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
 int CaloTowerCalib::process_event(PHCompositeNode * /*topNode*/)
 {
   unsigned int ntowers = _raw_towers->size();
+  
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
     unsigned int key = _raw_towers->encode_key(channel);
     TowerInfo *caloinfo_raw = _raw_towers->get_tower_at_channel(channel);
+    _calib_towers->get_tower_at_channel(channel)->copy_tower(caloinfo_raw);
     float raw_amplitude = caloinfo_raw->get_energy();
-    short raw_time = caloinfo_raw->get_time();
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
     _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst);
-    if (calibconst == 0){
-      _calib_towers->get_tower_at_channel(channel)->set_time(-10);
-    }
-    else {
-      _calib_towers->get_tower_at_channel(channel)->set_time(raw_time);
-    }
   }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -248,10 +242,20 @@ void CaloTowerCalib::CreateNodeTree(PHCompositeNode *topNode)
     throw std::runtime_error(
         "Failed to find DST node in RawTowerCalibration::CreateNodes");
   }
+  //detector node
+
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(iter.findFirst(
+      "PHCompositeNode", m_detector));
+  
+  if (!DetNode)
+  {
+    DetNode = new PHCompositeNode(m_detector);
+    dstNode->addNode(DetNode);
+  }
 
   // towers
-  std::string RawTowerNodeName = "TOWERS_" + m_detector;
-  _raw_towers = findNode::getClass<TowerInfoContainerv1>(dstNode,
+  std::string RawTowerNodeName = m_inputNodePrefix + m_detector;
+  _raw_towers = findNode::getClass<TowerInfoContainer>(dstNode,
                                                          RawTowerNodeName);
   if (!_raw_towers)
   {
@@ -262,16 +266,23 @@ void CaloTowerCalib::CreateNodeTree(PHCompositeNode *topNode)
         "Failed to find " + RawTowerNodeName + " node in RawTowerCalibration::CreateNodes");
   }
 
-  std::string CalibTowerNodeName = "TOWERINFO_CALIB_" + m_detector;
-  _calib_towers = findNode::getClass<TowerInfoContainerv1>(dstNode,
+  std::string CalibTowerNodeName = m_outputNodePrefix + m_detector;
+  _calib_towers = findNode::getClass<TowerInfoContainer>(dstNode,
                                                            CalibTowerNodeName);
   if (!_calib_towers)
   {
-    _calib_towers = new TowerInfoContainerv1(m_DETECTOR);
+    if(m_use_TowerInfov2)
+    {
+      _calib_towers = new TowerInfoContainerv2(m_DETECTOR);
+    }
+    else
+    {
+      _calib_towers = new TowerInfoContainerv1(m_DETECTOR);
+    }   
 
     PHIODataNode<PHObject> *calibtowerNode = new PHIODataNode<PHObject>(_calib_towers, CalibTowerNodeName, "PHObject");
     std::cout << "adding calib tower" << std::endl;
-    dstNode->addNode(calibtowerNode);
+    DetNode->addNode(calibtowerNode);
   }
 
   return;
