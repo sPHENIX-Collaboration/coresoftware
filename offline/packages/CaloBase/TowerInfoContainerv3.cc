@@ -50,6 +50,11 @@ TowerInfoContainerv3::~TowerInfoContainerv3()
   delete _clones;
 }
 
+void TowerInfoContainerv3::identify(std::ostream& os) const
+{
+  os << "TowerInfoContainerv3 of size " << size() << std::endl;
+}
+
 void TowerInfoContainerv3::Reset()
 {
   // clear content of towers in the container for the next event

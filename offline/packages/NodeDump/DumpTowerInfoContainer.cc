@@ -33,6 +33,19 @@ int DumpTowerInfoContainer::process_Node(PHNode *myNode)
       TowerInfo *rawtwr = towerinfocontainer->get_tower_at_channel(channel);
       *fout << "time: " << rawtwr->get_time() << std::endl;
       *fout << "energy: " << rawtwr->get_energy() << std::endl;
+      *fout << "time_float: " << rawtwr->get_time_float() << std::endl;
+      *fout << "chi2: " << rawtwr->get_chi2() << std::endl;
+      *fout << "pedestal: " << rawtwr->get_pedestal() << std::endl;
+      *fout << "isHot: " << rawtwr->get_isHot() << std::endl;
+      *fout << "isBadTime: " << rawtwr->get_isBadTime() << std::endl;
+      *fout << "isNotInstr: " << rawtwr->get_isNotInstr() << std::endl;
+      *fout << "isGood: " << rawtwr->get_isGood() << std::endl;
+      *fout << "status: " << rawtwr->get_status() << std::endl;
+      *fout << "nsample: " << rawtwr->get_nsample() << std::endl;
+      for (int j = 0; j < rawtwr->get_nsample(); j++)
+      {
+        *fout << "waveform_value[" << j << "]: " << rawtwr->get_waveform_value(j) << std::endl;
+      }
     }
   }
   return 0;
