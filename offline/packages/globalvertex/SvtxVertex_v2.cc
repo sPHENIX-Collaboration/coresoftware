@@ -13,6 +13,7 @@ SvtxVertex_v2::SvtxVertex_v2()
   , _ndof(0xFFFFFFFF)
   , _err()
   , _track_ids()
+  , _beamcrossing(UINT_MAX)
 {
   for (int i = 0; i < 3; ++i) _pos[i] = NAN;
   for (int j = 0; j < 3; ++j)

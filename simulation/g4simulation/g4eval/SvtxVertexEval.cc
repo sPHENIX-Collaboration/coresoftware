@@ -308,10 +308,11 @@ const Vertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint)
     }
   }
 
-  std::set<const Vertex*>::iterator best_vertex_iter;
  
   unsigned int best_count = 0;
   std::set<const Vertex*> tracks = all_vertexes_from(truthpoint);
+  
+  std::set<const Vertex*>::iterator best_vertex_iter = tracks.begin();
   for (auto it = tracks.begin(); it != tracks.end(); ++it)
   {
     const Vertex* vertex = *it;
