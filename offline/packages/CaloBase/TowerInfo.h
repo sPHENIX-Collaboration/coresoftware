@@ -36,6 +36,7 @@ class TowerInfo : public PHObject
   virtual uint8_t get_status() const { return 0; }
   virtual void set_status(uint8_t /*status*/) { return; }
   // methods in v3
+  virtual int get_nsample() const {return 0;}
   virtual int16_t get_waveform_value(int /*index*/) const {return -1;}
   virtual void set_waveform_value(int /*index*/, int16_t /*value*/) {return;}
 
