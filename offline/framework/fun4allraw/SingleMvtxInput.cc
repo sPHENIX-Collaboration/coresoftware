@@ -179,7 +179,6 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
                   << *strobeBcoStack.begin() << std::dec << std::endl;
         assert(0);
       }
-
     }
     delete evt;
   }
