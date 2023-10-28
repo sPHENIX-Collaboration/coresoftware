@@ -171,8 +171,8 @@ double InttVertexFinder::calculateZvertex(
         const auto cluskey = clusIter->first;
         const auto cluster = clusIter->second;
         const auto globalPos = m_tGeometry->getGlobalPosition(cluskey, cluster);
-        //int ladder_z   = InttDefs::getLadderZId(cluskey);
-        //int ladder_phi = InttDefs::getLadderPhiId(cluskey);
+        //int ladder_z   = InttNameSpace::getLadderZId(cluskey);
+        //int ladder_phi = InttNameSpace::getLadderPhiId(cluskey);
         //int size       = cluster->getSize();
 
         //--if(nCluster<5) {

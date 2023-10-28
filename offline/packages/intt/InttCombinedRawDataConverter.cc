@@ -181,19 +181,19 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
   for (auto& itr : branches_l)itr.second->clear();
   for (auto& itr : branches_d)itr.second->clear();
 
-  Intt::RawData_s raw;
-  Intt::Online_s onl;
+  InttNameSpace::RawData_s raw;
+  InttNameSpace::Online_s onl;
   std::map<std::tuple<int, int, int, int, int>, char> hits;
   for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
   {
     InttRawHit* intthit = inttcont->get_hit(i);
 
-    Intt::RawFromHit(raw, intthit);
-    //raw.felix_server = Intt::FelixFromPacket(intthit->get_packetid());
+    InttNameSpace::RawFromHit(raw, intthit);
+    //raw.felix_server = InttNameSpace::FelixFromPacket(intthit->get_packetid());
     //raw.felix_channel = intthit->get_fee();
     //raw.chip = (intthit->get_chip_id() + 25) % 26;
     //raw.channel = intthit->get_channel_id();
-    onl = Intt::ToOnline(raw);
+    onl = InttNameSpace::ToOnline(raw);
 
     std::tuple<int, int, int, int, int> tpl;
     std::get<0>(tpl) = onl.lyr;

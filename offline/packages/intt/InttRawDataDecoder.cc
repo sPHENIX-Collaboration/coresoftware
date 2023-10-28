@@ -100,8 +100,8 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 	Event* evt = findNode::getClass<Event>(topNode, "PRDF");
 	if(!evt)return Fun4AllReturnCodes::DISCARDEVENT;
 
-	struct Intt::RawData_s rawdata;
-	struct Intt::Offline_s offline;
+	struct InttNameSpace::RawData_s rawdata;
+	struct InttNameSpace::Offline_s offline;
 
 	int adc = 0;
 	//int amp = 0;
@@ -112,7 +112,7 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 	TrkrHitSetContainer::Iterator hit_set_container_itr;
 	TrkrHit* hit = nullptr;
 
-	for(std::map<int, int>::const_iterator itr = Intt::Packet_Id.begin(); itr != Intt::Packet_Id.end(); ++itr)
+	for(std::map<int, int>::const_iterator itr = InttNameSpace::Packet_Id.begin(); itr != InttNameSpace::Packet_Id.end(); ++itr)
 	{
 		Packet* p = evt->getPacket(itr->first);
 		if(!p)continue;
@@ -124,13 +124,13 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 
 		for(int n = 0; n < N; ++n)
 		{
-			rawdata = Intt::RawFromPacket(itr->second, n, p);
+			rawdata = InttNameSpace::RawFromPacket(itr->second, n, p);
 
 			adc = p->iValue(n, "ADC");
 			//amp = p->iValue(n, "AMPLITUE");
 			bco = p->iValue(n, "FPHX_BCO");
 
-			offline = Intt::ToOffline(rawdata);
+			offline = InttNameSpace::ToOffline(rawdata);
 
 			hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
 			hit_set_key = InttDefs::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
