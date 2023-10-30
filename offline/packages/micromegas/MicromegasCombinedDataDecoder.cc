@@ -137,7 +137,7 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode *topNode)
     auto max_adc = *std::max_element( adc.begin(), adc.end() );
             
     // compare to hard min_adc value
-    if( max_adc < m_min_adc ) continue;
+    // if( max_adc < m_min_adc ) continue;
 
     // compare to threshold
     if( max_adc < pedestal + m_n_sigma * rms ) continue;
