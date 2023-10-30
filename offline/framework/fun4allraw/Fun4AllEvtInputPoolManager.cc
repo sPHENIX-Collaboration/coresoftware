@@ -7,7 +7,7 @@
 
 #include <ffarawobjects/MvtxRawHit.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
-#include <ffarawobjects/MvtxRawEvtHeader.h>
+#include <ffarawobjects/MvtxRawEvtHeaderv1.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainerv1.h>
 #include <ffarawobjects/MicromegasRawHit.h>
@@ -480,7 +480,7 @@ int Fun4AllEvtInputPoolManager::FillMvtx()
     std::cout << "we are done" << std::endl;
     return -1;
   }
-  MvtxRawEvtHeader *mvtxEvtHeader =  findNode::getClass<MvtxRawEvtHeader>(m_topNode, "MVTXRAWEVTHEADER");
+  MvtxRawEvtHeader *mvtxEvtHeader =  findNode::getClass<MvtxRawEvtHeaderv1>(m_topNode, "MVTXRAWEVTHEADER");
   if (! mvtxEvtHeader)
   {
     std::cout << "ERROR: MVTXRAWEVTHEADER node not found, exit. " << std::endl;

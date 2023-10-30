@@ -4,7 +4,7 @@
 
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/MvtxRawHitv1.h>
-#include <ffarawobjects/MvtxRawEvtHeader.h>
+#include <ffarawobjects/MvtxRawEvtHeaderv1.h>
 
 #include <frog/FROG.h>
 
@@ -333,10 +333,10 @@ void SingleMvtxInput::CreateDSTNode(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
-  MvtxRawEvtHeader* mvtxEH = findNode::getClass<MvtxRawEvtHeader>(detNode,"MVTXRAWEVTHEADER");
+  MvtxRawEvtHeader* mvtxEH = findNode::getClass<MvtxRawEvtHeaderv1>(detNode,"MVTXRAWEVTHEADER");
   if (! mvtxEH)
   {
-    mvtxEH = new MvtxRawEvtHeader();
+    mvtxEH = new MvtxRawEvtHeaderv1();
     PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(mvtxEH, "MVTXRAWEVTHEADER", "PHObject");
     detNode->addNode(newNode);
   }
