@@ -1,6 +1,10 @@
 #include "TowerInfoDefs.h"
 #include "TowerInfoContainer.h"
 
+void TowerInfoContainer::identify(std::ostream& os) const
+{
+  os << "TowerInfoContainer Base Class " << std::endl;
+}
 
 
 unsigned int TowerInfoContainer::encode_epd(unsigned int towerIndex)

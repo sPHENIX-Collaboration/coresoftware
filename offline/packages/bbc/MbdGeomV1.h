@@ -22,6 +22,7 @@ public:
   int get_pmt(const unsigned int feech) const override { return (feech/16)*8 + feech%8; }
   int get_type(const unsigned int feech) const override { return (feech/8)%2; } // 0=T-channel, 1=Q-channel
 
+  virtual void Reset() override {}
 private:
   
   float pmt_x[128];

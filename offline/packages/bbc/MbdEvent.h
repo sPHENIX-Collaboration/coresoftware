@@ -1,28 +1,28 @@
-#ifndef __BBCEVENT_H__
-#define __BBCEVENT_H__
+#ifndef __MBDEVENT_H__
+#define __MBDEVENT_H__
 
-#include "BbcDefs.h"
-#include "BbcSig.h"
+#include "MbdDefs.h"
+#include "MbdSig.h"
 
 class PHCompositeNode;
 class Event;
 class Packet;
-class BbcPmtInfoContainerV1;
-class BbcOut;
-class BbcCalib;
-class BbcGeom;
+class MbdPmtContainer;
+class MbdOut;
+class MbdCalib;
+class MbdGeom;
 class CDBUtils;
 class TF1;
 class TCanvas;
 
-class BbcEvent
+class MbdEvent
 {
 public:
-  BbcEvent ();
-  ~BbcEvent ();
+  MbdEvent ();
+  ~MbdEvent ();
 
-  int SetRawData(Event *event, BbcPmtInfoContainerV1 *bbcpmts);
-  int Calculate(BbcPmtInfoContainerV1 *bbcpmts, BbcOut *bbcout);
+  int SetRawData(Event *event, MbdPmtContainer *mbdpmts);
+  int Calculate(MbdPmtContainer *mbdpmts, MbdOut *mbdout);
   int InitRun();
   void Clear();
 
@@ -42,17 +42,17 @@ public:
 
   int get_EventNumber (void) const
   {
-    return _eventnum;
+    return m_evt;
   }
 
-  BbcSig* GetSig(const int ipmt) { return &bbcsig[ipmt]; }
+  MbdSig* GetSig(const int ipmt) { return &_mbdsig[ipmt]; }
 
 
 private:
   static const int NCHPERPKT = 128;
 
-  BbcGeom *_bbcgeom {nullptr};
-  BbcCalib *_bbccal {nullptr};
+  MbdGeom *_mbdgeom {nullptr};
+  MbdCalib *_mbdcal {nullptr};
 
   int Read_Charge_Calib( const char *calfname );
   int Read_TQ_T0_Offsets( const char *calfname );
@@ -60,29 +60,34 @@ private:
   int Read_TT_CLK_Offsets( const char *calfname );
   int DoQuickClockOffsetCalib();
 
-  float gaincorr[BbcDefs::BBC_N_PMT] {};          // gain corrections
-  float tq_t0_offsets[BbcDefs::BBC_N_PMT] {};     // t0 offsets in charge channels
-  float tq_clk_offsets[BbcDefs::BBC_N_PMT] {};
-  float tt_clk_offsets[BbcDefs::BBC_N_PMT] {};
+  float gaincorr[MbdDefs::MBD_N_PMT] {};          // gain corrections
+  float tq_t0_offsets[MbdDefs::MBD_N_PMT] {};     // t0 offsets in charge channels
+  float tq_clk_offsets[MbdDefs::MBD_N_PMT] {};
+  float tt_clk_offsets[MbdDefs::MBD_N_PMT] {};
 
   //float bz_offset{0.};
 
   int _verbose;
   int _runnum;
-  int _eventnum;
   Packet *p[2] {nullptr,nullptr} ;
 
+  //alignment data
+  Int_t   m_evt;
+  Short_t m_clk;
+  Short_t m_femclk;
+
   //raw data
-  Float_t m_adc[BbcDefs::BBC_N_FEECH][BbcDefs::MAX_SAMPLES];     // raw waveform, adc values
-  Float_t m_samp[BbcDefs::BBC_N_FEECH][BbcDefs::MAX_SAMPLES];    // raw waveform, sample values
-  Float_t m_ampl[BbcDefs::BBC_N_FEECH];              // raw amplitude
+  Float_t m_adc[MbdDefs::MBD_N_FEECH][MbdDefs::MAX_SAMPLES];     // raw waveform, adc values
+  Float_t m_samp[MbdDefs::MBD_N_FEECH][MbdDefs::MAX_SAMPLES];    // raw waveform, sample values
+  Float_t m_ampl[MbdDefs::MBD_N_FEECH];              // raw amplitude
 
-  std::vector<BbcSig> bbcsig;
+  std::vector<MbdSig> _mbdsig;
   
-  Float_t m_pmtq[BbcDefs::BBC_N_PMT]{};   // npe in each arm
-  Float_t m_pmttt[BbcDefs::BBC_N_PMT]{};  // time in each arm
-  Float_t m_pmttq[BbcDefs::BBC_N_PMT]{};  // time in each arm
+  Float_t m_pmtq[MbdDefs::MBD_N_PMT]{};   // npe in each arm
+  Float_t m_pmttt[MbdDefs::MBD_N_PMT]{};  // time in each arm
+  Float_t m_pmttq[MbdDefs::MBD_N_PMT]{};  // time in each arm
 
+  //output data
   Short_t m_bbcn[2]{};      // num hits for each arm (north and south)
   Float_t m_bbcq[2]{};      // total charge (currently npe) in each arm
   Float_t m_bbct[2]{};      // time in arm
@@ -91,9 +96,10 @@ private:
   Float_t m_bbczerr {NAN};  // z-vertex error
   Float_t m_bbct0 {NAN};    // start time
   Float_t m_bbct0err {NAN}; // start time error
+  Float_t _tres = NAN;  // time resolution of one channel
+
   TH1 *hevt_bbct[2]{};  // time in each bbc, per event
   TF1 *gaussian {nullptr};
-  Float_t _tres = NAN;  // time resolution of one channel
 
   TH2 *h2_tmax[2] = {};  // [0 == time ch, 1 == chg ch], max sample in evt vs ch
 
@@ -103,4 +109,4 @@ private:
 
 };
 
-#endif /* __BBCEVENT_H__ */
+#endif /* __MBDEVENT_H__ */

@@ -27,11 +27,12 @@ class TowerInfoContainer : public PHObject
 
   TowerInfoContainer() = default;
   ~TowerInfoContainer() override = default;
+  void identify(std::ostream& os = std::cout) const override;
 
   virtual void Reset() override {}
   virtual TowerInfo* get_tower_at_channel(int /*index*/) { return nullptr; }
   virtual TowerInfo* get_tower_at_key(int /*key*/) { return nullptr; }
-  virtual size_t size() { return 0; }
+  virtual size_t size() const { return 0; }
 
   virtual unsigned int encode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
   virtual unsigned int decode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }

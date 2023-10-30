@@ -143,7 +143,9 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 	      UE = UE * (1 + 2 * background_v2 * cos(2 * (tower_phi - background_Psi2)));
 	    }
 	  float new_energy = raw_energy - UE;
-
+	  //if a tower has time = -10 or -11 it is masked, leave it at zero
+	  if( tower->get_time() == -10 || tower->get_time() == -11 ) new_energy = 0;
+	  
 	  emcal_towerinfos->get_tower_at_channel(channel)->set_time(tower->get_time());
 	  emcal_towerinfos->get_tower_at_channel(channel)->set_energy(new_energy);
 	}
@@ -190,6 +192,7 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 	      UE = UE * (1 + 2 * background_v2 * cos(2 * (tower_phi - background_Psi2)));
 	    }
 	  float new_energy = raw_energy - UE;
+	  if( raw_energy == 0 ) new_energy = 0;
 	  tower->set_energy(new_energy);
 	  if (Verbosity() > 5)
 	    std::cout << " SubtractTowers::process_event : EMCal tower at eta / phi = " << tower->get_bineta() << " / " << tower->get_binphi() << ", pre-sub / after-sub E = " << raw_energy << " / " << tower->get_energy() << std::endl;
@@ -216,6 +219,9 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 	      UE = UE * (1 + 2 * background_v2 * cos(2 * (tower_phi - background_Psi2)));
 	    }
 	  float new_energy = raw_energy - UE;
+	  //if a tower has time = -10 or -11 it is masked, leave it at zero
+          if( tower->get_time() == -10 || tower->get_time() == -11 ) new_energy = 0;
+
 	  ihcal_towerinfos->get_tower_at_channel(channel)->set_time(tower->get_time());
 	  ihcal_towerinfos->get_tower_at_channel(channel)->set_energy(new_energy);
 	}
@@ -264,6 +270,7 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 	      UE = UE * (1 + 2 * background_v2 * cos(2 * (tower_phi - background_Psi2)));
 	    }
 	  float new_energy = raw_energy - UE;
+	  if( raw_energy == 0 ) new_energy = 0;
 	  tower->set_energy(new_energy);
 	}
     }
@@ -288,6 +295,9 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 	      UE = UE * (1 + 2 * background_v2 * cos(2 * (tower_phi - background_Psi2)));
 	    }
 	  float new_energy = raw_energy - UE;
+	  //if a tower has time = -10 or -11 it is masked, leave it at zero
+          if( tower->get_time() == -10 || tower->get_time() == -11 ) new_energy = 0;
+
 	  ohcal_towerinfos->get_tower_at_channel(channel)->set_time(tower->get_time());
 	  ohcal_towerinfos->get_tower_at_channel(channel)->set_energy(new_energy);
 	}
@@ -335,6 +345,7 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 	      UE = UE * (1 + 2 * background_v2 * cos(2 * (tower_phi - background_Psi2)));
 	    }
 	  float new_energy = raw_energy - UE;
+	  if( raw_energy == 0 ) new_energy = 0;
 	  tower->set_energy(new_energy);
 	}
     }

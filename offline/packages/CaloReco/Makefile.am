@@ -18,7 +18,7 @@ if USE_ONLINE
 
 else
 libcalo_reco_la_LIBADD = \
-  -lbbc_io \
+  -lmbd_io \
   -lcalo_io \
   -lcdbobjects \
   -lCLHEP \
