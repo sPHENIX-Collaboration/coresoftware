@@ -14,7 +14,8 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libglobalvertex_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -ltrackbase_historic_io
 
 libglobalvertex_la_LIBADD = \
   libglobalvertex_io.la \
