@@ -39,7 +39,8 @@ class CaloTowerBuilder : public SubsysReco
   {
     kPRDFTowerv1 = 0,
     kPRDFWaveform = 1,
-    kWaveformTowerv2 = 2
+    kWaveformTowerv2 = 2,
+    kPRDFTowerv2 = 3
   };
 
   void set_detector_type(CaloTowerBuilder::DetectorSystem dettype)

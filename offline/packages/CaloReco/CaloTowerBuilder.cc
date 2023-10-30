@@ -139,7 +139,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   if (m_isdata)
   {
     // if we are going from prdf
-    if (m_buildertype == CaloTowerBuilder::kPRDFTowerv1 || m_buildertype == CaloTowerBuilder::kPRDFWaveform)
+    if (m_buildertype == CaloTowerBuilder::kPRDFTowerv1 || m_buildertype == CaloTowerBuilder::kPRDFWaveform || m_buildertype == CaloTowerBuilder::kPRDFTowerv2)
     {
       Event *_event = findNode::getClass<Event>(topNode, "PRDF");
       if (_event == nullptr)
@@ -232,9 +232,10 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
             }
             std::vector<float> waveform;
             waveform.reserve(2);
+            //use -1 to indicate that the packet is missing
             for (int samp = 0; samp < m_nzerosuppsamples; samp++)
             {
-              waveform.push_back(0);
+              waveform.push_back(-1);
             }
             waveforms.push_back(waveform);
             waveform.clear();
@@ -277,7 +278,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     {
       int n_samples = waveforms.at(i).size();
       //right not the missing packets are treated as zero suppressed, we need to change the behavior of empty packets in the future
-      if (n_samples == m_nzerosuppsamples) m_CaloInfoContainer->get_tower_at_channel(i)->set_isNotInstr(true);
+      if (n_samples == m_nzerosuppsamples && (waveforms.at(i).at(0) == -1) ) m_CaloInfoContainer->get_tower_at_channel(i)->set_isNotInstr(true);
       for (int j = 0; j < n_samples; j++)
       {
         m_CaloInfoContainer->get_tower_at_channel(i)->set_waveform_value(j, waveforms.at(i).at(j));
@@ -285,7 +286,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (m_buildertype == CaloTowerBuilder::kPRDFTowerv1 || m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+  if (m_buildertype == CaloTowerBuilder::kPRDFTowerv1 || m_buildertype == CaloTowerBuilder::kWaveformTowerv2 || m_buildertype == CaloTowerBuilder::kPRDFTowerv2)
   {
     std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
     int n_channels = processed_waveforms.size();
@@ -293,13 +294,14 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     {
       m_CaloInfoContainer->get_tower_at_channel(i)->set_time(processed_waveforms.at(i).at(1));
       m_CaloInfoContainer->get_tower_at_channel(i)->set_energy(processed_waveforms.at(i).at(0));
-      if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+      if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2 || m_buildertype == CaloTowerBuilder::kPRDFTowerv2)
       {
         TowerInfov2 *raw_tower_v2 = dynamic_cast<TowerInfov2 *>(m_CaloInfoContainer->get_tower_at_channel(i));
         raw_tower_v2->set_time_float(processed_waveforms.at(i).at(1));
-        raw_tower_v2->set_status(m_CaloWaveformContainer->get_tower_at_channel(i)->get_status());
         raw_tower_v2->set_pedestal(processed_waveforms.at(i).at(2));
         raw_tower_v2->set_chi2(processed_waveforms.at(i).at(3));
+        if (m_buildertype == CaloTowerBuilder::kPRDFTowerv2 && waveforms.at(i).at(0) == -1) raw_tower_v2->set_isNotInstr(true);
+        if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2) raw_tower_v2->set_status(m_CaloWaveformContainer->get_tower_at_channel(i)->get_status());
       }
     }
   }
@@ -345,7 +347,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     {
       m_CaloInfoContainer = new TowerInfoContainerv3(TowerInfoContainer::DETECTOR::EMCAL);
     }
-    else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+    else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2 || m_buildertype == CaloTowerBuilder::kPRDFTowerv2)
     {
       m_CaloInfoContainer = new TowerInfoContainerv2(TowerInfoContainer::DETECTOR::EMCAL);
     }
@@ -365,7 +367,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     {
       m_CaloInfoContainer = new TowerInfoContainerv3(TowerInfoContainer::DETECTOR::SEPD);
     }
-    else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+    else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2 || m_buildertype == CaloTowerBuilder::kPRDFTowerv2)
     {
       m_CaloInfoContainer = new TowerInfoContainerv2(TowerInfoContainer::DETECTOR::SEPD);
     }
@@ -385,7 +387,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     {
       m_CaloInfoContainer = new TowerInfoContainerv3(TowerInfoContainer::DETECTOR::MBD);
     }
-    else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+    else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2 || m_buildertype == CaloTowerBuilder::kPRDFTowerv2)
     {
       m_CaloInfoContainer = new TowerInfoContainerv2(TowerInfoContainer::DETECTOR::MBD);
     }
@@ -405,7 +407,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     {
       m_CaloInfoContainer = new TowerInfoContainerv3(TowerInfoContainer::DETECTOR::ZDC);
     }
-    else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+    else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2 || m_buildertype == CaloTowerBuilder::kPRDFTowerv2)
     {
       m_CaloInfoContainer = new TowerInfoContainerv2(TowerInfoContainer::DETECTOR::ZDC);
     }
@@ -436,7 +438,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     {
       m_CaloInfoContainer = new TowerInfoContainerv3(TowerInfoContainer::DETECTOR::HCAL);
     }
-    else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+    else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2 || m_buildertype == CaloTowerBuilder::kPRDFTowerv2)
     {
       m_CaloInfoContainer = new TowerInfoContainerv2(TowerInfoContainer::DETECTOR::HCAL);
     }
@@ -452,7 +454,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "WAVEFORMS_" + m_detector, "PHObject");
     DetNode->addNode(newTowerNode);
   }
-  else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+  else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2 || m_buildertype == CaloTowerBuilder::kPRDFTowerv2)
   {
     PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERSV2_" + m_detector, "PHObject");
     DetNode->addNode(newTowerNode);
