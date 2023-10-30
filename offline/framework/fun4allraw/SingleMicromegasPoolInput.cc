@@ -58,9 +58,6 @@ SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
 //______________________________________________________________
 void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 {
-
-  std::cout << "SingleMicromegasPoolInput::FillPool" << std::endl;
-
   if (AllDone())  // no more files and all events read
   { return; }
 
@@ -253,9 +250,6 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       delete packet;
     }
   }
-
-  std::cout << "SingleMicromegasPoolInput::FillPool - done." << std::endl;
-
 }
 
 //______________________________________________________________

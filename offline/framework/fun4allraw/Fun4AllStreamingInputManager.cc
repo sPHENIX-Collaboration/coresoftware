@@ -547,9 +547,6 @@ int Fun4AllStreamingInputManager::FillIntt()
 //_______________________________________________________
 int Fun4AllStreamingInputManager::FillMicromegas()
 {
-  
-  std::cout << "Fun4AllStreamingInputManager::FillMicromegas" << std::endl;
-  
   // loop over inputs
   for( const auto& iter : m_EvtInputVector)
   {
