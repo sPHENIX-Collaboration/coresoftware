@@ -19,6 +19,11 @@
 #include <Acts/Surfaces/CylinderSurface.hpp>
 #include <Acts/Utilities/Result.hpp>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <ActsExamples/EventData/Trajectories.hpp>
+#pragma GCC diagnostic pop
+
 #include <Eigen/Dense>
 
 class TFile;
