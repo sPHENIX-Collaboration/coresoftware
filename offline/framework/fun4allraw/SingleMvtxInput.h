@@ -78,6 +78,8 @@ class SingleMvtxInput : public SingleStreamingInput
   std::map<int, uint64_t> m_FEEBclkMap;
   std::map<int, uint64_t> m_FeeStrobeMap;
   std::set<uint64_t> m_BclkStack;
+  std::set<uint64_t> gtmL1BcoSet; // GTM L1 BCO
+
 };
 
 #endif

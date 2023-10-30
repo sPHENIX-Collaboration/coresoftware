@@ -76,8 +76,6 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
     {
       exit(1);
     }
-    std::set<uint64_t> gtmL1BcoSet; // GTM L1 BCO
-    std::set<uint64_t> strobeBcoStack;
     for (int i = 0; i < npackets; i++)
     {
       // Ignoring packet not from MVTX detector
@@ -149,7 +147,6 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
             {
               InputManager()->AddMvtxFeeId(strb_bco, feeId);
             }
-            strobeBcoStack.insert(strb_bco);
             m_BeamClockFEE[strb_bco].insert(feeId);
             m_BclkStack.insert(strb_bco);
             m_FEEBclkMap[feeId] = strb_bco;
@@ -162,24 +159,29 @@ void SingleMvtxInput::FillPool(const unsigned int /*nbclks*/)
     // Assign L1 trg to Strobe windows data.
     for ( auto& lv1Bco : gtmL1BcoSet )
     {
-      auto it = strobeBcoStack.lower_bound(lv1Bco);
-      auto const strb_it = (it == strobeBcoStack.begin()) ?
-                           (*it == lv1Bco ? it : strobeBcoStack.cend()) : --it;
-      if (strb_it != strobeBcoStack.cend())
+      auto it = m_BclkStack.lower_bound(lv1Bco);
+      auto const strb_it = (it == m_BclkStack.begin()) ?
+        (*it == lv1Bco ? it : m_BclkStack.cend()) : --it;
+      if (strb_it != m_BclkStack.cend())
       {
         if (InputManager())
         {
           InputManager()->AddMvtxL1TrgBco(*strb_it, lv1Bco);
         }
       }
+      else if ( m_BclkStack.empty() )
+      {
+        continue;
+      }
       else
       {
         std::cout << "ERROR: lv1Bco: 0x" << std::hex << lv1Bco << std::dec
-                  << " is less than minimun strobe bco 0x" << std::hex
-                  << *strobeBcoStack.begin() << std::dec << std::endl;
+          << " is less than minimun strobe bco 0x" << std::hex
+          << *m_BclkStack.begin() << std::dec << std::endl;
         assert(0);
       }
     }
+    gtmL1BcoSet.clear();
     delete evt;
   }
 }
