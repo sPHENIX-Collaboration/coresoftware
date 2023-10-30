@@ -8,27 +8,16 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrection.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Wunused-value"
-#include <Acts/Propagator/Propagator.hpp>
-#pragma GCC diagnostic pop
-
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/CylinderSurface.hpp>
 #include <Acts/Utilities/Result.hpp>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <ActsExamples/EventData/Trajectories.hpp>
-#pragma GCC diagnostic pop
 
 #include <Eigen/Dense>
 
