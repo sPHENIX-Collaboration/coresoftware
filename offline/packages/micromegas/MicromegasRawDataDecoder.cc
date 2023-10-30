@@ -142,7 +142,7 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode *topNode)
       if( max_adc < m_min_adc ) continue;
 
       // compare to threshold
-      if( max_adc < pedestal - m_n_sigma * rms ) continue;
+      if( max_adc < pedestal + m_n_sigma * rms ) continue;
       
       // subtract pedestal
       max_adc -= pedestal;
