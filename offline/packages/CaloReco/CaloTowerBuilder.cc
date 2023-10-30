@@ -271,13 +271,6 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   // towers
   PHNodeIterator nodeItr(dstNode);
   PHCompositeNode *DetNode;
-  // get the waveform node if we are building towers from waveforms
-  if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
-  {
-    // get the waveform container
-    std::string WaveformNodeName = "WAVEFORMS_" + m_detector;
-    m_CaloWaveformContainer = findNode::getClass<TowerInfoContainerv3>(topNode, WaveformNodeName);
-  }
   // enum CaloTowerBuilder::DetectorSystem and TowerInfoContainer::DETECTOR are different!!!!
   TowerInfoContainer::DETECTOR DetectorEnum = TowerInfoContainer::DETECTOR::DETECTOR_INVALID;
   std::string DetectorNodeName;
@@ -321,20 +314,14 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   if (m_buildertype == CaloTowerBuilder::kPRDFTowerv1)
   {
     m_CaloInfoContainer = new TowerInfoContainerv1(DetectorEnum);
-    PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_" + m_detector, "PHObject");
-    DetNode->addNode(newTowerNode);
   }
   else if (m_buildertype == CaloTowerBuilder::kPRDFWaveform)
   {
     m_CaloInfoContainer = new TowerInfoContainerv3(DetectorEnum);
-    PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "WAVEFORMS_" + m_detector, "PHObject");
-    DetNode->addNode(newTowerNode);
   }
   else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
   {
     m_CaloInfoContainer = new TowerInfoContainerv2(DetectorEnum);
-    PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERSV2_" + m_detector, "PHObject");
-    DetNode->addNode(newTowerNode);
   }
   else
   {
@@ -342,4 +329,6 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     gSystem->Exit(1);
     exit(1);
   }
+  PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_" + m_detector, "PHObject");
+  DetNode->addNode(newTowerNode);
 }
