@@ -234,7 +234,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     }
   }
 // waveform vector is filled here
-
+/*
   if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
   {
     unsigned int n_channels = m_CaloWaveformContainer->size();
@@ -257,6 +257,8 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       waveform.clear();
     }
   }
+*/
+/*
   // fill the waveform node
   if (m_buildertype == CaloTowerBuilder::kPRDFWaveform)
   {
@@ -272,8 +274,62 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       }
     }
   }
+*/
+/*
+  if (m_buildertype == CaloTowerBuilder::kPRDFTowerv2)
+  {
+    std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
+    int n_channels = processed_waveforms.size();
+    std::cout << "channels processed: " << n_channels
+	 << ", channels waveform: " << waveforms.size() << std::endl;
+    for (int i = 0; i < n_channels; i++)
+    {
+      m_CaloInfoContainer->get_tower_at_channel(i)->set_time(processed_waveforms.at(i).at(1));
+      m_CaloInfoContainer->get_tower_at_channel(i)->set_energy(processed_waveforms.at(i).at(0));
+      // if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+      // {
+      //   TowerInfov2 *raw_tower_v2 = dynamic_cast<TowerInfov2 *>(m_CaloInfoContainer->get_tower_at_channel(i));
+      //   raw_tower_v2->set_time_float(processed_waveforms.at(i).at(1));
+      //   raw_tower_v2->set_status(m_CaloWaveformContainer->get_tower_at_channel(i)->get_status());
+      //   raw_tower_v2->set_pedestal(processed_waveforms.at(i).at(2));
+      //   raw_tower_v2->set_chi2(processed_waveforms.at(i).at(3));
+      // }
+    }
+  }
+*/
+//  if (m_buildertype == CaloTowerBuilder::kPRDFTowerv1 || m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+  {
+    std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
+    int n_channels = processed_waveforms.size();
+    std::cout << "channels processed: " << n_channels
+	 << ", channels waveform: " << waveforms.size() << std::endl;
+    for (int i = 0; i < n_channels; i++)
+    {
+      TowerInfo *towerinfo = m_CaloInfoContainer->get_tower_at_channel(i);
+      towerinfo->set_time(processed_waveforms.at(i).at(1));
+      towerinfo->set_energy(processed_waveforms.at(i).at(0));
+      towerinfo->set_time_float(processed_waveforms.at(i).at(1));
+      towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
+      towerinfo->set_chi2(processed_waveforms.at(i).at(3));
+      int n_samples = waveforms.at(i).size();
+      if (n_samples == m_nzerosuppsamples) towerinfo->set_isNotInstr(true);
+      for (int j = 0; j < n_samples; j++)
+      {
+        towerinfo->set_waveform_value(j, waveforms.at(i).at(j));
+      }
 
-  if (m_buildertype == CaloTowerBuilder::kPRDFTowerv1 || m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+      // if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+      // {
+      //   TowerInfov2 *raw_tower_v2 = dynamic_cast<TowerInfov2 *>(m_CaloInfoContainer->get_tower_at_channel(i));
+      //   raw_tower_v2->set_time_float(processed_waveforms.at(i).at(1));
+      //   raw_tower_v2->set_status(m_CaloWaveformContainer->get_tower_at_channel(i)->get_status());
+      //   raw_tower_v2->set_pedestal(processed_waveforms.at(i).at(2));
+      //   raw_tower_v2->set_chi2(processed_waveforms.at(i).at(3));
+      // }
+    }
+  }
+/*
+  if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
   {
     std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
     int n_channels = processed_waveforms.size();
@@ -291,6 +347,8 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       }
     }
   }
+*/
+
   waveforms.clear();
 
   return Fun4AllReturnCodes::EVENT_OK;
