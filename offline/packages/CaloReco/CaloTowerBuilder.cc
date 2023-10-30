@@ -124,13 +124,13 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
 {
-  if (! m_isdata)
+  if (!m_isdata)
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
   std::vector<std::vector<float>> waveforms;
   // if we are going from prdf
-//  if (m_buildertype == CaloTowerBuilder::kPRDFTowerv1 || m_buildertype == CaloTowerBuilder::kPRDFWaveform)
+  //  if (m_buildertype == CaloTowerBuilder::kPRDFTowerv1 || m_buildertype == CaloTowerBuilder::kPRDFWaveform)
   {
     Event *_event = findNode::getClass<Event>(topNode, "PRDF");
     if (_event == nullptr)
@@ -147,208 +147,111 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       Packet *packet = _event->getPacket(pid);
       if (packet)
       {
-	int nchannels = packet->iValue(0, "CHANNELS");
-	if (m_dettype == CaloTowerBuilder::ZDC)
-	{  // special condition during zdc commisioning
-	  if (nchannels < m_nchannels)
-	  {
-	    return Fun4AllReturnCodes::ABORTEVENT;
-	  }
-	  nchannels = m_nchannels;
-	}
-	if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
-	{
-	  return Fun4AllReturnCodes::ABORTEVENT;
-	}
-	// int sector = 0;
+        int nchannels = packet->iValue(0, "CHANNELS");
+        if (m_dettype == CaloTowerBuilder::ZDC)
+        {  // special condition during zdc commisioning
+          if (nchannels < m_nchannels)
+          {
+            return Fun4AllReturnCodes::ABORTEVENT;
+          }
+          nchannels = m_nchannels;
+        }
+        if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
+        {
+          return Fun4AllReturnCodes::ABORTEVENT;
+        }
+        // int sector = 0;
 
-	for (int channel = 0; channel < nchannels; channel++)
-	{
-	  // mask empty channels
+        for (int channel = 0; channel < nchannels; channel++)
+        {
+          // mask empty channels
 
-	  if (m_dettype == CaloTowerBuilder::SEPD)
-	  {
-	    int sector = ((channel + 1) / 32);
-	    if (channel == (14 + 32 * sector))
-	    {
-	      continue;
-	    }
-	  }
-	  std::vector<float> waveform;
-	  waveform.reserve(m_nsamples);
-	  for (int samp = 0; samp < m_nsamples; samp++)
-	  {
-	    waveform.push_back(packet->iValue(samp, channel));
-	  }
-	  waveforms.push_back(waveform);
-	  waveform.clear();
-	}
-	if (nchannels < m_nchannels)
-	{
-	  for (int channel = 0; channel < m_nchannels - nchannels; channel++)
-	  {
-	    if (m_dettype == CaloTowerBuilder::SEPD)
-	    {
-	      int sector = ((channel + 1) / 32);
+          if (m_dettype == CaloTowerBuilder::SEPD)
+          {
+            int sector = ((channel + 1) / 32);
+            if (channel == (14 + 32 * sector))
+            {
+              continue;
+            }
+          }
+          std::vector<float> waveform;
+          waveform.reserve(m_nsamples);
+          for (int samp = 0; samp < m_nsamples; samp++)
+          {
+            waveform.push_back(packet->iValue(samp, channel));
+          }
+          waveforms.push_back(waveform);
+          waveform.clear();
+        }
+        if (nchannels < m_nchannels)
+        {
+          for (int channel = 0; channel < m_nchannels - nchannels; channel++)
+          {
+            if (m_dettype == CaloTowerBuilder::SEPD)
+            {
+              int sector = ((channel + 1) / 32);
 
-	      if (channel == (14 + 32 * sector))
-	      {
-		continue;
-	      }
-	    }
-	    std::vector<float> waveform;
-	    waveform.reserve(m_nsamples);
+              if (channel == (14 + 32 * sector))
+              {
+                continue;
+              }
+            }
+            std::vector<float> waveform;
+            waveform.reserve(m_nsamples);
 
-	    for (int samp = 0; samp < m_nzerosuppsamples; samp++)
-	    {
-	      waveform.push_back(0);
-	    }
-	    waveforms.push_back(waveform);
-	    waveform.clear();
-	  }
-	}
-	delete packet;
+            for (int samp = 0; samp < m_nzerosuppsamples; samp++)
+            {
+              waveform.push_back(0);
+            }
+            waveforms.push_back(waveform);
+            waveform.clear();
+          }
+        }
+        delete packet;
       }
       else  // if the packet is missing treat constitutent channels as zero suppressed
       {
-	for (int channel = 0; channel < m_nchannels; channel++)
-	{
-	  if (m_dettype == CaloTowerBuilder::SEPD)
-	  {
-	    int sector = ((channel + 1) / 32);
-	    if (channel == (14 + 32 * sector))
-	    {
-	      continue;
-	    }
-	  }
-	  std::vector<float> waveform;
-	  waveform.reserve(2);
-	  for (int samp = 0; samp < m_nzerosuppsamples; samp++)
-	  {
-	    waveform.push_back(0);
-	  }
-	  waveforms.push_back(waveform);
-	  waveform.clear();
-	}
+        for (int channel = 0; channel < m_nchannels; channel++)
+        {
+          if (m_dettype == CaloTowerBuilder::SEPD)
+          {
+            int sector = ((channel + 1) / 32);
+            if (channel == (14 + 32 * sector))
+            {
+              continue;
+            }
+          }
+          std::vector<float> waveform;
+          waveform.reserve(2);
+          for (int samp = 0; samp < m_nzerosuppsamples; samp++)
+          {
+            waveform.push_back(0);
+          }
+          waveforms.push_back(waveform);
+          waveform.clear();
+        }
       }
     }
   }
-// waveform vector is filled here
-/*
-  if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+  // waveform vector is filled here, now fill our output. methods from the base class make sure
+  // we only fill what the chosen container version supports
+  std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
+  int n_channels = processed_waveforms.size();
+  for (int i = 0; i < n_channels; i++)
   {
-    unsigned int n_channels = m_CaloWaveformContainer->size();
-    for (unsigned int channel = 0; channel < n_channels; channel++)
+    TowerInfo *towerinfo = m_CaloInfoContainer->get_tower_at_channel(i);
+    towerinfo->set_time(processed_waveforms.at(i).at(1));
+    towerinfo->set_energy(processed_waveforms.at(i).at(0));
+    towerinfo->set_time_float(processed_waveforms.at(i).at(1));
+    towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
+    towerinfo->set_chi2(processed_waveforms.at(i).at(3));
+    int n_samples = waveforms.at(i).size();
+    if (n_samples == m_nzerosuppsamples) towerinfo->set_isNotInstr(true);
+    for (int j = 0; j < n_samples; j++)
     {
-      TowerInfov3 *calowaveform = m_CaloWaveformContainer->get_tower_at_channel(channel);
-      bool isNotInstr = calowaveform->get_isNotInstr();
-      std::vector<float> waveform;
-      int waveformsamples = m_nsamples;
-      if (isNotInstr)
-      {
-	waveformsamples = m_nzerosuppsamples;
-      }
-      waveform.reserve(waveformsamples);
-      for (int samp = 0; samp < waveformsamples; samp++)
-      {
-	waveform.push_back(calowaveform->get_waveform_value(samp));
-      }
-      waveforms.push_back(waveform);
-      waveform.clear();
+      towerinfo->set_waveform_value(j, waveforms.at(i).at(j));
     }
   }
-*/
-/*
-  // fill the waveform node
-  if (m_buildertype == CaloTowerBuilder::kPRDFWaveform)
-  {
-    int n_channels = waveforms.size();
-    for (int i = 0; i < n_channels; i++)
-    {
-      int n_samples = waveforms.at(i).size();
-      //right not the missing packets are treated as zero suppressed, we need to change the behavior of empty packets in the future
-      if (n_samples == m_nzerosuppsamples) m_CaloInfoContainer->get_tower_at_channel(i)->set_isNotInstr(true);
-      for (int j = 0; j < n_samples; j++)
-      {
-        m_CaloInfoContainer->get_tower_at_channel(i)->set_waveform_value(j, waveforms.at(i).at(j));
-      }
-    }
-  }
-*/
-/*
-  if (m_buildertype == CaloTowerBuilder::kPRDFTowerv2)
-  {
-    std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
-    int n_channels = processed_waveforms.size();
-    std::cout << "channels processed: " << n_channels
-	 << ", channels waveform: " << waveforms.size() << std::endl;
-    for (int i = 0; i < n_channels; i++)
-    {
-      m_CaloInfoContainer->get_tower_at_channel(i)->set_time(processed_waveforms.at(i).at(1));
-      m_CaloInfoContainer->get_tower_at_channel(i)->set_energy(processed_waveforms.at(i).at(0));
-      // if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
-      // {
-      //   TowerInfov2 *raw_tower_v2 = dynamic_cast<TowerInfov2 *>(m_CaloInfoContainer->get_tower_at_channel(i));
-      //   raw_tower_v2->set_time_float(processed_waveforms.at(i).at(1));
-      //   raw_tower_v2->set_status(m_CaloWaveformContainer->get_tower_at_channel(i)->get_status());
-      //   raw_tower_v2->set_pedestal(processed_waveforms.at(i).at(2));
-      //   raw_tower_v2->set_chi2(processed_waveforms.at(i).at(3));
-      // }
-    }
-  }
-*/
-//  if (m_buildertype == CaloTowerBuilder::kPRDFTowerv1 || m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
-  {
-    std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
-    int n_channels = processed_waveforms.size();
-    std::cout << "channels processed: " << n_channels
-	 << ", channels waveform: " << waveforms.size() << std::endl;
-    for (int i = 0; i < n_channels; i++)
-    {
-      TowerInfo *towerinfo = m_CaloInfoContainer->get_tower_at_channel(i);
-      towerinfo->set_time(processed_waveforms.at(i).at(1));
-      towerinfo->set_energy(processed_waveforms.at(i).at(0));
-      towerinfo->set_time_float(processed_waveforms.at(i).at(1));
-      towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
-      towerinfo->set_chi2(processed_waveforms.at(i).at(3));
-      int n_samples = waveforms.at(i).size();
-      if (n_samples == m_nzerosuppsamples) towerinfo->set_isNotInstr(true);
-      for (int j = 0; j < n_samples; j++)
-      {
-        towerinfo->set_waveform_value(j, waveforms.at(i).at(j));
-      }
-
-      // if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
-      // {
-      //   TowerInfov2 *raw_tower_v2 = dynamic_cast<TowerInfov2 *>(m_CaloInfoContainer->get_tower_at_channel(i));
-      //   raw_tower_v2->set_time_float(processed_waveforms.at(i).at(1));
-      //   raw_tower_v2->set_status(m_CaloWaveformContainer->get_tower_at_channel(i)->get_status());
-      //   raw_tower_v2->set_pedestal(processed_waveforms.at(i).at(2));
-      //   raw_tower_v2->set_chi2(processed_waveforms.at(i).at(3));
-      // }
-    }
-  }
-/*
-  if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
-  {
-    std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
-    int n_channels = processed_waveforms.size();
-    for (int i = 0; i < n_channels; i++)
-    {
-      m_CaloInfoContainer->get_tower_at_channel(i)->set_time(processed_waveforms.at(i).at(1));
-      m_CaloInfoContainer->get_tower_at_channel(i)->set_energy(processed_waveforms.at(i).at(0));
-      if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
-      {
-        TowerInfov2 *raw_tower_v2 = dynamic_cast<TowerInfov2 *>(m_CaloInfoContainer->get_tower_at_channel(i));
-        raw_tower_v2->set_time_float(processed_waveforms.at(i).at(1));
-        raw_tower_v2->set_status(m_CaloWaveformContainer->get_tower_at_channel(i)->get_status());
-        raw_tower_v2->set_pedestal(processed_waveforms.at(i).at(2));
-        raw_tower_v2->set_chi2(processed_waveforms.at(i).at(3));
-      }
-    }
-  }
-*/
-
   waveforms.clear();
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -375,7 +278,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     std::string WaveformNodeName = "WAVEFORMS_" + m_detector;
     m_CaloWaveformContainer = findNode::getClass<TowerInfoContainerv3>(topNode, WaveformNodeName);
   }
-// enum CaloTowerBuilder::DetectorSystem and TowerInfoContainer::DETECTOR are different!!!!
+  // enum CaloTowerBuilder::DetectorSystem and TowerInfoContainer::DETECTOR are different!!!!
   TowerInfoContainer::DETECTOR DetectorEnum = TowerInfoContainer::DETECTOR::DETECTOR_INVALID;
   std::string DetectorNodeName;
   if (m_dettype == CaloTowerBuilder::CEMC)
