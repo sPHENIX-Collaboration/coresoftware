@@ -1,6 +1,6 @@
 #include "TowerInfoContainerv2.h"
-#include "TowerInfov2.h"
 #include "TowerInfoDefs.h"
+#include "TowerInfov2.h"
 
 #include <phool/PHObject.h>
 #include <phool/phool.h>
@@ -8,7 +8,6 @@
 #include <TClonesArray.h>
 
 #include <cassert>
-
 
 TowerInfoContainerv2::TowerInfoContainerv2(DETECTOR detec)
   : _detector(detec)
@@ -47,7 +46,7 @@ TowerInfoContainerv2::TowerInfoContainerv2(DETECTOR detec)
 
 TowerInfoContainerv2::TowerInfoContainerv2(const TowerInfoContainerv2& source)
 {
-  _clones =  new TClonesArray("TowerInfov2", source.size());
+  _clones = new TClonesArray("TowerInfov2", source.size());
   _clones->SetOwner();
   _clones->SetName("TowerInfoContainerv2");
   for (unsigned int i = 0; i < source.size(); ++i)
@@ -76,12 +75,12 @@ void TowerInfoContainerv2::Reset()
   {
     TObject* obj = _clones->UncheckedAt(i);
 
-    if (obj==nullptr)
+    if (obj == nullptr)
     {
-      std::cout<<__PRETTY_FUNCTION__<<" Fatal access error:"
-          <<" _clones->GetSize() = "<<_clones->GetSize()
-          <<" _clones->GetEntriesFast() = "<<_clones->GetEntriesFast()
-          <<" i = "<<i<<std::endl;
+      std::cout << __PRETTY_FUNCTION__ << " Fatal access error:"
+                << " _clones->GetSize() = " << _clones->GetSize()
+                << " _clones->GetEntriesFast() = " << _clones->GetEntriesFast()
+                << " i = " << i << std::endl;
       _clones->Print();
     }
 
@@ -99,7 +98,6 @@ TowerInfov2* TowerInfoContainerv2::get_tower_at_channel(int pos)
   return (TowerInfov2*) _clones->At(pos);
 }
 
-
 TowerInfov2* TowerInfoContainerv2::get_tower_at_key(int pos)
 {
   int index = decode_key(pos);
@@ -110,25 +108,25 @@ unsigned int TowerInfoContainerv2::encode_key(unsigned int towerIndex)
 {
   int key = 0;
   if (_detector == DETECTOR::EMCAL)
-    {
-      key = TowerInfoContainer::encode_emcal(towerIndex);
-    }
+  {
+    key = TowerInfoContainer::encode_emcal(towerIndex);
+  }
   else if (_detector == DETECTOR::HCAL)
-    {
-      key = TowerInfoContainer::encode_hcal(towerIndex);
-    }
+  {
+    key = TowerInfoContainer::encode_hcal(towerIndex);
+  }
   else if (_detector == DETECTOR::SEPD)
-    {
+  {
     key = TowerInfoContainer::encode_epd(towerIndex);
-    }
+  }
   else if (_detector == DETECTOR::MBD)
-    {
+  {
     key = TowerInfoContainer::encode_mbd(towerIndex);
-    }
+  }
   else if (_detector == DETECTOR::ZDC)
-    {
+  {
     key = TowerInfoContainer::encode_zdc(towerIndex);
-    }
+  }
   return key;
 }
 
