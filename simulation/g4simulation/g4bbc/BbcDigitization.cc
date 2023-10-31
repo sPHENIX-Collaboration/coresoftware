@@ -1,7 +1,7 @@
 #include "BbcDigitization.h"
 
 #include <bbc/BbcDefs.h>
-#include <bbc/BbcPmtContainerV1.h>
+#include <bbc/BbcPmtInfoContainerV1.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -42,7 +42,7 @@ BbcDigitization::BbcDigitization(const std::string &name)
   : SubsysReco(name)
   , _tres(0.05)
 {
-  std::fill(std::begin(f_pmtq), std::end(f_pmtq), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(f_pmtq), std::end(f_pmtq), 0.);
   std::fill(std::begin(f_pmtt0), std::end(f_pmtt0), std::numeric_limits<float>::quiet_NaN());
   std::fill(std::begin(f_pmtt1), std::end(f_pmtt1), std::numeric_limits<float>::quiet_NaN());
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -194,8 +194,8 @@ int BbcDigitization::process_event(PHCompositeNode * /*topNode*/)
       // Now time
       if (first_time[ich] < 9999.)
       {
-        f_pmtt0[ich] = first_time[ich];
-        f_pmtt1[ich] = first_time[ich];
+        f_pmtt0[ich] = first_time[ich] - 8.346;
+        f_pmtt1[ich] = first_time[ich] - 8.346;
       }
       else  // should never happen
       {
@@ -205,11 +205,16 @@ int BbcDigitization::process_event(PHCompositeNode * /*topNode*/)
         }
       }
 
-      _bbcpmts->AddBbcPmt(ich, f_pmtq[ich], f_pmtt0[ich], f_pmtt1[ich]);
+      _bbcpmts->get_tower_at_channel(ich)->set_pmt(ich, f_pmtq[ich], f_pmtt0[ich], f_pmtt1[ich]);
       if (Verbosity() > 0)
       {
         std::cout << "Adding " << ich << ", " << f_pmtq[ich] << ", " << f_pmtt0[ich] << " , " << f_pmtt1[ich] << std::endl;
       }
+    }
+    else
+    {
+      // empty channel
+      _bbcpmts->get_tower_at_channel(ich)->set_pmt(ich, f_pmtq[ich], f_pmtt0[ich], f_pmtt1[ich]);
     }
   }
 
@@ -235,11 +240,11 @@ void BbcDigitization::CreateNodes(PHCompositeNode *topNode)
   }
 
   //-* contains info for each pmt (nmips, time, etc)
-  _bbcpmts = findNode::getClass<BbcPmtContainer>(bbcNode, "BbcPmtContainer");
+  _bbcpmts = findNode::getClass<BbcPmtInfoContainerV1>(bbcNode, "BbcPmtInfoContainer");
   if (!_bbcpmts)
   {
-    _bbcpmts = new BbcPmtContainerV1();
-    PHIODataNode<PHObject> *BbcPmtNode = new PHIODataNode<PHObject>(_bbcpmts, "BbcPmtContainer", "PHObject");
+    _bbcpmts = new BbcPmtInfoContainerV1();
+    PHIODataNode<PHObject> *BbcPmtNode = new PHIODataNode<PHObject>(_bbcpmts, "BbcPmtInfoContainer", "PHObject");
     bbcNode->addNode(BbcPmtNode);
   }
 }
@@ -268,10 +273,10 @@ void BbcDigitization::GetNodes(PHCompositeNode *topNode)
   /** DST Objects **/
 
   // BbcPmtContainer
-  _bbcpmts = findNode::getClass<BbcPmtContainer>(topNode, "BbcPmtContainer");
+  _bbcpmts = findNode::getClass<BbcPmtInfoContainerV1>(topNode, "BbcPmtInfoContainer");
   if (!_bbcpmts)
   {
-    std::cout << PHWHERE << " BbcPmtContainer node not found on node tree" << std::endl;
+    std::cout << PHWHERE << " BbcPmtInfoContainer node not found on node tree" << std::endl;
     gSystem->Exit(1);
   }
 }
