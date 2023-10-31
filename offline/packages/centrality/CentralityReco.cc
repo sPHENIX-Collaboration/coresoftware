@@ -2,8 +2,8 @@
 
 #include "CentralityInfov2.h"
 
-#include <bbc/BbcDefs.h>
-#include "bbc/BbcOutV1.h"
+#include <bbc/MbdDefs.h>
+#include <bbc/MbdOutV1.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -86,14 +86,14 @@ int CentralityReco::FillVars()
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
 
-  _mbd_charge_sum_s = _bbc_out->get_q(0);
+  _mbd_charge_sum_s = _mbd_out->get_q(0);
 
-  _mbd_charge_sum_n = _bbc_out->get_q(1);
+  _mbd_charge_sum_n = _mbd_out->get_q(1);
 
   _mbd_charge_sum = _mbd_charge_sum_n + _mbd_charge_sum_s;
 
-  _tubes_hit_s = _bbc_out->get_npmt(0);
-  _tubes_hit_n = _bbc_out->get_npmt(1);
+  _tubes_hit_s = _mbd_out->get_npmt(0);
+  _tubes_hit_n = _mbd_out->get_npmt(1);
 
 
   if (Verbosity())
@@ -185,11 +185,11 @@ int CentralityReco::GetNodes(PHCompositeNode *topNode)
     }
     
   
-  _bbc_out = findNode::getClass<BbcOut>(topNode, "BbcOut");
+  _mbd_out = findNode::getClass<MbdOutV1>(topNode, "MbdOut");
   
-  if (!_bbc_out)
+  if (!_mbd_out)
     {
-      std::cout << "no BBC out node " << std::endl;
+      std::cout << "no MBD out node " << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
