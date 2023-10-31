@@ -1,7 +1,8 @@
-#include "BbcDigitization.h"
+#include "MbdDigitization.h"
 
-#include <bbc/BbcDefs.h>
-#include <bbc/BbcPmtInfoContainerV1.h>
+#include <mbd/MbdDefs.h>
+#include <mbd/MbdPmtContainerV1.h>
+#include <mbd/MbdPmtHit.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -38,7 +39,7 @@
 #include <iostream>
 
 //____________________________________
-BbcDigitization::BbcDigitization(const std::string &name)
+MbdDigitization::MbdDigitization(const std::string &name)
   : SubsysReco(name)
   , _tres(0.05)
 {
@@ -50,14 +51,14 @@ BbcDigitization::BbcDigitization(const std::string &name)
   gsl_rng_set(m_RandomGenerator, m_Seed);
 }
 
-BbcDigitization::~BbcDigitization()
+MbdDigitization::~MbdDigitization()
 {
   gsl_rng_free(m_RandomGenerator);
   return;
 }
 
 //___________________________________
-int BbcDigitization::Init(PHCompositeNode *topNode)
+int MbdDigitization::Init(PHCompositeNode *topNode)
 {
   // std::cout << PHWHERE << std::endl;
   CreateNodes(topNode);
@@ -71,7 +72,7 @@ int BbcDigitization::Init(PHCompositeNode *topNode)
 }
 
 //___________________________________
-int BbcDigitization::InitRun(PHCompositeNode *topNode)
+int MbdDigitization::InitRun(PHCompositeNode *topNode)
 {
   GetNodes(topNode);
 
@@ -80,18 +81,18 @@ int BbcDigitization::InitRun(PHCompositeNode *topNode)
 
 //__________________________________
 // Call user instructions for every event
-int BbcDigitization::process_event(PHCompositeNode * /*topNode*/)
+int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
 {
   //**** Initialize Variables
 
   // PMT data
-  float len[128] = {0.};
-  float edep[128] = {0.};
-  float first_time[128];  // First hit time for each tube
-  std::fill_n(first_time, 128, 1e12);
-  std::fill_n(f_pmtt0, 128, 1e12);
-  std::fill_n(f_pmtt1, 128, 1e12);
-  std::fill_n(f_pmtq, 128, 0.);
+  float len[MbdDefs::MBD_N_PMT] = {0.};
+  float edep[MbdDefs::MBD_N_PMT] = {0.};
+  float first_time[MbdDefs::MBD_N_PMT];  // First hit time for each tube
+  std::fill_n(first_time, MbdDefs::MBD_N_PMT, 1e12);
+  std::fill_n(f_pmtt0, MbdDefs::MBD_N_PMT, 1e12);
+  std::fill_n(f_pmtt1, MbdDefs::MBD_N_PMT, 1e12);
+  std::fill_n(f_pmtq, MbdDefs::MBD_N_PMT, 0.);
 
   // Get True Vertex
   // NB: Currently PrimaryVertexIndex is always 1, need to figure out how to handle collision pile-up
@@ -164,7 +165,7 @@ int BbcDigitization::process_event(PHCompositeNode * /*topNode*/)
     // get summed path length for particles that can create CKOV light
     // n.p.e. is determined from path length
     Double_t beta = v4.Beta();
-    if (beta > BbcDefs::v_ckov && charge != 0.)
+    if (beta > MbdDefs::v_ckov && charge != 0.)
     {
       len[ch] += this_hit->get_path_length();
 
@@ -174,28 +175,28 @@ int BbcDigitization::process_event(PHCompositeNode * /*topNode*/)
     nhits++;
   }
 
-  for (int ich = 0; ich < 128; ich++)
+  for (int ipmt = 0; ipmt < MbdDefs::MBD_N_PMT; ipmt++)
   {
     // Fill charge and time info
-    if (len[ich] > 0.)
+    if (len[ipmt] > 0.)
     {
       if (Verbosity() > 0)
       {
-        std::cout << "ich " << ich << "\t" << len[ich] << "\t" << edep[ich] << std::endl;
+        std::cout << "ipmt " << ipmt << "\t" << len[ipmt] << "\t" << edep[ipmt] << std::endl;
       }
 
       // Get charge in BBC tube
-      float npe = len[ich] * (120 / 3.0);                                // we get 120 p.e. per 3 cm
+      float npe = len[ipmt] * (120 / 3.0);                                // we get 120 p.e. per 3 cm
       float dnpe = gsl_ran_gaussian(m_RandomGenerator, std::sqrt(npe));  // get fluctuation in npe
 
       npe += dnpe;  // apply the fluctuations in npe
-      f_pmtq[ich] = npe;
+      f_pmtq[ipmt] = npe;
 
       // Now time
-      if (first_time[ich] < 9999.)
+      if (first_time[ipmt] < 9999.)
       {
-        f_pmtt0[ich] = first_time[ich] - 8.346;
-        f_pmtt1[ich] = first_time[ich] - 8.346;
+        f_pmtt0[ipmt] = first_time[ipmt] - 8.346;
+        f_pmtt1[ipmt] = first_time[ipmt] - 8.346;
       }
       else  // should never happen
       {
@@ -205,23 +206,24 @@ int BbcDigitization::process_event(PHCompositeNode * /*topNode*/)
         }
       }
 
-      _bbcpmts->get_tower_at_channel(ich)->set_pmt(ich, f_pmtq[ich], f_pmtt0[ich], f_pmtt1[ich]);
+      _bbcpmts->get_pmt(ipmt)->set_pmt(ipmt, f_pmtq[ipmt], f_pmtt0[ipmt], f_pmtt1[ipmt]);
+
       if (Verbosity() > 0)
       {
-        std::cout << "Adding " << ich << ", " << f_pmtq[ich] << ", " << f_pmtt0[ich] << " , " << f_pmtt1[ich] << std::endl;
+        std::cout << "Adding " << ipmt << ", " << f_pmtq[ipmt] << ", " << f_pmtt0[ipmt] << " , " << f_pmtt1[ipmt] << std::endl;
       }
     }
     else
     {
       // empty channel
-      _bbcpmts->get_tower_at_channel(ich)->set_pmt(ich, f_pmtq[ich], f_pmtt0[ich], f_pmtt1[ich]);
+      _bbcpmts->get_pmt(ipmt)->set_pmt(ipmt, f_pmtq[ipmt], f_pmtt0[ipmt], f_pmtt1[ipmt]);
     }
   }
 
   return 0;
 }
 
-void BbcDigitization::CreateNodes(PHCompositeNode *topNode)
+void MbdDigitization::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -232,25 +234,25 @@ void BbcDigitization::CreateNodes(PHCompositeNode *topNode)
     exit(1);
   }
 
-  PHCompositeNode *bbcNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "BBC"));
+  PHCompositeNode *bbcNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "MBD"));
   if (!bbcNode)
   {
-    bbcNode = new PHCompositeNode("BBC");
+    bbcNode = new PHCompositeNode("MBD");
     dstNode->addNode(bbcNode);
   }
 
   //-* contains info for each pmt (nmips, time, etc)
-  _bbcpmts = findNode::getClass<BbcPmtInfoContainerV1>(bbcNode, "BbcPmtInfoContainer");
+  _bbcpmts = findNode::getClass<MbdPmtContainer>(bbcNode, "MbdPmtContainer");
   if (!_bbcpmts)
   {
-    _bbcpmts = new BbcPmtInfoContainerV1();
-    PHIODataNode<PHObject> *BbcPmtNode = new PHIODataNode<PHObject>(_bbcpmts, "BbcPmtInfoContainer", "PHObject");
+    _bbcpmts = new MbdPmtContainerV1();
+    PHIODataNode<PHObject> *BbcPmtNode = new PHIODataNode<PHObject>(_bbcpmts, "MbdPmtContainer", "PHObject");
     bbcNode->addNode(BbcPmtNode);
   }
 }
 
 //___________________________________
-void BbcDigitization::GetNodes(PHCompositeNode *topNode)
+void MbdDigitization::GetNodes(PHCompositeNode *topNode)
 {
   // Get the DST objects
 
@@ -272,11 +274,11 @@ void BbcDigitization::GetNodes(PHCompositeNode *topNode)
 
   /** DST Objects **/
 
-  // BbcPmtContainer
-  _bbcpmts = findNode::getClass<BbcPmtInfoContainerV1>(topNode, "BbcPmtInfoContainer");
+  // MbdPmtContainer
+  _bbcpmts = findNode::getClass<MbdPmtContainerV1>(topNode, "MbdPmtContainer");
   if (!_bbcpmts)
   {
-    std::cout << PHWHERE << " BbcPmtInfoContainer node not found on node tree" << std::endl;
+    std::cout << PHWHERE << " MbdPmtContainer node not found on node tree" << std::endl;
     gSystem->Exit(1);
   }
 }

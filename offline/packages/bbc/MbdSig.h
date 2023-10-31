@@ -1,5 +1,5 @@
-#ifndef __BBCSIG_H__
-#define __BBCSIG_H__
+#ifndef __MBDSIG_H__
+#define __MBDSIG_H__
 
 #include <TH1.h>
 //#include <TH2.h>
@@ -15,18 +15,18 @@ class TH2;
 
 /**
   
-BbcSig: Single Channel digital signal class, includes processing
+MbdSig: Single Channel digital signal class, includes processing
 
 */
 
-class BbcSig
+class MbdSig
 {
 public:
-  explicit BbcSig(const int chnum = 0, const int nsamp = 0);
-  //explicit BbcSig(const BbcSig &obj);    // never used
-  virtual ~BbcSig();
+  explicit MbdSig(const int chnum = 0, const int nsamp = 0);
+  //explicit MbdSig(const MbdSig &obj);    // never used
+  virtual ~MbdSig();
 
-  //BbcSig& operator= (const BbcSig& obj) = delete; // never used
+  //MbdSig& operator= (const MbdSig& obj) = delete; // never used
 
   void SetY(const Float_t *y, const int invert = 1);
   void SetXY(const Float_t *x, const Float_t *y, const int invert = 1);
@@ -167,4 +167,4 @@ private:
   int verbose;
 };
 
-#endif  // __BBCSIG_H__
+#endif  // __MBDSIG_H__

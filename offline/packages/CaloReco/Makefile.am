@@ -18,7 +18,7 @@ if USE_ONLINE
 
 else
 libcalo_reco_la_LIBADD = \
-  -lbbc_io \
+  -lmbd_io \
   -lcalo_io \
   -lcdbobjects \
   -lCLHEP \
@@ -49,6 +49,7 @@ pkginclude_HEADERS = \
   CaloRecoUtility.h \
   CaloTowerBuilder.h \
   CaloTowerCalib.h \
+  CaloTowerDefs.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \

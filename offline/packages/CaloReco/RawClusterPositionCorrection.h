@@ -3,25 +3,22 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <phparameter/PHParameters.h>
-
 #include <string>
 #include <vector>
 
-#include <TNtuple.h>
-#include <TFile.h>
-#include <TH2F.h>
-
 class PHCompositeNode;
 class RawClusterContainer;
+class CDBHistos;
 class CDBInterface;
 class CDBTTree;
+class TH1;
+class TH2;
 
 class RawClusterPositionCorrection : public SubsysReco
 {
  public:
   explicit RawClusterPositionCorrection(const std::string &name);
-
+  ~RawClusterPositionCorrection() override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
@@ -77,18 +74,18 @@ class RawClusterPositionCorrection : public SubsysReco
   std::vector<std::vector<float>> calib_constants_south;
   std::vector<std::vector<float>> calib_constants_south_ecore;
 
-  int m_UseTowerInfo = 0;  // 0 only old tower, 1 only new (TowerInfo based),
+  int m_UseTowerInfo {0};  // 0 only old tower, 1 only new (TowerInfo based),
 
   int bins_eta;
   int bins_phi;
   int iEvent;
 
-  TH2F* h2NorthSector;
-  TH2F* h2SouthSector;
-
-  CDBInterface *cdb = nullptr;
-  CDBTTree *cdbttree = nullptr;
-
+  TH2* h2NorthSector{nullptr};
+  TH2* h2SouthSector{nullptr};
+  TH1* pdcCorrFlat{nullptr};
+  
+  CDBTTree *cdbttree{nullptr};
+  CDBHistos *cdbHisto{nullptr};
 };
 
 #endif

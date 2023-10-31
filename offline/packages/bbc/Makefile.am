@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
-  libbbc_io.la
+  libmbd_io.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -33,8 +33,7 @@ pkginclude_HEADERS = \
   BbcOutV1.h \
   MbdOut.h \
   MbdOutV1.h \
-  BbcNorthSouth.h \
-  BbcNorthSouthV1.h \
+  MbdOutV2.h \
   BbcPmtContainer.h \
   BbcPmtContainerV1.h \
   BbcPmtHit.h \
@@ -45,10 +44,10 @@ pkginclude_HEADERS = \
   MbdPmtHitV1.h \
   BbcPmtInfoContainerV1.h \
   BbcPmtInfoV1.h \
-  BbcSig.h \
-  BbcEvent.h \
-  BbcCalib.h \
-  BbcReco.h \
+  MbdSig.h \
+  MbdEvent.h \
+  MbdCalib.h \
+  MbdReco.h \
   BbcGeom.h \
   BbcGeomV1.h \
   MbdGeom.h \
@@ -79,8 +78,6 @@ ROOTDICTS = \
   BbcOutV1_Dict.cc \
   BbcGeom_Dict.cc \
   BbcGeomV1_Dict.cc \
-  BbcNorthSouth_Dict.cc \
-  BbcNorthSouthV1_Dict.cc \
   BbcPmtHit_Dict.cc \
   BbcPmtHitV1_Dict.cc \
   BbcPmtContainer_Dict.cc \
@@ -94,6 +91,7 @@ ROOTDICTS = \
   BbcVertexMapv1_Dict.cc \
   MbdOut_Dict.cc \
   MbdOutV1_Dict.cc \
+  MbdOutV2_Dict.cc \
   MbdGeom_Dict.cc \
   MbdGeomV1_Dict.cc \
   MbdPmtHit_Dict.cc \
@@ -121,8 +119,6 @@ nobase_dist_pcm_DATA = \
   BbcOutV1_Dict_rdict.pcm \
   BbcGeom_Dict_rdict.pcm \
   BbcGeomV1_Dict_rdict.pcm \
-  BbcNorthSouth_Dict_rdict.pcm \
-  BbcNorthSouthV1_Dict_rdict.pcm \
   BbcPmtHit_Dict_rdict.pcm \
   BbcPmtHitV1_Dict_rdict.pcm \
   BbcPmtContainer_Dict_rdict.pcm \
@@ -136,6 +132,7 @@ nobase_dist_pcm_DATA = \
   BbcVertexMapv1_Dict_rdict.pcm \
   MbdOut_Dict_rdict.pcm \
   MbdOutV1_Dict_rdict.pcm \
+  MbdOutV2_Dict_rdict.pcm \
   MbdGeom_Dict_rdict.pcm \
   MbdGeomV1_Dict_rdict.pcm \
   MbdPmtHit_Dict_rdict.pcm \
@@ -149,18 +146,16 @@ nobase_dist_pcm_DATA = \
 endif
 
 if USE_ONLINE
-libbbc_io_la_SOURCES = \
+libmbd_io_la_SOURCES = \
   $(ROOTDICTS) \
   BbcGeomV1.cc \
   MbdGeomV1.cc
 
 else
-libbbc_io_la_SOURCES = \
+libmbd_io_la_SOURCES = \
   $(ROOTDICTS) \
   BbcOut.cc \
   BbcOutV1.cc \
-  BbcNorthSouth.cc \
-  BbcNorthSouthV1.cc \
   BbcPmtHit.cc \
   BbcPmtHitV1.cc \
   BbcPmtContainer.cc \
@@ -170,15 +165,16 @@ libbbc_io_la_SOURCES = \
   BbcGeomV1.cc \
   MbdOut.cc \
   MbdOutV1.cc \
+  MbdOutV2.cc \
   MbdPmtHit.cc \
   MbdPmtHitV1.cc \
   MbdPmtContainer.cc \
   MbdPmtContainerV1.cc \
   MbdGeomV1.cc \
-  BbcSig.cc \
-  BbcEvent.cc \
-  BbcCalib.cc \
-  BbcReco.cc \
+  MbdSig.cc \
+  MbdEvent.cc \
+  MbdCalib.cc \
+  MbdReco.cc \
   BbcVertexv1.cc \
   BbcVertexv2.cc \
   BbcVertexMap.cc \
@@ -189,12 +185,12 @@ libbbc_io_la_SOURCES = \
 endif
 
 if USE_ONLINE
-libbbc_io_la_LIBADD = \
+libmbd_io_la_LIBADD = \
   -lphool \
   -lcdbobjects
 
 else
-libbbc_io_la_LIBADD = \
+libmbd_io_la_LIBADD = \
   -lphool \
   -lcalo_io \
   -lffamodules \
@@ -220,7 +216,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD = libbbc_io.la
+testexternals_LDADD = libmbd_io.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

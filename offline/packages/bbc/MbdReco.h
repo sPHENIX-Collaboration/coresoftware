@@ -1,7 +1,5 @@
-// Tell emacs that this is a C++ source
-//  -*- C++ -*-.
-#ifndef __BBCRECO_H__
-#define __BBCRECO_H__
+#ifndef __MBDRECO_H__
+#define __MBDRECO_H__
 
 #include <fun4all/SubsysReco.h>
 
@@ -9,20 +7,21 @@
 #include <string>
 
 class PHCompositeNode;
-class BbcEvent;
-class BbcPmtInfoContainerV1;
-class BbcVertexMap;
-class BbcOut;
+class MbdEvent;
+class MbdPmtContainer;
+class MbdVertexMap;
+class MbdOut;
+class MbdGeom;
 class Event;
 class TF1;
 class TH1;
 
-class BbcReco : public SubsysReco
+class MbdReco : public SubsysReco
 {
  public:
-  BbcReco(const std::string &name = "BbcReco");
+  MbdReco(const std::string &name = "MbdReco");
 
-  ~BbcReco() override;
+  ~MbdReco() override;
 
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
@@ -36,11 +35,12 @@ class BbcReco : public SubsysReco
 
 
   float m_tres = 0.05;
-  BbcEvent              *m_bbcevent {nullptr};
+  MbdEvent              *m_mbdevent {nullptr};
   Event                 *m_event {nullptr};
-  BbcVertexMap          *m_bbcvertexmap {nullptr};
-  BbcOut                *m_bbcout {nullptr};
-  BbcPmtInfoContainerV1 *m_bbcpmts {nullptr};
+  MbdOut                *m_mbdout {nullptr};
+  MbdPmtContainer       *m_mbdpmts {nullptr};
+  MbdGeom               *m_mbdgeom {nullptr};
+  MbdVertexMap          *m_mbdvtxmap {nullptr};
 };
 
-#endif  // __BBCRECO_H__
+#endif  // __MBDRECO_H__

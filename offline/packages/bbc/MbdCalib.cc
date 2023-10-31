@@ -1,4 +1,4 @@
-#include "BbcCalib.h"
+#include "MbdCalib.h"
 
 // Database Includes
 #include <ffamodules/CDBInterface.h>
@@ -13,36 +13,36 @@
 #include <TString.h>
 
 using namespace std;
-using namespace BbcDefs;
+using namespace MbdDefs;
 
-BbcCalib::BbcCalib()
+MbdCalib::MbdCalib()
 {
   Reset();
   _rc = recoConsts::instance();
   _cdb = CDBInterface::instance();
 }
 
-int BbcCalib::Download_All()
+int MbdCalib::Download_All()
 {
   _status = 0;
 
-  cout << "BBC CDB " << _rc->get_StringFlag("CDB_GLOBALTAG") << "\t" << _rc->get_uint64Flag("TIMESTAMP") << endl;
+  cout << "MBD CDB " << _rc->get_StringFlag("CDB_GLOBALTAG") << "\t" << _rc->get_uint64Flag("TIMESTAMP") << endl;
 
   _cdb = CDBInterface::instance();
 
-  string bbc_caldir = _rc->get_StringFlag("BBC_CALDIR");
+  string bbc_caldir = _rc->get_StringFlag("MBD_CALDIR");
   if ( bbc_caldir.empty() )
   {
-    string sampmax_url = _cdb->getUrl("BBC_SAMPMAX");
-    cout << "sampmax_url " << sampmax_url << endl;
+    string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
+    //cout << "sampmax_url " << sampmax_url << endl;
     Download_SampMax( sampmax_url );
 
-    string qfit_url = _cdb->getUrl("BBC_QFIT");
-    cout << "qfit_url " << qfit_url << endl;
+    string qfit_url = _cdb->getUrl("MBD_QFIT");
+    //cout << "qfit_url " << qfit_url << endl;
     Download_Gains( qfit_url );
 
-    string tq_t0_url = _cdb->getUrl("BBC_TQ_T0");
-    cout << "tq_t0_url " << tq_t0_url << endl;
+    string tq_t0_url = _cdb->getUrl("MBD_TQ_T0");
+    //cout << "tq_t0_url " << tq_t0_url << endl;
     Download_TQT0( tq_t0_url );
   }
   else
@@ -58,10 +58,10 @@ int BbcCalib::Download_All()
   return _status;
 }
 
-int BbcCalib::Download_Gains(const string& dbase_location)
+int MbdCalib::Download_Gains(const string& dbase_location)
 {
   // Reset All Values
-  for (int ipmt=0; ipmt<BBC_N_PMT; ipmt++)
+  for (int ipmt=0; ipmt<MBD_N_PMT; ipmt++)
   {
     _qfit_integ[ipmt] = NAN;
     _qfit_mpv[ipmt] = NAN;
@@ -79,7 +79,7 @@ int BbcCalib::Download_Gains(const string& dbase_location)
     CDBTTree *cdbttree = new CDBTTree( dbase_location );
     cdbttree->LoadCalibrations();
 
-    for (int ipmt=0; ipmt<BBC_N_PMT; ipmt++)
+    for (int ipmt=0; ipmt<MBD_N_PMT; ipmt++)
     {
       _qfit_integ[ipmt] = cdbttree->GetFloatValue(ipmt,"qfit_integ");
       _qfit_mpv[ipmt] = cdbttree->GetFloatValue(ipmt,"qfit_mpv");
@@ -108,7 +108,7 @@ int BbcCalib::Download_Gains(const string& dbase_location)
       infile >> _qfit_integ[pmt] >> _qfit_mpv[pmt] >> _qfit_sigma[pmt]
         >> _qfit_integerr[pmt] >> _qfit_mpverr[pmt] >> _qfit_sigmaerr[pmt]
         >> _qfit_chi2ndf[pmt];
-      if ( pmt<5 || pmt>=BBC_N_PMT-5 )
+      if ( pmt<5 || pmt>=MBD_N_PMT-5 )
       {
         cout << pmt << "\t" <<  _qfit_integ[pmt] << "\t" <<  _qfit_mpv[pmt] << "\t" <<  _qfit_sigma[pmt]
           << "\t" <<  _qfit_integerr[pmt] << "\t" <<  _qfit_mpverr[pmt] << "\t" <<  _qfit_sigmaerr[pmt]
@@ -126,10 +126,10 @@ int BbcCalib::Download_Gains(const string& dbase_location)
   return 1;
 }
 
-int BbcCalib::Download_TQT0(const string& dbase_location)
+int MbdCalib::Download_TQT0(const string& dbase_location)
 {
   // Reset All Values
-  for (int ipmt=0; ipmt<BBC_N_PMT; ipmt++)
+  for (int ipmt=0; ipmt<MBD_N_PMT; ipmt++)
   {
     _tqfit_t0mean[ipmt] = NAN;
     _tqfit_t0meanerr[ipmt] = NAN;
@@ -144,13 +144,13 @@ int BbcCalib::Download_TQT0(const string& dbase_location)
     CDBTTree *cdbttree = new CDBTTree( dbase_location );
     cdbttree->LoadCalibrations();
 
-    for (int ipmt=0; ipmt<BBC_N_PMT; ipmt++)
+    for (int ipmt=0; ipmt<MBD_N_PMT; ipmt++)
     {
       _tqfit_t0mean[ipmt] = cdbttree->GetFloatValue(ipmt,"tqfit_t0mean");
       _tqfit_t0meanerr[ipmt] = cdbttree->GetFloatValue(ipmt,"tqfit_t0meanerr");
       _tqfit_t0sigma[ipmt] = cdbttree->GetFloatValue(ipmt,"tqfit_t0sigma");
       _tqfit_t0sigmaerr[ipmt] = cdbttree->GetFloatValue(ipmt,"tqfit_t0sigmaerr");
-      if (ipmt<5 || ipmt>=BBC_N_PMT-5) cout << ipmt << "\t" << _tqfit_t0mean[ipmt] << endl;
+      if (ipmt<5 || ipmt>=MBD_N_PMT-5) cout << ipmt << "\t" << _tqfit_t0mean[ipmt] << endl;
     }
     delete cdbttree;
   }
@@ -170,7 +170,7 @@ int BbcCalib::Download_TQT0(const string& dbase_location)
       infile >> _tqfit_t0mean[pmt] >> _tqfit_t0meanerr[pmt]
         >> _tqfit_t0sigma[pmt] >> _tqfit_t0sigmaerr[pmt];
 
-      if ( pmt<5 || pmt>=BBC_N_PMT-5 )
+      if ( pmt<5 || pmt>=MBD_N_PMT-5 )
       {
         cout << pmt << "\t" <<  _tqfit_t0mean[pmt] << "\t" <<  _tqfit_t0meanerr[pmt]
           << "\t" <<  _tqfit_t0sigma[pmt] << "\t" <<  _tqfit_t0sigmaerr[pmt] << endl;
@@ -188,10 +188,10 @@ int BbcCalib::Download_TQT0(const string& dbase_location)
   return 1;
 }
 
-int BbcCalib::Download_SampMax(const string& dbase_location)
+int MbdCalib::Download_SampMax(const string& dbase_location)
 {
   // Reset All Values
-  for (int ifeech=0; ifeech<BBC_N_FEECH; ifeech++)
+  for (int ifeech=0; ifeech<MBD_N_FEECH; ifeech++)
   {
     _sampmax[ifeech] = -1; 
   }
@@ -203,10 +203,10 @@ int BbcCalib::Download_SampMax(const string& dbase_location)
     CDBTTree *cdbttree = new CDBTTree( dbase_location );
     cdbttree->LoadCalibrations();
 
-    for (int ifeech=0; ifeech<BBC_N_FEECH; ifeech++)
+    for (int ifeech=0; ifeech<MBD_N_FEECH; ifeech++)
     {
       _sampmax[ifeech] = cdbttree->GetIntValue(ifeech,"sampmax");
-      if (ifeech%8==0 ) cout << ifeech << "\t" << _sampmax[ifeech] << endl;
+      if (ifeech<5 || ifeech>=MBD_N_FEECH-5) cout << ifeech << "\t" << _sampmax[ifeech] << endl;
     }
     delete cdbttree;
   }
@@ -225,7 +225,7 @@ int BbcCalib::Download_SampMax(const string& dbase_location)
     {
       infile >> _sampmax[feech];
 
-      if ( feech<5 || feech>=BBC_N_FEECH-5 )
+      if ( feech<5 || feech>=MBD_N_FEECH-5 )
       {
         cout << feech << "\t" << _sampmax[feech] << endl;
       }
@@ -242,15 +242,15 @@ int BbcCalib::Download_SampMax(const string& dbase_location)
   return 1;
 }
 
-int BbcCalib::StoreInDatabase()
+int MbdCalib::StoreInDatabase()
 {
   return 1;
 }
 
-void BbcCalib::Reset()
+void MbdCalib::Reset()
 {
   // Set all initial values
-  for (int ipmt=0; ipmt<BBC_N_PMT; ipmt++)
+  for (int ipmt=0; ipmt<MBD_N_PMT; ipmt++)
   {
     _qfit_integ[ ipmt ] = NAN;
     _qfit_mpv[ ipmt ] = NAN;
@@ -266,53 +266,21 @@ void BbcCalib::Reset()
     _tqfit_t0sigmaerr[ ipmt ] = NAN;
   }
 
-  for (int ifeech=0; ifeech<BBC_N_FEECH; ifeech++)
+  for (int ifeech=0; ifeech<MBD_N_FEECH; ifeech++)
   {
     _sampmax[ ifeech ] = -1;
   }
 }
 
 /*
-   void BbcCalib::Dump_to_file(const std::string &what)
-   {
-// make timerange string
-string timerange = ".";
-timerange.append( getStartTime()->formatTimeString() );
-timerange.append("-");
-timerange.append( getEndTime()->formatTimeString() );
-
-if ( what == "ALL" || what == "GAINS" )
+void MbdCalib::Dump_to_file(const std::string &what)
 {
-string full_outfname = "BbcCal.gains";
-full_outfname.append( timerange );
-ofstream outfile(full_outfname.c_str());
-
-for (int ifeech=0; ifeech<MAXCH; ifeech++)
-{
-outfile << ifeech << "\t"
-<< adc_gain[ifeech].getPeakChannel() << "\t"
-<< adc_gain[ifeech].getDeviation() << "\t"
-<< adc_gain[ifeech].getStatus() << endl;
-}
-
-outfile.close();
-}
-
 }
 */
 
 /*
-   void BbcCalib::Print(Option_t *option) const
-   {
-   std::string what(option);
-   if ( what == "ALL" || what == "GAINS" )
-   {
-   cout << "GAINS " << endl;
-   for (int ifeech=0; ifeech<MAXCH; ifeech++)
-   {
-   cout << ifeech << "\t" << adc_gain[ifeech].getPeakChannel() << endl;
-   }
-   }
-   }
-   */
+void MbdCalib::Print(Option_t *option) const
+{
+}
+*/
 
