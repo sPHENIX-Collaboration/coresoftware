@@ -1,4 +1,5 @@
 #include "CaloTowerBuilder.h"
+#include "CaloTowerDefs.h"
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
@@ -30,18 +31,6 @@
 //____________________________________________________________________________..
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
   : SubsysReco(name)
-  , m_dettype(CaloTowerBuilder::CEMC)
-  , m_buildertype(CaloTowerBuilder::kPRDFTowerv1)
-  , m_detector("CEMC")
-  , m_packet_low(INT_MIN)
-  , m_packet_high(INT_MIN)
-  , m_nsamples(16)
-  , m_nchannels(192)
-  , m_nzerosuppsamples(2)
-  , m_isdata(true)
-  , _nsoftwarezerosuppression(40)
-  , _bdosoftwarezerosuppression(false)
-  , _processingtype(CaloWaveformProcessing::NONE)
 {
   WaveformProcessing = new CaloWaveformProcessing();
 }
@@ -58,7 +47,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
   WaveformProcessing->set_processing_type(_processingtype);
   WaveformProcessing->set_softwarezerosuppression(_bdosoftwarezerosuppression, _nsoftwarezerosuppression);
 
-  if (m_dettype == CaloTowerBuilder::CEMC)
+  if (m_dettype == CaloTowerDefs::CEMC)
   {
     m_detector = "CEMC";
     m_packet_low = 6001;
@@ -70,7 +59,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
     }
   }
-  else if (m_dettype == CaloTowerBuilder::HCALIN)
+  else if (m_dettype == CaloTowerDefs::HCALIN)
   {
     m_packet_low = 7001;
     m_packet_high = 7008;
@@ -82,7 +71,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
     }
   }
-  else if (m_dettype == CaloTowerBuilder::HCALOUT)
+  else if (m_dettype == CaloTowerDefs::HCALOUT)
   {
     m_detector = "HCALOUT";
     m_packet_low = 8001;
@@ -94,7 +83,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
     }
   }
-  else if (m_dettype == CaloTowerBuilder::SEPD)
+  else if (m_dettype == CaloTowerDefs::SEPD)
   {
     m_detector = "SEPD";
     m_packet_low = 9001;
@@ -105,7 +94,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);  // default the EPD to fast processing
     }
   }
-  else if (m_dettype == CaloTowerBuilder::ZDC)
+  else if (m_dettype == CaloTowerDefs::ZDC)
   {
     m_detector = "ZDC";
     m_packet_low = 12001;
@@ -130,8 +119,6 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   }
   std::vector<std::vector<float>> waveforms;
   // if we are going from prdf
-  //  if (m_buildertype == CaloTowerBuilder::kPRDFTowerv1 || m_buildertype == CaloTowerBuilder::kPRDFWaveform)
-  {
     Event *_event = findNode::getClass<Event>(topNode, "PRDF");
     if (_event == nullptr)
     {
@@ -148,7 +135,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       if (packet)
       {
         int nchannels = packet->iValue(0, "CHANNELS");
-        if (m_dettype == CaloTowerBuilder::ZDC)
+        if (m_dettype == CaloTowerDefs::ZDC)
         {  // special condition during zdc commisioning
           if (nchannels < m_nchannels)
           {
@@ -166,7 +153,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
         {
           // mask empty channels
 
-          if (m_dettype == CaloTowerBuilder::SEPD)
+          if (m_dettype == CaloTowerDefs::SEPD)
           {
             int sector = ((channel + 1) / 32);
             if (channel == (14 + 32 * sector))
@@ -187,7 +174,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
         {
           for (int channel = 0; channel < m_nchannels - nchannels; channel++)
           {
-            if (m_dettype == CaloTowerBuilder::SEPD)
+            if (m_dettype == CaloTowerDefs::SEPD)
             {
               int sector = ((channel + 1) / 32);
 
@@ -213,7 +200,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       {
         for (int channel = 0; channel < m_nchannels; channel++)
         {
-          if (m_dettype == CaloTowerBuilder::SEPD)
+          if (m_dettype == CaloTowerDefs::SEPD)
           {
             int sector = ((channel + 1) / 32);
             if (channel == (14 + 32 * sector))
@@ -232,7 +219,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
         }
       }
     }
-  }
+  
   // waveform vector is filled here, now fill our output. methods from the base class make sure
   // we only fill what the chosen container version supports
   std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
@@ -271,30 +258,30 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   // towers
   PHNodeIterator nodeItr(dstNode);
   PHCompositeNode *DetNode;
-  // enum CaloTowerBuilder::DetectorSystem and TowerInfoContainer::DETECTOR are different!!!!
+  // enum CaloTowerDefs::DetectorSystem and TowerInfoContainer::DETECTOR are different!!!!
   TowerInfoContainer::DETECTOR DetectorEnum = TowerInfoContainer::DETECTOR::DETECTOR_INVALID;
   std::string DetectorNodeName;
-  if (m_dettype == CaloTowerBuilder::CEMC)
+  if (m_dettype == CaloTowerDefs::CEMC)
   {
     DetectorEnum = TowerInfoContainer::DETECTOR::EMCAL;
     DetectorNodeName = "CEMC";
   }
-  else if (m_dettype == CaloTowerBuilder::SEPD)
+  else if (m_dettype == CaloTowerDefs::SEPD)
   {
     DetectorEnum = TowerInfoContainer::DETECTOR::SEPD;
     DetectorNodeName = "SEPD";
   }
-  else if (m_dettype == ZDC)
+  else if (m_dettype == CaloTowerDefs::ZDC)
   {
     DetectorEnum = TowerInfoContainer::DETECTOR::ZDC;
     DetectorNodeName = "ZDC";
   }
-  else if (m_dettype == HCALIN)
+  else if (m_dettype == CaloTowerDefs::HCALIN)
   {
     DetectorEnum = TowerInfoContainer::DETECTOR::HCAL;
     DetectorNodeName = "HCALIN";
   }
-  else if (m_dettype == HCALOUT)
+  else if (m_dettype == CaloTowerDefs::HCALOUT)
   {
     DetectorEnum = TowerInfoContainer::DETECTOR::HCAL;
     DetectorNodeName = "HCALOUT";
@@ -311,15 +298,15 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     DetNode = new PHCompositeNode(DetectorNodeName);
     dstNode->addNode(DetNode);
   }
-  if (m_buildertype == CaloTowerBuilder::kPRDFTowerv1)
+  if (m_buildertype == CaloTowerDefs::kPRDFTowerv1)
   {
     m_CaloInfoContainer = new TowerInfoContainerv1(DetectorEnum);
   }
-  else if (m_buildertype == CaloTowerBuilder::kPRDFWaveform)
+  else if (m_buildertype == CaloTowerDefs::kPRDFWaveform)
   {
     m_CaloInfoContainer = new TowerInfoContainerv3(DetectorEnum);
   }
-  else if (m_buildertype == CaloTowerBuilder::kWaveformTowerv2)
+  else if (m_buildertype == CaloTowerDefs::kWaveformTowerv2)
   {
     m_CaloInfoContainer = new TowerInfoContainerv2(DetectorEnum);
   }
