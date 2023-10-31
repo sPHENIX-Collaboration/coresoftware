@@ -15,10 +15,11 @@ class TowerInfoContainerv3 : public TowerInfoContainer
 
   // default constructor for ROOT IO
   TowerInfoContainerv3() {}
+  PHObject* CloneMe() const override {return new TowerInfoContainerv3(*this);}
+  TowerInfoContainerv3(const TowerInfoContainerv3&);
 
   ~TowerInfoContainerv3() override;
 
-  PHObject* CloneMe() const override { return new TowerInfoContainerv3(*this); };
   void identify(std::ostream& os = std::cout) const override;
 
   void Reset() override;

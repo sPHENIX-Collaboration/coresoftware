@@ -45,6 +45,19 @@ TowerInfoContainerv3::TowerInfoContainerv3(DETECTOR detec)
   }
 }
 
+TowerInfoContainerv3::TowerInfoContainerv3(const TowerInfoContainerv3& source)
+{
+  _clones =  new TClonesArray("TowerInfov3", source.size());
+  _clones->SetOwner();
+  _clones->SetName("TowerInfoContainerv3");
+  for (unsigned int i = 0; i < source.size(); ++i)
+  {
+    // as tower numbers are fixed per event
+    // construct towers once per run, and clear the towers for first use
+    _clones->ConstructedAt(i, "C");
+  }
+}
+
 TowerInfoContainerv3::~TowerInfoContainerv3()
 {
   delete _clones;
