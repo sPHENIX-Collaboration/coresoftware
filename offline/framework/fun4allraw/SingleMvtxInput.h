@@ -58,9 +58,7 @@ class SingleMvtxInput : public SingleStreamingInput
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
-  std::set<uint64_t>& getGtmL1BcoSet() {return m_GtmL1BcoSet; };
   std::set<int>& getFeeIdSet(const uint64_t& bco) { return m_BeamClockFEE[bco]; };
-  void clearGtmL1BcoSet();
 
  protected:
   LinkId_t DecodeFeeid(const uint16_t& feeid)
@@ -80,7 +78,8 @@ class SingleMvtxInput : public SingleStreamingInput
   std::map<int, uint64_t> m_FEEBclkMap;
   std::map<int, uint64_t> m_FeeStrobeMap;
   std::set<uint64_t> m_BclkStack;
-  std::set<uint64_t> m_GtmL1BcoSet;
+  std::set<uint64_t> gtmL1BcoSet; // GTM L1 BCO
+
 };
 
 #endif

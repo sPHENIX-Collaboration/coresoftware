@@ -1,6 +1,6 @@
 #include "TowerInfoContainerv1.h"
-#include "TowerInfov1.h"
 #include "TowerInfoDefs.h"
+#include "TowerInfov1.h"
 
 #include <phool/PHObject.h>
 #include <phool/phool.h>
@@ -8,7 +8,6 @@
 #include <TClonesArray.h>
 
 #include <cassert>
-
 
 TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
   : _detector(detec)
@@ -50,6 +49,19 @@ TowerInfoContainerv1::~TowerInfoContainerv1()
   delete _clones;
 }
 
+TowerInfoContainerv1::TowerInfoContainerv1(const TowerInfoContainerv1& source)
+{
+  _clones = new TClonesArray("TowerInfov1", source.size());
+  _clones->SetOwner();
+  _clones->SetName("TowerInfoContainerv1");
+  for (unsigned int i = 0; i < source.size(); ++i)
+  {
+    // as tower numbers are fixed per event
+    // construct towers once per run, and clear the towers for first use
+    _clones->ConstructedAt(i, "C");
+  }
+}
+
 void TowerInfoContainerv1::identify(std::ostream& os) const
 {
   os << "TowerInfoContainerv1 of size " << size() << std::endl;
@@ -63,12 +75,12 @@ void TowerInfoContainerv1::Reset()
   {
     TObject* obj = _clones->UncheckedAt(i);
 
-    if (obj==nullptr)
+    if (obj == nullptr)
     {
-      std::cout<<__PRETTY_FUNCTION__<<" Fatal access error:"
-          <<" _clones->GetSize() = "<<_clones->GetSize()
-          <<" _clones->GetEntriesFast() = "<<_clones->GetEntriesFast()
-          <<" i = "<<i<<std::endl;
+      std::cout << __PRETTY_FUNCTION__ << " Fatal access error:"
+                << " _clones->GetSize() = " << _clones->GetSize()
+                << " _clones->GetEntriesFast() = " << _clones->GetEntriesFast()
+                << " i = " << i << std::endl;
       _clones->Print();
     }
 
@@ -86,7 +98,6 @@ TowerInfov1* TowerInfoContainerv1::get_tower_at_channel(int pos)
   return (TowerInfov1*) _clones->At(pos);
 }
 
-
 TowerInfov1* TowerInfoContainerv1::get_tower_at_key(int pos)
 {
   int index = decode_key(pos);
@@ -97,25 +108,25 @@ unsigned int TowerInfoContainerv1::encode_key(unsigned int towerIndex)
 {
   int key = 0;
   if (_detector == DETECTOR::EMCAL)
-    {
-      key = TowerInfoContainerv1::encode_emcal(towerIndex);
-    }
+  {
+    key = TowerInfoContainerv1::encode_emcal(towerIndex);
+  }
   else if (_detector == DETECTOR::HCAL)
-    {
-      key = TowerInfoContainerv1::encode_hcal(towerIndex);
-    }
+  {
+    key = TowerInfoContainerv1::encode_hcal(towerIndex);
+  }
   else if (_detector == DETECTOR::SEPD)
-    {
+  {
     key = TowerInfoContainerv1::encode_epd(towerIndex);
-    }
+  }
   else if (_detector == DETECTOR::MBD)
-    {
+  {
     key = TowerInfoContainerv1::encode_mbd(towerIndex);
-    }
+  }
   else if (_detector == DETECTOR::ZDC)
-    {
+  {
     key = TowerInfoContainerv1::encode_zdc(towerIndex);
-    }
+  }
   return key;
 }
 
@@ -145,5 +156,3 @@ unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
   }
   return index;
 }
-
-
