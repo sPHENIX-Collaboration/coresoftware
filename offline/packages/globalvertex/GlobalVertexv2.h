@@ -16,7 +16,8 @@ class PHObject;
 class GlobalVertexv2 : public GlobalVertex
 {
  public:
-  GlobalVertexv2(const GlobalVertex::VTXTYPE id = GlobalVertex::UNDEFINED);
+  GlobalVertexv2();
+  GlobalVertexv2(const unsigned int id);
   ~GlobalVertexv2() override = default;
 
   // PHObject virtual overloads
@@ -26,37 +27,10 @@ class GlobalVertexv2 : public GlobalVertex
   int isValid() const override;
   PHObject* CloneMe() const override { return new GlobalVertexv2(*this); }
 
-  // vertex info
-
   unsigned int get_id() const override { return _id; }
   void set_id(unsigned int id) override { _id = id; }
-
-  float get_t() const override { return _t; }
-  void set_t(float t) override { _t = t; }
-
-  float get_t_err() const override { return _t_err; }
-  void set_t_err(float t_err) override { _t_err = t_err; }
-
-  float get_x() const override { return _pos[0]; }
-  void set_x(float x) override { _pos[0] = x; }
-
-  float get_y() const override { return _pos[1]; }
-  void set_y(float y) override { _pos[1] = y; }
-
-  float get_z() const override { return _pos[2]; }
-  void set_z(float z) override { _pos[2] = z; }
-
-  float get_chisq() const override { return _chisq; }
-  void set_chisq(float chisq) override { _chisq = chisq; }
-
-  unsigned int get_ndof() const override { return _ndof; }
-  void set_ndof(unsigned int ndof) override { _ndof = ndof; }
-
-  float get_position(unsigned int coor) const override { return _pos[coor]; }
-  void set_position(unsigned int coor, float xi) override { _pos[coor] = xi; }
-
-  float get_error(unsigned int i, unsigned int j) const override;        //< get vertex error covar
-  void set_error(unsigned int i, unsigned int j, float value) override;  //< set vertex error covar
+  unsigned int get_beam_crossing() const override { return _bco; }
+  void set_beam_crossing(unsigned int bco) override { _bco = bco; }
 
   //
   // associated vertex methods
@@ -80,15 +54,8 @@ class GlobalVertexv2 : public GlobalVertex
   GlobalVertex::VertexIter end_vertexes() override { return _vtxs.end(); }
 
  private:
-  unsigned int covar_index(unsigned int i, unsigned int j) const;
-
-  unsigned int _id = std::numeric_limits<unsigned int>::max();  //< unique identifier within container
-  float _t = std::numeric_limits<float>::quiet_NaN();           //< collision time
-  float _t_err = std::numeric_limits<float>::quiet_NaN();       //< collision time uncertainty
-  float _pos[3] = {};                                           //< collision position x,y,z
-  float _chisq = std::numeric_limits<float>::quiet_NaN();       //< vertex fit chisq
-  unsigned int _ndof = std::numeric_limits<unsigned int>::max();
-  float _err[6] = {};                                      //< error covariance matrix (+/- cm^2)
+  unsigned int _id;
+  unsigned int _bco;  //< global bco
   std::map<GlobalVertex::VTXTYPE, VertexVector> _vtxs;  //< list of vtxs
 
   ClassDefOverride(GlobalVertexv2, 2);

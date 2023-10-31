@@ -124,7 +124,8 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
 
       // we have a matching pair
-      GlobalVertex *vertex = new GlobalVertexv2(GlobalVertex::VTXTYPE::SVTX_MBD);
+      GlobalVertex *vertex = new GlobalVertexv2();
+      vertex->set_id(globalmap->size());
 
       for (unsigned int i = 0; i < 3; ++i)
       {
@@ -191,8 +192,8 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
 
       // we have a standalone SVTX vertex
-      GlobalVertex *vertex = new GlobalVertexv2(GlobalVertex::VTXTYPE::SVTX);
-
+      GlobalVertex *vertex = new GlobalVertexv2();
+      
       vertex->set_id(globalmap->size());
 
       for (unsigned int i = 0; i < 3; ++i)
@@ -252,7 +253,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         continue;
       }
 
-      GlobalVertex *vertex = new GlobalVertexv2(GlobalVertex::VTXTYPE::MBD);
+      GlobalVertex *vertex = new GlobalVertexv2();
       vertex->set_id(globalmap->size());
 
       // nominal beam location

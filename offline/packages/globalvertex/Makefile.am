@@ -37,6 +37,7 @@ pkginclude_HEADERS = \
   SvtxVertexMap_v1.h \
   MbdVertex.h \
   MbdVertexv1.h \
+  MbdVertexv2.h \
   MbdVertexMap.h \
   MbdVertexMapv1.h \
   Vertex.h
@@ -55,6 +56,7 @@ ROOTDICTS = \
   SvtxVertexMap_v1_Dict.cc \
   MbdVertex_Dict.cc \
   MbdVertexv1_Dict.cc \
+  MbdVertexv2_Dict.cc \
   MbdVertexMap_Dict.cc \
   MbdVertexMapv1_Dict.cc
 
@@ -73,6 +75,7 @@ nobase_dist_pcm_DATA = \
   SvtxVertexMap_v1_Dict_rdict.pcm \
   MbdVertex_Dict_rdict.pcm \
   MbdVertexv1_Dict_rdict.pcm \
+  MbdVertexv2_Dict_rdict.pcm \
   MbdVertexMap_Dict_rdict.pcm \
   MbdVertexMapv1_Dict_rdict.pcm
 
@@ -90,6 +93,7 @@ libglobalvertex_io_la_SOURCES = \
   SvtxVertexMap.cc \
   SvtxVertexMap_v1.cc \
   MbdVertexv1.cc \
+  MbdVertexv2.cc \
   MbdVertexMap.cc \
   MbdVertexMapv1.cc
 
