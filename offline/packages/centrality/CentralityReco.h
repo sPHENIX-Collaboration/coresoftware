@@ -15,7 +15,7 @@ class TTree;
 class TowerInfo;
 class TowerInfoContainer;
 
-class BbcOutV1;
+class MbdOutV1;
 
 
 class CentralityReco : public SubsysReco
@@ -45,7 +45,7 @@ class CentralityReco : public SubsysReco
 
  protected:
 
-  BbcOutV1 *_bbc_out = nullptr;
+  MbdOutV1 *_mbd_out = nullptr;
 
   CentralityInfo *_central = nullptr;
 
