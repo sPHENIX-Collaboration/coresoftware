@@ -35,9 +35,9 @@ class FastJetAlgo : public JetAlgo
   FastJetAlgo(Jet::ALGO algo, float par, int verbosity=0) :
      FastJetAlgo({{JET_R,par,algo,VERBOSITY,static_cast<float>(verbosity)}})
   {}
-  void set_do_SoftDrop(bool do_SD)   { m_opt.doSoftDrop = do_SD; }
-  void set_SoftDrop_beta(float beta) { m_opt.SD_beta = beta; }
-  void set_SoftDrop_zcut(float zcut) { m_opt.SD_zcut = zcut; }
+  void set_do_SoftDrop   (bool  do_SD) { m_opt.doSoftDrop = do_SD; }
+  void set_SoftDrop_beta (float beta)  { m_opt.SD_beta    = beta;  }
+  void set_SoftDrop_zcut (float zcut)  { m_opt.SD_zcut    = zcut;  }
   //--end-legacy-code-interface-------------------------------------------
 
   std::vector<Jet*> get_jets(std::vector<Jet*> particles) override;

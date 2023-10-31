@@ -123,6 +123,36 @@ class Jetv2 : public Jet
 
   std::vector<float> _properties{};
 
+  bool empty_comp() const override;
+  size_t count_comp(SRC source /**/) const override;
+
+  // only in v1 msg
+  void msg_dep_fn(const std::string& method_name) const;
+
+  // functions deprecated in this Jet Version
+  bool has_property(Jet::PROPERTY /*prop_id*/) const override;
+  float get_property(Jet::PROPERTY /*prop_id*/) const override;
+  void set_property(Jet::PROPERTY /*prop_id*/, float /**/) override;
+  void print_property(std::ostream& /**/) const override;
+
+  ConstIter begin_comp() const override;
+  ConstIter lower_bound_comp(SRC source) const override;
+  ConstIter upper_bound_comp(SRC source) const override;
+  ConstIter find(Jet::SRC source) const override;
+  ConstIter end_comp() const override;
+
+  Iter begin_comp() override;
+  Iter lower_bound_comp(SRC source) override;
+  Iter upper_bound_comp(SRC source) override;
+  Iter find(SRC source) override;
+  Iter end_comp() override;
+
+  size_t erase_comp(Jet::SRC /**/) override;
+  void erase_comp(Iter /*iter*/) override;
+  void erase_comp(Iter /*first*/, Iter /*last*/) override;
+
+
+
   ClassDefOverride(Jetv2, 1);
 };
 

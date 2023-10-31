@@ -188,7 +188,103 @@ Jetv2::ITER_comp_vec Jetv2::comp_begin(Jet::SRC iSRC)
   return std::lower_bound(_comp_ids.begin(), _comp_ids.end(), iSRC, CompareSRC());
 }
 
-Jetv2::ITER_comp_vec Jetv2::comp_end(Jet::SRC iSRC)
+Jetv2::ITER_comp_vec Jetv2::comp_end(Jet::SRC iSRC) 
 {
   return std::upper_bound(_comp_ids.begin(), _comp_ids.end(), iSRC, CompareSRC());
 }
+
+void Jetv2::msg_dep_fn(const std::string&  fn_name) const {
+  std::cout << " warning: Method Jet::"<<fn_name <<"() deprecated in Jetv2" << std::endl;
+}
+
+bool Jetv2::has_property(Jet::PROPERTY /*prop_id*/) const {
+    msg_dep_fn("has_property"); 
+    return false;
+}
+
+float Jetv2::get_property(Jet::PROPERTY /*prop_id*/) const {
+    msg_dep_fn("get_property"); 
+    return NAN;
+}
+
+void Jetv2::set_property(Jet::PROPERTY /**/, float /**/) {
+    msg_dep_fn("set_property"); 
+}
+
+void Jetv2::print_property(std::ostream& /**/) const {
+    msg_dep_fn("print_property"); 
+}
+
+bool Jetv2::empty_comp() const {
+    msg_dep_fn("empty_comp"); 
+    return true;
+}
+
+size_t Jetv2::count_comp(Jet::SRC /**/) const {
+  msg_dep_fn("count_comp"); 
+  return 0;
+}
+
+Jet::ConstIter Jetv2::begin_comp() const
+{
+  msg_dep_fn("begin_comp");
+  return Jet::begin_comp();
+}
+Jet::ConstIter Jetv2::lower_bound_comp(Jet::SRC /**/) const
+{
+  msg_dep_fn("lower_bound_comp");
+  return Jet::lower_bound_comp(Jet::SRC::VOID);
+}
+Jet::ConstIter Jetv2::upper_bound_comp(Jet::SRC /**/) const
+{
+  msg_dep_fn("upper_bound_comp");
+  return Jet::upper_bound_comp(Jet::SRC::VOID);
+}
+Jet::ConstIter Jetv2::find(Jet::SRC /**/) const
+{
+  msg_dep_fn("find");
+  return Jet::find(Jet::SRC::VOID);
+}
+Jet::ConstIter Jetv2::end_comp() const
+{
+  msg_dep_fn("end_comp");
+  return Jet::end_comp();
+}
+Jet::Iter Jetv2::begin_comp()
+{
+  msg_dep_fn("begin_comp");
+  return Jet::begin_comp();
+}
+Jet::Iter Jetv2::lower_bound_comp(Jet::SRC /**/)
+{
+  msg_dep_fn("lower_bound_comp");
+  return Jet::lower_bound_comp(Jet::SRC::VOID);
+}
+Jet::Iter Jetv2::upper_bound_comp(Jet::SRC /**/)
+{
+  msg_dep_fn("upper_bound_comp");
+  return Jet::upper_bound_comp(Jet::SRC::VOID);
+}
+Jet::Iter Jetv2::find(Jet::SRC /**/)
+{
+  msg_dep_fn("find");
+  return Jet::find(Jet::SRC::VOID);
+}
+Jet::Iter Jetv2::end_comp()
+{
+  msg_dep_fn("end_comp");
+  return Jet::end_comp();
+}
+size_t Jetv2::erase_comp(Jet::SRC /**/) {
+  msg_dep_fn("erase_comp");
+  return 0;
+}
+void Jetv2::erase_comp(Jet::Iter /*iter*/)
+{
+  msg_dep_fn("erase_comp");
+}
+void Jetv2::erase_comp(Jet::Iter /*first*/, Jet::Iter /*last*/) 
+{
+  msg_dep_fn("erase_comp");
+}
+

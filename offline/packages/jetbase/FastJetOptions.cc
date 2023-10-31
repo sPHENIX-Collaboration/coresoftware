@@ -5,6 +5,14 @@
 #include <cassert>
 #include <iostream>
 
+/* Need simpler input logic -- it is too clever by half in this first iteration:
+  float jet_max_eta  = 10; // essentially no cut, unless the user sets it
+
+
+
+
+*/
+
 FastJetOptions& FastJetOptions::update(std::vector<FastJetOptItem> input)
 {
   int size = input.size();
@@ -24,21 +32,18 @@ FastJetOptions& FastJetOptions::update(std::vector<FastJetOptItem> input)
       }
       else if (item.opt == JET_MIN_PT)
       {
+        use_jet_min_pt = true;
         jet_min_pt = next_val(i, input);
       }
       else if (item.opt == JET_MAX_ETA)
       {
+        use_jet_max_eta = true;
         jet_max_eta = next_val(i, input);
-        handset_maxeta = true;
-      }
-      else if (item.opt == CUT_EDGE_ETA)
-      {
-        cut_edge_eta = true;
       }
       else if (item.opt == CONSTITUENT_MIN_PT)
       {
+        use_constituent_min_pt = true;
         constituent_min_pt = next_val(i, input);
-        min_const_pt_iscut = (constituent_min_pt != 0.);
       }
       else if (item.opt == DO_SOFTDROP)
       {
@@ -111,6 +116,9 @@ float FastJetOptions::next_val(int& i, std::vector<FastJetOptItem>& inputs)
 
 void FastJetOptions::print(std::ostream& os)
 {
+  initialize();
+
+  os << "FastJetOptions (input options for fastjet in FastJetAlgp)" << std::endl;
   os << " FastJet input options: " << std::endl
      << " - R: " << jet_R << std::endl
      << " - algorithm: " << (algo == Jet::ALGO::ANTIKT ? "ANTIKT" : algo == Jet::ALGO::KT      ? "KT"
@@ -119,12 +127,16 @@ void FastJetOptions::print(std::ostream& os)
      << std::endl
      << " - save jet components ids: " << (save_jet_components ? "yes" : "no") << std::endl
      << " - verbosity: " << verbosity << std::endl;
-  if (min_const_pt_iscut)
+  if (use_constituent_min_pt)
   {
     os << " - minimum constituent pT cut: " << constituent_min_pt << std::endl;
   }
-  os << " - minimum jet pt: " << jet_min_pt << std::endl;
-  if (jet_max_eta != 1.1) os << " - maximum |eta_jet|: " << jet_max_eta << std::endl;
+  if (use_jet_min_pt) {
+    os << " - minimum jet pt: " << jet_min_pt << std::endl;
+  }
+  if (use_jet_max_eta) {
+    os << " - maximum |eta_jet|: " << jet_max_eta << std::endl;
+  }
   if (doSoftDrop)
   {
     os << " - do softdrop with Beta(" << SD_beta << ") and Zcut(" << SD_zcut
@@ -138,29 +150,28 @@ void FastJetOptions::print(std::ostream& os)
   if (calc_jetmedbkgdens)
   {
     os << " - calculate jet median background estimator density with cutting "
-       << nhardestcut_jetmedbkgdens << " hardest jets" << std::endl;
+       << nhardestcut_jetmedbkgdens << " hardest jets within |eta|<" << etahardestcut_jetmedbkgdens << std::endl;
   }
 }
 
 void FastJetOptions::initialize()
 {
   // set some required derivefd options when first running FastJetAlgo
-
-  // set values if calculating jet areas and rapidities
-  if (calc_area && ghost_max_rap == 0)
-  {
-    ghost_max_rap = 1.1;
+  if (calc_jetmedbkgdens) {
+    calc_area = true;
   }
 
-  if (calc_jetmedbkgdens)
-  {
-    if (jet_eta_iscut)
-      etahardestcut_jetmedbkgdens = jet_max_eta;
-    else
-      etahardestcut_jetmedbkgdens = 1.1 - jet_R;
+  if (calc_area && ghost_max_rap == 0) {
+    if (use_jet_max_eta) ghost_max_rap = (jet_max_eta + jet_R);
+    else ghost_max_rap = 5.;
   }
 
-  jet_eta_iscut = (jet_max_eta != 1.1);
-  jet_min_pt_iscut = (jet_min_pt != 0.);
-  has_jet_selection = (jet_eta_iscut || jet_min_pt_iscut);
+  if (calc_jetmedbkgdens) {
+    if (nhardestcut_jetmedbkgdens > 0 && etahardestcut_jetmedbkgdens == 0) {
+      if (use_jet_max_eta) etahardestcut_jetmedbkgdens = jet_max_eta;
+      else etahardestcut_jetmedbkgdens = ghost_max_rap;
+    }
+  }
+  
+  use_jet_selection = (use_jet_max_eta || use_jet_min_pt);
 }

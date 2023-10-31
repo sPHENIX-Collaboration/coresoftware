@@ -94,10 +94,10 @@ fastjet::JetDefinition FastJetAlgo::get_fastjet_definition() {
 
 fastjet::Selector FastJetAlgo::get_selector() {
   // only selectors available are jet_min_pt and jet_max_eta
-  if (m_opt.jet_eta_iscut && m_opt.jet_min_pt_iscut) {
+  if (m_opt.use_jet_max_eta && m_opt.use_jet_min_pt) {
     return fastjet::SelectorAbsRapMax(m_opt.jet_max_eta) 
        &&  fastjet::SelectorPtMin(m_opt.jet_min_pt);
-  } else if (m_opt.jet_eta_iscut) {
+  } else if (m_opt.use_jet_max_eta) {
     return fastjet::SelectorAbsRapMax(m_opt.jet_max_eta);
   } else {
     return fastjet::SelectorPtMin(m_opt.jet_min_pt);
@@ -110,7 +110,7 @@ std::vector<fastjet::PseudoJet> FastJetAlgo::cluster_jets(
   auto jetdef = get_fastjet_definition();
   m_cluseq = new fastjet::ClusterSequence( pseudojets, jetdef );
 
-  if (m_opt.has_jet_selection) {
+  if (m_opt.use_jet_selection) {
     auto selector = get_selector();
     return fastjet::sorted_by_pt(selector(m_cluseq->inclusive_jets()));
   } else {
@@ -132,7 +132,7 @@ std::vector<fastjet::PseudoJet> FastJetAlgo::cluster_area_jets(
   m_cluseqarea = new fastjet::ClusterSequenceArea( pseudojets, jetdef, area_def );
 
   fastjet::Selector selector = (
-      m_opt.has_jet_selection 
+      m_opt.use_jet_selection 
       ? (!fastjet::SelectorIsPureGhost() && get_selector())
       : !fastjet::SelectorIsPureGhost()
   );
@@ -180,7 +180,7 @@ std::vector<fastjet::PseudoJet> FastJetAlgo::jets_to_pseudojets(std::vector<Jet*
                                  particles[ipart]->get_py(),
                                  particles[ipart]->get_pz(),
                                  particles[ipart]->get_e());
-    if (m_opt.min_const_pt_iscut && pseudojet.perp() < m_opt.constituent_min_pt) continue;
+    if (m_opt.use_constituent_min_pt && pseudojet.perp() < m_opt.constituent_min_pt) continue;
     pseudojet.set_user_index(ipart);
     pseudojets.push_back(pseudojet);
   }
@@ -188,6 +188,7 @@ std::vector<fastjet::PseudoJet> FastJetAlgo::jets_to_pseudojets(std::vector<Jet*
 }
 
 void FastJetAlgo::first_call_init(JetContainer* jetcont) {
+  std::cout << " FIXME a3 begin of ::first_call_innit" << std::endl;
   m_first_cluster_call = false;
   m_opt.initialize();
 
@@ -207,10 +208,12 @@ void FastJetAlgo::first_call_init(JetContainer* jetcont) {
 
   jetcont->set_algo(m_opt.algo);
   jetcont->set_jetpar_R(m_opt.jet_R);
+  std::cout << " FIXME a4 end of ::first_call_init" << std::endl;
 }
 
 void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* jetcont)
 {
+  std::cout << " FIXME a0 begin of cluster and fill: (jetcont is null?) " << (jetcont==nullptr) << std::endl;
   if (m_first_cluster_call) first_call_init(jetcont);
     // initalize the properties in JetContainer
 
@@ -291,23 +294,28 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
   }
   if (m_opt.verbosity > 1) std::cout << "FastJetAlgo::process_event -- exited" << std::endl;
   delete (m_opt.calc_area ? m_cluseqarea : m_cluseq); //if (m_cluseq) delete m_cluseq;
+  std::cout << " FIXME a1 end of cluster and fill" << std::endl;
 }
 
 std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
 {
+  std::cout << " FIXME FastJetAlgo::get_jets E0 " << std::endl;
   if (m_first_cluster_call) first_call_init();
   if (m_opt.verbosity > 1) std::cout << "FastJetAlgo::process_event -- entered" << std::endl;
 
+  std::cout << " FIXME FastJetAlgo::get_jets E1 " << std::endl;
   // translate to fastjet
   auto pseudojets = jets_to_pseudojets(particles);
   auto fastjets = cluster_jets(pseudojets);
 
+  std::cout << " FIXME FastJetAlgo::get_jets E2 " << std::endl;
   fastjet::contrib::SoftDrop sd(m_opt.SD_beta, m_opt.SD_zcut);
   if (m_opt.verbosity > 5)
   {
     std::cout << "FastJetAlgo::get_jets : created SoftDrop groomer configuration : " << sd.description() << std::endl;
   }
 
+  std::cout << " FIXME FastJetAlgo::get_jets E3 " << std::endl;
   // translate into jet output...
   std::vector<Jet*> jets;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
