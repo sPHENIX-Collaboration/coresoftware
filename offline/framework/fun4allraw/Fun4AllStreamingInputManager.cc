@@ -547,44 +547,36 @@ int Fun4AllStreamingInputManager::FillIntt()
 //_______________________________________________________
 int Fun4AllStreamingInputManager::FillMicromegas()
 {
-  while (m_MicromegasRawHitMap.size() < 5) // pooling at least 5 events
+  // loop over inputs
+  for( const auto& iter : m_EvtInputVector)
   {
-    unsigned int alldone = 0;
-    for (auto iter : m_EvtInputVector)
-    {
-      alldone += iter->AllDone();
-      if (Verbosity() > 0)
-      { std::cout << "Fun4AllStreamingInputManager::FillMicromegas - fill pool for " << iter->Name() << std::endl; }
-      iter->FillPool();
-      m_RunNumber = iter->RunNumber();
-    }
-    
-    if (alldone >= m_EvtInputVector.size())
-    { break; }
+    if(iter->SubsystemEnum() != Fun4AllStreamingInputManager::MICROMEGAS)
+    { return 0; }
+    iter->FillPool();
+    m_RunNumber = iter->RunNumber();
     SetRunNumber(m_RunNumber);
   }
-  
-  if (m_MicromegasRawHitMap.empty())
-  {
-    std::cout << "we are done" << std::endl;
-    return -1;
-  }
+
+  // no hits all done
+  if (m_MicromegasRawHitMap.empty()) return -1;
   
   auto container =  findNode::getClass<MicromegasRawHitContainer>(m_topNode,"MICROMEGASRAWHIT");
-  for( auto hititer :  m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector)
+  const uint64_t select_crossings =  m_MicromegasRawHitMap.begin()->first + m_micromegas_bco_range;
+
+  while(m_MicromegasRawHitMap.begin()->first <= select_crossings)
   {
-    if (Verbosity() > 1)
-    {  hititer->identify(); }
+    for( const auto& hititer :  m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector)
+    { container->AddHit(hititer); }
     
-    container->AddHit(hititer);
+    for( const auto& iter : m_EvtInputVector)
+    { iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first); }
+
+    m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
+    m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
   }
-  
-  for (auto iter : m_EvtInputVector)
-  { iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first); }
-  
-  m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
-  m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
+
   return 0;
+
 }
 
 int Fun4AllStreamingInputManager::FillTpc()
@@ -603,6 +595,7 @@ int Fun4AllStreamingInputManager::FillTpc()
 	m_RunNumber = iter->RunNumber();
       SetRunNumber(m_RunNumber);
     }
+    
     if (m_TpcRawHitMap.empty())
     {
       std::cout << "we are done" << std::endl;
@@ -643,4 +636,9 @@ int Fun4AllStreamingInputManager::FillTpc()
 void Fun4AllStreamingInputManager::SetTpcBcoRange(const unsigned int i)
 {
   m_tpc_bco_range = std::max(i,m_tpc_bco_range);
+}
+
+void Fun4AllStreamingInputManager::SetMicromegasBcoRange(const unsigned int i)
+{
+  m_micromegas_bco_range = std::max(i,m_micromegas_bco_range);
 }
