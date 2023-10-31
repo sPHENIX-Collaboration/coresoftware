@@ -1,11 +1,10 @@
-#include "TowerInfoDefs.h"
 #include "TowerInfoContainer.h"
+#include "TowerInfoDefs.h"
 
 void TowerInfoContainer::identify(std::ostream& os) const
 {
   os << "TowerInfoContainer Base Class " << std::endl;
 }
-
 
 unsigned int TowerInfoContainer::encode_epd(unsigned int towerIndex)
 {
@@ -38,31 +37,30 @@ unsigned int TowerInfoContainer::encode_zdc(unsigned int towerIndex)
 
 unsigned int TowerInfoContainer::decode_epd(unsigned int tower_key)
 {
-  unsigned int index = TowerInfoDefs::decode_epd(tower_key);  
+  unsigned int index = TowerInfoDefs::decode_epd(tower_key);
   return index;
 }
 
 unsigned int TowerInfoContainer::decode_emcal(unsigned int tower_key)
 {
-
-  unsigned int index = TowerInfoDefs::decode_emcal(tower_key);  
+  unsigned int index = TowerInfoDefs::decode_emcal(tower_key);
   return index;
 }
 
 unsigned int TowerInfoContainer::decode_hcal(unsigned int tower_key)
 {
-  unsigned int index = TowerInfoDefs::decode_hcal(tower_key);  
+  unsigned int index = TowerInfoDefs::decode_hcal(tower_key);
   return index;
 }
 
 unsigned int TowerInfoContainer::decode_mbd(unsigned int tower_key)
 {
-  unsigned int index = TowerInfoDefs::decode_mbd(tower_key);  
+  unsigned int index = TowerInfoDefs::decode_mbd(tower_key);
   return index;
 }
 unsigned int TowerInfoContainer::decode_zdc(unsigned int tower_key)
 {
-  unsigned int index = TowerInfoDefs::decode_zdc(tower_key);  
+  unsigned int index = TowerInfoDefs::decode_zdc(tower_key);
   return index;
 }
 
