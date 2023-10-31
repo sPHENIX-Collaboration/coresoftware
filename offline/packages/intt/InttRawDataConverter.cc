@@ -1,14 +1,20 @@
 #include "InttRawDataConverter.h"
 
 #include <Event/Event.h>
-#include <Event/EventTypes.h>
 #include <Event/packet.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
+
+#include <TFile.h>
+#include <TString.h> // for Form
+#include <TTree.h>
+
+#include <iostream>  // for operator<<, endl, basic_ostream
+#include <utility>   // for pair
+
+class PHCompositeNode;
 
 InttRawDataConverter::InttRawDataConverter(std::string const& name):
 	SubsysReco(name)
@@ -67,6 +73,7 @@ int InttRawDataConverter::WriteOutputFile()
 
 int InttRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 {
+	if(tree)delete tree;
 	tree = new TTree("prdf_tree", "prdf_tree");
 	if(file)tree->SetDirectory(file);
 
@@ -99,6 +106,8 @@ int InttRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 
 int InttRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)
 {
+	n_evt = -1;
+
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -109,26 +118,18 @@ int InttRawDataConverter::process_event(PHCompositeNode* topNode)
 	Event* evt = findNode::getClass<Event>(topNode, "PRDF");
 	if(!evt)return Fun4AllReturnCodes::DISCARDEVENT;
 
-	for(std::map<int, int>::const_iterator pkt_itr = Intt::Packet_Id.begin(); pkt_itr != Intt::Packet_Id.end(); ++pkt_itr)
+	for(std::map<int, int>::const_iterator pkt_itr = InttNameSpace::Packet_Id.begin(); pkt_itr != InttNameSpace::Packet_Id.end(); ++pkt_itr)
 	{
 		Packet* pkt = evt->getPacket(pkt_itr->first);
 		if(!pkt)continue;
 
 		num_hits = pkt->iValue(0, "NR_HITS");
-		if(!num_hits)
-		{
-			delete pkt;
-			return Fun4AllReturnCodes::DISCARDEVENT;
-		}
 
-		//if(Verbosity() > 20)std::cout << num_hits << std::endl;
-		std::cout << num_hits << std::endl;
+		if(Verbosity() > 20)std::cout << num_hits << std::endl;
 
 		++n_evt;// = pkt->lValue(0, "");
 		gtm_bco = pkt->lValue(0, "BCO");
 		flx_svr = pkt_itr->second;
-
-		raw.felix_server = flx_svr;
 
 		for(Branches_t::iterator itr = branches.begin(); itr != branches.end(); ++itr)
 		{
@@ -138,18 +139,15 @@ int InttRawDataConverter::process_event(PHCompositeNode* topNode)
 	
 		for(int n = 0; n < num_hits; ++n)
 		{
-			branches["flx_chn"][n] = pkt->iValue(n, "FEE");
-			branches["chp"][n] = pkt->iValue(n, "CHIP_ID") % 26;
-			branches["chn"][n] = pkt->iValue(n, "CHANNEL_ID");
+			raw = InttNameSpace::RawFromPacket(pkt_itr->second, n, pkt);
+			branches["flx_chn"][n] = raw.felix_channel;
 
-			raw.felix_channel = branches["flx_chn"][n];
-			raw.chip = branches["chp"][n];
-			raw.channel = branches["chn"][n];
-
-			onl = Intt::ToOnline(raw);
+			onl = InttNameSpace::ToOnline(raw);
 			branches["lyr"][n] = onl.lyr;
 			branches["ldr"][n] = onl.ldr;
 			branches["arm"][n] = onl.arm;
+			branches["chp"][n] = onl.chp;
+			branches["chn"][n] = onl.chn;
 
 			branches["flx_bco"][n] = pkt->iValue(n, "FPHX_BCO");
 			branches["adc"][n] = pkt->iValue(n, "ADC");

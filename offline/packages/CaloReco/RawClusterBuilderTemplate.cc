@@ -4,9 +4,9 @@
 #include "BEmcRec.h"
 #include "BEmcRecCEMC.h"
 
-#include <bbc/BbcVertex.h>
-#include <bbc/BbcVertexMap.h>
-#include <bbc/BbcVertexMapv1.h>
+#include <mbd/MbdVertex.h>
+#include <mbd/MbdVertexMap.h>
+#include <mbd/MbdVertexMapv1.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
@@ -21,8 +21,6 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfov1.h>
 
 #include <ffamodules/CDBInterface.h>
 
@@ -321,20 +319,20 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     }
   }
 
-  BbcVertexMapv1 *bbcmap = findNode::getClass<BbcVertexMapv1>(topNode, "BbcVertexMap");
+  MbdVertexMapv1 *mbdmap = findNode::getClass<MbdVertexMapv1>(topNode, "MbdVertexMap");
  
-  if (bbcmap && m_UseAltZVertex == 1)
+  if (mbdmap && m_UseAltZVertex == 1)
     {
-      std::cout << " in bbcmap " << std::endl;
+      std::cout << " in mbdmap " << std::endl;
       
-      BbcVertex *bvertex = NULL;
-      for (BbcVertexMap::ConstIter bbciter = bbcmap->begin();
-           bbciter != bbcmap->end();
-           ++bbciter)
+      MbdVertex *bvertex = nullptr;
+      for (MbdVertexMap::ConstIter mbditer = mbdmap->begin();
+           mbditer != mbdmap->end();
+           ++mbditer)
 	{
-	  bvertex = bbciter->second;
+	  bvertex = mbditer->second;
 	}
-      //      BbcVertex *bvertex = (bbcmap->begin()->second);
+      //      MbdVertex *bvertex = (mbdmap->begin()->second);
 
       if (!bvertex) 
 	return Fun4AllReturnCodes::ABORTEVENT;
@@ -600,7 +598,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   }
   else if (chkenergyconservation)
   {
-    std::cout << "RawClusterBuilderTemplate : energy conservation check asked for but tower or cluster container is NULL " << std::endl;
+    std::cout << "RawClusterBuilderTemplate : energy conservation check asked for but tower or cluster container is NULL" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

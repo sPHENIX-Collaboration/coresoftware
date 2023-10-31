@@ -18,8 +18,7 @@ class MicromegasCalibrationData
   public:
 
   /// constructor
-  MicromegasCalibrationData()
-  {}
+  MicromegasCalibrationData() = default;
 
   ///@name modifiers
   //@{
@@ -46,7 +45,7 @@ class MicromegasCalibrationData
  
   /// get rms for a given channel
   double get_rms( int /*fee*/, int /*channel*/ ) const;
-
+  
   //@}
    
   private:
@@ -74,6 +73,8 @@ class MicromegasCalibrationData
   using calibration_map_t = std::map<int, calibration_vector_t>;
   calibration_map_t m_calibration_map;
     
+  friend std::ostream& operator << (std::ostream&, const MicromegasCalibrationData& );
+  
 };
 
 #endif

@@ -9,6 +9,8 @@
 //	Thank you Hugo
 
 #include <fun4all/SubsysReco.h>
+
+#include <cstdint>
 #include <string>
 
 class PHCompositeNode;

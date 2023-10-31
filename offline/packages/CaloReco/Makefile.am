@@ -18,7 +18,7 @@ if USE_ONLINE
 
 else
 libcalo_reco_la_LIBADD = \
-  -lbbc_io \
+  -lmbd_io \
   -lcalo_io \
   -lcdbobjects \
   -lCLHEP \
@@ -43,11 +43,13 @@ pkginclude_HEADERS = \
 
 else
 pkginclude_HEADERS = \
+  CaloGeomMapping.h \
   CaloWaveformFitting.h \
   CaloWaveformProcessing.h \
   CaloRecoUtility.h \
   CaloTowerBuilder.h \
   CaloTowerCalib.h \
+  CaloTowerDefs.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
@@ -55,8 +57,9 @@ pkginclude_HEADERS = \
   RawClusterZVertexRecorrect.h \
   RawTowerCalibration.h \
   RawTowerDeadTowerInterp.h \
-  RawTowerDeadMapLoader.h \
-  RawClusterDeadAreaMask.h
+  DeadHotMapLoader.h \
+  RawClusterDeadHotMask.h \
+  TowerInfoDeadHotMask.h
 endif
 
 if USE_ONLINE
@@ -69,6 +72,7 @@ libcalo_reco_la_SOURCES = \
   BEmcProfile.cc \
   BEmcRec.cc \
   BEmcRecCEMC.cc \
+  CaloGeomMapping.cc \
   CaloRecoUtility.cc \
   CaloWaveformFitting.cc \
   CaloWaveformProcessing.cc \
@@ -82,8 +86,9 @@ libcalo_reco_la_SOURCES = \
   RawTowerCombiner.cc \
   RawTowerCalibration.cc \
   RawTowerDeadTowerInterp.cc \
-  RawTowerDeadMapLoader.cc \
-  RawClusterDeadAreaMask.cc
+  DeadHotMapLoader.cc \
+  RawClusterDeadHotMask.cc \
+  TowerInfoDeadHotMask.cc
 endif
 
 ################################################

@@ -31,6 +31,7 @@ class EventNumberCheck : public SubsysReco
  private:
   Packet *plist[10000] = {0};
   std::string m_MyPrdfNode;
+  int previous_event_clkdiff = 0;
 };
 
 #endif  // FFARAWMODULES_EVENTCOMBINER_H

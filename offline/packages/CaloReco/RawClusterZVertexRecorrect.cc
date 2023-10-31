@@ -1,39 +1,26 @@
 #include "RawClusterZVertexRecorrect.h"
 
-#include <bbc/BbcVertex.h>
-#include <bbc/BbcVertexMap.h>
-#include <bbc/BbcVertexMapv1.h>
+#include <mbd/MbdVertex.h>
+#include <mbd/MbdVertexMap.h>
+#include <mbd/MbdVertexMapv1.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerGeomContainer.h>
-
-#include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfov1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>
 #include <phool/getClass.h>
-#include <phool/phool.h>
 
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
+#include <utility>                         // for pair
 
 RawClusterZVertexRecorrect::RawClusterZVertexRecorrect(const std::string &name)
   : SubsysReco(std::string("RawClusterZVertexRecorrect_") + name)
@@ -97,23 +84,25 @@ int RawClusterZVertexRecorrect::process_event(PHCompositeNode *topNode)
     }
   
   
-  BbcVertexMapv1 *bbcmap = findNode::getClass<BbcVertexMapv1>(topNode, "BbcVertexMap");
+  MbdVertexMapv1 *mbdmap = findNode::getClass<MbdVertexMapv1>(topNode, "MbdVertexMap");
  
-  if (m_UseBbcZVtx && bbcmap && m_UseTowerInfo < 2)
+  if (m_UseBbcZVtx && mbdmap && m_UseTowerInfo < 2)
     {
-      //      std::cout << " in bbcmap ccpi0 " << std::endl;
+      //      std::cout << " in mbdmap ccpi0 " << std::endl;
       
-      BbcVertex *bvertex = NULL;
-      for (BbcVertexMap::ConstIter bbciter = bbcmap->begin();
-           bbciter != bbcmap->end();
-           ++bbciter)
+      MbdVertex *bvertex = nullptr;
+      for (MbdVertexMap::ConstIter mbditer = mbdmap->begin();
+           mbditer != mbdmap->end();
+           ++mbditer)
 	{
 
-	  bvertex = bbciter->second;
+	  bvertex = mbditer->second;
 	}
-      //      BbcVertex *bvertex = (bbcmap->begin()->second);
+      //      MbdVertex *bvertex = (mbdmap->begin()->second);
       if (!bvertex) 
+      {
 	return Fun4AllReturnCodes::ABORTEVENT;
+      }
       vz = bvertex->get_z();
     }
 

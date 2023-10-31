@@ -3,9 +3,8 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <TProfile.h>
-
 #include <string>
+#include <vector>
 
 class CaloWaveformFitting;
 
@@ -20,8 +19,8 @@ class CaloWaveformProcessing : public SubsysReco
     FAST = 3,
   };
 
-  CaloWaveformProcessing() {}
-  ~CaloWaveformProcessing() override {}
+  CaloWaveformProcessing() = default;
+  ~CaloWaveformProcessing() override;
 
   void set_processing_type(CaloWaveformProcessing::process modelno)
   {

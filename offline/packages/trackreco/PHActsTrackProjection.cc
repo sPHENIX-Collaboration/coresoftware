@@ -137,11 +137,15 @@ int PHActsTrackProjection::projectTracks(const int caloLayer)
   ActsPropagator prop(m_tGeometry);
   for (const auto& [key, track] : *m_trackMap)
   {
-    const auto params = prop.makeTrackParams(track, m_vertexMap);
+    auto params = prop.makeTrackParams(track, m_vertexMap);
+    if(!params.ok())
+      {
+	continue;
+      }
     auto cylSurf =
         m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
 
-    auto result = propagateTrack(params, caloLayer, cylSurf);
+    auto result = propagateTrack(params.value(), caloLayer, cylSurf);
     if (result.ok())
     {
       updateSvtxTrack(result.value(), track, caloLayer);
@@ -265,7 +269,7 @@ PHActsTrackProjection::propagateTrack(
   ActsPropagator propagator(m_tGeometry);
   propagator.constField();
   propagator.verbosity(Verbosity());
-  propagator.setConstFieldValue(1.4 * Acts::UnitConstants::T);
+  propagator.setConstFieldValue(m_constFieldVal * Acts::UnitConstants::T);
 
   return propagator.propagateTrackFast(params, targetSurf);
 }

@@ -289,7 +289,6 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
 
 std::vector<int> AlignmentDefs::getAllMvtxGlobalLabels(int grp)
 {
-  std::vector<int> labels;
   std::vector<int> label_base;
 
   if(grp == mvtxGrp::clamshl)
@@ -337,20 +336,13 @@ std::vector<int> AlignmentDefs::getAllMvtxGlobalLabels(int grp)
 	}	
     }
 
-  for (unsigned int ilbl = 0; ilbl < label_base.size(); ++ilbl)
-    {
-      for(int ipar = 3; ipar < 6;++ipar)
-	{
-	  int label_plus = label_base[ilbl] + ipar;
-	  labels.push_back(label_plus);
-	}
-    }
+  auto labels = makeLabelsFromBase(label_base);
+
   return labels;
 }
 
 std::vector<int> AlignmentDefs::getAllInttGlobalLabels(int grp)
 {
-  std::vector<int> labels;
   std::vector<int> label_base;
 
   if(grp == inttGrp::inttbrl)
@@ -392,20 +384,13 @@ std::vector<int> AlignmentDefs::getAllInttGlobalLabels(int grp)
 	}	
     }
 
-  for (unsigned int ilbl = 0; ilbl < label_base.size(); ++ilbl)
-    {
-      for(int ipar = 3; ipar < 6;++ipar)
-	{
-	  int label_plus = label_base[ilbl] + ipar;
-	  labels.push_back(label_plus);
-	}
-    }
+  auto labels = makeLabelsFromBase(label_base);
+
   return labels;
 }
 
 std::vector<int> AlignmentDefs::getAllTpcGlobalLabels(int grp)
 {
-  std::vector<int> labels;
   std::vector<int> label_base;
 
   if(grp == tpcGrp::sctr)
@@ -417,14 +402,23 @@ std::vector<int> AlignmentDefs::getAllTpcGlobalLabels(int grp)
 	}
     }
 
-  for (unsigned int ilbl = 0; ilbl < label_base.size(); ++ilbl)
+  auto labels = makeLabelsFromBase(label_base);
+
+  return labels;
+}
+
+std::vector<int> AlignmentDefs::makeLabelsFromBase(std::vector<int>& label_base)
+{
+  std::vector<int> labels;
+  for(unsigned int ilbl = 0; ilbl < label_base.size(); ++ilbl)
     {
-      for(int ipar = 3; ipar < 6;++ipar)
+      for(int ipar=0; ipar < 6; ++ipar)
 	{
 	  int label_plus = label_base[ilbl] + ipar;
 	  labels.push_back(label_plus);
 	}
     }
+
   return labels;
 }
 

@@ -153,6 +153,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         int comp_ieta = -1;
         int comp_iphi = -1;
         float comp_ET = 0;
+	int comp_T = -99;
 
         RawTower *tower;
    	TowerInfo* towerinfo;
@@ -169,6 +170,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 		const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
 		tower_geom = geomIH->get_tower_geometry(key);
 		comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
+		comp_T = towerinfo->get_time();
 	      }
 	    else if ((*comp).first == 7 || (*comp).first == 27)
 	      {
@@ -179,6 +181,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 		const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, comp_ieta, comp_iphi);
 		tower_geom = geomOH->get_tower_geometry(key);
 		comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
+		comp_T = towerinfo->get_time();
 	      }
 	    else if ((*comp).first == 13 || (*comp).first == 28)
 	      {
@@ -189,6 +192,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 		const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
 		tower_geom = geomIH->get_tower_geometry(key);
 		comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
+		comp_T = towerinfo->get_time();
 	      }
 	  }
 	else
@@ -221,6 +225,12 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 		comp_iphi = geomIH->get_phibin(tower_geom->get_phi());
 		comp_ET = tower->get_energy() / cosh(tower_geom->get_eta());
 	      }
+	  }
+	if(comp_T == -10 || comp_T == -11)
+	  {
+	    if (Verbosity() > 4)
+	      std::cout << "DetermineTowerBackground::process_event: --> --> Skipping constituent in layer " << (*comp).first << " at ieta / iphi = " << comp_ieta << " / " << comp_iphi << "due to masking" << std::endl;
+	    continue;
 	  }
         int comp_ikey = 1000 * comp_ieta + comp_iphi;
 
@@ -339,6 +349,10 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     _IHCAL_E.resize(_HCAL_NETA, std::vector<float>(_HCAL_NPHI, 0));
     _OHCAL_E.resize(_HCAL_NETA, std::vector<float>(_HCAL_NPHI, 0));
 
+    _EMCAL_T.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
+    _IHCAL_T.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
+    _OHCAL_T.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
+
     // for flow determination, build up a 1-D phi distribution of
     // energies from all layers summed together, populated only from eta
     // strips which do not have any excluded phi towers
@@ -359,6 +373,9 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       _EMCAL_E[ieta][iphi] = 0;
       _IHCAL_E[ieta][iphi] = 0;
       _OHCAL_E[ieta][iphi] = 0;
+      _EMCAL_T[ieta][iphi] = 0;
+      _IHCAL_T[ieta][iphi] = 0;
+      _OHCAL_T[ieta][iphi] = 0;
     }
   }
 
@@ -385,7 +402,9 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	  int this_etabin = towerinfosEM3->getTowerEtaBin(key);
 	  int this_phibin = towerinfosEM3->getTowerPhiBin(key);
 	  float this_E = towerinfosEM3->get_tower_at_channel(channel)->get_energy();
+	  int this_T = towerinfosEM3->get_tower_at_channel(channel)->get_time();
 	  _EMCAL_E[this_etabin][this_phibin] += this_E;
+	  _EMCAL_T[this_etabin][this_phibin] = this_T;
 	}
 
       // iterate over IHCal towerinfos
@@ -396,7 +415,9 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	  int this_etabin = towerinfosIH3->getTowerEtaBin(key);
 	  int this_phibin = towerinfosIH3->getTowerPhiBin(key);
 	  float this_E = towerinfosIH3->get_tower_at_channel(channel)->get_energy();
+	  int this_T = towerinfosIH3->get_tower_at_channel(channel)->get_time();
 	  _IHCAL_E[this_etabin][this_phibin] += this_E;
+	  _IHCAL_T[this_etabin][this_phibin] += this_T;
 	}
 
       // iterate over OHCal towerinfos
@@ -407,7 +428,9 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	  int this_etabin = towerinfosOH3->getTowerEtaBin(key);
 	  int this_phibin = towerinfosOH3->getTowerPhiBin(key);
 	  float this_E = towerinfosOH3->get_tower_at_channel(channel)->get_energy();
+	  int this_T = towerinfosOH3->get_tower_at_channel(channel)->get_time();
 	  _OHCAL_E[this_etabin][this_phibin] += this_E;
+	  _OHCAL_T[this_etabin][this_phibin] += this_T;
 	}
     }
   else
@@ -512,6 +535,9 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
           bool isExcluded = false;
 
+	  //if the tower is masked, exclude it
+	  int my_T = (layer == 0 ? _EMCAL_T[eta][phi] : (layer == 1 ? _IHCAL_T[eta][phi] : _OHCAL_T[eta][phi]));
+	  if(my_T == -10 || my_T == -11) isExcluded = true;
           for (unsigned int iseed = 0; iseed < _seed_eta.size(); iseed++)
           {
             float deta = this_eta - _seed_eta[iseed];
@@ -524,9 +550,8 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
               isExcluded = true;
               if (Verbosity() > 10)
               {
-                float my_E = (layer == 0 ? _EMCAL_E[eta][phi] : (layer == 1 ? _IHCAL_E[eta][phi] : _OHCAL_E[eta][phi]));
-
-                std::cout << " setting excluded mark for tower with E / eta / phi = " << my_E << " / " << this_eta << " / " << this_phi << " from seed at eta / phi = " << _seed_eta[iseed] << " / " << _seed_phi[iseed] << std::endl;
+		float my_E = (layer == 0 ? _EMCAL_E[eta][phi] : (layer == 1 ? _IHCAL_E[eta][phi] : _OHCAL_E[eta][phi]));
+		std::cout << " setting excluded mark for tower with E / eta / phi = " << my_E << " / " << this_eta << " / " << this_phi << " from seed at eta / phi = " << _seed_eta[iseed] << " / " << _seed_phi[iseed] << std::endl;
               }
             }
           }
@@ -678,6 +703,14 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
         bool isExcluded = false;
 
+	float my_E = (layer == 0 ? _EMCAL_E[eta][phi] : (layer == 1 ? _IHCAL_E[eta][phi] : _OHCAL_E[eta][phi]));
+	int my_T = (layer == 0 ? _EMCAL_T[eta][phi] : (layer == 1 ? _IHCAL_T[eta][phi] : _OHCAL_T[eta][phi]));
+	//if the tower is masked (energy identically zero), exclude it
+	if(my_T == -10 || my_T == -11)
+	  {
+	    isExcluded = true;
+	    if (Verbosity() > 10) std::cout << " tower in layer " << layer << " at eta / phi = " << this_eta << " / " << this_phi << " with E = " << my_E << " excluded due to masking" << std::endl;
+	  }
         for (unsigned int iseed = 0; iseed < _seed_eta.size(); iseed++)
         {
           float deta = this_eta - _seed_eta[iseed];

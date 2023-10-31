@@ -1,6 +1,8 @@
 #include "InttFelixMap.h"
 
-int InttFelix::RawDataToOnline(struct Intt::RawData_s const& raw, struct Intt::Online_s& onl)
+#include "InttMapping.h"
+
+int InttFelix::RawDataToOnline(struct InttNameSpace::RawData_s const& raw, struct InttNameSpace::Online_s& onl)
 {
 	switch(raw.felix_server) {
 		case  0:
@@ -274,7 +276,7 @@ int InttFelix::RawDataToOnline(struct Intt::RawData_s const& raw, struct Intt::O
 	return 1;
 }
 
-int InttFelix::OnlineToRawData(struct Intt::Online_s const& onl, struct Intt::RawData_s& raw)
+int InttFelix::OnlineToRawData(struct InttNameSpace::Online_s const& onl, struct InttNameSpace::RawData_s& raw)
 {
 	switch(onl.lyr) {
 		case  0:

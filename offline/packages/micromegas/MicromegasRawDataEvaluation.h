@@ -17,6 +17,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 
 class PHCompositeNode;
 class TFile;
@@ -50,14 +51,15 @@ class MicromegasRawDataEvaluation : public SubsysReco
   /// set number of RMS sigma used to defined static threshold on a given channel
   void set_n_sigma( double value ) { m_n_sigma = value; }
 
+  /// set minimum ADC value, disregarding pedestal and RMS. 
+  /** This removes faulty channels for which calibration has failed */
+  void set_min_adc( double value ) { m_min_adc = value; }
+
   /// set min sample for noise estimation
   void set_sample_min( int value ) { m_sample_min = value; }
 
   /// set min sample for noise estimation
   void set_sample_max( int value ) { m_sample_max = value; }
-
-  /// max number  of waveforms allowed
-  void set_max_waveforms( int value ) { m_max_waveforms = value; }
 
   /// output file name for evaluation histograms
   void set_evaluation_outputfile(const std::string &outputfile) {m_evaluation_filename = outputfile;}
@@ -67,7 +69,6 @@ class MicromegasRawDataEvaluation : public SubsysReco
     public:
     /// packet
     unsigned int packet_id = 0;
-
 
     /// ll1 bco
     uint64_t lvl1_bco = 0;
@@ -96,6 +97,9 @@ class MicromegasRawDataEvaluation : public SubsysReco
 
     unsigned short sample = 0;
     unsigned short adc = 0;
+    
+    double pedestal = 0;
+    double rms = 0;
 
     using List = std::vector<Sample>;
   };
@@ -137,6 +141,9 @@ class MicromegasRawDataEvaluation : public SubsysReco
 
     unsigned short sample_max = 0;
     unsigned short adc_max = 0;
+    
+    double pedestal = 0;
+    double rms = 0;
 
     bool is_signal = false;
 
@@ -158,11 +165,22 @@ class MicromegasRawDataEvaluation : public SubsysReco
   {
     public:
     void Reset();
-    int n_tagger = 0;
-    int max_fee_count = 0;
-    int n_waveforms = 0;
+    
+    // number of taggers for each packet
+    std::vector<int> n_tagger;
+    
+    // number of waveform for each packet
+    std::vector<int> n_waveform;
+
     Waveform::List waveforms;
     Sample::List samples;
+    
+    // bco for this event
+    std::vector<uint64_t> lvl1_bco_list;
+    
+    // lvl1 count for this event
+    std::vector<uint32_t> lvl1_count_list;
+    
     ClassDef(Container,1)
   };
 
@@ -180,14 +198,15 @@ class MicromegasRawDataEvaluation : public SubsysReco
   /// number of RMS sigma used to define threshold
   double m_n_sigma = 5;
 
+  //! minimum ADC value, disregarding pedestal and RMS. 
+  /* This removes faulty channels for which calibration has failed */
+  double m_min_adc = 50;
+  
   /// min sample for signal
   int m_sample_min = 0;
 
   /// max sample for signal
   int m_sample_max = 100;
-
-  /// max waveforms allowed in a given event
-  int m_max_waveforms = 0;
 
   //! evaluation output filename
   std::string m_evaluation_filename = "MicromegasRawDataEvaluation.root";
@@ -198,12 +217,16 @@ class MicromegasRawDataEvaluation : public SubsysReco
 
   //! main branch
   Container* m_container = nullptr;
+  
+  //! map fee bco to lvl1 bco
+  using bco_matching_pair_t = std::pair<unsigned int, uint64_t>;
 
-  //! map bco to packet
-  using packet_map_t = std::map<unsigned int, uint64_t>;
-  packet_map_t m_packet_bco_map;
-
-  // map bco to waveforms
+  //! map fee_id to bco maps
+  using fee_bco_matching_map_t = std::map<unsigned short, bco_matching_pair_t>;
+  fee_bco_matching_map_t m_fee_bco_matching_map;
+  
+  /// map waveforms to bco
+  /** this is used to count how many waveforms are found for a given lvl1 bco */
   using bco_map_t = std::map<uint64_t,unsigned int>;
   bco_map_t m_bco_map;
 

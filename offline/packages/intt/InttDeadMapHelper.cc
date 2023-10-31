@@ -1,5 +1,10 @@
 #include "InttDeadMapHelper.h"
 
+#include <cmath>    // for ceil, sqrtl, floor, log, sqrt, cos, erfl, sin
+#include <cstdio>   // for printf
+#include <cstdlib>  // for rand, EXIT_FAILURE, EXIT_SUCCESS, RAND_MAX
+#include <iostream>  // for operator<<, basic_ostream, basic_ostream<>::__os...
+
 InttDeadMapHelper::InttDeadMapHelper()
 {
 	N = 0;
@@ -80,9 +85,9 @@ InttDeadMapHelper& InttDeadMapHelper::operator=(InttDeadMapHelper const& _o)
 	return *this;
 }
 
-InttDeadMapHelper::InttDeadMapHelper(InttDeadMap_Long_t const& _N, InttDeadMap_Double_t const& _n_z, InttDeadMap_Double_t const& _n_t)
+InttDeadMapHelper::InttDeadMapHelper(InttDeadMap_Long_t const& npoints, InttDeadMap_Double_t const& _n_z, InttDeadMap_Double_t const& _n_t)
 {
-	N = _N;
+	N = npoints;
 	points = new struct InttDeadMap_Point_s[N];
 
 	n_z = _n_z;

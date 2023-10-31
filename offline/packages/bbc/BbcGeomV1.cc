@@ -1,9 +1,6 @@
 #include "BbcGeomV1.h"
 
-#include <calobase/TowerInfoDefs.h>
-#include <phool/PHObject.h>
-
-#include <iostream>
+#include <cmath>
 
 // kludge where we have the hardcoded positions of the tubes
 // Should really be put in a database

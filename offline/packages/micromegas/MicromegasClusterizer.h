@@ -26,9 +26,6 @@ class MicromegasClusterizer : public SubsysReco
   //! event processing
   int process_event(PHCompositeNode*) override;
 
-  //! cluster version
-  void set_cluster_version(int value) { m_cluster_version = value; }
-
   //! read raw data 
   /** not implemented for now */
   void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
@@ -36,7 +33,6 @@ class MicromegasClusterizer : public SubsysReco
   private:
 
   bool do_read_raw = false;
-  int m_cluster_version = 4;
 };
 
 #endif

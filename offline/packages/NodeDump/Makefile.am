@@ -14,8 +14,7 @@ pkginclude_HEADERS = \
 
 libphnodedump_la_SOURCES = \
   Dumper.cc \
-  DumpBbcOut.cc \
-  DumpBbcPmtContainer.cc \
+  DumpBbcPmtInfoContainer.cc \
   DumpBbcVertexMap.cc \
   DumpCaloTriggerInfo.cc \
   DumpCdbUrlSave.cc \
@@ -26,7 +25,11 @@ libphnodedump_la_SOURCES = \
   DumpFlagSave.cc \
   DumpGlobalVertexMap.cc \
   DumpInttDeadMap.cc \
+  DumpInttRawHitContainer.cc \
   DumpJetMap.cc \
+  DumpMbdOut.cc \
+  DumpMbdPmtContainer.cc \
+  DumpMbdVertexMap.cc \
   DumpParticleFlowElementContainer.cc \
   DumpPdbParameterMap.cc \
   DumpPdbParameterMapContainer.cc \
@@ -40,6 +43,7 @@ libphnodedump_la_SOURCES = \
   DumpPHG4HitContainer.cc \
   DumpPHG4ParticleSvtxMap.cc \
   DumpPHG4ScintillatorSlatContainer.cc \
+  DumpPHG4TpcCylinderGeomContainer.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
   DumpPHGenIntegral.cc \
@@ -54,6 +58,7 @@ libphnodedump_la_SOURCES = \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
   DumpTowerInfoContainer.cc \
+  DumpTpcRawHitContainer.cc \
   DumpTpcSeedTrackMap.cc \
   DumpTrackSeedContainer.cc \
   DumpTrkrClusterContainer.cc \
@@ -68,16 +73,17 @@ libphnodedump_la_SOURCES = \
 AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib
 
 libphnodedump_la_LIBADD = \
-  -lbbc_io \
   -lcalo_io \
   -lcalotrigger_io \
   -lepd_io \
   -leventplane_io \
   -lffaobjects \
+  -lffarawobjects \
   -lg4detectors_io \
-  -lg4bbc_io \
+  -lg4mbd_io \
   -lHepMC \
   -ljetbase_io \
+  -lmbd_io \
   -lparticleflow_io \
   -lphfield_io \
   -lphg4hit \

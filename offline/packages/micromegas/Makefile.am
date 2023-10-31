@@ -14,7 +14,8 @@ lib_LTLIBRARIES = \
 ## TODO: check with Chris where headers are installed (TrkrDefs.h) in "online" build
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include 
+  -I$(OFFLINE_MAIN)/include \
+  -isystem$(ROOTSYS)/include
 
 ## TODO: check with Chris where libraries are installed (TrkrDefs.h) in "online" build
 AM_LDFLAGS = \
@@ -22,15 +23,18 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
+  MicromegasCalibrationData.h \
   MicromegasDefs.h \
   MicromegasMapping.h
 
 # sources for io library
 libmicromegas_io_la_SOURCES = \
+  MicromegasCalibrationData.cc \
   MicromegasDefs.cc \
   MicromegasMapping.cc
 
 libmicromegas_io_la_LIBADD = \
+  -lcdbobjects \
   -ltrack_io
 
 BUILT_SOURCES = testexternals.cc
@@ -62,6 +66,8 @@ pkginclude_HEADERS = \
   CylinderGeomMicromegas.h \
   MicromegasCalibrationData.h \
   MicromegasClusterizer.h \
+  MicromegasCombinedDataDecoder.h \
+  MicromegasCombinedDataEvaluation.h \
   MicromegasDefs.h \
   MicromegasMapping.h \
   MicromegasRawDataCalibration.h \
@@ -76,6 +82,7 @@ ROOTDICTS = \
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeomMicromegas_Dict_rdict.pcm \
+  MicromegasCombinedDataEvaluation_Dict_rdict.pcm \
   MicromegasRawDataEvaluation_Dict_rdict.pcm \
   MicromegasTile_Dict_rdict.pcm
 
@@ -96,6 +103,9 @@ libmicromegas_io_la_LIBADD = \
 
 libmicromegas_la_SOURCES = \
   MicromegasClusterizer.cc \
+  MicromegasCombinedDataDecoder.cc \
+  MicromegasCombinedDataEvaluation.cc \
+  MicromegasCombinedDataEvaluation_Dict.cc \
   MicromegasRawDataCalibration.cc \
   MicromegasRawDataDecoder.cc \
   MicromegasRawDataEvaluation.cc \
@@ -103,6 +113,7 @@ libmicromegas_la_SOURCES = \
 
 libmicromegas_la_LIBADD = \
   libmicromegas_io.la \
+  -lffarawobjects \
   -lphg4hit \
   -lSubsysReco
 

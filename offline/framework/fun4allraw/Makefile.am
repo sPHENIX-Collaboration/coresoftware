@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
+  -isystem$(ROOTSYS)/include \
   -I$(OPT_SPHENIX)/include
 
 AM_LDFLAGS = \
@@ -13,12 +13,23 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   Fun4AllEventOutStream.h \
   Fun4AllEventOutputManager.h \
+  Fun4AllEvtInputPoolManager.h \
   Fun4AllFileOutStream.h \
   Fun4AllPrdfInputManager.h \
   Fun4AllPrdfInputPoolManager.h \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
-  SinglePrdfInput.h
+  Fun4AllStreamingInputManager.h \
+  SingleEvtInput.h \
+  SingleMvtxInput.h \
+  SingleInttInput.h \
+  SingleInttPoolInput.h \
+  SingleMicromegasInput.h \
+  SingleMicromegasPoolInput.h \
+  SinglePrdfInput.h \
+  SingleStreamingInput.h \
+  SingleTpcInput.h \
+  SingleTpcPoolInput.h
 
 lib_LTLIBRARIES = \
   libfun4allraw.la
@@ -26,14 +37,28 @@ lib_LTLIBRARIES = \
 libfun4allraw_la_SOURCES = \
   Fun4AllEventOutStream.cc \
   Fun4AllEventOutputManager.cc \
+  Fun4AllEvtInputPoolManager.cc \
   Fun4AllFileOutStream.cc \
   Fun4AllPrdfInputManager.cc \
   Fun4AllPrdfInputPoolManager.cc \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
-  SinglePrdfInput.cc
+  Fun4AllStreamingInputManager.cc \
+  intt_pool.cc \
+  tpc_pool.cc \
+  SingleEvtInput.cc \
+  SingleMvtxInput.cc \
+  SingleInttInput.cc \
+  SingleInttPoolInput.cc \
+  SingleMicromegasInput.cc \
+  SingleMicromegasPoolInput.cc \
+  SinglePrdfInput.cc \
+  SingleStreamingInput.cc \
+  SingleTpcPoolInput.cc \
+  SingleTpcInput.cc
 
 libfun4allraw_la_LIBADD = \
+  -lffarawobjects \
   -lfun4all \
   -lEvent \
   -lphoolraw
