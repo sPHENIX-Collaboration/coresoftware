@@ -148,12 +148,27 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
     bbcNode->addNode(VertexMapNode);
   }
 
-  m_mbdgeom = findNode::getClass<MbdGeom>(bbcNode, "MbdGeom");
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  if (!runNode)
+  {
+    std::cout << PHWHERE << "RUN Node missing doing nothing" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+  PHNodeIterator runiter(runNode);
+
+  PHCompositeNode *bbcRunNode = dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode", "MBD"));
+  if (!bbcRunNode)
+  {
+    bbcRunNode = new PHCompositeNode("MBD");
+    runNode->addNode(bbcRunNode);
+  }
+
+  m_mbdgeom = findNode::getClass<MbdGeom>(bbcRunNode, "MbdGeom");
   if (!m_mbdgeom)
   {
     m_mbdgeom = new MbdGeomV1();
     PHIODataNode<PHObject> *MbdGeomNode = new PHIODataNode<PHObject>(m_mbdgeom, "MbdGeom", "PHObject");
-    bbcNode->addNode(MbdGeomNode);
+    bbcRunNode->addNode(MbdGeomNode);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
