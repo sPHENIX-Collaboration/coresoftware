@@ -1,7 +1,7 @@
-#ifndef INTT_EVENT_INFO_CONTAINERv1_H
-#define INTT_EVENT_INFO_CONTAINERv1_H
+#ifndef INTT_EVENT_INFO_v1_H
+#define INTT_EVENT_INFO_v1_H
 
-#include "InttEventInfoContainer.h"
+#include "InttEventInfo.h"
 #include "TrkrDefs.h"
 
 #include <cstdint>
@@ -13,11 +13,11 @@
 
 #include <phool/PHObject.h>
 
-class InttEventInfoContainerv1 : public InttEventInfoContainer 
+class InttEventInfov1 : public InttEventInfo 
 {
  public:
-  InttEventInfoContainerv1();
-  ~InttEventInfoContainerv1() override;
+  InttEventInfov1();
+  ~InttEventInfov1() override;
 
   void identify(std::ostream &os = std::cout) const override;
   void Reset() override;
@@ -29,7 +29,7 @@ class InttEventInfoContainerv1 : public InttEventInfoContainer
   uint64_t bco_full;
 
  private:
-  ClassDefOverride(InttEventInfoContainer, 1)
+  ClassDefOverride(InttEventInfo, 1)
 };
 
-#endif//INTT_EVENT_INFO_CONTAINERv1_H
+#endif//INTT_EVENT_INFO_v1_H

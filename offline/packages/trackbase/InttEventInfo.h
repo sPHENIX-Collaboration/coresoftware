@@ -1,5 +1,5 @@
-#ifndef INTT_EVENT_INFO_CONTAINER_H
-#define INTT_EVENT_INFO_CONTAINER_H
+#ifndef INTT_EVENT_INFO_H
+#define INTT_EVENT_INFO_H
 
 #include "TrkrDefs.h"
 
@@ -12,11 +12,11 @@
 
 #include <phool/PHObject.h>
 
-class InttEventInfoContainer : public PHObject
+class InttEventInfo : public PHObject
 {
  public:
-  InttEventInfoContainer();
-  virtual ~InttEventInfoContainer();
+  InttEventInfo();
+  virtual ~InttEventInfo();
 
   virtual void identify(std::ostream &os = std::cout) const;
   virtual void Reset();
@@ -30,4 +30,4 @@ class InttEventInfoContainer : public PHObject
 
 };
 
-#endif//INTT_EVENT_INFO_CONTAINER_H
+#endif//INTT_EVENT_INFO_H
