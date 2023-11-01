@@ -30,7 +30,11 @@ int MbdCalib::Download_All()
 
   _cdb = CDBInterface::instance();
 
-  string bbc_caldir = _rc->get_StringFlag("MBD_CALDIR");
+  string bbc_caldir =  _rc->get_StringFlag("MBD_CALDIR","");
+  if (_rc->FlagExist("MBD_CALDIR"))
+  {
+    bbc_caldir = _rc->get_StringFlag("MBD_CALDIR");
+  }
   if ( bbc_caldir.empty() )
   {
     string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
