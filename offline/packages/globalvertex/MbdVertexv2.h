@@ -35,6 +35,8 @@ class MbdVertexv2 : public MbdVertex
   float get_z_err() const override { return _z_err; }
   void set_z_err(float z_err) override { _z_err = z_err; }
 
+  float get_position(unsigned int coor) const override;
+
   unsigned int get_beam_crossing() const override { return _bco; }
   void set_beam_crossing(unsigned int bco) override { _bco = bco; }
  private:

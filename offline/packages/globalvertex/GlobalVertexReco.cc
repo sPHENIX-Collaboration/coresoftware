@@ -127,21 +127,6 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       GlobalVertex *vertex = new GlobalVertexv2();
       vertex->set_id(globalmap->size());
 
-      for (unsigned int i = 0; i < 3; ++i)
-      {
-        vertex->set_position(i, svtx->get_position(i));
-        for (unsigned int j = i; j < 3; ++j)
-        {
-          vertex->set_error(i, j, svtx->get_error(i, j));
-        }
-      }
-
-      vertex->set_t(mbd_best->get_t());
-      vertex->set_t_err(mbd_best->get_t_err());
-
-      vertex->set_chisq(svtx->get_chisq());
-      vertex->set_ndof(svtx->get_ndof());
-
       vertex->insert_vtx(GlobalVertex::SVTX, svtx);
       vertex->insert_vtx(GlobalVertex::MBD, mbd_best);
       used_svtx_vtxids.insert(svtx->get_id());
@@ -196,18 +181,6 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       
       vertex->set_id(globalmap->size());
 
-      for (unsigned int i = 0; i < 3; ++i)
-      {
-        vertex->set_position(i, svtx->get_position(i));
-        for (unsigned int j = i; j < 3; ++j)
-        {
-          vertex->set_error(i, j, svtx->get_error(i, j));
-        }
-      }
-
-      vertex->set_chisq(svtx->get_chisq());
-      vertex->set_ndof(svtx->get_ndof());
-
       vertex->insert_vtx(GlobalVertex::SVTX, svtx);
       used_svtx_vtxids.insert(svtx->get_id());
 
@@ -255,27 +228,6 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
       GlobalVertex *vertex = new GlobalVertexv2();
       vertex->set_id(globalmap->size());
-
-      // nominal beam location
-      // could be replaced with a beam spot some day
-      vertex->set_x(_xdefault);
-      vertex->set_y(_ydefault);
-      vertex->set_z(mbd->get_z());
-
-      vertex->set_t(mbd->get_t());
-      vertex->set_t_err(mbd->get_t_err());
-
-      vertex->set_error(0, 0, pow(_xerr, 2));
-      vertex->set_error(0, 1, 0.0);
-      vertex->set_error(0, 2, 0.0);
-
-      vertex->set_error(1, 0, 0.0);
-      vertex->set_error(1, 1, pow(_yerr, 2));
-      vertex->set_error(1, 2, 0.0);
-
-      vertex->set_error(0, 2, 0.0);
-      vertex->set_error(1, 2, 0.0);
-      vertex->set_error(2, 2, pow(mbd->get_z_err(), 2));
 
       vertex->insert_vtx(GlobalVertex::MBD, mbd);
       used_mbd_vtxids.insert(mbd->get_id());

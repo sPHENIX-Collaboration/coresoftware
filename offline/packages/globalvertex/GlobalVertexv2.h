@@ -29,8 +29,20 @@ class GlobalVertexv2 : public GlobalVertex
 
   unsigned int get_id() const override { return _id; }
   void set_id(unsigned int id) override { _id = id; }
+
   unsigned int get_beam_crossing() const override { return _bco; }
   void set_beam_crossing(unsigned int bco) override { _bco = bco; }
+
+  float get_t() const override;
+  float get_t_err() const override;
+  float get_x() const override;
+  float get_y() const override;
+  float get_z() const override;
+  float get_chisq() const override;
+  unsigned int get_ndof() const override;
+  float get_position(unsigned int coor) const override;
+  float get_error(unsigned int i, unsigned int j) const override;
+  
 
   //
   // associated vertex methods
