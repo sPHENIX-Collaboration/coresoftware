@@ -3,37 +3,31 @@
 
 #include "TrkrDefs.h"
 
-#include <phool/PHObject.h>
+#include <cstdint>
+#include <cstddef>
 
 #include <iostream>
 #include <string>
 #include <map>
 
+#include <phool/PHObject.h>
+
 class InttEventInfoContainer : public PHObject
 {
-public:
-  struct InttEventInfo_s
-  {
-    Long64_t bco;
-  };
-
-  using KEY_t = Long64_t;
-  using VAL_t = InttEventInfo_s;
-  using Map = std::map<KEY_t, VAL_t>;
-  using Iterator = Map::iterator;
-  using ConstIterator = Map::const_iterator;
-
+ public:
   InttEventInfoContainer();
-  virtual ~InttEventInfoContainer() override;
+  virtual ~InttEventInfoContainer();
 
-  virtual void identify(std::ostream &os = std::cout) const override;
-  virtual void Reset() override;
+  virtual void identify(std::ostream &os = std::cout) const;
+  virtual void Reset();
 
-  virtual void AddInfo(KEY_t const&, VAL_t const&);
-  virtual VAL_t& GetInfo(KEY_t const&);
+  virtual uint64_t get_bco_full() const;
+  virtual void set_bco_full(uint64_t const&);
+
+ protected:
 
  private:
-  ClassDefOverride(InttEventInfoContainer, 1)
+
 };
 
 #endif//INTT_EVENT_INFO_CONTAINER_H

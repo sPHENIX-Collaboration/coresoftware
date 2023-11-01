@@ -13,24 +13,24 @@ InttEventInfoContainerv1::~InttEventInfoContainerv1()
 void
 InttEventInfoContainerv1::identify(std::ostream& os) const
 {
-  os << "InttEventInfoContainer::identify()" << std::endl;
+  os << "InttEventInfoContainer::identify" << std::endl;
   os << "\tVersion 1" << std::endl;
 }
 
 void
 InttEventInfoContainerv1::Reset()
 {
-  info_map.clear();
+  bco_full = 0;
+}
+
+uint64_t
+InttEventInfoContainerv1::get_bco_full() const
+{
+  return bco_full;
 }
 
 void
-InttEventInfoContainerv1::AddInfo(KEY_t const& key, VAL_t const& val)
+InttEventInfoContainerv1::set_bco_full(uint64_t const& _bco_full)
 {
-  info_map[key] = val;
-}
-
-InttEventInfoContainerv1::VAL_t&
-InttEventInfoContainerv1::GetInfo(KEY_t const& key)
-{
-  return info_map[key];
+  bco_full = _bco_full;
 }
