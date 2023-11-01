@@ -199,13 +199,15 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     int pktid = 1001 + ipkt;    // packet id
     p[ipkt] = event->getPacket( pktid );
 
-    static int counter = 0;
-    if ( counter<4 )
+    if (Verbosity() > 0)
     {
-      cout << "Found packet " << pktid << "\t" << p[ipkt] << endl;
-      counter++;
+      static int counter = 0;
+      if ( counter<4 )
+      {
+	cout << "Found packet " << pktid << "\t" << p[ipkt] << endl;
+	counter++;
+      }
     }
-
     if ( p[ipkt] )
     {
       xmitclocks[ipkt] = static_cast<UShort_t>( p[ipkt]->iValue(0,"CLOCK") );
