@@ -76,10 +76,6 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
     /// fee bco
     unsigned int fee_bco = 0;
 
-    /// checksum and checksum error
-    unsigned int checksum = 0;
-    unsigned int checksum_error = 0;
-
     /// fee
     unsigned short fee_id = 0;
     unsigned short layer = 0;
@@ -120,10 +116,6 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
     /// fee bco
     unsigned int fee_bco = 0;
 
-    /// checksum and checksum error
-    unsigned int checksum = 0;
-    unsigned int checksum_error = 0;
-
     /// fee
     unsigned short fee_id = 0;
     unsigned short layer = 0;
@@ -147,14 +139,17 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
 
     bool is_signal = false;
 
-    //! default constructor
+    /// number of samples
+    unsigned short n_samples = 0;
+    
+    /// default constructor
     Waveform() = default;
 
-    //! construct from sample
+    /// construct from sample
     Waveform( const Sample& sample )
     { copy_from( sample ); }
 
-    //! copy from sample
+    /// copy from sample
     void copy_from( const Sample& );
 
     using List = std::vector<Waveform>;
@@ -186,22 +181,22 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
   
   private:
   
-  //! raw node
+  /// raw node
   std::string m_rawhitnodename = "MICROMEGASRAWHIT";
 
-  //! calibration filename
+  /// calibration filename
   std::string m_calibration_filename = "TPOT_Pedestal_000.root";
 
-  //! calibration data
+  /// calibration data
   MicromegasCalibrationData m_calibration_data;
 
-  //! mapping
+  /// mapping
   MicromegasMapping m_mapping;
 
   /// number of RMS sigma used to define threshold
   double m_n_sigma = 5;
 
-  //! minimum ADC value, disregarding pedestal and RMS. 
+  /// minimum ADC value, disregarding pedestal and RMS. 
   /* This removes faulty channels for which calibration has failed */
   double m_min_adc = 50;
   
@@ -211,14 +206,14 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
   /// max sample for signal
   int m_sample_max = 100;
 
-  //! evaluation output filename
+  /// evaluation output filename
   std::string m_evaluation_filename = "MicromegasCombinedDataEvaluation.root";
   std::unique_ptr<TFile> m_evaluation_file;
 
-  //! tree
+  /// tree
   TTree* m_evaluation_tree = nullptr;
 
-  //! main branch
+  /// main branch
   Container* m_container = nullptr;
     
   /// map waveforms to bco

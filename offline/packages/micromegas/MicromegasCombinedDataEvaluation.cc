@@ -58,8 +58,6 @@ void MicromegasCombinedDataEvaluation::Waveform::copy_from( const MicromegasComb
   packet_id = sample.packet_id;
   lvl1_bco = sample.lvl1_bco;
   fee_bco = sample.fee_bco;
-  checksum = sample.checksum;
-  checksum_error = sample.checksum_error;
   fee_id = sample.fee_id;
   layer = sample.layer;
   tile = sample.tile;
@@ -168,13 +166,8 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
     
     // increment bco map
     // ++m_bco_map[sample.lvl1_bco];
-
     ++m_bco_map[first_lvl1_bco];
-
-//     // checksum and checksum error
-//     sample.checksum = rawhit->get_checksum();
-//     sample.checksum_error = rawhit->get_checksum_error();
-
+    
     // channel, sampa_channel, sampa address and strip
     sample.sampa_address = rawhit->get_sampaaddress();
     sample.sampa_channel = rawhit->get_sampachannel();
@@ -198,7 +191,6 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
         << " tile: " << sample.tile
         << " lvl1_bco: " << sample.lvl1_bco
         << " fee_bco: " << sample.fee_bco
-        << " error: " << sample.checksum_error
         << " channel: " << sample.channel
         << " strip: " << sample.strip
         << " samples: " << samples
@@ -206,7 +198,7 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
     }
 
     Sample sample_max;
-    for( unsigned short is = 0; is < std::min<unsigned short>( samples, 100 ); ++is )
+    for( unsigned short is = 0; is < samples; ++is )
     {
       // assign sample id and corresponding adc, save copy in container
       auto adc = rawhit->get_adc(is);
@@ -221,6 +213,7 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
 
     // create waveform
     Waveform waveform( sample_max );
+    waveform.n_samples = samples;
     waveform.is_signal =
       rms > 0 &&
       waveform.adc_max >= m_min_adc &&
@@ -229,6 +222,7 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
       waveform.adc_max > pedestal+m_n_sigma * rms;
     
     waveform_map.emplace( waveform.lvl1_bco, waveform );
+    
   }
 
   // copy all samples and waveform to container
