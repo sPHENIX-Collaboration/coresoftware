@@ -3,6 +3,8 @@
 #ifndef CALOTOWERCALIB_H
 #define CALOTOWERCALIB_H
 
+#include "CaloTowerDefs.h"
+
 #include <calobase/TowerInfoContainer.h>  // for TowerInfoContainer, TowerIn...
 
 #include <fun4all/SubsysReco.h>
@@ -26,16 +28,7 @@ class CaloTowerCalib : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  enum DetectorSystem
-  {
-    CEMC = 0,
-    HCALIN = 1,
-    HCALOUT = 2,
-    EPD = 3,
-    ZDC = 4
-  };
-
-  void set_detector_type(CaloTowerCalib::DetectorSystem dettype)
+  void set_detector_type(CaloTowerDefs::DetectorSystem dettype)
   {
     m_dettype = dettype;
     return;
@@ -63,22 +56,22 @@ class CaloTowerCalib : public SubsysReco
     return;
   }
 
-  void set_use_TowerInfov2(bool use) {m_use_TowerInfov2=use; return;}
+  void set_use_TowerInfov2(bool use) {m_use_TowerInfov2=use;}
 
  private:
-  TowerInfoContainer *_raw_towers = nullptr;
-  TowerInfoContainer *_calib_towers = nullptr;
-
-  CaloTowerCalib::DetectorSystem m_dettype;
+  CaloTowerDefs::DetectorSystem m_dettype;
 
   std::string m_detector;
   TowerInfoContainer::DETECTOR m_DETECTOR;
   std::string m_fieldname;
   std::string m_calibName;
-  bool m_overrideCalibName = 0;
-  bool m_overrideFieldName = 0;
-  std::string m_inputNodePrefix = "TOWERS_";
-  std::string m_outputNodePrefix = "TOWERINFO_CALIB_";
+  bool m_overrideCalibName {false};
+  bool m_overrideFieldName {false};
+  std::string m_inputNodePrefix {"TOWERS_"};
+  std::string m_outputNodePrefix {"TOWERINFO_CALIB_"};
+  std::string RawTowerNodeName;
+  std::string CalibTowerNodeName;
+
   bool m_use_TowerInfov2 = 0;
 
   CDBTTree *cdbttree = nullptr;

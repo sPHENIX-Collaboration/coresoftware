@@ -40,7 +40,7 @@ int DumpTowerInfoContainer::process_Node(PHNode *myNode)
       *fout << "isBadTime: " << rawtwr->get_isBadTime() << std::endl;
       *fout << "isNotInstr: " << rawtwr->get_isNotInstr() << std::endl;
       *fout << "isGood: " << rawtwr->get_isGood() << std::endl;
-      *fout << "status: " << rawtwr->get_status() << std::endl;
+      *fout << "status: " << static_cast<unsigned int>(rawtwr->get_status()) << std::endl;
       *fout << "nsample: " << rawtwr->get_nsample() << std::endl;
       for (int j = 0; j < rawtwr->get_nsample(); j++)
       {

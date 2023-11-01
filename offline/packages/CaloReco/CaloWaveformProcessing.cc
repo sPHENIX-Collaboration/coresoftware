@@ -14,6 +14,11 @@
 
 Ort::Session *onnxmodule;
 
+CaloWaveformProcessing::~CaloWaveformProcessing()
+{
+  delete m_Fitter;
+}
+
 void CaloWaveformProcessing::initialize_processing()
 {
   char *calibrationsroot = getenv("CALIBRATIONROOT");

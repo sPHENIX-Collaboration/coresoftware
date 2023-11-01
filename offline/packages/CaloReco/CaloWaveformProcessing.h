@@ -19,8 +19,8 @@ class CaloWaveformProcessing : public SubsysReco
     FAST = 3,
   };
 
-  CaloWaveformProcessing() {}
-  ~CaloWaveformProcessing() override {}
+  CaloWaveformProcessing() = default;
+  ~CaloWaveformProcessing() override;
 
   void set_processing_type(CaloWaveformProcessing::process modelno)
   {

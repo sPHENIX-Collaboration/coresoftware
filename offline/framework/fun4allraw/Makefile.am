@@ -25,6 +25,7 @@ pkginclude_HEADERS = \
   SingleInttInput.h \
   SingleInttPoolInput.h \
   SingleMicromegasInput.h \
+  SingleMicromegasPoolInput.h \
   SinglePrdfInput.h \
   SingleStreamingInput.h \
   SingleTpcInput.h \
@@ -50,6 +51,7 @@ libfun4allraw_la_SOURCES = \
   SingleInttInput.cc \
   SingleInttPoolInput.cc \
   SingleMicromegasInput.cc \
+  SingleMicromegasPoolInput.cc \
   SinglePrdfInput.cc \
   SingleStreamingInput.cc \
   SingleTpcPoolInput.cc \

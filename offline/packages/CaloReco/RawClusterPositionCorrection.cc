@@ -10,9 +10,6 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
-#include <ffamodules/CDBInterface.h>
-
-#include <cdbobjects/CDBTTree.h>  // for CDBTTree
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 #include <cdbobjects/CDBHistos.h> // for CDBHistos
 
@@ -59,6 +56,7 @@ RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &na
 RawClusterPositionCorrection::~RawClusterPositionCorrection()
 {
   delete cdbHisto;
+  delete cdbttree;
 }
 
 int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
