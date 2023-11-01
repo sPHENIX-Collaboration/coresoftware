@@ -150,6 +150,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       for (int wf = 0; wf < nwf; wf++)
       {
 
+        // get fee
         const int fee_id = packet->iValue(wf, "FEE");
 
         // get fee bco
@@ -202,7 +203,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         }
 
         // create new hit
-        auto newhit = new MicromegasRawHitv1();
+        auto newhit = std::make_unique<MicromegasRawHitv1>();
         newhit->set_bco(fee_bco);
         newhit->set_gtm_bco(gtm_bco);
 
@@ -213,12 +214,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
         newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
 
-//         // checksum and checksum error
-//         newhit->set_checksum( packet->iValue(iwf, "CHECKSUM") );
-//         newhit->set_checksum_error( packet->iValue(iwf, "CHECKSUMERROR") );
-
-        // samples
-        const uint16_t samples = packet->iValue(wf, "SAMPLES");
+        // assign samples
         newhit->set_samples( samples );
 
         // adc values
@@ -237,9 +233,9 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         }
 
         if (StreamingInputManager())
-        { StreamingInputManager()->AddMicromegasRawHit(gtm_bco, newhit); }
+        { StreamingInputManager()->AddMicromegasRawHit(gtm_bco, newhit.get()); }
 
-        m_MicromegasRawHitMap[gtm_bco].push_back(newhit);
+        m_MicromegasRawHitMap[gtm_bco].push_back(newhit.release());
         m_BclkStack.insert(gtm_bco);
       }
 
@@ -338,7 +334,7 @@ void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
 //         << " my bclk 0x" << std::hex << bco
 //         << " req: 0x" << bclk << std::dec << std::endl;
 //     }
-// 
+//
 //     if (bco < bclk)
 //     {
 //       if (Verbosity() > 1)
@@ -370,7 +366,7 @@ bool SingleMicromegasPoolInput::GetSomeMoreEvents()
   uint64_t lowest_bclk = m_MicromegasRawHitMap.begin()->first + m_BcoRange;
   for (auto bcliter : m_FEEBclkMap)
   { if (bcliter.second <= lowest_bclk) return true; }
-  
+
   return false;
 }
 
