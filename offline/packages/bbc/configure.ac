@@ -33,15 +33,5 @@ AM_CONDITIONAL(USE_ONLINE, test "x$online" = xtrue)
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)
 
-AC_ARG_ENABLE(online,
-        [  --enable-online	build using for online [default=no]],
-        [case "${enableval}" in
-                yes) online=true ;;
-                no)  online=false ;;
-                *) AC_MSG_ERROR(bad value ${enableval} for --enable-online) ;;
-                esac],
-        online=false)
-AM_CONDITIONAL(USE_ONLINE, test "x$online" = xtrue)
-
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
