@@ -2,6 +2,7 @@
 #define TRACKBASE_ACTSSOURCELINK_H
 
 #include <Acts/EventData/SourceLink.hpp>
+#include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
 #include "TrkrDefs.h"
@@ -50,6 +51,16 @@ class ActsSourceLink final
   constexpr Index index() const { return m_index; }
   constexpr TrkrDefs::cluskey cluskey() const { return m_cluskey; }
   constexpr Acts::GeometryIdentifier geometryId() const { return m_geometryId; }
+
+  struct SurfaceAccessor
+  {
+    const Acts::TrackingGeometry& trackingGeometry;
+    const Acts::Surface* operator()(const Acts::SourceLink& sourceLink) const
+    {
+      const auto& sl = sourceLink.get<ActsSourceLink>();
+      return trackingGeometry.findSurface(sl.geometryId());
+    }
+  };
 
  private:
   Acts::GeometryIdentifier m_geometryId;

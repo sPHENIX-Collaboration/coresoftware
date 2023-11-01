@@ -23,8 +23,8 @@
 #include <Acts/Propagator/MultiEigenStepperLoop.hpp>
 #pragma GCC diagnostic pop
 
-#include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/EventData/SourceLink.hpp>
+#include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/EventData/VectorTrackContainer.hpp>
 
 #include <functional>
@@ -44,9 +44,9 @@ class ActsTrackFittingAlgorithm final
   using MeasurementContainer = std::vector<Measurement>;
 
   using TrackContainer =
-    Acts::TrackContainer<Acts::VectorTrackContainer,
-                         Acts::VectorMultiTrajectory, std::shared_ptr>;
-  
+      Acts::TrackContainer<Acts::VectorTrackContainer,
+                           Acts::VectorMultiTrajectory, std::shared_ptr>;
+
   using TrackFitterResult = Acts::Result<TrackContainer::TrackProxy>;
 
   /// General options that do not depend on the fitter type, but need to be
@@ -56,7 +56,6 @@ class ActsTrackFittingAlgorithm final
     std::reference_wrapper<const Acts::GeometryContext> geoContext;
     std::reference_wrapper<const Acts::MagneticFieldContext> magFieldContext;
     std::reference_wrapper<const Acts::CalibrationContext> calibrationContext;
-    std::reference_wrapper<const Calibrator> calibrator;
     const Acts::Surface* referenceSurface = nullptr;
     Acts::PropagatorPlainOptions propOptions;
   };
@@ -71,6 +70,7 @@ class ActsTrackFittingAlgorithm final
     virtual TrackFitterResult operator()(
         const std::vector<Acts::SourceLink>&,
         const TrackParameters&, const GeneralFitterOptions&,
+        const CalibratorAdapter&,
         TrackContainer&) const = 0;
 
     virtual void outlierFinder(const ResidualOutlierFinder&) {}
@@ -89,6 +89,7 @@ class ActsTrackFittingAlgorithm final
         const std::vector<Acts::SourceLink>&,
         const TrackParameters&, const GeneralFitterOptions&,
         const std::vector<const Acts::Surface*>&,
+        const CalibratorAdapter&,
         TrackContainer&) const = 0;
   };
 
@@ -125,18 +126,19 @@ class ActsTrackFittingAlgorithm final
       bool multipleScattering = true, bool energyLoss = true,
       double reverseFilteringMomThreshold = 0.0,
       Acts::FreeToBoundCorrection freeToBoundCorrection =
-      Acts::FreeToBoundCorrection(),
+          Acts::FreeToBoundCorrection(),
       const Acts::Logger& logger = *Acts::getDefaultLogger("Kalman",
-							   Acts::Logging::FATAL));
+                                                           Acts::Logging::FATAL));
 
-  static std::shared_ptr<DirectedTrackFitterFunction> makeKalmanFitterFunction(
+  static std::shared_ptr<DirectedTrackFitterFunction> makeDirectedKalmanFitterFunction(
+      std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
       std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
       bool multipleScattering = true, bool energyLoss = true,
       double reverseFilteringMomThreshold = 0.0,
       Acts::FreeToBoundCorrection freeToBoundCorrection =
-      Acts::FreeToBoundCorrection(),
+          Acts::FreeToBoundCorrection(),
       const Acts::Logger& logger = *Acts::getDefaultLogger("Kalman",
-							   Acts::Logging::FATAL));
+                                                           Acts::Logging::FATAL));
 
  private:
   /// Helper function to call correct FitterFunction
@@ -145,6 +147,7 @@ class ActsTrackFittingAlgorithm final
       const TrackParameters& initialParameters,
       const GeneralFitterOptions& options,
       const std::vector<const Acts::Surface*>& surfSequence,
+      const CalibratorAdapter& calibrator,
       TrackContainer& tracks) const;
 
   Config m_cfg;
@@ -156,14 +159,15 @@ ActsTrackFittingAlgorithm::fitTrack(
     const TrackParameters& initialParameters,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
     const std::vector<const Acts::Surface*>& surfSequence,
+    const CalibratorAdapter& calibrator,
     TrackContainer& tracks) const
 {
   if (m_cfg.directNavigation)
   {
-    return (*m_cfg.dFit)(sourceLinks, initialParameters, options, surfSequence, tracks);
+    return (*m_cfg.dFit)(sourceLinks, initialParameters, options, surfSequence, calibrator, tracks);
   }
 
-  return (*m_cfg.fit)(sourceLinks, initialParameters, options, tracks);
+  return (*m_cfg.fit)(sourceLinks, initialParameters, options, calibrator, tracks);
 }
 
 #endif

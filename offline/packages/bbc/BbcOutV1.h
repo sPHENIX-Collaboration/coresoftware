@@ -6,20 +6,21 @@
 #include "BbcOut.h"
 
 #include <iostream>
+#include <limits>
 
 class TClonesArray;
 
 ///
 class BbcOutV1 : public BbcOut
 {
- public:
+public:
   ///
   BbcOutV1();
   ///
   ~BbcOutV1() override;
 
   /// Clear Event from memory
-  void Reset() override;
+  virtual void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream
@@ -30,30 +31,30 @@ class BbcOutV1 : public BbcOut
   int isValid() const override;
 
   /// get ZVertex determined by Bbc
-  float get_zvtx() const override { return bz; }
+  Float_t get_zvtx() const override { return bz; }
 
   /// get Error on ZVertex determined by Bbc
-  float get_zvtxerr() const override { return bzerr; }
+  Float_t get_zvtxerr() const override { return bzerr; }
 
   /// get T0 determined by Bbc
-  float get_t0() const override { return bt0; }
+  Float_t get_t0() const override { return bt0; }
 
   /// get Error on T0 determined by Bbc
-  float get_t0err() const override { return bt0err; }
+  Float_t get_t0err() const override { return bt0err; }
 
   /** set T0 for Bbc
       @param t0 Bbc T0
       @param t0err Bbc T0 error
    */
-  void set_t0(const float t0, const float t0err = 0) override;
+  void set_t0(const Float_t t0, const Float_t t0err = 0) override;
 
   //! set vertex
-  void set_zvtx(const float vtx, const float vtxerr = 0) override;
+  void set_zvtx(const Float_t vtx, const Float_t vtxerr = 0) override;
 
   /** set Vtx Error for Bbc
       @param vtxerr Bbc Vtx Error
   */
-  void set_zvtxerr(const float vtxerr) override;
+  void set_zvtxerr(const Float_t vtxerr) override;
 
   /** Add Bbc North/South data containing Number of pmt's, Energy and Timing
       @param npmt Number of PMT's fired
@@ -61,38 +62,36 @@ class BbcOutV1 : public BbcOut
       @param timing Timing of North/South
       @param iarm  Arm, use Bbc::North and Bbc::South
    */
-  void set_arm(const int iarm, const short npmt, const float chargesum, const float timing) override;
+  void set_arm(const int iarm, const Short_t npmt, const Float_t chargesum, const Float_t timing) override;
 
   /** get Number of PMT's fired in North/South Bbc
       @param iarm  Arm, use Bbc::North and Bbc::South
    */
-  short get_npmt(const int iarm) const override;
+  Short_t get_npmt(const int iarm) const override;
 
   /** get Number of Charged Particles into North/South Bbc
       @param iarm  Arm, use Bbc::North and Bbc::South
    */
-  float get_q(const int iarm) const override;
+  Float_t get_q(const int iarm) const override;
 
   /** get Timing of North/South Bbc
       @param iarm  Arm, use Bbc::North and Bbc::South
    */
-  float get_time(const int iarm) const override;
+  Float_t get_time(const int iarm) const override;
 
 
- private:
+private:
 
-  void Init();
-
-  float bz{};
-  float bzerr{};
-  float bt0{};
-  float bt0err{};
-  float bns{};
-  float bnn{};
-  float bqs{};
-  float bqn{};
-  float bts{};
-  float btn{};
+  Float_t bz{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t bzerr{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t bt0{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t bt0err{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t bns{0};
+  Float_t bnn{0};
+  Float_t bqs{0};
+  Float_t bqn{0};
+  Float_t bts{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t btn{std::numeric_limits<Float_t>::quiet_NaN()};
 
   ClassDefOverride(BbcOutV1, 1)
 };

@@ -91,10 +91,21 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode *topNode)
   if( Verbosity() )
   { std::cout << "MicromegasCombinedDataDecoder::process_event - hits: " << rawhitcontainer->get_nhits() << std::endl; }
 
+  int n_signal_hits = 0;
+  
+  bool first = true;
+  uint64_t first_lvl1_bco = 0;
+  
   for( unsigned int ihit = 0; ihit < rawhitcontainer->get_nhits(); ++ihit )
   {
     const auto rawhit = rawhitcontainer->get_hit(ihit);
     const auto packet_id = rawhit->get_packetid();
+
+    if( first )
+    {
+      first = false;
+      first_lvl1_bco = rawhit->get_gtm_bco(); 
+    }
 
     // make sure packet is valid
     if( std::find( std::begin(MicromegasDefs::m_packet_ids), std::end(MicromegasDefs::m_packet_ids ), packet_id) == std::end(MicromegasDefs::m_packet_ids ) )
@@ -129,10 +140,7 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode *topNode)
     if( max_adc < m_min_adc ) continue;
 
     // compare to threshold
-    if( max_adc < pedestal - m_n_sigma * rms ) continue;
-    
-    // subtract pedestal
-    max_adc -= pedestal;
+    if( max_adc < pedestal + m_n_sigma * rms ) continue;
     
     // map fee and channel to physical hitsetid and physical strip
     // get hitset key matching this fee
@@ -177,7 +185,12 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode *topNode)
     
     // increment counter
     ++m_hitcounts[hitsetkey];
+    ++n_signal_hits;
   }
+  
+  if( Verbosity() )
+  { std::cout << "MicromegasCombinedDataDecoder::process_event - BCO: " << first_lvl1_bco << " n_signal_hits: " << n_signal_hits << std::endl; }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

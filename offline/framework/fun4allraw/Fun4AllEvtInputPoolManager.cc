@@ -7,6 +7,7 @@
 
 #include <ffarawobjects/MvtxRawHit.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
+#include <ffarawobjects/MvtxRawEvtHeaderv1.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainerv1.h>
 #include <ffarawobjects/MicromegasRawHit.h>
@@ -101,14 +102,14 @@ int Fun4AllEvtInputPoolManager::run(const int /*nevents*/)
   {
     iret += FillTpc();
   }
-  
+
   if (m_micromegas_registered_flag)
   {
     iret += FillMicromegas();
   }
 
   // std::cout << "size  m_InttRawHitMap: " <<  m_InttRawHitMap.size()
-  // 	    << std::endl;
+  //	    << std::endl;
   return iret;
   // readagain:
   //   if (!IsOpen())
@@ -352,6 +353,7 @@ void Fun4AllEvtInputPoolManager::registerStreamingInput(SingleStreamingInput *ev
   {
   case Fun4AllEvtInputPoolManager::MVTX:
     m_mvtx_registered_flag = true;
+    m_MvtxEvtInputList.push_back(m_EvtInputVector.size() - 1);
     break;
   case Fun4AllEvtInputPoolManager::INTT:
     m_intt_registered_flag = true;
@@ -383,6 +385,26 @@ void Fun4AllEvtInputPoolManager::AddPacket(uint64_t bclk, Packet *p)
               << std::hex << bclk << std::dec << std::endl;
   }
   m_PacketInfoMap[bclk].PacketVector.push_back(p);
+}
+
+void Fun4AllEvtInputPoolManager::AddMvtxFeeId(uint64_t bclk, uint16_t feeid)
+{
+  if ( Verbosity() > 1 )
+  {
+    std::cout << "Adding mvtx feeid to bclk 0x"
+              << std::hex << bclk << std::dec << std::endl;
+  }
+  m_MvtxRawHitMap[bclk].MvtxFeeIds.insert(feeid);
+}
+
+void Fun4AllEvtInputPoolManager::AddMvtxL1TrgBco(uint64_t bclk, uint64_t lv1Bco)
+{
+  if ( Verbosity() > 1 )
+  {
+    std::cout << "Adding mvtx L1Trg to bclk 0x"
+              << std::hex << bclk << std::dec << std::endl;
+  }
+  m_MvtxRawHitMap[bclk].MvtxL1TrgBco.insert(lv1Bco);
 }
 
 void Fun4AllEvtInputPoolManager::AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit)
@@ -433,37 +455,23 @@ void Fun4AllEvtInputPoolManager::UpdateEventFoundCounter(const int evtno)
 int Fun4AllEvtInputPoolManager::FillMvtx()
 {
   //TODO: Find a better placement for this counter that dont need to be executed every call
-  unsigned int nMvtxEvtInputs = 0;
-  for (auto& evtInput : m_EvtInputVector)
-  {
-    if (dynamic_cast<SingleMvtxInput*>(evtInput))
-    {
-      ++nMvtxEvtInputs;
-    }
-  }
-  while (m_MvtxRawHitMap.size() < 5) // pooling at least 5 events
+  while (m_MvtxRawHitMap.size() < 150) // pooling at least 5 events
   {
     unsigned int alldone = 0;
-    for (auto iter : m_EvtInputVector)
+    for (const auto evtId : m_MvtxEvtInputList)
     {
-      if ( dynamic_cast<SingleMvtxInput*>(iter) )
+      auto* evtIn = m_EvtInputVector.at(evtId);
+      alldone += evtIn->AllDone();
+      if (Verbosity() > 0)
       {
-	      alldone += iter->AllDone();
-        if (Verbosity() > 0)
-        {
-	        std::cout << "fill pool for " << iter->Name() << std::endl;
-	      }
-	      iter->FillPool();
-	      m_RunNumber = iter->RunNumber();
+        std::cout << "fill pool for " << evtIn->Name() << std::endl;
       }
-      else
-      {
-        continue;
-      }
+      evtIn->FillPool();
+      m_RunNumber = evtIn->RunNumber();
     }
-    if (alldone >= nMvtxEvtInputs)
+    if (alldone >= m_MvtxEvtInputList.size())
     {
-	    break;
+      break;
     }
     SetRunNumber(m_RunNumber);
   }
@@ -472,6 +480,13 @@ int Fun4AllEvtInputPoolManager::FillMvtx()
     std::cout << "we are done" << std::endl;
     return -1;
   }
+  MvtxRawEvtHeader *mvtxEvtHeader =  findNode::getClass<MvtxRawEvtHeaderv1>(m_topNode, "MVTXRAWEVTHEADER");
+  if (! mvtxEvtHeader)
+  {
+    std::cout << "ERROR: MVTXRAWEVTHEADER node not found, exit. " << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
   MvtxRawHitContainer *mvtxcont =  findNode::getClass<MvtxRawHitContainer>(m_topNode,"MVTXRAWHIT");
   if (! mvtxcont)
   {
@@ -479,22 +494,30 @@ int Fun4AllEvtInputPoolManager::FillMvtx()
     gSystem->Exit(1);
     exit(1);
   }
+
+  auto mvtxRawHitInfoIt = m_MvtxRawHitMap.begin();
+
+  mvtxEvtHeader->AddFeeId(mvtxRawHitInfoIt->second.MvtxFeeIds);
+  mvtxEvtHeader->AddL1Trg(mvtxRawHitInfoIt->second.MvtxL1TrgBco);
+
 //  std::cout << "before filling m_InttRawHitMap size: " <<  m_InttRawHitMap.size() << std::endl;
-  for (auto mvtxhititer :  m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
+  for (auto mvtxhititer :  mvtxRawHitInfoIt->second.MvtxRawHitVector)
   {
     if (Verbosity() > 1)
     {
-	    mvtxhititer->identify();
+      mvtxhititer->identify();
     }
     mvtxcont->AddHit(mvtxhititer);
 //  delete intthititer; // cleanup up done in Single Input Mgrs
   }
-  for (auto iter : m_EvtInputVector)
+  for (const auto evtId : m_MvtxEvtInputList)
   {
-    iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
+    m_EvtInputVector.at(evtId)->CleanupUsedPackets(mvtxRawHitInfoIt->first);
   }
-  m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
-  m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
+  mvtxRawHitInfoIt->second.MvtxFeeIds.clear();
+  mvtxRawHitInfoIt->second.MvtxL1TrgBco.clear();
+  mvtxRawHitInfoIt->second.MvtxRawHitVector.clear();
+  m_MvtxRawHitMap.erase(mvtxRawHitInfoIt);
   // std::cout << "size  m_MvtxRawHitMap: " <<  m_MvtxRawHitMap.size()
   //	    << std::endl;
   return 0;
@@ -562,30 +585,30 @@ int Fun4AllEvtInputPoolManager::FillMicromegas()
       iter->FillPool();
       m_RunNumber = iter->RunNumber();
     }
-    
+
     if (alldone >= m_EvtInputVector.size())
     { break; }
     SetRunNumber(m_RunNumber);
   }
-  
+
   if (m_MicromegasRawHitMap.empty())
   {
     std::cout << "we are done" << std::endl;
     return -1;
   }
-  
+
   auto container =  findNode::getClass<MicromegasRawHitContainer>(m_topNode,"MICROMEGASRAWHIT");
   for( auto hititer :  m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector)
   {
     if (Verbosity() > 1)
     {  hititer->identify(); }
-    
+
     container->AddHit(hititer);
   }
-  
+
   for (auto iter : m_EvtInputVector)
   { iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first); }
-  
+
   m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
   m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
   return 0;

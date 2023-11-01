@@ -16,6 +16,6 @@ void MvtxRawHitv1::identify(std::ostream &os) const
 {
   os << "BCO: 0x" << std::hex << bco << std::dec << std::endl;
   os << "Strobe BC: " << strobe_bc << ", Chip BC: " << chip_bc << std::endl;
-  os << "Layer: " << layer_id << ", stave: " << stave_id << ", chip: " << chip_id << std::endl;
+  os << "Layer: " << (unsigned) layer_id << ", stave: " << (unsigned) stave_id << ", chip: " << (unsigned) chip_id << std::endl;
   os << "Row: " << row << ", column: " << col << std::endl;
 }

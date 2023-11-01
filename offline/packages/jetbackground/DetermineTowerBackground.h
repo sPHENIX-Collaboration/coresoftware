@@ -61,6 +61,10 @@ class DetermineTowerBackground : public SubsysReco
   std::vector<std::vector<float> > _IHCAL_E;
   std::vector<std::vector<float> > _OHCAL_E;
 
+  std::vector<std::vector<int> > _EMCAL_T;
+  std::vector<std::vector<int> > _IHCAL_T;
+  std::vector<std::vector<int> > _OHCAL_T;
+
   // 1-D energies vs. phi (integrated over eta strips with complete
   // phi coverage, and all layers)
   std::vector<float> _FULLCALOFLOW_PHI_E;

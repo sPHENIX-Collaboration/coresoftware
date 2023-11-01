@@ -14,31 +14,46 @@ class BbcPmtHit : public PHObject
 {
  public:
   BbcPmtHit() {}
-  BbcPmtHit(const short /*pmt*/, const float /*adc*/, const float /*tdc0*/, const float /*tdc1*/) {}
-  virtual ~BbcPmtHit() {}
+  virtual ~BbcPmtHit() override = default;
 
-  virtual short get_pmt() const
+  virtual Short_t get_pmt() const
   {
     PHOOL_VIRTUAL_WARNING;
-    return BbcReturnCodes::BBC_INVALID_SHORT;
+    return -9999;
   }
-  virtual float get_adc() const
-  {
-    PHOOL_VIRTUAL_WARNING;
-    return BbcReturnCodes::BBC_INVALID_FLOAT;
-  }
-  virtual float get_tdc0() const
-  {
-    PHOOL_VIRTUAL_WARNING;
-    return BbcReturnCodes::BBC_INVALID_FLOAT;
-  }
-  virtual float get_tdc1() const
+
+  virtual Float_t get_q() const
   {
     PHOOL_VIRTUAL_WARNING;
     return BbcReturnCodes::BBC_INVALID_FLOAT;
   }
 
-  void identify(std::ostream& os = std::cout) const override;
+  virtual Float_t get_time() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    return BbcReturnCodes::BBC_INVALID_FLOAT;
+  }
+
+  virtual Float_t get_tt() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    return BbcReturnCodes::BBC_INVALID_FLOAT;
+  }
+
+  virtual Float_t get_tq() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    return BbcReturnCodes::BBC_INVALID_FLOAT;
+  }
+
+  virtual void set_pmt(const Short_t /*pmt*/, const Float_t /*q*/, const Float_t /*tt*/, const Float_t /*tq*/)
+  {
+    PHOOL_VIRTUAL_WARNING;
+  }
+
+  virtual void identify(std::ostream& os = std::cout) const override;
+
+  virtual int isValid() const override { return 0; }
 
  private:
   ClassDefOverride(BbcPmtHit, 1)

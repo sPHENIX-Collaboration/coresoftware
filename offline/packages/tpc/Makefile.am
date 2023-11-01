@@ -41,7 +41,9 @@ pkginclude_HEADERS = \
   TpcClusterCleaner.h \
   TpcClusterizer.h \
   TpcClusterMover.h \
+  TpcClusterQA.h \
   TpcClusterZCrossingCorrection.h \
+  TpcCombinedRawDataUnpacker.h \
   TpcDistortionCorrection.h \
   TpcDistortionCorrectionContainer.h \
   TpcLoadDistortionCorrection.h \
@@ -68,6 +70,8 @@ libtpc_la_SOURCES = \
   TpcRawDataTree.cc \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
+  TpcClusterQA.cc \
+  TpcCombinedRawDataUnpacker.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \
   TpcRawDataDecoder.cc \
@@ -76,21 +80,23 @@ libtpc_la_SOURCES = \
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
+  -lffarawobjects \
   -lc10 \
   -ltorch_cpu \
   -ltorch \
   -lmicromegas_io \
   -lfun4all \
   -lSpectrum \
-  -lpthread
+  -lpthread \
+  -lqautils
 
 # sources for io library
 libtpc_io_la_SOURCES = \
   $(ROOTDICTS) \
   TrainingHitsContainer.cc \
   TrainingHits.cc \
-  TpcDistortionCorrection.cc \
   TpcClusterMover.cc \
+  TpcDistortionCorrection.cc \
   TpcClusterZCrossingCorrection.cc
 
 libtpc_io_la_LIBADD = \

@@ -1,6 +1,7 @@
 #ifndef SPHENIXNPC_CDBUTILS_H
 #define SPHENIXNPC_CDBUTILS_H
 
+#include <cstdint>  // for uint64_t
 #include <set>
 #include <string>
 
@@ -35,6 +36,8 @@ class CDBUtils
   bool isGlobalTagSet();
   void Verbosity(int i);
   int Verbosity() const { return m_Verbosity; }
+  int deletePayloadIOV(const std::string &pl_type, uint64_t iov_start);
+  int deletePayloadIOV(const std::string &pl_type, uint64_t iov_start, uint64_t iov_end);
 
  private:
   int m_Verbosity = 0;
