@@ -18,13 +18,6 @@
 #include <algorithm>
 #include <cassert>
 
-std::set<int> Strobes;
-std::set<int> L1s;
-int StrobesWithL1 = 0;
-int L1s_usingInt = 0;
-int Strobes_usingInt = 0;
-int nL1sPerStrobe[10];
-
 //_________________________________________________________
 MvtxCombinedRawDataDecoder::MvtxCombinedRawDataDecoder( const std::string& name ):
   SubsysReco( name )
@@ -85,7 +78,7 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
+  mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeaderv1>(topNode, m_MvtxRawEvtHeaderNodeName);
   if (!mvtx_raw_event_header)
   {
     std::cout << PHWHERE << "::" << __func__ <<  ": Could not get \"" << m_MvtxRawEvtHeaderNodeName << "\" from Node Tree" << std::endl;
@@ -99,7 +92,7 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
 //___________________________________________________________________________
 int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 {
-  mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
+  mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeaderv1>(topNode, m_MvtxRawEvtHeaderNodeName);
   if (Verbosity() >= VERBOSITY_MORE) mvtx_raw_event_header->identify();
 
   hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -128,7 +121,6 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     assert(mvtx_event_header);
   }
 
-  ++Strobes_usingInt;
   for (unsigned int i = 0; i < mvtx_hit_container->get_nhits(); i++)
   {
     mvtx_hit = mvtx_hit_container->get_hit(i);
@@ -139,8 +131,6 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     chip = mvtx_hit->get_chip_id();
     row = mvtx_hit->get_row();
     col = mvtx_hit->get_col();
-
-    Strobes.insert(strobe);
 
     if( Verbosity() >= VERBOSITY_A_LOT ) mvtx_hit->identify();
         
@@ -167,23 +157,11 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 
   std::set<uint64_t> l1BCOs = mvtx_raw_event_header->getMvtxLvL1BCO();
 
-  if (l1BCOs.size()) ++StrobesWithL1;
-  nL1sPerStrobe[l1BCOs.size()]++;
-
-  for (auto iter = l1BCOs.begin(); iter != l1BCOs.end(); iter++)
-  {
-    L1s.insert(*iter); 
-  }
-
   if (m_writeMvtxEventHeader)
   {
     std::set<uint64_t> l1BCOs = mvtx_raw_event_header->getMvtxLvL1BCO();
     for (auto iter = l1BCOs.begin(); iter != l1BCOs.end(); iter++)
     {
-
-      L1s.insert(*iter);
-      ++L1s_usingInt;
-
       mvtx_event_header->set_strobe_BCO_L1_BCO(strobe, *iter);
     }
     if (Verbosity() >= VERBOSITY_EVEN_MORE) mvtx_event_header->identify();
@@ -196,18 +174,6 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 //_____________________________________________________________________
 int MvtxCombinedRawDataDecoder::End(PHCompositeNode* /*topNode*/ )
 {
-  if (Verbosity() >= VERBOSITY_EVEN_MORE)
-  {
-    std::cout << "If I use sets to avoid duplicates" << std::endl;
-    std::cout << "Number of strobes using sets: " << Strobes.size() << std::endl;
-    std::cout << "Number of L1s using sets: " << L1s.size() << std::endl;
-    std::cout << "If I use ints to count all instances" << std::endl;
-    std::cout << "Number of strobes using ints: " << Strobes_usingInt << std::endl;
-    std::cout << "Number of L1s using ints: " << L1s_usingInt << std::endl;
-    std::cout << "\nNumber of events with L1: " << StrobesWithL1 << std::endl;
-    for (int i = 0; i < 10; i++) std::cout << "Number of events with " << i << " L1 triggers: " << nL1sPerStrobe[i] << std::endl;
-  }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
