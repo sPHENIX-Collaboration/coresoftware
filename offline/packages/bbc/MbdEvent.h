@@ -4,6 +4,8 @@
 #include "MbdDefs.h"
 #include "MbdSig.h"
 
+#include <fun4all/Fun4AllBase.h>
+
 class PHCompositeNode;
 class Event;
 class Packet;
@@ -15,11 +17,11 @@ class CDBUtils;
 class TF1;
 class TCanvas;
 
-class MbdEvent
+class MbdEvent: public Fun4AllBase
 {
 public:
   MbdEvent ();
-  ~MbdEvent ();
+  virtual ~MbdEvent ();
 
   int SetRawData(Event *event, MbdPmtContainer *mbdpmts);
   int Calculate(MbdPmtContainer *mbdpmts, MbdOut *mbdout);
