@@ -118,7 +118,7 @@ int InttRawDataConverter::process_event(PHCompositeNode* topNode)
 	Event* evt = findNode::getClass<Event>(topNode, "PRDF");
 	if(!evt)return Fun4AllReturnCodes::DISCARDEVENT;
 
-	for(std::map<int, int>::const_iterator pkt_itr = Intt::Packet_Id.begin(); pkt_itr != Intt::Packet_Id.end(); ++pkt_itr)
+	for(std::map<int, int>::const_iterator pkt_itr = InttNameSpace::Packet_Id.begin(); pkt_itr != InttNameSpace::Packet_Id.end(); ++pkt_itr)
 	{
 		Packet* pkt = evt->getPacket(pkt_itr->first);
 		if(!pkt)continue;
@@ -139,10 +139,10 @@ int InttRawDataConverter::process_event(PHCompositeNode* topNode)
 	
 		for(int n = 0; n < num_hits; ++n)
 		{
-			raw = Intt::RawFromPacket(pkt_itr->second, n, pkt);
+			raw = InttNameSpace::RawFromPacket(pkt_itr->second, n, pkt);
 			branches["flx_chn"][n] = raw.felix_channel;
 
-			onl = Intt::ToOnline(raw);
+			onl = InttNameSpace::ToOnline(raw);
 			branches["lyr"][n] = onl.lyr;
 			branches["ldr"][n] = onl.ldr;
 			branches["arm"][n] = onl.arm;

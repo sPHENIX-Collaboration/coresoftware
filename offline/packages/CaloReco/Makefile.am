@@ -49,6 +49,7 @@ pkginclude_HEADERS = \
   CaloRecoUtility.h \
   CaloTowerBuilder.h \
   CaloTowerCalib.h \
+  CaloTowerDefs.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \

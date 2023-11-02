@@ -50,6 +50,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit* /* hit */);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
   void SetTpcBcoRange(const unsigned int i);
+  void SetMicromegasBcoRange(const unsigned int i);
 
  private:
   struct MvtxRawHitInfo
@@ -82,6 +83,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   bool m_micromegas_registered_flag = false;
   bool m_tpc_registered_flag = false;
   unsigned int m_tpc_bco_range {0};
+  unsigned int m_micromegas_bco_range {0};
   std::vector<SingleStreamingInput *> m_EvtInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;

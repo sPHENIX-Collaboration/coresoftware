@@ -8,6 +8,7 @@
 #include <Event/phenixTypes.h>
 
 #include <map>
+#include <set>
 #include <string>
 
 class SingleStreamingInput;
@@ -49,6 +50,8 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
   int FillIntt();
   int FillMicromegas();
   int FillTpc();
+  void AddMvtxFeeId(uint64_t bclk, uint16_t feeid);
+  void AddMvtxL1TrgBco(uint64_t bclk, uint64_t lv1Bco);
   void AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit);
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
   void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit* /* hit */);
@@ -63,6 +66,8 @@ class Fun4AllEvtInputPoolManager : public Fun4AllInputManager
 
   struct MvtxRawHitInfo
   {
+    std::set<uint16_t> MvtxFeeIds;
+    std::set<uint64_t> MvtxL1TrgBco;
     std::vector<MvtxRawHit *> MvtxRawHitVector;
     unsigned int EventFoundCounter = 0;
   };

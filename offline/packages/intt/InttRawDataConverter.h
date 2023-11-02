@@ -36,8 +36,8 @@ private:
 	Long64_t gtm_bco = 0;
 	Int_t flx_svr = 0;
 
-	Intt::RawData_s raw;
-	Intt::Online_s onl;
+	InttNameSpace::RawData_s raw;
+	InttNameSpace::Online_s onl;
 
 	typedef std::map<std::string, Int_t*> Branches_t;
 	Branches_t branches;

@@ -129,6 +129,10 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
   if( Verbosity() )
   { std::cout << "MicromegasCombinedDataEvaluation::process_event - hits: " << rawhitcontainer->get_nhits() << std::endl; }
   
+  bool first = true;
+  uint64_t first_lvl1_bco = 0;
+  
+  
   for( unsigned int ihit = 0; ihit < rawhitcontainer->get_nhits(); ++ihit )
   {
     const auto rawhit = rawhitcontainer->get_hit(ihit);
@@ -156,8 +160,16 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
     sample.fee_bco = rawhit->get_bco();
     sample.lvl1_bco = rawhit->get_gtm_bco();
 
+    if( first )
+    {
+      first = false;
+      first_lvl1_bco = rawhit->get_gtm_bco(); 
+    }
+    
     // increment bco map
-    ++m_bco_map[sample.lvl1_bco];
+    // ++m_bco_map[sample.lvl1_bco];
+
+    ++m_bco_map[first_lvl1_bco];
 
 //     // checksum and checksum error
 //     sample.checksum = rawhit->get_checksum();
