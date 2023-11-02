@@ -15,6 +15,7 @@ public:
   Gl1RawHitv1(Gl1RawHit *gl1hit);
   ~Gl1RawHitv1() override {};
 
+  void Reset() override;
   /** identify Function from PHObject
       @param os Output Stream
    */
