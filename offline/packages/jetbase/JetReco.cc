@@ -211,14 +211,14 @@ void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet *>
   }
   
       ///////////////////////////
-        std::cout << " FIXME B100 JetMap(" << _outputs[ipos] << ") Contents: " << jetmap->size() << std::endl;
+        std::cout << "OOO FIXME B100 JetMap(" << _outputs[ipos] << ") Contents: " << jetmap->size() << std::endl;
         for (auto iter = jetmap->begin(); iter != jetmap->end(); ++iter) {
           auto jet = iter->second;
-          std::cout << "jet(" << iter->first << Form(") pt:eta:phi(%5.2f,%5.2f,%5.2f) n_conts(%i)", 
+          std::cout << "OOO jet(" << iter->first << Form(") pt:eta:phi(%5.2f,%5.2f,%5.2f) n_conts(%i)", 
                 jet->get_pt(), jet->get_eta(), jet->get_phi(), ((int)jet->size_comp())) << std::endl;
           int nc = 0;
           for (auto citer = jet->begin_comp(); citer != jet->end_comp(); ++citer) {
-            std::cout << "  c(" << nc++ <<") " << citer->second << std::endl; 
+            std::cout << "OOO  c(" << nc++ <<") " << citer->second << std::endl; 
           }
         }
       ///////////////////////////
