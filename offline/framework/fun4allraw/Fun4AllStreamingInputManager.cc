@@ -99,13 +99,17 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
 int Fun4AllStreamingInputManager::run(const int /*nevents*/)
 {
   int iret = 0;
-  if (m_mvtx_registered_flag)
+  if (m_gl1_registered_flag)
   {
-    iret += FillMvtx();
+    iret += FillGl1();
   }
   if (m_intt_registered_flag)
   {
     iret += FillIntt();
+  }
+  if (m_mvtx_registered_flag)
+  {
+    iret += FillMvtx();
   }
   if (m_tpc_registered_flag)
   {
@@ -359,6 +363,9 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
   case Fun4AllStreamingInputManager::MICROMEGAS:
     m_micromegas_registered_flag = true;
     break;
+  case Fun4AllStreamingInputManager::GL1:
+    m_gl1_registered_flag = true;
+    break;
   default:
     std::cout << "invalid subsystem flag " << system << std::endl;
     gSystem->Exit(1);
@@ -421,6 +428,95 @@ void Fun4AllStreamingInputManager::AddTpcRawHit(uint64_t bclk, TpcRawHit *hit)
               << std::hex << bclk << std::dec << std::endl;
   }
   m_TpcRawHitMap[bclk].TpcRawHitVector.push_back(hit);
+}
+
+int Fun4AllStreamingInputManager::FillGl1()
+{
+//unsigned int alldone = 0;
+  for (auto iter : m_EvtInputVector)
+  {
+    if (iter->SubsystemEnum() != Fun4AllStreamingInputManager::GL1)
+    {
+      return 0;
+    }
+    if (Verbosity() > 0)
+    {
+      std::cout << "Fun4AllStreamingInputManager::FillGl1 - fill pool for " << iter->Name() << std::endl;
+    }
+    iter->FillPool();
+    m_RunNumber = iter->RunNumber();
+    SetRunNumber(m_RunNumber);
+  }
+    if (m_Gl1RawHitMap.empty())
+    {
+      std::cout << "we are done" << std::endl;
+      return -1;
+    }
+//    std::cout << "stashed gl1 BCOs: " << m_Gl1RawHitMap.size() << std::endl;
+    Gl1RawHit *gl1rawhit =  findNode::getClass<Gl1RawHit>(m_topNode,"GL1RAWHIT");
+//  std::cout << "before filling m_Gl1RawHitMap size: " <<  m_Gl1RawHitMap.size() << std::endl;
+    for (auto gl1hititer :  m_Gl1RawHitMap.begin()->second.Gl1RawHitVector)
+    {
+      if (Verbosity() > 1)
+      {
+	gl1hititer->identify();
+      }
+      gl1rawhit->set_bco(gl1hititer->get_bco());
+    }
+    for (auto iter : m_EvtInputVector)
+    {
+      iter->CleanupUsedPackets(m_Gl1RawHitMap.begin()->first);
+    }
+    m_Gl1RawHitMap.begin()->second.Gl1RawHitVector.clear();
+    m_Gl1RawHitMap.erase(m_Gl1RawHitMap.begin());
+  // std::cout << "size  m_Gl1RawHitMap: " <<  m_Gl1RawHitMap.size()
+  // 	    << std::endl;
+  return 0;
+}
+
+int Fun4AllStreamingInputManager::FillIntt()
+{
+//unsigned int alldone = 0;
+  for (auto iter : m_EvtInputVector)
+  {
+    if (iter->SubsystemEnum() != Fun4AllStreamingInputManager::INTT)
+    {
+      return 0;
+    }
+    if (Verbosity() > 0)
+    {
+      std::cout << "Fun4AllStreamingInputManager::FillIntt - fill pool for " << iter->Name() << std::endl;
+    }
+    iter->FillPool();
+    m_RunNumber = iter->RunNumber();
+    SetRunNumber(m_RunNumber);
+  }
+    if (m_InttRawHitMap.empty())
+    {
+      std::cout << "we are done" << std::endl;
+      return -1;
+    }
+//    std::cout << "stashed intt BCOs: " << m_InttRawHitMap.size() << std::endl;
+    InttRawHitContainer *inttcont =  findNode::getClass<InttRawHitContainer>(m_topNode,"INTTRAWHIT");
+//  std::cout << "before filling m_InttRawHitMap size: " <<  m_InttRawHitMap.size() << std::endl;
+    for (auto intthititer :  m_InttRawHitMap.begin()->second.InttRawHitVector)
+    {
+      if (Verbosity() > 1)
+      {
+	intthititer->identify();
+      }
+      inttcont->AddHit(intthititer);
+//     delete intthititer; // cleanup up done in Single Input Mgrs
+    }
+    for (auto iter : m_EvtInputVector)
+    {
+      iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
+    }
+    m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
+    m_InttRawHitMap.erase(m_InttRawHitMap.begin());
+  // std::cout << "size  m_InttRawHitMap: " <<  m_InttRawHitMap.size()
+  // 	    << std::endl;
+  return 0;
 }
 
 int Fun4AllStreamingInputManager::FillMvtx()
@@ -494,50 +590,6 @@ int Fun4AllStreamingInputManager::FillMvtx()
   return 0;
 }
 
-int Fun4AllStreamingInputManager::FillIntt()
-{
-//unsigned int alldone = 0;
-  for (auto iter : m_EvtInputVector)
-  {
-    if (iter->SubsystemEnum() != Fun4AllStreamingInputManager::INTT)
-    {
-      return 0;
-    }
-    if (Verbosity() > 0)
-    {
-      std::cout << "Fun4AllStreamingInputManager::FillIntt - fill pool for " << iter->Name() << std::endl;
-    }
-    iter->FillPool();
-    m_RunNumber = iter->RunNumber();
-    SetRunNumber(m_RunNumber);
-  }
-    if (m_InttRawHitMap.empty())
-    {
-      std::cout << "we are done" << std::endl;
-      return -1;
-    }
-//    std::cout << "stashed intt BCOs: " << m_InttRawHitMap.size() << std::endl;
-    InttRawHitContainer *inttcont =  findNode::getClass<InttRawHitContainer>(m_topNode,"INTTRAWHIT");
-//  std::cout << "before filling m_InttRawHitMap size: " <<  m_InttRawHitMap.size() << std::endl;
-    for (auto intthititer :  m_InttRawHitMap.begin()->second.InttRawHitVector)
-    {
-      if (Verbosity() > 1)
-      {
-	intthititer->identify();
-      }
-      inttcont->AddHit(intthititer);
-//     delete intthititer; // cleanup up done in Single Input Mgrs
-    }
-    for (auto iter : m_EvtInputVector)
-    {
-      iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
-    }
-    m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
-    m_InttRawHitMap.erase(m_InttRawHitMap.begin());
-  // std::cout << "size  m_InttRawHitMap: " <<  m_InttRawHitMap.size()
-  // 	    << std::endl;
-  return 0;
-}
 
 //_______________________________________________________
 int Fun4AllStreamingInputManager::FillMicromegas()

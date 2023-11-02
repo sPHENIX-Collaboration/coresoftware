@@ -25,12 +25,6 @@ SingleGl1PoolInput::SingleGl1PoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
   SubsystemEnum(Fun4AllStreamingInputManager::GL1);
-  plist = new Packet *[NPACKETS];
-}
-
-SingleGl1PoolInput::~SingleGl1PoolInput()
-{
-  delete[] plist;
 }
 
 void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
@@ -72,49 +66,37 @@ void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, NPACKETS);
-
-    if (npackets > NPACKETS)
-    {
-      exit(1);
-    }
-    for (int i = 0; i < npackets; i++)
-    {
+    Packet *packet =  evt->getPacket(14001);
       
-      // keep pointer to local packet
-      auto& packet = plist[i];
 
-      if (Verbosity() > 1)
-      {
-        packet->identify();
-      }
+    if (Verbosity() > 1)
+    {
+      packet->identify();
+    }
 
-      // by default use previous bco clock for gtm bco
-	Gl1RawHit *newhit = new Gl1RawHitv1();
-        uint64_t gtm_bco = packet->lValue(0, "BCO");
-	newhit->set_bco(packet->lValue(0, "BCO"));
+    // by default use previous bco clock for gtm bco
+    Gl1RawHit *newhit = new Gl1RawHitv1();
+    uint64_t gtm_bco = packet->lValue(0, "BCO");
+    newhit->set_bco(packet->lValue(0, "BCO"));
       
         
-	m_BeamClockFEE.insert(gtm_bco);
-	m_FEEBclkMap.insert(gtm_bco);
-	if (Verbosity() > 2)
-	{
-	  std::cout << "evtno: " << EventSequence
-		    << ", bco: 0x" << std::hex << gtm_bco << std::dec
-		    << std::endl;
-	}
-//          packet->convert();
-	if (StreamingInputManager())
-	{
-	  StreamingInputManager()->AddGl1RawHit(gtm_bco, newhit);
-	}
-	m_Gl1RawHitMap[gtm_bco].push_back(newhit);
-	m_BclkStack.insert(gtm_bco);
-      
-      delete packet;
+    m_BeamClockFEE.insert(gtm_bco);
+    m_FEEBclkMap.insert(gtm_bco);
+    if (Verbosity() > 2)
+    {
+      std::cout << "evtno: " << EventSequence
+		<< ", bco: 0x" << std::hex << gtm_bco << std::dec
+		<< std::endl;
     }
+    if (StreamingInputManager())
+    {
+      StreamingInputManager()->AddGl1RawHit(gtm_bco, newhit);
+    }
+    m_Gl1RawHitMap[gtm_bco].push_back(newhit);
+    m_BclkStack.insert(gtm_bco);
+      
+    delete packet;
   }
-//  } while (m_Gl1RawHitMap.size() < 10 || CheckPoolDepth(m_Gl1RawHitMap.begin()->first));
 }
 
 void SingleGl1PoolInput::Print(const std::string &what) const
@@ -238,22 +220,14 @@ bool SingleGl1PoolInput::GetSomeMoreEvents()
   uint64_t lowest_bclk = m_Gl1RawHitMap.begin()->first;
   lowest_bclk += m_BcoRange;
   uint64_t last_bclk = m_Gl1RawHitMap.rbegin()->first;
-      std::cout << "first bclk 0x" <<  std::hex << lowest_bclk
-		<< " last bco: 0x" << last_bclk
-       		<< std::dec << std::endl;
+       std::cout << "first bclk 0x" <<  std::hex << lowest_bclk
+       		<< " last bco: 0x" << last_bclk
+        		<< std::dec << std::endl;
   if (lowest_bclk >= last_bclk)
   {
     return true;
   }
   return false;
-  // if (CheckPoolDepth(m_Gl1RawHitMap.begin()->first))
-  // {
-  //   if (m_Gl1RawHitMap.size() >= 10)
-  //   {
-  //     return false;
-  //   }
-  // }
-  // return true;
 }
 
 void SingleGl1PoolInput::CreateDSTNode(PHCompositeNode *topNode)

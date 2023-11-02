@@ -18,7 +18,7 @@ class SingleGl1PoolInput : public SingleStreamingInput
 {
  public:
   explicit SingleGl1PoolInput(const std::string &name);
-  ~SingleGl1PoolInput() override;
+  ~SingleGl1PoolInput() override = default;
   void FillPool(const unsigned int) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   bool CheckPoolDepth(const uint64_t bclk) override;
@@ -30,7 +30,6 @@ class SingleGl1PoolInput : public SingleStreamingInput
 //  void ConfigureStreamingInputManager() override;
 
  private:
-  Packet **plist {nullptr};
   unsigned int m_NumSpecialEvents {0};
   unsigned int m_BcoRange {0};
 

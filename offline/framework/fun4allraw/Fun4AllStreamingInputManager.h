@@ -41,9 +41,10 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   int HasSyncObject() const override { return 1; }
   std::string GetString(const std::string &what) const override;
   void registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem);
-  int FillMvtx();
+  int FillGl1();
   int FillIntt();
   int FillMicromegas();
+  int FillMvtx();
   int FillTpc();
   void AddGl1RawHit(uint64_t bclk, Gl1RawHit *hit);
   void AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit);
@@ -85,10 +86,11 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   };
 
   int m_RunNumber = 0;
-  bool m_mvtx_registered_flag = false;
-  bool m_intt_registered_flag = false;
-  bool m_micromegas_registered_flag = false;
-  bool m_tpc_registered_flag = false;
+  bool m_gl1_registered_flag {false};
+  bool m_intt_registered_flag {false};
+  bool m_micromegas_registered_flag {false};
+  bool m_mvtx_registered_flag {false};
+  bool m_tpc_registered_flag {false};
   unsigned int m_tpc_bco_range {0};
   unsigned int m_micromegas_bco_range {0};
   std::vector<SingleStreamingInput *> m_EvtInputVector;
