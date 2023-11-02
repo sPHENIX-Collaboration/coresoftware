@@ -156,7 +156,7 @@ void FastJetOptions::print(std::ostream& os)
 
 void FastJetOptions::initialize()
 {
-  // set some required derivefd options when first running FastJetAlgo
+  // set some required derived options when first running FastJetAlgo
   if (calc_jetmedbkgdens) {
     calc_area = true;
   }

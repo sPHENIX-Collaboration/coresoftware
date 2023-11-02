@@ -68,7 +68,7 @@ int JetReco::InitRun(PHCompositeNode *topNode)
 
 int JetReco::process_event(PHCompositeNode *topNode)
 {
-  std::cout << " FIXME B0 enter process_event" << std::endl;
+  std::cout << " FIXME B0 enter process_event(" << this->Name() << ")" << std::endl;
   if (Verbosity() > 1) std::cout << "JetReco::process_event -- entered" << std::endl;
 
   //------------------------------------------------------------------
@@ -109,13 +109,16 @@ int JetReco::process_event(PHCompositeNode *topNode)
       if (Verbosity() > 5) std::cout << " Verbosity>5:: filling jetnode for " << _outputs[ialgo] << std::endl;
       std::cout << " FIXME D2.5 in JetReco" << std::endl;
       std::cout << " inputs size: " << inputs.size() << std::endl;
-      std::cout << " pt: " << inputs[0]->get_pt() << std::endl;
-      std::cout << "first comp: " << (inputs[0]->begin_comp()->second) << std::endl; // Jet is a Jetv1
+      if (inputs.size() > 0) {
+        std::cout << " pt: " << inputs[0]->get_pt() << std::endl;
+        std::cout << "first comp: " << (inputs[0]->begin_comp()->second) << std::endl; // Jet is a Jetv1
+      }
       std::cout << "algos size: " << _algos.size() << " and getting " << ialgo << std::endl;
       std::vector<Jet *> jets = _algos[ialgo]->get_jets(inputs);  // owns memory
       std::cout << " FIXME D3 in JetReco" << std::endl;
       FillJetNode(topNode, ialgo, jets);
       std::cout << " FIXME D4 in JetReco" << std::endl;
+
     }
   }
   std::cout << " FIXME D5 in JetReco" << std::endl;
@@ -206,6 +209,19 @@ void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet *>
   {
     jetmap->insert(jet);  // map takes ownership, sets unique id
   }
+  
+      ///////////////////////////
+        std::cout << " FIXME B100 JetMap(" << _outputs[ipos] << ") Contents: " << jetmap->size() << std::endl;
+        for (auto iter = jetmap->begin(); iter != jetmap->end(); ++iter) {
+          auto jet = iter->second;
+          std::cout << "jet(" << iter->first << Form(") pt:eta:phi(%5.2f,%5.2f,%5.2f) n_conts(%i)", 
+                jet->get_pt(), jet->get_eta(), jet->get_phi(), ((int)jet->size_comp())) << std::endl;
+          int nc = 0;
+          for (auto citer = jet->begin_comp(); citer != jet->end_comp(); ++citer) {
+            std::cout << "  c(" << nc++ <<") " << citer->second << std::endl; 
+          }
+        }
+      ///////////////////////////
 
   return;
 }
