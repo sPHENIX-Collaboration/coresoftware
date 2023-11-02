@@ -41,6 +41,10 @@ namespace
     }
     return out;
   }
+  
+  // minimum number of requested samples
+  static constexpr int m_min_req_samples = 5;
+  
 }
 
 //______________________________________________________________
@@ -84,17 +88,20 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
     { std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl; }
 
     RunNumber(evt->getRunNumber());
-    if (GetVerbosity() > 1)
+    if (Verbosity() > 1)
     { evt->identify(); }
 
     if (evt->getEvtType() != DATAEVENT)
     { m_NumSpecialEvents++; }
 
-    int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, 10);
+    const int EventSequence = evt->getEvtSequence();
+    const int npackets = evt->getPacketList(plist, 10);
 
     if (npackets == 10)
-    { exit(1); }
+    { 
+      std::cout << "SingleMicromegasPoolInput::FillPool - too many packets" << std::endl;
+      exit(1); 
+    }
 
     for (int i = 0; i < npackets; i++)
     {
@@ -150,9 +157,17 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       for (int wf = 0; wf < nwf; wf++)
       {
 
-        // get fee
+        // get fee id
         const int fee_id = packet->iValue(wf, "FEE");
 
+        // get checksum_error and check
+        const auto checksum_error = packet->iValue(wf, "CHECKSUMERROR");
+        if( checksum_error ) continue;
+        
+        // get number of samples and check
+        const uint16_t samples = packet->iValue(wf, "SAMPLES");
+        if( samples < m_min_req_samples ) continue;
+        
         // get fee bco
         const unsigned int fee_bco = packet->iValue(wf, "BCO");
 
@@ -321,33 +336,6 @@ void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
     m_MicromegasRawHitMap.erase(iter);
   }
 }
-
-// //____________________________________________________________________________
-// bool SingleMicromegasPoolInput::CheckPoolDepth(const uint64_t bclk)
-// {
-//   for (const auto& [fee,bco] : m_FEEBclkMap)
-//   {
-//     if (Verbosity() > 2)
-//     {
-//       std::cout
-//         << "SingleMicromegasPoolInput::CheckPoolDepth -"
-//         << " my bclk 0x" << std::hex << bco
-//         << " req: 0x" << bclk << std::dec << std::endl;
-//     }
-//
-//     if (bco < bclk)
-//     {
-//       if (Verbosity() > 1)
-//       {
-//         std::cout << "SingleMicromegasPoolInput::CheckPoolDepth -"
-//           << " FEE " << fee << " beamclock 0x" << std::hex << bco
-//           << " smaller than req bclk: 0x" << bclk << std::dec << std::endl;
-//       }
-//       return false;
-//     }
-//   }
-//   return true;
-// }
 
 //_______________________________________________________
 void SingleMicromegasPoolInput::ClearCurrentEvent()
