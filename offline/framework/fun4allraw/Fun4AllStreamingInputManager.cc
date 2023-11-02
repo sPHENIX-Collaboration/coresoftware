@@ -92,7 +92,11 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
 
   for (auto iter : m_EvtInputVector)
   {
-    delete iter;
+    for (auto iter2 : iter)
+    {
+      delete iter2;
+    }
+//    m_EvtInputVector.erase(iter);
   }
 }
 
@@ -206,7 +210,11 @@ int Fun4AllStreamingInputManager::fileclose()
 {
   for (auto iter : m_EvtInputVector)
   {
-    delete iter;
+    for (auto iter2 : iter)
+    {
+      delete iter2;
+    }
+//    m_EvtInputVector.erase(iter);
   }
   m_EvtInputVector.clear();
   return 0;
@@ -345,7 +353,7 @@ std::string Fun4AllStreamingInputManager::GetString(const std::string &what) con
 
 void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem system)
 {
-  m_EvtInputVector.push_back(evtin);
+
   evtin->StreamingInputManager(this);
   evtin->CreateDSTNode(m_topNode);
   evtin->ConfigureStreamingInputManager();
@@ -353,18 +361,28 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
   {
   case Fun4AllStreamingInputManager::MVTX:
     m_mvtx_registered_flag = true;
+    m_MvtxInputVector.push_back(evtin);
+    m_EvtInputVector.push_back(m_MvtxInputVector);
     break;
   case Fun4AllStreamingInputManager::INTT:
     m_intt_registered_flag = true;
+    m_InttInputVector.push_back(evtin);
+    m_EvtInputVector.push_back(m_InttInputVector);
     break;
   case Fun4AllStreamingInputManager::TPC:
     m_tpc_registered_flag = true;
+    m_TpcInputVector.push_back(evtin);
+    m_EvtInputVector.push_back(m_TpcInputVector);
     break;
   case Fun4AllStreamingInputManager::MICROMEGAS:
     m_micromegas_registered_flag = true;
+    m_MicromegasInputVector.push_back(evtin);
+    m_EvtInputVector.push_back(m_MicromegasInputVector);
     break;
   case Fun4AllStreamingInputManager::GL1:
     m_gl1_registered_flag = true;
+    m_Gl1InputVector.push_back(evtin);
+    m_EvtInputVector.push_back(m_Gl1InputVector);
     break;
   default:
     std::cout << "invalid subsystem flag " << system << std::endl;
@@ -374,7 +392,12 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
   if (Verbosity() > 3)
   {
     std::cout << "registering " << evtin->Name()
-	      << " number of registered inputs: " << m_EvtInputVector.size()
+	      << " number of registered inputs: " 
+              << m_Gl1InputVector.size() 
+      + m_InttInputVector.size()
+      + m_MicromegasInputVector.size()
+      + m_MvtxInputVector.size()
+      + m_TpcInputVector.size()
 	      << std::endl;
   }
 }
@@ -433,12 +456,8 @@ void Fun4AllStreamingInputManager::AddTpcRawHit(uint64_t bclk, TpcRawHit *hit)
 int Fun4AllStreamingInputManager::FillGl1()
 {
 //unsigned int alldone = 0;
-  for (auto iter : m_EvtInputVector)
+  for (auto iter : m_Gl1InputVector)
   {
-    if (iter->SubsystemEnum() != Fun4AllStreamingInputManager::GL1)
-    {
-      return 0;
-    }
     if (Verbosity() > 0)
     {
       std::cout << "Fun4AllStreamingInputManager::FillGl1 - fill pool for " << iter->Name() << std::endl;
@@ -461,9 +480,11 @@ int Fun4AllStreamingInputManager::FillGl1()
       {
 	gl1hititer->identify();
       }
-      gl1rawhit->set_bco(gl1hititer->get_bco());
+      m_RefBCO = gl1hititer->get_bco();
+      gl1rawhit->set_bco(m_RefBCO);
+      m_RefBCO = m_RefBCO & 0xFFFFFFFFFF; // 40 bits (need to handle rollovers)
     }
-    for (auto iter : m_EvtInputVector)
+    for (auto iter : m_Gl1InputVector)
     {
       iter->CleanupUsedPackets(m_Gl1RawHitMap.begin()->first);
     }
@@ -477,12 +498,8 @@ int Fun4AllStreamingInputManager::FillGl1()
 int Fun4AllStreamingInputManager::FillIntt()
 {
 //unsigned int alldone = 0;
-  for (auto iter : m_EvtInputVector)
+  for (auto iter : m_InttInputVector)
   {
-    if (iter->SubsystemEnum() != Fun4AllStreamingInputManager::INTT)
-    {
-      return 0;
-    }
     if (Verbosity() > 0)
     {
       std::cout << "Fun4AllStreamingInputManager::FillIntt - fill pool for " << iter->Name() << std::endl;
@@ -499,6 +516,9 @@ int Fun4AllStreamingInputManager::FillIntt()
 //    std::cout << "stashed intt BCOs: " << m_InttRawHitMap.size() << std::endl;
     InttRawHitContainer *inttcont =  findNode::getClass<InttRawHitContainer>(m_topNode,"INTTRAWHIT");
 //  std::cout << "before filling m_InttRawHitMap size: " <<  m_InttRawHitMap.size() << std::endl;
+    if (m_gl1_registered_flag)
+    {
+    }
     for (auto intthititer :  m_InttRawHitMap.begin()->second.InttRawHitVector)
     {
       if (Verbosity() > 1)
@@ -508,7 +528,7 @@ int Fun4AllStreamingInputManager::FillIntt()
       inttcont->AddHit(intthititer);
 //     delete intthititer; // cleanup up done in Single Input Mgrs
     }
-    for (auto iter : m_EvtInputVector)
+    for (auto iter : m_InttInputVector)
     {
       iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
     }
@@ -523,7 +543,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
 {
   //TODO: Find a better placement for this counter that dont need to be executed every call
   unsigned int nMvtxEvtInputs = 0;
-  for (auto iter : m_EvtInputVector)
+  for (auto iter : m_MvtxInputVector)
   {
     if (iter->SubsystemEnum() != Fun4AllStreamingInputManager::MVTX)
     {
@@ -534,22 +554,15 @@ int Fun4AllStreamingInputManager::FillMvtx()
   while (m_MvtxRawHitMap.size() < 5) // pooling at least 5 events
   {
     unsigned int alldone = 0;
-    for (auto iter : m_EvtInputVector)
+    for (auto iter : m_MvtxInputVector)
     {
-      if ( dynamic_cast<SingleMvtxInput*>(iter) )
+      alldone += iter->AllDone();
+      if (Verbosity() > 0)
       {
-	      alldone += iter->AllDone();
-        if (Verbosity() > 0)
-        {
-	        std::cout << "fill pool for " << iter->Name() << std::endl;
-	      }
-	      iter->FillPool();
-	      m_RunNumber = iter->RunNumber();
+	std::cout << "fill pool for " << iter->Name() << std::endl;
       }
-      else
-      {
-        continue;
-      }
+      iter->FillPool();
+      m_RunNumber = iter->RunNumber();
     }
     if (alldone >= nMvtxEvtInputs)
     {
@@ -579,7 +592,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
     mvtxcont->AddHit(mvtxhititer);
 //  delete intthititer; // cleanup up done in Single Input Mgrs
   }
-  for (auto iter : m_EvtInputVector)
+  for (auto iter : m_MvtxInputVector)
   {
     iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
   }
@@ -595,10 +608,8 @@ int Fun4AllStreamingInputManager::FillMvtx()
 int Fun4AllStreamingInputManager::FillMicromegas()
 {
   // loop over inputs
-  for( const auto& iter : m_EvtInputVector)
+  for( const auto& iter : m_MicromegasInputVector)
   {
-    if(iter->SubsystemEnum() != Fun4AllStreamingInputManager::MICROMEGAS)
-    { return 0; }
     iter->FillPool();
     m_RunNumber = iter->RunNumber();
     SetRunNumber(m_RunNumber);
@@ -615,7 +626,7 @@ int Fun4AllStreamingInputManager::FillMicromegas()
     for( const auto& hititer :  m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector)
     { container->AddHit(hititer); }
     
-    for( const auto& iter : m_EvtInputVector)
+    for( const auto& iter : m_MicromegasInputVector)
     { iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first); }
 
     m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
@@ -628,12 +639,8 @@ int Fun4AllStreamingInputManager::FillMicromegas()
 
 int Fun4AllStreamingInputManager::FillTpc()
 {
-      for (auto iter : m_EvtInputVector)
+      for (auto iter : m_TpcInputVector)
       {
-	if (iter->SubsystemEnum() != Fun4AllStreamingInputManager::TPC)
-	{
-	  return 0;
-	}
 	if (Verbosity() > 0)
 	{
 	  std::cout << "Fun4AllStreamingInputManager::FillTpc - fill pool for " << iter->Name() << std::endl;
@@ -650,13 +657,30 @@ int Fun4AllStreamingInputManager::FillTpc()
     }
     TpcRawHitContainer *tpccont =  findNode::getClass<TpcRawHitContainer>(m_topNode,"TPCRAWHIT");
 //  std::cout << "before filling m_TpcRawHitMap size: " <<  m_TpcRawHitMap.size() << std::endl;
-    uint64_t select_crossings =  m_TpcRawHitMap.begin()->first + m_tpc_bco_range;
+    uint64_t select_crossings =  m_tpc_bco_range;
+    if (m_RefBCO > 0)
+    {
+      select_crossings += m_RefBCO;
+    }
+    else
+    {
+      select_crossings += m_TpcRawHitMap.begin()->first;
+   }
     if (Verbosity() > 2)
     {
       std::cout << "select TPC crossings"
 		<< " from 0x" << std::hex << m_TpcRawHitMap.begin()->first
 		<< " to 0x" << select_crossings
 		<< std::dec << std::endl;
+    }
+    while(m_TpcRawHitMap.begin()->first < m_RefBCO)
+    {
+      for (auto iter : m_TpcInputVector)
+      {
+	iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
+      }
+      m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
+      m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
     }
     while(m_TpcRawHitMap.begin()->first <= select_crossings)
     {
@@ -668,7 +692,7 @@ int Fun4AllStreamingInputManager::FillTpc()
 	}
 	tpccont->AddHit(tpchititer);
       }
-      for (auto iter : m_EvtInputVector)
+      for (auto iter : m_TpcInputVector)
       {
 	iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
       }

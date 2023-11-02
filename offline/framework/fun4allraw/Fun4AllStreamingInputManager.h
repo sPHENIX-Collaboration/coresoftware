@@ -93,7 +93,13 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   bool m_tpc_registered_flag {false};
   unsigned int m_tpc_bco_range {0};
   unsigned int m_micromegas_bco_range {0};
-  std::vector<SingleStreamingInput *> m_EvtInputVector;
+  uint64_t m_RefBCO {0};
+  std::vector<std::vector<SingleStreamingInput *>> m_EvtInputVector;
+  std::vector<SingleStreamingInput *> m_Gl1InputVector;
+  std::vector<SingleStreamingInput *> m_InttInputVector;
+  std::vector<SingleStreamingInput *> m_MicromegasInputVector;
+  std::vector<SingleStreamingInput *> m_MvtxInputVector;
+  std::vector<SingleStreamingInput *> m_TpcInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
   std::map<uint64_t, Gl1RawHitInfo> m_Gl1RawHitMap;
