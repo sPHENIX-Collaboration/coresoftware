@@ -2,7 +2,7 @@
 
 InttEventInfov1::InttEventInfov1()
 {
-  Reset();
+  bco_full = 0;
 }
 
 InttEventInfov1::~InttEventInfov1()

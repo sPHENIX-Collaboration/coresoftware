@@ -1,15 +1,5 @@
 #include "InttEventInfo.h"
 
-InttEventInfo::InttEventInfo()
-{
-  //Do nothing
-}
-
-InttEventInfo::~InttEventInfo()
-{
-  //Do nothing
-}
-
 void
 InttEventInfo::identify(std::ostream& os) const
 {

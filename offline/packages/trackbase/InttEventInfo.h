@@ -15,8 +15,8 @@
 class InttEventInfo : public PHObject
 {
  public:
-  InttEventInfo();
-  virtual ~InttEventInfo();
+  InttEventInfo() = default;
+  virtual ~InttEventInfo() = default;
 
   virtual void identify(std::ostream &os = std::cout) const;
   virtual void Reset();
