@@ -5,12 +5,13 @@
 #include "SingleEvtInput.h"
 #include "SingleTpcInput.h"
 
-#include <ffarawobjects/MvtxRawHit.h>
-#include <ffarawobjects/MvtxRawHitContainerv1.h>
+#include <ffarawobjects/Gl1RawHit.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainerv1.h>
 #include <ffarawobjects/MicromegasRawHit.h>
 #include <ffarawobjects/MicromegasRawHitContainerv1.h>
+#include <ffarawobjects/MvtxRawHit.h>
+#include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/TpcRawHit.h>
 #include <ffarawobjects/TpcRawHitContainerv1.h>
 
@@ -33,10 +34,10 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <Event/A_Event.h>
-#include <Event/Event.h>
-#include <Event/Eventiterator.h>  // for Eventiterator
-#include <Event/fileEventiterator.h>
+// #include <Event/A_Event.h>
+// #include <Event/Event.h>
+// #include <Event/Eventiterator.h>  // for Eventiterator
+// #include <Event/fileEventiterator.h>
 
 #include <TSystem.h>
 
@@ -337,23 +338,7 @@ std::string Fun4AllStreamingInputManager::GetString(const std::string &what) con
   std::cout << PHWHERE << " called with " << what << " , returning empty string" << std::endl;
   return "";
 }
-/*
-SingleEvtInput *Fun4AllStreamingInputManager::AddEvtInputFile(const std::string &filenam)
-{
-  SingleEvtInput *evtin = new SingleEvtInput("EVTIN_" + std::to_string(m_EvtInputVector.size()), this);
-  evtin->AddFile(filenam);
-  m_EvtInputVector.push_back(evtin);
-  return m_EvtInputVector.back();
-}
 
-SingleEvtInput *Fun4AllStreamingInputManager::AddEvtInputList(const std::string &filenam)
-{
-  SingleEvtInput *evtin = new SingleEvtInput("EVTIN_" + std::to_string(m_EvtInputVector.size()), this);
-  evtin->AddListFile(filenam);
-  m_EvtInputVector.push_back(evtin);
-  return m_EvtInputVector.back();
-}
-*/
 void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem system)
 {
   m_EvtInputVector.push_back(evtin);
@@ -385,6 +370,16 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
 	      << " number of registered inputs: " << m_EvtInputVector.size()
 	      << std::endl;
   }
+}
+
+void Fun4AllStreamingInputManager::AddGl1RawHit(uint64_t bclk, Gl1RawHit *hit)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "Adding gl1 hit to bclk 0x"
+              << std::hex << bclk << std::dec << std::endl;
+  }
+  m_Gl1RawHitMap[bclk].Gl1RawHitVector.push_back(hit);
 }
 
 void Fun4AllStreamingInputManager::AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit)

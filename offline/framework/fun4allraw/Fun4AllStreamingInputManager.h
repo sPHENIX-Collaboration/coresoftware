@@ -11,10 +11,10 @@
 #include <string>
 
 class SingleStreamingInput;
-class ospEvent;
-class MvtxRawHit;
+class Gl1RawHit;
 class InttRawHit;
 class MicromegasRawHit;
+class MvtxRawHit;
 class Packet;
 class PHCompositeNode;
 class SyncObject;
@@ -26,7 +26,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   Fun4AllStreamingInputManager(const std::string &name = "DUMMY", const std::string &dstnodename = "DST", const std::string &topnodename = "TOP");
   ~Fun4AllStreamingInputManager() override;
 
-  enum enu_subsystem { MVTX = 1, INTT = 2, TPC = 3, MICROMEGAS = 4};
+  enum enu_subsystem { MVTX = 1, INTT = 2, TPC = 3, MICROMEGAS = 4, GL1 = 5};
 
   int fileopen(const std::string & /*filenam*/) override { return 0; }
   // cppcheck-suppress virtualCallInConstructor
@@ -45,6 +45,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   int FillIntt();
   int FillMicromegas();
   int FillTpc();
+  void AddGl1RawHit(uint64_t bclk, Gl1RawHit *hit);
   void AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit);
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
   void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit* /* hit */);
@@ -56,6 +57,12 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   struct MvtxRawHitInfo
   {
     std::vector<MvtxRawHit *> MvtxRawHitVector;
+    unsigned int EventFoundCounter = 0;
+  };
+
+  struct Gl1RawHitInfo
+  {
+    std::vector<Gl1RawHit *> Gl1RawHitVector;
     unsigned int EventFoundCounter = 0;
   };
 
@@ -87,9 +94,10 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   std::vector<SingleStreamingInput *> m_EvtInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
-  std::map<uint64_t, MvtxRawHitInfo> m_MvtxRawHitMap;
+  std::map<uint64_t, Gl1RawHitInfo> m_Gl1RawHitMap;
   std::map<uint64_t, InttRawHitInfo> m_InttRawHitMap;
   std::map<uint64_t, MicromegasRawHitInfo> m_MicromegasRawHitMap;
+  std::map<uint64_t, MvtxRawHitInfo> m_MvtxRawHitMap;
   std::map<uint64_t, TpcRawHitInfo> m_TpcRawHitMap;
   std::map<int, std::map<int, uint64_t>> m_InttPacketFeeBcoMap;
 };
