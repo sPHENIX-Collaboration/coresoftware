@@ -77,7 +77,7 @@ int JetReco::InitRun(PHCompositeNode *topNode)
 
 int JetReco::process_event(PHCompositeNode *topNode)
 {
-  /* std::cout << " FIXME B0 enter process_event(" << this->Name() << ")" << std::endl; */
+  std::cout << " FIXME B0 enter process_event(" << this->Name() << ")" << std::endl;
   if (Verbosity() > 1) std::cout << "JetReco::process_event -- entered" << std::endl;
 
   //------------------------------------------------------------------
@@ -219,17 +219,17 @@ void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet *>
     jetmap->insert(jet);  // map takes ownership, sets unique id
   }
   
-      /* /////////////////////////// */
-      /*   std::cout << "OOO FIXME B100 JetMap(" << _outputs[ipos] << ") Contents: " << jetmap->size() << std::endl; */
-      /*   for (auto iter = jetmap->begin(); iter != jetmap->end(); ++iter) { */
-      /*     auto jet = iter->second; */
-      /*     std::cout << "OOO jet(" << iter->first << Form(") pt:eta:phi(%5.2f,%5.2f,%5.2f) n_conts(%i)", */ 
-      /*           jet->get_pt(), jet->get_eta(), jet->get_phi(), ((int)jet->size_comp())) << std::endl; */
+      ///////////////////////////
+        std::cout << "OOO FIXME B100 JetMap(" << _outputs[ipos] << ") Contents: " << jetmap->size() << std::endl;
+        for (auto iter = jetmap->begin(); iter != jetmap->end(); ++iter) {
+          auto jet = iter->second;
+          std::cout << "OOO jet(" << iter->first << Form(") pt:eta:phi(%5.2f,%5.2f,%5.2f) n_conts(%i)", 
+                jet->get_pt(), jet->get_eta(), jet->get_phi(), ((int)jet->size_comp())) << std::endl;
       /*     int nc = 0; */
       /*     for (auto citer = jet->begin_comp(); citer != jet->end_comp(); ++citer) { */
       /*       std::cout << "OOO  c(" << nc++ <<") " << citer->second << std::endl; */ 
       /*     } */
-      /*   } */
+        }
       /* /////////////////////////// */
 
   return;
