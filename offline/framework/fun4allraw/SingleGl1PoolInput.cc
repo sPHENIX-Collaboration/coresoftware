@@ -27,6 +27,11 @@ SingleGl1PoolInput::SingleGl1PoolInput(const std::string &name)
   SubsystemEnum(Fun4AllStreamingInputManager::GL1);
 }
 
+SingleGl1PoolInput::~SingleGl1PoolInput()
+{
+  CleanupUsedPackets(std::numeric_limits<uint64_t>::max());
+}
+
 void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
 {
   if (AllDone())  // no more files and all events read
@@ -220,9 +225,12 @@ bool SingleGl1PoolInput::GetSomeMoreEvents()
   uint64_t lowest_bclk = m_Gl1RawHitMap.begin()->first;
   lowest_bclk += m_BcoRange;
   uint64_t last_bclk = m_Gl1RawHitMap.rbegin()->first;
+  if (Verbosity() > 1)
+  {
        std::cout << "first bclk 0x" <<  std::hex << lowest_bclk
        		<< " last bco: 0x" << last_bclk
         		<< std::dec << std::endl;
+  }
   if (lowest_bclk >= last_bclk)
   {
     return true;
