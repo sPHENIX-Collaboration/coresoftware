@@ -2,6 +2,8 @@
 #define __MBDCALIB_H__
 
 #include "MbdDefs.h"
+
+#include <fun4all/Fun4AllBase.h>
 #include <phool/recoConsts.h>
 
 #include <cmath>
@@ -11,7 +13,7 @@
 class TTree;
 class CDBInterface;
 
-class MbdCalib
+class MbdCalib: public Fun4AllBase
 {
 public:
   MbdCalib();

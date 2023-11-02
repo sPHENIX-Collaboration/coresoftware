@@ -73,6 +73,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   {
     m_detector = "CEMC";
     m_DETECTOR = TowerInfoContainer::EMCAL;
+    std::string default_time_independent_calib = "cemc_pi0_twrSlope_v1_default";
 
     if (!m_overrideCalibName)
     {
@@ -89,8 +90,15 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     }
     else
     {
-      std::cout << "CaloTowerCalib::::InitRun No calibration file for domain " << m_calibName << " found" << std::endl;
-      exit(1);
+      calibdir = CDBInterface::instance()->getUrl(default_time_independent_calib);
+
+      if (calibdir.empty())
+      {
+        std::cout << "CaloTowerCalib::::InitRun No EMCal Calibration NOT even a default" << std::endl;
+        exit(1);
+      }
+      cdbttree = new CDBTTree(calibdir);
+      std::cout << "CaloTowerCalib::::InitRun No specific file for " << m_calibName << " found, using default calib " << default_time_independent_calib <<  std::endl;
     }
   }
   else if (m_dettype == CaloTowerDefs::HCALIN)
