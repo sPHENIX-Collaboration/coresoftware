@@ -28,6 +28,10 @@ class MbdVertexv2 : public MbdVertex
 
   float get_t_err() const override { return _t_err; }
   void set_t_err(float t_err) override { _t_err = t_err; }
+  
+  // Return 0 for now, can implement beam spot 
+  float get_x() const override { return 0; }
+  float get_y() const override { return 0; }
 
   float get_z() const override { return _z; }
   void set_z(float z) override { _z = z; }
