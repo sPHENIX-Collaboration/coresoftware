@@ -373,9 +373,21 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
     iphi->Fill(jet->get_phi());
   }
 
+      //FIXME
+      std::cout << " FIXME Z101 : leading_jet==nullptr " << (leading_jet==nullptr) << std::endl; //
+      if (lead_jet) { 
+        std::cout << Form("leading_jet n_comp:pt:phi:eta (%i:%5.2f:%5.2f:%5.2f)",
+            ((int)leading_jet->size_comp()), leading_jet->get_pt(), leading_jet->get_phi(), leading_jet->get_eta()) << std::endl;
+                     
+      }   //
+          //
+          //
+
   if (leading_jet)
   {
-    if (Verbosity())
+    //FIXME
+    /* if (Verbosity()) */
+    if (true)
     {
       std::cout
           << "QAG4SimulationJet::process_Spectrum - processing leading jet with # comp = "

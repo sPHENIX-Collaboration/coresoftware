@@ -188,7 +188,7 @@ std::vector<fastjet::PseudoJet> FastJetAlgo::jets_to_pseudojets(std::vector<Jet*
 }
 
 void FastJetAlgo::first_call_init(JetContainer* jetcont) {
-  std::cout << " FIXME a3 begin of ::first_call_innit" << std::endl;
+  /* std::cout << " FIXME a3 begin of ::first_call_innit" << std::endl; */
   m_first_cluster_call = false;
   m_opt.initialize();
 
@@ -208,12 +208,12 @@ void FastJetAlgo::first_call_init(JetContainer* jetcont) {
 
   jetcont->set_algo(m_opt.algo);
   jetcont->set_jetpar_R(m_opt.jet_R);
-  std::cout << " FIXME a4 end of ::first_call_init" << std::endl;
+  /* std::cout << " FIXME a4 end of ::first_call_init" << std::endl; */
 }
 
 void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* jetcont)
 {
-  std::cout << " FIXME a0 begin of cluster and fill: (jetcont is null?) " << (jetcont==nullptr) << std::endl;
+  /* std::cout << " FIXME a0 begin of cluster and fill: (jetcont is null?) " << (jetcont==nullptr) << std::endl; */
   if (m_first_cluster_call) first_call_init(jetcont);
     // initalize the properties in JetContainer
 
@@ -294,28 +294,28 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
   }
   if (m_opt.verbosity > 1) std::cout << "FastJetAlgo::process_event -- exited" << std::endl;
   delete (m_opt.calc_area ? m_cluseqarea : m_cluseq); //if (m_cluseq) delete m_cluseq;
-  std::cout << " FIXME a1 end of cluster and fill" << std::endl;
+  /* std::cout << " FIXME a1 end of cluster and fill" << std::endl; */
 }
 
 std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
 {
-  std::cout << " FIXME FastJetAlgo::get_jets E0 " << std::endl;
+  /* std::cout << " FIXME FastJetAlgo::get_jets E0 " << std::endl; */
   if (m_first_cluster_call) first_call_init();
   if (m_opt.verbosity > 1) std::cout << "FastJetAlgo::process_event -- entered" << std::endl;
 
-  std::cout << " FIXME FastJetAlgo::get_jets E1 " << std::endl;
+  /* std::cout << " FIXME FastJetAlgo::get_jets E1 " << std::endl; */
   // translate to fastjet
   auto pseudojets = jets_to_pseudojets(particles);
   auto fastjets = cluster_jets(pseudojets);
 
-  std::cout << " FIXME FastJetAlgo::get_jets E2 " << std::endl;
+  /* std::cout << " FIXME FastJetAlgo::get_jets E2 " << std::endl; */
   fastjet::contrib::SoftDrop sd(m_opt.SD_beta, m_opt.SD_zcut);
   if (m_opt.verbosity > 5)
   {
     std::cout << "FastJetAlgo::get_jets : created SoftDrop groomer configuration : " << sd.description() << std::endl;
   }
 
-  std::cout << " FIXME FastJetAlgo::get_jets E3 " << std::endl;
+  /* std::cout << " FIXME FastJetAlgo::get_jets E3 " << std::endl; */
   // translate into jet output...
   std::vector<Jet*> jets;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
