@@ -53,6 +53,8 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
   void SetTpcBcoRange(const unsigned int i);
   void SetMicromegasBcoRange(const unsigned int i);
+  int FillInttPool();
+  int FillTpcPool();
 
  private:
   struct MvtxRawHitInfo
@@ -94,7 +96,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   unsigned int m_tpc_bco_range {0};
   unsigned int m_micromegas_bco_range {0};
   uint64_t m_RefBCO {0};
-  std::vector<std::vector<SingleStreamingInput *>> m_EvtInputVector;
+//  std::vector<std::vector<SingleStreamingInput *>> m_EvtInputVector;
   std::vector<SingleStreamingInput *> m_Gl1InputVector;
   std::vector<SingleStreamingInput *> m_InttInputVector;
   std::vector<SingleStreamingInput *> m_MicromegasInputVector;
