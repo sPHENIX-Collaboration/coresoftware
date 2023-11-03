@@ -27,6 +27,7 @@
 #include <iostream>
 #include <memory>  // for allocator_traits<>::value_type
 #include <vector>
+#include <fstream>
 
 //FIXME 
 /* JetReco::JetReco(const std::string &name, TRANSITION _which) */
@@ -124,6 +125,24 @@ int JetReco::process_event(PHCompositeNode *topNode)
       /* } */
       /* std::cout << "algos size: " << _algos.size() << " and getting " << ialgo << std::endl; */
       std::vector<Jet *> jets = _algos[ialgo]->get_jets(inputs);  // owns memory
+
+      std::ofstream fout;
+  fout.open("FIXME_FastJetAlgo", std::ios_base::app);
+
+      // FIXME
+      std::cout << " FIXME B200 check jets( " << this->Name() << ") " << std::endl;
+      int ijet = 0;
+        for (auto jet = jets.begin(); jet != jets.end(); ++jet) {
+          if (ijet > 2) break;
+          std::cout << "FIXME B201 jet(" << ijet++ << Form(") pt:eta:phi(%5.2f,%5.2f,%5.2f) n_conts(%i)", 
+                (*jet)->get_pt(), (*jet)->get_eta(), (*jet)->get_phi(), ((int)(*jet)->size_comp())) << std::endl;
+          fout << "FIXME B201 jet(" << ijet++ << Form(") pt:eta:phi(%5.2f,%5.2f,%5.2f) n_conts(%i)", 
+                (*jet)->get_pt(), (*jet)->get_eta(), (*jet)->get_phi(), ((int)(*jet)->size_comp())) << std::endl;
+        }
+      /*     int nc = 0; */
+      /*     for (auto citer = jet->begin_comp(); citer != jet->end_comp(); ++citer) { */
+      /*       std::cout << "OOO  c(" << nc++ <<") " << citer->second << std::endl; */ 
+      /*     } */
       /* std::cout << " FIXME D3 in JetReco" << std::endl; */
       FillJetNode(topNode, ialgo, jets);
       /* std::cout << " FIXME D4 in JetReco" << std::endl; */
