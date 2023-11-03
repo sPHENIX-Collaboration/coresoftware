@@ -78,6 +78,7 @@ int JetReco::InitRun(PHCompositeNode *topNode)
 
 int JetReco::process_event(PHCompositeNode *topNode)
 {
+
   std::cout << " FIXME B0 enter process_event(" << this->Name() << ")" << std::endl;
   if (Verbosity() > 1) std::cout << "JetReco::process_event -- entered" << std::endl;
 
@@ -90,6 +91,13 @@ int JetReco::process_event(PHCompositeNode *topNode)
   for (auto &_input : _inputs)
   {
     std::vector<Jet *> parts = _input->get_input(topNode);
+        std::cout << " FIXME AAA0 " << std::endl;
+        _input->identify();
+        std::cout << " FIXME M0 for input " << _input <<" -> particles: " << parts.size() << std::endl;
+        for (unsigned int i =0; i<parts.size(); ++i) {
+          int ncomp = (int) (parts[i]->size_comp()); if (i<2 || ncomp ==0) std::cout << " FIXME M1:  p("<<i<<") nc(" << ncomp <<") " << ( (ncomp==0) ? " M!!! " : "" ) << std::endl;
+        }
+
     for (auto &part : parts)
     {
       inputs.push_back(part);
@@ -115,19 +123,13 @@ int JetReco::process_event(PHCompositeNode *topNode)
     }
     if (use_jetmap)
     {
-      /* std::cout << " FIXME D2 in JetReco" << std::endl; */
       if (Verbosity() > 5) std::cout << " Verbosity>5:: filling jetnode for " << _outputs[ialgo] << std::endl;
-      /* std::cout << " FIXME D2.5 in JetReco" << std::endl; */
-      /* std::cout << " inputs size: " << inputs.size() << std::endl; */
-      /* if (inputs.size() > 0) { */
-        /* std::cout << " pt: " << inputs[0]->get_pt() << std::endl; */
-        /* std::cout << "first comp: " << (inputs[0]->begin_comp()->second) << std::endl; // Jet is a Jetv1 */
-      /* } */
-      /* std::cout << "algos size: " << _algos.size() << " and getting " << ialgo << std::endl; */
       std::vector<Jet *> jets = _algos[ialgo]->get_jets(inputs);  // owns memory
+  if (jets.size()>0) std::cout << " FIXME YYY 3 (" << this->Name() <<")  first( " << (*jets.begin())->get_pt() <<":"<< (*jets.begin())->size_comp() 
+    <<") last (" << (*(jets.end()-1))->get_pt()<<":"<<(*(jets.end()-1))->size_comp() <<")" << std::endl;
 
       std::ofstream fout;
-  fout.open("FIXME_FastJetAlgo", std::ios_base::app);
+      fout.open("FIXME_FastJetAlgo", std::ios_base::app);
 
       // FIXME
       std::cout << " FIXME B200 check jets( " << this->Name() << ") " << std::endl;
@@ -239,7 +241,7 @@ void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet *>
   }
   
       ///////////////////////////
-        std::cout << "OOO FIXME B100 JetMap(" << _outputs[ipos] << ") Contents: " << jetmap->size() << std::endl;
+        /* std::cout << "OOO FIXME B100 JetMap(" << _outputs[ipos] << ") Contents: " << jetmap->size() << std::endl; */
         for (auto iter = jetmap->begin(); iter != jetmap->end(); ++iter) {
           auto jet = iter->second;
           std::cout << "OOO jet(" << iter->first << Form(") pt:eta:phi(%5.2f,%5.2f,%5.2f) n_conts(%i)", 

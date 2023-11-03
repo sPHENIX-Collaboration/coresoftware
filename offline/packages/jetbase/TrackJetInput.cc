@@ -30,6 +30,8 @@ std::vector<Jet *> TrackJetInput::get_input(PHCompositeNode *topNode)
   if (Verbosity() > 0) std::cout << "TrackJetInput::process_event -- entered" << std::endl;
 
   // Pull the reconstructed track information off the node tree...
+  std::cout << " FIXME H0 TrackJetInput (" << m_NodeName << ")" << std::endl;
+
   SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_NodeName);
   if (!trackmap)
   {
@@ -50,6 +52,11 @@ std::vector<Jet *> TrackJetInput::get_input(PHCompositeNode *topNode)
     jet->set_e(track->get_p());
     jet->insert_comp(Jet::TRACK, track->get_id());
     pseudojets.push_back(jet);
+  }
+
+  std::cout << " FIXME H1 checking comps in TrackJetInput: " << std::endl;
+  for (auto& jet : pseudojets) {
+    if (jet->size_comp() ==0) std::cout << " FIXME H2 TrackJetInput comp size is zero H!!! " << std::endl;
   }
 
   if (Verbosity() > 0) std::cout << "TrackJetInput::process_event -- exited" << std::endl;

@@ -77,6 +77,30 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   }
   m_use_towerinfo = false;
 
+  std::string FIXME_name =(m_input == Jet::CEMC_TOWER ? "CEMC_TOWER"
+                         : m_input == Jet::CEMC_TOWERINFO ? "CEMC_TOWERINFO"
+                         : m_input == Jet::EEMC_TOWER ? "Jet::EEMC_TOWER" 
+                         : m_input == Jet::HCALIN_TOWER ? "Jet::HCALIN_TOWER" 
+                         : m_input == Jet::HCALIN_TOWERINFO ? "Jet::HCALIN_TOWERINFO" 
+                         : m_input == Jet::HCALOUT_TOWER ? "Jet::HCALOUT_TOWER" 
+                         : m_input == Jet::HCALOUT_TOWERINFO ? "Jet::HCALOUT_TOWERINFO" 
+                         : m_input == Jet::FEMC_TOWER ? "Jet::FEMC_TOWER" 
+                         : m_input == Jet::FHCAL_TOWER ? "Jet::FHCAL_TOWER" 
+                         : m_input == Jet::CEMC_TOWER_RETOWER ? "Jet::CEMC_TOWER_RETOWER" 
+                         : m_input == Jet::CEMC_TOWERINFO_RETOWER ? "Jet::CEMC_TOWERINFO_RETOWER" 
+                         : m_input == Jet::CEMC_TOWER_SUB1 ? "Jet::CEMC_TOWER_SUB1" 
+                         : m_input == Jet::CEMC_TOWERINFO_SUB1 ? "Jet::CEMC_TOWERINFO_SUB1" 
+                         : m_input == Jet::HCALIN_TOWER_SUB1 ? "Jet::HCALIN_TOWER_SUB1" 
+                         : m_input == Jet::HCALIN_TOWERINFO_SUB1 ? "Jet::HCALIN_TOWERINFO_SUB1" 
+                         : m_input == Jet::HCALOUT_TOWER_SUB1 ? "Jet::HCALOUT_TOWER_SUB1" 
+                         : m_input == Jet::HCALOUT_TOWERINFO_SUB1 ? "Jet::HCALOUT_TOWERINFO_SUB1" 
+                         : m_input == Jet::CEMC_TOWER_SUB1CS ? "Jet::CEMC_TOWER_SUB1CS" 
+                         : m_input == Jet::HCALIN_TOWER_SUB1CS ? "Jet::HCALIN_TOWER_SUB1CS" 
+                         : m_input == Jet::HCALOUT_TOWER_SUB1CS ? "Jet::HCALOUT_TOWER_SUB1CS"
+                         : "NO NAME");
+
+  std::cout << " FIXME J0 TowerJetInput (" << FIXME_name << ")" << std::endl;
+
   RawTowerContainer *towers = nullptr;
   TowerInfoContainer *towerinfos = nullptr; 
   RawTowerGeomContainer *geom = nullptr;
@@ -378,6 +402,10 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	}
     }
   if (Verbosity() > 0) std::cout << "TowerJetInput::process_event -- exited" << std::endl;
+
+  for (auto& jet : pseudojets) {
+    if (jet->size_comp() ==0) std::cout << " FIXME J2 TowerJetInput comp size is zero H!!! " << std::endl;
+  }
 
   return pseudojets;
 }

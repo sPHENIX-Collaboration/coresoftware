@@ -353,6 +353,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
   assert(iphi);
 
   Jet* leading_jet = nullptr;
+  int iFIXME = 0;
   double max_et = 0;
   for (JetMap::Iter iter = jets->begin(); iter != jets->end(); ++iter)
   {
@@ -368,13 +369,15 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
       max_et = jet->get_et();
     }
 
+    std::cout << " FIXME WWW 0 constituents for ("<<jet_name << " jet " << iFIXME++ << ") :: " << jet->size_comp() << std::endl;
+
     ie->Fill(jet->get_e());
     ieta->Fill(jet->get_eta());
     iphi->Fill(jet->get_phi());
   }
 
       //FIXME
-      std::cout << " FIXME Z101 : leading_jet==nullptr " << (leading_jet==nullptr) << std::endl; //
+      std::cout << " FIXME Z101 jets(" << jet_name <<") leading_jet==nullptr " << (leading_jet==nullptr) << std::endl; //
       if (leading_jet) { 
         std::cout << Form("leading_jet n_comp:pt:phi:eta (%i:%5.2f:%5.2f:%5.2f)",
             ((int)leading_jet->size_comp()), leading_jet->get_pt(), leading_jet->get_phi(), leading_jet->get_eta()) << std::endl;

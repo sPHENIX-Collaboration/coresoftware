@@ -24,6 +24,7 @@ void ParticleFlowJetInput::identify(std::ostream &os)
 std::vector<Jet *> ParticleFlowJetInput::get_input(PHCompositeNode *topNode)
 {
   if (_verbosity > 0) std::cout << "ParticleFlowJetInput::process_event -- entered" << std::endl;
+  std::cout << " FIXME I0 ParticleFlowJetInput (ParticleFlowElements)" << std::endl;
 
   ParticleFlowElementContainer *pflowContainer = findNode::getClass<ParticleFlowElementContainer>(topNode, "ParticleFlowElements");
   if (!pflowContainer)
@@ -34,6 +35,8 @@ std::vector<Jet *> ParticleFlowJetInput::get_input(PHCompositeNode *topNode)
   std::vector<Jet *> pseudojets;
   ParticleFlowElementContainer::ConstRange begin_end = pflowContainer->getParticleFlowElements();
   ParticleFlowElementContainer::ConstIterator rtiter;
+
+
   for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
   {
     ParticleFlowElement *pflow = rtiter->second;
@@ -45,6 +48,7 @@ std::vector<Jet *> ParticleFlowJetInput::get_input(PHCompositeNode *topNode)
     jet->set_e( pflow->get_e() );
     jet->insert_comp( Jet::SRC::PARTICLE , pflow->get_id() );
     pseudojets.push_back( jet );
+    if (jet->size_comp() ==0) std::cout << " FIXME I2 ParticleFlowJetInput comp size is zero I!!! " << std::endl;
   }
 
   if (_verbosity > 0) std::cout << "ParticleFlowJetInput::process_event -- exited" << std::endl;
