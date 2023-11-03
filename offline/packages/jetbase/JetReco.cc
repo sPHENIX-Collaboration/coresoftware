@@ -79,7 +79,6 @@ int JetReco::InitRun(PHCompositeNode *topNode)
 int JetReco::process_event(PHCompositeNode *topNode)
 {
 
-  std::cout << " FIXME B0 enter process_event(" << this->Name() << ")" << std::endl;
   if (Verbosity() > 1) std::cout << "JetReco::process_event -- entered" << std::endl;
 
   //------------------------------------------------------------------
@@ -91,20 +90,12 @@ int JetReco::process_event(PHCompositeNode *topNode)
   for (auto &_input : _inputs)
   {
     std::vector<Jet *> parts = _input->get_input(topNode);
-        std::cout << " FIXME AAA0 " << std::endl;
-        _input->identify();
-        std::cout << " FIXME M0 for input " << _input <<" -> particles: " << parts.size() << std::endl;
-        for (unsigned int i =0; i<parts.size(); ++i) {
-          int ncomp = (int) (parts[i]->size_comp()); if (i<2 || ncomp ==0) std::cout << " FIXME M1:  p("<<i<<") nc(" << ncomp <<") " << ( (ncomp==0) ? " M!!! " : "" ) << std::endl;
-        }
-
     for (auto &part : parts)
     {
       inputs.push_back(part);
       inputs.back()->set_id(inputs.size() - 1);  // unique ids ensured
     }
   }
-  /* std::cout << " FIXME D0 in JetReco" << std::endl; */
 
   //---------------------------
   // Run the jet reconstruction
@@ -113,9 +104,9 @@ int JetReco::process_event(PHCompositeNode *topNode)
   {
     // send the output somewhere on the DST
     /* if (_fill_JetContainer) { */
+    //FIXME
     if (use_jetcon)
     {
-      /* std::cout << " FIXME D1 in JetReco" << std::endl; */
       if (false) { //FIXME
         if (Verbosity() > 5) std::cout << " Verbosity>5:: filling JetContainter for " << JC_name(_outputs[ialgo]) << std::endl;
         FillJetContainer(topNode, ialgo, inputs);
@@ -125,33 +116,10 @@ int JetReco::process_event(PHCompositeNode *topNode)
     {
       if (Verbosity() > 5) std::cout << " Verbosity>5:: filling jetnode for " << _outputs[ialgo] << std::endl;
       std::vector<Jet *> jets = _algos[ialgo]->get_jets(inputs);  // owns memory
-  if (jets.size()>0) std::cout << " FIXME YYY 3 (" << this->Name() <<")  first( " << (*jets.begin())->get_pt() <<":"<< (*jets.begin())->size_comp() 
-    <<") last (" << (*(jets.end()-1))->get_pt()<<":"<<(*(jets.end()-1))->size_comp() <<")" << std::endl;
 
-      std::ofstream fout;
-      fout.open("FIXME_FastJetAlgo", std::ios_base::app);
-
-      // FIXME
-      std::cout << " FIXME B200 check jets( " << this->Name() << ") " << std::endl;
-      int ijet = 0;
-        for (auto jet = jets.begin(); jet != jets.end(); ++jet) {
-          if (ijet > 2) break;
-          std::cout << "FIXME B201 jet(" << ijet++ << Form(") pt:eta:phi(%5.2f,%5.2f,%5.2f) n_conts(%i)", 
-                (*jet)->get_pt(), (*jet)->get_eta(), (*jet)->get_phi(), ((int)(*jet)->size_comp())) << std::endl;
-          fout << "FIXME B201 jet(" << ijet++ << Form(") pt:eta:phi(%5.2f,%5.2f,%5.2f) n_conts(%i)", 
-                (*jet)->get_pt(), (*jet)->get_eta(), (*jet)->get_phi(), ((int)(*jet)->size_comp())) << std::endl;
-        }
-      /*     int nc = 0; */
-      /*     for (auto citer = jet->begin_comp(); citer != jet->end_comp(); ++citer) { */
-      /*       std::cout << "OOO  c(" << nc++ <<") " << citer->second << std::endl; */ 
-      /*     } */
-      /* std::cout << " FIXME D3 in JetReco" << std::endl; */
       FillJetNode(topNode, ialgo, jets);
-      /* std::cout << " FIXME D4 in JetReco" << std::endl; */
-
     }
   }
-  /* std::cout << " FIXME D5 in JetReco" << std::endl; */
 
   // clean up input vector
   // <- another place where TClonesArray's would make this more efficient
@@ -160,7 +128,6 @@ int JetReco::process_event(PHCompositeNode *topNode)
 
   if (Verbosity() > 1) std::cout << "JetReco::process_event -- exited" << std::endl;
 
-  /* std::cout << " FIXME B1 end process_event" << std::endl; */
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -240,19 +207,6 @@ void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet *>
     jetmap->insert(jet);  // map takes ownership, sets unique id
   }
   
-      ///////////////////////////
-        /* std::cout << "OOO FIXME B100 JetMap(" << _outputs[ipos] << ") Contents: " << jetmap->size() << std::endl; */
-        for (auto iter = jetmap->begin(); iter != jetmap->end(); ++iter) {
-          auto jet = iter->second;
-          std::cout << "OOO jet(" << iter->first << Form(") pt:eta:phi(%5.2f,%5.2f,%5.2f) n_conts(%i)", 
-                jet->get_pt(), jet->get_eta(), jet->get_phi(), ((int)jet->size_comp())) << std::endl;
-      /*     int nc = 0; */
-      /*     for (auto citer = jet->begin_comp(); citer != jet->end_comp(); ++citer) { */
-      /*       std::cout << "OOO  c(" << nc++ <<") " << citer->second << std::endl; */ 
-      /*     } */
-        }
-      /* /////////////////////////// */
-
   return;
 }
 

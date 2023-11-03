@@ -22,9 +22,7 @@ class JetAlgo
   // old version -- get jets to fill into JetMap
   virtual std::vector<Jet*> get_jets(std::vector<Jet*> /* particles*/) // ? Why isn't this passed as a reference?
   {
-    /* std::cout << " FIXME F0 " << std::endl; */
     return std::vector<Jet*>();
-    /* std::cout << " FIXME F1 " << std::endl; */
   }
 
   // new version -- pass JetContainer into clusterFillJets to fill it

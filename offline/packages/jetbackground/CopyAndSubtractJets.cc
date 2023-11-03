@@ -49,7 +49,6 @@ int CopyAndSubtractJets::InitRun(PHCompositeNode *topNode)
 
 int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 {
-  /* std::cout << " FIXME 3 begin CopyAndSubtractJets" << std::endl; */
   if (Verbosity() > 0)
     std::cout << "CopyAndSubtractJets::process_event: entering, with _use_flow_modulation = " << _use_flow_modulation << std::endl;
 
@@ -273,7 +272,6 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
       std::cout << "CopyAndSubtractJets::process_event: exiting with # subtracted jets = " << sub_jets->size() << std::endl;
     }
   
-  /* std::cout << " FIXME 4 end CopyAndSubtractJets" << std::endl; */
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

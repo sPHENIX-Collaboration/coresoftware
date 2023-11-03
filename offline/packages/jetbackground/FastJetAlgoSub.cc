@@ -52,9 +52,7 @@ void FastJetAlgoSub::identify(std::ostream& os)
 
 std::vector<Jet*> FastJetAlgoSub::get_jets(std::vector<Jet*> particles)
 {
-    /* std::cout << " FIXME G0 " << std::endl; */
   if (_verbosity > 1) cout << "FastJetAlgoSub::process_event -- entered" << endl;
-    /* std::cout << " FIXME G1 " << std::endl; */
 
   // translate to fastjet
   std::vector<fastjet::PseudoJet> pseudojets;

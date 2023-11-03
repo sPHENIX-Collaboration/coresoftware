@@ -64,7 +64,6 @@ int DetermineTowerBackground::InitRun(PHCompositeNode *topNode)
 
 int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 {
-  /* std::cout << " FIXME 0 start DetermineTowerBackground::process_event" << std::endl; */
   if (Verbosity() > 0)
   {
     std::cout << "DetermineTowerBackground::process_event: entering with do_flow = " << _do_flow << ", seed type = " << _seed_type << ", ";
@@ -770,7 +769,6 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
   if (Verbosity() > 0) std::cout << "DetermineTowerBackground::process_event: exiting" << std::endl;
 
-  /* std::cout << " FIXME 1 end DetermineTowerBackground::process_event" << std::endl; */
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

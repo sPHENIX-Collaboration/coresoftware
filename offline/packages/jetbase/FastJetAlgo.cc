@@ -185,12 +185,10 @@ std::vector<fastjet::PseudoJet> FastJetAlgo::jets_to_pseudojets(std::vector<Jet*
     pseudojet.set_user_index(ipart);
     pseudojets.push_back(pseudojet);
   }
-  // FIXME suggestested -- verify user index
   return pseudojets;
 }
 
 void FastJetAlgo::first_call_init(JetContainer* jetcont) {
-  /* std::cout << " FIXME a3 begin of ::first_call_innit" << std::endl; */
   m_first_cluster_call = false;
   m_opt.initialize();
 
@@ -210,12 +208,10 @@ void FastJetAlgo::first_call_init(JetContainer* jetcont) {
 
   jetcont->set_algo(m_opt.algo);
   jetcont->set_jetpar_R(m_opt.jet_R);
-  /* std::cout << " FIXME a4 end of ::first_call_init" << std::endl; */
 }
 
 void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* jetcont)
 {
-  /* std::cout << " FIXME a0 begin of cluster and fill: (jetcont is null?) " << (jetcont==nullptr) << std::endl; */
   if (m_first_cluster_call) first_call_init(jetcont);
     // initalize the properties in JetContainer
 
@@ -296,41 +292,21 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
   }
   if (m_opt.verbosity > 1) std::cout << "FastJetAlgo::process_event -- exited" << std::endl;
   delete (m_opt.calc_area ? m_cluseqarea : m_cluseq); //if (m_cluseq) delete m_cluseq;
-  /* std::cout << " FIXME a1 end of cluster and fill" << std::endl; */
 }
 
 
-// check the USER INDEX -- FIXME
-
 std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
 {
-  std::cout << " FIXME M2 particles: " << particles.size() << std::endl;
-  for (unsigned int i =0; i<particles.size(); ++i) {
-    int ncomp = (int) (particles[i]->size_comp());
-    if (i<2 || ncomp ==0) std::cout << " FIXME M3:  p("<<i<<") nc(" << ncomp <<") " << (ncomp==0 ? " M!!! " : "" ) << std::endl;
-  }
-
-  std::ofstream fout;
-  fout.open("FIXME_FastJetAlgo", std::ios_base::app);
-  /* std::cout << " FIXME FastJetAlgo::get_jets E0   save components?( " << m_opt.save_jet_components <<") nparticles(" << particles.size() <<") " */
-  /*   << " ncomp first(" << ( particles.size()>0 ? particles[0]->size_comp() : -1) <<")" << std::endl; */
-  fout << " FIXME FastJetAlgo::get_jets E0   save components?( " << m_opt.save_jet_components <<") nparticles(" << particles.size() <<") "
-    << " ncomp first(" << ( particles.size()>0 ? particles[0]->size_comp() : -1) <<")" << std::endl;
-  /* if (m_first_cluster_call) first_call_init(); */
-  /* if (m_opt.verbosity > 1) std::cout << "FastJetAlgo::process_event -- entered" << std::endl; */
-
   // translate to fastjet
   auto pseudojets = jets_to_pseudojets(particles);
   auto fastjets = cluster_jets(pseudojets);
 
-  /* std::cout << " FIXME FastJetAlgo::get_jets E2 " << std::endl; */
   fastjet::contrib::SoftDrop sd(m_opt.SD_beta, m_opt.SD_zcut);
   if (m_opt.verbosity > 5)
   {
     std::cout << "FastJetAlgo::get_jets : created SoftDrop groomer configuration : " << sd.description() << std::endl;
   }
 
-  /* std::cout << " FIXME FastJetAlgo::get_jets E3 " << std::endl; */
   // translate into jet output...
   std::vector<Jet*> jets;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
@@ -365,51 +341,29 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
     }
 
     // copy components into output jet
-    // FIXME
-    if (ijet < 2) std::cout << " FIXME E1 components size(" << fastjets[ijet].constituents().size() <<") and save(" << m_opt.save_jet_components <<")" <<std::endl;
-    if (ijet < 2) fout << " FIXME E1 components size(" << fastjets[ijet].constituents().size() <<")" << std::endl;
-    /* int iFIXME = 0; */
     if (m_opt.save_jet_components) {
       std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
-      if (ijet < 2) std::cout << " FIXME Y0 comp(" << comps.size() <<")" << std::endl;
       for (auto & comp : comps)
       {
         Jet* particle = particles[comp.user_index()];
-
-        //FIXME
-        // 0 - bad user index?
-        // 1 - check particle kinematic -- the right particle? lost? check particles entries?
-        // 2 - does it fill consituent -- check at the particle level, how many constituents they have...
-        // 3 - check the library that is making the particles which are passed in
-        /* if (ijet < 2 && iFIXME < 2) { */
 
         for (Jet::Iter iter = particle->begin_comp();
              iter != particle->end_comp();
              ++iter)
         {
-          /* if (iFIXME <2 && ijet < 2) { */
-          /*   std::cout << "FIXME Y3 entered component( " << iFIXME++ << ")" << std::endl; */
-          /*   fout << "FIXME Y3 entered component( " << iFIXME++ << ")" << std::endl; */
-          /* } */
-          /* std::cout << " FIXME YYY0 size: " << jet->size_comp() << std::endl; */
           jet->insert_comp(iter->first, iter->second);
         }
       }
     }
 
     jets.push_back(jet);
-    // calculate the leading jet
-    /* std::cout << " FIXME YYY3 size: " << jet->size_comp() << std::endl; */
   }
 
-  //FIXME 
-  std::sort(jets.begin(), jets.end(), [](Jet*a, Jet*b){ return a->get_et() > b->get_et();} );
+  /* std::sort(jets.begin(), jets.end(), [](Jet*a, Jet*b){ return a->get_et() > b->get_et();} ); */
 
   if (m_opt.verbosity > 1) std::cout << "FastJetAlgo::process_event -- exited" << std::endl;
 
   delete m_cluseq;
-  if (jets.size()>0) std::cout << " FIXME YYY 1 first( " << (*jets.begin())->get_pt() <<":"<< (*jets.begin())->size_comp() 
-    <<") last (" << (*(jets.end()-1))->get_pt()<<":"<<(*(jets.end()-1))->size_comp() <<")" << std::endl;
 
   return jets;
 }
