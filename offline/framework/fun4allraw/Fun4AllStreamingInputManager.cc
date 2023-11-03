@@ -615,13 +615,13 @@ int Fun4AllStreamingInputManager::FillMicromegas()
     SetRunNumber(m_RunNumber);
   }
 
-  // no hits all done
+  // no hits. all done
   if (m_MicromegasRawHitMap.empty()) return -1;
   
   auto container =  findNode::getClass<MicromegasRawHitContainer>(m_topNode,"MICROMEGASRAWHIT");
   const uint64_t select_crossings =  m_MicromegasRawHitMap.begin()->first + m_micromegas_bco_range;
 
-  while(m_MicromegasRawHitMap.begin()->first <= select_crossings)
+  while(!m_MicromegasRawHitMap.empty() && m_MicromegasRawHitMap.begin()->first <= select_crossings)
   {
     for( const auto& hititer :  m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector)
     { container->AddHit(hititer); }
@@ -673,7 +673,8 @@ int Fun4AllStreamingInputManager::FillTpc()
 		<< " to 0x" << select_crossings
 		<< std::dec << std::endl;
     }
-    while(m_TpcRawHitMap.begin()->first < m_RefBCO)
+
+    while(!m_TpcRawHitMap.empty() && m_TpcRawHitMap.begin()->first < m_RefBCO)
     {
       for (auto iter : m_TpcInputVector)
       {
@@ -682,7 +683,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
       m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
     }
-    while(m_TpcRawHitMap.begin()->first <= select_crossings)
+    while(!m_TpcRawHitMap.empty() && m_TpcRawHitMap.begin()->first <= select_crossings)
     {
       for (auto tpchititer :  m_TpcRawHitMap.begin()->second.TpcRawHitVector)
       {
