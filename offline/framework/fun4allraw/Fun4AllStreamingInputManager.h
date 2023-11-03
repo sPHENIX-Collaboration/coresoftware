@@ -54,6 +54,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void SetTpcBcoRange(const unsigned int i);
   void SetMicromegasBcoRange(const unsigned int i);
   int FillInttPool();
+  int FillMicromegasPool();
   int FillTpcPool();
 
  private:

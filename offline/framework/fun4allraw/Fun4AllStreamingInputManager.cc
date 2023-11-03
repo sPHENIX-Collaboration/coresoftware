@@ -445,7 +445,7 @@ void Fun4AllStreamingInputManager::AddMicromegasRawHit(uint64_t bclk, Micromegas
 {
   if (Verbosity() > 1)
   {
-    std::cout << "Adding tpc hit to bclk 0x"
+    std::cout << "Adding micromegas hit to bclk 0x"
               << std::hex << bclk << std::dec << std::endl;
   }
   m_MicromegasRawHitMap[bclk].MicromegasRawHitVector.push_back(hit);
@@ -629,21 +629,43 @@ int Fun4AllStreamingInputManager::FillMvtx()
 //_______________________________________________________
 int Fun4AllStreamingInputManager::FillMicromegas()
 {
-  // loop over inputs
-  for( const auto& iter : m_MicromegasInputVector)
+  int iret = FillMicromegasPool();
+  if (iret)
   {
-    iter->FillPool();
-    m_RunNumber = iter->RunNumber();
-    SetRunNumber(m_RunNumber);
+    return iret;
   }
-
-  // no hits. all done
-  if (m_MicromegasRawHitMap.empty()) return -1;
   
   auto container =  findNode::getClass<MicromegasRawHitContainer>(m_topNode,"MICROMEGASRAWHIT");
-  const uint64_t select_crossings =  m_MicromegasRawHitMap.begin()->first + m_micromegas_bco_range;
+  uint64_t select_crossings =  m_micromegas_bco_range;
+    if (m_RefBCO > 0)
+    {
+      select_crossings += m_RefBCO;
+    }
+    else
+    {
+      select_crossings += m_MicromegasRawHitMap.begin()->first;
+   }
+// m_MicromegasRawHitMap.empty() does not need to be checked here, FillMicromegasPool returns non zero
+// if this map is empty which is handled above
+    while(m_MicromegasRawHitMap.begin()->first < m_RefBCO)
+    {
+      std::cout << "Micromegas BCO: 0x" << std::hex << m_MicromegasRawHitMap.begin()->first
+		<< " smaller than GL1 BCO: 0x" << m_RefBCO
+		<< ", ditching this bco" << std::dec << std::endl;
+      for (auto iter : m_MicromegasInputVector)
+      {
+	iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first);
+      }
+      m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
+      m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
+      iret = FillMicromegasPool();
+      if (iret)
+      {
+	return iret;
+      }
+    }
 
-  while(!m_MicromegasRawHitMap.empty() && m_MicromegasRawHitMap.begin()->first <= select_crossings)
+  while(m_MicromegasRawHitMap.begin()->first <= select_crossings)
   {
     for( const auto& hititer :  m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector)
     { container->AddHit(hititer); }
@@ -684,8 +706,9 @@ int Fun4AllStreamingInputManager::FillTpc()
 		<< " to 0x" << select_crossings
 		<< std::dec << std::endl;
     }
-
-    while(!m_TpcRawHitMap.empty() && m_TpcRawHitMap.begin()->first < m_RefBCO)
+// m_TpcRawHitMap.empty() does not need to be checked here, FillTpcPool returns non zero
+// if this map is empty which is handled above
+    while(m_TpcRawHitMap.begin()->first < m_RefBCO)
     {
       for (auto iter : m_TpcInputVector)
       {
@@ -699,7 +722,8 @@ int Fun4AllStreamingInputManager::FillTpc()
 	return iret;
       }
     }
-    while(!m_TpcRawHitMap.empty() && m_TpcRawHitMap.begin()->first <= select_crossings)
+// again m_TpcRawHitMap.empty() is handled by return of FillTpcPool()
+    while(m_TpcRawHitMap.begin()->first <= select_crossings)
     {
       for (auto tpchititer :  m_TpcRawHitMap.begin()->second.TpcRawHitVector)
       {
@@ -766,6 +790,26 @@ int Fun4AllStreamingInputManager::FillTpcPool()
   if (m_TpcRawHitMap.empty())
   {
     std::cout << "we are done" << std::endl;
+    return -1;
+  }
+  return 0;
+}
+
+int Fun4AllStreamingInputManager::FillMicromegasPool()
+{
+  for (auto iter : m_MicromegasInputVector)
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "Fun4AllStreamingInputManager::FillMicromegasPool - fill pool for " << iter->Name() << std::endl;
+    }
+    iter->FillPool();
+    m_RunNumber = iter->RunNumber();
+    SetRunNumber(m_RunNumber);
+  }
+  if (m_MicromegasRawHitMap.empty())
+  {
+    std::cout << "Micromegas are done" << std::endl;
     return -1;
   }
   return 0;
