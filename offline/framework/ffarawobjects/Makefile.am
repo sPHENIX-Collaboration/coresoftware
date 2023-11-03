@@ -16,6 +16,8 @@ libffarawobjects_la_LIBADD = \
   -lphool
 
 ROOTDICTS = \
+  Gl1RawHit_Dict.cc \
+  Gl1RawHitv1_Dict.cc \
   InttRawHit_Dict.cc \
   InttRawHitContainer_Dict.cc \
   InttRawHitContainerv1_Dict.cc \
@@ -37,6 +39,8 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  Gl1RawHit_Dict_rdict.pcm \
+  Gl1RawHitv1_Dict_rdict.pcm \
   InttRawHit_Dict_rdict.pcm \
   InttRawHitContainer_Dict_rdict.pcm \
   InttRawHitContainerv1_Dict_rdict.pcm \
@@ -57,6 +61,8 @@ nobase_dist_pcm_DATA = \
   TpcRawHitv1_Dict_rdict.pcm
 
 pkginclude_HEADERS = \
+  Gl1RawHit.h \
+  Gl1RawHitv1.h \
   InttRawHit.h \
   InttRawHitContainer.h \
   InttRawHitContainerv1.h \
@@ -78,6 +84,7 @@ pkginclude_HEADERS = \
 
 libffarawobjects_la_SOURCES = \
   $(ROOTDICTS) \
+  Gl1RawHitv1.cc \
   InttRawHitContainerv1.cc \
   InttRawHitv1.cc \
   MicromegasRawHitContainerv1.cc \

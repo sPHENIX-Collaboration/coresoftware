@@ -18,6 +18,8 @@ class SvtxClusterEval;
 class SvtxHitEval;
 class SvtxTrackMap;
 class SvtxTruthEval;
+
+class Vertex;
 class SvtxVertex;
 class SvtxVertexMap;
 
@@ -51,18 +53,18 @@ class SvtxVertexEval
   SvtxTruthEval* get_truth_eval() { return _trackeval.get_truth_eval(); }
 
   // backtrace through to PHG4Hits
-  std::set<PHG4Particle*> all_truth_particles(SvtxVertex* vertex);
+  std::set<PHG4Particle*> all_truth_particles(const Vertex* vertex);
 
   // backtrace through to PHG4VtxPoints
-  std::set<PHG4VtxPoint*> all_truth_points(SvtxVertex* vertex);
-  PHG4VtxPoint* max_truth_point_by_ntracks(SvtxVertex* vertex);
+  std::set<PHG4VtxPoint*> all_truth_points(const Vertex* vertex);
+  PHG4VtxPoint* max_truth_point_by_ntracks(const Vertex* vertex);
 
   // forwardtrace through to SvtxVertexs
-  std::set<SvtxVertex*> all_vertexes_from(PHG4VtxPoint* truthpoint);
-  SvtxVertex* best_vertex_from(PHG4VtxPoint* truthpoint);
+  std::set<const Vertex*> all_vertexes_from(PHG4VtxPoint* truthpoint);
+  const Vertex* best_vertex_from(PHG4VtxPoint* truthpoint);
 
   // overlap calculations
-  unsigned int get_ntracks_contribution(SvtxVertex* svtxvertex, PHG4VtxPoint* truthpoint);
+  unsigned int get_ntracks_contribution(const Vertex* svtxvertex, PHG4VtxPoint* truthpoint);
 
   unsigned int get_errors() { return _errors + _trackeval.get_errors(); }
 
@@ -87,12 +89,12 @@ class SvtxVertexEval
   unsigned int _errors = 0;
 
   bool _do_cache = true;
-  std::map<SvtxVertex*, std::set<PHG4Particle*> > _cache_all_truth_particles;
-  std::map<SvtxVertex*, std::set<PHG4VtxPoint*> > _cache_all_truth_points;
-  std::map<SvtxVertex*, PHG4VtxPoint*> _cache_max_truth_point_by_ntracks;
-  std::map<PHG4VtxPoint*, std::set<SvtxVertex*> > _cache_all_vertexes_from_point;
-  std::map<PHG4VtxPoint*, SvtxVertex*> _cache_best_vertex_from_point;
-  std::map<std::pair<SvtxVertex*, PHG4VtxPoint*>, unsigned int> _cache_get_ntracks_contribution;
+  std::map<const Vertex*, std::set<PHG4Particle*> > _cache_all_truth_particles;
+  std::map<const Vertex*, std::set<PHG4VtxPoint*> > _cache_all_truth_points;
+  std::map<const Vertex*, PHG4VtxPoint*> _cache_max_truth_point_by_ntracks;
+  std::map<PHG4VtxPoint*, std::set<const Vertex*> > _cache_all_vertexes_from_point;
+  std::map<PHG4VtxPoint*, const Vertex*> _cache_best_vertex_from_point;
+  std::map<std::pair<const Vertex*, PHG4VtxPoint*>, unsigned int> _cache_get_ntracks_contribution;
   std::string m_TrackNodeName;
 };
 

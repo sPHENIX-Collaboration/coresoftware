@@ -168,14 +168,14 @@ libtrack_reco_la_LIBADD = \
   -lg4tpc \
   -lg4intt \
   -lg4mvtx \
-  -lmbd_io \
   -lmicromegas_io \
   -lmvtx_io \
   -lintt_io \
   -ltrack_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter
+  -lphparameter \
+  -lglobalvertex_io
 
 
 # Rule for generating table CINT dictionaries.

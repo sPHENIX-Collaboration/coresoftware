@@ -1,11 +1,12 @@
 #include "MbdReco.h"
 #include "MbdEvent.h"
 #include "MbdPmtContainerV1.h"
-#include "MbdVertexMapv1.h"
-#include "MbdVertexv1.h"
-//#include "MbdOutV2.h"
 #include "MbdOutV1.h"
 #include "MbdGeomV1.h"
+
+
+#include <globalvertex/MbdVertexMapv1.h>
+#include <globalvertex/MbdVertexv2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -77,7 +78,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
   // For multiple global vertex
   if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0)
   {
-    auto vertex = std::make_unique<MbdVertexv1>();
+    auto vertex = std::make_unique<MbdVertexv2>();
     vertex->set_t( m_mbdevent->get_bbct0() );
     vertex->set_z( m_mbdevent->get_bbcz() );
     vertex->set_z_err( 0.6 );
@@ -114,14 +115,30 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
   if (!dstNode)
   {
     std::cout << PHWHERE << "DST Node missing doing nothing" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHCompositeNode *bbcNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "MBD"));
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  if (!runNode)
+  {
+    std::cout << PHWHERE << "RUN Node missing doing nothing" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  PHNodeIterator dstiter(dstNode);
+  PHCompositeNode *bbcNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "MBD"));
   if (!bbcNode)
   {
     bbcNode = new PHCompositeNode("MBD");
     dstNode->addNode(bbcNode);
+  }
+
+  PHNodeIterator runiter(runNode);
+  PHCompositeNode *bbcRunNode = dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode", "MBD"));
+  if (!bbcRunNode)
+  {
+    bbcRunNode = new PHCompositeNode("MBD");
+    runNode->addNode(bbcRunNode);
   }
 
   m_mbdout = findNode::getClass<MbdOut>(bbcNode, "MbdOut");
@@ -148,12 +165,12 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
     bbcNode->addNode(VertexMapNode);
   }
 
-  m_mbdgeom = findNode::getClass<MbdGeom>(bbcNode, "MbdGeom");
+  m_mbdgeom = findNode::getClass<MbdGeom>(runNode, "MbdGeom");
   if (!m_mbdgeom)
   {
     m_mbdgeom = new MbdGeomV1();
     PHIODataNode<PHObject> *MbdGeomNode = new PHIODataNode<PHObject>(m_mbdgeom, "MbdGeom", "PHObject");
-    bbcNode->addNode(MbdGeomNode);
+    bbcRunNode->addNode(MbdGeomNode);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
