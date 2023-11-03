@@ -18,16 +18,15 @@ class InttEventInfo : public PHObject
   InttEventInfo() = default;
   virtual ~InttEventInfo() = default;
 
-  virtual void identify(std::ostream &os = std::cout) const;
-  virtual void Reset();
+  virtual void identify(std::ostream &os = std::cout) const override;
+  virtual void Reset() override;
 
   virtual uint64_t get_bco_full() const;
   virtual void set_bco_full(uint64_t const&);
 
  protected:
 
- private:
-
+  ClassDefOverride(InttEventInfo, 1);
 };
 
 #endif//INTT_EVENT_INFO_H
