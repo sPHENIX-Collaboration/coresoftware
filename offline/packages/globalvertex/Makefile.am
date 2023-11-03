@@ -19,42 +19,83 @@ libglobalvertex_io_la_LIBADD = \
 
 libglobalvertex_la_LIBADD = \
   libglobalvertex_io.la \
-  -lmbd_io \
+  -ltrackbase_historic_io \
   -lg4detectors \
-  -lfun4all \
-  -lg4mbd_io \
-  -ltrackbase_historic_io
+  -lfun4all
 
 pkginclude_HEADERS = \
   GlobalVertex.h \
   GlobalVertexv1.h \
+  GlobalVertexv2.h \
   GlobalVertexMap.h \
   GlobalVertexMapv1.h \
   GlobalVertexReco.h \
+  SvtxVertex.h \
+  SvtxVertex_v1.h \
+  SvtxVertex_v2.h \
+  SvtxVertexMap.h \
+  SvtxVertexMap_v1.h \
+  MbdVertex.h \
+  MbdVertexv1.h \
+  MbdVertexv2.h \
+  MbdVertexMap.h \
+  MbdVertexMapv1.h \
   Vertex.h
 
 ROOTDICTS = \
+  Vertex_Dict.cc \
   GlobalVertex_Dict.cc \
   GlobalVertexv1_Dict.cc \
+  GlobalVertexv2_Dict.cc \
   GlobalVertexMap_Dict.cc \
   GlobalVertexMapv1_Dict.cc \
-  Vertex_Dict.cc
+  SvtxVertex_Dict.cc \
+  SvtxVertex_v1_Dict.cc \
+  SvtxVertex_v2_Dict.cc \
+  SvtxVertexMap_Dict.cc \
+  SvtxVertexMap_v1_Dict.cc \
+  MbdVertex_Dict.cc \
+  MbdVertexv1_Dict.cc \
+  MbdVertexv2_Dict.cc \
+  MbdVertexMap_Dict.cc \
+  MbdVertexMapv1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  Vertex_Dict_rdict.pcm \
   GlobalVertex_Dict_rdict.pcm \
   GlobalVertexv1_Dict_rdict.pcm \
+  GlobalVertexv2_Dict_rdict.pcm \
   GlobalVertexMap_Dict_rdict.pcm \
   GlobalVertexMapv1_Dict_rdict.pcm \
-  Vertex_Dict_rdict.pcm
+  SvtxVertex_Dict_rdict.pcm \
+  SvtxVertex_v1_Dict_rdict.pcm \
+  SvtxVertex_v2_Dict_rdict.pcm \
+  SvtxVertexMap_Dict_rdict.pcm \
+  SvtxVertexMap_v1_Dict_rdict.pcm \
+  MbdVertex_Dict_rdict.pcm \
+  MbdVertexv1_Dict_rdict.pcm \
+  MbdVertexv2_Dict_rdict.pcm \
+  MbdVertexMap_Dict_rdict.pcm \
+  MbdVertexMapv1_Dict_rdict.pcm
 
 libglobalvertex_io_la_SOURCES = \
   $(ROOTDICTS) \
+  Vertex.cc \
   GlobalVertex.cc \
   GlobalVertexv1.cc \
+  GlobalVertexv2.cc \
   GlobalVertexMap.cc \
   GlobalVertexMapv1.cc \
-  Vertex.cc
+  SvtxVertex.cc \
+  SvtxVertex_v1.cc \
+  SvtxVertex_v2.cc \
+  SvtxVertexMap.cc \
+  SvtxVertexMap_v1.cc \
+  MbdVertexv1.cc \
+  MbdVertexv2.cc \
+  MbdVertexMap.cc \
+  MbdVertexMapv1.cc
 
 libglobalvertex_la_SOURCES = \
   GlobalVertexReco.cc

@@ -1,8 +1,7 @@
 #include "PHTruthClustering.h"
 
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
-#include <trackbase_historic/SvtxVertex_v1.h>
+#include <globalvertex/SvtxVertexMap.h>
+#include <globalvertex/SvtxVertex_v1.h>
 
 
 #include <trackbase/TrkrClusterContainerv4.h>

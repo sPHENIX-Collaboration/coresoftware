@@ -1,9 +1,7 @@
 #include "PHTruthVertexing.h"
 
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
-#include <trackbase_historic/SvtxVertex_v1.h>
-#include <trackbase_historic/SvtxTrackMap.h>
+#include <globalvertex/SvtxVertexMap.h>
+#include <globalvertex/SvtxVertex_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
@@ -118,7 +116,7 @@ int PHTruthVertexing::Process(PHCompositeNode* topNode)
 	}
       
       vertex->set_id(0);
-      vertex->set_t0(0);
+      vertex->set_t(0);
       vertex->set_chisq(0);
       vertex->set_ndof(1);
       _vertex_map->insert(vertex);

@@ -64,11 +64,7 @@ pkginclude_HEADERS = \
   BbcVertexv1.h \
   BbcVertexv2.h \
   BbcVertexMap.h \
-  BbcVertexMapv1.h \
-  MbdVertex.h \
-  MbdVertexv1.h \
-  MbdVertexMap.h \
-  MbdVertexMapv1.h
+  BbcVertexMapv1.h
 endif
 
 if USE_ONLINE
@@ -103,11 +99,7 @@ ROOTDICTS = \
   MbdPmtHit_Dict.cc \
   MbdPmtHitV1_Dict.cc \
   MbdPmtContainer_Dict.cc \
-  MbdPmtContainerV1_Dict.cc \
-  MbdVertex_Dict.cc \
-  MbdVertexv1_Dict.cc \
-  MbdVertexMap_Dict.cc \
-  MbdVertexMapv1_Dict.cc
+  MbdPmtContainerV1_Dict.cc
 endif
 
 pcmdir = $(libdir)
@@ -144,11 +136,7 @@ nobase_dist_pcm_DATA = \
   MbdPmtHit_Dict_rdict.pcm \
   MbdPmtHitV1_Dict_rdict.pcm \
   MbdPmtContainer_Dict_rdict.pcm \
-  MbdPmtContainerV1_Dict_rdict.pcm \
-  MbdVertex_Dict_rdict.pcm \
-  MbdVertexv1_Dict_rdict.pcm \
-  MbdVertexMap_Dict_rdict.pcm \
-  MbdVertexMapv1_Dict_rdict.pcm
+  MbdPmtContainerV1_Dict_rdict.pcm
 endif
 
 if USE_ONLINE
@@ -180,10 +168,7 @@ libmbd_io_la_SOURCES = \
   BbcVertexv1.cc \
   BbcVertexv2.cc \
   BbcVertexMap.cc \
-  BbcVertexMapv1.cc \
-  MbdVertexv1.cc \
-  MbdVertexMap.cc \
-  MbdVertexMapv1.cc
+  BbcVertexMapv1.cc
 
 libmbd_la_SOURCES = \
   MbdSig.cc \
@@ -208,7 +193,8 @@ libmbd_la_LIBADD = \
   -lphool \
   -lffamodules \
   -lcdbobjects \
-  -lSubsysReco
+  -lSubsysReco \
+  -lglobalvertex_io
 
 endif
 

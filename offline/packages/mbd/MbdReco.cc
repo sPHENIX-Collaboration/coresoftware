@@ -1,11 +1,12 @@
 #include "MbdReco.h"
 #include "MbdEvent.h"
 #include "MbdPmtContainerV1.h"
-#include "MbdVertexMapv1.h"
-#include "MbdVertexv1.h"
-//#include "MbdOutV2.h"
 #include "MbdOutV1.h"
 #include "MbdGeomV1.h"
+
+
+#include <globalvertex/MbdVertexMapv1.h>
+#include <globalvertex/MbdVertexv2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -77,7 +78,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
   // For multiple global vertex
   if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0)
   {
-    auto vertex = std::make_unique<MbdVertexv1>();
+    auto vertex = std::make_unique<MbdVertexv2>();
     vertex->set_t( m_mbdevent->get_bbct0() );
     vertex->set_z( m_mbdevent->get_bbcz() );
     vertex->set_z_err( 0.6 );
