@@ -29,7 +29,7 @@ class InttEventInfov1 : public InttEventInfo
   uint64_t bco_full;
 
  private:
-  ClassDefOverride(InttEventInfo, 1)
+  ClassDefOverride(InttEventInfov1, 1)
 };
 
 #endif//INTT_EVENT_INFO_v1_H
