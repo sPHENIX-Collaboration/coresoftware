@@ -19,8 +19,6 @@
 #include <memory>
 #include <set>
 
-const int NPACKETS = 1;
-
 SingleGl1PoolInput::SingleGl1PoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
