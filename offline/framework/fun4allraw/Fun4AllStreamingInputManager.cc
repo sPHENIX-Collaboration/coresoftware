@@ -673,7 +673,7 @@ int Fun4AllStreamingInputManager::FillTpc()
 		<< " to 0x" << select_crossings
 		<< std::dec << std::endl;
     }
-    while(m_TpcRawHitMap.begin()->first < m_RefBCO)
+    while(!m_TpcRawHitMap.empty() && m_TpcRawHitMap.begin()->first < m_RefBCO)
     {
       for (auto iter : m_TpcInputVector)
       {
@@ -682,7 +682,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
       m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
     }
-    while(m_TpcRawHitMap.begin()->first <= select_crossings)
+    while(!m_TpcRawHitMap.empty() && m_TpcRawHitMap.begin()->first <= select_crossings)
     {
       for (auto tpchititer :  m_TpcRawHitMap.begin()->second.TpcRawHitVector)
       {
