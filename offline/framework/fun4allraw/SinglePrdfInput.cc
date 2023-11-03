@@ -35,7 +35,11 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
   }
   while (m_EventIterator == nullptr)  // at startup this is a null pointer
   {
-    OpenNextFile();
+    if (!OpenNextFile())
+    {
+      AllDone(1);
+      return;
+    }
   }
   for (unsigned int ievt = 0; ievt < nevents; ievt++)
   {

@@ -66,7 +66,13 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
   { return; }
 
   while( !GetEventiterator() )  // at startup this is a null pointer
-  { OpenNextFile(); }
+  {
+    if (!OpenNextFile())
+    {
+      AllDone(1);
+      return;
+    }
+  }
 
   while (GetSomeMoreEvents())
   {
