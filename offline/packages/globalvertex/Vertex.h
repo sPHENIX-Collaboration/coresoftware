@@ -31,6 +31,10 @@ class Vertex : public PHObject
   virtual float get_t() const { return NAN; }
   virtual void set_t(float) {}
 
+  // Interface functions to maintain backwards compatibility with svtxvertex_v1
+  virtual float get_t0() const { return get_t(); }
+  virtual void set_t0(float t0) { set_t(t0); }
+
   virtual float get_t_err() const { return NAN; }
   virtual void set_t_err(float) {}
 
@@ -56,15 +60,18 @@ class Vertex : public PHObject
   virtual void set_error(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
 
   //beam crossing methods
-  virtual float get_beam_crossing() { return NAN; }
-  virtual void set_beam_crossing(float) {}
+  virtual unsigned int get_beam_crossing() const { return UINT_MAX; }
+  virtual void set_beam_crossing(unsigned int) {}
 
   //bbcvertex methods
   virtual void set_bbc_ns(int, int, float, float) {}
   virtual int get_bbc_npmt(int) const { return std::numeric_limits<int>::max(); }
+  virtual float get_z_err() const { return NAN; }
+  virtual void set_z_err(float) {}
+
   virtual float get_bbc_q(int) const { return NAN; }
   virtual float get_bbc_t(int) const { return NAN; }
-
+  
   //svtxvertex methods
   virtual void clear_tracks() {}
   virtual bool empty_tracks() { return true; }

@@ -41,6 +41,10 @@ namespace
     }
     return out;
   }
+
+  // minimum number of requested samples
+  static constexpr int m_min_req_samples = 5;
+  
 }
 
 //______________________________________________________________
@@ -64,7 +68,13 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
   { return; }
 
   while( !GetEventiterator() )  // at startup this is a null pointer
-  { OpenNextFile(); }
+  {
+    if (!OpenNextFile())
+    {
+      AllDone(1);
+      return;
+    }
+  }
 
   while (GetSomeMoreEvents())
   {
@@ -86,17 +96,20 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
     { std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl; }
 
     RunNumber(evt->getRunNumber());
-    if (GetVerbosity() > 1)
+    if (Verbosity() > 1)
     { evt->identify(); }
 
     if (evt->getEvtType() != DATAEVENT)
     { m_NumSpecialEvents++; }
 
-    int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, 10);
+    const int EventSequence = evt->getEvtSequence();
+    const int npackets = evt->getPacketList(plist, 10);
 
     if (npackets == 10)
-    { exit(1); }
+    { 
+      std::cout << "SingleMicromegasInput::FillPool - too many packets" << std::endl;
+      exit(1); 
+    }
 
     for (int i = 0; i < npackets; i++)
     {
@@ -153,6 +166,14 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
       {
 
         const int fee_id = packet->iValue(wf, "FEE");
+
+        // get checksum_error and check
+        const auto checksum_error = packet->iValue(wf, "CHECKSUMERROR");
+        if( checksum_error ) continue;
+        
+        // get number of samples and check
+        const uint16_t samples = packet->iValue(wf, "SAMPLES");
+        if( samples < m_min_req_samples ) continue;
 
         // get fee bco
         const unsigned int fee_bco = packet->iValue(wf, "BCO");
@@ -215,12 +236,7 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
         newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
         newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
 
-//         // checksum and checksum error
-//         newhit->set_checksum( packet->iValue(iwf, "CHECKSUM") );
-//         newhit->set_checksum_error( packet->iValue(iwf, "CHECKSUMERROR") );
-
         // samples
-        const uint16_t samples = packet->iValue(wf, "SAMPLES");
         newhit->set_samples( samples );
 
         // adc values

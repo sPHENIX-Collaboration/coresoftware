@@ -4,7 +4,7 @@
 #define G4VERTEX_GLOBALVERTEX_H
 
 #include <phool/PHObject.h>
-
+#include "Vertex.h"
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -18,13 +18,20 @@ class GlobalVertex : public PHObject
     UNDEFINED = 0,
     TRUTH = 100,
     SMEARED = 200,
-    BBC = 300,
+    MBD = 300,
     SVTX = 400,
-    SVTX_BBC = 500
+    SVTX_MBD = 500
   };
+  
+  typedef std::vector<const Vertex*> VertexVector;
+  typedef std::map<GlobalVertex::VTXTYPE, VertexVector>::const_iterator ConstVertexIter;
+  typedef std::map<GlobalVertex::VTXTYPE, VertexVector>::iterator VertexIter;
 
+  // Deprecated as of GlobalVertexv2
   typedef std::map<GlobalVertex::VTXTYPE, unsigned int>::const_iterator ConstVtxIter;
   typedef std::map<GlobalVertex::VTXTYPE, unsigned int>::iterator VtxIter;
+
+
 
   ~GlobalVertex() override {}
 
@@ -69,8 +76,29 @@ class GlobalVertex : public PHObject
   virtual float get_error(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
   virtual void set_error(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
 
+  virtual unsigned int get_beam_crossing() const { return std::numeric_limits<unsigned int>::max(); }
+  virtual void set_beam_crossing(unsigned int) {}
+
+  virtual bool empty_vtxs() const { return true; }
+  virtual size_t size_vtxs() const { return 0; }
+  virtual size_t count_vtxs(VTXTYPE) const { return 0; }
+  virtual void clear_vtxs() {}
+  virtual void insert_vtx(VTXTYPE, const Vertex*) {}
+  virtual size_t erase_vtxs(VTXTYPE) { return 0; }
+  virtual void erase_vtxs(VertexIter) {}
+
+  virtual ConstVertexIter begin_vertexes() const;
+  virtual ConstVertexIter find_vertexes(VTXTYPE type) const;
+  virtual ConstVertexIter end_vertexes() const;
+
+  virtual VertexIter begin_vertexes();
+  virtual VertexIter find_vertexes(VTXTYPE type);
+  virtual VertexIter end_vertexes();
+
   //
   // associated vertex ids methods
+  // vtx id container accessors are deprecated. 
+  // Use actual vertex container accessors instead
   //
   virtual bool empty_vtxids() const { return true; }
   virtual size_t size_vtxids() const { return 0; }

@@ -7,10 +7,10 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
+#include <globalvertex/SvtxVertexMap.h>
+#include <globalvertex/SvtxVertex.h>
 
 #include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -41,12 +41,9 @@
 #include <trackbase/TrkrClusterCrossingAssoc.h> 
 #include <trackbase/TrkrHitTruthAssoc.h>
 
-#include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertex.h>
 
 #include <TDatabasePDG.h>
 #include <TParticlePDG.h>

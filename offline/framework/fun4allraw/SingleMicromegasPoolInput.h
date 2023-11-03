@@ -22,7 +22,6 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   ~SingleMicromegasPoolInput() override;
   void FillPool(const unsigned int nevents = 1) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
-  // bool CheckPoolDepth(const uint64_t bclk) override;
   void ClearCurrentEvent() override;
   bool GetSomeMoreEvents();
   void Print(const std::string &what = "ALL") const override;
