@@ -27,8 +27,11 @@ class SvtxVertex_v1 : public SvtxVertex
   unsigned int get_id() const override { return _id; }
   void set_id(unsigned int id) override { _id = id; }
 
-  float get_t0() const override { return _t0; }
-  void set_t0(float t0) override { _t0 = t0; }
+  float get_t0() const override { return get_t(); }
+  void set_t0(float t0) override { set_t(t0); }
+
+  float get_t() const override { return _t0; }
+  void set_t(float t0) override { _t0 = t0; }
 
   float get_x() const override { return _pos[0]; }
   void set_x(float x) override { _pos[0] = x; }
