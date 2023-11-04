@@ -29,21 +29,20 @@
 #include <vector>
 #include <fstream>
 
-//FIXME 
-/* JetReco::JetReco(const std::string &name, TRANSITION _which) */
-/*   : SubsysReco(name) */
-/*   , which_fill{_which} */
-/*   , use_jetcon{_which == TRANSITION::JET_CONTAINER || _which == TRANSITION::BOTH || _which == TRANSITION::PRETEND_BOTH} */
-/*   , use_jetmap{_which == TRANSITION::JET_MAP || _which == TRANSITION::BOTH} */
-/* { */
-/* } */
 JetReco::JetReco(const std::string &name, TRANSITION _which)
   : SubsysReco(name)
   , which_fill{_which}
-  , use_jetcon{false}
-  , use_jetmap{true}
+  , use_jetcon{_which == TRANSITION::JET_CONTAINER || _which == TRANSITION::BOTH || _which == TRANSITION::PRETEND_BOTH}
+  , use_jetmap{_which == TRANSITION::JET_MAP || _which == TRANSITION::BOTH}
 {
 }
+/* JetReco::JetReco(const std::string &name, TRANSITION _which) */
+/*   : SubsysReco(name) */
+/*   , which_fill{_which} */
+/*   , use_jetcon{false} */
+/*   , use_jetmap{true} */
+/* { */
+/* } */
 
 
 JetReco::~JetReco()
@@ -104,21 +103,30 @@ int JetReco::process_event(PHCompositeNode *topNode)
   {
     // send the output somewhere on the DST
     /* if (_fill_JetContainer) { */
-    //FIXME
     if (use_jetcon)
     {
-      if (false) { //FIXME
         if (Verbosity() > 5) std::cout << " Verbosity>5:: filling JetContainter for " << JC_name(_outputs[ialgo]) << std::endl;
         FillJetContainer(topNode, ialgo, inputs);
-      }
     }
     if (use_jetmap)
     {
       if (Verbosity() > 5) std::cout << " Verbosity>5:: filling jetnode for " << _outputs[ialgo] << std::endl;
       std::vector<Jet *> jets = _algos[ialgo]->get_jets(inputs);  // owns memory
-
       FillJetNode(topNode, ialgo, jets);
     }
+
+    //FIXME
+    // print out equivalence of jets and constituents in the two methods
+    /* std::fstream fout; */
+    /* fout.open("FIXME_jetscomp", std::fstream::app); */
+    /* std::cout << " Printing out results on jetmap */
+    /* JetMap *jetmap = findNode::getClass<JetMap>(topNode, _outputs[ipos]); */
+    /* int ifix =0; */
+    /* for (auto& _jet = jetmap->begin(); _jet != jetmap->end; ++_jet) { */
+    /*   auto jet = jet- */
+    /*   fout << Form(" jetmap[%i] ncon:phi:eta:pt [%i,%6.3f,%6.3f,%6.3f]", jet-> */
+    /* } */
+
   }
 
   // clean up input vector
