@@ -906,7 +906,7 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
         unsigned int ladderPhi = InttDefs::getLadderPhiId(hitsetkey);
         unsigned int ladderZ = InttDefs::getLadderZId(hitsetkey);
 
-        std::cout << "Layer radius " << layer_rad << " layer " << layer << " ladderPhi " << ladderPhi << " ladderZ " << ladderZ
+        std::cout << "Layer radius " << layer_rad << " layer " << layer << " ladderPhi " << ladderPhi << " ladderZ " << ladderZ << " hitsetkey " << hitsetkey 
                   << " recover surface from m_clusterSurfaceMapSilicon " << std::endl;
         std::cout << " surface type " << surf->type() << std::endl;
         auto assoc_layer = surf->associatedLayer();
