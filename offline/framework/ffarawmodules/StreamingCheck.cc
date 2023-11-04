@@ -46,6 +46,7 @@ int StreamingCheck::process_event(PHCompositeNode *topNode)
   if (!gl1rawhit)
   {
     std::cout << "could not find node GL1RAWHIT" << std::endl;
+    exit(1);
   }
   uint64_t refBCO = gl1rawhit->get_bco();
   uint64_t refBCO_40Bits = refBCO & 0xFFFFFFFFFF;
