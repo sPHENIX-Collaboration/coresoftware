@@ -639,15 +639,15 @@ int Fun4AllStreamingInputManager::FillMicromegas()
   uint64_t select_crossings =  m_micromegas_bco_range;
     if (m_RefBCO > 0)
     {
-      select_crossings += m_RefBCO - m_micromegas_negative_bco;
+      select_crossings += m_RefBCO;
     }
     else
     {
-      select_crossings += m_MicromegasRawHitMap.begin()->first - m_micromegas_negative_bco;
+      select_crossings += m_MicromegasRawHitMap.begin()->first;
    }
 // m_MicromegasRawHitMap.empty() does not need to be checked here, FillMicromegasPool returns non zero
 // if this map is empty which is handled above
-    while(m_MicromegasRawHitMap.begin()->first < m_RefBCO)
+    while((m_MicromegasRawHitMap.begin()->first  + m_micromegas_negative_bco) < m_RefBCO)
     {
       std::cout << "Micromegas BCO: 0x" << std::hex << m_MicromegasRawHitMap.begin()->first
 		<< " smaller than GL1 BCO: 0x" << m_RefBCO
@@ -665,17 +665,17 @@ int Fun4AllStreamingInputManager::FillMicromegas()
       }
     }
 
-  while(m_MicromegasRawHitMap.begin()->first <= select_crossings)
-  {
-    for( const auto& hititer :  m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector)
-    { container->AddHit(hititer); }
+    while((m_MicromegasRawHitMap.begin()->first + m_micromegas_negative_bco) <= select_crossings)
+    {
+      for( const auto& hititer :  m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector)
+      { container->AddHit(hititer); }
     
-    for( const auto& iter : m_MicromegasInputVector)
-    { iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first); }
+      for( const auto& iter : m_MicromegasInputVector)
+      { iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first); }
 
-    m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
-    m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
-  }
+      m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
+      m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
+    }
 
   return 0;
 

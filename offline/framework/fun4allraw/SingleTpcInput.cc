@@ -71,6 +71,7 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
     if (evt->getEvtType() != DATAEVENT)
     {
       m_NumSpecialEvents++;
+      continue;
     }
     int EventSequence = evt->getEvtSequence();
     int npackets = evt->getPacketList(plist, 10);
