@@ -100,7 +100,10 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
     { evt->identify(); }
 
     if (evt->getEvtType() != DATAEVENT)
-    { m_NumSpecialEvents++; }
+    {
+      m_NumSpecialEvents++;
+      continue;
+    }
 
     const int EventSequence = evt->getEvtSequence();
     const int npackets = evt->getPacketList(plist, 10);
