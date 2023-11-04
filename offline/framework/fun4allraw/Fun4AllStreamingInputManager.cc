@@ -639,11 +639,11 @@ int Fun4AllStreamingInputManager::FillMicromegas()
   uint64_t select_crossings =  m_micromegas_bco_range;
     if (m_RefBCO > 0)
     {
-      select_crossings += m_RefBCO;
+      select_crossings += m_RefBCO - m_micromegas_negative_bco;
     }
     else
     {
-      select_crossings += m_MicromegasRawHitMap.begin()->first;
+      select_crossings += m_MicromegasRawHitMap.begin()->first - m_micromegas_negative_bco;
    }
 // m_MicromegasRawHitMap.empty() does not need to be checked here, FillMicromegasPool returns non zero
 // if this map is empty which is handled above
@@ -753,6 +753,11 @@ void Fun4AllStreamingInputManager::SetTpcBcoRange(const unsigned int i)
 void Fun4AllStreamingInputManager::SetMicromegasBcoRange(const unsigned int i)
 {
   m_micromegas_bco_range = std::max(i,m_micromegas_bco_range);
+}
+
+void Fun4AllStreamingInputManager::SetMicromegasNegativeBco(const unsigned int i)
+{
+  m_micromegas_negative_bco = std::max(i,m_micromegas_negative_bco);
 }
 
 int Fun4AllStreamingInputManager::FillInttPool()

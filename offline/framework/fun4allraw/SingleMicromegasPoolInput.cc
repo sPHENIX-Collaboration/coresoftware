@@ -397,5 +397,8 @@ void SingleMicromegasPoolInput::CreateDSTNode(PHCompositeNode *topNode)
 void SingleMicromegasPoolInput::ConfigureStreamingInputManager()
 {
   if (StreamingInputManager())
-  { StreamingInputManager()->SetMicromegasBcoRange(m_BcoRange); }
+  {
+    StreamingInputManager()->SetMicromegasBcoRange(m_BcoRange);
+    StreamingInputManager()->SetMicromegasNegativeBco(m_NegativeBco);
+  }
 }
