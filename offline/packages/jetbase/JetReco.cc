@@ -117,15 +117,19 @@ int JetReco::process_event(PHCompositeNode *topNode)
 
     //FIXME
     // print out equivalence of jets and constituents in the two methods
-    /* std::fstream fout; */
-    /* fout.open("FIXME_jetscomp", std::fstream::app); */
-    /* std::cout << " Printing out results on jetmap */
-    /* JetMap *jetmap = findNode::getClass<JetMap>(topNode, _outputs[ipos]); */
-    /* int ifix =0; */
-    /* for (auto& _jet = jetmap->begin(); _jet != jetmap->end; ++_jet) { */
-    /*   auto jet = jet- */
-    /*   fout << Form(" jetmap[%i] ncon:phi:eta:pt [%i,%6.3f,%6.3f,%6.3f]", jet-> */
-    /* } */
+    if (false) {
+      std::fstream fout;
+      fout.open("FIXME_jetscomp", std::fstream::app);
+      fout << " Printing out results on jetmap " << std::endl;
+      JetMap *jetmap = findNode::getClass<JetMap>(topNode, _outputs[ialgo]);
+      int iFIXME =0;
+      for (auto _jet = jetmap->begin(); _jet != jetmap->end(); ++_jet) {
+        auto jet = _jet->second;
+        fout << Form(" jetmap[%i] ncon:pt:eta:phi [%i,%6.3f,%6.3f,%6.3f]",
+            ++iFIXME, (int)jet->size_comp(), jet->get_pt(), jet->get_eta(), jet->get_phi()) << std::endl;
+        fout << " constituents: ";
+      }
+    }
 
   }
 
