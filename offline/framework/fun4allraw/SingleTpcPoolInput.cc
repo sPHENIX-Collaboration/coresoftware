@@ -109,8 +109,10 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         if( is_lvl1 )
         {
           gtm_bco = packet->lValue(t, "BCO");
-          std::cout << "bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
-
+	  if (Verbosity() > 0)
+	  {
+            std::cout << "bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
+	  }
           // store
           previous_bco = gtm_bco;
         }

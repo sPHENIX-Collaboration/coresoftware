@@ -98,7 +98,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
     { evt->identify(); }
 
     if (evt->getEvtType() != DATAEVENT)
-    { m_NumSpecialEvents++; }
+    { m_NumSpecialEvents++; continue;}
 
     const int EventSequence = evt->getEvtSequence();
     const int npackets = evt->getPacketList(plist, 10);
@@ -397,5 +397,8 @@ void SingleMicromegasPoolInput::CreateDSTNode(PHCompositeNode *topNode)
 void SingleMicromegasPoolInput::ConfigureStreamingInputManager()
 {
   if (StreamingInputManager())
-  { StreamingInputManager()->SetMicromegasBcoRange(m_BcoRange); }
+  {
+    StreamingInputManager()->SetMicromegasBcoRange(m_BcoRange);
+    StreamingInputManager()->SetMicromegasNegativeBco(m_NegativeBco);
+  }
 }
