@@ -34,6 +34,8 @@ std::vector<Jet *> ParticleFlowJetInput::get_input(PHCompositeNode *topNode)
   std::vector<Jet *> pseudojets;
   ParticleFlowElementContainer::ConstRange begin_end = pflowContainer->getParticleFlowElements();
   ParticleFlowElementContainer::ConstIterator rtiter;
+
+
   for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
   {
     ParticleFlowElement *pflow = rtiter->second;
