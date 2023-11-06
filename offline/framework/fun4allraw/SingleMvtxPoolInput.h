@@ -3,8 +3,8 @@
 
 #include "SingleStreamingInput.h"
 
-#include <map>
 #include <algorithm>
+#include <map>
 #include <vector>
 
 class MvtxRawHit;
@@ -29,13 +29,13 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   bool GetSomeMoreEvents();
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
-  void SetBcoRange(const unsigned int i) {m_BcoRange = i;}
+  void SetBcoRange(const unsigned int i) { m_BcoRange = i; }
   void ConfigureStreamingInputManager() override;
 
-  std::set<int>& getFeeIdSet(const uint64_t& bco) { return m_BeamClockFEE[bco]; };
+  std::set<int> &getFeeIdSet(const uint64_t &bco) { return m_BeamClockFEE[bco]; };
 
  protected:
-  LinkId_t DecodeFeeid(const uint16_t& feeid)
+  LinkId_t DecodeFeeid(const uint16_t &feeid)
   {
     LinkId_t ret = {};
     ret.layer = (feeid >> 12) & 0x7;
@@ -45,17 +45,16 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   }
 
  private:
-  Packet **plist {nullptr};
-  unsigned int m_NumSpecialEvents {0};
-  unsigned int m_BcoRange {0};
+  Packet **plist{nullptr};
+  unsigned int m_NumSpecialEvents{0};
+  unsigned int m_BcoRange{0};
 
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<uint64_t, std::vector<MvtxRawHit *>> m_MvtxRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::map<int, uint64_t> m_FeeStrobeMap;
   std::set<uint64_t> m_BclkStack;
-  std::set<uint64_t> gtmL1BcoSet; // GTM L1 BCO
-
+  std::set<uint64_t> gtmL1BcoSet;  // GTM L1 BCO
 };
 
 #endif
