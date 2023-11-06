@@ -375,7 +375,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
 
   if (leading_jet)
   {
-    if (Verbosity())
+    if (true)
     {
       std::cout
           << "QAG4SimulationJet::process_Spectrum - processing leading jet with # comp = "

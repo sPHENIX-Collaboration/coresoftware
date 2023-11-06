@@ -1,5 +1,5 @@
-#ifndef G4JET_JETRECO_H
-#define G4JET_JETRECO_H
+#ifndef JETBASE_JETRECO_H
+#define JETBASE_JETRECO_H
 
 //===========================================================
 /// \file JetReco.h
@@ -31,7 +31,15 @@ class PHCompositeNode;
 class JetReco : public SubsysReco
 {
  public:
-  JetReco(const std::string &name = "JetReco");
+   enum TRANSITION
+   {
+    JET_CONTAINER,
+    JET_MAP,
+    BOTH,
+    PRETEND_BOTH // do just JET_CONTAINER, but still append _JC to the name
+   };
+
+  JetReco(const std::string &name = "JetReco", TRANSITION _which_fill=BOTH); // , bool fill_JetContainer=false);
   ~JetReco() override;
 
   int InitRun(PHCompositeNode *topNode) override;
@@ -46,16 +54,31 @@ class JetReco : public SubsysReco
 
   void set_algo_node(const std::string &algonode) { _algonode = algonode; }
   void set_input_node(const std::string &inputnode) { _inputnode = inputnode; }
+  /* void set_fill_JetContainer(bool b) { _fill_JetContainer = b; } */
+
+  JetAlgo* get_algo(unsigned int which_algo=0);
 
  private:
   int CreateNodes(PHCompositeNode *topNode);
   void FillJetNode(PHCompositeNode *topNode, int ialgo, std::vector<Jet *> jets);
+  void FillJetContainer(PHCompositeNode *topNode, int ialgo, std::vector<Jet*>& jets);
 
   std::vector<JetInput *> _inputs;
   std::vector<JetAlgo *> _algos;
   std::string _algonode;
   std::string _inputnode;
   std::vector<std::string> _outputs;
+
+  // transition functions, while moving from JetMap to JetContainer.
+  // May be removed after transition is made, depending on state of 
+  // functions
+  std::string JC_name (std::string name) { 
+    if (which_fill == TRANSITION::BOTH || which_fill==TRANSITION::PRETEND_BOTH) return name+"_JC";
+    else return name;
+  }
+  TRANSITION which_fill;// fill both container and map 
+  bool use_jetcon;
+  bool use_jetmap;
 };
 
-#endif  // G4JET_JETRECO_H
+#endif  // JETBASE_JETRECO_H
