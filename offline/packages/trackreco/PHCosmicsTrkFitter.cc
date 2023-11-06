@@ -340,7 +340,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
                     momentum,
                     charge / momentum.norm(),
                     cov,
-                    Acts::ParticleHypothesis::muon())
+                    Acts::ParticleHypothesis::muon(), 
+		    1*Acts::UnitConstants::cm)
                     .value();
 
     if (Verbosity() > 2)
