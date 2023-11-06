@@ -563,39 +563,10 @@ int Fun4AllStreamingInputManager::FillIntt()
 
 int Fun4AllStreamingInputManager::FillMvtx()
 {
-  //TODO: Find a better placement for this counter that dont need to be executed every call
-  unsigned int nMvtxEvtInputs = 0;
-  for (auto iter : m_MvtxInputVector)
+  int iret =  FillMvtxPool();
+  if (iret)
   {
-    if (iter->SubsystemEnum() != Fun4AllStreamingInputManager::MVTX)
-    {
-      return 0;
-    }
-      ++nMvtxEvtInputs;
-  }
-  while (m_MvtxRawHitMap.size() < 5) // pooling at least 5 events
-  {
-    unsigned int alldone = 0;
-    for (auto iter : m_MvtxInputVector)
-    {
-      alldone += iter->AllDone();
-      if (Verbosity() > 0)
-      {
-	std::cout << "fill pool for " << iter->Name() << std::endl;
-      }
-      iter->FillPool();
-      m_RunNumber = iter->RunNumber();
-    }
-    if (alldone >= nMvtxEvtInputs)
-    {
-	    break;
-    }
-    SetRunNumber(m_RunNumber);
-  }
-  if (m_MvtxRawHitMap.empty())
-  {
-    std::cout << "we are done" << std::endl;
-    return -1;
+    return iret;
   }
   MvtxRawHitContainer *mvtxcont =  findNode::getClass<MvtxRawHitContainer>(m_topNode,"MVTXRAWHIT");
   if (! mvtxcont)
@@ -605,23 +576,57 @@ int Fun4AllStreamingInputManager::FillMvtx()
     exit(1);
   }
 //  std::cout << "before filling m_InttRawHitMap size: " <<  m_InttRawHitMap.size() << std::endl;
-  for (auto mvtxhititer :  m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
-  {
-    if (Verbosity() > 1)
+    uint64_t select_crossings =  m_mvtx_bco_range;
+    if (m_RefBCO > 0)
     {
-	    mvtxhititer->identify();
+      select_crossings += m_RefBCO;
     }
-    mvtxcont->AddHit(mvtxhititer);
-//  delete intthititer; // cleanup up done in Single Input Mgrs
-  }
-  for (auto iter : m_MvtxInputVector)
-  {
-    iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
-  }
-  m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
-  m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
-  // std::cout << "size  m_MvtxRawHitMap: " <<  m_MvtxRawHitMap.size()
-  //	    << std::endl;
+    else
+    {
+      select_crossings += m_MvtxRawHitMap.begin()->first;
+   }
+    if (Verbosity() > 2)
+    {
+      std::cout << "select MVTX crossings"
+		<< " from 0x" << std::hex << m_MvtxRawHitMap.begin()->first
+		<< " to 0x" << select_crossings
+		<< std::dec << std::endl;
+    }
+// m_MvtxRawHitMap.empty() does not need to be checked here, FillMvtxPool returns non zero
+// if this map is empty which is handled above
+    while(m_MvtxRawHitMap.begin()->first < m_RefBCO)
+    {
+      for (auto iter : m_MvtxInputVector)
+      {
+	iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
+      }
+      m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
+      m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
+      iret = FillMvtxPool();
+      if (iret)
+      {
+	return iret;
+      }
+    }
+// again m_MvtxRawHitMap.empty() is handled by return of FillMvtxPool()
+    while(m_MvtxRawHitMap.begin()->first <= select_crossings)
+    {
+      for (auto mvtxhititer :  m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
+      {
+	if (Verbosity() > 1)
+	{
+	  mvtxhititer->identify();
+	}
+	mvtxcont->AddHit(mvtxhititer);
+      }
+      for (auto iter : m_MvtxInputVector)
+      {
+	iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
+      }
+      m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
+      m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
+    }
+
   return 0;
 }
 
@@ -745,11 +750,6 @@ int Fun4AllStreamingInputManager::FillTpc()
   return 0;
 }
 
-void Fun4AllStreamingInputManager::SetTpcBcoRange(const unsigned int i)
-{
-  m_tpc_bco_range = std::max(i,m_tpc_bco_range);
-}
-
 void Fun4AllStreamingInputManager::SetMicromegasBcoRange(const unsigned int i)
 {
   m_micromegas_bco_range = std::max(i,m_micromegas_bco_range);
@@ -758,6 +758,16 @@ void Fun4AllStreamingInputManager::SetMicromegasBcoRange(const unsigned int i)
 void Fun4AllStreamingInputManager::SetMicromegasNegativeBco(const unsigned int i)
 {
   m_micromegas_negative_bco = std::max(i,m_micromegas_negative_bco);
+}
+
+void Fun4AllStreamingInputManager::SetTpcBcoRange(const unsigned int i)
+{
+  m_tpc_bco_range = std::max(i,m_tpc_bco_range);
+}
+
+void Fun4AllStreamingInputManager::SetMvtxBcoRange(const unsigned int i)
+{
+  m_mvtx_bco_range = std::max(i,m_mvtx_bco_range);
 }
 
 int Fun4AllStreamingInputManager::FillInttPool()
@@ -819,3 +829,24 @@ int Fun4AllStreamingInputManager::FillMicromegasPool()
   }
   return 0;
 }
+
+int Fun4AllStreamingInputManager::FillMvtxPool()
+{
+  for (auto iter : m_MvtxInputVector)
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "Fun4AllStreamingInputManager::FillMvtxPool - fill pool for " << iter->Name() << std::endl;
+    }
+    iter->FillPool();
+    m_RunNumber = iter->RunNumber();
+    SetRunNumber(m_RunNumber);
+  }
+  if (m_MvtxRawHitMap.empty())
+  {
+    std::cout << "we are done" << std::endl;
+    return -1;
+  }
+  return 0;
+}
+

@@ -51,11 +51,13 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
   void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit* /* hit */);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
-  void SetTpcBcoRange(const unsigned int i);
   void SetMicromegasBcoRange(const unsigned int i);
   void SetMicromegasNegativeBco(const unsigned int value);
+  void SetMvtxBcoRange(const unsigned int i);
+  void SetTpcBcoRange(const unsigned int i);
   int FillInttPool();
   int FillMicromegasPool();
+  int FillMvtxPool();
   int FillTpcPool();
 
  private:
@@ -95,9 +97,10 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   bool m_micromegas_registered_flag {false};
   bool m_mvtx_registered_flag {false};
   bool m_tpc_registered_flag {false};
-  unsigned int m_tpc_bco_range {0};
   unsigned int m_micromegas_bco_range {0};
   unsigned int m_micromegas_negative_bco {0};
+  unsigned int m_tpc_bco_range {0};
+  unsigned int m_mvtx_bco_range {0};
   uint64_t m_RefBCO {0};
 
   std::vector<SingleStreamingInput *> m_Gl1InputVector;
