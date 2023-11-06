@@ -71,7 +71,8 @@ class AnnularFieldSim
   //note that if we set to Zero, we skip the lookup step.
 
   //debug items
-  //
+  //bool
+  bool RdeltaRswitch=false;
   int debug_printActionEveryN;
   int debug_npercent;
   int debug_printCounter;

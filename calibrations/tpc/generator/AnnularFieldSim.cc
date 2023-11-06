@@ -2380,6 +2380,7 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, TVector3 start, int st
   int rt, pt, zt;  //just placeholders for the bounds-checking.
   BoundsCase zBound;
   zBound = GetZindexAndCheckBounds(zdest, &zt);
+  bool rdrswitch=RdeltaRswitch;
   *success=0;
   if (zBound == OutOfBounds)
   {
@@ -2483,7 +2484,9 @@ int integernumbersteps=(zdest-start.Z())/zstep;
 		    
     //StartR=sqrt(PositionXBefore*PositionXBefore+PositionYBefore*PositionYBefore);
     DeltaR=FinalR-StartR;//sqrt(PositionXAfter*PositionXAfter+PositionYAfter*PositionYAfter)-StartR;
+    if(rdrswitch){
     hRdeltaRComponent->Fill(StartR, DeltaR);
+	}
     position.SetZ(position.Z() + zstep);
   }
     if (GetRindexAndCheckBounds(position.Perp(), &rt) != InBounds || GetPhiIndexAndCheckBounds(FilterPhiPos(position.Phi()), &pt) != InBounds || (zBound == OutOfBounds))
@@ -2659,6 +2662,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
   float deltar = s.Perp();  //(rf-ri)/nr;
   float deltap = s.Phi();   //(pf-pi)/np;
   float deltaz = s.Z();     //(zf-zi)/nz;
+  bool rdrswitch=RdeltaRswitch;
   TVector3 stepzvec(0, 0, deltaz);
 
 //  int nSteps = 500;  //how many steps to take in the particle path.  hardcoded for now.  Think about this later.
@@ -2719,7 +2723,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
   const int nMapComponents = 6;
   TH3F *hSeparatedMapComponent[2][6];  //side, then xyzrp
   TH3F *hValidToStepComponent[2];
-  TH3F *hSuccessCheckComponent[2];
+  TH3F *hReachesReadout[2];
   TString side[2];
   side[0] = "soloz";
   if (hasTwin)
@@ -2750,13 +2754,15 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
     hValidToStepComponent[i] = new TH3F(Form("hValidToStep_%s",side[i].Data()),
                                               Form("Step before out of bounds drifting from (phi,r,z) to z=endcap;phi;r;z (%s side)", side[i].Data()),
 	                                          nph, pih, pfh, nrh, rih, rfh, nzh, zlower, zupper);
-	hSuccessCheckComponent[i] = new TH3F(Form("hSuccessCheck_%s",side[i].Data()),
-                                              Form("Bool value for checking if successfuly drifting from (phi,r,z) to z=endcap;phi;r;z (%s side)", side[i].Data()),
+	hReachesReadout[i] = new TH3F(Form("hReachesReadout_%s",side[i].Data()),
+                                              Form("Bool value for checking if successfuly drifting from (phi,r,z) to z=endcap and reaches the readout;phi;r;z (%s side)", side[i].Data()),
 	                                          nph, pih, pfh, nrh, rih, rfh, nzh, zlower, zupper);                                            
   }
+    if(rdrswitch){
   	hRdeltaRComponent = new TH2F("hRdeltaR","Bool value of input for a 2D R_versus_deltaR plot from Zstart to Zend;R;deltaR", nrh, rih, rfh, 10*nrh, rih-70, rfh+170);
 	 //hRdeltaRComponent = new TH2F("hRdeltaR","Bool value of input for a 2D R_versus_deltaR plot from Zstart to Zend;R;deltaR", nrh, rih, rfh, 10*nrh, rih-20, rfh-77);    
   	twin->hRdeltaRComponent=hRdeltaRComponent;
+	}
 	   //monitor plots, and the position that that plot monitors at:
 
   //TVector3 pos((nrh/2+0.5)*s.Perp()+rih,0,(nzh/2+0.5)*s.Z()+zih);
@@ -2934,7 +2940,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
           }
 
           hValidToStepComponent[side]->Fill(partP, partR, partZ, validToStep);
-          hSuccessCheckComponent[side]->Fill(partP, partR, partZ, successCheck);
+          hReachesReadout[side]->Fill(partP, partR, partZ, successCheck);
           
           
           //recursive integral distortion:
@@ -3168,11 +3174,13 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
     hValidToStepComponent[i]->GetSumw2()->Set(0);
     hValidToStepComponent[i]->Write();
     
-    hSuccessCheckComponent[i]->GetSumw2()->Set(0);
-    hSuccessCheckComponent[i]->Write();
+    hReachesReadout[i]->GetSumw2()->Set(0);
+    hReachesReadout[i]->Write();
   }
+  if(rdrswitch){
   hRdeltaRComponent->GetSumw2()->Set(0);
   hRdeltaRComponent->Write();
+  }
     
   hDistortionR->GetSumw2()->Set(0);
   hDistortionP->GetSumw2()->Set(0);

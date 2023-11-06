@@ -65,6 +65,8 @@ void PHG4TpcDistortion::Init()
     hDPint[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionP_posz"));
     hDZint[0] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ_negz"));
     hDZint[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ_posz"));
+    hReach[0] = dynamic_cast<TH3*>(m_static_tfile->Get("hReachesReadout_negz"));
+    hReach[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hReachesReadout_posz"));
   }
 
   if (m_do_time_ordered_distortions)
@@ -84,6 +86,8 @@ void PHG4TpcDistortion::Init()
     TimehDP[1] = new TH3F();
     TimehDZ[0] = new TH3F();
     TimehDZ[1] = new TH3F();
+    TimehRR[0] = new TH3F();//RR stands for ReachesReadout
+    TimehRR[1] = new TH3F();//RR stands for ReachesReadout
 
     TimeTree = static_cast<TTree*>(m_time_ordered_tfile->Get("TimeDists"));
     TimeTree->SetBranchAddress("hIntDistortionR_negz", &(TimehDR[0]));
@@ -92,6 +96,8 @@ void PHG4TpcDistortion::Init()
     TimeTree->SetBranchAddress("hIntDistortionP_posz", &(TimehDP[1]));
     TimeTree->SetBranchAddress("hIntDistortionZ_negz", &(TimehDZ[0]));
     TimeTree->SetBranchAddress("hIntDistortionZ_posz", &(TimehDZ[1]));
+    TimeTree->SetBranchAddress("hReachesReadout_negz", &(TimehRR[0]));
+    TimeTree->SetBranchAddress("hReachesReadout_posz", &(TimehRR[1]));
   }
 }
 

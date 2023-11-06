@@ -49,7 +49,7 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   if (!isAdc){
     hCharge->Add((TH3*)(infile->Get(primName)));
   }   
-    hCharge->Scale(1);//Scaleing the histogram spacecharge by 100 times
+    //hCharge->Scale(70);//Scaleing the histogram spacecharge by 100 times
 
   TString chargestring;
 	       
