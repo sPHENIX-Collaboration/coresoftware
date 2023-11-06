@@ -1,17 +1,14 @@
-
 #include "ClusterJetInput.h"
 
 #include "Jet.h"
 #include "Jetv1.h"
 
-#include <phool/getClass.h>
-
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
-
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
+#include <phool/getClass.h>
 
 #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 

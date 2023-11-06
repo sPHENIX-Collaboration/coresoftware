@@ -3,13 +3,13 @@
 
 #include <map>
 
-#include <Event/Event.h>
-#include <Event/EventTypes.h>
-#include <Event/packet.h>
+class Packet;
+class InttRawHit;
 
-namespace Intt
+namespace InttNameSpace
 {
 	extern const std::map<int, int> Packet_Id;
+	int FelixFromPacket(int);
 
 	struct RawData_s
 	{
@@ -37,7 +37,8 @@ namespace Intt
 		int strip_y = 0;
 	};
 
-	struct RawData_s RawFromPacket(int const, int const, Packet*);
+	struct InttNameSpace::RawData_s RawFromPacket(int const, int const, Packet*);
+	void RawFromHit(struct InttNameSpace::RawData_s&, InttRawHit*);
 
 	//nontrivial
 	struct Online_s ToOnline(struct Offline_s const&);
@@ -49,31 +50,34 @@ namespace Intt
 	//trivial
 	struct RawData_s ToRawData(struct Offline_s const&);
 	struct Offline_s ToOffline(struct RawData_s const&);
+
+	//Eigen::Affine3d GetTransform(TTree*, struct Offline_s const&);
+	//Eigen::Vector4d GetLocalPos(struct Offline_s const&);
 };
 
-bool operator==(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
-bool operator==(struct Intt::Online_s const&, struct Intt::Online_s const&);
-bool operator==(struct Intt::Offline_s const&, struct Intt::Offline_s const&);
+bool operator==(struct InttNameSpace::RawData_s const&, struct InttNameSpace::RawData_s const&);
+bool operator==(struct InttNameSpace::Online_s const&, struct InttNameSpace::Online_s const&);
+bool operator==(struct InttNameSpace::Offline_s const&, struct InttNameSpace::Offline_s const&);
 
-bool operator!=(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
-bool operator!=(struct Intt::Online_s const&, struct Intt::Online_s const&);
-bool operator!=(struct Intt::Offline_s const&, struct Intt::Offline_s const&);
+bool operator!=(struct InttNameSpace::RawData_s const&, struct InttNameSpace::RawData_s const&);
+bool operator!=(struct InttNameSpace::Online_s const&, struct InttNameSpace::Online_s const&);
+bool operator!=(struct InttNameSpace::Offline_s const&, struct InttNameSpace::Offline_s const&);
 
-bool operator<(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
-bool operator<(struct Intt::Online_s const&, struct Intt::Online_s const&);
-bool operator<(struct Intt::Offline_s const&, struct Intt::Offline_s const&);
+bool operator<(struct InttNameSpace::RawData_s const&, struct InttNameSpace::RawData_s const&);
+bool operator<(struct InttNameSpace::Online_s const&, struct InttNameSpace::Online_s const&);
+bool operator<(struct InttNameSpace::Offline_s const&, struct InttNameSpace::Offline_s const&);
 
-bool operator>(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
-bool operator>(struct Intt::Online_s const&, struct Intt::Online_s const&);
-bool operator>(struct Intt::Offline_s const&, struct Intt::Offline_s const&);
+bool operator>(struct InttNameSpace::RawData_s const&, struct InttNameSpace::RawData_s const&);
+bool operator>(struct InttNameSpace::Online_s const&, struct InttNameSpace::Online_s const&);
+bool operator>(struct InttNameSpace::Offline_s const&, struct InttNameSpace::Offline_s const&);
 
-bool operator<=(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
-bool operator<=(struct Intt::Online_s const&, struct Intt::Online_s const&);
-bool operator<=(struct Intt::Offline_s const&, struct Intt::Offline_s const&);
+bool operator<=(struct InttNameSpace::RawData_s const&, struct InttNameSpace::RawData_s const&);
+bool operator<=(struct InttNameSpace::Online_s const&, struct InttNameSpace::Online_s const&);
+bool operator<=(struct InttNameSpace::Offline_s const&, struct InttNameSpace::Offline_s const&);
 
-bool operator>=(struct Intt::RawData_s const&, struct Intt::RawData_s const&);
-bool operator>=(struct Intt::Online_s const&, struct Intt::Online_s const&);
-bool operator>=(struct Intt::Offline_s const&, struct Intt::Offline_s const&);
+bool operator>=(struct InttNameSpace::RawData_s const&, struct InttNameSpace::RawData_s const&);
+bool operator>=(struct InttNameSpace::Online_s const&, struct InttNameSpace::Online_s const&);
+bool operator>=(struct InttNameSpace::Offline_s const&, struct InttNameSpace::Offline_s const&);
 
 #endif//INTT_MAPPING_H
 

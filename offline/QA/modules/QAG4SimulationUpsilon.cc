@@ -1,6 +1,6 @@
 #include "QAG4SimulationUpsilon.h"
 
-#include "QAHistManagerDef.h"
+#include <qautils/QAHistManagerDef.h>
 
 #include <g4eval/SvtxEvalStack.h>
 

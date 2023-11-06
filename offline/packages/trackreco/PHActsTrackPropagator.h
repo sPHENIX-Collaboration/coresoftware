@@ -29,7 +29,7 @@ class PHActsTrackPropagator : public SubsysReco
  public:
   using BoundTrackParam =
       const Acts::BoundTrackParameters;
-  using BoundTrackParamResult = ActsPropagator::BoundTrackParamResult;
+  using BoundTrackParamResult = ActsPropagator::BTPPairResult;
   using SurfacePtr = std::shared_ptr<const Acts::Surface>;
   using Trajectory = ActsExamples::Trajectories;
 

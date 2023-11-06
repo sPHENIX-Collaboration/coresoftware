@@ -16,13 +16,14 @@
 #include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
-#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
-#include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxAlignmentState_v1.h>
 #include <trackbase_historic/SvtxAlignmentStateMap_v1.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
+
+#include <globalvertex/SvtxVertex.h>     
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 
@@ -98,7 +99,8 @@ int HelicalFitter::InitRun(PHCompositeNode *topNode)
 
   if(make_ntuple)
     {
-      fout = new TFile("HF_ntuple.root","recreate");
+      //fout = new TFile("HF_ntuple.root","recreate");
+      fout = new TFile(ntuple_outfilename.c_str(),"recreate");
       ntp  = new TNtuple("ntp","HF ntuple","event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
 
       track_ntp = new TNtuple("track_ntp","HF track ntuple","track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:xvtx:yvtx:zvtx:event_zvtx:track_phi:perigee_phi");
@@ -479,10 +481,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
 		{
 		  unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);	  
 		  unsigned int side   = TpcDefs::getSide(cluskey_vec[ivec]);	  
-		  std::cout << " Testing layer " << layer << " param " << i << std::endl;
 		  if(is_layer_param_fixed(layer, i) || is_tpc_sector_fixed(layer, sector, side))
 		    {
-		      std::cout << "     layer " << layer << " param " << i << " fixed " << std::endl;
 		      glbl_derivativeX[i] = 0;
 		      glbl_derivativeY[i] = 0;
 		    }
@@ -597,21 +597,24 @@ int HelicalFitter::process_event(PHCompositeNode*)
   
       if(use_event_vertex)
 	{	  
-	  std::cout << "vertex info for track " << trackid << " with charge " << newTrack.get_charge() << std::endl;
-	  
-	  std::cout << "vertex is " << event_vtx.transpose() << std::endl;
-	  std::cout << "vertex residuals " << vtx_residual.transpose() 
-		    << std::endl;
-	  std::cout << "local derivatives " << std::endl;
-	  for(int i=0; i<AlignmentDefs::NLC; i++)
-	    std::cout << lclvtx_derivativeX[i] << ", ";
-	  std::cout << std::endl;
-	  for(int i=0; i<AlignmentDefs::NLC; i++)
-	    std::cout << lclvtx_derivativeY[i] << ", ";
-	  std::cout << "global vtx derivaties " << std::endl;
-	  for(int i=0; i<3; i++) std::cout << glblvtx_derivativeX[i] << ", ";
-	  std::cout << std::endl;
-	  for(int i=0; i<3; i++) std::cout << glblvtx_derivativeY[i] << ", ";
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << "vertex info for track " << trackid << " with charge " << newTrack.get_charge() << std::endl;
+	      
+	      std::cout << "vertex is " << event_vtx.transpose() << std::endl;
+	      std::cout << "vertex residuals " << vtx_residual.transpose() 
+			<< std::endl;
+	      std::cout << "local derivatives " << std::endl;
+	      for(int i=0; i<AlignmentDefs::NLC; i++)
+		std::cout << lclvtx_derivativeX[i] << ", ";
+	      std::cout << std::endl;
+	      for(int i=0; i<AlignmentDefs::NLC; i++)
+		std::cout << lclvtx_derivativeY[i] << ", ";
+	      std::cout << "global vtx derivaties " << std::endl;
+	      for(int i=0; i<3; i++) std::cout << glblvtx_derivativeX[i] << ", ";
+	      std::cout << std::endl;
+	      for(int i=0; i<3; i++) std::cout << glblvtx_derivativeY[i] << ", ";
+	    }
 
 	  // add some track cuts
 	  if(fabs(newTrack.get_z() - event_vtx(2)) > 0.2) continue;  // 2 mm cut
@@ -729,42 +732,14 @@ Acts::Vector3 HelicalFitter::get_line_plane_intersection(Acts::Vector3 PCA, Acts
 
 std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global)
 {
-  // no analytic solution for the coordinates of the closest approach of a helix to a point
-  // Instead, we get the PCA in x and y to the circle, and the PCA in z to the z vs R line at the R of the PCA 
-
-  float radius = fitpars[0];
-  float x0 = fitpars[1];
-  float y0 = fitpars[2];  
-  float zslope = fitpars[3];
-  float z0 = fitpars[4];
-
-  Acts::Vector2 pca_circle = TrackFitUtils::get_circle_point_pca(radius, x0, y0, global);
-
-  // The radius of the PCA determines the z position:
-  float pca_circle_radius = pca_circle.norm();  // radius of the PCA of the circle to the point
-  float pca_z = pca_circle_radius * zslope + z0;
-  Acts::Vector3 pca(pca_circle(0), pca_circle(1), pca_z);
-
-  // now we want a second point on the helix so we can get a local straight line approximation to the track
-  // Get the angle of the PCA relative to the fitted circle center
-  float angle_pca = atan2(pca_circle(1) - y0, pca_circle(0) - x0);
-  // calculate coords of a point at a slightly larger angle
-  float d_angle = 0.005;
-  float newx = radius * cos(angle_pca + d_angle) + x0;
-  float newy = radius * sin(angle_pca + d_angle) + y0;
-  float newz = sqrt(newx*newx+newy*newy) * zslope + z0;
-  Acts::Vector3 second_point_pca(newx, newy, newz);
-
-  // pca and second_point_pca define a straight line approximation to the track
-  Acts::Vector3 tangent = (second_point_pca - pca) /  (second_point_pca - pca).norm();
-
-  // get the PCA of the cluster to that line
-  Acts::Vector3 final_pca = getPCALinePoint(global, tangent, pca);
-
+  auto pair = TrackFitUtils::get_helix_tangent(fitpars, global);
+  /*
+    save for posterity purposes
   if(Verbosity() > 2)
     {
       // different method for checking:
       // project the circle PCA vector an additional small amount and find the helix PCA to that point 
+      
       float projection = 0.25;  // cm
       Acts::Vector3 second_point = pca + projection * pca/pca.norm();
       Acts::Vector2 second_point_pca_circle = TrackFitUtils::get_circle_point_pca(radius, x0, y0, second_point);
@@ -786,12 +761,12 @@ std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_helix_tangent(const s
 			<< "    check final pca from line " << final_pca2(0) << "  " << final_pca2(1) << "  " << final_pca2(2) 
 			<< std::endl;
 	}
+      
     }
+  */
 
 
-  std::pair<Acts::Vector3, Acts::Vector3> line = std::make_pair(final_pca, tangent);
-
-  return line;
+  return pair;
 }
   
 int HelicalFitter::End(PHCompositeNode* )
@@ -970,31 +945,13 @@ Acts::Vector2 HelicalFitter::getClusterError(TrkrCluster *cluster, TrkrDefs::clu
 {
   Acts::Vector2 clus_sigma(0,0);
 
-  if(_cluster_version==3)
-    {
-      clus_sigma(1) = cluster->getZError();
-      clus_sigma(0) = cluster->getRPhiError();
-    }
-  else if(_cluster_version==4)
-    {
-      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-      auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster,clusRadius,cluskey);
-      float exy2 = para_errors.first * Acts::UnitConstants::cm2;
-      float ez2 = para_errors.second * Acts::UnitConstants::cm2;
-      clus_sigma(1) = sqrt(ez2);
-      clus_sigma(0) = sqrt(exy2);
-    }
-  else if(_cluster_version == 5)
-    {
-      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-      TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-      auto para_errors = _ClusErrPara.get_clusterv5_modified_error(clusterv5,clusRadius,cluskey);
-      double phierror = sqrt(para_errors.first);
-      double zerror = sqrt(para_errors.second);
-      clus_sigma(1) = zerror;
-      clus_sigma(0) = phierror;
-    }
-
+  double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+  auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster,clusRadius,cluskey);
+  double phierror = sqrt(para_errors.first);
+  double zerror = sqrt(para_errors.second);
+  clus_sigma(1) = zerror;
+  clus_sigma(0) = phierror;
+  
   return clus_sigma; 
 }
 
@@ -1192,7 +1149,7 @@ void HelicalFitter::getGlobalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 ev
   // calculate projX and projY vectors once for the optimum fit parameters
   Acts::Vector3 projX(0,0,0), projY(0,0,0);
   get_projectionVtxXY(track, event_vtx, projX, projY);
-  std::cout << "projx and y " << projX.transpose() << ", " << projY.transpose() << std::endl;
+
   // translations
   glbl_derivativeX[0] = unitx.dot(projX);
   glbl_derivativeX[1] = unity.dot(projX);
@@ -1243,7 +1200,7 @@ void HelicalFitter::get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vt
 {
   Acts::Vector3 tanvec(track.get_px(),track.get_py(),track.get_pz());
   Acts::Vector3 normal(track.get_px(),track.get_py(),0); 
-  std::cout << "tangent and normal " << tanvec.transpose() << ", " << normal.transpose() << std::endl;
+
   tanvec /= tanvec.norm();
   normal /= normal.norm();
 
@@ -1252,10 +1209,9 @@ void HelicalFitter::get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vt
   Acts::Vector3 yloc(0.0,0.0,1.0); // local y 
   Acts::Vector3 xglob = localvtxToGlobalvtx(track, event_vtx, xloc);
   Acts::Vector3 yglob = yloc + event_vtx;
-  std::cout << "xglob yglob " << xglob.transpose() << "        " << yglob.transpose() << std::endl;
   Acts::Vector3 X     = (xglob-event_vtx) / (xglob-event_vtx).norm(); // local unit vector transformed to global coordinates
   Acts::Vector3 Y     = (yglob-event_vtx) / (yglob-event_vtx).norm();
-  std::cout << "X AND Y " << X.transpose() << "        "<< Y.transpose() << std::endl;
+
   // see equation 31 of the ATLAS paper (and discussion) for this
   projX = X - (tanvec.dot(X) / tanvec.dot(normal)) * normal;
   projY = Y - (tanvec.dot(Y) / tanvec.dot(normal)) * normal;
@@ -1375,13 +1331,10 @@ void HelicalFitter::get_dca(SvtxTrack& track,float& dca3dxy, float& dca3dz, floa
   dca3dxy = NAN;
   Acts::Vector3 track_vtx(track.get_x(),track.get_y(),track.get_z());
   Acts::Vector3 mom(track.get_px(),track.get_py(),track.get_pz());
-  std::cout << "track vertex and mom " << std::endl << track_vtx.transpose() << "          "<< mom.transpose() << std::endl;
-  std::cout << "event vertex " << event_vertex.transpose() << std::endl;
+
   track_vtx -= event_vertex; // difference between track_vertex and event_vtx
   
-  std::cout << "track vtx now " << track_vtx.transpose() << std::endl;
-
-  Acts::ActsSymMatrix<3> posCov;
+  Acts::ActsSquareMatrix<3> posCov;
   for(int i = 0; i < 3; ++i)
     {
       for(int j = 0; j < 3; ++j)
@@ -1391,12 +1344,11 @@ void HelicalFitter::get_dca(SvtxTrack& track,float& dca3dxy, float& dca3dz, floa
     }
   
   Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
-  std::cout << "r vec is " << r.transpose()<<std::endl;
+
   float phi       = atan2(r(1), r(0));
   Acts::RotationMatrix3 rot;
   Acts::RotationMatrix3 rot_T;
   phi *= -1;
-  std::cout << "phi is " << phi << std::endl;
   rot(0,0) = cos(phi);
   rot(0,1) = -sin(phi);
   rot(0,2) = 0;
@@ -1406,12 +1358,10 @@ void HelicalFitter::get_dca(SvtxTrack& track,float& dca3dxy, float& dca3dz, floa
   rot(2,0) = 0;
   rot(2,1) = 0;
   rot(2,2) = 1;
-  std::cout << "Rot is " << std::endl << rot << std::endl;
   rot_T    = rot.transpose();
 
   Acts::Vector3 pos_R           = rot * track_vtx;
-  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
-  std::cout << "Pos r " << pos_R.transpose() << std::endl;
+  Acts::ActsSquareMatrix<3> rotCov = rot * posCov * rot_T;
   dca3dxy      = pos_R(0);
   dca3dz       = pos_R(2);
   dca3dxysigma = sqrt(rotCov(0,0));
@@ -1516,9 +1466,7 @@ Acts::Vector3 HelicalFitter::localvtxToGlobalvtx(SvtxTrack& track, Acts::Vector3
   rot_T = rot.transpose();
 
   Acts::Vector3 pos_R = rot * local;
-  std::cout << "loc to glob vtx " << pos_R.transpose() << std::endl;
   pos_R += event_vtx;
-  std::cout << "after vtx subt " << pos_R.transpose() << std::endl;
   if(Verbosity()>1)
     {
       std::cout << " momentum X z: "<<r<< " phi: " << phi*180/M_PI << std::endl;

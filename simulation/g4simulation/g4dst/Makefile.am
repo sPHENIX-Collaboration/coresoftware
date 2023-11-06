@@ -11,7 +11,6 @@ lib_LTLIBRARIES = \
 libg4dst_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -lbbc_io \
   -lcalo_io \
   -lcalotrigger_io \
   -lcentrality_io \
@@ -19,7 +18,8 @@ libg4dst_la_LDFLAGS = \
   -lepd_io \
   -leventplane_io \
   -lffaobjects \
-  -lg4bbc_io \
+  -lffarawobjects \
+  -lg4mbd_io \
   -lg4detectors_io \
   -lg4intt_io \
   -lg4tracking_io \
@@ -28,6 +28,7 @@ libg4dst_la_LDFLAGS = \
   -ljetbackground_io \
   -ljetbase_io \
   -lkfparticle_sphenix_io \
+  -lmbd_io \
   -lmicromegas_io \
   -lmvtx_io \
   -lparticleflow_io \

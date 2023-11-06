@@ -1,6 +1,6 @@
 #include "QAG4SimulationJet.h"
 
-#include "QAHistManagerDef.h"
+#include <qautils/QAHistManagerDef.h>
 
 #include <g4eval/JetEvalStack.h>
 #include <g4eval/JetRecoEval.h>
@@ -375,7 +375,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
 
   if (leading_jet)
   {
-    if (Verbosity())
+    if (true)
     {
       std::cout
           << "QAG4SimulationJet::process_Spectrum - processing leading jet with # comp = "

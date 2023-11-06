@@ -1,5 +1,5 @@
-#ifndef G4JET_JETINPUT_H
-#define G4JET_JETINPUT_H
+#ifndef JETBASE_JETINPUT_H
+#define JETBASE_JETINPUT_H
 
 #include "Jet.h"
 

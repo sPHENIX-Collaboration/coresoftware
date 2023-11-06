@@ -10,10 +10,8 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>    // for SvtxTrackState
-#include <trackbase_historic/SvtxVertexMap.h>     // for SvtxVertexMap
-#include <trackbase_historic/SvtxVertexMap_v1.h>
-#include <trackbase_historic/SvtxVertex.h>        // for SvtxVertex
-#include <trackbase_historic/SvtxVertex_v1.h>
+#include <globalvertex/SvtxVertexMap_v1.h>
+#include <globalvertex/SvtxVertex_v1.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 

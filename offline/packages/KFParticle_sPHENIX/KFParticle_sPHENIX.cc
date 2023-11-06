@@ -22,7 +22,7 @@
 #include "KFParticle_sPHENIX.h"
 
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 

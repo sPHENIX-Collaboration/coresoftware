@@ -43,6 +43,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   int End(PHCompositeNode*) override;
 
+  void fieldMap(std::string& fieldmap) { m_fieldMap = fieldmap; }
+
   void set_silicon_track_map_name(const std::string &map_name) { _silicon_track_map_name = map_name; }
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void SetIteration(int iter){_n_iteration = iter;}
@@ -122,6 +124,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   int _n_iteration = 0;
   std::string _track_map_name = "TpcTrackSeedContainer";
   std::string _silicon_track_map_name = "SiliconTrackSeedContainer";
+  std::string m_fieldMap = "1.4";
 };
 
 #endif // PHTRUTHSILICONASSOCIATION_H

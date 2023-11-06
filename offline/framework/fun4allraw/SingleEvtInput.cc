@@ -23,7 +23,7 @@ SingleEvtInput::SingleEvtInput(const std::string &name, Fun4AllEvtInputPoolManag
 SingleEvtInput::~SingleEvtInput()
 {
   delete m_EventIterator;
-  for (auto iter : m_PacketStorageMap)
+  for (const auto &iter : m_PacketStorageMap)
   {
     for (auto pktiter : iter.second)
     {
@@ -42,7 +42,11 @@ void SingleEvtInput::FillPool(const unsigned int /*nbclks*/)
   }
   while (m_EventIterator == nullptr)  // at startup this is a null pointer
   {
-    OpenNextFile();
+    if (!OpenNextFile())
+    {
+      AllDone(1);
+      return;
+    }
   }
   std::set<uint64_t> saved_beamclocks;
   do
@@ -206,7 +210,7 @@ void SingleEvtInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "FEE")
   {
-    for (auto bcliter : m_BeamClockFEE)
+    for (const auto &bcliter : m_BeamClockFEE)
     {
       std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
       for (auto feeiter : bcliter.second)
@@ -225,7 +229,7 @@ void SingleEvtInput::Print(const std::string &what) const
   }
   if (what == "ALL" || what == "STORAGE")
   {
-    for (auto bcliter : m_PacketStorageMap)
+    for (const auto &bcliter : m_PacketStorageMap)
     {
       std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
       for (auto feeiter : bcliter.second)
@@ -247,7 +251,7 @@ void SingleEvtInput::Print(const std::string &what) const
 void SingleEvtInput::CleanupUsedPackets(const uint64_t bclk)
 {
   std::vector<uint64_t> toclearbclk;
-  for (auto iter : m_PacketStorageMap)
+  for (const auto &iter : m_PacketStorageMap)
   {
     if (iter.first <= bclk)
     {

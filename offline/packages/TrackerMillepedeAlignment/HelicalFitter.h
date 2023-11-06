@@ -70,7 +70,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_mvtx_layer_fixed(unsigned int layer, unsigned int clamshell);
   void set_tpc_sector_fixed(unsigned int region, unsigned int sector, unsigned int side);
   void set_layer_param_fixed(unsigned int layer, unsigned int param);
-  void set_cluster_version(unsigned int v) { _cluster_version = v; }
+  void set_ntuplefile_name(const std::string& file) { ntuple_outfilename = file;}
+
   void set_fitted_subsystems(bool si, bool tpc, bool full) { fitsilicon = si; fittpc = tpc; fitfulltrack = full; }
 
   void set_error_inflation_factor(unsigned int layer, float factor) 
@@ -152,7 +153,6 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   TpcDistortionCorrectionContainer* _dcc_average{nullptr};
   TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
 
-  unsigned int _cluster_version = 5;
   bool test_output = false;
 
   ClusterErrorPara _ClusErrPara;
@@ -179,6 +179,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   std::string data_outfilename = ("mille_helical_output_data_file.bin");  
   std::string steering_outfilename = ("steer_helical.txt");  
+  std::string ntuple_outfilename = ("HF_ntuple.root"); 
 
   bool fitsilicon = true;
   bool fittpc = false;

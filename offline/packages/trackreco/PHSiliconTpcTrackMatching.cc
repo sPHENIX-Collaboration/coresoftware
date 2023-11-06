@@ -11,8 +11,9 @@
 #include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
-#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
-#include <trackbase_historic/SvtxVertexMap.h>
+
+#include <globalvertex/SvtxVertex.h>     // for SvtxVertex
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4Particle.h>  // for PHG4Particle
@@ -269,7 +270,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
       double tpc_phi = _tracklet_tpc->get_phi(_cluster_map,_tGeometry);
       double tpc_eta = _tracklet_tpc->get_eta();
-      double tpc_pt = _tracklet_tpc->get_pt();
+      double tpc_pt = fabs(1./_tracklet_tpc->get_qOverR()) *( 0.3/100. ) * std::stod(m_fieldMap);
       if(Verbosity() > 8)
 	std::cout << " tpc stub: " << tpcid << " eta " << tpc_eta << " pt " << tpc_pt << " tpc z " << _tracklet_tpc->get_z() << std::endl; 
 

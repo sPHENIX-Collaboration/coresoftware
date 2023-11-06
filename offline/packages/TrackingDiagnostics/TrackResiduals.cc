@@ -6,17 +6,17 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv5.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/TrackSeed.h>
 
+
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 
@@ -372,8 +372,7 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   }
   m_cluslz.push_back(clusz);
 
-  TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-  auto para_errors = m_clusErrPara.get_clusterv5_modified_error(clusterv5,
+  auto para_errors = m_clusErrPara.get_clusterv5_modified_error(cluster,
 							       clusr,ckey);
   m_cluselx.push_back(sqrt(para_errors.first));
   m_cluselz.push_back(sqrt(para_errors.second));
@@ -466,7 +465,7 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     stateloc(1) = loct(1);
   }
 
-  const Acts::BoundSymMatrix actscov =
+  const auto actscov =
       transformer.rotateSvtxTrackCovToActs(state);
 
   m_statelx.push_back(stateloc(0));

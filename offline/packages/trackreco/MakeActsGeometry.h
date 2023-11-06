@@ -22,7 +22,9 @@
 #include <Acts/Utilities/CalibrationContext.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
-#include <ActsExamples/TGeoDetector/TGeoDetector.hpp>
+#include <ActsExamples/Detector/TGeoDetectorWithOptions.hpp>
+
+#include <boost/program_options.hpp>
 
 #include <map>
 #include <memory>            
@@ -159,11 +161,11 @@ class MakeActsGeometry : public SubsysReco
 
   /// Function that mimics ActsExamples::GeometryExampleBase
   void makeGeometry(int argc, char* argv[], 
-		    ActsExamples::TGeoDetector& detector);
+		    ActsExamples::TGeoDetectorWithOptions& detector);
   std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
           std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
     build(const boost::program_options::variables_map& vm,
-			ActsExamples::TGeoDetector& detector);
+			ActsExamples::TGeoDetectorWithOptions& detector);
 
   void readTGeoLayerBuilderConfigsFile(const std::string& path,
 				       ActsExamples::TGeoDetector::Config& config);
@@ -251,7 +253,7 @@ class MakeActsGeometry : public SubsysReco
   const double half_width_clearance_z = 0.5;
 
   /// The acts geometry object
-  ActsExamples::TGeoDetector m_detector;
+  ActsExamples::TGeoDetectorWithOptions m_detector;
 
   /// Acts geometry objects that are needed to create (for example) the fitter
   TrackingGeometry m_tGeometry;

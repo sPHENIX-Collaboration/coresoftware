@@ -151,3 +151,80 @@ void Jetv1::print_property(std::ostream& os) const
     os << "\t= " << citer.second << std::endl;
   }
 }
+
+void Jetv1::not_in_v1_msg(const std::string& method_name, std::ostream& os) const {
+  os << " warning: Method Jet::"<<method_name <<"() not implemented in Jetv1" << std::endl;
+}
+
+size_t Jetv1::n_properties()
+{
+  not_in_v1_msg("n_properties()");
+  return 0;
+};
+
+inline float Jetv1::get_prop_by_index(unsigned int /*index*/) const
+{
+  not_in_v1_msg("get_prop_by_index()");
+  return NAN;
+}
+
+inline void Jetv1::set_prop_by_index(unsigned int /*index*/, float /*value*/)
+{
+  not_in_v1_msg("set_prop_by_index()");
+  return;
+}
+
+size_t Jetv1::num_comp(SRC = Jet::SRC::VOID /**/) 
+{
+  not_in_v1_msg("num_comp");
+  return 0;
+}
+
+void Jetv1::print_comp(std::ostream& /**/, bool /**/)
+{
+  not_in_v1_msg("print_comp");
+}
+
+std::vector<Jet::SRC> Jetv1::comp_src_vec() 
+{
+  not_in_v1_msg("print_comp");
+  return {};
+}
+
+std::map<Jet::SRC, size_t> Jetv1::comp_src_sizemap()
+{
+  not_in_v1_msg("comp_src_sizemap");
+  return {};
+}
+
+Jet::ITER_comp_vec Jetv1::comp_begin(Jet::SRC /**/)
+{
+  not_in_v1_msg("comp_begin");
+  return Jet::comp_begin(Jet::SRC::VOID);
+}
+
+Jet::ITER_comp_vec Jetv1::comp_end(Jet::SRC /**/) 
+{
+  not_in_v1_msg("comp_end");
+  return Jet::comp_end(Jet::SRC::VOID);
+}
+
+Jet::ITER_comp_vec Jetv1::comp_begin()
+{
+  not_in_v1_msg("comp_begin");
+  return Jet::comp_begin();
+}
+Jet::ITER_comp_vec Jetv1::comp_end() 
+{
+  not_in_v1_msg("comp_end");
+  return Jet::comp_end();
+}
+Jet::TYPE_comp_vec& Jetv1::get_comp_vec()
+{
+  not_in_v1_msg("get_comp_vec()");
+  return Jet::get_comp_vec();
+}
+void Jetv1::resize_properties(size_t /**/) 
+{
+  not_in_v1_msg("resize_properties()");
+}
