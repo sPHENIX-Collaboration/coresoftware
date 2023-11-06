@@ -194,7 +194,7 @@ void SingleMvtxPoolInput::Print(const std::string &what) const
     for (const auto &bcliter : m_BeamClockFEE)
     {
       std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
-      for (auto feeiter : bcliter.second)
+      for (const auto feeiter : bcliter.second)
       {
         std::cout << "FEM: " << feeiter << std::endl;
       }
@@ -213,7 +213,7 @@ void SingleMvtxPoolInput::Print(const std::string &what) const
     for (const auto &bcliter : m_MvtxRawHitMap)
     {
       std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
-      for (auto feeiter : bcliter.second)
+      for (const auto &feeiter : bcliter.second)
       {
         std::cout << "fee: " << feeiter->get_stave_id()
                   << " at " << std::hex << feeiter << std::dec << std::endl;
@@ -222,14 +222,14 @@ void SingleMvtxPoolInput::Print(const std::string &what) const
   }
   if (what == "ALL" || what == "STACK")
   {
-    for (auto iter : m_BclkStack)
+    for (const auto &iter : m_BclkStack)
     {
       std::cout << "stacked bclk: 0x" << std::hex << iter << std::dec << std::endl;
     }
   }
   if (what == "ALL" || what == "GET_NR_STROBES")
   {
-    for (auto &iter : m_FeeStrobeMap)
+    for (const auto &iter : m_FeeStrobeMap)
     {
       std::cout << "Total number of strobes for feeid: " << iter.first << ", " << iter.second << std::endl;
     }
