@@ -96,6 +96,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
       _tracklet_si = _track_map_silicon->get(trackid);	  
       if(!_tracklet_si) { continue; }
 
+      // returns SHRT_MAX if no INTT clusters in silicon seed
       short int crossing= getCrossingIntt(_tracklet_si);
       _tracklet_si->set_crossing(crossing);
 
@@ -111,6 +112,10 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   std::set<unsigned int> tpc_matched_set;
   std::set<unsigned int> tpc_unmatched_set;
   findEtaPhiMatches(tpc_matched_set, tpc_unmatched_set, tpc_matches);
+
+  // In pp mode, if a matched track does not have INTT clusters we have to find the crossing geometrically
+  findCrossingGeometrically(tpc_matches);
+
 
   // Check that the crossing number is consistent with the tracklet z mismatch, discard the match otherwise
   // Enabling this required a change to truth seeding, so that it sets the TPC seed z0 to the line fit value, not the truth
@@ -137,6 +142,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
 
       if(Verbosity() > 1) std::cout << "  converted unmatched TPC seed id " << _svtx_seed_map->size()-1 << " tpc id " << tpcid << std::endl;
     }
+
   /*
   // Future development: use the z-mismatch between the silicon and TPC tracklets to assign the crossing in case INTT clusters are missing
   // this will reuse some of the commented out methods at the end of this file
@@ -159,6 +165,73 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   return Fun4AllReturnCodes::EVENT_OK;
 
  }
+
+void  PHSiliconTpcTrackMatching::findCrossingGeometrically(std::multimap<unsigned int, unsigned int> tpc_matches)
+{
+  // loop over all matches and check for ones with no INTT clusters in the silicon seed
+  for(auto [tpcid, si_id] : tpc_matches)
+    {
+      TrackSeed *si_track =_track_map_silicon->get(si_id);
+      short int crossing = si_track->get_crossing();
+
+      // we are only interested in cases where there is not already a crossing assigned
+      //commented out for testing:       if(crossing != SHRT_MAX) continue;
+
+      double si_z = si_track->get_z();
+      TrackSeed *tpc_track = _track_map->get(tpcid);
+      double tpc_z = tpc_track->get_z();
+
+      // this is an initial estimate of the bunch crossing based on the z-mismatch for this track
+      double crossing_estimate = (short int) getBunchCrossing(tpcid, tpc_z - si_z);
+
+      // Refine the estimate somehow
+      // or possibly tag these track seeds for special treatment later
+
+      std::cout << "   tpcid " << tpcid << " si_id " << si_id << " tpc_z " << tpc_z << " si_z " << si_z << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
+
+    }
+
+}
+
+double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_mismatch )
+{
+  double vdrift = 8.00;  // cm /microsecond
+  //double z_bunch_separation = 0.106 * vdrift;  // 106 ns bunch crossing interval, as in pileup generator
+  double z_bunch_separation = (crossing_period/1000.0) * vdrift;  // 106 ns bunch crossing interval, as in pileup generator
+
+  // The sign of z_mismatch will depend on which side of the TPC the tracklet is in
+  TrackSeed *track = _track_map->get(trid);
+
+  double crossings = z_mismatch / z_bunch_separation;
+
+  // Check the TPC side for the first cluster in the track
+  unsigned int side = 10;
+  for (TrackSeed::ConstClusterKeyIter iter = track->begin_cluster_keys();
+       iter != track->end_cluster_keys();
+       ++iter)
+    {
+      TrkrDefs::cluskey cluster_key = *iter;
+      unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
+      if(trkrid == TrkrDefs::tpcId)
+	{
+	  side = TpcDefs::getSide(cluster_key);
+	  break;   // we only need the first one  
+	}
+    }
+
+  if(side == 10) return SHRT_MAX;
+
+  // if side = 1 (north, +ve z side), a positive t0 will make the cluster late relative to true z, so it will look like z is less positive
+  // so a negative z mismatch for side 1 means a positive t0, and positive crossing, so reverse the sign for side 1
+  if(side == 1)
+    crossings *= -1.0;
+  
+  if(Verbosity() > 1) 
+    std::cout << "             trackid " << trid << " side " << side << " z_mismatch " << z_mismatch << " crossings " << crossings << std::endl;
+
+  return crossings;
+}
+
   
 int PHSiliconTpcTrackMatching::End(PHCompositeNode* )
 {
@@ -1112,46 +1185,9 @@ double PHSiliconTpcTrackMatching::getMedian(std::vector<double> &v)
     return median ;
 }
 */
-/*
-double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_mismatch )
-{
-  double vdrift = 8.00;  // cm /microsecond
-  //double z_bunch_separation = 0.106 * vdrift;  // 106 ns bunch crossing interval, as in pileup generator
-  double z_bunch_separation = (crossing_period/1000.0) * vdrift;  // 106 ns bunch crossing interval, as in pileup generator
 
-  // The sign of z_mismatch will depend on which side of the TPC the tracklet is in
-  TrackSeed *track = _track_map->get(trid);
 
-  double crossings = z_mismatch / z_bunch_separation;
 
-  // Check the TPC side for the first cluster in the track
-  unsigned int side = 10;
-  for (TrackSeed::ConstClusterKeyIter iter = track->begin_cluster_keys();
-       iter != track->end_cluster_keys();
-       ++iter)
-    {
-      TrkrDefs::cluskey cluster_key = *iter;
-      unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
-      if(trkrid == TrkrDefs::tpcId)
-	{
-	  side = TpcDefs::getSide(cluster_key);
-	  break;   // we only need the first one  
-	}
-    }
-
-  if(side == 10) return SHRT_MAX;
-
-  // if side = 1 (north, +ve z side), a positive t0 will make the cluster late relative to true z, so it will look like z is less positive
-  // so a negative z mismatch for side 1 means a positive t0, and positive crossing, so reverse the sign for side 1
-  if(side == 1)
-    crossings *= -1.0;
-  
-  if(Verbosity() > 1) 
-    std::cout << "             trackid " << trid << " side " << side << " z_mismatch " << z_mismatch << " crossings " << crossings << std::endl;
-
-  return crossings;
-}
-*/
 /*
 void PHSiliconTpcTrackMatching::tagInTimeTracks(  
 						std::multimap<unsigned int, unsigned int> &tpc_matches,
