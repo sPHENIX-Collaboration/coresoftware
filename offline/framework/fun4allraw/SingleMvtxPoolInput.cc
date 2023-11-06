@@ -362,13 +362,13 @@ void SingleMvtxPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
-  MvtxRawEvtHeader* mvtxEH = findNode::getClass<MvtxRawEvtHeaderv1>(detNode,"MVTXRAWEVTHEADER");
-  if (! mvtxEH)
-  {
-    mvtxEH = new MvtxRawEvtHeaderv1();
-    PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(mvtxEH, "MVTXRAWEVTHEADER", "PHObject");
-    detNode->addNode(newNode);
-  }
+  // MvtxRawEvtHeader* mvtxEH = findNode::getClass<MvtxRawEvtHeaderv1>(detNode,"MVTXRAWEVTHEADER");
+  // if (! mvtxEH)
+  // {
+  //   mvtxEH = new MvtxRawEvtHeaderv1();
+  //   PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(mvtxEH, "MVTXRAWEVTHEADER", "PHObject");
+  //   detNode->addNode(newNode);
+  // }
 
   MvtxRawHitContainer* mvtxhitcont = findNode::getClass<MvtxRawHitContainer>(detNode,"MVTXRAWHIT");
   if (! mvtxhitcont)

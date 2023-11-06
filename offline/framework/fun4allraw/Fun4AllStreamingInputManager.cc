@@ -125,7 +125,7 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
 int Fun4AllStreamingInputManager::run(const int /*nevents*/)
 {
   int iret = 0;
-  if (m_gl1_registered_flag)
+  if (m_gl1_registered_flag) // Gl1 first to get the reference
   {
     iret += FillGl1();
   }
@@ -596,6 +596,10 @@ int Fun4AllStreamingInputManager::FillMvtx()
 // if this map is empty which is handled above
     while(m_MvtxRawHitMap.begin()->first < m_RefBCO)
     {
+      if (Verbosity() > 2)
+      {
+      std::cout << "ditching mvtx bco 0x" << std::hex << m_MvtxRawHitMap.begin()->first << ", ref: 0x" << m_RefBCO << std::dec << std::endl;
+      }
       for (auto iter : m_MvtxInputVector)
       {
 	iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
@@ -609,8 +613,18 @@ int Fun4AllStreamingInputManager::FillMvtx()
       }
     }
 // again m_MvtxRawHitMap.empty() is handled by return of FillMvtxPool()
+    if (Verbosity() > 2)
+    {
+    std::cout << "after ditching, mvtx bco: 0x" << std::hex << m_MvtxRawHitMap.begin()->first << ", ref: 0x" << m_RefBCO
+	      << std::dec << std::endl;
+    }
     while(m_MvtxRawHitMap.begin()->first <= select_crossings)
     {
+      if (Verbosity() > 2)
+      {
+      std::cout << "Adding 0x" << std::hex << m_MvtxRawHitMap.begin()->first
+		<< " ref: 0x" << select_crossings << std::dec << std::endl;
+      }
       for (auto mvtxhititer :  m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
       {
 	if (Verbosity() > 1)
@@ -834,7 +848,7 @@ int Fun4AllStreamingInputManager::FillMvtxPool()
 {
   for (auto iter : m_MvtxInputVector)
   {
-    if (Verbosity() > 0)
+    if (Verbosity() > 3)
     {
       std::cout << "Fun4AllStreamingInputManager::FillMvtxPool - fill pool for " << iter->Name() << std::endl;
     }
