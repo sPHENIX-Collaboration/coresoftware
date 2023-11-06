@@ -46,10 +46,6 @@ public:
     virtual Jet* operator()(int /*index*/) { return nullptr; }; // synonym for get_get()
     virtual Jet* operator[](int /*index*/) { return nullptr; }; // get jet, don't check for length
 
-    // add compondent to the jet source components
-    virtual void add_component(Jet::SRC /*-*/, unsigned int /*component id*/) {};
-
-
     // ---------------------------------------------------------------------------
     // Legacy functions (copied from JetMap) used to record which functions are used.
     // These options are not actually consulted when the clustering is done in the 

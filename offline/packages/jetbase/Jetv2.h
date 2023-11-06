@@ -43,7 +43,8 @@ class Jetv2 : public Jet
     }
     bool operator()(const std::pair<Jet::SRC, int>& lhs, const std::pair<Jet::SRC, int>& rhs)
     {
-      return lhs.first < rhs.first;
+      if (lhs.first == rhs.first) return lhs.second < rhs.second;
+      else return lhs.first < rhs.first;
     }
     static void sort_comp_ids(Jetv2* jet);
   };
@@ -91,6 +92,7 @@ class Jetv2 : public Jet
   };
 
   // Jet components
+  size_t size_comp() const override { return _comp_ids.size(); }
   void clear_comp() override { _comp_ids.clear(); }
   void insert_comp(SRC iSRC, unsigned int compid) override;
   void print_comp(std::ostream& os = std::cout, bool single_line = false) override;
