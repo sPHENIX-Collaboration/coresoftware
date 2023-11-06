@@ -1,13 +1,14 @@
-#ifndef G4JET_TOWERJETINPUT_H
-#define G4JET_TOWERJETINPUT_H
+#ifndef JETBASE_TOWERJETINPUT_H
+#define JETBASE_TOWERJETINPUT_H
 
 #include "JetInput.h"
-
 #include "Jet.h"
 
-#include <iostream>  // for cout, ostream
-#include <vector>
 #include <calobase/RawTowerDefs.h>
+
+#include <iostream>  // for cout, ostream
+
+#include <vector>
 // forward declarations
 class PHCompositeNode;
 class TowerJetInput : public JetInput
@@ -18,12 +19,12 @@ class TowerJetInput : public JetInput
 
   void identify(std::ostream& os = std::cout) override;
 
-  Jet::SRC get_src() override { return _input; }
+  Jet::SRC get_src() override { return m_input; }
 
   std::vector<Jet*> get_input(PHCompositeNode* topNode) override;
 
  private:
-  Jet::SRC _input;
+  Jet::SRC m_input;
   RawTowerDefs::CalorimeterId geocaloid;
   bool m_use_towerinfo = false;
 };

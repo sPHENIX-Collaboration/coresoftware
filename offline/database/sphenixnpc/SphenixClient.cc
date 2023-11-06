@@ -1,5 +1,6 @@
 #include "SphenixClient.h"
 
+#include <nopayloadclient/exception.hpp>  // for DataBaseException
 #include <nopayloadclient/nopayloadclient.hpp>
 
 #include <nlohmann/json.hpp>
@@ -31,11 +32,54 @@ nlohmann::json SphenixClient::getUrl(const std::string& pl_type, long long iov)
     return nopayloadclient::DataBaseException("No valid payload with type " + pl_type).jsonify();
   }
   nlohmann::json payload_iov = payload_iovs[pl_type];
-  if (payload_iov["minor_iov_end"] < iov)
+  if (m_Verbosity > 0)
+  {
+    std::cout << "pl_type: " << pl_type
+              << ", iov: " << iov
+              << ", minor_iov_start: " << payload_iov["minor_iov_start"]
+              << ", minor_iov_end: " << payload_iov["minor_iov_end"]
+              << std::endl;
+  }
+  if (payload_iov["minor_iov_end"] <= iov)
   {
     return nopayloadclient::DataBaseException("No valid payload with type " + pl_type).jsonify();
   }
   return makeResp(payload_iov["payload_url"]);
+}
+
+nlohmann::json SphenixClient::getUrlDict(long long iov)
+{
+  nlohmann::json resp = getPayloadIOVs(iov);
+  if (resp["code"] != 0)
+  {
+    return resp;
+  }
+  for (auto it = resp["msg"].begin(); it != resp["msg"].end();)
+  {
+    if (it.value()["minor_iov_end"] < iov)
+    {
+      it = resp["msg"].erase(it);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+  for (auto& piov : resp["msg"].items())
+  {
+    piov.value() = piov.value()["payload_url"];
+  }
+  return resp;
+}
+
+nlohmann::json SphenixClient::deletePayloadIOV(const std::string& pl_type, long long iov_start)
+{
+  return nopayloadclient::NoPayloadClient::deletePayloadIOV(pl_type, 0, iov_start);
+}
+
+nlohmann::json SphenixClient::deletePayloadIOV(const std::string& pl_type, long long iov_start, long long iov_end)
+{
+  return nopayloadclient::NoPayloadClient::deletePayloadIOV(pl_type, 0, iov_start, 0, iov_end);
 }
 
 std::string SphenixClient::getCalibration(const std::string& pl_type, long long iov)

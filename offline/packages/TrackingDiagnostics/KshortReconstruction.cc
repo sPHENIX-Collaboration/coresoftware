@@ -6,8 +6,8 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <Acts/Propagator/EigenStepper.hpp>
-#include <Acts/Surfaces/PerigeeSurface.hpp>
+#include <trackreco/ActsPropagator.h>
+
 #include <utility>
 
 #include <TLorentzVector.h>
@@ -109,39 +109,38 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
       float pseudorapidity;
 
       // Initial calculation of point of closest approach between the two tracks
+      // This presently assumes straight line tracks to get a rough answer
+      // Should update to use circles instead?
       findPcaTwoTracks(pos1, pos2, mom1, mom2, pca_rel1, pca_rel2, pair_dca);
 
       // tracks with small relative pca are k short candidates
       if (abs(pair_dca) < pair_dca_cut)
       {
-        // Pair dca was calculated with nominal track parameters and is approximate
+        // Pair pca and dca were calculated with nominal track parameters and are approximate
+	// Project tracks to this rough pca
         Eigen::Vector3d projected_pos1;
         Eigen::Vector3d projected_mom1;
         Eigen::Vector3d projected_pos2;
         Eigen::Vector3d projected_mom2;
 
-        // Moved away from this method because cylinder projection has two possible solutions
-        // Eigen::Vector3d average_pca = (pca_rel1 + pca_rel2)/2.0;
-        // double radius = sqrt(pow(average_pca(0),2)+ pow(average_pca(1),2));
-        // bool ret1 = projectTrackToCylinder(tr1, radius, projected_pos1, projected_mom1);
-        // bool ret2 = projectTrackToCylinder(tr2, radius, projected_pos2, projected_mom2);
-
         bool ret1 = projectTrackToPoint(tr1, pca_rel1, projected_pos1, projected_mom1);
         bool ret2 = projectTrackToPoint(tr2, pca_rel2, projected_pos2, projected_mom2);
-
-        double pair_dca_proj;
-        Acts::Vector3 pca_rel1_proj;
-        Acts::Vector3 pca_rel2_proj;
 
         if (!ret1 or !ret2)
         {
           continue;
         }
 
-        // recalculate pca with projected position and momentum
+        // recalculate pca starting with projected position and momentum
+        double pair_dca_proj;
+        Acts::Vector3 pca_rel1_proj;
+        Acts::Vector3 pca_rel2_proj;
         findPcaTwoTracks(projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj);
 
-        fillHistogram(projected_mom1, projected_mom2, recomass, invariantMass, invariantPt, rapidity, pseudorapidity);  // invariant mass is calculated in this method
+	//if(pair_dca_proj > pair_dca_cut) continue;
+
+	// invariant mass is calculated in this method
+        fillHistogram(projected_mom1, projected_mom2, recomass, invariantMass, invariantPt, rapidity, pseudorapidity);  
         fillNtp(tr1, tr2, dcaVals1, dcaVals2, pca_rel1, pca_rel2, pair_dca, invariantMass, invariantPt, rapidity, pseudorapidity, projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj);
 
         if (Verbosity() > 2)
@@ -151,10 +150,13 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
           std::cout << " track1 dca_cut: " << this_dca_cut << " track2 dca_cut: " << this_dca_cut2 << std::endl;
           std::cout << " dca3dxy1,dca3dz1,phi1: " << dcaVals1 << std::endl;
           std::cout << " dca3dxy2,dca3dz2,phi2: " << dcaVals2 << std::endl;
+          std::cout << "Initial:  pca_rel1: " << pca_rel1 << " pca_rel2: " << pca_rel2 << std::endl;
+	  std::cout << " Initial: mom1: " << mom1 << " mom2: " << mom2 << std::endl;
+          std::cout << "Proj_pca_rel:  proj_pos1: " << projected_pos1 << " proj_pos2: " << projected_pos2 << " proj_mom1: " << projected_mom1 << " proj_mom2: " << projected_mom2 << std::endl;
           std::cout << " Relative PCA = " << abs(pair_dca) << " pca_cut = " << pair_dca_cut << std::endl;
           std::cout << " charge 1: " << tr1->get_charge() << " charge2: " << tr2->get_charge() << std::endl;
-          std::cout << "found viable projection";
-          std::cout << "pos1: " << projected_pos1 << " pos2: " << projected_pos2 << " mom1: " << projected_mom1 << " mom2: " << projected_mom2 << std::endl;
+          std::cout << "found viable projection" << std::endl;
+          std::cout << "Final: pca_rel1_proj: " << pca_rel1_proj << " pca_rel2_proj: " << pca_rel2_proj << " mom1: " << projected_mom1 << " mom2: " << projected_mom2 << std::endl << std::endl;
         }
       }
     }
@@ -235,22 +237,29 @@ void KshortReconstruction::fillHistogram(Eigen::Vector3d mom1, Eigen::Vector3d m
 bool KshortReconstruction::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d PCA, Eigen::Vector3d& pos, Eigen::Vector3d& mom)
 {
   bool ret = true;
-  PCA *= Acts::UnitConstants::cm;
 
   /// create perigee surface
-  auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(PCA);
+  ActsPropagator actsPropagator(_tGeometry);
+  auto perigee = actsPropagator.makeVertexSurface(PCA);  // PCA is in cm here
+  auto params = actsPropagator.makeTrackParams(track, m_vertexMap);
+  if(!params.ok())
+    {
+      return false;
+    }
+  auto result = actsPropagator.propagateTrack(params.value(), perigee);
 
-  const auto params = makeTrackParams(track);
-
-  //  auto result = propagateTrack(params, cylSurf);
-  auto result = propagateTrack(params, perigee);
   if (result.ok())
   {
-    auto projectionPos = result.value().position(_tGeometry->geometry().getGeoContext());
-    const auto momentum = result.value().momentum();
+    auto projectionPos = result.value().second.position(_tGeometry->geometry().getGeoContext());
+    const auto momentum = result.value().second.momentum();
     pos(0) = projectionPos.x() / Acts::UnitConstants::cm;
     pos(1) = projectionPos.y() / Acts::UnitConstants::cm;
     pos(2) = projectionPos.z() / Acts::UnitConstants::cm;
+
+    if(Verbosity() > 2)
+      {
+	std::cout << "                 Input PCA " << PCA  << "  projection out " << pos << std::endl; 
+      }
 
     mom(0) = momentum.x();
     mom(1) = momentum.y();
@@ -284,14 +293,18 @@ bool KshortReconstruction::projectTrackToCylinder(SvtxTrack* track, double Radiu
       Acts::Surface::makeShared<Acts::CylinderSurface>(transform,
                                                        Radius,
                                                        halfZ);
+  ActsPropagator actsPropagator(_tGeometry);
+  auto params = actsPropagator.makeTrackParams(track, m_vertexMap);
+  if(!params.ok())
+    {
+      return false;
+    }
 
-  const auto params = makeTrackParams(track);
-
-  auto result = propagateTrack(params, cylSurf);
+  auto result = actsPropagator.propagateTrack(params.value(), cylSurf);
   if (result.ok())
   {
-    auto projectionPos = result.value().position(_tGeometry->geometry().getGeoContext());
-    const auto momentum = result.value().momentum();
+    auto projectionPos = result.value().second.position(_tGeometry->geometry().getGeoContext());
+    const auto momentum = result.value().second.momentum();
     pos(0) = projectionPos.x() / Acts::UnitConstants::cm;
     pos(1) = projectionPos.y() / Acts::UnitConstants::cm;
     pos(2) = projectionPos.z() / Acts::UnitConstants::cm;
@@ -306,76 +319,6 @@ bool KshortReconstruction::projectTrackToCylinder(SvtxTrack* track, double Radiu
   }
 
   return ret;
-}
-
-BoundTrackParamResult KshortReconstruction::propagateTrack(
-    const Acts::BoundTrackParameters& params,
-    const SurfacePtr& targetSurf)
-{
-  if (Verbosity() > 1)
-  {
-    std::cout << "Propagating final track fit with momentum: "
-              << params.momentum() << " and position "
-              << params.position(_tGeometry->geometry().getGeoContext())
-              << std::endl
-              << "track fit phi/eta "
-              << atan2(params.momentum()(1),
-                       params.momentum()(0))
-              << " and "
-              << atanh(params.momentum()(2) / params.momentum().norm())
-              << std::endl;
-  }
-
-  using Stepper = Acts::EigenStepper<>;
-  using Propagator = Acts::Propagator<Stepper>;
-
-  auto field = _tGeometry->geometry().magField;
-
-  Stepper stepper(field);
-  Propagator propagator(stepper);
-
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
-  if (Verbosity() > 3)
-  {
-    logLevel = Acts::Logging::VERBOSE;
-  }
-
-  auto logger = Acts::getDefaultLogger("PHActsTrackProjection", logLevel);
-
-  Acts::PropagatorOptions<> options(_tGeometry->geometry().getGeoContext(),
-                                    _tGeometry->geometry().magFieldContext,
-                                    Acts::LoggerWrapper{*logger});
-
-  auto result = propagator.propagate(params, *targetSurf, options);
-  if (result.ok())
-  {
-    return Acts::Result<BoundTrackParam>::success(std::move((*result).endParameters.value()));
-  }
-
-  return result.error();
-}
-
-Acts::BoundTrackParameters KshortReconstruction::makeTrackParams(SvtxTrack* track)
-{
-  Acts::Vector3 momentum(track->get_px(), track->get_py(), track->get_pz());
-
-  auto actsVertex = getVertex(track);
-  auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(actsVertex);
-  auto actsFourPos =
-      Acts::Vector4(track->get_x() * Acts::UnitConstants::cm,
-                    track->get_y() * Acts::UnitConstants::cm,
-                    track->get_z() * Acts::UnitConstants::cm,
-                    10 * Acts::UnitConstants::ns);
-
-  ActsTransformations transformer;
-
-  Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
-
-  return ActsExamples::TrackParameters::create(perigee, _tGeometry->geometry().getGeoContext(),
-                                               actsFourPos, momentum,
-                                               track->get_charge() / track->get_p(),
-                                               cov)
-      .value();
 }
 
 Acts::Vector3 KshortReconstruction::getVertex(SvtxTrack* track)
@@ -465,7 +408,8 @@ KshortReconstruction::KshortReconstruction(const std::string& name)
 
 Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack* track, const Acts::Vector3& momentum, Acts::Vector3 position)
 {
-  Acts::Vector3 outVals(999, 999, 999);
+  // For the purposes of this module, we set default values of zero to cause this track to be rejected if the dca calc fails
+  Acts::Vector3 outVals(0, 0, 0);
   auto vtxid = track->get_vertex_id();
   if (!m_vertexMap)
   {
@@ -502,7 +446,7 @@ Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack* track, const Acts::V
   outVals(1) = abs(dca3dz);
   outVals(2) = phi;
 
-  if (Verbosity() > 2)
+  if (Verbosity() > 4)
   {
     std::cout << " pre-position: " << position << std::endl;
     std::cout << " vertex: " << vertex << std::endl;

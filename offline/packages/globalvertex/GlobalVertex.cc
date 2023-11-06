@@ -1,7 +1,32 @@
 #include "GlobalVertex.h"
 
 std::map<GlobalVertex::VTXTYPE, unsigned int> DummyGlobalVertex;
+std::map<GlobalVertex::VTXTYPE, GlobalVertex::VertexVector> dumVertexVector;
 
+GlobalVertex::ConstVertexIter GlobalVertex::begin_vertexes() const 
+{
+  return dumVertexVector.end();
+}
+GlobalVertex::ConstVertexIter GlobalVertex::find_vertexes(VTXTYPE) const
+{
+  return dumVertexVector.end();
+}
+GlobalVertex::ConstVertexIter GlobalVertex::end_vertexes() const
+{
+  return dumVertexVector.end();
+}
+GlobalVertex::VertexIter GlobalVertex::begin_vertexes()
+{
+  return dumVertexVector.end();
+}
+GlobalVertex::VertexIter GlobalVertex::find_vertexes(VTXTYPE)
+{
+  return dumVertexVector.end();
+}
+GlobalVertex::VertexIter GlobalVertex::end_vertexes()
+{
+  return dumVertexVector.end();
+}
 GlobalVertex::ConstVtxIter GlobalVertex::begin_vtxids() const
 {
   return DummyGlobalVertex.end();

@@ -72,8 +72,7 @@ class SvtxEvaluator : public SubsysReco
   void do_vtx_eval_light(bool b) { _do_vtx_eval_light = b; }
   void scan_for_embedded(bool b) { _scan_for_embedded = b; }
   void scan_for_primaries(bool b) { _scan_for_primaries = b; }
-  void set_cluster_version(int value) { m_cluster_version = value; }
-
+  
  private:
   unsigned int _ievent = 0;
   unsigned int _iseed = 0;
@@ -140,7 +139,7 @@ class SvtxEvaluator : public SubsysReco
   void fillOutputNtuples(PHCompositeNode *topNode);  ///< dump the evaluator information into ntuple for external analysis
   void printInputInfo(PHCompositeNode *topNode);     ///< print out the input object information (debugging upstream components)
   void printOutputInfo(PHCompositeNode *topNode);    ///< print out the ancestry information for detailed diagnosis
-  int m_cluster_version = 4;
+ 
 };
 
 #endif  // G4EVAL_SVTXEVALUATOR_H

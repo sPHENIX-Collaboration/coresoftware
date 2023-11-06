@@ -40,6 +40,8 @@ pkginclude_HEADERS = \
   PHActsTrackProjection.h \
   PHActsTrackPropagator.h \
   PHCASeeding.h \
+  PHCosmicsTrkFitter.h \
+  PHCosmicSeedCombiner.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHGhostRejection.h \
@@ -96,7 +98,8 @@ ACTS_SOURCES = \
   PHActsTrkFitter.cc \
   PHActsVertexPropagator.cc \
   PHActsTrackProjection.cc \
-  PHActsTrackPropagator.cc
+  PHActsTrackPropagator.cc \
+  PHCosmicsTrkFitter.cc
 
 $OFFLINE_MAIN/share:
 dist_data_DATA = \
@@ -117,6 +120,7 @@ libtrack_reco_la_SOURCES = \
   ALICEKF.cc \
   PH3DVertexing.cc \
   PHCASeeding.cc \
+  PHCosmicSeedCombiner.cc \
   PHGenFitTrackProjection.cc \
   PHGenFitTrkFitter.cc \
   PHGhostRejection.cc \
@@ -164,14 +168,14 @@ libtrack_reco_la_LIBADD = \
   -lg4tpc \
   -lg4intt \
   -lg4mvtx \
-  -lbbc_io \
   -lmicromegas_io \
   -lmvtx_io \
   -lintt_io \
   -ltrack_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter
+  -lphparameter \
+  -lglobalvertex_io
 
 
 # Rule for generating table CINT dictionaries.

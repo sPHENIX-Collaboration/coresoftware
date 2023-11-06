@@ -17,6 +17,7 @@ class RawHitSet;
 class RawHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
+class TrainingHitsContainer;
 class PHG4TpcCylinderGeom;
 class PHG4TpcCylinderGeomContainer;
 
@@ -36,6 +37,8 @@ class TpcClusterizer : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
   void set_sector_fiducial_cut(const double cut){SectorFiducialCut = cut; }
+  void set_store_hits(bool store_hits) { _store_hits = store_hits; }
+  void set_use_nn(bool use_nn) { _use_nn = use_nn; }
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
   void set_do_wedge_emulation(bool do_wedge){ do_wedge_emulation = do_wedge;}
   void set_do_sequential(bool do_seq){ do_sequential = do_seq;}
@@ -49,7 +52,7 @@ class TpcClusterizer : public SubsysReco
   void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size ;}
   void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeT = size ;}
-  void set_cluster_version(int value) { cluster_version = value; }
+  
   void set_ClusHitsVerbose(bool set=true) { record_ClusHitsVerbose = set; };
   void set_rawdata_reco() {
     set_do_hit_association(false);
@@ -74,6 +77,8 @@ class TpcClusterizer : public SubsysReco
   TrkrClusterContainer *m_clusterlist = nullptr;
   TrkrClusterHitAssoc *m_clusterhitassoc = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
+  bool _store_hits = false;
+  bool _use_nn = false;
   bool do_hit_assoc = true;
   bool do_wedge_emulation = false;
   bool do_sequential = false;
@@ -89,13 +94,15 @@ class TpcClusterizer : public SubsysReco
   double SectorFiducialCut = 0.5;
   unsigned short MaxClusterHalfSizePhi = 3;
   unsigned short MaxClusterHalfSizeT = 5;
-  int cluster_version = 4;
+ 
   double m_tdriftmax = 0;
   double AdcClockPeriod = 53.0;   // ns 
 
   // TPC shaping offset correction parameter
   // From Tony Frawley July 5, 2022
   double m_sampa_tbias = 39.6;  // ns  
+
+  TrainingHitsContainer *m_training;
 };
 
 #endif

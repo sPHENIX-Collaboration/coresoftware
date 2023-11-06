@@ -30,7 +30,6 @@
 #include <TSystem.h>
 
 #include <algorithm>
-#include <cmath>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
@@ -139,7 +138,6 @@ void Fun4AllServer::InitAll()
   SyncManagers.push_back(defaultSyncManager);
   TopNode = new PHCompositeNode("TOP");
   topnodemap["TOP"] = TopNode;
-  default_Tdirectory = gDirectory->GetPath();
   InitNodeTree(TopNode);
   return;
 }

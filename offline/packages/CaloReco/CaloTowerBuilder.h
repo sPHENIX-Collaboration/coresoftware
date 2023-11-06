@@ -3,15 +3,19 @@
 #ifndef CALOTOWERBUILDER_H
 #define CALOTOWERBUILDER_H
 
-#include <fun4all/SubsysReco.h>
 #include "CaloWaveformProcessing.h"
+#include "CaloTowerDefs.h"
 
-#include <climits>
+#include <fun4all/SubsysReco.h>
+
+#include <limits>
 #include <string>
 
 class CaloWaveformProcessing;
 class PHCompositeNode;
 class TowerInfoContainer;
+class TowerInfoContainerv3;
+
 
 class CaloTowerBuilder : public SubsysReco
 {
@@ -23,19 +27,15 @@ class CaloTowerBuilder : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  enum DetectorSystem
-  {
-    CEMC = 0,
-    HCALIN = 1,
-    HCALOUT = 2,
-    EPD = 3,
-    MBD = 4,
-    ZDC = 5
-  };
-
-  void set_detector_type(CaloTowerBuilder::DetectorSystem dettype)
+  void set_detector_type(CaloTowerDefs::DetectorSystem dettype)
   {
     m_dettype = dettype;
+    return;
+  }
+
+  void set_builder_type(CaloTowerDefs::BuilderType buildertype)
+  {
+    m_buildertype = buildertype;
     return;
   }
 
@@ -62,19 +62,20 @@ class CaloTowerBuilder : public SubsysReco
   }
 
  private:
-  CaloWaveformProcessing *WaveformProcessing;
-  CaloTowerBuilder::DetectorSystem m_dettype;
-  TowerInfoContainer *m_CaloInfoContainer;  //! Calo info
-  std::string m_detector;
-  int m_packet_low;
-  int m_packet_high;
-  int m_nsamples;
-  int m_nchannels;
-  int m_nzerosuppsamples;
-  bool m_isdata;
-  int _nsoftwarezerosuppression;
-  bool _bdosoftwarezerosuppression;
-  CaloWaveformProcessing::process _processingtype;
+  CaloWaveformProcessing *WaveformProcessing {nullptr};
+  TowerInfoContainer *m_CaloInfoContainer {nullptr};  //! Calo info
+  bool m_isdata {true};
+  bool _bdosoftwarezerosuppression {false};
+  int m_packet_low {std::numeric_limits<int>::min()};
+  int m_packet_high {std::numeric_limits<int>::min()};
+  int m_nsamples {16};
+  int m_nchannels {192};
+  int m_nzerosuppsamples {2};
+  int _nsoftwarezerosuppression {40};
+  CaloTowerDefs::DetectorSystem m_dettype {CaloTowerDefs::CEMC};
+  CaloTowerDefs::BuilderType m_buildertype {CaloTowerDefs::kPRDFTowerv1};
+  CaloWaveformProcessing::process _processingtype {CaloWaveformProcessing::NONE};
+  std::string m_detector {"CEMC"};
 };
 
 #endif  // CALOTOWERBUILDER_H

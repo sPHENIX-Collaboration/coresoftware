@@ -20,6 +20,28 @@ namespace
 }
 
 //________________________________________________________________________-
+std::ostream& operator << (std::ostream& out, const MicromegasCalibrationData& calib_data )
+{
+  out << "MicromegasCalibrationData" << std::endl;
+  size_t total_entries = 0;
+  for( const auto& [fee_id, data_array] : calib_data.m_calibration_map )
+  {
+    total_entries += data_array.size();
+    out << "fee_id: " << fee_id << " entries: " << data_array.size() << std::endl;
+    for( size_t i=0; i<data_array.size(); ++i )
+    {
+      const auto& data = data_array[i];
+      out << "fee_id: " << fee_id << " channel: " << i << " pedestal: " << data.m_pedestal << " rms: " << data.m_rms << std::endl;
+    }
+    
+  }
+  out << "total entries: " << total_entries << std::endl;
+    
+
+  return out;
+}
+  
+//________________________________________________________________________-
 void MicromegasCalibrationData::read( const std::string& filename )
 {
   std::cout << "MicromegasCalibrationData::read - filename: " << filename << std::endl;

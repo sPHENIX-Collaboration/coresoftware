@@ -105,7 +105,6 @@ class PHActsSiliconSeeding : public SubsysReco
 
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void SetIteration(int iter){_n_iteration = iter;}
-  void set_cluster_version(int value) { m_cluster_version = value; }
 
  private:
 
@@ -116,8 +115,8 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Configure the seeding parameters for Acts. There
   /// are a number of tunable parameters for the seeder here
-  Acts::SeedFinderConfig<SpacePoint> configureSeeder();
-  Acts::SpacePointGridConfig configureSPGrid();
+  void configureSeeder();
+  void configureSPGrid();
   Acts::SeedFilterConfig configureSeedFilter();
 
   /// Take final seeds and fill the TrackSeedContainer
@@ -133,7 +132,7 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Get all space points for the seeder
   std::vector<const SpacePoint*> getMvtxSpacePoints(Acts::Extent& rRangeSPExtent);
 
-
+  void printSeedConfigs(Acts::SeedFilterConfig& sfconfig);
 
   /// Projects circle fit to INTT radii to find possible INTT clusters
   /// belonging to MVTX track stub
@@ -158,6 +157,8 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Configuration classes for Acts seeding
   Acts::SeedFinderConfig<SpacePoint> m_seedFinderCfg;
   Acts::SpacePointGridConfig m_gridCfg;
+  Acts::SpacePointGridOptions m_gridOptions;
+  Acts::SeedFinderOptions m_seedFinderOptions;
 
   /// Configurable parameters
   /// seed pt has to be in MeV
@@ -204,8 +205,10 @@ class PHActsSiliconSeeding : public SubsysReco
   /// B field value in z direction
   /// bfield for space point grid neds to be in kiloTesla
   float m_bField = 1.4 * Acts::UnitConstants::T;
-
-  std::shared_ptr<Acts::BinFinder<SpacePoint>> 
+  std::vector<std::pair<int, int> > zBinNeighborsTop;
+  std::vector<std::pair<int, int> > zBinNeighborsBottom;
+  int nphineighbors = 1;
+  std::shared_ptr<const Acts::BinFinder<SpacePoint>> 
     m_bottomBinFinder, m_topBinFinder;
 
   int m_event = 0;
@@ -250,7 +253,7 @@ class PHActsSiliconSeeding : public SubsysReco
   TH2 *h_projHits = nullptr;
   TH2 *h_zprojHits = nullptr;
   TH2 *h_resids = nullptr;
-  int m_cluster_version = 3;
+
 };
 
 

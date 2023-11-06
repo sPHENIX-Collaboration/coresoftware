@@ -23,7 +23,7 @@ TrackAnalysisUtils::DCAPair get_dca(SvtxTrack* track,
 
   pos -= vertex;
 
-  Acts::ActsSymMatrix<3> posCov;
+  Acts::ActsSquareMatrix<3> posCov;
   for (int i = 0; i < 3; ++i)
   {
     for (int j = 0; j < 3; ++j)
@@ -50,7 +50,7 @@ TrackAnalysisUtils::DCAPair get_dca(SvtxTrack* track,
   rot_T = rot.transpose();
 
   Acts::Vector3 pos_R = rot * pos;
-  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
+  Acts::ActsSquareMatrix<3> rotCov = rot * posCov * rot_T;
   //! First pair is DCA_xy +/- DCA_xy_err
   pair.first.first = pos_R(0);
   pair.first.second = sqrt(rotCov(0, 0));

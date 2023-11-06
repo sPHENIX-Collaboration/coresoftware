@@ -16,8 +16,8 @@
 #include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>      // for SvtxTrack, SvtxTrack::...
 #include <trackbase_historic/SvtxTrackMap.h>   // for SvtxTrackMap, SvtxTrac...
-#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
-#include <trackbase_historic/SvtxVertexMap.h>  // for SvtxVertexMap, SvtxVer...
+#include <globalvertex/SvtxVertex.h>     // for SvtxVertex
+#include <globalvertex/SvtxVertexMap.h>  // for SvtxVertexMap, SvtxVer...
 
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/GlobalVertex.h>
@@ -400,7 +400,8 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   HepMC::GenEvent *theEvent = m_genevt->getEvent();
   HepMC::GenParticle *prevParticle = nullptr;
 
-  int forbiddenPDGIDs[] = {21, 22};  //Stop tracing history when we reach quarks, gluons and photons
+  //int forbiddenPDGIDs[] = {21, 22};  //Stop tracing history when we reach quarks, gluons and photons
+  int forbiddenPDGIDs[] = {0};  //20230921 - Request made to have gluon information to see about gluon-splitting
 
   for (HepMC::GenEvent::particle_const_iterator p = theEvent->particles_begin(); p != theEvent->particles_end(); ++p)
   {

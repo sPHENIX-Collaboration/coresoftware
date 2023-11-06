@@ -61,13 +61,12 @@
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
 #include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
-#include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
-#include <trackbase_historic/SvtxVertexMap.h>       // for SvtxVertexMap
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+
+#include <globalvertex/SvtxVertexMap_v1.h>
+#include <globalvertex/SvtxVertex_v1.h>
 
 #include <GenFit/AbsMeasurement.h>                  // for AbsMeasurement
 #include <GenFit/EventDisplay.h>                    // for EventDisplay
@@ -1172,42 +1171,9 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     }
     
     // get cluster errors
-    double cluster_rphi_error = 0;
-    double cluster_z_error = 0;
-    if( m_cluster_version == 4 )
-    {
-      // get error from cluster error parametrization 
-      // get cluster radius
-      const auto cluster_r = std::sqrt(square(globalPosition_acts.x()) + square(globalPosition_acts.y()));
-
-      // decide of which seed to use depending on detector id
-      switch(  TrkrDefs::getTrkrId(cluster_key) )
-      {
-        case TrkrDefs::mvtxId:
-        case TrkrDefs::inttId:
-        {
-          const auto errors_square = m_cluster_error_parametrization.get_cluster_error(cluster, cluster_r, cluster_key, intrack->get_silicon_seed()->get_qOverR(), intrack->get_silicon_seed()->get_slope() ); 
-          cluster_rphi_error = std::sqrt( errors_square.first );
-          cluster_z_error = std::sqrt( errors_square.second );
-          break;
-        }
-        
-        case TrkrDefs::micromegasId:
-        case TrkrDefs::tpcId:
-        {
-          const auto errors_square = m_cluster_error_parametrization.get_cluster_error(cluster, cluster_r, cluster_key, intrack->get_tpc_seed()->get_qOverR(), intrack->get_tpc_seed()->get_slope() ); 
-          cluster_rphi_error = std::sqrt( errors_square.first );
-          cluster_z_error = std::sqrt( errors_square.second );
-          break;
-        }
-      }
-    } else {
-      // get error directly from cluster
-      cluster_rphi_error = cluster->getRPhiError();
-      cluster_z_error = cluster->getZError();
-    }
-
-
+    double cluster_rphi_error = cluster->getRPhiError();
+    double cluster_z_error = cluster->getZError();
+    
     // create measurement
     auto meas = new PHGenFit::PlanarMeasurement(pos, n, cluster_rphi_error, cluster_z_error);
 

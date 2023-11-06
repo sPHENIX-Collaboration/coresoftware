@@ -44,7 +44,7 @@ bool ALICEKF::checknan(double val, const std::string &name, int num) const
 
 double ALICEKF::get_Bz(double x, double y, double z) const
 {
-  if(_use_const_field) return 1.4;
+  if(_use_const_field) return _const_field;
   double p[4] = {x*cm,y*cm,z*cm,0.*cm};
   double bfield[3];
   _B->GetFieldValue(p,bfield);
@@ -61,41 +61,20 @@ double ALICEKF::getClusterError(TrkrCluster* c, TrkrDefs::cluskey key, Acts::Vec
   else 
     {
       TMatrixF localErr(3,3);
-      if(m_cluster_version==3){
-	localErr[0][0] = 0.;
-	localErr[0][1] = 0.;
-	localErr[0][2] = 0.;
-	localErr[1][0] = 0.;
-	localErr[1][1] = c->getActsLocalError(0,0);
-	localErr[1][2] = c->getActsLocalError(0,1);
-	localErr[2][0] = 0.;
-	localErr[2][1] = c->getActsLocalError(1,0);
-	localErr[2][2] = c->getActsLocalError(2,0);
-      }else if(m_cluster_version==4){
-	std::pair<double, double> para_errors = _ClusErrPara->get_fix_tpc_cluster_error(c,key);
-	localErr[0][0] = 0.;
-	localErr[0][1] = 0.;
-	localErr[0][2] = 0.;
-	localErr[1][0] = 0.;
-	localErr[1][1] = para_errors.first;
-	localErr[1][2] = 0.;
-	localErr[2][0] = 0.;
-	localErr[2][1] = 0.;
-	localErr[2][2] = para_errors.second;
-      }else if(m_cluster_version==5){
-	double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-	auto para_errors = _ClusErrPara->get_clusterv5_modified_error(c,clusRadius,key);
-
-	localErr[0][0] = 0.;
-	localErr[0][1] = 0.;
-	localErr[0][2] = 0.;
-	localErr[1][0] = 0.;
-	localErr[1][1] = para_errors.first;
-	localErr[1][2] = 0.;
-	localErr[2][0] = 0.;
-	localErr[2][1] = 0.;
-	localErr[2][2] = para_errors.second;
-      }
+    
+      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+      auto para_errors = _ClusErrPara->get_clusterv5_modified_error(c,clusRadius,key);
+      
+      localErr[0][0] = 0.;
+      localErr[0][1] = 0.;
+      localErr[0][2] = 0.;
+      localErr[1][0] = 0.;
+      localErr[1][1] = para_errors.first;
+      localErr[1][2] = 0.;
+      localErr[2][0] = 0.;
+      localErr[2][1] = 0.;
+      localErr[2][2] = para_errors.second;
+      
       float clusphi = atan2(global(1), global(0));
       TMatrixF ROT(3,3);
       ROT[0][0] = cos(clusphi);
@@ -354,13 +333,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     
 	float nextclusrad = std::sqrt(nextCluster_x*nextCluster_x +
 				      nextCluster_y*nextCluster_y);
-	float nextclusphierr = 0;
-	if(m_cluster_version==3){
-	  nextclusphierr = nextCluster->getRPhiError() / nextclusrad;
-	}else if(m_cluster_version==4){
-	  auto para_errors = _ClusErrPara->get_fix_tpc_cluster_error(nextCluster,*clusterkey);
-	  nextclusphierr = sqrt(para_errors.first);
-	}
+	float nextclusphierr = nextCluster->getRPhiError() / nextclusrad;;
 
 	cx.push_back(nextCluster_x);
         cy.push_back(nextCluster_y);
@@ -421,15 +394,8 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     auto lcluster = _cluster_map->findCluster(trackKeyChain.back());
     const auto& lclusterglob = globalPositions.at(trackKeyChain.back());
     const float lclusterrad = sqrt(lclusterglob(0)*lclusterglob(0) + lclusterglob(1)*lclusterglob(1));
-    double last_cluster_phierr = 0;
-//    std::cout << " lversion: "<< m_cluster_version << std::endl;
-    if(m_cluster_version==3){
-      last_cluster_phierr = lcluster->getRPhiError() / lclusterrad;
-    }else if(m_cluster_version==4){
-      //ClusterErrorPara ClusErrPara;
-      auto para_errors = _ClusErrPara->get_fix_tpc_cluster_error(lcluster,trackKeyChain.back());
-      last_cluster_phierr  = sqrt(para_errors.first);
-    }
+    double last_cluster_phierr = lcluster->getRPhiError() / lclusterrad;;
+
     // phi error assuming error in track radial coordinate is zero
     double track_phierr = sqrt(pow(last_cluster_phierr,2)+(pow(trackSeed.GetX(),2)*trackSeed.GetErr2Y()) / 
       pow(pow(trackSeed.GetX(),2)+pow(trackSeed.GetY(),2),2));
@@ -471,7 +437,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     //double pX = sqrt(track_pt*track_pt-pY*pY);
     /// We set the qoverR to get the good charge estimate from the KF
     /// which helps the Acts fit
-    track.set_qOverR(trackSeed.GetQPt()*(0.3*1.4)/100.);
+    track.set_qOverR(trackSeed.GetQPt()*(0.3*_const_field)/100.);
     //track.set_px(pX*c-pY*s);
     //track.set_py(pX*s+pY*c);
     //track.set_pz(track_pt * trackSeed.GetDzDs()); 

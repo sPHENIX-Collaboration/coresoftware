@@ -1,5 +1,7 @@
 #include "InttFelixMapObsolete.h"
 
+#include <cstdlib>
+
 int INTT_Felix::FelixMap(int const& felix, int const& felix_channel, struct Ladder_s& ladder_struct)
 {
 	switch(felix)

@@ -10,18 +10,18 @@
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
-#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/ActsSourceLink.h>
 #include <trackbase/Calibrator.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
-#include <Acts/EventData/VectorMultiTrajectory.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 
@@ -36,7 +36,7 @@ class SvtxTrackMap;
 class SvtxVertexMap;
 
 using SourceLink = ActsSourceLink;
-using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
+using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
@@ -48,7 +48,7 @@ class PHActsGSF : public SubsysReco
   PHActsGSF(const std::string& name = "PHActsGSF");
 
   ~PHActsGSF() override;
-  void set_cluster_version(int version) { m_cluster_version = version; }
+
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
   int End(PHCompositeNode* topNode) override;
@@ -63,11 +63,14 @@ class PHActsGSF : public SubsysReco
                                ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
                                const short int& crossing);
   ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
-      const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks,
+      const std::vector<Acts::SourceLink>& sourceLinks,
       const ActsTrackFittingAlgorithm::TrackParameters& seed,
-      const ActsTrackFittingAlgorithm::GeneralFitterOptions& options);
+      const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
+      const CalibratorAdapter& calibrator,
+      ActsTrackFittingAlgorithm::TrackContainer& tracks);
 
-  void updateTrack(const FitResult& result, SvtxTrack* track);
+  void updateTrack(FitResult& result, SvtxTrack* track,
+                   ActsTrackFittingAlgorithm::TrackContainer& tracks);
   void updateSvtxTrack(const Trajectory& traj, SvtxTrack* track);
   ActsGeometry* m_tGeometry = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
@@ -83,7 +86,7 @@ class PHActsGSF : public SubsysReco
 
   std::string m_trackMapName = "SvtxTrackMap";
   unsigned int m_pHypothesis = 11;
-  int m_cluster_version = 4;
+
   ClusterErrorPara _ClusErrPara;
 
   ActsTrackFittingAlgorithm::Config m_fitCfg;
