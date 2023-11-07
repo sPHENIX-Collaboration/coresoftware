@@ -1,18 +1,12 @@
-#ifndef FUN4ALLRAW_SINGLEMVTXINPUT_H
-#define FUN4ALLRAW_SINGLEMVTXINPUT_H
+#ifndef FUN4ALLRAW_SINGLEMVTXPOOLINPUT_H
+#define FUN4ALLRAW_SINGLEMVTXPOOLINPUT_H
 
 #include "SingleStreamingInput.h"
 
-//#include <array>
-//#include <list>
 #include <algorithm>
 #include <map>
-//#include <set>
-//#include <string>
 #include <vector>
-//
-// class Eventiterator;
-// class Fun4AllEvtInputPoolManager;
+
 class MvtxRawHit;
 class Packet;
 
@@ -23,33 +17,11 @@ typedef struct linkId
   uint32_t gbtid = 0xFF;
 } LinkId_t;
 
-// struct MvtxL1Trg
-//{
-//   uint64_t bco : 40; // 40 bits gl1/gtm bco
-//   uint16_t bc  : 12; // 12 bits mvtx internal bc counter
-//
-//   MvtxL1Trg() = default;
-//   ~MvtxL1Trg() = default;
-//
-//   MvtxL1Trg(uint64_t _bco, uint16_t _bc) : bco(_bco), bc(_bc) {};
-//
-//   bool operator<(const MvtxL1Trg& other) const
-//   {
-//     return (bco == other.bco) ? (bc < other.bc) : (bco < other.bco);
-//   }
-//
-//   bool operator==(const MvtxL1Trg& other) const
-//   {
-//     return (bco == other.bco) ? (bc == other.bc) : false;
-//   }
-//
-// };
-
-class SingleMvtxInput : public SingleStreamingInput
+class SingleMvtxPoolInput : public SingleStreamingInput
 {
  public:
-  explicit SingleMvtxInput(const std::string &name);
-  ~SingleMvtxInput() override;
+  explicit SingleMvtxPoolInput(const std::string &name);
+  ~SingleMvtxPoolInput() override;
   void FillPool(const unsigned int nevents = 1) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   bool CheckPoolDepth(const uint64_t bclk) override;
@@ -57,6 +29,8 @@ class SingleMvtxInput : public SingleStreamingInput
   bool GetSomeMoreEvents();
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
+  void SetBcoRange(const unsigned int i) { m_BcoRange = i; }
+  void ConfigureStreamingInputManager() override;
 
   std::set<int> &getFeeIdSet(const uint64_t &bco) { return m_BeamClockFEE[bco]; };
 
@@ -71,8 +45,10 @@ class SingleMvtxInput : public SingleStreamingInput
   }
 
  private:
-  Packet **plist = nullptr;
-  unsigned int m_NumSpecialEvents = 0;
+  Packet **plist{nullptr};
+  unsigned int m_NumSpecialEvents{0};
+  unsigned int m_BcoRange{0};
+
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<uint64_t, std::vector<MvtxRawHit *>> m_MvtxRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;

@@ -57,7 +57,7 @@ void SingleInttPoolInput::FillPool(const unsigned int)
     }
   }
 
-  std::set<uint64_t> saved_beamclocks;
+//  std::set<uint64_t> saved_beamclocks;
   while (GetSomeMoreEvents(0))
   {
     Event *evt = GetEventiterator()->getNextEvent();
