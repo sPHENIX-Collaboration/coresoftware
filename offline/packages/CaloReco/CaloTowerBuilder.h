@@ -61,6 +61,12 @@ class CaloTowerBuilder : public SubsysReco
     _bdosoftwarezerosuppression = usezerosuppression;
   }
 
+  void set_outputNodePrefix(const std::string &name)
+  {
+    m_outputNodePrefix = name;
+    return;
+  }
+
  private:
   CaloWaveformProcessing *WaveformProcessing {nullptr};
   TowerInfoContainer *m_CaloInfoContainer {nullptr};  //! Calo info
@@ -76,6 +82,8 @@ class CaloTowerBuilder : public SubsysReco
   CaloTowerDefs::BuilderType m_buildertype {CaloTowerDefs::kPRDFTowerv1};
   CaloWaveformProcessing::process _processingtype {CaloWaveformProcessing::NONE};
   std::string m_detector {"CEMC"};
+  std::string m_outputNodePrefix {"TOWERS_"};
+  std::string TowerNodeName;
 };
 
 #endif  // CALOTOWERBUILDER_H
