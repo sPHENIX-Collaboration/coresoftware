@@ -15,17 +15,16 @@ namespace HepMC
 
 class HIJINGFlipAfterburner : public SubsysReco
 {
-public:
-    HIJINGFlipAfterburner(const std::string &name = "HIJINGFlipAfterburner");
+ public:
+  HIJINGFlipAfterburner(const std::string &name = "HIJINGFlipAfterburner");
 
-    ~HIJINGFlipAfterburner() override;
+  ~HIJINGFlipAfterburner() override = default;
 
-    int process_event(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
-
-private:
-    void flipZDirection(HepMC::GenEvent *event);
-    bool doFlip = true;
+ private:
+  void flipZDirection(HepMC::GenEvent *event);
+  bool doFlip{true};
 };
 
-#endif // HIJINGFLIPAFTERBURNER_H
+#endif  // HIJINGFLIPAFTERBURNER_H
