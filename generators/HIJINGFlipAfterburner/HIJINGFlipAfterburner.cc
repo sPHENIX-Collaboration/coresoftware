@@ -3,35 +3,28 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-//phhepmc
+#include <phool/getClass.h>
+// phhepmc
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
-//hepmc
+// hepmc
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>   // for GenParticle
-#include <HepMC/GenVertex.h>     // for GenVertex, GenVertex::part...
+#include <HepMC/GenParticle.h>  // for GenParticle
+#include <HepMC/GenVertex.h>    // for GenVertex, GenVertex::part...
 #include <HepMC/SimpleVector.h>
 #pragma GCC diagnostic pop
-
-
 
 #include <cassert>
 
 //____________________________________________________________________________..
-HIJINGFlipAfterburner::HIJINGFlipAfterburner(const std::string &name) : SubsysReco(name)
+HIJINGFlipAfterburner::HIJINGFlipAfterburner(const std::string &name)
+  : SubsysReco(name)
 {
 }
-
-//____________________________________________________________________________..
-HIJINGFlipAfterburner::~HIJINGFlipAfterburner()
-{
-}
-
 
 //____________________________________________________________________________..
 int HIJINGFlipAfterburner::process_event(PHCompositeNode *topNode)
@@ -44,9 +37,9 @@ int HIJINGFlipAfterburner::process_event(PHCompositeNode *topNode)
   {
     doFlip = false;
     PHHepMCGenEventMap *genevtmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
-    for (PHHepMCGenEventMap::Iter iter = genevtmap->begin(); iter != genevtmap->end(); ++iter)
+    for (auto &iter : *genevtmap)
     {
-      PHHepMCGenEvent *genevt = iter->second;
+      PHHepMCGenEvent *genevt = iter.second;
       HepMC::GenEvent *evt = genevt->getEvent();
       assert(evt);
       flipZDirection(evt);
@@ -55,8 +48,6 @@ int HIJINGFlipAfterburner::process_event(PHCompositeNode *topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-
 
 void HIJINGFlipAfterburner::flipZDirection(HepMC::GenEvent *event)
 {
