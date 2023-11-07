@@ -9,7 +9,7 @@ ActsGsfTrackFittingAlgorithm::makeGsfFitterFunction(
     Acts::MixtureReductionMethod finalReductionMethod, bool abortOnError,
     bool disableAllMaterialHandling, const Acts::Logger& logger)
 {
-  MultiStepper stepper(magneticField, finalReductionMethod,
+  MultiStepper stepper(magneticField,
                        logger.cloneWithSuffix("GSFStep"));
   const auto& geo = *trackingGeometry;
 

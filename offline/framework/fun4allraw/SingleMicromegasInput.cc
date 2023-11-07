@@ -101,7 +101,7 @@ void SingleMicromegasInput::FillPool(const unsigned int /*nbclks*/)
 
     if (evt->getEvtType() != DATAEVENT)
     {
-      m_NumSpecialEvents++; 
+      m_NumSpecialEvents++;
       continue;
     }
 
