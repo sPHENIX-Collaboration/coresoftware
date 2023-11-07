@@ -60,11 +60,6 @@ Jet* JetContainerv1::add_jet()
   return m_current_jet;
 }
 
-void JetContainerv1::add_component(Jet::SRC src, unsigned int id)
-{
-  m_current_jet->insert_comp(src, id);
-}
-
 Jet* JetContainerv1::get_jet(unsigned int ijet)
 {
   if (ijet < m_njets)

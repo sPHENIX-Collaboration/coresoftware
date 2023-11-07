@@ -284,7 +284,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
              iter != particle->end_comp();
              ++iter)
         {
-          jetcont->add_component(iter->first, iter->second);
+          jet->insert_comp(iter->first, iter->second);
         }
       }
     }

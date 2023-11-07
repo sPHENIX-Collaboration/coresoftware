@@ -180,7 +180,9 @@ void Jetv2::CompareSRC::sort_comp_ids(Jetv2* jet)
   std::sort(jet->_comp_ids.begin(), jet->_comp_ids.end(),
             [](const std::pair<Jet::SRC, unsigned int>& a,
                const std::pair<Jet::SRC, unsigned int>& b)
-            { return a.first < b.first; });
+            { 
+            if (a.first == b.first) return a.second < b.second;
+            else return a.first < b.first; });
 }
 
 Jetv2::ITER_comp_vec Jetv2::comp_begin(Jet::SRC iSRC)
