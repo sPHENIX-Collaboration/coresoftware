@@ -8,6 +8,7 @@
 #include <Event/phenixTypes.h>
 
 #include <map>
+#include <set>
 #include <string>
 
 class SingleStreamingInput;
@@ -26,7 +27,14 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   Fun4AllStreamingInputManager(const std::string &name = "DUMMY", const std::string &dstnodename = "DST", const std::string &topnodename = "TOP");
   ~Fun4AllStreamingInputManager() override;
 
-  enum enu_subsystem { MVTX = 1, INTT = 2, TPC = 3, MICROMEGAS = 4, GL1 = 5};
+  enum enu_subsystem
+  {
+    MVTX = 1,
+    INTT = 2,
+    TPC = 3,
+    MICROMEGAS = 4,
+    GL1 = 5
+  };
 
   int fileopen(const std::string & /*filenam*/) override { return 0; }
   // cppcheck-suppress virtualCallInConstructor
@@ -47,13 +55,16 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   int FillMvtx();
   int FillTpc();
   void AddGl1RawHit(uint64_t bclk, Gl1RawHit *hit);
-  void AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit);
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
-  void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit* /* hit */);
+  void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit * /* hit */);
+  void AddMvtxFeeId(uint64_t bclk, uint16_t feeid);
+  void AddMvtxL1TrgBco(uint64_t bclk, uint64_t lv1Bco);
+  void AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
   void SetMicromegasBcoRange(const unsigned int i);
   void SetMicromegasNegativeBco(const unsigned int value);
   void SetMvtxBcoRange(const unsigned int i);
+  void SetMvtxNegativeBco(const unsigned int value);
   void SetTpcBcoRange(const unsigned int i);
   int FillInttPool();
   int FillMicromegasPool();
@@ -63,6 +74,8 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
  private:
   struct MvtxRawHitInfo
   {
+    std::set<uint16_t> MvtxFeeIds;
+    std::set<uint64_t> MvtxL1TrgBco;
     std::vector<MvtxRawHit *> MvtxRawHitVector;
     unsigned int EventFoundCounter = 0;
   };
@@ -92,16 +105,17 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   };
 
   int m_RunNumber = 0;
-  bool m_gl1_registered_flag {false};
-  bool m_intt_registered_flag {false};
-  bool m_micromegas_registered_flag {false};
-  bool m_mvtx_registered_flag {false};
-  bool m_tpc_registered_flag {false};
-  unsigned int m_micromegas_bco_range {0};
-  unsigned int m_micromegas_negative_bco {0};
-  unsigned int m_tpc_bco_range {0};
-  unsigned int m_mvtx_bco_range {0};
-  uint64_t m_RefBCO {0};
+  bool m_gl1_registered_flag{false};
+  bool m_intt_registered_flag{false};
+  bool m_micromegas_registered_flag{false};
+  bool m_mvtx_registered_flag{false};
+  bool m_tpc_registered_flag{false};
+  unsigned int m_micromegas_bco_range{0};
+  unsigned int m_micromegas_negative_bco{0};
+  unsigned int m_tpc_bco_range{0};
+  unsigned int m_mvtx_bco_range{0};
+  unsigned int m_mvtx_negative_bco{0};
+  uint64_t m_RefBCO{0};
 
   std::vector<SingleStreamingInput *> m_Gl1InputVector;
   std::vector<SingleStreamingInput *> m_InttInputVector;
