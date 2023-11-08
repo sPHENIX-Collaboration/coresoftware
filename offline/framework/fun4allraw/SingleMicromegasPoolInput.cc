@@ -27,14 +27,19 @@ namespace
   std::ostream& operator<<(std::ostream& out, const std::list<T>& list)
   {
     if (list.empty())
+    {
       out << "{}";
+    }
     else
     {
       out << "{ ";
       bool first = true;
       for (const auto& value : list)
       {
-        if (!first) out << ", ";
+        if (!first)
+        {
+          out << ", ";
+        }
         out << value;
         first = false;
       }
@@ -181,11 +186,17 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
         // get checksum_error and check
         const auto checksum_error = packet->iValue(wf, "CHECKSUMERROR");
-        if (checksum_error) continue;
+        if (checksum_error)
+        {
+          continue;
+        }
 
         // get number of samples and check
         const uint16_t samples = packet->iValue(wf, "SAMPLES");
-        if (samples < m_min_req_samples) continue;
+        if (samples < m_min_req_samples)
+        {
+          continue;
+        }
 
         // get fee bco
         const unsigned int fee_bco = packet->iValue(wf, "BCO");
@@ -375,13 +386,22 @@ void SingleMicromegasPoolInput::ClearCurrentEvent()
 //_______________________________________________________
 bool SingleMicromegasPoolInput::GetSomeMoreEvents()
 {
-  if (AllDone()) return false;
-  if (m_MicromegasRawHitMap.empty()) return true;
+  if (AllDone())
+  {
+    return false;
+  }
+  if (m_MicromegasRawHitMap.empty())
+  {
+    return true;
+  }
 
   uint64_t lowest_bclk = m_MicromegasRawHitMap.begin()->first + m_BcoRange;
   for (auto bcliter : m_FEEBclkMap)
   {
-    if (bcliter.second <= lowest_bclk) return true;
+    if (bcliter.second <= lowest_bclk)
+    {
+      return true;
+    }
   }
 
   return false;
