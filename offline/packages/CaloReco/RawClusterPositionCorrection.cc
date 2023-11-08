@@ -66,7 +66,6 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
   // access the cdb and get cdbtree
   std::string  m_calibName = "cemc_PDC_NorthSouth_8x8_23instru";
   std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
-
   if (!calibdir.empty())
   {
     cdbttree = new CDBTTree(calibdir);
@@ -100,7 +99,6 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
     calib_constants_north.push_back(dumvec);
     calib_constants_north_ecore.push_back(dumvec2);
   }
-
   /// south
   m_fieldname = "cemc_PDC_SouthSector_8x8_clusE";
   m_fieldname_ecore = "cemc_PDC_SouthSector_8x8_clusEcore";
@@ -197,14 +195,14 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
   // loop over the clusters
   RawClusterContainer::ConstRange begin_end = rawclusters->getClusters();
   RawClusterContainer::ConstIterator iter;
-
+  
   for (iter = begin_end.first; iter != begin_end.second; ++iter)
   {
     //    RawClusterDefs::keytype key = iter->first;
     RawCluster *cluster = iter->second;
 
     float clus_energy = cluster->get_energy();
-
+   
     std::vector<float> toweretas;
     std::vector<float> towerphis;
     std::vector<float> towerenergies;
@@ -283,8 +281,11 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
         phimult += energymult;
         phisum += towerenergies.at(j);
     }
-
+    
     float avgphi = phimult / phisum;
+    if(isnan(avgphi)) continue;
+      
+
     float avgeta = etamult / etasum;
 
     if (avgphi < 0) {
@@ -293,10 +294,10 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 
     avgphi = fmod(avgphi, nphibin);
 
+
     if(avgphi >= 255.5) avgphi -= bins_phi;
 
     avgphi = fmod(avgphi+0.5,8)-0.5; // wrapping [-0.5, 255.5] to [-0.5, 7.5]
-
     int etabin = -99;
     int phibin = -99;
 
@@ -317,13 +318,16 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     float ecore_recalib_val = 1;
     if (phibin > -1 && etabin > -1)
     {
-        if(avgeta < 47.5) {
-            eclus_recalib_val = calib_constants_south[phibin][etabin];
-            ecore_recalib_val = calib_constants_south_ecore[phibin][etabin];
-        }
-        else{
-            eclus_recalib_val = calib_constants_north[phibin][etabin];
-            ecore_recalib_val = calib_constants_north_ecore[phibin][etabin];
+      
+      if(avgeta < 47.5) 
+	{
+	  eclus_recalib_val = calib_constants_south[phibin][etabin];
+	  ecore_recalib_val = calib_constants_south_ecore[phibin][etabin];
+	}
+      else
+	{
+	  eclus_recalib_val = calib_constants_north[phibin][etabin];
+	  ecore_recalib_val = calib_constants_north_ecore[phibin][etabin];
         }
     }
     RawCluster *recalibcluster = dynamic_cast<RawCluster *>(cluster->CloneMe());
