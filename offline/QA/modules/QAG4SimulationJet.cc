@@ -715,7 +715,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
 
       }  //       if (recojet)
     }    // inclusive best energy match
-//    {    // unique match
+    {    // unique match
 
       const Jet* recojet = recoeval->unique_reco_jet_from_truth(truthjet);
       if (recojet)
@@ -749,7 +749,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
         }  // if (fabs(dPhi) < 0.1)
 
       }  //       if (recojet)
-//    }    // unique match
+    }    // unique match
 
   }  //  if (truthjet)
 
