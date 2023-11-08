@@ -113,13 +113,16 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   std::set<unsigned int> tpc_unmatched_set;
   findEtaPhiMatches(tpc_matched_set, tpc_unmatched_set, tpc_matches);
 
-  // In pp mode, if a matched track does not have INTT clusters we have to find the crossing geometrically
-  findCrossingGeometrically(tpc_matches);
-
-
   // Check that the crossing number is consistent with the tracklet z mismatch, discard the match otherwise
   // Enabling this required a change to truth seeding, so that it sets the TPC seed z0 to the line fit value, not the truth
   checkCrossingMatches(tpc_matches);
+
+  /*
+  // Future development: use the z-mismatch between the silicon and TPC tracklets to assign the crossing in case INTT clusters are missing
+  // this will reuse some of the commented out methods at the end of this file
+  */
+  // In pp mode, if a matched track does not have INTT clusters we have to find the crossing geometrically
+  findCrossingGeometrically(tpc_matches);
   
   // We have a complete list of all eta/phi matched tracks in the map "tpc_matches"
   // make the combined track seeds from tpc_matches
@@ -142,12 +145,6 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
 
       if(Verbosity() > 1) std::cout << "  converted unmatched TPC seed id " << _svtx_seed_map->size()-1 << " tpc id " << tpcid << std::endl;
     }
-
-  /*
-  // Future development: use the z-mismatch between the silicon and TPC tracklets to assign the crossing in case INTT clusters are missing
-  // this will reuse some of the commented out methods at the end of this file
-  tagMatchCrossing(tpc_matches, crossing_matches, tpc_crossing_map);
-  */
 
   if(Verbosity() > 0)  
     {
@@ -184,10 +181,16 @@ void  PHSiliconTpcTrackMatching::findCrossingGeometrically(std::multimap<unsigne
       // this is an initial estimate of the bunch crossing based on the z-mismatch for this track
       double crossing_estimate = (short int) getBunchCrossing(tpcid, tpc_z - si_z);
 
+      if ( abs(crossing_estimate - (double) crossing) < 3) 
+	{
+	  std::cout << "findCrossing: " <<   " tpcid " << tpcid << " si_id " << si_id << " tpc_z " << tpc_z << " si_z " << si_z << " dz " << tpc_z - si_z << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
+
+	  // for testing only:
+	  si_track->set_crossing(crossing_estimate);
+	}
+
       // Refine the estimate somehow
       // or possibly tag these track seeds for special treatment later
-
-      std::cout << "   tpcid " << tpcid << " si_id " << si_id << " tpc_z " << tpc_z << " si_z " << si_z << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
 
     }
 
@@ -206,6 +209,7 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
 
   // Check the TPC side for the first cluster in the track
   unsigned int side = 10;
+  std::set<short int> side_set;
   for (TrackSeed::ConstClusterKeyIter iter = track->begin_cluster_keys();
        iter != track->end_cluster_keys();
        ++iter)
@@ -215,11 +219,14 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
       if(trkrid == TrkrDefs::tpcId)
 	{
 	  side = TpcDefs::getSide(cluster_key);
-	  break;   // we only need the first one  
+	  side_set.insert(side);
 	}
     }
 
   if(side == 10) return SHRT_MAX;
+
+  if(side_set.size() == 2)
+    std::cout << "     WARNING: tpc seed " << trid << " changed TPC sides, "  << "  final side " << side << std::endl;
 
   // if side = 1 (north, +ve z side), a positive t0 will make the cluster late relative to true z, so it will look like z is less positive
   // so a negative z mismatch for side 1 means a positive t0, and positive crossing, so reverse the sign for side 1
@@ -227,7 +234,7 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
     crossings *= -1.0;
   
   if(Verbosity() > 1) 
-    std::cout << "             trackid " << trid << " side " << side << " z_mismatch " << z_mismatch << " crossings " << crossings << std::endl;
+    std::cout << "  gettrackid " << trid << " side " << side << " z_mismatch " << z_mismatch << " crossings " << crossings << std::endl;
 
   return crossings;
 }
