@@ -289,17 +289,18 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     unsigned int tpcid = track->get_tpc_seed_index();
     unsigned int siid = track->get_silicon_seed_index();
+    short int crossing_estimate = track->get_crossing_estimate();
 
     if (Verbosity() > 1)
     {
-      std::cout << "tpc and si id " << tpcid << ", " << siid << std::endl;
+      std::cout << "tpc and si id " << tpcid << ", " << siid << " crossing estimate " << crossing_estimate << std::endl;
     }
 
     /// A track seed is made for every tpc seed. Not every tpc seed
     /// has a silicon match, we skip those cases completely in pp running
     if (m_pp_mode && siid == std::numeric_limits<unsigned int>::max())
     {
-      if (Verbosity() > 1) std::cout << "Running in pp mode and SvtxSeedTrack has no silicon match, skip it" << std::endl;
+      if (Verbosity() > 2) std::cout << "Running in pp mode and SvtxSeedTrack has no silicon match, skip it" << std::endl;
       continue;
     }
 
@@ -312,10 +313,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       crossing = 0;
 
     // if the crossing was not determined in pp running, skip this case completely
-    if (m_pp_mode && crossing == SHRT_MAX)
+    if (m_pp_mode && crossing == SHRT_MAX && crossing_estimate == SHRT_MAX)
     {
       // Skip this in the pp case.
-      if (Verbosity() > 1) std::cout << "Crossing not determined, skipping track" << std::endl;
+      if (Verbosity() > 1) std::cout << "Crossing and crossing_estimate not determined, skipping track" << std::endl;
       continue;
     }
 
@@ -679,7 +680,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       }
     }
 
-    if (Verbosity() > 0)
+    if (Verbosity() > 1)
     {
       std::cout << " zinit " << global[2] << " xinit " << global[0] << " yinit " << global[1] << " side " << side << " crossing " << crossing
                 << " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
@@ -748,7 +749,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       localPos(1) = loct(1);
     }
 
-    if (Verbosity() > 0)
+    if (Verbosity() > 2)
     {
       std::cout << " cluster global after mover: " << global << std::endl;
       std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;

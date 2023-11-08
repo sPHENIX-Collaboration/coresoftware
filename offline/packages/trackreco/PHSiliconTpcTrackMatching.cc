@@ -10,7 +10,8 @@
 
 #include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/SvtxTrackSeed_v1.h>
+//#include <trackbase_historic/SvtxTrackSeed_v1.h>
+#include <trackbase_historic/SvtxTrackSeed_v2.h>
 
 #include <globalvertex/SvtxVertex.h>     // for SvtxVertex
 #include <globalvertex/SvtxVertexMap.h>
@@ -113,24 +114,21 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   std::set<unsigned int> tpc_unmatched_set;
   findEtaPhiMatches(tpc_matched_set, tpc_unmatched_set, tpc_matches);
 
-  // Check that the crossing number is consistent with the tracklet z mismatch, discard the match otherwise
-  // Enabling this required a change to truth seeding, so that it sets the TPC seed z0 to the line fit value, not the truth
+  // Check that the crossing number is consistent with the tracklet z mismatch, removethe match otherwise
+  // This does nothing if the crossing number is not set
   checkCrossingMatches(tpc_matches);
-
-  /*
-  // Future development: use the z-mismatch between the silicon and TPC tracklets to assign the crossing in case INTT clusters are missing
-  // this will reuse some of the commented out methods at the end of this file
-  */
-  // In pp mode, if a matched track does not have INTT clusters we have to find the crossing geometrically
-  findCrossingGeometrically(tpc_matches);
   
   // We have a complete list of all eta/phi matched tracks in the map "tpc_matches"
   // make the combined track seeds from tpc_matches
   for(auto [tpcid, si_id] : tpc_matches)
     {
-      auto svtxseed = std::make_unique<SvtxTrackSeed_v1>();
+      auto svtxseed = std::make_unique<SvtxTrackSeed_v2>();
       svtxseed->set_silicon_seed_index(si_id);
       svtxseed->set_tpc_seed_index(tpcid);
+      // In pp mode, if a matched track does not have INTT clusters we have to find the crossing geometrically
+      // Record the geometrically estimated crossing in the track seeds for later use if needed
+      short int crossing_estimate = findCrossingGeometrically(tpcid, si_id);
+      svtxseed->set_crossing_estimate(crossing_estimate);
       _svtx_seed_map->insert(svtxseed.get());
       
       if(Verbosity() > 1) std::cout << "  combined seed id " << _svtx_seed_map->size()-1 << " si id " << si_id << " tpc id " << tpcid  << std::endl;
@@ -139,7 +137,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   // Also make the unmatched TPC seeds into SvtxTrackSeeds
   for(auto tpcid : tpc_unmatched_set)
     {
-      auto svtxseed = std::make_unique<SvtxTrackSeed_v1>();
+      auto svtxseed = std::make_unique<SvtxTrackSeed_v2>();
       svtxseed->set_tpc_seed_index(tpcid);
       _svtx_seed_map->insert(svtxseed.get());
 
@@ -163,37 +161,31 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
 
  }
 
-void  PHSiliconTpcTrackMatching::findCrossingGeometrically(std::multimap<unsigned int, unsigned int> tpc_matches)
+short int  PHSiliconTpcTrackMatching::findCrossingGeometrically(unsigned int tpcid, unsigned int si_id)
 {
   // loop over all matches and check for ones with no INTT clusters in the silicon seed
-  for(auto [tpcid, si_id] : tpc_matches)
+  TrackSeed *si_track =_track_map_silicon->get(si_id);
+  short int crossing = si_track->get_crossing();
+
+  double si_z = si_track->get_z();
+  TrackSeed *tpc_track = _track_map->get(tpcid);
+  double tpc_z = tpc_track->get_z();
+
+  // this is an initial estimate of the bunch crossing based on the z-mismatch for this track
+  short int crossing_estimate = (short int) getBunchCrossing(tpcid, tpc_z - si_z);
+
+  if ( abs(crossing_estimate - crossing) < 3) 
     {
-      TrackSeed *si_track =_track_map_silicon->get(si_id);
-      short int crossing = si_track->get_crossing();
-
-      // we are only interested in cases where there is not already a crossing assigned
-      //commented out for testing:       if(crossing != SHRT_MAX) continue;
-
-      double si_z = si_track->get_z();
-      TrackSeed *tpc_track = _track_map->get(tpcid);
-      double tpc_z = tpc_track->get_z();
-
-      // this is an initial estimate of the bunch crossing based on the z-mismatch for this track
-      double crossing_estimate = (short int) getBunchCrossing(tpcid, tpc_z - si_z);
-
-      if ( abs(crossing_estimate - (double) crossing) < 3) 
+      if(Verbosity() > 1)
 	{
-	  std::cout << "findCrossing: " <<   " tpcid " << tpcid << " si_id " << si_id << " tpc_z " << tpc_z << " si_z " << si_z << " dz " << tpc_z - si_z << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
-
-	  // for testing only:
-	  si_track->set_crossing(crossing_estimate);
+	  std::cout << "findCrossing: " <<   " tpcid " << tpcid << " si_id " << si_id << " tpc_z " << tpc_z << " si_z " << si_z << " dz " << tpc_z - si_z 
+		    << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
 	}
-
-      // Refine the estimate somehow
-      // or possibly tag these track seeds for special treatment later
-
+      return crossing_estimate;
     }
 
+  return SHRT_MAX;
+  
 }
 
 double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_mismatch )
@@ -225,7 +217,7 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
 
   if(side == 10) return SHRT_MAX;
 
-  if(side_set.size() == 2)
+  if(side_set.size() == 2 && Verbosity() > 1)
     std::cout << "     WARNING: tpc seed " << trid << " changed TPC sides, "  << "  final side " << side << std::endl;
 
   // if side = 1 (north, +ve z side), a positive t0 will make the cluster late relative to true z, so it will look like z is less positive
@@ -234,7 +226,9 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
     crossings *= -1.0;
   
   if(Verbosity() > 1) 
-    std::cout << "  gettrackid " << trid << " side " << side << " z_mismatch " << z_mismatch << " crossings " << crossings << std::endl;
+    {
+      std::cout << "  gettrackid " << trid << " side " << side << " z_mismatch " << z_mismatch << " crossings " << crossings << std::endl;
+    }
 
   return crossings;
 }
