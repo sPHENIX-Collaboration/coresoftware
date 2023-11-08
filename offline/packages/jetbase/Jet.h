@@ -176,7 +176,8 @@ class Jet : public PHObject
   virtual std::vector<Jet::SRC> comp_src_vec() { return {}; };
   virtual std::map<Jet::SRC, size_t> comp_src_sizemap() { return {}; };
 //
-  typedef std::vector<std::pair<Jet::SRC, unsigned int>> TYPE_comp_vec;
+  typedef std::pair<Jet::SRC, unsigned int> TYPE_comp;
+  typedef std::vector<TYPE_comp> TYPE_comp_vec;
   typedef TYPE_comp_vec::iterator ITER_comp_vec;
 //
   virtual ITER_comp_vec comp_begin();

@@ -28,7 +28,7 @@ public:
     Jet* get_UncheckedAt(unsigned int index) override; // Get get at location. Update current_jet. No safety checks
                                                 
     // convenience shortcuts of get_{jet,UncheckedAt}
-    inline Jet* operator()(int index) override { return get_jet(index); }; // synonym for get_get()
+    inline Jet* operator()(int index) override { return get_jet(index); }; // synonym for get_jet()
     inline Jet* operator[](int index) override { return get_UncheckedAt(index); }; // get jet, don't check for length
                                                                                      //
     // ----------------------------------------------------------------------------------------
@@ -77,8 +77,6 @@ public:
     Jet::IterJetTCA begin() override;
     Jet::IterJetTCA end()   override;
     // ---------------------------------------------------------------------------------------
-
-    void add_component(Jet::SRC /*-*/, unsigned int /*component id*/) override;
 
     // -legacy-set-parameters-----------------------------------------------------------------
     void set_algo(Jet::ALGO algo) override { m_algo = algo; };
