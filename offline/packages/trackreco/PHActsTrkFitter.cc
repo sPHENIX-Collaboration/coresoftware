@@ -321,6 +321,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	std::cout << "tpc and si id " << tpcid << ", " << siid << " crossing " << crossing << " crossing estimate " << crossing_estimate << std::endl;
       }
 
+    // Can't do SC case without INTT crossing
+    if( m_fitSiliconMMs && (crossing == SHRT_MAX) ) continue;
+
     auto tpcseed = m_tpcSeeds->get(tpcid);
 
     /// Need to also check that the tpc seed wasn't removed by the ghost finder
@@ -346,14 +349,14 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     std::vector<float> chisq_ndf;
     std::vector<SvtxTrack_v4> svtx_vec;
 
-    std::cout << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
+    if(Verbosity() > 1) { std::cout << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl; }
 
     if(crossing == SHRT_MAX)
       {
 	// If there is no INTT crossing, start with the crossing_estimate value, vary up and down, fit, and choose the best chisq/ndf
 	use_estimate = true;
-	nvary = 2;
-	std::cout << " No INTT crossing: crossing_estimate " << crossing_estimate << " nvary " << nvary << std::endl;
+	nvary = max_bunch_search;
+	if(Verbosity() > 1) { std::cout << " No INTT crossing: use crossing_estimate " << crossing_estimate << " with nvary " << nvary << std::endl; }
       }
     else
       {
@@ -361,10 +364,18 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	crossing_estimate = crossing;
       }
 
+    // Fit this track assuming either:
+    //    crossing = INTT value, if it exists (uses nvary = 0)
+    //    crossing = crossing_estimate +/- max_bunch_search, if no INTT value exists
+
     for(short int ivary = -nvary; ivary <= nvary; ++ivary)
       {
 	this_crossing = crossing_estimate + ivary;
-	std::cout << "   nvary " << nvary << " trial fit with ivary " << ivary << " this_crossing = " << this_crossing << std::endl;
+
+	if(Verbosity() > 1) 
+	  {
+	    std::cout << "   nvary " << nvary << " trial fit with ivary " << ivary << " this_crossing = " << this_crossing << std::endl; 
+	  }
  	
 	ActsTrackFittingAlgorithm::MeasurementContainer measurements;
 	
@@ -498,12 +509,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  }
 
 	/// Check that the track fit result did not return an error
-	std::cout << "result.ok() = " << result.ok() << std::endl;
 	if (result.ok()) 
 	  {
 	    if(use_estimate) // trial variation case
 	      {
-		// this is a trial variation of the crossing estimate
+		// this is a trial variation of the crossing estimate for this track
 		// Capture the chisq/ndf so we can choose the best one after all trials
 		
 		SvtxTrack_v4 newTrack;
@@ -516,13 +526,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 		    float chi2ndf = newTrack.get_quality();
 		    chisq_ndf.push_back(chi2ndf);
 		    svtx_vec.push_back(newTrack);
-		    std::cout << "   tpcid " << tpcid << " siid " << siid << " ivary " << ivary << " this_crossing " << this_crossing << " chi2ndf " << chi2ndf << std::endl;
+		    if(Verbosity() > 1) { std::cout << "   tpcid " << tpcid << " siid " << siid << " ivary " << ivary << " this_crossing " << this_crossing << " chi2ndf " << chi2ndf << std::endl; }
 		  }
 		
 		if(ivary != nvary)  { continue; } 
 		
 		// if we are here this is the last crossing iteration, evaluate the results
-		std::cout << "Finished with trial fits, chisq_ndf size is " << chisq_ndf.size() << " chisq_ndf values are:" << std::endl;
+		if(Verbosity() > 1) { std::cout << "Finished with trial fits, chisq_ndf size is " << chisq_ndf.size() << " chisq_ndf values are:" << std::endl; }
 		float best_chisq = 1000.0;
 		short int best_ivary = 0;
 		for(unsigned int i = 0; i<chisq_ndf.size(); ++i)
@@ -532,15 +542,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 			best_chisq = chisq_ndf[i];			
 			best_ivary = i;
 		      }
-		    std::cout << "  trial " << i  << " chisq_ndf " << chisq_ndf[i] << " best_chisq " << best_chisq << " best_ivary " << best_ivary << std::endl; 
+		    if(Verbosity() > 1) { std::cout << "  trial " << i  << " chisq_ndf " << chisq_ndf[i] << " best_chisq " << best_chisq << " best_ivary " << best_ivary << std::endl; }
 		  }
 		unsigned int trid = m_trackMap->size();
 		svtx_vec[best_ivary].set_id(trid);
 
-		std::cout << "Adding track " << trid << " to SvtxTrackMap " << std::endl;
-		
 		m_trackMap->insertWithKey(&svtx_vec[best_ivary], trid);		    
-	      }  // end trial variation case
+	      } 
 	    else   // case where INTT crossing is known 
 	      {
 		SvtxTrack_v4 newTrack;
@@ -569,7 +577,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 		      }
 		  }  // end insert track for normal fit
 	      }  // end case where INTT crossing is known
-	  } // end result OK if
+	  }
 	else if (!m_fitSiliconMMs)
 	  {
 	    /// Track fit failed, get rid of the track from the map

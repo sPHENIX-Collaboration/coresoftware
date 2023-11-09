@@ -58,7 +58,7 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
 
   // put these in the output file
   cout << PHWHERE << " Search windows: phi " << _phi_search_win << " eta " 
-       << _eta_search_win << " _pp_mode " << _pp_mode << " _use_intt_time " << _use_intt_time << endl;
+       << _eta_search_win << " _pp_mode " << _pp_mode << " _use_intt_crossing " << _use_intt_crossing << endl;
 
 
    int ret = GetNodes(topNode);
@@ -99,7 +99,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
 
       // returns SHRT_MAX if no INTT clusters in silicon seed
       short int crossing= getCrossingIntt(_tracklet_si);
-      _tracklet_si->set_crossing(crossing);
+      if(_use_intt_crossing) { _tracklet_si->set_crossing(crossing); } // flag is for testing only, use_intt_crossing should always be true!
       
       if(Verbosity() > 8)
 	std::cout << " silicon stub: " << trackid << " eta " << _tracklet_si->get_eta()  << " pt " << _tracklet_si->get_pt()  << " si z " << _tracklet_si->get_z() << " crossing " << crossing << std::endl; 
@@ -171,7 +171,7 @@ short int  PHSiliconTpcTrackMatching::findCrossingGeometrically(unsigned int tpc
   TrackSeed *tpc_track = _track_map->get(tpcid);
   double tpc_z = tpc_track->get_z();
 
-  // this is an initial estimate of the bunch crossing based on the z-mismatch for this track
+  // this is an initial estimate of the bunch crossing based on the z-mismatch of the seeds for this track
   short int crossing_estimate = (short int) getBunchCrossing(tpcid, tpc_z - si_z);
 
   if(Verbosity() > 1)
@@ -186,7 +186,9 @@ short int  PHSiliconTpcTrackMatching::findCrossingGeometrically(unsigned int tpc
 
 double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_mismatch )
 {
-  double vdrift = 8.00;  // cm /microsecond
+  double vdrift = _tGeometry->get_drift_velocity();  // cm/ns
+  vdrift *= 1000.0;    // cm/microsecond
+  //  double vdrift = 8.00;  // cm /microsecond
   //double z_bunch_separation = 0.106 * vdrift;  // 106 ns bunch crossing interval, as in pileup generator
   double z_bunch_separation = (crossing_period/1000.0) * vdrift;  // 106 ns bunch crossing interval, as in pileup generator
 
