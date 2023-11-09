@@ -59,7 +59,7 @@ AnalyticFieldModel::AnalyticFieldModel(float _ifc_radius, float _ofc_radius, flo
   return;
 }
 
-TVector3 AnalyticFieldModel::E(TVector3 pos)
+TVector3 AnalyticFieldModel::E(const TVector3& pos)
 {  //field as a function of position
   //in rhat phihat zhat coordinates: (at phi=0, phi is the +Y position, Perp is the +X direction and Z is Z)
   TVector3 ret(erTestFunction1->Eval(pos.Perp(), pos.Phi(), pos.Z()),
@@ -70,14 +70,14 @@ TVector3 AnalyticFieldModel::E(TVector3 pos)
   return ret;
 }
 
-double AnalyticFieldModel::Rho(TVector3 pos)
+double AnalyticFieldModel::Rho(const TVector3& pos)
 {                                             //charge density as a function of position
   const double alice_chargescale = 8.85e-14;  //their rho has charge density in units of C/cm^3 /eps0.  This is eps0 in (V*cm)/C units so that I can multiple by the volume in cm^3 to get Q in C.
   //at phi=0, phi is the +Y position, Perp is the +X direction and Z is Z.
   return alice_chargescale * rhoTestFunction1->Eval(pos.Perp(), pos.Phi(), pos.Z());
 }
 
-TVector3 AnalyticFieldModel::Eint(float zfinal, TVector3 pos)
+TVector3 AnalyticFieldModel::Eint(float zfinal, const TVector3& pos)
 {  //field integral from 'pos' to z-position zfinal.
   //in rhat phihat zhat coordinates: (at phi=0, phi is the +Y position, Perp is the +X direction and Z is Z)
   TVector3 eintI, eintF;

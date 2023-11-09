@@ -36,16 +36,16 @@ AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, flo
   //check well-ordering:
   if (roi_r0 >= r || roi_r1 > r || roi_r0 >= roi_r1)
   {
-    assert(1 == 2);
+    static_assert(1 == 2);
   }
   if (roi_phi0 >= phi || roi_phi1 > phi || roi_phi0 >= roi_phi1)
   {
     printf("phi roi is out of range or spans the wrap-around.  Please spare me that math.\n");
-    assert(1 == 2);
+    static_assert(1 == 2);
   }
   if (roi_z0 >= z || roi_z1 > z || roi_z0 >= roi_z1)
   {
-    assert(1 == 2);
+    static_assert(1 == 2);
   }
 
   hasTwin = false;  //we never have a twin to start with.
@@ -96,7 +96,7 @@ AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, flo
   //set the green's functions model:
   //UseFreeSpaceGreens();
   //blah
-  green = 0;
+  green = nullptr;
 
   //load parameters of the whole-volume tiling
   nr = r;
@@ -137,24 +137,28 @@ AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, flo
 
   //create an array to hold the SC-induced electric field in the roi with the specified dimensions
   Efield = new MultiArray<TVector3>(nr_roi, nphi_roi, nz_roi);
-  for (int i = 0; i < Efield->Length(); i++)
+  for (int i = 0; i < Efield->Length(); i++) {
     Efield->GetFlat(i)->SetXYZ(0, 0, 0);
+}
 
   //and to hold the external electric fieldmap over the region of interest
   Eexternal = new MultiArray<TVector3>(nr_roi, nphi_roi, nz_roi);
-  for (int i = 0; i < Eexternal->Length(); i++)
+  for (int i = 0; i < Eexternal->Length(); i++) {
     Eexternal->GetFlat(i)->SetXYZ(0, 0, 0);
+}
 
   //ditto the external magnetic fieldmap
   Bfield = new MultiArray<TVector3>(nr_roi, nphi_roi, nz_roi);
-  for (int i = 0; i < Bfield->Length(); i++)
+  for (int i = 0; i < Bfield->Length(); i++) {
     Bfield->GetFlat(i)->SetXYZ(0, 0, 0);
+}
 
   //handle the lookup table construction:
   lookupCase = in_lookupCase;
   chargeCase = in_chargeCase;
-  if (chargeCase == ChargeCase::NoSpacecharge)
+  if (chargeCase == ChargeCase::NoSpacecharge) {
     lookupCase = LookupCase::NoLookup;  //don't build a lookup model if there's no charge.  It just wastes time.
+}
 
   if (lookupCase == Full3D)
   {
@@ -162,8 +166,9 @@ AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, flo
            nr_roi * nphi_roi * nz_roi * nr * nphi * nz / (1.0e6));
 
     Epartial = new MultiArray<TVector3>(nr_roi, nphi_roi, nz_roi, nr, nphi, nz);
-    for (int i = 0; i < Epartial->Length(); i++)
+    for (int i = 0; i < Epartial->Length(); i++) {
       Epartial->GetFlat(i)->SetXYZ(0, 0, 0);
+}
     //and kill the arrays we shouldn't be using:
     Epartial_highres = new MultiArray<TVector3>(1);
     Epartial_highres->GetFlat(0)->SetXYZ(0, 0, 0);
@@ -236,7 +241,7 @@ AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, flo
   else
   {
     printf("Ran into wrong lookupCase logic in constructor.\n");
-    assert(1 == 2);
+    static_assert(1 == 2);
   }
 
   return;
@@ -290,7 +295,7 @@ TVector3 AnnularFieldSim::calc_unit_field(TVector3 at, TVector3 from)
   if (GetRindexAndCheckBounds(at.Perp(), &r_position) != InBounds)
   {
     printf("something's asking for 'at' with r=%f, which is index=%d\n", at.Perp(), r_position);
-    assert(1 == 2);
+    static_assert(1 == 2);
   }
   //note this is the field due to a fixed point charge in free space.
   //if doing cylindrical calcs with different boundary conditions, this needs to change.
@@ -302,7 +307,7 @@ TVector3 AnnularFieldSim::calc_unit_field(TVector3 at, TVector3 from)
   //if we're more than truncation_length away, don't bother? rcc food for thought.  right now _length is in bins, so tricky.
 
   //if the green's function class is not present use free space:
-  if (green == 0)
+  if (green == nullptr)
   {
     TVector3 delr = at - from;
     field = delr;  //to set the direction.
@@ -357,13 +362,14 @@ double AnnularFieldSim::FilterPhiPos(double phi)
   if (p >= 2 * M_PI || p < 0)
   {
     printf("AnnularFieldSim::FilterPhiPos asked to filter %f, which is more than range=%f out of bounds.  Check what called this.\n", phi, 2 * M_PI);
-    assert(1 == 2);
+    static_assert(1 == 2);
   }
   return p;
 }
 int AnnularFieldSim::FilterPhiIndex(int phi, int range = -1)
 {
-  if (range < 0) range = nphi;  //default input is range=-1.  in that case, use the intrinsic resolution of the q grid.
+  if (range < 0) { range = nphi;  //default input is range=-1.  in that case, use the intrinsic resolution of the q grid.
+}
 
   //shifts phi up or down by nphi (=2pi in phi index space), and complains if this doesn't put it in range.
   int p = phi;
@@ -378,7 +384,7 @@ int AnnularFieldSim::FilterPhiIndex(int phi, int range = -1)
   if (p >= range || p < 0)
   {
     printf("AnnularFieldSim::FilterPhiIndex asked to filter %d, which is more than range=%d out of bounds.  Check what called this.\n", phi, range);
-    assert(1 == 2);
+    static_assert(1 == 2);
   }
   return p;
 }
@@ -560,7 +566,7 @@ TVector3 AnnularFieldSim::analyticFieldIntegral(float zdest, TVector3 start, Mul
   return integral;
 }
 
-TVector3 AnnularFieldSim::fieldIntegral(float zdest, TVector3 start, MultiArray<TVector3> *field)
+TVector3 AnnularFieldSim::fieldIntegral(float zdest, const TVector3& start, MultiArray<TVector3> *field)
 {
   //integrates E dz, from the starting point to the selected z position.  The path is assumed to be along z for each step, with adjustments to x and y accumulated after each step.
   //if(debugFlag()) printf("%d: AnnularFieldSim::fieldIntegral(x=%f,y=%f, z=%f) to z=%f\n\n",__LINE__,start.X(),start.Y(),start.Z(),zdest);
@@ -646,7 +652,8 @@ TVector3 AnnularFieldSim::GetRoiCellCenter(int r, int phi, int z)
   //returns the midpoint of the cell relative to the roi (halfway between each edge, not weighted center)
 
   //return zero if it's out of bounds:
-  if (r > nr_roi || r < 0 || phi > nphi_roi || phi < 0 || z > nz_roi || z < 0) return zero_vector;
+  if (r > nr_roi || r < 0 || phi > nphi_roi || phi < 0 || z > nz_roi || z < 0) { return zero_vector;
+}
 
   TVector3 c(1, 0, 0);
   c.SetPerp((r + rmin_roi + 0.5) * step.Perp() + rmin);
@@ -660,14 +667,16 @@ TVector3 AnnularFieldSim::GetGroupCellCenter(int r0, int r1, int phi0, int phi1,
 {
   //returns the midpoint of the cell (halfway between each edge, not weighted center)
   float ravg = (r0 + r1) / 2.0 + 0.5;
-  if (phi0 > phi1) phi1 += nphi;
+  if (phi0 > phi1) { phi1 += nphi;
+}
   if (phi0 > phi1)
   {
     printf("phi1(%d)<=phi0(%d) even after boosting phi1.  check what called this!\n", phi1, phi0);
-    assert(1 == 2);
+    static_assert(1 == 2);
   }
   float phiavg = (r0 + r1) / 2.0 + 0.5;
-  if (phiavg >= nphi) phiavg -= nphi;
+  if (phiavg >= nphi) { phiavg -= nphi;
+}
 
   float zavg = (z0 + z1) / 2.0 + 0.5;
 
@@ -696,7 +705,7 @@ TVector3 AnnularFieldSim::GetWeightedCellCenter(int r, int phi, int z)
   return c;
 }
 
-TVector3 AnnularFieldSim::interpolatedFieldIntegral(float zdest, TVector3 start, MultiArray<TVector3> *field)
+TVector3 AnnularFieldSim::interpolatedFieldIntegral(float zdest, const TVector3& start, MultiArray<TVector3> *field)
 {
   //printf("AnnularFieldSim::interpolatedFieldIntegral(x=%f,y=%f, z=%f)\n",start.X(),start.Y(),start.Z());
 
@@ -785,7 +794,7 @@ TVector3 AnnularFieldSim::interpolatedFieldIntegral(float zdest, TVector3 start,
     zi++;  //avoid it.  We weren't integrating anything in it anyway.
   }
 
-  if (0)
+  if (false)
   {  //debugging options
     bool isE = (field == Efield);
     bool isB = (field == Bfield);
@@ -871,8 +880,9 @@ void AnnularFieldSim::load_analytic_spacecharge(float scalefactor = 1)
   if (lookupCase == HybridRes)
   {
     //go through the q array and build q_lowres.
-    for (int i = 0; i < q_lowres->Length(); i++)
+    for (int i = 0; i < q_lowres->Length(); i++) {
       *(q_lowres->GetFlat(i)) = 0;
+}
 
     //fill our low-res
     //note that this assumes the last bin is short or normal length, not long.
@@ -913,7 +923,7 @@ void AnnularFieldSim::loadEfield(const std::string &filename, const std::string 
   // float phi = 0.;
   // phi += 1;
   // phi = 0;  //satisfy picky racf compiler
-  loadField(&Eexternal, fTree, &r, 0, &z, &fr, &fphi, &fz, V / cm, zsign);
+  loadField(&Eexternal, fTree, &r, nullptr, &z, &fr, &fphi, &fz, V / cm, zsign);
   fieldFile.Close();
   return;
 }
@@ -936,7 +946,7 @@ void AnnularFieldSim::loadBfield(const std::string &filename, const std::string 
   // float phi = 0.;
   // phi += 1;
   // phi = 0;  //satisfy picky racf compiler
-  loadField(&Bfield, fTree, &r, 0, &z, &fr, &fphi, &fz, Tesla, 1);
+  loadField(&Bfield, fTree, &r, nullptr, &z, &fr, &fphi, &fz, Tesla, 1);
   fieldFile.Close();
 
   return;
@@ -959,7 +969,7 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
   fTree->SetBranchAddress("bz", &fz);
   fTree->SetBranchAddress("phi", &phi);
   fTree->SetBranchAddress("bphi", &fphi);
-  loadField(&Bfield, fTree, &r, 0, &z, &fr, &fphi, &fz, Tesla * scale, zsign);
+  loadField(&Bfield, fTree, &r, nullptr, &z, &fr, &fphi, &fz, Tesla * scale, zsign);
   return;
 }
 
@@ -968,7 +978,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   //we're loading a tree of unknown size and spacing -- and possibly uneven spacing -- into our local data.
   //formally, we might want to interpolate or otherwise weight, but for now, carve this into our usual bins, and average, similar to the way we load spacecharge.
 
-  bool phiSymmetry = (phiptr == 0);  //if the phi pointer is zero, assume phi symmetry.
+  bool phiSymmetry = (phiptr == nullptr);  //if the phi pointer is zero, assume phi symmetry.
   int lowres_factor = 10;            // to fill in gaps, we group together loweres^3 cells into one block and use that average.
   printf("loading field from %f<z<%f\n", zmin, zmax);
   TH3F *htEntries = new TH3F("htentries", "num of entries in the field loading", nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
@@ -1059,7 +1069,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
             {
               printf("not enough entries in source to fill fieldmap.  None near r=%f, phi=%f, z=%f. Pick lower granularity!\n",
                      cellcenter.Perp(), FilterPhiPos(cellcenter.Phi()), cellcenter.Z());
-              assert(1 == 2);
+              static_assert(1 == 2);
             }
             //have to rotate this to the proper direction.
             fieldvec.RotateZ(FilterPhiPos(cellcenter.Phi()));  //rcc caution.  Does this rotation shift the sense of 'up'?
@@ -1376,7 +1386,7 @@ void AnnularFieldSim::populate_lookup()
   }
   else
   {
-    assert(1 == 2);
+    static_assert(1 == 2);
   }
   return;
 }
@@ -1415,7 +1425,8 @@ void AnnularFieldSim::populate_full3d_lookup()
             for (int ioz = 0; ioz < nz; ioz++)
             {
               el++;
-              if (!(el % percent)) printf("populate_full3d_lookup %d%%\n", (int) (debug_npercent * el / percent));
+              if (!(el % percent)) { printf("populate_full3d_lookup %d%%\n", (int) (debug_npercent * el / percent));
+}
               from = GetCellCenter(ior, iophi, ioz);
 
               //*f[ifx][ify][ifz][iox][ioy][ioz]=cacl_unit_field(at,from);
@@ -1450,13 +1461,13 @@ void AnnularFieldSim::populate_highres_lookup()
 
   //number of fbins contained in the 26 weirdly-shaped edge regions (and one center region which we won't use)
   static int nfbinsin[3][3][3];
-  for (int i = 0; i < 3; i++)
+  for (auto & i : nfbinsin)
   {
     for (int j = 0; j < 3; j++)
     {
       for (int k = 0; k < 3; k++)
       {
-        nfbinsin[i][j][k] = 0;  //we could count total volume, but without knowing the charge prior, it's not clear that'd be /better/
+        i[j][k] = 0;  //we could count total volume, but without knowing the charge prior, it's not clear that'd be /better/
       }
     }
   }
@@ -1477,12 +1488,14 @@ void AnnularFieldSim::populate_highres_lookup()
       int phi_parentlow = floor(FilterPhiIndex(ifphi - phi_highres_dist) / (phi_spacing * 1.0));  //note this may have wrapped around
       bool phi_parentlow_wrapped = (ifphi - phi_highres_dist < 0);
       int phi_startpoint = phi_parentlow * phi_spacing;   //the first f-bin of the lowest-z f-bin that our h-region touches.
-      if (phi_parentlow_wrapped) phi_startpoint -= nphi;  //if we wrapped, re-wrap us so we're negative again
+      if (phi_parentlow_wrapped) { phi_startpoint -= nphi;  //if we wrapped, re-wrap us so we're negative again
+}
 
       int phi_parenthigh = floor(FilterPhiIndex(ifphi + phi_highres_dist) / (phi_spacing * 1.0)) + 1;  //note that this may have wrapped around
       bool phi_parenthigh_wrapped = (ifphi + phi_highres_dist >= nphi);
       int phi_endpoint = phi_parenthigh * phi_spacing;
-      if (phi_parenthigh_wrapped) phi_endpoint += nphi;  //if we wrapped, re-wrap us so we're larger than nphi again.  We use these relative coords to determine the position relative to the center of our h-region.
+      if (phi_parenthigh_wrapped) { phi_endpoint += nphi;  //if we wrapped, re-wrap us so we're larger than nphi again.  We use these relative coords to determine the position relative to the center of our h-region.
+}
 
       for (int ifz = zmin_roi; ifz < zmax_roi; ifz++)
       {
@@ -1506,8 +1519,10 @@ void AnnularFieldSim::populate_highres_lookup()
         {
           //skip parts that are out of range:
           //could speed this up by moving this into the definition of start and endpoint.
-          if (ir < 0) ir = 0;
-          if (ir >= nr) break;
+          if (ir < 0) { ir = 0;
+}
+          if (ir >= nr) { break;
+}
 
           int rbin = (ir - ifr) + r_highres_dist;  //zeroth bin when we're at max distance below, etc.
           int rcell = 1;
@@ -1540,8 +1555,10 @@ void AnnularFieldSim::populate_highres_lookup()
             }
             for (int iz = z_startpoint; iz < z_endpoint; iz++)
             {
-              if (iz < 0) iz = 0;
-              if (iz >= nz) break;
+              if (iz < 0) { iz = 0;
+}
+              if (iz >= nz) { break;
+}
               int zbin = (iz - ifz) + z_highres_dist;
               int zcell = 1;
               if (zbin <= 0)
@@ -1567,7 +1584,8 @@ void AnnularFieldSim::populate_highres_lookup()
               {
                 //we're not in the center, so deal with our weird shapes by averaging:
                 //but Epartial is in coordinates relative to the roi
-                if (iphi_rel < 0) printf("%d: Getting with phi=%d\n", __LINE__, iphi_rel);
+                if (iphi_rel < 0) { printf("%d: Getting with phi=%d\n", __LINE__, iphi_rel);
+}
                 currentf = Epartial_highres->Get(ir_rel, iphi_rel, iz_rel, rbin, phibin, zbin);
                 //to keep this as the average, we multiply what's there back to its initial summed-but-not-divided value
                 //then add our new value, and the divide the new sum by the total number of cells
@@ -1610,17 +1628,20 @@ void AnnularFieldSim::populate_lowres_lookup()
   {
     int fr_low = ifr * r_spacing;
     int fr_high = fr_low + r_spacing - 1;
-    if (fr_high >= nr) fr_high = nr - 1;
+    if (fr_high >= nr) { fr_high = nr - 1;
+}
     for (int ifphi = phimin_roi_low; ifphi < phimax_roi_low; ifphi++)
     {
       fphi_low = ifphi * phi_spacing;
       fphi_high = fphi_low + phi_spacing - 1;
-      if (fphi_high >= nphi) fphi_high = nphi - 1;  //if our phi l-bins aren't evenly spaced, we need to catch that here.
+      if (fphi_high >= nphi) { fphi_high = nphi - 1;  //if our phi l-bins aren't evenly spaced, we need to catch that here.
+}
       for (int ifz = zmin_roi_low; ifz < zmax_roi_low; ifz++)
       {
         fz_low = ifz * z_spacing;
         fz_high = fz_low + z_spacing - 1;
-        if (fz_high >= nz) fz_high = nz - 1;
+        if (fz_high >= nz) { fz_high = nz - 1;
+}
         at = GetGroupCellCenter(fr_low, fr_high, fphi_low, fphi_high, fz_low, fz_high);
         //printf("ifr=%d, rlow=%d,rhigh=%d,r_spacing=%d\n",ifr,r_low,r_high,r_spacing);
         //if(debugFlag())	  printf("%d: AnnularFieldSim::populate_lowres_lookup icell=(%d,%d,%d)\n",__LINE__,ifr,ifphi,ifz);
@@ -1631,18 +1652,21 @@ void AnnularFieldSim::populate_lowres_lookup()
           r_high = r_low + r_spacing - 1;
           int ir_rel = ifr - rmin_roi_low;
 
-          if (r_high >= nr) r_high = nr - 1;
+          if (r_high >= nr) { r_high = nr - 1;
+}
           for (int iophi = 0; iophi < nphi_low; iophi++)
           {
             phi_low = iophi * phi_spacing;
             phi_high = phi_low + phi_spacing - 1;
-            if (phi_high >= nphi) phi_high = nphi - 1;
+            if (phi_high >= nphi) { phi_high = nphi - 1;
+}
             int iphi_rel = ifphi - phimin_roi_low;
             for (int ioz = 0; ioz < nz_low; ioz++)
             {
               z_low = ioz * z_spacing;
               z_high = z_low + z_spacing - 1;
-              if (z_high >= nz) z_high = nz - 1;
+              if (z_high >= nz) { z_high = nz - 1;
+}
               int iz_rel = ifz - zmin_roi_low;
               from = GetGroupCellCenter(r_low, r_high, phi_low, phi_high, z_low, z_high);
 
@@ -1713,7 +1737,7 @@ void AnnularFieldSim::populate_phislice_lookup()
             else
             {
               TVector3 unitf = calc_unit_field(at, from);
-              if (1)
+              if (true)
               {
                 if (!(el % percent))
                 {
@@ -1786,14 +1810,14 @@ void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
   {
     printf("file parameters do not match fieldsim parameters:\n");
 
-    assert(1 == 4);
+    static_assert(1 == 4);
   }
 
   TTree *tLookup;
   input->GetObject("phislice", tLookup);
   assert(tLookup);
   int ior, ifr, iophi, ioz, ifz;
-  TVector3 *unitf = 0;
+  TVector3 *unitf = nullptr;
   tLookup->SetBranchAddress("ir_source", &ior);
   tLookup->SetBranchAddress("ir_target", &ifr);
   tLookup->SetBranchAddress("ip_source", &iophi);
@@ -1877,7 +1901,7 @@ void AnnularFieldSim::save_phislice_lookup(const char *destfile)
           {
             el++;
             unitf = Epartial_phislice->Get(ifr - rmin_roi, 0, ifz - zmin_roi, ior, iophi, ioz) * (-1 / (V / (C * cm)));  //save in units of V/(C*cm) note that we introduce a -1 here for legcy reasons.
-            if (1)
+            if (true)
             {
               if (!(el % percent))
               {
@@ -1914,10 +1938,12 @@ void AnnularFieldSim::setFlatFields(float B, float E)
 
   Enominal = E * (V / cm);
   Bnominal = B * Tesla;
-  for (int i = 0; i < Eexternal->Length(); i++)
+  for (int i = 0; i < Eexternal->Length(); i++) {
     Eexternal->GetFlat(i)->SetXYZ(0, 0, Enominal);
-  for (int i = 0; i < Bfield->Length(); i++)
+}
+  for (int i = 0; i < Bfield->Length(); i++) {
     Bfield->GetFlat(i)->SetXYZ(0, 0, Bnominal);
+}
   UpdateOmegaTau();
   return;
 }
@@ -1959,7 +1985,8 @@ TVector3 AnnularFieldSim::sum_field_at(int r, int phi, int z)
     //do nothing.  We are forcibly assuming E from spacecharge is zero everywhere.
   }
   sum += Eexternal->Get(r - rmin_roi, phi - phimin_roi, z - zmin_roi);
-  if (debugFlag()) printf("summed field at (%d,%d,%d)=(%f,%f,%f)\n", r, phi, z, sum.X(), sum.Y(), sum.Z());
+  if (debugFlag()) { printf("summed field at (%d,%d,%d)=(%f,%f,%f)\n", r, phi, z, sum.X(), sum.Y(), sum.Z());
+}
 
   return sum;
 }
@@ -1977,7 +2004,8 @@ TVector3 AnnularFieldSim::sum_full3d_field_at(int r, int phi, int z)
     {
       rdist = abs(ir - r);
       remdist = sqrt(truncation_length * truncation_length - rdist * rdist);
-      if (remdist < 0) continue;  //skip if we're too far away
+      if (remdist < 0) { continue;  //skip if we're too far away
+}
     }
     for (int iphi = 0; iphi < nphi; iphi++)
     {
@@ -1985,7 +2013,8 @@ TVector3 AnnularFieldSim::sum_full3d_field_at(int r, int phi, int z)
       {
         phidist = fmin(abs(iphi - phi), abs(abs(iphi - phi) - nphi));  //think about this in phi... rcc food for thought.
         remdist = sqrt(truncation_length * truncation_length - phidist * phidist);
-        if (remdist < 0) continue;  //skip if we're too far away
+        if (remdist < 0) { continue;  //skip if we're too far away
+}
       }
       for (int iz = 0; iz < nz; iz++)
       {
@@ -1993,10 +2022,12 @@ TVector3 AnnularFieldSim::sum_full3d_field_at(int r, int phi, int z)
         {
           zdist = abs(iz - z);
           remdist = sqrt(truncation_length * truncation_length - zdist * zdist);
-          if (remdist < 0) continue;  //skip if we're too far away
+          if (remdist < 0) { continue;  //skip if we're too far away
+}
         }
         //sum+=*partial[x][phi][z][ix][iphi][iz] * *q[ix][iphi][iz];
-        if (r == ir && phi == iphi && z == iz) continue;  //dont' compute self-to-self field.
+        if (r == ir && phi == iphi && z == iz) { continue;  //dont' compute self-to-self field.
+}
         sum += Epartial->Get(r - rmin_roi, phi - phimin_roi, z - zmin_roi, ir, iphi, iz) * q->GetChargeInBin(ir, iphi, iz);
       }
     }
@@ -2039,33 +2070,44 @@ TVector3 AnnularFieldSim::sum_local_field_at(int r, int phi, int z)
   printf("AnnularFieldSim::sum_local_field_at parents: rlow=%d,philow=%d,zlow=%d,rhigh=%d,phihigh=%d,zhigh=%d\n", r_parentlow, phi_parentlow, z_parentlow, r_parenthigh, phi_parenthigh, z_parenthigh);
 
   //zero our current qlocal holder:
-  for (int i = 0; i < q_local->Length(); i++)
+  for (int i = 0; i < q_local->Length(); i++) {
     *(q_local->GetFlat(i)) = 0;
+}
 
   //get the charge involved in the local highres block:
   for (int ir = r_parentlow * r_spacing; ir < r_parenthigh * r_spacing; ir++)
   {
-    if (ir < 0) ir = 0;
-    if (ir >= nr) break;
+    if (ir < 0) { ir = 0;
+}
+    if (ir >= nr) { break;
+}
     int rbin = (ir - r) + r_highres_dist;  //index in our highres locale.  zeroth bin when we're at max distance below, etc.
-    if (rbin < 0) rbin = 0;
-    if (rbin >= nr_high) rbin = nr_high - 1;
+    if (rbin < 0) { rbin = 0;
+}
+    if (rbin >= nr_high) { rbin = nr_high - 1;
+}
     for (int iphi = phi_parentlow * phi_spacing; iphi < phi_parenthigh * phi_spacing; iphi++)
     {
       //no phi range checks since it's circular.
       int phiFilt = FilterPhiIndex(iphi);
       int phibin = (iphi - phi) + phi_highres_dist;
-      if (phibin < 0) phibin = 0;
-      if (phibin >= nphi_high) phibin = nphi_high - 1;
+      if (phibin < 0) { phibin = 0;
+}
+      if (phibin >= nphi_high) { phibin = nphi_high - 1;
+}
       for (int iz = z_parentlow * z_spacing; iz < z_parenthigh * z_spacing; iz++)
       {
-        if (iz < 0) iz = 0;
-        if (iz >= nz) break;
+        if (iz < 0) { iz = 0;
+}
+        if (iz >= nz) { break;
+}
         //if(debugFlag()) printf("%d: AnnularFieldSim::sum_field_at, reading q in f-bin at(r=%d,phi=%d, z=%d)\n",__LINE__,ir,iphi,iz);
 
         int zbin = (iz - z) + z_highres_dist;
-        if (zbin < 0) zbin = 0;
-        if (zbin >= nz_high) zbin = nz_high - 1;
+        if (zbin < 0) { zbin = 0;
+}
+        if (zbin >= nz_high) { zbin = nz_high - 1;
+}
         //printf("filtering in local highres block\n");
         q_local->Add(rbin, phibin, zbin, q->GetChargeInBin(ir, phiFilt, iz));
         //printf("done filtering in local highres block\n");
@@ -2092,7 +2134,8 @@ TVector3 AnnularFieldSim::sum_local_field_at(int r, int phi, int z)
       for (int iz = 0; iz < nz_high; iz++)
       {
         //first three are relative to the roi, last three are relative to the point in the first three.  ooph.
-        if (phi - phimin_roi < 0) printf("%d: Getting with phi=%d\n", __LINE__, phi - phimin_roi);
+        if (phi - phimin_roi < 0) { printf("%d: Getting with phi=%d\n", __LINE__, phi - phimin_roi);
+}
         sum += Epartial_highres->Get(r - rmin_roi, phi - phimin_roi, z - zmin_roi, ir, iphi, iz) * q_local->Get(ir, iphi, iz);
       }
     }
@@ -2124,16 +2167,20 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
   //zero out if the requested l-bin is out of the roi (happens if we're close to the outer than the inner edge of the outermost l-bin)
   if (ri[0] < 0)
   {
-    for (int i = 0; i < 8; i++)
-      if ((i / 4) % 2 == 0)
+    for (int i = 0; i < 8; i++) {
+      if ((i / 4) % 2 == 0) {
         skip[i] = true;  // don't handle contributions from ri[0].
+}
+}
     rw[1] = 1;           //and weight like we're dead-center on the outer cells.
   }
   if (ri[1] >= nr_roi_low)
   {
-    for (int i = 0; i < 8; i++)
-      if ((i / 4) % 2 == 1)
+    for (int i = 0; i < 8; i++) {
+      if ((i / 4) % 2 == 1) {
         skip[i] = true;  // don't bother handling ri[1].
+}
+}
     rw[0] = 1;           //and weight like we're dead-center on the inner cells.
   }
 
@@ -2162,16 +2209,20 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
   //remember these are coordinates wrt the beginning of the roi, and are positive because we filtered.  If that rotation didn't put them back in the roi, then they weren't before, either.
   if (pi[0] >= nphi_roi_low)
   {
-    for (int i = 0; i < 8; i++)
-      if ((i / 2) % 2 == 0)
+    for (int i = 0; i < 8; i++) {
+      if ((i / 2) % 2 == 0) {
         skip[i] = true;  // don't bother handling pi[0].
+}
+}
     pw[1] = 1;           //and weight like we're dead-center on the high cells.
   }
   if (pi[1] >= nphi_roi_low)
   {
-    for (int i = 0; i < 8; i++)
-      if ((i / 2) % 2 == 1)
+    for (int i = 0; i < 8; i++) {
+      if ((i / 2) % 2 == 1) {
         skip[i] = true;  // don't bother handling pi[1].
+}
+}
     pw[0] = 1;           //and weight like we're dead-center on the high cells.
   }
 
@@ -2190,16 +2241,20 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
 
   if (zi[0] < 0)
   {
-    for (int i = 0; i < 8; i++)
-      if ((i) % 2 == 0)
+    for (int i = 0; i < 8; i++) {
+      if ((i) % 2 == 0) {
         skip[i] = true;  // don't bother handling zi[0].
+}
+}
     zw[1] = 1;           //and weight like we're dead-center on the higher cells.
   }
   if (zi[1] >= nz_roi_low)
   {
-    for (int i = 0; i < 8; i++)
-      if ((i) % 2 == 1)
+    for (int i = 0; i < 8; i++) {
+      if ((i) % 2 == 1) {
         skip[i] = true;  // don't bother handling zi[1].
+}
+}
     zw[0] = 1;           //and weight like we're dead-center on the lower cells.
   }
 
@@ -2249,15 +2304,17 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
 
           for (int i = 0; i < 8; i++)
           {
-            if (skip[i]) continue;
+            if (skip[i]) { continue;
+}
             if (ri[(i / 4) % 2] + rmin_roi_low == ir && pi[(i / 2) % 2] + phimin_roi_low == iphi && zi[(i) % 2] + zmin_roi_low == iz)
             {
               printf("considering an l-bins effect on itself, r=%d,phi=%d,z=%d (matches i=%d, not skipped), means we're not interpolating fairly\n", ir, iphi, iz, i);
-              assert(1 == 2);
+              static_assert(1 == 2);
             }
             //the ri, pi, and zi elements are relative to the roi, as needed for Epartial.
             //the ir, iphi, and iz are all absolute, as needed for q_lowres
-            if (pi[(i / 2) % 2] < 0) printf("%d: Getting with phi=%d\n", __LINE__, pi[(i / 2) % 2]);
+            if (pi[(i / 2) % 2] < 0) { printf("%d: Getting with phi=%d\n", __LINE__, pi[(i / 2) % 2]);
+}
             sum += (Epartial_lowres->Get(ri[(i / 4) % 2], pi[(i / 2) % 2], zi[(i) % 2], ir, iphi, iz) * q_lowres->Get(ir, iphi, iz)) * zw[(i) % 2] * pw[(i / 2) % 2] * rw[(i / 4) % 2];
           }
         }
@@ -2294,7 +2351,8 @@ TVector3 AnnularFieldSim::sum_phislice_field_at(int r, int phi, int z)
       for (int iz = 0; iz < nz; iz++)
       {
         //sum+=*partial[x][phi][z][ix][iphi][iz] * *q[ix][iphi][iz];
-        if (r == ir && phi == iphi && z == iz) continue;  //dont' compute self-to-self field.
+        if (r == ir && phi == iphi && z == iz) { continue;  //dont' compute self-to-self field.
+}
         phirel = FilterPhiIndex(iphi - phi);
         unitField = Epartial_phislice->Get(r - rmin_roi, 0, z - zmin_roi, ir, phirel, iz);
         unitField.RotateZ(rotphi);  //previously was rotate by the step.Phi()*phi.    //annoying that I can't rename this to 'rotated field' here without unnecessary overhead.
@@ -2316,7 +2374,7 @@ TVector3 AnnularFieldSim::sum_phislice_field_at(int r, int phi, int z)
   return sum;
 }
 
-TVector3 AnnularFieldSim::swimToInAnalyticSteps(float zdest, TVector3 start, int steps = 1, int *goodToStep = 0)
+TVector3 AnnularFieldSim::swimToInAnalyticSteps(float zdest, TVector3 start, int steps = 1, int *goodToStep = nullptr)
 {
   //assume coordinates are given in native units (cm=1 unless that changed!).
   double zdist = (zdest - start.Z()) * cm;
@@ -2349,7 +2407,8 @@ TVector3 AnnularFieldSim::swimToInAnalyticSteps(float zdest, TVector3 start, int
              phimin_roi * step.Phi(), phimax_roi * step.Phi(),
              zmin_roi * step.Z(), zmax_roi * step.Z());
       printf("Returning last valid position.\n");
-      if (!(goodToStep == 0)) *goodToStep = i - 1;
+      if (!(goodToStep == nullptr)) { *goodToStep = i - 1;
+}
       return ret * (1.0 / cm);
     }
     //printf("AnnularFieldSim::swimToInAnalyticSteps at step %d, asked to swim particle from (%f,%f,%f) (rphiz)=(%f,%f,%f).\n",i,ret.X(),ret.Y(),ret.Z(),ret.Perp(),ret.Phi(),ret.Z());
@@ -2365,15 +2424,15 @@ TVector3 AnnularFieldSim::swimToInAnalyticSteps(float zdest, TVector3 start, int
   return ret * (1.0 / cm);
 }
 
-TVector3 AnnularFieldSim::swimToInSteps(float zdest, TVector3 start, int steps = 1, bool interpolate = false, int *goodToStep = 0)
+TVector3 AnnularFieldSim::swimToInSteps(float zdest, const TVector3& start, int steps = 1, bool interpolate = false, int *goodToStep = nullptr)
 {
-  int *success=0;
+  int *success=nullptr;
   TVector3 straightline(start.X(), start.Y(), zdest);
   TVector3 distortion = GetTotalDistortion(zdest, start, steps, interpolate, goodToStep, success);
   return straightline + distortion;
 }
 
-TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, TVector3 start, int steps, bool interpolate, int *goodToStep, int *success)
+TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, const TVector3& start, int steps, bool interpolate, int *goodToStep, int *success)
 {
   //work in native units is automatic.
   //double zdist=(zdest-start.Z())*cm;
@@ -2430,7 +2489,8 @@ double zstep = (zmax-zmin)/steps;// always a positive number
 //printf("Lets do some handy math here, the value of zmax is: %f \n",zmax);
 //printf("Lets do some handy math here, the value of zmin is: %f \n",zmin);
 //printf("Lets do some handy math here, the value of steps is: %d \n",steps);
-if ((zdest-start.Z())<0) zstep=-zstep;// It goes two directions, so there will be positive and negative value
+if ((zdest-start.Z())<0) { zstep=-zstep;// It goes two directions, so there will be positive and negative value
+}
 int integernumbersteps=(zdest-start.Z())/zstep;
 //printf("Lets do some handy math here, the value of integernumbersteps is: %d \n",integernumbersteps);
 //printf("Lets do some handy math here, the value of zdest is: %f \n",zdest);
@@ -2471,7 +2531,8 @@ int integernumbersteps=(zdest-start.Z())/zstep;
       // printf("AnnularFieldSim::GetTotalDistortion starting at (%f,%f,%f)=(r%f,p%f,z%f) with drift_step=%f, at step %d, asked to swim particle from (%f,%f,%f) (rphiz)=(%f,%f,%f)which is outside the ROI.\n", start.X(), start.Y(), start.Z(), start.Perp(), FilterPhiPos(start.Phi()), start.Z(), zstep, i, position.X(), position.Y(), position.Z(), position.Perp(), position.Phi(), position.Z());
       //printf(" -- %f <= r < %f \t%f <= phi < %f \t%f <= z < %f \n", rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin, phimin_roi * step.Phi(), phimax_roi * step.Phi(), zmin_roi * step.Z(), zmax_roi * step.Z());
       //printf("Returning last good position.\n");
-      if (!(goodToStep == 0)) *goodToStep = i - 1, *success=0;
+      if (!(goodToStep == nullptr)) { *goodToStep = i - 1, *success=0;
+}
       //assert (1==2);
       return (accumulated_distortion);
     }
@@ -2503,7 +2564,7 @@ int integernumbersteps=(zdest-start.Z())/zstep;
   return accumulated_distortion;
 }
 
-void AnnularFieldSim::PlotFieldSlices(const char *filebase, TVector3 pos, char which)
+void AnnularFieldSim::PlotFieldSlices(const char *filebase, const TVector3& pos, char which)
 {
   bool mapEfield = true;
   if (which == 'B')
@@ -2591,7 +2652,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, TVector3 pos, char w
         rpz_coord[(ax + 2) % 3] = axbot[ax + 2] + (j + 0.5) * axstep[ax + 2];
         lpos.SetXYZ(rpz_coord[0], 0, rpz_coord[2]);
         lpos.SetPhi(rpz_coord[1]);
-        if (0 && ax == 0)
+        if (false && ax == 0)
         {
           printf("sampling rpz=(%f,%f,%f)=(%f,%f,%f) after conversion to xyz=(%f,%f,%f)\n",
                  rpz_coord[0], rpz_coord[1], rpz_coord[2],
@@ -2629,7 +2690,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, TVector3 pos, char w
     {
       c->cd(ax * 4 + i + 1);
       gPad->SetRightMargin(0.15);
-      hEfield[ax][i]->SetStats(0);
+      hEfield[ax][i]->SetStats(false);
       hEfield[ax][i]->Draw("colz");
       //hEfield[ax][i]->GetListOfFunctions()->Print();
       gPad->Modified();
@@ -2637,10 +2698,10 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, TVector3 pos, char w
     }
     c->cd(ax * 4 + 4);
     gPad->SetRightMargin(0.15);
-    hCharge[ax]->SetStats(0);
+    hCharge[ax]->SetStats(false);
     hCharge[ax]->Draw("colz");
     //pal=dynamic_cast<TPaletteAxis*>(hCharge[ax]->GetListOfFunctions()->FindObject("palette"));
-    if (0)
+    if (false)
     {
       //pal->SetX1NDC(0.86);
       //pal->SetX2NDC(0.91);
@@ -2672,7 +2733,8 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
 
 
   int nSides = 1;
-  if (hasTwin) nSides = 2;
+  if (hasTwin) { nSides = 2;
+}
   //idea for a faster way to build a map:
 
   //2) generate the distortions steplocal.Z() away from the readout
@@ -2774,9 +2836,11 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
   pos.SetPhi(posphi);
   //int xi[3]={nrh/2,nph/2,nzh/2};
   int xi[3] = {(int) floor((pos.Perp() - rih) / steplocal.Perp()), (int) floor((posphi - pih) / steplocal.Phi()), (int) floor((pos.Z() - zih) / steplocal.Z())};
-  if (!hasTwin) printf("rpz slice indices= (%d,%d,%d) (no twin)\n", xi[0], xi[1], xi[2]);
+  if (!hasTwin) { printf("rpz slice indices= (%d,%d,%d) (no twin)\n", xi[0], xi[1], xi[2]);
+}
   int twinz = (-pos.Z() - zih) / steplocal.Z();
-  if (hasTwin) printf("rpz slice indices= (%d,%d,%d) twinz=%d\n", xi[0], xi[1], xi[2], twinz);
+  if (hasTwin) { printf("rpz slice indices= (%d,%d,%d) twinz=%d\n", xi[0], xi[1], xi[2], twinz);
+}
 
   const char axname[] = "rpzrpz";
   int axn[] = {nrh, nph, nzh, nrh, nph, nzh};
@@ -2848,7 +2912,8 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
   unsigned long long totalelements = nrh;
   totalelements *= nph;
   totalelements *= nzh;             //breaking up this multiplication prevents a 32bit math overflow
-  if (hasTwin) totalelements *= 2;  //if we have a twin, we have twice as many z bins as we thought.
+  if (hasTwin) { totalelements *= 2;  //if we have a twin, we have twice as many z bins as we thought.
+}
 
   unsigned long long percent = totalelements / 100;
   unsigned long long waypoint = percent * debug_npercent;
@@ -3048,20 +3113,20 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
       //plane
       c->cd(i * 4 + ax + 1);
       gPad->SetRightMargin(0.15);
-      hIntDist[ax][i]->SetStats(0);
+      hIntDist[ax][i]->SetStats(false);
       hIntDist[ax][i]->Draw("colz");
     }
 
     printf("drawing R profile %d\n", i);
 
     c->cd(i * 4 + 4);
-    hRDist[0][i]->SetStats(0);
+    hRDist[0][i]->SetStats(false);
     hRDist[0][i]->SetFillColor(kRed);
     hRDist[0][i]->Draw("hist");
     if (hasTwin)
     {
       printf("drawing R profile twin %d\n", i);
-      hRDist[1][i]->SetStats(0);
+      hRDist[1][i]->SetStats(false);
       hRDist[1][i]->SetLineColor(kBlue);
       hRDist[1][i]->Draw("hist,same");
     }
@@ -3119,16 +3184,16 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
       //plane
       c->cd(i * 4 + ax + 1);
       gPad->SetRightMargin(0.15);
-      hDiffDist[ax][i]->SetStats(0);
+      hDiffDist[ax][i]->SetStats(false);
       hDiffDist[ax][i]->Draw("colz");
     }
     c->cd(i * 4 + 4);
-    hRDiffDist[0][i]->SetStats(0);
+    hRDiffDist[0][i]->SetStats(false);
     hRDiffDist[0][i]->SetFillColor(kRed);
     hRDiffDist[0][i]->Draw("hist");
     if (hasTwin)
     {
-      hRDiffDist[1][i]->SetStats(0);
+      hRDiffDist[1][i]->SetStats(false);
       hRDiffDist[1][i]->SetLineColor(kBlue);
       hRDiffDist[1][i]->Draw("hist same");
     }
@@ -3313,7 +3378,8 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
   pos.SetPhi(posphi);
   //int xi[3]={nrh/2,nph/2,nzh/2};
   int xi[3] = {(int) floor((pos.Perp() - rih) / steplocal.Perp()), (int) floor((posphi - pih) / steplocal.Phi()), (int) floor((pos.Z() - zih) / steplocal.Z())};
-  if (!hasTwin) printf("rpz slice indices= (%d,%d,%d) (no twin)\n", xi[0], xi[1], xi[2]);
+  if (!hasTwin) { printf("rpz slice indices= (%d,%d,%d) (no twin)\n", xi[0], xi[1], xi[2]);
+}
   int twinz = 0;  //this is meant to be the matching position to xi[2] in the twin, hence generally -1*pos.  Better to just ask the twin rather than trying to calculate it ourselves...
   if (hasTwin)
   {
@@ -3570,16 +3636,16 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
       //plane
       c->cd(i * 4 + ax + 1);
       gPad->SetRightMargin(0.15);
-      hIntDist[ax][i]->SetStats(0);
+      hIntDist[ax][i]->SetStats(false);
       hIntDist[ax][i]->Draw("colz");
     }
     c->cd(i * 4 + 4);
-    hRDist[0][i]->SetStats(0);
+    hRDist[0][i]->SetStats(false);
     hRDist[0][i]->SetFillColor(kRed);
     hRDist[0][i]->Draw("hist");
     if (hasTwin)
     {
-      hRDist[1][i]->SetStats(0);
+      hRDist[1][i]->SetStats(false);
       hRDist[1][i]->SetLineColor(kBlue);
       hRDist[1][i]->Draw("hist,same");
     }
@@ -3641,16 +3707,16 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
       //plane
       c->cd(i * 4 + ax + 1);
       gPad->SetRightMargin(0.15);
-      hDiffDist[ax][i]->SetStats(0);
+      hDiffDist[ax][i]->SetStats(false);
       hDiffDist[ax][i]->Draw("colz");
     }
     c->cd(i * 4 + 4);
-    hRDiffDist[0][i]->SetStats(0);
+    hRDiffDist[0][i]->SetStats(false);
     hRDiffDist[0][i]->SetFillColor(kRed);
     hRDiffDist[0][i]->Draw("hist");
     if (hasTwin)
     {
-      hRDiffDist[1][i]->SetStats(0);
+      hRDiffDist[1][i]->SetStats(false);
       hRDiffDist[1][i]->SetLineColor(kBlue);
       hRDiffDist[1][i]->Draw("hist same");
     }
@@ -3732,15 +3798,16 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
   return;
 }
 
-TVector3 AnnularFieldSim::swimTo(float zdest, TVector3 start, bool interpolate, bool useAnalytic)
+TVector3 AnnularFieldSim::swimTo(float zdest, const TVector3& start, bool interpolate, bool useAnalytic)
 {
   int defaultsteps = 100;
   int goodtostep = 0;
-  if (useAnalytic) return swimToInAnalyticSteps(zdest, start, defaultsteps, &goodtostep);
+  if (useAnalytic) { return swimToInAnalyticSteps(zdest, start, defaultsteps, &goodtostep);
+}
   return swimToInSteps(zdest, start, defaultsteps, interpolate, &goodtostep);
 }
 
-TVector3 AnnularFieldSim::GetStepDistortion(float zdest, TVector3 start, bool interpolate, bool useAnalytic)
+TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3& start, bool interpolate, bool useAnalytic)
 {
   //getting the distortion instead of the post-step position allows us to accumulate small deviations from the original position that might be lost in the large number
   
@@ -3793,7 +3860,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, TVector3 start, bool in
     printf("GetStepDistortion is attempting to swim with no drift field:\n");
     printf("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f\n", start.X(), start.Y(), start.Z(), zdest);
     printf("GetStepDistortion: fieldInt=(%E,%E,%E)\n", fieldInt.X(), fieldInt.Y(), fieldInt.Z());
-    assert(1 == 2);
+    static_assert(1 == 2);
   }
   //float fieldz=field_[in3(x,y,0,fx,fy,fz)].Z()+E.Z();// *field[x][y][zi].Z();
   double EfieldZ = fieldInt.Z() / zdist;  // average field over the path.
@@ -3831,7 +3898,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, TVector3 start, bool in
   //hence: , eg, int|E^2dz=(int|Edz)^2/deltaz
   double deltaZ = vprime / vdrift * (fieldInt.Z() - zdist * Enominal) + vdoubleprime / vdrift * (fieldInt.Z() - Enominal * zdist) * (fieldInt.Z() - Enominal * zdist) / (2 * zdist) - 0.5 / zdist * (EintOverEz.X() * EintOverEz.X() + EintOverEz.Y() * EintOverEz.Y()) + c1 / zdist * (EintOverEz.X() * BintOverBz.Y() - EintOverEz.Y() * BintOverBz.X()) + c2 / zdist * (EintOverEz.X() * BintOverBz.X() + EintOverEz.Y() * BintOverBz.Y()) + c2 / zdist * (BintOverBz.X() * BintOverBz.X() + BintOverBz.Y() * BintOverBz.Y());  //missing v'' term.
 
-  if (0)
+  if (false)
   {
     printf("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)\n", c0, c1, c2);
     printf("GetStepDistortion:  EintOverEz==(%E,%E,%E)\n", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z());
@@ -3842,7 +3909,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, TVector3 start, bool in
   }
 
   //if (abs(deltaZ / zdist) > 0.25)
-  if(0)
+  if(false)
   {
     printf("GetStepDistortion produced a very large zdistortion!\n");
     printf("GetStepDistortion: zdist=%2.4f, deltaZ=%2.4f, Delta/z=%2.4f\n", zdist, deltaZ, deltaZ / zdist);
@@ -3870,7 +3937,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, TVector3 start, bool in
   }
 
   //if (!(abs(deltaX) < 1E3))
-  if(0)
+  if(false)
   {
     printf("GetStepDistortion produced a very large deltaX: %E\n", deltaX);
     printf("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)\n", c0, c1, c2);
@@ -3879,7 +3946,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, TVector3 start, bool in
     printf("GetStepDistortion: (%2.4f,%2.4f,%2.4f) (rp)=(%2.4f,%2.4f) to z=%2.4f\n", start.X(), start.Y(), start.Z(), start.Perp(), start.Phi(), zdest);
     printf("GetStepDistortion: fieldInt=(%E,%E,%E)\n", fieldInt.X(), fieldInt.Y(), fieldInt.Z());
     printf("GetStepDistortion: delta=(%E,%E,%E)\n", deltaX, deltaY, deltaZ);
-    assert(1 == 2);
+    static_assert(1 == 2);
   }
 
   //deltaZ=0;//temporary removal.
@@ -3922,45 +3989,52 @@ const char *AnnularFieldSim::GetFieldString()
   return Form("%s, %s", Efieldname.c_str(), Bfieldname.c_str());
 }
 
-TVector3 AnnularFieldSim::GetFieldAt(TVector3 pos)
+TVector3 AnnularFieldSim::GetFieldAt(const TVector3& pos)
 {
   //assume pos is in native units (see header)
 
   int r, p, z;
 
-  if (GetRindexAndCheckBounds(pos.Perp(), &r) == BoundsCase::OutOfBounds) return zero_vector;
-  if (GetPhiIndexAndCheckBounds(FilterPhiPos(pos.Phi()), &p) == BoundsCase::OutOfBounds) return zero_vector;
+  if (GetRindexAndCheckBounds(pos.Perp(), &r) == BoundsCase::OutOfBounds) { return zero_vector;
+}
+  if (GetPhiIndexAndCheckBounds(FilterPhiPos(pos.Phi()), &p) == BoundsCase::OutOfBounds) { return zero_vector;
+}
   if (GetZindexAndCheckBounds(pos.Z(), &z) == BoundsCase::OutOfBounds)
   {
-    if (hasTwin) return twin->GetFieldAt(pos);
+    if (hasTwin) { return twin->GetFieldAt(pos);
+}
     return zero_vector;
   }
   return Efield->Get(r, p, z);
 }
 
-TVector3 AnnularFieldSim::GetBFieldAt(TVector3 pos)
+TVector3 AnnularFieldSim::GetBFieldAt(const TVector3& pos)
 {
   //assume pos is in native units (see header)
 
   int r, p, z;
 
-  if (GetRindexAndCheckBounds(pos.Perp(), &r) == BoundsCase::OutOfBounds) return zero_vector;
-  if (GetPhiIndexAndCheckBounds(FilterPhiPos(pos.Phi()), &p) == BoundsCase::OutOfBounds) return zero_vector;
+  if (GetRindexAndCheckBounds(pos.Perp(), &r) == BoundsCase::OutOfBounds) { return zero_vector;
+}
+  if (GetPhiIndexAndCheckBounds(FilterPhiPos(pos.Phi()), &p) == BoundsCase::OutOfBounds) { return zero_vector;
+}
   if (GetZindexAndCheckBounds(pos.Z(), &z) == BoundsCase::OutOfBounds)
   {
-    if (hasTwin) return twin->GetBFieldAt(pos);
+    if (hasTwin) { return twin->GetBFieldAt(pos);
+}
     return zero_vector;
   }
   return Bfield->Get(r, p, z);
 }
 
-float AnnularFieldSim::GetChargeAt(TVector3 pos)
+float AnnularFieldSim::GetChargeAt(const TVector3& pos)
 {
   int z;
   BoundsCase zbound = GetZindexAndCheckBounds(pos.Z(), &z);  //==BoundsCase::OutOfBounds) return zero_vector;
   if (zbound == OutOfBounds)
   {
-    if (hasTwin) return twin->GetChargeAt(pos);
+    if (hasTwin) { return twin->GetChargeAt(pos);
+}
     printf("Caution:  tried to read charge at zbin=%d!  No twin available to handle this\n", z);
     return -999;
   }

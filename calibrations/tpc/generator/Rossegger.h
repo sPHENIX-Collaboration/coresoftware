@@ -91,29 +91,29 @@ class Rossegger
   void LoadZeroes(const char* destfile);
   void SaveZeroes(const char* destfile);
 
-  double Betamn[NumberOfOrders][NumberOfOrders];  //  Betamn array from Rossegger
-  double N2mn[NumberOfOrders][NumberOfOrders];    //  N2mn array from Rossegger
-  double Munk[NumberOfOrders][NumberOfOrders];    //  Munk array from Rossegger
-  double N2nk[NumberOfOrders][NumberOfOrders];    //  N2nk array from Rossegger
+  double Betamn[NumberOfOrders][NumberOfOrders]{};  //  Betamn array from Rossegger
+  double N2mn[NumberOfOrders][NumberOfOrders]{};    //  N2mn array from Rossegger
+  double Munk[NumberOfOrders][NumberOfOrders]{};    //  Munk array from Rossegger
+  double N2nk[NumberOfOrders][NumberOfOrders]{};    //  N2nk array from Rossegger
 
   void PrecalcFreeConstants();  //Routine used to fill the arrays of other values used repeatedly:
   //helpful values to precompute for frequent use:
-  double BetaN[NumberOfOrders];                               //  BetaN=(n+1)*pi/L as used in eg 5.32, .46
-  double BetaN_a[NumberOfOrders];                             //  BetaN*a as used in eg 5.32, .46
-  double BetaN_b[NumberOfOrders];                             //  BetaN*b as used in eg 5.32, .46
-  double km_BetaN_a[NumberOfOrders][NumberOfOrders];          //kn(m,BetaN*a) as used in Rossegger 5.32
-  double im_BetaN_a[NumberOfOrders][NumberOfOrders];          //in(m,BetaN*a) as used in Rossegger 5.32
-  double km_BetaN_b[NumberOfOrders][NumberOfOrders];          //kn(m,BetaN*b) as used in Rossegger 5.33
-  double im_BetaN_b[NumberOfOrders][NumberOfOrders];          //in(m,BetaN*b) as used in Rossegger 5.33
-  double bessel_denominator[NumberOfOrders][NumberOfOrders];  //BesselI(m,BetaN*a)*BesselK(m,BetaN*b)-BesselI(m,BetaN*b)*BesselK(m,BetaN*a) as in Rossegger 5.65
+  double BetaN[NumberOfOrders]{};                               //  BetaN=(n+1)*pi/L as used in eg 5.32, .46
+  double BetaN_a[NumberOfOrders]{};                             //  BetaN*a as used in eg 5.32, .46
+  double BetaN_b[NumberOfOrders]{};                             //  BetaN*b as used in eg 5.32, .46
+  double km_BetaN_a[NumberOfOrders][NumberOfOrders]{};          //kn(m,BetaN*a) as used in Rossegger 5.32
+  double im_BetaN_a[NumberOfOrders][NumberOfOrders]{};          //in(m,BetaN*a) as used in Rossegger 5.32
+  double km_BetaN_b[NumberOfOrders][NumberOfOrders]{};          //kn(m,BetaN*b) as used in Rossegger 5.33
+  double im_BetaN_b[NumberOfOrders][NumberOfOrders]{};          //in(m,BetaN*b) as used in Rossegger 5.33
+  double bessel_denominator[NumberOfOrders][NumberOfOrders]{};  //BesselI(m,BetaN*a)*BesselK(m,BetaN*b)-BesselI(m,BetaN*b)*BesselK(m,BetaN*a) as in Rossegger 5.65
 
   void PrecalcDerivedConstants();                         //Routine used to fill repeated values that depend on the Betamn and Munk zeroes:
-  double ym_Betamn_a[NumberOfOrders][NumberOfOrders];     //yn(m,Betamn[m][n]*a) as used in Rossegger 5.11
-  double jm_Betamn_a[NumberOfOrders][NumberOfOrders];     //jn(m,Betamn[m][n]*a) as used in Rossegger 5.11
-  double liMunk_BetaN_a[NumberOfOrders][NumberOfOrders];  //limu(Munk[n][k],BetaN*a) as used in Rossegger 5.45
-  double kiMunk_BetaN_a[NumberOfOrders][NumberOfOrders];  //kimu(Munk[n][k],BetaN*a) as used in Rossegger 5.45
-  double sinh_Betamn_L[NumberOfOrders][NumberOfOrders];   //sinh(Betamn[m][n]*L)  as in Rossegger 5.64
-  double sinh_pi_Munk[NumberOfOrders][NumberOfOrders];    //sinh(pi*Munk[n][k]) as in Rossegger 5.66
+  double ym_Betamn_a[NumberOfOrders][NumberOfOrders]{};     //yn(m,Betamn[m][n]*a) as used in Rossegger 5.11
+  double jm_Betamn_a[NumberOfOrders][NumberOfOrders]{};     //jn(m,Betamn[m][n]*a) as used in Rossegger 5.11
+  double liMunk_BetaN_a[NumberOfOrders][NumberOfOrders]{};  //limu(Munk[n][k],BetaN*a) as used in Rossegger 5.45
+  double kiMunk_BetaN_a[NumberOfOrders][NumberOfOrders]{};  //kimu(Munk[n][k],BetaN*a) as used in Rossegger 5.45
+  double sinh_Betamn_L[NumberOfOrders][NumberOfOrders]{};   //sinh(Betamn[m][n]*L)  as in Rossegger 5.64
+  double sinh_pi_Munk[NumberOfOrders][NumberOfOrders]{};    //sinh(pi*Munk[n][k]) as in Rossegger 5.66
 
   TH2* Tags = nullptr;
   std::map<std::string, TH3*> Grid;

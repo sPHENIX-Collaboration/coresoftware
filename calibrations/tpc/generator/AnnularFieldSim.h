@@ -103,9 +103,9 @@ class AnnularFieldSim
   const char *GetChargeString() { return chargestring; };
   float GetNominalB() { return Bnominal; };
   float GetNominalE() { return Enominal; };
-  float GetChargeAt(TVector3 pos);
-  TVector3 GetFieldAt(TVector3 pos);
-  TVector3 GetBFieldAt(TVector3 pos);
+  float GetChargeAt(const TVector3& pos);
+  TVector3 GetFieldAt(const TVector3& pos);
+  TVector3 GetBFieldAt(const TVector3& pos);
   TVector3 GetFieldStep() { return step; };
   int GetFieldStepsR() { return nr_roi; };
   int GetFieldStepsPhi() { return nphi_roi; };
@@ -121,7 +121,7 @@ class AnnularFieldSim
   void GenerateSeparateDistortionMaps(const char *filebase, int nSteps = 500, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
 
 
-  void PlotFieldSlices(const char *filebase, TVector3 pos, char which = 'E');
+  void PlotFieldSlices(const char *filebase, const TVector3& pos, char which = 'E');
 
   void load_spacecharge(const std::string &filename, const std::string &histname, float zoffset = 0, float chargescale = 1, float cmscale = 1, bool isChargeDensity = true);
   void load_spacecharge(TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity, const char *inputchargestring = "");
@@ -184,7 +184,7 @@ class AnnularFieldSim
 
   TVector3 analyticFieldIntegral(float zdest, TVector3 start, MultiArray<TVector3> *field);
   TVector3 interpolatedFieldIntegral(float zdest, TVector3 start) { return interpolatedFieldIntegral(zdest, start, Efield); };
-  TVector3 interpolatedFieldIntegral(float zdest, TVector3 start, MultiArray<TVector3> *field);
+  TVector3 interpolatedFieldIntegral(float zdest, const TVector3& start, MultiArray<TVector3> *field);
   double FilterPhiPos(double phi);         //puts phi in 0<phi<2pi
   int FilterPhiIndex(int phi, int range);  //puts phi in bin range 0<phi<range.  defaults to using nphi for range.
 
@@ -192,7 +192,7 @@ class AnnularFieldSim
   TVector3 GetRoiCellCenter(int r, int phi, int z);
   TVector3 GetGroupCellCenter(int r0, int r1, int phi0, int phi1, int z0, int z1);
   TVector3 GetWeightedCellCenter(int r, int phi, int z);
-  TVector3 fieldIntegral(float zdest, TVector3 start, MultiArray<TVector3> *field);
+  TVector3 fieldIntegral(float zdest, const TVector3& start, MultiArray<TVector3> *field);
   void populate_fieldmap();
   //now handled by setting 'analytic' lookup:  void populate_analytic_fieldmap();
   void populate_lookup();
@@ -210,10 +210,10 @@ class AnnularFieldSim
   TVector3 sum_nonlocal_field_at(int r, int phi, int z);
   TVector3 sum_phislice_field_at(int r, int phi, int z);
   TVector3 swimToInAnalyticSteps(float zdest, TVector3 start, int steps, int *goodToStep);
-  TVector3 swimToInSteps(float zdest, TVector3 start, int steps, bool interpolate, int *goodToStep);
-  TVector3 swimTo(float zdest, TVector3 start, bool interpolate = true, bool useAnalytic = false);
-  TVector3 GetStepDistortion(float zdest, TVector3 start, bool interpolate = true, bool useAnalytic = false);
-  TVector3 GetTotalDistortion(float zdest, TVector3 start, int nsteps, bool interpolate = true, int *goodToStep = 0, int *success = 0);
+  TVector3 swimToInSteps(float zdest, const TVector3& start, int steps, bool interpolate, int *goodToStep);
+  TVector3 swimTo(float zdest, const TVector3& start, bool interpolate = true, bool useAnalytic = false);
+  TVector3 GetStepDistortion(float zdest, const TVector3& start, bool interpolate = true, bool useAnalytic = false);
+  TVector3 GetTotalDistortion(float zdest, const TVector3& start, int nsteps, bool interpolate = true, int *goodToStep = 0, int *success = 0);
 
  private:
   BoundsCase GetRindexAndCheckBounds(float pos, int *r);

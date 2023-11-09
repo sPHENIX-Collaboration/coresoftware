@@ -43,7 +43,8 @@ bool ChargeMapReader::CanInterpolateAt(float r, float phi, float z)
 //a convenient method to check whether it's safe to interpolate for a particular histogram.
 bool ChargeMapReader::CanInterpolateAt(float x, float y, float z, TH3* h)
 {
-  if (h == nullptr) return false;
+  if (h == nullptr) { return false;
+}
   float pos[3] = {x, y, z};
   //todo: is it worth keeping these values somewhere for ease of access?
   TAxis* ax[3] = {nullptr, nullptr, nullptr};
@@ -55,7 +56,8 @@ bool ChargeMapReader::CanInterpolateAt(float x, float y, float z, TH3* h)
   for (int i = 0; i < 3; i++)
   {
     nbins[i] = ax[i]->GetNbins();     //number of bins, not counting under and overflow.
-    if (nbins[i] == 1) return false;  //if there's only one non over/under bin, then no place is safe to interpolate.
+    if (nbins[i] == 1) { return false;  //if there's only one non over/under bin, then no place is safe to interpolate.
+}
   }
 
   //   0     1     2   ...   n-1    n    n+1
@@ -100,7 +102,8 @@ void ChargeMapReader::FillChargeHistogram(TH3* h)
   //   0     1     2     ...   n-1
   // first|   ..|  ..  |  .. |last
   float dphi, dr, dz;  //bin widths in each dimension.  Got too confusing to make these an array.
-  if (DEBUG) printf("filling chargehistogram\n");
+  if (DEBUG) { printf("filling chargehistogram\n");
+}
 
   dr = binWidth[0];
   dphi = binWidth[1];
@@ -129,7 +132,8 @@ void ChargeMapReader::RegenerateCharge()
   //Builds the charge 3D array (internal representation) from the internal charge density map.
   //either the density map has changed, or the binning of the output has changed (hopefully not the latter, because that's a very unusual thing to change mid-run.
   //we want to rebuild the charge per bin of our output representation in any case.  Generally, we will interpolate from the charge density that we know we have, but we need to be careful not to ask to interpolate in regions where that is not allowed.
-  if (DEBUG) printf("regenerating charge array contents with axis scale=%1.2E and charge scale=%1.2E\n", inputAxisScale, inputChargeScale);
+  if (DEBUG) { printf("regenerating charge array contents with axis scale=%1.2E and charge scale=%1.2E\n", inputAxisScale, inputChargeScale);
+}
   if (hChargeDensity == nullptr)
   {
     //we don't have charge information, so set everything to zeroes
@@ -168,7 +172,7 @@ void ChargeMapReader::RegenerateCharge()
 	float q=0;
         if (CanInterpolateAt(phimid, rmid, zmid,hChargeDensity))
         {  //interpolate if we can
-          if (0) { //deep debug statements.
+          if (false) { //deep debug statements.
             printf("function said we could interpolate at (r,phi,z)=(%.2f, %.2f,%.2f), bounds are:\n", rmid, phimid, zmid);
             printf("  r: %.2f < %.2f < %.2f\n", hChargeDensity->GetYaxis()->GetXmin(), rmid, hChargeDensity->GetYaxis()->GetXmax());
             printf("  p: %.2f < %.2f < %.2f\n", hChargeDensity->GetXaxis()->GetXmin(), phimid, hChargeDensity->GetXaxis()->GetXmax());
@@ -180,7 +184,7 @@ void ChargeMapReader::RegenerateCharge()
         {  //otherwise, just take the central value and assume it's flat.  Better than a zero.
 	  q=scaleFactor*hChargeDensity->GetBinContent(hChargeDensity->FindBin(phimid, rmid, zmid));
         }
-	if (0){ //deep debug statements.
+	if (false){ //deep debug statements.
 	  int global=hSourceCharge->FindBin(phimid, rmid, zmid);
 	  if (CanInterpolateAt(phimid, rmid, zmid,hChargeDensity)){
             printf("density debug report (interp) (r,phi,z)=(%.2f, %.2f,%.2f), glob=%d, q_dens=%E", rmid, phimid, zmid, global,q);
@@ -207,7 +211,8 @@ void ChargeMapReader::RegenerateCharge()
     }    //phi
   }      //r
 
-  if (DEBUG) printf("done regenerating charge array contents\n");
+  if (DEBUG) { printf("done regenerating charge array contents\n");
+}
 
   return;
 }
@@ -216,12 +221,14 @@ void ChargeMapReader::RegenerateDensity()
 {
   //assume the input map has changed, so we need to rebuild our internal representation of the density.
   //this is done by cloning the SourceCharge histogram and dividing each bin in it by its volume
-  if (DEBUG) printf("regenerating density histogram\n");
+  if (DEBUG) { printf("regenerating density histogram\n");
+}
 
   //if we have one already, delete it.
   if (hChargeDensity != nullptr)
   {
-    if (DEBUG) printf("deleting old density histogram\n");
+    if (DEBUG) { printf("deleting old density histogram\n");
+}
     delete hChargeDensity;
   }
   if (hSourceCharge == nullptr)
@@ -280,7 +287,7 @@ void ChargeMapReader::RegenerateDensity()
         int globalBin = hSourceCharge->GetBin(i[0], i[1], i[2]);
         float q = hSourceCharge->GetBinContent(globalBin);
         hChargeDensity->SetBinContent(globalBin, q / volume);
-	if (0){//deep debug statements.
+	if (false){//deep debug statements.
 	  printf("iprz=(%d,%d,%d),glob=%d",i[0],i[1],i[2],globalBin);
 	  printf("edges=[%.2f,%.2f],[%.1f,%.1f],[%.1f,%f.1],",low[0],high[0],low[1],high[1],low[2],high[2]);
 	  printf("\tq=%E,vol=%E,dens=%E\n",q,volume,hChargeDensity->GetBinContent(globalBin));
@@ -288,7 +295,8 @@ void ChargeMapReader::RegenerateDensity()
       }
     }
   }
-  if (DEBUG) printf("done regenerating density histogram\n");
+  if (DEBUG) { printf("done regenerating density histogram\n");
+}
 
   return;
 }
@@ -300,7 +308,8 @@ bool ChargeMapReader::ReadSourceCharge(const char* filename, const char* histnam
   inputChargeScale = contentScale;
   TFile* inputFile = TFile::Open(filename, "READ");
   inputFile->GetObject(histname, hSourceCharge);
-  if (hSourceCharge == nullptr) return false;
+  if (hSourceCharge == nullptr) { return false;
+}
   RegenerateDensity();
   RegenerateCharge();
   inputFile->Close();
@@ -310,15 +319,18 @@ bool ChargeMapReader::ReadSourceCharge(const char* filename, const char* histnam
 
 bool ChargeMapReader::ReadSourceCharge(TH3* sourceHist, float axisScale, float contentScale)
 {
-  if (DEBUG) printf("reading charge from %s\n", sourceHist->GetName());
+  if (DEBUG) { printf("reading charge from %s\n", sourceHist->GetName());
+}
   inputAxisScale = axisScale;
   inputChargeScale = contentScale;
   hSourceCharge = sourceHist;  //note that this means we don't own this histogram!
-  if (hSourceCharge == nullptr) return false;
+  if (hSourceCharge == nullptr) { return false;
+}
   RegenerateDensity();
   RegenerateCharge();
 
-  if (DEBUG) printf("done reading charge from %s\n", sourceHist->GetName());
+  if (DEBUG) { printf("done reading charge from %s\n", sourceHist->GetName());
+}
 
   return true;
 }
@@ -353,11 +365,13 @@ bool ChargeMapReader::ReadSourceAdc(const char *adcfilename, const char* adchist
 
 bool ChargeMapReader::ReadSourceAdc(TH3 *adcHist, TH2* gainHist, float axisScale, float contentScale)
 {
-  if (DEBUG) printf("reading ADCs from %s, ibfGain from %s\n", adcHist->GetName(), gainHist->GetName());
+  if (DEBUG) { printf("reading ADCs from %s, ibfGain from %s\n", adcHist->GetName(), gainHist->GetName());
+}
   inputAxisScale = axisScale;
   inputChargeScale = contentScale;
   hSourceCharge = adcHist;  //note that this means we don't own this histogram!  It may disappear.
-  if (hSourceCharge == nullptr) return false;
+  if (hSourceCharge == nullptr) { return false;
+}
 
   //scale the voxels of the sourcecharge by the gainhist data.
 
@@ -385,18 +399,20 @@ bool ChargeMapReader::ReadSourceAdc(TH3 *adcHist, TH2* gainHist, float axisScale
 	int globalBin = hSourceCharge->GetBin(i[0], i[1], i[2]);
 	float q = hSourceCharge->GetBinContent(globalBin);
 	hSourceCharge->SetBinContent(globalBin, q * scalefactor);
-	if (0){//deep debug statements.
+	if (false){//deep debug statements.
 	  printf("applying gain to adc input:  iprz=(%d,%d,%d), glob3d=%d, glob2d=%d, adc=%f, scale=%f\n",i[0],i[1],i[2],globalBin, globalBin2D,q,scalefactor);
 	}
       }//z
     }//r
   }//phi
-  if (DEBUG) printf("done converting adc hist to ions\n");
+  if (DEBUG) { printf("done converting adc hist to ions\n");
+}
     
   RegenerateDensity();
   RegenerateCharge();
 
-  if (DEBUG) printf("done converting ADCs from %s\n", adcHist->GetName());
+  if (DEBUG) { printf("done converting ADCs from %s\n", adcHist->GetName());
+}
 
   return true;
 }
@@ -405,8 +421,10 @@ bool ChargeMapReader::ReadSourceAdc(TH3 *adcHist, TH2* gainHist, float axisScale
 bool ChargeMapReader::SetOutputParameters(int _nr, float _rmin, float _rmax, int _nphi, float _phimin, float _phimax, int _nz, float _zmin, float _zmax)
 {
   //change all the parameters of our output array and rebuild the array from scratch.
-  if (!(_rmax > _rmin) || !(_phimax > _phimin) || !(_zmax > _zmin)) return false;  // the bounds are not well-ordered.
-  if (_nr < 1 || _nphi < 1 || _nz < 1) return false;                               //must be at least one bin wide.
+  if (!(_rmax > _rmin) || !(_phimax > _phimin) || !(_zmax > _zmin)) { return false;  // the bounds are not well-ordered.
+}
+  if (_nr < 1 || _nphi < 1 || _nz < 1) { return false;                               //must be at least one bin wide.
+}
 
   nBins[0] = _nr;
   nBins[1] = _nphi;
@@ -426,25 +444,30 @@ bool ChargeMapReader::SetOutputParameters(int _nr, float _rmin, float _rmax, int
   //if the array exists, delete it.
   if (charge != nullptr)
   {
-    if (DEBUG) printf("charge array existed.  deleting\n");
+    if (DEBUG) { printf("charge array existed.  deleting\n");
+}
     delete charge;
     charge = nullptr;
   }
-  if (DEBUG) printf("building new charge array\n");
-  if (DEBUG) printf("should have %d elements\n", nBins[0] * nBins[1] * nBins[2]);
+  if (DEBUG) { printf("building new charge array\n");
+}
+  if (DEBUG) { printf("should have %d elements\n", nBins[0] * nBins[1] * nBins[2]);
+}
 
   charge = new MultiArray<float>(nBins[0], nBins[1], nBins[2]);
 
   if (hChargeDensity != nullptr)
   {
-    if (DEBUG) printf("charge density data exists, regenerating charge\n");
+    if (DEBUG) { printf("charge density data exists, regenerating charge\n");
+}
     RegenerateCharge();  //fill the array with the charge data if available
   }
   else
   {
     charge->SetAll(0);  //otherwise set the array to all zeroes.
   }
-  if (DEBUG) printf("finished building array\n");
+  if (DEBUG) { printf("finished building array\n");
+}
 
   return true;
 }
@@ -453,7 +476,8 @@ bool ChargeMapReader::SetOutputBounds(float _rmin, float _rmax, float _phimin, f
 {
   //change all the bounds of our output array and rebuild the array from scratch, leaving the original binning
 
-  if (!(_rmax > _rmin) || !(_phimax > _phimin) || !(_zmax > _zmin)) return false;  // the bounds are not well-ordered.
+  if (!(_rmax > _rmin) || !(_phimax > _phimin) || !(_zmax > _zmin)) { return false;  // the bounds are not well-ordered.
+}
 
   lowerBound[0] = _rmin;
   lowerBound[1] = _phimin;
@@ -462,8 +486,9 @@ bool ChargeMapReader::SetOutputBounds(float _rmin, float _rmax, float _phimin, f
   upperBound[1] = _phimax;
   upperBound[2] = _zmax;
 
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 3; i++) {
     binWidth[i] = (upperBound[i] - lowerBound[i]) / (1.0 * nBins[i]);
+}
 
   //if the array exists, delete it.
   if (charge != nullptr)
@@ -489,13 +514,15 @@ bool ChargeMapReader::SetOutputBounds(float _rmin, float _rmax, float _phimin, f
 bool ChargeMapReader::SetOutputBins(int _nr, int _nphi, int _nz)
 {
   //change the number of bins of our output array and rebuild the array from scratch, leaving the bounds alone.
-  if (_nr < 1 || _nphi < 1 || _nz < 1) return false;  //must be at least one bin wide.
+  if (_nr < 1 || _nphi < 1 || _nz < 1) { return false;  //must be at least one bin wide.
+}
   nBins[0] = _nr;
   nBins[1] = _nphi;
   nBins[2] = _nz;
 
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 3; i++) {
     binWidth[i] = (upperBound[i] - lowerBound[i]) / (1.0 * nBins[i]);
+}
 
   //if the array exists, delete it.
   if (charge != nullptr)
@@ -521,7 +548,8 @@ void ChargeMapReader::AddChargeInBin(int r, int phi, int z, float q)
   assert(r > 0 && r < nBins[0]);
   assert(phi > 0 && phi < nBins[1]);
   assert(z > 0 && z < nBins[2]);
-  if (DEBUG) printf("adding charge in array element %d %d %d to %.2E\n", r, phi, z, q);
+  if (DEBUG) { printf("adding charge in array element %d %d %d to %.2E\n", r, phi, z, q);
+}
 
   charge->Add(r, phi, z, q);
   return;
@@ -552,7 +580,8 @@ float ChargeMapReader::GetChargeInBin(int r, int phi, int z)
     assert(z >= 0 && z < nBins[2]);
   }
 
-  if (DEBUG) printf("getting charge in array element %d %d %d\n", r, phi, z);
+  if (DEBUG) { printf("getting charge in array element %d %d %d\n", r, phi, z);
+}
 
   return charge->Get(r, phi, z);
 }
@@ -580,7 +609,8 @@ void ChargeMapReader::SetChargeInBin(int r, int phi, int z, float q)
     printf("requested rbin %d, but bounds are %d to %d. Failing.\n", z, 0, nBins[2]);
     assert(z >= 0 && z < nBins[2]);
   }
-  if (DEBUG) printf("setting charge in array element %d %d %d to %.2E\n", r, phi, z, q);
+  if (DEBUG) { printf("setting charge in array element %d %d %d to %.2E\n", r, phi, z, q);
+}
 
   charge->Set(r, phi, z, q);
   return;
