@@ -145,10 +145,10 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
               }
               m_MvtxRawHitMap[strb_bco].push_back(newhit);
             }
-            // if (InputManager())
-            // {
-            //   InputManager()->AddMvtxFeeId(strb_bco, feeId);
-            // }
+            if (StreamingInputManager())
+             {
+               StreamingInputManager()->AddMvtxFeeId(strb_bco, feeId);
+             }
             m_BeamClockFEE[strb_bco].insert(feeId);
             m_BclkStack.insert(strb_bco);
             m_FEEBclkMap[feeId] = strb_bco;
@@ -165,10 +165,10 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
       auto const strb_it = (it == m_BclkStack.begin()) ? (*it == lv1Bco ? it : m_BclkStack.cend()) : --it;
       if (strb_it != m_BclkStack.cend())
       {
-        // if (InputManager())
-        // {
-        //   InputManager()->AddMvtxL1TrgBco(*strb_it, lv1Bco);
-        // }
+        if (StreamingInputManager())
+         {
+           StreamingInputManager()->AddMvtxL1TrgBco(*strb_it, lv1Bco);
+         }
       }
       else if (m_BclkStack.empty())
       {
@@ -361,13 +361,13 @@ void SingleMvtxPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
-  // MvtxRawEvtHeader* mvtxEH = findNode::getClass<MvtxRawEvtHeaderv1>(detNode,"MVTXRAWEVTHEADER");
-  // if (! mvtxEH)
-  // {
-  //   mvtxEH = new MvtxRawEvtHeaderv1();
-  //   PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(mvtxEH, "MVTXRAWEVTHEADER", "PHObject");
-  //   detNode->addNode(newNode);
-  // }
+  MvtxRawEvtHeader* mvtxEH = findNode::getClass<MvtxRawEvtHeaderv1>(detNode,"MVTXRAWEVTHEADER");
+  if (! mvtxEH)
+  {
+    mvtxEH = new MvtxRawEvtHeaderv1();
+    PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(mvtxEH, "MVTXRAWEVTHEADER", "PHObject");
+    detNode->addNode(newNode);
+  }
 
   MvtxRawHitContainer *mvtxhitcont = findNode::getClass<MvtxRawHitContainer>(detNode, "MVTXRAWHIT");
   if (!mvtxhitcont)
@@ -383,6 +383,7 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
   if (StreamingInputManager())
   {
     StreamingInputManager()->SetMvtxBcoRange(m_BcoRange);
+    StreamingInputManager()->SetMvtxNegativeBco(m_NegativeBco);
   }
   return;
 }

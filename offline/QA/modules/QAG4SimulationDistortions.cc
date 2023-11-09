@@ -1,5 +1,6 @@
 
 #include "QAG4SimulationDistortions.h"
+
 #include <qautils/QAHistManagerDef.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -248,11 +249,11 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode*)
         continue;
       }
 
-      TrkrDefs::cluskey key = std::stoll(state->get_name());
+      TrkrDefs::cluskey ckey = std::stoll(state->get_name());
 
-      auto cluster = m_clusterContainer->findCluster(key);
+      auto cluster = m_clusterContainer->findCluster(ckey);
 
-      const auto clusGlobPosition = m_tGeometry->getGlobalPosition(key, cluster);
+      const auto clusGlobPosition = m_tGeometry->getGlobalPosition(ckey, cluster);
 
       const float clusR = get_r(clusGlobPosition(0), clusGlobPosition(1));
       const float clusPhi = std::atan2(clusGlobPosition(1), clusGlobPosition(0));
@@ -307,7 +308,7 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode*)
       h_zResidLayer->Fill(clusR, dz);
       h_etaResidLayer->Fill(clusR, clusEta - trackEta);
 
-      const auto layer = TrkrDefs::getLayer(key);
+      const auto layer = TrkrDefs::getLayer(ckey);
       h_deltarphi_layer->Fill(layer, drphi);
       h_deltaz_layer->Fill(layer, dz);
 
@@ -330,7 +331,7 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode*)
       m_stateZErr = stateZErr;
       m_clusRPhiErr = clusRPhiErr;
       m_clusZErr = clusZErr;
-      m_cluskey = key;
+      m_cluskey = ckey;
       t_tree->Fill();
     }
   }

@@ -39,8 +39,9 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   //and the location to plot the fieldslices about:
  TVector3 pos=0.5*(tpc->GetOuterEdge()+tpc->GetInnerEdge());;
   pos.SetPhi(3.14159);
-
+  
   infile=TFile::Open(sourcefilename.Data(),"READ");
+
 
   //the total charge is prim + IBF
   //if we are doing ADCs, though, we only read the one.
@@ -48,6 +49,8 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   if (!isAdc){
     hCharge->Add((TH3*)(infile->Get(primName)));
   }   
+    //hCharge->Scale(70);//Scaleing the histogram spacecharge by 100 times
+
   TString chargestring;
 	       
   //load the spacecharge into the distortion map generator:
@@ -81,7 +84,7 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
 }
 }
   else{
-   tpc->GenerateSeparateDistortionMaps(outputfilename.Data(),250,1,1,1,1,false);
+   tpc->GenerateSeparateDistortionMaps(outputfilename.Data(),450,1,1,1,1,false);
 }
 
   printf("distortions mapped.\n");
