@@ -989,6 +989,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
     //if we aren't asking for phi symmetry, build just the one phi strip
     if (!phiSymmetry)
     {
+      assert(phiptr);
       htEntries->Fill(*phiptr, *rptr, zval);  //for legacy reasons this histogram, like others, goes phi-r-z.
       htSum[0]->Fill(*phiptr, *rptr, zval, *frptr * fieldunit);
       htSum[1]->Fill(*phiptr, *rptr, zval, *fphiptr * fieldunit);
