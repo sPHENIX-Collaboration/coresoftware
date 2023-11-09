@@ -902,16 +902,17 @@ void AnnularFieldSim::loadEfield(const std::string &filename, const std::string 
   fieldFile.GetObject(treename.c_str(), fTree);
   Efieldname = "E:" + filename + ":" + treename;
   //  sprintf(Efieldname,"E:%s:%s",filename,treename);
-  float r, z, phi;     //coordinates
+  float r, z;     //coordinates
   float fr, fz, fphi;  //field components at that coordinate
   fTree->SetBranchAddress("r", &r);
   fTree->SetBranchAddress("er", &fr);
   fTree->SetBranchAddress("z", &z);
   fTree->SetBranchAddress("ez", &fz);
   //phi would go here if we had it.
-  phi = fphi = 0;  //no phi components yet.
-  phi += 1;
-  phi = 0;  //satisfy picky racf compiler
+  fphi = 0;  //no phi components yet.
+  // float phi = 0.;
+  // phi += 1;
+  // phi = 0;  //satisfy picky racf compiler
   loadField(&Eexternal, fTree, &r, 0, &z, &fr, &fphi, &fz, V / cm, zsign);
   fieldFile.Close();
   return;
@@ -924,16 +925,17 @@ void AnnularFieldSim::loadBfield(const std::string &filename, const std::string 
   TTree *fTree;
   fieldFile.GetObject(treename.c_str(), fTree);
   Bfieldname = "B:" + filename + ":" + treename;
-  float r, z, phi;     //coordinates
+  float r, z;     //coordinates
   float fr, fz, fphi;  //field components at that coordinate
   fTree->SetBranchAddress("r", &r);
   fTree->SetBranchAddress("br", &fr);
   fTree->SetBranchAddress("z", &z);
   fTree->SetBranchAddress("bz", &fz);
   //phi would go here if we had it.
-  phi = fphi = 0;  //no phi components yet.
-  phi += 1;
-  phi = 0;  //satisfy picky racf compiler
+  fphi = 0;  //no phi components yet.
+  // float phi = 0.;
+  // phi += 1;
+  // phi = 0;  //satisfy picky racf compiler
   loadField(&Bfield, fTree, &r, 0, &z, &fr, &fphi, &fz, Tesla, 1);
   fieldFile.Close();
 
