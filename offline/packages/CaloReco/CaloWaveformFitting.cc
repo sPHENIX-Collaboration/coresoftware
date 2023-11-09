@@ -33,6 +33,7 @@ void CaloWaveformFitting::initialize_processing(const std::string &templatefile)
   assert(fin);
   assert(fin->IsOpen());
   h_template = static_cast<TProfile *>(fin->Get("waveform_template"));
+  m_peakTimeTemp = h_template->GetBinCenter(h_template->GetMaximumBin());
   t = new ROOT::TThreadExecutor(_nthreads);
 }
 
@@ -109,15 +110,17 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
 	    fitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
 	    double params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
 	    fitter->Config().SetParamsSettings(3, params);
+	    fitter->Config().ParSettings(1).SetLimits(-1*m_peakTimeTemp, size1-m_peakTimeTemp);// set lim on time par 
 	    fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
             ROOT::Fit::FitResult fitres = fitter->Result();
             double chi2min = fitres.MinFcnValue();
+            chi2min /= size1-3; // divide by the number of dof
 	    for (int i = 0; i < 3; i++)
 	    {
 		    v.push_back(f->GetParameter(i));
 	    }
 
-      v.push_back(chi2min);
+            v.push_back(chi2min);
 	    h->Delete();
 	    f->Delete();
 	    delete fitFunction;
