@@ -16,31 +16,9 @@ class MultiArray;
 
 class AnnularFieldSim
 {
- private:
-  //units:
-  const float cm = 1;        //centimeters -- if you change this, check that all the loading functions are properly agnostic.
-  const float m = 100 * cm;  //meters.
-  const float mm = cm / 10;
-  const float um = mm / 1e3;
-
-  const float C = 1;  //Coulombs
-  const float nC = C / 1e9;
-  const float fC = C / 1e15;
-
-  const float s = 1;  //seconds
-  const float us = s / 1e6;
-  const float ns = s / 1e9;
-
-  const float V = 1;  //volts
-
-  const float Tesla = V * s / m / m;  //Tesla=Vs/m^2
-  const float kGauss = Tesla / 10;    //kGauss
-
-  const float eps0 = 8.854e-12 * (C / V) / m;    //Farads(=Coulombs/Volts) per meter
-  const float epsinv = 1 / eps0;                 //Vcm/C
-  const float k_perm = 1 / (4 * 3.1416 * eps0);  //implied units of V*cm/C because we're doing unitful work here.
 
  public:
+
   enum BoundsCase
   {
     InBounds,
@@ -70,108 +48,6 @@ class AnnularFieldSim
   };  //load from file, load from AnalyticFieldModel, or set to zero.
   //note that if we set to Zero, we skip the lookup step.
 
-  //debug items
-  //bool
-  bool RdeltaRswitch=false;
-  int debug_printActionEveryN;
-  int debug_npercent;
-  int debug_printCounter;
-  TVector3 debug_distortionScale;
-
-  AnalyticFieldModel *aliceModel = nullptr;
-
-  //the other half of the detector:
-  AnnularFieldSim *twin = nullptr;
-  bool hasTwin = false;
-
-  //constants of motion, dimensions, etc:
-  //
-  TVector3 zero_vector;  //a shorthand way to return a vectorial zero.
-  //static constexpr float k=8.987e13;//=1/(4*pi*eps0) in N*cm^2/C^2 in a vacuum. N*cm^2/C units, so that we supply space charge in coulomb units.
-  //static constexpr float k_perm=8.987e11;//=1/(4*pi*eps0) in (V*cm)/C in a vacuum. so that we supply space charge in Coulombs, distance in cm, and fields in V/cm
-
-  //gas constants:
-  double vdrift = NAN;  //gas drift speed in cm/s
-  double langevin_T1 = NAN;
-  double langevin_T2 = NAN;       //gas tensor drift terms.
-  double omegatau_nominal = NAN;  //nominal omegatau value, derived from vdrift and field strengths.
-  //double vprime; //first derivative of drift velocity at specific E
-  //double vprime2; //second derivative of drift velocity at specific E
-
-  //field constants:
-  std::string fieldstring;
-  std::string Bfieldname;
-  std::string Efieldname;
-  //  char fieldstring[300],Bfieldname[100],Efieldname[100];
-  std::string chargesourcename;
-  char chargestring[300] = {0};  //, chargefilename[100];
-  float Enominal = NAN;          //magnitude of the nominal field on which drift speed is based, in V/cm.
-  float Bnominal;                //magnitude of the nominal magnetic field on which drift speed is based, in Tesla.
-
-  //physical dimensions
-  float phispan;     //angular span of the area in the phi direction, since TVector3 is too smart.
-  float rmin, rmax;  //inner and outer radii of the annulus
-  float zmin, zmax;  //lower and upper edges of the coordinate system in z (not fully implemented yet)
-  //float phimin, phimax;//not implemented at all yet.
-  TVector3 dim;       //dimensions of simulated region, in cm
-  Rossegger *green;   //stand-alone class to compute greens functions.
-  float green_shift;  //how far to offset our position in z when querying our green's functions.
-
-  //variables related to the whole-volume tiling:
-  //
-  int nr, nphi, nz;       //number of fundamental bins (f-bins) in each direction = dimensions of 3D array covering entire volume
-  TVector3 step;          //size of an f-bin in each direction
-  LookupCase lookupCase;  //which lookup system to instantiate and use.
-  ChargeCase chargeCase;  //which charge model to use
-  int truncation_length;  //distance in cells (full 3D metric in units of bins)
-
-  //variables related to the region of interest:
-  //
-  int rmin_roi, phimin_roi, zmin_roi;  //lower edge of our region of interest, measured in f-bins
-  int rmax_roi, phimax_roi, zmax_roi;  //excluded upper edge of our region of interest, measured in f-bins
-  int nr_roi, nphi_roi, nz_roi;        //dimensions of our roi in f-bins
-
-  //variables related to the high-res behavior:
-  //
-  int nr_high = -1;
-  int nphi_high = -1;
-  int nz_high = -1;  //dimensions, in f-bins of neighborhood of a f-bin in which we calculate the field in full resolution
-
-  //variables related to the low-res behavior:
-  //
-  int r_spacing = -1;
-  int phi_spacing = -1;
-  int z_spacing = -1;  //number of f-bins, in each direction, to gang together to make a single low-resolution bin (l-bin)
-  int nr_low = -1;
-  int nphi_low = -1;
-  int nz_low = -1;  //dimensions, in l-bins, of the entire volume
-  int rmin_roi_low = -1;
-  int phimin_roi_low = -1;
-  int zmin_roi_low = -1;  //lowest l-bin that is at least partly in our region of interest
-  int rmax_roi_low = -1;
-  int phimax_roi_low = -1;
-  int zmax_roi_low = -1;  //excluded upper edge l-bin of our region of interest
-  int nr_roi_low = -1;
-  int nphi_roi_low = -1;
-  int nz_roi_low = -1;  //dimensions of our roi in l-bins
-
-  //3- and 6-dimensional arrays to handle bin and bin-to-bin data
-  //
-  MultiArray<TVector3> *Efield;             //total electric field in each f-bin in the roi for given configuration of charge AND external field.
-  MultiArray<TVector3> *Epartial_highres;   //electric field in each f-bin in the roi from charge in a given f-bin or summed bin in the high res region.
-  MultiArray<TVector3> *Epartial_lowres;    //electric field in each l-bin in the roi from charge in a given l-bin anywhere in the volume.
-  MultiArray<TVector3> *Epartial;           //electric field for the old brute-force model.
-  MultiArray<TVector3> *Epartial_phislice;  //electric field in a 2D phi-slice from the full 3D region.
-  MultiArray<TVector3> *Eexternal;          //externally applied electric field in each f-bin in the roi
-  MultiArray<TVector3> *Bfield;             //magnetic field in each f-bin in the roi
-
-  ChargeMapReader *q;            // //class to read and report charge.
-                                 //  MultiArray<double> *q;                    //space charge in each f-bin in the whole volume
-  MultiArray<double> *q_local;   //temporary holder of space charge in each f-bin and summed bin of the high-res region.
-  MultiArray<double> *q_lowres;  //space charge in each l-bin. = sums over sets of f-bins.
-  TH2F *hRdeltaRComponent;
-
- public:
   //constructors with history for backwards compatibility
   AnnularFieldSim(float rmin, float rmax, float dz, int r, int phi, int z, float vdr);  //abbr. constructor with roi=full region
   AnnularFieldSim(float rin, float rout, float dz,
@@ -352,4 +228,126 @@ class AnnularFieldSim
     omegatau_nominal = -Bnominal * vdrift / abs(Enominal);
     return;
   };  //various constants to match internal representation to the familiar formula.  Adding in these factors suggests I should switch to a unitful calculation throughout...
+  //units:
+  const float cm = 1;        //centimeters -- if you change this, check that all the loading functions are properly agnostic.
+  const float m = 100 * cm;  //meters.
+  const float mm = cm / 10;
+  const float um = mm / 1e3;
+
+  const float C = 1;  //Coulombs
+  const float nC = C / 1e9;
+  const float fC = C / 1e15;
+
+  const float s = 1;  //seconds
+  const float us = s / 1e6;
+  const float ns = s / 1e9;
+
+  const float V = 1;  //volts
+
+  const float Tesla = V * s / m / m;  //Tesla=Vs/m^2
+  const float kGauss = Tesla / 10;    //kGauss
+
+  const float eps0 = 8.854e-12 * (C / V) / m;    //Farads(=Coulombs/Volts) per meter
+  const float epsinv = 1 / eps0;                 //Vcm/C
+  const float k_perm = 1 / (4 * 3.1416 * eps0);  //implied units of V*cm/C because we're doing unitful work here.
+  //debug items
+  //bool
+  bool RdeltaRswitch=false;
+  int debug_printActionEveryN;
+  int debug_npercent;
+  int debug_printCounter;
+  TVector3 debug_distortionScale;
+
+  AnalyticFieldModel *aliceModel = nullptr;
+
+  //the other half of the detector:
+  AnnularFieldSim *twin = nullptr;
+  bool hasTwin = false;
+
+  //constants of motion, dimensions, etc:
+  //
+  TVector3 zero_vector;  //a shorthand way to return a vectorial zero.
+  //static constexpr float k=8.987e13;//=1/(4*pi*eps0) in N*cm^2/C^2 in a vacuum. N*cm^2/C units, so that we supply space charge in coulomb units.
+  //static constexpr float k_perm=8.987e11;//=1/(4*pi*eps0) in (V*cm)/C in a vacuum. so that we supply space charge in Coulombs, distance in cm, and fields in V/cm
+
+  //gas constants:
+  double vdrift = NAN;  //gas drift speed in cm/s
+  double langevin_T1 = NAN;
+  double langevin_T2 = NAN;       //gas tensor drift terms.
+  double omegatau_nominal = NAN;  //nominal omegatau value, derived from vdrift and field strengths.
+  //double vprime; //first derivative of drift velocity at specific E
+  //double vprime2; //second derivative of drift velocity at specific E
+
+  //field constants:
+  std::string fieldstring;
+  std::string Bfieldname;
+  std::string Efieldname;
+  //  char fieldstring[300],Bfieldname[100],Efieldname[100];
+  std::string chargesourcename;
+  char chargestring[300] = {0};  //, chargefilename[100];
+  float Enominal = NAN;          //magnitude of the nominal field on which drift speed is based, in V/cm.
+  float Bnominal;                //magnitude of the nominal magnetic field on which drift speed is based, in Tesla.
+
+  //physical dimensions
+  float phispan;     //angular span of the area in the phi direction, since TVector3 is too smart.
+  float rmin, rmax;  //inner and outer radii of the annulus
+  float zmin, zmax;  //lower and upper edges of the coordinate system in z (not fully implemented yet)
+  //float phimin, phimax;//not implemented at all yet.
+  TVector3 dim;       //dimensions of simulated region, in cm
+  Rossegger *green;   //stand-alone class to compute greens functions.
+  float green_shift;  //how far to offset our position in z when querying our green's functions.
+
+  //variables related to the whole-volume tiling:
+  //
+  int nr, nphi, nz;       //number of fundamental bins (f-bins) in each direction = dimensions of 3D array covering entire volume
+  TVector3 step;          //size of an f-bin in each direction
+  LookupCase lookupCase;  //which lookup system to instantiate and use.
+  ChargeCase chargeCase;  //which charge model to use
+  int truncation_length;  //distance in cells (full 3D metric in units of bins)
+
+  //variables related to the region of interest:
+  //
+  int rmin_roi, phimin_roi, zmin_roi;  //lower edge of our region of interest, measured in f-bins
+  int rmax_roi, phimax_roi, zmax_roi;  //excluded upper edge of our region of interest, measured in f-bins
+  int nr_roi, nphi_roi, nz_roi;        //dimensions of our roi in f-bins
+
+  //variables related to the high-res behavior:
+  //
+  int nr_high = -1;
+  int nphi_high = -1;
+  int nz_high = -1;  //dimensions, in f-bins of neighborhood of a f-bin in which we calculate the field in full resolution
+
+  //variables related to the low-res behavior:
+  //
+  int r_spacing = -1;
+  int phi_spacing = -1;
+  int z_spacing = -1;  //number of f-bins, in each direction, to gang together to make a single low-resolution bin (l-bin)
+  int nr_low = -1;
+  int nphi_low = -1;
+  int nz_low = -1;  //dimensions, in l-bins, of the entire volume
+  int rmin_roi_low = -1;
+  int phimin_roi_low = -1;
+  int zmin_roi_low = -1;  //lowest l-bin that is at least partly in our region of interest
+  int rmax_roi_low = -1;
+  int phimax_roi_low = -1;
+  int zmax_roi_low = -1;  //excluded upper edge l-bin of our region of interest
+  int nr_roi_low = -1;
+  int nphi_roi_low = -1;
+  int nz_roi_low = -1;  //dimensions of our roi in l-bins
+
+  //3- and 6-dimensional arrays to handle bin and bin-to-bin data
+  //
+  MultiArray<TVector3> *Efield;             //total electric field in each f-bin in the roi for given configuration of charge AND external field.
+  MultiArray<TVector3> *Epartial_highres;   //electric field in each f-bin in the roi from charge in a given f-bin or summed bin in the high res region.
+  MultiArray<TVector3> *Epartial_lowres;    //electric field in each l-bin in the roi from charge in a given l-bin anywhere in the volume.
+  MultiArray<TVector3> *Epartial;           //electric field for the old brute-force model.
+  MultiArray<TVector3> *Epartial_phislice;  //electric field in a 2D phi-slice from the full 3D region.
+  MultiArray<TVector3> *Eexternal;          //externally applied electric field in each f-bin in the roi
+  MultiArray<TVector3> *Bfield;             //magnetic field in each f-bin in the roi
+
+  ChargeMapReader *q;            // //class to read and report charge.
+                                 //  MultiArray<double> *q;                    //space charge in each f-bin in the whole volume
+  MultiArray<double> *q_local;   //temporary holder of space charge in each f-bin and summed bin of the high-res region.
+  MultiArray<double> *q_lowres;  //space charge in each l-bin. = sums over sets of f-bins.
+  TH2F *hRdeltaRComponent {nullptr};
 };
