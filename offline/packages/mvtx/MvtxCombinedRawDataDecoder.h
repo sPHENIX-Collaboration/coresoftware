@@ -8,7 +8,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/MvtxDefs.h>
-#include <trackbase/MvtxEventInfov1.h>
+#include <trackbase/MvtxEventInfov2.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 
 #include <ffarawobjects/MvtxRawHit.h>
@@ -52,7 +52,7 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
 
   private:
     TrkrHitSetContainer* hit_set_container = nullptr;
-    MvtxEventInfov1* mvtx_event_header = nullptr;
+    MvtxEventInfov2* mvtx_event_header = nullptr;
     MvtxRawEvtHeaderv1* mvtx_raw_event_header = nullptr;
     MvtxRawHitContainer* mvtx_hit_container = nullptr;
     MvtxRawHit* mvtx_hit = nullptr;

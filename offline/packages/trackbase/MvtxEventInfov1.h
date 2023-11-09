@@ -57,14 +57,17 @@ class MvtxEventInfov1 : public MvtxEventInfo
   /// switches off the pesky virtual warning messages
   void NoWarning(const int i = 1);
 
- private:
-  void warning(const std::string &func) const;
-
-  int m_number_HB = -1;
+protected:
   std::set<strobe_L1_pair> m_strobe_BCO_L1_BCO;
 
   std::string m_number_L1_name = "Number L1";
   std::string m_number_HB_name = "Number HB";
+
+
+ private:
+  void warning(const std::string &func) const;
+
+  int m_number_HB = -1;
 
   //ClassDefOverride(MvtxEventInfov1, 1)
 };

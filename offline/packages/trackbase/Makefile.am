@@ -58,6 +58,7 @@ pkginclude_HEADERS = \
   MvtxDefs.h \
   MvtxEventInfo.h \
   MvtxEventInfov1.h \
+  MvtxEventInfov2.h \
   RawHit.h \
   RawHitSet.h \
   RawHitSetContainer.h \
@@ -123,6 +124,7 @@ ROOTDICTS = \
   InttEventInfov1_Dict.cc \
   MvtxEventInfo_Dict.cc \
   MvtxEventInfov1_Dict.cc \
+  MvtxEventInfov2_Dict.cc \
   RawHitSetContainer_Dict.cc \
   RawHitSetContainerv1_Dict.cc \
   RawHitSet_Dict.cc \
@@ -183,6 +185,7 @@ nobase_dist_pcm_DATA = \
   InttEventInfov1_Dict_rdict.pcm \
   MvtxEventInfo_Dict_rdict.pcm \
   MvtxEventInfov1_Dict_rdict.pcm \
+  MvtxEventInfov2_Dict_rdict.pcm \
   RawHitSetContainer_Dict_rdict.pcm \
   RawHitSetContainerv1_Dict_rdict.pcm \
   RawHitSet_Dict_rdict.pcm \
@@ -246,6 +249,7 @@ libtrack_io_la_SOURCES = \
   MvtxDefs.cc \
   MvtxEventInfo.cc \
   MvtxEventInfov1.cc \
+  MvtxEventInfov2.cc \
   RawHitSet.cc \
   RawHitSetContainer.cc \
   RawHitSetContainerv1.cc \

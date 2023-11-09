@@ -69,10 +69,10 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(mvtxNode);
     }
 
-    mvtx_event_header = findNode::getClass<MvtxEventInfov1>(mvtxNode, "MVTXEVENTHEADER");
+    mvtx_event_header = findNode::getClass<MvtxEventInfov2>(mvtxNode, "MVTXEVENTHEADER");
     if (!mvtx_event_header)
     {
-      mvtx_event_header = new MvtxEventInfov1();
+      mvtx_event_header = new MvtxEventInfov2();
       auto newHeader = new PHIODataNode<PHObject>(mvtx_event_header, "MVTXEVENTHEADER", "PHObject");
       mvtxNode->addNode(newHeader);
     }
@@ -117,7 +117,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 
   if (m_writeMvtxEventHeader)
   {
-    mvtx_event_header = findNode::getClass<MvtxEventInfov1>(topNode, "MVTXEVENTHEADER");
+    mvtx_event_header = findNode::getClass<MvtxEventInfov2>(topNode, "MVTXEVENTHEADER");
     assert(mvtx_event_header);
   }
 
@@ -156,6 +156,8 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   }
 
   std::set<uint64_t> l1BCOs = mvtx_raw_event_header->getMvtxLvL1BCO();
+
+  mvtx_event_header->set_strobe_BCO(strobe);
 
   if (m_writeMvtxEventHeader)
   {
