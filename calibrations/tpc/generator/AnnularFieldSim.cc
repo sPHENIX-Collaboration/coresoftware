@@ -36,16 +36,16 @@ AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, flo
   //check well-ordering:
   if (roi_r0 >= r || roi_r1 > r || roi_r0 >= roi_r1)
   {
-    static_assert(1 == 2);
+    assert(1 == 2);
   }
   if (roi_phi0 >= phi || roi_phi1 > phi || roi_phi0 >= roi_phi1)
   {
     printf("phi roi is out of range or spans the wrap-around.  Please spare me that math.\n");
-    static_assert(1 == 2);
+    assert(1 == 2);
   }
   if (roi_z0 >= z || roi_z1 > z || roi_z0 >= roi_z1)
   {
-    static_assert(1 == 2);
+    assert(1 == 2);
   }
 
   hasTwin = false;  //we never have a twin to start with.
@@ -241,7 +241,7 @@ AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, flo
   else
   {
     printf("Ran into wrong lookupCase logic in constructor.\n");
-    static_assert(1 == 2);
+    assert(1 == 2);
   }
 
   return;
@@ -295,7 +295,7 @@ TVector3 AnnularFieldSim::calc_unit_field(TVector3 at, TVector3 from)
   if (GetRindexAndCheckBounds(at.Perp(), &r_position) != InBounds)
   {
     printf("something's asking for 'at' with r=%f, which is index=%d\n", at.Perp(), r_position);
-    static_assert(1 == 2);
+    assert(1 == 2);
   }
   //note this is the field due to a fixed point charge in free space.
   //if doing cylindrical calcs with different boundary conditions, this needs to change.
@@ -362,7 +362,7 @@ double AnnularFieldSim::FilterPhiPos(double phi)
   if (p >= 2 * M_PI || p < 0)
   {
     printf("AnnularFieldSim::FilterPhiPos asked to filter %f, which is more than range=%f out of bounds.  Check what called this.\n", phi, 2 * M_PI);
-    static_assert(1 == 2);
+    assert(1 == 2);
   }
   return p;
 }
@@ -384,7 +384,7 @@ int AnnularFieldSim::FilterPhiIndex(int phi, int range = -1)
   if (p >= range || p < 0)
   {
     printf("AnnularFieldSim::FilterPhiIndex asked to filter %d, which is more than range=%d out of bounds.  Check what called this.\n", phi, range);
-    static_assert(1 == 2);
+    assert(1 == 2);
   }
   return p;
 }
@@ -672,7 +672,7 @@ TVector3 AnnularFieldSim::GetGroupCellCenter(int r0, int r1, int phi0, int phi1,
   if (phi0 > phi1)
   {
     printf("phi1(%d)<=phi0(%d) even after boosting phi1.  check what called this!\n", phi1, phi0);
-    static_assert(1 == 2);
+    assert(1 == 2);
   }
   float phiavg = (r0 + r1) / 2.0 + 0.5;
   if (phiavg >= nphi) { phiavg -= nphi;
@@ -1069,7 +1069,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
             {
               printf("not enough entries in source to fill fieldmap.  None near r=%f, phi=%f, z=%f. Pick lower granularity!\n",
                      cellcenter.Perp(), FilterPhiPos(cellcenter.Phi()), cellcenter.Z());
-              static_assert(1 == 2);
+              assert(1 == 2);
             }
             //have to rotate this to the proper direction.
             fieldvec.RotateZ(FilterPhiPos(cellcenter.Phi()));  //rcc caution.  Does this rotation shift the sense of 'up'?
@@ -1386,7 +1386,7 @@ void AnnularFieldSim::populate_lookup()
   }
   else
   {
-    static_assert(1 == 2);
+    assert(1 == 2);
   }
   return;
 }
@@ -1810,7 +1810,7 @@ void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
   {
     printf("file parameters do not match fieldsim parameters:\n");
 
-    static_assert(1 == 4);
+    assert(1 == 4);
   }
 
   TTree *tLookup;
@@ -2309,7 +2309,7 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
             if (ri[(i / 4) % 2] + rmin_roi_low == ir && pi[(i / 2) % 2] + phimin_roi_low == iphi && zi[(i) % 2] + zmin_roi_low == iz)
             {
               printf("considering an l-bins effect on itself, r=%d,phi=%d,z=%d (matches i=%d, not skipped), means we're not interpolating fairly\n", ir, iphi, iz, i);
-              static_assert(1 == 2);
+              assert(1 == 2);
             }
             //the ri, pi, and zi elements are relative to the roi, as needed for Epartial.
             //the ir, iphi, and iz are all absolute, as needed for q_lowres
@@ -3860,7 +3860,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3& start, 
     printf("GetStepDistortion is attempting to swim with no drift field:\n");
     printf("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f\n", start.X(), start.Y(), start.Z(), zdest);
     printf("GetStepDistortion: fieldInt=(%E,%E,%E)\n", fieldInt.X(), fieldInt.Y(), fieldInt.Z());
-    static_assert(1 == 2);
+    assert(1 == 2);
   }
   //float fieldz=field_[in3(x,y,0,fx,fy,fz)].Z()+E.Z();// *field[x][y][zi].Z();
   double EfieldZ = fieldInt.Z() / zdist;  // average field over the path.
@@ -3946,7 +3946,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3& start, 
     printf("GetStepDistortion: (%2.4f,%2.4f,%2.4f) (rp)=(%2.4f,%2.4f) to z=%2.4f\n", start.X(), start.Y(), start.Z(), start.Perp(), start.Phi(), zdest);
     printf("GetStepDistortion: fieldInt=(%E,%E,%E)\n", fieldInt.X(), fieldInt.Y(), fieldInt.Z());
     printf("GetStepDistortion: delta=(%E,%E,%E)\n", deltaX, deltaY, deltaZ);
-    static_assert(1 == 2);
+    assert(1 == 2);
   }
 
   //deltaZ=0;//temporary removal.

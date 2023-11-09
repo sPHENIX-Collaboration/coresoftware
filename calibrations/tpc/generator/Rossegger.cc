@@ -121,7 +121,7 @@ double Rossegger::FindNextZero(double xstart, double localepsilon, int order, do
     x += localepsilon;
   }
   std::cout << "logic break!\n";
-  static_assert(1 == 2);
+  assert(1 == 2);
   return 0;
 }
 
