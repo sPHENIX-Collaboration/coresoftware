@@ -4,7 +4,10 @@
 #include <TMath.h>
 #include <TTree.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/math/special_functions.hpp>  //covers all the special functions.
+#pragma GCC diagnostic pop
 
 #include <algorithm>  // for max
 #include <cassert>    // for assert
@@ -82,10 +85,10 @@ Rossegger::Rossegger(double InnerRadius, double OuterRadius, double Rdo_Z, doubl
   return;
 }
 
-double Rossegger::FindNextZero(double xstart, double epsilon, int order, double (Rossegger::*func)(int, double))
+double Rossegger::FindNextZero(double xstart, double localepsilon, int order, double (Rossegger::*func)(int, double))
 {
   double previous = (this->*func)(order, xstart);
-  double x = xstart + epsilon;
+  double x = xstart + localepsilon;
   double value = previous;
 
   while (!((value == 0) || (value < 0 && previous > 0) || (value > 0 && previous < 0)))
@@ -99,12 +102,12 @@ double Rossegger::FindNextZero(double xstart, double epsilon, int order, double 
       //the following is mathematically equivalent to finding the delta
       //between the x of our previous value and the point where we cross the axis
       //then returning x0=x_old+delta
-      double slope = (value - previous) / epsilon;
+      double slope = (value - previous) / localepsilon;
       double intercept = value - slope * x;
       double x0 = -intercept / slope;
       if (verbosity > 1) std::cout << " " << x0 << "," << std::endl;
-      double n0 = (this->*func)(order, x - epsilon);
-      double n1 = (this->*func)(order, x + epsilon);
+      double n0 = (this->*func)(order, x - localepsilon);
+      double n1 = (this->*func)(order, x + localepsilon);
       if ((n0 < 0 && n1 < 0) || (n0 > 0 && n1 > 0))
       {
         printf("neighbors on both sides have the same sign.  Check your function resolution!\n");
@@ -113,14 +116,14 @@ double Rossegger::FindNextZero(double xstart, double epsilon, int order, double 
       return x0;
     }
     previous = value;
-    x += epsilon;
+    x += localepsilon;
   }
   std::cout << "logic break!\n";
   assert(1 == 2);
   return 0;
 }
 
-void Rossegger::FindBetamn(double epsilon)
+void Rossegger::FindBetamn(double localepsilon)
 {
   std::cout << "Now filling the Beta[m][n] Array..." << std::endl;
   if (verbosity > 5) std::cout << "numberOfOrders= " << NumberOfOrders << std::endl;
@@ -128,12 +131,12 @@ void Rossegger::FindBetamn(double epsilon)
   {
     if (verbosity) std::cout << "Filling Beta[" << m << "][n]..." << std::endl;
 
-    double x = epsilon;
+    double x = localepsilon;
     for (int n = 0; n < NumberOfOrders; n++)
     {  //  !!!  Off by one from Rossegger convention  !!!
-      x = FindNextZero(x, epsilon, m, &Rossegger::Rmn_for_zeroes);
+      x = FindNextZero(x, localepsilon, m, &Rossegger::Rmn_for_zeroes);
       Betamn[m][n] = x / b;
-      x += epsilon;
+      x += localepsilon;
     }
   }
 
@@ -169,7 +172,7 @@ void Rossegger::FindBetamn(double epsilon)
   std::cout << "Done." << std::endl;
 }
 
-void Rossegger::FindMunk(double epsilon)
+void Rossegger::FindMunk(double localepsilon)
 {
   std::cout << "Now filling the Mu[n][k] Array..." << std::endl;
   if (verbosity > 5) std::cout << "numberOfOrders= " << NumberOfOrders << std::endl;
@@ -183,17 +186,17 @@ void Rossegger::FindMunk(double epsilon)
   for (int n = 0; n < NumberOfOrders; n++)  //  !!!  Off by one from Rossegger convention  !!!
   {
     if (verbosity) std::cout << "Filling Mu[" << n << "][k]..." << std::endl;
-    double x = epsilon;
+    double x = localepsilon;
     for (int k = 0; k < NumberOfOrders; k++)
     {
-      x = FindNextZero(x, epsilon, n, &Rossegger::Rnk_for_zeroes);
+      x = FindNextZero(x, localepsilon, n, &Rossegger::Rnk_for_zeroes);
       Munk[n][k] = x;
-      x += epsilon;
+      x += localepsilon;
       if (verbosity > 0)
       {
         printf("Mu[%d][%d]=%E\n", n, k, Munk[n][k]);
-        printf("adjacent values are Rnk[mu-epsilon]=%E\tRnk[mu+epsilon]=%E\n",
-               Rnk_for_zeroes(n, x - epsilon), Rnk_for_zeroes(n, x + epsilon));
+        printf("adjacent values are Rnk[mu-localepsilon]=%E\tRnk[mu+localepsilon]=%E\n",
+               Rnk_for_zeroes(n, x - localepsilon), Rnk_for_zeroes(n, x + localepsilon));
         if (verbosity > 100) printf("values of argument to limu and kimu are %f and %f\n",
                                     (n + 1) * pi / L * a, (n + 1) * pi / L * b);
       }
@@ -230,7 +233,7 @@ void Rossegger::FindMunk(double epsilon)
   return;
 }
 
-bool Rossegger::CheckZeroes(double epsilon)
+bool Rossegger::CheckZeroes(double localepsilon)
 {
   //confirm that the tabulated zeroes are all zeroes of their respective functions:
   double result;
@@ -239,7 +242,7 @@ bool Rossegger::CheckZeroes(double epsilon)
     for (int n = 0; n < NumberOfOrders; n++)
     {  //  !!!  Off by one from Rossegger convention  !!!
       result = Rmn_for_zeroes(m, Betamn[m][n] * b);
-      if (abs(result) > epsilon)
+      if (abs(result) > localepsilon)
       {
         printf("(m=%d,n=%d) Jm(x)Ym(lx)-Jm(lx)Ym(x) = %f for x=b*%f\n", m, n, result, Betamn[m][n]);
         return false;
@@ -253,7 +256,7 @@ bool Rossegger::CheckZeroes(double epsilon)
     for (int k = 0; k < NumberOfOrders; k++)
     {  //  !!!  Off by one from Rossegger convention  !!!
       result = Rnk_for_zeroes(n, Munk[n][k]);
-      if (abs(result) > epsilon * 100)
+      if (abs(result) > localepsilon * 100)
       {
         printf("(n=%d,k=%d) limu(npi*a/L)kimu(npi*b/L)-kimu(npi*a/L)kimu(npi*b/L) = %f (>eps*100) for mu=%f\n",
                n, k, result, Munk[n][k]);

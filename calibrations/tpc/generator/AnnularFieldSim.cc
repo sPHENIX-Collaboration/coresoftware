@@ -2897,9 +2897,9 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
           inpart.SetZ(partZ);
         }
         partZ += 0.5 * deltaz;  //move to center of histogram bin.
-        for (int side = 0; side < nSides; side++)
+        for (int localside = 0; localside < nSides; localside++)
         {
-          if (side == 0)
+          if (localside == 0)
           {
             diffdistort = zero_vector;//GetTotalDistortion(inpart.Z() + deltaz, inpart, nSteps, true, &validToStep, &successCheck);
             distort = GetTotalDistortion(z_readout, inpart, nSteps, true, &validToStep, &successCheck);
@@ -2936,11 +2936,11 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
 
           for (int c = 0; c < nMapComponents; c++)
           {
-            hSeparatedMapComponent[side][c]->Fill(partP, partR, partZ, distComp[c]);
+            hSeparatedMapComponent[localside][c]->Fill(partP, partR, partZ, distComp[c]);
           }
 
-          hValidToStepComponent[side]->Fill(partP, partR, partZ, validToStep);
-          hReachesReadout[side]->Fill(partP, partR, partZ, successCheck);
+          hValidToStepComponent[localside]->Fill(partP, partR, partZ, validToStep);
+          hReachesReadout[localside]->Fill(partP, partR, partZ, successCheck);
           
           
           //recursive integral distortion:
@@ -2958,7 +2958,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
           }
 
           //now we fill particular slices for integral visualizations:
-          if (ir == xi[0] && side == 0)
+          if (ir == xi[0] && localside == 0)
           {  //r slice
             //printf("ir=%d, r=%f (pz)=(%d,%d), distortR=%2.2f, distortP=%2.2f\n",ir,partR,ip,iz,distortR,distortP);
             hIntDist[0][0]->Fill(partP, partZ, distortR);
@@ -2968,7 +2968,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
             hDiffDist[0][1]->Fill(partP, partZ, diffdistP);
             hDiffDist[0][2]->Fill(partP, partZ, diffdistZ);
           }
-          if (ip == xi[1] && side == 0)
+          if (ip == xi[1] && localside == 0)
           {  //phi slice
             //printf("ip=%d, p=%f (rz)=(%d,%d), distortR=%2.2f, distortP=%2.2f\n",ip,partP,ir,iz,distortR,distortP);
             hIntDist[1][0]->Fill(partZ, partR, distortR);
@@ -2978,7 +2978,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
             hDiffDist[1][1]->Fill(partZ, partR, diffdistP);
             hDiffDist[1][2]->Fill(partZ, partR, diffdistZ);
 
-            if (iz == xi[2] && side == 0)
+            if (iz == xi[2] && localside == 0)
             {  //z slices of phi slices= r line at mid phi, mid z:
               hRDist[0][0]->Fill(partR, distortR);
               hRDist[0][1]->Fill(partR, distortP);
@@ -2987,7 +2987,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
               hRDiffDist[0][1]->Fill(partR, diffdistP);
               hRDiffDist[0][2]->Fill(partR, diffdistZ);
             }
-            if (hasTwin && iz == twinz && side == 1)
+            if (hasTwin && iz == twinz && localside == 1)
             {  //z slices of phi slices= r line at mid phi, mid z:
               hRDist[1][0]->Fill(partR, distortR);
               hRDist[1][1]->Fill(partR, distortP);
@@ -2997,7 +2997,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
               hRDiffDist[1][2]->Fill(partR, diffdistZ);
             }
           }
-          if (iz == xi[2] && side == 0)
+          if (iz == xi[2] && localside == 0)
           {  //z slice
             //printf("iz=%d, z=%f (rp)=(%d,%d), distortR=%2.2f, distortP=%2.2f\n",iz,partZ,ir,ip,distortR,distortP);
 
@@ -3227,18 +3227,18 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
   //1) pick a map spacing ('s')
   bool makeUnifiedMap = true;  //if true, generate a single map across the whole TPC.  if false, save two maps, one for each side.
 
-  TVector3 s(step.Perp() / r_subsamples, 0, step.Z() / z_subsamples);
-  s.SetPhi(step.Phi() / p_subsamples);
-  float deltar = s.Perp();  //(rf-ri)/nr;
-  float deltap = s.Phi();   //(pf-pi)/np;
-  float deltaz = s.Z();     //(zf-zi)/nz;
+  TVector3 steplocal(step.Perp() / r_subsamples, 0, step.Z() / z_subsamples);
+  steplocal.SetPhi(step.Phi() / p_subsamples);
+  float deltar = steplocal.Perp();  //(rf-ri)/nr;
+  float deltap = steplocal.Phi();   //(pf-pi)/np;
+  float deltaz = steplocal.Z();     //(zf-zi)/nz;
   TVector3 stepzvec(0, 0, deltaz);
   int nSteps = 500;  //how many steps to take in the particle path.  hardcoded for now.  Think about this later.
 
   //idea for a faster way to build a map:
 
-  //2) generate the distortions s.Z() away from the readout
-  //3) generate the distortion from (i)*s.Z() away to (i-1) away, then add the interpolated value from the (i-1) layer
+  //2) generate the distortions steplocal.Z() away from the readout
+  //3) generate the distortion from (i)*steplocal.Z() away to (i-1) away, then add the interpolated value from the (i-1) layer
 
   //for interpolation, Henry needs one extra buffer bin on each side.
 
@@ -3257,12 +3257,12 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
     nzh += nz * z_subsamples;
   }
 
-  float rih = lowerEdge.Perp() - 0.5 * step.Perp() - s.Perp();             //lower bound of roi, minus one
-  float rfh = upperEdge.Perp() + 0.5 * step.Perp() + s.Perp();             //upper bound of roi, plus one
-  float pih = FilterPhiPos(lowerEdge.Phi()) - 0.5 * step.Phi() - s.Phi();  //can't automate this or we'll run afoul of phi looping.
-  float pfh = FilterPhiPos(upperEdge.Phi()) + 0.5 * step.Phi() + s.Phi();  //can't automate this or we'll run afoul of phi looping.
-  float zih = lowerEdge.Z() - 0.5 * step.Z() - s.Z();                      //lower bound of roi, minus one
-  float zfh = upperEdge.Z() + 0.5 * step.Z() + s.Z();                      //upper bound of roi, plus one
+  float rih = lowerEdge.Perp() - 0.5 * step.Perp() - steplocal.Perp();             //lower bound of roi, minus one
+  float rfh = upperEdge.Perp() + 0.5 * step.Perp() + steplocal.Perp();             //upper bound of roi, plus one
+  float pih = FilterPhiPos(lowerEdge.Phi()) - 0.5 * step.Phi() - steplocal.Phi();  //can't automate this or we'll run afoul of phi looping.
+  float pfh = FilterPhiPos(upperEdge.Phi()) + 0.5 * step.Phi() + steplocal.Phi();  //can't automate this or we'll run afoul of phi looping.
+  float zih = lowerEdge.Z() - 0.5 * step.Z() - steplocal.Z();                      //lower bound of roi, minus one
+  float zfh = upperEdge.Z() + 0.5 * step.Z() + steplocal.Z();                      //upper bound of roi, plus one
   float z_readout = upperEdge.Z() + 0.5 * step.Z();                        //readout plane.  Note we assume this is positive.
 
   printf("generating distortion map...\n");
@@ -3304,12 +3304,12 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
 
   //monitor plots, and the position that plot monitors at:
 
-  //TVector3 pos((nrh/2+0.5)*s.Perp()+rih,0,(nzh/2+0.5)*s.Z()+zih);
-  TVector3 pos(((int) (nrh / 2) + 0.5) * s.Perp() + rih, 0, zmin + ((int) (nz / 2) + 0.5) * step.Z());
-  float posphi = ((int) (nph / 2) + 0.5) * s.Phi() + pih;
+  //TVector3 pos((nrh/2+0.5)*steplocal.Perp()+rih,0,(nzh/2+0.5)*steplocal.Z()+zih);
+  TVector3 pos(((int) (nrh / 2) + 0.5) * steplocal.Perp() + rih, 0, zmin + ((int) (nz / 2) + 0.5) * step.Z());
+  float posphi = ((int) (nph / 2) + 0.5) * steplocal.Phi() + pih;
   pos.SetPhi(posphi);
   //int xi[3]={nrh/2,nph/2,nzh/2};
-  int xi[3] = {(int) floor((pos.Perp() - rih) / s.Perp()), (int) floor((posphi - pih) / s.Phi()), (int) floor((pos.Z() - zih) / s.Z())};
+  int xi[3] = {(int) floor((pos.Perp() - rih) / steplocal.Perp()), (int) floor((posphi - pih) / steplocal.Phi()), (int) floor((pos.Z() - zih) / steplocal.Z())};
   if (!hasTwin) printf("rpz slice indices= (%d,%d,%d) (no twin)\n", xi[0], xi[1], xi[2]);
   int twinz = 0;  //this is meant to be the matching position to xi[2] in the twin, hence generally -1*pos.  Better to just ask the twin rather than trying to calculate it ourselves...
   if (hasTwin)
