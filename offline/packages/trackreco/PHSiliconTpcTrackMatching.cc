@@ -100,7 +100,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
       // returns SHRT_MAX if no INTT clusters in silicon seed
       short int crossing= getCrossingIntt(_tracklet_si);
       _tracklet_si->set_crossing(crossing);
-
+      
       if(Verbosity() > 8)
 	std::cout << " silicon stub: " << trackid << " eta " << _tracklet_si->get_eta()  << " pt " << _tracklet_si->get_pt()  << " si z " << _tracklet_si->get_z() << " crossing " << crossing << std::endl; 
 
@@ -131,7 +131,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
       svtxseed->set_crossing_estimate(crossing_estimate);
       _svtx_seed_map->insert(svtxseed.get());
       
-      if(Verbosity() > 1) std::cout << "  combined seed id " << _svtx_seed_map->size()-1 << " si id " << si_id << " tpc id " << tpcid  << std::endl;
+      if(Verbosity() > 1) std::cout << "  combined seed id " << _svtx_seed_map->size()-1 << " si id " << si_id << " tpc id " << tpcid  << " crossing estimate " << crossing_estimate << std::endl;
     }
 
   // Also make the unmatched TPC seeds into SvtxTrackSeeds
@@ -174,17 +174,13 @@ short int  PHSiliconTpcTrackMatching::findCrossingGeometrically(unsigned int tpc
   // this is an initial estimate of the bunch crossing based on the z-mismatch for this track
   short int crossing_estimate = (short int) getBunchCrossing(tpcid, tpc_z - si_z);
 
-  if ( abs(crossing_estimate - crossing) < 3) 
+  if(Verbosity() > 1)
     {
-      if(Verbosity() > 1)
-	{
-	  std::cout << "findCrossing: " <<   " tpcid " << tpcid << " si_id " << si_id << " tpc_z " << tpc_z << " si_z " << si_z << " dz " << tpc_z - si_z 
-		    << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
-	}
-      return crossing_estimate;
+      std::cout << "findCrossing: " <<   " tpcid " << tpcid << " si_id " << si_id << " tpc_z " << tpc_z << " si_z " << si_z << " dz " << tpc_z - si_z 
+		<< " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
     }
 
-  return SHRT_MAX;
+  return crossing_estimate;
   
 }
 
