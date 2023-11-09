@@ -189,7 +189,9 @@ int TpcDirectLaserReconstruction::End(PHCompositeNode* )
     m_histogramfile->cd();
     //for(const auto& o:std::initializer_list<TObject*>({ h_dca_layer, h_deltarphi_layer_south,h_deltarphi_layer_north, h_deltaz_layer, h_deltar_r,h_deltheta_delphi,h_deltheta_delphi_1,h_deltheta_delphi_2,h_deltheta_delphi_3,h_deltheta_delphi_4,h_deltheta_delphi_5,h_deltheta_delphi_6,h_deltheta_delphi_7,h_deltheta_delphi_8, h_entries,h_relangle_lasrangle,h_relangle_theta_lasrangle,h_relangle_phi_lasrangle,h_GEMs_hit,h_layers_hit,h_xy,h_xz,h_xy_pca,h_xz_pca,h_dca_path,h_zr,h_zr_pca, h_dz_z }))
 
-    for(const auto& o:std::initializer_list<TObject*>({ h_dca_layer, h_deltarphi_layer_south,h_deltarphi_layer_north, h_deltaz_layer, h_deltar_r,h_deltheta_delphi,h_deltheta_delphi_1,h_deltheta_delphi_2,h_deltheta_delphi_3,h_deltheta_delphi_4,h_deltheta_delphi_5,h_deltheta_delphi_6,h_deltheta_delphi_7,h_deltheta_delphi_8, h_entries,h_hits,h_bright_hits_laser1,h_bright_hits_laser2,h_bright_hits_laser3,h_bright_hits_laser4,h_relangle_lasrangle,h_relangle_theta_lasrangle,h_relangle_phi_lasrangle,h_GEMs_hit,h_layers_hit,h_xy,h_xz,h_xy_pca,h_xz_pca,h_dca_path,h_zr,h_zr_pca, h_dz_z }))
+    for(const auto& o:std::initializer_list<TObject*>({ h_dca_layer, h_deltarphi_layer_south,h_deltarphi_layer_north, h_deltaz_layer, h_deltar_r,h_deltheta_delphi,h_deltheta_delphi_1,h_deltheta_delphi_2,h_deltheta_delphi_3,h_deltheta_delphi_4,h_deltheta_delphi_5,h_deltheta_delphi_6,h_deltheta_delphi_7,h_deltheta_delphi_8, h_entries,h_hits,h_hits_reco,h_adc,h_adc_reco,h_adc_sum,h_adc_sum_reco,h_adc_sum_ratio,h_adc_sum_ratio_true,h_adc_vs_DCA_true,h_adc_sum_ratio_lasrangle,h_num_sum,h_num_sum_reco,h_num_sum_ratio,
+h_num_sum_ratio_true,h_adc_sum_ratio_true,h_adc_sum_ratio,h_num_sum_ratio_lasrangle,h_bright_hits_laser1,h_bright_hits_laser2,h_bright_hits_laser3,h_bright_hits_laser4,h_relangle_lasrangle,
+h_relangle_theta_lasrangle,h_relangle_phi_lasrangle,h_GEMs_hit,h_layers_hit,h_xy,h_xz,h_xy_pca,h_xz_pca,h_dca_path,h_zr,h_zr_pca, h_dz_z }))
 
     { if( o ) o->Write(); }
     m_histogramfile->Close();
@@ -218,8 +220,8 @@ int TpcDirectLaserReconstruction::End(PHCompositeNode* )
 void TpcDirectLaserReconstruction::SetDefaultParameters()
 {
 
-  // DCA cut, to decide whether a cluster should be associated to a given laser track or not
-  set_default_double_param( "directlaser_max_dca", 20.0 );
+  // DCA cut, to decide whether a cluster should be associated to a given laser track or not (set to 5 - Charles 10/24/23)
+  set_default_double_param( "directlaser_max_dca", 1.0 );
 
   
 //   // residual cuts, used to decide if a given cluster is used to fill SC reconstruction matrices
@@ -281,6 +283,50 @@ void TpcDirectLaserReconstruction::create_histograms()
   h_dz_z = new TH2F("h_dz_z"," dz vs z", 440,-110,110, 1000, -20, 20);
 
   h_hits = new TNtuple("hits","raw hits","x:y:z:adc");
+  h_hits_reco = new TNtuple("hits_reco","raw hits","x:y:z:adc");
+
+  h_adc = new TH1F("adc","pedestal subtracted ADC spectra of ALL lasers (MCTRUTH direction)",1063,-19.5,1042.5);
+  h_adc->SetXTitle("ADC - PEDESTAL [ADU]");
+
+  h_adc_reco = new TH1F("adc_reco","pedestal subtracted ADC spectra of ALL lasers (RECO DIRECTION)",1063,-19.5,1042.5);
+  h_adc_reco->SetXTitle("ADC - PEDESTAL [ADU]");
+
+  h_adc_sum = new TH1F("adc_sum","non-pedestal subtracted sum of ADC for each laser (MCTRUTH DIRECTION)",1600,-0.5,159999.5);
+  h_adc_sum->SetXTitle("#Sigma ADC [ADU]");
+
+  h_adc_sum_reco = new TH1F("adc_sum_reco","non-pedestal subtracted sum of ADC for each laser (RECO DIRECTION)",1600,-0.5,159999.5);
+  h_adc_sum_reco->SetXTitle("#Sigma ADC [ADU]");
+
+  h_num_sum = new TH1F("num_sum","sum of hits for each laser (MCTRUTH DIRECTION)",1600,-0.5,7999.5);
+  h_num_sum->SetXTitle("#Sigma N_{hits}^{laser X} [arb. units]");
+
+  h_num_sum_reco = new TH1F("num_sum_reco","sum of hits for each laser (RECO DIRECTION)",1600,-0.5,7999.5);
+  h_num_sum_reco->SetXTitle("#Sigma N_{hits}^{laser X} [arb. units]");
+
+  h_adc_sum_ratio = new TH1F("adc_sum_ratio","RATIO of non-pedestal subtracted sum of ADC for each laser (RECO DIRECTION/MCTRUTH DIRECTION)",120,-0.5,5.5);
+  h_adc_sum_ratio->SetXTitle("#frac{#Sigma^{RECO} ADC}{#Sigma^{MCTRUTH} ADC}  [arb. units]");
+
+  h_adc_sum_ratio_true = new TH1F("adc_sum_ratio_true","RATIO of non-pedestal subtracted sum of ADC for each laser (MCTRUTH DIRECTION/ALL )",120,-0.5,5.5);
+  h_adc_sum_ratio_true->SetXTitle("#frac{#Sigma^{MCTRUTH} ADC}{#Sigma^{ALL} ADC}  [arb. units]");
+
+  h_num_sum_ratio = new TH1F("num_sum_ratio","RATIO of number of hits associated to each laser (RECO DIRECTION/MCTRUTH DIRECTION)",120,-0.5,5.5);
+  h_num_sum_ratio->SetXTitle("#frac{#Sigma^{RECO} N_{hits}^{laser X}}{#Sigma^{MCTRUTH} N_{hits}^{laser X}}  [arb. units]");
+
+  h_num_sum_ratio_true = new TH1F("num_sum_ratio_true","RATIO of number of hits associated to each laser (MCTRUTH DIRECTION/ALL )",120,-0.5,5.5);
+  h_num_sum_ratio_true->SetXTitle("#frac{#Sigma^{MCTRUTH} N_{hits}^{laser X}}{#Sigma^{ALL} N_{hits}^{laser X}}  [arb. units]");
+
+  h_adc_vs_DCA_true = new TH2F("adc_vs_DCA_true","PEDESTAL SUBTRACTED ADC vs DCA for ALL HITS from ALL LASERS",100,0,100,1024,-0.5,1023.5);
+  h_adc_vs_DCA_true->SetXTitle("DCA [mm]");
+  h_adc_vs_DCA_true->SetYTitle("ADC - PEDESTAL [ADU]");
+
+  h_adc_sum_ratio_lasrangle = new TH2F("adc_sum_ratio_lasrangle","RATIO of non-pedestal subtracted sum of ADC for LASER 1 ONLY (RECO DIRECTION/MCTRUTH DIRECTION)",91,-0.5,90.5,361,-0.5,360.5);
+  h_adc_sum_ratio_lasrangle->SetXTitle("#theta_{laser} (deg.)");
+  h_adc_sum_ratio_lasrangle->SetYTitle("#phi_{laser} (deg.)");
+
+  h_num_sum_ratio_lasrangle = new TH2F("num_sum_ratio_lasrangle","RATIO of sum of hits for LASER 1 ONLY (RECO DIRECTION/MCTRUTH DIRECTION)",91,-0.5,90.5,361,-0.5,360.5);
+  h_num_sum_ratio_lasrangle->SetXTitle("#theta_{laser} (deg.)");
+  h_num_sum_ratio_lasrangle->SetYTitle("#phi_{laser} (deg.)");
+
   h_bright_hits_laser1 = new TNtuple("bright_hits_laser1","bright hits relative to laser 1","x:y:z:deltheta:delphi");
   h_bright_hits_laser2 = new TNtuple("bright_hits_laser2","bright hits relative to laser 2","x:y:z:deltheta:delphi");
   h_bright_hits_laser3 = new TNtuple("bright_hits_laser3","bright hits relative to laser 3","x:y:z:deltheta:delphi");
@@ -430,6 +476,11 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
   TrkrHitSetContainer::ConstRange hitsetrange = m_hit_map->getHitSets(TrkrDefs::TrkrId::tpcId);
 
   float max_adc = 0.;
+  float sum_adc_truth=0;
+  float sum_adc_truth_all=0;
+
+  float sum_n_hits_truth=0;
+  float sum_n_hits_truth_all=0;
 
   for(auto hitsetitr = hitsetrange.first; hitsetitr != hitsetrange.second; ++hitsetitr)
   {
@@ -453,6 +504,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     for (auto hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
       {
 	++m_total_hits;
+        sum_n_hits_truth_all++;
 
 	const unsigned short phibin = TpcDefs::getPad(hitr->first);
   const unsigned short zbin = TpcDefs::getTBin(hitr->first);
@@ -467,7 +519,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       
 	const TVector3 global(x,y,z);
 
-	float adc = (hitr->second->getAdc()) - m_pedestal; 
+	float adc = (hitr->second->getAdc()) - m_pedestal;
+        float adc_unsub = (hitr->second->getAdc()); 
+        sum_adc_truth_all += adc_unsub;
 /*
         if(h_hits && trkid == 0)
           {
@@ -478,10 +532,13 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 	
 	// calculate dca
 	// origin is track origin, direction is track direction
+        bool sameside = sameSign(global.z(),origin.z());
 	const TVector3 oc( global.x()-origin.x(), global.y()-origin.y(), global.z()-origin.z()  );  // vector from track origin to cluster
 	auto t = direction.Dot( oc )/square( direction.Mag() );
 	auto om = direction*t;     // vector from track origin to PCA
 	const auto dca = (oc-om).Mag();
+
+        if (sameside){ h_adc_vs_DCA_true->Fill(dca,adc);}
 
         //rotate displacement vector by the rotation of the coordinates:
         //oc2.RotateY(-theta_orig * trkzdir); //undoing rotation in PHG4TpcDirectLaser 
@@ -535,7 +592,6 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
         }
 */
 
-        bool sameside = sameSign(global.z(),origin.z());
         // relative angle histogram - only fill for hits in the same side as origin
 
         if(sameside){
@@ -609,7 +665,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 	// do not associate if dca is too large
 	if( dca > m_max_dca ) continue; 
 
-  ++m_matched_hits;
+        if(sameside){sum_n_hits_truth++;h_adc->Fill(adc);sum_adc_truth += adc_unsub;} //increment truth BUT ONLY for hits on the same side as origin CHARLES 10.31.23
+
+        ++m_matched_hits;
 /*
         if(h_assoc_hits){
           h_assoc_hits->Fill( x,y,z);
@@ -630,12 +688,33 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 	const auto cluspos_pair = std::make_pair(adc, global); 	
 	cluspos_map.insert(std::make_pair(layer, cluspos_pair));	
 	layer_bin_set.insert(layer);
-      }
+      } //end looping over hits
+  } //end looping over hitset
+
+  h_adc_sum->Fill(sum_adc_truth);
+  h_num_sum->Fill(sum_n_hits_truth);
+
+  if(sum_adc_truth_all > 0) // you MUST have hits in this to take ratio
+  {
+    h_adc_sum_ratio_true->Fill(sum_adc_truth/sum_adc_truth_all); //for a hits associated with the same laser fire take the ratio
+  }
+
+  if(sum_n_hits_truth_all > 0) // you MUST have hits in this to take ratio
+  {
+    h_num_sum_ratio_true->Fill(sum_n_hits_truth/sum_n_hits_truth_all); //for a hits associated with the same laser fire take the ratio
   }
 
   int maxbin;
   int deltheta_max, delphi_max, dummy_z;
 
+  float theta_reco =0;
+  float phi_reco =0;
+
+  float direction_reco;
+  if( trkid < 4 ){direction_reco = -1;} //first four lasers are on positive z readout plane, and shoot towards negative z
+  else{direction_reco = 1;} // next four lasers are on negative z readout plane and shoot towards positive z
+
+  TVector3 dir(0, 0, direction_reco); //unit vector starts out pointing along z axis
 
   if( (trkid == 0 && h_deltheta_delphi_1->GetEntries() > 0) && max_adc > 10)
   {
@@ -652,6 +731,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 
     h_relangle_theta_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_1->GetXaxis()->GetBinCenter(deltheta_max)-(theta_trk*(180./M_PI)) );
     h_relangle_phi_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_1->GetYaxis()->GetBinCenter(delphi_max)-(phi_trk*(180./M_PI)) );
+
+    theta_reco = h_deltheta_delphi_1->GetXaxis()->GetBinCenter(deltheta_max) * (M_PI/180); //convert to radians
+    phi_reco = h_deltheta_delphi_1->GetYaxis()->GetBinCenter(delphi_max) * (M_PI/180); //convert to radians
   }
 
   else if( (trkid == 1 && h_deltheta_delphi_2->GetEntries() > 0) && max_adc > 10 )
@@ -669,6 +751,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 
     //h_relangle_theta_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_2->GetXaxis()->GetBinCenter(deltheta_max)-(theta_trk*(180./M_PI)) );
     //h_relangle_phi_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_2->GetYaxis()->GetBinCenter(delphi_max)-(phi_trk*(180./M_PI)) );
+
+    theta_reco = h_deltheta_delphi_2->GetXaxis()->GetBinCenter(deltheta_max) * (M_PI/180); //convert to radians
+    phi_reco = h_deltheta_delphi_2->GetYaxis()->GetBinCenter(delphi_max) * (M_PI/180); //convert to radians
   }
 
   else if( (trkid == 2 && h_deltheta_delphi_3->GetEntries() > 0) && max_adc > 10 )
@@ -686,6 +771,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 
     //h_relangle_theta_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_3->GetXaxis()->GetBinCenter(deltheta_max)-(theta_trk*(180./M_PI)) );
     //h_relangle_phi_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_3->GetYaxis()->GetBinCenter(delphi_max)-(phi_trk*(180./M_PI)) );
+
+    theta_reco = h_deltheta_delphi_3->GetXaxis()->GetBinCenter(deltheta_max) * (M_PI/180); //convert to radians
+    phi_reco = h_deltheta_delphi_3->GetYaxis()->GetBinCenter(delphi_max) * (M_PI/180); //convert to radians
   }
 
   else if( (trkid == 3 && h_deltheta_delphi_4->GetEntries() > 0) && max_adc > 10 )
@@ -703,6 +791,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 
     //h_relangle_theta_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_4->GetXaxis()->GetBinCenter(deltheta_max)-(theta_trk*(180./M_PI)) );
     //h_relangle_phi_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_4->GetYaxis()->GetBinCenter(delphi_max)-(phi_trk*(180./M_PI)) );
+
+    theta_reco = h_deltheta_delphi_4->GetXaxis()->GetBinCenter(deltheta_max) * (M_PI/180); //convert to radians
+    phi_reco = h_deltheta_delphi_4->GetYaxis()->GetBinCenter(delphi_max) * (M_PI/180); //convert to radians
   }
 
   else if( (trkid == 4 && h_deltheta_delphi_5->GetEntries() > 0) && max_adc > 10 )
@@ -720,6 +811,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 
     //h_relangle_theta_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_5->GetXaxis()->GetBinCenter(deltheta_max)-(theta_trk*(180./M_PI)) );
     //h_relangle_phi_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_5->GetYaxis()->GetBinCenter(delphi_max)-(phi_trk*(180./M_PI)) );
+
+    theta_reco = h_deltheta_delphi_5->GetXaxis()->GetBinCenter(deltheta_max) * (M_PI/180); //convert to radians
+    phi_reco = h_deltheta_delphi_5->GetYaxis()->GetBinCenter(delphi_max) * (M_PI/180); //convert to radians
   }
 
   else if( (trkid == 5 && h_deltheta_delphi_6->GetEntries() > 0) && max_adc > 10 )
@@ -737,6 +831,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 
     //h_relangle_theta_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_6->GetXaxis()->GetBinCenter(deltheta_max)-(theta_trk*(180./M_PI)) );
     //h_relangle_phi_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_6->GetYaxis()->GetBinCenter(delphi_max)-(phi_trk*(180./M_PI)) );
+
+    theta_reco = h_deltheta_delphi_6->GetXaxis()->GetBinCenter(deltheta_max) * (M_PI/180); //convert to radians
+    phi_reco = h_deltheta_delphi_6->GetYaxis()->GetBinCenter(delphi_max) * (M_PI/180); //convert to radians
   }
 
   else if( (trkid == 6 && h_deltheta_delphi_7->GetEntries() > 0) && max_adc > 10 )
@@ -754,6 +851,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 
     //h_relangle_theta_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_7->GetXaxis()->GetBinCenter(deltheta_max)-(theta_trk*(180./M_PI)) );
     //h_relangle_phi_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_7->GetYaxis()->GetBinCenter(delphi_max)-(phi_trk*(180./M_PI)) );
+
+    theta_reco = h_deltheta_delphi_7->GetXaxis()->GetBinCenter(deltheta_max) * (M_PI/180); //convert to radians
+    phi_reco = h_deltheta_delphi_7->GetYaxis()->GetBinCenter(delphi_max) * (M_PI/180); //convert to radians
   }
 
   else if( (trkid == 7 && h_deltheta_delphi_8->GetEntries() > 0) && max_adc > 10 )
@@ -771,9 +871,127 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 
     //h_relangle_theta_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_8->GetXaxis()->GetBinCenter(deltheta_max)-(theta_trk*(180./M_PI)) );
     //h_relangle_phi_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),h_deltheta_delphi_8->GetYaxis()->GetBinCenter(delphi_max)-(phi_trk*(180./M_PI)) );
+
+    theta_reco = h_deltheta_delphi_8->GetXaxis()->GetBinCenter(deltheta_max) * (M_PI/180); //convert to radians
+    phi_reco = h_deltheta_delphi_8->GetYaxis()->GetBinCenter(delphi_max) * (M_PI/180); //convert to radians
   }
 
+  // Determining Vector for reconstructed laser direction
+  dir.RotateY(theta_reco* direction_reco);
+  if(direction_reco == -1) dir.RotateZ(phi_reco); //if +z facing -z
+  else dir.RotateZ(-phi_reco); //if -z facting +z
+  dir.RotateZ(phi_orig); //rotate by the laser coordinate
 
+  //////    print out the reconstructed track direction ////////////////////////////////////////////
+
+  TVector3 direction2_reco( dir.Px(), dir.Py(), dir.Pz() );
+
+  float theta_trk_reco = dir.Theta();
+  direction2_reco.RotateZ(-phi_orig);
+  float   phi_trk_reco = direction2_reco.Phi();
+
+  if(theta_trk_reco > M_PI/2.) theta_trk_reco = M_PI - theta_trk_reco;
+
+  //if(  phi_trk < 0) phi_trk*=-1;
+
+  while( phi_trk_reco < m_phimin ) phi_trk_reco += 2.*M_PI; 
+  while( phi_trk_reco >= m_phimax ) phi_trk_reco -= 2.*M_PI; 
+
+  //const double xo = track->get_x();
+  //const double yo = track->get_y();
+  //const double zo = track->get_z();
+
+  //if( phi_orig < 0 )phi_orig += 2.*M_PI;
+
+  if( track->get_id() > 3 ){ phi_trk_reco = (2 * M_PI) - phi_trk_reco;}
+
+  std::cout << "RECONSTRUCTED Track Angle Direction - Theta: " << theta_trk_reco*(180./M_PI) << ", Phi: " << phi_trk_reco*(180./M_PI) << std::endl;
+
+  ////////////////////////////////////////////////
+
+  //now loop over hits AGAIN and get ADC spectrum
+
+  float sum_adc_reco=0;
+  float sum_n_hits_reco=0;
+
+  for(auto hitsetitr = hitsetrange.first; hitsetitr != hitsetrange.second; ++hitsetitr)
+  {
+    const TrkrDefs::hitsetkey& hitsetkey_2 = hitsetitr->first;
+    const int side_2 = TpcDefs::getSide(hitsetkey_2);
+    
+    auto hitset_2 = hitsetitr->second;
+    const unsigned int layer_2 = TrkrDefs::getLayer(hitsetkey_2);
+    const auto layergeom_2 = m_geom_container->GetLayerCellGeom(layer_2);
+    const auto layer_center_radius_2 = layergeom_2->get_radius();
+    
+    // maximum drift time.
+    /* it is needed to calculate a given hit position from its drift time */
+    static constexpr double AdcClockPeriod_2 = 53.0;   // ns 
+    const unsigned short NTBins_2 = (unsigned short)layergeom_2->get_zbins();
+    const float tdriftmax_2 =  AdcClockPeriod_2 * NTBins_2 / 2.0;
+
+    // get corresponding hits
+    TrkrHitSet::ConstRange hitrangei_2 = hitset_2->getHits();
+    
+    for (auto hitr = hitrangei_2.first; hitr != hitrangei_2.second; ++hitr)
+    {
+
+	const unsigned short phibin_2 = TpcDefs::getPad(hitr->first);
+        const unsigned short zbin_2 = TpcDefs::getTBin(hitr->first);
+
+	const double phi_2 = layergeom_2->get_phicenter(phibin_2);
+        const double x_2 = layer_center_radius_2 * cos(phi_2);
+        const double y_2 = layer_center_radius_2 * sin(phi_2);
+  
+        const double zdriftlength_2 = layergeom_2->get_zcenter(zbin_2)*m_tGeometry->get_drift_velocity();
+        double z_2  =  tdriftmax_2*m_tGeometry->get_drift_velocity() - zdriftlength_2;
+        if(side_2 == 0)  z_2 *= -1;
+      
+	const TVector3 global_2(x_2,y_2,z_2);
+
+        bool sameside_reco = sameSign(global_2.z(),origin.z());
+
+	float adc_2 = (hitr->second->getAdc()) - m_pedestal;
+        float adc_2_unsub = (hitr->second->getAdc());
+	
+	// calculate dca
+	// origin is track origin, direction is track direction
+	const TVector3 oc_2( global_2.x()-origin.x(), global_2.y()-origin.y(), global_2.z()-origin.z()  );  // vector from track origin to cluster
+	auto t_2 = dir.Dot( oc_2 )/square( dir.Mag() );
+	auto om_2 = dir*t_2;     // vector from track origin to PCA
+	const auto dca_2 = (oc_2-om_2).Mag();
+
+        if( dca_2 > m_max_dca ) continue; // do not record if hit is outside DCA, proceed to next hit
+        if(sameside_reco){sum_n_hits_reco++;h_adc_reco->Fill(adc_2);sum_adc_reco += adc_2_unsub;} //increment reco but only if hits are on the same side
+/*
+        if(h_hits_reco && trkid == 0)
+        {
+            h_hits_reco->Fill(x_2,y_2,z_2,adc_2);
+        }
+*/
+    } //end loop over hits again
+  } //end loop over hitset again
+
+  h_adc_sum_reco->Fill(sum_adc_reco);
+  h_num_sum_reco->Fill(sum_n_hits_reco);
+
+  if(sum_adc_truth > 0) // you MUST have hits in this to take ratio
+  {
+    h_adc_sum_ratio->Fill(sum_adc_reco/sum_adc_truth); //for a hits associated with the same laser fire take the ratio
+    if( trkid == 0 ) //for laser 1 only, show me WHERE we are messing up reconstruction
+    {
+      h_adc_sum_ratio_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),(sum_adc_reco/sum_adc_truth));
+    }
+  }
+
+  if(sum_n_hits_truth > 0) // you MUST have hits in this to take ratio
+  {
+    h_num_sum_ratio->Fill(sum_n_hits_reco/sum_n_hits_truth); //for a hits associated with the same laser fire take the ratio
+    if( trkid == 0 ) //for laser 1 only, show me WHERE we are messing up reconstruction
+    {
+      h_num_sum_ratio_lasrangle->Fill(theta_trk*(180./M_PI),phi_trk*(180./M_PI),(sum_n_hits_reco/sum_n_hits_truth));
+    }
+  }
 
   for(int GEMS_iter = 0; GEMS_iter < 72; GEMS_iter++)
   {
