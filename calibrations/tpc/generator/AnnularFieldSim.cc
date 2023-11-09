@@ -2524,7 +2524,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, TVector3 pos, char w
   TString plotfilename = TString::Format("%s.%cfield_slices.pdf", filebase, which);
   TVector3 inner = GetInnerEdge();
   TVector3 outer = GetOuterEdge();
-  TVector3 step = GetFieldStep();
+  TVector3 steplocal = GetFieldStep();
 
   TCanvas *c;
 
@@ -2657,11 +2657,11 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
   //they do not try to interpolate across the CM.
 
   //1) pick a map spacing ('s')
-  TVector3 s(step.Perp() / r_subsamples, 0, step.Z() / z_subsamples);
-  s.SetPhi(step.Phi() / p_subsamples);
-  float deltar = s.Perp();  //(rf-ri)/nr;
-  float deltap = s.Phi();   //(pf-pi)/np;
-  float deltaz = s.Z();     //(zf-zi)/nz;
+  TVector3 steplocal(step.Perp() / r_subsamples, 0, step.Z() / z_subsamples);
+  steplocal.SetPhi(step.Phi() / p_subsamples);
+  float deltar = steplocal.Perp();  //(rf-ri)/nr;
+  float deltap = steplocal.Phi();   //(pf-pi)/np;
+  float deltaz = steplocal.Z();     //(zf-zi)/nz;
   bool rdrswitch=RdeltaRswitch;
   TVector3 stepzvec(0, 0, deltaz);
 
@@ -2672,8 +2672,8 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
   if (hasTwin) nSides = 2;
   //idea for a faster way to build a map:
 
-  //2) generate the distortions s.Z() away from the readout
-  //3) generate the distortion from (i)*s.Z() away to (i-1) away, then add the interpolated value from the (i-1) layer
+  //2) generate the distortions steplocal.Z() away from the readout
+  //3) generate the distortion from (i)*steplocal.Z() away to (i-1) away, then add the interpolated value from the (i-1) layer
 
   //for interpolation, Henry needs one extra buffer bin on each side.
 
@@ -2685,12 +2685,12 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
   int nrh = nr * r_subsamples + 2;    //number of r bins in the histogram
   int nzh = nz * z_subsamples + 2;    //number of z you get the idea.
 
-  float rih = lowerEdge.Perp() - 0.5 * step.Perp() - s.Perp();             //lower bound of roi, minus one
-  float rfh = upperEdge.Perp() + 0.5 * step.Perp() + s.Perp();             //upper bound of roi, plus one
-  float pih = FilterPhiPos(lowerEdge.Phi()) - 0.5 * step.Phi() - s.Phi();  //can't automate this or we'll run afoul of phi looping.
-  float pfh = FilterPhiPos(upperEdge.Phi()) + 0.5 * step.Phi() + s.Phi();  //can't automate this or we'll run afoul of phi looping.
-  float zih = lowerEdge.Z() - 0.5 * step.Z() - s.Z();                      //lower bound of roi, minus one
-  float zfh = upperEdge.Z() + 0.5 * step.Z() + s.Z();                      //upper bound of roi, plus one
+  float rih = lowerEdge.Perp() - 0.5 * step.Perp() - steplocal.Perp();             //lower bound of roi, minus one
+  float rfh = upperEdge.Perp() + 0.5 * step.Perp() + steplocal.Perp();             //upper bound of roi, plus one
+  float pih = FilterPhiPos(lowerEdge.Phi()) - 0.5 * step.Phi() - steplocal.Phi();  //can't automate this or we'll run afoul of phi looping.
+  float pfh = FilterPhiPos(upperEdge.Phi()) + 0.5 * step.Phi() + steplocal.Phi();  //can't automate this or we'll run afoul of phi looping.
+  float zih = lowerEdge.Z() - 0.5 * step.Z() - steplocal.Z();                      //lower bound of roi, minus one
+  float zfh = upperEdge.Z() + 0.5 * step.Z() + steplocal.Z();                      //upper bound of roi, plus one
   float z_readout = upperEdge.Z() + 0.5 * step.Z();                        //readout plane.  Note we assume this is positive.
 
   printf("generating distortion map...\n");
@@ -2766,13 +2766,13 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
 	   //monitor plots, and the position that that plot monitors at:
 
   //TVector3 pos((nrh/2+0.5)*s.Perp()+rih,0,(nzh/2+0.5)*s.Z()+zih);
-  TVector3 pos(((int) (nrh / 2) + 0.5) * s.Perp() + rih, 0, zmin + ((int) (nz / 2) + 0.5) * step.Z());
-  float posphi = ((int) (nph / 2) + 0.5) * s.Phi() + pih;
+  TVector3 pos(((int) (nrh / 2) + 0.5) * steplocal.Perp() + rih, 0, zmin + ((int) (nz / 2) + 0.5) * step.Z());
+  float posphi = ((int) (nph / 2) + 0.5) * steplocal.Phi() + pih;
   pos.SetPhi(posphi);
   //int xi[3]={nrh/2,nph/2,nzh/2};
-  int xi[3] = {(int) floor((pos.Perp() - rih) / s.Perp()), (int) floor((posphi - pih) / s.Phi()), (int) floor((pos.Z() - zih) / s.Z())};
+  int xi[3] = {(int) floor((pos.Perp() - rih) / steplocal.Perp()), (int) floor((posphi - pih) / steplocal.Phi()), (int) floor((pos.Z() - zih) / steplocal.Z())};
   if (!hasTwin) printf("rpz slice indices= (%d,%d,%d) (no twin)\n", xi[0], xi[1], xi[2]);
-  int twinz = (-pos.Z() - zih) / s.Z();
+  int twinz = (-pos.Z() - zih) / steplocal.Z();
   if (hasTwin) printf("rpz slice indices= (%d,%d,%d) twinz=%d\n", xi[0], xi[1], xi[2], twinz);
 
   const char axname[] = "rpzrpz";
