@@ -21,7 +21,6 @@ void SvtxTrackSeed_v2::CopyFrom( const TrackSeed& seed )
 
   m_silicon_seed = seed.get_silicon_seed_index();
   m_tpc_seed = seed.get_tpc_seed_index();
-  m_tpc_seed = seed.get_tpc_seed_index();
   m_crossing_estimate = seed.get_crossing_estimate();
 }
 
