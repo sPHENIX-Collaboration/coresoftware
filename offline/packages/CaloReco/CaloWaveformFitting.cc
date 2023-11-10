@@ -63,13 +63,10 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       }
     else
       {
-	auto h = new TH1F(Form("h_%d", (int) round(v.at(size1))), "", size1, -0.5, size1 - 0.5);
 	float maxheight = 0;
 	int maxbin = 0;
 	for (int i = 0; i < size1; i++)
 	  {
-	    h->SetBinContent(i + 1, v.at(i));
-	    h->SetBinError(i + 1, 1);
 	    if (v.at(i) > maxheight)
 	      {
 		maxheight = v.at(i);
@@ -93,7 +90,6 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
 	if (_bdosoftwarezerosuppression && maxheight - pedestal < _nsoftwarezerosuppression)
 	  {
 	    // std::cout << "software zero suppression happened " << std::endl;
-	    h->Delete();
 	    v.push_back(v.at(6) - v.at(0));
 	    v.push_back(-1);
 	    v.push_back(v.at(0));
@@ -101,6 +97,12 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
 	  }
 	else
 	  {
+	auto h = new TH1F(Form("h_%d", (int) round(v.at(size1))), "", size1, -0.5, size1 - 0.5);
+	for (int i = 0; i < size1; i++)
+	  {
+	    h->SetBinContent(i + 1, v.at(i));
+	    h->SetBinError(i + 1, 1);
+         }
       auto f = new TF1(Form("f_%d", (int) round(v.at(size1))), this,&CaloWaveformFitting::template_function, 0, 31, 3,"CaloWaveformFitting","template_function");
 	    ROOT::Math::WrappedMultiTF1 *fitFunction = new ROOT::Math::WrappedMultiTF1(*f, 3);
 	    ROOT::Fit::BinData data(v.size() - 1, 1);
