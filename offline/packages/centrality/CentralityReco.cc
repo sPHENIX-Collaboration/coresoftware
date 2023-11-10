@@ -2,8 +2,8 @@
 
 #include "CentralityInfov2.h"
 
-#include <bbc/MbdDefs.h>
-#include <bbc/MbdOutV1.h>
+#include <mbd/MbdDefs.h>
+#include <mbd/MbdOutV1.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -30,16 +30,17 @@
 #include <string>
 #include <vector>
 
+#include <ffamodules/CDBInterface.h>
+#include <cdbobjects/CDBTTree.h>
+
+#include <phool/phool.h>
+#include <phool/recoConsts.h>
+
 CentralityReco::CentralityReco(const std::string &name)
   : SubsysReco(name)
 {
-
-  const int centrality_map[20] = {1999, 1499, 1291, 1102, 937, 790, 660, 547, 449, 363, 289, 227, 174, 130, 94, 66, 45, 0, 0, 0};
-  for (int i = 0; i < 20; i++)
-  {
-    _centrality_map[i] = centrality_map[i];
-  }
-
+  _rc = recoConsts::instance();
+  _cdb = CDBInterface::instance();
 }
 
 CentralityReco::~CentralityReco()
@@ -49,6 +50,12 @@ CentralityReco::~CentralityReco()
 
 int CentralityReco::Init(PHCompositeNode * /*unused*/)
 {
+
+  _cdb = CDBInterface::instance();
+
+  std::string centdiv_url = _cdb->getUrl("Centrality");
+
+  Download_centralityDivisions(centdiv_url);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -63,14 +70,39 @@ int CentralityReco::InitRun(PHCompositeNode *topNode)
   return 0;
 }
 
+int CentralityReco::Download_centralityDivisions(const std::string& dbfile)
+{
+
+  for (int idiv = 0; idiv < NDIVS; idiv++)
+    _centrality_map[idiv] = 0;
+
+  TString dbase_file = dbfile;
+
+  if (dbase_file.EndsWith(".root"))
+    {
+      CDBTTree *cdbttree = new CDBTTree(dbase_file.Data());
+      cdbttree->LoadCalibrations();
+      for (int idiv = 0; idiv < NDIVS;idiv++)
+	{
+	  _centrality_map[idiv] = cdbttree->GetFloatValue(idiv,"centralitydiv");
+	  if (Verbosity()) std::cout << "centdiv "<<idiv<<" : "<<_centrality_map[idiv]<<std::endl;
+	}
+      delete cdbttree;
+    }
+  else 
+    {
+      std::cout << PHWHERE <<", ERROR, unknown file type, " << dbfile <<std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 void CentralityReco::ResetVars()
 {
   if (Verbosity() > 1)
   {
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
-  _tubes_hit_s = 0;
-  _tubes_hit_n = 0;
   _mbd_charge_sum = 0.;
   _mbd_charge_sum_n = 0.;
   _mbd_charge_sum_s = 0.;
@@ -91,9 +123,6 @@ int CentralityReco::FillVars()
   _mbd_charge_sum_n = _mbd_out->get_q(1);
 
   _mbd_charge_sum = _mbd_charge_sum_n + _mbd_charge_sum_s;
-
-  _tubes_hit_s = _mbd_out->get_npmt(0);
-  _tubes_hit_n = _mbd_out->get_npmt(1);
 
 
   if (Verbosity())
