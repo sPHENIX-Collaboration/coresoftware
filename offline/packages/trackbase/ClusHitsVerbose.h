@@ -2,7 +2,9 @@
 #define CLUSHITSVERBOSE__H
 
 #include "TrkrDefs.h"
+
 #include <phool/PHObject.h>
+
 #include <map>
 #include <vector>
 #include <array>
@@ -31,6 +33,11 @@ class ClusHitsVerbose : public PHObject
   virtual PairVector phiCutBins_pvecIE(TrkrDefs::cluskey);
   virtual PairVector zBins_pvecIE(TrkrDefs::cluskey);
   virtual PairVector zCutBins_pvecIE(TrkrDefs::cluskey);
+  virtual void addPhiHit(int, int) {return;}
+  virtual void addZHit(int, int) {return;}
+  virtual void addPhiCutHit(int, int) {return;}
+  virtual void addZCutHit(int, int) {return;}
+  virtual void push_hits (TrkrDefs::cluskey) {return;}
 
   // PHObject virtual overload
   void identify(std::ostream& os = std::cout) const override

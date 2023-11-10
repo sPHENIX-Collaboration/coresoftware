@@ -71,7 +71,7 @@ class MvtxEventInfo : public PHObject
  private:
   void warning(const std::string &func) const;
 
-  //ClassDefOverride(MvtxEventInfo, 1)
+  ClassDefOverride(MvtxEventInfo, 1)
 };
 
 #endif

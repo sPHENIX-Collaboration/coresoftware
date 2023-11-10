@@ -7,20 +7,25 @@
  */
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/MvtxDefs.h>
-#include <trackbase/MvtxEventInfov2.h>
-#include <trackbase/TrkrHitSetContainerv1.h>
+/* /\* #include <trackbase/MvtxDefs.h> */
+/* #include <trackbase/MvtxEventInfo.h> */
+/* #include <trackbase/TrkrHitSetContainer.h> */
 
-#include <ffarawobjects/MvtxRawHit.h>
-#include <ffarawobjects/MvtxRawHitContainer.h>
-#include <ffarawobjects/MvtxRawEvtHeaderv1.h>
+/* #include <ffarawobjects/MvtxRawHit.h> */
+/* #include <ffarawobjects/MvtxRawHitContainer.h> */
+/* #include <ffarawobjects/MvtxRawEvtHeader.h> */
 
 #include <memory>
 #include <string>
 #include <map>
 #include <vector>
 
+class MvtxEventInfo;
+class MvtxRawEvtHeader;
+class MvtxRawHitContainer;
+class MvtxRawHit;
 class PHCompositeNode;
+class TrkrHitSetContainer;
 
 /// mvtx raw data decoder
 class MvtxCombinedRawDataDecoder : public SubsysReco
@@ -47,13 +52,11 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
 
    void writeMvtxEventHeader(bool write){ m_writeMvtxEventHeader = write; }
 
-  protected:
-    void removeDuplicates(std::vector<std::pair<uint64_t, uint32_t>> &v);
-
   private:
+    void removeDuplicates(std::vector<std::pair<uint64_t, uint32_t>> &v);
     TrkrHitSetContainer* hit_set_container = nullptr;
-    MvtxEventInfov2* mvtx_event_header = nullptr;
-    MvtxRawEvtHeaderv1* mvtx_raw_event_header = nullptr;
+    MvtxEventInfo* mvtx_event_header = nullptr;
+    MvtxRawEvtHeader* mvtx_raw_event_header = nullptr;
     MvtxRawHitContainer* mvtx_hit_container = nullptr;
     MvtxRawHit* mvtx_hit = nullptr;
  
