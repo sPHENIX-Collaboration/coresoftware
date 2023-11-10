@@ -55,7 +55,11 @@ int CentralityReco::Init(PHCompositeNode * /*unused*/)
 
   std::string centdiv_url = _cdb->getUrl("Centrality");
 
-  Download_centralityDivisions(centdiv_url);
+  if (Download_centralityDivisions(centdiv_url)) return Fun4AllReturnCodes::ABORTRUN;
+
+  std::string centscale_url = _cdb->getUrl("CentralityScale");
+
+  if (Download_centralityScale(centscale_url)) return Fun4AllReturnCodes::ABORTRUN;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -68,6 +72,30 @@ int CentralityReco::InitRun(PHCompositeNode *topNode)
   }
   CreateNodes(topNode);
   return 0;
+}
+
+int CentralityReco::Download_centralityScale(const std::string& dbfile)
+{
+
+  _centrality_scale = 1.00;
+
+  TString dbase_file = dbfile;
+
+  if (dbase_file.EndsWith(".root"))
+    {
+      CDBTTree *cdbttree = new CDBTTree(dbase_file.Data());
+      cdbttree->LoadCalibrations();
+      _centrality_scale = cdbttree->GetDoubleValue(0,"centralityscale");
+      if (Verbosity()) std::cout << "centscale = "<<_centrality_scale << std::endl;
+      delete cdbttree;
+    }
+  else 
+    {
+      std::cout << PHWHERE <<", ERROR, unknown file type, " << dbfile <<std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int CentralityReco::Download_centralityDivisions(const std::string& dbfile)
@@ -97,6 +125,8 @@ int CentralityReco::Download_centralityDivisions(const std::string& dbfile)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
+
 void CentralityReco::ResetVars()
 {
   if (Verbosity() > 1)
@@ -122,7 +152,7 @@ int CentralityReco::FillVars()
 
   _mbd_charge_sum_n = _mbd_out->get_q(1);
 
-  _mbd_charge_sum = _mbd_charge_sum_n + _mbd_charge_sum_s;
+  _mbd_charge_sum = (_mbd_charge_sum_n + _mbd_charge_sum_s)*_centrality_scale;
 
 
   if (Verbosity())
