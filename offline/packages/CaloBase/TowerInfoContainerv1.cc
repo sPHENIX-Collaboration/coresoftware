@@ -51,6 +51,7 @@ TowerInfoContainerv1::~TowerInfoContainerv1()
 
 TowerInfoContainerv1::TowerInfoContainerv1(const TowerInfoContainerv1& source)
 {
+  _detector = source.get_detectorid();
   _clones = new TClonesArray("TowerInfov1", source.size());
   _clones->SetOwner();
   _clones->SetName("TowerInfoContainerv1");
