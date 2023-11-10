@@ -21,11 +21,13 @@ pkginclude_HEADERS = \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
   SingleEvtInput.h \
-  SingleMvtxInput.h \
+  SingleGl1PoolInput.h \
   SingleInttInput.h \
   SingleInttPoolInput.h \
   SingleMicromegasInput.h \
   SingleMicromegasPoolInput.h \
+  SingleMvtxInput.h \
+  SingleMvtxPoolInput.h \
   SinglePrdfInput.h \
   SingleStreamingInput.h \
   SingleTpcInput.h \
@@ -47,11 +49,13 @@ libfun4allraw_la_SOURCES = \
   intt_pool.cc \
   tpc_pool.cc \
   SingleEvtInput.cc \
-  SingleMvtxInput.cc \
+  SingleGl1PoolInput.cc \
   SingleInttInput.cc \
   SingleInttPoolInput.cc \
   SingleMicromegasInput.cc \
   SingleMicromegasPoolInput.cc \
+  SingleMvtxInput.cc \
+  SingleMvtxPoolInput.cc \
   SinglePrdfInput.cc \
   SingleStreamingInput.cc \
   SingleTpcPoolInput.cc \

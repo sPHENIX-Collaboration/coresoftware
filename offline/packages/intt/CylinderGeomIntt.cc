@@ -93,7 +93,7 @@ void CylinderGeomIntt::find_indices_from_world_location(int &segment_z_bin, int 
 {
   double signz = (location[2] > 0)? 1.  : -1;
   double phi = atan2(location[1], location[0]);
-  if(phi < 0) phi += 2.0*M_PI;
+  if(fabs(phi - m_OffsetPhi) > 0.01 && phi < 0) phi += 2.0*M_PI;
   double segment_phi_bin_tmp = (phi - m_OffsetPhi)/m_dPhi;
   segment_phi_bin = round(segment_phi_bin_tmp);
 
@@ -116,9 +116,11 @@ void CylinderGeomIntt::find_indices_from_segment_center(int &segment_z_bin, int 
 {
   double signz = (location[2] > 0)? 1.  : -1;
   double phi = atan2(location[1], location[0]);
-  if(phi < 0) phi += 2.0*M_PI;
+  if(fabs(phi - m_OffsetPhi) > 0.01 && phi < 0) phi += 2.0*M_PI;
   double segment_phi_bin_tmp = (phi - m_OffsetPhi)/m_dPhi;
   segment_phi_bin = lround(segment_phi_bin_tmp);
+
+  //  std::cout << "     phi " <<phi << " segment_phi_bin_tmp " <<  segment_phi_bin_tmp << " segment_phi_bin " << segment_phi_bin << " location " << location[0] << "  " << location[1] << "  " << location[2] << std::endl;
 
   double z_tmp = location[2]  / signz;
 

@@ -20,7 +20,8 @@ libg4mbd_la_LIBADD = \
   libg4mbd_io.la \
   -lmbd_io \
   -lg4detectors \
-  -lSubsysReco
+  -lSubsysReco \
+  -lglobalvertex_io
 
 pkginclude_HEADERS = \
   MbdDigitization.h \

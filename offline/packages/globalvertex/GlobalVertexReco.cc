@@ -3,15 +3,14 @@
 #include "GlobalVertex.h"     // for GlobalVertex, GlobalVe...
 #include "GlobalVertexMap.h"  // for GlobalVertexMap
 #include "GlobalVertexMapv1.h"
-#include "GlobalVertexv1.h"
-
-#include <mbd/MbdVertex.h>
-#include <mbd/MbdVertexMap.h>
+#include "GlobalVertexv2.h"
+#include "SvtxVertex.h"
+#include "SvtxVertexMap.h"
+#include "MbdVertex.h"
+#include "MbdVertexMap.h"
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
@@ -71,18 +70,18 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 
   // we will make 3 different kinds of global vertexes
-  //  (1) SVTX+BBC vertexes - we match SVTX vertex to the nearest BBC vertex within 3 sigma in zvertex
-  //      the spatial point comes from the SVTX, the timing from the BBC
-  //      number of SVTX+BBC vertexes <= number of SVTX vertexes
+  //  (1) SVTX+MBD vertexes - we match SVTX vertex to the nearest MBD vertex within 3 sigma in zvertex
+  //      the spatial point comes from the SVTX, the timing from the MBD
+  //      number of SVTX+MBD vertexes <= number of SVTX vertexes
 
-  //  (2) SVTX only vertexes - for those cases where the BBC wasn't simulated,
-  //      or all the BBC vertexes are outside the 3 sigma matching requirement
+  //  (2) SVTX only vertexes - for those cases where the MBD wasn't simulated,
+  //      or all the MBD vertexes are outside the 3 sigma matching requirement
   //      we pass forward the 3d point from the SVTX with the default timing info
 
-  //  (3) BBC/MBD only vertexes - use the default x,y positions on this module and
+  //  (3) MBD only vertexes - use the default x,y positions on this module and
   //      pull in the mbd z and mbd t
 
-  // there may be some quirks as we get to large luminosity and the BBC becomes
+  // there may be some quirks as we get to large luminosity and the MBD becomes
   // untrust worthy, I'm guessing analyzers would resort exclusively to (1) or (2)
   // in those cases
 
@@ -125,26 +124,12 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
 
       // we have a matching pair
-      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::VTXTYPE::SVTX_BBC);
+      GlobalVertex *vertex = new GlobalVertexv2();
+      vertex->set_id(globalmap->size());
 
-      for (unsigned int i = 0; i < 3; ++i)
-      {
-        vertex->set_position(i, svtx->get_position(i));
-        for (unsigned int j = i; j < 3; ++j)
-        {
-          vertex->set_error(i, j, svtx->get_error(i, j));
-        }
-      }
-
-      vertex->set_t(mbd_best->get_t());
-      vertex->set_t_err(mbd_best->get_t_err());
-
-      vertex->set_chisq(svtx->get_chisq());
-      vertex->set_ndof(svtx->get_ndof());
-
-      vertex->insert_vtxids(GlobalVertex::SVTX, svtx->get_id());
+      vertex->insert_vtx(GlobalVertex::SVTX, svtx);
+      vertex->insert_vtx(GlobalVertex::MBD, mbd_best);
       used_svtx_vtxids.insert(svtx->get_id());
-      vertex->insert_vtxids(GlobalVertex::BBC, mbd_best->get_id());
       used_mbd_vtxids.insert(mbd_best->get_id());
       vertex->set_id(globalmap->size());
 
@@ -192,23 +177,11 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
 
       // we have a standalone SVTX vertex
-      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::VTXTYPE::SVTX);
-
+      GlobalVertex *vertex = new GlobalVertexv2();
+      
       vertex->set_id(globalmap->size());
 
-      for (unsigned int i = 0; i < 3; ++i)
-      {
-        vertex->set_position(i, svtx->get_position(i));
-        for (unsigned int j = i; j < 3; ++j)
-        {
-          vertex->set_error(i, j, svtx->get_error(i, j));
-        }
-      }
-
-      vertex->set_chisq(svtx->get_chisq());
-      vertex->set_ndof(svtx->get_ndof());
-
-      vertex->insert_vtxids(GlobalVertex::SVTX, svtx->get_id());
+      vertex->insert_vtx(GlobalVertex::SVTX, svtx);
       used_svtx_vtxids.insert(svtx->get_id());
 
       //! Reset track ids to the new vertex object
@@ -230,7 +203,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
     }
   }
  
-  // okay now loop over all unused BBC vertexes (3rd class)...
+  // okay now loop over all unused MBD vertexes (3rd class)...
   if (mbdmap)
   {
     if (Verbosity())
@@ -253,31 +226,10 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         continue;
       }
 
-      GlobalVertex *vertex = new GlobalVertexv1(GlobalVertex::VTXTYPE::BBC);
+      GlobalVertex *vertex = new GlobalVertexv2();
       vertex->set_id(globalmap->size());
 
-      // nominal beam location
-      // could be replaced with a beam spot some day
-      vertex->set_x(_xdefault);
-      vertex->set_y(_ydefault);
-      vertex->set_z(mbd->get_z());
-
-      vertex->set_t(mbd->get_t());
-      vertex->set_t_err(mbd->get_t_err());
-
-      vertex->set_error(0, 0, pow(_xerr, 2));
-      vertex->set_error(0, 1, 0.0);
-      vertex->set_error(0, 2, 0.0);
-
-      vertex->set_error(1, 0, 0.0);
-      vertex->set_error(1, 1, pow(_yerr, 2));
-      vertex->set_error(1, 2, 0.0);
-
-      vertex->set_error(0, 2, 0.0);
-      vertex->set_error(1, 2, 0.0);
-      vertex->set_error(2, 2, pow(mbd->get_z_err(), 2));
-
-      vertex->insert_vtxids(GlobalVertex::BBC, mbd->get_id());
+      vertex->insert_vtx(GlobalVertex::MBD, mbd);
       used_mbd_vtxids.insert(mbd->get_id());
 
       globalmap->insert(vertex);

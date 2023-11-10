@@ -10,12 +10,13 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
+
 #include <trackbase/TrkrDefs.h>  // for cluskey
 
 #include <trackbase_historic/SvtxTrack.h>  // for SvtxTrack
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/TrackSeed.h>
 
 #include <g4main/PHG4Particle.h>

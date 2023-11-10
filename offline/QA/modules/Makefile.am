@@ -4,7 +4,7 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I$(OFFLINE_MAIN)/include/eigen3 \
-  -I`root-config --incdir`\
+  -isystem`root-config --incdir`\
   -DHomogeneousField
 
 lib_LTLIBRARIES = \

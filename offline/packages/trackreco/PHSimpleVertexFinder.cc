@@ -7,9 +7,9 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
+
+#include <globalvertex/SvtxVertex_v2.h>
+#include <globalvertex/SvtxVertexMap_v1.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNode.h>
@@ -151,7 +151,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 
   for(auto it : _vertex_set)
     {
-      auto svtxVertex = std::make_unique<SvtxVertex_v1>();
+      auto svtxVertex = std::make_unique<SvtxVertex_v2>();
 
       svtxVertex->set_chisq(0.0);
       svtxVertex->set_ndof(0);

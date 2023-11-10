@@ -5,14 +5,14 @@
 
 //#include <array>
 //#include <list>
-#include <map>
 #include <algorithm>
+#include <map>
 //#include <set>
 //#include <string>
 #include <vector>
 //
-//class Eventiterator;
-//class Fun4AllEvtInputPoolManager;
+// class Eventiterator;
+// class Fun4AllEvtInputPoolManager;
 class MvtxRawHit;
 class Packet;
 
@@ -23,27 +23,27 @@ typedef struct linkId
   uint32_t gbtid = 0xFF;
 } LinkId_t;
 
-//struct MvtxL1Trg
+// struct MvtxL1Trg
 //{
-//  uint64_t bco : 40; // 40 bits gl1/gtm bco
-//  uint16_t bc  : 12; // 12 bits mvtx internal bc counter
+//   uint64_t bco : 40; // 40 bits gl1/gtm bco
+//   uint16_t bc  : 12; // 12 bits mvtx internal bc counter
 //
-//  MvtxL1Trg() = default;
-//  ~MvtxL1Trg() = default;
+//   MvtxL1Trg() = default;
+//   ~MvtxL1Trg() = default;
 //
-//  MvtxL1Trg(uint64_t _bco, uint16_t _bc) : bco(_bco), bc(_bc) {};
+//   MvtxL1Trg(uint64_t _bco, uint16_t _bc) : bco(_bco), bc(_bc) {};
 //
-//  bool operator<(const MvtxL1Trg& other) const
-//  {
-//    return (bco == other.bco) ? (bc < other.bc) : (bco < other.bco);
-//  }
+//   bool operator<(const MvtxL1Trg& other) const
+//   {
+//     return (bco == other.bco) ? (bc < other.bc) : (bco < other.bco);
+//   }
 //
-//  bool operator==(const MvtxL1Trg& other) const
-//  {
-//    return (bco == other.bco) ? (bc == other.bc) : false;
-//  }
+//   bool operator==(const MvtxL1Trg& other) const
+//   {
+//     return (bco == other.bco) ? (bc == other.bc) : false;
+//   }
 //
-//};
+// };
 
 class SingleMvtxInput : public SingleStreamingInput
 {
@@ -58,10 +58,10 @@ class SingleMvtxInput : public SingleStreamingInput
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
-  std::set<int>& getFeeIdSet(const uint64_t& bco) { return m_BeamClockFEE[bco]; };
+  std::set<int> &getFeeIdSet(const uint64_t &bco) { return m_BeamClockFEE[bco]; };
 
  protected:
-  LinkId_t DecodeFeeid(const uint16_t& feeid)
+  LinkId_t DecodeFeeid(const uint16_t &feeid)
   {
     LinkId_t ret = {};
     ret.layer = (feeid >> 12) & 0x7;
@@ -78,8 +78,7 @@ class SingleMvtxInput : public SingleStreamingInput
   std::map<int, uint64_t> m_FEEBclkMap;
   std::map<int, uint64_t> m_FeeStrobeMap;
   std::set<uint64_t> m_BclkStack;
-  std::set<uint64_t> gtmL1BcoSet; // GTM L1 BCO
-
+  std::set<uint64_t> gtmL1BcoSet;  // GTM L1 BCO
 };
 
 #endif

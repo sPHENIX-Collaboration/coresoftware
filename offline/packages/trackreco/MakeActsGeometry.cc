@@ -620,7 +620,7 @@ MakeActsGeometry::build(const boost::program_options::variables_map& vm,
       Acts::MaterialMapJsonConverter::Config jsonGeoConvConfig;
       // Set up the json-based decorator
       matDeco = std::make_shared<const Acts::JsonMaterialDecorator>(
-	   jsonGeoConvConfig, fileName, Acts::Logging::INFO);
+	   jsonGeoConvConfig, fileName, Acts::Logging::FATAL);
     } 
   else
     {
@@ -632,6 +632,10 @@ MakeActsGeometry::build(const boost::program_options::variables_map& vm,
   config.elementFactory = sPHENIXElementFactory;
 
   config.fileName = vm["geo-tgeo-filename"].as<std::string>();
+
+  config.surfaceLogLevel = Acts::Logging::FATAL;
+  config.layerLogLevel = Acts::Logging::FATAL;
+  config.volumeLogLevel = Acts::Logging::FATAL;
 
   const auto path = vm["geo-tgeo-jsonconfig"].template as<std::string>();
 
@@ -906,7 +910,7 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
         unsigned int ladderPhi = InttDefs::getLadderPhiId(hitsetkey);
         unsigned int ladderZ = InttDefs::getLadderZId(hitsetkey);
 
-        std::cout << "Layer radius " << layer_rad << " layer " << layer << " ladderPhi " << ladderPhi << " ladderZ " << ladderZ
+        std::cout << "Layer radius " << layer_rad << " layer " << layer << " ladderPhi " << ladderPhi << " ladderZ " << ladderZ << " hitsetkey " << hitsetkey 
                   << " recover surface from m_clusterSurfaceMapSilicon " << std::endl;
         std::cout << " surface type " << surf->type() << std::endl;
         auto assoc_layer = surf->associatedLayer();

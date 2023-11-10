@@ -1,10 +1,8 @@
 
 #include "MbdVertexFastSimReco.h"
 
-#include <mbd/MbdVertex.h>     // for MbdVertex
-#include <mbd/MbdVertexMap.h>  // for MbdVertexMap
-#include <mbd/MbdVertexMapv1.h>
-#include <mbd/MbdVertexv1.h>
+#include <globalvertex/MbdVertexMapv1.h>
+#include <globalvertex/MbdVertexv2.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
@@ -105,7 +103,7 @@ int MbdVertexFastSimReco::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  MbdVertex *vertex = new MbdVertexv1();
+  MbdVertex *vertex = new MbdVertexv2();
 
   if (m_T_Smear >= 0.0)
   {

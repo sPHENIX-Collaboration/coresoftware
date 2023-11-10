@@ -39,7 +39,11 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
   }
   while (GetEventiterator() == nullptr)  // at startup this is a null pointer
   {
-    OpenNextFile();
+    if (!OpenNextFile())
+    {
+      AllDone(1);
+      return;
+    }
   }
 //  std::set<uint64_t> saved_beamclocks;
    while (GetSomeMoreEvents())
@@ -67,6 +71,7 @@ void SingleTpcInput::FillPool(const unsigned int /*nbclks*/)
     if (evt->getEvtType() != DATAEVENT)
     {
       m_NumSpecialEvents++;
+      continue;
     }
     int EventSequence = evt->getEvtSequence();
     int npackets = evt->getPacketList(plist, 10);

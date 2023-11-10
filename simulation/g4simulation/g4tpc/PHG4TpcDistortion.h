@@ -110,6 +110,7 @@ class PHG4TpcDistortion
   TH3 *hDRint[2] = {nullptr, nullptr};
   TH3 *hDPint[2] = {nullptr, nullptr};
   TH3 *hDZint[2] = {nullptr, nullptr};
+  TH3 *hReach[2] = {nullptr, nullptr};
   //@}
 
   //!@name time ordered histograms
@@ -121,6 +122,7 @@ class PHG4TpcDistortion
   TH3 *TimehDR[2] = {nullptr, nullptr};
   TH3 *TimehDP[2] = {nullptr, nullptr};
   TH3 *TimehDZ[2] = {nullptr, nullptr};
+  TH3 *TimehRR[2] = {nullptr, nullptr};
   //@}
 };
 

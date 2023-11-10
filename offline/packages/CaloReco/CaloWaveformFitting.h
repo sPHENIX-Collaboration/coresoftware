@@ -51,6 +51,7 @@ class CaloWaveformFitting
   bool _bdosoftwarezerosuppression = false;
   std::string m_template_input_file;
   std::string url_template;
+  double m_peakTimeTemp = 0;
 
   std::string url_onnx;
   std::string m_model_name;

@@ -30,6 +30,7 @@ std::vector<Jet *> TrackJetInput::get_input(PHCompositeNode *topNode)
   if (Verbosity() > 0) std::cout << "TrackJetInput::process_event -- entered" << std::endl;
 
   // Pull the reconstructed track information off the node tree...
+
   SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_NodeName);
   if (!trackmap)
   {

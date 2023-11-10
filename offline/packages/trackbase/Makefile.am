@@ -53,6 +53,8 @@ pkginclude_HEADERS = \
   ClusHitsVerbosev1.h \
   ClusterErrorPara.h \
   InttDefs.h \
+  InttEventInfo.h \
+  InttEventInfov1.h \
   MvtxDefs.h \
   MvtxEventInfo.h \
   MvtxEventInfov1.h \
@@ -117,6 +119,8 @@ ROOTDICTS = \
   CMFlashDifferencev1_Dict.cc \
   ClusHitsVerbose_Dict.cc \
   ClusHitsVerbosev1_Dict.cc \
+  InttEventInfo_Dict.cc \
+  InttEventInfov1_Dict.cc \
   MvtxEventInfo_Dict.cc \
   MvtxEventInfov1_Dict.cc \
   RawHitSetContainer_Dict.cc \
@@ -175,6 +179,8 @@ nobase_dist_pcm_DATA = \
   CMFlashDifferencev1_Dict_rdict.pcm \
   ClusHitsVerbose_Dict_rdict.pcm \
   ClusHitsVerbosev1_Dict_rdict.pcm \
+  InttEventInfo_Dict_rdict.pcm \
+  InttEventInfov1_Dict_rdict.pcm \
   MvtxEventInfo_Dict_rdict.pcm \
   MvtxEventInfov1_Dict_rdict.pcm \
   RawHitSetContainer_Dict_rdict.pcm \
@@ -235,6 +241,8 @@ libtrack_io_la_SOURCES = \
   ClusHitsVerbose.cc \
   ClusHitsVerbosev1.cc \
   InttDefs.cc \
+  InttEventInfo.cc \
+  InttEventInfov1.cc \
   MvtxDefs.cc \
   MvtxEventInfo.cc \
   MvtxEventInfov1.cc \

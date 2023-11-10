@@ -49,11 +49,8 @@ int QAG4SimulationJet::InitRun(PHCompositeNode* topNode)
 {
   if (flag(kProcessTruthMatching) || flag(kProcessRecoSpectrum))
   {
-    for (std::set<std::string>::const_iterator it_reco_jets = _reco_jets.begin();
-         it_reco_jets != _reco_jets.end(); ++it_reco_jets)
+    for (const auto& reco_jet : _reco_jets)
     {
-      const std::string& reco_jet = *it_reco_jets;
-
       jetevalstacks_map::iterator it_jetevalstack = _jetevalstacks.find(
           reco_jet);
 
@@ -74,7 +71,9 @@ int QAG4SimulationJet::InitRun(PHCompositeNode* topNode)
   if (flag(kProcessTruthSpectrum))
   {
     if (not _jettrutheval)
+    {
       _jettrutheval = std::shared_ptr<JetTruthEval>(new JetTruthEval(topNode, _truth_jet));
+    }
 
     assert(_jettrutheval);
     _jettrutheval->set_strict(true);
@@ -92,33 +91,35 @@ int QAG4SimulationJet::Init(PHCompositeNode* topNode)
   if (flag(kProcessTruthSpectrum))
   {
     if (Verbosity() >= 1)
+    {
       std::cout << "QAG4SimulationJet::Init - Process TruthSpectrum " << _truth_jet
                 << std::endl;
+    }
     Init_Spectrum(topNode, _truth_jet);
   }
 
   if (flag(kProcessRecoSpectrum))
   {
-    for (std::set<std::string>::const_iterator it_reco_jets = _reco_jets.begin();
-         it_reco_jets != _reco_jets.end(); ++it_reco_jets)
+    for (const auto& reco_jet : _reco_jets)
     {
-      const std::string& reco_jet = *it_reco_jets;
       if (Verbosity() >= 1)
+      {
         std::cout << "QAG4SimulationJet::Init - Process Reco jet spectrum "
                   << reco_jet << std::endl;
+      }
       Init_Spectrum(topNode, reco_jet);
     }
   }
 
   if (flag(kProcessTruthMatching))
   {
-    for (std::set<std::string>::const_iterator it_reco_jets = _reco_jets.begin();
-         it_reco_jets != _reco_jets.end(); ++it_reco_jets)
+    for (const auto& reco_jet : _reco_jets)
     {
-      const std::string& reco_jet = *it_reco_jets;
       if (Verbosity() >= 1)
+      {
         std::cout << "QAG4SimulationJet::Init - Process Reco jet spectrum "
                   << reco_jet << std::endl;
+      }
       Init_TruthMatching(topNode, reco_jet);
     }
   }
@@ -129,7 +130,9 @@ int QAG4SimulationJet::Init(PHCompositeNode* topNode)
 int QAG4SimulationJet::process_event(PHCompositeNode* topNode)
 {
   if (Verbosity() > 2)
+  {
     std::cout << "QAG4SimulationJet::process_event() entered" << std::endl;
+  }
 
   for (jetevalstacks_map::iterator it_jetevalstack = _jetevalstacks.begin();
        it_jetevalstack != _jetevalstacks.end(); ++it_jetevalstack)
@@ -138,40 +141,44 @@ int QAG4SimulationJet::process_event(PHCompositeNode* topNode)
     it_jetevalstack->second->next_event(topNode);
   }
   if (_jettrutheval)
+  {
     _jettrutheval->next_event(topNode);
+  }
 
   if (flag(kProcessTruthSpectrum))
   {
     if (Verbosity() >= 1)
+    {
       std::cout << "QAG4SimulationJet::process_event - Process TruthSpectrum "
                 << _truth_jet << std::endl;
+    }
     process_Spectrum(topNode, _truth_jet, false);
   }
 
   if (flag(kProcessRecoSpectrum))
   {
-    for (std::set<std::string>::const_iterator it_reco_jets = _reco_jets.begin();
-         it_reco_jets != _reco_jets.end(); ++it_reco_jets)
+    for (const auto& reco_jet : _reco_jets)
     {
-      const std::string& reco_jet = *it_reco_jets;
       if (Verbosity() >= 1)
+      {
         std::cout
             << "QAG4SimulationJet::process_event - Process Reco jet spectrum "
             << reco_jet << std::endl;
+      }
       process_Spectrum(topNode, reco_jet, true);
     }
   }
 
   if (flag(kProcessTruthMatching))
   {
-    for (std::set<std::string>::const_iterator it_reco_jets = _reco_jets.begin();
-         it_reco_jets != _reco_jets.end(); ++it_reco_jets)
+    for (const auto& reco_jet : _reco_jets)
     {
-      const std::string& reco_jet = *it_reco_jets;
       if (Verbosity() >= 1)
+      {
         std::cout
             << "QAG4SimulationJet::process_event - Process Reco jet spectrum "
             << reco_jet << std::endl;
+      }
       process_TruthMatching(topNode, reco_jet);
     }
   }
@@ -183,7 +190,9 @@ int QAG4SimulationJet::process_event(PHCompositeNode* topNode)
 void QAG4SimulationJet::set_eta_range(double low, double high)
 {
   if (low > high)
+  {
     std::swap(low, high);
+  }
   assert(low < high);  // eliminate zero range
 
   eta_range.first = low;
@@ -196,15 +205,14 @@ TString
 QAG4SimulationJet::get_eta_range_str(const char* eta_name) const
 {
   assert(eta_name);
-  return TString(
-      Form("%.1f < %s < %.1f", eta_range.first, eta_name, eta_range.second));
+  return TString(Form("%.1f < %s < %.1f", eta_range.first, eta_name, eta_range.second));
 }
 
 //! acceptance cut on jet object
 bool QAG4SimulationJet::jet_acceptance_cut(const Jet* jet) const
 {
   assert(jet);
-  bool eta_cut = (jet->get_eta() >= eta_range.first) and (jet->get_eta() <= eta_range.second);
+  bool eta_cut = (jet->get_eta() >= eta_range.first) && (jet->get_eta() <= eta_range.second);
   return eta_cut;
 }
 
@@ -251,22 +259,18 @@ int QAG4SimulationJet::Init_Spectrum(PHCompositeNode* /*topNode*/,
 
   hm->registerHisto(
       new TH1F(
-          //
           TString(get_histo_prefix(jet_name)) + "Leading_Et",  //
           TString(jet_name) + " leading jet Et, " + get_eta_range_str() + ";E_{T} (GeV)", 100, 0, 100));
   hm->registerHisto(
       new TH1F(
-          //
           TString(get_histo_prefix(jet_name)) + "Leading_eta",  //
           TString(jet_name) + " leading jet #eta, " + get_eta_range_str() + ";#eta", 50, -1, 1));
   hm->registerHisto(
       new TH1F(
-          //
           TString(get_histo_prefix(jet_name)) + "Leading_phi",  //
           TString(jet_name) + " leading jet #phi, " + get_eta_range_str() + ";#phi", 50, -M_PI, M_PI));
 
   TH1F* lcomp = new TH1F(
-      //
       TString(get_histo_prefix(jet_name)) + "Leading_CompSize",  //
       TString(jet_name) + " leading jet # of component, " + get_eta_range_str() + ";Number of component;", 100, 1, 3000);
   QAHistManagerDef::useLogBins(lcomp->GetXaxis());
@@ -274,17 +278,14 @@ int QAG4SimulationJet::Init_Spectrum(PHCompositeNode* /*topNode*/,
 
   hm->registerHisto(
       new TH1F(
-          //
           TString(get_histo_prefix(jet_name)) + "Leading_Mass",  //
           TString(jet_name) + " leading jet mass, " + get_eta_range_str() + ";Jet Mass (GeV);", 100, 0, 20));
   hm->registerHisto(
       new TH1F(
-          //
           TString(get_histo_prefix(jet_name)) + "Leading_CEMC_Ratio",  //
           TString(jet_name) + " leading jet EMCal ratio, " + get_eta_range_str() + ";Energy ratio CEMC/Total;", 100, 0, 1.01));
   hm->registerHisto(
       new TH1F(
-          //
           TString(get_histo_prefix(jet_name)) + "Leading_CEMC_HCalIN_Ratio",  //
           TString(jet_name) + " leading jet EMCal+HCal_{IN} ratio, " + get_eta_range_str() + ";Energy ratio (CEMC + HCALIN)/Total;",
           100, 0, 1.01));
@@ -293,25 +294,21 @@ int QAG4SimulationJet::Init_Spectrum(PHCompositeNode* /*topNode*/,
   // It is only available for truth jets
   hm->registerHisto(
       new TH1F(
-          //
           TString(get_histo_prefix(jet_name)) + "Leading_Leakage_Ratio",  //
           TString(jet_name) + " leading jet leakage ratio, " + get_eta_range_str() + ";Energy ratio, Back leakage/Total;", 100,
           0, 1.01));
 
   TH1F* h = new TH1F(
-      //
       TString(get_histo_prefix(jet_name)) + "Inclusive_E",  //
       TString(jet_name) + " inclusive jet E, " + get_eta_range_str() + ";Total jet energy (GeV)", 100, 1e-3, 100);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   hm->registerHisto(
       new TH1F(
-          //
           TString(get_histo_prefix(jet_name)) + "Inclusive_eta",  //
           TString(jet_name) + " inclusive jet #eta, " + get_eta_range_str() + ";#eta;Jet energy density", 50, -1, 1));
   hm->registerHisto(
       new TH1F(
-          //
           TString(get_histo_prefix(jet_name)) + "Inclusive_phi",  //
           TString(jet_name) + " inclusive jet #phi, " + get_eta_range_str() + ";#phi;Jet energy density", 50, -M_PI, M_PI));
 
@@ -333,8 +330,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto(
-      get_histo_prefix(jet_name) + "Normalization"));
+  TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto(get_histo_prefix(jet_name) + "Normalization"));
   assert(h_norm);
   h_norm->Fill("Event", 1);
   h_norm->Fill("Inclusive Jets", jets->size());
@@ -354,13 +350,15 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
 
   Jet* leading_jet = nullptr;
   double max_et = 0;
-  for (JetMap::Iter iter = jets->begin(); iter != jets->end(); ++iter)
+  for (auto& iter : *jets)
   {
-    Jet* jet = iter->second;
+    Jet* jet = iter.second;
     assert(jet);
 
     if (not jet_acceptance_cut(jet))
+    {
       continue;
+    }
 
     if (jet->get_et() > max_et)
     {
@@ -375,7 +373,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
 
   if (leading_jet)
   {
-    if (Verbosity())
+    if (Verbosity() > 0)
     {
       std::cout
           << "QAG4SimulationJet::process_Spectrum - processing leading jet with # comp = "
@@ -476,62 +474,53 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
       double hcalin_e = 0;
       double bh_e = 0;
 
-      std::set<PHG4Shower*> showers = _jettrutheval->all_truth_showers(
-          leading_jet);
+      std::set<PHG4Shower*> showers = _jettrutheval->all_truth_showers(leading_jet);
 
-      for (std::set<PHG4Shower*>::const_iterator it = showers.begin();
-           it != showers.end(); ++it)
+      for (auto shower : showers)
       {
         if (Verbosity() >= VERBOSITY_A_LOT)
         {
           std::cout << __PRETTY_FUNCTION__ << "Leading Truth Jet shower : ";
-          (*it)->identify();
+          shower->identify();
         }
 
-        cemc_e += (*it)->get_edep(
-            PHG4HitDefs::get_volume_id("G4HIT_CEMC"));
-        cemc_e += (*it)->get_edep(
-            PHG4HitDefs::get_volume_id("G4HIT_CEMC_ELECTRONICS"));
-        cemc_e += (*it)->get_edep(
-            PHG4HitDefs::get_volume_id("G4HIT_ABSORBER_CEMC"));
+        cemc_e += shower->get_edep(PHG4HitDefs::get_volume_id("G4HIT_CEMC"));
+        cemc_e += shower->get_edep(PHG4HitDefs::get_volume_id("G4HIT_CEMC_ELECTRONICS"));
+        cemc_e += shower->get_edep(PHG4HitDefs::get_volume_id("G4HIT_ABSORBER_CEMC"));
 
-        hcalin_e += (*it)->get_edep(
-            PHG4HitDefs::get_volume_id("G4HIT_HCALIN"));
-        hcalin_e += (*it)->get_edep(
-            PHG4HitDefs::get_volume_id("G4HIT_ABSORBER_HCALIN"));
+        hcalin_e += shower->get_edep(PHG4HitDefs::get_volume_id("G4HIT_HCALIN"));
+        hcalin_e += shower->get_edep(PHG4HitDefs::get_volume_id("G4HIT_ABSORBER_HCALIN"));
 
-        bh_e += (*it)->get_edep(PHG4HitDefs::get_volume_id("G4HIT_BH_1"));
-        bh_e += (*it)->get_edep(
-            PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_PLUS"));
-        bh_e += (*it)->get_edep(
-            PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_NEG"));
+        bh_e += shower->get_edep(PHG4HitDefs::get_volume_id("G4HIT_BH_1"));
+        bh_e += shower->get_edep(PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_PLUS"));
+        bh_e += shower->get_edep(PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_NEG"));
 
         if (Verbosity() >= VERBOSITY_A_LOT)
         {
           //            leading_jet->identify();
           std::cout << "Shower cemc_e sum = "
-                    << (*it)->get_edep(PHG4HitDefs::get_volume_id("G4HIT_CEMC"))
+                    << shower->get_edep(PHG4HitDefs::get_volume_id("G4HIT_CEMC"))
                     << " + "
-                    << (*it)->get_edep(
+                    << shower->get_edep(
                            PHG4HitDefs::get_volume_id("G4HIT_CEMC_ELECTRONICS"))
                     << " + "
-                    << (*it)->get_edep(
+                    << shower->get_edep(
                            PHG4HitDefs::get_volume_id("G4HIT_ABSORBER_CEMC"))
                     << std::endl;
           std::cout << "Shower hcalin_e sum = "
-                    << (*it)->get_edep(
+                    << shower->get_edep(
                            PHG4HitDefs::get_volume_id("G4HIT_HCALIN"))
                     << " + "
-                    << (*it)->get_edep(
+                    << shower->get_edep(
                            PHG4HitDefs::get_volume_id("G4HIT_ABSORBER_HCALIN"))
                     << std::endl;
           std::cout << "Shower bh_e sum = "
-                    << (*it)->get_edep(PHG4HitDefs::get_volume_id("G4HIT_BH_1"))
+                    << shower->get_edep(PHG4HitDefs::get_volume_id("G4HIT_BH_1"))
                     << " + "
-                    << (*it)->get_edep(
+                    << shower->get_edep(
                            PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_PLUS"))
                     << " + "
-                    << (*it)->get_edep(
+                    << shower->get_edep(
                            PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_NEG"))
                     << std::endl;
         }
@@ -568,7 +557,6 @@ int QAG4SimulationJet::Init_TruthMatching(PHCompositeNode* /*topNode*/,
   hm->registerHisto(h);
 
   h = new TH2F(
-      //
       TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_Count_Reco_Et",  //
       TString(reco_jet_name) + " Matching Count, " + get_eta_range_str() + ";E_{T, Reco} (GeV)", 20, 0, 100, 3, 0.5, 3.5);
   h->GetYaxis()->SetBinLabel(1, "Total");
@@ -657,13 +645,15 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   // search for leading truth
   Jet* truthjet = nullptr;
   double max_et = 0;
-  for (JetMap::Iter iter = truthjets->begin(); iter != truthjets->end(); ++iter)
+  for (auto& iter : *truthjets)
   {
-    Jet* jet = iter->second;
+    Jet* jet = iter.second;
     assert(jet);
 
     if (not jet_acceptance_cut(jet))
+    {
       continue;
+    }
 
     if (jet->get_et() > max_et)
     {
@@ -776,13 +766,15 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   // search for leading reco jet
   Jet* recojet = nullptr;
   max_et = 0;
-  for (JetMap::Iter iter = recojets->begin(); iter != recojets->end(); ++iter)
+  for (auto& iter : *recojets)
   {
-    Jet* jet = iter->second;
+    Jet* jet = iter.second;
     assert(jet);
 
     if (not jet_acceptance_cut(jet))
+    {
       continue;
+    }
 
     if (jet->get_et() > max_et)
     {
@@ -804,16 +796,16 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
     Matching_Count_Reco_Et->Fill(recojet->get_et(), "Total", 1);
 
     {  // inclusive best energy match
-      Jet* truthjet = recoeval->max_truth_jet_by_energy(recojet);
-      if (truthjet)
+      Jet* truthjet1 = recoeval->max_truth_jet_by_energy(recojet);
+      if (truthjet1)
       {
-        const double dPhi = recojet->get_phi() - truthjet->get_phi();
+        const double dPhi = recojet->get_phi() - truthjet1->get_phi();
         if (fabs(dPhi) < _jet_match_dPhi)
         {
-          const double dEta = recojet->get_eta() - truthjet->get_eta();
+          const double dEta = recojet->get_eta() - truthjet1->get_eta();
           if (fabs(dEta) < _jet_match_dEta)
           {
-            const double E_r = recojet->get_e() / (truthjet->get_e() + 1e-9);
+            const double E_r = recojet->get_e() / (truthjet1->get_e() + 1e-9);
 
             if (fabs(E_r - 1) < _jet_match_dE_Ratio)
             {
@@ -827,20 +819,20 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
 
         }  // if (fabs(dPhi) < 0.1)
 
-      }  //      if (truthjet)
+      }  //      if (truthjet1)
     }    // inclusive best energy match
 
     {  // unique match
-      Jet* truthjet = recoeval->unique_truth_jet_from_reco(recojet);
-      if (truthjet)
+      Jet* truthjet2 = recoeval->unique_truth_jet_from_reco(recojet);
+      if (truthjet2)
       {
-        const double dPhi = recojet->get_phi() - truthjet->get_phi();
+        const double dPhi = recojet->get_phi() - truthjet2->get_phi();
         if (fabs(dPhi) < _jet_match_dPhi)
         {
-          const double dEta = recojet->get_eta() - truthjet->get_eta();
+          const double dEta = recojet->get_eta() - truthjet2->get_eta();
           if (fabs(dEta) < _jet_match_dEta)
           {
-            const double E_r = recojet->get_e() / (truthjet->get_e() + 1e-9);
+            const double E_r = recojet->get_e() / (truthjet2->get_e() + 1e-9);
 
             if (fabs(E_r - 1) < _jet_match_dE_Ratio)
             {
@@ -854,7 +846,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
 
         }  // if (fabs(dPhi) < 0.1)
 
-      }  //      if (truthjet)
+      }  //      if (truthjet2)
     }    // unique match
 
   }  // if (recojet)

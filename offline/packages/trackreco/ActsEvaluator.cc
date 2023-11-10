@@ -25,8 +25,8 @@
 #include <g4eval/SvtxEvalStack.h>
 #include <g4eval/SvtxTrackEval.h>
 
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <g4main/PHG4VtxPoint.h>
 

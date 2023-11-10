@@ -316,6 +316,7 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     gSystem->Exit(1);
     exit(1);
   }
-  PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_" + m_detector, "PHObject");
+  TowerNodeName = m_outputNodePrefix + m_detector;
+  PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, TowerNodeName, "PHObject");
   DetNode->addNode(newTowerNode);
 }
