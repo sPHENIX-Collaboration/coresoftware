@@ -14,12 +14,12 @@
 
 #include <set>
 
-#include "MvtxEventInfov1.h"
+#include "MvtxEventInfo.h"
 
 typedef std::pair<uint64_t, uint64_t> strobe_L1_pair;
 
 ///
-class MvtxEventInfov2 : public MvtxEventInfov1 
+class MvtxEventInfov2 : public MvtxEventInfo 
 {
  public:
   MvtxEventInfov2() = default;
@@ -40,17 +40,38 @@ class MvtxEventInfov2 : public MvtxEventInfov1
   /// isValid returns non zero if object contains valid data
   int isValid() const override;
 
-  void set_strobe_BCO(const uint64_t strobe_BCO) { m_strobe_BCO = strobe_BCO; }
+  void set_number_HB(const int /*ival*/);
+  int get_number_HB() const;
 
-  uint64_t get_strobe_BCO() {return  m_strobe_BCO; }
+  void set_strobe_BCO(const uint64_t strobe_BCO);
+
+  void set_strobe_BCO_L1_BCO(const uint64_t strobe_BCO, const uint64_t L1_BCO);
+ 
+  unsigned int get_number_strobes() const;
+  unsigned int get_number_L1s() const;
+
+  //std::set<uint64_t> get_strobe_BCOs() const;
+  std::set<uint64_t> get_strobe_BCOs() const;
+  std::set<uint64_t> get_L1_BCOs() const;
+
+  std::set<uint64_t> get_strobe_BCO_from_L1_BCO(const uint64_t ival) const;
+  std::set<uint64_t> get_L1_BCO_from_strobe_BCO(const uint64_t ival) const;
 
   /// switches off the pesky virtual warning messages
   void NoWarning(const int i = 1);
 
+protected:
+  std::set<strobe_L1_pair> m_strobe_BCO_L1_BCO;
+  std::set<uint64_t> m_strobe_BCOs;
+
+  std::string m_number_L1_name = "Number L1";
+  std::string m_number_HB_name = "Number HB";
+
+
  private:
   void warning(const std::string &func) const;
 
-  uint64_t m_strobe_BCO = 0;
+  int m_number_HB = -1;
 
   //ClassDefOverride(MvtxEventInfov2, 1)
 };
