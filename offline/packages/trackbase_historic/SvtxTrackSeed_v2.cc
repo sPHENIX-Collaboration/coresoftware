@@ -3,8 +3,9 @@
 SvtxTrackSeed_v2::SvtxTrackSeed_v2()
 {}
 
-// have to suppress uninitMenberVar from cppcheck since it triggers many false positive
-// cppcheck-suppress uninitMemberVar
+// have to suppress missingMemberCopy from cppcheck, it does not
+// go down to the CopyFrom method where things are done correctly
+// cppcheck-suppress missingMemberCopy
 SvtxTrackSeed_v2::SvtxTrackSeed_v2(const SvtxTrackSeed_v2& seed)
 { SvtxTrackSeed_v2::CopyFrom( seed ); }
 
