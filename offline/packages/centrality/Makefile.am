@@ -21,7 +21,10 @@ libcentrality_la_LIBADD = \
   libcentrality_io.la \
   -lfun4all \
   -lcalo_io \
-  -lbbc_io
+  -lmbd_io \
+  -lphool \
+  -lcdbobjects \
+  -lffamodules
 
 pkginclude_HEADERS = \
   CentralityInfo.h \

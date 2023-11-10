@@ -9,12 +9,9 @@
 class CentralityInfo;
 class Fun4AllHistoManager;
 class PHCompositeNode;
-class TFile;
-class TNtuple;
-class TTree;
-class TowerInfo;
-class TowerInfoContainer;
-
+class CDBInterface;
+class CDBTTree;
+class recoConsts;
 class MbdOutV1;
 
 
@@ -43,7 +40,16 @@ class CentralityReco : public SubsysReco
 
   void ResetVars();
 
- protected:
+  // Interface with CDB
+  int Download_centralityDivisions(const std::string& dbfile);
+
+ private:
+
+  CDBInterface *_cdb {nullptr};
+  recoConsts   *_rc {nullptr};
+  std::string  _dbfilename;
+
+  const int NDIVS = 18;
 
   MbdOutV1 *_mbd_out = nullptr;
 
@@ -51,14 +57,11 @@ class CentralityReco : public SubsysReco
 
   unsigned int _key = std::numeric_limits<unsigned int>::max();
 
-  short _tubes_hit_s;
-  short _tubes_hit_n;
-
   float _mbd_charge_sum = std::numeric_limits<float>::signaling_NaN();
   float _mbd_charge_sum_n = std::numeric_limits<float>::signaling_NaN();
   float _mbd_charge_sum_s = std::numeric_limits<float>::signaling_NaN();
 
-  float _centrality_map[20]{};
+  float _centrality_map[18]{};
 };
 
 #endif
