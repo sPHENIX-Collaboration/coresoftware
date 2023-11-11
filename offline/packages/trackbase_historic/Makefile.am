@@ -24,6 +24,7 @@ pkginclude_HEADERS = \
   TrackSeed.h \
   TrackSeed_v1.h \
   SvtxTrackSeed_v1.h \
+  SvtxTrackSeed_v2.h \
   TrackSeed_FastSim_v1.h \
   TrackSeedContainer.h \
   TrackSeedContainer_v1.h \
@@ -58,6 +59,7 @@ ROOTDICTS = \
   TrackSeed_Dict.cc \
   TrackSeed_v1_Dict.cc \
   SvtxTrackSeed_v1_Dict.cc \
+  SvtxTrackSeed_v2_Dict.cc \
   TrackSeed_FastSim_v1_Dict.cc \
   TrackSeedContainer_Dict.cc \
   TrackSeedContainer_v1_Dict.cc \
@@ -92,6 +94,7 @@ nobase_dist_pcm_DATA = \
   TrackSeed_Dict_rdict.pcm \
   TrackSeed_v1_Dict_rdict.pcm \
   SvtxTrackSeed_v1_Dict_rdict.pcm \
+  SvtxTrackSeed_v2_Dict_rdict.pcm \
   TrackSeed_FastSim_v1_Dict_rdict.pcm \
   TrackSeedContainer_Dict_rdict.pcm \
   TrackSeedContainer_v1_Dict_rdict.pcm \
@@ -128,6 +131,7 @@ libtrackbase_historic_io_la_SOURCES = \
   TrackSeed.cc \
   TrackSeed_v1.cc \
   SvtxTrackSeed_v1.cc \
+  SvtxTrackSeed_v2.cc \
   TrackSeed_FastSim_v1.cc \
   TrackSeedContainer.cc \
   TrackSeedContainer_v1.cc \
