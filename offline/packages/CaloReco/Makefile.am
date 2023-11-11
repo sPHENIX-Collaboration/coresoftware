@@ -49,6 +49,7 @@ pkginclude_HEADERS = \
   CaloRecoUtility.h \
   CaloTowerBuilder.h \
   CaloTowerCalib.h \
+  CaloTowerStatus.h \
   CaloTowerDefs.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
@@ -78,6 +79,7 @@ libcalo_reco_la_SOURCES = \
   CaloWaveformProcessing.cc \
   CaloTowerBuilder.cc \
   CaloTowerCalib.cc \
+  CaloTowerStatus.cc \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \
