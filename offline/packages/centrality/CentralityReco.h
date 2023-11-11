@@ -63,7 +63,7 @@ class CentralityReco : public SubsysReco
   float _mbd_charge_sum_s = std::numeric_limits<float>::signaling_NaN();
 
   double _centrality_scale = std::numeric_limits<double>::signaling_NaN();
-  float _centrality_map[18]{};
+  float _centrality_map[20]{};
 };
 
 #endif
