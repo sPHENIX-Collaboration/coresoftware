@@ -178,10 +178,11 @@ int CentralityReco::FillCentralityInfo()
 
 
   float value = -999.99;
-  for (int i = 0; i < 20; i++)
+  for (int i = 0; i < NDIVS; i++)
   {
     if (_centrality_map[i] < _mbd_charge_sum)
     {
+
       value = 0.05 * i;
       break;
     }
