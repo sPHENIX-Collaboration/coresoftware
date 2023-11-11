@@ -101,7 +101,7 @@ int CentralityReco::Download_centralityScale(const std::string& dbfile)
 int CentralityReco::Download_centralityDivisions(const std::string& dbfile)
 {
 
-  for (int idiv = 0; idiv < NDIVS; idiv++)
+  for (int idiv = 0; idiv < 20; idiv++)
     _centrality_map[idiv] = 0;
 
   TString dbase_file = dbfile;
