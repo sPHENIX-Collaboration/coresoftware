@@ -51,25 +51,22 @@ class CaloTowerStatus : public SubsysReco
     return;
   }
 
-
  private:
-  CaloTowerDefs::DetectorSystem m_dettype;
+  TowerInfoContainer *m_raw_towers{nullptr};
+  CDBTTree *m_cdbttree{nullptr};
+
+  bool m_overrideCalibName{false};
+  bool m_overrideFieldName{false};
+  bool m_doHot{true};
+
+  CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
 
   std::string m_detector;
-  TowerInfoContainer::DETECTOR m_DETECTOR;
   std::string m_fieldname;
   std::string m_calibName;
-  bool m_overrideCalibName {false};
-  bool m_overrideFieldName {false};
-  std::string m_inputNodePrefix {"TOWERS_"};
-  std::string RawTowerNodeName;
+  std::string m_inputNodePrefix{"TOWERS_"};
 
-  TowerInfoContainer *_raw_towers;
 
-  bool m_doHot = 1;
-
-  CDBTTree *cdbttree = nullptr;
-  int m_runNumber;
 
 };
 
