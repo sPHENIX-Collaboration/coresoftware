@@ -31,6 +31,10 @@ class EventPlaneReco : public SubsysReco
   {
     _mbdEpReco = mbdEpReco;
   }
+  void set_sEPD_Mip_cut(const float &e) 
+  {
+    _e = e;
+  }
 
 
 
@@ -45,6 +49,7 @@ class EventPlaneReco : public SubsysReco
   std::vector<std::pair<double,double>> north_Qvec;  
   bool _mbdEpReco = false;
   bool _sepdEpReco = false;
+  float _e = 0.;
 };
 
 #endif  // EVENTPLANERECO_H
