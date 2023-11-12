@@ -49,7 +49,7 @@ class EventPlaneReco : public SubsysReco
   std::vector<std::pair<double,double>> north_Qvec;  
   bool _mbdEpReco = false;
   bool _sepdEpReco = false;
-  float _e = 0.;
+  float _e = 6.0;
 };
 
 #endif  // EVENTPLANERECO_H
