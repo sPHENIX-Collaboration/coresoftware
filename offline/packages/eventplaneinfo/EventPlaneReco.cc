@@ -113,7 +113,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
                 if(epd_e < 0.5) continue;
                 float tile_phi = _epdgeom->get_phi(key);
                 int arm = TowerInfoDefs::get_epd_arm(key);
-                float truncated_e = (epd_e < 6.0)? epd_e:6.0;
+                float truncated_e = (epd_e < _e)? epd_e:_e;
                 if(arm == 0)
                 {
                     for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
@@ -191,6 +191,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
                 float mbd_q = mbdpmts->get_pmt(ipmt)->get_q();
                 float phi = mbdgeom->get_phi(ipmt);
                 int arm  = mbdgeom->get_arm(ipmt);
+                if(mbd_q < 0.0) continue;
                 if(arm == 0)
                 {
                     for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
