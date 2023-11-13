@@ -31,6 +31,8 @@ class TrkrClusterHitAssoc;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
 
+class Gl1RawHit;
+
 class TrackingEvaluator_hp : public SubsysReco
 {
   public:
@@ -106,6 +108,9 @@ class TrackingEvaluator_hp : public SubsysReco
    
     //! number of central membrane clusters
     unsigned int _ncmclusters = 0;
+    
+    //! gtm bco (real data only)
+    uint64_t _gtm_bco = 0;
     
   };
 
@@ -607,6 +612,9 @@ class TrackingEvaluator_hp : public SubsysReco
 
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
+  
+  //! GL1
+  Gl1RawHit* m_gl1rawhit = nullptr;
   
   //! hits
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;

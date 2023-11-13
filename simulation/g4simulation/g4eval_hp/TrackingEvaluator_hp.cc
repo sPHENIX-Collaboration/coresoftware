@@ -1,5 +1,6 @@
 #include "TrackingEvaluator_hp.h"
 
+#include <ffarawobjects/Gl1RawHit.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -542,7 +543,10 @@ int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   assert( m_tGeometry );
 
-  // get necessary nodes
+  // gl1 raw hit
+  m_gl1rawhit = findNode::getClass<Gl1RawHit>(topNode,"GL1RAWHIT");
+  
+  // track map
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, m_trackmapname);
 
   // cluster map
@@ -602,6 +606,15 @@ void TrackingEvaluator_hp::evaluate_event()
 
   // create event struct
   EventStruct event;
+  // GTM bco
+  if( m_gl1rawhit ) 
+  { 
+    event._gtm_bco = m_gl1rawhit->get_bco()&0xFFFFFFFFFF; 
+    std::cout << "TrackingEvaluator_hp::evaluate_event - bco: " 
+      // << "0x" << std::hex << event._gtm_bco << std::dec
+      << event._gtm_bco
+      << std::endl;
+  }
 
   if( m_hitsetcontainer )
   {
@@ -666,6 +679,7 @@ void TrackingEvaluator_hp::evaluate_event()
     const auto range = m_cm_cluster_map->getClusters();
     event._ncmclusters = std::distance( range.first, range.second );
   }
+  
   // store
   m_container->addEvent(event);
 }
@@ -894,7 +908,7 @@ void TrackingEvaluator_hp::evaluate_track_pairs()
 //_____________________________________________________________________
 void TrackingEvaluator_hp::print_clusters() const
 {
-
+  
   if(!(m_cluster_map && m_hitsetcontainer)) return;
 
   for(const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
@@ -903,7 +917,7 @@ void TrackingEvaluator_hp::print_clusters() const
     for(const auto& [clusterkey,cluster]:range_adaptor(m_cluster_map->getClusters(hitsetkey)))
     {
       // only print for TPC ids
-      if(TrkrDefs::getTrkrId(clusterkey) == TrkrDefs::tpcId)
+      // if(TrkrDefs::getTrkrId(clusterkey) == TrkrDefs::tpcId)
       { print_cluster( clusterkey, cluster ); }
     }
   }
@@ -923,15 +937,15 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
   // get detector type
   const auto trkrId = TrkrDefs::getTrkrId( cluster_key );
   const auto global = get_global_position(cluster_key, cluster);
-  const auto r = get_r( global.x(), global.y());
+//   const auto r = get_r( global.x(), global.y());
   std::cout
     << "TrackingEvaluator_hp::print_cluster -"
     << " layer: " << (int)TrkrDefs::getLayer(cluster_key)
     << " type: " << (int) trkrId
-    << " local: (" << cluster->getLocalX() << "," << cluster->getLocalY() << "," << (int) cluster->getSubSurfKey() << ")"
+//     << " local: (" << cluster->getLocalX() << "," << cluster->getLocalY() << "," << (int) cluster->getSubSurfKey() << ")"
     << " position: (" << global.x() << "," << global.y() << "," << global.z() << ")"
-    << " polar: (" << r << "," << std::atan2( global.y(), global.x()) << "," << global.z() << ")"
-    << " errors: (" << cluster->getRPhiError()/r << ", " << cluster->getZError() << ")"
+//     << " polar: (" << r << "," << std::atan2( global.y(), global.x()) << "," << global.z() << ")"
+//     << " errors: (" << cluster->getRPhiError()/r << ", " << cluster->getZError() << ")"
     << std::endl;
 
   // get associated hits

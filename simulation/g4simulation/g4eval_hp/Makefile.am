@@ -18,6 +18,7 @@ lib_LTLIBRARIES = \
 
 libg4eval_hp_la_LIBADD = \
   -lCLHEP \
+  -lffarawobjects\
   -lfun4all \
   -lg4detectors_io \
   -ltrackbase_historic_io \
