@@ -17,8 +17,9 @@ TrackSeed_v1::TrackSeed_v1()
 TrackSeed_v1::TrackSeed_v1(const TrackSeed& seed)
 { TrackSeed_v1::CopyFrom( seed ); }
 
-// have to suppress uninitMenberVar from cppcheck since it triggers many false positive
-// cppcheck-suppress uninitMemberVar
+// have to suppress missingMemberCopy from cppcheck, it does not
+// go down to the CopyFrom method where things are done correctly
+// cppcheck-suppress missingMemberCopy
 TrackSeed_v1::TrackSeed_v1(const TrackSeed_v1& seed)
 { TrackSeed_v1::CopyFrom( seed ); }
 

@@ -98,6 +98,9 @@ class TrackSeed : public PHObject
   virtual unsigned int get_silicon_seed_index() const { return 0; }
   virtual unsigned int get_tpc_seed_index() const { return 0; }
 
+  virtual void set_crossing_estimate(const short int) { }
+  virtual short int get_crossing_estimate() const { return 0; }
+
   /* ---------------------------------------------------------
    * Truth tracking interfaces
    * ---------------------------------------------------------
