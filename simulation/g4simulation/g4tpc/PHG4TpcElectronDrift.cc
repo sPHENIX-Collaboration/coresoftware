@@ -535,6 +535,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       if (m_distortionMap)
       {
+      	//zhcnganyu
         const double r_distortion = m_distortionMap->get_r_distortion(radstart, phistart, z_start);
         const double phi_distortion = m_distortionMap->get_rphi_distortion(radstart, phistart, z_start) / radstart;
         const double z_distortion = m_distortionMap->get_z_distortion(radstart, phistart, z_start);
