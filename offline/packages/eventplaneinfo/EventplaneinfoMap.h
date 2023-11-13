@@ -11,8 +11,7 @@ class Eventplaneinfo;
 
 class EventplaneinfoMap : public PHObject
 {
-  public:
-
+ public:
   enum EPTYPE
   {
     UNDEFINED = 999,
@@ -43,7 +42,7 @@ class EventplaneinfoMap : public PHObject
   virtual Iter end();
 
  protected:
-    EventplaneinfoMap() {}
+  EventplaneinfoMap() {}
 
  private:
   ClassDefOverride(EventplaneinfoMap, 1);

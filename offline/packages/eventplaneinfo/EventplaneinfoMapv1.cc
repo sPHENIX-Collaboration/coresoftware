@@ -41,7 +41,6 @@ const Eventplaneinfo* EventplaneinfoMapv1::get(unsigned int id) const
   return iter->second;
 }
 
-
 Eventplaneinfo* EventplaneinfoMapv1::get(unsigned int id)
 {
   Iter iter = _map.find(id);
@@ -56,6 +55,4 @@ Eventplaneinfo* EventplaneinfoMapv1::insert(Eventplaneinfo* clus, const Eventpla
 {
   auto ret = _map.insert(std::make_pair(id, clus));
   return ret.first->second;
-
 }
-

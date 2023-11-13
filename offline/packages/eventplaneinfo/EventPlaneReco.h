@@ -23,30 +23,28 @@ class EventPlaneReco : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   void ResetMe();
-  void set_sepd_epreco(bool sepdEpReco) 
+  void set_sepd_epreco(bool sepdEpReco)
   {
     _sepdEpReco = sepdEpReco;
   }
-  void set_mbd_epreco(bool mbdEpReco) 
+  void set_mbd_epreco(bool mbdEpReco)
   {
     _mbdEpReco = mbdEpReco;
   }
-  void set_sEPD_Mip_cut(const float &e) 
+  void set_sEPD_Mip_cut(const float &e)
   {
     _e = e;
   }
 
-
-
  private:
-  int CreateNodes(PHCompositeNode *topNode);   
+  int CreateNodes(PHCompositeNode *topNode);
   unsigned int m_MaxOrder = 0;
-   
+
   std::vector<std::vector<double>> south_q;
   std::vector<std::vector<double>> north_q;
-  
-  std::vector<std::pair<double,double>> south_Qvec;  
-  std::vector<std::pair<double,double>> north_Qvec;  
+
+  std::vector<std::pair<double, double>> south_Qvec;
+  std::vector<std::pair<double, double>> north_Qvec;
   bool _mbdEpReco = false;
   bool _sepdEpReco = false;
   float _e = 6.0;
