@@ -110,7 +110,8 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
                 TowerInfo *_tower = epd_towerinfo->get_tower_at_channel(ch);
                 unsigned int key = TowerInfoDefs::encode_epd(ch);
                 float epd_e = _tower->get_energy();
-                if(epd_e < 0.5) continue;
+                if(epd_e < 0.5) { continue;
+}
                 float tile_phi = _epdgeom->get_phi(key);
                 int arm = TowerInfoDefs::get_epd_arm(key);
                 float truncated_e = (epd_e < _e)? epd_e:_e;
@@ -138,8 +139,8 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
         }
         for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
         {
-            south_Qvec.push_back(std::make_pair(south_q[order - 1][0], south_q[order - 1][1]));
-            north_Qvec.push_back(std::make_pair(north_q[order - 1][0], north_q[order - 1][1]));
+            south_Qvec.emplace_back(south_q[order - 1][0], south_q[order - 1][1]);
+            north_Qvec.emplace_back(north_q[order - 1][0], north_q[order - 1][1]);
         }
         
         if (epd_towerinfo)
@@ -191,7 +192,8 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
                 float mbd_q = mbdpmts->get_pmt(ipmt)->get_q();
                 float phi = mbdgeom->get_phi(ipmt);
                 int arm  = mbdgeom->get_arm(ipmt);
-                if(mbd_q < 0.0) continue;
+                if(mbd_q < 0.0) { continue;
+}
                 if(arm == 0)
                 {
                     for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
@@ -216,8 +218,8 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
         }
         for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
         {
-            south_Qvec.push_back(std::make_pair(south_q[order - 1][0], south_q[order - 1][1]));
-            north_Qvec.push_back(std::make_pair(north_q[order - 1][0], north_q[order - 1][1]));
+            south_Qvec.emplace_back(south_q[order - 1][0], south_q[order - 1][1]);
+            north_Qvec.emplace_back(north_q[order - 1][0], north_q[order - 1][1]);
         }
         
         if (mbdpmts)
