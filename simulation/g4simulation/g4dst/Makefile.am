@@ -16,7 +16,7 @@ libg4dst_la_LDFLAGS = \
   -lcentrality_io \
   -ldecayfinder_io \
   -lepd_io \
-  -leventplane_io \
+  -leventplaneinfo_io \
   -lffaobjects \
   -lffarawobjects \
   -lg4mbd_io \
