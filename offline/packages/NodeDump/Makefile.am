@@ -76,7 +76,7 @@ libphnodedump_la_LIBADD = \
   -lcalo_io \
   -lcalotrigger_io \
   -lepd_io \
-  -leventplane_io \
+  -leventplaneinfo_io \
   -lffaobjects \
   -lffarawobjects \
   -lg4detectors_io \
