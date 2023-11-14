@@ -112,7 +112,7 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
         std::cout << "eta 1 and eta2 " << eta1 << " , " << eta2 << std::endl;
         std::cout << "dphi and deta " << dphi << " , " << deta << std::endl;
       }
-      if (fabs(dphi) < 0.02 && fabs(deta) < 0.01)
+      if (fabs(dphi) < m_dphiCut && fabs(deta) < m_detaCut)
       {
         //! add the clusters to the tpc seed and delete seed 2 since it is
         //! from the same track
