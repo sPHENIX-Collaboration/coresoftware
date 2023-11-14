@@ -30,6 +30,7 @@ class TowerInfoContainerv2 : public TowerInfoContainer
   unsigned int decode_key(unsigned int tower_key) override;
 
   size_t size() const override { return _clones->GetEntries(); }
+  DETECTOR get_detectorid() const override {return _detector;}
 
  protected:
   TClonesArray *_clones = nullptr;

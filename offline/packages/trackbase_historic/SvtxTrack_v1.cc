@@ -19,8 +19,9 @@ SvtxTrack_v1::SvtxTrack_v1()
 SvtxTrack_v1::SvtxTrack_v1(const SvtxTrack& source)
 { SvtxTrack_v1::CopyFrom( source ); }
 
-// have to suppress uninitMenberVar from cppcheck since it triggers many false positive
-// cppcheck-suppress uninitMemberVar
+// have to suppress missingMemberCopy from cppcheck, it does not
+// go down to the CopyFrom method where things are done correctly
+// cppcheck-suppress missingMemberCopy
 SvtxTrack_v1::SvtxTrack_v1(const SvtxTrack_v1& source)
 { SvtxTrack_v1::CopyFrom( source ); }
 
