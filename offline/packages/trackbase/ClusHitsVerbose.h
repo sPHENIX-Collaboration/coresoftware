@@ -39,12 +39,6 @@ class ClusHitsVerbose : public PHObject
   virtual void addZCutHit(int, int) {return;}
   virtual void push_hits (TrkrDefs::cluskey) {return;}
 
-  virtual void addPhiHit    (int /*_i*/, int /*_v*/) {};
-  virtual void addZHit      (int /*_i*/, int /*_v*/) {};
-  virtual void addPhiCutHit (int /*_i*/, int /*_v*/) {};
-  virtual void addZCutHit   (int /*_i*/, int /*_v*/) {};
-  virtual void push_hits (TrkrDefs::cluskey) {};
-
   // PHObject virtual overload
   void identify(std::ostream& os = std::cout) const override
   {

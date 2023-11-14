@@ -91,7 +91,6 @@ libffarawobjects_la_SOURCES = \
   MicromegasRawHitv1.cc \
   MvtxRawHitContainerv1.cc \
   MvtxRawHitv1.cc \
-  MvtxRawEvtHeader.cc \
   MvtxRawEvtHeaderv1.cc \
   TpcRawHitContainerv1.cc \
   TpcRawHitv1.cc
