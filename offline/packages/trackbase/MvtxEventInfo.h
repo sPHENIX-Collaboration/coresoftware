@@ -87,7 +87,7 @@ class MvtxEventInfo : public PHObject
 
   std::set<uint64_t> dummySet;
 
-  //ClassDefOverride(MvtxEventInfo, 1)
+  ClassDefOverride(MvtxEventInfo, 1)
 };
 
 #endif

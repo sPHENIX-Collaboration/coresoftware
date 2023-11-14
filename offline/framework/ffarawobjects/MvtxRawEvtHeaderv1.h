@@ -1,8 +1,6 @@
 #ifndef FUN4ALLRAW_MVTXRAWEVTHEADERV1_H
 #define FUN4ALLRAW_MVTXRAWEVTHEADERV1_H
 
-#include <phool/PHObject.h>
-
 #include "MvtxRawEvtHeader.h"
 
 #include <phool/PHObject.h>

@@ -65,7 +65,7 @@ protected:
 
   int m_number_HB = -1;
 
-  //ClassDefOverride(MvtxEventInfov1, 1)
+  ClassDefOverride(MvtxEventInfov1, 1)
 };
 
 #endif

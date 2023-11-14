@@ -22,9 +22,6 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 
-//#include <trackbase/TrkrHitv2.h>
-//#include <trackbase/TrkrHitSet.h>
-
 #include <algorithm>
 #include <cassert>
 
