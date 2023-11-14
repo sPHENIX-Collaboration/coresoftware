@@ -104,6 +104,7 @@ class TrkrNtuplizer : public SubsysReco
   TNtuple *_ntp_hit;
   TNtuple *_ntp_cluster;
   TNtuple *_ntp_clus_trk;
+  TNtuple *_ntp_clus_seed;
   TNtuple *_ntp_track;
   TNtuple *_ntp_tpcseed;
   TNtuple *_ntp_siseed;
