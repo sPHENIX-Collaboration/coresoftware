@@ -1,10 +1,20 @@
 /*!
  * \file MvtxCombinedRawDataDecoder.cc
- * \author Cameron Dean <cameron.dean@cern.ch@cern.ch>
+ * \author Cameron Dean <cameron.dean@cern.ch>
  * \author Jakub Kvapil <jakub.kvapil@cern.ch>
  */
 
 #include "MvtxCombinedRawDataDecoder.h"
+
+#include <trackbase/MvtxDefs.h>
+#include <trackbase/MvtxEventInfov2.h>
+#include <trackbase/TrkrHitv2.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainerv1.h>
+
+#include <ffarawobjects/MvtxRawEvtHeader.h>
+#include <ffarawobjects/MvtxRawHit.h>
+#include <ffarawobjects/MvtxRawHitContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -12,8 +22,8 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 
-#include <trackbase/TrkrHitv2.h>
-#include <trackbase/TrkrHitSet.h>
+//#include <trackbase/TrkrHitv2.h>
+//#include <trackbase/TrkrHitSet.h>
 
 #include <algorithm>
 #include <cassert>
@@ -69,7 +79,7 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(mvtxNode);
     }
 
-    mvtx_event_header = findNode::getClass<MvtxEventInfov2>(mvtxNode, "MVTXEVENTHEADER");
+    mvtx_event_header = findNode::getClass<MvtxEventInfo>(mvtxNode, "MVTXEVENTHEADER");
     if (!mvtx_event_header)
     {
       mvtx_event_header = new MvtxEventInfov2();
@@ -78,7 +88,7 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeaderv1>(topNode, m_MvtxRawEvtHeaderNodeName);
+  mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
   if (!mvtx_raw_event_header)
   {
     std::cout << PHWHERE << "::" << __func__ <<  ": Could not get \"" << m_MvtxRawEvtHeaderNodeName << "\" from Node Tree" << std::endl;
@@ -92,7 +102,7 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
 //___________________________________________________________________________
 int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 {
-  mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeaderv1>(topNode, m_MvtxRawEvtHeaderNodeName);
+  mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
   if (Verbosity() >= VERBOSITY_MORE) mvtx_raw_event_header->identify();
 
   hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -117,7 +127,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 
   if (m_writeMvtxEventHeader)
   {
-    mvtx_event_header = findNode::getClass<MvtxEventInfov2>(topNode, "MVTXEVENTHEADER");
+    mvtx_event_header = findNode::getClass<MvtxEventInfo>(topNode, "MVTXEVENTHEADER");
     assert(mvtx_event_header);
   }
 

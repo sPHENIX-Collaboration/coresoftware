@@ -28,21 +28,18 @@ class ClusHitsVerbosev1 : public ClusHitsVerbose
   Vector& zBins      (TrkrDefs::cluskey) override;
   Vector& phiCutBins (TrkrDefs::cluskey) override;
   Vector& zCutBins   (TrkrDefs::cluskey) override;
-
-
-  PairVector phiBins_pvecIE    (TrkrDefs::cluskey) override;
-  PairVector zBins_pvecIE      (TrkrDefs::cluskey) override;
-  PairVector phiCutBins_pvecIE (TrkrDefs::cluskey) override;
-  PairVector zCutBins_pvecIE   (TrkrDefs::cluskey) override;
-
-
   Map&    getMap     () override { return m_data; };
 
-  void addPhiHit    (int _i, int _v) { m_stage_phi    .push_back({_i,_v}); };
-  void addZHit      (int _i, int _v) { m_stage_z      .push_back({_i,_v}); };
-  void addPhiCutHit (int _i, int _v) { m_stage_phiCut .push_back({_i,_v}); };
-  void addZCutHit   (int _i, int _v) { m_stage_zCut   .push_back({_i,_v}); };
-  void push_hits (TrkrDefs::cluskey);
+  PairVector phiBins_pvecIE    (TrkrDefs::cluskey) override;
+  PairVector phiCutBins_pvecIE (TrkrDefs::cluskey) override;
+  PairVector zBins_pvecIE      (TrkrDefs::cluskey) override;
+  PairVector zCutBins_pvecIE   (TrkrDefs::cluskey) override;
+
+  void addPhiHit    (int _i, int _v) override { m_stage_phi    .push_back({_i,_v}); };
+  void addZHit      (int _i, int _v) override { m_stage_z      .push_back({_i,_v}); };
+  void addPhiCutHit (int _i, int _v) override { m_stage_phiCut .push_back({_i,_v}); };
+  void addZCutHit   (int _i, int _v) override { m_stage_zCut   .push_back({_i,_v}); };
+  void push_hits (TrkrDefs::cluskey) override;
 
   ClusHitsVerbosev1() = default;
 

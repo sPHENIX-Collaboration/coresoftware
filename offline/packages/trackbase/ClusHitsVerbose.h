@@ -32,6 +32,12 @@ class ClusHitsVerbose : public PHObject
   virtual PairVector zBins_pvecIE(TrkrDefs::cluskey);
   virtual PairVector zCutBins_pvecIE(TrkrDefs::cluskey);
 
+  virtual void addPhiHit    (int /*_i*/, int /*_v*/) {};
+  virtual void addZHit      (int /*_i*/, int /*_v*/) {};
+  virtual void addPhiCutHit (int /*_i*/, int /*_v*/) {};
+  virtual void addZCutHit   (int /*_i*/, int /*_v*/) {};
+  virtual void push_hits (TrkrDefs::cluskey) {};
+
   // PHObject virtual overload
   void identify(std::ostream& os = std::cout) const override
   {
