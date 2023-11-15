@@ -29,7 +29,7 @@ int MbdCalib::Download_All()
   cout << "MBD CDB " << _rc->get_StringFlag("CDB_GLOBALTAG") << "\t" << _rc->get_uint64Flag("TIMESTAMP") << endl;
 
   _cdb = CDBInterface::instance();
-// if rc flag MBD_CALDIR does not exist, we create it and set it to an empty string
+  // if rc flag MBD_CALDIR does not exist, we create it and set it to an empty string
   string bbc_caldir =  _rc->get_StringFlag("MBD_CALDIR","");
   if ( bbc_caldir.empty() )
   {
@@ -47,6 +47,7 @@ int MbdCalib::Download_All()
   }
   else
   {
+    cout << "Reading MBD Calibrations from " << bbc_caldir << endl;
     std::string sampmax_file = bbc_caldir + "/bbc_sampmax.calib";
     Download_SampMax( sampmax_file );
     std::string qfit_file = bbc_caldir + "/bbc_qfit.calib";

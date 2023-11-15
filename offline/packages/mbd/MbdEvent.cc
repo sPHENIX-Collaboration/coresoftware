@@ -177,7 +177,7 @@ void MbdEvent::Clear()
 int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
 {
   // First check if there is any event (ie, reading from PRDF)
-  if (event == nullptr || event == nullptr)
+  if (event == nullptr || bbcpmts == nullptr)
   {
     return -1;
   }

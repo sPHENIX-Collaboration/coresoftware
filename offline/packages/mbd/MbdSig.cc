@@ -454,7 +454,7 @@ Double_t MbdSig::LeadingEdge(const Double_t threshold)
       }
     }
   }
-  if ( sample == -1 ) return -9999.;  // no signal above threshold
+  if ( sample < 1 ) return -9999.;  // no signal above threshold
 
   // Linear Interpolation of start time
   Double_t dx = x[sample] - x[sample-1];
@@ -494,7 +494,7 @@ Double_t MbdSig::dCFD(const Double_t fraction_threshold)
       }
     }
   }
-  if ( sample == -1 ) return -9999.;  // no signal above threshold
+  if ( sample < 1 ) return -9999.;  // no signal above threshold
 
   // Linear Interpolation of start time
   Double_t dx = x[sample] - x[sample-1];
