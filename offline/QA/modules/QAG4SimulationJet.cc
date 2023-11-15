@@ -416,7 +416,9 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
         ));
     assert(lleak);
 
-    std::cout << "FIXME Y0  nentries: " << lemchcalr->GetEntries() << " ave: " << lemchcalr->GetMean() << std::endl;
+    std::ofstream fixme_fout;
+    fixme_fout.open("Y_tca");
+    fixme_fout << "FIXME Y0  nentries: " << lemchcalr->GetEntries() << " ave: " << lemchcalr->GetMean() << std::endl;
 
     let->Fill(leading_jet->get_et());
     leta->Fill(leading_jet->get_eta());
@@ -444,7 +446,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
         std::cout << "leading_jet->get_e() = " << leading_jet->get_e() << std::endl;
       }
 
-        std::cout << "FIXME Y1 lemchcalr, leading_jet: " << Form(" pt:eta:phi (%5.2f,%5.2f,%5.2f)", 
+        fixme_fout << "FIXME Y1 lemchcalr, leading_jet: " << Form(" pt:eta:phi (%5.2f,%5.2f,%5.2f)", 
         leading_jet->get_pt(), leading_jet->get_eta(), leading_jet->get_phi()) << " nchar: " << 
          ((int)leading_jet->size_comp()) << "FIXME Y1 comps: " << std::endl;
           // get the entires in leading jet:
@@ -454,10 +456,13 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
           }
           int i=0;
           for (auto pair : fixme_vec) {
-            std::cout << Form("[%i3,%i3]", pair.first, pair.second);
-            if (i++ > 10) std::cout << "FIXME Y1 comps: " <<  std::endl;
+            fixme_fout << Form("[%i3,%i3]", pair.first, pair.second);
+            if (i++ > 10)
+            {
+              fixme_fout << std::endl << "FIXME Y1 comps: ";
+              i =0;
+            }
           }
-          std::cout<<std::endl;
 
 
       lcemcr->Fill(                                                         //
