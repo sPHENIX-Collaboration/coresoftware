@@ -670,10 +670,12 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
       truthjet->identify();
     }
 
-    Matching_Count_Truth_Et->Fill(truthjet->get_et(), "Total", 1);
+    std::cout << " FIXME A0 " << std::endl;
 
+    Matching_Count_Truth_Et->Fill(truthjet->get_et(), "Total", 1);
     {  // inclusive best energy match
 
+    std::cout << " FIXME A1 " << std::endl;
       const Jet* recojet = recoeval->best_jet_from(truthjet);
       if (Verbosity() > 1)
       {
@@ -682,6 +684,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
         recojet->identify();
       }
 
+    std::cout << " FIXME A1 found( " << (recojet!=nullptr ? "NO" : "YES" )<< std::endl;
       if (recojet)
       {
         const double dPhi = recojet->get_phi() - truthjet->get_phi();
@@ -715,6 +718,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
     }    // inclusive best energy match
     {    // unique match
 
+    std::cout << " FIXME A2 " << std::endl;
       const Jet* recojet = recoeval->unique_reco_jet_from_truth(truthjet);
       if (recojet)
       {
