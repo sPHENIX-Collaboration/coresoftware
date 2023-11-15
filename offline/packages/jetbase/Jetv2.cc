@@ -15,25 +15,9 @@
 
 class PHObject;
 
-Jetv2::Jetv2()
-{
-  std::fill(std::begin(_mom), std::end(_mom), NAN);
-}
-
 Jetv2::Jetv2(unsigned int n_prop)
   : _properties(n_prop, NAN)
-{
-  std::fill(std::begin(_mom), std::end(_mom), NAN);
-}
-
-Jetv2::Jetv2(const Jetv2& rhs)
-  : _id{rhs._id}
-  , _e{rhs._e}
-{
-  std::copy(rhs._mom, rhs._mom + 3, _mom);
-  std::copy(rhs._comp_ids.begin(), rhs._comp_ids.end(), _comp_ids.begin());
-  std::copy(rhs._properties.begin(), rhs._properties.end(), _properties.begin());
-}
+{ }
 
 void Jetv2::identify(std::ostream& os) const
 {

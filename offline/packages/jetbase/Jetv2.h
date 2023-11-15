@@ -15,6 +15,7 @@
 #include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
+#include <array>
 #include <utility>  // for pair, make_pair
 
 class PHObject;
@@ -25,10 +26,12 @@ class PHObject;
 class Jetv2 : public Jet
 {
  public:
-  Jetv2();
+  Jetv2() = default;
   Jetv2(unsigned int);
-  ~Jetv2() override {}
-  Jetv2(const Jetv2&);
+  /* ~Jetv2() override = default; //{} */
+  /* Jetv2(const Jetv2&) = default; */
+  /* Jetv2(Jetv2&) = default; */
+  /* Jetv2& operator=(const Jetv2&) = default; */
 
   // method used to sort the consistuents of the jet -- to be used when generating the jets only
   struct CompareSRC
@@ -114,7 +117,7 @@ class Jetv2 : public Jet
   unsigned int _id = ~0x0;
 
   /// jet momentum vector (px,py,pz)
-  float _mom[3];
+  std::array<float,3> _mom {{ NAN, NAN, NAN}} ;
 
   /// jet energy
   float _e = NAN;

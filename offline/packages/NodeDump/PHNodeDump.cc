@@ -14,6 +14,7 @@
 #include "DumpInttDeadMap.h"
 #include "DumpInttRawHitContainer.h"
 #include "DumpJetMap.h"
+#include "DumpJetContainer.h"
 #include "DumpMbdOut.h"
 #include "DumpMbdPmtContainer.h"
 #include "DumpMbdVertexMap.h"
@@ -239,6 +240,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("JetMap"))
       {
         newdump = new DumpJetMap(NodeName);
+      }
+      else if (tmp->InheritsFrom("JetContainer"))
+      {
+        newdump = new DumpJetContainer(NodeName);
       }
       else if (tmp->InheritsFrom("MbdOut"))
       {

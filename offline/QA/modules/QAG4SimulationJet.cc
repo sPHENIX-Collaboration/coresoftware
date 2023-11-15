@@ -7,7 +7,7 @@
 #include <g4eval/JetTruthEval.h>
 
 #include <jetbase/Jet.h>
-#include <jetbase/JetMap.h>
+#include <jetbase/JetContainer.h>
 
 #include <g4main/PHG4HitDefs.h>
 #include <g4main/PHG4Shower.h>
@@ -318,11 +318,11 @@ int QAG4SimulationJet::Init_Spectrum(PHCompositeNode* /*topNode*/,
 int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
                                         const std::string& jet_name, const bool is_reco_jet)
 {
-  JetMap* jets = findNode::getClass<JetMap>(topNode, jet_name.c_str());
+  JetContainer* jets = findNode::getClass<JetContainer>(topNode, jet_name.c_str());
   if (!jets)
   {
     std::cout
-        << "QAG4SimulationJet::process_Spectrum - Error can not find DST JetMap node "
+        << "QAG4SimulationJet::process_Spectrum - Error can not find DST JetContainer node "
         << jet_name << std::endl;
     exit(-1);
   }
@@ -350,9 +350,8 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
 
   Jet* leading_jet = nullptr;
   double max_et = 0;
-  for (auto& iter : *jets)
+  for (auto jet : *jets)
   {
-    Jet* jet = iter.second;
     assert(jet);
 
     if (not jet_acceptance_cut(jet))
@@ -633,11 +632,11 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   assert(recoeval);
 
   // iterate over truth jets
-  JetMap* truthjets = findNode::getClass<JetMap>(topNode, _truth_jet);
+  JetContainer* truthjets = findNode::getClass<JetContainer>(topNode, _truth_jet);
   if (!truthjets)
   {
     std::cout
-        << "QAG4SimulationJet::process_TruthMatching - Error can not find DST JetMap node "
+        << "QAG4SimulationJet::process_TruthMatching - Error can not find DST JetContainer node "
         << _truth_jet << std::endl;
     exit(-1);
   }
@@ -645,9 +644,8 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   // search for leading truth
   Jet* truthjet = nullptr;
   double max_et = 0;
-  for (auto& iter : *truthjets)
+  for (auto jet : *truthjets)
   {
-    Jet* jet = iter.second;
     assert(jet);
 
     if (not jet_acceptance_cut(jet))
@@ -754,11 +752,11 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   }  //  if (truthjet)
 
   // next for reco jets
-  JetMap* recojets = findNode::getClass<JetMap>(topNode, reco_jet_name);
+  JetContainer* recojets = findNode::getClass<JetContainer>(topNode, reco_jet_name);
   if (!recojets)
   {
     std::cout
-        << "QAG4SimulationJet::process_TruthMatching - Error can not find DST JetMap node "
+        << "QAG4SimulationJet::process_TruthMatching - Error can not find DST JetContainer node "
         << reco_jet_name << std::endl;
     exit(-1);
   }
@@ -766,9 +764,8 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   // search for leading reco jet
   Jet* recojet = nullptr;
   max_et = 0;
-  for (auto& iter : *recojets)
+  for (auto jet : *recojets)
   {
-    Jet* jet = iter.second;
     assert(jet);
 
     if (not jet_acceptance_cut(jet))

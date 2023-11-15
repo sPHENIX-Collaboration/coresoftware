@@ -12,7 +12,7 @@
 #include <calobase/TowerInfoContainerv1.h>
 
 #include <jetbase/Jet.h>
-#include <jetbase/JetMap.h>
+#include <jetbase/JetContainer.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -113,21 +113,19 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   // seed type 0 is D > 3 R=0.2 jets run on retowerized CEMC
   if (_seed_type == 0)
   {
-    JetMap *reco2_jets;
+    JetContainer *reco2_jets;
     if (m_use_towerinfo)
       {
-	reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_TowerInfo_HIRecoSeedsRaw_r02");
+	reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsRaw_r02");
       }
     else
       {
-	reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r02");
+	reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r02");
       }
     if (Verbosity() > 1)
       std::cout << "DetermineTowerBackground::process_event: examining possible seeds (1st iteration) ... " << std::endl;
 
-    for (JetMap::Iter iter = reco2_jets->begin(); iter != reco2_jets->end(); ++iter)
-    {
-      Jet *this_jet = iter->second;
+    for (auto this_jet : *reco2_jets) {
 
       float this_pt = this_jet->get_pt();
       float this_phi = this_jet->get_phi();
@@ -294,22 +292,20 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   // pT > 20 GeV
   if (_seed_type == 1)
   {
-    JetMap *reco2_jets;
+    JetContainer *reco2_jets;
     if (m_use_towerinfo)
       {
-	reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_TowerInfo_HIRecoSeedsSub_r02");
+	reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsSub_r02");
       }
     else
       {
-	reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_Tower_HIRecoSeedsSub_r02");
+	reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_Tower_HIRecoSeedsSub_r02");
       }
     if (Verbosity() > 1)
       std::cout << "DetermineTowerBackground::process_event: examining possible seeds (2nd iteration) ... " << std::endl;
 
-    for (JetMap::Iter iter = reco2_jets->begin(); iter != reco2_jets->end(); ++iter)
+    for (auto this_jet : *reco2_jets) 
     {
-      Jet *this_jet = iter->second;
-
       float this_pt = this_jet->get_pt();
       float this_phi = this_jet->get_phi();
       float this_eta = this_jet->get_eta();

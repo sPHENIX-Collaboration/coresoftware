@@ -33,7 +33,7 @@ class FastJetAlgo : public JetAlgo
   //  there is no harm is using these, as well.
   //----------------------------------------------------------------------
   FastJetAlgo(Jet::ALGO algo, float par, int verbosity=0) :
-     FastJetAlgo({{JET_R,par,algo,VERBOSITY,static_cast<float>(verbosity)}})
+     FastJetAlgo({{algo, JET_R,par,VERBOSITY, static_cast<float>(verbosity)}})
   {}
   void set_do_SoftDrop   (bool  do_SD) { m_opt.doSoftDrop = do_SD; }
   void set_SoftDrop_beta (float beta)  { m_opt.SD_beta    = beta;  }

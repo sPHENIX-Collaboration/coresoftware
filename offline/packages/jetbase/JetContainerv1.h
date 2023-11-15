@@ -82,6 +82,9 @@ public:
     void set_algo(Jet::ALGO algo) override { m_algo = algo; };
     Jet::ALGO get_algo() const override { return m_algo; };
 
+    void  set_par (float par) override { set_jetpar_R(par); }
+    float get_par () const override { return get_jetpar_R(); }
+
     void  set_jetpar_R (float par) override { m_jetpar_R = par; }
     float get_jetpar_R () const override { return m_jetpar_R; }
     

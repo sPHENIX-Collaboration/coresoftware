@@ -54,6 +54,9 @@ public:
     virtual void set_algo(Jet::ALGO /*algo*/) { return; }
     virtual Jet::ALGO get_algo() const { return Jet::ALGO::NONE; }
 
+    virtual void  set_par(float) { return; }
+    virtual float get_par() const { return NAN; }
+
     virtual void  set_jetpar_R(float) { return; }
     virtual float get_jetpar_R() const { return NAN; }
 
