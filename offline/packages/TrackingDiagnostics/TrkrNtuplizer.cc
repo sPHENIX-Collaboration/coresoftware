@@ -592,7 +592,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     }
   }
   /**********/
-
+  
   PHG4TpcCylinderGeomContainer* geom_container =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
@@ -600,6 +600,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return;
   }
+  float nhits = 0;
+  /*
   PHG4TpcCylinderGeom* GeoLayer;
   int layer = _nlayers_maps + _nlayers_intt;
   GeoLayer = geom_container->GetLayerCellGeom(layer);
@@ -651,6 +653,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
          << " occ316 = " << occ316
          << endl;
   }
+  */
   TrkrClusterContainer* clustermap_in = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
   if (!clustermap_in)
   {
@@ -803,7 +806,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
            iter != all_hitsets.second;
            ++iter)
       {
-        TrkrDefs::hitsetkey hitset_key = iter->first;
+        const TrkrDefs::hitsetkey hitset_key = iter->first;
         TrkrHitSet* hitset = iter->second;
 
         // get all hits for this hitset
@@ -831,8 +834,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           float x = NAN;
           float y = NAN;
           float z = NAN;
-
-          if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+        
+          if (TrkrDefs::getTrkrId(hitset_key) == TrkrDefs::TrkrId::tpcId)
           {
             PHG4TpcCylinderGeom* GeoLayer_local = geom_container->GetLayerCellGeom(layer_local);
  	    double radius = GeoLayer_local->get_radius();
@@ -1001,7 +1004,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	  ephi = sqrt(para_errors.first);
 	  maxadc = cluster->getMaxAdc();
           // count all hits for this cluster
-          TrkrDefs::hitsetkey hitsetkey_local = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+          const TrkrDefs::hitsetkey hitsetkey_local = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
           int hitsetlayer2 = TrkrDefs::getLayer(hitsetkey_local);
           if (hitsetlayer != layer_local)
           {
@@ -1019,7 +1022,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           }
 	  float phibin = NAN;
 	  float tbin  = NAN;
-          if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+          if (TrkrDefs::getTrkrId(hitsetkey_local) == TrkrDefs::TrkrId::tpcId)
           {
 	    PHG4TpcCylinderGeom* GeoLayer_local = geom_container->GetLayerCellGeom(layer_local);
 	    phibin = GeoLayer_local->get_pad_float(phi,side);
@@ -1101,10 +1104,12 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       else cout << "no clustermap" << endl;
     }
 
-    TrackSeedContainer *_tpc_seeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+    TrackSeedContainer *_tpc_seeds = findNode::getClass<TrackSeedContainer>(topNode, _clustrackseedcontainer);
+    TrackSeedContainer *_tpcseeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+    TrackSeedContainer *_silseeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
     if (!_tpc_seeds)
       {
-	cerr << PHWHERE << " ERROR: Can't find " << "TpcTrackSeedContainer" << endl;
+	cerr << PHWHERE << " ERROR: Can't find " << _clustrackseedcontainer << endl;
 	return ;
       }
    
@@ -1115,12 +1120,25 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       if(!tpcseed) { 
 	continue; 
       }  
+      TrackSeed *silseed = nullptr;
+      if(_clustrackseedcontainer.find("SvtxTrackSeed") != std::string::npos)
+	{
+	  unsigned int tpcindex = tpcseed->get_tpc_seed_index();
+	  unsigned int silindex = tpcseed->get_silicon_seed_index();
+	  tpcseed = _tpcseeds->get(tpcindex);
+	  silseed = _silseeds->get(silindex);
+	}
 
     
       std::vector<Acts::Vector3> clusterPositions;
       std::vector<TrkrDefs::cluskey> clusterKeys;
       clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
 			 tpcseed->end_cluster_keys());
+      if(silseed)
+	{
+	  clusterKeys.insert(clusterKeys.end(), silseed->begin_cluster_keys(),
+			     silseed->end_cluster_keys());
+	}
       TrackFitUtils::getTrackletClusters(tgeometry, clustermap, 
 					 clusterPositions, clusterKeys);
       std::vector<float> fitparams = TrackFitUtils::fitClusters(clusterPositions, clusterKeys);
@@ -1140,6 +1158,10 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       
       float nhits_local = 0;
       nhits_local += tpcseed->size_cluster_keys();
+      if(silseed)
+	{
+	  nhits_local += silseed->size_cluster_keys();
+	}
 
       for (size_t i = 0; i < clusterPositions.size(); i++)
 	{/*
@@ -1148,7 +1170,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	   ++iter_local){
 	 */
 
-	  TrkrDefs::cluskey cluster_key = clusterKeys[i];//*iter_local;
+	  const TrkrDefs::cluskey cluster_key = clusterKeys[i];//*iter_local;
 	  // TrkrCluster* cluster = clustermap->findCluster(cluster_key);
 	  // unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
 	   Acts::Vector3 position = clusterPositions[i];
@@ -1209,7 +1231,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	   float trackID = phtrk_iter;
 	   float phibin = NAN;
 	   float tbin  = NAN;
-	   if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+	   const TrkrDefs::hitsetkey hsk = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+	   if (TrkrDefs::getTrkrId(hsk) == TrkrDefs::TrkrId::tpcId)
 	     {
 	       PHG4TpcCylinderGeom* GeoLayer_local = geom_container->GetLayerCellGeom(layer_local);
 	       phibin = GeoLayer_local->get_pad_float(phi,side);
@@ -1299,6 +1322,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       for (auto& iter : *_trackmap)
       {
         SvtxTrack* track = iter.second;
+	if(!track) continue;
         float trackID = track->get_id();
         TrackSeed* tpcseed = track->get_tpc_seed();
         TrackSeed* silseed = track->get_silicon_seed();
@@ -1507,10 +1531,13 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         float dca2d = NAN, dca2dsigma = NAN;
 
         int vertexID = track->get_vertex_id();
-        GlobalVertex* vertex = vertexmap->get(vertexID);
-        float vx = NAN;
+	float vx = NAN;
         float vy = NAN;
         float vz = NAN;
+	if(vertexmap) 
+	  {
+        GlobalVertex* vertex = vertexmap->get(vertexID);
+  
         if (vertex)
         {
           vx = vertex->get_x();
@@ -1523,6 +1550,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	  dca3dz = dcapair.second.first;
 	  dca3dzsigma = dcapair.second.second;
         }
+	  }
         float px = track->get_px();
         float py = track->get_py();
         float pz = track->get_pz();
