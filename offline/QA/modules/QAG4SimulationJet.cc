@@ -416,6 +416,8 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
         ));
     assert(lleak);
 
+    std::cout << "FIXME Y0  nentries: " << lemchcalr->GetEntries() << " ave: " << lemchcalr->GetMean() << std::endl;
+
     let->Fill(leading_jet->get_et());
     leta->Fill(leading_jet->get_eta());
     lphi->Fill(leading_jet->get_phi());
@@ -441,6 +443,22 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
         std::cout << "HCALIN_CLUSTER sum = " << recoeval->get_energy_contribution(leading_jet, Jet::HCALIN_CLUSTER) << std::endl;
         std::cout << "leading_jet->get_e() = " << leading_jet->get_e() << std::endl;
       }
+
+        std::cout << "FIXME Y1 lemchcalr, leading_jet: " << Form(" pt:eta:phi (%5.2f,%5.2f,%5.2f)", 
+        leading_jet->get_pt(), leading_jet->get_eta(), leading_jet->get_phi()) << " nchar: " << 
+         ((int)leading_jet->size_comp()) << "FIXME Y1 comps: " << std::endl;
+          // get the entires in leading jet:
+          std::vector<std::pair<int,int>> fixme_vec{};
+          for (auto iter : leading_jet->get_comp_vec()) {
+          fixme_vec.push_back({(int)iter.first,(int)iter.second});
+          }
+          int i=0;
+          for (auto pair : fixme_vec) {
+            std::cout << Form("[%i3,%i3]", pair.first, pair.second);
+            if (i++ > 10) std::cout << "FIXME Y1 comps: " <<  std::endl;
+          }
+          std::cout<<std::endl;
+
 
       lcemcr->Fill(                                                         //
           (recoeval->get_energy_contribution(leading_jet, Jet::CEMC_TOWER)  //
@@ -670,12 +688,10 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
       truthjet->identify();
     }
 
-    std::cout << " FIXME A0 " << std::endl;
 
     Matching_Count_Truth_Et->Fill(truthjet->get_et(), "Total", 1);
     {  // inclusive best energy match
 
-    std::cout << " FIXME A1 " << std::endl;
       const Jet* recojet = recoeval->best_jet_from(truthjet);
       if (Verbosity() > 1)
       {
@@ -684,7 +700,6 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
         recojet->identify();
       }
 
-    std::cout << " FIXME A1 found( " << (recojet!=nullptr ? "NO" : "YES" )<< std::endl;
       if (recojet)
       {
         const double dPhi = recojet->get_phi() - truthjet->get_phi();
@@ -718,7 +733,6 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
     }    // inclusive best energy match
     {    // unique match
 
-    std::cout << " FIXME A2 " << std::endl;
       const Jet* recojet = recoeval->unique_reco_jet_from_truth(truthjet);
       if (recojet)
       {
