@@ -8,8 +8,8 @@
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-#include <calobase/TowerInfov1.h>
-#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
 
 #include <jetbase/Jet.h>
 #include <jetbase/JetMap.h>
@@ -88,9 +88,9 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   TowerInfoContainer *towerinfosOH3 = nullptr;
   if (m_use_towerinfo)
     {
-      towerinfosEM3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
-      towerinfosIH3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN");
-      towerinfosOH3 =  findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT");
+      towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
+      towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
+      towerinfosOH3 =  findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
     }
   else
     {
@@ -731,7 +731,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
           if (layer == 2) total_E += _OHCAL_E[eta][phi] / (1 + 2 * _v2 * cos(2 * (this_phi - _Psi2)));
           total_tower++;  // towers in this eta range & layer
           _nTowers++;     // towers in entire calorimeter
-        }
+	}
         else
         {
           if (Verbosity() > 10) std::cout << " tower at eta / phi = " << this_eta << " / " << this_phi << " with E = " << total_E << " excluded due to seed " << std::endl;
@@ -744,6 +744,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       float deta = etabounds.second - etabounds.first;
       float dphi = phibounds.second - phibounds.first;
       float total_area = total_tower * deta * dphi;
+
       _UE[layer].at(eta) = total_E / total_tower;
 
       if (Verbosity() > 3)

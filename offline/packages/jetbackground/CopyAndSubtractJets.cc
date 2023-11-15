@@ -7,8 +7,8 @@
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-#include <calobase/TowerInfov1.h>
-#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
 
 
 #include <jetbase/Jet.h>
@@ -61,9 +61,9 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
   TowerInfoContainer *towerinfosOH3 = nullptr;
   if (m_use_towerinfo)
     {
-      towerinfosEM3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
-      towerinfosIH3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN");
-      towerinfosOH3 =  findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT");
+      towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
+      towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
+      towerinfosOH3 =  findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
     }
   else
     {
