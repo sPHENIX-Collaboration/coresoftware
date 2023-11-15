@@ -43,7 +43,7 @@ int MbdReco::Init(PHCompositeNode *)
   m_gaussian = std::make_unique<TF1>("gaussian", "gaus", 0, 20);
   m_gaussian->FixParameter(2, m_tres);
 
-  m_mbdevent = new MbdEvent();
+  m_mbdevent = std::make_unique<MbdEvent>();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -73,6 +73,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     int status = m_mbdevent->SetRawData( m_event, m_mbdpmts );
     if ( status<0 ) return EVENT_OK; // there wasn't good data in BBC/MBD
   }
+
   m_mbdevent->Calculate( m_mbdpmts, m_mbdout );
 
   // For multiple global vertex
