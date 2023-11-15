@@ -598,7 +598,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
     gSystem->Exit(1);
     exit(1);
   }
-  //  std::cout << "before filling m_InttRawHitMap size: " <<  m_InttRawHitMap.size() << std::endl;
+  // std::cout << "before filling m_MvtxRawHitMap size: " <<  m_MvtxRawHitMap.size() << std::endl;
   uint64_t select_crossings = m_mvtx_bco_range;
   if (m_RefBCO > 0)
   {
@@ -666,6 +666,11 @@ int Fun4AllStreamingInputManager::FillMvtx()
     }
     m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
     m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
+    // m_MvtxRawHitMap.empty() need to be checked here since we do not call FillPoolMvtx()
+    if ( m_MvtxRawHitMap.empty() )
+    {
+      break;
+    }
   }
 
   return 0;
