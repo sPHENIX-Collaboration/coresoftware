@@ -7,13 +7,16 @@ use strict;
 use Getopt::Long;
 use Data::Dumper;
 
+sub creatfilelists;
+
 my $buildtag;
 my $cdbtag;
 my $version;
 my $verbose;
 my $runnumber;
+my $runlist;
 
-GetOptions('build:s' => \$buildtag, 'cdb:s' => \$cdbtag, 'run:i' => \$runnumber, 'version:s' => \$version, "verbose" =>\$verbose);
+GetOptions('build:s' => \$buildtag, 'cdb:s' => \$cdbtag, 'run:i' => \$runnumber, 'list:s' => \$runlist, 'version:s' => \$version, "verbose" =>\$verbose);
 
 if ($#ARGV < 0)
 {
@@ -22,8 +25,9 @@ if ($#ARGV < 0)
     print "parameters:\n";
     print "--build <build tag> (mandatory)\n";
     print "--cdb <cdb tag> (mandatory)\n";
-    print "--run <run number> (mandatory)\n";
-    print "--version <version> (only if we have multiple version for same build/cdb tag\n";
+    print "--list <file with list of runs>\n";
+    print "--run <run number>\n";
+    print "--version <version> (only if we have multiple versions for same build/cdb tag)\n";
     print "--verbose print stuff\n";
     exit(0);
 }
@@ -44,7 +48,7 @@ if (! defined $cdbtag)
     print "set cdb tag with --cdb <tag>\n";
     exit(1);
 }
-if (! defined $runnumber)
+if (! defined $runnumber && ! defined $runlist)
 {
  print "set run number with --run <run number>\n";
  exit(1);
@@ -100,20 +104,45 @@ foreach my $ds (sort keys %dsttype)
     }
 }
 
-my $getfiles =  $dbh->prepare("select filename from datasets where runnumber=$runnumber and dsttype=? and dataset = '$dataset' order by segment\n");
-foreach my $ds (sort keys %dsttype)
+my $getfiles =  $dbh->prepare("select filename from datasets where runnumber=? and dsttype=? and dataset = '$dataset' order by segment\n");
+if (defined $runlist)
 {
-    $getfiles->execute($ds);
-    if ($getfiles->rows == 0)
+    if (! -f $runlist)
     {
-	print "no run $runnumber for dst type $ds and dataset $dataset\n";
+	print "$runlist does not exist\n";
 	exit(1);
     }
-    my $filename = sprintf("%s-%08d.list",lc $ds, $runnumber);
+    open(F2,"$runlist");
+    {
+	while (my $run = <F2>)
+	{
+	    creatfilelists($run);
+	}
+    }
+}
+else
+{
+    creatfilelists($runnumber);
+}
+
+sub creatfilelists
+{
+    my $run = shift;
+foreach my $ds (sort keys %dsttype)
+{
+    $getfiles->execute($run,$ds);
+    if ($getfiles->rows == 0)
+    {
+	print "no run $run for dst type $ds and dataset $dataset\n";
+	exit(1);
+    }
+    my $filename = sprintf("%s-%08d.list",lc $ds, $run);
+    print "creating list for run $run --> $filename\n";
     open(F,">$filename");
     while (my @res = $getfiles->fetchrow_array())
     {
 	print F "$res[0]\n";
     }
     close(F);
+}
 }
