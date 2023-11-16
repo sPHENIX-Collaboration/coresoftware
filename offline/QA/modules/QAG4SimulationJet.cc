@@ -466,6 +466,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
         }
         fixme_fout << "-" << pair.second;
       }
+      fixme_fout << std::endl;
       // end FIXME
 
       lcemcr->Fill(                                                         //
