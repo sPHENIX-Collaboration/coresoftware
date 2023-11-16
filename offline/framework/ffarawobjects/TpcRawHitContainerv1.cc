@@ -41,7 +41,7 @@ int TpcRawHitContainerv1::isValid() const
 
 unsigned int TpcRawHitContainerv1::get_nhits()
 {
-  return TpcRawHitsTCArray->GetEntries();
+  return TpcRawHitsTCArray->GetEntriesFast();
 }
 
 TpcRawHit *TpcRawHitContainerv1::AddHit()
