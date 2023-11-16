@@ -454,15 +454,14 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
           for (auto iter : leading_jet->get_comp_vec()) {
           fixme_vec.push_back({(int)iter.first,(int)iter.second});
           }
-          int i=0;
-          for (auto pair : fixme_vec) {
-            fixme_fout << Form("[%i3,%i3]", pair.first, pair.second);
-            if (i++ > 10)
-            {
-              fixme_fout << std::endl << "FIXME Y1 comps: ";
-              i =0;
-            }
-          }
+      int i=0;
+      for (auto pair : fixme_vec) {
+        fixme_fout << Form("[e%2i::%i3,%i3]", i, pair.first, pair.second);
+        if (i++ % 10 == 0)
+        {
+          fixme_fout << std::endl << "FIXME Y1 comps: ";
+        }
+      }
 
 
       lcemcr->Fill(                                                         //
