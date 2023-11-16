@@ -25,7 +25,7 @@ void MvtxRawHitContainerv1::Reset()
 void MvtxRawHitContainerv1::identify(std::ostream &os) const
 {
   os << "MvtxRawHitContainerv1" << std::endl;
-  os << "containing " << MvtxRawHitsTCArray->GetEntries() << " Mvtx hits" << std::endl;
+  os << "containing " << MvtxRawHitsTCArray->GetEntriesFast() << " Mvtx hits" << std::endl;
   MvtxRawHit *mvtxhit = static_cast< MvtxRawHit *> (MvtxRawHitsTCArray->At(0));
   if (mvtxhit)
    {
@@ -40,7 +40,7 @@ int MvtxRawHitContainerv1::isValid() const
 
 unsigned int MvtxRawHitContainerv1::get_nhits()
 {
-  return MvtxRawHitsTCArray->GetEntries();
+  return MvtxRawHitsTCArray->GetEntriesFast();
 }
 
 MvtxRawHit *MvtxRawHitContainerv1::AddHit()
