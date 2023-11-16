@@ -417,7 +417,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
     assert(lleak);
 
     std::ofstream fixme_fout;
-    fixme_fout.open("Y_tca");
+    fixme_fout.open("fixme_tca",std::ofstream::app);
     fixme_fout << "FIXME Y0  nentries: " << lemchcalr->GetEntries() << " ave: " << lemchcalr->GetMean() << std::endl;
 
     let->Fill(leading_jet->get_et());
