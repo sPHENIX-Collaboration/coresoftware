@@ -92,6 +92,8 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
     BytesWritten(0);
     close(OutFileDescriptor());
     OutFileDescriptor(-1);
+    MyManager()->SetClosingScriptArgs(MyManager()->OutFileName());
+    MyManager()->RunAfterClosing();
   }
   return 0;
 }
