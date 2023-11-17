@@ -204,6 +204,9 @@ class PHActsTrkFitter : public SubsysReco
   /// Flag for pp running
   bool m_pp_mode = false;
 
+  // max variation of bunch crossing away from crossing_estimate
+  short int max_bunch_search = 2;
+
   bool m_actsEvaluator = false;
   std::unique_ptr<ActsEvaluator> m_evaluator = nullptr;
   std::string m_evalname = "ActsEvaluator.root";

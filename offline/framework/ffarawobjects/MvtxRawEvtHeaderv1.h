@@ -1,9 +1,9 @@
 #ifndef FUN4ALLRAW_MVTXRAWEVTHEADERV1_H
 #define FUN4ALLRAW_MVTXRAWEVTHEADERV1_H
 
-#include <phool/PHObject.h>
-
 #include "MvtxRawEvtHeader.h"
+
+#include <phool/PHObject.h>
 
 #include <cstdint>
 #include <set>
@@ -13,7 +13,7 @@ class  MvtxRawEvtHeaderv1: public MvtxRawEvtHeader
 
 public:
   MvtxRawEvtHeaderv1() = default;
-  virtual ~MvtxRawEvtHeaderv1() = default;
+  ~MvtxRawEvtHeaderv1() = default;
 
   ///Clear Event
   void Reset() override;
@@ -32,8 +32,8 @@ public:
   void AddFeeId(const std::set<uint16_t>& mvtxFeeIds) override;
   void AddL1Trg(const std::set<uint64_t>& mvtxL1TrgSet) override;
 
-  virtual std::set<uint16_t>& getMvtxFeeIdSet() { return m_MvtxFeeIdSet; };
-  virtual std::set<uint64_t>& getMvtxLvL1BCO() { return m_MvtxL1TrgSet; };
+  std::set<uint16_t>& getMvtxFeeIdSet() override { return m_MvtxFeeIdSet; };
+  std::set<uint64_t>& getMvtxLvL1BCO() override { return m_MvtxL1TrgSet; };
 
 private:
   std::set<uint16_t> m_MvtxFeeIdSet;

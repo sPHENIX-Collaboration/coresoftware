@@ -37,20 +37,21 @@
 //____________________________________________________________________________..
 CaloTowerStatus::CaloTowerStatus(const std::string &name)
   : SubsysReco(name)
-  , m_dettype(CaloTowerDefs::HCALOUT)
-  , m_detector("HCALOUT")
-  , m_DETECTOR(TowerInfoContainer::HCAL)
-  , m_fieldname("")
-  , m_runNumber(-1)
 {
-  if (Verbosity() > 0) std::cout << "CaloTowerStatus::CaloTowerStatus(const std::string &name) Calling ctor" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "CaloTowerStatus::CaloTowerStatus(const std::string &name) Calling ctor" << std::endl;
+  }
 }
 
 //____________________________________________________________________________..
 CaloTowerStatus::~CaloTowerStatus()
 {
-  delete cdbttree;
-  if (Verbosity() > 0) std::cout << "CaloTowerStatus::~CaloTowerStatus() Calling dtor" << std::endl;
+  delete m_cdbttree;
+  if (Verbosity() > 0)
+  {
+    std::cout << "CaloTowerStatus::~CaloTowerStatus() Calling dtor" << std::endl;
+  }
 }
 
 //____________________________________________________________________________..
@@ -74,12 +75,12 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
     {
-      cdbttree = new CDBTTree(calibdir);
+      m_cdbttree = new CDBTTree(calibdir);
     }
     else
     {
       std::cout << "CaloTowerStatus::::InitRun No EMCal deadmap found" << std::endl;
-      m_doHot = 0;
+      m_doHot = false;
     }
   }
   else if (m_dettype == CaloTowerDefs::HCALIN)
@@ -97,12 +98,12 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
     {
-      cdbttree = new CDBTTree(calibdir);
+      m_cdbttree = new CDBTTree(calibdir);
     }
     else
     {
       std::cout << "CaloTowerStatus::::InitRun No masking file for domain " << m_calibName << " found, not doing isHot" << std::endl;
-      m_doHot = 0;
+      m_doHot = false;
     }
   }
   else if (m_dettype == CaloTowerDefs::HCALOUT)
@@ -120,12 +121,12 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
     {
-      cdbttree = new CDBTTree(calibdir);
+      m_cdbttree = new CDBTTree(calibdir);
     }
     else
     {
       std::cout << "CaloTowerStatus::::InitRun No masking file for domain " << m_calibName << " found, not doing isHot" << std::endl;
-      m_doHot = 0;
+      m_doHot = false;
     }
   }
   else if (m_dettype == CaloTowerDefs::ZDC)
@@ -143,7 +144,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
     {
-      cdbttree = new CDBTTree(calibdir);
+      m_cdbttree = new CDBTTree(calibdir);
     }
     else
     {
@@ -167,7 +168,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
     {
-      cdbttree = new CDBTTree(calibdir);
+      m_cdbttree = new CDBTTree(calibdir);
     }
     else
     {
@@ -196,26 +197,32 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     std::cout << e.what() << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  if (Verbosity() > 0) topNode->print();
+  if (Verbosity() > 0)
+  {
+    topNode->print();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
 {
-  unsigned int ntowers = _raw_towers->size();
+  unsigned int ntowers = m_raw_towers->size();
   int mask_status = 0;
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
-    if (m_doHot) mask_status = cdbttree->GetIntValue(channel, m_fieldname);
-    float chi2 = _raw_towers->get_tower_at_channel(channel)->get_chi2();
+    if (m_doHot)
+    {
+      mask_status = m_cdbttree->GetIntValue(channel, m_fieldname);
+    }
+    float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
     if (mask_status > 1 && m_doHot)
     {
-      _raw_towers->get_tower_at_channel(channel)->set_isHot(true);
+      m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
     if (chi2 > 3e3)
     {
-      _raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);
+      m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -223,9 +230,9 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
 
 void CaloTowerStatus::CreateNodeTree(PHCompositeNode *topNode)
 {
-  RawTowerNodeName = m_inputNodePrefix + m_detector;
-  _raw_towers = findNode::getClass<TowerInfoContainer>(topNode, RawTowerNodeName);
-  if (!_raw_towers)
+  std::string RawTowerNodeName = m_inputNodePrefix + m_detector;
+  m_raw_towers = findNode::getClass<TowerInfoContainer>(topNode, RawTowerNodeName);
+  if (!m_raw_towers)
   {
     std::cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
               << " " << RawTowerNodeName << " Node missing, doing bail out!"
