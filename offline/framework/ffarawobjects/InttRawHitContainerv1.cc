@@ -25,7 +25,7 @@ void InttRawHitContainerv1::Reset()
 void InttRawHitContainerv1::identify(std::ostream &os) const
 {
   os << "InttRawHitContainerv1" << std::endl;
-  os << "containing " << InttRawHitsTCArray->GetEntries() << " Intt hits" << std::endl;
+  os << "containing " << InttRawHitsTCArray->GetEntriesFast() << " Intt hits" << std::endl;
   InttRawHit *intthit = static_cast< InttRawHit *> (InttRawHitsTCArray->At(0));
   if (intthit)
    {
@@ -40,7 +40,7 @@ int InttRawHitContainerv1::isValid() const
 
 unsigned int InttRawHitContainerv1::get_nhits()
 {
-  return InttRawHitsTCArray->GetEntries();
+  return InttRawHitsTCArray->GetEntriesFast();
 }
 
 InttRawHit *InttRawHitContainerv1::AddHit()
