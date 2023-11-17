@@ -30,7 +30,7 @@ Fun4AllDstOutputManager::Fun4AllDstOutputManager(const std::string &myname, cons
     gSystem->Exit(1);
     exit(1);  // cppcheck does not know gSystem->Exit(1)
   }
-  dstOut->SetCompressionLevel(3);
+  dstOut->SetCompressionSetting(m_CompressionSetting);
   return;
 }
 
@@ -76,7 +76,7 @@ int Fun4AllDstOutputManager::outfileopen(const std::string &fname)
     return -1;
   }
 
-  dstOut->SetCompressionLevel(3);
+  dstOut->SetCompressionSetting(m_CompressionSetting);
   return 0;
 }
 
