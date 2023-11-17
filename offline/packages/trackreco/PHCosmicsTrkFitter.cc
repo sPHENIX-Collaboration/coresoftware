@@ -287,7 +287,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
                                                   tpcR, tpcx, tpcy);
     float intx, inty;
 
-    if (std::get<1>(intersect) < std::get<3>(intersect))
+    if (std::get<1>(intersect) > std::get<3>(intersect))
     {
       intx = std::get<0>(intersect);
       inty = std::get<1>(intersect);
@@ -307,7 +307,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
                                  tpcseed->get_Z0()};
     auto tangent = TrackFitUtils::get_helix_tangent(tpcparams,
                                                     inter);
-
+ 
     auto tan = tangent.second;
     auto pca = tangent.first;
 
@@ -339,11 +339,11 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     if (!is_valid(momentum)) continue;
  
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-        Acts::Vector3(0, -1 * m_vertexRadius * Acts::UnitConstants::cm, 0));
+        Acts::Vector3(0, m_vertexRadius * Acts::UnitConstants::cm, 0));
     auto actsFourPos = Acts::Vector4(position(0), position(1),
                                      position(2),
                                      10 * Acts::UnitConstants::ns);
-   
+ 
     Acts::BoundSquareMatrix cov = setDefaultCovariance();
     if(m_seedClusAnalysis)
       {
@@ -530,8 +530,8 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
     Acts::Vector3 global = global_moved[i].second;
     float r = std::sqrt(square(global.x()) + square(global.y()));
 
-    /// use the bottom hemisphere to determine the charge
-    if (r > largestR && global.y() < 0)
+    /// use the top hemisphere to determine the charge
+    if (r > largestR && global.y() > 0)
     {
       globalMostOuter = global_moved[i].second;
       largestR = r;
@@ -569,10 +569,10 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
     global *= Acts::UnitConstants::cm;
 
     Acts::Vector3 normal = surf->normal(m_tGeometry->geometry().getGeoContext());
-    std::cout << "test global to local"<<std::endl;
+   
     auto local = surf->globalToLocal(m_tGeometry->geometry().getGeoContext(),
                                      global, normal);
-    std::cout << "is the position even tested?"<<std::endl;
+ 
     if (local.ok())
     {
       localPos = local.value() / Acts::UnitConstants::cm;
@@ -630,16 +630,14 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
     }
     
     sourcelinks.push_back(actsSL);
-    std::cout << "push back meas"<<std::endl;
     measurements.push_back(meas);
-    std::cout << "push back meas2"<<std::endl;
   }
-  std::cout << "find closest cluster"<<std::endl;
+
   //! find the closest cluster to the outermost cluster
   float maxdr = std::numeric_limits<float>::max();
   for (int i = 0; i < global_moved.size(); i++)
   {
-    if (global_moved[i].second.y() > 0) continue;
+    if (global_moved[i].second.y() < 0) continue;
 
     float dr = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y())) - std::sqrt(square(global_moved[i].second.x()) + square(global_moved[i].second.y()));
     //! Place a dr cut to get maximum bend due to TPC clusters having
@@ -650,10 +648,10 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
       globalSecondMostOuter = global_moved[i].second;
     }
   }
-  std::cout << "determining charge"<<std::endl;
+
   //! we have to calculate phi WRT the vertex position outside the detector,
   //! not at (0,0)
-  Acts::Vector3 vertex(0, -1 * m_vertexRadius, 0);
+  Acts::Vector3 vertex(0, m_vertexRadius, 0);
   globalMostOuter -= vertex;
   globalSecondMostOuter -= vertex;
 
@@ -678,7 +676,6 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
   float r2 = std::sqrt(square(globalSecondMostOuter.x()) + square(globalSecondMostOuter.y()));
   float z1 = globalMostOuter.z();
   float z2 = globalSecondMostOuter.z();
-  std::cout << "determining charge"<<std::endl;
   cosmicslope = (r2 - r1) / (z2 - z1);
 
   return sourcelinks;
