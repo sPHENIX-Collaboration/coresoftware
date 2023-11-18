@@ -11,12 +11,17 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <filesystem>
 #include <string>
 
 Fun4AllDstOutputManager::Fun4AllDstOutputManager(const std::string &myname, const std::string &fname)
   : Fun4AllOutputManager(myname, fname)
 {
-  dstOut = new PHNodeIOManager(fname, PHWrite);
+  std::filesystem::path p = fname;
+// this adds a magic string which makes the TFiles binary identical
+// also independant of where they were written
+  m_UsedOutFileName = fname + std::string("?reproducible=") + std::string(p.filename());
+  dstOut = new PHNodeIOManager(UsedOutFileName(), PHWrite);
   if (!dstOut->isFunctional())
   {
     delete dstOut;
@@ -25,7 +30,7 @@ Fun4AllDstOutputManager::Fun4AllDstOutputManager(const std::string &myname, cons
     gSystem->Exit(1);
     exit(1);  // cppcheck does not know gSystem->Exit(1)
   }
-  dstOut->SetCompressionLevel(3);
+  dstOut->SetCompressionSetting(m_CompressionSetting);
   return;
 }
 
@@ -71,7 +76,7 @@ int Fun4AllDstOutputManager::outfileopen(const std::string &fname)
     return -1;
   }
 
-  dstOut->SetCompressionLevel(3);
+  dstOut->SetCompressionSetting(m_CompressionSetting);
   return 0;
 }
 
@@ -198,7 +203,7 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
     dstOut = nullptr;
     return 0;
   }
-  dstOut = new PHNodeIOManager(OutFileName(), PHUpdate, PHRunTree);
+  dstOut = new PHNodeIOManager(UsedOutFileName(), PHUpdate, PHRunTree);
   Fun4AllServer *se = Fun4AllServer::instance();
   PHNodeIterator nodeiter(thisNode);
   if (saverunnodes.empty())
