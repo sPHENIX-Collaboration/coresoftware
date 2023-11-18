@@ -20,7 +20,6 @@ libphnodedump_la_SOURCES = \
   DumpCdbUrlSave.cc \
   DumpCentralityInfo.cc \
   DumpEpdGeom.cc \
-  DumpEpInfo.cc \
   DumpEventHeader.cc \
   DumpFlagSave.cc \
   DumpGl1RawHit.cc \
