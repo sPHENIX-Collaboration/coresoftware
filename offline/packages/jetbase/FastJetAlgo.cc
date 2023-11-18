@@ -1,7 +1,6 @@
 #include "FastJetAlgo.h"
 
 #include "Jet.h"
-#include "Jetv1.h"
 #include "Jetv2.h"
 #include "JetContainer.h"
 
@@ -157,7 +156,8 @@ float FastJetAlgo::calc_rhomeddens(std::vector<fastjet::PseudoJet>& constituents
   return bge.rho();
 }
 
-std::vector<fastjet::PseudoJet> FastJetAlgo::jets_to_pseudojets(std::vector<Jet*>& particles) {
+std::vector<fastjet::PseudoJet> 
+    FastJetAlgo::jets_to_pseudojets(std::vector<Jet*>& particles) {
   std::vector<fastjet::PseudoJet> pseudojets;
   for (unsigned int ipart = 0; ipart < particles.size(); ++ipart)
   {
@@ -277,14 +277,9 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
       for (auto & comp : comps)
       {
         if (m_opt.calc_area && comp.is_pure_ghost()) continue;
-        
-        Jet* particle = particles[comp.user_index()];
-
-        for (Jet::Iter iter = particle->begin_comp();
-             iter != particle->end_comp();
-             ++iter)
+        for (const auto& iter : particles[comp.user_index()]->get_comp_vec())
         {
-          jet->insert_comp(iter->first, iter->second);
+          jet->insert_comp(iter.first, iter.second);
         }
       }
     }
@@ -311,7 +306,7 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
   std::vector<Jet*> jets;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
   {
-    Jet* jet = new Jetv1();
+    Jet* jet = new Jetv2();
     jet->set_px(fastjets[ijet].px());
     jet->set_py(fastjets[ijet].py());
     jet->set_pz(fastjets[ijet].pz());
@@ -345,13 +340,9 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
       std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
       for (auto & comp : comps)
       {
-        Jet* particle = particles[comp.user_index()];
-
-        for (Jet::Iter iter = particle->begin_comp();
-             iter != particle->end_comp();
-             ++iter)
+        for (const auto& iter : particles[comp.user_index()]->get_comp_vec())
         {
-          jet->insert_comp(iter->first, iter->second);
+          jet->insert_comp(iter.first, iter.second);
         }
       }
     }

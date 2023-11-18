@@ -909,6 +909,7 @@ std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet)
 
 Jet* JetRecoEval::best_jet_from(Jet* truthjet)
 {
+
   if (_strict)
   {
     assert(truthjet);
@@ -957,7 +958,6 @@ Jet* JetRecoEval::best_jet_from(Jet* truthjet)
   {
     _cache_best_jet_from.insert(std::make_pair(truthjet, bestrecojet));
   }
-
   return bestrecojet;
 }
 
@@ -1331,8 +1331,8 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet::SRC src)
   float energy = 0.0;
 
   // loop over all recojet constituents
-  for (Jet::ConstIter jter = recojet->lower_bound_comp(src);
-       jter != recojet->upper_bound_comp(src);
+  for (Jet::ITER_comp_vec jter = recojet->comp_begin(src);
+       jter != recojet->comp_end(src);
        ++jter)
   {
     Jet::SRC source = jter->first;

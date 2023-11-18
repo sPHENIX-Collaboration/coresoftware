@@ -14,7 +14,7 @@
 #include <jetbase/Jet.h>
 #include <jetbase/JetContainer.h>
 #include <jetbase/JetContainerv1.h>
-#include <jetbase/Jetv1.h>
+#include <jetbase/Jetv2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -123,7 +123,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
       if (Verbosity() > 1 && this_jet->get_pt() > 5)
 	std::cout << "CopyAndSubtractJets::process_event: unsubtracted jet with pt / eta / phi = " << this_pt << " / " << this_eta << " / " << this_phi << std::endl;
       
-      for (Jet::ConstIter comp = this_jet->begin_comp(); comp != this_jet->end_comp(); ++comp)
+      for (const auto& comp : this_jet->get_comp_vec())
 	{
 	  RawTower *tower = 0;
 	  RawTowerGeom *tower_geom = 0;
@@ -139,10 +139,10 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 	  
 	  if (m_use_towerinfo)
 	    {
-	      if ((*comp).first == 5|| (*comp).first == 26)
+	      if (comp.first == 5|| comp.first == 26)
 		{
-		  towerinfo = towerinfosIH3->get_tower_at_channel((*comp).second);
-		  unsigned int towerkey = towerinfosIH3->encode_key((*comp).second);
+		  towerinfo = towerinfosIH3->get_tower_at_channel(comp.second);
+		  unsigned int towerkey = towerinfosIH3->encode_key(comp.second);
 		  comp_ieta = towerinfosIH3->getTowerEtaBin(towerkey);
 		  int comp_iphi = towerinfosIH3->getTowerPhiBin(towerkey);
 		  const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
@@ -150,20 +150,20 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 		  tower_geom = geomIH->get_tower_geometry(key);
 		  comp_background = background_UE_1.at(comp_ieta);
 		}
-	      else if ((*comp).first == 7 || (*comp).first == 27)
+	      else if (comp.first == 7 || comp.first == 27)
 		{
-		  towerinfo = towerinfosOH3->get_tower_at_channel((*comp).second);
-		  unsigned int towerkey = towerinfosOH3->encode_key((*comp).second);
+		  towerinfo = towerinfosOH3->get_tower_at_channel(comp.second);
+		  unsigned int towerkey = towerinfosOH3->encode_key(comp.second);
 		  comp_ieta = towerinfosOH3->getTowerEtaBin(towerkey);
 		  int comp_iphi = towerinfosOH3->getTowerPhiBin(towerkey);
 		  const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, comp_ieta, comp_iphi);
 		  tower_geom = geomOH->get_tower_geometry(key);
 		  comp_background = background_UE_2.at(comp_ieta);
 		}
-	      else if ((*comp).first == 13 || (*comp).first == 28)
+	      else if (comp.first == 13 || comp.first == 28)
 		{
-		  towerinfo = towerinfosEM3->get_tower_at_channel((*comp).second);
-		  unsigned int towerkey = towerinfosEM3->encode_key((*comp).second);
+		  towerinfo = towerinfosEM3->get_tower_at_channel(comp.second);
+		  unsigned int towerkey = towerinfosEM3->encode_key(comp.second);
 		  comp_ieta = towerinfosEM3->getTowerEtaBin(towerkey);
 		  int comp_iphi = towerinfosEM3->getTowerPhiBin(towerkey);
 		  const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
@@ -178,25 +178,25 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 	    }
 	  else
 	    {
-	      if ((*comp).first == 5)
+	      if (comp.first == 5)
 		{
-		  tower = towersIH3->getTower((*comp).second);
+		  tower = towersIH3->getTower(comp.second);
 		  tower_geom = geomIH->get_tower_geometry(tower->get_key());
 		  
 		  comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
 		  comp_background = background_UE_1.at(comp_ieta);
 		}
-	      else if ((*comp).first == 7)
+	      else if (comp.first == 7)
 		{
-		  tower = towersOH3->getTower((*comp).second);
+		  tower = towersOH3->getTower(comp.second);
 		  tower_geom = geomOH->get_tower_geometry(tower->get_key());
 		  
 		  comp_ieta = geomOH->get_etabin(tower_geom->get_eta());
 		  comp_background = background_UE_2.at(comp_ieta);
 		}
-	      else if ((*comp).first == 13)
+	      else if (comp.first == 13)
 		{
-		  tower = towersEM3->getTower((*comp).second);
+		  tower = towersEM3->getTower(comp.second);
 		  tower_geom = geomIH->get_tower_geometry(tower->get_key());
 		  
 		  comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
@@ -216,7 +216,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 	  
 	  if (Verbosity() > 4 && this_jet->get_pt() > 5)
 	    {
-	      std::cout << "CopyAndSubtractJets::process_event: --> constituent in layer " << (*comp).first << ", has unsub E = " << comp_e << ", is at ieta #" << comp_ieta << ", and has UE = " << comp_background << std::endl;
+	      std::cout << "CopyAndSubtractJets::process_event: --> constituent in layer " << comp.first << ", has unsub E = " << comp_e << ", is at ieta #" << comp_ieta << ", and has UE = " << comp_background << std::endl;
 	    }
 	  
 	  // flow modulate background if turned on

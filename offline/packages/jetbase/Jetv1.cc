@@ -221,7 +221,7 @@ Jet::ITER_comp_vec Jetv1::comp_end()
 }
 Jet::TYPE_comp_vec& Jetv1::get_comp_vec()
 {
-  not_in_v1_msg("get_comp_vec()");
+  not_in_v1_msg("get_comp_vec");
   return Jet::get_comp_vec();
 }
 void Jetv1::resize_properties(size_t /**/) 

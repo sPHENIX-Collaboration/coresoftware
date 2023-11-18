@@ -8,7 +8,7 @@
 /// Jet includes
 #include <jetbase/Jet.h>
 #include <jetbase/JetContainerv1.h>
-#include <jetbase/Jetv1.h>
+#include <jetbase/Jetv2.h>
 
 /// Tracking includes
 #include <globalvertex/GlobalVertex.h>

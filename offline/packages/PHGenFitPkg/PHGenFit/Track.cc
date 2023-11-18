@@ -707,7 +707,7 @@ int Track::updateOneMeasurementKalman(
       fi->setUpdate(updatedSOP, direction);
     }  //loop measurements_on_plane
 
-    //FIXME why chi2 could be smaller than 0?
+    //fixme why chi2 could be smaller than 0?
     if (chi2inc > 0)
       incr_chi2s_new_tracks.insert(std::make_pair(chi2inc, new_track));
 

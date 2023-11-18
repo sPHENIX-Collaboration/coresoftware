@@ -416,10 +416,6 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
         ));
     assert(lleak);
 
-    std::ofstream fixme_fout;
-    fixme_fout.open("Y_tca",std::ofstream::app);
-    fixme_fout << "FIXME Y0  nentries: " << lemchcalr->GetEntries() << " ave: " << lemchcalr->GetMean() << std::endl;
-
     let->Fill(leading_jet->get_et());
     leta->Fill(leading_jet->get_eta());
     lphi->Fill(leading_jet->get_phi());
@@ -446,29 +442,6 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
         std::cout << "leading_jet->get_e() = " << leading_jet->get_e() << std::endl;
       }
      
-      // start FIXME
-      fixme_fout << "FIXME Y1 lemchcalr, leading_jet: " << Form(" pt:eta:phi (%5.2f,%5.2f,%5.2f)", 
-          leading_jet->get_pt(), leading_jet->get_eta(), leading_jet->get_phi()) << " nchar: " << 
-        ((int)leading_jet->size_comp()) << "FIXME Y1 comps: " << std::endl;
-      // get the entires in leading jet:
-      /* std::vector<std::pair<int,int>> fixme_vec{}; */
-      auto fixme_vec = leading_jet->get_comp_vec();
-      /* for (auto iter = leading_jet->begin_comp(); iter != leading_jet->end_comp(); ++iter) { */
-      /*   fixme_vec.push_back({(int)iter->first,(int)iter->second}); */
-      /* } */
-      /* std::sort(fixme_vec.begin(), fixme_vec.end()); */
-      fixme_fout << " Particles(" << ((int)fixme_vec.size()) << ") ";
-      int type = -1;
-      for (auto pair : fixme_vec) {
-        if (pair.first != type) { 
-          fixme_fout << "[type:" << pair.first << "]";
-          type = pair.first;
-        }
-        fixme_fout << "-" << pair.second;
-      }
-      fixme_fout << std::endl;
-      // end FIXME
-
       lcemcr->Fill(                                                         //
           (recoeval->get_energy_contribution(leading_jet, Jet::CEMC_TOWER)  //
            +                                                                //
@@ -476,6 +449,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
                                              Jet::CEMC_CLUSTER)  //
            ) /
           leading_jet->get_e());
+
       lemchcalr->Fill(                                                      //
           (recoeval->get_energy_contribution(leading_jet, Jet::CEMC_TOWER)  //
            +                                                                //
@@ -657,7 +631,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   assert(eval_stack);
   JetRecoEval* recoeval = eval_stack->get_reco_eval();
   assert(recoeval);
-
+ 
   // iterate over truth jets
   JetContainer* truthjets = findNode::getClass<JetContainer>(topNode, _truth_jet);
   if (!truthjets)
@@ -687,6 +661,8 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
     }
   }
 
+
+
   // match leading truth
   if (truthjet)
   {
@@ -708,6 +684,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
                   << " inclusively matched with best reco jet: ";
         recojet->identify();
       }
+
 
       if (recojet)
       {

@@ -273,11 +273,10 @@ Jet* JetTruthEval::get_truth_jet(PHG4Particle* particle)
     /* Jet* candidate = _truthjet.second; */
 
     // loop over all consituents and look for this particle
-    for (Jet::ConstIter jter = candidate->begin_comp();
-         jter != candidate->end_comp();
-         ++jter)
+    for (const std::pair<Jet::SRC, unsigned int>& jter 
+        : candidate->get_comp_vec())
     {
-      unsigned int index = jter->second;
+      unsigned int index = jter.second;
 
       PHG4Particle* constituent = _truthinfo->GetParticle(index);
       if (_strict)

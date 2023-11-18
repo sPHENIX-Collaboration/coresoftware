@@ -29,8 +29,7 @@ JetEvaluator::JetEvaluator(const std::string &name,
   , _recojetname(recojetname)
   , _truthjetname(truthjetname)
   , _filename(filename)
-{
-}
+{ }
 
 int JetEvaluator::Init(PHCompositeNode * /*topNode*/)
 {
@@ -140,6 +139,7 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
   {
     std::cout << "JetEvaluator::fillOutputNtuples() entered" << std::endl;
   }
+
 
   JetRecoEval *recoeval = _jetevalstack->get_reco_eval();
   // JetTruthEval* trutheval = _jetevalstack->get_truth_eval();
