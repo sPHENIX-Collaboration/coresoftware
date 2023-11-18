@@ -1,9 +1,10 @@
-#ifndef __MBDCALIB_H__
-#define __MBDCALIB_H__
+#ifndef MBD_MBDCALIB_H
+#define MBD_MBDCALIB_H
 
 #include "MbdDefs.h"
 
 #include <fun4all/Fun4AllBase.h>
+
 #include <phool/recoConsts.h>
 
 #include <cmath>
@@ -70,5 +71,5 @@ private:
 };
 
 
-#endif	// __MBDCALIB_H__
+#endif	// MBD_MBDCALIB_H
 

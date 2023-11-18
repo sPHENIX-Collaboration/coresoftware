@@ -26,12 +26,13 @@ int MbdCalib::Download_All()
 {
   _status = 0;
 
-  cout << "MBD CDB " << _rc->get_StringFlag("CDB_GLOBALTAG") << "\t" << _rc->get_uint64Flag("TIMESTAMP") << endl;
-
+  if (Verbosity() > 0)
+  {
+    cout << "MBD CDB " << _rc->get_StringFlag("CDB_GLOBALTAG") << "\t" << _rc->get_uint64Flag("TIMESTAMP") << endl;
+  }
   _cdb = CDBInterface::instance();
   // if rc flag MBD_CALDIR does not exist, we create it and set it to an empty string
-  string bbc_caldir =  _rc->get_StringFlag("MBD_CALDIR","");
-  if ( bbc_caldir.empty() )
+  if (! _rc->FlagExist("MBD_CALDIR"))
   {
     string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
     //cout << "sampmax_url " << sampmax_url << endl;
@@ -47,6 +48,7 @@ int MbdCalib::Download_All()
   }
   else
   {
+    string bbc_caldir =  _rc->get_StringFlag("MBD_CALDIR");
     cout << "Reading MBD Calibrations from " << bbc_caldir << endl;
     std::string sampmax_file = bbc_caldir + "/bbc_sampmax.calib";
     Download_SampMax( sampmax_file );
