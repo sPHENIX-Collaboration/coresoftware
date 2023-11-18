@@ -2,24 +2,21 @@
 
 // Database Includes
 #include <ffamodules/CDBInterface.h>
+
 #include <cdbobjects/CDBTTree.h>
+
+#include <phool/phool.h>
 
 #include <cmath>
 #include <iostream>
+#include <filesystem>
 #include <fstream>
-#include <phool/phool.h>
 #include <cstring>
-
-#include <TString.h>
-
-using namespace std;
-using namespace MbdDefs;
 
 MbdCalib::MbdCalib()
 {
   Reset();
   _rc = recoConsts::instance();
-  _cdb = CDBInterface::instance();
 }
 
 int MbdCalib::Download_All()
@@ -28,28 +25,28 @@ int MbdCalib::Download_All()
 
   if (Verbosity() > 0)
   {
-    cout << "MBD CDB " << _rc->get_StringFlag("CDB_GLOBALTAG") << "\t" << _rc->get_uint64Flag("TIMESTAMP") << endl;
+    std::cout << "MBD CDB " << _rc->get_StringFlag("CDB_GLOBALTAG") << "\t" << _rc->get_uint64Flag("TIMESTAMP") << std::endl;
   }
   _cdb = CDBInterface::instance();
   // if rc flag MBD_CALDIR does not exist, we create it and set it to an empty string
   if (! _rc->FlagExist("MBD_CALDIR"))
   {
-    string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
-    //cout << "sampmax_url " << sampmax_url << endl;
+    std::string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
+    //std::cout << "sampmax_url " << sampmax_url << std::endl;
     Download_SampMax( sampmax_url );
 
-    string qfit_url = _cdb->getUrl("MBD_QFIT");
-    //cout << "qfit_url " << qfit_url << endl;
+    std::string qfit_url = _cdb->getUrl("MBD_QFIT");
+    //std::cout << "qfit_url " << qfit_url << std::endl;
     Download_Gains( qfit_url );
 
-    string tq_t0_url = _cdb->getUrl("MBD_TQ_T0");
-    //cout << "tq_t0_url " << tq_t0_url << endl;
+    std::string tq_t0_url = _cdb->getUrl("MBD_TQ_T0");
+    //std::cout << "tq_t0_url " << tq_t0_url << std::endl;
     Download_TQT0( tq_t0_url );
   }
   else
   {
-    string bbc_caldir =  _rc->get_StringFlag("MBD_CALDIR");
-    cout << "Reading MBD Calibrations from " << bbc_caldir << endl;
+    std::string bbc_caldir =  _rc->get_StringFlag("MBD_CALDIR");
+    std::cout << "Reading MBD Calibrations from " << bbc_caldir << std::endl;
     std::string sampmax_file = bbc_caldir + "/bbc_sampmax.calib";
     Download_SampMax( sampmax_file );
     std::string qfit_file = bbc_caldir + "/bbc_qfit.calib";
@@ -61,31 +58,28 @@ int MbdCalib::Download_All()
   return _status;
 }
 
-int MbdCalib::Download_Gains(const string& dbase_location)
+int MbdCalib::Download_Gains(const std::string& dbase_location)
 {
   // Reset All Values
-  for (int ipmt=0; ipmt<MBD_N_PMT; ipmt++)
-  {
-    _qfit_integ[ipmt] = NAN;
-    _qfit_mpv[ipmt] = NAN;
-    _qfit_sigma[ipmt] = NAN;
-    _qfit_integerr[ipmt] = NAN;
-    _qfit_mpverr[ipmt] = NAN;
-    _qfit_sigmaerr[ipmt] = NAN;
-    _qfit_chi2ndf[ipmt] = NAN;
-  }
+  _qfit_integ.fill(std::numeric_limits<float>::quiet_NaN());
+  _qfit_mpv.fill(std::numeric_limits<float>::quiet_NaN());
+  _qfit_sigma.fill(std::numeric_limits<float>::quiet_NaN());
+  _qfit_integerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _qfit_mpverr.fill(std::numeric_limits<float>::quiet_NaN());
+  _qfit_sigmaerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _qfit_chi2ndf.fill(std::numeric_limits<float>::quiet_NaN());
 
   if (Verbosity() > 0)
   {
-    cout << "Opening " << dbase_location << endl;
+    std::cout << "Opening " << dbase_location << std::endl;
   }
-  TString dbase_file = dbase_location;
-  if ( dbase_file.EndsWith(".root") )       // read from database
+  std::filesystem::path dbase_file = dbase_location;
+  if (dbase_file.extension() == ".root")  // read from database
   {
     CDBTTree *cdbttree = new CDBTTree( dbase_location );
     cdbttree->LoadCalibrations();
 
-    for (int ipmt=0; ipmt<MBD_N_PMT; ipmt++)
+    for (int ipmt=0; ipmt<MbdDefs::MBD_N_PMT; ipmt++)
     {
       _qfit_integ[ipmt] = cdbttree->GetFloatValue(ipmt,"qfit_integ");
       _qfit_mpv[ipmt] = cdbttree->GetFloatValue(ipmt,"qfit_mpv");
@@ -98,18 +92,18 @@ int MbdCalib::Download_Gains(const string& dbase_location)
       {
 	if (ipmt<5)
 	{
-	  cout << ipmt << "\t" << _qfit_mpv[ipmt] << endl;
+	  std::cout << ipmt << "\t" << _qfit_mpv[ipmt] << std::endl;
 	}
       }
     }
     delete cdbttree;
   }
-  else if ( dbase_file.EndsWith(".calib") )       // read from database
+  else if (dbase_file.extension() == ".calib")  // read from text file
   {
-    ifstream infile( dbase_location.c_str() );
+    std::ifstream infile( dbase_location );
     if ( !infile.is_open() )
     {
-      cout << PHWHERE << "unable to open " << dbase_location << endl;
+      std::cout << PHWHERE << "unable to open " << dbase_location << std::endl;
       _status = -3;
       return _status;
     }
@@ -122,18 +116,18 @@ int MbdCalib::Download_Gains(const string& dbase_location)
         >> _qfit_chi2ndf[pmt];
       if (Verbosity() > 0)
       {
-	if ( pmt<5 || pmt>=MBD_N_PMT-5 )
+	if ( pmt<5 || pmt>=MbdDefs::MBD_N_PMT-5 )
 	{
-	  cout << pmt << "\t" <<  _qfit_integ[pmt] << "\t" <<  _qfit_mpv[pmt] << "\t" <<  _qfit_sigma[pmt]
+	  std::cout << pmt << "\t" <<  _qfit_integ[pmt] << "\t" <<  _qfit_mpv[pmt] << "\t" <<  _qfit_sigma[pmt]
 	       << "\t" <<  _qfit_integerr[pmt] << "\t" <<  _qfit_mpverr[pmt] << "\t" <<  _qfit_sigmaerr[pmt]
-	       << "\t" <<  _qfit_chi2ndf[pmt] << endl;
+	       << "\t" <<  _qfit_chi2ndf[pmt] << std::endl;
 	}
       }
     }
   }
   else
   {
-    cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << endl;
+    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
     return _status;
   }
@@ -141,27 +135,25 @@ int MbdCalib::Download_Gains(const string& dbase_location)
   return 1;
 }
 
-int MbdCalib::Download_TQT0(const string& dbase_location)
+int MbdCalib::Download_TQT0(const std::string& dbase_location)
 {
   // Reset All Values
-  for (int ipmt=0; ipmt<MBD_N_PMT; ipmt++)
-  {
-    _tqfit_t0mean[ipmt] = NAN;
-    _tqfit_t0meanerr[ipmt] = NAN;
-    _tqfit_t0sigma[ipmt] = NAN;
-    _tqfit_t0sigmaerr[ipmt] = NAN;
-  }
+  _tqfit_t0mean.fill(std::numeric_limits<float>::quiet_NaN());
+  _tqfit_t0meanerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _tqfit_t0sigma.fill(std::numeric_limits<float>::quiet_NaN());
+  _tqfit_t0sigmaerr.fill(std::numeric_limits<float>::quiet_NaN());
+
   if (Verbosity() > 0)
   {
-    cout << "Opening " << dbase_location << endl;
+    std::cout << "Opening " << dbase_location << std::endl;
   }
-  TString dbase_file = dbase_location;
-  if ( dbase_file.EndsWith(".root") )       // read from database
+  std::filesystem::path dbase_file = dbase_location;
+  if (dbase_file.extension() == ".root")  // read from database
   {
     CDBTTree *cdbttree = new CDBTTree( dbase_location );
     cdbttree->LoadCalibrations();
 
-    for (int ipmt=0; ipmt<MBD_N_PMT; ipmt++)
+    for (int ipmt=0; ipmt<MbdDefs::MBD_N_PMT; ipmt++)
     {
       _tqfit_t0mean[ipmt] = cdbttree->GetFloatValue(ipmt,"tqfit_t0mean");
       _tqfit_t0meanerr[ipmt] = cdbttree->GetFloatValue(ipmt,"tqfit_t0meanerr");
@@ -169,20 +161,20 @@ int MbdCalib::Download_TQT0(const string& dbase_location)
       _tqfit_t0sigmaerr[ipmt] = cdbttree->GetFloatValue(ipmt,"tqfit_t0sigmaerr");
       if (Verbosity() > 0)
       {
-	if (ipmt<5 || ipmt>=MBD_N_PMT-5)
+	if (ipmt<5 || ipmt>=MbdDefs::MBD_N_PMT-5)
 	{
-	  cout << ipmt << "\t" << _tqfit_t0mean[ipmt] << endl;
+	  std::cout << ipmt << "\t" << _tqfit_t0mean[ipmt] << std::endl;
 	}
       }
     }
     delete cdbttree;
   }
-  else if ( dbase_file.EndsWith(".calib") )       // read from database
+  else if (dbase_file.extension() == ".calib")  // read from text file
   {
-    ifstream infile( dbase_location.c_str() );
+    std::ifstream infile( dbase_location );
     if ( !infile.is_open() )
     {
-      cout << PHWHERE << "unable to open " << dbase_location << endl;
+      std::cout << PHWHERE << "unable to open " << dbase_location << std::endl;
       _status = -3;
       return _status;
     }
@@ -195,10 +187,10 @@ int MbdCalib::Download_TQT0(const string& dbase_location)
 
       if (Verbosity() > 0)
       {
-	if ( pmt<5 || pmt>=MBD_N_PMT-5 )
+	if ( pmt<5 || pmt>=MbdDefs::MBD_N_PMT-5 )
 	{
-	  cout << pmt << "\t" <<  _tqfit_t0mean[pmt] << "\t" <<  _tqfit_t0meanerr[pmt]
-	       << "\t" <<  _tqfit_t0sigma[pmt] << "\t" <<  _tqfit_t0sigmaerr[pmt] << endl;
+	  std::cout << pmt << "\t" <<  _tqfit_t0mean[pmt] << "\t" <<  _tqfit_t0meanerr[pmt]
+	       << "\t" <<  _tqfit_t0sigma[pmt] << "\t" <<  _tqfit_t0sigmaerr[pmt] << std::endl;
 	}
       }
     }
@@ -206,7 +198,7 @@ int MbdCalib::Download_TQT0(const string& dbase_location)
   }
   else
   {
-    cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << endl;
+    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
     return _status;
   }
@@ -214,38 +206,36 @@ int MbdCalib::Download_TQT0(const string& dbase_location)
   return 1;
 }
 
-int MbdCalib::Download_SampMax(const string& dbase_location)
+int MbdCalib::Download_SampMax(const std::string& dbase_location)
 {
   // Reset All Values
-  for (int ifeech=0; ifeech<MBD_N_FEECH; ifeech++)
-  {
-    _sampmax[ifeech] = -1; 
-  }
-  TString dbase_file = dbase_location;
-  if ( dbase_file.EndsWith(".root") )       // read from database
+  _sampmax.fill(-1);
+
+  std::filesystem::path dbase_file = dbase_location;
+  if (dbase_file.extension() == ".root")  // read from database
   {
     CDBTTree *cdbttree = new CDBTTree( dbase_location );
     cdbttree->LoadCalibrations();
 
-    for (int ifeech=0; ifeech<MBD_N_FEECH; ifeech++)
+    for (int ifeech=0; ifeech<MbdDefs::MBD_N_FEECH; ifeech++)
     {
       _sampmax[ifeech] = cdbttree->GetIntValue(ifeech,"sampmax");
       if (Verbosity() > 0)
       {
-	if (ifeech<5 || ifeech>=MBD_N_FEECH-5)
+	if (ifeech<5 || ifeech>=MbdDefs::MBD_N_FEECH-5)
 	{
-	  cout << ifeech << "\t" << _sampmax[ifeech] << endl;
+	  std::cout << ifeech << "\t" << _sampmax[ifeech] << std::endl;
 	}
       }
     }
     delete cdbttree;
   }
-  else if ( dbase_file.EndsWith(".calib") ) // read from text file
+  else if (dbase_file.extension() == ".calib")  // read from text file
   {
-    ifstream infile( dbase_location.c_str() );
+    std::ifstream infile( dbase_location );
     if ( !infile.is_open() )
     {
-      cout << PHWHERE << "unable to open " << dbase_location << endl;
+      std::cout << PHWHERE << "unable to open " << dbase_location << std::endl;
       _status = -3;
       return _status;
     }
@@ -256,9 +246,9 @@ int MbdCalib::Download_SampMax(const string& dbase_location)
       infile >> _sampmax[feech];
       if (Verbosity() > 0)
       {
-	if ( feech<5 || feech>=MBD_N_FEECH-5 )
+	if ( feech<5 || feech>=MbdDefs::MBD_N_FEECH-5 )
 	{
-	  cout << feech << "\t" << _sampmax[feech] << endl;
+	  std::cout << feech << "\t" << _sampmax[feech] << std::endl;
 	}
       }
     }
@@ -266,7 +256,7 @@ int MbdCalib::Download_SampMax(const string& dbase_location)
   }
   else
   {
-    cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << endl;
+    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
     return _status;  // file not found
   }
@@ -282,26 +272,21 @@ int MbdCalib::StoreInDatabase()
 void MbdCalib::Reset()
 {
   // Set all initial values
-  for (int ipmt=0; ipmt<MBD_N_PMT; ipmt++)
-  {
-    _qfit_integ[ ipmt ] = NAN;
-    _qfit_mpv[ ipmt ] = NAN;
-    _qfit_sigma[ ipmt ] = NAN;
-    _qfit_integerr[ ipmt ] = NAN;
-    _qfit_mpverr[ ipmt ] = NAN;
-    _qfit_sigmaerr[ ipmt ] = NAN;
-    _qfit_chi2ndf[ ipmt ] = NAN;
+  _qfit_integ.fill(std::numeric_limits<float>::quiet_NaN());
+  _qfit_mpv.fill(std::numeric_limits<float>::quiet_NaN());
+  _qfit_sigma.fill(std::numeric_limits<float>::quiet_NaN());
+  _qfit_integerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _qfit_mpverr.fill(std::numeric_limits<float>::quiet_NaN());
+  _qfit_sigmaerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _qfit_chi2ndf.fill(std::numeric_limits<float>::quiet_NaN());
 
-    _tqfit_t0mean[ ipmt ] = NAN;
-    _tqfit_t0meanerr[ ipmt ] = NAN;
-    _tqfit_t0sigma[ ipmt ] = NAN;
-    _tqfit_t0sigmaerr[ ipmt ] = NAN;
-  }
+  _tqfit_t0mean.fill(std::numeric_limits<float>::quiet_NaN());
+  _tqfit_t0meanerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _tqfit_t0sigma.fill(std::numeric_limits<float>::quiet_NaN());
+  _tqfit_t0sigmaerr.fill(std::numeric_limits<float>::quiet_NaN());
 
-  for (int ifeech=0; ifeech<MBD_N_FEECH; ifeech++)
-  {
-    _sampmax[ ifeech ] = -1;
-  }
+  _sampmax.fill(-1);
+
 }
 
 /*

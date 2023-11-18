@@ -7,6 +7,7 @@
 
 #include <phool/recoConsts.h>
 
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -52,22 +53,22 @@ private:
   std::string  _dbfilename;
 
   // Assumes Landau fit
-  float _qfit_integ[MbdDefs::BBC_N_PMT];
-  float _qfit_mpv[MbdDefs::BBC_N_PMT];
-  float _qfit_sigma[MbdDefs::BBC_N_PMT];
-  float _qfit_integerr[MbdDefs::BBC_N_PMT];
-  float _qfit_mpverr[MbdDefs::BBC_N_PMT];
-  float _qfit_sigmaerr[MbdDefs::BBC_N_PMT];
-  float _qfit_chi2ndf[MbdDefs::BBC_N_PMT];
+  std::array<float, MbdDefs::BBC_N_PMT> _qfit_integ{};
+  std::array<float, MbdDefs::BBC_N_PMT> _qfit_mpv{};
+  std::array<float, MbdDefs::BBC_N_PMT> _qfit_sigma{};
+  std::array<float, MbdDefs::BBC_N_PMT> _qfit_integerr{};
+  std::array<float, MbdDefs::BBC_N_PMT> _qfit_mpverr{};
+  std::array<float, MbdDefs::BBC_N_PMT> _qfit_sigmaerr{};
+  std::array<float, MbdDefs::BBC_N_PMT> _qfit_chi2ndf{};
 
   // T0 offsets, charge channels
-  float _tqfit_t0mean[MbdDefs::BBC_N_PMT];
-  float _tqfit_t0meanerr[MbdDefs::BBC_N_PMT];
-  float _tqfit_t0sigma[MbdDefs::BBC_N_PMT];
-  float _tqfit_t0sigmaerr[MbdDefs::BBC_N_PMT];
+  std::array<float, MbdDefs::BBC_N_PMT> _tqfit_t0mean{};
+  std::array<float, MbdDefs::BBC_N_PMT> _tqfit_t0meanerr{};
+  std::array<float, MbdDefs::BBC_N_PMT> _tqfit_t0sigma{};
+  std::array<float, MbdDefs::BBC_N_PMT> _tqfit_t0sigmaerr{};
 
   // Peak of waveform
-  int   _sampmax[MbdDefs::BBC_N_FEECH];
+  std::array<int, MbdDefs::BBC_N_FEECH> _sampmax{};
 };
 
 
