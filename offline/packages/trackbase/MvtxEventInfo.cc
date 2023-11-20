@@ -6,13 +6,13 @@
 
 PHObject* MvtxEventInfo::CloneMe() const
 {
-  std::cout << PHWHERE << "::" << __func__ << " is not implemented in daughter class" << std::endl;
+  std::cout << PHWHERE << "::" << __func__ << " is not implemented in base class" << std::endl;
   return nullptr;
 }
 
 void MvtxEventInfo::Reset()
 {
-  std::cout << PHWHERE << "::" << __func__ << " is not implemented in daughter class" << std::endl;
+  std::cout << PHWHERE << "::" << __func__ << " is not implemented in base class" << std::endl;
   return;
 }
 
@@ -67,7 +67,7 @@ void MvtxEventInfo::identify(std::ostream &out) const
 
 int MvtxEventInfo::isValid() const
 {
-  std::cout << PHWHERE << " isValid not implemented by daughter class" << std::endl;
+  std::cout << PHWHERE << " isValid not implemented by base class" << std::endl;
   return 0;
 }
 

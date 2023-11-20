@@ -21,16 +21,20 @@ libphnodedump_la_SOURCES = \
   DumpCentralityInfo.cc \
   DumpJetContainer.cc \
   DumpEpdGeom.cc \
-  DumpEpInfo.cc \
   DumpEventHeader.cc \
   DumpFlagSave.cc \
+  DumpGl1RawHit.cc \
   DumpGlobalVertexMap.cc \
   DumpInttDeadMap.cc \
   DumpInttRawHitContainer.cc \
   DumpJetMap.cc \
+  DumpMbdGeom.cc \
   DumpMbdOut.cc \
   DumpMbdPmtContainer.cc \
   DumpMbdVertexMap.cc \
+  DumpMicromegasRawHitContainer.cc \
+  DumpMvtxRawEvtHeader.cc \
+  DumpMvtxRawHitContainer.cc \
   DumpParticleFlowElementContainer.cc \
   DumpPdbParameterMap.cc \
   DumpPdbParameterMapContainer.cc \
@@ -77,7 +81,7 @@ libphnodedump_la_LIBADD = \
   -lcalo_io \
   -lcalotrigger_io \
   -lepd_io \
-  -leventplane_io \
+  -leventplaneinfo_io \
   -lffaobjects \
   -lffarawobjects \
   -lg4detectors_io \

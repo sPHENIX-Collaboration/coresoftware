@@ -13,24 +13,18 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   Fun4AllEventOutStream.h \
   Fun4AllEventOutputManager.h \
-  Fun4AllEvtInputPoolManager.h \
   Fun4AllFileOutStream.h \
   Fun4AllPrdfInputManager.h \
   Fun4AllPrdfInputPoolManager.h \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
-  SingleEvtInput.h \
   SingleGl1PoolInput.h \
-  SingleInttInput.h \
   SingleInttPoolInput.h \
-  SingleMicromegasInput.h \
   SingleMicromegasPoolInput.h \
-  SingleMvtxInput.h \
   SingleMvtxPoolInput.h \
   SinglePrdfInput.h \
   SingleStreamingInput.h \
-  SingleTpcInput.h \
   SingleTpcPoolInput.h
 
 lib_LTLIBRARIES = \
@@ -39,7 +33,6 @@ lib_LTLIBRARIES = \
 libfun4allraw_la_SOURCES = \
   Fun4AllEventOutStream.cc \
   Fun4AllEventOutputManager.cc \
-  Fun4AllEvtInputPoolManager.cc \
   Fun4AllFileOutStream.cc \
   Fun4AllPrdfInputManager.cc \
   Fun4AllPrdfInputPoolManager.cc \
@@ -48,18 +41,13 @@ libfun4allraw_la_SOURCES = \
   Fun4AllStreamingInputManager.cc \
   intt_pool.cc \
   tpc_pool.cc \
-  SingleEvtInput.cc \
   SingleGl1PoolInput.cc \
-  SingleInttInput.cc \
   SingleInttPoolInput.cc \
-  SingleMicromegasInput.cc \
   SingleMicromegasPoolInput.cc \
-  SingleMvtxInput.cc \
   SingleMvtxPoolInput.cc \
   SinglePrdfInput.cc \
   SingleStreamingInput.cc \
-  SingleTpcPoolInput.cc \
-  SingleTpcInput.cc
+  SingleTpcPoolInput.cc
 
 libfun4allraw_la_LIBADD = \
   -lffarawobjects \

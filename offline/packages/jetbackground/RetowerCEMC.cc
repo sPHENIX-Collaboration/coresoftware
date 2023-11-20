@@ -7,8 +7,8 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerv1.h>
 
-#include <calobase/TowerInfov1.h>
-#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -52,7 +52,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
   TowerInfoContainer *towerinfosEM3 = nullptr; 
   if (m_use_towerinfo)
     {
-      towerinfosEM3= findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC");
+      towerinfosEM3= findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
 
     }
   else
@@ -219,7 +219,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
 
  if (m_use_towerinfo)
    {
-     TowerInfoContainerv1 *emcal_retower =  findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
+     TowerInfoContainer *emcal_retower =  findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
      if (Verbosity() > 0) std::cout << "RetowerCEMC::process_event: filling TOWERINFO_CALIB_CEMC_RETOWER node" << std::endl;
   // create new towers
      for (int eta = 0; eta < _NETA; eta++)
@@ -281,11 +281,12 @@ int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
   if (m_use_towerinfo)
     {
       TowerInfoContainer *test_emcal_retower = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
+      TowerInfoContainer *hcal_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
       if (!test_emcal_retower)
 	{
 	  if (Verbosity() > 0) std::cout << "RetowerCEMC::CreateNode : creating TOWERINFO_CALIB_CEMC_RETOWER node " << std::endl;
 	  
-	  TowerInfoContainerv1 *emcal_retower = new TowerInfoContainerv1(TowerInfoContainerv1::DETECTOR::HCAL);
+	  TowerInfoContainer *emcal_retower = dynamic_cast<TowerInfoContainer *> (hcal_towers->CloneMe());
 	  PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>(emcal_retower, "TOWERINFO_CALIB_CEMC_RETOWER", "PHObject");
 	  emcalNode->addNode(emcalTowerNode);
 	}

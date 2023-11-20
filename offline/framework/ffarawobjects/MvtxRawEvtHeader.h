@@ -20,7 +20,13 @@ public:
   virtual void AddFeeId(const std::set<uint16_t>&) { return; }
   virtual void AddL1Trg(const std::set<uint64_t>&) { return; }
 
+  virtual std::set<uint16_t>& getMvtxFeeIdSet() { return dummySet16; };
+  virtual std::set<uint64_t>& getMvtxLvL1BCO() { return dummySet64; };
+
 private:
+  std::set<uint16_t> dummySet16;
+  std::set<uint64_t> dummySet64;
+
   ClassDefOverride(MvtxRawEvtHeader, 1)
 };
 

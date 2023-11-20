@@ -141,6 +141,7 @@ int tpc_pool::cacheIterator(const int n)
 
   auto it = std::next(waveforms.begin(), i);
   _cached_iter = it;
+  _last_requested_element = i;
   return 1;
 }
 

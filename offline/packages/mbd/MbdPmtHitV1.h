@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <limits>
+#include <cmath>
 
 class MbdPmtHitV1 : public MbdPmtHit
 {
@@ -42,7 +43,7 @@ public:
   void identify(std::ostream& os = std::cout) const override;
 
   //! isValid returns non zero if object contains valid data
-  virtual int isValid() const override { if ( bpmt<0 ) return 0; return 1; }
+  virtual int isValid() const override { if ( std::isnan( get_time() ) ) return 0; return 1; }
 
 private:
   Short_t bpmt { -1 };

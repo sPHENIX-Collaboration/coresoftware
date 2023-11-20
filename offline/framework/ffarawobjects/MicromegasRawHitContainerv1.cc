@@ -25,7 +25,7 @@ void MicromegasRawHitContainerv1::Reset()
 void MicromegasRawHitContainerv1::identify(std::ostream &os) const
 {
   os << "MicromegasRawHitContainerv1" << std::endl;
-  os << "containing " << MicromegasRawHitsTCArray->GetEntries() << " Micromegas hits" << std::endl;
+  os << "containing " << MicromegasRawHitsTCArray->GetEntriesFast() << " Micromegas hits" << std::endl;
   auto hit = static_cast< MicromegasRawHit *> (MicromegasRawHitsTCArray->At(0));
   if (hit)
    {
@@ -40,7 +40,7 @@ int MicromegasRawHitContainerv1::isValid() const
 
 unsigned int MicromegasRawHitContainerv1::get_nhits()
 {
-  return MicromegasRawHitsTCArray->GetEntries();
+  return MicromegasRawHitsTCArray->GetEntriesFast();
 }
 
 MicromegasRawHit *MicromegasRawHitContainerv1::AddHit()

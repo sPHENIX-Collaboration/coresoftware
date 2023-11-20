@@ -5,41 +5,34 @@
 #include "MbdPmtContainer.h"
 #include "MbdPmtHit.h"
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/phool.h>
+#include <phool/recoConsts.h>
+
+#include <sphenixnpc/CDBUtils.h>
+
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
-#include <phool/recoConsts.h>
-#include <sphenixnpc/CDBUtils.h>
 
 #include <TCanvas.h>
 #include <TF1.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TRandom.h>
-#include <TString.h>
 
 #include <cmath>
 #include <iomanip>
 #include <iostream>
 
-using namespace std;
-using namespace MbdDefs;
-
 MbdEvent::MbdEvent()
-  : _verbose(0)
-  , _runnum(0)
-  , p{nullptr, nullptr}
-  , m_evt(0)
-  , m_clk(0)
-  , m_femclk(0)
-  , _tres(0.05)
-  , ac(nullptr)
+  : _tres(0.05)
 {
   // set default values
 
   int nsamples = 31;  /// NEED TO MAKE THIS FLEXIBLE
-  for (int ifeech = 0; ifeech < BBC_N_FEECH; ifeech++)
+  for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
   {
-    // cout << "Creating _mbdsig " << ifeech << endl;
+    // std::cout << PHWHERE << "Creating _mbdsig " << ifeech << std::endl;
     _mbdsig.emplace_back(ifeech, nsamples);
 
     // Do evt-by-evt pedestal using sample range below
@@ -47,21 +40,22 @@ MbdEvent::MbdEvent()
     _mbdsig[ifeech].SetEventPed0PreSamp(6, 2);
   }
 
-  TString name, title;
+  std::string name;
+  std::string title;
   for (int iarm = 0; iarm < 2; iarm++)
   {
     //
     name = "hevt_bbct";
-    name += iarm;
+    name += std::to_string(iarm);
     title = "bbc times, arm ";
-    title += iarm;
-    hevt_bbct[iarm] = new TH1F(name, title, 2000, -50., 50.);
+    title += std::to_string(iarm);
+    hevt_bbct[iarm] = new TH1F(name.c_str(), title.c_str(), 2000, -50., 50.);
     hevt_bbct[iarm]->SetLineColor(4);
   }
-  h2_tmax[0] = new TH2F("h2_ttmax", "time tmax vs ch", MAX_SAMPLES, -0.5, MAX_SAMPLES - 0.5, 128, 0, 128);
+  h2_tmax[0] = new TH2F("h2_ttmax", "time tmax vs ch", MbdDefs::MAX_SAMPLES, -0.5, MbdDefs::MAX_SAMPLES - 0.5, 128, 0, 128);
   h2_tmax[0]->SetXTitle("sample");
   h2_tmax[0]->SetYTitle("ch");
-  h2_tmax[1] = new TH2F("h2_qtmax", "chg tmax vs ch", MAX_SAMPLES, -0.5, MAX_SAMPLES - 0.5, 128, 0, 128);
+  h2_tmax[1] = new TH2F("h2_qtmax", "chg tmax vs ch", MbdDefs::MAX_SAMPLES, -0.5, MbdDefs::MAX_SAMPLES - 0.5, 128, 0, 128);
   h2_tmax[1]->SetXTitle("sample");
   h2_tmax[1]->SetYTitle("ch");
 
@@ -91,10 +85,10 @@ MbdEvent::MbdEvent()
 
     /*
     std::string mondata_fname = std::string(bbccaldir) + "/" + "BbcMonData.dat";
-    ifstream mondatafile( mondata_fname );
+    std::ifstream mondatafile( mondata_fname );
     string label;
     mondatafile >> label >> bz_offset;
-    std::cout << label << "\t" << bz_offset << std::endl;
+    std::cout << PHWHERE << label << "\t" << bz_offset << std::endl;
     mondatafile.close();
     */
   }
@@ -129,7 +123,7 @@ int MbdEvent::InitRun()
   _runnum = rc->get_IntFlag("RUNNUMBER");
   if (_verbose)
   {
-    cout << "RUNNUMBER " << _runnum << endl;
+    std::cout << PHWHERE << "RUNNUMBER " << _runnum << std::endl;
   }
 
   if (_mbdgeom == nullptr)
@@ -168,25 +162,25 @@ void MbdEvent::Clear()
   }
 
   // Reset end product to prepare next event
-  m_bbcz = NAN;
-  m_bbczerr = NAN;
-  m_bbct0 = NAN;
-  m_bbct0err = NAN;
+  m_bbcz = std::numeric_limits<Float_t>::quiet_NaN();
+  m_bbczerr = std::numeric_limits<Float_t>::quiet_NaN();
+  m_bbct0 = std::numeric_limits<Float_t>::quiet_NaN();
+  m_bbct0err = std::numeric_limits<Float_t>::quiet_NaN();
 }
 
 int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
 {
   // First check if there is any event (ie, reading from PRDF)
-  if (event == nullptr || event == nullptr)
+  if (event == nullptr || bbcpmts == nullptr)
   {
-    return -1;
+    return Fun4AllReturnCodes::DISCARDEVENT;
   }
 
   int evt_type = event->getEvtType();
   if (evt_type != DATAEVENT)
   {
-    cout << "MbdEvent: Event type is not DATAEVENT, skipping" << endl;
-    return -2;
+    std::cout << PHWHERE << "MbdEvent: Event type is not DATAEVENT, skipping" << std::endl;
+    return Fun4AllReturnCodes::DISCARDEVENT;
   }
 
   m_evt = event->getEvtSequence();
@@ -207,7 +201,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
       static int counter = 0;
       if (counter < 4)
       {
-        cout << "Found packet " << pktid << "\t" << p[ipkt] << endl;
+        std::cout << "Found packet " << pktid << "\t" << p[ipkt] << std::endl;
         counter++;
       }
     }
@@ -221,7 +215,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
       for (int ich = 0; ich < NCHPERPKT; ich++)
       {
         int feech = ipkt * NCHPERPKT + ich;
-        // cout << "feech " << feech << endl;
+        // std::cout << "feech " << feech << std::endl;
         for (int isamp = 0; isamp < MbdDefs::MAX_SAMPLES; isamp++)
         {
           m_adc[feech][isamp] = p[ipkt]->iValue(isamp, ich);
@@ -231,8 +225,8 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
           if ( m_adc[feech][isamp] <= 100 )
           {
             //flag_err = 1;
-            //cout << "BAD " << m_evt << "\t" << feech << "\t" << m_samp[feech][isamp]
-            //    << "\t" << m_adc[feech][isamp] << endl;
+            //std::cout << "BAD " << m_evt << "\t" << feech << "\t" << m_samp[feech][isamp]
+            //    << "\t" << m_adc[feech][isamp] << std::endl;
           }
           */
         }
@@ -246,22 +240,23 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     else
     {
       // flag_err = 1;
-      cout << "ERROR, evt " << m_evt << " Missing Packet " << pktid << endl;
+      std::cout << PHWHERE << " ERROR, evt " << m_evt << " Missing Packet " << pktid << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
 
   // Do a quick sanity check that all fem counters agree
   if (xmitclocks[0] != xmitclocks[1])
   {
-    cout << __FILE__ << ":" << __LINE__ << " ERROR, xmitclocks don't agree" << endl;
+    std::cout << __FILE__ << ":" << __LINE__ << " ERROR, xmitclocks don't agree" << std::endl;
   }
   for (auto &femclock : femclocks)
   {
-    for (int iadc = 0; iadc < 2; iadc++)
+    for (unsigned short iadc : femclock)
     {
-      if (femclock[iadc] != femclocks[0][0])
+      if (iadc != femclocks[0][0])
       {
-        cout << __FILE__ << ":" << __LINE__ << " ERROR, femclocks don't agree" << endl;
+        std::cout << __FILE__ << ":" << __LINE__ << " ERROR, femclocks don't agree" << std::endl;
       }
     }
   }
@@ -270,7 +265,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
   m_clk = xmitclocks[0];
   m_femclk = femclocks[0][0];
 
-  for (int ifeech = 0; ifeech < BBC_N_FEECH; ifeech++)
+  for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
   {
     int pmtch = _mbdgeom->get_pmt(ifeech);
     int type = _mbdgeom->get_type(ifeech);  // 0 = T-channel, 1 = Q-channel
@@ -282,7 +277,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     // Use dCFD method to get time for now in charge channels
     // Double_t threshold = 4.0*sig->GetPed0RMS();
 
-    // cout << "getspline " << ifeech << endl;
+    // std::cout << "getspline " << ifeech << std::endl;
     _mbdsig[ifeech].GetSplineAmpl();
     Double_t threshold = 0.5;
     m_pmttq[pmtch] = _mbdsig[ifeech].dCFD(threshold);
@@ -291,12 +286,12 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     if (m_ampl[ifeech] < 24)
     {
       // m_t0[ifeech] = -9999.;
-      m_pmttq[pmtch] = NAN;
+      m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
     }
     else
     {
-      // if ( m_pmttq[pmtch]<-50. && ifeech==255 ) cout << "hit_times " << ifeech << "\t" << m_pmttq[pmtch] << endl;
-      // if ( arm==1 ) cout << "hit_times " << ifeech << "\t" << setw(10) << m_pmttq[pmtch] << "\t" << board << "\t" << TRIG_SAMP[board] << endl;
+      // if ( m_pmttq[pmtch]<-50. && ifeech==255 ) std::cout << "hit_times " << ifeech << "\t" << m_pmttq[pmtch] << std::endl;
+      // if ( arm==1 ) std::cout << "hit_times " << ifeech << "\t" << setw(10) << m_pmttq[pmtch] << "\t" << board << "\t" << TRIG_SAMP[board] << std::endl;
       m_pmttq[pmtch] -= (_mbdcal->get_sampmax(ifeech) - 2);
       m_pmttq[pmtch] *= 17.7623;  // convert from sample to ns (1 sample = 1/56.299 MHz)
       m_pmttq[pmtch] = m_pmttq[pmtch] - _mbdcal->get_tq0(pmtch);
@@ -307,7 +302,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     if (m_pmtq[pmtch] < 0.25)
     {
       m_pmtq[pmtch] = 0.;
-      m_pmttq[pmtch] = NAN;
+      m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
     }
 
     // set tt to tq for now
@@ -316,20 +311,20 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     /*
     if ( m_evt<3 && ifeech==255 && m_ampl[ifeech] )
     {
-      cout << "dcfdcalc " << m_evt << "\t" << ifeech << "\t" << m_pmttq[pmtch] << "\t" << m_ampl[ifeech] << endl;
+      std::cout << "dcfdcalc " << m_evt << "\t" << ifeech << "\t" << m_pmttq[pmtch] << "\t" << m_ampl[ifeech] << std::endl;
     }
     */
   }
 
   // bbcpmts->Reset();
-  // cout << "q10 " << bbcpmts->get_tower_at_channel(10)->get_q() << endl;
+  // std::cout << "q10 " << bbcpmts->get_tower_at_channel(10)->get_q() << std::endl;
 
   // Copy to output
-  for (int ipmt = 0; ipmt < BBC_N_PMT; ipmt++)
+  for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
   {
     bbcpmts->get_pmt(ipmt)->set_pmt(ipmt, m_pmtq[ipmt], m_pmttt[ipmt], m_pmttq[ipmt]);
   }
-  bbcpmts->set_npmt(BBC_N_PMT);
+  bbcpmts->set_npmt(MbdDefs::BBC_N_PMT);
 
   m_evt++;
   return m_evt;
@@ -340,7 +335,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 {
   if (_verbose >= 10)
   {
-    cout << "In MbdEvent::Calculate()" << endl;
+    std::cout << "In MbdEvent::Calculate()" << std::endl;
   }
   Clear();
   if (bbcout != nullptr)
@@ -359,7 +354,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
   // calculate bbc global variables
   if (_verbose >= 10)
   {
-    cout << "Hit PMT info " << endl;
+    std::cout << "Hit PMT info " << std::endl;
   }
   for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
   {
@@ -371,7 +366,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
     if (_verbose >= 10)
     {
-      cout << ipmt << "\t" << t_pmt << endl;
+      std::cout << ipmt << "\t" << t_pmt << std::endl;
     }
 
     if (fabs(t_pmt) < 25. && q_pmt > 0.)
@@ -384,31 +379,31 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
       if (_verbose >= 10)
       {
-        cout << ipmt << "\t" << t_pmt << "\t" << q_pmt << endl;
+        std::cout << ipmt << "\t" << t_pmt << "\t" << q_pmt << std::endl;
       }
     }
   }
 
   if (_verbose >= 10)
   {
-    cout << "nhits " << m_bbcn[0] << "\t" << m_bbcn[1] << endl;
+    std::cout << "nhits " << m_bbcn[0] << "\t" << m_bbcn[1] << std::endl;
   }
-  // cout << "bbcte " << m_bbcte[0] << "\t" << m_bbcte[1] << endl;
+  // std::cout << "bbcte " << m_bbcte[0] << "\t" << m_bbcte[1] << std::endl;
 
   for (int iarm = 0; iarm < 2; iarm++)
   {
     if (hit_times[iarm].empty())
     {
-      // cout << "hit_times size == 0" << endl;
+      // std::cout << "hit_times size == 0" << std::endl;
       continue;
     }
 
-    // cout << "EARLIEST " << iarm << endl;
-    // cout << "ERROR hit_times size == " << hit_times[iarm].size() << endl;
+    // std::cout << "EARLIEST " << iarm << std::endl;
+    // std::cout << "ERROR hit_times size == " << hit_times[iarm].size() << std::endl;
 
     std::sort(hit_times[iarm].begin(), hit_times[iarm].end());
     float earliest = hit_times[iarm].at(0);
-    // cout << "earliest" << iarm << "\t" << earliest << endl;
+    // std::cout << "earliest" << iarm << "\t" << earliest << std::endl;
 
     gaussian->SetParameter(0, 5);
     // gaussian->SetParameter(1, earliest);
@@ -446,9 +441,9 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     // Now calculate zvtx, t0 from best times
     if (_verbose >= 10)
     {
-      cout << "Evt " << m_evt << "\tt0\t" << m_bbct[0] << "\t" << m_bbct[1] << endl;
-      cout << "bbcn " << m_bbcn[0] << "\t" << m_bbcn[1] << endl;
-      cout << "bbcq " << m_bbcq[0] << "\t" << m_bbcq[1] << endl;
+      std::cout << "Evt " << m_evt << "\tt0\t" << m_bbct[0] << "\t" << m_bbct[1] << std::endl;
+      std::cout << "bbcn " << m_bbcn[0] << "\t" << m_bbcn[1] << std::endl;
+      std::cout << "bbcq " << m_bbcq[0] << "\t" << m_bbcq[1] << std::endl;
     }
     m_bbcz = (m_bbct[0] - m_bbct[1]) * TMath::C() * 1e-7 / 2.0;  // in cm
     m_bbct0 = (m_bbct[0] + m_bbct[1]) / 2.0;
@@ -463,15 +458,15 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
     /*
     // Use earliest time
-    //cout << "t0\t" << m_bbct[0] << "\t" << m_bbct[1] << endl;
-    //cout << "te\t" << m_bbcte[0] << "\t" << m_bbcte[1] << endl;
+    //cout << "t0\t" << m_bbct[0] << "\t" << m_bbct[1] << std::endl;
+    //cout << "te\t" << m_bbcte[0] << "\t" << m_bbcte[1] << std::endl;
     m_bbcz = (m_bbcte[0] - m_bbcte[1]) * TMath::C() * 1e-7 / 2.0; // in cm
     m_bbct0 = (m_bbcte[0] + m_bbcte[1]) / 2.0;
     */
 
     if (_verbose > 10)
     {
-      cout << "bbcz " << m_bbcz << endl;
+      std::cout << "bbcz " << m_bbcz << std::endl;
     }
   }
 
@@ -484,7 +479,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
       // bbcout->set_clocks( m_evt, m_clk, m_femclk ); // only for V2
       if (_verbose > 10)
       {
-        cout << get_bbcn(iarm) << "\t" << get_bbcq(iarm) << "\t" << get_bbct(iarm) << endl;
+        std::cout << get_bbcn(iarm) << "\t" << get_bbcq(iarm) << "\t" << get_bbct(iarm) << std::endl;
       }
     }
 
@@ -527,18 +522,18 @@ int MbdEvent::DoQuickClockOffsetCalib()
       int maxbin = h_trigsamp[iboard]->GetMaximumBin();
       TRIG_SAMP[iboard] = h_trigsamp[iboard]->GetBinCenter(maxbin);
       // std::cout << "iboard " << iboard << "\t" << iboard*8+1 << "\t" << (iboard+1)*8 << "\t" << h_trigsamp[iboard]->GetEntries() << std::endl;
-      cout << "TRIG_SAMP" << iboard << "\t" << TRIG_SAMP[iboard] << endl;
+      std::cout << "TRIG_SAMP" << iboard << "\t" << TRIG_SAMP[iboard] << std::endl;
     }
   }
 
   return 1;
 }
 
-int MbdEvent::Read_Charge_Calib(const char *gainfname)
+int MbdEvent::Read_Charge_Calib(const std::string &gainfname)
 {
   std::ifstream gainfile(gainfname);
 
-  cout << "Reading gains from " << gainfname << endl;
+  std::cout << "Reading gains from " << gainfname << std::endl;
   int ch;
   float integ, integerr;
   float peak, peakerr;
@@ -548,7 +543,7 @@ int MbdEvent::Read_Charge_Calib(const char *gainfname)
   {
     gaincorr[ch] = 1.0 / peak;
 
-    // cout << ch << "\t" << peak << endl;
+    // std::cout << ch << "\t" << peak << std::endl;
   }
 
   gainfile.close();
@@ -557,11 +552,11 @@ int MbdEvent::Read_Charge_Calib(const char *gainfname)
 }
 
 // Read in tq t0 offset calibrations
-int MbdEvent::Read_TQ_T0_Offsets(const char *t0cal_fname)
+int MbdEvent::Read_TQ_T0_Offsets(const std::string &t0cal_fname)
 {
-  ifstream tcalibfile(t0cal_fname);
+  std::ifstream tcalibfile(t0cal_fname);
 
-  cout << "Reading tq_t0 offset calibrations from " << t0cal_fname << endl;
+  std::cout << "Reading tq_t0 offset calibrations from " << t0cal_fname << std::endl;
 
   int pmtnum;
   float meanerr;
@@ -572,7 +567,7 @@ int MbdEvent::Read_TQ_T0_Offsets(const char *t0cal_fname)
     tcalibfile >> pmtnum >> tq_t0_offsets[ipmt] >> meanerr >> sigma >> sigmaerr;
     if (pmtnum != ipmt)
     {
-      cerr << "ERROR, pmtnum != ipmt, " << pmtnum << "\t" << ipmt << endl;
+      std::cout << "ERROR, pmtnum != ipmt, " << pmtnum << "\t" << ipmt << std::endl;
     }
   }
 
@@ -582,11 +577,11 @@ int MbdEvent::Read_TQ_T0_Offsets(const char *t0cal_fname)
 }
 
 // Read in tq clk offset calibrations
-int MbdEvent::Read_TQ_CLK_Offsets(const char *t0cal_fname)
+int MbdEvent::Read_TQ_CLK_Offsets(const std::string &t0cal_fname)
 {
-  ifstream tcalibfile(t0cal_fname);
+  std::ifstream tcalibfile(t0cal_fname);
 
-  cout << "Reading tq_clk offset calibrations from " << t0cal_fname << endl;
+  std::cout << "Reading tq_clk offset calibrations from " << t0cal_fname << std::endl;
 
   int pmtnum;
   for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
@@ -594,7 +589,7 @@ int MbdEvent::Read_TQ_CLK_Offsets(const char *t0cal_fname)
     tcalibfile >> pmtnum >> tq_clk_offsets[ipmt];
     if (pmtnum != ipmt)
     {
-      cerr << "ERROR, pmtnum != ipmt, " << pmtnum << "\t" << ipmt << endl;
+      std::cout << "ERROR, pmtnum != ipmt, " << pmtnum << "\t" << ipmt << std::endl;
     }
   }
 
@@ -604,11 +599,11 @@ int MbdEvent::Read_TQ_CLK_Offsets(const char *t0cal_fname)
 }
 
 // Read in tt clk offset calibrations
-int MbdEvent::Read_TT_CLK_Offsets(const char *t0cal_fname)
+int MbdEvent::Read_TT_CLK_Offsets(const std::string &t0cal_fname)
 {
-  ifstream tcalibfile(t0cal_fname);
+  std::ifstream tcalibfile(t0cal_fname);
 
-  cout << "Reading tq_clk offset calibrations from " << t0cal_fname << endl;
+  std::cout << "Reading tq_clk offset calibrations from " << t0cal_fname << std::endl;
 
   int pmtnum;
   for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
@@ -616,7 +611,7 @@ int MbdEvent::Read_TT_CLK_Offsets(const char *t0cal_fname)
     tcalibfile >> pmtnum >> tt_clk_offsets[ipmt];
     if (pmtnum != ipmt)
     {
-      cerr << "ERROR, pmtnum != ipmt, " << pmtnum << "\t" << ipmt << endl;
+      std::cout << "ERROR, pmtnum != ipmt, " << pmtnum << "\t" << ipmt << std::endl;
     }
   }
 

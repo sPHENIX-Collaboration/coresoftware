@@ -5,8 +5,6 @@
 
 #include <fun4all/Fun4AllInputManager.h>
 
-#include <Event/phenixTypes.h>
-
 #include <map>
 #include <set>
 #include <string>
@@ -16,7 +14,6 @@ class Gl1RawHit;
 class InttRawHit;
 class MicromegasRawHit;
 class MvtxRawHit;
-class Packet;
 class PHCompositeNode;
 class SyncObject;
 class TpcRawHit;
