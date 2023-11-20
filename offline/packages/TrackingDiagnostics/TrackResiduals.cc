@@ -319,7 +319,6 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
 
   ActsTransformations transformer;
   TrkrCluster* cluster = clustermap->findCluster(ckey);
-  m_cluskeys.push_back(ckey);
   switch (TrkrDefs::getTrkrId(ckey))
   {
   case TrkrDefs::mvtxId:
@@ -338,29 +337,27 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
 
   Acts::Vector3 clusglob = geometry->getGlobalPosition(ckey, cluster);
 
-  auto matched_state = track->begin_states();
-  float drmin = -1;
-  float clusr = r(clusglob.x(), clusglob.y());
+  SvtxTrackState *state = nullptr;
 
   for (auto state_iter = track->begin_states();
        state_iter != track->end_states();
        ++state_iter)
   {
-    SvtxTrackState* state = state_iter->second;
-    float stater = r(state->get_x(), state->get_y());
-    float thisdr = std::abs(clusr - stater);
-    if (drmin < 0 or thisdr < drmin)
-    {
-      matched_state = state_iter;
-      drmin = thisdr;
-    }
-    else
-    {
+    SvtxTrackState* tstate = state_iter->second;
+    auto stateckey = tstate->get_cluskey();
+    if(stateckey == ckey) {
+      state = tstate;
       break;
     }
+   
   }
-
-  SvtxTrackState* state = matched_state->second;
+  if(!state)
+    {
+      //! skip clusters that don't have an associated track state
+      return;
+    }
+  
+  m_cluskeys.push_back(ckey);
 
   //! have cluster and state, fill vectors
   m_cluslx.push_back(cluster->getLocalX());
@@ -372,8 +369,9 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   {
     clusz = convertTimeToZ(geometry, ckey, cluster);
   }
-  m_cluslz.push_back(clusz);
 
+  m_cluslz.push_back(clusz);
+  float clusr = r(clusglob.x(), clusglob.y());
   auto para_errors = m_clusErrPara.get_clusterv5_modified_error(cluster,
 							       clusr,ckey);
   m_cluselx.push_back(sqrt(para_errors.first));
