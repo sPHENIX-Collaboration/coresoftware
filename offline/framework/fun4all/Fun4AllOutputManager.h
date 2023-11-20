@@ -15,9 +15,7 @@ class Fun4AllOutputManager : public Fun4AllBase
 {
  public:
   //! destructor
-  ~Fun4AllOutputManager() override
-  {
-  }
+  ~Fun4AllOutputManager() override = default;
 
   //! print method (dump event selector)
   void Print(const std::string &what = "ALL") const override;
@@ -99,6 +97,9 @@ class Fun4AllOutputManager : public Fun4AllBase
   //! get output file name
   virtual std::string OutFileName() const { return m_OutFileName; }
   void OutFileName(const std::string &name) { m_OutFileName = name; }
+  void SetClosingScript(const std::string &script) {m_RunAfterClosingScript = script;}
+  void SetClosingScriptArgs(const std::string &args) {m_ClosingArgs = args;}
+  int RunAfterClosing();
 
  protected:
   /*!
@@ -110,7 +111,13 @@ class Fun4AllOutputManager : public Fun4AllBase
 
  private:
   //! Number of Events
-  unsigned int m_NEvents = 0;
+  unsigned int m_NEvents {0};
+
+  //! Script to run after closing of file
+  std::string m_RunAfterClosingScript;
+
+  //! string with arguments for closing script
+  std::string m_ClosingArgs;
 
   //! output file name
   std::string m_OutFileName;
