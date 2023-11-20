@@ -126,6 +126,7 @@ class HFTrackEfficiency : public SubsysReco
   float m_true_mother_mass = 0.;
   float m_reco_mother_mass = 0.;
   float m_true_mother_pT = 0.;
+  float m_true_mother_p = 0.;
   float m_true_mother_eta = 0.;
   float m_min_true_track_pT = FLT_MAX;
   float m_min_reco_track_pT = FLT_MAX;
@@ -141,6 +142,12 @@ class HFTrackEfficiency : public SubsysReco
   float m_reco_track_chi2nDoF[m_maxTracks] = {0.};
   int m_reco_track_silicon_seeds[m_maxTracks] = {0};
   int m_reco_track_tpc_seeds[m_maxTracks] = {0};
+  float m_primary_vtx_x = 0.;
+  float m_primary_vtx_y = 0.;
+  float m_primary_vtx_z = 0.;
+  float m_secondary_vtx_x = 0.;
+  float m_secondary_vtx_y = 0.;
+  float m_secondary_vtx_z = 0.;
 };
 
 #endif  // HFTRACKEFFICIENCY_H
