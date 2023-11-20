@@ -180,7 +180,9 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
   uint64_t bco_min = UINT64_MAX;
   uint64_t bco_max = 0;
 
-  for (unsigned int i = 0; i < tpccont->get_nhits(); i++)
+  const auto nhits = tpccont->get_nhits();
+
+  for (unsigned int i = 0; i < nhits; i++)
   {
     TpcRawHit *tpchit = tpccont->get_hit(i);
     uint64_t gtm_bco = tpchit->get_gtm_bco();

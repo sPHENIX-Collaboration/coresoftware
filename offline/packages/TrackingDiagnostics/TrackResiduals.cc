@@ -81,7 +81,7 @@ int TrackResiduals::InitRun(PHCompositeNode*)
 }
 void TrackResiduals::clearClusterStateVectors()
 {
-
+  m_cluskeys.clear();
   m_idealsurfcenterx.clear();
   m_idealsurfcentery.clear();
   m_idealsurfcenterz.clear();
@@ -163,7 +163,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   auto vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
 
-  if (!trackmap or !clustermap or !geometry or !vertexmap)
+  if (!trackmap or !clustermap or !geometry)
   {
     std::cout << "Missing node, can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -203,7 +203,8 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     m_ntpc = 0;
     m_nmms = 0;
     m_vertexid = track->get_vertex_id();
-
+    if(vertexmap)
+      {
     auto vertexit = vertexmap->find(m_vertexid);
     if (vertexit != vertexmap->end())
     {
@@ -212,7 +213,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       m_vy = vertex->get_y();
       m_vz = vertex->get_z();
     }
-
+      }
     m_pcax = track->get_x();
     m_pcay = track->get_y();
     m_pcaz = track->get_z();
@@ -336,29 +337,27 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
 
   Acts::Vector3 clusglob = geometry->getGlobalPosition(ckey, cluster);
 
-  auto matched_state = track->begin_states();
-  float drmin = -1;
-  float clusr = r(clusglob.x(), clusglob.y());
+  SvtxTrackState *state = nullptr;
 
   for (auto state_iter = track->begin_states();
        state_iter != track->end_states();
        ++state_iter)
   {
-    SvtxTrackState* state = state_iter->second;
-    float stater = r(state->get_x(), state->get_y());
-    float thisdr = std::abs(clusr - stater);
-    if (drmin < 0 or thisdr < drmin)
-    {
-      matched_state = state_iter;
-      drmin = thisdr;
-    }
-    else
-    {
+    SvtxTrackState* tstate = state_iter->second;
+    auto stateckey = tstate->get_cluskey();
+    if(stateckey == ckey) {
+      state = tstate;
       break;
     }
+   
   }
-
-  SvtxTrackState* state = matched_state->second;
+  if(!state)
+    {
+      //! skip clusters that don't have an associated track state
+      return;
+    }
+  
+  m_cluskeys.push_back(ckey);
 
   //! have cluster and state, fill vectors
   m_cluslx.push_back(cluster->getLocalX());
@@ -370,8 +369,9 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   {
     clusz = convertTimeToZ(geometry, ckey, cluster);
   }
-  m_cluslz.push_back(clusz);
 
+  m_cluslz.push_back(clusz);
+  float clusr = r(clusglob.x(), clusglob.y());
   auto para_errors = m_clusErrPara.get_clusterv5_modified_error(cluster,
 							       clusr,ckey);
   m_cluselx.push_back(sqrt(para_errors.first));
@@ -509,6 +509,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("pcay", &m_pcay, "m_pcay/F");
   m_tree->Branch("pcaz", &m_pcaz, "m_pcaz/F");
 
+  m_tree->Branch("cluskeys", &m_cluskeys);
   m_tree->Branch("clusedge",&m_clusedge);
   m_tree->Branch("clusoverlap",&m_clusoverlap);
   m_tree->Branch("cluslx", &m_cluslx);

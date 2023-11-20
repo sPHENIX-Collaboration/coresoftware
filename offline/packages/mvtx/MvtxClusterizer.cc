@@ -197,7 +197,7 @@ int MvtxClusterizer::InitRun(PHCompositeNode *topNode)
   // Get the cluster hits verbose node, if required
   if (record_ClusHitsVerbose) {
     // get the node
-    mClusHitsVerbose = findNode::getClass<ClusHitsVerbosev1>(topNode, "Trkr_SvtxClusHitsVerbose");
+    mClusHitsVerbose = findNode::getClass<ClusHitsVerbose>(topNode, "Trkr_SvtxClusHitsVerbose");
     if (!mClusHitsVerbose)
     {
       PHNodeIterator dstiter(dstNode);

@@ -6,3 +6,4 @@ test -z "$srcdir" && srcdir=.
 libtoolize --force; automake -a --add-missing; autoconf)
 
 $srcdir/configure  "$@"
+

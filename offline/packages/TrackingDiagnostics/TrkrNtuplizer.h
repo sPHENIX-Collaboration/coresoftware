@@ -63,7 +63,8 @@ class TrkrNtuplizer : public SubsysReco
   void do_tpcseed_eval(bool b) { _do_tpcseed_eval = b; }
   void do_siseed_eval(bool b) { _do_siseed_eval = b; }
   void set_first_event(int value) { _ievent = value; }
-
+  void set_trkclus_seed_container(const std::string& name)
+  { _clustrackseedcontainer = name; }
   SvtxTrack* best_track_from(TrkrDefs::cluskey cluster_key);
   std::set<SvtxTrack*> all_tracks_from(TrkrDefs::cluskey cluster_key);
   void create_cache_track_from_cluster();
@@ -112,6 +113,8 @@ class TrkrNtuplizer : public SubsysReco
   // Track map name
   std::string _trackmapname;
   SvtxTrackMap* _trackmap = nullptr;
+
+  std::string _clustrackseedcontainer = "TpcTrackSeedContainer";
 
   TFile *_tfile;
   PHTimer *_timer;

@@ -16,6 +16,7 @@
 #include <iostream>
 
 Fun4AllRolloverFileOutStream::Fun4AllRolloverFileOutStream(const std::string &frule,
+                                                           const unsigned int nEvents,
                                                            const unsigned int sizeInMB,
                                                            const int offset,
                                                            const int increment,
@@ -25,13 +26,14 @@ Fun4AllRolloverFileOutStream::Fun4AllRolloverFileOutStream(const std::string &fr
 {
   m_Offset = offset;
   m_CurrentSequence = offset;
+  m_MaxNEvents = nEvents;
   m_MaxFileFize = sizeInMB;
   m_MaxFileFize = m_MaxFileFize * 1024 * 1024;
   if (m_MaxFileFize == 0 || m_MaxFileFize > MaxSize())
   {
     if (m_MaxFileFize > MaxSize())
     {
-      unsigned long long maxmb = MaxSize() / (1024ULL * 1024ULL);
+      uint64_t maxmb = MaxSize() / (1024ULL * 1024ULL);
       std::cout << "setting maximum size to current max (in MB): " << maxmb << std::endl;
     }
     m_MaxFileFize = MaxSize();
@@ -85,20 +87,33 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
               << evt->getEvtSequence() << " FOR RUN "
               << evt->getRunNumber() << " Status: " << status << std::endl;
   }
+  SetNEvents(GetNEvents() + 1);
   BytesWritten(GetoBuffer()->getBytesWritten());
+
+  if (m_MaxNEvents > 0 && GetNEvents() >= m_MaxNEvents)
+  {
+    open_new_file();
+  }
   if (BytesWritten() >= m_MaxFileFize)
   {
-    DeleteoBuffer();
-    BytesWritten(0);
-    close(OutFileDescriptor());
-    OutFileDescriptor(-1);
+    open_new_file();
   }
   return 0;
 }
-
 void Fun4AllRolloverFileOutStream::identify(std::ostream &os) const
 {
   os << "Fun4AllRolloverFileOutStream writing to " << FileRule()
      << " current sequence " << m_CurrentSequence << std::endl;
   return;
+}
+
+void Fun4AllRolloverFileOutStream::open_new_file()
+{
+  DeleteoBuffer();
+  BytesWritten(0);
+  SetNEvents(0);
+  close(OutFileDescriptor());
+  OutFileDescriptor(-1);
+  MyManager()->SetClosingScriptArgs(MyManager()->OutFileName());
+  MyManager()->RunAfterClosing();
 }

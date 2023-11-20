@@ -13,7 +13,7 @@ class PHCompositeNode;
 class Fun4AllEventOutputManager : public Fun4AllOutputManager
 {
  public:
-  Fun4AllEventOutputManager(const std::string &myname = "EVENTOUT", const std::string &filename = "eventout.prdf", const unsigned int sizeInMB = 0, const int offset = 0, const int increment = 1);
+  Fun4AllEventOutputManager(const std::string &myname = "EVENTOUT", const std::string &filename = "eventout.prdf", const unsigned int nEvents = 0, const unsigned int sizeInMB = 0, const int offset = 0, const int increment = 1);
   virtual ~Fun4AllEventOutputManager();
 
   int outfileopen(const std::string & /*fname*/) override { return 0; }

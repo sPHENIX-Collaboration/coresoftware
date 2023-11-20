@@ -1,14 +1,10 @@
 #include "Fun4AllStreamingInputManager.h"
 
-#include "SingleEvtInput.h"
-#include "SingleInttInput.h"
-#include "SingleMvtxInput.h"
-#include "SingleTpcInput.h"
+#include "SingleStreamingInput.h"
 
 #include <ffarawobjects/Gl1RawHit.h>
 #include <ffarawobjects/InttRawHit.h>
-#include <ffarawobjects/InttRawHitContainerv1.h>
-#include <ffarawobjects/MicromegasRawHit.h>
+#include <ffarawobjects/InttRawHitContainer.h>
 #include <ffarawobjects/MicromegasRawHitContainer.h>
 #include <ffarawobjects/MvtxRawEvtHeader.h>
 #include <ffarawobjects/MvtxRawHit.h>
@@ -20,29 +16,21 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllSyncManager.h>
-#include <fun4all/Fun4AllUtils.h>
 
 #include <ffaobjects/SyncObject.h>  // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>
 
 #include <frog/FROG.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>
-#include <phool/PHNode.h>          // for PHNode
-#include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>        // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-// #include <Event/A_Event.h>
-// #include <Event/Event.h>
-// #include <Event/Eventiterator.h>  // for Eventiterator
-// #include <Event/fileEventiterator.h>
-
 #include <TSystem.h>
 
+#include <algorithm>  // for max
 #include <cassert>
+#include <cstdint>  // for uint64_t, uint16_t
 #include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream, endl
 #include <utility>   // for pair
@@ -598,7 +586,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
     gSystem->Exit(1);
     exit(1);
   }
-  //  std::cout << "before filling m_InttRawHitMap size: " <<  m_InttRawHitMap.size() << std::endl;
+  // std::cout << "before filling m_MvtxRawHitMap size: " <<  m_MvtxRawHitMap.size() << std::endl;
   uint64_t select_crossings = m_mvtx_bco_range;
   if (m_RefBCO > 0)
   {
@@ -666,6 +654,11 @@ int Fun4AllStreamingInputManager::FillMvtx()
     }
     m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
     m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
+    // m_MvtxRawHitMap.empty() need to be checked here since we do not call FillPoolMvtx()
+    if (m_MvtxRawHitMap.empty())
+    {
+      break;
+    }
   }
 
   return 0;
