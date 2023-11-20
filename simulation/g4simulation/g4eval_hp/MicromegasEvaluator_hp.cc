@@ -306,8 +306,8 @@ void MicromegasEvaluator_hp::evaluate_hits()
   TileStruct* current_tile = nullptr;
 
   // loop over micromegas and tpc hitsets
-  for( auto id:{TrkrDefs::TrkrId::micromegasId, TrkrDefs::TrkrId::tpcId} )
-  // for( auto id:{TrkrDefs::TrkrId::micromegasId} )
+  // for( auto id:{TrkrDefs::TrkrId::micromegasId, TrkrDefs::TrkrId::tpcId} )
+  for( auto id:{TrkrDefs::TrkrId::micromegasId} )
   {
 
     const auto hitset_range = m_hitsetcontainer->getHitSets(id);
