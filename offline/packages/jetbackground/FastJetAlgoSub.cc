@@ -132,7 +132,7 @@ std::vector<Jet*> FastJetAlgoSub::get_jets(std::vector<Jet*> particles)
       total_pz += particle->get_pz();
       total_e += particle->get_e();
 
-      for (const auto& iter : particles->get_jet_comp()) {
+      for (const auto& iter : particle->get_comp_vec()) 
       {
         jet->insert_comp(iter.first, iter.second);
       }
