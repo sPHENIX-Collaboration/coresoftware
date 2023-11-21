@@ -41,7 +41,7 @@ class MinimumBiasClassifier : public SubsysReco
   //! end of run method
   int End(PHCompositeNode *);
 
-  void Reset();
+  virtual void Reset();
 
 
   
