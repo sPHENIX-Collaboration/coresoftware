@@ -262,6 +262,8 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
 
             m_true_track_PID[i - 1] = daughterG4->get_pid();
             truth_ID = daughterG4->get_track_id();
+
+	    delete mother3Vector;
           }
         }
       }
