@@ -643,7 +643,7 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
   /*     int strip_col = InttDefs::getCol(hitkey);  // strip z index */
   /*     int strip_row = InttDefs::getRow(hitkey);  // strip phi index */
 
-  /*     // fixme need energy scales here */
+  /*     // FIXME need energy scales here */
   /*     if (_energy_scale.count(layer) > 1) */
   /*     { */
   /*       assert(!"Error: _energy_scale has two or more keys."); */
@@ -740,8 +740,8 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
     // tune this energy threshold in the same maner of the MVTX, namely to get the same kind of pixel sizes
     // as the SvtxTrack clusters
     /* const double threshold = sum_adc * m_truth_pixelthreshold; */
-    const double threshold = sum_adc * m_pixel_thresholdrat; //fixme -- tune this as needed
-    std::map<int,unsigned int> m_iphi, m_it, m_iphiCut, m_itCut; // fixme
+    const double threshold = sum_adc * m_pixel_thresholdrat; //FIXME -- tune this as needed
+    std::map<int,unsigned int> m_iphi, m_it, m_iphiCut, m_itCut; // FIXME
 
     int layer = TrkrDefs::getLayer ( hitsetkey );
     CylinderGeomIntt* geom = dynamic_cast<CylinderGeomIntt*>(geom_container->GetLayerGeom(layer));
@@ -800,7 +800,7 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
       /* else */
       /* { */
       /* } */
-      /* if(hit_adc > clus_maxadc) clus_maxadc = hit_adc; */ //fixme: do we want this value to be set?
+      /* if(hit_adc > clus_maxadc) clus_maxadc = hit_adc; */ //FIXME: do we want this value to be set?
       /* clus_energy += hit_adc; */
     }
     if (mClusHitsVerbose) {
@@ -840,7 +840,7 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
     double cluslocaly = ylocalsum / nhits;
     double cluslocalz = ylocalsum / nhits;
 
-    //if (_make_e_weights[layer]) // fixme: this is always false for now
+    //if (_make_e_weights[layer]) // FIXME: this is always false for now
     /* { */
     /*   cluslocaly = ylocalsum / (double) clus_adc; */
     /*   cluslocalz = zlocalsum / (double) clus_adc; */

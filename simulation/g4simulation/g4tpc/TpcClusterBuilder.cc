@@ -101,9 +101,9 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
     }
     const double threshold = sum_adc * m_pixel_thresholdrat;
   
-    // fixme -- see why the hits are so scattered
-    std::set<int> v_iphi, v_it;              // 
-    std::map<int,unsigned int> m_iphi, m_it, m_iphiCut, m_itCut; // 
+    // FIXME -- see why the hits are so scattered
+    std::set<int> v_iphi, v_it;              // FIXME
+    std::map<int,unsigned int> m_iphi, m_it, m_iphiCut, m_itCut; // FIXME
     for(auto iter = ihit_list.first; iter != ihit_list.second; ++iter)
     {
       unsigned int adc = iter->second->getAdc(); 
@@ -186,10 +186,14 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
     char tsize = tbinhi - tbinlo + 1;
     char phisize = phibinhi - phibinlo + 1;
 
-    if (tsize < 0 && verbosity > 1) std::cout << " fixme z4 tsize: " << ((int)tsize) << " " << tbinlo << " to " << tbinhi << std::endl;
+    if (tsize < 0 && verbosity > 1) std::cout << " FIXME z4 tsize: " << ((int)tsize) << " " << tbinlo << " to " << tbinhi << std::endl;
     
     // -------------------------------------------------
     // -------------------------------------------------
+    // debug here: FIXME
+    //
+    /* cout << " FIXME phisize " << ((int) phisize) << endl; */
+    //FIXME
     if (false) { // Printing for debugging
       if ((int)phisize > 10 || (int)tsize > 8) {
         int _size_phi = ((int)phisize);

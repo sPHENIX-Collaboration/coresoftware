@@ -494,7 +494,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
   {
     m_primary_trackMap->empty();
 
-    //fixme figure out which vertex to use.
+    //FIXME figure out which vertex to use.
     SvtxVertex* vertex = nullptr;
     if (m_vertexMap_refit->size() > 0)
       vertex = m_vertexMap_refit->get(0);
@@ -518,7 +518,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
                                                                     vertex);
         if (rf_phgf_track)
         {
-          //					//fixme figure out which vertex to use.
+          //					//FIXME figure out which vertex to use.
           //					SvtxVertex* vertex = nullptr;
           //					if (m_vertexMap_refit->size() > 0)
           //						vertex = m_vertexMap_refit->get(0);
