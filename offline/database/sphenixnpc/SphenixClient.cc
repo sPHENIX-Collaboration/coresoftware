@@ -89,7 +89,7 @@ std::string SphenixClient::getCalibration(const std::string& pl_type, long long 
   {
     if (m_Verbosity > 0)
     {
-      std::cout << resp["msg"] << std::endl;
+      std::cout << resp << std::endl;
     }
     return "";
   }
