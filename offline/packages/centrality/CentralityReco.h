@@ -33,10 +33,10 @@ class CentralityReco : public SubsysReco
   int GetNodes(PHCompositeNode *);
 
   //! event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
   
   //! end of run method
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode *) override;
 
   int ResetEvent(PHCompositeNode *) override;
 
