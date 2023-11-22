@@ -50,6 +50,16 @@ class CaloTowerStatus : public SubsysReco
     m_inputNodePrefix = name;
     return;
   }
+  void set_badChi2_treshold(float threshold)
+  {
+    badChi2_treshold = threshold;
+    return;
+  }
+  void set_fraction_badChi2_threshold(float threshold)
+  {
+    fraction_badChi2_threshold = threshold;
+    return;
+  }
 
  private:
   TowerInfoContainer *m_raw_towers{nullptr};
@@ -66,8 +76,8 @@ class CaloTowerStatus : public SubsysReco
   std::string m_calibName;
   std::string m_inputNodePrefix{"TOWERS_"};
 
-
-
+  float badChi2_treshold = 1e4;
+  float fraction_badChi2_threshold = 0.05;
 };
 
 #endif  // CALOTOWERBUILDER_H

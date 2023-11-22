@@ -63,6 +63,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void SetMvtxBcoRange(const unsigned int i);
   void SetMvtxNegativeBco(const unsigned int value);
   void SetTpcBcoRange(const unsigned int i);
+  void SetTpcNegativeBco(const unsigned int value);
   int FillInttPool();
   int FillMicromegasPool();
   int FillMvtxPool();
@@ -109,9 +110,10 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   bool m_tpc_registered_flag{false};
   unsigned int m_micromegas_bco_range{0};
   unsigned int m_micromegas_negative_bco{0};
-  unsigned int m_tpc_bco_range{0};
   unsigned int m_mvtx_bco_range{0};
   unsigned int m_mvtx_negative_bco{0};
+  unsigned int m_tpc_bco_range{0};
+  unsigned int m_tpc_negative_bco{0};
   uint64_t m_RefBCO{0};
 
   std::vector<SingleStreamingInput *> m_Gl1InputVector;

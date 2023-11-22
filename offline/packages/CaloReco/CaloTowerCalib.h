@@ -56,6 +56,11 @@ class CaloTowerCalib : public SubsysReco
     return;
   }
 
+  void set_directURL(std::string url){
+    m_giveDirectURL = true;
+    m_directURL = url;
+  }
+
   void set_use_TowerInfov2(bool use) {m_use_TowerInfov2=use;}
 
  private:
@@ -73,6 +78,9 @@ class CaloTowerCalib : public SubsysReco
   std::string CalibTowerNodeName;
 
   bool m_use_TowerInfov2 = 0;
+
+  bool m_giveDirectURL = false;
+  std::string m_directURL = "";
 
   CDBTTree *cdbttree = nullptr;
   int m_runNumber;
