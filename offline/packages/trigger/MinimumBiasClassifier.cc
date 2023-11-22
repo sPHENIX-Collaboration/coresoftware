@@ -51,10 +51,11 @@ int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
   CreateNodes(topNode);
-  return 0;
+  return Fun4AllReturnCodes::EVENT_OK;;
+
 }
 
-void MinimumBiasClassifier::Reset()
+int MinimumBiasClassifier::ResetEvent(PHCompositeNode *)
 {
   if (Verbosity() > 1)
   {
@@ -68,7 +69,7 @@ void MinimumBiasClassifier::Reset()
   }
 
   _z_vertex = 999.99;  
-  return;
+  return Fun4AllReturnCodes::EVENT_OK;;
 }
 
 int MinimumBiasClassifier::FillVars()
@@ -164,9 +165,6 @@ int MinimumBiasClassifier::process_event(PHCompositeNode *topNode)
   {
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  // Reset Arrays
-  Reset();
 
   // Fill Arrays
   if (FillVars())

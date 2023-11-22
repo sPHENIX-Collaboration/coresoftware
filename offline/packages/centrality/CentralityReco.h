@@ -25,8 +25,8 @@ class CentralityReco : public SubsysReco
   virtual ~CentralityReco();
 
   //! full initialization
-  int Init(PHCompositeNode *);
-  int InitRun(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
+  int InitRun(PHCompositeNode *) override;
   void CreateNodes(PHCompositeNode *);
   int FillCentralityInfo();
   int FillVars();
@@ -38,7 +38,7 @@ class CentralityReco : public SubsysReco
   //! end of run method
   int End(PHCompositeNode *);
 
-  void ResetVars();
+  int ResetEvent(PHCompositeNode *) override;
 
   // Interface with CDB
   int Download_centralityDivisions(const std::string& dbfile);
@@ -58,11 +58,11 @@ class CentralityReco : public SubsysReco
 
   unsigned int _key = std::numeric_limits<unsigned int>::max();
 
-  float _mbd_charge_sum = std::numeric_limits<float>::signaling_NaN();
-  float _mbd_charge_sum_n = std::numeric_limits<float>::signaling_NaN();
-  float _mbd_charge_sum_s = std::numeric_limits<float>::signaling_NaN();
+  float _mbd_charge_sum = std::numeric_limits<float>::quiet_NaN();
+  float _mbd_charge_sum_n = std::numeric_limits<float>::quiet_NaN();
+  float _mbd_charge_sum_s = std::numeric_limits<float>::quiet_NaN();
 
-  double _centrality_scale = std::numeric_limits<double>::signaling_NaN();
+  double _centrality_scale = std::numeric_limits<double>::quiet_NaN();
   float _centrality_map[20]{};
 };
 

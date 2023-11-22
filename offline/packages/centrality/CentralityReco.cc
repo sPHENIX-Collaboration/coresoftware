@@ -127,7 +127,7 @@ int CentralityReco::Download_centralityDivisions(const std::string& dbfile)
 }
 
 
-void CentralityReco::ResetVars()
+int CentralityReco::ResetEvent(PHCompositeNode *)
 {
   if (Verbosity() > 1)
   {
@@ -137,7 +137,7 @@ void CentralityReco::ResetVars()
   _mbd_charge_sum_n = 0.;
   _mbd_charge_sum_s = 0.;
 
-  return;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int CentralityReco::FillVars()
@@ -207,9 +207,6 @@ int CentralityReco::process_event(PHCompositeNode *topNode)
   {
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  // Reset Arrays
-  ResetVars();
 
   // Fill Arrays
   if (FillVars())

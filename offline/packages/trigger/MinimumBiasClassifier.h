@@ -41,9 +41,7 @@ class MinimumBiasClassifier : public SubsysReco
   //! end of run method
   int End(PHCompositeNode *);
 
-  virtual void Reset();
-
-
+  int ResetEvent(PHCompositeNode *) override;
   
  private:
   const float _z_vtx_cut = 60.;
@@ -57,8 +55,8 @@ class MinimumBiasClassifier : public SubsysReco
   GlobalVertexMap *_global_vertex_map = nullptr;
   TowerInfoContainer *_towers_zdc = nullptr;
   TowerInfo *_tmp_tower = nullptr;
-  float _energy = std::numeric_limits<float>::signaling_NaN();
-  float _z_vertex = std::numeric_limits<float>::signaling_NaN();
+  float _energy = std::numeric_limits<float>::quiet_NaN();
+  float _z_vertex = std::numeric_limits<float>::quiet_NaN();
 
   float _mbd_charge_sum[2] = {};
 
