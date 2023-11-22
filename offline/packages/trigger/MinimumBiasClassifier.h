@@ -28,18 +28,18 @@ class MinimumBiasClassifier : public SubsysReco
   virtual ~MinimumBiasClassifier();
 
   //! full initialization
-  int Init(PHCompositeNode *);
-  int InitRun(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
+  int InitRun(PHCompositeNode *) override;
   void CreateNodes(PHCompositeNode *);
   int GetNodes(PHCompositeNode *);
 
   //! event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
   int FillMinimumBiasInfo();
   int FillVars();
   
   //! end of run method
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode *) override;
 
   int ResetEvent(PHCompositeNode *) override;
   
