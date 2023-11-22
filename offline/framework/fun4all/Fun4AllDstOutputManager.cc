@@ -67,7 +67,12 @@ int Fun4AllDstOutputManager::StripRunNode(const std::string &nodename)
 int Fun4AllDstOutputManager::outfileopen(const std::string &fname)
 {
   delete dstOut;
-  dstOut = new PHNodeIOManager(fname, PHWrite);
+  SetEventsWritten(0);
+  OutFileName(fname);
+  std::filesystem::path p = fname;
+  m_UsedOutFileName = fname + std::string("?reproducible=") + std::string(p.filename());
+  dstOut = new PHNodeIOManager(UsedOutFileName(), PHWrite);
+//  dstOut = new PHNodeIOManager(fname, PHWrite);
   if (!dstOut->isFunctional())
   {
     delete dstOut;
