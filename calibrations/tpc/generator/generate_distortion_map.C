@@ -297,11 +297,11 @@ AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe, bool useSpacecharge){
   sprintf(field_string,"flat_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
 
   if (realE){
-    tpc->loadEfield("/mntt/c/linuxshare/externalEfield.ttree.root","fTree");
+    tpc->loadEfield("/sphenix/u/czhang4/adamcoresoftware/externalEfield.ttree.root","fTree");
     sprintf(field_string,"realE_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
   }
    if (realB){
-    tpc->load3dBfield("/mntt/c/linuxshare/sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5);
+    tpc->load3dBfield("/sphenix/u/czhang4/adamcoresoftware/sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5);
         //tpc->loadBfield("sPHENIX.2d.root","fieldmap");
     sprintf(field_string,"realB_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
   } 
@@ -317,7 +317,7 @@ AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe, bool useSpacecharge){
   sprintf(lookup_string,"ross_phi1_%s_phislice_lookup_r%dxp%dxz%d",detgeoname,nr,nphi,nz);
   char lookupFilename[300];
   //sprintf(lookupFilename,"%s.root",lookup_string);
-  sprintf(lookupFilename,"/mntt/c/linuxshare/%s.root",lookup_string); //hardcoded for racf
+  sprintf(lookupFilename,"/sphenix/u/czhang4/adamcoresoftware/%s.root",lookup_string); //hardcoded for racf
   TFile *fileptr=TFile::Open(lookupFilename,"READ");
 
   if (!fileptr){ //generate the lookuptable
@@ -360,8 +360,8 @@ AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe, bool useSpacecharge){
     twin->setFlatFields(tpc_magField,-tpc_cmVolt/tpc_z);
     //sprintf(field_string,"flat_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
     //twin->loadBfield("sPHENIX.2d.root","fieldmap");
-    twin->load3dBfield("/mntt/c/linuxshare/sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5);
-    twin->loadEfield("/mntt/c/linuxshare/externalEfield.ttree.root","fTree",-1);//final '-1' tells it to flip z and the field z coordinate. r coordinate doesn't change, and we assume phi won't either, though the latter is less true.
+    twin->load3dBfield("/sphenix/u/czhang4/adamcoresoftware/sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5);
+    twin->loadEfield("/sphenix/u/czhang4/adamcoresoftware/externalEfield.ttree.root","fTree",-1);//final '-1' tells it to flip z and the field z coordinate. r coordinate doesn't change, and we assume phi won't either, though the latter is less true.
 
 
 
