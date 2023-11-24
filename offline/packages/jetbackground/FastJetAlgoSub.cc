@@ -131,13 +131,12 @@ std::vector<Jet*> FastJetAlgoSub::get_jets(std::vector<Jet*> particles)
       total_py += particle->get_py();
       total_pz += particle->get_pz();
       total_e += particle->get_e();
-
-      for (const auto& iter : particle->get_comp_vec()) 
-      {
-        jet->insert_comp(iter.first, iter.second);
-      }
+      jet->insert_comp(particle->get_comp_vec(), true);
     }
 
+    jet->set_comp_sort_flag(); // make sure jet know comps might not be sorted
+                               // alternatively can just ommit the `true` 
+                               // in insert_comp call above
     jet->set_px(total_px);
     jet->set_py(total_py);
     jet->set_pz(total_pz);

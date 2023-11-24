@@ -74,8 +74,10 @@ class Jetv1 : public Jet
   bool empty_comp() const override { return _comp_ids.empty(); }
   size_t size_comp() const override { return _comp_ids.size(); }
 
+  size_t n_clustered() const override { return _n_clustered; }
+  virtual void  set_n_clustered(unsigned int n) override { _n_clustered =n;} ;
+
   void clear_comp() override { _comp_ids.clear(); }
-  void insert_comp(SRC source, unsigned int compid) override { _comp_ids.insert(std::make_pair(source, compid)); }
   size_t erase_comp(SRC source) override { return _comp_ids.erase(source); }
   void erase_comp(Iter iter) override
   {
@@ -112,6 +114,7 @@ class Jetv1 : public Jet
 
   /// source id -> component id
   typ_comp_ids _comp_ids;
+  size_t _n_clustered {0};
 
   typedef std::map<Jet::PROPERTY, float> typ_property_map;
   /// map that contains extra properties
@@ -120,9 +123,17 @@ class Jetv1 : public Jet
   // Function in Jet.h header which are not implemented in Jet.h
   // messages for function calls from Jet.h which are not implemented in Jetv1.h
   void not_in_v1_msg(const std::string& method_name, std::ostream& os=std::cout) const;
-  size_t n_properties() override;
-  inline float get_prop_by_index(unsigned int /*index*/) const override;
-  inline void set_prop_by_index(unsigned int /*index*/, float /*value*/) override;
+  size_t size_properties() const override { return _property_map.size(); };
+  virtual std::vector<float>& get_property_vec() override;
+
+
+  void insert_comp(SRC source, unsigned int compid) override 
+  { _comp_ids.insert(std::make_pair(source, compid)); }
+  void insert_comp(SRC source, unsigned int compid, bool) override; // v2 only
+  void insert_comp(TYPE_comp_vec&) override; //v2 only
+  void insert_comp(TYPE_comp_vec&, bool) override; //v2 only
+  void set_comp_sort_flag(bool) override; // let comp_vec know it isn't sorted
+                                        //
   size_t num_comp(Jet::SRC /**/) override;
   void print_comp(std::ostream& /**/, bool /**/) override;
   std::vector<Jet::SRC> comp_src_vec() override;

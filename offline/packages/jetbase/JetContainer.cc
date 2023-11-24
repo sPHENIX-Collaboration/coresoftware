@@ -5,11 +5,13 @@ class Jet;
 
 // Dummy members for virtual classes to return in base implementation
 Jet* DummyJetV2;
-std::map<Jet::PROPERTY, unsigned int> DummyMap;
+std::map<Jet::PROPERTY, Jet::PROPERTY> DummyMap;
 std::vector<float> DummyFloatVec;
 TClonesArray DummyTClonesArray("Jet", 1);
 std::set<Jet::SRC> DummyJetContSourceSet;
 // N.B. this will seg fault if used... so don't use it!
+
+std::map<Jet::PROPERTY, Jet::PROPERTY /*really this is an index*/>& property_indices() { return DummyMap; }
 
 JetContainer::ConstSrcIter JetContainer::begin_src() const
 {

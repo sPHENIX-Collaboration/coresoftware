@@ -156,26 +156,40 @@ size_t Jetv2::num_comp(Jet::SRC iSRC)
 
 void Jetv2::insert_comp(SRC iSRC, unsigned int compid)
 {
+  _is_sorted = false;
   _comp_ids.push_back(std::make_pair(iSRC, compid));
 }
+void Jetv2::insert_comp(SRC iSRC, unsigned int compid, bool /*skip_flag*/)
+{ _comp_ids.push_back(std::make_pair(iSRC, compid)); }
 
-void Jetv2::CompareSRC::sort_comp_ids(Jetv2* jet)
+// same as above, but add whole vector
+void Jetv2::insert_comp(Jet::TYPE_comp_vec& added)
 {
-  std::sort(jet->_comp_ids.begin(), jet->_comp_ids.end(),
-            [](const std::pair<Jet::SRC, unsigned int>& a,
-               const std::pair<Jet::SRC, unsigned int>& b)
-            { 
-            if (a.first == b.first) return a.second < b.second;
-            else return a.first < b.first; });
+  _is_sorted = false;
+  _comp_ids.insert(_comp_ids.end(), added.begin(), added.end());
+}
+void Jetv2::insert_comp(Jet::TYPE_comp_vec& added, bool /*skip_nosort_flag_set*/)
+{
+  _comp_ids.insert(_comp_ids.end(), added.begin(), added.end());
+}
+
+void Jetv2::ensure_sorted() 
+{
+  if (!_is_sorted) {
+    std::sort(_comp_ids.begin(), _comp_ids.end(), CompareSRC());
+    _is_sorted = true;
+  }
 }
 
 Jetv2::ITER_comp_vec Jetv2::comp_begin(Jet::SRC iSRC)
 {
+  ensure_sorted();
   return std::lower_bound(_comp_ids.begin(), _comp_ids.end(), iSRC, CompareSRC());
 }
 
 Jetv2::ITER_comp_vec Jetv2::comp_end(Jet::SRC iSRC) 
 {
+  ensure_sorted();
   return std::upper_bound(_comp_ids.begin(), _comp_ids.end(), iSRC, CompareSRC());
 }
 
@@ -188,14 +202,14 @@ bool Jetv2::has_property(Jet::PROPERTY /*prop_id*/) const {
     return false;
 }
 
-float Jetv2::get_property(Jet::PROPERTY /*prop_id*/) const {
-    msg_dep_fn("get_property"); 
-    return NAN;
-}
+//float Jetv2::get_property(Jet::PROPERTY /*prop_id*/) const {
+//    msg_dep_fn("get_property"); 
+//    return NAN;
+//}
 
-void Jetv2::set_property(Jet::PROPERTY /**/, float /**/) {
-    msg_dep_fn("set_property"); 
-}
+//void Jetv2::set_property(Jet::PROPERTY /**/, float /**/) {
+//    msg_dep_fn("set_property"); 
+//}
 
 void Jetv2::print_property(std::ostream& /**/) const {
     msg_dep_fn("print_property"); 

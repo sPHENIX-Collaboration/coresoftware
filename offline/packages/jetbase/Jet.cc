@@ -9,7 +9,7 @@ Jet::typ_comp_ids DummyJetMap;
 std::vector<float> DummyJetPropVec;
 Jet::TYPE_comp_vec DummyJetCompVec;
 
-std::vector<float>& Jet::get_vec_properties()
+std::vector<float>& Jet::get_property_vec()
 {
   return DummyJetPropVec;
 }

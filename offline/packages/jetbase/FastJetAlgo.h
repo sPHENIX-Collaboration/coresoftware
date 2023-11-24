@@ -48,10 +48,10 @@ class FastJetAlgo : public JetAlgo
   bool m_first_cluster_call { true };
 
   // for convenience save indices of the zg, Rg, mu, and area for jets in the JetContainer
-  unsigned int m_zg_index   { UINT_MAX };
-  unsigned int m_Rg_index   { UINT_MAX };
-  unsigned int m_mu_index   { UINT_MAX };
-  unsigned int m_area_index { UINT_MAX };
+  Jet::PROPERTY m_zg_index   { Jet::PROPERTY::no_property };
+  Jet::PROPERTY m_Rg_index   { Jet::PROPERTY::no_property };
+  Jet::PROPERTY m_mu_index   { Jet::PROPERTY::no_property };
+  Jet::PROPERTY m_area_index { Jet::PROPERTY::no_property };
 
   // Internal processes
   std::vector<fastjet::PseudoJet> jets_to_pseudojets(std::vector<Jet*>& particles);

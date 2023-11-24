@@ -1327,7 +1327,7 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet::SRC src)
       return iter->second;
     }
   }
-
+  
   float energy = 0.0;
 
   // loop over all recojet constituents

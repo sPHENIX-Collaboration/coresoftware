@@ -89,31 +89,16 @@ public:
     // ----------------------------------------------------------------------------------------
 
     // Get and queary the map of indices of the vector<properties> in the jets
-    virtual std::map<Jet::PROPERTY, unsigned int> prop_indices_map() const { return {}; };
-    virtual std::vector<Jet::PROPERTY> vec_jet_properties() const { return {}; }; // same data from map, but in order as used
-    virtual void print_property_types(std::ostream& /*os*/) const {}; // print the order of properties in jet
+    virtual std::map<Jet::PROPERTY, Jet::PROPERTY /*really this is an index*/> property_indices() const { return {}; };
     virtual bool has_property(Jet::PROPERTY /*-*/) const { return false; }; 
-    virtual size_t n_properties() const { return UINT_MAX; }; // number of properties in the jet
-    virtual void print_missing_prop(Jet::PROPERTY/**/) const {}; // print a warning if the property is not in the jet
-  
-    virtual void print_jets(std::ostream& os=std::cout) { os<<""; return; }; // print the order of properties in jet
-
-    // Add properties to the jets. 
-    // If it is a new property(/ies) it will expand all jet prop vectors accordingly
+    virtual size_t size_properties() const { return UINT_MAX; };
     virtual size_t add_property(Jet::PROPERTY/**/) { return 0; } ; 
     virtual size_t add_property(std::set<Jet::PROPERTY> /**/) { return 0; }; 
+    virtual Jet::PROPERTY property_index(Jet::PROPERTY) { return static_cast<Jet::PROPERTY>(1000); }; // get the propery index
+    virtual void print_property_types(std::ostream& /*os*/) const {}; // print the order of properties in jet
 
-    // Get and set values of properties by index (always on current_jet)
-    virtual unsigned int find_prop_index (Jet::PROPERTY /*-*/) { return UINT_MAX; };
-    virtual float get_prop_by_index (unsigned int /*index*/) const { return NAN; };
-    virtual void  set_prop_by_index (unsigned int /*index*/, float /*value*/) {};
+    virtual void print_jets(std::ostream& os=std::cout) { os<<""; return; }; // print the order of properties in jet
 
-    // Get and set values of property(/ies) by selections (always on current_jet)
-    virtual void select_property(Jet::PROPERTY/**/) {}; // select this property for the current jet
-    virtual void select_property(std::vector<Jet::PROPERTY>/**/) {}; // order matters
-    virtual float get_selected_property(unsigned int=0/*selection index=0*/) { return FLT_MAX;};
-    virtual void  set_selected_property(float /*set-value*/, unsigned int=0/*=0*/) {};
-                                               
     // ---------------------------------------------------------------------------------------
     //  Add ability for: ```for (auto jet : jet_container->iter_jets()) { ... }```
     // ---------------------------------------------------------------------------------------
