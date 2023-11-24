@@ -146,11 +146,10 @@ size_t JetContainerv1::add_property(std::set<Jet::PROPERTY> props)
   bool added = false;
   for (auto prop : props) {
     auto [iter, is_new] = m_pindex.try_emplace(prop, static_cast<Jet::PROPERTY>(m_psize));
-    if (is_new)
-      if (is_new) {
-        ++m_psize;
-        added = true;
-      }
+    if (is_new) {
+      ++m_psize;
+      added = true;
+    }
   }
   if (added) {
     resize_jet_pvecs();
