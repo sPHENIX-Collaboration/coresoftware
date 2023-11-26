@@ -51,8 +51,8 @@ MbdSig::MbdSig(const int chnum, const int nsamp) :
   template_endtime{0},
   //template_min_good_amplitude{20.},
   //template_max_good_amplitude{4080},
-  template_min_xrange{0},
-  template_max_xrange{0},
+  //template_min_xrange{0},
+  //template_max_xrange{0},
   template_fcn{nullptr},
   verbose{0}
 {
