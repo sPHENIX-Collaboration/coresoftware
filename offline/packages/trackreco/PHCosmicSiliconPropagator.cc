@@ -104,7 +104,7 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
     std::vector<TrkrDefs::cluskey> silClusKeys;
     std::vector<Acts::Vector3> silClusPos;
 
-    unsigned int nSiClusters = TrackFitUtils::addSiliconClusters(fitparams, 100., _tgeometry, _cluster_map, silClusPos, silClusKeys);
+    unsigned int nSiClusters = TrackFitUtils::addSiliconClusters(fitparams, _dca_xy_cut, _tgeometry, _cluster_map, silClusPos, silClusKeys);
 
     if (nSiClusters > 0)
     {
