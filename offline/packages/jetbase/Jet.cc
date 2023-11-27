@@ -75,7 +75,7 @@ Jet::Iter Jet::lower_bound_comp(Jet::SRC /**/)
 Jet::Iter Jet::upper_bound_comp(Jet::SRC /**/)
 { return DummyJetMap.end(); }
 
-// structure to iterate over ther jets in a TClonesArray in the JetContainer
+// structure to iterate over the jets in a TClonesArray in the JetContainer
 Jet::IterJetTCA::IterJetTCA(TClonesArray* _tca, Jet*& _in_jet)
   : tca{_tca}
   , current_jet{_in_jet}

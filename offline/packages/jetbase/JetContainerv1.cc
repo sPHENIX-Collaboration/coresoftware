@@ -157,7 +157,7 @@ size_t JetContainerv1::add_property(std::set<Jet::PROPERTY> props)
   return m_psize;
 }
 
-// Get and set values of properties by index (always on current_jet)
+// get the index for a given property
 Jet::PROPERTY JetContainerv1::property_index(Jet::PROPERTY prop)
 {
   if (has_property(prop))
@@ -172,60 +172,6 @@ Jet::PROPERTY JetContainerv1::property_index(Jet::PROPERTY prop)
     return static_cast<Jet::PROPERTY>(1000);
   }
 }
-
-/* float JetContainerv1::get_prop_by_index(unsigned int index) const */
-/* { */
-/*   return m_current_jet->get_prop_by_index(index); */
-/* } */
-
-/* void JetContainerv1::set_prop_by_index(unsigned int index, float value) */
-/* { */
-/*   m_current_jet->set_prop_by_index(index, value); */
-/* } */
-
-// Get and set values of properties by selections (always on current_jet)
-/* void JetContainerv1::select_property(Jet::PROPERTY prop) */
-/* { */
-/*   m_sel_index_vec.resize(0);  // can't use the vector */
-/*   if (!has_property(prop)) */
-/*   { */
-/*     print_missing_prop(prop); */
-/*     std::cout << " Cannot select this property " << std::endl; */
-/*     return; */
-/*   } */
-/*   m_sel_index = m_pindex[prop]; */
-/* } */
-
-/* void JetContainerv1::select_property(std::vector<Jet::PROPERTY> vprop) */
-/* { */
-/*   int i = 0; */
-/*   m_sel_index_vec.resize(vprop.size()); */
-/*   for (auto& v : vprop) */
-/*   { */
-/*     if (!has_property(v)) */
-/*     { */
-/*       print_missing_prop(v); */
-/*       std::cout << " Fatal error: cannot select this property " << std::endl; */
-/*       assert(false); */
-/*     } */
-/*     m_sel_index_vec[i++] = m_pindex[v]; */
-/*   } */
-/*   m_sel_index = m_sel_index_vec[0]; */
-/* } */
-/* float JetContainerv1::get_selected_property(unsigned int index) */
-/* { */
-/*   if (index == 0) */
-/*     return m_current_jet->get_prop_by_index(m_sel_index); */
-/*   else */
-/*     return m_current_jet->get_prop_by_index(m_sel_index_vec[index]); */
-/* } */
-/* void JetContainerv1::set_selected_property(float value, unsigned int index) */
-/* { */
-/*   if (index == 0) */
-/*     m_current_jet->set_prop_by_index(m_sel_index, value); */
-/*   else */
-/*     m_current_jet->set_prop_by_index(m_sel_index_vec[index], value); */
-/* } */
 
 Jet::IterJetTCA JetContainerv1::begin()
 {
