@@ -115,7 +115,8 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
         auto clusglob = _tgeometry->getGlobalPosition(sickey, cluster);
         auto pca = TrackFitUtils::get_helix_pca(fitparams, clusglob);
         float dcaz = (pca - clusglob).z();
-        if (dcaz < _dca_z_cut)
+       
+        if (fabs(dcaz) < _dca_z_cut)
         {
           si_seed->insert_cluster_key(sickey);
         }
