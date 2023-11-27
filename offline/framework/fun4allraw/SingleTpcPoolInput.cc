@@ -345,6 +345,7 @@ void SingleTpcPoolInput::ConfigureStreamingInputManager()
   if (StreamingInputManager())
   {
     StreamingInputManager()->SetTpcBcoRange(m_BcoRange);
+    StreamingInputManager()->SetTpcNegativeBco(m_NegativeBco);
   }
   return;
 }

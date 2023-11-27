@@ -66,11 +66,11 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
 
     if (!m_overrideCalibName)
     {
-      m_calibName = m_detector + "_BadTowerMap";
+      m_calibName = "cemc_hotTowers_fracBadChi2";
     }
     if (!m_overrideFieldName)
     {
-      m_fieldname = "status";
+      m_fieldname = "fraction";
     }
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
@@ -89,11 +89,11 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
 
     if (!m_overrideCalibName)
     {
-      m_calibName = m_detector + "_BadTowerMap";
+      m_calibName ="ihcal_hotTowers_fracBadChi2";
     }
     if (!m_overrideFieldName)
     {
-      m_fieldname = "status";
+      m_fieldname = "fraction";
     }
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
@@ -112,11 +112,11 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
 
     if (!m_overrideCalibName)
     {
-      m_calibName = m_detector + "_BadTowerMap";
+      m_calibName = "ohcal_hotTowers_fracBadChi2";
     }
     if (!m_overrideFieldName)
     {
-      m_fieldname = "status";
+      m_fieldname = "fraction";
     }
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
@@ -208,19 +208,20 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
 int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
 {
   unsigned int ntowers = m_raw_towers->size();
-  int mask_status = 0;
+  float fraction_badChi2 = 0;
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
+    unsigned int key = m_raw_towers->encode_key(channel);
     if (m_doHot)
     {
-      mask_status = m_cdbttree->GetIntValue(channel, m_fieldname);
+      fraction_badChi2 = m_cdbttree->GetFloatValue(key, m_fieldname);
     }
     float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
-    if (mask_status > 1 && m_doHot)
+    if (fraction_badChi2 > fraction_badChi2_threshold && m_doHot)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
-    if (chi2 > 3e3)
+    if (chi2 > badChi2_treshold)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);
     }

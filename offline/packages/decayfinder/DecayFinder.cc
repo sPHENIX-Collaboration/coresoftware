@@ -661,6 +661,11 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
           {
             actualIntermediateDecayProducts.push_back((*greatgrandchildren)->pdg_id());
             HepMC::FourVector myFourVector = (*greatgrandchildren)->momentum();
+
+            HepMC::GenVertex *thisVtx = (*greatgrandchildren)->production_vertex();
+            double vtxPos[3] = {thisVtx->point3d().x(), thisVtx->point3d().y(), thisVtx->point3d().z()};
+            if (m_recalcualteEtaRange) recalculateEta(myFourVector.py(), vtxPos);
+   
             if (myFourVector.perp() < m_pt_req) trackFailedPT = true;
             if (!isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req)) trackFailedETA = true;
           }
@@ -674,6 +679,11 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
       {
         actualIntermediateDecayProducts.push_back((*grandchildren)->pdg_id());
         HepMC::FourVector myFourVector = (*grandchildren)->momentum();
+
+        HepMC::GenVertex *thisVtx = (*grandchildren)->production_vertex();
+        double vtxPos[3] = {thisVtx->point3d().x(), thisVtx->point3d().y(), thisVtx->point3d().z()};
+        if (m_recalcualteEtaRange) recalculateEta(myFourVector.py(), vtxPos);
+
         if (myFourVector.perp() < m_pt_req) trackFailedPT = true;
         if (!isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req)) trackFailedETA = true;
       }
@@ -688,6 +698,11 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
   {
     if (Verbosity() >= VERBOSITY_MAX) std::cout << "This is a final state track" << std::endl;
     HepMC::FourVector myFourVector = particle->momentum();
+
+    HepMC::GenVertex *thisVtx = particle->production_vertex();
+    double vtxPos[3] = {thisVtx->point3d().x(), thisVtx->point3d().y(), thisVtx->point3d().z()};
+    if (m_recalcualteEtaRange) recalculateEta(myFourVector.py(), vtxPos);
+
     if (myFourVector.perp() < m_pt_req) trackFailedPT = true;
     if (!isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req)) trackFailedETA = true;
     acceptParticle = true;
@@ -750,6 +765,10 @@ bool DecayFinder::checkIfCorrectGeant4Particle(PHG4Particle *particle, bool& has
     double pt = std::sqrt(std::pow(px, 2) + std::pow(py, 2));
     double p = std::sqrt(std::pow(px, 2) + std::pow(py, 2) + std::pow(pz, 2));
     double eta = 0.5*std::log((p + pz)/(p - pz));
+
+    PHG4VtxPoint *thisVtx = m_truthinfo->GetVtx(particle->get_vtx_id());
+    double vtxPos[3] = {thisVtx->get_x(), thisVtx->get_y(), thisVtx->get_z()};
+    if (m_recalcualteEtaRange) recalculateEta(py, vtxPos);
 
     if (pt < m_pt_req) trackFailedPT = true;
     if (!isInRange(m_eta_low_req, eta, m_eta_high_req)) trackFailedETA = true;
@@ -823,7 +842,7 @@ int DecayFinder::deleteElement(int arr[], int n, int x)
   return n;
 }
 
-bool DecayFinder::findParticle(const std::string particle)
+bool DecayFinder::findParticle(const std::string &particle)
 {
   bool particleFound = true;
   if (!TDatabasePDG::Instance()->GetParticle(particle.c_str()))
@@ -845,7 +864,7 @@ void DecayFinder::multiplyVectorByScalarAndSort(std::vector<int>& v, int k)
   std::sort(v.begin(), v.end());
 }
 
-int DecayFinder::get_pdgcode(const std::string name)
+int DecayFinder::get_pdgcode(const std::string &name)
 {
   if (findParticle(name))
     return TDatabasePDG::Instance()->GetParticle(name.c_str())->PdgCode();
@@ -853,7 +872,7 @@ int DecayFinder::get_pdgcode(const std::string name)
     return 0;
 }
 
-int DecayFinder::get_charge(const std::string name)
+int DecayFinder::get_charge(const std::string &name)
 {
   if (findParticle(name))
     return TDatabasePDG::Instance()->GetParticle(name.c_str())->Charge()/3;
@@ -864,6 +883,36 @@ int DecayFinder::get_charge(const std::string name)
 bool DecayFinder::isInRange(float min, float value, float max)
 {
   return min <= value && value <= max;
+}
+
+void DecayFinder::calculateEffectiveTPCradius(double vertex[3], double &effective_top_r, double &effective_bottom_r)
+{
+  double r_sq = std::pow(m_tpc_r, 2);
+  double x_sq = std::pow(vertex[0], 2);
+
+  effective_top_r = std::sqrt(r_sq - x_sq) - vertex[1];
+  effective_bottom_r = std::sqrt(r_sq - x_sq) + vertex[1];
+}
+
+void DecayFinder::recalculateEta(double py, double vertex[3])
+{
+  calculateEffectiveTPCradius(vertex, m_effective_top_tpc_r, m_effective_bottom_tpc_r);
+
+  double z_north = m_tpc_z - vertex[2]; //Distance between north end of TPC and vertex z position 
+  double z_south = m_tpc_z + vertex[2]; //Same but for south of TPC
+
+  double top_north_theta = atan(m_effective_top_tpc_r/z_north);
+  double bottom_north_theta = atan(m_effective_bottom_tpc_r/z_north);
+  double top_south_theta = atan(m_effective_top_tpc_r/z_south);
+  double bottom_south_theta = atan(m_effective_bottom_tpc_r/z_south);
+
+  double top_north_eta = -1*std::log(tan(top_north_theta/2));
+  double bottom_north_eta = -1*std::log(tan(bottom_north_theta/2));
+  double top_south_eta = std::log(tan(top_south_theta/2));
+  double bottom_south_eta = std::log(tan(bottom_south_theta/2));
+
+  m_eta_high_req = py < 0 ? bottom_north_eta : top_north_eta;
+  m_eta_low_req = py < 0 ? bottom_south_eta : top_south_eta;
 }
 
 int DecayFinder::createDecayNode(PHCompositeNode* topNode)
@@ -913,7 +962,7 @@ int DecayFinder::createDecayNode(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void DecayFinder::fillDecayNode(PHCompositeNode* topNode, Decay decay)
+void DecayFinder::fillDecayNode(PHCompositeNode* topNode, Decay &decay)
 {
   m_decayMap = findNode::getClass<DecayFinderContainer_v1>(topNode, m_nodeName.c_str());
   m_decayMap->insert(decay);

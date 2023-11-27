@@ -21,6 +21,7 @@ class MbdGeom : public PHObject
     virtual float get_r(const unsigned int /*pmtch*/) const {return NAN;};
     virtual float get_phi(const unsigned int /*pmtch*/) const {return NAN;};
     virtual int   get_arm(const unsigned int /*pmtch*/) const {return -1;};
+    virtual int   get_feech(const unsigned int /*pmtch*/) const {return -1;};
     virtual void  set_xyz(const unsigned int /*pmtch*/, const float /*x*/, const float /*y*/, const float /*z*/) {}
 
     // methods when accessing raw fee channels

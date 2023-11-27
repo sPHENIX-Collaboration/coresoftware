@@ -717,6 +717,10 @@ int Fun4AllStreamingInputManager::FillMicromegas()
 
     m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
     m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
+    if (m_MicromegasRawHitMap.empty())
+    {
+      break;
+    }
   }
 
   return 0;
@@ -749,7 +753,7 @@ int Fun4AllStreamingInputManager::FillTpc()
   }
   // m_TpcRawHitMap.empty() does not need to be checked here, FillTpcPool returns non zero
   // if this map is empty which is handled above
-  while (m_TpcRawHitMap.begin()->first < m_RefBCO)
+  while (m_TpcRawHitMap.begin()->first + m_tpc_negative_bco < m_RefBCO)
   {
     for (auto iter : m_TpcInputVector)
     {
@@ -764,7 +768,7 @@ int Fun4AllStreamingInputManager::FillTpc()
     }
   }
   // again m_TpcRawHitMap.empty() is handled by return of FillTpcPool()
-  while (m_TpcRawHitMap.begin()->first <= select_crossings)
+  while (m_TpcRawHitMap.begin()->first + m_tpc_negative_bco <= select_crossings)
   {
     for (auto tpchititer : m_TpcRawHitMap.begin()->second.TpcRawHitVector)
     {
@@ -780,6 +784,10 @@ int Fun4AllStreamingInputManager::FillTpc()
     }
     m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
     m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
+    if (m_TpcRawHitMap.empty())
+    {
+      break;
+    }
   }
   // std::cout << "size  m_TpcRawHitMap: " <<  m_TpcRawHitMap.size()
   // 	    << std::endl;
@@ -804,6 +812,11 @@ void Fun4AllStreamingInputManager::SetMvtxNegativeBco(const unsigned int i)
 void Fun4AllStreamingInputManager::SetTpcBcoRange(const unsigned int i)
 {
   m_tpc_bco_range = std::max(i, m_tpc_bco_range);
+}
+
+void Fun4AllStreamingInputManager::SetTpcNegativeBco(const unsigned int i)
+{
+  m_tpc_negative_bco = std::max(i, m_tpc_negative_bco);
 }
 
 void Fun4AllStreamingInputManager::SetMvtxBcoRange(const unsigned int i)

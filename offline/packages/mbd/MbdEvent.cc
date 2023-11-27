@@ -30,6 +30,16 @@ MbdEvent::MbdEvent()
   // set default values
 
   int nsamples = 31;  /// NEED TO MAKE THIS FLEXIBLE
+  recoConsts *rc = recoConsts::instance();
+  if ( rc->FlagExist("MBD_TEMPLATEFIT") )
+  {
+    do_templatefit = rc->get_IntFlag("MBD_TEMPLATEFIT");
+  }
+  else
+  {
+    do_templatefit = 0;
+  }
+
   for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
   {
     // std::cout << PHWHERE << "Creating _mbdsig " << ifeech << std::endl;
@@ -72,16 +82,16 @@ MbdEvent::MbdEvent()
   {
     // Online calibrations
     std::string gainfile = std::string(bbccaldir) + "/" + "bbc_mip.calib";
-    Read_Charge_Calib(gainfile.c_str());
+    Read_Charge_Calib( gainfile );
 
     std::string tq_t0_offsetfile = std::string(bbccaldir) + "/" + "bbc_tq_t0.calib";
-    Read_TQ_T0_Offsets(tq_t0_offsetfile.c_str());
+    Read_TQ_T0_Offsets( tq_t0_offsetfile );
 
     std::string tq_clk_offsetfile = std::string(bbccaldir) + "/" + "bbc_tq_clk.calib";
-    Read_TQ_CLK_Offsets(tq_clk_offsetfile.c_str());
+    Read_TQ_CLK_Offsets( tq_clk_offsetfile );
 
     std::string tt_clk_offsetfile = std::string(bbccaldir) + "/" + "bbc_tt_clk.calib";
-    Read_TT_CLK_Offsets(tt_clk_offsetfile.c_str());
+    Read_TT_CLK_Offsets( tt_clk_offsetfile );
 
     /*
     std::string mondata_fname = std::string(bbccaldir) + "/" + "BbcMonData.dat";
@@ -138,6 +148,20 @@ int MbdEvent::InitRun()
   }
   _mbdcal = new MbdCalib();
   _mbdcal->Download_All();
+
+  // Read in template if specified
+  if ( do_templatefit )
+  {
+    for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
+    {
+      if ( _mbdgeom->get_type(ifeech) == 0 ) continue;
+      //std::cout << PHWHERE << "Reading template " << ifeech << std::endl;
+      //std::cout << "SIZES0 " << _mbdcal->get_shape(ifeech).size() << std::endl;
+      _mbdsig[ifeech].SetTemplate( _mbdcal->get_shape(ifeech), _mbdcal->get_sherr(ifeech) );
+      _mbdsig[ifeech].SetMinMaxFitTime( _mbdcal->get_sampmax(ifeech)-2-3, _mbdcal->get_sampmax(ifeech)-2+3 );
+      //_mbdsig[ifeech].SetMinMaxFitTime( 0, 31 );
+    }
+  }
 
   return 0;
 }
@@ -278,12 +302,22 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     // Double_t threshold = 4.0*sig->GetPed0RMS();
 
     // std::cout << "getspline " << ifeech << std::endl;
-    _mbdsig[ifeech].GetSplineAmpl();
-    Double_t threshold = 0.5;
-    m_pmttq[pmtch] = _mbdsig[ifeech].dCFD(threshold);
-    m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl();
+    if ( do_templatefit )
+    {
+      _mbdsig[ifeech].FitTemplate();
+ 
+      m_pmttq[pmtch] = _mbdsig[ifeech].GetTime();
+      m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl();
+    }
+    else
+    {
+      _mbdsig[ifeech].GetSplineAmpl();
+      Double_t threshold = 0.5;
+      m_pmttq[pmtch] = _mbdsig[ifeech].dCFD(threshold);
+      m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl();
+    }
 
-    if (m_ampl[ifeech] < 24)
+    if ( m_ampl[ifeech] < _mbdcal->get_qgain(pmtch)*0.25 )
     {
       // m_t0[ifeech] = -9999.;
       m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
@@ -619,3 +653,4 @@ int MbdEvent::Read_TT_CLK_Offsets(const std::string &t0cal_fname)
 
   return 1;
 }
+
