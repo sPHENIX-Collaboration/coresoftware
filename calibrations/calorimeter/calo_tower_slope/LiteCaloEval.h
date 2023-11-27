@@ -22,6 +22,11 @@ TGraph *LCE_grff = nullptr;
 class LiteCaloEval : public SubsysReco
 {
  public:
+
+
+  int m_myminbin = -1;
+  int m_mymaxbin = -3;
+
   enum Calo
   {
     NONE = 0,
@@ -90,6 +95,13 @@ class LiteCaloEval : public SubsysReco
   float getFitMax();
   float getFitMin();
 
+
+  void setInputTowerNodeName(const char * inpNodenm)
+  {
+    _inputnodename = inpNodenm;
+  }
+
+
  private:
   TFile *cal_output = nullptr;
 
@@ -116,6 +128,8 @@ class LiteCaloEval : public SubsysReco
   float fitmax = 0.;
   std::string _caloname;
   std::string _filename;
+  std::string _inputnodename;
+
 
   int mode = 0;
 

@@ -51,8 +51,8 @@ MbdSig::MbdSig(const int chnum, const int nsamp) :
   template_endtime{0},
   //template_min_good_amplitude{20.},
   //template_max_good_amplitude{4080},
-  template_min_xrange{0},
-  template_max_xrange{0},
+  //template_min_xrange{0},
+  //template_max_xrange{0},
   template_fcn{nullptr},
   verbose{0}
 {
@@ -87,7 +87,8 @@ void MbdSig::Init()
   hPed0 = new TH1F(name,name,16384,-0.5,16383.5);
   //hPed0 = new TH1F(name,name,10000,1,0); // automatically determine the range
 
-  SetTemplateSize(120,2048,-2,9.9);
+  SetTemplateSize(300,300,-10.,20.);
+  //SetTemplateSize(300,300,0.,15.);
 }
 
 void  MbdSig::SetTemplateSize(const Int_t nptsx, const Int_t nptsy, const Double_t begt, const Double_t endt)
@@ -121,6 +122,12 @@ void  MbdSig::SetTemplateSize(const Int_t nptsx, const Int_t nptsy, const Double
   */
   //h2Template->cd( gDirectory );
 
+}
+
+void  MbdSig::SetMinMaxFitTime(const Double_t mintime, const Double_t maxtime)
+{
+  fit_min_time = mintime;
+  fit_max_time = maxtime;
 }
 
 MbdSig::~MbdSig()
@@ -710,6 +717,24 @@ Double_t MbdSig::TemplateFcn(const Double_t *x, const Double_t *par)
     f = par[0]*(y0+((y1-y0)/(x1-x0))*(xx-x0));  // linear interpolation
   }
 
+  // reject points with very bad rms in shape
+  if ( template_yrms[ilow]>=1.0 || template_yrms[ihigh]>=1.0 )
+  {
+    TF1::RejectPoint();
+    //return f;
+  }
+
+  // Reject points where ADC saturates
+  int samp_point = static_cast<int>( x[0] );
+  Double_t temp_x, temp_y;
+  gRawPulse->GetPoint( samp_point, temp_x, temp_y );
+  if ( temp_y > 16370 )
+  {
+    //cout << "XXXX " << ch << "\t" << samp_point << "\t" << temp_x << "\t" << temp_y << std::endl;
+    TF1::RejectPoint();
+  }
+
+  //verbose = 0;
   return f;
 }
 
@@ -729,12 +754,17 @@ int MbdSig::FitTemplate()
 
   // Get x-position of maximum
   Double_t x_at_max, ymax;
-  LocMax(x_at_max, ymax);
+  //LocMax(x_at_max, ymax);
+
+  Int_t xsamp = (fit_min_time + fit_max_time)/2 + 2;  // use max samp
+  gSubPulse->GetPoint( xsamp, x_at_max, ymax );
 
   template_fcn->SetParameters(ymax, x_at_max);
+  //template_fcn->SetParLimits(1, fit_min_time, fit_max_time);
+  //template_fcn->SetParLimits(1, 3, 15);
+  //template_fcn->SetRange(template_min_xrange,template_max_xrange);
+  template_fcn->SetRange(0,nsamples);
 
-  //template_fcn->SetParLimits(1,-5.,4.);
-  template_fcn->SetRange(template_min_xrange,template_max_xrange);
   if ( verbose==0 ) gSubPulse->Fit(template_fcn,"RNQ");
   else              gSubPulse->Fit(template_fcn,"R");
 
@@ -744,80 +774,50 @@ int MbdSig::FitTemplate()
 
   if ( verbose>0 && fabs(f_ampl) > 0. )
   {
-    cout << "FitTemplate " << f_ampl << "\t" << f_time << endl;
+    cout << "FitTemplate " << ch << "\t" << f_ampl << "\t" << f_time << endl;
     gSubPulse->Draw("ap");
     template_fcn->SetLineColor(4);
     template_fcn->Draw("same");
     PadUpdate();
   }
 
+  //verbose = 0;
   return 1;
 }
 
-int MbdSig::ReadTemplate(ifstream& shapefile, ifstream& sherrfile)
+int MbdSig::SetTemplate(const std::vector<Double_t>& shape, const std::vector<Double_t>& sherr)
 {
-  //verbose = 100;
-  Int_t temp_ch = -9999;
-  Int_t temp_nsamples;
-  Double_t temp_begintime;
-  Double_t temp_endtime;
+  template_y = shape;
+  template_yrms = sherr;
 
-  template_y.clear();
-  template_yrms.clear();
-
-  // Template 
-  while ( shapefile >> temp_ch >> temp_nsamples >> temp_begintime >> temp_endtime )
+  if ( verbose )
   {
-    if ( verbose ) cout << "shape " << temp_ch << "\t" <<  temp_nsamples << "\t" <<  temp_begintime << "\t" <<  temp_endtime << endl;
-    if ( temp_ch != ch )
+    std::cout << "SHAPE " << ch << "\t" << template_y.size() << std::endl;
+    for ( size_t i=0; i<template_y.size(); i++)
     {
-      cerr << "ERROR in shape: ch is " << temp_ch << "but should be " << ch << endl;
-      return -1;
+      if ( i%10 == 0 ) std::cout << i << ":\t" << std::endl;
+      std::cout << " " << template_y[i];
     }
-
-    Double_t temp_val;
-    for (int isamp=0; isamp<temp_nsamples; isamp++)
-    {
-      shapefile >> temp_val;
-      template_y.push_back( temp_val );
-      if ( verbose )
-      {
-        cout << template_y[isamp] << " ";
-        if ( isamp%10==9 ) cout << endl;
-      }
-    }
-    if ( verbose ) cout << endl;
-    break;
+    std::cout << std::endl;
   }
 
-  // Now get the errors
-  while ( sherrfile >> temp_ch >> temp_nsamples >> temp_begintime >> temp_endtime )
+  if ( template_fcn == nullptr )
   {
-    if ( verbose ) cout << "sherr " << temp_ch << "\t" <<  temp_nsamples << "\t" <<  temp_begintime << "\t" <<  temp_endtime << endl;
-    if ( temp_ch != ch )
-    {
-      cerr << "ERROR in sherr: ch is " << temp_ch << " but should be " << ch << endl;
-      return -1;
-    }
+    TString name = "template_fcn"; name += ch;
+    //template_fcn = new TF1(name,this,&MbdSig::TemplateFcn,template_min_xrange,template_max_xrange,2,"MbdSig","TemplateFcn");
+    //template_fcn = new TF1(name,this,&MbdSig::TemplateFcn,-10,20,2,"MbdSig","TemplateFcn");
+    template_fcn = new TF1(name,this,&MbdSig::TemplateFcn,0,nsamples,2,"MbdSig","TemplateFcn");
+    template_fcn->SetParameters(1,10);
+    SetTemplateSize(300,300,-10.,20.);
 
-    Double_t temp_val;
-    for (int isamp=0; isamp<temp_nsamples; isamp++)
+    if ( verbose )
     {
-      sherrfile >> temp_val;
-      template_yrms.push_back( temp_val );
-      if ( verbose )
-      {
-        cout << template_yrms[isamp] << " ";
-        if ( isamp%10==9 ) cout << endl;
-      }
+      std::cout << "SHAPE " << ch << std::endl;
+      template_fcn->Draw("acp");
+      gPad->Modified();
+      gPad->Update();
     }
-    if ( verbose ) cout << endl;
-    break;
   }
-
-  TString name = "template_fcn"; name += ch;
-  template_fcn = new TF1(name,this,&MbdSig::TemplateFcn,0,nsamples,2,"MbdSig","TemplateFcn");
-  template_fcn->SetParameters(1,8);
 
   return 1;
 }
