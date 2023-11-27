@@ -98,14 +98,14 @@ class Fun4AllOutputManager : public Fun4AllBase
   virtual void SetEventsWritten(const unsigned int i) { m_NEvents = i; }
   //! get output file name
   virtual std::string OutFileName() const { return m_OutFileName; }
-  void OutFileName(const std::string &name) {m_OutFileName = name;}
-  void SetClosingScript(const std::string &script) {m_RunAfterClosingScript = script;}
-  void SetClosingScriptArgs(const std::string &args) {m_ClosingArgs = args;}
+  void OutFileName(const std::string &name) { m_OutFileName = name; }
+  void SetClosingScript(const std::string &script) { m_RunAfterClosingScript = script; }
+  void SetClosingScriptArgs(const std::string &args) { m_ClosingArgs = args; }
   int RunAfterClosing();
-  void UseFileRule() {m_UseFileRuleFlag = true;}
-  bool ApplyFileRule() const {return m_UseFileRuleFlag;}
-  void SetNEvents(const unsigned int nevt) {m_MaxEvents = nevt;}
-  unsigned int GetNEvents() const {return m_MaxEvents;}
+  void UseFileRule() { m_UseFileRuleFlag = true; }
+  bool ApplyFileRule() const { return m_UseFileRuleFlag; }
+  void SetNEvents(const unsigned int nevt) { m_MaxEvents = nevt; }
+  unsigned int GetNEvents() const { return m_MaxEvents; }
 
  protected:
   /*!
@@ -116,15 +116,14 @@ class Fun4AllOutputManager : public Fun4AllBase
   Fun4AllOutputManager(const std::string &myname, const std::string &outfname);
 
  private:
-
   //! add file rule to filename (runnumber-segment)
-  bool m_UseFileRuleFlag {false};
+  bool m_UseFileRuleFlag{false};
 
   //! Number of Events
-  unsigned int m_NEvents {0};
+  unsigned int m_NEvents{0};
 
   //! Number of Events to write before roll over
-  unsigned int m_MaxEvents {std::numeric_limits<unsigned int>::max()};
+  unsigned int m_MaxEvents{std::numeric_limits<unsigned int>::max()};
 
   //! Script to run after closing of file
   std::string m_RunAfterClosingScript;
