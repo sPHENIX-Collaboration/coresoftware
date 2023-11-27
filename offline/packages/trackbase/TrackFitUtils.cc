@@ -238,29 +238,28 @@ unsigned int TrackFitUtils::addSiliconClusters(std::vector<float>& fitpars,
   std::vector<TrkrDefs::cluskey> best_layer_cluskey;
   best_layer_cluskey.assign(7, 0);
 
-  for(const auto& hitsetkey:_cluster_map->getHitSetKeys())
+  for(const auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId})
+{
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys(det))
     {
       auto range = _cluster_map->getClusters(hitsetkey);
       for( auto clusIter = range.first; clusIter != range.second; ++clusIter )
 	{
 	  TrkrDefs::cluskey cluskey = clusIter->first;
 	  unsigned int layer = TrkrDefs::getLayer(cluskey);
-	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
-	  
-	  if(trkrid != TrkrDefs::mvtxId && trkrid != TrkrDefs::inttId)  continue;
-	  
+	
+	
 	  TrkrCluster* cluster = clusIter->second;
 	  auto global = _tGeometry->getGlobalPosition(cluskey, cluster);
 
 	  Acts::Vector3 pca = get_helix_pca(fitpars, global);
 	  float dca = (pca - global).norm();
-	  if(trkrid == TrkrDefs::inttId || trkrid == TrkrDefs::mvtxId)
-	    {
-	      Acts::Vector2 global_xy(global(0), global(1));
-	      Acts::Vector2 pca_xy(pca(0), pca(1));
-	      Acts::Vector2 pca_xy_residual = pca_xy - global_xy;
-	      dca = pca_xy_residual.norm();
-	    }
+	  
+	  Acts::Vector2 global_xy(global(0), global(1));
+	  Acts::Vector2 pca_xy(pca(0), pca(1));
+	  Acts::Vector2 pca_xy_residual = pca_xy - global_xy;
+	  dca = pca_xy_residual.norm();
+	    
 
 	  if(dca < best_layer_dca[layer])
 	    {
@@ -269,19 +268,18 @@ unsigned int TrackFitUtils::addSiliconClusters(std::vector<float>& fitpars,
 	    }
 	}  // end cluster iteration
     } // end hitsetkey iteration
-
+}
   for(unsigned int layer = 0; layer < 7; ++layer)
     {
       if(best_layer_dca[layer] < dca_cut)
 	{
-	  if(best_layer_cluskey[layer] != 0)
-          {
+	 
             cluskey_vec.push_back(best_layer_cluskey[layer]);
 	    auto clus =  _cluster_map->findCluster(best_layer_cluskey[layer]);
 	    auto global = _tGeometry->getGlobalPosition(best_layer_cluskey[layer], clus);
 	    global_vec.push_back(global);
 	    nsilicon++;
-          }
+          
 	}
     }
 
