@@ -1,5 +1,7 @@
 #include "Fun4AllOutputManager.h"
 
+#include <phool/phool.h>
+
 #include <TSystem.h>
 
 #include <iostream>
