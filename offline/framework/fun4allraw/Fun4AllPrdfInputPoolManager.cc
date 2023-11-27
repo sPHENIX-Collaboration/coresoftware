@@ -75,7 +75,8 @@ int Fun4AllPrdfInputPoolManager::run(const int /*nevents*/)
       iter->FillPool(m_InitialPoolDepth);
       m_RunNumber = iter->RunNumber();
     }
-    CreateBclkOffsets();
+
+   CreateBclkOffsets();
     m_StartUpFlag = false;
   }
   bool event_ok = false;
@@ -373,6 +374,7 @@ SinglePrdfInput *Fun4AllPrdfInputPoolManager::AddPrdfInputFile(const std::string
 {
   SinglePrdfInput *prdfin = new SinglePrdfInput("PRDFIN_" + std::to_string(m_PrdfInputVector.size()), this);
   prdfin->AddFile(filenam);
+  prdfin->Verbosity(Verbosity());
   m_PrdfInputVector.push_back(prdfin);
   return m_PrdfInputVector.back();
 }
