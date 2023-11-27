@@ -18,6 +18,7 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -L$(MYINSTALL)/lib64 \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
@@ -42,6 +43,7 @@ pkginclude_HEADERS = \
   PHCASeeding.h \
   PHCosmicsTrkFitter.h \
   PHCosmicSeedCombiner.h \
+  PHCosmicSiliconPropagator.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHGhostRejection.h \
@@ -121,6 +123,7 @@ libtrack_reco_la_SOURCES = \
   PH3DVertexing.cc \
   PHCASeeding.cc \
   PHCosmicSeedCombiner.cc \
+  PHCosmicSiliconPropagator.cc \
   PHGenFitTrackProjection.cc \
   PHGenFitTrkFitter.cc \
   PHGhostRejection.cc \
