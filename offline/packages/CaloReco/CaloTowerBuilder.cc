@@ -110,12 +110,52 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+int CaloTowerBuilder::process_sim()
+{
+  std::vector<std::vector<float>> waveforms;
+
+  for (int ich = 0; ich < (int) m_CalowaveformContainer->size(); ich++)
+  {
+    TowerInfo *towerinfo = m_CalowaveformContainer->get_tower_at_channel(ich);
+    std::vector<float> waveform;
+    waveform.reserve(m_nsamples);
+    for (int samp = 0; samp < m_nsamples; samp++)
+    {
+      waveform.push_back(towerinfo->get_waveform_value(samp));
+    }
+    waveforms.push_back(waveform);
+    waveform.clear();
+  }
+
+  std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
+  int n_channels = processed_waveforms.size();
+  for (int i = 0; i < n_channels; i++)
+  {
+    TowerInfo *towerinfo = m_CaloInfoContainer->get_tower_at_channel(i);
+    towerinfo->set_time(processed_waveforms.at(i).at(1));
+    towerinfo->set_energy(processed_waveforms.at(i).at(0));
+    towerinfo->set_time_float(processed_waveforms.at(i).at(1));
+    towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
+    towerinfo->set_chi2(processed_waveforms.at(i).at(3));
+    int n_samples = waveforms.at(i).size();
+    if (n_samples == m_nzerosuppsamples) towerinfo->set_isNotInstr(true);
+    for (int j = 0; j < n_samples; j++)
+    {
+      towerinfo->set_waveform_value(j, waveforms.at(i).at(j));
+    }
+  }
+  waveforms.clear();
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
 //____________________________________________________________________________..
 int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
 {
   if (!m_isdata)
   {
-    return Fun4AllReturnCodes::EVENT_OK;
+    return process_sim();
   }
   std::vector<std::vector<float>> waveforms;
   // if we are going from prdf
@@ -255,6 +295,18 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     dstNode = new PHCompositeNode("DST");
     topNode->addNode(dstNode);
   }
+  if (!m_isdata)
+  {
+    std::string waveformNodeName = m_inputNodePrefix + m_detector;
+    m_CalowaveformContainer = findNode::getClass<TowerInfoContainer>(topNode, waveformNodeName);
+    if (!m_CalowaveformContainer)
+    {
+      std::cout << PHWHERE << "simulation waveform container " << waveformNodeName << " not found" << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
+  }
+
   // towers
   PHNodeIterator nodeItr(dstNode);
   PHCompositeNode *DetNode;
