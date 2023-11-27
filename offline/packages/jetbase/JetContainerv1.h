@@ -22,10 +22,9 @@ public:
     size_t size()  const override { return m_njets; };
 
     // adding/access jets
-    Jet* current_jet() override { return m_current_jet; }; // points to most recently accessed jet
     Jet* add_jet()                   override; // Add a new jet to the TClonesArray and return the pointer
-    Jet* get_jet(unsigned int index) override; // Get get at location. Update current_jet. If not there, then generate it
-    Jet* get_UncheckedAt(unsigned int index) override; // Get get at location. Update current_jet. No safety checks
+    Jet* get_jet(unsigned int index) override; // Get get at location. 
+    Jet* get_UncheckedAt(unsigned int index) override; // Get get at location.
                                                 
     // convenience shortcuts of get_{jet,UncheckedAt}
     inline Jet* operator()(int index) override { return get_jet(index); }; // synonym for get_jet()
@@ -57,8 +56,6 @@ public:
     //     // jet will increment as Jet* through all jets
     //     ... }
     // ```
-    // In the loop, current_jet in JetContainer will be updated, too. So, you can reference 
-    // values like get_property.
     Jet::IterJetTCA begin() override;
     Jet::IterJetTCA end()   override;
     // ---------------------------------------------------------------------------------------
@@ -100,8 +97,6 @@ private:
     // properties contained in vectors of all jets
     std::map<Jet::PROPERTY, Jet::PROPERTY /*really index for vectors in jets*/> m_pindex {}; // indices of properties in each jet property vector
     size_t m_psize {0}; // size of p_index and p_vec
-
-    Jet* m_current_jet {nullptr};
 
     void resize_jet_pvecs();
 

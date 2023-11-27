@@ -25,8 +25,6 @@ JetContainerv1::JetContainerv1(const JetContainer& rhs)
   , m_RhoMedian{rhs.get_rho_median()}
 {
   m_clones = rhs.clone_data();
-  m_current_jet = nullptr;
-  if (m_clones->GetEntriesFast() > 0) m_current_jet = (Jet*) m_clones->UncheckedAt(0);
 
   for (auto src = rhs.begin_src(); src != rhs.end_src(); ++src)
   {
@@ -46,23 +44,21 @@ void JetContainerv1::Reset()
 {
   m_clones->Clear("C");
   m_njets = 0;
-  m_current_jet = nullptr;
   m_RhoMedian = NAN;
 }
 
 Jet* JetContainerv1::add_jet()
 {
-  m_current_jet = (Jet*) m_clones->ConstructedAt(m_njets++, "C");
-  m_current_jet->resize_properties(m_psize);
-  return m_current_jet;
+  auto jet = (Jet*) m_clones->ConstructedAt(m_njets++, "C");
+  jet->resize_properties(m_psize);
+  return jet;
 }
 
 Jet* JetContainerv1::get_jet(unsigned int ijet)
 {
   if (ijet < m_njets)
   {
-    m_current_jet = (Jet*) m_clones->At(ijet);
-    return m_current_jet;
+    return (Jet*) m_clones->At(ijet);
   }
   else
   {
@@ -72,8 +68,7 @@ Jet* JetContainerv1::get_jet(unsigned int ijet)
 
 Jet* JetContainerv1::get_UncheckedAt(unsigned int index)
 {
-  m_current_jet = (Jet*) m_clones->UncheckedAt(index);
-  return m_current_jet;
+  return (Jet*) m_clones->UncheckedAt(index);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -113,21 +108,6 @@ void JetContainerv1::print_property_types(std::ostream& os) const
   }
   return;
 }
-
-/* bool JetContainerv1::has_property(Jet::PROPERTY prop) const */
-/* { */
-/*   if (m_pindex.find(prop) == m_pindex.end()) */
-/*   { */
-/*     return false; */
-/*   } */
-/*   return true; */
-/* } */
-
-/* void JetContainerv1::print_missing_prop(Jet::PROPERTY prop) const */
-/* { */
-/*   std::cout << "JetContainerv1::find_prop_index - ERROR - property " */
-/*             << prop << "(" << str_Jet_PROPERTY(prop) << ") not found" << std::endl; */
-/* } */
 
 // Add properties to the jets.
 size_t JetContainerv1::add_property(Jet::PROPERTY prop)
@@ -175,13 +155,14 @@ Jet::PROPERTY JetContainerv1::property_index(Jet::PROPERTY prop)
 
 Jet::IterJetTCA JetContainerv1::begin()
 {
-  if (m_clones->GetEntriesFast() > 1) m_current_jet = get_UncheckedAt(0);
-  return Jet::IterJetTCA(m_clones, m_current_jet);
+  return Jet::IterJetTCA(m_clones);
 }
 
-Jet::IterJetTCA JetContainerv1::end()
-{
-  return begin();
+Jet::IterJetTCA JetContainerv1::end() // dummy implementation -- don't anticipate that it will ever be checked
+ {
+  auto rval = Jet::IterJetTCA(m_clones);
+  rval.index = rval.size;
+  return rval;
 }
 
 void JetContainerv1::resize_jet_pvecs()

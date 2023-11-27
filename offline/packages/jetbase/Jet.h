@@ -248,15 +248,13 @@ class Jet : public PHObject
   struct IterJetTCA
   {
     TClonesArray* tca{nullptr};
-    Jet*& current_jet;  // note this is a reference to the current_jet pointer in JetContainer
     int index{0};
     int size;
 
-    // build Iterator -- capture reference to current_jet pointer from JetContainer
-    IterJetTCA(TClonesArray* _tca, Jet*& _in_jet);
-    void operator++();
-    Jet* operator*() { return current_jet; };
-    bool operator!=(const IterJetTCA& rhs);
+    IterJetTCA(TClonesArray* _tca);
+    void operator++() { ++index; };
+    Jet* operator*();
+    bool operator!=(const IterJetTCA& /*rhs*/) { return index != size; };
   };
 
   ClassDefOverride(Jet, 1);

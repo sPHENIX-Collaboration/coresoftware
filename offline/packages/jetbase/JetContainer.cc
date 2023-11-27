@@ -53,9 +53,9 @@ TClonesArray* JetContainer::clone_data() const
   return (TClonesArray*) DummyTClonesArray.Clone();
 };
 
-Jet::IterJetTCA DummyIterJetTCA{&DummyTClonesArray, DummyJetV2};
+Jet::IterJetTCA DummyIterJetTCA{&DummyTClonesArray};
 
-Jet* JetContainer::current_jet() { return DummyJetV2; };
+/* Jet* JetContainer::current_jet() { return DummyJetV2; }; */
 
 /* std::vector<float>& JetContainer::jet_properties() { return DummyFloatVec; }; */
 

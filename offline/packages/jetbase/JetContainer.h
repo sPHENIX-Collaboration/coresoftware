@@ -37,7 +37,7 @@ public:
     virtual size_t size()  const { return 0;    }
 
     // adding/access jets
-    virtual Jet* current_jet() ; // points to most recently accessed jet
+    /* virtual Jet* current_jet() ; // points to most recently accessed jet */
     virtual Jet* add_jet()                  { return nullptr; }; // Add a new jet to the TClonesArray and return the pointer
     virtual Jet* get_jet(unsigned int /*index*/)         { return nullptr; }; // Get jet at loc. return nullptr is out of range 
     virtual Jet* get_UncheckedAt(unsigned int /*index*/) { return nullptr; }; // Get get at location; no range checking
