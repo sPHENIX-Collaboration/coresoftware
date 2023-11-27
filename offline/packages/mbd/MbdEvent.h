@@ -88,6 +88,8 @@ class MbdEvent : public Fun4AllBase
   Float_t m_pmttt[MbdDefs::MBD_N_PMT]{};  // time in each arm
   Float_t m_pmttq[MbdDefs::MBD_N_PMT]{};  // time in each arm
 
+  int     do_templatefit{1};
+
   // output data
   Short_t m_bbcn[2]{};                                            // num hits for each arm (north and south)
   Float_t m_bbcq[2]{};                                            // total charge (currently npe) in each arm

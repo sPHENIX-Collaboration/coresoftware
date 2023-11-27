@@ -2,12 +2,12 @@
 #include "CaloTowerDefs.h"
 
 #include <calobase/TowerInfo.h>  // for TowerInfo
+#include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfoContainerv2.h>
 #include <calobase/TowerInfov1.h>
 #include <calobase/TowerInfov2.h>
-#include <calobase/TowerInfo.h>
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
@@ -98,7 +98,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
         exit(1);
       }
       cdbttree = new CDBTTree(calibdir);
-      std::cout << "CaloTowerCalib::::InitRun No specific file for " << m_calibName << " found, using default calib " << default_time_independent_calib <<  std::endl;
+      std::cout << "CaloTowerCalib::::InitRun No specific file for " << m_calibName << " found, using default calib " << default_time_independent_calib << std::endl;
     }
   }
   else if (m_dettype == CaloTowerDefs::HCALIN)
@@ -173,7 +173,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
       exit(1);
     }
   }
-  
+
   else if (m_dettype == CaloTowerDefs::SEPD)
   {
     m_detector = "SEPD";
@@ -196,6 +196,11 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
       std::cout << "CaloTowerCalib::::InitRun No calibration file for domain " << m_calibName << " found" << std::endl;
       exit(1);
     }
+  }
+
+  if (m_giveDirectURL)
+  {
+    cdbttree = new CDBTTree(m_directURL);
   }
 
   PHNodeIterator iter(topNode);
@@ -228,7 +233,7 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
   TowerInfoContainer *_raw_towers = findNode::getClass<TowerInfoContainer>(topNode, RawTowerNodeName);
   TowerInfoContainer *_calib_towers = findNode::getClass<TowerInfoContainer>(topNode, CalibTowerNodeName);
   unsigned int ntowers = _raw_towers->size();
-  
+
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
     unsigned int key = _raw_towers->encode_key(channel);
@@ -251,10 +256,10 @@ void CaloTowerCalib::CreateNodeTree(PHCompositeNode *topNode)
               << "DST Node missing, doing nothing." << std::endl;
     throw std::runtime_error("Failed to find DST node in RawTowerCalibration::CreateNodes");
   }
-  //detector node
+  // detector node
 
   PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", m_detector));
-  
+
   if (!DetNode)
   {
     DetNode = new PHCompositeNode(m_detector);
@@ -277,9 +282,9 @@ void CaloTowerCalib::CreateNodeTree(PHCompositeNode *topNode)
   TowerInfoContainer *_calib_towers = findNode::getClass<TowerInfoContainer>(dstNode, CalibTowerNodeName);
   if (!_calib_towers)
   {
-    _calib_towers = dynamic_cast<TowerInfoContainer *> (_raw_towers->CloneMe());
+    _calib_towers = dynamic_cast<TowerInfoContainer *>(_raw_towers->CloneMe());
   }
-    PHIODataNode<PHObject> *calibtowerNode = new PHIODataNode<PHObject>(_calib_towers, CalibTowerNodeName, "PHObject");
-    DetNode->addNode(calibtowerNode);
+  PHIODataNode<PHObject> *calibtowerNode = new PHIODataNode<PHObject>(_calib_towers, CalibTowerNodeName, "PHObject");
+  DetNode->addNode(calibtowerNode);
   return;
 }
