@@ -100,30 +100,47 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
     {
       continue;
     }
-
+    if (Verbosity() > 3)
+    {
+      std::cout << "Tpc seed to start out is " << std::endl;
+      tpcseed->identify();
+    }
     std::vector<TrkrDefs::cluskey> newClusKeys;
     std::vector<Acts::Vector3> newClusPos;
 
     unsigned int nClusters = TrackFitUtils::addClusters(fitparams, _dca_xy_cut, _tgeometry, _cluster_map,
-                             newClusPos, newClusKeys,0,6);
+                                                        newClusPos, newClusKeys, 0, 56);
 
     if (nClusters > 0)
     {
       std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
-      for (auto& sickey : newClusKeys)
+
+      for (auto& key : newClusKeys)
       {
-        auto cluster = _cluster_map->findCluster(sickey);
-        auto clusglob = _tgeometry->getGlobalPosition(sickey, cluster);
+        bool isTpcKey = false;
+        if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::tpcId ||
+            TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::micromegasId)
+        {
+          isTpcKey = true;
+        }
+        auto cluster = _cluster_map->findCluster(key);
+        auto clusglob = _tgeometry->getGlobalPosition(key, cluster);
         auto pca = TrackFitUtils::get_helix_pca(fitparams, clusglob);
         float dcaz = (pca - clusglob).z();
-       
-        if (fabs(dcaz) < _dca_z_cut)
+
+        if (fabs(dcaz) < _dca_z_cut && !isTpcKey)
         {
-          si_seed->insert_cluster_key(sickey);
+          si_seed->insert_cluster_key(key);
+        }
+        if (fabs(dcaz) < _dca_z_cut && isTpcKey)
+        {
+          tpcseed->insert_cluster_key(key);
         }
       }
       si_seed->circleFitByTaubin(_cluster_map, _tgeometry, 0, 8);
       si_seed->lineFit(_cluster_map, _tgeometry, 0, 8);
+      tpcseed->circleFitByTaubin(_cluster_map, _tgeometry, 0, 57);
+      tpcseed->lineFit(_cluster_map, _tgeometry, 0, 57);
       TrackSeed* mapped_seed = _si_seeds->insert(si_seed.get());
       std::unique_ptr<SvtxTrackSeed_v1> full_seed = std::make_unique<SvtxTrackSeed_v1>();
       int tpcind = _tpc_seeds->find(tpcseed);
@@ -131,10 +148,16 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       full_seed->set_tpc_seed_index(tpcind);
       full_seed->set_silicon_seed_index(siind);
       _svtx_seeds->insert(full_seed.get());
+      if (Verbosity() > 3)
+      {
+        std::cout << "final seeds" << std::endl;
+        si_seed->identify();
+        tpcseed->identify();
+      }
     }
     else
     {
-      // no Si clusters found, put TPC-only seed in SvtxTrackSeedContainer
+      // no other clusters found, put TPC-only seed in SvtxTrackSeedContainer
       std::unique_ptr<SvtxTrackSeed_v1> partial_seed = std::make_unique<SvtxTrackSeed_v1>();
       int tpc_seed_index = _tpc_seeds->find(tpcseed);
       partial_seed->set_tpc_seed_index(tpc_seed_index);
