@@ -45,8 +45,6 @@
 RawClusterBuilderTemplate::RawClusterBuilderTemplate(const std::string &name)
   : SubsysReco(name)
 {
-  _inputnodename = "";
-  _outputnodename = "";
 }
 
 RawClusterBuilderTemplate::~RawClusterBuilderTemplate()
