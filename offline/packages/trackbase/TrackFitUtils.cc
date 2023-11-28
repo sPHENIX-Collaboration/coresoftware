@@ -221,28 +221,64 @@ TrackFitUtils::circle_circle_intersection_output_t TrackFitUtils::circle_circle_
 }
 
 //_________________________________________________________________________________
-unsigned int TrackFitUtils::addSiliconClusters(std::vector<float>& fitpars,
-                                               double dca_cut,
-                                               ActsGeometry* _tGeometry,
-                                               TrkrClusterContainer* _cluster_map,
-                                               std::vector<Acts::Vector3>& global_vec,
-                                               std::vector<TrkrDefs::cluskey>& cluskey_vec)
+unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
+                                        double dca_cut,
+                                        ActsGeometry* _tGeometry,
+                                        TrkrClusterContainer* _cluster_map,
+                                        std::vector<Acts::Vector3>& global_vec,
+                                        std::vector<TrkrDefs::cluskey>& cluskey_vec,
+                                        unsigned int startLayer,
+                                        unsigned int endLayer)
 {
   // project the fit of the TPC clusters to each silicon layer, and find the nearest silicon cluster
   // iterate over the cluster map and find silicon clusters that match this track fit
 
-  unsigned int nsilicon = 0;
+  unsigned int nclusters = 0;
 
   // We want the best match in each layer
   std::vector<float> best_layer_dca;
-  best_layer_dca.assign(7, 999.0);
+  best_layer_dca.assign(endLayer, 999.0);
   std::vector<TrkrDefs::cluskey> best_layer_cluskey;
-  best_layer_cluskey.assign(7, 0);
+  best_layer_cluskey.assign(endLayer, 0);
+  std::set<TrkrDefs::TrkrId> detectors = {TrkrDefs::TrkrId::mvtxId,
+                                          TrkrDefs::TrkrId::inttId,
+                                          TrkrDefs::TrkrId::tpcId,
+                                          TrkrDefs::TrkrId::micromegasId};
+  if (startLayer > 2)
+  {
+    detectors.erase(TrkrDefs::TrkrId::mvtxId);
+    if (startLayer > 6)
+    {
+      detectors.erase(TrkrDefs::TrkrId::inttId);
+      if (startLayer > 54)
+      {
+        detectors.erase(TrkrDefs::TrkrId::tpcId);
+      }
+    }
+  }
+  if (endLayer < 56)
+  {
+    detectors.erase(TrkrDefs::TrkrId::micromegasId);
+    if (endLayer < 7)
+    {
+      detectors.erase(TrkrDefs::TrkrId::tpcId);
+      if (endLayer < 3)
+      {
+        detectors.erase(TrkrDefs::TrkrId::inttId);
+      }
+    }
+  }
 
-  for (const auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId})
+  for (const auto& det : detectors)
   {
     for (const auto& hitsetkey : _cluster_map->getHitSetKeys(det))
     {
+      if (TrkrDefs::getLayer(hitsetkey) < startLayer ||
+          TrkrDefs::getLayer(hitsetkey) > endLayer)
+      {
+        continue;
+      }
+
       auto range = _cluster_map->getClusters(hitsetkey);
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
@@ -250,6 +286,7 @@ unsigned int TrackFitUtils::addSiliconClusters(std::vector<float>& fitpars,
         unsigned int layer = TrkrDefs::getLayer(cluskey);
 
         TrkrCluster* cluster = clusIter->second;
+        
         auto global = _tGeometry->getGlobalPosition(cluskey, cluster);
 
         Acts::Vector3 pca = get_helix_pca(fitpars, global);
@@ -268,7 +305,7 @@ unsigned int TrackFitUtils::addSiliconClusters(std::vector<float>& fitpars,
       }  // end cluster iteration
     }    // end hitsetkey iteration
   }
-  for (unsigned int layer = 0; layer < 7; ++layer)
+  for (unsigned int layer = startLayer; layer < endLayer; ++layer)
   {
     if (best_layer_dca[layer] < dca_cut)
     {
@@ -276,11 +313,11 @@ unsigned int TrackFitUtils::addSiliconClusters(std::vector<float>& fitpars,
       auto clus = _cluster_map->findCluster(best_layer_cluskey[layer]);
       auto global = _tGeometry->getGlobalPosition(best_layer_cluskey[layer], clus);
       global_vec.push_back(global);
-      nsilicon++;
+      nclusters++;
     }
   }
 
-  return nsilicon;
+  return nclusters;
 }
 
 //_________________________________________________________________________________

@@ -101,15 +101,16 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       continue;
     }
 
-    std::vector<TrkrDefs::cluskey> silClusKeys;
-    std::vector<Acts::Vector3> silClusPos;
+    std::vector<TrkrDefs::cluskey> newClusKeys;
+    std::vector<Acts::Vector3> newClusPos;
 
-    unsigned int nSiClusters = TrackFitUtils::addSiliconClusters(fitparams, _dca_xy_cut, _tgeometry, _cluster_map, silClusPos, silClusKeys);
+    unsigned int nClusters = TrackFitUtils::addClusters(fitparams, _dca_xy_cut, _tgeometry, _cluster_map,
+                             newClusPos, newClusKeys,0,6);
 
-    if (nSiClusters > 0)
+    if (nClusters > 0)
     {
       std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
-      for (auto& sickey : silClusKeys)
+      for (auto& sickey : newClusKeys)
       {
         auto cluster = _cluster_map->findCluster(sickey);
         auto clusglob = _tgeometry->getGlobalPosition(sickey, cluster);
