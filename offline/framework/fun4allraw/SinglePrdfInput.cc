@@ -75,7 +75,6 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
 
     int EventSequence = evt->getEvtSequence();
     int npackets = evt->getPacketList(plist, 100);
-    std::cout << " Event SEquence " << EventSequence << " packet size: "<<npackets<<std::endl;
     if (npackets == 100)
     {
       exit(1);
@@ -86,20 +85,20 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
 
       if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
       {
-        int evtno = plist[i]->iValue(0, "EVTNR");
+        unsigned int evtno = plist[i]->iValue(0, "EVTNR");
         unsigned int bclk = plist[i]->iValue(0, "CLOCK");
 
 	if (useFEMInfo)
 	  {
-	    std::cout << " packet " << plist[i]->getIdentifier() << " Using FEMINFO" <<std::endl;
-	    evtno = plist[i]->iValue(0, "FEMEVTNR")  - 1;
-	    bclk = plist[i]->iValue(0, "FEMCLOCK");
+	    if (Verbosity() > 1) std::cout << " packet " << plist[i]->getIdentifier() << " Using FEMINFO" <<std::endl;
+	    evtno = (( plist[i]->iValue(0, "FEMEVTNR")  - 1 ) & 0xffff); // hard coded since FEM event starts at 1 and packet event starts at 0
+	    bclk = (( plist[i]->iValue(0, "FEMCLOCK") + 30 ) & 0xffff); // hardcoded since level 1 delay for ZDC is 30 beam clocks.
 	  }
-	//        if (Verbosity() > 1)
-	//        {
-          std::cout << "packet " << plist[i]->getIdentifier() << " evt: " << evtno
-                    << std::hex << " clock: 0x" << bclk << std::dec << std::endl;
-	  // }
+	if (Verbosity() > 1)
+	  {
+	    std::cout << "packet " << plist[i]->getIdentifier() << " evt: " << evtno
+		      << std::hex << " clock: 0x" << bclk << std::dec << std::endl;
+	  }
         // dummy check for the first event which is the problem for the calorimeters
         // it is the last event from the previous run, so it's event number is > 0
         // if (evtno > EventSequence)
@@ -138,7 +137,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
     {
       if (m_EvtSet.size() == 1)
       {
-	//        if (Verbosity() > 1)
+	if (Verbosity() > 1)
         {
           std::cout << "we are good evtno: " << *(m_EvtSet.begin())
                     << ", clock: " << m_PacketMap.begin()->first << std::endl;
@@ -146,7 +145,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       }
       else
       {
-	//        if (Verbosity() > 1)
+	if (Verbosity() > 1)
         {
           std::cout << "We have multiple event numbers for bclk: 0x" << std::hex
                     << m_PacketMap.begin()->first << std::dec << std::endl;
@@ -156,7 +155,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
           }
         }
         common_event_number = majority_eventnumber();
-	//        if (Verbosity() > 1)
+	if (Verbosity() > 1)
         {
           std::cout << "picked event no " << common_event_number << std::endl;
         }
@@ -172,13 +171,13 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
     }
     else
     {
-      //      if (Verbosity() > 1)
+      if (Verbosity() > 1)
       {
         std::cout << "We have multiple beam clocks per event" << std::endl;
       }
       if (m_EvtSet.size() == 1)
       {
-        //if (Verbosity() > 1)
+        if (Verbosity() > 1)
         {
           std::cout << "we are good evtno: " << *(m_EvtSet.begin())
                     << ", clock: " << m_PacketMap.begin()->first << std::endl;
@@ -186,7 +185,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       }
       else
       {
-	//      if (Verbosity() > 1)
+	if (Verbosity() > 1)
         {
           std::cout << "We have multiple event numbers for bclk: 0x" << std::hex
                     << m_PacketMap.begin()->first << std::dec << std::endl;
@@ -196,14 +195,14 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
           }
         }
         common_event_number = majority_eventnumber();
-	//        if (Verbosity() > 1)
+	if (Verbosity() > 1)
         {
           std::cout << "picked event no " << common_event_number << std::endl;
         }
         adjust_eventnumber_offset(common_event_number);
       }
       common_beam_clock = majority_beamclock();
-      //      if (Verbosity() > 1)
+      if (Verbosity() > 1)
       {
         std::cout << "picked bclk: " << std::hex << common_beam_clock << std::dec << std::endl;
       }
