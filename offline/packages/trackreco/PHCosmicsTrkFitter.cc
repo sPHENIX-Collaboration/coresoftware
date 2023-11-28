@@ -373,12 +373,17 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
                     charge / momentum.norm(),
                     cov,
                     Acts::ParticleHypothesis::muon(), 
-		    100*Acts::UnitConstants::cm)
-                    .value();
+		    100*Acts::UnitConstants::cm);
+    if(!seed.ok())
+      { 
+	      std::cout << "Could not create track params, skipping track" << std::endl;
+	      continue;
+      }
+    
 
     if (Verbosity() > 2)
     {
-      printTrackSeed(seed);
+      printTrackSeed(seed.value());
     }
 
     //! Set host of propagator options for Acts to do e.g. material integration
@@ -404,7 +409,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         std::make_shared<Acts::VectorMultiTrajectory>();
     ActsTrackFittingAlgorithm::TrackContainer
         tracks(trackContainer, trackStateContainer);
-    auto result = fitTrack(sourceLinks, seed, kfOptions, calibrator, tracks);
+    auto result = fitTrack(sourceLinks, seed.value(), kfOptions, 
+			   calibrator, tracks);
 
     /// Check that the track fit result did not return an error
     if (result.ok())
