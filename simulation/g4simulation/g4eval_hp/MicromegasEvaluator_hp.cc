@@ -92,6 +92,12 @@ namespace
 void MicromegasEvaluator_hp::Container::Reset()
 {
   _tiles.clear();
+  
+  // fill tiles
+  for( uint layer:{55, 56} )
+    for( uint tile = 0; tile < 8; ++tile )
+  { _tiles.emplace_back( layer, tile ); }
+    
   _g4hits.clear();
   _hits.clear();
 }
