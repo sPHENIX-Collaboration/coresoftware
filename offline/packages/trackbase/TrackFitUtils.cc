@@ -237,13 +237,14 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
 
   // We want the best match in each layer
   std::vector<float> best_layer_dca;
-  best_layer_dca.assign(endLayer, 999.0);
+  best_layer_dca.assign(endLayer + 1, 999.0);
   std::vector<TrkrDefs::cluskey> best_layer_cluskey;
-  best_layer_cluskey.assign(endLayer, 0);
+  best_layer_cluskey.assign(endLayer + 1, 0);
   std::set<TrkrDefs::TrkrId> detectors = {TrkrDefs::TrkrId::mvtxId,
                                           TrkrDefs::TrkrId::inttId,
                                           TrkrDefs::TrkrId::tpcId,
                                           TrkrDefs::TrkrId::micromegasId};
+
   if (startLayer > 2)
   {
     detectors.erase(TrkrDefs::TrkrId::mvtxId);
@@ -286,7 +287,7 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
         unsigned int layer = TrkrDefs::getLayer(cluskey);
 
         TrkrCluster* cluster = clusIter->second;
-        
+
         auto global = _tGeometry->getGlobalPosition(cluskey, cluster);
 
         Acts::Vector3 pca = get_helix_pca(fitpars, global);
@@ -305,7 +306,7 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
       }  // end cluster iteration
     }    // end hitsetkey iteration
   }
-  for (unsigned int layer = startLayer; layer < endLayer; ++layer)
+  for (unsigned int layer = startLayer; layer <= endLayer; ++layer)
   {
     if (best_layer_dca[layer] < dca_cut)
     {
