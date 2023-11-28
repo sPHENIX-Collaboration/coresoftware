@@ -84,6 +84,7 @@ CaloCalibEmc_Pi0::CaloCalibEmc_Pi0(const std::string &name, const std::string &f
   }
 
 	m_cent_nclus_cut = 350;
+	_setMassVal = 0.152;
 
 }
 
@@ -96,27 +97,28 @@ int CaloCalibEmc_Pi0::InitRun(PHCompositeNode *topNode)
 
   cal_output = new TFile(m_Filename.c_str(), "RECREATE");
 
-  pairInvMassTotal = new TH1F("pairInvMassTotal", "Pair Mass Histo", 70, 0.0, 0.7);
+  pairInvMassTotal = new TH1F("pairInvMassTotal", "Pair Mass Histo", 130, 0.0, 1.3);
   mass_eta = new TH2F("mass_eta", "2d Pair Mass Histo", 70, 0.0, 0.7, 400, -1.5, 1.5);
   mass_eta_phi = new TH3F("mass_eta_phi", "3d Pair Mass Histo", 70, 0.0, 0.7, 150, -1.5, 1.5, 256, -3.142, 3.142);
   h_totalClusters = new TH1F("h_totalClusters", "Histogram of total number of clusters", 600, 0, 600);
   pt1_ptpi0_alpha = new TH3F("pt1_ptpi0_alpha", "Photon1 pT, pi0 pT, alpha", 40,0.,4.,40, 0., 4., 10, 0., 1.);
   fitp1_eta_phi2d = new TH2F("fitp1_eta_phi2d", "fit p1 eta phi",16,0,16,16,0,16); 
   
-  // histo to record every tower by tower locations
-  for (int i = 0; i < 96; i++)  // eta rows
-  {
-    for (int j = 0; j < 258; j++)  // phi columns
-    {
-      TString i1;
-      TString j1;
-      i1.Form("%d", i);
-      j1.Form("%d", j);
-      TString hist_name = "emc_ieta" + i1 + "_phi" + j1;
+  //temporarily don't need these till Run2 and they take up a lot of space
+  // // histo to record every tower by tower locations
+  // for (int i = 0; i < 96; i++)  // eta rows
+  // {
+  //   for (int j = 0; j < 258; j++)  // phi columns
+  //   {
+  //     TString i1;
+  //     TString j1;
+  //     i1.Form("%d", i);
+  //     j1.Form("%d", j);
+  //     TString hist_name = "emc_ieta" + i1 + "_phi" + j1;
 
-      cemc_hist_eta_phi[i][j] = new TH1F(hist_name.Data(), "Hist_ieta_phi_", 70, 0.0, 0.7);
-    }
-  }
+  //     cemc_hist_eta_phi[i][j] = new TH1F(hist_name.Data(), "Hist_ieta_phi_", 70, 0.0, 0.7);
+  //   }
+  // }
 
   // histo to record each eta locations (with all phis included in each)
   for (int i = 0; i < 96; i++)
@@ -126,7 +128,7 @@ int CaloCalibEmc_Pi0::InitRun(PHCompositeNode *topNode)
     a.Form("%d", i);
     TString b = "eta_" + a;
 
-    eta_hist[i] = new TH1F(b.Data(), "eta and all phi's", 70, 0.0, 0.7);
+    eta_hist[i] = new TH1F(b.Data(), "eta and all phi's", 130, 0.0, 1.3);
   }
 
   if (topNode != 0)
@@ -152,8 +154,8 @@ int CaloCalibEmc_Pi0::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 {
-  //  if (m_ievent % 50 == 0)
-  if (true)
+  if (m_ievent % 50 == 0)
+  //  if (true)
   {
     std::cout << std::endl;
     std::cout << "Beginning of the event " << m_ievent << std::endl;
@@ -162,17 +164,12 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 
   _eventNumber = m_ievent++;
 
-
-  std::string clusnodename = "CLUSTER_POS_COR_CEMC";
-  if (m_UseTowerInfo)
-    clusnodename = "CLUSTERINFO_POS_COR_CEMC";
-    
-  /*
-  std::string clusnodename = "CLUSTER_CEMC";
-  if (m_UseTowerInfo)
-    clusnodename = "CLUSTERINFO_CEMC";
-  */
-
+   std::string clusnodename = "CLUSTER_CEMC";
+  if (m_UseTowerInfo && _inputnodename != "")
+    //    clusnodename = "CLUSTERINFO_CEMC";
+    //    clusnodename = "CLUSTERINFO2_CEMC";
+    clusnodename = _inputnodename;
+ 
   // create a cluster object
   RawClusterContainer *recal_clusters = findNode::getClass<RawClusterContainer>(topNode,clusnodename.c_str());
 
@@ -185,7 +182,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
   // create a tower object
   std::string towernode = "TOWER_CALIB_" + _caloname;
   RawTowerContainer *_towers = findNode::getClass<RawTowerContainer>(topNode, towernode.c_str());
-  if (!_towers)
+  if (!_towers && m_UseTowerInfo < 1)
   {
     std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
   }
@@ -201,13 +198,19 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 
   //if using towerinfo
   // create a tower object
-  towernode = "TOWERINFO_CALIB_" + _caloname;
+  //  towernode = "TOWERINFO_CALIB_" + _caloname;
+  towernode = "TOWERS_Calib_" + _caloname;
+  if (_inputtownodename != "")
+    towernode = _inputtownodename;
+
   TowerInfoContainer *_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towernode.c_str());
   if (!_towerinfos && m_UseTowerInfo > 0)
     {
       std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
     }
 
+  if (m_ievent < 3)
+    std::cout << "using these nodes for cluster/tower: "  << clusnodename << " " << towernode << std::endl; 
 
   // Get Vertex
   float vx = 0;
@@ -248,9 +251,9 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
     float cluse = t_recalcluster->get_ecore();
     //    std::cout << "clus " << cluse << std::endl;
 
-    if (cluse > 0.1) inCs++;
+    if (cluse > 0.5) inCs++;
 
-    if (cluse > 0.6) savCs[iCs++] = t_recalcluster;
+    if (cluse > 0.6 && t_recalcluster->get_chi2() < 4) savCs[iCs++] = t_recalcluster;
   }
 
   _nClusters = iCs;
@@ -273,9 +276,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
     std::vector<int> towerphis;
     std::vector<float> towerenergies;
 
-    RawTower * tower;
-    TowerInfo * towinfo;
-    
+
     // loop over the towers from the outer loop cluster
     // and find the max tower location and save the 
     // histogram on that max tower location with this 
@@ -283,50 +284,36 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
     
     RawCluster::TowerConstRange towers = savCs[jCs]->get_towers();
     RawCluster::TowerConstIterator toweriter;
-    
+
+    int towerieta = -1;
+    int toweriphi = -1; 
+	        
     for (toweriter = towers.first; toweriter != towers.second; ++toweriter)
       {
 	
+	
 	if (m_UseTowerInfo < 1)
 	  {
-
-	    tower = _towers->getTower(toweriter->first);
 	    
-	    int towereta = tower->get_bineta();
-	    int towerphi = tower->get_binphi();
-	    double towerenergy = tower->get_energy();
-	    
-	    // put the eta, phi, energy into corresponding vectors
-	    toweretas.push_back(towereta);
-	    towerphis.push_back(towerphi);
-	    towerenergies.push_back(towerenergy);				
-	    
+	    RawTower * tower  = _towers->getTower(toweriter->first);	    
+	    towerieta = tower->get_bineta();
+	    toweriphi = tower->get_binphi();
 	  }
-	else
+	else 
 	  {
-	    
-	    
-	    //RawTowerGeom *tower_geom_instance = geom->get_tower_geometry(toweriter->first);
-	    //
-	    //	     unsigned int towerindex = _towerinfos->decode_key(toweriter->first);
-	    
-	    
-	    int iphi = RawTowerDefs::decode_index2(toweriter->first);  // index2 is phi in CYL
-	    int ieta = RawTowerDefs::decode_index1(toweriter->first);  // index1 is eta in CYL	    
-	    unsigned int towerkey = iphi + (ieta << 16U);
-	    unsigned int towerindex =  _towerinfos->decode_key(towerkey);
-	    
-	    towinfo = _towerinfos->get_tower_at_channel(towerindex);
-	    
-	    double towerenergy = towinfo->get_energy();
-	    
-	    // put the eta, phi, energy into corresponding vectors
-	    toweretas.push_back(ieta);
-	    towerphis.push_back(iphi);
-	    towerenergies.push_back(towerenergy);				
-	    
-	    
-	  }
+	    // this probably works for case above as well but to be checked...
+	    // (ie probably  no need for RawTower pointer or the if statement)
+	    toweriphi = RawTowerDefs::decode_index2(toweriter->first);  // index2 is phi in CYL
+	    towerieta = RawTowerDefs::decode_index1(toweriter->first);  // index1 is eta in CYL	    
+	  }	    
+		
+	double towerenergy = toweriter->second;
+	
+	
+	// put the eta, phi, energy into corresponding vectors
+	toweretas.push_back(towerieta);
+	towerphis.push_back(toweriphi);
+	towerenergies.push_back(towerenergy);				
 	
       }
     
@@ -373,7 +360,8 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
       _clusterEtas[jCs] = tt_clus_eta;
       _clusterPhis[jCs] = tt_clus_phi;
 
-      if (tt_clus_pt > 0.9 ) 
+      if (tt_clus_pt > 0.9 && iCs > 400000)  // while we are using the ntuples we don't need the 
+	//rest of this fn --but this will likely change soon. 
 	{
 				
 	  // another loop to go into the saved cluster
@@ -400,7 +388,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 		      pho2.SetPtEtaPhiE(tt2_clus_pt, tt2_clus_eta, tt2_clus_phi, tt2_clus_energy);
 		      
 		      if (pho1.DeltaR(pho2) > 0.8) continue;
-		      if (pho1.Eta()/pho2.Eta() < 0) continue;
+		      //if (pho1.Eta()/pho2.Eta() < 0) continue;
 		      
 
 		      pi0lv = pho1 + pho2;
@@ -414,7 +402,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 			{  
 			  pairInvMassTotal->Fill(pairInvMass);
 			  mass_eta->Fill(pairInvMass, tt_clus_eta);
-			  mass_eta_phi->Fill(pairInvMass, tt_clus_eta, tt_clus_phi);
+			  //  mass_eta_phi->Fill(pairInvMass, tt_clus_eta, tt_clus_phi);
 	      
 	      
 			  // fill the tower by tower histograms with invariant mass
@@ -465,6 +453,15 @@ int CaloCalibEmc_Pi0::End(PHCompositeNode * topNode)
 void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree * intree, const char * incorrFile)
 {
 
+  // KINEMATIC CUTS ON PI0's ARE LISTED BELOW IN ONE SECTION OF COMMENTS
+  // 
+  //  search for  "CUTS FOLLOW HERE"
+  //
+  //  they are centrality dependent (centrality = nclusters > minpt)  so they can only
+  //  defined after loading up this values from the ntuples
+  //  so they can't be moved here
+  //
+
   float myaggcorr[96][260];
   for (int cci = 0; cci < 96; cci++)
   {
@@ -502,7 +499,7 @@ void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree * intree, const 
 			int ci = (int) myieta;
 			int cj = (int) myiphi;
 			myaggcorr[ci][cj] = myaggcv;
-			if (ij > ntCorrs -2)
+			if (ij > ntCorrs -2 || ij == ntCorrs/2)
 				std::cout << "loaded corrs eta,phi,aggcv " << myieta 
 				<< " " << myiphi << " " << myaggcv << std::endl; 
 	
@@ -512,6 +509,8 @@ void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree * intree, const 
 		delete infileNt;
 
   }
+
+
 
   std::cout << "in loop" << std::endl;
 
@@ -560,11 +559,15 @@ void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree * intree, const 
  
     int nClusters = _nClusters;
 
-    if (nClusters > 60)
+    // see below this is like centrality cut, but currently need central events
+    // as well as peripheral to maximize statistical power
+    if (nClusters > 1000)  
 		{
 			discarded_clusters += 1;
 			continue;
 		}
+
+  float pt1cut = 0, pt2cut = 0;
 
     for (int j = 0; j < nClusters; j++)
     {
@@ -607,10 +610,65 @@ void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree * intree, const 
     for (int jCs = 0; jCs < iCs; jCs++)
     {
       pho1 = savClusLV[jCs];
+/////////////////////////////////////////////////////////////////			
+      //////////////////////////////////////////////////////
+      // *********************************
+      //
+      //  CUTS FOLLOW HERE (e.g. pt cuts)
+      //
+      //*************************************
+      ///////////////////////////////////
+
+      // centrality dependent pt cuts designed to keep 
+      // statistical cluster count   contribution (& sig/bkg)
+      // constant with all centrality
+      // in order to maximize statistical power i.e. using all events
+      // in the calibration not just peripheral events.
+      // this is neccessary for the summer 23 data because
+      // the event rate was small and the total statistics per
+      // stable calibration period (typically a daq run-length) is small
       
-      if (fabs(pho1->Pt()) < 1.0)	
-				continue;
-			
+      float modCutFactor = 1.0;
+      
+      
+      if (iCs < 30) 
+     	{
+	 
+     	  // pt1cut =  1.65*modCutFactor;
+     	  // pt2cut  = 0.8*modCutFactor;
+
+     	  pt1cut =  1.3*modCutFactor;
+     	  pt2cut  = 0.7*modCutFactor;
+	  
+     	}
+      else
+     	{
+     	  // pt1cut = 1.65*modCutFactor +  1.4*(iCs-29)/200.0*modCutFactor;
+     	  // pt2cut = 0.8*modCutFactor +  1.4*(iCs-29)/200.0*modCutFactor;
+	  
+     	  pt1cut = 1.3*modCutFactor +  1.4*(iCs-29)/200.0*modCutFactor;
+     	  pt2cut = 0.7*modCutFactor +  1.4*(iCs-29)/200.0*modCutFactor;
+     	}
+
+     float pi0ptcut = 1.22 * (pt1cut + pt2cut);
+
+     // energy asymmetry alpha cut
+     float alphacutval = 0.6;
+
+     float deltaRconecut = 1.1; //2-gamma opening angle(dR) cut
+     // value relevant for background extent in mass
+     //  not in peak area.
+
+     ////////////////////////////////////////////////////////
+     //////////////////////////////////
+     //   END CUTS
+     ///////////////////////////////////////
+     /////////////////////////////////////
+
+
+      if (fabs(pho1->Pt()) < pt1cut)	
+	continue;
+
       // another loop to go into the saved cluster
       for (int kCs = 0; kCs < iCs; kCs++)
       {
@@ -619,25 +677,31 @@ void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree * intree, const 
         pho2 = savClusLV[kCs];
 
 	
-				if (fabs(pho2->Pt()) < 0.6) continue;
+				if (fabs(pho2->Pt()) < pt2cut) continue;
 	
 				alphaCut = fabs((pho1->E() - pho2->E())/(pho1->E()+ pho2->E()));
 
-				if (alphaCut > 0.50) continue;
+				if (alphaCut > alphacutval) continue;
 	
 				TLorentzVector pi0lv;
 
-        if (pho1->DeltaR(*pho2) > 0.45) continue;
+        if (pho1->DeltaR(*pho2) > deltaRconecut) continue;
 
         pi0lv = *pho1 + *pho2;
-				if (pho1->E()  > 1.0 && pho2->E() > 0.6 && fabs(pi0lv.Pt()) > 1.0)
+	if (fabs(pi0lv.Pt()) > pi0ptcut)
 	  		{
 					float pairInvMass = pi0lv.M();
 				
 					// fill the tower by tower histograms with invariant mass
-					cemc_hist_eta_phi[_maxTowerEtas[jCs]][_maxTowerPhis[jCs]]->Fill(pairInvMass);
+					//cemc_hist_eta_phi[_maxTowerEtas[jCs]][_maxTowerPhis[jCs]]->Fill(pairInvMass); 
+					// not useful in summer 23 data
 					eta_hist[_maxTowerEtas[jCs]]->Fill(pairInvMass);
 					pt1_ptpi0_alpha->Fill(pho1->Pt(), pi0lv.Pt(), alphaCut);
+					pairInvMassTotal->Fill(pairInvMass);
+					mass_eta->Fill(pairInvMass, _clusterEtas[jCs]);
+					mass_eta_phi->Fill(pairInvMass, _clusterEtas[jCs], _clusterPhis[jCs]);
+
+
 	  		}
       }
     }
@@ -1425,6 +1489,8 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const char * incorrFile)
 }
 
 
+
+
 // _______________________________________________________________..
 void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const char * incorrFile)
 {
@@ -1479,7 +1545,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const char * incorrFile)
   TF1 *f1[96]; 
   TF1 *f2[96];
   TF1 *total[96];
-	TF1 *fit_fn[96];
+  TF1 *fit_fn[96];
   int kj = 0;
 
   // arrays to hold parameters and its error
@@ -1488,31 +1554,52 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const char * incorrFile)
   double eta_par1_error[96] = {0.0};
   double eta_par2_value[96] = {0.0};
   double eta_par2_error[96] = {0.0};
+  //  double eta_[96] = {0.0};
 
   // create Ntuple object from your calculated data
   TNtuple * nt_corrVals = new TNtuple("nt_corrVals", "Ntuple of the corrections", "tower_eta:tower_phi:corr_val:agg_cv");
  
+
+  float avgmean = 0.170; 
+
+  int okHist[96] = {0};
+
   for (int i=0; i<96; i++)
   {
-		//find max bin around peak
-		float pkloc =  0.0;  
-		float bsavloc = 0.0;
 
-		for (int kfi = 1; kfi < 20; kfi++)
-		{
-			float locbv = eta_hist[i]->GetBinContent(kfi);
-			if (locbv > bsavloc)
+    if (eta_hist[i] == NULL)
+      continue;
+    else if (eta_hist[i]->GetEntries() == 0)
+      continue;
+
+    okHist[i] = 1;
+    
+    //find max bin around peak
+    float pkloc =  0.0;  
+    float bsavloc = 0.0;
+
+    for (int kfi = 1; kfi < 30; kfi++)
+      {
+	float locbv = eta_hist[i]->GetBinContent(kfi);
+	if (locbv > bsavloc)
 			{
-				pkloc = eta_hist[i]->GetBinCenter(kfi);
-				bsavloc = locbv;
+			  pkloc = eta_hist[i]->GetBinCenter(kfi);
+			  bsavloc = locbv;
 			} 
-		}
+      }
 
     f1[kj] = new TF1("f1", "gaus", 0.06, 0.20 );//pkloc-0.03, pkloc+0.03);
-    f2[kj] = new TF1("f2", "pol2", 0.01, 0.4);
+    f2[kj] = new TF1("f2", "pol2", 0.005, 0.5);
 
+    if (pkloc < 0.110 || pkloc > 0.2)
+      pkloc = 0.170;
+    
     eta_hist[i]->Fit(f1[kj],"","",pkloc-0.04,pkloc+0.04);
     float fpkloc2 = f1[kj]->GetParameter(1);
+
+    if (fpkloc2 < 0.110 || fpkloc2 > 0.2)
+      fpkloc2 = 0.170;
+
 
     TGraphErrors * grtemp = new TGraphErrors();
     TString bkgNm;
@@ -1522,21 +1609,27 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const char * incorrFile)
 		<< fpkloc2 << " " << pkloc << std::endl;
     grtemp->SetName(bkgNm.Data());
     int ingr = 0;
+    int firstnonzbin = -1;
     for (int gj = 1; gj < eta_hist[i]->GetNbinsX()+1; gj++)
 		{
 	  	float binc = eta_hist[i]->GetBinCenter(gj); 
 	  	float cntc = eta_hist[i]->GetBinContent(gj); 
-	  	if ((binc > 0.06*fpkloc2/0.145 && binc < 0.09 *fpkloc2/0.145)
-	  	   || (binc > 0.22*fpkloc2/0.145 && binc < 0.35*fpkloc2/0.145))
-	    {
-	     	grtemp->SetPoint(ingr,binc,cntc);
-	     	grtemp->SetPointError(ingr++,0.001,sqrt(cntc));
-	    }
+	  	if (
+		    ((binc > 0.03*fpkloc2/0.145 && binc < 0.09 *fpkloc2/0.145)
+		     || (binc > 0.265*fpkloc2/0.145 && binc < 0.31*fpkloc2/0.145))
+		    &&  (cntc > 0 || firstnonzbin > 0 )
+		    )
+		  {
+		    grtemp->SetPoint(ingr,binc,cntc);
+		    grtemp->SetPointError(ingr++,0.001,sqrt(cntc));
+		  }
+		if (cntc && firstnonzbin < 0)
+		  firstnonzbin = gj;
 		}
       
     grtemp->Fit(f2[kj]);
-      
-    total[kj] = new TF1("total", "gaus(0)+pol2(3)", 0.06, 0.25);//0.3*fpkloc2/0.145);
+
+    total[kj] = new TF1("total", "gaus(0)+pol2(3)", 0.03*fpkloc2/0.145, 0.31*fpkloc2/0.145);//0.3*fpkloc2/0.145);
 
     double par[6];
 
@@ -1545,18 +1638,30 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const char * incorrFile)
 
 
     total[kj]->SetParameters(par);
-    total[kj]->SetParLimits(2,0.01,0.027);
+    total[kj]->SetParLimits(2,0.015,0.037);
+    //    total[kj]->SetParLimits(0,0.01*eta_hist[i]->Integral(0,40),eta_hist[i]->Integral(0,40));
+    total[kj]->SetParLimits(0,5.0,eta_hist[i]->Integral(0,40));
+    total[kj]->SetParLimits(1,0.08,0.22);
+    //    total[kj]->SetParLimits(3,0.01,0.027);
+    //    total[kj]->SetParLimits(3,0.01,0.027);
+
+
     eta_hist[i]->Fit(total[kj], "R");
+
+
+
     fit_fn[kj] = eta_hist[i]->GetFunction("total");
-     
+
+    
     grtemp->Write();
+    
 
     if (fit_fn[kj])
 		{
 	  	eta_value[i] = i;
 	  	eta_par1_value[i]= fit_fn[kj]->GetParameter(1); 
 	  	if (!(eta_par1_value[i] > 0))
-	      eta_par1_value[i] = 0.5;
+		  eta_par1_value[i] = 0.5;
 	  	eta_par1_error[i]= fit_fn[kj]->GetParError(1); 
 	  	eta_par2_value[i]= fit_fn[kj]->GetParameter(2); 
 	  	eta_par2_error[i]= fit_fn[kj]->GetParError(2); 
@@ -1565,17 +1670,99 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const char * incorrFile)
 		{
 	  	std::cout <<  "WarninG :: Fit Failed for eta bin : " << i << std::endl;
 		}
-      
-    for (int jj =0; jj < 256; jj++)
-		{
-	  	nt_corrVals->Fill(i,jj,0.135/eta_par1_value[i],0.135/eta_par1_value[i]*myaggcorr[i][jj]);
-		}
+    
+    avgmean += eta_par1_value[i];
 
-    //nt_corrVals->Fill(i,259,0.135/eta_par1_value[i],0.135/eta_par1_value[i]*myaggcorr[i][259]);
-      
-		kj++;
+    kj++;
+
+    
   }
 
+
+  avgmean /= kj+1; 
+  int kj2 = 0;
+  
+  for (int iijk = 0; iijk < 96; iijk++)
+    {
+      
+      if (okHist[iijk] == 0)
+	continue;
+
+      float locavg = 0.01; 
+      if (kj2 < 6 && iijk < 88)
+	{
+	  locavg = (eta_par1_value[iijk+3] + eta_par1_value[iijk+4] + eta_par1_value[iijk+5] 
+		    + eta_par1_value[iijk+6] + eta_par1_value[iijk+7])/5.0;
+	  if (fabs(locavg - avgmean) > 0.2*avgmean)
+	    locavg = avgmean;
+	  
+	}
+      else if (iijk > 90)
+	{
+	  locavg = (eta_par1_value[iijk-3] + eta_par1_value[iijk-4] + eta_par1_value[iijk-5] 
+		    + eta_par1_value[iijk-6] + eta_par1_value[iijk-7])/5.0;
+	  if (fabs(locavg - avgmean) > 0.2*avgmean)
+	    locavg = avgmean;
+	}
+      else
+	{
+	  locavg = (eta_par1_value[iijk-3] + eta_par1_value[iijk-2] + eta_par1_value[iijk-1] 
+		      + eta_par1_value[iijk+1] + eta_par1_value[iijk+2] + eta_par1_value[iijk+3] )/6.0;
+	  if (fabs(locavg - avgmean) > 0.2*avgmean)
+	    locavg = avgmean;
+	}
+      
+      float thisfitp1 = 0;
+      if (fit_fn[kj2])
+	{
+	  
+	  thisfitp1 = fit_fn[kj2]->GetParameter(1); 
+	  if (fabs(thisfitp1 - locavg) > 0.12*locavg)
+	    {
+	      std::cout << "redoing  fit for eta" <<  iijk << " " <<  fit_fn[kj2] << std::endl;
+	      fit_fn[kj2]->SetParameter(1,locavg);
+	      fit_fn[kj2]->FixParameter(1,locavg);
+	      eta_hist[iijk]->Fit(fit_fn[kj2]);
+	      fit_fn[kj2]->SetParLimits(1,locavg - 0.011, locavg + 0.011);
+	      eta_hist[iijk]->Fit(fit_fn[kj2]);
+	    }
+	  // if (iijk > 63 && iijk < 72)
+	  //   {
+	  //     std::cout << "redoing  fit for eta" <<  iijk << " " <<  fit_fn[kj2] << std::endl;
+	  //     fit_fn[kj2]->SetParameter(1,0.26);
+	  //     fit_fn[kj2]->FixParameter(1,0.26);
+	  //     eta_hist[iijk]->Fit(fit_fn[kj2]);
+	  //     //	      fit_fn[kj2]->SetParLimits(1,locavg - 0.011, locavg + 0.011);
+	  //     //eta_hist[iijk]->Fit(fit_fn[kj2]);
+
+	  //   }
+
+	  
+	  eta_value[iijk] = iijk;
+	  eta_par1_value[iijk]= fit_fn[kj2]->GetParameter(1); 
+	  if (!(eta_par1_value[iijk] > 0))
+	    eta_par1_value[iijk] = 0.5;
+	  eta_par1_error[iijk]= fit_fn[kj2]->GetParError(1); 
+	  eta_par2_value[iijk]= fit_fn[kj2]->GetParameter(2); 
+	    eta_par2_error[iijk]= fit_fn[kj2]->GetParError(2); 
+	}
+      else
+	{
+	  std::cout <<  "WarninG :: Fit Failed for eta bin : " << iijk << std::endl;
+	}
+      
+      
+      for (int jj =0; jj < 256; jj++)
+	{
+	  nt_corrVals->Fill(iijk,jj,_setMassVal/eta_par1_value[iijk], _setMassVal/eta_par1_value[iijk]*myaggcorr[iijk][jj]);
+	}
+      
+      //nt_corrVals->Fill(i,259,0.135/eta_par1_value[i],0.135/eta_par1_value[i]*myaggcorr[i][259]);
+      
+	kj2++;
+	
+    }//iijk
+  
   TGraphErrors *g1 = new TGraphErrors(96, eta_value, eta_par1_value, 0, eta_par1_error);
   g1->SetTitle("pi0 mean eta; eta; p1");
   g1->SetMarkerStyle(20);

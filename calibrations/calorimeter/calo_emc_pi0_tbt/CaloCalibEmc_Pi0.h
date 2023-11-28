@@ -58,18 +58,41 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   void Get_Histos(const char * infile, const char * outfile);
 
 
-
   void set_UseTowerInfo(const int useMode)
   {  // 0 only old tower, 1 only new (TowerInfo based), 
     m_UseTowerInfo = useMode;
   }
 
+  void setInputClusterNodeName(const char * inpNodenm)
+  {
+    _inputnodename = inpNodenm;
+  }
+
+  void setInputTowerNodeName(const char * inpNodenm)
+  {
+    _inputtownodename = inpNodenm;
+  }
+
+
+  void set_calibSetMassVal(float insetval)
+  {
+    _setMassVal = insetval;
+  }
+
 
  private:
+
+  //  float setMassVal = 0.135;
+  float _setMassVal = 0.152;  
+  // currently defaulting to 0.152 to match sim
+
   int m_ievent = 0;
   std::string m_Filename;
   TFile *cal_output = nullptr;
   std::string _caloname = "CEMC";
+  std::string _inputnodename;
+  std::string _inputtownodename;
+
 
   int m_cent_nclus_cut = 0;
 
