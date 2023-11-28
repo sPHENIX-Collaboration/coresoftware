@@ -42,6 +42,21 @@ class RawClusterBuilderTemplate : public SubsysReco
     m_UseAltZVertex = useAltZMode;
   }
 
+  void setOutputClusterNodeName(const char * inpNodenm)
+  {
+    _outputnodename = inpNodenm;
+  }
+
+  // !!! note :  next fn NOT implemented for RawTowers
+  // only TowerInfo  mode
+  void setInputTowerNodeName(const char * inpNodenm)
+  {
+    _inputnodename = inpNodenm;
+  }
+
+
+
+
  private:
   void CreateNodes(PHCompositeNode* topNode);
   bool Cell2Abs(RawTowerGeomContainer* towergeom, float phiC, float etaC, float& phi, float& eta);
@@ -75,6 +90,10 @@ class RawClusterBuilderTemplate : public SubsysReco
   // 0 - use GlobalVtxMap
   // 1 - use BbcReco ZVtx
   // 2 - use NO zvertex (zvtx = 0)
+
+  std::string _inputnodename = "";
+  std::string _outputnodename = "";
+
 
 };
 

@@ -45,6 +45,8 @@
 RawClusterBuilderTemplate::RawClusterBuilderTemplate(const std::string &name)
   : SubsysReco(name)
 {
+  _inputnodename = "";
+  _outputnodename = "";
 }
 
 RawClusterBuilderTemplate::~RawClusterBuilderTemplate()
@@ -288,6 +290,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   if (m_UseTowerInfo > 0)
   {
     std::string towerinfoNodename = "TOWERINFO_CALIB_" + detector;
+    if (_inputnodename != "")
+      towerinfoNodename = _inputnodename;
 
     calib_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towerinfoNodename);
     if (!calib_towerinfos)
@@ -627,11 +631,15 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
   _clusters = new RawClusterContainer();
   ClusterNodeName = "CLUSTER_" + detector;
 
-  if (m_UseTowerInfo)
-  {
-    ClusterNodeName = "CLUSTERINFO_" + detector;
-  }
-
+  if (_outputnodename != "")
+    {
+      ClusterNodeName = _outputnodename;
+    }
+  else if (m_UseTowerInfo)
+    {
+      ClusterNodeName = "CLUSTERINFO_" + detector;
+    }
+  
   PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   cemcNode->addNode(clusterNode);
 }
