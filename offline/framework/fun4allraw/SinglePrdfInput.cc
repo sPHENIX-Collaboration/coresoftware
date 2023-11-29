@@ -16,14 +16,16 @@ SinglePrdfInput::SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolMa
   , m_InputMgr(inman)
 {
   plist = new Packet *[100];
+  m_useFEMInfo = new int[100]{}; 
   m_PacketEventNumberOffset = new int[100]{};
-  //  std::fill_n(m_PacketEventNumberOffset, 100, 0);
+  std::fill_n(m_useFEMInfo, 100, -1);
 }
 
 SinglePrdfInput::~SinglePrdfInput()
 {
   delete m_EventIterator;
   delete[] plist;
+  delete[] m_useFEMInfo;
   delete[] m_PacketEventNumberOffset;
 }
 
@@ -81,16 +83,21 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
     }
     for (int i = 0; i < npackets; i++)
     {
-      bool useFEMInfo =  (plist[i]->getIdentifier() / 1000 == 12);  
-
+      
       if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
       {
         unsigned int evtno = plist[i]->iValue(0, "EVTNR");
         unsigned int bclk = plist[i]->iValue(0, "CLOCK");
 
-	if (useFEMInfo)
+      if (m_useFEMInfo[i] == -1)
+	{
+	  bool useFEMInfo =  ((plist[i]->getIdentifier() / 1000 == 12) && evtno != ((EventSequence - 2)& 0xffff));  
+	  m_useFEMInfo[i] = (useFEMInfo?1:0);
+	  	  
+	}
+
+	if (m_useFEMInfo[i] == 1)
 	  {
-	    if (Verbosity() > 1) std::cout << " packet " << plist[i]->getIdentifier() << " Using FEMINFO" <<std::endl;
 	    evtno = (( plist[i]->iValue(0, "FEMEVTNR")  - 1 ) & 0xffff); // hard coded since FEM event starts at 1 and packet event starts at 0
 	    bclk = (( plist[i]->iValue(0, "FEMCLOCK") + 30 ) & 0xffff); // hardcoded since level 1 delay for ZDC is 30 beam clocks.
 	  }

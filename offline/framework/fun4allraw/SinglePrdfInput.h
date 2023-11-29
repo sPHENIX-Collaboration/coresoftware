@@ -46,6 +46,7 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
   unsigned int m_NumSpecialEvents = 0;
   int m_EventNumberOffset = 1;               // packet event counters start at 0 but we start with event number 1
   int *m_PacketEventNumberOffset = nullptr;  // packet event counters start at 0 but we start with event number 1
+  int *m_useFEMInfo = nullptr;  // packet event counters start at 0 but we start with event number 1
   int m_RunNumber = 0;
   int m_EventsThisFile = 0;
   int m_AllDone = 0;
