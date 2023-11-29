@@ -4,10 +4,10 @@
 #include "BEmcRec.h"
 #include "BEmcRecCEMC.h"
 
-#include <globalvertex/MbdVertex.h>
-#include <globalvertex/MbdVertexMap.h>
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/MbdVertex.h>
+#include <globalvertex/MbdVertexMap.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -282,14 +282,14 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << ": Could not find node " << towergeomnodename << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
   TowerInfoContainer *calib_towerinfos = nullptr;
-
   if (m_UseTowerInfo > 0)
   {
     std::string towerinfoNodename = "TOWERINFO_CALIB_" + detector;
-    if (_inputnodename != "")
-      towerinfoNodename = _inputnodename;
+    if (!m_inputnodename.empty())
+    {
+      towerinfoNodename = m_inputnodename;
+    }
 
     calib_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towerinfoNodename);
     if (!calib_towerinfos)
@@ -308,7 +308,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   float vz = 0;
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
-  if (vertexmap && m_UseAltZVertex == 0 ) //default
+  if (vertexmap && m_UseAltZVertex == 0)  // default
   {
     if (!vertexmap->empty())
     {
@@ -320,26 +320,27 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   }
 
   MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
- 
+
   if (mbdmap && m_UseAltZVertex == 1)
+  {
+    std::cout << " in mbdmap " << std::endl;
+
+    MbdVertex *bvertex = nullptr;
+    for (MbdVertexMap::ConstIter mbditer = mbdmap->begin();
+         mbditer != mbdmap->end();
+         ++mbditer)
     {
-      std::cout << " in mbdmap " << std::endl;
-      
-      MbdVertex *bvertex = nullptr;
-      for (MbdVertexMap::ConstIter mbditer = mbdmap->begin();
-           mbditer != mbdmap->end();
-           ++mbditer)
-	{
-	  bvertex = mbditer->second;
-	}
-      //      MbdVertex *bvertex = (mbdmap->begin()->second);
+      bvertex = mbditer->second;
+    }
+    //      MbdVertex *bvertex = (mbdmap->begin()->second);
 
-      if (!bvertex) 
-	return Fun4AllReturnCodes::ABORTEVENT;
-
-      vz = bvertex->get_z();
+    if (!bvertex)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
     }
 
+    vz = bvertex->get_z();
+  }
 
   // Set vertex
   float vertex[3] = {vx, vy, vz};
@@ -492,18 +493,16 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       // Center of Gravity etc.
       pp->GetMoments(xcg, ycg, xx, xy, yy);
 
-
-      if (m_UseAltZVertex == 2 )
-	{
-	  xg = -99999; // signal to force zvtx = 0
-	  pp->GetGlobalPos(xg, yg, zg);
-	}
+      if (m_UseAltZVertex == 2)
+      {
+        xg = -99999;  // signal to force zvtx = 0
+        pp->GetGlobalPos(xg, yg, zg);
+      }
       else
-	{
-	  xg = 0; // usual mode, uses regular zvtx
-	  pp->GetGlobalPos(xg, yg, zg);
-	}
-
+      {
+        xg = 0;  // usual mode, uses regular zvtx
+        pp->GetGlobalPos(xg, yg, zg);
+      }
 
       // Tower with max energy
       hmax = pp->GetMaxTower();
@@ -629,15 +628,15 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
   _clusters = new RawClusterContainer();
   ClusterNodeName = "CLUSTER_" + detector;
 
-  if (_outputnodename != "")
-    {
-      ClusterNodeName = _outputnodename;
-    }
+  if (!m_outputnodename.empty())
+  {
+    ClusterNodeName = m_outputnodename;
+  }
   else if (m_UseTowerInfo)
-    {
-      ClusterNodeName = "CLUSTERINFO_" + detector;
-    }
-  
+  {
+    ClusterNodeName = "CLUSTERINFO_" + detector;
+  }
+
   PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   cemcNode->addNode(clusterNode);
 }
