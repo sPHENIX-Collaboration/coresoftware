@@ -50,8 +50,9 @@ CaloCalibEmc_Pi0::CaloCalibEmc_Pi0(const std::string &name, const std::string &f
   , m_cent_nclus_cut(350)
 {
   eta_hist.fill(nullptr);
-// the 2d filling took a bit of googling but it works:
-  std::for_each(cemc_hist_eta_phi.begin(),cemc_hist_eta_phi.end(), [] (auto &row) {row.fill(nullptr);});
+  // the 2d filling took a bit of googling but it works:
+  std::for_each(cemc_hist_eta_phi.begin(), cemc_hist_eta_phi.end(), [](auto &row)
+                { row.fill(nullptr); });
 }
 
 //____________________________________________________________________________..
@@ -126,11 +127,12 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
   _eventNumber = m_ievent++;
 
   std::string clusnodename = "CLUSTER_CEMC";
-  if (m_UseTowerInfo && ! _inputnodename.empty()) {
+  if (m_UseTowerInfo && !_inputnodename.empty())
+  {
     //    clusnodename = "CLUSTERINFO_CEMC";
     //    clusnodename = "CLUSTERINFO2_CEMC";
     clusnodename = _inputnodename;
-}
+  }
 
   // create a cluster object
   RawClusterContainer *recal_clusters = findNode::getClass<RawClusterContainer>(topNode, clusnodename);
@@ -161,9 +163,10 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
   //  create a tower object
   //   towernode = "TOWERINFO_CALIB_" + _caloname;
   towernode = "TOWERS_Calib_" + _caloname;
-  if (! _inputtownodename.empty()) {
+  if (!_inputtownodename.empty())
+  {
     towernode = _inputtownodename;
-}
+  }
 
   TowerInfoContainer *_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towernode);
   if (!_towerinfos && m_UseTowerInfo > 0)
@@ -171,9 +174,10 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
   }
 
-  if (m_ievent < 3) {
+  if (m_ievent < 3)
+  {
     std::cout << "using these nodes for cluster/tower: " << clusnodename << " " << towernode << std::endl;
-}
+  }
 
   // Get Vertex
   float vx = 0;
@@ -214,18 +218,23 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
     float cluse = t_recalcluster->get_ecore();
     //    std::cout << "clus " << cluse << std::endl;
 
-    if (cluse > 0.5) { inCs++;
-}
+    if (cluse > 0.5)
+    {
+      inCs++;
+    }
 
-    if (cluse > 0.6 && t_recalcluster->get_chi2() < 4) { savCs[iCs++] = t_recalcluster;
-}
+    if (cluse > 0.6 && t_recalcluster->get_chi2() < 4)
+    {
+      savCs[iCs++] = t_recalcluster;
+    }
   }
 
   _nClusters = iCs;
 
-  if (_nClusters > m_cent_nclus_cut) {
+  if (_nClusters > m_cent_nclus_cut)
+  {
     return Fun4AllReturnCodes::EVENT_OK;
-}
+  }
 
   // looping on the saved clusters savCs[]
   // outer loop (we want to do pair of the loops)
@@ -323,8 +332,10 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
       // another loop to go into the saved cluster
       for (int kCs = 0; kCs < iCs; kCs++)
       {
-        if (jCs == kCs) { continue;
-}
+        if (jCs == kCs)
+        {
+          continue;
+        }
 
         CLHEP::Hep3Vector E_vec_cluster2 = RawClusterUtility::GetECoreVec(*savCs[kCs], vertex);
 
@@ -344,8 +355,10 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
             pho1.SetPtEtaPhiE(tt_clus_pt, tt_clus_eta, tt_clus_phi, tt_clus_energy);
             pho2.SetPtEtaPhiE(tt2_clus_pt, tt2_clus_eta, tt2_clus_phi, tt2_clus_energy);
 
-            if (pho1.DeltaR(pho2) > 0.8) { continue;
-}
+            if (pho1.DeltaR(pho2) > 0.8)
+            {
+              continue;
+            }
             // if (pho1.Eta()/pho2.Eta() < 0) continue;
 
             pi0lv = pho1 + pho2;
@@ -414,9 +427,10 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
   //  so they can't be moved here
   //
 
- //  std::arrays have their indices backward, this is the old float myaggcorr[96][260];
-  std::array<std::array<float, 260>,96> myaggcorr{};
-  std::for_each(myaggcorr.begin(),myaggcorr.end(), [] (auto &row) {row.fill(1.);});
+  //  std::arrays have their indices backward, this is the old float myaggcorr[96][260];
+  std::array<std::array<float, 260>, 96> myaggcorr{};
+  std::for_each(myaggcorr.begin(), myaggcorr.end(), [](auto &row)
+                { row.fill(1.); });
 
   std::cout << "running w/ corr file? : " << incorrFile << std::endl;
 
@@ -445,10 +459,11 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
       int ci = (int) myieta;
       int cj = (int) myiphi;
       myaggcorr.at(ci).at(cj) = myaggcv;
-      if (ij > ntCorrs - 2 || ij == ntCorrs / 2) {
+      if (ij > ntCorrs - 2 || ij == ntCorrs / 2)
+      {
         std::cout << "loaded corrs eta,phi,aggcv " << myieta
                   << " " << myiphi << " " << myaggcv << std::endl;
-}
+      }
     }
 
     infileNt->Close();
@@ -483,9 +498,10 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
   int nEntries = (int) t1->GetEntries();
   int nevts2 = nevts;
 
-  if (nevts < 0 || nEntries < nevts) {
+  if (nevts < 0 || nEntries < nevts)
+  {
     nevts2 = nEntries;
-}
+  }
 
   // keeping track of discarded clusters for v7
   int discarded_clusters = 0;
@@ -495,9 +511,10 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
     // load the ith instance of the TTree
     t1->GetEntry(i);
 
-    if ((i % 10 == 0 && i < 200) || (i % 100 == 0 && i < 1000) || (i % 1000 == 0 && i < 37003) || i % 10000 == 0) {
+    if ((i % 10 == 0 && i < 200) || (i % 100 == 0 && i < 1000) || (i % 1000 == 0 && i < 37003) || i % 10000 == 0)
+    {
       std::cout << "evt no " << i << std::endl;
-}
+    }
     // calibration correction will be applied here
 
     int nClusters = _nClusters;
@@ -600,30 +617,39 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
       ///////////////////////////////////////
       /////////////////////////////////////
 
-      if (fabs(pho1->Pt()) < pt1cut) {
+      if (fabs(pho1->Pt()) < pt1cut)
+      {
         continue;
-}
+      }
 
       // another loop to go into the saved cluster
       for (int kCs = 0; kCs < iCs; kCs++)
       {
-        if (jCs == kCs) { continue;
-}
+        if (jCs == kCs)
+        {
+          continue;
+        }
 
         pho2 = savClusLV[kCs];
 
-        if (fabs(pho2->Pt()) < pt2cut) { continue;
-}
+        if (fabs(pho2->Pt()) < pt2cut)
+        {
+          continue;
+        }
 
         alphaCut = fabs((pho1->E() - pho2->E()) / (pho1->E() + pho2->E()));
 
-        if (alphaCut > alphacutval) { continue;
-}
+        if (alphaCut > alphacutval)
+        {
+          continue;
+        }
 
         TLorentzVector pi0lv;
 
-        if (pho1->DeltaR(*pho2) > deltaRconecut) { continue;
-}
+        if (pho1->DeltaR(*pho2) > deltaRconecut)
+        {
+          continue;
+        }
 
         pi0lv = *pho1 + *pho2;
         if (fabs(pi0lv.Pt()) > pi0ptcut)
@@ -650,9 +676,10 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
 // This one is for etaslices
 void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filename, TTree *intree, const std::string &incorrFile)
 {
- //  std::arrays have their indices backward, this is the old float myaggcorr[96][260];
-  std::array<std::array<float, 260>,96> myaggcorr{};
-  std::for_each(myaggcorr.begin(),myaggcorr.end(), [] (auto &row) {row.fill(1.);});
+  //  std::arrays have their indices backward, this is the old float myaggcorr[96][260];
+  std::array<std::array<float, 260>, 96> myaggcorr{};
+  std::for_each(myaggcorr.begin(), myaggcorr.end(), [](auto &row)
+                { row.fill(1.); });
 
   std::cout << "running w/ corr file? : " << incorrFile << std::endl;
 
@@ -681,10 +708,11 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
       int ci = (int) myieta;
       int cj = (int) myiphi;
       myaggcorr.at(ci).at(cj) = myaggcv;
-      if (ij > ntCorrs - 2) {
+      if (ij > ntCorrs - 2)
+      {
         std::cout << "loaded corrs eta,phi,aggcv " << myieta
                   << " " << myiphi << " " << myaggcv << std::endl;
-}
+      }
     }
 
     infileNt->Close();
@@ -719,24 +747,28 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
   int nEntries = (int) t1->GetEntries();
   int nevts2 = nevts;
 
-  if (nevts < 0 || nEntries < nevts) {
+  if (nevts < 0 || nEntries < nevts)
+  {
     nevts2 = nEntries;
-}
+  }
 
   for (int i = 0; i < nevts2; i++)
   {
     // load the ith instance of the TTree
     t1->GetEntry(i);
 
-    if ((i % 10 == 0 && i < 200) || (i % 100 == 0 && i < 1000) || (i % 1000 == 0 && i < 37003) || i % 10000 == 0) {
+    if ((i % 10 == 0 && i < 200) || (i % 100 == 0 && i < 1000) || (i % 1000 == 0 && i < 37003) || i % 10000 == 0)
+    {
       std::cout << "evt no " << i << std::endl;
-}
+    }
     // calibration correction will be applied here
 
     int nClusters = _nClusters;
 
-    if (nClusters > 60) { continue;
-}
+    if (nClusters > 60)
+    {
+      continue;
+    }
 
     for (int j = 0; j < nClusters; j++)
     {
@@ -761,27 +793,37 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
     {
       pho1 = savClusLV.at(jCs);
 
-      if (fabs(pho1->Pt()) < 1.0) { continue;
-}
+      if (fabs(pho1->Pt()) < 1.0)
+      {
+        continue;
+      }
 
       // another loop to go into the saved cluster
       for (int kCs = 0; kCs < iCs; kCs++)
       {
-        if (jCs == kCs) { continue;
-}
+        if (jCs == kCs)
+        {
+          continue;
+        }
 
         pho2 = savClusLV.at(kCs);
 
-        if (fabs(pho2->Pt()) < 0.6) { continue;
-}
+        if (fabs(pho2->Pt()) < 0.6)
+        {
+          continue;
+        }
 
         TLorentzVector pi0lv;
-        if (pho1->DeltaR(*pho2) > 0.45) { continue;
-}
+        if (pho1->DeltaR(*pho2) > 0.45)
+        {
+          continue;
+        }
         pi0lv = *pho1 + *pho2;
         float pairInvMass = pi0lv.M();
-        if (pi0lv.Pt() < 1.0) { continue;
-}
+        if (pi0lv.Pt() < 1.0)
+        {
+          continue;
+        }
 
         /*
         if (_maxTowerEtas[jCs]==50 && ((pi0lv.M()>=0.015 && pi0lv.M()<=0.095) || (pi0lv.M()>=0.175 && pi0lv.M()<=0.255)))
@@ -792,8 +834,10 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
         */
 
         alphaCut = fabs((pho1->E() - pho2->E()) / (pho1->E() + pho2->E()));
-        if (alphaCut > 0.50) { continue;  // 0.50 to begin with
-}
+        if (alphaCut > 0.50)
+        {
+          continue;  // 0.50 to begin with
+        }
 
         /*
         if  (_maxTowerEtas[jCs]==50 && ((pi0lv.M()>=0.015 && pi0lv.M()<=0.095) || (pi0lv.M()>=0.175 && pi0lv.M()<=0.255)))
@@ -807,8 +851,8 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
         // we don't need to fill tower-by-tower level when we do for eta slices
         // although filling here just so we don't have to change codes in other places
         cemc_hist_eta_phi.at(_maxTowerEtas[jCs]).at(_maxTowerPhis[jCs])->Fill(pairInvMass);
-	eta_hist.at(_maxTowerEtas[jCs])->Fill(pairInvMass);
-	// pt1_ptpi0_alpha->Fill(pho1->Pt(), pi0lv.Pt(), alphaCut);
+        eta_hist.at(_maxTowerEtas[jCs])->Fill(pairInvMass);
+        // pt1_ptpi0_alpha->Fill(pho1->Pt(), pi0lv.Pt(), alphaCut);
       }
     }
   }
@@ -819,9 +863,10 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
 {
   std::cout << " Inside Fit_Histos_Eta_Phi." << std::endl;
 
- //  std::arrays have their indices backward, this is the old float myaggcorr[96][256];
-  std::array<std::array<float, 256>,96> myaggcorr{};
-  std::for_each(myaggcorr.begin(),myaggcorr.end(), [] (auto &row) {row.fill(1.);});
+  //  std::arrays have their indices backward, this is the old float myaggcorr[96][256];
+  std::array<std::array<float, 256>, 96> myaggcorr{};
+  std::for_each(myaggcorr.begin(), myaggcorr.end(), [](auto &row)
+                { row.fill(1.); });
 
   if (!incorrFile.empty())
   {
@@ -847,10 +892,11 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
       int ci = (int) myieta;
       int cj = (int) myiphi;
       myaggcorr.at(ci).at(cj) = myaggcv;
-      if (ij > ntCorrs - 2) {
+      if (ij > ntCorrs - 2)
+      {
         std::cout << "loaded corrs eta,phi,aggcv " << myieta
                   << " " << myiphi << " " << myaggcv << std::endl;
-}
+      }
     }
 
     infileNt->Close();
@@ -911,8 +957,7 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
       float fpkloc2 = f1[kj]->GetParameter(1);
 
       TGraphErrors *grtemp = new TGraphErrors();
-      std::string bkgNm = std::string("grBkgEta_phi_") + std::to_string(ieta)
-	+ std::string("_") + std::to_string(iphi);
+      std::string bkgNm = std::string("grBkgEta_phi_") + std::to_string(ieta) + std::string("_") + std::to_string(iphi);
 
       std::cout << " getting " << bkgNm << " mean was " << fpkloc2
                 << " " << pkloc << std::endl;
@@ -1008,9 +1053,10 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
 void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
 {
   std::cout << " Inside Fit_Histos_Eta_Phi." << std::endl;
- //  std::arrays have their indices backward, this is the old float myaggcorr[96][256];
-  std::array<std::array<float, 256>,96> myaggcorr{};
-  std::for_each(myaggcorr.begin(),myaggcorr.end(), [] (auto &row) {row.fill(1.);});
+  //  std::arrays have their indices backward, this is the old float myaggcorr[96][256];
+  std::array<std::array<float, 256>, 96> myaggcorr{};
+  std::for_each(myaggcorr.begin(), myaggcorr.end(), [](auto &row)
+                { row.fill(1.); });
 
   if (!incorrFile.empty())
   {
@@ -1036,10 +1082,11 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
       int ci = (int) myieta;
       int cj = (int) myiphi;
       myaggcorr.at(ci).at(cj) = myaggcv;
-      if (ij > ntCorrs - 2) {
+      if (ij > ntCorrs - 2)
+      {
         std::cout << "loaded corrs eta,phi,aggcv " << myieta
                   << " " << myiphi << " " << myaggcv << std::endl;
-}
+      }
     }
 
     infileNt->Close();
@@ -1071,8 +1118,10 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
   {
     for (int iphi = 0; iphi < 256; iphi++)
     {
-      if (ieta > 15 || iphi > 15) { continue;
-}
+      if (ieta > 15 || iphi > 15)
+      {
+        continue;
+      }
 
       // for(int ithirds=0; ithirds<3; ithirds++)
       //{
@@ -1103,8 +1152,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
       float fpkloc2 = f1[kj]->GetParameter(1);
 
       TGraphErrors *grtemp = new TGraphErrors();
-      std::string bkgNm = std::string("grBkgEta_phi_") + std::to_string(ieta)
-	+ std::string("_") + std::to_string(iphi);
+      std::string bkgNm = std::string("grBkgEta_phi_") + std::to_string(ieta) + std::string("_") + std::to_string(iphi);
 
       std::cout << " getting " << bkgNm << " mean was " << fpkloc2
                 << " " << pkloc << std::endl;
@@ -1207,9 +1255,10 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
 {
   std::cout << " Inside Fit_Histos_Eta_Phi." << std::endl;
 
- //  std::arrays have their indices backward, this is the old float myaggcorr[96][256];
-  std::array<std::array<float, 256>,96> myaggcorr{};
-  std::for_each(myaggcorr.begin(),myaggcorr.end(), [] (auto &row) {row.fill(1.);});
+  //  std::arrays have their indices backward, this is the old float myaggcorr[96][256];
+  std::array<std::array<float, 256>, 96> myaggcorr{};
+  std::for_each(myaggcorr.begin(), myaggcorr.end(), [](auto &row)
+                { row.fill(1.); });
 
   if (!incorrFile.empty())
   {
@@ -1235,10 +1284,11 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
       int ci = (int) myieta;
       int cj = (int) myiphi;
       myaggcorr.at(ci).at(cj) = myaggcv;
-      if (ij > ntCorrs - 2) {
+      if (ij > ntCorrs - 2)
+      {
         std::cout << "loaded corrs eta,phi,aggcv " << myieta
                   << " " << myiphi << " " << myaggcv << std::endl;
-}
+      }
     }
 
     infileNt->Close();
@@ -1290,8 +1340,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
         float fpkloc2 = f1[kj]->GetParameter(1);
 
         TGraphErrors *grtemp = new TGraphErrors();
-      std::string bkgNm = std::string("grBkgEta_phi_") + std::to_string(ieta)
-	+ std::string("_") + std::to_string(iphi);
+        std::string bkgNm = std::string("grBkgEta_phi_") + std::to_string(ieta) + std::string("_") + std::to_string(iphi);
 
         std::cout << " getting " << bkgNm << " mean was " << fpkloc2
                   << " " << pkloc << std::endl;
@@ -1372,9 +1421,10 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
 // _______________________________________________________________..
 void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
 {
- //  std::arrays have their indices backward, this is the old float myaggcorr[96][260];
-  std::array<std::array<float, 260>,96> myaggcorr{};
-  std::for_each(myaggcorr.begin(),myaggcorr.end(), [] (auto &row) {row.fill(1.);});
+  //  std::arrays have their indices backward, this is the old float myaggcorr[96][260];
+  std::array<std::array<float, 260>, 96> myaggcorr{};
+  std::for_each(myaggcorr.begin(), myaggcorr.end(), [](auto &row)
+                { row.fill(1.); });
 
   if (!incorrFile.empty())
   {
@@ -1400,10 +1450,11 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
       int ci = (int) myieta;
       int cj = (int) myiphi;
       myaggcorr.at(ci).at(cj) = myaggcv;
-      if (ij > ntCorrs - 2) {
+      if (ij > ntCorrs - 2)
+      {
         std::cout << "loaded corrs eta,phi,aggcv " << myieta
                   << " " << myiphi << " " << myaggcv << std::endl;
-}
+      }
     }
 
     infileNt->Close();
@@ -1435,11 +1486,14 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
 
   for (int i = 0; i < 96; i++)
   {
-    if (eta_hist.at(i) == nullptr) {
+    if (eta_hist.at(i) == nullptr)
+    {
       continue;
-    } else if (eta_hist.at(i)->GetEntries() == 0) {
+    }
+    else if (eta_hist.at(i)->GetEntries() == 0)
+    {
       continue;
-}
+    }
 
     okHist[i] = 1;
 
@@ -1460,16 +1514,18 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
     f1[kj] = new TF1("f1", "gaus", 0.06, 0.20);  // pkloc-0.03, pkloc+0.03);
     f2[kj] = new TF1("f2", "pol2", 0.005, 0.5);
 
-    if (pkloc < 0.110 || pkloc > 0.2) {
+    if (pkloc < 0.110 || pkloc > 0.2)
+    {
       pkloc = 0.170;
-}
+    }
 
     eta_hist.at(i)->Fit(f1[kj], "", "", pkloc - 0.04, pkloc + 0.04);
     float fpkloc2 = f1[kj]->GetParameter(1);
 
-    if (fpkloc2 < 0.110 || fpkloc2 > 0.2) {
+    if (fpkloc2 < 0.110 || fpkloc2 > 0.2)
+    {
       fpkloc2 = 0.170;
-}
+    }
 
     TGraphErrors *grtemp = new TGraphErrors();
     std::string bkgNm = std::string("grBkgEta_") + std::to_string(i);
@@ -1489,9 +1545,10 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
         grtemp->SetPoint(ingr, binc, cntc);
         grtemp->SetPointError(ingr++, 0.001, sqrt(cntc));
       }
-      if (cntc && firstnonzbin < 0) {
+      if (cntc && firstnonzbin < 0)
+      {
         firstnonzbin = gj;
-}
+      }
     }
 
     grtemp->Fit(f2[kj]);
@@ -1521,9 +1578,10 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
     {
       eta_value[i] = i;
       eta_par1_value[i] = fit_fn[kj]->GetParameter(1);
-      if (!(eta_par1_value[i] > 0)) {
+      if (!(eta_par1_value[i] > 0))
+      {
         eta_par1_value[i] = 0.5;
-}
+      }
       eta_par1_error[i] = fit_fn[kj]->GetParError(1);
       eta_par2_value[i] = fit_fn[kj]->GetParameter(2);
       eta_par2_error[i] = fit_fn[kj]->GetParError(2);
@@ -1543,31 +1601,35 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
 
   for (int iijk = 0; iijk < 96; iijk++)
   {
-    if (okHist[iijk] == 0) {
+    if (okHist[iijk] == 0)
+    {
       continue;
-}
+    }
 
     float locavg = 0.01;
     if (kj2 < 6 && iijk < 88)
     {
       locavg = (eta_par1_value[iijk + 3] + eta_par1_value[iijk + 4] + eta_par1_value[iijk + 5] + eta_par1_value[iijk + 6] + eta_par1_value[iijk + 7]) / 5.0;
-      if (fabs(locavg - avgmean) > 0.2 * avgmean) {
+      if (fabs(locavg - avgmean) > 0.2 * avgmean)
+      {
         locavg = avgmean;
-}
+      }
     }
     else if (iijk > 90)
     {
       locavg = (eta_par1_value[iijk - 3] + eta_par1_value[iijk - 4] + eta_par1_value[iijk - 5] + eta_par1_value[iijk - 6] + eta_par1_value[iijk - 7]) / 5.0;
-      if (fabs(locavg - avgmean) > 0.2 * avgmean) {
+      if (fabs(locavg - avgmean) > 0.2 * avgmean)
+      {
         locavg = avgmean;
-}
+      }
     }
     else
     {
       locavg = (eta_par1_value[iijk - 3] + eta_par1_value[iijk - 2] + eta_par1_value[iijk - 1] + eta_par1_value[iijk + 1] + eta_par1_value[iijk + 2] + eta_par1_value[iijk + 3]) / 6.0;
-      if (fabs(locavg - avgmean) > 0.2 * avgmean) {
+      if (fabs(locavg - avgmean) > 0.2 * avgmean)
+      {
         locavg = avgmean;
-}
+      }
     }
 
     float thisfitp1 = 0;
@@ -1596,9 +1658,10 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
 
       eta_value[iijk] = iijk;
       eta_par1_value[iijk] = fit_fn[kj2]->GetParameter(1);
-      if (!(eta_par1_value[iijk] > 0)) {
+      if (!(eta_par1_value[iijk] > 0))
+      {
         eta_par1_value[iijk] = 0.5;
-}
+      }
       eta_par1_error[iijk] = fit_fn[kj2]->GetParError(1);
       eta_par2_value[iijk] = fit_fn[kj2]->GetParameter(2);
       eta_par2_error[iijk] = fit_fn[kj2]->GetParError(2);
@@ -1656,8 +1719,7 @@ void CaloCalibEmc_Pi0::Get_Histos(const std::string &infile, const std::string &
     // getting eta_phi towers
     for (int j = 0; j < 256; j++)
     {
-      std::string hist_name = std::string("emc_ieta") + std::to_string(i) 
-	+ std::string("_phi") + std::to_string(j);
+      std::string hist_name = std::string("emc_ieta") + std::to_string(i) + std::string("_phi") + std::to_string(j);
       TH1F *h_eta_phi_temp = (TH1F *) cal_output->Get(hist_name.c_str());
       cemc_hist_eta_phi.at(i).at(j) = h_eta_phi_temp;
     }

@@ -92,9 +92,9 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   int m_cent_nclus_cut{0};
 
   // histos lists
-//  std::arrays have their indices backward, this is the old TH1 *cemc_hist_eta_phi[96][258]; 
-  std::array<std::array<TH1 *,258>, 96> cemc_hist_eta_phi{}; // initialized in ctor
-  std::array<TH1 *,96> eta_hist{}; // initialized in ctor
+  //  std::arrays have their indices backward, this is the old TH1 *cemc_hist_eta_phi[96][258];
+  std::array<std::array<TH1 *, 258>, 96> cemc_hist_eta_phi{};
+  std::array<TH1 *, 96> eta_hist{};
   TH2F *mass_eta{nullptr};
   TH3F *mass_eta_phi{nullptr};
   TH1F *h_totalClusters{nullptr};
@@ -104,21 +104,21 @@ class CaloCalibEmc_Pi0 : public SubsysReco
 
   TTree *_eventTree{nullptr};
   // TTree variables
-  int _eventNumber {-1};
-  int _nClusters {-1};
-  float _clusterIDs[10000] {0};
-  float _clusterEnergies[10000] {0};
-  float _clusterPts[10000] {0};
-  float _clusterEtas[10000] {0};
-  float _clusterPhis[10000] {0};
+  int _eventNumber{-1};
+  int _nClusters{-1};
+  float _clusterIDs[10000]{0};
+  float _clusterEnergies[10000]{0};
+  float _clusterPts[10000]{0};
+  float _clusterEtas[10000]{0};
+  float _clusterPhis[10000]{0};
 
-  int maxTowerEta {-1};
-  int maxTowerPhi {-1};
+  int maxTowerEta{-1};
+  int maxTowerPhi{-1};
 
-  int _maxTowerEtas[10000] {0};
-  int _maxTowerPhis[10000] {0};
+  int _maxTowerEtas[10000]{0};
+  int _maxTowerPhis[10000]{0};
 
-  float alphaCut {-1.};
+  float alphaCut{-1.};
   // TNtuple -> to store fit parameters
 
   /* TNtuple *nt_corrVals; */
@@ -127,9 +127,9 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   /* float fit_value_mean; */
   /* float corr_val; */
 
-  TFile *f_temp {nullptr};
+  TFile *f_temp{nullptr};
 
-  int m_UseTowerInfo {0};  // 0 only old tower, 1 only new (TowerInfo based),
+  int m_UseTowerInfo{0};  // 0 only old tower, 1 only new (TowerInfo based),
 };
 
 #endif  //   CALOCALIBEMC_PI0_H
