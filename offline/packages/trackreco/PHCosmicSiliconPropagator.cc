@@ -141,28 +141,20 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
                                                    _cluster_map,
                                                    newClusPosxy,
                                                    newClusKeysxy,
-                                                   0, 58);
+                                                   0, 56);
 
       int nrzClusters = TrackFitUtils::addClustersOnLine(rzLineParams,
-                                                         true,
-                                                         _dca_xy_cut,
+                                                         false,
+                                                         _dca_z_cut,
                                                          _tgeometry,
                                                          _cluster_map,
                                                          newClusPosrz,
                                                          newClusKeysrz,
-                                                         0, 58);
-      if (Verbosity() > 3)
-      {
-        std::cout << "nxy clusters " << nClusters << " and nrz clusters " << nrzClusters << std::endl;
-        for (auto& xyclus : newClusKeysxy) std::cout << xyclus << ", ";
-        std::cout << " and rz cluskeys are " << std::endl;
-        for (auto& rzclus : newClusKeysrz) std::cout << rzclus << ", ";
-        std::cout << std::endl;
-      }
+                                                         0, 56);
+  
       std::set_intersection(newClusKeysxy.begin(), newClusKeysxy.end(),
                             newClusKeysrz.begin(), newClusKeysrz.end(), std::back_inserter(newClusKeys));
-      for (auto& key : newClusKeys)
-        std::cout << "cluskey " << key << std::endl;
+   
     }
     else
     {
