@@ -11,7 +11,6 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64 \
-  -lHepMC \
   -lCLHEP \
   -lglobalvertex_io \
   -lcalo_io \

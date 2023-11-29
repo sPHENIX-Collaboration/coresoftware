@@ -900,8 +900,7 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
 		}
   }
 
-  std::string inF = incorrFile;
-  if (!(inF == ""))
+  if (!incorrFile.empty())
   {
 
     TFile * infileNt = new TFile(incorrFile.c_str());
