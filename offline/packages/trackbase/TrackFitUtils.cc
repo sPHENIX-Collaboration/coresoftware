@@ -220,6 +220,129 @@ TrackFitUtils::circle_circle_intersection_output_t TrackFitUtils::circle_circle_
   return std::make_tuple(xplus, yplus, xminus, yminus);
 }
 
+unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& fitpars,
+                                              const bool& isXY,
+                                              const double& dca_cut,
+                                              ActsGeometry* tGeometry,
+                                              TrkrClusterContainer* clusterContainer,
+                                              std::vector<Acts::Vector3>& global_vec,
+                                              std::vector<TrkrDefs::cluskey>& cluskey_vec,
+                                              const unsigned int& startLayer,
+                                              const unsigned int& endLayer)
+{
+  float slope = std::get<0>(fitpars);
+  float intercept = std::get<1>(fitpars);
+  int nclusters = 0;
+  std::vector<float> best_layer_dcax;
+  std::vector<float> best_layer_dcay;
+  best_layer_dcax.assign(endLayer + 1, 999.0);
+  best_layer_dcay.assign(endLayer + 1, 999.);
+  std::vector<TrkrDefs::cluskey> best_layer_cluskey;
+  best_layer_cluskey.assign(endLayer + 1, 0);
+  std::set<TrkrDefs::TrkrId> detectors = {TrkrDefs::TrkrId::mvtxId,
+                                          TrkrDefs::TrkrId::inttId,
+                                          TrkrDefs::TrkrId::tpcId,
+                                          TrkrDefs::TrkrId::micromegasId};
+
+  if (startLayer > 2)
+  {
+    detectors.erase(TrkrDefs::TrkrId::mvtxId);
+    if (startLayer > 6)
+    {
+      detectors.erase(TrkrDefs::TrkrId::inttId);
+      if (startLayer > 54)
+      {
+        detectors.erase(TrkrDefs::TrkrId::tpcId);
+      }
+    }
+  }
+  if (endLayer < 56)
+  {
+    detectors.erase(TrkrDefs::TrkrId::micromegasId);
+    if (endLayer < 7)
+    {
+      detectors.erase(TrkrDefs::TrkrId::tpcId);
+      if (endLayer < 3)
+      {
+        detectors.erase(TrkrDefs::TrkrId::inttId);
+      }
+    }
+  }
+  for (const auto& det : detectors)
+  {
+    for (const auto& hitsetkey : clusterContainer->getHitSetKeys(det))
+    {
+      if (TrkrDefs::getLayer(hitsetkey) < startLayer ||
+          TrkrDefs::getLayer(hitsetkey) > endLayer)
+      {
+        continue;
+      }
+
+      auto range = clusterContainer->getClusters(hitsetkey);
+      for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
+      {
+        TrkrDefs::cluskey cluskey = clusIter->first;
+        unsigned int layer = TrkrDefs::getLayer(cluskey);
+
+        TrkrCluster* cluster = clusIter->second;
+
+        auto global = tGeometry->getGlobalPosition(cluskey, cluster);
+        float x, y;
+        if (isXY)
+        {
+          x = global.x();
+          y = global.y();
+        }
+        else
+        {
+          //! use r-z
+          x = std::sqrt(square(global.x()) + square(global.y()));
+          y = global.z();
+        }
+
+        //! Need to find the point on the line closest to the cluster position
+        //! The line connecting the cluster and the line is necessarily
+        //! perpendicular, so it has the opposite and reciprocal slope
+        //! The cluster is on the line so we use it to find the intercept
+        float perpSlope = -1 / slope;
+        float perpIntercept = y - perpSlope * x;
+
+        //! Now we have two lines, so solve the system of eqns to get the intersection
+        float dcax = (perpIntercept - intercept) / (slope - perpSlope);
+        float dcay = slope * dcax + intercept;
+        std::cout << "line slope and intercept "
+                  << slope << ", " << intercept << std::endl
+                  << "perpendicular line slope and interept " << perpSlope << ", " << perpIntercept
+                  << " where y and x are " << x << ", " << y << std::endl
+                  << " and final dcax and y are " << dcax << ", " << dcay << std::endl;
+        if (dcax < best_layer_dcax[layer] && dcay < best_layer_dcay[layer])
+        {
+          best_layer_dcax[layer] = dcax;
+          best_layer_dcay[layer] = dcay;
+          best_layer_cluskey[layer] = cluskey;
+        }
+      }
+    }
+  }
+
+  for (unsigned int layer = startLayer; layer <= endLayer; ++layer)
+  {
+    std::cout << "for layer " << layer << std::endl;
+    if (best_layer_dcax[layer] < dca_cut && best_layer_dcay[layer] < dca_cut)
+    {
+      std::cout << "dcas " << best_layer_dcax[layer] << ", " << best_layer_dcay[layer]
+                << std::endl;
+      cluskey_vec.push_back(best_layer_cluskey[layer]);
+      auto clus = clusterContainer->findCluster(best_layer_cluskey[layer]);
+      auto global = tGeometry->getGlobalPosition(best_layer_cluskey[layer], clus);
+      global_vec.push_back(global);
+      nclusters++;
+    }
+  }
+
+  return nclusters;
+}
+
 //_________________________________________________________________________________
 unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
                                         double dca_cut,
