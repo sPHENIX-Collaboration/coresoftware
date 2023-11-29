@@ -17,6 +17,7 @@ class TrackSeedContainer_v1 : public TrackSeedContainer
   ~TrackSeedContainer_v1() override;
 
   void identify(std::ostream& os = std::cout) const override;
+  // cppcheck-suppress virtualCallInConstructor
   void Reset() override;
   int isValid() const override { return 1; }
   PHObject* CloneMe() const override { return new TrackSeedContainer_v1(*this); }

@@ -18,6 +18,7 @@ class AssocInfoContainerv1 : public AssocInfoContainer
   AssocInfoContainerv1();
   ~AssocInfoContainerv1() override;
 
+  // cppcheck-suppress virtualCallInConstructor
   void Reset() override;
   void identify(std::ostream& os = std::cout) const override;
 

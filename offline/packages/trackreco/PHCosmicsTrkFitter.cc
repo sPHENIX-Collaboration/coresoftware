@@ -846,8 +846,10 @@ Acts::BoundSquareMatrix PHCosmicsTrkFitter::setDefaultCovariance() const
   /// but if it is too tight, it will just "believe" the track seed over
   /// the hit data
 
+  // cppcheck-suppress duplicateAssignExpression
   double sigmaD0 = 300 * Acts::UnitConstants::um;
   double sigmaZ0 = 300 * Acts::UnitConstants::um;
+  // cppcheck-suppress duplicateAssignExpression
   double sigmaPhi = 1 * Acts::UnitConstants::degree;
   double sigmaTheta = 1 * Acts::UnitConstants::degree;
   double sigmaT = 1. * Acts::UnitConstants::ns;

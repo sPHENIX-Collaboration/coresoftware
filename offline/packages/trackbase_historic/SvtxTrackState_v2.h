@@ -51,6 +51,7 @@ class SvtxTrackState_v2 : public SvtxTrackState
   float get_phi() const override { return atan2(get_py(), get_px()); }
 
   float get_error(unsigned int i, unsigned int j) const override;
+  // cppcheck-suppress virtualCallInConstructor
   void set_error(unsigned int i, unsigned int j, float value) override;
 
   TrkrDefs::cluskey get_cluskey() const override { return _ckey; }
