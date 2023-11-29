@@ -171,7 +171,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
     clusnodename = _inputnodename;
  
   // create a cluster object
-  RawClusterContainer *recal_clusters = findNode::getClass<RawClusterContainer>(topNode,clusnodename.c_str());
+  RawClusterContainer *recal_clusters = findNode::getClass<RawClusterContainer>(topNode,clusnodename);
 
 
   if (!recal_clusters)
@@ -189,7 +189,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 
   // create a tower geometry object
   std::string towergeomnode = "TOWERGEOM_" + _caloname;
-  RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnode.c_str());
+  RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnode);
   if (!towergeom && m_UseTowerInfo < 1)
   {
     std::cout << PHWHERE << ": Could not find node " << towergeomnode << std::endl;
@@ -450,7 +450,7 @@ int CaloCalibEmc_Pi0::End(PHCompositeNode * topNode)
 
 
 //______________________________________________________________________________..
-void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree * intree, const char * incorrFile)
+void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree * intree, const  std::string &incorrFile)
 {
 
   // KINEMATIC CUTS ON PI0's ARE LISTED BELOW IN ONE SECTION OF COMMENTS
@@ -473,10 +473,9 @@ void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree * intree, const 
 
   std::cout << "running w/ corr file? : " << incorrFile << std::endl;  
 
-  std::string inF = incorrFile;
-  if (!(inF == ""))
+  if (!incorrFile.empty())
   {
-		TFile * infileNt = new TFile(incorrFile);
+    TFile * infileNt = new TFile(incorrFile.c_str());
 		std::cout << "loaded incorrFile " << infileNt << std::endl;
 
 		float myieta;
@@ -714,7 +713,7 @@ void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree * intree, const 
 
 //__________oo00oo__________oo00oo_________________
 //This one is for etaslices
-void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, TString _filename, TTree * intree, const char * incorrFile)
+void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, TString _filename, TTree * intree, const std::string &incorrFile)
 {
 
   float myaggcorr[96][260];
@@ -728,10 +727,9 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, TString _filename, TTree *
 
   std::cout << "running w/ corr file? : " << incorrFile << std::endl;  
 
-  std::string inF = incorrFile;
-  if (!(inF == ""))
+  if (!incorrFile.empty())
   {
-		TFile * infileNt = new TFile(incorrFile);
+    TFile * infileNt = new TFile(incorrFile.c_str());
 		std::cout << "loaded incorrFile " << infileNt << std::endl;
 
 		float myieta;
@@ -888,7 +886,7 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, TString _filename, TTree *
 
 
 // _______________________________________________________________..
-void CaloCalibEmc_Pi0::Fit_Histos(const char * incorrFile)
+void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
 {
 
 	std::cout << " Inside Fit_Histos_Eta_Phi." << std::endl;
@@ -906,7 +904,7 @@ void CaloCalibEmc_Pi0::Fit_Histos(const char * incorrFile)
   if (!(inF == ""))
   {
 
-    TFile * infileNt = new TFile(incorrFile);
+    TFile * infileNt = new TFile(incorrFile.c_str());
       
     float myieta;
     float myiphi;
@@ -1099,7 +1097,7 @@ void CaloCalibEmc_Pi0::Fit_Histos(const char * incorrFile)
 
 
 // _______________________________________________________________..
-void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const char * incorrFile)
+void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
 {
 	std::cout << " Inside Fit_Histos_Eta_Phi." << std::endl;
 
@@ -1112,11 +1110,10 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const char * incorrFile)
 		}
   }
 
-  std::string inF = incorrFile;
-  if (!(inF == ""))
+  if (!incorrFile.empty())
   {
 
-    TFile * infileNt = new TFile(incorrFile);
+    TFile * infileNt = new TFile(incorrFile.c_str());
       
     float myieta;
     float myiphi;
@@ -1310,7 +1307,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const char * incorrFile)
 
 
 // _______________________________________________________________..
-void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const char * incorrFile)
+void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
 {
 	std::cout << " Inside Fit_Histos_Eta_Phi." << std::endl;
 
@@ -1323,10 +1320,9 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const char * incorrFile)
 		}
   }
 
-  std::string inF = incorrFile;
-  if (!(inF == ""))
+  if (!incorrFile.empty())
   {
-    TFile * infileNt = new TFile(incorrFile);
+    TFile * infileNt = new TFile(incorrFile.c_str());
       
     float myieta;
     float myiphi;
@@ -1492,7 +1488,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const char * incorrFile)
 
 
 // _______________________________________________________________..
-void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const char * incorrFile)
+void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
 {
   float myaggcorr[96][260];
   for (int cci = 0; cci < 96; cci++)
@@ -1503,11 +1499,10 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const char * incorrFile)
 		}
   }
 
-  std::string inF = incorrFile;
-  if (!(inF == ""))
+  if (!incorrFile.empty())
   {
 
-    TFile * infileNt = new TFile(incorrFile);
+    TFile * infileNt = new TFile(incorrFile.c_str());
       
     float myieta;
     float myiphi;
@@ -1781,14 +1776,14 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const char * incorrFile)
 }
 
 //_________________________________________________________________________..
-void CaloCalibEmc_Pi0::Get_Histos(const char* infile, const char * outfile)
+void CaloCalibEmc_Pi0::Get_Histos(const std::string &infile, const std::string &outfile)
 {
 
-  TString ts= "cp -rp ";
+  std::string ts = "cp -rp ";
   ts += infile;  ts +=  " " ; ts+=outfile;
-  gSystem->Exec(ts.Data());
+  gSystem->Exec(ts.c_str());
   
-  cal_output= new TFile(outfile,"UPDATE"); 
+  cal_output= new TFile(outfile.c_str(),"UPDATE"); 
   // load the file from the fun4all 1st run
 
   for (int i=0; i<96; i++)

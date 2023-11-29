@@ -24,7 +24,7 @@ class CaloCalibEmc_Pi0 : public SubsysReco
  public:
   CaloCalibEmc_Pi0(const std::string &name = "CaloCalibEmc_Pi0", const std::string &fnm = "outJF");
 
-  virtual ~CaloCalibEmc_Pi0() {}
+  ~CaloCalibEmc_Pi0() override = default;
 
   /** Called for first event when run number is known.
       Typically this is where you may want to fetch data from
@@ -41,13 +41,13 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
 
- void Loop(int nevts, TString _filename, TTree * intree = 0, const char * ifileCorr = "");
- void Loop_for_eta_slices(int nevts, TString _filename, TTree * intree = 0, const char * ifileCorr = "");
+  void Loop(int nevts, TString _filename, TTree * intree = 0, const std::string &ifileCorr = "");
+ void Loop_for_eta_slices(int nevts, TString _filename, TTree * intree = 0, const std::string &ifileCorr = "");
 
-  void Fit_Histos_Etas96(const char * infilent = "");
-  void Fit_Histos(const char * infilent = "");
-  void Fit_Histos_Eta_Phi_Add96(const char *infilent="");
-  void Fit_Histos_Eta_Phi_Add32(const char *infilent="");
+  void Fit_Histos_Etas96(const std::string &infilent);
+  void Fit_Histos(const std::string &infilent);
+  void Fit_Histos_Eta_Phi_Add96(const std::string &infilent);
+  void Fit_Histos_Eta_Phi_Add32(const std::string &infilent);
   
   void set_centrality_nclusters_cut(int n){m_cent_nclus_cut=n;}
 
@@ -55,7 +55,7 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   void Add_32();
   void Add_96();
   
-  void Get_Histos(const char * infile, const char * outfile);
+  void Get_Histos(const std::string &infile, const std::string &outfile);
 
 
   void set_UseTowerInfo(const int useMode)
@@ -63,12 +63,12 @@ class CaloCalibEmc_Pi0 : public SubsysReco
     m_UseTowerInfo = useMode;
   }
 
-  void setInputClusterNodeName(const char * inpNodenm)
+  void setInputClusterNodeName(const std::string &inpNodenm)
   {
     _inputnodename = inpNodenm;
   }
 
-  void setInputTowerNodeName(const char * inpNodenm)
+  void setInputTowerNodeName(const std::string &inpNodenm)
   {
     _inputtownodename = inpNodenm;
   }
@@ -83,18 +83,18 @@ class CaloCalibEmc_Pi0 : public SubsysReco
  private:
 
   //  float setMassVal = 0.135;
-  float _setMassVal = 0.152;  
+  float _setMassVal {0.152};  
   // currently defaulting to 0.152 to match sim
 
-  int m_ievent = 0;
+  int m_ievent {0};
   std::string m_Filename;
-  TFile *cal_output = nullptr;
-  std::string _caloname = "CEMC";
+  TFile *cal_output {nullptr};
+  std::string _caloname {"CEMC"};
   std::string _inputnodename;
   std::string _inputtownodename;
 
 
-  int m_cent_nclus_cut = 0;
+  int m_cent_nclus_cut {0};
 
   // histos lists
   TH1 *cemc_hist_eta_phi[96][258];
