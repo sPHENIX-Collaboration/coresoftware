@@ -70,23 +70,23 @@ class TrackFitUtils
   static circle_circle_intersection_output_t circle_circle_intersection(double r1, double r2, double x2, double y2);
 
   static unsigned int addClusters(std::vector<float>& fitpars,
-                                         double dca_cut,
-                                         ActsGeometry* _tGeometry,
-                                         TrkrClusterContainer* _cluster_map,
-                                         std::vector<Acts::Vector3>& global_vec,
-                                         std::vector<TrkrDefs::cluskey>& cluskey_vec,
-                                         unsigned int startLayer,
-                                         unsigned int endLayer);
+                                  double dca_cut,
+                                  ActsGeometry* _tGeometry,
+                                  TrkrClusterContainer* _cluster_map,
+                                  std::vector<Acts::Vector3>& global_vec,
+                                  std::vector<TrkrDefs::cluskey>& cluskey_vec,
+                                  unsigned int startLayer,
+                                  unsigned int endLayer);
 
   static unsigned int addClustersOnLine(TrackFitUtils::line_fit_output_t& fitpars,
-                                                const bool& isXY,
-                                                const double& dca_cut,
-                                                ActsGeometry* tGeometry,
-                                                TrkrClusterContainer* clusterContainer,
-                                                std::vector<Acts::Vector3>& global_vec,
-                                                std::vector<TrkrDefs::cluskey>& cluskey_vec,
-                                                const unsigned int& startLayer,
-                                                const unsigned int& endLayer);
+                                        const bool& isXY,
+                                        const double& dca_cut,
+                                        ActsGeometry* tGeometry,
+                                        TrkrClusterContainer* clusterContainer,
+                                        std::vector<Acts::Vector3>& global_vec,
+                                        std::vector<TrkrDefs::cluskey>& cluskey_vec,
+                                        const unsigned int& startLayer,
+                                        const unsigned int& endLayer);
 
   static std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global);
 

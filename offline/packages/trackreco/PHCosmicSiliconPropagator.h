@@ -38,7 +38,7 @@ class PHCosmicSiliconPropagator : public SubsysReco
   TrkrClusterContainer* _cluster_map = nullptr;
 
   float _dca_z_cut = 5.;
-  float _dca_xy_cut = 100.;
+  float _dca_xy_cut = 5.;
   bool m_zeroField = false;
   std::string _track_map_name = "SvtxTrackSeedContainer";
 };
