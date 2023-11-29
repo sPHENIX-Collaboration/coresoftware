@@ -93,8 +93,8 @@ class CaloCalibEmc_Pi0 : public SubsysReco
 
   // histos lists
 //  std::arrays have their indices backward, this is the old TH1 *cemc_hist_eta_phi[96][258]; 
-  std::array<std::array<TH1 *,258>, 96> cemc_hist_eta_phi; // initialized in ctor
-  std::array<TH1 *,96> eta_hist; // initialized in ctor
+  std::array<std::array<TH1 *,258>, 96> cemc_hist_eta_phi{}; // initialized in ctor
+  std::array<TH1 *,96> eta_hist{}; // initialized in ctor
   TH2F *mass_eta{nullptr};
   TH3F *mass_eta_phi{nullptr};
   TH1F *h_totalClusters{nullptr};
