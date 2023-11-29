@@ -41,25 +41,23 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
 
-  void Loop(int nevts, TString _filename, TTree * intree = 0, const std::string &ifileCorr = "");
- void Loop_for_eta_slices(int nevts, TString _filename, TTree * intree = 0, const std::string &ifileCorr = "");
+  void Loop(int nevts, TString _filename, TTree *intree = 0, const std::string &ifileCorr = "");
+  void Loop_for_eta_slices(int nevts, TString _filename, TTree *intree = 0, const std::string &ifileCorr = "");
 
   void Fit_Histos_Etas96(const std::string &infilent);
   void Fit_Histos(const std::string &infilent);
   void Fit_Histos_Eta_Phi_Add96(const std::string &infilent);
   void Fit_Histos_Eta_Phi_Add32(const std::string &infilent);
-  
-  void set_centrality_nclusters_cut(int n){m_cent_nclus_cut=n;}
 
-  
+  void set_centrality_nclusters_cut(int n) { m_cent_nclus_cut = n; }
+
   void Add_32();
   void Add_96();
-  
+
   void Get_Histos(const std::string &infile, const std::string &outfile);
 
-
   void set_UseTowerInfo(const int useMode)
-  {  // 0 only old tower, 1 only new (TowerInfo based), 
+  {  // 0 only old tower, 1 only new (TowerInfo based),
     m_UseTowerInfo = useMode;
   }
 
@@ -73,28 +71,24 @@ class CaloCalibEmc_Pi0 : public SubsysReco
     _inputtownodename = inpNodenm;
   }
 
-
   void set_calibSetMassVal(float insetval)
   {
     _setMassVal = insetval;
   }
 
-
  private:
-
   //  float setMassVal = 0.135;
-  float _setMassVal {0.152};  
+  float _setMassVal{0.152};
   // currently defaulting to 0.152 to match sim
 
-  int m_ievent {0};
+  int m_ievent{0};
   std::string m_Filename;
-  TFile *cal_output {nullptr};
-  std::string _caloname {"CEMC"};
+  TFile *cal_output{nullptr};
+  std::string _caloname{"CEMC"};
   std::string _inputnodename;
   std::string _inputtownodename;
 
-
-  int m_cent_nclus_cut {0};
+  int m_cent_nclus_cut{0};
 
   // histos lists
   TH1 *cemc_hist_eta_phi[96][258];
@@ -130,12 +124,10 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   /* TF1 *fit_result; */
   /* float fit_value_mean; */
   /* float corr_val; */
-  
-  TFile * f_temp;
-  
-  int m_UseTowerInfo = 0;  // 0 only old tower, 1 only new (TowerInfo based), 
-  
 
+  TFile *f_temp;
+
+  int m_UseTowerInfo = 0;  // 0 only old tower, 1 only new (TowerInfo based),
 };
 
 #endif  //   CALOCALIBEMC_PI0_H
