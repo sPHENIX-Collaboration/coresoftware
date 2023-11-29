@@ -43,47 +43,15 @@
 #include <utility>  // for pair
 #include <vector>   // for vector
 
-// using namespace std;
-
 //____________________________________________________________________________..
 CaloCalibEmc_Pi0::CaloCalibEmc_Pi0(const std::string &name, const std::string &filename)
   : SubsysReco(name)
-  , m_ievent(0)
   , m_Filename(filename)
-  , cal_output(0)
-  , _caloname("CEMC")
-  , mass_eta(0)
-  , mass_eta_phi(0)
-  , h_totalClusters(0)
-  , pt1_ptpi0_alpha(0)
-  , fitp1_eta_phi2d(0)
-  , pairInvMassTotal(0)
-  , _eventTree(0)
-  , _eventNumber(-1)
-  , _nClusters(-1)
-  , maxTowerEta(-1)
-  , maxTowerPhi(-1)
-  , alphaCut(-1.0)
-  // ,nt_corrVals(0)
-  // ,fit_func(0)
-  // ,fit_result(0)
-  // ,fit_value_mean(0)
-  // ,corr_val(0)
-  , f_temp(0)
+  , m_cent_nclus_cut(350)
 {
-  pairInvMassTotal = NULL;
-
-  for (int nj = 0; nj < 96; nj++)
-  {
-    eta_hist[nj] = nullptr;
-    for (int nk = 0; nk < 256; nk++)
-    {
-      cemc_hist_eta_phi[nj][nk] = nullptr;
-    }
-  }
-
-  m_cent_nclus_cut = 350;
-  _setMassVal = 0.152;
+  eta_hist.fill(nullptr);
+// the 2d filling took a bit of googling but it works:
+  std::for_each(cemc_hist_eta_phi.begin(),cemc_hist_eta_phi.end(), [] (auto &row) {row.fill(nullptr);});
 }
 
 //____________________________________________________________________________..
@@ -122,11 +90,9 @@ int CaloCalibEmc_Pi0::InitRun(PHCompositeNode *topNode)
   for (int i = 0; i < 96; i++)
   {
     gStyle->SetOptFit(1);
-    TString a;
-    a.Form("%d", i);
-    TString b = "eta_" + a;
+    std::string b = std::string("eta_") + std::to_string(i);
 
-    eta_hist[i] = new TH1F(b.Data(), "eta and all phi's", 130, 0.0, 1.3);
+    eta_hist.at(i) = new TH1F(b.c_str(), "eta and all phi's", 130, 0.0, 1.3);
   }
 
   if (topNode != 0)
@@ -163,7 +129,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
   _eventNumber = m_ievent++;
 
   std::string clusnodename = "CLUSTER_CEMC";
-  if (m_UseTowerInfo && _inputnodename != "")
+  if (m_UseTowerInfo && ! _inputnodename.empty())
     //    clusnodename = "CLUSTERINFO_CEMC";
     //    clusnodename = "CLUSTERINFO2_CEMC";
     clusnodename = _inputnodename;
@@ -178,7 +144,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 
   // create a tower object
   std::string towernode = "TOWER_CALIB_" + _caloname;
-  RawTowerContainer *_towers = findNode::getClass<RawTowerContainer>(topNode, towernode.c_str());
+  RawTowerContainer *_towers = findNode::getClass<RawTowerContainer>(topNode, towernode);
   if (!_towers && m_UseTowerInfo < 1)
   {
     std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
@@ -197,10 +163,10 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
   //  create a tower object
   //   towernode = "TOWERINFO_CALIB_" + _caloname;
   towernode = "TOWERS_Calib_" + _caloname;
-  if (_inputtownodename != "")
+  if (! _inputtownodename.empty())
     towernode = _inputtownodename;
 
-  TowerInfoContainer *_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towernode.c_str());
+  TowerInfoContainer *_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towernode);
   if (!_towerinfos && m_UseTowerInfo > 0)
   {
     std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
@@ -390,8 +356,8 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
               //  mass_eta_phi->Fill(pairInvMass, tt_clus_eta, tt_clus_phi);
 
               // fill the tower by tower histograms with invariant mass
-              cemc_hist_eta_phi[maxTowerEta][maxTowerPhi]->Fill(pairInvMass);
-              eta_hist[maxTowerEta]->Fill(pairInvMass);
+              cemc_hist_eta_phi.at(maxTowerEta).at(maxTowerPhi)->Fill(pairInvMass);
+              eta_hist.at(maxTowerEta)->Fill(pairInvMass);
             }
           }
         }
@@ -432,7 +398,7 @@ int CaloCalibEmc_Pi0::End(PHCompositeNode *topNode)
 }
 
 //______________________________________________________________________________..
-void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree *intree, const std::string &incorrFile)
+void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intree, const std::string &incorrFile)
 {
   // KINEMATIC CUTS ON PI0's ARE LISTED BELOW IN ONE SECTION OF COMMENTS
   //
@@ -443,14 +409,9 @@ void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree *intree, const s
   //  so they can't be moved here
   //
 
-  float myaggcorr[96][260];
-  for (int cci = 0; cci < 96; cci++)
-  {
-    for (int ccj = 0; ccj < 260; ccj++)
-    {
-      myaggcorr[cci][ccj] = 1.00000;
-    }
-  }
+ //  std::arrays have their indices backward, this is the old float myaggcorr[96][260];
+  std::array<std::array<float, 260>,96> myaggcorr;
+  std::for_each(myaggcorr.begin(),myaggcorr.end(), [] (auto &row) {row.fill(1.);});
 
   std::cout << "running w/ corr file? : " << incorrFile << std::endl;
 
@@ -478,7 +439,7 @@ void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree *intree, const s
       innt_corrVals->GetEntry(ij);
       int ci = (int) myieta;
       int cj = (int) myiphi;
-      myaggcorr[ci][cj] = myaggcv;
+      myaggcorr.at(ci).at(cj) = myaggcv;
       if (ij > ntCorrs - 2 || ij == ntCorrs / 2)
         std::cout << "loaded corrs eta,phi,aggcv " << myieta
                   << " " << myiphi << " " << myaggcv << std::endl;
@@ -493,7 +454,7 @@ void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree *intree, const s
   TTree *t1 = intree;
   if (!intree)
   {
-    TFile *f = new TFile(_filename);
+    TFile *f = new TFile(filename.c_str());
     t1 = (TTree *) f->Get("_eventTree");
   }
 
@@ -555,7 +516,7 @@ void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree *intree, const s
       // py  =  pt * sin(phi);
       // pz  =  pt * sinh(eta);
       // pt *= myaggcorr[
-      aggcv = myaggcorr[_maxTowerEtas[j]][_maxTowerPhis[j]];
+      aggcv = myaggcorr.at(_maxTowerEtas[j]).at(_maxTowerPhis[j]);
 
       // std::cout << "aggcv applied: " << aggcv << std::endl;
 
@@ -674,16 +635,11 @@ void CaloCalibEmc_Pi0::Loop(int nevts, TString _filename, TTree *intree, const s
 
 //__________oo00oo__________oo00oo_________________
 // This one is for etaslices
-void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, TString _filename, TTree *intree, const std::string &incorrFile)
+void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filename, TTree *intree, const std::string &incorrFile)
 {
-  float myaggcorr[96][260];
-  for (int cci = 0; cci < 96; cci++)
-  {
-    for (int ccj = 0; ccj < 260; ccj++)
-    {
-      myaggcorr[cci][ccj] = 1.00000;
-    }
-  }
+ //  std::arrays have their indices backward, this is the old float myaggcorr[96][260];
+  std::array<std::array<float, 260>,96> myaggcorr;
+  std::for_each(myaggcorr.begin(),myaggcorr.end(), [] (auto &row) {row.fill(1.);});
 
   std::cout << "running w/ corr file? : " << incorrFile << std::endl;
 
@@ -711,7 +667,7 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, TString _filename, TTree *
       innt_corrVals->GetEntry(ij);
       int ci = (int) myieta;
       int cj = (int) myiphi;
-      myaggcorr[ci][cj] = myaggcv;
+      myaggcorr.at(ci).at(cj) = myaggcv;
       if (ij > ntCorrs - 2)
         std::cout << "loaded corrs eta,phi,aggcv " << myieta
                   << " " << myiphi << " " << myaggcv << std::endl;
@@ -726,7 +682,7 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, TString _filename, TTree *
   TTree *t1 = intree;
   if (!intree)
   {
-    TFile *f = new TFile(_filename);
+    TFile *f = new TFile(filename.c_str());
     t1 = (TTree *) f->Get("_eventTree");
   }
 
@@ -773,7 +729,7 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, TString _filename, TTree *
       eta = _clusterEtas[j];
       phi = _clusterPhis[j];
       E = _clusterEnergies[j];
-      aggcv = myaggcorr[_maxTowerEtas[j]][_maxTowerPhis[j]];
+      aggcv = myaggcorr.at(_maxTowerEtas[j]).at(_maxTowerPhis[j]);
 
       pt *= aggcv;
       E *= aggcv;
@@ -827,9 +783,9 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, TString _filename, TTree *
         // fill the tower by tower histograms with invariant mass
         // we don't need to fill tower-by-tower level when we do for eta slices
         // although filling here just so we don't have to change codes in other places
-        cemc_hist_eta_phi[_maxTowerEtas[jCs]][_maxTowerPhis[jCs]]->Fill(pairInvMass);
-        eta_hist[_maxTowerEtas[jCs]]->Fill(pairInvMass);
-        // pt1_ptpi0_alpha->Fill(pho1->Pt(), pi0lv.Pt(), alphaCut);
+        cemc_hist_eta_phi.at(_maxTowerEtas[jCs]).at(_maxTowerPhis[jCs])->Fill(pairInvMass);
+	eta_hist.at(_maxTowerEtas[jCs])->Fill(pairInvMass);
+	// pt1_ptpi0_alpha->Fill(pho1->Pt(), pi0lv.Pt(), alphaCut);
       }
     }
   }
@@ -840,14 +796,9 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
 {
   std::cout << " Inside Fit_Histos_Eta_Phi." << std::endl;
 
-  float myaggcorr[96][256];
-  for (int cci = 0; cci < 96; cci++)
-  {
-    for (int ccj = 0; ccj < 256; ccj++)
-    {
-      myaggcorr[cci][ccj] = 1.00000;
-    }
-  }
+ //  std::arrays have their indices backward, this is the old float myaggcorr[96][256];
+  std::array<std::array<float, 256>,96> myaggcorr;
+  std::for_each(myaggcorr.begin(),myaggcorr.end(), [] (auto &row) {row.fill(1.);});
 
   if (!incorrFile.empty())
   {
@@ -872,7 +823,7 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
       innt_corrVals->GetEntry(ij);
       int ci = (int) myieta;
       int cj = (int) myiphi;
-      myaggcorr[ci][cj] = myaggcv;
+      myaggcorr.at(ci).at(cj) = myaggcv;
       if (ij > ntCorrs - 2)
         std::cout << "loaded corrs eta,phi,aggcv " << myieta
                   << " " << myiphi << " " << myaggcv << std::endl;
@@ -993,7 +944,7 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
         cemc_par1_errors[ieta][iphi] = -999.0;
       }
 
-      nt_corrVals->Fill(ieta, iphi, 0.135 / cemc_par1_values[ieta][iphi], 0.135 / cemc_par1_values[ieta][iphi] * myaggcorr[ieta][iphi]);
+      nt_corrVals->Fill(ieta, iphi, 0.135 / cemc_par1_values[ieta][iphi], 0.135 / cemc_par1_values[ieta][iphi] * myaggcorr.at(ieta).at(iphi));
       //}
 
       // cemc_p1_eta_phi->Fill(cemc_par1_values[ieta][iphi],ieta,iphi);
@@ -1033,15 +984,9 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
 void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
 {
   std::cout << " Inside Fit_Histos_Eta_Phi." << std::endl;
-
-  float myaggcorr[96][256];
-  for (int cci = 0; cci < 96; cci++)
-  {
-    for (int ccj = 0; ccj < 256; ccj++)
-    {
-      myaggcorr[cci][ccj] = 1.00000;
-    }
-  }
+ //  std::arrays have their indices backward, this is the old float myaggcorr[96][256];
+  std::array<std::array<float, 256>,96> myaggcorr;
+  std::for_each(myaggcorr.begin(),myaggcorr.end(), [] (auto &row) {row.fill(1.);});
 
   if (!incorrFile.empty())
   {
@@ -1066,7 +1011,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
       innt_corrVals->GetEntry(ij);
       int ci = (int) myieta;
       int cj = (int) myiphi;
-      myaggcorr[ci][cj] = myaggcv;
+      myaggcorr.at(ci).at(cj) = myaggcv;
       if (ij > ntCorrs - 2)
         std::cout << "loaded corrs eta,phi,aggcv " << myieta
                   << " " << myiphi << " " << myaggcv << std::endl;
@@ -1193,7 +1138,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
         {
           // if ((ipatt_eta>0) || (ipatt_phi>0))
           //{
-          nt_corrVals->Fill(ieta + ipatt_eta * 16, iphi + ipatt_phi * 16, 0.135 / cemc_par1_values[ieta][iphi], 0.135 / cemc_par1_values[ieta][iphi] * myaggcorr[ieta][iphi]);
+          nt_corrVals->Fill(ieta + ipatt_eta * 16, iphi + ipatt_phi * 16, 0.135 / cemc_par1_values[ieta][iphi], 0.135 / cemc_par1_values[ieta][iphi] * myaggcorr.at(ieta).at(iphi));
           //}
         }
       }
@@ -1236,14 +1181,9 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
 {
   std::cout << " Inside Fit_Histos_Eta_Phi." << std::endl;
 
-  float myaggcorr[96][256];
-  for (int cci = 0; cci < 96; cci++)
-  {
-    for (int ccj = 0; ccj < 256; ccj++)
-    {
-      myaggcorr[cci][ccj] = 1.00000;
-    }
-  }
+ //  std::arrays have their indices backward, this is the old float myaggcorr[96][256];
+  std::array<std::array<float, 256>,96> myaggcorr;
+  std::for_each(myaggcorr.begin(),myaggcorr.end(), [] (auto &row) {row.fill(1.);});
 
   if (!incorrFile.empty())
   {
@@ -1268,7 +1208,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
       innt_corrVals->GetEntry(ij);
       int ci = (int) myieta;
       int cj = (int) myiphi;
-      myaggcorr[ci][cj] = myaggcv;
+      myaggcorr.at(ci).at(cj) = myaggcv;
       if (ij > ntCorrs - 2)
         std::cout << "loaded corrs eta,phi,aggcv " << myieta
                   << " " << myiphi << " " << myaggcv << std::endl;
@@ -1384,7 +1324,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
           {
             // if ((ipatt_eta>0) || (ipatt_phi>0))
             //{
-            nt_corrVals->Fill(ieta + ipatt_eta * 16, iphi + ipatt_phi * 16, 0.135 / cemc_par1_values[ieta][iphi], 0.135 / cemc_par1_values[ieta][iphi] * myaggcorr[ieta][iphi]);
+            nt_corrVals->Fill(ieta + ipatt_eta * 16, iphi + ipatt_phi * 16, 0.135 / cemc_par1_values[ieta][iphi], 0.135 / cemc_par1_values[ieta][iphi] * myaggcorr.at(ieta).at(iphi));
             //}
           }
         }
@@ -1405,14 +1345,9 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
 // _______________________________________________________________..
 void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
 {
-  float myaggcorr[96][260];
-  for (int cci = 0; cci < 96; cci++)
-  {
-    for (int ccj = 0; ccj < 260; ccj++)
-    {
-      myaggcorr[cci][ccj] = 1.00000;
-    }
-  }
+ //  std::arrays have their indices backward, this is the old float myaggcorr[96][260];
+  std::array<std::array<float, 260>,96> myaggcorr;
+  std::for_each(myaggcorr.begin(),myaggcorr.end(), [] (auto &row) {row.fill(1.);});
 
   if (!incorrFile.empty())
   {
@@ -1437,7 +1372,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
       innt_corrVals->GetEntry(ij);
       int ci = (int) myieta;
       int cj = (int) myiphi;
-      myaggcorr[ci][cj] = myaggcv;
+      myaggcorr.at(ci).at(cj) = myaggcv;
       if (ij > ntCorrs - 2)
         std::cout << "loaded corrs eta,phi,aggcv " << myieta
                   << " " << myiphi << " " << myaggcv << std::endl;
@@ -1638,7 +1573,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
 
     for (int jj = 0; jj < 256; jj++)
     {
-      nt_corrVals->Fill(iijk, jj, _setMassVal / eta_par1_value[iijk], _setMassVal / eta_par1_value[iijk] * myaggcorr[iijk][jj]);
+      nt_corrVals->Fill(iijk, jj, _setMassVal / eta_par1_value[iijk], _setMassVal / eta_par1_value[iijk] * myaggcorr.at(iijk).at(jj));
     }
 
     // nt_corrVals->Fill(i,259,0.135/eta_par1_value[i],0.135/eta_par1_value[i]*myaggcorr[i][259]);
@@ -1678,23 +1613,18 @@ void CaloCalibEmc_Pi0::Get_Histos(const std::string &infile, const std::string &
   for (int i = 0; i < 96; i++)
   {
     // getting eta towers
-    TString a;
-    a.Form("%d", i);
-    TString b = "eta_" + a;
-    TH1F *heta_temp = (TH1F *) cal_output->Get(b.Data());
+    std::string b = std::string("eta_") + std::to_string(i);
+    TH1F *heta_temp = (TH1F *) cal_output->Get(b.c_str());
     eta_hist[i] = heta_temp;
 
-    std::cout << "got " << b.Data() << std::endl;
+    std::cout << "got " << b << std::endl;
 
     // getting eta_phi towers
     for (int j = 0; j < 256; j++)
     {
-      TString i1;
-      TString j1;
-      i1.Form("%d", i);
-      j1.Form("%d", j);
-      TString hist_name = "emc_ieta" + i1 + "_phi" + j1;
-      TH1F *h_eta_phi_temp = (TH1F *) cal_output->Get(hist_name.Data());
+      std::string hist_name = std::string("emc_ieta") + std::to_string(i) 
+	+ std::string("_phi") + std::to_string(j);
+      TH1F *h_eta_phi_temp = (TH1F *) cal_output->Get(hist_name.c_str());
       cemc_hist_eta_phi[i][j] = h_eta_phi_temp;
     }
   }
