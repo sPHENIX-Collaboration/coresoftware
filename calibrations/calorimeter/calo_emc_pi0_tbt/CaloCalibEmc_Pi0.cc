@@ -76,13 +76,10 @@ int CaloCalibEmc_Pi0::InitRun(PHCompositeNode *topNode)
   //  {
   //    for (int j = 0; j < 258; j++)  // phi columns
   //    {
-  //      TString i1;
-  //      TString j1;
-  //      i1.Form("%d", i);
-  //      j1.Form("%d", j);
-  //      TString hist_name = "emc_ieta" + i1 + "_phi" + j1;
+  //      std::string hist_name = std::string("emc_ieta") + std::tostring(i)
+  //          + std::string("_phi") + std::to_string(j);
 
-  //     cemc_hist_eta_phi[i][j] = new TH1F(hist_name.Data(), "Hist_ieta_phi_", 70, 0.0, 0.7);
+  //     cemc_hist_eta_phi[i][j] = new TH1F(hist_name.c_str()(), "Hist_ieta_phi_", 70, 0.0, 0.7);
   //   }
   // }
 
@@ -620,7 +617,7 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
           // fill the tower by tower histograms with invariant mass
           // cemc_hist_eta_phi[_maxTowerEtas[jCs]][_maxTowerPhis[jCs]]->Fill(pairInvMass);
           // not useful in summer 23 data
-          eta_hist[_maxTowerEtas[jCs]]->Fill(pairInvMass);
+          eta_hist.at(_maxTowerEtas[jCs])->Fill(pairInvMass);
           pt1_ptpi0_alpha->Fill(pho1->Pt(), pi0lv.Pt(), alphaCut);
           pairInvMassTotal->Fill(pairInvMass);
           mass_eta->Fill(pairInvMass, _clusterEtas[jCs]);
@@ -699,7 +696,7 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
 
   // pre-loop to save all the clusters LorentzVector
 
-  TLorentzVector *savClusLV[10000];
+  std::array<TLorentzVector *, 10000> savClusLV;
 
   //  int nEntries = (int) t1->GetEntriesFast();
   int nEntries = (int) t1->GetEntries();
@@ -734,15 +731,15 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
       pt *= aggcv;
       E *= aggcv;
 
-      savClusLV[j] = new TLorentzVector();
-      savClusLV[j]->SetPtEtaPhiE(pt, eta, phi, E);
+      savClusLV.at(j) = new TLorentzVector();
+      savClusLV.at(j)->SetPtEtaPhiE(pt, eta, phi, E);
     }
 
     TLorentzVector *pho1, *pho2;
     int iCs = nClusters;
     for (int jCs = 0; jCs < iCs; jCs++)
     {
-      pho1 = savClusLV[jCs];
+      pho1 = savClusLV.at(jCs);
 
       if (fabs(pho1->Pt()) < 1.0) continue;
 
@@ -751,7 +748,7 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
       {
         if (jCs == kCs) continue;
 
-        pho2 = savClusLV[kCs];
+        pho2 = savClusLV.at(kCs);
 
         if (fabs(pho2->Pt()) < 0.6) continue;
 
@@ -872,10 +869,10 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
       float bsavloc = 0.0;
       for (int kfi = 1; kfi < 20; kfi++)  // old kfi<25
       {
-        float locbv = cemc_hist_eta_phi[ieta][iphi]->GetBinContent(kfi);
+        float locbv = cemc_hist_eta_phi.at(ieta).at(iphi)->GetBinContent(kfi);
         if (locbv > bsavloc)
         {
-          pkloc = cemc_hist_eta_phi[ieta][iphi]->GetBinCenter(kfi);
+          pkloc = cemc_hist_eta_phi.at(ieta).at(iphi)->GetBinCenter(kfi);
           bsavloc = locbv;
         }
       }
@@ -883,22 +880,22 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
       f1[kj] = new TF1("f1", "gaus", 0.06, 0.20);  //"gaus",pkloc-0.03,pkloc+0.03
       f2[kj] = new TF1("f2", "pol2", 0.01, 0.4);
 
-      cemc_hist_eta_phi[ieta][iphi]->Fit(f1[kj], "", "", pkloc - 0.04, pkloc + 0.04);
+      cemc_hist_eta_phi.at(ieta).at(iphi)->Fit(f1[kj], "", "", pkloc - 0.04, pkloc + 0.04);
       float fpkloc2 = f1[kj]->GetParameter(1);
 
       TGraphErrors *grtemp = new TGraphErrors();
-      TString bkgNm;
-      bkgNm.Form("grBkgEta_phi_%d_%d", ieta, iphi);
+      std::string bkgNm = std::string("grBkgEta_phi_") + std::to_string(ieta)
+	+ std::string("_") + std::to_string(iphi);
 
-      std::cout << " getting " << bkgNm.Data() << " mean was " << fpkloc2
+      std::cout << " getting " << bkgNm << " mean was " << fpkloc2
                 << " " << pkloc << std::endl;
 
-      grtemp->SetName(bkgNm.Data());
+      grtemp->SetName(bkgNm.c_str());
       int ingr = 0;
-      for (int gj = 1; gj < cemc_hist_eta_phi[ieta][iphi]->GetNbinsX() + 1; gj++)
+      for (int gj = 1; gj < cemc_hist_eta_phi.at(ieta).at(iphi)->GetNbinsX() + 1; gj++)
       {
-        float binc = cemc_hist_eta_phi[ieta][iphi]->GetBinCenter(gj);
-        float cntc = cemc_hist_eta_phi[ieta][iphi]->GetBinContent(gj);
+        float binc = cemc_hist_eta_phi.at(ieta).at(iphi)->GetBinCenter(gj);
+        float cntc = cemc_hist_eta_phi.at(ieta).at(iphi)->GetBinContent(gj);
         if ((binc > 0.06 * fpkloc2 / 0.145 && binc < 0.09 * fpkloc2 / 0.145) || (binc > 0.22 * fpkloc2 / 0.145 && binc < 0.35 * fpkloc2 / 0.145))
         {
           grtemp->SetPoint(ingr, binc, cntc);
@@ -918,14 +915,14 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
       total[kj]->SetParameters(par);
       total[kj]->SetParLimits(2, 0.01, 0.027);
 
-      cemc_hist_eta_phi[ieta][iphi]->Fit(total[kj], "R");
-      fit_fn[kj] = cemc_hist_eta_phi[ieta][iphi]->GetFunction("total");
+      cemc_hist_eta_phi.at(ieta).at(iphi)->Fit(total[kj], "R");
+      fit_fn[kj] = cemc_hist_eta_phi.at(ieta).at(iphi)->GetFunction("total");
 
       grtemp->Write();
 
       if (fit_fn[kj])
       {
-        // cemc_hist_eta_phi[ieta][iphi] = i;
+        // cemc_hist_eta_phi.at(ieta).at(iphi) = i;
         cemc_par1_values[ieta][iphi] = fit_fn[kj]->GetParameter(1);
 
         //	if (!(cemc_par1_values[ieta][iphi]>0.0))
@@ -1062,10 +1059,10 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
       float bsavloc = 0.0;
       for (int kfi = 1; kfi < 20; kfi++)  // old kfi<25
       {
-        float locbv = cemc_hist_eta_phi[ieta][iphi]->GetBinContent(kfi);
+        float locbv = cemc_hist_eta_phi.at(ieta).at(iphi)->GetBinContent(kfi);
         if (locbv > bsavloc)
         {
-          pkloc = cemc_hist_eta_phi[ieta][iphi]->GetBinCenter(kfi);
+          pkloc = cemc_hist_eta_phi.at(ieta).at(iphi)->GetBinCenter(kfi);
           bsavloc = locbv;
         }
       }
@@ -1073,22 +1070,22 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
       f1[kj] = new TF1("f1", "gaus", 0.06, 0.20);  //"gaus",pkloc-0.03,pkloc+0.03
       f2[kj] = new TF1("f2", "pol2", 0.01, 0.4);
 
-      cemc_hist_eta_phi[ieta][iphi]->Fit(f1[kj], "", "", pkloc - 0.04, pkloc + 0.04);
+      cemc_hist_eta_phi.at(ieta).at(iphi)->Fit(f1[kj], "", "", pkloc - 0.04, pkloc + 0.04);
       float fpkloc2 = f1[kj]->GetParameter(1);
 
       TGraphErrors *grtemp = new TGraphErrors();
-      TString bkgNm;
-      bkgNm.Form("grBkgEta_phi_%d_%d", ieta, iphi);
+      std::string bkgNm = std::string("grBkgEta_phi_") + std::to_string(ieta)
+	+ std::string("_") + std::to_string(iphi);
 
-      std::cout << " getting " << bkgNm.Data() << " mean was " << fpkloc2
+      std::cout << " getting " << bkgNm << " mean was " << fpkloc2
                 << " " << pkloc << std::endl;
 
-      grtemp->SetName(bkgNm.Data());
+      grtemp->SetName(bkgNm.c_str());
       int ingr = 0;
-      for (int gj = 1; gj < cemc_hist_eta_phi[ieta][iphi]->GetNbinsX() + 1; gj++)
+      for (int gj = 1; gj < cemc_hist_eta_phi.at(ieta).at(iphi)->GetNbinsX() + 1; gj++)
       {
-        float binc = cemc_hist_eta_phi[ieta][iphi]->GetBinCenter(gj);
-        float cntc = cemc_hist_eta_phi[ieta][iphi]->GetBinContent(gj);
+        float binc = cemc_hist_eta_phi.at(ieta).at(iphi)->GetBinCenter(gj);
+        float cntc = cemc_hist_eta_phi.at(ieta).at(iphi)->GetBinContent(gj);
         if ((binc > 0.06 * fpkloc2 / 0.145 && binc < 0.09 * fpkloc2 / 0.145) || (binc > 0.22 * fpkloc2 / 0.145 && binc < 0.35 * fpkloc2 / 0.145))
         {
           grtemp->SetPoint(ingr, binc, cntc);
@@ -1108,14 +1105,14 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
       total[kj]->SetParameters(par);
       total[kj]->SetParLimits(2, 0.01, 0.027);
 
-      cemc_hist_eta_phi[ieta][iphi]->Fit(total[kj], "R");
-      fit_fn[kj] = cemc_hist_eta_phi[ieta][iphi]->GetFunction("total");
+      cemc_hist_eta_phi.at(ieta).at(iphi)->Fit(total[kj], "R");
+      fit_fn[kj] = cemc_hist_eta_phi.at(ieta).at(iphi)->GetFunction("total");
 
       grtemp->Write();
 
       if (fit_fn[kj])
       {
-        // cemc_hist_eta_phi[ieta][iphi] = i;
+        // cemc_hist_eta_phi.at(ieta).at(iphi) = i;
         cemc_par1_values[ieta][iphi] = fit_fn[kj]->GetParameter(1);
 
         //	if (!(cemc_par1_values[ieta][iphi]>0.0))
@@ -1248,10 +1245,10 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
         float bsavloc = 0.0;
         for (int kfi = 1; kfi < 25; kfi++)  // assuming pi0 peak within 25 bins and no other peak within
         {
-          float locbv = cemc_hist_eta_phi[ieta][iphi]->GetBinContent(kfi);
+          float locbv = cemc_hist_eta_phi.at(ieta).at(iphi)->GetBinContent(kfi);
           if (locbv > bsavloc)
           {
-            pkloc = cemc_hist_eta_phi[ieta][iphi]->GetBinCenter(kfi);
+            pkloc = cemc_hist_eta_phi.at(ieta).at(iphi)->GetBinCenter(kfi);
             bsavloc = locbv;
           }
         }
@@ -1259,22 +1256,22 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
         f1[kj] = new TF1("f1", "gaus", pkloc - 0.03, pkloc + 0.03);
         f2[kj] = new TF1("f2", "pol2", 0.01, 0.4);
 
-        cemc_hist_eta_phi[ieta][iphi]->Fit(f1[kj], "", "", pkloc - 0.04, pkloc + 0.04);
+        cemc_hist_eta_phi.at(ieta).at(iphi)->Fit(f1[kj], "", "", pkloc - 0.04, pkloc + 0.04);
         float fpkloc2 = f1[kj]->GetParameter(1);
 
         TGraphErrors *grtemp = new TGraphErrors();
-        TString bkgNm;
-        bkgNm.Form("grBkgEta_phi_%d_%d", ieta, iphi);
+      std::string bkgNm = std::string("grBkgEta_phi_") + std::to_string(ieta)
+	+ std::string("_") + std::to_string(iphi);
 
-        std::cout << " getting " << bkgNm.Data() << " mean was " << fpkloc2
+        std::cout << " getting " << bkgNm << " mean was " << fpkloc2
                   << " " << pkloc << std::endl;
 
-        grtemp->SetName(bkgNm.Data());
+        grtemp->SetName(bkgNm.c_str());
         int ingr = 0;
-        for (int gj = 1; gj < cemc_hist_eta_phi[ieta][iphi]->GetNbinsX() + 1; gj++)
+        for (int gj = 1; gj < cemc_hist_eta_phi.at(ieta).at(iphi)->GetNbinsX() + 1; gj++)
         {
-          float binc = cemc_hist_eta_phi[ieta][iphi]->GetBinCenter(gj);
-          float cntc = cemc_hist_eta_phi[ieta][iphi]->GetBinContent(gj);
+          float binc = cemc_hist_eta_phi.at(ieta).at(iphi)->GetBinCenter(gj);
+          float cntc = cemc_hist_eta_phi.at(ieta).at(iphi)->GetBinContent(gj);
           if ((binc > 0.06 * fpkloc2 / 0.145 && binc < 0.09 * fpkloc2 / 0.145) || (binc > 0.22 * fpkloc2 / 0.145 && binc < 0.35 * fpkloc2 / 0.145))
           {
             grtemp->SetPoint(ingr, binc, cntc);
@@ -1293,15 +1290,15 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
 
         total[kj]->SetParameters(par);
         total[kj]->SetParLimits(2, 0.01, 0.027);
-        cemc_hist_eta_phi[ieta][iphi]->Fit(total[kj], "R");
-        cemc_eta_phi_result = cemc_hist_eta_phi[ieta][iphi]->GetFunction("total");
+        cemc_hist_eta_phi.at(ieta).at(iphi)->Fit(total[kj], "R");
+        cemc_eta_phi_result = cemc_hist_eta_phi.at(ieta).at(iphi)->GetFunction("total");
         kj++;
 
         grtemp->Write();
 
         if (cemc_eta_phi_result)
         {
-          // cemc_hist_eta_phi[ieta][iphi] = i;
+          // cemc_hist_eta_phi.at(ieta).at(iphi) = i;
           cemc_par1_values[ieta][iphi] = cemc_eta_phi_result->GetParameter(1);
 
           //	if (!(cemc_par1_values[ieta][iphi]>0.0))
@@ -1407,9 +1404,9 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
 
   for (int i = 0; i < 96; i++)
   {
-    if (eta_hist[i] == NULL)
+    if (eta_hist.at(i) == NULL)
       continue;
-    else if (eta_hist[i]->GetEntries() == 0)
+    else if (eta_hist.at(i)->GetEntries() == 0)
       continue;
 
     okHist[i] = 1;
@@ -1420,10 +1417,10 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
 
     for (int kfi = 1; kfi < 30; kfi++)
     {
-      float locbv = eta_hist[i]->GetBinContent(kfi);
+      float locbv = eta_hist.at(i)->GetBinContent(kfi);
       if (locbv > bsavloc)
       {
-        pkloc = eta_hist[i]->GetBinCenter(kfi);
+        pkloc = eta_hist.at(i)->GetBinCenter(kfi);
         bsavloc = locbv;
       }
     }
@@ -1434,25 +1431,24 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
     if (pkloc < 0.110 || pkloc > 0.2)
       pkloc = 0.170;
 
-    eta_hist[i]->Fit(f1[kj], "", "", pkloc - 0.04, pkloc + 0.04);
+    eta_hist.at(i)->Fit(f1[kj], "", "", pkloc - 0.04, pkloc + 0.04);
     float fpkloc2 = f1[kj]->GetParameter(1);
 
     if (fpkloc2 < 0.110 || fpkloc2 > 0.2)
       fpkloc2 = 0.170;
 
     TGraphErrors *grtemp = new TGraphErrors();
-    TString bkgNm;
-    bkgNm.Form("grBkgEta_%d", i);
+    std::string bkgNm = std::string("grBkgEta_") + std::to_string(i);
 
-    std::cout << " getting " << bkgNm.Data() << "  mean was "
+    std::cout << " getting " << bkgNm << "  mean was "
               << fpkloc2 << " " << pkloc << std::endl;
-    grtemp->SetName(bkgNm.Data());
+    grtemp->SetName(bkgNm.c_str());
     int ingr = 0;
     int firstnonzbin = -1;
-    for (int gj = 1; gj < eta_hist[i]->GetNbinsX() + 1; gj++)
+    for (int gj = 1; gj < eta_hist.at(i)->GetNbinsX() + 1; gj++)
     {
-      float binc = eta_hist[i]->GetBinCenter(gj);
-      float cntc = eta_hist[i]->GetBinContent(gj);
+      float binc = eta_hist.at(i)->GetBinCenter(gj);
+      float cntc = eta_hist.at(i)->GetBinContent(gj);
       if (
           ((binc > 0.03 * fpkloc2 / 0.145 && binc < 0.09 * fpkloc2 / 0.145) || (binc > 0.265 * fpkloc2 / 0.145 && binc < 0.31 * fpkloc2 / 0.145)) && (cntc > 0 || firstnonzbin > 0))
       {
@@ -1474,15 +1470,15 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
 
     total[kj]->SetParameters(par);
     total[kj]->SetParLimits(2, 0.015, 0.037);
-    //    total[kj]->SetParLimits(0,0.01*eta_hist[i]->Integral(0,40),eta_hist[i]->Integral(0,40));
-    total[kj]->SetParLimits(0, 5.0, eta_hist[i]->Integral(0, 40));
+    //    total[kj]->SetParLimits(0,0.01*eta_hist.at(i)->Integral(0,40),eta_hist.at(i)->Integral(0,40));
+    total[kj]->SetParLimits(0, 5.0, eta_hist.at(i)->Integral(0, 40));
     total[kj]->SetParLimits(1, 0.08, 0.22);
     //    total[kj]->SetParLimits(3,0.01,0.027);
     //    total[kj]->SetParLimits(3,0.01,0.027);
 
-    eta_hist[i]->Fit(total[kj], "R");
+    eta_hist.at(i)->Fit(total[kj], "R");
 
-    fit_fn[kj] = eta_hist[i]->GetFunction("total");
+    fit_fn[kj] = eta_hist.at(i)->GetFunction("total");
 
     grtemp->Write();
 
@@ -1543,18 +1539,18 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
         std::cout << "redoing  fit for eta" << iijk << " " << fit_fn[kj2] << std::endl;
         fit_fn[kj2]->SetParameter(1, locavg);
         fit_fn[kj2]->FixParameter(1, locavg);
-        eta_hist[iijk]->Fit(fit_fn[kj2]);
+        eta_hist.at(iijk)->Fit(fit_fn[kj2]);
         fit_fn[kj2]->SetParLimits(1, locavg - 0.011, locavg + 0.011);
-        eta_hist[iijk]->Fit(fit_fn[kj2]);
+        eta_hist.at(iijk)->Fit(fit_fn[kj2]);
       }
       // if (iijk > 63 && iijk < 72)
       //   {
       //     std::cout << "redoing  fit for eta" <<  iijk << " " <<  fit_fn[kj2] << std::endl;
       //     fit_fn[kj2]->SetParameter(1,0.26);
       //     fit_fn[kj2]->FixParameter(1,0.26);
-      //     eta_hist[iijk]->Fit(fit_fn[kj2]);
+      //     eta_hist.at(iijk)->Fit(fit_fn[kj2]);
       //     //	      fit_fn[kj2]->SetParLimits(1,locavg - 0.011, locavg + 0.011);
-      //     //eta_hist[iijk]->Fit(fit_fn[kj2]);
+      //     //eta_hist.at(iijk)->Fit(fit_fn[kj2]);
 
       //   }
 
@@ -1601,10 +1597,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
 //_________________________________________________________________________..
 void CaloCalibEmc_Pi0::Get_Histos(const std::string &infile, const std::string &outfile)
 {
-  std::string ts = "cp -rp ";
-  ts += infile;
-  ts += " ";
-  ts += outfile;
+  std::string ts = "cp -rp " + infile + std::string(" ") + outfile;
   gSystem->Exec(ts.c_str());
 
   cal_output = new TFile(outfile.c_str(), "UPDATE");
@@ -1615,7 +1608,7 @@ void CaloCalibEmc_Pi0::Get_Histos(const std::string &infile, const std::string &
     // getting eta towers
     std::string b = std::string("eta_") + std::to_string(i);
     TH1F *heta_temp = (TH1F *) cal_output->Get(b.c_str());
-    eta_hist[i] = heta_temp;
+    eta_hist.at(i) = heta_temp;
 
     std::cout << "got " << b << std::endl;
 
@@ -1625,7 +1618,7 @@ void CaloCalibEmc_Pi0::Get_Histos(const std::string &infile, const std::string &
       std::string hist_name = std::string("emc_ieta") + std::to_string(i) 
 	+ std::string("_phi") + std::to_string(j);
       TH1F *h_eta_phi_temp = (TH1F *) cal_output->Get(hist_name.c_str());
-      cemc_hist_eta_phi[i][j] = h_eta_phi_temp;
+      cemc_hist_eta_phi.at(i).at(j) = h_eta_phi_temp;
     }
   }
   std::cout << "finished Loading histos" << std::endl;
@@ -1646,7 +1639,7 @@ void CaloCalibEmc_Pi0::Add_32()
           {
             if ((ipatt_eta > 0) || (ipatt_phi > 0))
             {
-              cemc_hist_eta_phi[ieta][iphi]->Add(cemc_hist_eta_phi[ieta + ipatt_eta * 16][iphi + ipatt_phi * 16]);
+              cemc_hist_eta_phi.at(ieta).at(iphi)->Add(cemc_hist_eta_phi.at(ieta + ipatt_eta * 16).at(iphi + ipatt_phi * 16));
             }
           }
         }
@@ -1669,7 +1662,7 @@ void CaloCalibEmc_Pi0::Add_96()
         {
           if ((ipatt_eta > 0) || (ipatt_phi > 0))
           {
-            cemc_hist_eta_phi[ieta][iphi]->Add(cemc_hist_eta_phi[ieta + ipatt_eta * 16][iphi + ipatt_phi * 16]);
+            cemc_hist_eta_phi.at(ieta).at(iphi)->Add(cemc_hist_eta_phi.at(ieta + ipatt_eta * 16).at(iphi + ipatt_phi * 16));
           }
         }
       }
