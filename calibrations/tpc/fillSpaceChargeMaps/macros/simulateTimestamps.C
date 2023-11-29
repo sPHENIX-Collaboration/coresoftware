@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libgslcblas.so)
 R__LOAD_LIBRARY(libgsl.so)
 

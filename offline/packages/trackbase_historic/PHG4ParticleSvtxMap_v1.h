@@ -16,6 +16,7 @@ class PHG4ParticleSvtxMap_v1 : public PHG4ParticleSvtxMap
   void identify(std::ostream& os = std::cout) const override;
   int isValid() const override { return 1; }
   PHObject* CloneMe() const override { return new PHG4ParticleSvtxMap_v1(*this); }
+  // cppcheck-suppress virtualCallInConstructor
   void Reset() override { clear(); m_processed = false; }
   bool empty() const override { return m_map.empty(); }
   std::size_t size() const override { return m_map.size(); }
