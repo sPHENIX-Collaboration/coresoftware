@@ -38,6 +38,7 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
   std::string GetString(const std::string &what) const override;
   SinglePrdfInput *AddPrdfInputList(const std::string &listfile);
   SinglePrdfInput *AddPrdfInputFile(const std::string &filename);
+  SinglePrdfInput *registerPrdfInput(SinglePrdfInput *prdfin);
   void AddPacket(const int evtno, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
   void UpdateDroppedPacket(const int packetid);

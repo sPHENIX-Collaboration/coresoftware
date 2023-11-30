@@ -385,6 +385,13 @@ SinglePrdfInput *Fun4AllPrdfInputPoolManager::AddPrdfInputList(const std::string
   return m_PrdfInputVector.back();
 }
 
+SinglePrdfInput *Fun4AllPrdfInputPoolManager::registerPrdfInput(SinglePrdfInput *prdfin)
+{
+  m_PrdfInputVector.push_back(prdfin);
+  return m_PrdfInputVector.back();
+}
+
+
 void Fun4AllPrdfInputPoolManager::AddPacket(const int evtno, Packet *p)
 {
   if (Verbosity() > 1)
