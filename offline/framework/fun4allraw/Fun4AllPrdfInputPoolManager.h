@@ -7,9 +7,9 @@
 
 #include <Event/phenixTypes.h>
 
-#include <utility>
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 class Event;
@@ -50,7 +50,7 @@ class Fun4AllPrdfInputPoolManager : public Fun4AllInputManager
   void DitchEvent(const int eventno);
   void Resynchronize();
   void ClearAllEvents();
-  void SetPoolDepth(unsigned int d) {m_PoolDepth = d;}
+  void SetPoolDepth(unsigned int d) { m_PoolDepth = d; }
 
  private:
   struct PacketInfo

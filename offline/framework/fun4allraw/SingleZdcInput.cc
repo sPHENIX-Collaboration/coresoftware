@@ -12,7 +12,7 @@
 #include <Event/fileEventiterator.h>
 
 SingleZdcInput::SingleZdcInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman)
-  : SinglePrdfInput(name,inman)
+  : SinglePrdfInput(name, inman)
 {
   plist = new Packet *[100];
   m_PacketEventNumberOffset = new int[100]{};
@@ -78,24 +78,23 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
     }
     for (int i = 0; i < npackets; i++)
     {
-      
       if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
       {
         int evtno = plist[i]->iValue(0, "EVTNR");
         unsigned int bclk = plist[i]->iValue(0, "CLOCK");
 
-	  bool useFEMInfo =  ((plist[i]->getIdentifier() / 1000 == 12) && evtno != ((EventSequence - 2)& 0xffff));  
+        bool useFEMInfo = ((plist[i]->getIdentifier() / 1000 == 12) && evtno != ((EventSequence - 2) & 0xffff));
 
-	if (useFEMInfo == true)
-	  {
-	    evtno = (( plist[i]->iValue(0, "FEMEVTNR")  - 1 ) & 0xffff); // hard coded since FEM event starts at 1 and packet event starts at 0
-	    bclk = (( plist[i]->iValue(0, "FEMCLOCK") + 30 ) & 0xffff); // hardcoded since level 1 delay for ZDC is 30 beam clocks.
-	  }
-	if (Verbosity() > 1)
-	  {
-	    std::cout << "packet " << plist[i]->getIdentifier() << " evt: " << evtno
-		      << std::hex << " clock: 0x" << bclk << std::dec << std::endl;
-	  }
+        if (useFEMInfo == true)
+        {
+          evtno = ((plist[i]->iValue(0, "FEMEVTNR") - 1) & 0xffff);  // hard coded since FEM event starts at 1 and packet event starts at 0
+          bclk = ((plist[i]->iValue(0, "FEMCLOCK") + 30) & 0xffff);  // hardcoded since level 1 delay for ZDC is 30 beam clocks.
+        }
+        if (Verbosity() > 1)
+        {
+          std::cout << "packet " << plist[i]->getIdentifier() << " evt: " << evtno
+                    << std::hex << " clock: 0x" << bclk << std::dec << std::endl;
+        }
         // dummy check for the first event which is the problem for the calorimeters
         // it is the last event from the previous run, so it's event number is > 0
         // if (evtno > EventSequence)
@@ -134,7 +133,7 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
     {
       if (m_EvtSet.size() == 1)
       {
-	if (Verbosity() > 1)
+        if (Verbosity() > 1)
         {
           std::cout << "we are good evtno: " << *(m_EvtSet.begin())
                     << ", clock: " << m_PacketMap.begin()->first << std::endl;
@@ -142,7 +141,7 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
       }
       else
       {
-	if (Verbosity() > 1)
+        if (Verbosity() > 1)
         {
           std::cout << "We have multiple event numbers for bclk: 0x" << std::hex
                     << m_PacketMap.begin()->first << std::dec << std::endl;
@@ -152,7 +151,7 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
           }
         }
         common_event_number = majority_eventnumber();
-	if (Verbosity() > 1)
+        if (Verbosity() > 1)
         {
           std::cout << "picked event no " << common_event_number << std::endl;
         }
@@ -182,7 +181,7 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
       }
       else
       {
-	if (Verbosity() > 1)
+        if (Verbosity() > 1)
         {
           std::cout << "We have multiple event numbers for bclk: 0x" << std::hex
                     << m_PacketMap.begin()->first << std::dec << std::endl;
@@ -192,7 +191,7 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
           }
         }
         common_event_number = majority_eventnumber();
-	if (Verbosity() > 1)
+        if (Verbosity() > 1)
         {
           std::cout << "picked event no " << common_event_number << std::endl;
         }

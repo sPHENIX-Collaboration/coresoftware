@@ -29,9 +29,10 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
   void AllDone(const int i) { m_AllDone = i; }
   void EventNumberOffset(const int i) { m_EventNumberOffset = i; }  // if beam clk are out of sync, tweak this one
   int EventNumberOffset() const { return m_EventNumberOffset; }
-  Fun4AllPrdfInputPoolManager *InputMgr() {return m_InputMgr;}
+  Fun4AllPrdfInputPoolManager *InputMgr() { return m_InputMgr; }
   void MakeReference(const bool b);
-  bool ReferenceFlag() const {return m_MeReferenceFlag;}
+  bool ReferenceFlag() const { return m_MeReferenceFlag; }
+
  private:
   int majority_eventnumber();
   int majority_beamclock();

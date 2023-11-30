@@ -31,11 +31,7 @@ class SingleZdcInput : public SinglePrdfInput
   };
   Packet **plist = nullptr;
   unsigned int m_NumSpecialEvents = 0;
-//  int m_EventNumberOffset = 1;               // packet event counters start at 0 but we start with event number 1
   int *m_PacketEventNumberOffset = nullptr;  // packet event counters start at 0 but we start with event number 1
-  /* int m_RunNumber = 0; */
-  /* int m_EventsThisFile = 0; */
-  /* int m_AllDone = 0; */
   std::map<int, std::vector<Packet *>> m_PacketMap;
   std::set<int> m_EvtSet;
   std::vector<std::pair<int, int>> m_Event;
