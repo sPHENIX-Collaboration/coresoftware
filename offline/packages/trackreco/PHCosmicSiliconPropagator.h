@@ -26,6 +26,7 @@ class PHCosmicSiliconPropagator : public SubsysReco
   void set_track_map_name(const std::string &name) { _track_map_name = name; }
   void set_dca_z_cut(float z) { _dca_z_cut = z; }
   void set_dca_xy_cut(float xy) { _dca_xy_cut = xy; }
+  void zero_field() { m_zeroField = true; }
 
  private:
   int createSeedContainer(TrackSeedContainer*& container, const std::string &container_name, PHCompositeNode* topNode);
@@ -37,7 +38,8 @@ class PHCosmicSiliconPropagator : public SubsysReco
   TrkrClusterContainer* _cluster_map = nullptr;
 
   float _dca_z_cut = 5.;
-  float _dca_xy_cut = 100.;
+  float _dca_xy_cut = 5.;
+  bool m_zeroField = false;
   std::string _track_map_name = "SvtxTrackSeedContainer";
 };
 
