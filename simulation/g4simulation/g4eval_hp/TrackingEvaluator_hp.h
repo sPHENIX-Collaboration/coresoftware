@@ -16,6 +16,7 @@
 
 class ActsGeometry;
 class CMFlashClusterContainer;
+class MicromegasRawHitContainer;
 class PHG4CylinderGeomContainer;
 class PHG4Hit;
 class PHG4HitContainer;
@@ -82,6 +83,9 @@ class TrackingEvaluator_hp : public SubsysReco
     //! number of clusters per layer / event
     unsigned int _nclusters[max_layer];
 
+    //! number of micromegas raw hits
+    unsigned int _nrawhits_micromegas = 0;
+
     //! number of clusters in the mvtx
     unsigned int _nclusters_mvtx = 0;
 
@@ -93,7 +97,7 @@ class TrackingEvaluator_hp : public SubsysReco
 
     //! number of clusters in the Micromegas
     unsigned int _nclusters_micromegas = 0;
-    
+
     //! number of g4hits in the mvtx
     unsigned int _ng4hits_mvtx = 0;
 
@@ -105,13 +109,13 @@ class TrackingEvaluator_hp : public SubsysReco
 
     //! number of g4hits in the Micromegas
     unsigned int _ng4hits_micromegas = 0;
-   
+
     //! number of central membrane clusters
     unsigned int _ncmclusters = 0;
-    
+
     //! gtm bco (real data only)
     uint64_t _gtm_bco = 0;
-    
+
   };
 
   // cluster information to be stored in tree
@@ -163,7 +167,7 @@ class TrackingEvaluator_hp : public SubsysReco
 
     // extrapolation distance
     float _trk_dr = 0;
-    
+
     //! track inclination at cluster in r,phi plane
     float _trk_alpha = 0;
 
@@ -318,8 +322,8 @@ class TrackingEvaluator_hp : public SubsysReco
     ClusterStruct::List _clusters;
 
   };
-  
-  
+
+
   // track information to be stored in tree
   class TrackStruct_small
   {
@@ -327,7 +331,7 @@ class TrackingEvaluator_hp : public SubsysReco
 
     // constructor
     explicit TrackStruct_small() = default;
- 
+
     int _charge = 0;
     unsigned int _nclusters = 0;
 
@@ -372,7 +376,7 @@ class TrackingEvaluator_hp : public SubsysReco
     float _eta = 0;
 
     std::array<TrackStruct_small,2> _tracks;
-    
+
     //@}
   };
 
@@ -403,9 +407,9 @@ class TrackingEvaluator_hp : public SubsysReco
     const ClusterStruct::List& clusters() const
     { return _clusters; }
 
-    const CMClusterStruct::List& cm_clusters() const 
+    const CMClusterStruct::List& cm_clusters() const
     { return _cm_clusters; }
-    
+
     const TrackStruct::List& tracks() const
     { return _tracks; }
 
@@ -425,7 +429,7 @@ class TrackingEvaluator_hp : public SubsysReco
 
     void addCMCluster( const CMClusterStruct& cluster )
     { _cm_clusters.push_back( cluster ); }
-    
+
     void addTrack( const TrackStruct& track )
     { _tracks.push_back( track ); }
 
@@ -459,7 +463,7 @@ class TrackingEvaluator_hp : public SubsysReco
 
     //! central membrane clustsrs
     CMClusterStruct::List _cm_clusters;
-    
+
     //! tracks array
     TrackStruct::List _tracks;
 
@@ -488,7 +492,7 @@ class TrackingEvaluator_hp : public SubsysReco
   //! tracl map name
   void set_trackmapname( const std::string& value )
   { m_trackmapname = value; }
-  
+
   //! utility functions
   static bool has_layer( int64_t mask, int layer )
   { return mask & (1LL<<layer); }
@@ -532,7 +536,7 @@ class TrackingEvaluator_hp : public SubsysReco
 
   //! evaluate cm clusters
   void evaluate_cm_clusters();
-  
+
   //! evaluate tracks
   void evaluate_tracks();
 
@@ -604,7 +608,7 @@ class TrackingEvaluator_hp : public SubsysReco
 
   // crossing z correction
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
-  
+
   // distortion corrections
   TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
   TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
@@ -612,10 +616,13 @@ class TrackingEvaluator_hp : public SubsysReco
 
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
-  
+
   //! GL1
   Gl1RawHit* m_gl1rawhit = nullptr;
-  
+
+  //! micromegas raw hits
+  MicromegasRawHitContainer* m_micromegas_rawhitcontainer = nullptr;
+
   //! hits
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;
 
@@ -633,7 +640,7 @@ class TrackingEvaluator_hp : public SubsysReco
 
   //! track map name
   std::string m_trackmapname = "SvtxTrackMap";
-  
+
   //! tracks
   SvtxTrackMap* m_track_map = nullptr;
 
@@ -653,7 +660,7 @@ class TrackingEvaluator_hp : public SubsysReco
 
   //! micromegas geometry
   PHG4CylinderGeomContainer* m_micromegas_geom_container = nullptr;
-  
+
   //! map cluster keys to g4hits
   using G4HitMap = std::map<TrkrDefs::cluskey,G4HitSet>;
   mutable G4HitMap m_g4hit_map;
@@ -662,10 +669,10 @@ class TrackingEvaluator_hp : public SubsysReco
   /** copied from SimEvaluator_hp */
   using G4ParticleMap = std::map<int,int64_t>;
   G4ParticleMap m_g4particle_map;
-  
+
   /// cluster error parametrisation
   ClusterErrorPara m_cluster_error_parametrization;
-  
+
 };
 
 #endif  // G4EVAL_TRACKINGEVALUATOR_HP_H

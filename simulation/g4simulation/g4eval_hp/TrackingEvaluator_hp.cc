@@ -1,6 +1,9 @@
 #include "TrackingEvaluator_hp.h"
 
 #include <ffarawobjects/Gl1RawHit.h>
+#include <ffarawobjects/MicromegasRawHit.h>
+#include <ffarawobjects/MicromegasRawHitContainer.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -169,7 +172,7 @@ namespace
 
     return ( alpha*r_extrap + beta )/denom;
   }
-  
+
   //! calculate the average of member function called on all members in collection
   template<double (interpolation_data_t::*accessor)() const>
   double average( const interpolation_data_t::list& hits )
@@ -207,17 +210,17 @@ namespace
       if( seed )
       { std::copy( seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter( out ) ); }
     }
-    
+
     return out;
   }
-    
+
   //! true if a track is a primary
   inline int is_primary( PHG4Particle* particle )
   { return particle->get_parent_id() == 0; }
 
   //! get mask from track clusters
   int64_t get_mask( SvtxTrack* track )
-  { 
+  {
     const auto cluster_keys = get_cluster_keys( track );
     return std::accumulate( cluster_keys.begin(), cluster_keys.end(), int64_t(0),
       []( int64_t value, const TrkrDefs::cluskey& key ) {
@@ -257,19 +260,19 @@ namespace
     trackStruct._pt = get_pt( trackStruct._px, trackStruct._py );
     trackStruct._eta = get_eta( trackStruct._p, trackStruct._pz );
   }
-  
+
   //! create central membrane cluster struct
   TrackingEvaluator_hp::CMClusterStruct create_cm_cluster( unsigned int /*key*/, CMFlashCluster* cluster )
-  {    
+  {
     TrackingEvaluator_hp::CMClusterStruct cm_cluster_struct;
     cm_cluster_struct._nclusters = cluster->getNclusters();
     cm_cluster_struct._x = cluster->getX();
     cm_cluster_struct._y = cluster->getY();
     cm_cluster_struct._z = cluster->getZ();
-    
+
     cm_cluster_struct._r = std::sqrt(square(cluster->getX()) + square(cluster->getY()));
     cm_cluster_struct._phi = std::atan2(cluster->getY(), cluster->getX());
-    
+
     return cm_cluster_struct;
   }
 
@@ -545,19 +548,21 @@ int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 
   // gl1 raw hit
   m_gl1rawhit = findNode::getClass<Gl1RawHit>(topNode,"GL1RAWHIT");
-  
+
   // track map
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, m_trackmapname);
+
+  // load raw hits container
+  m_micromegas_rawhitcontainer = findNode::getClass<MicromegasRawHitContainer>(topNode, "MICROMEGASRAWHIT");
 
   // cluster map
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
   if( !m_cluster_map )
   { m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER"); }
 
-  
   // central membrane clusters
   m_cm_cluster_map = findNode::getClass<CMFlashClusterContainer>(topNode, "CORRECTED_CM_CLUSTER" );
-  
+
   // cluster hit association map
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
 
@@ -606,15 +611,20 @@ void TrackingEvaluator_hp::evaluate_event()
 
   // create event struct
   EventStruct event;
+
   // GTM bco
-  if( m_gl1rawhit ) 
-  { 
-    event._gtm_bco = m_gl1rawhit->get_bco()&0xFFFFFFFFFF; 
-    std::cout << "TrackingEvaluator_hp::evaluate_event - bco: " 
+  if( m_gl1rawhit )
+  {
+    event._gtm_bco = m_gl1rawhit->get_bco()&0xFFFFFFFFFF;
+    std::cout << "TrackingEvaluator_hp::evaluate_event - bco: "
       // << "0x" << std::hex << event._gtm_bco << std::dec
       << event._gtm_bco
       << std::endl;
   }
+
+  // number of micromegas raw hits
+  if( m_micromegas_rawhitcontainer )
+  { event._nrawhits_micromegas = m_micromegas_rawhitcontainer->get_nhits(); }
 
   if( m_hitsetcontainer )
   {
@@ -679,7 +689,7 @@ void TrackingEvaluator_hp::evaluate_event()
     const auto range = m_cm_cluster_map->getClusters();
     event._ncmclusters = std::distance( range.first, range.second );
   }
-  
+
   // store
   m_container->addEvent(event);
 }
@@ -699,16 +709,16 @@ void TrackingEvaluator_hp::evaluate_clusters()
     int n_tpc_hits = 0;
     int n_tpc_clusters = 0;
     for( const auto& [hitsetkey,hitset]:range_adaptor( m_hitsetcontainer->getHitSets( TrkrDefs::tpcId )))
-    { 
-      n_tpc_hits += hitset->size(); 
+    {
+      n_tpc_hits += hitset->size();
       const auto range = m_cluster_map->getClusters(hitsetkey);
       n_tpc_clusters += std::distance( range.first, range.second );
     }
-  
+
     std::cout << "TrackingEvaluator_hp::evaluate_clusters - n_tpc_hits: " << n_tpc_hits << std::endl;
     std::cout << "TrackingEvaluator_hp::evaluate_clusters - n_tpc_clusters: " << n_tpc_clusters << std::endl;
   }
-  
+
   // first loop over hitsets
   for( const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
   {
@@ -735,17 +745,17 @@ void TrackingEvaluator_hp::evaluate_clusters()
 void TrackingEvaluator_hp::evaluate_cm_clusters()
 {
   if(!(m_cm_cluster_map&&m_container)) return;
-  
+
   // clear
   m_container->clearCMClusters();
-  
+
   // loop over cm clusters
   for( const auto& [key,cluster]:range_adaptor(m_cm_cluster_map->getClusters()))
   {
-    auto cluster_struct = create_cm_cluster( key, cluster ); 
+    auto cluster_struct = create_cm_cluster( key, cluster );
     m_container->addCMCluster( cluster_struct );
   }
-  
+
 }
 
 //_____________________________________________________________________
@@ -806,7 +816,7 @@ void TrackingEvaluator_hp::evaluate_tracks()
       auto cluster_struct = create_cluster( cluster_key, cluster );
       add_cluster_size( cluster_struct, cluster_key, m_cluster_hit_map );
       add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, m_hitsetcontainer );
-      
+
       // truth information
       const auto g4hits = find_g4hits( cluster_key );
       const bool is_micromegas( TrkrDefs::getTrkrId(cluster_key) == TrkrDefs::micromegasId );
@@ -908,7 +918,7 @@ void TrackingEvaluator_hp::evaluate_track_pairs()
 //_____________________________________________________________________
 void TrackingEvaluator_hp::print_clusters() const
 {
-  
+
   if(!(m_cluster_map && m_hitsetcontainer)) return;
 
   for(const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
@@ -1160,7 +1170,7 @@ std::pair<int,int> TrackingEvaluator_hp::get_max_contributor( SvtxTrack* track )
   IdMap contributor_map;
 
   const auto cluster_keys = get_cluster_keys( track );
-  
+
   if( Verbosity() )
   { std::cout << "TrackingEvaluator_hp::get_max_contributor - clusters: " << cluster_keys.size() << std::endl; }
 
@@ -1206,7 +1216,7 @@ TrackingEvaluator_hp::ClusterStruct TrackingEvaluator_hp::create_cluster( TrkrDe
   cluster_struct._phi = std::atan2( cluster_struct._y, cluster_struct._x );
   cluster_struct._phi_error = cluster->getRPhiError()/cluster_struct._r;
   cluster_struct._z_error = cluster->getZError();
-  
+
   if(TrkrDefs::getTrkrId(key) == TrkrDefs::micromegasId)
   { cluster_struct._tileid = MicromegasDefs::getTileId(key); }
 
@@ -1268,7 +1278,7 @@ void TrackingEvaluator_hp::add_trk_information_micromegas( TrackingEvaluator_hp:
   // convert cluster position to local tile coordinates
   const TVector3 cluster_world( cluster._x, cluster._y, cluster._z );
   const auto cluster_local = layergeom->get_local_from_world_coords( tileid, m_tGeometry, cluster_world );
-  
+
   // convert track position to local tile coordinates
   TVector3 track_world( state->get_x(), state->get_y(), state->get_z() );
   auto track_local = layergeom->get_local_from_world_coords( tileid, m_tGeometry, track_world );
@@ -1401,7 +1411,7 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
   }
 
   const auto rextrap = cluster._r;
-  
+
   // add truth position
   cluster._truth_x = interpolate_r<&interpolation_data_t::x>( hits, rextrap );
   cluster._truth_y = interpolate_r<&interpolation_data_t::y>( hits, rextrap );
@@ -1416,7 +1426,7 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
 //   cluster._truth_x = average<&interpolation_data_t::x>( hits );
 //   cluster._truth_y = average<&interpolation_data_t::y>( hits );
 //   cluster._truth_z = average<&interpolation_data_t::z>( hits );
-// 
+//
 //   // add truth momentum information
 //   cluster._truth_px = average<&interpolation_data_t::px>( hits );
 //   cluster._truth_py = average<&interpolation_data_t::py>( hits );
@@ -1599,30 +1609,30 @@ Acts::Vector3 TrackingEvaluator_hp::get_global_position( TrkrDefs::cluskey key, 
 {
   // get global position from Acts transform
   auto globalPosition = m_tGeometry->getGlobalPosition(key, cluster);
-  
+
   // for the TPC calculate the proper z based on crossing and side
   const auto trkrid = TrkrDefs::getTrkrId(key);
   if(trkrid ==  TrkrDefs::tpcId)
-  {	 
+  {
     const auto side = TpcDefs::getSide(key);
-    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);    
-    
+    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);
+
     // apply distortion corrections
-    if(m_dcc_static) 
+    if(m_dcc_static)
     {
-      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_static ); 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_static );
     }
-    
-    if(m_dcc_average) 
-    { 
-      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_average ); 
+
+    if(m_dcc_average)
+    {
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_average );
     }
-    
-    if(m_dcc_fluctuation) 
-    { 
-      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_fluctuation ); 
+
+    if(m_dcc_fluctuation)
+    {
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_fluctuation );
     }
   }
-    
+
   return globalPosition;
 }
