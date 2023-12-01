@@ -15,6 +15,7 @@
 #include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
+#include <array>
 #include <utility>  // for pair, make_pair
 
 class PHObject;
@@ -25,28 +26,29 @@ class PHObject;
 class Jetv2 : public Jet
 {
  public:
-  Jetv2();
+  Jetv2() = default;
   Jetv2(unsigned int);
-  ~Jetv2() override {}
-  Jetv2(const Jetv2&);
+  /* ~Jetv2() override = default; //{} */
+  /* Jetv2(const Jetv2&) = default; */
+  /* Jetv2(Jetv2&) = default; */
+  /* Jetv2& operator=(const Jetv2&) = default; */
 
   // method used to sort the consistuents of the jet -- to be used when generating the jets only
   struct CompareSRC
   {
     bool operator()(const std::pair<Jet::SRC, int>& lhs, const unsigned int rhs)
     {
-      return lhs.first < rhs;
+      return static_cast<unsigned int>(lhs.first) < rhs;
     }
     bool operator()(const unsigned int lhs, const std::pair<Jet::SRC, int>& rhs)
     {
-      return lhs < rhs.first;
+      return lhs < static_cast<unsigned int>(rhs.first);
     }
     bool operator()(const std::pair<Jet::SRC, int>& lhs, const std::pair<Jet::SRC, int>& rhs)
     {
-      if (lhs.first == rhs.first) return lhs.second < rhs.second;
-      else return lhs.first < rhs.first;
+      return static_cast<unsigned int>(lhs.first) < static_cast<unsigned int>(rhs.first);
     }
-    static void sort_comp_ids(Jetv2* jet);
+    /* static void sort_comp_ids(Jetv2* jet); */
   };
 
   // PHObject virtual overloads
@@ -83,22 +85,29 @@ class Jetv2 : public Jet
 
   // Jet properties
   void resize_properties(size_t size) override { _properties.resize(size, NAN); };
-  std::vector<float>& get_vec_properties() override { return _properties; }                          // new in v2
-  size_t n_properties() override { return _properties.size(); }                                      // new in v2
-  inline float get_prop_by_index(unsigned int index) const override { return _properties[index]; };  // new in v2
-  inline void set_prop_by_index(unsigned int index, float value) override
-  {
-    _properties[index] = value;
-  };
+  std::vector<float>& get_property_vec() override { return _properties; } // new in v2
+  size_t size_properties() const override { return _properties.size(); }  // implemented in v1 and v2
+                                                                                                       
+  float get_property(Jet::PROPERTY index) const override { return _properties[static_cast<int>(index)]; };
+  inline void set_property(Jet::PROPERTY index, float value) override
+  { _properties[static_cast<int>(index)] = value; };
 
   // Jet components
   size_t size_comp() const override { return _comp_ids.size(); }
   void clear_comp() override { _comp_ids.clear(); }
   void insert_comp(SRC iSRC, unsigned int compid) override;
+  void insert_comp(Jet::SRC, unsigned int compid, bool) override; //skips setting _is_sorted flag
+  void insert_comp(TYPE_comp_vec&) override;
+  void insert_comp(TYPE_comp_vec&, bool) override;
+  void set_comp_sort_flag(bool f=false) override {_is_sorted=f;}; 
+
   void print_comp(std::ostream& os = std::cout, bool single_line = false) override;
   size_t num_comp(SRC iSRC = Jet::SRC::VOID) override;
   std::vector<Jet::SRC> comp_src_vec() override;
   std::map<Jet::SRC, size_t> comp_src_sizemap() override;  // map of Jet::SRC to number of entries
+
+  size_t n_clustered() const override { return _n_clustered; }
+  virtual void  set_n_clustered(unsigned int n) override { _n_clustered =n;} ;
 
   // FYI: ITER_comp_vec = vector<pair<Jet::SRC, unsigned int>>::iterator
   ITER_comp_vec comp_begin() override { return _comp_ids.begin(); }  // new in v2
@@ -112,9 +121,12 @@ class Jetv2 : public Jet
  private:
   /// unique identifier within container
   unsigned int _id = ~0x0;
+  size_t _n_clustered {0};
+  void ensure_sorted();
+  bool _is_sorted { false };
 
   /// jet momentum vector (px,py,pz)
-  float _mom[3];
+  std::array<float,3> _mom {{ NAN, NAN, NAN}} ;
 
   /// jet energy
   float _e = NAN;
@@ -133,10 +145,7 @@ class Jetv2 : public Jet
 
   // functions deprecated in this Jet Version
   bool has_property(Jet::PROPERTY /*prop_id*/) const override;
-  float get_property(Jet::PROPERTY /*prop_id*/) const override;
-  void set_property(Jet::PROPERTY /*prop_id*/, float /**/) override;
   void print_property(std::ostream& /**/) const override;
-
   ConstIter begin_comp() const override;
   ConstIter lower_bound_comp(SRC source) const override;
   ConstIter upper_bound_comp(SRC source) const override;

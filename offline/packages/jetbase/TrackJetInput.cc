@@ -1,7 +1,7 @@
 #include "TrackJetInput.h"
 
 #include "Jet.h"
-#include "Jetv1.h"
+#include "Jetv2.h"
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -44,7 +44,7 @@ std::vector<Jet *> TrackJetInput::get_input(PHCompositeNode *topNode)
   {
     const SvtxTrack *track = iter->second;
 
-    Jet *jet = new Jetv1();
+    Jet *jet = new Jetv2();
     jet->set_px(track->get_px());
     jet->set_py(track->get_py());
     jet->set_pz(track->get_pz());

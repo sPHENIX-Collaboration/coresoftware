@@ -2,7 +2,7 @@
 #include "FastJetAlgoSub.h"
 
 #include <jetbase/Jet.h>
-#include <jetbase/Jetv1.h>
+#include <jetbase/Jetv2.h>
 
 // fastjet includes
 #include <fastjet/ClusterSequence.hh>
@@ -108,7 +108,7 @@ std::vector<Jet*> FastJetAlgoSub::get_jets(std::vector<Jet*> particles)
   std::vector<Jet*> jets;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
   {
-    Jet* jet = new Jetv1();
+    Jet* jet = new Jetv2();
 
     if (_verbosity > 5 && fastjets[ijet].perp() > 15)
     {
@@ -131,15 +131,12 @@ std::vector<Jet*> FastJetAlgoSub::get_jets(std::vector<Jet*> particles)
       total_py += particle->get_py();
       total_pz += particle->get_pz();
       total_e += particle->get_e();
-
-      for (Jet::Iter iter = particle->begin_comp();
-           iter != particle->end_comp();
-           ++iter)
-      {
-        jet->insert_comp(iter->first, iter->second);
-      }
+      jet->insert_comp(particle->get_comp_vec(), true);
     }
 
+    jet->set_comp_sort_flag(); // make sure jet know comps might not be sorted
+                               // alternatively can just ommit the `true` 
+                               // in insert_comp call above
     jet->set_px(total_px);
     jet->set_py(total_py);
     jet->set_pz(total_pz);

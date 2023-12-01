@@ -19,6 +19,7 @@ libphnodedump_la_SOURCES = \
   DumpCaloTriggerInfo.cc \
   DumpCdbUrlSave.cc \
   DumpCentralityInfo.cc \
+  DumpJetContainer.cc \
   DumpEpdGeom.cc \
   DumpEventHeader.cc \
   DumpFlagSave.cc \
