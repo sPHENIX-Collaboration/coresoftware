@@ -1,7 +1,7 @@
 #include "ClusterJetInput.h"
 
 #include "Jet.h"
-#include "Jetv1.h"
+#include "Jetv2.h"
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -155,7 +155,7 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
 
     CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetEVec(*cluster, vertex);
 
-    Jet *jet = new Jetv1();
+    Jet *jet = new Jetv2();
     jet->set_px(E_vec_cluster.x());
     jet->set_py(E_vec_cluster.y());
     jet->set_pz(E_vec_cluster.z());

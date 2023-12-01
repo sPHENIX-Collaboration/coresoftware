@@ -1,5 +1,7 @@
 #include "Fun4AllOutputManager.h"
 
+#include <phool/phool.h>
+
 #include <TSystem.h>
 
 #include <iostream>
@@ -76,7 +78,7 @@ int Fun4AllOutputManager::DoNotWriteEvent(std::vector<int> *retcodes) const
 int Fun4AllOutputManager::RunAfterClosing()
 {
   int iret = 0;
-  if (! m_RunAfterClosingScript.empty())
+  if (!m_RunAfterClosingScript.empty())
   {
     std::string fullcmd = m_RunAfterClosingScript + " " + m_ClosingArgs;
     iret = gSystem->Exec(fullcmd.c_str());

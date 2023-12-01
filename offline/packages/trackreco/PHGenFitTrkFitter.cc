@@ -214,6 +214,11 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
   _fitter->set_verbosity(Verbosity());
 
   _vertex_finder.reset( new genfit::GFRaveVertexFactory(Verbosity()) );
+  if (!_vertex_finder)
+  {
+    cerr << PHWHERE << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   _vertex_finder->setMethod(_vertexing_method.data());
 
   if (_do_eval)

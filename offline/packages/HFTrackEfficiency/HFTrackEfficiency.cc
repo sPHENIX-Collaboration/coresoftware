@@ -169,7 +169,15 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
     if (Verbosity() >= VERBOSITY_MORE) mother->print();
 
     m_true_mother_pT = mother->momentum().perp();
+    m_true_mother_p = std::sqrt(std::pow(mother->momentum().px(), 2)
+                              + std::pow(mother->momentum().py(), 2)
+                              + std::pow(mother->momentum().pz(), 2)); //Must have an old HepMC build, no mag function
     m_true_mother_eta = mother->momentum().eta();
+
+    HepMC::GenVertex *thisVtx = mother->production_vertex();
+    m_primary_vtx_x = thisVtx->point3d().x();
+    m_primary_vtx_y = thisVtx->point3d().y();
+    m_primary_vtx_z = thisVtx->point3d().z();
   }
 
   for (unsigned int i = 1; i < decay.size(); ++i)
@@ -188,6 +196,12 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
         daughterSumTrueLV += *daughterTrueLV;
 
         m_true_track_PID[i - 1] = daughterHepMC->pdg_id();
+
+        //Now get the decay vertex position
+        HepMC::GenVertex *thisVtx = daughterHepMC->production_vertex();
+        m_secondary_vtx_x = thisVtx->point3d().x();
+        m_secondary_vtx_y = thisVtx->point3d().y();
+        m_secondary_vtx_z = thisVtx->point3d().z();
 
         //We need the G4 ID, not the HepMC ID to use the truth/reco map
         if (m_dst_truth_reco_map)
@@ -226,15 +240,30 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
           {
             if (Verbosity() >= VERBOSITY_MORE) daughterG4->identify();
 
-            motherTrueLV->setVectM(CLHEP::Hep3Vector(motherG4->get_px(), motherG4->get_py(), motherG4->get_pz()), getParticleMass(decay[0].second));
+            CLHEP::Hep3Vector *mother3Vector = new CLHEP::Hep3Vector(motherG4->get_px(), motherG4->get_py(), motherG4->get_pz());
+            motherTrueLV->setVectM((*mother3Vector), getParticleMass(decay[0].second));
             m_true_mother_pT = motherTrueLV->perp();
+            m_true_mother_p = mother3Vector->mag();
             m_true_mother_eta = motherTrueLV->pseudoRapidity();
+
+            PHG4VtxPoint *thisVtx = m_truthInfo->GetVtx(motherG4->get_vtx_id());
+            m_primary_vtx_x = thisVtx->get_x();
+            m_primary_vtx_y = thisVtx->get_y();
+            m_primary_vtx_z = thisVtx->get_z();
 
             daughterTrueLV->setVectM(CLHEP::Hep3Vector(daughterG4->get_px(), daughterG4->get_py(), daughterG4->get_pz()), getParticleMass(decay[i].second));
             daughterSumTrueLV += *daughterTrueLV;
 
+            //Now get the decay vertex position
+            thisVtx = m_truthInfo->GetVtx(daughterG4->get_vtx_id());
+            m_secondary_vtx_x = thisVtx->get_x();
+            m_secondary_vtx_y = thisVtx->get_y();
+            m_secondary_vtx_z = thisVtx->get_z();
+
             m_true_track_PID[i - 1] = daughterG4->get_pid();
             truth_ID = daughterG4->get_track_id();
+
+	    delete mother3Vector;
           }
         }
       }
@@ -346,6 +375,7 @@ void HFTrackEfficiency::initializeBranches()
   m_tree->Branch("true_mother_mass", &m_true_mother_mass, "true_mother_mass/F");
   m_tree->Branch("reco_mother_mass", &m_reco_mother_mass, "reco_mother_mass/F");
   m_tree->Branch("true_mother_pT", &m_true_mother_pT, "true_mother_pT/F");
+  m_tree->Branch("true_mother_p", &m_true_mother_p, "true_mother_p/F");
   m_tree->Branch("true_mother_eta", &m_true_mother_eta, "true_mother_eta/F");
   m_tree->Branch("min_true_track_pT", &m_min_true_track_pT, "min_true_track_pT/F");
   m_tree->Branch("min_reco_track_pT", &m_min_reco_track_pT, "min_reco_track_pT/F");
@@ -366,6 +396,13 @@ void HFTrackEfficiency::initializeBranches()
     m_tree->Branch("reco_" + TString(daughter_number) + "_silicon_seeds", &m_reco_track_silicon_seeds[iTrack], "reco_" + TString(daughter_number) + "_silicon_seeds/I");
     m_tree->Branch("reco_" + TString(daughter_number) + "_tpc_seeds", &m_reco_track_tpc_seeds[iTrack], "reco_" + TString(daughter_number) + "_tpc_seeds/I");
   }
+
+    m_tree->Branch("true_primary_vertex_x",  &m_primary_vtx_x, "true_primary_vertex_x/F"); 
+    m_tree->Branch("true_primary_vertex_y",  &m_primary_vtx_y, "true_primary_vertex_y/F"); 
+    m_tree->Branch("true_primary_vertex_z",  &m_primary_vtx_z, "true_primary_vertex_z/F"); 
+    m_tree->Branch("true_secondary_vertex_x",  &m_secondary_vtx_x, "true_secondary_vertex_x/F"); 
+    m_tree->Branch("true_secondary_vertex_y",  &m_secondary_vtx_y, "true_secondary_vertex_y/F"); 
+    m_tree->Branch("true_secondary_vertex_z",  &m_secondary_vtx_z, "true_secondary_vertex_z/F"); 
 }
 
 void HFTrackEfficiency::resetBranches()
@@ -374,6 +411,7 @@ void HFTrackEfficiency::resetBranches()
   m_true_mother_mass = 0.;
   m_reco_mother_mass = 0.;
   m_true_mother_pT = 0.;
+  m_true_mother_p = 0.;
   m_true_mother_eta = 0.;
   m_min_true_track_pT = FLT_MAX;
   m_min_reco_track_pT = FLT_MAX;
@@ -392,6 +430,13 @@ void HFTrackEfficiency::resetBranches()
     m_reco_track_silicon_seeds[iTrack] = 0;
     m_reco_track_tpc_seeds[iTrack] = 0;
   }
+
+  m_primary_vtx_x = 0.;
+  m_primary_vtx_y = 0.;
+  m_primary_vtx_z = 0.;
+  m_secondary_vtx_x = 0.;
+  m_secondary_vtx_y = 0.;
+  m_secondary_vtx_z = 0.;
 }
 
 void HFTrackEfficiency::getDecayDescriptor()

@@ -5,6 +5,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <g4main/PHG4Particle.h>
+#include <g4main/PHG4VtxPoint.h>
 
 #include <cstddef>              // for NULL
 #include <string>
@@ -39,7 +40,7 @@ class DecayFinder : public SubsysReco
 
   bool findDecay(PHCompositeNode *topNode);
 
-  bool findParticle(const std::string particle);
+  bool findParticle(const std::string &particle);
 
   void searchHepMCRecord(HepMC::GenParticle* particle, std::vector<int> decayProducts, 
                          bool &breakLoop, bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA, 
@@ -59,15 +60,15 @@ class DecayFinder : public SubsysReco
 
   void multiplyVectorByScalarAndSort(std::vector<int> &v, int k);
 
-  int get_pdgcode(const std::string name);
+  int get_pdgcode(const std::string &name);
 
-  int get_charge(const std::string name);
+  int get_charge(const std::string &name);
 
   bool isInRange(float min, float value, float max);
 
   int createDecayNode(PHCompositeNode *topNode);
 
-  void fillDecayNode(PHCompositeNode* topNode, Decay decay);
+  void fillDecayNode(PHCompositeNode* topNode, Decay &decay);
 
   void printInfo();
 
@@ -134,10 +135,27 @@ class DecayFinder : public SubsysReco
    */
   void setPTmin(float pt) { m_pt_req = pt; }
 
+  /**
+   *  Set this to true to recalcualte a tracks acceptible pseudorapidity range in sPHENIX
+   *  on a decay-by-decay basis using the secondary vertex position. Set to false to use the default
+   *  or user specified range
+   *  @param[in] True to recalculate the eta requirements per decay, false to use a fixed value (default = true)
+   */
+   void useDecaySpecificEtaRange(bool use) { m_recalcualteEtaRange = use; }
+
  private:
+
   PHHepMCGenEventMap *m_geneventmap = nullptr;
   PHHepMCGenEvent *m_genevt = nullptr;
   PHG4TruthInfoContainer *m_truthinfo = nullptr;
+
+  void recalculateEta(double py, double vertex[3]);
+  void calculateEffectiveTPCradius(double vertex[3], double &effective_top_r, double &effective_bottom_r);
+  bool m_recalcualteEtaRange = true;
+  double m_tpc_r = 78.0;
+  double m_tpc_z = 105.0;
+  double m_effective_top_tpc_r = m_tpc_r;
+  double m_effective_bottom_tpc_r = m_tpc_r;
 
   double m_eta_high_req = 1.1;
   double m_eta_low_req = -1.1;

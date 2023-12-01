@@ -38,8 +38,20 @@ class RawClusterBuilderTemplate : public SubsysReco
   }
 
   void set_UseAltZVertex(const int useAltZMode)
-  {    // 0 use global vtx, 1 only bbcout bbczvtx , 2 use NO zvtx[set to 0]
+  {  // 0 use global vtx, 1 only bbcout bbczvtx , 2 use NO zvtx[set to 0]
     m_UseAltZVertex = useAltZMode;
+  }
+
+  void setOutputClusterNodeName(const std::string& inpNodenm)
+  {
+    m_outputnodename = inpNodenm;
+  }
+
+  // !!! note :  next fn NOT implemented for RawTowers
+  // only TowerInfo  mode
+  void setInputTowerNodeName(const std::string& inpNodenm)
+  {
+    m_inputnodename = inpNodenm;
   }
 
  private:
@@ -71,11 +83,13 @@ class RawClusterBuilderTemplate : public SubsysReco
 
   std::string m_towerInfo_nodename;
 
-  int m_UseAltZVertex = 2;  
+  int m_UseAltZVertex = 2;
   // 0 - use GlobalVtxMap
   // 1 - use BbcReco ZVtx
   // 2 - use NO zvertex (zvtx = 0)
 
+  std::string m_inputnodename;
+  std::string m_outputnodename;
 };
 
 #endif /* RawClusterBuilderTemplate_H__ */

@@ -1,7 +1,7 @@
 #include "TowerJetInput.h"
 
 #include "Jet.h"
-#include "Jetv1.h"
+#include "Jetv2.h"
 
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
@@ -361,7 +361,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	  double py = pt * sin(phi);
 	  double pz = pt * sinh(eta);
 
-	  Jet *jet = new Jetv1();
+	  Jet *jet = new Jetv2();
 	  jet->set_px(px);
 	  jet->set_py(py);
 	  jet->set_pz(pz);
@@ -391,7 +391,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	  double py = pt * sin(phi);
 	  double pz = pt * sinh(eta);
 	  
-	  Jet *jet = new Jetv1();
+	  Jet *jet = new Jetv2();
 	  jet->set_px(px);
 	  jet->set_py(py);
 	  jet->set_pz(pz);
@@ -401,10 +401,6 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	}
     }
   if (Verbosity() > 0) std::cout << "TowerJetInput::process_event -- exited" << std::endl;
-
-  for (auto& jet : pseudojets) {
-    if (jet->size_comp() ==0) std::cout << " FIXME J2 TowerJetInput comp size is zero H!!! " << std::endl;
-  }
 
   return pseudojets;
 }
