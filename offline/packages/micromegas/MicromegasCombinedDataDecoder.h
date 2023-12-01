@@ -89,21 +89,21 @@ class MicromegasCombinedDataDecoder : public SubsysReco
   {
     public:
 
-    channel_id_t( int layer, int tile, int channel ):
+    channel_id_t( int layer, int tile, int strip ):
       _layer( layer ),
       _tile( tile ),
-      _channel( channel )
+      _strip( strip )
     {}
 
     int _layer = 0;
     int _tile = 0;
-    int _channel = 0;
+    int _strip = 0;
 
     bool operator < (const channel_id_t& other ) const
     {
       if( _layer != other._layer ) return _layer < other._layer;
       if( _tile != other._tile ) return _tile < other._tile;
-      if( _channel != other._channel ) return _channel < other._channel;
+      if( _strip != other._strip ) return _strip < other._strip;
       return false;
     }
 
