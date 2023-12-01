@@ -167,7 +167,7 @@ int MicromegasClusterEvaluator_hp::load_nodes( PHCompositeNode* topNode )
   if( !m_cluster_map )
   { m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER"); }
   assert( m_cluster_map );
-  
+
   // cluster hit association map
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   assert( m_cluster_hit_map );
@@ -198,7 +198,7 @@ void MicromegasClusterEvaluator_hp::evaluate_clusters()
     // process only micromegas clusters
     const bool is_micromegas( TrkrDefs::getTrkrId(hitsetkey) == TrkrDefs::micromegasId );
     if( !is_micromegas ) continue;
-      
+
     // increment total number of hits
     m_container->n_waveforms_signal += hitset->size();
 
@@ -219,14 +219,14 @@ void MicromegasClusterEvaluator_hp::evaluate_clusters()
 
     if( Verbosity() )
     {
-      std::cout 
+      std::cout
         << "MicromegasClusterEvaluator_hp::evaluate_clusters -"
         << " layer: " << int(layer) << " tile: " << int(tile) << " detid: " << detid
-        << " hits: " << hitset->size() 
+        << " hits: " << hitset->size()
         << " clusters: " << nclusters
         << std::endl;
     }
-    
+
     bool first = true;
     for( const auto& [key,cluster]:range_adaptor(cluster_range))
     {
@@ -236,7 +236,7 @@ void MicromegasClusterEvaluator_hp::evaluate_clusters()
       cluster_struct.tile = tile;
 
       ++m_container->n_detector_clusters[detid];
-      
+
       // per view clusters
       if( detid < 8 ) ++m_container->n_phi_clusters;
       else ++m_container->n_z_clusters;
@@ -244,9 +244,9 @@ void MicromegasClusterEvaluator_hp::evaluate_clusters()
       // find associated hits
       const auto range = m_cluster_hit_map->getHits(key);
       cluster_struct.size = std::distance( range.first, range.second );
-      
+
       // loop over assiciated hits
-      unsigned int adc_max = 0;      
+      unsigned int adc_max = 0;
       for( auto iter = range.first; iter != range.second; ++iter )
       {
         const auto& [cluskey,hitkey] = *iter;
@@ -272,11 +272,11 @@ void MicromegasClusterEvaluator_hp::evaluate_clusters()
       }
 
       if( first )
-      { 
-        m_container->first_cluster_strip[detid] = cluster_struct.strip; 
+      {
+        m_container->first_cluster_strip[detid] = cluster_struct.strip;
         first = false;
       }
- 
+
       if( min_cluster_size == 0 || cluster_struct.size < min_cluster_size ) { min_cluster_size = cluster_struct.size; }
       if( min_cluster_charge == 0 || cluster_struct.charge < min_cluster_charge ) { min_cluster_charge = cluster_struct.charge; }
 
@@ -288,20 +288,27 @@ void MicromegasClusterEvaluator_hp::evaluate_clusters()
 
       ++m_container->n_region_clusters[region_id];
 
-      // get cluster position
+      // local position
+      cluster_struct.x_local = cluster->getLocalX();
+      cluster_struct.y_local = cluster->getLocalY();
+
+      // global position
       auto globalPosition = m_tGeometry->getGlobalPosition(key, cluster);
-      cluster_struct.center = TVector3( globalPosition.x(), globalPosition.y(), globalPosition.z() );
+      cluster_struct.x = globalPosition.x();
+      cluster_struct.y = globalPosition.y();
+      cluster_struct.z = globalPosition.z();
+
 
       m_container->clusters.push_back(cluster_struct);
 
     }
-    
+
     // store min cluster size
     m_container->min_cluster_size[detid] = min_cluster_size;
-    
+
     // store min cluster charge
     m_container->min_cluster_charge[detid] = min_cluster_charge;
-    
+
   }
 
 }
