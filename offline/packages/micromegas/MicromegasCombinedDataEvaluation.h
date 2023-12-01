@@ -51,7 +51,7 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
   /// set number of RMS sigma used to defined static threshold on a given channel
   void set_n_sigma( double value ) { m_n_sigma = value; }
 
-  /// set minimum ADC value, disregarding pedestal and RMS. 
+  /// set minimum ADC value, disregarding pedestal and RMS.
   /** This removes faulty channels for which calibration has failed */
   void set_min_adc( double value ) { m_min_adc = value; }
 
@@ -93,7 +93,7 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
 
     unsigned short sample = 0;
     unsigned short adc = 0;
-    
+
     double pedestal = 0;
     double rms = 0;
 
@@ -133,7 +133,7 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
 
     unsigned short sample_max = 0;
     unsigned short adc_max = 0;
-    
+
     double pedestal = 0;
     double rms = 0;
 
@@ -141,7 +141,7 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
 
     /// number of samples
     unsigned short n_samples = 0;
-    
+
     /// default constructor
     Waveform() = default;
 
@@ -155,32 +155,31 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
     using List = std::vector<Waveform>;
   };
 
-
   class Container: public PHObject
   {
     public:
     void Reset();
-    
+
     // number of taggers for each packet
     std::vector<int> n_tagger;
-    
+
     // number of waveform for each packet
     std::vector<int> n_waveform;
 
     Waveform::List waveforms;
     Sample::List samples;
-    
+
     // bco for this event
     std::vector<uint64_t> lvl1_bco_list;
-    
+
     // lvl1 count for this event
     std::vector<uint32_t> lvl1_count_list;
-    
+
     ClassDef(Container,1)
   };
-  
+
   private:
-  
+
   /// raw node
   std::string m_rawhitnodename = "MICROMEGASRAWHIT";
 
@@ -196,10 +195,10 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
   /// number of RMS sigma used to define threshold
   double m_n_sigma = 5;
 
-  /// minimum ADC value, disregarding pedestal and RMS. 
+  /// minimum ADC value, disregarding pedestal and RMS.
   /* This removes faulty channels for which calibration has failed */
   double m_min_adc = 50;
-  
+
   /// min sample for signal
   int m_sample_min = 0;
 
@@ -215,7 +214,7 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
 
   /// main branch
   Container* m_container = nullptr;
-    
+
   /// map waveforms to bco
   /** this is used to count how many waveforms are found for a given lvl1 bco */
   using bco_map_t = std::map<uint64_t,unsigned int>;
