@@ -36,69 +36,74 @@ class MicromegasClusterEvaluator_hp : public SubsysReco
 
   /// end of processing
   virtual int End(PHCompositeNode*);
-  
+
   class Cluster
   {
     public:
-    
+
     unsigned short layer = 0;
-    
+
     unsigned short tile = 0;
-    
+
     unsigned short size = 0;
-    
+
     double charge = 0;
-    
+
     int strip = 0;
-    
+
     int region = 0;
-    
-    TVector3 center;  
-    
+
+    double x_local = 0;
+    double y_local = 0;
+
+    double x = 0;
+    double y = 0;
+    double z = 0;
+
     bool is_signal = true;
-    
+
     using List = std::vector<Cluster>;
   };
-  
+
   class Container: public PHObject
   {
-    
+
     public:
-    
+
     void Reset();
-        
+
     // number of signal waveforms
     unsigned short n_waveforms_signal = 0;
-    
+
     // number of clusters
     unsigned short n_clusters = 0;
-    
+
     // clusters
     Cluster::List clusters;
-    
+
     // number of clusters per detector
     std::vector<unsigned short> n_detector_clusters;
-    
+
     // number of clusters per region
     std::vector<unsigned short> n_region_clusters;
-    
+
     // minimum cluster charge per detector
     std::vector<unsigned short> min_cluster_size;
-    
+
     // minimum cluster charge per detector
     std::vector<double> min_cluster_charge;
-    
+
     // strip of the first cludster, per detector
     std::vector<int> first_cluster_strip;
-    
+
     // number of clusters
     unsigned short n_phi_clusters = 0;
-    
+
     // number of clusters
     unsigned short n_z_clusters = 0;
-    
+
     ClassDef(Container,1)
-      
+
   };
 
   private:
@@ -117,7 +122,7 @@ class MicromegasClusterEvaluator_hp : public SubsysReco
 
   /// gemometry
   PHG4CylinderGeomContainer* m_geonode = nullptr;
-  
+
   //! hits
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;
 
