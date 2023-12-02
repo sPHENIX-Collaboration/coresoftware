@@ -32,6 +32,7 @@ class RawTowerv2 : public RawTowerv1
 
   bool has_property(const PROPERTY prop_id) const override;
   double get_property(const PROPERTY prop_id) const override;
+// cppcheck-suppress virtualCallInConstructor
   void set_property(const PROPERTY prop_id, const double value) override;
 
  protected:
