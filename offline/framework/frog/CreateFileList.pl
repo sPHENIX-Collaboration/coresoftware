@@ -15,7 +15,7 @@ sub print_single_types;
 my $dbh = DBI->connect("dbi:ODBC:FileCatalog","argouser") || die $DBI::error;
 $dbh->{LongReadLen}=2000; # full file paths need to fit in here
 
-my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets where dsttype not like '%\_pi\_%' ESCAPE '\'");
+my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets where dsttype not like '%\_pi\_%' ESCAPE '\' and dsttype <> 'beam' and dsttype <> 'cosmic'");
 $getdsttypes->execute();
 
 my %dsttype = ();
@@ -56,7 +56,9 @@ my %proddesc = (
     "18" => "HF pythia8 D0 pi-k Jets ptmin = 12GeV",
     "19" => "JS pythia8 Jet ptmin = 40GeV",
     "20" => "hijing pAu (0-10fm) pileup 0-10fm",
-    "21" => "JS pythia8 Jet ptmin = 20GeV"
+    "21" => "JS pythia8 Jet ptmin = 20GeV",
+    "22" => "cosmic field on",
+    "23" => "cosmic field off"
     );
 
 my %pileupdesc = (
@@ -519,6 +521,20 @@ if (defined $prodtype)
         $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
+    elsif ($prodtype == 22)
+    {
+	$filenamestring = "cosmic_magnet_on";
+        $filenamestring = sprintf("%s",$filenamestring);
+	$nopileup = 1; # it is no pileup only - no need to require it
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 23)
+    {
+	$filenamestring = "cosmic_magnet_off";
+        $filenamestring = sprintf("%s",$filenamestring);
+	$nopileup = 1; # it is no pileup only - no need to require it
+	&commonfiletypes();
+    }
     else
     {
 	print "no production type $prodtype\n";
@@ -716,7 +732,7 @@ foreach  my $tp (keys %req_types)
 	$getfiles{"G4HitsOld"} = $dbh->prepare($newgetfilesql);
 	if (defined $verbose)
 	{
-	    print "sql: $newgetfilesql\n";
+	    print "sql (newgetfilesql): $newgetfilesql\n";
 	}
     }
     else
@@ -724,7 +740,7 @@ foreach  my $tp (keys %req_types)
 	$getfiles{$tp} = $dbh->prepare($getfilesql);
 	if (defined $verbose)
 	{
-	    print "sql: $getfilesql\n";
+	    print "sql (getfilesql): $getfilesql\n";
 	}
     }
 }
