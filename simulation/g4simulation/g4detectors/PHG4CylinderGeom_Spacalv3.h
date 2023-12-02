@@ -34,6 +34,7 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
   // from TObject
   void Print(Option_t* option = "") const override;
 
+// cppcheck-suppress virtualCallInConstructor
   void SetDefault() override;
 
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
