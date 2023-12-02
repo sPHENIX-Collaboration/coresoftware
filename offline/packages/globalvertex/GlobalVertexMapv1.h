@@ -24,6 +24,7 @@ class GlobalVertexMapv1 : public GlobalVertexMap
   bool empty() const override { return _map.empty(); }
   size_t size() const override { return _map.size(); }
   size_t count(unsigned int idkey) const override { return _map.count(idkey); }
+// cppcheck-suppress virtualCallInConstructor
   void clear() override;
 
   const GlobalVertex* get(unsigned int idkey) const override;
