@@ -17,7 +17,7 @@ sample_job_crossing=10556072
 
 #specify what to replace them with (FFFFF means 'full source path'.  NNNNN means 'bxing number')
 this_job_sourcefile=FFFFF
-this_job_outfile=/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bXNNNNN
+this_job_outfile=/sphenix/u/czhang4/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bXNNNNN
 
 #get a list of the files:
 filelist=`ls /sphenix/user/shulga/Work/workfest2021_pull/coresoftware/calibrations/tpc/fillSpaceChargeMaps/Files/Summary_hist_mdc2_UseFieldMaps_AA_event_*`
