@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 inputname=${1?Error: no input file given}
-gainname=${2?Error: no gain name given}
-outputbase=${3?Error: no output basename given}
+outputbase=${2?Error: no output basename given}
+gainname="not_using_gain"
 
 #inputname=/sphenix/user/shulga/Work/IBF/DistortionMap/Files/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX10556072.root
 #outputbase=/direct/star+u/rcorliss/sphenix/generator_output/zerospacecharge_new_fast
@@ -15,7 +15,7 @@ do
     outputname=${outputbase}_${n} ;
     echo Processing $inputname index $n to output: $outputname;
     echo $foutputname ;
-    root -b -q ./generate_distortion_map.C\(\"${inputname}\",\"${gainname}\",\"$outputname\",\"_h_SC_ibf_${n}\",\"_h_SC_prim_${n}\",1\)
+    root -b -q ./generate_distortion_map.C\(\"${inputname}\",\"$gainname\",\"$outputname\",\"_h_SC_ibf_${n}\",\"_h_SC_prim_${n}\",1\)
 done
 
 echo all done
