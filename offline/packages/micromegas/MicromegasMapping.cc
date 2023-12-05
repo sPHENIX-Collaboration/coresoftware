@@ -212,6 +212,17 @@ std::string MicromegasMapping::get_detname_sphenix_from_hitsetkey( TrkrDefs::hit
 }
 
 //____________________________________________________________________________________________________
+int MicromegasMapping::get_fee_id_from_hitsetkey( TrkrDefs::hitsetkey key ) const
+{
+  const auto iter = std::find_if( m_detectors.begin(), m_detectors.end(), [key](const DetectorId& detector ) { return detector.m_hitsetkey == key; } );
+  if( iter == m_detectors.end() )
+  {
+    std::cout << "MicromegasMapping::get_fee_id_from_hitsetkey - invalid key: " << key << std::endl;
+    return -1;
+  } else return iter->m_fee_id;
+}
+
+//____________________________________________________________________________________________________
 void MicromegasMapping::construct_channel_mapping()
 {
   // procedure details: https://indico.bnl.gov/event/19349/contributions/75908/attachments/47219/80098/talk.pdf

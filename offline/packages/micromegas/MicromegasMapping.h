@@ -25,7 +25,7 @@ class MicromegasMapping
 
   /// get list of fee ids
   std::vector<int> get_fee_id_list() const;
-  
+
   /// get hitsetkey from fiber_id (fee_id)
   TrkrDefs::hitsetkey get_hitsetkey( int /*fee_id*/ ) const;
 
@@ -47,15 +47,18 @@ class MicromegasMapping
 
   /// get detector name (sphenix) from hitset key
   std::string get_detname_saclay_from_hitsetkey( TrkrDefs::hitsetkey ) const;
-  
+
   /// get detector name (saclay) from hitset key
   std::string get_detname_sphenix_from_hitsetkey( TrkrDefs::hitsetkey ) const;
-  
+
+  /// get fee id from hitset key
+  int get_fee_id_from_hitsetkey( TrkrDefs::hitsetkey ) const;
+
   private:
 
   /// construct fee channel id to physical strip mapping
   void construct_channel_mapping();
-  
+
   /// contains all relevant detector information
   /** this effectively implements mapping between fee_id as defined in EDBC,    * detector names (in both Saclay and sPHENIX convention),
    * and hitsetkey which is the detector unique identifier
@@ -67,7 +70,7 @@ class MicromegasMapping
     /// constructor
     DetectorId(
       int fee_id, TrkrDefs::hitsetkey hitsetkey,
-      const std::string &fibername, const std::string &breakoutname, 
+      const std::string &fibername, const std::string &breakoutname,
       const std::string& detname_saclay, const std::string& detname_sphenix ):
       m_fee_id( fee_id ),
       m_hitsetkey( hitsetkey ),
@@ -85,10 +88,10 @@ class MicromegasMapping
 
     /// fiber name
     std::string m_fibername;
-    
+
     /// breakout cable name
     std::string m_breakoutname;
-    
+
     /// detector name
     std::string m_detname_saclay;
 
@@ -101,10 +104,10 @@ class MicromegasMapping
 
   /// map detector_id to fee_id
   std::map<int, DetectorId> m_detector_map;
-  
+
   /// map FEE channel id to physical strip id (z view)
   std::array<int, MicromegasDefs::m_nchannels_fee> m_fee_to_strip_mapping_z = {{0}};
-  
+
   /// map FEE channel id to physical strip id (phi view)
   std::array<int, MicromegasDefs::m_nchannels_fee> m_fee_to_strip_mapping_phi = {{0}};
 
