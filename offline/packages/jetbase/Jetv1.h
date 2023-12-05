@@ -115,7 +115,6 @@ class Jetv1 : public Jet
 
   /// source id -> component id
   typ_comp_ids _comp_ids;
-  /* size_t _n_clustered {0}; */
 
   typedef std::map<Jet::PROPERTY, float> typ_property_map;
   /// map that contains extra properties
