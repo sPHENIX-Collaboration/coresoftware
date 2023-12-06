@@ -125,6 +125,7 @@ void PHG4MvtxDigitizer::CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode
 
     if (_max_adc.find(layer) == _max_adc.end())
     {
+// cppcheck-suppress stlFindInsert
       _max_adc[layer] = 255;
       _energy_scale[layer] = mip_e / 64;
     }

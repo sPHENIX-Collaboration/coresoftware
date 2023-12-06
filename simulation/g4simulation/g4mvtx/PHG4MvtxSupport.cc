@@ -77,11 +77,8 @@ using namespace ServiceProperties;
 //________________________________________________________________________________
 PHG4MvtxSupport::PHG4MvtxSupport( PHG4MvtxDisplayAction *dispAct, bool overlapCheck )
   : m_DisplayAction(dispAct)
-  , m_avSupport(nullptr)
-  , m_avBarrelCable(nullptr)
+  , m_overlapCheck(overlapCheck)
 {
-  m_avLayerCable = { nullptr, nullptr, nullptr };
-  m_overlapCheck = overlapCheck;
 }
 
 //________________________________________________________________________________

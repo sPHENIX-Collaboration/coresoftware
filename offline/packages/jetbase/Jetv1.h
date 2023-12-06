@@ -74,8 +74,9 @@ class Jetv1 : public Jet
   bool empty_comp() const override { return _comp_ids.empty(); }
   size_t size_comp() const override { return _comp_ids.size(); }
 
-  size_t n_clustered() const override { return _n_clustered; }
-  virtual void  set_n_clustered(unsigned int n) override { _n_clustered =n;} ;
+  // not used in Jetv1
+  size_t n_clustered() const override;
+  virtual void  set_n_clustered(unsigned int /*n*/) override;
 
   void clear_comp() override { _comp_ids.clear(); }
   size_t erase_comp(SRC source) override { return _comp_ids.erase(source); }
@@ -114,7 +115,6 @@ class Jetv1 : public Jet
 
   /// source id -> component id
   typ_comp_ids _comp_ids;
-  size_t _n_clustered {0};
 
   typedef std::map<Jet::PROPERTY, float> typ_property_map;
   /// map that contains extra properties

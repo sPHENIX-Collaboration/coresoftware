@@ -194,7 +194,7 @@ sub printtags
 	}
 	print "\n";
     }
-    $noprint = 1;
+    exit(0);
 }
 
 sub printruns
@@ -254,5 +254,5 @@ sub printruns
 	}
 
     }
-    $noprint = 1;
+    exit(0);
 }
