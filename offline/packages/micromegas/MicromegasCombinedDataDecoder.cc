@@ -166,8 +166,8 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode *topNode)
       const auto bco = rawhit->get_gtm_bco();
       std::cout << "MicromegasCombinedDataDecoder::process_event -"
         << " bco: " << bco
-        << " layer: " << int(TrkrDefs::getLayer(hitsetkey))
-        << " tile: " << int( MicromegasDefs::getTileId( hitsetkey ))
+        << " layer: " << layer
+        << " tile: " << tile
         << " channel: " << channel
         << " strip: " << strip
         << " adc: " << max_adc
