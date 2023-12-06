@@ -28,7 +28,7 @@ class MicromegasHotChannelMapData
   void read( const std::string& /*filename*/ );
 
   /// add hot channel
-  void add_hot_channel( int /*fee*/, int /*channel*/ );
+  void add_hot_channel( int /*layer*/, int /*tile*/, int /*strip*/ );
 
   //@}
 
@@ -39,7 +39,7 @@ class MicromegasHotChannelMapData
   void write( const std::string& /*filename*/ ) const;
 
   /// returns true if channel is hot
-  bool is_hot_channel( int /*fee*/, int /*channel*/ ) const;
+  bool is_hot_channel( int /*layer*/, int /*tile*/, int /*strip*/ ) const;
 
   //@}
 
@@ -51,25 +51,28 @@ class MicromegasHotChannelMapData
     public:
 
     /// constructor
-    channel_id_t( int fee, int channel ):
-      m_fee(fee),
-      m_channel(channel)
+    channel_id_t( int layer, int tile, int strip ):
+      m_layer(layer),
+      m_tile(tile),
+      m_strip(strip)
     {}
 
-    unsigned int m_fee = 0;
-    unsigned int m_channel = 0;
+    int m_layer = 0;
+    int m_tile = 0;
+    int m_strip = 0;
 
     /// less than operator
     bool operator < (const channel_id_t& other ) const
     {
-      if( m_fee != other.m_fee ) return m_fee < other.m_fee;
-      else return m_channel < other.m_channel;
+      if( m_layer != other.m_layer ) return m_layer < other.m_layer;
+      else if( m_tile != other.m_tile ) return m_tile < other.m_tile;
+      else return m_strip < other.m_strip;
     }
 
-    // streamer
+    /// streamer
     friend std::ostream& operator << ( std::ostream& out, const channel_id_t& channel_id )
     {
-      out << "{ " << channel_id.m_fee << ", " << channel_id.m_channel << " }";
+      out << "{ " << channel_id.m_layer << ", " << channel_id.m_tile << ", " << channel_id.m_strip << " }";
       return out;
     }
 
