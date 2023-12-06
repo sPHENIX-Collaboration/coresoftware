@@ -33,6 +33,11 @@ int MicromegasCombinedDataDecoder::Init(PHCompositeNode* /*topNode*/ )
 {
   // read calibrations
   m_calibration_data.read( m_calibration_filename );
+
+  // read hot channels
+  if( !m_hot_channel_map_filename.empty() )
+  { m_hot_channels.read(m_hot_channel_map_filename); }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -130,7 +135,7 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode *topNode)
     if( strip < 0 ) continue;
 
     // check agains hot channels
-    if( m_hot_channels.find( {layer, tile, strip} ) != m_hot_channels.end() ) continue;
+    if(m_hot_channels.is_hot_channel(layer, tile, strip)) continue;
 
     // get channel rms and pedestal from calibration data
     const double pedestal = m_calibration_data.get_pedestal( fee, channel );
