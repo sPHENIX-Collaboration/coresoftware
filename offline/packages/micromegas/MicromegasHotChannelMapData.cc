@@ -66,6 +66,9 @@ void MicromegasHotChannelMapData::read( const std::string& filename )
 
     m_hot_channel_map.emplace( layer_id, tile_id, strip_id );
   }
+
+  std::cout << "MicromegasHotChannelMapData::read - total entries: " << m_hot_channel_map.size() << std::endl;
+
 }
 
 //________________________________________________________________________-
