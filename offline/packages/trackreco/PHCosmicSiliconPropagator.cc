@@ -159,6 +159,18 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       }
       std::set_intersection(newClusKeysxy.begin(), newClusKeysxy.end(),
                             newClusKeysrz.begin(), newClusKeysrz.end(), std::back_inserter(newClusKeys));
+      if(Verbosity() > 3)
+      {
+        
+        for(auto key : newClusKeysxy)
+        {
+          std::cout << "Found key for xy cosmic in layer " << (unsigned int) TrkrDefs::getLayer(key) << std::endl;
+        }
+        for (auto key : newClusKeysrz)
+        {
+          std::cout << "Found key for rz cosmic in layer " << (unsigned int) TrkrDefs::getLayer(key) << std::endl;
+        }
+      }
     }
     else
     {
@@ -193,7 +205,12 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       for (auto& key : newClusKeys)
       {
         bool isTpcKey = false;
-
+        if(Verbosity() > 3)
+        {
+          std::cout << "Definitely adding key to cosmic from layer "
+                    << (unsigned int) TrkrDefs::getLayer(key)
+                    << std::endl;
+        }
         if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::tpcId ||
             TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::micromegasId)
         {
