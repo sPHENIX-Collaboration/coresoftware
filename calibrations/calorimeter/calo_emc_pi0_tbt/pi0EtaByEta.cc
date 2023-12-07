@@ -110,7 +110,6 @@ int pi0EtaByEta::Init(PHCompositeNode*)
 
   h_nclusters = new TH1F("h_nclusters", "", 1000, 0, 1000);
 
-
   return 0;
 }
 
@@ -293,69 +292,65 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     TLorentzVector photon1;
     photon1.SetPtEtaPhiE(clus_pt, clus_eta, clus_phi, clusE);
 
-  
+    if (clus_pt < pt1ClusCut) continue;
 
-  if (clus_pt < pt1ClusCut) continue;
-
-  for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterEnd.second; clusterIter2++)
-  {
-    if (clusterIter == clusterIter2)
+    for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterEnd.second; clusterIter2++)
     {
-      continue;
-    }
-    RawCluster* recoCluster2 = clusterIter2->second;
-
-    CLHEP::Hep3Vector E_vec_cluster2 = RawClusterUtility::GetECoreVec(*recoCluster2, vertex);
-
-    float clus2E = E_vec_cluster2.mag();
-    float clus2_eta = E_vec_cluster2.pseudoRapidity();
-    float clus2_phi = E_vec_cluster2.phi();
-    float clus2_pt = E_vec_cluster2.perp();
-    float clus2_chisq = recoCluster2->get_chi2();
-
-    if (clus2_pt < pt2ClusCut) continue;
-    if (clus2_chisq > clus_chisq_cut) continue;
-
-    // loop over the towers in the cluster
-    RawCluster::TowerConstRange towerCR2 = recoCluster2->get_towers();
-    RawCluster::TowerConstIterator toweriter2;
-    bool hotClus2 = false;
-    for (toweriter2 = towerCR2.first; toweriter2 != towerCR2.second; ++toweriter2)
-    {
-      int towereta = m_geometry->get_tower_geometry(toweriter2->first)->get_bineta();
-      int towerphi = m_geometry->get_tower_geometry(toweriter2->first)->get_binphi();
-
-      for (size_t i = 0; i < ht_eta.size(); i++)
+      if (clusterIter == clusterIter2)
       {
-        if (towerphi == ht_phi[i] && towereta == ht_phi[i]) hotClus2 = true;
+        continue;
       }
+      RawCluster* recoCluster2 = clusterIter2->second;
+
+      CLHEP::Hep3Vector E_vec_cluster2 = RawClusterUtility::GetECoreVec(*recoCluster2, vertex);
+
+      float clus2E = E_vec_cluster2.mag();
+      float clus2_eta = E_vec_cluster2.pseudoRapidity();
+      float clus2_phi = E_vec_cluster2.phi();
+      float clus2_pt = E_vec_cluster2.perp();
+      float clus2_chisq = recoCluster2->get_chi2();
+
+      if (clus2_pt < pt2ClusCut) continue;
+      if (clus2_chisq > clus_chisq_cut) continue;
+
+      // loop over the towers in the cluster
+      RawCluster::TowerConstRange towerCR2 = recoCluster2->get_towers();
+      RawCluster::TowerConstIterator toweriter2;
+      bool hotClus2 = false;
+      for (toweriter2 = towerCR2.first; toweriter2 != towerCR2.second; ++toweriter2)
+      {
+        int towereta = m_geometry->get_tower_geometry(toweriter2->first)->get_bineta();
+        int towerphi = m_geometry->get_tower_geometry(toweriter2->first)->get_binphi();
+
+        for (size_t i = 0; i < ht_eta.size(); i++)
+        {
+          if (towerphi == ht_phi[i] && towereta == ht_phi[i]) hotClus2 = true;
+        }
+      }
+      if (dynMaskClus && hotClus2 == true) continue;
+
+      TLorentzVector photon2;
+      photon2.SetPtEtaPhiE(clus2_pt, clus2_eta, clus2_phi, clus2E);
+
+      if (fabs(clusE - clus2E) / (clusE + clus2E) > maxAlpha) continue;
+
+      if (photon1.DeltaR(photon2) > maxDr) continue;
+
+      TLorentzVector pi0 = photon1 + photon2;
+      if (pi0.Pt() < pi0ptcut) continue;
+
+      h_pt1->Fill(photon1.Pt());
+      h_pt2->Fill(photon2.Pt());
+      h_InvMass->Fill(pi0.M());
+      if (lt_eta > 95) continue;
+      h_mass_eta_lt[lt_eta]->Fill(pi0.M());
     }
-    if (dynMaskClus && hotClus2 == true) continue;
+  }  // clus1 loop
 
-    TLorentzVector photon2;
-    photon2.SetPtEtaPhiE(clus2_pt, clus2_eta, clus2_phi, clus2E);
+  ht_phi.clear();
+  ht_eta.clear();
 
-    if (fabs(clusE - clus2E) / (clusE + clus2E) > maxAlpha) continue;
-
-    if (photon1.DeltaR(photon2) > maxDr) continue;
-
-    TLorentzVector pi0 = photon1 + photon2;
-    if (pi0.Pt() < pi0ptcut) continue;
-
-    h_pt1->Fill(photon1.Pt());
-    h_pt2->Fill(photon2.Pt());
-    h_InvMass->Fill(pi0.M());
-    if (lt_eta > 95) continue;
-    h_mass_eta_lt[lt_eta]->Fill(pi0.M());
-  }
-}  // clus1 loop
-
-
-
-ht_phi.clear();
-ht_eta.clear();
-
-return Fun4AllReturnCodes::EVENT_OK;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int pi0EtaByEta::End(PHCompositeNode* /*topNode*/)
