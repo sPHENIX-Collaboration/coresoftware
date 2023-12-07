@@ -1,7 +1,7 @@
 #include "MbdReco.h"
 #include "MbdEvent.h"
 #include "MbdPmtContainerV1.h"
-#include "MbdOutV1.h"
+#include "MbdOutV2.h"
 #include "MbdGeomV1.h"
 
 
@@ -147,7 +147,7 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
   m_mbdout = findNode::getClass<MbdOut>(bbcNode, "MbdOut");
   if (!m_mbdout)
   {
-    m_mbdout = new MbdOutV1();
+    m_mbdout = new MbdOutV2();
     PHIODataNode<PHObject> *MbdOutNode = new PHIODataNode<PHObject>(m_mbdout, "MbdOut", "PHObject");
     bbcNode->addNode(MbdOutNode);
   }
