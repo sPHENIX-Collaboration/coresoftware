@@ -86,20 +86,15 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
             [](seed a, seed b)
             { return a.ckeys.size() > b.ckeys.size(); });
 
-  std::cout << "Started with " << seeds.size() << std::endl;
   auto prunedSeeds = combineSeeds(seeds);
-  std::cout << "Total seeds found " << prunedSeeds.size() << std::endl;
   int i = 0;
   for (auto& seed : prunedSeeds)
   {
-    std::cout << "processing seed " << i << std::endl;
     ++i;
 
     auto svtxseed = std::make_unique<TrackSeed_v1>();
     for(auto& key : seed.ckeys)
     {
-      std::cout << "   " << clusterPositions.find(key)->second.transpose()
-                << std::endl;
       svtxseed->insert_cluster_key(key);
     }
     m_seedContainer->insert(svtxseed.get());
