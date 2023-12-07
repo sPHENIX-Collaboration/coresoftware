@@ -12,6 +12,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 
+#include <ffarawobjects/Gl1RawHit.h>
 #include <ffarawobjects/MvtxRawEvtHeader.h>
 #include <ffarawobjects/MvtxRawHit.h>
 #include <ffarawobjects/MvtxRawHitContainer.h>
@@ -105,13 +106,25 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
 
   mvtx_hit_container = findNode::getClass<MvtxRawHitContainer>(topNode, m_MvtxRawHitNodeName);
+
   if (!mvtx_hit_container)
   {
     std::cout << PHWHERE << "::" << __func__ <<  ": Could not get \"" << m_MvtxRawHitNodeName << "\" from Node Tree" << std::endl;
     std::cout << "Have you built this yet?" << std::endl;
     exit(1);
   }
-  
+  auto gl1 = findNode::getClass<Gl1RawHit>(topNode,"GL1RAWHIT");
+  if(!gl1)
+  {
+    std::cout << PHWHERE << "Could not get gl1 raw hit" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+  uint64_t gl1rawhitbco = gl1->get_bco();
+  // get the last 40 bits by bit shifting left then right to match
+  // to the mvtx bco
+  auto lbshift = gl1rawhitbco << 24;
+  auto gl1bco = lbshift >> 24;
+
   if (Verbosity() >= VERBOSITY_MORE) mvtx_hit_container->identify();
 
   uint64_t strobe = -1; //Initialise to -1 for debugging
@@ -121,7 +134,13 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   uint16_t row = 0;
   uint16_t col = 0;
   std::vector<std::pair<uint64_t, uint32_t>> strobe_bc_pairs;
-
+  std::set<uint64_t> l1BCOs = mvtx_raw_event_header->getMvtxLvL1BCO();
+  auto mvtxbco = *l1BCOs.begin();
+  if(Verbosity() > 0)
+  {
+    std::cout << "mvtx bco " << mvtxbco << " and gl1 bco " << gl1bco << std::endl;
+  }
+  
   if (m_writeMvtxEventHeader)
   {
     mvtx_event_header = findNode::getClass<MvtxEventInfo>(topNode, "MVTXEVENTHEADER");
@@ -131,7 +150,6 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   for (unsigned int i = 0; i < mvtx_hit_container->get_nhits(); i++)
   {
     mvtx_hit = mvtx_hit_container->get_hit(i);
-
     strobe = mvtx_hit->get_bco();
     layer = mvtx_hit->get_layer_id();
     stave = mvtx_hit->get_stave_id();
@@ -141,7 +159,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 
     if( Verbosity() >= VERBOSITY_A_LOT ) mvtx_hit->identify();
         
-    const TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, strobe);     
+    const TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, mvtxbco-gl1bco); 
     if( !hitsetkey ) continue;
 
     // get matching hitset
@@ -162,18 +180,15 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     hitset_it->second->addHitSpecificKey(hitkey, hit);
   }
 
-  std::set<uint64_t> l1BCOs = mvtx_raw_event_header->getMvtxLvL1BCO();
-
   mvtx_event_header->set_strobe_BCO(strobe);
-
-  if (m_writeMvtxEventHeader)
-  {
-    std::set<uint64_t> l1BCOs = mvtx_raw_event_header->getMvtxLvL1BCO();
-    for (auto iter = l1BCOs.begin(); iter != l1BCOs.end(); iter++)
+   if (m_writeMvtxEventHeader)
     {
-      mvtx_event_header->set_strobe_BCO_L1_BCO(strobe, *iter);
-    }
-    if (Verbosity() >= VERBOSITY_EVEN_MORE) mvtx_event_header->identify();
+      std::set<uint64_t> l1BCOs = mvtx_raw_event_header->getMvtxLvL1BCO();
+      for (auto iter = l1BCOs.begin(); iter != l1BCOs.end(); iter++)
+      {
+        mvtx_event_header->set_strobe_BCO_L1_BCO(strobe, *iter);
+      }
+      if (Verbosity() >= VERBOSITY_EVEN_MORE) mvtx_event_header->identify();
   } 
   
   return Fun4AllReturnCodes::EVENT_OK;
