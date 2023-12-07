@@ -24,9 +24,9 @@ class PHCosmicSeeder : public SubsysReco
     float xyintercept;
     float rzslope;
     float rzintercept;
-    std::vector<TrkrDefs::cluskey> ckeys;
+    std::set<TrkrDefs::cluskey> ckeys;
   };
-  using SeedVec = std::vector<seed>;
+  using SeedVector = std::vector<seed>;
   PHCosmicSeeder(const std::string &name = "PHCosmicSeeder");
 
   ~PHCosmicSeeder() override;
@@ -38,9 +38,8 @@ class PHCosmicSeeder : public SubsysReco
  private:
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
-  SeedVec makeSeeds(PositionMap &clusterPositions);
-
-  
+  SeedVector makeSeeds(PositionMap &clusterPositions);
+  SeedVector combineSeeds(SeedVector &initialSeeds);
 
   float m_xyTolerance = 2.; //! cm
   float m_rzTolerance = 2.; //! cm

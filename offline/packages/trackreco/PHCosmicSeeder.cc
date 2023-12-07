@@ -86,9 +86,11 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
             [](seed a, seed b)
             { return a.ckeys.size() > b.ckeys.size(); });
 
-  std::cout << "Total seeds found " << seeds.size() << std::endl;
+  std::cout << "Started with " << seeds.size() << std::endl;
+  auto prunedSeeds = combineSeeds(seeds);
+  std::cout << "Total seeds found " << prunedSeeds.size() << std::endl;
   int i = 0;
-  for (auto& seed : seeds)
+  for (auto& seed : prunedSeeds)
   {
     std::cout << "processing seed " << i << std::endl;
     ++i;
@@ -104,12 +106,54 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
+PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVector& initialSeeds)
+{
+  SeedVector prunedSeeds;
+  std::set<int> seedsToDelete;
+  for (int i = 0; i < initialSeeds.size(); ++i)
+  {
+    
+    for (int j=i; j<initialSeeds.size(); ++j)
+    {
+      if(i==j)
+      {
+        continue;
+      }
+      auto seed1 = initialSeeds[i];
+      auto seed2 = initialSeeds[j];
+      if (fabs(seed1.xyslope-seed2.xyslope)< 0.1 &&
+          fabs(seed1.xyintercept-seed2.xyintercept)<1.)
+          {
+            for(auto& key : seed2.ckeys)
+            {
+              seed1.ckeys.insert(key);
+            }
+            seedsToDelete.insert(j);
+          }
+      //std::set_union(keylist1.begin(), keylist1.end(),
+        //             keylist2.begin(), keylist2.end(), std::back_inserter(un));
+      //! if they share 70% of keys, just delete the second one
 
-PHCosmicSeeder::SeedVec
+    }
+  }
+
+  for(int i=0; i<initialSeeds.size(); ++i)
+  {
+    if(seedsToDelete.find(i) != seedsToDelete.end())
+    {
+      continue;
+    }
+    prunedSeeds.push_back(initialSeeds[i]);
+  }
+
+  return prunedSeeds;
+}
+PHCosmicSeeder::SeedVector
 PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
 {
-  PHCosmicSeeder::SeedVec seeds;
-  std::vector<TrkrDefs::cluskey> keys;
+  PHCosmicSeeder::SeedVector seeds;
+  std::set<TrkrDefs::cluskey> keys;
+  int seednum = 0;
   for (auto& [key1, pos1] : clusterPositions)
   {
     for (auto& [key2, pos2] : clusterPositions)
@@ -137,11 +181,12 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       doub.rzslope = (r(pos2.x(), pos2.y()) - r(pos1.x(), pos1.y())) / (pos2.z() - pos1.z());
       doub.rzintercept = pos1.z() * doub.rzslope + r(pos1.x(), pos1.y());
       //std::cout << "vals are " << doub.rzslope << ", " << doub.rzintercept << std::endl;
-      keys.push_back(key1);
-      keys.push_back(key2);
+      keys.insert(key1);
+      keys.insert(key2);
       doub.ckeys = keys;
       keys.clear();
       seeds.push_back(doub);
+      seednum++;
     }
   }
 if(Verbosity() > 2)
@@ -181,7 +226,7 @@ if(Verbosity() > 2)
                     << predy << ", " << pos.y() << " and " << predr << ", " << r(pos.x(), pos.y())
                     << std::endl;
         }
-        dub.ckeys.push_back(key);
+        dub.ckeys.insert(key);
       }
     }
   }
