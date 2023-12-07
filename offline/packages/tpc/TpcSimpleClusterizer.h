@@ -5,7 +5,7 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/ActsGeometry.h>
 
-#include <map> 
+#include <map>
 #include <vector>
 #include <string>
 
@@ -46,11 +46,13 @@ class TpcSimpleClusterizer : public SubsysReco
   bool do_hit_assoc = true;
   double pedestal = 74.4;
   double SectorFiducialCut = 0.5;
-  
-  // TPC shaping offset correction parameters
-  // From Tony Frawley May 13, 2021
-  double par0_neg = 0.0503;
-  double par0_pos = -0.0503;
+
+  double m_tdriftmax = 0;
+  double AdcClockPeriod = 53.0;   // ns
+
+  // TPC shaping offset correction parameter
+  // From Tony Frawley July 5, 2022
+  double m_sampa_tbias = 39.6;  // ns
 
 };
 
