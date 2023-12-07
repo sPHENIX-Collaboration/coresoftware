@@ -24,7 +24,7 @@ class OnCalServer : public Fun4AllServer
 public:
   static OnCalServer *instance();
   virtual ~OnCalServer();
-
+  using Fun4AllServer::registerHisto;
   void registerHisto(TH1 *h1d, OnCal *Calibrator, const int replace = 0);
   void unregisterHisto(const std::string &calibname);
   void Print(const std::string &what = "ALL") const;
@@ -32,7 +32,7 @@ public:
   void dumpHistos();
   int process_event();
   int BeginRun(const int runno);
-  int EndRun(const int runno = 0) {return 0;} // do not execute EndRun
+  int EndRun(const int /*runno*/) {return 0;} // do not execute EndRun
   int End();
 
   PHTimeStamp * GetEndValidityTS();
@@ -72,7 +72,7 @@ public:
   int FindClosestCalibratedRun(const int irun);
   int FillRunListFromFileList();
   int AdjustRichTimeStampForMultipleRuns();
-  int CreateCalibration(OnCal *calibrator, const int runnumber, const std::string &what, const int commit = 0);
+  int CreateCalibration(OnCal *calibrator, const int myrunnumber, const std::string &what, const int commit = 0);
   int GetCalibStatus(const std::string &calibname, const int runno);
   int DisconnectDB();
   void TestMode(const int i = 1);

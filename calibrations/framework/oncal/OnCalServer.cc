@@ -15,15 +15,15 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 
-// #include <pdbcalbase/PdbApplication.h>
-// #include <pdbcalbase/PdbBankManager.h>
-// #include <pdbcalbase/PdbCalBank.h>
-// #include <pdbcalbase/PdbBankID.h>
-// #include <pdbcalbase/PdbBankList.h>
-// #include <pdbcalbase/PdbBankListIterator.h>
-// #include <pgcal/PgPostCalBank.h>
+#include <pdbcalbase/PdbApplication.h>
+#include <pdbcalbase/PdbBankManager.h>
+#include <pdbcalbase/PdbCalBank.h>
+#include <pdbcalbase/PdbBankID.h>
+#include <pdbcalbase/PdbBankList.h>
+#include <pdbcalbase/PdbBankListIterator.h>
+#include <pgcal/PgPostCalBank.h>
 
-// #include <pdbcalbase/RunToTime.h>
+#include <pdbcalbase/RunToTime.h>
 
 
 #include <TFile.h>
@@ -59,7 +59,7 @@ using namespace odbc;
 
 const static string cvstag = "OnCalv86";
 
-odbc::Connection *DBconnection = 0;
+odbc::Connection *DBconnection = nullptr;
 
 OnCalServer *OnCalServer::instance()
 {
@@ -497,7 +497,7 @@ OnCalServer::End()
           stringarg << verificationstatus;
           updateDB(table, "verified", stringarg.str(), RunNumber());
 
-          odbc::Timestamp stp(time(NULL));
+          odbc::Timestamp stp(time(nullptr));
           updateDB(table, "date", stp.toString(), RunNumber());
           updateDB(table, "comment", oncal->Comment(), RunNumber());
           time_t beginticks = beginTimeStamp.getTics();
@@ -520,7 +520,7 @@ OnCalServer::End()
 		{
 		  BOOST_FOREACH(string infile, inmgr->GetFileOpenedList())
 		    {
-		      filelist += (infile).substr(((infile).find_last_of("/") + 1), (infile).size());
+		      filelist += (infile).substr(((infile).find_last_of('/') + 1), (infile).size());
 		      filelist += " "; // this needs to be stripped again for last entry
 		    }
 		}
@@ -727,7 +727,7 @@ OnCalServer::DisconnectDB()
 {
   Fun4AllServer::DisconnectDB();
   delete DBconnection;
-  DBconnection = 0;
+  DBconnection = nullptr;
   return 0;
 }
 //---------------------------------------------------------------------
@@ -744,7 +744,7 @@ OnCalServer::insertRunNumInDB(const string &DBtable, const int runno)
   cout << "new row will be created in DB for run " << runno << endl;
 
 
-  Statement *statement = 0;
+  Statement *statement = nullptr;
   statement = DBconnection->createStatement();
   ostringstream cmd;
   cmd << "INSERT INTO "
@@ -782,8 +782,8 @@ OnCalServer::findRunNumInDB(const string &DBtable, const int runno)
     {
       connectDB();
     }
-  Statement *statement = 0;
-  ResultSet *rs = 0;
+  Statement *statement = nullptr;
+  ResultSet *rs = nullptr;
   ostringstream cmd;
   cmd << "SELECT runnumber FROM "
       << DBtable
@@ -833,10 +833,11 @@ OnCalServer::findRunNumInDB(const string &DBtable, const int runno)
 bool 
 OnCalServer::updateDBRunRange(const char *table, const char *column, const int entry, const int firstrun, const int lastrun)
 {
-  if (!DBconnection)
+  if (!DBconnection) {
     connectDB();
+}
 
-  Statement *statement = 0;
+  Statement *statement = nullptr;
 
   TString command = "UPDATE ";
   command += table;
@@ -875,10 +876,11 @@ OnCalServer::updateDBRunRange(const char *table, const char *column, const int e
 bool 
 OnCalServer::updateDB(const char *table, const char *column, int entry)
 {
-  if (!DBconnection)
+  if (!DBconnection) {
     connectDB();
+}
 
-  Statement *statement = 0;
+  Statement *statement = nullptr;
 
   TString command = "UPDATE ";
   command += table;
@@ -914,9 +916,10 @@ OnCalServer::updateDB(const char *table, const char *column, int entry)
 
 bool OnCalServer::updateDB(const char *table, const char *column, bool entry)
 {
-  if (!DBconnection)
+  if (!DBconnection) {
     connectDB();
-  Statement *statement = 0;
+}
+  Statement *statement = nullptr;
 
   TString command = "UPDATE ";
   command += table;
@@ -958,7 +961,7 @@ OnCalServer::updateDB(const string &table, const string &column,
     {
       connectDB();
     }
-  Statement *statement = 0;
+  Statement *statement = nullptr;
 
   ostringstream cmd;
   statement = DBconnection->createStatement();
@@ -1001,7 +1004,7 @@ bool OnCalServer::updateDB(const string &table, const string &column,
       connectDB();
     }
 
-  Statement *statement = 0;
+  Statement *statement = nullptr;
 
   statement = DBconnection->createStatement();
 
@@ -1009,7 +1012,7 @@ bool OnCalServer::updateDB(const string &table, const string &column,
   ostringstream cmd;
   if (append)
     {
-      ResultSet *rs = 0;
+      ResultSet *rs = nullptr;
       ostringstream query;
       query << "SELECT * FROM "
 	    << table
@@ -1084,22 +1087,22 @@ OnCalServer::check_create_subsystable(const std::string &tablename)
     }
   vector<pair<string, string> > calibrator_columns;
   vector<pair<string, string> >::const_iterator coliter;
-  calibrator_columns.push_back(pair<string, string> ("runnumber", "int NOT NULL"));
-  calibrator_columns.push_back(pair<string, string> ("verified", "int default -2"));
-  calibrator_columns.push_back(pair<string, string> ("committed", "int default -2"));
-  calibrator_columns.push_back(pair<string, string> ("date", "timestamp(0) with time zone"));
-  calibrator_columns.push_back(pair<string, string> ("comment", "text"));
-  calibrator_columns.push_back(pair<string, string> ("files", "text"));
-  calibrator_columns.push_back(pair<string, string> ("cvstag", "text"));
-  calibrator_columns.push_back(pair<string, string> ("startvaltime", "bigint"));
-  calibrator_columns.push_back(pair<string, string> ("endvaltime", "bigint"));
-  calibrator_columns.push_back(pair<string, string> ("begintime", "timestamp(0) with time zone"));
-  calibrator_columns.push_back(pair<string, string> ("endtime", "timestamp(0) with time zone"));
+  calibrator_columns.emplace_back("runnumber", "int NOT NULL");
+  calibrator_columns.emplace_back("verified", "int default -2");
+  calibrator_columns.emplace_back("committed", "int default -2");
+  calibrator_columns.emplace_back("date", "timestamp(0) with time zone");
+  calibrator_columns.emplace_back("comment", "text");
+  calibrator_columns.emplace_back("files", "text");
+  calibrator_columns.emplace_back("cvstag", "text");
+  calibrator_columns.emplace_back("startvaltime", "bigint");
+  calibrator_columns.emplace_back("endvaltime", "bigint");
+  calibrator_columns.emplace_back("begintime", "timestamp(0) with time zone");
+  calibrator_columns.emplace_back("endtime", "timestamp(0) with time zone");
 
   Statement* stmt = DBconnection->createStatement();
   ostringstream cmd;
   cmd << "SELECT * FROM " << tablename << " LIMIT 1" << ends;
-  ResultSet *rs = NULL;
+  ResultSet *rs = nullptr;
   try
     {
       rs = stmt->executeQuery(cmd.str());
@@ -1133,7 +1136,7 @@ OnCalServer::check_create_subsystable(const std::string &tablename)
             }
           catch (SQLException& e)
             {
-              string exceptionmessage = e.getMessage();
+              const string& exceptionmessage = e.getMessage();
               if (exceptionmessage.find("not found in result set") != string::npos)
                 {
                   cout << "Column " << (*coliter).first << " does not exist in "
@@ -1150,9 +1153,9 @@ OnCalServer::check_create_subsystable(const std::string &tablename)
                       Statement* stmtup = DBconnection->createStatement();
                       stmtup->executeUpdate(cmd.str());
                     }
-                  catch (SQLException& e)
+                  catch (SQLException& e1)
                     {
-                      cout << PHWHERE << " Exception caught: " << e.getMessage() << endl;
+                      cout << PHWHERE << " Exception caught: " << e1.getMessage() << endl;
                     }
                 }
 
@@ -1175,7 +1178,7 @@ OnCalServer::add_calibrator_to_statustable(const std::string &calibratorname)
     {
       return 0;
     }
-  string calibname = calibratorname;
+  const string& calibname = calibratorname;
   Statement* stmt = DBconnection->createStatement();
   ostringstream cmd;
   cmd.str("");
@@ -1235,7 +1238,7 @@ OnCalServer::check_calibrator_in_statustable(const std::string &calibratorname)
   Statement* stmt = DBconnection->createStatement();
   ostringstream cmd;
   cmd << "SELECT * FROM " << successTable << " LIMIT 1" << ends;
-  ResultSet *rs = NULL;
+  ResultSet *rs = nullptr;
   try
     {
       rs = stmt->executeQuery(cmd.str());
@@ -1279,7 +1282,7 @@ OnCalServer::check_create_successtable(const std::string &tablename)
   Statement* stmt = DBconnection->createStatement();
   ostringstream cmd;
   cmd << "SELECT runnumber FROM " << tablename << " LIMIT 1" << ends;
-  ResultSet *rs = NULL;
+  ResultSet *rs = nullptr;
   try
     {
       rs = stmt->executeQuery(cmd.str());
@@ -1341,7 +1344,7 @@ OnCalServer::EndTimeStamp(const PHTimeStamp &TimeStp)
 PHTimeStamp *
 OnCalServer::GetLastGoodRunTS(OnCal *calibrator, const int irun)
 {
-  PHTimeStamp *ts = 0;
+  PHTimeStamp *ts = nullptr;
   if (!connectDB())
     {
       cout << "could not connect to " << database << endl;
@@ -1354,7 +1357,7 @@ OnCalServer::GetLastGoodRunTS(OnCal *calibrator, const int irun)
   cmd << "SELECT runnumber FROM " << successTable << " where runnumber < "
       << irun << " and "
       << calibrator->Name() << " > 0 order by runnumber desc limit 1";
-  ResultSet *rs = 0;
+  ResultSet *rs = nullptr;
   try
     {
       rs = stmt->executeQuery(cmd.str());
@@ -1401,8 +1404,8 @@ int
 OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::string &table, const int commit)
 {
   string name = calibrator->Name();
-  odbc::Connection *con = 0;
-  odbc::Connection *concalib = 0;
+  odbc::Connection *con = nullptr;
+  odbc::Connection *concalib = nullptr;
   ostringstream cmd;
   try
     {
@@ -1424,7 +1427,7 @@ OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::stri
       cout << e.getMessage() << endl;
       return -1;
     }
-  Statement *stmt = 0;
+  Statement *stmt = nullptr;
   try
     {
       stmt = con->createStatement();
@@ -1436,8 +1439,8 @@ OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::stri
       return -1;
     }
 
-  PreparedStatement *stmt1 = 0;
-  ResultSet *rs1 = 0;
+  PreparedStatement *stmt1 = nullptr;
+  ResultSet *rs1 = nullptr;
   try
     {
       cmd.str("");
@@ -1451,7 +1454,7 @@ OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::stri
       return -1;
     }
 
-  PreparedStatement *stmtupd = 0;
+  PreparedStatement *stmtupd = nullptr;
   try
     {
       cmd.str("");
@@ -1472,7 +1475,7 @@ OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::stri
       << name
       << " > 0";
   //      << " > 0 and runnumber < 150000";
-  ResultSet *rs = 0;
+  ResultSet *rs = nullptr;
   try
     {
       rs = stmt->executeQuery(cmd.str());
@@ -1563,7 +1566,7 @@ OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::stri
 int
 OnCalServer::SyncOncalTimeStampsToRunDB(const int commit)
 {
-  odbc::Connection *con = 0;
+  odbc::Connection *con = nullptr;
   RunToTime *rt = RunToTime::instance();
   ostringstream cmd;
   try
@@ -1576,7 +1579,7 @@ OnCalServer::SyncOncalTimeStampsToRunDB(const int commit)
       cout << e.getMessage() << endl;
       return -1;
     }
-  Statement *stmt = 0;
+  Statement *stmt = nullptr;
   try
     {
       stmt = con->createStatement();
@@ -1588,7 +1591,7 @@ OnCalServer::SyncOncalTimeStampsToRunDB(const int commit)
       return -1;
     }
 
-  PreparedStatement *stmtupd = 0;
+  PreparedStatement *stmtupd = nullptr;
   try
     {
       cmd.str("");
@@ -1605,7 +1608,7 @@ OnCalServer::SyncOncalTimeStampsToRunDB(const int commit)
   cmd.str("");
   cmd << "select * from "
       << successTable; //<< " where runnumber > 160000";
-  ResultSet *rs = 0;
+  ResultSet *rs = nullptr;
   try
     {
       rs = stmt->executeQuery(cmd.str());
@@ -1705,12 +1708,12 @@ OnCalServer::CopyTables(const OnCal *calibrator, const int FromRun, const int To
 }
 
 int
-OnCalServer::CreateCalibration(OnCal *calibrator, const int runnumber, const string &what, const int commit)
+OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, const string &what, const int commit)
 {
   int iret = -1;
-  runNum = runnumber;
-  SetBorTime(runnumber);
-  SetEorTime(runnumber);
+  runNum = myrunnumber;
+  SetBorTime(myrunnumber);
+  SetEorTime(myrunnumber);
   if (!connectDB())
     {
       cout << "could not connect to " << database << endl;
@@ -1725,8 +1728,8 @@ OnCalServer::CreateCalibration(OnCal *calibrator, const int runnumber, const str
 
   cmd << "SELECT runnumber FROM "
       << successTable << " where runnumber = "
-      << runnumber;
-  ResultSet *rs = 0;
+      << myrunnumber;
+  ResultSet *rs = nullptr;
   try
     {
       rs = stmt->executeQuery(cmd.str());
@@ -1738,7 +1741,7 @@ OnCalServer::CreateCalibration(OnCal *calibrator, const int runnumber, const str
     }
   if (!rs->next())
     {
-      insertRunNumInDB(successTable, runnumber);
+      insertRunNumInDB(successTable, myrunnumber);
     }
   if (rs)
     {
@@ -1747,7 +1750,7 @@ OnCalServer::CreateCalibration(OnCal *calibrator, const int runnumber, const str
   cmd.str("");
   cmd << "SELECT runnumber FROM "
       << successTable << " where runnumber = "
-      << runnumber << " and "
+      << myrunnumber << " and "
       << calibrator->Name() << " <= 0";
   try
     {
@@ -1805,7 +1808,7 @@ OnCalServer::CreateCalibrationUpdateStatus(OnCal *calibrator, const string &tabl
   stringarg.str("");
   stringarg << calibrator->VerificationOK();
   updateDB(table.c_str(), "verified", stringarg.str(), RunNumber());
-  odbc::Timestamp stp(time(NULL));
+  odbc::Timestamp stp(time(nullptr));
   updateDB(table, "date", stp.toString(), RunNumber());
   time_t beginticks = beginTimeStamp.getTics();
   stringarg.str("");
@@ -1950,7 +1953,7 @@ OnCalServer::ClosestGoodRun(OnCal *calibrator, const int irun, const int previou
       << successTable << " where runnumber < "
       << irun << " and "
       << calibrator->Name() << " = 1 order by runnumber desc limit 1";
-  ResultSet *rs = 0;
+  ResultSet *rs = nullptr;
   try
     {
       rs = stmt->executeQuery(cmd.str());
@@ -2086,7 +2089,7 @@ OnCalServer::FixMissingCalibration(OnCal *calibrator, const int runno, const int
   cmd << "SELECT runnumber FROM "
       << successTable << " where runnumber = "
       << runno;
-  ResultSet *rs = 0;
+  ResultSet *rs = nullptr;
   try
     {
       rs = stmt->executeQuery(cmd.str());
@@ -2328,7 +2331,7 @@ OnCalServer::FindClosestCalibratedRun(const int irun)
     }
 
   cmd << " order by runnumber desc limit 1";
-  ResultSet *rs = 0;
+  ResultSet *rs = nullptr;
   try
     {
       rs = stmt->executeQuery(cmd.str());
@@ -2562,7 +2565,7 @@ OnCalServer::GetCalibStatus(const string &calibname, const int runno)
   << successTable << " where runnumber = "
   << runno;
   cout << "exec " << cmd.str() << endl;
-  ResultSet *rs = 0;
+  ResultSet *rs = nullptr;
   try
     {
       rs = stmt->executeQuery(cmd.str());

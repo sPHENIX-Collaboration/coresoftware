@@ -22,7 +22,7 @@ OnCal::process_event(PHCompositeNode */*topNode*/)
 
 
 int 
-OnCal::End(PHCompositeNode *topNode)
+OnCal::End(PHCompositeNode * /*topNode*/)
 {
   cout << "EndOfAnalysis not implemented by subsystem!" << endl;
   cout << "Use this signal for computing your calibrations and commit." << endl;
@@ -47,7 +47,7 @@ OnCal::AddComment(const string &adcom)
 }
 
 int
-OnCal::CopyTables(const int FromRun, const int ToRun, const int commit) const
+OnCal::CopyTables(const int  /*FromRun*/, const int  /*ToRun*/, const int  /*commit*/) const
 {
   cout << PHWHERE << " CopyTables not implemented" << endl
        << "this calibrator cannot copy its own tables" << endl;
