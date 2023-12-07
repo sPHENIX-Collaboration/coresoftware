@@ -526,7 +526,7 @@ OnCalServer::End()
 		}
 
 	    }
-          filelist = filelist.substr(0, filelist.size() - 1); // strip empty space at end from loop
+          filelist.pop_back(); // strip empty space at end from loop
           cout << "FileList: " << filelist << endl;
           updateDB(table, "files", filelist, RunNumber());
           updateDB(table, "cvstag", cvstag, RunNumber());
@@ -1743,10 +1743,7 @@ OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, const s
     {
       insertRunNumInDB(successTable, myrunnumber);
     }
-  if (rs)
-    {
-      delete rs;
-    }
+  delete rs;
   cmd.str("");
   cmd << "SELECT runnumber FROM "
       << successTable << " where runnumber = "
@@ -1800,14 +1797,14 @@ OnCalServer::CreateCalibrationUpdateStatus(OnCal *calibrator, const string &tabl
 {
   updateDB(successTable.c_str(), calibrator->Name(), dbcode);
   insertRunNumInDB(table,RunNumber() );
-  updateDB(table.c_str(), "comment", tablecomment.c_str(), RunNumber(), true);
+  updateDB(table, "comment", tablecomment, RunNumber(), true);
   ostringstream stringarg;
   stringarg.str("");
   stringarg << calibrator->CommitedToPdbCalOK();
-  updateDB(table.c_str(), "committed", stringarg.str(), RunNumber());
+  updateDB(table, "committed", stringarg.str(), RunNumber());
   stringarg.str("");
   stringarg << calibrator->VerificationOK();
-  updateDB(table.c_str(), "verified", stringarg.str(), RunNumber());
+  updateDB(table, "verified", stringarg.str(), RunNumber());
   odbc::Timestamp stp(time(nullptr));
   updateDB(table, "date", stp.toString(), RunNumber());
   time_t beginticks = beginTimeStamp.getTics();
@@ -1832,7 +1829,7 @@ OnCalServer::CreateCalibrationUpdateStatus(OnCal *calibrator, const string &tabl
 	  filelist += infile;
 	  filelist += " ";
 	}
-      filelist = filelist.substr(0, filelist.size() - 1); // strip empty space at end from loop
+      filelist.pop_back(); // strip empty space at end from loop
       cout << "FileList: " << filelist << endl;
       updateDB(table, "files", filelist, RunNumber());
     }
@@ -1852,19 +1849,19 @@ OnCalServer::CopySnglTableNewBankId(const string &pdbclass, const string &tablen
 {
   RunToTime *rt = RunToTime::instance();
   PHTimeStamp *ts = rt->getBeginTime(FromRun);
+  assert(ts);
   PdbBankManager *bankManager = PdbBankManager::instance();
   PdbApplication *application = bankManager->getApplication();
   application->setDBName("oncal");
   PdbBankID BankID(bankid);
   PdbCalBank *pdbBank = bankManager->fetchBank(pdbclass.c_str(), BankID, tablename.c_str(), *ts);
+  assert(pdbBank);
   PHTimeStamp *tstartnew = rt->getBeginTime(ToRun);
   PHTimeStamp *tendnew = rt->getEndTime(ToRun);
   application->startUpdate();
   PdbCalBank *pdbBanknew = (PdbCalBank *) (pdbBank->clone());
   ostringstream newdesc;
   newdesc << "copied from run " << FromRun;
-  if (pdbBank)
-    {
       if (pdbBanknew)
         {
           pdbBanknew->setLength(pdbBank->getLength());
@@ -1904,19 +1901,10 @@ OnCalServer::CopySnglTableNewBankId(const string &pdbclass, const string &tablen
             }
         }
       delete pdbBank;
-    }
-  if (ts)
-    {
+    
       delete ts;
-    }
-  if (tstartnew)
-    {
       delete tstartnew;
-    }
-  if (tendnew)
-    {
       delete tendnew;
-    }
   return 0;
 }
 
@@ -2103,10 +2091,7 @@ OnCalServer::FixMissingCalibration(OnCal *calibrator, const int runno, const int
     {
       insertRunNumInDB(successTable, runNum);
     }
-  if (rs)
-    {
-      delete rs;
-    }
+  delete rs;
   cmd.str("");
   cmd << "SELECT runnumber FROM "
       << successTable << " where runnumber = "
@@ -2162,7 +2147,7 @@ OnCalServer::FixMissingCalibration(OnCal *calibrator, const int runno, const int
             {
               updateDB(successTable.c_str(), calibrator->Name(), newstatus);
               insertRunNumInDB(table, runNum);
-              updateDB(table.c_str(), "comment", comment.str().c_str(), runNum, true);
+              updateDB(table, "comment", comment.str(), runNum, true);
               updateDB(table.c_str(), "committed", true);
             }
         }
