@@ -808,8 +808,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       {
         const TrkrDefs::hitsetkey hitset_key = iter->first;
         TrkrHitSet* hitset = iter->second;
-
-        // get all hits for this hitset
+	      // get all hits for this hitset
         TrkrHitSet::ConstRange hitrangei = hitset->getHits();
         for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
              hitr != hitrangei.second;
@@ -1142,7 +1141,10 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       TrackFitUtils::getTrackletClusters(tgeometry, clustermap, 
 					 clusterPositions, clusterKeys);
       std::vector<float> fitparams = TrackFitUtils::fitClusters(clusterPositions, clusterKeys);
- 
+      if(fitparams.size() == 0)
+      {
+        continue;
+      }
       float charge = NAN;
       if(tpcseed->get_qOverR()>0)
 	{ charge = 1; }
