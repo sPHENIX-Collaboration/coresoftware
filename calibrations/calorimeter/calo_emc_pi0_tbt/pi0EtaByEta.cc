@@ -72,7 +72,7 @@ pi0EtaByEta::~pi0EtaByEta()
   delete clusterntuple;
 }
 
-int pi0EtaByEta::Init(PHCompositeNode*)
+int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
 {
   hm = new Fun4AllHistoManager(Name());
   // create and register your histos (all types) here
@@ -80,7 +80,8 @@ int pi0EtaByEta::Init(PHCompositeNode*)
   outfile = new TFile(outfilename.c_str(), "RECREATE");
 
   // correlation plots
-  for (int i = 0; i < 96; i++) h_mass_eta_lt[i] = new TH1F(Form("h_mass_eta_lt%d", i), "", 50, 0, 0.5);
+  for (int i = 0; i < 96; i++) { h_mass_eta_lt[i] = new TH1F(Form("h_mass_eta_lt%d", i), "", 50, 0, 0.5);
+}
 
   h_cemc_etaphi = new TH2F("h_cemc_etaphi", "", 96, 0, 96, 256, 0, 256);
 
@@ -113,7 +114,8 @@ int pi0EtaByEta::process_event(PHCompositeNode* topNode)
 
 int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 {
-  if ((_eventcounter % 1000) == 0) std::cout << _eventcounter << std::endl;
+  if ((_eventcounter % 1000) == 0) { std::cout << _eventcounter << std::endl;
+}
 
   // float emcaldownscale = 1000000 / 800;
 
@@ -167,7 +169,8 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
         ht_eta.push_back(ieta);
         ht_phi.push_back(iphi);
       }
-      if (isGood) h_emcal_e_eta->Fill(ieta, offlineenergy);
+      if (isGood) { h_emcal_e_eta->Fill(ieta, offlineenergy);
+}
       if (offlineenergy > emcal_hit_threshold)
       {
         h_cemc_etaphi->Fill(ieta, iphi);
@@ -208,15 +211,18 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     float clus_pt = E_vec_cluster.perp();
     float clus_chisq = recoCluster->get_chi2();
 
-    if (clus_pt < nClus_ptCut) continue;
-    if (clus_chisq > clus_chisq_cut) continue;
+    if (clus_pt < nClus_ptCut) { continue;
+}
+    if (clus_chisq > clus_chisq_cut) { continue;
+}
 
     nClusCount++;
   }
 
   h_nclusters->Fill(nClusCount);
 
-  if (nClusCount > max_nClusCount) return Fun4AllReturnCodes::EVENT_OK;
+  if (nClusCount > max_nClusCount) { return Fun4AllReturnCodes::EVENT_OK;
+}
 
   float pt1ClusCut = 1.3;  // 1.3
   float pt2ClusCut = 0.7;  // 0.7
@@ -248,7 +254,8 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     float clus_chisq = recoCluster->get_chi2();
     h_clusE->Fill(clusE);
 
-    if (clus_chisq > clus_chisq_cut) continue;
+    if (clus_chisq > clus_chisq_cut) { continue;
+}
 
     // loop over the towers in the cluster
     RawCluster::TowerConstRange towerCR = recoCluster->get_towers();
@@ -269,19 +276,23 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
         lt_eta = towereta;
       }
 
-      for (size_t i = 0; i < ht_eta.size(); i++)
-        if (towerphi == ht_phi[i] && towereta == ht_eta[i])
+      for (size_t i = 0; i < ht_eta.size(); i++) {
+        if (towerphi == ht_phi[i] && towereta == ht_eta[i]) {
           hotClus = true;
+}
+}
     }
 
-    if (dynMaskClus && hotClus == true) continue;
+    if (dynMaskClus && hotClus == true) { continue;
+}
 
     h_etaphi_clus->Fill(clus_eta, clus_phi);
 
     TLorentzVector photon1;
     photon1.SetPtEtaPhiE(clus_pt, clus_eta, clus_phi, clusE);
 
-    if (clus_pt < pt1ClusCut) continue;
+    if (clus_pt < pt1ClusCut) { continue;
+}
 
     for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterEnd.second; clusterIter2++)
     {
@@ -299,8 +310,10 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       float clus2_pt = E_vec_cluster2.perp();
       float clus2_chisq = recoCluster2->get_chi2();
 
-      if (clus2_pt < pt2ClusCut) continue;
-      if (clus2_chisq > clus_chisq_cut) continue;
+      if (clus2_pt < pt2ClusCut) { continue;
+}
+      if (clus2_chisq > clus_chisq_cut) { continue;
+}
 
       // loop over the towers in the cluster
       RawCluster::TowerConstRange towerCR2 = recoCluster2->get_towers();
@@ -313,25 +326,31 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
         for (size_t i = 0; i < ht_eta.size(); i++)
         {
-          if (towerphi == ht_phi[i] && towereta == ht_phi[i]) hotClus2 = true;
+          if (towerphi == ht_phi[i] && towereta == ht_phi[i]) { hotClus2 = true;
+}
         }
       }
-      if (dynMaskClus && hotClus2 == true) continue;
+      if (dynMaskClus && hotClus2 == true) { continue;
+}
 
       TLorentzVector photon2;
       photon2.SetPtEtaPhiE(clus2_pt, clus2_eta, clus2_phi, clus2E);
 
-      if (fabs(clusE - clus2E) / (clusE + clus2E) > maxAlpha) continue;
+      if (fabs(clusE - clus2E) / (clusE + clus2E) > maxAlpha) { continue;
+}
 
-      if (photon1.DeltaR(photon2) > maxDr) continue;
+      if (photon1.DeltaR(photon2) > maxDr) { continue;
+}
 
       TLorentzVector pi0 = photon1 + photon2;
-      if (pi0.Pt() < pi0ptcut) continue;
+      if (pi0.Pt() < pi0ptcut) { continue;
+}
 
       h_pt1->Fill(photon1.Pt());
       h_pt2->Fill(photon2.Pt());
       h_InvMass->Fill(pi0.M());
-      if (lt_eta > 95) continue;
+      if (lt_eta > 95) { continue;
+}
       h_mass_eta_lt[lt_eta]->Fill(pi0.M());
     }
   }  // clus1 loop
@@ -391,11 +410,13 @@ void pi0EtaByEta::fitEtaSlices(const std::string &infile, const std::string &fit
     exit(1);
   }
   TH1F* h_M_eta[96];
-  for (int i = 0; i < 96; i++) h_M_eta[i] = (TH1F*) fin->Get(Form("h_mass_eta_lt%d", i));
+  for (int i = 0; i < 96; i++) { h_M_eta[i] = (TH1F*) fin->Get(Form("h_mass_eta_lt%d", i));
+}
 
   for (int i = 0; i < 96; i++)
   {
-    if (!h_M_eta[i]) std::cout << "pi0EtaByEta::fitEtaSlices null hist" << std::endl;
+    if (!h_M_eta[i]) { std::cout << "pi0EtaByEta::fitEtaSlices null hist" << std::endl;
+}
     std::pair<double, double> result = fitHistogram(h_M_eta[i]);
     h_peak_eta->SetBinContent(i + 1, result.first);
     h_peak_eta->SetBinError(i + 1, result.second);
@@ -425,10 +446,10 @@ void pi0EtaByEta::fitEtaSlices(const std::string &infile, const std::string &fit
   TFile* fit_out = new TFile(fitOutFile.c_str(), "recreate");
   fit_out->cd();
   h_peak_eta->Write();
-  for (int i = 0; i < 96; i++)
+  for (auto & i : h_M_eta)
   {
-    h_M_eta[i]->Write();
-    delete h_M_eta[i];
+    i->Write();
+    delete i;
   }
 
   fin->Close();

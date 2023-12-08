@@ -75,7 +75,7 @@ class pi0EtaByEta : public SubsysReco
   std::vector<int> m_bbc_type;
   std::vector<int> m_bbc_side;
 
-  std::array<TH1*,96> h_mass_eta_lt;
+  std::array<TH1*,96> h_mass_eta_lt{};
 
   int _eventcounter {0};
   int _range {1};
