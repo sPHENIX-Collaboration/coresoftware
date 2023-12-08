@@ -28,6 +28,7 @@ class PHNodeIOManager : public PHIOManager
   PHNodeIOManager(const std::string &, const PHAccessType, const PHTreeType);
   ~PHNodeIOManager() override;
 
+// cppcheck-suppress [virtualCallInConstructor]
   void closeFile() override;
   bool write(PHCompositeNode *) override;
   void print() const override;
