@@ -34,6 +34,7 @@
 // odbc++ classes
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
