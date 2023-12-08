@@ -76,7 +76,7 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
       clusterPositions.insert(std::make_pair(ckey, global));
     }
   }
-  if(Verbosity() > 2)
+  if (Verbosity() > 2)
   {
     std::cout << "cluster map size is " << clusterPositions.size() << std::endl;
   }
@@ -88,15 +88,17 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
 
   auto prunedSeeds = combineSeeds(seeds);
   int i = 0;
+  std::cout << "pruned seed size " << prunedSeeds.size() << std::endl;
   for (auto& seed : prunedSeeds)
   {
     ++i;
 
     auto svtxseed = std::make_unique<TrackSeed_v1>();
-    for(auto& key : seed.ckeys)
+    for (auto& key : seed.ckeys)
     {
       svtxseed->insert_cluster_key(key);
     }
+    std::cout << "seed size " << svtxseed->size_cluster_keys() << std::endl;
     m_seedContainer->insert(svtxseed.get());
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -107,34 +109,29 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVect
   std::set<int> seedsToDelete;
   for (int i = 0; i < initialSeeds.size(); ++i)
   {
-    
-    for (int j=i; j<initialSeeds.size(); ++j)
+    for (int j = i; j < initialSeeds.size(); ++j)
     {
-      if(i==j)
+      if (i == j)
       {
         continue;
       }
       auto seed1 = initialSeeds[i];
       auto seed2 = initialSeeds[j];
-      if (fabs(seed1.xyslope-seed2.xyslope)< 0.1 &&
-          fabs(seed1.xyintercept-seed2.xyintercept)<1.)
-          {
-            for(auto& key : seed2.ckeys)
-            {
-              seed1.ckeys.insert(key);
-            }
-            seedsToDelete.insert(j);
-          }
-      //std::set_union(keylist1.begin(), keylist1.end(),
-        //             keylist2.begin(), keylist2.end(), std::back_inserter(un));
-      //! if they share 70% of keys, just delete the second one
-
+      if (fabs(seed1.xyslope - seed2.xyslope) < 0.1 &&
+          fabs(seed1.xyintercept - seed2.xyintercept) < 1.)
+      {
+        for (auto& key : seed2.ckeys)
+        {
+          seed1.ckeys.insert(key);
+        }
+        seedsToDelete.insert(j);
+      }
     }
   }
 
-  for(int i=0; i<initialSeeds.size(); ++i)
+  for (int i = 0; i < initialSeeds.size(); ++i)
   {
-    if(seedsToDelete.find(i) != seedsToDelete.end())
+    if (seedsToDelete.find(i) != seedsToDelete.end())
     {
       continue;
     }
@@ -153,13 +150,13 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
   {
     for (auto& [key2, pos2] : clusterPositions)
     {
-      if(key1 == key2) 
+      if (key1 == key2)
       {
         continue;
       }
       // make a cut on clusters to at least be close to each other within a few cm
       float dist = (pos2 - pos1).norm();
-      if(Verbosity() > 5)
+      if (Verbosity() > 5)
       {
         std::cout << "checking keys " << key1 << ", " << key2 << " with dist apart " << dist << std::endl;
         std::cout << "positions are " << pos1.transpose() << "    ,     "
@@ -170,12 +167,12 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
         continue;
       }
       PHCosmicSeeder::seed doub;
-      //std::cout << "pos 1 and 2 " << pos1.transpose() << " , " << pos2.transpose() << std::endl;
+      // std::cout << "pos 1 and 2 " << pos1.transpose() << " , " << pos2.transpose() << std::endl;
       doub.xyslope = (pos2.y() - pos1.y()) / (pos2.x() - pos1.x());
       doub.xyintercept = pos1.y() - doub.xyslope * pos1.x();
       doub.rzslope = (r(pos2.x(), pos2.y()) - r(pos1.x(), pos1.y())) / (pos2.z() - pos1.z());
       doub.rzintercept = pos1.z() * doub.rzslope + r(pos1.x(), pos1.y());
-      //std::cout << "vals are " << doub.rzslope << ", " << doub.rzintercept << std::endl;
+      // std::cout << "vals are " << doub.rzslope << ", " << doub.rzintercept << std::endl;
       keys.insert(key1);
       keys.insert(key2);
       doub.ckeys = keys;
@@ -184,16 +181,16 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       seednum++;
     }
   }
-if(Verbosity() > 2)
-{
-  std::cout << "odublet sizes " << seeds.size() << std::endl;
-}
+  if (Verbosity() > 2)
+  {
+    std::cout << "odublet sizes " << seeds.size() << std::endl;
+  }
   for (auto& dub : seeds)
   {
-    if(Verbosity() > 2)
+    if (Verbosity() > 2)
     {
       std::cout << "doublet has " << dub.ckeys.size() << " keys " << std::endl;
-      for(auto key : dub.ckeys)
+      for (auto key : dub.ckeys)
       {
         std::cout << "position is " << clusterPositions.find(key)->second.transpose() << std::endl;
       }
@@ -213,9 +210,9 @@ if(Verbosity() > 2)
                   << predy << ", " << pos.transpose() << " and " << predr << ", " << r(pos.x(), pos.y())
                   << std::endl;
       }
-      if (fabs(predy - pos.y()) < m_xyTolerance) 
+      if (fabs(predy - pos.y()) < m_xyTolerance)
       {
-        if(Verbosity() > 2)
+        if (Verbosity() > 2)
         {
           std::cout << "   adding ckey " << key << " with box dca "
                     << predy << ", " << pos.y() << " and " << predr << ", " << r(pos.x(), pos.y())
