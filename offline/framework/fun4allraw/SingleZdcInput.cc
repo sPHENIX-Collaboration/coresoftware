@@ -82,7 +82,7 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
     {
       if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
       {
-        int evtno = plist[i]->iValue(0, "EVTNR");
+        int evtno = plist[i]->iValue(0, "EVTNR") + rollover[i];
 	if (evtno < previous_eventnumber[i])
 	{
 	  if (Verbosity() > 1)
