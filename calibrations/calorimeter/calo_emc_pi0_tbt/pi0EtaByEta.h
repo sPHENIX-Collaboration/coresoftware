@@ -2,6 +2,7 @@
 #define CALOANA_H__
 
 #include <fun4all/SubsysReco.h>
+
 #include <array>
 #include <vector>
 

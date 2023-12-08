@@ -30,9 +30,6 @@
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
-#include <Event/Event.h>
-#include <Event/packet.h>
-
 #include <TCanvas.h>
 #include <TF1.h>
 #include <TFile.h>
