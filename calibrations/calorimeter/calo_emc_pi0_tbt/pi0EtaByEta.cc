@@ -407,7 +407,6 @@ void pi0EtaByEta::fitEtaSlices(std::string infile, std::string fitOutFile, std::
     h_peak_eta->SetBinContent(i + 1, result.first);
     h_peak_eta->SetBinError(i + 1, result.second);
   }
-  cdbFile = "";
 
   CDBTTree* cdbttree1 = new CDBTTree(cdbFile.c_str());
   CDBTTree* cdbttree2 = new CDBTTree(cdbFile.c_str());
