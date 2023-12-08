@@ -297,7 +297,7 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
     cout << "TPCDataStreamEmulator::process_event - Fatal Error - "
          << "unable to find DST node "
          << "G4TruthInfo" << endl;
-    assert(truthInfoList);
+    exit(1);
   }
 
   PHG4TruthInfoContainer::ConstRange primary_range =
