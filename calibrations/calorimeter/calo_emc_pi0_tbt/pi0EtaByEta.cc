@@ -1,13 +1,12 @@
 #include "pi0EtaByEta.h"
 
-// G4Hits includes
-#include <TLorentzVector.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
 
-// G4Cells includes
-#include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CellContainer.h>
+// MBD
+#include <mbd/BbcGeom.h>
+#include <mbd/MbdPmtContainerV1.h>
+#include <mbd/MbdPmtHit.h>
 
 // Tower includes
 #include <calobase/RawCluster.h>
@@ -20,23 +19,23 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
-
-// Cluster includes
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
+
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
+
+#include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
+
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
-#include <globalvertex/GlobalVertex.h>
-#include <globalvertex/GlobalVertexMap.h>
 
-// MBD
-#include <mbd/BbcGeom.h>
-#include <mbd/MbdPmtContainerV1.h>
-#include <mbd/MbdPmtHit.h>
+#include <Event/Event.h>
+#include <Event/packet.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -44,34 +43,24 @@
 #include <TNtuple.h>
 #include <TProfile2D.h>
 #include <TTree.h>
+#include <TLorentzVector.h>
+#include <TCanvas.h>
+#include <TF1.h>
+#include <TFile.h>
+#include <TH1.h>
 
-#include <Event/Event.h>
-#include <Event/packet.h>
 #include <cassert>
 #include <sstream>
 #include <string>
-
 #include <iostream>
 #include <utility>
-#include "TCanvas.h"
-#include "TF1.h"
-#include "TFile.h"
-#include "TH1F.h"
-
-#include <cdbobjects/CDBTTree.h>  // for CDBTTree
-#include <ffamodules/CDBInterface.h>
-#include <phool/recoConsts.h>
-
-R__LOAD_LIBRARY(libLiteCaloEvalTowSlope.so)
-
-using namespace std;
 
 pi0EtaByEta::pi0EtaByEta(const std::string& name, const std::string& filename)
   : SubsysReco(name)
   , detector("HCALIN")
   , outfilename(filename)
 {
-  _eventcounter = 0;
+  h_mass_eta_lt.fill(nullptr);
 }
 
 pi0EtaByEta::~pi0EtaByEta()
@@ -156,8 +145,8 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     }
   }
 
-  vector<float> ht_eta;
-  vector<float> ht_phi;
+  std::vector<float> ht_eta;
+  std::vector<float> ht_phi;
 
   // if (!m_vtxCut || abs(vtx_z) > _vz)  return Fun4AllReturnCodes::EVENT_OK;
 
@@ -240,10 +229,10 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
   float pi0ptcut = 1.22 * (pt1ClusCut + pt2ClusCut);
 
-  vector<float> save_pt;
-  vector<float> save_eta;
-  vector<float> save_phi;
-  vector<float> save_e;
+  std::vector<float> save_pt;
+  std::vector<float> save_eta;
+  std::vector<float> save_phi;
+  std::vector<float> save_e;
 
   for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; clusterIter++)
   {
@@ -364,7 +353,7 @@ int pi0EtaByEta::End(PHCompositeNode* /*topNode*/)
   return 0;
 }
 
-std::pair<double, double> pi0EtaByEta::fitHistogram(TH1F* h)
+std::pair<double, double> pi0EtaByEta::fitHistogram(TH1* h)
 {
   TF1* fitFunc = new TF1("fitFunc", "[0]*exp(-0.5*((x-[1])/[2])^2) + [3] + [4]*x + [5]*x^2 + [6]*x^3", h->GetXaxis()->GetXmin(), h->GetXaxis()->GetXmax());
 
@@ -391,18 +380,22 @@ std::pair<double, double> pi0EtaByEta::fitHistogram(TH1F* h)
   return result;
 }
 
-void pi0EtaByEta::fitEtaSlices(std::string infile, std::string fitOutFile, std::string cdbFile)
+void pi0EtaByEta::fitEtaSlices(const std::string &infile, const std::string &fitOutFile, const std::string &cdbFile)
 {
   TFile* fin = new TFile(infile.c_str());
-  cout << "getting hists" << endl;
+  std::cout << "getting hists" << std::endl;
   TH1F* h_peak_eta = new TH1F("h_peak_eta", "", 96, 0, 96);
-  if (!fin) cout << "pi0EtaByEta::fitEtaSlices null fin" << endl;
+  if (!fin) 
+  {
+    std::cout << "pi0EtaByEta::fitEtaSlices null fin" << std::endl;
+    exit(1);
+  }
   TH1F* h_M_eta[96];
   for (int i = 0; i < 96; i++) h_M_eta[i] = (TH1F*) fin->Get(Form("h_mass_eta_lt%d", i));
 
   for (int i = 0; i < 96; i++)
   {
-    if (!h_M_eta[i]) cout << "pi0EtaByEta::fitEtaSlices null hist" << endl;
+    if (!h_M_eta[i]) std::cout << "pi0EtaByEta::fitEtaSlices null hist" << std::endl;
     std::pair<double, double> result = fitHistogram(h_M_eta[i]);
     h_peak_eta->SetBinContent(i + 1, result.first);
     h_peak_eta->SetBinError(i + 1, result.second);
@@ -411,7 +404,7 @@ void pi0EtaByEta::fitEtaSlices(std::string infile, std::string fitOutFile, std::
   CDBTTree* cdbttree1 = new CDBTTree(cdbFile.c_str());
   CDBTTree* cdbttree2 = new CDBTTree(cdbFile.c_str());
 
-  string m_fieldname = "Femc_datadriven_qm1_correction";
+  std::string m_fieldname = "Femc_datadriven_qm1_correction";
 
   for (int i = 0; i < 96; i++)
   {
@@ -440,7 +433,7 @@ void pi0EtaByEta::fitEtaSlices(std::string infile, std::string fitOutFile, std::
 
   fin->Close();
 
-  cout << "finish fitting suc" << endl;
+  std::cout << "finish fitting suc" << std::endl;
 
   return;
 }
