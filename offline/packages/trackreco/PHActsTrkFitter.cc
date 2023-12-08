@@ -1200,8 +1200,10 @@ Acts::BoundSquareMatrix PHActsTrkFitter::setDefaultCovariance() const
   }
   else
   {
+    // cppcheck-suppress duplicateAssignExpression
     double sigmaD0 = 50 * Acts::UnitConstants::um;
     double sigmaZ0 = 50 * Acts::UnitConstants::um;
+    // cppcheck-suppress duplicateAssignExpression
     double sigmaPhi = 1 * Acts::UnitConstants::degree;
     double sigmaTheta = 1 * Acts::UnitConstants::degree;
     double sigmaT = 1. * Acts::UnitConstants::ns;

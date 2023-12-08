@@ -698,6 +698,18 @@ int Fun4AllServer::process_event()
           ffamemtracker->Stop((*iterOutMan)->Name(), "OutputManager");
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
 #endif
+          if ((*iterOutMan)->EventsWritten() >= (*iterOutMan)->GetNEvents())
+          {
+            if (Verbosity() > 0)
+            {
+              std::cout << PHWHERE << (*iterOutMan)->Name() << " wrote " << (*iterOutMan)->EventsWritten()
+                        << " events, closing " << (*iterOutMan)->OutFileName() << std::endl;
+            }
+            PHNodeIterator nodeiter(TopNode);
+            PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
+            MakeNodesTransient(runNode);  // make all nodes transient by default
+            (*iterOutMan)->WriteNode(runNode);
+          }
         }
         else
         {

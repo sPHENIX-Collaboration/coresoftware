@@ -9,8 +9,8 @@
  */
 
 #include "JetHepMCLoader.h"
-#include <jetbase/JetMap.h>  // for JetMap
-#include <jetbase/JetMapv1.h>
+#include <jetbase/JetContainer.h>  // for JetContainer
+#include <jetbase/JetContainer.h>
 #include <jetbase/Jetv1.h>
 
 #include <phhepmc/PHHepMCGenEvent.h>
@@ -118,7 +118,7 @@ int JetHepMCLoader::process_event(PHCompositeNode *topNode)
 
   for (const hepmc_jet_src &src : m_jetSrc)
   {
-    JetMap *jets = findNode::getClass<JetMap>(topNode, src.m_name);
+    JetContainer *jets = findNode::getClass<JetContainer>(topNode, src.m_name);
     assert(jets);
 
     jets->set_algo(src.m_algorithmID);
@@ -169,7 +169,7 @@ int JetHepMCLoader::process_event(PHCompositeNode *topNode)
 
       if (part->status() == src.m_tagStatus and part->pdg_id() == src.m_tagPID)
       {
-        Jet *jet = new Jetv1();
+        Jet *jet = jets->add_jet(); // returns a new Jetv2
 
         jet->set_px(part->momentum().px() * mom_factor);
         jet->set_py(part->momentum().py() * mom_factor);
@@ -177,9 +177,6 @@ int JetHepMCLoader::process_event(PHCompositeNode *topNode)
         jet->set_e(part->momentum().e() * mom_factor);
 
         jet->insert_comp(Jet::HEPMC_IMPORT, part->barcode());
-
-        jets->insert(jet);
-
         if (hjet)
         {
           hjet->Fill(jet->get_eta(), jet->get_et());
@@ -270,12 +267,12 @@ int JetHepMCLoader::CreateNodes(PHCompositeNode *topNode)
       AlgoNode->addNode(InputNode);
     }
 
-    JetMap *jets = findNode::getClass<JetMap>(topNode, src.m_name);
+    JetContainer *jets = findNode::getClass<JetContainer>(topNode, src.m_name);
     if (!jets)
     {
-      jets = new JetMapv1();
-      PHIODataNode<PHObject> *JetMapNode = new PHIODataNode<PHObject>(jets, src.m_name.c_str(), "PHObject");
-      InputNode->addNode(JetMapNode);
+      jets = new JetContainer();
+      PHIODataNode<PHObject> *JetContainerNode = new PHIODataNode<PHObject>(jets, src.m_name.c_str(), "PHObject");
+      InputNode->addNode(JetContainerNode);
     }
   }
 

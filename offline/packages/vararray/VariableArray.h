@@ -19,6 +19,7 @@ class VariableArray : public PHObject
   const short int *get_array() const { return sval; }
   unsigned int get_array_size() const { return nVal; }
   int Id() const { return id; }
+// cppcheck-suppress virtualCallInConstructor
   void Reset() override;
 
  protected:

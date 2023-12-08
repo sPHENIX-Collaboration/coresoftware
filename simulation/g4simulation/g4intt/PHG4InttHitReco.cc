@@ -838,7 +838,7 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
     if (nhits == 0) continue;
 
     double cluslocaly = ylocalsum / nhits;
-    double cluslocalz = ylocalsum / nhits;
+    double cluslocalz = zlocalsum / nhits;
 
     //if (_make_e_weights[layer]) // FIXME: this is always false for now
     /* { */

@@ -17,7 +17,7 @@ namespace
   }
 }
 
-PHSiliconHelicalPropagator::PHSiliconHelicalPropagator(std::string name)
+PHSiliconHelicalPropagator::PHSiliconHelicalPropagator(const std::string &name)
   : SubsysReco(name)
 {
 }
@@ -75,7 +75,7 @@ int PHSiliconHelicalPropagator::InitRun(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHSiliconHelicalPropagator::createSeedContainer(TrackSeedContainer*& container, std::string container_name, PHCompositeNode* topNode)
+int PHSiliconHelicalPropagator::createSeedContainer(TrackSeedContainer*& container, const std::string &container_name, PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
 

@@ -32,15 +32,19 @@ class SyncObjectv1 : public SyncObject
   int isValid() const override;
 
   /// set Event Counter
+// cppcheck-suppress virtualCallInConstructor
   void EventCounter(const int ival) override { eventcounter = ival; }
 
   /// set Event Number
+// cppcheck-suppress virtualCallInConstructor
   void EventNumber(const int ival) override { eventnumber = ival; }
 
   /// set Run Number
+// cppcheck-suppress virtualCallInConstructor
   void RunNumber(const int ival) override { runnumber = ival; }
 
   /// set Segment Number
+// cppcheck-suppress virtualCallInConstructor
   void SegmentNumber(const int ival) override { segmentnumber = ival; }
 
  protected:

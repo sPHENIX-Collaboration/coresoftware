@@ -119,16 +119,16 @@ int JetReco::process_event(PHCompositeNode *topNode)
                   // It can be removed later
       if (use_jetmap) {
         std::fstream fout;
-        fout.open("FIXME_jetmap", std::fstream::app);
+        fout.open("fixme_jetmap", std::fstream::app);
         fout << " Printing jet results " << std::endl;
         JetMap *jetmap = findNode::getClass<JetMap>(topNode, _outputs[ialgo]);
-        int iFIXME =0;
+        int ifixme =0;
         for (auto _jet = jetmap->begin(); _jet != jetmap->end(); ++_jet) {
           auto jet = _jet->second;
           fout << Form(" jet[%2i] ncon:pt:eta:phi [%6i,%6.3f,%6.3f,%6.3f]",
-              ++iFIXME, (int)jet->size_comp(), jet->get_pt(), jet->get_eta(), jet->get_phi()) << std::endl;
+              ++ifixme, (int)jet->size_comp(), jet->get_pt(), jet->get_eta(), jet->get_phi()) << std::endl;
           std::vector<std::pair<int,int>> vconst;
-          for (auto _comp = jet->begin_comp(); _comp != jet->end_comp(); ++_comp) {
+          /*legacy*/ for (auto _comp = jet->begin_comp(); _comp != jet->end_comp(); ++_comp) {
             vconst.push_back({(int)_comp->first,(int)_comp->second});
           }
           std::sort(vconst.begin(), vconst.end(), [](std::pair<int,int> a, std::pair<int,int> b) 
@@ -146,15 +146,15 @@ int JetReco::process_event(PHCompositeNode *topNode)
       }
       if (use_jetcon) {
         std::fstream fout;
-        fout.open("FIXME_jetcont", std::fstream::app);
+        fout.open("fixme_jetcont", std::fstream::app);
         fout << " Printing jet results" << std::endl;
         JetContainer *jet_cont = findNode::getClass<JetContainer>(topNode,JC_name(_outputs[ialgo]));
-        int iFIXME =0;
+        int ifixme =0;
 
         /* for (auto jet = jet_cont->begin(); jet != jet_cont->end(); ++jet) { */
         for (auto jet : *jet_cont) {
           fout << Form(" jet[%2i] ncon:pt:eta:phi [%6i,%6.3f,%6.3f,%6.3f]",
-              ++iFIXME, (int)jet->size_comp(), jet->get_pt(), jet->get_eta(), jet->get_phi()) << std::endl;
+              ++ifixme, (int)jet->size_comp(), jet->get_pt(), jet->get_eta(), jet->get_phi()) << std::endl;
 
           fout << " constituents: ";
           int iconst = 0;

@@ -33,7 +33,7 @@ class FastJetAlgo : public JetAlgo
   //  there is no harm is using these, as well.
   //----------------------------------------------------------------------
   FastJetAlgo(Jet::ALGO algo, float par, int verbosity=0) :
-     FastJetAlgo({{JET_R,par,algo,VERBOSITY,static_cast<float>(verbosity)}})
+     FastJetAlgo({{algo, JET_R,par,VERBOSITY, static_cast<float>(verbosity)}})
   {}
   void set_do_SoftDrop   (bool  do_SD) { m_opt.doSoftDrop = do_SD; }
   void set_SoftDrop_beta (float beta)  { m_opt.SD_beta    = beta;  }
@@ -48,10 +48,10 @@ class FastJetAlgo : public JetAlgo
   bool m_first_cluster_call { true };
 
   // for convenience save indices of the zg, Rg, mu, and area for jets in the JetContainer
-  unsigned int m_zg_index   { UINT_MAX };
-  unsigned int m_Rg_index   { UINT_MAX };
-  unsigned int m_mu_index   { UINT_MAX };
-  unsigned int m_area_index { UINT_MAX };
+  Jet::PROPERTY m_zg_index   { Jet::PROPERTY::no_property };
+  Jet::PROPERTY m_Rg_index   { Jet::PROPERTY::no_property };
+  Jet::PROPERTY m_mu_index   { Jet::PROPERTY::no_property };
+  Jet::PROPERTY m_area_index { Jet::PROPERTY::no_property };
 
   // Internal processes
   std::vector<fastjet::PseudoJet> jets_to_pseudojets(std::vector<Jet*>& particles);

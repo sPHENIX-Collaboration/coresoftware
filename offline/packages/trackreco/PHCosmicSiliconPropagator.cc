@@ -268,7 +268,7 @@ int PHCosmicSiliconPropagator::End(PHCompositeNode*)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHCosmicSiliconPropagator::createSeedContainer(TrackSeedContainer*& container, std::string container_name, PHCompositeNode* topNode)
+int PHCosmicSiliconPropagator::createSeedContainer(TrackSeedContainer*& container, const std::string &container_name, PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
 

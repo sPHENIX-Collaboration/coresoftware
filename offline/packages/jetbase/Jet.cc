@@ -9,7 +9,7 @@ Jet::typ_comp_ids DummyJetMap;
 std::vector<float> DummyJetPropVec;
 Jet::TYPE_comp_vec DummyJetCompVec;
 
-std::vector<float>& Jet::get_vec_properties()
+std::vector<float>& Jet::get_property_vec()
 {
   return DummyJetPropVec;
 }
@@ -75,30 +75,7 @@ Jet::Iter Jet::lower_bound_comp(Jet::SRC /**/)
 Jet::Iter Jet::upper_bound_comp(Jet::SRC /**/)
 { return DummyJetMap.end(); }
 
-// structure to iterate over ther jets in a TClonesArray in the JetContainer
-Jet::IterJetTCA::IterJetTCA(TClonesArray* _tca, Jet*& _in_jet)
-  : tca{_tca}
-  , current_jet{_in_jet}
-  , size{tca->GetEntriesFast()}
-{
-  current_jet = (Jet*) tca->UncheckedAt(0);
-}
+Jet::IterJetTCA::IterJetTCA(TClonesArray* _tca) : tca { _tca }, size{tca->GetEntriesFast()} {}
 
-void Jet::IterJetTCA::operator++()
-{
-  ++index;
-  current_jet = (Jet*) tca->UncheckedAt(index);
-}
+Jet* Jet::IterJetTCA::operator*() { return (Jet*) tca->UncheckedAt(index); }
 
-bool Jet::IterJetTCA::operator!=(const IterJetTCA& rhs)
-{
-  if (index == rhs.size)
-  {
-    current_jet = (Jet*) tca->UncheckedAt(0);
-    return false;
-  }
-  else
-  {
-    return true;
-  }
-};

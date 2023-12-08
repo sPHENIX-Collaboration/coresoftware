@@ -12,7 +12,7 @@
 #include <calobase/TowerInfoContainer.h>
 
 #include <jetbase/Jet.h>
-#include <jetbase/JetMap.h>
+#include <jetbase/JetContainer.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -113,21 +113,19 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   // seed type 0 is D > 3 R=0.2 jets run on retowerized CEMC
   if (_seed_type == 0)
   {
-    JetMap *reco2_jets;
+    JetContainer *reco2_jets;
     if (m_use_towerinfo)
       {
-	reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_TowerInfo_HIRecoSeedsRaw_r02");
+	reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsRaw_r02");
       }
     else
       {
-	reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r02");
+	reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r02");
       }
     if (Verbosity() > 1)
       std::cout << "DetermineTowerBackground::process_event: examining possible seeds (1st iteration) ... " << std::endl;
 
-    for (JetMap::Iter iter = reco2_jets->begin(); iter != reco2_jets->end(); ++iter)
-    {
-      Jet *this_jet = iter->second;
+    for (auto this_jet : *reco2_jets) {
 
       float this_pt = this_jet->get_pt();
       float this_phi = this_jet->get_phi();
@@ -147,7 +145,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
       std::map<int, double> constituent_ETsum;
 
-      for (Jet::ConstIter comp = this_jet->begin_comp(); comp != this_jet->end_comp(); ++comp)
+      for (const auto& comp : this_jet->get_comp_vec()) 
       {
         int comp_ieta = -1;
         int comp_iphi = -1;
@@ -160,10 +158,10 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
 	if (m_use_towerinfo)
 	  {
-	    if ((*comp).first == 5 || (*comp).first == 26)
+	    if (comp.first == 5 || comp.first == 26)
 	      {
-		towerinfo = towerinfosIH3->get_tower_at_channel((*comp).second);
-		unsigned int towerkey = towerinfosIH3->encode_key((*comp).second);
+		towerinfo = towerinfosIH3->get_tower_at_channel(comp.second);
+		unsigned int towerkey = towerinfosIH3->encode_key(comp.second);
 		comp_ieta = towerinfosIH3->getTowerEtaBin(towerkey);
 		comp_iphi = towerinfosIH3->getTowerPhiBin(towerkey);
 		const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
@@ -171,10 +169,10 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 		comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
 		comp_T = towerinfo->get_time();
 	      }
-	    else if ((*comp).first == 7 || (*comp).first == 27)
+	    else if (comp.first == 7 || comp.first == 27)
 	      {
-		towerinfo = towerinfosOH3->get_tower_at_channel((*comp).second);
-		unsigned int towerkey = towerinfosOH3->encode_key((*comp).second);
+		towerinfo = towerinfosOH3->get_tower_at_channel(comp.second);
+		unsigned int towerkey = towerinfosOH3->encode_key(comp.second);
 		comp_ieta = towerinfosOH3->getTowerEtaBin(towerkey);
 		comp_iphi = towerinfosOH3->getTowerPhiBin(towerkey);
 		const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, comp_ieta, comp_iphi);
@@ -182,10 +180,10 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 		comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
 		comp_T = towerinfo->get_time();
 	      }
-	    else if ((*comp).first == 13 || (*comp).first == 28)
+	    else if (comp.first == 13 || comp.first == 28)
 	      {
-		towerinfo = towerinfosEM3->get_tower_at_channel((*comp).second);
-		unsigned int towerkey = towerinfosEM3->encode_key((*comp).second);
+		towerinfo = towerinfosEM3->get_tower_at_channel(comp.second);
+		unsigned int towerkey = towerinfosEM3->encode_key(comp.second);
 		comp_ieta = towerinfosEM3->getTowerEtaBin(towerkey);
 		comp_iphi = towerinfosEM3->getTowerPhiBin(towerkey);
 		const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
@@ -197,27 +195,27 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	else
 	  {
 
-	    if ((*comp).first == 5)
+	    if (comp.first == 5)
 	      {
-		tower = towersIH3->getTower((*comp).second);
+		tower = towersIH3->getTower(comp.second);
 		tower_geom = geomIH->get_tower_geometry(tower->get_key());
 		
 		comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
 		comp_iphi = geomIH->get_phibin(tower_geom->get_phi());
 		comp_ET = tower->get_energy() / cosh(tower_geom->get_eta());
 	      }
-	    else if ((*comp).first == 7)
+	    else if (comp.first == 7)
 	      {
-		tower = towersOH3->getTower((*comp).second);
+		tower = towersOH3->getTower(comp.second);
 		tower_geom = geomOH->get_tower_geometry(tower->get_key());
 		
 		comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
 		comp_iphi = geomIH->get_phibin(tower_geom->get_phi());
 		comp_ET = tower->get_energy() / cosh(tower_geom->get_eta());
 	      }
-	    else if ((*comp).first == 13)
+	    else if (comp.first == 13)
 	      {
-		tower = towersEM3->getTower((*comp).second);
+		tower = towersEM3->getTower(comp.second);
 		tower_geom = geomIH->get_tower_geometry(tower->get_key());
 		
 		comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
@@ -228,13 +226,13 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	if(comp_T == -10 || comp_T == -11)
 	  {
 	    if (Verbosity() > 4)
-	      std::cout << "DetermineTowerBackground::process_event: --> --> Skipping constituent in layer " << (*comp).first << " at ieta / iphi = " << comp_ieta << " / " << comp_iphi << "due to masking" << std::endl;
+	      std::cout << "DetermineTowerBackground::process_event: --> --> Skipping constituent in layer " << comp.first << " at ieta / iphi = " << comp_ieta << " / " << comp_iphi << "due to masking" << std::endl;
 	    continue;
 	  }
         int comp_ikey = 1000 * comp_ieta + comp_iphi;
 
         if (Verbosity() > 4)
-          std::cout << "DetermineTowerBackground::process_event: --> --> constituent in layer " << (*comp).first << " at ieta / iphi = " << comp_ieta << " / " << comp_iphi << ", filling map with key = " << comp_ikey << " and ET = " << comp_ET << std::endl;
+          std::cout << "DetermineTowerBackground::process_event: --> --> constituent in layer " << comp.first << " at ieta / iphi = " << comp_ieta << " / " << comp_iphi << ", filling map with key = " << comp_ikey << " and ET = " << comp_ET << std::endl;
 
         constituent_ETsum[comp_ikey] += comp_ET;
 
@@ -294,22 +292,20 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   // pT > 20 GeV
   if (_seed_type == 1)
   {
-    JetMap *reco2_jets;
+    JetContainer *reco2_jets;
     if (m_use_towerinfo)
       {
-	reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_TowerInfo_HIRecoSeedsSub_r02");
+	reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsSub_r02");
       }
     else
       {
-	reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_Tower_HIRecoSeedsSub_r02");
+	reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_Tower_HIRecoSeedsSub_r02");
       }
     if (Verbosity() > 1)
       std::cout << "DetermineTowerBackground::process_event: examining possible seeds (2nd iteration) ... " << std::endl;
 
-    for (JetMap::Iter iter = reco2_jets->begin(); iter != reco2_jets->end(); ++iter)
+    for (auto this_jet : *reco2_jets) 
     {
-      Jet *this_jet = iter->second;
-
       float this_pt = this_jet->get_pt();
       float this_phi = this_jet->get_phi();
       float this_eta = this_jet->get_eta();

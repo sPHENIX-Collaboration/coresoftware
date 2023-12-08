@@ -20,16 +20,18 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
   explicit SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman);
   ~SinglePrdfInput() override;
   Eventiterator *GetEventIterator() { return m_EventIterator; }
-  void FillPool(const unsigned int nevents);
+  virtual void FillPool(const unsigned int nevents);
   int RunNumber() const { return m_RunNumber; }
+  void RunNumber(const int irun) { m_RunNumber = irun; }
   int fileopen(const std::string &filename) override;
   int fileclose() override;
   int AllDone() const { return m_AllDone; }
   void AllDone(const int i) { m_AllDone = i; }
   void EventNumberOffset(const int i) { m_EventNumberOffset = i; }  // if beam clk are out of sync, tweak this one
   int EventNumberOffset() const { return m_EventNumberOffset; }
-
+  Fun4AllPrdfInputPoolManager *InputMgr() { return m_InputMgr; }
   void MakeReference(const bool b);
+  bool ReferenceFlag() const { return m_MeReferenceFlag; }
 
  private:
   int majority_eventnumber();
