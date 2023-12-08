@@ -29,9 +29,11 @@ class EventNumberCheck : public SubsysReco
   void MyPrdfNode(const std::string &name) {m_MyPrdfNode = name;}
 
  private:
-  Packet *plist[10000] = {0};
-  std::string m_MyPrdfNode;
-  int previous_event_clkdiff = 0;
+  void CheckFem(int nw);
+  Packet *plist[10000]{0};
+  int previous_event_clkdiff {0};
+  std::set<int> m_EventSeen;
+  std::string m_MyPrdfNode {"PRDF"};
 };
 
 #endif  // FFARAWMODULES_EVENTCOMBINER_H
