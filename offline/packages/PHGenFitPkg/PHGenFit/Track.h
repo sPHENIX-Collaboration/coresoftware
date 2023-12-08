@@ -13,6 +13,7 @@
 #include <TVector3.h>
 
 //STL
+#include <limits>
 #include <map>
 #include <memory>
 #include <vector>
@@ -143,7 +144,8 @@ class Track
   //std::vector<PHGenFit::Measurement*> _measurements;
   std::vector<unsigned int> _clusterIDs;
   std::vector<TrkrDefs::cluskey> _clusterkeys;
-  unsigned int _vertex_id;
+  unsigned int _vertex_id {std::numeric_limits<unsigned int>max()};
+
 
   //SMART(genfit::Track) _track;
 };
