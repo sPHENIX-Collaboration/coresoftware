@@ -139,7 +139,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   auto mvtxbco = *l1BCOs.begin();
   if (Verbosity() > 0)
   {
-    std::cout << "mvtx bco " << mvtxbco << " and gl1 bco " << gl1bco << std::endl;
+    std::cout << "mvtx header bco " << mvtxbco << " and gl1 bco " << gl1bco << std::endl;
   }
 
   if (m_writeMvtxEventHeader)
@@ -158,9 +158,13 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     row = mvtx_hit->get_row();
     col = mvtx_hit->get_col();
 
+    uint64_t bcodiff = gl1bco - strobe;
+    double timeElapsed = bcodiff * 0.106; // 106 ns rhic clock
+    int index = std::floor(timeElapsed / m_strobeWidth);
+    
     if (Verbosity() >= VERBOSITY_A_LOT) mvtx_hit->identify();
 
-    const TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, mvtxbco - gl1bco);
+    const TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, index);
     if (!hitsetkey) continue;
 
     // get matching hitset
