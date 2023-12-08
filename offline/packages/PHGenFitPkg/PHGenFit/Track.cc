@@ -83,6 +83,7 @@ Track::Track(const PHGenFit::Track& t)
   verbosity = t.verbosity;
   _clusterIDs = t.get_cluster_IDs();
   _clusterkeys = t.get_cluster_keys();
+  _vertex_id = t.get_vertex_id();
 }
 
 int Track::addMeasurement(PHGenFit::Measurement* measurement)
