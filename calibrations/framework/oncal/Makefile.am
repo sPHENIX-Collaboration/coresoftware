@@ -12,7 +12,7 @@ lib_LTLIBRARIES = \
 liboncal_la_LIBADD = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OPT_PHENIX)/lib \
+  -L$(OPT_SPHENIX)/lib \
   -lfun4all \
   -lodbc++ \
   -lpdbcalBase \
