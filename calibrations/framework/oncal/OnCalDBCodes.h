@@ -3,14 +3,17 @@
 
 namespace OnCalDBCodes
 {
-  enum {INIT = -2,
-        STARTED = -1,
-        FAILED = 0,
-        SUCCESS = 1,
-        COPIEDPREVIOUS = 2,
-        COPIEDLATER = 3,
-        COVERED = 4,
-        SUBSYSTEM = 5};
+  enum
+  {
+    INIT = -2,
+    STARTED = -1,
+    FAILED = 0,
+    SUCCESS = 1,
+    COPIEDPREVIOUS = 2,
+    COPIEDLATER = 3,
+    COVERED = 4,
+    SUBSYSTEM = 5
+  };
 }
 
 #endif

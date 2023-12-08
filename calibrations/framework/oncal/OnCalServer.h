@@ -5,9 +5,9 @@
 #include <phool/PHTimeStamp.h>
 
 #include <map>
-#include <vector>
 #include <set>
 #include <string>
+#include <vector>
 
 class Event;
 class OnCal;
@@ -16,12 +16,16 @@ class TH1;
 
 namespace fetchrun
 {
-  enum {CLOSEST, PREVIOUS};
+  enum
+  {
+    CLOSEST,
+    PREVIOUS
+  };
 };
 
 class OnCalServer : public Fun4AllServer
 {
-public:
+ public:
   static OnCalServer *instance();
   virtual ~OnCalServer();
   using Fun4AllServer::registerHisto;
@@ -32,12 +36,12 @@ public:
   void dumpHistos();
   int process_event();
   int BeginRun(const int runno);
-  int EndRun(const int /*runno*/) {return 0;} // do not execute EndRun
+  int EndRun(const int /*runno*/) { return 0; }  // do not execute EndRun
   int End();
 
-  PHTimeStamp * GetEndValidityTS();
+  PHTimeStamp *GetEndValidityTS();
 
-  PHTimeStamp * GetBeginValidityTS();
+  PHTimeStamp *GetBeginValidityTS();
   void printStamps();
   PHTimeStamp *GetLastGoodRunTS(OnCal *calibrator, const int irun);
 
@@ -48,18 +52,18 @@ public:
   // calprocess_stat table in calBookKeep database.
   // All updates are made to the row in the database containing this runNum.
   // Note that the run number is the primary key in the tables.
-  // If calBookKeep database is not to be updated, this function 
+  // If calBookKeep database is not to be updated, this function
   // should not be called.
   void RunNumber(const int runnum);
-  int RunNumber() const {return runNum;}
+  int RunNumber() const { return runNum; }
 
   void BeginTimeStamp(const PHTimeStamp &TimeStp);
   void EndTimeStamp(const PHTimeStamp &TimeStp);
 
-  int SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::string &table, const int commit=0);
-  int SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const int commit=0);
-  int SyncOncalTimeStampsToRunDB(const int commit=0);
-  int ClosestGoodRun(OnCal *calibrator, const int runno, const int previous =  fetchrun::CLOSEST);
+  int SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::string &table, const int commit = 0);
+  int SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const int commit = 0);
+  int SyncOncalTimeStampsToRunDB(const int commit = 0);
+  int ClosestGoodRun(OnCal *calibrator, const int runno, const int previous = fetchrun::CLOSEST);
   int CopyTables(const OnCal *calibrator, const int FromRun, const int ToRun, const int commit = 0) const;
   int CopySnglTable(const std::string &pdbclass, const std::string &tablename, const int bankid, const int FromRun, const int ToRun, const int commit);
   int CopySnglTableNewBankId(const std::string &pdbclass, const std::string &tablename, const int bankid, const int Tobankid, const int FromRun, const int ToRun, const int commit);
@@ -78,10 +82,9 @@ public:
   void TestMode(const int i = 1);
   // need to be able to call this from the outside
   bool updateDBRunRange(const char *table, const char *column, const int value, const int firstrun, const int lastrun);
-  void EventCheckFrequency(const unsigned int i) {eventcheckfrequency = i;}
+  void EventCheckFrequency(const unsigned int i) { eventcheckfrequency = i; }
 
-protected:
-
+ protected:
   //-------------------------------------
   // following functions access DB using odbc++ library
   // these are designed to insert status in calBookKeep (or success) database.
@@ -90,7 +93,7 @@ protected:
   // void setDB(const char* DBname){database = DBname;}
   bool connectDB();
 
-  // insertRunNumInDB enters the run number in the calBookKeep database. 
+  // insertRunNumInDB enters the run number in the calBookKeep database.
   // All other updates are made to rows in the database containing the runNum.
   // This function should be called before any updates are made.
   // Returns true on successful DB insert.
@@ -103,8 +106,8 @@ protected:
 
   bool updateDB(const char *table, const char *column, int value);
   bool updateDB(const char *table, const char *column, bool value);
-  bool updateDB(const std::string &table, const std::string &column, const std::string &value, 
-		const int runno, const bool append = false);
+  bool updateDB(const std::string &table, const std::string &column, const std::string &value,
+                const int runno, const bool append = false);
   int updateDB(const std::string &table, const std::string &column, const time_t ticks);
 
   int check_create_subsystable(const std::string &DBTable);
@@ -115,11 +118,11 @@ protected:
   void CreateCalibrationUpdateStatus(OnCal *calibrator, const std::string &table, const std::string &tablecomment, const int dbcode);
   OnCalServer(const std::string &name = "OnCalServer");
   PHTimeStamp beginTimeStamp;  // begin run timestamp of run analysing
-  PHTimeStamp endTimeStamp;  // end run timestamp of run analysing
+  PHTimeStamp endTimeStamp;    // end run timestamp of run analysing
   int testmode;
   bool recordDB;
   TH1 *OnCalServerVars;
-  std::map<std::string, TH1*> Histo;
+  std::map<std::string, TH1 *> Histo;
   std::map<std::string, std::set<std::string> > calibratorhistomap;
   bool SetEndTimeStampByHand;
   bool SetBeginTimeStampByHand;
@@ -128,8 +131,8 @@ protected:
   unsigned int runNum;
   unsigned int nEvents;
   unsigned int eventcheckfrequency;
-  std::string database; // this holds the name of the database
-                        // should be set to calibrations for normal running
+  std::string database;  // this holds the name of the database
+                         // should be set to calibrations for normal running
   std::map<std::string, std::set<SubsysReco *> > requiredCalibrators;
   std::vector<int> analysed_runs;
   std::vector<std::string> inputfilelist;

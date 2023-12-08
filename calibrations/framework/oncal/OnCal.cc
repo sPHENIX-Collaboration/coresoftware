@@ -8,21 +8,19 @@
 
 using namespace std;
 
-OnCal::OnCal(const string &Name) : 
-  SubsysReco(Name),
-  alldone(0)
-{}
+OnCal::OnCal(const string &Name)
+  : SubsysReco(Name)
+  , alldone(0)
+{
+}
 
-int 
-OnCal::process_event(PHCompositeNode */*topNode*/)
+int OnCal::process_event(PHCompositeNode * /*topNode*/)
 {
   cout << "process_event(PHCompositeNode *topNode) not implemented by daughter class: " << Name() << endl;
   return -1;
 }
 
-
-int 
-OnCal::End(PHCompositeNode * /*topNode*/)
+int OnCal::End(PHCompositeNode * /*topNode*/)
 {
   cout << "EndOfAnalysis not implemented by subsystem!" << endl;
   cout << "Use this signal for computing your calibrations and commit." << endl;
@@ -31,23 +29,21 @@ OnCal::End(PHCompositeNode * /*topNode*/)
   return 0;
 }
 
-void
-OnCal::AddComment(const string &adcom)
+void OnCal::AddComment(const string &adcom)
 {
   if (m_Comment.size() == 0)
-    {
-      m_Comment = adcom;
-    }
+  {
+    m_Comment = adcom;
+  }
   else
-    {
-      m_Comment += ":";
-      m_Comment += adcom;
-    }
+  {
+    m_Comment += ":";
+    m_Comment += adcom;
+  }
   return;
 }
 
-int
-OnCal::CopyTables(const int  /*FromRun*/, const int  /*ToRun*/, const int  /*commit*/) const
+int OnCal::CopyTables(const int /*FromRun*/, const int /*ToRun*/, const int /*commit*/) const
 {
   cout << PHWHERE << " CopyTables not implemented" << endl
        << "this calibrator cannot copy its own tables" << endl;

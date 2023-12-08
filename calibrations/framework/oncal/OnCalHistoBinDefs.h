@@ -3,11 +3,14 @@
 
 namespace OnCalHistoBinDefs
 {
-  enum {FIRSTRUNBIN = 1,
-        LASTRUNBIN,
-	BORTIMEBIN,
-	EORTIMEBIN,
-        LASTBINPLUSONE};
+  enum
+  {
+    FIRSTRUNBIN = 1,
+    LASTRUNBIN,
+    BORTIMEBIN,
+    EORTIMEBIN,
+    LASTBINPLUSONE
+  };
 };
 
 #endif /* __ONCALHISTOBINDEFS_H__ */
