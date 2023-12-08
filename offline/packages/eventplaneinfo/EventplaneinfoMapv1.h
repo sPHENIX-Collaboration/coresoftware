@@ -18,6 +18,7 @@ class EventplaneinfoMapv1 : public EventplaneinfoMap
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override { clear(); }
+// cppcheck-suppress [virtualCallInConstructor]
   void clear() override;
 
   const Eventplaneinfo* get(unsigned int idkey) const override;
