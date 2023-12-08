@@ -17,6 +17,8 @@ SinglePrdfInput::SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolMa
 {
   plist = new Packet *[100];
   m_PacketEventNumberOffset = new int[100]{};
+  rollover.fill(0);
+  previous_eventnumber.fill(std::numeric_limits<int>::min());
   //  std::fill_n(m_PacketEventNumberOffset, 100, 0);
 }
 
@@ -81,7 +83,20 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
     {
       if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
       {
-        int evtno = plist[i]->iValue(0, "EVTNR");
+        int evtno = plist[i]->iValue(0, "EVTNR") + rollover[i];
+	if (evtno < previous_eventnumber[i])
+	{
+	  if (Verbosity() > 1)
+	  {
+	    std::cout << "rolling over, event " << std::hex << evtno
+		      << ", prev: " << previous_eventnumber[i]
+		      << ", rollover counter: " << (rollover[i] << 16)
+		      << std::dec << std::endl;
+	  }
+	  rollover[i] ++;
+	}
+        previous_eventnumber[i] = evtno;
+	evtno += (rollover[i] << 16);
         unsigned int bclk = plist[i]->iValue(0, "CLOCK");
         if (Verbosity() > 1)
         {
@@ -103,7 +118,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
         // also our packets are just 16bit counters, so we need to add the upper bits
         // from the event sequence
         // and our packet counters start at 0, while our events start at 1
-        evtno += m_EventNumberOffset + m_PacketEventNumberOffset[i] + m_NumSpecialEvents + (EventSequence & 0xFFFF0000);
+        evtno += m_EventNumberOffset + m_PacketEventNumberOffset[i] + m_NumSpecialEvents;
         m_PacketMap[bclk].push_back(plist[i]);
         m_EvtSet.insert(evtno);
         m_Event.emplace_back(std::make_pair(evtno, bclk));
