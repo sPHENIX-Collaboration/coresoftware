@@ -116,7 +116,7 @@ class Track
     _vertex_id = vert_id;
   }
 
-  unsigned int get_vertex_id()
+  unsigned int get_vertex_id() const
   {
     //std::cout << " Track: returning vertex_id = " << _vertex_id << std::endl;
     return _vertex_id;
@@ -144,7 +144,7 @@ class Track
   //std::vector<PHGenFit::Measurement*> _measurements;
   std::vector<unsigned int> _clusterIDs;
   std::vector<TrkrDefs::cluskey> _clusterkeys;
-  unsigned int _vertex_id {std::numeric_limits<unsigned int>max()};
+  unsigned int _vertex_id {std::numeric_limits<unsigned int>::max()};
 
 
   //SMART(genfit::Track) _track;
