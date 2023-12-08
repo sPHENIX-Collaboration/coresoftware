@@ -45,7 +45,7 @@ class pi0EtaByEta : public SubsysReco
   void apply_vertex_cut(bool Vtx_cut) { m_vtxCut = Vtx_cut; }
 
   std::pair<double, double> fitHistogram(TH1* h);
-  void fitEtaSlices(const std::string &infile, const std::string &outfile, const std::string &cdbFile);
+  void fitEtaSlices(const std::string& infile, const std::string& outfile, const std::string& cdbFile);
 
  protected:
   int Getpeaktime(TH1* h);
@@ -75,43 +75,43 @@ class pi0EtaByEta : public SubsysReco
   std::vector<int> m_bbc_type;
   std::vector<int> m_bbc_side;
 
-  std::array<TH1*,96> h_mass_eta_lt{};
+  std::array<TH1*, 96> h_mass_eta_lt{};
 
-  int _eventcounter {0};
-  int _range {1};
+  int _eventcounter{0};
+  int _range{1};
 
-  float _vz {0.};
-  float target_pi0_mass {0.145};
+  float _vz{0.};
+  float target_pi0_mass{0.145};
 
-  bool m_vtxCut  {false};
-  bool dynMaskClus {true};
+  bool m_vtxCut{false};
+  bool dynMaskClus{true};
 
-  Fun4AllHistoManager* hm {nullptr};
-  TFile* outfile {nullptr};
-  TH2* h_emcal_mbd_correlation {nullptr};
-  TH2* h_ohcal_mbd_correlation {nullptr};
-  TH2* h_ihcal_mbd_correlation {nullptr};
-  TH2* h_emcal_hcal_correlation {nullptr};
-  TH2* h_emcal_zdc_correlation {nullptr};
+  Fun4AllHistoManager* hm{nullptr};
+  TFile* outfile{nullptr};
+  TH2* h_emcal_mbd_correlation{nullptr};
+  TH2* h_ohcal_mbd_correlation{nullptr};
+  TH2* h_ihcal_mbd_correlation{nullptr};
+  TH2* h_emcal_hcal_correlation{nullptr};
+  TH2* h_emcal_zdc_correlation{nullptr};
 
-  TH1* h_InvMass {nullptr};
-  TH1* h_InvMassMix {nullptr};
+  TH1* h_InvMass{nullptr};
+  TH1* h_InvMassMix{nullptr};
 
-  TH2* h_cemc_etaphi {nullptr};
-  TH2* h_hcalin_etaphi {nullptr};
-  TH2* h_hcalout_etaphi {nullptr};
-  TH2* h_cemc_etaphi_wQA {nullptr};
-  TH2* h_hcalin_etaphi_wQA {nullptr};
-  TH2* h_hcalout_etaphi_wQA {nullptr};
+  TH2* h_cemc_etaphi{nullptr};
+  TH2* h_hcalin_etaphi{nullptr};
+  TH2* h_hcalout_etaphi{nullptr};
+  TH2* h_cemc_etaphi_wQA{nullptr};
+  TH2* h_hcalin_etaphi_wQA{nullptr};
+  TH2* h_hcalout_etaphi_wQA{nullptr};
   TH1* h_totalzdc_e{nullptr};
 
-  TProfile2D* h_cemc_etaphi_time {nullptr};
-  TProfile2D* h_hcalin_etaphi_time {nullptr};
-  TProfile2D* h_hcalout_etaphi_time {nullptr};
+  TProfile2D* h_cemc_etaphi_time{nullptr};
+  TProfile2D* h_hcalin_etaphi_time{nullptr};
+  TProfile2D* h_hcalout_etaphi_time{nullptr};
 
-  TProfile2D* h_cemc_etaphi_badChi2 {nullptr};
-  TProfile2D* h_hcalin_etaphi_badChi2 {nullptr};
-  TProfile2D* h_hcalout_etaphi_badChi2 {nullptr};
+  TProfile2D* h_cemc_etaphi_badChi2{nullptr};
+  TProfile2D* h_hcalin_etaphi_badChi2{nullptr};
+  TProfile2D* h_hcalout_etaphi_badChi2{nullptr};
 
   TH1* hzdctime{nullptr};
   TH1* hmbdtime{nullptr};
@@ -145,7 +145,6 @@ class pi0EtaByEta : public SubsysReco
   TH1* h_pt2{nullptr};
   TH1* h_nclusters{nullptr};
   TH1* h_emcal_e_eta{nullptr};
-
 };
 
 #endif
