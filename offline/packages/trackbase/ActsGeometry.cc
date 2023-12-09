@@ -2,6 +2,7 @@
 #include "TrkrCluster.h"
 #include "TpcDefs.h"
 #include "alignmentTransformationContainer.h"
+#include <Acts/Definitions/Algebra.hpp>
 
 namespace
 {
@@ -155,3 +156,19 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   
 }
 
+Acts::Transform3 ActsGeometry::makeAffineTransform(Acts::Vector3 rot, Acts::Vector3 trans)
+{
+
+  Acts::Transform3 actsAffine;
+
+  Eigen::AngleAxisd alpha(rot(0), Eigen::Vector3d::UnitX());
+  Eigen::AngleAxisd beta(rot(1), Eigen::Vector3d::UnitY());
+  Eigen::AngleAxisd gamma(rot(2), Eigen::Vector3d::UnitZ());
+  Eigen::Quaternion<double> q       = gamma*beta*alpha;
+  actsAffine.linear() = q.matrix();
+  
+  Eigen::Vector3d translation(trans(0),trans(1),trans(2));
+  actsAffine.translation() = translation;
+
+  return actsAffine;
+}

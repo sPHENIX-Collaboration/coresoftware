@@ -44,6 +44,8 @@ class ActsGeometry {
       Acts::Vector3 world,
       TrkrDefs::subsurfkey& subsurfkey);
 
+  Acts::Transform3 makeAffineTransform(Acts::Vector3 rotation, Acts::Vector3 translation);
+
  private:
   ActsTrackingGeometry m_tGeometry;
   ActsSurfaceMaps m_surfMaps;
