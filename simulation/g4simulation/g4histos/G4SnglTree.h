@@ -46,7 +46,7 @@ class G4SnglTree : public SubsysReco
   std::map<std::string, int> _detid;
 
   TTree *g4tree;
-  G4EvtTree mG4EvtTree;
+  G4EvtTree mG4EvtTree{};
   TFile *outfile;
 };
 
