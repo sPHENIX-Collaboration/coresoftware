@@ -481,7 +481,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     }
 
     for (unsigned int i = 0; i < n_electrons; i++)
-    {
+    {//canyuzhang
+    const double reaches = m_distortionMap->get_reaches_reaout(radstart, phistart, z_start);
+    if (do_getReachReadout){
+    	if (reaches < 0.5) continue;
+	}
       // We choose the electron starting position at random from a flat
       // distribution along the path length the parameter t is the fraction of
       // the distance along the path betwen entry and exit points, it has

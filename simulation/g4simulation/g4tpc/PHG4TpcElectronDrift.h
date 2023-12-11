@@ -100,6 +100,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
   int event_num = 0;
   bool do_ElectronDriftQAHistos = false;
+  bool do_getReachReadout = false;
 
   ///@name evaluation histograms
   //@{
