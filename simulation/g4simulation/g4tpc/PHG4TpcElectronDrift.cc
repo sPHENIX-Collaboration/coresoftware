@@ -482,7 +482,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
     for (unsigned int i = 0; i < n_electrons; i++)
     {//canyuzhang
-    const double reaches = m_distortionMap->get_reaches_reaout(radstart, phistart, z_start);
+    const double reaches = m_distortionMap->get_reaches_readout(radstart, phistart, z_start);
     if (do_getReachReadout){
     	if (reaches < 0.5) continue;
 	}
