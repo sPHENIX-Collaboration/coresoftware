@@ -66,8 +66,9 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   //
   void set_flag_threshold_distortion(bool setflag, float setthreshold)
   {
+  	printf("The logical status of threshold is now %d! and the value is set to %f\n", setflag, setthreshold);
   	do_getReachReadout = setflag;
-  	threshold = setthreshold;
+  	thresholdforreachesreadout = setthreshold;
   }
 
 
@@ -107,7 +108,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   PHG4TpcCylinderGeomContainer *seggeo;
 
   int event_num = 0;
-  float threshold = 0.5;
+  float thresholdforreachesreadout = 0.5;
   bool do_ElectronDriftQAHistos = false;
   bool do_getReachReadout = false;
 
