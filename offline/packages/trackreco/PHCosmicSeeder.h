@@ -13,7 +13,8 @@ class PHCompositeNode;
 class ActsGeometry;
 class TrkrClusterContainer;
 class TrackSeedContainer;
-
+class TFile;
+class TNtuple;
 class PHCosmicSeeder : public SubsysReco
 {
  public:
@@ -34,19 +35,25 @@ class PHCosmicSeeder : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
+  void xyTolerance(float tol) { m_xyTolerance = tol; }
+  void seedAnalysis() { m_analysis = true; }
 
  private:
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
   SeedVector makeSeeds(PositionMap &clusterPositions);
-  SeedVector combineSeeds(SeedVector &initialSeeds);
-
-  float m_xyTolerance = 2.; //! cm
+  SeedVector combineSeeds(SeedVector &initialSeeds, PositionMap &clusterPositions);
+  void recalculateSeedLineParameters(seed &seed, PositionMap &clusters, bool isXY);
+  float m_xyTolerance = 2.;  //! cm
   float m_rzTolerance = 2.; //! cm
   std::string m_trackMapName = "TpcTrackSeedContainer";
   ActsGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
   TrackSeedContainer *m_seedContainer = nullptr;
+  TFile *m_outfile = nullptr;
+  TNtuple *m_tup = nullptr;
+  bool m_analysis = false;
+  float m_event = 0;
 };
 
 #endif // PHCOSMICSEEDER_H
