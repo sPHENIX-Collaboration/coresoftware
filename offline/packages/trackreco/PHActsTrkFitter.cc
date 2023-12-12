@@ -143,14 +143,6 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
                            100000, 0, 1000);
   }
 
-  auto cellgeo =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-
-  if (cellgeo)
-  {
-    _clusterMover.initialize_geometry(cellgeo);
-  }
-
   if (m_actsEvaluator)
   {
     m_evaluator = std::make_unique<ActsEvaluator>(m_evalname);

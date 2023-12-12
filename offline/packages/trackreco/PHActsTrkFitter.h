@@ -225,8 +225,6 @@ class PHActsTrkFitter : public SubsysReco
   /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;
 
-  // cluster mover utility class
-  TpcClusterMover _clusterMover;
   ClusterErrorPara _ClusErrPara;
 
   std::set<int> m_ignoreLayer;
