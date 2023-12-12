@@ -848,21 +848,6 @@ int Fun4AllServer::BeginRun(const int runno)
     BeginRunSubsystem(std::make_pair(NewSubsystems.front().first, topNode(NewSubsystems.front().second)));
   }
   gROOT->cd(currdir.c_str());
-  // disconnect from DB to save resources on DB machine
-  // PdbCal leaves the DB connection open (PdbCal will reconnect without
-  // problem if neccessary)
-  if (!keep_db_connected)
-  {
-    DisconnectDB();
-  }
-  else
-  {
-    std::cout << "WARNING WARNING, DBs will not be disconnected" << std::endl;
-    std::cout << "This is for DB server testing purposes only" << std::endl;
-    std::cout << "If you do not test our DB servers, remove" << std::endl;
-    std::cout << "Fun4AllServer->KeepDBConnection()" << std::endl;
-    std::cout << "from your macro" << std::endl;
-  }
   // print out all node trees
   Print("NODETREE");
 #ifdef FFAMEMTRACKER
@@ -1677,7 +1662,10 @@ int Fun4AllServer::setRun(const int runno)
 {
   recoConsts *rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER", runno);
-  rc->set_uint64Flag("TIMESTAMP",runno);
+  if (! rc->FlagExist("TIMESTAMP"))
+  {
+    rc->set_uint64Flag("TIMESTAMP",runno);
+  }
   std::cout << "Fun4AllServer::setRun(): run " << runno
 	    << " uses CDB TIMESTAMP " << rc->get_uint64Flag("TIMESTAMP")
 	    << std::endl;
