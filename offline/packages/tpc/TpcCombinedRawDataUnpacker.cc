@@ -200,11 +200,11 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     if(FEE_R[fee]==2) feeM += 6;
     if(FEE_R[fee]==3) feeM += 14;
 
-    int side = 0;
+    int side = 1;
     int32_t packet_id = tpchit->get_packetid();
     int ep = (packet_id - 4000) % 10;
     int sector = (packet_id - 4000 - ep) / 10;
-    if (sector>11) side = 1;
+    if (sector>11) side = 0;
 
     unsigned int key = 256 * (feeM) + channel;
     std::string varname = "layer";
