@@ -19,7 +19,6 @@
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/alignmentTransformationContainer.h>
 
-#include <tpc/TpcClusterMover.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrection.h>
 
