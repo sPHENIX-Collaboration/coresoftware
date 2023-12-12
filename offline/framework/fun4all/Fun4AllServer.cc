@@ -1601,11 +1601,6 @@ void Fun4AllServer::GetInputFullFileList(std::vector<std::string> &fnames) const
   return;
 }
 
-int Fun4AllServer::DisconnectDB()
-{
-  return 0;
-}
-
 unsigned
 Fun4AllServer::GetTopNodes(std::vector<std::string> &names) const
 {
@@ -1682,16 +1677,10 @@ int Fun4AllServer::setRun(const int runno)
 {
   recoConsts *rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER", runno);
-  PHTimeStamp *tstamp = nullptr;
-  if (!tstamp)
-  {
-    tstamp = new PHTimeStamp(0);
-    std::cout << "Fun4AllServer::setRun(): could not get timestamp for run  " << runno
-              << ", using tics(0) timestamp: ";
-    tstamp->print();
-    std::cout << std::endl;
-  }
-  delete tstamp;
+  rc->set_uint64Flag("TIMESTAMP",runno);
+  std::cout << "Fun4AllServer::setRun(): run " << runno
+	    << " uses CDB TIMESTAMP " << rc->get_uint64Flag("TIMESTAMP")
+	    << std::endl;
   FrameWorkVars->SetBinContent(RUNNUMBERBIN, (Stat_t) runno);
   return 0;
 }

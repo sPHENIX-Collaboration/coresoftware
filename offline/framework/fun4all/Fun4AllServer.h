@@ -98,7 +98,6 @@ class Fun4AllServer : public Fun4AllBase
   int BranchSelect(const std::string &branch, int iflag);
   int setBranches(const std::string &managername);
   int setBranches();
-  virtual int DisconnectDB();
   virtual void identify(std::ostream &out = std::cout) const;
   unsigned GetTopNodes(std::vector<std::string> &names) const;
   void GetInputFullFileList(std::vector<std::string> &fnames) const;
