@@ -704,7 +704,6 @@ bool OnCalServer::connectDB()
 
 int OnCalServer::DisconnectDB()
 {
-  Fun4AllServer::DisconnectDB();
   delete DBconnection;
   DBconnection = nullptr;
   return 0;
