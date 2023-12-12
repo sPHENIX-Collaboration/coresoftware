@@ -21,10 +21,10 @@ class PHCosmicSeeder : public SubsysReco
   using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
   struct seed
   {
-    float xyslope;
-    float xyintercept;
-    float rzslope;
-    float rzintercept;
+    float xyslope = std::numeric_limits<float>::quiet_NaN();
+    float xyintercept = std::numeric_limits<float>::quiet_NaN();
+    float rzslope = std::numeric_limits<float>::quiet_NaN();
+    float rzintercept = std::numeric_limits<float>::quiet_NaN();
     std::set<TrkrDefs::cluskey> ckeys;
   };
   using SeedVector = std::vector<seed>;

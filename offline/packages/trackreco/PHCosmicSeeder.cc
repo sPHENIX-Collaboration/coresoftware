@@ -63,7 +63,8 @@ int PHCosmicSeeder::InitRun(PHCompositeNode* topNode)
   if(m_analysis)
   {
   m_outfile = new TFile("PHCosmicSeeder.root", "recreate");
-  m_tup = new TNtuple("ntp_seed", "seed", "event:seed:nclus:xyint:xyslope:rzint:rzslope");
+  m_tup = new TNtuple("ntp_seed", "seed", "event:seed:nclus:xyint:xyslope:rzint:rzslope:"
+                                          "longestxyint:longestxyslope:longestrzint:longestrzslope");
   }
 
   return ret;
@@ -95,37 +96,89 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
             { return a.ckeys.size() > b.ckeys.size(); });
 
   auto prunedSeeds = combineSeeds(seeds, clusterPositions);
-  int iseed = 0;
-  std::cout << "pruned seed size " << prunedSeeds.size() << std::endl;
-
-  for (auto& seed : prunedSeeds)
+  if(Verbosity() > 1)
   {
- 
-    std::cout << "seed qualities "
-              << seed.xyslope << ", " << seed.xyintercept << ", " << seed.rzslope << ", "
-              << seed.rzintercept << std::endl;
-              if(m_analysis)
-              {
-                float seed_data[] = {
-                  (float) m_event,
-                  (float) iseed,
-                  (float) seed.ckeys.size(),
-                  seed.xyintercept,
-                  seed.xyslope,
-                  seed.rzintercept,
-                  seed.rzslope
-                };
-                m_tup->Fill(seed_data);
-              }
-    auto svtxseed = std::make_unique<TrackSeed_v1>();
-    for (auto& key : seed.ckeys)
-    {
-      svtxseed->insert_cluster_key(key);
-    }
-    std::cout << "seed size " << svtxseed->size_cluster_keys() << std::endl;
-    m_seedContainer->insert(svtxseed.get());
-    ++iseed;
+    std::cout << "Pruned seed size is " << prunedSeeds.size() << std::endl;
   }
+  std::sort(prunedSeeds.begin(), prunedSeeds.end(),
+            [](seed a, seed b)
+            { return a.ckeys.size() > b.ckeys.size(); });
+
+  std::set<int> seedsToDelete;
+  //! combine seeds with common ckeys
+  for (int i = 0; i < prunedSeeds.size(); ++i)
+  {
+    auto seed1 = prunedSeeds[i];
+    for (int j = i; j < prunedSeeds.size(); ++j)
+    {
+      if(i==j)
+      {
+        continue;
+      }
+      auto seed2 = prunedSeeds[j];
+      std::vector<TrkrDefs::cluskey> intersection;
+      std::set_intersection(seed1.ckeys.begin(), seed1.ckeys.end(),
+                            seed2.ckeys.begin(), seed2.ckeys.end(), std::back_inserter(intersection));
+      if(intersection.size() > 3)
+      {
+        //! If they share at least 4 clusters they are likely the same track,
+        //! so merge and delete
+        for(auto key : seed2.ckeys)
+        {
+          seed1.ckeys.insert(key);
+        }
+        seedsToDelete.insert(j);
+      }
+    }
+  }
+  
+  SeedVector finalSeeds;
+  for (int i = 0; i < prunedSeeds.size(); ++i)
+  {
+    if(seedsToDelete.find(i) != seedsToDelete.end())
+    {
+      continue;
+    }
+    finalSeeds.push_back(prunedSeeds[i]);
+  }
+  if(Verbosity() > 1)
+  {
+    std::cout << "Total seeds found is " << finalSeeds.size() << std::endl;
+  }
+  int iseed = 0;
+
+  auto longestseedit = finalSeeds.begin();
+  seed longestseed;
+  if (longestseedit != finalSeeds.end())
+  {
+    longestseed = finalSeeds.front();
+  }
+  for (auto& seed : finalSeeds)
+    {
+      if (m_analysis)
+      {
+        float seed_data[] = {
+            (float) m_event,
+            (float) iseed,
+            (float) seed.ckeys.size(),
+            seed.xyintercept,
+            seed.xyslope,
+            seed.rzintercept,
+            seed.rzslope,
+            longestseed.xyintercept,
+            longestseed.xyslope,
+            longestseed.rzintercept,
+            longestseed.rzslope};
+        m_tup->Fill(seed_data);
+      }
+      auto svtxseed = std::make_unique<TrackSeed_v1>();
+      for (auto& key : seed.ckeys)
+      {
+        svtxseed->insert_cluster_key(key);
+      }
+      m_seedContainer->insert(svtxseed.get());
+      ++iseed;
+    }
   ++m_event;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -151,16 +204,11 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVect
       recalculateSeedLineParameters(seed2, clusterPositions, true);
       recalculateSeedLineParameters(seed1, clusterPositions, false);
       recalculateSeedLineParameters(seed2, clusterPositions, false);
-      std::cout << "seed after qualities "
-                << seed1.xyslope << ", " << seed1.xyintercept << ", " << seed1.rzslope << ", "
-                << seed1.rzintercept << std::endl;
-      std::cout << "seed after qualities "
-                << seed2.xyslope << ", " << seed2.xyintercept << ", " << seed2.rzslope << ", "
-                << seed2.rzintercept << std::endl;
+      //! These values are tuned on the cosmic data
       if (fabs(seed1.xyslope - seed2.xyslope) < 0.1 &&
-          fabs(seed1.xyintercept - seed2.xyintercept) < 2. &&
+          fabs(seed1.xyintercept - seed2.xyintercept) < 3. &&
           fabs(seed1.rzslope - seed2.rzslope) < 0.1 &&
-          fabs(seed1.rzintercept - seed2.rzintercept) < 2.)
+          fabs(seed1.rzintercept - seed2.rzintercept) < 3.)
       {
         for (auto& key : seed2.ckeys)
         {
@@ -209,12 +257,12 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
         continue;
       }
       PHCosmicSeeder::seed doub;
-      // std::cout << "pos 1 and 2 " << pos1.transpose() << " , " << pos2.transpose() << std::endl;
-      doub.xyslope = (pos2.y() - pos1.y()) / (pos2.x() - pos1.x());
+    
+     doub.xyslope = (pos2.y() - pos1.y()) / (pos2.x() - pos1.x());
       doub.xyintercept = pos1.y() - doub.xyslope * pos1.x();
       doub.rzslope = (r(pos2.x(), pos2.y()) - r(pos1.x(), pos1.y())) / (pos2.z() - pos1.z());
       doub.rzintercept = pos1.z() * doub.rzslope + r(pos1.x(), pos1.y());
-      // std::cout << "vals are " << doub.rzslope << ", " << doub.rzintercept << std::endl;
+     
       keys.insert(key1);
       keys.insert(key2);
       doub.ckeys = keys;
@@ -288,7 +336,6 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
   for (auto it = seeds.begin(); it != seeds.end(); ++it)
   {
     auto seed = *it;
-    std::cout << "double seed size " << seed.ckeys.size() << std::endl;
     if (Verbosity() > 2)
     {
       std::cout << "keys in seed " << std::endl;
