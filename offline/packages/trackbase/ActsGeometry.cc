@@ -2,6 +2,7 @@
 #include "TrkrCluster.h"
 #include "TpcDefs.h"
 #include "alignmentTransformationContainer.h"
+#include <Acts/Definitions/Algebra.hpp>
 
 namespace
 {
@@ -155,3 +156,44 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   
 }
 
+Acts::Transform3 ActsGeometry::makeAffineTransform(Acts::Vector3 rot, Acts::Vector3 trans)
+{
+
+  Acts::Transform3 actsAffine;
+
+  Eigen::AngleAxisd alpha(rot(0), Eigen::Vector3d::UnitX());
+  Eigen::AngleAxisd beta(rot(1), Eigen::Vector3d::UnitY());
+  Eigen::AngleAxisd gamma(rot(2), Eigen::Vector3d::UnitZ());
+  Eigen::Quaternion<double> q       = gamma*beta*alpha;
+  actsAffine.linear() = q.matrix();
+  
+  Eigen::Vector3d translation(trans(0),trans(1),trans(2));
+  actsAffine.translation() = translation;
+
+  return actsAffine;
+}
+
+Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster)
+{
+  Acts::Vector2 local;
+
+  const auto trkrid = TrkrDefs::getTrkrId(key);
+  if(trkrid == TrkrDefs::tpcId)
+    {
+      double surfaceZCenter = 52.89; // this is where G4 thinks the surface center is in cm
+      double zdriftlength = cluster->getLocalY() * _drift_velocity;  // cm
+      double zloc = surfaceZCenter - zdriftlength;     // local z relative to surface center (for north side):
+      unsigned int side = TpcDefs::getSide(key);
+      if(side == 0) zloc = -zloc;
+      
+      local(0) = cluster->getLocalX();
+      local(1) = zloc;
+    }
+  else
+    {
+      local(0) = cluster->getLocalX();
+      local(1) = cluster->getLocalY();
+    }
+      
+  return local;
+}

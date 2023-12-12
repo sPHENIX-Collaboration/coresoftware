@@ -19,7 +19,6 @@
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/alignmentTransformationContainer.h>
 
-#include <tpc/TpcClusterMover.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrection.h>
 
@@ -177,6 +176,9 @@ class PHActsTrkFitter : public SubsysReco
 
   /// TrackMap containing SvtxTracks
   alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
+  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;  
+  std::set< Acts::GeometryIdentifier> m_transient_id_set;
+  Acts::GeometryContext m_transient_geocontext;
   SvtxTrackMap* m_trackMap = nullptr;
   SvtxTrackMap* m_directedTrackMap = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
@@ -222,8 +224,6 @@ class PHActsTrkFitter : public SubsysReco
   /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;
 
-  // cluster mover utility class
-  TpcClusterMover _clusterMover;
   ClusterErrorPara _ClusErrPara;
 
   std::set<int> m_ignoreLayer;
