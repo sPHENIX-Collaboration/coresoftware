@@ -56,9 +56,11 @@ int MbdReco::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  int ret = getNodes(topNode);
+
+  m_mbdevent->SetSim( _simflag );
   m_mbdevent->InitRun();
 
-  int ret = getNodes(topNode);
   return ret;
 }
 
@@ -187,6 +189,8 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
 
   if ( m_event==nullptr )
   {
+    _simflag = 1;
+
     static int counter = 0;
     if ( counter < 1 )
     {
