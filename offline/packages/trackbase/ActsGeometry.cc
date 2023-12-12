@@ -172,3 +172,28 @@ Acts::Transform3 ActsGeometry::makeAffineTransform(Acts::Vector3 rot, Acts::Vect
 
   return actsAffine;
 }
+
+Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster)
+{
+  Acts::Vector2 local;
+
+  const auto trkrid = TrkrDefs::getTrkrId(key);
+  if(trkrid == TrkrDefs::tpcId)
+    {
+      double surfaceZCenter = 52.89; // this is where G4 thinks the surface center is in cm
+      double zdriftlength = cluster->getLocalY() * _drift_velocity;  // cm
+      double zloc = surfaceZCenter - zdriftlength;     // local z relative to surface center (for north side):
+      unsigned int side = TpcDefs::getSide(key);
+      if(side == 0) zloc = -zloc;
+      
+      local(0) = cluster->getLocalX();
+      local(1) = zloc;
+    }
+  else
+    {
+      local(0) = cluster->getLocalX();
+      local(1) = cluster->getLocalY();
+    }
+      
+  return local;
+}

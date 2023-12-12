@@ -46,6 +46,8 @@ class ActsGeometry {
 
   Acts::Transform3 makeAffineTransform(Acts::Vector3 rotation, Acts::Vector3 translation);
 
+  Acts::Vector2 getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster);
+
  private:
   ActsTrackingGeometry m_tGeometry;
   ActsSurfaceMaps m_surfMaps;
