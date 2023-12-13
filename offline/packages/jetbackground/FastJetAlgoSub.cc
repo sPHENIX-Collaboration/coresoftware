@@ -57,7 +57,6 @@ void FastJetAlgoSub::identify(std::ostream& os)
 
 void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* jetcont) 
 {
-  std::cout << "FIXME I0 :: GOT JETS" << std::endl;
   if (_verbosity > 1) cout << "FastJetAlgoSub::process_event -- entered" << endl;
 
   // translate to fastjet
