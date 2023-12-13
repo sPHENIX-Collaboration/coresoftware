@@ -90,6 +90,19 @@ MicromegasClusterEvaluator_hp::MicromegasClusterEvaluator_hp( const std::string&
 //_____________________________________________________________________
 int MicromegasClusterEvaluator_hp::Init(PHCompositeNode* topNode )
 {
+  // print configuration
+  std::cout << "MicromegasClusterEvaluator_hp::Init - m_use_default_pedestal: " << m_use_default_pedestal << std::endl;
+  std::cout << "MicromegasClusterEvaluator_hp::Init - m_default_pedestal: " << m_default_pedestal << std::endl;
+  std::cout
+    << "MicromegasClusterEvaluator_hp::Init -"
+    << " m_calibration_filename: "
+    << (m_calibration_filename.empty() ? "unspecified":m_calibration_filename )
+    << std::endl;
+
+  // read calibrations
+  if( !m_calibration_filename.empty() )
+  { m_calibration_data.read( m_calibration_filename ); }
+
   // find DST node
   PHNodeIterator iter(topNode);
   auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
@@ -266,8 +279,11 @@ void MicromegasClusterEvaluator_hp::evaluate_clusters()
           cluster_struct.strip = strip;
         }
 
-        // TODO: should remove pedestal
-        cluster_struct.charge += adc;
+        // get adc, remove pedestal, increment total charge
+        const double pedestal = m_use_default_pedestal ?
+          m_default_pedestal:
+          m_calibration_data.get_pedestal_mapped(hitsetkey, strip);
+        cluster_struct.charge += (adc-pedestal);
 
       }
 

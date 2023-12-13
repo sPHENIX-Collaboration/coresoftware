@@ -3,6 +3,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <gsl/gsl_rng.h>
+#include <micromegas/MicromegasCalibrationData.h>
 #include <micromegas/MicromegasDefs.h>
 #include <phool/PHObject.h>
 #include <trackbase/TrkrDefs.h>
@@ -36,6 +37,18 @@ class MicromegasClusterEvaluator_hp : public SubsysReco
 
   /// end of processing
   virtual int End(PHCompositeNode*);
+
+  /// set default pedestal
+  void set_default_pedestal( double value )
+  { m_default_pedestal = value; }
+
+  /// set whether default pedestal is used or not
+  void set_use_default_pedestal( bool value )
+  { m_use_default_pedestal = value; }
+
+  /// calibration file
+  void set_calibration_file( const std::string& value )
+  { m_calibration_filename = value; }
 
   class Cluster
   {
@@ -131,6 +144,23 @@ class MicromegasClusterEvaluator_hp : public SubsysReco
 
   //! cluster to hit association
   TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;
+
+  //!@name calibration filename
+  //@{
+
+  /// if true, use default pedestal to get hit charge. Relies on calibration data otherwise
+  bool m_use_default_pedestal = true;
+
+  /// default pedestal
+  double m_default_pedestal = 74.6;
+
+  /// calibration filename
+  std::string m_calibration_filename;
+
+  /// calibration data
+  MicromegasCalibrationData m_calibration_data;
+
+  //@}
 
 };
 
