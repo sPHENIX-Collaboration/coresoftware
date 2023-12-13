@@ -222,10 +222,12 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     // get eta phi bin
     unsigned short etabin = 0;
     unsigned short phibin = 0;
-    maphitetaphi(hit, etabin, phibin);
+    float correction = 1.;
+    maphitetaphi(hit, etabin, phibin, correction);
     unsigned int key = encode_tower(etabin, phibin);
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
     float e_vis = hit->get_light_yield();
+    e_vis *= correction;
     float e_dep = e_vis / m_sampling_fraction;
     float ADC = e_dep / calibconst;
     float t0 = hit->get_t(0) / m_sampletime;
@@ -252,7 +254,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void CaloWaveformSim::maphitetaphi(PHG4Hit *g4hit, unsigned short &etabin, unsigned short &phibin)
+void CaloWaveformSim::maphitetaphi(PHG4Hit *g4hit, unsigned short &etabin, unsigned short &phibin, float &correction)
 {
   if (m_dettype == CaloTowerDefs::CEMC)
   {
@@ -273,6 +275,23 @@ void CaloWaveformSim::maphitetaphi(PHG4Hit *g4hit, unsigned short &etabin, unsig
     unsigned short phibin_cell = tower_ID_phi * layergeom->get_n_subtower_phi() + sub_tower_ID_x;
     etabin = etabinshort;
     phibin = phibin_cell;
+
+    //correction for emcal fiber
+    if (light_collection_model.use_fiber_model())
+    {
+      const double z = 0.5 * (g4hit->get_local_z(0) + g4hit->get_local_z(1));
+      assert(not std::isnan(z));
+
+      correction *= light_collection_model.get_fiber_transmission(z);
+    }
+
+    if (light_collection_model.use_fiber_model())
+    {
+      const double x = it_tower->second.get_position_fraction_x_in_sub_tower(decoder.fiber_ID);
+      const double y = it_tower->second.get_position_fraction_y_in_sub_tower(decoder.fiber_ID);
+
+      correction *= light_collection_model.get_light_guide_efficiency(x, y);
+    }
   }
   else if (m_dettype == CaloTowerDefs::HCALIN)
   {

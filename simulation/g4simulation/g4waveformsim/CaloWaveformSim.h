@@ -7,6 +7,8 @@
 #include <caloreco/CaloTowerDefs.h>
 #include <calobase/TowerInfoDefs.h>
 
+#include <g4detectors/LightCollectionModel.h> 
+
 #include <gsl/gsl_rng.h>
 
 #include <string>
@@ -80,6 +82,8 @@ public:
         m_nsamples = _nsamples;
         return;
     }
+    //for CEMC light yield correction
+    LightCollectionModel &get_light_collection_model() { return light_collection_model; }
 
 
 private:
@@ -107,11 +111,13 @@ private:
     PHG4CylinderCellGeom_Spacalv1 *geo{nullptr};
     const PHG4CylinderGeom_Spacalv3 *layergeom{nullptr};
     float m_sampling_fraction = {1.0};
-    void maphitetaphi(PHG4Hit *g4hit, unsigned short &etabin, unsigned short &phibin);
+    void maphitetaphi(PHG4Hit *g4hit, unsigned short &etabin, unsigned short &phibin, float &correction);
     unsigned int (*encode_tower)(const unsigned int etabin, const unsigned int phibin){TowerInfoDefs::encode_emcal};
     unsigned int (*decode_tower)(const unsigned int tower_key){TowerInfoDefs::decode_emcal};
     double template_function(double *x, double *par);
     void CreateNodeTree(PHCompositeNode *topNode);
+
+    LightCollectionModel light_collection_model;
 
 };
 
