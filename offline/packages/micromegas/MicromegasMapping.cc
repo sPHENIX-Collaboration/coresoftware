@@ -11,42 +11,42 @@
 
 namespace
 {
-  
+
   class mec8_channel_id
   {
     public:
-    
+
     /*
-    * 0 or 1, corresponding to cable1 and cable 2 as defined by Takao in 
+    * 0 or 1, corresponding to cable1 and cable 2 as defined by Takao in
     * https://indico.bnl.gov/event/18458/contributions/73400/attachments/46043/77969/FEE_to_MEC_map_Feb17_2023.xlsx
     */
     int m_cable_id = 0;
-    
+
     /*
     * 0 or 1, corresponding to j2 or j3 in transition board drawing in
     * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225938-XX.PNG.png
     * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225940-XX.PNG.png
-    * and as defined by Takao in 
+    * and as defined by Takao in
     * https://indico.bnl.gov/event/18458/contributions/73400/attachments/46043/77969/FEE_to_MEC_map_Feb17_2023.xlsx
     */
     int m_connector_id = 0;
-    
+
     /*
-    * 1 to 70 as defined in 
+    * 1 to 70 as defined in
     * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225938-XX.PNG.png
     * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225940-XX.PNG.png
     */
     int m_channel_id = 0;
-    
+
     // constructor
     mec8_channel_id( int cable_id, int connector_id, int channel_id ):
       m_cable_id( cable_id ),
       m_connector_id( connector_id ),
       m_channel_id( channel_id )
     {}
-    
+
   };
-    
+
   // less than operator
   inline bool operator < (const mec8_channel_id& lhs, const mec8_channel_id& rhs )
   {
@@ -54,7 +54,7 @@ namespace
     if( lhs.m_connector_id != rhs.m_connector_id ) return lhs.m_connector_id < rhs.m_connector_id;
     return lhs.m_channel_id < rhs.m_channel_id;
   }
-  
+
   // print mapping
   [[maybe_unused]] void print_mapping( const std::string& name, const std::array<int, MicromegasDefs::m_nchannels_fee>& array )
   {
@@ -71,10 +71,10 @@ namespace
       std::cout << array[i];
       ++count;
     }
-    
+
     std::cout << std::endl << "};" << std::endl;
   }
-  
+
 }
 
 //____________________________________________________________________________________________________
@@ -113,22 +113,21 @@ m_detectors( {
     if(TrkrDefs::getLayer( lhs.m_hitsetkey ) != TrkrDefs::getLayer( rhs.m_hitsetkey ) ) return TrkrDefs::getLayer( lhs.m_hitsetkey ) < TrkrDefs::getLayer( rhs.m_hitsetkey );
     else return MicromegasDefs::getTileId( lhs.m_hitsetkey ) < MicromegasDefs::getTileId( rhs.m_hitsetkey );
   } );
-  
+
   // fill detector map from vector
   for( const auto& detector_id:m_detectors )
   { m_detector_map.emplace( detector_id.m_fee_id, detector_id ); }
 
   // construct channel mapping
   construct_channel_mapping();
-  
 }
 
 //____________________________________________________________________________________________________
-std::vector<int> MicromegasMapping::get_fee_id_list() const 
+std::vector<int> MicromegasMapping::get_fee_id_list() const
 {
   std::vector<int> out;
   std::transform( m_detectors.begin(), m_detectors.end(), std::back_inserter( out ), []( const DetectorId& det_id ){ return det_id.m_fee_id; } );
-  return out;  
+  return out;
 }
 
 //____________________________________________________________________________________________________
@@ -173,19 +172,19 @@ int MicromegasMapping::get_physical_strip( int fee_id, int channel_id) const
     std::cout << "MicromegasMapping::get_physical_strip - invalid channel: " << channel_id << std::endl;
     return -1;
   }
-  
+
   // get hitsetkey and orientation
   const auto hitsetkey = get_hitsetkey(fee_id);
   const auto segmentation_type = MicromegasDefs::getSegmentationType(hitsetkey);
-  switch (segmentation_type)    
+  switch (segmentation_type)
   {
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
     return m_fee_to_strip_mapping_z[channel_id];
-  
+
     case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
     return m_fee_to_strip_mapping_phi[channel_id];
   }
-  
+
   // never reached
   return -1;
 }
@@ -225,7 +224,7 @@ void MicromegasMapping::construct_channel_mapping()
    * the other 64 channels are signals
    */
   // source: https://indico.bnl.gov/event/18458/contributions/73400/attachments/46043/77969/FEE_to_MEC_map_Feb17_2023.xlsx
-  std::array<mec8_channel_id, MicromegasDefs::m_nchannels_fee> fee_to_mec8_mapping = 
+  std::array<mec8_channel_id, MicromegasDefs::m_nchannels_fee> fee_to_mec8_mapping =
   {{
     {0,0,34}, {0,0,33}, {0,0,32}, {0,0,31}, {0,0,30}, {0,0,29}, {0,0,28}, {0,0,27},
     {0,0,26}, {0,0,25}, {0,0,24}, {0,0,23}, {0,0,22}, {0,0,21}, {0,0,20}, {0,0,19},
@@ -331,7 +330,7 @@ void MicromegasMapping::construct_channel_mapping()
     {41,21}, {42,53}, {43,22}, {44,54}, {45,23}, {46,55}, {47,24}, {48,56},
     {49,25}, {50,57}, {51,26}, {52,58}, {53,27}, {54,59}, {55,28}, {56,60},
     {57,29}, {58,61}, {59,30}, {60,62}, {61,31}, {62,63}, {63,32}, {64,64},
-    
+
     {65,65}, {66,97}, {67,66}, {68,98}, {69,67}, {70,99}, {71,68}, {72,100},
     {73,69}, {74,101}, {75,70}, {76,102}, {77,71}, {78,103}, {79,72}, {80,104},
     {81,73}, {82,105}, {83,74}, {84,106}, {85,75}, {86,107}, {87,76}, {88,108},
@@ -340,7 +339,7 @@ void MicromegasMapping::construct_channel_mapping()
     {105,85}, {106,117}, {107,86}, {108,118}, {109,87}, {110,119}, {111,88}, {112,120},
     {113,89}, {114,121}, {115,90}, {116,122}, {117,91}, {118,123}, {119,92}, {120,124},
     {121,93}, {122,125}, {123,94}, {124,126}, {125,95}, {126,127}, {127,96}, {128,128},
-    
+
     {129,129}, {130,161}, {131,130}, {132,162}, {133,131}, {134,163}, {135,132}, {136,164},
     {137,133}, {138,165}, {139,134}, {140,166}, {141,135}, {142,167}, {143,136}, {144,168},
     {145,137}, {146,169}, {147,138}, {148,170}, {149,139}, {150,171}, {151,140}, {152,172},
@@ -349,7 +348,7 @@ void MicromegasMapping::construct_channel_mapping()
     {169,149}, {170,181}, {171,150}, {172,182}, {173,151}, {174,183}, {175,152}, {176,184},
     {177,153}, {178,185}, {179,154}, {180,186}, {181,155}, {182,187}, {183,156}, {184,188},
     {185,157}, {186,189}, {187,158}, {188,190}, {189,159}, {190,191}, {191,160}, {192,192},
-    
+
     {193,193}, {194,225}, {195,194}, {196,226}, {197,195}, {198,227}, {199,196}, {200,228},
     {201,197}, {202,229}, {203,198}, {204,230}, {205,199}, {206,231}, {207,200}, {208,232},
     {209,201}, {210,233}, {211,202}, {212,234}, {213,203}, {214,235}, {215,204}, {216,236},
@@ -397,7 +396,7 @@ void MicromegasMapping::construct_channel_mapping()
   }
 
   // print_mapping( "m_fee_to_strip_mapping_z", m_fee_to_strip_mapping_z );
-  
+
   // map mec8 channel id (1-70) to mec8 signal id on detector as defined by audrey in phi views
   /* sources:
    * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225938-XX.PNG.png
@@ -486,5 +485,5 @@ void MicromegasMapping::construct_channel_mapping()
   }
 
   // print_mapping( "m_fee_to_strip_mapping_phi", m_fee_to_strip_mapping_phi );
-  
+
 }
