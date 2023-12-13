@@ -31,6 +31,24 @@ MicromegasCombinedDataDecoder::MicromegasCombinedDataDecoder( const std::string&
 //_____________________________________________________________________
 int MicromegasCombinedDataDecoder::Init(PHCompositeNode* /*topNode*/ )
 {
+  // print configuration
+  std::cout
+    << "MicromegasCombinedDataDecoder::Init -"
+    << " m_calibration_filename: "
+    << (m_calibration_filename.empty() ? "unspecified":m_calibration_filename )
+    << std::endl;
+
+  std::cout
+    << "MicromegasCombinedDataDecoder::Init -"
+    << " m_hot_channel_map_filename: "
+    << (m_hot_channel_map_filename.empty() ? "unspecified":m_hot_channel_map_filename)
+    << std::endl;
+
+  std::cout << "MicromegasCombinedDataDecoder::Init - m_n_sigma: " << m_n_sigma << std::endl;
+  std::cout << "MicromegasCombinedDataDecoder::Init - m_min_adc: " << m_min_adc << std::endl;
+  std::cout << "MicromegasCombinedDataDecoder::Init - m_sample_min: " << m_sample_min << std::endl;
+  std::cout << "MicromegasCombinedDataDecoder::Init - m_sample_max: " << m_sample_max << std::endl;
+
   // read calibrations
   m_calibration_data.read( m_calibration_filename );
 
@@ -156,7 +174,7 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode *topNode)
     auto max_adc = *std::max_element( adc.begin(), adc.end() );
 
     // compare to hard min_adc value
-    // if( max_adc < m_min_adc ) continue;
+    if( max_adc < m_min_adc ) continue;
 
     // compare to threshold
     if( max_adc < pedestal + m_n_sigma * rms ) continue;
