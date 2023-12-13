@@ -60,11 +60,12 @@ int PHCosmicSeeder::InitRun(PHCompositeNode* topNode)
   }
   ret = createNodes(topNode);
 
-  if(m_analysis)
+  if (m_analysis)
   {
-  m_outfile = new TFile("PHCosmicSeeder.root", "recreate");
-  m_tup = new TNtuple("ntp_seed", "seed", "event:seed:nclus:xyint:xyslope:rzint:rzslope:"
-                                          "longestxyint:longestxyslope:longestrzint:longestrzslope");
+    m_outfile = new TFile("PHCosmicSeeder.root", "recreate");
+    m_tup = new TNtuple("ntp_seed", "seed",
+                        "event:seed:nclus:xyint:xyslope:rzint:rzslope:"
+                        "longestxyint:longestxyslope:longestrzint:longestrzslope");
   }
 
   return ret;
@@ -91,12 +92,16 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
   }
   auto seeds = makeSeeds(clusterPositions);
 
+  if (Verbosity() > 1)
+  {
+    std::cout << "Initial seed candidate size is " << seeds.size() << std::endl;
+  }
   std::sort(seeds.begin(), seeds.end(),
             [](seed a, seed b)
             { return a.ckeys.size() > b.ckeys.size(); });
 
   auto prunedSeeds = combineSeeds(seeds, clusterPositions);
-  if(Verbosity() > 1)
+  if (Verbosity() > 1)
   {
     std::cout << "Pruned seed size is " << prunedSeeds.size() << std::endl;
   }
@@ -111,7 +116,7 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
     auto seed1 = prunedSeeds[i];
     for (int j = i; j < prunedSeeds.size(); ++j)
     {
-      if(i==j)
+      if (i == j)
       {
         continue;
       }
@@ -119,11 +124,11 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
       std::vector<TrkrDefs::cluskey> intersection;
       std::set_intersection(seed1.ckeys.begin(), seed1.ckeys.end(),
                             seed2.ckeys.begin(), seed2.ckeys.end(), std::back_inserter(intersection));
-      if(intersection.size() > 3)
+      if (intersection.size() > 3)
       {
         //! If they share at least 4 clusters they are likely the same track,
         //! so merge and delete
-        for(auto key : seed2.ckeys)
+        for (auto key : seed2.ckeys)
         {
           seed1.ckeys.insert(key);
         }
@@ -131,17 +136,21 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
       }
     }
   }
-  
+
   SeedVector finalSeeds;
   for (int i = 0; i < prunedSeeds.size(); ++i)
   {
-    if(seedsToDelete.find(i) != seedsToDelete.end())
+    if (seedsToDelete.find(i) != seedsToDelete.end())
+    {
+      continue;
+    }
+    if (prunedSeeds[i].ckeys.size() < 4)
     {
       continue;
     }
     finalSeeds.push_back(prunedSeeds[i]);
   }
-  if(Verbosity() > 1)
+  if (Verbosity() > 1)
   {
     std::cout << "Total seeds found is " << finalSeeds.size() << std::endl;
   }
@@ -154,31 +163,31 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
     longestseed = finalSeeds.front();
   }
   for (auto& seed : finalSeeds)
+  {
+    if (m_analysis)
     {
-      if (m_analysis)
-      {
-        float seed_data[] = {
-            (float) m_event,
-            (float) iseed,
-            (float) seed.ckeys.size(),
-            seed.xyintercept,
-            seed.xyslope,
-            seed.rzintercept,
-            seed.rzslope,
-            longestseed.xyintercept,
-            longestseed.xyslope,
-            longestseed.rzintercept,
-            longestseed.rzslope};
-        m_tup->Fill(seed_data);
-      }
-      auto svtxseed = std::make_unique<TrackSeed_v1>();
-      for (auto& key : seed.ckeys)
-      {
-        svtxseed->insert_cluster_key(key);
-      }
-      m_seedContainer->insert(svtxseed.get());
-      ++iseed;
+      float seed_data[] = {
+          (float) m_event,
+          (float) iseed,
+          (float) seed.ckeys.size(),
+          seed.xyintercept,
+          seed.xyslope,
+          seed.rzintercept,
+          seed.rzslope,
+          longestseed.xyintercept,
+          longestseed.xyslope,
+          longestseed.rzintercept,
+          longestseed.rzslope};
+      m_tup->Fill(seed_data);
     }
+    auto svtxseed = std::make_unique<TrackSeed_v1>();
+    for (auto& key : seed.ckeys)
+    {
+      svtxseed->insert_cluster_key(key);
+    }
+    m_seedContainer->insert(svtxseed.get());
+    ++iseed;
+  }
   ++m_event;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -218,10 +227,13 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVect
       }
     }
   }
-
+  if (Verbosity() > 4)
+  {
+    std::cout << "seeds to delete size is " << seedsToDelete.size() << std::endl;
+  }
   for (int i = 0; i < initialSeeds.size(); ++i)
   {
-    if (seedsToDelete.find(i) != seedsToDelete.end() or initialSeeds[i].ckeys.size() < 5)
+    if (seedsToDelete.find(i) != seedsToDelete.end())
     {
       continue;
     }
@@ -257,12 +269,12 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
         continue;
       }
       PHCosmicSeeder::seed doub;
-    
-     doub.xyslope = (pos2.y() - pos1.y()) / (pos2.x() - pos1.x());
+
+      doub.xyslope = (pos2.y() - pos1.y()) / (pos2.x() - pos1.x());
       doub.xyintercept = pos1.y() - doub.xyslope * pos1.x();
       doub.rzslope = (r(pos2.x(), pos2.y()) - r(pos1.x(), pos1.y())) / (pos2.z() - pos1.z());
       doub.rzintercept = pos1.z() * doub.rzslope + r(pos1.x(), pos1.y());
-     
+
       keys.insert(key1);
       keys.insert(key2);
       doub.ckeys = keys;
@@ -361,7 +373,7 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
   return seeds;
 }
 void PHCosmicSeeder::recalculateSeedLineParameters(seed& seed,
-                                               PHCosmicSeeder::PositionMap& clusters, bool isXY)
+                                                   PHCosmicSeeder::PositionMap& clusters, bool isXY)
 {
   float avgx = 0;
   float avgy = 0;
@@ -464,11 +476,11 @@ int PHCosmicSeeder::createNodes(PHCompositeNode* topNode)
 //____________________________________________________________________________..
 int PHCosmicSeeder::End(PHCompositeNode*)
 {
-  if(m_outfile)
+  if (m_outfile)
   {
-  m_outfile->cd();
-  m_tup->Write();
-  m_outfile->Close();
+    m_outfile->cd();
+    m_tup->Write();
+    m_outfile->Close();
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
