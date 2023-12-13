@@ -60,7 +60,7 @@ MbdDigitization::~MbdDigitization()
 //___________________________________
 int MbdDigitization::Init(PHCompositeNode *topNode)
 {
-  // std::cout << PHWHERE << std::endl;
+  if ( Verbosity() ) std::cout << PHWHERE << std::endl;
   CreateNodes(topNode);
 
   _pdg = new TDatabasePDG();  // database of PDG info on particles
@@ -83,6 +83,7 @@ int MbdDigitization::InitRun(PHCompositeNode *topNode)
 // Call user instructions for every event
 int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
 {
+  if ( Verbosity() ) std::cout << PHWHERE << std::endl;
   //**** Initialize Variables
 
   // PMT data
@@ -112,6 +113,7 @@ int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
   }
 
   // Go through BBC G4 hits
+  if ( Verbosity()>10 ) std::cout << "Processing BBC G4 Hits" << std::endl;
 
   TLorentzVector v4;
   unsigned int nhits = 0;
@@ -173,6 +175,12 @@ int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
     }
 
     nhits++;
+  }
+
+  if ( Verbosity()>10 )
+  {
+    std::cout << "Found " << nhits << " MBD hits" << std::endl;
+    std::cout << "Calculating response and storing in MbdPmtHits" << std::endl;
   }
 
   for (int ipmt = 0; ipmt < MbdDefs::MBD_N_PMT; ipmt++)

@@ -27,7 +27,7 @@ MbdCalib::MbdCalib()
   }
   else
   {
-    do_templatefit = 0;
+    do_templatefit = 1;
   }
 
 }
@@ -44,23 +44,38 @@ int MbdCalib::Download_All()
   // if rc flag MBD_CALDIR does not exist, we create it and set it to an empty string
   if (!_rc->FlagExist("MBD_CALDIR"))
   {
+    Verbosity(1);
     std::string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
-    // std::cout << "sampmax_url " << sampmax_url << std::endl;
+    if ( Verbosity() > 0 ) std::cout << "sampmax_url " << sampmax_url << std::endl;
     Download_SampMax(sampmax_url);
 
     std::string qfit_url = _cdb->getUrl("MBD_QFIT");
-    // std::cout << "qfit_url " << qfit_url << std::endl;
+    if ( Verbosity() > 0 ) std::cout << "qfit_url " << qfit_url << std::endl;
     Download_Gains(qfit_url);
 
+    /*
+    std::string tt_t0_url = _cdb->getUrl("MBD_TT_T0");
+    if ( Verbosity() > 0 ) std::cout << "tt_t0_url " << tt_t0_url << std::endl;
+    Download_TTT0(tt_t0_url);
+    */
+
     std::string tq_t0_url = _cdb->getUrl("MBD_TQ_T0");
-    // std::cout << "tq_t0_url " << tq_t0_url << std::endl;
+    if ( Verbosity() > 0 ) std::cout << "tq_t0_url " << tq_t0_url << std::endl;
     Download_TQT0(tq_t0_url);
+
+    /*
+    std::string slew_url = _cdb->getUrl("MBD_SLEW");
+    if ( Verbosity() > 0 ) std::cout << "slew_url " << slew_url << std::endl;
+    Download_Slew(slew_url);
+    */
 
     if ( do_templatefit )
     {
       std::string shape_url = _cdb->getUrl("MBD_SHAPES");
+      if ( Verbosity() > 0 ) std::cout << "shape_url " << shape_url << std::endl;
       Download_Shapes(shape_url);
     }
+    Verbosity(0);
   }
   else
   {
@@ -69,10 +84,18 @@ int MbdCalib::Download_All()
 
     std::string sampmax_file = bbc_caldir + "/bbc_sampmax.calib";
     Download_SampMax(sampmax_file);
+
     std::string qfit_file = bbc_caldir + "/bbc_qfit.calib";
     Download_Gains(qfit_file);
+
+    //std::string tt_t0_file = bbc_caldir + "/bbc_tt_t0.calib";
+    //Download_TTT0(tt_t0_file);
+
     std::string tq_t0_file = bbc_caldir + "/bbc_tq_t0.calib";
     Download_TQT0(tq_t0_file);
+
+    //std::string slew_file = bbc_caldir + "/bbc_slew.calib";
+    //Download_Slew(slew_file);
 
     if ( do_templatefit )
     {
@@ -229,6 +252,76 @@ int MbdCalib::Download_TQT0(const std::string& dbase_location)
   return 1;
 }
 
+int MbdCalib::Download_TTT0(const std::string& dbase_location)
+{
+  // Reset All Values
+  _ttfit_t0mean.fill(std::numeric_limits<float>::quiet_NaN());
+  _ttfit_t0meanerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _ttfit_t0sigma.fill(std::numeric_limits<float>::quiet_NaN());
+  _ttfit_t0sigmaerr.fill(std::numeric_limits<float>::quiet_NaN());
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "Opening " << dbase_location << std::endl;
+  }
+  std::filesystem::path dbase_file = dbase_location;
+  if (dbase_file.extension() == ".root")  // read from database
+  {
+    CDBTTree* cdbttree = new CDBTTree(dbase_location);
+    cdbttree->LoadCalibrations();
+
+    for (int ipmt = 0; ipmt < MbdDefs::MBD_N_PMT; ipmt++)
+    {
+      _ttfit_t0mean[ipmt] = cdbttree->GetFloatValue(ipmt, "ttfit_t0mean");
+      _ttfit_t0meanerr[ipmt] = cdbttree->GetFloatValue(ipmt, "ttfit_t0meanerr");
+      _ttfit_t0sigma[ipmt] = cdbttree->GetFloatValue(ipmt, "ttfit_t0sigma");
+      _ttfit_t0sigmaerr[ipmt] = cdbttree->GetFloatValue(ipmt, "ttfit_t0sigmaerr");
+      if (Verbosity() > 0)
+      {
+        if (ipmt < 5 || ipmt >= MbdDefs::MBD_N_PMT - 5)
+        {
+          std::cout << ipmt << "\t" << _ttfit_t0mean[ipmt] << std::endl;
+        }
+      }
+    }
+    delete cdbttree;
+  }
+  else if (dbase_file.extension() == ".calib")  // read from text file
+  {
+    std::ifstream infile(dbase_location);
+    if (!infile.is_open())
+    {
+      std::cout << PHWHERE << "unable to open " << dbase_location << std::endl;
+      _status = -3;
+      return _status;
+    }
+
+    int pmt = -1;
+    while (infile >> pmt)
+    {
+      infile >> _ttfit_t0mean[pmt] >> _ttfit_t0meanerr[pmt] >> _ttfit_t0sigma[pmt] >> _ttfit_t0sigmaerr[pmt];
+
+      if (Verbosity() > 0)
+      {
+        if (pmt < 5 || pmt >= MbdDefs::MBD_N_PMT - 5)
+        {
+          std::cout << pmt << "\t" << _ttfit_t0mean[pmt] << "\t" << _ttfit_t0meanerr[pmt]
+                    << "\t" << _ttfit_t0sigma[pmt] << "\t" << _ttfit_t0sigmaerr[pmt] << std::endl;
+        }
+      }
+    }
+    infile.close();
+  }
+  else
+  {
+    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
+    _status = -1;
+    return _status;
+  }
+
+  return 1;
+}
+
 int MbdCalib::Download_SampMax(const std::string& dbase_location)
 {
   // Reset All Values
@@ -287,9 +380,115 @@ int MbdCalib::Download_SampMax(const std::string& dbase_location)
   return 1;
 }
 
+int MbdCalib::Download_Slew(const std::string& dbase_location)
+{
+  //Verbosity(100);
+  if ( Verbosity() ) std::cout << "In MbdCalib::Download_Slew" << std::endl;
+  // Reset All Values
+  for(auto& slew : _slew_y) {
+    slew.clear();
+  }
+
+  std::filesystem::path dbase_file = dbase_location;
+  if (dbase_file.extension() == ".root")  // read from database
+  {
+    if ( Verbosity() ) std::cout << "Reading from CDB " << dbase_location << std::endl;
+    CDBTTree* cdbttree = new CDBTTree(dbase_location);
+    cdbttree->LoadCalibrations();
+
+    for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
+    {
+      if ( _mbdgeom->get_type(ifeech) == 0 ) continue;  // skip t-channels
+
+      _slew_npts[ifeech] = cdbttree->GetIntValue(ifeech, "slew_npts");
+      _slew_minrange[ifeech] = cdbttree->GetFloatValue(ifeech, "slew_min");
+      _slew_maxrange[ifeech] = cdbttree->GetFloatValue(ifeech, "slew_max");
+
+      _sherr_npts[ifeech] = cdbttree->GetIntValue(ifeech, "sherr_npts");
+      _sherr_minrange[ifeech] = cdbttree->GetFloatValue(ifeech, "sherr_min");
+      _sherr_maxrange[ifeech] = cdbttree->GetFloatValue(ifeech, "sherr_max");
+
+      for (int ipt=0; ipt<_slew_npts[ifeech]; ipt++)
+      {
+        int chtemp = 1000*ipt + ifeech;
+
+        float val = cdbttree->GetFloatValue(chtemp, "slew_val");
+        _slew_y[ifeech].push_back( val );
+
+        val = cdbttree->GetFloatValue(chtemp, "sherr_val");
+        _sherr_yerr[ifeech].push_back( val );
+      }
+
+      if (Verbosity() > 0)
+      {
+        if (ifeech < 5 || ifeech >= MbdDefs::MBD_N_FEECH - 5)
+        {
+          std::cout << ifeech << "\t" << _slew_y[ifeech][0] << std::endl;
+        }
+      }
+    }
+    delete cdbttree;
+  }
+  else if (dbase_file.extension() == ".calib")  // read from text file
+  {
+    if ( Verbosity() ) std::cout << "Reading from " << dbase_location << std::endl;
+    std::ifstream infile(dbase_location);
+    if (!infile.is_open())
+    {
+      std::cout << PHWHERE << "unable to open " << dbase_location << std::endl;
+      _status = -3;
+      return _status;
+    }
+
+    int temp_feech = -1;
+    int temp_npoints = -1;
+    float temp_begintime = -1;
+    float temp_endtime = -1;
+    while ( infile >> temp_feech >> temp_npoints >> temp_begintime >> temp_endtime )
+    {
+      if ( Verbosity() ) std::cout << "slew " << temp_feech << "\t" <<  temp_npoints << "\t" <<  temp_begintime << "\t" <<  temp_endtime << std::endl;
+      if ( temp_feech<0 || temp_feech>255 )
+      {
+        std::cout << "ERROR, invalid FEECH " << temp_feech << " in MBD waveforms calibration" << std::endl;
+        _status = -2;
+        return _status;
+      }
+
+      _slew_npts[temp_feech] = temp_npoints;
+      _slew_minrange[temp_feech] = temp_begintime;
+      _slew_maxrange[temp_feech] = temp_endtime;
+
+      float temp_val{0.};
+      for (int isamp=0; isamp<temp_npoints; isamp++)
+      {
+        infile >> temp_val;
+        _slew_y[temp_feech].push_back( temp_val );
+        if ( Verbosity() && (temp_feech==8 || temp_feech==255) )
+        {
+          std::cout << _slew_y[temp_feech][isamp] << " ";
+          if ( isamp%10==9 ) std::cout << std::endl;
+        }
+      }
+      if ( Verbosity() ) std::cout << std::endl;
+    }
+
+    infile.close();
+
+  }
+  else
+  {
+    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
+    _status = -1;
+    return _status;  // file not found
+  }
+
+  //Verbosity(0);
+  return 1;
+}
+
 int MbdCalib::Download_Shapes(const std::string& dbase_location)
 {
-  Verbosity(100);
+  //Verbosity(100);
   if ( Verbosity() ) std::cout << "In MbdCalib::Download_Shapes" << std::endl;
   // Reset All Values
   for(auto& shape : _shape_y) {
@@ -311,21 +510,21 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
       if ( _mbdgeom->get_type(ifeech) == 0 ) continue;  // skip t-channels
 
       _shape_npts[ifeech] = cdbttree->GetIntValue(ifeech, "shape_npts");
-      _shape_minrange[ifeech] = cdbttree->GetDoubleValue(ifeech, "shape_min");
-      _shape_maxrange[ifeech] = cdbttree->GetDoubleValue(ifeech, "shape_max");
+      _shape_minrange[ifeech] = cdbttree->GetFloatValue(ifeech, "shape_min");
+      _shape_maxrange[ifeech] = cdbttree->GetFloatValue(ifeech, "shape_max");
 
       _sherr_npts[ifeech] = cdbttree->GetIntValue(ifeech, "sherr_npts");
-      _sherr_minrange[ifeech] = cdbttree->GetDoubleValue(ifeech, "sherr_min");
-      _sherr_maxrange[ifeech] = cdbttree->GetDoubleValue(ifeech, "sherr_max");
+      _sherr_minrange[ifeech] = cdbttree->GetFloatValue(ifeech, "sherr_min");
+      _sherr_maxrange[ifeech] = cdbttree->GetFloatValue(ifeech, "sherr_max");
 
       for (int ipt=0; ipt<_shape_npts[ifeech]; ipt++)
       {
         int chtemp = 1000*ipt + ifeech;
 
-        Double_t val = cdbttree->GetDoubleValue(chtemp, "shape_val");
+        float val = cdbttree->GetFloatValue(chtemp, "shape_val");
         _shape_y[ifeech].push_back( val );
 
-        val = cdbttree->GetDoubleValue(chtemp, "sherr_val");
+        val = cdbttree->GetFloatValue(chtemp, "sherr_val");
         _sherr_yerr[ifeech].push_back( val );
       }
 
@@ -368,7 +567,7 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
       _shape_minrange[temp_feech] = temp_begintime;
       _shape_maxrange[temp_feech] = temp_endtime;
 
-      Double_t temp_val{0.};
+      float temp_val{0.};
       for (int isamp=0; isamp<temp_npoints; isamp++)
       {
         infile >> temp_val;
@@ -413,7 +612,7 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
       _sherr_minrange[temp_feech] = temp_begintime;
       _sherr_maxrange[temp_feech] = temp_endtime;
 
-      Double_t temp_val{0.};
+      float temp_val{0.};
       for (int isamp=0; isamp<temp_npoints; isamp++)
       {
         infile >> temp_val;
@@ -436,7 +635,7 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
     return _status;  // file not found
   }
 
-  Verbosity(0);
+  //Verbosity(0);
   return 1;
 }
 
@@ -456,7 +655,7 @@ int MbdCalib::Write_CDB_SampMax(const std::string& dbfile)
     // store in a CDBTree
     cdbttree->SetIntValue(ifeech,"sampmax",_sampmax[ifeech]);
 
-    if ( ifeech<5 || ifeech>=MbdDefs::MBD_N_FEECH-5 )
+    if ( ifeech<12 || ifeech>=MbdDefs::MBD_N_FEECH-5 )
     {
       std::cout << ifeech << "\t" <<  cdbttree->GetIntValue(ifeech,"sampmax") << std::endl;
     }
@@ -474,6 +673,7 @@ int MbdCalib::Write_CDB_SampMax(const std::string& dbfile)
 
 int MbdCalib::Write_CDB_Shapes(const std::string& dbfile)
 {
+  // store in a CDBTree
   CDBTTree *cdbttree {nullptr};
 
   std::cout << "Creating " << dbfile << std::endl;
@@ -484,17 +684,48 @@ int MbdCalib::Write_CDB_Shapes(const std::string& dbfile)
   std::cout << "SHAPES" << std::endl;
   for (size_t ifeech=0; ifeech<_sampmax.size(); ifeech++) 
   {
-    // store in a CDBTree
-    cdbttree->SetIntValue(ifeech,"sampmax",_sampmax[ifeech]);
+    if ( _mbdgeom->get_type(ifeech) == 0 ) continue;  // skip t-channels
 
-    if ( ifeech<5 || ifeech>=MbdDefs::MBD_N_FEECH-5 )
+    cdbttree->SetIntValue(ifeech,"shape_npts",_shape_npts[ifeech]);
+    cdbttree->SetFloatValue(ifeech,"shape_min",_shape_minrange[ifeech]);
+    cdbttree->SetFloatValue(ifeech,"shape_max",_shape_maxrange[ifeech]);
+
+    for (int ipt=0; ipt<_shape_npts[ifeech]; ipt++)
     {
-      std::cout << ifeech << "\t" <<  cdbttree->GetIntValue(ifeech,"shape_npt") << std::endl;
+      int temp_ch = ipt*1000 + ifeech;
+      cdbttree->SetFloatValue(temp_ch,"shape_val",_shape_y[ifeech][ipt]);
     }
+
+    cdbttree->SetIntValue(ifeech,"sherr_npts",_sherr_npts[ifeech]);
+    cdbttree->SetFloatValue(ifeech,"sherr_min",_sherr_minrange[ifeech]);
+    cdbttree->SetFloatValue(ifeech,"sherr_max",_sherr_maxrange[ifeech]);
+
+    for (int ipt=0; ipt<_shape_npts[ifeech]; ipt++)
+    {
+      int temp_ch = ipt*1000 + ifeech;
+      cdbttree->SetFloatValue(temp_ch,"sherr_val",_sherr_yerr[ifeech][ipt]);
+    }
+
   }
 
   cdbttree->Commit();
   //cdbttree->Print();
+
+  for (size_t ifeech=0; ifeech<_sampmax.size(); ifeech++) 
+  {
+    if ( _mbdgeom->get_type(ifeech) == 0 ) continue;  // skip t-channels
+
+    if ( ifeech<5 || ifeech>=MbdDefs::MBD_N_FEECH-5 )
+    {
+      std::cout << ifeech << "\t" <<  cdbttree->GetIntValue(ifeech,"shape_npts") << std::endl;
+      for (int ipt=0; ipt<10; ipt++)
+      {
+        int temp_ch = ipt*1000 + ifeech;
+        std::cout << cdbttree->GetFloatValue(temp_ch,"shape_val") << "  ";
+      }
+      std::cout << std::endl;
+    }
+  }
 
   // for now we create the tree after reading it
   cdbttree->WriteCDBTTree();

@@ -87,7 +87,7 @@ void MbdSig::Init()
   hPed0 = new TH1F(name,name,16384,-0.5,16383.5);
   //hPed0 = new TH1F(name,name,10000,1,0); // automatically determine the range
 
-  SetTemplateSize(300,300,-10.,20.);
+  SetTemplateSize(900,1000,-10.,20.);
   //SetTemplateSize(300,300,0.,15.);
 }
 
@@ -519,19 +519,19 @@ Double_t MbdSig::MBD(const Int_t max_samp)
   Double_t *y = gSubPulse->GetY();
 
   if ( y==0 ) { 
-    cout << "ERROR y == 0" << endl; 
-    return 0;
+    std::cout << "ERROR y == 0" << std::endl; 
+    return NAN;
   }
 
   // SHOULD INCLUDE TIME CALIBRATION HERE
-  Double_t t0 = y[max_samp];
+  f_time = y[max_samp];
 
   // Get max amplitude, and set it if it hasn't already been set
   int n = gSubPulse->GetN();
   Double_t ymax = TMath::MaxElement(n,y);
   if ( f_ampl == -9999. ) f_ampl = ymax;
 
-  return t0;
+  return f_time;
 }
 
 Double_t MbdSig::Integral(const Double_t xmin, const Double_t xmax)
@@ -785,7 +785,7 @@ int MbdSig::FitTemplate()
   return 1;
 }
 
-int MbdSig::SetTemplate(const std::vector<Double_t>& shape, const std::vector<Double_t>& sherr)
+int MbdSig::SetTemplate(const std::vector<float>& shape, const std::vector<float>& sherr)
 {
   template_y = shape;
   template_yrms = sherr;
@@ -808,7 +808,7 @@ int MbdSig::SetTemplate(const std::vector<Double_t>& shape, const std::vector<Do
     //template_fcn = new TF1(name,this,&MbdSig::TemplateFcn,-10,20,2,"MbdSig","TemplateFcn");
     template_fcn = new TF1(name,this,&MbdSig::TemplateFcn,0,nsamples,2,"MbdSig","TemplateFcn");
     template_fcn->SetParameters(1,10);
-    SetTemplateSize(300,300,-10.,20.);
+    SetTemplateSize(900,1000,-10.,20.);
 
     if ( verbose )
     {

@@ -31,6 +31,7 @@ class MbdReco : public SubsysReco
  private:
   int createNodes(PHCompositeNode *topNode);
   int getNodes(PHCompositeNode *topNode);
+  int _simflag {0};
 
   float m_tres = 0.05;
   std::unique_ptr<TF1> m_gaussian = nullptr;
