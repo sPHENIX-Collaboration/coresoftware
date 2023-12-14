@@ -419,9 +419,10 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
   }
 
   /// erase doublets
-  for (auto it = seeds.begin(); it != seeds.end(); ++it)
+  std::set<int> seedsToDelete;
+  for (int i = 0; i < seeds.size(); ++i)
   {
-    auto seed = *it;
+    auto seed = seeds[i];
     if (Verbosity() > 2)
     {
       std::cout << "keys in seed " << std::endl;
@@ -439,12 +440,20 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
     }
     if (seed.ckeys.size() < 3)
     {
-      seeds.erase(it);
-      --it;
+      seedsToDelete.insert(i);
     }
   }
 
-  return seeds;
+  PHCosmicSeeder::SeedVector returnSeeds;
+  for (int i = 0; i < seeds.size(); i++)
+{
+  if(seedsToDelete.find(i) != seedsToDelete.end())
+  {
+    continue;
+  }
+  returnSeeds.push_back(seeds[i]);
+}
+    return returnSeeds;
 }
 void PHCosmicSeeder::recalculateSeedLineParameters(seed& seed,
                                                    PHCosmicSeeder::PositionMap& clusters, bool isXY)
