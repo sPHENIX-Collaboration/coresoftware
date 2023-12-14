@@ -125,10 +125,11 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       for (auto& globPos : tpcClusPos)
       {
         xypoints.push_back(std::make_pair(globPos.x(), globPos.y()));
-        rzpoints.push_back(std::make_pair(r(globPos.x(), globPos.y()), globPos.z()));
+        rzpoints.push_back(std::make_pair(globPos.z(), r(globPos.x(), globPos.y())));
       }
       auto xyLineParams = TrackFitUtils::line_fit(xypoints);
       auto rzLineParams = TrackFitUtils::line_fit(rzpoints);
+
       std::vector<TrkrDefs::cluskey> newClusKeysrz;
       std::vector<Acts::Vector3> newClusPosrz;
       std::vector<TrkrDefs::cluskey> newClusKeysxy;
@@ -159,6 +160,23 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       }
       std::set_intersection(newClusKeysxy.begin(), newClusKeysxy.end(),
                             newClusKeysrz.begin(), newClusKeysrz.end(), std::back_inserter(newClusKeys));
+      if (Verbosity() > 3)
+      {
+        for (auto key : newClusKeysxy)
+        {
+          auto cluster = _cluster_map->findCluster(key);
+          auto clusglob = _tgeometry->getGlobalPosition(key, cluster);
+          std::cout << "Found key for xy cosmic in layer " << (unsigned int) TrkrDefs::getLayer(key)
+                    << " with pos " << clusglob.transpose() << std::endl;
+        }
+        for (auto key : newClusKeysrz)
+        {
+          auto cluster = _cluster_map->findCluster(key);
+          auto clusglob = _tgeometry->getGlobalPosition(key, cluster);
+          std::cout << "Found key for rz cosmic in layer " << (unsigned int) TrkrDefs::getLayer(key)
+                    << " with pos " << clusglob.transpose() << std::endl;
+        }
+      }
     }
     else
     {
@@ -193,7 +211,6 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       for (auto& key : newClusKeys)
       {
         bool isTpcKey = false;
-
         if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::tpcId ||
             TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::micromegasId)
         {
@@ -251,7 +268,7 @@ int PHCosmicSiliconPropagator::End(PHCompositeNode*)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHCosmicSiliconPropagator::createSeedContainer(TrackSeedContainer*& container, const std::string &container_name, PHCompositeNode* topNode)
+int PHCosmicSiliconPropagator::createSeedContainer(TrackSeedContainer*& container, const std::string& container_name, PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
 
