@@ -66,7 +66,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   //
   void set_flag_threshold_distortion(bool setflag, float setthreshold)
   {
-  	printf("The logical status of threshold is now %d! and the value is set to %f\n", setflag, setthreshold);
+  	printf("The logical status of threshold is now %d! and the value is set to %f\n\n\n", setflag, setthreshold);
   	do_getReachReadout = setflag;
   	thresholdforreachesreadout = setthreshold;
   }
