@@ -43,7 +43,10 @@ class PHCosmicSeeder : public SubsysReco
   int createNodes(PHCompositeNode *topNode);
   SeedVector makeSeeds(PositionMap &clusterPositions);
   SeedVector combineSeeds(SeedVector &initialSeeds, PositionMap &clusterPositions);
+  SeedVector findIntersections(SeedVector &initialSeeds);
+  SeedVector chainSeeds(SeedVector &initialSeeds, PositionMap &clusterPositions);
   void recalculateSeedLineParameters(seed &seed, PositionMap &clusters, bool isXY);
+
   float m_xyTolerance = 2.;  //! cm
   float m_rzTolerance = 2.; //! cm
   std::string m_trackMapName = "TpcTrackSeedContainer";

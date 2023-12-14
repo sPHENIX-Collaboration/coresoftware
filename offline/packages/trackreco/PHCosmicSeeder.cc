@@ -109,60 +109,31 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
             [](seed a, seed b)
             { return a.ckeys.size() > b.ckeys.size(); });
 
-  std::set<int> seedsToDelete;
-  //! combine seeds with common ckeys
-  for (int i = 0; i < prunedSeeds.size(); ++i)
-  {
-    auto seed1 = prunedSeeds[i];
-    for (int j = i; j < prunedSeeds.size(); ++j)
-    {
-      if (i == j)
-      {
-        continue;
-      }
-      auto seed2 = prunedSeeds[j];
-      std::vector<TrkrDefs::cluskey> intersection;
-      std::set_intersection(seed1.ckeys.begin(), seed1.ckeys.end(),
-                            seed2.ckeys.begin(), seed2.ckeys.end(), std::back_inserter(intersection));
-      if (intersection.size() > 3)
-      {
-        //! If they share at least 4 clusters they are likely the same track,
-        //! so merge and delete
-        for (auto key : seed2.ckeys)
-        {
-          seed1.ckeys.insert(key);
-        }
-        seedsToDelete.insert(j);
-      }
-    }
-  }
-
-  SeedVector finalSeeds;
-  for (int i = 0; i < prunedSeeds.size(); ++i)
-  {
-    if (seedsToDelete.find(i) != seedsToDelete.end())
-    {
-      continue;
-    }
-    if (prunedSeeds[i].ckeys.size() < 4)
-    {
-      continue;
-    }
-    finalSeeds.push_back(prunedSeeds[i]);
-  }
+  auto finalSeeds = findIntersections(prunedSeeds);
   if (Verbosity() > 1)
   {
-    std::cout << "Total seeds found is " << finalSeeds.size() << std::endl;
+    std::cout << "final seeds are " << finalSeeds.size() << std::endl;
+  }
+  for(auto& seed1 : finalSeeds)
+ { recalculateSeedLineParameters(seed1, clusterPositions, true);
+
+   recalculateSeedLineParameters(seed1, clusterPositions, false);
+}
+  auto chainedSeeds = chainSeeds(finalSeeds, clusterPositions);
+  //auto chainedSeeds = finalSeeds;
+  if (Verbosity() > 1)
+  {
+    std::cout << "Total seeds found is " << chainedSeeds.size() << std::endl;
   }
   int iseed = 0;
 
-  auto longestseedit = finalSeeds.begin();
+  auto longestseedit = chainedSeeds.begin();
   seed longestseed;
-  if (longestseedit != finalSeeds.end())
+  if (longestseedit != chainedSeeds.end())
   {
-    longestseed = finalSeeds.front();
+    longestseed = chainedSeeds.front();
   }
-  for (auto& seed : finalSeeds)
+  for (auto& seed : chainedSeeds)
   {
     if (m_analysis)
     {
@@ -191,6 +162,109 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
   ++m_event;
   return Fun4AllReturnCodes::EVENT_OK;
 }
+PHCosmicSeeder::SeedVector PHCosmicSeeder::findIntersections(PHCosmicSeeder::SeedVector& initialSeeds)
+{
+  std::set<int> seedsToDelete;
+  //! combine seeds with common ckeys
+  for (int i = 0; i < initialSeeds.size(); ++i)
+  {
+    auto& seed1 = initialSeeds[i];
+    for (int j = i; j < initialSeeds.size(); ++j)
+    {
+      if (i == j)
+      {
+        continue;
+      }
+      auto& seed2 = initialSeeds[j];
+      std::vector<TrkrDefs::cluskey> intersection;
+      std::set_intersection(seed1.ckeys.begin(), seed1.ckeys.end(),
+                            seed2.ckeys.begin(), seed2.ckeys.end(), std::back_inserter(intersection));
+      if (intersection.size() > 3)
+      {
+        //! If they share at least 4 clusters they are likely the same track,
+        //! so merge and delete
+        for (auto key : seed2.ckeys)
+        {
+          seed1.ckeys.insert(key);
+        }
+        seedsToDelete.insert(j);
+      }
+    }
+  }
+
+  SeedVector finalSeeds;
+  for (int i = 0; i < initialSeeds.size(); ++i)
+  {
+    if (seedsToDelete.find(i) != seedsToDelete.end())
+    {
+      continue;
+    }
+    if (initialSeeds[i].ckeys.size() < 4)
+    {
+      continue;
+    }
+    finalSeeds.push_back(initialSeeds[i]);
+  }
+  return finalSeeds;
+}
+PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector& initialSeeds,
+                                                      PositionMap& clusterPositions)
+{
+  PHCosmicSeeder::SeedVector returnseeds;
+  std::set<int> seedsToDelete;
+  for (int i = 0; i < initialSeeds.size(); ++i)
+  {
+    auto& seed1 = initialSeeds[i];
+    for (int j = i; j < initialSeeds.size(); ++j)
+    {
+      if (i == j)
+      {
+        continue;
+      }
+      auto& seed2 = initialSeeds[j];
+      recalculateSeedLineParameters(seed1, clusterPositions, true);
+      recalculateSeedLineParameters(seed2, clusterPositions, true);
+      recalculateSeedLineParameters(seed1, clusterPositions, false);
+      recalculateSeedLineParameters(seed2, clusterPositions, false);
+
+      float longestxyslope = seed1.xyslope;
+      float longestxyint = seed1.xyintercept;
+      float longestrzslope = seed1.rzslope;
+      float longestrzint = seed1.rzintercept;
+      if (seed1.ckeys.size() < seed2.ckeys.size())
+      {
+        longestxyint = seed2.xyintercept;
+        longestxyslope = seed2.xyslope;
+        longestrzint = seed2.rzintercept;
+        longestrzslope = seed2.rzslope;
+      }
+
+      float pdiff = fabs((seed1.xyslope - seed2.xyslope) / longestxyslope);
+      float pdiff2 = fabs((seed1.xyintercept - seed2.xyintercept) / longestxyint);
+      float pdiff3 = fabs((seed1.rzintercept - seed2.rzintercept) / longestrzint);
+      float pdiff4 = fabs((seed1.rzslope - seed2.rzslope) / longestrzslope);
+      if (pdiff < 1. && pdiff2 < 1. && pdiff3 < 1. && pdiff4 < 1.)
+      {
+        seedsToDelete.insert(j);
+        for (auto& key : seed2.ckeys)
+        {
+          seed1.ckeys.insert(key);
+        }
+      }
+    }
+  }
+  std::cout << "Deleting " << seedsToDelete.size() << " seeds in chainer" << std::endl;
+  for (int i = 0; i < initialSeeds.size(); ++i)
+  {
+    if (seedsToDelete.find(i) != seedsToDelete.end())
+    {
+      continue;
+    }
+    returnseeds.push_back(initialSeeds[i]);
+  }
+
+  return returnseeds;
+}
 PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVector& initialSeeds,
                                                         PHCosmicSeeder::PositionMap& clusterPositions)
 {
@@ -205,8 +279,8 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVect
       {
         continue;
       }
-      auto seed1 = initialSeeds[i];
-      auto seed2 = initialSeeds[j];
+      auto& seed1 = initialSeeds[i];
+      auto& seed2 = initialSeeds[j];
 
       // recalculate seed parameters
       recalculateSeedLineParameters(seed1, clusterPositions, true);
