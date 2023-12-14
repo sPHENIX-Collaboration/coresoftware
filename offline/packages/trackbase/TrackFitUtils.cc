@@ -277,7 +277,7 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
         TrkrDefs::cluskey cluskey = clusIter->first;
-       
+
         TrkrCluster* cluster = clusIter->second;
 
         auto global = tGeometry->getGlobalPosition(cluskey, cluster);
@@ -305,11 +305,11 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
         float pcax = (perpIntercept - intercept) / (slope - perpSlope);
         float pcay = slope * pcax + intercept;
         //! Take the difference to find the distance
-        
+
         float dcax = pcax - x;
         float dcay = pcay - y;
         float dca = std::sqrt(square(dcax) + square(dcay));
-  
+
         if (dca < dca_cut)
         {
           keys_to_add.insert(cluskey);
@@ -320,11 +320,11 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
 
   for (auto& key : keys_to_add)
   {
-      cluskey_vec.push_back(key);
-      auto clus = clusterContainer->findCluster(key);
-      auto global = tGeometry->getGlobalPosition(key, clus);
-      global_vec.push_back(global);
-      nclusters++;
+    cluskey_vec.push_back(key);
+    auto clus = clusterContainer->findCluster(key);
+    auto global = tGeometry->getGlobalPosition(key, clus);
+    global_vec.push_back(global);
+    nclusters++;
   }
 
   return nclusters;

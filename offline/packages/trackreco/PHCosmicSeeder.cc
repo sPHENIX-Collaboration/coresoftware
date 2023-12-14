@@ -114,13 +114,14 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
   {
     std::cout << "final seeds are " << finalSeeds.size() << std::endl;
   }
-  for(auto& seed1 : finalSeeds)
- { recalculateSeedLineParameters(seed1, clusterPositions, true);
+  for (auto& seed1 : finalSeeds)
+  {
+    recalculateSeedLineParameters(seed1, clusterPositions, true);
 
-   recalculateSeedLineParameters(seed1, clusterPositions, false);
-}
+    recalculateSeedLineParameters(seed1, clusterPositions, false);
+  }
   auto chainedSeeds = chainSeeds(finalSeeds, clusterPositions);
-  //auto chainedSeeds = finalSeeds;
+  // auto chainedSeeds = finalSeeds;
   if (Verbosity() > 1)
   {
     std::cout << "Total seeds found is " << chainedSeeds.size() << std::endl;
@@ -446,14 +447,14 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
 
   PHCosmicSeeder::SeedVector returnSeeds;
   for (int i = 0; i < seeds.size(); i++)
-{
-  if(seedsToDelete.find(i) != seedsToDelete.end())
   {
-    continue;
+    if (seedsToDelete.find(i) != seedsToDelete.end())
+    {
+      continue;
+    }
+    returnSeeds.push_back(seeds[i]);
   }
-  returnSeeds.push_back(seeds[i]);
-}
-    return returnSeeds;
+  return returnSeeds;
 }
 void PHCosmicSeeder::recalculateSeedLineParameters(seed& seed,
                                                    PHCosmicSeeder::PositionMap& clusters, bool isXY)

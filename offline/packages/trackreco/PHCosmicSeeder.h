@@ -4,8 +4,8 @@
 #define PHCOSMICSEEDER_H
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <map>
 #include <string>
@@ -48,7 +48,7 @@ class PHCosmicSeeder : public SubsysReco
   void recalculateSeedLineParameters(seed &seed, PositionMap &clusters, bool isXY);
 
   float m_xyTolerance = 2.;  //! cm
-  float m_rzTolerance = 2.; //! cm
+  float m_rzTolerance = 2.;  //! cm
   std::string m_trackMapName = "TpcTrackSeedContainer";
   ActsGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
@@ -59,4 +59,4 @@ class PHCosmicSeeder : public SubsysReco
   float m_event = 0;
 };
 
-#endif // PHCOSMICSEEDER_H
+#endif  // PHCOSMICSEEDER_H
