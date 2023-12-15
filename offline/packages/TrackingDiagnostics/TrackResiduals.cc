@@ -176,10 +176,13 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   if (gl1)
   {
     m_bco = gl1->get_bco();
+    auto lbshift = m_bco << 24;
+    m_bcotr = lbshift >> 24;
   }
   else
   {
     m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
+    m_bcotr = std::numeric_limits<uint64_t>::quiet_NaN();
   }
   if (Verbosity() > 1)
   {
@@ -596,6 +599,7 @@ void TrackResiduals::createBranches()
   m_clustree = new TTree("clustertree", "A tree with all clusters");
   m_clustree->Branch("event", &m_event, "m_event/I");
   m_clustree->Branch("gl1bco", &m_bco, "m_bco/l");
+  m_clustree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_clustree->Branch("lx", &m_scluslx, "m_scluslx/F");
   m_clustree->Branch("lz", &m_scluslz, "m_scluslz/F");
   m_clustree->Branch("gx", &m_sclusgx, "m_sclusgx/F");
@@ -626,6 +630,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("event", &m_event, "m_event/I");
   m_tree->Branch("trackid", &m_trackid, "m_trackid/I");
   m_tree->Branch("gl1bco", &m_bco, "m_bco/l");
+  m_tree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_tree->Branch("crossing", &m_crossing, "m_crossing/I");
   m_tree->Branch("px", &m_px, "m_px/F");
   m_tree->Branch("py", &m_py, "m_py/F");
