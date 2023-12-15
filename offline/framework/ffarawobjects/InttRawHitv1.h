@@ -11,9 +11,9 @@ class  InttRawHitv1: public InttRawHit
 
 
 public:
-  InttRawHitv1() {}
+  InttRawHitv1() = default;
   InttRawHitv1(InttRawHit *intthit);
-  ~InttRawHitv1() override {};
+  ~InttRawHitv1() override = default;
 
   /** identify Function from PHObject
       @param os Output Stream
