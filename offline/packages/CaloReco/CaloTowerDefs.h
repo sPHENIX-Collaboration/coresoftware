@@ -9,7 +9,8 @@ namespace CaloTowerDefs
     HCALIN = 1,
     HCALOUT = 2,
     SEPD = 3,
-    ZDC = 4
+    ZDC = 4,
+    DETECTOR_INVALID = 99999
   };
 
   enum BuilderType

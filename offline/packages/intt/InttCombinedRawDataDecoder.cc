@@ -2,23 +2,24 @@
 #include "InttMapping.h"
 
 #include <trackbase/InttDefs.h>
-#include <trackbase/TrkrDefs.h>    // for hitkey, hitsetkey
+#include <trackbase/TrkrDefs.h>  // for hitkey, hitsetkey
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitv2.h>
 
+#include <ffarawobjects/Gl1RawHit.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>      // for PHIODataNode
+#include <phool/PHIODataNode.h>  // for PHIODataNode
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-#include <phool/phool.h>             // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
 
@@ -116,6 +117,18 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     gSystem->Exit(1);
     exit(1);
   }
+  auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+  if (!gl1)
+  {
+    std::cout << PHWHERE << " no gl1 container, exiting" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  uint64_t gl1rawhitbco = gl1->get_bco();
+  // get the last 40 bits by bit shifting left then right to match
+  // to the mvtx bco
+  auto lbshift = gl1rawhitbco << 24;
+  auto gl1bco = lbshift >> 24;
 
   TrkrDefs::hitsetkey hit_set_key = 0;
   TrkrDefs::hitkey hit_key = 0;
@@ -130,19 +143,17 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     // uint64_t gtm_bco = intthit->get_bco();
 
     InttNameSpace::RawFromHit(raw, intthit);
-    //raw.felix_server = InttNameSpace::FelixFromPacket(intthit->get_packetid());
-    //raw.felix_channel = intthit->get_fee();
-    //raw.chip = (intthit->get_chip_id() + 25) % 26;
-    //raw.channel = intthit->get_channel_id();
+    // raw.felix_server = InttNameSpace::FelixFromPacket(intthit->get_packetid());
+    // raw.felix_channel = intthit->get_fee();
+    // raw.chip = (intthit->get_chip_id() + 25) % 26;
+    // raw.channel = intthit->get_channel_id();
     ofl = InttNameSpace::ToOffline(raw);
 
     int adc = intthit->get_adc();
     // amp = intthit->get_amplitude();
     // int bco = intthit->get_FPHX_BCO();
-
-    hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x); //col, row <trackbase/InttDefs.h>
-    hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, (intthit->get_bco()) & 0x3ff);
-
+    hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x);  // col, row <trackbase/InttDefs.h>
+    hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, intthit->get_bco() - gl1bco);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
     hit = hit_set_container_itr->second->getHit(hit_key);
     if (hit)

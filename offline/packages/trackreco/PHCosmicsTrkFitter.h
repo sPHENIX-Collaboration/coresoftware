@@ -27,6 +27,9 @@
 #include <memory>
 #include <string>
 
+#include <TFile.h>
+#include <TTree.h>
+
 #include <trackbase/alignmentTransformationContainer.h>
 
 class MakeActsGeometry;
@@ -75,8 +78,8 @@ class PHCosmicsTrkFitter : public SubsysReco
     m_actsEvaluator = actsEvaluator;
   }
 
-  void setEvaluatorName(std::string name) { m_evalname = name; }
-  void setFieldMap(std::string& fieldMap)
+  void setEvaluatorName(const std::string &name) { m_evalname = name; }
+  void setFieldMap(const std::string &fieldMap)
   {
     m_fieldMap = fieldMap;
   }
@@ -85,7 +88,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   {
     m_pHypothesis = pHypothesis;
   }
-
+  void seedAnalysis() { m_seedClusAnalysis = true; }
   void commissioning(bool com) { m_commissioning = com; }
 
   void useOutlierFinder(bool outlier) { m_useOutlierFinder = outlier; }
@@ -134,6 +137,7 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   Acts::BoundSquareMatrix setDefaultCovariance() const;
   void printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const;
+  void makeBranches();
 
   /// Event counter
   int m_event = 0;
@@ -191,6 +195,7 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   std::string m_fieldMap = "";
 
+
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
   std::string _seed_track_map_name = "SeedTrackMap";
@@ -200,6 +205,34 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
   ActsAlignmentStates m_alignStates;
+
+
+  //! for diagnosing seed param + clusters
+  bool m_seedClusAnalysis = false;
+  std::unique_ptr<TFile> m_outfile = nullptr;
+  std::unique_ptr<TTree> m_tree = nullptr;
+  int m_seed = std::numeric_limits<int>::max();
+  float m_R = NAN;
+  float m_X0 = NAN;
+  float m_Y0 = NAN;
+  float m_Z0 = NAN;
+  float m_slope = NAN;
+  float m_pcax = NAN;
+  float m_pcay = NAN;
+  float m_pcaz = NAN;
+  float m_px = NAN;
+  float m_py = NAN;
+  float m_pz = NAN;
+  int m_charge = std::numeric_limits<int>::max();
+  int m_nmaps = std::numeric_limits<int>::max();
+  int m_nintt = std::numeric_limits<int>::max();
+  int m_ntpc = std::numeric_limits<int>::max();
+  int m_nmm = std::numeric_limits<int>::max();
+  std::vector<float> m_locx, m_locy, m_x, m_y, m_z, m_r, m_layer,m_phi, m_eta, 
+    m_phisize, m_zsize, m_ephi, m_ez;
+  void clearVectors();
+  void fillVectors(TrackSeed* tpcseed, TrackSeed *siseed);
+  ClusterErrorPara m_clusErrPara;
 };
 
 #endif

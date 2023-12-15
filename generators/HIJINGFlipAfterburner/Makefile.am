@@ -30,7 +30,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libHIJINGFlipAfterburner.la
+testexternals_LDADD = libHIJINGFlipAfterburner.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

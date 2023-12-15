@@ -67,7 +67,7 @@ class MicromegasMapping
     /// constructor
     DetectorId(
       int fee_id, TrkrDefs::hitsetkey hitsetkey,
-      const std::string fibername, const std::string breakoutname, 
+      const std::string &fibername, const std::string &breakoutname, 
       const std::string& detname_saclay, const std::string& detname_sphenix ):
       m_fee_id( fee_id ),
       m_hitsetkey( hitsetkey ),

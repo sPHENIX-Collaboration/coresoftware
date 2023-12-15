@@ -40,6 +40,7 @@ class alignmentTransformationContainer : public Acts::GeometryContext
   void identify(std::ostream &os = std::cout);  
   void addTransform(Acts::GeometryIdentifier, Acts::Transform3); 
   Acts::Transform3& getTransform(Acts::GeometryIdentifier id);
+  void replaceTransform(const Acts::GeometryIdentifier id, Acts::Transform3 transform);
   const std::vector<std::vector<Acts::Transform3>>& getMap() const;
   void setMisalignmentFactor(uint8_t layer, double factor);
   const double& getMisalignmentFactor(uint8_t layer) const { return m_misalignmentFactor.find(layer)->second; }

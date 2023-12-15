@@ -114,6 +114,7 @@ class SvtxTrack_v4: public SvtxTrack
   bool empty_states() const override { return _states.empty(); }
   size_t size_states() const override { return _states.size(); }
   size_t count_states(float pathlength) const override { return _states.count(pathlength); }
+  // cppcheck-suppress virtualCallInConstructor
   void clear_states() override;
 
   const SvtxTrackState* get_state(float pathlength) const override;

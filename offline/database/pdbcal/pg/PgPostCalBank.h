@@ -19,32 +19,32 @@ class PgPostCalBank : public PdbCalBank
   PgPostCalBank() {}
   virtual ~PgPostCalBank() {}
 
-  virtual void printHeader() const { std::cout << "I'm PgPostCalBank" << std::endl; }
-  virtual void printEntry(size_t) = 0;
-  virtual void print() = 0;
+  void printHeader() const override { std::cout << "I'm PgPostCalBank" << std::endl; }
+  void printEntry(size_t) override = 0;
+  void print() override = 0;
 
   //  virtual bool commit() = 0;
-  virtual size_t getLength() = 0;
-  virtual PdbCalChan& getEntry(size_t) = 0;
-  virtual void setLength(size_t val) = 0;
+  size_t getLength() override = 0;
+  PdbCalChan& getEntry(size_t) override = 0;
+  void setLength(size_t val) override = 0;
 
-  virtual PdbBankID getBankID() const { return 0; }
-  virtual PHTimeStamp getInsertTime() const { return PHTimeStamp((time_t) 0); }
-  virtual PHTimeStamp getStartValTime() const { return PHTimeStamp((time_t) 0); }
-  virtual PHTimeStamp getEndValTime() const { return PHTimeStamp((time_t) 0); }
-  virtual std::string getDescription() const { return ""; }
-  virtual std::string getUserName() const { return ""; }
+  PdbBankID getBankID() const override { return 0; }
+  PHTimeStamp getInsertTime() const override { return PHTimeStamp((time_t) 0); }
+  PHTimeStamp getStartValTime() const override { return PHTimeStamp((time_t) 0); }
+  PHTimeStamp getEndValTime() const override { return PHTimeStamp((time_t) 0); }
+  std::string getDescription() const override { return ""; }
+  std::string getUserName() const override { return ""; }
   virtual std::string getTableName() const { return ""; }
 
-  virtual void setBankID(const PdbBankID& /*val*/) {}
-  virtual void setInsertTime(const PHTimeStamp& /*val*/) {}
-  virtual void setStartValTime(const PHTimeStamp& /*val*/) {}
-  virtual void setEndValTime(const PHTimeStamp& /*val*/) {}
-  virtual void setDescription(const std::string& /*val*/) {}
-  virtual void setUserName(const std::string& /*val*/) {}
+  void setBankID(const PdbBankID& /*val*/) override {}
+  void setInsertTime(const PHTimeStamp& /*val*/) override {}
+  void setStartValTime(const PHTimeStamp& /*val*/) override {}
+  void setEndValTime(const PHTimeStamp& /*val*/) override {}
+  void setDescription(const std::string& /*val*/) override {}
+  void setUserName(const std::string& /*val*/) override {}
   virtual void setTableName(const std::string& /*val*/) {}
 
-  virtual int isValid(const PHTimeStamp&) const { return 0; }
+  int isValid(const PHTimeStamp&) const override { return 0; }
 
   ClassDefOverride(PgPostCalBank, 2);
 };

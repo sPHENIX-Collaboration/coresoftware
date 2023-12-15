@@ -115,19 +115,55 @@ int JetReco::process_event(PHCompositeNode *topNode)
       FillJetNode(topNode, ialgo, jets);
     }
 
-    //FIXME
-    // print out equivalence of jets and constituents in the two methods
-    if (false) {
-      std::fstream fout;
-      fout.open("FIXME_jetscomp", std::fstream::app);
-      fout << " Printing out results on jetmap " << std::endl;
-      JetMap *jetmap = findNode::getClass<JetMap>(topNode, _outputs[ialgo]);
-      int iFIXME =0;
-      for (auto _jet = jetmap->begin(); _jet != jetmap->end(); ++_jet) {
-        auto jet = _jet->second;
-        fout << Form(" jetmap[%i] ncon:pt:eta:phi [%i,%6.3f,%6.3f,%6.3f]",
-            ++iFIXME, (int)jet->size_comp(), jet->get_pt(), jet->get_eta(), jet->get_phi()) << std::endl;
-        fout << " constituents: ";
+    if (false ) { // These printouts were used in comparing the two map methods
+                  // It can be removed later
+      if (use_jetmap) {
+        std::fstream fout;
+        fout.open("fixme_jetmap", std::fstream::app);
+        fout << " Printing jet results " << std::endl;
+        JetMap *jetmap = findNode::getClass<JetMap>(topNode, _outputs[ialgo]);
+        int ifixme =0;
+        for (auto _jet = jetmap->begin(); _jet != jetmap->end(); ++_jet) {
+          auto jet = _jet->second;
+          fout << Form(" jet[%2i] ncon:pt:eta:phi [%6i,%6.3f,%6.3f,%6.3f]",
+              ++ifixme, (int)jet->size_comp(), jet->get_pt(), jet->get_eta(), jet->get_phi()) << std::endl;
+          std::vector<std::pair<int,int>> vconst;
+          /*legacy*/ for (auto _comp = jet->begin_comp(); _comp != jet->end_comp(); ++_comp) {
+            vconst.push_back({(int)_comp->first,(int)_comp->second});
+          }
+          std::sort(vconst.begin(), vconst.end(), [](std::pair<int,int> a, std::pair<int,int> b) 
+              { 
+              if      (a.first == b.first) return a.second < b.second;
+              else return a.first < b.first;
+              });
+          fout << " constituents: ";
+          int iconst = 0;
+          for (const auto& p : vconst) {
+            fout << Form("  c(%3i) %3i->%3i", iconst++, p.first, p.second) << std::endl;
+          }
+          fout << std::endl;
+        }
+      }
+      if (use_jetcon) {
+        std::fstream fout;
+        fout.open("fixme_jetcont", std::fstream::app);
+        fout << " Printing jet results" << std::endl;
+        JetContainer *jet_cont = findNode::getClass<JetContainer>(topNode,JC_name(_outputs[ialgo]));
+        int ifixme =0;
+
+        /* for (auto jet = jet_cont->begin(); jet != jet_cont->end(); ++jet) { */
+        for (auto jet : *jet_cont) {
+          fout << Form(" jet[%2i] ncon:pt:eta:phi [%6i,%6.3f,%6.3f,%6.3f]",
+              ++ifixme, (int)jet->size_comp(), jet->get_pt(), jet->get_eta(), jet->get_phi()) << std::endl;
+
+          fout << " constituents: ";
+          int iconst = 0;
+          for (const auto& p : jet->get_comp_vec()) {
+            fout << Form("  c(%3i) %3i->%3i", iconst++, p.first, p.second) << std::endl;
+          }
+
+          fout << std::endl;
+        }
       }
     }
 

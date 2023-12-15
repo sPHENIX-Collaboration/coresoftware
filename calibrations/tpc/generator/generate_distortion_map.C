@@ -3,11 +3,12 @@
 #include "AnnularFieldSim.h"
 #include "TTree.h" //this prevents a lazy binding issue and/or is a magic spell.
 #include "TCanvas.h" //this prevents a lazy binding issue and/or is a magic spell.
-//R__LOAD_LIBRARY(.libs/libfieldsim)
-R__LOAD_LIBRARY(build/.libs/libfieldsim)
 
-  char field_string[200];
-  char lookup_string[200];
+// cppcheck-suppress unknownMacro
+R__LOAD_LIBRARY(libfieldsim.so)
+
+char field_string[200];
+char lookup_string[200];
 
 AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe=false, bool useSpacecharge=true);
 AnnularFieldSim *SetupDigitalCurrentSphenixTpc(bool twinMe=false, bool useSpacecharge=true);

@@ -6,16 +6,13 @@
 #include <readDigitalCurrents.h>
 
 #include <stdio.h>
-//#include <sstream>
 #include <frog/FROG.h>
 
 #include <string>
 
 // cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libfun4all.so)
-// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libreadDigitalCurrents.so)
-// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libg4dst.so)
 
 std::vector<int> readBeamXings();

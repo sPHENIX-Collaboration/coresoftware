@@ -25,27 +25,35 @@ public:
   void Clear(Option_t *) override;
 
   uint64_t get_bco() const override {return bco;}
+  // cppcheck-suppress virtualCallInConstructor
   void set_bco(const uint64_t val) override {bco = val;}
 
   uint64_t get_gtm_bco() const override {return gtm_bco;}
+  // cppcheck-suppress virtualCallInConstructor
   void set_gtm_bco(const uint64_t val) override {gtm_bco = val;}
   
   int32_t get_packetid() const override {return packetid;}
+  // cppcheck-suppress virtualCallInConstructor
   void set_packetid(const int32_t val) override {packetid = val;}
 
   uint16_t get_fee() const override {return fee;}
+  // cppcheck-suppress virtualCallInConstructor
   void set_fee(uint16_t const val) override {fee = val;}
 
   uint16_t get_channel() const override {return channel;}
+  // cppcheck-suppress virtualCallInConstructor
   void set_channel(uint16_t const val) override {channel = val;}
 
   uint16_t get_sampaaddress() const override {return sampaaddress;}
+  // cppcheck-suppress virtualCallInConstructor
   void set_sampaaddress(uint16_t const val) override {sampaaddress = val;}
 
   uint16_t get_sampachannel() const override {return sampachannel;}
+  // cppcheck-suppress virtualCallInConstructor
   void set_sampachannel(uint16_t const val) override {sampachannel = val;}
 
   uint16_t get_samples() const override {return samples;}
+  // cppcheck-suppress virtualCallInConstructor
   void set_samples(uint16_t const val) override 
   {
     // assign
@@ -61,6 +69,7 @@ public:
     return adc[sample];
   }
   
+  // cppcheck-suppress virtualCallInConstructor
   void set_adc( size_t sample, uint16_t val ) override
   { 
     assert( sample < adc.size() );

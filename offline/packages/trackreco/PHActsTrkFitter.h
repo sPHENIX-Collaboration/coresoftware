@@ -19,7 +19,6 @@
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/alignmentTransformationContainer.h>
 
-#include <tpc/TpcClusterMover.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrection.h>
 
@@ -99,8 +98,8 @@ class PHActsTrkFitter : public SubsysReco
     m_actsEvaluator = actsEvaluator;
   }
 
-  void setEvaluatorName(std::string name) { m_evalname = name; }
-  void setFieldMap(std::string& fieldMap)
+  void setEvaluatorName(const std::string &name) { m_evalname = name; }
+  void setFieldMap(const std::string &fieldMap)
   {
     m_fieldMap = fieldMap;
   }
@@ -177,6 +176,9 @@ class PHActsTrkFitter : public SubsysReco
 
   /// TrackMap containing SvtxTracks
   alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
+  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;  
+  std::set< Acts::GeometryIdentifier> m_transient_id_set;
+  Acts::GeometryContext m_transient_geocontext;
   SvtxTrackMap* m_trackMap = nullptr;
   SvtxTrackMap* m_directedTrackMap = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
@@ -204,6 +206,9 @@ class PHActsTrkFitter : public SubsysReco
   /// Flag for pp running
   bool m_pp_mode = false;
 
+  // max variation of bunch crossing away from crossing_estimate
+  short int max_bunch_search = 2;
+
   bool m_actsEvaluator = false;
   std::unique_ptr<ActsEvaluator> m_evaluator = nullptr;
   std::string m_evalname = "ActsEvaluator.root";
@@ -219,8 +224,6 @@ class PHActsTrkFitter : public SubsysReco
   /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;
 
-  // cluster mover utility class
-  TpcClusterMover _clusterMover;
   ClusterErrorPara _ClusErrPara;
 
   std::set<int> m_ignoreLayer;

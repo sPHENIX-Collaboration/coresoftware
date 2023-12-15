@@ -1,7 +1,7 @@
 #include "MbdReco.h"
 #include "MbdEvent.h"
 #include "MbdPmtContainerV1.h"
-#include "MbdOutV1.h"
+#include "MbdOutV2.h"
 #include "MbdGeomV1.h"
 
 
@@ -43,7 +43,7 @@ int MbdReco::Init(PHCompositeNode *)
   m_gaussian = std::make_unique<TF1>("gaussian", "gaus", 0, 20);
   m_gaussian->FixParameter(2, m_tres);
 
-  m_mbdevent = new MbdEvent();
+  m_mbdevent = std::make_unique<MbdEvent>();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -56,9 +56,11 @@ int MbdReco::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  int ret = getNodes(topNode);
+
+  m_mbdevent->SetSim( _simflag );
   m_mbdevent->InitRun();
 
-  int ret = getNodes(topNode);
   return ret;
 }
 
@@ -71,8 +73,11 @@ int MbdReco::process_event(PHCompositeNode *topNode)
   if ( m_event!=nullptr && m_mbdpmts!=nullptr )
   {
     int status = m_mbdevent->SetRawData( m_event, m_mbdpmts );
-    if ( status<0 ) return EVENT_OK; // there wasn't good data in BBC/MBD
+    if ( status == Fun4AllReturnCodes::ABORTEVENT ) return Fun4AllReturnCodes::ABORTEVENT; // there wasn't good data in BBC/MBD
+    else if (status == Fun4AllReturnCodes::DISCARDEVENT) return Fun4AllReturnCodes::DISCARDEVENT;
+    else if (status < 0) return Fun4AllReturnCodes::EVENT_OK;
   }
+
   m_mbdevent->Calculate( m_mbdpmts, m_mbdout );
 
   // For multiple global vertex
@@ -144,7 +149,7 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
   m_mbdout = findNode::getClass<MbdOut>(bbcNode, "MbdOut");
   if (!m_mbdout)
   {
-    m_mbdout = new MbdOutV1();
+    m_mbdout = new MbdOutV2();
     PHIODataNode<PHObject> *MbdOutNode = new PHIODataNode<PHObject>(m_mbdout, "MbdOut", "PHObject");
     bbcNode->addNode(MbdOutNode);
   }
@@ -184,6 +189,8 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
 
   if ( m_event==nullptr )
   {
+    _simflag = 1;
+
     static int counter = 0;
     if ( counter < 1 )
     {

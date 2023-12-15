@@ -1,5 +1,9 @@
 #include "Fun4AllOutputManager.h"
 
+#include <phool/phool.h>
+
+#include <TSystem.h>
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -67,6 +71,21 @@ int Fun4AllOutputManager::DoNotWriteEvent(std::vector<int> *retcodes) const
   for (unsigned int index : m_RecoModuleIndexVector)
   {
     iret += (*retcodes)[index];
+  }
+  return iret;
+}
+
+int Fun4AllOutputManager::RunAfterClosing()
+{
+  int iret = 0;
+  if (!m_RunAfterClosingScript.empty())
+  {
+    std::string fullcmd = m_RunAfterClosingScript + " " + m_ClosingArgs;
+    iret = gSystem->Exec(fullcmd.c_str());
+  }
+  if (iret)
+  {
+    iret = iret >> 8;
   }
   return iret;
 }

@@ -180,7 +180,9 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
   uint64_t bco_min = UINT64_MAX;
   uint64_t bco_max = 0;
 
-  for (unsigned int i = 0; i < tpccont->get_nhits(); i++)
+  const auto nhits = tpccont->get_nhits();
+
+  for (unsigned int i = 0; i < nhits; i++)
   {
     TpcRawHit *tpchit = tpccont->get_hit(i);
     uint64_t gtm_bco = tpchit->get_gtm_bco();
@@ -198,11 +200,11 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     if(FEE_R[fee]==2) feeM += 6;
     if(FEE_R[fee]==3) feeM += 14;
 
-    int side = 0;
+    int side = 1;
     int32_t packet_id = tpchit->get_packetid();
     int ep = (packet_id - 4000) % 10;
     int sector = (packet_id - 4000 - ep) / 10;
-    if (sector>11) side = 1;
+    if (sector>11) side = 0;
 
     unsigned int key = 256 * (feeM) + channel;
     std::string varname = "layer";

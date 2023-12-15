@@ -10,8 +10,8 @@
 #include <TTree.h>
 #include <string>
 
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <cmath>
 #include <iostream>
@@ -21,6 +21,7 @@ class TrkrCluster;
 class PHCompositeNode;
 class ActsGeometry;
 class SvtxTrack;
+class TrkrClusterContainer;
 
 class TrackResiduals : public SubsysReco
 {
@@ -33,22 +34,23 @@ class TrackResiduals : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
-  void outfileName(std::string &name) { m_outfileName = name; }
+  void outfileName(const std::string &name) { m_outfileName = name; }
   void alignment(bool align) { m_doAlignment = align; }
-  void alignmentmapName(std::string name) { m_alignmentMapName = name; }
-  void trackmapName(std::string name) { m_trackMapName = name; }
+  void alignmentmapName(const std::string &name) { m_alignmentMapName = name; }
+  void trackmapName(const std::string &name) { m_trackMapName = name; }
 
  private:
   void clearClusterStateVectors();
   void createBranches();
   float convertTimeToZ(ActsGeometry *geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
-
+  void fillClusterTree(TrkrClusterContainer *clusters, ActsGeometry *geometry);
   void fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack *track,
                            PHCompositeNode *topNode);
 
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
+  TTree *m_clustree = nullptr;
 
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";
@@ -58,6 +60,7 @@ class TrackResiduals : public SubsysReco
 
   int m_event = 0;
   //! Track level quantities
+  uint64_t m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
   unsigned int m_trackid = std::numeric_limits<unsigned int>::quiet_NaN();
   unsigned int m_crossing = std::numeric_limits<unsigned int>::quiet_NaN();
   float m_px = std::numeric_limits<float>::quiet_NaN();
@@ -84,6 +87,33 @@ class TrackResiduals : public SubsysReco
   float m_pcay = std::numeric_limits<float>::quiet_NaN();
   float m_pcaz = std::numeric_limits<float>::quiet_NaN();
 
+  //! cluster tree info
+  float m_sclusgr = std::numeric_limits<float>::quiet_NaN();
+  float m_sclusphi = std::numeric_limits<float>::quiet_NaN();
+  float m_scluseta = std::numeric_limits<float>::quiet_NaN();
+  float m_adc = std::numeric_limits<float>::quiet_NaN();
+  float m_clusmaxadc = std::numeric_limits<float>::quiet_NaN();
+  int m_phisize = std::numeric_limits<int>::quiet_NaN();
+  int m_zsize = std::numeric_limits<int>::quiet_NaN();
+  float m_scluslx = std::numeric_limits<float>::quiet_NaN();
+  float m_scluslz = std::numeric_limits<float>::quiet_NaN();
+  float m_sclusgx = std::numeric_limits<float>::quiet_NaN();
+  float m_sclusgy = std::numeric_limits<float>::quiet_NaN();
+  float m_sclusgz = std::numeric_limits<float>::quiet_NaN();
+  int m_scluslayer = std::numeric_limits<int>::quiet_NaN();
+  float m_scluselx = std::numeric_limits<float>::quiet_NaN();
+  float m_scluselz = std::numeric_limits<float>::quiet_NaN();
+  int m_clussector = std::numeric_limits<int>::quiet_NaN();
+  int m_side = std::numeric_limits<int>::quiet_NaN();
+  int m_staveid = std::numeric_limits<int>::quiet_NaN();
+  int m_chipid = std::numeric_limits<int>::quiet_NaN();
+  int m_strobeid = std::numeric_limits<int>::quiet_NaN();
+  int m_ladderzid = std::numeric_limits<int>::quiet_NaN();
+  int m_ladderphiid = std::numeric_limits<int>::quiet_NaN();
+  int m_timebucket = std::numeric_limits<int>::quiet_NaN();
+  int m_segtype = std::numeric_limits<int>::quiet_NaN();
+  int m_tileid = std::numeric_limits<int>::quiet_NaN();
+
   //! clusters on track information
   std::vector<float> m_cluslx;
   std::vector<float> m_cluslz;
@@ -97,6 +127,7 @@ class TrackResiduals : public SubsysReco
   std::vector<int> m_clusedge;
   std::vector<int> m_clusoverlap;
   std::vector<uint32_t> m_clushitsetkey;
+  std::vector<uint64_t> m_cluskeys;
   std::vector<float> m_idealsurfcenterx;
   std::vector<float> m_idealsurfcentery;
   std::vector<float> m_idealsurfcenterz;
@@ -118,7 +149,6 @@ class TrackResiduals : public SubsysReco
   std::vector<float> m_missurfalpha;
   std::vector<float> m_missurfbeta;
   std::vector<float> m_missurfgamma;
-
 
   //! states on track information
   std::vector<float> m_statelx;

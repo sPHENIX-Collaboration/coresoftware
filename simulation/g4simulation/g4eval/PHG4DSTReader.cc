@@ -25,8 +25,8 @@
 #include <g4main/PHG4VtxPointv1.h>
 
 #include <jetbase/Jet.h>
-#include <jetbase/JetMap.h>
-#include <jetbase/Jetv1.h>
+#include <jetbase/JetContainer.h>
+#include <jetbase/Jetv2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
@@ -50,7 +50,7 @@ using part_type = PHG4Particlev2;
 using hit_type = PHG4HitEval;
 using vertex_type = PHG4VtxPointv1;
 using RawTower_type = RawTowerv1;
-using PHPyJet_type = Jetv1;
+using PHPyJet_type = Jetv2;
 
 PHG4DSTReader::PHG4DSTReader(const std::string &filename)
   : SubsysReco("PHG4DSTReader")
@@ -452,7 +452,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
                   << rec._name << std::endl;
       }
 
-      JetMap *hits = findNode::getClass<JetMap>(topNode, rec._name);
+      JetContainer *hits = findNode::getClass<JetContainer>(topNode, rec._name);
       if (!hits)
       {
         if (_event < 2)
@@ -472,9 +472,9 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
         }
 
         // for every recojet
-        for (auto &iter : *hits)
+        for (auto hit_raw : *hits)
         {
-          Jet *hit_raw = iter.second;
+          /* Jet *hit_raw = iter.second; */
 
           if (Verbosity() >= 2)
           {
@@ -494,7 +494,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
               dynamic_cast<PHPyJet_type *>(rec._arr.get()->At(rec._cnt));
           assert(new_hit);
 
-          *new_hit = (*hit);
+          *new_hit = (Jetv2) (*hit);
 
           rec._cnt++;
         }

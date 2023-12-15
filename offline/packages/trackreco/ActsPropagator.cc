@@ -91,7 +91,8 @@ ActsPropagator::makeTrackParams(SvtxTrack* track,
                                                             actsFourPos, momentum,
                                                             track->get_charge() / track->get_p(),
                                                             cov,
-                                                            Acts::ParticleHypothesis::pion());
+                                                            Acts::ParticleHypothesis::pion(),
+							    1*Acts::UnitConstants::cm);
 }
 
 ActsPropagator::BTPPairResult

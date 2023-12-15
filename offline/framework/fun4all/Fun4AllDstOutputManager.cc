@@ -6,26 +6,20 @@
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/phool.h>  // for PHWHERE, PHReadOnly, PHRunTree
+#include <phool/recoConsts.h>
 
 #include <TSystem.h>
 
+#include <boost/format.hpp>
+
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <string>
 
 Fun4AllDstOutputManager::Fun4AllDstOutputManager(const std::string &myname, const std::string &fname)
   : Fun4AllOutputManager(myname, fname)
 {
-  dstOut = new PHNodeIOManager(fname, PHWrite);
-  if (!dstOut->isFunctional())
-  {
-    delete dstOut;
-    std::cout << PHWHERE << " Could not open " << fname
-              << " exiting now" << std::endl;
-    gSystem->Exit(1);
-    exit(1);  // cppcheck does not know gSystem->Exit(1)
-  }
-  dstOut->SetCompressionLevel(3);
   return;
 }
 
@@ -61,17 +55,7 @@ int Fun4AllDstOutputManager::StripRunNode(const std::string &nodename)
 
 int Fun4AllDstOutputManager::outfileopen(const std::string &fname)
 {
-  delete dstOut;
-  dstOut = new PHNodeIOManager(fname, PHWrite);
-  if (!dstOut->isFunctional())
-  {
-    delete dstOut;
-    dstOut = nullptr;
-    std::cout << PHWHERE << " Could not open " << fname << std::endl;
-    return -1;
-  }
-
-  dstOut->SetCompressionLevel(3);
+  OutFileName(fname);
   return 0;
 }
 
@@ -121,6 +105,10 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
   if (!m_SaveDstNodeFlag)
   {
     return 0;
+  }
+  if (!dstOut)
+  {
+    outfile_open_first_write();  //    outfileopen(OutFileName());
   }
   PHNodeIterator nodeiter(startNode);
   if (savenodes.empty())
@@ -198,7 +186,7 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
     dstOut = nullptr;
     return 0;
   }
-  dstOut = new PHNodeIOManager(OutFileName(), PHUpdate, PHRunTree);
+  dstOut = new PHNodeIOManager(UsedOutFileName(), PHUpdate, PHRunTree);
   Fun4AllServer *se = Fun4AllServer::instance();
   PHNodeIterator nodeiter(thisNode);
   if (saverunnodes.empty())
@@ -247,5 +235,46 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
   se->MakeNodesTransient(thisNode);
   delete dstOut;
   dstOut = nullptr;
+  return 0;
+}
+
+int Fun4AllDstOutputManager::outfile_open_first_write()
+{
+  delete dstOut;
+  SetEventsWritten(0);
+  std::filesystem::path p = OutFileName();
+  if (m_FileNameStem.empty())
+  {
+    m_FileNameStem = p.stem();
+  }
+  if (ApplyFileRule())
+  {
+    recoConsts *rc = recoConsts::instance();
+    int runnumber = 0;
+    if (rc->FlagExist("RUNNUMBER"))
+    {
+      runnumber = rc->get_IntFlag("RUNNUMBER");
+    }
+    std::string fullpath = ".";
+    if (p.has_parent_path())
+    {
+      fullpath = p.parent_path();
+    }
+    std::string runseg = boost::str(boost::format("-%08d-%04d") % runnumber % m_CurrentSegment);
+    std::string newfile = fullpath + std::string("/") + m_FileNameStem + runseg + std::string(p.extension());
+    OutFileName(newfile);
+    m_CurrentSegment++;
+  }
+  m_UsedOutFileName = OutFileName() + std::string("?reproducible=") + std::string(p.filename());
+  dstOut = new PHNodeIOManager(UsedOutFileName(), PHWrite);
+  if (!dstOut->isFunctional())
+  {
+    delete dstOut;
+    dstOut = nullptr;
+    std::cout << PHWHERE << " Could not open " << OutFileName() << std::endl;
+    return -1;
+  }
+
+  dstOut->SetCompressionSetting(m_CompressionSetting);
   return 0;
 }

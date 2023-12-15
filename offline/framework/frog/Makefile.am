@@ -19,6 +19,7 @@ libFROG_la_SOURCES = \
   FROG.cc
 
 bin_SCRIPTS = \
+  CreateDstList.pl \
   CreateFileList.pl
 
 noinst_PROGRAMS = testexternals

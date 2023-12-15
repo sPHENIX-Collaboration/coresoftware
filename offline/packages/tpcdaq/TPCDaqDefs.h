@@ -29,6 +29,8 @@ class SampleFit_PowerLawDoubleExp_PDFMaker
 public:
   SampleFit_PowerLawDoubleExp_PDFMaker();
   ~SampleFit_PowerLawDoubleExp_PDFMaker();
+  explicit SampleFit_PowerLawDoubleExp_PDFMaker(const SampleFit_PowerLawDoubleExp_PDFMaker&) = delete;
+  SampleFit_PowerLawDoubleExp_PDFMaker& operator=(const SampleFit_PowerLawDoubleExp_PDFMaker&) = delete;
   void MakeSectionPage(const std::string & title);
 private:
   TCanvas * m_canvas;

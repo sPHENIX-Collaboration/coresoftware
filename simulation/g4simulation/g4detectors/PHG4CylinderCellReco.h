@@ -30,6 +30,7 @@ class PHG4CylinderCellReco : public SubsysReco, public PHParameterContainerInter
 
   int ResetEvent(PHCompositeNode *topNode) override;
 
+// cppcheck-suppress virtualCallInConstructor
   void SetDefaultParameters() override;
 
   void Detector(const std::string &d);

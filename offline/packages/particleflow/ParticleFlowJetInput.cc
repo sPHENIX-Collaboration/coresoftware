@@ -4,7 +4,7 @@
 #include "ParticleFlowElementContainer.h"
 
 #include <jetbase/Jet.h>
-#include <jetbase/Jetv1.h>
+#include <jetbase/Jetv2.h>
 
 #include <phool/getClass.h>
 
@@ -40,13 +40,14 @@ std::vector<Jet *> ParticleFlowJetInput::get_input(PHCompositeNode *topNode)
   {
     ParticleFlowElement *pflow = rtiter->second;
 
-    Jet *jet = new Jetv1();
+    Jet *jet = new Jetv2();
     jet->set_px( pflow->get_px() );
     jet->set_py( pflow->get_py() );
     jet->set_pz( pflow->get_pz() );
     jet->set_e( pflow->get_e() );
     jet->insert_comp( Jet::SRC::PARTICLE , pflow->get_id() );
     pseudojets.push_back( jet );
+    for (auto c : pseudojets[pseudojets.size()-1]->get_comp_vec()) std::cout << " GOT " << ((int)c.first) << " and " << ((int)c.second) << std::endl;
   }
 
   if (_verbosity > 0) std::cout << "ParticleFlowJetInput::process_event -- exited" << std::endl;
