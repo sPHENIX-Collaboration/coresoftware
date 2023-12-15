@@ -44,6 +44,7 @@ class TrackResiduals : public SubsysReco
   void createBranches();
   float convertTimeToZ(ActsGeometry *geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   void fillClusterTree(TrkrClusterContainer *clusters, ActsGeometry *geometry);
+  void fillHitTree(TrkrHitSetContainer *hitmap, PHG4TpcCylinderGeomContainer* tpcGeom);
   void fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack *track,
                            PHCompositeNode *topNode);
 
@@ -51,6 +52,7 @@ class TrackResiduals : public SubsysReco
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
   TTree *m_clustree = nullptr;
+  TTree *m_hittree = nullptr;
 
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";
@@ -87,6 +89,24 @@ class TrackResiduals : public SubsysReco
   float m_pcax = std::numeric_limits<float>::quiet_NaN();
   float m_pcay = std::numeric_limits<float>::quiet_NaN();
   float m_pcaz = std::numeric_limits<float>::quiet_NaN();
+
+
+  //! hit tree info
+  uint32_t m_hitsetkey = std::numeric_limits<uint32_t>::quiet_NaN();
+  float m_adc = std::numeric_limits<float>::quiet_NaN();
+  float m_hitgx = std::numeric_limits<float>::quiet_NaN();
+  float m_hitgy = std::numeric_limits<float>::quiet_NaN();
+  float m_hitgz = std::numeric_limits<float>::quiet_NaN();
+  float m_hitgx = std::numeric_limits<float>::quiet_NaN();
+  float m_hitgy = std::numeric_limits<float>::quiet_NaN();
+  float m_hitgz = std::numeric_limits<float>::quiet_NaN();
+  int m_hitlayer = std::numeric_limits<int>::quiet_NaN();
+  int m_sector = std::numeric_limits<int>::quiet_NaN();
+  int m_hitpad = std::numeric_limits<int>::quiet_NaN();
+  int m_hittbin = std::numeric_limits<int>::quiet_NaN();
+  int m_col = std::numeric_limits<int>::quiet_NaN();
+  int m_row = std::numeric_limits<int>::quiet_NaN();
+  int m_strip = std::numeric_limits<int>::quiet_NaN();
 
   //! cluster tree info
   float m_sclusgr = std::numeric_limits<float>::quiet_NaN();
