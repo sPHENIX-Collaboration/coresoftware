@@ -10,6 +10,7 @@
 #include <g4detectors/LightCollectionModel.h> 
 
 #include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 #include <string>
 #include <vector>
@@ -30,6 +31,13 @@ public:
     CaloWaveformSim(const std::string &name = "CaloWaveformSim");
 
     ~CaloWaveformSim() override;
+
+    enum NoiseType{
+        NOISE_NONE = 0,
+        NOISE_GAUSSIAN = 1,
+        NOISE_TREE = 2
+    };
+    
 
     int Init(PHCompositeNode *topNode) override;
 
@@ -82,6 +90,21 @@ public:
         m_nsamples = _nsamples;
         return;
     }
+    void set_noise_type(NoiseType noiseType)
+    {
+        m_noiseType = noiseType;
+        return;
+    }
+    void set_fixpedestal(int _fixpedestal)
+    {
+        m_fixpedestal = _fixpedestal;
+        return;
+    }
+    void set_gaussian_noise(int _gaussian_noise)
+    {
+        m_gaussian_noise = _gaussian_noise;
+        return;
+    }
     //for CEMC light yield correction
     LightCollectionModel &get_light_collection_model() { return light_collection_model; }
 
@@ -106,6 +129,8 @@ private:
     int m_nsamples{31};
     int m_nchannels{24576};
     float m_sampletime{50. / 3.};
+    int m_fixpedestal{1500};
+    int m_gaussian_noise{3};
     gsl_rng *m_RandomGenerator{nullptr};
 
     PHG4CylinderCellGeom_Spacalv1 *geo{nullptr};
@@ -118,6 +143,9 @@ private:
     void CreateNodeTree(PHCompositeNode *topNode);
 
     LightCollectionModel light_collection_model;
+
+    NoiseType m_noiseType{NOISE_TREE};
+
 
 };
 

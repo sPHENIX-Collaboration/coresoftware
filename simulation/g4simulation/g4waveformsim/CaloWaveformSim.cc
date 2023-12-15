@@ -30,6 +30,7 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom_Spacalv1.h>
 
+
 #include <TF1.h>
 #include <TFile.h>
 #include <TTree.h>
@@ -51,6 +52,8 @@ CaloWaveformSim::CaloWaveformSim(const std::string &name) : SubsysReco(name)
 
 CaloWaveformSim::~CaloWaveformSim()
 {
+  gsl_rng_free(m_RandomGenerator);
+
 }
 
 int CaloWaveformSim::Init(PHCompositeNode *topNode)
@@ -187,6 +190,35 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
   {
     std::cout << "CaloWaveformSim::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   }
+  //maybe we really need to get the geometry node in in every event(otherwise layergeom become invalid when we get to the second file in the list?):
+  if (m_dettype == CaloTowerDefs::CEMC)
+  {
+    PHG4CylinderGeomContainer *layergeo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_CEMC");
+    if (!layergeo)
+    {
+      std::cout << PHWHERE << " CYLINDERGEOM_CEMC Node missing, doing nothing." << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
+    const PHG4CylinderGeom *layergeom_raw = layergeo->GetFirstLayerGeom();
+    assert(layergeom_raw);
+
+    layergeom = dynamic_cast<const PHG4CylinderGeom_Spacalv3 *>(layergeom_raw);
+    assert(layergeom);
+
+    PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_CEMC");
+    if (!seggeo)
+    {
+      std::cout << PHWHERE << " CYLINDERCELLGEOM_CEMC Node missing, doing nothing." << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
+    PHG4CylinderCellGeom *geo_raw = seggeo->GetFirstLayerCellGeom();
+    geo = dynamic_cast<PHG4CylinderCellGeom_Spacalv1 *>(geo_raw);
+  }
+
+
+
   // initialize the waveform
   for (auto &waveform : m_waveforms)
   {
@@ -229,28 +261,35 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     float e_vis = hit->get_light_yield();
     e_vis *= correction;
     float e_dep = e_vis / m_sampling_fraction;
-    float ADC = e_dep / calibconst;
+    float ADC = (calibconst!=0) ? e_dep / calibconst : 0.;
+    
     float t0 = hit->get_t(0) / m_sampletime;
     unsigned int tower_index = decode_tower(key);
+  
     f_fit->SetParameters(ADC, _shiftval + t0, 0.);
     for (int i = 0; i < m_nsamples; i++)
     {
       m_waveforms.at(tower_index).at(i) += f_fit->Eval(i);
     }
   }
+
   //do noise here and add to waveform
-  int n_noise_events = m_noisetree->GetEntries();
-  int random_noise_event = gsl_rng_uniform_int(m_RandomGenerator, n_noise_events);
+  if(m_noiseType == NoiseType::NOISE_TREE){
+    int n_noise_events = m_noisetree->GetEntries();
+    int random_noise_event = gsl_rng_uniform_int(m_RandomGenerator, n_noise_events);
   m_noisetree->GetEntry(random_noise_event);
+  }
   for (int i = 0; i < m_nchannels; i++)
   {
     for (int j = 0; j < m_nsamples; j++)
     {
-      m_waveforms.at(i).at(j) += (j < (int)m_pedestal->at(i).size()) ? m_pedestal->at(i).at(j) : m_pedestal->at(i).back();
+      if(m_noiseType == NoiseType::NOISE_TREE) m_waveforms.at(i).at(j) += (j < (int)m_pedestal->at(i).size()) ? m_pedestal->at(i).at(j) : m_pedestal->at(i).back();
+      if(m_noiseType == NoiseType::NOISE_GAUSSIAN) m_waveforms.at(i).at(j) += gsl_ran_gaussian(m_RandomGenerator, m_gaussian_noise );
+      if(m_noiseType == NoiseType::NOISE_NONE) m_waveforms.at(i).at(j) += m_fixpedestal;
       m_CaloWaveformContainer->get_tower_at_channel(i)->set_waveform_value(j, m_waveforms.at(i).at(j));
     }
   }
-
+  delete f_fit;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -263,7 +302,6 @@ void CaloWaveformSim::maphitetaphi(PHG4Hit *g4hit, unsigned short &etabin, unsig
     std::pair<int, int> tower_z_phi_ID = layergeom->get_tower_z_phi_ID(decoder.tower_ID, decoder.sector_ID);
     const int &tower_ID_z = tower_z_phi_ID.first;
     const int &tower_ID_phi = tower_z_phi_ID.second;
-
     PHG4CylinderGeom_Spacalv3::tower_map_t::const_iterator it_tower =
         layergeom->get_sector_tower_map().find(decoder.tower_ID);
     assert(it_tower != layergeom->get_sector_tower_map().end());
@@ -281,7 +319,6 @@ void CaloWaveformSim::maphitetaphi(PHG4Hit *g4hit, unsigned short &etabin, unsig
     {
       const double z = 0.5 * (g4hit->get_local_z(0) + g4hit->get_local_z(1));
       assert(not std::isnan(z));
-
       correction *= light_collection_model.get_fiber_transmission(z);
     }
 
@@ -289,7 +326,6 @@ void CaloWaveformSim::maphitetaphi(PHG4Hit *g4hit, unsigned short &etabin, unsig
     {
       const double x = it_tower->second.get_position_fraction_x_in_sub_tower(decoder.fiber_ID);
       const double y = it_tower->second.get_position_fraction_y_in_sub_tower(decoder.fiber_ID);
-
       correction *= light_collection_model.get_light_guide_efficiency(x, y);
     }
   }
@@ -328,26 +364,6 @@ int CaloWaveformSim::End(PHCompositeNode *topNode)
 
 void CaloWaveformSim::CreateNodeTree(PHCompositeNode *topNode)
 {
-  // if CEMC get the geom
-  if (m_dettype == CaloTowerDefs::CEMC)
-  {
-    PHG4CylinderGeomContainer *layergeo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_CEMC");
-    if (!layergeo)
-    {
-      std::cout << PHWHERE << " CYLINDERGEOM_CEMC Node missing, doing nothing." << std::endl;
-      gSystem->Exit(1);
-      exit(1);
-    }
-    const PHG4CylinderGeom *layergeom_raw = layergeo->GetFirstLayerGeom();
-    assert(layergeom_raw);
-
-    layergeom = dynamic_cast<const PHG4CylinderGeom_Spacalv3 *>(layergeom_raw);
-    assert(layergeom);
-
-    PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_CEMC");
-    PHG4CylinderCellGeom *geo_raw = seggeo->GetFirstLayerCellGeom();
-    geo = dynamic_cast<PHG4CylinderCellGeom_Spacalv1 *>(geo_raw);
-  }
 
   PHNodeIterator topNodeItr(topNode);
   // DST node
