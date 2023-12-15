@@ -462,11 +462,6 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
       break;
     }
   }
-  if (!state)
-  {
-    //! skip clusters that don't have an associated track state
-    return;
-  }
 
   m_cluskeys.push_back(ckey);
 
@@ -499,7 +494,12 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     std::cout << "Track state/clus in layer "
               << TrkrDefs::getLayer(ckey) << std::endl;
   }
-
+  if (!state)
+  {
+    //! skip filling the state information if a state is not there
+    //! or we just ran the seeding
+    return;
+  }
   auto surf = geometry->maps().getSurface(ckey, cluster);
   Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
   Acts::Vector2 stateloc;
@@ -595,7 +595,7 @@ void TrackResiduals::createBranches()
 {
   m_clustree = new TTree("clustertree", "A tree with all clusters");
   m_clustree->Branch("event", &m_event, "m_event/I");
-  m_clustree->Branch("gl1bco", &m_bco, "m_bco");
+  m_clustree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_clustree->Branch("lx", &m_scluslx, "m_scluslx/F");
   m_clustree->Branch("lz", &m_scluslz, "m_scluslz/F");
   m_clustree->Branch("gx", &m_sclusgx, "m_sclusgx/F");
@@ -625,7 +625,7 @@ void TrackResiduals::createBranches()
   m_tree = new TTree("residualtree", "A tree with track, cluster, and state info");
   m_tree->Branch("event", &m_event, "m_event/I");
   m_tree->Branch("trackid", &m_trackid, "m_trackid/I");
-  m_tree->Branch("gl1bco", &m_bco, "m_bco");
+  m_tree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_tree->Branch("crossing", &m_crossing, "m_crossing/I");
   m_tree->Branch("px", &m_px, "m_px/F");
   m_tree->Branch("py", &m_py, "m_py/F");
