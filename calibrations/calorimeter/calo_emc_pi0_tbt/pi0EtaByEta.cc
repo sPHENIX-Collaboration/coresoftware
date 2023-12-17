@@ -3,17 +3,10 @@
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 
-// MBD
-#include <mbd/BbcGeom.h>
-#include <mbd/MbdPmtContainerV1.h>
-#include <mbd/MbdPmtHit.h>
-
 // Tower includes
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
@@ -22,25 +15,23 @@
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
-#include <ffamodules/CDBInterface.h>
-
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/getClass.h>
-#include <phool/recoConsts.h>
+#include <phool/phool.h>
 
-#include <TCanvas.h>
 #include <TF1.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
 #include <TLorentzVector.h>
 #include <TNtuple.h>
-#include <TProfile2D.h>
 #include <TTree.h>
 
-#include <cassert>
+#include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -83,7 +74,7 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
   h_InvMassMix = new TH1F("h_InvMassMix", "Invariant Mass", 120, 0, 1.2);
 
   // cluster QA
-  h_etaphi_clus = new TH2F("h_etaphi_clus", "", 140, -1.2, 1.2, 64, -1 * TMath::Pi(), TMath::Pi());
+  h_etaphi_clus = new TH2F("h_etaphi_clus", "", 140, -1.2, 1.2, 64, -1 * M_PI, M_PI);
   h_clusE = new TH1F("h_clusE", "", 100, 0, 10);
 
   h_emcal_e_eta = new TH1F("h_emcal_e_eta", "", 96, 0, 96);
