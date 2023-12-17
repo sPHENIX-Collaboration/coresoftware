@@ -7,7 +7,6 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
 #include <globalvertex/GlobalVertex.h>
@@ -27,7 +26,6 @@
 #include <TH3.h>
 #include <TLorentzVector.h>
 #include <TNtuple.h>
-#include <TString.h>
 #include <TStyle.h>
 #include <TSystem.h>
 #include <TTree.h>
@@ -36,7 +34,6 @@
 
 #include <algorithm>  // for max, max_element
 #include <cmath>      // for abs
-#include <cstdlib>
 #include <iostream>
 #include <map>      // for _Rb_tree_const_iterator
 #include <string>   // for string
@@ -343,7 +340,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
         if (tt2_clus_energy > 0.6)  // again this will be greater than 1.0, but lets keep
         {
           // lets do alpha cut here: this is needed tho
-          alphaCut = abs(tt_clus_energy - tt2_clus_energy) / (tt_clus_energy + tt_clus_energy);
+          alphaCut = std::abs(tt_clus_energy - tt2_clus_energy) / (tt_clus_energy + tt_clus_energy);
           if (alphaCut <= 0.5)
           {
             float tt2_clus_eta = E_vec_cluster2.pseudoRapidity();

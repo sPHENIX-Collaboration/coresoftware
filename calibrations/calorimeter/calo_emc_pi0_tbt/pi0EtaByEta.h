@@ -4,6 +4,8 @@
 #include <fun4all/SubsysReco.h>
 
 #include <array>
+#include <string>   // for string
+#include <utility>  // for pair
 #include <vector>
 
 // Forward declarations
@@ -15,7 +17,6 @@ class TTree;
 class TH2;
 class TH1;
 class TProfile2D;
-class TLorentzVector;
 
 class pi0EtaByEta : public SubsysReco
 {
