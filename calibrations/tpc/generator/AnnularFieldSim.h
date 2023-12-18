@@ -197,6 +197,11 @@ class AnnularFieldSim
 
   void load_phislice_lookup(const char *sourcefile);
   void save_phislice_lookup(const char *destfile);
+  
+  Rossegger *green;   // stand-alone class to compute greens functions.
+  float green_shift;  // how far to offset our position in z when querying our green's functions.
+  AnnularFieldSim *twin = nullptr;
+  bool hasTwin = false;
 
   TVector3 sum_field_at(int r, int phi, int z);
   TVector3 sum_full3d_field_at(int r, int phi, int z);
@@ -255,8 +260,6 @@ class AnnularFieldSim
   AnalyticFieldModel *aliceModel = nullptr;
 
   // the other half of the detector:
-  AnnularFieldSim *twin = nullptr;
-  bool hasTwin = false;
 
   // constants of motion, dimensions, etc:
   //
@@ -288,8 +291,6 @@ class AnnularFieldSim
   float zmin, zmax;  // lower and upper edges of the coordinate system in z (not fully implemented yet)
   // float phimin, phimax;//not implemented at all yet.
   TVector3 dim;       // dimensions of simulated region, in cm
-  Rossegger *green;   // stand-alone class to compute greens functions.
-  float green_shift;  // how far to offset our position in z when querying our green's functions.
 
   // variables related to the whole-volume tiling:
   //

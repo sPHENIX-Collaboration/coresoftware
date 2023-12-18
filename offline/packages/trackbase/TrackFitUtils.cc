@@ -233,10 +233,7 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
   float slope = std::get<0>(fitpars);
   float intercept = std::get<1>(fitpars);
   int nclusters = 0;
-  std::vector<float> best_layer_dca;
-  best_layer_dca.assign(endLayer + 1, 999.0);
-  std::vector<TrkrDefs::cluskey> best_layer_cluskey;
-  best_layer_cluskey.assign(endLayer + 1, 0);
+  std::set<TrkrDefs::cluskey> keys_to_add;
   std::set<TrkrDefs::TrkrId> detectors = {TrkrDefs::TrkrId::mvtxId,
                                           TrkrDefs::TrkrId::inttId,
                                           TrkrDefs::TrkrId::tpcId,
@@ -280,7 +277,6 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
         TrkrDefs::cluskey cluskey = clusIter->first;
-        unsigned int layer = TrkrDefs::getLayer(cluskey);
 
         TrkrCluster* cluster = clusIter->second;
 
@@ -294,8 +290,8 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
         else
         {
           //! use r-z
-          x = std::sqrt(square(global.x()) + square(global.y()));
-          y = global.z();
+          x = global.z();
+          y = std::sqrt(square(global.x()) + square(global.y()));
         }
 
         //! Need to find the point on the line closest to the cluster position
@@ -309,28 +305,26 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
         float pcax = (perpIntercept - intercept) / (slope - perpSlope);
         float pcay = slope * pcax + intercept;
         //! Take the difference to find the distance
+
         float dcax = pcax - x;
         float dcay = pcay - y;
         float dca = std::sqrt(square(dcax) + square(dcay));
-        if (fabs(dca) < best_layer_dca[layer])
+
+        if (dca < dca_cut)
         {
-          best_layer_dca[layer] = dca;
-          best_layer_cluskey[layer] = cluskey;
+          keys_to_add.insert(cluskey);
         }
       }
     }
   }
 
-  for (unsigned int layer = startLayer; layer <= endLayer; ++layer)
+  for (auto& key : keys_to_add)
   {
-    if (best_layer_dca[layer] < dca_cut)
-    {
-      cluskey_vec.push_back(best_layer_cluskey[layer]);
-      auto clus = clusterContainer->findCluster(best_layer_cluskey[layer]);
-      auto global = tGeometry->getGlobalPosition(best_layer_cluskey[layer], clus);
-      global_vec.push_back(global);
-      nclusters++;
-    }
+    cluskey_vec.push_back(key);
+    auto clus = clusterContainer->findCluster(key);
+    auto global = tGeometry->getGlobalPosition(key, clus);
+    global_vec.push_back(global);
+    nclusters++;
   }
 
   return nclusters;

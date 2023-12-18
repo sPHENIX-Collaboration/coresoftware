@@ -17,7 +17,8 @@ class FastJetAlgoSub : public JetAlgo
   Jet::ALGO get_algo() override { return _algo; }
   float get_par() override { return _par; }
 
-  std::vector<Jet*> get_jets(std::vector<Jet*> particles) override;
+  /* std::vector<Jet*> get_jets(std::vector<Jet*> particles) override; */
+  void cluster_and_fill(std::vector<Jet*>& part_in, JetContainer* jets_out) override;
 
  private:
   int _verbosity;

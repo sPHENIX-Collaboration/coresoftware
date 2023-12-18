@@ -3,6 +3,7 @@
 
 #include <jetbase/Jet.h>
 #include <jetbase/Jetv2.h>
+#include <jetbase/JetContainer.h>
 
 // fastjet includes
 #include <fastjet/ClusterSequence.hh>
@@ -50,7 +51,11 @@ void FastJetAlgoSub::identify(std::ostream& os)
   os << endl;
 }
 
-std::vector<Jet*> FastJetAlgoSub::get_jets(std::vector<Jet*> particles)
+/* std::vector<Jet*> FastJetAlgoSub::get_jets(std::vector<Jet*> particles) */
+/* { }; //  deprecated by iterating from JetMap; now is JetContainer and most code moved into */
+        //  into cluster_and_fill
+
+void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* jetcont) 
 {
   if (_verbosity > 1) cout << "FastJetAlgoSub::process_event -- entered" << endl;
 
@@ -99,7 +104,8 @@ std::vector<Jet*> FastJetAlgoSub::get_jets(std::vector<Jet*> particles)
   else if (_algo == Jet::CAMBRIDGE)
     jetdef = new fastjet::JetDefinition(fastjet::cambridge_algorithm, _par, fastjet::E_scheme, fastjet::Best);
   else
-    return std::vector<Jet*>();
+    return;
+
   fastjet::ClusterSequence jetFinder(pseudojets, *jetdef);
   std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
   delete jetdef;
@@ -108,7 +114,7 @@ std::vector<Jet*> FastJetAlgoSub::get_jets(std::vector<Jet*> particles)
   std::vector<Jet*> jets;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
   {
-    Jet* jet = new Jetv2();
+    auto jet = jetcont->add_jet();
 
     if (_verbosity > 5 && fastjets[ijet].perp() > 15)
     {
@@ -148,11 +154,8 @@ std::vector<Jet*> FastJetAlgoSub::get_jets(std::vector<Jet*> particles)
       std::cout << " FastJetAlgoSub : jet # " << ijet << " after correcting for proper constituent kinematics, pt / eta / phi = " << jet->get_pt() << " / " << jet->get_eta() << " / " << jet->get_phi();
       std::cout << ", px / py / pz / e = " << jet->get_px() << " / " << jet->get_py() << " / " << jet->get_pz() << " / " << jet->get_e() << std::endl;
     }
-
-    jets.push_back(jet);
   }
 
   if (_verbosity > 1) cout << "FastJetAlgoSub::process_event -- exited" << endl;
-
-  return jets;
+  return;
 }

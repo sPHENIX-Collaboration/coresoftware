@@ -102,6 +102,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	     std::cout << " final mvtx transform:" << std::endl << transform.matrix() << std::endl;
 	   }
 	 transformMap->addTransform(id,transform);
+	 transformMapTransient->addTransform(id,transform);
        }
      
      else if(trkrId == TrkrDefs::inttId) 
@@ -126,6 +127,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	   }
 
 	 transformMap->addTransform(id,transform);
+	 transformMapTransient->addTransform(id,transform);
        }
 
 
@@ -165,6 +167,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 		 std::cout << "transform matrix: " << std::endl <<  transform.matrix() << std::endl;
 	       }
 	     transformMap->addTransform(id,transform);
+	     transformMapTransient->addTransform(id,transform);
 	   }
        }
      else if(trkrId == TrkrDefs::micromegasId)
@@ -188,6 +191,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	  }
 
 	transformMap->addTransform(id,transform);
+	transformMapTransient->addTransform(id,transform);
       }
 
      else
@@ -363,6 +367,14 @@ void AlignmentTransformation::createAlignmentTransformContainer(PHCompositeNode*
     {
       transformMap = new alignmentTransformationContainer;
       auto node    = new PHDataNode<alignmentTransformationContainer>(transformMap, "alignmentTransformationContainer");
+      dstNode->addNode(node);
+    }
+
+  transformMapTransient = findNode::getClass<alignmentTransformationContainer>(topNode, "alignmentTransformationContainerTransient");
+  if(!transformMapTransient)
+    {
+      transformMapTransient = new alignmentTransformationContainer;
+      auto node    = new PHDataNode<alignmentTransformationContainer>(transformMapTransient, "alignmentTransformationContainerTransient");
       dstNode->addNode(node);
     }
 }

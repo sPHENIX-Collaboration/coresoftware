@@ -186,7 +186,22 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
     dstOut = nullptr;
     return 0;
   }
-  dstOut = new PHNodeIOManager(UsedOutFileName(), PHUpdate, PHRunTree);
+  PHAccessType access_type = PHUpdate;
+  if (!m_SaveDstNodeFlag)
+  {
+    access_type = PHWrite;
+  }
+
+  if (UsedOutFileName().empty())
+  {
+    std::filesystem::path p = OutFileName();
+    if (m_FileNameStem.empty())
+    {
+      m_FileNameStem = p.stem();
+    }
+    m_UsedOutFileName = OutFileName() + std::string("?reproducible=") + std::string(p.filename());
+  }
+  dstOut = new PHNodeIOManager(UsedOutFileName(), access_type, PHRunTree);
   Fun4AllServer *se = Fun4AllServer::instance();
   PHNodeIterator nodeiter(thisNode);
   if (saverunnodes.empty())

@@ -96,7 +96,7 @@ public:
 
   /** Make template waveforms for later fits */
   void  SetTemplateSize(const Int_t nptsx, const Int_t nptsy, const Double_t begt, const Double_t endt);
-  Int_t SetTemplate(const std::vector<Double_t>& shape, const std::vector<Double_t>& sherr);
+  Int_t SetTemplate(const std::vector<float>& shape, const std::vector<float>& sherr);
 
   //Double_t FitPulse();
   void     SetTimeOffset(const Double_t o) { f_time_offset = o; }
@@ -161,8 +161,8 @@ private:
   //Double_t template_max_good_amplitude;  //! for template, in original units of waveform data
   //Double_t template_min_xrange;          //! for template, in original units of waveform data
   //Double_t template_max_xrange;          //! for template, in original units of waveform data
-  std::vector<Double_t> template_y;
-  std::vector<Double_t> template_yrms;
+  std::vector<float> template_y;
+  std::vector<float> template_yrms;
   TF1     *template_fcn;
   Double_t fit_min_time;                 //! min time for fit, in original units of waveform data
   Double_t fit_max_time;                 //! max time for fit, in original units of waveform data

@@ -494,7 +494,5 @@ void MicromegasMapping::construct_channel_mapping()
     m_fee_to_strip_mapping_phi[channel_id] = strip_geant;
   }
 
-//   print_mapping( "m_fee_to_strip_mapping_z", m_fee_to_strip_mapping_z );
-//   print_mapping( "m_fee_to_strip_mapping_phi", m_fee_to_strip_mapping_phi );
 
 }

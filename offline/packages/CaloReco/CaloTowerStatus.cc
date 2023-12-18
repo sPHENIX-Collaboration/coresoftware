@@ -152,7 +152,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     }
     if (m_doTime)
     {
-      fraction_badChi2 = m_cdbttree_time->GetFloatValue(key, m_fieldname_time);
+      mean_time = m_cdbttree_time->GetFloatValue(key, m_fieldname_time);
     }
     float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
     float time = m_raw_towers->get_tower_at_channel(channel)->get_time_float();
