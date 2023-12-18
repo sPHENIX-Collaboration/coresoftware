@@ -40,6 +40,8 @@ class TrackResiduals : public SubsysReco
   void alignment(bool align) { m_doAlignment = align; }
   void alignmentmapName(const std::string &name) { m_alignmentMapName = name; }
   void trackmapName(const std::string &name) { m_trackMapName = name; }
+  void clusterTree() { m_doClusters = true; }
+  void hitTree() { m_doHits = true; }
 
  private:
   void clearClusterStateVectors();
@@ -57,6 +59,8 @@ class TrackResiduals : public SubsysReco
   TTree *m_tree = nullptr;
   TTree *m_clustree = nullptr;
   TTree *m_hittree = nullptr;
+  bool m_doClusters = false;
+  bool m_doHits = false;
 
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";

@@ -206,8 +206,15 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     std::cout << "Track map size is " << trackmap->size() << std::endl;
   }
 
-  fillHitTree(hitmap, geometry, tpcGeom, mvtxGeom, inttGeom, mmGeom);
-  fillClusterTree(clustermap, geometry);
+  if (m_doHits)
+  {
+    fillHitTree(hitmap, geometry, tpcGeom, mvtxGeom, inttGeom, mmGeom);
+  }
+
+  if (m_doClusters)
+  {
+    fillClusterTree(clustermap, geometry);
+  }
 
   for (const auto& [key, track] : *trackmap)
   {
@@ -437,8 +444,14 @@ int TrackResiduals::End(PHCompositeNode*)
 {
   m_outfile->cd();
   m_tree->Write();
-  m_clustree->Write();
-  m_hittree->Write();
+  if (m_doClusters)
+  {
+    m_clustree->Write();
+  }
+  if (m_doHits)
+  {
+    m_hittree->Write();
+  }
   m_outfile->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -708,9 +721,43 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   if (!state)
   {
     //! skip filling the state information if a state is not there
-    //! or we just ran the seeding
+    //! or we just ran the seeding. Fill with Nans to maintain the
+    //! 1-to-1 mapping between cluster/state vectors
+    m_idealsurfalpha.push_back(NAN);
+    m_idealsurfbeta.push_back(NAN);
+    m_idealsurfgamma.push_back(NAN);
+    m_missurfalpha.push_back(NAN);
+    m_missurfbeta.push_back(NAN);
+    m_missurfgamma.push_back(NAN);
+    m_idealsurfcenterx.push_back(NAN);
+    m_idealsurfcentery.push_back(NAN);
+    m_idealsurfcenterz.push_back(NAN);
+    m_idealsurfnormx.push_back(NAN);
+    m_idealsurfnormy.push_back(NAN);
+    m_idealsurfnormz.push_back(NAN);
+    m_missurfcenterx.push_back(NAN);
+    m_missurfcentery.push_back(NAN);
+    m_missurfcenterz.push_back(NAN);
+    m_missurfnormx.push_back(NAN);
+    m_missurfnormy.push_back(NAN);
+    m_missurfnormz.push_back(NAN);
+    m_clusgxideal.push_back(NAN);
+    m_clusgyideal.push_back(NAN);
+    m_clusgzideal.push_back(NAN);
+    m_statelx.push_back(NAN);
+    m_statelz.push_back(NAN);
+    m_stateelx.push_back(NAN);
+    m_stateelz.push_back(NAN);
+    m_stategx.push_back(NAN);
+    m_stategy.push_back(NAN);
+    m_stategz.push_back(NAN);
+    m_statepx.push_back(NAN);
+    m_statepy.push_back(NAN);
+    m_statepz.push_back(NAN);
+    m_statepl.push_back(NAN);
     return;
   }
+
   auto surf = geometry->maps().getSurface(ckey, cluster);
   Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
   Acts::Vector2 stateloc;
