@@ -614,12 +614,20 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         m_hitpad = TpcDefs::getPad(hitkey);
         m_hittbin = TpcDefs::getTBin(hitkey);
 
-        auto local_GeoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
-        auto phi = local_GeoLayer->get_phicenter(m_hitpad);
-        auto radius = local_GeoLayer->get_radius();
+        auto geoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
+        auto phi = geoLayer->get_phicenter(m_hitpad);
+        auto radius = geoLayer->get_radius();
+        float AdcClockPeriod = 53.0;  // ns (?)
+        double zdriftlength = m_hittbin * geometry->get_drift_velocity() * AdcClockPeriod;
+        unsigned short NTBins = (unsigned short) geoLayer->get_zbins();
+        double tdriftmax = AdcClockPeriod * NTBins / 2.0;
+        m_hitgz = (tdriftmax * geometry->get_drift_velocity()) - zdriftlength;
+        if (m_side == 0)
+        {
+          m_hitgz *= -1;
+        }
         m_hitgx = radius * std::cos(phi);
         m_hitgy = radius * std::sin(phi);
-        m_hitgz = local_GeoLayer->get_zcenter(m_hittbin);
         break;
       }
       case TrkrDefs::TrkrId::micromegasId:
