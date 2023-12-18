@@ -9,10 +9,16 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <intt/CylinderGeomIntt.h>
+#include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
-
+#include <mvtx/CylinderGeom_Mvtx.h>
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
@@ -173,7 +179,11 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   auto mvtxGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   auto inttGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
-
+  auto mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
+  if (!mmGeom)
+  {
+    mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
+  }
   if (!trackmap or !clustermap or !geometry or !hitmap)
   {
     std::cout << "Missing node, can't continue" << std::endl;
@@ -195,7 +205,8 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   {
     std::cout << "Track map size is " << trackmap->size() << std::endl;
   }
-  fillHitTree(hitmap, tpcGeom,mvtxGeom);
+
+  fillHitTree(hitmap, geometry, tpcGeom, mvtxGeom, inttGeom, mmGeom);
   fillClusterTree(clustermap, geometry);
 
   for (const auto& [key, track] : *trackmap)
@@ -432,10 +443,20 @@ int TrackResiduals::End(PHCompositeNode*)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap, 
-PHG4TpcCylinderGeomContainer* tpcGeom)
+void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
+                                 ActsGeometry* geometry,
+                                 PHG4TpcCylinderGeomContainer* tpcGeom,
+                                 PHG4CylinderGeomContainer* mvtxGeom,
+                                 PHG4CylinderGeomContainer* inttGeom,
+                                 PHG4CylinderGeomContainer* mmGeom)
 {
-  TrkrHitSetContainer::ConstRange all_hitsets = hitsetmap->getHitSets();
+  if (!tpcGeom or !mvtxGeom or !inttGeom or !mmGeom)
+  {
+    std::cout << PHWHERE << "missing hit map, can't continue with hit tree"
+              << std::endl;
+    return;
+  }
+  TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
   for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
        hitsetiter != all_hitsets.second;
        ++hitsetiter)
@@ -444,14 +465,15 @@ PHG4TpcCylinderGeomContainer* tpcGeom)
     TrkrHitSet* hitset = hitsetiter->second;
 
     m_hitlayer = TrkrDefs::getLayer(m_hitsetkey);
-    TrkrDefs::TrkrId det = TrkrDefs::getTrkrId(m_hitsetkey);
+    auto det = TrkrDefs::getTrkrId(m_hitsetkey);
     //! Fill relevant geom info that is specific to subsystem
     switch (det)
     {
     case TrkrDefs::TrkrId::mvtxId:
-      m_staveid = MvtxDefs::getStaveId(key);
-      m_chipid = MvtxDefs::getChipId(key);
-      m_strobeid = MvtxDefs::getStrobeId(key);
+    {
+      m_staveid = MvtxDefs::getStaveId(m_hitsetkey);
+      m_chipid = MvtxDefs::getChipId(m_hitsetkey);
+      m_strobeid = MvtxDefs::getStrobeId(m_hitsetkey);
 
       m_ladderzid = std::numeric_limits<int>::quiet_NaN();
       m_ladderphiid = std::numeric_limits<int>::quiet_NaN();
@@ -461,10 +483,12 @@ PHG4TpcCylinderGeomContainer* tpcGeom)
       m_segtype = std::numeric_limits<int>::quiet_NaN();
       m_tileid = std::numeric_limits<int>::quiet_NaN();
       break;
+    }
     case TrkrDefs::TrkrId::inttId:
-      m_ladderzid = InttDefs::getLadderZId(key);
-      m_ladderphiid = InttDefs::getLadderPhiId(key);
-      m_timebucket = InttDefs::getTimeBucketId(key);
+    {
+      m_ladderzid = InttDefs::getLadderZId(m_hitsetkey);
+      m_ladderphiid = InttDefs::getLadderPhiId(m_hitsetkey);
+      m_timebucket = InttDefs::getTimeBucketId(m_hitsetkey);
 
       m_staveid = std::numeric_limits<int>::quiet_NaN();
       m_chipid = std::numeric_limits<int>::quiet_NaN();
@@ -474,9 +498,11 @@ PHG4TpcCylinderGeomContainer* tpcGeom)
       m_segtype = std::numeric_limits<int>::quiet_NaN();
       m_tileid = std::numeric_limits<int>::quiet_NaN();
       break;
+    }
     case TrkrDefs::TrkrId::tpcId:
-      m_clussector = TpcDefs::getSectorId(key);
-      m_side = TpcDefs::getSide(key);
+    {
+      m_clussector = TpcDefs::getSectorId(m_hitsetkey);
+      m_side = TpcDefs::getSide(m_hitsetkey);
 
       m_staveid = std::numeric_limits<int>::quiet_NaN();
       m_chipid = std::numeric_limits<int>::quiet_NaN();
@@ -487,18 +513,12 @@ PHG4TpcCylinderGeomContainer* tpcGeom)
       m_segtype = std::numeric_limits<int>::quiet_NaN();
       m_tileid = std::numeric_limits<int>::quiet_NaN();
 
-      PHG4TpcCylinderGeom* local_GeoLayer = local_geom_container->GetLayerCellGeom(m_hitlayer);
-      auto phibin = TpcDefs::getPad(hit_key);
-      auto zbin = TpcDefs::getTBin(hit_key);
-      auto phi = local_GeoLayer->get_phicenter(phibin);
-      auto radius = local_GeoLayer->get_radius();
-      m_hitgx = radius * std::cos(phi);
-      m_hitgy = radius * std::sin(phi);
-      m_hitgz = local_GeoLayer->get_zcenter(zbin);
       break;
+    }
     case TrkrDefs::TrkrId::micromegasId:
-      m_segtype = (int) MicromegasDefs::getSegmentationType(key);
-      m_tileid = MicromegasDefs::getTileId(key);
+    {
+      m_segtype = (int) MicromegasDefs::getSegmentationType(m_hitsetkey);
+      m_tileid = MicromegasDefs::getTileId(m_hitsetkey);
 
       m_staveid = std::numeric_limits<int>::quiet_NaN();
       m_chipid = std::numeric_limits<int>::quiet_NaN();
@@ -509,10 +529,13 @@ PHG4TpcCylinderGeomContainer* tpcGeom)
       m_clussector = std::numeric_limits<int>::quiet_NaN();
       m_side = std::numeric_limits<int>::quiet_NaN();
       break;
+    }
     default:
       break;
     }
-    TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+
+    // Got all stave/ladder/sector/tile info, now get the actual hit info
+    auto hitrangei = hitset->getHits();
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
          hitr != hitrangei.second;
          ++hitr)
@@ -521,46 +544,89 @@ PHG4TpcCylinderGeomContainer* tpcGeom)
       auto hit = hitr->second;
       m_adc = hit->getAdc();
 
-      switch(det)
+      switch (det)
       {
-        case TrkrDefs::TrkrId::mvtxId:
-          m_row = MvtxDefs::getRow(hitkey);
-          m_col = MvtxDefs::getCol(hitkey);
-          m_segtype = std::numeric_limits<int>::quiet_NaN();
-          m_tileid = std::numeric_limits<int>::quiet_NaN();
-          m_strip = std::numeric_limits<int>::quiet_NaN();
-          m_hitpad = std::numeric_limits<int>::quiet_NaN();
-          m_hittbin = std::numeric_limits<int>::quiet_NaN();
-          break;
-        case TrkrDefs::TrkrId::inttId:
-          m_row = InttDefs::getRow(hitkey);
-          m_col = InttDefs::getCol(hitkey);
-          m_segtype = std::numeric_limits<int>::quiet_NaN();
-          m_tileid = std::numeric_limits<int>::quiet_NaN();
-          m_strip = std::numeric_limits<int>::quiet_NaN();
-          m_hitpad = std::numeric_limits<int>::quiet_NaN();
-          m_hittbin = std::numeric_limits<int>::quiet_NaN();
-          break;
-        case TrkrDefs::TrkrId::tpcId:
-          m_row = std::numeric_limits<int>::quiet_NaN();
-          m_col = std::numeric_limits<int>::quiet_NaN();
-          m_segtype = std::numeric_limits<int>::quiet_NaN();
-          m_tileid = std::numeric_limits<int>::quiet_NaN();
-          m_strip = std::numeric_limits<int>::quiet_NaN();
-          m_hitpad = TpcDefs::getPad(hitkey);
-          m_hittbin = TpcDefs::getTBin(hitkey);
-          break;
-        case TrkrDefs::TrkrId::micromegasId:
-          m_row = std::numeric_limits<int>::quiet_NaN();
-          m_col = std::numeric_limits<int>::quiet_NaN();
-          m_segtype = std::numeric_limits<int>::quiet_NaN();
-          m_tileid = std::numeric_limits<int>::quiet_NaN();
-          m_strip = MicromegasDefs::getStrip(hitkey);
-          m_hitpad = std::numeric_limits<int>::quiet_NaN();
-          m_hittbin = std::numeric_limits<int>::quiet_NaN();
-        default:
-          break;
-        }
+      case TrkrDefs::TrkrId::mvtxId:
+      {
+        m_row = MvtxDefs::getRow(hitkey);
+        m_col = MvtxDefs::getCol(hitkey);
+        auto layergeom = dynamic_cast<CylinderGeom_Mvtx*>(mvtxGeom->GetLayerGeom(m_hitlayer));
+        auto local_coords = layergeom->get_local_coords_from_pixel(m_row, m_col);
+        TVector2 local;
+        local.SetX(local_coords.X());
+        local.SetY(local_coords.Z());
+        auto surf = geometry->maps().getSiliconSurface(m_hitsetkey);
+        auto glob = layergeom->get_world_from_local_coords(surf, geometry, local);
+        m_hitgx = glob.X();
+        m_hitgy = glob.Y();
+        m_hitgz = glob.Z();
+
+        m_segtype = std::numeric_limits<int>::quiet_NaN();
+        m_tileid = std::numeric_limits<int>::quiet_NaN();
+        m_strip = std::numeric_limits<int>::quiet_NaN();
+        m_hitpad = std::numeric_limits<int>::quiet_NaN();
+        m_hittbin = std::numeric_limits<int>::quiet_NaN();
+        break;
+      }
+      case TrkrDefs::TrkrId::inttId:
+      {
+        m_row = InttDefs::getRow(hitkey);
+        m_col = InttDefs::getCol(hitkey);
+        auto geom = dynamic_cast<CylinderGeomIntt*>(inttGeom->GetLayerGeom(m_hitlayer));
+        double local_hit_loc[3] = {0, 0, 0};
+        geom->find_strip_center_localcoords(m_ladderzid, m_row, m_col, local_hit_loc);
+        auto surf = geometry->maps().getSiliconSurface(m_hitsetkey);
+        TVector2 local;
+        local.SetX(local_hit_loc[1]);
+        local.SetY(local_hit_loc[2]);
+        auto glob = geom->get_world_from_local_coords(surf, geometry, local);
+        m_hitgx = glob.X();
+        m_hitgy = glob.Y();
+        m_hitgz = glob.Z();
+        m_segtype = std::numeric_limits<int>::quiet_NaN();
+        m_tileid = std::numeric_limits<int>::quiet_NaN();
+        m_strip = std::numeric_limits<int>::quiet_NaN();
+        m_hitpad = std::numeric_limits<int>::quiet_NaN();
+        m_hittbin = std::numeric_limits<int>::quiet_NaN();
+        break;
+      }
+      case TrkrDefs::TrkrId::tpcId:
+      {
+        m_row = std::numeric_limits<int>::quiet_NaN();
+        m_col = std::numeric_limits<int>::quiet_NaN();
+        m_segtype = std::numeric_limits<int>::quiet_NaN();
+        m_tileid = std::numeric_limits<int>::quiet_NaN();
+        m_strip = std::numeric_limits<int>::quiet_NaN();
+
+        m_hitpad = TpcDefs::getPad(hitkey);
+        m_hittbin = TpcDefs::getTBin(hitkey);
+
+        auto local_GeoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
+        auto phi = local_GeoLayer->get_phicenter(m_hitpad);
+        auto radius = local_GeoLayer->get_radius();
+        m_hitgx = radius * std::cos(phi);
+        m_hitgy = radius * std::sin(phi);
+        m_hitgz = local_GeoLayer->get_zcenter(m_hittbin);
+        break;
+      }
+      case TrkrDefs::TrkrId::micromegasId:
+      {
+        const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(mmGeom->GetLayerGeom(m_hitlayer));
+        m_strip = MicromegasDefs::getStrip(hitkey);
+        const auto global_coord = layergeom->get_world_coordinates(m_tileid, geometry, m_strip);
+        m_hitgx = global_coord.X();
+        m_hitgy = global_coord.Y();
+        m_hitgz = global_coord.Z();
+        m_row = std::numeric_limits<int>::quiet_NaN();
+        m_col = std::numeric_limits<int>::quiet_NaN();
+        m_segtype = std::numeric_limits<int>::quiet_NaN();
+        m_tileid = std::numeric_limits<int>::quiet_NaN();
+        m_hitpad = std::numeric_limits<int>::quiet_NaN();
+        m_hittbin = std::numeric_limits<int>::quiet_NaN();
+      }
+      default:
+        break;
+      }
 
       m_hittree->Fill();
     }
@@ -762,7 +828,7 @@ void TrackResiduals::createBranches()
   m_hittree->Branch("segtype", &m_segtype, "m_segtype/I");
   m_hittree->Branch("tile", &m_tileid, "m_tileid/I");
   m_hittree->Branch("strip", &m_strip, "m_strip/I");
-  m_hittree->Branch("adc", m_adc, "m_adc/F");
+  m_hittree->Branch("adc", &m_adc, "m_adc/F");
 
   m_clustree = new TTree("clustertree", "A tree with all clusters");
   m_clustree->Branch("event", &m_event, "m_event/I");
