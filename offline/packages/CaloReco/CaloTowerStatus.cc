@@ -162,7 +162,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
     unsigned int key = m_raw_towers->encode_key(channel);
-    m_raw_towers->get_tower_at_channel(channel)->set_status(0);
+    m_raw_towers->get_tower_at_channel(channel)->set_status(0); // resetting status
 
     if (m_doHotChi2)
     {
