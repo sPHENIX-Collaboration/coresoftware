@@ -491,7 +491,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
       m_ladderzid = std::numeric_limits<int>::quiet_NaN();
       m_ladderphiid = std::numeric_limits<int>::quiet_NaN();
       m_timebucket = std::numeric_limits<int>::quiet_NaN();
-      m_clussector = std::numeric_limits<int>::quiet_NaN();
+      m_sector = std::numeric_limits<int>::quiet_NaN();
       m_side = std::numeric_limits<int>::quiet_NaN();
       m_segtype = std::numeric_limits<int>::quiet_NaN();
       m_tileid = std::numeric_limits<int>::quiet_NaN();
@@ -506,7 +506,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
       m_staveid = std::numeric_limits<int>::quiet_NaN();
       m_chipid = std::numeric_limits<int>::quiet_NaN();
       m_strobeid = std::numeric_limits<int>::quiet_NaN();
-      m_clussector = std::numeric_limits<int>::quiet_NaN();
+      m_sector = std::numeric_limits<int>::quiet_NaN();
       m_side = std::numeric_limits<int>::quiet_NaN();
       m_segtype = std::numeric_limits<int>::quiet_NaN();
       m_tileid = std::numeric_limits<int>::quiet_NaN();
@@ -514,7 +514,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
     }
     case TrkrDefs::TrkrId::tpcId:
     {
-      m_clussector = TpcDefs::getSectorId(m_hitsetkey);
+      m_sector = TpcDefs::getSectorId(m_hitsetkey);
       m_side = TpcDefs::getSide(m_hitsetkey);
 
       m_staveid = std::numeric_limits<int>::quiet_NaN();
@@ -539,7 +539,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
       m_ladderzid = std::numeric_limits<int>::quiet_NaN();
       m_ladderphiid = std::numeric_limits<int>::quiet_NaN();
       m_timebucket = std::numeric_limits<int>::quiet_NaN();
-      m_clussector = std::numeric_limits<int>::quiet_NaN();
+      m_sector = std::numeric_limits<int>::quiet_NaN();
       m_side = std::numeric_limits<int>::quiet_NaN();
       break;
     }
