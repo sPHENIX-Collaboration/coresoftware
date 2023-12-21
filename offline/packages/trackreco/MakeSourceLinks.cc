@@ -219,3 +219,22 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 
   return sourcelinks;
 }
+
+void MakeSourceLinks::resetTransientTransformMap(
+						  alignmentTransformationContainer* transformMapTransient,
+						  std::set< Acts::GeometryIdentifier>& transient_id_set,
+						  ActsGeometry* tGeometry )
+{
+  // loop over modifiedTransformSet and replace transient elements modified for the last track with the default transforms
+  for(auto it = transient_id_set.begin(); it != transient_id_set.end(); ++it)
+    {
+      Acts::GeometryIdentifier id = *it;
+      auto ctxt = tGeometry->geometry().getGeoContext();
+      alignmentTransformationContainer* transformMap = ctxt.get<alignmentTransformationContainer*>();
+      auto transform = transformMap->getTransform(id);
+      // auto transient_transform = m_alignmentTransformationMapTransient->getTransform(id);
+      //std::cout << "    transient transform for id " << id << " is " << std::endl << transient_transform.matrix() << std::endl;
+      transformMapTransient->replaceTransform(id, transform);
+    }
+  transient_id_set.clear();
+   }

@@ -13,8 +13,6 @@
 /// Acts includes to create all necessary definitions
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
-#include <Acts/Utilities/Logger.hpp>
-#include <Acts/EventData/VectorMultiTrajectory.hpp>
 
 #include <trackbase_historic/SvtxTrack.h>
 
@@ -58,7 +56,12 @@ class MakeSourceLinks
 			       alignmentTransformationContainer* transformMapTransient,
 			       std::set< Acts::GeometryIdentifier> transient_id_set,
 			       short int crossing);
-  
+
+  void resetTransientTransformMap(
+						   alignmentTransformationContainer* transformMapTransient,
+						   std::set< Acts::GeometryIdentifier>& transient_id_set,
+						   ActsGeometry* tGeometry );
+
  private:
   int m_verbosity = 0;
   bool m_pp_mode = false;  
