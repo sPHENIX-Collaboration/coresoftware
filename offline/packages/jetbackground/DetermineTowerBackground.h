@@ -12,6 +12,7 @@
 // system includes
 #include <string>
 #include <vector>
+#include <jetbase/Jet.h>
 
 // forward declarations
 class PHCompositeNode;
@@ -78,6 +79,9 @@ class DetermineTowerBackground : public SubsysReco
 
   std::vector<float> _seed_eta;
   std::vector<float> _seed_phi;
+
+  Jet::PROPERTY _index_SeedD;
+  Jet::PROPERTY _index_SeedItr;
 
   bool m_use_towerinfo = false;
 

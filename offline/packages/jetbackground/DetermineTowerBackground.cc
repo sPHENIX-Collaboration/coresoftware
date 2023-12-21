@@ -125,6 +125,8 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     if (Verbosity() > 1)
       std::cout << "DetermineTowerBackground::process_event: examining possible seeds (1st iteration) ... " << std::endl;
 
+    _index_SeedD = reco2_jets->property_index(Jet::PROPERTY::prop_SeedD);
+    _index_SeedItr = reco2_jets->property_index(Jet::PROPERTY::prop_SeedItr);
     for (auto this_jet : *reco2_jets) {
 
       float this_pt = this_jet->get_pt();
@@ -134,8 +136,8 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       if (this_jet->get_pt() < 5)
       {
         // mark that this jet was not selected as a seed (and did not have D determined)
-        this_jet->set_property(Jet::PROPERTY::prop_SeedD, 0);
-        this_jet->set_property(Jet::PROPERTY::prop_SeedItr, 0);
+        this_jet->set_property(_index_SeedD, 0);
+        this_jet->set_property(_index_SeedItr, 0);
 
         continue;
       }
@@ -260,7 +262,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       float seed_D = constituent_max_ET / mean_constituent_ET;
 
       // store D value as property for offline analysis / debugging
-      this_jet->set_property(Jet::PROPERTY::prop_SeedD, seed_D);
+      this_jet->set_property(_index_SeedD, seed_D);
 
       if (Verbosity() > 3)
         std::cout << "DetermineTowerBackground::process_event: --> jet has < ET > = " << constituent_sum_ET << " / " << nconstituents << " = " << mean_constituent_ET << ", max-ET = " << constituent_max_ET << ", and D = " << seed_D << std::endl;
@@ -271,7 +273,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         _seed_phi.push_back(this_phi);
 
         // set first iteration seed property
-        this_jet->set_property(Jet::PROPERTY::prop_SeedItr, 1.0);
+        this_jet->set_property(_index_SeedItr, 1.0);
 
         if (Verbosity() > 1)
           std::cout << "DetermineTowerBackground::process_event: --> adding seed at eta / phi = " << this_eta << " / " << this_phi << " ( R=0.2 jet with pt = " << this_pt << ", D = " << seed_D << " ) " << std::endl;
@@ -279,13 +281,14 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       else
       {
         // mark that this jet was considered but not used as a seed
-        this_jet->set_property(Jet::PROPERTY::prop_SeedItr, 0.0);
+        this_jet->set_property(_index_SeedItr, 0.0);
 
         if (Verbosity() > 3)
           std::cout << "DetermineTowerBackground::process_event: --> discarding potential seed at eta / phi = " << this_eta << " / " << this_phi << " ( R=0.2 jet with pt = " << this_pt << ", D = " << seed_D << " ) " << std::endl;
       }
     }
   }
+
 
   // seed type 1 is the set of those jets above which, when their
   // kinematics are updated for the first background subtraction, have
@@ -304,6 +307,8 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     if (Verbosity() > 1)
       std::cout << "DetermineTowerBackground::process_event: examining possible seeds (2nd iteration) ... " << std::endl;
 
+    _index_SeedD = reco2_jets->property_index(Jet::PROPERTY::prop_SeedD);
+    _index_SeedItr = reco2_jets->property_index(Jet::PROPERTY::prop_SeedItr);
     for (auto this_jet : *reco2_jets) 
     {
       float this_pt = this_jet->get_pt();
@@ -313,7 +318,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       if (this_jet->get_pt() < _seed_jet_pt)
       {
         // mark that this jet was considered but not used as a seed
-        this_jet->set_property(Jet::PROPERTY::prop_SeedItr, 0.0);
+        this_jet->set_property(_index_SeedItr, 0.0);
 
         continue;
       }
@@ -322,7 +327,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       _seed_phi.push_back(this_phi);
 
       // set second iteration seed property
-      this_jet->set_property(Jet::PROPERTY::prop_SeedItr, 2.0);
+      this_jet->set_property(_index_SeedItr, 2.0);
 
       if (Verbosity() > 1)
         std::cout << "DetermineTowerBackground::process_event: --> adding seed at eta / phi = " << this_eta << " / " << this_phi << " ( R=0.2 jet with pt = " << this_pt << " ) " << std::endl;

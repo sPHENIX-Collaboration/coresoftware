@@ -1,7 +1,7 @@
 #include "MbdReco.h"
 #include "MbdEvent.h"
 #include "MbdPmtContainerV1.h"
-#include "MbdOutV1.h"
+#include "MbdOutV2.h"
 #include "MbdGeomV1.h"
 
 
@@ -56,9 +56,11 @@ int MbdReco::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  int ret = getNodes(topNode);
+
+  m_mbdevent->SetSim( _simflag );
   m_mbdevent->InitRun();
 
-  int ret = getNodes(topNode);
   return ret;
 }
 
@@ -147,7 +149,7 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
   m_mbdout = findNode::getClass<MbdOut>(bbcNode, "MbdOut");
   if (!m_mbdout)
   {
-    m_mbdout = new MbdOutV1();
+    m_mbdout = new MbdOutV2();
     PHIODataNode<PHObject> *MbdOutNode = new PHIODataNode<PHObject>(m_mbdout, "MbdOut", "PHObject");
     bbcNode->addNode(MbdOutNode);
   }
@@ -187,6 +189,8 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
 
   if ( m_event==nullptr )
   {
+    _simflag = 1;
+
     static int counter = 0;
     if ( counter < 1 )
     {

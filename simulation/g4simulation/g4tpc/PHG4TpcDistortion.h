@@ -45,6 +45,9 @@ class PHG4TpcDistortion
 
   //! z distortion for a given cylindrical truth location of the primary ionization
   double get_z_distortion(double r, double phi, double z) const;
+  
+  //The ReachesReadout serves as a fourth axis in the distortion histogram
+  double get_reaches_readout(double r, double phi, double z) const;
 
   //! Gets the verbosity of this module.
   int Verbosity() const

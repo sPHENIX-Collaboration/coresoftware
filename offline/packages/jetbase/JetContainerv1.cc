@@ -140,17 +140,8 @@ size_t JetContainerv1::add_property(std::set<Jet::PROPERTY> props)
 // get the index for a given property
 Jet::PROPERTY JetContainerv1::property_index(Jet::PROPERTY prop)
 {
-  if (has_property(prop))
-  {
-    return m_pindex[prop];
-  }
-  else
-  {
-     std::cout << "JetContainerv1::poperty_index - ERROR - property "
-            << prop << "(" << str_Jet_PROPERTY(prop) << ") not found." << std::endl;
-    std::cout << " Returning 1000" << std::endl;
-    return static_cast<Jet::PROPERTY>(1000);
-  }
+  if (!has_property(prop)) add_property(prop);
+  return m_pindex[prop];
 }
 
 Jet::IterJetTCA JetContainerv1::begin()
