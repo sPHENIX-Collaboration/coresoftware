@@ -370,7 +370,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       RawTower *tower = itr->second;
       //      std::cout << "  Tower e = " << tower->get_energy()
       //           << " (" << _min_tower_e << ")" << std::endl;
-      if (tower->get_energy() > _min_tower_e)
+      if (IsAcceptableTower(tower))
       {
         // std::cout << "(" << tower->get_column() << "," << tower->get_row()
         //      << ")  (" << tower->get_binphi() << "," << tower->get_bineta()
@@ -407,7 +407,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
 
       //      std::cout << "  Tower e = " << tower->get_energy()
       //           << " (" << _min_tower_e << ")" << std::endl;
-      if (tower_info->get_energy() > _min_tower_e)
+      if (IsAcceptableTower(tower_info))
       {
         unsigned int towerkey = calib_towerinfos->encode_key(channel);
         int ieta = calib_towerinfos->getTowerEtaBin(towerkey);
@@ -639,4 +639,45 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
 
   PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   cemcNode->addNode(clusterNode);
+}
+
+bool RawClusterBuilderTemplate::IsAcceptableTower(TowerInfo *tower)
+{
+  if(tower->get_energy() < _min_tower_e)
+  {
+    return false;
+  }
+
+  if(m_do_tower_selection)
+  {
+    if(tower->get_isBadTime())
+    {
+      return false;
+    }
+
+    if(tower->get_isHot())
+    {
+      return false;
+    }
+
+    if(tower->get_isBadChi2())
+    {
+      return false;
+    }
+
+    if(tower->get_isNotInstr())
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool RawClusterBuilderTemplate::IsAcceptableTower(RawTower *tower)
+{
+  if(tower->get_energy() < _min_tower_e)
+  {
+    return false;
+  }
+  return true;
 }

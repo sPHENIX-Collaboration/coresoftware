@@ -9,6 +9,8 @@ class PHCompositeNode;
 class RawClusterContainer;
 class RawTowerGeomContainer;
 class BEmcRec;
+class TowerInfo;
+class RawTower;
 
 class RawClusterBuilderTemplate : public SubsysReco
 {
@@ -37,6 +39,11 @@ class RawClusterBuilderTemplate : public SubsysReco
     m_UseTowerInfo = useMode;
   }
 
+  void set_ApplyTowerSelection(bool b)
+  {
+    m_do_tower_selection = b;
+  }
+
   void set_UseAltZVertex(const int useAltZMode)
   {  // 0 use global vtx, 1 only bbcout bbczvtx , 2 use NO zvtx[set to 0]
     m_UseAltZVertex = useAltZMode;
@@ -57,6 +64,8 @@ class RawClusterBuilderTemplate : public SubsysReco
  private:
   void CreateNodes(PHCompositeNode* topNode);
   bool Cell2Abs(RawTowerGeomContainer* towergeom, float phiC, float etaC, float& phi, float& eta);
+  bool IsAcceptableTower(TowerInfo *tower);
+  bool IsAcceptableTower(RawTower *tower);
 
   RawClusterContainer* _clusters = nullptr;
   //  BEmcProfile *_emcprof;
@@ -80,6 +89,8 @@ class RawClusterBuilderTemplate : public SubsysReco
   float fProbNoiseParam = 0.04;
 
   int m_UseTowerInfo = 0;  // 0 only old tower, 1 only new (TowerInfo based),
+
+  bool m_do_tower_selection = true;
 
   std::string m_towerInfo_nodename;
 
