@@ -56,11 +56,14 @@ class CaloTowerStatus : public SubsysReco
 
  private:
   TowerInfoContainer *m_raw_towers{nullptr};
+
   CDBTTree *m_cdbttree_chi2{nullptr};
   CDBTTree *m_cdbttree_time{nullptr};
+  CDBTTree *m_cdbttree_hotMap{nullptr};
 
-  bool m_doHot{true};
+  bool m_doHotChi2{true};
   bool m_doTime{true};
+  bool m_doHotMap{true};
 
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
 
@@ -69,6 +72,8 @@ class CaloTowerStatus : public SubsysReco
   std::string m_calibName_time;
   std::string m_fieldname_chi2;
   std::string m_calibName_chi2;
+  std::string m_fieldname_hotMap;
+  std::string m_calibName_hotMap;
   std::string m_inputNodePrefix{"TOWERS_"};
 
   float badChi2_treshold = 1e4;
