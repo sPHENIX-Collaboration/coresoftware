@@ -1,11 +1,13 @@
 #include "CentralityReco.h"
 
-#include "CentralityInfov2.h"
+#include "CentralityInfov1.h"
 
-#include <mbd/MbdDefs.h>
-#include <mbd/MbdOutV1.h>
+#include <mbd/MbdOut.h>
 
-#include <fun4all/Fun4AllHistoManager.h>
+#include <ffamodules/CDBInterface.h>
+
+#include <cdbobjects/CDBTTree.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -13,121 +15,96 @@
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
-#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
-
-#include <TF1.h>
-#include <TFile.h>
-#include <TH2.h>
-#include <TNtuple.h>
-#include <TSystem.h>
-
-#include <cassert>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
-
-#include <ffamodules/CDBInterface.h>
-#include <cdbobjects/CDBTTree.h>
-
 #include <phool/phool.h>
-#include <phool/recoConsts.h>
+
+#include <filesystem>
+#include <iostream>
+#include <string>
 
 CentralityReco::CentralityReco(const std::string &name)
   : SubsysReco(name)
 {
-  _rc = recoConsts::instance();
-  _cdb = CDBInterface::instance();
-}
-
-CentralityReco::~CentralityReco()
-{
-
-}
-
-int CentralityReco::Init(PHCompositeNode * /*unused*/)
-{
-
-  _cdb = CDBInterface::instance();
-
-  std::string centdiv_url = _cdb->getUrl("Centrality");
-
-  if (Download_centralityDivisions(centdiv_url)) return Fun4AllReturnCodes::ABORTRUN;
-
-  std::string centscale_url = _cdb->getUrl("CentralityScale");
-
-  if (Download_centralityScale(centscale_url)) return Fun4AllReturnCodes::ABORTRUN;
-
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int CentralityReco::InitRun(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 1)
+  CDBInterface *_cdb = CDBInterface::instance();
+
+  std::string centdiv_url = _cdb->getUrl("Centrality");
+
+  if (Download_centralityDivisions(centdiv_url))
   {
-    std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
   }
+
+  std::string centscale_url = _cdb->getUrl("CentralityScale");
+
+  if (Download_centralityScale(centscale_url))
+  {
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
   CreateNodes(topNode);
-  return 0;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int CentralityReco::Download_centralityScale(const std::string& dbfile)
+int CentralityReco::Download_centralityScale(const std::string &dbfile)
 {
-
   _centrality_scale = 1.00;
 
-  TString dbase_file = dbfile;
+  std::filesystem::path dbase_file = dbfile;
 
-  if (dbase_file.EndsWith(".root"))
+  if (dbase_file.extension() == ".root")
+  {
+    CDBTTree *cdbttree = new CDBTTree(dbase_file);
+    cdbttree->LoadCalibrations();
+    _centrality_scale = cdbttree->GetDoubleValue(0, "centralityscale");
+    if (Verbosity())
     {
-      CDBTTree *cdbttree = new CDBTTree(dbase_file.Data());
-      cdbttree->LoadCalibrations();
-      _centrality_scale = cdbttree->GetDoubleValue(0,"centralityscale");
-      if (Verbosity()) std::cout << "centscale = "<<_centrality_scale << std::endl;
-      delete cdbttree;
+      std::cout << "centscale = " << _centrality_scale << std::endl;
     }
-  else 
-    {
-      std::cout << PHWHERE <<", ERROR, unknown file type, " << dbfile <<std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
+    delete cdbttree;
+  }
+  else
+  {
+    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbfile << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int CentralityReco::Download_centralityDivisions(const std::string& dbfile)
+int CentralityReco::Download_centralityDivisions(const std::string &dbfile)
 {
+  _centrality_map.fill(0);
 
-  for (int idiv = 0; idiv < 20; idiv++)
-    _centrality_map[idiv] = 0;
+  std::filesystem::path dbase_file = dbfile;
 
-  TString dbase_file = dbfile;
-
-  if (dbase_file.EndsWith(".root"))
+  if (dbase_file.extension() == ".root")
+  {
+    CDBTTree *cdbttree = new CDBTTree(dbase_file);
+    cdbttree->LoadCalibrations();
+    for (int idiv = 0; idiv < NDIVS; idiv++)
     {
-      CDBTTree *cdbttree = new CDBTTree(dbase_file.Data());
-      cdbttree->LoadCalibrations();
-      for (int idiv = 0; idiv < NDIVS;idiv++)
-	{
-	  _centrality_map[idiv] = cdbttree->GetFloatValue(idiv,"centralitydiv");
-	  if (Verbosity()) std::cout << "centdiv "<<idiv<<" : "<<_centrality_map[idiv]<<std::endl;
-	}
-      delete cdbttree;
+      _centrality_map[idiv] = cdbttree->GetFloatValue(idiv, "centralitydiv");
+      if (Verbosity())
+      {
+        std::cout << "centdiv " << idiv << " : " << _centrality_map[idiv] << std::endl;
+      }
     }
-  else 
-    {
-      std::cout << PHWHERE <<", ERROR, unknown file type, " << dbfile <<std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
+    delete cdbttree;
+  }
+  else
+  {
+    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbfile << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-
-int CentralityReco::ResetEvent(PHCompositeNode *)
+int CentralityReco::ResetEvent(PHCompositeNode * /*unused*/)
 {
   if (Verbosity() > 1)
   {
@@ -142,8 +119,7 @@ int CentralityReco::ResetEvent(PHCompositeNode *)
 
 int CentralityReco::FillVars()
 {
-
-  if (Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
@@ -152,12 +128,11 @@ int CentralityReco::FillVars()
 
   _mbd_charge_sum_n = _mbd_out->get_q(1);
 
-  _mbd_charge_sum = (_mbd_charge_sum_n + _mbd_charge_sum_s)*_centrality_scale;
-
+  _mbd_charge_sum = (_mbd_charge_sum_n + _mbd_charge_sum_s) * _centrality_scale;
 
   if (Verbosity())
   {
-    std::cout << "  MBD sum = " <<_mbd_charge_sum<<std::endl;
+    std::cout << "  MBD sum = " << _mbd_charge_sum << std::endl;
     std::cout << "      North: " << _mbd_charge_sum_n << std::endl;
     std::cout << "      South: " << _mbd_charge_sum_s << std::endl;
   }
@@ -165,24 +140,20 @@ int CentralityReco::FillVars()
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-
 int CentralityReco::FillCentralityInfo()
 {
   // Fill is minbias
-  
 
-  if (Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
 
-
-  float value = -999.99;
+  float value = std::numeric_limits<float>::quiet_NaN();
   for (int i = 0; i < NDIVS; i++)
   {
     if (_centrality_map[i] < _mbd_charge_sum)
     {
-
       value = 0.05 * i;
       break;
     }
@@ -191,7 +162,6 @@ int CentralityReco::FillCentralityInfo()
   _central->set_centile(CentralityInfo::PROP::mbd_NS, value);
 
   return Fun4AllReturnCodes::EVENT_OK;
-
 }
 
 int CentralityReco::process_event(PHCompositeNode *topNode)
@@ -200,7 +170,6 @@ int CentralityReco::process_event(PHCompositeNode *topNode)
   {
     std::cout << "------------CentralityReco-------------" << std::endl;
   }
-
 
   // Get Nodes from the Tree
   if (GetNodes(topNode))
@@ -215,13 +184,13 @@ int CentralityReco::process_event(PHCompositeNode *topNode)
   }
 
   if (FillCentralityInfo())
-    {
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+  {
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
   if (Verbosity())
-    {
-      _central->identify();
-    }
+  {
+    _central->identify();
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -233,22 +202,21 @@ int CentralityReco::GetNodes(PHCompositeNode *topNode)
     std::cout << __FILE__ << " :: " << __FUNCTION__ << " :: " << __LINE__ << std::endl;
   }
 
-  _central = findNode::getClass<CentralityInfov2>(topNode, "CentralityInfo");
-  
+  _central = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
+
   if (!_central)
-    {
-      std::cout << "no centrality node " << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-    
-  
-  _mbd_out = findNode::getClass<MbdOutV1>(topNode, "MbdOut");
-  
+  {
+    std::cout << "no centrality node " << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  _mbd_out = findNode::getClass<MbdOut>(topNode, "MbdOut");
+
   if (!_mbd_out)
-    {
-      std::cout << "no MBD out node " << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
+  {
+    std::cout << "no MBD out node " << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -277,16 +245,10 @@ void CentralityReco::CreateNodes(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
-  CentralityInfov2 *central = new CentralityInfov2();
-  
+  CentralityInfo *central = new CentralityInfov1();
+
   PHIODataNode<PHObject> *centralityNode = new PHIODataNode<PHObject>(central, "CentralityInfo", "PHObject");
   detNode->addNode(centralityNode);
 
   return;
-}
-
-int CentralityReco::End(PHCompositeNode * /* topNode*/)
-{
-
-  return 0;
 }
