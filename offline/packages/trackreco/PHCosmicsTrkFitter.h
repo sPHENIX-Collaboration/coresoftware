@@ -108,11 +108,12 @@ class PHCosmicsTrkFitter : public SubsysReco
   int createNodes(PHCompositeNode* topNode);
 
   void loopTracks(Acts::Logging::Level logLevel);
-  SourceLinkVec getSourceLinks(TrackSeed* track,
-                               ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-                               short int crossing,
-                               int& charge,
-                               float& cosmicslope);
+
+  //  SourceLinkVec getSourceLinks(TrackSeed* track,
+  //                         ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
+  //                         short int crossing,
+  //                         int& charge,
+  //                         float& cosmicslope);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
@@ -150,6 +151,7 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   /// TrackMap containing SvtxTracks
   alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
+  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;  
   SvtxTrackMap* m_trackMap = nullptr;
   SvtxTrackMap* m_directedTrackMap = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
@@ -188,7 +190,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   TpcDistortionCorrection _distortionCorrection;
 
   // cluster mover utility class
-  TpcClusterMover _clusterMover;
+  //  TpcClusterMover _clusterMover;
   ClusterErrorPara _ClusErrPara;
 
   std::set<int> m_ignoreLayer;
@@ -233,6 +235,9 @@ class PHCosmicsTrkFitter : public SubsysReco
   void clearVectors();
   void fillVectors(TrackSeed* tpcseed, TrackSeed *siseed);
   ClusterErrorPara m_clusErrPara;
+
+  std::set< Acts::GeometryIdentifier> m_transient_id_set;
+
 };
 
 #endif

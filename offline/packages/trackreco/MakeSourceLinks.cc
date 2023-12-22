@@ -24,6 +24,12 @@
 
 namespace
 {
+ template <class T>
+  inline T square(const T& x)
+  {
+    return x * x;
+  }
+
   /// get radius from coordinates
   template<class T> T radius(const T& x, const T& y)
   { return std::sqrt(square(x) + square(y));}
@@ -63,9 +69,9 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
     if (!cluster)
     {
       if (m_verbosity > 0)
-        std::cout << "Failed to get cluster with key " << key << " for track seed" << std::endl;
+        std::cout << "MakeSourceLinks: Failed to get cluster with key " << key << " for track seed" << std::endl;
       else
-        std::cout << "PHActsTrkFitter :: Key: " << key << " for track seed " << std::endl;
+        std::cout << "MakeSourceLinks: Key " << key << " for track seed " << std::endl;
       continue;
     }
 
@@ -118,27 +124,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
       auto corrected_transform = tcorr * transformMap->getTransform(id);
       transformMapTransient->replaceTransform(id, corrected_transform);
       transient_id_set.insert(id);
-
-      /*
-      bool checks = true;
-      if(checks)
-	{
-	  auto new_alignmentTransformTransient = m_alignmentTransformationMapTransient->getTransform(id);
-	  std::cout << std::endl << " TransformTransient after is: " << std::endl <<   new_alignmentTransformTransient.matrix() << std::endl;
-
-	  std::cout << "Get transform for surf id " << id << " key " << key << " crossing " << crossing << " trkrid " << trkrid  << std::endl
-		    << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2) << std::endl
-		    << " global corrected " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
-		    << " correction (mm) " << correction_translation(0) << "  " <<  correction_translation(1)  << "  " <<  correction_translation(2)  
-		    << std::endl;
-
-	  Acts::Vector2 local = tGeometry->getLocalCoords(key, cluster) * Acts::UnitConstants::cm;	  
-	  Eigen::Vector3d clusterLocalPosition(local(0), local(1), 0);  // follows the convention for the acts transform of local = (x,z,y)
-	  Eigen::Vector3d finalCoords = corrected_transform * clusterLocalPosition / 10.0;
-	  std::cout << " corrected coords  " << global(0) << "  " << global(1) << "  " << global(2) << std::endl;
-	  std::cout << " corrected from transform " << finalCoords(0) << "  " << finalCoords(1) << "  " << finalCoords(2) << std::endl;
-	}  // end checks
-      */
 
     }  // end TPC specific treatment
     
@@ -232,9 +217,113 @@ void MakeSourceLinks::resetTransientTransformMap(
       auto ctxt = tGeometry->geometry().getGeoContext();
       alignmentTransformationContainer* transformMap = ctxt.get<alignmentTransformationContainer*>();
       auto transform = transformMap->getTransform(id);
-      // auto transient_transform = m_alignmentTransformationMapTransient->getTransform(id);
-      //std::cout << "    transient transform for id " << id << " is " << std::endl << transient_transform.matrix() << std::endl;
       transformMapTransient->replaceTransform(id, transform);
     }
   transient_id_set.clear();
    }
+
+void MakeSourceLinks::getCharge(
+				TrackSeed* track,
+				TrkrClusterContainer*  clusterContainer,
+				ActsGeometry* tGeometry,
+				alignmentTransformationContainer* transformMapTransient,
+				float vertexRadius,
+				int& charge,
+				float& cosmicslope )
+{
+
+  Acts::GeometryContext transient_geocontext;
+  transient_geocontext =  transformMapTransient;  // set local/global transforms to distortion corrected ones for this track
+
+  std::vector<Acts::Vector3> global_vec;
+
+  for (auto clusIter = track->begin_cluster_keys();
+       clusIter != track->end_cluster_keys();
+       ++clusIter)
+    {
+      auto key = *clusIter;
+      auto cluster = clusterContainer->findCluster(key);
+      if (!cluster)
+	{
+	  std::cout << "MakeSourceLinks::getCharge: Failed to get cluster with key " << key << " for track seed" << std::endl;
+	  continue;
+	}
+      
+      auto surf = tGeometry->maps().getSurface(key, cluster);
+      if (!surf)    {  continue; }
+      
+      // get cluster global positions
+      Acts::Vector2 local = tGeometry->getLocalCoords(key, cluster);  // converts TPC time to z
+      Acts::Vector3 glob = surf->localToGlobal(transient_geocontext,
+				    local * Acts::UnitConstants::cm,
+				    Acts::Vector3(1,1,1));
+      glob /= Acts::UnitConstants::cm;
+
+      global_vec.push_back(glob);
+    }
+
+ Acts::Vector3 globalMostOuter;
+  Acts::Vector3 globalSecondMostOuter(0, 999999, 0);
+  float largestR = 0;
+  // loop over global positions
+  for (int i = 0; i < global_vec.size(); ++i)
+  {
+    Acts::Vector3 global = global_vec[i];
+    //float r = std::sqrt(square(global.x()) + square(global.y()));
+    float r = radius(global.x(), global.y());
+
+    /// use the top hemisphere to determine the charge
+    if (r > largestR && global.y() > 0)
+    {
+      globalMostOuter = global_vec[i];
+      largestR = r;
+    }
+  }
+
+  //! find the closest cluster to the outermost cluster
+  float maxdr = std::numeric_limits<float>::max();
+  for (int i = 0; i < global_vec.size(); i++)
+    {
+      if (global_vec[i].y() < 0) continue;
+      
+      float dr = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y())) - std::sqrt(square(global_vec[i].x()) + square(global_vec[i].y()));
+      //! Place a dr cut to get maximum bend due to TPC clusters having
+      //! larger fluctuations
+      if (dr < maxdr && dr > 10)
+	{
+	  maxdr = dr;
+	  globalSecondMostOuter = global_vec[i];
+	}
+    }
+  
+  //! we have to calculate phi WRT the vertex position outside the detector,
+  //! not at (0,0)
+  Acts::Vector3 vertex(0, vertexRadius, 0);
+  globalMostOuter -= vertex;
+  globalSecondMostOuter -= vertex;
+  
+  const auto firstphi = atan2(globalMostOuter.y(), globalMostOuter.x());
+  const auto secondphi = atan2(globalSecondMostOuter.y(),
+			       globalSecondMostOuter.x());
+  auto dphi = secondphi - firstphi;
+  
+  if (dphi > M_PI) dphi = 2. * M_PI - dphi;
+  if (dphi < -M_PI) dphi = 2 * M_PI + dphi;
+  
+  if (dphi > 0)
+    {
+      charge = -1;
+    }
+  else
+    {
+      charge = 1;
+    }
+  
+  float r1 = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y()));
+  float r2 = std::sqrt(square(globalSecondMostOuter.x()) + square(globalSecondMostOuter.y()));
+  float z1 = globalMostOuter.z();
+  float z2 = globalSecondMostOuter.z();
+  cosmicslope = (r2 - r1) / (z2 - z1);
+  
+  return;
+}

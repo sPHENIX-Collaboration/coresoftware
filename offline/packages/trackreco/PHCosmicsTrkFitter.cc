@@ -1,4 +1,5 @@
 #include "PHCosmicsTrkFitter.h"
+#include "MakeSourceLinks.h"
 
 /// Tracking includes
 #include <trackbase/Calibrator.h>
@@ -119,7 +120,7 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
 
   if (cellgeo)
   {
-    _clusterMover.initialize_geometry(cellgeo);
+    //    _clusterMover.initialize_geometry(cellgeo);
   }
 
   if (m_actsEvaluator)
@@ -268,13 +269,46 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     }
 
     ActsTrackFittingAlgorithm::MeasurementContainer measurements;
+
+    SourceLinkVec sourceLinks;
+
+    MakeSourceLinks makeSourceLinks;
+    makeSourceLinks.setVerbosity(Verbosity());
+    makeSourceLinks.set_pp_mode(false);
+
+    makeSourceLinks.resetTransientTransformMap(
+						   m_alignmentTransformationMapTransient,
+						   m_transient_id_set,
+						   m_tGeometry);
+
+    if (siseed) sourceLinks = makeSourceLinks.getSourceLinks(
+							     siseed, 
+							     measurements, 
+							     m_clusterContainer, 
+							     m_tGeometry, 
+							     m_alignmentTransformationMapTransient, 
+							     m_transient_id_set, 
+							     crossing);
+    const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
+								   tpcseed, 
+								   measurements, 
+								   m_clusterContainer, 
+								   m_tGeometry, 
+								   m_alignmentTransformationMapTransient, 
+								   m_transient_id_set, 
+								   crossing);
+    sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
+
     int charge = 0;
     float cosmicslope = 0;
-    SourceLinkVec sourceLinks;
-    if (siseed) sourceLinks = getSourceLinks(siseed, measurements, crossing, charge, cosmicslope);
-    const auto tpcSourceLinks = getSourceLinks(tpcseed, measurements, crossing, charge, cosmicslope);
-
-    sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
+    makeSourceLinks.getCharge(
+			      tpcseed,
+			      m_clusterContainer,
+			      m_tGeometry,
+			      m_alignmentTransformationMapTransient,
+			      m_vertexRadius,
+			      charge,
+			      cosmicslope  );
 
     tpcseed->circleFitByTaubin(m_clusterContainer, m_tGeometry, 0, 58);
 
@@ -443,7 +477,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
   return;
 }
-
+/*
 //___________________________________________________________________________________
 SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
     TrackSeed* track,
@@ -686,6 +720,7 @@ SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
 
   return sourcelinks;
 }
+*/
 
 bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput,
                                            TrackSeed* seed, SvtxTrack* track,
