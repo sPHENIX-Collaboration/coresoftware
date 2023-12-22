@@ -670,7 +670,6 @@ bool RawClusterBuilderTemplate::IsAcceptableTower(TowerInfo *tower)
       return false;
     }
   }
-
   return true;
 }
 
@@ -680,6 +679,5 @@ bool RawClusterBuilderTemplate::IsAcceptableTower(RawTower *tower)
   {
     return false;
   }
-
   return true;
 }
