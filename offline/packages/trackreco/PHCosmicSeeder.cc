@@ -254,7 +254,6 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
       }
     }
   }
-  std::cout << "Deleting " << seedsToDelete.size() << " seeds in chainer" << std::endl;
   for (int i = 0; i < initialSeeds.size(); ++i)
   {
     if (seedsToDelete.find(i) != seedsToDelete.end())
