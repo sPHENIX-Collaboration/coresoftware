@@ -4,9 +4,8 @@
 
 void MinimumBiasInfov1::identify(std::ostream& os) const
 {
-
-  os << "MinimumBiasInfo: "<< std::endl;
-  os << "  IsMinBias = " << (_isMinBias? "Yes":"No") << std::endl;
+  os << "MinimumBiasInfo: " << std::endl;
+  os << "  IsMinBias = " << (_isMinBias ? "Yes" : "No") << std::endl;
 
   return;
 }
