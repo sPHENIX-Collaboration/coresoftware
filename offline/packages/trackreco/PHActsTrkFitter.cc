@@ -372,20 +372,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
  	
 	ActsTrackFittingAlgorithm::MeasurementContainer measurements;
 
-	/*
-	for(auto it = m_transient_id_set.begin(); it != m_transient_id_set.end(); ++it)
-	  {
-	    Acts::GeometryIdentifier id = *it;
-	    auto ctxt = m_tGeometry->geometry().getGeoContext();
-	    alignmentTransformationContainer* transformMap = ctxt.get<alignmentTransformationContainer*>();
-	    auto transform = transformMap->getTransform(id);
-	    // auto transient_transform = m_alignmentTransformationMapTransient->getTransform(id);
-	    //std::cout << "    transient transform for id " << id << " is " << std::endl << transient_transform.matrix() << std::endl;
-	    m_alignmentTransformationMapTransient->replaceTransform(id, transform);
-	  }
-	m_transient_id_set.clear();
-	*/
-		
 	SourceLinkVec sourceLinks;
 
 	MakeSourceLinks makeSourceLinks;

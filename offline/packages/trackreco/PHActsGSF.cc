@@ -1,4 +1,5 @@
 #include "PHActsGSF.h"
+#include "MakeSourceLinks.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -105,10 +106,35 @@ int PHActsGSF::process_event(PHCompositeNode*)
       continue;
     }
 
-    auto sourceLinks = getSourceLinks(tpcseed, measurements, crossing);
-    auto silSourceLinks = getSourceLinks(silseed, measurements, crossing);
-
-    for (auto& siSL : silSourceLinks)
+    MakeSourceLinks makeSourceLinks;
+    makeSourceLinks.setVerbosity(Verbosity());
+    makeSourceLinks.set_pp_mode(m_pp_mode);
+    
+    // loop over modifiedTransformSet and replace transient elements modified for the previous track with the default transforms
+    makeSourceLinks.resetTransientTransformMap(
+					       m_alignmentTransformationMapTransient,
+					       m_transient_id_set,
+					       m_tGeometry);
+        auto sourceLinks = makeSourceLinks.getSourceLinks(
+							       tpcseed, 
+							       measurements, 
+							       m_clusterContainer, 
+							       m_tGeometry, 
+							       m_alignmentTransformationMapTransient, 
+							       m_transient_id_set, 
+							       crossing);
+    auto silSourceLinks = makeSourceLinks.getSourceLinks(
+							     silseed, 
+							     measurements, 
+							     m_clusterContainer, 
+							     m_tGeometry, 
+							     m_alignmentTransformationMapTransient, 
+							     m_transient_id_set, 
+							     crossing);
+    // copy transient map for this track into transient geoContext
+    m_transient_geocontext =  m_alignmentTransformationMapTransient;
+ 
+        for (auto& siSL : silSourceLinks)
     {
       sourceLinks.push_back(siSL);
     }
@@ -194,6 +220,7 @@ ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
       .value();
 }
 
+/*
 SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
                                         ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
                                         const short int& crossing)
@@ -361,7 +388,7 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
 
   return sls;
 }
-
+*/
 ActsTrackFittingAlgorithm::TrackFitterResult PHActsGSF::fitTrack(
     const std::vector<Acts::SourceLink>& sourceLinks,
     const ActsTrackFittingAlgorithm::TrackParameters& seed,
