@@ -251,6 +251,11 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
   for (PHG4HitContainer::ConstIterator hititer = hits->getHits().first; hititer != hits->getHits().second; hititer++)
   {
     PHG4Hit *hit = hititer->second;
+    if (hit->get_t(1) - hit->get_t(0) >  m_deltaT) continue;
+
+
+    //timing cut 
+    
     // get eta phi bin
     unsigned short etabin = 0;
     unsigned short phibin = 0;

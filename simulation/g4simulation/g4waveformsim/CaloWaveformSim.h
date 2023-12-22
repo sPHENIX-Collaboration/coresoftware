@@ -105,6 +105,11 @@ public:
         m_gaussian_noise = _gaussian_noise;
         return;
     }
+    void set_deltaT(float _deltaT)
+    {
+        m_deltaT = _deltaT;
+        return;
+    }
     //for CEMC light yield correction
     LightCollectionModel &get_light_collection_model() { return light_collection_model; }
 
@@ -131,6 +136,7 @@ private:
     float m_sampletime{50. / 3.};
     int m_fixpedestal{1500};
     int m_gaussian_noise{3};
+    float m_deltaT{100.};
     gsl_rng *m_RandomGenerator{nullptr};
 
     PHG4CylinderCellGeom_Spacalv1 *geo{nullptr};
