@@ -692,8 +692,14 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 {
   std::vector<const SpacePoint*> spVec;
   unsigned int numSiliconHits = 0;
-
-  for (const auto& hitsetkey : m_clusterMap->getHitSetKeys(TrkrDefs::TrkrId::mvtxId))
+  std::vector<TrkrDefs::TrkrId> dets = {TrkrDefs::TrkrId::mvtxId};
+  if(m_searchInIntt)
+  {
+    dets.push_back(TrkrDefs::TrkrId::inttId);
+  }
+  for(const auto& det : dets)
+  {
+  for (const auto& hitsetkey : m_clusterMap->getHitSetKeys(det))
   {
     auto range = m_clusterMap->getClusters(hitsetkey);
     for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
@@ -722,7 +728,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
       numSiliconHits++;
     }
   }
-
+  }
   if (m_seedAnalysis)
   {
     h_nInputMvtxMeas->Fill(numSiliconHits);
