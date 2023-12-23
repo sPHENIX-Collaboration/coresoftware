@@ -4,11 +4,11 @@
 #include "CaloTriggerInfov1.h"
 
 // sPHENIX includes
-#include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/RawTowerDefs.h>  // for encode_towerid
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -27,7 +27,6 @@
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
-#include <map>
 #include <utility>
 #include <vector>
 
@@ -58,9 +57,9 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
   // pull out the tower containers and geometry objects at the start
 
-  TowerInfoContainer *towersEM3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC");
-  TowerInfoContainer *towersIH3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN");
-  TowerInfoContainer *towersOH3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT");
+  TowerInfoContainer *towersEM3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
+  TowerInfoContainer *towersIH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
+  TowerInfoContainer *towersOH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
 
   if (Verbosity() > 0)
   {
@@ -69,7 +68,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     std::cout << "CaloTriggerSim::process_event: " << towersOH3->size() << " TOWERINFO_CALIB_HCALOUT towers" << std::endl;
   }
 
-  RawTowerGeomContainer_Cylinderv1 *geomEM = findNode::getClass<RawTowerGeomContainer_Cylinderv1>(topNode, "TOWERGEOM_CEMC");
+  RawTowerGeomContainer *geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
   RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
   RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
 
@@ -114,7 +113,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   // iterate over EMCal towers, constructing 1x1's
   unsigned int ntowers_EM = towersEM3->size();
   for (unsigned int channel = 0; channel < ntowers_EM; channel++)
-    {
+  {
     TowerInfo *tower = towersEM3->get_tower_at_channel(channel);
 
     // RawTowerGeom *tower_geom = geomEM->get_tower_geometry(tower->get_key());
@@ -373,7 +372,6 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   // iterate over EMCal towers, filling in the 0.1x0.1 region they contribute to
   for (unsigned int channel = 0; channel < ntowers_EM; channel++)
   {
-
     TowerInfo *tower = towersEM3->get_tower_at_channel(channel);
     unsigned int towerkey = towersEM3->encode_key(channel);
     int ieta = towersEM3->getTowerEtaBin(towerkey);
@@ -446,7 +444,6 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   unsigned int ntowers_OH = towersOH3->size();
   for (unsigned int channel = 0; channel < ntowers_OH; channel++)
   {
-
     TowerInfo *tower = towersOH3->get_tower_at_channel(channel);
     unsigned int towerkey = towersOH3->encode_key(channel);
     int ieta = towersOH3->getTowerEtaBin(towerkey);
@@ -454,7 +451,6 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta, iphi);
     float this_phi = geomIH->get_tower_geometry(key)->get_phi();
     float this_eta = geomIH->get_tower_geometry(key)->get_eta();
-
 
     if (this_phi < m_FULLCALO_PHI_START)
     {
