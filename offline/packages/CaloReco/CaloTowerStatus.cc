@@ -110,8 +110,9 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     m_doTime = false;
   }
 
-  m_calibName_hotMap = m_detector + "_BadTowerMap";
-  m_fieldname_hotMap = "Istatus";
+  m_calibName_hotMap = m_detector + "nome";
+  if (m_dettype == CaloTowerDefs::CEMC) m_calibName_hotMap = m_detector + "_BadTowerMap"; 
+  m_fieldname_hotMap = "status";
 
   calibdir = CDBInterface::instance()->getUrl(m_calibName_hotMap);
   if (!calibdir.empty())
