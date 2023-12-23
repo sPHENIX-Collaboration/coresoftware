@@ -8,9 +8,17 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <intt/CylinderGeomIntt.h>
+#include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
-
+#include <mvtx/CylinderGeom_Mvtx.h>
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
@@ -166,8 +174,17 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   auto vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
-
-  if (!trackmap or !clustermap or !geometry)
+  auto hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto tpcGeom =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  auto mvtxGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+  auto inttGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  auto mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
+  if (!mmGeom)
+  {
+    mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
+  }
+  if (!trackmap or !clustermap or !geometry or !hitmap)
   {
     std::cout << "Missing node, can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -176,17 +193,28 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   if (gl1)
   {
     m_bco = gl1->get_bco();
+    auto lbshift = m_bco << 24;
+    m_bcotr = lbshift >> 24;
   }
   else
   {
     m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
+    m_bcotr = std::numeric_limits<uint64_t>::quiet_NaN();
   }
   if (Verbosity() > 1)
   {
     std::cout << "Track map size is " << trackmap->size() << std::endl;
   }
 
-  fillClusterTree(clustermap, geometry);
+  if (m_doHits)
+  {
+    fillHitTree(hitmap, geometry, tpcGeom, mvtxGeom, inttGeom, mmGeom);
+  }
+
+  if (m_doClusters)
+  {
+    fillClusterTree(clustermap, geometry);
+  }
 
   for (const auto& [key, track] : *trackmap)
   {
@@ -416,10 +444,214 @@ int TrackResiduals::End(PHCompositeNode*)
 {
   m_outfile->cd();
   m_tree->Write();
-  m_clustree->Write();
+  if (m_doClusters)
+  {
+    m_clustree->Write();
+  }
+  if (m_doHits)
+  {
+    m_hittree->Write();
+  }
   m_outfile->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
+                                 ActsGeometry* geometry,
+                                 PHG4TpcCylinderGeomContainer* tpcGeom,
+                                 PHG4CylinderGeomContainer* mvtxGeom,
+                                 PHG4CylinderGeomContainer* inttGeom,
+                                 PHG4CylinderGeomContainer* mmGeom)
+{
+  if (!tpcGeom or !mvtxGeom or !inttGeom or !mmGeom)
+  {
+    std::cout << PHWHERE << "missing hit map, can't continue with hit tree"
+              << std::endl;
+    return;
+  }
+  TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
+  for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
+       hitsetiter != all_hitsets.second;
+       ++hitsetiter)
+  {
+    m_hitsetkey = hitsetiter->first;
+    TrkrHitSet* hitset = hitsetiter->second;
+
+    m_hitlayer = TrkrDefs::getLayer(m_hitsetkey);
+    auto det = TrkrDefs::getTrkrId(m_hitsetkey);
+    //! Fill relevant geom info that is specific to subsystem
+    switch (det)
+    {
+    case TrkrDefs::TrkrId::mvtxId:
+    {
+      m_staveid = MvtxDefs::getStaveId(m_hitsetkey);
+      m_chipid = MvtxDefs::getChipId(m_hitsetkey);
+      m_strobeid = MvtxDefs::getStrobeId(m_hitsetkey);
+
+      m_ladderzid = std::numeric_limits<int>::quiet_NaN();
+      m_ladderphiid = std::numeric_limits<int>::quiet_NaN();
+      m_timebucket = std::numeric_limits<int>::quiet_NaN();
+      m_sector = std::numeric_limits<int>::quiet_NaN();
+      m_side = std::numeric_limits<int>::quiet_NaN();
+      m_segtype = std::numeric_limits<int>::quiet_NaN();
+      m_tileid = std::numeric_limits<int>::quiet_NaN();
+      break;
+    }
+    case TrkrDefs::TrkrId::inttId:
+    {
+      m_ladderzid = InttDefs::getLadderZId(m_hitsetkey);
+      m_ladderphiid = InttDefs::getLadderPhiId(m_hitsetkey);
+      m_timebucket = InttDefs::getTimeBucketId(m_hitsetkey);
+
+      m_staveid = std::numeric_limits<int>::quiet_NaN();
+      m_chipid = std::numeric_limits<int>::quiet_NaN();
+      m_strobeid = std::numeric_limits<int>::quiet_NaN();
+      m_sector = std::numeric_limits<int>::quiet_NaN();
+      m_side = std::numeric_limits<int>::quiet_NaN();
+      m_segtype = std::numeric_limits<int>::quiet_NaN();
+      m_tileid = std::numeric_limits<int>::quiet_NaN();
+      break;
+    }
+    case TrkrDefs::TrkrId::tpcId:
+    {
+      m_sector = TpcDefs::getSectorId(m_hitsetkey);
+      m_side = TpcDefs::getSide(m_hitsetkey);
+
+      m_staveid = std::numeric_limits<int>::quiet_NaN();
+      m_chipid = std::numeric_limits<int>::quiet_NaN();
+      m_strobeid = std::numeric_limits<int>::quiet_NaN();
+      m_ladderzid = std::numeric_limits<int>::quiet_NaN();
+      m_ladderphiid = std::numeric_limits<int>::quiet_NaN();
+      m_timebucket = std::numeric_limits<int>::quiet_NaN();
+      m_segtype = std::numeric_limits<int>::quiet_NaN();
+      m_tileid = std::numeric_limits<int>::quiet_NaN();
+
+      break;
+    }
+    case TrkrDefs::TrkrId::micromegasId:
+    {
+      m_segtype = (int) MicromegasDefs::getSegmentationType(m_hitsetkey);
+      m_tileid = MicromegasDefs::getTileId(m_hitsetkey);
+
+      m_staveid = std::numeric_limits<int>::quiet_NaN();
+      m_chipid = std::numeric_limits<int>::quiet_NaN();
+      m_strobeid = std::numeric_limits<int>::quiet_NaN();
+      m_ladderzid = std::numeric_limits<int>::quiet_NaN();
+      m_ladderphiid = std::numeric_limits<int>::quiet_NaN();
+      m_timebucket = std::numeric_limits<int>::quiet_NaN();
+      m_sector = std::numeric_limits<int>::quiet_NaN();
+      m_side = std::numeric_limits<int>::quiet_NaN();
+      break;
+    }
+    default:
+      break;
+    }
+
+    // Got all stave/ladder/sector/tile info, now get the actual hit info
+    auto hitrangei = hitset->getHits();
+    for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+         hitr != hitrangei.second;
+         ++hitr)
+    {
+      auto hitkey = hitr->first;
+      auto hit = hitr->second;
+      m_adc = hit->getAdc();
+
+      switch (det)
+      {
+      case TrkrDefs::TrkrId::mvtxId:
+      {
+        m_row = MvtxDefs::getRow(hitkey);
+        m_col = MvtxDefs::getCol(hitkey);
+        auto layergeom = dynamic_cast<CylinderGeom_Mvtx*>(mvtxGeom->GetLayerGeom(m_hitlayer));
+        auto local_coords = layergeom->get_local_coords_from_pixel(m_row, m_col);
+        TVector2 local;
+        local.SetX(local_coords.X());
+        local.SetY(local_coords.Z());
+        auto surf = geometry->maps().getSiliconSurface(m_hitsetkey);
+        auto glob = layergeom->get_world_from_local_coords(surf, geometry, local);
+        m_hitgx = glob.X();
+        m_hitgy = glob.Y();
+        m_hitgz = glob.Z();
+
+        m_segtype = std::numeric_limits<int>::quiet_NaN();
+        m_tileid = std::numeric_limits<int>::quiet_NaN();
+        m_strip = std::numeric_limits<int>::quiet_NaN();
+        m_hitpad = std::numeric_limits<int>::quiet_NaN();
+        m_hittbin = std::numeric_limits<int>::quiet_NaN();
+        break;
+      }
+      case TrkrDefs::TrkrId::inttId:
+      {
+        m_row = InttDefs::getRow(hitkey);
+        m_col = InttDefs::getCol(hitkey);
+        auto geom = dynamic_cast<CylinderGeomIntt*>(inttGeom->GetLayerGeom(m_hitlayer));
+        double local_hit_loc[3] = {0, 0, 0};
+        geom->find_strip_center_localcoords(m_ladderzid, m_row, m_col, local_hit_loc);
+        auto surf = geometry->maps().getSiliconSurface(m_hitsetkey);
+        TVector2 local;
+        local.SetX(local_hit_loc[1]);
+        local.SetY(local_hit_loc[2]);
+        auto glob = geom->get_world_from_local_coords(surf, geometry, local);
+        m_hitgx = glob.X();
+        m_hitgy = glob.Y();
+        m_hitgz = glob.Z();
+        m_segtype = std::numeric_limits<int>::quiet_NaN();
+        m_tileid = std::numeric_limits<int>::quiet_NaN();
+        m_strip = std::numeric_limits<int>::quiet_NaN();
+        m_hitpad = std::numeric_limits<int>::quiet_NaN();
+        m_hittbin = std::numeric_limits<int>::quiet_NaN();
+        break;
+      }
+      case TrkrDefs::TrkrId::tpcId:
+      {
+        m_row = std::numeric_limits<int>::quiet_NaN();
+        m_col = std::numeric_limits<int>::quiet_NaN();
+        m_segtype = std::numeric_limits<int>::quiet_NaN();
+        m_tileid = std::numeric_limits<int>::quiet_NaN();
+        m_strip = std::numeric_limits<int>::quiet_NaN();
+
+        m_hitpad = TpcDefs::getPad(hitkey);
+        m_hittbin = TpcDefs::getTBin(hitkey);
+
+        auto geoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
+        auto phi = geoLayer->get_phicenter(m_hitpad);
+        auto radius = geoLayer->get_radius();
+        float AdcClockPeriod = 53.0;  // ns (?)
+        double zdriftlength = m_hittbin * geometry->get_drift_velocity() * AdcClockPeriod;
+        unsigned short NTBins = (unsigned short) geoLayer->get_zbins();
+        double tdriftmax = AdcClockPeriod * NTBins / 2.0;
+        m_hitgz = (tdriftmax * geometry->get_drift_velocity()) - zdriftlength;
+        if (m_side == 0)
+        {
+          m_hitgz *= -1;
+        }
+        m_hitgx = radius * std::cos(phi);
+        m_hitgy = radius * std::sin(phi);
+        break;
+      }
+      case TrkrDefs::TrkrId::micromegasId:
+      {
+        const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(mmGeom->GetLayerGeom(m_hitlayer));
+        m_strip = MicromegasDefs::getStrip(hitkey);
+        const auto global_coord = layergeom->get_world_coordinates(m_tileid, geometry, m_strip);
+        m_hitgx = global_coord.X();
+        m_hitgy = global_coord.Y();
+        m_hitgz = global_coord.Z();
+        m_row = std::numeric_limits<int>::quiet_NaN();
+        m_col = std::numeric_limits<int>::quiet_NaN();
+        m_segtype = std::numeric_limits<int>::quiet_NaN();
+        m_tileid = std::numeric_limits<int>::quiet_NaN();
+        m_hitpad = std::numeric_limits<int>::quiet_NaN();
+        m_hittbin = std::numeric_limits<int>::quiet_NaN();
+      }
+      default:
+        break;
+      }
+
+      m_hittree->Fill();
+    }
+  }
 }
 
 void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* track,
@@ -462,11 +694,6 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
       break;
     }
   }
-  if (!state)
-  {
-    //! skip clusters that don't have an associated track state
-    return;
-  }
 
   m_cluskeys.push_back(ckey);
 
@@ -498,6 +725,45 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   {
     std::cout << "Track state/clus in layer "
               << TrkrDefs::getLayer(ckey) << std::endl;
+  }
+  if (!state)
+  {
+    //! skip filling the state information if a state is not there
+    //! or we just ran the seeding. Fill with Nans to maintain the
+    //! 1-to-1 mapping between cluster/state vectors
+    m_idealsurfalpha.push_back(NAN);
+    m_idealsurfbeta.push_back(NAN);
+    m_idealsurfgamma.push_back(NAN);
+    m_missurfalpha.push_back(NAN);
+    m_missurfbeta.push_back(NAN);
+    m_missurfgamma.push_back(NAN);
+    m_idealsurfcenterx.push_back(NAN);
+    m_idealsurfcentery.push_back(NAN);
+    m_idealsurfcenterz.push_back(NAN);
+    m_idealsurfnormx.push_back(NAN);
+    m_idealsurfnormy.push_back(NAN);
+    m_idealsurfnormz.push_back(NAN);
+    m_missurfcenterx.push_back(NAN);
+    m_missurfcentery.push_back(NAN);
+    m_missurfcenterz.push_back(NAN);
+    m_missurfnormx.push_back(NAN);
+    m_missurfnormy.push_back(NAN);
+    m_missurfnormz.push_back(NAN);
+    m_clusgxideal.push_back(NAN);
+    m_clusgyideal.push_back(NAN);
+    m_clusgzideal.push_back(NAN);
+    m_statelx.push_back(NAN);
+    m_statelz.push_back(NAN);
+    m_stateelx.push_back(NAN);
+    m_stateelz.push_back(NAN);
+    m_stategx.push_back(NAN);
+    m_stategy.push_back(NAN);
+    m_stategz.push_back(NAN);
+    m_statepx.push_back(NAN);
+    m_statepy.push_back(NAN);
+    m_statepz.push_back(NAN);
+    m_statepl.push_back(NAN);
+    return;
   }
 
   auto surf = geometry->maps().getSurface(ckey, cluster);
@@ -593,9 +859,36 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
 }
 void TrackResiduals::createBranches()
 {
+  m_hittree = new TTree("hittree", "A tree with all hits");
+  m_hittree->Branch("event", &m_event, "m_event/I");
+  m_hittree->Branch("gl1bco", &m_bco, "m_bco/l");
+  m_hittree->Branch("trbco", &m_bcotr, "m_bcotr/l");
+  m_hittree->Branch("hitsetkey", &m_hitsetkey, "m_hitsetkey/i");
+  m_hittree->Branch("gx", &m_hitgx, "m_hitgx/F");
+  m_hittree->Branch("gy", &m_hitgy, "m_hitgy/F");
+  m_hittree->Branch("gz", &m_hitgz, "m_hitgz/F");
+  m_hittree->Branch("layer", &m_hitlayer, "m_hitlayer/I");
+  m_hittree->Branch("sector", &m_sector, "m_sector/I");
+  m_hittree->Branch("side", &m_side, "m_side/I");
+  m_hittree->Branch("stave", &m_staveid, "m_staveid/I");
+  m_hittree->Branch("chip", &m_chipid, "m_chipid/I");
+  m_hittree->Branch("strobe", &m_strobeid, "m_strobeid/I");
+  m_hittree->Branch("ladderz", &m_ladderzid, "m_ladderzid/I");
+  m_hittree->Branch("ladderphi", m_ladderphiid, "m_ladderphiid/I");
+  m_hittree->Branch("timebucket", &m_timebucket, "m_timebucket/I");
+  m_hittree->Branch("pad", &m_hitpad, "m_hitpad/I");
+  m_hittree->Branch("tbin", &m_hittbin, "m_hittbin/I");
+  m_hittree->Branch("col", &m_col, "m_col/I");
+  m_hittree->Branch("row", &m_row, "m_row/I");
+  m_hittree->Branch("segtype", &m_segtype, "m_segtype/I");
+  m_hittree->Branch("tile", &m_tileid, "m_tileid/I");
+  m_hittree->Branch("strip", &m_strip, "m_strip/I");
+  m_hittree->Branch("adc", &m_adc, "m_adc/F");
+
   m_clustree = new TTree("clustertree", "A tree with all clusters");
   m_clustree->Branch("event", &m_event, "m_event/I");
-  m_clustree->Branch("gl1bco", &m_bco, "m_bco");
+  m_clustree->Branch("gl1bco", &m_bco, "m_bco/l");
+  m_clustree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_clustree->Branch("lx", &m_scluslx, "m_scluslx/F");
   m_clustree->Branch("lz", &m_scluslz, "m_scluslz/F");
   m_clustree->Branch("gx", &m_sclusgx, "m_sclusgx/F");
@@ -625,7 +918,8 @@ void TrackResiduals::createBranches()
   m_tree = new TTree("residualtree", "A tree with track, cluster, and state info");
   m_tree->Branch("event", &m_event, "m_event/I");
   m_tree->Branch("trackid", &m_trackid, "m_trackid/I");
-  m_tree->Branch("gl1bco", &m_bco, "m_bco");
+  m_tree->Branch("gl1bco", &m_bco, "m_bco/l");
+  m_tree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_tree->Branch("crossing", &m_crossing, "m_crossing/I");
   m_tree->Branch("px", &m_px, "m_px/F");
   m_tree->Branch("py", &m_py, "m_py/F");
