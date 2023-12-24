@@ -150,14 +150,18 @@ class PHCosmicsTrkFitter : public SubsysReco
   ActsTrackFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
-  alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
-  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;  
   SvtxTrackMap* m_trackMap = nullptr;
   SvtxTrackMap* m_directedTrackMap = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
   TrackSeedContainer* m_seedMap = nullptr;
   TrackSeedContainer* m_tpcSeeds = nullptr;
   TrackSeedContainer* m_siliconSeeds = nullptr;
+
+  // Used for distortion correction transformations
+  alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
+  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;  
+  std::set< Acts::GeometryIdentifier> m_transient_id_set;
+  Acts::GeometryContext m_transient_geocontext;
 
   /// Number of acts fits that returned an error
   int m_nBadFits = 0;
@@ -235,8 +239,6 @@ class PHCosmicsTrkFitter : public SubsysReco
   void clearVectors();
   void fillVectors(TrackSeed* tpcseed, TrackSeed *siseed);
   ClusterErrorPara m_clusErrPara;
-
-  std::set< Acts::GeometryIdentifier> m_transient_id_set;
 
 };
 

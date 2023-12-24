@@ -156,7 +156,8 @@ int PHActsGSF::process_event(PHCompositeNode*)
     auto ppoptions = Acts::PropagatorPlainOptions();
 
     ActsTrackFittingAlgorithm::GeneralFitterOptions options{
-        m_tGeometry->geometry().getGeoContext(),
+        //m_tGeometry->geometry().getGeoContext(),
+        m_transient_geocontext,
         magcontext,
         calcontext,
         &(*pSurface),
@@ -211,7 +212,8 @@ ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
   auto cov = transformer.rotateSvtxTrackCovToActs(track);
 
   return ActsTrackFittingAlgorithm::TrackParameters::create(psurf,
-                                                            m_tGeometry->geometry().getGeoContext(),
+                                                            //m_tGeometry->geometry().getGeoContext(),
+							    m_transient_geocontext,
                                                             fourpos,
                                                             momentum,
                                                             charge / momentum.norm(),
@@ -220,175 +222,6 @@ ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
       .value();
 }
 
-/*
-SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
-                                        ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-                                        const short int& crossing)
-{
-  SourceLinkVec sls;
-  // loop over all clusters
-  std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
-
-  for (auto clusIter = track->begin_cluster_keys();
-       clusIter != track->end_cluster_keys();
-       ++clusIter)
-  {
-    auto key = *clusIter;
-    auto cluster = m_clusterContainer->findCluster(key);
-    if (!cluster)
-    {
-      if (Verbosity() > 0) std::cout << "Failed to get cluster with key " << key << std::endl;
-      continue;
-    }
-
-    auto subsurfkey = cluster->getSubSurfKey();
-
-    /// Make a safety check for clusters that couldn't be attached
-    /// to a surface
-    auto surf = m_tGeometry->maps().getSurface(key, cluster);
-    if (!surf)
-    {
-      continue;
-    }
-
-    unsigned int trkrid = TrkrDefs::getTrkrId(key);
-    unsigned int side = TpcDefs::getSide(key);
-
-    // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset
-    // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks
-
-    auto global = m_tGeometry->getGlobalPosition(key, cluster);
-
-    if (Verbosity() > 0)
-    {
-      std::cout << " zinit " << global[2] << " xinit " << global[0] << " yinit " << global[1] << " side " << side << " crossing " << crossing
-                << " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
-    }
-
-    if (trkrid == TrkrDefs::tpcId)
-    {
-      // make all corrections to global position of TPC cluster
-      float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
-      global[2] = z;
-
-      // apply distortion corrections
-      if (m_dccStatic)
-      {
-        global = m_distortionCorrection.get_corrected_position(global, m_dccStatic);
-      }
-      if (m_dccAverage)
-      {
-        global = m_distortionCorrection.get_corrected_position(global, m_dccAverage);
-      }
-      if (m_dccFluctuation)
-      {
-        global = m_distortionCorrection.get_corrected_position(global, m_dccFluctuation);
-      }
-    }
-
-    // add the global positions to a vector to give to the cluster mover
-    global_raw.push_back(std::make_pair(key, global));
-
-  }  // end loop over clusters here
-
-  // move the cluster positions back to the original readout surface
-  auto global_moved = m_clusterMover.processTrack(global_raw);
-
-  // loop over global positions returned by cluster mover
-  for (int i = 0; i < global_moved.size(); ++i)
-  {
-    TrkrDefs::cluskey cluskey = global_moved[i].first;
-    Acts::Vector3 global = global_moved[i].second;
-    auto cluster = m_clusterContainer->findCluster(cluskey);
-
-    Surface surf = m_tGeometry->maps().getSurface(cluskey, cluster);
-    TrkrDefs::subsurfkey subsurfkey;
-
-    unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
-    if (trkrid == TrkrDefs::tpcId)
-    {
-      // get the new surface corresponding to this global position
-      TrkrDefs::hitsetkey tpcHitSetKey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-      surf = m_tGeometry->get_tpc_surface_from_coords(tpcHitSetKey,
-                                                      global,
-                                                      subsurfkey);
-    }
-
-    if (!surf)
-    {
-      continue;
-    }
-
-    // get local coordinates
-    Acts::Vector2 localPos;
-    Acts::Vector3 normal = surf->normal(m_tGeometry->geometry().getGeoContext());
-    auto local = surf->globalToLocal(m_tGeometry->geometry().getGeoContext(),
-                                     global * Acts::UnitConstants::cm,
-                                     normal);
-
-    if (local.ok())
-    {
-      localPos = local.value() / Acts::UnitConstants::cm;
-    }
-    else
-    {
-      /// otherwise take the manual calculation
-      Acts::Vector3 loct = surf->transform(m_tGeometry->geometry().getGeoContext()).inverse() * global;
-      loct /= Acts::UnitConstants::cm;
-
-      localPos(0) = loct(0);
-      localPos(1) = loct(1);
-    }
-
-    if (Verbosity() > 0)
-    {
-      std::cout << " cluster global after mover: " << global << std::endl;
-      std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
-      std::cout << " new      local X " << localPos(0) << " new       local Y " << localPos(1) << std::endl;
-    }
-
-    Acts::ActsVector<2> loc;
-    loc[Acts::eBoundLoc0] = localPos(0) * Acts::UnitConstants::cm;
-    loc[Acts::eBoundLoc1] = localPos(1) * Acts::UnitConstants::cm;
-    std::array<Acts::BoundIndices, 2> indices;
-    indices[0] = Acts::BoundIndices::eBoundLoc0;
-    indices[1] = Acts::BoundIndices::eBoundLoc1;
-    Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
-
-    double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
-    auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, cluskey);
-    cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
-    cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
-    cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
-    cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
-
-    ActsSourceLink::Index index = measurements.size();
-
-    SourceLink sl(surf->geometryId(), index, cluskey);
-    Acts::SourceLink actsSL{sl};
-    Acts::Measurement<Acts::BoundIndices, 2> meas(actsSL, indices, loc, cov);
-    if (Verbosity() > 3)
-    {
-      std::cout << "source link " << sl.index() << ", loc : "
-                << loc.transpose() << std::endl
-                << ", cov : " << cov.transpose() << std::endl
-                << " geo id " << sl.geometryId() << std::endl;
-      std::cout << "Surface : " << std::endl;
-      surf.get()->toStream(m_tGeometry->geometry().getGeoContext(), std::cout);
-      std::cout << std::endl;
-      std::cout << "Cluster error " << sqrt(cov(Acts::eBoundLoc0, Acts::eBoundLoc0)) << " , " << sqrt(cov(Acts::eBoundLoc1, Acts::eBoundLoc1)) << std::endl;
-      std::cout << "For key " << cluskey << " with local pos " << std::endl
-                << localPos(0) << ", " << localPos(1)
-                << std::endl;
-    }
-
-    sls.push_back(sl);
-    measurements.push_back(meas);
-  }
-
-  return sls;
-}
-*/
 ActsTrackFittingAlgorithm::TrackFitterResult PHActsGSF::fitTrack(
     const std::vector<Acts::SourceLink>& sourceLinks,
     const ActsTrackFittingAlgorithm::TrackParameters& seed,
