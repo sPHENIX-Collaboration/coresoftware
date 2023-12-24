@@ -964,6 +964,14 @@ int PHCosmicsTrkFitter::createNodes(PHCompositeNode* topNode)
     svtxNode->addNode(node);
   }
 
+  m_alignmentTransformationMapTransient = findNode::getClass<alignmentTransformationContainer>(topNode, "alignmentTransformationContainerTransient");
+  if(!m_alignmentTransformationMapTransient)
+    {
+      std::cout << PHWHERE << "alignmentTransformationContainerTransient not on node tree. Bailing"
+                << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
   if (m_actsEvaluator)
   {
     m_seedTracks = findNode::getClass<SvtxTrackMap>(topNode, _seed_track_map_name);

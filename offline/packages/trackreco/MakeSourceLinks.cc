@@ -45,6 +45,8 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 						   std::set< Acts::GeometryIdentifier> transient_id_set,
 						  short int crossing)
 {
+  if(m_verbosity > 1) { std::cout << "Entering MakeSourceLinks::getSourceLinks " << std::endl; }
+
   SourceLinkVec sourcelinks;
 
   if (m_pp_mode && crossing == SHRT_MAX)
@@ -84,6 +86,8 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 
     const unsigned int trkrid = TrkrDefs::getTrkrId(key);
     const unsigned int side = TpcDefs::getSide(key);
+
+    if(m_verbosity > 1) { std::cout << "    Cluster key " << key << " trkrid " << trkrid << " crossing " << crossing << std::endl; }
 
     // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset
     // we do this by modifying the fake surface transform, to move the cluster to the corrected position
@@ -147,7 +151,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 	  continue;
 	}      
 
-      // get local coordinates
+      // get local coordinates (TPC time needs conversion to cm)
       auto cluster = clusterContainer->findCluster(cluskey);
       Acts::Vector2 localPos = tGeometry->getLocalCoords(cluskey, cluster);
 
@@ -185,10 +189,12 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 	  std::cout << "Surface : " << std::endl;
 	  surf.get()->toStream(tGeometry->geometry().getGeoContext(), std::cout);
 	  std::cout << std::endl;
+	  std::cout << "Corrected surface transform:" << std::endl;
+	  std::cout << transformMapTransient->getTransform(surf->geometryId()).matrix() << std::endl;
 	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
 	  std::cout << "For key " << cluskey << " with local pos " << std::endl
 		    << localPos(0) << ", " << localPos(1)
-		    << std::endl;
+		    << std::endl << std::endl;
 	}
       
       sourcelinks.push_back(actsSL);

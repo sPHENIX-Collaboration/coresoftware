@@ -538,5 +538,13 @@ int PHActsGSF::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  m_alignmentTransformationMapTransient = findNode::getClass<alignmentTransformationContainer>(topNode, "alignmentTransformationContainerTransient");
+  if(!m_alignmentTransformationMapTransient)
+    {
+      std::cout << PHWHERE << "alignmentTransformationContainerTransient not on node tree. Bailing"
+                << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
