@@ -1,8 +1,10 @@
-#ifndef CALOVALID_H__
-#define CALOVALID_H__
+#ifndef CALOVALID_CALOVALID_H
+#define CALOVALID_CALOVALID_H
 
 #include <fun4all/SubsysReco.h>
+#include <string>
 #include <vector>
+
 // Forward declarations
 class Fun4AllHistoManager;
 class PHCompositeNode;
@@ -43,74 +45,74 @@ class CaloValid : public SubsysReco
   void apply_vertex_cut(bool Vtx_cut) { m_vtxCut = Vtx_cut; }
 
   void set_debug(bool debug) { m_debug = debug; }
-  TH2F* LogYHist2D(const char*, const char*, int , double , double , int , double , double );
-  
- protected:
-  bool m_debug = 0;
+  TH2F* LogYHist2D(const std::string& name, const std::string& title, int, double, double, int, double, double);
+
+ private:
+  int Getpeaktime(TH1* h);
+
+  bool m_debug{0};
   std::string detector;
   std::string outfilename;
-  int Getpeaktime(TH1* h);
-  Fun4AllHistoManager* hm = nullptr;
-  TFile* outfile = nullptr;
-  TH2F* h_emcal_mbd_correlation = nullptr;
-  TH2F* h_ohcal_mbd_correlation = nullptr;
-  TH2F* h_ihcal_mbd_correlation = nullptr;
-  TH2F* h_emcal_hcal_correlation = nullptr;
-  TH2F* h_emcal_zdc_correlation = nullptr;
+  Fun4AllHistoManager* hm{nullptr};
+  TFile* outfile{nullptr};
+  TH2F* h_emcal_mbd_correlation{nullptr};
+  TH2F* h_ohcal_mbd_correlation{nullptr};
+  TH2F* h_ihcal_mbd_correlation{nullptr};
+  TH2F* h_emcal_hcal_correlation{nullptr};
+  TH2F* h_emcal_zdc_correlation{nullptr};
 
-  TH1F* h_InvMass = nullptr;
+  TH1F* h_InvMass{nullptr};
 
-  TH2F* h_cemc_etaphi = nullptr;
-  TH2F* h_hcalin_etaphi = nullptr;
-  TH2F* h_hcalout_etaphi = nullptr;
-  TH2F* h_cemc_etaphi_wQA = nullptr;
-  TH2F* h_hcalin_etaphi_wQA = nullptr;
-  TH2F* h_hcalout_etaphi_wQA = nullptr;
-  TH1* h_totalzdc_e;
+  TH2F* h_cemc_etaphi{nullptr};
+  TH2F* h_hcalin_etaphi{nullptr};
+  TH2F* h_hcalout_etaphi{nullptr};
+  TH2F* h_cemc_etaphi_wQA{nullptr};
+  TH2F* h_hcalin_etaphi_wQA{nullptr};
+  TH2F* h_hcalout_etaphi_wQA{nullptr};
+  TH1* h_totalzdc_e{nullptr};
 
-  TProfile2D* h_cemc_etaphi_time = nullptr;
-  TProfile2D* h_hcalin_etaphi_time = nullptr;
-  TProfile2D* h_hcalout_etaphi_time = nullptr;
+  TProfile2D* h_cemc_etaphi_time{nullptr};
+  TProfile2D* h_hcalin_etaphi_time{nullptr};
+  TProfile2D* h_hcalout_etaphi_time{nullptr};
 
-  TH2F* h_cemc_e_chi2 = nullptr;
-  TH2F* h_ohcal_e_chi2 = nullptr;
-  TH2F* h_ihcal_e_chi2 = nullptr;
+  TH2F* h_cemc_e_chi2{nullptr};
+  TH2F* h_ohcal_e_chi2{nullptr};
+  TH2F* h_ihcal_e_chi2{nullptr};
 
-  TProfile2D* h_cemc_etaphi_badChi2 = nullptr;
-  TProfile2D* h_hcalin_etaphi_badChi2 = nullptr;
-  TProfile2D* h_hcalout_etaphi_badChi2 = nullptr;
+  TProfile2D* h_cemc_etaphi_badChi2{nullptr};
+  TProfile2D* h_hcalin_etaphi_badChi2{nullptr};
+  TProfile2D* h_hcalout_etaphi_badChi2{nullptr};
 
-  TProfile2D* h_cemc_etaphi_fracHitADC = nullptr;
-  TProfile2D* h_hcalin_etaphi_fracHitADC = nullptr;
-  TProfile2D* h_hcalout_etaphi_fracHitADC = nullptr;
+  TProfile2D* h_cemc_etaphi_fracHitADC{nullptr};
+  TProfile2D* h_hcalin_etaphi_fracHitADC{nullptr};
+  TProfile2D* h_hcalout_etaphi_fracHitADC{nullptr};
 
-  TH1* hzdctime;
-  TH1* hmbdtime;
-  TH1* hemcaltime;
-  TH1* hihcaltime;
-  TH1* hohcaltime;
+  TH1* hzdctime{nullptr};
+  TH1* hmbdtime{nullptr};
+  TH1* hemcaltime{nullptr};
+  TH1* hihcaltime{nullptr};
+  TH1* hohcaltime{nullptr};
 
-  TH1* hzdctime_cut;
-  TH1* hmbdtime_cut;
-  TH1* hemcaltime_cut;
-  TH1* hihcaltime_cut;
-  TH1* hohcaltime_cut;
+  TH1* hzdctime_cut{nullptr};
+  TH1* hmbdtime_cut{nullptr};
+  TH1* hemcaltime_cut{nullptr};
+  TH1* hihcaltime_cut{nullptr};
+  TH1* hohcaltime_cut{nullptr};
 
-  TH1* hvtx_z_raw;
-  TH1* hvtx_z_cut;
+  TH1* hvtx_z_raw{nullptr};
+  TH1* hvtx_z_cut{nullptr};
 
-  TH1* hzdcSouthraw;
-  TH1* hzdcNorthraw;
-  TH1* hzdcSouthcalib;
-  TH1* hzdcNorthcalib;
+  TH1* hzdcSouthraw{nullptr};
+  TH1* hzdcNorthraw{nullptr};
+  TH1* hzdcSouthcalib{nullptr};
+  TH1* hzdcNorthcalib{nullptr};
 
-  TH1F* h_clusE;
-  TH2F* h_etaphi_clus;
+  TH1F* h_clusE{nullptr};
+  TH2F* h_etaphi_clus{nullptr};
 
-  TNtuple* g4hitntuple = nullptr;
-  TNtuple* g4cellntuple = nullptr;
-  TTree* towerntuple = nullptr;
-  TNtuple* clusterntuple = nullptr;
+  TTree* towerntuple{nullptr};
+  TNtuple* clusterntuple{nullptr};
+
   std::vector<float> m_energy;
   std::vector<int> m_etabin;
   std::vector<int> m_phibin;
@@ -133,11 +135,11 @@ class CaloValid : public SubsysReco
   std::vector<float> m_bbc_energy;
   std::vector<int> m_bbc_type;
   std::vector<int> m_bbc_side;
-  int _eventcounter;
-  int _range = 1;
-  float _vz = 0.;
-  bool m_vtxCut = false;
-  bool dynMaskClus = true;
+  int _eventcounter{0};
+  int _range{1};
+  float _vz{0.};
+  bool m_vtxCut{false};
+  bool dynMaskClus{true};
 };
 
 #endif

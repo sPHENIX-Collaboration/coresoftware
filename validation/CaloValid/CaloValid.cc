@@ -2,40 +2,26 @@
 
 // G4Hits includes
 #include <TLorentzVector.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
 
-// G4Cells includes
-#include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CellContainer.h>
-
-// Tower includes
+// Calo includes
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoDefs.h>
-
-// Cluster includes
-#include <calobase/RawCluster.h>
-#include <calobase/RawClusterContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
+#include <phool/phool.h>  // for PHWHERE
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 
 // MBD
-#include <mbd/BbcGeom.h>
-#include <mbd/MbdPmtContainerV1.h>
+#include <mbd/MbdPmtContainer.h>
 #include <mbd/MbdPmtHit.h>
 
 #include <TFile.h>
@@ -43,37 +29,32 @@
 #include <TH2.h>
 #include <TNtuple.h>
 #include <TProfile2D.h>
+#include <TSystem.h>
 #include <TTree.h>
 
-#include <Event/Event.h>
-#include <Event/packet.h>
-#include <cassert>
-#include <sstream>
+#include <cmath>     // for log10, pow, sqrt, abs, M_PI
+#include <iostream>  // for operator<<, endl, basic_...
+#include <map>       // for operator!=, _Rb_tree_con...
 #include <string>
-
-TH2F* LogYHist2D(const char* name, const char* title, int xbins_in, double_t xmin, double_t xmax, int ybins_in, double_t ymin, double_t ymax);
-
-using namespace std;
+#include <utility>  // for pair
 
 CaloValid::CaloValid(const std::string& name, const std::string& filename)
   : SubsysReco(name)
   , detector("HCALIN")
   , outfilename(filename)
 {
-  _eventcounter = 0;
 }
 
 CaloValid::~CaloValid()
 {
   delete hm;
-  delete g4hitntuple;
-  delete g4cellntuple;
   delete towerntuple;
   delete clusterntuple;
 }
 
-int CaloValid::Init(PHCompositeNode*)
+int CaloValid::Init(PHCompositeNode* /*unused*/)
 {
+  delete hm; // make cppcheck happy
   hm = new Fun4AllHistoManager(Name());
   // create and register your histos (all types) here
 
@@ -136,7 +117,7 @@ int CaloValid::Init(PHCompositeNode*)
   hohcaltime = new TH1D("hohcaltime", "hohcaltime", 50, -17.5, 32.5);
 
   // cluster QA
-  h_etaphi_clus = new TH2F("h_etaphi_clus", "", 140, -1.2, 1.2, 64, -1 * TMath::Pi(), TMath::Pi());
+  h_etaphi_clus = new TH2F("h_etaphi_clus", "", 140, -1.2, 1.2, 64, -1 * M_PI, M_PI);
   h_clusE = new TH1F("h_clusE", "", 100, 0, 10);
 
   return 0;
@@ -153,7 +134,10 @@ int CaloValid::process_event(PHCompositeNode* topNode)
 
 int CaloValid::process_towers(PHCompositeNode* topNode)
 {
-  if (m_debug) std::cout << _eventcounter << std::endl;
+  if (m_debug)
+  {
+    std::cout << _eventcounter << std::endl;
+  }
 
   float totalcemc = 0.;
   float totalihcal = 0.;
@@ -165,13 +149,13 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   float totalzdcsouthcalib = 0.;
   float totalzdcnorthcalib = 0.;
 
-  float emcaldownscale = 1000000 / 800;
-  float ihcaldownscale = 40000 / 300;
-  float ohcaldownscale = 250000 / 600;
+  float emcaldownscale = 1000000. / 800.;
+  float ihcaldownscale = 40000. / 300.;
+  float ohcaldownscale = 250000. / 600.;
   float mbddownscale = 2000.0;
   float zdcdownscale = 1e4;
 
-  float adc_threshold = 15;
+  float adc_threshold = 15.;
 
   float emcal_hit_threshold = 0.5;  // GeV
   float ohcal_hit_threshold = 0.5;
@@ -232,7 +216,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
           {
             h_cemc_etaphi_time->Fill(ieta, iphi, _timef);
             h_cemc_etaphi->Fill(ieta, iphi);
-            if (isGood) h_cemc_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
+            if (isGood)
+            {
+              h_cemc_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
+            }
             if (tower->get_isBadChi2())
             {
               h_cemc_etaphi_badChi2->Fill(ieta, iphi, 1);
@@ -273,7 +260,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
           {
             h_hcalin_etaphi->Fill(ieta, iphi);
             h_hcalin_etaphi_time->Fill(ieta, iphi, _timef);
-            if (isGood) h_hcalin_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
+            if (isGood)
+            {
+              h_hcalin_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
+            }
             if (tower->get_isBadChi2())
             {
               h_hcalin_etaphi_badChi2->Fill(ieta, iphi, 1);
@@ -316,7 +306,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
           {
             h_hcalout_etaphi->Fill(ieta, iphi);
             h_hcalout_etaphi_time->Fill(ieta, iphi, _timef);
-            if (isGood) h_hcalout_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
+            if (isGood)
+            {
+              h_hcalout_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
+            }
             if (tower->get_isBadChi2())
             {
               h_hcalout_etaphi_badChi2->Fill(ieta, iphi, 1);
@@ -502,7 +495,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     std::cout << Name() << "::"
               << "CreateNodeTree"
               << ": Could not find node " << towergeomnodename << std::endl;
-    throw std::runtime_error("failed to find TOWERGEOM node in RawClusterDeadHotMask::CreateNodeTree");
+    gSystem->Exit(1);
   }
 
   // cuts
@@ -580,9 +573,15 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         TLorentzVector photon2;
         photon2.SetPtEtaPhiE(clus2_pt, clus2_eta, clus2_phi, clus2E);
 
-        if (sqrt(pow(clusE - clus2E, 2)) / (clusE + clus2E) > maxAlpha) continue;
+        if (sqrt(pow(clusE - clus2E, 2)) / (clusE + clus2E) > maxAlpha)
+        {
+          continue;
+        }
 
-        if (photon1.DeltaR(photon2) < minDr) continue;
+        if (photon1.DeltaR(photon2) < minDr)
+        {
+          continue;
+        }
         TLorentzVector pi0 = photon1 + photon2;
         h_InvMass->Fill(pi0.M());
       }
@@ -614,24 +613,29 @@ int CaloValid::Getpeaktime(TH1* h)
     if (max == c)
     {
       getmaxtime = bincenter;
-      if (getmaxtime != -1) tcut = getmaxtime;
+      if (getmaxtime != -1)
+      {
+        tcut = getmaxtime;
+      }
     }
   }
 
   return tcut;
 }
 
-TH2F* CaloValid::LogYHist2D(const char* name, const char* title, int xbins_in, double xmin, double xmax, int ybins_in, double ymin, double ymax)
+TH2F* CaloValid::LogYHist2D(const std::string& name, const std::string& title, int xbins_in, double xmin, double xmax, int ybins_in, double ymin, double ymax)
 {
-  Double_t logymin = TMath::Log10(ymin);
-  Double_t logymax = TMath::Log10(ymax);
+  Double_t logymin = std::log10(ymin);
+  Double_t logymax = std::log10(ymax);
   Double_t binwidth = (logymax - logymin) / ybins_in;
   Double_t ybins[ybins_in + 1];
 
   for (Int_t i = 0; i <= ybins_in + 1; i++)
-    ybins[i] = TMath::Power(10, logymin + i * binwidth);
+  {
+    ybins[i] = pow(10, logymin + i * binwidth);
+  }
 
-  TH2F* h = new TH2F(name, title, xbins_in, xmin, xmax, ybins_in, ybins);
+  TH2F* h = new TH2F(name.c_str(), title.c_str(), xbins_in, xmin, xmax, ybins_in, ybins);
 
   return h;
 }

@@ -21,15 +21,12 @@ libcalovalid_la_SOURCES = \
 
 libcalovalid_la_LIBADD = \
   -lcalo_io \
-  -lphool \
-  -lmbd_io \
-  -lSubsysReco \
-  -lcentrality_io \
+  -lCLHEP \
   -lfun4all \
-  -lg4dst \
-  -lg4detectors_io \
-  -lphg4hit
-
+  -lglobalvertex_io \
+  -lmbd_io \
+  -lphool \
+  -lSubsysReco
 
 ################################################
 # linking tests
