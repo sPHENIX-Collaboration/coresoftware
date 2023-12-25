@@ -54,7 +54,7 @@ CaloValid::~CaloValid()
 
 int CaloValid::Init(PHCompositeNode* /*unused*/)
 {
-  delete hm; // make cppcheck happy
+  delete hm; // this is a null pointer - make cppcheck happy
   hm = new Fun4AllHistoManager(Name());
   // create and register your histos (all types) here
 
