@@ -331,6 +331,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
         }
     }
     RawCluster *recalibcluster = dynamic_cast<RawCluster *>(cluster->CloneMe());
+/*
     assert(recalibcluster);
     //    if (m_UseTowerInfo)
     recalibcluster->set_energy(clus_energy / eclus_recalib_val);
@@ -353,6 +354,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 	recalibcluster->set_ecore(recalibcluster->get_ecore() /pdcCalib);
 
       }
+*/
     _recalib_clusters->AddCluster(recalibcluster);
 
     if (Verbosity() >= Fun4AllBase::VERBOSITY_EVEN_MORE && clus_energy > 1)
@@ -398,19 +400,20 @@ void RawClusterPositionCorrection::CreateNodeTree(PHCompositeNode *topNode)
   }
 
   // Check to see if the cluster recalib node is on the nodetree
-  _recalib_clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_RECALIB_" + _det_name);
   std::string ClusterCorrNodeName = "CLUSTER_POS_COR_" + _det_name;
-
-  // If not, make it and add it to the _det_name subnode
-  if (!_recalib_clusters)
+  if (m_UseTowerInfo)
+  {
+    ClusterCorrNodeName = "CLUSTERINFO_POS_COR_" + _det_name;
+  }
+  _recalib_clusters = findNode::getClass<RawClusterContainer>(topNode,ClusterCorrNodeName );
+  if (_recalib_clusters)
+  {
+    _recalib_clusters->Clear();
+  }
+  else
   {
     _recalib_clusters = new RawClusterContainer();
-    if (m_UseTowerInfo)
-    {
-      ClusterCorrNodeName = "CLUSTERINFO_POS_COR_" + _det_name;
-    }
-
-    PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_recalib_clusters, ClusterCorrNodeName.c_str(), "PHObject");
+    PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_recalib_clusters, ClusterCorrNodeName, "PHObject");
     cemcNode->addNode(clusterNode);
   }
 }
