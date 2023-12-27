@@ -156,7 +156,6 @@ int PHActsGSF::process_event(PHCompositeNode*)
     auto ppoptions = Acts::PropagatorPlainOptions();
 
     ActsTrackFittingAlgorithm::GeneralFitterOptions options{
-        //m_tGeometry->geometry().getGeoContext(),
         m_transient_geocontext,
         magcontext,
         calcontext,
@@ -165,7 +164,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
     if (Verbosity() > 2)
     {
       std::cout << "calling gsf with position "
-                << seed.position(m_tGeometry->geometry().getGeoContext()).transpose()
+                << seed.position(m_transient_geocontext).transpose()
                 << " and momentum " << seed.momentum().transpose()
                 << std::endl;
     }
@@ -212,7 +211,6 @@ ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
   auto cov = transformer.rotateSvtxTrackCovToActs(track);
 
   return ActsTrackFittingAlgorithm::TrackParameters::create(psurf,
-                                                            //m_tGeometry->geometry().getGeoContext(),
 							    m_transient_geocontext,
                                                             fourpos,
                                                             momentum,
@@ -269,7 +267,7 @@ void PHActsGSF::updateSvtxTrack(const Trajectory& traj, SvtxTrack* track)
               << "   (" << track->get_px() << ", " << track->get_py()
               << ", " << track->get_pz() << ")" << std::endl;
     std::cout << "New GSF track parameters: " << std::endl
-              << "   " << params.position(m_tGeometry->geometry().getGeoContext()).transpose()
+              << "   " << params.position(m_transient_geocontext).transpose()
               << std::endl
               << "   " << params.momentum().transpose()
               << std::endl;
@@ -287,9 +285,9 @@ void PHActsGSF::updateSvtxTrack(const Trajectory& traj, SvtxTrack* track)
   out.set_z(0.0);
   track->insert_state(&out);
 
-  track->set_x(params.position(m_tGeometry->geometry().getGeoContext())(0) / Acts::UnitConstants::cm);
-  track->set_y(params.position(m_tGeometry->geometry().getGeoContext())(1) / Acts::UnitConstants::cm);
-  track->set_z(params.position(m_tGeometry->geometry().getGeoContext())(2) / Acts::UnitConstants::cm);
+  track->set_x(params.position(m_transient_geocontext)(0) / Acts::UnitConstants::cm);
+  track->set_y(params.position(m_transient_geocontext)(1) / Acts::UnitConstants::cm);
+  track->set_z(params.position(m_transient_geocontext)(2) / Acts::UnitConstants::cm);
 
   track->set_px(params.momentum()(0));
   track->set_py(params.momentum()(1));
@@ -313,7 +311,7 @@ void PHActsGSF::updateSvtxTrack(const Trajectory& traj, SvtxTrack* track)
     }
   }
 
-  transformer.fillSvtxTrackStates(mj, tracktip, track, m_tGeometry->geometry().getGeoContext());
+  transformer.fillSvtxTrackStates(mj, tracktip, track, m_transient_geocontext);
 }
 
 //____________________________________________________________________________..

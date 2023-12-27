@@ -405,7 +405,6 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     //! Reset the track seed with the dummy covariance
     auto seed = ActsTrackFittingAlgorithm::TrackParameters::create(
                     pSurface,
-                    //m_tGeometry->geometry().getGeoContext(),
 		    m_transient_geocontext,
                     actsFourPos,
                     momentum,
@@ -436,7 +435,6 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     ActsTrackFittingAlgorithm::GeneralFitterOptions
         kfOptions{
-            //m_tGeometry->geometry().getGeoContext(),
             m_transient_geocontext,
             magcontext,
             calibcontext,
@@ -504,7 +502,7 @@ bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput,
   if (Verbosity() > 2)
   {
     std::cout << "Fitted parameters for track" << std::endl;
-    std::cout << " position : " << outtrack.referenceSurface().localToGlobal(m_tGeometry->geometry().getGeoContext(), Acts::Vector2(outtrack.loc0(), outtrack.loc1()), Acts::Vector3(1, 1, 1)).transpose()
+    std::cout << " position : " << outtrack.referenceSurface().localToGlobal(m_transient_geocontext, Acts::Vector2(outtrack.loc0(), outtrack.loc1()), Acts::Vector3(1, 1, 1)).transpose()
 
               << std::endl;
 
@@ -584,9 +582,9 @@ void PHCosmicsTrkFitter::updateSvtxTrack(
   const auto& params = paramsMap.find(trackTip)->second;
 
   /// Acts default unit is mm. So convert to cm
-  track->set_x(params.position(m_tGeometry->geometry().getGeoContext())(0) / Acts::UnitConstants::cm);
-  track->set_y(params.position(m_tGeometry->geometry().getGeoContext())(1) / Acts::UnitConstants::cm);
-  track->set_z(params.position(m_tGeometry->geometry().getGeoContext())(2) / Acts::UnitConstants::cm);
+  track->set_x(params.position(m_transient_geocontext)(0) / Acts::UnitConstants::cm);
+  track->set_y(params.position(m_transient_geocontext)(1) / Acts::UnitConstants::cm);
+  track->set_z(params.position(m_transient_geocontext)(2) / Acts::UnitConstants::cm);
 
   track->set_px(params.momentum()(0));
   track->set_py(params.momentum()(1));
@@ -618,7 +616,7 @@ void PHCosmicsTrkFitter::updateSvtxTrack(
   if (m_fillSvtxTrackStates)
   {
     rotater.fillSvtxTrackStates(mj, trackTip, track,
-                                m_tGeometry->geometry().getGeoContext());
+                                m_transient_geocontext);
   }
 
   if (Verbosity() > 2)
@@ -670,7 +668,7 @@ void PHCosmicsTrkFitter::printTrackSeed(const ActsTrackFittingAlgorithm::TrackPa
       << std::endl;
 
   std::cout
-      << "position: " << seed.position(m_tGeometry->geometry().getGeoContext()).transpose()
+      << "position: " << seed.position(m_transient_geocontext).transpose()
       << std::endl
       << "momentum: " << seed.momentum().transpose()
       << std::endl;
