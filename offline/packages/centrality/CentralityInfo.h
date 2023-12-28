@@ -1,5 +1,5 @@
-#ifndef CENTRALITY_IO_CENTRALITYINFO_H
-#define CENTRALITY_IO_CENTRALITYINFO_H
+#ifndef CENTRALITY_CENTRALITYINFO_H
+#define CENTRALITY_CENTRALITYINFO_H
 
 //===========================================================
 /// \file CentralityInfo.h

@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I`root-config --incdir`
+  -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
    libcalotrigger_io.la \
@@ -19,28 +19,40 @@ libcalotrigger_io_la_LIBADD = \
 libcalotrigger_la_LIBADD = \
   libcalotrigger_io.la \
   -lcalo_io \
+  -lmbd_io \
+  -lglobalvertex \
   -lSubsysReco
 
 pkginclude_HEADERS = \
+  MinimumBiasClassifier.h \
+  MinimumBiasInfo.h \
+  MinimumBiasInfov1.h \
   CaloTriggerSim.h \
   CaloTriggerInfo.h \
   CaloTriggerInfov1.h
 
 ROOTDICTS = \
   CaloTriggerInfo_Dict.cc \
-  CaloTriggerInfov1_Dict.cc
+  CaloTriggerInfov1_Dict.cc \
+  MinimumBiasInfo_Dict.cc \
+  MinimumBiasInfov1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CaloTriggerInfo_Dict_rdict.pcm \
-  CaloTriggerInfov1_Dict_rdict.pcm
+  CaloTriggerInfov1_Dict_rdict.pcm \
+  MinimumBiasInfo_Dict_rdict.pcm \
+  MinimumBiasInfov1_Dict_rdict.pcm
 
 libcalotrigger_io_la_SOURCES = \
   $(ROOTDICTS) \
-  CaloTriggerInfov1.cc
+  CaloTriggerInfov1.cc \
+  MinimumBiasInfov1.cc
 
 libcalotrigger_la_SOURCES = \
-  CaloTriggerSim.cc
+  CaloTriggerSim.cc \
+  MinimumBiasClassifier.cc
+
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -56,7 +68,6 @@ BUILT_SOURCES = testexternals.cc
 noinst_PROGRAMS = \
   testexternals_calotrigger_io \
   testexternals_calotrigger
-
 
 testexternals_calotrigger_io_SOURCES = testexternals.cc
 testexternals_calotrigger_io_LDADD = libcalotrigger_io.la
