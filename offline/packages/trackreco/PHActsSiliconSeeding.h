@@ -104,7 +104,7 @@ class PHActsSiliconSeeding : public SubsysReco
   void largeGridSpacing(const bool spacing);
 
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
-  void SetIteration(int iter){_n_iteration = iter;}
+  void iteration(int iter){m_nIteration = iter;}
   void searchInIntt() { m_searchInIntt = true; }
 
  private:
@@ -131,7 +131,7 @@ class PHActsSiliconSeeding : public SubsysReco
     TrkrCluster* clus);
   
   /// Get all space points for the seeder
-  std::vector<const SpacePoint*> getMvtxSpacePoints(Acts::Extent& rRangeSPExtent);
+  std::vector<const SpacePoint*> getSiliconSpacePoints(Acts::Extent& rRangeSPExtent);
   void printSeedConfigs(Acts::SeedFilterConfig &sfconfig);
 
   /// Projects circle fit to INTT radii to find possible INTT clusters
@@ -141,7 +141,8 @@ class PHActsSiliconSeeding : public SubsysReco
 		        TrackSeed& seed);
 
   std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3>& clusters,
-						   const double xProj[],
+						   TrackSeed& seed,
+               const double xProj[],
 						   const double yProj[],
 						   const double zProj[]);
 
@@ -233,7 +234,7 @@ class PHActsSiliconSeeding : public SubsysReco
   int m_nBadUpdates = 0;
   int m_nBadInitialFits = 0;
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
-  int _n_iteration = 0;
+  int m_nIteration = 0;
   std::string _track_map_name = "SiliconTrackSeedContainer";
   ClusterErrorPara _ClusErrPara;
 
