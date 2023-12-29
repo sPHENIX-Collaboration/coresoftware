@@ -67,9 +67,15 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
            ++iter)
 	{
 	  TrkrDefs::cluskey ckey = *iter;
-	  if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
-	    { mvtx1Keys.insert(ckey); }
-	}
+          auto trkrid = TrkrDefs::getTrkrId(ckey);
+		  if(m_mvtxOnly && trkrid == TrkrDefs::TrkrId::inttId)
+		  {
+                    continue;
+                  }
+
+            mvtx1Keys.insert(ckey); 
+			}
+	
    
       /// We can speed up the code by only iterating over the track seeds
       /// that are further in the map container from the current track,
@@ -89,8 +95,12 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 	       ++iter)
 	    {
 	      TrkrDefs::cluskey ckey = *iter;
-	      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
-		{ mvtx2Keys.insert(ckey); }
+              auto trkrid = TrkrDefs::getTrkrId(ckey);
+              if (m_mvtxOnly && trkrid == TrkrDefs::TrkrId::inttId)
+              {
+                continue;
+              }
+         mvtx2Keys.insert(ckey); 
 	    }
 
 	  std::vector<TrkrDefs::cluskey> intersection;
@@ -102,7 +112,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 
 	  /// If we have two clusters in common in the triplet, it is likely
 	  /// from the same track
-	  if(intersection.size() > 1) 
+	  if(intersection.size() > m_clusterOverlap) 
 	    {
 	      if(Verbosity() > 2) 
 		{
