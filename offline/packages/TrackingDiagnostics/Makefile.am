@@ -14,6 +14,7 @@ pkginclude_HEADERS = \
   KshortReconstruction.h \
   helixResiduals.h \
   TrackResiduals.h \
+  TrackContainerCombiner.h \
   TrkrNtuplizer.h
 
 lib_LTLIBRARIES = \
@@ -23,6 +24,7 @@ libTrackingDiagnostics_la_SOURCES = \
   KshortReconstruction.cc \
   helixResiduals.cc \
   TrackResiduals.cc \
+  TrackContainerCombiner.cc \
   TrkrNtuplizer.cc
 
 libTrackingDiagnostics_la_LIBADD = \
