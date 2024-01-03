@@ -15,6 +15,7 @@ pkginclude_HEADERS = \
   helixResiduals.h \
   TrackResiduals.h \
   TrackContainerCombiner.h \
+  TrackSeedTrackMapConverter.h \
   TrkrNtuplizer.h
 
 lib_LTLIBRARIES = \
@@ -25,6 +26,7 @@ libTrackingDiagnostics_la_SOURCES = \
   helixResiduals.cc \
   TrackResiduals.cc \
   TrackContainerCombiner.cc \
+  TrackSeedTrackMapConverter.cc \
   TrkrNtuplizer.cc
 
 libTrackingDiagnostics_la_LIBADD = \
