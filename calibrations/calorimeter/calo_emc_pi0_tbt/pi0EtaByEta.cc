@@ -218,6 +218,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
+  float ptClusMax = 5;
   float pt1ClusCut = 1.3;  // 1.3
   float pt2ClusCut = 0.7;  // 0.7
 
@@ -291,7 +292,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     TLorentzVector photon1;
     photon1.SetPtEtaPhiE(clus_pt, clus_eta, clus_phi, clusE);
 
-    if (clus_pt < pt1ClusCut)
+    if (clus_pt < pt1ClusCut || clus_pt > ptClusMax)
     {
       continue;
     }
@@ -312,7 +313,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       float clus2_pt = E_vec_cluster2.perp();
       float clus2_chisq = recoCluster2->get_chi2();
 
-      if (clus2_pt < pt2ClusCut)
+      if (clus2_pt < pt2ClusCut || clus_pt > ptClusMax)
       {
         continue;
       }
@@ -390,31 +391,32 @@ int pi0EtaByEta::End(PHCompositeNode* /*topNode*/)
   return 0;
 }
 
-std::pair<double, double> pi0EtaByEta::fitHistogram(TH1* h)
+TF1* pi0EtaByEta::fitHistogram(TH1* h)
 {
-  TF1* fitFunc = new TF1("fitFunc", "[0]*exp(-0.5*((x-[1])/[2])^2) + [3] + [4]*x + [5]*x^2 + [6]*x^3", h->GetXaxis()->GetXmin(), h->GetXaxis()->GetXmax());
+  TF1* fitFunc = new TF1("fitFunc", "[0]/[2]/2.5*exp(-0.5*((x-[1])/[2])^2) + [3] + [4]*x + [5]*x^2 + [6]*x^3", h->GetXaxis()->GetXmin(), h->GetXaxis()->GetXmax());
 
-  fitFunc->SetParameter(0, h->GetMaximum());
+  fitFunc->SetParameter(0, 5);
   fitFunc->SetParameter(1, target_pi0_mass);
   fitFunc->SetParameter(2, 0.01);
   fitFunc->SetParameter(3, 0.0);
   fitFunc->SetParameter(4, 0.0);
   fitFunc->SetParameter(5, 0.0);
-  fitFunc->SetParameter(6, 0.0);
+  fitFunc->SetParameter(6, 100);
 
-  fitFunc->SetParLimits(1, 0.1, 0.2);
+  fitFunc->SetParLimits(0, 0,10);
+  fitFunc->SetParLimits(1, 0.113, 0.25);
+  fitFunc->SetParLimits(2, 0.01, 0.04);
+  fitFunc->SetParLimits(3,-2 ,1 );
+  fitFunc->SetParLimits(4,0 ,40 );
+  fitFunc->SetParLimits(5, -150,50 );
+  fitFunc->SetParLimits(6, 0,200 );
+
+  fitFunc->SetRange(0.05, 0.7);
 
   // Perform the fit
   h->Fit("fitFunc", "QN");
 
-  // Get the mean and its error
-  double mean = fitFunc->GetParameter(1);
-  double errorOnMean = fitFunc->GetParError(1);
-
-  // Create a pair to store the results
-  std::pair<double, double> result(mean, errorOnMean);
-
-  return result;
+  return fitFunc;
 }
 
 void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fitOutFile, const std::string& cdbFile)
@@ -422,6 +424,12 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   TFile* fin = new TFile(infile.c_str());
   std::cout << "getting hists" << std::endl;
   TH1F* h_peak_eta = new TH1F("h_peak_eta", "", 96, 0, 96);
+  TH1F* h_sigma_eta = new TH1F("h_sigma_eta", "", 96, 0, 96);
+  TH1F* h_p3_eta = new TH1F("h_p3_eta", "", 96, 0, 96);
+  TH1F* h_p4_eta = new TH1F("h_p4_eta", "", 96, 0, 96);
+  TH1F* h_p5_eta = new TH1F("h_p5_eta", "", 96, 0, 96);
+  TH1F* h_p6_eta = new TH1F("h_p6_eta", "", 96, 0, 96);
+  TH1F* h_p0_eta = new TH1F("h_p0_eta", "", 96, 0, 96);
   if (!fin)
   {
     std::cout << "pi0EtaByEta::fitEtaSlices null fin" << std::endl;
@@ -431,17 +439,39 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   for (int i = 0; i < 96; i++)
   {
     h_M_eta[i] = (TH1F*) fin->Get(Form("h_mass_eta_lt%d", i));
+    h_M_eta[i]->Scale(1./h_M_eta[i]->Integral(),"width");
   }
 
+  TF1* fitFunOut[96];
   for (int i = 0; i < 96; i++)
   {
     if (!h_M_eta[i])
     {
       std::cout << "pi0EtaByEta::fitEtaSlices null hist" << std::endl;
     }
-    std::pair<double, double> result = fitHistogram(h_M_eta[i]);
-    h_peak_eta->SetBinContent(i + 1, result.first);
-    h_peak_eta->SetBinError(i + 1, result.second);
+
+    fitFunOut[i] = fitHistogram(h_M_eta[i]);
+    fitFunOut[i]->SetName(Form("f_pi0_eta%d",i));
+    float mass_val_out = fitFunOut[i]->GetParameter(1);
+    float mass_err_out = fitFunOut[i]->GetParError(1);
+    h_peak_eta->SetBinContent(i + 1, mass_val_out);
+    if (isnan(h_M_eta[i]->GetEntries())){
+       h_peak_eta->SetBinError(i + 1, 0);
+       continue;
+    }
+    h_peak_eta->SetBinError(i + 1, mass_err_out);
+    h_sigma_eta->SetBinContent(i+1,fitFunOut[i]->GetParameter(2));
+    h_sigma_eta->SetBinError(i+1,fitFunOut[i]->GetParError(2));
+    h_p3_eta->SetBinContent(i+1,fitFunOut[i]->GetParameter(3));
+    h_p3_eta->SetBinError(i+1,fitFunOut[i]->GetParError(3));
+    h_p4_eta->SetBinContent(i+1,fitFunOut[i]->GetParameter(4));
+    h_p4_eta->SetBinError(i+1,fitFunOut[i]->GetParError(4));
+    h_p5_eta->SetBinContent(i+1,fitFunOut[i]->GetParameter(5));
+    h_p5_eta->SetBinError(i+1,fitFunOut[i]->GetParError(5));
+    h_p6_eta->SetBinContent(i+1,fitFunOut[i]->GetParameter(6));
+    h_p6_eta->SetBinError(i+1,fitFunOut[i]->GetParError(6));
+    h_p0_eta->SetBinContent(i+1,fitFunOut[i]->GetParameter(0));
+    h_p0_eta->SetBinError(i+1,fitFunOut[i]->GetParError(0));
   }
 
   CDBTTree* cdbttree1 = new CDBTTree(cdbFile.c_str());
@@ -467,13 +497,24 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
 
   TFile* fit_out = new TFile(fitOutFile.c_str(), "recreate");
   fit_out->cd();
-  h_peak_eta->Write();
   for (auto& i : h_M_eta)
   {
     i->Write();
     delete i;
   }
+  for (auto& i : fitFunOut)
+  {
+    i->Write();
+    delete i;
+  }
 
+  h_p3_eta->Write();
+  h_p4_eta->Write();
+  h_p5_eta->Write();
+  h_p6_eta->Write();
+  h_p0_eta->Write();
+  h_sigma_eta->Write();
+  h_peak_eta->Write();
   fin->Close();
 
   std::cout << "finish fitting suc" << std::endl;

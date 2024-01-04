@@ -16,6 +16,7 @@ class TNtuple;
 class TTree;
 class TH2;
 class TH1;
+class TF1;
 class TProfile2D;
 
 class pi0EtaByEta : public SubsysReco
@@ -46,7 +47,7 @@ class pi0EtaByEta : public SubsysReco
   void set_vertex_cut(const float v) { _vz = v; }
   void apply_vertex_cut(bool Vtx_cut) { m_vtxCut = Vtx_cut; }
 
-  std::pair<double, double> fitHistogram(TH1* h);
+  TF1* fitHistogram(TH1* h);
   void fitEtaSlices(const std::string& infile, const std::string& outfile, const std::string& cdbFile);
 
  protected:
@@ -83,10 +84,10 @@ class pi0EtaByEta : public SubsysReco
   int _range{1};
 
   float _vz{0.};
-  float target_pi0_mass{0.145};
+  float target_pi0_mass{0.152};
 
   bool m_vtxCut{false};
-  bool dynMaskClus{true};
+  bool dynMaskClus{false};
 
   Fun4AllHistoManager* hm{nullptr};
   TFile* outfile{nullptr};
