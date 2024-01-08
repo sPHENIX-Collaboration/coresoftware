@@ -83,6 +83,7 @@ class RawClusterPositionCorrection : public SubsysReco
   TH2* h2NorthSector{nullptr};
   TH2* h2SouthSector{nullptr};
   TH1* pdcCorrFlat{nullptr};
+  TH2* pdcRes_e_eta{nullptr};
   
   CDBTTree *cdbttree{nullptr};
   CDBHistos *cdbHisto{nullptr};

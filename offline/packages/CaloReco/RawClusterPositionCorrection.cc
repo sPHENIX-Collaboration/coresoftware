@@ -124,11 +124,13 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
 
   // Load PDC final stage correction
   calibdir = CDBInterface::instance()->getUrl("cemc_PDC_ResidualCorr");
+  calibdir = "/sphenix/u/bseidlitz/work/photon_PDC_dev/test_res/pdc_res_e_eta.root";
   if (!calibdir.empty())
   {
     cdbHisto = new CDBHistos(calibdir.c_str());
     cdbHisto->LoadCalibrations();
-    pdcCorrFlat = cdbHisto->getHisto("h1_res_p");
+    //pdcCorrFlat = cdbHisto->getHisto("h1_res_p");
+    pdcCorrFlat = cdbHisto->getHisto("h_res_E_eta");
   }
   else
   {
@@ -142,6 +144,9 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
 
 int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 {
+  // make sure new cluster container is empty 
+  _recalib_clusters->Reset();
+
   if (Verbosity() >= Fun4AllBase::VERBOSITY_SOME)
   {
     if (iEvent % 100 == 0) std::cout << "Progress: " << iEvent << std::endl;
@@ -345,18 +350,24 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     //    if (m_UseTowerInfo)
     recalibcluster->set_energy(clus_energy / eclus_recalib_val);
     recalibcluster->set_ecore(cluster->get_ecore() / ecore_recalib_val);
-    if (cluster->get_ecore() >= 0.5 && cluster->get_ecore() <= 10)
-    {
-      // CLHEP::Hep3Vector vertex(0,0,0);
-      // CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recalibcluster, vertex);
 
-      // int ecoreBin = pdcCorr -> GetXaxis() -> FindBin(cluster->get_ecore());
+    CLHEP::Hep3Vector vertex(0,0,0);
+    CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recalibcluster, vertex);
+    float clusEta = E_vec_cluster.pseudoRapidity();
+    //std::cout << "looking into res" << std::endl;
+
+    if (cluster->get_ecore()    >= pdcCorrFlat->GetXaxis()->GetXmin() 
+        && cluster->get_ecore() <  pdcCorrFlat->GetXaxis()->GetXmax()
+        && clusEta              >= pdcCorrFlat->GetYaxis()->GetXmin()
+        && clusEta              <  pdcCorrFlat->GetYaxis()->GetXmax()
+        )
+    {
+
       int ecoreBin = pdcCorrFlat->GetXaxis()->FindBin(recalibcluster->get_ecore());
-      // float pseudo = E_vec_cluster.pseudoRapidity();
-      // if(pseudo > 1)pseudo = 0.99;
-      // int etaBin = pdcCorr -> GetYaxis() -> FindBin(pseudo);
-      // float pdcCalib =  pdcCorr -> GetBinContent(ecoreBin, etaBin);
-      float pdcCalib = pdcCorrFlat->GetBinContent(ecoreBin);
+      int etaBin = pdcCorrFlat -> GetYaxis() -> FindBin(clusEta);
+      float pdcCalib =  pdcCorrFlat -> GetBinContent(ecoreBin, etaBin);
+      //std::cout << "ecore=" << recalibcluster->get_ecore() << " eta=" << clusEta <<  " pdcCalib=" << pdcCalib << std::endl;
+      //float pdcCalib = pdcCorrFlat->GetBinContent(ecoreBin);
       if (pdcCalib < 0.1) pdcCalib = 1;
 
       recalibcluster->set_ecore(recalibcluster->get_ecore() / pdcCalib);
