@@ -354,19 +354,17 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     CLHEP::Hep3Vector vertex(0,0,0);
     CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recalibcluster, vertex);
     float clusEta = E_vec_cluster.pseudoRapidity();
-    //std::cout << "looking into res" << std::endl;
 
     if (cluster->get_ecore()    >= pdcCorrFlat->GetXaxis()->GetXmin() 
         && cluster->get_ecore() <  pdcCorrFlat->GetXaxis()->GetXmax()
         && clusEta              >= pdcCorrFlat->GetYaxis()->GetXmin()
         && clusEta              <  pdcCorrFlat->GetYaxis()->GetXmax()
-        )
+       )
     {
 
       int ecoreBin = pdcCorrFlat->GetXaxis()->FindBin(recalibcluster->get_ecore());
       int etaBin = pdcCorrFlat -> GetYaxis() -> FindBin(clusEta);
       float pdcCalib =  pdcCorrFlat -> GetBinContent(ecoreBin, etaBin);
-      //std::cout << "ecore=" << recalibcluster->get_ecore() << " eta=" << clusEta <<  " pdcCalib=" << pdcCalib << std::endl;
       //float pdcCalib = pdcCorrFlat->GetBinContent(ecoreBin);
       if (pdcCalib < 0.1) pdcCalib = 1;
 
