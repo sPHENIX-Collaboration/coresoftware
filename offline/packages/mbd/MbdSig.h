@@ -96,12 +96,13 @@ public:
 
   /** Make template waveforms for later fits */
   void  SetTemplateSize(const Int_t nptsx, const Int_t nptsy, const Double_t begt, const Double_t endt);
-  Int_t ReadTemplate(std::ifstream& shapefile, std::ifstream& sherrfile);
+  Int_t SetTemplate(const std::vector<float>& shape, const std::vector<float>& sherr);
 
   //Double_t FitPulse();
   void     SetTimeOffset(const Double_t o) { f_time_offset = o; }
   Double_t TemplateFcn(const Double_t *x, const Double_t *par);
   TF1*     GetTemplateFcn() { return template_fcn; }
+  void     SetMinMaxFitTime(const Double_t mintime, const Double_t maxtime);
 
   void PadUpdate();
   void Print();
@@ -149,7 +150,7 @@ private:
   /** For pulse template extraction */
   TH2     *h2Template;
   TH2     *h2Residuals;
-  //THnSparse *h2Template;
+
   TH1     *hAmpl;
   TH1     *hTime;
   Int_t    template_npointsx;
@@ -158,11 +159,13 @@ private:
   Double_t template_endtime;
   //Double_t template_min_good_amplitude;  //! for template, in original units of waveform data
   //Double_t template_max_good_amplitude;  //! for template, in original units of waveform data
-  Double_t template_min_xrange;          //! for template, in original units of waveform data
-  Double_t template_max_xrange;          //! for template, in original units of waveform data
-  std::vector<Double_t> template_y;
-  std::vector<Double_t> template_yrms;
+  //Double_t template_min_xrange;          //! for template, in original units of waveform data
+  //Double_t template_max_xrange;          //! for template, in original units of waveform data
+  std::vector<float> template_y;
+  std::vector<float> template_yrms;
   TF1     *template_fcn;
+  Double_t fit_min_time;                 //! min time for fit, in original units of waveform data
+  Double_t fit_max_time;                 //! max time for fit, in original units of waveform data
 
   int verbose;
 };

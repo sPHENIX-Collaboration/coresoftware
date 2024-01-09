@@ -29,7 +29,10 @@ libcentrality_la_LIBADD = \
 pkginclude_HEADERS = \
   CentralityInfo.h \
   CentralityInfov1.h \
+<<<<<<< HEAD
   CentralityInfov2.h \
+=======
+>>>>>>> b183955abcd8650f7a6403b3814a7542343be7ac
   CentralityReco.h
 
 
@@ -48,6 +51,9 @@ libcentrality_io_la_SOURCES = \
   $(ROOTDICTS) \
   CentralityInfov1.cc \
   CentralityInfov2.cc
+
+libcentrality_la_SOURCES = \
+  CentralityReco.cc
 
 libcentrality_la_SOURCES = \
   CentralityReco.cc

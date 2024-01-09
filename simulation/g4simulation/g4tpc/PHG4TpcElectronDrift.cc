@@ -535,7 +535,13 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       if (m_distortionMap)
       {
-      	//zhcnganyu
+      	//zhangcanyu
+      	const double reaches = m_distortionMap->get_reaches_readout(radstart, phistart, z_start);
+		  if (reaches < thresholdforreachesreadout)
+		  {
+		   continue;
+		  }
+		
         const double r_distortion = m_distortionMap->get_r_distortion(radstart, phistart, z_start);
         const double phi_distortion = m_distortionMap->get_rphi_distortion(radstart, phistart, z_start) / radstart;
         const double z_distortion = m_distortionMap->get_z_distortion(radstart, phistart, z_start);

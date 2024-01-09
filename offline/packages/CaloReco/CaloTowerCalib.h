@@ -56,7 +56,7 @@ class CaloTowerCalib : public SubsysReco
     return;
   }
 
-  void set_directURL(std::string url){
+  void set_directURL(const std::string &url){
     m_giveDirectURL = true;
     m_directURL = url;
   }

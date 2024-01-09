@@ -1,7 +1,7 @@
 #ifndef RESONANCEJETTAGGING_H__
 #define RESONANCEJETTAGGING_H__
 
-#include <jetbase/Jetv1.h>
+#include <jetbase/Jetv2.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -18,7 +18,7 @@ class SvtxTrack;
 class PHG4Particlev2;
 class PHG4Particle;
 class ParticleFlowElement;
-class JetMapv1;
+class JetContainerv1;
 
 namespace CLHEP
 {
@@ -220,7 +220,7 @@ class ResonanceJetTagging : public SubsysReco
   bool getDoTruth() { return m_dotruth; }
 
  private:
-  /// String to contain the jetmap name containing the tagged jets
+  /// String to contain the jetcontainer name containing the tagged jets
   std::string m_jetcontainer_name;
 
   /// Particle Flow selection and acceptance
@@ -256,8 +256,8 @@ class ResonanceJetTagging : public SubsysReco
   fastjet::JetAlgorithm m_jetalgo;
   fastjet::RecombinationScheme m_recomb_scheme;
 
-  JetMapv1 *m_taggedJetMap = nullptr;
-  JetMapv1 *m_truth_taggedJetMap = nullptr;
+  JetContainerv1 *m_taggedJetContainer = nullptr;
+  JetContainerv1 *m_truth_taggedJetContainer = nullptr;
 
   int m_tag_pdg;
   unsigned int m_jet_id = 0;

@@ -78,8 +78,8 @@ class PHCosmicsTrkFitter : public SubsysReco
     m_actsEvaluator = actsEvaluator;
   }
 
-  void setEvaluatorName(std::string name) { m_evalname = name; }
-  void setFieldMap(std::string& fieldMap)
+  void setEvaluatorName(const std::string &name) { m_evalname = name; }
+  void setFieldMap(const std::string &fieldMap)
   {
     m_fieldMap = fieldMap;
   }

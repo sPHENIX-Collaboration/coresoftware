@@ -86,6 +86,25 @@ MicromegasClusterizer::MicromegasClusterizer(const std::string &name )
   : SubsysReco(name)
 {}
 
+//_____________________________________________________________________
+int MicromegasClusterizer::Init(PHCompositeNode* /*topNode*/ )
+{
+  // print configuration
+  std::cout << "MicromegasClusterizer::Init - m_use_default_pedestal: " << m_use_default_pedestal << std::endl;
+  std::cout << "MicromegasClusterizer::Init - m_default_pedestal: " << m_default_pedestal << std::endl;
+  std::cout
+    << "MicromegasClusterizer::Init -"
+    << " m_calibration_filename: "
+    << (m_calibration_filename.empty() ? "unspecified":m_calibration_filename )
+    << std::endl;
+
+  // read calibrations
+  if( !m_calibration_filename.empty() )
+  { m_calibration_data.read( m_calibration_filename ); }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
 //_______________________________________________________________________________
 int MicromegasClusterizer::InitRun(PHCompositeNode *topNode)
 {
@@ -190,7 +209,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     const auto segmentation_type = layergeom->get_segmentation_type();
     const double pitch = layergeom->get_pitch();
     const double strip_length = layergeom->get_strip_length( tileid, acts_geometry );
-    
+
     // keep a list of ranges corresponding to each cluster
     using range_list_t = std::vector<TrkrHitSet::ConstRange>;
     range_list_t ranges;
@@ -241,6 +260,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
     // initialize cluster count
     int cluster_count = 0;
+
     // loop over found hit ranges and create clusters
     for( const auto& range : ranges )
     {
@@ -274,8 +294,9 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         const auto strip = MicromegasDefs::getStrip( hitkey );
 
         // get adc, remove pedestal
-        /* pedestal should be the same as the one used in PHG4MicromegasDigitizer */
-        static constexpr double pedestal = 74.6;
+        const double pedestal = m_use_default_pedestal ?
+          m_default_pedestal:
+          m_calibration_data.get_pedestal_mapped(hitsetkey, strip);
         const double weight = double(hit->getAdc()) - pedestal;
 
         // increment cluster adc
@@ -331,7 +352,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
           error_sq_y = square(strip_length*invsqrt12);
           break;
         }
-        
+
         case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
         {
           if( coord_error_sq == 0 ) coord_error_sq = square(pitch)/12;
@@ -342,7 +363,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         }
       }
 
-      
+
       auto cluster = std::make_unique<TrkrClusterv5>();
       cluster->setAdc( adc_sum );
       cluster->setMaxAdc( max_adc );
@@ -359,7 +380,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
             cluster->setZSize(1);
             break;
           }
-	  
+
 	case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
           {
             cluster->setPhiSize(1);
@@ -369,7 +390,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         }
       // add to container
       trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
-      
+
 
     }
 

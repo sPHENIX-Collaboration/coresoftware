@@ -538,10 +538,17 @@ bool PHNodeIOManager::SetCompressionSetting(const int level)
   return true;
 }
 
-double
+uint64_t
 PHNodeIOManager::GetBytesWritten()
 {
   if (file) return file->GetBytesWritten();
+  return 0.;
+}
+
+uint64_t
+PHNodeIOManager::GetFileSize()
+{
+  if (file) return file->GetSize();
   return 0.;
 }
 

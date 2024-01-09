@@ -179,6 +179,8 @@ class Pythia6
   // ****** constructors and destructor
   Pythia6();
   virtual ~Pythia6();
+  explicit Pythia6(const Pythia6&) = delete;
+  Pythia6& operator=(const Pythia6&) = delete;
 
   static Pythia6* Instance();
 

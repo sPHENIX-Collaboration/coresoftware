@@ -1,7 +1,6 @@
 #include "FastJetAlgo.h"
 
 #include "Jet.h"
-#include "Jetv1.h"
 #include "Jetv2.h"
 #include "JetContainer.h"
 
@@ -157,7 +156,8 @@ float FastJetAlgo::calc_rhomeddens(std::vector<fastjet::PseudoJet>& constituents
   return bge.rho();
 }
 
-std::vector<fastjet::PseudoJet> FastJetAlgo::jets_to_pseudojets(std::vector<Jet*>& particles) {
+std::vector<fastjet::PseudoJet> 
+    FastJetAlgo::jets_to_pseudojets(std::vector<Jet*>& particles) {
   std::vector<fastjet::PseudoJet> pseudojets;
   for (unsigned int ipart = 0; ipart < particles.size(); ++ipart)
   {
@@ -196,14 +196,14 @@ void FastJetAlgo::first_call_init(JetContainer* jetcont) {
 
   if (m_opt.doSoftDrop) {
     jetcont->add_property( {Jet::PROPERTY::prop_zg, Jet::PROPERTY::prop_Rg, Jet::PROPERTY::prop_mu} );
-    m_zg_index = jetcont->find_prop_index(Jet::PROPERTY::prop_zg);
-    m_Rg_index = jetcont->find_prop_index(Jet::PROPERTY::prop_Rg);
-    m_mu_index = jetcont->find_prop_index(Jet::PROPERTY::prop_mu);
+    m_zg_index = jetcont->property_index(Jet::PROPERTY::prop_zg);
+    m_Rg_index = jetcont->property_index(Jet::PROPERTY::prop_Rg);
+    m_mu_index = jetcont->property_index(Jet::PROPERTY::prop_mu);
   }
 
   if (m_opt.calc_area) {
     jetcont->add_property(Jet::PROPERTY::prop_area);
-    m_area_index = jetcont->find_prop_index(Jet::PROPERTY::prop_area);
+    m_area_index = jetcont->property_index(Jet::PROPERTY::prop_area);
   }
 
   jetcont->set_algo(m_opt.algo);
@@ -236,7 +236,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
     jet->set_id(ijet);
 
     if (m_opt.calc_area) {
-      jetcont->set_prop_by_index(m_area_index, fastjets[ijet].area());
+      jet->set_property(m_area_index, fastjets[ijet].area());
     }
 
     // if SoftDrop enabled, and jets have > 5 GeV (do not waste time
@@ -266,29 +266,32 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
       }
  
       // attach SoftDrop quantities as jet properties
-      jetcont->set_prop_by_index(m_zg_index, sd_jet.structure_of<fastjet::contrib::SoftDrop>().symmetry());
-      jetcont->set_prop_by_index(m_Rg_index, sd_jet.structure_of<fastjet::contrib::SoftDrop>().delta_R() );
-      jetcont->set_prop_by_index(m_mu_index, sd_jet.structure_of<fastjet::contrib::SoftDrop>().mu()      );
+      jet->set_property(m_zg_index, sd_jet.structure_of<fastjet::contrib::SoftDrop>().symmetry());
+      jet->set_property(m_Rg_index, sd_jet.structure_of<fastjet::contrib::SoftDrop>().delta_R() );
+      jet->set_property(m_mu_index, sd_jet.structure_of<fastjet::contrib::SoftDrop>().mu()      );
     }
-
-    // copy components into output jet
-    if (m_opt.save_jet_components) {
-      std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
-      for (auto & comp : comps)
-      {
-        if (m_opt.calc_area && comp.is_pure_ghost()) continue;
-        
-        Jet* particle = particles[comp.user_index()];
-
-        for (Jet::Iter iter = particle->begin_comp();
-             iter != particle->end_comp();
-             ++iter)
-        {
-          jet->insert_comp(iter->first, iter->second);
+ 
+    // Count clustered components. If desired, put original components into the output jet.
+    int n_clustered = 0;
+    std::vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
+    if (m_opt.calc_area) {
+      for (auto& comp : constituents) {
+        if (comp.is_pure_ghost()) continue;
+        ++n_clustered;
+        if (m_opt.save_jet_components) {
+          jet->insert_comp(particles[comp.user_index()]->get_comp_vec(), true);
+        }
+      } // end loop over all constituents
+    } else { // didn't calculate jet area
+      n_clustered += constituents.size(); 
+      if (m_opt.save_jet_components) {
+        for (auto& comp : constituents) {
+          jet->insert_comp(particles[comp.user_index()]->get_comp_vec(), true);
         }
       }
     }
-    Jetv2::CompareSRC::sort_comp_ids((Jetv2*)jet);
+    jet->set_comp_sort_flag(); // make surce comp knows it might not be sorted
+    jet->set_n_clustered(n_clustered);
   }
   if (m_opt.verbosity > 1) std::cout << "FastJetAlgo::process_event -- exited" << std::endl;
   delete (m_opt.calc_area ? m_cluseqarea : m_cluseq); //if (m_cluseq) delete m_cluseq;
@@ -311,7 +314,7 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
   std::vector<Jet*> jets;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
   {
-    Jet* jet = new Jetv1();
+    Jet* jet = new Jetv2();
     jet->set_px(fastjets[ijet].px());
     jet->set_py(fastjets[ijet].py());
     jet->set_pz(fastjets[ijet].pz());
@@ -340,22 +343,29 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
       jet->set_property(Jet::PROPERTY::prop_mu, sd_jet.structure_of<fastjet::contrib::SoftDrop>().mu());
     }
 
-    // copy components into output jet
-    if (m_opt.save_jet_components) {
-      std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
-      for (auto & comp : comps)
-      {
-        Jet* particle = particles[comp.user_index()];
-
-        for (Jet::Iter iter = particle->begin_comp();
-             iter != particle->end_comp();
-             ++iter)
-        {
-          jet->insert_comp(iter->first, iter->second);
+    // Count clustered components. If desired, put original components into the output jet.
+    int n_clustered = 0;
+    std::vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
+    if (m_opt.calc_area) {
+      for (auto& comp : constituents) {
+        if (comp.is_pure_ghost()) continue;
+        ++n_clustered;
+        if (m_opt.save_jet_components) {
+          jet->insert_comp(particles[comp.user_index()]->get_comp_vec(), true);
+        }
+      } // end loop over all constituents
+    } else { // didn't save jet area
+      n_clustered += constituents.size(); 
+      if (m_opt.save_jet_components) {
+        for (auto& comp : constituents) {
+          jet->insert_comp(particles[comp.user_index()]->get_comp_vec(), true);
         }
       }
     }
-
+    jet->set_n_clustered(n_clustered);
+    jet->set_comp_sort_flag(); // make surce comp knows it might not be sorted
+                               // can alternatively just remove the `true` parameter
+                               // from the insert_comp function calls above
     jets.push_back(jet);
   }
 

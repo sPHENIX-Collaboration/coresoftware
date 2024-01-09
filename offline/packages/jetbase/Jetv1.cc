@@ -13,6 +13,7 @@
 #include <iostream>
 
 class PHObject;
+std::vector<float> DummyJetPropVecv1;
 
 Jetv1::Jetv1()
 {
@@ -156,25 +157,55 @@ void Jetv1::not_in_v1_msg(const std::string& method_name, std::ostream& os) cons
   os << " warning: Method Jet::"<<method_name <<"() not implemented in Jetv1" << std::endl;
 }
 
-size_t Jetv1::n_properties()
-{
-  not_in_v1_msg("n_properties()");
-  return 0;
-};
-
-inline float Jetv1::get_prop_by_index(unsigned int /*index*/) const
-{
-  not_in_v1_msg("get_prop_by_index()");
-  return NAN;
+std::vector<float>& Jetv1::get_property_vec() {
+  not_in_v1_msg("get_property_vec()");
+  return DummyJetPropVecv1;
 }
 
-inline void Jetv1::set_prop_by_index(unsigned int /*index*/, float /*value*/)
-{
-  not_in_v1_msg("set_prop_by_index()");
+size_t Jetv1::n_clustered() const {
+  not_in_v1_msg("n_clustered()");
+  return 0;
+}
+
+void Jetv1::set_n_clustered(unsigned int/**/) {
+  not_in_v1_msg("set_n_clustered()");
   return;
 }
 
-size_t Jetv1::num_comp(SRC = Jet::SRC::VOID /**/) 
+
+// inline float Jetv1::get_prop_by_index(unsigned int /*index*/) const
+// {
+//   not_in_v1_msg("get_prop_by_index()");
+//   return NAN;
+// }
+
+//inline void Jetv1::set_prop_by_index(unsigned int /*index*/, float /*value*/)
+//{
+//  not_in_v1_msg("set_prop_by_index()");
+//  return;
+//}
+
+void Jetv1::insert_comp(Jet::SRC /**/, unsigned int /**/, bool /**/) 
+{
+  not_in_v1_msg("insert_comp(src,unsigned int, bool)");
+}
+
+void Jetv1::insert_comp(Jet::TYPE_comp_vec&) 
+{
+  not_in_v1_msg("insert_comp(TYPE_comp_vec&)");
+}
+
+void Jetv1::insert_comp(Jet::TYPE_comp_vec&, bool) 
+{
+  not_in_v1_msg("insert_comp(TYPE_comp_vec&, bool)");
+}
+
+void Jetv1::set_comp_sort_flag(bool /**/) 
+{
+  not_in_v1_msg("set_comp_sort_flag");
+}
+
+size_t Jetv1::num_comp(Jet::SRC /**/) 
 {
   not_in_v1_msg("num_comp");
   return 0;
@@ -221,7 +252,7 @@ Jet::ITER_comp_vec Jetv1::comp_end()
 }
 Jet::TYPE_comp_vec& Jetv1::get_comp_vec()
 {
-  not_in_v1_msg("get_comp_vec()");
+  not_in_v1_msg("get_comp_vec");
   return Jet::get_comp_vec();
 }
 void Jetv1::resize_properties(size_t /**/) 

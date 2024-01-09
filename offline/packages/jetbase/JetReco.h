@@ -39,7 +39,7 @@ class JetReco : public SubsysReco
     PRETEND_BOTH // do just JET_CONTAINER, but still append _JC to the name
    };
 
-  JetReco(const std::string &name = "JetReco", TRANSITION _which_fill=BOTH); // , bool fill_JetContainer=false);
+  JetReco(const std::string &name = "JetReco", TRANSITION _which_fill=JET_CONTAINER); // , bool fill_JetContainer=false);
   ~JetReco() override;
 
   int InitRun(PHCompositeNode *topNode) override;

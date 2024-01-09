@@ -27,6 +27,7 @@
 #include <TStyle.h>
 #include <TSystem.h>
 #include <TTree.h>
+#include <TCanvas.h>
 
 #include <cmath>  // for abs
 #include <cstdlib>
@@ -76,6 +77,8 @@ LiteCaloEval::LiteCaloEval(const std::string &name, const std::string &caloname,
   : SubsysReco(name)
   , _caloname(caloname)
   , _filename(filename)
+  , _inputnodename("TOWERINFO")
+  , m_UseTowerInfo(1)
 {
 }
 
@@ -272,7 +275,10 @@ int LiteCaloEval::process_event(PHCompositeNode *topNode)
   // if using towerinfo create a tower object
   if (m_UseTowerInfo)
   {
-    towernode = "TOWERINFO_CALIB_" + _caloname;
+    
+    //    towernode = "TOWERINFO_CALIB_" + _caloname;
+    //    towernode = "TOWERS_Calib_" + _caloname;
+    towernode = _inputnodename;
 
     towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towernode.c_str());
 
@@ -794,7 +800,7 @@ void LiteCaloEval::Get_Histos(const char *infile, const char *outfile)
 
   if (!(outF == ""))
   {
-    TString ts = "cp -rp ";
+    TString ts = "cp ";
     ts += infile;
     ts += " ";
     ts += outfile;
@@ -820,7 +826,7 @@ void LiteCaloEval::Get_Histos(const char *infile, const char *outfile)
   }
 
   /// start of eta loop
-  for (int i = 0; i < max_ieta; i++)
+  for (int i = 0; i < max_ieta+1; i++)
   {
     TString a;
     a.Form("%d", i);
@@ -854,6 +860,9 @@ void LiteCaloEval::Get_Histos(const char *infile, const char *outfile)
     {
       hcalin_eta[i] = heta_temp;
     }
+
+    if (! (i < max_ieta) )
+      continue;
 
     /// start of phi loop
     for (int j = 0; j < max_iphi; j++)
@@ -913,10 +922,11 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
     fitmax = 1.3;
   }
 
-  float par_value[96];
-  float par_err[96];
-  float eta_value[96];
-  float eta_err[96];
+
+  float par_value[96] = {0};
+  float par_err[96] = {0};
+  float eta_value[96] = {0};
+  float eta_err[96] = {0};
   //  float rel_err[96];
 
   if (f_temp)
@@ -999,6 +1009,15 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   int minbin = 0;
   int maxbin = max_ieta;
 
+  if (m_myminbin > -1)
+    minbin = m_myminbin;
+  if (m_mymaxbin > -1)
+    maxbin = m_mymaxbin;
+
+
+  /// assign hnewf the eta slice histos.
+  TH1F *hnewf = nullptr;
+
   /// Start of loop for eta only material
   for (int i = minbin; i < maxbin; i++)
   {
@@ -1016,8 +1035,9 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
     /// dummy indexing
     int iik = i;
 
-    /// assign hnewf the eta slice histos.
-    TH1F *hnewf = nullptr;
+    // /// assign hnewf the eta slice histos.
+    // TH1F *hnewf = nullptr;
+    hnewf = nullptr;
 
     /// will hold eta slice histo but with certain towers removed, depending on calo type
     TH1F *cleanEtaRef = nullptr;
@@ -1129,6 +1149,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         eta_hist[i]->Smooth(nsmooth);
       }
 
+      std::cout  << "fitting "  << i << std::endl;
       eta_hist[i]->Fit("myexpo", "L", "", fitmin, fitmax);
 
       f2f = (TF1 *) eta_hist[i]->GetFunction("myexpo");

@@ -25,7 +25,8 @@ pkginclude_HEADERS = \
   SingleMvtxPoolInput.h \
   SinglePrdfInput.h \
   SingleStreamingInput.h \
-  SingleTpcPoolInput.h
+  SingleTpcPoolInput.h \
+  SingleZdcInput.h
 
 lib_LTLIBRARIES = \
   libfun4allraw.la
@@ -47,7 +48,8 @@ libfun4allraw_la_SOURCES = \
   SingleMvtxPoolInput.cc \
   SinglePrdfInput.cc \
   SingleStreamingInput.cc \
-  SingleTpcPoolInput.cc
+  SingleTpcPoolInput.cc \
+  SingleZdcInput.cc
 
 libfun4allraw_la_LIBADD = \
   -lffarawobjects \

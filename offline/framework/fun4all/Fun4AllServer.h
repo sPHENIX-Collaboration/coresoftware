@@ -33,6 +33,7 @@ class Fun4AllServer : public Fun4AllBase
   static Fun4AllServer *instance();
   ~Fun4AllServer() override;
 
+// cppcheck-suppress [virtualCallInConstructor]
   virtual bool registerHisto(const std::string &hname, TNamed *h1d, const int replace = 0);
   virtual bool registerHisto(TNamed *h1d, const int replace = 0);
   template <typename T>
@@ -97,7 +98,6 @@ class Fun4AllServer : public Fun4AllBase
   int BranchSelect(const std::string &branch, int iflag);
   int setBranches(const std::string &managername);
   int setBranches();
-  virtual int DisconnectDB();
   virtual void identify(std::ostream &out = std::cout) const;
   unsigned GetTopNodes(std::vector<std::string> &names) const;
   void GetInputFullFileList(std::vector<std::string> &fnames) const;
