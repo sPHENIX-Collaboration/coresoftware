@@ -113,15 +113,6 @@ int PHActsGSF::process_event(PHCompositeNode*)
       sourceLinks.push_back(siSL);
     }
 
-    /// Acts requires a wrapped vector, so we need to replace the
-    /// std::vector contents with a wrapper vector to get the memory
-    /// access correct
-    std::vector<Acts::SourceLink> wrappedSls;
-    for (const auto& sl : sourceLinks)
-    {
-      wrappedSls.push_back(Acts::SourceLink{sl});
-    }
-
     auto calibptr = std::make_unique<Calibrator>();
     CalibratorAdapter calibrator(*calibptr, measurements);
     auto magcontext = m_tGeometry->geometry().magFieldContext;
@@ -145,8 +136,8 @@ int PHActsGSF::process_event(PHCompositeNode*)
     auto trackContainer = std::make_shared<Acts::VectorTrackContainer>();
     auto trackStateContainer = std::make_shared<Acts::VectorMultiTrajectory>();
     ActsTrackFittingAlgorithm::TrackContainer tracks(trackContainer, trackStateContainer);
-    auto result = fitTrack(wrappedSls, seed, options, calibrator, tracks);
-    std::cout << "result returned" << std::endl;
+    auto result = fitTrack(sourceLinks, seed, options, calibrator, tracks);
+
     if (result.ok())
     {
       updateTrack(result, track, tracks);
@@ -355,7 +346,7 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
                 << std::endl;
     }
 
-    sls.push_back(sl);
+    sls.push_back(actsSL);
     measurements.push_back(meas);
   }
 
@@ -384,19 +375,18 @@ void PHActsGSF::updateTrack(FitResult& result, SvtxTrack* track,
   indexedParams.emplace(std::pair{outtrack.tipIndex(),
                                   ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
                                                                 outtrack.parameters(), outtrack.covariance(), Acts::ParticleHypothesis::electron()}});
-  Trajectory traj(tracks.trackStateContainer(), trackTips, indexedParams);
 
-  updateSvtxTrack(traj, track);
+  updateSvtxTrack(trackTips, indexedParams, tracks, track);
 }
 
-void PHActsGSF::updateSvtxTrack(const Trajectory& traj, SvtxTrack* track)
+void PHActsGSF::updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+                                Trajectory::IndexedParameters& paramsMap,
+                                ActsTrackFittingAlgorithm::TrackContainer& tracks,
+                                SvtxTrack* track)
 {
-  std::cout << "updating svtxtrack" << std::endl;
-  const auto& mj = traj.multiTrajectory();
-  const auto& tips = traj.tips();
+  const auto& mj = tracks.trackStateContainer();
   const auto& tracktip = tips.front();
-
-  const auto& params = traj.trackParameters(tracktip);
+  const auto& params = paramsMap.find(tracktip)->second;
   const auto trajState =
       Acts::MultiTrajectoryHelpers::trajectoryState(mj, tracktip);
 

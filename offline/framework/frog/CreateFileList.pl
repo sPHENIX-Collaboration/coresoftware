@@ -64,7 +64,8 @@ my %proddesc = (
 my %pileupdesc = (
     "1" => "50kHz for Au+Au, 3MHz for p+p (default)",
     "2" => "25kHz for Au+Au",
-    "3" => "10kHz for Au+Au"
+    "3" => "10kHz for Au+Au",
+    "4" => "1MHz for pp 100us streaming"
     );
 
 my $nEvents;
@@ -148,6 +149,11 @@ elsif ($pileup == 3)
 {
     $AuAu_pileupstring = sprintf("10kHz");
 }
+elsif ($pileup == 4)
+{
+    $pp_pileupstring = sprintf("1MHz");
+}
+
 else
 {
     print "invalid pileup option $pileup\n";
