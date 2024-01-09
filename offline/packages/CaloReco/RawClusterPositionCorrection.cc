@@ -390,6 +390,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
 void RawClusterPositionCorrection::CreateNodeTree(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
