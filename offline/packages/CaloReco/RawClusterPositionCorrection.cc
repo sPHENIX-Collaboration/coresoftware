@@ -124,7 +124,6 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
 
   // Load PDC final stage correction
   calibdir = CDBInterface::instance()->getUrl("cemc_PDC_ResidualCorr");
-  calibdir = "/sphenix/u/bseidlitz/work/photon_PDC_dev/test_res/pdc_res_e_eta.root";
   if (!calibdir.empty())
   {
     cdbHisto = new CDBHistos(calibdir.c_str());
