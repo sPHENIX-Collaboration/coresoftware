@@ -80,6 +80,9 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
     }
   }
 
+  /// Start with a fresh track map in case running iterative tracking
+  m_trackMap->Reset();
+  
   unsigned int trackid = 0;
   for (const auto& trackSeed : *m_seedContainer)
   {
