@@ -36,7 +36,7 @@ ReactionPlaneAfterburner::~ReactionPlaneAfterburner()
 }
 
 //____________________________________________________________________________..
-int ReactionPlaneAfterburner::Init(PHCompositeNode *topNode)
+int ReactionPlaneAfterburner::Init(PHCompositeNode * /*topNode*/)
 {
   unsigned int seed = PHRandomSeed();
   gsl_rng_set(RandomGenerator, seed);
@@ -48,9 +48,9 @@ int ReactionPlaneAfterburner::process_event(PHCompositeNode *topNode)
 {
   //get event
   PHHepMCGenEventMap *genevtmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
-  for (PHHepMCGenEventMap::Iter iter = genevtmap->begin(); iter != genevtmap->end(); ++iter)
+  for (auto & iter : *genevtmap)
   {
-    PHHepMCGenEvent *genevt = iter->second;
+    PHHepMCGenEvent *genevt = iter.second;
     HepMC::GenEvent *evt = genevt->getEvent();
     assert(evt);
     HepMC::HeavyIon *hi = evt->heavy_ion();
