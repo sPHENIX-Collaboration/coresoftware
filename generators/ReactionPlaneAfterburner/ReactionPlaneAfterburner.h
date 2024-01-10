@@ -26,7 +26,7 @@ class ReactionPlaneAfterburner : public SubsysReco
 
 
  private:
-    gsl_rng *RandomGenerator;
+  gsl_rng *RandomGenerator {nullptr};
 
 };
 

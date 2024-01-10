@@ -13,13 +13,14 @@
 //hepmc
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <cassert>
 #include <HepMC/GenEvent.h>
 #include <HepMC/GenParticle.h>   // for GenParticle
 #include <HepMC/GenVertex.h>     // for GenVertex, GenVertex::part...
 #include <HepMC/SimpleVector.h>
 #include <HepMC/HeavyIon.h>    // for HeavyIon
 #pragma GCC diagnostic pop
+
+#include <cassert>
 
 //____________________________________________________________________________..
 ReactionPlaneAfterburner::ReactionPlaneAfterburner(const std::string &name):
