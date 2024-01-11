@@ -61,6 +61,12 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
 
   bool is_it_min_bias = true;
 
+  if (_global_vertex_map->empty())
+    {
+      _mb_info->setIsAuAuMinimumBias(false);
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   GlobalVertex *vtx = _global_vertex_map->begin()->second;
 
   if (!vtx)
