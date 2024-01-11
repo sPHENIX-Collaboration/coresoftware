@@ -104,7 +104,8 @@ class PHActsSiliconSeeding : public SubsysReco
   void largeGridSpacing(const bool spacing);
 
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
-  void SetIteration(int iter){_n_iteration = iter;}
+  void iteration(int iter){m_nIteration = iter;}
+  void searchInIntt() { m_searchInIntt = true; }
 
  private:
 
@@ -130,9 +131,8 @@ class PHActsSiliconSeeding : public SubsysReco
     TrkrCluster* clus);
   
   /// Get all space points for the seeder
-  std::vector<const SpacePoint*> getMvtxSpacePoints(Acts::Extent& rRangeSPExtent);
-
-  void printSeedConfigs(Acts::SeedFilterConfig& sfconfig);
+  std::vector<const SpacePoint*> getSiliconSpacePoints(Acts::Extent& rRangeSPExtent);
+  void printSeedConfigs(Acts::SeedFilterConfig &sfconfig);
 
   /// Projects circle fit to INTT radii to find possible INTT clusters
   /// belonging to MVTX track stub
@@ -141,7 +141,8 @@ class PHActsSiliconSeeding : public SubsysReco
 		        TrackSeed& seed);
 
   std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3>& clusters,
-						   const double xProj[],
+						   TrackSeed& seed,
+               const double xProj[],
 						   const double yProj[],
 						   const double zProj[]);
 
@@ -160,6 +161,9 @@ class PHActsSiliconSeeding : public SubsysReco
   Acts::SpacePointGridOptions m_gridOptions;
   Acts::SeedFinderOptions m_seedFinderOptions;
 
+  /// boolean whether or not to include the intt in the acts search windows
+  bool m_searchInIntt = false;
+
   /// Configurable parameters
   /// seed pt has to be in MeV
   float m_minSeedPt = 100 * Acts::UnitConstants::MeV;
@@ -170,11 +174,10 @@ class PHActsSiliconSeeding : public SubsysReco
   int m_maxSeedsPerSpM = 1;
 
   /// Limiting location of measurements (e.g. detector constraints)
-  /// We limit to the MVTX
   float m_rMax = 200. * Acts::UnitConstants::mm;
   float m_rMin = 23. * Acts::UnitConstants::mm;
-  float m_zMax = 300. * Acts::UnitConstants::mm;
-  float m_zMin = -300. * Acts::UnitConstants::mm;
+  float m_zMax = 500. * Acts::UnitConstants::mm;
+  float m_zMin = -500. * Acts::UnitConstants::mm;
 
   /// misalignment parameters
   float m_helixcut = 1;
@@ -231,7 +234,7 @@ class PHActsSiliconSeeding : public SubsysReco
   int m_nBadUpdates = 0;
   int m_nBadInitialFits = 0;
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
-  int _n_iteration = 0;
+  int m_nIteration = 0;
   std::string _track_map_name = "SiliconTrackSeedContainer";
   ClusterErrorPara _ClusErrPara;
 

@@ -40,7 +40,11 @@ using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
+<<<<<<< HEAD
 //using SourceLinkVec = std::vector<SourceLink>;
+=======
+using SourceLinkVec = std::vector<Acts::SourceLink>;
+>>>>>>> 98aad2c027df848162cbf9f84b53e8b32ab908f7
 
 class PHActsGSF : public SubsysReco
 {
@@ -73,7 +77,10 @@ class PHActsGSF : public SubsysReco
 
   void updateTrack(FitResult& result, SvtxTrack* track,
                    ActsTrackFittingAlgorithm::TrackContainer& tracks);
-  void updateSvtxTrack(const Trajectory& traj, SvtxTrack* track);
+  void updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+                       Trajectory::IndexedParameters& paramsMap,
+                       ActsTrackFittingAlgorithm::TrackContainer& tracks,
+                       SvtxTrack* track);
   ActsGeometry* m_tGeometry = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
   SvtxTrackMap* m_trackMap = nullptr;
