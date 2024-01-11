@@ -520,10 +520,28 @@ int Fun4AllStreamingInputManager::FillIntt()
   // !m_InttRawHitMap.empty() is implicitely handled and the check is expensive
   // FillInttPool() contains this check already and will return non zero
   // so here m_InttRawHitMap will always contain entries
-  while (m_InttRawHitMap.begin()->first < m_RefBCO)
+  uint64_t select_crossings = m_intt_bco_range;
+  if (m_RefBCO > 0)
+  {
+    select_crossings += m_RefBCO;
+  }
+  else
+  {
+    select_crossings += m_InttRawHitMap.begin()->first;
+  }
+  if (Verbosity() > 2)
+  {
+    std::cout << "select INTT crossings"
+              << " from 0x" << std::hex << m_InttRawHitMap.begin()->first
+              << " to 0x" << select_crossings
+              << std::dec << std::endl;
+  }
+  while (m_InttRawHitMap.begin()->first + m_intt_negative_bco  < m_RefBCO)
   {
     std::cout << "Intt BCO: 0x" << std::hex << m_InttRawHitMap.begin()->first
+	      << " corrected for negative offset: 0x" << m_InttRawHitMap.begin()->first + m_intt_negative_bco
               << " smaller than GL1 BCO: 0x" << m_RefBCO
+	      << " corrected for range: 0x" << select_crossings
               << ", ditching this bco" << std::dec << std::endl;
     for (auto iter : m_InttInputVector)
     {
@@ -537,30 +555,27 @@ int Fun4AllStreamingInputManager::FillIntt()
       return iret;
     }
   }
-  if (m_InttRawHitMap.begin()->first != m_RefBCO)
+  while (m_InttRawHitMap.begin()->first + m_intt_negative_bco <= select_crossings)
   {
-    std::cout << "Intt BCO 0x" << std::hex << m_InttRawHitMap.begin()->first
-              << " larger than Gl1 BCO 0x" << m_RefBCO
-              << " no intthits for this event" << std::dec << std::endl;
-    return 0;
-  }
-  for (auto intthititer : m_InttRawHitMap.begin()->second.InttRawHitVector)
-  {
-    if (Verbosity() > 1)
+    for (auto intthititer : m_InttRawHitMap.begin()->second.InttRawHitVector)
     {
-      intthititer->identify();
+      if (Verbosity() > 1)
+      {
+        intthititer->identify();
+      }
+      inttcont->AddHit(intthititer);
     }
-    inttcont->AddHit(intthititer);
-    //     delete intthititer; // cleanup up done in Single Input Mgrs
+    for (auto iter : m_InttInputVector)
+    {
+      iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
+    }
+    m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
+    m_InttRawHitMap.erase(m_InttRawHitMap.begin());
+    if (m_InttRawHitMap.empty())
+    {
+      break;
+    }
   }
-  for (auto iter : m_InttInputVector)
-  {
-    iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
-  }
-  m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
-  m_InttRawHitMap.erase(m_InttRawHitMap.begin());
-  // std::cout << "size  m_InttRawHitMap: " <<  m_InttRawHitMap.size()
-  // 	    << std::endl;
   return 0;
 }
 
@@ -792,6 +807,16 @@ int Fun4AllStreamingInputManager::FillTpc()
   // std::cout << "size  m_TpcRawHitMap: " <<  m_TpcRawHitMap.size()
   // 	    << std::endl;
   return 0;
+}
+
+void Fun4AllStreamingInputManager::SetInttBcoRange(const unsigned int i)
+{
+  m_intt_bco_range = std::max(i, m_intt_bco_range);
+}
+
+void Fun4AllStreamingInputManager::SetInttNegativeBco(const unsigned int i)
+{
+  m_intt_negative_bco = std::max(i, m_intt_negative_bco);
 }
 
 void Fun4AllStreamingInputManager::SetMicromegasBcoRange(const unsigned int i)
