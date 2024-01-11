@@ -44,60 +44,8 @@ int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
 
 int MinimumBiasClassifier::ResetEvent(PHCompositeNode * /*unused*/)
 {
-  if (Verbosity() > 1)
-  {
-    std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
-  }
+
   _zdc_energy_sum.fill(0);
-  _mbd_charge_sum.fill(0);
-  _mbd_tubes_hit.fill(0);
-
-  _z_vertex = std::numeric_limits<float>::quiet_NaN();
-  _energy = std::numeric_limits<float>::quiet_NaN();
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int MinimumBiasClassifier::FillVars()
-{
-  if (Verbosity() > 1)
-  {
-    std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
-  }
-
-  //  if (_global_vertex_map->empty()) return Fun4AllReturnCodes::ABORTEVENT;
-
-  GlobalVertex *vtx = _global_vertex_map->begin()->second;
-
-  _z_vertex = vtx->get_z();
-
-  for (int i = 0; i < 2; i++)
-  {
-    _mbd_charge_sum[i] = _mbd_out->get_q(i);
-    _mbd_tubes_hit[i] = _mbd_out->get_q(i);
-  }
-
-  if (Verbosity())
-  {
-    std::cout << "      North: " << _mbd_charge_sum[1] << std::endl;
-    std::cout << "      South: " << _mbd_charge_sum[0] << std::endl;
-  }
-
-  int j = 0;
-  for (unsigned int i = 0; i < _towers_zdc->size(); i++)
-  {
-    _tmp_tower = _towers_zdc->get_tower_at_channel(i);
-    _energy = _tmp_tower->get_energy();
-    if (_energy != 0)
-    {
-      _zdc_energy_sum[j / 3] += _energy;
-      j++;
-    }
-  }
-  if (Verbosity())
-  {
-    std::cout << "      North: " << _zdc_energy_sum[1] << std::endl;
-    std::cout << "      South: " << _zdc_energy_sum[0] << std::endl;
-  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -113,15 +61,68 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
 
   bool is_it_min_bias = true;
 
+  if (_global_vertex_map->empty())
+    {
+      _mb_info->setIsAuAuMinimumBias(false);
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  GlobalVertex *vtx = _global_vertex_map->begin()->second;
+
+  if (!vtx)
+    {
+      std::cout << "nothing in vertex " << std::endl;
+
+      _mb_info->setIsAuAuMinimumBias(false);
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+
+
+  if (!_towers_zdc)
+    {
+      std::cout << "nothing in zdc " << std::endl;
+
+      _mb_info->setIsAuAuMinimumBias(false);
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+
+  int j = 0;
+  for (unsigned int i = 0; i < _towers_zdc->size(); i++)
+    {
+      _tmp_tower = _towers_zdc->get_tower_at_channel(i);
+      float energy = _tmp_tower->get_energy();
+      if (energy > 0)
+	{
+	  _zdc_energy_sum[j / 3] += energy;
+	  j++;
+	}
+    }
+  if (Verbosity())
+    {
+      std::cout << " MBD Z vertex: " << vtx->get_z() << std::endl;
+      std::cout << " MBD Number PMTs: " << std::endl;
+      std::cout << "      North: " << _mbd_out->get_npmt(1) << std::endl;
+      std::cout << "      South: " << _mbd_out->get_npmt(0) << std::endl;
+
+      std::cout << " MBD Charge Sum: " << std::endl;
+      std::cout << "      North: " << _mbd_out->get_q(1) << std::endl;
+      std::cout << "      South: " << _mbd_out->get_q(0) << std::endl;
+
+      std::cout << " ZDC Energy Sum: " << std::endl;
+      std::cout << "      North: " << _zdc_energy_sum[1] << std::endl;
+      std::cout << "      South: " << _zdc_energy_sum[0] << std::endl;
+
+    }
+
   //
-  if (std::fabs(_z_vertex) > _z_vtx_cut)
+  if (std::fabs(vtx->get_z()) > _z_vtx_cut)
   {
     is_it_min_bias = false;
   }
 
   for (int i = 0; i < 2; i++)
   {
-    if (_mbd_tubes_hit[i] < _mbd_tube_cut)
+    if (_mbd_out->get_npmt(i) < _mbd_tube_cut)
     {
       is_it_min_bias = false;
     }
@@ -131,13 +132,11 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     }
   }
 
-  if (_mbd_charge_sum[1] < _mbd_north_cut && _mbd_charge_sum[0] > _mbd_south_cut)
+  if (_mbd_out->get_q(1) < _mbd_north_cut && _mbd_out->get_q(0) > _mbd_south_cut)
   {
     is_it_min_bias = false;
   }
-
   _mb_info->setIsAuAuMinimumBias(is_it_min_bias);
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -154,20 +153,9 @@ int MinimumBiasClassifier::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  // Fill Arrays
-  if (FillVars())
-  {
-    std::cout << __LINE__ << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
   if (FillMinimumBiasInfo())
   {
     return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  if (Verbosity())
-  {
-    _mb_info->identify();
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
