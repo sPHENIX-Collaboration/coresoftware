@@ -1,5 +1,4 @@
 #include "PHActsGSF.h"
-#include "MakeSourceLinks.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -77,8 +76,6 @@ int PHActsGSF::InitRun(PHCompositeNode* topNode)
 //____________________________________________________________________________..
 int PHActsGSF::process_event(PHCompositeNode*)
 {
-  std::cout << "0" << std::endl;
-
   auto logLevel = Acts::Logging::FATAL;
   if (Verbosity() > 4)
   {
@@ -89,17 +86,8 @@ int PHActsGSF::process_event(PHCompositeNode*)
 
   for (const auto& [key, track] : *m_trackMap)
   {
-    std::cout << "1a" << std::endl;
-
-    std::cout << "1b" << std::endl;
-
     auto pSurface = makePerigee(track);
-
-    std::cout << "1c" << std::endl;
-
     const auto seed = makeSeed(track, pSurface);
-
-    std::cout << "1d" << std::endl;
 
     ActsTrackFittingAlgorithm::MeasurementContainer measurements;
     TrackSeed* tpcseed = track->get_tpc_seed();
@@ -116,41 +104,11 @@ int PHActsGSF::process_event(PHCompositeNode*)
     {
       continue;
     }
-
-    std::cout << "2a" << std::endl;
-
-    // loop over modifiedTransformSet and replace transient elements modified for the previous track with the default transforms
-    MakeSourceLinks makeSourceLinks;
-    makeSourceLinks.setVerbosity(Verbosity());
-    makeSourceLinks.set_pp_mode(m_pp_mode);
-    
-    makeSourceLinks.resetTransientTransformMap(
-					       m_alignmentTransformationMapTransient,
-					       m_transient_id_set,
-					       m_tGeometry);
-
-    std::cout << "2b" << std::endl;
-    auto sourceLinks = makeSourceLinks.getSourceLinks(
-							       tpcseed, 
-							       measurements, 
-							       m_clusterContainer, 
-							       m_tGeometry, 
-							       m_alignmentTransformationMapTransient, 
-							       m_transient_id_set, 
-							       crossing);
-    std::cout << "2c" << std::endl;
-    auto silSourceLinks = makeSourceLinks.getSourceLinks(
-							     silseed, 
-							     measurements, 
-							     m_clusterContainer, 
-							     m_tGeometry, 
-							     m_alignmentTransformationMapTransient, 
-							     m_transient_id_set, 
-							     crossing);
-    // copy transient map for this track into transient geoContext
-    m_transient_geocontext =  m_alignmentTransformationMapTransient;
  
-        for (auto& siSL : silSourceLinks)
+    auto sourceLinks = getSourceLinks(tpcseed, measurements, crossing);
+    auto silSourceLinks = getSourceLinks(silseed, measurements, crossing);
+ 
+    for (auto& siSL : silSourceLinks)
     {
       sourceLinks.push_back(siSL);
     }
@@ -163,7 +121,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
     auto ppoptions = Acts::PropagatorPlainOptions();
 
     ActsTrackFittingAlgorithm::GeneralFitterOptions options{
-        m_transient_geocontext,
+        m_tGeometry->geometry().getGeoContext(),
         magcontext,
         calcontext,
         &(*pSurface),
@@ -171,7 +129,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
     if (Verbosity() > 2)
     {
       std::cout << "calling gsf with position "
-                << seed.position(m_transient_geocontext).transpose()
+                << seed.position(m_tGeometry->geometry().getGeoContext()).transpose()
                 << " and momentum " << seed.momentum().transpose()
                 << std::endl;
     }
@@ -214,15 +172,11 @@ ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
                          track->get_py(),
                          track->get_pz());
 
-  std::cout << "ms 1a" << std::endl;
-
   ActsTransformations transformer;
   auto cov = transformer.rotateSvtxTrackCovToActs(track);
 
-  std::cout << "ms 1b" << std::endl;
-
   return ActsTrackFittingAlgorithm::TrackParameters::create(psurf,
-							    m_tGeometry->geometry().getGeoContext(),
+                                                            m_tGeometry->geometry().getGeoContext(),
                                                             fourpos,
                                                             momentum,
                                                             charge / momentum.norm(),
@@ -445,7 +399,7 @@ void PHActsGSF::updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexTy
               << "   (" << track->get_px() << ", " << track->get_py()
               << ", " << track->get_pz() << ")" << std::endl;
     std::cout << "New GSF track parameters: " << std::endl
-              << "   " << params.position(m_transient_geocontext).transpose()
+              << "   " << params.position(m_tGeometry->geometry().getGeoContext()).transpose()
               << std::endl
               << "   " << params.momentum().transpose()
               << std::endl;
@@ -463,9 +417,9 @@ void PHActsGSF::updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexTy
   out.set_z(0.0);
   track->insert_state(&out);
 
-  track->set_x(params.position(m_transient_geocontext)(0) / Acts::UnitConstants::cm);
-  track->set_y(params.position(m_transient_geocontext)(1) / Acts::UnitConstants::cm);
-  track->set_z(params.position(m_transient_geocontext)(2) / Acts::UnitConstants::cm);
+  track->set_x(params.position(m_tGeometry->geometry().getGeoContext())(0) / Acts::UnitConstants::cm);
+  track->set_y(params.position(m_tGeometry->geometry().getGeoContext())(1) / Acts::UnitConstants::cm);
+  track->set_z(params.position(m_tGeometry->geometry().getGeoContext())(2) / Acts::UnitConstants::cm);
 
   track->set_px(params.momentum()(0));
   track->set_py(params.momentum()(1));
@@ -489,7 +443,7 @@ void PHActsGSF::updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexTy
     }
   }
 
-  transformer.fillSvtxTrackStates(mj, tracktip, track, m_transient_geocontext);
+  transformer.fillSvtxTrackStates(mj, tracktip, track, m_tGeometry->geometry().getGeoContext());
 }
 
 //____________________________________________________________________________..
@@ -547,13 +501,5 @@ int PHActsGSF::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_alignmentTransformationMapTransient = findNode::getClass<alignmentTransformationContainer>(topNode, "alignmentTransformationContainerTransient");
-  if(!m_alignmentTransformationMapTransient)
-    {
-      std::cout << PHWHERE << "alignmentTransformationContainerTransient not on node tree. Bailing"
-                << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  
   return Fun4AllReturnCodes::EVENT_OK;
 }
