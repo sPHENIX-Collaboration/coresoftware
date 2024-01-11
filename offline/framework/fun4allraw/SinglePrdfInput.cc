@@ -81,7 +81,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
     }
     for (int i = 0; i < npackets; i++)
     {
-      if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
+      if (plist[i]->iValue(0, "CHECKSUMOK") != 0)
       {
         int evtno = plist[i]->iValue(0, "EVTNR") + rollover[i];
 	if (evtno < previous_eventnumber[i])
