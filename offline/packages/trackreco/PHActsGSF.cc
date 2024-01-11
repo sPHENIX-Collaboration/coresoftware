@@ -77,6 +77,8 @@ int PHActsGSF::InitRun(PHCompositeNode* topNode)
 //____________________________________________________________________________..
 int PHActsGSF::process_event(PHCompositeNode*)
 {
+  std::cout << "0" << std::endl;
+
   auto logLevel = Acts::Logging::FATAL;
   if (Verbosity() > 4)
   {
@@ -87,8 +89,17 @@ int PHActsGSF::process_event(PHCompositeNode*)
 
   for (const auto& [key, track] : *m_trackMap)
   {
+    std::cout << "1a" << std::endl;
+
+    std::cout << "1b" << std::endl;
+
     auto pSurface = makePerigee(track);
+
+    std::cout << "1c" << std::endl;
+
     const auto seed = makeSeed(track, pSurface);
+
+    std::cout << "1d" << std::endl;
 
     ActsTrackFittingAlgorithm::MeasurementContainer measurements;
     TrackSeed* tpcseed = track->get_tpc_seed();
@@ -106,16 +117,20 @@ int PHActsGSF::process_event(PHCompositeNode*)
       continue;
     }
 
+    std::cout << "2a" << std::endl;
+
+    // loop over modifiedTransformSet and replace transient elements modified for the previous track with the default transforms
     MakeSourceLinks makeSourceLinks;
     makeSourceLinks.setVerbosity(Verbosity());
     makeSourceLinks.set_pp_mode(m_pp_mode);
     
-    // loop over modifiedTransformSet and replace transient elements modified for the previous track with the default transforms
     makeSourceLinks.resetTransientTransformMap(
 					       m_alignmentTransformationMapTransient,
 					       m_transient_id_set,
 					       m_tGeometry);
-        auto sourceLinks = makeSourceLinks.getSourceLinks(
+
+    std::cout << "2b" << std::endl;
+    auto sourceLinks = makeSourceLinks.getSourceLinks(
 							       tpcseed, 
 							       measurements, 
 							       m_clusterContainer, 
@@ -123,6 +138,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
 							       m_alignmentTransformationMapTransient, 
 							       m_transient_id_set, 
 							       crossing);
+    std::cout << "2c" << std::endl;
     auto silSourceLinks = makeSourceLinks.getSourceLinks(
 							     silseed, 
 							     measurements, 
@@ -138,6 +154,8 @@ int PHActsGSF::process_event(PHCompositeNode*)
     {
       sourceLinks.push_back(siSL);
     }
+
+    std::cout << "3" << std::endl;
 
     /// Acts requires a wrapped vector, so we need to replace the
     /// std::vector contents with a wrapper vector to get the memory
@@ -178,6 +196,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
       updateTrack(result, track, tracks);
     }
   }
+  std::cout << "4" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -207,11 +226,15 @@ ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
                          track->get_py(),
                          track->get_pz());
 
+  std::cout << "ms 1a" << std::endl;
+
   ActsTransformations transformer;
   auto cov = transformer.rotateSvtxTrackCovToActs(track);
 
+  std::cout << "ms 1b" << std::endl;
+
   return ActsTrackFittingAlgorithm::TrackParameters::create(psurf,
-							    m_transient_geocontext,
+							    m_tGeometry->geometry().getGeoContext(),
                                                             fourpos,
                                                             momentum,
                                                             charge / momentum.norm(),
