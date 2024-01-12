@@ -88,6 +88,11 @@ int PHActsGSF::process_event(PHCompositeNode*)
   for (const auto& [key, track] : *m_trackMap)
   {
     auto pSurface = makePerigee(track);
+    if(!pSurface)
+    {
+      //! If no vertex was assigned to track, just skip it
+      continue;
+    }
     const auto seed = makeSeed(track, pSurface);
 
     ActsTrackFittingAlgorithm::MeasurementContainer measurements;
@@ -183,6 +188,10 @@ int PHActsGSF::process_event(PHCompositeNode*)
 std::shared_ptr<Acts::PerigeeSurface> PHActsGSF::makePerigee(SvtxTrack* track) const
 {
   SvtxVertex* vertex = m_vertexMap->get(track->get_vertex_id());
+  if(!vertex)
+  {
+    return nullptr;
+  }
 
   Acts::Vector3 vertexpos(vertex->get_x() * Acts::UnitConstants::cm,
                           vertex->get_y() * Acts::UnitConstants::cm,
@@ -214,7 +223,8 @@ ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
                                                             momentum,
                                                             charge / momentum.norm(),
                                                             cov,
-                                                            Acts::ParticleHypothesis::electron())
+                                                            Acts::ParticleHypothesis::electron(),
+                                                            1*Acts::UnitConstants::cm)
       .value();
 }
 
