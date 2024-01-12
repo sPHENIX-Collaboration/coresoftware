@@ -402,8 +402,9 @@ namespace
 	
 	// update t sums
 	double t = my_data.layergeom->get_zcenter(it);
-	t_sum += t*adc;
-	t2_sum += square(t)*adc;
+        std::cout << "get z center " << t << std::endl;
+        t_sum += t * adc;
+        t2_sum += square(t)*adc;
 	
 	adc_sum += adc;
 	
@@ -441,14 +442,16 @@ namespace
       float clusx = radius * cos(clusphi);
       float clusy = radius * sin(clusphi);
       double clust = t_sum / adc_sum;
+      std::cout << "clust is " << clust << ", " << t_sum << ", " << adc_sum << std::endl;
       // needed for surface identification
       double zdriftlength = clust * my_data.tGeometry->get_drift_velocity();
+      std::cout << "zdrift length " << zdriftlength << std::endl;
       // convert z drift length to z position in the TPC
       double clusz  =  my_data.m_tdriftmax * my_data.tGeometry->get_drift_velocity() - zdriftlength; 
       if(my_data.side == 0) 
 	clusz = -clusz;
-
-      const double phi_cov = (iphi2_sum/adc_sum - square(clusiphi))* pow(my_data.layergeom->get_phistep(),2);
+      std::cout << "clusz " << clusz << std::endl;
+      const double phi_cov = (iphi2_sum / adc_sum - square(clusiphi)) * pow(my_data.layergeom->get_phistep(), 2);
       const double t_cov = t2_sum/adc_sum - square(clust);
 
        // Get the surface key to find the surface from the 
@@ -490,7 +493,7 @@ namespace
 
       // SAMPA shaping bias correction
       clust = clust + my_data.sampa_tbias;
-
+      std::cout << "sampa shaping bias " << my_data.sampa_tbias << std::endl;
       /// convert to Acts units
       global *= Acts::UnitConstants::cm;
       //std::cout << "transform" << std::endl;
@@ -1087,9 +1090,10 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	unsigned short NTBinsMin = 0;
 	unsigned short PhiOffset = NPhiBinsSector * sector;
 	unsigned short TOffset = NTBinsMin;
-	
-	m_tdriftmax = AdcClockPeriod * NTBins / 2.0;  
-	thread_pair.data.m_tdriftmax = m_tdriftmax;
+        m_tdriftmax = AdcClockPeriod * NTBins / 2.0;
+        std::cout << "NTBins " << NTBins << " and drift max " << m_tdriftmax << std::endl;
+
+        thread_pair.data.m_tdriftmax = m_tdriftmax;
 	
 	thread_pair.data.phibins   = NPhiBinsSector;
 	thread_pair.data.phioffset = PhiOffset;

@@ -121,7 +121,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                              "gdphi:gdz:"
                              "glayer:gtrackID:gflavor:"
                              "gpx:gpy:gpz:"
-                             "gvx:gvy:gvz:"
+                             "gvx:gvy:gvz:gvt:"
                              "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
                              "gembed:gprimary:nclusters:"
                              "clusID:x:y:z:eta:phi:e:adc:layer:size:"
@@ -1460,6 +1460,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       float gvx = NAN;
       float gvy = NAN;
       float gvz = NAN;
+      float gvt = NAN;
 
       float gembed = NAN;
       float gprimary = NAN;
@@ -1493,6 +1494,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           gvx = vtx->get_x();
           gvy = vtx->get_y();
           gvz = vtx->get_z();
+          gvt = vtx->get_t();
         }
         PHG4Hit* outerhit = nullptr;
         if (_do_eval_light == false)
@@ -1603,6 +1605,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                             gvx,
                             gvy,
                             gvz,
+                            gvt,
                             gfpx,
                             gfpy,
                             gfpz,
@@ -1672,6 +1675,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         TrkrDefs::hitsetkey hitset_key = iter->first;
         TrkrHitSet* hitset = iter->second;
 
+        float local_layer = TrkrDefs::getLayer(hitset_key);
         // get all hits for this hitset
         TrkrHitSet::ConstRange hitrangei = hitset->getHits();
         for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
@@ -1686,7 +1690,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float hitID = hit_key;
           float e = hit->getEnergy();
           float adc = hit->getAdc();
-          float local_layer = TrkrDefs::getLayer(hitset_key);
           float sector = TpcDefs::getSectorId(hitset_key);
           float side = TpcDefs::getSide(hitset_key);
           float cellID = 0;
