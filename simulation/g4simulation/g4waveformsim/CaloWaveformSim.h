@@ -110,6 +110,16 @@ public:
         m_deltaT = _deltaT;
         return;
     }
+    void set_timewidth(float _timewidth)
+    {
+      m_timeshiftwidth = _timewidth;
+      return;
+    }
+    void set_peakpos(float _peakpos)
+    {
+      m_peakpos = _peakpos;
+      return;
+    }
     //for CEMC light yield correction
     LightCollectionModel &get_light_collection_model() { return light_collection_model; }
 
@@ -137,6 +147,8 @@ private:
     int m_fixpedestal{1500};
     int m_gaussian_noise{3};
     float m_deltaT{100.};
+    float m_timeshiftwidth{0.};
+    float m_peakpos{6.};
     gsl_rng *m_RandomGenerator{nullptr};
 
     PHG4CylinderCellGeom_Spacalv1 *geo{nullptr};
