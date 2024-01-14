@@ -63,6 +63,11 @@ namespace
   {
     return x * x;
   }
+
+ /// get radius from coordinates
+  template<class T> T radius(const T& x, const T& y)
+  { return std::sqrt(square(x) + square(y));}
+
 }  // namespace
 
 #include <trackbase/alignmentTransformationContainer.h>
@@ -301,15 +306,9 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     int charge = 0;
     float cosmicslope = 0;
-    makeSourceLinks.getCharge(
-			      tpcseed,
-			      m_clusterContainer,
-			      m_tGeometry,
-			      m_alignmentTransformationMapTransient,
-			      m_vertexRadius,
-			      charge,
-			      cosmicslope  );
-  
+
+    getCharge(tpcseed, charge, cosmicslope);
+
     // copy transient map for this track into transient geoContext
     m_transient_geocontext =  m_alignmentTransformationMapTransient;
 	
@@ -907,3 +906,110 @@ void PHCosmicsTrkFitter::clearVectors()
   m_ephi.clear();
   m_ez.clear();
 }
+
+void PHCosmicsTrkFitter::getCharge(
+				TrackSeed* track,
+				//TrkrClusterContainer*  clusterContainer,
+				//ActsGeometry* tGeometry,
+				//alignmentTransformationContainer* transformMapTransient,
+				//float vertexRadius,
+				int& charge,
+				float& cosmicslope )
+{
+
+  Acts::GeometryContext transient_geocontext;
+  transient_geocontext =   m_alignmentTransformationMapTransient;  // set local/global transforms to distortion corrected ones for this track
+
+  std::vector<Acts::Vector3> global_vec;
+
+  for (auto clusIter = track->begin_cluster_keys();
+       clusIter != track->end_cluster_keys();
+       ++clusIter)
+    {
+      auto key = *clusIter;
+      auto cluster = m_clusterContainer->findCluster(key);
+      if (!cluster)
+	{
+	  std::cout << "MakeSourceLinks::getCharge: Failed to get cluster with key " << key << " for track seed" << std::endl;
+	  continue;
+	}
+      
+      auto surf = m_tGeometry->maps().getSurface(key, cluster);
+      if (!surf)    {  continue; }
+      
+      // get cluster global positions
+      Acts::Vector2 local = m_tGeometry->getLocalCoords(key, cluster);  // converts TPC time to z
+      Acts::Vector3 glob = surf->localToGlobal(transient_geocontext,
+				    local * Acts::UnitConstants::cm,
+				    Acts::Vector3(1,1,1));
+      glob /= Acts::UnitConstants::cm;
+
+      global_vec.push_back(glob);
+    }
+
+ Acts::Vector3 globalMostOuter;
+  Acts::Vector3 globalSecondMostOuter(0, 999999, 0);
+  float largestR = 0;
+  // loop over global positions
+  for (int i = 0; i < global_vec.size(); ++i)
+  {
+    Acts::Vector3 global = global_vec[i];
+    //float r = std::sqrt(square(global.x()) + square(global.y()));
+    float r = radius(global.x(), global.y());
+
+    /// use the top hemisphere to determine the charge
+    if (r > largestR && global.y() > 0)
+    {
+      globalMostOuter = global_vec[i];
+      largestR = r;
+    }
+  }
+
+  //! find the closest cluster to the outermost cluster
+  float maxdr = std::numeric_limits<float>::max();
+  for (int i = 0; i < global_vec.size(); i++)
+    {
+      if (global_vec[i].y() < 0) continue;
+      
+      float dr = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y())) - std::sqrt(square(global_vec[i].x()) + square(global_vec[i].y()));
+      //! Place a dr cut to get maximum bend due to TPC clusters having
+      //! larger fluctuations
+      if (dr < maxdr && dr > 10)
+	{
+	  maxdr = dr;
+	  globalSecondMostOuter = global_vec[i];
+	}
+    }
+  
+  //! we have to calculate phi WRT the vertex position outside the detector,
+  //! not at (0,0)
+  Acts::Vector3 vertex(0, m_vertexRadius, 0);
+  globalMostOuter -= vertex;
+  globalSecondMostOuter -= vertex;
+  
+  const auto firstphi = atan2(globalMostOuter.y(), globalMostOuter.x());
+  const auto secondphi = atan2(globalSecondMostOuter.y(),
+			       globalSecondMostOuter.x());
+  auto dphi = secondphi - firstphi;
+  
+  if (dphi > M_PI) dphi = 2. * M_PI - dphi;
+  if (dphi < -M_PI) dphi = 2 * M_PI + dphi;
+  
+  if (dphi > 0)
+    {
+      charge = -1;
+    }
+  else
+    {
+      charge = 1;
+    }
+  
+  float r1 = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y()));
+  float r2 = std::sqrt(square(globalSecondMostOuter.x()) + square(globalSecondMostOuter.y()));
+  float z1 = globalMostOuter.z();
+  float z2 = globalSecondMostOuter.z();
+  cosmicslope = (r2 - r1) / (z2 - z1);
+  
+  return;
+}
+

@@ -100,6 +100,8 @@ class PHCosmicsTrkFitter : public SubsysReco
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
   void setVertexRadius(const float rad) { m_vertexRadius = rad; }
 
+  void getCharge(TrackSeed* track, int& charge, float& cosmicslope );
+
  private:
   /// Get all the nodes
   int getNodes(PHCompositeNode* topNode);

@@ -62,15 +62,6 @@ class MakeSourceLinks
 						   std::set< Acts::GeometryIdentifier>& transient_id_set,
 						   ActsGeometry* tGeometry );
 
-  void getCharge(
-		 TrackSeed* track,
-		 TrkrClusterContainer*  clusterContainer,
-		 ActsGeometry* tGeometry,
-		 alignmentTransformationContainer* transformMapTransient,
-		 float vertexRadius,
-		 int& charge,
-		 float& cosmicslope );
-  
  private:
   int m_verbosity = 0;
   bool m_pp_mode = false;  
