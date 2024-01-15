@@ -32,6 +32,7 @@ pkginclude_HEADERS = \
   GPUTPCTrackLinearisation.h \
   GPUTPCTrackParam.h \
   MakeActsGeometry.h \
+  MakeSourceLinks.h \
   nanoflann.hpp \
   PHActsGSF.h \
   PHActsKDTreeSeeding.h \
@@ -95,6 +96,7 @@ ACTS_SOURCES = \
   ActsEvaluator.cc \
   ActsPropagator.cc \
   MakeActsGeometry.cc \
+  MakeSourceLinks.cc \
   PHActsGSF.cc \
   PHActsKDTreeSeeding.cc \
   PHActsSiliconSeeding.cc \
