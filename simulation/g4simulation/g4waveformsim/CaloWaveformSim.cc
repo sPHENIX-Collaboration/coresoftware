@@ -232,9 +232,9 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     return this->template_function(x, par);
 }, 0, m_nsamples, 3);
   f_fit->SetParameter(0, 1.0);
-  float shift_of_shift = gsl_rng_uniform(m_RandomGenerator);
+  float shift_of_shift = m_timeshiftwidth * gsl_rng_uniform(m_RandomGenerator);
 
-  float _shiftval = 4 + shift_of_shift - f_fit->GetMaximumX();
+  float _shiftval = m_peakpos + shift_of_shift - f_fit->GetMaximumX();
   f_fit->SetParameters(1, _shiftval, 0);
 
   // get G4Hits
