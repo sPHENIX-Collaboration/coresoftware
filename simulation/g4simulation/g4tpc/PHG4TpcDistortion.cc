@@ -181,11 +181,6 @@ double PHG4TpcDistortion::get_z_distortion(double r, double phi, double z) const
 {
   return get_distortion('z', r, phi, z);
 }
-//__________________________________________________________________________________________________________
-double PHG4TpcDistortion::get_reaches_readout(double r, double phi, double z) const
-{
-  return get_distortion('R', r, phi, z);
-}
 
 double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double z) const
 {
@@ -194,14 +189,14 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
 
   TH3* hdistortion = nullptr;
 
-  if (axis != 'r' && axis != 'p' && axis != 'z'&& axis != 'R')
+  if (axis != 'r' && axis != 'p' && axis != 'z')
   {
     std::cout << "Distortion Requested along axis " << axis << " which is invalid.  Exiting.\n"
               << std::endl;
     exit(1);
   }
 
-  double _distortion = 0.;     
+  double _distortion = 0.;
 
   //select the appropriate histogram:
   if (m_do_static_distortions)
@@ -217,10 +212,6 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
     else if (axis == 'z')
     {
       hdistortion = hDZint[zpart];
-    }
-    else if (axis == 'R')
-    {
-      hdistortion = hReach[zpart];
     }
     if (hdistortion)
     {
@@ -248,10 +239,6 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
     else if (axis == 'z')
     {
       hdistortion = TimehDZ[zpart];
-    }
-    else if (axis == 'R')
-    {
-      hdistortion = TimehRR[zpart];
     }
     if (hdistortion)
     {
