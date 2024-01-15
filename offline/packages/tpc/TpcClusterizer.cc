@@ -463,6 +463,7 @@ namespace
 
       if(!surface)
 	{
+	  std::cout << " no surface  " << std::endl; 
 	  /// If the surface can't be found, we can't track with it. So 
 	  /// just return and don't add the cluster to the container
 	  hitkeyvec.clear();
@@ -595,6 +596,8 @@ namespace
     const auto& tbins     = my_data->tbins ;
     const auto& toffset   = my_data->toffset ;
     const auto& layer   = my_data->layer ;
+    //  const auto& side   = my_data->side ;
+    // const auto& sector   = my_data->sector ;
     //    int nhits = 0;
     // for convenience, create a 2D vector to store adc values in and initialize to zero
     std::vector<std::vector<unsigned short>> adcval(phibins, std::vector<unsigned short>(tbins, 0));
@@ -649,8 +652,8 @@ namespace
 	if(fadc>0) adc =  (unsigned short) fadc;
 	if(phibin >= phibins) continue;
 	if(tbin   >= tbins) continue; // tbin is unsigned int, <0 cannot happen
-	
 	if(adc>0){
+	  
 	  if(adc>(my_data->seed_threshold)){
 	    ihit  thisHit;
 	    
@@ -667,7 +670,7 @@ namespace
       }
     }else  if( my_data->rawhitset!=nullptr){
       RawHitSetv1 *hitset = my_data->rawhitset;
-      /*std::cout << "Layer: " << my_data->layer 
+      /*      std::cout << "Layer: " << my_data->layer 
 		<< "Side: " << my_data->side
 		<< "Sector: " << my_data->sector
 		<< " nhits:  " << hitset.size()
