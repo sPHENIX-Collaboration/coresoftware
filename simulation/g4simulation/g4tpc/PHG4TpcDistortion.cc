@@ -184,6 +184,7 @@ double PHG4TpcDistortion::get_z_distortion(double r, double phi, double z) const
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_reaches_readout(double r, double phi, double z) const
 {
+  if (r<1) printf("Unusual R: %f.  This line is to keep the compiler from complaining about unused parameters like %f and %f.\n",r,phi,z);
   return 1;
   //not ready yet: return get_distortion('R', r, phi, z);
 }
