@@ -5,7 +5,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <tpc/TpcClusterMover.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
@@ -34,13 +33,14 @@ class ActsGeometry;
 class TrkrClusterContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
+class SvtxTrack;
 
 using SourceLink = ActsSourceLink;
 using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
-using SourceLinkVec = std::vector<SourceLink>;
+using SourceLinkVec = std::vector<Acts::SourceLink>;
 
 class PHActsGSF : public SubsysReco
 {
@@ -53,15 +53,17 @@ class PHActsGSF : public SubsysReco
   int process_event(PHCompositeNode* topNode) override;
   int End(PHCompositeNode* topNode) override;
 
+  void set_pp_mode(bool mode) {m_pp_mode = mode;}
+
  private:
   int getNodes(PHCompositeNode* topNode);
   std::shared_ptr<Acts::PerigeeSurface> makePerigee(SvtxTrack* track) const;
   ActsTrackFittingAlgorithm::TrackParameters makeSeed(
       SvtxTrack* track,
       std::shared_ptr<Acts::PerigeeSurface> psurf) const;
-  SourceLinkVec getSourceLinks(TrackSeed* track,
-                               ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-                               const short int& crossing);
+  //  SourceLinkVec getSourceLinks(TrackSeed* track,
+  //                         ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
+  //                         const short int& crossing);
   ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
       const std::vector<Acts::SourceLink>& sourceLinks,
       const ActsTrackFittingAlgorithm::TrackParameters& seed,
@@ -71,21 +73,30 @@ class PHActsGSF : public SubsysReco
 
   void updateTrack(FitResult& result, SvtxTrack* track,
                    ActsTrackFittingAlgorithm::TrackContainer& tracks);
-  void updateSvtxTrack(const Trajectory& traj, SvtxTrack* track);
+  void updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+                       Trajectory::IndexedParameters& paramsMap,
+                       ActsTrackFittingAlgorithm::TrackContainer& tracks,
+                       SvtxTrack* track);
   ActsGeometry* m_tGeometry = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
   SvtxTrackMap* m_trackMap = nullptr;
   SvtxVertexMap* m_vertexMap = nullptr;
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
+  alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
+  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;  
+  std::set< Acts::GeometryIdentifier> m_transient_id_set;
+  Acts::GeometryContext m_transient_geocontext;
+
   TpcDistortionCorrectionContainer* m_dccStatic = nullptr;
   TpcDistortionCorrectionContainer* m_dccAverage = nullptr;
   TpcDistortionCorrectionContainer* m_dccFluctuation{nullptr};
   TpcDistortionCorrection m_distortionCorrection;
-  TpcClusterMover m_clusterMover;
 
   std::string m_trackMapName = "SvtxTrackMap";
   unsigned int m_pHypothesis = 11;
+
+  bool m_pp_mode = false;
 
   ClusterErrorPara _ClusErrPara;
 

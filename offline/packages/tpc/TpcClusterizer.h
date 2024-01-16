@@ -43,6 +43,7 @@ class TpcClusterizer : public SubsysReco
   void set_do_wedge_emulation(bool do_wedge){ do_wedge_emulation = do_wedge;}
   void set_do_sequential(bool do_seq){ do_sequential = do_seq;}
   void set_do_split(bool split){ do_split = split;}
+  void set_pedestal(float val) { pedestal = val;}
   void set_seed_threshold(float val) { seed_threshold = val;}
   void set_edge_threshold(float val) { edge_threshold = val;}
   void set_min_err_squared(float val) { min_err_squared = val;}
@@ -57,12 +58,13 @@ class TpcClusterizer : public SubsysReco
   void set_rawdata_reco() {
     set_do_hit_association(false);
     set_do_split(false);
+    set_pedestal(0);
     set_seed_threshold(5);
     set_edge_threshold(3);
     set_min_err_squared(0);
     set_min_clus_size(0);
     set_min_adc_sum(5);
-    set_remove_singles(false);
+    set_remove_singles(true);
     set_max_cluster_half_size_phi(5);
     set_max_cluster_half_size_z(8);
   };

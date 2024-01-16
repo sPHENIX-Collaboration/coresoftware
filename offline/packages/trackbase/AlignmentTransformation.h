@@ -129,6 +129,7 @@ void setTPCParams(double tpcDevs[6])
   Acts::Transform3 newMakeTransform(Surface surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, bool survey);
 
   alignmentTransformationContainer* transformMap = NULL;
+  alignmentTransformationContainer* transformMapTransient = NULL;
   ActsGeometry* m_tGeometry = NULL;
   
   int getNodes(PHCompositeNode* topNode);

@@ -93,7 +93,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   else
   {
     std::cout << "CaloTowerStatus::::InitRun No masking file for domain " << m_calibName_chi2 << " found, not doing isHot" << std::endl;
-    m_doHot = false;
+    m_doHotChi2 = false;
   }
 
   m_calibName_time = m_detector + "_meanTime";
@@ -109,6 +109,22 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     std::cout << "CaloTowerStatus::::InitRun no timing info, " << m_calibName_time << " not found, not doing isHot" << std::endl;
     m_doTime = false;
   }
+
+  m_calibName_hotMap = m_detector + "nome";
+  if (m_dettype == CaloTowerDefs::CEMC) m_calibName_hotMap = m_detector + "_BadTowerMap"; 
+  m_fieldname_hotMap = "status";
+
+  calibdir = CDBInterface::instance()->getUrl(m_calibName_hotMap);
+  if (!calibdir.empty())
+  {
+    m_cdbttree_hotMap = new CDBTTree(calibdir);
+  }
+  else
+  {
+    std::cout << "CaloTowerStatus::::InitRun hot map info, " << m_calibName_hotMap << " not found, not doing isHot" << std::endl;
+    m_doHotMap = false;
+  }
+
 
   PHNodeIterator iter(topNode);
 
@@ -143,26 +159,38 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
   unsigned int ntowers = m_raw_towers->size();
   float fraction_badChi2 = 0;
   float mean_time = 0;
+  int hotMap_val = 0;
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
     unsigned int key = m_raw_towers->encode_key(channel);
-    if (m_doHot)
+    m_raw_towers->get_tower_at_channel(channel)->set_status(0); // resetting status
+
+    if (m_doHotChi2)
     {
       fraction_badChi2 = m_cdbttree_chi2->GetFloatValue(key, m_fieldname_chi2);
     }
     if (m_doTime)
     {
-      fraction_badChi2 = m_cdbttree_time->GetFloatValue(key, m_fieldname_time);
+      mean_time = m_cdbttree_time->GetFloatValue(key, m_fieldname_time);
+    }
+    if (m_doHotMap)
+    {
+      hotMap_val = m_cdbttree_hotMap->GetIntValue(key, m_fieldname_hotMap);
     }
     float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
     float time = m_raw_towers->get_tower_at_channel(channel)->get_time_float();
-    if (fraction_badChi2 > fraction_badChi2_threshold && m_doHot)
+
+    if (fraction_badChi2 > fraction_badChi2_threshold && m_doHotChi2)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
     if (fabs(time-mean_time) > time_cut && m_doTime)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(true);
+    }
+    if (hotMap_val != 0 && m_doHotMap)
+    {
+      m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
     if (chi2 > badChi2_treshold)
     {

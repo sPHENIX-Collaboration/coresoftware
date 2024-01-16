@@ -200,11 +200,11 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     if(FEE_R[fee]==2) feeM += 6;
     if(FEE_R[fee]==3) feeM += 14;
 
-    int side = 0;
+    int side = 1;
     int32_t packet_id = tpchit->get_packetid();
     int ep = (packet_id - 4000) % 10;
     int sector = (packet_id - 4000 - ep) / 10;
-    if (sector>11) side = 1;
+    if (sector>11) side = 0;
 
     unsigned int key = 256 * (feeM) + channel;
     std::string varname = "layer";
@@ -217,8 +217,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     uint16_t sam = tpchit->get_samples();
 
     varname = "phi";// + std::to_string(key);
-    double phi = pow(-1,side)*m_cdbttree->GetDoubleValue(key,varname) + (sector - side*12)*M_PI/6;
-    
+    double phi = -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
     PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
     unsigned int phibin = layergeom->find_phibin(phi);
 
@@ -238,7 +237,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     fX[n++] = sam;
     m_ntup->Fill(fX);
 
-    hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector - side*12]), side);
+    hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
       
     float hpedestal = 0;

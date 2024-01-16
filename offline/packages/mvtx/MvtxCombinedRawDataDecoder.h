@@ -56,7 +56,7 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
  
     std::string m_MvtxRawHitNodeName = "MVTXRAWHIT";
     std::string m_MvtxRawEvtHeaderNodeName = "MVTXRAWEVTHEADER";
-
+    float m_strobeWidth = 89.; //!microseconds
     bool m_writeMvtxEventHeader = true;
 };
 

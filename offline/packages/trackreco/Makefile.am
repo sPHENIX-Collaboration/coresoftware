@@ -32,6 +32,7 @@ pkginclude_HEADERS = \
   GPUTPCTrackLinearisation.h \
   GPUTPCTrackParam.h \
   MakeActsGeometry.h \
+  MakeSourceLinks.h \
   nanoflann.hpp \
   PHActsGSF.h \
   PHActsKDTreeSeeding.h \
@@ -42,6 +43,7 @@ pkginclude_HEADERS = \
   PHActsTrackPropagator.h \
   PHCASeeding.h \
   PHCosmicsTrkFitter.h \
+  PHCosmicSeeder.h \
   PHCosmicSeedCombiner.h \
   PHCosmicSiliconPropagator.h \
   PHGenFitTrackProjection.h \
@@ -94,6 +96,7 @@ ACTS_SOURCES = \
   ActsEvaluator.cc \
   ActsPropagator.cc \
   MakeActsGeometry.cc \
+  MakeSourceLinks.cc \
   PHActsGSF.cc \
   PHActsKDTreeSeeding.cc \
   PHActsSiliconSeeding.cc \
@@ -123,6 +126,7 @@ libtrack_reco_la_SOURCES = \
   PH3DVertexing.cc \
   PHCASeeding.cc \
   PHCosmicSeedCombiner.cc \
+  PHCosmicSeeder.cc \
   PHCosmicSiliconPropagator.cc \
   PHGenFitTrackProjection.cc \
   PHGenFitTrkFitter.cc \
