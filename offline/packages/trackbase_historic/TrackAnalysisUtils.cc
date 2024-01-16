@@ -61,4 +61,18 @@ TrackAnalysisUtils::DCAPair get_dca(SvtxTrack* track,
 
   return pair;
 }
+
+std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track)
+{
+  std::vector<TrkrDefs::cluskey> out;
+  for (const auto& seed : {track->get_silicon_seed(), track->get_tpc_seed()})
+  {
+    if (seed)
+    {
+      std::copy(seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter(out));
+    }
+  }
+  return out;
+}
+
 }
