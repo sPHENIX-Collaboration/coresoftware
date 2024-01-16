@@ -418,6 +418,11 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
   }
   for (unsigned int layer = startLayer; layer <= endLayer; ++layer)
   {
+    //! no cluster was found in that layer
+    if (best_layer_cluskey[layer] == 0)
+    {
+      continue;
+    }
     if (best_layer_dca[layer] < dca_cut)
     {
       cluskey_vec.push_back(best_layer_cluskey[layer]);
