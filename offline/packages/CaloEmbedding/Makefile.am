@@ -1,9 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
 
-CINTINCLUDES = -pthread -I$(includedir) -I$(OFFLINE_MAIN)/lib -I$(OFFLINE_MAIN)/include -I$(ROOTSYS)/include -I$(ROOTSYS)/lib/include -I$(OPT_SPHENIX)/include
-
-INCLUDES = $(CINTINCLUDES)
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
@@ -13,8 +9,7 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64 \
-  -lcalo_io \
-  -lCLHEP 
+  -lcalo_io
 
 pkginclude_HEADERS = \
   caloTowerEmbed.h
@@ -23,8 +18,7 @@ lib_LTLIBRARIES = \
   libCaloEmbedding.la
 
 libCaloEmbedding_la_SOURCES = \
-  caloTowerEmbed.cc \
-  $(ROOTDICTS)
+  caloTowerEmbed.cc
 
 libCaloEmbedding_la_LIBADD = \
   -lphool \
@@ -37,9 +31,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libCaloembedding.la
-
-CALOEMBEDDINGOBJS =  caloTowerEmbed.o derp.o
+testexternals_LDADD   = libCaloEmbedding.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
@@ -47,12 +39,6 @@ testexternals.cc:
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
-
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
 
 clean-local:
 	rm -f *Dict*  $(BUILT_SOURCES) *.pcm
