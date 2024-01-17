@@ -1,9 +1,10 @@
-#ifndef _TRACKBASEHISTORIC_TRACKANALYSISUTILS_H
-#define _TRACKBASEHISTORIC_TRACKANALYSISUTILS_H
+#ifndef TRACKBASEHISTORIC_TRACKANALYSISUTILS_H
+#define TRACKBASEHISTORIC_TRACKANALYSISUTILS_H
+
+#include <trackbase/TrkrDefs.h>
+#include <Acts/Definitions/Algebra.hpp>
 
 #include <utility>
-#include <Acts/Definitions/Algebra.hpp>
-#include <trackbase/TrkrDefs.h>
 
 class SvtxTrack;
 
@@ -17,6 +18,6 @@ namespace TrackAnalysisUtils
 
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
 
-};
+};  // namespace TrackAnalysisUtils
 
 #endif
