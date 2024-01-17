@@ -17,8 +17,8 @@
 #include "TFile.h"
 #include "TTree.h"
 
-//class CDBInterface;
-//class CDBTTree;
+// class CDBInterface;
+// class CDBTTree;
 class PHCompositeNode;
 class TowerInfoContainerv1;
 class TowerInfoContainerv2;
@@ -35,9 +35,8 @@ class caloTowerEmbed : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
   void CreateNodeTree(PHCompositeNode *topNode);
-  
 
-  void set_useRetower(bool a){ m_useRetower = a; };
+  void set_useRetower(bool a) { m_useRetower = a; };
 
   enum DetectorSystem
   {
@@ -48,8 +47,8 @@ class caloTowerEmbed : public SubsysReco
   };
 
  private:
-  TowerInfoContainer *_data_towers[3] = {nullptr,nullptr,nullptr};
-  TowerInfoContainer *_sim_towers[3] = {nullptr,nullptr,nullptr};
+  TowerInfoContainer *_data_towers[3] = {nullptr, nullptr, nullptr};
+  TowerInfoContainer *_sim_towers[3] = {nullptr, nullptr, nullptr};
 
   RawTowerGeomContainer *tower_geom = nullptr;
   RawTowerGeomContainer *tower_geomIH = nullptr;
@@ -58,10 +57,9 @@ class caloTowerEmbed : public SubsysReco
   bool m_useRetower = false;
 
   //  CDBInterface *cdb = nullptr;
-  //CDBTTree *cdbttree = nullptr;
+  // CDBTTree *cdbttree = nullptr;
   int m_runNumber;
   int m_eventNumber;
-
 };
 
 #endif  // CALOTOWEREMBED_H
