@@ -1,10 +1,10 @@
 /*!
- *  \file PHSimpleKFProp.cc
+ *  \file PrelimDistortionCorrection.cc
  *  \brief		kalman filter based propagator
  *  \author Michael Peters & Christof Roland
  */
 
-#include "PHSimpleKFProp.h"
+#include "PrelimDistortionCorrection.h"
 #include "PHGhostRejection.h"
 #include "ALICEKF.h"
 #include "nanoflann.hpp"
@@ -69,16 +69,16 @@ namespace
 
 using keylist = std::vector<TrkrDefs::cluskey>;
 
-PHSimpleKFProp::PHSimpleKFProp(const std::string& name)
+PrelimDistortionCorrection::PrelimDistortionCorrection(const std::string& name)
   : SubsysReco(name)
 {}
 
-int PHSimpleKFProp::End(PHCompositeNode*)
+int PrelimDistortionCorrection::End(PHCompositeNode*)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
+int PrelimDistortionCorrection::InitRun(PHCompositeNode* topNode)
 {
   
   int ret = get_nodes(topNode);
@@ -107,7 +107,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-double PHSimpleKFProp::get_Bz(double x, double y, double z) const
+double PrelimDistortionCorrection::get_Bz(double x, double y, double z) const
 {
   if(_use_const_field) return _const_field;
   double p[4] = {x*cm,y*cm,z*cm,0.*cm};
@@ -128,7 +128,7 @@ double PHSimpleKFProp::get_Bz(double x, double y, double z) const
   return bfield[2]/tesla;
 }
 
-int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
+int PrelimDistortionCorrection::get_nodes(PHCompositeNode* topNode)
 {
   //---------------------------------
   // Get Objects off of the Node Tree
@@ -144,7 +144,7 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
   // tpc distortion correction
   m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
   if( m_dcc )
-  { std::cout << "PHSimpleKFProp::InitRun - found TPC distortion correction container" << std::endl; }
+  { std::cout << "PrelimDistortionCorrection::InitRun - found TPC distortion correction container" << std::endl; }
 
   if(_use_truth_clusters)
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
@@ -180,27 +180,22 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
+int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 {
-  if(_n_iteration!=0){
-    _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
-    if (!_iteration_map){
-      std::cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  }
-  
-  PHTimer timer("KFPropTimer");
-  
+  if(!_pp_mode) {return Fun4AllReturnCodes::EVENT_OK;}
+
+  PHTimer timer("PrelimDistortionCorrectionTimer");
   timer.stop();
   timer.restart();
 
-  if(Verbosity()>0) std::cout << "starting Process" << std::endl;
-  PositionMap globalPositions = PrepareKDTrees();
-  if(Verbosity()>0) std::cout << "prepared KD trees" << std::endl;
+  if(Verbosity()>0) std::cout << "starting PrelimDistortionCorrection process_event" << std::endl;
 
-  std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
-  std::vector<TrackSeed_v1> unused_tracks;
+  // These accumulate trackseeds as we loop over tracks, keylist is a vector of vectors of seed cluskeys
+  // The seeds are all given to the fitter at once
+    std::vector<std::vector<TrkrDefs::cluskey>> keylist;
+    //    std::vector<TrkrDefs::cluskey, Acts::Vector3> correctedOffsetTrackClusPositions;
+    PositionMap correctedOffsetTrackClusPositions;
+
   for(int track_it = 0; track_it != _track_map->size(); ++track_it )
   {
     if(Verbosity()>0) std::cout << "TPC seed " << track_it << std::endl;
@@ -213,6 +208,52 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
     if(is_tpc)
     {
+      // We want to move all clusters in this seed to point to Z0 = 0
+      float Z0 = track->get_Z0();
+      float offset_Z = 0.0 - Z0;
+
+      // We want to make  distortion corrections to all clusters in this seed after offsetting the z values
+      std::vector<TrkrDefs::cluskey> dumvec;
+      for(TrackSeed::ConstClusterKeyIter iter = track->begin_cluster_keys();
+	  iter != track->end_cluster_keys();
+	  ++iter)
+	{
+	  TrkrDefs::cluskey cluskey = *iter;
+	  TrkrCluster *cluster = _cluster_map->findCluster(cluskey);
+
+	  Acts::Vector3 pos = getGlobalPosition(cluskey, cluster);
+	  Acts::Vector3 offsetpos(pos(0), pos(1), pos(2) + offset_Z);
+	  // Distortion correct the offset positions
+	  if( m_dcc ) { offsetpos = m_distortionCorrection.get_corrected_position( offsetpos, m_dcc ); }
+	  correctedOffsetTrackClusPositions.insert(std::make_pair(cluskey,offsetpos));
+	  dumvec.push_back(cluskey);
+	}
+
+      /// Can't circle fit a seed with less than 3 clusters, skip it
+      if(dumvec.size() < 3)
+	{ continue; }
+      keylist.push_back(dumvec);
+    
+    } // end if TPC seed
+
+  }  // end loop over tracks
+
+  // reset the seed map for the TPC
+  _track_map->Reset();
+      
+  // refit the corrected clusters 
+  std::vector<float> trackChi2;
+  auto seeds = fitter->ALICEKalmanFilter(keylist, true, correctedOffsetTrackClusPositions,
+					 trackChi2);
+  
+  // update the seed parameters on the node tree
+  // This calls circle fit and line fit (setting x, y, z, phi, eta) and sets qOverR explicitly using q from KF
+  publishSeeds(seeds.first, correctedOffsetTrackClusPositions);
+      
+
+
+
+      /*
       std::vector<std::vector<TrkrDefs::cluskey>> keylist;
       std::vector<TrkrDefs::cluskey> dumvec;
       std::map<TrkrDefs::cluskey, Acts::Vector3> trackClusPositions;
@@ -343,13 +384,15 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   timer.stop();
   if(Verbosity() > 2)
     { std::cout << "ghost rejection time " << timer.elapsed() << std::endl; }
+*/
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-Acts::Vector3 PHSimpleKFProp::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
+Acts::Vector3 PrelimDistortionCorrection::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
+
   auto globalpos = _tgeometry->getGlobalPosition(key, cluster);
 
   // check if TPC distortion correction are in place and apply if this is a triggered event (ie. crossing is known)
@@ -361,7 +404,7 @@ Acts::Vector3 PHSimpleKFProp::getGlobalPosition( TrkrDefs::cluskey key, TrkrClus
   return globalpos;
 }
 
-PositionMap PHSimpleKFProp::PrepareKDTrees()
+PositionMap PrelimDistortionCorrection::PrepareKDTrees()
 {
   PositionMap globalPositions;
   //***** convert clusters to kdhits, and divide by layer
@@ -431,7 +474,7 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
 }
 
 
-std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, Eigen::Matrix<double,6,6>& xyzCov, const PositionMap& globalPositions) const
+std::vector<TrkrDefs::cluskey> PrelimDistortionCorrection::PropagateTrack(TrackSeed* track, Eigen::Matrix<double,6,6>& xyzCov, const PositionMap& globalPositions) const
 {
   // extract cluster list
  
@@ -1143,7 +1186,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   return propagated_track;
 }
 
-std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
+std::vector<keylist> PrelimDistortionCorrection::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
 {
   if(Verbosity()>0) std::cout << "removing bad clusters" << std::endl;
   std::vector<keylist> clean_chains;
@@ -1184,7 +1227,7 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
 
 
 
-void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap& /*positions*/)
+void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap& /*positions*/)
 {
   for(auto& seed: seeds )
   { 
@@ -1198,7 +1241,7 @@ void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap&
   }
 }
 
-void PHSimpleKFProp::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
+void PrelimDistortionCorrection::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
 {
   for( const auto& seed:seeds )
   { _track_map->insert(&seed); }

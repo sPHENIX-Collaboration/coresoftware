@@ -1,11 +1,11 @@
 /*!
- *  \file PHSimpleKFProp.h
- *  \brief		kalman filter based propagator
- *  \author Michael Peters & Christof Roland
+ *  \file PrelimDistortionCorrection.h
+ *  \brief		Makes preliminary distortion corrections when crossing is unknown
+ *  \author Tony Frawley
  */
 
-#ifndef TRACKRECO_PHSIMPLEKFPROP_H
-#define TRACKRECO_PHSIMPLEKFPROP_H
+#ifndef TRACKRECO_PRELIMDISTORTIONcORRECTION_H
+#define TRACKRECO_PRELIMDISTORTIONCORRECTION_H
 
 #include "ALICEKF.h"
 #include "nanoflann.hpp"
@@ -35,11 +35,11 @@ class TrackSeed;
 
 using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
-class PHSimpleKFProp : public SubsysReco
+class PrelimDistortionCorrection : public SubsysReco
 {
  public:
-  PHSimpleKFProp(const std::string &name = "PHSimpleKFProp");
-  ~PHSimpleKFProp() override = default;
+  PrelimDistortionCorrection(const std::string &name = "PrelimDistortionCorrection");
+  ~PrelimDistortionCorrection() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
