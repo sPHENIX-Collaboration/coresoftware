@@ -10,18 +10,14 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <TFile.h>
+#include <TTree.h>
+
 #include <cassert>
 #include <iostream>
 #include <string>
 
-#include "TFile.h"
-#include "TTree.h"
-
-// class CDBInterface;
-// class CDBTTree;
 class PHCompositeNode;
-class TowerInfoContainerv1;
-class TowerInfoContainerv2;
 class RawTowerGeomContainer;
 
 class caloTowerEmbed : public SubsysReco
@@ -47,19 +43,19 @@ class caloTowerEmbed : public SubsysReco
   };
 
  private:
-  TowerInfoContainer *_data_towers[3] = {nullptr, nullptr, nullptr};
-  TowerInfoContainer *_sim_towers[3] = {nullptr, nullptr, nullptr};
+  TowerInfoContainer *_data_towers[3] {nullptr, nullptr, nullptr};
+  TowerInfoContainer *_sim_towers[3] {nullptr, nullptr, nullptr};
 
-  RawTowerGeomContainer *tower_geom = nullptr;
-  RawTowerGeomContainer *tower_geomIH = nullptr;
-  RawTowerGeomContainer *tower_geomOH = nullptr;
+  RawTowerGeomContainer *tower_geom {nullptr};
+  RawTowerGeomContainer *tower_geomIH {nullptr};
+  RawTowerGeomContainer *tower_geomOH {nullptr};
 
-  bool m_useRetower = false;
+  bool m_useRetower {false};
 
   //  CDBInterface *cdb = nullptr;
   // CDBTTree *cdbttree = nullptr;
-  int m_runNumber;
-  int m_eventNumber;
+  int m_runNumber {0};
+  int m_eventNumber {-1};
 };
 
 #endif  // CALOTOWEREMBED_H
