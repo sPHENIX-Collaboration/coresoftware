@@ -6,6 +6,7 @@
 #include <phool/PHObject.h>
 
 #include <iostream>  // for cout, ostream
+#include <limits>
 #include <map>
 #include <utility>  // for make_pair, pair
 
@@ -20,7 +21,7 @@ class PHG4CylinderGeomContainer : public PHObject
   using Range = std::pair<Iterator, Iterator>;
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
-  PHG4CylinderGeomContainer();
+  PHG4CylinderGeomContainer() = default;
   ~PHG4CylinderGeomContainer() override;
 
   // from PHObject
@@ -35,7 +36,7 @@ class PHG4CylinderGeomContainer : public PHObject
 
  protected:
   Map layergeoms;
-  float magfield;
+  float magfield {std::numeric_limits<float>::quiet_NaN()};
   ClassDefOverride(PHG4CylinderGeomContainer, 1)
 };
 
