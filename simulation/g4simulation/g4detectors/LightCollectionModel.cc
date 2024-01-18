@@ -85,12 +85,12 @@ double LightCollectionModel::get_light_guide_efficiency(const double x_fraction,
   const double eff = data_grid_light_guide_efficiency->Interpolate(x_fraction,
                                                                    y_fraction);
 
-  if (! data_grid_light_guide_efficiency_verify)
+  if (!data_grid_light_guide_efficiency_verify)
   {
-  data_grid_light_guide_efficiency_verify = new TH2F("data_grid_light_guide_efficiency_verify",
-                                                     "light collection efficiency as used in LightCollectionModel;x positio fraction;y position fraction",  //
-                                                     100, 0., 1., 100, 0., 1.);
-  Fun4AllServer::instance()->registerHisto(data_grid_light_guide_efficiency_verify);
+    data_grid_light_guide_efficiency_verify = new TH2F("data_grid_light_guide_efficiency_verify",
+                                                       "light collection efficiency as used in LightCollectionModel;x positio fraction;y position fraction",  //
+                                                       100, 0., 1., 100, 0., 1.);
+    Fun4AllServer::instance()->registerHisto(data_grid_light_guide_efficiency_verify);
   }
 
   data_grid_light_guide_efficiency_verify->SetBinContent(                        //
@@ -107,12 +107,12 @@ double LightCollectionModel::get_fiber_transmission(const double z_distance)
   assert(data_grid_fiber_trans);
 
   const double eff = data_grid_fiber_trans->Interpolate(z_distance);
-  if (! data_grid_fiber_trans_verify)
+  if (!data_grid_fiber_trans_verify)
   {
-  data_grid_fiber_trans_verify = new TH1F("data_grid_fiber_trans",
-                                          "SCSF-78 Fiber Transmission as used in LightCollectionModel;position in fiber (cm);Effective transmission",
-                                          100, -15, 15);
-Fun4AllServer::instance()->registerHisto(data_grid_fiber_trans_verify);
+    data_grid_fiber_trans_verify = new TH1F("data_grid_fiber_trans",
+                                            "SCSF-78 Fiber Transmission as used in LightCollectionModel;position in fiber (cm);Effective transmission",
+                                            100, -15, 15);
+    Fun4AllServer::instance()->registerHisto(data_grid_fiber_trans_verify);
   }
 
   data_grid_fiber_trans_verify->SetBinContent(                        //
