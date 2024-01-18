@@ -27,6 +27,7 @@ class PHCosmicSiliconPropagator : public SubsysReco
   void set_dca_z_cut(float z) { _dca_z_cut = z; }
   void set_dca_xy_cut(float xy) { _dca_xy_cut = xy; }
   void zero_field() { m_zeroField = true; }
+  void resetSvtxSeedContainer() { m_resetContainer = true; }
 
  private:
   int createSeedContainer(TrackSeedContainer*& container, const std::string& container_name, PHCompositeNode* topNode);
@@ -37,6 +38,7 @@ class PHCosmicSiliconPropagator : public SubsysReco
   TrackSeedContainer* _svtx_seeds = nullptr;
   TrkrClusterContainer* _cluster_map = nullptr;
 
+  float m_resetContainer = false;
   float _dca_z_cut = 5.;
   float _dca_xy_cut = 5.;
   bool m_zeroField = false;
