@@ -23,7 +23,7 @@ libCaloEmbedding_la_SOURCES = \
 libCaloEmbedding_la_LIBADD = \
   -lphool \
   -lSubsysReco \
-  -lfun4all
+  -lfun4all 
 
 BUILT_SOURCES = testexternals.cc
 
