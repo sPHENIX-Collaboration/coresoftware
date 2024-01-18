@@ -27,7 +27,6 @@
 class PHG4CylinderGeom;
 class PHG4Detector;
 
-
 //_______________________________________________________________________
 PHG4CylinderSubsystem::PHG4CylinderSubsystem(const std::string &na, const int lyr)
   : PHG4DetectorSubsystem(na, lyr)

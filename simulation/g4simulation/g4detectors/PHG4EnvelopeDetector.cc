@@ -58,7 +58,7 @@ bool PHG4EnvelopeDetector::IsInEnvelope(G4VPhysicalVolume* volume) const
 void PHG4EnvelopeDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   //***************
-  //Backward Endcap
+  // Backward Endcap
   //***************
 
   G4double placeInZ = _placeInZ;
@@ -103,7 +103,7 @@ void PHG4EnvelopeDetector::ConstructMe(G4LogicalVolume* logicWorld)
                     OverlapCheck());
 
   //**************
-  //Forward Endcap
+  // Forward Endcap
   //**************
 
   new G4PVPlacement(G4Transform3D(ecal_rotm, G4ThreeVector(placeInX, placeInY, -1 * placeInZ)),
@@ -115,7 +115,7 @@ void PHG4EnvelopeDetector::ConstructMe(G4LogicalVolume* logicWorld)
                     OverlapCheck());
 
   //*****************************
-  //Cylinder Surrounding Detector
+  // Cylinder Surrounding Detector
   //*****************************
 
   G4double cyl_place = 0 * mm;

@@ -70,11 +70,11 @@ class PHG4CylinderGeomv4 : public PHG4CylinderGeom
   double get_sensor_y_offset() const { return sensor_y_offset; }
 
  protected:
-  int N_sensors_in_layer {-1};
-  int layer {-1};
+  int N_sensors_in_layer{-1};
+  int layer{-1};
 
   // finding the center of a sensor given ladder_segment_z and ladder_
-  double layer_radius {std::numeric_limits<double>::quiet_NaN()};
+  double layer_radius{std::numeric_limits<double>::quiet_NaN()};
   double radius_stagger{std::numeric_limits<double>::quiet_NaN()};
   int layer_NZ{-1};
   double segment_z_step{std::numeric_limits<double>::quiet_NaN()};
@@ -83,7 +83,7 @@ class PHG4CylinderGeomv4 : public PHG4CylinderGeom
   double sensor_y_offset{std::numeric_limits<double>::quiet_NaN()};
 
   // navigation within a sensor
-  //double strip_x_offset;
+  // double strip_x_offset;
   // double strip_y_offset;
   int N_strip_columns{-1};
   int N_strips_per_column{-1};

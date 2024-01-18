@@ -154,52 +154,29 @@ void PHG4CylinderGeom_Spacalv3::ImportParameters(const PHParameters& param)
 
 PHG4CylinderGeom_Spacalv3::geom_tower::geom_tower()
   : id(numeric_limits<int>::min())
-  ,
-  pDz(std::numeric_limits<double>::quiet_NaN())
-  ,
-  pDy1(std::numeric_limits<double>::quiet_NaN())
-  ,
-  pDx1(std::numeric_limits<double>::quiet_NaN())
-  ,
-  pDx2(std::numeric_limits<double>::quiet_NaN())
-  ,
-  pDy2(std::numeric_limits<double>::quiet_NaN())
-  ,
-  pDx3(std::numeric_limits<double>::quiet_NaN())
-  ,
-  pDx4(std::numeric_limits<double>::quiet_NaN())
-  ,
-  pTheta(std::numeric_limits<double>::quiet_NaN())
-  ,
-  pPhi(std::numeric_limits<double>::quiet_NaN())
-  ,
-  pAlp1(std::numeric_limits<double>::quiet_NaN())
-  ,
-  pAlp2(std::numeric_limits<double>::quiet_NaN())
-  ,
-  pRotationAngleX(std::numeric_limits<double>::quiet_NaN())
-  ,
-  centralX(std::numeric_limits<double>::quiet_NaN())
-  ,
-  centralY(std::numeric_limits<double>::quiet_NaN())
-  ,
-  centralZ(std::numeric_limits<double>::quiet_NaN())
-  ,
-  ModuleSkinThickness(std::numeric_limits<double>::quiet_NaN())
-  ,
-  NFiberX(numeric_limits<int>::min())
-  ,
-  NFiberY(numeric_limits<int>::min())
-  ,
-  NSubtowerX(1)
-  ,
-  NSubtowerY(1)
-  ,
-  LightguideHeight(0)
-  ,
-  LightguideTaperRatio(std::numeric_limits<double>::quiet_NaN())
-  ,
-  LightguideMaterial("PMMA")
+  , pDz(std::numeric_limits<double>::quiet_NaN())
+  , pDy1(std::numeric_limits<double>::quiet_NaN())
+  , pDx1(std::numeric_limits<double>::quiet_NaN())
+  , pDx2(std::numeric_limits<double>::quiet_NaN())
+  , pDy2(std::numeric_limits<double>::quiet_NaN())
+  , pDx3(std::numeric_limits<double>::quiet_NaN())
+  , pDx4(std::numeric_limits<double>::quiet_NaN())
+  , pTheta(std::numeric_limits<double>::quiet_NaN())
+  , pPhi(std::numeric_limits<double>::quiet_NaN())
+  , pAlp1(std::numeric_limits<double>::quiet_NaN())
+  , pAlp2(std::numeric_limits<double>::quiet_NaN())
+  , pRotationAngleX(std::numeric_limits<double>::quiet_NaN())
+  , centralX(std::numeric_limits<double>::quiet_NaN())
+  , centralY(std::numeric_limits<double>::quiet_NaN())
+  , centralZ(std::numeric_limits<double>::quiet_NaN())
+  , ModuleSkinThickness(std::numeric_limits<double>::quiet_NaN())
+  , NFiberX(numeric_limits<int>::min())
+  , NFiberY(numeric_limits<int>::min())
+  , NSubtowerX(1)
+  , NSubtowerY(1)
+  , LightguideHeight(0)
+  , LightguideTaperRatio(std::numeric_limits<double>::quiet_NaN())
+  , LightguideMaterial("PMMA")
 {
 }
 
@@ -785,7 +762,7 @@ void PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4()
   const double module_length = z_screen_6_7 - z_screen_1_2;
   assert(module_length > 0);
 
-  //tapering, dxwidth/dlength
+  // tapering, dxwidth/dlength
   const double tapering_ratio = (wide_width_x - nawrrow_width_x) / module_length;
   assert(tapering_ratio < 1);
   assert(tapering_ratio > 0);
