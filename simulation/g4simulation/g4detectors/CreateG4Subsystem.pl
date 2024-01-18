@@ -874,7 +874,6 @@ sub CreateSubsystemImplementation()
     print F "#include <phool/getClass.h>\n";
     print F "\n";
 
-    print F "using namespace std;\n";
     print F "\n";
 
     print F "//_______________________________________________________________________\n";
@@ -934,7 +933,7 @@ sub CreateSubsystemImplementation()
     print F "}\n";
 
     print F "//_______________________________________________________________________\n";
-    print F "void $subsysclassname\:\:Print(const string &what) const\n";
+    print F "void $subsysclassname\:\:Print(const std::string &what) const\n";
     print F "{\n";
     print F "  if (m_Detector)\n";
     print F "  {\n";
