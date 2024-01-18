@@ -32,8 +32,6 @@
 class G4VPhysicalVolume;
 class PHCompositeNode;
 
-using namespace std;
-
 //______________________________________________________________
 PHG4EnvelopeSteppingAction::PHG4EnvelopeSteppingAction(PHG4EnvelopeDetector* detector)
   : PHG4SteppingAction(detector->GetName())
@@ -76,7 +74,7 @@ bool PHG4EnvelopeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   {
     /* Check if particle is 'geantino' */
     bool geantino = false;
-    if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 && aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+    if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 && aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
@@ -185,7 +183,7 @@ bool PHG4EnvelopeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
 void PHG4EnvelopeSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
+  std::string hitnodename;
 
   if (detector_->SuperDetector() != "NONE")
   {

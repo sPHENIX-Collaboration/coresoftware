@@ -23,8 +23,6 @@ class G4Material;
 class G4VSolid;
 class PHCompositeNode;
 
-using namespace std;
-
 //___________________________________________________________________________________
 PHG4EnvelopeDetector::PHG4EnvelopeDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -47,7 +45,7 @@ PHG4EnvelopeDetector::PHG4EnvelopeDetector(PHG4Subsystem* subsys, PHCompositeNod
 //_______________________________________________________________________________________
 bool PHG4EnvelopeDetector::IsInEnvelope(G4VPhysicalVolume* volume) const
 {
-  if (volume->GetName().find("arbage") != string::npos)
+  if (volume->GetName().find("arbage") != std::string::npos)
   {
     return true;
   }

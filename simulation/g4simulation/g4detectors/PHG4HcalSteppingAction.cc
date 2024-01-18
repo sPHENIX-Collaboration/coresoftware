@@ -31,7 +31,6 @@
 class G4VPhysicalVolume;
 class PHCompositeNode;
 
-using namespace std;
 //____________________________________________________________________________..
 PHG4HcalSteppingAction::PHG4HcalSteppingAction(PHG4HcalDetector* detector)
   : PHG4SteppingAction(detector->GetName())
@@ -74,15 +73,15 @@ bool PHG4HcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // an expensive string compare for every track when we know
     // geantino or chargedgeantino has pid=0
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
     G4StepPoint* prePoint = aStep->GetPreStepPoint();
     G4StepPoint* postPoint = aStep->GetPostStepPoint();
-    //       cout << "track id " << aTrack->GetTrackID() << endl;
-    //        cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
-    //        cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+    //       std::cout << "track id " << aTrack->GetTrackID() << std::endl;
+    //        std::cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
+    //        std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
     switch (prePoint->GetStepStatus())
     {
     case fGeomBoundary:
@@ -139,7 +138,7 @@ bool PHG4HcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       }
       if (m_Hit->get_z(0) > zmax || m_Hit->get_z(0) < zmin)
       {
-        cout << "PHG4HcalSteppingAction: hit outside acceptance, layer: " << layer_id << endl;
+        std::cout << "PHG4HcalSteppingAction: hit outside acceptance, layer: " << layer_id << std::endl;
         m_Hit->identify();
       }
       break;
@@ -180,7 +179,7 @@ bool PHG4HcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     if (m_Hit->get_z(1) > zmax || m_Hit->get_z(1) < zmin)
     {
-      cout << "PHG4HcalSteppingAction: hit outside acceptance zmin " << zmin << ", zmax " << zmax << " at exit" << endl;
+      std::cout << "PHG4HcalSteppingAction: hit outside acceptance zmin " << zmin << ", zmax " << zmax << " at exit" << std::endl;
       m_Hit->identify();
     }
     if (geantino)
@@ -245,8 +244,8 @@ bool PHG4HcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4HcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
+  std::string hitnodename;
+  std::string absorbernodename;
   if (detector_->SuperDetector() != "NONE")
   {
     hitnodename = "G4HIT_" + detector_->SuperDetector();
