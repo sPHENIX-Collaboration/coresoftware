@@ -133,9 +133,8 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
         if (globPos.y() < 0) clusr *= -1;
         rzpoints.push_back(std::make_pair(globPos.z(), clusr));
       }
-      std::cout << "x-y fit" << std::endl;
+
       auto xyLineParams = TrackFitUtils::line_fit(xypoints);
-      std::cout << "r-z fit" << std::endl;
       auto rzLineParams = TrackFitUtils::line_fit(rzpoints);
 
       std::vector<TrkrDefs::cluskey> newClusKeysrz;
@@ -143,7 +142,6 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       std::vector<TrkrDefs::cluskey> newClusKeysxy;
       std::vector<Acts::Vector3> newClusPosxy;
       // now add clusters along lines
-      std::cout << "add clusters on line x-y" << std::endl;
       nClusters = TrackFitUtils::addClustersOnLine(xyLineParams,
                                                    true,
                                                    _dca_xy_cut,
@@ -152,7 +150,6 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
                                                    newClusPosxy,
                                                    newClusKeysxy,
                                                    0, 56);
-      std::cout << "add clusters on line r-z" << std::endl;
       int nrzClusters = TrackFitUtils::addClustersOnLine(rzLineParams,
                                                          false,
                                                          _dca_z_cut,
@@ -215,21 +212,17 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
     }
 
     //! only keep long seeds
-    std::cout << "original tpc seed size " << tpcClusKeys.size() << " and adding "
-              << newClusKeys.size() << " keys " << std::endl;
     if ((tpcClusKeys.size() + newClusKeys.size() > 25))
     {
       std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
       for (auto& key : newClusKeys)
       {
         bool isTpcKey = false;
-        std::cout << "key is " << key << std::endl;
         if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::tpcId ||
             TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::micromegasId)
         {
           isTpcKey = true;
         }
-        std::cout << "is tpc key " << isTpcKey << std::endl;
         if (!isTpcKey)
         {
           if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::mvtxId)
@@ -240,15 +233,12 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
               continue;
             }
           }
-          std::cout << "adding silicon key" << std::endl;
           si_seed->insert_cluster_key(key);
         }
         else
         {
-          std::cout << "adding tpc key" << std::endl;
           tpcseed->insert_cluster_key(key);
-          std::cout << "tpc seed ckey size " << tpcseed->size_cluster_keys() << std::endl;
-        }
+       }
       }
 
       si_seed->circleFitByTaubin(_cluster_map, _tgeometry, 0, 8);
