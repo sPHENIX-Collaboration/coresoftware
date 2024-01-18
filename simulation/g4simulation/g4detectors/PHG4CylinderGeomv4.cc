@@ -2,30 +2,6 @@
 
 #include <cmath>
 
-using namespace std;
-
-PHG4CylinderGeomv4::PHG4CylinderGeomv4()
-  : N_sensors_in_layer(-1)
-  , layer(-1)
-  , layer_radius(NAN)
-  , radius_stagger(NAN)
-  , layer_NZ(-1)
-  , segment_z_step(NAN)
-  , segment_phi_step(NAN)
-  , sensor_x_offset(NAN)
-  , sensor_y_offset(NAN)
-  , N_strip_columns(-1)
-  , N_strips_per_column(-1)
-  , N_staggers(-1)
-  , strip_z_spacing(NAN)
-  , strip_y_spacing(NAN)
-  , thickness(NAN)
-  , strip_tilt(NAN)
-
-{
-  return;
-}
-
 void PHG4CylinderGeomv4::identify(std::ostream& os) const
 {
   os << "PHG4CylinderGeomv4: layer: " << layer
@@ -43,7 +19,7 @@ void PHG4CylinderGeomv4::identify(std::ostream& os) const
      << ", strip_z_spacing: " << strip_z_spacing
      << ", strip_y_spacing: " << strip_y_spacing
      << ", strip_tilt: " << strip_tilt
-     << endl;
+     << std::endl;
   return;
 }
 

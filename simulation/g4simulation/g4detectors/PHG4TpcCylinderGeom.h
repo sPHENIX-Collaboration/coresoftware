@@ -3,7 +3,6 @@
 #ifndef G4DETECTORS_PHG4TPCCYLINDERGEOM_H
 #define G4DETECTORS_PHG4TPCCYLINDERGEOM_H
 
-//#include <phool/PHObject.h>
 #include "PHG4CylinderGeom.h"
 
 #include <cmath>
@@ -87,16 +86,16 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   void check_binning_method_eta(const std::string& src = "") const;
   void check_binning_method_phi(const std::string& src = "") const;
   std::string methodname(const int i) const;
-  int layer = -999;
-  int binning = 0;
-  double radius = NAN;
-  int nzbins = -1;
-  double zmin = NAN;
-  double zstep = NAN;
-  int nphibins = -1;
-  double phimin = -M_PI;
-  double phistep = NAN;
-  double thickness = NAN;
+  int layer {-999};
+  int binning {0};
+  double radius {std::numeric_limits<double>::quiet_NaN()};
+  int nzbins {-1};
+  double zmin {std::numeric_limits<double>::quiet_NaN()};
+  double zstep {std::numeric_limits<double>::quiet_NaN()};
+  int nphibins {-1};
+  double phimin {-M_PI};
+  double phistep {std::numeric_limits<double>::quiet_NaN()};
+  double thickness {std::numeric_limits<double>::quiet_NaN()};
 
   std::array<std::vector<double>, NSides > sector_R_bias;
   std::array<std::vector<double>, NSides > sector_Phi_bias;
