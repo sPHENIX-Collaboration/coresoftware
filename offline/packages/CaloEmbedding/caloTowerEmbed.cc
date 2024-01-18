@@ -1,21 +1,17 @@
 #include "caloTowerEmbed.h"
-//#include "caloreco/CaloTowerDefs.h"
 
-#include <calobase/TowerInfo.h>  // for TowerInfo
-#include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfoContainerv2.h>
-#include <calobase/TowerInfov1.h>
-#include <calobase/TowerInfoDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
+#include <calobase/TowerInfo.h>  // for TowerInfo
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoDefs.h>
 
 #include <ffamodules/CDBInterface.h>
 
 #include <ffaobjects/EventHeader.h>
 
-#include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
@@ -32,12 +28,9 @@
 #include <iostream>   // for operator<<, basic_ostream
 #include <stdexcept>  // for runtime_error
 
-
 //____________________________________________________________________________..
 caloTowerEmbed::caloTowerEmbed(const std::string &name)
   : SubsysReco(name)
-  , m_runNumber(-1)
-  , m_eventNumber(-1)
 {
   std::cout << "caloTowerEmbed::caloTowerEmbed(const std::string &name) Calling ctor" << std::endl;
 }
@@ -51,7 +44,6 @@ caloTowerEmbed::~caloTowerEmbed()
 //____________________________________________________________________________..
 int caloTowerEmbed::InitRun(PHCompositeNode *topNode)
 {
-
   Fun4AllServer *se = Fun4AllServer::instance();
 
   if (m_dettype == CaloTowerDefs::CEMC)
@@ -85,9 +77,12 @@ int caloTowerEmbed::InitRun(PHCompositeNode *topNode)
   }
   else
   {
-    m_runNumber = -1;
+    m_runNumber = 0;
   }
-  if(Verbosity()) std::cout << "at run" << m_runNumber << std::endl;
+  if (Verbosity())
+  {
+    std::cout << "at run" << m_runNumber << std::endl;
+  }
 
   try
   {
@@ -98,18 +93,22 @@ int caloTowerEmbed::InitRun(PHCompositeNode *topNode)
     std::cout << e.what() << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  
   topNode->print();
   simTopNode->print();
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int caloTowerEmbed::process_event(PHCompositeNode* topNode)
+int caloTowerEmbed::process_event(PHCompositeNode * /*topNode*/)
 {
   ++m_eventNumber;
 
-  if(Verbosity()) std::cout << "event " << m_eventNumber << " working on " << m_detector << std::endl;
+  if (Verbosity())
+    {
+      std::cout << "event " << m_eventNumber << " working on " << m_detector << std::endl;
+    }
   RawTowerDefs::keytype keyData = 0;
   RawTowerDefs::keytype keySim = 0;
   
@@ -124,31 +123,39 @@ int caloTowerEmbed::process_event(PHCompositeNode* topNode)
       int ieta_sim = _sim_towers->getTowerEtaBin(sim_key);
       int iphi_sim = _sim_towers->getTowerPhiBin(sim_key);
       
-      if(m_detector == "CEMC"){
-	if(!m_useRetower){
-	  keyData = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ieta_data, iphi_data);
-	  keySim = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ieta_sim, iphi_sim);
-	} 
-	else{
+      if (m_dettype == CaloTowerDefs::CEMC)
+	{
+	if (!m_useRetower)
+	  {
+	    keyData = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ieta_data, iphi_data);
+	    keySim = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ieta_sim, iphi_sim);
+	  } 
+	else
+	  {
+	    keyData = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta_data, iphi_data);
+	    keySim = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta_sim, iphi_sim);
+	  }
+      }
+      else if (m_dettype == CaloTowerDefs::HCALIN)
+	{
 	  keyData = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta_data, iphi_data);
 	  keySim = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta_sim, iphi_sim);
 	}
-      }else if(m_detector == "HCALIN"){
-	keyData = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta_data, iphi_data);
-	keySim = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta_sim, iphi_sim);
-      }else if(m_detector == "HCALOUT"){
-	keyData = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ieta_data, iphi_data);
-	keySim = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ieta_sim, iphi_sim);
-      }
+      else if (m_dettype == CaloTowerDefs::HCALOUT)
+	{
+	  keyData = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ieta_data, iphi_data);
+	  keySim = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ieta_sim, iphi_sim);
+	}
       
       TowerInfo *caloinfo_data = _data_towers->get_tower_at_channel(channel);
       TowerInfo *caloinfo_sim = _sim_towers->get_tower_at_channel(channel);
 
-      if(!caloinfo_data->get_isGood()){
-	_data_towers->get_tower_at_channel(channel)->set_energy(0.0);
-	_data_towers->get_tower_at_channel(channel)->set_time(-11);
-	continue;
-      }
+      if (!caloinfo_data->get_isGood())
+	{
+	  _data_towers->get_tower_at_channel(channel)->set_energy(0.0);
+	  _data_towers->get_tower_at_channel(channel)->set_time(-11);
+	  continue;
+	}
       
       float data_E = caloinfo_data->get_energy();
       float sim_E = caloinfo_sim->get_energy();
@@ -166,24 +173,27 @@ int caloTowerEmbed::process_event(PHCompositeNode* topNode)
       sim_phi = tower_geom->get_tower_geometry(keySim)->get_phi();
       sim_eta = tower_geom->get_tower_geometry(keySim)->get_eta();
       
-      if(data_phi == sim_phi && data_eta == sim_eta){
-	_data_towers->get_tower_at_channel(channel)->set_energy(embed_E);
-      }else{
-	if(Verbosity()) std::cout << "eta and phi values in " << m_detector << " do not match between data and simulation, removing this event" << std::endl;
-	return Fun4AllReturnCodes::ABORTEVENT;
-      }
-      
-      
-    }//end loop over channels
+      if (data_phi == sim_phi && data_eta == sim_eta)
+	{
+	  _data_towers->get_tower_at_channel(channel)->set_energy(embed_E);
+	}
+      else
+	{
+	  if (Verbosity())
+	    {
+	      std::cout << "eta and phi values in " << m_detector << " do not match between data and simulation, removing this event" << std::endl;
+	    }
+	  return Fun4AllReturnCodes::ABORTEVENT;
+	}
+           
+    } // end loop over channels
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int caloTowerEmbed::End(PHCompositeNode *topNode)
+int caloTowerEmbed::End(PHCompositeNode * /*topNode*/)
 {
-
   return Fun4AllReturnCodes::EVENT_OK;
-
 }
 
 void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
@@ -192,7 +202,7 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
 
   std::string TowerNodeName = m_inputNodePrefix + m_detector;
   std::string GeomNodeName = "TOWERGEOM_" + m_detector;
-  if(m_useRetower && m_detector == "CEMC")
+  if (m_useRetower && m_detector == "CEMC")
     {
       TowerNodeName = m_inputNodePrefix + m_detector + "_RETOWER";
       GeomNodeName = "TOWERGEOM_HCALIN";
@@ -202,17 +212,17 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
   PHCompositeNode *simTopNode = se->topNode("TOPSim");
 
   tower_geom = findNode::getClass<RawTowerGeomContainer>(topNode, GeomNodeName);
-  if(!tower_geom){
-    std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
-	      << "tower geom " << GeomNodeName << " missing, doing nothing." << std::endl;
-    throw std::runtime_error(
-			     "Failed to find " + GeomNodeName + " node");
-  }
+  if (!tower_geom)
+    {
+      std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
+		<< "tower geom " << GeomNodeName << " missing, doing nothing." << std::endl;
+      throw std::runtime_error("Failed to find " + GeomNodeName + " node");
+    }
 
   PHNodeIterator dataIter(topNode);
   PHNodeIterator simIter(simTopNode);
 
-  //data top node first
+  // data top node first
 
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(dataIter.findFirst(
       "PHCompositeNode", "DST"));
@@ -224,7 +234,6 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
         "Failed to find DST node in RawTowerCalibration::CreateNodes");
   }
 
-  
   PHCompositeNode *dstNodeSim = dynamic_cast<PHCompositeNode *>(simIter.findFirst(
       "PHCompositeNode", "DST"));
   if (!dstNodeSim)
@@ -234,26 +243,26 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
     throw std::runtime_error(
         "Failed to find DSTsim node in RawTowerCalibration::CreateNodes");
   }
+  
+  // data
+  _data_towers = findNode::getClass<TowerInfoContainer>(dstNode,TowerNodeName);
+  if (!_data_towers)
+    {
+      std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
+		<< TowerNodeName << " Node missing, doing nothing." << std::endl;
+      throw std::runtime_error(
+	  "Failed to find " + TowerNodeName + " node in caloTowerEmbed::CreateNodes");
+    }
 
-    //data
-    _data_towers = findNode::getClass<TowerInfoContainer>(dstNode,TowerNodeName);
-    if (!_data_towers)
-      {
-	std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
-		  << TowerNodeName << " Node missing, doing nothing." << std::endl;
-	throw std::runtime_error(
-				 "Failed to find " + TowerNodeName + " node in caloTowerEmbed::CreateNodes");
-      }
 
-
-    //sim
-    _sim_towers = findNode::getClass<TowerInfoContainer>(dstNodeSim,TowerNodeName);
-    if (!_sim_towers)
-      {
-	std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
-		  << TowerNodeName << " Sim Node missing, doing nothing." << std::endl;
-	throw std::runtime_error(
-				 "Failed to find " + TowerNodeName + " Sim node in caloTowerEmbed::CreateNodes");
+  //sim
+  _sim_towers = findNode::getClass<TowerInfoContainer>(dstNodeSim,TowerNodeName);
+  if (!_sim_towers)
+    {
+      std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
+		<< TowerNodeName << " Sim Node missing, doing nothing." << std::endl;
+      throw std::runtime_error(
+	  "Failed to find " + TowerNodeName + " Sim node in caloTowerEmbed::CreateNodes");
       }
 
   return;

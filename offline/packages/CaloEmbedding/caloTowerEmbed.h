@@ -13,18 +13,14 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <TFile.h>
+#include <TTree.h>
+
 #include <cassert>
 #include <iostream>
 #include <string>
 
-#include "TFile.h"
-#include "TTree.h"
-
-//class CDBInterface;
-//class CDBTTree;
 class PHCompositeNode;
-class TowerInfoContainerv1;
-class TowerInfoContainerv2;
 class RawTowerGeomContainer;
 
 class caloTowerEmbed : public SubsysReco
@@ -45,7 +41,6 @@ class caloTowerEmbed : public SubsysReco
     return;
   }
   
-
   void set_inputNodePrefix(const std::string &name)
   {
     m_inputNodePrefix = name;
@@ -61,20 +56,20 @@ class caloTowerEmbed : public SubsysReco
  private:
 
 
-  TowerInfoContainer *_data_towers = nullptr;
-  TowerInfoContainer *_sim_towers = nullptr;
+  TowerInfoContainer *_data_towers {nullptr};
+  TowerInfoContainer *_sim_towers {nullptr};
 
-  RawTowerGeomContainer *tower_geom = nullptr;
+  RawTowerGeomContainer *tower_geom {nullptr};
 
-  bool m_useRetower = false;
+  bool m_useRetower {false};
 
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
 
   std::string m_detector;
   std::string m_inputNodePrefix{"TOWERINFO_CALIB_"};
 
-  int m_runNumber;
-  int m_eventNumber;
+  int m_runNumber {0};
+  int m_eventNumber {-1};
 
 };
 
