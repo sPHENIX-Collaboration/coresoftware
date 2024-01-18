@@ -7,7 +7,7 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4DisplayAction.h>   // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
@@ -85,7 +85,7 @@ int PHG4OuterHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       }
       nodes.insert(nodename.str());
     }
-    for (auto &node: nodes)
+    for (auto &node : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
       if (!g4_hits)

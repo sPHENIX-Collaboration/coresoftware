@@ -44,7 +44,7 @@ class G4Material;
 class PHCompositeNode;
 
 //_______________________________________________________________
-//note this inactive thickness is ~1.5% of a radiation length
+// note this inactive thickness is ~1.5% of a radiation length
 PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
                                                        const std::string& dnam, PHParameters* parameters, const int lyr)
   : PHG4SpacalDetector(subsys, Node, dnam, parameters, lyr, false)
@@ -60,9 +60,9 @@ PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHG4Subsystem* subsys, PH
     gSystem->Exit(1);
   }
 
-  //this class loads Chris Cullen 2D spacal design July 2015 by default.
-  // this step is deprecated now
-  // get_geom_v3()->load_demo_sector_tower_map_2015_Chris_Cullen_2D_spacal();
+  // this class loads Chris Cullen 2D spacal design July 2015 by default.
+  //  this step is deprecated now
+  //  get_geom_v3()->load_demo_sector_tower_map_2015_Chris_Cullen_2D_spacal();
 
   assert(parameters);
   get_geom_v3()->ImportParameters(*parameters);
@@ -494,7 +494,7 @@ PHG4FullProjSpacalDetector::Construct_Tower(
   sout << "_" << g_tower.id;
   const G4String sTowerID(sout.str());
 
-  //Processed PostionSeeds 1 from 1 1
+  // Processed PostionSeeds 1 from 1 1
 
   G4Trap* block_solid = new G4Trap(
       /*const G4String& pName*/ G4String(GetName()) + sTowerID,

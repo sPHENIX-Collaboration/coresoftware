@@ -171,7 +171,7 @@ void PHG4HcalSubsystem::SetTiltViaNcross(const int ncross)
   if (ncross == 0)
   {
     std::cout << Name() << " invalid crossing number " << ncross
-         << " how do you think we can construct a meaningful detector with this number????" << std::endl;
+              << " how do you think we can construct a meaningful detector with this number????" << std::endl;
     exit(1);
   }
   // The delta phi angle between 2 adjacent slats is just 360/nslats. If
@@ -194,7 +194,7 @@ void PHG4HcalSubsystem::SetTiltViaNcross(const int ncross)
   {
     sign = -1;
   }
-  int ncr = fabs(ncross);
+  int ncr = std::abs(ncross);
   double thick = TrackerThickness;
   double c = radius + thick / 2.;
   double b = radius + thick;

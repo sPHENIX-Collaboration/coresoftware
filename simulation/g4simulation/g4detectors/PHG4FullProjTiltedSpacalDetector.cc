@@ -51,7 +51,7 @@ class G4VSolid;
 class PHCompositeNode;
 
 //_______________________________________________________________
-//note this inactive thickness is ~1.5% of a radiation length
+// note this inactive thickness is ~1.5% of a radiation length
 PHG4FullProjTiltedSpacalDetector::PHG4FullProjTiltedSpacalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
                                                                    const std::string& dnam, PHParameters* parameters, const int lyr)
   : PHG4SpacalDetector(subsys, Node, dnam, parameters, lyr, false)
@@ -91,22 +91,18 @@ void PHG4FullProjTiltedSpacalDetector::ConstructMe(G4LogicalVolume* logicWorld)
     std::cout << "PHG4FullProjTiltedSpacalDetector::Construct::" << GetName()
               << " - Completed." << std::endl;
   }
-  
+
   if (m_Params->get_int_param("saveg4hit")) return;
-   try
+  try
   {
     AddCellGeometryNode();
     AddTowerGeometryNode();
-    
-    
   }
-  catch (std::exception &e)
+  catch (std::exception& e)
   {
     std::cout << e.what() << std::endl;
-    //exit(1);
+    // exit(1);
   }
-  
-  
 }
 
 std::pair<G4LogicalVolume*, G4Transform3D>
@@ -201,7 +197,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     block_x_edge1 -= block_x_size;
   }
 
-  //write out the azimuthal block divider's geometry
+  // write out the azimuthal block divider's geometry
   struct block_divider_azimuth_geom
   {
     G4double angle;  //! rotation angle
@@ -346,7 +342,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     z_locations[100] = -(get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm);
     z_locations[101] = -(get_geom_v3()->get_length() * cm / 2.0 - (get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm));
 
-    for (z_locations_t::value_type& val: z_locations)
+    for (z_locations_t::value_type& val : z_locations)
     {
       if (get_geom_v3()->get_construction_verbose() >= 2)
       {
@@ -382,7 +378,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     signs[200] = std::make_pair(-1, +1);
     signs[201] = std::make_pair(-1, -1);
 
-    for (sign_t::value_type& val: signs)
+    for (sign_t::value_type& val : signs)
     {
       const int sign_z = val.second.first;
       const int sign_azimuth = val.second.second;
@@ -791,7 +787,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
   sout << "_" << g_tower.id;
   const G4String sTowerID(sout.str());
 
-  //Processed PostionSeeds 1 from 1 1
+  // Processed PostionSeeds 1 from 1 1
 
   G4Trap* block_solid = new G4Trap(
       /*const G4String& pName*/ G4String(GetName()) + sTowerID,
@@ -910,7 +906,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_LightGuide(
                                              -(g_tower.pDz) *
                                              cm                                                       //
                                          + G4ThreeVector(shift_xcenter * cm, shift_ycenter * cm, 0)   // shit in subtower direction
-                                         + G4ThreeVector(0, 0, -0.5 * g_tower.LightguideHeight * cm)  //shift in the light guide height
+                                         + G4ThreeVector(0, 0, -0.5 * g_tower.LightguideHeight * cm)  // shift in the light guide height
   );
 
   G4Material* cylinder_mat = GetDetectorMaterial(g_tower.LightguideMaterial);

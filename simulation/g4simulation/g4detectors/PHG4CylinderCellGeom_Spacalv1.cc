@@ -2,7 +2,7 @@
 
 /*!
  * \file PHG4CylinderCellGeomSpacalv1.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -32,7 +32,7 @@ void PHG4CylinderCellGeom_Spacalv1::identify(std::ostream& os) const
 
   cout << "PHG4CylinderCellGeom_Spacalv1::identify - Tower mapping:" << endl;
   for (const tower_z_ID_eta_bin_map_t::value_type& tower_z_ID_eta_bin :
-                 get_tower_z_ID_eta_bin_map())
+       get_tower_z_ID_eta_bin_map())
   {
     cout << "\t"
          << "Tower Z ID[" << tower_z_ID_eta_bin.first
