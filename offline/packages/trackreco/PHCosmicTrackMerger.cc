@@ -98,16 +98,18 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
     auto globTr1 = getGlobalPositions(tpcseed1);
     for(auto& pos : globTr1.second)
     {
-      tr1_rz_pts.push_back(std::make_pair(pos.z(), r(pos.x(), pos.y())));
+      float clusr = r(pos.x(), pos.y());
+      if (pos.y() < 0) clusr *= -1;
+      tr1_rz_pts.push_back(std::make_pair(pos.z(), clusr));
       tr1_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
     }
 
     auto xyTr1Params = TrackFitUtils::line_fit(tr1_xy_pts);
     auto rzTr1Params = TrackFitUtils::line_fit(tr1_rz_pts);
-    //float tr1xyint = std::get<0>(xyTr1Params);
-    float tr1xyslope = std::get<1>(xyTr1Params);
-    //float tr1rzint = std::get<0>(rzTr1Params);
-    float tr1rzslope = std::get<1>(rzTr1Params);
+    //float tr1xyint = std::get<1>(xyTr1Params);
+    float tr1xyslope = std::get<0>(xyTr1Params);
+    //float tr1rzint = std::get<1>(rzTr1Params);
+    float tr1rzslope = std::get<0>(rzTr1Params);
     //! Check if the rz slope is close to 0 corresponding to an chain of clusters
     //! from an ion tail
     if(fabs(tr1rzslope) < 0.005)
@@ -145,24 +147,31 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
 
       auto xyTr2Params = TrackFitUtils::line_fit(tr2_xy_pts);
       auto rzTr2Params = TrackFitUtils::line_fit(tr2_rz_pts);
-      //float tr2xyint = std::get<0>(xyTr2Params);
-      float tr2xyslope = std::get<1>(xyTr2Params);
-      //float tr2rzint = std::get<0>(rzTr2Params);
-      float tr2rzslope = std::get<1>(rzTr2Params);
+      //float tr2xyint = std::get<1>(xyTr2Params);
+      float tr2xyslope = std::get<0>(xyTr2Params);
+      //float tr2rzint = std::get<1>(rzTr2Params);
+      float tr2rzslope = std::get<0>(rzTr2Params);
 
       std::vector<TrkrDefs::cluskey> ckeyUnion;
       std::set_intersection(globTr1.first.begin(), globTr1.first.end(),
                             globTr2.first.begin(), globTr2.first.end(), std::back_inserter(ckeyUnion));
-      float bigger = globTr1.first.size() > globTr2.first.size() ? globTr1.first.size() : globTr2.first.size();
-      if(
+     if(
         //! check on common cluskeys 
-        (ckeyUnion.size() / bigger > 0.4) or
+        (ckeyUnion.size() > 10) or
         //! check if xy/rz line fits are similar
         (fabs(tr1xyslope - tr2xyslope)< 0.5 &&
         //! rz line fits are swapped in sign because they are WRT (0,0,0)
         fabs(tr1rzslope - tr2rzslope*-1) < 0.5 )
         )
       {
+        if(Verbosity()>3)
+        {
+          std::cout << "Combining tr" << m_seeds->index(tr1it) << " with tr "
+                    << m_seeds->index(tr2it) << " with slopes "
+                    << tr1xyslope << ", " << tr2xyslope << ", "
+                    << tr1rzslope << ", " << tr2rzslope << " and ckey union "
+                    << ckeyUnion.size() <<  std::endl;
+        }
         addKeys(tpcseed1, tpcseed2);
         addKeys(silseed1, silseed2);
         //! erase track 2
@@ -179,6 +188,12 @@ void PHCosmicTrackMerger::addKeys(TrackSeed* toAddTo, TrackSeed *toAdd)
   for (auto it = toAdd->begin_cluster_keys(); it != toAdd->end_cluster_keys();
   ++it)
   {
+    if(Verbosity() > 3)
+    {
+      auto clus = m_clusterMap->findCluster(*it);
+      auto glob = m_geometry->getGlobalPosition(*it, clus);
+      std::cout << "adding " << *it << " with pos " << glob.transpose() << std::endl;
+    }
     toAddTo->insert_cluster_key(*it);
   }
 }

@@ -368,7 +368,9 @@ TrkrClusterContainer* clusters)
   for(auto& pos : clusPos)
   {
     xypoints.push_back(std::make_pair(pos.x(), pos.y()));
-    rzpoints.push_back(std::make_pair(pos.z(), r(pos.x(), pos.y())));
+    float clusr = r(pos.x(), pos.y());
+    if (pos.y() < 0) clusr *= -1;
+    rzpoints.push_back(std::make_pair(pos.z(), clusr));
   }
 
   auto xyparams = TrackFitUtils::line_fit(xypoints);
