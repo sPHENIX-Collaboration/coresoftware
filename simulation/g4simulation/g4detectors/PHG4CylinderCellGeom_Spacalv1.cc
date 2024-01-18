@@ -11,8 +11,6 @@
 #include "PHG4CylinderCellGeom_Spacalv1.h"
 #include "PHG4CylinderCellDefs.h"
 
-#include <boost/foreach.hpp>
-
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
@@ -33,7 +31,7 @@ void PHG4CylinderCellGeom_Spacalv1::identify(std::ostream& os) const
   PHG4CylinderCellGeom::identify(os);
 
   cout << "PHG4CylinderCellGeom_Spacalv1::identify - Tower mapping:" << endl;
-  BOOST_FOREACH (const tower_z_ID_eta_bin_map_t::value_type& tower_z_ID_eta_bin,
+  for (const tower_z_ID_eta_bin_map_t::value_type& tower_z_ID_eta_bin :
                  get_tower_z_ID_eta_bin_map())
   {
     cout << "\t"
@@ -42,7 +40,7 @@ void PHG4CylinderCellGeom_Spacalv1::identify(std::ostream& os) const
   }
 
   cout << "PHG4CylinderCellGeom_Spacalv1::identify - Bin -> z range:" << endl;
-  BOOST_FOREACH (const bound_map_t::value_type& b, z_bound_map)
+  for (const bound_map_t::value_type& b : z_bound_map)
   {
     cout << "\t"
          << "bin[" << b.first << "] \t-> z = " << b.second.first
@@ -50,7 +48,7 @@ void PHG4CylinderCellGeom_Spacalv1::identify(std::ostream& os) const
   }
 
   cout << "PHG4CylinderCellGeom_Spacalv1::identify - Bin -> eta range:" << endl;
-  BOOST_FOREACH (const bound_map_t::value_type& b, eta_bound_map)
+  for (const bound_map_t::value_type& b : eta_bound_map)
   {
     cout << "\t"
          << "bin[" << b.first << "] \t-> eta = " << b.second.first

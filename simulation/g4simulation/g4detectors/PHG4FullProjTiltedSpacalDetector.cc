@@ -34,8 +34,6 @@
 
 #include <TSystem.h>
 
-#include <boost/foreach.hpp>
-
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -348,7 +346,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     z_locations[100] = -(get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm);
     z_locations[101] = -(get_geom_v3()->get_length() * cm / 2.0 - (get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm));
 
-    BOOST_FOREACH (z_locations_t::value_type& val, z_locations)
+    for (z_locations_t::value_type& val: z_locations)
     {
       if (get_geom_v3()->get_construction_verbose() >= 2)
       {
@@ -384,7 +382,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     signs[200] = std::make_pair(-1, +1);
     signs[201] = std::make_pair(-1, -1);
 
-    BOOST_FOREACH (sign_t::value_type& val, signs)
+    for (sign_t::value_type& val: signs)
     {
       const int sign_z = val.second.first;
       const int sign_azimuth = val.second.second;
@@ -485,7 +483,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
   //  // construct towers
   //
-  BOOST_FOREACH (const SpacalGeom_t::tower_map_t::value_type& val, get_geom_v3()->get_sector_tower_map())
+  for (const SpacalGeom_t::tower_map_t::value_type& val : get_geom_v3()->get_sector_tower_map())
   {
     SpacalGeom_t::geom_tower g_tower = val.second;
 
@@ -622,7 +620,7 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
   ss << std::string("_Tower") << g_tower.id;
   G4LogicalVolume* fiber_logic = Construct_Fiber(fiber_length, ss.str());
 
-  BOOST_FOREACH (const fiber_par_map::value_type& val, fiber_par)
+  for (const fiber_par_map::value_type& val : fiber_par)
   {
     const int fiber_ID = val.first;
     G4Vector3D vector_fiber = val.second.first;

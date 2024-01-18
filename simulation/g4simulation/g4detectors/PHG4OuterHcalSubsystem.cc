@@ -18,8 +18,6 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <boost/foreach.hpp>
-
 #include <cmath>     // for NAN
 #include <iostream>  // for operator<<, basic_ostream
 #include <set>       // for set
@@ -87,7 +85,7 @@ int PHG4OuterHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       }
       nodes.insert(nodename.str());
     }
-    BOOST_FOREACH (std::string node, nodes)
+    for (auto &node: nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
       if (!g4_hits)
