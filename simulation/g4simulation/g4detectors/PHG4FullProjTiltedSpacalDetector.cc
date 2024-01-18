@@ -173,10 +173,10 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   };
   std::vector<block_azimuth_geom> block_azimuth_geoms(phi_bin_in_sec,
                                                       block_azimuth_geom{
-                                                          std::numeric_limits<double>::signaling_NaN(),
-                                                          std::numeric_limits<double>::signaling_NaN(),
-                                                          std::numeric_limits<double>::signaling_NaN(),
-                                                          std::numeric_limits<double>::signaling_NaN()});  // [phi-bin in sector] -> azimuth geometry
+                                                          std::numeric_limits<double>::quiet_NaN(),
+                                                          std::numeric_limits<double>::quiet_NaN(),
+                                                          std::numeric_limits<double>::quiet_NaN(),
+                                                          std::numeric_limits<double>::quiet_NaN()});  // [phi-bin in sector] -> azimuth geometry
   G4double block_x_edge1 = block_edge1_half_width;
   for (int sa = 0; sa < phi_bin_in_sec; ++sa)
   {
@@ -210,12 +210,12 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   assert(phi_bin_in_sec >= 1);
   std::vector<block_divider_azimuth_geom> divider_azimuth_geoms(phi_bin_in_sec - 1,
                                                                 block_divider_azimuth_geom{
-                                                                    std::numeric_limits<double>::signaling_NaN(),
-                                                                    std::numeric_limits<double>::signaling_NaN(),
-                                                                    std::numeric_limits<double>::signaling_NaN(),
-                                                                    std::numeric_limits<double>::signaling_NaN(),
-                                                                    std::numeric_limits<double>::signaling_NaN(),
-                                                                    std::numeric_limits<double>::signaling_NaN()});
+                                                                    std::numeric_limits<double>::quiet_NaN(),
+                                                                    std::numeric_limits<double>::quiet_NaN(),
+                                                                    std::numeric_limits<double>::quiet_NaN(),
+                                                                    std::numeric_limits<double>::quiet_NaN(),
+                                                                    std::numeric_limits<double>::quiet_NaN(),
+                                                                    std::numeric_limits<double>::quiet_NaN()});
 
   if (get_geom_v3()->get_sidewall_thickness() > 0)
   {

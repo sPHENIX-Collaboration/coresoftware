@@ -154,51 +154,51 @@ void PHG4CylinderGeom_Spacalv3::ImportParameters(const PHParameters& param)
 
 PHG4CylinderGeom_Spacalv3::geom_tower::geom_tower()
   : id(numeric_limits<int>::min())
-  ,  //
-  pDz(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pDy1(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pDx1(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pDx2(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pDy2(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pDx3(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pDx4(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pTheta(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pPhi(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pAlp1(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pAlp2(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pRotationAngleX(numeric_limits<double>::signaling_NaN())
-  ,  //
-  centralX(numeric_limits<double>::signaling_NaN())
-  ,  //
-  centralY(numeric_limits<double>::signaling_NaN())
-  ,  //
-  centralZ(numeric_limits<double>::signaling_NaN())
-  ,  //
-  ModuleSkinThickness(numeric_limits<double>::signaling_NaN())
-  ,  //
+  ,
+  pDz(std::numeric_limits<double>::quiet_NaN())
+  ,
+  pDy1(std::numeric_limits<double>::quiet_NaN())
+  ,
+  pDx1(std::numeric_limits<double>::quiet_NaN())
+  ,
+  pDx2(std::numeric_limits<double>::quiet_NaN())
+  ,
+  pDy2(std::numeric_limits<double>::quiet_NaN())
+  ,
+  pDx3(std::numeric_limits<double>::quiet_NaN())
+  ,
+  pDx4(std::numeric_limits<double>::quiet_NaN())
+  ,
+  pTheta(std::numeric_limits<double>::quiet_NaN())
+  ,
+  pPhi(std::numeric_limits<double>::quiet_NaN())
+  ,
+  pAlp1(std::numeric_limits<double>::quiet_NaN())
+  ,
+  pAlp2(std::numeric_limits<double>::quiet_NaN())
+  ,
+  pRotationAngleX(std::numeric_limits<double>::quiet_NaN())
+  ,
+  centralX(std::numeric_limits<double>::quiet_NaN())
+  ,
+  centralY(std::numeric_limits<double>::quiet_NaN())
+  ,
+  centralZ(std::numeric_limits<double>::quiet_NaN())
+  ,
+  ModuleSkinThickness(std::numeric_limits<double>::quiet_NaN())
+  ,
   NFiberX(numeric_limits<int>::min())
-  ,  //
+  ,
   NFiberY(numeric_limits<int>::min())
-  ,  //
+  ,
   NSubtowerX(1)
-  ,  //
+  ,
   NSubtowerY(1)
-  ,  //
+  ,
   LightguideHeight(0)
-  ,  //
-  LightguideTaperRatio(numeric_limits<double>::signaling_NaN())
-  ,  //
+  ,
+  LightguideTaperRatio(std::numeric_limits<double>::quiet_NaN())
+  ,
   LightguideMaterial("PMMA")
 {
 }
