@@ -54,8 +54,8 @@ class TrackResiduals : public SubsysReco
                    PHG4CylinderGeomContainer *inttGeom, PHG4CylinderGeomContainer *mmGeom);
   void fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack *track,
                            PHCompositeNode *topNode);
-  void lineFitClusters(std::vector<TrkrDefs::cluskey> &keys, ActsGeometry* geometry,
-  TrkrClusterContainer* clusters);
+  void lineFitClusters(std::vector<TrkrDefs::cluskey> &keys, ActsGeometry *geometry,
+                       TrkrClusterContainer *clusters);
 
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;

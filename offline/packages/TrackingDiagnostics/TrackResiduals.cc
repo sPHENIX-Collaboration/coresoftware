@@ -6,12 +6,12 @@
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrackFitUtils.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
@@ -276,13 +276,14 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     if (!m_doAlignment)
     {
       std::vector<TrkrDefs::cluskey> keys;
-      
+
       for (const auto& ckey : get_cluster_keys(track))
       {
-        if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
-        {keys.push_back(ckey);}
+        if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
+        {
+          keys.push_back(ckey);
+        }
         fillClusterBranches(ckey, track, topNode);
-        
       }
       if (m_zeroField)
       {
@@ -358,14 +359,14 @@ float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey c
   return z;
 }
 void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
-ActsGeometry *geometry,
-TrkrClusterContainer* clusters)
+                                     ActsGeometry* geometry,
+                                     TrkrClusterContainer* clusters)
 {
   std::vector<Acts::Vector3> clusPos;
   TrackFitUtils::getTrackletClusters(geometry, clusters,
                                      clusPos, keys);
   TrackFitUtils::position_vector_t xypoints, rzpoints;
-  for(auto& pos : clusPos)
+  for (auto& pos : clusPos)
   {
     xypoints.push_back(std::make_pair(pos.x(), pos.y()));
     float clusr = r(pos.x(), pos.y());
@@ -762,7 +763,7 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   if (Verbosity() > 1)
   {
     std::cout << "Track state/clus in layer "
-              << (unsigned int) TrkrDefs::getLayer(ckey) << " with pos " 
+              << (unsigned int) TrkrDefs::getLayer(ckey) << " with pos "
               << clusglob.transpose() << std::endl;
   }
   if (!state)

@@ -6,13 +6,13 @@
 #include <phool/getClass.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrackFitUtils.h>
+#include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterCrossingAssoc.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v1.h>
-#include <trackbase/TrkrCluster.h>
 
 namespace
 {
@@ -94,7 +94,7 @@ int PHCosmicSiliconPropagator::InitRun(PHCompositeNode* topNode)
 //____________________________________________________________________________..
 int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
 {
-  if(m_resetContainer)
+  if (m_resetContainer)
   {
     _svtx_seeds->Reset();
   }
@@ -225,10 +225,10 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
         }
         if (!isTpcKey)
         {
-          if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::mvtxId)
+          if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::mvtxId)
           {
             auto clus = _cluster_map->findCluster(key);
-            if(clus->getSize() < 2)
+            if (clus->getSize() < 2)
             {
               continue;
             }
@@ -238,7 +238,7 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
         else
         {
           tpcseed->insert_cluster_key(key);
-       }
+        }
       }
 
       si_seed->circleFitByTaubin(_cluster_map, _tgeometry, 0, 8);
@@ -259,7 +259,6 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
         tpcseed->identify();
       }
     }
-   
   }
 
   if (Verbosity() > 2)
@@ -270,7 +269,7 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
     {
       std::cout << "seed " << i << " is composed of " << std::endl;
       _tpc_seeds->get(seed->get_tpc_seed_index())->identify();
-      if(_si_seeds->get(seed->get_silicon_seed_index()))
+      if (_si_seeds->get(seed->get_silicon_seed_index()))
       {
         _si_seeds->get(seed->get_silicon_seed_index())->identify();
       }

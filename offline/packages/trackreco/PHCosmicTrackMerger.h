@@ -29,10 +29,10 @@ class PHCosmicTrackMerger : public SubsysReco
 
   ~PHCosmicTrackMerger() override;
 
-  int Init(PHCompositeNode*) override;
+  int Init(PHCompositeNode *) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode*) override;
+  int End(PHCompositeNode *) override;
 
  private:
   void addKeys(TrackSeed *toAddTo, TrackSeed *toAdd);
@@ -42,7 +42,6 @@ class PHCosmicTrackMerger : public SubsysReco
   TrackSeedContainer *m_seeds = nullptr;
   TrackSeedContainer *m_tpcSeeds = nullptr;
   TrackSeedContainer *m_siliconSeeds = nullptr;
-
 };
 
-#endif // PHCOSMICTRACKMERGER_H
+#endif  // PHCOSMICTRACKMERGER_H
