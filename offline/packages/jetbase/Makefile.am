@@ -21,8 +21,7 @@ libjetbase_io_la_LIBADD = \
 libjetbase_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  `fastjet-config --libs` \
-  -lConstituentSubtractor
+  `fastjet-config --libs`
 
 libjetbase_la_LIBADD = \
   libjetbase_io.la \
