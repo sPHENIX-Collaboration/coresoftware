@@ -107,11 +107,11 @@ int PHG4HcalSubsystem::InitRun(PHCompositeNode* topNode)
     {
       if (superdetector != "NONE")
       {
-        nodename + "G4HIT_ABSORBER_" + superdetector;
+        nodename = "G4HIT_ABSORBER_" + superdetector;
       }
       else
       {
-        nodename + "G4HIT_ABSORBER_" + detector_type + "_" + std::to_string(layer);
+        nodename = "G4HIT_ABSORBER_" + detector_type + "_" + std::to_string(layer);
       }
       PHG4HitContainer* cylinder_hits_2 = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!cylinder_hits_2)
