@@ -10,7 +10,7 @@ class TH1;
 class LightCollectionModel
 {
  public:
-   LightCollectionModel();
+  LightCollectionModel() = default;
 
   //! delete copy ctor and assignment opertor (cppcheck)
   explicit LightCollectionModel(const LightCollectionModel &) = delete;
@@ -38,17 +38,17 @@ class LightCollectionModel
 
  private:
   //! 2-D data grid for Light Collection Efficiency for the light guide as function of x,y position in fraction of tower width
-  TH2 *data_grid_light_guide_efficiency = nullptr;
+  TH2 *data_grid_light_guide_efficiency{nullptr};
 
   //! 1-D data grid for the light transmission efficiency in the fiber as function of distance to location in the fiber. Z=0 is at the middle of the fiber
-  TH1 *data_grid_fiber_trans = nullptr;
+  TH1 *data_grid_fiber_trans{nullptr};
 
   // These two histograms are handed off to Fun4All and will be deleted there
   // this suppresses the cppcheck warning
   // cppcheck-suppress unsafeClassCanLeak
-  TH2 *data_grid_light_guide_efficiency_verify = nullptr;
+  TH2 *data_grid_light_guide_efficiency_verify{nullptr};
   // cppcheck-suppress unsafeClassCanLeak
-  TH1 *data_grid_fiber_trans_verify = nullptr;
+  TH1 *data_grid_fiber_trans_verify{nullptr};
 };
 
 #endif
