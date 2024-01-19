@@ -20,8 +20,6 @@
 #include <sstream>
 #include <utility>  // for pair
 
-using namespace std;
-
 PHG4CylinderGeom_Spacalv1::PHG4CylinderGeom_Spacalv1()
 {
   SetDefault();
@@ -36,103 +34,103 @@ void PHG4CylinderGeom_Spacalv1::identify(std::ostream& os) const
      << ", zmax: " << zmax <<                          //
       ", num scint: " << nscint
 
-     << endl;
+     << std::endl;
   return;
 }
 
 void PHG4CylinderGeom_Spacalv1::Print(Option_t*) const
 {
-  identify(cout);
+  identify(std::cout);
 
-  cout << "Configuration is #" << get_config() << ":" << endl;
+  std::cout << "Configuration is #" << get_config() << ":" << std::endl;
   switch (get_config())
   {
   case kNonProjective:
-    cout << "fiber always placed radially" << endl;
+    std::cout << "fiber always placed radially" << std::endl;
     break;
   case kFullProjective_2DTaper:
-    cout << "Fully projective spacal with 2D tapered modules" << endl;
+    std::cout << "Fully projective spacal with 2D tapered modules" << std::endl;
     break;
   case kFullProjective_2DTaper_SameLengthFiberPerTower:
-    cout
+    std::cout
         << "Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower"
-        << endl;
+        << std::endl;
     break;
   case kFullProjective_2DTaper_Tilted:
-    cout << "Fully projective spacal with 2D tapered modules and  allow azimuthal tilts" << endl;
+    std::cout << "Fully projective spacal with 2D tapered modules and  allow azimuthal tilts" << std::endl;
     break;
   case kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower:
-    cout
+    std::cout
         << "Fully projective spacal with 2D tapered modules and  allow azimuthal tilts. To speed up construction, same-length fiber is used cross one tower"
-        << endl;
+        << std::endl;
     break;
   default:
-    cout << "PHG4CylinderGeom_Spacalv1::Print - ERROR - unknown configuration #"
-         << get_config() << endl;
+    std::cout << "PHG4CylinderGeom_Spacalv1::Print - ERROR - unknown configuration #"
+         << get_config() << std::endl;
     break;
   }
 
-  cout << "\t"
-       << "get_max_radius() = " << get_max_radius() << endl;
-  cout << "\t"
-       << "get_half_radius() = " << get_half_radius() << endl;
-  cout << "\t"
-       << "get_length() = " << get_length() << endl;
-  cout << "\t"
+  std::cout << "\t"
+       << "get_max_radius() = " << get_max_radius() << std::endl;
+  std::cout << "\t"
+       << "get_half_radius() = " << get_half_radius() << std::endl;
+  std::cout << "\t"
+       << "get_length() = " << get_length() << std::endl;
+  std::cout << "\t"
        << "get_*pos() = " << get_xpos() << ", " << get_ypos() << ", "
-       << get_zpos() << endl;
+       << get_zpos() << std::endl;
 
-  cout << "\t"
+  std::cout << "\t"
        << "get_azimuthal_n_sec() = " << get_azimuthal_n_sec() << ", "
        << sector_map.size() << "/" << get_azimuthal_n_sec()
-       << " azimuthal sectors would be filled with SPACAL." << endl;
-  cout << "\t"
+       << " azimuthal sectors would be filled with SPACAL." << std::endl;
+  std::cout << "\t"
        << "get_azimuthal_distance() = " << get_azimuthal_distance()
-       << endl;
-  cout << "\t"
-       << "get_z_distance() = " << get_z_distance() << endl;
-  cout << "\t"
-       << "get_fiber_outer_r() = " << get_fiber_outer_r() << endl;
-  cout << "\t"
+       << std::endl;
+  std::cout << "\t"
+       << "get_z_distance() = " << get_z_distance() << std::endl;
+  std::cout << "\t"
+       << "get_fiber_outer_r() = " << get_fiber_outer_r() << std::endl;
+  std::cout << "\t"
        << "get_fiber_clading_thickness() = "
-       << get_fiber_clading_thickness() << endl;
-  cout << "\t"
+       << get_fiber_clading_thickness() << std::endl;
+  std::cout << "\t"
        << "get_fiber_core_diameter() = " << get_fiber_core_diameter()
-       << endl;
-  cout << "\t"
-       << "get_fiber_distance() = " << get_fiber_distance() << endl;
+       << std::endl;
+  std::cout << "\t"
+       << "get_fiber_distance() = " << get_fiber_distance() << std::endl;
 
-  cout << "\t"
-       << "get_absorber_mat() = " << get_absorber_mat() << endl;
-  cout << "\t"
+  std::cout << "\t"
+       << "get_absorber_mat() = " << get_absorber_mat() << std::endl;
+  std::cout << "\t"
        << "get_fiber_clading_mat() = " << get_fiber_clading_mat()
-       << endl;
-  cout << "\t"
-       << "get_fiber_core_mat() = " << get_fiber_core_mat() << endl;
-  //  cout << "\t" << "get_calo_step_size() = " << get_calo_step_size() << endl;
-  //  cout << "\t" << "get_fiber_clading_step_size() = "
-  //      << get_fiber_clading_step_size() << endl;
-  cout << "\t"
+       << std::endl;
+  std::cout << "\t"
+       << "get_fiber_core_mat() = " << get_fiber_core_mat() << std::endl;
+  //  std::cout << "\t" << "get_calo_step_size() = " << get_calo_step_size() << std::endl;
+  //  std::cout << "\t" << "get_fiber_clading_step_size() = "
+  //      << get_fiber_clading_step_size() << std::endl;
+  std::cout << "\t"
        << "get_fiber_core_step_size() = " << get_fiber_core_step_size()
-       << endl;
+       << std::endl;
 
-  cout << "\t"
-       << "is_virualize_fiber() = " << is_virualize_fiber() << endl;
-  cout << "\t"
+  std::cout << "\t"
+       << "is_virualize_fiber() = " << is_virualize_fiber() << std::endl;
+  std::cout << "\t"
        << "get_construction_verbose() = " << get_construction_verbose()
-       << endl;
+       << std::endl;
 
   if (get_construction_verbose() >= 2)
   {
-    cout << "\t"
+    std::cout << "\t"
          << "Containing " << sector_map.size()
-         << " sector with rotation specified:" << endl;
+         << " sector with rotation specified:" << std::endl;
     for (auto it : sector_map)
     {
-      cout << "\t"
+      std::cout << "\t"
            << "\t"
            << "sector_map[" << it.first << "] = " << it.second
-           << endl;
+           << std::endl;
     }
   }
 }
@@ -213,7 +211,7 @@ void PHG4CylinderGeom_Spacalv1::ImportParameters(const PHParameters& param)
 
     for (int i = 0; i < n; i++)
     {
-      stringstream prefix;
+      std::stringstream prefix;
       prefix << "sector_map";
       prefix << "[" << i << "]"
              << ".";

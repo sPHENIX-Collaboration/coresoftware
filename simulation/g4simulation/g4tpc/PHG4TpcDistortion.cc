@@ -65,8 +65,8 @@ void PHG4TpcDistortion::Init()
     hDPint[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionP_posz"));
     hDZint[0] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ_negz"));
     hDZint[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ_posz"));
-    hReach[0] = dynamic_cast<TH3*>(m_static_tfile->Get("hReachesReadout_negz"));
-    hReach[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hReachesReadout_posz"));
+   //not ready yet:   hReach[0] = dynamic_cast<TH3*>(m_static_tfile->Get("hReachesReadout_negz"));
+    //not ready yet:   hReach[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hReachesReadout_posz"));
   }
 
   if (m_do_time_ordered_distortions)
@@ -96,8 +96,8 @@ void PHG4TpcDistortion::Init()
     TimeTree->SetBranchAddress("hIntDistortionP_posz", &(TimehDP[1]));
     TimeTree->SetBranchAddress("hIntDistortionZ_negz", &(TimehDZ[0]));
     TimeTree->SetBranchAddress("hIntDistortionZ_posz", &(TimehDZ[1]));
-    TimeTree->SetBranchAddress("hReachesReadout_negz", &(TimehRR[0]));
-    TimeTree->SetBranchAddress("hReachesReadout_posz", &(TimehRR[1]));
+    //not ready yet: TimeTree->SetBranchAddress("hReachesReadout_negz", &(TimehRR[0]));
+    //not ready yet: TimeTree->SetBranchAddress("hReachesReadout_posz", &(TimehRR[1]));
   }
 }
 
@@ -184,7 +184,9 @@ double PHG4TpcDistortion::get_z_distortion(double r, double phi, double z) const
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_reaches_readout(double r, double phi, double z) const
 {
-  return get_distortion('R', r, phi, z);
+  if (r<1) printf("Unusual R: %f.  This line is to keep the compiler from complaining about unused parameters like %f and %f.\n",r,phi,z);
+  return 1;
+  //not ready yet: return get_distortion('R', r, phi, z);
 }
 
 double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double z) const

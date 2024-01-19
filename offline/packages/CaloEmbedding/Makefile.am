@@ -8,27 +8,22 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
+  -L$(OFFLINE_MAIN)/lib64 \
+  -lcalo_io
 
 pkginclude_HEADERS = \
-  CaloWaveformSim.h
+  caloTowerEmbed.h
 
 lib_LTLIBRARIES = \
-  libCaloWaveformSim.la
+  libCaloEmbedding.la
 
-libCaloWaveformSim_la_SOURCES = \
-  CaloWaveformSim.cc
+libCaloEmbedding_la_SOURCES = \
+  caloTowerEmbed.cc
 
-libCaloWaveformSim_la_LIBADD = \
+libCaloEmbedding_la_LIBADD = \
   -lphool \
   -lSubsysReco \
-  -lcalo_io \
-  -lfun4all \
-  -lg4detectors \
-  -lg4detectors_io \
-  -lcalo_io \
-  -lcdbobjects \
-  -lphg4hit
+  -lfun4all
 
 BUILT_SOURCES = testexternals.cc
 
@@ -36,7 +31,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libCaloWaveformSim.la
+testexternals_LDADD   = libCaloEmbedding.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
