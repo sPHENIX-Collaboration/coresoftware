@@ -6,6 +6,7 @@
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHit.h>
@@ -15,10 +16,14 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <intt/CylinderGeomIntt.h>
+
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
+
 #include <mvtx/CylinderGeom_Mvtx.h>
+
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
@@ -27,6 +32,7 @@
 #include <trackbase_historic/TrackSeed.h>
 
 #include <ffarawobjects/Gl1RawHit.h>
+
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/SvtxVertex.h>
@@ -269,9 +275,19 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
 
     if (!m_doAlignment)
     {
+      std::vector<TrkrDefs::cluskey> keys;
+
       for (const auto& ckey : get_cluster_keys(track))
       {
+        if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
+        {
+          keys.push_back(ckey);
+        }
         fillClusterBranches(ckey, track, topNode);
+      }
+      if (m_zeroField)
+      {
+        lineFitClusters(keys, geometry, clustermap);
       }
     }
     m_nhits = m_nmaps + m_nintt + m_ntpc + m_nmms;
@@ -341,6 +357,29 @@ float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey c
   float z = zloc;  // in cm
 
   return z;
+}
+void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
+                                     ActsGeometry* geometry,
+                                     TrkrClusterContainer* clusters)
+{
+  std::vector<Acts::Vector3> clusPos;
+  TrackFitUtils::getTrackletClusters(geometry, clusters,
+                                     clusPos, keys);
+  TrackFitUtils::position_vector_t xypoints, rzpoints;
+  for (auto& pos : clusPos)
+  {
+    xypoints.push_back(std::make_pair(pos.x(), pos.y()));
+    float clusr = r(pos.x(), pos.y());
+    if (pos.y() < 0) clusr *= -1;
+    rzpoints.push_back(std::make_pair(pos.z(), clusr));
+  }
+
+  auto xyparams = TrackFitUtils::line_fit(xypoints);
+  auto rzparams = TrackFitUtils::line_fit(rzpoints);
+  m_xyint = std::get<1>(xyparams);
+  m_xyslope = std::get<0>(xyparams);
+  m_rzint = std::get<1>(rzparams);
+  m_rzslope = std::get<0>(rzparams);
 }
 
 void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
@@ -724,7 +763,8 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   if (Verbosity() > 1)
   {
     std::cout << "Track state/clus in layer "
-              << TrkrDefs::getLayer(ckey) << std::endl;
+              << (unsigned int) TrkrDefs::getLayer(ckey) << " with pos "
+              << clusglob.transpose() << std::endl;
   }
   if (!state)
   {
@@ -943,6 +983,10 @@ void TrackResiduals::createBranches()
   m_tree->Branch("pcax", &m_pcax, "m_pcax/F");
   m_tree->Branch("pcay", &m_pcay, "m_pcay/F");
   m_tree->Branch("pcaz", &m_pcaz, "m_pcaz/F");
+  m_tree->Branch("rzslope", &m_rzslope, "m_rzslope/F");
+  m_tree->Branch("xyslope", &m_xyslope, "m_xyslope/F");
+  m_tree->Branch("rzint", &m_rzint, "m_rzint/F");
+  m_tree->Branch("xyint", &m_xyint, "m_xyint/F");
 
   m_tree->Branch("cluskeys", &m_cluskeys);
   m_tree->Branch("clusedge", &m_clusedge);
