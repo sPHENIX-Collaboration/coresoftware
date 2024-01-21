@@ -103,10 +103,12 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
   std::vector<TrackSeed_v1> seeds_vector;
   std::vector<Eigen::Matrix<double,6,6>> alice_seeds_vector;
   int nseeds = 0;
- 
+  int ncandidates = -1;
   if(Verbosity()>0) std::cout << "min clusters per track: " << _min_clusters_per_track << "\n";
   for( auto trackKeyChain:trackSeedKeyLists )
   {
+    ++ncandidates;
+
     if(trackKeyChain.size()<2) continue;
     if(use_nhits_limit && trackKeyChain.size() < _min_clusters_per_track) continue;
     if(TrkrDefs::getLayer(trackKeyChain.front())<TrkrDefs::getLayer(trackKeyChain.back())) std::reverse(trackKeyChain.begin(),trackKeyChain.end());
@@ -164,7 +166,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     });
     
     const auto [R, x_center, y_center] = TrackFitUtils::circle_fit_by_taubin( pts );
-    if(Verbosity()>1) std::cout << "circle fit parameters: R=" << R << ", X0=" << x_center << ", Y0=" << y_center << std::endl;
+    if(Verbosity()>1) std::cout << std::endl << "candidate " << ncandidates << " seed " <<  nseeds << " circle fit parameters: R=" << R << ", X0=" << x_center << ", Y0=" << y_center << std::endl;
     
     // check circle fit success
     /* failed fit will result in infinite momentum for the track, which in turn will break the kalman filter */
@@ -349,7 +351,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
       }
     }
 
-    //if(Verbosity()>0) std::cout << "finished track\n";
+    if(Verbosity()>0) std::cout << "finished track\n";
 
     double track_phi = atan2(y,x);
 
@@ -605,6 +607,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     phierr.clear();
     zsize.clear();
 */
+    std::cout << "Add track " << nseeds << " to seeds" << std::endl;
     seeds_vector.push_back(track);
     alice_seeds_vector.push_back(scov);
     trackChi2.push_back(trackSeed.GetChi2() / trackSeed.GetNDF());

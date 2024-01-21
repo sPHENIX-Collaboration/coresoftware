@@ -37,6 +37,9 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 						  ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
 						  TrkrClusterContainer*  clusterContainer,
 						  ActsGeometry* tGeometry,
+					          const TpcDistortionCorrectionContainer* dcc_static,
+					          const TpcDistortionCorrectionContainer* dcc_average,
+					          const TpcDistortionCorrectionContainer* dcc_fluctuation,
 						  alignmentTransformationContainer* transformMapTransient,
 						   std::set< Acts::GeometryIdentifier> transient_id_set,
 						  short int crossing)
@@ -97,18 +100,21 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
       global[2] = z;
 
       // apply distortion corrections
-      if (_dcc_static)
+      if (dcc_static)
       {
-        global = _distortionCorrection.get_corrected_position(global, _dcc_static);
+        global = _distortionCorrection.get_corrected_position(global, dcc_static);
       }
-      if (_dcc_average)
+      if (dcc_average)
       {
-        global = _distortionCorrection.get_corrected_position(global, _dcc_average);
+        global = _distortionCorrection.get_corrected_position(global, dcc_average);
       }
-      if (_dcc_fluctuation)
+      if (dcc_fluctuation)
       {
-        global = _distortionCorrection.get_corrected_position(global, _dcc_fluctuation);
+        global = _distortionCorrection.get_corrected_position(global, dcc_fluctuation);
       }
+
+      std::cout << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2) 
+		<< " corr glob " << global(0) << "  " << global(1) << "  " << global(2) << std::endl;
 
       // Make an afine transform that implements the correction as a translation 
       auto correction_translation = (global - global_in) * 10.0;  // need mm

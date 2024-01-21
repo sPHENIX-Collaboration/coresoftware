@@ -291,6 +291,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 							     measurements, 
 							     m_clusterContainer, 
 							     m_tGeometry, 
+							     _dcc_static, _dcc_average, _dcc_fluctuation,
 							     m_alignmentTransformationMapTransient, 
 							     m_transient_id_set, 
 							     crossing);
@@ -299,6 +300,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 								   measurements, 
 								   m_clusterContainer, 
 								   m_tGeometry, 
+								   _dcc_static, _dcc_average, _dcc_fluctuation,
 								   m_alignmentTransformationMapTransient, 
 								   m_transient_id_set, 
 								   crossing);

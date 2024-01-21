@@ -53,6 +53,9 @@ class MakeSourceLinks
 			       ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
 			       TrkrClusterContainer*  cluster_container,
 			       ActsGeometry* tGeometry,
+			       const TpcDistortionCorrectionContainer* dcc_static,
+			       const TpcDistortionCorrectionContainer* dcc_average,
+			       const TpcDistortionCorrectionContainer* dcc_fluctuation,
 			       alignmentTransformationContainer* transformMapTransient,
 			       std::set< Acts::GeometryIdentifier> transient_id_set,
 			       short int crossing);

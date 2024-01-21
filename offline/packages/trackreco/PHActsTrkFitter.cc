@@ -389,6 +389,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 								 measurements, 
 								 m_clusterContainer, 
 								 m_tGeometry, 
+								 _dcc_static, _dcc_average, _dcc_fluctuation,
 								 m_alignmentTransformationMapTransient, 
 								 m_transient_id_set, 
 								 this_crossing);
@@ -397,6 +398,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 								   measurements, 
 								   m_clusterContainer, 
 								   m_tGeometry, 
+								   _dcc_static, _dcc_average, _dcc_fluctuation,
 								   m_alignmentTransformationMapTransient, 
 								   m_transient_id_set, 
 								   this_crossing);

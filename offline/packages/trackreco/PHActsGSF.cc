@@ -131,6 +131,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
 							       measurements, 
 							       m_clusterContainer, 
 							       m_tGeometry, 
+							       m_dccStatic, m_dccAverage, m_dccFluctuation,
 							       m_alignmentTransformationMapTransient, 
 							       m_transient_id_set, 
 							       crossing);
@@ -139,6 +140,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
 							     measurements, 
 							     m_clusterContainer, 
 							     m_tGeometry, 
+							     m_dccStatic, m_dccAverage, m_dccFluctuation,
 							     m_alignmentTransformationMapTransient, 
 							     m_transient_id_set, 
 							     crossing);

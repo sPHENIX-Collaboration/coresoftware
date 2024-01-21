@@ -142,7 +142,7 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
     }
    
   // tpc distortion correction
-  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( m_dcc )
   { std::cout << "PHSimpleKFProp::InitRun - found TPC distortion correction container" << std::endl; }
 
@@ -353,7 +353,7 @@ Acts::Vector3 PHSimpleKFProp::getGlobalPosition( TrkrDefs::cluskey key, TrkrClus
   auto globalpos = _tgeometry->getGlobalPosition(key, cluster);
 
   // check if TPC distortion correction are in place and apply if this is a triggered event (ie. crossing is known)
-  if(!_pp_mode)
+  if( !(_pp_mode) )
     {
       if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
     }
@@ -754,7 +754,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
       tz = kftrack.GetZ();
       double query_pt[3] = {tx, ty, tz};
 
-      if(m_dcc && !_pp_mode)
+      if(m_dcc && !(_pp_mode) )
 	{
 	  // The distortion corrected cluster positions in globalPos are not at the layer radius
 	  // We want to project to the radius appropriate for the globalPos values
@@ -994,7 +994,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
       double query_pt[3] = {tx, ty, tz};
 
       // Now look for the nearest cluster to this projection point (tx,ty,tz), which is at the nominal layer radius
-      if(m_dcc && !_pp_mode)
+      if(m_dcc && !(_pp_mode) )
 	{
 	  // The distortion corrected cluster positions in globalPos are not at the layer radius
 	  // We want to project to the radius appropriate for the globalPos values

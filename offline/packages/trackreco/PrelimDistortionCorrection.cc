@@ -142,9 +142,15 @@ int PrelimDistortionCorrection::get_nodes(PHCompositeNode* topNode)
     }
    
   // tpc distortion correction
-  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( m_dcc )
-  { std::cout << "PrelimDistortionCorrection::InitRun - found TPC distortion correction container" << std::endl; }
+  { 
+    std::cout << "PrelimDistortionCorrection::InitRun - found TPC distortion correction container" << std::endl; 
+  }
+  else
+    {
+      std::cout << "PrelimDistortionCorrection::InitRun - failed to find TPC distortion correction container" << std::endl; 
+    }
 
   if(_use_truth_clusters)
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
@@ -182,7 +188,11 @@ int PrelimDistortionCorrection::get_nodes(PHCompositeNode* topNode)
 
 int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 {
-  if(!_pp_mode) {return Fun4AllReturnCodes::EVENT_OK;}
+  if(!_pp_mode) 
+    {
+      std::cout << "PrelimDistortionCorrection called but not in pp_mode, do nothing!" << std::endl;
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
 
   PHTimer timer("PrelimDistortionCorrectionTimer");
   timer.stop();
@@ -193,7 +203,6 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
   // These accumulate trackseeds as we loop over tracks, keylist is a vector of vectors of seed cluskeys
   // The seeds are all given to the fitter at once
     std::vector<std::vector<TrkrDefs::cluskey>> keylist;
-    //    std::vector<TrkrDefs::cluskey, Acts::Vector3> correctedOffsetTrackClusPositions;
     PositionMap correctedOffsetTrackClusPositions;
 
   for(int track_it = 0; track_it != _track_map->size(); ++track_it )
@@ -201,6 +210,12 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
     if(Verbosity()>0) std::cout << "TPC seed " << track_it << std::endl;
     // if not a TPC track, ignore
     TrackSeed* track = _track_map->get(track_it);
+    if(!track) 
+      {
+	std::cout << " Did not find track " << track_it << std::endl;
+	continue;
+      }
+
     const bool is_tpc = std::any_of(
       track->begin_cluster_keys(),
       track->end_cluster_keys(),
@@ -211,6 +226,13 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
       // We want to move all clusters in this seed to point to Z0 = 0
       float Z0 = track->get_Z0();
       float offset_Z = 0.0 - Z0;
+
+      std::cout << "  processing seed with offset_Z " << offset_Z
+ 		<< " eta " << track->get_eta()
+		<< " x " << track->get_x() 
+		<< " y " << track->get_y() 
+		<< " z " << track->get_z() 
+		<< std::endl;
 
       // We want to make  distortion corrections to all clusters in this seed after offsetting the z values
       std::vector<TrkrDefs::cluskey> dumvec;
@@ -225,8 +247,17 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 	  Acts::Vector3 offsetpos(pos(0), pos(1), pos(2) + offset_Z);
 	  // Distortion correct the offset positions
 	  if( m_dcc ) { offsetpos = m_distortionCorrection.get_corrected_position( offsetpos, m_dcc ); }
-	  correctedOffsetTrackClusPositions.insert(std::make_pair(cluskey,offsetpos));
+
+	  // now move the distortion corrected cluster back by offset_Z, to preserve the z measurement info
+	  Acts::Vector3 corrpos(offsetpos(0), offsetpos(1), offsetpos(2) - offset_Z);
+	  correctedOffsetTrackClusPositions.insert(std::make_pair(cluskey,corrpos));
 	  dumvec.push_back(cluskey);
+
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << " cluskey " << cluskey << " input pos " << pos(0) << "  " << pos(1) << "  " << pos(2) << "   corr. pos " << corrpos(0) << "  " << corrpos(1) << "  " << corrpos(2) << std::endl;
+
+	    }
 	}
 
       /// Can't circle fit a seed with less than 3 clusters, skip it
@@ -250,6 +281,8 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
   // This calls circle fit and line fit (setting x, y, z, phi, eta) and sets qOverR explicitly using q from KF
   publishSeeds(seeds.first, correctedOffsetTrackClusPositions);
       
+  // NOTE: this sets the seed z arbitrarily to ~ 0.
+  // This defeats later efforts to use the crossing to correct z, or to do geometric matching!
 
 
 
@@ -1227,8 +1260,34 @@ std::vector<keylist> PrelimDistortionCorrection::RemoveBadClusters(const std::ve
 
 
 
-void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap& /*positions*/)
+void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap& positions)
 {
+  int seed_index = 0;
+  for(auto& seed: seeds )
+  { 
+    /// The ALICEKF gives a better charge determination at high pT
+    int q = seed.get_charge();
+    seed.circleFitByTaubin(positions, 7, 55);
+    seed.lineFit(positions, 7, 55);
+    
+    seed.set_qOverR(fabs(seed.get_qOverR()) * q);
+    _track_map->insert(&seed); 
+
+    std::cout << "Publishing seed " << seed_index
+	      << " q " << q
+	      << " qOverR " << fabs(seed.get_qOverR()) * q 
+	      << " X0 " << seed.get_x()
+	      << " Y0 " << seed.get_y()
+	      << " Z0 " << seed.get_z()
+	      << " eta " << seed.get_eta()
+	      << std::endl;
+    seed_index++;
+  }
+}
+/*
+void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap& positions)
+{
+  int seed_index = 0;
   for(auto& seed: seeds )
   { 
     /// The ALICEKF gives a better charge determination at high pT
@@ -1238,8 +1297,19 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, 
     
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
     _track_map->insert(&seed); 
+
+    std::cout << "Publishing seed " << seed_index
+	      << " q " << q
+	      << " qOverR " << fabs(seed.get_qOverR()) * q 
+	      << " X0 " << seed.get_x()
+	      << " Y0 " << seed.get_y()
+	      << " Z0 " << seed.get_z()
+	      << " eta " << seed.get_eta()
+	      << std::endl;
+    seed_index++;
   }
 }
+*/
 
 void PrelimDistortionCorrection::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
 {
