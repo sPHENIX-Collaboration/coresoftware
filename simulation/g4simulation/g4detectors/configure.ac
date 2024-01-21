@@ -6,12 +6,12 @@ AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
 if test $ac_cv_prog_gxx = yes; then
-  CXXFLAGS="-Wall -Wextra -Werror -Wshadow $CXXFLAGS"
+  CXXFLAGS="$CXXFLAGS -Wall -Wextra -Werror -Wshadow"
 fi
 
 case $CXX in
   clang++)
-    CXXFLAGS="$CXXFLAGS -Wno-c11-extensions -Wno-deprecated-copy -Wno-tautological-overlap-compare -Wno-null-pointer-subtraction -Wno-unknown-warning-option"
+    CXXFLAGS="$CXXFLAGS -Wno-null-pointer-subtraction"
   ;;
 esac
 

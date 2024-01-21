@@ -44,6 +44,7 @@ pkginclude_HEADERS = \
   PHCASeeding.h \
   PHCosmicsTrkFitter.h \
   PHCosmicSeeder.h \
+  PHCosmicTrackMerger.h \
   PHCosmicSeedCombiner.h \
   PHCosmicSiliconPropagator.h \
   PHGenFitTrackProjection.h \
@@ -128,6 +129,7 @@ libtrack_reco_la_SOURCES = \
   PHCASeeding.cc \
   PHCosmicSeedCombiner.cc \
   PHCosmicSeeder.cc \
+  PHCosmicTrackMerger.cc \
   PHCosmicSiliconPropagator.cc \
   PHGenFitTrackProjection.cc \
   PHGenFitTrkFitter.cc \
