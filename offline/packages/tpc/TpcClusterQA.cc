@@ -126,6 +126,7 @@ int TpcClusterQA::process_event(PHCompositeNode* topNode)
       histos.insert(std::make_pair(region, hist));
     }
   auto fill = [](TH1* h, float val) { if (h) h->Fill(val); };
+  
 
   for(auto& hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
     {
@@ -204,13 +205,7 @@ void TpcClusterQA::createHistos()
 			  Form("TPC z error region_%i", region), 100, 0, 0.18);
 	h->GetXaxis()->SetTitle("z error [cm]");
 	hm->registerHisto(h);
-      }
-      {
-	auto h = new TH1F(Form("%sphisize_%i", getHistoPrefix().c_str(), region),
-			  Form("TPC #phi size region_%i", region), 30,0,30);
-	h->GetXaxis()->SetTitle("Cluster #phi_{size}");
-	hm->registerHisto(h);
-      }     
+      } 
       {
 	auto h = new TH1F(Form("%sclusedge_%i", getHistoPrefix().c_str(), region),
 			  Form("TPC hits on edge_%i", region), 30,0,30);
