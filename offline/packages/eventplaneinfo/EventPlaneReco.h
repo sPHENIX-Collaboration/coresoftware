@@ -61,8 +61,6 @@ class EventPlaneReco : public SubsysReco
   unsigned  int m_runNo = 21813;
  
   const char *OutFileName;
-
-  int _event;
   
   CDBHistos *cdbhistosOut = nullptr;
  
