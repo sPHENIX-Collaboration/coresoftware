@@ -45,6 +45,9 @@ EventPlaneReco::EventPlaneReco(const std::string &name)
   , OutFileName("eventplane_correction_histograms")
 {
  
+  mbd_e_south = 0.;
+  mbd_e_north = 0.;
+  mbdQ = 0.;
   south_q.resize(m_MaxOrder);
   north_q.resize(m_MaxOrder);
   south_q_subtract.resize(m_MaxOrder);
@@ -260,9 +263,9 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
         std::cout << "EventPlaneReco::process_event -  mbdpmts" << std::endl;
       }
 
-      float mbd_e_south = 0.;
-      float mbd_e_north = 0.;
-      float mbdQ = 0.;
+     mbd_e_south = 0.;
+     mbd_e_north = 0.;
+     mbdQ = 0.;
    
      for (int ipmt = 0; ipmt < mbdpmts->get_npmt(); ipmt++)
       {
