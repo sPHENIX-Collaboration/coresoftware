@@ -133,7 +133,8 @@ int TpcClusterQA::process_event(PHCompositeNode* topNode)
 
     auto range = clusterContainer->getClusters(hsk);
     int sector = TpcDefs::getSectorId(hsk);
-    std::cout << "Processing sector " << sector << std::endl;
+    int side = TpcDefs::getSide(hsk);
+    if (side > 0) sector += 12;
     for (auto iter = range.first; iter != range.second; ++iter)
     {
       const auto cluskey = iter->first;
@@ -158,7 +159,7 @@ int TpcClusterQA::process_event(PHCompositeNode* topNode)
 
     nclusperevent[sector] += numclusters;
     h_totalclusters->Fill(hitsetkeynum, numclusters);
- 
+    m_totalClusters += numclusters;
     hitsetkeynum++;
     }
     for (int i = 0; i < 24; i++){
@@ -168,7 +169,15 @@ int TpcClusterQA::process_event(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::EVENT_OK;
 }
 
+int TpcClusterQA::EndRun(const int runnumber)
+{
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
 
+  TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(Form("%snclusperrun", getHistoPrefix().c_str())));
+  h_totalclusters->Fill(runnumber, (float) m_totalClusters / m_event);
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 //____________________________________________________________________________..
 int TpcClusterQA::End(PHCompositeNode*)
 {
@@ -184,6 +193,13 @@ void TpcClusterQA::createHistos()
 
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
+  {
+    auto h = new TH2F(Form("%snclusperrun", getHistoPrefix().c_str()),
+                      "TPC Clusters per event per run number", 10000,23000,33000, 1000, 0, 1000);
+    h->GetXaxis()->SetTitle("Run number");
+    h->GetYaxis()->SetTitle("Clusters per event");
+    hm->registerHisto(h);
+  }
 {
       auto h = new TH2F(Form("%sncluspersector", getHistoPrefix().c_str()),
                         "TPC Clusters per event per sector", 24, 0, 24, 1000, 0, 1000);
