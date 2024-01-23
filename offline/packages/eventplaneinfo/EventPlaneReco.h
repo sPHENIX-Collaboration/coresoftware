@@ -77,6 +77,10 @@ class EventPlaneReco : public SubsysReco
     
   float _epd_e  = 6.0;
   float _mbd_e = 10.0;
+    
+  float mbd_e_south;
+  float mbd_e_north;
+  float mbdQ;
 
   TProfile * tprof_mean_cos_north_mbd[6] = {};
   TProfile * tprof_mean_sin_north_mbd[6] = {};
