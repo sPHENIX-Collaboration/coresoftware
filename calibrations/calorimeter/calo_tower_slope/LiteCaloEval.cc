@@ -335,6 +335,7 @@ int LiteCaloEval::process_event(PHCompositeNode *topNode)
       e = tower_info->get_energy();
       ieta = towerinfos->getTowerEtaBin(towerkey);
       iphi = towerinfos->getTowerPhiBin(towerkey);
+      if(!tower_info->get_isGood()) continue;
     }
 
     else

@@ -29,8 +29,6 @@ class G4Material;
 class G4VSolid;
 class PHCompositeNode;
 
-using namespace std;
-
 //_______________________________________________________________
 PHG4CylinderDetector::PHG4CylinderDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
   : PHG4Detector(subsys, Node, dnam)
@@ -64,12 +62,12 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
   double start_phi_rad = m_Params->get_double_param("start_phi_rad") * rad;
   double delta_phi_rad = m_Params->get_double_param("delta_phi_rad") * rad;
 
-  if (!isfinite(radius) || !isfinite(thickness) || !isfinite(length))
+  if (!std::isfinite(radius) || !std::isfinite(thickness) || !std::isfinite(length))
   {
-    cout << PHWHERE << ": Bad Parameters for " << GetName() << endl;
-    cout << "Radius: " << radius << endl;
-    cout << "Thickness: " << thickness << endl;
-    cout << "Length: " << length << endl;
+    std::cout << PHWHERE << ": Bad Parameters for " << GetName() << std::endl;
+    std::cout << "Radius: " << radius << std::endl;
+    std::cout << "Thickness: " << thickness << std::endl;
+    std::cout << "Length: " << length << std::endl;
     gSystem->Exit(1);
   }
   G4VSolid *cylinder_solid = new G4Tubs(G4String(GetName()),
@@ -78,7 +76,7 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
                                         length / 2., start_phi_rad, delta_phi_rad);
   double steplimits = m_Params->get_double_param("steplimits") * cm;
   G4UserLimits *g4userlimits = nullptr;
-  if (isfinite(steplimits))
+  if (std::isfinite(steplimits))
   {
     g4userlimits = new G4UserLimits(steplimits);
   }
@@ -110,12 +108,12 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   if (nRotation >= 2)
   {
-    cout << __PRETTY_FUNCTION__ << ": Warning : " << GetName() << " is configured with more than one of the x-y-z rotations of "
+    std::cout << __PRETTY_FUNCTION__ << ": Warning : " << GetName() << " is configured with more than one of the x-y-z rotations of "
          << "(" << m_Params->get_double_param("rot_x") << ", "
          << m_Params->get_double_param("rot_x") << ", "
          << m_Params->get_double_param("rot_x") << ") degrees. "
          << "The rotation is instruction is ambiguous and they are performed in the order of X->Y->Z rotations with result rotation matrix of:";
-    rotm->print(cout);
+    rotm->print(std::cout);
   }
 
   m_CylinderPhysicalVolume = new G4PVPlacement(rotm,

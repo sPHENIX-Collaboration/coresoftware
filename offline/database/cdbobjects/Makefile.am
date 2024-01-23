@@ -5,6 +5,8 @@ lib_LTLIBRARIES = \
   libcdbobjects.la
 
 AM_CPPFLAGS = \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 libcdbobjects_la_SOURCES = \

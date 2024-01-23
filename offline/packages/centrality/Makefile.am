@@ -3,21 +3,34 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I`root-config --incdir`
+  -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
-   libcentrality_io.la
+   libcentrality_io.la \
+   libcentrality.la
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(ROOTSYS)/lib
 
 libcentrality_io_la_LIBADD = \
   -lphool
 
+libcentrality_la_LIBADD = \
+  libcentrality_io.la \
+  -lfun4all \
+  -lcalo_io \
+  -lmbd_io \
+  -lphool \
+  -lcdbobjects \
+  -lffamodules
+
 pkginclude_HEADERS = \
   CentralityInfo.h \
-  CentralityInfov1.h
+  CentralityInfov1.h \
+  CentralityReco.h
+
 
 ROOTDICTS = \
   CentralityInfo_Dict.cc \
@@ -32,6 +45,9 @@ libcentrality_io_la_SOURCES = \
   $(ROOTDICTS) \
   CentralityInfov1.cc
 
+libcentrality_la_SOURCES = \
+  CentralityReco.cc
+
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
@@ -44,10 +60,14 @@ libcentrality_io_la_SOURCES = \
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
+  testexternals_centrality_io \
   testexternals_centrality
 
 testexternals_centrality_SOURCES = testexternals.cc
-testexternals_centrality_LDADD = libcentrality_io.la
+testexternals_centrality_LDADD = libcentrality.la
+
+testexternals_centrality_io_SOURCES = testexternals.cc
+testexternals_centrality_io_LDADD = libcentrality_io.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

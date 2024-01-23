@@ -157,6 +157,6 @@ unsigned int alignmentTransformationContainer::getsphlayer(Acts::GeometryIdentif
   unsigned int layer = id.layer(); 
   unsigned int volume = id.volume(); 
   unsigned int sphlayer = base_layer_map.find(volume)->second + layer / 2 -1;
-  
+
   return sphlayer;
 }
