@@ -127,10 +127,11 @@ int TpcCombinedRawDataUnpacker::InitRun(PHCompositeNode* topNode)
     PHIODataNode<PHObject>* new_node = new PHIODataNode<PHObject>(trkr_hit_set_container, "TRKR_HITSET", "PHObject");
     trkr_node->addNode(new_node);
   }
-
-  m_file = new TFile(outfile_name.c_str(),"RECREATE");
-  m_ntup = new TNtuple("NT","NT","event:gtmbco:packid:ep:sector:side:fee:chan:sampadd:sampch:nsamples");
-
+  if(m_writeTree)
+  {
+    m_file = new TFile(outfile_name.c_str(),"RECREATE");
+    m_ntup = new TNtuple("NT","NT","event:gtmbco:packid:ep:sector:side:fee:chan:sampadd:sampch:nsamples");
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -220,7 +221,8 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     double phi = -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
     PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
     unsigned int phibin = layergeom->find_phibin(phi);
-
+  if(m_writeTree)
+  {
     float fX[12];
     int n = 0;
 
@@ -236,7 +238,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     fX[n++] = sampch;
     fX[n++] = sam;
     m_ntup->Fill(fX);
-
+  }
     hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
       
@@ -310,9 +312,12 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
 int TpcCombinedRawDataUnpacker::End(PHCompositeNode * /*topNode*/)
 {
+  if(m_writeTree)
+  {
   m_file->cd();
   m_ntup->Write();
   m_file->Close();
+  }
   if (Verbosity()) std::cout << "TpcCombinedRawDataUnpacker::End(PHCompositeNode *topNode) This is the End..." << std::endl;
   //if(m_Debug==1) hm->dumpHistos(m_filename, "RECREATE");
 

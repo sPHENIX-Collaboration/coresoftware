@@ -30,7 +30,8 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode*) override;
   int process_event(PHCompositeNode*) override;
-  int End(PHCompositeNode *topNode) override;  
+  int End(PHCompositeNode *topNode) override;
+  void writeTree() { m_writeTree = true; }
 
  protected:
   std::string outfile_name;
@@ -45,6 +46,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
 
   TNtuple *m_ntup = nullptr;
   TFile *m_file = nullptr;
+  bool m_writeTree = false;
 
   int mc_sectors[12] = { 5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6};
   int FEE_map[26] = {4, 5, 0, 2, 1, 11, 9, 10, 8, 7, 6, 0, 1, 3, 7, 6, 5, 4, 3, 2, 0, 2, 1, 3, 5, 4};
