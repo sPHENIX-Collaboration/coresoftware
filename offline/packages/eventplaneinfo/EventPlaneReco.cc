@@ -42,6 +42,7 @@
 
 EventPlaneReco::EventPlaneReco(const std::string &name)
   : SubsysReco(name)
+  , OutFileName("eventplane_correction_histograms")
 {
  
   south_q.resize(m_MaxOrder);
