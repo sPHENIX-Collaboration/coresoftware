@@ -5,16 +5,15 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>
-#include <set>
 #include <map>
+#include <set>
+#include <string>
 
 class PHCompositeNode;
 
 class TpcClusterQA : public SubsysReco
 {
  public:
-
   TpcClusterQA(const std::string &name = "TpcClusterQA");
 
   ~TpcClusterQA() override;
@@ -26,9 +25,8 @@ class TpcClusterQA : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
  private:
-  
   void createHistos();
-  
+
   std::string getHistoPrefix() const;
   std::set<int> m_layers;
   std::multimap<int, int> m_layerRegionMap;
@@ -37,4 +35,4 @@ class TpcClusterQA : public SubsysReco
   int m_totalClusters = 0;
 };
 
-#endif // TPCCLUSTERQA_H
+#endif  // TPCCLUSTERQA_H
