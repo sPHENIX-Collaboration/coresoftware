@@ -260,9 +260,9 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
         std::cout << "EventPlaneReco::process_event -  mbdpmts" << std::endl;
       }
 
-      mbd_e_south = 0.;
-      mbd_e_north = 0.;
-      mbdQ = 0.;
+      float mbd_e_south = 0.;
+      float mbd_e_north = 0.;
+      float mbdQ = 0.;
    
      for (int ipmt = 0; ipmt < mbdpmts->get_npmt(); ipmt++)
       {
