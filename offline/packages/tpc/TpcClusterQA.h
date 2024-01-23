@@ -32,6 +32,8 @@ class TpcClusterQA : public SubsysReco
   std::set<int> m_layers;
   std::multimap<int, int> m_layerRegionMap;
 
+  int m_event = 0;
+  int m_runNumber = 0;
 };
 
 #endif // TPCCLUSTERQA_H

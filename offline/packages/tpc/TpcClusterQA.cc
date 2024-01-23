@@ -78,8 +78,6 @@ int TpcClusterQA::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int TpcClusterQA::process_event(PHCompositeNode* topNode)
 {
-
-
   auto clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if(!clusterContainer)
     {
@@ -98,7 +96,8 @@ int TpcClusterQA::process_event(PHCompositeNode* topNode)
   assert(hm);
   
   TH2* h_totalclusters = dynamic_cast<TH2*>(hm->getHisto(Form("%stotal_clusters", getHistoPrefix().c_str())));
-  
+  TH2 *h_clusterssector = dynamic_cast<TH2*>(hm->getHisto(Form("%sncluspersector", getHistoPrefix().c_str())));
+
   struct HistoList
   {
     TH1 *crphisize = nullptr;
@@ -126,41 +125,47 @@ int TpcClusterQA::process_event(PHCompositeNode* topNode)
       histos.insert(std::make_pair(region, hist));
     }
   auto fill = [](TH1* h, float val) { if (h) h->Fill(val); };
-  
 
-  for(auto& hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
+  float nclusperevent[24] = {0};
+  for (auto &hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
+  {
+    int numclusters = 0;
+
+    auto range = clusterContainer->getClusters(hsk);
+    int sector = TpcDefs::getSectorId(hsk);
+    std::cout << "Processing sector " << sector << std::endl;
+    for (auto iter = range.first; iter != range.second; ++iter)
     {
-      int numclusters = 0;
-      
-      auto range = clusterContainer->getClusters(hsk);
-      for(auto iter = range.first; iter != range.second; ++iter)
-	{
-	  const auto cluskey = iter->first;
-	  const auto cluster = iter->second;
-	  const auto it = m_layerRegionMap.find(TrkrDefs::getLayer(cluskey));
-	  int region = it->second;
-	  const auto hiter = histos.find(region);
-	  if(hiter == histos.end()) 
-	    {
-	      continue;
-	    }
+      const auto cluskey = iter->first;
+      const auto cluster = iter->second;
+      const auto it = m_layerRegionMap.find(TrkrDefs::getLayer(cluskey));
+      int region = it->second;
+      const auto hiter = histos.find(region);
+      if (hiter == histos.end())
+      {
+        continue;
+      }
 
-	  fill(hiter->second.crphisize, cluster->getPhiSize());
-	  fill(hiter->second.czsize, cluster->getZSize());
-	  fill(hiter->second.crphierr, cluster->getRPhiError());
-	  fill(hiter->second.czerr, cluster->getZError());
-	  fill(hiter->second.cedge, cluster->getEdge());
-	  fill(hiter->second.coverlap, cluster->getOverlap());
-	  
-	  numclusters++;
-	}
+      fill(hiter->second.crphisize, cluster->getPhiSize());
+      fill(hiter->second.czsize, cluster->getZSize());
+      fill(hiter->second.crphierr, cluster->getRPhiError());
+      fill(hiter->second.czerr, cluster->getZError());
+      fill(hiter->second.cedge, cluster->getEdge());
+      fill(hiter->second.coverlap, cluster->getOverlap());
 
-      h_totalclusters->Fill(hitsetkeynum, numclusters);
-      
-      hitsetkeynum++;
+      numclusters++;
     }
 
-  return Fun4AllReturnCodes::EVENT_OK;
+    nclusperevent[sector] += numclusters;
+    h_totalclusters->Fill(hitsetkeynum, numclusters);
+ 
+    hitsetkeynum++;
+    }
+    for (int i = 0; i < 24; i++){
+      h_clusterssector->Fill(i, nclusperevent[i]);
+    }
+      m_event++;
+    return Fun4AllReturnCodes::EVENT_OK;
 }
 
 
@@ -179,8 +184,14 @@ void TpcClusterQA::createHistos()
 
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-
-  for(auto& region : {0,1,2})
+{
+      auto h = new TH2F(Form("%sncluspersector", getHistoPrefix().c_str()),
+                        "TPC Clusters per event per sector", 24, 0, 24, 1000, 0, 1000);
+      h->GetXaxis()->SetTitle("Sector number");
+      h->GetYaxis()->SetTitle("Clusters per event");
+      hm->registerHisto(h);
+}
+    for (auto &region : {0, 1, 2})
     {
       {
 	auto h = new TH1F(Form("%sphisize_%i", getHistoPrefix().c_str(), region),
