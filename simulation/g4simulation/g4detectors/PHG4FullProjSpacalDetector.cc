@@ -30,8 +30,6 @@
 
 #include <TSystem.h>
 
-#include <boost/foreach.hpp>
-
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -46,7 +44,7 @@ class G4Material;
 class PHCompositeNode;
 
 //_______________________________________________________________
-//note this inactive thickness is ~1.5% of a radiation length
+// note this inactive thickness is ~1.5% of a radiation length
 PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
                                                        const std::string& dnam, PHParameters* parameters, const int lyr)
   : PHG4SpacalDetector(subsys, Node, dnam, parameters, lyr, false)
@@ -62,9 +60,9 @@ PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHG4Subsystem* subsys, PH
     gSystem->Exit(1);
   }
 
-  //this class loads Chris Cullen 2D spacal design July 2015 by default.
-  // this step is deprecated now
-  // get_geom_v3()->load_demo_sector_tower_map_2015_Chris_Cullen_2D_spacal();
+  // this class loads Chris Cullen 2D spacal design July 2015 by default.
+  //  this step is deprecated now
+  //  get_geom_v3()->load_demo_sector_tower_map_2015_Chris_Cullen_2D_spacal();
 
   assert(parameters);
   get_geom_v3()->ImportParameters(*parameters);
@@ -147,7 +145,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
     z_locations[1100] = -(get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm);
     z_locations[1101] = -(get_geom_v3()->get_length() * cm / 2.0 - (get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm));
 
-    BOOST_FOREACH (z_locations_t::value_type& val, z_locations)
+    for (z_locations_t::value_type& val : z_locations)
     {
       if (get_geom_v3()->get_construction_verbose() >= 2)
         std::cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::"
@@ -191,7 +189,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
     signs[2100] = std::make_pair(-1, +1);
     signs[2101] = std::make_pair(-1, -1);
 
-    BOOST_FOREACH (sign_t::value_type& val, signs)
+    for (sign_t::value_type& val : signs)
     {
       const int sign_z = val.second.first;
       const int sign_azimuth = val.second.second;
@@ -224,7 +222,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 
   // construct towers
 
-  BOOST_FOREACH (const SpacalGeom_t::tower_map_t::value_type& val, get_geom_v3()->get_sector_tower_map())
+  for (const SpacalGeom_t::tower_map_t::value_type& val : get_geom_v3()->get_sector_tower_map())
   {
     const SpacalGeom_t::geom_tower& g_tower = val.second;
     G4LogicalVolume* LV_tower = Construct_Tower(g_tower);
@@ -323,7 +321,7 @@ int PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
   ss << std::string("_Tower") << g_tower.id;
   G4LogicalVolume* fiber_logic = Construct_Fiber(fiber_length, ss.str());
 
-  BOOST_FOREACH (const fiber_par_map::value_type& val, fiber_par)
+  for (const fiber_par_map::value_type& val : fiber_par)
   {
     const int fiber_ID = val.first;
     G4Vector3D vector_fiber = val.second.first;
@@ -496,7 +494,7 @@ PHG4FullProjSpacalDetector::Construct_Tower(
   sout << "_" << g_tower.id;
   const G4String sTowerID(sout.str());
 
-  //Processed PostionSeeds 1 from 1 1
+  // Processed PostionSeeds 1 from 1 1
 
   G4Trap* block_solid = new G4Trap(
       /*const G4String& pName*/ G4String(GetName()) + sTowerID,

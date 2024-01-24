@@ -185,6 +185,7 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit(const TrackFitUtils::po
   const double denominator = (x2sum * npts - square(xsum));
   const double a = (xysum * npts - xsum * ysum) / denominator;   // calculate slope
   const double b = (x2sum * ysum - xsum * xysum) / denominator;  // calculate intercept
+
   return std::make_tuple(a, b);
 }
 
@@ -232,6 +233,7 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
 {
   float slope = std::get<0>(fitpars);
   float intercept = std::get<1>(fitpars);
+
   int nclusters = 0;
   std::set<TrkrDefs::cluskey> keys_to_add;
   std::set<TrkrDefs::TrkrId> detectors = {TrkrDefs::TrkrId::mvtxId,
@@ -292,6 +294,7 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
           //! use r-z
           x = global.z();
           y = std::sqrt(square(global.x()) + square(global.y()));
+          if (global.y() < 0) y *= -1;
         }
 
         //! Need to find the point on the line closest to the cluster position
@@ -418,6 +421,11 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
   }
   for (unsigned int layer = startLayer; layer <= endLayer; ++layer)
   {
+    //! no cluster was found in that layer
+    if (best_layer_cluskey[layer] == 0)
+    {
+      continue;
+    }
     if (best_layer_dca[layer] < dca_cut)
     {
       cluskey_vec.push_back(best_layer_cluskey[layer]);

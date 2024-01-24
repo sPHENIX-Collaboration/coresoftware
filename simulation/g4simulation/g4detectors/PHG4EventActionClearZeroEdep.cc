@@ -3,8 +3,6 @@
 
 #include <phool/getClass.h>
 
-#include <boost/foreach.hpp>
-
 //___________________________________________________
 PHG4EventActionClearZeroEdep::PHG4EventActionClearZeroEdep(PHCompositeNode *node, const std::string &name)
   : topNode(node)
@@ -20,7 +18,7 @@ void PHG4EventActionClearZeroEdep::AddNode(const std::string &name)
 //___________________________________________________
 void PHG4EventActionClearZeroEdep::EndOfEventAction(const G4Event * /*evt*/)
 {
-  BOOST_FOREACH (std::string node, nodename_set)
+  for (auto &node : nodename_set)
   {
     PHG4HitContainer *generic_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
     if (generic_hits)
