@@ -413,10 +413,10 @@ void HFTrackEfficiency::resetBranches()
   m_true_mother_pT = std::numeric_limits<float>::quiet_NaN();
   m_true_mother_p = std::numeric_limits<float>::quiet_NaN();
   m_true_mother_eta = std::numeric_limits<float>::quiet_NaN();
-  m_min_true_track_pT = std::numeric_limits<float>::quiet_NaN();
-  m_min_reco_track_pT = std::numeric_limits<float>::quiet_NaN();
-  m_max_true_track_pT = -1 * std::numeric_limits<float>::quiet_NaN();
-  m_max_reco_track_pT = -1 * std::numeric_limits<float>::quiet_NaN();
+  m_min_true_track_pT = std::numeric_limits<float>::max();
+  m_min_reco_track_pT = std::numeric_limits<float>::max();
+  m_max_true_track_pT = -1 * std::numeric_limits<float>::max();
+  m_max_reco_track_pT = -1 * std::numeric_limits<float>::max();
   for (unsigned int iTrack = 0; iTrack < m_nDaughters; ++iTrack)
   {
     m_reco_track_exists[iTrack] = false;
