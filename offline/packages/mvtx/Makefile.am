@@ -57,7 +57,7 @@ libmvtx_io_la_LIBADD = \
   -lg4detectors_io \
   -ltrack_io \
   -ltrackbase_historic_io \
-  -lcdbobjects 
+  -lcdbobjects
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
