@@ -4,6 +4,7 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>  // for TowerInfo
 #include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoContainerv2.h>
 #include <calobase/TowerInfoDefs.h>
 
 #include <ffamodules/CDBInterface.h>
@@ -150,10 +151,16 @@ int caloTowerEmbed::process_event(PHCompositeNode * /*topNode*/)
       TowerInfo *caloinfo_data = _data_towers->get_tower_at_channel(channel);
       TowerInfo *caloinfo_sim = _sim_towers->get_tower_at_channel(channel);
 
-      if (!caloinfo_data->get_isGood())
+      if (m_removeBadTowers && !caloinfo_data->get_isGood())
 	{
 	  _data_towers->get_tower_at_channel(channel)->set_energy(0.0);
 	  _data_towers->get_tower_at_channel(channel)->set_time(-11);
+
+	  _embed_towers_out->get_tower_at_channel(channel)->set_energy(0.0);
+	  _embed_towers_out->get_tower_at_channel(channel)->set_time(-11);
+
+	  _sim_towers_out->get_tower_at_channel(channel)->set_energy(0.0);
+	  _sim_towers_out->get_tower_at_channel(channel)->set_time(-11);
 	  continue;
 	}
       
@@ -175,7 +182,11 @@ int caloTowerEmbed::process_event(PHCompositeNode * /*topNode*/)
       
       if (data_phi == sim_phi && data_eta == sim_eta)
 	{
-	  _data_towers->get_tower_at_channel(channel)->set_energy(embed_E);
+	  _embed_towers_out->get_tower_at_channel(channel)->set_energy(embed_E);
+	  _embed_towers_out->get_tower_at_channel(channel)->set_time(caloinfo_data->get_time());
+
+	  _sim_towers_out->get_tower_at_channel(channel)->set_energy(sim_E);
+	  _sim_towers_out->get_tower_at_channel(channel)->set_time(caloinfo_sim->get_time());
 	}
       else
 	{
@@ -202,10 +213,14 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
 
   std::string TowerNodeName = m_inputNodePrefix + m_detector;
   std::string GeomNodeName = "TOWERGEOM_" + m_detector;
+  std::string EmbedTowerNodeName = m_inputNodePrefix + "EMBED_" + m_detector;
+  std::string SimTowerNodeName = m_inputNodePrefix + "SIM_" + m_detector;
   if (m_useRetower && m_detector == "CEMC")
     {
       TowerNodeName = m_inputNodePrefix + m_detector + "_RETOWER";
       GeomNodeName = "TOWERGEOM_HCALIN";
+      EmbedTowerNodeName = m_inputNodePrefix + "Embed_" + m_detector + "_RETOWER";
+      SimTowerNodeName = m_inputNodePrefix + "Sim_" + m_detector + "_RETOWER";
     }
 
   Fun4AllServer *se = Fun4AllServer::instance();
@@ -264,6 +279,40 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
       throw std::runtime_error(
 	  "Failed to find " + TowerNodeName + " Sim node in caloTowerEmbed::CreateNodes");
       }
+
+  PHNodeIterator dstIter(dstNode);
+  PHCompositeNode* caloNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode", m_detector));
+  
+  if (!caloNode)
+    {
+      caloNode = new PHCompositeNode(m_detector);
+      dstNode->addNode(caloNode);
+    }
+
+  TowerInfoContainer::DETECTOR towerDetector = TowerInfoContainer::DETECTOR::EMCAL;
+  if (m_detector == "HCALIN" || m_detector == "HCALOUT") towerDetector = TowerInfoContainer::DETECTOR::HCAL;
+
+
+  _embed_towers_out = findNode::getClass<TowerInfoContainer>(topNode, EmbedTowerNodeName);
+  if (!_embed_towers_out)
+    {
+      _embed_towers_out = new TowerInfoContainerv2(towerDetector);
+      PHIODataNode<PHObject>* embedNode =
+        new PHIODataNode<PHObject>(_embed_towers_out, EmbedTowerNodeName, "PHObject");
+      caloNode->addNode(embedNode);
+    }
+
+
+  _sim_towers_out = findNode::getClass<TowerInfoContainer>(topNode, SimTowerNodeName);
+  if (!_sim_towers_out)
+    {
+      _sim_towers_out = new TowerInfoContainerv2(towerDetector);
+      PHIODataNode<PHObject>* simNode =
+        new PHIODataNode<PHObject>(_sim_towers_out, SimTowerNodeName, "PHObject");
+      caloNode->addNode(simNode);
+    }
+
+
 
   return;
 }

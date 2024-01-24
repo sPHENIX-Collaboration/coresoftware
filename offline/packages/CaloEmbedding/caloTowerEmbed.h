@@ -51,7 +51,13 @@ class caloTowerEmbed : public SubsysReco
   {
     m_useRetower = a;
     return;
-  };
+  }
+
+  void set_removeBadTowers(bool a)
+  {
+    m_removeBadTowers = a;
+    return;
+  }
 
  private:
 
@@ -59,9 +65,13 @@ class caloTowerEmbed : public SubsysReco
   TowerInfoContainer *_data_towers {nullptr};
   TowerInfoContainer *_sim_towers {nullptr};
 
+  TowerInfoContainer *_embed_towers_out {nullptr};
+  TowerInfoContainer *_sim_towers_out {nullptr};
+
   RawTowerGeomContainer *tower_geom {nullptr};
 
   bool m_useRetower {false};
+  bool m_removeBadTowers {false};
 
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
 
