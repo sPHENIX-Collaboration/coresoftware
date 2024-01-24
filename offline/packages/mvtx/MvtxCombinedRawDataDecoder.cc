@@ -181,8 +181,6 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     assert(mvtx_event_header);
   }
 
-//  int NMasked = 0;
-
   for (unsigned int i = 0; i < mvtx_hit_container->get_nhits(); i++)
   {
     mvtx_hit = mvtx_hit_container->get_hit(i);
@@ -216,21 +214,16 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
       continue;
     }
 
+	const TrkrDefs::hitsetkey hitsetkeymask = MvtxDefs::genHitSetKey(layer, stave, chip, 0);     		
+
+	if (HotPixelMap.find(std::make_pair(hitsetkeymask,hitkey)) == HotPixelMap.end()) 
+  {
     // create hit and insert in hitset
     hit = new TrkrHitv2;
-	
-	const TrkrDefs::hitsetkey hitsetkeymask = MvtxDefs::genHitSetKey(layer, stave, chip, 0);     		
-	bool noisypixel = false;
-	if (HotPixelMap.find(std::make_pair(hitsetkeymask,hitkey)) != HotPixelMap.end()) noisypixel = true;
-
-	if(!noisypixel) hitset_it->second->addHitSpecificKey(hitkey, hit);
-//	else{
-//		NMasked++;
-//	}
-
-    //hitset_it->second->addHitSpecificKey(hitkey, hit);
+    hitset_it->second->addHitSpecificKey(hitkey, hit);
   }
-//  std::cout << "NMasked = " << NMasked << std::endl;
+  }
+
 
   mvtx_event_header->set_strobe_BCO(strobe);
   if (m_writeMvtxEventHeader)
