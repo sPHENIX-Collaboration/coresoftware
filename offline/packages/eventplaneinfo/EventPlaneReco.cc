@@ -16,6 +16,8 @@
 #include <mbd/MbdPmtContainer.h>
 #include <mbd/MbdPmtHit.h>
 
+#include <cdbobjects/CDBHistos.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
@@ -35,13 +37,21 @@
 #include <set>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
 #include <vector>   // for vector
+#include <TProfile.h>
+
 
 EventPlaneReco::EventPlaneReco(const std::string &name)
   : SubsysReco(name)
-  , m_MaxOrder(3)
+  , OutFileName("eventplane_correction_histograms")
 {
+ 
+  mbd_e_south = 0.;
+  mbd_e_north = 0.;
+  mbdQ = 0.;
   south_q.resize(m_MaxOrder);
   north_q.resize(m_MaxOrder);
+  south_q_subtract.resize(m_MaxOrder);
+  north_q_subtract.resize(m_MaxOrder);
 
   for (auto &vec : south_q)
   {
@@ -52,6 +62,69 @@ EventPlaneReco::EventPlaneReco(const std::string &name)
   {
     vec.resize(2);
   }
+    
+ for (auto &vec : south_q_subtract)
+ {
+    vec.resize(2);
+ }
+
+ for (auto &vec : north_q_subtract)
+ {
+    vec.resize(2);
+ }
+    
+}
+
+int EventPlaneReco::Init(PHCompositeNode *topNode)
+{
+ 
+    OutFileName = Form("eventplane_correction_histograms_run_%d.root", m_runNo);
+
+    //load calibration histograms
+    CDBHistos *cdbhistosIn = new CDBHistos(OutFileName);
+    cdbhistosIn->LoadCalibrations();
+
+    for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
+    {
+      if(!(cdbhistosIn->getHisto(Form("tprof_mean_cos_south_mbd_order_%d",order))))
+      {
+          if(order == m_MaxOrder) std::cout<< "Correction Histograms Not Found in DataBase, Output Are Raw Qs and EPs" << std::endl;
+          tprof_mean_cos_south_mbd_input[order - 1] = NULL;
+          tprof_mean_sin_south_mbd_input[order - 1] =  NULL;
+          tprof_mean_cos_north_mbd_input[order - 1] =  NULL;
+          tprof_mean_sin_north_mbd_input[order - 1] =  NULL;
+      }
+      else
+      {
+          tprof_mean_cos_south_mbd_input[order - 1] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(Form("tprof_mean_cos_south_mbd_order_%d",order)));
+          tprof_mean_sin_south_mbd_input[order - 1] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(Form("tprof_mean_sin_south_mbd_order_%d",order)));
+          tprof_mean_cos_north_mbd_input[order - 1] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(Form("tprof_mean_cos_north_mbd_order_%d",order)));
+          tprof_mean_sin_north_mbd_input[order - 1] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(Form("tprof_mean_sin_north_mbd_order_%d",order)));
+      }
+    }
+    
+    cdbhistosIn->Print();
+    
+    
+    //create correction histograms
+    cdbhistosOut = new CDBHistos(OutFileName);
+    for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
+    {
+        tprof_mean_cos_south_mbd[order - 1] =  new TProfile(Form("tprof_mean_cos_south_mbd_order_%d", order), "", 125*4, 0, 2500, -1e10, 1e10);
+        tprof_mean_sin_south_mbd[order - 1] =  new TProfile(Form("tprof_mean_sin_south_mbd_order_%d", order), "", 125*4, 0, 2500, -1e10, 1e10);
+        tprof_mean_cos_north_mbd[order - 1] =  new TProfile(Form("tprof_mean_cos_north_mbd_order_%d", order), "", 125*4, 0, 2500, -1e10, 1e10);
+        tprof_mean_sin_north_mbd[order - 1] =  new TProfile(Form("tprof_mean_sin_north_mbd_order_%d", order), "", 125*4, 0, 2500, -1e10, 1e10);
+       
+        //register histos
+        cdbhistosOut->registerHisto(tprof_mean_cos_south_mbd[order - 1]);
+        cdbhistosOut->registerHisto(tprof_mean_sin_south_mbd[order - 1]);
+        cdbhistosOut->registerHisto(tprof_mean_cos_north_mbd[order - 1]);
+        cdbhistosOut->registerHisto(tprof_mean_sin_north_mbd[order - 1]);
+    }
+    
+ 
+   return CreateNodes(topNode);
+    
 }
 
 int EventPlaneReco::InitRun(PHCompositeNode *topNode)
@@ -67,6 +140,7 @@ int EventPlaneReco::InitRun(PHCompositeNode *topNode)
 
 int EventPlaneReco::process_event(PHCompositeNode *topNode)
 {
+ 
   if (Verbosity() > 1)
   {
     std::cout << "EventPlaneReco::process_event -- entered" << std::endl;
@@ -116,7 +190,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
         }
         float tile_phi = _epdgeom->get_phi(key);
         int arm = TowerInfoDefs::get_epd_arm(key);
-        float truncated_e = (epd_e < _e) ? epd_e : _e;
+        float truncated_e = (epd_e < _epd_e) ? epd_e : _epd_e;
         if (arm == 0)
         {
           for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
@@ -181,6 +255,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
       exit(-1);
     }
 
+   
     if (mbdpmts)
     {
       if (Verbosity())
@@ -188,17 +263,27 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
         std::cout << "EventPlaneReco::process_event -  mbdpmts" << std::endl;
       }
 
-      for (int ipmt = 0; ipmt < mbdpmts->get_npmt(); ipmt++)
+     mbd_e_south = 0.;
+     mbd_e_north = 0.;
+     mbdQ = 0.;
+   
+     for (int ipmt = 0; ipmt < mbdpmts->get_npmt(); ipmt++)
+      {
+         float mbd_q = mbdpmts->get_pmt(ipmt)->get_q();
+         mbdQ += mbd_q;
+      }
+
+     for (int ipmt = 0; ipmt < mbdpmts->get_npmt(); ipmt++)
       {
         float mbd_q = mbdpmts->get_pmt(ipmt)->get_q();
         float phi = mbdgeom->get_phi(ipmt);
-        int arm = mbdgeom->get_arm(ipmt);
-        if (mbd_q < 0.0)
-        {
-          continue;
-        }
+        int arm = mbdgeom->get_arm(ipmt); 
+ 
+        if(mbdQ < _mbd_e) continue; 
+
         if (arm == 0)
         {
+          mbd_e_south += mbd_q;
           for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
           {
             double Cosine = cos(phi * (double) order);
@@ -209,6 +294,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
         }
         else if (arm == 1)
         {
+          mbd_e_north += mbd_q;
           for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
           {
             double Cosine = cos(phi * (double) order);
@@ -219,14 +305,55 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
         }
       }
     }
+
+  
     for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
     {
-      south_Qvec.emplace_back(south_q[order - 1][0], south_q[order - 1][1]);
-      north_Qvec.emplace_back(north_q[order - 1][0], north_q[order - 1][1]);
+        //fill recentering histograms by order
+        tprof_mean_cos_south_mbd[order - 1]->Fill(mbd_e_south,south_q[order - 1][0]/mbd_e_south);
+        tprof_mean_sin_south_mbd[order - 1]->Fill(mbd_e_south,south_q[order - 1][1]/mbd_e_south);
+        tprof_mean_cos_north_mbd[order - 1]->Fill(mbd_e_north,north_q[order - 1][0]/mbd_e_north);
+        tprof_mean_sin_north_mbd[order - 1]->Fill(mbd_e_north,north_q[order - 1][1]/mbd_e_north);   
     }
 
-    if (mbdpmts)
+
+      //get recentering histograms and do recentering
+      for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
+      {
+          if (tprof_mean_cos_south_mbd_input[order-1])
+          {
+              //south
+              int bin_south = tprof_mean_cos_south_mbd_input[order - 1]->FindBin(mbd_e_south);
+              double event_ave_cos_south = tprof_mean_cos_south_mbd_input[order - 1]->GetBinContent(bin_south);
+              double event_ave_sin_south = tprof_mean_sin_south_mbd_input[order - 1]->GetBinContent(bin_south);
+              south_q_subtract[order - 1][0] = mbd_e_south*event_ave_cos_south;
+              south_q_subtract[order - 1][1] = mbd_e_south*event_ave_sin_south;
+              south_q[order - 1][0] -= south_q_subtract[order - 1][0];
+              south_q[order - 1][1] -= south_q_subtract[order - 1][1];
+
+              //north
+              int bin_north = tprof_mean_cos_north_mbd_input[order - 1]->FindBin(mbd_e_north);
+              double event_ave_cos_north = tprof_mean_cos_north_mbd_input[order - 1]->GetBinContent(bin_north);
+              double event_ave_sin_north = tprof_mean_sin_north_mbd_input[order - 1]->GetBinContent(bin_north);
+              north_q_subtract[order - 1][0] = mbd_e_north*event_ave_cos_north;
+              north_q_subtract[order - 1][1] = mbd_e_north*event_ave_sin_north;
+              north_q[order - 1][0] -= north_q_subtract[order - 1][0];
+              north_q[order - 1][1] -= north_q_subtract[order - 1][1];
+          }
+          
+      }
+
+ 
+     
+    for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
     {
+         south_Qvec.emplace_back(south_q[order - 1][0], south_q[order - 1][1]);
+         north_Qvec.emplace_back(north_q[order - 1][0], north_q[order - 1][1]);
+    }
+                                                                                                    
+
+    if (mbdpmts)
+    { 
       Eventplaneinfo *mbds = new Eventplaneinfov1();
       mbds->set_qvector(south_Qvec);
       epmap->insert(mbds, EventplaneinfoMap::MBDS);
@@ -241,8 +368,10 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
         mbdn->identify();
       }
     }
-
+      
+   
     ResetMe();
+      
   }
 
   if (Verbosity())
@@ -292,7 +421,25 @@ void EventPlaneReco::ResetMe()
   {
     std::fill(vec.begin(), vec.end(), 0.);
   }
+    
+  for (auto &vec : south_q_subtract)
+  {
+    std::fill(vec.begin(), vec.end(), 0.);
+  }
+
+  for (auto &vec : north_q_subtract)
+  {
+    std::fill(vec.begin(), vec.end(), 0.);
+  }
 
   south_Qvec.clear();
   north_Qvec.clear();
+}
+
+int EventPlaneReco::End(PHCompositeNode * /*topNode*/)
+{
+  cdbhistosOut->WriteCDBHistos();
+  delete cdbhistosOut;
+  std::cout << " EventPlaneReco::End() " << std::endl;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
