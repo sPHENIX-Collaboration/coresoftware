@@ -94,7 +94,6 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
     unsigned int tpcid1 = track1->get_tpc_seed_index();
     unsigned int siid1 = track1->get_silicon_seed_index();
     auto tpcseed1 = m_tpcSeeds->get(tpcid1);
-    tpcseed1->identify();
     auto silseed1 = m_siliconSeeds->get(siid1);
 
     for (auto tr2it = tr1it; tr2it != m_seeds->end();
@@ -137,7 +136,7 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
       unsigned int siid2 = track2->get_silicon_seed_index();
       auto tpcseed2 = m_tpcSeeds->get(tpcid2);
       auto silseed2 = m_siliconSeeds->get(siid2);
-      tpcseed2->identify();
+
       TrackFitUtils::position_vector_t tr2_rz_pts, tr2_xy_pts;
       auto globTr2 = getGlobalPositions(tpcseed2);
 
