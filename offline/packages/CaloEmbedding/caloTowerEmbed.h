@@ -3,11 +3,8 @@
 #ifndef CALOTOWEREMBED_H
 #define CALOTOWEREMBED_H
 
-#include "caloreco/CaloTowerDefs.h"
-
-
+#include <caloreco/CaloTowerDefs.h>
 #include <calobase/TowerInfoContainer.h>  // for TowerInfoContainer, TowerIn...
-
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
