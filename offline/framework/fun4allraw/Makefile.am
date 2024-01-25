@@ -19,6 +19,7 @@ pkginclude_HEADERS = \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
+  SingleGl1PrdfInput.h \
   SingleGl1PoolInput.h \
   SingleInttPoolInput.h \
   SingleMicromegasPoolInput.h \
@@ -42,6 +43,7 @@ libfun4allraw_la_SOURCES = \
   Fun4AllStreamingInputManager.cc \
   intt_pool.cc \
   tpc_pool.cc \
+  SingleGl1PrdfInput.cc \
   SingleGl1PoolInput.cc \
   SingleInttPoolInput.cc \
   SingleMicromegasPoolInput.cc \

@@ -1,4 +1,4 @@
-#include "SinglePrdfInput.h"
+#include "SingleGl1PrdfInput.h"
 
 #include "Fun4AllPrdfInputPoolManager.h"
 
@@ -11,31 +11,26 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
-SinglePrdfInput::SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman)
-  : Fun4AllBase(name)
-  , m_InputMgr(inman)
+SingleGl1PrdfInput::SingleGl1PrdfInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman)
+  : SinglePrdfInput(name, inman)
 {
   plist = new Packet *[100];
   m_PacketEventNumberOffset = new int[100]{};
-  rollover.fill(0);
-  previous_eventnumber.fill(std::numeric_limits<int>::min());
-  //  std::fill_n(m_PacketEventNumberOffset, 100, 0);
 }
 
-SinglePrdfInput::~SinglePrdfInput()
+SingleGl1PrdfInput::~SingleGl1PrdfInput()
 {
-  delete m_EventIterator;
   delete[] plist;
   delete[] m_PacketEventNumberOffset;
 }
 
-void SinglePrdfInput::FillPool(const unsigned int nevents)
+void SingleGl1PrdfInput::FillPool(const unsigned int nevents)
 {
   if (AllDone())  // no more files and all events read
   {
     return;
   }
-  while (m_EventIterator == nullptr)  // at startup this is a null pointer
+  while (GetEventIterator() == nullptr)  // at startup this is a null pointer
   {
     if (!OpenNextFile())
     {
@@ -45,7 +40,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
   }
   for (unsigned int ievt = 0; ievt < nevents; ievt++)
   {
-    Event *evt = m_EventIterator->getNextEvent();
+    Event *evt = GetEventIterator()->getNextEvent();
     if (!evt)
     {
       fileclose();
@@ -54,7 +49,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
         AllDone(1);
         return;
       }
-      evt = m_EventIterator->getNextEvent();
+      evt = GetEventIterator()->getNextEvent();
       if (!evt)
       {
         std::cout << PHWHERE << "Event is nullptr" << std::endl;
@@ -62,7 +57,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
         return;
       }
     }
-    m_RunNumber = evt->getRunNumber();
+    RunNumber(evt->getRunNumber());
     if (Verbosity() > 1)
     {
       evt->identify();
@@ -79,25 +74,14 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
     {
       exit(1);
     }
+    int evtno = evt->getEvtSequence();
     for (int i = 0; i < npackets; i++)
     {
-      if (plist[i]->iValue(0, "CHECKSUMOK") != 0)
+      //     if (plist[i]->iValue(0, "CHECKSUMOK") != 0)
+      if (plist[i])
       {
-        int evtno = plist[i]->iValue(0, "EVTNR") + rollover[i];
-	if (evtno < previous_eventnumber[i])
-	{
-	  if (Verbosity() > 1)
-	  {
-	    std::cout << "rolling over, event " << std::hex << evtno
-		      << ", prev: " << previous_eventnumber[i]
-		      << ", rollover counter: " << (rollover[i] << 16U)
-		      << std::dec << std::endl;
-	  }
-	  rollover[i] ++;
-	}
-        previous_eventnumber[i] = evtno;
-	evtno += (rollover[i] << 16U);
-        unsigned int bclk = plist[i]->iValue(0, "CLOCK");
+//        int evtno = plist[i]->iValue(0, "EVTNR");
+        uint64_t bclk = plist[i]->lValue(0, "BCO");
         if (Verbosity() > 1)
         {
           std::cout << "packet " << plist[i]->getIdentifier() << " evt: " << evtno
@@ -111,14 +95,13 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
         //   plist[i] = nullptr;
         //   continue;
         // }
-        plist[i]->convert();
         // calculate "real" event number
         // special events are counted, so the packet event counter is never the
         // Event Sequence (bc the begin run event)
         // also our packets are just 16bit counters, so we need to add the upper bits
         // from the event sequence
         // and our packet counters start at 0, while our events start at 1
-        evtno += m_EventNumberOffset + m_PacketEventNumberOffset[i] + m_NumSpecialEvents;
+//        evtno += m_EventNumberOffset + m_PacketEventNumberOffset[i] + m_NumSpecialEvents;
         m_PacketMap[bclk].push_back(plist[i]);
         m_EvtSet.insert(evtno);
         m_Event.emplace_back(std::make_pair(evtno, bclk));
@@ -136,7 +119,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       std::cout << "evt set size : " << m_EvtSet.size() << std::endl;
     }
     int common_event_number = *(m_EvtSet.begin());
-    int common_beam_clock = m_PacketMap.begin()->first;
+    uint64_t common_beam_clock = m_PacketMap.begin()->first;
     if (m_PacketMap.size() == 1)  // all packets from the same beam clock
     {
       if (m_EvtSet.size() == 1)
@@ -144,7 +127,8 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
         if (Verbosity() > 1)
         {
           std::cout << "we are good evtno: " << *(m_EvtSet.begin())
-                    << ", clock: " << m_PacketMap.begin()->first << std::endl;
+                    << std::hex << ", clock: 0x" << m_PacketMap.begin()->first 
+		    << std::dec << std::endl;
         }
       }
       else
@@ -169,7 +153,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       {
         for (auto const &pktiter : iter.second)
         {
-          m_InputMgr->AddPacket(common_event_number, pktiter);
+          InputMgr()->AddPacket(common_event_number, pktiter);
         }
       }
     }
@@ -215,14 +199,14 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       {
         for (auto pktiter : iter.second)
         {
-          if (pktiter->iValue(0, "CLOCK") == common_beam_clock)
+          if (((uint64_t) pktiter->lValue(0, "BCO")) == common_beam_clock)
           {
             if (Verbosity() > 1)
             {
               std::cout << "adding packet " << pktiter->getIdentifier() << " beam clock "
-                        << std::hex << pktiter->iValue(0, "CLOCK") << std::dec << std::endl;
+                        << std::hex << pktiter->lValue(0, "BCO") << std::dec << std::endl;
             }
-            m_InputMgr->AddPacket(common_event_number, pktiter);
+            InputMgr()->AddPacket(common_event_number, pktiter);
           }
           else
           {
@@ -232,16 +216,16 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
                         << std::hex << pktiter->iValue(0, "CLOCK") << " common bclk: "
                         << common_beam_clock << std::dec << std::endl;
             }
-            m_InputMgr->UpdateDroppedPacket(pktiter->getIdentifier());
+            InputMgr()->UpdateDroppedPacket(pktiter->getIdentifier());
             delete pktiter;
           }
         }
       }
     }
-    m_InputMgr->AddBeamClock(common_event_number, common_beam_clock, this);
-    if (m_MeReferenceFlag)
+    InputMgr()->AddBeamClock(common_event_number, common_beam_clock, this);
+    if (ReferenceFlag())
     {
-      m_InputMgr->SetReferenceClock(common_event_number, common_beam_clock);
+      InputMgr()->SetReferenceClock(common_event_number, common_beam_clock);
     }
     m_PacketMap.clear();
     m_EvtSet.clear();
@@ -250,7 +234,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
   }
 }
 
-void SinglePrdfInput::adjust_eventnumber_offset(const int decided_evtno)
+void SingleGl1PrdfInput::adjust_eventnumber_offset(const int decided_evtno)
 {
   for (unsigned int i = 0; i < m_Event.size(); i++)
   {
@@ -267,7 +251,7 @@ void SinglePrdfInput::adjust_eventnumber_offset(const int decided_evtno)
   }
 }
 
-int SinglePrdfInput::majority_eventnumber()
+int SingleGl1PrdfInput::majority_eventnumber()
 {
   std::map<int, int> evtcnt;
   for (auto iter : m_Event)
@@ -287,7 +271,7 @@ int SinglePrdfInput::majority_eventnumber()
   return evtno;
 }
 
-int SinglePrdfInput::majority_beamclock()
+int SingleGl1PrdfInput::majority_beamclock()
 {
   std::map<int, int> evtcnt;
   for (auto iter : m_Event)
@@ -310,62 +294,4 @@ int SinglePrdfInput::majority_beamclock()
     }
   }
   return bclk;
-}
-
-int SinglePrdfInput::fileopen(const std::string &filenam)
-{
-  std::cout << PHWHERE << Name() << ": trying to open " << filenam << std::endl;
-  if (IsOpen())
-  {
-    std::cout << "Closing currently open file "
-              << FileName()
-              << " and opening " << filenam << std::endl;
-    fileclose();
-  }
-  FileName(filenam);
-  FROG frog;
-  std::string fname = frog.location(FileName());
-  if (Verbosity() > 0)
-  {
-    std::cout << Name() << ": opening file " << FileName() << std::endl;
-  }
-  int status = 0;
-  m_EventIterator = new fileEventiterator(fname.c_str(), status);
-  m_EventsThisFile = 0;
-  if (status)
-  {
-    delete m_EventIterator;
-    m_EventIterator = nullptr;
-    std::cout << PHWHERE << Name() << ": could not open file " << fname << std::endl;
-    return -1;
-  }
-  IsOpen(1);
-  AddToFileOpened(fname);  // add file to the list of files which were opened
-  return 0;
-}
-
-int SinglePrdfInput::fileclose()
-{
-  if (!IsOpen())
-  {
-    std::cout << Name() << ": fileclose: No Input file open" << std::endl;
-    return -1;
-  }
-  delete m_EventIterator;
-  m_EventIterator = nullptr;
-  IsOpen(0);
-  // if we have a file list, move next entry to top of the list
-  // or repeat the same entry again
-  UpdateFileList();
-  return 0;
-}
-
-void SinglePrdfInput::MakeReference(const bool b)
-{
-  m_MeReferenceFlag = b;
-  if (b && m_InputMgr)
-  {
-    m_InputMgr->SetReferenceInputMgr(this);
-  }
-  return;
 }
