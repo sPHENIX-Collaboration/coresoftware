@@ -39,9 +39,12 @@ class TpcDistortionCorrection
 					unsigned int mask = COORD_ALL ) const;
 
  //! set the phi histogram to be interpreted as radians.
- void read_phi_as_radians(bool flag=true);
+ void read_phi_as_radians(bool flag=true){
+  m_phi_hist_in_radians=flag;
+  return;
+}
  private:
- bool phi_hist_in_radians=true;
+ bool m_phi_hist_in_radians=true;
 };
 
 #endif

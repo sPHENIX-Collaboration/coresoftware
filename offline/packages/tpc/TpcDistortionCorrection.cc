@@ -58,7 +58,7 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position( const Acts::Vecto
 
   //if the phi correction hist units are cm, we must divide by r to get the dPhi in radians
   auto divisor=r;
-  if (phi_hist_in_radians){
+  if (m_phi_hist_in_radians){
     //if the phi correction hist units are radians, we must not divide by r.
     divisor=1.0;
   }
@@ -81,9 +81,4 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position( const Acts::Vecto
   const auto y_new = r_new*std::sin( phi_new );
 
   return {x_new, y_new, z_new};
-}
-
-void TpcDistortionCorrection::read_phi_as_radians(bool flag=true){
-  phi_hist_in_radians=flag;
-  return;
 }
