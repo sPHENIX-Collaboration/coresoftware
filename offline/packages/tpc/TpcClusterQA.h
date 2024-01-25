@@ -33,6 +33,7 @@ class TpcClusterQA : public SubsysReco
 
   int m_event = 0;
   int m_totalClusters = 0;
+  int m_clustersPerSector[24] = {0};
 };
 
 #endif  // TPCCLUSTERQA_H
