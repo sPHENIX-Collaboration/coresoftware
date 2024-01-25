@@ -103,14 +103,13 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
   int NPixel = -1;
   NPixel = cdbttree->GetSingleIntValue("TotalHotPixels");
 
-
   for (int i = 0; i < NPixel; i++)
   {
-    int Layer = cdbttree->GetSingleIntValue(std::string("layer_") + std::to_string(i));
-    int Stave = cdbttree->GetSingleIntValue(std::string("stave_") + std::to_string(i));
-    int Chip = cdbttree->GetSingleIntValue(std::string("chip_") + std::to_string(i));
-    int Col = cdbttree->GetSingleIntValue(std::string("col_") + std::to_string(i));
-    int Row = cdbttree->GetSingleIntValue(std::string("row_") + std::to_string(i));
+    int Layer = cdbttree->GetIntValue(i, "layer");
+    int Stave = cdbttree->GetIntValue(i, "stave");
+    int Chip = cdbttree->GetIntValue(i, "chip");
+    int Col = cdbttree->GetIntValue(i, "col");
+    int Row = cdbttree->GetIntValue(i, "row");
 
     TrkrDefs::hitsetkey HotPixelHitKey = MvtxDefs::genHitSetKey(Layer, Stave, Chip, 0);
     TrkrDefs::hitkey HotHitKey = MvtxDefs::genHitKey(Col, Row);
@@ -207,7 +206,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 
     const TrkrDefs::hitsetkey hitsetkeymask = MvtxDefs::genHitSetKey(layer, stave, chip, 0);
 
-    if (std::find(m_hotPixelMap.begin(), m_hotPixelMap.end(), std::make_pair(hitsetkeymask, hitkey)) == m_hotPixelMap.end()) 
+    if (std::find(m_hotPixelMap.begin(), m_hotPixelMap.end(), std::make_pair(hitsetkeymask, hitkey)) == m_hotPixelMap.end())
     {
       // create hit and insert in hitset
       hit = new TrkrHitv2;
