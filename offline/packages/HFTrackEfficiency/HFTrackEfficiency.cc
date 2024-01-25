@@ -408,35 +408,35 @@ void HFTrackEfficiency::initializeBranches()
 void HFTrackEfficiency::resetBranches()
 {
   m_all_tracks_reconstructed = false;
-  m_true_mother_mass = 0.;
-  m_reco_mother_mass = 0.;
-  m_true_mother_pT = 0.;
-  m_true_mother_p = 0.;
-  m_true_mother_eta = 0.;
-  m_min_true_track_pT = FLT_MAX;
-  m_min_reco_track_pT = FLT_MAX;
-  m_max_true_track_pT = -1 * FLT_MAX;
-  m_max_reco_track_pT = -1 * FLT_MAX;
+  m_true_mother_mass = std::numeric_limits<float>::quiet_NaN();
+  m_reco_mother_mass = std::numeric_limits<float>::quiet_NaN();
+  m_true_mother_pT = std::numeric_limits<float>::quiet_NaN();
+  m_true_mother_p = std::numeric_limits<float>::quiet_NaN();
+  m_true_mother_eta = std::numeric_limits<float>::quiet_NaN();
+  m_min_true_track_pT = std::numeric_limits<float>::max();
+  m_min_reco_track_pT = std::numeric_limits<float>::max();
+  m_max_true_track_pT = -1 * std::numeric_limits<float>::max();
+  m_max_reco_track_pT = -1 * std::numeric_limits<float>::max();
   for (unsigned int iTrack = 0; iTrack < m_nDaughters; ++iTrack)
   {
     m_reco_track_exists[iTrack] = false;
     m_used_truth_reco_map[iTrack] = false;
-    m_true_track_pT[iTrack] = 0.;
-    m_reco_track_pT[iTrack] = 0.;
-    m_true_track_eta[iTrack] = 0.;
-    m_reco_track_eta[iTrack] = 0.;
-    m_true_track_PID[iTrack] = 0.;
-    m_reco_track_chi2nDoF[iTrack] = 0.;
+    m_true_track_pT[iTrack] = std::numeric_limits<float>::quiet_NaN();
+    m_reco_track_pT[iTrack] = std::numeric_limits<float>::quiet_NaN();
+    m_true_track_eta[iTrack] = std::numeric_limits<float>::quiet_NaN();
+    m_reco_track_eta[iTrack] = std::numeric_limits<float>::quiet_NaN();
+    m_true_track_PID[iTrack] = std::numeric_limits<float>::quiet_NaN();
+    m_reco_track_chi2nDoF[iTrack] = std::numeric_limits<float>::quiet_NaN();
     m_reco_track_silicon_seeds[iTrack] = 0;
     m_reco_track_tpc_seeds[iTrack] = 0;
   }
 
-  m_primary_vtx_x = 0.;
-  m_primary_vtx_y = 0.;
-  m_primary_vtx_z = 0.;
-  m_secondary_vtx_x = 0.;
-  m_secondary_vtx_y = 0.;
-  m_secondary_vtx_z = 0.;
+  m_primary_vtx_x = std::numeric_limits<float>::quiet_NaN();
+  m_primary_vtx_y = std::numeric_limits<float>::quiet_NaN();
+  m_primary_vtx_z = std::numeric_limits<float>::quiet_NaN();
+  m_secondary_vtx_x = std::numeric_limits<float>::quiet_NaN();
+  m_secondary_vtx_y = std::numeric_limits<float>::quiet_NaN();
+  m_secondary_vtx_z = std::numeric_limits<float>::quiet_NaN();
 }
 
 void HFTrackEfficiency::getDecayDescriptor()

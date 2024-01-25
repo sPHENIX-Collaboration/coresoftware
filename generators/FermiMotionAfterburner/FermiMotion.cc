@@ -102,6 +102,8 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator, double pTspec)
 
   for (HepMC::GenEvent::particle_const_iterator p = event->particles_begin(), prev = event->particles_end(); p != event->particles_end(); prev = p, ++p)
   {
+    //if not final state continue
+    if ((*p)->status() != 1) continue;
     int id = (*p)->pdg_id();
     //if not neutron, skip
     if (!((id == 2112) || (id == 2212))) continue;
@@ -117,8 +119,9 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator, double pTspec)
       //std::cout<<"after: "<<n->barcode()<<std::endl;
       if (pnl > gsl_rng_uniform_pos(RandomGenerator))
       {
-        //remove particle here
+        
 
+        //remove particle here
         delete ((*p)->production_vertex())->remove_particle(*p);
         //std::cout<<"removing: "<<n->barcode()<<std::endl;
         p = prev;
