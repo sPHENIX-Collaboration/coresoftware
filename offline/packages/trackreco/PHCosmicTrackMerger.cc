@@ -175,11 +175,56 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
         m_seeds->erase(m_seeds->index(tr2it));
       }
     }
+    //! remove any obvious outlier clusters from the track that were mistakenly
+    //! picked up by the seeder
+    removeOutliers(tpcseed1);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHCosmicTrackMerger::removeOutliers(TrackSeed* seed)
+{
+  TrackFitUtils::position_vector_t tr_rz_pts, tr_xy_pts;
+  auto glob = getGlobalPositions(seed);
+  for (const auto &pos : glob.second)
+  {
+    float clusr = r(pos.x(), pos.y());
+    if (pos.y() < 0) clusr *= -1;
+    tr_rz_pts.push_back(std::make_pair(pos.z(), clusr));
+    tr_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
+  }
+
+  auto xyParams = TrackFitUtils::line_fit(tr_xy_pts);
+  auto rzParams = TrackFitUtils::line_fit(tr_rz_pts);
+
+  for (int i = 0; i < glob.first.size(); i++)
+  {
+    auto &pos = glob.second[i];
+    float clusr = r(pos.x(), pos.y());
+    if (pos.y() < 0) clusr *= -1;
+    float perpxyslope = -1. / std::get<0>(xyParams);
+    float perpxyint = pos.y() - perpxyslope * pos.x();
+    float perprzslope = -1. / std::get<0>(rzParams);
+    float perprzint = clusr - perprzslope * pos.z();
+
+    float pcax = (perpxyint - std::get<1>(xyParams)) / (std::get<0>(xyParams) - perpxyslope);
+    float pcay = std::get<0>(xyParams) * pcax + std::get<1>(xyParams);
+
+    float pcaz = (perprzint - std::get<1>(rzParams)) / (std::get<0>(rzParams) - perprzslope);
+    float pcar = std::get<0>(rzParams) * pcaz + std::get<1>(rzParams);
+    float dcax = pcax - pos.x();
+    float dcay = pcay - pos.y();
+    float dcar = pcar - clusr;
+    float dcaz = pcaz - pos.z();
+    float dcaxy = std::sqrt(square(dcax) + square(dcay));
+    float dcarz = std::sqrt(square(dcar) + square(dcaz));
+    if (dcaxy > 1. || dcarz > 1.)
+    {
+      seed->erase_cluster_key(glob.first[i]);
+    }
+  }
+}
 void PHCosmicTrackMerger::addKeys(TrackSeed *toAddTo, TrackSeed *toAdd)
 {
   for (auto it = toAdd->begin_cluster_keys(); it != toAdd->end_cluster_keys();
