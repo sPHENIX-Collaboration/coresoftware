@@ -28,8 +28,6 @@
 #include <algorithm>
 #include <cassert>
 
-std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> HotPixelMap;
-
 //_________________________________________________________
 MvtxCombinedRawDataDecoder::MvtxCombinedRawDataDecoder(const std::string &name)
   : SubsysReco(name)
@@ -105,7 +103,6 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
   int NPixel = -1;
   NPixel = cdbttree->GetSingleIntValue("TotalHotPixels");
 
-  // cout << "NPixel = " << NPixel << endl;
 
   for (int i = 0; i < NPixel; i++)
   {
@@ -115,11 +112,9 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
     int Col = cdbttree->GetSingleIntValue(std::string("col_") + std::to_string(i));
     int Row = cdbttree->GetSingleIntValue(std::string("row_") + std::to_string(i));
 
-    // cout << "Hot Pixel: " << i << "   Layer: " << Layer << "   Stave: " << Stave << "   Chip: " << Chip << "   Col: " << Col << "   Row: " << Row << endl;
-
     TrkrDefs::hitsetkey HotPixelHitKey = MvtxDefs::genHitSetKey(Layer, Stave, Chip, 0);
     TrkrDefs::hitkey HotHitKey = MvtxDefs::genHitKey(Col, Row);
-    HotPixelMap.push_back({std::make_pair(HotPixelHitKey, HotHitKey)});
+    m_hotPixelMap.push_back({std::make_pair(HotPixelHitKey, HotHitKey)});
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -210,22 +205,14 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
       continue;
     }
 
-    // create hit and insert in hitset
-    hit = new TrkrHitv2;
-
     const TrkrDefs::hitsetkey hitsetkeymask = MvtxDefs::genHitSetKey(layer, stave, chip, 0);
-    bool noisypixel = false;
 
-    //	if (HotPixelMap.find(std::make_pair(hitsetkeymask,hitkey)) != HotPixelMap.end()) noisypixel = true;
-
-    if (std::find(HotPixelMap.begin(), HotPixelMap.end(), std::make_pair(hitsetkeymask, hitkey)) != HotPixelMap.end()) noisypixel = true;
-
-    if (!noisypixel) hitset_it->second->addHitSpecificKey(hitkey, hit);
-    //	else{
-    //		NMasked++;
-    //	}
-
-    // hitset_it->second->addHitSpecificKey(hitkey, hit);
+    if (std::find(m_hotPixelMap.begin(), m_hotPixelMap.end(), std::make_pair(hitsetkeymask, hitkey)) == m_hotPixelMap.end()) 
+    {
+      // create hit and insert in hitset
+      hit = new TrkrHitv2;
+      hitset_it->second->addHitSpecificKey(hitkey, hit);
+    }
   }
 
   mvtx_event_header->set_strobe_BCO(strobe);

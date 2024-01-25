@@ -9,6 +9,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <trackbase/TrkrDefs.h>
+
 #include <map>
 #include <memory>
 #include <string>
@@ -58,6 +60,7 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
   std::string m_MvtxRawEvtHeaderNodeName = "MVTXRAWEVTHEADER";
   float m_strobeWidth = 89.;  //! microseconds
   bool m_writeMvtxEventHeader = true;
+  std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> m_hotPixelMap;
 };
 
 #endif
