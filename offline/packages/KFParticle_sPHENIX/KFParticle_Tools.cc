@@ -136,8 +136,8 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
     GlobalVertex *gvertex = iter->second;
     auto svtxv = gvertex->find_vtxids(GlobalVertex::SVTX);
     // check that it contains a track vertex
-    if(svtxv == gvertex->end_vtxids())
-      { continue; }
+    //if(svtxv == gvertex->end_vtxids())
+    //  { continue; }
 
     auto svtxvertexid = svtxv->second;
     m_dst_vertex = m_dst_vertexmap->find(svtxvertexid)->second;
