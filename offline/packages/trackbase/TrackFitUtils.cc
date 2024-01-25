@@ -211,7 +211,7 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit(const TrackFitUtils::po
     return std::make_tuple(a, b);
   }
 
-  //! the fit is horizontal, so find the perpendicular line
+  //! the best fit is swapped in y-x, so find the perpendicular line
   return std::make_tuple(1. / inva, -invb / inva);
 }
 

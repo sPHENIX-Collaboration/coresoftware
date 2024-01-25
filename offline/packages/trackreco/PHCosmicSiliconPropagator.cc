@@ -250,7 +250,10 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       int tpcind = _tpc_seeds->find(tpcseed);
       int siind = _si_seeds->find(mapped_seed);
       full_seed->set_tpc_seed_index(tpcind);
-      full_seed->set_silicon_seed_index(siind);
+      if (si_seed->size_cluster_keys() > 0)
+      {
+        full_seed->set_silicon_seed_index(siind);
+      }
       _svtx_seeds->insert(full_seed.get());
       if (Verbosity() > 3)
       {
