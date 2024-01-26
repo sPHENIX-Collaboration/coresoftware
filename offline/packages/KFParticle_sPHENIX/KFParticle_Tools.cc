@@ -150,8 +150,6 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
     }
   }
 
-//std::cout << "The size of my KFParticle vertex vector is " << primaryVertices.size() << std::endl;
-
   return primaryVertices;
 }
 
