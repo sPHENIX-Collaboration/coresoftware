@@ -255,7 +255,10 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 
 	  if(Verbosity() > 0)
 	    {
-	      std::cout << " cluskey " << cluskey << " input pos " << pos(0) << "  " << pos(1) << "  " << pos(2) << "   corr. pos " << corrpos(0) << "  " << corrpos(1) << "  " << corrpos(2) << std::endl;
+	      std::cout << " cluskey " << cluskey << " input pos " << pos(0) << "  " << pos(1) << "  " << pos(2) 
+			<< "   corr. pos " << corrpos(0) << "  " << corrpos(1) << "  " << corrpos(2) << std::endl
+			<< "distortion correction " <<  corrpos(0) - pos(0) << "  " << corrpos(1) - pos(1) << "  " << corrpos(2) - pos(2)
+			<< std::endl;
 
 	    }
 	}

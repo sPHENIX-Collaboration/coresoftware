@@ -114,7 +114,10 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
       }
 
       std::cout << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2) 
-		<< " corr glob " << global(0) << "  " << global(1) << "  " << global(2) << std::endl;
+		<< " corr glob " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
+		<< " crossing z correction " << z - global_in(2) 
+		<< " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - z 
+		<< std::endl;
 
       // Make an afine transform that implements the correction as a translation 
       auto correction_translation = (global - global_in) * 10.0;  // need mm
@@ -124,12 +127,39 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
       auto this_surf = tGeometry->maps().getSurface(key, cluster);
       Acts::GeometryIdentifier id = this_surf->geometryId();
 
+      auto check_cluster = clusterContainer->findCluster(key);
+      Acts::Vector2 check_local2d = tGeometry->getLocalCoords(key, check_cluster);
+      Acts::Vector3 check_local3d (check_local2d(0), check_local2d(1), 0);
+      Acts::Vector3 check_before_pos =  transformMapTransient->getTransform(id) * check_local3d;
+      std::cout << "check_local2d " << check_local2d(0) << "  " << check_local2d(1) << "   check_local3d " << check_local3d(0) << "  " << check_local3d(1) << "  " << check_local3d(2) << std::endl;
+      std::cout << "Check global from transient transform BEFORE " << check_before_pos(0)/10.0 << "  " << "  " << check_before_pos(1)/10.0 << "  " << check_before_pos(2)/10.0 << std::endl;
+      std::cout << "   before transient transform: " << std::endl <<  transformMapTransient->getTransform(id).matrix() << std::endl;
+      Acts::GeometryContext temp_transient_geocontext;
+      temp_transient_geocontext =  transformMapTransient;
+      Acts::Vector3 check_before_pos_surf = this_surf->localToGlobal( temp_transient_geocontext,
+				  check_local2d * Acts::UnitConstants::cm,
+				  Acts::Vector3(1,1,1));
+      std::cout << "Check global from transient transform BEFORE via surface method " << check_before_pos_surf(0)/10.0 << "  " << "  " << check_before_pos_surf(1)/10.0 << "  " << check_before_pos_surf(2)/10.0 << std::endl;
+
       // replace the the default alignment transform with the corrected one
       auto ctxt = tGeometry->geometry().getGeoContext();
       alignmentTransformationContainer* transformMap = ctxt.get<alignmentTransformationContainer*>();
       auto corrected_transform = tcorr * transformMap->getTransform(id);
       transformMapTransient->replaceTransform(id, corrected_transform);
       transient_id_set.insert(id);
+
+
+      Acts::Vector3 check_ideal_pos =  transformMap->getTransform(id) * check_local3d;
+      std::cout << "Check global from ideal transform " << check_ideal_pos(0)/10.0 << "  " << "  " << check_ideal_pos(1)/10.0 << "  " << check_ideal_pos(2)/10.0 << std::endl;
+      std::cout << "   ideal transform: " << std::endl <<  transformMap->getTransform(id).matrix() << std::endl;
+      Acts::Vector3 check_pos = corrected_transform * check_local3d;
+      std::cout << "Check global from transient transform " << check_pos(0)/10.0 << "  " << "  " << check_pos(1)/10.0 << "  " << check_pos(2)/10.0 << std::endl;
+      std::cout << "   corrected transform: " << std::endl << corrected_transform.matrix() << std::endl;
+
+      Acts::Vector3 check_after_pos_surf = this_surf->localToGlobal( temp_transient_geocontext,
+				  check_local2d * Acts::UnitConstants::cm,
+				  Acts::Vector3(1,1,1));
+      std::cout << "Check global from transient transform AFTER via surface method " << check_after_pos_surf(0)/10.0 << "  " << "  " << check_after_pos_surf(1)/10.0 << "  " << check_after_pos_surf(2)/10.0 << std::endl;
 
     }  // end TPC specific treatment
     
