@@ -21,6 +21,7 @@ libeventplaneinfo_la_LIBADD = \
   -lepd_io \
   -lmbd_io \
   -lfun4all \
+  -lcdbobjects \
   -ltrackbase_historic_io
 
 pkginclude_HEADERS = \

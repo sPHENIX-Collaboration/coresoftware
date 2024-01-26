@@ -55,19 +55,27 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position( const Acts::Vecto
   auto phi_new=phi;
   auto r_new=r;
   auto z_new=z;
+
+  //if the phi correction hist units are cm, we must divide by r to get the dPhi in radians
+  auto divisor=r;
+  if (m_phi_hist_in_radians){
+    //if the phi correction hist units are radians, we must not divide by r.
+    divisor=1.0;
+  }
+    
   if (dcc->dimensions==3)
   {
-    if (dcc->m_hDPint[index] && (mask&COORD_PHI) && check_boundaries( dcc->m_hDPint[index],phi,r,z)) phi_new = phi - dcc->m_hDPint[index]->Interpolate(phi,r,z)/r;
+    if (dcc->m_hDPint[index] && (mask&COORD_PHI) && check_boundaries( dcc->m_hDPint[index],phi,r,z)) phi_new = phi - dcc->m_hDPint[index]->Interpolate(phi,r,z)/divisor;
     if (dcc->m_hDRint[index] && (mask&COORD_R) && check_boundaries( dcc->m_hDRint[index],phi,r,z)) r_new = r - dcc->m_hDRint[index]->Interpolate(phi,r,z);
     if (dcc->m_hDZint[index] && (mask&COORD_Z) && check_boundaries( dcc->m_hDZint[index],phi,r,z)) z_new = z - dcc->m_hDZint[index]->Interpolate(phi,r,z);
   }
   else if (dcc->dimensions==2){
     const double zterm = (1.- std::abs(z)/105.5);
-    if (dcc->m_hDPint[index] && (mask&COORD_PHI) && check_boundaries( dcc->m_hDPint[index],phi,r)) phi_new = phi - dcc->m_hDPint[index]->Interpolate(phi,r)*zterm/r;
+    if (dcc->m_hDPint[index] && (mask&COORD_PHI) && check_boundaries( dcc->m_hDPint[index],phi,r)) phi_new = phi - dcc->m_hDPint[index]->Interpolate(phi,r)*zterm/divisor;
     if (dcc->m_hDRint[index] && (mask&COORD_R) && check_boundaries( dcc->m_hDRint[index],phi,r)) r_new = r - dcc->m_hDRint[index]->Interpolate(phi,r)*zterm;
     if (dcc->m_hDZint[index] && (mask&COORD_Z) && check_boundaries( dcc->m_hDZint[index],phi,r)) z_new = z - dcc->m_hDZint[index]->Interpolate(phi,r)*zterm;
   }
-  
+
   // update cluster
   const auto x_new = r_new*std::cos( phi_new );
   const auto y_new = r_new*std::sin( phi_new );

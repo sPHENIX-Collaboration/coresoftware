@@ -13,15 +13,19 @@
 #include <vector>  // for vector
 
 class PHCompositeNode;
+class CDBHistos;
+class TProfile;
 
 class EventPlaneReco : public SubsysReco
 {
  public:
   EventPlaneReco(const std::string &name = "EventPlaneReco");
   ~EventPlaneReco() override = default;
-
+  int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
+  int End (PHCompositeNode * /*topNode*/) override;
+
   void ResetMe();
   void set_sepd_epreco(bool sepdEpReco)
   {
@@ -33,21 +37,61 @@ class EventPlaneReco : public SubsysReco
   }
   void set_sEPD_Mip_cut(const float &e)
   {
-    _e = e;
+    _epd_e = e;
   }
-
- private:
+  void set_MBD_Min_Qcut(const float &f)
+  {
+    _mbd_e = f;
+  }
+  void set_Ep_orders(const unsigned int &n)
+  {
+    m_MaxOrder = n;
+  }
+  void set_run_number(const unsigned int &r)
+  {
+    m_runNo = r;
+  }
+ 
+  private:
+    
   int CreateNodes(PHCompositeNode *topNode);
-  unsigned int m_MaxOrder = 0;
+   
+  unsigned int m_MaxOrder = 3;
 
+  unsigned  int m_runNo = 21813;
+ 
+  const char *OutFileName;
+  
+  CDBHistos *cdbhistosOut = nullptr;
+ 
   std::vector<std::vector<double>> south_q;
   std::vector<std::vector<double>> north_q;
+  std::vector<std::vector<double>> south_q_subtract;
+  std::vector<std::vector<double>> north_q_subtract;
 
   std::vector<std::pair<double, double>> south_Qvec;
   std::vector<std::pair<double, double>> north_Qvec;
+
   bool _mbdEpReco = false;
   bool _sepdEpReco = false;
-  float _e = 6.0;
+    
+  float _epd_e  = 6.0;
+  float _mbd_e = 10.0;
+    
+  float mbd_e_south;
+  float mbd_e_north;
+  float mbdQ;
+
+  TProfile * tprof_mean_cos_north_mbd[6] = {};
+  TProfile * tprof_mean_sin_north_mbd[6] = {};
+  TProfile * tprof_mean_cos_south_mbd[6] = {};
+  TProfile * tprof_mean_sin_south_mbd[6] = {};
+    
+  TProfile * tprof_mean_cos_north_mbd_input[6] = {};
+  TProfile * tprof_mean_sin_north_mbd_input[6] = {};
+  TProfile * tprof_mean_cos_south_mbd_input[6] = {};
+  TProfile * tprof_mean_sin_south_mbd_input[6] = {};
+    
 };
 
 #endif  // EVENTPLANERECO_H

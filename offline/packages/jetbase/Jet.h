@@ -105,6 +105,12 @@ class Jet : public PHObject
     CEMC_TOWERINFO_SUB1 = 29,
     HCALIN_TOWERINFO_SUB1 = 30,
     HCALOUT_TOWERINFO_SUB1 = 31, /* needed for HI jet reco */
+    CEMC_TOWERINFO_EMBED = 32, /* needed for embedding */
+    CEMC_TOWERINFO_SIM = 33,
+    HCALIN_TOWERINFO_EMBED = 34,
+    HCALIN_TOWERINFO_SIM = 35,
+    HCALOUT_TOWERINFO_EMBED = 36,
+    HCALOUT_TOWERINFO_SIM = 37,
   };
 
   enum PROPERTY
