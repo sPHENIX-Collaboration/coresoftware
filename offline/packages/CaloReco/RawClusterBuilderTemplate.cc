@@ -351,7 +351,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   bemc->SetProbNoiseParam(fProbNoiseParam);
   bemc->SetProfileProb(bProfProb);
 
-  // _clusters->Reset(); // !!! Not sure if it is necessarry to do it - ask Chris
+  _clusters->Reset(); // make sure cluster container is empty before filling it with new clusters 
 
   // Define vector of towers in EmcModule format to input into BEmc
   EmcModule vhit;
