@@ -142,7 +142,9 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
 
       for (auto &pos : globTr2.second)
       {
-        tr2_rz_pts.push_back(std::make_pair(pos.z(), r(pos.x(), pos.y())));
+        float clusr = r(pos.x(), pos.y());
+        if (pos.y() < 0) clusr *= -1;
+        tr2_rz_pts.push_back(std::make_pair(pos.z(), clusr));
         tr2_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
       }
 
