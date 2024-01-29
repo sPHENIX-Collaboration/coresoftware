@@ -173,6 +173,9 @@ double PHG4TpcDistortion::get_r_distortion(double r, double phi, double z) const
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_rphi_distortion(double r, double phi, double z) const
 {
+  if (m_phi_hist_in_radians) //if the hist is in radians, multiply by r to get the rphi distortion
+    return r*get_distortion('p', r, phi, z);
+
   return get_distortion('p', r, phi, z);
 }
 

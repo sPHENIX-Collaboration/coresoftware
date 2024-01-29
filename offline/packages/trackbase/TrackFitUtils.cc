@@ -173,11 +173,13 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit(const TrackFitUtils::po
   double x2sum = 0;
   double ysum = 0;
   double xysum = 0;
+  double y2sum = 0;
   for (const auto& [r, z] : positions)
   {
     xsum = xsum + r;            // calculate sigma(xi)
     ysum = ysum + z;            // calculate sigma(yi)
     x2sum = x2sum + square(r);  // calculate sigma(x^2i)
+    y2sum = y2sum + square(z);  // calculate sigma(y^2i)
     xysum = xysum + r * z;      // calculate sigma(xi*yi)
   }
 
@@ -186,7 +188,31 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit(const TrackFitUtils::po
   const double a = (xysum * npts - xsum * ysum) / denominator;   // calculate slope
   const double b = (x2sum * ysum - xsum * xysum) / denominator;  // calculate intercept
 
-  return std::make_tuple(a, b);
+  //! The fit fails for the case where the line is close to vertical, because
+  //! there is little dependence on x and thus the denominator is very small
+  //! we can swap the x-y points to find a y-x horizontal line in this case
+  //! then check which line minimizes the sums of squares of residuals
+  //! that is the best fit, and should be returned
+  const double denominatoryx = (y2sum * npts - square(ysum));
+  const double inva = (xysum * npts - xsum * ysum) / denominatoryx;
+  const double invb = (y2sum * xsum - ysum * xysum) / denominatoryx;
+
+  //! now determine which one minimizes the sum of residuals to return
+  float sumresid = 0;
+  float suminvresid = 0;
+  for (const auto& [r, z] : positions)
+  {
+    sumresid += square(z - (a * r + b));
+    suminvresid += square(r - (inva * z + invb));
+  }
+
+  if (sumresid < suminvresid)
+  {
+    return std::make_tuple(a, b);
+  }
+
+  //! the best fit is swapped in y-x, so find the perpendicular line
+  return std::make_tuple(1. / inva, -invb / inva);
 }
 
 //_________________________________________________________________________________

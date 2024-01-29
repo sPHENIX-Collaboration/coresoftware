@@ -23,6 +23,8 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
+#include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>  // for accessing the MVTX hot pixel file from the CDB
 #include <algorithm>
 #include <cassert>
 
@@ -95,6 +97,25 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
 
+  // Mask Hot MVTX Pixels
+  std::string database = CDBInterface::instance()->getUrl("MVTX_HotPixelMap");  // This is specifically for MVTX Hot Pixels
+  CDBTTree *cdbttree = new CDBTTree(database);
+  int NPixel = -1;
+  NPixel = cdbttree->GetSingleIntValue("TotalHotPixels");
+
+  for (int i = 0; i < NPixel; i++)
+  {
+    int Layer = cdbttree->GetIntValue(i, "layer");
+    int Stave = cdbttree->GetIntValue(i, "stave");
+    int Chip = cdbttree->GetIntValue(i, "chip");
+    int Col = cdbttree->GetIntValue(i, "col");
+    int Row = cdbttree->GetIntValue(i, "row");
+
+    TrkrDefs::hitsetkey HotPixelHitKey = MvtxDefs::genHitSetKey(Layer, Stave, Chip, 0);
+    TrkrDefs::hitkey HotHitKey = MvtxDefs::genHitKey(Col, Row);
+    m_hotPixelMap.push_back({std::make_pair(HotPixelHitKey, HotHitKey)});
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -148,6 +169,8 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     assert(mvtx_event_header);
   }
 
+  //  int NMasked = 0;
+
   for (unsigned int i = 0; i < mvtx_hit_container->get_nhits(); i++)
   {
     mvtx_hit = mvtx_hit_container->get_hit(i);
@@ -159,9 +182,9 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     col = mvtx_hit->get_col();
 
     uint64_t bcodiff = gl1bco - strobe;
-    double timeElapsed = bcodiff * 0.106; // 106 ns rhic clock
+    double timeElapsed = bcodiff * 0.106;  // 106 ns rhic clock
     int index = std::floor(timeElapsed / m_strobeWidth);
-    
+
     if (Verbosity() >= VERBOSITY_A_LOT) mvtx_hit->identify();
 
     const TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, index);
@@ -181,9 +204,14 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
       continue;
     }
 
-    // create hit and insert in hitset
-    hit = new TrkrHitv2;
-    hitset_it->second->addHitSpecificKey(hitkey, hit);
+    const TrkrDefs::hitsetkey hitsetkeymask = MvtxDefs::genHitSetKey(layer, stave, chip, 0);
+
+    if (std::find(m_hotPixelMap.begin(), m_hotPixelMap.end(), std::make_pair(hitsetkeymask, hitkey)) == m_hotPixelMap.end())
+    {
+      // create hit and insert in hitset
+      hit = new TrkrHitv2;
+      hitset_it->second->addHitSpecificKey(hitkey, hit);
+    }
   }
 
   mvtx_event_header->set_strobe_BCO(strobe);
