@@ -241,14 +241,6 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
         }
         if (!isTpcKey)
         {
-          if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::mvtxId)
-          {
-            auto clus = _cluster_map->findCluster(key);
-            if (clus->getSize() < 2)
-            {
-              continue;
-            }
-          }
           si_seed->insert_cluster_key(key);
         }
         else
