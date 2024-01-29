@@ -166,6 +166,22 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       }
       std::set_intersection(newClusKeysxy.begin(), newClusKeysxy.end(),
                             newClusKeysrz.begin(), newClusKeysrz.end(), std::back_inserter(newClusKeys));
+      if(m_resetContainer)
+      {
+        for(auto& keys : {newClusKeysxy, newClusKeysrz})
+        {
+          for(auto& key : keys)
+          {
+            if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::micromegasId)
+            {
+              std::cout << "pushingb back key " << key << std::endl;
+              newClusKeys.push_back(key);
+            }
+          }
+        }
+      }
+
+      std::cout << "checking clusters" << std::endl;
       if (Verbosity() > 3)
       {
         for (auto key : newClusKeysxy)
@@ -179,7 +195,7 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
         {
           auto cluster = _cluster_map->findCluster(key);
           auto clusglob = _tgeometry->getGlobalPosition(key, cluster);
-          std::cout << "Found key for rz cosmic in layer " << (unsigned int) TrkrDefs::getLayer(key)
+          std::cout << "Found key " << key << " for rz cosmic in layer " << (unsigned int) TrkrDefs::getLayer(key)
                     << " with pos " << clusglob.transpose() << std::endl;
         }
       }
