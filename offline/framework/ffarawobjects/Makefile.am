@@ -16,6 +16,7 @@ libffarawobjects_la_LIBADD = \
   -lphool
 
 ROOTDICTS = \
+  Gl1Packetv1_Dict.cc \
   Gl1RawHit_Dict.cc \
   Gl1RawHitv1_Dict.cc \
   InttRawHit_Dict.cc \
@@ -32,6 +33,8 @@ ROOTDICTS = \
   MvtxRawHitv1_Dict.cc \
   MvtxRawEvtHeader_Dict.cc \
   MvtxRawEvtHeaderv1_Dict.cc \
+  OfflinePacket_Dict.cc \
+  OfflinePacketv1_Dict.cc \
   TpcRawHit_Dict.cc \
   TpcRawHitContainer_Dict.cc \
   TpcRawHitContainerv1_Dict.cc \
@@ -39,6 +42,7 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  Gl1Packetv1_Dict_rdict.pcm \
   Gl1RawHit_Dict_rdict.pcm \
   Gl1RawHitv1_Dict_rdict.pcm \
   InttRawHit_Dict_rdict.pcm \
@@ -55,12 +59,15 @@ nobase_dist_pcm_DATA = \
   MvtxRawHitContainerv1_Dict_rdict.pcm \
   MvtxRawEvtHeader_Dict_rdict.pcm \
   MvtxRawEvtHeaderv1_Dict_rdict.pcm \
+  OfflinePacket_Dict_rdict.pcm \
+  OfflinePacketv1_Dict_rdict.pcm \
   TpcRawHit_Dict_rdict.pcm \
   TpcRawHitContainer_Dict_rdict.pcm \
   TpcRawHitContainerv1_Dict_rdict.pcm \
   TpcRawHitv1_Dict_rdict.pcm
 
 pkginclude_HEADERS = \
+  Gl1Packetv1.h \
   Gl1RawHit.h \
   Gl1RawHitv1.h \
   InttRawHit.h \
@@ -77,6 +84,8 @@ pkginclude_HEADERS = \
   MvtxRawHitContainerv1.h \
   MvtxRawEvtHeader.h \
   MvtxRawEvtHeaderv1.h \
+  OfflinePacket.h \
+  OfflinePacketv1.h \
   TpcRawHit.h \
   TpcRawHitContainer.h \
   TpcRawHitContainerv1.h \
