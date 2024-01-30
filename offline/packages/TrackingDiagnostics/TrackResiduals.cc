@@ -1,7 +1,6 @@
 
 #include "TrackResiduals.h"
 
-#include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
@@ -276,18 +275,20 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     if (!m_doAlignment)
     {
       std::vector<TrkrDefs::cluskey> keys;
-
       for (const auto& ckey : get_cluster_keys(track))
       {
         if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
         {
           keys.push_back(ckey);
         }
-        fillClusterBranches(ckey, track, topNode);
       }
       if (m_zeroField)
       {
         lineFitClusters(keys, geometry, clustermap);
+      }
+      for (const auto& ckey : get_cluster_keys(track))
+      {
+        fillClusterBranches(ckey, track, topNode);
       }
     }
     m_nhits = m_nmaps + m_nintt + m_ntpc + m_nmms;
@@ -768,6 +769,10 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   }
   if (!state)
   {
+    if (m_zeroField)
+    {
+      fillStatesWithLineFit(ckey, cluster, geometry);
+    }
     //! skip filling the state information if a state is not there
     //! or we just ran the seeding. Fill with Nans to maintain the
     //! 1-to-1 mapping between cluster/state vectors
@@ -792,13 +797,6 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     m_clusgxideal.push_back(NAN);
     m_clusgyideal.push_back(NAN);
     m_clusgzideal.push_back(NAN);
-    m_statelx.push_back(NAN);
-    m_statelz.push_back(NAN);
-    m_stateelx.push_back(NAN);
-    m_stateelz.push_back(NAN);
-    m_stategx.push_back(NAN);
-    m_stategy.push_back(NAN);
-    m_stategz.push_back(NAN);
     m_statepx.push_back(NAN);
     m_statepy.push_back(NAN);
     m_statepz.push_back(NAN);
@@ -896,6 +894,72 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   m_statepy.push_back(state->get_py());
   m_statepz.push_back(state->get_pz());
   m_statepl.push_back(state->get_pathlength());
+}
+void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
+                                           TrkrCluster* cluster, ActsGeometry* geometry)
+{
+  auto surf = geometry->maps().getSurface(key, cluster);
+
+  //! The slope/intercept params for x-y and r-z are already filled. Take
+  //! two random x points and calculate y and z on the line to find 2
+  //! 3D points with which to calculate the 3D line
+  float x1 = -1;
+  float x2 = 5;
+  float y1 = m_xyslope * x1 + m_xyint;
+  float y2 = m_xyslope * x2 + m_xyint;
+
+  //! slope/int for r-z is calculated with z as "x" variable, r as "y" variable
+  //! so swap them around
+  float r1 = r(x1, y1);
+  float r2 = r(x2, y2);
+  if (y1 < 0) r1 *= -1;
+  if (y2 < 0) r2 *= -1;
+  float z1 = (r1 - m_rzint) / m_rzslope;
+  float z2 = (r2 - m_rzint) / m_rzslope;
+  Acts::Vector3 v1(x1, y1, z1), v2(x2, y2, z2);
+
+  Acts::Vector3 surfcenter = surf->center(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+  Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+
+  Acts::Vector3 u = v2 - v1;
+  float dot = surfnorm.dot(u);
+  if (abs(dot) > 1e-6)
+  {
+    Acts::Vector3 w = v1 - surfcenter;
+    float fac = -surfnorm.dot(w) / dot;
+    u *= fac;
+    Acts::Vector3 intersection = v1 + u;
+
+    auto locstateres = surf->globalToLocal(geometry->geometry().getGeoContext(),
+                                           intersection * Acts::UnitConstants::cm,
+                                           surfnorm);
+    if (locstateres.ok())
+    {
+      Acts::Vector2 loc = locstateres.value() / Acts::UnitConstants::cm;
+      m_statelx.push_back(loc(0));
+      m_statelz.push_back(loc(1));
+    }
+    else
+    {
+      Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * (intersection * Acts::UnitConstants::cm);
+      loct /= Acts::UnitConstants::cm;
+      m_statelx.push_back(loct(0));
+      m_statelz.push_back(loct(1));
+    }
+    m_stategx.push_back(intersection.x());
+    m_stategy.push_back(intersection.y());
+    m_stategz.push_back(intersection.z());
+  }
+  else
+  {
+    //! otherwise the line is parallel to the surface, should not happen if
+    //! we have a cluster on the surface but just fill the state vecs with nan
+    m_statelx.push_back(NAN);
+    m_statelz.push_back(NAN);
+    m_stategx.push_back(NAN);
+    m_stategy.push_back(NAN);
+    m_stategz.push_back(NAN);
+  }
 }
 void TrackResiduals::createBranches()
 {
