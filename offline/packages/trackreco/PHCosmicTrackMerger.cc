@@ -137,9 +137,6 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
       auto tpcseed2 = m_tpcSeeds->get(tpcid2);
       auto silseed2 = m_siliconSeeds->get(siid2);
 
-      std::cout << "identifying seeds" << std::endl;
-      tpcseed1->identify();
-      tpcseed2->identify();
       TrackFitUtils::position_vector_t tr2_rz_pts, tr2_xy_pts;
       auto globTr2 = getGlobalPositions(tpcseed2);
 
@@ -202,8 +199,7 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
 
     //! remove any obvious outlier clusters from the track that were mistakenly
     //! picked up by the seeder
-     removeOutliers(tpcseed1);
-    
+    removeOutliers(tpcseed1);
   }
   if (Verbosity() > 3)
   {

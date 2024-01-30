@@ -166,22 +166,20 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       }
       std::set_intersection(newClusKeysxy.begin(), newClusKeysxy.end(),
                             newClusKeysrz.begin(), newClusKeysrz.end(), std::back_inserter(newClusKeys));
-      if(m_resetContainer)
+      if (m_resetContainer)
       {
-        for(auto& keys : {newClusKeysxy, newClusKeysrz})
+        for (auto& keys : {newClusKeysxy, newClusKeysrz})
         {
-          for(auto& key : keys)
+          for (auto& key : keys)
           {
-            if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::micromegasId)
+            if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::micromegasId)
             {
-              std::cout << "pushingb back key " << key << std::endl;
               newClusKeys.push_back(key);
             }
           }
         }
       }
 
-      std::cout << "checking clusters" << std::endl;
       if (Verbosity() > 3)
       {
         for (auto key : newClusKeysxy)
