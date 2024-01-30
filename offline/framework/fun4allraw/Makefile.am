@@ -16,17 +16,20 @@ pkginclude_HEADERS = \
   Fun4AllFileOutStream.h \
   Fun4AllPrdfInputManager.h \
   Fun4AllPrdfInputPoolManager.h \
+  Fun4AllPrdfInputTriggerManager.h \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
   SingleGl1PrdfInput.h \
   SingleGl1PoolInput.h \
+  SingleGl1TriggerInput.h \
   SingleInttPoolInput.h \
   SingleMicromegasPoolInput.h \
   SingleMvtxPoolInput.h \
   SinglePrdfInput.h \
   SingleStreamingInput.h \
   SingleTpcPoolInput.h \
+  SingleTriggerInput.h \
   SingleZdcInput.h
 
 lib_LTLIBRARIES = \
@@ -38,6 +41,7 @@ libfun4allraw_la_SOURCES = \
   Fun4AllFileOutStream.cc \
   Fun4AllPrdfInputManager.cc \
   Fun4AllPrdfInputPoolManager.cc \
+  Fun4AllPrdfInputTriggerManager.cc \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
@@ -45,12 +49,14 @@ libfun4allraw_la_SOURCES = \
   tpc_pool.cc \
   SingleGl1PrdfInput.cc \
   SingleGl1PoolInput.cc \
+  SingleGl1TriggerInput.cc \
   SingleInttPoolInput.cc \
   SingleMicromegasPoolInput.cc \
   SingleMvtxPoolInput.cc \
   SinglePrdfInput.cc \
   SingleStreamingInput.cc \
   SingleTpcPoolInput.cc \
+  SingleTriggerInput.cc \
   SingleZdcInput.cc
 
 libfun4allraw_la_LIBADD = \

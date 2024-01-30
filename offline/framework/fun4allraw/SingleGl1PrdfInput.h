@@ -13,12 +13,14 @@
 
 class Eventiterator;
 class Fun4AllPrdfInputPoolManager;
+class Fun4AllPrdfInputTriggerManager;
 class Packet;
 
 class SingleGl1PrdfInput : public SinglePrdfInput
 {
  public:
   explicit SingleGl1PrdfInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman);
+  explicit SingleGl1PrdfInput(const std::string &name, Fun4AllPrdfInputTriggerManager *inman);
   ~SingleGl1PrdfInput() override;
   void FillPool(const unsigned int nevents) override;
 
