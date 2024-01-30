@@ -7,6 +7,7 @@
 #include <trackbase/alignmentTransformationContainer.h>
 #include <trackbase/ClusterErrorPara.h>
 
+#include <tpc/TpcClusterMover.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrection.h>
 
@@ -65,12 +66,24 @@ class MakeSourceLinks
 						   std::set< Acts::GeometryIdentifier>& transient_id_set,
 						   ActsGeometry* tGeometry );
 
+SourceLinkVec getSourceLinksClusterMover(
+							  TrackSeed* track,
+							  ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
+							  TrkrClusterContainer*  clusterContainer,
+							  ActsGeometry* tGeometry,
+							  const TpcDistortionCorrectionContainer* dcc_static,
+							  const TpcDistortionCorrectionContainer* dcc_average,
+							  const TpcDistortionCorrectionContainer* dcc_fluctuation,
+							  short int crossing
+							  );
+
  private:
   int m_verbosity = 0;
   bool m_pp_mode = false;  
   std::set<int> m_ignoreLayer;
 
   TpcClusterZCrossingCorrection _clusterCrossingCorrection;
+  TpcClusterMover _clusterMover;
   TpcDistortionCorrectionContainer* _dcc_static{nullptr};
   TpcDistortionCorrectionContainer* _dcc_average{nullptr};
   TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
