@@ -79,6 +79,7 @@ libintt_la_SOURCES = \
 
 libintt_la_LIBADD = \
   libintt_io.la \
+  -lcdbobjects \
   -lCLHEP \
   -lffarawobjects \
   -lphg4hit \
@@ -93,6 +94,7 @@ libintt_io_la_SOURCES = \
   InttVertexv1.cc
 
 libintt_io_la_LIBADD = \
+  -lcdbobjects \
   -lg4detectors_io \
   -lphool \
   -ltrack_io \

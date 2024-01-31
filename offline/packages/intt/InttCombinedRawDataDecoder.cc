@@ -31,6 +31,7 @@ InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)
 {
   // Do nothing
+  // Consider calling LoadHotChannelMapRemote()
 }
 
 int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
@@ -147,15 +148,22 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     // raw.felix_channel = intthit->get_fee();
     // raw.chip = (intthit->get_chip_id() + 25) % 26;
     // raw.channel = intthit->get_channel_id();
-    ofl = InttNameSpace::ToOffline(raw);
 
     int adc = intthit->get_adc();
     // amp = intthit->get_amplitude();
     // int bco = intthit->get_FPHX_BCO();
+
+    if(m_HotChannelSet.find(raw) != m_HotChannelSet.end())
+    {
+      continue;
+    }
+
+    ofl = InttNameSpace::ToOffline(raw);
     hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x);  // col, row <trackbase/InttDefs.h>
     hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, intthit->get_bco() - gl1bco);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
     hit = hit_set_container_itr->second->getHit(hit_key);
+
     if (hit)
     {
       continue;
@@ -167,6 +175,60 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int InttCombinedRawDataDecoder::LoadHotChannelMapLocal(std::string const& filename)
+{
+  if(filename.empty())
+  {
+    std::cout << "int InttCombinedRawDataDecoder::LoadHotChannelMapLocal(std::string const& filename)" << std::endl;
+    std::cout << "\tArgument 'filename' is empty string" << std::endl;
+    return 1;
+  }
+  CDBTTree cdbttree(filename);
+  // need to checkt for error exception
+  cdbttree.LoadCalibrations();
+
+  m_HotChannelSet.clear();
+  Long64_t N = cdbttree.GetSingleIntValue("size");
+  for(Long64_t n = 0; n < N; ++n)
+  {
+    m_HotChannelSet.insert((struct InttNameSpace::RawData_s){
+        .felix_server  = cdbttree.GetIntValue(n, "felix_server"),
+        .felix_channel = cdbttree.GetIntValue(n, "felix_channel"),
+        .chip          = cdbttree.GetIntValue(n, "chip"),
+        .channel       = cdbttree.GetIntValue(n, "channel")
+    });
+  }
+
+  return 0;
+}
+
+int InttCombinedRawDataDecoder::LoadHotChannelMapRemote(std::string const& name)
+{
+  if(name.empty())
+  {
+    std::cout << "int InttCombinedRawDataDecoder::LoadHotChannelMapRemote(std::string const& name)" << std::endl;
+    std::cout << "\tArgument 'name' is empty string" << std::endl;
+    return 1;
+  }
+  std::string database = CDBInterface::instance()->getUrl(name);
+  CDBTTree cdbttree(database);
+  cdbttree.LoadCalibrations();
+
+  m_HotChannelSet.clear();
+  Long64_t N = cdbttree.GetSingleIntValue("size");
+  for(Long64_t n = 0; n < N; ++n)
+  {
+    m_HotChannelSet.insert((struct InttNameSpace::RawData_s){
+        .felix_server  = cdbttree.GetIntValue(n, "felix_server"),
+        .felix_channel = cdbttree.GetIntValue(n, "felix_channel"),
+        .chip          = cdbttree.GetIntValue(n, "chip"),
+        .channel       = cdbttree.GetIntValue(n, "channel")
+    });
+  }
+
+  return 0;
 }
 
 /*

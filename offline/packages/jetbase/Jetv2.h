@@ -106,9 +106,6 @@ class Jetv2 : public Jet
   std::vector<Jet::SRC> comp_src_vec() override;
   std::map<Jet::SRC, size_t> comp_src_sizemap() override;  // map of Jet::SRC to number of entries
 
-  size_t n_clustered() const override { return _n_clustered; }
-  virtual void  set_n_clustered(unsigned int n) override { _n_clustered =n;} ;
-
   // FYI: ITER_comp_vec = vector<pair<Jet::SRC, unsigned int>>::iterator
   ITER_comp_vec comp_begin() override { return _comp_ids.begin(); }  // new in v2
   ITER_comp_vec comp_begin(Jet::SRC) override;                       // new in v2
@@ -121,7 +118,6 @@ class Jetv2 : public Jet
  private:
   /// unique identifier within container
   unsigned int _id = ~0x0;
-  size_t _n_clustered {0};
   void ensure_sorted();
   bool _is_sorted { false };
 

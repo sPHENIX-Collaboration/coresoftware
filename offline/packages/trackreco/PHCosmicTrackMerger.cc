@@ -142,7 +142,9 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
 
       for (auto &pos : globTr2.second)
       {
-        tr2_rz_pts.push_back(std::make_pair(pos.z(), r(pos.x(), pos.y())));
+        float clusr = r(pos.x(), pos.y());
+        if (pos.y() < 0) clusr *= -1;
+        tr2_rz_pts.push_back(std::make_pair(pos.z(), clusr));
         tr2_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
       }
 
@@ -235,6 +237,8 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
   {
     float clusr = r(pos.x(), pos.y());
     if (pos.y() < 0) clusr *= -1;
+    // skip tpot clusters, as they are always bad in 1D due to 1D resolution
+    if (fabs(clusr) > 80.) continue;
     tr_rz_pts.push_back(std::make_pair(pos.z(), clusr));
     tr_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
   }
@@ -247,6 +251,8 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
     auto &pos = glob.second[i];
     float clusr = r(pos.x(), pos.y());
     if (pos.y() < 0) clusr *= -1;
+    // skip tpot clusters, as they are always bad in 1D due to 1D resolution
+    if (fabs(clusr) > 80.) continue;
     float perpxyslope = -1. / std::get<0>(xyParams);
     float perpxyint = pos.y() - perpxyslope * pos.x();
     float perprzslope = -1. / std::get<0>(rzParams);

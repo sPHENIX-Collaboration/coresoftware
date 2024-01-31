@@ -547,16 +547,14 @@ if (defined $prodtype)
     {
 	if (defined $nopileup)
 	{
-	    $filenamestring = sprintf("ampt");
+	    $filenamestring = sprintf("ampt_0_20fm");
 	}
 	else
 	{
-	    print "pileup not implemented for ampt\n";
-	    die;
-#	    $filenamestring = sprintf("sHijing_pAu_0_10fm_%s_bkg_0_10fm",$pAu_pileupstring);
+	    $filenamestring = sprintf("ampt_0_20fm_%s_bkg_0_20fm",$AuAu_pileupstring);
 	}
         $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
-        $pileupstring = $pAu_pileupstring;
+        $pileupstring = $AuAu_pileupstring;
 	&commonfiletypes();
     }
     elsif ($prodtype == 25)
