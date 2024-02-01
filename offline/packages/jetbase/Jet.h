@@ -111,6 +111,7 @@ class Jet : public PHObject
     HCALIN_TOWERINFO_SIM = 35,
     HCALOUT_TOWERINFO_EMBED = 36,
     HCALOUT_TOWERINFO_SIM = 37,
+    JET_PROBE = 38,
   };
 
   enum PROPERTY

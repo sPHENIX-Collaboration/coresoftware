@@ -34,7 +34,9 @@ libg4jets_la_LIBADD = \
 
 pkginclude_HEADERS = \
   TruthJetInput.h \
-  JetHepMCLoader.h
+  JetHepMCLoader.h \
+  JetProbeMaker.h \
+  JetProbeInput.h
 
 # ROOTDICTS = \       // all of these are now in jetbase
 #   Jet_Dict.cc \
@@ -61,7 +63,9 @@ pcmdir = $(libdir)
 # here are the two remaining files -- conclusion:?: keep only libg4jets_la and not lig4jets_io
 libg4jets_la_SOURCES = \
   JetHepMCLoader.cc \
-  TruthJetInput.cc
+  TruthJetInput.cc \
+  JetProbeMaker.cc \
+  JetProbeInput.cc
 
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
