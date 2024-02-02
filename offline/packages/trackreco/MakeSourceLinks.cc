@@ -41,7 +41,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 					          const TpcDistortionCorrectionContainer* dcc_average,
 					          const TpcDistortionCorrectionContainer* dcc_fluctuation,
 						  alignmentTransformationContainer* transformMapTransient,
-						   std::set< Acts::GeometryIdentifier> transient_id_set,
+						   std::set< Acts::GeometryIdentifier>& transient_id_set,
 						  short int crossing)
 {
   if(m_verbosity > 1) { std::cout << "Entering MakeSourceLinks::getSourceLinks " << std::endl; }
@@ -131,20 +131,20 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
       Acts::GeometryIdentifier id = this_surf->geometryId();
 
       auto check_cluster = clusterContainer->findCluster(key);
-      Acts::Vector2 check_local2d = tGeometry->getLocalCoords(key, check_cluster);
+      Acts::Vector2 check_local2d = tGeometry->getLocalCoords(key, check_cluster) * Acts::UnitConstants::cm; // need mm
       Acts::Vector3 check_local3d (check_local2d(0), check_local2d(1), 0);
       Acts::Vector3 check_before_pos =  transformMapTransient->getTransform(id) * check_local3d;
-      std::cout << "check_local2d " << check_local2d(0) << "  " << check_local2d(1) 
-		<< "   check_local3d " << check_local3d(0) << "  " << check_local3d(1) << "  " << check_local3d(2) << std::endl;
-      std::cout << "Check global from transient transform BEFORE " << check_before_pos(0)/10.0 << "  " << "  " << check_before_pos(1)/10.0 << "  " 
+      std::cout << "check_local2d (mm) " << check_local2d(0) << "  " << check_local2d(1) 
+		<< "   check_local3d (mm) " << check_local3d(0) << "  " << check_local3d(1) << "  " << check_local3d(2) << std::endl;
+      std::cout << "Check global from transient transform BEFORE for surface " << id  << "  " << check_before_pos(0)/10.0 << "  " << "  " << check_before_pos(1)/10.0 << "  " 
 		<< check_before_pos(2)/10.0 << std::endl;
       std::cout << "   before transient transform: " << std::endl <<  transformMapTransient->getTransform(id).matrix() << std::endl;
       Acts::GeometryContext temp_transient_geocontext;
       temp_transient_geocontext =  transformMapTransient;
       Acts::Vector3 check_before_pos_surf = this_surf->localToGlobal( temp_transient_geocontext,
-				  check_local2d * Acts::UnitConstants::cm,
+				  check_local2d,
 				  Acts::Vector3(1,1,1));
-      std::cout << "Check global from transient transform BEFORE via surface method " << check_before_pos_surf(0)/10.0 << "  " << "  " 
+      std::cout << "Check global from transient transform BEFORE via surface method for surface " << id << "  "  << check_before_pos_surf(0)/10.0 << "  " << "  " 
 		<< check_before_pos_surf(1)/10.0 << "  " << check_before_pos_surf(2)/10.0 << std::endl;
 
       // replace the the default alignment transform with the corrected one
@@ -154,6 +154,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
       transformMapTransient->replaceTransform(id, corrected_transform);
       transient_id_set.insert(id);
 
+      // std:: cout << " --- replaced transient transform for surface " << id << std::endl;
 
       Acts::Vector3 check_ideal_pos =  transformMap->getTransform(id) * check_local3d;
       std::cout << "Check global from ideal transform " << check_ideal_pos(0)/10.0 << "  " << "  " << check_ideal_pos(1)/10.0 << "  " << check_ideal_pos(2)/10.0 << std::endl;
@@ -161,12 +162,21 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
       Acts::Vector3 check_pos = corrected_transform * check_local3d;
       std::cout << "Check global from transient transform " << check_pos(0)/10.0 << "  " << "  " << check_pos(1)/10.0 << "  " << check_pos(2)/10.0 << std::endl;
       std::cout << "   corrected transform: " << std::endl << corrected_transform.matrix() << std::endl;
+      std::cout << "   corrected transform from transient map: " << std::endl << (transformMapTransient->getTransform(id)).matrix() << std::endl;
 
       Acts::Vector3 check_after_pos_surf = this_surf->localToGlobal( temp_transient_geocontext,
-				  check_local2d * Acts::UnitConstants::cm,
+				  check_local2d,
 				  Acts::Vector3(1,1,1));
       std::cout << "Check global from transient transform AFTER via surface method " << check_after_pos_surf(0)/10.0 << "  " 
 		<< "  " << check_after_pos_surf(1)/10.0 << "  " << check_after_pos_surf(2)/10.0 << std::endl;
+
+      std::cout << " Print ideal transform matrix from surface object: " << std::endl
+		<< surf->transform(tGeometry->geometry().getGeoContext()).matrix() << std::endl;
+
+      std::cout << " Print transient transform matrix from surface object: " << std::endl
+		<< surf->transform(temp_transient_geocontext).matrix() << std::endl;
+
+
 
     }  // end TPC specific treatment
     
@@ -174,6 +184,9 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
     cluster_vec.push_back(key);
 
   }  // end loop over clusters here
+
+  Acts::GeometryContext transient_geocontext;
+  transient_geocontext =  transformMapTransient;
   
   // loop over cluster_vec and make source links
   for (unsigned int i = 0; i < cluster_vec.size(); ++i)
@@ -192,12 +205,12 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 
       // get local coordinates (TPC time needs conversion to cm)
       auto cluster = clusterContainer->findCluster(cluskey);
-      Acts::Vector2 localPos = tGeometry->getLocalCoords(cluskey, cluster);
+      Acts::Vector2 localPos = tGeometry->getLocalCoords(cluskey, cluster);   //  cm
 
       Surface surf = tGeometry->maps().getSurface(cluskey, cluster);
       
       Acts::ActsVector<2> loc;
-      loc[Acts::eBoundLoc0] = localPos(0) * Acts::UnitConstants::cm;
+      loc[Acts::eBoundLoc0] = localPos(0) * Acts::UnitConstants::cm;   // mm
       loc[Acts::eBoundLoc1] = localPos(1) * Acts::UnitConstants::cm;
       
       std::array<Acts::BoundIndices, 2> indices;
@@ -226,7 +239,8 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 		    << ", cov : " << cov.transpose() << std::endl
 		    << " geo id " << sl.geometryId() << std::endl;
 	  std::cout << "Surface : " << std::endl;
-	  surf.get()->toStream(tGeometry->geometry().getGeoContext(), std::cout);
+	  //surf.get()->toStream(tGeometry->geometry().getGeoContext(), std::cout);
+	  surf.get()->toStream(transient_geocontext, std::cout);
 	  std::cout << std::endl;
 	  std::cout << "Corrected surface transform:" << std::endl;
 	  std::cout << transformMapTransient->getTransform(surf->geometryId()).matrix() << std::endl;
@@ -255,6 +269,7 @@ void MakeSourceLinks::resetTransientTransformMap(
 						  std::set< Acts::GeometryIdentifier>& transient_id_set,
 						  ActsGeometry* tGeometry )
 {
+  std::cout << "Resetting TransientTransformMap with transient_id_set size " << transient_id_set.size() << std::endl;
   // loop over modifiedTransformSet and replace transient elements modified for the last track with the default transforms
   for(auto it = transient_id_set.begin(); it != transient_id_set.end(); ++it)
     {
@@ -263,6 +278,7 @@ void MakeSourceLinks::resetTransientTransformMap(
       alignmentTransformationContainer* transformMap = ctxt.get<alignmentTransformationContainer*>();
       auto transform = transformMap->getTransform(id);
       transformMapTransient->replaceTransform(id, transform);
+      //std::cout << "    replaced transform for surface " << id << " with ideal transform" << std::endl;
     }
   transient_id_set.clear();
 }
@@ -280,11 +296,16 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 							  short int crossing
 							  )
 {
+  if(m_verbosity > 1) { std::cout << "Entering MakeSourceLinks::getSourceLinks " << std::endl; }
+
   SourceLinkVec sourcelinks;
 
   if (m_pp_mode && crossing == SHRT_MAX)
   {
     // Need to skip this in the pp case, for AuAu it should not happen
+    if(m_verbosity > 1) 
+      { std::cout << "Seed has no crossing, and in pp mode: skip this seed" << std::endl; }
+
     return sourcelinks;
   }
 
@@ -310,7 +331,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       continue;
     }
 
-    auto subsurfkey = cluster->getSubSurfKey();
+    //    auto subsurfkey = cluster->getSubSurfKey();
 
     /// Make a safety check for clusters that couldn't be attached
     /// to a surface
@@ -323,44 +344,55 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     const unsigned int trkrid = TrkrDefs::getTrkrId(key);
     const unsigned int side = TpcDefs::getSide(key);
 
+    if(m_verbosity > 1) { std::cout << "    Cluster key " << key << " trkrid " << trkrid << " crossing " << crossing << std::endl; }
+
     // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset
     // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks
     Acts::Vector3 global = tGeometry->getGlobalPosition(key, cluster);
-
+    Acts::Vector3 global_in = global;
+    
     if (trkrid == TrkrDefs::tpcId)
-    {
-      // make all corrections to global position of TPC cluster
-      float z = _clusterCrossingCorrection.correctZ(global[2], side, crossing);
-      global[2] = z;
-
-      // apply distortion corrections
-      if (dcc_static)
       {
-        global = _distortionCorrection.get_corrected_position(global, dcc_static);
-      }
-      if (dcc_average)
-      {
-        global = _distortionCorrection.get_corrected_position(global, dcc_average);
-      }
-      if (dcc_fluctuation)
-      {
-        global = _distortionCorrection.get_corrected_position(global, dcc_fluctuation);
-      }
-    }
+	// make all corrections to global position of TPC cluster
+	float z = _clusterCrossingCorrection.correctZ(global[2], side, crossing);
+	global[2] = z;
+	
+	// apply distortion corrections
+	if (dcc_static)
+	  {
+	    global = _distortionCorrection.get_corrected_position(global, dcc_static);
+	  }
+	if (dcc_average)
+	  {
+	    global = _distortionCorrection.get_corrected_position(global, dcc_average);
+	  }
+	if (dcc_fluctuation)
+	  {
+	    global = _distortionCorrection.get_corrected_position(global, dcc_fluctuation);
+	  }
 
-    if (m_verbosity > 1)
-    {
-      std::cout << " zinit " << global[2] << " xinit " << global[0] << " yinit " << global[1] << " side " << side << " crossing " << crossing
-                << " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
-    }
-
+        if (m_verbosity > 1)
+	  {
+	    std::cout << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2) 
+		      << " corr glob (unmoved) " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
+		      << " crossing z correction " << z - global_in(2) 
+		      << " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - z 
+		      << std::endl;
+	  }
+      }
+    
     // add the global positions to a vector to give to the cluster mover
     global_raw.push_back(std::make_pair(key, global));
-
+    
   }  // end loop over clusters here
 
   // move the cluster positions back to the original readout surface
   auto global_moved = _clusterMover.processTrack(global_raw);
+
+  if (m_verbosity > 1)
+    {
+      std::cout << "Cluster global positions after mover puts them on readout surface:" << std::endl;
+    }
 
   // loop over global positions returned by cluster mover
   for (int i = 0; i < global_moved.size(); ++i)
@@ -419,7 +451,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 
     if (m_verbosity > 2)
     {
-      std::cout << " cluster global after mover: " << global << std::endl;
+      std::cout << "Cluster " << cluskey << " cluster global after mover: " << global(0)/10.0 << "  " << global(1)/10.0 << "  " << global(2)/10.0 << std::endl;
       std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
       std::cout << " new      local X " << localPos(0) << " new       local Y " << localPos(1) << std::endl;
     }

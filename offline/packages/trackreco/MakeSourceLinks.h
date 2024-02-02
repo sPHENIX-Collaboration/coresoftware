@@ -58,7 +58,7 @@ class MakeSourceLinks
 			       const TpcDistortionCorrectionContainer* dcc_average,
 			       const TpcDistortionCorrectionContainer* dcc_fluctuation,
 			       alignmentTransformationContainer* transformMapTransient,
-			       std::set< Acts::GeometryIdentifier> transient_id_set,
+			       std::set< Acts::GeometryIdentifier>& transient_id_set,
 			       short int crossing);
 
   void resetTransientTransformMap(
