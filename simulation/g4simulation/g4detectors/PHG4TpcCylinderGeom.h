@@ -3,14 +3,13 @@
 #ifndef G4DETECTORS_PHG4TPCCYLINDERGEOM_H
 #define G4DETECTORS_PHG4TPCCYLINDERGEOM_H
 
-//#include <phool/PHObject.h>
 #include "PHG4CylinderGeom.h"
 
+#include <array>
 #include <cmath>
 #include <iostream>  // for cout, ostream
 #include <string>
 #include <utility>  // for pair
-#include <array>
 
 class PHG4TpcCylinderGeom : public PHG4CylinderGeom
 {
@@ -70,41 +69,39 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
 
   static const int NSides = 2;
 
-  void set_r_bias(std::array<std::vector<double>, NSides > dr){sector_R_bias = dr;}
-  void set_phi_bias(std::array<std::vector<double>, NSides > dphi){sector_Phi_bias = dphi;}
+  void set_r_bias(std::array<std::vector<double>, NSides> dr) { sector_R_bias = dr; }
+  void set_phi_bias(std::array<std::vector<double>, NSides> dphi) { sector_Phi_bias = dphi; }
 
-  //void set_sector_phi(const double s_phi){sector_phi = s_phi;}
-  void set_sector_min_phi(std::array<std::vector<double>, NSides >  s_min_phi){sector_min_Phi = s_min_phi;}
-  void set_sector_max_phi(std::array<std::vector<double>, NSides >  s_max_phi){sector_max_Phi = s_max_phi;}
+  // void set_sector_phi(const double s_phi){sector_phi = s_phi;}
+  void set_sector_min_phi(std::array<std::vector<double>, NSides> s_min_phi) { sector_min_Phi = s_min_phi; }
+  void set_sector_max_phi(std::array<std::vector<double>, NSides> s_max_phi) { sector_max_Phi = s_max_phi; }
 
-  std::array<std::vector<double>, NSides > get_sector_min_phi(){return sector_min_Phi;}
-  std::array<std::vector<double>, NSides > get_sector_max_phi(){return sector_max_Phi;}
-
-
+  std::array<std::vector<double>, NSides> get_sector_min_phi() { return sector_min_Phi; }
+  std::array<std::vector<double>, NSides> get_sector_max_phi() { return sector_max_Phi; }
 
  protected:
   void check_binning_method(const int i) const;
   void check_binning_method_eta(const std::string& src = "") const;
   void check_binning_method_phi(const std::string& src = "") const;
   std::string methodname(const int i) const;
-  int layer = -999;
-  int binning = 0;
-  double radius = NAN;
-  int nzbins = -1;
-  double zmin = NAN;
-  double zstep = NAN;
-  int nphibins = -1;
-  double phimin = -M_PI;
-  double phistep = NAN;
-  double thickness = NAN;
+  int layer{-999};
+  int binning{0};
+  double radius{std::numeric_limits<double>::quiet_NaN()};
+  int nzbins{-1};
+  double zmin{std::numeric_limits<double>::quiet_NaN()};
+  double zstep{std::numeric_limits<double>::quiet_NaN()};
+  int nphibins{-1};
+  double phimin{-M_PI};
+  double phistep{std::numeric_limits<double>::quiet_NaN()};
+  double thickness{std::numeric_limits<double>::quiet_NaN()};
 
-  std::array<std::vector<double>, NSides > sector_R_bias;
-  std::array<std::vector<double>, NSides > sector_Phi_bias;
-  std::array<std::vector<double>, NSides > sector_min_Phi;
-  std::array<std::vector<double>, NSides > sector_max_Phi;
+  std::array<std::vector<double>, NSides> sector_R_bias;
+  std::array<std::vector<double>, NSides> sector_Phi_bias;
+  std::array<std::vector<double>, NSides> sector_min_Phi;
+  std::array<std::vector<double>, NSides> sector_max_Phi;
 
   // streamer
-  friend std::ostream& operator << (std::ostream&, const PHG4TpcCylinderGeom& );
+  friend std::ostream& operator<<(std::ostream&, const PHG4TpcCylinderGeom&);
 
   ClassDefOverride(PHG4TpcCylinderGeom, 2)
 };

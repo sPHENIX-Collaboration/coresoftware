@@ -175,6 +175,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     {
       // capture the layer where this electron hits the gem stack
       LayerGeom = layeriter->second;
+
       layernum = LayerGeom->get_layer();
       /* pass_data.layerGeom = LayerGeom; */
       /* pass_data.layer = layernum; */
@@ -564,7 +565,7 @@ void PHG4TpcPadPlaneReadout::populate_tbins(const double t, const std::array<dou
   int tbin = LayerGeom->get_zbin(t);
   if (tbin < 0 || tbin > LayerGeom->get_zbins())
   {
-    //std::cout << " t bin is outside range, return" << std::endl;
+    // std::cout << " t bin is outside range, return" << std::endl;
     return;
   }
 
@@ -761,16 +762,14 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
 
   const double MaxZ = get_double_param("maxdriftlength");
   const double TBinWidth = tpc_adc_clock;
-  const double MaxT = 2.0 * MaxZ / drift_velocity;  // allows for extended time readout
+  const double MaxT = extended_readout_time + 2.0 * MaxZ / drift_velocity;  // allows for extended time readout
   const double MinT = 0;
   NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
-
+  
   const std::array<double, 3> SectorPhi =
-  {{
-    get_double_param("tpc_sector_phi_inner"),
-    get_double_param("tpc_sector_phi_mid"),
-    get_double_param("tpc_sector_phi_outer")
-  }};
+      {{get_double_param("tpc_sector_phi_inner"),
+        get_double_param("tpc_sector_phi_mid"),
+        get_double_param("tpc_sector_phi_outer")}};
 
   const std::array<int,3> NPhiBins = 
   {{

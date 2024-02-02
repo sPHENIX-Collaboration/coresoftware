@@ -85,9 +85,9 @@ InttDeadMapHelper& InttDeadMapHelper::operator=(InttDeadMapHelper const& _o)
 	return *this;
 }
 
-InttDeadMapHelper::InttDeadMapHelper(InttDeadMap_Long_t const& _N, InttDeadMap_Double_t const& _n_z, InttDeadMap_Double_t const& _n_t)
+InttDeadMapHelper::InttDeadMapHelper(InttDeadMap_Long_t const& npoints, InttDeadMap_Double_t const& _n_z, InttDeadMap_Double_t const& _n_t)
 {
-	N = _N;
+	N = npoints;
 	points = new struct InttDeadMap_Point_s[N];
 
 	n_z = _n_z;

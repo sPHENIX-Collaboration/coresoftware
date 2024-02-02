@@ -16,13 +16,14 @@
 #include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
-#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
-#include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxAlignmentState_v1.h>
 #include <trackbase_historic/SvtxAlignmentStateMap_v1.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
+
+#include <globalvertex/SvtxVertex.h>     
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 
@@ -210,7 +211,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	{
 	  // this associates silicon clusters and adds them to the vectors
 	  ntpc = cluskey_vec.size();
-	  nsilicon = TrackFitUtils::addSiliconClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec);
+	  nsilicon = TrackFitUtils::addClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec,0,6);
 	  if(nsilicon < 3) continue;  // discard this TPC seed, did not get a good match to silicon
 	  auto trackseed = std::make_unique<TrackSeed_v1>();
 	  for(auto& ckey : cluskey_vec)
@@ -1221,7 +1222,7 @@ void HelicalFitter::get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vt
 unsigned int HelicalFitter::addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
 
-  return TrackFitUtils::addSiliconClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec);
+  return TrackFitUtils::addClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec,0,6);
 }
 
 bool HelicalFitter::is_intt_layer_fixed(unsigned int layer)
@@ -1333,7 +1334,7 @@ void HelicalFitter::get_dca(SvtxTrack& track,float& dca3dxy, float& dca3dz, floa
 
   track_vtx -= event_vertex; // difference between track_vertex and event_vtx
   
-  Acts::ActsSymMatrix<3> posCov;
+  Acts::ActsSquareMatrix<3> posCov;
   for(int i = 0; i < 3; ++i)
     {
       for(int j = 0; j < 3; ++j)
@@ -1360,7 +1361,7 @@ void HelicalFitter::get_dca(SvtxTrack& track,float& dca3dxy, float& dca3dz, floa
   rot_T    = rot.transpose();
 
   Acts::Vector3 pos_R           = rot * track_vtx;
-  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
+  Acts::ActsSquareMatrix<3> rotCov = rot * posCov * rot_T;
   dca3dxy      = pos_R(0);
   dca3dz       = pos_R(2);
   dca3dxysigma = sqrt(rotCov(0,0));

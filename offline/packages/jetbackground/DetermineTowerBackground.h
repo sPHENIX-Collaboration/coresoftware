@@ -12,6 +12,7 @@
 // system includes
 #include <string>
 #include <vector>
+#include <jetbase/Jet.h>
 
 // forward declarations
 class PHCompositeNode;
@@ -61,6 +62,10 @@ class DetermineTowerBackground : public SubsysReco
   std::vector<std::vector<float> > _IHCAL_E;
   std::vector<std::vector<float> > _OHCAL_E;
 
+  std::vector<std::vector<int> > _EMCAL_T;
+  std::vector<std::vector<int> > _IHCAL_T;
+  std::vector<std::vector<int> > _OHCAL_T;
+
   // 1-D energies vs. phi (integrated over eta strips with complete
   // phi coverage, and all layers)
   std::vector<float> _FULLCALOFLOW_PHI_E;
@@ -74,6 +79,9 @@ class DetermineTowerBackground : public SubsysReco
 
   std::vector<float> _seed_eta;
   std::vector<float> _seed_phi;
+
+  Jet::PROPERTY _index_SeedD;
+  Jet::PROPERTY _index_SeedItr;
 
   bool m_use_towerinfo = false;
 

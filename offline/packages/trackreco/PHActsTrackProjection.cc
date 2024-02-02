@@ -16,8 +16,8 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -137,11 +137,15 @@ int PHActsTrackProjection::projectTracks(const int caloLayer)
   ActsPropagator prop(m_tGeometry);
   for (const auto& [key, track] : *m_trackMap)
   {
-    const auto params = prop.makeTrackParams(track, m_vertexMap);
+    auto params = prop.makeTrackParams(track, m_vertexMap);
+    if(!params.ok())
+      {
+	continue;
+      }
     auto cylSurf =
         m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
 
-    auto result = propagateTrack(params, caloLayer, cylSurf);
+    auto result = propagateTrack(params.value(), caloLayer, cylSurf);
     if (result.ok())
     {
       updateSvtxTrack(result.value(), track, caloLayer);

@@ -9,8 +9,8 @@
 template <class T>
 class MultiArray
 {
-  //class to hold an up-to-six dimensional array of whatever T is.  Any indices not used are flattened.  This should probably be replaced with sets of TH3s... but the intention was to take advantage of indices for all elements being the same, to avoid unpacking and re-packing TVectors, etc, and to get rid of any other overhead that might be showing up in the TH3 implementation.
-  //it does make it more annoying to interpolate, though.
+  // class to hold an up-to-six dimensional array of whatever T is.  Any indices not used are flattened.  This should probably be replaced with sets of TH3s... but the intention was to take advantage of indices for all elements being the same, to avoid unpacking and re-packing TVectors, etc, and to get rid of any other overhead that might be showing up in the TH3 implementation.
+  // it does make it more annoying to interpolate, though.
  public:
   static const int MAX_DIM = 6;
   int dim;
@@ -42,7 +42,7 @@ class MultiArray
       length *= n[i];
     }
     field = static_cast<T *>(malloc(length * sizeof(T)));
-    //note that since we don't know what T is, we can't safely zero it.  Someone else will have to do that.
+    // note that since we don't know what T is, we can't safely zero it.  Someone else will have to do that.
   }
   //! delete copy ctor and assignment opertor (cppcheck)
   explicit MultiArray(const MultiArray &) = delete;
@@ -90,7 +90,7 @@ class MultiArray
     for (int i = 0; i < dim; i++)
     {
       if (n[i] <= n_[i] || n_[i] < 0)
-      {  //check bounds
+      {  // check bounds
         printf("asking for el %d %d %d %d %d %d.  %dth element is outside of bounds 0<x<%d\n", n_[0], n_[1], n_[2], n_[3], n_[4], n_[5], n_[i], n[i]);
         assert(false);
       }
@@ -100,7 +100,7 @@ class MultiArray
   }
 
   T *GetPtr(int a = 0, int b = 0, int c = 0, int d = 0, int e = 0, int f = 0)
-  {  //faster for repeated access.
+  {  // faster for repeated access.
     int n_[6];
     n_[0] = a;
     n_[1] = b;
@@ -117,11 +117,11 @@ class MultiArray
   }
 
   T *GetFlat(int a = 0)
-  {  //get the value at position a in the 1D equivalent, assuming the math is done elsewhere, or we're just going straight through the thing.
+  {  // get the value at position a in the 1D equivalent, assuming the math is done elsewhere, or we're just going straight through the thing.
     if (a < 0 || a >= length)
     {
       printf("tried to seek element %d of multiarray, but bounds are 0<a<%ld\n", a, length);
-      assert(a < 0 || a >= length);  //check bounds
+      assert(a < 0 || a >= length);  // check bounds
     }
     return &(field[a]);
   }
@@ -157,7 +157,7 @@ class MultiArray
 
   void SetAll(T in)
   {
-    //this assumes there's an '=' operator for T, but that's generally true.
+    // this assumes there's an '=' operator for T, but that's generally true.
     for (long int i = 0; i < length; i++)
     {
       field[i] = in;
@@ -165,4 +165,4 @@ class MultiArray
     return;
   }
 };
-#endif  //MULTIARRAY_H
+#endif  // MULTIARRAY_H

@@ -8,6 +8,8 @@
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/ActsSourceLink.h>
 
+#include <Acts/EventData/ParticleHypothesis.hpp>
+
 namespace
 {
   /// square
@@ -34,14 +36,14 @@ namespace
 }
 
 //_______________________________________________________________________________
-Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs( const SvtxTrack *track ) const
+Acts::BoundSquareMatrix ActsTransformations::rotateSvtxTrackCovToActs( const SvtxTrack *track ) const
 { return rotateSvtxTrackCovToActs( track->find_state(0.0)->second ); }
 
 //_______________________________________________________________________________
-Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
+Acts::BoundSquareMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 			        const SvtxTrackState *state) const
 {
-  Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
+  Acts::BoundSquareMatrix svtxCovariance = Acts::BoundSquareMatrix::Zero();
 
   for(int i = 0; i < 6; ++i)
     {
@@ -114,7 +116,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
   jacobianGlobalToLocal(Acts::eBoundTheta, 6) = -sinTheta;
   jacobianGlobalToLocal(Acts::eBoundQOverP, 7) = 1.;
   
-  Acts::BoundSymMatrix actsLocalCov = jacobianGlobalToLocal * rotatedMatrix * jacobianGlobalToLocal.transpose();
+  Acts::BoundSquareMatrix actsLocalCov = jacobianGlobalToLocal * rotatedMatrix * jacobianGlobalToLocal.transpose();
 
   /*
    * need to assign the covariance matrix diagonal element corresponding to the time coordinate manually, 
@@ -128,7 +130,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 }
 
 //_______________________________________________________________________________
-Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack( const ActsTrackFittingAlgorithm::TrackParameters& params ) const
+Acts::BoundSquareMatrix ActsTransformations::rotateActsCovToSvtxTrack( const ActsTrackFittingAlgorithm::TrackParameters& params ) const
 { 
   const auto covarianceMatrix = *params.covariance();
   printMatrix("Initial Acts covariance: ", covarianceMatrix);
@@ -180,7 +182,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack( const ActsTr
   sphenixRot(4,7) = uPy*p2;
   sphenixRot(5,7) = uPz*p2;
   
-  Acts::BoundSymMatrix globalCov = sphenixRot * rotatedMatrix * sphenixRot.transpose();
+  Acts::BoundSquareMatrix globalCov = sphenixRot * rotatedMatrix * sphenixRot.transpose();
   printMatrix("Global sPHENIX cov : ", globalCov);
 
   /// Convert to sPHENIX units
@@ -203,12 +205,12 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack( const ActsTr
   return globalCov;
 }
 
-void ActsTransformations::printMatrix(const std::string &message, const Acts::BoundSymMatrix& matrix) const
+void ActsTransformations::printMatrix(const std::string &message, const Acts::BoundSquareMatrix& matrix) const
 { if(m_verbosity > 10) print_matrix( message, matrix ); }
 
 void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 				       Acts::Vector3 vertex,
-				       Acts::BoundSymMatrix cov,
+				       Acts::BoundSquareMatrix cov,
 				       Acts::GeometryContext& geoCtxt,
 				       float &dca3Dxy,
 				       float &dca3Dz,
@@ -221,7 +223,7 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
   /// Correct for initial vertex estimation
   pos -= vertex;
 
-  Acts::ActsSymMatrix<3> posCov;
+  Acts::ActsSquareMatrix<3> posCov;
   for(int i = 0; i < 3; ++i)
     {
       for(int j = 0; j < 3; ++j)
@@ -248,7 +250,7 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
   rot_T = rot.transpose();
 
   Acts::Vector3 pos_R = rot * pos;
-  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
+  Acts::ActsSquareMatrix<3> rotCov = rot * posCov * rot_T;
 
   dca3Dxy = pos_R(0);
   dca3Dz = pos_R(2);
@@ -279,9 +281,11 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::ConstVectorMultiTrajec
       SvtxTrackState_v2 out( pathlength );
     
       // get smoothed fitted parameters
-      const Acts::BoundTrackParameters params(state.referenceSurface().getSharedPtr(),
+      const Acts::BoundTrackParameters params(
+        state.referenceSurface().getSharedPtr(),
         state.smoothed(),
-        state.smoothedCovariance());
+        state.smoothedCovariance(),
+        Acts::ParticleHypothesis::pion());
       
       // position
       const auto global = params.position(geoContext);

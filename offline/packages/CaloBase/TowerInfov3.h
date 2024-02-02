@@ -16,6 +16,7 @@ public:
     void Clear(Option_t* = "") override;
     
     // Getter and setter for waveform
+    int get_nsample() const override {return nsample;}
     int16_t get_waveform_value(int index) const override;
     void set_waveform_value(int index, int16_t value) override;
 

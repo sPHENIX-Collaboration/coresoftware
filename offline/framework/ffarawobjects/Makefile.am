@@ -16,6 +16,8 @@ libffarawobjects_la_LIBADD = \
   -lphool
 
 ROOTDICTS = \
+  Gl1RawHit_Dict.cc \
+  Gl1RawHitv1_Dict.cc \
   InttRawHit_Dict.cc \
   InttRawHitContainer_Dict.cc \
   InttRawHitContainerv1_Dict.cc \
@@ -28,8 +30,8 @@ ROOTDICTS = \
   MvtxRawHitContainer_Dict.cc \
   MvtxRawHitContainerv1_Dict.cc \
   MvtxRawHitv1_Dict.cc \
-  MvtxRawRunHeader_Dict.cc \
   MvtxRawEvtHeader_Dict.cc \
+  MvtxRawEvtHeaderv1_Dict.cc \
   TpcRawHit_Dict.cc \
   TpcRawHitContainer_Dict.cc \
   TpcRawHitContainerv1_Dict.cc \
@@ -37,6 +39,8 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  Gl1RawHit_Dict_rdict.pcm \
+  Gl1RawHitv1_Dict_rdict.pcm \
   InttRawHit_Dict_rdict.pcm \
   InttRawHitContainer_Dict_rdict.pcm \
   InttRawHitContainerv1_Dict_rdict.pcm \
@@ -46,17 +50,19 @@ nobase_dist_pcm_DATA = \
   MicromegasRawHitContainerv1_Dict_rdict.pcm \
   MicromegasRawHitv1_Dict_rdict.pcm \
   MvtxRawHit_Dict_rdict.pcm \
+  MvtxRawHitv1_Dict_rdict.pcm \
   MvtxRawHitContainer_Dict_rdict.pcm \
   MvtxRawHitContainerv1_Dict_rdict.pcm \
-  MvtxRawHitv1_Dict_rdict.pcm \
-  MvtxRawRunHeader_Dict_rdict.pcm \
   MvtxRawEvtHeader_Dict_rdict.pcm \
+  MvtxRawEvtHeaderv1_Dict_rdict.pcm \
   TpcRawHit_Dict_rdict.pcm \
   TpcRawHitContainer_Dict_rdict.pcm \
   TpcRawHitContainerv1_Dict_rdict.pcm \
   TpcRawHitv1_Dict_rdict.pcm
 
 pkginclude_HEADERS = \
+  Gl1RawHit.h \
+  Gl1RawHitv1.h \
   InttRawHit.h \
   InttRawHitContainer.h \
   InttRawHitContainerv1.h \
@@ -66,11 +72,11 @@ pkginclude_HEADERS = \
   MicromegasRawHitContainerv1.h \
   MicromegasRawHitv1.h \
   MvtxRawHit.h \
+  MvtxRawHitv1.h \
   MvtxRawHitContainer.h \
   MvtxRawHitContainerv1.h \
-  MvtxRawHitv1.h \
-  MvtxRawRunHeader.h \
   MvtxRawEvtHeader.h \
+  MvtxRawEvtHeaderv1.h \
   TpcRawHit.h \
   TpcRawHitContainer.h \
   TpcRawHitContainerv1.h \
@@ -78,14 +84,14 @@ pkginclude_HEADERS = \
 
 libffarawobjects_la_SOURCES = \
   $(ROOTDICTS) \
+  Gl1RawHitv1.cc \
   InttRawHitContainerv1.cc \
   InttRawHitv1.cc \
   MicromegasRawHitContainerv1.cc \
   MicromegasRawHitv1.cc \
   MvtxRawHitContainerv1.cc \
   MvtxRawHitv1.cc \
-  MvtxRawRunHeader.cc \
-  MvtxRawEvtHeader.cc \
+  MvtxRawEvtHeaderv1.cc \
   TpcRawHitContainerv1.cc \
   TpcRawHitv1.cc
 

@@ -10,7 +10,7 @@
 class PHG4CylinderGeomv3 : public PHG4CylinderGeomv2
 {
  public:
-  PHG4CylinderGeomv3();
+  PHG4CylinderGeomv3() = default;
   PHG4CylinderGeomv3(const double r, const double zmi, const double zma, const double thickn, const int n_scint,
                      const double tangl, const double phi_slat_null)
     : PHG4CylinderGeomv2(r, zmi, zma, thickn, n_scint)
@@ -31,8 +31,8 @@ class PHG4CylinderGeomv3 : public PHG4CylinderGeomv2
   double get_tiltangle() const override { return tiltangle; }
 
  protected:
-  double tiltangle;
-  double phi_slat_zero;
+  double tiltangle {std::numeric_limits<double>::quiet_NaN()};
+  double phi_slat_zero {std::numeric_limits<double>::quiet_NaN()};
 
   ClassDefOverride(PHG4CylinderGeomv3, 1)
 };

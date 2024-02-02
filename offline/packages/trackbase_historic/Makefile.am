@@ -10,8 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -isystem$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -26,6 +25,7 @@ pkginclude_HEADERS = \
   TrackSeed.h \
   TrackSeed_v1.h \
   SvtxTrackSeed_v1.h \
+  SvtxTrackSeed_v2.h \
   TrackSeed_FastSim_v1.h \
   TrackSeedContainer.h \
   TrackSeedContainer_v1.h \
@@ -66,7 +66,8 @@ pkginclude_HEADERS = \
   TrackStateInfo.h \ 
   TrackStateInfo_v1.h \
   TrackInfoContainer.h \
-  TrackInfoContainer_v1.h 
+  TrackInfoContainer_v1.h \
+  TrackAnalysisUtils.h 
 
 ROOTDICTS = \
   cluster_with_key_Dict.cc \
@@ -74,6 +75,7 @@ ROOTDICTS = \
   TrackSeed_Dict.cc \
   TrackSeed_v1_Dict.cc \
   SvtxTrackSeed_v1_Dict.cc \
+  SvtxTrackSeed_v2_Dict.cc \
   TrackSeed_FastSim_v1_Dict.cc \
   TrackSeedContainer_Dict.cc \
   TrackSeedContainer_v1_Dict.cc \
@@ -113,7 +115,8 @@ ROOTDICTS = \
   TrackStateInfo_Dict.cc \ 
   TrackStateInfo_v1_Dict.cc \
   TrackInfoContainer_Dict.cc \
-  TrackInfoContainer_v1_Dict.cc 
+  TrackInfoContainer_v1_Dict.cc \
+  SvtxTrackCaloClusterMap_v1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
@@ -122,6 +125,7 @@ nobase_dist_pcm_DATA = \
   TrackSeed_Dict_rdict.pcm \
   TrackSeed_v1_Dict_rdict.pcm \
   SvtxTrackSeed_v1_Dict_rdict.pcm \
+  SvtxTrackSeed_v2_Dict_rdict.pcm \
   TrackSeed_FastSim_v1_Dict_rdict.pcm \
   TrackSeedContainer_Dict_rdict.pcm \
   TrackSeedContainer_v1_Dict_rdict.pcm \
@@ -161,7 +165,8 @@ nobase_dist_pcm_DATA = \
   TrackStateInfo_Dict_rdict.pcm \ 
   TrackStateInfo_v1_Dict_rdict.pcm \
   TrackInfoContainer_Dict_rdict.pcm \
-  TrackInfoContainer_v1_Dict_rdict.pcm 
+  TrackInfoContainer_v1_Dict_rdict.pcm \
+  SvtxTrackCaloClusterMap_v1_Dict_rdict.pcm
 
 # sources for io library
 libtrackbase_historic_io_la_SOURCES = \
@@ -170,6 +175,7 @@ libtrackbase_historic_io_la_SOURCES = \
   TrackSeed.cc \
   TrackSeed_v1.cc \
   SvtxTrackSeed_v1.cc \
+  SvtxTrackSeed_v2.cc \
   TrackSeed_FastSim_v1.cc \
   TrackSeedContainer.cc \
   TrackSeedContainer_v1.cc \
@@ -205,7 +211,8 @@ libtrackbase_historic_io_la_SOURCES = \
   TrackAnalysisUtils.cc \
   SvtxTrackInfo_v1.cc \
   TrackStateInfo_v1cc \  
-  TrackInfoContainer_v1.cc 
+  TrackInfoContainer_v1.cc \
+  TrackAnalysisUtils.cc
 
 libtrackbase_historic_io_la_LDFLAGS = \
   -L$(libdir) \

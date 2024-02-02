@@ -243,7 +243,8 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) con
 
   return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geometry().getGeoContext(),
 					    actsFourPos, momentum,
-					    trackQ/p, cov).value();
+					    trackQ/p, cov,
+					    Acts::ParticleHypothesis::pion()).value();
  
 }
 

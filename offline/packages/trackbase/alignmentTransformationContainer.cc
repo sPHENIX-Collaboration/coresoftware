@@ -131,6 +131,22 @@ Acts::Transform3& alignmentTransformationContainer::getTransform(const Acts::Geo
   exit(1); 
 }
 
+void alignmentTransformationContainer::replaceTransform(const Acts::GeometryIdentifier id, Acts::Transform3 transform)
+{
+  unsigned int sphlayer = getsphlayer(id);
+  unsigned int sensor = id.sensitive() - 1;  // Acts sensor numbering starts at 1
+
+  auto& layerVec = transformVec[sphlayer];
+  if(layerVec.size() > sensor)
+    {
+      layerVec[sensor] = transform;
+      return;
+    }
+  
+  std::cout << "Unable to find Acts Id: "<< id<<  " in alignmentTransformationContainer" << std::endl;
+  exit(1); 
+}
+
 const std::vector<std::vector<Acts::Transform3>>& alignmentTransformationContainer::getMap() const
 {
   return transformVec;
@@ -141,6 +157,6 @@ unsigned int alignmentTransformationContainer::getsphlayer(Acts::GeometryIdentif
   unsigned int layer = id.layer(); 
   unsigned int volume = id.volume(); 
   unsigned int sphlayer = base_layer_map.find(volume)->second + layer / 2 -1;
-  
+
   return sphlayer;
 }

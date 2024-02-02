@@ -163,32 +163,42 @@ PHG4Detector *PHG4InttSubsystem::GetDetector(void) const
 
 void PHG4InttSubsystem::SetDefaultParameters()
 {
-  // We have only two types of ladders, one with vertical strips (SEGMENTATION_Z) and one with horizontal strips (SEGMENTATION_PHI)set
-  // There are 4 sensors in each ladder
-  //     In ladder type 0 the sensor is special and inner and outer sensors are the same.
-  //     In ladder type 1 there are two different sensor types, inner and outer
-  // We do not want to hard code the ladder types for the layers
-
-  // We define default ladder types for 8 layers, but these can be changed at the macro level
-
-  int laddertype[8] = {PHG4InttDefs::SEGMENTATION_Z,
-                       PHG4InttDefs::SEGMENTATION_Z,
-                       PHG4InttDefs::SEGMENTATION_PHI,
-                       PHG4InttDefs::SEGMENTATION_PHI,
-                       PHG4InttDefs::SEGMENTATION_PHI,
+  int laddertype[4] = {PHG4InttDefs::SEGMENTATION_PHI,
                        PHG4InttDefs::SEGMENTATION_PHI,
                        PHG4InttDefs::SEGMENTATION_PHI,
                        PHG4InttDefs::SEGMENTATION_PHI};  // default
 
-  int nladder[8] = {17, 17, 12, 12, 16, 16, 21, 21};  // default, new 03/05/2020
+  int nladder[4] = {12, 12, 16, 16};
+  double sensor_radius[4] = {7.188 - 36e-4, 7.732 - 36e-4, 9.680 - 36e-4, 10.262 - 36e-4};
+  double offsetphi[4] = {-0.5 * 360.0 / nladder[0], 0.0, -0.5 * 360.0 / nladder[2], 0.0};  
 
-  double sensor_radius[8] = {6.876, 7.462,
-                             // 4 elements are those for PHG4InttDefs::SEGMENTATION_PHI, 36um subtracted to set si sensors at the place
-                             // these subtractions are due to different thickness of glue for the sensors (14um) and the FPHX chips (50um)
-                             7.188 - 36e-4, 7.732 - 36e-4, 9.680 - 36e-4, 10.262 - 36e-4,
-                             12.676, 13.179};  // radius of center of sensor for layer default, new 30/05/2020
+  // This was the original code block; I am leaving it here as a comment in case any of the changes need to be reverted
+  // // We have only two types of ladders, one with vertical strips (SEGMENTATION_Z) and one with horizontal strips (SEGMENTATION_PHI)set
+  // // There are 4 sensors in each ladder
+  // //     In ladder type 0 the sensor is special and inner and outer sensors are the same.
+  // //     In ladder type 1 there are two different sensor types, inner and outer
+  // // We do not want to hard code the ladder types for the layers
 
-  double offsetphi[4] = {-0.5 * 360.0 / nladder[0+2], 0.0, -0.5 * 360.0 / nladder[2+2], 0.0 }; // the final configuration, July/09/202
+  // // We define default ladder types for 8 layers, but these can be changed at the macro level
+
+  // int laddertype[8] = {PHG4InttDefs::SEGMENTATION_Z,
+  //                      PHG4InttDefs::SEGMENTATION_Z,
+  //                      PHG4InttDefs::SEGMENTATION_PHI,
+  //                      PHG4InttDefs::SEGMENTATION_PHI,
+  //                      PHG4InttDefs::SEGMENTATION_PHI,
+  //                      PHG4InttDefs::SEGMENTATION_PHI,
+  //                      PHG4InttDefs::SEGMENTATION_PHI,
+  //                      PHG4InttDefs::SEGMENTATION_PHI};  // default
+
+  // int nladder[8] = {17, 17, 12, 12, 16, 16, 21, 21};  // default, new 03/05/2020
+
+  // double sensor_radius[8] = {6.876, 7.462,
+  //                            // 4 elements are those for PHG4InttDefs::SEGMENTATION_PHI, 36um subtracted to set si sensors at the place
+  //                            // these subtractions are due to different thickness of glue for the sensors (14um) and the FPHX chips (50um)
+  //                            7.188 - 36e-4, 7.732 - 36e-4, 9.680 - 36e-4, 10.262 - 36e-4,
+  //                            12.676, 13.179};  // radius of center of sensor for layer default, new 30/05/2020
+
+  // double offsetphi[4] = {-0.5 * 360.0 / nladder[0+2], 0.0, -0.5 * 360.0 / nladder[2+2], 0.0 }; // the final configuration, July/09/202
  
   auto detid = GetDetIds();  // get pair of iterators to begin/end of set<int> of detids
   for (auto detiter = detid.first; detiter != detid.second; ++detiter)

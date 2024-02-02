@@ -1,17 +1,14 @@
-
 #include "ClusterJetInput.h"
 
 #include "Jet.h"
-#include "Jetv1.h"
-
-#include <phool/getClass.h>
+#include "Jetv2.h"
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
-
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
+#include <phool/getClass.h>
 
 #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 
@@ -158,7 +155,7 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
 
     CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetEVec(*cluster, vertex);
 
-    Jet *jet = new Jetv1();
+    Jet *jet = new Jetv2();
     jet->set_px(E_vec_cluster.x());
     jet->set_py(E_vec_cluster.y());
     jet->set_pz(E_vec_cluster.z());

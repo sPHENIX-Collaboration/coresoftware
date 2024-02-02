@@ -119,6 +119,7 @@ class EMMaximization
     , m_a2(0.)
     , mBestCost(-1.)
   {
+// cppcheck-suppress [useInitializationList]
     mFunc = &DefaultJ;
   };
   ///////////////////////////////////////////////////////////////
@@ -376,7 +377,9 @@ class EcoMug
     ,
     /* mMaxFuncSkyCylinder(5.3176), */ mHSphereCenterPosition({{0., 0., 0.}})
   {
+// cppcheck-suppress [useInitializationList]
     mMaxJ = {-1., -1., -1.};
+// cppcheck-suppress [useInitializationList]
     mMaxCustomJ = {-1., -1., -1.};
   };
 

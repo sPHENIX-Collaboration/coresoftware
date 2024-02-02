@@ -14,15 +14,13 @@ class TrkrClusterContainer;
 
 class TrackFitUtils
 {
-
-  public:
-
+ public:
   using position_t = std::pair<double, double>;
   using position_vector_t = std::vector<position_t>;
 
   /// circle fit output [R, x0, y0]
   using circle_fit_output_t = std::tuple<double, double, double>;
-  
+
   /**
    * Circle fit to a given set of data points (in 2D)
    * This is an algebraic fit, due to Taubin, based on the journal article
@@ -38,10 +36,10 @@ class TrackFitUtils
   static circle_fit_output_t circle_fit_by_taubin(const position_vector_t&);
 
   /// convenient overload
-  static circle_fit_output_t circle_fit_by_taubin(const std::vector<Acts::Vector3>& );
+  static circle_fit_output_t circle_fit_by_taubin(const std::vector<Acts::Vector3>&);
 
   /// line fit output [slope, intercept]
-  using line_fit_output_t = std::tuple<double,double>;
+  using line_fit_output_t = std::tuple<double, double>;
 
   /// line_fit
   /**
@@ -51,12 +49,11 @@ class TrackFitUtils
   static line_fit_output_t line_fit(const position_vector_t&);
 
   /// convenient overload
-  static line_fit_output_t line_fit(const std::vector<Acts::Vector3>& );
+  static line_fit_output_t line_fit(const std::vector<Acts::Vector3>&);
 
   /// circle-circle intersection output. (xplus, yplus, xminus, yminus)
   using circle_circle_intersection_output_t = std::tuple<double, double, double, double>;
 
-  
   /**
    * r1 is radius of sPHENIX layer
    * r2, x2 and y2 are parameters of circle fitted to TPC clusters
@@ -70,29 +67,41 @@ class TrackFitUtils
    * iy = - (2*x2*x - D) / 2*y2,
    * then substitute for y in equation of circle 1
    */
-  static circle_circle_intersection_output_t circle_circle_intersection( double r1, double r2, double x2, double y2 );  
+  static circle_circle_intersection_output_t circle_circle_intersection(double r1, double r2, double x2, double y2);
 
-  static unsigned int addSiliconClusters(std::vector<float>& fitpars, 
-					 double dca_cut,
-					 ActsGeometry* _tGeometry,
-					 TrkrClusterContainer * _cluster_map,
-					 std::vector<Acts::Vector3>& global_vec,  
-					 std::vector<TrkrDefs::cluskey>& cluskey_vec);
+  static unsigned int addClusters(std::vector<float>& fitpars,
+                                  double dca_cut,
+                                  ActsGeometry* _tGeometry,
+                                  TrkrClusterContainer* _cluster_map,
+                                  std::vector<Acts::Vector3>& global_vec,
+                                  std::vector<TrkrDefs::cluskey>& cluskey_vec,
+                                  unsigned int startLayer,
+                                  unsigned int endLayer);
 
-    static std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global);
+  static unsigned int addClustersOnLine(TrackFitUtils::line_fit_output_t& fitpars,
+                                        const bool& isXY,
+                                        const double& dca_cut,
+                                        ActsGeometry* tGeometry,
+                                        TrkrClusterContainer* clusterContainer,
+                                        std::vector<Acts::Vector3>& global_vec,
+                                        std::vector<TrkrDefs::cluskey>& cluskey_vec,
+                                        const unsigned int& startLayer,
+                                        const unsigned int& endLayer);
+
+  static std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global);
 
   static Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, Acts::Vector3 global);
 
   static Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
 
-  static std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, 
-						       std::vector<TrkrDefs::cluskey> cluskey_vec);
-  static void getTrackletClusters( ActsGeometry * _tGeometry, 
-				  TrkrClusterContainer * _cluster_map,
-				  std::vector<Acts::Vector3>& global_vec, 
-				  std::vector<TrkrDefs::cluskey>& cluskey_vec);
+  static std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec,
+                                        std::vector<TrkrDefs::cluskey> cluskey_vec);
+  static void getTrackletClusters(ActsGeometry* _tGeometry,
+                                  TrkrClusterContainer* _cluster_map,
+                                  std::vector<Acts::Vector3>& global_vec,
+                                  std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
-  static Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref); 
+  static Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref);
 
   static std::vector<double> getLineClusterResiduals(position_vector_t& rz_pts, float slope, float intercept);
   static std::vector<double> getCircleClusterResiduals(position_vector_t& xy_pts, float R, float X0, float Y0);

@@ -698,6 +698,18 @@ int Fun4AllServer::process_event()
           ffamemtracker->Stop((*iterOutMan)->Name(), "OutputManager");
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
 #endif
+          if ((*iterOutMan)->EventsWritten() >= (*iterOutMan)->GetNEvents())
+          {
+            if (Verbosity() > 0)
+            {
+              std::cout << PHWHERE << (*iterOutMan)->Name() << " wrote " << (*iterOutMan)->EventsWritten()
+                        << " events, closing " << (*iterOutMan)->OutFileName() << std::endl;
+            }
+            PHNodeIterator nodeiter(TopNode);
+            PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
+            MakeNodesTransient(runNode);  // make all nodes transient by default
+            (*iterOutMan)->WriteNode(runNode);
+          }
         }
         else
         {
@@ -836,21 +848,6 @@ int Fun4AllServer::BeginRun(const int runno)
     BeginRunSubsystem(std::make_pair(NewSubsystems.front().first, topNode(NewSubsystems.front().second)));
   }
   gROOT->cd(currdir.c_str());
-  // disconnect from DB to save resources on DB machine
-  // PdbCal leaves the DB connection open (PdbCal will reconnect without
-  // problem if neccessary)
-  if (!keep_db_connected)
-  {
-    DisconnectDB();
-  }
-  else
-  {
-    std::cout << "WARNING WARNING, DBs will not be disconnected" << std::endl;
-    std::cout << "This is for DB server testing purposes only" << std::endl;
-    std::cout << "If you do not test our DB servers, remove" << std::endl;
-    std::cout << "Fun4AllServer->KeepDBConnection()" << std::endl;
-    std::cout << "from your macro" << std::endl;
-  }
   // print out all node trees
   Print("NODETREE");
 #ifdef FFAMEMTRACKER
@@ -1589,11 +1586,6 @@ void Fun4AllServer::GetInputFullFileList(std::vector<std::string> &fnames) const
   return;
 }
 
-int Fun4AllServer::DisconnectDB()
-{
-  return 0;
-}
-
 unsigned
 Fun4AllServer::GetTopNodes(std::vector<std::string> &names) const
 {
@@ -1670,16 +1662,13 @@ int Fun4AllServer::setRun(const int runno)
 {
   recoConsts *rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER", runno);
-  PHTimeStamp *tstamp = nullptr;
-  if (!tstamp)
+  if (! rc->FlagExist("TIMESTAMP"))
   {
-    tstamp = new PHTimeStamp(0);
-    std::cout << "Fun4AllServer::setRun(): could not get timestamp for run  " << runno
-              << ", using tics(0) timestamp: ";
-    tstamp->print();
-    std::cout << std::endl;
+    rc->set_uint64Flag("TIMESTAMP",runno);
   }
-  delete tstamp;
+  std::cout << "Fun4AllServer::setRun(): run " << runno
+	    << " uses CDB TIMESTAMP " << rc->get_uint64Flag("TIMESTAMP")
+	    << std::endl;
   FrameWorkVars->SetBinContent(RUNNUMBERBIN, (Stat_t) runno);
   return 0;
 }

@@ -601,17 +601,17 @@ namespace
     std::multimap<unsigned short, ihit> all_hit_map;
     std::vector<ihit> hit_vect;
 
-    int tbinmax = 498;
+    int tbinmax = tbins;
     int tbinmin = 0;
     if(my_data->do_wedge_emulation){
       if(layer>=7 && layer <22){
-	int etacut = 249 - ((50+(layer-7))/105.5)*249;
-	tbinmin = etacut;
+        int etacut = (tbins / 2.) - ((50 + (layer - 7)) / 105.5) * (tbins / 2.);
+        tbinmin = etacut;
 	tbinmax -= etacut;
       }
       if(layer>=22 && layer <=48){
-	int etacut = 249 - ((65+((40.5/26)*(layer-22)))/105.5)*249;
-	tbinmin = etacut;
+        int etacut = (tbins / 2.) - ((65 + ((40.5 / 26) * (layer - 22))) / 105.5) * (tbins / 2.);
+        tbinmin = etacut;
 	tbinmax -= etacut;
       }
     }

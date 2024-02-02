@@ -1,11 +1,14 @@
 #include "InttMapping.h"
 #include "InttFelixMap.h"
 
+#include <ffarawobjects/InttRawHit.h>
+#include <ffarawobjects/InttRawHitContainer.h>
+
 #include <Event/packet.h>
 
 #include <utility>   // for pair
 
-const std::map<int, int> Intt::Packet_Id =
+const std::map<int, int> InttNameSpace::Packet_Id =
 {
 	{3001, 0},
 	{3002, 1},
@@ -17,7 +20,7 @@ const std::map<int, int> Intt::Packet_Id =
 	{3008, 7},
 };
 
-int Intt::FelixFromPacket(int packetid)
+int InttNameSpace::FelixFromPacket(int packetid)
 {
 	packetid -= 3001;
 
@@ -27,7 +30,7 @@ int Intt::FelixFromPacket(int packetid)
 	return packetid;
 }
 
-struct Intt::RawData_s Intt::RawFromPacket(int const _i, int const _n, Packet* _p)
+struct InttNameSpace::RawData_s InttNameSpace::RawFromPacket(int const _i, int const _n, Packet* _p)
 {
 	struct RawData_s s;
 
@@ -43,7 +46,15 @@ struct Intt::RawData_s Intt::RawFromPacket(int const _i, int const _n, Packet* _
 	return s;
 }
 
-struct Intt::Online_s Intt::ToOnline(struct Offline_s const& _s)
+void InttNameSpace::RawFromHit(struct InttNameSpace::RawData_s& s, InttRawHit* h)
+{
+	s.felix_server = InttNameSpace::FelixFromPacket(h->get_packetid());
+	s.felix_channel = h->get_fee();
+	s.chip = (h->get_chip_id() + 25) % 26;
+	s.channel = h->get_channel_id();
+}
+
+struct InttNameSpace::Online_s InttNameSpace::ToOnline(struct Offline_s const& _s)
 {
 	struct Online_s s;
 	int n_ldr = _s.layer < 5 ? 12 : 16;
@@ -55,19 +66,19 @@ struct Intt::Online_s Intt::ToOnline(struct Offline_s const& _s)
 	switch(_s.ladder_z)
 	{
 		case 1:
-		s.chp = _s.strip_y + 13 * !(_s.strip_x < 128);
+		s.chp = _s.strip_y + 13 * (_s.strip_x < 128);
 		break;
 
 		case 0:
-		s.chp = _s.strip_y + 13 * !(_s.strip_x < 128) + 5;
+		s.chp = _s.strip_y + 13 * (_s.strip_x < 128) + 5;
 		break;
 
 		case 2:
-		s.chp = 12 - _s.strip_y + 13 * (_s.strip_x < 128);
+		s.chp = 12 - _s.strip_y + 13 * !(_s.strip_x < 128);
 		break;
 
 		case 3:
-		s.chp = 4 - _s.strip_y + 13 * (_s.strip_x < 128);
+		s.chp = 4 - _s.strip_y + 13 * !(_s.strip_x < 128);
 		break;
 
 		default:
@@ -79,7 +90,7 @@ struct Intt::Online_s Intt::ToOnline(struct Offline_s const& _s)
 	return s;
 }
 
-struct Intt::Offline_s Intt::ToOffline(struct Online_s const& _s)
+struct InttNameSpace::Offline_s InttNameSpace::ToOffline(struct Online_s const& _s)
 {
 	struct Offline_s s;
 	int n_ldr = _s.lyr < 2 ? 12 : 16;
@@ -110,12 +121,12 @@ struct Intt::Offline_s Intt::ToOffline(struct Online_s const& _s)
 		break;
 	}
 
-	s.strip_x = (_s.arm == (_s.chp / 13)) ? _s.chn : 255 - _s.chn;
+	s.strip_x = (_s.arm == (_s.chp / 13)) ? 255 - _s.chn : _s.chn;
 
 	return s;
 }
 
-struct Intt::RawData_s Intt::ToRawData(struct Online_s const& _s)
+struct InttNameSpace::RawData_s InttNameSpace::ToRawData(struct Online_s const& _s)
 {
 	struct RawData_s s;
 
@@ -126,7 +137,7 @@ struct Intt::RawData_s Intt::ToRawData(struct Online_s const& _s)
 	return s;
 }
 
-struct Intt::Online_s Intt::ToOnline(struct RawData_s const& _s)
+struct InttNameSpace::Online_s InttNameSpace::ToOnline(struct RawData_s const& _s)
 {
 	struct Online_s s;
 
@@ -137,17 +148,49 @@ struct Intt::Online_s Intt::ToOnline(struct RawData_s const& _s)
 	return s;
 }
 
-struct Intt::RawData_s Intt::ToRawData(struct Offline_s const& _s)
+struct InttNameSpace::RawData_s InttNameSpace::ToRawData(struct Offline_s const& _s)
 {
 	return ToRawData(ToOnline(_s));
 }
 
-struct Intt::Offline_s Intt::ToOffline(struct RawData_s const& _s)
+struct InttNameSpace::Offline_s InttNameSpace::ToOffline(struct RawData_s const& _s)
 {
 	return ToOffline(ToOnline(_s));
 }
 
-//Eigen::Affine3d Intt::GetTransform(TTree* tree, struct Intt::Offline_s const& _s)
+bool InttNameSpace::RawDataComparator::operator()(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs) const
+{
+	if(lhs.felix_server != rhs.felix_server)return lhs.felix_server < rhs.felix_server;
+	if(lhs.felix_channel != rhs.felix_channel)return lhs.felix_channel < rhs.felix_channel;
+	if(lhs.chip != rhs.chip)return lhs.chip < rhs.chip;
+	if(lhs.channel != rhs.channel)return lhs.channel < rhs.channel;
+
+	return false;
+}
+
+bool InttNameSpace::OnlineComparator::operator()(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs) const
+{
+	if(lhs.lyr != rhs.lyr)return lhs.lyr < rhs.lyr;
+	if(lhs.ldr != rhs.ldr)return lhs.ldr < rhs.ldr;
+	if(lhs.arm != rhs.arm)return lhs.arm < rhs.arm;
+	if(lhs.chp != rhs.chp)return lhs.chp < rhs.chp;
+	if(lhs.chn != rhs.chn)return lhs.chn < rhs.chn;
+
+	return false;
+}
+
+bool InttNameSpace::OfflineComparator::operator()(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs) const
+{
+	if(lhs.layer != rhs.layer)return lhs.layer < rhs.layer;
+	if(lhs.ladder_phi != rhs.ladder_phi)return lhs.ladder_phi < rhs.ladder_phi;
+	if(lhs.ladder_z != rhs.ladder_z)return lhs.ladder_z < rhs.ladder_z;
+	if(lhs.strip_x != rhs.strip_x)return lhs.strip_x < rhs.strip_x;
+	if(lhs.strip_y != rhs.strip_y)return lhs.strip_y < rhs.strip_y;
+
+	return false;
+}
+
+//Eigen::Affine3d InttNameSpace::GetTransform(TTree* tree, struct InttNameSpace::Offline_s const& _s)
 //{
 //	Eigen::Affine3d t;
 //
@@ -200,7 +243,7 @@ struct Intt::Offline_s Intt::ToOffline(struct RawData_s const& _s)
 //	return t;
 //}
 //
-//Eigen::Vector4d Intt::GetLocalPos(struct Intt::Offline_s const& _s)
+//Eigen::Vector4d InttNameSpace::GetLocalPos(struct InttNameSpace::Offline_s const& _s)
 //{
 //	Eigen::Vector4d u = {0.0, 0.0, 0.0, 1.0};
 //
@@ -218,7 +261,7 @@ struct Intt::Offline_s Intt::ToOffline(struct RawData_s const& _s)
 //	return u;
 //}
 
-bool operator==(struct Intt::RawData_s const& lhs, struct Intt::RawData_s const& rhs)
+bool operator==(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs)
 {
 	if(lhs.felix_server != rhs.felix_server)return false;
 	if(lhs.felix_channel != rhs.felix_channel)return false;
@@ -228,7 +271,7 @@ bool operator==(struct Intt::RawData_s const& lhs, struct Intt::RawData_s const&
 	return true;
 }
 
-bool operator==(struct Intt::Online_s const& lhs, struct Intt::Online_s const& rhs)
+bool operator==(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs)
 {
 	if(lhs.lyr != rhs.lyr)return false;
 	if(lhs.ldr != rhs.ldr)return false;
@@ -239,7 +282,7 @@ bool operator==(struct Intt::Online_s const& lhs, struct Intt::Online_s const& r
 	return true;
 }
 
-bool operator==(struct Intt::Offline_s const& lhs, struct Intt::Offline_s const& rhs)
+bool operator==(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs)
 {
 	if(lhs.layer != rhs.layer)return false;
 	if(lhs.ladder_phi != rhs.ladder_phi)return false;
@@ -250,22 +293,22 @@ bool operator==(struct Intt::Offline_s const& lhs, struct Intt::Offline_s const&
 	return true;
 }
 
-bool operator!=(struct Intt::RawData_s const& lhs, struct Intt::RawData_s const& rhs)
+bool operator!=(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs)
 {
 	return !(lhs == rhs);
 }
 
-bool operator!=(struct Intt::Online_s const& lhs, struct Intt::Online_s const& rhs)
+bool operator!=(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs)
 {
 	return !(lhs == rhs);
 }
 
-bool operator!=(struct Intt::Offline_s const& lhs, struct Intt::Offline_s const& rhs)
+bool operator!=(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs)
 {
 	return !(lhs == rhs);
 }
 
-bool operator<(struct Intt::RawData_s const& lhs, struct Intt::RawData_s const& rhs)
+bool operator<(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs)
 {
 	if(lhs.felix_server != rhs.felix_server)return lhs.felix_server < rhs.felix_server;
 	if(lhs.felix_channel != rhs.felix_channel)return lhs.felix_channel < rhs.felix_channel;
@@ -275,7 +318,7 @@ bool operator<(struct Intt::RawData_s const& lhs, struct Intt::RawData_s const& 
 	return false;
 }
 
-bool operator<(struct Intt::Online_s const& lhs, struct Intt::Online_s const& rhs)
+bool operator<(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs)
 {
 	if(lhs.lyr != rhs.lyr)return lhs.lyr < rhs.lyr;
 	if(lhs.ldr != rhs.ldr)return lhs.ldr < rhs.ldr;
@@ -286,7 +329,7 @@ bool operator<(struct Intt::Online_s const& lhs, struct Intt::Online_s const& rh
 	return false;
 }
 
-bool operator<(struct Intt::Offline_s const& lhs, struct Intt::Offline_s const& rhs)
+bool operator<(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs)
 {
 	if(lhs.layer != rhs.layer)return lhs.layer < rhs.layer;
 	if(lhs.ladder_phi != rhs.ladder_phi)return lhs.ladder_phi < rhs.ladder_phi;
@@ -297,47 +340,47 @@ bool operator<(struct Intt::Offline_s const& lhs, struct Intt::Offline_s const& 
 	return false;
 }
 
-bool operator>(struct Intt::RawData_s const& lhs, struct Intt::RawData_s const& rhs)
+bool operator>(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs)
 {
 	return rhs < lhs;
 }
 
-bool operator>(struct Intt::Online_s const& lhs, struct Intt::Online_s const& rhs)
+bool operator>(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs)
 {
 	return rhs < lhs;
 }
 
-bool operator>(struct Intt::Offline_s const& lhs, struct Intt::Offline_s const& rhs)
+bool operator>(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs)
 {
 	return rhs < lhs;
 }
 
-bool operator>=(struct Intt::RawData_s const& lhs, struct Intt::RawData_s const& rhs)
+bool operator>=(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs)
 {
 	return !(lhs < rhs);
 }
 
-bool operator>=(struct Intt::Online_s const& lhs, struct Intt::Online_s const& rhs)
+bool operator>=(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs)
 {
 	return !(lhs < rhs);
 }
 
-bool operator>=(struct Intt::Offline_s const& lhs, struct Intt::Offline_s const& rhs)
+bool operator>=(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs)
 {
 	return !(lhs < rhs);
 }
 
-bool operator<=(struct Intt::RawData_s const& lhs, struct Intt::RawData_s const& rhs)
+bool operator<=(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs)
 {
 	return !(lhs > rhs);
 }
 
-bool operator<=(struct Intt::Online_s const& lhs, struct Intt::Online_s const& rhs)
+bool operator<=(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs)
 {
 	return !(lhs > rhs);
 }
 
-bool operator<=(struct Intt::Offline_s const& lhs, struct Intt::Offline_s const& rhs)
+bool operator<=(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs)
 {
 	return !(lhs > rhs);
 }

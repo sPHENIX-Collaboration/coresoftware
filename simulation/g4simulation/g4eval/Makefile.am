@@ -78,7 +78,6 @@ pkginclude_HEADERS = \
   TrackEvaluation.h \
   TrackEvaluationContainer.h \
   TrackEvaluationContainerv1.h  \
-  TrackSeedTrackMapConverter.h \
   TruthRecoTrackMatching.h \
   compressor_generator.h
 
@@ -134,7 +133,6 @@ libg4eval_la_SOURCES = \
   TrackClusEvaluator.cc \
   TrkrClusterIsMatcher.cc \
   TrackEvaluation.cc \
-  TrackSeedTrackMapConverter.cc \
   TruthRecoTrackMatching.cc
 
 # Rule for generating table CINT dictionaries.

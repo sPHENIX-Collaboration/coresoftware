@@ -20,3 +20,8 @@ void TpcRawHitv1::identify(std::ostream &os) const
   os << "BCO: 0x" << std::hex << bco << std::dec << std::endl;
   os << "packet id: " << packetid << std::endl;
 }
+
+void TpcRawHitv1::Clear(Option_t *)
+{
+  adc = std::vector<uint16_t>();
+}

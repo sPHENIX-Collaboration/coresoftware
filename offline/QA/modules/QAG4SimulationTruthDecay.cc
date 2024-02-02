@@ -1,6 +1,6 @@
 #include "QAG4SimulationTruthDecay.h"
 
-#include "QAHistManagerDef.h"
+#include <qautils/QAHistManagerDef.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
