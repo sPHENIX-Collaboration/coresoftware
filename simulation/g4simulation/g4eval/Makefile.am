@@ -10,14 +10,18 @@ AM_CPPFLAGS = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 lib_LTLIBRARIES = \
    libg4eval_io.la \
    libg4eval.la
 
 libg4eval_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lActsCore \
+  -ltrack_io 
+  
 
 libg4eval_la_LIBADD = \
   libg4eval_io.la \
@@ -35,7 +39,7 @@ libg4eval_la_LIBADD = \
   -lphg4hit \
   -ltrackbase_historic_io \
   -ltrack_io \
-  -ltpc_io
+  -ltpc_io 
 
 pkginclude_HEADERS = \
   BaseTruthEval.h \
@@ -46,6 +50,8 @@ pkginclude_HEADERS = \
   CaloTruthEval.h \
   DSTCompressor.h \
   DSTEmulator.h \
+  DSTReader.h \
+  DSTWriter.h \
   EventEvaluator.h \
   FillTruthRecoMatchMap.h \
   FillClusMatchTree.h \
@@ -79,16 +85,21 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   TrackEvaluationContainer_Dict.cc \
-  TrackEvaluationContainerv1_Dict.cc
+  TrackEvaluationContainerv1_Dict.cc \
+  DSTContainer_Dict.cc \
+  DSTContainerv3_Dict.cc 
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   TrackEvaluationContainer_Dict_rdict.pcm \
-  TrackEvaluationContainerv1_Dict_rdict.pcm
+  TrackEvaluationContainerv1_Dict_rdict.pcm \
+  DSTContainer_Dict_rdict.pcm \
+	DSTContainerv3_Dict_rdict.pcm 
 
 libg4eval_io_la_SOURCES = \
   $(ROOTDICTS) \
-  TrackEvaluationContainerv1.cc
+  TrackEvaluationContainerv1.cc \
+  DSTContainerv3.cc 
 
 libg4eval_la_SOURCES = \
   BaseTruthEval.cc \
@@ -98,6 +109,8 @@ libg4eval_la_SOURCES = \
   CaloRawTowerEval.cc \
   CaloTruthEval.cc \
   DSTEmulator.cc \
+  DSTWriter.cc \
+  DSTReader.cc \
   EventEvaluator.cc \
   FillTruthRecoMatchMap.cc \
   FillClusMatchTree.cc \

@@ -21,6 +21,8 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsTransformations.h \
+  cluster_with_key.h \
+  cluster_with_sector_side.h \
   TrackSeed.h \
   TrackSeed_v1.h \
   SvtxTrackSeed_v1.h \
@@ -58,10 +60,17 @@ pkginclude_HEADERS = \
   SvtxVertex_v1.h \
   SvtxVertexMap.h \
   SvtxVertexMap_v1.h \
-  TrackAnalysisUtils.h 
-  
+  TrackAnalysisUtils.h \
+  SvtxTrackInfo.h \
+  SvtxTrackInfo_v1.h \
+  TrackStateInfo.h \ 
+  TrackStateInfo_v1.h \
+  TrackInfoContainer.h \
+  TrackInfoContainer_v1.h 
 
 ROOTDICTS = \
+  cluster_with_key_Dict.cc \
+  cluster_with_sector_side_Dict.cc \
   TrackSeed_Dict.cc \
   TrackSeed_v1_Dict.cc \
   SvtxTrackSeed_v1_Dict.cc \
@@ -98,10 +107,18 @@ ROOTDICTS = \
   SvtxVertex_Dict.cc \
   SvtxVertex_v1_Dict.cc \
   SvtxVertexMap_Dict.cc \
-  SvtxVertexMap_v1_Dict.cc 
+  SvtxVertexMap_v1_Dict.cc \
+  SvtxTrackInfo_Dict.cc \
+  SvtxTrackInfo_v1_Dict.cc \
+  TrackStateInfo_Dict.cc \ 
+  TrackStateInfo_v1_Dict.cc \
+  TrackInfoContainer_Dict.cc \
+  TrackInfoContainer_v1_Dict.cc 
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  cluster_with_key_Dict_rdict.pcm \
+  cluster_with_sector_side_Dict_rdict.pcm \
   TrackSeed_Dict_rdict.pcm \
   TrackSeed_v1_Dict_rdict.pcm \
   SvtxTrackSeed_v1_Dict_rdict.pcm \
@@ -138,7 +155,13 @@ nobase_dist_pcm_DATA = \
   SvtxVertex_Dict_rdict.pcm \
   SvtxVertex_v1_Dict_rdict.pcm \
   SvtxVertexMap_Dict_rdict.pcm \
-  SvtxVertexMap_v1_Dict_rdict.pcm 
+  SvtxVertexMap_v1_Dict_rdict.pcm \
+  SvtxTrackInfo_Dict_rdict.pcm \
+  SvtxTrackInfo_v1_Dict_rdict.pcm \
+  TrackStateInfo_Dict_rdict.pcm \ 
+  TrackStateInfo_v1_Dict_rdict.pcm \
+  TrackInfoContainer_Dict_rdict.pcm \
+  TrackInfoContainer_v1_Dict_rdict.pcm 
 
 # sources for io library
 libtrackbase_historic_io_la_SOURCES = \
@@ -179,7 +202,10 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxVertex_v1.cc \
   SvtxVertexMap.cc \
   SvtxVertexMap_v1.cc \
-  TrackAnalysisUtils.cc
+  TrackAnalysisUtils.cc \
+  SvtxTrackInfo_v1.cc \
+  TrackStateInfo_v1cc \  
+  TrackInfoContainer_v1.cc 
 
 libtrackbase_historic_io_la_LDFLAGS = \
   -L$(libdir) \
