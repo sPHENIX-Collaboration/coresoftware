@@ -19,7 +19,7 @@
 #include <vector>
 
 JetProbeInput::JetProbeInput(PHCompositeNode* topNode) {
-  if (!topNode) return;
+  if (!topNode) { return; }
 
   JetContainer* jets = findNode::getClass<JetContainer>(topNode, "JetProbeContainer");
   if (!jets)
@@ -40,7 +40,7 @@ void JetProbeInput::identify(std::ostream &os)
 
 std::vector<Jet *> JetProbeInput::get_input(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 0) std::cout << "JetProbeInput::process_event -- entered" << std::endl;
+  if (Verbosity() > 0) { std::cout << "JetProbeInput::process_event -- entered" << std::endl; }
 
   JetContainer* jets = findNode::getClass<JetContainer>(topNode, "JetProbeContainer");
   if (!jets)

@@ -30,7 +30,7 @@ int JetProbeMaker::process_event(PHCompositeNode* /*topNode*/) {
   jet->set_py(fjet.py());
   jet->set_pz(fjet.pz());
   jet->set_e(fjet.e());
-  jet->insert_comp(Jet::JET_PROBE, 0, false);
+  jet->insert_comp(Jet::SRC::JET_PROBE, 0, false);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

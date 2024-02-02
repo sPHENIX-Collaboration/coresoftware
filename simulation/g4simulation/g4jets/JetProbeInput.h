@@ -19,7 +19,7 @@ class JetProbeInput : public JetInput
   //! However, it can be configured to read only one or more embedded stream via add_embedding_flag()
   void identify(std::ostream& os = std::cout) override;
 
-  Jet::SRC get_src() override { return Jet::JET_PROBE; }
+  Jet::SRC get_src() override { return Jet::SRC::JET_PROBE; }
 
   std::vector<Jet*> get_input(PHCompositeNode* topNode) override;
 
