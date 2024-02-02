@@ -36,6 +36,8 @@ class PHCosmicTrackMerger : public SubsysReco
 
  private:
   void addKeys(TrackSeed *toAddTo, TrackSeed *toAdd);
+  void removeOutliers(TrackSeed *seed);
+
   ActsGeometry *m_geometry = nullptr;
   KeyPosMap getGlobalPositions(TrackSeed *seed);
   TrkrClusterContainer *m_clusterMap = nullptr;

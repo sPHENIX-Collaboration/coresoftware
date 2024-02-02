@@ -162,16 +162,6 @@ std::vector<float>& Jetv1::get_property_vec() {
   return DummyJetPropVecv1;
 }
 
-size_t Jetv1::n_clustered() const {
-  not_in_v1_msg("n_clustered()");
-  return 0;
-}
-
-void Jetv1::set_n_clustered(unsigned int/**/) {
-  not_in_v1_msg("set_n_clustered()");
-  return;
-}
-
 
 // inline float Jetv1::get_prop_by_index(unsigned int /*index*/) const
 // {

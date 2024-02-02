@@ -79,6 +79,10 @@ int PHCosmicTrackMerger::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHCosmicTrackMerger::process_event(PHCompositeNode *)
 {
+  if (Verbosity() > 3)
+  {
+    std::cout << "Seed container size " << m_seeds->size() << std::endl;
+  }
   for (auto tr1it = m_seeds->begin(); tr1it != m_seeds->end();
        ++tr1it)
   {
@@ -92,33 +96,31 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
     auto tpcseed1 = m_tpcSeeds->get(tpcid1);
     auto silseed1 = m_siliconSeeds->get(siid1);
 
-    TrackFitUtils::position_vector_t tr1_rz_pts, tr1_xy_pts;
-    auto globTr1 = getGlobalPositions(tpcseed1);
-    for (auto &pos : globTr1.second)
-    {
-      float clusr = r(pos.x(), pos.y());
-      if (pos.y() < 0) clusr *= -1;
-      tr1_rz_pts.push_back(std::make_pair(pos.z(), clusr));
-      tr1_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
-    }
-
-    auto xyTr1Params = TrackFitUtils::line_fit(tr1_xy_pts);
-    auto rzTr1Params = TrackFitUtils::line_fit(tr1_rz_pts);
-    // float tr1xyint = std::get<1>(xyTr1Params);
-    float tr1xyslope = std::get<0>(xyTr1Params);
-    // float tr1rzint = std::get<1>(rzTr1Params);
-    float tr1rzslope = std::get<0>(rzTr1Params);
-    //! Check if the rz slope is close to 0 corresponding to an chain of clusters
-    //! from an ion tail
-    if (fabs(tr1rzslope) < 0.005)
-    {
-      m_seeds->erase(m_seeds->index(tr1it));
-      continue;
-    }
-
     for (auto tr2it = tr1it; tr2it != m_seeds->end();
          ++tr2it)
     {
+      //! update track 1 in case more clusters have been added
+      TrackFitUtils::position_vector_t tr1_rz_pts, tr1_xy_pts;
+      auto globTr1 = getGlobalPositions(tpcseed1);
+      for (auto &pos : globTr1.second)
+      {
+        float clusr = r(pos.x(), pos.y());
+        if (pos.y() < 0) clusr *= -1;
+        tr1_rz_pts.push_back(std::make_pair(pos.z(), clusr));
+        tr1_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
+      }
+
+      auto xyTr1Params = TrackFitUtils::line_fit(tr1_xy_pts);
+      auto rzTr1Params = TrackFitUtils::line_fit(tr1_rz_pts);
+      float tr1xyslope = std::get<0>(xyTr1Params);
+      float tr1rzslope = std::get<0>(rzTr1Params);
+      //! Check if the rz slope is close to 0 corresponding to an chain of clusters
+      //! from an ion tail
+      if (fabs(tr1rzslope) < 0.005)
+      {
+        m_seeds->erase(m_seeds->index(tr1it));
+        break;
+      }
       if (tr1it == tr2it)
       {
         continue;
@@ -129,6 +131,7 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
       {
         continue;
       }
+
       unsigned int tpcid2 = track2->get_tpc_seed_index();
       unsigned int siid2 = track2->get_silicon_seed_index();
       auto tpcseed2 = m_tpcSeeds->get(tpcid2);
@@ -139,7 +142,9 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
 
       for (auto &pos : globTr2.second)
       {
-        tr2_rz_pts.push_back(std::make_pair(pos.z(), r(pos.x(), pos.y())));
+        float clusr = r(pos.x(), pos.y());
+        if (pos.y() < 0) clusr *= -1;
+        tr2_rz_pts.push_back(std::make_pair(pos.z(), clusr));
         tr2_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
       }
 
@@ -153,6 +158,7 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
       std::vector<TrkrDefs::cluskey> ckeyUnion;
       std::set_intersection(globTr1.first.begin(), globTr1.first.end(),
                             globTr2.first.begin(), globTr2.first.end(), std::back_inserter(ckeyUnion));
+
       if (
           //! check on common cluskeys
           (ckeyUnion.size() > 10) or
@@ -163,23 +169,112 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
       {
         if (Verbosity() > 3)
         {
-          std::cout << "Combining tr" << m_seeds->index(tr1it) << " with tr "
-                    << m_seeds->index(tr2it) << " with slopes "
+          std::cout << "Combining tr" << m_seeds->index(tr1it) << " with sil/tpc " << tpcid1
+                    << ", " << siid1 << " with tr "
+                    << m_seeds->index(tr2it) << " with sil/tpc " << tpcid2 << ", "
+                    << siid2 << " with slopes "
                     << tr1xyslope << ", " << tr2xyslope << ", "
                     << tr1rzslope << ", " << tr2rzslope << " and ckey union "
                     << ckeyUnion.size() << std::endl;
         }
+
+        for (auto &key : globTr2.first)
+        {
+          globTr1.first.push_back(key);
+        }
+        for (auto &pos : globTr2.second)
+        {
+          globTr1.second.push_back(pos);
+        }
+
         addKeys(tpcseed1, tpcseed2);
-        addKeys(silseed1, silseed2);
+        if (silseed1 && silseed2)
+        {
+          addKeys(silseed1, silseed2);
+        }
         //! erase track 2
         m_seeds->erase(m_seeds->index(tr2it));
       }
     }
-  }
 
+    //! remove any obvious outlier clusters from the track that were mistakenly
+    //! picked up by the seeder
+    removeOutliers(tpcseed1);
+  }
+  if (Verbosity() > 3)
+  {
+    std::cout << "Seed container size to finish " << m_seeds->size() << std::endl;
+    for (auto &seed : *m_seeds)
+    {
+      if (seed)
+      {
+        seed->identify();
+        std::cout << std::endl;
+        unsigned int tpcid1 = seed->get_tpc_seed_index();
+        unsigned int siid1 = seed->get_silicon_seed_index();
+        auto tpcseed1 = m_tpcSeeds->get(tpcid1);
+        auto silseed1 = m_siliconSeeds->get(siid1);
+        tpcseed1->identify();
+        if (silseed1)
+        {
+          silseed1->identify();
+        }
+      }
+      else
+      {
+        std::cout << "nullptr seed was removed" << std::endl;
+      }
+    }
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
+{
+  TrackFitUtils::position_vector_t tr_rz_pts, tr_xy_pts;
+  auto glob = getGlobalPositions(seed);
+  for (const auto &pos : glob.second)
+  {
+    float clusr = r(pos.x(), pos.y());
+    if (pos.y() < 0) clusr *= -1;
+    // skip tpot clusters, as they are always bad in 1D due to 1D resolution
+    if (fabs(clusr) > 80.) continue;
+    tr_rz_pts.push_back(std::make_pair(pos.z(), clusr));
+    tr_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
+  }
+
+  auto xyParams = TrackFitUtils::line_fit(tr_xy_pts);
+  auto rzParams = TrackFitUtils::line_fit(tr_rz_pts);
+
+  for (int i = 0; i < glob.first.size(); i++)
+  {
+    auto &pos = glob.second[i];
+    float clusr = r(pos.x(), pos.y());
+    if (pos.y() < 0) clusr *= -1;
+    // skip tpot clusters, as they are always bad in 1D due to 1D resolution
+    if (fabs(clusr) > 80.) continue;
+    float perpxyslope = -1. / std::get<0>(xyParams);
+    float perpxyint = pos.y() - perpxyslope * pos.x();
+    float perprzslope = -1. / std::get<0>(rzParams);
+    float perprzint = clusr - perprzslope * pos.z();
+
+    float pcax = (perpxyint - std::get<1>(xyParams)) / (std::get<0>(xyParams) - perpxyslope);
+    float pcay = std::get<0>(xyParams) * pcax + std::get<1>(xyParams);
+
+    float pcaz = (perprzint - std::get<1>(rzParams)) / (std::get<0>(rzParams) - perprzslope);
+    float pcar = std::get<0>(rzParams) * pcaz + std::get<1>(rzParams);
+    float dcax = pcax - pos.x();
+    float dcay = pcay - pos.y();
+    float dcar = pcar - clusr;
+    float dcaz = pcaz - pos.z();
+    float dcaxy = std::sqrt(square(dcax) + square(dcay));
+    float dcarz = std::sqrt(square(dcar) + square(dcaz));
+    if (dcaxy > 1. || dcarz > 1.)
+    {
+      seed->erase_cluster_key(glob.first[i]);
+    }
+  }
+}
 void PHCosmicTrackMerger::addKeys(TrackSeed *toAddTo, TrackSeed *toAdd)
 {
   for (auto it = toAdd->begin_cluster_keys(); it != toAdd->end_cluster_keys();

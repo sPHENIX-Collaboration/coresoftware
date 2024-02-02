@@ -166,6 +166,20 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       }
       std::set_intersection(newClusKeysxy.begin(), newClusKeysxy.end(),
                             newClusKeysrz.begin(), newClusKeysrz.end(), std::back_inserter(newClusKeys));
+      if (m_resetContainer)
+      {
+        for (auto& keys : {newClusKeysxy, newClusKeysrz})
+        {
+          for (auto& key : keys)
+          {
+            if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::micromegasId)
+            {
+              newClusKeys.push_back(key);
+            }
+          }
+        }
+      }
+
       if (Verbosity() > 3)
       {
         for (auto key : newClusKeysxy)
@@ -179,7 +193,7 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
         {
           auto cluster = _cluster_map->findCluster(key);
           auto clusglob = _tgeometry->getGlobalPosition(key, cluster);
-          std::cout << "Found key for rz cosmic in layer " << (unsigned int) TrkrDefs::getLayer(key)
+          std::cout << "Found key " << key << " for rz cosmic in layer " << (unsigned int) TrkrDefs::getLayer(key)
                     << " with pos " << clusglob.transpose() << std::endl;
         }
       }
@@ -225,14 +239,6 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
         }
         if (!isTpcKey)
         {
-          if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::mvtxId)
-          {
-            auto clus = _cluster_map->findCluster(key);
-            if (clus->getSize() < 2)
-            {
-              continue;
-            }
-          }
           si_seed->insert_cluster_key(key);
         }
         else
@@ -250,7 +256,10 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       int tpcind = _tpc_seeds->find(tpcseed);
       int siind = _si_seeds->find(mapped_seed);
       full_seed->set_tpc_seed_index(tpcind);
-      full_seed->set_silicon_seed_index(siind);
+      if (si_seed->size_cluster_keys() > 0)
+      {
+        full_seed->set_silicon_seed_index(siind);
+      }
       _svtx_seeds->insert(full_seed.get());
       if (Verbosity() > 3)
       {
