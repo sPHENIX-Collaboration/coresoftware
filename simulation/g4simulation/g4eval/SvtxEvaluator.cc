@@ -2534,7 +2534,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float gx = gclus->getX();
         float gy = gclus->getY();
         float gz = gclus->getZ();
-        float gt = NAN;
+        /// time is stuffed into covariance since there are unused areas
+        float gt = gclus->getError(1,2);
         float gedep = gclus->getError(0, 0);
         float gadc = (float) gclus->getAdc();
 

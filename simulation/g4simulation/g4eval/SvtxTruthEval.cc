@@ -401,7 +401,9 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxTruthEval::all_tru
     clus->setSize(2, 2, g4zsize);
     clus->setError(1, 1, g4phisize / std::sqrt(12));
     clus->setError(2, 2, g4zsize / std::sqrt(12.0));
-
+    // stuff the time into the covariance matrix to avoid having to rewrite a new
+    // cluster object
+    clus->setError(1,2, gt);
     truth_clusters.insert(std::make_pair(ckey, clus));
 
   }  // end loop over layers for this particle
