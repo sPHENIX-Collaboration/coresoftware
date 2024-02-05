@@ -46,12 +46,8 @@
 //_____________________________________________________________________
 
 //_____________________________________________________________________
-DSTTrackInfoReader::DSTTrackInfoReader(const std::string& name,
-                     bool dryrun_info,
-                     bool generateKey_info):
-  SubsysReco( name),
-  dryrun(dryrun_info),
-  generateKey(generateKey_info)
+DSTTrackInfoReader::DSTTrackInfoReader(const std::string& name):
+  SubsysReco( name)
 {}
 
 //_____________________________________________________________________

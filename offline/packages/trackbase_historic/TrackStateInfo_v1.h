@@ -85,9 +85,9 @@ class TrackStateInfo_v1: public TrackStateInfo
  
   private:
 
-  float m_Momentum[3];//[-100,100,16] //[x,y,z]
-  float m_Position[3];//[-30,30,20]  //[px,py,pz]
-  float m_Covariance[21];
+  float m_Momentum[3] = {0};//[-100,100,16] //[x,y,z]
+  float m_Position[3] = {0};//[-30,30,20]  //[px,py,pz]
+  float m_Covariance[21] = {0};
 
   //Use m_Covariance[21] instead of [15] for now
   //later on may convert to rotated and then cut to 5X5

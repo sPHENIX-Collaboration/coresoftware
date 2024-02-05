@@ -24,7 +24,24 @@ class SvtxTrackInfo_v1: public SvtxTrackInfo
   SvtxTrackInfo_v1( const SvtxTrackInfo& ) {}
   
   //* copy constructor
-  SvtxTrackInfo_v1(const SvtxTrackInfo_v1& ){}
+  SvtxTrackInfo_v1(const SvtxTrackInfo_v1& source){
+    m_chisq = source.get_chisq();
+    m_ndf = source.get_ndf();
+    m_crossing = source.get_crossing();
+    m_hitbitmap = source.get_hitbitmap();
+
+    set_x(source.get_x());
+    set_y(source.get_y());
+    set_z(source.get_z());
+    set_px(source.get_px());
+    set_py(source.get_py());
+    set_pz(source.get_pz());
+
+    for(int i = 0; i < 21; i++){
+      set_covariance(i, source.get_covariance(i));
+    }
+
+  }
   
   //* assignment operator
   SvtxTrackInfo_v1& operator=(const SvtxTrackInfo_v1& track);

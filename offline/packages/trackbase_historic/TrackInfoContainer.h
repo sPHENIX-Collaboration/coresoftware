@@ -20,9 +20,9 @@ class TrackInfoContainer : public PHObject
   }
 
   virtual void Reset() override {}
-  virtual SvtxTrackInfo_v1* get_trackinfo(int /*index*/) { return nullptr; }
-  virtual void add_trackinfo(int, SvtxTrackInfo_v1) {}
-  virtual void add_trackinfo(int, SvtxTrackInfo_v1*) {}
+  virtual SvtxTrackInfo* get_trackinfo(int /*index*/) { return nullptr; }
+  virtual void add_trackinfo(int, SvtxTrackInfo) {}
+  virtual void add_trackinfo(int, SvtxTrackInfo*) {}
   //virtual TrackInfo* get_tower_at_key(int /*key*/) { return nullptr; }
   virtual size_t size() const { return 0; }
 

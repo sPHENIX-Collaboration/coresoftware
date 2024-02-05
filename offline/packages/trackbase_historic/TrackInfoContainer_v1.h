@@ -3,6 +3,7 @@
 
 #include "TrackInfoContainer.h"
 #include "SvtxTrackInfo_v1.h"
+#include "SvtxTrackInfo.h"
 #include <phool/PHObject.h>
 
 #include <climits>
@@ -25,21 +26,21 @@ class TrackInfoContainer_v1 : public TrackInfoContainer
 
     size_t size() const override { return _clones->GetEntries(); }
 
-    SvtxTrackInfo_v1* get_trackinfo(int pos) override{
-    return (SvtxTrackInfo_v1*) _clones->At(pos);
+    SvtxTrackInfo* get_trackinfo(int pos) override{
+    return (SvtxTrackInfo*) _clones->At(pos);
     }
 
     //    void TrackInfoContainer_v1::add_trackinfo(int, SvtxTrackInfo_v1 ) {}
-    void add_trackinfo(int pos, SvtxTrackInfo_v1 trackinfo) override{
-      new((*_clones)[pos]) SvtxTrackInfo_v1;
-      SvtxTrackInfo_v1 *info = (SvtxTrackInfo_v1 *)_clones->ConstructedAt(pos);
+    void add_trackinfo(int pos, SvtxTrackInfo trackinfo) override{
+      new((*_clones)[pos]) SvtxTrackInfo;
+      SvtxTrackInfo *info = (SvtxTrackInfo *)_clones->ConstructedAt(pos);
       info->CopyFrom(trackinfo);
 
     }
 
-    void add_trackinfo(int pos, SvtxTrackInfo_v1* trackinfo) override{
-      new((*_clones)[pos]) SvtxTrackInfo_v1;
-      SvtxTrackInfo_v1 *info = (SvtxTrackInfo_v1 *)_clones->ConstructedAt(pos);
+    void add_trackinfo(int pos, SvtxTrackInfo* trackinfo) override{
+      new((*_clones)[pos]) SvtxTrackInfo;
+      SvtxTrackInfo *info = (SvtxTrackInfo *)_clones->ConstructedAt(pos);
       info->CopyFrom(trackinfo);
 
     }

@@ -10,7 +10,7 @@
     TrackInfoContainer_v1::TrackInfoContainer_v1() {
 
 
-    _clones = new TClonesArray("SvtxTrackInfo_v1");
+    _clones = new TClonesArray("SvtxTrackInfo");
 
     _clones->SetOwner();
     _clones->SetName("TrackInfoContainer_v1");

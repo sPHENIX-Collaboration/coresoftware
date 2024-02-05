@@ -40,9 +40,7 @@ class DSTTrackInfoReader : public SubsysReco
   public:
 
   //! constructor
-  DSTTrackInfoReader(const std::string& = "DSTTrackInfoReader",
-            bool dryrun = false,
-            bool generateKey = false);
+  DSTTrackInfoReader(const std::string& = "DSTTrackInfoReader");
 
   //! global initialization
   int Init(PHCompositeNode*) override;
@@ -88,8 +86,8 @@ class DSTTrackInfoReader : public SubsysReco
   //@}
 
   // debugging helpers
-  bool dryrun = false;
-  bool generateKey = false;
+  //bool dryrun = false;
+  //bool generateKey = false;
 
 };
 
