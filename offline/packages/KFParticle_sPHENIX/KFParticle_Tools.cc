@@ -134,17 +134,20 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
   for (GlobalVertexMap::ConstIter iter = globalvertexmap->begin(); iter != globalvertexmap->end(); ++iter)
   {
     GlobalVertex *gvertex = iter->second;
-    auto svtxv = gvertex->find_vtxids(GlobalVertex::SVTX);
+    auto svtxiter = gvertex->find_vertexes(GlobalVertex::SVTX);
     // check that it contains a track vertex
-    if(svtxv == gvertex->end_vtxids())
-      { continue; }
+    if(svtxiter == gvertex->end_vertexes()) { continue; }
 
-    auto svtxvertexid = svtxv->second;
-    m_dst_vertex = m_dst_vertexmap->find(svtxvertexid)->second;
+    auto svtxvertexvector = svtxiter->second;
 
-    primaryVertices.push_back(makeVertex(topNode));
-    primaryVertices[vertexID].SetId(gvertex->get_id());
-    ++vertexID;
+    for (auto& vertex : svtxvertexvector)
+    {
+      m_dst_vertex = m_dst_vertexmap->find(vertex->get_id())->second;
+
+      primaryVertices.push_back(makeVertex(topNode));
+      primaryVertices[vertexID].SetId(gvertex->get_id());
+      ++vertexID;
+    }
   }
 
   return primaryVertices;

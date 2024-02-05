@@ -81,6 +81,34 @@ FastJetOptions& FastJetOptions::update(std::vector<FastJetOptItem> input)
       {
         nhardestcut_jetmedbkgdens = static_cast<int>(next_val(i, input));
       }
+      else if (item.opt == FJCS_doConstSub)
+      {
+        cs_calc_constsub = true;
+      }
+      else if (item.opt == FJCS_max_eta)
+      {
+        cs_max_eta = static_cast<float>(next_val(i, input));
+      }
+      else if (item.opt == FJCS_GridMedBkgEst_Size)
+      {
+        cs_gridmedestsize = static_cast<float>(next_val(i, input));
+      }
+      else if (item.opt == FJCS_max_dist)
+      {
+        cs_max_dist = static_cast<float>(next_val(i, input));
+      }
+      else if (item.opt == FJCS_alpha)
+      {
+        cs_alpha = static_cast<float>(next_val(i, input));
+      }
+      else if (item.opt == FJCS_max_pt)
+      {
+        cs_max_pt = static_cast<float>(next_val(i, input));
+      }
+      else if (item.opt == FJCS_ghost_area)
+      {
+        cs_ghost_area = static_cast<float>(next_val(i, input));
+      }
       else if (item.opt == VERBOSITY)
       {
         verbosity = static_cast<int>(next_val(i, input));
@@ -151,6 +179,10 @@ void FastJetOptions::print(std::ostream& os)
   {
     os << " - calculate jet median background estimator density with cutting "
        << nhardestcut_jetmedbkgdens << " hardest jets within |eta|<" << etahardestcut_jetmedbkgdens << std::endl;
+  }
+  
+  if (cs_calc_constsub) {
+    os << " - calculate jet background constituent subtractor " << std::endl;
   }
 }
 

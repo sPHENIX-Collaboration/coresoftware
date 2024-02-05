@@ -19,22 +19,23 @@ class PHCompositeNode;
 class CDBTTree;
 class CDBInterface;
 class TNtuple;
-//class TpcRawHit;
-//class TpcRawHitContainer;
+// class TpcRawHit;
+// class TpcRawHitContainer;
 
 class TpcCombinedRawDataUnpacker : public SubsysReco
 {
  public:
-  TpcCombinedRawDataUnpacker(std::string const& name = "TpcCombinedRawDataUnpacker", std::string const& outF = "TpcCombinedRawDataUnpackerOutput.root");
+  TpcCombinedRawDataUnpacker(std::string const &name = "TpcCombinedRawDataUnpacker", std::string const &outF = "TpcCombinedRawDataUnpackerOutput.root");
 
   int Init(PHCompositeNode *topNode) override;
-  int InitRun(PHCompositeNode*) override;
-  int process_event(PHCompositeNode*) override;
-  int End(PHCompositeNode *topNode) override;  
+  int InitRun(PHCompositeNode *) override;
+  int process_event(PHCompositeNode *) override;
+  int End(PHCompositeNode *topNode) override;
+  void writeTree() { m_writeTree = true; }
 
  protected:
   std::string outfile_name;
-  
+
   CDBTTree *m_cdbttree = nullptr;
   CDBInterface *m_cdb = nullptr;
 
@@ -45,8 +46,9 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
 
   TNtuple *m_ntup = nullptr;
   TFile *m_file = nullptr;
+  bool m_writeTree = false;
 
-  int mc_sectors[12] = { 5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6};
+  int mc_sectors[12] = {5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6};
   int FEE_map[26] = {4, 5, 0, 2, 1, 11, 9, 10, 8, 7, 6, 0, 1, 3, 7, 6, 5, 4, 3, 2, 0, 2, 1, 3, 5, 4};
   int FEE_R[26] = {2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
 };

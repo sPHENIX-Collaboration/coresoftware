@@ -155,9 +155,11 @@ int CentralityReco::FillCentralityInfo()
     if (_centrality_map[i] < _mbd_charge_sum)
     {
       value = 0.05 * i;
+
       break;
     }
   }
+  if (Verbosity()) std::cout << " Centile : " << (value >= 0 ? value : -999) << std::endl;
 
   _central->set_centile(CentralityInfo::PROP::mbd_NS, value);
 

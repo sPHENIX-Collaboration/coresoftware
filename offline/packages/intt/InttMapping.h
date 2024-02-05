@@ -1,6 +1,7 @@
 #ifndef INTT_MAPPING_H
 #define INTT_MAPPING_H
 
+#include <cstdint>
 #include <map>
 
 class Packet;
@@ -19,6 +20,7 @@ namespace InttNameSpace
 		int channel = 0;
 	};
 
+	typedef uint32_t OnlineKey_t;
 	struct Online_s
 	{
 		int lyr = 0;
@@ -50,6 +52,18 @@ namespace InttNameSpace
 	//trivial
 	struct RawData_s ToRawData(struct Offline_s const&);
 	struct Offline_s ToOffline(struct RawData_s const&);
+
+	struct RawDataComparator {
+		bool operator()(struct RawData_s const&, struct RawData_s const&) const;
+	};
+
+	struct OnlineComparator {
+		bool operator()(struct Online_s const&, struct Online_s const&) const;
+	};
+
+	struct OfflineComparator {
+		bool operator()(struct Offline_s const&, struct Offline_s const&) const;
+	};
 
 	//Eigen::Affine3d GetTransform(TTree*, struct Offline_s const&);
 	//Eigen::Vector4d GetLocalPos(struct Offline_s const&);

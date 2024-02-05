@@ -20,8 +20,6 @@
 #include <cstdlib>  // for exit
 #include <iostream>
 
-using namespace std;
-
 PHG4CylinderGeom_Spacalv2::PHG4CylinderGeom_Spacalv2()
 {
   SetDefault();
@@ -36,7 +34,7 @@ void PHG4CylinderGeom_Spacalv2::identify(std::ostream& os) const
      << ", zmax: " << zmax <<                          //
       ", num scint: " << nscint
 
-     << endl;
+     << std::endl;
   return;
 }
 
@@ -44,32 +42,32 @@ void PHG4CylinderGeom_Spacalv2::Print(Option_t* opt) const
 {
   PHG4CylinderGeom_Spacalv1::Print(opt);
 
-  cout << "\t"
+  std::cout << "\t"
        << "is_azimuthal_seg_visible() = " << is_azimuthal_seg_visible()
-       << endl;
-  cout << "\t"
-       << "azimuthal_tilt() = " << get_azimuthal_tilt() << endl;
-  cout << "\t"
+       << std::endl;
+  std::cout << "\t"
+       << "azimuthal_tilt() = " << get_azimuthal_tilt() << std::endl;
+  std::cout << "\t"
        << "get_polar_taper_ratio() = " << get_polar_taper_ratio()
-       << endl;
-  cout << "\t"
+       << std::endl;
+  std::cout << "\t"
        << "get_sec_azimuthal_width() = " << get_sec_azimuthal_width()
-       << endl;
-  cout << "\t"
-       << "get_sec_depth() = " << get_sec_depth() << endl;
-  cout << "\t"
-       << "get_block_width() = " << get_block_width() << endl;
-  cout << "\t"
-       << "get_block_depth() = " << get_block_depth() << endl;
-  cout << "\t"
-       << "get_assembly_spacing() = " << get_assembly_spacing() << endl;
-  cout << "\t"
+       << std::endl;
+  std::cout << "\t"
+       << "get_sec_depth() = " << get_sec_depth() << std::endl;
+  std::cout << "\t"
+       << "get_block_width() = " << get_block_width() << std::endl;
+  std::cout << "\t"
+       << "get_block_depth() = " << get_block_depth() << std::endl;
+  std::cout << "\t"
+       << "get_assembly_spacing() = " << get_assembly_spacing() << std::endl;
+  std::cout << "\t"
        << "get_reg_fiber_grid_distance_taper() = "
        << get_reg_fiber_grid_distance_taper() << " = sqrt(3)*"
-       << get_reg_fiber_grid_distance_taper() / sqrt(3.) << endl;
-  cout << "\t"
+       << get_reg_fiber_grid_distance_taper() / sqrt(3.) << std::endl;
+  std::cout << "\t"
        << "get_reg_fiber_grid_distance_nontaper() = "
-       << get_reg_fiber_grid_distance_nontaper() << endl;
+       << get_reg_fiber_grid_distance_nontaper() << std::endl;
 }
 
 void PHG4CylinderGeom_Spacalv2::SetDefault()
@@ -137,10 +135,10 @@ void PHG4CylinderGeom_Spacalv2::set_azimuthal_n_sec(int azimuthalNSec)
 {
   if (config == kNonProjective)
   {
-    cout
+    std::cout
         << "PHG4CylinderGeom_Spacalv2::set_azimuthal_n_sec - Fatal Error - "
            "Spacal is configured as NonProjective geometry. In this case azimuthal_n_sec is calculated, and can not be set externally."
-        << endl;
+        << std::endl;
     exit(10);
   }
 
@@ -157,10 +155,10 @@ void PHG4CylinderGeom_Spacalv2::set_azimuthal_seg_visible(bool b)
 {
   if (config == kNonProjective)
   {
-    cout
+    std::cout
         << "PHG4CylinderGeom_Spacalv2::set_azimuthal_seg_visible - Fatal Error - "
            "Spacal is configured as NonProjective geometry. In this case azimuthal_seg_visible is false, and can not be set externally."
-        << endl;
+        << std::endl;
     exit(10);
   }
 
