@@ -104,7 +104,7 @@ int DSTTrackInfoWriter::Init(PHCompositeNode* topNode )
 }
 
 //_____________________________________________________________________
-int DSTTrackInfoWriter::InitRun(PHCompositeNode* )
+int DSTTrackInfoWriter::InitRun(PHCompositeNode* topNode)
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //_____________________________________________________________________
@@ -116,7 +116,9 @@ int DSTTrackInfoWriter::process_event(PHCompositeNode* topNode)
   std::cout << __FILE__ << "::" << __func__ << "::" << __LINE__ << std::endl;
   std::cout << "DSTTrackInfoWriter::process_event" << std::endl;
   auto res =  load_nodes(topNode);
-  if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
+  if( res != Fun4AllReturnCodes::EVENT_OK ) {
+    return res;
+  }
   std::cout << "Return codes  start" << Fun4AllReturnCodes::EVENT_OK << std::endl;
   // cleanup output container
   if( m_track_info_container) m_track_info_container->Reset();
@@ -135,7 +137,7 @@ int DSTTrackInfoWriter::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int DSTTrackInfoWriter::End(PHCompositeNode* )
+int DSTTrackInfoWriter::End(PHCompositeNode* topNode)
 {
   std::cout << "In the end" << std::endl;
   // tcl->Print();
@@ -162,7 +164,9 @@ int DSTTrackInfoWriter::load_nodes( PHCompositeNode* topNode )
 void DSTTrackInfoWriter::evaluate_track_info(){
 
 
-  if(!(m_track_info_container)) return;
+  if(!(m_track_info_container)) {
+    return;
+  }
 
   m_track_info_container->Reset();
   //get track into track info

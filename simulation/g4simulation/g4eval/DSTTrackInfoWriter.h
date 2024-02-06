@@ -29,7 +29,7 @@ class PHG4Particle;
 class PHG4TruthInfoContainer;
 class SvtxTrack;
 class SvtxTrackMap;
-class DSTContainerv3;
+//class DSTContainerv3;
 //class DSTContainer;
 class TrkrCluster;
 class TrkrClusterContainer;

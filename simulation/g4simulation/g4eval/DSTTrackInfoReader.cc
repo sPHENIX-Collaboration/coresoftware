@@ -41,7 +41,7 @@
 #include <cassert>
 #include <iostream>
 #include <numeric>
-#define __STDC_LIMIT_MACROS
+//#define __STDC_LIMIT_MACROS
 
 //_____________________________________________________________________
 
@@ -78,7 +78,7 @@ int DSTTrackInfoReader::Init(PHCompositeNode* topNode )
 }
 
 //_____________________________________________________________________
-int DSTTrackInfoReader::InitRun(PHCompositeNode* )
+int DSTTrackInfoReader::InitRun(PHCompositeNode* topNode)
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //_____________________________________________________________________
@@ -90,8 +90,10 @@ int DSTTrackInfoReader::process_event(PHCompositeNode* topNode)
   auto res =  load_nodes(topNode);
   //std::cout <<"This is before I fill cluster map" << std::endl;
   //m_cluster_map->identify();
-  if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
-
+  if( res != Fun4AllReturnCodes::EVENT_OK ) 
+  {
+    return res;
+  }
   evaluate_track_info();
 
   m_track_info_container->Reset();
@@ -100,7 +102,7 @@ int DSTTrackInfoReader::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int DSTTrackInfoReader::End(PHCompositeNode* )
+int DSTTrackInfoReader::End(PHCompositeNode* topNode)
 {
   std::cout << "DST reader finishes" << "\n";
 

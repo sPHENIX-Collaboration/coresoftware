@@ -32,4 +32,7 @@ void SvtxTrackInfo_v1::CopyFrom(const SvtxTrackInfo& source){
 }
 
 SvtxTrackInfo_v1& SvtxTrackInfo_v1::operator=(const SvtxTrackInfo_v1& source)
-{ if( this != &source ) CopyFrom( source ); return *this; }
+{ if( this != &source ) {
+    CopyFrom( source );
+  } 
+  return *this; }
