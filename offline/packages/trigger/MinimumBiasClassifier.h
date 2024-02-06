@@ -32,7 +32,6 @@ class MinimumBiasClassifier : public SubsysReco
   //! event processing method
   int process_event(PHCompositeNode *) override;
   //! end of run method
-  int End(PHCompositeNode *) override;
 
   int ResetEvent(PHCompositeNode *) override;
   

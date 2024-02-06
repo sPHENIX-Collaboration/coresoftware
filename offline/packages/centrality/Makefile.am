@@ -29,10 +29,7 @@ libcentrality_la_LIBADD = \
 pkginclude_HEADERS = \
   CentralityInfo.h \
   CentralityInfov1.h \
-<<<<<<< HEAD
   CentralityInfov2.h \
-=======
->>>>>>> b183955abcd8650f7a6403b3814a7542343be7ac
   CentralityReco.h
 
 

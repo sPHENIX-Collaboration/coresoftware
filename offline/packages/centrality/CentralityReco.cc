@@ -1,6 +1,6 @@
 #include "CentralityReco.h"
 
-#include "CentralityInfov1.h"
+#include "CentralityInfov2.h"
 
 #include <mbd/MbdOut.h>
 
@@ -55,7 +55,6 @@ int CentralityReco::Download_centralityScale(const std::string &dbfile)
   _centrality_scale = 1.00;
 
   std::filesystem::path dbase_file = dbfile;
-
   if (dbase_file.extension() == ".root")
   {
     CDBTTree *cdbttree = new CDBTTree(dbase_file);
@@ -86,6 +85,8 @@ int CentralityReco::Download_centralityDivisions(const std::string &dbfile)
   {
     CDBTTree *cdbttree = new CDBTTree(dbase_file);
     cdbttree->LoadCalibrations();
+    if (Verbosity())
+      cdbttree->Print();
     for (int idiv = 0; idiv < NDIVS; idiv++)
     {
       _centrality_map[idiv] = cdbttree->GetFloatValue(idiv, "centralitydiv");
@@ -119,7 +120,7 @@ int CentralityReco::ResetEvent(PHCompositeNode * /*unused*/)
 }
 
 int CentralityReco::FillVars()
-
+{
   if (Verbosity() > 1)
   {
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
@@ -149,14 +150,14 @@ int CentralityReco::FillCentralityInfo()
   {
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
-
+  int binvalue = std::numeric_limits<int>::quiet_NaN();
   float value = std::numeric_limits<float>::quiet_NaN();
   for (int i = 0; i < NDIVS; i++)
   {
     if (_centrality_map[i] < _mbd_charge_sum)
     {
-
-      value = 0.05 * i;
+      binvalue = i + 1;
+      value =  static_cast<float>(i + 1)/static_cast<float>(NDIVS);
 
       break;
     }
@@ -164,6 +165,7 @@ int CentralityReco::FillCentralityInfo()
   if (Verbosity()) std::cout << " Centile : " << (value >= 0 ? value : -999) << std::endl;
 
   _central->set_centile(CentralityInfo::PROP::mbd_NS, value);
+  _central->set_centrality_bin(CentralityInfo::PROP::mbd_NS, binvalue);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -248,7 +250,7 @@ void CentralityReco::CreateNodes(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
-  CentralityInfo *central = new CentralityInfov1();
+  CentralityInfo *central = new CentralityInfov2();
 
   PHIODataNode<PHObject> *centralityNode = new PHIODataNode<PHObject>(central, "CentralityInfo", "PHObject");
   detNode->addNode(centralityNode);

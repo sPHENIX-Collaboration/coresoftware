@@ -31,6 +31,8 @@ MinimumBiasClassifier::MinimumBiasClassifier(const std::string &name)
   : SubsysReco(name)
 {
 
+}
+
 int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
 {
   if (Verbosity() > 1)
@@ -62,17 +64,32 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
 
   bool is_it_min_bias = true;
 
+  if (!_global_vertex_map)
+    {
+      _mb_info->setIsAuAuMinimumBias(false);
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+
   if (_global_vertex_map->empty())
     {
       _mb_info->setIsAuAuMinimumBias(false);
-      return Fun4AllReturnCodes::ABORTEVENT;
+      return Fun4AllReturnCodes::EVENT_OK;
     }
 
   GlobalVertex *vtx = _global_vertex_map->begin()->second;
 
+
   if (!vtx)
     {
       std::cout << "nothing in vertex " << std::endl;
+
+      _mb_info->setIsAuAuMinimumBias(false);
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+
+  if (!vtx->isValid())
+    {
+      std::cout << "invalid vertex " << std::endl;
 
       _mb_info->setIsAuAuMinimumBias(false);
       return Fun4AllReturnCodes::EVENT_OK;
