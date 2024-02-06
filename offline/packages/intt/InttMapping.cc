@@ -158,6 +158,38 @@ struct InttNameSpace::Offline_s InttNameSpace::ToOffline(struct RawData_s const&
 	return ToOffline(ToOnline(_s));
 }
 
+bool InttNameSpace::RawDataComparator::operator()(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs) const
+{
+	if(lhs.felix_server != rhs.felix_server)return lhs.felix_server < rhs.felix_server;
+	if(lhs.felix_channel != rhs.felix_channel)return lhs.felix_channel < rhs.felix_channel;
+	if(lhs.chip != rhs.chip)return lhs.chip < rhs.chip;
+	if(lhs.channel != rhs.channel)return lhs.channel < rhs.channel;
+
+	return false;
+}
+
+bool InttNameSpace::OnlineComparator::operator()(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs) const
+{
+	if(lhs.lyr != rhs.lyr)return lhs.lyr < rhs.lyr;
+	if(lhs.ldr != rhs.ldr)return lhs.ldr < rhs.ldr;
+	if(lhs.arm != rhs.arm)return lhs.arm < rhs.arm;
+	if(lhs.chp != rhs.chp)return lhs.chp < rhs.chp;
+	if(lhs.chn != rhs.chn)return lhs.chn < rhs.chn;
+
+	return false;
+}
+
+bool InttNameSpace::OfflineComparator::operator()(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs) const
+{
+	if(lhs.layer != rhs.layer)return lhs.layer < rhs.layer;
+	if(lhs.ladder_phi != rhs.ladder_phi)return lhs.ladder_phi < rhs.ladder_phi;
+	if(lhs.ladder_z != rhs.ladder_z)return lhs.ladder_z < rhs.ladder_z;
+	if(lhs.strip_x != rhs.strip_x)return lhs.strip_x < rhs.strip_x;
+	if(lhs.strip_y != rhs.strip_y)return lhs.strip_y < rhs.strip_y;
+
+	return false;
+}
+
 //Eigen::Affine3d InttNameSpace::GetTransform(TTree* tree, struct InttNameSpace::Offline_s const& _s)
 //{
 //	Eigen::Affine3d t;

@@ -341,3 +341,13 @@ void SingleInttPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode->addNode(newNode);
   }
 }
+//_______________________________________________________
+
+void SingleInttPoolInput::ConfigureStreamingInputManager()
+{
+  if (StreamingInputManager())
+  {
+    StreamingInputManager()->SetInttBcoRange(m_BcoRange);
+    StreamingInputManager()->SetInttNegativeBco(m_NegativeBco);
+  }
+}

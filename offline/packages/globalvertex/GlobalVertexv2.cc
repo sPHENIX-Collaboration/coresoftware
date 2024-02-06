@@ -123,8 +123,9 @@ float GlobalVertexv2::get_position(unsigned int coor) const
     {
       if(vertex->size_tracks() > mosttracks)
 	{
-	  pos = vertex->get_position(coor);
-	}
+          mosttracks = vertex->size_tracks();
+          pos = vertex->get_position(coor);
+        }
     }
 
   return pos;
@@ -145,8 +146,9 @@ float GlobalVertexv2::get_chisq() const
     {
       if(vertex->size_tracks() > mosttracks)
 	{
-	  chisq = vertex->get_chisq();
-	}
+          mosttracks = vertex->size_tracks();
+          chisq = vertex->get_chisq();
+        }
     }
 
   return chisq;
@@ -167,8 +169,9 @@ unsigned int GlobalVertexv2::get_ndof() const
     {
       if(vertex->size_tracks() > mosttracks)
 	{
-	  ndf = vertex->get_ndof();
-	}
+          mosttracks = vertex->size_tracks();
+          ndf = vertex->get_ndof();
+        }
     }
 
   return ndf;
@@ -202,8 +205,9 @@ float GlobalVertexv2::get_error(unsigned int i, unsigned int j) const
     {
       if(vertex->size_tracks() > mosttracks)
 	{
-	  err = vertex->get_error(i, j);
-	}
+          mosttracks = vertex->size_tracks();
+          err = vertex->get_error(i, j);
+        }
     }
 
   return err;

@@ -58,7 +58,9 @@ my %proddesc = (
     "20" => "hijing pAu (0-10fm) pileup 0-10fm",
     "21" => "JS pythia8 Jet ptmin = 20GeV",
     "22" => "cosmic field on",
-    "23" => "cosmic field off"
+    "23" => "cosmic field off",
+    "24" => "AMPT",
+    "25" => "EPOS"
     );
 
 my %pileupdesc = (
@@ -541,6 +543,34 @@ if (defined $prodtype)
 	$nopileup = 1; # it is no pileup only - no need to require it
 	&commonfiletypes();
     }
+    elsif ($prodtype == 24)
+    {
+	if (defined $nopileup)
+	{
+	    $filenamestring = sprintf("ampt_0_20fm");
+	}
+	else
+	{
+	    $filenamestring = sprintf("ampt_0_20fm_%s_bkg_0_20fm",$AuAu_pileupstring);
+	}
+        $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
+        $pileupstring = $AuAu_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 25)
+    {
+	if (defined $nopileup)
+	{
+	    $filenamestring = sprintf("epos_0_153fm");
+	}
+	else
+	{
+	    $filenamestring = sprintf("epos_0_153fm_%s_bkg_0_153fm",$AuAu_pileupstring);
+	}
+        $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
+        $pileupstring = $pAu_pileupstring;
+	&commonfiletypes();
+    }
     else
     {
 	print "no production type $prodtype\n";
@@ -873,12 +903,12 @@ sub commonfiletypes
     $filetypes{"G4Hits"} = "G4 Hits";
 #    $filetypes{"G4HitsOld"} = "Old G4 Hits";
 # pass2
-    $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD, EPD G4Hits";
+    $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC (now MBD), EPD G4Hits";
     $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
     $filetypes{"DST_TRKR_G4HIT"} = "Pileup Tracking Detector G4 Hits";
     $filetypes{"DST_TRUTH_G4HIT"} = "temporary Pileup Truth info, use DST_TRUTH";
-# pass3 bbcepd
-    $filetypes{"DST_BBC_EPD"} = "Reconstructed Bbc, Epd";
+# pass3 mbdepd
+    $filetypes{"DST_MBD_EPD"} = "Reconstructed Mbd, Epd";
 # pass3 calo
     $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
 #pass3 trk

@@ -58,6 +58,8 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void AddMvtxL1TrgBco(uint64_t bclk, uint64_t lv1Bco);
   void AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
+  void SetInttBcoRange(const unsigned int i);
+  void SetInttNegativeBco(const unsigned int value);
   void SetMicromegasBcoRange(const unsigned int i);
   void SetMicromegasNegativeBco(const unsigned int value);
   void SetMvtxBcoRange(const unsigned int i);
@@ -108,6 +110,8 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   bool m_micromegas_registered_flag{false};
   bool m_mvtx_registered_flag{false};
   bool m_tpc_registered_flag{false};
+  unsigned int m_intt_bco_range{0};
+  unsigned int m_intt_negative_bco{0};
   unsigned int m_micromegas_bco_range{0};
   unsigned int m_micromegas_negative_bco{0};
   unsigned int m_mvtx_bco_range{0};
