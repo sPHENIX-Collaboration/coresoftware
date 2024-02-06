@@ -215,8 +215,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	  	  }
 	if(ohstate)
 	  {
-	    _pflow_TRK_HADproj_phi.push_back(atan2(ohstate->get_py(), ohstate->get_px()));
-	    _pflow_TRK_HADproj_eta.push_back(asinh(ohstate->get_pz()/ohstate->get_pt()));
+	    _pflow_TRK_HADproj_phi.push_back(atan2(ohstate->get_y(), ohstate->get_x()));
+	    _pflow_TRK_HADproj_eta.push_back(asinh(ohstate->get_z()/sqrt(ohstate->get_x()*ohstate->get_x() + ohstate->get_y()*ohstate->get_y())));
 	  }
 	  else {
 	  _pflow_TRK_HADproj_phi.push_back(track->get_phi());
