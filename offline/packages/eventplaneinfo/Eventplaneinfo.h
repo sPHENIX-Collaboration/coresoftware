@@ -21,8 +21,12 @@ class Eventplaneinfo : public PHObject
   PHObject* CloneMe() const override { return nullptr; }
 
   virtual void set_qvector(std::vector<std::pair<double, double>> /*Qvec*/) { return; }
+  virtual void set_shifted_psi(std::vector<double> /*Psi_Shifted*/) { return; }
   virtual std::pair<double, double> get_qvector(int /*order*/) const { return std::make_pair(NAN, NAN); }
   virtual double get_psi(int /*order*/) const { return NAN; }
+  virtual double get_shifted_psi(int /*order*/) const { return NAN; }
+  virtual double GetPsi(const double /*Qx*/, const double /*Qy*/, const unsigned int /*order*/) const { return NAN; }
+
 
  protected:
   Eventplaneinfo() {}
