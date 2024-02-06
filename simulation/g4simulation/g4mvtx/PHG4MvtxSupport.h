@@ -11,20 +11,22 @@
 
 class G4LogicalVolume;
 class PHG4MvtxCable;
+class PHG4MvtxDetector;
 class PHG4MvtxDisplayAction;
 class PHG4MvtxServiceStructure;
 
 class PHG4MvtxSupport
 {
  public:
-  PHG4MvtxSupport( PHG4MvtxDisplayAction *dispAct, bool overlapCheck );
+  PHG4MvtxSupport( PHG4MvtxDetector *detector, PHG4MvtxDisplayAction *dispAct, bool overlapCheck );
 
-  ~PHG4MvtxSupport();
+  virtual ~PHG4MvtxSupport();
 
   void ConstructMvtxSupport( G4LogicalVolume *&lv );
 
  private:
-  PHG4MvtxDisplayAction *m_DisplayAction;
+  PHG4MvtxDetector *m_Detector {nullptr};
+  PHG4MvtxDisplayAction *m_DisplayAction {nullptr};
 
   void CreateMvtxSupportMaterials();
 

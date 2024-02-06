@@ -1,6 +1,7 @@
 #include "PHG4MvtxSupport.h"
 
 #include "PHG4MvtxCable.h"
+#include "PHG4MvtxDetector.h"
 #include "PHG4MvtxDisplayAction.h"
 #include "PHG4MvtxServiceStructure.h"
 
@@ -75,8 +76,10 @@ namespace ServiceProperties
 using namespace ServiceProperties;
 
 //________________________________________________________________________________
-PHG4MvtxSupport::PHG4MvtxSupport( PHG4MvtxDisplayAction *dispAct, bool overlapCheck )
-  : m_DisplayAction(dispAct)
+PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDetector *detector, PHG4MvtxDisplayAction *dispAct, bool overlapCheck )
+  : 
+  m_Detector(detector)
+,  m_DisplayAction(dispAct)
   , m_overlapCheck(overlapCheck)
 {
 }
@@ -279,9 +282,11 @@ void PHG4MvtxSupport::GetEndWheelSideN( const int lay, G4AssemblyVolume *&endWhe
 
   auto endWheelNvol = new G4LogicalVolume( endWNBasis, matAl, Form( "EndWheelNBasis%d", lay ) );
   m_DisplayAction->AddVolume( endWheelNvol, "red" );
+  m_Detector->FillSupportLVArray(endWheelNvol);
 
   auto stepNShLogVol = new G4LogicalVolume( stepNSh , matAl, Form( "StepNL%d_LOGIC", lay ) );
   m_DisplayAction->AddVolume( stepNShLogVol, "red" );
+  m_Detector->FillSupportLVArray(stepNShLogVol);
 
   // Finally put everything in the mother volume
   zpos = ( sEndWheelSNHolesZdist / 2 )  - ( sEndWStepHoleZpos + sEndWStepHoleZdist );
@@ -444,9 +449,11 @@ void PHG4MvtxSupport::GetEndWheelSideS( const int lay, G4AssemblyVolume *&endWhe
 
   auto endWheelSvol = new G4LogicalVolume( endWSBasis, matAl, Form( "EndWheelSBasis%d", lay ) );
   m_DisplayAction->AddVolume( endWheelSvol, "red" );
+  m_Detector->FillSupportLVArray(endWheelSvol);
 
   auto stepSShLogVol = new G4LogicalVolume( stepSSh , matAl, Form( "StepSL%d_LOGIC", lay ) );
   m_DisplayAction->AddVolume( stepSShLogVol, "red" );
+  m_Detector->FillSupportLVArray(stepSShLogVol);
 
   // Finally put everything in the mother volume
   zpos = ( sEndWheelSNHolesZdist / 2 )  - ( sEndWStepHoleZpos + sEndWStepHoleZdist );
@@ -538,6 +545,7 @@ void PHG4MvtxSupport::GetConeVolume( int lay, G4AssemblyVolume *& av )
                                          nullptr, nullptr, nullptr );
 
   m_DisplayAction->AddVolume( coneLogVol, "MVTX_CarbonFiber$" );
+  m_Detector->FillSupportLVArray(coneLogVol);
 
   double zpos = sEndWheelSNHolesZdist / 2 - ( sEndWStepHoleZpos + sEndWStepHoleZdist ) \
                 + sEndWheelSExtSectLen;
@@ -629,12 +637,14 @@ void PHG4MvtxSupport::CreateCYSS( G4AssemblyVolume *& av )
                                                  nullptr, nullptr, nullptr );
 
   m_DisplayAction->AddVolume( cyssFlangeLogVol_1, "MVTX_EW_Al$" );
+  m_Detector->FillSupportLVArray(cyssFlangeLogVol_1);
 
   auto cyssFlangeLogVol_2 = new G4LogicalVolume( flangeSolid_2, matAl,
                                                  "cyssFlangeNorth_2_LOGIC",
                                                  nullptr, nullptr, nullptr );
 
   m_DisplayAction->AddVolume( cyssFlangeLogVol_2, "MVTX_EW_Al$");
+  m_Detector->FillSupportLVArray(cyssFlangeLogVol_2);
 
   double zpos = sEndWheelSNHolesZdist / 2 - ( sEndWStepHoleZpos + sEndWStepHoleZdist ) \
                 + sEndWheelNLen + sFlgIntThick;
@@ -655,6 +665,7 @@ void PHG4MvtxSupport::CreateCYSS( G4AssemblyVolume *& av )
   auto cyssCylLog = new G4LogicalVolume( cyssCylSol, matCF, "CYSScyl_LOGIC",
                                          nullptr, nullptr, nullptr );
   m_DisplayAction->AddVolume( cyssCylLog, "MVTX_CarbonFiber$" );
+  m_Detector->FillSupportLVArray(cyssCylLog);
 
   zpos -= ( sFlgIntThick - sCYSScylLen / 2  + sCYSSFlgSsfFlgNsf - sCYSSFlgSsfCylsf );
   Ta.set( 0., 0., zpos );
@@ -697,6 +708,7 @@ void PHG4MvtxSupport::CreateCYSS( G4AssemblyVolume *& av )
   auto cyssConeLog = new G4LogicalVolume( cyssConeSol, matCF, "CYSScone_LOGIC",
                                           nullptr, nullptr, nullptr );
   m_DisplayAction->AddVolume( cyssConeLog, "MVTX_CarbonFiber$" );
+  m_Detector->FillSupportLVArray(cyssConeLog);
 
   zpos -= ( sCYSScylLen / 2 + sCYSSFlgSsfCylsf - sCYSSconLen - sCYSSFlgSsfConesf );
   Ta.set( 0., 0., zpos );
@@ -752,6 +764,7 @@ void PHG4MvtxSupport::CreateCYSS( G4AssemblyVolume *& av )
   auto cyssRibLog = new G4LogicalVolume( cyssRibSol, matCF, "CYSSrib_LOGIC",
                                           nullptr, nullptr, nullptr );
   m_DisplayAction->AddVolume( cyssRibLog, "MVTX_CarbonFiber$" );
+  m_Detector->FillSupportLVArray(cyssRibLog);
 
   zpos -= ( sCYSSconLen + sCYSSFlgSsfConesf - sCYSSFlgSsfRibsf );
   Ta.set( 0., 0., zpos );
@@ -788,6 +801,7 @@ void PHG4MvtxSupport::CreateCYSS( G4AssemblyVolume *& av )
   auto cyssFlgSLog = new G4LogicalVolume( cyssFlgSSol, matAl, "CYSSFlgS_LOGIC",
                                           nullptr, nullptr, nullptr );
   m_DisplayAction->AddVolume( cyssFlgSLog, "MVTX_EW_Al$" );
+  m_Detector->FillSupportLVArray(cyssFlgSLog);
 
   zpos -= ( sCYSSFlgSsfRibsf );
   Ta.set( 0., 0., zpos );
@@ -858,6 +872,7 @@ void PHG4MvtxSupport::CreateServiceBarrel( G4AssemblyVolume *& av )
   auto sbFlgNLog = new G4LogicalVolume( sbFlgNSol, matAl, "sbFlgN_LOGIC",
                                           nullptr, nullptr, nullptr );
   m_DisplayAction->AddVolume( sbFlgNLog, "MVTX_CarbonFiber$" );
+  m_Detector->FillSupportLVArray(sbFlgNLog);
 
   zpos = sEndWheelSNHolesZdist / 2 - ( sEndWStepHoleZpos + sEndWStepHoleZdist ) \
          + sEndWheelNLen - sCYSSFlgSsfFlgNsf;
@@ -877,6 +892,7 @@ void PHG4MvtxSupport::CreateServiceBarrel( G4AssemblyVolume *& av )
   auto sbCylLog = new G4LogicalVolume( sbCylSol, matCF, "SBcyl_LOGIC",
                                          nullptr, nullptr, nullptr );
   m_DisplayAction->AddVolume( sbCylLog, "MVTX_CarbonFiber$" );
+  m_Detector->FillSupportLVArray(sbCylLog);
 
   zpos -= ( sSBcylLen / 2 + sSBFlgNExtThick );
   Ta.set( 0., 0., zpos );
@@ -926,6 +942,7 @@ void PHG4MvtxSupport::CreateCable( PHG4MvtxCable *object, G4AssemblyVolume &asse
 
     G4LogicalVolume *cylinderLogic = new G4LogicalVolume(cylinderSolid, trackerMaterial,
                                                          G4String(object->get_name() + "_LOGIC"), nullptr, nullptr, g4userLimits);
+    m_Detector->FillSupportLVArray(cylinderLogic);
 
     if (i == 0)
     {
