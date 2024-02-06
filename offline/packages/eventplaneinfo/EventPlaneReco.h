@@ -63,14 +63,22 @@ class EventPlaneReco : public SubsysReco
   const char *OutFileName;
   
   CDBHistos *cdbhistosOut = nullptr;
- 
+
   std::vector<std::vector<double>> south_q;
   std::vector<std::vector<double>> north_q;
-  std::vector<std::vector<double>> south_q_subtract;
-  std::vector<std::vector<double>> north_q_subtract;
-
   std::vector<std::pair<double, double>> south_Qvec;
   std::vector<std::pair<double, double>> north_Qvec;
+    
+  //recentering utility
+  std::vector<std::vector<double>> south_q_subtract;
+  std::vector<std::vector<double>> north_q_subtract;
+    
+  //shifting utility
+  std::vector<double> tmp_south_psi;
+  std::vector<double> tmp_north_psi;
+  std::vector<double> shift_north;
+  std::vector<double> shift_south;
+    
 
   bool _mbdEpReco = false;
   bool _sepdEpReco = false;
@@ -82,6 +90,7 @@ class EventPlaneReco : public SubsysReco
   float mbd_e_north;
   float mbdQ;
 
+  //recentering histograms
   TProfile * tprof_mean_cos_north_mbd[6] = {};
   TProfile * tprof_mean_sin_north_mbd[6] = {};
   TProfile * tprof_mean_cos_south_mbd[6] = {};
@@ -91,6 +100,19 @@ class EventPlaneReco : public SubsysReco
   TProfile * tprof_mean_sin_north_mbd_input[6] = {};
   TProfile * tprof_mean_cos_south_mbd_input[6] = {};
   TProfile * tprof_mean_sin_south_mbd_input[6] = {};
+    
+  //shifting histograms
+  const int _imax = 6;
+  TProfile * tprof_cos_north_mbd_shift[6][6] = {};
+  TProfile * tprof_sin_north_mbd_shift[6][6] = {};
+  TProfile * tprof_cos_south_mbd_shift[6][6] = {};
+  TProfile * tprof_sin_south_mbd_shift[6][6] = {};
+    
+  TProfile * tprof_cos_north_mbd_shift_input[6][6] = {};
+  TProfile * tprof_sin_north_mbd_shift_input[6][6] = {};
+  TProfile * tprof_cos_south_mbd_shift_input[6][6] = {};
+  TProfile * tprof_sin_south_mbd_shift_input[6][6] = {};
+
     
 };
 
