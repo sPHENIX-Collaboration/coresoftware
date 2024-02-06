@@ -78,7 +78,7 @@ int DSTTrackInfoReader::Init(PHCompositeNode* topNode )
 }
 
 //_____________________________________________________________________
-int DSTTrackInfoReader::InitRun(PHCompositeNode* topNode)
+int DSTTrackInfoReader::InitRun(PHCompositeNode*)
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //_____________________________________________________________________
@@ -102,14 +102,14 @@ int DSTTrackInfoReader::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int DSTTrackInfoReader::End(PHCompositeNode* topNode)
+int DSTTrackInfoReader::End(PHCompositeNode*)
 {
   std::cout << "DST reader finishes" << "\n";
 
   return Fun4AllReturnCodes::EVENT_OK; }
 
 //_____________________________________________________________________
-int DSTTrackInfoReader::load_nodes( PHCompositeNode* topNode )
+int DSTTrackInfoReader::load_nodes( PHCompositeNode* topNode)
 {
 
   // get necessary nodes

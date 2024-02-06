@@ -104,7 +104,7 @@ int DSTTrackInfoWriter::Init(PHCompositeNode* topNode )
 }
 
 //_____________________________________________________________________
-int DSTTrackInfoWriter::InitRun(PHCompositeNode* topNode)
+int DSTTrackInfoWriter::InitRun(PHCompositeNode*)
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //_____________________________________________________________________
@@ -137,7 +137,7 @@ int DSTTrackInfoWriter::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int DSTTrackInfoWriter::End(PHCompositeNode* topNode)
+int DSTTrackInfoWriter::End(PHCompositeNode*)
 {
   std::cout << "In the end" << std::endl;
   // tcl->Print();
