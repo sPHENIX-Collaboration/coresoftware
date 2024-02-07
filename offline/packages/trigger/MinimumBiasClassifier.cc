@@ -128,8 +128,9 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   }
 
   if (std::fabs(vtx->get_z()) > _z_vtx_cut)
-    is_it_min_bias = false;
-
+    {
+      is_it_min_bias = false;
+    }
 
   for (int i = 0; i < 2; i++)
   {

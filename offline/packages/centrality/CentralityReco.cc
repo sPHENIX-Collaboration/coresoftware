@@ -86,7 +86,9 @@ int CentralityReco::Download_centralityDivisions(const std::string &dbfile)
     CDBTTree *cdbttree = new CDBTTree(dbase_file);
     cdbttree->LoadCalibrations();
     if (Verbosity())
-      cdbttree->Print();
+      {
+	cdbttree->Print();
+      }
     for (int idiv = 0; idiv < NDIVS; idiv++)
     {
       _centrality_map[idiv] = cdbttree->GetFloatValue(idiv, "centralitydiv");
@@ -162,8 +164,10 @@ int CentralityReco::FillCentralityInfo()
       break;
     }
   }
-  if (Verbosity()) std::cout << " Centile : " << (value >= 0 ? value : -999) << std::endl;
-
+  if (Verbosity()) 
+    {
+      std::cout << " Centile : " << (value >= 0 ? value : -999) << std::endl;
+    }
   _central->set_centile(CentralityInfo::PROP::mbd_NS, value);
   _central->set_centrality_bin(CentralityInfo::PROP::mbd_NS, binvalue);
 
