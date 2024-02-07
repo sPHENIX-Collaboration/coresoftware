@@ -139,6 +139,7 @@ class MakeActsGeometry : public SubsysReco
   void set_nSurfPhi( unsigned int value )
   { m_nSurfPhi = value; }
   void set_intt_survey(bool surv) { m_inttSurvey = surv; }
+  void set_extended_readout_time(float time) { m_extended_readout_time = time; }
 
  private:
   /// Main function to build all acts geometry for use in the fitting modules
@@ -267,6 +268,7 @@ class MakeActsGeometry : public SubsysReco
   int m_verbosity = 0;
 
   double m_drift_velocity = 8.0e-03;  // cm/ns, override from macro
+  float m_extended_readout_time = 0; //ns
 
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField ="1.4" ;

@@ -7,36 +7,46 @@
 
 class TrkrCluster;
 
-class ActsGeometry {
-
+class ActsGeometry
+{
  public:
   ActsGeometry() = default;
-  ~ActsGeometry() {} 
+  ~ActsGeometry() {}
 
-  void setGeometry(ActsTrackingGeometry& tGeometry) 
-    { m_tGeometry = tGeometry; }
+  void setGeometry(ActsTrackingGeometry& tGeometry)
+  {
+    m_tGeometry = tGeometry;
+  }
 
   void setSurfMaps(ActsSurfaceMaps& surfMaps)
-    { m_surfMaps = surfMaps; }
-  
+  {
+    m_surfMaps = surfMaps;
+  }
+
   ActsTrackingGeometry& geometry()
-    { return m_tGeometry; }
-  ActsSurfaceMaps& maps() 
-    { return m_surfMaps; }
+  {
+    return m_tGeometry;
+  }
+  ActsSurfaceMaps& maps()
+  {
+    return m_surfMaps;
+  }
 
-  void set_drift_velocity(double vd) {_drift_velocity = vd;}
-  double get_drift_velocity() {return _drift_velocity;}
+  void set_drift_velocity(double vd) { _drift_velocity = vd; }
+  double get_drift_velocity() { return _drift_velocity; }
+  void set_extended_readout_time(float time) { _extened_readout_time = time; }
+  float get_extended_readout_time() { return _extened_readout_time; }
 
-  Eigen::Matrix<float,3,1> getGlobalPositionF(
-      TrkrDefs:: cluskey key,       
+  Eigen::Matrix<float, 3, 1> getGlobalPositionF(
+      TrkrDefs::cluskey key,
       TrkrCluster* cluster);
 
   Acts::Vector3 getGlobalPosition(
-      TrkrDefs:: cluskey key,       
+      TrkrDefs::cluskey key,
       TrkrCluster* cluster);
 
   Acts::Vector3 getGlobalPositionTpc(
-      TrkrDefs:: cluskey key,       
+      TrkrDefs::cluskey key,
       TrkrCluster* cluster);
 
   Surface get_tpc_surface_from_coords(
@@ -52,6 +62,7 @@ class ActsGeometry {
   ActsTrackingGeometry m_tGeometry;
   ActsSurfaceMaps m_surfMaps;
 
+  float _extened_readout_time = 0;  // ns
   double _drift_velocity = 8.0e-3;  // cm/ns
 };
 
