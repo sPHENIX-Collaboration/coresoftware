@@ -402,7 +402,6 @@ namespace
 	
 	// update t sums
 	double t = my_data.layergeom->get_zcenter(it);
-        std::cout << "get z center " << t << std::endl;
         t_sum += t * adc;
         t2_sum += square(t)*adc;
 	
@@ -442,15 +441,18 @@ namespace
       float clusx = radius * cos(clusphi);
       float clusy = radius * sin(clusphi);
       double clust = t_sum / adc_sum;
-      std::cout << "clust is " << clust << ", " << t_sum << ", " << adc_sum << std::endl;
       // needed for surface identification
       double zdriftlength = clust * my_data.tGeometry->get_drift_velocity();
-      std::cout << "zdrift length " << zdriftlength << std::endl;
-      // convert z drift length to z position in the TPC
-      double clusz  =  my_data.m_tdriftmax * my_data.tGeometry->get_drift_velocity() - zdriftlength; 
-      if(my_data.side == 0) 
-	clusz = -clusz;
-      std::cout << "clusz " << clusz << std::endl;
+       // convert z drift length to z position in the TPC
+      double clusz = my_data.m_tdriftmax * my_data.tGeometry->get_drift_velocity() - zdriftlength;
+      if (clust > my_data.m_tdriftmax)
+      {
+        // force it to be within the surface so that the global to local transform can go ahead
+        clusz = ((my_data.m_tdriftmax + my_data.tGeometry->get_extended_readout_time()) * my_data.tGeometry->get_drift_velocity()) - zdriftlength;
+            }
+        if (my_data.side == 0)
+          clusz = -clusz;
+ 
       const double phi_cov = (iphi2_sum / adc_sum - square(clusiphi)) * pow(my_data.layergeom->get_phistep(), 2);
       const double t_cov = t2_sum/adc_sum - square(clust);
 
@@ -493,7 +495,7 @@ namespace
 
       // SAMPA shaping bias correction
       clust = clust + my_data.sampa_tbias;
-      std::cout << "sampa shaping bias " << my_data.sampa_tbias << std::endl;
+      
       /// convert to Acts units
       global *= Acts::UnitConstants::cm;
       //std::cout << "transform" << std::endl;
