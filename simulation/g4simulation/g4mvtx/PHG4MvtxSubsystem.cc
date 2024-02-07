@@ -5,6 +5,8 @@
 #include "PHG4MvtxDisplayAction.h"
 #include "PHG4MvtxSteppingAction.h"
 
+#include <mvtx/SegmentationAlpide.h>  // for Alpide constants
+
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
@@ -22,7 +24,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <mvtx/SegmentationAlpide.h>  // for Alpide constants
 
 #include <cstdlib>   // for getenv
 #include <iostream>  // for operator<<, basi...
@@ -31,9 +32,6 @@
 #include <utility>  // for pair
 
 class PHG4Detector;
-
-using namespace std;
-using namespace PHG4MvtxDefs;
 
 //_______________________________________________________________________
 PHG4MvtxSubsystem::PHG4MvtxSubsystem(const std::string& name, const int _n_layers)
@@ -62,7 +60,7 @@ PHG4MvtxSubsystem::~PHG4MvtxSubsystem()
 int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
   if (Verbosity() > 0)
-    cout << "PHG4MvtxSubsystem::Init started" << endl;
+    std::cout << "PHG4MvtxSubsystem::Init started" << std::endl;
 
   PHNodeIterator iter(topNode);
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
@@ -73,7 +71,7 @@ int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   // These values are set from the calling macro using the setters defined in the .h file
   if (Verbosity())
   {
-    cout << "    create Mvtx detector with " << n_layers << " layers." << endl;
+    std::cout << "    create Mvtx detector with " << n_layers << " layers." << std::endl;
   }
   m_Detector = new PHG4MvtxDetector(this, topNode, GetParamsContainer(), Name());
   m_Detector->Verbosity(Verbosity());
@@ -82,14 +80,14 @@ int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   m_Detector->OverlapCheck(CheckOverlap());
   if (Verbosity())
   {
-    cout << "    ------ created detector " << Name() << endl;
+    std::cout << "    ------ created detector " << Name() << std::endl;
     GetParamsContainer()->Print();
   }
   //loop all layer to find atleast one active layer
   int active = 0;
   int supportactive = 0;
   int blackhole = 0;
-  for (set<int>::const_iterator parContainerIter = GetDetIds().first; parContainerIter != GetDetIds().second; ++parContainerIter)
+  for (std::set<int>::const_iterator parContainerIter = GetDetIds().first; parContainerIter != GetDetIds().second; ++parContainerIter)
   {
     if (active || GetParamsContainer()->GetParameters(*parContainerIter)->get_int_param("active"))
     {
@@ -140,7 +138,7 @@ int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
         g4_hits = new PHG4HitContainer(nodename);
       if (Verbosity())
       {
-        cout << PHWHERE << "creating hits node " << nodename << endl;
+        std::cout << PHWHERE << "creating hits node " << nodename << std::endl;
       }
         detNode->addNode(new PHIODataNode<PHObject>(g4_hits, nodename, "PHObject"));
       }
@@ -184,29 +182,29 @@ PHG4Detector* PHG4MvtxSubsystem::GetDetector() const
 //_______________________________________________________________________
 void PHG4MvtxSubsystem::SetDefaultParameters()
 {
-  for (set<int>::const_iterator lyr_it = GetDetIds().first; lyr_it != GetDetIds().second; ++lyr_it)
+  for (std::set<int>::const_iterator lyr_it = GetDetIds().first; lyr_it != GetDetIds().second; ++lyr_it)
   {
     const int& ilyr = *lyr_it;
-    const double rLr = mvtxdat[ilyr][kRmd];
-    double turbo = radii2Turbo(mvtxdat[ilyr][kRmn], rLr, mvtxdat[ilyr][kRmx], SegmentationAlpide::SensorSizeRows * 10.);
+    const double rLr = PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kRmd];
+    double turbo = radii2Turbo(PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kRmn], rLr, PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kRmx], SegmentationAlpide::SensorSizeRows * 10.);
 
     set_default_int_param(ilyr, "active", 1);  //non-automatic initialization in PHG4DetectorGroupSubsystem
     set_default_int_param(ilyr, "layer", ilyr);
-    set_default_int_param(ilyr, "N_staves", mvtxdat[ilyr][kNStave]);
+    set_default_int_param(ilyr, "N_staves", PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kNStave]);
 
     set_default_double_param(ilyr, "layer_nominal_radius", rLr);
     set_default_double_param(ilyr, "phitilt", turbo);
-    set_default_double_param(ilyr, "phi0", mvtxdat[ilyr][kPhi0]);
+    set_default_double_param(ilyr, "phi0", PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kPhi0]);
     set_default_string_param(ilyr, "material", "G4_AIR");  // default - almost nothing
   }
 
-  set_default_string_param(GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
+  set_default_string_param(PHG4MvtxDefs::GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
   char *calibrationsroot = getenv("CALIBRATIONROOT");
   std::string end_wheels_sideS = "ITS_ibEndWheelSideA.gdml";
   std::string end_wheels_sideN = "ITS_ibEndWheelSideC.gdml";
   if (calibrationsroot != nullptr)
   {
-    end_wheels_sideS =  string(calibrationsroot) + string("/Tracking/geometry/") + end_wheels_sideS;
-    end_wheels_sideN = string(calibrationsroot) + string("/Tracking/geometry/") + end_wheels_sideN;
+    end_wheels_sideS =  std::string(calibrationsroot) + std::string("/Tracking/geometry/") + end_wheels_sideS;
+    end_wheels_sideN = std::string(calibrationsroot) + std::string("/Tracking/geometry/") + end_wheels_sideN;
   }
 }
