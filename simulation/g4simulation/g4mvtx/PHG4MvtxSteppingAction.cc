@@ -54,7 +54,6 @@
 
 class PHCompositeNode;
 
-using namespace std;
 //____________________________________________________________________________..
 PHG4MvtxSteppingAction::PHG4MvtxSteppingAction(PHG4MvtxDetector* detector, PHParametersContainer *paramscont)
   : PHG4SteppingAction(detector->GetName())
@@ -132,12 +131,12 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   }
   if (whichactive > 0)
   {
-  //cout << endl << "  In UserSteppingAction for layer " << layer_id << endl;
+  //std::cout << std::endl << "  In UserSteppingAction for layer " << layer_id << std::endl;
   G4VPhysicalVolume* vstave = touch->GetVolume(3);
   int whichlayer = m_Detector->IsInMvtx(vstave, layer_id, stave_id);
   if (layer_id < 0 || stave_id < 0)
   {
-    cout << PHWHERE << "invalid Mvtx's layer (" << layer_id << ") or stave (" << stave_id << ") index " << endl;
+    std::cout << PHWHERE << "invalid Mvtx's layer (" << layer_id << ") or stave (" << stave_id << ") index " << std::endl;
     exit(1);
   }
 
@@ -150,15 +149,15 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   {
     // make sure we know where we are!
     G4VPhysicalVolume* vtest = touch->GetVolume();
-    cout << "Entering PHG4MvtxSteppingAction::UserSteppingAction for volume " << vtest->GetName() << endl;
+    std::cout << "Entering PHG4MvtxSteppingAction::UserSteppingAction for volume " << vtest->GetName() << std::endl;
     G4VPhysicalVolume* vtest1 = touch->GetVolume(1);
-    cout << "Entering PHG4MvtxSteppingAction::UserSteppingAction for volume 1 up " << vtest1->GetName() << endl;
+    std::cout << "Entering PHG4MvtxSteppingAction::UserSteppingAction for volume 1 up " << vtest1->GetName() << std::endl;
     G4VPhysicalVolume* vtest2 = touch->GetVolume(2);
-    cout << "Entering PHG4MvtxSteppingAction::UserSteppingAction for volume 2 up " << vtest2->GetName() << endl;
+    std::cout << "Entering PHG4MvtxSteppingAction::UserSteppingAction for volume 2 up " << vtest2->GetName() << std::endl;
     G4VPhysicalVolume* vtest3 = touch->GetVolume(3);
-    cout << "Entering PHG4MvtxSteppingAction::UserSteppingAction for volume 3 up " << vtest3->GetName() << endl;
+    std::cout << "Entering PHG4MvtxSteppingAction::UserSteppingAction for volume 3 up " << vtest3->GetName() << std::endl;
     G4VPhysicalVolume* vtest4 = touch->GetVolume(4);
-    cout << "Entering PHG4MvtxSteppingAction::UserSteppingAction for volume 4 up " << vtest4->GetName() << endl;
+    std::cout << "Entering PHG4MvtxSteppingAction::UserSteppingAction for volume 4 up " << vtest4->GetName() << std::endl;
   }
 
   //=======================================================================
@@ -172,7 +171,7 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   //=======================================================================
 
   if (Verbosity() > 0)
-    cout << endl
+    std::cout << std::endl
          << "  UserSteppingAction: layer " << layer_id;
   boost::char_separator<char> sep("_");
   boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
@@ -184,13 +183,13 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   tokeniter = tok1.begin();
   ++tokeniter;
   chip_number = boost::lexical_cast<int>(*tokeniter);
-  if (Verbosity() > 0) cout << " chip  " << chip_number;
+  if (Verbosity() > 0) std::cout << " chip  " << chip_number;
   G4VPhysicalVolume* v2 = touch->GetVolume(2);
   boost::tokenizer<boost::char_separator<char> > tok2(v2->GetName(), sep);
   tokeniter = tok2.begin();
   ++tokeniter;
   module_number = boost::lexical_cast<int>(*tokeniter);
-  if (Verbosity() > 0) cout << " module " << module_number;
+  if (Verbosity() > 0) std::cout << " module " << module_number;
 
   // The stave number  is the imprint number from the assembly volume imprint
   // The assembly volume history string format is (e.g.):
@@ -205,12 +204,12 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   ++tokeniter;
   ++tokeniter;
   //stave_number = boost::lexical_cast<int>(*tokeniter) - 1;  // starts counting imprints at 1, we count staves from 0!
-  if (Verbosity() > 0) cout << " stave " << stave_id;
+  if (Verbosity() > 0) std::cout << " stave " << stave_id;
   ++tokeniter;
   ++tokeniter;
   ++tokeniter;
   half_stave_number = boost::lexical_cast<int>(*tokeniter);
-  if (Verbosity() > 0) cout << " half_stave " << half_stave_number;
+  if (Verbosity() > 0) std::cout << " half_stave " << half_stave_number;
   }
   // FYI: doing string compares inside a stepping action sounds like a recipe
   // for failure inside a heavy ion event... we'll wait and see how badly
@@ -220,7 +219,7 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   const G4Track* aTrack = aStep->GetTrack();
-  if (Verbosity() > 0) cout << " edep = " << edep << endl;
+  if (Verbosity() > 0) std::cout << " edep = " << edep << std::endl;
 
   // if this cylinder stops everything, just put all kinetic energy into edep
   if (m_Detector->IsBlackHole(layer_id))
@@ -242,7 +241,7 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // an expensive string compare for every track when we know
     // geantino or chargedgeantino has pid=0
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
@@ -256,7 +255,7 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     if (Verbosity() > 0)
     {
       G4ParticleDefinition* def = aTrack->GetDefinition();
-      cout << " Particle: " << def->GetParticleName() << endl;
+      std::cout << " Particle: " << def->GetParticleName() << std::endl;
     }
 
     switch (prePoint->GetStepStatus())
@@ -281,9 +280,9 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       if (Verbosity() > 0)
       {
         theTouchable = prePoint->GetTouchableHandle();
-        cout << "entering: depth = " << theTouchable->GetHistory()->GetDepth() << endl;
+        std::cout << "entering: depth = " << theTouchable->GetHistory()->GetDepth() << std::endl;
         G4VPhysicalVolume* vol1 = theTouchable->GetVolume();
-        cout << "entering volume name = " << vol1->GetName() << endl;
+        std::cout << "entering volume name = " << vol1->GetName() << std::endl;
       }
 
       /*
@@ -341,7 +340,7 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       // This was given to me as the way to get back to the sensor volume, but it does not work
       theTouchable = postPoint->GetTouchableHandle();
       localPosition = history->GetTransform(history->GetDepth() - 1).TransformPoint(worldPosition);
-      cout << "Exit local coords: x " <<  localPosition.x() / cm << " y " <<  localPosition.y() / cm << " z " <<  localPosition.z() / cm << endl;
+      std::cout << "Exit local coords: x " <<  localPosition.x() / cm << " y " <<  localPosition.y() / cm << " z " <<  localPosition.z() / cm << std::endl;
       */
 
     /*
@@ -350,10 +349,10 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       theTouchable = prePoint->GetTouchableHandle();
       vol2 = theTouchable->GetVolume();
       if(Verbosity() > 0)
-	cout << "exiting volume name = " << vol2->GetName() << endl;
+	std::cout << "exiting volume name = " << vol2->GetName() << std::endl;
       worldPosition = prePoint->GetPosition();
       if(Verbosity() > 0)
-	cout << "Exit world coords prePoint: x " <<  worldPosition.x() / cm << " y " <<  worldPosition.y() / cm << " z " <<  worldPosition.z() / cm << endl;
+	std::cout << "Exit world coords prePoint: x " <<  worldPosition.x() / cm << " y " <<  worldPosition.y() / cm << " z " <<  worldPosition.z() / cm << std::endl;
 
       // This is for consistency with the local coord position, the world coordinate exit position is correct
       m_Hit->set_x( 1, prePoint->GetPosition().x() / cm );
@@ -361,7 +360,7 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_Hit->set_z( 1, prePoint->GetPosition().z() / cm );
 
       const G4NavigationHistory *history = theTouchable->GetHistory();
-      //cout << "exiting: depth = " << history->GetDepth() <<  " volume name = " << history->GetVolume(history->GetDepth())->GetName() << endl;
+      //std::cout << "exiting: depth = " << history->GetDepth() <<  " volume name = " << history->GetVolume(history->GetDepth())->GetName() << std::endl;
       localPosition = history->GetTransform(history->GetDepth()).TransformPoint(worldPosition);
 
       m_Hit->set_local_x(1, localPosition.x() / cm);
@@ -406,26 +405,26 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       G4StepPoint* prePointA = aStep->GetPreStepPoint();
       G4StepPoint* postPointA = aStep->GetPostStepPoint();
-      cout << "----- PHg4MvtxSteppingAction::UserSteppingAction - active volume = " << sensor_volume->GetName() << endl;
-      cout << "       layer = " << layer_id << endl;
-      cout << "       stave number = " << stave_id << " half_stave_number = " << half_stave_number << endl;
-      cout << "       module number  = " << module_number << endl;
-      cout << "       chip number = " << chip_number << endl;
-      cout << "       prepoint x position " << prePointA->GetPosition().x() / cm << endl;
-      cout << "       prepoint y position " << prePointA->GetPosition().y() / cm << endl;
-      cout << "       prepoint z position " << prePointA->GetPosition().z() / cm << endl;
-      cout << "       postpoint x position " << postPointA->GetPosition().x() / cm << endl;
-      cout << "       postpoint y position " << postPointA->GetPosition().y() / cm << endl;
-      cout << "       postpoint z position " << postPointA->GetPosition().z() / cm << endl;
-      cout << "       edep " << edep << endl;
+      std::cout << "----- PHg4MvtxSteppingAction::UserSteppingAction - active volume = " << sensor_volume->GetName() << std::endl;
+      std::cout << "       layer = " << layer_id << std::endl;
+      std::cout << "       stave number = " << stave_id << " half_stave_number = " << half_stave_number << std::endl;
+      std::cout << "       module number  = " << module_number << std::endl;
+      std::cout << "       chip number = " << chip_number << std::endl;
+      std::cout << "       prepoint x position " << prePointA->GetPosition().x() / cm << std::endl;
+      std::cout << "       prepoint y position " << prePointA->GetPosition().y() / cm << std::endl;
+      std::cout << "       prepoint z position " << prePointA->GetPosition().z() / cm << std::endl;
+      std::cout << "       postpoint x position " << postPointA->GetPosition().x() / cm << std::endl;
+      std::cout << "       postpoint y position " << postPointA->GetPosition().y() / cm << std::endl;
+      std::cout << "       postpoint z position " << postPointA->GetPosition().z() / cm << std::endl;
+      std::cout << "       edep " << edep << std::endl;
     }
 
     if (Verbosity() > 0)
     {
-      cout << "  stepping action found hit:" << endl;
+      std::cout << "  stepping action found hit:" << std::endl;
       m_Hit->print();
-      cout << endl
-           << endl;
+      std::cout << std::endl
+           << std::endl;
     }
 
     // if any of these conditions is true this is the last step in
@@ -496,7 +495,7 @@ void PHG4MvtxSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   {
     if (Verbosity() > 0)
     {
-      cout << "PHG4MvtxSteppingAction::SetTopNode - unable to find " << m_SupportNodeName << endl;
+      std::cout << "PHG4MvtxSteppingAction::SetTopNode - unable to find " << m_SupportNodeName << std::endl;
     }
   }
 }
