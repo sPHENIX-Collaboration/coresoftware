@@ -28,21 +28,21 @@ class PHG4MvtxSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   void SetInterfacePointers(PHCompositeNode *) override;
 
-  void SetHitNodeName(const std::string& type, const std::string& name) override;
+  void SetHitNodeName(const std::string &type, const std::string &name) override;
 
  private:
   //! pointer to the detector
-  PHG4MvtxDetector *m_Detector {nullptr};
+  PHG4MvtxDetector *m_Detector{nullptr};
 
   //! pointer to hit container
-  PHG4HitContainer *m_HitContainer {nullptr};
-  PHG4HitContainer *m_SupportHitContainer {nullptr};
-  PHG4HitContainer *m_SaveHitContainer {nullptr};
-  PHG4Hit *m_Hit {nullptr};
-  PHG4Shower *m_SaveShower {nullptr};
+  PHG4HitContainer *m_HitContainer{nullptr};
+  PHG4HitContainer *m_SupportHitContainer{nullptr};
+  PHG4HitContainer *m_SaveHitContainer{nullptr};
+  PHG4Hit *m_Hit{nullptr};
+  PHG4Shower *m_SaveShower{nullptr};
 
-  int m_SupportActiveFlag {0};
-  int m_BlackHoleFlag {0};
+  int m_SupportActiveFlag{0};
+  int m_BlackHoleFlag{0};
 
   std::string m_HitNodeName;
   std::string m_SupportNodeName;

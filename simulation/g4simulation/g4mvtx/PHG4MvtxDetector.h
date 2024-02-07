@@ -49,7 +49,7 @@ class PHG4MvtxDetector : public PHG4Detector
   int get_layer(int stv_index) const;
   int get_stave(int stv_index) const;
 
-  void FillSupportLVArray(G4LogicalVolume* lv) {m_SupportLV.insert(lv);}
+  void FillSupportLVArray(G4LogicalVolume* lv) { m_SupportLV.insert(lv); }
 
  private:
   void AddGeometryNode();
@@ -64,11 +64,11 @@ class PHG4MvtxDetector : public PHG4Detector
   // calculated quantities
   double get_phistep(int lay) const { return 2.0 * M_PI / m_N_staves[lay]; }
 
-  PHG4MvtxDisplayAction* m_DisplayAction {nullptr};
-  const PHParametersContainer* m_ParamsContainer {nullptr};
+  PHG4MvtxDisplayAction* m_DisplayAction{nullptr};
+  const PHParametersContainer* m_ParamsContainer{nullptr};
 
-  static constexpr int n_Layers {3};
-  int m_SupportActiveFlag {0};
+  static constexpr int n_Layers{3};
+  int m_SupportActiveFlag{0};
 
   std::string m_Detector;
   std::string m_SuperDetector;
@@ -77,7 +77,7 @@ class PHG4MvtxDetector : public PHG4Detector
   // map of sensor physical volume pointers
   std::set<G4VPhysicalVolume*> m_SensorPV;
   std::map<G4VPhysicalVolume*, std::tuple<int, int>> m_StavePV;
-// set of support structures
+  // set of support structures
   std::set<G4LogicalVolume*> m_SupportLV;
 
   // setup parameters
@@ -88,7 +88,6 @@ class PHG4MvtxDetector : public PHG4Detector
   std::array<double, n_Layers> m_nominal_radius{};
   std::array<double, n_Layers> m_nominal_phitilt{};
   std::array<double, n_Layers> m_nominal_phi0{};
-
 };
 
 #endif

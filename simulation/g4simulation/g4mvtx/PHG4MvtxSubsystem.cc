@@ -24,7 +24,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-
 #include <cstdlib>   // for getenv
 #include <iostream>  // for operator<<, basi...
 #include <set>       // for _Rb_tree_const_i...
@@ -39,9 +38,10 @@ PHG4MvtxSubsystem::PHG4MvtxSubsystem(const std::string& name, const int _n_layer
   , n_layers(_n_layers)
   , detector_type(name)
 {
-  for (unsigned int iLyr = 0; iLyr < n_layers; ++iLyr) {
+  for (unsigned int iLyr = 0; iLyr < n_layers; ++iLyr)
+  {
     AddDetId(iLyr);
-}
+  }
 
   InitializeParameters();
 
@@ -60,9 +60,10 @@ PHG4MvtxSubsystem::~PHG4MvtxSubsystem()
 //_______________________________________________________________________
 int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 0) {
+  if (Verbosity() > 0)
+  {
     std::cout << "PHG4MvtxSubsystem::Init started" << std::endl;
-}
+  }
 
   PHNodeIterator iter(topNode);
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
@@ -85,7 +86,7 @@ int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     std::cout << "    ------ created detector " << Name() << std::endl;
     GetParamsContainer()->Print();
   }
-  //loop all layer to find atleast one active layer
+  // loop all layer to find atleast one active layer
   int active = 0;
   int supportactive = 0;
   int blackhole = 0;
@@ -111,12 +112,12 @@ int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     PHCompositeNode* detNode = dstNode;
     if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
-    detNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
-    if (!detNode)
-    {
-      detNode = new PHCompositeNode(SuperDetector());
-      dstNode->addNode(detNode);
-    }
+      detNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
+      if (!detNode)
+      {
+        detNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(detNode);
+      }
     }
 
     std::string detector_suffix = SuperDetector();
@@ -132,27 +133,26 @@ int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     {
       nodes.insert(m_SupportNodeName);
     }
-    for (const auto &nodename : nodes)
+    for (const auto& nodename : nodes)
     {
-      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+      PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
       {
         g4_hits = new PHG4HitContainer(nodename);
-      if (Verbosity())
-      {
-        std::cout << PHWHERE << "creating hits node " << nodename << std::endl;
-      }
+        if (Verbosity())
+        {
+          std::cout << PHWHERE << "creating hits node " << nodename << std::endl;
+        }
         detNode->addNode(new PHIODataNode<PHObject>(g4_hits, nodename, "PHObject"));
       }
     }
-
 
     // create stepping action
     m_SteppingAction = new PHG4MvtxSteppingAction(m_Detector, GetParamsContainer());
     m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
     m_SteppingAction->SetHitNodeName("G4HIT_SUPPORT", m_SupportNodeName);
     m_SteppingAction->Verbosity(Verbosity());
-}
+  }
   else
   {
     if (blackhole)
@@ -190,7 +190,7 @@ void PHG4MvtxSubsystem::SetDefaultParameters()
     const double rLr = PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kRmd];
     double turbo = radii2Turbo(PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kRmn], rLr, PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kRmx], SegmentationAlpide::SensorSizeRows * 10.);
 
-    set_default_int_param(ilyr, "active", 1);  //non-automatic initialization in PHG4DetectorGroupSubsystem
+    set_default_int_param(ilyr, "active", 1);  // non-automatic initialization in PHG4DetectorGroupSubsystem
     set_default_int_param(ilyr, "layer", ilyr);
     set_default_int_param(ilyr, "N_staves", PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kNStave]);
 
@@ -201,12 +201,12 @@ void PHG4MvtxSubsystem::SetDefaultParameters()
   }
 
   set_default_string_param(PHG4MvtxDefs::GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
-  char *calibrationsroot = getenv("CALIBRATIONROOT");
+  char* calibrationsroot = getenv("CALIBRATIONROOT");
   std::string end_wheels_sideS = "ITS_ibEndWheelSideA.gdml";
   std::string end_wheels_sideN = "ITS_ibEndWheelSideC.gdml";
   if (calibrationsroot != nullptr)
   {
-    end_wheels_sideS =  std::string(calibrationsroot) + std::string("/Tracking/geometry/") + end_wheels_sideS;
+    end_wheels_sideS = std::string(calibrationsroot) + std::string("/Tracking/geometry/") + end_wheels_sideS;
     end_wheels_sideN = std::string(calibrationsroot) + std::string("/Tracking/geometry/") + end_wheels_sideN;
   }
 }
