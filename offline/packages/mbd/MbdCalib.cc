@@ -1,5 +1,6 @@
 #include "MbdCalib.h"
 #include <MbdGeomV1.h>
+#include <MbdDefs.h>
 
 // Database Includes
 #include <ffamodules/CDBInterface.h>
@@ -34,6 +35,7 @@ MbdCalib::MbdCalib()
 
 int MbdCalib::Download_All()
 {
+  std::cout << PHWHERE << std::endl;
   _status = 0;
 
   if (Verbosity() > 0)
@@ -667,6 +669,33 @@ int MbdCalib::Write_CDB_SampMax(const std::string& dbfile)
   // for now we create the tree after reading it
   cdbttree->WriteCDBTTree();
   delete cdbttree;
+
+  return 1;
+}
+
+int MbdCalib::Write_SampMax(const std::string& dbfile)
+{
+  std::ofstream cal_file;
+  cal_file.open( dbfile );
+  for (int ipmt=0; ipmt<MbdDefs::MBD_N_PMT; ipmt++)
+  {
+    cal_file << ipmt << "\t" << _sampmax[ipmt] << std::endl;
+  }
+  cal_file.close();
+
+  return 1;
+}
+
+int MbdCalib::Write_TQT0(const std::string& dbfile)
+{
+  std::ofstream cal_t0_file;
+  cal_t0_file.open( dbfile );
+  for (int ipmt=0; ipmt<MbdDefs::MBD_N_PMT; ipmt++)
+  {
+    cal_t0_file << ipmt << "\t" << _tqfit_t0mean[ipmt] << "\t" << _tqfit_t0meanerr[ipmt]
+      << "\t" << _tqfit_t0sigma[ipmt] << "\t" << _tqfit_t0sigmaerr[ipmt] << std::endl;
+  }
+  cal_t0_file.close();
 
   return 1;
 }

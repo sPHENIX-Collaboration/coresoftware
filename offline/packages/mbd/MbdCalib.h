@@ -9,9 +9,10 @@
 
 #include <array>
 #include <vector>
-#include <cmath>
-#include <cstdint>
-#include <cstring>
+//#include <math>
+//#include <stdint>
+#include <string>
+//#include <string_view>
 #include <memory>
 
 #include <mbd/MbdGeom.h>
@@ -46,6 +47,9 @@ class MbdCalib : public Fun4AllBase
   int Write_CDB_SampMax(const std::string& dbfile);
   int Write_CDB_Shapes(const std::string& dbfile);
   int Write_CDB_All();
+
+  int Write_SampMax(const std::string& dbfile);
+  int Write_TQT0(const std::string& dbfile);
 
   // void Dump_to_file(const std::string& what = "ALL");
 
