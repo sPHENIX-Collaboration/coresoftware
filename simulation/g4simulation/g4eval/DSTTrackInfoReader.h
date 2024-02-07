@@ -9,12 +9,12 @@
 // #include "DSTContainerv3.h"
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv5.h>
-#include <trackbase_historic/TrackSeed_v1.h>
-#include <trackbase_historic/TrackSeedContainer_v1.h>
+#include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/TrackInfoContainer_v1.h>
+#include <trackbase_historic/TrackSeedContainer_v1.h>
+#include <trackbase_historic/TrackSeed_v1.h>
 
 #include <map>
 #include <set>
@@ -27,7 +27,7 @@ class PHG4Particle;
 class PHG4TruthInfoContainer;
 class SvtxTrack;
 class SvtxTrackMap;
-//class DSTContainer;
+// class DSTContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
@@ -36,13 +36,9 @@ class TrkrHitTruthAssoc;
 
 class DSTTrackInfoReader : public SubsysReco
 {
-  public:
-
+ public:
   //! constructor
   DSTTrackInfoReader(const std::string& = "DSTTrackInfoReader");
-
-  //! global initialization
-  int Init(PHCompositeNode*) override;
 
   //! run initialization
   int InitRun(PHCompositeNode*) override;
@@ -50,25 +46,23 @@ class DSTTrackInfoReader : public SubsysReco
   //! event processing
   int process_event(PHCompositeNode*) override;
 
-  //! end of processing
-  int End(PHCompositeNode*) override;
-
   enum Flags
   {
-    WriteEvent = 1<<0,
-    WriteClusters = 1<<1,
-    WriteTracks = 1<<2
+    WriteEvent = 1 << 0,
+    WriteClusters = 1 << 1,
+    WriteTracks = 1 << 2
   };
 
   //! set flags. Should be a bitwise or of Flags enum
-  void set_flags( int flags )
-  { m_flags = flags; }
+  void set_flags(int flags)
+  {
+    m_flags = flags;
+  }
 
-  private:
-
+ private:
   //! load nodes
-  int load_nodes( PHCompositeNode* );
-  
+  int load_nodes(PHCompositeNode*);
+
   void evaluate_track_info();
 
   // SvtxTrack recover_track(DSTContainerv3::TrackStruct);
@@ -76,18 +70,16 @@ class DSTTrackInfoReader : public SubsysReco
   // TrkrCluster recover_cluster(DSTContainerv3::ClusterStruct);
 
   TrackInfoContainer_v1* m_track_info_container = nullptr;
-  //DSTContainer* m_container = nullptr;
+  // DSTContainer* m_container = nullptr;
 
   //! flags
   int m_flags = WriteEvent | WriteClusters | WriteTracks;
-  
 
   //@}
 
   // debugging helpers
-  //bool dryrun = false;
-  //bool generateKey = false;
-
+  // bool dryrun = false;
+  // bool generateKey = false;
 };
 
 #endif  // G4EVAL_DSTTRACKINFOREADER_H

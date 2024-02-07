@@ -4,13 +4,13 @@
 /*!
  * \file DSTTrackInfoWriter.h
  * \author Alex Patton <aopatton@mit.edu>
- * 
+ *
  */
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/SvtxTrackInfo_v1.h>
+#include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackInfoContainer_v1.h>
 #include <trackbase_historic/TrackStateInfo_v1.h>
 
@@ -29,8 +29,8 @@ class PHG4Particle;
 class PHG4TruthInfoContainer;
 class SvtxTrack;
 class SvtxTrackMap;
-//class DSTContainerv3;
-//class DSTContainer;
+// class DSTContainerv3;
+// class DSTContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
@@ -40,38 +40,32 @@ class TrackSeedContainer;
 
 class DSTTrackInfoWriter : public SubsysReco
 {
-  public:
-
+ public:
   //! constructor
-  DSTTrackInfoWriter( const std::string& = "DSTTrackInfoWriter");
+  DSTTrackInfoWriter(const std::string& = "DSTTrackInfoWriter");
 
   //! global initialization
-  int Init(PHCompositeNode*) override;
-
-  //! run initialization
-  int InitRun(PHCompositeNode*) override;
+  int InitRun(PHCompositeNode* topNode) override;
 
   //! event processing
-  int process_event(PHCompositeNode*) override;
-
-  //! end of processing
-  int End(PHCompositeNode*) override;
+  int process_event(PHCompositeNode* topNode) override;
 
   enum Flags
   {
-    WriteEvent = 1<<0,
-    WriteClusters = 1<<1,
-    WriteTracks = 1<<2
+    WriteEvent = 1 << 0,
+    WriteClusters = 1 << 1,
+    WriteTracks = 1 << 2
   };
 
   //! set flags. Should be a bitwise or of Flags enum
-  void set_flags( int flags )
-  { m_flags = flags; }
+  void set_flags(int flags)
+  {
+    m_flags = flags;
+  }
 
-  private:
-
+ private:
   //! load nodes
-  int load_nodes( PHCompositeNode* );
+  int load_nodes(PHCompositeNode*);
 
   //! evaluate track info
   void evaluate_track_info();
@@ -83,8 +77,6 @@ class DSTTrackInfoWriter : public SubsysReco
 
   //! tracks
   SvtxTrackMap* m_track_map = nullptr;
-
-
 };
 
 #endif  // G4EVAL_DSTTrackInfoWRITER_H
