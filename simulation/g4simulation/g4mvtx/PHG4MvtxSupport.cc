@@ -3,12 +3,10 @@
 #include "PHG4MvtxCable.h"
 #include "PHG4MvtxDetector.h"
 #include "PHG4MvtxDisplayAction.h"
-#include "PHG4MvtxServiceStructure.h"
 
 #include <g4main/PHG4Detector.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
@@ -22,9 +20,6 @@
 #include <Geant4/G4Polycone.hh>
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4UnionSolid.hh>
-
-#include <TString.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
@@ -33,9 +28,9 @@
 
 #include <algorithm>  // for max
 #include <cmath>      // for M_PI, atan, cos, sin
-#include <cstddef>    // for NULL
 #include <iostream>   // for operator<<, basic_...
 #include <utility>    // for pair, make_pair
+#include <vector>
 #include <regex>      // for regex
 
 class G4VSolid;
@@ -205,11 +200,11 @@ void PHG4MvtxSupport::GetEndWheelSideN( const int lay, G4AssemblyVolume *&endWhe
   const double rOuter[nZplanes] = { sEndWheelNRmax[lay], sEndWheelNRmax[lay],
                                     sEndWheelNRmax[lay], sEndWheelNRmax[lay] };
 
-  G4VSolid *endWNBasis = new G4Polycone( Form("endwnbasis%d", lay), 0., 2. * M_PI * rad,
+  G4VSolid *endWNBasis = new G4Polycone( std::string("endwnbasis" + std::to_string(lay)), 0., 2. * M_PI * rad,
                                          nZplanes, zPlane, rInner, rOuter );
 
   // The holes in the veritcal wall
-  auto endwnwalhol = new G4Tubs( Form( "endwnwalhol%d", lay ), 0, sEndWNWallHoleD / 2,
+  auto endwnwalhol = new G4Tubs( std::string( "endwnwalhol" + std::to_string(lay) ), 0, sEndWNWallHoleD / 2,
                                  1.5 * ( sEndWheelNRmax[lay] - sEndWheelNWallR[lay] ),
                                  0, 2 * M_PI * rad );
 
@@ -224,15 +219,15 @@ void PHG4MvtxSupport::GetEndWheelSideN( const int lay, G4AssemblyVolume *&endWhe
     ypos = rmin * cos( phi * deg );
     Ra.set( -phi * deg, 90 * deg, 0. );
     Ta.set( xpos, ypos, zpos );
-    endWNBasis = new G4SubtractionSolid( Form( "endwnbasis-endwnwalhol%dl%d", ihole, lay ),
+    endWNBasis = new G4SubtractionSolid( std::string( "endwnbasis-endwnwalhol" + std::to_string(ihole) + "l" + std::to_string(lay) ),
                                          endWNBasis, endwnwalhol, &Ra, Ta );
   }
 
   // The holes in the base
-  auto endwnbasBhol = new G4Tubs( Form( "endwnbasBhol%d", lay ), 0, sEndWNBaseBigHoleD / 2,
+  auto endwnbasBhol = new G4Tubs( std::string( "endwnbasBhol" + std::to_string(lay) ), 0, sEndWNBaseBigHoleD / 2,
                                   1.5 * sEndWheelNThick, 0, 2 * M_PI * rad );
 
-  auto endwnbasShol = new G4Tubs( Form( "endwnbasShol%d", lay ), 0, sEndWNBaseSmallHoleD / 2,
+  auto endwnbasShol = new G4Tubs( std::string( "endwnbasShol" + std::to_string(lay) ), 0, sEndWNBaseSmallHoleD / 2,
                                   1.5 * sEndWheelNThick, 0, 2 * M_PI * rad );
 
   rmin = sEndWNBaseHolesR[lay];
@@ -246,10 +241,10 @@ void PHG4MvtxSupport::GetEndWheelSideN( const int lay, G4AssemblyVolume *&endWhe
     Ra.set( 0., 0., 0. );
     Ta.set( xpos, ypos, zpos );
     auto endwnbashol =  ( ihole < 2 || ihole == 5 || ihole > 8 ) ? endwnbasShol : endwnbasBhol;
-    endWNBasis = new G4SubtractionSolid( Form( "endwnbasis-endwnwalhol%dl%da", ihole, lay ),
+    endWNBasis = new G4SubtractionSolid( std::string( "endwnbasis-endwnwalhol" + std::to_string(ihole) + "l" + std::to_string(lay) + "a" ),
                                          endWNBasis, endwnbashol, &Ra, Ta );
     Ta = G4ThreeVector( -xpos, -ypos, zpos );
-    endWNBasis = new G4SubtractionSolid( Form( "endwnbasis-endwnwalhol%dl%db", ihole, lay ),
+    endWNBasis = new G4SubtractionSolid( std::string( "endwnbasis-endwnwalhol"  + std::to_string(ihole) + "l" + std::to_string(lay) + "b"),
                                          endWNBasis, endwnbashol, &Ra, Ta );
   }
 
@@ -260,7 +255,7 @@ void PHG4MvtxSupport::GetEndWheelSideN( const int lay, G4AssemblyVolume *&endWhe
   double xDispl = sqrt( rmin * rmin - sEndWNStepYdispl[lay] * sEndWNStepYdispl[lay] ) - xlen;
   ylen = sqrt( rmin * rmin - xDispl * xDispl ) - sEndWNStepYdispl[lay];
 
-  auto stepBoxNSh = new G4Box( Form("stepBoxNSh%d", lay), xlen / 2, ylen / 2,
+  auto stepBoxNSh = new G4Box( std::string("stepBoxNSh" + std::to_string( lay)), xlen / 2, ylen / 2,
                                ( sEndWNStepZlen / 2 ) - 0.05 * mm );
 
   xpos = xDispl + stepBoxNSh->GetXHalfLength();
@@ -271,20 +266,20 @@ void PHG4MvtxSupport::GetEndWheelSideN( const int lay, G4AssemblyVolume *&endWhe
   dphi = ( 90. * deg ) - asin( xDispl / rmin ) * rad - phimin + 5 * deg;
   rmax = rmin + 2 * stepBoxNSh->GetYHalfLength();
 
-  auto stepTubNSh = new G4Tubs( Form( "stepTubNSh%d", lay ), rmin, rmax,
+  auto stepTubNSh = new G4Tubs( std::string( "stepTubNSh" + std::to_string( lay) ), rmin, rmax,
                                 1.5 * sEndWNStepZlen / 2, phimin, dphi );
   Ra.set( 0., 0., 0. );
   Ta.set( -xpos, -ypos, 0 );
-  auto stepNSh = new G4SubtractionSolid( Form( "stepNSh%d", lay ),
+  auto stepNSh = new G4SubtractionSolid( std::string( "stepNSh" + std::to_string( lay) ),
                                          stepBoxNSh, stepTubNSh, &Ra, Ta );
 
   auto matAl = PHG4Detector::GetDetectorMaterial( "MVTX_EW_Al$" );
 
-  auto endWheelNvol = new G4LogicalVolume( endWNBasis, matAl, Form( "EndWheelNBasis%d", lay ) );
+  auto endWheelNvol = new G4LogicalVolume( endWNBasis, matAl, std::string( "EndWheelNBasis" + std::to_string( lay) ) );
   m_DisplayAction->AddVolume( endWheelNvol, "red" );
   m_Detector->FillSupportLVArray(endWheelNvol);
 
-  auto stepNShLogVol = new G4LogicalVolume( stepNSh , matAl, Form( "StepNL%d_LOGIC", lay ) );
+  auto stepNShLogVol = new G4LogicalVolume( stepNSh , matAl, std::string( "StepNL" + std::to_string( lay) + "_LOGIC" ) );
   m_DisplayAction->AddVolume( stepNShLogVol, "red" );
   m_Detector->FillSupportLVArray(stepNShLogVol);
 
@@ -397,11 +392,11 @@ void PHG4MvtxSupport::GetEndWheelSideS( const int lay, G4AssemblyVolume *&endWhe
                                     sEWSIntSectRmax[lay],
                                     sEWSIntSectRmax[lay] };
 
-  G4VSolid *endWSBasis = new G4Polycone( Form( "endwsbasis%d", lay ), 0., 2. * M_PI * rad,
+  G4VSolid *endWSBasis = new G4Polycone( std::string( "endwsbasis" + std::to_string(lay) ), 0., 2. * M_PI * rad,
                                          nZplanes, zPlane, rInner, rOuter);
 
   // The holes in the veritcal wall
-  auto endwswalhol = new G4Tubs( Form( "endwswalhol%d", lay ), 0, sEndWSWallHoleD / 2,
+  auto endwswalhol = new G4Tubs( std::string("endwswalhol" + std::to_string(lay) ), 0, sEndWSWallHoleD / 2,
                                  1.5 * sEWSExtSectThick[lay],
                                  0, 2 * M_PI * rad);
 
@@ -416,7 +411,7 @@ void PHG4MvtxSupport::GetEndWheelSideS( const int lay, G4AssemblyVolume *&endWhe
     ypos = rmin * cos( phi * deg );
     Ra.set( -phi * deg, 90 * deg, 0 );
     Ta.set( xpos, ypos, zpos );
-    endWSBasis = new G4SubtractionSolid( Form( "endwsbasis-endwswalhol%dl%d", ihole, lay ),
+    endWSBasis = new G4SubtractionSolid( std::string( "endwsbasis-endwswalhol" + std::to_string(ihole) + "l" + std::to_string(lay) ),
                                          endWSBasis, endwswalhol, &Ra, Ta );
   }
 
@@ -427,7 +422,7 @@ void PHG4MvtxSupport::GetEndWheelSideS( const int lay, G4AssemblyVolume *&endWhe
   double xDispl = sqrt( rmin * rmin - sEndWSStepYdispl[lay] * sEndWSStepYdispl[lay] ) - xlen;
   ylen = sqrt( rmin * rmin - xDispl * xDispl ) - sEndWSStepYdispl[lay];
 
-  auto stepBoxSSh = new G4Box( Form( "stepBoxSSh%d", lay ), xlen / 2, ylen / 2,
+  auto stepBoxSSh = new G4Box( std::string( "stepBoxSSh" + std::to_string(lay) ), xlen / 2, ylen / 2,
                                ( sEndWSStepZlen / 2 ) - 0.05 * mm );
 
   xpos = xDispl + stepBoxSSh->GetXHalfLength();
@@ -438,20 +433,20 @@ void PHG4MvtxSupport::GetEndWheelSideS( const int lay, G4AssemblyVolume *&endWhe
   dphi = ( 90. * deg ) - asin( xDispl / rmin ) * rad - phimin + 5 * deg;
   rmax = rmin + 2 * stepBoxSSh->GetYHalfLength();
 
-  auto stepTubSSh = new G4Tubs( Form( "stepTubSSh%d", lay ), rmin, rmax,
+  auto stepTubSSh = new G4Tubs( std::string( "stepTubSSh" + std::to_string( lay) ), rmin, rmax,
                                 1.5 * sEndWSStepZlen / 2, phimin, dphi );
   Ra.set( 0., 0., 0. );
   Ta.set( -xpos, -ypos, 0. );
-  auto stepSSh = new G4SubtractionSolid( Form( "stepSSh%d", lay ),
+  auto stepSSh = new G4SubtractionSolid( std::string( "stepSSh"  + std::to_string( lay) ),
                                          stepBoxSSh, stepTubSSh, &Ra, Ta );
 
   auto matAl = PHG4Detector::GetDetectorMaterial( "MVTX_EW_Al$" );
 
-  auto endWheelSvol = new G4LogicalVolume( endWSBasis, matAl, Form( "EndWheelSBasis%d", lay ) );
+  auto endWheelSvol = new G4LogicalVolume( endWSBasis, matAl, std::string( "EndWheelSBasis"+ std::to_string( lay) ) );
   m_DisplayAction->AddVolume( endWheelSvol, "red" );
   m_Detector->FillSupportLVArray(endWheelSvol);
 
-  auto stepSShLogVol = new G4LogicalVolume( stepSSh , matAl, Form( "StepSL%d_LOGIC", lay ) );
+  auto stepSShLogVol = new G4LogicalVolume( stepSSh , matAl, std::string( "StepSL" + std::to_string( lay) + "_LOGIC" ) );
   m_DisplayAction->AddVolume( stepSShLogVol, "red" );
   m_Detector->FillSupportLVArray(stepSShLogVol);
 
@@ -535,13 +530,13 @@ void PHG4MvtxSupport::GetConeVolume( int lay, G4AssemblyVolume *& av )
                                    sBigCylDmax[lay] / 2,
                                    sBigCylDmax[lay] / 2 };
 
-  auto coneSolid = new G4Polycone( Form( "cfConeL%d", lay ), 0., 2. * M_PI * rad,
+ auto coneSolid = new G4Polycone( std::string( "cfConeL" + std::to_string( lay) ), 0., 2. * M_PI * rad,
                                    nZplanes, zPlane, rInner, rOuter );
 
   auto matCF = PHG4Detector::GetDetectorMaterial( "MVTX_CarbonFiber$" );
 
   auto coneLogVol = new G4LogicalVolume( coneSolid, matCF,
-                                         Form( "ConeL%d_LOGIC", lay ),
+                                         std::string( "ConeL" + std::to_string(lay) + "_LOGIC"),
                                          nullptr, nullptr, nullptr );
 
   m_DisplayAction->AddVolume( coneLogVol, "MVTX_CarbonFiber$" );
@@ -1123,7 +1118,7 @@ G4AssemblyVolume *PHG4MvtxSupport::buildLayerCables( const int &lay )
   float zMax = - sEndWheelSNHolesZdist / 2 + ( sEndWStepHoleZpos + sEndWStepHoleZdist )
                - 17 * mm - zConeLen[lay];
 //  float zTransition2[3] = { -9.186 * cm, -8.938 *cm,  -8.538 * cm };
-  CreateCableBundle( *av, Form( "MVTX_L%dCable", lay ), true, true, false,
+  CreateCableBundle( *av, std::string( "MVTX_L" + std::to_string(lay) + "Cable"), true, true, false,
                      rOuter[lay] - 3 * mm, rOuter[lay] - 5 * mm, 0, 0,
                      BarrelCableStart + 1 * mm, zMax );
 

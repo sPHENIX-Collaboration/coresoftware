@@ -3,17 +3,14 @@
 
 #include "PHG4MvtxDefs.h"
 
-#include <Geant4/G4AssemblyVolume.hh>
-
 #include <string>
-#include <vector>
 #include <array>
 
+class G4AssemblyVolume;
 class G4LogicalVolume;
 class PHG4MvtxCable;
 class PHG4MvtxDetector;
 class PHG4MvtxDisplayAction;
-class PHG4MvtxServiceStructure;
 
 class PHG4MvtxSupport
 {
