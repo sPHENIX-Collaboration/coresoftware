@@ -69,8 +69,9 @@ PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
   , m_StaveGeometryFile(_paramsContainer->GetParameters(PHG4MvtxDefs::GLOBAL)->get_string_param("stave_geometry_file"))
 
 {
-  if (Verbosity() > 0)
+  if (Verbosity() > 0) {
     std::cout << "PHG4MvtxDetector constructor called" << std::endl;
+}
 
   for (int ilayer = 0; ilayer < n_Layers; ++ilayer)
   {

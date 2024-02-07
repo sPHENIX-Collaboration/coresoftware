@@ -89,7 +89,7 @@ PHG4MvtxSteppingAction::~PHG4MvtxSteppingAction()
 }
 
 //____________________________________________________________________________..
-bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   // get volume of the current step
@@ -170,9 +170,10 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   // The pixel number will be derived later from the entry and exit points in the sensor local coordinates
   //=======================================================================
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 0) {
     std::cout << std::endl
          << "  UserSteppingAction: layer " << layer_id;
+}
   boost::char_separator<char> sep("_");
   boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
 
@@ -183,13 +184,15 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   tokeniter = tok1.begin();
   ++tokeniter;
   chip_number = boost::lexical_cast<int>(*tokeniter);
-  if (Verbosity() > 0) std::cout << " chip  " << chip_number;
+  if (Verbosity() > 0) { std::cout << " chip  " << chip_number;
+}
   G4VPhysicalVolume* v2 = touch->GetVolume(2);
   boost::tokenizer<boost::char_separator<char> > tok2(v2->GetName(), sep);
   tokeniter = tok2.begin();
   ++tokeniter;
   module_number = boost::lexical_cast<int>(*tokeniter);
-  if (Verbosity() > 0) std::cout << " module " << module_number;
+  if (Verbosity() > 0) { std::cout << " module " << module_number;
+}
 
   // The stave number  is the imprint number from the assembly volume imprint
   // The assembly volume history string format is (e.g.):
@@ -204,12 +207,14 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   ++tokeniter;
   ++tokeniter;
   //stave_number = boost::lexical_cast<int>(*tokeniter) - 1;  // starts counting imprints at 1, we count staves from 0!
-  if (Verbosity() > 0) std::cout << " stave " << stave_id;
+  if (Verbosity() > 0) { std::cout << " stave " << stave_id;
+}
   ++tokeniter;
   ++tokeniter;
   ++tokeniter;
   half_stave_number = boost::lexical_cast<int>(*tokeniter);
-  if (Verbosity() > 0) std::cout << " half_stave " << half_stave_number;
+  if (Verbosity() > 0) { std::cout << " half_stave " << half_stave_number;
+}
   }
   // FYI: doing string compares inside a stepping action sounds like a recipe
   // for failure inside a heavy ion event... we'll wait and see how badly
@@ -219,7 +224,8 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   const G4Track* aTrack = aStep->GetTrack();
-  if (Verbosity() > 0) std::cout << " edep = " << edep << std::endl;
+  if (Verbosity() > 0) { std::cout << " edep = " << edep << std::endl;
+}
 
   // if this cylinder stops everything, just put all kinetic energy into edep
   if (m_Detector->IsBlackHole(layer_id))

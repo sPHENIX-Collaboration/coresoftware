@@ -43,8 +43,9 @@ PHG4EICMvtxSubsystem::PHG4EICMvtxSubsystem(const std::string& name, const int _n
   , n_layers(_n_layers)
   , detector_type(name)
 {
-  for (unsigned int iLyr = 0; iLyr < n_layers; ++iLyr)
+  for (unsigned int iLyr = 0; iLyr < n_layers; ++iLyr) {
     AddDetId(iLyr);
+}
 
   InitializeParameters();
 
@@ -63,8 +64,9 @@ PHG4EICMvtxSubsystem::~PHG4EICMvtxSubsystem()
 //_______________________________________________________________________
 int PHG4EICMvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 0)
+  if (Verbosity() > 0) {
     cout << "PHG4EICMvtxSubsystem::Init started" << endl;
+}
 
   PHNodeIterator iter(topNode);
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
@@ -131,8 +133,9 @@ int PHG4EICMvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     {
       detNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
     }
-    if (Verbosity())
+    if (Verbosity()) {
       cout << PHWHERE << "creating hits node " << nodename.str() << endl;
+}
 
     if (absorberactive)
     {
@@ -150,8 +153,9 @@ int PHG4EICMvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       {
         detNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
       }
-      if (Verbosity())
+      if (Verbosity()) {
         cout << PHWHERE << "creating hits node " << nodename.str() << endl;
+}
     }
 
     // create stepping action

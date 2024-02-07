@@ -39,8 +39,9 @@ PHG4MvtxSubsystem::PHG4MvtxSubsystem(const std::string& name, const int _n_layer
   , n_layers(_n_layers)
   , detector_type(name)
 {
-  for (unsigned int iLyr = 0; iLyr < n_layers; ++iLyr)
+  for (unsigned int iLyr = 0; iLyr < n_layers; ++iLyr) {
     AddDetId(iLyr);
+}
 
   InitializeParameters();
 
@@ -59,8 +60,9 @@ PHG4MvtxSubsystem::~PHG4MvtxSubsystem()
 //_______________________________________________________________________
 int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 0)
+  if (Verbosity() > 0) {
     std::cout << "PHG4MvtxSubsystem::Init started" << std::endl;
+}
 
   PHNodeIterator iter(topNode);
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));

@@ -81,13 +81,13 @@ class PHG4MvtxDetector : public PHG4Detector
   std::set<G4LogicalVolume*> m_SupportLV;
 
   // setup parameters
-  std::array<int, n_Layers> m_IsLayerActive;
-  std::array<int, n_Layers> m_IsLayerSupportActive;
-  std::array<int, n_Layers> m_IsBlackHole;
-  std::array<int, n_Layers> m_N_staves;
-  std::array<double, n_Layers> m_nominal_radius;
-  std::array<double, n_Layers> m_nominal_phitilt;
-  std::array<double, n_Layers> m_nominal_phi0;
+  std::array<int, n_Layers> m_IsLayerActive{};
+  std::array<int, n_Layers> m_IsLayerSupportActive{};
+  std::array<int, n_Layers> m_IsBlackHole{};
+  std::array<int, n_Layers> m_N_staves{};
+  std::array<double, n_Layers> m_nominal_radius{};
+  std::array<double, n_Layers> m_nominal_phitilt{};
+  std::array<double, n_Layers> m_nominal_phi0{};
 
 };
 

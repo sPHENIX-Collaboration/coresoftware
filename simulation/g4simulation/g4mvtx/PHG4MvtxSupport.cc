@@ -82,11 +82,14 @@ PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDetector *detector, PHG4MvtxDisplayActi
 //________________________________________________________________________________
 PHG4MvtxSupport::~PHG4MvtxSupport()
 {
-  if ( m_avSupport ) delete m_avSupport;
-  if ( m_avBarrelCable ) delete m_avBarrelCable;
+  if ( m_avSupport ) { delete m_avSupport;
+}
+  if ( m_avBarrelCable ) { delete m_avBarrelCable;
+}
   for ( auto av : m_avLayerCable )
   {
-    if ( av ) delete av;
+    if ( av ) { delete av;
+}
   }
 }
 
@@ -260,7 +263,7 @@ void PHG4MvtxSupport::GetEndWheelSideN( const int lay, G4AssemblyVolume *&endWhe
 
   xpos = xDispl + stepBoxNSh->GetXHalfLength();
   ypos = sEndWNStepYdispl[lay] + stepBoxNSh->GetYHalfLength();
-  rpos = sqrt( xpos * xpos + ypos * ypos );
+  rpos = std::sqrt( xpos * xpos + ypos * ypos );
 
   phimin = ( 90. * deg ) - acos( sEndWNStepYdispl[lay] / rmin ) * rad - 5 * deg;
   dphi = ( 90. * deg ) - asin( xDispl / rmin ) * rad - phimin + 5 * deg;
@@ -289,7 +292,7 @@ void PHG4MvtxSupport::GetEndWheelSideN( const int lay, G4AssemblyVolume *&endWhe
   Ta.set( 0, 0, zpos );
   endWheel->AddPlacedVolume( endWheelNvol, Ta, &Ra );
 
-  dphi = atan( ypos/xpos );
+  dphi = std::atan( ypos/xpos );
   double phi0 = PHG4MvtxDefs::mvtxdat[lay][PHG4MvtxDefs::kPhi0];
   const int numberOfStaves = PHG4MvtxDefs::mvtxdat[lay][PHG4MvtxDefs::kNStave];
   zpos += ( stepBoxNSh->GetZHalfLength() );
@@ -427,7 +430,7 @@ void PHG4MvtxSupport::GetEndWheelSideS( const int lay, G4AssemblyVolume *&endWhe
 
   xpos = xDispl + stepBoxSSh->GetXHalfLength();
   ypos = sEndWSStepYdispl[lay] + stepBoxSSh->GetYHalfLength();
-  rpos = sqrt( xpos * xpos + ypos * ypos );
+  rpos = std::sqrt( xpos * xpos + ypos * ypos );
 
   phimin = ( 90. * deg ) - acos( sEndWSStepYdispl[lay] / rmin ) * rad - 5 * deg;
   dphi = ( 90. * deg ) - asin( xDispl / rmin ) * rad - phimin + 5 * deg;
@@ -456,7 +459,7 @@ void PHG4MvtxSupport::GetEndWheelSideS( const int lay, G4AssemblyVolume *&endWhe
   Ta.set( 0, 0, -zpos );
   endWheel->AddPlacedVolume( endWheelSvol, Ta, &Ra );
 
-  dphi = atan( ypos/xpos );
+  dphi = std::atan( ypos/xpos );
   double phi0 = PHG4MvtxDefs::mvtxdat[lay][PHG4MvtxDefs::kPhi0];
   const int numberOfStaves = PHG4MvtxDefs::mvtxdat[lay][PHG4MvtxDefs::kNStave];
   zpos += ( stepBoxSSh->GetZHalfLength() );
@@ -1077,14 +1080,22 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const 
         sheathRad = powerLargeSheathRadius;
       }
 
-      if (cableName == boost::str(boost::format("%s_digiReturn") % superName.c_str())) cableColor = "black";
-      if (cableName == boost::str(boost::format("%s_digiSupply") % superName.c_str())) cableColor = "red";
-      if (cableName == boost::str(boost::format("%s_anaReturn") % superName.c_str())) cableColor = "black";
-      if (cableName == boost::str(boost::format("%s_anaSupply") % superName.c_str())) cableColor = "red";
-      if (cableName == boost::str(boost::format("%s_digiSense") % superName.c_str())) cableColor = "white";
-      if (cableName == boost::str(boost::format("%s_anaSense") % superName.c_str())) cableColor = "green";
-      if (cableName == boost::str(boost::format("%s_bias") % superName.c_str())) cableColor = "white";
-      if (cableName == boost::str(boost::format("%s_ground") % superName.c_str())) cableColor = "green";
+      if (cableName == boost::str(boost::format("%s_digiReturn") % superName.c_str())) { cableColor = "black";
+}
+      if (cableName == boost::str(boost::format("%s_digiSupply") % superName.c_str())) { cableColor = "red";
+}
+      if (cableName == boost::str(boost::format("%s_anaReturn") % superName.c_str())) { cableColor = "black";
+}
+      if (cableName == boost::str(boost::format("%s_anaSupply") % superName.c_str())) { cableColor = "red";
+}
+      if (cableName == boost::str(boost::format("%s_digiSense") % superName.c_str())) { cableColor = "white";
+}
+      if (cableName == boost::str(boost::format("%s_anaSense") % superName.c_str())) { cableColor = "green";
+}
+      if (cableName == boost::str(boost::format("%s_bias") % superName.c_str())) { cableColor = "white";
+}
+      if (cableName == boost::str(boost::format("%s_ground") % superName.c_str())) { cableColor = "green";
+}
 
       PHG4MvtxCable *cable = new PHG4MvtxCable(powerCable.first.first, "G4_Cu", coreRad, sheathRad,
                                                (x1 + powerCable.second.first), (x2 + powerCable.second.first),
