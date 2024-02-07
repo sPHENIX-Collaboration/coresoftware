@@ -52,9 +52,6 @@ libcentrality_io_la_SOURCES = \
 libcentrality_la_SOURCES = \
   CentralityReco.cc
 
-libcentrality_la_SOURCES = \
-  CentralityReco.cc
-
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
