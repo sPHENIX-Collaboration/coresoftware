@@ -6,7 +6,6 @@
 #include <array>
 #include <limits>
 #include <string>  // for allocator, string
-
 // Forward declarations
 
 class MinimumBiasInfo;
@@ -23,17 +22,19 @@ class MinimumBiasClassifier : public SubsysReco
   explicit MinimumBiasClassifier(const std::string &name = "MinimumBiasClassifier");
 
   //! destructor
+
   ~MinimumBiasClassifier() override = default;
 
-  //! full initialization
   int InitRun(PHCompositeNode *) override;
   void CreateNodes(PHCompositeNode *);
   int GetNodes(PHCompositeNode *);
 
   //! event processing method
   int process_event(PHCompositeNode *) override;
-  int ResetEvent(PHCompositeNode *) override;
+  //! end of run method
 
+  int ResetEvent(PHCompositeNode *) override;
+  
   int FillMinimumBiasInfo();
 
  private:
@@ -51,6 +52,7 @@ class MinimumBiasClassifier : public SubsysReco
   TowerInfo *_tmp_tower{nullptr};
 
   std::array<float, 2> _zdc_energy_sum{};
+
 };
 
 #endif
