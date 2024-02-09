@@ -31,17 +31,17 @@ class MbdReco : public SubsysReco
  private:
   int createNodes(PHCompositeNode *topNode);
   int getNodes(PHCompositeNode *topNode);
-  int _simflag {0};
+  int _simflag{0};
 
   float m_tres = 0.05;
   std::unique_ptr<TF1> m_gaussian = nullptr;
 
-  std::unique_ptr<MbdEvent>  m_mbdevent {nullptr};
-  Event                     *m_event {nullptr};
-  MbdOut                    *m_mbdout {nullptr};
-  MbdPmtContainer           *m_mbdpmts {nullptr};
-  MbdGeom                   *m_mbdgeom {nullptr};
-  MbdVertexMap              *m_mbdvtxmap {nullptr};
+  std::unique_ptr<MbdEvent> m_mbdevent{nullptr};
+  Event *m_event{nullptr};
+  MbdOut *m_mbdout{nullptr};
+  MbdPmtContainer *m_mbdpmts{nullptr};
+  MbdGeom *m_mbdgeom{nullptr};
+  MbdVertexMap *m_mbdvtxmap{nullptr};
 };
 
 #endif  // __MBDRECO_H__
