@@ -607,7 +607,6 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     phierr.clear();
     zsize.clear();
 */
-    std::cout << "Add track " << nseeds << " to seeds" << std::endl;
     seeds_vector.push_back(track);
     alice_seeds_vector.push_back(scov);
     trackChi2.push_back(trackSeed.GetChi2() / trackSeed.GetNDF());

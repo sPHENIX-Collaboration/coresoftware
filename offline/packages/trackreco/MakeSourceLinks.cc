@@ -128,11 +128,14 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
         global = _distortionCorrection.get_corrected_position(global, dcc_fluctuation);
       }
 
-      std::cout << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2) 
-		<< " corr glob " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
-		<< " crossing z correction " << z - global_in(2) 
-		<< " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - z 
-		<< std::endl;
+      if(m_verbosity > 2)
+	{
+	  std::cout << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2) 
+		    << " corr glob " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
+		    << " crossing z correction " << z - global_in(2) 
+		    << " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - z 
+		    << std::endl;
+	}
 
       // Make an afine transform that implements the correction as a translation 
       auto correction_translation = (global - global_in) * 10.0;  // need mm
@@ -262,7 +265,8 @@ void MakeSourceLinks::resetTransientTransformMap(
 						  std::set< Acts::GeometryIdentifier>& transient_id_set,
 						  ActsGeometry* tGeometry )
 {
-  std::cout << "Resetting TransientTransformMap with transient_id_set size " << transient_id_set.size() << std::endl;
+  if(m_verbosity > 2) { std::cout << "Resetting TransientTransformMap with transient_id_set size " << transient_id_set.size() << std::endl; }
+
   // loop over modifiedTransformSet and replace transient elements modified for the last track with the default transforms
   for(auto it = transient_id_set.begin(); it != transient_id_set.end(); ++it)
     {
