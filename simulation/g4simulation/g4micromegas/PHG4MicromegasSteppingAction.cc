@@ -62,7 +62,8 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
 
   // get volume of the current step
   G4VPhysicalVolume *volume = touch->GetVolume();
-  if (!m_Detector->IsInDetector(volume)) return false;
+  int whichactive = m_Detector->IsInDetector(volume);
+  if (whichactive == 0) return false;
 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -123,21 +124,29 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
     {
       if (!m_hit) m_hit.reset( new PHG4Hitv1() );
 
+      if (whichactive > 0)
+      {
       // assign layer
       m_hit->set_layer(m_Detector->get_layer(volume));
 
       const auto tileid = m_Detector->get_tileid(volume);
       m_hit->set_property(PHG4Hit::prop_index_i, tileid);
-
-      // here we set the entrance values in cm
-      m_hit->set_x(0, prePoint->GetPosition().x() / cm);
-      m_hit->set_y(0, prePoint->GetPosition().y() / cm);
-      m_hit->set_z(0, prePoint->GetPosition().z() / cm);
-
       // momentum
       m_hit->set_px(0, prePoint->GetMomentum().x() / GeV);
       m_hit->set_py(0, prePoint->GetMomentum().y() / GeV);
       m_hit->set_pz(0, prePoint->GetMomentum().z() / GeV);
+
+      m_hit->set_eion(0);
+      m_SaveHitContainer = m_HitContainer;
+      }
+      else
+      {
+	m_SaveHitContainer = m_SupportHitContainer;
+      }
+      // here we set the entrance values in cm
+      m_hit->set_x(0, prePoint->GetPosition().x() / cm);
+      m_hit->set_y(0, prePoint->GetPosition().y() / cm);
+      m_hit->set_z(0, prePoint->GetPosition().z() / cm);
 
       // time in ns
       m_hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
@@ -150,8 +159,6 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
       m_EdepSum = 0;
       m_EionSum = 0;
       m_hit->set_edep(0);
-      m_hit->set_eion(0);
-      m_SaveHitContainer = m_hitContainer;
 
       // this is for the tracking of the truth info
       if (G4VUserTrackInformation *p = aTrack->GetUserInformation())
@@ -233,11 +240,14 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
       m_hit->set_y(1, postPoint->GetPosition().y() / cm);
       m_hit->set_z(1, postPoint->GetPosition().z() / cm);
 
+      m_hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
+      if (whichactive > 0)
+      {
       m_hit->set_px(1, postPoint->GetMomentum().x() / GeV);
       m_hit->set_py(1, postPoint->GetMomentum().y() / GeV);
       m_hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
+      }
 
-      m_hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
       if (G4VUserTrackInformation *p = aTrack->GetUserInformation())
       {
         if (PHG4TrackUserInfoV1 *pp = dynamic_cast<PHG4TrackUserInfoV1 *>(p))
@@ -245,17 +255,26 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
           pp->SetKeep(1);  // we want to keep the track
         }
       }
+
       if (geantino)
       {
         m_hit->set_edep(-1);
-        m_hit->set_eion(-1);
       }
       else
       {
         m_hit->set_edep(m_EdepSum);
-        m_hit->set_eion(m_EionSum);
       }
-
+      if (whichactive > 0)
+      {
+	if (geantino)
+	{
+	  m_hit->set_eion(-1);
+	}
+	else
+	{
+	  m_hit->set_eion(m_EionSum);
+	}
+      }
 
       // add in container
       m_SaveHitContainer->AddHit(m_hit->get_layer(), m_hit.get());
@@ -277,7 +296,40 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
 //____________________________________________________________________________..
 void PHG4MicromegasSteppingAction::SetInterfacePointers(PHCompositeNode *topNode)
 {
-  std::string hitnodename = "G4HIT_" + m_Detector->SuperDetector();
-  m_hitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-  if (!m_hitContainer) std::cout << "PHG4MicromegasSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  m_SupportHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_SupportNodeName);
+
+  if (!m_HitContainer)
+  {
+    if (!m_Params->get_int_param("blackhole"))  // not messed up if we have a black hole
+    {
+std::cout << "PHG4MicromegasSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
+      gSystem->Exit(1);
+    }
+  }
+  // this is perfectly fine if support hits are disabled
+  if (!m_SupportHitContainer)
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "PHG4MicromegasSteppingAction::SetTopNode - unable to find " << m_SupportNodeName << std::endl;
+    }
+  }
+}
+
+void PHG4MicromegasSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_SUPPORT")
+  {
+    m_SupportNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }

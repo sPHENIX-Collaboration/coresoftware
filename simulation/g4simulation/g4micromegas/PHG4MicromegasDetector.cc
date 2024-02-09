@@ -58,11 +58,30 @@ PHG4MicromegasDetector::PHG4MicromegasDetector(PHG4Subsystem *subsys, PHComposit
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4MicromegasDisplayAction*>(subsys->GetDisplayAction()))
   , m_Params(parameters)
+  , m_ActiveFlag(m_Params->get_int_param("active"))
+  , m_SupportActiveFlag(m_Params->get_int_param("supportactive"))
 { setup_tiles(); }
 
 //_______________________________________________________________
-bool PHG4MicromegasDetector::IsInDetector(G4VPhysicalVolume *volume) const
-{ return m_activeVolumes.find( volume ) != m_activeVolumes.end(); }
+int PHG4MicromegasDetector::IsInDetector(G4VPhysicalVolume *volume) const
+{
+  if (m_ActiveFlag)
+  {
+
+    if ( m_activeVolumes.find( volume ) != m_activeVolumes.end())
+    {
+      return 1;
+    }
+  }
+  if (m_SupportActiveFlag)
+  {
+    if (m_passiveVolumes.find(volume) != m_passiveVolumes.end())
+    {
+      return -1;
+    }
+  }
+  return 0;
+}
 
 //_______________________________________________________________
 int PHG4MicromegasDetector::get_layer(G4VPhysicalVolume *volume) const

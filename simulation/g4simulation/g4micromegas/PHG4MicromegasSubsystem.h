@@ -50,7 +50,7 @@ class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
   //!@name accessors (reimplemented)
   //@{
   PHG4Detector* GetDetector() const override;
-  PHG4SteppingAction* GetSteppingAction() const override;
+  PHG4SteppingAction* GetSteppingAction() const override { return m_SteppingAction; }
   //@}
 
   //! Print info (from SubsysReco)
@@ -62,20 +62,22 @@ class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
   private:
   
   // \brief Set default parameter values
-  void SetDefaultParameters() override;
-
-  private:
+  void SetDefaultParameters() override {return;}
 
   //! detector construction
   /*! derives from PHG4Detector */
-  PHG4MicromegasDetector *m_Detector = nullptr;
+  PHG4MicromegasDetector *m_Detector {nullptr};
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4MicromegasSteppingAction *m_SteppingAction = nullptr;
+  PHG4SteppingAction *m_SteppingAction {nullptr};
 
   //! display attribute setting
-  PHG4DisplayAction* m_DisplayAction = nullptr;
+  PHG4DisplayAction* m_DisplayAction {nullptr};
+
+  std::string m_HitNodeName;
+  std::string m_SupportNodeName;
+
 };
 
 #endif // G4MICROMEGAS_PHG4MICROMEGASSUBSYSTEM_H

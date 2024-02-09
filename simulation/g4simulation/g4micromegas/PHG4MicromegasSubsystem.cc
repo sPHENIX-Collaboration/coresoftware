@@ -45,9 +45,9 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
   auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   PHNodeIterator dstIter(dstNode);
-
   if (GetParams()->get_int_param("active"))
   {
+    std::set<std::string> nodes;
     auto detNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
     if (!detNode)
     {
@@ -55,12 +55,29 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       dstNode->addNode(detNode);
     }
 
-    const std::string g4hitnodename = "G4HIT_" + SuperDetector();
+    // create hit output nodes
+    std::string detector_suffix = SuperDetector();
+    if (detector_suffix == "NONE" || detector_suffix.empty())
+    {
+      detector_suffix = Name();
+    }
+
+    m_HitNodeName = "G4HIT_" + detector_suffix;
+    nodes.insert(m_HitNodeName);
+    m_SupportNodeName = "G4HIT_SUPPORT_" + detector_suffix;
+    if (GetParams()->get_int_param("supportactive"))
+    {
+      nodes.insert(m_SupportNodeName);
+    }
+
+    for (const auto &g4hitnodename : nodes)
+    {
     auto g4_hits = findNode::getClass<PHG4HitContainer>(detNode, g4hitnodename);
     if (!g4_hits)
     {
       g4_hits = new PHG4HitContainer(g4hitnodename);
       detNode->addNode(new PHIODataNode<PHObject>(g4_hits, g4hitnodename, "PHObject"));
+    }
     }
   }
 
@@ -75,7 +92,10 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   
   // create stepping action if detector is active
   if (GetParams()->get_int_param("active"))
-  { m_SteppingAction = new PHG4MicromegasSteppingAction(m_Detector, GetParams()); }
+  { m_SteppingAction = new PHG4MicromegasSteppingAction(m_Detector, GetParams());
+    m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_SUPPORT", m_SupportNodeName);
+}
   return 0;
 }
 
@@ -97,10 +117,3 @@ void PHG4MicromegasSubsystem::Print(const std::string &what) const
 PHG4Detector* PHG4MicromegasSubsystem::GetDetector(void) const
 { return m_Detector; }
 
-//_______________________________________________________________________
-PHG4SteppingAction* PHG4MicromegasSubsystem::GetSteppingAction() const
-{ return m_SteppingAction; }
-
-//_______________________________________________________________________
-void PHG4MicromegasSubsystem::SetDefaultParameters()
-{}

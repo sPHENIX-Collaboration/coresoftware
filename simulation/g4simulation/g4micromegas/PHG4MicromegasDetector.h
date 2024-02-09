@@ -42,7 +42,7 @@ class PHG4MicromegasDetector : public PHG4Detector
   int get_first_layer() const { return m_FirstLayer; }
 
   //! returns true if passed volume is an active volume of this detector
-  bool IsInDetector(G4VPhysicalVolume*) const;
+  int IsInDetector(G4VPhysicalVolume*) const;
 
   //! return layer associated to a given volume, or -1 if invalid
   int get_layer(G4VPhysicalVolume*) const;
@@ -83,10 +83,20 @@ class PHG4MicromegasDetector : public PHG4Detector
   void add_geometry_node();
   
   //! vis attribute handling (save memory in batch)
-  PHG4MicromegasDisplayAction* m_DisplayAction = nullptr;
+  PHG4MicromegasDisplayAction* m_DisplayAction {nullptr};
 
   //! detector parameters
-  PHParameters* m_Params = nullptr;
+  PHParameters* m_Params {nullptr};
+
+  //! first layer number
+  /* there are two layers in the detector */
+  int m_FirstLayer {0};
+
+  //! cache active setting
+  bool m_ActiveFlag {false};
+
+  //! cache support active setting
+  bool m_SupportActiveFlag {false};
 
   //! map layer index to radius (cm)
   /** it is filled while creating G4 volumes */
@@ -112,10 +122,6 @@ class PHG4MicromegasDetector : public PHG4Detector
 
   //! micromegas tiles
   MicromegasTile::List m_tiles;
-
-  //! first layer number
-  /* there are two layers in the detector */
-  int m_FirstLayer = 0;
 
 };
 
