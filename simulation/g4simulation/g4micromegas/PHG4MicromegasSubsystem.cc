@@ -111,9 +111,10 @@ int PHG4MicromegasSubsystem::process_event(PHCompositeNode *topNode)
 
 //_______________________________________________________________________
 void PHG4MicromegasSubsystem::Print(const std::string &what) const
-{ if (m_Detector) m_Detector->Print(what); }
+{ if (m_Detector) { m_Detector->Print(what); 
+}}
 
 //_______________________________________________________________________
-PHG4Detector* PHG4MicromegasSubsystem::GetDetector(void) const
+PHG4Detector* PHG4MicromegasSubsystem::GetDetector() const
 { return m_Detector; }
 

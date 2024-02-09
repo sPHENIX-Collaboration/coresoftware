@@ -137,7 +137,8 @@ std::string PHG4MicromegasSurvey::get_module_name( int layer, uint tile ) const
   {
     std::cout << " PHG4MicromegasSurvey::get_module_name - module not found. layer: " << layer << " tile: " << tile << std::endl;
     return std::string();
-  } else return iter->second;
+  } else { return iter->second;
+}
 }
 
 //____________________________________________________________________________________________________

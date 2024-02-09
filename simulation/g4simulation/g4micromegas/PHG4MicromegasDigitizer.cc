@@ -142,7 +142,8 @@ int PHG4MicromegasDigitizer::process_event(PHCompositeNode *topNode)
     for( const auto& key:removed_keys )
     {
       hitset->removeHit(key);
-      if( hittruthassoc ) hittruthassoc->removeAssoc(hitsetkey, key);
+      if( hittruthassoc ) { hittruthassoc->removeAssoc(hitsetkey, key);
+}
     }
 
   }

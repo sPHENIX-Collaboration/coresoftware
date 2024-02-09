@@ -63,7 +63,8 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
   // get volume of the current step
   G4VPhysicalVolume *volume = touch->GetVolume();
   int whichactive = m_Detector->IsInDetector(volume);
-  if (whichactive == 0) return false;
+  if (whichactive == 0) { return false;
+}
 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -122,7 +123,8 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
     case fGeomBoundary:
     case fUndefined:
     {
-      if (!m_hit) m_hit.reset( new PHG4Hitv1() );
+      if (!m_hit) { m_hit.reset( new PHG4Hitv1() );
+}
 
       if (whichactive > 0)
       {

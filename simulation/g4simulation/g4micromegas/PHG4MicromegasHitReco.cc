@@ -64,9 +64,10 @@ namespace
   template<class T>
     inline T bind_angle( const T& angle )
   {
-    if( angle >= M_PI ) return angle - 2*M_PI;
-    else if( angle < -M_PI ) return angle + 2*M_PI;
-    else return angle;
+    if( angle >= M_PI ) { return angle - 2*M_PI;
+    } else if( angle < -M_PI ) { return angle + 2*M_PI;
+    } else { return angle;
+}
   }
 
   // this corresponds to integrating a gaussian centered on zero and of width sigma from xloc - pitch/2 to xloc+pitch/2
@@ -261,8 +262,10 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       PHG4Hit* g4hit = g4hit_it->second;
 
       // check time window
-      if(g4hit->get_t(0) > m_tmax) continue;
-      if(g4hit->get_t(1) < m_tmin) continue;
+      if(g4hit->get_t(0) > m_tmax) { continue;
+}
+      if(g4hit->get_t(1) < m_tmin) { continue;
+}
 
       // get world coordinates
       TVector3 world_in( g4hit->get_x(0), g4hit->get_y(0), g4hit->get_z(0) );
@@ -277,7 +280,8 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 
       // number of primary elections
       const auto nprimary = get_primary_electrons( g4hit );
-      if( !nprimary ) continue;
+      if( !nprimary ) { continue;
+}
 
       // create hitset
       const TrkrDefs::hitsetkey hitsetkey = MicromegasDefs::genHitSetKey( layer, layergeom->get_segmentation_type(), tileid );
@@ -338,11 +342,13 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
         for( const auto& pair: fractions )
         {
           const int strip = pair.first;
-          if( strip < 0 || strip >= (int) layergeom->get_strip_count( tileid, m_acts_geometry ) ) continue;
+          if( strip < 0 || strip >= (int) layergeom->get_strip_count( tileid, m_acts_geometry ) ) { continue;
+}
 
           const auto it = total_charges.lower_bound( strip );
-          if( it != total_charges.end() && it->first == strip ) it->second += pair.second*gain;
-          else total_charges.insert( it, std::make_pair( strip, pair.second*gain ) );
+          if( it != total_charges.end() && it->first == strip ) { it->second += pair.second*gain;
+          } else { total_charges.insert( it, std::make_pair( strip, pair.second*gain ) );
+}
         }
       }
 
@@ -445,7 +451,8 @@ PHG4MicromegasHitReco::charge_list_t PHG4MicromegasHitReco::distribute_charge(
   auto stripnum = layergeom->find_strip_from_local_coords( tileid, m_acts_geometry, local_coords );
 
   // check tile and strip
-  if( stripnum < 0 ) return charge_list_t();
+  if( stripnum < 0 ) { return charge_list_t();
+}
 
   // store pitch and radius
   const auto pitch = layergeom->get_pitch();

@@ -481,7 +481,8 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, 
     { return value + layer_map.at(std::get<0>(layer)).m_thickness; } );
 
   // for z tile, adds fee thickness
-  if( is_z ) tile_thickness += fee_thickness;
+  if( is_z ) { tile_thickness += fee_thickness;
+}
 
   // tile dimensions match that of the PCB layer
   const double tile_dy = layer_map.at(Component::PCB).m_dy;
@@ -544,7 +545,8 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, 
       m_layer_radius.insert( std::make_pair( layer_index, (current_radius_local + thickness/2)/cm ) );
       m_layer_thickness.insert( std::make_pair( layer_index, thickness/cm) );
 
-    } else m_passiveVolumes.insert( component_phys );
+    } else { m_passiveVolumes.insert( component_phys );
+}
 
     // update radius
     current_radius_local += thickness;
@@ -668,7 +670,8 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_fee_board( int id )
 void PHG4MicromegasDetector::add_geometry_node()
 {
   // do nothing if detector is inactive
-  if( !m_Params->get_int_param("active")) return;
+  if( !m_Params->get_int_param("active")) { return;
+}
 
   // find or create geometry node
   const auto geonode_name = std::string( "CYLINDERGEOM_" ) + m_SuperDetector + "_FULL";
