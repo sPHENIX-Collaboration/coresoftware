@@ -37,6 +37,7 @@ TpcClusterMover::TpcClusterMover()
 
 void TpcClusterMover::initialize_geometry(PHG4TpcCylinderGeomContainer* cellgeo)
 {
+  if(_verbosity > 0) {  std::cout << "TpcClusterMover: Initializing layer radii for Tpc from cell geometry object" << std::endl; }
   
   int layer=0;
   PHG4TpcCylinderGeomContainer::ConstRange layerrange = cellgeo->get_begin_end();
@@ -125,7 +126,16 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
       
       // add the new position and surface to the return object
       global_moved.push_back(std::make_pair(cluskey, global_new));
-     }
+
+      if(_verbosity > 2)
+	{
+	  std::cout << "Cluster " << cluskey << " xstart " << _x_start << " xproj " << _x_proj << " ystart " <<  _y_start  << " yproj " << _y_proj 
+		    << " zstart " << _z_start  << " zproj " << _z_proj << std::endl;
+	  std::cout << " layer " << layer << " layer radius " << target_radius << " cluster radius " << cluster_radius << std::endl;
+	  std::cout << "  global in " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
+	  std::cout << "  global new " << global_new[0] << "  " << global_new[1] << "  " << global_new[2] << std::endl;
+	}
+    }
 
   return global_moved;
 }

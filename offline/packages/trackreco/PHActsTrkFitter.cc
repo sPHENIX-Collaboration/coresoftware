@@ -151,6 +151,9 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
     m_evaluator->verbosity(Verbosity());
   }
 
+  _tpccellgeo =  findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+
+
   if (Verbosity() > 1)
   {
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
@@ -375,6 +378,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	SourceLinkVec sourceLinks;
 
 	MakeSourceLinks makeSourceLinks;
+	makeSourceLinks.initialize(_tpccellgeo);
 	makeSourceLinks.setVerbosity(Verbosity());
 	makeSourceLinks.set_pp_mode(m_pp_mode);
 

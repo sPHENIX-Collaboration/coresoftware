@@ -45,6 +45,7 @@ class TrackSeedContainer;
 class TrkrClusterContainer;
 class TpcDistortionCorrectionContainer;
 class SvtxAlignmentStateMap;
+class PHG4TpcCylinderGeomContainer;
 
 using SourceLink = ActsSourceLink;
 using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
@@ -239,6 +240,8 @@ class PHActsTrkFitter : public SubsysReco
   SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
   ActsAlignmentStates m_alignStates;
   bool m_commissioning = false;
+
+  PHG4TpcCylinderGeomContainer* _tpccellgeo;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;

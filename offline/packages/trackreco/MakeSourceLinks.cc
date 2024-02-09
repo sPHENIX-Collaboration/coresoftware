@@ -16,6 +16,8 @@
 #include <trackbase_historic/SvtxTrackState_v2.h>
 #include <trackbase_historic/TrackSeed.h>
 
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <Acts/EventData/ParticleHypothesis.hpp>
 #include <Acts/EventData/SourceLink.hpp>
 
@@ -28,6 +30,16 @@ namespace
   inline T square(const T& x)
   {
     return x * x;
+  }
+
+}
+
+void MakeSourceLinks::initialize(PHG4TpcCylinderGeomContainer* cellgeo)
+{
+  // get the TPC layer radii from the geometry object  
+  if (cellgeo)
+  {
+    _clusterMover.initialize_geometry(cellgeo);
   }
 
 }
@@ -277,7 +289,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 							  short int crossing
 							  )
 {
-  if(m_verbosity > 1) { std::cout << "Entering MakeSourceLinks::getSourceLinks " << std::endl; }
+  if(m_verbosity > 1) { std::cout << "Entering MakeSourceLinks::getSourceLinksClusterMover " << std::endl; }
 
   SourceLinkVec sourcelinks;
 
@@ -337,7 +349,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 	// make all corrections to global position of TPC cluster
 	float z = _clusterCrossingCorrection.correctZ(global[2], side, crossing);
 	global[2] = z;
-	
+
 	// apply distortion corrections
 	if (dcc_static)
 	  {
@@ -370,7 +382,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
   // move the cluster positions back to the original readout surface
   auto global_moved = _clusterMover.processTrack(global_raw);
 
-  if (m_verbosity > 1)
+if (m_verbosity > 1)
     {
       std::cout << "Cluster global positions after mover puts them on readout surface:" << std::endl;
     }
@@ -394,6 +406,10 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     auto cluster = clusterContainer->findCluster(cluskey);
     Surface surf = tGeometry->maps().getSurface(cluskey, cluster);
 
+    //    std::cout << " Initial surface " <<  std::endl;
+    //surf.get()->toStream(tGeometry->geometry().getGeoContext(), std::cout);
+    //std::cout << std::endl;
+
     // if this is a TPC cluster, the crossing correction may have moved it across the central membrane, check the surface
     auto trkrid = TrkrDefs::getTrkrId(cluskey);
     if (trkrid == TrkrDefs::tpcId)
@@ -405,12 +421,17 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 
     if (!surf)
     {
+      if(m_verbosity > 2) { std::cout << " Failed to find surface for cluskey " << cluskey << std::endl; }
       continue;
     }
 
+    //std::cout << " Moved surface " <<  std::endl;
+    //surf.get()->toStream(tGeometry->geometry().getGeoContext(), std::cout);
+    //std::cout << std::endl;
+
     // get local coordinates
     Acts::Vector2 localPos;
-    global *= Acts::UnitConstants::cm;
+    global *= Acts::UnitConstants::cm;  // we want mm for transformations
 
     Acts::Vector3 normal = surf->normal(tGeometry->geometry().getGeoContext());
     auto local = surf->globalToLocal(tGeometry->geometry().getGeoContext(),
@@ -422,8 +443,10 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     }
     else
     {
+      if(m_verbosity > 2) { std::cout << "Taking manual calculation for global to local " << std::endl; }
+
       /// otherwise take the manual calculation for the TPC
-      Acts::Vector3 loct = surf->transform(tGeometry->geometry().getGeoContext()).inverse() * global;
+      Acts::Vector3 loct = surf->transform(tGeometry->geometry().getGeoContext()).inverse() * global ;  // global is in mm
       loct /= Acts::UnitConstants::cm;
 
       localPos(0) = loct(0);
@@ -433,8 +456,14 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     if (m_verbosity > 2)
     {
       std::cout << "Cluster " << cluskey << " cluster global after mover: " << global(0)/10.0 << "  " << global(1)/10.0 << "  " << global(2)/10.0 << std::endl;
-      std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
-      std::cout << " new      local X " << localPos(0) << " new       local Y " << localPos(1) << std::endl;
+      std::cout << " stored: cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
+      Acts::Vector2 localTest = tGeometry->getLocalCoords(cluskey, cluster);   //  cm  
+      std::cout << " localTest from getLocalCoords: " << localTest(0) << "  " << localTest(1) << std::endl;
+      std::cout << " new from inverse transform of cluster global after mover:     local X " << localPos(0) << " new       local Y " << localPos(1) << std::endl;
+      Acts::Vector3 globalTest = surf->localToGlobal(tGeometry->geometry().getGeoContext(), localTest*Acts::UnitConstants::cm, normal);
+      std::cout << " global from localTest: " << globalTest(0)/10.0 << "  " << globalTest(1)/10.0 << "  " << globalTest(2)/10.0 << std::endl; 
+      Acts::Vector3 globalNew = surf->localToGlobal(tGeometry->geometry().getGeoContext(), localPos*Acts::UnitConstants::cm, normal);
+      std::cout << " global from new local: " << globalNew(0)/10.0 << "  " << globalNew(1)/10.0 << "  " << globalNew(2)/10.0 << std::endl; 
     }
 
     Acts::ActsVector<2> loc;

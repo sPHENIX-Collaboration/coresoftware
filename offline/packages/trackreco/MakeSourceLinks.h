@@ -43,8 +43,10 @@ class MakeSourceLinks
 {
  public:
  MakeSourceLinks() = default;
+
+ void initialize(PHG4TpcCylinderGeomContainer* cellgeo);
     
-   void setVerbosity(int verbosity) {m_verbosity = verbosity;}
+  void setVerbosity(int verbosity) {m_verbosity = verbosity;}
 
  void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
 

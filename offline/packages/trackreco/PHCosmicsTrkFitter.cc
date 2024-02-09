@@ -120,13 +120,7 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
     m_fitCfg.fit->outlierFinder(m_outlierFinder);
   }
 
-  auto cellgeo =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-
-  if (cellgeo)
-  {
-    //    _clusterMover.initialize_geometry(cellgeo);
-  }
+  _tpccellgeo =  findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
   if (m_actsEvaluator)
   {
@@ -278,6 +272,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     SourceLinkVec sourceLinks;
 
     MakeSourceLinks makeSourceLinks;
+    makeSourceLinks.initialize(_tpccellgeo);
     makeSourceLinks.setVerbosity(Verbosity());
     makeSourceLinks.set_pp_mode(false);
 
