@@ -8,16 +8,17 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
+#include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4SteppingAction.h>
 
 #include <memory>
+#include <string>  // for string
 
 class PHG4MicromegasDetector;
 
 class G4Step;
 class G4VPhysicalVolume;
 class PHCompositeNode;
-class PHG4Hit;
 class PHG4HitContainer;
 class PHParameters;
 
