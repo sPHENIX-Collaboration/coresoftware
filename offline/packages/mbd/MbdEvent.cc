@@ -103,7 +103,8 @@ MbdEvent::MbdEvent()
 
   // Debug stuff
   //debugintt = 1;
-  if ( debugintt ) ReadSyncFile();
+  if ( debugintt ) { ReadSyncFile();
+}
 
   Clear();
 }
@@ -152,14 +153,16 @@ int MbdEvent::InitRun()
   }
   _mbdcal = new MbdCalib();
   std::cout << "SIMFLAG IS " << _simflag << std::endl;
-  if ( !_simflag ) _mbdcal->Download_All();
+  if ( !_simflag ) { _mbdcal->Download_All();
+}
 
   // Read in template if specified
   if ( do_templatefit )
   {
     for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
     {
-      if ( _mbdgeom->get_type(ifeech) == 0 ) continue;
+      if ( _mbdgeom->get_type(ifeech) == 0 ) { continue;
+}
       //std::cout << PHWHERE << "Reading template " << ifeech << std::endl;
       //std::cout << "SIZES0 " << _mbdcal->get_shape(ifeech).size() << std::endl;
       // Should set template size automatically here

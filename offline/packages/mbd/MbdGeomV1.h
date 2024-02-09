@@ -26,11 +26,11 @@ public:
   virtual void Reset() override {}
 private:
   
-  float pmt_x[128];
-  float pmt_y[128];
-  float pmt_z[128];
-  float pmt_r[128];
-  float pmt_phi[128];
+  float pmt_x[128]{};
+  float pmt_y[128]{};
+  float pmt_z[128]{};
+  float pmt_r[128]{};
+  float pmt_phi[128]{};
 
   ClassDefOverride(MbdGeomV1, 1)
 

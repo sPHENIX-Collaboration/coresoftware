@@ -1,6 +1,7 @@
 #include "MbdCalib.h"
-#include <MbdGeomV1.h>
-#include <MbdDefs.h>
+
+#include "MbdGeomV1.h"
+#include "MbdDefs.h"
 
 // Database Includes
 #include <ffamodules/CDBInterface.h>
@@ -48,11 +49,13 @@ int MbdCalib::Download_All()
   {
     Verbosity(1);
     std::string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
-    if ( Verbosity() > 0 ) std::cout << "sampmax_url " << sampmax_url << std::endl;
+    if ( Verbosity() > 0 ) { std::cout << "sampmax_url " << sampmax_url << std::endl;
+}
     Download_SampMax(sampmax_url);
 
     std::string qfit_url = _cdb->getUrl("MBD_QFIT");
-    if ( Verbosity() > 0 ) std::cout << "qfit_url " << qfit_url << std::endl;
+    if ( Verbosity() > 0 ) { std::cout << "qfit_url " << qfit_url << std::endl;
+}
     Download_Gains(qfit_url);
 
     /*
@@ -62,7 +65,8 @@ int MbdCalib::Download_All()
     */
 
     std::string tq_t0_url = _cdb->getUrl("MBD_TQ_T0");
-    if ( Verbosity() > 0 ) std::cout << "tq_t0_url " << tq_t0_url << std::endl;
+    if ( Verbosity() > 0 ) { std::cout << "tq_t0_url " << tq_t0_url << std::endl;
+}
     Download_TQT0(tq_t0_url);
 
     /*
@@ -74,7 +78,8 @@ int MbdCalib::Download_All()
     if ( do_templatefit )
     {
       std::string shape_url = _cdb->getUrl("MBD_SHAPES");
-      if ( Verbosity() > 0 ) std::cout << "shape_url " << shape_url << std::endl;
+      if ( Verbosity() > 0 ) { std::cout << "shape_url " << shape_url << std::endl;
+}
       Download_Shapes(shape_url);
     }
     Verbosity(0);
@@ -385,7 +390,8 @@ int MbdCalib::Download_SampMax(const std::string& dbase_location)
 int MbdCalib::Download_Slew(const std::string& dbase_location)
 {
   //Verbosity(100);
-  if ( Verbosity() ) std::cout << "In MbdCalib::Download_Slew" << std::endl;
+  if ( Verbosity() ) { std::cout << "In MbdCalib::Download_Slew" << std::endl;
+}
   // Reset All Values
   for(auto& slew : _slew_y) {
     slew.clear();
@@ -394,13 +400,15 @@ int MbdCalib::Download_Slew(const std::string& dbase_location)
   std::filesystem::path dbase_file = dbase_location;
   if (dbase_file.extension() == ".root")  // read from database
   {
-    if ( Verbosity() ) std::cout << "Reading from CDB " << dbase_location << std::endl;
+    if ( Verbosity() ) { std::cout << "Reading from CDB " << dbase_location << std::endl;
+}
     CDBTTree* cdbttree = new CDBTTree(dbase_location);
     cdbttree->LoadCalibrations();
 
     for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
     {
-      if ( _mbdgeom->get_type(ifeech) == 0 ) continue;  // skip t-channels
+      if ( _mbdgeom->get_type(ifeech) == 0 ) { continue;  // skip t-channels
+}
 
       _slew_npts[ifeech] = cdbttree->GetIntValue(ifeech, "slew_npts");
       _slew_minrange[ifeech] = cdbttree->GetFloatValue(ifeech, "slew_min");
@@ -433,7 +441,8 @@ int MbdCalib::Download_Slew(const std::string& dbase_location)
   }
   else if (dbase_file.extension() == ".calib")  // read from text file
   {
-    if ( Verbosity() ) std::cout << "Reading from " << dbase_location << std::endl;
+    if ( Verbosity() ) { std::cout << "Reading from " << dbase_location << std::endl;
+}
     std::ifstream infile(dbase_location);
     if (!infile.is_open())
     {
@@ -448,7 +457,8 @@ int MbdCalib::Download_Slew(const std::string& dbase_location)
     float temp_endtime = -1;
     while ( infile >> temp_feech >> temp_npoints >> temp_begintime >> temp_endtime )
     {
-      if ( Verbosity() ) std::cout << "slew " << temp_feech << "\t" <<  temp_npoints << "\t" <<  temp_begintime << "\t" <<  temp_endtime << std::endl;
+      if ( Verbosity() ) { std::cout << "slew " << temp_feech << "\t" <<  temp_npoints << "\t" <<  temp_begintime << "\t" <<  temp_endtime << std::endl;
+}
       if ( temp_feech<0 || temp_feech>255 )
       {
         std::cout << "ERROR, invalid FEECH " << temp_feech << " in MBD waveforms calibration" << std::endl;
@@ -468,10 +478,12 @@ int MbdCalib::Download_Slew(const std::string& dbase_location)
         if ( Verbosity() && (temp_feech==8 || temp_feech==255) )
         {
           std::cout << _slew_y[temp_feech][isamp] << " ";
-          if ( isamp%10==9 ) std::cout << std::endl;
+          if ( isamp%10==9 ) { std::cout << std::endl;
+}
         }
       }
-      if ( Verbosity() ) std::cout << std::endl;
+      if ( Verbosity() ) { std::cout << std::endl;
+}
     }
 
     infile.close();
@@ -491,7 +503,8 @@ int MbdCalib::Download_Slew(const std::string& dbase_location)
 int MbdCalib::Download_Shapes(const std::string& dbase_location)
 {
   //Verbosity(100);
-  if ( Verbosity() ) std::cout << "In MbdCalib::Download_Shapes" << std::endl;
+  if ( Verbosity() ) { std::cout << "In MbdCalib::Download_Shapes" << std::endl;
+}
   // Reset All Values
   for(auto& shape : _shape_y) {
     shape.clear();
@@ -503,13 +516,15 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
   std::filesystem::path dbase_file = dbase_location;
   if (dbase_file.extension() == ".root")  // read from database
   {
-    if ( Verbosity() ) std::cout << "Reading from CDB " << dbase_location << std::endl;
+    if ( Verbosity() ) { std::cout << "Reading from CDB " << dbase_location << std::endl;
+}
     CDBTTree* cdbttree = new CDBTTree(dbase_location);
     cdbttree->LoadCalibrations();
 
     for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
     {
-      if ( _mbdgeom->get_type(ifeech) == 0 ) continue;  // skip t-channels
+      if ( _mbdgeom->get_type(ifeech) == 0 ) { continue;  // skip t-channels
+}
 
       _shape_npts[ifeech] = cdbttree->GetIntValue(ifeech, "shape_npts");
       _shape_minrange[ifeech] = cdbttree->GetFloatValue(ifeech, "shape_min");
@@ -542,7 +557,8 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
   }
   else if (dbase_file.extension() == ".calib")  // read from text file
   {
-    if ( Verbosity() ) std::cout << "Reading from " << dbase_location << std::endl;
+    if ( Verbosity() ) { std::cout << "Reading from " << dbase_location << std::endl;
+}
     std::ifstream infile(dbase_location);
     if (!infile.is_open())
     {
@@ -557,7 +573,8 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
     float temp_endtime = -1;
     while ( infile >> temp_feech >> temp_npoints >> temp_begintime >> temp_endtime )
     {
-      if ( Verbosity() ) std::cout << "shape " << temp_feech << "\t" <<  temp_npoints << "\t" <<  temp_begintime << "\t" <<  temp_endtime << std::endl;
+      if ( Verbosity() ) { std::cout << "shape " << temp_feech << "\t" <<  temp_npoints << "\t" <<  temp_begintime << "\t" <<  temp_endtime << std::endl;
+}
       if ( temp_feech<0 || temp_feech>255 )
       {
         std::cout << "ERROR, invalid FEECH " << temp_feech << " in MBD waveforms calibration" << std::endl;
@@ -577,17 +594,20 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
         if ( Verbosity() && (temp_feech==8 || temp_feech==255) )
         {
           std::cout << _shape_y[temp_feech][isamp] << " ";
-          if ( isamp%10==9 ) std::cout << std::endl;
+          if ( isamp%10==9 ) { std::cout << std::endl;
+}
         }
       }
-      if ( Verbosity() ) std::cout << std::endl;
+      if ( Verbosity() ) { std::cout << std::endl;
+}
     }
 
     infile.close();
 
     // Now read in the sherr file
     std::string sherr_dbase_location = std::regex_replace( dbase_location, std::regex("bbc_shape.calib"), "bbc_sherr.calib" );
-    if ( Verbosity() ) std::cout << "Reading from " << sherr_dbase_location << std::endl;
+    if ( Verbosity() ) { std::cout << "Reading from " << sherr_dbase_location << std::endl;
+}
     infile.open( sherr_dbase_location );
     if (!infile.is_open())
     {
@@ -602,7 +622,8 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
     temp_endtime = -1;
     while ( infile >> temp_feech >> temp_npoints >> temp_begintime >> temp_endtime )
     {
-      if ( Verbosity() ) std::cout << "sheer " << temp_feech << "\t" <<  temp_npoints << "\t" <<  temp_begintime << "\t" <<  temp_endtime << std::endl;
+      if ( Verbosity() ) { std::cout << "sheer " << temp_feech << "\t" <<  temp_npoints << "\t" <<  temp_begintime << "\t" <<  temp_endtime << std::endl;
+}
       if ( temp_feech<0 || temp_feech>255 )
       {
         std::cout << "ERROR, invalid FEECH " << temp_feech << " in MBD waveforms calibration" << std::endl;
@@ -622,10 +643,12 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
         if ( Verbosity() && (temp_feech==8 || temp_feech==255) )
         {
           std::cout << _sherr_yerr[temp_feech][isamp] << " ";
-          if ( isamp%10==9 ) std::cout << std::endl;
+          if ( isamp%10==9 ) { std::cout << std::endl;
+}
         }
       }
-      if ( Verbosity() ) std::cout << std::endl;
+      if ( Verbosity() ) { std::cout << std::endl;
+}
     }
 
     infile.close();
@@ -652,7 +675,7 @@ int MbdCalib::Write_CDB_SampMax(const std::string& dbfile)
   cdbttree->CommitSingle();
 
   std::cout << "SAMPMAX" << std::endl;
-  for (size_t ifeech=0; ifeech<_sampmax.size(); ifeech++) 
+  for (size_t ifeech=0; ifeech<_sampmax.size(); ifeech++)
   {
     // store in a CDBTree
     cdbttree->SetIntValue(ifeech,"sampmax",_sampmax[ifeech]);
@@ -711,9 +734,10 @@ int MbdCalib::Write_CDB_Shapes(const std::string& dbfile)
   cdbttree->CommitSingle();
 
   std::cout << "SHAPES" << std::endl;
-  for (size_t ifeech=0; ifeech<_sampmax.size(); ifeech++) 
+  for (unsigned int ifeech=0; ifeech<_sampmax.size(); ifeech++)
   {
-    if ( _mbdgeom->get_type(ifeech) == 0 ) continue;  // skip t-channels
+    if ( _mbdgeom->get_type(ifeech) == 0 ) { continue;  // skip t-channels
+}
 
     cdbttree->SetIntValue(ifeech,"shape_npts",_shape_npts[ifeech]);
     cdbttree->SetFloatValue(ifeech,"shape_min",_shape_minrange[ifeech]);
@@ -740,9 +764,10 @@ int MbdCalib::Write_CDB_Shapes(const std::string& dbfile)
   cdbttree->Commit();
   //cdbttree->Print();
 
-  for (size_t ifeech=0; ifeech<_sampmax.size(); ifeech++) 
+  for (unsigned int ifeech=0; ifeech<_sampmax.size(); ifeech++) 
   {
-    if ( _mbdgeom->get_type(ifeech) == 0 ) continue;  // skip t-channels
+    if ( _mbdgeom->get_type(ifeech) == 0 ) { continue;  // skip t-channels
+}
 
     if ( ifeech<5 || ifeech>=MbdDefs::MBD_N_FEECH-5 )
     {

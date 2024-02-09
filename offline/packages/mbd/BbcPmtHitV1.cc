@@ -6,7 +6,7 @@ void BbcPmtHitV1::Reset()
   Clear();
 }
 
-void BbcPmtHitV1::Clear(Option_t* )
+void BbcPmtHitV1::Clear(Option_t*  /*unused*/)
 {
   //std::cout << "clearing " << bpmt << std::endl;
   bpmt = -1;

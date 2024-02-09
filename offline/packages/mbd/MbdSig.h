@@ -141,8 +141,8 @@ private:
   Int_t    maxped0samp;       //! max sample for event-by-event ped, inclusive
   Double_t minped0x;          //! min x for event-by-event ped, inclusive
   Double_t maxped0x;          //! max x for event-by-event ped, inclusive
-  Double_t ped_presamp;       //! presamples for ped calculation
-  Double_t ped_presamp_nsamps; //! num of presamples for ped calculation
+  Double_t ped_presamp{};       //! presamples for ped calculation
+  Double_t ped_presamp_nsamps{}; //! num of presamples for ped calculation
 
   /** for time calibration */
   //Double_t time_calib;
@@ -164,8 +164,8 @@ private:
   std::vector<float> template_y;
   std::vector<float> template_yrms;
   TF1     *template_fcn;
-  Double_t fit_min_time;                 //! min time for fit, in original units of waveform data
-  Double_t fit_max_time;                 //! max time for fit, in original units of waveform data
+  Double_t fit_min_time{};                 //! min time for fit, in original units of waveform data
+  Double_t fit_max_time{};                 //! max time for fit, in original units of waveform data
 
   int verbose;
 };

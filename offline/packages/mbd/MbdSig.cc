@@ -103,8 +103,10 @@ void  MbdSig::SetTemplateSize(const Int_t nptsx, const Int_t nptsy, const Double
 
   Double_t xbinwid = (template_endtime - template_begintime)/(template_npointsx-1);
   Double_t ybinwid = (1.1+0.1)/template_npointsy;  // yscale... should we vary this?
-  if ( h2Template ) delete h2Template;
-  if ( h2Residuals ) delete h2Residuals;
+  if ( h2Template ) { delete h2Template;
+}
+  if ( h2Residuals ) { delete h2Residuals;
+}
 
   TString name = "h2Template"; name += ch;
   h2Template = new TH2F(name,name,template_npointsx,template_begintime-xbinwid/2.,template_endtime+xbinwid/2,
@@ -315,7 +317,8 @@ void MbdSig::FillPed0(const Double_t begin, const Double_t end)
     }
 
     // quit if we are past the ped region
-    if ( x>end ) break;
+    if ( x>end ) { break;
+}
   }
 
 }
@@ -461,7 +464,8 @@ Double_t MbdSig::LeadingEdge(const Double_t threshold)
       }
     }
   }
-  if ( sample < 1 ) return -9999.;  // no signal above threshold
+  if ( sample < 1 ) { return -9999.;  // no signal above threshold
+}
 
   // Linear Interpolation of start time
   Double_t dx = x[sample] - x[sample-1];
@@ -484,7 +488,8 @@ Double_t MbdSig::dCFD(const Double_t fraction_threshold)
 
   // Get max amplitude
   Double_t ymax = TMath::MaxElement(n,y);
-  if ( f_ampl == -9999. ) f_ampl = ymax;
+  if ( f_ampl == -9999. ) { f_ampl = ymax;
+}
 
   Double_t threshold = fraction_threshold * ymax; // get fraction of amplitude
   //cout << "threshold = " << threshold << "\tymax = " << ymax <<endl;
@@ -501,7 +506,8 @@ Double_t MbdSig::dCFD(const Double_t fraction_threshold)
       }
     }
   }
-  if ( sample < 1 ) return -9999.;  // no signal above threshold
+  if ( sample < 1 ) { return -9999.;  // no signal above threshold
+}
 
   // Linear Interpolation of start time
   Double_t dx = x[sample] - x[sample-1];
@@ -518,7 +524,7 @@ Double_t MbdSig::MBD(const Int_t max_samp)
   // Get the amplitude of the sample number to get time
   Double_t *y = gSubPulse->GetY();
 
-  if ( y==0 ) { 
+  if ( y==nullptr ) {
     std::cout << "ERROR y == 0" << std::endl; 
     return NAN;
   }
@@ -529,7 +535,8 @@ Double_t MbdSig::MBD(const Int_t max_samp)
   // Get max amplitude, and set it if it hasn't already been set
   int n = gSubPulse->GetN();
   Double_t ymax = TMath::MaxElement(n,y);
-  if ( f_ampl == -9999. ) f_ampl = ymax;
+  if ( f_ampl == -9999. ) { f_ampl = ymax;
+}
 
   return f_time;
 }
@@ -574,8 +581,10 @@ void MbdSig::LocMax(Double_t& x_at_max, Double_t& ymax, Double_t xminrange, Doub
   for (int i=0; i<n; i++)
   {
     // Skip if out of range
-    if ( x[i] < xminrange ) continue;
-    if ( x[i] > xmaxrange ) break;
+    if ( x[i] < xminrange ) { continue;
+}
+    if ( x[i] > xmaxrange ) { break;
+}
 
     if ( y[i] > ymax )
     {
@@ -605,8 +614,10 @@ void MbdSig::LocMin(Double_t& x_at_max, Double_t& ymin, Double_t xminrange, Doub
   for (int i=0; i<n; i++)
   {
     // Skip if out of range
-    if ( x[i] < xminrange ) continue;
-    if ( x[i] > xmaxrange ) break;
+    if ( x[i] < xminrange ) { continue;
+}
+    if ( x[i] > xmaxrange ) { break;
+}
 
     if ( y[i] < ymin )
     {
@@ -741,7 +752,8 @@ Double_t MbdSig::TemplateFcn(const Double_t *x, const Double_t *par)
 int MbdSig::FitTemplate()
 {
   //verbose = 100;	// uncomment to see fits
-  if ( verbose>0 ) cout << "Fitting ch " << ch << endl;
+  if ( verbose>0 ) { cout << "Fitting ch " << ch << endl;
+}
 
   // Check if channel is empty
   if ( gSubPulse->GetN() == 0 )
@@ -765,8 +777,9 @@ int MbdSig::FitTemplate()
   //template_fcn->SetRange(template_min_xrange,template_max_xrange);
   template_fcn->SetRange(0,nsamples);
 
-  if ( verbose==0 ) gSubPulse->Fit(template_fcn,"RNQ");
-  else              gSubPulse->Fit(template_fcn,"R");
+  if ( verbose==0 ) { gSubPulse->Fit(template_fcn,"RNQ");
+  } else {              gSubPulse->Fit(template_fcn,"R");
+}
 
   // Get fit parameters
   f_ampl = template_fcn->GetParameter(0);
@@ -795,7 +808,8 @@ int MbdSig::SetTemplate(const std::vector<float>& shape, const std::vector<float
     std::cout << "SHAPE " << ch << "\t" << template_y.size() << std::endl;
     for ( size_t i=0; i<template_y.size(); i++)
     {
-      if ( i%10 == 0 ) std::cout << i << ":\t" << std::endl;
+      if ( i%10 == 0 ) { std::cout << i << ":\t" << std::endl;
+}
       std::cout << " " << template_y[i];
     }
     std::cout << std::endl;

@@ -34,11 +34,10 @@ MbdReco::MbdReco(const std::string &name)
 
 //____________________________________________________________________________..
 MbdReco::~MbdReco()
-{
-}
+= default;
 
 //____________________________________________________________________________..
-int MbdReco::Init(PHCompositeNode *)
+int MbdReco::Init(PHCompositeNode * /*unused*/)
 {
   m_gaussian = std::make_unique<TF1>("gaussian", "gaus", 0, 20);
   m_gaussian->FixParameter(2, m_tres);
@@ -73,9 +72,10 @@ int MbdReco::process_event(PHCompositeNode *topNode)
   if ( m_event!=nullptr && m_mbdpmts!=nullptr )
   {
     int status = m_mbdevent->SetRawData( m_event, m_mbdpmts );
-    if ( status == Fun4AllReturnCodes::ABORTEVENT ) return Fun4AllReturnCodes::ABORTEVENT; // there wasn't good data in BBC/MBD
-    else if (status == Fun4AllReturnCodes::DISCARDEVENT) return Fun4AllReturnCodes::DISCARDEVENT;
-    else if (status < 0) return Fun4AllReturnCodes::EVENT_OK;
+    if ( status == Fun4AllReturnCodes::ABORTEVENT ) { return Fun4AllReturnCodes::ABORTEVENT; // there wasn't good data in BBC/MBD
+    } else if (status == Fun4AllReturnCodes::DISCARDEVENT) { return Fun4AllReturnCodes::DISCARDEVENT;
+    } else if (status < 0) { return Fun4AllReturnCodes::EVENT_OK;
+}
   }
 
   m_mbdevent->Calculate( m_mbdpmts, m_mbdout );
@@ -108,7 +108,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int MbdReco::End(PHCompositeNode *)
+int MbdReco::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
