@@ -13,7 +13,7 @@ class TClonesArray;
 ///
 class MbdOutV1 : public MbdOut
 {
-public:
+ public:
   ///
   MbdOutV1();
   ///
@@ -79,9 +79,7 @@ public:
    */
   Float_t get_time(const int iarm) const override;
 
-
-private:
-
+ private:
   Float_t bz{std::numeric_limits<Float_t>::quiet_NaN()};
   Float_t bzerr{std::numeric_limits<Float_t>::quiet_NaN()};
   Float_t bt0{std::numeric_limits<Float_t>::quiet_NaN()};

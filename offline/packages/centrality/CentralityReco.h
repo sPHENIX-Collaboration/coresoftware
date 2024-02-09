@@ -2,7 +2,6 @@
 #define CENTRALITY_CENTRALITYRECO_H
 
 #include <fun4all/SubsysReco.h>
-
 #include <array>
 #include <limits>
 #include <string>  // for string, allocator
@@ -30,7 +29,6 @@ class CentralityReco : public SubsysReco
 
   //! event processing method
   int process_event(PHCompositeNode *) override;
-
   int ResetEvent(PHCompositeNode *) override;
 
   // Interface with CDB
@@ -40,7 +38,7 @@ class CentralityReco : public SubsysReco
  private:
   std::string _dbfilename;
 
-  const int NDIVS{18};
+  const int NDIVS{100};
 
   MbdOut *_mbd_out{nullptr};
 
@@ -53,7 +51,8 @@ class CentralityReco : public SubsysReco
   float _mbd_charge_sum_s{std::numeric_limits<float>::quiet_NaN()};
 
   double _centrality_scale{std::numeric_limits<double>::quiet_NaN()};
-  std::array<float, 20> _centrality_map{};
+  std::array<float, 100> _centrality_map{};
+
 };
 
 #endif

@@ -1,15 +1,15 @@
 #include "MbdReco.h"
 #include "MbdEvent.h"
-#include "MbdPmtContainerV1.h"
-#include "MbdOutV2.h"
 #include "MbdGeomV1.h"
-
+#include "MbdOutV2.h"
+#include "MbdPmtContainerV1.h"
 
 #include <globalvertex/MbdVertexMapv1.h>
 #include <globalvertex/MbdVertexv2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <Event/Event.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
@@ -18,7 +18,6 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <Event/Event.h>
 
 #include <TF1.h>
 #include <TH1.h>
@@ -33,12 +32,10 @@ MbdReco::MbdReco(const std::string &name)
 }
 
 //____________________________________________________________________________..
-MbdReco::~MbdReco()
-{
-}
+MbdReco::~MbdReco() = default;
 
 //____________________________________________________________________________..
-int MbdReco::Init(PHCompositeNode *)
+int MbdReco::Init(PHCompositeNode * /*unused*/)
 {
   m_gaussian = std::make_unique<TF1>("gaussian", "gaus", 0, 20);
   m_gaussian->FixParameter(2, m_tres);
@@ -58,7 +55,7 @@ int MbdReco::InitRun(PHCompositeNode *topNode)
 
   int ret = getNodes(topNode);
 
-  m_mbdevent->SetSim( _simflag );
+  m_mbdevent->SetSim(_simflag);
   m_mbdevent->InitRun();
 
   return ret;
@@ -67,27 +64,35 @@ int MbdReco::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int MbdReco::process_event(PHCompositeNode *topNode)
 {
-
   getNodes(topNode);
 
-  if ( m_event!=nullptr && m_mbdpmts!=nullptr )
+  if (m_event != nullptr && m_mbdpmts != nullptr)
   {
-    int status = m_mbdevent->SetRawData( m_event, m_mbdpmts );
-    if ( status == Fun4AllReturnCodes::ABORTEVENT ) return Fun4AllReturnCodes::ABORTEVENT; // there wasn't good data in BBC/MBD
-    else if (status == Fun4AllReturnCodes::DISCARDEVENT) return Fun4AllReturnCodes::DISCARDEVENT;
-    else if (status < 0) return Fun4AllReturnCodes::EVENT_OK;
+    int status = m_mbdevent->SetRawData(m_event, m_mbdpmts);
+    if (status == Fun4AllReturnCodes::ABORTEVENT)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;  // there wasn't good data in BBC/MBD
+    }
+    else if (status == Fun4AllReturnCodes::DISCARDEVENT)
+    {
+      return Fun4AllReturnCodes::DISCARDEVENT;
+    }
+    else if (status < 0)
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
   }
 
-  m_mbdevent->Calculate( m_mbdpmts, m_mbdout );
+  m_mbdevent->Calculate(m_mbdpmts, m_mbdout);
 
   // For multiple global vertex
   if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0)
   {
     auto vertex = std::make_unique<MbdVertexv2>();
-    vertex->set_t( m_mbdevent->get_bbct0() );
-    vertex->set_z( m_mbdevent->get_bbcz() );
-    vertex->set_z_err( 0.6 );
-    vertex->set_t_err( m_tres );
+    vertex->set_t(m_mbdevent->get_bbct0());
+    vertex->set_z(m_mbdevent->get_bbcz());
+    vertex->set_z_err(0.6);
+    vertex->set_t_err(m_tres);
 
     /*
     for (int iarm = 0; iarm < 2; iarm++)
@@ -108,7 +113,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int MbdReco::End(PHCompositeNode *)
+int MbdReco::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -184,15 +189,15 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
 int MbdReco::getNodes(PHCompositeNode *topNode)
 {
   // Get the bbc prdf data to mpcRawContent
-  m_event = findNode::getClass<Event>(topNode,"PRDF");
-  //cout << "event addr " << (unsigned int)m_event << endl;
+  m_event = findNode::getClass<Event>(topNode, "PRDF");
+  // cout << "event addr " << (unsigned int)m_event << endl;
 
-  if ( m_event==nullptr )
+  if (m_event == nullptr)
   {
     _simflag = 1;
 
     static int counter = 0;
-    if ( counter < 1 )
+    if (counter < 1)
     {
       cout << PHWHERE << "Unable to get PRDF, assuming this is simulation" << endl;
       counter++;

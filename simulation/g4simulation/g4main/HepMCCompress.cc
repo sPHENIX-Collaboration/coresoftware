@@ -1,14 +1,20 @@
 #include "HepMCCompress.h"
 #include "PHG4InEvent.h"
 #include "PHG4Particle.h"
+
 #include <vararray/VariableArrayContainer.h>
 #include <vararray/VariableArray.h>
 #include <vararray/VariableArrayIds.h>
+
 #include <half/half.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
 #include <HepMC/GenEvent.h>
+
 #include <gsl/gsl_const.h>
 
 #include <list>

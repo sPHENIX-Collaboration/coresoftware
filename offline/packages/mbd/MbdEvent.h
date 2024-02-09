@@ -4,9 +4,9 @@
 #include "MbdDefs.h"
 #include "MbdSig.h"
 
-#include <fun4all/Fun4AllBase.h>
 #include <TFile.h>
 #include <TTree.h>
+#include <fun4all/Fun4AllBase.h>
 #include <vector>
 
 class PHCompositeNode;
@@ -96,7 +96,7 @@ class MbdEvent : public Fun4AllBase
   Float_t m_pmttt[MbdDefs::MBD_N_PMT]{};  // time in each arm
   Float_t m_pmttq[MbdDefs::MBD_N_PMT]{};  // time in each arm
 
-  int     do_templatefit{1};
+  int do_templatefit{1};
 
   // output data
   Short_t m_bbcn[2]{};                                            // num hits for each arm (north and south)
@@ -111,7 +111,7 @@ class MbdEvent : public Fun4AllBase
   Float_t _tres = std::numeric_limits<Float_t>::quiet_NaN();      // time resolution of one channel
 
   TH1 *hevt_bbct[2]{};  // time in each bbc, per event
-  TF1 *gausfit[2] {nullptr,nullptr};
+  TF1 *gausfit[2]{nullptr, nullptr};
 
   TH2 *h2_tmax[2] = {};  // [0 == time ch, 1 == chg ch], max sample in evt vs ch
 
@@ -120,16 +120,15 @@ class MbdEvent : public Fun4AllBase
   TCanvas *ac{nullptr};  // for plots used during debugging
 
   // debug stuff
-  std::unique_ptr<TFile> _synctfile { nullptr };
-  TTree *_syncttree { nullptr };
-  int _syncevt {0};
-  std::vector<Int_t>    bbevt;
+  std::unique_ptr<TFile> _synctfile{nullptr};
+  TTree *_syncttree{nullptr};
+  int _syncevt{0};
+  std::vector<Int_t> bbevt;
   std::vector<UShort_t> bbclk;
-  std::vector<Float_t>  mybbz;
+  std::vector<Float_t> mybbz;
   std::vector<Long64_t> bco;
   std::vector<Double_t> intz;
   std::vector<Double_t> bbz;
-
 };
 
 #endif /* MBD_MBDEVENT_H */
