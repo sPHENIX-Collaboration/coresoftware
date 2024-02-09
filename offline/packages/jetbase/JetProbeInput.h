@@ -1,11 +1,13 @@
 #ifndef G4JET_JETPROBEINPUT__H
 #define G4JET_JETPROBEINPUT__H
 
-#include <jetbase/JetInput.h>
-#include <jetbase/Jet.h>
+#include "JetInput.h"
+#include "Jet.h"
 
 #include <iostream>  // for cout, ostream
 #include <vector>
+
+#include <iostream>
 
 class PHCompositeNode;
 

@@ -1,8 +1,8 @@
 #include "JetProbeMaker.h"
 
-#include <jetbase/Jetv2.h>
-#include <jetbase/JetContainer.h>
-#include <jetbase/JetContainerv1.h>
+#include "Jetv2.h"
+#include "JetContainer.h"
+#include "JetContainerv1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -21,11 +21,11 @@ int JetProbeMaker::process_event(PHCompositeNode* /*topNode*/) {
   float phi = _rand->Uniform(_phi_min, _phi_max);
   float eta = _rand->Uniform(_eta_min, _eta_max);
   float pt = (_const_pt ? _pt : _rand->Uniform(_pt_min, _pt));
-  Jetv2* jet = (Jetv2*) _jets->add_jet();
 
   fastjet::PseudoJet fjet {};
   fjet.reset_PtYPhiM(pt, eta, phi);
 
+  Jetv2* jet = (Jetv2*) _jets->add_jet();
   jet->set_px(fjet.px());
   jet->set_py(fjet.py());
   jet->set_pz(fjet.pz());
@@ -75,5 +75,4 @@ int JetProbeMaker::InitRun(PHCompositeNode *topNode) {
 
 JetProbeMaker::~JetProbeMaker () {
   delete _rand;
-  delete _jets;
 }

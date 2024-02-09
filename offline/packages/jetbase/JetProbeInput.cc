@@ -1,11 +1,12 @@
 #include "JetProbeInput.h"
 
+#include "Jet.h"
+#include "Jetv2.h"
+#include "JetContainer.h"
+
 #include <g4main/PHG4Particle.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-#include <jetbase/Jet.h>
-#include <jetbase/Jetv2.h>
-#include <jetbase/JetContainer.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 

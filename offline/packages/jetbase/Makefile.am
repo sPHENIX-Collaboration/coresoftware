@@ -43,6 +43,8 @@ pkginclude_HEADERS = \
   JetMap.h \
   JetMapv1.h \
   JetInput.h \
+  JetProbeMaker.h \
+  JetProbeInput.h \
   JetAlgo.h \
   JetReco.h \
   TowerJetInput.h \
@@ -83,6 +85,8 @@ libjetbase_la_SOURCES = \
   JetAlgo.cc \
   FastJetAlgo.cc \
   FastJetOptions.cc \
+  JetProbeMaker.cc \
+  JetProbeInput.cc \
   JetReco.cc \
   TowerJetInput.cc \
   TrackJetInput.cc
