@@ -7,8 +7,8 @@
 #include <Geant4/G4VisAttributes.hh>
 
 #include <iostream>  // for operator<<, basic_ostream, endl
-#include <utility>   // for pair
 #include <string>
+#include <utility>  // for pair
 
 PHG4MicromegasDisplayAction::PHG4MicromegasDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)

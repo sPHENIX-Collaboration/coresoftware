@@ -51,11 +51,12 @@ PHG4MicromegasSteppingAction::PHG4MicromegasSteppingAction(PHG4MicromegasDetecto
   , m_Params(parameters)
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_BlackHoleFlag(m_Params->get_int_param("blackhole"))
-{}
+{
+}
 
 //____________________________________________________________________________..
 // This is the implementation of the G4 UserSteppingAction
-bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /*was_used*/)
+bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep, bool /*was_used*/)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
@@ -63,8 +64,10 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
   // get volume of the current step
   G4VPhysicalVolume *volume = touch->GetVolume();
   int whichactive = m_Detector->IsInDetector(volume);
-  if (whichactive == 0) { return false;
-}
+  if (whichactive == 0)
+  {
+    return false;
+  }
 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -80,8 +83,8 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
   }
 
   bool geantino =
-    aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-    aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos;
+      aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
+      aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos;
 
   G4StepPoint *prePoint = aStep->GetPreStepPoint();
   G4StepPoint *postPoint = aStep->GetPostStepPoint();
@@ -99,19 +102,17 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
   // us giving the G4 support information about those failures
   switch (prePoint->GetStepStatus())
   {
-
-    case fPostStepDoItProc:
+  case fPostStepDoItProc:
     if (m_SavePostStepStatus == fGeomBoundary)
     {
-
       // this is an impossible G4 Step print out diagnostic to help debug, not sure if
       // this is still with us
       std::cout << "PHG4MicromegasSteppingAction::UserSteppingAction - " << GetName() << ": New Hit for  " << std::endl;
       std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-        << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-        << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-        << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus)
-        << std::endl;
+                << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+                << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus)
+                << std::endl;
 
       std::cout << "last track: " << m_SaveTrackId << ", current trackid: " << aTrack->GetTrackID() << std::endl;
       std::cout << "phys pre vol: " << volume->GetName() << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
@@ -119,15 +120,17 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
     }
     break;
 
-    // These are the normal cases
-    case fGeomBoundary:
-    case fUndefined:
+  // These are the normal cases
+  case fGeomBoundary:
+  case fUndefined:
+  {
+    if (!m_hit)
     {
-      if (!m_hit) { m_hit.reset( new PHG4Hitv1() );
-}
+      m_hit.reset(new PHG4Hitv1());
+    }
 
-      if (whichactive > 0)
-      {
+    if (whichactive > 0)
+    {
       // assign layer
       m_hit->set_layer(m_Detector->get_layer(volume));
 
@@ -140,52 +143,52 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
 
       m_hit->set_eion(0);
       m_SaveHitContainer = m_HitContainer;
-      }
-      else
-      {
-	m_SaveHitContainer = m_SupportHitContainer;
-      }
-      // here we set the entrance values in cm
-      m_hit->set_x(0, prePoint->GetPosition().x() / cm);
-      m_hit->set_y(0, prePoint->GetPosition().y() / cm);
-      m_hit->set_z(0, prePoint->GetPosition().z() / cm);
-
-      // time in ns
-      m_hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-
-      // set the track ID
-      m_hit->set_trkid(aTrack->GetTrackID());
-      m_SaveTrackId = aTrack->GetTrackID();
-
-      // reset the initial energy deposit
-      m_EdepSum = 0;
-      m_EionSum = 0;
-      m_hit->set_edep(0);
-
-      // this is for the tracking of the truth info
-      if (G4VUserTrackInformation *p = aTrack->GetUserInformation())
-      {
-        if (PHG4TrackUserInfoV1 *pp = dynamic_cast<PHG4TrackUserInfoV1 *>(p))
-        {
-          m_hit->set_trkid(pp->GetUserTrackId());
-          pp->GetShower()->add_g4hit_id(m_SaveHitContainer->GetID(), m_hit->get_hit_id());
-        }
-      }
-      break;
     }
+    else
+    {
+      m_SaveHitContainer = m_SupportHitContainer;
+    }
+    // here we set the entrance values in cm
+    m_hit->set_x(0, prePoint->GetPosition().x() / cm);
+    m_hit->set_y(0, prePoint->GetPosition().y() / cm);
+    m_hit->set_z(0, prePoint->GetPosition().z() / cm);
 
-    default: break;
+    // time in ns
+    m_hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 
+    // set the track ID
+    m_hit->set_trkid(aTrack->GetTrackID());
+    m_SaveTrackId = aTrack->GetTrackID();
+
+    // reset the initial energy deposit
+    m_EdepSum = 0;
+    m_EionSum = 0;
+    m_hit->set_edep(0);
+
+    // this is for the tracking of the truth info
+    if (G4VUserTrackInformation *p = aTrack->GetUserInformation())
+    {
+      if (PHG4TrackUserInfoV1 *pp = dynamic_cast<PHG4TrackUserInfoV1 *>(p))
+      {
+        m_hit->set_trkid(pp->GetUserTrackId());
+        pp->GetShower()->add_g4hit_id(m_SaveHitContainer->GetID(), m_hit->get_hit_id());
+      }
+    }
+    break;
+  }
+
+  default:
+    break;
   }
 
   if (!m_hit || !std::isfinite(m_hit->get_x(0)))
   {
     std::cout << GetName() << ": hit was not created" << std::endl;
     std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-      << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-      << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-      << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus)
-      << std::endl;
+              << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+              << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+              << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus)
+              << std::endl;
     std::cout << "last track: " << m_SaveTrackId << ", current trackid: " << aTrack->GetTrackID() << std::endl;
     std::cout << "phys pre vol: " << volume->GetName() << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
     std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName() << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
@@ -199,9 +202,9 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
   {
     std::cout << GetName() << ": hits do not belong to the same track" << std::endl;
     std::cout << "saved track: " << m_SaveTrackId
-         << ", current trackid: " << aTrack->GetTrackID()
-         << ", prestep status: " << prePoint->GetStepStatus()
-         << ", previous post step status: " << m_SavePostStepStatus << std::endl;
+              << ", current trackid: " << aTrack->GetTrackID()
+              << ", prestep status: " << prePoint->GetStepStatus()
+              << ", previous post step status: " << m_SavePostStepStatus << std::endl;
     // This is fatal - a hit from nowhere. This needs to be looked at and fixed
     gSystem->Exit(1);
   }
@@ -245,9 +248,9 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
       m_hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
       if (whichactive > 0)
       {
-      m_hit->set_px(1, postPoint->GetMomentum().x() / GeV);
-      m_hit->set_py(1, postPoint->GetMomentum().y() / GeV);
-      m_hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
+        m_hit->set_px(1, postPoint->GetMomentum().x() / GeV);
+        m_hit->set_py(1, postPoint->GetMomentum().y() / GeV);
+        m_hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
       }
 
       if (G4VUserTrackInformation *p = aTrack->GetUserInformation())
@@ -268,14 +271,14 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
       }
       if (whichactive > 0)
       {
-	if (geantino)
-	{
-	  m_hit->set_eion(-1);
-	}
-	else
-	{
-	  m_hit->set_eion(m_EionSum);
-	}
+        if (geantino)
+        {
+          m_hit->set_eion(-1);
+        }
+        else
+        {
+          m_hit->set_eion(m_EionSum);
+        }
       }
 
       // add in container
@@ -284,11 +287,10 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /
       // ownership is transferred to container
       // so we release the hit
       m_hit.release();
-
-    } else {
-
+    }
+    else
+    {
       m_hit->Reset();
-
     }
   }
   // return true to indicate the hit was used
@@ -305,7 +307,7 @@ void PHG4MicromegasSteppingAction::SetInterfacePointers(PHCompositeNode *topNode
   {
     if (!m_Params->get_int_param("blackhole"))  // not messed up if we have a black hole
     {
-std::cout << "PHG4MicromegasSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
+      std::cout << "PHG4MicromegasSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
       gSystem->Exit(1);
     }
   }
@@ -319,7 +321,7 @@ std::cout << "PHG4MicromegasSteppingAction::SetTopNode - unable to find " << m_H
   }
 }
 
-void PHG4MicromegasSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+void PHG4MicromegasSteppingAction::SetHitNodeName(const std::string &type, const std::string &name)
 {
   if (type == "G4HIT")
   {
