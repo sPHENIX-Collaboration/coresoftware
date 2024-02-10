@@ -12,7 +12,10 @@ namespace
   // get unique index in cov. matrix array from i and j
   inline unsigned int covar_index(unsigned int i, unsigned int j)
   {
-    if (i > j) std::swap(i, j);
+    if (i > j)
+    {
+      std::swap(i, j);
+    }
     return i + 1 + (j + 1) * (j) / 2 - 1;
   }
 }  // namespace
