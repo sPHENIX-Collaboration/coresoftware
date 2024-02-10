@@ -15,8 +15,8 @@ namespace
     if (i > j) std::swap(i, j);
     return i + 1 + (j + 1) * (j) / 2 - 1;
   }
-}
-float TrackStateInfo_v1::get_covariance(int i, int j) const  
+}  // namespace
+float TrackStateInfo_v1::get_covariance(int i, int j) const
 {
   return m_Covariance[covar_index(i, j)];
 }
