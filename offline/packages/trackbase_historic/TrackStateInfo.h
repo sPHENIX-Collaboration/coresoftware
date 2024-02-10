@@ -77,8 +77,8 @@ class TrackStateInfo : public PHObject
   //virtual float get_error(int /*i*/, int /*j*/) const { return NAN; }
   //virtual void set_error(int /*i*/, int /*j*/, float /*value*/) {}
   
-  virtual float get_covariance(int) const {return NAN;}
-  virtual void set_covariance(int, float) {}
+  virtual float get_covariance(int, int) const {return NAN;}
+  virtual void set_covariance(int, int, float) {}
 
  
 

@@ -25,8 +25,11 @@ void SvtxTrackInfo_v1::CopyFrom(const SvtxTrackInfo& source){
   set_py(source.get_py());
   set_pz(source.get_pz());
 
-  for(int i = 0; i < 21; i++){
-    set_covariance(i, source.get_covariance(i));
+  for(int i = 0; i < 6; i++){
+    for (int j = i; j < 6; j++)
+    {
+      set_covariance(i, j, source.get_covariance(i, j));
+    }
   }
 
 }

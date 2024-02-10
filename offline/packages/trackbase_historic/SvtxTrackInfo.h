@@ -46,11 +46,11 @@ class SvtxTrackInfo : public PHObject
   virtual float get_chisq() const { return NAN; }
   virtual void set_chisq(float) {}
 
-  virtual uint8_t get_ndf() const { return uint8_t(-1); }
+  virtual uint8_t get_ndf() const { return std::numeric_limits<uint8_t>::quiet_NaN(); }
   virtual void set_ndf(uint8_t) {}
 
   //bitmap for clusters
-  virtual uint64_t get_hitbitmap() const { return uint64_t(-1); }
+  virtual uint64_t get_hitbitmap() const { return std::numeric_limits<uint64_t>::quiet_NaN(); }
   virtual void set_hitbitmap(uint64_t) {}
 
 
@@ -82,8 +82,8 @@ class SvtxTrackInfo : public PHObject
   virtual float get_eta() const { return NAN; }
   virtual float get_phi() const { return NAN; }
 
-  virtual float get_covariance(int /*i*/) const { return NAN; }
-  virtual void set_covariance(int /*i*/, float /*value*/) {}
+  virtual float get_covariance(int /*i*/, int /*j*/) const { return NAN; }
+  virtual void set_covariance(int /*i*/, int /*j*/, float /*value*/) {}
   
   virtual short int get_crossing() const { return SHRT_MAX; }
   virtual void set_crossing(short int /*crossing*/) {}

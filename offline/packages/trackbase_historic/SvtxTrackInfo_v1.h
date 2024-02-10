@@ -37,8 +37,11 @@ class SvtxTrackInfo_v1: public SvtxTrackInfo
     set_py(source.get_py());
     set_pz(source.get_pz());
 
-    for(int i = 0; i < 21; i++){
-      set_covariance(i, source.get_covariance(i));
+    for(int i = 0; i < 6; i++){
+      for (int j = i; j < 6; j++)
+      {
+        set_covariance(i, j, source.get_covariance(i, j));
+      }
     }
 
   }
@@ -108,24 +111,20 @@ class SvtxTrackInfo_v1: public SvtxTrackInfo
   float get_eta() const override { return asinh(get_pz() / get_pt()); }
   float get_phi() const override { return atan2(get_py(), get_px()); }
 
-  //float get_error(int i, int j) const override { return _states.find(0.0)->second->get_error(i, j); }
-  //void set_error(int i, int j, float value) override { return _states[0.0]->set_error(i, j, value); }
-
-  float get_covariance(int i) const override { return m_state.get_covariance(i);}
-  void set_covariance(int i, float value) override {m_state.set_covariance(i, value);}
+  float get_covariance(int i, int j) const override { return m_state.get_covariance(i, j);}
+  void set_covariance(int i, int j, float value) override {m_state.set_covariance(i, j, value);}
 
   
 
  private:
 
   // track information
-  //unsigned int _track_id = UINT_MAX;
+  unsigned int _track_id = std::numeric_limits<unsigned int>::quiet_NaN();
   //unsigned int _vertex_id = UINT_MAX;
-  //bool _is_positive_charge = false;
-  float m_chisq = NAN;
-  uint8_t m_ndf = uint8_t(-1);
-  uint64_t m_hitbitmap = uint64_t(-1);
-  short int m_crossing = SHRT_MAX;
+  float m_chisq = std::numeric_limits<float>::quiet_NaN();
+  uint8_t m_ndf = std::numeric_limits<uint8_t>::quiet_NaN();
+  uint64_t m_hitbitmap = std::numeric_limits<uint64_t>::quiet_NaN();
+  short int m_crossing = std::numeric_limits<short int>::quiet_NaN();
 
   // track state information
   TrackStateInfo_v1 m_state;  //< path length => state object

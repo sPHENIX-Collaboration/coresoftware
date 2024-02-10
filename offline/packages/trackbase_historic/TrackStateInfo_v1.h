@@ -79,15 +79,14 @@ class TrackStateInfo_v1: public TrackStateInfo
   //float get_error(int i, int j) const override { return _states.find(0.0)->second->get_error(i, j); }
   //void set_error(int i, int j, float value) override { return _states[0.0]->set_error(i, j, value); }
 
-  float get_covariance(int i) const override {return m_Covariance[i];}
-  void set_covariance(int i, float value) override {m_Covariance[i] = value;}
+  float get_covariance(int i, int j) const override;
+  void set_covariance(int i, int j, float value) override;
 
- 
-  private:
+ private:
 
-  float m_Momentum[3] = {0};//[-100,100,16] //[x,y,z]
-  float m_Position[3] = {0};//[-30,30,20]  //[px,py,pz]
-  float m_Covariance[21] = {0};
+  float m_Momentum[3] = {std::numeric_limits<float>::quiet_NaN()};//[-100,100,16] //[x,y,z]
+  float m_Position[3] = {std::numeric_limits<float>::quiet_NaN()};//[-30,30,20]  //[px,py,pz]
+  float m_Covariance[21] = {std::numeric_limits<float>::quiet_NaN()};
 
   //Use m_Covariance[21] instead of [15] for now
   //later on may convert to rotated and then cut to 5X5
