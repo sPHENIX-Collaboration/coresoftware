@@ -34,8 +34,8 @@ class ActsGeometry
 
   void set_drift_velocity(double vd) { _drift_velocity = vd; }
   double get_drift_velocity() { return _drift_velocity; }
-  void set_extended_readout_time(float time) { _extened_readout_time = time; }
-  float get_extended_readout_time() { return _extened_readout_time; }
+  void set_extended_readout_time(float time) { _extended_readout_time = time; }
+  float get_extended_readout_time() { return _extended_readout_time; }
 
   Eigen::Matrix<float, 3, 1> getGlobalPositionF(
       TrkrDefs::cluskey key,
@@ -62,7 +62,7 @@ class ActsGeometry
   ActsTrackingGeometry m_tGeometry;
   ActsSurfaceMaps m_surfMaps;
 
-  float _extened_readout_time = 0;  // ns
+  float _extended_readout_time = 0;  // ns
   double _drift_velocity = 8.0e-3;  // cm/ns
 };
 
