@@ -36,9 +36,9 @@ class ActsGeometry
   double get_drift_velocity() const { return _drift_velocity; }
   void set_extended_readout_time(float time) { _extended_readout_time = time; }
   float get_extended_readout_time() const { return _extended_readout_time; }
-  void set_tdriftmax(float t) { _tdriftmax = t;}
-  float get_tdriftmax() const { return _tdriftmax;}
-  
+  void set_tdriftmax(float t) { _tdriftmax = t; }
+  float get_tdriftmax() const { return _tdriftmax; }
+
   Eigen::Matrix<float, 3, 1> getGlobalPositionF(
       TrkrDefs::cluskey key,
       TrkrCluster* cluster);
@@ -65,8 +65,8 @@ class ActsGeometry
   ActsSurfaceMaps m_surfMaps;
 
   float _extended_readout_time = 0;  // ns
-  float _tdriftmax = 0; // ns
-  double _drift_velocity = 8.0e-3;  // cm/ns
+  float _tdriftmax = 0;              // ns
+  double _drift_velocity = 8.0e-3;   // cm/ns
 };
 
 #endif
