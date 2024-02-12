@@ -9,7 +9,8 @@ namespace InputManagerType
     INTT = 2,
     TPC = 3,
     MICROMEGAS = 4,
-    GL1 = 5
+    GL1 = 5,
+    MBD = 6
   };
 
 }

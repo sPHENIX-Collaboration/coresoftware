@@ -59,6 +59,8 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void SetPoolDepth(unsigned int d) { m_PoolDepth = d; }
   int FillGl1();
   void AddGl1Packet(int eventno, OfflinePacket *gl1pkt);
+  int FillMbd();
+  void AddMbdPacket(int eventno, OfflinePacket *mbdpkt);
 
  private:
   struct PacketInfo
@@ -78,15 +80,23 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
     unsigned int EventFoundCounter = 0;
   };
 
+  struct MbdPacketInfo
+  {
+    std::vector<OfflinePacket *> MbdPacketVector;
+    unsigned int EventFoundCounter = 0;
+  };
+
   bool m_StartUpFlag = true;
   int m_RunNumber {0};
   bool m_gl1_registered_flag{false};
+  bool m_mbd_registered_flag{false};
   unsigned int m_PoolDepth = 100;
   unsigned int m_InitialPoolDepth = 20;
   int m_RefEventNo {0};
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
   std::vector<SingleTriggerInput *> m_Gl1InputVector;
+  std::vector<SingleTriggerInput *> m_MbdInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
   Event *m_Event = nullptr;
@@ -95,6 +105,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   SinglePrdfInput *m_RefPrdfInput = nullptr;
   std::map<int, PacketInfo> m_PacketMap;
   std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
+  std::map<int, MbdPacketInfo> m_MbdPacketMap;
   std::string m_PrdfNodeName;
   std::map<int, int> m_DroppedPacketMap;
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;

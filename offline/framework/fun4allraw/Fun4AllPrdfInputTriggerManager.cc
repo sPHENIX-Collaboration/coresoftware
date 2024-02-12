@@ -79,6 +79,10 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   {
     iret += FillGl1();
   }
+  if (m_mbd_registered_flag)  // Mbd first to get the reference
+  {
+    iret += FillMbd();
+  }
 return iret;
   if (m_StartUpFlag)
   {
@@ -413,6 +417,10 @@ void Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *pr
     m_gl1_registered_flag = true;
     m_Gl1InputVector.push_back(prdfin);
     break;
+  case InputManagerType::MBD:
+    m_mbd_registered_flag = true;
+    m_MbdInputVector.push_back(prdfin);
+    break;
   default:
     std::cout << "invalid subsystem flag " << system << std::endl;
     gSystem->Exit(1);
@@ -422,7 +430,7 @@ void Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *pr
   {
     std::cout << "registering " << prdfin->Name()
               << " number of registered inputs: "
-              << m_Gl1InputVector.size()
+              << m_Gl1InputVector.size() +  m_MbdInputVector.size()
               << std::endl;
   }
   
@@ -728,5 +736,57 @@ void Fun4AllPrdfInputTriggerManager::AddGl1Packet(int eventno, OfflinePacket *pk
               << eventno << std::endl;
   }
   m_Gl1PacketMap[eventno].Gl1PacketVector.push_back(pkt);
+  return;
+}
+
+int Fun4AllPrdfInputTriggerManager::FillMbd()
+{
+  // unsigned int alldone = 0;
+  for (auto iter : m_MbdInputVector)
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "Fun4AllTriggerInputManager::FillMbd - fill pool for " << iter->Name() << std::endl;
+    }
+    iter->FillPool();
+    m_RunNumber = iter->RunNumber();
+    SetRunNumber(m_RunNumber);
+  }
+  if (m_MbdPacketMap.empty())
+  {
+    std::cout << "we are done" << std::endl;
+    return -1;
+  }
+  //    std::cout << "stashed mbd BCOs: " << m_MbdPacketMap.size() << std::endl;
+  OfflinePacket *mbdrawhit = findNode::getClass<OfflinePacket>(m_topNode, "MBDPacket");
+  //  std::cout << "before filling m_MbdPacketMap size: " <<  m_MbdPacketMap.size() << std::endl;
+  for (auto mbdhititer : m_MbdPacketMap.begin()->second.MbdPacketVector)
+  {
+    if (Verbosity() > 1)
+    {
+      mbdhititer->identify();
+    }
+    m_RefEventNo = mbdhititer->getEvtSequence();
+    mbdrawhit->setEvtSequence(m_RefEventNo);
+  }
+  for (auto iter : m_MbdInputVector)
+  {
+    iter->CleanupUsedPackets(m_MbdPacketMap.begin()->first);
+  }
+  m_MbdPacketMap.begin()->second.MbdPacketVector.clear();
+  m_MbdPacketMap.erase(m_MbdPacketMap.begin());
+  // std::cout << "size  m_MbdPacketMap: " <<  m_MbdPacketMap.size()
+  // 	    << std::endl;
+  return 0;
+}
+
+void Fun4AllPrdfInputTriggerManager::AddMbdPacket(int eventno, OfflinePacket *pkt)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "Adding mbd hit to eventno: "
+              << eventno << std::endl;
+  }
+  m_MbdPacketMap[eventno].MbdPacketVector.push_back(pkt);
   return;
 }
