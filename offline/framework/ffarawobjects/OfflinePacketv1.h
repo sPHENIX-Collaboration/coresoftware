@@ -10,7 +10,8 @@ class  OfflinePacketv1: public OfflinePacket
 
 public:
     OfflinePacketv1() = default;
-  virtual ~OfflinePacketv1() = default;
+  ~OfflinePacketv1() override = default;
+  void Reset() override;
 
   int getIdentifier() const override {return packetid;}
   void setIdentifier(const int i) override {packetid = i;}

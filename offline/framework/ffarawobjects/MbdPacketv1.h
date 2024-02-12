@@ -1,16 +1,16 @@
-#ifndef FUN4ALLRAW_GL1PACKETV1_H
-#define FUN4ALLRAW_GL1PACKETV1_H
+#ifndef FUN4ALLRAW_MBDPACKETV1_H
+#define FUN4ALLRAW_MBDPACKETV1_H
 
 #include "OfflinePacketv1.h"
 
 #include <limits>
 
-class  Gl1Packetv1: public OfflinePacketv1
+class  MbdPacketv1: public OfflinePacketv1
   {
 
 public:
-    Gl1Packetv1() = default;
-    ~Gl1Packetv1() override = default;
+    MbdPacketv1() = default;
+    ~MbdPacketv1() override = default;
 
   void Reset() override;
 
@@ -20,7 +20,7 @@ public:
   protected:
   char bunchnumber {std::numeric_limits<char>::min()};
 private:
-  ClassDefOverride(Gl1Packetv1,1)
+  ClassDefOverride(MbdPacketv1,1)
 };
 
 #endif
