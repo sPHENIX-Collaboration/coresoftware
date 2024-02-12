@@ -1,19 +1,23 @@
 #include "Fun4AllPrdfInputTriggerManager.h"
 
 #include "SinglePrdfInput.h"
+#include "SingleTriggerInput.h"
 
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 
 #include <ffaobjects/SyncObject.h>  // for SyncObject
-#include <ffaobjects/SyncObjectv1.h>
+#include <ffaobjects/SyncObjectv1.h>  // for SyncObject
+
+#include <ffarawobjects/OfflinePacket.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHNode.h>          // for PHNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
+#include <phool/getClass.h>
 #include <phool/phool.h>           // for PHWHERE
 
 #include <Event/A_Event.h>
@@ -391,6 +395,13 @@ SinglePrdfInput *Fun4AllPrdfInputTriggerManager::registerPrdfInput(SinglePrdfInp
   return m_PrdfInputVector.back();
 }
 
+SingleTriggerInput *Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *prdfin)
+{
+  m_TriggerInputVector.push_back(prdfin);
+  prdfin->TriggerInputManager(this);
+  return m_TriggerInputVector.back();
+}
+
 void Fun4AllPrdfInputTriggerManager::AddPacket(const int evtno, Packet *p)
 {
   if (Verbosity() > 1)
@@ -639,4 +650,57 @@ void Fun4AllPrdfInputTriggerManager::ClearAllEvents()
   m_ClockCounters.clear();
   m_RefClockCounters.clear();
   m_PacketMap.clear();
+}
+
+int Fun4AllPrdfInputTriggerManager::FillGl1()
+{
+  // unsigned int alldone = 0;
+  for (auto iter : m_Gl1InputVector)
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "Fun4AllTriggerInputManager::FillGl1 - fill pool for " << iter->Name() << std::endl;
+    }
+    iter->FillPool();
+    m_RunNumber = iter->RunNumber();
+    SetRunNumber(m_RunNumber);
+  }
+  if (m_Gl1PacketMap.empty())
+  {
+    std::cout << "we are done" << std::endl;
+    return -1;
+  }
+  //    std::cout << "stashed gl1 BCOs: " << m_Gl1PacketMap.size() << std::endl;
+  OfflinePacket *gl1rawhit = findNode::getClass<OfflinePacket>(m_topNode, "GL1PACKET");
+  //  std::cout << "before filling m_Gl1PacketMap size: " <<  m_Gl1PacketMap.size() << std::endl;
+  for (auto gl1hititer : m_Gl1PacketMap.begin()->second.Gl1PacketVector)
+  {
+    if (Verbosity() > 1)
+    {
+      gl1hititer->identify();
+    }
+    m_RefEventNo = gl1hititer->getEvtSequence();
+    gl1rawhit->setEvtSequence(m_RefEventNo);
+//    m_RefBCO = m_RefBCO & 0xFFFFFFFFFF;  // 40 bits (need to handle rollovers)
+  }
+  for (auto iter : m_Gl1InputVector)
+  {
+    iter->CleanupUsedPackets(m_Gl1PacketMap.begin()->first);
+  }
+  m_Gl1PacketMap.begin()->second.Gl1PacketVector.clear();
+  m_Gl1PacketMap.erase(m_Gl1PacketMap.begin());
+  // std::cout << "size  m_Gl1PacketMap: " <<  m_Gl1PacketMap.size()
+  // 	    << std::endl;
+  return 0;
+}
+
+void Fun4AllPrdfInputTriggerManager::AddGl1Packet(int eventno, OfflinePacket *pkt)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "Adding gl1 hit to eventno: "
+              << eventno << std::endl;
+  }
+  m_Gl1PacketMap[eventno].Gl1PacketVector.push_back(pkt);
+  return;
 }

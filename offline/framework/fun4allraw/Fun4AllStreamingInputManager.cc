@@ -1,6 +1,7 @@
 #include "Fun4AllStreamingInputManager.h"
 
 #include "SingleStreamingInput.h"
+#include "InputManagerType.h"
 
 #include <ffarawobjects/Gl1RawHit.h>
 #include <ffarawobjects/InttRawHit.h>
@@ -352,30 +353,30 @@ std::string Fun4AllStreamingInputManager::GetString(const std::string &what) con
   return "";
 }
 
-void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem system)
+void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *evtin, InputManagerType::enu_subsystem system)
 {
   evtin->StreamingInputManager(this);
   evtin->CreateDSTNode(m_topNode);
   evtin->ConfigureStreamingInputManager();
   switch (system)
   {
-  case Fun4AllStreamingInputManager::MVTX:
+  case InputManagerType::MVTX:
     m_mvtx_registered_flag = true;
     m_MvtxInputVector.push_back(evtin);
     break;
-  case Fun4AllStreamingInputManager::INTT:
+  case InputManagerType::INTT:
     m_intt_registered_flag = true;
     m_InttInputVector.push_back(evtin);
     break;
-  case Fun4AllStreamingInputManager::TPC:
+  case InputManagerType::TPC:
     m_tpc_registered_flag = true;
     m_TpcInputVector.push_back(evtin);
     break;
-  case Fun4AllStreamingInputManager::MICROMEGAS:
+  case InputManagerType::MICROMEGAS:
     m_micromegas_registered_flag = true;
     m_MicromegasInputVector.push_back(evtin);
     break;
-  case Fun4AllStreamingInputManager::GL1:
+  case InputManagerType::GL1:
     m_gl1_registered_flag = true;
     m_Gl1InputVector.push_back(evtin);
     break;

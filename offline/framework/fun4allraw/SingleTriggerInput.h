@@ -11,7 +11,6 @@
 
 class Eventiterator;
 class Fun4AllStreamingInputManager;
-//class Fun4AllTriggerInputManager;
 class Fun4AllPrdfInputTriggerManager;
 class PHCompositeNode;
 

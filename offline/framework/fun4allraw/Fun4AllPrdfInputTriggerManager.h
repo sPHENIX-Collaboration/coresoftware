@@ -17,13 +17,16 @@ class SinglePrdfInput;
 class oEvent;
 class Packet;
 class PHCompositeNode;
+class SingleTriggerInput;
 class SyncObject;
+class OfflinePacket;
 
 class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
 {
  public:
   Fun4AllPrdfInputTriggerManager(const std::string &name = "DUMMY", const std::string &prdfnodename = "PRDF", const std::string &topnodename = "TOP");
   ~Fun4AllPrdfInputTriggerManager() override;
+
   int fileopen(const std::string & /* filenam */) override { return 0; }
   // cppcheck-suppress virtualCallInConstructor
   int fileclose() override;
@@ -39,6 +42,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   SinglePrdfInput *AddPrdfInputList(const std::string &listfile);
   SinglePrdfInput *AddPrdfInputFile(const std::string &filename);
   SinglePrdfInput *registerPrdfInput(SinglePrdfInput *prdfin);
+  SingleTriggerInput *registerTriggerInput(SingleTriggerInput *prdfin);
   void AddPacket(const int evtno, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
   void UpdateDroppedPacket(const int packetid);
@@ -51,6 +55,8 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void Resynchronize();
   void ClearAllEvents();
   void SetPoolDepth(unsigned int d) { m_PoolDepth = d; }
+  int FillGl1();
+  void AddGl1Packet(int eventno, OfflinePacket *gl1pkt);
 
  private:
   struct PacketInfo
@@ -64,11 +70,20 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
     int bclkoffset = 0;
   };
 
+  struct Gl1PacketInfo
+  {
+    std::vector<OfflinePacket *> Gl1PacketVector;
+    unsigned int EventFoundCounter = 0;
+  };
+
   bool m_StartUpFlag = true;
-  int m_RunNumber = 0;
+  int m_RunNumber {0};
   unsigned int m_PoolDepth = 100;
   unsigned int m_InitialPoolDepth = 20;
+  int m_RefEventNo {0};
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
+  std::vector<SingleTriggerInput *> m_TriggerInputVector;
+  std::vector<SingleTriggerInput *> m_Gl1InputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
   Event *m_Event = nullptr;
@@ -76,6 +91,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   oEvent *oph = nullptr;
   SinglePrdfInput *m_RefPrdfInput = nullptr;
   std::map<int, PacketInfo> m_PacketMap;
+  std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
   std::string m_PrdfNodeName;
   std::map<int, int> m_DroppedPacketMap;
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;

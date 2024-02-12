@@ -1,6 +1,7 @@
 #include "SingleGl1TriggerInput.h"
 
-#include "Fun4AllStreamingInputManager.h"
+#include "Fun4AllPrdfInputTriggerManager.h"
+#include "InputManagerType.h"
 
 #include <ffarawobjects/Gl1Packetv1.h>
 
@@ -28,7 +29,7 @@
 SingleGl1TriggerInput::SingleGl1TriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
-  SubsystemEnum(Fun4AllStreamingInputManager::GL1);
+  SubsystemEnum(InputManagerType::GL1);
 }
 
 SingleGl1TriggerInput::~SingleGl1TriggerInput()
@@ -87,11 +88,12 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     }
 
     // by default use previous bco clock for gtm bco
-    OfflinePacket *newhit = new Gl1Packetv1();
+    Gl1Packetv1 *newhit = new Gl1Packetv1();
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     newhit->setBCO(packet->lValue(0, "BCO"));
     newhit->setIdentifier(packet->getIdentifier());
     newhit->setEvtSequence(EventSequence);
+    newhit->setBunchNumber(packet->lValue(0, "BunchNumber"));
     m_BeamClockFEE.insert(gtm_bco);
     m_FEEBclkMap.insert(gtm_bco);
     if (Verbosity() > 2)
@@ -100,9 +102,9 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
                 << ", bco: 0x" << std::hex << gtm_bco << std::dec
                 << std::endl;
     }
-    if (StreamingInputManager())
+    if (TriggerInputManager())
     {
-//      StreamingInputManager()->AddGl1RawHit(gtm_bco, newhit);
+       TriggerInputManager()->AddGl1Packet(EventSequence, newhit);
     }
     m_Gl1PacketMap[EventSequence].push_back(newhit);
     m_EventStack.insert(EventSequence);
