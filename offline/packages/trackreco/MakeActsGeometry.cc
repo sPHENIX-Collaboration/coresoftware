@@ -174,6 +174,9 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->setSurfMaps(surfMaps);
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
   m_actsGeometry->set_extended_readout_time(m_extended_readout_time);
+  // get a random layers (they're all the same) nzbins to determine the max drift time
+  m_actsGeometry->set_tdriftmax(m_geomContainerTpc->GetLayerCellGeom(8)->get_zstep()
+  * m_geomContainerTpc->GetLayerCellGeom(8)->get_zbins() / 2.);
   alignment_transformation.useInttSurveyGeometry(m_inttSurvey);
   if (Verbosity() > 1)
   {

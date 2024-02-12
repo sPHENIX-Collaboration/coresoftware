@@ -85,19 +85,35 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,	 TrkrCl
     } 
 
   float surfaceZCenter = 52.89; // this is where G4 thinks the surface center is in cm
-  //float extraDrift = _extended_readout_time * _drift_velocity;
-  //surfaceZCenter += extraDrift / 2.;
+  float extraDrift = _extended_readout_time * _drift_velocity;
+  surfaceZCenter += extraDrift / 2.;
   float zdriftlength = cluster->getLocalY() * _drift_velocity;  // cm
   float zloc = surfaceZCenter - zdriftlength;     // local z relative to surface center (for north side):
   unsigned int side = TpcDefs::getSide(key);
-  if(side == 0) zloc = -zloc;
+  if(side == 0) 
+  {
+    zloc = -zloc;
+  }
   std::cout << "cluster " << key << ", time" << cluster->getLocalY() << ", zdrift = " << zdriftlength << ", zloc = " << zloc << ", surfzcent= " << surfaceZCenter << std::endl;
   Acts::Vector2 local(cluster->getLocalX(), zloc);
+  // We really just need the local to global to get the rphi position, since z is
+  // undetermined in streaming mode
   glob = surface->localToGlobal(geometry().getGeoContext(),
 				  local * Acts::UnitConstants::cm,
 				  Acts::Vector3(1,1,1));
   glob /= Acts::UnitConstants::cm;
   std::cout << "Global is " << glob.transpose() << std::endl;
+  // Reset z based on streaming mode
+  if(_extended_readout_time > 0)
+  {
+    std::cout << "_tdriftmax " << _tdriftmax <<std::endl;
+    glob(2) = (_tdriftmax + _extended_readout_time) * _drift_velocity - zdriftlength;
+      if(side == 0) 
+  {
+    zloc = -zloc;
+  }
+  }
+  std::cout << "Actual global is " << glob.transpose() << std::endl;
   return glob;
 }
 
