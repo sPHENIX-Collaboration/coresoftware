@@ -98,7 +98,6 @@ class TpcClusterizer : public SubsysReco
   unsigned short MaxClusterHalfSizeT = 5;
  
   double m_tdriftmax = 0;
-  double AdcClockPeriod = 53.0;   // ns 
 
   // TPC shaping offset correction parameter
   // From Tony Frawley July 5, 2022

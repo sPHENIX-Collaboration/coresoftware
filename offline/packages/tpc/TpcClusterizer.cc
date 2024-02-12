@@ -447,7 +447,7 @@ namespace
       double clusz = my_data.m_tdriftmax * my_data.tGeometry->get_drift_velocity() - zdriftlength;
       if (clust > my_data.m_tdriftmax)
       {
-        // force it to be within the surface so that the global to local transform can go ahead
+        // force the z position to be within the surface so that the global to local transform can go ahead
         clusz = ((my_data.m_tdriftmax + my_data.tGeometry->get_extended_readout_time()) * my_data.tGeometry->get_drift_velocity()) - zdriftlength;
             }
         if (my_data.side == 0)
@@ -1092,6 +1092,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	unsigned short NTBinsMin = 0;
 	unsigned short PhiOffset = NPhiBinsSector * sector;
 	unsigned short TOffset = NTBinsMin;
+      float AdcClockPeriod = layergeom->get_zstep();
         m_tdriftmax = AdcClockPeriod * NTBins / 2.0;
         std::cout << "NTBins " << NTBins << " and drift max " << m_tdriftmax << std::endl;
 
@@ -1196,6 +1197,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       unsigned short NTBinsMin = 0;
       unsigned short PhiOffset = NPhiBinsSector * sector;
       unsigned short TOffset = NTBinsMin;
+      float AdcClockPeriod = layergeom->get_zstep();
 
       m_tdriftmax = AdcClockPeriod * NTBins / 2.0;  
       thread_pair.data.m_tdriftmax = m_tdriftmax;
