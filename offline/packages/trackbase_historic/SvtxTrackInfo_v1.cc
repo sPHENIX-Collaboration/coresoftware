@@ -10,9 +10,8 @@
 #include <map>
 #include <utility>  // for pair
 
-void SvtxTrackInfo_v1::CopyFrom(const SvtxTrackInfo& source){
-
-  
+void SvtxTrackInfo_v1::CopyFrom(const SvtxTrackInfo& source)
+{
   set_chisq(source.get_chisq());
   set_ndf(source.get_ndf());
   set_hitbitmap(source.get_hitbitmap());
@@ -25,14 +24,20 @@ void SvtxTrackInfo_v1::CopyFrom(const SvtxTrackInfo& source){
   set_py(source.get_py());
   set_pz(source.get_pz());
 
-  for(int i = 0; i < 21; i++){
-    set_covariance(i, source.get_covariance(i));
+  for (int i = 0; i < 6; i++)
+  {
+    for (int j = i; j < 6; j++)
+    {
+      set_covariance(i, j, source.get_covariance(i, j));
+    }
   }
-
 }
 
 SvtxTrackInfo_v1& SvtxTrackInfo_v1::operator=(const SvtxTrackInfo_v1& source)
-{ if( this != &source ) {
-    CopyFrom( source );
-  } 
-  return *this; }
+{
+  if (this != &source)
+  {
+    CopyFrom(source);
+  }
+  return *this;
+}
