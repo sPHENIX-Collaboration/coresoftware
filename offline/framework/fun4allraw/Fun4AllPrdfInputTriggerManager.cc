@@ -25,6 +25,8 @@
 #include <Event/oEvent.h>
 #include <Event/packet.h>
 
+#include <TSystem.h>
+
 #include <cassert>
 #include <climits>
 #include <cstdlib>
@@ -72,6 +74,12 @@ Fun4AllPrdfInputTriggerManager::~Fun4AllPrdfInputTriggerManager()
 
 int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
 {
+  int iret = 0;
+  if (m_gl1_registered_flag)  // Gl1 first to get the reference
+  {
+    iret += FillGl1();
+  }
+return iret;
   if (m_StartUpFlag)
   {
     for (auto iter : m_PrdfInputVector)
@@ -395,11 +403,30 @@ SinglePrdfInput *Fun4AllPrdfInputTriggerManager::registerPrdfInput(SinglePrdfInp
   return m_PrdfInputVector.back();
 }
 
-SingleTriggerInput *Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *prdfin)
+void Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *prdfin, InputManagerType::enu_subsystem system)
 {
-  m_TriggerInputVector.push_back(prdfin);
+  prdfin->CreateDSTNode(m_topNode);
   prdfin->TriggerInputManager(this);
-  return m_TriggerInputVector.back();
+  switch (system)
+  {
+  case InputManagerType::GL1:
+    m_gl1_registered_flag = true;
+    m_Gl1InputVector.push_back(prdfin);
+    break;
+  default:
+    std::cout << "invalid subsystem flag " << system << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+  if (Verbosity() > 3)
+  {
+    std::cout << "registering " << prdfin->Name()
+              << " number of registered inputs: "
+              << m_Gl1InputVector.size()
+              << std::endl;
+  }
+  
+  return;
 }
 
 void Fun4AllPrdfInputTriggerManager::AddPacket(const int evtno, Packet *p)
@@ -671,7 +698,7 @@ int Fun4AllPrdfInputTriggerManager::FillGl1()
     return -1;
   }
   //    std::cout << "stashed gl1 BCOs: " << m_Gl1PacketMap.size() << std::endl;
-  OfflinePacket *gl1rawhit = findNode::getClass<OfflinePacket>(m_topNode, "GL1PACKET");
+  OfflinePacket *gl1rawhit = findNode::getClass<OfflinePacket>(m_topNode, "GL1Packet");
   //  std::cout << "before filling m_Gl1PacketMap size: " <<  m_Gl1PacketMap.size() << std::endl;
   for (auto gl1hititer : m_Gl1PacketMap.begin()->second.Gl1PacketVector)
   {
@@ -681,7 +708,6 @@ int Fun4AllPrdfInputTriggerManager::FillGl1()
     }
     m_RefEventNo = gl1hititer->getEvtSequence();
     gl1rawhit->setEvtSequence(m_RefEventNo);
-//    m_RefBCO = m_RefBCO & 0xFFFFFFFFFF;  // 40 bits (need to handle rollovers)
   }
   for (auto iter : m_Gl1InputVector)
   {

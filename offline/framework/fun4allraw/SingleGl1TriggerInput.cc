@@ -51,7 +51,6 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
       return;
     }
   }
-  //  std::set<uint64_t> saved_beamclocks;
   while (GetSomeMoreEvents())
   {
     std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());
@@ -94,8 +93,6 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     newhit->setIdentifier(packet->getIdentifier());
     newhit->setEvtSequence(EventSequence);
     newhit->setBunchNumber(packet->lValue(0, "BunchNumber"));
-    m_BeamClockFEE.insert(gtm_bco);
-    m_FEEBclkMap.insert(gtm_bco);
     if (Verbosity() > 2)
     {
       std::cout << PHWHERE << "evtno: " << EventSequence
@@ -115,31 +112,11 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
 
 void SingleGl1TriggerInput::Print(const std::string &what) const
 {
-  if (what == "ALL" || what == "FEE")
-  {
-    for (const auto &bcliter : m_BeamClockFEE)
-    {
-      std::cout << PHWHERE << "Beam clock 0x" << std::hex << bcliter << std::dec << std::endl;
-    }
-  }
-  if (what == "ALL" || what == "FEEBCLK")
-  {
-    for (auto bcliter : m_FEEBclkMap)
-    {
-      std::cout << PHWHERE << " bclk: 0x"
-                << std::hex << bcliter << std::dec << std::endl;
-    }
-  }
   if (what == "ALL" || what == "STORAGE")
   {
     for (const auto &bcliter : m_Gl1PacketMap)
     {
       std::cout << PHWHERE << "Event: " << bcliter.first << std::endl;
-      for (auto feeiter : bcliter.second)
-      {
-        std::cout << PHWHERE << "bco: 0x" << std::hex << feeiter->getBCO()
-                  << std::dec << std::endl;
-      }
     }
   }
   if (what == "ALL" || what == "STACK")
@@ -169,45 +146,14 @@ void SingleGl1TriggerInput::CleanupUsedPackets(const int eventno)
       break;
     }
   }
-  // for (auto iter :  m_BeamClockFEE)
-  // {
-  //   iter.second.clear();
-  // }
 
   for (auto iter : toclearevents)
   {
     m_EventStack.erase(iter);
-//    m_BeamClockFEE.erase(iter);
     m_Gl1PacketMap.erase(iter);
   }
 }
 
-bool SingleGl1TriggerInput::CheckPoolDepth(const uint64_t bclk)
-{
-  // if (m_FEEBclkMap.size() < 10)
-  // {
-  //   std::cout << PHWHERE << "not all FEEs in map: " << m_FEEBclkMap.size() << std::endl;
-  //   return true;
-  // }
-  for (auto iter : m_FEEBclkMap)
-  {
-    if (Verbosity() > 2)
-    {
-      std::cout << PHWHERE << "my bclk 0x" << std::hex << iter
-                << " req: 0x" << bclk << std::dec << std::endl;
-    }
-    if (iter < bclk)
-    {
-      if (Verbosity() > 1)
-      {
-        std::cout << PHWHERE << "FEE " << iter << " beamclock 0x" << std::hex << iter
-                  << " smaller than req bclk: 0x" << bclk << std::dec << std::endl;
-      }
-      return false;
-    }
-  }
-  return true;
-}
 
 void SingleGl1TriggerInput::ClearCurrentEvent()
 {
@@ -215,8 +161,6 @@ void SingleGl1TriggerInput::ClearCurrentEvent()
   int currentevent = *m_EventStack.begin();
   //  std::cout << PHWHERE << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
   CleanupUsedPackets(currentevent);
-  // m_BclkStack.erase(currentbclk);
-  // m_BeamClockFEE.erase(currentbclk);
   return;
 }
 
@@ -236,7 +180,7 @@ bool SingleGl1TriggerInput::GetSomeMoreEvents()
   if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "first event: " << first_event
-              << " last ecent: " << last_event
+              << " last event: " << last_event
               << std::endl;
   }
   if (first_event >= last_event)

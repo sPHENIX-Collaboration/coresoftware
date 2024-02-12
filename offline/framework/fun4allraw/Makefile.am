@@ -20,6 +20,7 @@ pkginclude_HEADERS = \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
+  InputManagerType.h \
   SingleGl1PrdfInput.h \
   SingleGl1PoolInput.h \
   SingleGl1TriggerInput.h \

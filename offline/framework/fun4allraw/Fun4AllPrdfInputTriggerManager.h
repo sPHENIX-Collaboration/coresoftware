@@ -3,6 +3,8 @@
 #ifndef FUN4ALLRAW_FUN4ALLPRDFINPUTTRIGGERMANAGER_H
 #define FUN4ALLRAW_FUN4ALLPRDFINPUTTRIGGERMANAGER_H
 
+#include "InputManagerType.h"
+
 #include <fun4all/Fun4AllInputManager.h>
 
 #include <Event/phenixTypes.h>
@@ -42,7 +44,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   SinglePrdfInput *AddPrdfInputList(const std::string &listfile);
   SinglePrdfInput *AddPrdfInputFile(const std::string &filename);
   SinglePrdfInput *registerPrdfInput(SinglePrdfInput *prdfin);
-  SingleTriggerInput *registerTriggerInput(SingleTriggerInput *prdfin);
+  void registerTriggerInput(SingleTriggerInput *prdfin, InputManagerType::enu_subsystem system);
   void AddPacket(const int evtno, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
   void UpdateDroppedPacket(const int packetid);
@@ -78,6 +80,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
 
   bool m_StartUpFlag = true;
   int m_RunNumber {0};
+  bool m_gl1_registered_flag{false};
   unsigned int m_PoolDepth = 100;
   unsigned int m_InitialPoolDepth = 20;
   int m_RefEventNo {0};

@@ -20,25 +20,17 @@ class SingleGl1TriggerInput : public SingleTriggerInput
   ~SingleGl1TriggerInput() override;
   void FillPool(const unsigned int) override;
   void CleanupUsedPackets(const int eventno) override;
-  bool CheckPoolDepth(const uint64_t bclk) override;
   void ClearCurrentEvent() override;
   bool GetSomeMoreEvents();
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
-  void SetBcoRange(const unsigned int i) { m_BcoRange = i; }
   //  void ConfigureStreamingInputManager() override;
 
  private:
   unsigned int m_NumSpecialEvents{0};
-  unsigned int m_BcoRange{0};
-
-  //! map bco to packet
-  std::map<unsigned int, uint64_t> m_packet_bco;
 
   std::set<int> m_EventNumber;
   std::map<int, std::vector<OfflinePacket *>> m_Gl1PacketMap;
-  std::set<uint64_t> m_BeamClockFEE;
-  std::set<uint64_t> m_FEEBclkMap;
   std::set<int> m_EventStack;
 };
 
