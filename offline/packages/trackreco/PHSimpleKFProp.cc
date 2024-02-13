@@ -637,7 +637,6 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     if(std::isnan(kftrack.GetX()) ||
        std::isnan(kftrack.GetY()) ||
        std::isnan(kftrack.GetZ())) continue;
-    if(fabs(kftrack.GetZ())>105.) continue;
     if(Verbosity()>0) std::cout << "\nlayer " << l << ":" << std::endl;
     // check to see whether layer is already occupied by at least one cluster
     // choosing the last one first (clusters organized from inside out)
