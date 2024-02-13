@@ -18,7 +18,6 @@
 class TrackStateInfo : public PHObject
 {
  public:
-
   TrackStateInfo() = default;
   ~TrackStateInfo() override = default;
 
@@ -33,20 +32,22 @@ class TrackStateInfo : public PHObject
 
   //! import PHObject CopyFrom, in order to avoid clang warning
   using PHObject::CopyFrom;
-  
-  //! copy content from base class
-  virtual void CopyFrom( const TrackStateInfo& ) 
-  {}
 
   //! copy content from base class
-  virtual void CopyFrom( TrackStateInfo* ) 
-  {}
+  virtual void CopyFrom(const TrackStateInfo&)
+  {
+  }
+
+  //! copy content from base class
+  virtual void CopyFrom(TrackStateInfo*)
+  {
+  }
 
   //
   // basic track information ---------------------------------------------------
   //
 
-  //vertex information
+  // vertex information
   virtual float get_x() const { return NAN; }
   virtual void set_x(float) {}
 
@@ -74,13 +75,8 @@ class TrackStateInfo : public PHObject
   virtual float get_eta() const { return NAN; }
   virtual float get_phi() const { return NAN; }
 
-  //virtual float get_error(int /*i*/, int /*j*/) const { return NAN; }
-  //virtual void set_error(int /*i*/, int /*j*/, float /*value*/) {}
-  
-  virtual float get_covariance(int) const {return NAN;}
-  virtual void set_covariance(int, float) {}
-
- 
+  virtual float get_covariance(int, int) const { return NAN; }
+  virtual void set_covariance(int, int, float) {}
 
  private:
   ClassDefOverride(TrackStateInfo, 1);

@@ -18,8 +18,6 @@
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
-//#include <trackbase/TrkrCluster.h>
-//#include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -34,14 +32,13 @@
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-//#include <trackbase_historic/TrackSeed_v1.h>
+
 
 #include <algorithm>
 #include <bitset>
 #include <cassert>
 #include <iostream>
 #include <numeric>
-//#define __STDC_LIMIT_MACROS
 
 //_____________________________________________________________________
 
