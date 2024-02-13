@@ -7,6 +7,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHRandomSeed.h>  // for PHRandomSeed
 #include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>  // for PHObject
@@ -18,9 +19,12 @@
 
 int JetProbeMaker::process_event(PHCompositeNode* /*topNode*/) {
   // update the jet probe
-  float phi = _rand->Uniform(_phi_min, _phi_max);
-  float eta = _rand->Uniform(_eta_min, _eta_max);
-  float pt = (_const_pt ? _pt : _rand->Uniform(_pt_min, _pt));
+  float phi = M_PI*(1.-2.*gsl_rng_uniform(m_rng.get()));
+  float eta = _eta_min+gsl_rng_uniform(m_rng.get()) * _eta_range;
+  float pt = (_pt_range == 0. 
+      ? _pt_min 
+      : _pt_min + gsl_rng_uniform(m_rng.get()) * _pt_range
+    );
 
   fastjet::PseudoJet fjet {};
   fjet.reset_PtYPhiM(pt, eta, phi);
@@ -35,10 +39,14 @@ int JetProbeMaker::process_event(PHCompositeNode* /*topNode*/) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-JetProbeMaker::JetProbeMaker(const std::string &name, const int _randseed) 
+JetProbeMaker::JetProbeMaker(const std::string &name)
   : SubsysReco(name)
-  , _rand { new TRandom3(_randseed)  }
-{};
+{
+  // initialize rng
+  const uint seed = PHRandomSeed();
+  m_rng.reset(gsl_rng_alloc(gsl_rng_mt19937));
+  gsl_rng_set(m_rng.get(), seed);
+};
 
 int JetProbeMaker::InitRun(PHCompositeNode *topNode) {
   // Create the Input node if required
@@ -73,6 +81,3 @@ int JetProbeMaker::InitRun(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-JetProbeMaker::~JetProbeMaker () {
-  delete _rand;
-}

@@ -13,7 +13,7 @@ lib_LTLIBRARIES = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib 
 
 libjetbase_io_la_LIBADD = \
   -lphool
@@ -29,6 +29,8 @@ libjetbase_la_LIBADD = \
   -lcalo_io \
   -lfun4all \
   -lglobalvertex_io \
+  -lgsl \
+  -lgslcblas \
   -lRecursiveTools
 
 pkginclude_HEADERS = \
