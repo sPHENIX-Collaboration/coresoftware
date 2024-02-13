@@ -112,10 +112,9 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
     glob(2) = (_tdriftmax + _extended_readout_time) * _drift_velocity - zdriftlength;
     if (side == 0)
     {
-      zloc = -zloc;
+      glob(2) = -glob(2);
     }
   }
-
   return glob;
 }
 
