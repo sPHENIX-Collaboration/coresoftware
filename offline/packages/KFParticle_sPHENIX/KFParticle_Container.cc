@@ -4,7 +4,7 @@
 /* cdean@bnl.gov */
 /*****************/
 
-//Ideas taken from SvtxTrackMap_v1 & TrkrClusterContainer
+// Ideas taken from SvtxTrackMap_v1 & TrkrClusterContainer
 
 #include "KFParticle_Container.h"
 
@@ -72,23 +72,32 @@ void KFParticle_Container::identify(std::ostream& os) const
 const KFParticle* KFParticle_Container::get(unsigned int id) const
 {
   ConstIter iter = m_kfpmap.find(id);
-  if (iter == m_kfpmap.end()) return nullptr;
+  if (iter == m_kfpmap.end())
+  {
+    return nullptr;
+  }
   return iter->second;
 }
 
 KFParticle* KFParticle_Container::get(unsigned int id)
 {
   Iter iter = m_kfpmap.find(id);
-  if (iter == m_kfpmap.end()) return nullptr;
+  if (iter == m_kfpmap.end())
+  {
+    return nullptr;
+  }
   return iter->second;
 }
 
 KFParticle* KFParticle_Container::insert(const KFParticle* particle)
 {
   unsigned int index = 0;
-  if (!m_kfpmap.empty()) index = m_kfpmap.rbegin()->first + 1;
+  if (!m_kfpmap.empty())
+  {
+    index = m_kfpmap.rbegin()->first + 1;
+  }
   m_kfpmap.insert(std::make_pair(index, dynamic_cast<KFParticle*>(particle->Clone())));
-  //m_kfpmap[index]->SetId(index);
+  // m_kfpmap[index]->SetId(index);
   return m_kfpmap[index];
 }
 

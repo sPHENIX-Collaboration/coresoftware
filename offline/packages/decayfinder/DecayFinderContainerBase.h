@@ -12,14 +12,14 @@
 /**
  * @brief DecayFinder container object
  *
- * Container for DecayFinder objects, based off KFParticle_Container 
+ * Container for DecayFinder objects, based off KFParticle_Container
  */
 
 class DecayFinderContainerBase : public PHObject
 {
  public:
-  //Each decay is stored as an initial pair of embedding ID and barcode.
-  //This pair matches with another int, the PDGID
+  // Each decay is stored as an initial pair of embedding ID and barcode.
+  // This pair matches with another int, the PDGID
   typedef std::vector<std::pair<std::pair<int, int>, int>> Decay;
   typedef std::map<unsigned int, Decay> Map;
   typedef std::map<unsigned int, Decay>::const_iterator ConstIter;
@@ -64,4 +64,4 @@ class DecayFinderContainerBase : public PHObject
   ClassDefOverride(DecayFinderContainerBase, 1);
 };
 
-#endif  //DECAYFINDER_DECAYFINDERCONTAINERBASE_H
+#endif  // DECAYFINDER_DECAYFINDERCONTAINERBASE_H

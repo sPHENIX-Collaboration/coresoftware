@@ -130,7 +130,7 @@ class HFTrackEfficiency : public SubsysReco
   float m_true_mother_eta = std::numeric_limits<float>::quiet_NaN();
   float m_min_true_track_pT = std::numeric_limits<float>::max();
   float m_min_reco_track_pT = std::numeric_limits<float>::max();
-  float m_max_true_track_pT = -1. * std::numeric_limits<float>::max(); //Apparently min() is still a +ve value
+  float m_max_true_track_pT = -1. * std::numeric_limits<float>::max();  // Apparently min() is still a +ve value
   float m_max_reco_track_pT = -1. * std::numeric_limits<float>::max();
   bool m_reco_track_exists[m_maxTracks] = {false};
   bool m_used_truth_reco_map[m_maxTracks] = {false};
