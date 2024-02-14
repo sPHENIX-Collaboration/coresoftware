@@ -495,10 +495,6 @@ void PHG4MvtxSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   m_SupportHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_SupportNodeName);
 
-  // now look for the map and grab a pointer to it.
-  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
-  m_SupportHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_SupportNodeName);
-
   // if we do not find the node it's messed up.
   if (!m_HitContainer)
   {
