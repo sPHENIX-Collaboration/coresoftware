@@ -110,14 +110,17 @@ int Fun4AllSyncManager::run(const int nevnts)
         if (iter->HasSyncObject())  // if zero (no syncing) no need to go further
         {
           if (hassync != iter->HasSyncObject())  // we have sync and no sync mixed
+          // NOLINTNEXTLINE(bugprone-branch-clone)
           {
             PrintSyncProblem();
             gSystem->Exit(1);
+            exit(1);
           }
           else if (hassync < 0)  // we have more than one nosync input
           {
             PrintSyncProblem();
             gSystem->Exit(1);
+            exit(1);
           }
         }
       }
@@ -207,6 +210,7 @@ int Fun4AllSyncManager::run(const int nevnts)
           }
           ++InIter;
         }
+        // NOLINTNEXTLINE(hicpp-avoid-goto)
         goto readerror;
       }
       else
