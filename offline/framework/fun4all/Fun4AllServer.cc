@@ -1662,13 +1662,13 @@ int Fun4AllServer::setRun(const int runno)
 {
   recoConsts *rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER", runno);
-  if (! rc->FlagExist("TIMESTAMP"))
+  if (!rc->FlagExist("TIMESTAMP"))
   {
-    rc->set_uint64Flag("TIMESTAMP",runno);
+    rc->set_uint64Flag("TIMESTAMP", runno);
   }
   std::cout << "Fun4AllServer::setRun(): run " << runno
-	    << " uses CDB TIMESTAMP " << rc->get_uint64Flag("TIMESTAMP")
-	    << std::endl;
+            << " uses CDB TIMESTAMP " << rc->get_uint64Flag("TIMESTAMP")
+            << std::endl;
   FrameWorkVars->SetBinContent(RUNNUMBERBIN, (Stat_t) runno);
   return 0;
 }
