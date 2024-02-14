@@ -61,9 +61,15 @@ int CaloWaveformSim::Init(PHCompositeNode *topNode)
   unsigned int seed = PHRandomSeed();  // fixed seed handled in PHRandomSeed()
   gsl_rng_set(m_RandomGenerator, seed);
   // get the template
-  
-  std::string templatefilename = std::string(getenv("CALIBRATIONROOT")) + "/CaloWaveSim/" + m_templatefile;
-
+  const char *calibroot = getenv("CALIBRATIONROOT");
+  if (!calibroot)
+    {
+      std::cout<<"CaloWaveformSim::Init  missing CALIBRATIONROOT" << std::endl;
+      exit(1);
+    }
+  std::string templatefilename = std::string(calibroot) + "/CaloWaveSim/" + m_templatefile;  
+    
+ 
   TFile *ft = new TFile(templatefilename.c_str());
   assert(ft);
   assert(ft->IsOpen());
