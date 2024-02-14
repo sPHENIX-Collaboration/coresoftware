@@ -56,16 +56,18 @@ int intt_pool::addPacket( Packet *p)
   // coutfl << " adding packet ";
   // p->identify();
   
+
   
   for ( fee = 0; fee < MAX_FEECOUNT; fee++)
     {
       for ( i = 0; i < p->iValue(fee, "FEE_LENGTH"); i++)
 	{
-	  // coutfl << " pushing back for FEE " << setw(2) << i << "  " << hex << p->iValue(fee,i, "") << dec << endl;
+	  //coutfl << " pushing back for FEE " << setw(2)<<i << "  " << hex << p->iValue(fee,i, "") << dec <<endl;
 	  fee_data[fee].push_back(p->iValue(fee,i, "") );
 	}
       // coutfl << "fee " << fee << " size now " << fee_data[fee].size() << endl;
     }
+
 
 
   return 0;
@@ -311,6 +313,8 @@ int intt_pool::intt_decode ()
 	  //skip until we have found the first header
 	  if (! header_found &&  (fee_data[fee][j] & 0xff00ffff )!= 0xad00cade )
 	    {
+              //coutfl<<"skip until header fee "<<fee<<" j="<<j<<" "<<hex<<fee_data[fee][j]<<dec<<endl;
+
 	      j++;
 	      last_index[fee] = j;
 	      if ( j > fee_data[fee].size()) coutfl << "Warning " << j << " " << fee_data[fee].size() << endl;
@@ -381,6 +385,30 @@ int intt_pool::intt_decode ()
 
 	  
 	}
+
+      //--coutfl<<"fee "<<fee
+      //--      <<", remaining "<<remaining
+      //--      <<", datasize "<<fee_data[fee].size()
+      //--      <<", lmark "<< _low_mark
+      //--      <<", last "<<last_index[fee]<< " "
+      //--      <<( fee_data[fee].size()>0&& last_index[fee]>=fee_data[fee].size() ? "WARNING last index exceeds fee_data_size" : "")
+      //--      <<endl;
+      
+      
+      //--for(unsigned int ii=last_index[fee]; ii<fee_data[fee].size(); ii++){
+      //--  coutfl<<"      data:"<<ii<<"  "<<hex<<fee_data[fee][ii]<<dec<<endl;
+      //--}
+
+      // all data is not in this pool. need to wait next pool data.
+      // remaining data should be decoded in the next pool (after all data comes)
+      // to do this, last_index goes back to the last header
+      if(hitlist.size()>0&&fee_data[fee].size()>0&&last_index[fee]>=fee_data[fee].size()){
+        last_index[fee] -= hitlist.size();
+        hitlist.clear();
+        //coutfl<<" last_index changed : fee "<<fee<<" "<<last_index[fee]
+        //      <<" "<<hex<<fee_data[fee][last_index[fee]]<<" "<<fee_data[fee][last_index[fee]+1]<<dec<<endl;
+      }
+
       if ( hitlist.size() )
 	{
 	  //coutfl << "calling decode for FEE " << fee << " with size " << hitlist.size() << endl;
@@ -388,7 +416,6 @@ int intt_pool::intt_decode ()
 	  hitlist.clear();
 	}
 
-      
     }
 
   for ( int fee = 0 ; fee < MAX_FEECOUNT ; fee++)
@@ -401,6 +428,11 @@ int intt_pool::intt_decode ()
       //coutfl << "FEE " << fee << " size is now " << fee_data[fee].size() << endl;
       
     }
+
+  //--for ( int fee = 0 ; fee < MAX_FEECOUNT ; fee++)
+  //--  {
+  //--    coutfl<< "decode end : "<<fee<<" size "<<fee_data[fee].size()<<endl;
+  //--  }
 
 
   return 0;
@@ -556,7 +588,7 @@ int intt_pool::intt_decode_hitlist (std::vector<unsigned int> &hitlist , const i
 		 << std::dec << std::endl;
 	}
 	cout << Name() << " pushing back hit for FEE " << fee << " with BCO 0x" << hex << BCO << dec
-	       << " channel " << hit->channel_id << " hit length now " << intt_hits.size() << ", last bco: 0x" << hex << last_bco[fee] << dec << endl;
+	       << " chip " << hit->chip_id<< " channel " << hit->channel_id << " hit length now " << intt_hits.size() << ", last bco: 0x" << hex << last_bco[fee] << dec << endl;
         last_bco[fee] = BCO;
       }
       intt_hits.push_back(hit);
