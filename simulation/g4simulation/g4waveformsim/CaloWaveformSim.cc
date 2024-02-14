@@ -62,7 +62,9 @@ int CaloWaveformSim::Init(PHCompositeNode *topNode)
   gsl_rng_set(m_RandomGenerator, seed);
   // get the template
   
-  TFile *ft = new TFile(m_templatefile.c_str());
+  std::string templatefilename = std::string(getenv("CALIBRATIONROOT")) + "/CaloWaveSim/" + m_templatefile;
+
+  TFile *ft = new TFile(templatefilename.c_str());
   assert(ft);
   assert(ft->IsOpen());
   h_template = (TProfile *) ft->Get("hpwaveform");

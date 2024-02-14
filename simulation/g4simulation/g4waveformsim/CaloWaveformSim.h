@@ -136,7 +136,7 @@ class CaloWaveformSim : public SubsysReco
   bool m_overrideCalibName{false};
   bool m_overrideFieldName{false};
   CDBTTree *cdbttree{nullptr};
-  std::string m_templatefile{"/sphenix/user/shuhangli/cosmicreco/macro/waveformtemptempohcalcosmic.root"};
+  std::string m_templatefile{"waveformtemptempohcalcosmic.root"};
   TProfile *h_template{nullptr};
   TowerInfoContainer *m_CaloWaveformContainer{nullptr};
   TowerInfoContainer *m_PedestalContainer{nullptr};
