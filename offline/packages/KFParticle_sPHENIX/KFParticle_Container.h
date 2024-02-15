@@ -5,6 +5,7 @@
 
 #include <cstddef>   // for size_t
 #include <iostream>  // for cout, ostream
+#include <iterator>
 #include <map>
 
 class KFParticle;
@@ -15,12 +16,15 @@ class KFParticle;
  * Container for KFParticle objects, based off SvtxTrackMap
  */
 
+// using ConstIter = Map::const_iterator;
+// typedef std::map<int, KFParticle*>::const_iterator ConstIter;
+
 class KFParticle_Container : public PHObject
 {
  public:
-  using Map = int;
-  using const_iterator = int;
-  using iterator = int;
+  using Map = std::map<unsigned int, KFParticle*>;
+  using ConstIter = Map::const_iterator;
+  using Iter = Map::iterator;
 
   KFParticle_Container();
   KFParticle_Container(const KFParticle_Container& kfparticlemap);

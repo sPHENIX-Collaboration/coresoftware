@@ -304,7 +304,7 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
   return goodTrack;
 }
 
-int KFParticle_Tools::calcMinIP(const KFParticle &track, std::vector<KFParticle> PVs,
+int KFParticle_Tools::calcMinIP(const KFParticle &track, const std::vector<KFParticle> &PVs,
                                 float &minimumIP, float &minimumIPchi2)
 {
   std::vector<float> ip, ipchi2;
@@ -363,11 +363,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
           float vertexchi2ndof = twoParticleVertex.GetChi2() / twoParticleVertex.GetNDF();
           std::vector<int> combination = {*i_it, *j_it};
 
-          if (nTracks == 2 && vertexchi2ndof <= m_vertex_chi2ndof)
-          {
-            goodTracksThatMeet.push_back(combination);
-          }
-          else if (nTracks == 2 && vertexchi2ndof > m_vertex_chi2ndof)
+          if (nTracks == 2 && vertexchi2ndof > m_vertex_chi2ndof)
           {
             continue;
           }
@@ -384,13 +380,13 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
 }
 
 std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFParticle> daughterParticles,
-                                                            std::vector<int> goodTrackIndex,
+                                                            const std::vector<int> &goodTrackIndex,
                                                             std::vector<std::vector<int>> goodTracksThatMeet,
                                                             int nRequiredTracks, unsigned int nProngs)
 {
   unsigned int nGoodProngs = goodTracksThatMeet.size();
 
-  for (int &i_it : goodTrackIndex)
+  for (auto &i_it : goodTrackIndex)
   {
     for (unsigned int i_prongs = 0; i_prongs < nGoodProngs; ++i_prongs)
     {
@@ -426,11 +422,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFPartic
           }
           float vertexchi2ndof = particleVertex.GetChi2() / particleVertex.GetNDF();
 
-          if ((unsigned int) nRequiredTracks == nProngs && vertexchi2ndof <= m_vertex_chi2ndof)
-          {
-            goodTracksThatMeet.push_back(combination);
-          }
-          else if ((unsigned int) nRequiredTracks == nProngs && vertexchi2ndof > m_vertex_chi2ndof)
+          if ((unsigned int) nRequiredTracks == nProngs && vertexchi2ndof > m_vertex_chi2ndof)
           {
             continue;
           }
@@ -453,12 +445,12 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFPartic
   return goodTracksThatMeet;
 }
 
-std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFParticle intermediateResonances[], std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int num_remaining_tracks)
+std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFParticle intermediateResonances[], std::vector<KFParticle> daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks)
 {
   std::vector<std::vector<int>> goodTracksThatMeet, goodTracksThatMeetIntermediates;  //, vectorOfGoodTracks;
   if (num_remaining_tracks == 1)
   {
-    for (int &i_it : goodTrackIndex)
+    for (auto &i_it : goodTrackIndex)
     {
       std::vector<KFParticle> v_intermediateResonances(intermediateResonances, intermediateResonances + m_num_intermediate_states);
       std::vector<std::vector<int>> dummyTrackList;
@@ -500,7 +492,7 @@ std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFPa
       std::vector<KFParticle> v_intermediateResonances(intermediateResonances, intermediateResonances + m_num_intermediate_states);
       std::vector<std::vector<int>> dummyTrackList;
       std::vector<int> dummyTrackID;  // I already have the track ids stored in goodTracksThatMeet[i]
-      for (unsigned int j = 0; j < i.size(); ++j)
+      for (int j : i)
       {
         v_intermediateResonances.push_back(daughterParticles[i[j]]);
       }

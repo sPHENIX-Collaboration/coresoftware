@@ -24,11 +24,9 @@ KFParticle_Container::KFParticle_Container()
 KFParticle_Container::KFParticle_Container(const KFParticle_Container& kfparticlemap)
   : m_kfpmap()
 {
-  for (ConstIter iter = kfparticlemap.begin();
-       iter != kfparticlemap.end();
-       ++iter)
+  for (auto& iter : kfparticlemap)
   {
-    KFParticle* particle = dynamic_cast<KFParticle*>(iter->second->Clone());
+    KFParticle* particle = dynamic_cast<KFParticle*>(iter.second->Clone());
     m_kfpmap.insert(std::make_pair(particle->Id(), particle));
   }
 }
@@ -36,11 +34,9 @@ KFParticle_Container::KFParticle_Container(const KFParticle_Container& kfparticl
 KFParticle_Container& KFParticle_Container::operator=(const KFParticle_Container& kfparticlemap)
 {
   Reset();
-  for (ConstIter iter = kfparticlemap.begin();
-       iter != kfparticlemap.end();
-       ++iter)
+  for (auto& iter : kfparticlemap)
   {
-    KFParticle* particle = dynamic_cast<KFParticle*>(iter->second->Clone());
+    KFParticle* particle = dynamic_cast<KFParticle*>(iter.second->Clone());
     m_kfpmap.insert(std::make_pair(particle->Id(), particle));
   }
   return *this;
@@ -53,11 +49,9 @@ KFParticle_Container::~KFParticle_Container()
 
 void KFParticle_Container::Reset()
 {
-  for (Iter iter = m_kfpmap.begin();
-       iter != m_kfpmap.end();
-       ++iter)
+  for (auto& iter : m_kfpmap)
   {
-    KFParticle* particle = iter->second;
+    KFParticle* particle = iter.second;
     delete particle;
   }
   m_kfpmap.clear();
@@ -127,9 +121,13 @@ KFParticle_Container::returnParticlesByPDGid(int PDGid)
 {
   Map requiredParticles;
 
-  for (Iter iter = m_kfpmap.begin(); iter != m_kfpmap.end(); ++iter)
-    if (iter->second->GetPDG() == PDGid)
-      requiredParticles.insert(std::make_pair(iter->first, iter->second));
+  for (auto& iter : m_kfpmap)
+  {
+    if (iter.second->GetPDG() == PDGid)
+    {
+      requiredParticles.insert(std::make_pair(iter.first, iter.second));
+    }
+  }
 
   return requiredParticles;
 }

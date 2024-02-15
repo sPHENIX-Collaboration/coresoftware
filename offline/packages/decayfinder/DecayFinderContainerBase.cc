@@ -64,7 +64,7 @@ DecayFinderContainerBase::Iter DecayFinderContainerBase::end()
   return DummyMap.end();
 }
 
-DecayFinderContainerBase::Decay DecayFinderContainerBase::insert(const Decay /*unused*/)
+DecayFinderContainerBase::Decay DecayFinderContainerBase::insert(const Decay& /*unused*/)
 {
   return DummyDecay;
 }

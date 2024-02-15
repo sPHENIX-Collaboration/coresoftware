@@ -25,19 +25,19 @@ namespace HepMC
 class DecayFinder : public SubsysReco
 {
  public:
-  typedef std::vector<std::pair<std::pair<int, int>, int>> Decay;
+  using Decay = std::vector<std::pair<std::pair<int, int>, int>>;
 
   DecayFinder();
 
   explicit DecayFinder(const std::string &name);
 
-  virtual ~DecayFinder() {}
+  ~DecayFinder() override = default;
 
-  int Init(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
 
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
-  int End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode) override;
 
   int parseDecayDescriptor();
 

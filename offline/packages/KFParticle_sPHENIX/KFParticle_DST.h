@@ -15,10 +15,10 @@ class KFParticle_DST
 {
  public:
   /// Constructor
-  KFParticle_DST() {}
+  KFParticle_DST() = default;
 
   /// Destructor
-  virtual ~KFParticle_DST() {}
+  virtual ~KFParticle_DST() = default;
 
   /// Places a KFParticle_Container and SvtxTrackMap on the node tree if they don't exist
   int createParticleNode(PHCompositeNode* topNode);

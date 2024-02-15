@@ -110,7 +110,7 @@ void KFParticle_nTuple::initializeBranches()
   m_tree->Branch(TString(mother_name) + "_pErr", &m_calculated_mother_p_err, TString(mother_name) + "_pErr/F");
   m_tree->Branch(TString(mother_name) + "_pT", &m_calculated_mother_pt, TString(mother_name) + "_pT/F");
   m_tree->Branch(TString(mother_name) + "_pTErr", &m_calculated_mother_pt_err, TString(mother_name) + "_pTErr/F");
-  m_tree->Branch(TString(mother_name) + "_charge", &m_calculated_mother_q, TString(mother_name) + "_charge/I");
+  m_tree->Branch(TString(mother_name) + "_charge", &m_calculated_mother_q, TString(mother_name) + "_charge/B");
   m_tree->Branch(TString(mother_name) + "_pseudorapidity", &m_calculated_mother_eta, TString(mother_name) + "_pseudorapidity/F");
   m_tree->Branch(TString(mother_name) + "_rapidity", &m_calculated_mother_rapidity, TString(mother_name) + "_rapidity/F");
   m_tree->Branch(TString(mother_name) + "_theta", &m_calculated_mother_theta, TString(mother_name) + "_theta/F");
@@ -176,7 +176,7 @@ void KFParticle_nTuple::initializeBranches()
       m_tree->Branch(TString(intermediate_name) + "_pErr", &m_calculated_intermediate_p_err[i], TString(intermediate_name) + "_pErr/F");
       m_tree->Branch(TString(intermediate_name) + "_pT", &m_calculated_intermediate_pt[i], TString(intermediate_name) + "_pT/F");
       m_tree->Branch(TString(intermediate_name) + "_pTErr", &m_calculated_intermediate_pt_err[i], TString(intermediate_name) + "_pTErr/F");
-      m_tree->Branch(TString(intermediate_name) + "_charge", &m_calculated_intermediate_q[i], TString(intermediate_name) + "_charge/I");
+      m_tree->Branch(TString(intermediate_name) + "_charge", &m_calculated_intermediate_q[i], TString(intermediate_name) + "_charge/B");
       m_tree->Branch(TString(intermediate_name) + "_pseudorapidity", &m_calculated_intermediate_eta[i], TString(intermediate_name) + "_pseudorapidity/F");
       m_tree->Branch(TString(intermediate_name) + "_rapidity", &m_calculated_intermediate_rapidity[i], TString(intermediate_name) + "_rapidity/F");
       m_tree->Branch(TString(intermediate_name) + "_theta", &m_calculated_intermediate_theta[i], TString(intermediate_name) + "_theta/F");
@@ -234,7 +234,7 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(daughter_number) + "_pT", &m_calculated_daughter_pt[i], TString(daughter_number) + "_pT/F");
     m_tree->Branch(TString(daughter_number) + "_pTErr", &m_calculated_daughter_pt_err[i], TString(daughter_number) + "_pTErr/F");
     m_tree->Branch(TString(daughter_number) + "_jT", &m_calculated_daughter_jt[i], TString(daughter_number) + "_jT/F");
-    m_tree->Branch(TString(daughter_number) + "_charge", &m_calculated_daughter_q[i], TString(daughter_number) + "_charge/I");
+    m_tree->Branch(TString(daughter_number) + "_charge", &m_calculated_daughter_q[i], TString(daughter_number) + "_charge/B");
     m_tree->Branch(TString(daughter_number) + "_pseudorapidity", &m_calculated_daughter_eta[i], TString(daughter_number) + "_pseudorapidity/F");
     m_tree->Branch(TString(daughter_number) + "_rapidity", &m_calculated_daughter_rapidity[i], TString(daughter_number) + "_rapidity/F");
     m_tree->Branch(TString(daughter_number) + "_theta", &m_calculated_daughter_theta[i], TString(daughter_number) + "_theta/F");
@@ -407,7 +407,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   m_calculated_mother_p_err = motherParticle.GetErrP();
   m_calculated_mother_pt = motherParticle.GetPt();
   m_calculated_mother_pt_err = motherParticle.GetErrPt();
-  m_calculated_mother_q = (Int_t) motherParticle.Q();
+  m_calculated_mother_q = motherParticle.Q();
   m_calculated_mother_eta = motherParticle.GetEta();
   m_calculated_mother_rapidity = motherParticle.GetRapidity();
   m_calculated_mother_theta = motherParticle.GetTheta();
@@ -449,7 +449,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_intermediate_p_err[i] = intermediateArray[i].GetErrP();
       m_calculated_intermediate_pt[i] = intermediateArray[i].GetPt();
       m_calculated_intermediate_pt_err[i] = intermediateArray[i].GetErrPt();
-      m_calculated_intermediate_q[i] = (Int_t) intermediateArray[i].Q();
+      m_calculated_intermediate_q[i] = intermediateArray[i].Q();  // I used to cast this as an int. clang-tidy want Uchar_t to Char_t to int
       m_calculated_intermediate_eta[i] = intermediateArray[i].GetEta();
       m_calculated_intermediate_rapidity[i] = intermediateArray[i].GetRapidity();
       m_calculated_intermediate_theta[i] = intermediateArray[i].GetTheta();
@@ -495,7 +495,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_calculated_daughter_p_err[i] = daughterArray[i].GetErrP();
     m_calculated_daughter_pt[i] = daughterArray[i].GetPt();
     m_calculated_daughter_pt_err[i] = daughterArray[i].GetErrPt();
-    m_calculated_daughter_q[i] = (Int_t) daughterArray[i].Q();
+    m_calculated_daughter_q[i] = daughterArray[i].Q();
     m_calculated_daughter_eta[i] = daughterArray[i].GetEta();
     m_calculated_daughter_rapidity[i] = daughterArray[i].GetRapidity();
     m_calculated_daughter_theta[i] = daughterArray[i].GetTheta();

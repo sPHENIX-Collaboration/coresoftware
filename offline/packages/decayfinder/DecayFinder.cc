@@ -551,12 +551,7 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
     {
       hasPi0 = true;
     }
-    if (!m_allowPhotons && (*children)->pdg_id() == 22)
-    {
-      breakLoop = true;
-      break;
-    }
-    if (!m_allowPi0 && (*children)->pdg_id() == 111)
+    if ((!m_allowPhotons && (*children)->pdg_id() == 22) || (!m_allowPi0 && (*children)->pdg_id() == 111))
     {
       breakLoop = true;
       break;
@@ -617,7 +612,8 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
         }
         else  // Remove what I added to the decayChain
         {
-          decayChain.erase(decayChain.end() - (m_intermediate_product_counter + 1), decayChain.end() + 1);
+          decayChain.erase(decayChain.end() - (m_intermediate_product_counter + 1), decayChain.end());
+          decayChain.pop_back();
         }
 
         m_intermediate_product_counter = 0;
@@ -707,12 +703,7 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> deca
         hasPi0 = true;
       }
 
-      if (!m_allowPhotons && particleID == 22)
-      {
-        breakLoop = true;
-        break;
-      }
-      if (!m_allowPi0 && particleID == 111)
+      if ((!m_allowPhotons && particleID == 22) || (!m_allowPi0 && particleID == 111))
       {
         breakLoop = true;
         break;
@@ -729,21 +720,11 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> deca
             std::cout << "This is a child you were looking for" << std::endl;
           }
           actualDecayProducts.push_back(particleID);
-          if (m_geneventmap)
-          {
-            decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(), g4particle->get_barcode()), particleID));
-          }
-          else
-          {
-            decayChain.push_back(std::make_pair(std::make_pair(g4particle->get_primary_id(), g4particle->get_barcode()), particleID));
-          }
+          int embedding_id = m_geneventmap ? m_genevt->get_embedding_id() : g4particle->get_primary_id();
+          decayChain.push_back(std::make_pair(std::make_pair(embedding_id, g4particle->get_barcode()), particleID));
         }
       }  // Now check if it's part of the other resonance list
-      else if (m_allowPhotons && particleID == 22)
-      {
-        continue;
-      }
-      else if (m_allowPi0 && particleID == 111)
+      else if ((m_allowPhotons && particleID == 22) || (m_allowPi0 && particleID == 111))
       {
         continue;
       }
@@ -827,19 +808,11 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
             std::cout << "--------greatgrandchildren->pdg_id(): " << (*greatgrandchildren)->pdg_id() << std::endl;
           }
 
-          if (m_allowPhotons && (*greatgrandchildren)->pdg_id() == 22)
+          if ((m_allowPhotons && (*greatgrandchildren)->pdg_id() == 22) || (m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111))
           {
             continue;
           }
-          else if (!m_allowPhotons && (*greatgrandchildren)->pdg_id() == 22)
-          {
-            break;
-          }
-          else if (m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111)
-          {
-            continue;
-          }
-          else if (!m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111)
+          else if ((!m_allowPhotons && (*greatgrandchildren)->pdg_id() == 22) || (!m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111))
           {
             break;
           }
@@ -877,19 +850,11 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
           }
         }
       }
-      else if (m_allowPhotons && (*grandchildren)->pdg_id() == 22)
+      else if ((m_allowPhotons && (*grandchildren)->pdg_id() == 22) || (m_allowPi0 && (*grandchildren)->pdg_id() == 111))
       {
         continue;
       }
-      else if (!m_allowPhotons && (*grandchildren)->pdg_id() == 22)
-      {
-        break;
-      }
-      else if (m_allowPi0 && (*grandchildren)->pdg_id() == 111)
-      {
-        continue;
-      }
-      else if (!m_allowPi0 && (*grandchildren)->pdg_id() == 111)
+      else if ((!m_allowPhotons && (*grandchildren)->pdg_id() == 22) || (!m_allowPi0 && (*grandchildren)->pdg_id() == 111))
       {
         break;
       }
@@ -929,11 +894,7 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
 
     acceptParticle = compareDecays(requiredIntermediateDecayProducts, actualIntermediateDecayProducts);
   }
-  else if (particle->pdg_id() == 22)
-  {
-    return false;
-  }
-  else if (particle->pdg_id() == 111)
+  else if ((particle->pdg_id() == 22) || (particle->pdg_id() == 111))
   {
     return false;
   }
@@ -1023,11 +984,7 @@ bool DecayFinder::checkIfCorrectGeant4Particle(PHG4Particle* particle, bool& has
 
     acceptParticle = compareDecays(requiredIntermediateDecayProducts, actualIntermediateDecayProducts);
   }
-  else if (particle->get_pid() == 22)
-  {
-    return false;
-  }
-  else if (particle->get_pid() == 111)
+  else if ((particle->get_pid() == 22) || (particle->get_pid() == 111))
   {
     return false;
   }

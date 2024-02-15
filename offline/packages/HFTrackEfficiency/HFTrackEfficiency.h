@@ -58,7 +58,7 @@ namespace HepMC
 class HFTrackEfficiency : public SubsysReco
 {
  public:
-  HFTrackEfficiency(const std::string &name = "HFTrackEfficiency");
+  explicit HFTrackEfficiency(const std::string &name = "HFTrackEfficiency");
 
   ~HFTrackEfficiency() override;
 
@@ -80,7 +80,7 @@ class HFTrackEfficiency : public SubsysReco
   void setTruthRecoMatchingPercentage(float value) { m_truthRecoMatchPercent = value; };
 
  private:
-  typedef std::vector<std::pair<std::pair<int, int>, int>> Decay;
+  using Decay = std::vector<std::pair<std::pair<int, int>, int>>;
 
   bool m_triggerOnDecay;
 

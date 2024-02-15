@@ -344,9 +344,9 @@ void KFParticle_DST::printNode(PHCompositeNode* topNode)
     std::cout << " KFParticle_DST: " << particleNodeName << " information ";
     std::cout << "----------------" << std::endl;
     KFParticle_Container* particlemap = findNode::getClass<KFParticle_Container>(topNode, particleNodeName.c_str());
-    for (SvtxTrackMap_v1::Iter iter = particlemap->begin(); iter != particlemap->end(); ++iter)
+    for (auto& iter : *particlemap)
     {
-      KFParticle* particle = iter->second;
+      KFParticle* particle = iter.second;
       kfpTupleTools_DST.identify(*particle);
     }
     std::cout << "--------------------------------------------------------------------------------------------------" << std::endl;

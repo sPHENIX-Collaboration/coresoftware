@@ -24,9 +24,9 @@ namespace TMVA
 class KFParticle_MVA
 {
  public:
-  KFParticle_MVA() {}
+  KFParticle_MVA() = default;
 
-  virtual ~KFParticle_MVA() {}
+  virtual ~KFParticle_MVA() = default;
 
   std::tuple<TMVA::Reader*, std::vector<Float_t>> initMVA();
 

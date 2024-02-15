@@ -44,7 +44,7 @@ class DecayFinderContainer_v1 : public DecayFinderContainerBase
   Iter find(unsigned int key) override { return m_decaymap.find(key); }
   Iter end() override { return m_decaymap.end(); }
 
-  Decay insert(const Decay decay) override;
+  Decay insert(const Decay& decay) override;
 
   // Use the PDG MC ID to return a subset of the DecayFinder container, if those particle exist in the container
   Map returnDecaysByPDGid(int PDGid) override;

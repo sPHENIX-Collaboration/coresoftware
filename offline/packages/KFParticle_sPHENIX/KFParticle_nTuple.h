@@ -79,7 +79,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_mother_p_err = -1;
   float m_calculated_mother_pt = -1;
   float m_calculated_mother_pt_err = -1;
-  int m_calculated_mother_q = -1;
+  char m_calculated_mother_q = -1;
   float m_calculated_mother_eta = -1;
   float m_calculated_mother_rapidity = -1;
   float m_calculated_mother_theta = -1;
@@ -115,7 +115,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_intermediate_p_err[max_intermediates] = {0};
   float m_calculated_intermediate_pt[max_intermediates] = {0};
   float m_calculated_intermediate_pt_err[max_intermediates] = {0};
-  float m_calculated_intermediate_q[max_intermediates] = {0};
+  char m_calculated_intermediate_q[max_intermediates] = {0};
   float m_calculated_intermediate_eta[max_intermediates] = {0};
   float m_calculated_intermediate_rapidity[max_intermediates] = {0};
   float m_calculated_intermediate_theta[max_intermediates] = {0};
@@ -145,7 +145,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_daughter_pt[max_tracks] = {0};
   float m_calculated_daughter_pt_err[max_tracks] = {0};
   float m_calculated_daughter_jt[max_tracks] = {0};
-  int m_calculated_daughter_q[max_tracks] = {0};
+  char m_calculated_daughter_q[max_tracks] = {0};
   float m_calculated_daughter_eta[max_tracks] = {0};
   float m_calculated_daughter_rapidity[max_tracks] = {0};
   float m_calculated_daughter_theta[max_tracks] = {0};

@@ -58,18 +58,18 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   /*const*/ bool isGoodTrack(const KFParticle &particle, const std::vector<KFParticle> &primaryVertices);
 
-  int calcMinIP(const KFParticle &track, std::vector<KFParticle> PVs, float &minimumIP, float &minimumIPchi2);
+  int calcMinIP(const KFParticle &track, const std::vector<KFParticle> &PVs, float &minimumIP, float &minimumIPchi2);
 
   std::vector<int> findAllGoodTracks(std::vector<KFParticle> daughterParticles, const std::vector<KFParticle> &primaryVertices);
 
   std::vector<std::vector<int>> findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks);
 
   std::vector<std::vector<int>> findNProngs(std::vector<KFParticle> daughterParticles,
-                                            std::vector<int> goodTrackIndex,
+                                            const std::vector<int> &goodTrackIndex,
                                             std::vector<std::vector<int>> goodTracksThatMeet,
                                             int nRequiredTracks, unsigned int nProngs);
 
-  std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int num_remaining_tracks);
+  std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], std::vector<KFParticle> daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks);
 
   /// Calculates the cosine of the angle betweent the flight direction and momentum
   float eventDIRA(const KFParticle &particle, const KFParticle &vertex);

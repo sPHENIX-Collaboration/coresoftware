@@ -77,7 +77,7 @@ DecayFinderContainerBase::Decay DecayFinderContainer_v1::get(unsigned int id)
   return iter->second;
 }
 
-DecayFinderContainerBase::Decay DecayFinderContainer_v1::insert(const Decay decay)
+DecayFinderContainerBase::Decay DecayFinderContainer_v1::insert(const Decay& decay)
 {
   unsigned int index = 0;
   if (!m_decaymap.empty())
