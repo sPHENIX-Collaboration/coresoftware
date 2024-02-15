@@ -90,6 +90,11 @@ class CaloWaveformSim : public SubsysReco
     m_nsamples = _nsamples;
     return;
   }
+  void set_pedestalsamples(int _pedestalsamples)
+  {
+    m_pedestalsamples = _pedestalsamples;
+    return;
+  }
   void set_noise_type(NoiseType noiseType)
   {
     m_noiseType = noiseType;
@@ -128,20 +133,19 @@ class CaloWaveformSim : public SubsysReco
   std::string m_detector{"CEMC"};
   std::string m_fieldname{"Femc_datadriven_qm1_correction"};
   std::string m_calibName{"cemc_pi0_twrSlope_v1"};
-  std::string m_noisetree_name{"/sphenix/user/shuhangli/noisetree/macro/noiseout_emcalout.root"};
   bool m_overrideCalibName{false};
   bool m_overrideFieldName{false};
   CDBTTree *cdbttree{nullptr};
-  std::string m_templatefile{"/sphenix/user/shuhangli/cosmicreco/macro/waveformtemptempohcalcosmic.root"};
+  std::string m_templatefile{"waveformtemptempohcalcosmic.root"};
   TProfile *h_template{nullptr};
-  TTree *m_noisetree{nullptr};
   TowerInfoContainer *m_CaloWaveformContainer{nullptr};
+  TowerInfoContainer *m_PedestalContainer{nullptr};
 
   std::vector<std::vector<float>> m_waveforms = {{}};
-  std::vector<std::vector<int>> *m_pedestal = nullptr;
   int m_runNumber{0};
   int m_nsamples{31};
   int m_nchannels{24576};
+  int m_pedestalsamples{12};
   float m_sampletime{50. / 3.};
   int m_fixpedestal{1500};
   int m_gaussian_noise{3};
