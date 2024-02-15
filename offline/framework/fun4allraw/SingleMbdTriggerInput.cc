@@ -30,11 +30,13 @@ SingleMbdTriggerInput::SingleMbdTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
   SubsystemEnum(InputManagerType::MBD);
+  plist = new Packet *[2]; // two packets for the mbd in each file
 }
 
 SingleMbdTriggerInput::~SingleMbdTriggerInput()
 {
   CleanupUsedPackets(std::numeric_limits<int>::max());
+  delete[] plist;
 }
 
 void SingleMbdTriggerInput::FillPool(const unsigned int /*nbclks*/)
@@ -79,20 +81,39 @@ void SingleMbdTriggerInput::FillPool(const unsigned int /*nbclks*/)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    Packet *packet = evt->getPacket(14001);
-
-    if (Verbosity() > 1)
+    int npackets = evt->getPacketList(plist, 2);
+    if (npackets > 2)
     {
-      packet->identify();
+      std::cout << PHWHERE << " Number of packets in array (2) too small for "
+		<< npackets << std::endl;
+      exit(1);
     }
 
+    for (int i = 0; i < npackets; i++)
+    {
+      if (Verbosity() > 2)
+      {
+        plist[i]->identify();
+      }
+
     // by default use previous bco clock for gtm bco
-    MbdPacketv1 *newhit = new MbdPacketv1();
-    uint64_t gtm_bco = packet->lValue(0, "BCO");
-    newhit->setBCO(packet->lValue(0, "BCO"));
-    newhit->setIdentifier(packet->getIdentifier());
+    MbdPacket *newhit = new MbdPacketv1();
+    uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
+    newhit->setBCO(plist[i]->iValue(0, "CLOCK"));
+    newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
+    newhit->setIdentifier(plist[i]->getIdentifier());
     newhit->setEvtSequence(EventSequence);
-    newhit->setBunchNumber(packet->lValue(0, "BunchNumber"));
+    for (int ifem=0; ifem<2; ifem++)
+    {
+      newhit->setFemClock(ifem,plist[i]->iValue(ifem, "FEMCLOCK"));
+    }
+    for (int ipmt = 0; ipmt < 128; ipmt++)
+    {
+      for (int isamp = 0; isamp < 31; isamp++)
+      {
+	newhit->setSample(ipmt,isamp,plist[i]->iValue(isamp, ipmt));
+      }
+    }
     if (Verbosity() > 2)
     {
       std::cout << PHWHERE << "evtno: " << EventSequence
@@ -106,7 +127,8 @@ void SingleMbdTriggerInput::FillPool(const unsigned int /*nbclks*/)
     m_MbdPacketMap[EventSequence].push_back(newhit);
     m_EventStack.insert(EventSequence);
 
-    delete packet;
+    delete plist[i];
+    }
   }
 }
 

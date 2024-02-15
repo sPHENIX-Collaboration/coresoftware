@@ -95,8 +95,15 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     newhit->setBunchNumber(packet->lValue(0, "BunchNumber"));
     if (Verbosity() > 2)
     {
-      std::cout << PHWHERE << "evtno: " << EventSequence
+      std::cout << PHWHERE << " Packet: " << packet->getIdentifier()
+                << " evtno: " << EventSequence
                 << ", bco: 0x" << std::hex << gtm_bco << std::dec
+		<< ", bunch no: " << packet->lValue(0, "BunchNumber")
+                << std::endl;
+      std::cout << PHWHERE << " RB Packet: " << newhit->getIdentifier()
+                << " evtno: " <<  newhit->getEvtSequence()
+                << ", bco: 0x" << std::hex << newhit->getBCO() << std::dec
+		<< ", bunch no: " << +newhit->getBunchNumber()
                 << std::endl;
     }
     if (TriggerInputManager())

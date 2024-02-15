@@ -11,6 +11,7 @@
 #include <vector>
 
 class OfflinePacket;
+class Packet;
 class PHCompositeNode;
 
 class SingleMbdTriggerInput : public SingleTriggerInput
@@ -27,6 +28,7 @@ class SingleMbdTriggerInput : public SingleTriggerInput
   //  void ConfigureStreamingInputManager() override;
 
  private:
+  Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
 
   std::set<int> m_EventNumber;
