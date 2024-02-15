@@ -22,7 +22,6 @@
 #include <trackbase/TrkrDefs.h>
 // include new cluster
 #include <trackbase/TrkrClusterContainer.h>
-// #include <trackbase/TrkrClusterContainerv5.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
@@ -262,17 +261,12 @@ void DSTTrackInfoWriter::evaluate_track_info()
       std::cout << "chi^2: " << trackInfo->get_chisq() << std::endl;
       std::cout << "ndf: " << unsigned(trackInfo->get_ndf()) << std::endl;
     }
-    int covarianceIndex = 0;
+    
     for (int i = 0; i < 6; i++)
     {
       for (int j = i; j < 6; j++)
       {
-        if (Verbosity() > 1)
-        {
-          std::cout << "covariance index: " << covarianceIndex << std::endl;
-        }
-        trackInfo->set_covariance(covarianceIndex, track->get_error(i, j));
-        covarianceIndex++;
+        trackInfo->set_covariance(i, j, track->get_error(i, j));
       }
     }
     if (Verbosity() > 1)
