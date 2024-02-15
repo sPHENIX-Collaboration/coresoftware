@@ -10,6 +10,7 @@
 #include <TTree.h>
 #include <string>
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -45,6 +46,8 @@ class TrackResiduals : public SubsysReco
   void zeroField() { m_zeroField = true; }
 
  private:
+  void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
+                             TrkrCluster *cluster, ActsGeometry *geometry);
   void clearClusterStateVectors();
   void createBranches();
   float convertTimeToZ(ActsGeometry *geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);

@@ -11,6 +11,8 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
+#include <limits>
+
 SinglePrdfInput::SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman)
   : Fun4AllBase(name)
   , m_InputMgr(inman)
@@ -300,7 +302,7 @@ int SinglePrdfInput::majority_beamclock()
     }
   }
   int imax = -1;
-  int bclk = INT_MAX;
+  int bclk = std::numeric_limits<int>::max();
   for (auto iter : evtcnt)
   {
     if (iter.second > imax)

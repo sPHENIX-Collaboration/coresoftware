@@ -28,19 +28,19 @@
 #include <iostream>
 #include <set>
 
-using namespace std;
-
-PHG4MvtxDigitizer::PHG4MvtxDigitizer(const string &name)
+PHG4MvtxDigitizer::PHG4MvtxDigitizer(const std::string &name)
   : SubsysReco(name)
   , _energy_threshold(0.95e-6)
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
-  cout << Name() << " random seed: " << seed << endl;
+  std::cout << Name() << " random seed: " << seed << std::endl;
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   gsl_rng_set(RandomGenerator, seed);
 
   if (Verbosity() > 0)
-    cout << "Creating PHG4MvtxDigitizer with name = " << name << endl;
+  {
+    std::cout << "Creating PHG4MvtxDigitizer with name = " << name << std::endl;
+  }
 }
 
 PHG4MvtxDigitizer::~PHG4MvtxDigitizer()
@@ -59,7 +59,7 @@ int PHG4MvtxDigitizer::InitRun(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -71,16 +71,16 @@ int PHG4MvtxDigitizer::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "====================== PHG4MvtxDigitizer::InitRun() =====================" << endl;
+    std::cout << "====================== PHG4MvtxDigitizer::InitRun() =====================" << std::endl;
     for (auto &miter : _max_adc)
     {
-      cout << " Max ADC in Layer #" << miter.first << " = " << miter.second << endl;
+      std::cout << " Max ADC in Layer #" << miter.first << " = " << miter.second << std::endl;
     }
     for (auto &miter : _energy_scale)
     {
-      cout << " Energy per ADC in Layer #" << miter.first << " = " << 1.0e6 * miter.second << " keV" << endl;
+      std::cout << " Energy per ADC in Layer #" << miter.first << " = " << 1.0e6 * miter.second << " keV" << std::endl;
     }
-    cout << "===========================================================================" << endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -100,10 +100,15 @@ void PHG4MvtxDigitizer::CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode
 
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
-  if (!geom_container) return;
+  if (!geom_container)
+  {
+    return;
+  }
 
   if (Verbosity())
-    cout << "Found CYLINDERGEOM_MVTX node" << endl;
+  {
+    std::cout << "Found CYLINDERGEOM_MVTX node" << std::endl;
+  }
 
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for (PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -116,16 +121,24 @@ void PHG4MvtxDigitizer::CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode
     float length = (layeriter->second)->get_pixel_z();
 
     float minpath = pitch;
-    if (length < minpath) minpath = length;
-    if (thickness < minpath) minpath = thickness;
+    if (length < minpath)
+    {
+      minpath = length;
+    }
+    if (thickness < minpath)
+    {
+      minpath = thickness;
+    }
     float mip_e = 0.003876 * minpath;
 
     if (Verbosity())
-      cout << "mip_e = " << mip_e << endl;
+    {
+      std::cout << "mip_e = " << mip_e << std::endl;
+    }
 
     if (_max_adc.find(layer) == _max_adc.end())
     {
-// cppcheck-suppress stlFindInsert
+      // cppcheck-suppress stlFindInsert
       _max_adc[layer] = 255;
       _energy_scale[layer] = mip_e / 64;
     }
@@ -146,7 +159,7 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
   TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!trkrhitsetcontainer)
   {
-    cout << "Could not locate TRKR_HITSET node, quit! " << endl;
+    std::cout << "Could not locate TRKR_HITSET node, quit! " << std::endl;
     exit(1);
   }
 
@@ -165,7 +178,10 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
     // get the hitset key so we can find the layer
     TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
     int layer = TrkrDefs::getLayer(hitsetkey);
-    if (Verbosity() > 1) cout << "PHG4MvtxDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
+    if (Verbosity() > 1)
+    {
+      std::cout << "PHG4MvtxDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << std::endl;
+    }
 
     // get all of the hits from this hitset
     TrkrHitSet *hitset = hitset_iter->second;
@@ -178,28 +194,45 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
       TrkrHit *hit = hit_iter->second;
 
       // Convert the signal value to an ADC value and write that to the hit
-      //unsigned int adc = hit->getEnergy() / (TrkrDefs::MvtxEnergyScaleup *_energy_scale[layer]);
+      // unsigned int adc = hit->getEnergy() / (TrkrDefs::MvtxEnergyScaleup *_energy_scale[layer]);
       if (Verbosity() > 0)
-        cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << " in layer " << layer << std::endl;
+      {
+        std::cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << " in layer " << layer << std::endl;
+      }
       // Remove the hits with energy under threshold
       bool rm_hit = false;
       if ((hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup) < _energy_threshold)
       {
-        if (Verbosity() > 0) std::cout << "         remove hit, below energy threshold of " << _energy_threshold << std::endl;
+        if (Verbosity() > 0)
+        {
+          std::cout << "         remove hit, below energy threshold of " << _energy_threshold << std::endl;
+        }
         rm_hit = true;
       }
       unsigned short adc = (unsigned short) (hit->getEnergy() / (TrkrDefs::MvtxEnergyScaleup * _energy_scale[layer]));
-      if (adc > _max_adc[layer]) adc = _max_adc[layer];
+      if (adc > _max_adc[layer])
+      {
+        adc = _max_adc[layer];
+      }
       hit->setAdc(adc);
 
-      if (rm_hit) hits_rm.insert(hit_iter->first);
+      if (rm_hit)
+      {
+        hits_rm.insert(hit_iter->first);
+      }
     }
 
     for (const auto &key : hits_rm)
     {
-      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: remove hit with key: " << key << endl;
+      if (Verbosity() > 0)
+      {
+        std::cout << "    PHG4MvtxDigitizer: remove hit with key: " << key << std::endl;
+      }
       hitset->removeHit(key);
-      if (hittruthassoc) hittruthassoc->removeAssoc(hitsetkey, key);
+      if (hittruthassoc)
+      {
+        hittruthassoc->removeAssoc(hitsetkey, key);
+      }
     }
   }
 

@@ -18,7 +18,6 @@
 // SYNC_NOOBJECT: no synchronization object in this input manager, take current event without check
 // RESET_NODE_TREE: internal use - under certain conditions during the synchronization process Fun4All needs to reset the node tree to clear the prvious event
 
-
 namespace Fun4AllReturnCodes
 {
   enum

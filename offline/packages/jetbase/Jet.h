@@ -111,6 +111,7 @@ class Jet : public PHObject
     HCALIN_TOWERINFO_SIM = 35,
     HCALOUT_TOWERINFO_EMBED = 36,
     HCALOUT_TOWERINFO_SIM = 37,
+    JET_PROBE = 38,
   };
 
   enum PROPERTY
@@ -210,8 +211,6 @@ class Jet : public PHObject
   virtual void insert_comp(TYPE_comp_vec&/**/, bool/**/) {} //v2 only
 
   virtual size_t size_comp() const { return 0; };
-  virtual size_t n_clustered() const { return 0; }; // the number of objects clustered by FastJet
-  virtual void   set_n_clustered(unsigned int /**/) {};
   //    new with Jetv2
   virtual size_t num_comp(SRC = Jet::SRC::VOID /**/) { return 0; };
   virtual void print_comp(std::ostream& /**/, bool /**/) {};

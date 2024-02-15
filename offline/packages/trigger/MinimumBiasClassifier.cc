@@ -17,6 +17,7 @@
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
@@ -29,6 +30,7 @@
 MinimumBiasClassifier::MinimumBiasClassifier(const std::string &name)
   : SubsysReco(name)
 {
+
 }
 
 int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
@@ -38,6 +40,7 @@ int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
   CreateNodes(topNode);
+
   return Fun4AllReturnCodes::EVENT_OK;
   ;
 }
@@ -48,11 +51,11 @@ int MinimumBiasClassifier::ResetEvent(PHCompositeNode * /*unused*/)
   _zdc_energy_sum.fill(0);
 
   return Fun4AllReturnCodes::EVENT_OK;
+
 }
 
 int MinimumBiasClassifier::FillMinimumBiasInfo()
 {
-  // Fill is minbias
 
   if (Verbosity() > 1)
   {
@@ -61,13 +64,20 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
 
   bool is_it_min_bias = true;
 
+  if (!_global_vertex_map)
+    {
+      _mb_info->setIsAuAuMinimumBias(false);
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+
   if (_global_vertex_map->empty())
     {
       _mb_info->setIsAuAuMinimumBias(false);
-      return Fun4AllReturnCodes::ABORTEVENT;
+      return Fun4AllReturnCodes::EVENT_OK;
     }
 
   GlobalVertex *vtx = _global_vertex_map->begin()->second;
+
 
   if (!vtx)
     {
@@ -77,6 +87,13 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
       return Fun4AllReturnCodes::EVENT_OK;
     }
 
+  if (!vtx->isValid())
+    {
+      std::cout << "invalid vertex " << std::endl;
+
+      _mb_info->setIsAuAuMinimumBias(false);
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
 
   if (!_towers_zdc)
     {
@@ -87,6 +104,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     }
 
   int j = 0;
+
   for (unsigned int i = 0; i < _towers_zdc->size(); i++)
     {
       _tmp_tower = _towers_zdc->get_tower_at_channel(i);
@@ -103,22 +121,16 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
       std::cout << " MBD Number PMTs: " << std::endl;
       std::cout << "      North: " << _mbd_out->get_npmt(1) << std::endl;
       std::cout << "      South: " << _mbd_out->get_npmt(0) << std::endl;
-
       std::cout << " MBD Charge Sum: " << std::endl;
       std::cout << "      North: " << _mbd_out->get_q(1) << std::endl;
       std::cout << "      South: " << _mbd_out->get_q(0) << std::endl;
 
-      std::cout << " ZDC Energy Sum: " << std::endl;
-      std::cout << "      North: " << _zdc_energy_sum[1] << std::endl;
-      std::cout << "      South: " << _zdc_energy_sum[0] << std::endl;
-
-    }
-
-  //
-  if (std::fabs(vtx->get_z()) > _z_vtx_cut)
-  {
-    is_it_min_bias = false;
   }
+
+  if (std::fabs(vtx->get_z()) > _z_vtx_cut)
+    {
+      is_it_min_bias = false;
+    }
 
   for (int i = 0; i < 2; i++)
   {
@@ -133,11 +145,12 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   }
 
   if (_mbd_out->get_q(1) < _mbd_north_cut && _mbd_out->get_q(0) > _mbd_south_cut)
-  {
+    {
     is_it_min_bias = false;
   }
   _mb_info->setIsAuAuMinimumBias(is_it_min_bias);
   return Fun4AllReturnCodes::EVENT_OK;
+
 }
 
 int MinimumBiasClassifier::process_event(PHCompositeNode *topNode)
@@ -154,9 +167,9 @@ int MinimumBiasClassifier::process_event(PHCompositeNode *topNode)
   }
 
   if (FillMinimumBiasInfo())
-  {
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -168,7 +181,7 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
     std::cout << __FILE__ << " :: " << __FUNCTION__ << " :: " << __LINE__ << std::endl;
   }
 
-  _mb_info = findNode::getClass<MinimumBiasInfov1>(topNode, "MinimumBiasInfo");
+  _mb_info = findNode::getClass<MinimumBiasInfo>(topNode, "MinimumBiasInfo");
 
   if (!_mb_info)
   {
@@ -226,6 +239,7 @@ void MinimumBiasClassifier::CreateNodes(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
+
   MinimumBiasInfo *mb = new MinimumBiasInfov1();
 
   PHIODataNode<PHObject> *mbNode = new PHIODataNode<PHObject>(mb, "MinimumBiasInfo", "PHObject");
@@ -233,3 +247,4 @@ void MinimumBiasClassifier::CreateNodes(PHCompositeNode *topNode)
 
   return;
 }
+

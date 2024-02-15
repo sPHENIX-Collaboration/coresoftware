@@ -16,7 +16,13 @@
 
 namespace fastjet {
   class PseudoJet;
+  class GridMedianBackgroundEstimator;
+  class SelectorPtMax;
+  namespace contrib {
+    class ConstituentSubtractor;
+  }
 }
+
 class JetContainer;
 
 class FastJetAlgo : public JetAlgo
@@ -61,6 +67,12 @@ class FastJetAlgo : public JetAlgo
   fastjet::JetDefinition get_fastjet_definition();
   fastjet::Selector get_selector();
   void first_call_init(JetContainer*_=nullptr);
+
+  // private members
+  fastjet::contrib::ConstituentSubtractor* cs_subtractor = nullptr;
+  fastjet::GridMedianBackgroundEstimator*  cs_bge_rho    = nullptr;
+  fastjet::Selector*                       cs_sel_max_pt = nullptr;
+
 
   fastjet::ClusterSequence* m_cluseq {nullptr};
   fastjet::ClusterSequence* m_cluseqarea {nullptr};
