@@ -204,11 +204,11 @@ int InttCombinedRawDataDecoder::LoadHotChannelMapLocal(std::string const& filena
     // {
     //    continue;
     // }
-    std::cout << "Masking channel:\n" << std::endl;
-    std::cout << "\t" << cdbttree.GetIntValue(n, "felix_server")
-              << "\t" << cdbttree.GetIntValue(n, "felix_channel")
-              << "\t" << cdbttree.GetIntValue(n, "chip")
-              << "\t" << cdbttree.GetIntValue(n, "channel") << std::endl;
+    // std::cout << "Masking channel:\n" << std::endl;
+    // std::cout << "\t" << cdbttree.GetIntValue(n, "felix_server")
+    //           << "\t" << cdbttree.GetIntValue(n, "felix_channel")
+    //           << "\t" << cdbttree.GetIntValue(n, "chip")
+    //           << "\t" << cdbttree.GetIntValue(n, "channel") << std::endl;
   }
 
   return 0;
