@@ -547,8 +547,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
       {
         phierror *= scalefactors_phi[2];
       }
-      // z error. All clusters have a z-size of 1.
-      const float zerror = length * invsqrt12;
+      // z error.
+      const float zerror = zbins.size() * length * invsqrt12;
 
       double cluslocaly = NAN;
       double cluslocalz = NAN;
@@ -572,7 +572,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
       clus->setPhiError(phierror);
       clus->setZError(zerror);
       clus->setPhiSize(phibins.size());
-      clus->setZSize(1);
+      clus->setZSize(zbins.size());
       // All silicon surfaces have a 1-1 map to hitsetkey.
       // So set subsurface key to 0
       clus->setSubSurfKey(0);
@@ -851,8 +851,8 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
       {
         phierror *= scalefactors_phi[2];
       }
-      // z error. All clusters have a z-size of 1.
-      const float zerror = length * invsqrt12;
+      // z error.
+      const float zerror = zbins.size() * length * invsqrt12;
 
       double cluslocaly = NAN;
       double cluslocalz = NAN;
@@ -875,7 +875,7 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
       clus->setPhiError(phierror);
       clus->setZError(zerror);
       clus->setPhiSize(phibins.size());
-      clus->setZSize(1);
+      clus->setZSize(zbins.size());
       // All silicon surfaces have a 1-1 map to hitsetkey.
       // So set subsurface key to 0
       clus->setSubSurfKey(0);
