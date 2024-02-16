@@ -131,11 +131,11 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   std::set<unsigned int> tpc_matched_set;
   std::set<unsigned int> tpc_unmatched_set;
   findEtaPhiMatches(tpc_matched_set, tpc_unmatched_set, tpc_matches);
-  std::cout << "tpc matches size is " << tpc_matches.size() << std::endl;
+
   // Check that the crossing number is consistent with the tracklet z mismatch, removethe match otherwise
   // This does nothing if the crossing number is not set
   checkCrossingMatches(tpc_matches);
-  std::cout << "TPC mathces size now is " << tpc_matches.size() << std::endl;
+
   // We have a complete list of all eta/phi matched tracks in the map "tpc_matches"
   // make the combined track seeds from tpc_matches
   for(auto [tpcid, si_id] : tpc_matches)
@@ -507,7 +507,6 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
           tpc_unmatched_set.insert(tpcid);
         }
     }
-  std::cout << "TPC matched set size is " << tpc_matched_set.size() << std::endl;
   return;
 }
 

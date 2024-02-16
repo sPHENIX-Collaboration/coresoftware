@@ -350,8 +350,8 @@ float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey c
 {
   // must convert local Y from cluster average time of arival to local cluster z position
    float surfaceZCenter = 52.89;  
-  //float extraDrift = geometry->get_extended_readout_time() * geometry->get_drift_velocity();
-  //surfaceZCenter += extraDrift / 2.;
+  float extraDrift = geometry->get_extended_readout_time() * geometry->get_drift_velocity();
+  surfaceZCenter += extraDrift / 2.;
   float zdriftlength = cluster->getLocalY() * geometry->get_drift_velocity();  // cm
   float zloc = surfaceZCenter - zdriftlength;                   // local z relative to surface center (for north side):
   unsigned int side = TpcDefs::getSide(cluster_key);
@@ -761,8 +761,7 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   m_clusgx.push_back(clusglob.x());
   m_clusgy.push_back(clusglob.y());
   m_clusgz.push_back(clusglob.z());
-  if(fabs(clusglob.z()) > 106)
-  std::cout << "got a cluster?"<<std::endl;
+  
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
   m_clussize.push_back(cluster->getPhiSize() * cluster->getZSize());
   m_clushitsetkey.push_back(TrkrDefs::getHitSetKeyFromClusKey(ckey));

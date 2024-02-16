@@ -1094,7 +1094,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	unsigned short TOffset = NTBinsMin;
       float AdcClockPeriod = layergeom->get_zstep();
         m_tdriftmax = AdcClockPeriod * NTBins / 2.0;
-        std::cout << "NTBins " << NTBins << " and drift max " << m_tdriftmax << std::endl;
 
         thread_pair.data.m_tdriftmax = m_tdriftmax;
 	
