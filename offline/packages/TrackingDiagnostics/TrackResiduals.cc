@@ -349,15 +349,18 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
 float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster)
 {
   // must convert local Y from cluster average time of arival to local cluster z position
-  double drift_velocity = geometry->get_drift_velocity();
-  double zdriftlength = cluster->getLocalY() * drift_velocity;
-  double surfCenterZ = 52.89;                // 52.89 is where G4 thinks the surface center is
-  double zloc = surfCenterZ - zdriftlength;  // converts z drift length to local z position in the TPC in north
+   float surfaceZCenter = 52.89;  
+  //float extraDrift = geometry->get_extended_readout_time() * geometry->get_drift_velocity();
+  //surfaceZCenter += extraDrift / 2.;
+  float zdriftlength = cluster->getLocalY() * geometry->get_drift_velocity();  // cm
+  float zloc = surfaceZCenter - zdriftlength;                   // local z relative to surface center (for north side):
   unsigned int side = TpcDefs::getSide(cluster_key);
-  if (side == 0) zloc = -zloc;
-  float z = zloc;  // in cm
+  if (side == 0)
+  {
+    zloc = -zloc;
+  }
 
-  return z;
+  return zloc;
 }
 void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
                                      ActsGeometry* geometry,
@@ -408,6 +411,7 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
         m_clusmaxadc = cluster->getMaxAdc();
         m_scluslx = cluster->getLocalX();
         m_scluslz = cluster->getLocalY();
+        
         auto para_errors = m_clusErrPara.get_clusterv5_modified_error(cluster, m_sclusgr, key);
         m_phisize = cluster->getPhiSize();
         m_zsize = cluster->getZSize();
@@ -757,8 +761,10 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   m_clusgx.push_back(clusglob.x());
   m_clusgy.push_back(clusglob.y());
   m_clusgz.push_back(clusglob.z());
+  if(fabs(clusglob.z()) > 106)
+  std::cout << "got a cluster?"<<std::endl;
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
-  m_clussize.push_back(cluster->getPhiSize() + cluster->getZSize());
+  m_clussize.push_back(cluster->getPhiSize() * cluster->getZSize());
   m_clushitsetkey.push_back(TrkrDefs::getHitSetKeyFromClusKey(ckey));
 
   if (Verbosity() > 1)
@@ -965,6 +971,7 @@ void TrackResiduals::createBranches()
 {
   m_hittree = new TTree("hittree", "A tree with all hits");
   m_hittree->Branch("event", &m_event, "m_event/I");
+  m_hittree->Branch("runnumber",&m_runnumber,"m_runnumber/I");
   m_hittree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_hittree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_hittree->Branch("hitsetkey", &m_hitsetkey, "m_hitsetkey/i");
@@ -991,6 +998,7 @@ void TrackResiduals::createBranches()
 
   m_clustree = new TTree("clustertree", "A tree with all clusters");
   m_clustree->Branch("event", &m_event, "m_event/I");
+  m_clustree->Branch("runnumber",&m_runnumber,"m_runnumber/I");
   m_clustree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_clustree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_clustree->Branch("lx", &m_scluslx, "m_scluslx/F");
@@ -1020,6 +1028,7 @@ void TrackResiduals::createBranches()
   m_clustree->Branch("tile", &m_tileid, "m_tileid/I");
 
   m_tree = new TTree("residualtree", "A tree with track, cluster, and state info");
+  m_tree->Branch("runnumber",&m_runnumber,"m_runnumber/I");
   m_tree->Branch("event", &m_event, "m_event/I");
   m_tree->Branch("trackid", &m_trackid, "m_trackid/I");
   m_tree->Branch("gl1bco", &m_bco, "m_bco/l");
