@@ -242,6 +242,10 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
     float raw_amplitude = caloinfo_raw->get_energy();
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
     _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst);
+    if (calibconst==0)
+    {
+      _calib_towers->get_tower_at_channel(channel)->set_isNoCalib(true);
+    }
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
