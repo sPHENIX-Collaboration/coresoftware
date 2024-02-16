@@ -2,6 +2,8 @@
 
 #include <cdbobjects/CDBTTree.h>
 
+#include <string>
+
 InttMaskedChannelSetv1::~InttMaskedChannelSetv1()
 {
   delete m_HotChannelSet;

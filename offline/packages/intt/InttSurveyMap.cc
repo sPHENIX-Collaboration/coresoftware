@@ -4,6 +4,9 @@
 
 #include <ffamodules/CDBInterface.h>
 
+#include <filesystem>  // for exists
+#include <utility>     // for pair
+
 void InttSurveyMap::identify(
     std::ostream& out) const
 {

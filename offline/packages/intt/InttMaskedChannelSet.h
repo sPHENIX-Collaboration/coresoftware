@@ -5,9 +5,7 @@
 
 #include <phool/PHObject.h>
 
-#include <filesystem>
 #include <iostream>
-#include <set>
 #include <string>
 
 class CDBTTree;

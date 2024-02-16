@@ -1,20 +1,12 @@
 #ifndef INTT_SURVEY_MAPv1_H
 #define INTT_SURVEY_MAPv1_H
 
-#include "InttMap.h"
 #include "InttSurveyMap.h"
 
 #include <phool/PHObject.h>
 
-#include <filesystem>
 #include <iostream>
-#include <set>
-#include <string>
-
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
-#include <Eigen/LU>
-#include <Eigen/SVD>
+#include <map>  // for map<>::const_iterator
 
 class InttSurveyMapv1 : public InttSurveyMap
 {

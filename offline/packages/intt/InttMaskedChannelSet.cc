@@ -1,7 +1,10 @@
 #include "InttMaskedChannelSet.h"
 
 #include <cdbobjects/CDBTTree.h>
+
 #include <ffamodules/CDBInterface.h>
+
+#include <filesystem>  // for exists
 
 void InttMaskedChannelSet::identify(
     std::ostream& out) const

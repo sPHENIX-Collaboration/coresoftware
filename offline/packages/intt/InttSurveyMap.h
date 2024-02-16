@@ -5,15 +5,11 @@
 
 #include <phool/PHObject.h>
 
-#include <Eigen/Dense>
 #include <Eigen/Geometry>
-#include <Eigen/LU>
-#include <Eigen/SVD>
 
-#include <filesystem>
+#include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
-#include <set>
 #include <string>
 
 class CDBTTree;

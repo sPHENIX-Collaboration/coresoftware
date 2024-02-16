@@ -1,11 +1,16 @@
 #include "CylinderGeomIntt.h"
 
+#include <trackbase/ActsGeometry.h>          // for ActsGeometry
+#include <trackbase/ActsTrackingGeometry.h>  // for ActsTrackingGeometry
+
+#include <Acts/Definitions/Units.hpp>
+
 #include <CLHEP/Vector/Rotation.h>
 #include <CLHEP/Vector/ThreeVector.h>
 
-#include <Acts/Definitions/Units.hpp>
 #include <algorithm>
 #include <cmath>
+#include <memory>  // for __shared_ptr_access
 #include <utility>
 
 CylinderGeomIntt::CylinderGeomIntt()
@@ -229,7 +234,7 @@ void CylinderGeomIntt::find_strip_index_values(const int segment_z_bin, const do
   */
 }
 
-void CylinderGeomIntt::find_strip_center_local_coords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[])
+void CylinderGeomIntt::find_strip_center_localcoords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[])
 {
   // find the sensor type (inner or outer) from the segment_z_bin (location of sensor on ladder)
   const int itype = segment_z_bin % 2;

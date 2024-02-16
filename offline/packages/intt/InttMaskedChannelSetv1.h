@@ -4,11 +4,11 @@
 #include "InttMap.h"
 #include "InttMaskedChannelSet.h"
 
-#include <phool/PHObject.h>
-
+#include <cstddef>  // for size_t
 #include <iostream>
 #include <set>
-#include <string>
+
+class CDBTTree;
 
 class InttMaskedChannelSetv1 : public InttMaskedChannelSet
 {
