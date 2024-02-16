@@ -57,12 +57,26 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
   UpdateParametersWithMacro();
 
   // put these in the output file
-  cout << PHWHERE << " Search windows: phi " << _phi_search_win << " eta " 
-       << _eta_search_win << " _pp_mode " << _pp_mode << " _use_intt_crossing " << _use_intt_crossing << endl;
+  std::cout << PHWHERE << " Search windows: phi " << _phi_search_win << " eta " 
+       << _eta_search_win << " _pp_mode " << _pp_mode << " _use_intt_crossing " << _use_intt_crossing << std::endl;
 
 
    int ret = GetNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+  if (ret != Fun4AllReturnCodes::EVENT_OK) 
+  {
+    return ret;
+  }
+
+  if(m_diagnostic)
+  {
+    m_file = new TFile(m_filename.c_str(),"RECREATE");
+    h_phiMatches = new TH2F("phiMatches",";TPC #phi; Sil #phi", 300,-3.5,3.5,300,-3.5,3.5);
+    h_etaMatches = new TH2F("etaMatches",";TPC #eta; Sil #eta", 100,-1.1,1.1,100,-1.1,1.1);
+    h_etaMatchDiff = new TH2F("etaMatchDff",";TPC p_{T}; TPC #eta - Sil #eta", 20,0,10,100,-1.1,1.1);
+
+    h_xyMatches = new TH2F("xyMatches", ";TPC x - sil x [cm]; TPC y - sil y [cm]",
+    1000,-1,1,1000,-1,1);
+  }
 
   return ret;
 }
@@ -86,11 +100,13 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   // _svtx_seed_map contains the combined silicon and tpc track seeds
 
   if(Verbosity() > 0)
+  {
     cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << endl;
-
+  }
   if(_track_map->size() == 0)
+  {
     return Fun4AllReturnCodes::EVENT_OK;
- 
+  }
   // loop over the silicon seeds and add the crossing to them
   for (unsigned int trackid = 0; trackid != _track_map_silicon->size(); ++trackid) 
     {
@@ -102,9 +118,11 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
       if(_use_intt_crossing) { _tracklet_si->set_crossing(crossing); } // flag is for testing only, use_intt_crossing should always be true!
       
       if(Verbosity() > 8)
+      {
 	std::cout << " silicon stub: " << trackid << " eta " << _tracklet_si->get_eta()  << " pt " << _tracklet_si->get_pt()  << " si z " << _tracklet_si->get_z() << " crossing " << crossing << std::endl; 
-
-      if(Verbosity() > 1) cout << " Si track " << trackid << " crossing " << crossing << endl;
+      }
+      if(Verbosity() > 1) 
+      {cout << " Si track " << trackid << " crossing " << crossing << endl;}
     }  
   
   // Find all matches of tpc and si tracklets in eta and phi, x and y
@@ -113,11 +131,11 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   std::set<unsigned int> tpc_matched_set;
   std::set<unsigned int> tpc_unmatched_set;
   findEtaPhiMatches(tpc_matched_set, tpc_unmatched_set, tpc_matches);
-
+  std::cout << "tpc matches size is " << tpc_matches.size() << std::endl;
   // Check that the crossing number is consistent with the tracklet z mismatch, removethe match otherwise
   // This does nothing if the crossing number is not set
   checkCrossingMatches(tpc_matches);
-  
+  std::cout << "TPC mathces size now is " << tpc_matches.size() << std::endl;
   // We have a complete list of all eta/phi matched tracks in the map "tpc_matches"
   // make the combined track seeds from tpc_matches
   for(auto [tpcid, si_id] : tpc_matches)
@@ -234,6 +252,16 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
   
 int PHSiliconTpcTrackMatching::End(PHCompositeNode* )
 {
+  if(m_diagnostic)
+  {
+    m_file->cd();
+    h_phiMatches->Write();
+    h_etaMatches->Write();
+    h_xyMatches->Write();
+    h_etaMatchDiff->Write();
+    m_file->Write();
+    m_file->Close();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -377,13 +405,29 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
 	  bool eta_match = false;
 	  double si_eta = _tracklet_si->get_eta();
-	  if(  fabs(tpc_eta - si_eta) < _eta_search_win * mag)  eta_match = true;
-	  if(!eta_match) continue;
+    if(m_diagnostic)
+    {
+      h_etaMatchDiff->Fill(tpc_pt, tpc_eta-si_eta);
+      h_etaMatches->Fill(tpc_eta, si_eta);
+    }
+	  if(  fabs(tpc_eta - si_eta) < _eta_search_win * mag)  
+    {eta_match = true;}
+	  if(!eta_match) {
+      if(Verbosity() > 6)
+      {
+        std::cout << "eta does not match"<<std::endl;
+      }
+      continue;
+      }
 	  unsigned int siid = phtrk_iter_si;
 	  double si_x = _tracklet_si->get_x();
 	  double si_y = _tracklet_si->get_y();
 	  double si_z = _tracklet_si->get_z();
 	  bool position_match = false;
+    if(m_diagnostic)
+    {
+      h_xyMatches->Fill(tpc_x-si_x, tpc_y-si_y);
+    }
 	  if(_pp_mode)
 	    {
 	      if(
@@ -403,13 +447,27 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	    }
 	  
 	  if(!position_match)
-	    { continue; }
+	    { 
+        if(Verbosity() > 6)
+      {
+        std::cout << "  Position doesn't match"<<std::endl;
+      }
+      continue; }
 
 	  bool phi_match = false;
 	  double si_phi = _tracklet_si->get_phi(_cluster_map,_tGeometry);
-	  if(  fabs(tpc_phi - si_phi)  < _phi_search_win * mag) phi_match = true;
-	  if(  fabs( fabs(tpc_phi - si_phi)  - 2.0 * M_PI)  < _phi_search_win * mag ) phi_match = true;
-	  if(!phi_match) continue;
+    if(m_diagnostic)
+    {
+      h_phiMatches->Fill(tpc_phi, si_phi);
+    }
+	  if(  fabs(tpc_phi - si_phi)  < _phi_search_win * mag) {phi_match = true;}
+	  if(  fabs( fabs(tpc_phi - si_phi)  - 2.0 * M_PI)  < _phi_search_win * mag ) {phi_match = true;}
+	  if(!phi_match) {
+      if(Verbosity() > 6)
+      {
+        std::cout << "          phi doesn't match "<< tpc_phi << ",  " << si_phi << ", " << _phi_search_win*mag<< std::endl;
+      }
+      continue;}
 	  if(Verbosity() > 3)
 	    {
 	      cout << " testing for a match for TPC track " << tpcid << " with pT " << _tracklet_tpc->get_pt() 
@@ -435,21 +493,21 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	    }
 	  
 	  // temporary!
-	  if(_test_windows)
+	  if(_test_windows) {
 	    cout << " Try_silicon:  pt " << tpc_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  
 		 << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << " tpc_x " << tpc_x << " tpc_y " << tpc_y << " tpc_z " << tpc_z 
 		 << " dx " << tpc_x - si_x << " dy " << tpc_y - si_y << " dz " << tpc_z - si_z  
 		 << endl;
-	  
+    }
 	}
       // if no match found, keep tpc seed for fitting
       if(!matched)
         {
-          if(Verbosity() > 1) cout << "inserted unmatched tpc seed " << tpcid << endl;
+          if(Verbosity() > 1) {cout << "inserted unmatched tpc seed " << tpcid << endl;}
           tpc_unmatched_set.insert(tpcid);
         }
     }
-  
+  std::cout << "TPC matched set size is " << tpc_matched_set.size() << std::endl;
   return;
 }
 
@@ -518,9 +576,11 @@ std::vector<short int> PHSiliconTpcTrackMatching::getInttCrossings(TrackSeed *si
 			<< " eta " << si_track->get_eta() << std::endl;
 	    }
 	  else
+    {
 	    std::cout << "Checking  si Track " << _track_map_silicon->find(si_track) << " cluster " << cluster_key  		
 		      << " in layer " << layer  << " with eta " << si_track->get_eta() << std::endl;
-	}      
+	} 
+  }     
 
       if(trkrid == TrkrDefs::inttId)
 	{
@@ -577,18 +637,19 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<unsigned int
       // z-mismatch can occasionally be up to 2 crossings due to TPC extrapolation precision
       if( fabs( fabs(z_mismatch) - mag_crossing_z_mismatch ) < 3.0)
 	{ 
-	  if(Verbosity() > 1)	  
+	  if(Verbosity() > 1)	  {
 	    std::cout << "  Success:  crossing " << crossing << " tpcid " << tpcid << " si id " << si_id 
 		      << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch 
 		      << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << " drift velocity " << vdrift << std::endl;
 	}
+  }
       else
 	{
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 1) {
 	    std::cout << "  FAILURE:  crossing " << crossing << " tpcid " << tpcid << " si id " << si_id 
 		      << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch 
 		      << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << std::endl;
-
+    }
 	  bad_map.insert(std::make_pair(tpcid, si_id));
 	}
     }
@@ -605,7 +666,7 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<unsigned int
 	  if(it->first == tpcid && it->second == si_id)
 	    {
 	      if(Verbosity() > 1) 
-		std::cout << "                        erasing tpc_matches entry for tpcid " << tpcid << " si_id " << si_id << std::endl;
+		{std::cout << "                        erasing tpc_matches entry for tpcid " << tpcid << " si_id " << si_id << std::endl;}
 	      tpc_matches.erase(it);
 	      break;  // the iterator is no longer valid
 	    }

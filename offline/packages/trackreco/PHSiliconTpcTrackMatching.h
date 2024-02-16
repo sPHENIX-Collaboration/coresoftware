@@ -9,6 +9,8 @@
 
 #include <string>
 #include <map>
+#include <TFile.h>
+#include <TH2.h>
 
 class PHCompositeNode;
 class TrackSeedContainer;
@@ -48,6 +50,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_silicon_track_map_name(const std::string &map_name) { _silicon_track_map_name = map_name; }
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void SetIteration(int iter){_n_iteration = iter;}
+  void set_diagnostic() {m_diagnostic = true;}
+  void set_filename(const std::string& name) { m_filename = name;}
  private:
 
   int GetNodes(PHCompositeNode* topNode);
@@ -127,6 +131,14 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   std::string _track_map_name = "TpcTrackSeedContainer";
   std::string _silicon_track_map_name = "SiliconTrackSeedContainer";
   std::string m_fieldMap = "1.4";
+
+  bool m_diagnostic = false;
+  TFile *m_file = nullptr;
+  std::string m_filename = "PHSiliconTpcMatchingDiagnostic.root";
+  TH2* h_phiMatches = nullptr;
+  TH2* h_etaMatches = nullptr;
+  TH2 *h_etaMatchDiff = nullptr;
+  TH2 *h_xyMatches = nullptr;
 };
 
 #endif // PHTRUTHSILICONASSOCIATION_H
