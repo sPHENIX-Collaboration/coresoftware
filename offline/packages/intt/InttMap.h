@@ -3,63 +3,73 @@
 
 #include <phool/PHObject.h>
 
-class InttMap : public PHObject {
-public:
-	typedef int field_t;
-	field_t static const Wildcard = 0xffff;
+class InttMap : public PHObject
+{
+ public:
+  typedef int field_t;
+  field_t static const Wildcard = 0xffff;
 
-	struct Online_s {
-		field_t lyr = 0;
-		field_t ldr = 0;
-		field_t arm = 0;
-		field_t chp = 0;
-		field_t chn = 0;
-	};
+  struct Online_s
+  {
+    field_t lyr = 0;
+    field_t ldr = 0;
+    field_t arm = 0;
+    field_t chp = 0;
+    field_t chn = 0;
+  };
 
-	struct RawData_s {
-		field_t pid = 0;
-        	field_t fee = 0;
-        	field_t chp = 0;
-        	field_t chn = 0;
-	};
+  struct RawData_s
+  {
+    field_t pid = 0;
+    field_t fee = 0;
+    field_t chp = 0;
+    field_t chn = 0;
+  };
 
-	struct Offline_s {
-		field_t layer = 0;
-		field_t ladder_phi = 0;
-		field_t ladder_z = 0;
-		field_t strip_phi = 0;
-		field_t strip_z = 0;
-	};
+  struct Offline_s
+  {
+    field_t layer = 0;
+    field_t ladder_phi = 0;
+    field_t ladder_z = 0;
+    field_t strip_phi = 0;
+    field_t strip_z = 0;
+  };
 
-	struct OnlineComparator {
-		bool operator()(struct Online_s const&, struct Online_s const&) const;
-	};
+  struct OnlineComparator
+  {
+    bool operator()(struct Online_s const&, struct Online_s const&) const;
+  };
 
-	struct OnlineWildcardComparator {
-		bool operator()(struct Online_s const&, struct Online_s const&) const;
-	};
+  struct OnlineWildcardComparator
+  {
+    bool operator()(struct Online_s const&, struct Online_s const&) const;
+  };
 
-	struct RawDataComparator {
-		bool operator()(struct RawData_s const&, struct RawData_s const&) const;
-	};
+  struct RawDataComparator
+  {
+    bool operator()(struct RawData_s const&, struct RawData_s const&) const;
+  };
 
-	struct RawDataWildcardComparator {
-		bool operator()(struct RawData_s const&, struct RawData_s const&) const;
-	};
+  struct RawDataWildcardComparator
+  {
+    bool operator()(struct RawData_s const&, struct RawData_s const&) const;
+  };
 
-	struct OfflineComparator {
-		bool operator()(struct Offline_s const&, struct Offline_s const&) const;
-	};
+  struct OfflineComparator
+  {
+    bool operator()(struct Offline_s const&, struct Offline_s const&) const;
+  };
 
-	struct OfflineWildcardComparator {
-		bool operator()(struct Offline_s const&, struct Offline_s const&) const;
-	};
+  struct OfflineWildcardComparator
+  {
+    bool operator()(struct Offline_s const&, struct Offline_s const&) const;
+  };
 
-private:
-	ClassDefOverride(InttMap, 1);
+ private:
+  ClassDefOverride(InttMap, 1);
 };
 
-#endif//INTT_MAP_H
+#endif  // INTT_MAP_H
 
 // |<-            South                        |                       North            ->|
 // |         B      |            A             |             A           |       B        |

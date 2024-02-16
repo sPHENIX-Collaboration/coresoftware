@@ -12,25 +12,26 @@
 
 class CDBTTree;
 
-class InttMaskedChannelSet : public PHObject {
-public:
-	InttMaskedChannelSet() = default;
-	~InttMaskedChannelSet() override = default;
+class InttMaskedChannelSet : public PHObject
+{
+ public:
+  InttMaskedChannelSet() = default;
+  ~InttMaskedChannelSet() override = default;
 
-	virtual void identify(std::ostream& = std::cout) const override;
-	virtual std::size_t size() const;
+  virtual void identify(std::ostream& = std::cout) const override;
+  virtual std::size_t size() const;
 
-	int LoadFromFile(std::string const& = "InttMaskedChannelSet.root");
-	int LoadFromCDB(std::string const& = "InttMaskedChannelSet");
+  int LoadFromFile(std::string const& = "InttMaskedChannelSet.root");
+  int LoadFromCDB(std::string const& = "InttMaskedChannelSet");
 
-	bool IsDeadChannel(int const&, int const&, int const&, int const&, int const&) const;
-	virtual bool IsDeadChannel(InttMap::Offline_s const&) const;
+  bool IsDeadChannel(int const&, int const&, int const&, int const&, int const&) const;
+  virtual bool IsDeadChannel(InttMap::Offline_s const&) const;
 
-protected:
-	virtual int v_LoadFromCDBTTree(CDBTTree&);
+ protected:
+  virtual int v_LoadFromCDBTTree(CDBTTree&);
 
-private:
-	ClassDefOverride(InttMaskedChannelSet, 1)
+ private:
+  ClassDefOverride(InttMaskedChannelSet, 1)
 };
 
-#endif//INTT_MASKED_CHANNEL_SET_H
+#endif  // INTT_MASKED_CHANNEL_SET_H
