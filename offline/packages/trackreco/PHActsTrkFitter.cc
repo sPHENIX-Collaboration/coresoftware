@@ -153,7 +153,6 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
 
   _tpccellgeo =  findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
-
   if (Verbosity() > 1)
   {
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;

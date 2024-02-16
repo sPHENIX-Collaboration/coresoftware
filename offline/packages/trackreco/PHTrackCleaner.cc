@@ -41,7 +41,7 @@ int PHTrackCleaner::InitRun(PHCompositeNode *topNode)
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  return ret;
+   return ret;
 }
 
 //____________________________________________________________________________..

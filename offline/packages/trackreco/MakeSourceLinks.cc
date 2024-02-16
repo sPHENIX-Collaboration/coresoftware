@@ -293,7 +293,9 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 							  short int crossing
 							  )
 {
-  if(m_verbosity > 1) { std::cout << "Entering MakeSourceLinks::getSourceLinksClusterMover " << std::endl; }
+  if(m_verbosity > 1) { std::cout << "Entering MakeSourceLinks::getSourceLinksClusterMover  for seed  " 
+				  << " with crossing " << crossing
+				  << std::endl; }
 
   SourceLinkVec sourcelinks;
 
@@ -376,6 +378,13 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 		      << " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - z 
 		      << std::endl;
 	  }
+      }
+
+    if (m_verbosity > 1)
+      {
+	std::cout << " AGAIN: global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2) 
+		  << " corr glob " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
+		  << std::endl;
       }
     
     // add the global positions to a vector to give to the cluster mover

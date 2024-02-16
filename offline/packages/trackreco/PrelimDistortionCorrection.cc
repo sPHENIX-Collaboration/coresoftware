@@ -103,7 +103,7 @@ int PrelimDistortionCorrection::InitRun(PHCompositeNode* topNode)
   fitter->setFixedClusterError(2,_fixed_clus_err.at(2));
   //  _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
   // m_Cache = magField->makeCache(m_tGeometry->magFieldContext);
- 
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -145,11 +145,11 @@ int PrelimDistortionCorrection::get_nodes(PHCompositeNode* topNode)
   m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( m_dcc )
   { 
-    std::cout << "PrelimDistortionCorrection::InitRun - found TPC distortion correction container" << std::endl; 
+    std::cout << "PrelimDistortionCorrection::InitRun - found TPC distortion correction container: TpcDistortionContainerStatic" << std::endl; 
   }
   else
     {
-      std::cout << "PrelimDistortionCorrection::InitRun - failed to find TPC distortion correction container" << std::endl; 
+      std::cout << "PrelimDistortionCorrection::InitRun - failed to find TPC distortion correction container: TpcDistortionContainerStatic" << std::endl; 
     }
 
   if(_use_truth_clusters)
@@ -193,7 +193,7 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
       std::cout << "PrelimDistortionCorrection called but not in pp_mode, do nothing!" << std::endl;
       return Fun4AllReturnCodes::EVENT_OK;
     }
-
+  
   PHTimer timer("PrelimDistortionCorrectionTimer");
   timer.stop();
   timer.restart();
@@ -215,6 +215,15 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 	std::cout << " Did not find track " << track_it << std::endl;
 	continue;
       }
+
+    std::cout << "Input seed pars for " << track_it
+	      << " q " << track->get_charge()
+	      << " qOverR " << fabs(track->get_qOverR()) * track->get_charge()
+	      << " X0 " << track->get_x()
+	      << " Y0 " << track->get_y()
+	      << " Z0 " << track->get_z()
+	      << " eta " << track->get_eta()
+	      << std::endl;
 
     const bool is_tpc = std::any_of(
       track->begin_cluster_keys(),
@@ -267,7 +276,9 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
       if(dumvec.size() < 3)
 	{ continue; }
       keylist.push_back(dumvec);
-    
+
+      std::cout << "Added  input seed " << track_it << "  becomes output seed " << keylist.size() - 1 << std::endl;
+ 
     } // end if TPC seed
 
   }  // end loop over tracks
@@ -298,7 +309,7 @@ Acts::Vector3 PrelimDistortionCorrection::getGlobalPosition( TrkrDefs::cluskey k
     {
       if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
     }
-
+  
   return globalpos;
 }
 

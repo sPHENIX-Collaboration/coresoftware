@@ -103,7 +103,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   fitter->setFixedClusterError(2,_fixed_clus_err.at(2));
   //  _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
   // m_Cache = magField->makeCache(m_tGeometry->magFieldContext);
- 
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -144,7 +144,7 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
   // tpc distortion correction
   m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( m_dcc )
-  { std::cout << "PHSimpleKFProp::InitRun - found TPC distortion correction container" << std::endl; }
+  { std::cout << "PHSimpleKFProp::InitRun - found TPC distortion correction container: TpcDistortionCorrectionContainerStatic" << std::endl; }
 
   if(_use_truth_clusters)
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
@@ -355,7 +355,12 @@ Acts::Vector3 PHSimpleKFProp::getGlobalPosition( TrkrDefs::cluskey key, TrkrClus
   // check if TPC distortion correction are in place and apply if this is a triggered event (ie. crossing is known)
   if( !(_pp_mode) )
     {
-      if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
+      if( m_dcc ) 
+	{ 
+	  //std::cout << "KFProp global in for key " << key << globalpos(0) << "  " << globalpos(1) << "  " << globalpos(2) << std::endl;
+	  globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); 
+	  //std::cout << "KFProp global corr for key " << key << globalpos(0) << "  " << globalpos(1) << "  " << globalpos(2) << std::endl;
+	}
     }
 
   return globalpos;
