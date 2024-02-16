@@ -32,7 +32,7 @@ InttRawDataDecoder::InttRawDataDecoder(std::string const& name):
 }
 
 //Init
-int InttRawDataDecoder::Init(PHCompositeNode*)
+int InttRawDataDecoder::Init(PHCompositeNode* /*unused*/)
 {
 	//Do nothing
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -53,8 +53,10 @@ int InttRawDataDecoder::InitRun(PHCompositeNode* topNode)
 	PHCompositeNode* dst_node = dynamic_cast<PHCompositeNode*>(dst_itr.findFirst("PHCompositeNode", "DST"));
 	if(!dst_node)
 	{
-		if(Verbosity())std::cout << "InttRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
-		if(Verbosity())std::cout << "\tCould not retrieve dst_node; doing nothing" << std::endl;
+		if(Verbosity()) {std::cout << "InttRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
+}
+		if(Verbosity()) {std::cout << "\tCould not retrieve dst_node; doing nothing" << std::endl;
+}
 
 		return -1;
 	}
@@ -70,8 +72,10 @@ int InttRawDataDecoder::InitRun(PHCompositeNode* topNode)
 	TrkrHitSetContainer* trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
 	if(!trkr_hit_set_container)
 	{
-		if(Verbosity())std::cout << "InttRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
-		if(Verbosity())std::cout << "\tMaking TrkrHitSetContainer" << std::endl;
+		if(Verbosity()) {std::cout << "InttRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
+}
+		if(Verbosity()) {std::cout << "\tMaking TrkrHitSetContainer" << std::endl;
+}
 
 		trkr_hit_set_container = new TrkrHitSetContainerv1;
 		PHIODataNode<PHObject>* new_node = new PHIODataNode<PHObject>(trkr_hit_set_container, "TRKR_HITSET", "PHObject");
@@ -98,7 +102,8 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 
 
 	Event* evt = findNode::getClass<Event>(topNode, "PRDF");
-	if(!evt)return Fun4AllReturnCodes::DISCARDEVENT;
+	if(!evt) {return Fun4AllReturnCodes::DISCARDEVENT;
+}
 
 	struct InttNameSpace::RawData_s rawdata;
 	struct InttNameSpace::Offline_s offline;
@@ -112,19 +117,21 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 	TrkrHitSetContainer::Iterator hit_set_container_itr;
 	TrkrHit* hit = nullptr;
 
-	for(std::map<int, int>::const_iterator itr = InttNameSpace::Packet_Id.begin(); itr != InttNameSpace::Packet_Id.end(); ++itr)
+	for(auto itr : InttNameSpace::Packet_Id)
 	{
-		Packet* p = evt->getPacket(itr->first);
-		if(!p)continue;
+		Packet* p = evt->getPacket(itr.first);
+		if(!p) {continue;
+}
 
 		int N = p->iValue(0, "NR_HITS");
 		full_bco = p->lValue(0, "BCO");
 
-		if(Verbosity() > 20)std::cout << N << std::endl;
+		if(Verbosity() > 20) {std::cout << N << std::endl;
+}
 
 		for(int n = 0; n < N; ++n)
 		{
-			rawdata = InttNameSpace::RawFromPacket(itr->second, n, p);
+			rawdata = InttNameSpace::RawFromPacket(itr.second, n, p);
 
 			adc = p->iValue(n, "ADC");
 			//amp = p->iValue(n, "AMPLITUE");
@@ -137,7 +144,8 @@ int InttRawDataDecoder::process_event(PHCompositeNode* topNode)
 
 			hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
 			hit = hit_set_container_itr->second->getHit(hit_key);
-			if(hit)continue;
+			if(hit) {continue;
+}
 
 			hit = new TrkrHitv2;
 			hit->setAdc(adc);

@@ -149,8 +149,8 @@ double InttVertexFinder::calculateZvertex(
        )
 {
   struct ClustInfo {
-    int layer;
-    int adc;
+    int layer{};
+    int adc{};
     Acts::Vector3 pos;
   };
 
@@ -194,7 +194,8 @@ double InttVertexFinder::calculateZvertex(
 	double phi = atan2(globalPos.y(), globalPos.x());
 
 	int iphi = (phi + M_PI)/M_PI/4.;
-	if(iphi<0)  iphi+=8;
+	if(iphi<0) {  iphi+=8;
+}
 	iphi%=8;
 	//std::cout<<"phi : "<<phi<<" "<<iphi<<std::endl;
 
@@ -210,12 +211,13 @@ double InttVertexFinder::calculateZvertex(
   Acts::Vector3 beamspot(xbeam_, ybeam_, 0);
   std::vector<double> vz_array;
 
-  for(int iphi=0; iphi<8; iphi++){
-    for(auto c1=clusters[iphi][0].begin(); c1!=clusters[iphi][0].end(); ++c1) // inner
+  for(auto & cluster : clusters){
+    for(auto c1=cluster[0].begin(); c1!=cluster[0].end(); ++c1) // inner
     {
-      for(auto c2=clusters[iphi][1].begin(); c2!=clusters[iphi][1].end(); ++c2) // outer
+      for(auto c2=cluster[1].begin(); c2!=cluster[1].end(); ++c2) // outer
       {
-        if(c1->adc<40 || c2->adc<40) continue;
+        if(c1->adc<40 || c2->adc<40) { continue;
+}
 
         //TVector3 p1 = c1->pos - beamspot;
         //TVector3 p2 = c2->pos - beamspot;
@@ -226,12 +228,14 @@ double InttVertexFinder::calculateZvertex(
         double p2_ang = atan2(p2.y(), p2.x());
         double d_ang = p2_ang - p1_ang;
 
-        if(fabs(d_ang)>0.2 ) continue;
+        if(fabs(d_ang)>0.2 ) { continue;
+}
 
         //TVector3 u = p2 - p1;
         Acts::Vector3 u = p2 - p1;
         double unorm = sqrt(u.x()*u.x()+u.y()*u.y());
-        if(unorm<0.00001) continue;
+        if(unorm<0.00001) { continue;
+}
 
 
 
@@ -274,21 +278,22 @@ double InttVertexFinder::calculateZvertex(
     zcenter1       = h_zvtxseed_->GetBinCenter(zbin);
     zmean1         = h_zvtxseed_->GetMean();
     zrms1          = h_zvtxseed_->GetRMS();
-    if(zrms1<20) zrms1 = 20;
+    if(zrms1<20) { zrms1 = 20;
+}
 
     double zmax = zcenter1 + zrms1; // 1 sigma
     double zmin = zcenter1 - zrms1; // 1 sigma
 
     double zsum=0.;
     int    zcount=0;
-    for(auto iz=vz_array.begin(); iz!=vz_array.end(); ++iz){
-      double vz = (*iz);
+    for(double vz : vz_array){
       if(zmin<vz&&vz<zmax){
         zsum+=vz;
         zcount++;
       }
     }
-    if(zcount>0) zvtx = zsum/zcount;
+    if(zcount>0) { zvtx = zsum/zcount;
+}
 
     if (Verbosity() > 0)
     {
@@ -296,9 +301,12 @@ double InttVertexFinder::calculateZvertex(
     }
   }
 
-  if(zcenter!=nullptr) *zcenter = zcenter1;
-  if(zrms   !=nullptr) *zrms    = zrms1;
-  if(zmean  !=nullptr) *zmean   = zmean1;
+  if(zcenter!=nullptr) { *zcenter = zcenter1;
+}
+  if(zrms   !=nullptr) { *zrms    = zrms1;
+}
+  if(zmean  !=nullptr) { *zmean   = zmean1;
+}
 
   return zvtx;
 }

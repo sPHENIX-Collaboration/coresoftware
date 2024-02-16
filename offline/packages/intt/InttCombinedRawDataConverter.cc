@@ -115,9 +115,12 @@ int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
      //{"g_z",   new std::vector<Double_t>()},
   };
 
-  for (auto& itr : branches_i)tree->Branch(itr.first.c_str(), &(itr.second));
-  for (auto& itr : branches_l)tree->Branch(itr.first.c_str(), &(itr.second));
-  for (auto& itr : branches_d)tree->Branch(itr.first.c_str(), &(itr.second));
+  for (auto& itr : branches_i) {tree->Branch(itr.first.c_str(), &(itr.second));
+}
+  for (auto& itr : branches_l) {tree->Branch(itr.first.c_str(), &(itr.second));
+}
+  for (auto& itr : branches_d) {tree->Branch(itr.first.c_str(), &(itr.second));
+}
 
   if (Verbosity() > 20)
   {
@@ -134,9 +137,12 @@ int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 int InttCombinedRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)
 {
   n_evt = 0;
-  for (auto& itr : branches_i)itr.second->clear();
-  for (auto& itr : branches_l)itr.second->clear();
-  for (auto& itr : branches_d)itr.second->clear();
+  for (auto& itr : branches_i) {itr.second->clear();
+}
+  for (auto& itr : branches_l) {itr.second->clear();
+}
+  for (auto& itr : branches_d) {itr.second->clear();
+}
 
   if (Verbosity() > 20)
   {
@@ -177,9 +183,12 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
     exit(1);
   }
 
-  for (auto& itr : branches_i)itr.second->clear();
-  for (auto& itr : branches_l)itr.second->clear();
-  for (auto& itr : branches_d)itr.second->clear();
+  for (auto& itr : branches_i) {itr.second->clear();
+}
+  for (auto& itr : branches_l) {itr.second->clear();
+}
+  for (auto& itr : branches_d) {itr.second->clear();
+}
 
   InttNameSpace::RawData_s raw;
   InttNameSpace::Online_s onl;
@@ -202,7 +211,8 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
     std::get<3>(tpl) = onl.chp;
     std::get<4>(tpl) = onl.chn;
 
-    if(hits.find(tpl) != hits.end())continue;
+    if(hits.find(tpl) != hits.end()) {continue;
+}
     hits[tpl] = 0;
 
     branches_i["flx_svr"]->push_back(raw.felix_server);

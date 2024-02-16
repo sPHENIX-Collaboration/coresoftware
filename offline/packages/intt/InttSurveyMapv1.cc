@@ -27,10 +27,12 @@ int InttSurveyMapv1::v_LoadFromCDBTTree (
 	Eigen::Affine3d aff;
 	InttMap::Offline_s ofl;
 
-	if(!m_absolute_transforms)m_absolute_transforms = new map_t;
+	if(!m_absolute_transforms) {m_absolute_transforms = new map_t;
+}
 	m_absolute_transforms->clear();
 
-	if(!m_relative_transforms)m_relative_transforms = new map_t;
+	if(!m_relative_transforms) {m_relative_transforms = new map_t;
+}
 	m_relative_transforms->clear();
 
 	Int_t N = cdbttree.GetSingleIntValue("size");
@@ -61,7 +63,8 @@ int InttSurveyMapv1::v_LookupAbsoluteTransform (
 	key_t const& k,
 	map_t::const_iterator& itr
 ) const {
-	if(!m_absolute_transforms)return 0;
+	if(!m_absolute_transforms) {return 0;
+}
 	itr = m_absolute_transforms->find(k);
 	return itr != m_absolute_transforms->end();
 }
@@ -70,7 +73,8 @@ int InttSurveyMapv1::v_LookupRelativeTransform (
 	key_t const& k,
 	map_t::const_iterator& itr
 ) const {
-	if(!m_relative_transforms)return 0;
+	if(!m_relative_transforms) {return 0;
+}
 	itr = m_relative_transforms->find(k);
 	return itr != m_relative_transforms->end();
 }

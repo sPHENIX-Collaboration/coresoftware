@@ -16,14 +16,16 @@ void InttMaskedChannelSetv1::identify (
 
 std::size_t InttMaskedChannelSetv1::size (
 ) const {
-	if(!m_HotChannelSet)return 0;
+	if(!m_HotChannelSet) {return 0;
+}
 	return m_HotChannelSet->size();
 }
 
 int InttMaskedChannelSetv1::v_LoadFromCDBTTree (
 	CDBTTree& cdbttree
 ) {
-	if(!m_HotChannelSet)m_HotChannelSet = new Set_t;
+	if(!m_HotChannelSet) {m_HotChannelSet = new Set_t;
+}
 
 	m_HotChannelSet->clear();
 	Long64_t N = cdbttree.GetSingleIntValue("size");
@@ -43,6 +45,7 @@ int InttMaskedChannelSetv1::v_LoadFromCDBTTree (
 bool InttMaskedChannelSetv1::IsDeadChannel (
 	InttMap::Offline_s const& ofl
 ) const {
-	if(!m_HotChannelSet)return false;
+	if(!m_HotChannelSet) {return false;
+}
 	return m_HotChannelSet->find(ofl) != m_HotChannelSet->end();
 }

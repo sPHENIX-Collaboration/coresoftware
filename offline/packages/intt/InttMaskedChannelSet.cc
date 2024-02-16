@@ -71,12 +71,12 @@ bool InttMaskedChannelSet::IsDeadChannel (
 
 bool InttMaskedChannelSet::IsDeadChannel (
 	InttMap::Offline_s const&
-) const {
+ /*unused*/) const {
 	return false;
 }
 
 int InttMaskedChannelSet::v_LoadFromCDBTTree (
 	CDBTTree&
-) {
+ /*unused*/) {
 	return 0;
 }

@@ -37,7 +37,8 @@ int InttRawDataConverter::SetOutputFile(std::string const& filename)
 	std::cout << "\t" << filename << std::endl;
 
 	file = TFile::Open(filename.c_str(), "RECREATE");
-	if(tree)tree->SetDirectory(file);
+	if(tree) {tree->SetDirectory(file);
+}
 
 	return 0;
 }
@@ -73,9 +74,11 @@ int InttRawDataConverter::WriteOutputFile()
 
 int InttRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 {
-	if(tree)delete tree;
+	if(tree) {delete tree;
+}
 	tree = new TTree("prdf_tree", "prdf_tree");
-	if(file)tree->SetDirectory(file);
+	if(file) {tree->SetDirectory(file);
+}
 
 	tree->Branch("n_evt", &n_evt);
 	tree->Branch("num_hits", &num_hits);
@@ -113,33 +116,37 @@ int InttRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)
 
 int InttRawDataConverter::process_event(PHCompositeNode* topNode)
 {
-	if(!tree)return Fun4AllReturnCodes::DISCARDEVENT;
+	if(!tree) {return Fun4AllReturnCodes::DISCARDEVENT;
+}
 
 	Event* evt = findNode::getClass<Event>(topNode, "PRDF");
-	if(!evt)return Fun4AllReturnCodes::DISCARDEVENT;
+	if(!evt) {return Fun4AllReturnCodes::DISCARDEVENT;
+}
 
-	for(std::map<int, int>::const_iterator pkt_itr = InttNameSpace::Packet_Id.begin(); pkt_itr != InttNameSpace::Packet_Id.end(); ++pkt_itr)
+	for(auto pkt_itr : InttNameSpace::Packet_Id)
 	{
-		Packet* pkt = evt->getPacket(pkt_itr->first);
-		if(!pkt)continue;
+		Packet* pkt = evt->getPacket(pkt_itr.first);
+		if(!pkt) {continue;
+}
 
 		num_hits = pkt->iValue(0, "NR_HITS");
 
-		if(Verbosity() > 20)std::cout << num_hits << std::endl;
+		if(Verbosity() > 20) {std::cout << num_hits << std::endl;
+}
 
 		++n_evt;// = pkt->lValue(0, "");
 		gtm_bco = pkt->lValue(0, "BCO");
-		flx_svr = pkt_itr->second;
+		flx_svr = pkt_itr.second;
 
-		for(Branches_t::iterator itr = branches.begin(); itr != branches.end(); ++itr)
+		for(auto & branche : branches)
 		{
-			itr->second = new Int_t[num_hits];
-			tree->GetBranch(itr->first.c_str())->SetAddress(itr->second);
+			branche.second = new Int_t[num_hits];
+			tree->GetBranch(branche.first.c_str())->SetAddress(branche.second);
 		}
 	
 		for(int n = 0; n < num_hits; ++n)
 		{
-			raw = InttNameSpace::RawFromPacket(pkt_itr->second, n, pkt);
+			raw = InttNameSpace::RawFromPacket(pkt_itr.second, n, pkt);
 			branches["flx_chn"][n] = raw.felix_channel;
 
 			onl = InttNameSpace::ToOnline(raw);
@@ -155,9 +162,9 @@ int InttRawDataConverter::process_event(PHCompositeNode* topNode)
 		}
 	
 		tree->Fill();
-		for(Branches_t::iterator itr = branches.begin(); itr != branches.end(); ++itr)
+		for(auto & branche : branches)
 		{
-			delete[] itr->second;
+			delete[] branche.second;
 		}
 
 		delete pkt;

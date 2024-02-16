@@ -56,7 +56,7 @@ int InttSurveyMap::LoadFromCDB (
 
 int InttSurveyMap::v_LoadFromCDBTTree (
 	CDBTTree&
-) {
+ /*unused*/) {
 	return 0;
 }
 
@@ -65,22 +65,28 @@ InttSurveyMap::val_t const* InttSurveyMap::GetAbsoluteTransform (
 ) const {
 	map_t::const_iterator itr;
 
-	if(v_LookupAbsoluteTransform(k, itr))return &(itr->second);
+	if(v_LookupAbsoluteTransform(k, itr)) {return &(itr->second);
+}
 
 	k.strip_z = InttMap::Wildcard;
-	if(v_LookupAbsoluteTransform(k, itr))return &(itr->second);
+	if(v_LookupAbsoluteTransform(k, itr)) {return &(itr->second);
+}
 
 	k.strip_phi = InttMap::Wildcard;
-	if(v_LookupAbsoluteTransform(k, itr))return &(itr->second);
+	if(v_LookupAbsoluteTransform(k, itr)) {return &(itr->second);
+}
 
 	k.ladder_z = InttMap::Wildcard;
-	if(v_LookupAbsoluteTransform(k, itr))return &(itr->second);
+	if(v_LookupAbsoluteTransform(k, itr)) {return &(itr->second);
+}
 
 	k.ladder_phi = InttMap::Wildcard;
-	if(v_LookupAbsoluteTransform(k, itr))return &(itr->second);
+	if(v_LookupAbsoluteTransform(k, itr)) {return &(itr->second);
+}
 
 	k.layer = InttMap::Wildcard;
-	if(v_LookupAbsoluteTransform(k, itr))return &(itr->second);
+	if(v_LookupAbsoluteTransform(k, itr)) {return &(itr->second);
+}
 
 	return (val_t const*)nullptr;
 }
@@ -90,34 +96,40 @@ InttSurveyMap::val_t const* InttSurveyMap::GetRelativeTransform (
 ) const {
 	map_t::const_iterator itr;
 
-	if(v_LookupRelativeTransform(k, itr))return &(itr->second);
+	if(v_LookupRelativeTransform(k, itr)) {return &(itr->second);
+}
 
 	k.strip_z = InttMap::Wildcard;
-	if(v_LookupRelativeTransform(k, itr))return &(itr->second);
+	if(v_LookupRelativeTransform(k, itr)) {return &(itr->second);
+}
 
 	k.strip_phi = InttMap::Wildcard;
-	if(v_LookupRelativeTransform(k, itr))return &(itr->second);
+	if(v_LookupRelativeTransform(k, itr)) {return &(itr->second);
+}
 
 	k.ladder_z = InttMap::Wildcard;
-	if(v_LookupRelativeTransform(k, itr))return &(itr->second);
+	if(v_LookupRelativeTransform(k, itr)) {return &(itr->second);
+}
 
 	k.ladder_phi = InttMap::Wildcard;
-	if(v_LookupRelativeTransform(k, itr))return &(itr->second);
+	if(v_LookupRelativeTransform(k, itr)) {return &(itr->second);
+}
 
 	k.layer = InttMap::Wildcard;
-	if(v_LookupRelativeTransform(k, itr))return &(itr->second);
+	if(v_LookupRelativeTransform(k, itr)) {return &(itr->second);
+}
 
 	return (val_t const*)nullptr;
 }
 
 int InttSurveyMap::v_LookupAbsoluteTransform (
-	key_t const&, map_t::const_iterator&
-) const {
+	key_t const& /*unused*/, map_t::const_iterator&
+ /*unused*/) const {
 	return 0;
 }
 
 int InttSurveyMap::v_LookupRelativeTransform (
-	key_t const&, map_t::const_iterator&
-) const {
+	key_t const& /*unused*/, map_t::const_iterator&
+ /*unused*/) const {
 	return 0;
 }

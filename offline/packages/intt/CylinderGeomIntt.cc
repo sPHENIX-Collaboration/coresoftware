@@ -6,6 +6,7 @@
 #include <Acts/Definitions/Units.hpp>
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 CylinderGeomIntt::CylinderGeomIntt()
   : m_Layer(-1)
@@ -31,7 +32,7 @@ void CylinderGeomIntt::identify(std::ostream &os) const
   os << "Radius: " << get_radius() << std::endl;
 }
 
-TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector3 local)
+TVector3 CylinderGeomIntt::get_world_from_local_coords(const Surface& surface, ActsGeometry* tGeometry, const TVector3& local)
 {
   Acts::Vector3 loc(local.x(), local.y(), local.z());
   loc *= Acts::UnitConstants::cm;
@@ -40,7 +41,7 @@ TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsGeom
   glob /= Acts::UnitConstants::cm;
   return TVector3(glob(0), glob(1), glob(2));
 }
-TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector2 local)
+TVector3 CylinderGeomIntt::get_world_from_local_coords(const Surface& surface, ActsGeometry* tGeometry, const TVector2& local)
 {
   Acts::Vector2 actslocal;
   actslocal(0) = local.X();
@@ -62,7 +63,7 @@ TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsGeom
   return ret;
 
 }
-TVector3 CylinderGeomIntt::get_local_from_world_coords(Surface surface, ActsGeometry* tGeometry, TVector3 world)
+TVector3 CylinderGeomIntt::get_local_from_world_coords(const Surface& surface, ActsGeometry* tGeometry, TVector3 world)
 {
   Acts::Vector3 global;
   global(0) = world[0];
@@ -82,7 +83,7 @@ void CylinderGeomIntt::find_segment_center(Surface surface, ActsGeometry* tGeome
 {
   TVector2 local(0.0,0.0);
 
-  TVector3 global = get_world_from_local_coords(surface, tGeometry, local);
+  TVector3 global = get_world_from_local_coords(std::move(surface), tGeometry, local);
   location[0] = global.X();
   location[1] = global.Y();
   location[2] = global.Z();
@@ -93,7 +94,8 @@ void CylinderGeomIntt::find_indices_from_world_location(int &segment_z_bin, int 
 {
   double signz = (location[2] > 0)? 1.  : -1;
   double phi = atan2(location[1], location[0]);
-  if(fabs(phi - m_OffsetPhi) > 0.01 && phi < 0) phi += 2.0*M_PI;
+  if(fabs(phi - m_OffsetPhi) > 0.01 && phi < 0) { phi += 2.0*M_PI;
+}
   double segment_phi_bin_tmp = (phi - m_OffsetPhi)/m_dPhi;
   segment_phi_bin = round(segment_phi_bin_tmp);
 
@@ -101,22 +103,25 @@ void CylinderGeomIntt::find_indices_from_world_location(int &segment_z_bin, int 
 
   // decide if this is a type A (0) or type B (1) sensor
   int itype;
-  if( fabs((z_tmp / m_LadderZ[0])) < 1.0) 
+  if( fabs((z_tmp / m_LadderZ[0])) < 1.0) { 
     itype = 0;
-  else
+  } else {
     itype = 1;
+}
 
-  if(signz <0)
+  if(signz <0) {
     segment_z_bin = itype;    // 0 = itype 0 +z,  1 = itype 1 +z,  2 = itupe 0 -z, 3 = itype 1 -z
-  else
+  } else {
     segment_z_bin = itype + 2;
+}
 }
 
 void CylinderGeomIntt::find_indices_from_segment_center(int &segment_z_bin, int &segment_phi_bin, double location[])
 {
   double signz = (location[2] > 0)? 1.  : -1;
   double phi = atan2(location[1], location[0]);
-  if(fabs(phi - m_OffsetPhi) > 0.01 && phi < 0) phi += 2.0*M_PI;
+  if(fabs(phi - m_OffsetPhi) > 0.01 && phi < 0) { phi += 2.0*M_PI;
+}
   double segment_phi_bin_tmp = (phi - m_OffsetPhi)/m_dPhi;
   segment_phi_bin = lround(segment_phi_bin_tmp);
 
@@ -126,15 +131,17 @@ void CylinderGeomIntt::find_indices_from_segment_center(int &segment_z_bin, int 
 
   // decide if this is a type A (0) or type B (1) sensor
   int itype;
-  if( fabs((1.0 - z_tmp / m_LadderZ[0])) < 0.01) 
+  if( fabs((1.0 - z_tmp / m_LadderZ[0])) < 0.01) { 
     itype = 0;
-  else
+  } else {
     itype = 1;
+}
 
-  if(signz <0)
+  if(signz <0) {
     segment_z_bin = itype;    // 0 = itype 0 +z,  1 = itype 1 +z,  2 = itupe 1 -z, 3 = itype 1 -z
-  else
+  } else {
     segment_z_bin = itype + 2;
+}
   
   //std::cout << " world coords: " <<  location[0] << " " << location[1] << " " << location[2] <<  " signz " << signz << " itype " << itype << " z_tmp " << z_tmp <<  " m_LadderZ " << m_LadderZ[itype] << std::endl;
   //std::cout << "radius " << m_SensorRadius << " offsetphi " << m_OffsetPhi << " rad  dphi_ " << m_dPhi << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << std::endl;
@@ -143,7 +150,7 @@ void CylinderGeomIntt::find_indices_from_segment_center(int &segment_z_bin, int 
 void CylinderGeomIntt::find_strip_center(Surface surface, ActsGeometry *tGeometry, const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
 {
   // Ladder
-  find_segment_center(surface, tGeometry, location);
+  find_segment_center(std::move(surface), tGeometry, location);
   CLHEP::Hep3Vector ladder(location[0], location[1], location[2]);
 
   // Strip
@@ -208,7 +215,7 @@ void CylinderGeomIntt::find_strip_index_values(const int segment_z_bin, const do
   */
 }
 
-void CylinderGeomIntt::find_strip_center_localcoords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[])
+void CylinderGeomIntt::find_strip_center_local_coords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[])
 {
   // find the sensor type (inner or outer) from the segment_z_bin (location of sensor on ladder)
   const int itype = segment_z_bin % 2;
