@@ -3,23 +3,20 @@
 
 #include "InttMap.h"
 
-#include <filesystem>
-#include <iostream>
-#include <map>
-#include <set>
-#include <string>
+#include <phool/PHObject.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <Eigen/LU>
 #include <Eigen/SVD>
 
-// #include <Math/Transfor3D.h>
+#include <filesystem>
+#include <iostream>
+#include <map>
+#include <set>
+#include <string>
 
-#include <cdbobjects/CDBTTree.h>
-#include <g4detectors/PHG4CellDefs.h>
-#include <ffamodules/CDBInterface.h>
-#include <phool/PHObject.h>
+class CDBTTree;
 
 class InttSurveyMap : public PHObject {
 public:
@@ -27,8 +24,8 @@ public:
 	typedef InttMap::Offline_s key_t;
 	typedef Eigen::Affine3d val_t;
 
-	InttSurveyMap();
-	~InttSurveyMap() override;
+	InttSurveyMap() = default;
+	~InttSurveyMap() override = default;
 
 	virtual void identify(std::ostream& = std::cout) const override;
 	virtual std::size_t size() const;

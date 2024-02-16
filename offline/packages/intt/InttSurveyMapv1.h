@@ -4,6 +4,8 @@
 #include "InttSurveyMap.h"
 #include "InttMap.h"
 
+#include <phool/PHObject.h>
+
 #include <filesystem>
 #include <iostream>
 #include <set>
@@ -14,20 +16,13 @@
 #include <Eigen/LU>
 #include <Eigen/SVD>
 
-// #include <Math/Transfor3D.h>
-
-#include <cdbobjects/CDBTTree.h>
-#include <g4detectors/PHG4CellDefs.h>
-#include <ffamodules/CDBInterface.h>
-#include <phool/PHObject.h>
-
 class InttSurveyMapv1 : public InttSurveyMap {
 public:
 	using InttSurveyMap::map_t;
 	using InttSurveyMap::key_t;
 	using InttSurveyMap::val_t;
 
-	InttSurveyMapv1();
+	InttSurveyMapv1() = default;
 	~InttSurveyMapv1() override;
 
 	void identify(std::ostream& = std::cout) const override;

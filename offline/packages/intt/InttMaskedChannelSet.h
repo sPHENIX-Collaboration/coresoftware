@@ -3,20 +3,19 @@
 
 #include "InttMap.h"
 
+#include <phool/PHObject.h>
+
 #include <filesystem>
 #include <iostream>
 #include <set>
 #include <string>
 
-#include <cdbobjects/CDBTTree.h>
-#include <g4detectors/PHG4CellDefs.h>
-#include <ffamodules/CDBInterface.h>
-#include <phool/PHObject.h>
+class CDBTTree;
 
 class InttMaskedChannelSet : public PHObject {
 public:
-	InttMaskedChannelSet();
-	~InttMaskedChannelSet() override;
+	InttMaskedChannelSet() = default;
+	~InttMaskedChannelSet() override = default;
 
 	virtual void identify(std::ostream& = std::cout) const override;
 	virtual std::size_t size() const;

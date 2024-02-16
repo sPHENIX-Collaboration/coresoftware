@@ -1,14 +1,7 @@
 #include "InttMaskedChannelSet.h"
 
-InttMaskedChannelSet::InttMaskedChannelSet(
-) {
-	// Do nothing
-}
-
-InttMaskedChannelSet::~InttMaskedChannelSet(
-) {
-	// Do nothing
-}
+#include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>
 
 void InttMaskedChannelSet::identify (
 	std::ostream& out

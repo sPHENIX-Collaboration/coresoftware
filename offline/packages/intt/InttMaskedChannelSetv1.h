@@ -4,15 +4,15 @@
 #include "InttMaskedChannelSet.h"
 #include "InttMap.h"
 
+#include <phool/PHObject.h>
+
 #include <iostream>
 #include <set>
 #include <string>
 
-#include <phool/PHObject.h>
-
 class InttMaskedChannelSetv1 : public InttMaskedChannelSet {
 public:
-	InttMaskedChannelSetv1();
+	InttMaskedChannelSetv1() = default;
 	~InttMaskedChannelSetv1() override;
 
 	void identify(std::ostream& = std::cout) const override;
@@ -25,7 +25,7 @@ protected:
 
 private:
 	typedef std::set<InttMap::Offline_s, InttMap::OfflineWildcardComparator> Set_t;
-	Set_t* m_HotChannelSet = nullptr;
+	Set_t* m_HotChannelSet {nullptr};
 
 	ClassDefOverride(InttMaskedChannelSetv1, 1)
 };

@@ -1,9 +1,6 @@
 #include "InttMaskedChannelSetv1.h"
 
-InttMaskedChannelSetv1::InttMaskedChannelSetv1(
-) {
-	// Do nothing
-}
+#include <cdbobjects/CDBTTree.h>
 
 InttMaskedChannelSetv1::~InttMaskedChannelSetv1(
 ) {

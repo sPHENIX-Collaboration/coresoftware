@@ -1,9 +1,6 @@
 #include "InttSurveyMapv1.h"
 
-InttSurveyMapv1::InttSurveyMapv1 (
-) {
-	// Do nothing
-}
+#include <cdbobjects/CDBTTree.h>
 
 InttSurveyMapv1::~InttSurveyMapv1 (
 ) {

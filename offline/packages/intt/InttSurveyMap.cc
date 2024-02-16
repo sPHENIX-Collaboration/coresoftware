@@ -1,14 +1,8 @@
 #include "InttSurveyMap.h"
 
-InttSurveyMap::InttSurveyMap (
-) {
-	// Do nothing
-}
+#include <cdbobjects/CDBTTree.h>
 
-InttSurveyMap::~InttSurveyMap (
-) {
-	// Do nothing
-}
+#include <ffamodules/CDBInterface.h>
 
 void InttSurveyMap::identify (
 	std::ostream& out
