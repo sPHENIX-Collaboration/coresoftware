@@ -16,18 +16,19 @@ class PHG4MvtxCable
                          const double &ySouth, const double &yNorth,
                          const double &zSouth, const double &zNorth,
                          const std::string &color)
-  : m_name(name)
-  , m_coreMaterial(coreMaterial)
-  , m_coreRadius(coreRadius)
-  , m_sheathRadius(sheathRadius)
-  , m_xSouth(xSouth)
-  , m_xNorth(xNorth)
-  , m_ySouth(ySouth)
-  , m_yNorth(yNorth)
-  , m_zSouth(zSouth)
-  , m_zNorth(zNorth)
-  , m_color(color)
-  {}
+    : m_name(name)
+    , m_coreMaterial(coreMaterial)
+    , m_coreRadius(coreRadius)
+    , m_sheathRadius(sheathRadius)
+    , m_xSouth(xSouth)
+    , m_xNorth(xNorth)
+    , m_ySouth(ySouth)
+    , m_yNorth(yNorth)
+    , m_zSouth(zSouth)
+    , m_zNorth(zNorth)
+    , m_color(color)
+  {
+  }
 
   virtual ~PHG4MvtxCable() = default;
 
@@ -35,13 +36,13 @@ class PHG4MvtxCable
   std::string get_coreMaterial() { return m_coreMaterial; };
   double get_coreRadius() { return m_coreRadius; };
   double get_sheathRadius() { return m_sheathRadius; };
-  double get_xSouth(){ return m_xSouth; };
-  double get_xNorth(){ return m_xNorth; };
-  double get_ySouth(){ return m_ySouth; };
-  double get_yNorth(){ return m_yNorth; };
-  double get_zSouth(){ return m_zSouth; };
-  double get_zNorth(){ return m_zNorth; };
-  std::string get_color(){ return m_color; };
+  double get_xSouth() { return m_xSouth; };
+  double get_xNorth() { return m_xNorth; };
+  double get_ySouth() { return m_ySouth; };
+  double get_yNorth() { return m_yNorth; };
+  double get_zSouth() { return m_zSouth; };
+  double get_zNorth() { return m_zNorth; };
+  std::string get_color() { return m_color; };
 
  private:
   const std::string m_name = "cable";
