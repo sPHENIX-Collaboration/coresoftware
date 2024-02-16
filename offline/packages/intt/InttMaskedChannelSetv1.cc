@@ -1,29 +1,29 @@
-#include "InttDeadMapv1.h"
+#include "InttMaskedChannelSetv1.h"
 
-InttDeadMapv1::InttDeadMapv1(
+InttMaskedChannelSetv1::InttMaskedChannelSetv1(
 ) {
 	// Do nothing
 }
 
-InttDeadMapv1::~InttDeadMapv1(
+InttMaskedChannelSetv1::~InttMaskedChannelSetv1(
 ) {
 	delete m_HotChannelSet;
 }
 
-void InttDeadMapv1::identify (
+void InttMaskedChannelSetv1::identify (
 	std::ostream& out
 ) const {
-	out << "InttDeadMapv1" << "\n"
+	out << "InttMaskedChannelSetv1" << "\n"
 	    << "\tsize: " << size() << std::endl;
 }
 
-std::size_t InttDeadMapv1::size (
+std::size_t InttMaskedChannelSetv1::size (
 ) const {
 	if(!m_HotChannelSet)return 0;
 	return m_HotChannelSet->size();
 }
 
-int InttDeadMapv1::v_LoadFromCDBTTree (
+int InttMaskedChannelSetv1::v_LoadFromCDBTTree (
 	CDBTTree& cdbttree
 ) {
 	if(!m_HotChannelSet)m_HotChannelSet = new Set_t;
@@ -43,7 +43,7 @@ int InttDeadMapv1::v_LoadFromCDBTTree (
 	return 0;
 }
 
-bool InttDeadMapv1::IsDeadChannel (
+bool InttMaskedChannelSetv1::IsDeadChannel (
 	InttMap::Offline_s const& ofl
 ) const {
 	if(!m_HotChannelSet)return false;

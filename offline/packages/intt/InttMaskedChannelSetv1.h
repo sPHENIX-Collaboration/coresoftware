@@ -1,7 +1,7 @@
-#ifndef INTT_DEAD_MAPv1_H
-#define INTT_DEAD_MAPv1_H
+#ifndef INTT_MASKED_CHANNEL_SETv1_H
+#define INTT_MASKED_CHANNEL_SETv1_H
 
-#include "InttDeadMap.h"
+#include "InttMaskedChannelSet.h"
 #include "InttMap.h"
 
 #include <iostream>
@@ -10,10 +10,10 @@
 
 #include <phool/PHObject.h>
 
-class InttDeadMapv1 : public InttDeadMap {
+class InttMaskedChannelSetv1 : public InttMaskedChannelSet {
 public:
-	InttDeadMapv1();
-	~InttDeadMapv1() override;
+	InttMaskedChannelSetv1();
+	~InttMaskedChannelSetv1() override;
 
 	void identify(std::ostream& = std::cout) const override;
 	std::size_t size() const override;
@@ -27,7 +27,7 @@ private:
 	typedef std::set<InttMap::Offline_s, InttMap::OfflineWildcardComparator> Set_t;
 	Set_t* m_HotChannelSet = nullptr;
 
-	ClassDefOverride(InttDeadMapv1, 1)
+	ClassDefOverride(InttMaskedChannelSetv1, 1)
 };
 
-#endif//INTT_DEAD_MAPv1_H
+#endif//INTT_MASKED_CHANNEL_SETv1_H

@@ -1,39 +1,39 @@
-#include "InttDeadMap.h"
+#include "InttMaskedChannelSet.h"
 
-InttDeadMap::InttDeadMap(
+InttMaskedChannelSet::InttMaskedChannelSet(
 ) {
 	// Do nothing
 }
 
-InttDeadMap::~InttDeadMap(
+InttMaskedChannelSet::~InttMaskedChannelSet(
 ) {
 	// Do nothing
 }
 
-void InttDeadMap::identify (
+void InttMaskedChannelSet::identify (
 	std::ostream& out
 ) const {
-	out << "InttDeadMap" << "\n"
+	out << "InttMaskedChannelSet" << "\n"
 	    << "\tBase Version" << "\n"
 	    << "\tUnimplemented" << std::endl;
 }
 
-std::size_t InttDeadMap::size (
+std::size_t InttMaskedChannelSet::size (
 ) const {
 	return 0;
 }
 
-int InttDeadMap::LoadFromFile (
+int InttMaskedChannelSet::LoadFromFile (
 	std::string const& filename
 ) {
 	if(filename.empty()) {
-		std::cout << "int InttDeadMap::LoadFromFile(std::string const& filename)" << std::endl;
+		std::cout << "int InttMaskedChannelSet::LoadFromFile(std::string const& filename)" << std::endl;
 		std::cout << "\tArgument 'filename' is empty string" << std::endl;
 		return 1;
 	}
 
 	if(!std::filesystem::exists(filename)) {
-		std::cout << "int InttDeadMap::LoadFromFile(std::string const& filename)" << std::endl;
+		std::cout << "int InttMaskedChannelSet::LoadFromFile(std::string const& filename)" << std::endl;
 		std::cout << "\tFile '" << filename << "' does not exist" << std::endl;
 		return 1;
 	}
@@ -44,11 +44,11 @@ int InttDeadMap::LoadFromFile (
 	return v_LoadFromCDBTTree(cdbttree);
 }
 
-int InttDeadMap::LoadFromCDB (
+int InttMaskedChannelSet::LoadFromCDB (
 	std::string const& name
 ) {
 	if(name.empty()) {
-		std::cout << "int InttDeadMap::LoadFromCDB(std::string const& name)" << std::endl;
+		std::cout << "int InttMaskedChannelSet::LoadFromCDB(std::string const& name)" << std::endl;
 		std::cout << "\tArgument 'name' is empty string" << std::endl;
 		return 1;
 	}
@@ -60,7 +60,7 @@ int InttDeadMap::LoadFromCDB (
 	return v_LoadFromCDBTTree(cdbttree);
 }
 
-bool InttDeadMap::IsDeadChannel (
+bool InttMaskedChannelSet::IsDeadChannel (
 	int const& layer,
 	int const& ladder_phi,
 	int const& ladder_z,
@@ -76,13 +76,13 @@ bool InttDeadMap::IsDeadChannel (
 	});
 }
 
-bool InttDeadMap::IsDeadChannel (
+bool InttMaskedChannelSet::IsDeadChannel (
 	InttMap::Offline_s const&
 ) const {
 	return false;
 }
 
-int InttDeadMap::v_LoadFromCDBTTree (
+int InttMaskedChannelSet::v_LoadFromCDBTTree (
 	CDBTTree&
 ) {
 	return 0;

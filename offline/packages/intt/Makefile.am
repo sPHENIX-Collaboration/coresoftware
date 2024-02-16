@@ -36,8 +36,8 @@ pkginclude_HEADERS = \
   InttClusterizer.h \
   InttCombinedRawDataConverter.h \
   InttCombinedRawDataDecoder.h \
-  InttDeadMap.h \
-  InttDeadMapv1.h \
+  InttMaskedChannelSet.h \
+  InttMaskedChannelSetv1.h \
   InttFelixMap.h \
   InttMap.h \
   InttMapping.h \
@@ -54,8 +54,8 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   CylinderGeomIntt_Dict.cc \
-  InttDeadMap_Dict.cc \
-  InttDeadMapv1_Dict.cc \
+  InttMaskedChannelSet_Dict.cc \
+  InttMaskedChannelSetv1_Dict.cc \
   InttMap_Dict.cc \
   InttSurveyMap_Dict.cc \
   InttSurveyMapv1_Dict.cc \
@@ -67,8 +67,8 @@ ROOTDICTS = \
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeomIntt_Dict_rdict.pcm \
-  InttDeadMap_Dict_rdict.pcm \
-  InttDeadMapv1_Dict_rdict.pcm \
+  InttMaskedChannelSet_Dict_rdict.pcm \
+  InttMaskedChannelSetv1_Dict_rdict.pcm \
   InttMap_Dict_rdict.pcm \
   InttSurveyMap_Dict_rdict.pcm \
   InttSurveyMapv1_Dict_rdict.pcm \
@@ -82,8 +82,8 @@ libintt_la_SOURCES = \
   InttClusterizer.cc \
   InttCombinedRawDataConverter.cc \
   InttCombinedRawDataDecoder.cc \
-  InttDeadMap.cc \
-  InttDeadMapv1.cc \
+  InttMaskedChannelSet.cc \
+  InttMaskedChannelSetv1.cc \
   InttFelixMap.cc \
   InttMapping.cc \
   InttMap.cc \
@@ -105,8 +105,8 @@ libintt_la_LIBADD = \
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeomIntt.cc \
-  InttDeadMap.cc \
-  InttDeadMapv1.cc \
+  InttMaskedChannelSet.cc \
+  InttMaskedChannelSetv1.cc \
   InttMap.cc \
   InttSurveyMap.cc \
   InttSurveyMapv1.cc \
