@@ -43,8 +43,6 @@ libg4mvtx_la_SOURCES = \
   PHG4MvtxSubsystem.cc \
   PHG4EICMvtxSubsystem.cc \
   PHG4MvtxDigitizer.cc \
-  PHG4MvtxCable.cc \
-  PHG4MvtxServiceStructure.cc \
   PHG4MvtxSupport.cc
 
 ################################################
