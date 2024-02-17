@@ -150,10 +150,10 @@ void CylinderGeomIntt::find_indices_from_segment_center(int& segment_z_bin, int&
   // std::cout << "radius " << m_SensorRadius << " offsetphi " << m_OffsetPhi << " rad  dphi_ " << m_dPhi << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << std::endl;
 }
 
-void CylinderGeomIntt::find_strip_center(Surface surface, ActsGeometry* tGeometry, const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
+void CylinderGeomIntt::find_strip_center(const Surface& surface, ActsGeometry* tGeometry, const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
 {
   // Ladder
-  find_segment_center(std::move(surface), tGeometry, location);
+  find_segment_center(surface, tGeometry, location);
   CLHEP::Hep3Vector ladder(location[0], location[1], location[2]);
 
   // Strip
