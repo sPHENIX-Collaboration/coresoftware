@@ -66,11 +66,11 @@ TVector3 CylinderGeomIntt::get_local_from_world_coords(const Surface& surface, A
   return TVector3(local(2), local(0), local(1));
 }
 
-void CylinderGeomIntt::find_segment_center(Surface surface, ActsGeometry* tGeometry, double location[])
+void CylinderGeomIntt::find_segment_center(const Surface& surface, ActsGeometry* tGeometry, double location[])
 {
   TVector2 local(0.0, 0.0);
 
-  TVector3 global = get_world_from_local_coords(std::move(surface), tGeometry, local);
+  TVector3 global = get_world_from_local_coords(surface, tGeometry, local);
   location[0] = global.X();
   location[1] = global.Y();
   location[2] = global.Z();
