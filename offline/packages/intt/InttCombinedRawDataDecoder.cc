@@ -128,8 +128,8 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
   uint64_t gl1rawhitbco = gl1->get_bco();
   // get the last 40 bits by bit shifting left then right to match
   // to the mvtx bco
-  auto lbshift = gl1rawhitbco << 24;
-  auto gl1bco = lbshift >> 24;
+  auto lbshift = gl1rawhitbco << 24U; // clang-tidy: mark as unsigned
+  auto gl1bco = lbshift >> 24U; // clang-tidy: mark as unsigned
 
   TrkrDefs::hitsetkey hit_set_key = 0;
   TrkrDefs::hitkey hit_key = 0;

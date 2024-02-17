@@ -13,23 +13,6 @@
 #include <memory>  // for __shared_ptr_access
 #include <utility>
 
-CylinderGeomIntt::CylinderGeomIntt()
-  : m_Layer(-1)
-  , m_NStripsPhiCell(-1)
-  , m_StripX(NAN)
-  , m_StripY(NAN)
-  , m_SensorRadius(NAN)
-  , m_StripXOffset(NAN)
-  , m_OffsetPhi(NAN)
-  , m_OffsetRot(NAN)
-  , m_dPhi(NAN)
-{
-  std::fill_n(m_StripZ, sizeof(m_StripZ) / sizeof(double), NAN);
-  std::fill_n(m_LadderZ, sizeof(m_LadderZ) / sizeof(double), NAN);
-  std::fill_n(m_NStripsZSensor, sizeof(m_NStripsZSensor), -1);
-  return;
-}
-
 void CylinderGeomIntt::identify(std::ostream& os) const
 {
   os << "CylinderGeomIntt Object" << std::endl;
@@ -234,6 +217,8 @@ void CylinderGeomIntt::find_strip_index_values(const int segment_z_bin, const do
   */
 }
 
+// this name is a really bad idea whcih ticks off clang-tidy (justifiably) but it seems intentional
+// NOLINTNEXTLINE(bugprone-virtual-near-miss)
 void CylinderGeomIntt::find_strip_center_localcoords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[])
 {
   // find the sensor type (inner or outer) from the segment_z_bin (location of sensor on ladder)

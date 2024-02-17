@@ -14,7 +14,7 @@
 class CylinderGeomIntt : public PHG4CylinderGeom
 {
  public:
-  CylinderGeomIntt();
+  CylinderGeomIntt() = default;
   CylinderGeomIntt(
       const int layer,
       const double strip_x,
@@ -120,19 +120,19 @@ class CylinderGeomIntt : public PHG4CylinderGeom
   }
 
  protected:
-  int m_Layer;
-  int m_NStripsPhiCell;
-  int m_NStripsZSensor[2];
-  double m_StripX;
-  double m_StripY;
-  double m_SensorRadius;
-  double m_StripXOffset;
-  double m_OffsetPhi;
-  double m_OffsetRot;
-  double m_dPhi;
+  int m_Layer{-1};
+  int m_NStripsPhiCell{-1};
+  int m_NStripsZSensor[2] {-1,-1};
+  double m_StripX{std::numeric_limits<double>::quiet_NaN()};
+  double m_StripY{std::numeric_limits<double>::quiet_NaN()};
+  double m_SensorRadius{std::numeric_limits<double>::quiet_NaN()};
+  double m_StripXOffset{std::numeric_limits<double>::quiet_NaN()};
+  double m_OffsetPhi{std::numeric_limits<double>::quiet_NaN()};
+  double m_OffsetRot{std::numeric_limits<double>::quiet_NaN()};
+  double m_dPhi{std::numeric_limits<double>::quiet_NaN()};
 
-  double m_StripZ[2];
-  double m_LadderZ[2];
+  double m_StripZ[2] {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+  double m_LadderZ[2]{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
 
   ClassDefOverride(CylinderGeomIntt, 1)
 };
