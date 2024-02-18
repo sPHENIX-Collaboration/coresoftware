@@ -2,6 +2,8 @@
 
 #include <cdbobjects/CDBTTree.h>
 
+#include <boost/format.hpp>
+
 InttSurveyMapv1::~InttSurveyMapv1()
 {
   delete m_absolute_transforms;
@@ -24,7 +26,6 @@ std::size_t InttSurveyMapv1::size() const
 int InttSurveyMapv1::v_LoadFromCDBTTree(
     CDBTTree& cdbttree)
 {
-  char buff[64];
   Eigen::Affine3d aff;
   InttMap::Offline_s ofl;
 
@@ -51,15 +52,15 @@ int InttSurveyMapv1::v_LoadFromCDBTTree(
 
     for (int i = 0; i < 16; ++i)
     {
-      snprintf(buff, sizeof(buff), "m_rel_%01d_%01d", i / 4, i % 4);
-      aff.matrix()(i / 4, i % 4) = cdbttree.GetDoubleValue(n, buff);
+      std::string boost_formatted = boost::str(boost::format("m_rel_%01d_%01d") %  (i / 4) % (i%4));
+      aff.matrix()(i / 4, i % 4) = cdbttree.GetDoubleValue(n,boost_formatted );
     }
     m_relative_transforms->insert({ofl, aff});
 
     for (int i = 0; i < 16; ++i)
     {
-      snprintf(buff, sizeof(buff), "m_abs_%01d_%01d", i / 4, i % 4);
-      aff.matrix()(i / 4, i % 4) = cdbttree.GetDoubleValue(n, buff);
+      std::string boost_formatted = boost::str(boost::format("m_abs_%01d_%01d") %  (i / 4) % (i%4));
+      aff.matrix()(i / 4, i % 4) = cdbttree.GetDoubleValue(n, boost_formatted);
     }
     m_absolute_transforms->insert({ofl, aff});
   }

@@ -208,9 +208,9 @@ double InttVertexFinder::calculateZvertex(
   {
     for (auto c1 = cluster[0].begin(); c1 != cluster[0].end(); ++c1)  // inner
     {
-      for (auto c2 = cluster[1].begin(); c2 != cluster[1].end(); ++c2)  // outer
+      for (auto & c2 : cluster[1])  // outer
       {
-        if (c1->adc < 40 || c2->adc < 40)
+        if (c1->adc < 40 || c2.adc < 40)
         {
           continue;
         }
@@ -218,7 +218,7 @@ double InttVertexFinder::calculateZvertex(
         // TVector3 p1 = c1->pos - beamspot;
         // TVector3 p2 = c2->pos - beamspot;
         Acts::Vector3 p1 = c1->pos - beamspot;
-        Acts::Vector3 p2 = c2->pos - beamspot;
+        Acts::Vector3 p2 = c2.pos - beamspot;
         // skip bad compbination
         double p1_ang = atan2(p1.y(), p1.x());
         double p2_ang = atan2(p2.y(), p2.x());

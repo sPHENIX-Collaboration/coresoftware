@@ -107,7 +107,8 @@ int InttRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 
   for (Branches_t::const_iterator itr = branches.begin(); itr != branches.end(); ++itr)
   {
-    tree->Branch(itr->first.c_str(), itr->second, Form("%s[num_hits]/I", itr->first.c_str()));
+    tree->Branch(itr->first.c_str(), itr->second, (itr->first + std::string("[num_hits]/I")).c_str());
+//Form("%s[num_hits]/I", itr->first.c_str()));
   }
 
   return 0;

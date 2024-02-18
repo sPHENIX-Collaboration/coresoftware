@@ -13,23 +13,6 @@
 #include <memory>  // for __shared_ptr_access
 #include <utility>
 
-CylinderGeomIntt::CylinderGeomIntt()
-  : m_Layer(-1)
-  , m_NStripsPhiCell(-1)
-  , m_StripX(NAN)
-  , m_StripY(NAN)
-  , m_SensorRadius(NAN)
-  , m_StripXOffset(NAN)
-  , m_OffsetPhi(NAN)
-  , m_OffsetRot(NAN)
-  , m_dPhi(NAN)
-{
-  std::fill_n(m_StripZ, sizeof(m_StripZ) / sizeof(double), NAN);
-  std::fill_n(m_LadderZ, sizeof(m_LadderZ) / sizeof(double), NAN);
-  std::fill_n(m_NStripsZSensor, sizeof(m_NStripsZSensor), -1);
-  return;
-}
-
 void CylinderGeomIntt::identify(std::ostream& os) const
 {
   os << "CylinderGeomIntt Object" << std::endl;
@@ -83,11 +66,11 @@ TVector3 CylinderGeomIntt::get_local_from_world_coords(const Surface& surface, A
   return TVector3(local(2), local(0), local(1));
 }
 
-void CylinderGeomIntt::find_segment_center(Surface surface, ActsGeometry* tGeometry, double location[])
+void CylinderGeomIntt::find_segment_center(const Surface& surface, ActsGeometry* tGeometry, double location[])
 {
   TVector2 local(0.0, 0.0);
 
-  TVector3 global = get_world_from_local_coords(std::move(surface), tGeometry, local);
+  TVector3 global = get_world_from_local_coords(surface, tGeometry, local);
   location[0] = global.X();
   location[1] = global.Y();
   location[2] = global.Z();
@@ -167,10 +150,10 @@ void CylinderGeomIntt::find_indices_from_segment_center(int& segment_z_bin, int&
   // std::cout << "radius " << m_SensorRadius << " offsetphi " << m_OffsetPhi << " rad  dphi_ " << m_dPhi << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << std::endl;
 }
 
-void CylinderGeomIntt::find_strip_center(Surface surface, ActsGeometry* tGeometry, const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
+void CylinderGeomIntt::find_strip_center(const Surface& surface, ActsGeometry* tGeometry, const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
 {
   // Ladder
-  find_segment_center(std::move(surface), tGeometry, location);
+  find_segment_center(surface, tGeometry, location);
   CLHEP::Hep3Vector ladder(location[0], location[1], location[2]);
 
   // Strip
@@ -234,6 +217,8 @@ void CylinderGeomIntt::find_strip_index_values(const int segment_z_bin, const do
   */
 }
 
+// this name is a really bad idea whcih ticks off clang-tidy (justifiably) but it seems intentional
+// NOLINTNEXTLINE(bugprone-virtual-near-miss)
 void CylinderGeomIntt::find_strip_center_localcoords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[])
 {
   // find the sensor type (inner or outer) from the segment_z_bin (location of sensor on ladder)
