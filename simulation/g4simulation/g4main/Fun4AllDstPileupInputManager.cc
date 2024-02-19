@@ -139,11 +139,12 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
 int Fun4AllDstPileupInputManager::run(const int nevents)
 {
 
-  if( nevents == 0 ) return runOne( nevents );
-  else if( nevents > 1 )
+  if( nevents == 0 ) { return runOne( nevents );
+  } else if( nevents > 1 )
   {
     const auto result = runOne( nevents-1 );
-    if( result != 0 ) return result;
+    if( result != 0 ) { return result;
+}
   }
 
   /*
@@ -181,7 +182,8 @@ int Fun4AllDstPileupInputManager::run(const int nevents)
 
       // read one event
       const auto result = runOne( 1 );
-      if( result != 0 ) return result;
+      if( result != 0 ) { return result;
+}
 
       // merge
       if (Verbosity() > 0)
@@ -375,6 +377,7 @@ readagain:
     fileclose();
     if (!OpenNextFile())
     {
+// NOLINTNEXTLINE(hicpp-avoid-goto)
       goto readagain;
     }
     return -1;
@@ -384,6 +387,7 @@ readagain:
   // check if the local SubsysReco discards this event
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
+// NOLINTNEXTLINE(hicpp-avoid-goto)
     goto readagain;
   }
   return 0;

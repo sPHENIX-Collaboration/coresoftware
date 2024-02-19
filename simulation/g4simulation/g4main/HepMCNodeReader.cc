@@ -60,8 +60,9 @@ class IsStateFinal
   /// returns true if the GenParticle does not decay
   bool operator()(const HepMC::GenParticle *p)
   {
-    if (!p->end_vertex() && p->status() == 1) return 1;
-    return 0;
+    if (!p->end_vertex() && p->status() == 1) { return true;
+}
+    return false;
   }
 };
 
@@ -219,20 +220,23 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 
     const CLHEP::HepLorentzRotation lortentz_rotation(genevt->get_LorentzRotation_EvtGen2Lab());
 
-    if (width_vx > 0.0)
+    if (width_vx > 0.0) {
       xshift += smeargauss(width_vx);
-    else if (width_vx < 0.0)
+    } else if (width_vx < 0.0) {
       xshift += smearflat(width_vx);
+}
 
-    if (width_vy > 0.0)
+    if (width_vy > 0.0) {
       yshift += smeargauss(width_vy);
-    else if (width_vy < 0.0)
+    } else if (width_vy < 0.0) {
       yshift += smearflat(width_vy);
+}
 
-    if (width_vz > 0.0)
+    if (width_vz > 0.0) {
       zshift += smeargauss(width_vz);
-    else if (width_vz < 0.0)
+    } else if (width_vz < 0.0) {
       zshift += smearflat(width_vz);
+}
 
     std::list<HepMC::GenParticle *> finalstateparticles;
     std::list<HepMC::GenParticle *>::const_iterator fiter;
@@ -385,7 +389,8 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 
           ineve->AddParticle(vtxindex, particle);
 
-          if (embed_flag != 0) ineve->AddEmbeddedParticle(particle, embed_flag);
+          if (embed_flag != 0) { ineve->AddEmbeddedParticle(particle, embed_flag);
+}
         }
       }  //      if (!finalstateparticles.empty())
 
@@ -393,20 +398,23 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 
   }  // For pile-up simulation: loop end for PHHepMC event map
 
-  if (Verbosity() > 0) ineve->identify();
+  if (Verbosity() > 0) { ineve->identify();
+}
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 double HepMCNodeReader::smeargauss(const double width)
 {
-  if (width == 0) return 0;
+  if (width == 0) { return 0;
+}
   return gsl_ran_gaussian(RandomGenerator, width);
 }
 
 double HepMCNodeReader::smearflat(const double width)
 {
-  if (width == 0) return 0;
+  if (width == 0) { return 0;
+}
   return 2.0 * width * (gsl_rng_uniform_pos(RandomGenerator) - 0.5);
 }
 
@@ -440,7 +448,7 @@ void HepMCNodeReader::SmearVertex(const double s_x, const double s_y,
   return;
 }
 
-void HepMCNodeReader::Embed(const int)
+void HepMCNodeReader::Embed(const int /*unused*/)
 {
   cout << "HepMCNodeReader::Embed - WARNING - this function is depreciated. "
        << "Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."

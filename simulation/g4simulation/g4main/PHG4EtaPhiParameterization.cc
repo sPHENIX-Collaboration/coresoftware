@@ -111,11 +111,11 @@ void PHG4EtaPhiParameterization::ComputeTransformation(const G4int copyNo, G4VPh
   int iring = copyNo / _nphi;
   G4ThreeVector origin(0, 0, _zpos.at(iring));
   physVol->SetTranslation(origin);
-  physVol->SetRotation(0);
+  physVol->SetRotation(nullptr);
 }
 
 void PHG4EtaPhiParameterization::ComputeDimensions(G4Tubs& ring, const G4int copyNo,
-                                                   const G4VPhysicalVolume*) const
+                                                   const G4VPhysicalVolume* /*unused*/) const
 {
   int ieta = GetIEta(copyNo);
   int iphi = GetIPhi(copyNo);

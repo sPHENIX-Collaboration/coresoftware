@@ -41,7 +41,7 @@ void PHG4Detector::Construct(G4LogicalVolume *world)
 
 int PHG4Detector::DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm)
 {
-  G4LogicalVolume *checksolid = new G4LogicalVolume(volume, G4Material::GetMaterial("G4_POLYSTYRENE"), "DISPLAYLOGICAL", 0, 0, 0);
+  G4LogicalVolume *checksolid = new G4LogicalVolume(volume, G4Material::GetMaterial("G4_POLYSTYRENE"), "DISPLAYLOGICAL", nullptr, nullptr, nullptr);
   int iret = DisplayVolume(checksolid, logvol, rotm);
   return iret;
 }
@@ -80,7 +80,7 @@ int PHG4Detector::DisplayVolume(G4LogicalVolume *checksolid, G4LogicalVolume *lo
   }
 
   checksolid->SetVisAttributes(visattchk);
-  new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, true);
+  new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, false, false, true);
   return 0;
 }
 

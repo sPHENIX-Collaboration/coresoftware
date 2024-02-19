@@ -14,7 +14,7 @@ void EicEventHeader::CopyFrom(const PHObject *phobj)
   // This is a generic copy of ALL properties an eic event header has
   // do not add explicit copies, they will be added to
   // the new eic event header with their default value increasing memory use
-  for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
+  for (unsigned char ic = 0; ic < std::numeric_limits<unsigned char>::max(); ic++)
   {
     PROPERTY prop_id = static_cast<EicEventHeader::PROPERTY>(ic);
     if (evthead->has_property(prop_id))

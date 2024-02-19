@@ -148,7 +148,7 @@ int PHG4TruthSubsystem::ResetEvent(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-PHG4EventAction* PHG4TruthSubsystem::GetEventAction(void) const
+PHG4EventAction* PHG4TruthSubsystem::GetEventAction() const
 {
   return m_EventAction;
 }
@@ -156,7 +156,7 @@ PHG4EventAction* PHG4TruthSubsystem::GetEventAction(void) const
 //_______________________________________________________________________
 
 PHG4TrackingAction*
-PHG4TruthSubsystem::GetTrackingAction(void) const
+PHG4TruthSubsystem::GetTrackingAction() const
 {
   return m_TrackingAction;
 }

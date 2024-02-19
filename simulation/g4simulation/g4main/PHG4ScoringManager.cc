@@ -92,9 +92,10 @@ int PHG4ScoringManager::InitRun(PHCompositeNode */*topNode*/)
   }
 
   //4 init IOs
-  if (Verbosity() >= VERBOSITY_SOME)
+  if (Verbosity() >= VERBOSITY_SOME) {
     cout << "PHG4ScoringManager::InitRun - Making PHTFileServer " << m_outputFileName
          << endl;
+}
   PHTFileServer::get().open(m_outputFileName, "RECREATE");
 
   Fun4AllHistoManager *hm = getHistoManager();
@@ -220,7 +221,7 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
 }
 
 //_________________________________________________________________
-int PHG4ScoringManager::End(PHCompositeNode *)
+int PHG4ScoringManager::End(PHCompositeNode * /*unused*/)
 {
   if (not m_outputFileName.empty())
   {
@@ -231,8 +232,9 @@ int PHG4ScoringManager::End(PHCompositeNode *)
 
     Fun4AllHistoManager *hm = getHistoManager();
     assert(hm);
-    for (unsigned int i = 0; i < hm->nHistos(); i++)
+    for (unsigned int i = 0; i < hm->nHistos(); i++) {
       hm->getHisto(i)->Write();
+}
 
   }  //   if (not m_outputFileName.empty())
 
@@ -418,10 +420,11 @@ PHG4ScoringManager::getHistoManager()
   Fun4AllHistoManager *hm = se->getHistoManager(histname);
   if (!hm)
   {
-    if (Verbosity())
+    if (Verbosity()) {
       cout
           << "PHG4ScoringManager::get_HistoManager - Making Fun4AllHistoManager " << histname
           << endl;
+}
     hm = new Fun4AllHistoManager(histname);
     se->registerHistoManager(hm);
   }

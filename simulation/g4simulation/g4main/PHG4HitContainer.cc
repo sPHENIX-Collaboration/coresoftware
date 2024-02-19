@@ -144,7 +144,7 @@ PHG4HitContainer::ConstRange PHG4HitContainer::getHits(const unsigned int detid)
   return retpair;
 }
 
-PHG4HitContainer::ConstRange PHG4HitContainer::getHits( void ) const
+PHG4HitContainer::ConstRange PHG4HitContainer::getHits( ) const
 { return std::make_pair( hitmap.begin(), hitmap.end() ); }
 
 

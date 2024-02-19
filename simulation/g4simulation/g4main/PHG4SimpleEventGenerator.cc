@@ -34,13 +34,13 @@ PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const std::string &name)
 
 void PHG4SimpleEventGenerator::add_particles(const std::string &name, const unsigned int num)
 {
-  _particle_names.push_back(std::make_pair(name, num));
+  _particle_names.emplace_back(name, num);
   return;
 }
 
 void PHG4SimpleEventGenerator::add_particles(const int pid, const unsigned int num)
 {
-  _particle_codes.push_back(std::make_pair(pid, num));
+  _particle_codes.emplace_back(pid, num);
   return;
 }
 
@@ -220,13 +220,13 @@ int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode)
     std::cout << "================ PHG4SimpleEventGenerator::InitRun() ======================" << std::endl;
     std::cout << " Random seed = " << get_seed() << std::endl;
     std::cout << " Particles:" << std::endl;
-    for (unsigned int i = 0; i < _particle_codes.size(); ++i)
+    for (auto & _particle_code : _particle_codes)
     {
-      std::cout << "    " << _particle_codes[i].first << ", count = " << _particle_codes[i].second << std::endl;
+      std::cout << "    " << _particle_code.first << ", count = " << _particle_code.second << std::endl;
     }
-    for (unsigned int i = 0; i < _particle_names.size(); ++i)
+    for (auto & _particle_name : _particle_names)
     {
-      std::cout << "    " << _particle_names[i].first << ", count = " << _particle_names[i].second << std::endl;
+      std::cout << "    " << _particle_name.first << ", count = " << _particle_name.second << std::endl;
     }
     if (get_reuse_existing_vertex())
     {
@@ -272,12 +272,12 @@ int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode)
   }
 
   // the definition table should be filled now, so convert codes into names
-  for (unsigned int i = 0; i < _particle_codes.size(); ++i)
+  for (auto & _particle_code : _particle_codes)
   {
-    int pdgcode = _particle_codes[i].first;
-    unsigned int count = _particle_codes[i].second;
+    int pdgcode = _particle_code.first;
+    unsigned int count = _particle_code.second;
     std::string pdgname = get_pdgname(pdgcode);
-    _particle_names.push_back(std::make_pair(pdgname, count));
+    _particle_names.emplace_back(pdgname, count);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -408,7 +408,8 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
       particle->set_e(e);
 
       m_InEvent->AddParticle(vtxindex, particle);
-      if (EmbedFlag() != 0) m_InEvent->AddEmbeddedParticle(particle, EmbedFlag());
+      if (EmbedFlag() != 0) { m_InEvent->AddEmbeddedParticle(particle, EmbedFlag());
+}
     }
   }
 

@@ -147,7 +147,8 @@ int Fun4AllSingleDstPileupInputManager::run(const int nevents)
   {
     if (FileListEmpty())
     {
-      if (Verbosity() > 0) std::cout << Name() << ": No Input file open" << std::endl;
+      if (Verbosity() > 0) { std::cout << Name() << ": No Input file open" << std::endl;
+}
       return -1;
     }
     else
@@ -173,17 +174,20 @@ readagain:
   while (dummy)
   {
     ++ncount;
-    if (nevents > 0 && ncount >= nevents) break;
+    if (nevents > 0 && ncount >= nevents) { break;
+}
     dummy = m_IManager->read(m_dstNode);
   }
 
   if (!dummy)
   {
     fileclose();
-    if (!OpenNextFile())
+    if (!OpenNextFile()) {
+// NOLINTNEXTLINE(hicpp-avoid-goto)
       goto readagain;
-    else
+    } else {
       return -1;
+}
   }
 
   m_ievent_total += ncount;
@@ -204,6 +208,7 @@ readagain:
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
     std::cout << "Fun4AllSingleDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
+// NOLINTNEXTLINE(hicpp-avoid-goto)
     goto readagain;
   }
 
@@ -231,7 +236,8 @@ readagain:
     {
 
       // try read
-      if(!m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) break;
+      if(!m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) { break;
+}
 
       // merge
 
@@ -247,7 +253,8 @@ readagain:
   }
 
   // jump event counter to the last background accepted event
-  if( neventsbackground > 0 ) PushBackEvents( -neventsbackground );
+  if( neventsbackground > 0 ) { PushBackEvents( -neventsbackground );
+}
   return 0;
 }
 

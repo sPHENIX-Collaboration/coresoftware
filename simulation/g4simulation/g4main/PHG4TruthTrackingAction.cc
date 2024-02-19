@@ -71,7 +71,8 @@ void PHG4TruthTrackingAction::PreUserTrackingAction(const G4Track* track)
   {
     // primary track - propagate the barcode information
     PHG4UserPrimaryParticleInformation* userdata = static_cast<PHG4UserPrimaryParticleInformation*>(track->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation());
-    if (userdata) ti->set_barcode(userdata->get_user_barcode());
+    if (userdata) { ti->set_barcode(userdata->get_user_barcode());
+}
   }
 
   int vtxindex = ti->get_vtx_id();
@@ -135,9 +136,8 @@ void PHG4TruthTrackingAction::PostUserTrackingAction(const G4Track* track)
     G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
     if (secondaries)
     {
-      for (size_t i = 0; i < secondaries->size(); ++i)
+      for (auto secondary : *secondaries)
       {
-        G4Track* secondary = (*secondaries)[i];
         PHG4TrackUserInfo::SetUserParentId(const_cast<G4Track*>(secondary), trackid);
         PHG4TrackUserInfo::SetUserPrimaryId(const_cast<G4Track*>(secondary), primaryid);
         PHG4TrackUserInfo::SetShower(const_cast<G4Track*>(secondary), shower);
@@ -206,7 +206,7 @@ void PHG4TruthTrackingAction::SetInterfacePointers(PHCompositeNode* topNode)
   }
 }
 
-int PHG4TruthTrackingAction::ResetEvent(PHCompositeNode*)
+int PHG4TruthTrackingAction::ResetEvent(PHCompositeNode* /*unused*/)
 {
   m_VertexMap.clear();
 

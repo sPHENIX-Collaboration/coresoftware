@@ -224,8 +224,9 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
     }
 
     /* assume the first two particles are the beam particles (which getsHepMC status 4)*/
-    if (ii < 2)
+    if (ii < 2) {
       hepmcpart->set_status(4);
+}
 
     /* add particle information */
     hepmcpart->setGeneratedMass(track_ii->GetM());
@@ -235,12 +236,14 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
     origin_index.push_back(track_ii->GetIndex());
 
     /* if first particle, call this the first beam particle */
-    if (ii == 0)
+    if (ii == 0) {
       hepmc_beam1 = hepmcpart;
+}
 
     /* if second particle, call this the second beam particle */
-    if (ii == 1)
+    if (ii == 1) {
       hepmc_beam2 = hepmcpart;
+}
   }
 
   /* Check if hepmc_particles and origin_index vectors are the same size */
@@ -261,8 +264,9 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
     HepMC::GenParticle *pp = hepmc_particles.at(p);
 
     /* continue if vertices for particle are already set */
-    if (pp->production_vertex() && pp->end_vertex())
+    if (pp->production_vertex() && pp->end_vertex()) {
       continue;
+}
 
     /* access mother particle vertex */
     erhic::ParticleMC *track_pp = GenEvent->GetTrack(p);
@@ -337,9 +341,9 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
   }
 
   /* Add HepMC vertices to event */
-  for (unsigned v = 0; v < hepmc_vertices.size(); v++)
+  for (auto & hepmc_vertice : hepmc_vertices)
   {
-    evt->add_vertex(hepmc_vertices.at(v));
+    evt->add_vertex(hepmc_vertice);
   }
 
   /* set beam particles */

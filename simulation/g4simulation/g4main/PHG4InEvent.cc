@@ -154,11 +154,11 @@ PHG4InEvent::identify(ostream& os) const
 {
   os << "vtx: " << endl;
   multimap<int,PHG4Particle *>::const_iterator particle_iter;
-  for(map<int,PHG4VtxPoint *>::const_iterator iter = vtxlist.begin(); iter != vtxlist.end(); ++iter)
+  for(auto iter : vtxlist)
     {
-      os << "vtx " << iter->first << " , ";
-      iter->second->identify(os);
-      pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator > particlebegin_end = GetParticles(iter->first);
+      os << "vtx " << iter.first << " , ";
+      iter.second->identify(os);
+      pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator > particlebegin_end = GetParticles(iter.first);
       for(particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; ++particle_iter)
 	{
 	  os << "vtx " << particle_iter->first << ", ";
@@ -168,9 +168,9 @@ PHG4InEvent::identify(ostream& os) const
   if (!embedded_particlelist.empty())
     {
       os << "embedded particles:" << endl;
-      for (map<PHG4Particle *,int>::const_iterator iter = embedded_particlelist.begin(); iter != embedded_particlelist.end(); ++iter)
+      for (auto iter : embedded_particlelist)
 	{
-	  (iter->first)->identify(os);
+	  (iter.first)->identify(os);
 	}
     }
   else

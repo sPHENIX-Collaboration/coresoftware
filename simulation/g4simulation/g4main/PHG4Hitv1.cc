@@ -49,9 +49,9 @@ PHG4Hitv1::print() const {
   std::cout<<"Location: X "<<x[0]<<"/"<<x[1]<<"  Y "<<y[0]<<"/"<<y[1]<<"  Z "<<z[0]<<"/"<<z[1]<<std::endl;
   std::cout<<"Time        "<<t[0]<<"/"<<t[1]<<std::endl;
 
-  for (prop_map_t::const_iterator i = prop_map.begin(); i!= prop_map.end(); ++i)
+  for (auto i : prop_map)
     {
-      PROPERTY prop_id = static_cast<PROPERTY>(i->first);
+      PROPERTY prop_id = static_cast<PROPERTY>(i.first);
       pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
       cout << "\t" << prop_id << ":\t" << property_info.first << " = \t";
       switch(property_info.second)
@@ -92,7 +92,8 @@ PHG4Hitv1::get_property_float(const PROPERTY prop_id) const
     }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
 
-  if (i!=prop_map.end()) return u_property(i->second).fdata;
+  if (i!=prop_map.end()) { return u_property(i->second).fdata;
+}
 
   return   NAN ;
 }
@@ -110,7 +111,8 @@ PHG4Hitv1::get_property_int(const PROPERTY prop_id) const
     }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
 
-  if (i!=prop_map.end()) return u_property(i->second).idata;
+  if (i!=prop_map.end()) { return u_property(i->second).idata;
+}
 
   return INT_MIN;
 }
@@ -128,7 +130,8 @@ PHG4Hitv1::get_property_uint(const PROPERTY prop_id) const
     }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
 
-  if (i!=prop_map.end()) return u_property(i->second).uidata;
+  if (i!=prop_map.end()) { return u_property(i->second).uidata;
+}
 
   return UINT_MAX ;
 }
@@ -394,9 +397,9 @@ PHG4Hitv1::identify(ostream& os) const
        << ", t1: " << get_t(1) << endl;
   os << "trackid: " << trackid << ", showerid: " << showerid
        << ", edep: " << edep << endl;
-  for (prop_map_t::const_iterator i = prop_map.begin(); i!= prop_map.end(); ++i)
+  for (auto i : prop_map)
     {
-      PROPERTY prop_id = static_cast<PROPERTY>(i->first);
+      PROPERTY prop_id = static_cast<PROPERTY>(i.first);
       pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
       os << "\t" << prop_id << ":\t" << property_info.first << " = \t";
       switch(property_info.second)

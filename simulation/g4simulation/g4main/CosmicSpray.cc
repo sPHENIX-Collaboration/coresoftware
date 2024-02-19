@@ -31,12 +31,18 @@
 bool CosmicSpray::InDetector(double x, double y, double z)
 {
   double gap = 5;
-  if (x > _x_max) return false;
-  if (x < -_x_max) return false;
-  if (z > _z_max + gap) return false;
-  if (z < -_z_max - gap) return false;
-  if (y > _y_fix + gap) return false;
-  if (y < -_y_fix - gap) return false;
+  if (x > _x_max) { return false;
+}
+  if (x < -_x_max) { return false;
+}
+  if (z > _z_max + gap) { return false;
+}
+  if (z < -_z_max - gap) { return false;
+}
+  if (y > _y_fix + gap) { return false;
+}
+  if (y < -_y_fix - gap) { return false;
+}
   return true;
 }
 
@@ -78,7 +84,8 @@ int CosmicSpray::InitRun(PHCompositeNode *topNode)
 int CosmicSpray::process_event(PHCompositeNode *topNode)
 {
   // set_vertex
-  if (Verbosity() > 0) std::cout << "Processing Event" << std::endl;
+  if (Verbosity() > 0) { std::cout << "Processing Event" << std::endl;
+}
   std::string pdgname = "mu-";
   int pdgcode = 13;
   int trackid = 0;

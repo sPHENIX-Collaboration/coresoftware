@@ -249,7 +249,8 @@ int PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
 
 int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 {
-  if (!ineve) std::cout << " G4InEvent not found " << std::endl;
+  if (!ineve) { std::cout << " G4InEvent not found " << std::endl;
+}
 
   // Generate a new set of vectors for the vector meson for each event
   // These are the momentum and direction vectors for the pre-decay vector meson
@@ -308,10 +309,10 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
           get_vtx_y() + _vertex_offset_y,
           get_vtx_z() + _vertex_offset_z);
 
-  for (std::map<unsigned int, std::string>::iterator it = decay1_names.begin(); it != decay1_names.end(); ++it)
+  for (auto & it : decay1_names)
   {
-    unsigned int decay_id = it->first;
-    std::string decay1_name = it->second;
+    unsigned int decay_id = it.first;
+    std::string decay1_name = it.second;
     std::string decay2_name;
     std::map<unsigned int, std::string>::iterator jt = decay2_names.find(decay_id);
     std::map<unsigned int, double>::iterator xt = decay_vtx_offset_x.find(decay_id);

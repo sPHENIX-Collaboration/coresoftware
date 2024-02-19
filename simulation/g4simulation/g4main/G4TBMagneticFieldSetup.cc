@@ -76,9 +76,9 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(PHField* phfield)
   UpdateField();
   double point[4] = {0, 0, 0, 0};
   fEMfield->GetFieldValue(&point[0], &magfield_at_000[0]);
-  for (size_t i = 0; i < sizeof(magfield_at_000) / sizeof(double); i++)
+  for (double & i : magfield_at_000)
   {
-    magfield_at_000[i] = magfield_at_000[i] / tesla;
+    i = i / tesla;
   }
   if (verbosity > 0)
   {
@@ -283,14 +283,15 @@ void G4TBMagneticFieldSetup::SetFieldValue(const G4double fieldValue)
 // Set the value of the Global Field value to fieldVector
 //
 
-void G4TBMagneticFieldSetup::SetFieldValue(const G4ThreeVector fieldVector)
+void G4TBMagneticFieldSetup::SetFieldValue(const G4ThreeVector& fieldVector)
 {
   // Find the Field Manager for the global field
   G4FieldManager* fieldMgr = GetGlobalFieldManager();
 
   if (fieldVector != G4ThreeVector(0., 0., 0.))
   {
-    if (fEMfield) delete fEMfield;
+    if (fEMfield) { delete fEMfield;
+}
     fEMfield = new G4UniformMagField(fieldVector);
 
     fEquation->SetFieldObj(fEMfield);  // must now point to the new field

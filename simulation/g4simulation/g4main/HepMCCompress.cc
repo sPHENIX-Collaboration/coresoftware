@@ -20,7 +20,6 @@
 #include <list>
 
 using namespace std;
-const double mm_over_c_to_sec = 0.1 / GSL_CONST_CGS_SPEED_OF_LIGHT; // pythia vtx time seems to be in mm/c
 /// \class  IsStateFinal
 
 /// this predicate returns true if the input has no decay vertex
@@ -30,8 +29,9 @@ public:
   /// returns true if the GenParticle does not decay
   bool operator()( const HepMC::GenParticle* p )
   {
-    if ( !p->end_vertex() && p->status() == 1 ) return 1;
-    return 0;
+    if ( !p->end_vertex() && p->status() == 1 ) { return true;
+}
+    return false;
   }
 };
 
