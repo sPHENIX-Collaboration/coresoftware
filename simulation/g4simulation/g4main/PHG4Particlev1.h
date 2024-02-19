@@ -35,7 +35,6 @@ class PHG4Particlev1 : public PHG4Particle
 
   void set_barcode(const int bcd) override { barcode = bcd; }
 
-
  protected:
   std::string fname;
   int fpid;

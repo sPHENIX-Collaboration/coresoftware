@@ -161,7 +161,7 @@ void PHG4ParticleGeneratorVectorMeson::set_vertex_size_parameters(const double m
 
 void PHG4ParticleGeneratorVectorMeson::set_decay_types(const std::string &name1, const std::string &name2)
 {
-  //http://pdg.lbl.gov/2020/listings/rpp2020-list-muon.pdf
+  // http://pdg.lbl.gov/2020/listings/rpp2020-list-muon.pdf
   static const double mmuon = 105.6583745e-3;       //+-0.0000024e-3
                                                     // http://pdg.lbl.gov/2020/listings/rpp2020-list-electron.pdf
   static const double melectron = 0.5109989461e-3;  //+-0.0000000031e-3
@@ -249,8 +249,10 @@ int PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
 
 int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 {
-  if (!ineve) { std::cout << " G4InEvent not found " << std::endl;
-}
+  if (!ineve)
+  {
+    std::cout << " G4InEvent not found " << std::endl;
+  }
 
   // Generate a new set of vectors for the vector meson for each event
   // These are the momentum and direction vectors for the pre-decay vector meson
@@ -309,7 +311,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
           get_vtx_y() + _vertex_offset_y,
           get_vtx_z() + _vertex_offset_z);
 
-  for (auto & it : decay1_names)
+  for (auto &it : decay1_names)
   {
     unsigned int decay_id = it.first;
     std::string decay1_name = it.second;
@@ -503,7 +505,7 @@ void PHG4ParticleGeneratorVectorMeson::set_upsilon_2s()
 
 void PHG4ParticleGeneratorVectorMeson::set_upsilon_3s()
 {
-  //http://pdg.lbl.gov/2020/listings/rpp2020-list-upsilon-3S.pdf
+  // http://pdg.lbl.gov/2020/listings/rpp2020-list-upsilon-3S.pdf
   set_mass(10.3552);    // +- 0.0005
   set_width(20.32e-6);  // +- 1.85e-6
 }

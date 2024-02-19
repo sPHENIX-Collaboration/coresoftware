@@ -224,7 +224,7 @@ void PHG4TruthEventAction::AddTrackidToWritelist(const int trackid)
 //___________________________________________________
 void PHG4TruthEventAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  //now look for the map and grab a pointer to it.
+  // now look for the map and grab a pointer to it.
   m_TruthInfoContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   // if we do not find the node we need to make it.
@@ -477,26 +477,42 @@ void PHG4TruthEventAction::ProcessShowers()
         // summary info
 
         ++nhits;
-        if (!isnan(g4hit->get_edep())) { edep += g4hit->get_edep();
-}
-        if (!isnan(g4hit->get_eion())) { eion += g4hit->get_eion();
-}
-        if (!isnan(g4hit->get_light_yield())) { light_yield += g4hit->get_light_yield();
-}
+        if (!isnan(g4hit->get_edep()))
+        {
+          edep += g4hit->get_edep();
+        }
+        if (!isnan(g4hit->get_eion()))
+        {
+          eion += g4hit->get_eion();
+        }
+        if (!isnan(g4hit->get_light_yield()))
+        {
+          light_yield += g4hit->get_light_yield();
+        }
       }  // g4hit loop
 
       // summary info
 
-      if (nhits) { shower->set_nhits(g4hitmap_id, nhits);
-}
-      if (edep != 0.0) { shower->set_edep(g4hitmap_id, edep);
-}
-      if (eion != 0.0) { shower->set_eion(g4hitmap_id, eion);
-}
-      if (light_yield != 0.0) { shower->set_light_yield(g4hitmap_id, light_yield);
-}
-      if (edep_h != 0.0) { shower->set_eh_ratio(g4hitmap_id, edep_e / edep_h);
-}
+      if (nhits)
+      {
+        shower->set_nhits(g4hitmap_id, nhits);
+      }
+      if (edep != 0.0)
+      {
+        shower->set_edep(g4hitmap_id, edep);
+      }
+      if (eion != 0.0)
+      {
+        shower->set_eion(g4hitmap_id, eion);
+      }
+      if (light_yield != 0.0)
+      {
+        shower->set_light_yield(g4hitmap_id, light_yield);
+      }
+      if (edep_h != 0.0)
+      {
+        shower->set_eh_ratio(g4hitmap_id, edep_e / edep_h);
+      }
     }  // volume loop
 
     // fill Eigen matrices to compute wPCA
@@ -521,12 +537,14 @@ void PHG4TruthEventAction::ProcessShowers()
     // compute residual relative to the mean
     for (unsigned int i = 0; i < points.size(); ++i)
     {
-      for (unsigned int j = 0; j < 3; ++j) { X(i, j) = points[i][j] - mean(0, j);
-}
+      for (unsigned int j = 0; j < 3; ++j)
+      {
+        X(i, j) = points[i][j] - mean(0, j);
+      }
     }
 
     // weighted covariance matrix
-    prefactor = sumw / (sumw*sumw - sumw2);  // effectivelly 1/(N-1) when w_i = 1.0
+    prefactor = sumw / (sumw * sumw - sumw2);  // effectivelly 1/(N-1) when w_i = 1.0
     Eigen::Matrix<double, 3, 3> covar = prefactor * (X.transpose() * W.asDiagonal() * X);
 
     shower->set_x(mean(0, 0));

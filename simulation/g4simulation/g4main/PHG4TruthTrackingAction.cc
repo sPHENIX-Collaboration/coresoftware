@@ -71,8 +71,10 @@ void PHG4TruthTrackingAction::PreUserTrackingAction(const G4Track* track)
   {
     // primary track - propagate the barcode information
     PHG4UserPrimaryParticleInformation* userdata = static_cast<PHG4UserPrimaryParticleInformation*>(track->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation());
-    if (userdata) { ti->set_barcode(userdata->get_user_barcode());
-}
+    if (userdata)
+    {
+      ti->set_barcode(userdata->get_user_barcode());
+    }
   }
 
   int vtxindex = ti->get_vtx_id();
@@ -165,7 +167,7 @@ void PHG4TruthTrackingAction::UpdateG4ParticleStack(const G4Track* track)
 {
   while (!m_G4ParticleStack.empty())
   {
-    if ( std::abs(m_G4ParticleStack.back().g4track_id) == track->GetParentID() )
+    if (std::abs(m_G4ParticleStack.back().g4track_id) == track->GetParentID())
     {
       break;
     }
@@ -173,7 +175,7 @@ void PHG4TruthTrackingAction::UpdateG4ParticleStack(const G4Track* track)
     {
       if (m_G4ParticleStack.back().g4track_id < 0)
       {
-        m_TruthInfoList->delete_particle( m_G4ParticleStack.back().particle_id );
+        m_TruthInfoList->delete_particle(m_G4ParticleStack.back().particle_id);
       }
       m_G4ParticleStack.pop_back();
     }
@@ -196,7 +198,7 @@ void PHG4TruthTrackingAction::UpdateG4ParticleStack(const G4Track* track)
 
 void PHG4TruthTrackingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  //now look for the map and grab a pointer to it.
+  // now look for the map and grab a pointer to it.
   m_TruthInfoList = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   // if we do not find the node we need to make it.
@@ -212,9 +214,9 @@ int PHG4TruthTrackingAction::ResetEvent(PHCompositeNode* /*unused*/)
 
   while (!m_G4ParticleStack.empty())
   {
-    if ( m_G4ParticleStack.back().g4track_id < 0)
+    if (m_G4ParticleStack.back().g4track_id < 0)
     {
-      m_TruthInfoList->delete_particle( m_G4ParticleStack.back().particle_id );
+      m_TruthInfoList->delete_particle(m_G4ParticleStack.back().particle_id);
     }
     m_G4ParticleStack.pop_back();
   }
@@ -288,7 +290,7 @@ PHG4VtxPoint* PHG4TruthTrackingAction::AddVertex(PHG4TruthInfoContainer& truth, 
     return truth.GetVtxMap().find(iter->second)->second;
   }
   // otherwise, create and add a new one
-  PHG4VtxPoint* vtxpt = new PHG4VtxPointv1(v[0]/cm, v[1]/cm, v[2]/cm, track.GetGlobalTime()/ns, vtxindex);
+  PHG4VtxPoint* vtxpt = new PHG4VtxPointv1(v[0] / cm, v[1] / cm, v[2] / cm, track.GetGlobalTime() / ns, vtxindex);
 
   return truth.AddVertex(vtxindex, vtxpt)->second;
 }

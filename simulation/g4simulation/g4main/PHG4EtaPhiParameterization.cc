@@ -57,8 +57,8 @@ PHG4EtaPhiParameterization::PHG4EtaPhiParameterization(
     // Compute the edges of this eta bin
     double etaMin = _minEta + dEta * i;
     double etaMax = etaMin + dEta;
-    //double eta = _minEta + dEta * (i + 0.5);
-    // Compute the corresponding Z positions of the edges
+    // double eta = _minEta + dEta * (i + 0.5);
+    //  Compute the corresponding Z positions of the edges
     double zmin = _centerZ + _radiusIn * std::sinh(etaMin);
     double zmax = _centerZ + _radiusIn * std::sinh(etaMax);
     // Z positions is halfway between the edges
@@ -78,7 +78,7 @@ PHG4EtaPhiParameterization::PHG4EtaPhiParameterization(
   //
   for (unsigned int i = 0; i < _neta * _nphi; i++)
   {
-    div_t q = div((int)i, (int)_nphi);
+    div_t q = div((int) i, (int) _nphi);
     int ieta = q.quot;
     int iphi = q.rem;
     _ieta.push_back(ieta);

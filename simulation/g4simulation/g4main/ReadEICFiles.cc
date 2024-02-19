@@ -19,7 +19,7 @@
 #include <HepMC/GenVertex.h>
 #pragma GCC diagnostic pop
 
-#include <HepMC/GenParticle.h>  // for GenParticle
+#include <HepMC/GenParticle.h>   // for GenParticle
 #include <HepMC/PdfInfo.h>       // for PdfInfo
 #include <HepMC/SimpleVector.h>  // for FourVector
 #include <HepMC/Units.h>         // for GEV, MM
@@ -224,9 +224,10 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
     }
 
     /* assume the first two particles are the beam particles (which getsHepMC status 4)*/
-    if (ii < 2) {
+    if (ii < 2)
+    {
       hepmcpart->set_status(4);
-}
+    }
 
     /* add particle information */
     hepmcpart->setGeneratedMass(track_ii->GetM());
@@ -236,14 +237,16 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
     origin_index.push_back(track_ii->GetIndex());
 
     /* if first particle, call this the first beam particle */
-    if (ii == 0) {
+    if (ii == 0)
+    {
       hepmc_beam1 = hepmcpart;
-}
+    }
 
     /* if second particle, call this the second beam particle */
-    if (ii == 1) {
+    if (ii == 1)
+    {
       hepmc_beam2 = hepmcpart;
-}
+    }
   }
 
   /* Check if hepmc_particles and origin_index vectors are the same size */
@@ -264,9 +267,10 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
     HepMC::GenParticle *pp = hepmc_particles.at(p);
 
     /* continue if vertices for particle are already set */
-    if (pp->production_vertex() && pp->end_vertex()) {
+    if (pp->production_vertex() && pp->end_vertex())
+    {
       continue;
-}
+    }
 
     /* access mother particle vertex */
     erhic::ParticleMC *track_pp = GenEvent->GetTrack(p);
@@ -341,7 +345,7 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
   }
 
   /* Add HepMC vertices to event */
-  for (auto & hepmc_vertice : hepmc_vertices)
+  for (auto &hepmc_vertice : hepmc_vertices)
   {
     evt->add_vertex(hepmc_vertice);
   }
@@ -355,7 +359,8 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
   {
     cout << __PRETTY_FUNCTION__ << " : " << __LINE__ << endl;
     evt->print();
-    cout << endl << endl;
+    cout << endl
+         << endl;
   }
 
   if (!success)
