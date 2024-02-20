@@ -50,13 +50,13 @@ class PHG4VtxPointv1 : public PHG4VtxPoint
   int get_id() const override { return id; }
 
  protected:
-  double vx {std::numeric_limits<double>::quiet_NaN()} ;
-  double vy {std::numeric_limits<double>::quiet_NaN()} ;
-  double vz {std::numeric_limits<double>::quiet_NaN()} ;
-  double t0 {std::numeric_limits<double>::quiet_NaN()} ;
+  double vx{std::numeric_limits<double>::quiet_NaN()};
+  double vy{std::numeric_limits<double>::quiet_NaN()};
+  double vz{std::numeric_limits<double>::quiet_NaN()};
+  double t0{std::numeric_limits<double>::quiet_NaN()};
 
   //! id tag for this vertex
-  int id {std::numeric_limits<int>::min()};
+  int id{std::numeric_limits<int>::min()};
 
   ClassDefOverride(PHG4VtxPointv1, 2)
 };
