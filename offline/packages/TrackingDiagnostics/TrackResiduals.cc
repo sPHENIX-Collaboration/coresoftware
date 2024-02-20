@@ -369,10 +369,16 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
   TrackFitUtils::position_vector_t xypoints, rzpoints;
   for (auto& pos : clusPos)
   {
-    xypoints.push_back(std::make_pair(pos.x(), pos.y()));
     float clusr = r(pos.x(), pos.y());
     if (pos.y() < 0) clusr *= -1;
+
+    // exclude silicon and tpot clusters for now
+    if(fabs(clusr) > 80 || fabs(clusr)<30)
+{
+  continue;
+}
     rzpoints.push_back(std::make_pair(pos.z(), clusr));
+    xypoints.push_back(std::make_pair(pos.x(), pos.y()));
   }
 
   auto xyparams = TrackFitUtils::line_fit(xypoints);
@@ -657,7 +663,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         auto geoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
         auto phi = geoLayer->get_phicenter(m_hitpad);
         auto radius = geoLayer->get_radius();
-        float AdcClockPeriod = 53.0;  // ns (?)
+        float AdcClockPeriod = geoLayer->get_zstep(); 
         double zdriftlength = m_hittbin * geometry->get_drift_velocity() * AdcClockPeriod;
         unsigned short NTBins = (unsigned short) geoLayer->get_zbins();
         double tdriftmax = AdcClockPeriod * NTBins / 2.0;
@@ -964,6 +970,8 @@ void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
 void TrackResiduals::createBranches()
 {
   m_hittree = new TTree("hittree", "A tree with all hits");
+  m_hittree->Branch("run",&m_runnumber,"m_runnumber/I");
+  m_hittree->Branch("segment",&m_segment,"m_segment/I");
   m_hittree->Branch("event", &m_event, "m_event/I");
   m_hittree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_hittree->Branch("trbco", &m_bcotr, "m_bcotr/l");
@@ -990,6 +998,8 @@ void TrackResiduals::createBranches()
   m_hittree->Branch("adc", &m_adc, "m_adc/F");
 
   m_clustree = new TTree("clustertree", "A tree with all clusters");
+  m_clustree->Branch("run",&m_runnumber,"m_runnumber/I");
+  m_clustree->Branch("segment",&m_segment,"m_segment/I");
   m_clustree->Branch("event", &m_event, "m_event/I");
   m_clustree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_clustree->Branch("trbco", &m_bcotr, "m_bcotr/l");
@@ -1020,6 +1030,8 @@ void TrackResiduals::createBranches()
   m_clustree->Branch("tile", &m_tileid, "m_tileid/I");
 
   m_tree = new TTree("residualtree", "A tree with track, cluster, and state info");
+  m_tree->Branch("run",&m_runnumber,"m_runnumber/I");
+  m_tree->Branch("segment",&m_segment,"m_segment/I");
   m_tree->Branch("event", &m_event, "m_event/I");
   m_tree->Branch("trackid", &m_trackid, "m_trackid/I");
   m_tree->Branch("gl1bco", &m_bco, "m_bco/l");

@@ -44,6 +44,9 @@ class TrackResiduals : public SubsysReco
   void clusterTree() { m_doClusters = true; }
   void hitTree() { m_doHits = true; }
   void zeroField() { m_zeroField = true; }
+  void runnumber(const int run){m_runnumber = run;}
+  void segment(const int seg){m_segment = seg;}
+
 
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
@@ -76,6 +79,8 @@ class TrackResiduals : public SubsysReco
   bool m_doAlignment = false;
 
   int m_event = 0;
+  int m_segment = std::numeric_limits<int>::quiet_NaN();
+  int m_runnumber = std::numeric_limits<int>::quiet_NaN();
   //! Track level quantities
   uint64_t m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
   uint64_t m_bcotr = std::numeric_limits<uint64_t>::quiet_NaN();
