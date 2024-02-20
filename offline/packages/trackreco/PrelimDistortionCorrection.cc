@@ -203,7 +203,7 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
   // These accumulate trackseeds as we loop over tracks, keylist is a vector of vectors of seed cluskeys
   // The seeds are all given to the fitter at once
     std::vector<std::vector<TrkrDefs::cluskey>> keylist;
-    PositionMap correctedOffsetTrackClusPositions;
+    PositionMap correctedOffsetTrackClusPositions;   //  this is an std::map<TrkrDefs::cluskey, Acts::Vector3>
 
   for(int track_it = 0; track_it != _track_map->size(); ++track_it )
   {

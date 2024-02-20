@@ -44,7 +44,8 @@ bool ALICEKF::checknan(double val, const std::string &name, int num) const
 
 double ALICEKF::get_Bz(double x, double y, double z) const
 {
-  if(_use_const_field) return _const_field;
+  //  if(_use_const_field) return _const_field;
+  if(_use_const_field || fabs(z)>105.5) return _const_field;
   double p[4] = {x*cm,y*cm,z*cm,0.*cm};
   double bfield[3];
   _B->GetFieldValue(p,bfield);
