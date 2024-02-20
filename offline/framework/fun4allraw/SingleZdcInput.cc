@@ -11,6 +11,8 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
+#include <limits>
+
 SingleZdcInput::SingleZdcInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman)
   : SinglePrdfInput(name, inman)
 {
@@ -307,7 +309,7 @@ int SingleZdcInput::majority_beamclock()
     }
   }
   int imax = -1;
-  int bclk = INT_MAX;
+  int bclk = std::numeric_limits<int>::max();
   for (auto iter : evtcnt)
   {
     if (iter.second > imax)

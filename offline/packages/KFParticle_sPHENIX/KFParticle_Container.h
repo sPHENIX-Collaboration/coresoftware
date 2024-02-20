@@ -5,6 +5,7 @@
 
 #include <cstddef>   // for size_t
 #include <iostream>  // for cout, ostream
+#include <iterator>
 #include <map>
 
 class KFParticle;
@@ -15,20 +16,23 @@ class KFParticle;
  * Container for KFParticle objects, based off SvtxTrackMap
  */
 
+// using ConstIter = Map::const_iterator;
+// typedef std::map<int, KFParticle*>::const_iterator ConstIter;
+
 class KFParticle_Container : public PHObject
 {
  public:
-  typedef std::map<unsigned int, KFParticle*> Map;
-  typedef std::map<unsigned int, KFParticle*>::const_iterator ConstIter;
-  typedef std::map<unsigned int, KFParticle*>::iterator Iter;
+  using Map = std::map<unsigned int, KFParticle*>;
+  using ConstIter = Map::const_iterator;
+  using Iter = Map::iterator;
 
   KFParticle_Container();
   KFParticle_Container(const KFParticle_Container& kfparticlemap);
   KFParticle_Container& operator=(const KFParticle_Container& kfparticlemap);
-  virtual ~KFParticle_Container();
+  ~KFParticle_Container() override;
 
   void identify(std::ostream& os = std::cout) const override;
-// cppcheck-suppress [virtualCallInConstructor]
+  // cppcheck-suppress [virtualCallInConstructor]
   void Reset() override;
   int isValid() const override { return 1; }
   PHObject* CloneMe() const override { return new KFParticle_Container(*this); }
@@ -53,7 +57,7 @@ class KFParticle_Container : public PHObject
   ConstIter addParticle(KFParticle* particle);
   ConstIter addParticleSpecifyKey(unsigned int key, KFParticle* particle);
 
-  ///Use the PDG MC ID to return a subset of the KFParticle container, if those particle exist in the container
+  /// Use the PDG MC ID to return a subset of the KFParticle container, if those particle exist in the container
   Map returnParticlesByPDGid(int PDGid);
 
   size_t erase(unsigned int key);
@@ -64,4 +68,4 @@ class KFParticle_Container : public PHObject
   ClassDefOverride(KFParticle_Container, 1)
 };
 
-#endif  //KFPARTICLESPHENIX_KFPARTICLECONTAINER_H
+#endif  // KFPARTICLESPHENIX_KFPARTICLECONTAINER_H

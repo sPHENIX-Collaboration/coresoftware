@@ -6,191 +6,244 @@
 
 #include <Event/packet.h>
 
-#include <utility>   // for pair
+#include <utility>  // for pair
 
 const std::map<int, int> InttNameSpace::Packet_Id =
-{
-	{3001, 0},
-	{3002, 1},
-	{3003, 2},
-	{3004, 3},
-	{3005, 4},
-	{3006, 5},
-	{3007, 6},
-	{3008, 7},
+    {
+        {3001, 0},
+        {3002, 1},
+        {3003, 2},
+        {3004, 3},
+        {3005, 4},
+        {3006, 5},
+        {3007, 6},
+        {3008, 7},
 };
 
 int InttNameSpace::FelixFromPacket(int packetid)
 {
-	packetid -= 3001;
+  packetid -= 3001;
 
-	if(packetid < 0)return 8;
-	if(packetid > 7)return 8;
+  if (packetid < 0)
+  {
+    return 8;
+  }
+  if (packetid > 7)
+  {
+    return 8;
+  }
 
-	return packetid;
+  return packetid;
 }
 
 struct InttNameSpace::RawData_s InttNameSpace::RawFromPacket(int const _i, int const _n, Packet* _p)
 {
-	struct RawData_s s;
+  struct RawData_s s;
 
-	if(!_p)return s;
+  if (!_p)
+  {
+    return s;
+  }
 
-	//s.felix_server = _i;
-	std::map<int, int>::const_iterator itr = Packet_Id.find(_i);
-	s.felix_server = itr != Packet_Id.end() ? itr->second : -1;
-	s.felix_channel = _p->iValue(_n, "FEE");
-	s.chip = (_p->iValue(_n, "CHIP_ID") + 25) % 26;
-	s.channel = _p->iValue(_n, "CHANNEL_ID");
+  // s.felix_server = _i;
+  std::map<int, int>::const_iterator itr = Packet_Id.find(_i);
+  s.felix_server = itr != Packet_Id.end() ? itr->second : -1;
+  s.felix_channel = _p->iValue(_n, "FEE");
+  s.chip = (_p->iValue(_n, "CHIP_ID") + 25) % 26;
+  s.channel = _p->iValue(_n, "CHANNEL_ID");
 
-	return s;
+  return s;
 }
 
 void InttNameSpace::RawFromHit(struct InttNameSpace::RawData_s& s, InttRawHit* h)
 {
-	s.felix_server = InttNameSpace::FelixFromPacket(h->get_packetid());
-	s.felix_channel = h->get_fee();
-	s.chip = (h->get_chip_id() + 25) % 26;
-	s.channel = h->get_channel_id();
+  s.felix_server = InttNameSpace::FelixFromPacket(h->get_packetid());
+  s.felix_channel = h->get_fee();
+  s.chip = (h->get_chip_id() + 25) % 26;
+  s.channel = h->get_channel_id();
 }
 
 struct InttNameSpace::Online_s InttNameSpace::ToOnline(struct Offline_s const& _s)
 {
-	struct Online_s s;
-	int n_ldr = _s.layer < 5 ? 12 : 16;
+  struct Online_s s;
+  int n_ldr = _s.layer < 5 ? 12 : 16;
 
-	s.lyr = _s.layer - 3;
-	s.ldr = (7 * n_ldr / 4 - _s.ladder_phi + (_s.layer % 2 ? n_ldr - 1 : 0)) % n_ldr;
+  s.lyr = _s.layer - 3;
+  // s.ldr = (7 * n_ldr / 4 - _s.ladder_phi + (_s.layer % 2 ? n_ldr - 1 : 0)) % n_ldr;
+  s.ldr = (7 * n_ldr / 4 - _s.ladder_phi) % n_ldr;
 
-	s.arm = _s.ladder_z / 2;
-	switch(_s.ladder_z)
-	{
-		case 1:
-		s.chp = _s.strip_y + 13 * (_s.strip_x < 128);
-		break;
+  s.arm = _s.ladder_z / 2;
+  switch (_s.ladder_z)
+  {
+  case 1:
+    s.chp = _s.strip_y + 13 * (_s.strip_x < 128);
+    break;
 
-		case 0:
-		s.chp = _s.strip_y + 13 * (_s.strip_x < 128) + 5;
-		break;
+  case 0:
+    s.chp = _s.strip_y + 13 * (_s.strip_x < 128) + 5;
+    break;
 
-		case 2:
-		s.chp = 12 - _s.strip_y + 13 * !(_s.strip_x < 128);
-		break;
+  case 2:
+    s.chp = 12 - _s.strip_y + 13 * !(_s.strip_x < 128);
+    break;
 
-		case 3:
-		s.chp = 4 - _s.strip_y + 13 * !(_s.strip_x < 128);
-		break;
+  case 3:
+    s.chp = 4 - _s.strip_y + 13 * !(_s.strip_x < 128);
+    break;
 
-		default:
-		break;
-	}
+  default:
+    break;
+  }
 
-	s.chn = (_s.strip_x < 128) ? _s.strip_x : 255 - _s.strip_x;
+  s.chn = (_s.strip_x < 128) ? _s.strip_x : 255 - _s.strip_x;
 
-	return s;
+  return s;
 }
 
 struct InttNameSpace::Offline_s InttNameSpace::ToOffline(struct Online_s const& _s)
 {
-	struct Offline_s s;
-	int n_ldr = _s.lyr < 2 ? 12 : 16;
+  struct Offline_s s;
+  int n_ldr = _s.lyr < 2 ? 12 : 16;
 
-	s.layer = _s.lyr + 3;
-	s.ladder_phi = (7 * n_ldr / 4 - _s.ldr + (_s.lyr % 2 ? 0 : n_ldr - 1)) % n_ldr;
+  s.layer = _s.lyr + 3;
+  //--s.ladder_phi = (7 * n_ldr / 4 - _s.ldr + (_s.lyr % 2 ? 0 : n_ldr - 1)) % n_ldr;
+  s.ladder_phi = (7 * n_ldr / 4 - _s.ldr) % n_ldr;
 
-	s.ladder_z = 2 * _s.arm + (_s.chp % 13 < 5);
-	switch(s.ladder_z)
-	{
-		case 1:
-		s.strip_y = _s.chp % 13;
-		break;
+  s.ladder_z = 2 * _s.arm + (_s.chp % 13 < 5);
+  switch (s.ladder_z)
+  {
+  case 1:
+    s.strip_y = _s.chp % 13;
+    break;
 
-		case 0:
-		s.strip_y = _s.chp % 13 - 5;
-		break;
+  case 0:
+    s.strip_y = _s.chp % 13 - 5;
+    break;
 
-		case 2:
-		s.strip_y = 12 - (_s.chp % 13);
-		break;
+  case 2:
+    s.strip_y = 12 - (_s.chp % 13);
+    break;
 
-		case 3:
-		s.strip_y = 4 - (_s.chp % 13);
-		break;
+  case 3:
+    s.strip_y = 4 - (_s.chp % 13);
+    break;
 
-		default:
-		break;
-	}
+  default:
+    break;
+  }
 
-	s.strip_x = (_s.arm == (_s.chp / 13)) ? 255 - _s.chn : _s.chn;
+  s.strip_x = (_s.arm == (_s.chp / 13)) ? 255 - _s.chn : _s.chn;
 
-	return s;
+  return s;
 }
 
 struct InttNameSpace::RawData_s InttNameSpace::ToRawData(struct Online_s const& _s)
 {
-	struct RawData_s s;
+  struct RawData_s s;
 
-	InttFelix::OnlineToRawData(_s, s);
-	s.chip = _s.chp;
-	s.channel = _s.chn;
+  InttFelix::OnlineToRawData(_s, s);
+  s.chip = _s.chp;
+  s.channel = _s.chn;
 
-	return s;
+  return s;
 }
 
 struct InttNameSpace::Online_s InttNameSpace::ToOnline(struct RawData_s const& _s)
 {
-	struct Online_s s;
+  struct Online_s s;
 
-	InttFelix::RawDataToOnline(_s, s);
-	s.chp = _s.chip;
-	s.chn = _s.channel;
+  InttFelix::RawDataToOnline(_s, s);
+  s.chp = _s.chip;
+  s.chn = _s.channel;
 
-	return s;
+  return s;
 }
 
 struct InttNameSpace::RawData_s InttNameSpace::ToRawData(struct Offline_s const& _s)
 {
-	return ToRawData(ToOnline(_s));
+  return ToRawData(ToOnline(_s));
 }
 
 struct InttNameSpace::Offline_s InttNameSpace::ToOffline(struct RawData_s const& _s)
 {
-	return ToOffline(ToOnline(_s));
+  return ToOffline(ToOnline(_s));
 }
 
 bool InttNameSpace::RawDataComparator::operator()(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs) const
 {
-	if(lhs.felix_server != rhs.felix_server)return lhs.felix_server < rhs.felix_server;
-	if(lhs.felix_channel != rhs.felix_channel)return lhs.felix_channel < rhs.felix_channel;
-	if(lhs.chip != rhs.chip)return lhs.chip < rhs.chip;
-	if(lhs.channel != rhs.channel)return lhs.channel < rhs.channel;
+  if (lhs.felix_server != rhs.felix_server)
+  {
+    return lhs.felix_server < rhs.felix_server;
+  }
+  if (lhs.felix_channel != rhs.felix_channel)
+  {
+    return lhs.felix_channel < rhs.felix_channel;
+  }
+  if (lhs.chip != rhs.chip)
+  {
+    return lhs.chip < rhs.chip;
+  }
+  if (lhs.channel != rhs.channel)
+  {
+    return lhs.channel < rhs.channel;
+  }
 
-	return false;
+  return false;
 }
 
 bool InttNameSpace::OnlineComparator::operator()(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs) const
 {
-	if(lhs.lyr != rhs.lyr)return lhs.lyr < rhs.lyr;
-	if(lhs.ldr != rhs.ldr)return lhs.ldr < rhs.ldr;
-	if(lhs.arm != rhs.arm)return lhs.arm < rhs.arm;
-	if(lhs.chp != rhs.chp)return lhs.chp < rhs.chp;
-	if(lhs.chn != rhs.chn)return lhs.chn < rhs.chn;
+  if (lhs.lyr != rhs.lyr)
+  {
+    return lhs.lyr < rhs.lyr;
+  }
+  if (lhs.ldr != rhs.ldr)
+  {
+    return lhs.ldr < rhs.ldr;
+  }
+  if (lhs.arm != rhs.arm)
+  {
+    return lhs.arm < rhs.arm;
+  }
+  if (lhs.chp != rhs.chp)
+  {
+    return lhs.chp < rhs.chp;
+  }
+  if (lhs.chn != rhs.chn)
+  {
+    return lhs.chn < rhs.chn;
+  }
 
-	return false;
+  return false;
 }
 
 bool InttNameSpace::OfflineComparator::operator()(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs) const
 {
-	if(lhs.layer != rhs.layer)return lhs.layer < rhs.layer;
-	if(lhs.ladder_phi != rhs.ladder_phi)return lhs.ladder_phi < rhs.ladder_phi;
-	if(lhs.ladder_z != rhs.ladder_z)return lhs.ladder_z < rhs.ladder_z;
-	if(lhs.strip_x != rhs.strip_x)return lhs.strip_x < rhs.strip_x;
-	if(lhs.strip_y != rhs.strip_y)return lhs.strip_y < rhs.strip_y;
+  if (lhs.layer != rhs.layer)
+  {
+    return lhs.layer < rhs.layer;
+  }
+  if (lhs.ladder_phi != rhs.ladder_phi)
+  {
+    return lhs.ladder_phi < rhs.ladder_phi;
+  }
+  if (lhs.ladder_z != rhs.ladder_z)
+  {
+    return lhs.ladder_z < rhs.ladder_z;
+  }
+  if (lhs.strip_x != rhs.strip_x)
+  {
+    return lhs.strip_x < rhs.strip_x;
+  }
+  if (lhs.strip_y != rhs.strip_y)
+  {
+    return lhs.strip_y < rhs.strip_y;
+  }
 
-	return false;
+  return false;
 }
 
-//Eigen::Affine3d InttNameSpace::GetTransform(TTree* tree, struct InttNameSpace::Offline_s const& _s)
+// Eigen::Affine3d InttNameSpace::GetTransform(TTree* tree, struct InttNameSpace::Offline_s const& _s)
 //{
 //	Eigen::Affine3d t;
 //
@@ -241,13 +294,13 @@ bool InttNameSpace::OfflineComparator::operator()(struct InttNameSpace::Offline_
 //	std::cout << "entry:     " << i << std::endl;
 //
 //	return t;
-//}
+// }
 //
-//Eigen::Vector4d InttNameSpace::GetLocalPos(struct InttNameSpace::Offline_s const& _s)
+// Eigen::Vector4d InttNameSpace::GetLocalPos(struct InttNameSpace::Offline_s const& _s)
 //{
 //	Eigen::Vector4d u = {0.0, 0.0, 0.0, 1.0};
 //
-//	//strip_y corresponds to z in local frame of sensor	
+//	//strip_y corresponds to z in local frame of sensor
 //	u(2) = (2.0 * _s.strip_y + 1.0) / ((_s.ladder_z % 2) ? 10.0 : 16.0) - 0.5;
 //	u(2) *= (_s.ladder_z % 2) ? 100.0 : 128.0;
 //
@@ -259,128 +312,212 @@ bool InttNameSpace::OfflineComparator::operator()(struct InttNameSpace::Offline_
 //	u(1) = 0.0;
 //
 //	return u;
-//}
+// }
 
 bool operator==(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs)
 {
-	if(lhs.felix_server != rhs.felix_server)return false;
-	if(lhs.felix_channel != rhs.felix_channel)return false;
-	if(lhs.chip != rhs.chip)return false;
-	if(lhs.channel != rhs.channel)return false;
+  if (lhs.felix_server != rhs.felix_server)
+  {
+    return false;
+  }
+  if (lhs.felix_channel != rhs.felix_channel)
+  {
+    return false;
+  }
+  if (lhs.chip != rhs.chip)
+  {
+    return false;
+  }
+  if (lhs.channel != rhs.channel)
+  {
+    return false;
+  }
 
-	return true;
+  return true;
 }
 
 bool operator==(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs)
 {
-	if(lhs.lyr != rhs.lyr)return false;
-	if(lhs.ldr != rhs.ldr)return false;
-	if(lhs.arm != rhs.arm)return false;
-	if(lhs.chp != rhs.chp)return false;
-	if(lhs.chn != rhs.chn)return false;
+  if (lhs.lyr != rhs.lyr)
+  {
+    return false;
+  }
+  if (lhs.ldr != rhs.ldr)
+  {
+    return false;
+  }
+  if (lhs.arm != rhs.arm)
+  {
+    return false;
+  }
+  if (lhs.chp != rhs.chp)
+  {
+    return false;
+  }
+  if (lhs.chn != rhs.chn)
+  {
+    return false;
+  }
 
-	return true;
+  return true;
 }
 
 bool operator==(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs)
 {
-	if(lhs.layer != rhs.layer)return false;
-	if(lhs.ladder_phi != rhs.ladder_phi)return false;
-	if(lhs.ladder_z != rhs.ladder_z)return false;
-	if(lhs.strip_x != rhs.strip_x)return false;
-	if(lhs.strip_y != rhs.strip_y)return false;
+  if (lhs.layer != rhs.layer)
+  {
+    return false;
+  }
+  if (lhs.ladder_phi != rhs.ladder_phi)
+  {
+    return false;
+  }
+  if (lhs.ladder_z != rhs.ladder_z)
+  {
+    return false;
+  }
+  if (lhs.strip_x != rhs.strip_x)
+  {
+    return false;
+  }
+  if (lhs.strip_y != rhs.strip_y)
+  {
+    return false;
+  }
 
-	return true;
+  return true;
 }
 
 bool operator!=(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs)
 {
-	return !(lhs == rhs);
+  return !(lhs == rhs);
 }
 
 bool operator!=(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs)
 {
-	return !(lhs == rhs);
+  return !(lhs == rhs);
 }
 
 bool operator!=(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs)
 {
-	return !(lhs == rhs);
+  return !(lhs == rhs);
 }
 
 bool operator<(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs)
 {
-	if(lhs.felix_server != rhs.felix_server)return lhs.felix_server < rhs.felix_server;
-	if(lhs.felix_channel != rhs.felix_channel)return lhs.felix_channel < rhs.felix_channel;
-	if(lhs.chip != rhs.chip)return lhs.chip < rhs.chip;
-	if(lhs.channel != rhs.channel)return lhs.channel < rhs.channel;
+  if (lhs.felix_server != rhs.felix_server)
+  {
+    return lhs.felix_server < rhs.felix_server;
+  }
+  if (lhs.felix_channel != rhs.felix_channel)
+  {
+    return lhs.felix_channel < rhs.felix_channel;
+  }
+  if (lhs.chip != rhs.chip)
+  {
+    return lhs.chip < rhs.chip;
+  }
+  if (lhs.channel != rhs.channel)
+  {
+    return lhs.channel < rhs.channel;
+  }
 
-	return false;
+  return false;
 }
 
 bool operator<(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs)
 {
-	if(lhs.lyr != rhs.lyr)return lhs.lyr < rhs.lyr;
-	if(lhs.ldr != rhs.ldr)return lhs.ldr < rhs.ldr;
-	if(lhs.arm != rhs.arm)return lhs.arm < rhs.arm;
-	if(lhs.chp != rhs.chp)return lhs.chp < rhs.chp;
-	if(lhs.chn != rhs.chn)return lhs.chn < rhs.chn;
+  if (lhs.lyr != rhs.lyr)
+  {
+    return lhs.lyr < rhs.lyr;
+  }
+  if (lhs.ldr != rhs.ldr)
+  {
+    return lhs.ldr < rhs.ldr;
+  }
+  if (lhs.arm != rhs.arm)
+  {
+    return lhs.arm < rhs.arm;
+  }
+  if (lhs.chp != rhs.chp)
+  {
+    return lhs.chp < rhs.chp;
+  }
+  if (lhs.chn != rhs.chn)
+  {
+    return lhs.chn < rhs.chn;
+  }
 
-	return false;
+  return false;
 }
 
 bool operator<(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs)
 {
-	if(lhs.layer != rhs.layer)return lhs.layer < rhs.layer;
-	if(lhs.ladder_phi != rhs.ladder_phi)return lhs.ladder_phi < rhs.ladder_phi;
-	if(lhs.ladder_z != rhs.ladder_z)return lhs.ladder_z < rhs.ladder_z;
-	if(lhs.strip_x != rhs.strip_x)return lhs.strip_x < rhs.strip_x;
-	if(lhs.strip_y != rhs.strip_y)return lhs.strip_y < rhs.strip_y;
+  if (lhs.layer != rhs.layer)
+  {
+    return lhs.layer < rhs.layer;
+  }
+  if (lhs.ladder_phi != rhs.ladder_phi)
+  {
+    return lhs.ladder_phi < rhs.ladder_phi;
+  }
+  if (lhs.ladder_z != rhs.ladder_z)
+  {
+    return lhs.ladder_z < rhs.ladder_z;
+  }
+  if (lhs.strip_x != rhs.strip_x)
+  {
+    return lhs.strip_x < rhs.strip_x;
+  }
+  if (lhs.strip_y != rhs.strip_y)
+  {
+    return lhs.strip_y < rhs.strip_y;
+  }
 
-	return false;
+  return false;
 }
 
 bool operator>(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs)
 {
-	return rhs < lhs;
+  return rhs < lhs;
 }
 
 bool operator>(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs)
 {
-	return rhs < lhs;
+  return rhs < lhs;
 }
 
 bool operator>(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs)
 {
-	return rhs < lhs;
+  return rhs < lhs;
 }
 
 bool operator>=(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs)
 {
-	return !(lhs < rhs);
+  return !(lhs < rhs);
 }
 
 bool operator>=(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs)
 {
-	return !(lhs < rhs);
+  return !(lhs < rhs);
 }
 
 bool operator>=(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs)
 {
-	return !(lhs < rhs);
+  return !(lhs < rhs);
 }
 
 bool operator<=(struct InttNameSpace::RawData_s const& lhs, struct InttNameSpace::RawData_s const& rhs)
 {
-	return !(lhs > rhs);
+  return !(lhs > rhs);
 }
 
 bool operator<=(struct InttNameSpace::Online_s const& lhs, struct InttNameSpace::Online_s const& rhs)
 {
-	return !(lhs > rhs);
+  return !(lhs > rhs);
 }
 
 bool operator<=(struct InttNameSpace::Offline_s const& lhs, struct InttNameSpace::Offline_s const& rhs)
 {
-	return !(lhs > rhs);
+  return !(lhs > rhs);
 }

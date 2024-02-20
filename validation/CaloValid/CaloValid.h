@@ -106,6 +106,9 @@ class CaloValid : public SubsysReco
   TH1* hzdcNorthraw{nullptr};
   TH1* hzdcSouthcalib{nullptr};
   TH1* hzdcNorthcalib{nullptr};
+  TH1* h_ihcal_status{nullptr};
+  TH1* h_ohcal_status{nullptr};
+  TH1* h_cemc_status{nullptr};
 
   TH1F* h_clusE{nullptr};
   TH2F* h_etaphi_clus{nullptr};

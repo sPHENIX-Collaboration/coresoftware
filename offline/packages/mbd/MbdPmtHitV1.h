@@ -3,13 +3,13 @@
 
 #include "MbdPmtHit.h"
 
+#include <cmath>
 #include <iostream>
 #include <limits>
-#include <cmath>
 
 class MbdPmtHitV1 : public MbdPmtHit
 {
-public:
+ public:
   MbdPmtHitV1() {}
   ~MbdPmtHitV1() override = default;
 
@@ -32,7 +32,8 @@ public:
   //! Time from charge channel
   Float_t get_tq() const override { return btq; }
 
-  void set_pmt(const Short_t pmt, const Float_t q, const Float_t tt, const Float_t tq) override {
+  void set_pmt(const Short_t pmt, const Float_t q, const Float_t tt, const Float_t tq) override
+  {
     bpmt = pmt;
     bq = q;
     btt = tt;
@@ -43,13 +44,17 @@ public:
   void identify(std::ostream& os = std::cout) const override;
 
   //! isValid returns non zero if object contains valid data
-  virtual int isValid() const override { if ( std::isnan( get_time() ) ) return 0; return 1; }
+  virtual int isValid() const override
+  {
+    if (std::isnan(get_time())) return 0;
+    return 1;
+  }
 
-private:
-  Short_t bpmt { -1 };
-  Float_t bq   { std::numeric_limits<float>::quiet_NaN() };
-  Float_t btt  { std::numeric_limits<float>::quiet_NaN() };
-  Float_t btq  { std::numeric_limits<float>::quiet_NaN() };
+ private:
+  Short_t bpmt{-1};
+  Float_t bq{std::numeric_limits<float>::quiet_NaN()};
+  Float_t btt{std::numeric_limits<float>::quiet_NaN()};
+  Float_t btq{std::numeric_limits<float>::quiet_NaN()};
 
   ClassDefOverride(MbdPmtHitV1, 1)
 };

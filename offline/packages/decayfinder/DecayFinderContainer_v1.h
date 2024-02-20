@@ -3,18 +3,18 @@
 
 #include "DecayFinderContainerBase.h"
 
-#include <cstddef>        // for size_t
-#include <iostream>        // for cout, ostream
+#include <cstddef>   // for size_t
+#include <iostream>  // for cout, ostream
 
 /**
  * @brief DecayFinder container object
  *
- * Container for DecayFinder objects, based off KFParticle_Container 
+ * Container for DecayFinder objects, based off KFParticle_Container
  */
 
 class PHObject;
 
-class DecayFinderContainer_v1 : public DecayFinderContainerBase 
+class DecayFinderContainer_v1 : public DecayFinderContainerBase
 {
  public:
   DecayFinderContainer_v1();
@@ -44,17 +44,17 @@ class DecayFinderContainer_v1 : public DecayFinderContainerBase
   Iter find(unsigned int key) override { return m_decaymap.find(key); }
   Iter end() override { return m_decaymap.end(); }
 
-  Decay insert(const Decay decay) override;
+  Decay insert(const Decay& decay) override;
 
-  //Use the PDG MC ID to return a subset of the DecayFinder container, if those particle exist in the container
+  // Use the PDG MC ID to return a subset of the DecayFinder container, if those particle exist in the container
   Map returnDecaysByPDGid(int PDGid) override;
-  
+
   size_t erase(unsigned int key) override;
- 
+
  private:
   Map m_decaymap;
 
   ClassDefOverride(DecayFinderContainer_v1, 1);
 };
 
-#endif  //DECAYFINDER_DECAYFINDERCONTAINERV1_H
+#endif  // DECAYFINDER_DECAYFINDERCONTAINERV1_H

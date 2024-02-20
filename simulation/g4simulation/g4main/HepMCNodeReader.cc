@@ -329,7 +329,8 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
           if (sqrt(xpos * xpos + ypos * ypos) > worldsizey / 2 ||
               fabs(zpos) > worldsizez / 2)
           {
-            cout << "vertex x/y/z" << xpos << "/" << ypos << "/" << zpos
+            cout << "vertex x/y/z " << xpos << "/" << ypos << "/" << zpos
+		 << " id: " << (*v)->barcode()
                  << " outside world volume radius/z (+-) " << worldsizex / 2
                  << "/" << worldsizez / 2 << ", dropping it and its particles"
                  << endl;

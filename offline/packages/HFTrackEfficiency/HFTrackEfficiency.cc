@@ -17,9 +17,7 @@ HFTrackEfficiency::HFTrackEfficiency(const std::string &name)
 }
 
 //____________________________________________________________________________..
-HFTrackEfficiency::~HFTrackEfficiency()
-{
-}
+HFTrackEfficiency::~HFTrackEfficiency() = default;
 
 //____________________________________________________________________________..
 int HFTrackEfficiency::Init(PHCompositeNode *topNode)
@@ -79,18 +77,26 @@ int HFTrackEfficiency::process_event(PHCompositeNode *topNode)
   m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!m_truthInfo)
   {
-    if (Verbosity() >= VERBOSITY_MORE) std::cout << __FILE__ << ": Missing node G4TruthInfo" << std::endl;
+    if (Verbosity() >= VERBOSITY_MORE)
+    {
+      std::cout << __FILE__ << ": Missing node G4TruthInfo" << std::endl;
+    }
   }
 
   m_dst_truth_reco_map = findNode::getClass<PHG4ParticleSvtxMap_v1>(topNode, "PHG4ParticleSvtxMap");
   if (m_dst_truth_reco_map)
   {
-    if (Verbosity() >= VERBOSITY_MORE) std::cout << __FILE__ << ": PHG4ParticleSvtxMap found, truth matching will be more accurate" << std::endl;
-    
+    if (Verbosity() >= VERBOSITY_MORE)
+    {
+      std::cout << __FILE__ << ": PHG4ParticleSvtxMap found, truth matching will be more accurate" << std::endl;
+    }
   }
   else
   {
-    if (Verbosity() >= VERBOSITY_MORE) std::cout << __FILE__ << ": PHG4ParticleSvtxMap not found, reverting to true matching by momentum relations. Truth matching will be less accurate" << std::endl;
+    if (Verbosity() >= VERBOSITY_MORE)
+    {
+      std::cout << __FILE__ << ": PHG4ParticleSvtxMap not found, reverting to true matching by momentum relations. Truth matching will be less accurate" << std::endl;
+    }
   }
 
   if (m_decay_descriptor.empty() && !m_decayMap->empty())
@@ -100,9 +106,9 @@ int HFTrackEfficiency::process_event(PHCompositeNode *topNode)
   }
 
   bool reconstructableDecay = false;
-  for (DecayFinderContainer_v1::Iter iter = m_decayMap->begin(); iter != m_decayMap->end(); ++iter)
+  for (auto &iter : *m_decayMap)
   {
-    Decay decay = iter->second;
+    Decay decay = iter.second;
     ++m_counter_allDecays;
 
     m_all_tracks_reconstructed = findTracks(topNode, decay);
@@ -114,7 +120,10 @@ int HFTrackEfficiency::process_event(PHCompositeNode *topNode)
 
     if (m_write_nTuple)
     {
-      if (m_counter_allDecays == 1) initializeBranches();
+      if (m_counter_allDecays == 1)
+      {
+        initializeBranches();
+      }
       m_tree->Fill();
       resetBranches();
     }
@@ -122,7 +131,10 @@ int HFTrackEfficiency::process_event(PHCompositeNode *topNode)
 
   if (m_triggerOnDecay && !reconstructableDecay)
   {
-    if (Verbosity() >= VERBOSITY_MORE) std::cout << "No decays were reconstructable in this event, skipping" << std::endl;
+    if (Verbosity() >= VERBOSITY_MORE)
+    {
+      std::cout << "No decays were reconstructable in this event, skipping" << std::endl;
+    }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   else
@@ -148,9 +160,8 @@ int HFTrackEfficiency::End(PHCompositeNode * /*topNode*/)
 bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
 {
   int trackableParticles[] = {11, 13, 211, 321, 2212};
-  unsigned int nTracksMatched = 0;
   bool recoTrackFound = false;
-  std::vector<SvtxTrack *> selectedTracks;
+  std::set<SvtxTrack *> selectedTracks;
 
   CLHEP::HepLorentzVector motherRecoLV;
   CLHEP::HepLorentzVector daughterSumTrueLV;
@@ -166,12 +177,13 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
     theEvent = m_genevt->getEvent();
     HepMC::GenParticle *mother = theEvent->barcode_to_particle(decay[0].first.second);
     assert(mother);
-    if (Verbosity() >= VERBOSITY_MORE) mother->print();
+    if (Verbosity() >= VERBOSITY_MORE)
+    {
+      mother->print();
+    }
 
     m_true_mother_pT = mother->momentum().perp();
-    m_true_mother_p = std::sqrt(std::pow(mother->momentum().px(), 2)
-                              + std::pow(mother->momentum().py(), 2)
-                              + std::pow(mother->momentum().pz(), 2)); //Must have an old HepMC build, no mag function
+    m_true_mother_p = std::sqrt(std::pow(mother->momentum().px(), 2) + std::pow(mother->momentum().py(), 2) + std::pow(mother->momentum().pz(), 2));  // Must have an old HepMC build, no mag function
     m_true_mother_eta = mother->momentum().eta();
 
     HepMC::GenVertex *thisVtx = mother->production_vertex();
@@ -182,7 +194,7 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
 
   for (unsigned int i = 1; i < decay.size(); ++i)
   {
-    m_dst_track = NULL;
+    m_dst_track = nullptr;
     int truth_ID = -1;
     if (std::find(std::begin(trackableParticles), std::end(trackableParticles),
                   std::abs(decay[i].second)) != std::end(trackableParticles))
@@ -190,20 +202,23 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
       if (theEvent && decay[i].first.second > -1)
       {
         HepMC::GenParticle *daughterHepMC = theEvent->barcode_to_particle(decay[i].first.second);
-        if (Verbosity() >= VERBOSITY_MORE) daughterHepMC->print();
+        if (Verbosity() >= VERBOSITY_MORE)
+        {
+          daughterHepMC->print();
+        }
 
         daughterTrueLV->setVectM(CLHEP::Hep3Vector(daughterHepMC->momentum().px(), daughterHepMC->momentum().py(), daughterHepMC->momentum().pz()), getParticleMass(decay[i].second));
         daughterSumTrueLV += *daughterTrueLV;
 
         m_true_track_PID[i - 1] = daughterHepMC->pdg_id();
 
-        //Now get the decay vertex position
+        // Now get the decay vertex position
         HepMC::GenVertex *thisVtx = daughterHepMC->production_vertex();
         m_secondary_vtx_x = thisVtx->point3d().x();
         m_secondary_vtx_y = thisVtx->point3d().y();
         m_secondary_vtx_z = thisVtx->point3d().z();
 
-        //We need the G4 ID, not the HepMC ID to use the truth/reco map
+        // We need the G4 ID, not the HepMC ID to use the truth/reco map
         if (m_dst_truth_reco_map)
         {
           PHG4TruthInfoContainer::ConstRange range = m_truthInfo->GetParticleRange();
@@ -232,13 +247,20 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
 
           PHG4Particle *motherG4 = nullptr;
           if (daughterG4->get_parent_id() != 0)
+          {
             motherG4 = m_truthInfo->GetParticle(daughterG4->get_parent_id());
+          }
           else
+          {
             continue;
+          }
 
           if (motherG4->get_pid() == decay[0].second && motherG4->get_barcode() == decay[0].first.second && daughterG4->get_pid() == decay[i].second && daughterG4->get_barcode() == decay[i].first.second)
           {
-            if (Verbosity() >= VERBOSITY_MORE) daughterG4->identify();
+            if (Verbosity() >= VERBOSITY_MORE)
+            {
+              daughterG4->identify();
+            }
 
             CLHEP::Hep3Vector *mother3Vector = new CLHEP::Hep3Vector(motherG4->get_px(), motherG4->get_py(), motherG4->get_pz());
             motherTrueLV->setVectM((*mother3Vector), getParticleMass(decay[0].second));
@@ -254,7 +276,7 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
             daughterTrueLV->setVectM(CLHEP::Hep3Vector(daughterG4->get_px(), daughterG4->get_py(), daughterG4->get_pz()), getParticleMass(decay[i].second));
             daughterSumTrueLV += *daughterTrueLV;
 
-            //Now get the decay vertex position
+            // Now get the decay vertex position
             thisVtx = m_truthInfo->GetVtx(daughterG4->get_vtx_id());
             m_secondary_vtx_x = thisVtx->get_x();
             m_secondary_vtx_y = thisVtx->get_y();
@@ -263,7 +285,7 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
             m_true_track_PID[i - 1] = daughterG4->get_pid();
             truth_ID = daughterG4->get_track_id();
 
-	    delete mother3Vector;
+            delete mother3Vector;
           }
         }
       }
@@ -272,16 +294,22 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
       m_true_track_eta[i - 1] = (float) daughterTrueLV->pseudoRapidity();
       m_min_true_track_pT = std::min(m_true_track_pT[i - 1], m_min_true_track_pT);
       m_max_true_track_pT = std::max(m_true_track_pT[i - 1], m_max_true_track_pT);
-      
+
       if (m_dst_truth_reco_map && truth_ID >= 0)
       {
         std::map<float, std::set<unsigned int>> reco_set = m_dst_truth_reco_map->get(truth_ID);
-        if (reco_set.size() == 0) continue;
-        const auto& best_weight = reco_set.rbegin();
-        if (best_weight->second.size() == 0) continue;
-        unsigned int  best_reco_id = *best_weight->second.rbegin();
-        m_dst_track = m_input_trackMap->get(best_reco_id);        
-        if (m_dst_track) 
+        if (reco_set.size() == 0)
+        {
+          continue;
+        }
+        const auto &best_weight = reco_set.rbegin();
+        if (best_weight->second.size() == 0)
+        {
+          continue;
+        }
+        unsigned int best_reco_id = *best_weight->second.rbegin();
+        m_dst_track = m_input_trackMap->get(best_reco_id);
+        if (m_dst_track)
         {
           m_used_truth_reco_map[i - 1] = true;
           recoTrackFound = true;
@@ -289,9 +317,9 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
       }
       else
       {
-        for (SvtxTrackMap::Iter iter = m_input_trackMap->begin(); iter != m_input_trackMap->end(); ++iter)
+        for (auto &iter : *m_input_trackMap)
         {
-          m_dst_track = iter->second;
+          m_dst_track = iter.second;
           float delta_px = (m_dst_track->get_px() - daughterTrueLV->px()) / daughterTrueLV->px();
           float delta_py = (m_dst_track->get_py() - daughterTrueLV->py()) / daughterTrueLV->py();
           float delta_pz = (m_dst_track->get_pz() - daughterTrueLV->pz()) / daughterTrueLV->pz();
@@ -300,15 +328,17 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
           {
             recoTrackFound = true;
             break;
-          } 
+          }
         }
       }
-     
+
       if (recoTrackFound)
       {
-        ++nTracksMatched;
-        selectedTracks.push_back(m_dst_track);
-        if (Verbosity() >= VERBOSITY_MORE) m_dst_track->identify();
+        selectedTracks.insert(m_dst_track);
+        if (Verbosity() >= VERBOSITY_MORE)
+        {
+          m_dst_track->identify();
+        }
         m_reco_track_exists[i - 1] = true;
         m_reco_track_pT[i - 1] = m_dst_track->get_pt();
         m_reco_track_eta[i - 1] = m_dst_track->get_eta();
@@ -333,13 +363,12 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
       }
 
       recoTrackFound = false;
-
     }
   }
 
   m_true_mother_mass = daughterSumTrueLV.m();
   bool foundDecay = true;
-  if (nTracksMatched == m_nDaughters)
+  if (selectedTracks.size() == m_nDaughters)
   {
     m_reco_mother_mass = motherRecoLV.m();
     if (m_write_track_map)
@@ -397,12 +426,12 @@ void HFTrackEfficiency::initializeBranches()
     m_tree->Branch("reco_" + TString(daughter_number) + "_tpc_seeds", &m_reco_track_tpc_seeds[iTrack], "reco_" + TString(daughter_number) + "_tpc_seeds/I");
   }
 
-    m_tree->Branch("true_primary_vertex_x",  &m_primary_vtx_x, "true_primary_vertex_x/F"); 
-    m_tree->Branch("true_primary_vertex_y",  &m_primary_vtx_y, "true_primary_vertex_y/F"); 
-    m_tree->Branch("true_primary_vertex_z",  &m_primary_vtx_z, "true_primary_vertex_z/F"); 
-    m_tree->Branch("true_secondary_vertex_x",  &m_secondary_vtx_x, "true_secondary_vertex_x/F"); 
-    m_tree->Branch("true_secondary_vertex_y",  &m_secondary_vtx_y, "true_secondary_vertex_y/F"); 
-    m_tree->Branch("true_secondary_vertex_z",  &m_secondary_vtx_z, "true_secondary_vertex_z/F"); 
+  m_tree->Branch("true_primary_vertex_x", &m_primary_vtx_x, "true_primary_vertex_x/F");
+  m_tree->Branch("true_primary_vertex_y", &m_primary_vtx_y, "true_primary_vertex_y/F");
+  m_tree->Branch("true_primary_vertex_z", &m_primary_vtx_z, "true_primary_vertex_z/F");
+  m_tree->Branch("true_secondary_vertex_x", &m_secondary_vtx_x, "true_secondary_vertex_x/F");
+  m_tree->Branch("true_secondary_vertex_y", &m_secondary_vtx_y, "true_secondary_vertex_y/F");
+  m_tree->Branch("true_secondary_vertex_z", &m_secondary_vtx_z, "true_secondary_vertex_z/F");
 }
 
 void HFTrackEfficiency::resetBranches()

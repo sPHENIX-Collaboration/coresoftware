@@ -561,13 +561,11 @@ if (defined $prodtype)
     {
 	if (defined $nopileup)
 	{
-	    $filenamestring = sprintf("epos");
+	    $filenamestring = sprintf("epos_0_153fm");
 	}
 	else
 	{
-	    print "pileup not implemented for epos\n";
-	    die;
-#	    $filenamestring = sprintf("sHijing_pAu_0_10fm_%s_bkg_0_10fm",$pAu_pileupstring);
+	    $filenamestring = sprintf("epos_0_153fm_%s_bkg_0_153fm",$AuAu_pileupstring);
 	}
         $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
         $pileupstring = $pAu_pileupstring;

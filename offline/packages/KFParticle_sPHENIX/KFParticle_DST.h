@@ -14,31 +14,31 @@ class SvtxTrackMap;
 class KFParticle_DST
 {
  public:
-  ///Constructor
-  KFParticle_DST() {}
+  /// Constructor
+  KFParticle_DST() = default;
 
-  ///Destructor
-  virtual ~KFParticle_DST() {}
+  /// Destructor
+  virtual ~KFParticle_DST() = default;
 
-  ///Places a KFParticle_Container and SvtxTrackMap on the node tree if they don't exist
+  /// Places a KFParticle_Container and SvtxTrackMap on the node tree if they don't exist
   int createParticleNode(PHCompositeNode* topNode);
 
-  ///Simultaneously fills a KFParticle_Container and SvtxTrackMap if they are enabled
+  /// Simultaneously fills a KFParticle_Container and SvtxTrackMap if they are enabled
   void fillParticleNode(PHCompositeNode* topNode, const KFParticle& motherParticle,
                         const std::vector<KFParticle>& daughters,
                         const std::vector<KFParticle>& intermediates);
 
-  ///Called by fillParticleNode, fills an SvtxTrackMap
+  /// Called by fillParticleNode, fills an SvtxTrackMap
   void fillParticleNode_Track(PHCompositeNode* topNode, const KFParticle& motherParticle,
                               std::vector<KFParticle> daughters,
                               std::vector<KFParticle> intermediates);
 
-  ///Called by fillParticleNode, fills a KFParitcle_Container
+  /// Called by fillParticleNode, fills a KFParitcle_Container
   void fillParticleNode_Particle(PHCompositeNode* topNode, const KFParticle& motherParticle,
                                  std::vector<KFParticle> daughters,
                                  std::vector<KFParticle> intermediates);
 
-  ///Prints contents of KFParticle_Containers and SvtxTrackMaps for an event if they are enabled
+  /// Prints contents of KFParticle_Containers and SvtxTrackMaps for an event if they are enabled
   void printNode(PHCompositeNode* topNode);
 
  protected:
@@ -50,7 +50,7 @@ class KFParticle_DST
  private:
   SvtxTrackMap* m_recoTrackMap = nullptr;
   KFParticle_Container* m_recoParticleMap = nullptr;
-  SvtxTrack* buildSvtxTrack(KFParticle particle);
+  SvtxTrack* buildSvtxTrack(const KFParticle& particle);
 };
 
-#endif  //KFPARTICLESPHENIX_KFPARTICLEDST_H
+#endif  // KFPARTICLESPHENIX_KFPARTICLEDST_H
