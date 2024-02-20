@@ -44,7 +44,7 @@ float EicEventHeaderv1::get_property_float(const PROPERTY prop_id) const
     return u_property(i->second).fdata;
   }
 
-  return NAN;
+  return std::numeric_limits<float>::quiet_NaN();
 }
 
 int EicEventHeaderv1::get_property_int(const PROPERTY prop_id) const

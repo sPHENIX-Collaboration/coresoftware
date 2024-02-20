@@ -32,9 +32,9 @@
 #include <HepMC/GenEvent.h>
 #pragma GCC diagnostic pop
 
-#include <climits>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <utility>
 
 // convenient aliases for deep copying nodes
@@ -354,7 +354,7 @@ void Fun4AllDstPileupMerger::copy_background_event(PHCompositeNode *dstNode, dou
          * it was decided that showers from the background events will not be copied to the merged event
          * as such we just reset the hits shower id
          */
-        newHit->set_shower_id(INT_MIN);
+        newHit->set_shower_id(std::numeric_limits<int>::min());
 
         /*
          * this will generate a new key for the hit and assign it to the hit

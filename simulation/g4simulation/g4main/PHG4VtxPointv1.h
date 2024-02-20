@@ -12,14 +12,7 @@
 class PHG4VtxPointv1 : public PHG4VtxPoint
 {
  public:
-  PHG4VtxPointv1()
-    : vx(NAN)
-    , vy(NAN)
-    , vz(NAN)
-    , t0(NAN)
-    , id(INT_MIN)
-  {
-  }
+  PHG4VtxPointv1() = default;
 
   PHG4VtxPointv1(const PHG4VtxPoint* vtx)
     : vx(vtx->get_x())
@@ -30,7 +23,7 @@ class PHG4VtxPointv1 : public PHG4VtxPoint
   {
   }
 
-  PHG4VtxPointv1(const double x, const double y, const double z, const double t, const int id_value = INT_MIN)
+  PHG4VtxPointv1(const double x, const double y, const double z, const double t, const int id_value = std::numeric_limits<int>::min())
     : vx(x)
     , vy(y)
     , vz(z)
@@ -39,7 +32,7 @@ class PHG4VtxPointv1 : public PHG4VtxPoint
   {
   }
 
-  ~PHG4VtxPointv1() override {}
+  ~PHG4VtxPointv1() override = default;
 
   // from PHObject
   void identify(std::ostream& os = std::cout) const override;
@@ -57,13 +50,13 @@ class PHG4VtxPointv1 : public PHG4VtxPoint
   int get_id() const override { return id; }
 
  protected:
-  double vx;
-  double vy;
-  double vz;
-  double t0;
+  double vx {std::numeric_limits<double>::quiet_NaN()} ;
+  double vy {std::numeric_limits<double>::quiet_NaN()} ;
+  double vz {std::numeric_limits<double>::quiet_NaN()} ;
+  double t0 {std::numeric_limits<double>::quiet_NaN()} ;
 
   //! id tag for this vertex
-  int id;
+  int id {std::numeric_limits<int>::min()};
 
   ClassDefOverride(PHG4VtxPointv1, 2)
 };
