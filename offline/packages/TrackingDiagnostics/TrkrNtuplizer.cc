@@ -672,7 +672,6 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         }
     }
   }
-  /**********/
 
   _geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!_geom_container)
