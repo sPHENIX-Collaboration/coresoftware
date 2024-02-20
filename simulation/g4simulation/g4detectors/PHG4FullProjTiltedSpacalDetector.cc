@@ -92,8 +92,10 @@ void PHG4FullProjTiltedSpacalDetector::ConstructMe(G4LogicalVolume* logicWorld)
               << " - Completed." << std::endl;
   }
 
-  if (m_Params->get_int_param("saveg4hit")) { return;
-}
+  if (m_Params->get_int_param("saveg4hit"))
+  {
+    return;
+  }
   try
   {
     AddCellGeometryNode();
@@ -574,9 +576,10 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
     for (int iy = 0; iy < g_tower.NFiberY; iy++)
     //        int iy = 0;
     {
-      if ((ix + iy) % 2 == 1) {
+      if ((ix + iy) % 2 == 1)
+      {
         continue;  // make a triangle pattern
-}
+      }
 
       const double weighted_iy = static_cast<double>(iy) / (g_tower.NFiberY - 1.);
 
@@ -636,7 +639,8 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
 
     //      const G4Vector3D v1_new = center_fiber - 0.5 *vector_fiber;
 
-    if (get_geom_v3()->get_construction_verbose() >= 3) {
+    if (get_geom_v3()->get_construction_verbose() >= 3)
+    {
       std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_Fibers_SameLengthFiberPerTower::" << GetName()
                 << " - constructed fiber " << fiber_ID << ss.str()  //
                 << ", Length = " << optimal_fiber_length << "-"
@@ -648,7 +652,7 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
                 << "vy = " << vector_fiber.y() << "mm, "            //
                 << "vz = " << vector_fiber.z() << "mm, "            //
                 << std::endl;
-}
+    }
 
     const G4double rotation_angle = G4Vector3D(0, 0, 1).angle(vector_fiber);
     const G4Vector3D rotation_axis =
@@ -672,13 +676,14 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
     fiber_count++;
   }
 
-  if (get_geom_v3()->get_construction_verbose() >= 2) {
+  if (get_geom_v3()->get_construction_verbose() >= 2)
+  {
     std::cout
         << "PHG4FullProjTiltedSpacalDetector::Construct_Fibers_SameLengthFiberPerTower::"
         << GetName() << " - constructed tower ID " << g_tower.id << " with "
         << fiber_count << " fibers. Average fiber length cut = "
         << std::accumulate(fiber_cut.begin(), fiber_cut.end(), 0.0) / fiber_cut.size() << " mm" << std::endl;
-}
+  }
 
   return fiber_count;
 }
@@ -704,9 +709,10 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers(
 
     for (int iy = 0; iy < g_tower.NFiberY; iy++)
     {
-      if ((ix + iy) % 2 == 1) {
+      if ((ix + iy) % 2 == 1)
+      {
         continue;  // make a triangle pattern
-}
+      }
       const int fiber_ID = g_tower.compose_fiber_id(ix, iy);
 
       const double weighted_iy = static_cast<double>(iy) / (g_tower.NFiberY - 1.);
@@ -737,7 +743,8 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers(
       G4LogicalVolume* fiber_logic = Construct_Fiber(fiber_length,
                                                      ss.str());
 
-      if (get_geom_v3()->get_construction_verbose() >= 3) {
+      if (get_geom_v3()->get_construction_verbose() >= 3)
+      {
         std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_Fibers::" << GetName()
                   << " - constructed fiber " << fiber_ID << ss.str()  //
                   << ", Length = " << fiber_length << "mm, "          //
@@ -748,7 +755,7 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers(
                   << "vy = " << vector_fiber.y() << "mm, "            //
                   << "vz = " << vector_fiber.z() << "mm, "            //
                   << std::endl;
-}
+      }
 
       const G4double rotation_angle = G4Vector3D(0, 0, 1).angle(
           vector_fiber);
@@ -776,11 +783,12 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers(
     }
   }
 
-  if (get_geom_v3()->get_construction_verbose() >= 3) {
+  if (get_geom_v3()->get_construction_verbose() >= 3)
+  {
     std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_Fibers::" << GetName()
               << " - constructed tower ID " << g_tower.id << " with " << fiber_cnt
               << " fibers" << std::endl;
-}
+  }
 
   return fiber_cnt;
 }
@@ -821,18 +829,20 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
   {
     int fiber_count = Construct_Fibers(g_tower, block_logic);
 
-    if (get_geom_v3()->get_construction_verbose() >= 2) {
+    if (get_geom_v3()->get_construction_verbose() >= 2)
+    {
       std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_Tower::" << GetName()
                 << " - constructed tower ID " << g_tower.id << " with "
                 << fiber_count << " fibers using Construct_Fibers" << std::endl;
-}
+    }
   }
   else if (get_geom_v3()->get_config() == SpacalGeom_t::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower)
   {
     int fiber_count = Construct_Fibers_SameLengthFiberPerTower(g_tower,
                                                                block_logic);
 
-    if (get_geom_v3()->get_construction_verbose() >= 2) {
+    if (get_geom_v3()->get_construction_verbose() >= 2)
+    {
       std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_Tower::" << GetName()
                 << " - constructed tower ID " << g_tower.id << " with "
                 << fiber_count
@@ -841,7 +851,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
                 << "m = " << block_logic->GetMass() / gram << "gram, "
                 << "Density = " << (block_logic->GetMass() / gram) / (block_solid->GetCubicVolume() / cm3) << "g/cm3"
                 << std::endl;
-}
+    }
   }
   else
   {

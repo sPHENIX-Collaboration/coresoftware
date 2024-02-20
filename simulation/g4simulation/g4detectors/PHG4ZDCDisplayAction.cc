@@ -48,9 +48,9 @@ void PHG4ZDCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
       visatt->SetVisibility(false);
       visatt->SetForceSolid(false);
     }
-    else if (it.second == "Fiber" || 
-	     it.second == "Scint_solid" ||
-	     it.second == "FiberPlate")
+    else if (it.second == "Fiber" ||
+             it.second == "Scint_solid" ||
+             it.second == "FiberPlate")
     {
       visatt->SetColour(G4Colour::Cyan());
     }

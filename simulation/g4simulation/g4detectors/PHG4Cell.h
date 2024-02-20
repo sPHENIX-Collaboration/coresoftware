@@ -111,8 +111,8 @@ class PHG4Cell : public PHObject
   //! 2.add a short name to PHG4Cell::get_property_info
   enum PROPERTY
   {  //
-    // first various coordinates 1-20
-    //! Maps coordinates
+     // first various coordinates 1-20
+     //! Maps coordinates
     prop_stave_index = 1,
     prop_half_stave_index = 2,
     prop_module_index = 3,
