@@ -142,7 +142,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
     implemented_detid.insert(layer);
     set_size(layer, get_double_param(layer, "size_long"), get_double_param(layer, "size_perp"));
     tmin_max.insert(std::make_pair(layer, std::make_pair(get_double_param(layer, "tmin"), get_double_param(layer, "tmax"))));
-    m_DeltaTMap.insert(std::make_pair(layer,get_double_param(layer, "delta_t")));
+    m_DeltaTMap.insert(std::make_pair(layer, get_double_param(layer, "delta_t")));
     double circumference = layergeom->get_radius() * 2 * M_PI;
     double length_in_z = layergeom->get_zmax() - layergeom->get_zmin();
     sizeiter = cell_size.find(layer);
@@ -412,10 +412,18 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
       {
         sum_energy_before_cuts += hiter->second->get_edep();
         // checking ADC timing integration window cut
-        if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
-        if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
-	if (hiter->second->get_t(1) - hiter->second->get_t(0) > m_DeltaTMap[*layer]) continue;
-
+        if (hiter->second->get_t(0) > tmin_max[*layer].second)
+        {
+          continue;
+        }
+        if (hiter->second->get_t(1) < tmin_max[*layer].first)
+        {
+          continue;
+        }
+        if (hiter->second->get_t(1) - hiter->second->get_t(0) > m_DeltaTMap[*layer])
+        {
+          continue;
+        }
 
         pair<double, double> etaphi[2];
         double phibin[2];
@@ -486,7 +494,10 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 
         if (intphibin == intphibinout && intetabin == intetabinout)  // single cell fired
         {
-          if (Verbosity() > 0) cout << "SINGLE CELL FIRED: " << intphibin << " " << intetabin << endl;
+          if (Verbosity() > 0)
+          {
+            cout << "SINGLE CELL FIRED: " << intphibin << " " << intetabin << endl;
+          }
           vphi.push_back(intphibin);
           veta.push_back(intetabin);
           vdedx.push_back(trklen);
@@ -504,12 +515,15 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
               double cy = geo->get_etacenter(ibz) - etastep_half;
               double dy = geo->get_etacenter(ibz) + etastep_half;
 
-              //cout << "##### line: " << ax << " " << ay << " " << bx << " " << by << endl;
-              //cout << "####### cell: " << cx << " " << cy << " " << dx << " " << dy << endl;
+              // cout << "##### line: " << ax << " " << ay << " " << bx << " " << by << endl;
+              // cout << "####### cell: " << cx << " " << cy << " " << dx << " " << dy << endl;
               pair<bool, double> intersect = PHG4Utils::line_and_rectangle_intersect(ax, ay, bx, by, cx, cy, dx, dy);
               if (intersect.first)
               {
-                if (Verbosity() > 0) cout << "CELL FIRED: " << ibp << " " << ibz << " " << intersect.second << endl;
+                if (Verbosity() > 0)
+                {
+                  cout << "CELL FIRED: " << ibp << " " << ibz << " " << intersect.second << endl;
+                }
                 vphi.push_back(ibp);
                 veta.push_back(ibz);
                 vdedx.push_back(intersect.second);
@@ -517,16 +531,25 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
             }
           }
         }
-        if (Verbosity() > 0) cout << "NUMBER OF FIRED CELLS = " << vphi.size() << endl;
+        if (Verbosity() > 0)
+        {
+          cout << "NUMBER OF FIRED CELLS = " << vphi.size() << endl;
+        }
 
         double tmpsum = 0.;
         for (unsigned int ii = 0; ii < vphi.size(); ii++)
         {
           tmpsum += vdedx[ii];
           vdedx[ii] = vdedx[ii] / trklen;
-          if (Verbosity() > 0) cout << "  CELL " << ii << "  dE/dX = " << vdedx[ii] << endl;
+          if (Verbosity() > 0)
+          {
+            cout << "  CELL " << ii << "  dE/dX = " << vdedx[ii] << endl;
+          }
         }
-        if (Verbosity() > 0) cout << "    TOTAL TRACK LENGTH = " << tmpsum << " " << trklen << endl;
+        if (Verbosity() > 0)
+        {
+          cout << "    TOTAL TRACK LENGTH = " << tmpsum << " " << trklen << endl;
+        }
 
         for (unsigned int i1 = 0; i1 < vphi.size(); i1++)  // loop over all fired cells
         {
@@ -617,9 +640,18 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
       {
         sum_energy_before_cuts += hiter->second->get_edep();
         // checking ADC timing integration window cut
-        if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
-        if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
-	if (hiter->second->get_t(1) - hiter->second->get_t(0) > 100) continue;
+        if (hiter->second->get_t(0) > tmin_max[*layer].second)
+        {
+          continue;
+        }
+        if (hiter->second->get_t(1) < tmin_max[*layer].first)
+        {
+          continue;
+        }
+        if (hiter->second->get_t(1) - hiter->second->get_t(0) > 100)
+        {
+          continue;
+        }
 
         double xinout[2];
         double yinout[2];
@@ -629,7 +661,10 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         double z[2];
         double phibin[2];
         double zbin[2];
-        if (Verbosity() > 0) cout << "--------- new hit in layer # " << *layer << endl;
+        if (Verbosity() > 0)
+        {
+          cout << "--------- new hit in layer # " << *layer << endl;
+        }
 
         for (int i = 0; i < 2; i++)
         {
@@ -642,8 +677,14 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
           phibin[i] = geo->get_phibin(phi[i]);
           zbin[i] = geo->get_zbin(hiter->second->get_z(i));
 
-          if (Verbosity() > 0) cout << " " << i << "  phibin: " << phibin[i] << ", phi: " << phi[i] << ", stepsize: " << phistepsize << endl;
-          if (Verbosity() > 0) cout << " " << i << "  zbin: " << zbin[i] << ", z = " << hiter->second->get_z(i) << ", stepsize: " << zstepsize << " offset: " << zmin_max[*layer].first << endl;
+          if (Verbosity() > 0)
+          {
+            cout << " " << i << "  phibin: " << phibin[i] << ", phi: " << phi[i] << ", stepsize: " << phistepsize << endl;
+          }
+          if (Verbosity() > 0)
+          {
+            cout << " " << i << "  zbin: " << zbin[i] << ", z = " << hiter->second->get_z(i) << ", stepsize: " << zstepsize << " offset: " << zmin_max[*layer].first << endl;
+          }
         }
         // check bin range
         if (phibin[0] < 0 || phibin[0] >= nphibins || phibin[1] < 0 || phibin[1] >= nphibins)
@@ -736,12 +777,15 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
             {
               double cy = geo->get_zcenter(ibz) - zstep_half;
               double dy = geo->get_zcenter(ibz) + zstep_half;
-              //cout << "##### line: " << ax << " " << ay << " " << bx << " " << by << endl;
-              //cout << "####### cell: " << cx << " " << cy << " " << dx << " " << dy << endl;
+              // cout << "##### line: " << ax << " " << ay << " " << bx << " " << by << endl;
+              // cout << "####### cell: " << cx << " " << cy << " " << dx << " " << dy << endl;
               pair<bool, double> intersect = PHG4Utils::line_and_rectangle_intersect(ax, ay, bx, by, cx, cy, dx, dy);
               if (intersect.first)
               {
-                if (Verbosity() > 0) cout << "CELL FIRED: " << ibp << " " << ibz << " " << intersect.second << endl;
+                if (Verbosity() > 0)
+                {
+                  cout << "CELL FIRED: " << ibp << " " << ibz << " " << intersect.second << endl;
+                }
                 vphi.push_back(ibp);
                 vz.push_back(ibz);
                 vdedx.push_back(intersect.second);
@@ -749,16 +793,25 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
             }
           }
         }
-        if (Verbosity() > 0) cout << "NUMBER OF FIRED CELLS = " << vz.size() << endl;
+        if (Verbosity() > 0)
+        {
+          cout << "NUMBER OF FIRED CELLS = " << vz.size() << endl;
+        }
 
         double tmpsum = 0.;
         for (unsigned int ii = 0; ii < vz.size(); ii++)
         {
           tmpsum += vdedx[ii];
           vdedx[ii] = vdedx[ii] / trklen;
-          if (Verbosity() > 0) cout << "  CELL " << ii << "  dE/dX = " << vdedx[ii] << endl;
+          if (Verbosity() > 0)
+          {
+            cout << "  CELL " << ii << "  dE/dX = " << vdedx[ii] << endl;
+          }
         }
-        if (Verbosity() > 0) cout << "    TOTAL TRACK LENGTH = " << tmpsum << " " << trklen << endl;
+        if (Verbosity() > 0)
+        {
+          cout << "    TOTAL TRACK LENGTH = " << tmpsum << " " << trklen << endl;
+        }
 
         for (unsigned int i1 = 0; i1 < vphi.size(); i1++)  // loop over all fired cells
         {

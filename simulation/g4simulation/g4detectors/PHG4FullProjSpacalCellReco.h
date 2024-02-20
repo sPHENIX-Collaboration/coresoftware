@@ -3,7 +3,7 @@
 #ifndef G4DETECTORS_PHG4FULLPROJSPACALCELLRECO_H
 #define G4DETECTORS_PHG4FULLPROJSPACALCELLRECO_H
 
-#include "LightCollectionModel.h" 
+#include "LightCollectionModel.h"
 
 #include <phparameter/PHParameterInterface.h>
 
@@ -42,7 +42,6 @@ class PHG4FullProjSpacalCellReco : public SubsysReco, public PHParameterInterfac
   void checkenergy(const int i = 1) { chkenergyconservation = i; }
 
   void set_timing_window(const double tmin, const double tmax);
-
 
   LightCollectionModel &get_light_collection_model() { return light_collection_model; }
 

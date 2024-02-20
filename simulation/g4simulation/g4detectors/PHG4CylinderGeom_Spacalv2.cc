@@ -43,31 +43,31 @@ void PHG4CylinderGeom_Spacalv2::Print(Option_t* opt) const
   PHG4CylinderGeom_Spacalv1::Print(opt);
 
   std::cout << "\t"
-       << "is_azimuthal_seg_visible() = " << is_azimuthal_seg_visible()
-       << std::endl;
+            << "is_azimuthal_seg_visible() = " << is_azimuthal_seg_visible()
+            << std::endl;
   std::cout << "\t"
-       << "azimuthal_tilt() = " << get_azimuthal_tilt() << std::endl;
+            << "azimuthal_tilt() = " << get_azimuthal_tilt() << std::endl;
   std::cout << "\t"
-       << "get_polar_taper_ratio() = " << get_polar_taper_ratio()
-       << std::endl;
+            << "get_polar_taper_ratio() = " << get_polar_taper_ratio()
+            << std::endl;
   std::cout << "\t"
-       << "get_sec_azimuthal_width() = " << get_sec_azimuthal_width()
-       << std::endl;
+            << "get_sec_azimuthal_width() = " << get_sec_azimuthal_width()
+            << std::endl;
   std::cout << "\t"
-       << "get_sec_depth() = " << get_sec_depth() << std::endl;
+            << "get_sec_depth() = " << get_sec_depth() << std::endl;
   std::cout << "\t"
-       << "get_block_width() = " << get_block_width() << std::endl;
+            << "get_block_width() = " << get_block_width() << std::endl;
   std::cout << "\t"
-       << "get_block_depth() = " << get_block_depth() << std::endl;
+            << "get_block_depth() = " << get_block_depth() << std::endl;
   std::cout << "\t"
-       << "get_assembly_spacing() = " << get_assembly_spacing() << std::endl;
+            << "get_assembly_spacing() = " << get_assembly_spacing() << std::endl;
   std::cout << "\t"
-       << "get_reg_fiber_grid_distance_taper() = "
-       << get_reg_fiber_grid_distance_taper() << " = sqrt(3)*"
-       << get_reg_fiber_grid_distance_taper() / sqrt(3.) << std::endl;
+            << "get_reg_fiber_grid_distance_taper() = "
+            << get_reg_fiber_grid_distance_taper() << " = sqrt(3)*"
+            << get_reg_fiber_grid_distance_taper() / sqrt(3.) << std::endl;
   std::cout << "\t"
-       << "get_reg_fiber_grid_distance_nontaper() = "
-       << get_reg_fiber_grid_distance_nontaper() << std::endl;
+            << "get_reg_fiber_grid_distance_nontaper() = "
+            << get_reg_fiber_grid_distance_nontaper() << std::endl;
 }
 
 void PHG4CylinderGeom_Spacalv2::SetDefault()
@@ -88,16 +88,26 @@ void PHG4CylinderGeom_Spacalv2::ImportParameters(const PHParameters& param)
   PHG4CylinderGeom_Spacalv1::ImportParameters(param);
 
   if (param.exist_int_param("azimuthal_n_sec"))
+  {
     azimuthal_n_sec = param.get_int_param("azimuthal_n_sec");
+  }
   if (param.exist_double_param("azimuthal_tilt"))
+  {
     azimuthal_tilt = param.get_double_param("azimuthal_tilt");
+  }
   if (param.exist_int_param("azimuthal_seg_visible"))
+  {
     azimuthal_seg_visible = static_cast<bool>(param.get_int_param(
         "azimuthal_seg_visible"));
+  }
   if (param.exist_double_param("polar_taper_ratio"))
+  {
     polar_taper_ratio = param.get_double_param("polar_taper_ratio");
+  }
   if (param.exist_double_param("assembly_spacing"))
+  {
     assembly_spacing = param.get_double_param("assembly_spacing");
+  }
 
   return;
 }

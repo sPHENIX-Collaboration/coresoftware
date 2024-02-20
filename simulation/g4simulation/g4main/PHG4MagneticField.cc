@@ -2,7 +2,7 @@
 
 /*!
  * \file PHG4MagneticField.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -22,7 +22,7 @@ PHG4MagneticField::PHG4MagneticField(const PHField* field)
 
 PHG4MagneticField::~PHG4MagneticField()
 {
-//  delete field_; // this cleans the hcal fieldmap but crashes the regular map
+  //  delete field_; // this cleans the hcal fieldmap but crashes the regular map
 }
 
 void PHG4MagneticField::GetFieldValue(const double Point[4], double* Bfield) const

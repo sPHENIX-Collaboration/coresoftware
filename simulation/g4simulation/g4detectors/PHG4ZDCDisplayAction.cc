@@ -39,7 +39,7 @@ void PHG4ZDCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     visatt->SetVisibility(true);
     visatt->SetForceSolid(true);
     m_VisAttVec.push_back(visatt);  // for later deletion
-    if (it.second == "Absorber")
+    if (it.second == "Absorber" || it.second == "Window")
     {
       visatt->SetColour(G4Colour::Blue());
     }
@@ -48,7 +48,9 @@ void PHG4ZDCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
       visatt->SetVisibility(false);
       visatt->SetForceSolid(false);
     }
-    else if (it.second == "Fiber")
+    else if (it.second == "Fiber" ||
+             it.second == "Scint_solid" ||
+             it.second == "FiberPlate")
     {
       visatt->SetColour(G4Colour::Cyan());
     }
@@ -56,21 +58,9 @@ void PHG4ZDCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     {
       visatt->SetColour(G4Colour::Red());
     }
-    else if (it.second == "Window")
-    {
-      visatt->SetColour(G4Colour::Blue());
-    }
     else if (it.second == "SMD")
     {
       visatt->SetColour(G4Colour::Yellow());
-    }
-    else if (it.second == "FiberPlate")
-    {
-      visatt->SetColour(G4Colour::Cyan());
-    }
-    else if (it.second == "Scint_solid")
-    {
-      visatt->SetColour(G4Colour::Cyan());
     }
     else
     {

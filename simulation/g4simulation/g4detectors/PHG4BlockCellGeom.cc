@@ -322,7 +322,9 @@ void PHG4BlockCellGeom::check_binning_method_eta(const std::string& src) const
       _binning != PHG4CylinderCellDefs::etaslatbinning)
   {
     if (src.size())
+    {
       cout << src << " : ";
+    }
 
     cout << "different binning method used " << methodname(_binning)
          << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)
@@ -340,7 +342,9 @@ void PHG4BlockCellGeom::check_binning_method_x(const std::string& src) const
       _binning != PHG4CylinderCellDefs::etaslatbinning)
   {
     if (src.size())
+    {
       cout << src << " : ";
+    }
 
     cout << "different binning method used " << methodname(_binning)
          << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)

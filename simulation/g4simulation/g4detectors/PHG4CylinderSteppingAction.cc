@@ -163,7 +163,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
       m_Hit->set_layer((unsigned int) layer_id);
 
-      //here we set the entrance values in cm
+      // here we set the entrance values in cm
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
       m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
       m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
@@ -174,10 +174,10 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
       // time in ns
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-      //set and save the track ID
+      // set and save the track ID
       m_Hit->set_trkid(aTrack->GetTrackID());
       m_SaveTrackId = aTrack->GetTrackID();
-      //set the initial energy deposit
+      // set the initial energy deposit
       m_Hit->set_edep(0);
       if (!geantino && !m_BlackHoleFlag)
       {
@@ -250,7 +250,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     m_Hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
 
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
-    //sum up the energy to get total deposited
+    // sum up the energy to get total deposited
     m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (!hasMotherSubsystem() && (m_Hit->get_z(1) * cm > m_Zmax || m_Hit->get_z(1) * cm < m_Zmin))
     {
@@ -333,7 +333,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 void PHG4CylinderSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
   // Node Name is passed down from PHG4CylinderSubsystem
-  //now look for the map and grab a pointer to it.
+  // now look for the map and grab a pointer to it.
   m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
 
   // if we do not find the node we need to scream.

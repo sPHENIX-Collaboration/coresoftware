@@ -70,7 +70,7 @@ void PHG4ParticleGeneratorD0::set_mass(const double mass_in)
   return;
 }
 
-int PHG4ParticleGeneratorD0::InitRun(PHCompositeNode */*topNode*/)
+int PHG4ParticleGeneratorD0::InitRun(PHCompositeNode * /*topNode*/)
 {
   unsigned int iseed = PHRandomSeed();  // fixed seed handled in PHRandomSeed()
   std::cout << Name() << " random seed: " << iseed << std::endl;
@@ -241,53 +241,53 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 
     /*
       std::cout << "  Decay particle 1:"
-	   << " px " << v1.Px()
-	   << " py " << v1.Py()
-	   << " pz " << v1.Pz()
-	   << " eta " << v1.PseudoRapidity()
-	   << " phi " << v1.Phi()
-	   << " theta " << v1.Theta()
-	   << " pT " << v1.Pt()
-	   << " mass " << v1.M()
-	   << " E " << v1.E()
-	   << std::endl;
+           << " px " << v1.Px()
+           << " py " << v1.Py()
+           << " pz " << v1.Pz()
+           << " eta " << v1.PseudoRapidity()
+           << " phi " << v1.Phi()
+           << " theta " << v1.Theta()
+           << " pT " << v1.Pt()
+           << " mass " << v1.M()
+           << " E " << v1.E()
+           << std::endl;
 
       std::cout << "  Decay particle 2:"
-	   << " px " << v2.Px()
-	   << " py " << v2.Py()
-	   << " pz " << v2.Pz()
-	   << " eta " << v2.PseudoRapidity()
-	   << " phi " << v2.Phi()
-	   << " theta " << v2.Theta()
-	   << " pT " << v2.Pt()
-	   << " mass " << v2.M()
-	   << " E " << v2.E()
-	   << std::endl;
+           << " px " << v2.Px()
+           << " py " << v2.Py()
+           << " pz " << v2.Pz()
+           << " eta " << v2.PseudoRapidity()
+           << " phi " << v2.Phi()
+           << " theta " << v2.Theta()
+           << " pT " << v2.Pt()
+           << " mass " << v2.M()
+           << " E " << v2.E()
+           << std::endl;
 
       // Print the input vector meson kinematics
       std::cout << " D0 input kinematics:     mass " << vd0.M()
-	   << " px " << vd0.Px()
-  	   << " py " << vd0.Py()
-	   << " pz " << vd0.Pz()
-	   << " eta " << vd0.PseudoRapidity()
-	   << " y " << vd0.Rapidity()
-	   << " pt " << vd0.Pt()
-	   << " E " << vd0.E()
-	   << std::endl;
+           << " px " << vd0.Px()
+           << " py " << vd0.Py()
+           << " pz " << vd0.Pz()
+           << " eta " << vd0.PseudoRapidity()
+           << " y " << vd0.Rapidity()
+           << " pt " << vd0.Pt()
+           << " E " << vd0.E()
+           << std::endl;
 
       // Now, as a check, reconstruct the mass from the particle 1 and 2 kinematics
 
       TLorentzVector vreco = v1 + v2;
 
       std::cout << "  Reconstructed D0 kinematics:    mass " << vreco.M()
-	   << " px " << vreco.Px()
-	   << " py " << vreco.Py()
-	   << " pz " << vreco.Pz()
-	   << " eta " << vreco.PseudoRapidity()
-	   << " y " << vreco.Rapidity()
-	   << " pt " << vreco.Pt()
-	   << " E " << vreco.E()
-	   << std::endl;
+           << " px " << vreco.Px()
+           << " py " << vreco.Py()
+           << " pz " << vreco.Pz()
+           << " eta " << vreco.PseudoRapidity()
+           << " y " << vreco.Rapidity()
+           << " pt " << vreco.Pt()
+           << " E " << vreco.E()
+           << std::endl;
 */
   }
   // Reset particlelist for the next event

@@ -66,71 +66,71 @@ void PHG4CylinderGeom_Spacalv1::Print(Option_t*) const
     break;
   default:
     std::cout << "PHG4CylinderGeom_Spacalv1::Print - ERROR - unknown configuration #"
-         << get_config() << std::endl;
+              << get_config() << std::endl;
     break;
   }
 
   std::cout << "\t"
-       << "get_max_radius() = " << get_max_radius() << std::endl;
+            << "get_max_radius() = " << get_max_radius() << std::endl;
   std::cout << "\t"
-       << "get_half_radius() = " << get_half_radius() << std::endl;
+            << "get_half_radius() = " << get_half_radius() << std::endl;
   std::cout << "\t"
-       << "get_length() = " << get_length() << std::endl;
+            << "get_length() = " << get_length() << std::endl;
   std::cout << "\t"
-       << "get_*pos() = " << get_xpos() << ", " << get_ypos() << ", "
-       << get_zpos() << std::endl;
+            << "get_*pos() = " << get_xpos() << ", " << get_ypos() << ", "
+            << get_zpos() << std::endl;
 
   std::cout << "\t"
-       << "get_azimuthal_n_sec() = " << get_azimuthal_n_sec() << ", "
-       << sector_map.size() << "/" << get_azimuthal_n_sec()
-       << " azimuthal sectors would be filled with SPACAL." << std::endl;
+            << "get_azimuthal_n_sec() = " << get_azimuthal_n_sec() << ", "
+            << sector_map.size() << "/" << get_azimuthal_n_sec()
+            << " azimuthal sectors would be filled with SPACAL." << std::endl;
   std::cout << "\t"
-       << "get_azimuthal_distance() = " << get_azimuthal_distance()
-       << std::endl;
+            << "get_azimuthal_distance() = " << get_azimuthal_distance()
+            << std::endl;
   std::cout << "\t"
-       << "get_z_distance() = " << get_z_distance() << std::endl;
+            << "get_z_distance() = " << get_z_distance() << std::endl;
   std::cout << "\t"
-       << "get_fiber_outer_r() = " << get_fiber_outer_r() << std::endl;
+            << "get_fiber_outer_r() = " << get_fiber_outer_r() << std::endl;
   std::cout << "\t"
-       << "get_fiber_clading_thickness() = "
-       << get_fiber_clading_thickness() << std::endl;
+            << "get_fiber_clading_thickness() = "
+            << get_fiber_clading_thickness() << std::endl;
   std::cout << "\t"
-       << "get_fiber_core_diameter() = " << get_fiber_core_diameter()
-       << std::endl;
+            << "get_fiber_core_diameter() = " << get_fiber_core_diameter()
+            << std::endl;
   std::cout << "\t"
-       << "get_fiber_distance() = " << get_fiber_distance() << std::endl;
+            << "get_fiber_distance() = " << get_fiber_distance() << std::endl;
 
   std::cout << "\t"
-       << "get_absorber_mat() = " << get_absorber_mat() << std::endl;
+            << "get_absorber_mat() = " << get_absorber_mat() << std::endl;
   std::cout << "\t"
-       << "get_fiber_clading_mat() = " << get_fiber_clading_mat()
-       << std::endl;
+            << "get_fiber_clading_mat() = " << get_fiber_clading_mat()
+            << std::endl;
   std::cout << "\t"
-       << "get_fiber_core_mat() = " << get_fiber_core_mat() << std::endl;
+            << "get_fiber_core_mat() = " << get_fiber_core_mat() << std::endl;
   //  std::cout << "\t" << "get_calo_step_size() = " << get_calo_step_size() << std::endl;
   //  std::cout << "\t" << "get_fiber_clading_step_size() = "
   //      << get_fiber_clading_step_size() << std::endl;
   std::cout << "\t"
-       << "get_fiber_core_step_size() = " << get_fiber_core_step_size()
-       << std::endl;
+            << "get_fiber_core_step_size() = " << get_fiber_core_step_size()
+            << std::endl;
 
   std::cout << "\t"
-       << "is_virualize_fiber() = " << is_virualize_fiber() << std::endl;
+            << "is_virualize_fiber() = " << is_virualize_fiber() << std::endl;
   std::cout << "\t"
-       << "get_construction_verbose() = " << get_construction_verbose()
-       << std::endl;
+            << "get_construction_verbose() = " << get_construction_verbose()
+            << std::endl;
 
   if (get_construction_verbose() >= 2)
   {
     std::cout << "\t"
-         << "Containing " << sector_map.size()
-         << " sector with rotation specified:" << std::endl;
+              << "Containing " << sector_map.size()
+              << " sector with rotation specified:" << std::endl;
     for (auto it : sector_map)
     {
       std::cout << "\t"
-           << "\t"
-           << "sector_map[" << it.first << "] = " << it.second
-           << std::endl;
+                << "\t"
+                << "sector_map[" << it.first << "] = " << it.second
+                << std::endl;
     }
   }
 }
@@ -169,31 +169,55 @@ void PHG4CylinderGeom_Spacalv1::ImportParameters(const PHParameters& param)
   PHG4CylinderGeomv2::ImportParameters(param);
 
   if (param.exist_string_param("absorber_mat"))
+  {
     absorber_mat = param.get_string_param("absorber_mat");
+  }
   if (param.exist_string_param("fiber_core_mat"))
+  {
     fiber_core_mat = param.get_string_param("fiber_core_mat");
+  }
   if (param.exist_string_param("fiber_clading_mat"))
+  {
     fiber_clading_mat = param.get_string_param("fiber_clading_mat");
+  }
   if (param.exist_double_param("xpos"))
+  {
     xpos = param.get_double_param("xpos");
+  }
   if (param.exist_double_param("ypos"))
+  {
     ypos = param.get_double_param("ypos");
+  }
   if (param.exist_double_param("zpos"))
+  {
     zpos = param.get_double_param("zpos");
+  }
   if (param.exist_double_param("fiber_core_diameter"))
+  {
     fiber_core_diameter = param.get_double_param("fiber_core_diameter");
+  }
   if (param.exist_double_param("fiber_clading_thickness"))
+  {
     fiber_clading_thickness = param.get_double_param("fiber_clading_thickness");
+  }
   if (param.exist_double_param("fiber_distance"))
+  {
     fiber_distance = param.get_double_param("fiber_distance");
+  }
   if (param.exist_int_param("config"))
+  {
     config = static_cast<config_t>(param.get_int_param("config"));
+  }
   if (param.exist_int_param("virualize_fiber"))
+  {
     virualize_fiber = static_cast<bool>(param.get_int_param("virualize_fiber"));
+  }
   if (param.exist_int_param("construction_verbose"))
+  {
     construction_verbose = param.get_int_param("construction_verbose");
+  }
 
-  //init_default_sector_map if instructed to do so
+  // init_default_sector_map if instructed to do so
   if (param.exist_int_param("init_default_sector_map"))
   {
     if (param.get_int_param("init_default_sector_map"))
