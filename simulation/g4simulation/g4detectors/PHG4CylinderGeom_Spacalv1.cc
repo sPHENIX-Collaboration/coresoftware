@@ -168,30 +168,42 @@ void PHG4CylinderGeom_Spacalv1::ImportParameters(const PHParameters& param)
 {
   PHG4CylinderGeomv2::ImportParameters(param);
 
-  if (param.exist_string_param("absorber_mat"))
+  if (param.exist_string_param("absorber_mat")) {
     absorber_mat = param.get_string_param("absorber_mat");
-  if (param.exist_string_param("fiber_core_mat"))
+}
+  if (param.exist_string_param("fiber_core_mat")) {
     fiber_core_mat = param.get_string_param("fiber_core_mat");
-  if (param.exist_string_param("fiber_clading_mat"))
+}
+  if (param.exist_string_param("fiber_clading_mat")) {
     fiber_clading_mat = param.get_string_param("fiber_clading_mat");
-  if (param.exist_double_param("xpos"))
+}
+  if (param.exist_double_param("xpos")) {
     xpos = param.get_double_param("xpos");
-  if (param.exist_double_param("ypos"))
+}
+  if (param.exist_double_param("ypos")) {
     ypos = param.get_double_param("ypos");
-  if (param.exist_double_param("zpos"))
+}
+  if (param.exist_double_param("zpos")) {
     zpos = param.get_double_param("zpos");
-  if (param.exist_double_param("fiber_core_diameter"))
+}
+  if (param.exist_double_param("fiber_core_diameter")) {
     fiber_core_diameter = param.get_double_param("fiber_core_diameter");
-  if (param.exist_double_param("fiber_clading_thickness"))
+}
+  if (param.exist_double_param("fiber_clading_thickness")) {
     fiber_clading_thickness = param.get_double_param("fiber_clading_thickness");
-  if (param.exist_double_param("fiber_distance"))
+}
+  if (param.exist_double_param("fiber_distance")) {
     fiber_distance = param.get_double_param("fiber_distance");
-  if (param.exist_int_param("config"))
+}
+  if (param.exist_int_param("config")) {
     config = static_cast<config_t>(param.get_int_param("config"));
-  if (param.exist_int_param("virualize_fiber"))
+}
+  if (param.exist_int_param("virualize_fiber")) {
     virualize_fiber = static_cast<bool>(param.get_int_param("virualize_fiber"));
-  if (param.exist_int_param("construction_verbose"))
+}
+  if (param.exist_int_param("construction_verbose")) {
     construction_verbose = param.get_int_param("construction_verbose");
+}
 
   //init_default_sector_map if instructed to do so
   if (param.exist_int_param("init_default_sector_map"))

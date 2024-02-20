@@ -55,16 +55,18 @@ void PHG4CylinderGeomv4::find_strip_center(int segment_z_bin, int segment_phi_bi
   // if it is odd, the center of the sensor is in the middle of a strip column, one strip is centered at zero
 
   double strip_sensor_z = 0.0;
-  if (N_strip_columns % 2)
+  if (N_strip_columns % 2) {
     strip_sensor_z = ((double) (strip_column - N_strip_columns / 2)) * strip_z_spacing;
-  else
+  } else {
     strip_sensor_z = ((double) (strip_column - N_strip_columns / 2) + 0.5) * strip_z_spacing;
+}
 
   double strip_sensor_y = 0.0;
-  if (N_strips_per_column % 2)
+  if (N_strips_per_column % 2) {
     strip_sensor_y = (double) (strip_index - N_strips_per_column / 2) * strip_y_spacing;
-  else
+  } else {
     strip_sensor_y = ((double) (strip_index - N_strips_per_column / 2) + 0.5) * strip_y_spacing;
+}
 
   // The sensor is set forward of the center in the ladder segment volume
   double strip_sensor_x = sensor_x_offset;

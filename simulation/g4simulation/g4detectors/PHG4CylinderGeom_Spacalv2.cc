@@ -87,17 +87,22 @@ void PHG4CylinderGeom_Spacalv2::ImportParameters(const PHParameters& param)
 {
   PHG4CylinderGeom_Spacalv1::ImportParameters(param);
 
-  if (param.exist_int_param("azimuthal_n_sec"))
+  if (param.exist_int_param("azimuthal_n_sec")) {
     azimuthal_n_sec = param.get_int_param("azimuthal_n_sec");
-  if (param.exist_double_param("azimuthal_tilt"))
+}
+  if (param.exist_double_param("azimuthal_tilt")) {
     azimuthal_tilt = param.get_double_param("azimuthal_tilt");
-  if (param.exist_int_param("azimuthal_seg_visible"))
+}
+  if (param.exist_int_param("azimuthal_seg_visible")) {
     azimuthal_seg_visible = static_cast<bool>(param.get_int_param(
         "azimuthal_seg_visible"));
-  if (param.exist_double_param("polar_taper_ratio"))
+}
+  if (param.exist_double_param("polar_taper_ratio")) {
     polar_taper_ratio = param.get_double_param("polar_taper_ratio");
-  if (param.exist_double_param("assembly_spacing"))
+}
+  if (param.exist_double_param("assembly_spacing")) {
     assembly_spacing = param.get_double_param("assembly_spacing");
+}
 
   return;
 }

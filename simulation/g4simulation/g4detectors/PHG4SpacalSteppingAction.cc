@@ -93,7 +93,8 @@ PHG4SpacalSteppingAction::~PHG4SpacalSteppingAction()
 
 int PHG4SpacalSteppingAction::InitWithNode(PHCompositeNode *topNode)
 {
-  if (m_doG4Hit) return 0;
+  if (m_doG4Hit) { return 0;
+}
   PHNodeIterator iter(topNode);
   detector = m_Detector->SuperDetector();
   // Looking for the DST node
@@ -122,9 +123,11 @@ int PHG4SpacalSteppingAction::InitWithNode(PHCompositeNode *topNode)
 
 int PHG4SpacalSteppingAction::SetUpGeomNode(PHCompositeNode *topNode)
 {
-  if (m_geomsetup) return 0;
+  if (m_geomsetup) { return 0;
+}
 
-  if (m_doG4Hit) return 0;
+  if (m_doG4Hit) { return 0;
+}
   PHNodeIterator iter(topNode);
   detector = m_Detector->SuperDetector();
 
@@ -170,8 +173,10 @@ bool PHG4SpacalSteppingAction::NoHitSteppingAction(const G4Step *aStep)
     // time window cut
     double pretime = prePoint->GetGlobalTime() / nanosecond;
     double posttime = postPoint->GetGlobalTime() / nanosecond;
-    if (posttime < m_tmin || pretime > m_tmax) return false;
-    if ((posttime - pretime) > m_dt) return false;
+    if (posttime < m_tmin || pretime > m_tmax) { return false;
+}
+    if ((posttime - pretime) > m_dt) { return false;
+}
 
     int scint_id = -1;
 

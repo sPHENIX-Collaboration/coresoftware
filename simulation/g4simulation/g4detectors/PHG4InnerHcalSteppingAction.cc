@@ -131,7 +131,8 @@ int PHG4InnerHcalSteppingAction::InitWithNode(PHCompositeNode* topNode)
       std::cout << e.what() << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
-    if (Verbosity() > 1) topNode->print();
+    if (Verbosity() > 1) { topNode->print();
+}
   }
 
   return 0;
@@ -173,15 +174,18 @@ bool PHG4InnerHcalSteppingAction::NoHitSteppingAction(const G4Step* aStep)
     return false;
   }
 
-  if (!m_IsActive) return false;
+  if (!m_IsActive) { return false;
+}
 
   G4StepPoint* prePoint = aStep->GetPreStepPoint();
   G4StepPoint* postPoint = aStep->GetPostStepPoint();
   // time window cut
   double pretime = prePoint->GetGlobalTime() / nanosecond;
   double posttime = postPoint->GetGlobalTime() / nanosecond;
-  if (posttime < m_tmin || pretime > m_tmax) return false;
-  if ((posttime - pretime) > m_dt) return false;
+  if (posttime < m_tmin || pretime > m_tmax) { return false;
+}
+  if ((posttime - pretime) > m_dt) { return false;
+}
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
   const G4Track* aTrack = aStep->GetTrack();
   // we only need visible energy here

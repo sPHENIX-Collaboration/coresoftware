@@ -17,7 +17,8 @@ namespace
       bool first = true;
       for( const auto& value:array[iside] )
       {
-        if( !first ) out << ", ";
+        if( !first ) { out << ", ";
+}
         first = false;
         out << value;
       } 
@@ -542,8 +543,9 @@ void PHG4TpcCylinderGeom::check_binning_method_eta(const std::string& src) const
       binning != PHG4CylinderCellDefs::etaslatbinning &&
       binning != PHG4CylinderCellDefs::spacalbinning)
   {
-    if (src.size())
+    if (src.size()) {
       std::cout << src << " : ";
+}
 
     std::cout << "different binning method used " << methodname(binning)
               << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)
@@ -562,8 +564,9 @@ void PHG4TpcCylinderGeom::check_binning_method_phi(const std::string& src) const
       binning != PHG4CylinderCellDefs::etaslatbinning &&
       binning != PHG4CylinderCellDefs::spacalbinning)
   {
-    if (src.size())
+    if (src.size()) {
       std::cout << src << " : ";
+}
 
     std::cout << "different binning method used " << methodname(binning)
               << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)

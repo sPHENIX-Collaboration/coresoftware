@@ -147,10 +147,11 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 
     for (z_locations_t::value_type& val : z_locations)
     {
-      if (get_geom_v3()->get_construction_verbose() >= 2)
+      if (get_geom_v3()->get_construction_verbose() >= 2) {
         std::cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::"
                   << GetName() << " - constructed End Wall ID " << val.first
                   << " @ Z = " << val.second << std::endl;
+}
 
       G4Transform3D wall_trans = G4TranslateZ3D(val.second);
 
@@ -194,7 +195,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
       const int sign_z = val.second.first;
       const int sign_azimuth = val.second.second;
 
-      if (get_geom_v3()->get_construction_verbose() >= 2)
+      if (get_geom_v3()->get_construction_verbose() >= 2) {
         std::cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::"
                   << GetName() << " - constructed Side Wall ID " << val.first
                   << " with"
@@ -204,6 +205,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
                   << sign_azimuth * pi / get_geom_v3()->get_azimuthal_n_sec()
                   << " Shift Z = " << sign_z * (get_geom_v3()->get_length() * cm / 4)
                   << std::endl;
+}
 
       G4Transform3D wall_trans = G4RotateZ3D(
                                      sign_azimuth * pi / get_geom_v3()->get_azimuthal_n_sec()) *
@@ -278,8 +280,9 @@ int PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
     for (int iy = 0; iy < g_tower.NFiberY; iy++)
     //        int iy = 0;
     {
-      if ((ix + iy) % 2 == 1)
+      if ((ix + iy) % 2 == 1) {
         continue;  // make a triangle pattern
+}
 
       const double weighted_iy = static_cast<double>(iy) / (g_tower.NFiberY - 1.);
 
@@ -339,7 +342,7 @@ int PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
 
     //      const G4Vector3D v1_new = center_fiber - 0.5 *vector_fiber;
 
-    if (get_geom_v3()->get_construction_verbose() >= 3)
+    if (get_geom_v3()->get_construction_verbose() >= 3) {
       std::cout << "PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower::" << GetName()
                 << " - constructed fiber " << fiber_ID << ss.str()  //
                 << ", Length = " << optimal_fiber_length << "-"
@@ -351,6 +354,7 @@ int PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
                 << "vy = " << vector_fiber.y() << "mm, "            //
                 << "vz = " << vector_fiber.z() << "mm, "            //
                 << std::endl;
+}
 
     const G4double rotation_angle = G4Vector3D(0, 0, 1).angle(vector_fiber);
     const G4Vector3D rotation_axis =
@@ -375,12 +379,13 @@ int PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
     fiber_count++;
   }
 
-  if (get_geom_v3()->get_construction_verbose() >= 2)
+  if (get_geom_v3()->get_construction_verbose() >= 2) {
     std::cout
         << "PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower::"
         << GetName() << " - constructed tower ID " << g_tower.id << " with "
         << fiber_count << " fibers. Average fiber length cut = "
         << accumulate(fiber_cut.begin(), fiber_cut.end(), 0.0) / fiber_cut.size() << " mm" << std::endl;
+}
 
   return fiber_count;
 }
@@ -406,8 +411,9 @@ int PHG4FullProjSpacalDetector::Construct_Fibers(
 
     for (int iy = 0; iy < g_tower.NFiberY; iy++)
     {
-      if ((ix + iy) % 2 == 1)
+      if ((ix + iy) % 2 == 1) {
         continue;  // make a triangle pattern
+}
       const int fiber_ID = g_tower.compose_fiber_id(ix, iy);
 
       const double weighted_iy = static_cast<double>(iy) / (g_tower.NFiberY - 1.);
@@ -438,7 +444,7 @@ int PHG4FullProjSpacalDetector::Construct_Fibers(
       G4LogicalVolume* fiber_logic = Construct_Fiber(fiber_length,
                                                      ss.str());
 
-      if (get_geom_v3()->get_construction_verbose() >= 3)
+      if (get_geom_v3()->get_construction_verbose() >= 3) {
         std::cout << "PHG4FullProjSpacalDetector::Construct_Fibers::" << GetName()
                   << " - constructed fiber " << fiber_ID << ss.str()  //
                   << ", Length = " << fiber_length << "mm, "          //
@@ -449,6 +455,7 @@ int PHG4FullProjSpacalDetector::Construct_Fibers(
                   << "vy = " << vector_fiber.y() << "mm, "            //
                   << "vz = " << vector_fiber.z() << "mm, "            //
                   << std::endl;
+}
 
       const G4double rotation_angle = G4Vector3D(0, 0, 1).angle(
           vector_fiber);
@@ -477,10 +484,11 @@ int PHG4FullProjSpacalDetector::Construct_Fibers(
     }
   }
 
-  if (get_geom_v3()->get_construction_verbose() >= 3)
+  if (get_geom_v3()->get_construction_verbose() >= 3) {
     std::cout << "PHG4FullProjSpacalDetector::Construct_Fibers::" << GetName()
               << " - constructed tower ID " << g_tower.id << " with " << fiber_cnt
               << " fibers" << std::endl;
+}
 
   return fiber_cnt;
 }
@@ -521,21 +529,23 @@ PHG4FullProjSpacalDetector::Construct_Tower(
   {
     int fiber_count = Construct_Fibers(g_tower, block_logic);
 
-    if (get_geom_v3()->get_construction_verbose() >= 2)
+    if (get_geom_v3()->get_construction_verbose() >= 2) {
       std::cout << "PHG4FullProjSpacalDetector::Construct_Tower::" << GetName()
                 << " - constructed tower ID " << g_tower.id << " with "
                 << fiber_count << " fibers using Construct_Fibers" << std::endl;
+}
   }
   else if (get_geom_v3()->get_config() == SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower)
   {
     int fiber_count = Construct_Fibers_SameLengthFiberPerTower(g_tower,
                                                                block_logic);
 
-    if (get_geom_v3()->get_construction_verbose() >= 2)
+    if (get_geom_v3()->get_construction_verbose() >= 2) {
       std::cout << "PHG4FullProjSpacalDetector::Construct_Tower::" << GetName()
                 << " - constructed tower ID " << g_tower.id << " with "
                 << fiber_count
                 << " fibers using Construct_Fibers_SameLengthFiberPerTower" << std::endl;
+}
   }
   else
   {

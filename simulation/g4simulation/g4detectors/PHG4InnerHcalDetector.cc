@@ -500,7 +500,8 @@ void PHG4InnerHcalDetector::ConstructMe(G4LogicalVolume *logicWorld)
     }
     ++it;
   }
-  if (!m_Params->get_int_param("saveg4hit")) AddGeometryNode();
+  if (!m_Params->get_int_param("saveg4hit")) { AddGeometryNode();
+}
   return;
 }
 

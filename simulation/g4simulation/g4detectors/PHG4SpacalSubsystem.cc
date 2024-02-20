@@ -68,19 +68,22 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   switch (GetParams()->get_int_param("config"))
   {
   case PHG4CylinderGeom_Spacalv1::kNonProjective:
-    if (Verbosity() > 0) std::cout << "PHG4SpacalSubsystem::InitRun - use PHG4SpacalDetector" << std::endl;
+    if (Verbosity() > 0) { std::cout << "PHG4SpacalSubsystem::InitRun - use PHG4SpacalDetector" << std::endl;
+}
     detector_ = new PHG4SpacalDetector(this, topNode, Name(), GetParams(), GetLayer());
     break;
 
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper:
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_SameLengthFiberPerTower:
-    if (Verbosity() > 0) std::cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjSpacalDetector" << std::endl;
+    if (Verbosity() > 0) { std::cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjSpacalDetector" << std::endl;
+}
     detector_ = new PHG4FullProjSpacalDetector(this, topNode, Name(), GetParams(), GetLayer());
     break;
 
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_Tilted:
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower:
-    if (Verbosity() > 0) std::cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjTiltedSpacalDetector" << std::endl;
+    if (Verbosity() > 0) { std::cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjTiltedSpacalDetector" << std::endl;
+}
     detector_ = new PHG4FullProjTiltedSpacalDetector(this, topNode, Name(), GetParams(), GetLayer());
     break;
 

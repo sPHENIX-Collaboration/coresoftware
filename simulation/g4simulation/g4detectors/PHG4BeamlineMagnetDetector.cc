@@ -102,8 +102,9 @@ void PHG4BeamlineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
     G4double fieldValue = params->get_double_param("field_y") * tesla;
     magField = new G4UniformMagField(G4ThreeVector(0., fieldValue, 0.));
 
-    if (Verbosity() > 0)
+    if (Verbosity() > 0) {
       cout << "Creating DIPOLE with field " << fieldValue << " and name " << GetName() << endl;
+}
   }
   else if (magnettype == "quadrupole")
   {

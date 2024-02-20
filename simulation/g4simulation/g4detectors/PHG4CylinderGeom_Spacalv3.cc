@@ -81,13 +81,14 @@ void PHG4CylinderGeom_Spacalv3::Print(Option_t* opt) const
        << "Containing " << sector_tower_map.size()
        << " unique towers per sector." << std::endl;
 
-  if (get_construction_verbose() >= 2)
+  if (get_construction_verbose() >= 2) {
     for (const auto& it : sector_tower_map)
     {
       std::cout << "\t";
       std::cout << "\t";
       it.second.identify(std::cout);
     }
+}
 }
 
 void PHG4CylinderGeom_Spacalv3::SetDefault()
@@ -113,18 +114,24 @@ void PHG4CylinderGeom_Spacalv3::ImportParameters(const PHParameters& param)
 {
   PHG4CylinderGeom_Spacalv2::ImportParameters(param);
 
-  if (param.exist_double_param("sidewall_thickness"))
+  if (param.exist_double_param("sidewall_thickness")) {
     sidewall_thickness = param.get_double_param("sidewall_thickness");
-  if (param.exist_double_param("sidewall_outer_torr"))
+}
+  if (param.exist_double_param("sidewall_outer_torr")) {
     sidewall_outer_torr = param.get_double_param("sidewall_outer_torr");
-  if (param.exist_string_param("sidewall_mat"))
+}
+  if (param.exist_string_param("sidewall_mat")) {
     sidewall_mat = param.get_string_param("sidewall_mat");
-  if (param.exist_int_param("max_phi_bin_in_sec"))
+}
+  if (param.exist_int_param("max_phi_bin_in_sec")) {
     max_phi_bin_in_sec = param.get_int_param("max_phi_bin_in_sec");
-  if (param.exist_string_param("divider_mat"))
+}
+  if (param.exist_string_param("divider_mat")) {
     divider_mat = param.get_string_param("divider_mat");
-  if (param.exist_double_param("divider_width"))
+}
+  if (param.exist_double_param("divider_width")) {
     divider_width = param.get_double_param("divider_width");
+}
 
   // load sector_tower_map
   if (param.exist_int_param("sector_tower_map_size"))
@@ -332,11 +339,12 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
 
   int phi_bin_in_sec = -1;
 
-  if (get_config() == kFullProjective_2DTaper_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper)
+  if (get_config() == kFullProjective_2DTaper_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper) {
     // colume ID is from -x to +x at the top of the detector, which is reverse of the phi bin direction.
     phi_bin_in_sec = max_phi_bin_in_sec - (tower_ID % 10);
-  else if (get_config() == kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper_Tilted)
+  } else if (get_config() == kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper_Tilted) {
     phi_bin_in_sec = (tower_ID % 10);
+}
 
   if (!(phi_bin_in_sec < max_phi_bin_in_sec and phi_bin_in_sec >= 0))
   {
@@ -358,9 +366,9 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
 double PHG4CylinderGeom_Spacalv3::
     get_tower_radial_position(const PHG4CylinderGeom_Spacalv3::geom_tower& tower) const
 {
-  if (get_config() == kFullProjective_2DTaper_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper)
+  if (get_config() == kFullProjective_2DTaper_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper) {
     return tower.centralY;
-  else if (get_config() == kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper_Tilted)
+  } else if (get_config() == kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper_Tilted)
   {
     const double outter_wall_shift = get_sidewall_thickness() + get_sidewall_outer_torr() + get_assembly_spacing();
     assert(outter_wall_shift >= 0);
@@ -397,7 +405,8 @@ double PHG4CylinderGeom_Spacalv3::
 //! check that all towers has consistent sub-tower divider
 void PHG4CylinderGeom_Spacalv3::subtower_consistency_check() const
 {
-  if (sector_tower_map.begin() == sector_tower_map.end()) return;
+  if (sector_tower_map.begin() == sector_tower_map.end()) { return;
+}
 
   for (tower_map_t::const_iterator it = sector_tower_map.begin();
        it != sector_tower_map.end(); ++it)
@@ -417,14 +426,16 @@ void PHG4CylinderGeom_Spacalv3::subtower_consistency_check() const
 //! sub-tower divider along the polar direction
 int PHG4CylinderGeom_Spacalv3::get_n_subtower_eta() const
 {
-  if (sector_tower_map.begin() == sector_tower_map.end()) return 0;
+  if (sector_tower_map.begin() == sector_tower_map.end()) { return 0;
+}
   assert(sector_tower_map.begin() != sector_tower_map.end());
   return sector_tower_map.begin()->second.NSubtowerY;
 }
 //! sub-tower divider along the azimuthal direction
 int PHG4CylinderGeom_Spacalv3::get_n_subtower_phi() const
 {
-  if (sector_tower_map.begin() == sector_tower_map.end()) return 0;
+  if (sector_tower_map.begin() == sector_tower_map.end()) { return 0;
+}
   assert(sector_tower_map.begin() != sector_tower_map.end());
   return sector_tower_map.begin()->second.NSubtowerX;
 }

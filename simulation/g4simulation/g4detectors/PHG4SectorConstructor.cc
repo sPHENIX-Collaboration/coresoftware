@@ -298,8 +298,9 @@ PHG4Sector::PHG4SectorConstructor::RegisterPhysicalVolume(G4PVPlacement *v,
 
   map_phy_vol[id] = v;
 
-  if (active)
+  if (active) {
     map_active_phy_vol[id] = v;
+}
 
   return v;
 }
