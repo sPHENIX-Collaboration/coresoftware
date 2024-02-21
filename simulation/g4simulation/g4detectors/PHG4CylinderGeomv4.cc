@@ -25,6 +25,7 @@ void PHG4CylinderGeomv4::identify(std::ostream& os) const
 
 void PHG4CylinderGeomv4::find_segment_center(int segment_z_bin, int segment_phi_bin, double location[])
 {
+  // NOLINTNEXTLINE(bugprone-integer-division)
   double z_location = (double) (segment_z_bin - layer_NZ / 2) * segment_z_step;
 
   // this determines the stggered layer radius
@@ -57,20 +58,24 @@ void PHG4CylinderGeomv4::find_strip_center(int segment_z_bin, int segment_phi_bi
   double strip_sensor_z = 0.0;
   if (N_strip_columns % 2)
   {
+    // NOLINTNEXTLINE(bugprone-integer-division)
     strip_sensor_z = ((double) (strip_column - N_strip_columns / 2)) * strip_z_spacing;
   }
   else
   {
+    // NOLINTNEXTLINE(bugprone-integer-division)
     strip_sensor_z = ((double) (strip_column - N_strip_columns / 2) + 0.5) * strip_z_spacing;
   }
 
   double strip_sensor_y = 0.0;
   if (N_strips_per_column % 2)
   {
+    // NOLINTNEXTLINE(bugprone-integer-division)
     strip_sensor_y = (double) (strip_index - N_strips_per_column / 2) * strip_y_spacing;
   }
   else
   {
+    // NOLINTNEXTLINE(bugprone-integer-division)
     strip_sensor_y = ((double) (strip_index - N_strips_per_column / 2) + 0.5) * strip_y_spacing;
   }
 

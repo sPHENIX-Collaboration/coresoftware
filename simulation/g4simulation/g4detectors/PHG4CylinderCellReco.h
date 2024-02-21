@@ -65,11 +65,11 @@ class PHG4CylinderCellReco : public SubsysReco, public PHParameterContainerInter
   std::map<int, std::pair<double, double>> tmin_max;
   std::map<int, double> m_DeltaTMap;
 
-  int nbins[2];
-  int chkenergyconservation = 0;
+  int nbins[2]{};
+  int chkenergyconservation{0};
 
-  double sum_energy_before_cuts = 0.;
-  double sum_energy_g4hit = 0.;
+  double sum_energy_before_cuts{0.};
+  double sum_energy_g4hit{0.};
 };
 
 #endif

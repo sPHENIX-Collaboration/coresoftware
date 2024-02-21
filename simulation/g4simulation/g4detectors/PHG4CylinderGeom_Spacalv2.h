@@ -121,13 +121,13 @@ class PHG4CylinderGeom_Spacalv2 : public PHG4CylinderGeom_Spacalv1
   get_reg_fiber_grid_distance_nontaper() const;
 
  protected:
-  int azimuthal_n_sec;
+  int azimuthal_n_sec{std::numeric_limits<int>::min()};
 
   //! azimuthal tilt in rad
-  double azimuthal_tilt;
-  bool azimuthal_seg_visible;
-  double polar_taper_ratio;
-  double assembly_spacing;
+  double azimuthal_tilt{std::numeric_limits<double>::quiet_NaN()};
+  bool azimuthal_seg_visible{false};
+  double polar_taper_ratio{std::numeric_limits<double>::quiet_NaN()};
+  double assembly_spacing{std::numeric_limits<double>::quiet_NaN()};
 
   ClassDefOverride(PHG4CylinderGeom_Spacalv2, 2)
 };

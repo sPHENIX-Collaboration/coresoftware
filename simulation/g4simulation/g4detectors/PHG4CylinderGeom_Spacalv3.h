@@ -256,15 +256,15 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
   get_tower_z_phi_ID(const int tower_ID, const int sector_ID) const;
 
  protected:
-  double sidewall_thickness;
-  double sidewall_outer_torr;
+  double sidewall_thickness{std::numeric_limits<double>::quiet_NaN()};
+  double sidewall_outer_torr{std::numeric_limits<double>::quiet_NaN()};
   std::string sidewall_mat;
-  int max_phi_bin_in_sec;
+  int max_phi_bin_in_sec{std::numeric_limits<int>::min()};
 
   tower_map_t sector_tower_map;
 
   //! wdith along the approximate radial direction
-  double divider_width;
+  double divider_width{std::numeric_limits<double>::quiet_NaN()};
   //! material for divider
   std::string divider_mat;
 

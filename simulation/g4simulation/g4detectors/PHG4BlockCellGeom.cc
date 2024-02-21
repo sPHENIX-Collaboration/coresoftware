@@ -4,21 +4,6 @@
 #include <cmath>
 #include <cstdlib>
 
-using namespace std;
-
-PHG4BlockCellGeom::PHG4BlockCellGeom()
-  : _layer(-9999)
-  , _binning(0)
-  , _nzbins(-1)
-  , _zmin(NAN)
-  , _zstep(NAN)
-  , _nxbins(-1)
-  , _xmin(NAN)
-  , _xstep(NAN)
-{
-  return;
-}
-
 void PHG4BlockCellGeom::set_zbins(const int i)
 {
   check_binning_method(PHG4CylinderCellDefs::sizebinning);
@@ -144,11 +129,6 @@ void PHG4BlockCellGeom::identify(std::ostream& os) const
     break;
 
   case PHG4CylinderCellDefs::etaphibinning:
-    os << ", etabins: " << _nzbins
-       << ", etamin: " << _zmin
-       << ", etastepsize: " << _zstep;
-    break;
-
   case PHG4CylinderCellDefs::etaslatbinning:
     os << ", etabins: " << _nzbins
        << ", etamin: " << _zmin
@@ -156,7 +136,7 @@ void PHG4BlockCellGeom::identify(std::ostream& os) const
     break;
 
   default:
-    os << "no valid binning method: " << _binning << endl;
+    os << "no valid binning method: " << _binning << std::endl;
     return;
     break;
   }
@@ -164,58 +144,58 @@ void PHG4BlockCellGeom::identify(std::ostream& os) const
   os << ", xmin: " << _xmin
      << ", xbins: " << _nxbins
      << ", xstep: " << _xstep
-     << endl;
+     << std::endl;
   return;
 }
 
-pair<double, double>
+std::pair<double, double>
 PHG4BlockCellGeom::get_zbounds(const int ibin) const
 {
   if (ibin < 0 || ibin > _nzbins)
   {
-    cout << "Asking for invalid bin in z: " << ibin << endl;
+    std::cout << "Asking for invalid bin in z: " << ibin << std::endl;
     exit(1);
   }
   check_binning_method(PHG4CylinderCellDefs::sizebinning);
   double zlow = _zmin + ibin * _zstep;
   double zhigh = zlow + _zstep;
-  return make_pair(zlow, zhigh);
+  return std::make_pair(zlow, zhigh);
 }
 
-pair<double, double>
+std::pair<double, double>
 PHG4BlockCellGeom::get_etabounds(const int ibin) const
 {
   if (ibin < 0 || ibin > _nzbins)
   {
-    cout << "Asking for invalid bin in z: " << ibin << endl;
+    std::cout << "Asking for invalid bin in z: " << ibin << std::endl;
     exit(1);
   }
   check_binning_method_eta("PHG4BlockCellGeom::get_etabounds");
   //  check_binning_method(PHG4CylinderCellDefs::etaphibinning);
   double zlow = _zmin + ibin * _zstep;
   double zhigh = zlow + _zstep;
-  return make_pair(zlow, zhigh);
+  return std::make_pair(zlow, zhigh);
 }
 
-pair<double, double>
+std::pair<double, double>
 PHG4BlockCellGeom::get_xbounds(const int ibin) const
 {
   if (ibin < 0 || ibin > _nxbins)
   {
-    cout << "Asking for invalid bin in x: " << ibin << endl;
+    std::cout << "Asking for invalid bin in x: " << ibin << std::endl;
     exit(1);
   }
 
   double xlow = _xmin + ibin * _xstep;
   double xhigh = xlow + _xstep;
-  return make_pair(xlow, xhigh);
+  return std::make_pair(xlow, xhigh);
 }
 
 int PHG4BlockCellGeom::get_zbin(const double z) const
 {
   if (z < _zmin || z > (_zmin + _nzbins * _zstep))
   {
-    cout << "Asking for bin for z outside of z range: " << z << endl;
+    std::cout << "Asking for bin for z outside of z range: " << z << std::endl;
     return -1;
   }
 
@@ -227,7 +207,7 @@ int PHG4BlockCellGeom::get_etabin(const double eta) const
 {
   if (eta < _zmin || eta > (_zmin + _nzbins * _zstep))
   {
-    cout << "Asking for bin for eta outside of eta range: " << eta << endl;
+    std::cout << "Asking for bin for eta outside of eta range: " << eta << std::endl;
     return -1;
   }
   check_binning_method_eta();
@@ -239,7 +219,7 @@ int PHG4BlockCellGeom::get_xbin(const double x) const
   double norm_x = x;
   if (x < _xmin || x > (_xmin + _nxbins * _xstep))
   {
-    cout << "Asking for bin for x outside of x range: " << x << endl;
+    std::cout << "Asking for bin for x outside of x range: " << x << std::endl;
     return -1;
   }
   check_binning_method_x();
@@ -251,7 +231,7 @@ PHG4BlockCellGeom::get_zcenter(const int ibin) const
 {
   if (ibin < 0 || ibin > _nzbins)
   {
-    cout << "Asking for invalid bin in z: " << ibin << endl;
+    std::cout << "Asking for invalid bin in z: " << ibin << std::endl;
     exit(1);
   }
   check_binning_method(PHG4CylinderCellDefs::sizebinning);
@@ -263,8 +243,8 @@ PHG4BlockCellGeom::get_etacenter(const int ibin) const
 {
   if (ibin < 0 || ibin > _nzbins)
   {
-    cout << "Asking for invalid bin in eta: " << ibin << endl;
-    cout << "minbin: 0, maxbin " << _nzbins << endl;
+    std::cout << "Asking for invalid bin in eta: " << ibin << std::endl;
+    std::cout << "minbin: 0, maxbin " << _nzbins << std::endl;
     exit(1);
   }
   check_binning_method_eta();
@@ -276,7 +256,7 @@ PHG4BlockCellGeom::get_xcenter(const int ibin) const
 {
   if (ibin < 0 || ibin > _nxbins)
   {
-    cout << "Asking for invalid bin in x: " << ibin << endl;
+    std::cout << "Asking for invalid bin in x: " << ibin << std::endl;
     exit(1);
   }
 
@@ -284,7 +264,7 @@ PHG4BlockCellGeom::get_xcenter(const int ibin) const
   return (_xmin + (ibin + 0.5) * _xstep);
 }
 
-string
+std::string
 PHG4BlockCellGeom::methodname(const int i) const
 {
   switch (i)
@@ -308,9 +288,9 @@ void PHG4BlockCellGeom::check_binning_method(const int i) const
 {
   if (_binning != i)
   {
-    cout << "different binning method used " << methodname(_binning)
-         << ", not : " << methodname(i)
-         << endl;
+    std::cout << "different binning method used " << methodname(_binning)
+              << ", not : " << methodname(i)
+              << std::endl;
     exit(1);
   }
   return;
@@ -323,13 +303,13 @@ void PHG4BlockCellGeom::check_binning_method_eta(const std::string& src) const
   {
     if (src.size())
     {
-      cout << src << " : ";
+      std::cout << src << " : ";
     }
 
-    cout << "different binning method used " << methodname(_binning)
-         << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)
-         << " or " << methodname(PHG4CylinderCellDefs::etaslatbinning)
-         << endl;
+    std::cout << "different binning method used " << methodname(_binning)
+              << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)
+              << " or " << methodname(PHG4CylinderCellDefs::etaslatbinning)
+              << std::endl;
     exit(1);
   }
   return;
@@ -343,13 +323,13 @@ void PHG4BlockCellGeom::check_binning_method_x(const std::string& src) const
   {
     if (src.size())
     {
-      cout << src << " : ";
+      std::cout << src << " : ";
     }
 
-    cout << "different binning method used " << methodname(_binning)
-         << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)
-         << " or " << methodname(PHG4CylinderCellDefs::sizebinning)
-         << endl;
+    std::cout << "different binning method used " << methodname(_binning)
+              << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)
+              << " or " << methodname(PHG4CylinderCellDefs::sizebinning)
+              << std::endl;
     exit(1);
   }
   return;

@@ -2,6 +2,7 @@
 #include "PHG4CylinderCellDefs.h"
 
 #include <phool/phool.h>
+
 #include <cstdlib>
 
 void PHG4CylinderCellGeom::set_zbins(const int i)
@@ -130,10 +131,6 @@ void PHG4CylinderCellGeom::identify(std::ostream& os) const
        << ", zstepsize: " << zstep;
     break;
   case PHG4CylinderCellDefs::etaphibinning:
-    os << ", etabins: " << nzbins
-       << ", etamin: " << zmin
-       << ", etastepsize: " << zstep;
-    break;
   case PHG4CylinderCellDefs::etaslatbinning:
     os << ", etabins: " << nzbins
        << ", etamin: " << zmin
