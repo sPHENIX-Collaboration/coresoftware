@@ -104,15 +104,28 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
       auto globTr1 = getGlobalPositions(tpcseed1);
       for (auto &pos : globTr1.second)
       {
+        if(fabs(pos.z()) > 105)
+        std::cout << "global pos on track " << pos.transpose() << std::endl;
         float clusr = r(pos.x(), pos.y());
         if (pos.y() < 0) clusr *= -1;
         tr1_rz_pts.push_back(std::make_pair(pos.z(), clusr));
         tr1_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
       }
 
+      float tr1xyslope = NAN;
+      if(m_zeroField)
+      {
       auto xyTr1Params = TrackFitUtils::line_fit(tr1_xy_pts);
+      tr1xyslope = std::get<0>(xyTr1Params);
+      }
+      else
+      {
+        //! If field on, treat the circle radius as "slope"
+        auto xyTr1Params = TrackFitUtils::circle_fit_by_taubin(tr1_xy_pts);
+        tr1xyslope = std::get<0>(xyTr1Params);
+      }
+
       auto rzTr1Params = TrackFitUtils::line_fit(tr1_rz_pts);
-      float tr1xyslope = std::get<0>(xyTr1Params);
       float tr1rzslope = std::get<0>(rzTr1Params);
       //! Check if the rz slope is close to 0 corresponding to an chain of clusters
       //! from an ion tail
@@ -148,10 +161,21 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
         tr2_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
       }
 
+      float tr2xyslope = NAN;
+      if(m_zeroField)
+      {
       auto xyTr2Params = TrackFitUtils::line_fit(tr2_xy_pts);
+      tr2xyslope = std::get<0>(xyTr2Params);
+      }
+      else
+      {
+        //! If field on, treat the circle radius as "slope"
+        auto xyTr2Params = TrackFitUtils::circle_fit_by_taubin(tr2_xy_pts);
+        tr2xyslope = std::get<0>(xyTr2Params);
+      }
+
       auto rzTr2Params = TrackFitUtils::line_fit(tr2_rz_pts);
       // float tr2xyint = std::get<1>(xyTr2Params);
-      float tr2xyslope = std::get<0>(xyTr2Params);
       // float tr2rzint = std::get<1>(rzTr2Params);
       float tr2rzslope = std::get<0>(rzTr2Params);
 
@@ -269,6 +293,8 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
     float dcaz = pcaz - pos.z();
     float dcaxy = std::sqrt(square(dcax) + square(dcay));
     float dcarz = std::sqrt(square(dcar) + square(dcaz));
+    std::cout << "cluster global is " << pos.transpose() << " and dca is "
+    << dcaxy << ", " << dcarz << " and pca is " << pcax << ", " << pcay << ", " << pcaz << std::endl;
     if (dcaxy > 1. || dcarz > 1.)
     {
       seed->erase_cluster_key(glob.first[i]);
