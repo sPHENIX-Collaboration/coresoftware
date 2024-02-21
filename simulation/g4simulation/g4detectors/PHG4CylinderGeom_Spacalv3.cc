@@ -318,8 +318,11 @@ void PHG4CylinderGeom_Spacalv3::geom_tower::ImportParameters(
 PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int scint_id)
   : scint_ID(scint_id)
 {
+// NOLINTNEXTLINE(hicpp-signed-bitwise)
   sector_ID = (scint_ID >> (kfiber_bit + ktower_bit)) & ((1 << ksector_bit) - 1);
+// NOLINTNEXTLINE(hicpp-signed-bitwise)
   tower_ID = (scint_ID >> kfiber_bit) & ((1 << ktower_bit) - 1);
+// NOLINTNEXTLINE(hicpp-signed-bitwise)
   fiber_ID = (scint_ID) & ((1 << kfiber_bit) - 1);
 }
 
@@ -329,10 +332,14 @@ PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int sector_id,
   , tower_ID(tower_id)
   , fiber_ID(fiber_id)
 {
-  assert(fiber_ID < (1 << kfiber_bit) and fiber_ID >= 0);
-  assert(tower_ID < (1 << ktower_bit) and tower_ID >= 0);
-  assert(sector_ID < (1 << ksector_bit) and sector_ID >= 0);
+// NOLINTNEXTLINE(hicpp-signed-bitwise)
+  assert(fiber_ID < (1 << kfiber_bit) && fiber_ID >= 0);
+// NOLINTNEXTLINE(hicpp-signed-bitwise)
+  assert(tower_ID < (1 << ktower_bit) && tower_ID >= 0);
+// NOLINTNEXTLINE(hicpp-signed-bitwise)
+  assert(sector_ID < (1 << ksector_bit) && sector_ID >= 0);
 
+// NOLINTNEXTLINE(hicpp-signed-bitwise)
   scint_ID = (((sector_ID << ktower_bit) | tower_ID) << kfiber_bit) | fiber_ID;
 }
 
@@ -341,6 +348,7 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
                                               const int sector_ID) const
 {
   // tower_ID to eta/z within a sector
+// NOLINTNEXTLINE(bugprone-integer-division)
   int z_bin = floor(tower_ID / 10);
 
   int phi_bin_in_sec = -1;
