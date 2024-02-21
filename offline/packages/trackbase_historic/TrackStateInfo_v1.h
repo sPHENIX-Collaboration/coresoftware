@@ -76,7 +76,7 @@ class TrackStateInfo_v1 : public TrackStateInfo
 
   float get_p() const override { return sqrt(std::pow(get_px(), 2) + std::pow(get_py(), 2) + std::pow(get_pz(), 2)); }
   float get_pt() const override { return sqrt(std::pow(get_px(), 2) + std::pow(get_py(), 2)); }
-  float get_eta() const override { return -std::log(get_theta() / 2.); }
+  float get_eta() const override { return -std::log(std::tan(get_theta() / 2.)); }
 
   float get_covariance(int i, int j) const override;
   void set_covariance(int i, int j, float value) override;

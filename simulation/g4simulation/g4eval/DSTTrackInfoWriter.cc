@@ -247,9 +247,9 @@ void DSTTrackInfoWriter::evaluate_track_info()
     trackInfo->set_x(track->get_x());
     trackInfo->set_y(track->get_y());
     trackInfo->set_z(track->get_z());
-    trackInfo->set_px(track->get_px());
-    trackInfo->set_py(track->get_py());
-    trackInfo->set_pz(track->get_pz());
+    trackInfo->set_phi(track->get_phi());
+    trackInfo->set_theta(2.* std::atan(std::exp(-1*track->get_eta())));
+    trackInfo->set_qOp(track->get_charge() / track->get_p());
     if (Verbosity() > 1)
     {
       std::cout << "track crossing: " << track->get_crossing() << std::endl;
