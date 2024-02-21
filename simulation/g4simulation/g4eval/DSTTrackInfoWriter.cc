@@ -36,6 +36,7 @@
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackInfoContainer_v1.h>
 #include <trackbase_historic/TrackStateInfo_v1.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <algorithm>
 #include <bitset>
@@ -173,6 +174,7 @@ void DSTTrackInfoWriter::evaluate_track_info()
     std::cout << "Before loop"
               << "\n";
   }
+  ActsTransformations transformer;
   for (const auto& trackpair : *m_track_map)
   {
     const auto track = trackpair.second;
@@ -261,12 +263,13 @@ void DSTTrackInfoWriter::evaluate_track_info()
       std::cout << "chi^2: " << trackInfo->get_chisq() << std::endl;
       std::cout << "ndf: " << unsigned(trackInfo->get_ndf()) << std::endl;
     }
-    
-    for (int i = 0; i < 6; i++)
+    auto actsMatrix = transformer.rotateSvtxTrackCovToActs(track);
+    //! only take the first 5 entries, which correspond to d0, z0, phi, theta, q/p
+    for (int i = 0; i < 5; i++)
     {
-      for (int j = i; j < 6; j++)
+      for (int j = i; j < 5; j++)
       {
-        trackInfo->set_covariance(i, j, track->get_error(i, j));
+        trackInfo->set_covariance(i, j, actsMatrix(i,j));
       }
     }
     if (Verbosity() > 1)

@@ -84,7 +84,7 @@ class TrackStateInfo_v1 : public TrackStateInfo
  private:
   float m_Momentum[3] = {std::numeric_limits<float>::quiet_NaN()}; // global phi, theta, q/p 
   float m_Position[3] = {std::numeric_limits<float>::quiet_NaN()};  // global [x,y,z]
-  float m_Covariance[21] = {std::numeric_limits<float>::quiet_NaN()};
+  float m_Covariance[15] = {std::numeric_limits<float>::quiet_NaN()};
 
   ClassDefOverride(TrackStateInfo_v1, 1)
 };
