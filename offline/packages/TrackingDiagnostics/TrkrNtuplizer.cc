@@ -292,7 +292,7 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
   }
   _timer = new PHTimer("_eval_timer");
   _timer->stop();
-  
+  /**/  
   return Fun4AllReturnCodes::EVENT_OK;
 }
   
