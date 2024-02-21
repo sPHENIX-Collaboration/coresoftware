@@ -1084,8 +1084,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	float tZ0 = tpcseed->get_Z0();
 	float nhits_local = clusterPositions.size();
         if (Verbosity() > 1){
-	  if(tpcseed)
-	    cout << " tpc: " << tpcseed->size_cluster_keys() << endl;
+	  cout << " tpc: " << tpcseed->size_cluster_keys() << endl;
 	  if(siseed)
 	    cout << " si " << siseed->size_cluster_keys() << endl;
 	  cout << "done seedsize" << endl;
