@@ -67,7 +67,7 @@ PHG4BlockSteppingAction::~PHG4BlockSteppingAction()
 }
 
 //____________________________________________________________________________..
-bool PHG4BlockSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4BlockSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();

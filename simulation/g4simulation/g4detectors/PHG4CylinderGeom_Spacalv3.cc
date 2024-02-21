@@ -794,6 +794,8 @@ void PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4()
   const double wide_width_x = screen_size_x * sin(angle_screen_1_2);
 
   const double module_length = z_screen_6_7 - z_screen_1_2;
+  
+// NOLINTNEXTLINE(hicpp-static-assert,misc-static-assert)
   assert(module_length > 0);
 
   // tapering, dxwidth/dlength
