@@ -1,7 +1,5 @@
 #include "CaloValid.h"
 
-// G4Hits includes
-#include <TLorentzVector.h>
 
 // Calo includes
 #include <calobase/RawCluster.h>
@@ -27,6 +25,7 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TLorentzVector.h>
 #include <TNtuple.h>
 #include <TProfile2D.h>
 #include <TSystem.h>
@@ -34,6 +33,7 @@
 
 #include <cmath>     // for log10, pow, sqrt, abs, M_PI
 #include <iostream>  // for operator<<, endl, basic_...
+#include <limits>
 #include <map>       // for operator!=, _Rb_tree_con...
 #include <string>
 #include <utility>  // for pair
@@ -190,7 +190,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   {
     std::cout << "CaloValid GlobalVertexMap node is missing" << std::endl;
   }
-  float vtx_z = NAN;
+  float vtx_z = std::numeric_limits<float>::quiet_NaN();
   if (vertexmap && !vertexmap->empty())
   {
     GlobalVertex* vtx = vertexmap->begin()->second;
@@ -222,11 +222,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         uint8_t status = tower->get_status();
         for (int is=0; is<8; is++)
         {
-          if(status & 1)
+          if(status & 1U) // clang-tidy mark 1 as unsigned
           {
               h_cemc_status->Fill(is);
           }
-          status = status >> 1;
+          status = status >> 1U; // clang-tidy mark 1 as unsigned
         }
         if (_time > (max_emcal_t - _range) && _time < (max_emcal_t + _range))
         {
@@ -276,11 +276,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         uint8_t status = tower->get_status();
         for (int is=0; is<8; is++)
         {
-          if(status & 1)
+          if(status & 1U) // clang-tidy mark 1 as unsigned
           {
               h_ihcal_status->Fill(is);
           }
-          status = status >> 1;
+          status = status >> 1U; // clang-tidy mark 1 as unsigned
         }
 
         if (_time > (max_ihcal_t - _range) && _time < (max_ihcal_t + _range))
@@ -333,11 +333,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         uint8_t status = tower->get_status();
         for (int is=0; is<8; is++)
         {
-          if(status & 1)
+          if(status & 1U) // clang-tidy mark 1 as unsigned
           {
               h_ohcal_status->Fill(is);
           }
-          status = status >> 1;
+          status = status >> 1U; // clang-tidy mark 1 as unsigned
         }
 
         if (_time > (max_ohcal_t - _range) && _time < (max_ohcal_t + _range))
