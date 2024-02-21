@@ -625,6 +625,8 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         m_strip = std::numeric_limits<int>::quiet_NaN();
         m_hitpad = std::numeric_limits<int>::quiet_NaN();
         m_hittbin = std::numeric_limits<int>::quiet_NaN();
+
+        m_zdriftlength = std::numeric_limits<float>::quiet_NaN();
         break;
       }
       case TrkrDefs::TrkrId::inttId:
@@ -647,6 +649,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         m_strip = std::numeric_limits<int>::quiet_NaN();
         m_hitpad = std::numeric_limits<int>::quiet_NaN();
         m_hittbin = std::numeric_limits<int>::quiet_NaN();
+        m_zdriftlength = std::numeric_limits<float>::quiet_NaN();
         break;
       }
       case TrkrDefs::TrkrId::tpcId:
@@ -664,10 +667,10 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         auto phi = geoLayer->get_phicenter(m_hitpad);
         auto radius = geoLayer->get_radius();
         float AdcClockPeriod = geoLayer->get_zstep(); 
-        double zdriftlength = m_hittbin * geometry->get_drift_velocity() * AdcClockPeriod;
+        m_zdriftlength = m_hittbin * geometry->get_drift_velocity() * AdcClockPeriod;
         unsigned short NTBins = (unsigned short) geoLayer->get_zbins();
         double tdriftmax = AdcClockPeriod * NTBins / 2.0;
-        m_hitgz = (tdriftmax * geometry->get_drift_velocity()) - zdriftlength;
+        m_hitgz = (tdriftmax * geometry->get_drift_velocity()) - m_zdriftlength;
         if (m_side == 0)
         {
           m_hitgz *= -1;
@@ -690,6 +693,8 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         m_tileid = std::numeric_limits<int>::quiet_NaN();
         m_hitpad = std::numeric_limits<int>::quiet_NaN();
         m_hittbin = std::numeric_limits<int>::quiet_NaN();
+
+        m_zdriftlength = std::numeric_limits<float>::quiet_NaN();
       }
       default:
         break;
@@ -996,6 +1001,7 @@ void TrackResiduals::createBranches()
   m_hittree->Branch("tile", &m_tileid, "m_tileid/I");
   m_hittree->Branch("strip", &m_strip, "m_strip/I");
   m_hittree->Branch("adc", &m_adc, "m_adc/F");
+  m_hittree->Branch("zdriftlength",&m_zdriftlength,"m_zdriftlength/F");
 
   m_clustree = new TTree("clustertree", "A tree with all clusters");
   m_clustree->Branch("run",&m_runnumber,"m_runnumber/I");

@@ -126,7 +126,8 @@ class TrackResiduals : public SubsysReco
   int m_col = std::numeric_limits<int>::quiet_NaN();
   int m_row = std::numeric_limits<int>::quiet_NaN();
   int m_strip = std::numeric_limits<int>::quiet_NaN();
-
+  float m_zdriftlength = std::numeric_limits<float>::quiet_NaN();
+  
   //! cluster tree info
   float m_sclusgr = std::numeric_limits<float>::quiet_NaN();
   float m_sclusphi = std::numeric_limits<float>::quiet_NaN();
