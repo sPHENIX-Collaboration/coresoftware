@@ -58,7 +58,7 @@ namespace HepMC
 class HFTrackEfficiency : public SubsysReco
 {
  public:
-  HFTrackEfficiency(const std::string &name = "HFTrackEfficiency");
+  explicit HFTrackEfficiency(const std::string &name = "HFTrackEfficiency");
 
   ~HFTrackEfficiency() override;
 
@@ -80,7 +80,7 @@ class HFTrackEfficiency : public SubsysReco
   void setTruthRecoMatchingPercentage(float value) { m_truthRecoMatchPercent = value; };
 
  private:
-  typedef std::vector<std::pair<std::pair<int, int>, int>> Decay;
+  using Decay = std::vector<std::pair<std::pair<int, int>, int>>;
 
   bool m_triggerOnDecay;
 
@@ -130,7 +130,7 @@ class HFTrackEfficiency : public SubsysReco
   float m_true_mother_eta = std::numeric_limits<float>::quiet_NaN();
   float m_min_true_track_pT = std::numeric_limits<float>::max();
   float m_min_reco_track_pT = std::numeric_limits<float>::max();
-  float m_max_true_track_pT = -1. * std::numeric_limits<float>::max(); //Apparently min() is still a +ve value
+  float m_max_true_track_pT = -1. * std::numeric_limits<float>::max();  // Apparently min() is still a +ve value
   float m_max_reco_track_pT = -1. * std::numeric_limits<float>::max();
   bool m_reco_track_exists[m_maxTracks] = {false};
   bool m_used_truth_reco_map[m_maxTracks] = {false};

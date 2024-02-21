@@ -5,9 +5,8 @@
 
 #include <phool/PHObject.h>
 
-#include <climits>
-#include <cmath>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <string>
 #include <utility>
@@ -15,8 +14,8 @@
 class EicEventHeader : public PHObject
 {
  public:
-  EicEventHeader() {}
-  ~EicEventHeader() override;
+  EicEventHeader() = default;
+  ~EicEventHeader() override = default;
 
   void identify(std::ostream& os = std::cout) const override;
   void CopyFrom(const PHObject* phobj) override;
@@ -29,19 +28,18 @@ class EicEventHeader : public PHObject
   // Milou
 
   virtual void set_milou_weight(const float) { return; }
-  virtual float get_milou_weight() const { return NAN; }
+  virtual float get_milou_weight() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_milou_trueX(const float) { return; }
-  virtual float get_milou_trueX() const { return NAN; }
+  virtual float get_milou_trueX() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_milou_trueQ2(const float) { return; }
-  virtual float get_milou_trueQ2() const { return NAN; }
+  virtual float get_milou_trueQ2() const { return std::numeric_limits<float>::quiet_NaN(); }
 
-
-//  void set_milou_weight(const float val) override { set_property(prop_milou_weight, val); }
-//  float get_milou_weight() const override { return get_property_float(prop_milou_weight); }
+  //  void set_milou_weight(const float val) override { set_property(prop_milou_weight, val); }
+  //  float get_milou_weight() const override { return get_property_float(prop_milou_weight); }
 
   // DEMP
   virtual void set_demp_weight(const float) { return; }
-  virtual float get_demp_weight() const { return NAN; }
+  virtual float get_demp_weight() const { return std::numeric_limits<float>::quiet_NaN(); }
 
   //! Procedure to add a new PROPERTY tag:
   //! 1.add new tag below with unique value,
@@ -56,7 +54,7 @@ class EicEventHeader : public PHObject
     prop_demp_weight = 5,
 
     //! max limit in order to fit into 8 bit unsigned number
-    prop_MAX_NUMBER = UCHAR_MAX
+    prop_MAX_NUMBER = std::numeric_limits<unsigned char>::max()
   };
 
   enum PROPERTY_TYPE
@@ -74,9 +72,9 @@ class EicEventHeader : public PHObject
   };
 
   virtual bool has_property(const PROPERTY /*prop_id*/) const { return false; }
-  virtual float get_property_float(const PROPERTY /*prop_id*/) const { return NAN; }
-  virtual int get_property_int(const PROPERTY /*prop_id*/) const { return INT_MIN; }
-  virtual unsigned int get_property_uint(const PROPERTY /*prop_id*/) const { return UINT_MAX; }
+  virtual float get_property_float(const PROPERTY /*prop_id*/) const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual int get_property_int(const PROPERTY /*prop_id*/) const { return std::numeric_limits<int>::min(); }
+  virtual unsigned int get_property_uint(const PROPERTY /*prop_id*/) const { return std::numeric_limits<unsigned int>::max(); }
   virtual void set_property(const PROPERTY /*prop_id*/, const float /*value*/) { return; }
   virtual void set_property(const PROPERTY /*prop_id*/, const int /*value*/) { return; }
   virtual void set_property(const PROPERTY /*prop_id*/, const unsigned int /*value*/) { return; }
@@ -85,7 +83,7 @@ class EicEventHeader : public PHObject
   static std::string get_property_type(const PROPERTY_TYPE prop_type);
 
  protected:
-  virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const { return UINT_MAX; }
+  virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const { return std::numeric_limits<unsigned int>::max(); }
   virtual void set_property_nocheck(const PROPERTY /*prop_id*/, const unsigned int) { return; }
 
   std::map<std::string, double> evInfo;

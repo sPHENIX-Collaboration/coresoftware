@@ -33,8 +33,8 @@ Fun4AllDstPileupInputManager::Fun4AllDstPileupInputManager(const std::string &na
 {
   // initialize random generator
   const uint seed = PHRandomSeed();
-  m_rng.reset( gsl_rng_alloc(gsl_rng_mt19937) );
-  gsl_rng_set( m_rng.get(), seed );
+  m_rng.reset(gsl_rng_alloc(gsl_rng_mt19937));
+  gsl_rng_set(m_rng.get(), seed);
 }
 
 //_____________________________________________________________________________
@@ -62,7 +62,7 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
   }
   // sanity check - the IManager must be nullptr when this method is executed
   // if not something is very very wrong and we must not continue
-  assert( !m_IManager );
+  assert(!m_IManager);
 
   // first read the runnode if not disabled
   if (m_ReadRunTTree)
@@ -80,7 +80,7 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
         SetRunNumber(runheader->get_RunNumber());
       }
       // delete our internal copy of the runnode when opening subsequent files
-      assert( !m_runNodeCopy );
+      assert(!m_runNodeCopy);
       m_runNodeCopy.reset(new PHCompositeNode("RUNNODECOPY"));
       if (!m_runNodeSum)
       {
@@ -138,12 +138,17 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
 //_____________________________________________________________________________
 int Fun4AllDstPileupInputManager::run(const int nevents)
 {
-
-  if( nevents == 0 ) return runOne( nevents );
-  else if( nevents > 1 )
+  if (nevents == 0)
   {
-    const auto result = runOne( nevents-1 );
-    if( result != 0 ) return result;
+    return runOne(nevents);
+  }
+  else if (nevents > 1)
+  {
+    const auto result = runOne(nevents - 1);
+    if (result != 0)
+    {
+      return result;
+    }
   }
 
   /*
@@ -151,7 +156,7 @@ int Fun4AllDstPileupInputManager::run(const int nevents)
    * this normally happens in ::fileopen however, when the file is not oppened during first event, for instance because background rate is too low,
    * this can cause fun4all server to bark with "Someone changed the number of Output Nodes on the fly"
    */
-  if( !m_dstNode )
+  if (!m_dstNode)
   {
     auto se = Fun4AllServer::instance();
     m_dstNode = se->getNode(InputNode(), TopNodeName());
@@ -168,28 +173,29 @@ int Fun4AllDstPileupInputManager::run(const int nevents)
   merger.load_nodes(m_dstNode);
 
   // generate background collisions
-  const double mu = m_collision_rate*m_time_between_crossings*1e-9;
+  const double mu = m_collision_rate * m_time_between_crossings * 1e-9;
 
-  const int min_crossing = m_tmin/m_time_between_crossings;
-  const int max_crossing = m_tmax/m_time_between_crossings;
-  for( int icrossing = min_crossing; icrossing <= max_crossing; ++icrossing )
+  const int min_crossing = m_tmin / m_time_between_crossings;
+  const int max_crossing = m_tmax / m_time_between_crossings;
+  for (int icrossing = min_crossing; icrossing <= max_crossing; ++icrossing)
   {
     const double crossing_time = m_time_between_crossings * icrossing;
     const int ncollisions = gsl_ran_poisson(m_rng.get(), mu);
     for (int icollision = 0; icollision < ncollisions; ++icollision)
     {
-
       // read one event
-      const auto result = runOne( 1 );
-      if( result != 0 ) return result;
+      const auto result = runOne(1);
+      if (result != 0)
+      {
+        return result;
+      }
 
       // merge
       if (Verbosity() > 0)
       {
-	std::cout << "Fun4AllDstPileupInputManager::run - merged background event " << m_ievent_thisfile << " time: " << crossing_time << std::endl;
+        std::cout << "Fun4AllDstPileupInputManager::run - merged background event " << m_ievent_thisfile << " time: " << crossing_time << std::endl;
       }
       merger.copy_background_event(m_dstNodeInternal.get(), crossing_time);
-
     }
   }
 
@@ -375,6 +381,7 @@ readagain:
     fileclose();
     if (!OpenNextFile())
     {
+      // NOLINTNEXTLINE(hicpp-avoid-goto)
       goto readagain;
     }
     return -1;
@@ -384,6 +391,7 @@ readagain:
   // check if the local SubsysReco discards this event
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
+    // NOLINTNEXTLINE(hicpp-avoid-goto)
     goto readagain;
   }
   return 0;
@@ -391,13 +399,13 @@ readagain:
 
 void Fun4AllDstPileupInputManager::setDetectorActiveCrossings(const std::string &name, const int nbcross)
 {
-  setDetectorActiveCrossings(name,-nbcross,nbcross);
+  setDetectorActiveCrossings(name, -nbcross, nbcross);
 }
 
 void Fun4AllDstPileupInputManager::setDetectorActiveCrossings(const std::string &name, const int min, const int max)
 {
   std::string nodename = "G4HIT_" + name;
-// compensate that active for one bunch crossign means delta_t = 0
-  m_DetectorTiming.insert(std::make_pair(nodename,std::make_pair(m_time_between_crossings * (min+1), m_time_between_crossings * (max-1))));
+  // compensate that active for one bunch crossign means delta_t = 0
+  m_DetectorTiming.insert(std::make_pair(nodename, std::make_pair(m_time_between_crossings * (min + 1), m_time_between_crossings * (max - 1))));
   return;
 }

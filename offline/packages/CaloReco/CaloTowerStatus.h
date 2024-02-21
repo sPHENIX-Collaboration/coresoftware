@@ -77,7 +77,7 @@ class CaloTowerStatus : public SubsysReco
   std::string m_inputNodePrefix{"TOWERS_"};
 
   float badChi2_treshold = 1e4;
-  float fraction_badChi2_threshold = 0.05;
+  float fraction_badChi2_threshold = 0.01;
   float time_cut = 2; // number of samples from the mean time for the channel in the run
 };
 

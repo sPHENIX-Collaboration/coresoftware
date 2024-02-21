@@ -16,7 +16,7 @@ class G4VPhysicalVolume;
 class PHCompositeNode;
 
 //_______________________________________________________________
-//note this inactive thickness is ~1.5% of a radiation length
+// note this inactive thickness is ~1.5% of a radiation length
 PHG4SectorDetector::PHG4SectorDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
   , PHG4SectorConstructor(dnam, subsys)

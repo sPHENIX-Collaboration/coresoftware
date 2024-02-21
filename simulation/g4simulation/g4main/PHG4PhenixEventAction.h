@@ -9,28 +9,27 @@
 
 #include <list>
 
-
 class G4Event;
 class PHG4EventAction;
 
 class PHG4PhenixEventAction : public G4UserEventAction
 {
-
-  public:
-  PHG4PhenixEventAction( void );
+ public:
+  PHG4PhenixEventAction(void);
 
   ~PHG4PhenixEventAction() override;
 
   //! register an action. This is called in PHG4Reco::Init based on which actions are found on the tree
-  void AddAction( PHG4EventAction* action )
-  { actions_.push_back( action ); }
+  void AddAction(PHG4EventAction* action)
+  {
+    actions_.push_back(action);
+  }
 
   void BeginOfEventAction(const G4Event*) override;
 
   void EndOfEventAction(const G4Event*) override;
 
-  private:
-
+ private:
   //! list of subsystem specific Event actions
   typedef std::list<PHG4EventAction*> ActionList;
   ActionList actions_;
@@ -38,6 +37,5 @@ class PHG4PhenixEventAction : public G4UserEventAction
   //! module timer.
   PHTimeServer::timer _timer;
 };
-
 
 #endif

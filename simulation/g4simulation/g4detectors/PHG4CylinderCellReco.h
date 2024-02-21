@@ -30,7 +30,7 @@ class PHG4CylinderCellReco : public SubsysReco, public PHParameterContainerInter
 
   int ResetEvent(PHCompositeNode *topNode) override;
 
-// cppcheck-suppress virtualCallInConstructor
+  // cppcheck-suppress virtualCallInConstructor
   void SetDefaultParameters() override;
 
   void Detector(const std::string &d);
@@ -48,8 +48,8 @@ class PHG4CylinderCellReco : public SubsysReco, public PHParameterContainerInter
   int CheckEnergy(PHCompositeNode *topNode);
 
   std::map<int, int> binning;
-  std::map<int, std::pair<double, double> > cell_size;  // cell size in phi/z
-  std::map<int, std::pair<double, double> > zmin_max;   // zmin/zmax for each layer for faster lookup
+  std::map<int, std::pair<double, double>> cell_size;  // cell size in phi/z
+  std::map<int, std::pair<double, double>> zmin_max;   // zmin/zmax for each layer for faster lookup
   std::map<int, double> phistep;
   std::map<int, double> etastep;
   std::set<int> implemented_detid;
@@ -65,11 +65,11 @@ class PHG4CylinderCellReco : public SubsysReco, public PHParameterContainerInter
   std::map<int, std::pair<double, double>> tmin_max;
   std::map<int, double> m_DeltaTMap;
 
-  int nbins[2];
-  int chkenergyconservation = 0;
+  int nbins[2]{};
+  int chkenergyconservation{0};
 
-  double sum_energy_before_cuts = 0.;
-  double sum_energy_g4hit = 0.;
+  double sum_energy_before_cuts{0.};
+  double sum_energy_g4hit{0.};
 };
 
 #endif

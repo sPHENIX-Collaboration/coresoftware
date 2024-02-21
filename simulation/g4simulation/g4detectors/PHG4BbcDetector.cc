@@ -10,6 +10,7 @@
 
 #include <phool/recoConsts.h>
 
+#include <Geant4/G4Box.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4NistManager.hh>
@@ -17,20 +18,18 @@
 #include <Geant4/G4Polyhedra.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
 #include <Geant4/G4String.hh>          // for G4String
+#include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
-#include <Geant4/G4Tubs.hh>
-#include <Geant4/G4Box.hh>
-#include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4Trap.hh>
+#include <Geant4/G4Tubs.hh>
 
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>
 
 #include <cmath>
-#include <vector>
 #include <iostream>  // for operator<<, endl, bas...
-
+#include <vector>
 
 class PHCompositeNode;
 
@@ -40,7 +39,7 @@ PHG4BbcDetector::PHG4BbcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, P
   , m_Params(params)
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_SupportActiveFlag(m_Params->get_int_param("supportactive"))
-  , front_bbcz(248*cm)
+  , front_bbcz(248 * cm)
 {
 }
 
@@ -69,7 +68,7 @@ int PHG4BbcDetector::IsInBbc(G4VPhysicalVolume *volume) const
 
 void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  //std::cout << "PHG4BbcDetector::ConstructMe()" << std::endl;
+  // std::cout << "PHG4BbcDetector::ConstructMe()" << std::endl;
 
   recoConsts *rc = recoConsts::instance();
 
@@ -274,7 +273,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
       {-12.2976, -4.26},
       {-12.2976, -1.42}};
 
-  //m_bbcz = m_Params->get_double_param("z") * cm;
+  // m_bbcz = m_Params->get_double_param("z") * cm;
   m_bbcz = 250.0 * cm;  // The front face of the quartz is at 250 cm
 
   const float tube_zpos = m_bbcz + len_bbcd / 2.0 - len_bbca;
@@ -398,7 +397,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
       int ncables = 2 * M_PI * ring_radius / (0.635 * cm);
       double dphi = 2 * M_PI / ncables;
 
-      //G4cout << "BBC_CABLE " << iring << "\t" << ring_radius << "\t" << ncables << "\t" << dphi*180/3.14 << G4endl;
+      // G4cout << "BBC_CABLE " << iring << "\t" << ring_radius << "\t" << ncables << "\t" << dphi*180/3.14 << G4endl;
 
       // place cables in ring
       for (int ic = 0; ic < ncables; ic++)
@@ -436,7 +435,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
 void PHG4BbcDetector::ConstructSupport(G4LogicalVolume *logicWorld)
 {
-  //std::cout << "PHG4BbcDetector::ConstructSupport()" << std::endl;
+  // std::cout << "PHG4BbcDetector::ConstructSupport()" << std::endl;
 
   G4double fractionmass;
   G4int ncomponents;
@@ -445,8 +444,8 @@ void PHG4BbcDetector::ConstructSupport(G4LogicalVolume *logicWorld)
   recoConsts *rc = recoConsts::instance();
   G4Material *WorldMaterial = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4Material *Delrin = GetDetectorMaterial("G4_POLYOXYMETHYLENE");
-  //G4Material *Aluminum = GetDetectorMaterial("G4_Al");
- 
+  // G4Material *Aluminum = GetDetectorMaterial("G4_Al");
+
   // McMaster-Carr #8548K36, implemented as PDG G10, https://pdg.lbl.gov/2022/AtomicNuclearProperties/HTML/G10.html
   G4Material *Fiberglass = new G4Material("BBC_Fiberglass", density = 1.800 * g / cm3, ncomponents = 9);
   Fiberglass->AddElement(G4NistManager::Instance()->FindOrBuildElement("B"), fractionmass = 0.018640);
@@ -463,49 +462,48 @@ void PHG4BbcDetector::ConstructSupport(G4LogicalVolume *logicWorld)
   G4double basep_width = 35.56 * cm;
   G4double basep_height = 1.91 * cm;
   G4double basep_len = 46.99 * cm;
-  G4double basep_zpos = 228.6 * cm;   // z-pos of front edge of base plate
-  G4Box *bbc_base_plate = new G4Box("bbc_base_plate", basep_width/2, basep_height/2, basep_len/2);
+  G4double basep_zpos = 228.6 * cm;  // z-pos of front edge of base plate
+  G4Box *bbc_base_plate = new G4Box("bbc_base_plate", basep_width / 2, basep_height / 2, basep_len / 2);
   G4LogicalVolume *bbc_base_plate_lv = new G4LogicalVolume(bbc_base_plate, Delrin, G4String("Bbc_Base_Plates"));
   GetDisplayAction()->AddVolume(bbc_base_plate_lv, "Bbc_Base_Plates");
 
   // Place South Base Plates
-  new G4PVPlacement(nullptr, G4ThreeVector( 0 *cm, -15.*cm - basep_height/2, (-basep_zpos - basep_len/2 ) ),
-                                    bbc_base_plate_lv, "BBC_BASE_PLATE", logicWorld, false, 0, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(0 * cm, -15. * cm - basep_height / 2, (-basep_zpos - basep_len / 2)),
+                    bbc_base_plate_lv, "BBC_BASE_PLATE", logicWorld, false, 0, OverlapCheck());
 
   // Place North Base Plates
-  new G4PVPlacement(nullptr, G4ThreeVector( 0 *cm, -15.*cm - basep_height/2, (basep_zpos  + basep_len/2 ) ),
-                                    bbc_base_plate_lv, "BBC_BASE_PLATE", logicWorld, false, 1, OverlapCheck());
-
+  new G4PVPlacement(nullptr, G4ThreeVector(0 * cm, -15. * cm - basep_height / 2, (basep_zpos + basep_len / 2)),
+                    bbc_base_plate_lv, "BBC_BASE_PLATE", logicWorld, false, 1, OverlapCheck());
 
   // BBC Side Support Plates
   G4double sidesupportp_width = 1.27 * cm;
   G4double sidesupportp_height = 14.57 * cm;
   G4double sidesupportp_len = 25.00 * cm;
 
-  G4Box *bbc_sidesupport_plate = new G4Box("bbc_sidesupport_plate", sidesupportp_width/2, sidesupportp_height/2, sidesupportp_len/2);
+  G4Box *bbc_sidesupport_plate = new G4Box("bbc_sidesupport_plate", sidesupportp_width / 2, sidesupportp_height / 2, sidesupportp_len / 2);
   G4LogicalVolume *bbc_sidesupport_plate_lv = new G4LogicalVolume(bbc_sidesupport_plate, Delrin, G4String("Bbc_Sidesupport_Plates"));
   GetDisplayAction()->AddVolume(bbc_sidesupport_plate_lv, "Bbc_Sidesupport_Plates");
 
-  // Make and Place Holes in Side Support Plates 
-  G4Tubs *bbc_sidesupport_hole = new G4Tubs("bbc_sidesupport_hole", 0., (7.62/2)*cm, sidesupportp_width/2, 0, 2.0*M_PI);
+  // Make and Place Holes in Side Support Plates
+  G4Tubs *bbc_sidesupport_hole = new G4Tubs("bbc_sidesupport_hole", 0., (7.62 / 2) * cm, sidesupportp_width / 2, 0, 2.0 * M_PI);
   G4LogicalVolume *bbc_sidesupport_hole_lv = new G4LogicalVolume(bbc_sidesupport_hole, WorldMaterial, G4String("Bbc_Sidesupport_Holes"));
 
   G4RotationMatrix *rot_sideholes = new G4RotationMatrix;
-  rot_sideholes->rotateY(90.*deg);    
-  new G4PVPlacement(rot_sideholes, G4ThreeVector(0,-0.935*cm,11.43*cm/2), bbc_sidesupport_hole_lv, "BBC_SIDESUPPORT_HOLE", bbc_sidesupport_plate_lv, false, 0, OverlapCheck());
-  new G4PVPlacement(rot_sideholes, G4ThreeVector(0,-0.935*cm,-11.43*cm/2), bbc_sidesupport_hole_lv, "BBC_SIDESUPPORT_HOLE", bbc_sidesupport_plate_lv, false, 1, OverlapCheck());
+  rot_sideholes->rotateY(90. * deg);
+  new G4PVPlacement(rot_sideholes, G4ThreeVector(0, -0.935 * cm, 11.43 * cm / 2), bbc_sidesupport_hole_lv, "BBC_SIDESUPPORT_HOLE", bbc_sidesupport_plate_lv, false, 0, OverlapCheck());
+  new G4PVPlacement(rot_sideholes, G4ThreeVector(0, -0.935 * cm, -11.43 * cm / 2), bbc_sidesupport_hole_lv, "BBC_SIDESUPPORT_HOLE", bbc_sidesupport_plate_lv, false, 1, OverlapCheck());
 
   // Place South Side Support Plates
-  new G4PVPlacement(nullptr, G4ThreeVector(-15*cm-sidesupportp_width/2, -15*cm+sidesupportp_height/2, -front_bbcz-sidesupportp_len/2),
-      bbc_sidesupport_plate_lv, "BBC_SIDESUPPORT_PLATE", logicWorld, false, 0, OverlapCheck());
-  new G4PVPlacement(nullptr, G4ThreeVector(15*cm+sidesupportp_width/2, -15*cm+sidesupportp_height/2, -front_bbcz-sidesupportp_len/2),
-      bbc_sidesupport_plate_lv, "BBC_SIDESUPPORT_PLATE", logicWorld, false, 1, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(-15 * cm - sidesupportp_width / 2, -15 * cm + sidesupportp_height / 2, -front_bbcz - sidesupportp_len / 2),
+                    bbc_sidesupport_plate_lv, "BBC_SIDESUPPORT_PLATE", logicWorld, false, 0, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(15 * cm + sidesupportp_width / 2, -15 * cm + sidesupportp_height / 2, -front_bbcz - sidesupportp_len / 2),
+                    bbc_sidesupport_plate_lv, "BBC_SIDESUPPORT_PLATE", logicWorld, false, 1, OverlapCheck());
 
   // Place North Side Support Plate
-  new G4PVPlacement(nullptr, G4ThreeVector(-15*cm-sidesupportp_width/2, -15*cm+sidesupportp_height/2, front_bbcz+sidesupportp_len/2),
-      bbc_sidesupport_plate_lv, "BBC_SIDESUPPORT_PLATE", logicWorld, false, 2, OverlapCheck());
-  new G4PVPlacement(nullptr, G4ThreeVector(15*cm+sidesupportp_width/2, -15*cm+sidesupportp_height/2, front_bbcz+sidesupportp_len/2),
-      bbc_sidesupport_plate_lv, "BBC_SIDESUPPORT_PLATE", logicWorld, false, 3, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(-15 * cm - sidesupportp_width / 2, -15 * cm + sidesupportp_height / 2, front_bbcz + sidesupportp_len / 2),
+                    bbc_sidesupport_plate_lv, "BBC_SIDESUPPORT_PLATE", logicWorld, false, 2, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(15 * cm + sidesupportp_width / 2, -15 * cm + sidesupportp_height / 2, front_bbcz + sidesupportp_len / 2),
+                    bbc_sidesupport_plate_lv, "BBC_SIDESUPPORT_PLATE", logicWorld, false, 3, OverlapCheck());
 
   // BBC Support Post
   G4double supportp_width = 10.16 * cm;
@@ -513,22 +511,21 @@ void PHG4BbcDetector::ConstructSupport(G4LogicalVolume *logicWorld)
   G4double supportp_len = 10.16 * cm;
   G4double supportp_thick = 0.64 * cm;
 
-  G4Box *bbc_support_post_outside = new G4Box("bbc_support_post_outside", supportp_width/2, supportp_height/2, supportp_len/2);
-  G4Box *bbc_support_post_inside = new G4Box("bbc_support_post_inside", supportp_width/2-supportp_thick, supportp_height/2-supportp_thick, supportp_len/2-supportp_thick);
-  G4SubtractionSolid* bbc_support_post = new G4SubtractionSolid("support_post", bbc_support_post_outside, bbc_support_post_inside);
+  G4Box *bbc_support_post_outside = new G4Box("bbc_support_post_outside", supportp_width / 2, supportp_height / 2, supportp_len / 2);
+  G4Box *bbc_support_post_inside = new G4Box("bbc_support_post_inside", supportp_width / 2 - supportp_thick, supportp_height / 2 - supportp_thick, supportp_len / 2 - supportp_thick);
+  G4SubtractionSolid *bbc_support_post = new G4SubtractionSolid("support_post", bbc_support_post_outside, bbc_support_post_inside);
 
   G4LogicalVolume *bbc_support_post_lv = new G4LogicalVolume(bbc_support_post, Fiberglass, G4String("Bbc_Support_Post"));
 
   GetDisplayAction()->AddVolume(bbc_support_post_lv, "Bbc_Support_Post");
 
   // Place South Support Post
-  new G4PVPlacement(nullptr, G4ThreeVector(0, -15.*cm-basep_height-supportp_height/2, -228.*cm - supportp_len/2),
-      bbc_support_post_lv, "BBC_SUPPORT_POST", logicWorld, false, 0, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(0, -15. * cm - basep_height - supportp_height / 2, -228. * cm - supportp_len / 2),
+                    bbc_support_post_lv, "BBC_SUPPORT_POST", logicWorld, false, 0, OverlapCheck());
 
   // Place North Support Post
-  new G4PVPlacement(nullptr, G4ThreeVector(0, -15.*cm-basep_height-supportp_height/2, 228.*cm + supportp_len/2),
-      bbc_support_post_lv, "BBC_SUPPORT_POST", logicWorld, false, 1, OverlapCheck());
-
+  new G4PVPlacement(nullptr, G4ThreeVector(0, -15. * cm - basep_height - supportp_height / 2, 228. * cm + supportp_len / 2),
+                    bbc_support_post_lv, "BBC_SUPPORT_POST", logicWorld, false, 1, OverlapCheck());
 
   // BBC Support Arm
   G4double supporta_width = 148.59 * cm;
@@ -536,31 +533,30 @@ void PHG4BbcDetector::ConstructSupport(G4LogicalVolume *logicWorld)
   G4double supporta_len = 10.16 * cm;
   G4double supporta_thick = 0.64 * cm;
 
-  G4Box *bbc_support_arm_outside = new G4Box("bbc_support_arm_outside", supporta_width/2, supporta_height/2, supporta_len/2);
-  G4Box *bbc_support_arm_inside = new G4Box("bbc_support_arm_inside", supporta_width/2-supporta_thick, supporta_height/2-supporta_thick, supporta_len/2-supporta_thick);
-  G4SubtractionSolid* bbc_support_arm = new G4SubtractionSolid("support_arm", bbc_support_arm_outside, bbc_support_arm_inside);
+  G4Box *bbc_support_arm_outside = new G4Box("bbc_support_arm_outside", supporta_width / 2, supporta_height / 2, supporta_len / 2);
+  G4Box *bbc_support_arm_inside = new G4Box("bbc_support_arm_inside", supporta_width / 2 - supporta_thick, supporta_height / 2 - supporta_thick, supporta_len / 2 - supporta_thick);
+  G4SubtractionSolid *bbc_support_arm = new G4SubtractionSolid("support_arm", bbc_support_arm_outside, bbc_support_arm_inside);
 
   G4LogicalVolume *bbc_support_arm_lv = new G4LogicalVolume(bbc_support_arm, Fiberglass, G4String("Bbc_Support_Arm"));
 
   GetDisplayAction()->AddVolume(bbc_support_arm_lv, "Bbc_Support_Arm");
 
   // Place South Support Arms
-  new G4PVPlacement(nullptr, G4ThreeVector( -supporta_width/2 - supportp_width/2,  -15.*cm-basep_height-20.48*cm - supporta_height/2, -228.6*cm - supporta_len/2),
-      bbc_support_arm_lv, "BBC_SUPPORT_ARM", logicWorld, false, 0, OverlapCheck());
-  new G4PVPlacement(nullptr, G4ThreeVector( supporta_width/2 + supportp_width/2,  -15.*cm-basep_height-20.48*cm - supporta_height/2, -228.6*cm - supporta_len/2),
-      bbc_support_arm_lv, "BBC_SUPPORT_ARM", logicWorld, false, 1, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(-supporta_width / 2 - supportp_width / 2, -15. * cm - basep_height - 20.48 * cm - supporta_height / 2, -228.6 * cm - supporta_len / 2),
+                    bbc_support_arm_lv, "BBC_SUPPORT_ARM", logicWorld, false, 0, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(supporta_width / 2 + supportp_width / 2, -15. * cm - basep_height - 20.48 * cm - supporta_height / 2, -228.6 * cm - supporta_len / 2),
+                    bbc_support_arm_lv, "BBC_SUPPORT_ARM", logicWorld, false, 1, OverlapCheck());
 
   // Place North Support Arms
-  new G4PVPlacement(nullptr, G4ThreeVector( -supporta_width/2 - supportp_width/2,  -15.*cm-basep_height-20.48*cm - supporta_height/2, 228.6*cm  + supporta_len/2),
-      bbc_support_arm_lv, "BBC_SUPPORT_ARM", logicWorld, false, 2, OverlapCheck());
-  new G4PVPlacement(nullptr, G4ThreeVector( supporta_width/2 + supportp_width/2,  -15.*cm-basep_height-20.48*cm - supporta_height/2, 228.6*cm  + supporta_len/2),
-      bbc_support_arm_lv, "BBC_SUPPORT_ARM", logicWorld, false, 3, OverlapCheck());
-
+  new G4PVPlacement(nullptr, G4ThreeVector(-supporta_width / 2 - supportp_width / 2, -15. * cm - basep_height - 20.48 * cm - supporta_height / 2, 228.6 * cm + supporta_len / 2),
+                    bbc_support_arm_lv, "BBC_SUPPORT_ARM", logicWorld, false, 2, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(supporta_width / 2 + supportp_width / 2, -15. * cm - basep_height - 20.48 * cm - supporta_height / 2, 228.6 * cm + supporta_len / 2),
+                    bbc_support_arm_lv, "BBC_SUPPORT_ARM", logicWorld, false, 3, OverlapCheck());
 
   // BBC Gusset Plates (implementation is broken up into 3 parts, in Trap and 2 Boxes)
   G4double gussetp0_pz = 1.27 * cm;
   G4double gussetp0_py = (45.72 - 11.11) * cm;
-  G4double gussetp0_px = 44.62 * cm;    // measured off drawing
+  G4double gussetp0_px = 44.62 * cm;  // measured off drawing
   G4double gussetp0_pltx = 5.08 * cm;
   G4Trap *bbc_gusset_plate0 = new G4Trap("bbc_gusset_plate0", gussetp0_pz, gussetp0_py, gussetp0_px, gussetp0_pltx);
   G4LogicalVolume *bbc_gusset0_plate_lv = new G4LogicalVolume(bbc_gusset_plate0, Delrin, G4String("Bbc_Gusset0_Plates"));
@@ -568,35 +564,35 @@ void PHG4BbcDetector::ConstructSupport(G4LogicalVolume *logicWorld)
 
   // Place South Gusset Plates (Trapezoid part)
   G4RotationMatrix *rot_sgusset = new G4RotationMatrix;
-  rot_sgusset->rotateY(90.*deg);    
-  rot_sgusset->rotateZ(180.*deg);    
+  rot_sgusset->rotateY(90. * deg);
+  rot_sgusset->rotateZ(180. * deg);
 
-  G4double xpos = supportp_width/2 + gussetp0_pz/2;
-  G4double ypos = -gussetp0_py/2 - 15*cm - basep_height;
-  G4double zpos = 0.25*(gussetp0_px + gussetp0_pltx) + 228.6*cm + 11.11*cm;
+  G4double xpos = supportp_width / 2 + gussetp0_pz / 2;
+  G4double ypos = -gussetp0_py / 2 - 15 * cm - basep_height;
+  G4double zpos = 0.25 * (gussetp0_px + gussetp0_pltx) + 228.6 * cm + 11.11 * cm;
   new G4PVPlacement(rot_sgusset, G4ThreeVector(-xpos, ypos, -zpos), bbc_gusset0_plate_lv, "BBC_GUSSET_PLATE0", logicWorld, false, 0, OverlapCheck());
   new G4PVPlacement(rot_sgusset, G4ThreeVector(xpos, ypos, -zpos), bbc_gusset0_plate_lv, "BBC_GUSSET_PLATE0", logicWorld, false, 1, OverlapCheck());
 
   // Place North Gusset Plates (Trapezoid part)
   G4RotationMatrix *rot_ngusset = new G4RotationMatrix;
-  rot_ngusset->rotateY(-90.*deg);    
-  rot_ngusset->rotateZ(180.*deg);    
+  rot_ngusset->rotateY(-90. * deg);
+  rot_ngusset->rotateZ(180. * deg);
 
   new G4PVPlacement(rot_ngusset, G4ThreeVector(-xpos, ypos, zpos), bbc_gusset0_plate_lv, "BBC_GUSSET_PLATE0", logicWorld, false, 2, OverlapCheck());
   new G4PVPlacement(rot_ngusset, G4ThreeVector(xpos, ypos, zpos), bbc_gusset0_plate_lv, "BBC_GUSSET_PLATE0", logicWorld, false, 3, OverlapCheck());
 
   // Gusset Plate Box 1
-  G4double gussetp1_x = 1.27 * cm;    // measured off drawing
+  G4double gussetp1_x = 1.27 * cm;  // measured off drawing
   G4double gussetp1_y = 20.48 * cm;
   G4double gussetp1_z = 11.11 * cm;
 
-  G4Box *bbc_gusset_plate1 = new G4Box("bbc_gusset_plate1", gussetp1_x/2, gussetp1_y/2, gussetp1_z/2);
+  G4Box *bbc_gusset_plate1 = new G4Box("bbc_gusset_plate1", gussetp1_x / 2, gussetp1_y / 2, gussetp1_z / 2);
   G4LogicalVolume *bbc_gusset1_plate_lv = new G4LogicalVolume(bbc_gusset_plate1, Delrin, G4String("Bbc_Gusset1_Plates"));
   GetDisplayAction()->AddVolume(bbc_gusset1_plate_lv, "Bbc_Gusset1_Plates");
 
   // Place South Gusset Plates (Box 1)
-  ypos = -15*cm - basep_height - gussetp1_y/2;
-  zpos = 228.6*cm + gussetp1_z/2;
+  ypos = -15 * cm - basep_height - gussetp1_y / 2;
+  zpos = 228.6 * cm + gussetp1_z / 2;
   new G4PVPlacement(nullptr, G4ThreeVector(-xpos, ypos, -zpos), bbc_gusset1_plate_lv, "BBC_GUSSET_PLATE1", logicWorld, false, 0, OverlapCheck());
   new G4PVPlacement(nullptr, G4ThreeVector(xpos, ypos, -zpos), bbc_gusset1_plate_lv, "BBC_GUSSET_PLATE1", logicWorld, false, 1, OverlapCheck());
 
@@ -605,17 +601,17 @@ void PHG4BbcDetector::ConstructSupport(G4LogicalVolume *logicWorld)
   new G4PVPlacement(nullptr, G4ThreeVector(xpos, ypos, zpos), bbc_gusset1_plate_lv, "BBC_GUSSET_PLATE1", logicWorld, false, 3, OverlapCheck());
 
   // Gusset Plate Box 2
-  G4double gussetp2_x = 1.27 * cm;    // measured off drawing
+  G4double gussetp2_x = 1.27 * cm;  // measured off drawing
   G4double gussetp2_y = (45.72 - 10.80 - 20.48) * cm;
   G4double gussetp2_z = 11.11 * cm;
 
-  G4Box *bbc_gusset_plate2 = new G4Box("bbc_gusset_plate2", gussetp2_x/2, gussetp2_y/2, gussetp2_z/2);
+  G4Box *bbc_gusset_plate2 = new G4Box("bbc_gusset_plate2", gussetp2_x / 2, gussetp2_y / 2, gussetp2_z / 2);
   G4LogicalVolume *bbc_gusset2_plate_lv = new G4LogicalVolume(bbc_gusset_plate2, Delrin, G4String("Bbc_Gusset2_Plates"));
   GetDisplayAction()->AddVolume(bbc_gusset2_plate_lv, "Bbc_Gusset2_Plates");
 
   // Place South Gusset Plates (Box 2)
-  ypos = -15*cm - basep_height - 20.48*cm - 10.80*cm - gussetp2_y/2;
-  zpos = 228.6*cm + gussetp2_z/2;
+  ypos = -15 * cm - basep_height - 20.48 * cm - 10.80 * cm - gussetp2_y / 2;
+  zpos = 228.6 * cm + gussetp2_z / 2;
   new G4PVPlacement(nullptr, G4ThreeVector(-xpos, ypos, -zpos), bbc_gusset2_plate_lv, "BBC_GUSSET_PLATE2", logicWorld, false, 0, OverlapCheck());
   new G4PVPlacement(nullptr, G4ThreeVector(xpos, ypos, -zpos), bbc_gusset2_plate_lv, "BBC_GUSSET_PLATE2", logicWorld, false, 1, OverlapCheck());
 
@@ -628,27 +624,25 @@ void PHG4BbcDetector::ConstructSupport(G4LogicalVolume *logicWorld)
   G4double splicep_y = 10.16 * cm;
   G4double splicep_z = 0.64 * cm;
 
-  G4Box *bbc_splice_plate = new G4Box("bbc_splice_plate", splicep_x/2, splicep_y/2, splicep_z/2);
+  G4Box *bbc_splice_plate = new G4Box("bbc_splice_plate", splicep_x / 2, splicep_y / 2, splicep_z / 2);
   G4LogicalVolume *bbc_splice_plate_lv = new G4LogicalVolume(bbc_splice_plate, Delrin, G4String("Bbc_Splice_Plates"));
   GetDisplayAction()->AddVolume(bbc_splice_plate_lv, "Bbc_Splice_Plates");
 
-  // Make and Place Holes in Splice Plates 
-  G4Tubs *bbc_splice_hole = new G4Tubs("bbc_splice_hole", 0., (6.35/2)*cm, splicep_z/2, 0, 2.0*M_PI);
+  // Make and Place Holes in Splice Plates
+  G4Tubs *bbc_splice_hole = new G4Tubs("bbc_splice_hole", 0., (6.35 / 2) * cm, splicep_z / 2, 0, 2.0 * M_PI);
   G4LogicalVolume *bbc_splice_hole_lv = new G4LogicalVolume(bbc_splice_hole, WorldMaterial, G4String("Bbc_Splice_Holes"));
 
-  new G4PVPlacement(nullptr, G4ThreeVector(-12.7*cm,0,0), bbc_splice_hole_lv, "BBC_SPLICE_HOLE", bbc_splice_plate_lv, false, 0, OverlapCheck());
-  new G4PVPlacement(nullptr, G4ThreeVector(0,0,0), bbc_splice_hole_lv, "BBC_SPLICE_HOLE", bbc_splice_plate_lv, false, 1, OverlapCheck());
-  new G4PVPlacement(nullptr, G4ThreeVector(12.7*cm,0,0), bbc_splice_hole_lv, "BBC_SPLICE_HOLE", bbc_splice_plate_lv, false, 2, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(-12.7 * cm, 0, 0), bbc_splice_hole_lv, "BBC_SPLICE_HOLE", bbc_splice_plate_lv, false, 0, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0), bbc_splice_hole_lv, "BBC_SPLICE_HOLE", bbc_splice_plate_lv, false, 1, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(12.7 * cm, 0, 0), bbc_splice_hole_lv, "BBC_SPLICE_HOLE", bbc_splice_plate_lv, false, 2, OverlapCheck());
 
   // Place South Splice Plate
-  ypos = -15*cm - basep_height - 20.48*cm - splicep_y/2;
-  zpos = 228.6*cm + supportp_len + splicep_z/2;
-  new G4PVPlacement(nullptr, G4ThreeVector(0,ypos,-zpos), bbc_splice_plate_lv, "BBC_SPLICE_PLATE", logicWorld, false, 0, OverlapCheck());
+  ypos = -15 * cm - basep_height - 20.48 * cm - splicep_y / 2;
+  zpos = 228.6 * cm + supportp_len + splicep_z / 2;
+  new G4PVPlacement(nullptr, G4ThreeVector(0, ypos, -zpos), bbc_splice_plate_lv, "BBC_SPLICE_PLATE", logicWorld, false, 0, OverlapCheck());
 
   // Place North Splice Plate
-  new G4PVPlacement(nullptr, G4ThreeVector(0,ypos,zpos), bbc_splice_plate_lv, "BBC_SPLICE_PLATE", logicWorld, false, 1, OverlapCheck());
-
-
+  new G4PVPlacement(nullptr, G4ThreeVector(0, ypos, zpos), bbc_splice_plate_lv, "BBC_SPLICE_PLATE", logicWorld, false, 1, OverlapCheck());
 }
 
 void PHG4BbcDetector::Print(const std::string &what) const

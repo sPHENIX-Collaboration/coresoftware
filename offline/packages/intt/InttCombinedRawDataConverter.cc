@@ -14,9 +14,9 @@
 #include <TSystem.h>
 #include <TTree.h>
 
-#include <cstdlib>    // for exit
-#include <iostream>   // for operator<<, endl, bas...
-#include <utility>    // for pair
+#include <cstdlib>   // for exit
+#include <iostream>  // for operator<<, endl, bas...
+#include <utility>   // for pair
 
 class PHCompositeNode;
 
@@ -89,35 +89,44 @@ int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
   tree->Branch("num_hits", &num_hits);
 
   branches_i =
-  {
-     {"flx_svr", new std::vector<Int_t>()},
-     {"flx_chn", new std::vector<Int_t>()},
-     {"lyr",     new std::vector<Int_t>()},
-     {"ldr",     new std::vector<Int_t>()},
-     {"arm",     new std::vector<Int_t>()},
-     {"chp",     new std::vector<Int_t>()},
-     {"chn",     new std::vector<Int_t>()},
+      {
+          {"flx_svr", new std::vector<Int_t>()},
+          {"flx_chn", new std::vector<Int_t>()},
+          {"lyr", new std::vector<Int_t>()},
+          {"ldr", new std::vector<Int_t>()},
+          {"arm", new std::vector<Int_t>()},
+          {"chp", new std::vector<Int_t>()},
+          {"chn", new std::vector<Int_t>()},
 
-     {"flx_bco", new std::vector<Int_t>()},
-     {"adc",     new std::vector<Int_t>()},
-     {"amp",     new std::vector<Int_t>()},
-  };
+          {"flx_bco", new std::vector<Int_t>()},
+          {"adc", new std::vector<Int_t>()},
+          {"amp", new std::vector<Int_t>()},
+      };
 
   branches_l =
-  {
-     {"gtm_bco", new std::vector<Long64_t>()},
-  };
+      {
+          {"gtm_bco", new std::vector<Long64_t>()},
+      };
 
   branches_d =
-  {
-     //{"g_x",   new std::vector<Double_t>()},
-     //{"g_y",   new std::vector<Double_t>()},
-     //{"g_z",   new std::vector<Double_t>()},
-  };
+      {
+          //{"g_x",   new std::vector<Double_t>()},
+          //{"g_y",   new std::vector<Double_t>()},
+          //{"g_z",   new std::vector<Double_t>()},
+      };
 
-  for (auto& itr : branches_i)tree->Branch(itr.first.c_str(), &(itr.second));
-  for (auto& itr : branches_l)tree->Branch(itr.first.c_str(), &(itr.second));
-  for (auto& itr : branches_d)tree->Branch(itr.first.c_str(), &(itr.second));
+  for (auto& itr : branches_i)
+  {
+    tree->Branch(itr.first.c_str(), &(itr.second));
+  }
+  for (auto& itr : branches_l)
+  {
+    tree->Branch(itr.first.c_str(), &(itr.second));
+  }
+  for (auto& itr : branches_d)
+  {
+    tree->Branch(itr.first.c_str(), &(itr.second));
+  }
 
   if (Verbosity() > 20)
   {
@@ -134,9 +143,18 @@ int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 int InttCombinedRawDataConverter::InitRun(PHCompositeNode* /*topNode*/)
 {
   n_evt = 0;
-  for (auto& itr : branches_i)itr.second->clear();
-  for (auto& itr : branches_l)itr.second->clear();
-  for (auto& itr : branches_d)itr.second->clear();
+  for (auto& itr : branches_i)
+  {
+    itr.second->clear();
+  }
+  for (auto& itr : branches_l)
+  {
+    itr.second->clear();
+  }
+  for (auto& itr : branches_d)
+  {
+    itr.second->clear();
+  }
 
   if (Verbosity() > 20)
   {
@@ -177,9 +195,18 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
     exit(1);
   }
 
-  for (auto& itr : branches_i)itr.second->clear();
-  for (auto& itr : branches_l)itr.second->clear();
-  for (auto& itr : branches_d)itr.second->clear();
+  for (auto& itr : branches_i)
+  {
+    itr.second->clear();
+  }
+  for (auto& itr : branches_l)
+  {
+    itr.second->clear();
+  }
+  for (auto& itr : branches_d)
+  {
+    itr.second->clear();
+  }
 
   InttNameSpace::RawData_s raw;
   InttNameSpace::Online_s onl;
@@ -189,10 +216,10 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
     InttRawHit* intthit = inttcont->get_hit(i);
 
     InttNameSpace::RawFromHit(raw, intthit);
-    //raw.felix_server = InttNameSpace::FelixFromPacket(intthit->get_packetid());
-    //raw.felix_channel = intthit->get_fee();
-    //raw.chip = (intthit->get_chip_id() + 25) % 26;
-    //raw.channel = intthit->get_channel_id();
+    // raw.felix_server = InttNameSpace::FelixFromPacket(intthit->get_packetid());
+    // raw.felix_channel = intthit->get_fee();
+    // raw.chip = (intthit->get_chip_id() + 25) % 26;
+    // raw.channel = intthit->get_channel_id();
     onl = InttNameSpace::ToOnline(raw);
 
     std::tuple<int, int, int, int, int> tpl;
@@ -202,7 +229,10 @@ int InttCombinedRawDataConverter::process_event(PHCompositeNode* topNode)
     std::get<3>(tpl) = onl.chp;
     std::get<4>(tpl) = onl.chn;
 
-    if(hits.find(tpl) != hits.end())continue;
+    if (hits.find(tpl) != hits.end())
+    {
+      continue;
+    }
     hits[tpl] = 0;
 
     branches_i["flx_svr"]->push_back(raw.felix_server);

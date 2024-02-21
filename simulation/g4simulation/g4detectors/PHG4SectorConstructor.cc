@@ -1,6 +1,6 @@
 /*!
  * \file PHG4SectorConstructor.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.6 $
  * \date $Date: 2014/07/31 15:52:37 $
@@ -99,7 +99,7 @@ void PHG4Sector::PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *World
   G4VSolid *SecConeBoundary_Hall = new G4Sphere("SecConeBoundary_Hall",                                           //
                                                 geom.get_normal_start(), geom.get_max_R(),                        // G4double pRmin, G4double pRmax,
                                                 pi / 2 - pi / geom.get_N_Sector(), 2 * pi / geom.get_N_Sector(),  //  G4double pSPhi, G4double pDPhi,
-                                                sph_min_polar_angle, sph_max_polar_angle - sph_min_polar_angle    //G4double pSTheta, G4double pDTheta
+                                                sph_min_polar_angle, sph_max_polar_angle - sph_min_polar_angle    // G4double pSTheta, G4double pDTheta
   );
 
   G4VSolid *SecConeBoundary_Det = new G4DisplacedSolid("SecConeBoundary_Det",
@@ -214,7 +214,7 @@ PHG4Sector::PHG4SectorConstructor::Construct_Sectors_Plane(  //
 {
   assert(SecConeBoundary_Det);
 
-  G4VSolid *Sol_Raw = new G4Tubs(name + "_Raw",     //const G4String& pName,
+  G4VSolid *Sol_Raw = new G4Tubs(name + "_Raw",     // const G4String& pName,
                                  0,                 //      G4double pRMin,
                                  geom.get_max_R(),  //      G4double pRMax,
                                  thickness / 2,     //      G4double pDz,
@@ -299,7 +299,9 @@ PHG4Sector::PHG4SectorConstructor::RegisterPhysicalVolume(G4PVPlacement *v,
   map_phy_vol[id] = v;
 
   if (active)
+  {
     map_active_phy_vol[id] = v;
+  }
 
   return v;
 }
@@ -468,7 +470,7 @@ void PHG4Sector::Sector_Geometry::AddLayers_AeroGel_ePHENIX(const double radiato
   AddLayer("AeroGel", radiator, radiator_length, false, 100);
   AddLayer("ExpansionVol", "G4_AIR", expansion_length, false, 100);
 
-  //Some readout
+  // Some readout
   AddLayer(G4String("ReadoutFR4"), "G10", 0.05 * cm, false, 100);
   AddLayer(G4String("ReadoutCu"), "G4_Cu", 0.001 * cm, false, 100);
   AddLayer(G4String("SocketsCu"), "G4_Cu", 0.0005 * cm, false, 100);

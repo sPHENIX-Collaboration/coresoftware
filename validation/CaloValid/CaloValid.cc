@@ -1,7 +1,5 @@
 #include "CaloValid.h"
 
-// G4Hits includes
-#include <TLorentzVector.h>
 
 // Calo includes
 #include <calobase/RawCluster.h>
@@ -27,6 +25,7 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TLorentzVector.h>
 #include <TNtuple.h>
 #include <TProfile2D.h>
 #include <TSystem.h>
@@ -34,6 +33,7 @@
 
 #include <cmath>     // for log10, pow, sqrt, abs, M_PI
 #include <iostream>  // for operator<<, endl, basic_...
+#include <limits>
 #include <map>       // for operator!=, _Rb_tree_con...
 #include <string>
 #include <utility>  // for pair
@@ -58,8 +58,13 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
   hm = new Fun4AllHistoManager(Name());
   // create and register your histos (all types) here
 
+  if (m_debug)
+  {
+    std::cout << "In CaloValid::Init" << std::endl;
+  }
+  
+
   outfile = new TFile(outfilename.c_str(), "RECREATE");
-  // correlation plots
 
   h_emcal_mbd_correlation = new TH2F("h_emcal_mbd_correlation", ";emcal;mbd", 100, 0, 1, 100, 0, 1);
   h_ohcal_mbd_correlation = new TH2F("h_ohcal_mbd_correlation", ";ohcal;mbd", 100, 0, 1, 100, 0, 1);
@@ -72,6 +77,9 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
   h_cemc_etaphi_wQA = new TH2F("h_cemc_etaphi_wQA", ";eta;phi", 96, 0, 96, 256, 0, 256);
   h_hcalin_etaphi_wQA = new TH2F("h_ihcal_etaphi_wQA", ";eta;phi", 24, 0, 24, 64, 0, 64);
   h_hcalout_etaphi_wQA = new TH2F("h_ohcal_etaphi_wQA", ";eta;phi", 24, 0, 24, 64, 0, 64);
+  h_ihcal_status = new TH1F("h_ihcal_status","",256,0,256);
+  h_ohcal_status = new TH1F("h_ohcal_status","",256,0,256);
+  h_cemc_status = new TH1F("h_cemc_status","",256,0,256);
 
   h_cemc_e_chi2 = LogYHist2D("h_cemc_e_chi2", "", 500, -2, 30, 1000, 0.5, 5e6);
   h_ihcal_e_chi2 = LogYHist2D("h_ihcal_e_chi2", "", 500, -2, 30, 1000, 0.5, 5e6);
@@ -120,6 +128,10 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
   h_etaphi_clus = new TH2F("h_etaphi_clus", "", 140, -1.2, 1.2, 64, -1 * M_PI, M_PI);
   h_clusE = new TH1F("h_clusE", "", 100, 0, 10);
 
+  if (m_debug)
+  {
+    std::cout << "Leaving CaloValid::Init" << std::endl;
+  }
   return 0;
 }
 
@@ -178,7 +190,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   {
     std::cout << "CaloValid GlobalVertexMap node is missing" << std::endl;
   }
-  float vtx_z = NAN;
+  float vtx_z = std::numeric_limits<float>::quiet_NaN();
   if (vertexmap && !vertexmap->empty())
   {
     GlobalVertex* vtx = vertexmap->begin()->second;
@@ -207,7 +219,15 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         float _timef = tower->get_time_float();
         hemcaltime_cut->Fill(_time);
         bool isGood = tower->get_isGood();
-
+        uint8_t status = tower->get_status();
+        for (int is=0; is<8; is++)
+        {
+          if(status & 1U) // clang-tidy mark 1 as unsigned
+          {
+              h_cemc_status->Fill(is);
+          }
+          status = status >> 1U; // clang-tidy mark 1 as unsigned
+        }
         if (_time > (max_emcal_t - _range) && _time < (max_emcal_t + _range))
         {
           totalcemc += offlineenergy;
@@ -250,7 +270,19 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         float _timef = tower->get_time_float();
         hihcaltime_cut->Fill(_time);
         h_ihcal_e_chi2->Fill(offlineenergy, tower->get_chi2());
-        bool isGood = !(tower->get_isBadChi2());
+        bool isGood = tower->get_isGood();
+        h_ihcal_status->Fill(tower->get_status());
+
+        uint8_t status = tower->get_status();
+        for (int is=0; is<8; is++)
+        {
+          if(status & 1U) // clang-tidy mark 1 as unsigned
+          {
+              h_ihcal_status->Fill(is);
+          }
+          status = status >> 1U; // clang-tidy mark 1 as unsigned
+        }
+
         if (_time > (max_ihcal_t - _range) && _time < (max_ihcal_t + _range))
         {
           totalihcal += offlineenergy;
@@ -295,7 +327,18 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         hihcaltime_cut->Fill(_time);
         hohcaltime_cut->Fill(_time);
         h_ohcal_e_chi2->Fill(offlineenergy, tower->get_chi2());
-        bool isGood = !(tower->get_isBadChi2());
+        bool isGood = tower->get_isGood();
+        h_ohcal_status->Fill(tower->get_status());
+
+        uint8_t status = tower->get_status();
+        for (int is=0; is<8; is++)
+        {
+          if(status & 1U) // clang-tidy mark 1 as unsigned
+          {
+              h_ohcal_status->Fill(is);
+          }
+          status = status >> 1U; // clang-tidy mark 1 as unsigned
+        }
 
         if (_time > (max_ohcal_t - _range) && _time < (max_ohcal_t + _range))
         {
@@ -499,11 +542,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   }
 
   // cuts
-  float emcMinClusE1 = 1.5;  // 0.5;
-  float emcMinClusE2 = 0.8;  // 0.5;
-  float emcMaxClusE = 10;
-  float minDr = 0.08;
-  float maxAlpha = 0.8;
+  float emcMinClusE1 = 1.3;  // 0.5;
+  float emcMinClusE2 = 0.7;  // 0.5;
+  float emcMaxClusE = 100;
+  float maxAlpha = 0.6;
 
   if (totalcemc < 0.2 * emcaldownscale)
   {
@@ -561,10 +603,6 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         {
           continue;
         }
-        if (abs(clus2_eta) > 0.7)
-        {
-          continue;
-        }
         if (clus2_chisq > 4)
         {
           continue;
@@ -578,10 +616,6 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
           continue;
         }
 
-        if (photon1.DeltaR(photon2) < minDr)
-        {
-          continue;
-        }
         TLorentzVector pi0 = photon1 + photon2;
         h_InvMass->Fill(pi0.M());
       }
