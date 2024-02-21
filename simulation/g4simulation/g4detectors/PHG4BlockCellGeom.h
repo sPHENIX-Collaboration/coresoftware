@@ -68,10 +68,10 @@ class PHG4BlockCellGeom : public PHObject
   void check_binning_method_x(const std::string& src = "") const;
   std::string methodname(const int i) const;
 
-  int _layer {std::numeric_limits<int>::min()};
-    int _binning{0};
+  int _layer{std::numeric_limits<int>::min()};
+  int _binning{0};
 
-    int _nzbins{-1};
+  int _nzbins{-1};
   double _zmin{std::numeric_limits<double>::quiet_NaN()};
   double _zstep{std::numeric_limits<double>::quiet_NaN()};
 

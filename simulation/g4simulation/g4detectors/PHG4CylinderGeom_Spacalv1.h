@@ -312,15 +312,15 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
   std::string absorber_mat;
   std::string fiber_core_mat;
   std::string fiber_clading_mat;
-  double xpos {std::numeric_limits<double>::quiet_NaN()};
+  double xpos{std::numeric_limits<double>::quiet_NaN()};
   double ypos{std::numeric_limits<double>::quiet_NaN()};
   double zpos{std::numeric_limits<double>::quiet_NaN()};
   double fiber_core_diameter{std::numeric_limits<double>::quiet_NaN()};
   double fiber_clading_thickness{std::numeric_limits<double>::quiet_NaN()};
   double fiber_distance{std::numeric_limits<double>::quiet_NaN()};
-  config_t config {kInvalidSpacalConfig};
-  bool virualize_fiber {false};
-  int construction_verbose {0};
+  config_t config{kInvalidSpacalConfig};
+  bool virualize_fiber{false};
+  int construction_verbose{0};
 
   //! sector map sector_ID -> azimuthal rotation.
   sector_map_t sector_map;

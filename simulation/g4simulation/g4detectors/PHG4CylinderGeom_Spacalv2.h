@@ -125,7 +125,7 @@ class PHG4CylinderGeom_Spacalv2 : public PHG4CylinderGeom_Spacalv1
 
   //! azimuthal tilt in rad
   double azimuthal_tilt{std::numeric_limits<double>::quiet_NaN()};
-  bool azimuthal_seg_visible {false};
+  bool azimuthal_seg_visible{false};
   double polar_taper_ratio{std::numeric_limits<double>::quiet_NaN()};
   double assembly_spacing{std::numeric_limits<double>::quiet_NaN()};
 

@@ -12,7 +12,7 @@ namespace
   std::ostream& operator<<(std::ostream& out, const array_t& array)
   {
     out << "{ ";
-    for (const auto & iside : array)
+    for (const auto& iside : array)
     {
       out << "{";
       bool first = true;
@@ -301,7 +301,7 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side) const
   {
     if (norm_phi < sector_max_Phi[side][s] && norm_phi > sector_min_Phi[side][s])
     {
-// NOLINTNEXTLINE(bugprone-integer-division)
+      // NOLINTNEXTLINE(bugprone-integer-division)
       phi_bin = (floor(std::abs(sector_max_Phi[side][s] - norm_phi) / phistep) + nphibins / 12 * s);
       break;
     }
@@ -309,13 +309,13 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side) const
     {
       if (norm_phi < sector_max_Phi[side][s] && norm_phi >= -M_PI)
       {
-// NOLINTNEXTLINE(bugprone-integer-division)
+        // NOLINTNEXTLINE(bugprone-integer-division)
         phi_bin = floor(std::abs(sector_max_Phi[side][s] - norm_phi) / phistep) + nphibins / 12 * s;
         break;
       }
       if (norm_phi > sector_min_Phi[side][s] + 2 * M_PI)
       {
-// NOLINTNEXTLINE(bugprone-integer-division)
+        // NOLINTNEXTLINE(bugprone-integer-division)
         phi_bin = floor(std::abs(sector_max_Phi[side][s] - (norm_phi - 2 * M_PI)) / phistep) + nphibins / 12 * s;
         break;
       }
@@ -346,7 +346,7 @@ float PHG4TpcCylinderGeom::get_pad_float(const double phi, int side) const
   {
     if (norm_phi < sector_max_Phi[side][s] && norm_phi > sector_min_Phi[side][s])
     {
-// NOLINTNEXTLINE(bugprone-integer-division)
+      // NOLINTNEXTLINE(bugprone-integer-division)
       phi_bin = (std::abs(sector_max_Phi[side][s] - norm_phi) / phistep) + nphibins / 12 * s;
       break;
     }
@@ -354,13 +354,13 @@ float PHG4TpcCylinderGeom::get_pad_float(const double phi, int side) const
     {
       if (norm_phi < sector_max_Phi[side][s] && norm_phi >= -M_PI)
       {
-// NOLINTNEXTLINE(bugprone-integer-division)
+        // NOLINTNEXTLINE(bugprone-integer-division)
         phi_bin = (std::abs(sector_max_Phi[side][s] - norm_phi) / phistep) + nphibins / 12 * s;
         break;
       }
       if (norm_phi > sector_min_Phi[side][s] + 2 * M_PI)
       {
-// NOLINTNEXTLINE(bugprone-integer-division)
+        // NOLINTNEXTLINE(bugprone-integer-division)
         phi_bin = (std::abs(sector_max_Phi[side][s] - (norm_phi - 2 * M_PI)) / phistep) + nphibins / 12 * s;
         break;
       }

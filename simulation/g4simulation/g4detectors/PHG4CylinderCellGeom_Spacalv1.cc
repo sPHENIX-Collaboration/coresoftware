@@ -26,24 +26,24 @@ void PHG4CylinderCellGeom_Spacalv1::identify(std::ostream& os) const
        get_tower_z_ID_eta_bin_map())
   {
     std::cout << "\t"
-         << "Tower Z ID[" << tower_z_ID_eta_bin.first
-         << "] \t-> Eta Bin " << tower_z_ID_eta_bin.second << std::endl;
+              << "Tower Z ID[" << tower_z_ID_eta_bin.first
+              << "] \t-> Eta Bin " << tower_z_ID_eta_bin.second << std::endl;
   }
 
   std::cout << "PHG4CylinderCellGeom_Spacalv1::identify - Bin -> z range:" << std::endl;
   for (const bound_map_t::value_type& b : z_bound_map)
   {
     std::cout << "\t"
-         << "bin[" << b.first << "] \t-> z = " << b.second.first
-         << " - " << b.second.second << std::endl;
+              << "bin[" << b.first << "] \t-> z = " << b.second.first
+              << " - " << b.second.second << std::endl;
   }
 
   std::cout << "PHG4CylinderCellGeom_Spacalv1::identify - Bin -> eta range:" << std::endl;
   for (const bound_map_t::value_type& b : eta_bound_map)
   {
     std::cout << "\t"
-         << "bin[" << b.first << "] \t-> eta = " << b.second.first
-         << " - " << b.second.second << std::endl;
+              << "bin[" << b.first << "] \t-> eta = " << b.second.first
+              << " - " << b.second.second << std::endl;
   }
   return;
 }
@@ -53,22 +53,22 @@ void PHG4CylinderCellGeom_Spacalv1::map_consistency_check() const
   if ((size_t) nzbins != z_bound_map.size())
   {
     std::cout << "PHG4CylinderCellGeom_Spacalv1::map_consistency_check - "
-         << "z_bound_map.size() of " << z_bound_map.size()
-         << " in inconsistent with nzbins of " << nzbins << std::endl;
+              << "z_bound_map.size() of " << z_bound_map.size()
+              << " in inconsistent with nzbins of " << nzbins << std::endl;
     exit(1);
   }
   if ((size_t) nzbins != eta_bound_map.size())
   {
     std::cout << "PHG4CylinderCellGeom_Spacalv1::map_consistency_check - "
-         << "eta_bound_map.size() of " << eta_bound_map.size()
-         << " in inconsistent with nzbins of " << nzbins << std::endl;
+              << "eta_bound_map.size() of " << eta_bound_map.size()
+              << " in inconsistent with nzbins of " << nzbins << std::endl;
     exit(1);
   }
   if ((size_t) nzbins < tower_z_ID_eta_bin_map.size())
   {
     std::cout << "PHG4CylinderCellGeom_Spacalv1::map_consistency_check - "
-         << "tower_z_ID_eta_bin_map.size() of " << tower_z_ID_eta_bin_map.size()
-         << " in inconsistent with nzbins of " << nzbins << std::endl;
+              << "tower_z_ID_eta_bin_map.size() of " << tower_z_ID_eta_bin_map.size()
+              << " in inconsistent with nzbins of " << nzbins << std::endl;
     exit(1);
   }
 }
@@ -164,7 +164,7 @@ int PHG4CylinderCellGeom_Spacalv1::get_etabin_block(const int tower_z_ID) const
   {
     std::string msg;
 
-    msg = "PHG4CylinderCellGeom_Spacalv1::get_etabin - Fatal Error - can not find tower_z_ID of " + std::to_string( tower_z_ID) + std::string(".");
+    msg = "PHG4CylinderCellGeom_Spacalv1::get_etabin - Fatal Error - can not find tower_z_ID of " + std::to_string(tower_z_ID) + std::string(".");
 
     throw std::range_error(msg);
   }
