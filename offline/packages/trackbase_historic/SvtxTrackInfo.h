@@ -78,9 +78,9 @@ class SvtxTrackInfo : public PHObject
   virtual float get_pt() const { return NAN; }
   virtual float get_eta() const { return NAN; }
   virtual float get_phi() const { return NAN; }
-  virtual float get_theta() const {return NAN; }
+  virtual float get_theta() const { return NAN; }
   virtual float get_qOp() const { return NAN; }
-  virtual int get_charge() const { return std::numeric_limits<int>::quiet_NaN();}
+  virtual int get_charge() const { return std::numeric_limits<int>::quiet_NaN(); }
   virtual float get_covariance(int /*i*/, int /*j*/) const { return NAN; }
   virtual void set_covariance(int /*i*/, int /*j*/, float /*value*/) {}
 

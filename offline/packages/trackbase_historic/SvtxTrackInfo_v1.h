@@ -96,9 +96,9 @@ class SvtxTrackInfo_v1 : public SvtxTrackInfo
   float get_z() const override { return m_state.get_z(); }
   void set_z(float z) override { m_state.set_z(z); }
 
-  void set_phi(const float phi) override {m_state.set_phi(phi);}
-  void set_theta(const float theta) override {m_state.set_theta(theta);}
-  void set_qOp(const float qop) override {m_state.set_qOp(qop);}
+  void set_phi(const float phi) override { m_state.set_phi(phi); }
+  void set_theta(const float theta) override { m_state.set_theta(theta); }
+  void set_qOp(const float qop) override { m_state.set_qOp(qop); }
 
   float get_pos(unsigned int i) const override { return m_state.get_pos(i); }
 
@@ -111,10 +111,10 @@ class SvtxTrackInfo_v1 : public SvtxTrackInfo
   float get_pt() const override { return m_state.get_pt(); }
   float get_eta() const override { return m_state.get_eta(); }
   float get_phi() const override { return m_state.get_phi(); }
-  float get_theta() const override {return m_state.get_theta(); }
+  float get_theta() const override { return m_state.get_theta(); }
   float get_qOp() const override { return m_state.get_qOp(); }
   int get_charge() const override { return m_state.get_charge(); }
-  
+
   float get_covariance(int i, int j) const override { return m_state.get_covariance(i, j); }
   void set_covariance(int i, int j, float value) override { m_state.set_covariance(i, j, value); }
 

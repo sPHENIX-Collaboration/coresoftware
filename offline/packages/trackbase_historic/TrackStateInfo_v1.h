@@ -57,20 +57,30 @@ class TrackStateInfo_v1 : public TrackStateInfo
   float get_py() const override;
   float get_pz() const override;
 
-  float get_phi() const override {return m_Momentum[0];}
-  void set_phi(const float phi) override {m_Momentum[0] = phi;}
-  
-  int get_charge() const override {return get_qOp() > 0 ? 1 : -1; }
-  float get_theta() const override {return m_Momentum[1];}
-  void set_theta(const float theta) override {m_Momentum[1] = theta;}
+  float get_phi() const override { return m_Momentum[0]; }
+  void set_phi(const float phi) override { m_Momentum[0] = phi; }
 
-  float get_qOp() const override {return m_Momentum[2];}
-  void set_qOp(const float qop) override {m_Momentum[2] = qop;}
+  int get_charge() const override { return get_qOp() > 0 ? 1 : -1; }
+  float get_theta() const override { return m_Momentum[1]; }
+  void set_theta(const float theta) override { m_Momentum[1] = theta; }
 
-  float get_mom(unsigned int i) const override { 
-    if(i==0) { return get_px();} 
-    if(i==1) { return get_py(); }
-    if (i==2) { return get_pz(); }
+  float get_qOp() const override { return m_Momentum[2]; }
+  void set_qOp(const float qop) override { m_Momentum[2] = qop; }
+
+  float get_mom(unsigned int i) const override
+  {
+    if (i == 0)
+    {
+      return get_px();
+    }
+    if (i == 1)
+    {
+      return get_py();
+    }
+    if (i == 2)
+    {
+      return get_pz();
+    }
     return std::numeric_limits<float>::quiet_NaN();
   }
 
@@ -82,7 +92,7 @@ class TrackStateInfo_v1 : public TrackStateInfo
   void set_covariance(int i, int j, float value) override;
 
  private:
-  float m_Momentum[3] = {std::numeric_limits<float>::quiet_NaN()}; // global phi, theta, q/p 
+  float m_Momentum[3] = {std::numeric_limits<float>::quiet_NaN()};  // global phi, theta, q/p
   float m_Position[3] = {std::numeric_limits<float>::quiet_NaN()};  // global [x,y,z]
   float m_Covariance[15] = {std::numeric_limits<float>::quiet_NaN()};
 

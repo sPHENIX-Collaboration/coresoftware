@@ -62,11 +62,11 @@ class TrackStateInfo : public PHObject
   virtual float get_px() const { return NAN; }
   virtual float get_py() const { return NAN; }
   virtual float get_pz() const { return NAN; }
-  virtual int get_charge() const {return std::numeric_limits<int>::quiet_NaN();}
+  virtual int get_charge() const { return std::numeric_limits<int>::quiet_NaN(); }
 
-  virtual float get_phi() const  { return NAN; }
-  virtual float get_theta() const {return NAN; }
-  virtual float get_qOp() const {return NAN; }
+  virtual float get_phi() const { return NAN; }
+  virtual float get_theta() const { return NAN; }
+  virtual float get_qOp() const { return NAN; }
   virtual void set_phi(const float) {}
   virtual void set_theta(const float) {}
   virtual void set_qOp(const float) {}
