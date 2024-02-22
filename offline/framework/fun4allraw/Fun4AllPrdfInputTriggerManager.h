@@ -52,7 +52,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void SetReferenceClock(const int evtno, const int bclk);
   void SetReferenceInputMgr(SinglePrdfInput *inp) { m_RefPrdfInput = inp; }
   void CreateBclkOffsets();
-  int CalcDiffBclk(const int bclk1, const int bclk2);
+  uint64_t CalcDiffBclk(const uint64_t bclk1, const uint64_t bclk2);
   void DitchEvent(const int eventno);
   void Resynchronize();
   void ClearAllEvents();
@@ -71,7 +71,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
 
   struct SinglePrdfInputInfo
   {
-    int bclkoffset = 0;
+    uint64_t bclkoffset = 0;
   };
 
   struct Gl1PacketInfo

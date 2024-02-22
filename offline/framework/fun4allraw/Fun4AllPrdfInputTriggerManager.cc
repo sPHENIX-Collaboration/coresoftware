@@ -128,7 +128,7 @@ return iret;
       int refclock = m_RefClockCounters[eventnumber];
       for (auto veciter : m_ClockCounters[eventnumber])
       {
-        int diffclock = CalcDiffBclk(veciter.first, refclock);
+        uint64_t diffclock = CalcDiffBclk(veciter.first, refclock);
         if (diffclock != m_SinglePrdfInputInfo[veciter.second].bclkoffset)
         {
           std::cout << "Houston we have a problem with event " << eventnumber << std::endl;
@@ -530,9 +530,9 @@ void Fun4AllPrdfInputTriggerManager::CreateBclkOffsets()
   }
 }
 
-int Fun4AllPrdfInputTriggerManager::CalcDiffBclk(const int bclk1, const int bclk2)
+uint64_t Fun4AllPrdfInputTriggerManager::CalcDiffBclk(const uint64_t bclk1, const uint64_t bclk2)
 {
-  int diffclk = (bclk1 - bclk2) & 0xFFFF;
+  uint64_t diffclk = (bclk2 - bclk1) & 0xFFFFU;
   return diffclk;
 }
 
@@ -588,7 +588,7 @@ void Fun4AllPrdfInputTriggerManager::Resynchronize()
       }
       for (auto eventiter : clockiter.second)
       {
-        int diffclock = CalcDiffBclk(eventiter.first, iter.second);
+        uint64_t diffclock = CalcDiffBclk(eventiter.first, iter.second);
         if (Verbosity() > 1)
         {
           std::cout << "Event " << iter.first << " match with event " << clockiter.first

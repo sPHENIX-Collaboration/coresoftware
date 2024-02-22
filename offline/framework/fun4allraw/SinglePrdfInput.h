@@ -61,8 +61,8 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
   std::map<int, std::vector<Packet *>> m_PacketMap;
   std::set<int> m_EvtSet;
   std::vector<std::pair<int, int>> m_Event;
-  std::array<unsigned int, 100> rollover;
-  std::array<int, 100> previous_eventnumber;
+  std::array<unsigned int, 100> rollover {};
+  std::array<int, 100> previous_eventnumber {};
 };
 
 #endif
