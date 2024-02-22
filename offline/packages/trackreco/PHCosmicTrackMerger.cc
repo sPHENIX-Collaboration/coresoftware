@@ -291,8 +291,7 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
     float dcaz = pcaz - pos.z();
     float dcaxy = std::sqrt(square(dcax) + square(dcay));
     float dcarz = std::sqrt(square(dcar) + square(dcaz));
-    std::cout << "cluster global is " << pos.transpose() << " and dca is "
-              << dcaxy << ", " << dcarz << " and pca is " << pcax << ", " << pcay << ", " << pcaz << std::endl;
+
     if (dcaxy > 1. || dcarz > 1.)
     {
       seed->erase_cluster_key(glob.first[i]);
