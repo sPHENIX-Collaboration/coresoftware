@@ -31,7 +31,7 @@ class PHG4Detector;
 PHG4CylinderSubsystem::PHG4CylinderSubsystem(const std::string &na, const int lyr)
   : PHG4DetectorSubsystem(na, lyr)
 {
-  m_ColorArray.fill(NAN);
+  m_ColorArray.fill(std::numeric_limits<double>::quiet_NaN());
   InitializeParameters();
 }
 

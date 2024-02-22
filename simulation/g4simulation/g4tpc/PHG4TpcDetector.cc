@@ -532,7 +532,8 @@ void PHG4TpcDetector::add_geometry_node()
   const double MinT = 0;
   const int NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
 
-  std::cout << PHWHERE << "MaxT " << MaxT << " NTBins = " << NTBins << " drift velocity " << drift_velocity << std::endl;
+  std::cout << PHWHERE << "MaxT " << MaxT << " TBinWidth " << TBinWidth << " extended readout time " 
+	    << extended_readout_time  << " NTBins = " << NTBins << " drift velocity " << drift_velocity << std::endl;
 
   const std::array<double, 3> SectorPhi =
   {{

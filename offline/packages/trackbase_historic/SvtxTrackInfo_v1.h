@@ -34,9 +34,9 @@ class SvtxTrackInfo_v1 : public SvtxTrackInfo
     set_x(source.get_x());
     set_y(source.get_y());
     set_z(source.get_z());
-    set_px(source.get_px());
-    set_py(source.get_py());
-    set_pz(source.get_pz());
+    set_phi(source.get_phi());
+    set_theta(source.get_theta());
+    set_qOp(source.get_qOp());
 
     for (int i = 0; i < 6; i++)
     {
@@ -96,23 +96,24 @@ class SvtxTrackInfo_v1 : public SvtxTrackInfo
   float get_z() const override { return m_state.get_z(); }
   void set_z(float z) override { m_state.set_z(z); }
 
+  void set_phi(const float phi) override { m_state.set_phi(phi); }
+  void set_theta(const float theta) override { m_state.set_theta(theta); }
+  void set_qOp(const float qop) override { m_state.set_qOp(qop); }
+
   float get_pos(unsigned int i) const override { return m_state.get_pos(i); }
 
   float get_px() const override { return m_state.get_px(); }
-  void set_px(float px) override { m_state.set_px(px); }
-
   float get_py() const override { return m_state.get_py(); }
-  void set_py(float py) override { m_state.set_py(py); }
-
   float get_pz() const override { return m_state.get_pz(); }
-  void set_pz(float pz) override { m_state.set_pz(pz); }
-
   float get_mom(unsigned int i) const override { return m_state.get_mom(i); }
 
-  float get_p() const override { return sqrt(pow(get_px(), 2) + pow(get_py(), 2) + pow(get_pz(), 2)); }
-  float get_pt() const override { return sqrt(pow(get_px(), 2) + pow(get_py(), 2)); }
-  float get_eta() const override { return asinh(get_pz() / get_pt()); }
-  float get_phi() const override { return atan2(get_py(), get_px()); }
+  float get_p() const override { return m_state.get_p(); }
+  float get_pt() const override { return m_state.get_pt(); }
+  float get_eta() const override { return m_state.get_eta(); }
+  float get_phi() const override { return m_state.get_phi(); }
+  float get_theta() const override { return m_state.get_theta(); }
+  float get_qOp() const override { return m_state.get_qOp(); }
+  int get_charge() const override { return m_state.get_charge(); }
 
   float get_covariance(int i, int j) const override { return m_state.get_covariance(i, j); }
   void set_covariance(int i, int j, float value) override { m_state.set_covariance(i, j, value); }

@@ -16,7 +16,7 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4DisplayAction.h>   // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
@@ -29,10 +29,10 @@
 
 #include <TSystem.h>
 
+#include <cassert>
 #include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream
 #include <sstream>
-#include <cassert>
 
 class PHG4Detector;
 
@@ -68,19 +68,28 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   switch (GetParams()->get_int_param("config"))
   {
   case PHG4CylinderGeom_Spacalv1::kNonProjective:
-    if (Verbosity() > 0) std::cout << "PHG4SpacalSubsystem::InitRun - use PHG4SpacalDetector" << std::endl;
+    if (Verbosity() > 0)
+    {
+      std::cout << "PHG4SpacalSubsystem::InitRun - use PHG4SpacalDetector" << std::endl;
+    }
     detector_ = new PHG4SpacalDetector(this, topNode, Name(), GetParams(), GetLayer());
     break;
 
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper:
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_SameLengthFiberPerTower:
-    if (Verbosity() > 0) std::cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjSpacalDetector" << std::endl;
+    if (Verbosity() > 0)
+    {
+      std::cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjSpacalDetector" << std::endl;
+    }
     detector_ = new PHG4FullProjSpacalDetector(this, topNode, Name(), GetParams(), GetLayer());
     break;
 
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_Tilted:
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower:
-    if (Verbosity() > 0) std::cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjTiltedSpacalDetector" << std::endl;
+    if (Verbosity() > 0)
+    {
+      std::cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjTiltedSpacalDetector" << std::endl;
+    }
     detector_ = new PHG4FullProjTiltedSpacalDetector(this, topNode, Name(), GetParams(), GetLayer());
     break;
 
@@ -145,7 +154,7 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     assert(calibrationRoot != nullptr && "Environment variable CALIBRATIONROOT is not set");
     std::string filePath = std::string(calibrationRoot) + "/CEMC/LightCollection/Prototype3Module.xml";
     steppingAction_->get_light_collection_model().load_data_file(
-    filePath, "data_grid_light_guide_efficiency", "data_grid_fiber_trans");
+        filePath, "data_grid_light_guide_efficiency", "data_grid_fiber_trans");
     steppingAction_->SetHitNodeName("G4HIT", m_HitNodeName);
     steppingAction_->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
   }
@@ -159,7 +168,6 @@ int PHG4SpacalSubsystem::process_event(PHCompositeNode* topNode)
   // relevant nodes needed internally
   if (steppingAction_)
   {
-    
     steppingAction_->SetInterfacePointers(topNode);
   }
   return 0;

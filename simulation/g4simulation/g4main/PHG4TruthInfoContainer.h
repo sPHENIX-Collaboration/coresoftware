@@ -39,7 +39,7 @@ class PHG4TruthInfoContainer : public PHObject
   ~PHG4TruthInfoContainer() override;
 
   // from PHObject
-// cppcheck-suppress [virtualCallInConstructor]
+  // cppcheck-suppress [virtualCallInConstructor]
   void Reset() override;
   void identify(std::ostream& os = std::cout) const override;
 
