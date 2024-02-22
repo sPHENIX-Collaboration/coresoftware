@@ -27,7 +27,7 @@ public:
   protected:
   int PacketEvtSequence {0};
   std::array<uint32_t,2> femclock {std::numeric_limits<uint32_t>::max()};
-  std::array<std::array<uint32_t,128>, 31> samples{std::numeric_limits<uint32_t>::max()};
+  std::array<std::array<uint32_t,128>, 31> samples{{{std::numeric_limits<uint32_t>::max()}}};
 
 private:
   ClassDefOverride(MbdPacketv1,1)
