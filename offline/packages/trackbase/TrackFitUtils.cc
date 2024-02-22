@@ -375,10 +375,7 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
   unsigned int nclusters = 0;
 
   // We want the best match in each layer
-  std::vector<float> best_layer_dca;
-  best_layer_dca.assign(endLayer + 1, 999.0);
-  std::vector<TrkrDefs::cluskey> best_layer_cluskey;
-  best_layer_cluskey.assign(endLayer + 1, 0);
+  std::set<TrkrDefs::cluskey> keysToAdd;
   std::set<TrkrDefs::TrkrId> detectors = {TrkrDefs::TrkrId::mvtxId,
                                           TrkrDefs::TrkrId::inttId,
                                           TrkrDefs::TrkrId::tpcId,
@@ -423,7 +420,6 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
         TrkrDefs::cluskey cluskey = clusIter->first;
-        unsigned int layer = TrkrDefs::getLayer(cluskey);
 
         TrkrCluster* cluster = clusIter->second;
 
@@ -436,30 +432,21 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
         Acts::Vector2 pca_xy(pca(0), pca(1));
         Acts::Vector2 pca_xy_residual = pca_xy - global_xy;
         dca = pca_xy_residual.norm();
-
-        if (dca < best_layer_dca[layer])
+        if (dca < dca_cut)
         {
-          best_layer_dca[layer] = dca;
-          best_layer_cluskey[layer] = cluskey;
+          keysToAdd.insert(cluskey);
         }
       }  // end cluster iteration
     }    // end hitsetkey iteration
   }
-  for (unsigned int layer = startLayer; layer <= endLayer; ++layer)
+
+  for (auto& key : keysToAdd)
   {
-    //! no cluster was found in that layer
-    if (best_layer_cluskey[layer] == 0)
-    {
-      continue;
-    }
-    if (best_layer_dca[layer] < dca_cut)
-    {
-      cluskey_vec.push_back(best_layer_cluskey[layer]);
-      auto clus = _cluster_map->findCluster(best_layer_cluskey[layer]);
-      auto global = _tGeometry->getGlobalPosition(best_layer_cluskey[layer], clus);
-      global_vec.push_back(global);
-      nclusters++;
-    }
+    cluskey_vec.push_back(key);
+    auto clus = _cluster_map->findCluster(key);
+    auto global = _tGeometry->getGlobalPosition(key, clus);
+    global_vec.push_back(global);
+    nclusters++;
   }
 
   return nclusters;
@@ -611,6 +598,39 @@ Acts::Vector3 TrackFitUtils::getPCALinePoint(Acts::Vector3 global, Acts::Vector3
   return pca;
 }
 
+Acts::Vector3 TrackFitUtils::get_helix_surface_intersection(Surface surf,
+                                                            std::vector<float>& fitpars, Acts::Vector3& global, ActsGeometry* _tGeometry)
+{
+  // we want the point where the helix intersects the plane of the surface
+  // get the plane of the surface
+  Acts::Vector3 sensorCenter = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
+  Acts::Vector3 sensorNormal = -surf->normal(_tGeometry->geometry().getGeoContext());
+  sensorNormal /= sensorNormal.norm();
+
+  // there are analytic solutions for a line-plane intersection.
+  // to use this, need to get the vector tangent to the helix near the measurement and a point on it.
+  std::pair<Acts::Vector3, Acts::Vector3> line = get_helix_tangent(fitpars, global);
+  Acts::Vector3 pca = line.first;
+  Acts::Vector3 tangent = line.second;
+
+  Acts::Vector3 intersection = get_line_plane_intersection(pca, tangent, sensorCenter, sensorNormal);
+
+  return intersection;
+}
+Acts::Vector3 TrackFitUtils::get_line_plane_intersection(const Acts::Vector3& pca, const Acts::Vector3& tangent,
+                                                         const Acts::Vector3& sensorCenter, const Acts::Vector3& sensorNormal)
+{
+  // get the intersection of the line made by PCA and tangent with the plane of the sensor
+
+  // For a point on the line
+  // p = PCA + d * tangent;
+  // for a point on the plane
+  // (p - sensor_center).sensor_normal = 0
+
+  // The solution is:
+  float d = (sensorCenter - pca).dot(sensorNormal) / tangent.dot(sensorNormal);
+  return pca + d * tangent;
+}
 std::vector<double> TrackFitUtils::getLineClusterResiduals(TrackFitUtils::position_vector_t& rz_pts, float slope, float intercept)
 {
   std::vector<double> residuals;
