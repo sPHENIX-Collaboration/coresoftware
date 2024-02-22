@@ -34,7 +34,7 @@ class PHCosmicTrackMerger : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *) override;
 
-  void zero_field() { m_zeroField = true;}
+  void zero_field() { m_zeroField = true; }
 
  private:
   void addKeys(TrackSeed *toAddTo, TrackSeed *toAdd);
