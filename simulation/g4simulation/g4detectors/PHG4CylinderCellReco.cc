@@ -35,14 +35,11 @@
 #include <sstream>
 #include <vector>  // for vector
 
-using namespace std;
-
-PHG4CylinderCellReco::PHG4CylinderCellReco(const string &name)
+PHG4CylinderCellReco::PHG4CylinderCellReco(const std::string &name)
   : SubsysReco(name)
   , PHParameterContainerInterface(name)
 {
   SetDefaultParameters();
-  memset(nbins, 0, sizeof(nbins));
 }
 
 int PHG4CylinderCellReco::ResetEvent(PHCompositeNode * /*topNode*/)
@@ -68,7 +65,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
   runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
-    cout << Name() << "DST Node missing, doing nothing." << endl;
+    std::cout << Name() << "DST Node missing, doing nothing." << std::endl;
     exit(1);
   }
   PHNodeIterator runiter(runNode);
@@ -83,7 +80,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
-    cout << "Could not locate g4 hit node " << hitnodename << endl;
+    std::cout << "Could not locate g4 hit node " << hitnodename << std::endl;
     exit(1);
   }
   cellnodename = "G4CELL_" + outdetector;
@@ -106,7 +103,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
   PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
   if (!geo)
   {
-    cout << "Could not locate geometry node " << geonodename << endl;
+    std::cout << "Could not locate geometry node " << geonodename << std::endl;
     exit(1);
   }
   if (Verbosity() > 0)
@@ -126,17 +123,17 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
 
   UpdateParametersWithMacro();
 
-  map<int, PHG4CylinderGeom *>::const_iterator miter;
-  pair<map<int, PHG4CylinderGeom *>::const_iterator, map<int, PHG4CylinderGeom *>::const_iterator> begin_end = geo->get_begin_end();
-  map<int, std::pair<double, double> >::iterator sizeiter;
+  std::map<int, PHG4CylinderGeom *>::const_iterator miter;
+  std::pair<std::map<int, PHG4CylinderGeom *>::const_iterator, std::map<int, PHG4CylinderGeom *>::const_iterator> begin_end = geo->get_begin_end();
+  std::map<int, std::pair<double, double> >::iterator sizeiter;
   for (miter = begin_end.first; miter != begin_end.second; ++miter)
   {
     PHG4CylinderGeom *layergeom = miter->second;
     int layer = layergeom->get_layer();
     if (!ExistDetid(layer))
     {
-      cout << Name() << ": No parameters for detid/layer " << layer
-           << ", hits from this detid/layer will not be accumulated into cells" << endl;
+      std::cout << Name() << ": No parameters for detid/layer " << layer
+                << ", hits from this detid/layer will not be accumulated into cells" << std::endl;
       continue;
     }
     implemented_detid.insert(layer);
@@ -148,7 +145,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
     sizeiter = cell_size.find(layer);
     if (sizeiter == cell_size.end())
     {
-      cout << "no cell sizes for layer " << layer << endl;
+      std::cout << "no cell sizes for layer " << layer << std::endl;
       exit(1);
     }
     // create geo object and fill with variables common to all binning methods
@@ -162,7 +159,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       // length via eta coverage is calculated using the outer radius
       double etamin = PHG4Utils::get_eta(layergeom->get_radius() + layergeom->get_thickness(), layergeom->get_zmin());
       double etamax = PHG4Utils::get_eta(layergeom->get_radius() + layergeom->get_thickness(), layergeom->get_zmax());
-      zmin_max[layer] = make_pair(etamin, etamax);
+      zmin_max[layer] = std::make_pair(etamin, etamax);
       double etastepsize = (sizeiter->second).first;
       double d_etabins;
       // if the eta cell size is larger than the eta range, make one bin
@@ -190,7 +187,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       {
         if (etahi > (etamax + 1.e-6))  // etahi is a tiny bit larger due to numerical uncertainties
         {
-          cout << "etahi: " << etahi << ", etamax: " << etamax << endl;
+          std::cout << "etahi: " << etahi << ", etamax: " << etamax << std::endl;
         }
         etahi += etastepsize;
       }
@@ -223,11 +220,11 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       {
         if (phihi > phimax)
         {
-          cout << "phihi: " << phihi << ", phimax: " << phimax << endl;
+          std::cout << "phihi: " << phihi << ", phimax: " << phimax << std::endl;
         }
         phihi += phistepsize;
       }
-      pair<int, int> phi_z_bin = make_pair(phibins, etabins);
+      std::pair<int, int> phi_z_bin = std::make_pair(phibins, etabins);
       n_phi_z_bins[layer] = phi_z_bin;
       layerseggeo->set_binning(PHG4CellDefs::etaphibinning);
       layerseggeo->set_etabins(etabins);
@@ -241,7 +238,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
     }
     else if (binning[layer] == PHG4CellDefs::sizebinning)
     {
-      zmin_max[layer] = make_pair(layergeom->get_zmin(), layergeom->get_zmax());
+      zmin_max[layer] = std::make_pair(layergeom->get_zmin(), layergeom->get_zmax());
       double size_z = (sizeiter->second).second;
       double size_r = (sizeiter->second).first;
       double bins_r;
@@ -272,8 +269,8 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       {
         if (phimax > (M_PI + 1e-9))
         {
-          cout << "phimax: " << phimax << ", M_PI: " << M_PI
-               << "phimax-M_PI: " << phimax - M_PI << endl;
+          std::cout << "phimax: " << phimax << ", M_PI: " << M_PI
+                    << "phimax-M_PI: " << phimax - M_PI << std::endl;
         }
         phimax += phistepsize;
       }
@@ -294,7 +291,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
         }
       }
       nbins[1] = bins_r;
-      pair<int, int> phi_z_bin = make_pair(nbins[0], nbins[1]);
+      std::pair<int, int> phi_z_bin = std::make_pair(nbins[0], nbins[1]);
       n_phi_z_bins[layer] = phi_z_bin;
       // update our map with the new sizes
       size_z = length_in_z / bins_r;
@@ -306,10 +303,10 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       {
         if (zhigh > (layergeom->get_zmax() + 1e-9))
         {
-          cout << "zhigh: " << zhigh << ", zmax "
-               << layergeom->get_zmax()
-               << ", zhigh-zmax: " << zhigh - layergeom->get_zmax()
-               << endl;
+          std::cout << "zhigh: " << zhigh << ", zmax "
+                    << layergeom->get_zmax()
+                    << ", zhigh-zmax: " << zhigh - layergeom->get_zmax()
+                    << std::endl;
         }
         zhigh += size_z;
       }
@@ -331,8 +328,8 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
   // print out settings
   if (Verbosity() > 0)
   {
-    cout << "===================== PHG4CylinderCellReco::InitRun() =====================" << endl;
-    cout << " " << outdetector << " Segmentation Description: " << endl;
+    std::cout << "===================== PHG4CylinderCellReco::InitRun() =====================" << std::endl;
+    std::cout << " " << outdetector << " Segmentation Description: " << std::endl;
     for (std::map<int, int>::iterator iter = binning.begin();
          iter != binning.end(); ++iter)
     {
@@ -342,21 +339,21 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       {
         // phi & eta bin is usually used to make projective towers
         // so just print the first layer
-        cout << " Layer #" << binning.begin()->first << "-" << binning.rbegin()->first << endl;
-        cout << "   Nbins (phi,eta): (" << n_phi_z_bins[layer].first << ", " << n_phi_z_bins[layer].second << ")" << endl;
-        cout << "   Cell Size (phi,eta): (" << cell_size[layer].first << " rad, " << cell_size[layer].second << " units)" << endl;
+        std::cout << " Layer #" << binning.begin()->first << "-" << binning.rbegin()->first << std::endl;
+        std::cout << "   Nbins (phi,eta): (" << n_phi_z_bins[layer].first << ", " << n_phi_z_bins[layer].second << ")" << std::endl;
+        std::cout << "   Cell Size (phi,eta): (" << cell_size[layer].first << " rad, " << cell_size[layer].second << " units)" << std::endl;
         break;
       }
       else if (binning[layer] == PHG4CellDefs::sizebinning)
       {
-        cout << " Layer #" << layer << endl;
-        cout << "   Nbins (phi,z): (" << n_phi_z_bins[layer].first << ", " << n_phi_z_bins[layer].second << ")" << endl;
-        cout << "   Cell Size (phi,z): (" << cell_size[layer].first << " cm, " << cell_size[layer].second << " cm)" << endl;
+        std::cout << " Layer #" << layer << std::endl;
+        std::cout << "   Nbins (phi,z): (" << n_phi_z_bins[layer].first << ", " << n_phi_z_bins[layer].second << ")" << std::endl;
+        std::cout << "   Cell Size (phi,z): (" << cell_size[layer].first << " cm, " << cell_size[layer].second << " cm)" << std::endl;
       }
     }
-    cout << "===========================================================================" << endl;
+    std::cout << "===========================================================================" << std::endl;
   }
-  string nodename = "G4CELLPARAM_" + GetParamsContainer()->Name();
+  std::string nodename = "G4CELLPARAM_" + GetParamsContainer()->Name();
   SaveToNodeTree(RunDetNode, nodename);
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -366,31 +363,31 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
-    cout << "Could not locate g4 hit node " << hitnodename << endl;
+    std::cout << "Could not locate g4 hit node " << hitnodename << std::endl;
     exit(1);
   }
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (!cells)
   {
-    cout << "could not locate cell node " << cellnodename << endl;
+    std::cout << "could not locate cell node " << cellnodename << std::endl;
     exit(1);
   }
 
   PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename);
   if (!seggeo)
   {
-    cout << "could not locate geo node " << seggeonodename << endl;
+    std::cout << "could not locate geo node " << seggeonodename << std::endl;
     exit(1);
   }
 
-  map<int, std::pair<double, double> >::iterator sizeiter;
+  std::map<int, std::pair<double, double> >::iterator sizeiter;
   PHG4HitContainer::LayerIter layer;
-  pair<PHG4HitContainer::LayerIter, PHG4HitContainer::LayerIter> layer_begin_end = g4hit->getLayers();
-  //   cout << "number of layers: " << g4hit->num_layers() << endl;
-  //   cout << "number of hits: " << g4hit->size() << endl;
+  std::pair<PHG4HitContainer::LayerIter, PHG4HitContainer::LayerIter> layer_begin_end = g4hit->getLayers();
+  //   std::cout << "number of layers: " << g4hit->num_layers() << std::endl;
+  //   std::cout << "number of hits: " << g4hit->size() << std::endl;
   //   for (layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
   //     {
-  //       cout << "layer number: " << *layer << endl;
+  //       std::cout << "layer number: " << *layer << std::endl;
   //     }
   for (layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
   {
@@ -425,7 +422,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
           continue;
         }
 
-        pair<double, double> etaphi[2];
+        std::pair<double, double> etaphi[2];
         double phibin[2];
         double etabin[2];
         for (int i = 0; i < 2; i++)
@@ -488,15 +485,15 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         {
           trklen = -1.;
         }
-        vector<int> vphi;
-        vector<int> veta;
-        vector<double> vdedx;
+        std::vector<int> vphi;
+        std::vector<int> veta;
+        std::vector<double> vdedx;
 
         if (intphibin == intphibinout && intetabin == intetabinout)  // single cell fired
         {
           if (Verbosity() > 0)
           {
-            cout << "SINGLE CELL FIRED: " << intphibin << " " << intetabin << endl;
+            std::cout << "SINGLE CELL FIRED: " << intphibin << " " << intetabin << std::endl;
           }
           vphi.push_back(intphibin);
           veta.push_back(intetabin);
@@ -515,14 +512,14 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
               double cy = geo->get_etacenter(ibz) - etastep_half;
               double dy = geo->get_etacenter(ibz) + etastep_half;
 
-              // cout << "##### line: " << ax << " " << ay << " " << bx << " " << by << endl;
-              // cout << "####### cell: " << cx << " " << cy << " " << dx << " " << dy << endl;
-              pair<bool, double> intersect = PHG4Utils::line_and_rectangle_intersect(ax, ay, bx, by, cx, cy, dx, dy);
+              // std::cout << "##### line: " << ax << " " << ay << " " << bx << " " << by << std::endl;
+              // std::cout << "####### cell: " << cx << " " << cy << " " << dx << " " << dy << std::endl;
+              std::pair<bool, double> intersect = PHG4Utils::line_and_rectangle_intersect(ax, ay, bx, by, cx, cy, dx, dy);
               if (intersect.first)
               {
                 if (Verbosity() > 0)
                 {
-                  cout << "CELL FIRED: " << ibp << " " << ibz << " " << intersect.second << endl;
+                  std::cout << "CELL FIRED: " << ibp << " " << ibz << " " << intersect.second << std::endl;
                 }
                 vphi.push_back(ibp);
                 veta.push_back(ibz);
@@ -533,7 +530,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         }
         if (Verbosity() > 0)
         {
-          cout << "NUMBER OF FIRED CELLS = " << vphi.size() << endl;
+          std::cout << "NUMBER OF FIRED CELLS = " << vphi.size() << std::endl;
         }
 
         double tmpsum = 0.;
@@ -543,12 +540,12 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
           vdedx[ii] = vdedx[ii] / trklen;
           if (Verbosity() > 0)
           {
-            cout << "  CELL " << ii << "  dE/dX = " << vdedx[ii] << endl;
+            std::cout << "  CELL " << ii << "  dE/dX = " << vdedx[ii] << std::endl;
           }
         }
         if (Verbosity() > 0)
         {
-          cout << "    TOTAL TRACK LENGTH = " << tmpsum << " " << trklen << endl;
+          std::cout << "    TOTAL TRACK LENGTH = " << tmpsum << " " << trklen << std::endl;
         }
 
         for (unsigned int i1 = 0; i1 < vphi.size(); i1++)  // loop over all fired cells
@@ -560,11 +557,11 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
           // It is constructed using the phi and z (or eta) bin index values
           // It will be unique for a given phi and z (or eta) bin combination
           unsigned long long tmp = iphibin;
-          unsigned long long key = tmp << 32;
+          unsigned long long key = tmp << 32U;  // clang-tidy: U for unsigned int
           key += ietabin;
           if (Verbosity() > 1)
           {
-            cout << " iphibin " << iphibin << " ietabin " << ietabin << " key 0x" << hex << key << dec << endl;
+            std::cout << " iphibin " << iphibin << " ietabin " << ietabin << " key 0x" << std::hex << key << std::dec << std::endl;
           }
           PHG4Cell *cell = nullptr;
           it = cellptmap.find(key);
@@ -578,10 +575,10 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
             cell = new PHG4Cellv1(cellkey);
             cellptmap[key] = cell;
           }
-          if (!isfinite(hiter->second->get_edep() * vdedx[i1]))
+          if (!std::isfinite(hiter->second->get_edep() * vdedx[i1]))
           {
-            cout << "hit 0x" << hex << hiter->first << dec << " not finite, edep: "
-                 << hiter->second->get_edep() << " weight " << vdedx[i1] << endl;
+            std::cout << "hit 0x" << std::hex << hiter->first << std::dec << " not finite, edep: "
+                      << hiter->second->get_edep() << " weight " << vdedx[i1] << std::endl;
           }
           cell->add_edep(hiter->first, hiter->second->get_edep() * vdedx[i1]);  // add hit with edep to g4hit list
           cell->add_edep(hiter->second->get_edep() * vdedx[i1]);                // add edep to cell
@@ -591,10 +588,10 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
           }
           cell->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep() * vdedx[i1]);
           // just a sanity check - we don't want to mess up by having Nan's or Infs in our energy deposition
-          if (!isfinite(hiter->second->get_edep() * vdedx[i1]))
+          if (!std::isfinite(hiter->second->get_edep() * vdedx[i1]))
           {
-            cout << PHWHERE << " invalid energy dep " << hiter->second->get_edep()
-                 << " or path length: " << vdedx[i1] << endl;
+            std::cout << PHWHERE << " invalid energy dep " << hiter->second->get_edep()
+                      << " or path length: " << vdedx[i1] << std::endl;
           }
         }
         vphi.clear();
@@ -610,18 +607,18 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         numcells++;
         if (Verbosity() > 1)
         {
-          cout << "Adding cell in bin phi: " << PHG4CellDefs::EtaPhiBinning::get_phibin(it->second->get_cellid())
-               << " phi: " << geo->get_phicenter(PHG4CellDefs::EtaPhiBinning::get_phibin(it->second->get_cellid())) * 180. / M_PI
-               << ", eta bin: " << PHG4CellDefs::EtaPhiBinning::get_etabin(it->second->get_cellid())
-               << ", eta: " << geo->get_etacenter(PHG4CellDefs::EtaPhiBinning::get_etabin(it->second->get_cellid()))
-               << ", energy dep: " << it->second->get_edep()
-               << endl;
+          std::cout << "Adding cell in bin phi: " << PHG4CellDefs::EtaPhiBinning::get_phibin(it->second->get_cellid())
+                    << " phi: " << geo->get_phicenter(PHG4CellDefs::EtaPhiBinning::get_phibin(it->second->get_cellid())) * 180. / M_PI
+                    << ", eta bin: " << PHG4CellDefs::EtaPhiBinning::get_etabin(it->second->get_cellid())
+                    << ", eta: " << geo->get_etacenter(PHG4CellDefs::EtaPhiBinning::get_etabin(it->second->get_cellid()))
+                    << ", energy dep: " << it->second->get_edep()
+                    << std::endl;
         }
       }
 
       if (Verbosity() > 0)
       {
-        cout << Name() << ": found " << numcells << " eta/phi cells with energy deposition" << endl;
+        std::cout << Name() << ": found " << numcells << " eta/phi cells with energy deposition" << std::endl;
       }
     }
 
@@ -630,7 +627,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
       sizeiter = cell_size.find(*layer);
       if (sizeiter == cell_size.end())
       {
-        cout << "logical screwup!!! no sizes for layer " << *layer << endl;
+        std::cout << "logical screwup!!! no sizes for layer " << *layer << std::endl;
         exit(1);
       }
       double zstepsize = (sizeiter->second).second;
@@ -663,7 +660,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         double zbin[2];
         if (Verbosity() > 0)
         {
-          cout << "--------- new hit in layer # " << *layer << endl;
+          std::cout << "--------- new hit in layer # " << *layer << std::endl;
         }
 
         for (int i = 0; i < 2; i++)
@@ -672,18 +669,18 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
           yinout[i] = hiter->second->get_y(i);
           px[i] = hiter->second->get_px(i);
           py[i] = hiter->second->get_py(i);
-          phi[i] = atan2(hiter->second->get_y(i), hiter->second->get_x(i));
+          phi[i] = std::atan2(hiter->second->get_y(i), hiter->second->get_x(i));
           z[i] = hiter->second->get_z(i);
           phibin[i] = geo->get_phibin(phi[i]);
           zbin[i] = geo->get_zbin(hiter->second->get_z(i));
 
           if (Verbosity() > 0)
           {
-            cout << " " << i << "  phibin: " << phibin[i] << ", phi: " << phi[i] << ", stepsize: " << phistepsize << endl;
+            std::cout << " " << i << "  phibin: " << phibin[i] << ", phi: " << phi[i] << ", stepsize: " << phistepsize << std::endl;
           }
           if (Verbosity() > 0)
           {
-            cout << " " << i << "  zbin: " << zbin[i] << ", z = " << hiter->second->get_z(i) << ", stepsize: " << zstepsize << " offset: " << zmin_max[*layer].first << endl;
+            std::cout << " " << i << "  zbin: " << zbin[i] << ", z = " << hiter->second->get_z(i) << ", stepsize: " << zstepsize << " offset: " << zmin_max[*layer].first << std::endl;
           }
         }
         // check bin range
@@ -710,15 +707,15 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 
         if (Verbosity() > 0)
         {
-          cout << "    phi bin range: " << intphibin << " to " << intphibinout << " phi: " << phi[0] << " to " << phi[1] << endl;
-          cout << "    Z bin range: " << intzbin << " to " << intzbinout << " Z: " << z[0] << " to " << z[1] << endl;
-          cout << "    phi difference: " << (phi[1] - phi[0]) * 1000. << " milliradians." << endl;
-          cout << "    phi difference: " << 2.5 * (phi[1] - phi[0]) * 10000. << " microns." << endl;
-          cout << "    path length = " << sqrt((xinout[1] - xinout[0]) * (xinout[1] - xinout[0]) + (yinout[1] - yinout[0]) * (yinout[1] - yinout[0])) << endl;
-          cout << "       px = " << px[0] << " " << px[1] << endl;
-          cout << "       py = " << py[0] << " " << py[1] << endl;
-          cout << "       x = " << xinout[0] << " " << xinout[1] << endl;
-          cout << "       y = " << yinout[0] << " " << yinout[1] << endl;
+          std::cout << "    phi bin range: " << intphibin << " to " << intphibinout << " phi: " << phi[0] << " to " << phi[1] << std::endl;
+          std::cout << "    Z bin range: " << intzbin << " to " << intzbinout << " Z: " << z[0] << " to " << z[1] << std::endl;
+          std::cout << "    phi difference: " << (phi[1] - phi[0]) * 1000. << " milliradians." << std::endl;
+          std::cout << "    phi difference: " << 2.5 * (phi[1] - phi[0]) * 10000. << " microns." << std::endl;
+          std::cout << "    path length = " << sqrt((xinout[1] - xinout[0]) * (xinout[1] - xinout[0]) + (yinout[1] - yinout[0]) * (yinout[1] - yinout[0])) << std::endl;
+          std::cout << "       px = " << px[0] << " " << px[1] << std::endl;
+          std::cout << "       py = " << py[0] << " " << py[1] << std::endl;
+          std::cout << "       x = " << xinout[0] << " " << xinout[1] << std::endl;
+          std::cout << "       y = " << yinout[0] << " " << yinout[1] << std::endl;
         }
 
         // Determine all fired cells
@@ -751,15 +748,15 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         {
           trklen = -1.;
         }
-        vector<int> vphi;
-        vector<int> vz;
-        vector<double> vdedx;
+        std::vector<int> vphi;
+        std::vector<int> vz;
+        std::vector<double> vdedx;
 
         if (intphibin == intphibinout && intzbin == intzbinout)  // single cell fired
         {
           if (Verbosity() > 0)
           {
-            cout << "SINGLE CELL FIRED: " << intphibin << " " << intzbin << endl;
+            std::cout << "SINGLE CELL FIRED: " << intphibin << " " << intzbin << std::endl;
           }
           vphi.push_back(intphibin);
           vz.push_back(intzbin);
@@ -777,14 +774,14 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
             {
               double cy = geo->get_zcenter(ibz) - zstep_half;
               double dy = geo->get_zcenter(ibz) + zstep_half;
-              // cout << "##### line: " << ax << " " << ay << " " << bx << " " << by << endl;
-              // cout << "####### cell: " << cx << " " << cy << " " << dx << " " << dy << endl;
-              pair<bool, double> intersect = PHG4Utils::line_and_rectangle_intersect(ax, ay, bx, by, cx, cy, dx, dy);
+              // std::cout << "##### line: " << ax << " " << ay << " " << bx << " " << by << std::endl;
+              // std::cout << "####### cell: " << cx << " " << cy << " " << dx << " " << dy << std::endl;
+              std::pair<bool, double> intersect = PHG4Utils::line_and_rectangle_intersect(ax, ay, bx, by, cx, cy, dx, dy);
               if (intersect.first)
               {
                 if (Verbosity() > 0)
                 {
-                  cout << "CELL FIRED: " << ibp << " " << ibz << " " << intersect.second << endl;
+                  std::cout << "CELL FIRED: " << ibp << " " << ibz << " " << intersect.second << std::endl;
                 }
                 vphi.push_back(ibp);
                 vz.push_back(ibz);
@@ -795,7 +792,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         }
         if (Verbosity() > 0)
         {
-          cout << "NUMBER OF FIRED CELLS = " << vz.size() << endl;
+          std::cout << "NUMBER OF FIRED CELLS = " << vz.size() << std::endl;
         }
 
         double tmpsum = 0.;
@@ -805,12 +802,12 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
           vdedx[ii] = vdedx[ii] / trklen;
           if (Verbosity() > 0)
           {
-            cout << "  CELL " << ii << "  dE/dX = " << vdedx[ii] << endl;
+            std::cout << "  CELL " << ii << "  dE/dX = " << vdedx[ii] << std::endl;
           }
         }
         if (Verbosity() > 0)
         {
-          cout << "    TOTAL TRACK LENGTH = " << tmpsum << " " << trklen << endl;
+          std::cout << "    TOTAL TRACK LENGTH = " << tmpsum << " " << trklen << std::endl;
         }
 
         for (unsigned int i1 = 0; i1 < vphi.size(); i1++)  // loop over all fired cells
@@ -819,11 +816,11 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
           int izbin = vz[i1];
 
           unsigned long long tmp = iphibin;
-          unsigned long long key = tmp << 32;
+          unsigned long long key = tmp << 32U;  // clang-tidy: U for unsigned int
           key += izbin;
           if (Verbosity() > 1)
           {
-            cout << " iphibin " << iphibin << " izbin " << izbin << " key 0x" << hex << key << dec << endl;
+            std::cout << " iphibin " << iphibin << " izbin " << izbin << " key 0x" << std::hex << key << std::dec << std::endl;
           }
           // check to see if there is already an entry for this cell
           PHG4Cell *cell = nullptr;
@@ -834,29 +831,29 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
             cell = it->second;
             if (Verbosity() > 1)
             {
-              cout << "  add energy to existing cell for key = " << cellptmap.find(key)->first << endl;
+              std::cout << "  add energy to existing cell for key = " << cellptmap.find(key)->first << std::endl;
             }
 
             if (Verbosity() > 1 && hiter->second->has_property(PHG4Hit::prop_light_yield) && std::isnan(hiter->second->get_light_yield() * vdedx[i1]))
             {
-              cout << "    NAN lighy yield with vdedx[i1] = " << vdedx[i1]
-                   << " and hiter->second->get_light_yield() = " << hiter->second->get_light_yield() << endl;
+              std::cout << "    NAN lighy yield with vdedx[i1] = " << vdedx[i1]
+                        << " and hiter->second->get_light_yield() = " << hiter->second->get_light_yield() << std::endl;
             }
           }
           else
           {
             if (Verbosity() > 1)
             {
-              cout << "    did not find a previous entry for key = 0x" << hex << key << dec << " create a new one" << endl;
+              std::cout << "    did not find a previous entry for key = 0x" << std::hex << key << std::dec << " create a new one" << std::endl;
             }
             PHG4CellDefs::keytype cellkey = PHG4CellDefs::SizeBinning::genkey(*layer, izbin, iphibin);
             cell = new PHG4Cellv1(cellkey);
             cellptmap[key] = cell;
           }
-          if (!isfinite(hiter->second->get_edep() * vdedx[i1]))
+          if (!std::isfinite(hiter->second->get_edep() * vdedx[i1]))
           {
-            cout << "hit 0x" << hex << hiter->first << dec << " not finite, edep: "
-                 << hiter->second->get_edep() << " weight " << vdedx[i1] << endl;
+            std::cout << "hit 0x" << std::hex << hiter->first << std::dec << " not finite, edep: "
+                      << hiter->second->get_edep() << " weight " << vdedx[i1] << std::endl;
           }
           cell->add_edep(hiter->first, hiter->second->get_edep() * vdedx[i1]);
           cell->add_edep(hiter->second->get_edep() * vdedx[i1]);  // add edep to cell
@@ -865,8 +862,8 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
             cell->add_light_yield(hiter->second->get_light_yield() * vdedx[i1]);
             if (Verbosity() > 1 && !std::isfinite(hiter->second->get_light_yield() * vdedx[i1]))
             {
-              cout << "    NAN lighy yield with vdedx[i1] = " << vdedx[i1]
-                   << " and hiter->second->get_light_yield() = " << hiter->second->get_light_yield() << endl;
+              std::cout << "    NAN lighy yield with vdedx[i1] = " << vdedx[i1]
+                        << " and hiter->second->get_light_yield() = " << hiter->second->get_light_yield() << std::endl;
             }
           }
           cell->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep() * vdedx[i1]);
@@ -884,18 +881,18 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         numcells++;
         if (Verbosity() > 1)
         {
-          cout << "Adding cell for key " << hex << it->first << dec << " in bin phi: " << PHG4CellDefs::SizeBinning::get_phibin(it->second->get_cellid())
-               << " phi: " << geo->get_phicenter(PHG4CellDefs::SizeBinning::get_phibin(it->second->get_cellid())) * 180. / M_PI
-               << ", z bin: " << PHG4CellDefs::SizeBinning::get_zbin(it->second->get_cellid())
-               << ", z: " << geo->get_zcenter(PHG4CellDefs::SizeBinning::get_zbin(it->second->get_cellid()))
-               << ", energy dep: " << it->second->get_edep()
-               << endl;
+          std::cout << "Adding cell for key " << std::hex << it->first << std::dec << " in bin phi: " << PHG4CellDefs::SizeBinning::get_phibin(it->second->get_cellid())
+                    << " phi: " << geo->get_phicenter(PHG4CellDefs::SizeBinning::get_phibin(it->second->get_cellid())) * 180. / M_PI
+                    << ", z bin: " << PHG4CellDefs::SizeBinning::get_zbin(it->second->get_cellid())
+                    << ", z: " << geo->get_zcenter(PHG4CellDefs::SizeBinning::get_zbin(it->second->get_cellid()))
+                    << ", energy dep: " << it->second->get_edep()
+                    << std::endl;
         }
       }
 
       if (Verbosity() > 0)
       {
-        cout << "found " << numcells << " z/phi cells with energy deposition" << endl;
+        std::cout << "found " << numcells << " z/phi cells with energy deposition" << std::endl;
       }
     }
 
@@ -903,7 +900,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
     // now reset the cell map before moving on to the next layer
     if (Verbosity() > 1)
     {
-      cout << "cellptmap for layer " << *layer << " has final length " << cellptmap.size();
+      std::cout << "cellptmap for layer " << *layer << " has final length " << cellptmap.size();
     }
     while (cellptmap.begin() != cellptmap.end())
     {
@@ -912,7 +909,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
     }
     if (Verbosity() > 1)
     {
-      cout << " reset it to " << cellptmap.size() << endl;
+      std::cout << " reset it to " << cellptmap.size() << std::endl;
     }
   }
   if (chkenergyconservation)
@@ -927,7 +924,7 @@ void PHG4CylinderCellReco::cellsize(const int detid, const double sr, const doub
 {
   if (binning.find(detid) != binning.end())
   {
-    cout << "size for layer " << detid << " already set" << endl;
+    std::cout << "size for layer " << detid << " already set" << std::endl;
     return;
   }
   binning[detid] = PHG4CellDefs::sizebinning;
@@ -939,7 +936,7 @@ void PHG4CylinderCellReco::etaphisize(const int detid, const double deltaeta, co
 {
   if (binning.find(detid) != binning.end())
   {
-    cout << "size for layer " << detid << " already set" << endl;
+    std::cout << "size for layer " << detid << " already set" << std::endl;
     return;
   }
   binning[detid] = PHG4CellDefs::etaphibinning;
@@ -988,43 +985,43 @@ int PHG4CylinderCellReco::CheckEnergy(PHCompositeNode *topNode)
   {
     if (fabs(sum_energy_cells - sum_energy_stored_hits) / sum_energy_cells > 1e-6)
     {
-      cout << "energy mismatch between cell energy " << sum_energy_cells
-           << " and stored hit energies " << sum_energy_stored_hits
-           << endl;
+      std::cout << "energy mismatch between cell energy " << sum_energy_cells
+                << " and stored hit energies " << sum_energy_stored_hits
+                << std::endl;
     }
   }
   if (sum_energy_stored_showers > 0)
   {
     if (fabs(sum_energy_cells - sum_energy_stored_showers) / sum_energy_cells > 1e-6)
     {
-      cout << "energy mismatch between cell energy " << sum_energy_cells
-           << " and stored shower energies " << sum_energy_stored_showers
-           << endl;
+      std::cout << "energy mismatch between cell energy " << sum_energy_cells
+                << " and stored shower energies " << sum_energy_stored_showers
+                << std::endl;
     }
   }
   if (fabs(sum_energy_cells - sum_energy_g4hit) / sum_energy_g4hit > 1e-6)
   {
-    cout << "energy mismatch between cells: " << sum_energy_cells
-         << " and hits: " << sum_energy_g4hit
-         << " diff sum(cells) - sum(hits): " << sum_energy_cells - sum_energy_g4hit
-         << " cut val " << fabs(sum_energy_cells - sum_energy_g4hit) / sum_energy_g4hit
-         << endl;
-    cout << Name() << ":total energy for this event: " << sum_energy_g4hit << " GeV" << endl;
-    cout << Name() << ": sum cell energy: " << sum_energy_cells << " GeV" << endl;
-    cout << Name() << ": sum shower energy: " << sum_energy_stored_showers << " GeV" << endl;
-    cout << Name() << ": sum stored hit energy: " << sum_energy_stored_hits << " GeV" << endl;
-    cout << Name() << ": hit energy before cuts: " << sum_energy_before_cuts << " GeV" << endl;
+    std::cout << "energy mismatch between cells: " << sum_energy_cells
+              << " and hits: " << sum_energy_g4hit
+              << " diff sum(cells) - sum(hits): " << sum_energy_cells - sum_energy_g4hit
+              << " cut val " << fabs(sum_energy_cells - sum_energy_g4hit) / sum_energy_g4hit
+              << std::endl;
+    std::cout << Name() << ":total energy for this event: " << sum_energy_g4hit << " GeV" << std::endl;
+    std::cout << Name() << ": sum cell energy: " << sum_energy_cells << " GeV" << std::endl;
+    std::cout << Name() << ": sum shower energy: " << sum_energy_stored_showers << " GeV" << std::endl;
+    std::cout << Name() << ": sum stored hit energy: " << sum_energy_stored_hits << " GeV" << std::endl;
+    std::cout << Name() << ": hit energy before cuts: " << sum_energy_before_cuts << " GeV" << std::endl;
     return -1;
   }
   else
   {
     if (Verbosity() > 0)
     {
-      cout << Name() << ":total energy for this event: " << sum_energy_g4hit << " GeV" << endl;
-      cout << Name() << ": sum cell energy: " << sum_energy_cells << " GeV" << endl;
-      cout << Name() << ": sum shower energy: " << sum_energy_stored_showers << " GeV" << endl;
-      cout << Name() << ": sum stored hit energy: " << sum_energy_stored_hits << " GeV" << endl;
-      cout << Name() << ": hit energy before cuts: " << sum_energy_before_cuts << " GeV" << endl;
+      std::cout << Name() << ":total energy for this event: " << sum_energy_g4hit << " GeV" << std::endl;
+      std::cout << Name() << ": sum cell energy: " << sum_energy_cells << " GeV" << std::endl;
+      std::cout << Name() << ": sum shower energy: " << sum_energy_stored_showers << " GeV" << std::endl;
+      std::cout << Name() << ": sum stored hit energy: " << sum_energy_stored_hits << " GeV" << std::endl;
+      std::cout << Name() << ": hit energy before cuts: " << sum_energy_before_cuts << " GeV" << std::endl;
     }
   }
   return 0;

@@ -14,8 +14,6 @@
 
 #include <Geant4/G4PhysicalConstants.hh>
 
-#include <CLHEP/Units/SystemOfUnits.h>  // for twopi
-
 #include <cmath>
 #include <sstream>
 #include <utility>  // for pair
@@ -38,7 +36,7 @@ void PHG4CylinderGeom_Spacalv1::identify(std::ostream& os) const
   return;
 }
 
-void PHG4CylinderGeom_Spacalv1::Print(Option_t*) const
+void PHG4CylinderGeom_Spacalv1::Print(Option_t* /*option*/) const
 {
   identify(std::cout);
 
@@ -254,13 +252,13 @@ void PHG4CylinderGeom_Spacalv1::ImportParameters(const PHParameters& param)
 int PHG4CylinderGeom_Spacalv1::get_azimuthal_n_sec() const
 {
   return std::floor(
-      get_half_radius() * twopi / (get_fiber_distance() * sqrt(3.)));
+      get_half_radius() * 2 * M_PI / (get_fiber_distance() * sqrt(3.)));
 }
 
 double
 PHG4CylinderGeom_Spacalv1::get_azimuthal_distance() const
 {
-  return get_half_radius() * twopi / (double) (get_azimuthal_n_sec());
+  return get_half_radius() * 2 * M_PI / (double) (get_azimuthal_n_sec());
 }
 
 double
@@ -276,7 +274,7 @@ void PHG4CylinderGeom_Spacalv1::init_default_sector_map()
 
   for (int sec = 0; sec < get_azimuthal_n_sec(); ++sec)
   {
-    const double rot = twopi / (double) (get_azimuthal_n_sec()) * ((double) (sec));
+    const double rot = 2 * M_PI / (double) (get_azimuthal_n_sec()) * ((double) (sec));
 
     sector_map[sec] = rot;
   }

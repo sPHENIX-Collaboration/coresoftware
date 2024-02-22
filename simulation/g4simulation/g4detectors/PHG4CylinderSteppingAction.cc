@@ -83,7 +83,7 @@ PHG4CylinderSteppingAction::~PHG4CylinderSteppingAction()
 }
 
 //____________________________________________________________________________..
-bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   // get volume of the current step
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
