@@ -17,11 +17,15 @@ class PHG4InputFilter : public SubsysReco
 
   int process_event(PHCompositeNode *topNode) override;
 
-  void set_eta_range(const double min, const double max) {etamin = min; etamax = max;}
-  void set_etamin(const double min) {etamin = min;}
-  void set_etamax(const double max) {etamax = max;}
-  void set_ptmin(const double min) {ptmin = min;}
-  void set_ptmax(const double max) {ptmax = max;}
+  void set_eta_range(const double min, const double max)
+  {
+    etamin = min;
+    etamax = max;
+  }
+  void set_etamin(const double min) { etamin = min; }
+  void set_etamax(const double max) { etamax = max; }
+  void set_ptmin(const double min) { ptmin = min; }
+  void set_ptmax(const double max) { ptmax = max; }
 
  protected:
   double get_eta(const double x, const double y, const double z);
@@ -29,8 +33,6 @@ class PHG4InputFilter : public SubsysReco
   double etamax;
   double ptmin;
   double ptmax;
-
 };
 
 #endif
-

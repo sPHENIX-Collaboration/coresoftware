@@ -42,7 +42,7 @@ class PHG4Detector
   virtual void ConstructMe(G4LogicalVolume *mothervolume) = 0;
 
   //! Optional PostConstruction call after all geometry is constructed
-  virtual void PostConstruction() {};
+  virtual void PostConstruction(){};
 
   virtual void Verbosity(const int v) { m_Verbosity = v; }
 
@@ -51,14 +51,14 @@ class PHG4Detector
   virtual std::string GetName() const { return m_Name; }
   virtual void OverlapCheck(const bool chk) { m_OverlapCheck = chk; }
   virtual bool OverlapCheck() const { return m_OverlapCheck; }
-  virtual void Print(const std::string &/*what*/ = "ALL") const
+  virtual void Print(const std::string & /*what*/ = "ALL") const
   {
     std::cout << GetName() << ": Print method not implemented" << std::endl;
   }
   virtual int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
   virtual int DisplayVolume(G4LogicalVolume *checksolid, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
   virtual PHCompositeNode *topNode() { return m_topNode; }
-  virtual PHG4Subsystem *GetMySubsystem() {return m_MySubsystem;}
+  virtual PHG4Subsystem *GetMySubsystem() { return m_MySubsystem; }
   static G4Material *GetDetectorMaterial(const std::string &name, const bool quit = true);
   static G4Element *GetDetectorElement(const std::string &name, const bool quit = true);
 

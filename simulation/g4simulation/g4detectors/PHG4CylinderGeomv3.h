@@ -31,8 +31,8 @@ class PHG4CylinderGeomv3 : public PHG4CylinderGeomv2
   double get_tiltangle() const override { return tiltangle; }
 
  protected:
-  double tiltangle {std::numeric_limits<double>::quiet_NaN()};
-  double phi_slat_zero {std::numeric_limits<double>::quiet_NaN()};
+  double tiltangle{std::numeric_limits<double>::quiet_NaN()};
+  double phi_slat_zero{std::numeric_limits<double>::quiet_NaN()};
 
   ClassDefOverride(PHG4CylinderGeomv3, 1)
 };

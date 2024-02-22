@@ -12,7 +12,7 @@
 
 class PHCompositeNode;
 
-//class CosmicSpray : public PHG4ParticleGeneratorBase
+// class CosmicSpray : public PHG4ParticleGeneratorBase
 class CosmicSpray : public SubsysReco
 {
  public:

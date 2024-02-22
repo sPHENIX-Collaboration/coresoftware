@@ -447,7 +447,7 @@ namespace
       double clusz  =  my_data.m_tdriftmax * my_data.tGeometry->get_drift_velocity() - zdriftlength; 
       if(my_data.side == 0) 
 	clusz = -clusz;
-
+      //std::cout << " side " << my_data.side << " clusz " << clusz << " clust " << clust << " driftmax " << my_data.m_tdriftmax << std::endl;
       const double phi_cov = (iphi2_sum/adc_sum - square(clusiphi))* pow(my_data.layergeom->get_phistep(),2);
       const double t_cov = t2_sum/adc_sum - square(clust);
 
@@ -1088,7 +1088,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	unsigned short PhiOffset = NPhiBinsSector * sector;
 	unsigned short TOffset = NTBinsMin;
 	
-	m_tdriftmax = AdcClockPeriod * NTBins / 2.0;  
+	m_tdriftmax = AdcClockPeriod * NZBinsSide;  
 	thread_pair.data.m_tdriftmax = m_tdriftmax;
 	
 	thread_pair.data.phibins   = NPhiBinsSector;
@@ -1191,7 +1191,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       unsigned short PhiOffset = NPhiBinsSector * sector;
       unsigned short TOffset = NTBinsMin;
 
-      m_tdriftmax = AdcClockPeriod * NTBins / 2.0;  
+      m_tdriftmax = AdcClockPeriod * NZBinsSide;  
       thread_pair.data.m_tdriftmax = m_tdriftmax;
 
       thread_pair.data.phibins   = NPhiBinsSector;

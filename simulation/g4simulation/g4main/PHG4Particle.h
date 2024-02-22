@@ -17,7 +17,6 @@ class PHG4Particle : public PHObject
 
   void identify(std::ostream &os = std::cout) const override;
 
-
   virtual bool isIon() const { return false; }
   virtual int get_pid() const { return 0; }
   virtual std::string get_name() const { return "NONE"; }
