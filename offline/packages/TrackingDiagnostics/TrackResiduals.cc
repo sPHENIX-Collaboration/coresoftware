@@ -367,10 +367,10 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
                                        ActsGeometry* geometry,
                                        TrkrClusterContainer* clusters)
 {
-  std::vector<Acts::Vector3> clusPos;
+  std::vector<Acts::Vector3> clusPos, global_vec;
   TrackFitUtils::getTrackletClusters(geometry, clusters,
                                      clusPos, keys);
-  TrackFitUtils::position_vector_t xypoints, rzpoints;
+
   for (auto& pos : clusPos)
   {
     float clusr = r(pos.x(), pos.y());
@@ -381,18 +381,18 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     {
       continue;
     }
-    rzpoints.push_back(std::make_pair(pos.z(), clusr));
-    xypoints.push_back(std::make_pair(pos.x(), pos.y()));
+    global_vec.push_back(pos);
   }
-  auto xyparams = TrackFitUtils::circle_fit_by_taubin(xypoints);
-  auto rzparams = TrackFitUtils::line_fit(rzpoints);
+
+  auto fitpars = TrackFitUtils::fitClusters(global_vec, keys);
+
   m_xyint = std::numeric_limits<float>::quiet_NaN();
   m_xyslope = std::numeric_limits<float>::quiet_NaN();
-  m_R = std::get<0>(xyparams);
-  m_X0 = std::get<1>(xyparams);
-  m_Y0 = std::get<2>(xyparams);
-  m_rzint = std::get<1>(rzparams);
-  m_rzslope = std::get<0>(rzparams);
+  m_R = fitpars[0];
+  m_X0 = fitpars[1];
+  m_Y0 = fitpars[2];
+  m_rzslope = fitpars[3];
+  m_rzint = fitpars[4];
 }
 
 void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
@@ -965,13 +965,16 @@ void TrackResiduals::fillStatesWithCircleFit(const TrkrDefs::cluskey& key,
   auto result = surf->globalToLocal(geometry->geometry().getGeoContext(), intersection, Acts::Vector3(1, 1, 1));
   if (result.ok())
   {
-    m_statelx.push_back(result.value().x());
-    m_statelz.push_back(result.value().y());
+    auto loc = result.value() / Acts::UnitConstants::cm;
+    m_statelx.push_back(loc.x());
+    m_statelz.push_back(loc.y());
   }
   else
   {
-    m_statelx.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_statelz.push_back(std::numeric_limits<float>::quiet_NaN());
+    auto local = (surf->transform(geometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
+    local /= Acts::UnitConstants::cm;
+    m_statelx.push_back(local.x());
+    m_statelz.push_back(local.y());
   }
 }
 void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
