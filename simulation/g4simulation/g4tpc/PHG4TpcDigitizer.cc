@@ -307,7 +307,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 	    }
 	  
 	  // Process one phi bin at a time
-	  if(Verbosity() > 1) std::cout << "    phi_sorted_hits size " <<  phi_sorted_hits.size() << std::endl;
+	  if(Verbosity() > 1) std::cout << "    phi_sorted_hits size " <<  phi_sorted_hits.size() << " ntbins " << layergeom->get_zbins() << std::endl;
 	  for (unsigned int iphi = 0; iphi < phi_sorted_hits.size(); iphi++)
 	    {
 	      // Make a fixed length vector to indicate whether each time bin is signal or noise
