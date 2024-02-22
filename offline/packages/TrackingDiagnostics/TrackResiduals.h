@@ -44,9 +44,8 @@ class TrackResiduals : public SubsysReco
   void clusterTree() { m_doClusters = true; }
   void hitTree() { m_doHits = true; }
   void zeroField() { m_zeroField = true; }
-  void runnumber(const int run){m_runnumber = run;}
-  void segment(const int seg){m_segment = seg;}
-
+  void runnumber(const int run) { m_runnumber = run; }
+  void segment(const int seg) { m_segment = seg; }
 
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
@@ -62,6 +61,10 @@ class TrackResiduals : public SubsysReco
                            PHCompositeNode *topNode);
   void lineFitClusters(std::vector<TrkrDefs::cluskey> &keys, ActsGeometry *geometry,
                        TrkrClusterContainer *clusters);
+  void circleFitClusters(std::vector<TrkrDefs::cluskey> &keys, ActsGeometry *geometry,
+                         TrkrClusterContainer *clusters);
+  void fillStatesWithCircleFit(const TrkrDefs::cluskey &key, TrkrCluster *cluster,
+                               Acts::Vector3 &glob, ActsGeometry *geometry);
 
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
@@ -113,6 +116,9 @@ class TrackResiduals : public SubsysReco
   float m_rzint = std::numeric_limits<float>::quiet_NaN();
   float m_xyslope = std::numeric_limits<float>::quiet_NaN();
   float m_xyint = std::numeric_limits<float>::quiet_NaN();
+  float m_R = std::numeric_limits<float>::quiet_NaN();
+  float m_X0 = std::numeric_limits<float>::quiet_NaN();
+  float m_Y0 = std::numeric_limits<float>::quiet_NaN();
 
   //! hit tree info
   uint32_t m_hitsetkey = std::numeric_limits<uint32_t>::quiet_NaN();
@@ -127,7 +133,7 @@ class TrackResiduals : public SubsysReco
   int m_row = std::numeric_limits<int>::quiet_NaN();
   int m_strip = std::numeric_limits<int>::quiet_NaN();
   float m_zdriftlength = std::numeric_limits<float>::quiet_NaN();
-  
+
   //! cluster tree info
   float m_sclusgr = std::numeric_limits<float>::quiet_NaN();
   float m_sclusphi = std::numeric_limits<float>::quiet_NaN();
