@@ -29,7 +29,7 @@ void MbdPacketContainerv1::identify(std::ostream &os) const
   MbdPacket *mbdhit = static_cast< MbdPacket *> (MbdPacketsTCArray->At(0));
   if (mbdhit)
    {
-     os << "for beam clock: " << std::hex << mbdhit->get_bco() << std::dec << std::endl;
+     os << "for beam clock: " << std::hex << mbdhit->getBCO() << std::dec << std::endl;
    }
 }
 
@@ -38,24 +38,24 @@ int MbdPacketContainerv1::isValid() const
   return MbdPacketsTCArray->GetSize();
 }
 
-unsigned int MbdPacketContainerv1::get_nhits()
-{
-  return MbdPacketsTCArray->GetEntriesFast();
-}
+// unsigned int MbdPacketContainerv1::get_nhits()
+// {
+//   return MbdPacketsTCArray->GetEntriesFast();
+// }
 
-MbdPacket *MbdPacketContainerv1::AddHit()
-{
-  MbdPacket *newhit = new ((*MbdPacketsTCArray)[MbdPacketsTCArray->GetLast()+1]) MbdPacketv1();
-  return newhit;
-}
+// MbdPacket *MbdPacketContainerv1::AddHit()
+// {
+//   MbdPacket *newhit = new ((*MbdPacketsTCArray)[MbdPacketsTCArray->GetLast()+1]) MbdPacketv1();
+//   return newhit;
+// }
 
-MbdPacket *MbdPacketContainerv1::AddHit(MbdPacket *mbdhit)
-{
-  MbdPacket *newhit = new ((*MbdPacketsTCArray)[MbdPacketsTCArray->GetLast()+1]) MbdPacketv1(mbdhit);
-  return newhit;
-}
+// MbdPacket *MbdPacketContainerv1::AddHit(MbdPacket *mbdhit)
+// {
+//   MbdPacket *newhit = new ((*MbdPacketsTCArray)[MbdPacketsTCArray->GetLast()+1]) MbdPacketv1(mbdhit);
+//   return newhit;
+// }
 
-MbdPacket *MbdPacketContainerv1::get_hit(unsigned int index)
-{
-  return (MbdPacket *) MbdPacketsTCArray->At(index);
-}
+// MbdPacket *MbdPacketContainerv1::get_hit(unsigned int index)
+// {
+//   return (MbdPacket *) MbdPacketsTCArray->At(index);
+// }

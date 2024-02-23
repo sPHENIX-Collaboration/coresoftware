@@ -1,16 +1,16 @@
-#ifndef FUN4ALLRAW_INTTRAWHITCONTAINERV1_H
-#define FUN4ALLRAW_INTTRAWHITCONTAINERV1_H
+#ifndef FUN4ALLPACKET_MBDPACKETCONTAINERV1_H
+#define FUN4ALLPACKET_MBDPACKETCONTAINERV1_H
 
-#include "InttRawHitContainer.h"
+#include "MbdPacketContainer.h"
 
-class InttRawHit;
+class MbdPacket;
 class TClonesArray;
 
-class  InttRawHitContainerv1: public InttRawHitContainer
+class  MbdPacketContainerv1: public MbdPacketContainer
 {
 public:
-  InttRawHitContainerv1();
-  ~InttRawHitContainerv1() override;
+  MbdPacketContainerv1();
+  ~MbdPacketContainerv1() override;
 
   /// Clear Event
   void Reset() override;
@@ -23,15 +23,15 @@ public:
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;
 
-  InttRawHit *AddHit() override;
-  InttRawHit *AddHit(InttRawHit *intthit) override;
-  unsigned int get_nhits() override;
-  InttRawHit *get_hit(unsigned int index) override;
+//  MbdPacket *AddHit() override;
+//  MbdPacket *AddHit(MbdPacket *mbdhit) override;
+//  unsigned int get_nhits() override;
+//  MbdPacket *get_hit(unsigned int index) override;
 
 private:
-    TClonesArray *InttRawHitsTCArray = nullptr;
+    TClonesArray *MbdPacketsTCArray = nullptr;
 
-  ClassDefOverride(InttRawHitContainerv1,1)
+  ClassDefOverride(MbdPacketContainerv1,1)
 };
 
 #endif
