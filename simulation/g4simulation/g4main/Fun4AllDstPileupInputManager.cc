@@ -6,6 +6,7 @@
 #include "Fun4AllDstPileupInputManager.h"
 #include "Fun4AllDstPileupMerger.h"
 
+#include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 

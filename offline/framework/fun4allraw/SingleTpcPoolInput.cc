@@ -1,6 +1,7 @@
 #include "SingleTpcPoolInput.h"
 
 #include "Fun4AllStreamingInputManager.h"
+#include "InputManagerType.h"
 
 #include <ffarawobjects/TpcRawHitContainerv1.h>
 #include <ffarawobjects/TpcRawHitv1.h>
@@ -25,7 +26,7 @@ const int NPACKETS = 2;
 SingleTpcPoolInput::SingleTpcPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
-  SubsystemEnum(Fun4AllStreamingInputManager::TPC);
+  SubsystemEnum(InputManagerType::TPC);
   plist = new Packet *[NPACKETS];
 }
 
