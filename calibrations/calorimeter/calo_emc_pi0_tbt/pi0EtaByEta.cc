@@ -41,6 +41,8 @@ pi0EtaByEta::pi0EtaByEta(const std::string& name, const std::string& filename)
   , outfilename(filename)
 {
   h_mass_eta_lt.fill(nullptr);
+  clusMix = new std::vector<std::vector<std::vector<CLHEP::Hep3Vector>>>();
+
 }
 
 pi0EtaByEta::~pi0EtaByEta()
@@ -95,7 +97,6 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
 
   h_pipT_Nclus_mass = new TH3F("h_pipT_Nclus_mass", "", 20, 0, 10, 20, 0, 400, 25, 0, 0.5);
 
-  clusMix = new std::vector<std::vector<std::vector<CLHEP::Hep3Vector>>>();
   std::vector<std::vector<CLHEP::Hep3Vector>> temp2 = std::vector<std::vector<CLHEP::Hep3Vector>>();
   std::vector<CLHEP::Hep3Vector> temp = std::vector<CLHEP::Hep3Vector>();
   for (int i = 0; i < NBinsVtx; i++)

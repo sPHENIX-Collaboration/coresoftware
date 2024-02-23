@@ -126,11 +126,11 @@ class pi0EtaByEta : public SubsysReco
   bool use_pdc{false};
 
   std::vector<std::vector<std::vector<CLHEP::Hep3Vector>>>* clusMix;
-  TH1* h_nclus_bin;
+  TH1* h_nclus_bin{nullptr};
   const int NBinsClus = 10;
-  TH1* h_vtx_bin;
+  TH1* h_vtx_bin{nullptr};
   int NBinsVtx = 30;
-  TH1* h_event;
+  TH1* h_event{nullptr};
 
   Fun4AllHistoManager* hm{nullptr};
   TFile* outfile{nullptr};
