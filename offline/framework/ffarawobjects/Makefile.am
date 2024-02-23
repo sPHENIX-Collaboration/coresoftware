@@ -110,6 +110,7 @@ libffarawobjects_la_SOURCES = \
   InttRawHitContainerv1.cc \
   InttRawHitv1.cc \
   MbdPacketv1.cc \
+  MbdPacketContainerv1.cc \
   MicromegasRawHitContainerv1.cc \
   MicromegasRawHitv1.cc \
   MvtxRawHitContainerv1.cc \
