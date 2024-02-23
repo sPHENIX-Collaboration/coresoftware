@@ -216,14 +216,17 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 	continue;
       }
 
-    std::cout << "Input seed pars for " << track_it
-	      << " q " << track->get_charge()
-	      << " qOverR " << fabs(track->get_qOverR()) * track->get_charge()
-	      << " X0 " << track->get_x()
-	      << " Y0 " << track->get_y()
-	      << " Z0 " << track->get_z()
-	      << " eta " << track->get_eta()
-	      << std::endl;
+    if(Verbosity() > 0)
+      {
+	std::cout << "Input seed pars for " << track_it
+		  << " q " << track->get_charge()
+		  << " qOverR " << fabs(track->get_qOverR()) * track->get_charge()
+		  << " X0 " << track->get_x()
+		  << " Y0 " << track->get_y()
+		  << " Z0 " << track->get_z()
+		  << " eta " << track->get_eta()
+		  << std::endl;
+      }
 
     const bool is_tpc = std::any_of(
       track->begin_cluster_keys(),
@@ -236,12 +239,15 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
       float Z0 = track->get_Z0();
       float offset_Z = 0.0 - Z0;
 
-      std::cout << "  processing seed with offset_Z " << offset_Z
- 		<< " eta " << track->get_eta()
-		<< " x " << track->get_x() 
-		<< " y " << track->get_y() 
-		<< " z " << track->get_z() 
-		<< std::endl;
+      if(Verbosity() > 0)
+	{
+	  std::cout << "  processing seed with offset_Z " << offset_Z
+		    << " eta " << track->get_eta()
+		    << " x " << track->get_x() 
+		    << " y " << track->get_y() 
+		    << " z " << track->get_z() 
+		    << std::endl;
+	}
 
       // We want to make  distortion corrections to all clusters in this seed after offsetting the z values
       std::vector<TrkrDefs::cluskey> dumvec;
@@ -277,8 +283,11 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 	{ continue; }
       keylist.push_back(dumvec);
 
-      std::cout << "Added  input seed " << track_it << "  becomes output seed " << keylist.size() - 1 << std::endl;
- 
+      if(Verbosity() > 0)
+	{
+	  std::cout << "Added  input seed " << track_it << "  becomes output seed " << keylist.size() - 1 << std::endl;
+	}
+
     } // end if TPC seed
 
   }  // end loop over tracks
@@ -396,14 +405,18 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, 
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
     _track_map->insert(&seed); 
 
-    std::cout << "Publishing seed " << seed_index
-	      << " q " << q
-	      << " qOverR " << fabs(seed.get_qOverR()) * q 
-	      << " X0 " << seed.get_x()
-	      << " Y0 " << seed.get_y()
-	      << " Z0 " << seed.get_z()
-	      << " eta " << seed.get_eta()
-	      << std::endl;
+    if(Verbosity() > 0)
+      {
+	std::cout << "Publishing seed " << seed_index
+		  << " q " << q
+		  << " qOverR " << fabs(seed.get_qOverR()) * q 
+		  << " X0 " << seed.get_x()
+		  << " Y0 " << seed.get_y()
+		  << " Z0 " << seed.get_z()
+		  << " eta " << seed.get_eta()
+		  << std::endl;
+      }
+
     seed_index++;
   }
 }
