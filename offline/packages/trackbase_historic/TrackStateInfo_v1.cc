@@ -27,3 +27,15 @@ void TrackStateInfo_v1::set_covariance(int i, int j, float value)
 {
   m_Covariance[covar_index(i, j)] = value;
 }
+float TrackStateInfo_v1::get_px() const
+{
+  return fabs(1. / get_qOp()) * std::cos(get_phi()) * std::sin(get_theta());
+}
+float TrackStateInfo_v1::get_py() const
+{
+  return fabs(1. / get_qOp()) * std::sin(get_phi()) * std::sin(get_theta());
+}
+float TrackStateInfo_v1::get_pz() const
+{
+  return fabs(1. / get_qOp()) * std::cos(get_theta());
+}
