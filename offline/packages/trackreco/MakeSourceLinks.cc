@@ -459,6 +459,7 @@ if (m_verbosity > 1)
       if(m_verbosity > 2) { std::cout << "Taking manual calculation for global to local " << std::endl; }
 
       /// otherwise take the manual calculation for the TPC
+      // doing it this way just avoids the bounds check that occurs in the surface class method
       Acts::Vector3 loct = surf->transform(tGeometry->geometry().getGeoContext()).inverse() * global ;  // global is in mm
       loct /= Acts::UnitConstants::cm;
 

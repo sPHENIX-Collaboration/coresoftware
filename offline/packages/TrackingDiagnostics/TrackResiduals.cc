@@ -659,8 +659,8 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         auto radius = geoLayer->get_radius();
         float AdcClockPeriod = 53.0;  // ns (?)
         double zdriftlength = m_hittbin * geometry->get_drift_velocity() * AdcClockPeriod;
-        unsigned short NTBins = (unsigned short) geoLayer->get_zbins();
-        double tdriftmax = AdcClockPeriod * NTBins / 2.0;
+	double NZBinsSide = 249;  // physical z bins per TPC side
+	double tdriftmax = AdcClockPeriod * NZBinsSide;
         m_hitgz = (tdriftmax * geometry->get_drift_velocity()) - zdriftlength;
         if (m_side == 0)
         {
@@ -745,7 +745,10 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
 
   if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
   {
-    clusz = convertTimeToZ(geometry, ckey, cluster);
+    float rawclusz = convertTimeToZ(geometry, ckey, cluster);
+    int crossing = track->get_crossing();
+    unsigned int side = TpcDefs::getSide(ckey);
+    clusz = m_clusterCrossingCorrection.correctZ(rawclusz, side, crossing);
   }
 
   m_cluslz.push_back(clusz);

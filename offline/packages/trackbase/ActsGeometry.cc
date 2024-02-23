@@ -196,3 +196,36 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
       
   return local;
 }
+
+Acts::Vector2 ActsGeometry::getCrossingCorrectedLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster,  int crossing)
+{
+  Acts::Vector2 local;
+
+  const auto trkrid = TrkrDefs::getTrkrId(key);
+  if(trkrid == TrkrDefs::tpcId)
+    {
+      local  = getLocalCoords(key, cluster);
+
+      double crossing_correction = (double) crossing  * _crossing_period * _drift_velocity;
+      double zloc;
+      unsigned int side = TpcDefs::getSide(key);
+      if(side == 1)
+	{
+	  zloc = local(1) + crossing_correction;  // north correction is positive for positive crossings
+	}
+      else
+	{
+	  zloc = local(1) - crossing_correction;
+	}
+
+      local(0) = cluster->getLocalX();
+      local(1) = zloc;
+    }
+  else
+    {
+      local(0) = cluster->getLocalX();
+      local(1) = cluster->getLocalY();
+    }
+  
+  return local;
+}
