@@ -142,9 +142,9 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
     }
    
   // tpc distortion correction
-  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( m_dcc )
-  { std::cout << "PHSimpleKFProp::InitRun - found TPC distortion correction container" << std::endl; }
+  { std::cout << "PHSimpleKFProp::InitRun - found TPC static distortion correction container" << std::endl; }
 
   if(_use_truth_clusters)
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
