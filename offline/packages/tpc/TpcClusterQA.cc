@@ -204,7 +204,7 @@ void TpcClusterQA::createHistos()
   assert(hm);
   {
     auto h = new TH2F(Form("%snclusperrun", getHistoPrefix().c_str()),
-                      "TPC Clusters per event per run number", 2000, 25000, 27000, 1000, 0, 1000);
+                      "TPC Clusters per event per run number", m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
     h->GetXaxis()->SetTitle("Run number");
     h->GetYaxis()->SetTitle("Clusters per event");
     hm->registerHisto(h);
@@ -213,7 +213,7 @@ void TpcClusterQA::createHistos()
       for(int i=0; i<24; i++)
       {
         auto h = new TH2F(Form("%snclusperrun_sector%i", getHistoPrefix().c_str(), i),
-                          Form("TPC Clusters per event per run number sector %i", i), 2000, 25000, 27000, 1000, 0, 1000);
+                          Form("TPC Clusters per event per run number sector %i", i), m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
         h->GetXaxis()->SetTitle("Run number");
         h->GetYaxis()->SetTitle(Form("Clusters per event in Sector %i",i));
         hm->registerHisto(h);
