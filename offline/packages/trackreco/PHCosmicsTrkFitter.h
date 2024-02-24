@@ -215,7 +215,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
   ActsAlignmentStates m_alignStates;
 
-  PHG4TpcCylinderGeomContainer* _tpccellgeo;
+  PHG4TpcCylinderGeomContainer* _tpccellgeo = nullptr;
 
   //! for diagnosing seed param + clusters
   bool m_seedClusAnalysis = false;

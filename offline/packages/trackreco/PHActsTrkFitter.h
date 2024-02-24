@@ -241,7 +241,7 @@ class PHActsTrkFitter : public SubsysReco
   ActsAlignmentStates m_alignStates;
   bool m_commissioning = false;
 
-  PHG4TpcCylinderGeomContainer* _tpccellgeo;
+  PHG4TpcCylinderGeomContainer* _tpccellgeo = nullptr;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;
