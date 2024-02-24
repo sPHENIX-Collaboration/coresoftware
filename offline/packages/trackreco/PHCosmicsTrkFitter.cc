@@ -853,6 +853,10 @@ void PHCosmicsTrkFitter::fillVectors(TrackSeed *tpcseed, TrackSeed* siseed)
 {
   for(auto seed : {tpcseed, siseed})
     {
+      if(!seed)
+      {
+        continue;
+      }
       for(auto it = seed->begin_cluster_keys(); it != seed->end_cluster_keys();
 	  ++it)
 	{
