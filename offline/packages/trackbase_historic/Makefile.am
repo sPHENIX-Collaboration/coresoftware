@@ -52,7 +52,13 @@ pkginclude_HEADERS = \
   SvtxTrackState.h \
   SvtxTrackState_v1.h \
   SvtxTrackState_v2.h \
-  TrackAnalysisUtils.h 
+  TrackAnalysisUtils.h \
+  SvtxTrackInfo.h \
+  SvtxTrackInfo_v1.h \
+  TrackInfoContainer.h \
+  TrackInfoContainer_v1.h \
+  TrackStateInfo.h \
+  TrackStateInfo_v1.h 
 
 ROOTDICTS = \
   TrackSeed_Dict.cc \
@@ -86,7 +92,13 @@ ROOTDICTS = \
   SvtxTrackMap_v1_Dict.cc \
   SvtxTrackMap_v2_Dict.cc \
   SvtxTrackCaloClusterMap_Dict.cc \
-  SvtxTrackCaloClusterMap_v1_Dict.cc
+  SvtxTrackCaloClusterMap_v1_Dict.cc \
+  SvtxTrackInfo_Dict.cc \
+  SvtxTrackInfo_v1_Dict.cc \
+  TrackInfoContainer_Dict.cc \
+  TrackInfoContainer_v1_Dict.cc \
+  TrackStateInfo_Dict.cc \
+  TrackStateInfo_v1_Dict.cc 
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
@@ -121,7 +133,13 @@ nobase_dist_pcm_DATA = \
   SvtxTrackMap_v1_Dict_rdict.pcm \
   SvtxTrackMap_v2_Dict_rdict.pcm \
   SvtxTrackCaloClusterMap_Dict_rdict.pcm \
-  SvtxTrackCaloClusterMap_v1_Dict_rdict.pcm
+  SvtxTrackCaloClusterMap_v1_Dict_rdict.pcm \
+  SvtxTrackInfo_Dict_rdict.pcm \
+  SvtxTrackInfo_v1_Dict_rdict.pcm \
+  TrackInfoContainer_Dict_rdict.pcm \
+  TrackInfoContainer_v1_Dict_rdict.pcm \
+  TrackStateInfo_Dict_rdict.pcm \
+  TrackStateInfo_v1_Dict_rdict.pcm 
 
 # sources for io library
 libtrackbase_historic_io_la_SOURCES = \
@@ -158,7 +176,10 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxTrackMap_v2.cc \
   SvtxTrackCaloClusterMap.cc \
   SvtxTrackCaloClusterMap_v1.cc \
-  TrackAnalysisUtils.cc
+  TrackAnalysisUtils.cc \
+  SvtxTrackInfo_v1.cc \
+  TrackInfoContainer_v1.cc \
+  TrackStateInfo_v1.cc
 
 libtrackbase_historic_io_la_LDFLAGS = \
   -L$(libdir) \

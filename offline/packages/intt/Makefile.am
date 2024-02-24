@@ -37,12 +37,15 @@ pkginclude_HEADERS = \
   InttClusterQA.h \
   InttCombinedRawDataConverter.h \
   InttCombinedRawDataDecoder.h \
-  InttDeadMapHelper.h \
+  InttMaskedChannelSet.h \
+  InttMaskedChannelSetv1.h \
   InttFelixMap.h \
-  InttFelixMapObsolete.h \
+  InttMap.h \
   InttMapping.h \
   InttRawDataConverter.h \
   InttRawDataDecoder.h \
+  InttSurveyMap.h \
+  InttSurveyMapv1.h \
   InttVertexFinder.h \
   InttVertexMap.h \
   InttVertexMapv1.h \
@@ -52,6 +55,11 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   CylinderGeomIntt_Dict.cc \
+  InttMaskedChannelSet_Dict.cc \
+  InttMaskedChannelSetv1_Dict.cc \
+  InttMap_Dict.cc \
+  InttSurveyMap_Dict.cc \
+  InttSurveyMapv1_Dict.cc \
   InttVertexMap_Dict.cc \
   InttVertexMapv1_Dict.cc \
   InttVertex_Dict.cc \
@@ -60,6 +68,11 @@ ROOTDICTS = \
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeomIntt_Dict_rdict.pcm \
+  InttMaskedChannelSet_Dict_rdict.pcm \
+  InttMaskedChannelSetv1_Dict_rdict.pcm \
+  InttMap_Dict_rdict.pcm \
+  InttSurveyMap_Dict_rdict.pcm \
+  InttSurveyMapv1_Dict_rdict.pcm \
   InttVertexMap_Dict_rdict.pcm \
   InttVertexMapv1_Dict_rdict.pcm \
   InttVertex_Dict_rdict.pcm \
@@ -71,16 +84,20 @@ libintt_la_SOURCES = \
   InttClusterQA.cc \
   InttCombinedRawDataConverter.cc \
   InttCombinedRawDataDecoder.cc \
-  InttDeadMapHelper.cc \
+  InttMaskedChannelSet.cc \
+  InttMaskedChannelSetv1.cc \
   InttFelixMap.cc \
-  InttFelixMapObsolete.cc \
   InttMapping.cc \
+  InttMap.cc \
   InttRawDataConverter.cc \
   InttRawDataDecoder.cc \
+  InttSurveyMap.cc \
+  InttSurveyMapv1.cc \
   InttVertexFinder.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \
+  -lcdbobjects \
   -lCLHEP \
   -lffarawobjects \
   -lphg4hit \
@@ -90,11 +107,17 @@ libintt_la_LIBADD = \
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeomIntt.cc \
+  InttMaskedChannelSet.cc \
+  InttMaskedChannelSetv1.cc \
+  InttMap.cc \
+  InttSurveyMap.cc \
+  InttSurveyMapv1.cc \
   InttVertexMap.cc \
   InttVertexMapv1.cc \
   InttVertexv1.cc
 
 libintt_io_la_LIBADD = \
+  -lcdbobjects \
   -lg4detectors_io \
   -lphool \
   -ltrack_io \

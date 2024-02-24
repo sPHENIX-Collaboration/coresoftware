@@ -39,15 +39,16 @@ void PHG4BbcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     visatt->SetVisibility(true);
     visatt->SetForceSolid(true);
     m_VisAttVec.push_back(visatt);  // for later deletion
-    if (it.second == "Bbc_Breeder_Module")
+    if (it.second == "Bbc_Breeder_Module" ||
+        it.second == "Bbc_Support_Post" ||
+        it.second == "Bbc_Support_Arm")
     {
       visatt->SetColour(G4Colour::Green());
     }
-    else if (it.second == "Bbc_Cover_Plates")
-    {
-      visatt->SetColour(G4Colour::Gray());
-    }
-    else if (it.second == "Bbc_Inner_Shell")
+    else if (it.second == "Bbc_Cover_Plates" ||
+             it.second == "Bbc_Inner_Shell" ||
+             it.second == "Bbc_Outer_Shell" ||
+             it.second == "Bbc_attach_plate")
     {
       visatt->SetColour(G4Colour::Gray());
     }
@@ -55,63 +56,25 @@ void PHG4BbcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     {
       visatt->SetColour(G4Colour::Cyan());
     }
-    else if (it.second == "Bbc_Outer_Shell")
-    {
-      visatt->SetColour(G4Colour::Gray());
-    }
     else if (it.second == "Bbc_PMT")
     {
       visatt->SetColour(G4Colour::Blue());
     }
-    else if (it.second == "Bbc_Shell")
+    else if (it.second == "Bbc_Shell" || it.second == "Bbc_Front_Plate")
     {
       visatt->SetColour(0.5, 0.5, 0.5, 0.4);
-    }
-    else if (it.second == "Bbc_Front_Plate")
-    {
-      visatt->SetColour(0.5, 0.5, 0.5, 0.4);
-    }
-    else if (it.second == "Bbc_attach_plate")
-    {
-      visatt->SetColour(G4Colour::Gray());
     }
     else if (it.second == "Bbc_CableCond")
     {
       visatt->SetColour(G4Colour::Yellow());
     }
-    else if (it.second == "Bbc_CableShield")
-    {
-      visatt->SetColour(G4Colour::White());
-    }
-    else if (it.second == "Bbc_Base_Plates")
-    {
-      visatt->SetColour(G4Colour::White());
-    }
-    else if (it.second == "Bbc_Sidesupport_Plates")
-    {
-      visatt->SetColour(G4Colour::White());
-    }
-    else if (it.second == "Bbc_Support_Post")
-    {
-      visatt->SetColour(G4Colour::Green());
-    }
-    else if (it.second == "Bbc_Support_Arm")
-    {
-      visatt->SetColour(G4Colour::Green());
-    }
-    else if (it.second == "Bbc_Gusset0_Plates")
-    {
-      visatt->SetColour(G4Colour::White());
-    }
-    else if (it.second == "Bbc_Gusset1_Plates")
-    {
-      visatt->SetColour(G4Colour::White());
-    }
-    else if (it.second == "Bbc_Gusset2_Plates")
-    {
-      visatt->SetColour(G4Colour::White());
-    }
-    else if (it.second == "Bbc_Splice_Plates")
+    else if (it.second == "Bbc_CableShield" ||
+             it.second == "Bbc_Base_Plates" ||
+             it.second == "Bbc_Sidesupport_Plates" ||
+             it.second == "Bbc_Gusset0_Plates" ||
+             it.second == "Bbc_Gusset1_Plates" ||
+             it.second == "Bbc_Gusset2_Plates" ||
+             it.second == "Bbc_Splice_Plates")
     {
       visatt->SetColour(G4Colour::White());
     }

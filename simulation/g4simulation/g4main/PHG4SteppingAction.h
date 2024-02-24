@@ -29,7 +29,7 @@ class PHG4SteppingAction
   virtual void Verbosity(const int i) { m_Verbosity = i; }
   virtual int Verbosity() const { return m_Verbosity; }
   virtual int Init() { return 0; }
-  virtual int InitWithNode(PHCompositeNode* ){ return 0; };
+  virtual int InitWithNode(PHCompositeNode*) { return 0; };
   //! get scintillation photon count. It require a custom set SCINTILLATIONYIELD property to work
   virtual double GetScintLightYield(const G4Step* step);
 

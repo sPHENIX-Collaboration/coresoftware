@@ -103,15 +103,17 @@ void PHG4BeamlineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
     magField = new G4UniformMagField(G4ThreeVector(0., fieldValue, 0.));
 
     if (Verbosity() > 0)
+    {
       cout << "Creating DIPOLE with field " << fieldValue << " and name " << GetName() << endl;
+    }
   }
   else if (magnettype == "quadrupole")
   {
     G4double fieldGradient = params->get_double_param("fieldgradient") * tesla / meter;
 
     /* G4MagneticField::GetFieldValue( pos*, B* ) uses GLOBAL coordinates, not local.
-       * Therefore, place magnetic field center at the correct location and angle for the
-       * magnet AND do the same transformations for the logical volume (see below). */
+     * Therefore, place magnetic field center at the correct location and angle for the
+     * magnet AND do the same transformations for the logical volume (see below). */
     magField = new G4QuadrupoleMagField(fieldGradient, origin, rotm);
     //      magField = new PHG4QuadrupoleMagField ( fieldGradient, origin, rotm );
 

@@ -77,7 +77,7 @@ int Fun4AllOutputManager::DoNotWriteEvent(std::vector<int> *retcodes) const
 
 int Fun4AllOutputManager::RunAfterClosing()
 {
-  int iret = 0;
+  unsigned int iret = 0;
   if (!m_RunAfterClosingScript.empty())
   {
     std::string fullcmd = m_RunAfterClosingScript + " " + m_ClosingArgs;
@@ -85,7 +85,7 @@ int Fun4AllOutputManager::RunAfterClosing()
   }
   if (iret)
   {
-    iret = iret >> 8;
+    iret = iret >> 8U;
   }
   return iret;
 }

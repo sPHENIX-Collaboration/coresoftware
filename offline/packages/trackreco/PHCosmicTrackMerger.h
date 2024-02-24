@@ -34,14 +34,20 @@ class PHCosmicTrackMerger : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *) override;
 
+  void zero_field() { m_zeroField = true; }
+
  private:
   void addKeys(TrackSeed *toAddTo, TrackSeed *toAdd);
+  void removeOutliers(TrackSeed *seed);
+
   ActsGeometry *m_geometry = nullptr;
   KeyPosMap getGlobalPositions(TrackSeed *seed);
   TrkrClusterContainer *m_clusterMap = nullptr;
   TrackSeedContainer *m_seeds = nullptr;
   TrackSeedContainer *m_tpcSeeds = nullptr;
   TrackSeedContainer *m_siliconSeeds = nullptr;
+
+  bool m_zeroField = false;
 };
 
 #endif  // PHCOSMICTRACKMERGER_H

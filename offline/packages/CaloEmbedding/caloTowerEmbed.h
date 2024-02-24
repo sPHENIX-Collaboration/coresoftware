@@ -3,8 +3,8 @@
 #ifndef CALOTOWEREMBED_H
 #define CALOTOWEREMBED_H
 
+#include <caloreco/CaloTowerDefs.h>
 #include <calobase/TowerInfoContainer.h>  // for TowerInfoContainer, TowerIn...
-
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
@@ -32,30 +32,52 @@ class caloTowerEmbed : public SubsysReco
   int End(PHCompositeNode *topNode) override;
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  void set_useRetower(bool a) { m_useRetower = a; };
-
-  enum DetectorSystem
+  void set_detector_type(CaloTowerDefs::DetectorSystem dettype)
   {
-    CEMC = 0,
-    HCALIN = 1,
-    HCALOUT = 2,
-    EPD = 3
-  };
+    m_dettype = dettype;
+    return;
+  }
+  
+  void set_inputNodePrefix(const std::string &name)
+  {
+    m_inputNodePrefix = name;
+    return;
+  }
+  
+  void set_useRetower(bool a)
+  {
+    m_useRetower = a;
+    return;
+  }
+
+  void set_removeBadTowers(bool a)
+  {
+    m_removeBadTowers = a;
+    return;
+  }
 
  private:
-  TowerInfoContainer *_data_towers[3] {nullptr, nullptr, nullptr};
-  TowerInfoContainer *_sim_towers[3] {nullptr, nullptr, nullptr};
+
+
+  TowerInfoContainer *_data_towers {nullptr};
+  TowerInfoContainer *_sim_towers {nullptr};
+
+  TowerInfoContainer *_embed_towers_out {nullptr};
+  TowerInfoContainer *_sim_towers_out {nullptr};
 
   RawTowerGeomContainer *tower_geom {nullptr};
-  RawTowerGeomContainer *tower_geomIH {nullptr};
-  RawTowerGeomContainer *tower_geomOH {nullptr};
 
   bool m_useRetower {false};
+  bool m_removeBadTowers {false};
 
-  //  CDBInterface *cdb = nullptr;
-  // CDBTTree *cdbttree = nullptr;
+  CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
+
+  std::string m_detector;
+  std::string m_inputNodePrefix{"TOWERINFO_CALIB_"};
+
   int m_runNumber {0};
   int m_eventNumber {-1};
+
 };
 
 #endif  // CALOTOWEREMBED_H

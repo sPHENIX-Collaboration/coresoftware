@@ -14,7 +14,6 @@
 class G4LogicalVolume;
 class G4VisAttributes;
 class G4VPhysicalVolume;
-class G4Colour;
 
 class PHG4MicromegasDisplayAction : public PHG4DisplayAction
 {
@@ -24,10 +23,10 @@ class PHG4MicromegasDisplayAction : public PHG4DisplayAction
   ~PHG4MicromegasDisplayAction() override;
 
   void ApplyDisplayAction(G4VPhysicalVolume *physvol) override;
-  void AddVolume(G4LogicalVolume *logvol, const G4Colour &col ) { m_LogicalVolumeMap[logvol] = col; }
+  void AddVolume(G4LogicalVolume *logvol, const G4Colour &col) { m_LogicalVolumeMap[logvol] = col; }
 
  private:
-  std::map<G4LogicalVolume *, G4Colour> m_LogicalVolumeMap;
+  std::map<G4LogicalVolume *, G4Color> m_LogicalVolumeMap;
   std::vector<G4VisAttributes *> m_VisAttVec;
 };
 

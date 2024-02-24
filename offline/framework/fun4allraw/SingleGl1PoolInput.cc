@@ -1,6 +1,7 @@
 #include "SingleGl1PoolInput.h"
 
 #include "Fun4AllStreamingInputManager.h"
+#include "InputManagerType.h"
 
 #include <ffarawobjects/Gl1RawHitv1.h>
 
@@ -28,7 +29,7 @@
 SingleGl1PoolInput::SingleGl1PoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
-  SubsystemEnum(Fun4AllStreamingInputManager::GL1);
+  SubsystemEnum(InputManagerType::GL1);
 }
 
 SingleGl1PoolInput::~SingleGl1PoolInput()

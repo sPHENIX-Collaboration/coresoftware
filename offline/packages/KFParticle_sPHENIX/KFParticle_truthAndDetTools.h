@@ -34,30 +34,30 @@ namespace HepMC
 class KFParticle_truthAndDetTools
 {
  public:
-  KFParticle_truthAndDetTools();  //Constructor
+  KFParticle_truthAndDetTools();  // Constructor
 
-  virtual ~KFParticle_truthAndDetTools();  //Destructor
+  virtual ~KFParticle_truthAndDetTools();  // Destructor
 
   SvtxTrack *getTrack(unsigned int track_id, SvtxTrackMap *trackmap);
   GlobalVertex *getVertex(unsigned int vertex_id, GlobalVertexMap *vertexmap);
   PHG4Particle *getTruthTrack(SvtxTrack *thisTrack, PHCompositeNode *topNode);
 
-  void initializeTruthBranches(TTree *m_tree, int daughter_id, std::string daughter_number, bool m_constrain_to_vertex_truthMatch);
-  void fillTruthBranch(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id, KFParticle vertex, bool m_constrain_to_vertex_truthMatch);
+  void initializeTruthBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number, bool m_constrain_to_vertex_truthMatch);
+  void fillTruthBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id, const KFParticle &vertex, bool m_constrain_to_vertex_truthMatch);
 
   void fillGeant4Branch(PHG4Particle *particle, int daughter_id);
   void fillHepMCBranch(HepMC::GenParticle *particle, int daughter_id);
-  int getHepMCInfo(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id);
+  int getHepMCInfo(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
 
-  void initializeCaloBranches(TTree *m_tree, int daughter_id, std::string daughter_number);
-  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id);
+  void initializeCaloBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
+  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
 
-  void initializeDetectorBranches(TTree *m_tree, int daughter_id, std::string daughter_number);
-  void initializeSubDetectorBranches(TTree *m_tree, std::string detectorName, int daughter_id, std::string daughter_number);
-  void fillDetectorBranch(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id);
+  void initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
+  void initializeSubDetectorBranches(TTree *m_tree, const std::string &detectorName, int daughter_id, const std::string &daughter_number);
+  void fillDetectorBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
 
   void allPVInfo(PHCompositeNode *topNode, TTree *m_tree,
-                 KFParticle motherParticle,
+                 const KFParticle &motherParticle,
                  std::vector<KFParticle> daughters,
                  std::vector<KFParticle> intermediates);
 
@@ -155,4 +155,4 @@ class KFParticle_truthAndDetTools
   PHHepMCGenEvent *m_genevt = nullptr;
 };
 
-#endif  //KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H
+#endif  // KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H

@@ -84,6 +84,10 @@ class PHG4TpcDistortion
     m_time_ordered_distortion_filename = value;
   }
 
+  void set_read_phi_as_radians(bool flag=true){
+    m_phi_hist_in_radians=flag;
+  }
+
   //! initialize
   void Init();
 
@@ -105,6 +109,10 @@ class PHG4TpcDistortion
   //! The verbosity level. 0 means not verbose at all.
   int verbosity = 0;
 
+  //! Flag controls whether to assume the phi hist units are radians or cm.
+  bool m_phi_hist_in_radians=true;
+
+  
   //!@name static histograms
   //@{
   bool m_do_static_distortions = false;

@@ -17,16 +17,16 @@ class PHCompositeNode;
 
 class InttRawDataDecoder : public SubsysReco
 {
-public:
-	InttRawDataDecoder(std::string const& name = "InttRawDataDecoder");
+ public:
+  InttRawDataDecoder(std::string const& name = "InttRawDataDecoder");
 
-	int Init(PHCompositeNode*) override;
-	int InitRun(PHCompositeNode*) override;
-	int process_event(PHCompositeNode*) override;
-	int End(PHCompositeNode*) override;
+  int Init(PHCompositeNode*) override;
+  int InitRun(PHCompositeNode*) override;
+  int process_event(PHCompositeNode*) override;
+  int End(PHCompositeNode*) override;
 
-private:
-	int64_t full_bco = 0;
+ private:
+  int64_t full_bco = 0;
 };
 
-#endif//INTT_RAW_DATA_DECODER_H
+#endif  // INTT_RAW_DATA_DECODER_H

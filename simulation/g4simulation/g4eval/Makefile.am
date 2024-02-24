@@ -73,7 +73,9 @@ pkginclude_HEADERS = \
   TrackEvaluationContainer.h \
   TrackEvaluationContainerv1.h  \
   TruthRecoTrackMatching.h \
-  compressor_generator.h
+  compressor_generator.h \
+  DSTTrackInfoWriter.h \
+  DSTTrackInfoReader.h
 
 
 ROOTDICTS = \
@@ -120,7 +122,9 @@ libg4eval_la_SOURCES = \
   TrackClusEvaluator.cc \
   TrkrClusterIsMatcher.cc \
   TrackEvaluation.cc \
-  TruthRecoTrackMatching.cc
+  TruthRecoTrackMatching.cc \
+  DSTTrackInfoWriter.cc \
+  DSTTrackInfoReader.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

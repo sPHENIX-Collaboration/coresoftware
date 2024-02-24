@@ -62,17 +62,17 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! defines from PHG4Detector */
-  PHG4BlockDetector* m_Detector;
+  PHG4BlockDetector* m_Detector{nullptr};
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction{nullptr};
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction;
+  PHG4DisplayAction* m_DisplayAction{nullptr};
   //! Color setting if we want to override the default
-  std::array<double, 4> m_ColorArray;
+  std::array<double, 4> m_ColorArray{};
 };
 
 #endif

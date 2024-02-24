@@ -1,6 +1,7 @@
 #ifndef TRACKBASE_TRACKFITUTILS_H
 #define TRACKBASE_TRACKFITUTILS_H
 
+#include "ActsSurfaceMaps.h"
 #include "TrkrDefs.h"
 
 #include <Acts/Definitions/Algebra.hpp>
@@ -102,7 +103,10 @@ class TrackFitUtils
                                   std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
   static Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref);
-
+  static Acts::Vector3 get_helix_surface_intersection(Surface surf,
+                                                      std::vector<float>& fitpars, Acts::Vector3& global, ActsGeometry* _tGeometry);
+  static Acts::Vector3 get_line_plane_intersection(const Acts::Vector3& pca, const Acts::Vector3& tangent,
+                                                   const Acts::Vector3& sensorCenter, const Acts::Vector3& sensorNormal);
   static std::vector<double> getLineClusterResiduals(position_vector_t& rz_pts, float slope, float intercept);
   static std::vector<double> getCircleClusterResiduals(position_vector_t& xy_pts, float R, float X0, float Y0);
 };

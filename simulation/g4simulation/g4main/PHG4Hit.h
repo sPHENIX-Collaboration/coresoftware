@@ -7,9 +7,9 @@
 
 #include <phool/PHObject.h>
 
-#include <climits>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <utility>
 
@@ -25,38 +25,38 @@ class PHG4Hit : public PHObject
   void Reset() override;
 
   // The indices here represent the entry and exit points of the particle
-  virtual float get_x(const int) const { return NAN; }
-  virtual float get_y(const int) const { return NAN; }
-  virtual float get_z(const int) const { return NAN; }
-  virtual float get_px(const int) const { return NAN; }
-  virtual float get_py(const int) const { return NAN; }
-  virtual float get_pz(const int) const { return NAN; }
-  virtual float get_local_x(const int) const { return NAN; }
-  virtual float get_local_y(const int) const { return NAN; }
-  virtual float get_local_z(const int) const { return NAN; }
-  virtual float get_t(const int) const { return NAN; }
-  virtual float get_edep() const { return NAN; }
-  virtual float get_eion() const { return NAN; }
-  virtual float get_light_yield() const { return NAN; }
-  virtual float get_path_length() const { return NAN; }
-  virtual float get_raw_light_yield() const { return NAN; }
-  virtual unsigned int get_layer() const { return UINT_MAX; }
-  virtual PHG4HitDefs::keytype get_hit_id() const { return ULONG_LONG_MAX; }
-  virtual int get_detid() const { return INT_MIN; }
-  virtual int get_shower_id() const { return INT_MIN; }
-  virtual int get_scint_id() const { return INT_MIN; }
-  virtual int get_row() const { return INT_MIN; }
-  virtual int get_sector() const { return INT_MIN; }
-  virtual int get_trkid() const { return INT_MIN; }
-  virtual int get_strip_z_index() const { return INT_MIN; }
-  virtual int get_strip_y_index() const { return INT_MIN; }
-  virtual int get_ladder_z_index() const { return INT_MIN; }
-  virtual int get_ladder_phi_index() const { return INT_MIN; }
-  virtual int get_index_i() const { return INT_MIN; }
-  virtual int get_index_j() const { return INT_MIN; }
-  virtual int get_index_k() const { return INT_MIN; }
-  virtual int get_index_l() const { return INT_MIN; }
-  virtual int get_hit_type() const { return INT_MIN; }
+  virtual float get_x(const int) const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_y(const int) const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_z(const int) const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_px(const int) const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_py(const int) const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_pz(const int) const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_local_x(const int) const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_local_y(const int) const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_local_z(const int) const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_t(const int) const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_edep() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_eion() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_light_yield() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_path_length() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_raw_light_yield() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual unsigned int get_layer() const { return std::numeric_limits<unsigned int>::max(); }
+  virtual PHG4HitDefs::keytype get_hit_id() const { return std::numeric_limits<PHG4HitDefs::keytype>::max(); }
+  virtual int get_detid() const { return std::numeric_limits<int>::min(); }
+  virtual int get_shower_id() const { return std::numeric_limits<int>::min(); }
+  virtual int get_scint_id() const { return std::numeric_limits<int>::min(); }
+  virtual int get_row() const { return std::numeric_limits<int>::min(); }
+  virtual int get_sector() const { return std::numeric_limits<int>::min(); }
+  virtual int get_trkid() const { return std::numeric_limits<int>::min(); }
+  virtual int get_strip_z_index() const { return std::numeric_limits<int>::min(); }
+  virtual int get_strip_y_index() const { return std::numeric_limits<int>::min(); }
+  virtual int get_ladder_z_index() const { return std::numeric_limits<int>::min(); }
+  virtual int get_ladder_phi_index() const { return std::numeric_limits<int>::min(); }
+  virtual int get_index_i() const { return std::numeric_limits<int>::min(); }
+  virtual int get_index_j() const { return std::numeric_limits<int>::min(); }
+  virtual int get_index_k() const { return std::numeric_limits<int>::min(); }
+  virtual int get_index_l() const { return std::numeric_limits<int>::min(); }
+  virtual int get_hit_type() const { return std::numeric_limits<int>::min(); }
 
   virtual void set_x(const int, const float) { return; }
   virtual void set_y(const int, const float) { return; }
@@ -175,7 +175,7 @@ class PHG4Hit : public PHObject
     prop_local_pos_z_1 = 127,
 
     //! max limit in order to fit into 8 bit unsigned number
-    prop_MAX_NUMBER = UCHAR_MAX
+    prop_MAX_NUMBER = std::numeric_limits<unsigned char>::max()
   };
 
   enum PROPERTY_TYPE
@@ -187,9 +187,9 @@ class PHG4Hit : public PHObject
   };
 
   virtual bool has_property(const PROPERTY /*prop_id*/) const { return false; }
-  virtual float get_property_float(const PROPERTY /*prop_id*/) const { return NAN; }
-  virtual int get_property_int(const PROPERTY /*prop_id*/) const { return INT_MIN; }
-  virtual unsigned int get_property_uint(const PROPERTY /*prop_id*/) const { return UINT_MAX; }
+  virtual float get_property_float(const PROPERTY /*prop_id*/) const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual int get_property_int(const PROPERTY /*prop_id*/) const { return std::numeric_limits<int>::min(); }
+  virtual unsigned int get_property_uint(const PROPERTY /*prop_id*/) const { return std::numeric_limits<unsigned int>::max(); }
   virtual void set_property(const PROPERTY /*prop_id*/, const float /*value*/) { return; }
   virtual void set_property(const PROPERTY /*prop_id*/, const int /*value*/) { return; }
   virtual void set_property(const PROPERTY /*prop_id*/, const unsigned int /*value*/) { return; }
@@ -198,7 +198,7 @@ class PHG4Hit : public PHObject
   static std::string get_property_type(const PROPERTY_TYPE prop_type);
 
  protected:
-  virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const { return UINT_MAX; }
+  virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const { return std::numeric_limits<unsigned int>::max(); }
   virtual void set_property_nocheck(const PROPERTY /*prop_id*/, const unsigned int) { return; }
   ClassDefOverride(PHG4Hit, 1)
 };

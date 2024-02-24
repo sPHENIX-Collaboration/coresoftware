@@ -194,14 +194,14 @@ namespace PHG4Sector
     double
     get_total_thickness() const;
 
-    //!Unit
+    //! Unit
     static double
     Unit_cm()
     {
       return cm;
     }
 
-    //!Intercept certain z point at certain polar angle
+    //! Intercept certain z point at certain polar angle
     void
     set_normal_start(const double z_intercept, const double angle_intercept)
     {

@@ -46,7 +46,8 @@ libmvtx_la_LIBADD = \
   -lffarawobjects \
   -lphg4hit \
   -lSubsysReco \
-  -lqautils
+  -lqautils \
+  -lcdbobjects 
 
 # sources for io library
 libmvtx_io_la_SOURCES = \
@@ -58,7 +59,8 @@ libmvtx_io_la_LIBADD = \
   -lphool \
   -lg4detectors_io \
   -ltrack_io \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -lcdbobjects 
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
