@@ -171,12 +171,12 @@ class SvtxTrackInfo_v3: public SvtxTrackInfo
  private:
 
   // track information
-  unsigned int m_track_id = UINT_MAX;
-  uint16_t m_outer_tpc_subsurfkey = UINT16_MAX;
-  float m_chisq = NAN;
-  uint8_t m_ndf = uint8_t(-1);
-  uint64_t m_hitbitmap = uint64_t(-1);
-  short int m_crossing = SHRT_MAX;
+  unsigned int m_track_id = std::numeric_limits<unsigned int>::quiet_NaN();
+  uint16_t m_outer_tpc_subsurfkey = std::numeric_limits<uint16_t>::quiet_NaN();
+  float m_chisq = std::numeric_limits<float>::quiet_NaN();
+  uint8_t m_ndf = std::numeric_limits<uint8_t>::quiet_NaN();
+  uint64_t m_hitbitmap = std::numeric_limits<uint64_t>::quiet_NaN();
+  short int m_crossing = std::numeric_limits<short int>::quiet_NaN();
 
   // track state information
   std::vector<TrackStateInfo_v1> m_states;

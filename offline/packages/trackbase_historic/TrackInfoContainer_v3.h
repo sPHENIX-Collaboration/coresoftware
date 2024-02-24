@@ -30,23 +30,6 @@ class TrackInfoContainer_v3 : public TrackInfoContainer
     return (SvtxTrackInfo_v3*) _clones->At(pos);
     }
 
-    //    void TrackInfoContainer_v3::add_trackinfo(int, SvtxTrackInfo_v3 ) {}
-    /*
-    void add_trackinfo(int pos, SvtxTrackInfo trackinfo) override{
-      new((*_clones)[pos]) SvtxTrackInfo;
-      SvtxTrackInfo *info = (SvtxTrackInfo *)_clones->ConstructedAt(pos);
-      info->CopyFrom(trackinfo);
-
-    }
-
-    void add_trackinfo(int pos, SvtxTrackInfo* trackinfo) override{
-      new((*_clones)[pos]) SvtxTrackInfo;
-      SvtxTrackInfo *info = (SvtxTrackInfo *)_clones->ConstructedAt(pos);
-      info->CopyFrom(trackinfo);
-
-    }
-    */
-
     void add_trackinfo(int pos, SvtxTrackInfo_v3 trackinfo)
     {
       new((*_clones)[pos]) SvtxTrackInfo_v3;

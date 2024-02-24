@@ -61,7 +61,6 @@ pkginclude_HEADERS = \
   TrackInfoContainer_v1.h \
 	TrackInfoContainer_v2.h \
 	TrackInfoContainer_v3.h \
-	DSTTrackInfoWriter_x.h \
   TrackStateInfo.h \
   TrackStateInfo_v1.h
 
@@ -106,7 +105,6 @@ ROOTDICTS = \
   TrackInfoContainer_v1_Dict.cc \
 	TrackInfoContainer_v2_Dict.cc \
 	TrackInfoContainer_v3_Dict.cc \
-	DSTTrackInfoWriter_x_Dict.cc \
   TrackStateInfo_Dict.cc \
   TrackStateInfo_v1_Dict.cc
 
@@ -152,7 +150,6 @@ nobase_dist_pcm_DATA = \
   TrackInfoContainer_v1_Dict_rdict.pcm \
 	TrackInfoContainer_v2_Dict_rdict.pcm \
 	TrackInfoContainer_v3_Dict_rdict.pcm \
-	DSTTrackInfoWriter_x_Dict_rdict.pcm \
   TrackStateInfo_Dict_rdict.pcm \
   TrackStateInfo_v1_Dict_rdict.pcm
 
@@ -198,7 +195,6 @@ libtrackbase_historic_io_la_SOURCES = \
   TrackInfoContainer_v1.cc \
 	TrackInfoContainer_v2.cc \
 	TrackInfoContainer_v3.cc \
-	DSTTrackInfoWriter_x.cc \
   TrackStateInfo_v1.cc
 
 libtrackbase_historic_io_la_LDFLAGS = \
