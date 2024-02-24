@@ -24,9 +24,9 @@ void SvtxTrackInfo_v1::CopyFrom(const SvtxTrackInfo& source)
   set_theta(source.get_theta());
   set_qOp(source.get_qOp());
 
-  for (int i = 0; i < 6; i++)
+  for (int i = 0; i < 5; i++)
   {
-    for (int j = i; j < 6; j++)
+    for (int j = i; j < 5; j++)
     {
       set_covariance(i, j, source.get_covariance(i, j));
     }
