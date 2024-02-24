@@ -37,7 +37,7 @@ class InttClusterQA : public SubsysReco
   int m_beginRun = 25900;
   int m_endRun = 26200;
   int m_runbins = m_endRun - m_beginRun;
-  int m_nclustersPerSensor[4][16][4] = {0};
+  int m_nclustersPerSensor[4][16][4] = {{{0}}};
 };
 
 #endif  // InttClusterQA_H

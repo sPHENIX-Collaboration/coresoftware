@@ -37,7 +37,7 @@ class MicromegasClusterQA : public SubsysReco
   int m_beginRun = 25900;
   int m_endRun = 26200;
   int m_runbins = m_endRun - m_beginRun;
-  int m_nclustersPerTile[2][8] = {0};
+  int m_nclustersPerTile[2][8] = {{0}};
 };
 
 #endif  // MicromegasClusterQA_H

@@ -37,7 +37,7 @@ class MvtxClusterQA : public SubsysReco
   int m_beginRun = 25900;
   int m_endRun = 26200;
   int m_runbins = m_endRun - m_beginRun;
-  int m_nclustersPerChip[3][20][9] = {0};
+  int m_nclustersPerChip[3][20][9] = {{{0}}};
 };
 
 #endif  // MvtxClusterQA_H
