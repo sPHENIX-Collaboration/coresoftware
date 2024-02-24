@@ -47,7 +47,7 @@ SvtxTrack *_track{nullptr};
  TrackSeedContainer *_tpc_seed_map{nullptr};
 
  double min_ndf = 25;
- float quality_cut = 10.0;
+ float quality_cut = 15.0;
  bool _pp_mode = false;
 
 };

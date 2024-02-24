@@ -207,12 +207,11 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 
   for(int track_it = 0; track_it != _track_map->size(); ++track_it )
   {
-    if(Verbosity()>0) std::cout << "TPC seed " << track_it << std::endl;
+    if(Verbosity()>0) { std::cout << "TPC seed " << track_it << std::endl; }
     // if not a TPC track, ignore
     TrackSeed* track = _track_map->get(track_it);
     if(!track) 
       {
-	std::cout << " Did not find track " << track_it << std::endl;
 	continue;
       }
 
