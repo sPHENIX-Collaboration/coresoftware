@@ -24,8 +24,8 @@ class MvtxClusterQA : public SubsysReco
   int EndRun(const int runnumber) override;
   int End(PHCompositeNode *topNode) override;
 
-  void beginRun(const int run) {m_beginRun = run;}
-  void endRun(const int run) { m_endRun = run;}
+  void beginRun(const int run) { m_beginRun = run; }
+  void endRun(const int run) { m_endRun = run; }
 
  private:
   void createHistos();

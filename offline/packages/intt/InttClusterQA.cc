@@ -45,7 +45,6 @@ int InttClusterQA::Init(PHCompositeNode *)
 //____________________________________________________________________________..
 int InttClusterQA::InitRun(PHCompositeNode *)
 {
-
   for (auto &layer : {0, 1, 2, 3})
   {
     if (layer < 2)
@@ -65,7 +64,6 @@ int InttClusterQA::InitRun(PHCompositeNode *)
 //____________________________________________________________________________..
 int InttClusterQA::process_event(PHCompositeNode *topNode)
 {
-  
   auto clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!clusterContainer)
   {
@@ -90,7 +88,7 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
     auto layer = TrkrDefs::getLayer(hsk);
     auto ladderphiid = InttDefs::getLadderPhiId(hsk);
     auto sensor = InttDefs::getLadderZId(hsk);
-    auto h = dynamic_cast<TH2 *>(hm->getHisto(Form("%sncluspersensor%i_%i_%i", getHistoPrefix().c_str(), ((int)layer)-3, (int) ladderphiid, (int) sensor)));
+    auto h = dynamic_cast<TH2 *>(hm->getHisto(Form("%sncluspersensor%i_%i_%i", getHistoPrefix().c_str(), ((int) layer) - 3, (int) ladderphiid, (int) sensor)));
 
     for (auto iter = range.first; iter != range.second; ++iter)
     {
@@ -100,11 +98,11 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
       m_totalClusters++;
       numclusters++;
     }
-    m_nclustersPerSensor[((int) layer)-3][(int) ladderphiid][(int) sensor] += numclusters;
+    m_nclustersPerSensor[((int) layer) - 3][(int) ladderphiid][(int) sensor] += numclusters;
   }
 
   m_event++;
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int InttClusterQA::EndRun(const int runnumber)
@@ -129,7 +127,7 @@ int InttClusterQA::EndRun(const int runnumber)
       }
     }
   }
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //____________________________________________________________________________..

@@ -6,10 +6,10 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <qautils/QAHistManagerDef.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <qautils/QAHistManagerDef.h>
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/MvtxDefs.h>
@@ -91,7 +91,6 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-
   for (auto &hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::mvtxId))
   {
     int numclusters = 0;
@@ -99,17 +98,17 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
     auto layer = TrkrDefs::getLayer(hsk);
     auto stave = MvtxDefs::getStaveId(hsk);
     auto chip = MvtxDefs::getChipId(hsk);
-    auto h = dynamic_cast<TH2*>(hm->getHisto(Form("%snclusperchip%i_%i_%i", getHistoPrefix().c_str(),(int)layer,(int)stave,(int)chip)));
+    auto h = dynamic_cast<TH2 *>(hm->getHisto(Form("%snclusperchip%i_%i_%i", getHistoPrefix().c_str(), (int) layer, (int) stave, (int) chip)));
 
     for (auto iter = range.first; iter != range.second; ++iter)
     {
-      //const auto cluskey = iter->first;
+      // const auto cluskey = iter->first;
       const auto cluster = iter->second;
       h->Fill(cluster->getLocalY(), cluster->getLocalX());
       m_totalClusters++;
       numclusters++;
     }
-    m_nclustersPerChip[(int)layer][(int)stave][(int)chip] += numclusters;
+    m_nclustersPerChip[(int) layer][(int) stave][(int) chip] += numclusters;
   }
 
   m_event++;
@@ -123,16 +122,16 @@ int MvtxClusterQA::EndRun(const int runnumber)
   TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(Form("%snclusperrun", getHistoPrefix().c_str())));
   h_totalclusters->Fill(runnumber, m_totalClusters / m_event);
 
-  for(const auto& [layer,staves] : m_layerStaveMap)
+  for (const auto &[layer, staves] : m_layerStaveMap)
   {
-    for(int stave = 0; stave < staves; stave++)
+    for (int stave = 0; stave < staves; stave++)
     {
-      for(int chip=0; chip<9; chip++)
+      for (int chip = 0; chip < 9; chip++)
       {
-        TH2 *h = dynamic_cast<TH2*>(hm->getHisto(Form("%snclusperchipperrun%i_%i_%i",getHistoPrefix().c_str(),layer,stave,chip)));
-        if(h)
+        TH2 *h = dynamic_cast<TH2 *>(hm->getHisto(Form("%snclusperchipperrun%i_%i_%i", getHistoPrefix().c_str(), layer, stave, chip)));
+        if (h)
         {
-          h->Fill(runnumber, m_nclustersPerChip[layer][stave][chip]/m_event);
+          h->Fill(runnumber, m_nclustersPerChip[layer][stave][chip] / m_event);
         }
       }
     }
@@ -142,7 +141,6 @@ int MvtxClusterQA::EndRun(const int runnumber)
 //____________________________________________________________________________..
 int MvtxClusterQA::End(PHCompositeNode *)
 {
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -162,29 +160,28 @@ void MvtxClusterQA::createHistos()
     hm->registerHisto(h);
   }
 
-  for(const auto& [layer, nstave] : m_layerStaveMap)
+  for (const auto &[layer, nstave] : m_layerStaveMap)
   {
-    for(int stave=0; stave<nstave; stave++)
+    for (int stave = 0; stave < nstave; stave++)
     {
       //! 9 chips on each stave
-      for(int chip=0; chip<9; chip++)
+      for (int chip = 0; chip < 9; chip++)
       {
         auto h = new TH2F(Form("%snclusperchip%i_%i_%i", getHistoPrefix().c_str(),
-          layer, stave, chip), "MVTX clusters per chip",2000,-2,2,2000,-1,1);
-          h->GetXaxis()->SetTitle("Local z [cm]");
-          h->GetYaxis()->SetTitle("Local rphi [cm]");
-          hm->registerHisto(h);
+                               layer, stave, chip),
+                          "MVTX clusters per chip", 2000, -2, 2, 2000, -1, 1);
+        h->GetXaxis()->SetTitle("Local z [cm]");
+        h->GetYaxis()->SetTitle("Local rphi [cm]");
+        hm->registerHisto(h);
 
-          auto h2 = new TH2F(Form("%snclusperchipperrun%i_%i_%i", getHistoPrefix().c_str(), layer,stave,chip),
-    "MVTX clusters per event per chip per run",m_runbins,m_beginRun,m_endRun,100,0,100);
-    h2->GetXaxis()->SetTitle("Run number");
-    h2->GetYaxis()->SetTitle("Clusters per event");
-    hm->registerHisto(h2);
+        auto h2 = new TH2F(Form("%snclusperchipperrun%i_%i_%i", getHistoPrefix().c_str(), layer, stave, chip),
+                           "MVTX clusters per event per chip per run", m_runbins, m_beginRun, m_endRun, 100, 0, 100);
+        h2->GetXaxis()->SetTitle("Run number");
+        h2->GetYaxis()->SetTitle("Clusters per event");
+        hm->registerHisto(h2);
       }
     }
   }
-
-
 
   return;
 }

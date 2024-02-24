@@ -186,7 +186,7 @@ int TpcClusterQA::EndRun(const int runnumber)
     h->Fill(runnumber, (float) m_clustersPerSector[i] / m_event);
   }
 
-    return Fun4AllReturnCodes::EVENT_OK;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 //____________________________________________________________________________..
 int TpcClusterQA::End(PHCompositeNode *)
@@ -209,16 +209,16 @@ void TpcClusterQA::createHistos()
     h->GetYaxis()->SetTitle("Clusters per event");
     hm->registerHisto(h);
   }
+  {
+    for (int i = 0; i < 24; i++)
     {
-      for(int i=0; i<24; i++)
-      {
-        auto h = new TH2F(Form("%snclusperrun_sector%i", getHistoPrefix().c_str(), i),
-                          Form("TPC Clusters per event per run number sector %i", i), m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
-        h->GetXaxis()->SetTitle("Run number");
-        h->GetYaxis()->SetTitle(Form("Clusters per event in Sector %i",i));
-        hm->registerHisto(h);
-      }
+      auto h = new TH2F(Form("%snclusperrun_sector%i", getHistoPrefix().c_str(), i),
+                        Form("TPC Clusters per event per run number sector %i", i), m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
+      h->GetXaxis()->SetTitle("Run number");
+      h->GetYaxis()->SetTitle(Form("Clusters per event in Sector %i", i));
+      hm->registerHisto(h);
     }
+  }
   {
     auto h = new TH2F(Form("%sncluspersector", getHistoPrefix().c_str()),
                       "TPC Clusters per event per sector", 24, 0, 24, 1000, 0, 1000);
