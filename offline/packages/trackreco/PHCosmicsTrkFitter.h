@@ -100,7 +100,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
   void setVertexRadius(const float rad) { m_vertexRadius = rad; }
 
-  void getCharge(TrackSeed* track, int& charge, float& cosmicslope );
+  void getCharge(TrackSeed* track, int& charge, float& cosmicslope);
 
  private:
   /// Get all the nodes
@@ -167,7 +167,7 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   /// Number of acts fits that returned an error
   int m_nBadFits = 0;
-
+  int m_nGoodFits = 0;
   //! bool to fill alignment state map for further processing
   bool m_commissioning = true;
 
@@ -217,8 +217,8 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   //! for diagnosing seed param + clusters
   bool m_seedClusAnalysis = false;
-  std::unique_ptr<TFile> m_outfile = nullptr;
-  std::unique_ptr<TTree> m_tree = nullptr;
+  TFile* m_outfile = nullptr;
+  TTree* m_tree = nullptr;
   int m_seed = std::numeric_limits<int>::max();
   float m_R = NAN;
   float m_X0 = NAN;

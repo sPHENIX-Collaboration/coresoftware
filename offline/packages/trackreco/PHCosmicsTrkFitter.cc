@@ -137,8 +137,8 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
 
   if(m_seedClusAnalysis)
     {
-      m_outfile =  std::make_unique<TFile>(m_evalname.c_str(),"RECREATE");
-      m_tree = std::make_unique<TTree>("seedclustree","Tree with cosmic seeds and their clusters");
+      m_outfile =  new TFile(m_evalname.c_str(),"RECREATE");
+      m_tree = new TTree("seedclustree","Tree with cosmic seeds and their clusters");
       makeBranches();
       
     }
@@ -153,7 +153,6 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
 
 int PHCosmicsTrkFitter::process_event(PHCompositeNode* topNode)
 {
-  m_event++;
 
   auto logLevel = Acts::Logging::FATAL;
 
@@ -192,6 +191,7 @@ int PHCosmicsTrkFitter::process_event(PHCompositeNode* topNode)
               << std::endl;
   }
 
+  m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -221,7 +221,8 @@ int PHCosmicsTrkFitter::End(PHCompositeNode* /*topNode*/)
     }
   if (Verbosity() > 0)
   {
-    std::cout << "The Acts track fitter had " << m_nBadFits
+    std::cout << "The Acts track fitter succeeded " << m_nGoodFits
+    << " times and had " << m_nBadFits
               << " fits return an error" << std::endl;
 
     std::cout << "Finished PHCosmicsTrkFitter" << std::endl;
@@ -286,7 +287,9 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 						   m_transient_id_set,
 						   m_tGeometry);
 
-    if (siseed) sourceLinks = makeSourceLinks.getSourceLinks(
+    if (siseed)
+    {
+       sourceLinks = makeSourceLinks.getSourceLinks(
 							     siseed, 
 							     measurements, 
 							     m_clusterContainer, 
@@ -294,6 +297,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 							     m_alignmentTransformationMapTransient, 
 							     m_transient_id_set, 
 							     crossing);
+    }
     const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
 								   tpcseed, 
 								   measurements, 
@@ -304,7 +308,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 								   crossing);
     sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
 
-  if(sourceLinks.size() == 0)
+  if(sourceLinks.size() < 5)
   {
     continue;
   }
@@ -338,6 +342,28 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       intx = std::get<2>(intersect);
       inty = std::get<3>(intersect);
     }
+    std::vector<TrkrDefs::cluskey> keys;
+  std::vector<Acts::Vector3> clusPos;
+  std::copy(tpcseed->begin_cluster_keys(), tpcseed->end_cluster_keys(), std::back_inserter(keys));
+  TrackFitUtils::getTrackletClusters(m_tGeometry, m_clusterContainer,
+                                     clusPos, keys);
+  TrackFitUtils::position_vector_t xypoints, rzpoints;
+  for (auto& pos : clusPos)
+  {
+    float clusr = radius(pos.x(), pos.y());
+    if (pos.y() < 0) { clusr *= -1; }
+
+    // exclude silicon and tpot clusters for now
+    if (fabs(clusr) > 80 || fabs(clusr) < 30)
+    {
+      continue;
+    }
+    rzpoints.push_back(std::make_pair(pos.z(), clusr));
+  }
+
+  auto rzparams = TrackFitUtils::line_fit(rzpoints);
+  float fulllineintz = std::get<1>(rzparams);
+  float fulllineslope = std::get<0>(rzparams);
 
     float slope = tpcseed->get_slope();
     float intz = m_vertexRadius * slope + tpcseed->get_Z0();
@@ -373,8 +399,10 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     Acts::Vector3 momentum(charge < 0 ? tan.x() : tan.x() * -1,
                            charge < 0 ? tan.y() : tan.y() * -1,
                            cosmicslope > 0 ? fabs(tan.z()) : -1 * fabs(tan.z()));
-    Acts::Vector3 position(pca.x(), pca.y(),
-                           momentum.z() > 0 ? (slope < 0 ? intz : m_vertexRadius * slope * -1 + tpcseed->get_Z0()) : (slope > 0 ? intz : m_vertexRadius * slope * -1 + tpcseed->get_Z0()));
+   std::cout << "pca " << pca.transpose() << std::endl << " and pcaz "
+   << (m_vertexRadius-fulllineintz) / fulllineslope << std::endl;
+   Acts::Vector3 position(pca.x(), pca.y(),
+                           (m_vertexRadius-fulllineintz)/ fulllineslope);
 
     position *= Acts::UnitConstants::cm;
     if (!is_valid(momentum)) continue;
@@ -469,6 +497,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       {
         m_trackMap->insertWithKey(&newTrack, trid);
       }
+      m_nGoodFits++;
     }
     else
     {
