@@ -304,6 +304,10 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 								   crossing);
     sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
 
+  if(sourceLinks.size() == 0)
+  {
+    continue;
+  }
     int charge = 0;
     float cosmicslope = 0;
 
@@ -420,6 +424,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     if (Verbosity() > 2)
     {
+      std::cout << "Source link size " << sourceLinks.size() << std::endl;
       printTrackSeed(seed.value());
     }
 
@@ -857,6 +862,7 @@ void PHCosmicsTrkFitter::fillVectors(TrackSeed *tpcseed, TrackSeed* siseed)
       {
         continue;
       }
+      
       for(auto it = seed->begin_cluster_keys(); it != seed->end_cluster_keys();
 	  ++it)
 	{
