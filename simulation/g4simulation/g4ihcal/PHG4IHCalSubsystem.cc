@@ -21,8 +21,9 @@
 #include <phool/getClass.h>
 
 
-#include <cmath>     // for NAN
+#include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream
+#include <limits>
 #include <set>
 
 class PHG4Detector;
@@ -148,11 +149,11 @@ PHG4Detector *PHG4IHCalSubsystem::GetDetector() const
 void PHG4IHCalSubsystem::SetDefaultParameters()
 {
   set_default_double_param(PHG4HcalDefs::innerrad, 115);
-  set_default_double_param("light_balance_inner_corr", NAN);
-  set_default_double_param("light_balance_inner_radius", NAN);
-  set_default_double_param("light_balance_outer_corr", NAN);
-  set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param("phistart", NAN);
+  set_default_double_param("light_balance_inner_corr", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_inner_radius", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_outer_corr", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_outer_radius", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("phistart", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param("scinti_eta_coverage_neg", 1.1);
   set_default_double_param("scinti_eta_coverage_pos", 1.1);
   set_default_double_param(PHG4HcalDefs::outerrad, 274.010 / 2 + 3);
