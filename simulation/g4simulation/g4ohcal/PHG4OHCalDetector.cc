@@ -162,7 +162,8 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
       }
     }
   }
-  if(!m_Params->get_int_param("saveg4hit")) AddGeometryNode();
+  if(!m_Params->get_int_param("saveg4hit")) { AddGeometryNode();
+}
   return;
 }
 
@@ -480,7 +481,8 @@ int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_i
   }
   //shift the row index up by 5
   rowid += 5;
-  if(rowid > 319) rowid -= 320;
+  if(rowid > 319) { rowid -= 320;
+}
   if (rowid < 0 || rowid > 319)
   {
     std::cout << "bad rowid " << rowid << " for sector " << isector << ", layer_id " << layer_id << std::endl;
@@ -536,7 +538,8 @@ void PHG4OHCalDetector::AddGeometryNode()
     std::pair<double, double> range = std::make_pair(phiend, phistart);
     phistart = phiend;
     int tempi = i+1;
-    if(tempi >= m_Params->get_int_param(PHG4HcalDefs::n_towers)) tempi -= m_Params->get_int_param(PHG4HcalDefs::n_towers);
+    if(tempi >= m_Params->get_int_param(PHG4HcalDefs::n_towers)) { tempi -= m_Params->get_int_param(PHG4HcalDefs::n_towers);
+}
     m_RawTowerGeom->set_phibounds(tempi, range);
   }
   double etalowbound = -m_Params->get_double_param("scinti_eta_coverage_neg");
