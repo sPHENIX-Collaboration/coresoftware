@@ -41,7 +41,7 @@ int PHTrackCleaner::InitRun(PHCompositeNode *topNode)
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  return ret;
+   return ret;
 }
 
 //____________________________________________________________________________..
@@ -137,11 +137,11 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 	  if(Verbosity() > 1)
 	    std::cout << "        best track for tpc_id " << tpc_id << " has track_id " << best_id << " best_ndf " << best_ndf << " chisq/ndf " << qual << std::endl;
 
-	  if(qual < 30)
+	  if(qual < quality_cut * 2)
 	    {
 	      track_keep_list.insert(best_id);
 	      ok_track++;
-	      if(qual < 10.0)
+	      if(qual < quality_cut)
 		good_track++;
 	    }
 	}
@@ -153,7 +153,7 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
     }
 
   if(Verbosity() > 0)
-    std::cout << " Number of good tracks with qual < 10  is " << good_track << " OK tracks " << ok_track << std::endl; 
+    std::cout << " Number of good tracks with qual < " << quality_cut << "  is " << good_track << " OK tracks " << ok_track << std::endl; 
 
   // make a list of tracks that did not make the keep list
   for(auto track_it = _track_map->begin(); track_it != _track_map->end(); ++track_it)

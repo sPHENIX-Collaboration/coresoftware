@@ -1,11 +1,11 @@
 /*!
- *  \file PHSimpleKFProp.h
- *  \brief		kalman filter based propagator
- *  \author Michael Peters & Christof Roland
+ *  \file PrelimDistortionCorrection.h
+ *  \brief		Makes preliminary distortion corrections when crossing is unknown
+ *  \author Tony Frawley
  */
 
-#ifndef TRACKRECO_PHSIMPLEKFPROP_H
-#define TRACKRECO_PHSIMPLEKFPROP_H
+#ifndef TRACKRECO_PRELIMDISTORTIONCORRECTION_H
+#define TRACKRECO_PRELIMDISTORTIONCORRECTION_H
 
 #include "ALICEKF.h"
 #include "nanoflann.hpp"
@@ -35,11 +35,11 @@ class TrackSeed;
 
 using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
-class PHSimpleKFProp : public SubsysReco
+class PrelimDistortionCorrection : public SubsysReco
 {
  public:
-  PHSimpleKFProp(const std::string &name = "PHSimpleKFProp");
-  ~PHSimpleKFProp() override = default;
+  PrelimDistortionCorrection(const std::string &name = "PrelimDistortionCorrection");
+  ~PrelimDistortionCorrection() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -78,7 +78,6 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<double> _vertex_yerr;
   std::vector<double> _vertex_zerr;
   std::vector<double> _vertex_ids;
-  double _Bzconst = 10*0.000299792458f;
   //double _Bz = 1.4*_Bzconst;
   double _max_dist = .05;
   size_t _min_clusters_per_track = 3;
@@ -107,8 +106,6 @@ class PHSimpleKFProp : public SubsysReco
 
   PositionMap PrepareKDTrees();
 
-  std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, Eigen::Matrix<double,6,6>& xyzCov, const PositionMap& globalPositions) const;
-  std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(const std::vector<std::vector<TrkrDefs::cluskey>>& seeds, const PositionMap& globalPositions) const;
   template <typename T>
   struct KDPointCloud
   {
