@@ -20,7 +20,6 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-
 #include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream
 #include <limits>
@@ -59,7 +58,7 @@ int PHG4IHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   {
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode *DetNode = dstNode;
-   
+
     if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
       PHNodeIterator iter_dst(dstNode);
@@ -163,12 +162,11 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 180.);
   set_default_double_param("rot_z", 0.);
-  set_default_double_param("size_z", 435.000 + 10 );
+  set_default_double_param("size_z", 435.000 + 10);
   set_default_double_param("Birk_const", 0.07943);
   set_default_double_param("tmin", -20.);
   set_default_double_param("tmax", 60.);
   set_default_double_param("dt", 100.);
-  
 
   set_default_int_param("light_scint_model", 1);
   set_default_int_param(PHG4HcalDefs::n_towers, 64);
@@ -176,10 +174,9 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
   set_default_int_param("etabins", 24);
   set_default_int_param("saveg4hit", 1);
-  
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
-  const char* Calibroot = getenv("CALIBRATIONROOT");
+  const char *Calibroot = getenv("CALIBRATIONROOT");
   std::string defaultmapfilename;
   if (Calibroot)
   {

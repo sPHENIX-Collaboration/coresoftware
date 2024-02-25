@@ -13,7 +13,7 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>    // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
@@ -59,9 +59,9 @@
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
-#include <memory>       // for unique_ptr
-#include <utility>      // for pair, make_pair
-#include <vector>       // for vector, vector<>::iter...
+#include <memory>   // for unique_ptr
+#include <utility>  // for pair, make_pair
+#include <vector>   // for vector, vector<>::iter...
 
 PHG4IHCalDetector::PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -141,8 +141,10 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
       }
     }
   }
-  if (!m_Params->get_int_param("saveg4hit")) { AddGeometryNode();
-}
+  if (!m_Params->get_int_param("saveg4hit"))
+  {
+    AddGeometryNode();
+  }
   return;
 }
 
@@ -419,14 +421,16 @@ int PHG4IHCalDetector::map_layerid(const int layer_id)
   {
     rowid = layer_id + 68;
   }
-  else // (layer_id >= 188)
+  else  // (layer_id >= 188)
   {
     rowid = layer_id - 188;
   }
   // shift the row index up by 4
   rowid += 4;
-  if (rowid > 255) { rowid -= 256;
-}
+  if (rowid > 255)
+  {
+    rowid -= 256;
+  }
 
   if (rowid > 255 || rowid < 0)
   {
@@ -482,8 +486,10 @@ void PHG4IHCalDetector::AddGeometryNode()
     std::pair<double, double> range = std::make_pair(phiend, phistart);
     phistart = phiend;
     int tempi = i + 1;
-    if (tempi >= m_Params->get_int_param(PHG4HcalDefs::n_towers)) { tempi -= m_Params->get_int_param(PHG4HcalDefs::n_towers);
-}
+    if (tempi >= m_Params->get_int_param(PHG4HcalDefs::n_towers))
+    {
+      tempi -= m_Params->get_int_param(PHG4HcalDefs::n_towers);
+    }
     m_RawTowerGeom->set_phibounds(tempi, range);
   }
   double etalowbound = -m_Params->get_double_param("scinti_eta_coverage_neg");
