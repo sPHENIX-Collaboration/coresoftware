@@ -53,28 +53,28 @@ class PHG4OHCalDetector : public PHG4Detector
   int map_towerid(const int tower_id);
   int map_layerid(const unsigned int isector, const int layer_id);
   std::tuple<int, int, int> ExtractLayerTowerId(const unsigned int isector, G4VPhysicalVolume *volume);
-  PHG4OHCalDisplayAction *m_DisplayAction {nullptr};
-  PHG4OHCalFieldSetup *m_FieldSetup {nullptr};
-  PHParameters *m_Params {nullptr};
-  G4AssemblyVolume *m_ScintiMotherAssembly {nullptr};
-  G4AssemblyVolume *m_ChimScintiMotherAssembly {nullptr};
+  PHG4OHCalDisplayAction *m_DisplayAction{nullptr};
+  PHG4OHCalFieldSetup *m_FieldSetup{nullptr};
+  PHParameters *m_Params{nullptr};
+  G4AssemblyVolume *m_ScintiMotherAssembly{nullptr};
+  G4AssemblyVolume *m_ChimScintiMotherAssembly{nullptr};
   //! registry for volumes that should not be exported
-  PHG4GDMLConfig *gdml_config {nullptr};
-  RawTowerGeomContainer *m_RawTowerGeom {nullptr};
+  PHG4GDMLConfig *gdml_config{nullptr};
+  RawTowerGeomContainer *m_RawTowerGeom{nullptr};
 
-  double m_InnerRadius {std::numeric_limits<double>::quiet_NaN()};
-  double m_OuterRadius {std::numeric_limits<double>::quiet_NaN()};
-  double m_SizeZ {std::numeric_limits<double>::quiet_NaN()};
-  double m_VolumeEnvelope {std::numeric_limits<double>::quiet_NaN()};
-  double m_VolumeSteel {0};
-  double m_VolumeScintillator {0};
+  double m_InnerRadius{std::numeric_limits<double>::quiet_NaN()};
+  double m_OuterRadius{std::numeric_limits<double>::quiet_NaN()};
+  double m_SizeZ{std::numeric_limits<double>::quiet_NaN()};
+  double m_VolumeEnvelope{std::numeric_limits<double>::quiet_NaN()};
+  double m_VolumeSteel{0};
+  double m_VolumeScintillator{0};
 
-  int m_NumScintiPlates {-9999};
+  int m_NumScintiPlates{-9999};
 
-  int m_ActiveFlag {0};
-  int m_AbsorberActiveFlag {0};
+  int m_ActiveFlag{0};
+  int m_AbsorberActiveFlag{0};
 
-  int m_Layer {0};
+  int m_Layer{0};
   std::string m_SuperDetector;
   std::set<G4LogicalVolume *> m_SteelAbsorberLogVolSet;
   std::set<G4LogicalVolume *> m_ScintiTileLogVolSet;
