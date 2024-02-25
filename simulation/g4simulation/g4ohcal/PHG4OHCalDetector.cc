@@ -36,8 +36,10 @@
 #include <TSystem.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
+#include <Geant4/G4IonisParamMat.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
+#include <Geant4/G4MaterialTable.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4String.hh>
@@ -65,8 +67,6 @@
 #include <memory>   // for unique_ptr
 #include <utility>  // for pair, make_pair
 #include <vector>   // for vector, vector<>::iter...
-
-class PHCompositeNode;
 
 PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parames, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -151,7 +151,7 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   const G4MaterialTable *mtable = G4Material::GetMaterialTable();
   int nMaterials = G4Material::GetNumberOfMaterials();
-  for (G4int i = 0; i < nMaterials; ++i)
+  for (auto i = 0; i < nMaterials; ++i)
   {
     const G4Material *mat = (*mtable)[i];
     if (mat->GetName() == "Uniplast_scintillator")
@@ -462,11 +462,7 @@ int PHG4OHCalDetector::map_towerid(const int tower_id)
 int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_id)
 {
   int rowid = -1;
-  if (layer_id <= 60)
-  {
-    rowid = layer_id + 95;
-  }
-  else if (/* layer_id > 60 && */ layer_id < 225)
+  if (layer_id < 225)
   {
     rowid = layer_id + 95;
   }

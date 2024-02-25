@@ -25,6 +25,7 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
@@ -66,12 +67,11 @@
 // finally system headers
 #include <cassert>
 #include <cmath>  // for isfinite, sqrt
+#include <exception>
 #include <filesystem>
 #include <iostream>
 #include <string>  // for operator<<, string
 #include <tuple>   // for get, tuple
-
-class PHCompositeNode;
 
 //____________________________________________________________________________..
 PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, const PHParameters* parameters)
