@@ -141,8 +141,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
           svtxtrack->set_x(siseed->get_x());
           svtxtrack->set_y(siseed->get_y());
           svtxtrack->set_z(siseed->get_z());
-	  svtxtrack->set_crossing(siseed->get_crossing());
-	  std::cout << "crossing from silicon " << svtxtrack->get_crossing() << std::endl;
+	        svtxtrack->set_crossing(siseed->get_crossing());
           addKeys(svtxtrack, siseed);
           svtxtrack->set_silicon_seed(siseed);
         }
