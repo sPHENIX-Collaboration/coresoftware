@@ -86,9 +86,6 @@ SourceLinkVec getSourceLinksClusterMover(
 
   TpcClusterZCrossingCorrection _clusterCrossingCorrection;
   TpcClusterMover _clusterMover;
-  TpcDistortionCorrectionContainer* _dcc_static{nullptr};
-  TpcDistortionCorrectionContainer* _dcc_average{nullptr};
-  TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
   
   /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;

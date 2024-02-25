@@ -78,14 +78,11 @@ class PrelimDistortionCorrection : public SubsysReco
   std::vector<double> _vertex_yerr;
   std::vector<double> _vertex_zerr;
   std::vector<double> _vertex_ids;
-  double _Bzconst = 10*0.000299792458f;
   //double _Bz = 1.4*_Bzconst;
   double _max_dist = .05;
   size_t _min_clusters_per_track = 3;
   double _fieldDir = -1;
   double _max_sin_phi = 1.;
-  double _rz_outlier_threshold = .1;
-  double _xy_outlier_threshold = .1;
   bool _pp_mode = false;
 
   TrkrClusterContainer *_cluster_map = nullptr;

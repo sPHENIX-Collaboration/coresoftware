@@ -88,8 +88,10 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,	 TrkrCl
   double zdriftlength = cluster->getLocalY() * _drift_velocity;  // cm
   double zloc = surfaceZCenter - zdriftlength;     // local z relative to surface center (for north side):
   unsigned int side = TpcDefs::getSide(key);
-  if(side == 0) zloc = -zloc;
-
+  if(side == 0) 
+  {
+    zloc = -zloc;
+  }
   Acts::Vector2 local(cluster->getLocalX(), zloc);
   glob = surface->localToGlobal(geometry().getGeoContext(),
 				  local * Acts::UnitConstants::cm,
@@ -126,7 +128,8 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
   // we use TPC side from the hitsetkey, since z can be either sign in northa nd south, depending on crossing
   double fraction =  (world_phi + M_PI) / (2.0 * M_PI);
-  double rounded_nsurf = round( (double) (surf_vec.size()/2) * fraction  - 0.5);
+
+  double rounded_nsurf = round( (double) (surf_vec.size()/2) * fraction  - 0.5); // NOLINT
   unsigned int nsurfm = (unsigned int) rounded_nsurf;
 
   if(side == 0)
@@ -183,8 +186,10 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
       double zdriftlength = cluster->getLocalY() * _drift_velocity;  // cm
       double zloc = surfaceZCenter - zdriftlength;     // local z relative to surface center (for north side):
       unsigned int side = TpcDefs::getSide(key);
-      if(side == 0) zloc = -zloc;
-      
+      if(side == 0) 
+      {
+        zloc = -zloc;
+      }
       local(0) = cluster->getLocalX();
       local(1) = zloc;
     }

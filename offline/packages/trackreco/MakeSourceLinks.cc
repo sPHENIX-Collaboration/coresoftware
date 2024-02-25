@@ -85,9 +85,9 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
     if (!cluster)
     {
       if (m_verbosity > 0)
-        std::cout << "MakeSourceLinks: Failed to get cluster with key " << key << " for track seed" << std::endl;
+        {std::cout << "MakeSourceLinks: Failed to get cluster with key " << key << " for track seed" << std::endl;}
       else
-        std::cout << "MakeSourceLinks: Key " << key << " for track seed " << std::endl;
+        {std::cout << "MakeSourceLinks: Key " << key << " for track seed " << std::endl;}
       continue;
     }
 
@@ -185,10 +185,8 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
   transient_geocontext =  transformMapTransient;
   
   // loop over cluster_vec and make source links
-  for (unsigned int i = 0; i < cluster_vec.size(); ++i)
+  for(auto& cluskey : cluster_vec)
     {
-      TrkrDefs::cluskey cluskey = cluster_vec[i];
-
       if (m_ignoreLayer.find(TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end())
 	{
 	  if (m_verbosity > 3)
@@ -209,9 +207,8 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
       loc[Acts::eBoundLoc0] = localPos(0) * Acts::UnitConstants::cm;   // mm
       loc[Acts::eBoundLoc1] = localPos(1) * Acts::UnitConstants::cm;
       
-      std::array<Acts::BoundIndices, 2> indices;
-      indices[0] = Acts::BoundIndices::eBoundLoc0;
-      indices[1] = Acts::BoundIndices::eBoundLoc1;
+      std::array<Acts::BoundIndices, 2> indices = 
+        {Acts::BoundIndices::eBoundLoc0, Acts::BoundIndices::eBoundLoc1};
       Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
 
       // get errors
@@ -254,9 +251,10 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
   auto SLTime = SLTrackTimer.get_accumulated_time();
  
   if (m_verbosity > 1)
-    std::cout << "PHActsTrkFitter Source Links generation time:  "
+    {
+      std::cout << "PHActsTrkFitter Source Links generation time:  "
               << SLTime << std::endl;
-
+    }
   return sourcelinks;
 }
 
@@ -268,14 +266,12 @@ void MakeSourceLinks::resetTransientTransformMap(
   if(m_verbosity > 2) { std::cout << "Resetting TransientTransformMap with transient_id_set size " << transient_id_set.size() << std::endl; }
 
   // loop over modifiedTransformSet and replace transient elements modified for the last track with the default transforms
-  for(auto it = transient_id_set.begin(); it != transient_id_set.end(); ++it)
+  for(auto& id : transient_id_set)
     {
-      Acts::GeometryIdentifier id = *it;
       auto ctxt = tGeometry->geometry().getGeoContext();
       alignmentTransformationContainer* transformMap = ctxt.get<alignmentTransformationContainer*>();
       auto transform = transformMap->getTransform(id);
       transformMapTransient->replaceTransform(id, transform);
-      //std::cout << "    replaced transform for surface " << id << " with ideal transform" << std::endl;
     }
   transient_id_set.clear();
 }
@@ -324,9 +320,9 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     if (!cluster)
     {
       if (m_verbosity > 0)
-        std::cout << "Failed to get cluster with key " << key << " for track " << track << std::endl;
+        {std::cout << "Failed to get cluster with key " << key << " for track " << track << std::endl;}
       else
-        std::cout << "PHActsTrkFitter :: Key: " << key << " for track " << track << std::endl;
+        {std::cout << "PHActsTrkFitter :: Key: " << key << " for track " << track << std::endl;}
       continue;
     }
 
@@ -388,7 +384,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       }
     
     // add the global positions to a vector to give to the cluster mover
-    global_raw.push_back(std::make_pair(key, global));
+    global_raw.emplace_back(std::make_pair(key, global));
     
   }  // end loop over clusters here
 
@@ -401,11 +397,8 @@ if (m_verbosity > 1)
     }
 
   // loop over global positions returned by cluster mover
-  for (int i = 0; i < global_moved.size(); ++i)
+  for(auto& [cluskey, global] : global_moved)
   {
-    TrkrDefs::cluskey cluskey = global_moved[i].first;
-    Acts::Vector3 global = global_moved[i].second;
-
     if (m_ignoreLayer.find(TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end())
     {
       if (m_verbosity > 3)
@@ -483,9 +476,9 @@ if (m_verbosity > 1)
     Acts::ActsVector<2> loc;
     loc[Acts::eBoundLoc0] = localPos(0) * Acts::UnitConstants::cm;
     loc[Acts::eBoundLoc1] = localPos(1) * Acts::UnitConstants::cm;
-    std::array<Acts::BoundIndices, 2> indices;
-    indices[0] = Acts::BoundIndices::eBoundLoc0;
-    indices[1] = Acts::BoundIndices::eBoundLoc1;
+    std::array<Acts::BoundIndices, 2> indices = 
+      {Acts::BoundIndices::eBoundLoc0, Acts::BoundIndices::eBoundLoc1};
+    
     Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
 
     double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
@@ -523,8 +516,9 @@ if (m_verbosity > 1)
   auto SLTime = SLTrackTimer.get_accumulated_time();
 
   if (m_verbosity > 1)
-    std::cout << "PHActsTrkFitter Source Links generation time:  "
+    {
+      std::cout << "PHActsTrkFitter Source Links generation time:  "
               << SLTime << std::endl;
-
+    }
   return sourcelinks;
 }

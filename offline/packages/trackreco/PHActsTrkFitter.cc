@@ -389,13 +389,16 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 						  m_tGeometry);
 	if(m_use_clustermover)
 	  {
-	    if (siseed) sourceLinks = makeSourceLinks.getSourceLinksClusterMover(
+	    if (siseed) 
+      {
+        sourceLinks = makeSourceLinks.getSourceLinksClusterMover(
 								     siseed, 
 								     measurements, 
 								     m_clusterContainer, 
 								     m_tGeometry, 
 								     _dcc_static, _dcc_average, _dcc_fluctuation,
 								     this_crossing);
+      }
 	    const auto tpcSourceLinks = makeSourceLinks.getSourceLinksClusterMover(
 								       tpcseed, 
 								       measurements, 
@@ -408,7 +411,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  }
 	else
 	  {
-	    if (siseed) sourceLinks = makeSourceLinks.getSourceLinks(
+	    if (siseed) 
+      {
+        sourceLinks = makeSourceLinks.getSourceLinks(
 								     siseed, 
 								     measurements, 
 								     m_clusterContainer, 
@@ -417,6 +422,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 								     m_alignmentTransformationMapTransient, 
 								     m_transient_id_set, 
 								     this_crossing);
+      }
 	    const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
 								       tpcseed, 
 								       measurements, 

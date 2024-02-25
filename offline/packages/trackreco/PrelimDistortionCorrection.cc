@@ -73,7 +73,7 @@ PrelimDistortionCorrection::PrelimDistortionCorrection(const std::string& name)
   : SubsysReco(name)
 {}
 
-int PrelimDistortionCorrection::End(PHCompositeNode*)
+int PrelimDistortionCorrection::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -82,7 +82,8 @@ int PrelimDistortionCorrection::InitRun(PHCompositeNode* topNode)
 {
   
   int ret = get_nodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+  if (ret != Fun4AllReturnCodes::EVENT_OK) { return ret;
+}
   PHFieldConfigv1 fcfg;
   fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
   char *calibrationsroot = getenv("CALIBRATIONROOT");
@@ -109,7 +110,8 @@ int PrelimDistortionCorrection::InitRun(PHCompositeNode* topNode)
 
 double PrelimDistortionCorrection::get_Bz(double x, double y, double z) const
 {
-  if(_use_const_field) return _const_field;
+  if(_use_const_field) { return _const_field;
+}
   double p[4] = {x*cm,y*cm,z*cm,0.*cm};
   double bfield[3];
   _field_map->GetFieldValue(p,bfield);
@@ -152,10 +154,11 @@ int PrelimDistortionCorrection::get_nodes(PHCompositeNode* topNode)
       std::cout << "PrelimDistortionCorrection::InitRun - failed to find TPC distortion correction container: TpcDistortionContainerStatic" << std::endl; 
     }
 
-  if(_use_truth_clusters)
+  if(_use_truth_clusters) {
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
-  else
+  } else {
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+}
 
   if (!_cluster_map)
   {
@@ -198,7 +201,8 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
   timer.stop();
   timer.restart();
 
-  if(Verbosity()>0) std::cout << "starting PrelimDistortionCorrection process_event" << std::endl;
+  if(Verbosity()>0) { std::cout << "starting PrelimDistortionCorrection process_event" << std::endl;
+}
 
   // These accumulate trackseeds as we loop over tracks, keylist is a vector of vectors of seed cluskeys
   // The seeds are all given to the fitter at once
@@ -340,9 +344,10 @@ PositionMap PrelimDistortionCorrection::PrepareKDTrees()
     {
       TrkrDefs::cluskey cluskey = it->first;
       TrkrCluster* cluster = it->second;
-      if(!cluster) continue;
+      if(!cluster) { continue;
+}
       if(_n_iteration!=0){
-        if(_iteration_map != NULL ){
+        if(_iteration_map != nullptr ){
           //	  std::cout << "map exists entries: " << _iteration_map->size() << std::endl;
           if(_iteration_map->getIteration(cluskey)>0){ 
             //std::cout << "hit used, continue" << std::endl;
@@ -375,10 +380,12 @@ PositionMap PrelimDistortionCorrection::PrepareKDTrees()
   _kdtrees.resize(kdhits.size());
   for(size_t l=0;l<kdhits.size();++l)
   {
-    if(Verbosity()>0) std::cout << "l: " << l << std::endl;
+    if(Verbosity()>0) { std::cout << "l: " << l << std::endl;
+}
     _ptclouds[l] = std::make_shared<KDPointCloud<double>>();
     _ptclouds[l]->pts.resize(kdhits[l].size());
-    if(Verbosity()>0) std::cout << "resized to " << kdhits[l].size() << std::endl;
+    if(Verbosity()>0) { std::cout << "resized to " << kdhits[l].size() << std::endl;
+}
     for(size_t i=0;i<kdhits[l].size();++i)
     {
       _ptclouds[l]->pts[i] = kdhits[l][i];
