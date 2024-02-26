@@ -45,19 +45,24 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
 {
   // get dst node
   PHNodeIterator iter(topNode);
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode =
+      dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    std::cout << "MvtxCombinedRawDataDecoder::InitRun - DST Node missing, doing nothing." << std::endl;
+    std::cout << "MvtxCombinedRawDataDecoder::InitRun - DST Node missing, "
+                 "doing nothing."
+              << std::endl;
     exit(1);
   }
 
   // create hitset container if needed
-  hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  hit_set_container =
+      findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hit_set_container)
   {
     // find or create TRKR node
-    auto trkrNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "TRKR"));
+    auto trkrNode = dynamic_cast<PHCompositeNode *>(
+        iter.findFirst("PHCompositeNode", "TRKR"));
     if (!trkrNode)
     {
       trkrNode = new PHCompositeNode("TRKR");
@@ -66,39 +71,46 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
 
     // create container and add to the tree
     hit_set_container = new TrkrHitSetContainerv1;
-    auto newNode = new PHIODataNode<PHObject>(hit_set_container, "TRKR_HITSET", "PHObject");
+    auto newNode = new PHIODataNode<PHObject>(hit_set_container, "TRKR_HITSET",
+                                              "PHObject");
     trkrNode->addNode(newNode);
   }
 
   // Check if MVTX event header already exists
   if (m_writeMvtxEventHeader)
   {
-    auto mvtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "MVTX"));
+    auto mvtxNode = dynamic_cast<PHCompositeNode *>(
+        iter.findFirst("PHCompositeNode", "MVTX"));
     if (!mvtxNode)
     {
       mvtxNode = new PHCompositeNode("MVTX");
       dstNode->addNode(mvtxNode);
     }
 
-    mvtx_event_header = findNode::getClass<MvtxEventInfo>(mvtxNode, "MVTXEVENTHEADER");
+    mvtx_event_header =
+        findNode::getClass<MvtxEventInfo>(mvtxNode, "MVTXEVENTHEADER");
     if (!mvtx_event_header)
     {
       mvtx_event_header = new MvtxEventInfov2();
-      auto newHeader = new PHIODataNode<PHObject>(mvtx_event_header, "MVTXEVENTHEADER", "PHObject");
+      auto newHeader = new PHIODataNode<PHObject>(
+          mvtx_event_header, "MVTXEVENTHEADER", "PHObject");
       mvtxNode->addNode(newHeader);
     }
   }
 
-  mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
+  mvtx_raw_event_header =
+      findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
   if (!mvtx_raw_event_header)
   {
-    std::cout << PHWHERE << "::" << __func__ << ": Could not get \"" << m_MvtxRawEvtHeaderNodeName << "\" from Node Tree" << std::endl;
+    std::cout << PHWHERE << "::" << __func__ << ": Could not get \""
+              << m_MvtxRawEvtHeaderNodeName << "\" from Node Tree" << std::endl;
     std::cout << "Have you built this yet?" << std::endl;
     exit(1);
   }
 
   // Mask Hot MVTX Pixels
-  std::string database = CDBInterface::instance()->getUrl("MVTX_HotPixelMap");  // This is specifically for MVTX Hot Pixels
+  std::string database = CDBInterface::instance()->getUrl(
+      "MVTX_HotPixelMap");  // This is specifically for MVTX Hot Pixels
   CDBTTree *cdbttree = new CDBTTree(database);
   int NPixel = -1;
   NPixel = cdbttree->GetSingleIntValue("TotalHotPixels");
@@ -111,7 +123,8 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
     int Col = cdbttree->GetIntValue(i, "col");
     int Row = cdbttree->GetIntValue(i, "row");
 
-    TrkrDefs::hitsetkey HotPixelHitKey = MvtxDefs::genHitSetKey(Layer, Stave, Chip, 0);
+    TrkrDefs::hitsetkey HotPixelHitKey =
+        MvtxDefs::genHitSetKey(Layer, Stave, Chip, 0);
     TrkrDefs::hitkey HotHitKey = MvtxDefs::genHitKey(Col, Row);
     m_hotPixelMap.push_back({std::make_pair(HotPixelHitKey, HotHitKey)});
   }
@@ -122,16 +135,20 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
 //___________________________________________________________________________
 int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 {
-  mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
+  mvtx_raw_event_header =
+      findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
   if (Verbosity() >= VERBOSITY_MORE) mvtx_raw_event_header->identify();
 
-  hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  hit_set_container =
+      findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
 
-  mvtx_hit_container = findNode::getClass<MvtxRawHitContainer>(topNode, m_MvtxRawHitNodeName);
+  mvtx_hit_container =
+      findNode::getClass<MvtxRawHitContainer>(topNode, m_MvtxRawHitNodeName);
 
   if (!mvtx_hit_container)
   {
-    std::cout << PHWHERE << "::" << __func__ << ": Could not get \"" << m_MvtxRawHitNodeName << "\" from Node Tree" << std::endl;
+    std::cout << PHWHERE << "::" << __func__ << ": Could not get \""
+              << m_MvtxRawHitNodeName << "\" from Node Tree" << std::endl;
     std::cout << "Have you built this yet?" << std::endl;
     exit(1);
   }
@@ -155,17 +172,19 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   uint8_t chip = 0;
   uint16_t row = 0;
   uint16_t col = 0;
-  std::vector<std::pair<uint64_t, uint32_t>> strobe_bc_pairs;
+  std::vector<std::pair<uint64_t, uint32_t> > strobe_bc_pairs;
   std::set<uint64_t> l1BCOs = mvtx_raw_event_header->getMvtxLvL1BCO();
   auto mvtxbco = *l1BCOs.begin();
   if (Verbosity() > 0)
   {
-    std::cout << "mvtx header bco " << mvtxbco << " and gl1 bco " << gl1bco << std::endl;
+    std::cout << "mvtx header bco " << mvtxbco << " and gl1 bco " << gl1bco
+              << std::endl;
   }
 
   if (m_writeMvtxEventHeader)
   {
-    mvtx_event_header = findNode::getClass<MvtxEventInfo>(topNode, "MVTXEVENTHEADER");
+    mvtx_event_header =
+        findNode::getClass<MvtxEventInfo>(topNode, "MVTXEVENTHEADER");
     assert(mvtx_event_header);
   }
 
@@ -187,7 +206,8 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() >= VERBOSITY_A_LOT) mvtx_hit->identify();
 
-    const TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, index);
+    const TrkrDefs::hitsetkey hitsetkey =
+        MvtxDefs::genHitSetKey(layer, stave, chip, index);
     if (!hitsetkey) continue;
 
     // get matching hitset
@@ -200,13 +220,18 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     auto hit = hitset_it->second->getHit(hitkey);
     if (hit)
     {
-      std::cout << PHWHERE << "::" << __func__ << " - duplicated hit, hitsetkey: " << hitsetkey << " hitkey: " << hitkey << std::endl;
+      std::cout << PHWHERE << "::" << __func__
+                << " - duplicated hit, hitsetkey: " << hitsetkey
+                << " hitkey: " << hitkey << std::endl;
       continue;
     }
 
-    const TrkrDefs::hitsetkey hitsetkeymask = MvtxDefs::genHitSetKey(layer, stave, chip, 0);
+    const TrkrDefs::hitsetkey hitsetkeymask =
+        MvtxDefs::genHitSetKey(layer, stave, chip, 0);
 
-    if (std::find(m_hotPixelMap.begin(), m_hotPixelMap.end(), std::make_pair(hitsetkeymask, hitkey)) == m_hotPixelMap.end())
+    if (std::find(m_hotPixelMap.begin(), m_hotPixelMap.end(),
+                  std::make_pair(hitsetkeymask, hitkey)) ==
+        m_hotPixelMap.end())
     {
       // create hit and insert in hitset
       hit = new TrkrHitv2;
@@ -234,7 +259,8 @@ int MvtxCombinedRawDataDecoder::End(PHCompositeNode * /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void MvtxCombinedRawDataDecoder::removeDuplicates(std::vector<std::pair<uint64_t, uint32_t>> &v)
+void MvtxCombinedRawDataDecoder::removeDuplicates(
+    std::vector<std::pair<uint64_t, uint32_t> > &v)
 {
   auto end = v.end();
   for (auto it = v.begin(); it != end; ++it)
