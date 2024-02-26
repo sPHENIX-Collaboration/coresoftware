@@ -268,9 +268,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       continue;
     }
 
-    if (Verbosity() > 0)
+    if (Verbosity() > 1)
     {
-      if (siseed) std::cout << " silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
       std::cout << " tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
     }
 
@@ -395,12 +394,17 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     //! the full cosmic track
     //! same with px/py since a single cosmic produces two seeds that bend
     //! in opposite directions
-
+    float theta = std::atan(1. / fulllineslope);
+     /// Normalize to 0<theta<pi
+     if (theta < 0)
+     {
+       theta += M_PI;
+     }
+     float pz = std::cos(theta) * p;
     Acts::Vector3 momentum(charge < 0 ? tan.x() : tan.x() * -1,
                            charge < 0 ? tan.y() : tan.y() * -1,
-                           cosmicslope > 0 ? fabs(tan.z()) : -1 * fabs(tan.z()));
-   std::cout << "pca " << pca.transpose() << std::endl << " and pcaz "
-   << (m_vertexRadius-fulllineintz) / fulllineslope << std::endl;
+                           pz);
+
    Acts::Vector3 position(pca.x(), pca.y(),
                            (m_vertexRadius-fulllineintz)/ fulllineslope);
 
@@ -421,8 +425,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	m_R = tpcR;
 	m_X0 = tpcx;
 	m_Y0 = tpcy;
-	m_Z0 = tpcseed->get_Z0();
-	m_slope = slope;
+	m_Z0 = fulllineintz;
+	m_slope = fulllineslope;
 	m_pcax = position(0);
 	m_pcay = position(1);
 	m_pcaz = position(2);
@@ -450,7 +454,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
     
 
-    if (Verbosity() > 2)
+    if (Verbosity() > 0)
     {
       std::cout << "Source link size " << sourceLinks.size() << std::endl;
       printTrackSeed(seed.value());
