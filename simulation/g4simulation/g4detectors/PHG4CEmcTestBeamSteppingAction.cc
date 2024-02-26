@@ -96,13 +96,13 @@ bool PHG4CEmcTestBeamSteppingAction::UserSteppingAction(const G4Step* aStep, boo
       hit = new PHG4Hitv1();
       hit->set_layer((unsigned int) tower_id);
       hit->set_scint_id(touch->GetCopyNumber(1));  // the copy number of the sandwich
-      //here we set the entrance values in cm
+      // here we set the entrance values in cm
       hit->set_x(0, prePoint->GetPosition().x() / cm);
       hit->set_y(0, prePoint->GetPosition().y() / cm);
       hit->set_z(0, prePoint->GetPosition().z() / cm);
       // time in ns
       hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-      //set the track ID
+      // set the track ID
       {
         hit->set_trkid(aTrack->GetTrackID());
         if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
@@ -115,7 +115,7 @@ bool PHG4CEmcTestBeamSteppingAction::UserSteppingAction(const G4Step* aStep, boo
         }
       }
 
-      //set the initial energy deposit
+      // set the initial energy deposit
       hit->set_edep(0);
       hit->set_eion(0);  // only implemented for v5 otherwise empty
       PHG4HitContainer* hitcontainer;
@@ -149,7 +149,7 @@ bool PHG4CEmcTestBeamSteppingAction::UserSteppingAction(const G4Step* aStep, boo
     hit->set_z(1, postPoint->GetPosition().z() / cm);
 
     hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
-    //sum up the energy to get total deposited
+    // sum up the energy to get total deposited
     hit->set_edep(hit->get_edep() + edep);
     hit->set_eion(hit->get_eion() + eion);
     if (geantino)
@@ -194,7 +194,7 @@ void PHG4CEmcTestBeamSteppingAction::SetInterfacePointers(PHCompositeNode* topNo
     absorbernodename = "G4HIT_ABSORBER_" + detector_->GetName();
   }
 
-  //now look for the map and grab a pointer to it.
+  // now look for the map and grab a pointer to it.
   hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
 

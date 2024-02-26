@@ -14,7 +14,7 @@ class TChain;
 
 namespace erhic
 {
-class EventMC;
+  class EventMC;
 }
 
 class ReadEICFiles : public SubsysReco, public PHHepMCGenHelper
@@ -70,7 +70,6 @@ class ReadEICFiles : public SubsysReco, public PHHepMCGenHelper
 
   // output
   std::string _node_name;
-
 };
 
 #endif /* READEICFILES_H__ */

@@ -20,9 +20,9 @@ void SvtxTrackInfo_v1::CopyFrom(const SvtxTrackInfo& source)
   set_x(source.get_x());
   set_y(source.get_y());
   set_z(source.get_z());
-  set_px(source.get_px());
-  set_py(source.get_py());
-  set_pz(source.get_pz());
+  set_phi(source.get_phi());
+  set_theta(source.get_theta());
+  set_qOp(source.get_qOp());
 
   for (int i = 0; i < 6; i++)
   {

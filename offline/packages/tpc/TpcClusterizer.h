@@ -99,6 +99,7 @@ class TpcClusterizer : public SubsysReco
  
   double m_tdriftmax = 0;
   double AdcClockPeriod = 53.0;   // ns 
+  double NZBinsSide = 249;
 
   // TPC shaping offset correction parameter
   // From Tony Frawley July 5, 2022

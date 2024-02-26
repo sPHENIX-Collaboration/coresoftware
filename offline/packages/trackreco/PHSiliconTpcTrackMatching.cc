@@ -589,7 +589,7 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<unsigned int
 		      << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch 
 		      << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << std::endl;
 
-	  bad_map.insert(std::make_pair(tpcid, si_id));
+	  //bad_map.insert(std::make_pair(tpcid, si_id));
 	}
     }
 

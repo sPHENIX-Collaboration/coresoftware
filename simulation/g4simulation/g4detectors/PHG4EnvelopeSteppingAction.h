@@ -14,27 +14,27 @@ class PHG4HitContainer;
 class PHG4EnvelopeSteppingAction : public PHG4SteppingAction
 {
  public:
-  //Constructor
+  // Constructor
   explicit PHG4EnvelopeSteppingAction(PHG4EnvelopeDetector*);
 
-  //Destructor
+  // Destructor
   ~PHG4EnvelopeSteppingAction() override
   {
   }
 
-  //Stepping Action
+  // Stepping Action
   bool UserSteppingAction(const G4Step*, bool) override;
 
-  //reimplemented from base class
+  // reimplemented from base class
   void SetInterfacePointers(PHCompositeNode*) override;
 
  private:
-  //pointer to the detector
+  // pointer to the detector
   PHG4EnvelopeDetector* detector_;
 
-  //pointer to hit container
+  // pointer to hit container
   PHG4HitContainer* hits_;
   PHG4Hit* hit;
 };
 
-#endif  //PHG4EnvelopeSteppingAction_h
+#endif  // PHG4EnvelopeSteppingAction_h

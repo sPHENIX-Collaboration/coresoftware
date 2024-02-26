@@ -14,6 +14,8 @@
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <tpc/TpcClusterZCrossingCorrection.h>
+
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -74,6 +76,8 @@ class TrackResiduals : public SubsysReco
   bool m_doClusters = false;
   bool m_doHits = false;
   bool m_zeroField = false;
+
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";

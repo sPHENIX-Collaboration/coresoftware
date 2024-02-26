@@ -103,7 +103,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   fitter->setFixedClusterError(2,_fixed_clus_err.at(2));
   //  _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
   // m_Cache = magField->makeCache(m_tGeometry->magFieldContext);
- 
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -142,9 +142,9 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
     }
    
   // tpc distortion correction
-  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( m_dcc )
-  { std::cout << "PHSimpleKFProp::InitRun - found TPC distortion correction container" << std::endl; }
+  { std::cout << "PHSimpleKFProp::InitRun - found TPC static distortion correction container" << std::endl; }
 
   if(_use_truth_clusters)
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
@@ -352,8 +352,16 @@ Acts::Vector3 PHSimpleKFProp::getGlobalPosition( TrkrDefs::cluskey key, TrkrClus
   // get global position from Acts transform
   auto globalpos = _tgeometry->getGlobalPosition(key, cluster);
 
-  // check if TPC distortion correction are in place and apply
-  if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
+  // check if TPC distortion correction are in place and apply if this is a triggered event (ie. crossing is known)
+  if( !(_pp_mode) )
+    {
+      if( m_dcc ) 
+	{ 
+	  //std::cout << "KFProp global in for key " << key << globalpos(0) << "  " << globalpos(1) << "  " << globalpos(2) << std::endl;
+	  globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); 
+	  //std::cout << "KFProp global corr for key " << key << globalpos(0) << "  " << globalpos(1) << "  " << globalpos(2) << std::endl;
+	}
+    }
 
   return globalpos;
 }
@@ -636,9 +644,9 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   {
     if(std::isnan(kftrack.GetX()) ||
        std::isnan(kftrack.GetY()) ||
-       std::isnan(kftrack.GetZ())) continue;
-    if(fabs(kftrack.GetZ())>105.) continue;
-    if(Verbosity()>0) std::cout << "\nlayer " << l << ":" << std::endl;
+       std::isnan(kftrack.GetZ())) { continue; }
+
+    if(Verbosity()>0) { std::cout << "\nlayer " << l << ":" << std::endl; }
     // check to see whether layer is already occupied by at least one cluster
     // choosing the last one first (clusters organized from inside out)
     bool layer_filled = false;
@@ -751,7 +759,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
       tz = kftrack.GetZ();
       double query_pt[3] = {tx, ty, tz};
 
-      if(m_dcc)
+      if(m_dcc && !(_pp_mode) )
 	{
 	  // The distortion corrected cluster positions in globalPos are not at the layer radius
 	  // We want to project to the radius appropriate for the globalPos values
@@ -913,7 +921,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     if(std::isnan(kftrack.GetX()) ||
        std::isnan(kftrack.GetY()) ||
        std::isnan(kftrack.GetZ())) continue;
-    if(Verbosity()>0) std::cout << "\nlayer " << l << ":" << std::endl;
+    if(Verbosity()>0) { std::cout << "\nlayer " << l << ":" << std::endl; }
     // check to see whether layer is already occupied by at least one cluster
     // choosing the first one first (clusters organized from outside in)
     bool layer_filled = false;
@@ -991,7 +999,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
       double query_pt[3] = {tx, ty, tz};
 
       // Now look for the nearest cluster to this projection point (tx,ty,tz), which is at the nominal layer radius
-      if(m_dcc)
+      if(m_dcc && !(_pp_mode) )
 	{
 	  // The distortion corrected cluster positions in globalPos are not at the layer radius
 	  // We want to project to the radius appropriate for the globalPos values
@@ -1033,17 +1041,17 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 
       double txerr = fabs(tYerr*sin(old_phi));
       double tyerr = fabs(tYerr*cos(old_phi));
-      if(Verbosity()>0) std::cout << "transported to " << radii[l-7] << "\n";
-      if(Verbosity()>0) std::cout << "track position: (" << kftrack.GetX()*cos(old_phi)-kftrack.GetY()*sin(old_phi) << ", " << kftrack.GetX()*sin(old_phi)+kftrack.GetY()*cos(old_phi) << ", " << kftrack.GetZ() << ")" << std::endl;
-      if(Verbosity()>0) std::cout << "track position errors: (" << txerr << ", " << tyerr << ", " << tzerr << ")" << std::endl;
+      if(Verbosity()>0) { std::cout << "transported to " << radii[l-7] << "\n"; }
+      if(Verbosity()>0) { std::cout << "track position: (" << kftrack.GetX()*cos(old_phi)-kftrack.GetY()*sin(old_phi) << ", " << kftrack.GetX()*sin(old_phi)+kftrack.GetY()*cos(old_phi) << ", " << kftrack.GetZ() << ")" << std::endl; }
+      if(Verbosity()>0) { std::cout << "track position errors: (" << txerr << ", " << tyerr << ", " << tzerr << ")" << std::endl; }
 
       std::vector<long unsigned int> index_out(1);
       std::vector<double> distance_out(1);
       int n_results = _kdtrees[l]->knnSearch(&query_pt[0],1,&index_out[0],&distance_out[0]);
-      if(Verbosity()>0) std::cout << "index_out: " << index_out[0] << std::endl;
-      if(Verbosity()>0) std::cout << "squared_distance_out: " << distance_out[0] << std::endl;
-      if(Verbosity()>0) std::cout << "solid_angle_dist: " << atan2(sqrt(distance_out[0]),radii[l-7]) << std::endl;
-      if(n_results==0) continue;
+      if(Verbosity()>0) { std::cout << "index_out: " << index_out[0] << std::endl; }
+      if(Verbosity()>0) { std::cout << "squared_distance_out: " << distance_out[0] << std::endl; }
+      if(Verbosity()>0) { std::cout << "solid_angle_dist: " << atan2(sqrt(distance_out[0]),radii[l-7]) << std::endl; }
+      if(n_results==0) { continue; }
       std::vector<double> point = _ptclouds[l]->pts[index_out[0]];
       TrkrDefs::cluskey closest_ckey = (*((int64_t*)&point[3]));
       TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);

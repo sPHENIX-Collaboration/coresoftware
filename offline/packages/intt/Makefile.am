@@ -34,6 +34,7 @@ lib_LTLIBRARIES = \
 
 pkginclude_HEADERS = \
   InttClusterizer.h \
+  InttClusterQA.h \
   InttCombinedRawDataConverter.h \
   InttCombinedRawDataDecoder.h \
   InttMaskedChannelSet.h \
@@ -80,6 +81,7 @@ nobase_dist_pcm_DATA = \
 # sources for intt library
 libintt_la_SOURCES = \
   InttClusterizer.cc \
+  InttClusterQA.cc \
   InttCombinedRawDataConverter.cc \
   InttCombinedRawDataDecoder.cc \
   InttMaskedChannelSet.cc \
@@ -119,7 +121,8 @@ libintt_io_la_LIBADD = \
   -lg4detectors_io \
   -lphool \
   -ltrack_io \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -lqautils
 
 endif
 

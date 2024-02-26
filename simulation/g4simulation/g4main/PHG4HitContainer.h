@@ -15,10 +15,9 @@
 
 class PHG4Hit;
 
-class PHG4HitContainer: public PHObject
+class PHG4HitContainer : public PHObject
 {
-
-  public:
+ public:
   typedef std::map<PHG4HitDefs::keytype, PHG4Hit *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
@@ -26,26 +25,26 @@ class PHG4HitContainer: public PHObject
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
   typedef std::set<unsigned int>::const_iterator LayerIter;
 
-  PHG4HitContainer(); //< used only by ROOT for DST readback
+  PHG4HitContainer();  //< used only by ROOT for DST readback
   PHG4HitContainer(const std::string &nodename);
 
   ~PHG4HitContainer() override {}
 
   void Reset() override;
 
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   //! container ID should follow definition of PHG4HitDefs::get_volume_id(DST nodename)
-  void SetID(int i) {id = i;}
-  int GetID() const {return id;}
-  
+  void SetID(int i) { id = i; }
+  int GetID() const { return id; }
+
   ConstIterator AddHit(PHG4Hit *newhit);
 
   ConstIterator AddHit(const unsigned int detid, PHG4Hit *newhit);
-  
+
   Iterator findOrAddHit(PHG4HitDefs::keytype key);
 
-  PHG4Hit* findHit(PHG4HitDefs::keytype key );
+  PHG4Hit *findHit(PHG4HitDefs::keytype key);
 
   PHG4HitDefs::keytype genkey(const unsigned int detid);
 
@@ -53,25 +52,30 @@ class PHG4HitContainer: public PHObject
   ConstRange getHits(const unsigned int detid) const;
 
   //! return all hist
-  ConstRange getHits( void ) const;
+  ConstRange getHits(void) const;
 
-  unsigned int size( void ) const
-  { return hitmap.size(); }
+  unsigned int size(void) const
+  {
+    return hitmap.size();
+  }
   unsigned int num_layers(void) const
-  { return layers.size(); }
+  {
+    return layers.size();
+  }
   std::pair<LayerIter, LayerIter> getLayers() const
-     { return make_pair(layers.begin(), layers.end());} 
-  void AddLayer(const unsigned int ilayer) {layers.insert(ilayer);}
+  {
+    return make_pair(layers.begin(), layers.end());
+  }
+  void AddLayer(const unsigned int ilayer) { layers.insert(ilayer); }
   void RemoveZeroEDep();
   PHG4HitDefs::keytype getmaxkey(const unsigned int detid);
 
  protected:
-
-  int id; //< unique identifier from hash of node name. Defined following PHG4HitDefs::get_volume_id
+  int id;  //< unique identifier from hash of node name. Defined following PHG4HitDefs::get_volume_id
   Map hitmap;
-  std::set<unsigned int> layers; // layers is not reset since layers must not change event by event
+  std::set<unsigned int> layers;  // layers is not reset since layers must not change event by event
 
-  ClassDefOverride(PHG4HitContainer,1)
+  ClassDefOverride(PHG4HitContainer, 1)
 };
 
 #endif

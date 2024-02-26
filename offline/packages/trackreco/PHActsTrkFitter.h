@@ -45,6 +45,7 @@ class TrackSeedContainer;
 class TrkrClusterContainer;
 class TpcDistortionCorrectionContainer;
 class SvtxAlignmentStateMap;
+class PHG4TpcCylinderGeomContainer;
 
 using SourceLink = ActsSourceLink;
 using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
@@ -120,6 +121,7 @@ class PHActsTrkFitter : public SubsysReco
   /// Set flag for pp running
   void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
 
+  void set_use_clustermover(bool use) {m_use_clustermover = use;}
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
 
  private:
@@ -224,6 +226,7 @@ class PHActsTrkFitter : public SubsysReco
   ClusterErrorPara _ClusErrPara;
 
   std::set<int> m_ignoreLayer;
+  bool m_use_clustermover = false;
 
   std::string m_fieldMap = "";
 
@@ -237,6 +240,8 @@ class PHActsTrkFitter : public SubsysReco
   SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
   ActsAlignmentStates m_alignStates;
   bool m_commissioning = false;
+
+  PHG4TpcCylinderGeomContainer* _tpccellgeo = nullptr;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;

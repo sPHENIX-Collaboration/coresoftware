@@ -13,6 +13,6 @@ namespace PHG4TpcColorDefs
   static G4Colour tpc_honeycomb_color = G4Colour::White();
   static G4Colour tpc_kapton_color = G4Colour::Green();
   static G4Colour tpc_pcb_color = G4Colour::Blue();
-}
+}  // namespace PHG4TpcColorDefs
 
 #endif

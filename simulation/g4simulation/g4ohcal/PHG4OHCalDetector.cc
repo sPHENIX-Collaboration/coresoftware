@@ -21,7 +21,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h> 
+#include <phool/phool.h>
 #include <phool/recoConsts.h>
 
 #include <g4gdml/PHG4GDMLConfig.hh>
@@ -36,8 +36,10 @@
 #include <TSystem.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
+#include <Geant4/G4IonisParamMat.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
+#include <Geant4/G4MaterialTable.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4String.hh>
@@ -65,8 +67,6 @@
 #include <memory>   // for unique_ptr
 #include <utility>  // for pair, make_pair
 #include <vector>   // for vector, vector<>::iter...
-
-class PHCompositeNode;
 
 PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parames, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -151,7 +151,7 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   const G4MaterialTable *mtable = G4Material::GetMaterialTable();
   int nMaterials = G4Material::GetNumberOfMaterials();
-  for (G4int i = 0; i < nMaterials; ++i)
+  for (auto i = 0; i < nMaterials; ++i)
   {
     const G4Material *mat = (*mtable)[i];
     if (mat->GetName() == "Uniplast_scintillator")
@@ -162,7 +162,10 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
       }
     }
   }
-  if(!m_Params->get_int_param("saveg4hit")) AddGeometryNode();
+  if (!m_Params->get_int_param("saveg4hit"))
+  {
+    AddGeometryNode();
+  }
   return;
 }
 
@@ -462,11 +465,7 @@ int PHG4OHCalDetector::map_towerid(const int tower_id)
 int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_id)
 {
   int rowid = -1;
-  if (layer_id <= 60)
-  {
-    rowid = layer_id + 95;
-  }
-  else if (/* layer_id > 60 && */ layer_id < 225)
+  if (layer_id < 225)
   {
     rowid = layer_id + 95;
   }
@@ -482,9 +481,12 @@ int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_i
   {
     rowid = 75 + layer_id;
   }
-  //shift the row index up by 5
+  // shift the row index up by 5
   rowid += 5;
-  if(rowid > 319) rowid -= 320;
+  if (rowid > 319)
+  {
+    rowid -= 320;
+  }
   if (rowid < 0 || rowid > 319)
   {
     std::cout << "bad rowid " << rowid << " for sector " << isector << ", layer_id " << layer_id << std::endl;
@@ -539,8 +541,11 @@ void PHG4OHCalDetector::AddGeometryNode()
     double phiend = phistart + 2. * M_PI / m_Params->get_int_param(PHG4HcalDefs::n_towers);
     std::pair<double, double> range = std::make_pair(phiend, phistart);
     phistart = phiend;
-    int tempi = i+1;
-    if(tempi >= m_Params->get_int_param(PHG4HcalDefs::n_towers)) tempi -= m_Params->get_int_param(PHG4HcalDefs::n_towers);
+    int tempi = i + 1;
+    if (tempi >= m_Params->get_int_param(PHG4HcalDefs::n_towers))
+    {
+      tempi -= m_Params->get_int_param(PHG4HcalDefs::n_towers);
+    }
     m_RawTowerGeom->set_phibounds(tempi, range);
   }
   double etalowbound = -m_Params->get_double_param("scinti_eta_coverage_neg");

@@ -37,6 +37,7 @@ TpcClusterMover::TpcClusterMover()
 
 void TpcClusterMover::initialize_geometry(PHG4TpcCylinderGeomContainer* cellgeo)
 {
+  if(_verbosity > 0) {  std::cout << "TpcClusterMover: Initializing layer radii for Tpc from cell geometry object" << std::endl; }
   
   int layer=0;
   PHG4TpcCylinderGeomContainer::ConstRange layerrange = cellgeo->get_begin_end();
@@ -62,19 +63,19 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
   std::vector<Acts::Vector3> tpc_global_vec;
   std::vector<TrkrDefs::cluskey> tpc_cluskey_vec;
 
-  for(unsigned int i=0; i< global_in.size(); ++i)
+  for(auto & i : global_in)
     {
-      TrkrDefs::cluskey cluskey = global_in[i].first;
+      TrkrDefs::cluskey cluskey = i.first;
       unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
       if(trkrid == TrkrDefs::tpcId)
 	{
-	  tpc_global_vec.push_back(global_in[i].second);
-	  tpc_cluskey_vec.push_back(global_in[i].first);
+	  tpc_global_vec.push_back(i.second);
+	  tpc_cluskey_vec.push_back(i.first);
 	}
       else
 	{
 	  // si clusters stay where they are
-	  global_moved.push_back(std::make_pair(cluskey, global_in[i].second));
+	  global_moved.emplace_back(std::make_pair(cluskey, i.second));
 	}
     }
  
@@ -102,14 +103,16 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
       // get circle position at target surface radius 
       double target_radius = layer_radius[layer-7];
       int ret = get_circle_circle_intersection(target_radius, R, X0, Y0, global[0], global[1], _x_proj, _y_proj);
-      if(ret == Fun4AllReturnCodes::ABORTEVENT) continue;  // skip to next cluster
+      if(ret == Fun4AllReturnCodes::ABORTEVENT) { continue;  // skip to next cluster
+}
       // z projection is unique
       _z_proj = B + A * target_radius;
       
       // get circle position at cluster radius	  
       double cluster_radius = sqrt(global[0] * global[0] + global[1] * global[1]);
       ret = get_circle_circle_intersection(cluster_radius, R, X0, Y0, global[0], global[1], _x_start, _y_start);
-      if(ret == Fun4AllReturnCodes::ABORTEVENT) continue;  // skip to next cluster
+      if(ret == Fun4AllReturnCodes::ABORTEVENT) { continue;  // skip to next cluster
+}
       // z projection is unique
       _z_start = B + A * cluster_radius;
       
@@ -124,8 +127,17 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
       Acts::Vector3 global_new(xnew, ynew, znew);
       
       // add the new position and surface to the return object
-      global_moved.push_back(std::make_pair(cluskey, global_new));
-     }
+      global_moved.emplace_back(std::make_pair(cluskey, global_new));
+
+      if(_verbosity > 2)
+	{
+	  std::cout << "Cluster " << cluskey << " xstart " << _x_start << " xproj " << _x_proj << " ystart " <<  _y_start  << " yproj " << _y_proj 
+		    << " zstart " << _z_start  << " zproj " << _z_proj << std::endl;
+	  std::cout << " layer " << layer << " layer radius " << target_radius << " cluster radius " << cluster_radius << std::endl;
+	  std::cout << "  global in " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
+	  std::cout << "  global new " << global_new[0] << "  " << global_new[1] << "  " << global_new[2] << std::endl;
+	}
+    }
 
   return global_moved;
 }

@@ -40,6 +40,7 @@ class TrackSeedContainer;
 class TrkrClusterContainer;
 class TpcDistortionCorrectionContainer;
 class SvtxAlignmentStateMap;
+class PHG4TpcCylinderGeomContainer;
 
 using SourceLink = ActsSourceLink;
 using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
@@ -208,6 +209,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   ActsAlignmentStates m_alignStates;
 
   bool m_zeroField = false;
+  PHG4TpcCylinderGeomContainer* _tpccellgeo = nullptr;
 
   //! for diagnosing seed param + clusters
   bool m_seedClusAnalysis = false;

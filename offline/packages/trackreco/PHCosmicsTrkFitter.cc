@@ -123,13 +123,7 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
     m_fitCfg.fit->outlierFinder(m_outlierFinder);
   }
 
-  auto cellgeo =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-
-  if (cellgeo)
-  {
-    //    _clusterMover.initialize_geometry(cellgeo);
-  }
+  _tpccellgeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
   if (m_actsEvaluator)
   {
@@ -279,6 +273,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     SourceLinkVec sourceLinks;
 
     MakeSourceLinks makeSourceLinks;
+    makeSourceLinks.initialize(_tpccellgeo);
     makeSourceLinks.setVerbosity(Verbosity());
     makeSourceLinks.set_pp_mode(false);
 
@@ -294,6 +289,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           measurements,
           m_clusterContainer,
           m_tGeometry,
+          _dcc_static, _dcc_average, _dcc_fluctuation,
           m_alignmentTransformationMapTransient,
           m_transient_id_set,
           crossing);
@@ -303,9 +299,11 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         measurements,
         m_clusterContainer,
         m_tGeometry,
+        _dcc_static, _dcc_average, _dcc_fluctuation,
         m_alignmentTransformationMapTransient,
         m_transient_id_set,
         crossing);
+
     sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
 
     if (sourceLinks.size() < 5)
