@@ -99,9 +99,8 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
   void setVertexRadius(const float rad) { m_vertexRadius = rad; }
-
-  void getCharge(TrackSeed* track, int& charge, float& cosmicslope);
-
+  void zeroField() { m_zeroField = true; }
+ 
  private:
   /// Get all the nodes
   int getNodes(PHCompositeNode* topNode);
@@ -110,13 +109,8 @@ class PHCosmicsTrkFitter : public SubsysReco
   int createNodes(PHCompositeNode* topNode);
 
   void loopTracks(Acts::Logging::Level logLevel);
-
-  //  SourceLinkVec getSourceLinks(TrackSeed* track,
-  //                         ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-  //                         short int crossing,
-  //                         int& charge,
-  //                         float& cosmicslope);
-
+  void getCharge(TrackSeed* track, int& charge, float& cosmicslope);
+  
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
                        Trajectory::IndexedParameters& paramsMap,
@@ -214,6 +208,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
   ActsAlignmentStates m_alignStates;
 
+  bool m_zeroField = false;
 
   //! for diagnosing seed param + clusters
   bool m_seedClusAnalysis = false;

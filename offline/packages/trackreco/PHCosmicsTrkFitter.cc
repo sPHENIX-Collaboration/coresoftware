@@ -357,6 +357,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     {
       continue;
     }
+    xypoints.push_back(std::make_pair(pos.x(), pos.y()));
     rzpoints.push_back(std::make_pair(pos.z(), clusr));
   }
 
@@ -394,22 +395,43 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     //! the full cosmic track
     //! same with px/py since a single cosmic produces two seeds that bend
     //! in opposite directions
-    float theta = std::atan(1. / fulllineslope);
+    float theta = std::atan(fulllineslope);
      /// Normalize to 0<theta<pi
      if (theta < 0)
      {
        theta += M_PI;
      }
      float pz = std::cos(theta) * p;
-    Acts::Vector3 momentum(charge < 0 ? tan.x() : tan.x() * -1,
-                           charge < 0 ? tan.y() : tan.y() * -1,
-                           pz);
+     if(fulllineslope < 0) { pz = fabs(pz);}
+     else {pz = fabs(pz) * -1;}
+    Acts::Vector3 momentum = Acts::Vector3::Zero();
 
+    if(!m_zeroField)
+    {
+    momentum.x() = charge < 0 ? tan.x() : tan.x() * -1;
+    momentum.y() = charge < 0 ? tan.y() : tan.y() * -1;
+    }
+    else
+    {
+        auto xyparams = TrackFitUtils::line_fit(xypoints);
+      float fulllineslopexy = std::get<0>(xyparams);
+      if(fulllineslopexy < 0)
+      {
+        momentum.x() = fabs(tan.x());
+      }
+      else
+      {
+        momentum.x() = fabs(tan.x()) * -1;
+      }
+      momentum.y() = fabs(tan.y()) * -1;
+    }
+
+    momentum.z() = pz;
    Acts::Vector3 position(pca.x(), pca.y(),
                            (m_vertexRadius-fulllineintz)/ fulllineslope);
 
     position *= Acts::UnitConstants::cm;
-    if (!is_valid(momentum)) continue;
+    if (!is_valid(momentum)) { continue; }
  
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
         Acts::Vector3(0, m_vertexRadius * Acts::UnitConstants::cm, 0));
