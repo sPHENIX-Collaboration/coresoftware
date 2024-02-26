@@ -155,7 +155,6 @@ class PHCosmicsTrkFitter : public SubsysReco
   TrackSeedContainer* m_siliconSeeds = nullptr;
 
   // Used for distortion correction transformations
-  alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
   alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;
   std::set<Acts::GeometryIdentifier> m_transient_id_set;
   Acts::GeometryContext m_transient_geocontext;
