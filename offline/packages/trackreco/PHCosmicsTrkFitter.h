@@ -163,6 +163,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   /// Number of acts fits that returned an error
   int m_nBadFits = 0;
   int m_nGoodFits = 0;
+  int m_nLongSeeds = 0;
   //! bool to fill alignment state map for further processing
   bool m_commissioning = true;
 

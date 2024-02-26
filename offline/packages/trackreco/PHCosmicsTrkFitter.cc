@@ -219,7 +219,7 @@ int PHCosmicsTrkFitter::End(PHCompositeNode* /*topNode*/)
     std::cout << "The Acts track fitter succeeded " << m_nGoodFits
               << " times and had " << m_nBadFits
               << " fits return an error" << std::endl;
-
+    std::cout << "There were " << m_nLongSeeds << " long seeds" << std::endl;
     std::cout << "Finished PHCosmicsTrkFitter" << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -444,11 +444,16 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     }
 
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-        Acts::Vector3(0, m_vertexRadius * Acts::UnitConstants::cm, 0));
+        position);
     auto actsFourPos = Acts::Vector4(position(0), position(1),
                                      position(2),
                                      10 * Acts::UnitConstants::ns);
 
+
+    if (sourceLinks.size() > 20)
+    {
+      m_nLongSeeds++;
+    }
     Acts::BoundSquareMatrix cov = setDefaultCovariance();
     if (m_seedClusAnalysis)
     {
