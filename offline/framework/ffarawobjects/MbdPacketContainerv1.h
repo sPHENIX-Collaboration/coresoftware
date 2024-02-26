@@ -23,13 +23,13 @@ public:
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;
 
-//  MbdPacket *AddHit() override;
-//  MbdPacket *AddHit(MbdPacket *mbdhit) override;
-//  unsigned int get_nhits() override;
-//  MbdPacket *get_hit(unsigned int index) override;
+  MbdPacket *AddPacket() override;
+  MbdPacket *AddPacket(MbdPacket *mbdhit) override;
+  unsigned int get_npackets() override;
+  MbdPacket *getPacket(unsigned int index) override;
 
 private:
-    TClonesArray *MbdPacketsTCArray = nullptr;
+   TClonesArray *MbdPacketsTCArray {nullptr};
 
   ClassDefOverride(MbdPacketContainerv1,1)
 };

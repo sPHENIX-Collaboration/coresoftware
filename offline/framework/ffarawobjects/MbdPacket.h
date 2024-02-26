@@ -10,6 +10,7 @@ class  MbdPacket: public OfflinePacketv1
 
 public:
     MbdPacket() = default;
+  MbdPacket(MbdPacket *pkt): OfflinePacketv1(pkt) {}
     ~MbdPacket() override = default;
 
   virtual void setFemClock(int /*i*/, uint32_t /*clk*/) {return;}
