@@ -78,8 +78,8 @@ class PHCosmicsTrkFitter : public SubsysReco
     m_actsEvaluator = actsEvaluator;
   }
 
-  void setEvaluatorName(const std::string &name) { m_evalname = name; }
-  void setFieldMap(const std::string &fieldMap)
+  void setEvaluatorName(const std::string& name) { m_evalname = name; }
+  void setFieldMap(const std::string& fieldMap)
   {
     m_fieldMap = fieldMap;
   }
@@ -100,7 +100,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
   void setVertexRadius(const float rad) { m_vertexRadius = rad; }
   void zeroField() { m_zeroField = true; }
- 
+
  private:
   /// Get all the nodes
   int getNodes(PHCompositeNode* topNode);
@@ -110,7 +110,7 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   void loopTracks(Acts::Logging::Level logLevel);
   void getCharge(TrackSeed* track, int& charge, float& cosmicslope);
-  
+
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
                        Trajectory::IndexedParameters& paramsMap,
@@ -155,8 +155,8 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   // Used for distortion correction transformations
   alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
-  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;  
-  std::set< Acts::GeometryIdentifier> m_transient_id_set;
+  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;
+  std::set<Acts::GeometryIdentifier> m_transient_id_set;
   Acts::GeometryContext m_transient_geocontext;
 
   /// Number of acts fits that returned an error
@@ -197,7 +197,6 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   std::string m_fieldMap = "";
 
-
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
   std::string _seed_track_map_name = "SeedTrackMap";
@@ -231,12 +230,11 @@ class PHCosmicsTrkFitter : public SubsysReco
   int m_nintt = std::numeric_limits<int>::max();
   int m_ntpc = std::numeric_limits<int>::max();
   int m_nmm = std::numeric_limits<int>::max();
-  std::vector<float> m_locx, m_locy, m_x, m_y, m_z, m_r, m_layer,m_phi, m_eta, 
-    m_phisize, m_zsize, m_ephi, m_ez;
+  std::vector<float> m_locx, m_locy, m_x, m_y, m_z, m_r, m_layer, m_phi, m_eta,
+      m_phisize, m_zsize, m_ephi, m_ez;
   void clearVectors();
-  void fillVectors(TrackSeed* tpcseed, TrackSeed *siseed);
+  void fillVectors(TrackSeed* tpcseed, TrackSeed* siseed);
   ClusterErrorPara m_clusErrPara;
-
 };
 
 #endif
