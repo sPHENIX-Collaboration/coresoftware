@@ -64,7 +64,8 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   //create and populate the nodes for each distortion, if present:
   for (int i=0;i<3;i++){
 
-    if( !m_correction_in_use[i] )  continue;
+    if( !m_correction_in_use[i] ) {  continue;
+}
 
     // get distortion correction object and create if not found
     auto distortion_correction_object = findNode::getClass<TpcDistortionCorrectionContainer>( topNode, m_node_name[i] );
@@ -112,5 +113,5 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int TpcLoadDistortionCorrection::process_event(PHCompositeNode*)
+int TpcLoadDistortionCorrection::process_event(PHCompositeNode* /*unused*/)
 { return Fun4AllReturnCodes::EVENT_OK; }

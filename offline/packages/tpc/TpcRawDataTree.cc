@@ -33,14 +33,16 @@ TpcRawDataTree::TpcRawDataTree(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int TpcRawDataTree::InitRun(PHCompositeNode *)
+int TpcRawDataTree::InitRun(PHCompositeNode * /*unused*/)
 {
   sectorNum = m_fname;
   size_t pos = sectorNum.find("TPC_ebdc");
   sectorNum.erase(sectorNum.begin(),sectorNum.begin()+pos+8);
   sectorNum.erase(sectorNum.begin()+2,sectorNum.end());
-  if(sectorNum.at(0) == '0') sectorNum.erase(sectorNum.begin(),sectorNum.begin()+1);
-  if(stoi(sectorNum) > 11) side = 1;
+  if(sectorNum.at(0) == '0') { sectorNum.erase(sectorNum.begin(),sectorNum.begin()+1);
+}
+  if(stoi(sectorNum) > 11) { side = 1;
+}
 
   m_file = TFile::Open(m_fname.c_str(), "recreate");
   assert(m_file->IsOpen());
@@ -213,8 +215,10 @@ int TpcRawDataTree::process_event(PHCompositeNode *topNode)
       if(m_includeXYPos)
       {
         int feeM = FEE_map[m_fee];
-        if(FEE_R[m_fee]==2) feeM += 6;
-        if(FEE_R[m_fee]==3) feeM += 14;
+        if(FEE_R[m_fee]==2) { feeM += 6;
+}
+        if(FEE_R[m_fee]==3) { feeM += 14;
+}
         int layer = M.getLayer(feeM, m_Channel);
         if(layer!=0)
         {
@@ -247,9 +251,9 @@ int TpcRawDataTree::End(PHCompositeNode * /*topNode*/)
   checksumError_feesampa->Divide(TotalFEEsampa);
   checksumError_frame->Divide(TotalFRAME);
   
-  TotalFEE->SetDirectory(0);
-  TotalFEEsampa->SetDirectory(0);
-  TotalFRAME->SetDirectory(0);
+  TotalFEE->SetDirectory(nullptr);
+  TotalFEEsampa->SetDirectory(nullptr);
+  TotalFRAME->SetDirectory(nullptr);
 
   m_file->Write();
 

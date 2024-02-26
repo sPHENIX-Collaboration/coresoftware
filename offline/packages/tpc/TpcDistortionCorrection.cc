@@ -46,7 +46,8 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position( const Acts::Vecto
   // get cluster radius, phi and z
   const auto r = std::sqrt( square( source.x() ) + square( source.y() ) );
   auto phi = std::atan2( source.y(), source.x() );
-  if( phi < 0 ) phi += 2*M_PI;
+  if( phi < 0 ) { phi += 2*M_PI;
+}
 
   const auto z = source.z();
   const int index = z > 0 ? 1:0;
@@ -65,15 +66,21 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position( const Acts::Vecto
     
   if (dcc->dimensions==3)
   {
-    if (dcc->m_hDPint[index] && (mask&COORD_PHI) && check_boundaries( dcc->m_hDPint[index],phi,r,z)) phi_new = phi - dcc->m_hDPint[index]->Interpolate(phi,r,z)/divisor;
-    if (dcc->m_hDRint[index] && (mask&COORD_R) && check_boundaries( dcc->m_hDRint[index],phi,r,z)) r_new = r - dcc->m_hDRint[index]->Interpolate(phi,r,z);
-    if (dcc->m_hDZint[index] && (mask&COORD_Z) && check_boundaries( dcc->m_hDZint[index],phi,r,z)) z_new = z - dcc->m_hDZint[index]->Interpolate(phi,r,z);
+    if (dcc->m_hDPint[index] && (mask&COORD_PHI) && check_boundaries( dcc->m_hDPint[index],phi,r,z)) { phi_new = phi - dcc->m_hDPint[index]->Interpolate(phi,r,z)/divisor;
+}
+    if (dcc->m_hDRint[index] && (mask&COORD_R) && check_boundaries( dcc->m_hDRint[index],phi,r,z)) { r_new = r - dcc->m_hDRint[index]->Interpolate(phi,r,z);
+}
+    if (dcc->m_hDZint[index] && (mask&COORD_Z) && check_boundaries( dcc->m_hDZint[index],phi,r,z)) { z_new = z - dcc->m_hDZint[index]->Interpolate(phi,r,z);
+}
   }
   else if (dcc->dimensions==2){
     const double zterm = (1.- std::abs(z)/105.5);
-    if (dcc->m_hDPint[index] && (mask&COORD_PHI) && check_boundaries( dcc->m_hDPint[index],phi,r)) phi_new = phi - dcc->m_hDPint[index]->Interpolate(phi,r)*zterm/divisor;
-    if (dcc->m_hDRint[index] && (mask&COORD_R) && check_boundaries( dcc->m_hDRint[index],phi,r)) r_new = r - dcc->m_hDRint[index]->Interpolate(phi,r)*zterm;
-    if (dcc->m_hDZint[index] && (mask&COORD_Z) && check_boundaries( dcc->m_hDZint[index],phi,r)) z_new = z - dcc->m_hDZint[index]->Interpolate(phi,r)*zterm;
+    if (dcc->m_hDPint[index] && (mask&COORD_PHI) && check_boundaries( dcc->m_hDPint[index],phi,r)) { phi_new = phi - dcc->m_hDPint[index]->Interpolate(phi,r)*zterm/divisor;
+}
+    if (dcc->m_hDRint[index] && (mask&COORD_R) && check_boundaries( dcc->m_hDRint[index],phi,r)) { r_new = r - dcc->m_hDRint[index]->Interpolate(phi,r)*zterm;
+}
+    if (dcc->m_hDZint[index] && (mask&COORD_Z) && check_boundaries( dcc->m_hDZint[index],phi,r)) { z_new = z - dcc->m_hDZint[index]->Interpolate(phi,r)*zterm;
+}
   }
 
   // update cluster

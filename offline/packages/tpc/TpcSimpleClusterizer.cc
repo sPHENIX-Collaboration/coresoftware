@@ -75,7 +75,7 @@ namespace
 	
 	void remove_hit(double adc, int phibin, int zbin, std::multimap<unsigned short, ihit> &all_hit_map, std::vector<std::vector<unsigned short>> &adcval)
 	{
-	  typedef std::multimap<unsigned short, ihit>::iterator hit_iterator;
+	  using hit_iterator = std::multimap<unsigned short, ihit>::iterator;
 	  std::pair<hit_iterator, hit_iterator> iterpair = all_hit_map.equal_range(adc);
 	  hit_iterator it = iterpair.first;
 	  for (; it != iterpair.second; ++it) {
@@ -89,10 +89,10 @@ namespace
 	
 	void remove_hits(std::vector<ihit> &ihit_list, std::multimap<unsigned short, ihit> &all_hit_map,std::vector<std::vector<unsigned short>> &adcval)
 	{
-	  for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
-	    unsigned short adc    = iter->first; 
-	    unsigned short phibin = iter->second.first;
-	    unsigned short zbin   = iter->second.second;
+	  for(auto & iter : ihit_list){
+	    unsigned short adc    = iter.first; 
+	    unsigned short phibin = iter.second.first;
+	    unsigned short zbin   = iter.second.second;
 	    remove_hit(adc,phibin,zbin,all_hit_map,adcval);
 	  }
 	}
@@ -125,17 +125,22 @@ namespace
 	  int zbinlo = 666666;
 	
 	  std::vector<TrkrDefs::hitkey> hitkeyvec;
-	  for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
-	    double adc = iter->first; 
+	  for(auto & iter : ihit_list){
+	    double adc = iter.first; 
 	
-	    if (adc <= 0) continue;
+	    if (adc <= 0) { continue;
+}
 	
-	    int iphi = iter->second.first + my_data.phioffset;
-	    int iz   = iter->second.second + my_data.zoffset;
-	    if(iphi > phibinhi) phibinhi = iphi;
-	    if(iphi < phibinlo) phibinlo = iphi;
-	    if(iz > zbinhi) zbinhi = iz;
-	    if(iz < zbinlo) zbinlo = iz;
+	    int iphi = iter.second.first + my_data.phioffset;
+	    int iz   = iter.second.second + my_data.zoffset;
+	    if(iphi > phibinhi) { phibinhi = iphi;
+}
+	    if(iphi < phibinlo) { phibinlo = iphi;
+}
+	    if(iz > zbinhi) { zbinhi = iz;
+}
+	    if(iz < zbinlo) { zbinlo = iz;
+}
 	
 	    // update phi sums
 	    double phi_center = my_data.layergeom->get_phicenter(iphi);
@@ -255,8 +260,8 @@ namespace
     {
       // get cluster index in vector. It is used to store associations, and build relevant cluster keys when filling the containers
       uint32_t index = my_data.cluster_vector.size()-1;
-      for (unsigned int i = 0; i < hitkeyvec.size(); i++){
-        my_data.association_vector.push_back(std::make_pair(index, hitkeyvec[i]));
+      for (unsigned int & i : hitkeyvec){
+        my_data.association_vector.emplace_back(index, i);
 	    }
 	  }
 	}
@@ -289,13 +294,16 @@ namespace
 	     //std::cout << " layer: " << my_data->layer  << " phibin " << phibin << " zbin " << zbin << " fadc " << hitr->second->getAdc() << " pedestal " << pedestal << " fadc " << std::endl
 	
 	     unsigned short adc = 0;
-	     if(fadc>0) 
+	     if(fadc>0) { 
 	       adc =  (unsigned short) fadc;
+}
 	     
 	//     if(phibin < 0) continue; // phibin is unsigned int, <0 cannot happen
-	     if(phibin >= phibins) continue;
+	     if(phibin >= phibins) { continue;
+}
 	//     if(zbin   < 0) continue;
-	     if(zbin   >= zbins) continue; // zbin is unsigned int, <0 cannot happen
+	     if(zbin   >= zbins) { continue; // zbin is unsigned int, <0 cannot happen
+}
 	
 	     if(adc>0){
 	       iphiz iCoord(std::make_pair(phibin,zbin));
@@ -426,8 +434,9 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
 {
   //  int print_layer = 18;
 
-  if (Verbosity() > 1000)
+  if (Verbosity() > 1000) {
     std::cout << "TpcSimpleClusterizer::Process_Event" << std::endl;
+}
 
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -489,7 +498,7 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
   // create structure to store given thread and associated data
   struct thread_pair_t
   {
-    pthread_t thread;
+    pthread_t thread{};
     thread_data data;
   };
   
@@ -596,8 +605,9 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
     
   }
   
-  if (Verbosity() > 0)
+  if (Verbosity() > 0) {
     std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;
+}
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

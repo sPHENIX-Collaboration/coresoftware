@@ -37,7 +37,7 @@
 #include <TH2.h>
 #include <TH3.h>
 #include <TNtuple.h>
-#include <limits.h>
+#include <climits>
 
 #include <string>
 
@@ -232,11 +232,13 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 
     // Figure out which side
     int side = 0;   
-    if(sector>11) side=1;
+    if(sector>11) { side=1;
+}
     if(m_Debug==1){
       char buff[100];
       snprintf(buff, sizeof(buff), "./outputfile_%i.root",sector );
-      if(p) _filename = buff;
+      if(p) { _filename = buff;
+}
     }
     if (p)
     {
@@ -284,7 +286,8 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 
     for (wf = 0; wf < nr_of_waveforms; wf++){      
       int current_BCO = p->iValue(wf, "BCO");
-      if(current_BCO < earliest_BCO) earliest_BCO = current_BCO;
+      if(current_BCO < earliest_BCO) { earliest_BCO = current_BCO;
+}
       //      std::cout << " earliest BCO:  " << earliest_BCO << " current BCO " << current_BCO << std::endl;
     }
     //  if((earliest_BCO - starting_BCO > 0) && (earliest_BCO - starting_BCO < 180)){
@@ -292,8 +295,9 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
     //}else{
     starting_BCO = earliest_BCO;
       //}
-    if( Verbosity() )
+    if( Verbosity() ) {
       std::cout << " _ievent: " << _ievent << " earliest BCO:  " << earliest_BCO << " ep: " << ep << " sector " << sector << " trigBCO: " << triggerBCO << " diff " << triggerBCO - earliest_BCO << std::endl;
+}
 
     for (wf = 0; wf < nr_of_waveforms; wf++){
       int current_BCO = p->iValue(wf, "BCO") + rollover_value;
@@ -334,15 +338,18 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
       int FEE_map[26] = { 4,  5,  0,  2,  1,  11,  9,  10,  8,  7,  6,  0,  1,  3,  7,  6,  5,  4,  3,  2,  0,  2,  1,  3,  5,  4};	
       // setting the mapp of the FEE
       int feeM = FEE_map[fee];
-      if(FEE_R[fee]==2) feeM += 6;
-      if(FEE_R[fee]==3) feeM += 14;
+      if(FEE_R[fee]==2) { feeM += 6;
+}
+      if(FEE_R[fee]==3) { feeM += 14;
+}
       unsigned int key = 256 * (feeM) + channel;
       //int layer = M.getLayer(feeM, channel);
 
       std::string varname = "layer";// + std::to_string(key);
       int layer = m_cdbttree->GetIntValue(key,varname);
       // antenna pads will be in 0 layer
-      if(layer==0)continue;
+      if(layer==0) {continue;
+}
 
       PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
       //varname = "fee" + std::to_string(key);
@@ -489,7 +496,8 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 int TpcRawDataDecoder::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "TpcRawDataDecoder::End(PHCompositeNode *topNode) This is the End..." << std::endl;
-  if(m_Debug==1)hm->dumpHistos(_filename, "RECREATE");
+  if(m_Debug==1) {hm->dumpHistos(_filename, "RECREATE");
+}
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

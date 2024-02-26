@@ -33,15 +33,14 @@ TpcClusterCleaner::TpcClusterCleaner(const std::string &name)
 
 //____________________________________________________________________________..
 TpcClusterCleaner::~TpcClusterCleaner()
-{
-
-}
+= default;
 
 //____________________________________________________________________________..
 int TpcClusterCleaner::InitRun(PHCompositeNode *topNode)
 {
   int ret = GetNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+  if (ret != Fun4AllReturnCodes::EVENT_OK) { return ret;
+}
 
   return ret;
 }
@@ -62,7 +61,8 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
   unsigned int count_discards = 0;
 
   // loop over all TPC clusters
-  if(Verbosity() > 0) std::cout << std::endl << "original size of cluster map: " << _cluster_map->size() << std::endl;  
+  if(Verbosity() > 0) { std::cout << std::endl << "original size of cluster map: " << _cluster_map->size() << std::endl;  
+}
   for(const auto& hitsetkey:_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
   {
     TrkrClusterContainer::ConstRange clusRange = _cluster_map->getClusters(hitsetkey);
@@ -76,7 +76,8 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 	unsigned int trkrId = TrkrDefs::getTrkrId(cluskey);
 	unsigned int layer = TrkrDefs::getLayer(cluskey);
 	
-	if(trkrId != TrkrDefs::tpcId) continue;  // we want only TPC clusters
+	if(trkrId != TrkrDefs::tpcId) { continue;  // we want only TPC clusters
+}
 	
 	if (Verbosity() > 1)
 	  {
@@ -91,8 +92,9 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 	
       // errors too small
       // associated with very large ADC values
-	if(cluster->getRPhiError() < _rphi_error_low_cut)
+	if(cluster->getRPhiError() < _rphi_error_low_cut) {
 	  discard_cluster = true;
+}
 	
 	// errors too large
 	// associated with very small ADC values
@@ -104,18 +106,19 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 	    count_discards++;
 	    // mark it for modification
 	    discard_set.insert(cluskey);
-	    if(Verbosity() > 0) 
+	    if(Verbosity() > 0) { 
 	      std::cout << "                       discard cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
 			<< std::endl;
+}
 	  }
       }
   }
 
-  for(auto iter = discard_set.begin(); iter != discard_set.end(); ++iter)
+  for(unsigned long iter : discard_set)
     {
 
       // remove bad clusters from the node tree map
-      _cluster_map->removeCluster(*iter);
+      _cluster_map->removeCluster(iter);
 
     }
       
@@ -172,12 +175,13 @@ void TpcClusterCleaner::rotate_error(double erphi, double ez, double clusphi, do
 {
  TMatrixF ROT(3, 3);
   TMatrixF ERR(3,3);
- for(int i=0;i<3;++i)
+ for(int i=0;i<3;++i) {
     for(int j=0;j<3;++j)
       {
 	ROT[i][j] = 0;
 	ERR[i][j] = 0;
       }
+}
 
   ROT[0][0] = cos(clusphi);
   ROT[0][1] = -sin(clusphi);
@@ -194,8 +198,10 @@ void TpcClusterCleaner::rotate_error(double erphi, double ez, double clusphi, do
   TMatrixF COVAR_ERR(3, 3);
   COVAR_ERR = ROT * ERR * ROT_T;
 
-  for(int i=0;i<3;++i)
-    for(int j=0;j<3;++j)
+  for(int i=0;i<3;++i) {
+    for(int j=0;j<3;++j) {
       error[i][j] = COVAR_ERR[i][j];
+}
+}
 
 }

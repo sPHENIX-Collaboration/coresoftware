@@ -130,7 +130,7 @@ namespace
   
   void remove_hit(double adc, int phibin, int tbin, int edge, std::multimap<unsigned short, ihit> &all_hit_map, std::vector<std::vector<unsigned short>> &adcval)
   {
-    typedef std::multimap<unsigned short, ihit>::iterator hit_iterator;
+    using hit_iterator = std::multimap<unsigned short, ihit>::iterator;
     std::pair<hit_iterator, hit_iterator> iterpair = all_hit_map.equal_range(adc);
     hit_iterator it = iterpair.first;
     for (; it != iterpair.second; ++it) {
@@ -139,19 +139,20 @@ namespace
 	break;
       }
     }
-    if(edge)
+    if(edge) {
       adcval[phibin][tbin] = USHRT_MAX;
-    else
+    } else {
       adcval[phibin][tbin] = 0;
+}
   }
   
   void remove_hits(std::vector<ihit> &ihit_list, std::multimap<unsigned short, ihit> &all_hit_map,std::vector<std::vector<unsigned short>> &adcval)
   {
-    for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
-      unsigned short adc    = iter->adc; 
-      unsigned short phibin = iter->iphi;
-      unsigned short tbin   = iter->it;
-      unsigned short edge   = iter->edge;
+    for(auto & iter : ihit_list){
+      unsigned short adc    = iter.adc; 
+      unsigned short phibin = iter.iphi;
+      unsigned short tbin   = iter.it;
+      unsigned short edge   = iter.edge;
       remove_hit(adc,phibin,tbin,edge,all_hit_map,adcval);
     }
   }
@@ -361,8 +362,9 @@ namespace
         training_hits->phi = my_data.layergeom->get_phicenter(iphi_center+my_data.phioffset);
         double center_t = my_data.layergeom->get_zcenter(it_center+my_data.toffset) + my_data.sampa_tbias;
         training_hits->z = (my_data.m_tdriftmax - center_t) * my_data.tGeometry->get_drift_velocity();
-        if(my_data.side == 0)
+        if(my_data.side == 0) {
           training_hits->z = -training_hits->z;
+}
         training_hits->phistep = my_data.layergeom->get_phistep();
         training_hits->zstep = my_data.layergeom->get_zstep() * my_data.tGeometry->get_drift_velocity();
         training_hits->layer = my_data.layer;
@@ -378,18 +380,24 @@ namespace
       std::map<int,unsigned int> m_phi {};
       std::map<int,unsigned int> m_z   {};
       
-      for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
-	double adc = iter->adc; 
+      for(auto iter : ihit_list){
+	double adc = iter.adc; 
 	
-	if (adc <= 0) continue;
-	if(adc > max_adc)
+	if (adc <= 0) { continue;
+}
+	if(adc > max_adc) {
 	  max_adc = adc;
-	int iphi = iter->iphi + my_data.phioffset;
-	int it   = iter->it + my_data.toffset;
-	if(iphi > phibinhi) phibinhi = iphi;
-	if(iphi < phibinlo) phibinlo = iphi;
-	if(it > tbinhi) tbinhi = it;
-	if(it < tbinlo) tbinlo = it;
+}
+	int iphi = iter.iphi + my_data.phioffset;
+	int it   = iter.it + my_data.toffset;
+	if(iphi > phibinhi) { phibinhi = iphi;
+}
+	if(iphi < phibinlo) { phibinlo = iphi;
+}
+	if(it > tbinhi) { tbinhi = it;
+}
+	if(it < tbinlo) { tbinlo = it;
+}
 	
 	// update phi sums
 	//	double phi_center = my_data.layergeom->get_phicenter(iphi);
@@ -409,10 +417,12 @@ namespace
 	
 	if (my_data.fillClusHitsVerbose) {
 	  auto pnew = m_phi.try_emplace(iphi,adc);
-	  if (!pnew.second) pnew.first->second += adc;
+	  if (!pnew.second) { pnew.first->second += adc;
+}
 	  
 	  pnew = m_z.try_emplace(it,adc);
-	  if (!pnew.second) pnew.first->second += adc;
+	  if (!pnew.second) { pnew.first->second += adc;
+}
 	}
 	
 	// capture the hitkeys for all adc values above a certain threshold
@@ -423,10 +433,11 @@ namespace
         // training adc
         if(gen_hits && training_hits)
         {
-          int iphi_diff = iter->iphi - iphi_center;
-          int it_diff = iter->it - it_center;
-          if( std::abs(iphi_diff) <= nd && std::abs(it_diff) <= nd)
+          int iphi_diff = iter.iphi - iphi_center;
+          int it_diff = iter.it - it_center;
+          if( std::abs(iphi_diff) <= nd && std::abs(it_diff) <= nd) {
             training_hits->v_adc[(iphi_diff+nd)*(2*nd+1)+(it_diff+nd)] = adc;
+}
         }
       }
       //      std::cout << "done process list" << std::endl;
@@ -445,8 +456,9 @@ namespace
       double zdriftlength = clust * my_data.tGeometry->get_drift_velocity();
       // convert z drift length to z position in the TPC
       double clusz  =  my_data.m_tdriftmax * my_data.tGeometry->get_drift_velocity() - zdriftlength; 
-      if(my_data.side == 0) 
+      if(my_data.side == 0) { 
 	clusz = -clusz;
+}
       //std::cout << " side " << my_data.side << " clusz " << clusz << " clust " << clust << " driftmax " << my_data.m_tdriftmax << std::endl;
       const double phi_cov = (iphi2_sum/adc_sum - square(clusiphi))* pow(my_data.layergeom->get_phistep(),2);
       const double t_cov = t2_sum/adc_sum - square(clust);
@@ -541,13 +553,13 @@ namespace
           at::Tensor ten_pos = module_pos.forward(inputs).toTensor();
           float nn_phi = training_hits->phi + std::clamp(ten_pos[0][0][0].item<float>(), -(float)nd, (float)nd) * training_hits->phistep;
           float nn_z = training_hits->z + std::clamp(ten_pos[0][1][0].item<float>(), -(float)nd, (float)nd) * training_hits->zstep;
-          float nn_x = radius * cos(nn_phi);
-          float nn_y = radius * sin(nn_phi);
+          float nn_x = radius * std::cos(nn_phi);
+          float nn_y = radius * std::sin(nn_phi);
           Acts::Vector3 nn_global(nn_x, nn_y, nn_z);
           nn_global *= Acts::UnitConstants::cm;
           Acts::Vector3 nn_local = surface->transform(my_data.tGeometry->geometry().geoContext).inverse() * nn_global;
           nn_local /= Acts::UnitConstants::cm;
-          float nn_t = my_data.m_tdriftmax - fabs(nn_z) / my_data.tGeometry->get_drift_velocity();
+          float nn_t = my_data.m_tdriftmax - std::fabs(nn_z) / my_data.tGeometry->get_drift_velocity();
           clus_base->setLocalX(nn_local(0));
           clus_base->setLocalY(nn_t);
         }
@@ -565,8 +577,10 @@ namespace
         auto& vphi = my_data.phivec_ClusHitsVerbose .back();
         auto& vz   = my_data.zvec_ClusHitsVerbose   .back();
 
-        for (auto& entry : m_phi ) vphi.push_back({entry.first, entry.second});
-        for (auto& entry : m_z   ) vz  .push_back({entry.first, entry.second});
+        for (auto& entry : m_phi ) { vphi.push_back({entry.first, entry.second});
+}
+        for (auto& entry : m_z   ) { vz  .push_back({entry.first, entry.second});
+}
       }
 	
       //std::cout << "end clus out" << std::endl;
@@ -575,15 +589,17 @@ namespace
 	{
         // get cluster index in vector. It is used to store associations, and build relevant cluster keys when filling the containers
         uint32_t index = my_data.cluster_vector.size()-1;
-        for (unsigned int i = 0; i < hitkeyvec.size(); i++){
-          my_data.association_vector.emplace_back(index, hitkeyvec[i]);
+        for (unsigned int & i : hitkeyvec){
+          my_data.association_vector.emplace_back(index, i);
         }
-        if(gen_hits && training_hits)
+        if(gen_hits && training_hits) {
           training_hits->cluskey = TrkrDefs::genClusKey(tpcHitSetKey, index);
+}
       }
       hitkeyvec.clear();
-      if(gen_hits && training_hits)
+      if(gen_hits && training_hits) {
         my_data.v_hits.emplace_back(training_hits);
+}
       //      std::cout << "done calc" << std::endl;
     }
   
@@ -642,13 +658,17 @@ namespace
 	  //std::cout << "WARNING z bin out of range: " << tbin << " | " << tbins << std::endl;
 	  continue;
 	}
-	if(tbinorg>tbinmax||tbinorg<tbinmin)
+	if(tbinorg>tbinmax||tbinorg<tbinmin) {
 	  continue;
+}
 	float_t fadc = (hitr->second->getAdc()) - pedestal; // proper int rounding +0.5
 	unsigned short adc = 0;
-	if(fadc>0) adc =  (unsigned short) fadc;
-	if(phibin >= phibins) continue;
-	if(tbin   >= tbins) continue; // tbin is unsigned int, <0 cannot happen
+	if(fadc>0) { adc =  (unsigned short) fadc;
+}
+	if(phibin >= phibins) { continue;
+}
+	if(tbin   >= tbins) { continue; // tbin is unsigned int, <0 cannot happen
+}
 	
 	if(adc>0){
 	  if(adc>(my_data->seed_threshold)){
@@ -675,15 +695,16 @@ namespace
       */
       for(int nphi= 0; nphi < phibins;nphi++){
 	//	nhits += hitset->m_tpchits[nphi].size();
-	if(hitset->m_tpchits[nphi].size()==0) continue;
+	if(hitset->m_tpchits[nphi].size()==0) { continue;
+}
 
 	int pindex = 0;
 	for(unsigned int nt = 0;nt<hitset->m_tpchits[nphi].size();nt++){
 	  unsigned short val = hitset->m_tpchits[nphi][nt];
 	  
-	  if(val==0)
+	  if(val==0) {
 	    pindex++;
-	  else{
+	  } else{
 	    if(nt==0){
 	      if(val>5){
 		ihit  thisHit;
@@ -695,9 +716,9 @@ namespace
 	      }
 	      adcval[nphi][pindex++]=val;
 	    }else{
-	      if((hitset->m_tpchits[nphi][nt-1]==0)&&(hitset->m_tpchits[nphi][nt+1]==0))//found zero count
+	      if((hitset->m_tpchits[nphi][nt-1]==0)&&(hitset->m_tpchits[nphi][nt+1]==0)) {//found zero count
 		pindex+=val;
-	      else{
+	      } else{
 		if(val>5){
 		  ihit  thisHit;
 		  thisHit.iphi = nphi;
@@ -936,8 +957,9 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
   //  int print_layer = 18;
 
-  if (Verbosity() > 1000)
+  if (Verbosity() > 1000) {
     std::cout << "TpcClusterizer::Process_Event" << std::endl;
+}
 
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -1024,7 +1046,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   // create structure to store given thread and associated data
   struct thread_pair_t
   {
-    pthread_t thread;
+    pthread_t thread{};
     thread_data data;
   };
   
@@ -1318,11 +1340,12 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	    m_clusterhitassoc->addAssoc(ckey,hkey); 
 	  }
 
-        for(auto hiter = thread_pair.data.v_hits.begin(); hiter != thread_pair.data.v_hits.end(); hiter++)
+        for(auto v_hit : thread_pair.data.v_hits)
         {
-          if(_store_hits)
-            m_training->v_hits.emplace_back(**hiter);
-          delete *hiter;
+          if(_store_hits) {
+            m_training->v_hits.emplace_back(*v_hit);
+}
+          delete v_hit;
         }
       }
   }
@@ -1330,8 +1353,9 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   // set the flag to use alignment transformations, needed by the rest of reconstruction
   alignmentTransformationContainer::use_alignment = true;
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 0) {
     std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;
+}
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

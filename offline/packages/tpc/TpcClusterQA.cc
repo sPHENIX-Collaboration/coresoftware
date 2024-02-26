@@ -33,11 +33,10 @@ TpcClusterQA::TpcClusterQA(const std::string &name)
 
 //____________________________________________________________________________..
 TpcClusterQA::~TpcClusterQA()
-{
-}
+= default;
 
 //____________________________________________________________________________..
-int TpcClusterQA::Init(PHCompositeNode *)
+int TpcClusterQA::Init(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -65,8 +64,9 @@ int TpcClusterQA::InitRun(PHCompositeNode *topNode)
 
     for (int region = 0; region < 3; ++region)
     {
-      if (iter->first >= region_layer_low[region] && iter->first <= region_layer_high[region])
+      if (iter->first >= region_layer_low[region] && iter->first <= region_layer_high[region]) {
         m_layerRegionMap.insert(std::make_pair(iter->first, region));
+}
     }
   }
 
@@ -125,7 +125,8 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
     histos.insert(std::make_pair(region, hist));
   }
   auto fill = [](TH1 *h, float val)
-  { if (h) h->Fill(val); };
+  { if (h) { h->Fill(val); 
+}};
 
   float nclusperevent[24] = {0};
   for (auto &hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
@@ -135,7 +136,8 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
     auto range = clusterContainer->getClusters(hsk);
     int sector = TpcDefs::getSectorId(hsk);
     int side = TpcDefs::getSide(hsk);
-    if (side > 0) sector += 12;
+    if (side > 0) { sector += 12;
+}
     for (auto iter = range.first; iter != range.second; ++iter)
     {
       const auto cluskey = iter->first;
@@ -189,7 +191,7 @@ int TpcClusterQA::EndRun(const int runnumber)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //____________________________________________________________________________..
-int TpcClusterQA::End(PHCompositeNode *)
+int TpcClusterQA::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
