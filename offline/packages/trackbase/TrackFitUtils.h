@@ -91,7 +91,7 @@ class TrackFitUtils
 
   static std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global);
 
-  static Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, Acts::Vector3 global);
+  static Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, const Acts::Vector3& global);
 
   static Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
 
@@ -102,8 +102,8 @@ class TrackFitUtils
                                   std::vector<Acts::Vector3>& global_vec,
                                   std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
-  static Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref);
-  static Acts::Vector3 get_helix_surface_intersection(Surface surf,
+  static Acts::Vector3 getPCALinePoint(const Acts::Vector3& global, const Acts::Vector3& tangent, const Acts::Vector3& posref);
+  static Acts::Vector3 get_helix_surface_intersection(const Surface& surf,
                                                       std::vector<float>& fitpars, Acts::Vector3& global, ActsGeometry* _tGeometry);
   static Acts::Vector3 get_line_plane_intersection(const Acts::Vector3& pca, const Acts::Vector3& tangent,
                                                    const Acts::Vector3& sensorCenter, const Acts::Vector3& sensorNormal);

@@ -27,8 +27,9 @@ bool ClusHitsVerbosev1::hasClusKey(TrkrDefs::cluskey key) const {
 }
 
 ClusHitsVerbose::Vector& ClusHitsVerbosev1::vecBins(TrkrDefs::cluskey key, int which) {
-  if (!hasClusKey(key)) return dummy_vec;
-  else return m_data[key][which];
+  if (!hasClusKey(key)) { return dummy_vec;
+  } else { return m_data[key][which];
+}
 }
 
 ClusHitsVerbose::Vector& ClusHitsVerbosev1::phiBins(TrkrDefs::cluskey key)
@@ -45,7 +46,8 @@ ClusHitsVerbose::Vector& ClusHitsVerbosev1::zCutBins(TrkrDefs::cluskey key)
 
 ClusHitsVerbose::PairVector ClusHitsVerbosev1::pvecIE(TrkrDefs::cluskey key, int which)
 {
-  if (!hasClusKey(key)) return dummy_pairvec;
+  if (!hasClusKey(key)) { return dummy_pairvec;
+}
 
   // unzip the vector<pair<int,int>> into two vectors: vector<int> vector<int>
   std::vector<int> vecI{};

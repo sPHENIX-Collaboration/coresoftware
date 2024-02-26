@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <ostream>  
+#include <utility>
  
 bool alignmentTransformationContainer::use_alignment = false;
 
@@ -35,14 +36,15 @@ void alignmentTransformationContainer::setMisalignmentFactor(uint8_t layer, doub
 }
 void alignmentTransformationContainer::Reset()
 { 
-  if(transformVec.size() == 0) return;
+  if(transformVec.size() == 0) { return;
+}
 
   // loop over the transformVec
-  for(unsigned int i=0; i< transformVec.size(); ++i)
+  for(auto & i : transformVec)
     {
-      transformVec[i].clear();
+      i.clear();
       std::vector<Acts::Transform3> emptyLayerVec;
-      transformVec[i].swap(emptyLayerVec);
+      i.swap(emptyLayerVec);
     }
 
   transformVec.clear(); 
@@ -57,7 +59,8 @@ void alignmentTransformationContainer::identify(std::ostream &os)
   for(unsigned int i=0; i< transformVec.size(); ++i)
     {
       auto& layerVec = transformVec[i];
-      if(layerVec.size() == 0) continue;
+      if(layerVec.size() == 0) { continue;
+}
 
       os << " Layer: "  << i << std::endl; 
 
@@ -73,7 +76,7 @@ void alignmentTransformationContainer::identify(std::ostream &os)
   return;
 }
 
-void alignmentTransformationContainer::addTransform(const Acts::GeometryIdentifier id, Acts::Transform3 transform)
+void alignmentTransformationContainer::addTransform(const Acts::GeometryIdentifier id, const Acts::Transform3& transform)
 {
   unsigned int sphlayer = getsphlayer(id);
   unsigned int sensor = id.sensitive() - 1;  // Acts sensor numbering starts at 1
@@ -139,7 +142,7 @@ void alignmentTransformationContainer::replaceTransform(const Acts::GeometryIden
   auto& layerVec = transformVec[sphlayer];
   if(layerVec.size() > sensor)
     {
-      layerVec[sensor] = transform;
+      layerVec[sensor] = std::move(transform);
       return;
     }
   

@@ -61,7 +61,7 @@ TrkrClusterCrossingAssocv1::ConstRange TrkrClusterCrossingAssocv1::getCrossings(
 }
 
 //_________________________________________________________________________
-unsigned int TrkrClusterCrossingAssocv1::size(void) const
+unsigned int TrkrClusterCrossingAssocv1::size() const
 {
   unsigned int size = 0;
   size = m_map.size();

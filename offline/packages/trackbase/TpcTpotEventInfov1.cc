@@ -47,7 +47,8 @@ int TpcTpotEventInfov1::isValid() const
 void TpcTpotEventInfov1::CopyFrom( const TpcTpotEventInfo& source )
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
+  if( this == &source ) { return;
+}
  
   // parent class method
   TpcTpotEventInfo::CopyFrom( source );

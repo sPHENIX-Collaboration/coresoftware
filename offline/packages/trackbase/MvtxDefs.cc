@@ -85,8 +85,10 @@ MvtxDefs::genHitSetKey(const uint8_t lyr, const uint8_t stave, const uint8_t chi
 
  // offset strobe to make it positive, fit inside 5 bits
   int strobe = strobe_in + strobeOffset;
-  if(strobe < 0) strobe = 0;  
-  if(strobe > 31) strobe = 31;
+  if(strobe < 0) { strobe = 0;  
+}
+  if(strobe > 31) { strobe = 31;
+}
   unsigned int ustrobe = (unsigned int) strobe;
 
   TrkrDefs::hitsetkey tmp = stave;

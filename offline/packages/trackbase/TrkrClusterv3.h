@@ -105,8 +105,8 @@ class TrkrClusterv3 : public TrkrCluster
 
   unsigned int m_adc;           //< cluster sum adc (D. McGlinchey - Do we need this?)
   
-  float m_local[2];             //< 2D local position [cm]
-  float m_actsLocalErr[2][2];   //< 2D local error for Acts [cm]
+  float m_local[2]{};             //< 2D local position [cm]
+  float m_actsLocalErr[2][2]{};   //< 2D local error for Acts [cm]
 
   ClassDefOverride(TrkrClusterv3, 2)
 };

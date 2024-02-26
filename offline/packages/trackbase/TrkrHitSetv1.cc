@@ -73,8 +73,9 @@ TrkrHitSetv1::getHit(const TrkrDefs::hitkey key) const
 {
   TrkrHitSetv1::ConstIterator it = m_hits.find(key);
   
-  if (it != m_hits.end()) return it->second;
-  else return nullptr;
+  if (it != m_hits.end()) { return it->second;
+  } else { return nullptr;
+}
 }
 
 TrkrHitSetv1::ConstRange

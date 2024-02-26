@@ -93,8 +93,10 @@ InttDefs::genHitSetKey(const uint8_t lyr, const uint8_t ladder_z_index, uint8_t 
 
   // offset crossing to make it positive, fit inside 10 bits
   int crossing = crossing_in + crossingOffset;
-  if(crossing < 0) crossing = 0;  
-  if(crossing > 1023) crossing = 1023;
+  if(crossing < 0) { crossing = 0;  
+}
+  if(crossing > 1023) { crossing = 1023;
+}
   unsigned int ucrossing = (unsigned int) crossing;
 
   TrkrDefs::hitsetkey tmp = ladder_z_index;

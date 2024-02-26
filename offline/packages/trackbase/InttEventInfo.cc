@@ -30,7 +30,7 @@ InttEventInfo::get_bco_full() const
 }
 
 void
-InttEventInfo::set_bco_full(uint64_t const&)
+InttEventInfo::set_bco_full(uint64_t const& /*unused*/)
 {
   std::cout << "InttEventInfo::set_bco_full" << std::endl;
   std::cout << "\tUnimplemented (call to instance of base class)" << std::endl;

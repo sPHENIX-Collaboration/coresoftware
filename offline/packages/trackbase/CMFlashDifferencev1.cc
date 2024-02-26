@@ -32,15 +32,22 @@ void CMFlashDifferencev1::identify(std::ostream& os) const
 
 int CMFlashDifferencev1::isValid() const
 {
-  if (m_nclusters == UINT_MAX) return 0;
+  if (m_nclusters == UINT_MAX) { return 0;
+}
 
-  if(std::isnan(getTruthPhi())) return 0;
-  if(std::isnan(getTruthR())) return 0;
-  if(std::isnan(getTruthZ())) return 0;
+  if(std::isnan(getTruthPhi())) { return 0;
+}
+  if(std::isnan(getTruthR())) { return 0;
+}
+  if(std::isnan(getTruthZ())) { return 0;
+}
 
-  if(std::isnan(getRecoPhi())) return 0;
-  if(std::isnan(getRecoR())) return 0;
-  if(std::isnan(getRecoZ())) return 0;
+  if(std::isnan(getRecoPhi())) { return 0;
+}
+  if(std::isnan(getRecoR())) { return 0;
+}
+  if(std::isnan(getRecoZ())) { return 0;
+}
 
 
   return 1;
@@ -49,7 +56,8 @@ int CMFlashDifferencev1::isValid() const
 void CMFlashDifferencev1::CopyFrom( const CMFlashDifference& source )
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
+  if( this == &source ) { return;
+}
  
   // parent class method
   CMFlashDifference::CopyFrom( source );

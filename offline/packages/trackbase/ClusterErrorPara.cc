@@ -472,7 +472,7 @@ ClusterErrorPara::ClusterErrorPara()
 }
 
 //_________________________________________________________________________________
-ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrCluster* cluster, double, TrkrDefs::cluskey key)
+ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrCluster* cluster, double /*unused*/, TrkrDefs::cluskey key)
 {
 
   int layer = TrkrDefs::getLayer(key);
@@ -484,17 +484,23 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
       phierror *= 4;
       zerror*= 4;
     }
-    if(cluster->getEdge()>=3)
+    if(cluster->getEdge()>=3) {
       phierror *= 4;
-    if(cluster->getOverlap()>=2)
+}
+    if(cluster->getOverlap()>=2) {
       phierror *= 2;
-    if(cluster->getPhiSize()==1)
+}
+    if(cluster->getPhiSize()==1) {
       phierror *= 10;
-    if(cluster->getPhiSize()>=5)
+}
+    if(cluster->getPhiSize()>=5) {
       phierror *= 10;
+}
 
-    if(phierror>0.1) phierror = 0.1;
-    if(phierror<0.0005) phierror = 0.1;
+    if(phierror>0.1) { phierror = 0.1;
+}
+    if(phierror<0.0005) { phierror = 0.1;
+}
   }
   return std::make_pair(square(phierror),square(zerror)); 
 }
@@ -522,29 +528,34 @@ double ClusterErrorPara::tpc_phi_error(int layer, double alpha, TrkrCluster* clu
   }
   phierror = 0.0005;
   
-  if(sector!=-1)
+  if(sector!=-1) {
     phierror = 0.0005;
+}
 
   if(sector==0){
     //phierror = 0.019886;
     phierror = f0->Eval(alpha);
     if(cluster->getMaxAdc()!=0){
-      if(cluster->getMaxAdc()>150)
+      if(cluster->getMaxAdc()>150) {
 	phierror *=  0.54*0.9;
-      else{
+      } else{
 	phierror *= fadcphi0->Eval(cluster->getMaxAdc());
 	phierror *= fadcphi0fine->Eval(cluster->getMaxAdc());
       }
     }
-    if(cluster->getEdge()>=5)
+    if(cluster->getEdge()>=5) {
       phierror *= 2;
+}
     
-    if(cluster->getPhiSize()==1)
+    if(cluster->getPhiSize()==1) {
       phierror *= 1.5;
-    if(cluster->getPhiSize()==4)
+}
+    if(cluster->getPhiSize()==4) {
       phierror *= 1.5;
-    if(cluster->getPhiSize()>=5)
+}
+    if(cluster->getPhiSize()>=5) {
       phierror *= 2.5;
+}
     
     phierror *= f0fine->Eval(alpha);
   }
@@ -553,24 +564,30 @@ double ClusterErrorPara::tpc_phi_error(int layer, double alpha, TrkrCluster* clu
     //phierror = 0.018604;
     phierror = f1->Eval(alpha);
     if(cluster->getMaxAdc()!=0){
-      if(cluster->getMaxAdc()>160)
+      if(cluster->getMaxAdc()>160) {
 	phierror *=  0.6;
-      else
+      } else {
 	phierror *= fadcphi1->Eval(cluster->getMaxAdc());
-      if(cluster->getEdge()>=5)
+}
+      if(cluster->getEdge()>=5) {
 	phierror *= 2;
-      if(cluster->getMaxAdc()>140)
+}
+      if(cluster->getMaxAdc()>140) {
 	phierror *=  0.95;
-      else
+      } else {
 	phierror *= fadcphi1fine->Eval(cluster->getMaxAdc());
+}
     }
     phierror *= 0.975;	
-    if(cluster->getPhiSize()==1)
+    if(cluster->getPhiSize()==1) {
       phierror *= 4;
-    if(cluster->getPhiSize()==4)
+}
+    if(cluster->getPhiSize()==4) {
       phierror *= 1.2;
-    if(cluster->getPhiSize()>=5)
+}
+    if(cluster->getPhiSize()>=5) {
       phierror *= 2;
+}
     
     phierror *= f1fine->Eval(alpha);
 	
@@ -581,33 +598,43 @@ double ClusterErrorPara::tpc_phi_error(int layer, double alpha, TrkrCluster* clu
     
     phierror = f2->Eval(alpha);
     if(cluster->getMaxAdc()){
-      if(cluster->getMaxAdc()>170)
+      if(cluster->getMaxAdc()>170) {
 	phierror *=  0.6*0.95;
-      else{
+      } else{
 	phierror *= fadcphi2->Eval(cluster->getMaxAdc());
-	if(cluster->getMaxAdc()<100)
+	if(cluster->getMaxAdc()<100) {
 	  phierror *= fadcphi2fine1->Eval(cluster->getMaxAdc());
+}
       }
     }
-    if(cluster->getEdge()>=5)
+    if(cluster->getEdge()>=5) {
       phierror *= 2;
+}
     
-    if(cluster->getPhiSize()==1)
+    if(cluster->getPhiSize()==1) {
       phierror *= 10;
-    if(cluster->getPhiSize()>=6)
+}
+    if(cluster->getPhiSize()>=6) {
       phierror *= 10;
+}
     
     
     phierror *= f2fine->Eval(alpha);
 	
   }
-  if(layer==7)phierror *= (3*0.72);
-  if(layer==22||layer==23)  phierror *= (3*0.8);
-  if(layer==38) phierror *= (3*0.9);
-  if(layer==39) phierror *= (3*1.05);
+  if(layer==7) {phierror *= (3*0.72);
+}
+  if(layer==22||layer==23) {  phierror *= (3*0.8);
+}
+  if(layer==38) { phierror *= (3*0.9);
+}
+  if(layer==39) { phierror *= (3*1.05);
+}
 
-  if(phierror>0.1) phierror = 0.1;
-  if(phierror<0.0005) phierror = 0.1;
+  if(phierror>0.1) { phierror = 0.1;
+}
+  if(phierror<0.0005) { phierror = 0.1;
+}
 
   return phierror;
 }
@@ -622,25 +649,28 @@ double ClusterErrorPara::tpc_z_error(int layer, double beta, TrkrCluster* cluste
   }else if(layer>=39 && layer <55){
     sector = 2;
   }
-  if(sector!=-1)
+  if(sector!=-1) {
     zerror = 0.05;
+}
 
   if(sector==0){
     zerror = fz0->Eval(beta);
-    if(cluster->getMaxAdc()>180)
+    if(cluster->getMaxAdc()>180) {
       zerror *=  0.5;
-    else
+    } else {
       zerror *= fadcz0->Eval(cluster->getMaxAdc());
+}
     zerror *= fz0fine->Eval(beta);
     zerror *= fadcz0fine->Eval(cluster->getMaxAdc());
   }
 
   if(sector==1){
     zerror = fz1->Eval(beta);
-    if(cluster->getMaxAdc()>180)
+    if(cluster->getMaxAdc()>180) {
       zerror *=  0.6;
-    else
+    } else {
       zerror *= fadcz1->Eval(cluster->getMaxAdc());
+}
     zerror *= fz1fine->Eval(beta);
     zerror *= fadcz1fine->Eval(cluster->getMaxAdc());
     zerror *= 0.98;
@@ -648,21 +678,28 @@ double ClusterErrorPara::tpc_z_error(int layer, double beta, TrkrCluster* cluste
   }    
   if(sector==2){
     zerror = fz2->Eval(beta);
-    if(cluster->getMaxAdc()>170)
+    if(cluster->getMaxAdc()>170) {
       zerror *=  0.6;
-    else
+    } else {
       zerror *= fadcz2->Eval(cluster->getMaxAdc());
+}
     zerror *= fz2fine->Eval(beta);
     zerror *= fadcz2fine->Eval(cluster->getMaxAdc());
     // zerrror *= 1.15575;
   }
-  if(layer==7)  zerror *= (3.5*1.13);
-  if(layer==22) zerror *= (3.5*0.9);
-  if(layer==23) zerror *= (3.5*0.95);
-  if(layer==38) zerror *= (3.5*0.85);
+  if(layer==7) {  zerror *= (3.5*1.13);
+}
+  if(layer==22) { zerror *= (3.5*0.9);
+}
+  if(layer==23) { zerror *= (3.5*0.95);
+}
+  if(layer==38) { zerror *= (3.5*0.85);
+}
 
-  if(zerror>0.2) zerror = 0.2;
-  if(zerror<0.0002) zerror = 0.2;
+  if(zerror>0.2) { zerror = 0.2;
+}
+  if(zerror<0.0002) { zerror = 0.2;
+}
   
   return zerror;
 }
@@ -707,14 +744,15 @@ double ClusterErrorPara::mvtx_phi_error(TrkrCluster* cluster){
   static constexpr std::array<double, 7> scalefactors_mvtx_phi = {{ 0.36, 0.6,0.37,0.49,0.4,0.37,0.33 }};
   phierror = pitcherr_phi_mvtx;//0.00077595876
   //  std::cout << " phistart: " << phierror  << " phisize: " << cluster->getPhiSize() << "zsize: " << cluster->getZSize() << std::endl;
-  if(cluster->getPhiSize() == 1 && cluster->getZSize() == 1) phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[0];
-  else if(cluster->getPhiSize() == 2 && cluster->getZSize() == 1) phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[1];
-  else if(cluster->getPhiSize() == 1 && cluster->getZSize() == 2) phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[2];
-  else if( cluster->getPhiSize() == 2 && cluster->getZSize() == 2 ) phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[0];
-  else if( cluster->getPhiSize() == 2 && cluster->getZSize() == 3 )  phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[1];
-  else if( cluster->getPhiSize() == 3 && cluster->getZSize() == 2 )  phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[2];
-  else if( cluster->getPhiSize() == 3 && cluster->getZSize() == 3 )  phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[3];
-  else phierror = pitcherr_phi_mvtx*cluster->getPhiSize();
+  if(cluster->getPhiSize() == 1 && cluster->getZSize() == 1) { phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[0];
+  } else if(cluster->getPhiSize() == 2 && cluster->getZSize() == 1) { phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[1];
+  } else if(cluster->getPhiSize() == 1 && cluster->getZSize() == 2) { phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[2];
+  } else if( cluster->getPhiSize() == 2 && cluster->getZSize() == 2 ) { phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[0];
+  } else if( cluster->getPhiSize() == 2 && cluster->getZSize() == 3 ) {  phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[1];
+  } else if( cluster->getPhiSize() == 3 && cluster->getZSize() == 2 ) {  phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[2];
+  } else if( cluster->getPhiSize() == 3 && cluster->getZSize() == 3 ) {  phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[3];
+  } else { phierror = pitcherr_phi_mvtx*cluster->getPhiSize();
+}
   //  std::cout << " phi after size: " << phierror  << std::endl;
   phierror *= scale_mvtx;
       // else zerror = pitcherr_z_mvtx*cluster->getZSize();
@@ -728,14 +766,15 @@ double ClusterErrorPara::mvtx_phi_error(const TrkrCluster* cluster){
   static constexpr std::array<double, 7> scalefactors_mvtx_phi = {{ 0.36, 0.6,0.37,0.49,0.4,0.37,0.33 }};
   phierror = pitcherr_phi_mvtx;//0.00077595876
   //  std::cout << " phistart: " << phierror  << " phisize: " << cluster->getPhiSize() << "zsize: " << cluster->getZSize() << std::endl;
-  if(cluster->getPhiSize() == 1 && cluster->getZSize() == 1) phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[0];
-  else if(cluster->getPhiSize() == 2 && cluster->getZSize() == 1) phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[1];
-  else if(cluster->getPhiSize() == 1 && cluster->getZSize() == 2) phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[2];
-  else if( cluster->getPhiSize() == 2 && cluster->getZSize() == 2 ) phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[0];
-  else if( cluster->getPhiSize() == 2 && cluster->getZSize() == 3 )  phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[1];
-  else if( cluster->getPhiSize() == 3 && cluster->getZSize() == 2 )  phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[2];
-  else if( cluster->getPhiSize() == 3 && cluster->getZSize() == 3 )  phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[3];
-  else phierror = pitcherr_phi_mvtx*cluster->getPhiSize();
+  if(cluster->getPhiSize() == 1 && cluster->getZSize() == 1) { phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[0];
+  } else if(cluster->getPhiSize() == 2 && cluster->getZSize() == 1) { phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[1];
+  } else if(cluster->getPhiSize() == 1 && cluster->getZSize() == 2) { phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[2];
+  } else if( cluster->getPhiSize() == 2 && cluster->getZSize() == 2 ) { phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[0];
+  } else if( cluster->getPhiSize() == 2 && cluster->getZSize() == 3 ) {  phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[1];
+  } else if( cluster->getPhiSize() == 3 && cluster->getZSize() == 2 ) {  phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[2];
+  } else if( cluster->getPhiSize() == 3 && cluster->getZSize() == 3 ) {  phierror = pitcherr_phi_mvtx*scalefactors_mvtx_phi[3];
+  } else { phierror = pitcherr_phi_mvtx*cluster->getPhiSize();
+}
   //  std::cout << " phi after size: " << phierror  << std::endl;
   phierror *= scale_mvtx;
       // else zerror = pitcherr_z_mvtx*cluster->getZSize();
@@ -748,10 +787,11 @@ double ClusterErrorPara::mvtx_z_error(TrkrCluster* cluster){
   
   zerror = pitcherr_z_mvtx;
   static constexpr std::array<double, 4> scalefactors_z = {{ 0.47, 0.48, 0.71, 0.55 }};
-  if( cluster->getZSize() == 2 && cluster->getPhiSize() == 2 )       zerror = pitcherr_z_mvtx*scalefactors_z[0];
-  else if( cluster->getZSize() == 2 && cluster->getPhiSize() == 3 )  zerror = pitcherr_z_mvtx*scalefactors_z[1];
-  else if( cluster->getZSize() == 3 && cluster->getPhiSize() == 2 )  zerror = pitcherr_z_mvtx*scalefactors_z[2];
-  else if( cluster->getZSize() == 3 && cluster->getPhiSize() == 3 )  zerror = pitcherr_z_mvtx*scalefactors_z[3];
+  if( cluster->getZSize() == 2 && cluster->getPhiSize() == 2 ) {       zerror = pitcherr_z_mvtx*scalefactors_z[0];
+  } else if( cluster->getZSize() == 2 && cluster->getPhiSize() == 3 ) {  zerror = pitcherr_z_mvtx*scalefactors_z[1];
+  } else if( cluster->getZSize() == 3 && cluster->getPhiSize() == 2 ) {  zerror = pitcherr_z_mvtx*scalefactors_z[2];
+  } else if( cluster->getZSize() == 3 && cluster->getPhiSize() == 3 ) {  zerror = pitcherr_z_mvtx*scalefactors_z[3];
+}
   zerror *= scale_mvtx_z;  return zerror;
 }
 double ClusterErrorPara::mvtx_z_error(const TrkrCluster* cluster){
@@ -759,10 +799,11 @@ double ClusterErrorPara::mvtx_z_error(const TrkrCluster* cluster){
   
   zerror = pitcherr_z_mvtx;
   static constexpr std::array<double, 4> scalefactors_z = {{ 0.47, 0.48, 0.71, 0.55 }};
-  if( cluster->getZSize() == 2 && cluster->getPhiSize() == 2 )       zerror = pitcherr_z_mvtx*scalefactors_z[0];
-  else if( cluster->getZSize() == 2 && cluster->getPhiSize() == 3 )  zerror = pitcherr_z_mvtx*scalefactors_z[1];
-  else if( cluster->getZSize() == 3 && cluster->getPhiSize() == 2 )  zerror = pitcherr_z_mvtx*scalefactors_z[2];
-  else if( cluster->getZSize() == 3 && cluster->getPhiSize() == 3 )  zerror = pitcherr_z_mvtx*scalefactors_z[3];
+  if( cluster->getZSize() == 2 && cluster->getPhiSize() == 2 ) {       zerror = pitcherr_z_mvtx*scalefactors_z[0];
+  } else if( cluster->getZSize() == 2 && cluster->getPhiSize() == 3 ) {  zerror = pitcherr_z_mvtx*scalefactors_z[1];
+  } else if( cluster->getZSize() == 3 && cluster->getPhiSize() == 2 ) {  zerror = pitcherr_z_mvtx*scalefactors_z[2];
+  } else if( cluster->getZSize() == 3 && cluster->getPhiSize() == 3 ) {  zerror = pitcherr_z_mvtx*scalefactors_z[3];
+}
   zerror *= scale_mvtx_z;  return zerror;
 }
 
@@ -770,14 +811,19 @@ double ClusterErrorPara::intt_phi_error(int layer, TrkrCluster* cluster){
   double phierror = 0;
   static constexpr std::array<double, 3> scalefactors_intt_phi = {{ 0.85, 0.4, 0.33 }};
   
-  if( cluster->getPhiSize() == 1 && layer < 5) phierror = pitcherr_phi_intt*scalefactors_intt_phi[0];
-  else if( cluster->getPhiSize() == 2 && layer < 5) phierror = pitcherr_phi_intt*scalefactors_intt_phi[1];
-  else if( cluster->getPhiSize() == 2 && layer > 4) phierror = pitcherr_phi_intt*scalefactors_intt_phi[2];
-  else phierror = pitcherr_phi_intt*cluster->getPhiSize();
-  if( layer == 3) phierror *= scale_intt_3;
-  if( layer == 4) phierror *= scale_intt_4;
-  if( layer == 5) phierror *= scale_intt_5;
-  if( layer == 6) phierror *= scale_intt_6;
+  if( cluster->getPhiSize() == 1 && layer < 5) { phierror = pitcherr_phi_intt*scalefactors_intt_phi[0];
+  } else if( cluster->getPhiSize() == 2 && layer < 5) { phierror = pitcherr_phi_intt*scalefactors_intt_phi[1];
+  } else if( cluster->getPhiSize() == 2 && layer > 4) { phierror = pitcherr_phi_intt*scalefactors_intt_phi[2];
+  } else { phierror = pitcherr_phi_intt*cluster->getPhiSize();
+}
+  if( layer == 3) { phierror *= scale_intt_3;
+}
+  if( layer == 4) { phierror *= scale_intt_4;
+}
+  if( layer == 5) { phierror *= scale_intt_5;
+}
+  if( layer == 6) { phierror *= scale_intt_6;
+}
   
   return phierror;
 }
@@ -791,14 +837,19 @@ double ClusterErrorPara::intt_phi_error(int layer, const TrkrCluster* cluster){
   double phierror = 0;
   static constexpr std::array<double, 3> scalefactors_intt_phi = {{ 0.85, 0.4, 0.33 }};
   
-  if( cluster->getPhiSize() == 1 && layer < 5) phierror = pitcherr_phi_intt*scalefactors_intt_phi[0];
-  else if( cluster->getPhiSize() == 2 && layer < 5) phierror = pitcherr_phi_intt*scalefactors_intt_phi[1];
-  else if( cluster->getPhiSize() == 2 && layer > 4) phierror = pitcherr_phi_intt*scalefactors_intt_phi[2];
-  else phierror = pitcherr_phi_intt*cluster->getPhiSize();
-  if( layer == 3) phierror *= scale_intt_3;
-  if( layer == 4) phierror *= scale_intt_4;
-  if( layer == 5) phierror *= scale_intt_5;
-  if( layer == 6) phierror *= scale_intt_6;
+  if( cluster->getPhiSize() == 1 && layer < 5) { phierror = pitcherr_phi_intt*scalefactors_intt_phi[0];
+  } else if( cluster->getPhiSize() == 2 && layer < 5) { phierror = pitcherr_phi_intt*scalefactors_intt_phi[1];
+  } else if( cluster->getPhiSize() == 2 && layer > 4) { phierror = pitcherr_phi_intt*scalefactors_intt_phi[2];
+  } else { phierror = pitcherr_phi_intt*cluster->getPhiSize();
+}
+  if( layer == 3) { phierror *= scale_intt_3;
+}
+  if( layer == 4) { phierror *= scale_intt_4;
+}
+  if( layer == 5) { phierror *= scale_intt_5;
+}
+  if( layer == 6) { phierror *= scale_intt_6;
+}
   
   return phierror;
 }
@@ -849,13 +900,17 @@ ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrkrCluster* clust
       break;
       
     }
-  if(pull_fine_phi[layer]!=0)
+  if(pull_fine_phi[layer]!=0) {
     phierror *= pull_fine_phi[layer];
-  if(pull_fine_z[layer]!=0)
+}
+  if(pull_fine_z[layer]!=0) {
     zerror *= pull_fine_z[layer];
+}
 
-  if(phierror==0) phierror = 100;
-  if(zerror==0) zerror = 100;
+  if(phierror==0) { phierror = 100;
+}
+  if(zerror==0) { zerror = 100;
+}
   
   return std::make_pair(square(phierror),square(zerror));  
   //  return std::make_pair(phierror,zerror);  
@@ -867,7 +922,8 @@ ClusterErrorPara::error_t ClusterErrorPara::get_simple_cluster_error(TrkrCluster
 {
   double alpha = 0.17;
   double beta = 0.4;
-  if(cluster_r > 100000) alpha = 0.17001;
+  if(cluster_r > 100000) { alpha = 0.17001;
+}
   int layer = TrkrDefs::getLayer(key);
   double phierror = 0;
   double zerror   = 0;
@@ -901,13 +957,17 @@ ClusterErrorPara::error_t ClusterErrorPara::get_simple_cluster_error(TrkrCluster
       break;
       
     }
-  if(pull_fine_phi[layer]!=0)
+  if(pull_fine_phi[layer]!=0) {
     phierror *= pull_fine_phi[layer];
-  if(pull_fine_z[layer]!=0)
+}
+  if(pull_fine_z[layer]!=0) {
     zerror *= pull_fine_z[layer];
+}
 
-  if(phierror==0) phierror = 100;
-  if(zerror==0) zerror = 100;
+  if(phierror==0) { phierror = 100;
+}
+  if(zerror==0) { zerror = 100;
+}
   
   return std::make_pair(square(phierror),square(zerror));  
 
@@ -924,13 +984,17 @@ ClusterErrorPara::error_t ClusterErrorPara::get_fix_tpc_cluster_error(TrkrCluste
   phierror=mvtx_phi_error(cluster);
   zerror=mvtx_z_error(cluster);
 
-  if(pull_fine_phi[layer]!=0)
+  if(pull_fine_phi[layer]!=0) {
     phierror *= pull_fine_phi[layer];
-  if(pull_fine_z[layer]!=0)
+}
+  if(pull_fine_z[layer]!=0) {
     zerror *= pull_fine_z[layer];
+}
 
-  if(phierror==0) phierror = 100;
-  if(zerror==0) zerror = 100;
+  if(phierror==0) { phierror = 100;
+}
+  if(zerror==0) { zerror = 100;
+}
   
   return std::make_pair(square(phierror),square(zerror));  
 
@@ -962,13 +1026,17 @@ ClusterErrorPara::error_t ClusterErrorPara::get_si_cluster_error(const TrkrClust
       break;
       
     }
-  if(pull_fine_phi[layer]!=0)
+  if(pull_fine_phi[layer]!=0) {
     phierror *= pull_fine_phi[layer];
-  if(pull_fine_z[layer]!=0)
+}
+  if(pull_fine_z[layer]!=0) {
     zerror *= pull_fine_z[layer];
+}
 
-  if(phierror==0) phierror = 100;
-  if(zerror==0) zerror = 100;
+  if(phierror==0) { phierror = 100;
+}
+  if(zerror==0) { zerror = 100;
+}
   
   return std::make_pair(square(phierror),square(zerror));  
 

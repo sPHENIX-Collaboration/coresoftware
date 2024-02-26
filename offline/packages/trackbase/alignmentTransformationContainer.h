@@ -38,7 +38,7 @@ class alignmentTransformationContainer : public Acts::GeometryContext
 
   void Reset(); 
   void identify(std::ostream &os = std::cout);  
-  void addTransform(Acts::GeometryIdentifier, Acts::Transform3); 
+  void addTransform(Acts::GeometryIdentifier, const Acts::Transform3&); 
   Acts::Transform3& getTransform(Acts::GeometryIdentifier id);
   void replaceTransform(const Acts::GeometryIdentifier id, Acts::Transform3 transform);
   const std::vector<std::vector<Acts::Transform3>>& getMap() const;

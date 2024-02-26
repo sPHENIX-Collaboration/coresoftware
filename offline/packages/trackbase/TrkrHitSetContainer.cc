@@ -40,7 +40,7 @@ TrkrHitSetContainer::getHitSets(const TrkrDefs::TrkrId /*trackerid*/) const
 { return std::make_pair( dummy_map.cbegin(), dummy_map.cend() ); }
 
 TrkrHitSetContainer::ConstRange
-TrkrHitSetContainer::getHitSets(const TrkrDefs::TrkrId, const uint8_t) const
+TrkrHitSetContainer::getHitSets(const TrkrDefs::TrkrId /*unused*/, const uint8_t /*unused*/) const
 { return std::make_pair( dummy_map.cbegin(), dummy_map.cend() ); }
 
 TrkrHitSetContainer::ConstRange

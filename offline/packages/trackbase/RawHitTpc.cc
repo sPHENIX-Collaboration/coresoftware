@@ -2,15 +2,15 @@
 #include <climits>
 
 RawHitTpc::RawHitTpc()
-{
-}
+= default;
 
 void RawHitTpc::setAdc(const unsigned int adc)
  {
-   if(adc > USHRT_MAX)
+   if(adc > USHRT_MAX) {
      m_adc = USHRT_MAX;
-   else
+   } else {
      m_adc = (unsigned short) adc;
+}
  }
 
 unsigned int RawHitTpc::getAdc() { 

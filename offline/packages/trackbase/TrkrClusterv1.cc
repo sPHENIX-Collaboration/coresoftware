@@ -18,7 +18,8 @@ namespace
   // get unique index in cov. matrix array from i and j
   inline unsigned int covarIndex(unsigned int i, unsigned int j)
   {
-    if (i > j) std::swap(i, j);
+    if (i > j) { std::swap(i, j);
+}
     return i + 1 + (j + 1) * (j) / 2 - 1;
   }
 
@@ -43,7 +44,8 @@ TrkrClusterv1::TrkrClusterv1()
   , m_isGlobal(true)
   , m_adc(0xFFFFFFFF)
 {
-  for (int i = 0; i < 3; ++i) m_pos[i] = NAN;
+  for (float & m_po : m_pos) { m_po = NAN;
+}
 
   for (int j = 0; j < 3; ++j)
   {
@@ -62,10 +64,11 @@ void TrkrClusterv1::identify(std::ostream& os) const
   os << " (x,y,z) =  (" << getPosition(0);
   os << ", " << getPosition(1) << ", ";
   os << getPosition(2) << ") cm";
-  if (m_isGlobal)
+  if (m_isGlobal) {
     os << " - global coordinates" << std::endl;
-  else
+  } else {
     os << " - local coordinates" << std::endl;
+}
 
   os << " adc = " << getAdc() << std::endl;
 
@@ -106,18 +109,23 @@ void TrkrClusterv1::identify(std::ostream& os) const
 
 int TrkrClusterv1::isValid() const
 {
-  if (m_cluskey == TrkrDefs::CLUSKEYMAX) return 0;
+  if (m_cluskey == TrkrDefs::CLUSKEYMAX) { return 0;
+}
   for (int i = 0; i < 3; ++i)
   {
-    if (std::isnan(getPosition(i))) return 0;
+    if (std::isnan(getPosition(i))) { return 0;
+}
   }
-  if (m_adc == 0xFFFFFFFF) return 0;
+  if (m_adc == 0xFFFFFFFF) { return 0;
+}
   for (int j = 0; j < 3; ++j)
   {
     for (int i = j; i < 3; ++i)
     {
-      if (std::isnan(getSize(i, j))) return 0;
-      if (std::isnan(getError(i, j))) return 0;
+      if (std::isnan(getSize(i, j))) { return 0;
+}
+      if (std::isnan(getError(i, j))) { return 0;
+}
     }
   }
 
@@ -127,7 +135,8 @@ int TrkrClusterv1::isValid() const
 void TrkrClusterv1::CopyFrom( const TrkrCluster& source )
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
+  if( this == &source ) { return;
+}
  
   // parent class method
   TrkrCluster::CopyFrom( source );
@@ -138,12 +147,13 @@ void TrkrClusterv1::CopyFrom( const TrkrCluster& source )
   m_isGlobal = source.isGlobal();
   setAdc( source.getAdc() );
 
-  for (int j = 0; j < 3; ++j)
+  for (int j = 0; j < 3; ++j) {
     for (int i = 0; i < 3; ++i)
   {
     setSize(i, j, source.getSize(i, j));
     setError(i, j, source.getError(i, j));
   }
+}
 }
 
 void TrkrClusterv1::setSize(unsigned int i, unsigned int j, float value)
@@ -168,12 +178,13 @@ float TrkrClusterv1::getPhiSize() const
 { return 2*std::sqrt(rotate<&TrkrClusterv1::getSize>(this)); }
 
 float TrkrClusterv1::getZSize() const
-{ return 2.*sqrt(getSize(2, 2)); }
+{ return 2.*std::sqrt(getSize(2, 2)); }
 
 float TrkrClusterv1::getPhiError() const
 {
   const float rad = std::sqrt(square(m_pos[0])+square(m_pos[1]));
-  if (rad > 0) return getRPhiError() / rad;
+  if (rad > 0) { return getRPhiError() / rad;
+}
   return 0;
 }
 

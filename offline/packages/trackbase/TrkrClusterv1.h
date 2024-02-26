@@ -81,7 +81,7 @@ class TrkrClusterv1 : public TrkrCluster
  protected:
 
   TrkrDefs::cluskey m_cluskey;  //< unique identifier within container
-  float m_pos[3];               //< mean position x,y,z
+  float m_pos[3]{};               //< mean position x,y,z
   bool m_isGlobal;             //< flag for coord sys (true = global)
   unsigned int m_adc;           //< cluster sum adc (D. McGlinchey - Do we need this?)
   float m_size[6]{};              //< size covariance matrix (packed storage) (+/- cm^2)

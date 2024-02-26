@@ -126,7 +126,7 @@ void setTPCParams(double tpcDevs[6])
   bool use_global_millepede_translations = true;
   bool use_intt_survey_geometry = false;
 
-  Acts::Transform3 newMakeTransform(Surface surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, bool survey);
+  Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, bool survey);
 
   alignmentTransformationContainer* transformMap = NULL;
   alignmentTransformationContainer* transformMapTransient = NULL;

@@ -43,9 +43,9 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   float angle_pca = atan2(pca_circle(1) - y0, pca_circle(0) - x0);
   // calculate coords of a point at a slightly larger angle
   float d_angle = 0.005;
-  float newx = radius * cos(angle_pca + d_angle) + x0;
-  float newy = radius * sin(angle_pca + d_angle) + y0;
-  float newz = sqrt(newx * newx + newy * newy) * zslope + z0;
+  float newx = radius * std::cos(angle_pca + d_angle) + x0;
+  float newy = radius * std::sin(angle_pca + d_angle) + y0;
+  float newz = std::sqrt(newx * newx + newy * newy) * zslope + z0;
   Acts::Vector3 second_point_pca(newx, newy, newz);
 
   // pca and second_point_pca define a straight line approximation to the track
@@ -133,10 +133,12 @@ TrackFitUtils::circle_fit_output_t TrackFitUtils::circle_fit_by_taubin(const Tra
   {
     const double Dy = A1 + x * (A22 + A33 * x);
     const double xnew = x - y / Dy;
-    if ((xnew == x) || (!std::isfinite(xnew))) break;
+    if ((xnew == x) || (!std::isfinite(xnew))) { break;
+}
 
     const double ynew = A0 + xnew * (A1 + xnew * (A2 + xnew * A3));
-    if (std::abs(ynew) >= std::abs(y)) break;
+    if (std::abs(ynew) >= std::abs(y)) { break;
+}
 
     x = xnew;
     y = ynew;
@@ -320,7 +322,8 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
           //! use r-z
           x = global.z();
           y = std::sqrt(square(global.x()) + square(global.y()));
-          if (global.y() < 0) y *= -1;
+          if (global.y() < 0) { y *= -1;
+}
         }
 
         //! Need to find the point on the line closest to the cluster position
@@ -454,7 +457,7 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
 
 //_________________________________________________________________________________
 Acts::Vector3 TrackFitUtils::get_helix_pca(std::vector<float>& fitpars,
-                                           Acts::Vector3 global)
+                                           const Acts::Vector3& global)
 {
   // no analytic solution for the coordinates of the closest approach of a helix to a point
   // Instead, we get the PCA in x and y to the circle, and the PCA in z to the z vs R line at the R of the PCA
@@ -550,9 +553,8 @@ void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
                                         std::vector<Acts::Vector3>& global_vec,
                                         std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
-  for (unsigned int iclus = 0; iclus < cluskey_vec.size(); ++iclus)
+  for (unsigned long key : cluskey_vec)
   {
-    auto key = cluskey_vec[iclus];
     auto cluster = _cluster_map->findCluster(key);
     if (!cluster)
     {
@@ -579,7 +581,7 @@ void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
 }
 
 //_________________________________________________________________________________
-Acts::Vector3 TrackFitUtils::getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref)
+Acts::Vector3 TrackFitUtils::getPCALinePoint(const Acts::Vector3& global, const Acts::Vector3& tangent, const Acts::Vector3& posref)
 {
   // Approximate track with a straight line consisting of the state position posref and the vector (px,py,pz)
 
@@ -598,7 +600,7 @@ Acts::Vector3 TrackFitUtils::getPCALinePoint(Acts::Vector3 global, Acts::Vector3
   return pca;
 }
 
-Acts::Vector3 TrackFitUtils::get_helix_surface_intersection(Surface surf,
+Acts::Vector3 TrackFitUtils::get_helix_surface_intersection(const Surface& surf,
                                                             std::vector<float>& fitpars, Acts::Vector3& global, ActsGeometry* _tGeometry)
 {
   // we want the point where the helix intersects the plane of the surface

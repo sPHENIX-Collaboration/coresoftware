@@ -71,7 +71,8 @@ int TrkrClusterv3::isValid() const
 void TrkrClusterv3::CopyFrom( const TrkrCluster& source )
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
+  if( this == &source ) { return;
+}
  
   // parent class method
   TrkrCluster::CopyFrom( source );
@@ -79,9 +80,10 @@ void TrkrClusterv3::CopyFrom( const TrkrCluster& source )
   setLocalX( source.getLocalX() );
   setLocalY( source.getLocalY() );
   
-  for (int j = 0; j < 2; ++j)
+  for (int j = 0; j < 2; ++j) {
     for (int i = 0; i < 2; ++i)
   { setActsLocalError(i, j, source.getActsLocalError(i, j)); }
+}
   
   setSubSurfKey( source.getSubSurfKey() );
   setAdc( source.getAdc() );

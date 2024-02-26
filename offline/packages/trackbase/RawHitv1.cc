@@ -2,15 +2,15 @@
 #include <climits>
 
 RawHitv1::RawHitv1()
-{
-}
+= default;
 
 void RawHitv1::setAdc(const unsigned int adc)
  {
-   if(adc > USHRT_MAX)
+   if(adc > USHRT_MAX) {
      m_adc = USHRT_MAX;
-   else
+   } else {
      m_adc = (unsigned short) adc;
+}
  }
 
 unsigned int RawHitv1::getAdc() { 

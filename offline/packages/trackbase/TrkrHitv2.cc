@@ -2,8 +2,7 @@
 #include <climits>
 
 TrkrHitv2::TrkrHitv2()
-{
-}
+= default;
 
   // these set and get the energy before digitization
 void TrkrHitv2::addEnergy(const double edep) 
@@ -29,10 +28,11 @@ double TrkrHitv2::getEnergy()
 
 void TrkrHitv2::setAdc(const unsigned int adc)
  {
-   if(adc > USHRT_MAX)
+   if(adc > USHRT_MAX) {
      m_adc = USHRT_MAX;
-   else
+   } else {
      m_adc = (unsigned short) adc;
+}
  }
 
 unsigned int TrkrHitv2::getAdc() { 

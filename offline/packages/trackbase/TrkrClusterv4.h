@@ -144,7 +144,7 @@ class TrkrClusterv4 : public TrkrCluster
 
  protected:
 
-  float m_local[2];          //< 2D local position [cm] 2 * 32 64bit  - cumul 1*64
+  float m_local[2]{};          //< 2D local position [cm] 2 * 32 64bit  - cumul 1*64
   TrkrDefs::subsurfkey m_subsurfkey; //< unique identifier for hitsetkey-surface maps 16 bit
   unsigned short int m_adc;           //< cluster sum adc 16
   char m_phisize; // 8bit

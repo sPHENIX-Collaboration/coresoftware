@@ -94,14 +94,14 @@ class TrkrClusterv2 : public TrkrCluster
 
   TrkrDefs::cluskey m_cluskey;  //< unique identifier within container
   TrkrDefs::subsurfkey m_subsurfkey; //< unique identifier for hitsetkey-surface maps
-  float m_pos[3];               //< mean position x,y,z
+  float m_pos[3]{};               //< mean position x,y,z
   bool m_isGlobal;             //< flag for coord sys (true = global)
   unsigned int m_adc;           //< cluster sum adc (D. McGlinchey - Do we need this?)
-  float m_size[6];              //< size covariance matrix (packed storage) (+/- cm^2)
-  float m_err[6];               //< covariance matrix: rad, arc and z
+  float m_size[6]{};              //< size covariance matrix (packed storage) (+/- cm^2)
+  float m_err[6]{};               //< covariance matrix: rad, arc and z
 
-  float m_local[2];             //< 2D local position [cm]
-  float m_actsLocalErr[2][2];   //< 2D local error for Acts [cm]
+  float m_local[2]{};             //< 2D local position [cm]
+  float m_actsLocalErr[2][2]{};   //< 2D local error for Acts [cm]
 
   ClassDefOverride(TrkrClusterv2, 2)
 };

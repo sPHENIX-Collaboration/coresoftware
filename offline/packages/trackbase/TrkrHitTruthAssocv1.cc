@@ -59,7 +59,7 @@ TrkrHitTruthAssocv1::findOrAddAssoc(const TrkrDefs::hitsetkey hitsetkey, const T
 
   // Does not exist, create it
   const auto assoc = std::make_pair(hitkey, g4hitkey);
-  m_map.insert(hitsetrange.second, std::make_pair(hitsetkey, std::move(assoc)));
+  m_map.insert(hitsetrange.second, std::make_pair(hitsetkey, assoc));
 }
 
 void

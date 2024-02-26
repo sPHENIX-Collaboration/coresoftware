@@ -12,7 +12,7 @@ namespace
 }
 
 TrkrHitSet::ConstIterator
-TrkrHitSet::addHitSpecificKey(const TrkrDefs::hitkey, TrkrHit*)
+TrkrHitSet::addHitSpecificKey(const TrkrDefs::hitkey /*unused*/, TrkrHit* /*unused*/)
 { return dummy_map.cbegin(); }
 
 TrkrHitSet::ConstRange

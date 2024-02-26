@@ -39,7 +39,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
   getNodes(topNode);
 
  // Use construction transforms as a reference for making the map
- if(alignmentTransformationContainer::use_alignment) alignmentTransformationContainer::use_alignment = false;
+ if(alignmentTransformationContainer::use_alignment) { alignmentTransformationContainer::use_alignment = false;
+}
 
  // Define Parsing Variables
  TrkrDefs::hitsetkey hitsetkey = 0;
@@ -210,7 +211,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 }
 
 // currently used as the transform maker
-Acts::Transform3 AlignmentTransformation::newMakeTransform(Surface surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, bool survey)
+Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, bool survey)
 {
   //define null matrices
   Eigen::Vector3d nullTranslation(0,0,0);

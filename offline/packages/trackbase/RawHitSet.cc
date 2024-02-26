@@ -11,13 +11,13 @@ namespace
   RawHitSet::Vector dummy_vector;
 }
 
-void RawHitSet::addHit(RawHit*)
+void RawHitSet::addHit(RawHit* /*unused*/)
 { return; }
 
 //void RawHitSet::addTpcHit(unsigned short, RawHit*)
 //{ return; }
 
-void RawHitSet::setTpcPhiBins(unsigned short)
+void RawHitSet::setTpcPhiBins(unsigned short /*unused*/)
 {// std::cout << "Deprecated settpcphibins " << phibins << std::endl;
  return; }
 

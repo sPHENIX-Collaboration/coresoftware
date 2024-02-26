@@ -27,9 +27,9 @@ TrkrClusterv5::TrkrClusterv5()
   , m_overlap(0)
   , m_edge(0)
 {
-  for (int i = 0; i < 2; i++)
+  for (float & i : m_local)
     {
-      m_local[i] = NAN;
+      i = NAN;
     }
 }
 
@@ -62,7 +62,8 @@ int TrkrClusterv5::isValid() const
 void TrkrClusterv5::CopyFrom( const TrkrCluster& source )
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
+  if( this == &source ) { return;
+}
  
   // parent class method
   TrkrCluster::CopyFrom( source );
