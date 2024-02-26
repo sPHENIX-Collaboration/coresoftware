@@ -13,8 +13,12 @@ namespace
 
 TrkrHitSet::ConstIterator
 TrkrHitSet::addHitSpecificKey(const TrkrDefs::hitkey /*unused*/, TrkrHit* /*unused*/)
-{ return dummy_map.cbegin(); }
+{
+  return dummy_map.cbegin();
+}
 
 TrkrHitSet::ConstRange
 TrkrHitSet::getHits() const
-{ return std::make_pair( dummy_map.cbegin(), dummy_map.cend() ); }
+{
+  return std::make_pair(dummy_map.cbegin(), dummy_map.cend());
+}

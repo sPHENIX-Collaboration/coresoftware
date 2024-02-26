@@ -28,13 +28,15 @@ class CMFlashDifferencev1 : public CMFlashDifference
   void Reset() override {}
   int isValid() const override;
   PHObject* CloneMe() const override { return new CMFlashDifferencev1(*this); }
- 
-  //! copy content from base class
-  void CopyFrom( const CMFlashDifference& ) override;
 
   //! copy content from base class
-  void CopyFrom( CMFlashDifference* source ) override
-  { CopyFrom( *source ); }
+  void CopyFrom(const CMFlashDifference&) override;
+
+  //! copy content from base class
+  void CopyFrom(CMFlashDifference* source) override
+  {
+    CopyFrom(*source);
+  }
 
   void setNclusters(unsigned int n) override { m_nclusters = n; }
   unsigned int getNclusters() const override { return m_nclusters; }
@@ -59,7 +61,6 @@ class CMFlashDifferencev1 : public CMFlashDifference
   float getRecoZ() const override { return m_Z[1]; }
   void setRecoZ(float z) override { m_Z[1] = z; }
 
-
   /*
   float getTruthX() const override { return m_pos_truth[0]; }
   void setTruthX(float x) override { m_pos_truth[0] = x; }
@@ -81,4 +82,4 @@ class CMFlashDifferencev1 : public CMFlashDifference
   ClassDefOverride(CMFlashDifferencev1, 1)
 };
 
-#endif //TRACKBASE_CMFLASHDIFFERENCEV1_H
+#endif  // TRACKBASE_CMFLASHDIFFERENCEV1_H

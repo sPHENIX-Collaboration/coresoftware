@@ -133,12 +133,16 @@ TrackFitUtils::circle_fit_output_t TrackFitUtils::circle_fit_by_taubin(const Tra
   {
     const double Dy = A1 + x * (A22 + A33 * x);
     const double xnew = x - y / Dy;
-    if ((xnew == x) || (!std::isfinite(xnew))) { break;
-}
+    if ((xnew == x) || (!std::isfinite(xnew)))
+    {
+      break;
+    }
 
     const double ynew = A0 + xnew * (A1 + xnew * (A2 + xnew * A3));
-    if (std::abs(ynew) >= std::abs(y)) { break;
-}
+    if (std::abs(ynew) >= std::abs(y))
+    {
+      break;
+    }
 
     x = xnew;
     y = ynew;
@@ -322,8 +326,10 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
           //! use r-z
           x = global.z();
           y = std::sqrt(square(global.x()) + square(global.y()));
-          if (global.y() < 0) { y *= -1;
-}
+          if (global.y() < 0)
+          {
+            y *= -1;
+          }
         }
 
         //! Need to find the point on the line closest to the cluster position

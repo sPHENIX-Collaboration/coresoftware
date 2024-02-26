@@ -10,7 +10,8 @@
 /**
  * A struct for Acts to take cluster information for seeding
  */
-struct SpacePoint {
+struct SpacePoint
+{
   TrkrDefs::cluskey m_clusKey;
   double m_x;
   double m_y;
@@ -19,7 +20,7 @@ struct SpacePoint {
   Acts::GeometryIdentifier m_geoId;
   double m_varianceR;
   double m_varianceZ;
-  
+
   TrkrDefs::cluskey Id() const { return m_clusKey; }
 
   /// These are needed by Acts
@@ -29,11 +30,11 @@ struct SpacePoint {
   double r() const { return m_r; }
   double varianceR() const { return m_varianceR; }
   double varianceZ() const { return m_varianceZ; }
-
 };
 
-/// This is needed by the Acts seedfinder 
-inline bool operator==(SpacePoint a, SpacePoint b) {
+/// This is needed by the Acts seedfinder
+inline bool operator==(SpacePoint a, SpacePoint b)
+{
   return (a.m_clusKey == b.m_clusKey);
 }
 
