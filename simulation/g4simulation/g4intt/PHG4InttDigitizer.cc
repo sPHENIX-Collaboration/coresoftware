@@ -283,7 +283,6 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       double e_vol=(E*pow(10,3)*1.6*pow(10,-19)*pow(10,15)*gain/3.6)+offset;
       double v_dac=para*(e_vol-210.0)/4.0;
 
-/*
       if(v_dac<30) v_dac = 15;
       else if(v_dac<60) v_dac=30;
       else if(v_dac<90) v_dac=60;
@@ -292,7 +291,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       else if(v_dac<180) v_dac=150;
       else if(v_dac<210) v_dac=180;
       else v_dac =210;
-*/
+
       hit->setAdc(v_dac);
 /*
       std::cout<<"Digitizer:: getEnergy = "<<hit->getEnergy()<<std::endl;
