@@ -45,6 +45,7 @@ class TrackResiduals : public SubsysReco
   void trackmapName(const std::string &name) { m_trackMapName = name; }
   void clusterTree() { m_doClusters = true; }
   void hitTree() { m_doHits = true; }
+  void ppmode() { m_ppmode = true;}
   void zeroField() { m_zeroField = true; }
   void runnumber(const int run) { m_runnumber = run; }
   void segment(const int seg) { m_segment = seg; }
@@ -84,7 +85,8 @@ class TrackResiduals : public SubsysReco
   std::string m_trackMapName = "SvtxTrackMap";
 
   bool m_doAlignment = false;
-
+  bool m_ppmode = false;
+  
   int m_event = 0;
   int m_segment = std::numeric_limits<int>::quiet_NaN();
   int m_runnumber = std::numeric_limits<int>::quiet_NaN();

@@ -794,9 +794,14 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
   {
     float rawclusz = convertTimeToZ(geometry, ckey, cluster);
+    
     int crossing = track->get_crossing();
     unsigned int side = TpcDefs::getSide(ckey);
     clusz = m_clusterCrossingCorrection.correctZ(rawclusz, side, crossing);
+    if(!m_ppmode)
+    {
+      cluslz = rawclusz;
+    }
   }
 
   m_cluslz.push_back(clusz);
