@@ -194,7 +194,7 @@ class PHCosmicsFilter : public SubsysReco
   //unsigned int _nlayers_seeding;
   //std::vector<int> _seeding_layer;
 
-  unsigned int _nevent;
+  unsigned int _nevent = 0;
   bool _write_ntp = false;
   bool _create_tracks = false;
   float _max_dist_to_origin = 0;
