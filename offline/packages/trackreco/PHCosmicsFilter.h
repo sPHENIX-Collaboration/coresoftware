@@ -170,7 +170,7 @@ class PHCosmicsFilter : public SubsysReco
    /*static*/ //vector<TrkrCluster*> clusterpoints;
 
   // node pointers
-  TrkrClusterContainer *_cluster_map;
+  TrkrClusterContainer *_cluster_map = nullptr;
   //nodes to get norm vector
   SvtxHitMap* _svtxhitsmap;
   int* _hit_used_map;
