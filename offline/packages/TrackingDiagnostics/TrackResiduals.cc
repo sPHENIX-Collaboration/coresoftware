@@ -800,7 +800,7 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     clusz = m_clusterCrossingCorrection.correctZ(rawclusz, side, crossing);
     if(!m_ppmode)
     {
-      cluslz = rawclusz;
+      clusz = rawclusz;
     }
   }
 
