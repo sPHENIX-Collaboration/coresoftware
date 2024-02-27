@@ -13,38 +13,39 @@ class TpcDistortionCorrectionContainer;
 
 class TpcDistortionCorrection
 {
-  public:
-  
+ public:
   //! constructor
   TpcDistortionCorrection() = default;
 
   enum DistortionType
   {
-    StaticOnly=0,
-    BeamInducedAverage=1,
-    BeamInducedFluctuation=2
+    StaticOnly = 0,
+    BeamInducedAverage = 1,
+    BeamInducedFluctuation = 2
   };
-  
+
   enum CoordMask
   {
-    COORD_PHI = 1<<0,
-    COORD_R = 1<<1,
-    COORD_Z = 1<<2,
-    COORD_PHIZ = COORD_PHI|COORD_Z,
-    COORD_ALL = COORD_PHI|COORD_R|COORD_Z
+    COORD_PHI = 1 << 0,
+    COORD_R = 1 << 1,
+    COORD_Z = 1 << 2,
+    COORD_PHIZ = COORD_PHI | COORD_Z,
+    COORD_ALL = COORD_PHI | COORD_R | COORD_Z
   };
-  
-  //! get cluster corrected 3D position using given DistortionCorrectionObject
- Acts::Vector3 get_corrected_position( const Acts::Vector3&, const TpcDistortionCorrectionContainer*, 
-					unsigned int mask = COORD_ALL ) const;
 
- //! set the phi histogram to be interpreted as radians.
- void read_phi_as_radians(bool flag=true){
-  m_phi_hist_in_radians=flag;
-  return;
-}
+  //! get cluster corrected 3D position using given DistortionCorrectionObject
+  Acts::Vector3 get_corrected_position(const Acts::Vector3&, const TpcDistortionCorrectionContainer*,
+                                       unsigned int mask = COORD_ALL) const;
+
+  //! set the phi histogram to be interpreted as radians.
+  void read_phi_as_radians(bool flag = true)
+  {
+    m_phi_hist_in_radians = flag;
+    return;
+  }
+
  private:
- bool m_phi_hist_in_radians=true;
+  bool m_phi_hist_in_radians = true;
 };
 
 #endif

@@ -17,9 +17,9 @@ class CDBTTree;
 class CDBInterface;
 class PHCompositeNode;
 class Fun4AllHistoManager;
-//class TrkrHitSetContainer;
-//class TrkrHitSet;
-//class TrkrHit;
+// class TrkrHitSetContainer;
+// class TrkrHitSet;
+// class TrkrHit;
 class TH2;
 class TH3;
 class TNtuple;
@@ -46,34 +46,34 @@ class TpcRawDataDecoder : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
 
   /// Clean up internals after each event.
-  //int ResetEvent(PHCompositeNode *topNode) override;
+  // int ResetEvent(PHCompositeNode *topNode) override;
 
   /// Called at the end of each run.
-  //int EndRun(const int runnumber) override;
+  // int EndRun(const int runnumber) override;
 
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
 
   /// Reset
-  //int Reset(PHCompositeNode * /*topNode*/) override;
+  // int Reset(PHCompositeNode * /*topNode*/) override;
 
-  //void Print(const std::string &what = "ALL") const override;
-  //void setHistoFileName(const std::string &what = "./outputfile.root");
+  // void Print(const std::string &what = "ALL") const override;
+  // void setHistoFileName(const std::string &what = "./outputfile.root");
 
  protected:
-   Fun4AllHistoManager *hm = nullptr;
-   std::string _filename;
+  Fun4AllHistoManager *hm = nullptr;
+  std::string _filename;
 
   static const int layercount = 16;
   static const int layeroffset = 7 + 16;
   int _ievent = 0;
-  //TrkrHitSetContainer *m_hits = nullptr;
-  //TrkrHitSet *m_hitset;
-  //TrkrHit *m_hit = nullptr;
+  // TrkrHitSetContainer *m_hits = nullptr;
+  // TrkrHitSet *m_hitset;
+  // TrkrHit *m_hit = nullptr;
 
   // RawHitSetContainer *m_rawhits __attribute__ ((unused)) = nullptr;
 
-  //TpcMap M;
+  // TpcMap M;
   TNtuple *h_Alive = nullptr;
   CDBTTree *m_cdbttree = nullptr;
   CDBInterface *m_cdb = nullptr;
@@ -88,19 +88,18 @@ class TpcRawDataDecoder : public SubsysReco
     unsigned int SEC_ID;
   };
 
-  //std::map<unsigned int, struct ped_tpc_map> tmap;  
+  // std::map<unsigned int, struct ped_tpc_map> tmap;
 
   int starting_BCO;
   int rollover_value;
   int current_BCOBIN;
 
-  private:
-    int m_Debug = 0;
-    //TH3*   _h_hit_XYT = nullptr;
-    //TH3*   _h_hit_PT_ADCcut = nullptr;
-    TH2*   _h_hit_XY = nullptr;
-    TH2*   _h_hit_XY_ADCcut = nullptr;
-
+ private:
+  int m_Debug = 0;
+  // TH3*   _h_hit_XYT = nullptr;
+  // TH3*   _h_hit_PT_ADCcut = nullptr;
+  TH2 *_h_hit_XY = nullptr;
+  TH2 *_h_hit_XY_ADCcut = nullptr;
 };
 
 #endif  // TPC_RAWDATADECODER_H
