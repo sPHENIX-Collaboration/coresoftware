@@ -267,7 +267,7 @@ void PHCosmicsFilter::get_stub(const bgi::rtree<pointKey, bgi::quadratic<16>> &r
   double ysum = 0;
   double xysum = 0;
   if(nbox>=2){
-    for(vector<pointKey>::iterator pbox = boxclusters.begin();pbox!=boxclusters.end();pbox++){
+    for(vector<pointKey>::iterator pbox = boxclusters.begin();pbox!=boxclusters.end();++pbox){
       float boxx = pbox->first.get<0>();
       float boxy = pbox->first.get<1>();
       //      std::cout << "fprobe: " << count << " x:"  << boxx << " y: " << boxy << std::endl;
@@ -353,7 +353,7 @@ int PHCosmicsFilter::process_event(PHCompositeNode*)
 
   bgi::rtree<pointKey, bgi::quadratic<16> > rtree_stub;
 
-  for(vector<pointKey>::iterator cluster = allclusters.begin();cluster!=allclusters.end();cluster++){
+  for(vector<pointKey>::iterator cluster = allclusters.begin();cluster!=allclusters.end();++cluster){
     float pointx = cluster->first.get<0>();
     float pointy = cluster->first.get<1>();
     int fcount = 0;
@@ -386,7 +386,7 @@ int PHCosmicsFilter::process_event(PHCompositeNode*)
 
     float int_width = (intmax - intmin)/20;
     float sl_width = (slmax - slmin)/20;
-    for(vector<pointKey>::iterator stub = allstubs.begin();stub!=allstubs.end();stub++){
+    for(vector<pointKey>::iterator stub = allstubs.begin();stub!=allstubs.end();++stub){
       float pint = stub->first.get<0>();
       float psl = stub->first.get<1>();
       vector<pointKey> trkcand;
@@ -398,7 +398,7 @@ int PHCosmicsFilter::process_event(PHCompositeNode*)
       float intsum = 0;
       float slsum = 0;
       if(ntrk>=5){
-	for(vector<pointKey>::iterator ptrk = trkcand.begin();ptrk!=trkcand.end();ptrk++){
+	for(vector<pointKey>::iterator ptrk = trkcand.begin();ptrk!=trkcand.end();++ptrk){
 	  float trkint = ptrk->first.get<0>();
 	  float trksl = ptrk->first.get<1>();
 	  if(Verbosity()>0) cout<< "    stub " << ntrk
@@ -435,7 +435,7 @@ int PHCosmicsFilter::process_event(PHCompositeNode*)
       float rmsl = trkmap.rbegin()->second.second;
       vector<pointKey> rmcand;
       rtree_stub.query(bgi::intersects(box(point(rmint-int_width,rmsl-sl_width,-1),point(rmint+int_width,rmsl+sl_width,1))),std::back_inserter(rmcand));
-      for(vector<pointKey>::iterator rmstub = rmcand.begin();rmstub!=rmcand.end();rmstub++){
+      for(vector<pointKey>::iterator rmstub = rmcand.begin();rmstub!=rmcand.end();++rmstub){
 	float rmpint = rmstub->first.get<0>();
 	float rmpsl = rmstub->first.get<1>();
 	if(Verbosity()>0) cout<< "    rm " <<  " int: " << rmpint 
@@ -534,7 +534,7 @@ int PHCosmicsFilter::process_event(PHCompositeNode*)
 	continue;
       }
     }
-    for(vector<pointKey>::iterator clustertrk = lineclusters.begin();clustertrk!=lineclusters.end();clustertrk++){
+    for(vector<pointKey>::iterator clustertrk = lineclusters.begin();clustertrk!=lineclusters.end();++clustertrk){
       
       float ptx = clustertrk->first.get<0>();
       float pty = clustertrk->first.get<1>();
