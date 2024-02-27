@@ -176,12 +176,6 @@ class PHCosmicsFilter : public SubsysReco
   int* _hit_used_map;
   int _hit_used_map_size;
 
-
-  //seed searching parameters
-  double phisr,etasr,phist,etast,phixt,etaxt;
-
-  double outermostlayerradius; 
-  std::vector<float> _radii_all;
   double phiadd(double phi1, double phi2);
   double phidiff(double phi1, double phi2);
   double pointKeyToTuple(pointKey *pK);
