@@ -175,6 +175,8 @@ class TrackResiduals : public SubsysReco
   std::vector<float> m_clusgz;
   std::vector<int> m_cluslayer;
   std::vector<int> m_clussize;
+  std::vector<int> m_clusphisize;
+  std::vector<int> m_cluszsize;
   std::vector<int> m_clusedge;
   std::vector<int> m_clusoverlap;
   std::vector<uint32_t> m_clushitsetkey;

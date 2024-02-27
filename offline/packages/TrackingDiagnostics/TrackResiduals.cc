@@ -99,6 +99,8 @@ int TrackResiduals::InitRun(PHCompositeNode*)
 void TrackResiduals::clearClusterStateVectors()
 {
   m_cluskeys.clear();
+  m_clusphisize.clear();
+  m_cluszsize.clear();
   m_idealsurfcenterx.clear();
   m_idealsurfcentery.clear();
   m_idealsurfcenterz.clear();
@@ -809,7 +811,9 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   m_clusgy.push_back(clusglob.y());
   m_clusgz.push_back(clusglob.z());
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
-  m_clussize.push_back(cluster->getPhiSize() + cluster->getZSize());
+  m_clusphisize.push_back(cluster->getPhiSize());
+  m_cluszsize.push_back(cluster->getZSize());
+  m_clussize.push_back(cluster->getPhiSize() * cluster->getZSize());
   m_clushitsetkey.push_back(TrkrDefs::getHitSetKeyFromClusKey(ckey));
 
   if (Verbosity() > 1)
@@ -1160,6 +1164,8 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgz", &m_clusgz);
   m_tree->Branch("cluslayer", &m_cluslayer);
   m_tree->Branch("clussize", &m_clussize);
+  m_tree->Branch("clusphisize",&m_clusphisize);
+  m_tree->Branch("cluszsize",&m_cluszsize);
   m_tree->Branch("clushitsetkey", &m_clushitsetkey);
   m_tree->Branch("idealsurfcenterx", &m_idealsurfcenterx);
   m_tree->Branch("idealsurfcentery", &m_idealsurfcentery);
