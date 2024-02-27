@@ -297,10 +297,10 @@ int PHCosmicsFilter::process_event(PHCompositeNode*)
   int nclu_lay[60];
   for(int i = 0; i<60;i++)
     nclu_lay[i] = 0;
-  float slmin =  99999999999;
-  float slmax = -99999999999;
-  float intmin = 99999999999;
-  float intmax =-99999999999;
+  float slmin =  99999999999.9;
+  float slmax = -99999999999.9;
+  float intmin = 99999999999.9;
+  float intmax =-99999999999.9;
   int num = 0;
   //  for(const auto& hitsetkey:_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId)){
   if(_cluster_map->size()<_min_nclusters){
