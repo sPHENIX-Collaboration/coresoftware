@@ -194,9 +194,6 @@ class PHCosmicsFilter : public SubsysReco
   //unsigned int _nlayers_seeding;
   //std::vector<int> _seeding_layer;
 
-  unsigned int _nlayers_maps;
-  unsigned int _nlayers_intt;
-  unsigned int _nlayers_tpc;
   unsigned int _nevent;
   bool _write_ntp = false;
   bool _create_tracks = false;
