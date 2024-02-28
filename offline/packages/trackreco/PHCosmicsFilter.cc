@@ -324,7 +324,7 @@ int PHCosmicsFilter::process_event(PHCompositeNode* topNode)
     for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
       TrkrDefs::cluskey ckey = clusIter->first;
       TrkrCluster *cluster = clusIter->second;
-      unsigned int layer = TrkrDefs::getLayer(ckey);
+      //      unsigned int layer = TrkrDefs::getLayer(ckey);
       /* if (layer < 7 || layer >= 55){
 	if(Verbosity()>0) std::cout << "layer: " << layer << std::endl;
 	continue;
