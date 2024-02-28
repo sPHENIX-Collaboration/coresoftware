@@ -172,9 +172,6 @@ class PHCosmicsFilter : public SubsysReco
   // node pointers
   TrkrClusterContainer *_cluster_map = nullptr;
   //nodes to get norm vector
-  SvtxHitMap* _svtxhitsmap;
-  int* _hit_used_map;
-  int _hit_used_map_size;
 
   double phiadd(double phi1, double phi2);
   double phidiff(double phi1, double phi2);

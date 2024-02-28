@@ -111,15 +111,18 @@ class TFile;
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/index/rtree.hpp>
 
-typedef bg::model::point<float, 3, bg::cs::cartesian> point;
-typedef bg::model::box<point> box;
-typedef std::pair<point, TrkrDefs::cluskey> pointKey;
+using point = bg::model::point<float, 3, bg::cs::cartesian>;
+//typedef bg::model::point<float, 3, bg::cs::cartesian> point;
+using box = bg::model::box<point>;
+//typedef bg::model::box<point> box;
+using pointKey = std::pair<point, TrkrDefs::cluskey>;
+//typedef std::pair<point, TrkrDefs::cluskey> pointKey;
 
 
 // standard includes
 #include <TH1.h>
-#include <stdio.h>      /* printf */
-#include <math.h>       /* copysign */
+//#include <stdio.h>      /* printf */
+//#include <cmath.h>       /* copysign */
 #include <algorithm>
 #include <climits>                                     // for UINT_MAX
 #include <cmath>
@@ -137,8 +140,8 @@ typedef std::pair<point, TrkrDefs::cluskey> pointKey;
 
 using namespace std;
 //using namespace ROOT::Minuit2;
-namespace bg = boost::geometry;
-namespace bgi = boost::geometry::index;
+//namespace bg = boost::geometry;
+//namespace bgi = boost::geometry::index;
 
 //typedef uint64_t cluskey;
 
@@ -170,8 +173,13 @@ int PHCosmicsFilter::GetNodes(PHCompositeNode* topNode)
 }
 
 //____________________________________________________________________________..
-int PHCosmicsFilter::Init(PHCompositeNode*)
+int PHCosmicsFilter::Init(PHCompositeNode* topNode)
 {
+  if(topNode==nullptr){
+    std::cout << PHWHERE << "No topNode, bailing."
+	      << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
   _nevent = 0;
   if(_write_ntp){
   _tfile = new TFile("./costuple.root", "RECREATE");
@@ -232,17 +240,17 @@ int PHCosmicsFilter::createNodes(PHCompositeNode* topNode)
 
 double PHCosmicsFilter::phiadd(double phi1, double phi2){
   double s = phi1+phi2;
-  if(s>2*M_PI) return s-2*M_PI;
-  else if(s<0) return s+2*M_PI;
-  else return s;
+  if(s>2*M_PI) {return s-2*M_PI;}
+  else if(s<0) {return s+2*M_PI;}
+  else {return s;}
 }
 
 
 double PHCosmicsFilter::phidiff(double phi1, double phi2){
   double d = phi1-phi2;
-  if(d>M_PI) return d-2*M_PI;
-  else if(d<-M_PI) return d+2*M_PI;
-  else return d;
+  if(d>M_PI) {return d-2*M_PI;}
+  else if(d<-M_PI) {return d+2*M_PI;}
+  else {return d;}
 }
 
 
@@ -252,11 +260,11 @@ void PHCosmicsFilter::wquery(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtr
   if(phimax>2*M_PI) rtree.query(bgi::intersects(box(point(0,etamin,lmin),point(phimax-2*M_PI,etamax,lmax))),std::back_inserter(returned_values));
 }
 
-void PHCosmicsFilter::get_stub(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, float pointx, float pointy, int &count, double &slope, double &intercept){
+void PHCosmicsFilter::get_stub(const bgi::rtree<pointKey, bgi::quadratic<16>> &search_rtree, float pointx, float pointy, int &count, double &slope, double &intercept){
   float m1_dx = 4;
   float m1_dy = 4;
   vector<pointKey> boxclusters;
-  rtree.query(bgi::intersects(box(point(pointx-m1_dx,pointy-m1_dy,-1),
+  search_rtree.query(bgi::intersects(box(point(pointx-m1_dx,pointy-m1_dy,-1),
 				  point(pointx+m1_dx,pointy+m1_dy,1))),std::back_inserter(boxclusters));
   
   int nbox = boxclusters.size();
@@ -287,16 +295,19 @@ void PHCosmicsFilter::get_stub(const bgi::rtree<pointKey, bgi::quadratic<16>> &r
   count = nhit;
 }
 
-int PHCosmicsFilter::process_event(PHCompositeNode*)
+int PHCosmicsFilter::process_event(PHCompositeNode* topNode)
 {
-
+  if(topNode==nullptr){
+    std::cout << PHWHERE << "No topNode, bailing."
+	      << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+    
   _nevent++;
   std::vector<TrackSeed_v1> clean_chains;
   //Fill rtree
   bgi::rtree<pointKey, bgi::quadratic<16> > rtree;
-  int nclu_lay[60];
-  for(int i = 0; i<60;i++)
-    nclu_lay[i] = 0;
+
   float slmin =  99999999999.9;
   float slmax = -99999999999.9;
   float intmin = 99999999999.9;
@@ -318,7 +329,6 @@ int PHCosmicsFilter::process_event(PHCompositeNode*)
 	if(Verbosity()>0) std::cout << "layer: " << layer << std::endl;
 	continue;
 	}*/
-      nclu_lay[layer]++;
       // get global position, convert to Acts::Vector3 and store in map
       const Acts::Vector3 globalpos_d =  tGeometry->getGlobalPosition(ckey, cluster);
       
@@ -456,7 +466,7 @@ int PHCosmicsFilter::process_event(PHCompositeNode*)
 	  */
       }
       int size_after = rtree_stub.size();
-      if(size_before == size_after) break;
+      if(size_before == size_after) {break;}
       outtrkmap[nout++] = std::make_pair(rmint,rmsl);
       cout << " tree sixe after remove: " << rtree_stub.size() << endl;
     }else{
@@ -572,7 +582,9 @@ int PHCosmicsFilter::process_event(PHCompositeNode*)
   }
   
   cout << "number of seeds is " << numberofseeds << endl;
-  if(_write_ntp)_ntp_max->Fill(_nevent,intmin,intmax,slmin,slmax);
+  if(_write_ntp){
+    _ntp_max->Fill(_nevent,intmin,intmax,slmin,slmax);
+  }
   if(!keep_event){
     cout << " ABORT !keep " << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -592,8 +604,14 @@ int PHCosmicsFilter::Setup(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHCosmicsFilter::End(PHCompositeNode*)
+int PHCosmicsFilter::End(PHCompositeNode* topNode)
 {
+  if(topNode==nullptr){
+    std::cout << PHWHERE << "No topNode, bailing."
+	      << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+    
   if(_write_ntp){
     _tfile->cd();
     _ntp_cos->Write();
