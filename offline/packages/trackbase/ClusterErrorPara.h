@@ -3,25 +3,25 @@
 
 #include "TrkrDefs.h"
 
+#include <TF1.h>
+#include <trackbase/TrkrClusterv5.h>
+#include <string>
 #include <tuple>
 #include <utility>
 #include <vector>
-#include <string>
-#include <TF1.h>
-#include <trackbase/TrkrClusterv5.h>
-//class TF1;
+// class TF1;
 class TrkrCluster;
 
 class ClusterErrorPara
 {
-
-  public:
+ public:
   ClusterErrorPara();
- // delete copy ctor and assignment operator (cppcheck)
-  explicit ClusterErrorPara(const ClusterErrorPara&) = delete;
-  ClusterErrorPara& operator=(const ClusterErrorPara&) = delete;
+  // delete copy ctor and assignment operator (cppcheck)
+  explicit ClusterErrorPara(const ClusterErrorPara &) = delete;
+  ClusterErrorPara &operator=(const ClusterErrorPara &) = delete;
 
-  ~ClusterErrorPara(){
+  ~ClusterErrorPara()
+  {
     delete f0;
     delete f1;
     delete f2;
@@ -52,30 +52,30 @@ class ClusterErrorPara
     delete fadcz1fine;
     delete fadcz2fine;
   };
-  
+
   using error_t = std::pair<double, double>;
 
-  error_t get_clusterv5_modified_error(TrkrCluster* cluster, double cluster_r, TrkrDefs::cluskey key);
-  error_t get_cluster_error(TrkrCluster* cluster, double cluster_r, TrkrDefs::cluskey key, float qOverR, float slope);
-  error_t get_cluster_error(TrkrCluster* cluster,  TrkrDefs::cluskey key, double alpha, double beta);
+  error_t get_clusterv5_modified_error(TrkrCluster *cluster, double cluster_r, TrkrDefs::cluskey key);
+  error_t get_cluster_error(TrkrCluster *cluster, double cluster_r, TrkrDefs::cluskey key, float qOverR, float slope);
+  error_t get_cluster_error(TrkrCluster *cluster, TrkrDefs::cluskey key, double alpha, double beta);
 
-  error_t get_simple_cluster_error(TrkrCluster* cluster, double cluster_r, TrkrDefs::cluskey key);
-  error_t get_fix_tpc_cluster_error(TrkrCluster* cluster, TrkrDefs::cluskey key);
-  error_t get_si_cluster_error(const TrkrCluster* cluster, TrkrDefs::cluskey key);
-  double mm_phi_error(int layer, double alpha, TrkrCluster* cluster);
-  double mm_z_error(int layer, double beta, TrkrCluster* cluster);
-  double mvtx_phi_error(TrkrCluster* cluster);
-  double mvtx_phi_error(const TrkrCluster* cluster);
-  double mvtx_z_error(TrkrCluster* cluster);
-  double mvtx_z_error(const TrkrCluster* cluster);
-  double intt_phi_error(int layer, TrkrCluster* cluster);
-  double intt_z_error(TrkrCluster* cluster);
-  double intt_phi_error(int layer, const TrkrCluster* cluster);
-  double intt_z_error(const TrkrCluster* cluster);
-  double tpc_phi_error(int layer, double alpha, TrkrCluster* cluster);
-  double tpc_z_error(int layer, double beta, TrkrCluster* cluster);
+  error_t get_simple_cluster_error(TrkrCluster *cluster, double cluster_r, TrkrDefs::cluskey key);
+  error_t get_fix_tpc_cluster_error(TrkrCluster *cluster, TrkrDefs::cluskey key);
+  error_t get_si_cluster_error(const TrkrCluster *cluster, TrkrDefs::cluskey key);
+  double mm_phi_error(int layer, double alpha, TrkrCluster *cluster);
+  double mm_z_error(int layer, double beta, TrkrCluster *cluster);
+  double mvtx_phi_error(TrkrCluster *cluster);
+  double mvtx_phi_error(const TrkrCluster *cluster);
+  double mvtx_z_error(TrkrCluster *cluster);
+  double mvtx_z_error(const TrkrCluster *cluster);
+  double intt_phi_error(int layer, TrkrCluster *cluster);
+  double intt_z_error(TrkrCluster *cluster);
+  double intt_phi_error(int layer, const TrkrCluster *cluster);
+  double intt_z_error(const TrkrCluster *cluster);
+  double tpc_phi_error(int layer, double alpha, TrkrCluster *cluster);
+  double tpc_z_error(int layer, double beta, TrkrCluster *cluster);
+
  private:
-
   TF1 *f0 = nullptr;
   TF1 *f1 = nullptr;
   TF1 *f2 = nullptr;
@@ -130,9 +130,9 @@ class ClusterErrorPara
   double scale_tpc_2_z = 1.04;
   */
   double scale_mm_0 = 1.1;
-  double scale_mm_1 = 1.5; 
-  double pull_fine_phi[60];
-  double pull_fine_z[60];
+  double scale_mm_1 = 1.5;
+  double pull_fine_phi[60]{};
+  double pull_fine_z[60]{};
 };
 
 #endif

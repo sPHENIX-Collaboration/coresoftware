@@ -16,11 +16,9 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
-#include <iostream>              // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>               // for pair
-
-
+#include <utility>  // for pair
 
 /**
  * @brief Container class for Alignment transformations
@@ -29,16 +27,14 @@
  */
 class alignmentTransformationContainer : public Acts::GeometryContext
 {
-  
-  public:
-
+ public:
   alignmentTransformationContainer();
 
-  virtual ~alignmentTransformationContainer(){}
+  virtual ~alignmentTransformationContainer() {}
 
-  void Reset(); 
-  void identify(std::ostream &os = std::cout);  
-  void addTransform(Acts::GeometryIdentifier, Acts::Transform3); 
+  void Reset();
+  void identify(std::ostream& os = std::cout);
+  void addTransform(Acts::GeometryIdentifier, const Acts::Transform3&);
   Acts::Transform3& getTransform(Acts::GeometryIdentifier id);
   void replaceTransform(const Acts::GeometryIdentifier id, Acts::Transform3 transform);
   const std::vector<std::vector<Acts::Transform3>>& getMap() const;
@@ -46,19 +42,17 @@ class alignmentTransformationContainer : public Acts::GeometryContext
   const double& getMisalignmentFactor(uint8_t layer) const { return m_misalignmentFactor.find(layer)->second; }
   static bool use_alignment;
 
-  private:
-
+ private:
   unsigned int getsphlayer(Acts::GeometryIdentifier);
-  
-  std::map<unsigned int, unsigned int> base_layer_map = { {10, 0}, {12,3}, {14,7}, {16,55} };
 
-  std::vector< std::vector<Acts::Transform3>> transformVec;
+  std::map<unsigned int, unsigned int> base_layer_map = {{10, 0}, {12, 3}, {14, 7}, {16, 55}};
+
+  std::vector<std::vector<Acts::Transform3>> transformVec;
 
   /// Map of TrkrDefs::Layer to misalignment factor
   std::map<uint8_t, double> m_misalignmentFactor;
 
-  ClassDef(alignmentTransformationContainer,1);
-
+  ClassDef(alignmentTransformationContainer, 1);
 };
 
-#endif //TRACKBASE_ALIGNMENTTRANSFORMATIONCONTAINER_H
+#endif  // TRACKBASE_ALIGNMENTTRANSFORMATIONCONTAINER_H

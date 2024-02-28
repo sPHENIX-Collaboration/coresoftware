@@ -12,17 +12,17 @@ struct ActsAborter
   unsigned int abortvolume = std::numeric_limits<unsigned int>::max();
 
   template <typename propagator_state_t, typename stepper_t,
-    typename navigator_t>
-    bool operator()(propagator_state_t& state, const stepper_t& /*stepper*/,
-		    const navigator_t& navigator, const Acts::Logger&/*logger*/) const
+            typename navigator_t>
+  bool operator()(propagator_state_t& state, const stepper_t& /*stepper*/,
+                  const navigator_t& navigator, const Acts::Logger& /*logger*/) const
   {
     if (navigator.targetReached(state.navigation))
     {
       return true;
     }
 
-    //if (!state.navigation.currentSurface)
-    if(!navigator.currentSurface(state.navigation))
+    // if (!state.navigation.currentSurface)
+    if (!navigator.currentSurface(state.navigation))
     {
       return false;
     }

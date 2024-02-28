@@ -7,7 +7,7 @@
 #include "CMFlashClusterv1.h"
 
 #include <cmath>
-#include <utility>          // for swap
+#include <utility>  // for swap
 
 void CMFlashClusterv1::identify(std::ostream& os) const
 {
@@ -27,27 +27,40 @@ void CMFlashClusterv1::identify(std::ostream& os) const
 
 int CMFlashClusterv1::isValid() const
 {
-  if(std::isnan(getX())) return 0;
-  if(std::isnan(getY())) return 0;
-  if(std::isnan(getZ())) return 0;
+  if (std::isnan(getX()))
+  {
+    return 0;
+  }
+  if (std::isnan(getY()))
+  {
+    return 0;
+  }
+  if (std::isnan(getZ()))
+  {
+    return 0;
+  }
 
-  if (m_adc == 0xFFFFFFFF) return 0;
+  if (m_adc == 0xFFFFFFFF)
+  {
+    return 0;
+  }
 
   return 1;
 }
 
-void CMFlashClusterv1::CopyFrom( const CMFlashCluster& source )
+void CMFlashClusterv1::CopyFrom(const CMFlashCluster& source)
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
- 
+  if (this == &source)
+  {
+    return;
+  }
+
   // parent class method
-  CMFlashCluster::CopyFrom( source );
+  CMFlashCluster::CopyFrom(source);
 
-  setX( source.getX() );
-  setY( source.getY() );
-  setZ( source.getZ() );
-  setAdc( source.getAdc() );
-
+  setX(source.getX());
+  setY(source.getY());
+  setZ(source.getZ());
+  setAdc(source.getAdc());
 }
-
