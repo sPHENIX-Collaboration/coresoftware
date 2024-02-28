@@ -153,9 +153,11 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
       Acts::Vector3 check_before_pos_surf = this_surf->localToGlobal( temp_transient_geocontext,
 				  check_local2d,
 				  Acts::Vector3(1,1,1));
+      if(m_verbosity > 2)
+	{ 
       std::cout << "Check global from transient transform BEFORE via surface method " << check_before_pos_surf(0)/10.0 << "  " 
 		<< "  " << check_before_pos_surf(1)/10.0 << "  " << check_before_pos_surf(2)/10.0 << std::endl;
-
+	}
       // replace the the default alignment transform with the corrected one
       auto ctxt = tGeometry->geometry().getGeoContext();
       alignmentTransformationContainer* transformMap = ctxt.get<alignmentTransformationContainer*>();
@@ -166,9 +168,11 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
       Acts::Vector3 check_after_pos_surf = this_surf->localToGlobal( temp_transient_geocontext,
 				  check_local2d,
 				  Acts::Vector3(1,1,1));
+      if(m_verbosity > 2)
+	{
       std::cout << "Check global from transient transform AFTER via surface method " << check_after_pos_surf(0)/10.0 << "  " 
 		<< "  " << check_after_pos_surf(1)/10.0 << "  " << check_after_pos_surf(2)/10.0 << std::endl;
-
+	}
       //      std::cout << " Print ideal transform matrix from surface object: " << std::endl
       //	<< surf->transform(tGeometry->geometry().getGeoContext()).matrix() << std::endl;
       //      std::cout << " Print transient transform matrix from surface object: " << std::endl
