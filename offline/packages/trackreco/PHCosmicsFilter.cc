@@ -118,6 +118,7 @@ using box = bg::model::box<point>;
 using pointKey = std::pair<point, TrkrDefs::cluskey>;
 //typedef std::pair<point, TrkrDefs::cluskey> pointKey;
 
+using myrtree = bgi::rtree<pointKey, bgi::quadratic<16>>;
 
 // standard includes
 #include <TH1.h>
@@ -253,14 +254,7 @@ double PHCosmicsFilter::phidiff(double phi1, double phi2){
   else {return d;}
 }
 
-
-void PHCosmicsFilter::wquery(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax,std::vector<pointKey> &returned_values){
-  rtree.query(bgi::intersects(box(point(phimin,etamin,lmin),point(phimax,etamax,lmax))),std::back_inserter(returned_values));
-  if(phimin<0) rtree.query(bgi::intersects(box(point(2*M_PI+phimin,etamin,lmin),point(2*M_PI,etamax,lmax))),std::back_inserter(returned_values));
-  if(phimax>2*M_PI) rtree.query(bgi::intersects(box(point(0,etamin,lmin),point(phimax-2*M_PI,etamax,lmax))),std::back_inserter(returned_values));
-}
-
-void PHCosmicsFilter::get_stub(const bgi::rtree<pointKey, bgi::quadratic<16>> &search_rtree, float pointx, float pointy, int &count, double &slope, double &intercept){
+void PHCosmicsFilter::get_stub(const myrtree &search_rtree, float pointx, float pointy, int &count, double &slope, double &intercept){ //NOLINT
   float m1_dx = 4;
   float m1_dy = 4;
   vector<pointKey> boxclusters;

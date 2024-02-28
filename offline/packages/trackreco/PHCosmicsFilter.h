@@ -178,7 +178,6 @@ class PHCosmicsFilter : public SubsysReco
   double pointKeyToTuple(pointKey *pK);
   double costfunction(const double *xx);
   //double chisq(const double *xx);
-  void wquery(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax,std::vector<pointKey> &returned_values);
   void get_stub(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, float pointx, float pointy, int &count, double &slope, double &intercept);
   ActsGeometry *tGeometry{nullptr};
 #ifndef __CINT__
