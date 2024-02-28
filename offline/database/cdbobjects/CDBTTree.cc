@@ -481,7 +481,19 @@ void CDBTTree::LoadCalibrations()
 {
   std::string currdir = gDirectory->GetPath();
 
+  if (m_Filename.empty())
+  {
+    std::cout << "CDBTTree::LoadCalibrations" << std::endl;
+    std::cout << "\tNo path associated with this CDBTTree" << std::endl;
+    return;
+  }
   TFile *f = TFile::Open(m_Filename.c_str());
+  if (!f)
+  {
+    std::cout << "CDBTTree::LoadCalibrations" << std::endl;
+    std::cout << "\tCould not open file " << m_Filename << std::endl;
+    return;
+  }
   f->GetObject(m_TTreeName[SingleEntries].c_str(), m_TTree[SingleEntries]);
   f->GetObject(m_TTreeName[MultipleEntries].c_str(), m_TTree[MultipleEntries]);
   if (m_TTree[SingleEntries] != nullptr)
