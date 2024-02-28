@@ -843,9 +843,8 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
             if (Verbosity() >= VERBOSITY_MAX)
             {
               std::cout << "pT = " << myFourVector.perp() << ", eta = " << myFourVector.eta() << std::endl;
-              std::string ptPass = trackFailedPT ? "passed" : "failed";
-              std::string etaPass = trackFailedETA ? "passed" : "failed";
-              std::cout << "The track " << ptPass << " the pT requirement, the track " << etaPass << " the eta requirement." << std::endl;
+              std::cout << "The track " << passOrFail(myFourVector.perp() >= m_pt_req) << " the pT requirement, ";
+              std::cout << "the track " << passOrFail(isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req)) << " the eta requirement." << std::endl;
             }
           }
         }
@@ -885,9 +884,8 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
         if (Verbosity() >= VERBOSITY_MAX)
         {
           std::cout << "pT = " << myFourVector.perp() << ", eta = " << myFourVector.eta() << std::endl;
-          std::string ptPass = trackFailedPT ? "passed" : "failed";
-          std::string etaPass = trackFailedETA ? "passed" : "failed";
-          std::cout << "The track " << ptPass << " the pT requirement, the track " << etaPass << " the eta requirement." << std::endl;
+          std::cout << "The track " << passOrFail(myFourVector.perp() >= m_pt_req) << " the pT requirement, ";
+          std::cout << "the track " << passOrFail(isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req)) << " the eta requirement." << std::endl;
         }
       }
     }
@@ -925,9 +923,8 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
     if (Verbosity() >= VERBOSITY_MAX)
     {
       std::cout << "pT = " << myFourVector.perp() << ", eta = " << myFourVector.eta() << std::endl;
-      std::string ptPass = trackFailedPT ? "passed" : "failed";
-      std::string etaPass = trackFailedETA ? "passed" : "failed";
-      std::cout << "The track " << ptPass << " the pT requirement, the track " << etaPass << " the eta requirement." << std::endl;
+      std::cout << "The track " << passOrFail(myFourVector.perp() >= m_pt_req) << " the pT requirement, ";
+      std::cout << "the track " << passOrFail(isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req)) << " the eta requirement." << std::endl;
     }
     acceptParticle = true;
   }
@@ -1021,9 +1018,8 @@ bool DecayFinder::checkIfCorrectGeant4Particle(PHG4Particle* particle, bool& has
     if (Verbosity() >= VERBOSITY_MAX)
     {
       std::cout << "pT = " << pt << ", eta = " << eta << std::endl;
-      std::string ptPass = trackFailedPT ? "passed" : "failed";
-      std::string etaPass = trackFailedETA ? "passed" : "failed";
-      std::cout << "The track " << ptPass << " the pT requirement, the track " << etaPass << " the eta requirement." << std::endl;
+      std::cout << "The track " << passOrFail(pt >= m_pt_req) << " the pT requirement, ";
+      std::cout << "the track " << passOrFail(isInRange(m_eta_low_req, eta, m_eta_high_req)) << " the eta requirement." << std::endl;
     }
 
     acceptParticle = true;
@@ -1304,4 +1300,9 @@ void DecayFinder::printNode(PHCompositeNode* topNode)
     }
   }
   std::cout << "--------------------------------------------------------------------------------------------------" << std::endl;
+}
+
+std::string DecayFinder::passOrFail(bool condition)
+{
+  return condition ? "passed" : "failed";
 }
