@@ -36,7 +36,7 @@ class PHG4CylinderGeomContainer : public PHObject
 
  protected:
   Map layergeoms;
-  float magfield {std::numeric_limits<float>::quiet_NaN()};
+  float magfield{std::numeric_limits<float>::quiet_NaN()};
   ClassDefOverride(PHG4CylinderGeomContainer, 1)
 };
 

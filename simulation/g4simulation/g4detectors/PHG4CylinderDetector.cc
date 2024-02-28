@@ -109,10 +109,10 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
   if (nRotation >= 2)
   {
     std::cout << __PRETTY_FUNCTION__ << ": Warning : " << GetName() << " is configured with more than one of the x-y-z rotations of "
-         << "(" << m_Params->get_double_param("rot_x") << ", "
-         << m_Params->get_double_param("rot_x") << ", "
-         << m_Params->get_double_param("rot_x") << ") degrees. "
-         << "The rotation is instruction is ambiguous and they are performed in the order of X->Y->Z rotations with result rotation matrix of:";
+              << "(" << m_Params->get_double_param("rot_x") << ", "
+              << m_Params->get_double_param("rot_x") << ", "
+              << m_Params->get_double_param("rot_x") << ") degrees. "
+              << "The rotation is instruction is ambiguous and they are performed in the order of X->Y->Z rotations with result rotation matrix of:";
     rotm->print(std::cout);
   }
 

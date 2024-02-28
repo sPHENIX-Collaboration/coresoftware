@@ -23,16 +23,16 @@ class PHG4PSTOFDetector;
 class PHG4SteppingAction;
 
 /**
-   * \brief Fun4All module to simulate the Barrel PSTOF detector.
-   *
-   * The detector is constructed and registered via PHG4PSTOFDetector
-   *
-   * The PHG4SteppingAction needs to be written, but will provide the info for the hit time
-   *
-   * \see PHG4PSTOFDetector
-   * \see PHG4PSTOFSubsystem
-   *
-   */
+ * \brief Fun4All module to simulate the Barrel PSTOF detector.
+ *
+ * The detector is constructed and registered via PHG4PSTOFDetector
+ *
+ * The PHG4SteppingAction needs to be written, but will provide the info for the hit time
+ *
+ * \see PHG4PSTOFDetector
+ * \see PHG4PSTOFSubsystem
+ *
+ */
 class PHG4PSTOFSubsystem : public PHG4DetectorGroupSubsystem
 {
  public:

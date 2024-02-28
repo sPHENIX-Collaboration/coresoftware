@@ -128,13 +128,13 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
       hit = new PHG4Hitv1();
     }
     hit->set_layer(layer_id);
-    //here we set the entrance values in cm
+    // here we set the entrance values in cm
     hit->set_x(0, prePoint->GetPosition().x() / cm);
     hit->set_y(0, prePoint->GetPosition().y() / cm);
     hit->set_z(0, prePoint->GetPosition().z() / cm);
     // time in ns
     hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-    //set the track ID
+    // set the track ID
     hit->set_trkid(aTrack->GetTrackID());
     savetrackid = aTrack->GetTrackID();
     if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
@@ -144,7 +144,7 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
         hit->set_trkid(pp->GetUserTrackId());
       }
     }
-    //set the initial energy deposit
+    // set the initial energy deposit
     edepsum = 0;
     if (whichactive > 0)
     {
@@ -208,7 +208,7 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
   // here we just update the exit values, it will be overwritten
   // for every step until we leave the volume or the particle
   // ceases to exist
-  //sum up the energy to get total deposited
+  // sum up the energy to get total deposited
   edepsum += edep;
   if (whichactive > 0)
   {
@@ -290,7 +290,7 @@ void PHG4PSTOFSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
     hitnodename = "G4HIT_" + detector_->GetName();
   }
 
-  //now look for the map and grab a pointer to it.
+  // now look for the map and grab a pointer to it.
   hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
 
   // if we do not find the node we need to make it.

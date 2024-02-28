@@ -151,6 +151,8 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
     m_evaluator->verbosity(Verbosity());
   }
 
+  _tpccellgeo =  findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+
   if (Verbosity() > 1)
   {
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
@@ -375,32 +377,63 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	SourceLinkVec sourceLinks;
 
 	MakeSourceLinks makeSourceLinks;
+	makeSourceLinks.initialize(_tpccellgeo);
 	makeSourceLinks.setVerbosity(Verbosity());
 	makeSourceLinks.set_pp_mode(m_pp_mode);
 
 	// loop over modifiedTransformSet and replace transient elements modified for the previous track with the default transforms
+	// does nothing if m_transient_id_set is empty
 	makeSourceLinks.resetTransientTransformMap(
 						  m_alignmentTransformationMapTransient,
 						  m_transient_id_set,
 						  m_tGeometry);
+	if(m_use_clustermover)
+	  {
+	    if (siseed) 
+      {
+        sourceLinks = makeSourceLinks.getSourceLinksClusterMover(
+								     siseed, 
+								     measurements, 
+								     m_clusterContainer, 
+								     m_tGeometry, 
+								     _dcc_static, _dcc_average, _dcc_fluctuation,
+								     this_crossing);
+      }
+	    const auto tpcSourceLinks = makeSourceLinks.getSourceLinksClusterMover(
+								       tpcseed, 
+								       measurements, 
+								       m_clusterContainer, 
+								       m_tGeometry, 
+								       _dcc_static, _dcc_average, _dcc_fluctuation,
+								       this_crossing);
 
-	if (siseed) sourceLinks = makeSourceLinks.getSourceLinks(
-								 siseed, 
-								 measurements, 
-								 m_clusterContainer, 
-								 m_tGeometry, 
-								 m_alignmentTransformationMapTransient, 
-								 m_transient_id_set, 
-								 this_crossing);
-	const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
-								   tpcseed, 
-								   measurements, 
-								   m_clusterContainer, 
-								   m_tGeometry, 
-								   m_alignmentTransformationMapTransient, 
-								   m_transient_id_set, 
-								   this_crossing);
-	sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
+	    sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
+	  }
+	else
+	  {
+	    if (siseed) 
+      {
+        sourceLinks = makeSourceLinks.getSourceLinks(
+								     siseed, 
+								     measurements, 
+								     m_clusterContainer, 
+								     m_tGeometry, 
+								     _dcc_static, _dcc_average, _dcc_fluctuation,
+								     m_alignmentTransformationMapTransient, 
+								     m_transient_id_set, 
+								     this_crossing);
+      }
+	    const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
+								       tpcseed, 
+								       measurements, 
+								       m_clusterContainer, 
+								       m_tGeometry, 
+								       _dcc_static, _dcc_average, _dcc_fluctuation,
+								       m_alignmentTransformationMapTransient, 
+								       m_transient_id_set, 
+								       this_crossing);
+	    sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
+	  }
 
 	// copy transient map for this track into transient geoContext
 	m_transient_geocontext =  m_alignmentTransformationMapTransient;

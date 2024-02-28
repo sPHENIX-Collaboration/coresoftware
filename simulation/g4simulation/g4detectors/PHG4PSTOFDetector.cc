@@ -82,7 +82,7 @@ void PHG4PSTOFDetector::ConstructMe(G4LogicalVolume *logicWorld)
       }
 
       // amount to rotate
-      //double theta = atan2(z+z_offset[rowtype][itof],tof_radius+y_offset[rowtype][itof]);
+      // double theta = atan2(z+z_offset[rowtype][itof],tof_radius+y_offset[rowtype][itof]);
       double theta = atan2(z, r);
 
       G4RotationMatrix *rotm = new G4RotationMatrix();

@@ -7,20 +7,20 @@
 #include <g4eval/SvtxTruthEval.h>   // for SvtxTruthEval
 #include <g4eval/SvtxVertexEval.h>  // for SvtxVertexEval
 
-#include <trackbase/InttDefs.h>                // for getLadderPhiId, getLad...
-#include <trackbase/MvtxDefs.h>                // for getChipId, getStaveId
-#include <trackbase/TpcDefs.h>                 // for getSectorId, getSide
-#include <trackbase/TrkrCluster.h>             // for TrkrCluster
-#include <trackbase/TrkrClusterContainer.h>    // for TrkrClusterContainer
-#include <trackbase/TrkrDefs.h>                // for getLayer, getTrkrId
+#include <globalvertex/SvtxVertex.h>         // for SvtxVertex
+#include <globalvertex/SvtxVertexMap.h>      // for SvtxVertexMap, SvtxVer...
+#include <trackbase/InttDefs.h>              // for getLadderPhiId, getLad...
+#include <trackbase/MvtxDefs.h>              // for getChipId, getStaveId
+#include <trackbase/TpcDefs.h>               // for getSectorId, getSide
+#include <trackbase/TrkrCluster.h>           // for TrkrCluster
+#include <trackbase/TrkrClusterContainer.h>  // for TrkrClusterContainer
+#include <trackbase/TrkrDefs.h>              // for getLayer, getTrkrId
 #include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
-#include <trackbase_historic/SvtxTrack.h>      // for SvtxTrack, SvtxTrack::...
-#include <trackbase_historic/SvtxTrackMap.h>   // for SvtxTrackMap, SvtxTrac...
-#include <globalvertex/SvtxVertex.h>     // for SvtxVertex
-#include <globalvertex/SvtxVertexMap.h>  // for SvtxVertexMap, SvtxVer...
+#include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::...
+#include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, SvtxTrac...
 
-#include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
 
 #include <g4main/PHG4Particle.h>            // for PHG4Particle
 #include <g4main/PHG4TruthInfoContainer.h>  // for PHG4TruthInfoContainer
@@ -38,17 +38,17 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <HepMC/GenEvent.h>       // for GenEvent::particle_con...
-#include <HepMC/GenVertex.h>      // for GenVertex::particle_it...
+#include <HepMC/GenEvent.h>   // for GenEvent::particle_con...
+#include <HepMC/GenVertex.h>  // for GenVertex::particle_it...
 #pragma GCC diagnostic pop
 
 #include <HepMC/GenParticle.h>    // for GenParticle
 #include <HepMC/IteratorRange.h>  // for parents
 #include <HepMC/SimpleVector.h>   // for FourVector
 
-#include <math.h>     // for pow, sqrt
-#include <stdlib.h>   // for NULL, abs
 #include <algorithm>  // for max, find
+#include <cmath>      // for pow, sqrt
+#include <cstdlib>    // for NULL, abs
 #include <iostream>   // for operator<<, endl, basi...
 #include <iterator>   // for end, begin
 #include <map>        // for _Rb_tree_iterator, map
@@ -69,19 +69,20 @@ std::map<std::string, int> Use =
 KFParticle_truthAndDetTools::KFParticle_truthAndDetTools()
   : m_svtx_evalstack(nullptr)
 {
-}  //Constructor
+}  // Constructor
 
-KFParticle_truthAndDetTools::~KFParticle_truthAndDetTools() {}  //Destructor
+KFParticle_truthAndDetTools::~KFParticle_truthAndDetTools() = default;  // Destructor
 
 SvtxTrack *KFParticle_truthAndDetTools::getTrack(unsigned int track_id, SvtxTrackMap *trackmap)
 {
-  SvtxTrack *matched_track = NULL;
+  SvtxTrack *matched_track = nullptr;
 
-  for (SvtxTrackMap::Iter iter = trackmap->begin();
-       iter != trackmap->end();
-       ++iter)
+  for (auto &iter : *trackmap)
   {
-    if (iter->first == track_id) matched_track = iter->second;
+    if (iter.first == track_id)
+    {
+      matched_track = iter.second;
+    }
   }
 
   return matched_track;
@@ -96,11 +97,11 @@ GlobalVertex *KFParticle_truthAndDetTools::getVertex(unsigned int vertex_id, Glo
 
 PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack *thisTrack, PHCompositeNode *topNode)
 {
-/*
- * There are two methods for getting the truth rack from the reco track
- * 1. (recommended) Use the reco -> truth tables (requires SvtxPHG4ParticleMap). Introduced Summer of 2022
- * 2. Get truth track via nClusters. Older method and will work with older DSTs 
- */
+  /*
+   * There are two methods for getting the truth rack from the reco track
+   * 1. (recommended) Use the reco -> truth tables (requires SvtxPHG4ParticleMap). Introduced Summer of 2022
+   * 2. Get truth track via nClusters. Older method and will work with older DSTs
+   */
 
   PHG4Particle *particle = nullptr;
 
@@ -120,33 +121,33 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack *thisTrack, P
 
     SvtxPHG4ParticleMap_v1 *dst_reco_truth_map = findNode::getClass<SvtxPHG4ParticleMap_v1>(topNode, "SvtxPHG4ParticleMap");
 
-    std::map<float, std::set<int>> truth_set = dst_reco_truth_map->get(thisTrack->get_id()); 
-    const auto& best_weight = truth_set.rbegin();
-    int best_truth_id =  *best_weight->second.rbegin();
+    std::map<float, std::set<int>> truth_set = dst_reco_truth_map->get(thisTrack->get_id());
+    const auto &best_weight = truth_set.rbegin();
+    int best_truth_id = *best_weight->second.rbegin();
     particle = m_truthinfo->GetParticle(best_truth_id);
   }
   else
   {
     std::cout << __FILE__ << ": SvtxPHG4ParticleMap not found, reverting to max_truth_particle_by_nclusters()" << std::endl;
-  
+
     if (!m_svtx_evalstack)
     {
       m_svtx_evalstack = new SvtxEvalStack(topNode);
-      //clustereval = m_svtx_evalstack->get_cluster_eval();
-      //hiteval = m_svtx_evalstack->get_hit_eval();
+      // clustereval = m_svtx_evalstack->get_cluster_eval();
+      // hiteval = m_svtx_evalstack->get_hit_eval();
       trackeval = m_svtx_evalstack->get_track_eval();
       trutheval = m_svtx_evalstack->get_truth_eval();
       vertexeval = m_svtx_evalstack->get_vertex_eval();
     }
-  
+
     m_svtx_evalstack->next_event(topNode);
-  
+
     particle = trackeval->max_truth_particle_by_nclusters(thisTrack);
   }
   return particle;
 }
 
-void KFParticle_truthAndDetTools::initializeTruthBranches(TTree *m_tree, int daughter_id, std::string daughter_number, bool m_constrain_to_vertex_truthMatch)
+void KFParticle_truthAndDetTools::initializeTruthBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number, bool m_constrain_to_vertex_truthMatch)
 {
   m_tree->Branch(TString(daughter_number) + "_true_ID", &m_true_daughter_id[daughter_id], TString(daughter_number) + "_true_ID/I");
   if (m_constrain_to_vertex_truthMatch)
@@ -177,7 +178,7 @@ void KFParticle_truthAndDetTools::initializeTruthBranches(TTree *m_tree, int dau
   m_tree->Branch(TString(daughter_number) + "_true_track_history_pT", &m_true_daughter_track_history_pT[daughter_id]);
 }
 
-void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTree * /*m_tree*/, KFParticle daughter, int daughter_id, KFParticle vertex, bool m_constrain_to_vertex_truthMatch)
+void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id, const KFParticle &kfvertex, bool m_constrain_to_vertex_truthMatch)
 {
   float true_px, true_py, true_pz, true_p, true_pt;
 
@@ -201,13 +202,14 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
     std::cout << "KFParticle truth matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
   }
   auto globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
-  if(!globalvertexmap) {
-    std::cout << "KFParticle truth matching: GlobalVertexMap does not exist" << std::endl; 
+  if (!globalvertexmap)
+  {
+    std::cout << "KFParticle truth matching: GlobalVertexMap does not exist" << std::endl;
   }
   track = getTrack(daughter.Id(), dst_trackmap);
   g4particle = getTruthTrack(track, topNode);
 
-  bool isParticleValid = g4particle == nullptr ? 0 : 1;
+  bool isParticleValid = g4particle == nullptr ? false : true;
 
   true_px = isParticleValid ? (Float_t) g4particle->get_px() : 0.;
   true_py = isParticleValid ? (Float_t) g4particle->get_py() : 0.;
@@ -225,8 +227,8 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   if (!m_svtx_evalstack)
   {
     m_svtx_evalstack = new SvtxEvalStack(topNode);
-    //clustereval = m_svtx_evalstack->get_cluster_eval();
-    //hiteval = m_svtx_evalstack->get_hit_eval();
+    // clustereval = m_svtx_evalstack->get_cluster_eval();
+    // hiteval = m_svtx_evalstack->get_hit_eval();
     trackeval = m_svtx_evalstack->get_track_eval();
     trutheval = m_svtx_evalstack->get_truth_eval();
     vertexeval = m_svtx_evalstack->get_vertex_eval();
@@ -243,22 +245,36 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
 
   if (m_constrain_to_vertex_truthMatch)
   {
-    //Calculate true DCA
-    GlobalVertex *recoVertex = getVertex(vertex.Id(), globalvertexmap);
-    auto svtxv = recoVertex->find_vtxids(GlobalVertex::SVTX);
-    if(svtxv == recoVertex->end_vtxids())
-      {
-	std::cout << "Have a global vertex with no track vertex... shouldn't happen in KFParticle_truthAndDetTools::fillTruthBranch..." << std::endl;
-      }
+    // Calculate true DCA
+    GlobalVertex *recoVertex = getVertex(kfvertex.Id(), globalvertexmap);
+    auto svtxviter = recoVertex->find_vertexes(GlobalVertex::SVTX);
+    // check that it contains a track vertex
+    if (svtxviter == recoVertex->end_vertexes())
+    {
+      std::cout << "Have a global vertex with no track vertex... shouldn't happen in KFParticle_truthAndDetTools::fillTruthBranch..." << std::endl;
+    }
 
-    SvtxVertex* svtxvertex = dst_vertexmap->find(svtxv->second)->second;
+    auto svtxvertexvector = svtxviter->second;
+    SvtxVertex *svtxvertex = nullptr;
+
+    for (auto &vertex : svtxvertexvector)
+    {
+      svtxvertex = dst_vertexmap->find(vertex->get_id())->second;
+    }
+
     PHG4VtxPoint *truePoint = vertexeval->max_truth_point_by_ntracks(svtxvertex);
+
+    if (truePoint == nullptr)
+    {
+      PHG4Particle *g4mother = m_truthinfo->GetPrimaryParticle(g4particle->get_primary_id());
+      truePoint = m_truthinfo->GetVtx(g4mother->get_vtx_id());  // Note, this may not be the PV for a decay with tertiaries
+    }
 
     KFParticle trueKFParticleVertex;
 
     float f_vertexParameters[6] = {0};
 
-    if (truePoint == NULL)
+    if (truePoint == nullptr)
     {
       std::cout << "KFParticle truth matching: This event has no PHG4VtxPoint information!\n";
       std::cout << "Your truth track DCA will be measured wrt a reconstructed vertex!" << std::endl;
@@ -294,9 +310,9 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
     m_true_daughter_ip[daughter_id] = trueKFParticle.GetDistanceFromVertex(trueKFParticleVertex);
     m_true_daughter_ip_xy[daughter_id] = trueKFParticle.GetDistanceFromVertexXY(trueKFParticleVertex);
 
-    m_true_daughter_pv_x[daughter_id] = truePoint == NULL ? -99. : truePoint->get_x();
-    m_true_daughter_pv_y[daughter_id] = truePoint == NULL ? -99. : truePoint->get_y();
-    m_true_daughter_pv_z[daughter_id] = truePoint == NULL ? -99. : truePoint->get_z();
+    m_true_daughter_pv_x[daughter_id] = truePoint == nullptr ? -99. : truePoint->get_x();
+    m_true_daughter_pv_y[daughter_id] = truePoint == nullptr ? -99. : truePoint->get_y();
+    m_true_daughter_pv_z[daughter_id] = truePoint == nullptr ? -99. : truePoint->get_z();
   }
 }
 
@@ -315,7 +331,7 @@ void KFParticle_truthAndDetTools::fillGeant4Branch(PHG4Particle *particle, int d
 
 void KFParticle_truthAndDetTools::fillHepMCBranch(HepMC::GenParticle *particle, int daughter_id)
 {
-  HepMC::FourVector myFourVector = particle->momentum();
+  const HepMC::FourVector &myFourVector = particle->momentum();
 
   m_true_daughter_track_history_PDG_ID[daughter_id].push_back(particle->pdg_id());
   m_true_daughter_track_history_PDG_mass[daughter_id].push_back((Float_t) particle->generatedMass());
@@ -326,9 +342,9 @@ void KFParticle_truthAndDetTools::fillHepMCBranch(HepMC::GenParticle *particle, 
   m_true_daughter_track_history_pT[daughter_id].push_back((Float_t) myFourVector.perp());
 }
 
-int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * /*m_tree*/, KFParticle daughter, int daughter_id)
+int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id)
 {
-  //Make dummy particle for null pointers and missing nodes
+  // Make dummy particle for null pointers and missing nodes
   HepMC::GenParticle *dummyParticle = new HepMC::GenParticle();
   HepMC::FourVector dummyFourVector(0, 0, 0, 0);
   dummyParticle->set_momentum(dummyFourVector);
@@ -349,7 +365,7 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   track = getTrack(daughter.Id(), dst_trackmap);
   g4particle = getTruthTrack(track, topNode);
 
-  bool isParticleValid = g4particle == nullptr ? 0 : 1;
+  bool isParticleValid = g4particle == nullptr ? false : true;
 
   if (!isParticleValid)
   {
@@ -376,12 +392,12 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
     return 0;
   }
 
-  //Start by looking for our particle in the Geant record
-  //Any decay that Geant4 handles will not be in the HepMC record
-  //This can happen if you limit the decay volume in the generator
+  // Start by looking for our particle in the Geant record
+  // Any decay that Geant4 handles will not be in the HepMC record
+  // This can happen if you limit the decay volume in the generator
   if (g4particle->get_parent_id() != 0)
   {
-    PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("G4TruthInfo"));
+    findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("G4TruthInfo"));
     if (findNode)
     {
       m_truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
@@ -400,8 +416,8 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   HepMC::GenEvent *theEvent = m_genevt->getEvent();
   HepMC::GenParticle *prevParticle = nullptr;
 
-  //int forbiddenPDGIDs[] = {21, 22};  //Stop tracing history when we reach quarks, gluons and photons
-  int forbiddenPDGIDs[] = {0};  //20230921 - Request made to have gluon information to see about gluon-splitting
+  // int forbiddenPDGIDs[] = {21, 22};  //Stop tracing history when we reach quarks, gluons and photons
+  int forbiddenPDGIDs[] = {0};  // 20230921 - Request made to have gluon information to see about gluon-splitting
 
   for (HepMC::GenEvent::particle_const_iterator p = theEvent->particles_begin(); p != theEvent->particles_end(); ++p)
   {
@@ -424,15 +440,18 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
           fillHepMCBranch((*mother), daughter_id);
           prevParticle = *mother;
         }
-        if (breakOut) break;
+        if (breakOut)
+        {
+          break;
+        }
       }
     }
   }
 
   return 0;
-}  //End of function
+}  // End of function
 
-void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daughter_id, std::string daughter_number)
+void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number)
 {
   m_tree->Branch(TString(daughter_number) + "_EMCAL_DeltaPhi", &detector_emcal_deltaphi[daughter_id], TString(daughter_number) + "_EMCAL_DeltaPhi/F");
   m_tree->Branch(TString(daughter_number) + "_EMCAL_DeltaEta", &detector_emcal_deltaeta[daughter_id], TString(daughter_number) + "_EMCAL_DeltaEta/F");
@@ -452,7 +471,7 @@ void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daug
 }
 
 void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
-                                                 TTree * /*m_tree*/, KFParticle daughter, int daughter_id)
+                                                 TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id)
 {
   PHNodeIterator nodeIter(topNode);
   PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
@@ -486,7 +505,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   detector_ohcal_cluster_energy[daughter_id] = track->get_cal_cluster_e(SvtxTrack::CAL_LAYER(3));
 }
 
-void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int daughter_id, std::string daughter_number)
+void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number)
 {
   m_tree->Branch(TString(daughter_number) + "_local_x", &detector_local_x[daughter_id]);
   m_tree->Branch(TString(daughter_number) + "_local_y", &detector_local_y[daughter_id]);
@@ -495,11 +514,14 @@ void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int 
 
   for (auto const &subdetector : Use)
   {
-    if (subdetector.second) initializeSubDetectorBranches(m_tree, subdetector.first, daughter_id, daughter_number);
+    if (subdetector.second)
+    {
+      initializeSubDetectorBranches(m_tree, subdetector.first, daughter_id, daughter_number);
+    }
   }
 }
 
-void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, std::string detectorName, int daughter_id, std::string daughter_number)
+void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, const std::string &detectorName, int daughter_id, const std::string &daughter_number)
 {
   if (detectorName == "MVTX")
   {
@@ -519,7 +541,7 @@ void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, s
 }
 
 void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
-                                                     TTree * /*m_tree*/, KFParticle daughter, int daughter_id)
+                                                     TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id)
 {
   PHNodeIterator nodeIter(topNode);
 
@@ -587,32 +609,32 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
 
 void KFParticle_truthAndDetTools::allPVInfo(PHCompositeNode *topNode,
                                             TTree * /*m_tree*/,
-                                            KFParticle motherParticle,
+                                            const KFParticle &motherParticle,
                                             std::vector<KFParticle> daughters,
                                             std::vector<KFParticle> intermediates)
 {
   KFParticle_Tools kfpTupleTools;
   std::vector<KFParticle> primaryVertices = kfpTupleTools.makeAllPrimaryVertices(topNode, m_vtx_map_node_name_nTuple);
 
-  for (unsigned int i = 0; i < primaryVertices.size(); ++i)
+  for (auto &primaryVertice : primaryVertices)
   {
-    allPV_x.push_back(primaryVertices[i].GetX());
-    allPV_y.push_back(primaryVertices[i].GetY());
-    allPV_z.push_back(primaryVertices[i].GetZ());
+    allPV_x.push_back(primaryVertice.GetX());
+    allPV_y.push_back(primaryVertice.GetY());
+    allPV_z.push_back(primaryVertice.GetZ());
 
-    allPV_mother_IP.push_back(motherParticle.GetDistanceFromVertex(primaryVertices[i]));
-    allPV_mother_IPchi2.push_back(motherParticle.GetDeviationFromVertex(primaryVertices[i]));
+    allPV_mother_IP.push_back(motherParticle.GetDistanceFromVertex(primaryVertice));
+    allPV_mother_IPchi2.push_back(motherParticle.GetDeviationFromVertex(primaryVertice));
 
     for (unsigned int j = 0; j < daughters.size(); ++j)
     {
-      allPV_daughter_IP[j].push_back(daughters[j].GetDistanceFromVertex(primaryVertices[i]));
-      allPV_daughter_IPchi2[j].push_back(daughters[j].GetDeviationFromVertex(primaryVertices[i]));
+      allPV_daughter_IP[j].push_back(daughters[j].GetDistanceFromVertex(primaryVertice));
+      allPV_daughter_IPchi2[j].push_back(daughters[j].GetDeviationFromVertex(primaryVertice));
     }
 
     for (unsigned int j = 0; j < intermediates.size(); ++j)
     {
-      allPV_intermediates_IP[j].push_back(intermediates[j].GetDistanceFromVertex(primaryVertices[i]));
-      allPV_intermediates_IPchi2[j].push_back(intermediates[j].GetDeviationFromVertex(primaryVertices[i]));
+      allPV_intermediates_IP[j].push_back(intermediates[j].GetDistanceFromVertex(primaryVertice));
+      allPV_intermediates_IPchi2[j].push_back(intermediates[j].GetDeviationFromVertex(primaryVertice));
     }
   }
 }
@@ -621,7 +643,7 @@ void KFParticle_truthAndDetTools::clearVectors()
 {
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
   {
-    //Truth vectors
+    // Truth vectors
     m_true_daughter_track_history_PDG_ID[i].clear();
     m_true_daughter_track_history_PDG_mass[i].clear();
     m_true_daughter_track_history_px[i].clear();
@@ -630,7 +652,7 @@ void KFParticle_truthAndDetTools::clearVectors()
     m_true_daughter_track_history_pE[i].clear();
     m_true_daughter_track_history_pT[i].clear();
 
-    //Detector vectors
+    // Detector vectors
     detector_local_x[i].clear();
     detector_local_y[i].clear();
     detector_local_z[i].clear();
@@ -642,7 +664,7 @@ void KFParticle_truthAndDetTools::clearVectors()
     tpc_sectorID[i].clear();
     tpc_side[i].clear();
 
-    //PV vectors
+    // PV vectors
     allPV_daughter_IP[i].clear();
     allPV_daughter_IPchi2[i].clear();
   }

@@ -53,8 +53,8 @@ void PHG4Particlev2::identify(std::ostream &os) const
      << ", px: " << fpx
      << ", py: " << fpy
      << ", pz: " << fpz
-     << ", phi: " << atan2(fpy,fpx)
-     << ", eta: " << -1*log(tan(0.5*acos(fpz/sqrt(fpx*fpx+fpy*fpy+fpz*fpz))))
+     << ", phi: " << atan2(fpy, fpx)
+     << ", eta: " << -1 * log(tan(0.5 * acos(fpz / sqrt(fpx * fpx + fpy * fpy + fpz * fpz))))
      << ", e: " << fe << endl;
   return;
 }

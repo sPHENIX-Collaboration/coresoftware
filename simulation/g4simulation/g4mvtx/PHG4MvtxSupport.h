@@ -40,7 +40,7 @@ class PHG4MvtxSupport
   void CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assemblyVolume);
   void CreateCableBundle(G4AssemblyVolume &assemblyVolume, const std::string &superName,
                          bool enableSignal, bool enableCooling, bool enablePower,
-                         float x1, float x2, float y1, float y2, float z1, float z2);
+                         double x1, double x2, double y1, double y2, double z1, double z2);
 
   G4AssemblyVolume *buildBarrelCable();
   G4AssemblyVolume *buildLayerCables(const int &lay);
@@ -49,7 +49,7 @@ class PHG4MvtxSupport
   G4AssemblyVolume *m_avBarrelCable{nullptr};
   std::array<G4AssemblyVolume *, PHG4MvtxDefs::kNLayers> m_avLayerCable{nullptr, nullptr, nullptr};
 
-  bool m_overlapCheck = false;
+  bool m_overlapCheck{false};
 };
 
 #endif

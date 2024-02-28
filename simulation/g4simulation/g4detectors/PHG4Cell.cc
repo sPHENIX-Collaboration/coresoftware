@@ -12,7 +12,7 @@ void PHG4Cell::CopyFrom(const PHObject* phobj)
   const PHG4Cell* g4cell = dynamic_cast<const PHG4Cell*>(phobj);
   assert(g4cell);
   set_cellid(g4cell->get_cellid());
-  for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
+  for (unsigned char ic = 0; ic < std::numeric_limits<unsigned char>::max(); ic++)
   {
     PROPERTY prop_id = static_cast<PHG4Cell::PROPERTY>(ic);
     if (g4cell->has_property(prop_id))

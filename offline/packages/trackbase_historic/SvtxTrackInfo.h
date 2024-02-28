@@ -65,22 +65,22 @@ class SvtxTrackInfo : public PHObject
 
   virtual float get_pos(unsigned int) const { return NAN; }
 
+  virtual void set_phi(const float) {}
+  virtual void set_theta(const float) {}
+  virtual void set_qOp(const float) {}
+
   virtual float get_px() const { return NAN; }
-  virtual void set_px(float) {}
-
   virtual float get_py() const { return NAN; }
-  virtual void set_py(float) {}
-
   virtual float get_pz() const { return NAN; }
-  virtual void set_pz(float) {}
-
   virtual float get_mom(unsigned int) const { return NAN; }
 
   virtual float get_p() const { return NAN; }
   virtual float get_pt() const { return NAN; }
   virtual float get_eta() const { return NAN; }
   virtual float get_phi() const { return NAN; }
-
+  virtual float get_theta() const { return NAN; }
+  virtual float get_qOp() const { return NAN; }
+  virtual int get_charge() const { return std::numeric_limits<int>::quiet_NaN(); }
   virtual float get_covariance(int /*i*/, int /*j*/) const { return NAN; }
   virtual void set_covariance(int /*i*/, int /*j*/, float /*value*/) {}
 

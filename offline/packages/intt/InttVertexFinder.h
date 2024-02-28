@@ -18,7 +18,7 @@ class InttVertexFinder : public SubsysReco
   ~InttVertexFinder() override;
 
   //! module initialization
-  int Init(PHCompositeNode */*topNode*/) override;
+  int Init(PHCompositeNode * /*topNode*/) override;
 
   //! run initialization
   int InitRun(PHCompositeNode *topNode) override;
@@ -27,23 +27,25 @@ class InttVertexFinder : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
 
   //! end of process
-  int End(PHCompositeNode */*topNode*/) override { return 0; }
+  int End(PHCompositeNode * /*topNode*/) override { return 0; }
 
-
-  void setBeamCenter(double x=0, double y=0) {xbeam_=x; ybeam_=y;}
-
+  void setBeamCenter(double x = 0, double y = 0)
+  {
+    xbeam_ = x;
+    ybeam_ = y;
+  }
 
  private:
-  int    createNodes(PHCompositeNode *topNode);
-  double calculateZvertex(double* zcenter=nullptr, double* zrms=nullptr, double* zmean=nullptr);
+  int createNodes(PHCompositeNode *topNode);
+  double calculateZvertex(double *zcenter = nullptr, double *zrms = nullptr, double *zmean = nullptr);
 
  private:
   // node tree storage pointers
-  InttVertexMap        *m_inttvertexmap = nullptr;
-  ActsGeometry         *m_tGeometry = nullptr;
-  TrkrClusterContainer *m_clusterlist = nullptr; 
+  InttVertexMap *m_inttvertexmap = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
+  TrkrClusterContainer *m_clusterlist = nullptr;
 
-  TH1*                  h_zvtxseed_ = nullptr;
+  TH1 *h_zvtxseed_ = nullptr;
 
   // settings
   //

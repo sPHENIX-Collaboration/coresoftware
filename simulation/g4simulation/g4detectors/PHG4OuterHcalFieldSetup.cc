@@ -2,7 +2,7 @@
 
 /*!
  * \file PHG4OuterHcalFieldSetup.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $

@@ -11,14 +11,14 @@
 #include <g4main/PHG4Subsystem.h>
 #include <g4main/PHG4Utils.h>
 
-#include <phool/phool.h>
-#include <phool/recoConsts.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>
+#include <phool/recoConsts.h>
 
 #include <calobase/RawTowerDefs.h>           // for convert_name_...
 #include <calobase/RawTowerGeom.h>           // for RawTowerGeom
@@ -491,7 +491,10 @@ void PHG4OuterHcalDetector::ConstructMe(G4LogicalVolume *logicWorld)
     }
     ++it;
   }
-  if(!m_Params->get_int_param("saveg4hit")) AddGeometryNode();
+  if (!m_Params->get_int_param("saveg4hit"))
+  {
+    AddGeometryNode();
+  }
   return;
 }
 
@@ -793,7 +796,7 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalen
     m_DisplayAction->AddScintiVolume(scinti_tile_logic);
     assmeblyvol->AddPlacedVolume(scinti_tile_logic, g4vec, nullptr);
 
-    //field after burner
+    // field after burner
     scinti_tile_logic->SetFieldManager(m_FieldSetup->get_Field_Manager_Gap(), true);
   }
   return assmeblyvol;

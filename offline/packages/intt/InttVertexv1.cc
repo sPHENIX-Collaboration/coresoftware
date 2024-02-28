@@ -14,7 +14,7 @@ void InttVertexv1::identify(std::ostream& os) const
 
 int InttVertexv1::isValid() const
 {
-  if (_id ==  std::numeric_limits<unsigned int>::max())
+  if (_id == std::numeric_limits<unsigned int>::max())
   {
     return 0;
   }

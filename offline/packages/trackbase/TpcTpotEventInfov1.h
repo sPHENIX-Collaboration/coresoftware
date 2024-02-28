@@ -24,27 +24,29 @@ class TpcTpotEventInfov1 : public TpcTpotEventInfo
   //! ctor
   TpcTpotEventInfov1();
 
-  //!dtor
+  //! dtor
   ~TpcTpotEventInfov1() override = default;
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override;
-  void Reset() override 
+  void Reset() override
   {
-    std::fill_n(&m_bco[0][0][0],100,UINT64_MAX);
-    std::fill_n(&m_lvl1_count[0][0][0],100,UINT32_MAX);
-    std::fill_n(&m_endat_count[0][0][0],100,UINT32_MAX);
-    std::fill_n(&m_last_bco[0][0][0],100,UINT64_MAX);
-    std::fill_n(&m_modebits[0][0][0],100,UINT8_MAX);
+    std::fill_n(&m_bco[0][0][0], 100, UINT64_MAX);
+    std::fill_n(&m_lvl1_count[0][0][0], 100, UINT32_MAX);
+    std::fill_n(&m_endat_count[0][0][0], 100, UINT32_MAX);
+    std::fill_n(&m_last_bco[0][0][0], 100, UINT64_MAX);
+    std::fill_n(&m_modebits[0][0][0], 100, UINT8_MAX);
   }
   int isValid() const override;
   PHObject* CloneMe() const override { return new TpcTpotEventInfov1(*this); }
- 
-  //! copy content from base class
-  void CopyFrom( const TpcTpotEventInfo& ) override;
 
   //! copy content from base class
-  void CopyFrom( TpcTpotEventInfo* source ) override
-  { CopyFrom( *source ); }
+  void CopyFrom(const TpcTpotEventInfo&) override;
+
+  //! copy content from base class
+  void CopyFrom(TpcTpotEventInfo* source) override
+  {
+    CopyFrom(*source);
+  }
 
   //
   // event tagger info
@@ -64,7 +66,6 @@ class TpcTpotEventInfov1 : public TpcTpotEventInfo
   void setModebits(uint8_t modebits, SectorID sector, PCIeEndPointID PCIe, TaggerID tagger) override { m_modebits[sector][PCIe][tagger] = modebits; }
 
  protected:
-
   uint64_t m_bco[25][2][2]{};
   uint32_t m_lvl1_count[25][2][2]{};
   uint32_t m_endat_count[25][2][2]{};
@@ -74,4 +75,4 @@ class TpcTpotEventInfov1 : public TpcTpotEventInfo
   ClassDefOverride(TpcTpotEventInfov1, 1)
 };
 
-#endif //TRACKBASE_TPCTPOTEVENTINFOV1_H
+#endif  // TRACKBASE_TPCTPOTEVENTINFOV1_H

@@ -52,18 +52,18 @@ namespace ServiceProperties
   const double sPP2sfSBsf = 791.77 * mm;
   const double sPP2Len = 80 * mm;
 
-  float ServiceEnd = -7.21 * cm;
-  float ServiceOffset = -16.0 * cm;
-  float BarrelOffset = 18.679 * cm;
-  float BarrelRadius = 10.33 * cm;     // Inner radious of service barrel
-  float BarrelThickness = 0.436 * cm;  // Thickness in cm
-  float BarrelLength = 1214.4 * mm;    // Length of cylinder in cm
-  float BarrelCableStart = sEndWheelSNHolesZdist / 2 - (sEndWStepHoleZpos + sEndWStepHoleZdist) + sEndWheelNLen - sCYSSFlgSsfFlgNsf - BarrelLength + sPP2sfSBsf + sPP2Len / 2;
-  float BarrelCableEnd = BarrelCableStart - (sPP2sfSBsf + sPP2Len / 2);
-  float LayerThickness = 0.1 * cm;  //
-  float CYSSConeThickness = 0.216 * cm;
-  float CYSSRibThickness = 0.170 * cm;
-  float cableRotate[3] = {10., 5., 5.};  // Rotate the cables to line up with the staves in deg
+  double ServiceEnd = -7.21 * cm;
+  double ServiceOffset = -16.0 * cm;
+  double BarrelOffset = 18.679 * cm;
+  double BarrelRadius = 10.33 * cm;     // Inner radious of service barrel
+  double BarrelThickness = 0.436 * cm;  // Thickness in cm
+  double BarrelLength = 1214.4 * mm;    // Length of cylinder in cm
+  double BarrelCableStart = sEndWheelSNHolesZdist / 2 - (sEndWStepHoleZpos + sEndWStepHoleZdist) + sEndWheelNLen - sCYSSFlgSsfFlgNsf - BarrelLength + sPP2sfSBsf + sPP2Len / 2;
+  double BarrelCableEnd = BarrelCableStart - (sPP2sfSBsf + sPP2Len / 2);
+  double LayerThickness = 0.1 * cm;  //
+  double CYSSConeThickness = 0.216 * cm;
+  double CYSSRibThickness = 0.170 * cm;
+  double cableRotate[3] = {10., 5., 5.};  // Rotate the cables to line up with the staves in deg
 }  // namespace ServiceProperties
 
 using namespace ServiceProperties;
@@ -188,8 +188,8 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWhee
 
   // local varianbles
   double rmin, rmax, phimin, dphi;
-  float xpos, ypos, zpos, rpos;
-  float xlen, ylen;
+  double xpos, ypos, zpos, rpos;
+  double xlen, ylen;
 
   auto Ta = G4ThreeVector();
   auto Ra = G4RotationMatrix();
@@ -370,8 +370,8 @@ void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume *&endWhee
 
   // local varianbles
   double rmin, rmax, phimin, dphi;
-  float xpos, ypos, zpos, rpos;
-  float xlen, ylen;
+  double xpos, ypos, zpos, rpos;
+  double xlen, ylen;
 
   auto Ta = G4ThreeVector();
   auto Ra = G4RotationMatrix();
@@ -905,20 +905,20 @@ void PHG4MvtxSupport::CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assem
 {
   std::string cableMaterials[2] = {object->get_coreMaterial(), "G4_POLYETHYLENE"};
 
-  float dX = object->get_xNorth() - object->get_xSouth();
-  float dY = object->get_yNorth() - object->get_ySouth();
-  float dZ = object->get_zNorth() - object->get_zSouth();
+  double dX = object->get_xNorth() - object->get_xSouth();
+  double dY = object->get_yNorth() - object->get_ySouth();
+  double dZ = object->get_zNorth() - object->get_zSouth();
 
-  float rotY = dZ != 0. ? std::atan(dX / dZ) : 0.;
-  float rotZ = dX != 0. ? std::atan(dY / dX) : 0.;
+  double rotY = dZ != 0. ? std::atan(dX / dZ) : 0.;
+  double rotZ = dX != 0. ? std::atan(dY / dX) : 0.;
 
-  float setX = (object->get_xSouth() + object->get_xNorth()) / 2;
-  float setY = (object->get_ySouth() + object->get_yNorth()) / 2;
-  float setZ = (object->get_zSouth() + object->get_zNorth()) / 2;
+  double setX = (object->get_xSouth() + object->get_xNorth()) / 2;
+  double setY = (object->get_ySouth() + object->get_yNorth()) / 2;
+  double setZ = (object->get_zSouth() + object->get_zNorth()) / 2;
 
-  float length = std::sqrt(dX * dX + dY * dY + dZ * dZ);
-  float IR[2] = {0, object->get_coreRadius()};
-  float OR[2] = {object->get_coreRadius(), object->get_sheathRadius()};
+  double length = std::sqrt(dX * dX + dY * dY + dZ * dZ);
+  double IR[2] = {0, object->get_coreRadius()};
+  double OR[2] = {object->get_coreRadius(), object->get_sheathRadius()};
 
   G4RotationMatrix rot;
   rot.rotateY(rotY);
@@ -958,30 +958,30 @@ void PHG4MvtxSupport::CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assem
 //________________________________________________________________________________
 void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const std::string &superName,
                                         bool enableSignal, bool enableCooling, bool enablePower,
-                                        float x1, float x2, float y1, float y2, float z1, float z2)  //, float theta)
+                                        double x1, double x2, double y1, double y2, double z1, double z2)  //, double theta)
 {
   // Set up basic MVTX cable bundle (24 Samtec cables, 1 power cable, 2 cooling cables)
-  float samtecCoreRadius = 0.01275 * cm;
-  float samtecSheathRadius = 0.05 * cm;
-  float coolingStaveCoreRadius = 0.056 * cm;
-  float coolingStaveSheathRadius = 0.1 * cm;
-  float coolingCoreRadius = 0.125 * cm;
-  float coolingSheathRadius = 0.2 * cm;  //?
-  float powerLargeCoreRadius = 0.069 * cm;
-  float powerLargeSheathRadius = 0.158 * cm;
-  float powerMediumCoreRadius = 0.033 * cm;
-  float powerMediumSheathRadius = 0.082 * cm;
-  float powerSmallCoreRadius = 0.028 * cm;
-  float powerSmallSheathRadius = 0.0573 * cm;  //?
+  double samtecCoreRadius = 0.01275 * cm;
+  double samtecSheathRadius = 0.05 * cm;
+  double coolingStaveCoreRadius = 0.056 * cm;
+  double coolingStaveSheathRadius = 0.1 * cm;
+  double coolingCoreRadius = 0.125 * cm;
+  double coolingSheathRadius = 0.2 * cm;  //?
+  double powerLargeCoreRadius = 0.069 * cm;
+  double powerLargeSheathRadius = 0.158 * cm;
+  double powerMediumCoreRadius = 0.033 * cm;
+  double powerMediumSheathRadius = 0.082 * cm;
+  double powerSmallCoreRadius = 0.028 * cm;
+  double powerSmallSheathRadius = 0.0573 * cm;  //?
 
-  float globalShiftX = 0.;
-  float globalShiftY = -0.0984 * cm;
-  float samtecShiftX = -6 * samtecSheathRadius + globalShiftX;
-  float samtecShiftY = 1 * samtecSheathRadius + globalShiftY;
-  float coolingShiftX = -3 * coolingSheathRadius + globalShiftX;
-  float coolingShiftY = -1 * coolingSheathRadius + globalShiftY;
-  float powerShiftX = 3.5 * powerLargeSheathRadius + globalShiftX;
-  float powerShiftY = 6.1 * powerLargeSheathRadius + globalShiftY;
+  double globalShiftX = 0.;
+  double globalShiftY = -0.0984 * cm;
+  double samtecShiftX = -6 * samtecSheathRadius + globalShiftX;
+  double samtecShiftY = 1 * samtecSheathRadius + globalShiftY;
+  double coolingShiftX = -3 * coolingSheathRadius + globalShiftX;
+  double coolingShiftY = -1 * coolingSheathRadius + globalShiftY;
+  double powerShiftX = 3.5 * powerLargeSheathRadius + globalShiftX;
+  double powerShiftY = 6.1 * powerLargeSheathRadius + globalShiftY;
 
   // Samtec cables (we use 24 as there are 12 twinax)
   if (enableSignal)
@@ -993,8 +993,8 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const 
     {
       for (unsigned int iCol = 0; iCol < nCol; ++iCol)
       {
-        float deltaX = samtecShiftX + ((iCol + 1) * (samtecSheathRadius * 2.6));
-        float deltaY = samtecShiftY - ((iRow + 1) * (samtecSheathRadius * 2.1));
+        double deltaX = samtecShiftX + ((iCol + 1) * (samtecSheathRadius * 2.6));
+        double deltaY = samtecShiftY - ((iRow + 1) * (samtecSheathRadius * 2.1));
         PHG4MvtxCable *cable = new PHG4MvtxCable(boost::str(boost::format("%s_samtec_%d_%d") % superName.c_str() % iRow % iCol),
                                                  "G4_Cu", samtecCoreRadius, samtecSheathRadius,
                                                  x1 + deltaX, x2 + deltaX, y1 + deltaY,
@@ -1016,12 +1016,12 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const 
     PHG4MvtxCable *cable = nullptr;
     for (unsigned int iCool = 0; iCool < nCool; ++iCool)
     {
-      float coreRadius = smallCooling ? coolingStaveCoreRadius : coolingCoreRadius;
-      float sheathRadius = smallCooling ? coolingStaveSheathRadius : coolingSheathRadius;
+      double coreRadius = smallCooling ? coolingStaveCoreRadius : coolingCoreRadius;
+      double sheathRadius = smallCooling ? coolingStaveSheathRadius : coolingSheathRadius;
       if (!smallCooling)
       {
-        float deltaX = coolingShiftX + ((iCool + 1) * (sheathRadius * 2));
-        float deltaY = coolingShiftY + (sheathRadius * 2);
+        double deltaX = coolingShiftX + ((iCool + 1) * (sheathRadius * 2));
+        double deltaY = coolingShiftY + (sheathRadius * 2);
         cable = new PHG4MvtxCable(boost::str(boost::format("%s_cooling_%d") % superName.c_str() % iCool),
                                   "G4_WATER", coreRadius, sheathRadius,
                                   x1 + deltaX, x2 + deltaX, y1 + deltaY,
@@ -1029,8 +1029,8 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const 
       }
       else
       {
-        float deltaX = coolingShiftX + (sheathRadius * 2);
-        float deltaY = coolingShiftY + ((iCool + 1) * (sheathRadius * 2));
+        double deltaX = coolingShiftX + (sheathRadius * 2);
+        double deltaY = coolingShiftY + ((iCool + 1) * (sheathRadius * 2));
         cable = new PHG4MvtxCable(boost::str(boost::format("%s_cooling_%d") % superName.c_str() % iCool),
                                   "G4_WATER", coreRadius, sheathRadius,
                                   x1 + deltaX, x2 + deltaX, y1 + deltaY,
@@ -1044,9 +1044,9 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const 
   // Power Cables
   if (enablePower)
   {
-    using PowerCableParameters = std::pair<std::pair<std::string, std::string>, std::pair<float, float>>;
+    using PowerCableParameters = std::pair<std::pair<std::string, std::string>, std::pair<double, double>>;
     std::vector<PowerCableParameters> powerCables;
-    std::vector<std::vector<float>> powerCableColors;
+    std::vector<std::vector<double>> powerCableColors;
 
     powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_digiReturn") % superName.c_str()), "Large"), std::make_pair((-2.5 * powerLargeSheathRadius) + powerShiftX, (-2.5 * powerLargeSheathRadius) + powerShiftY));
     powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_digiSupply") % superName.c_str()), "Large"), std::make_pair((-4.5 * powerLargeSheathRadius) + powerShiftX, (-1.5 * powerLargeSheathRadius) + powerShiftY));
@@ -1059,7 +1059,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const 
 
     for (PowerCableParameters &powerCable : powerCables)
     {
-      float coreRad, sheathRad;
+      double coreRad, sheathRad;
       std::string cableColor;
       std::string cableType = powerCable.first.second;
       std::string cableName = powerCable.first.first;
@@ -1138,16 +1138,16 @@ G4AssemblyVolume *PHG4MvtxSupport::buildBarrelCable()
 G4AssemblyVolume *PHG4MvtxSupport::buildLayerCables(const int &lay)
 {
   G4AssemblyVolume *av = new G4AssemblyVolume();
-  //  float rInner[3] = { 59.94 / 2 * mm, 75.98 / 2 * mm, 91.48 / 2 * mm };
-  float rOuter[3] = {(103 - 2.) / 2 * mm, (149 - 2.24) / 2 * mm, (195 - 2.24) / 2 * mm};
-  float zConeLen[3] = {186.8 * mm, 179.74 * mm, 223 * mm};
-  float zMax = -sEndWheelSNHolesZdist / 2 + (sEndWStepHoleZpos + sEndWStepHoleZdist) - 17 * mm - zConeLen[lay];
-  //  float zTransition2[3] = { -9.186 * cm, -8.938 *cm,  -8.538 * cm };
+  //  double rInner[3] = { 59.94 / 2 * mm, 75.98 / 2 * mm, 91.48 / 2 * mm };
+  double rOuter[3] = {(103 - 2.) / 2 * mm, (149 - 2.24) / 2 * mm, (195 - 2.24) / 2 * mm};
+  double zConeLen[3] = {186.8 * mm, 179.74 * mm, 223 * mm};
+  double zMax = -sEndWheelSNHolesZdist / 2 + (sEndWStepHoleZpos + sEndWStepHoleZdist) - 17 * mm - zConeLen[lay];
+  //  double zTransition2[3] = { -9.186 * cm, -8.938 *cm,  -8.538 * cm };
   CreateCableBundle(*av, std::string("MVTX_L" + std::to_string(lay) + "Cable"), true, true, false,
                     rOuter[lay] - 3 * mm, rOuter[lay] - 5 * mm, 0, 0,
                     BarrelCableStart + 1 * mm, zMax);
 
-  //  float zCoolStart = - sEndWheelSNHolesZdist / 2 + ( sEndWStepHoleZpos + sEndWStepHoleZdist )
+  //  double zCoolStart = - sEndWheelSNHolesZdist / 2 + ( sEndWStepHoleZpos + sEndWStepHoleZdist )
   //                     - 17 * mm - zConeLen[lay];
   //  CreateCableBundle( *av, Form( "MVTX_L%dCool_0", lay ), false, true, false, rInner[lay], rInner[lay], 0, 0,
   //                     BarrelCableStart,  );
@@ -1186,7 +1186,7 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   G4ThreeVector placeBarrelCable;
   for (unsigned int i = 0; i < totStaves; ++i)
   {
-    float phi = (2.0 * M_PI / totStaves) * i;
+    double phi = (2.0 * M_PI / totStaves) * i;
     placeBarrelCable.setX((BarrelRadius - 1 * cm) * std::cos(phi));
     placeBarrelCable.setY((BarrelRadius - 1 * cm) * std::sin(phi));
     G4RotationMatrix rotBarrelCable;
@@ -1202,7 +1202,7 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
     {
       G4RotationMatrix rotCable;
       G4ThreeVector placeCable;
-      float phi = (2.0 * M_PI / nStaves[iLayer]) * iStave;
+      double phi = (2.0 * M_PI / nStaves[iLayer]) * iStave;
       placeCable.setX(std::cos(phi));
       placeCable.setY(std::sin(phi));
       rotCable.rotateZ(phi + ((90. + cableRotate[iLayer]) * deg));

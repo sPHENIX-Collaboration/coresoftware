@@ -3,7 +3,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <Rtypes.h> // for ROOT data types
+#include <Rtypes.h>  // for ROOT data types
 
 #include <map>
 #include <string>
