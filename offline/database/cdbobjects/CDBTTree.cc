@@ -483,16 +483,16 @@ void CDBTTree::LoadCalibrations()
 
   if (m_Filename.empty())
   {
-    std::cout << "CDBTTree::LoadCalibrations" << std::endl;
-    std::cout << "\tNo path associated with this CDBTTree" << std::endl;
-    return;
+    std::cout << PHWHERE << "No filename given in ctor or via SetFilename()" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
   TFile *f = TFile::Open(m_Filename.c_str());
   if (!f)
   {
-    std::cout << "CDBTTree::LoadCalibrations" << std::endl;
-    std::cout << "\tCould not open file " << m_Filename << std::endl;
-    return;
+    std::cout << PHWHERE << "TFile::Open(" << m_Filename << ") failed" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
   f->GetObject(m_TTreeName[SingleEntries].c_str(), m_TTree[SingleEntries]);
   f->GetObject(m_TTreeName[MultipleEntries].c_str(), m_TTree[MultipleEntries]);
