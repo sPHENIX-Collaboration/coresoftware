@@ -56,9 +56,9 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
     int size1 = v.size() - 1;
     if (size1 == _nzerosuppresssamples)
       {
-	v.push_back(v.at(0) - v.at(1)); //returns peak sample - pedestal sample
+	v.push_back(v.at(1) - v.at(0)); //returns peak sample - pedestal sample
 	v.push_back(-1); // set time to -1 to indicate zero suppressed 
-	v.push_back(v.at(1)); 
+	v.push_back(v.at(0)); 
 	v.push_back(0);
       }
     else

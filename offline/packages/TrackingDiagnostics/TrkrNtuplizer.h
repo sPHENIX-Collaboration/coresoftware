@@ -9,6 +9,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <TMatrixFfwd.h>
 #include <TMatrixT.h>
@@ -25,8 +26,12 @@ class TNtuple;
 class SvtxTrack;
 class SvtxTrackMap;
 class SvtxVertexMap;
+class TrkrClusterContainer;
+class ActsGeometry;
+class PHG4TpcCylinderGeomContainer;
+class GlobalVertexMap;
 
-// class TrkrClusterContainer;
+//class ClusterErrorPara;
 
 /// \class SvtxEvaluator
 ///
@@ -36,6 +41,8 @@ class SvtxVertexMap;
 /// the greatest contributor Monte Carlo particle and then
 /// test one against the other.
 ///
+
+
 class TrkrNtuplizer : public SubsysReco
 {
  public:
@@ -43,7 +50,7 @@ class TrkrNtuplizer : public SubsysReco
                 const std::string &filename = "trkrntuple.root",
                 const std::string &trackmapname = "SvtxTrackMap",
                 unsigned int nlayers_maps = 3,
-                unsigned int nlayers_intt = 8,
+                unsigned int nlayers_intt = 4,
                 unsigned int nlayers_tpc = 48,
                 unsigned int nlayers_mms = 2);
   ~TrkrNtuplizer() override;
@@ -82,6 +89,8 @@ class TrkrNtuplizer : public SubsysReco
                float &dca3dxysigma, float &dca3dzsigma);
   // TrkrClusterContainer *cluster_map{nullptr};
 
+  void FillCluster(Float_t fXcluster[30], TrkrDefs::cluskey cluster_key);
+  void FillTrack(Float_t fXcluster[30], SvtxTrack *track, GlobalVertexMap* vertexmap );
   //----------------------------------
   // evaluator output ntuples
 
@@ -112,7 +121,11 @@ class TrkrNtuplizer : public SubsysReco
   std::string _filename;
   // Track map name
   std::string _trackmapname;
+  ClusterErrorPara _ClusErrPara;
+  TrkrClusterContainer* _cluster_map = nullptr;
   SvtxTrackMap* _trackmap = nullptr;
+  ActsGeometry* _tgeometry = nullptr;
+  PHG4TpcCylinderGeomContainer* _geom_container = nullptr;
 
   std::string _clustrackseedcontainer = "TpcTrackSeedContainer";
 

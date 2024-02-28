@@ -1,40 +1,43 @@
 #ifndef DECAYFINDER_DECAYFINDER_H
 #define DECAYFINDER_DECAYFINDER_H
 
-//sPHENIX stuff
+// sPHENIX stuff
 #include <fun4all/SubsysReco.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include <cstddef>              // for NULL
+#include <cstddef>  // for NULL
 #include <string>
+#include <utility>  // for pair
 #include <vector>
-#include <utility>               // for pair
 
 class DecayFinderContainer_v1;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class PHHepMCGenEvent;
 class PHHepMCGenEventMap;
-namespace HepMC { class GenParticle; }
+namespace HepMC
+{
+  class GenParticle;
+}
 
 class DecayFinder : public SubsysReco
 {
  public:
-  typedef std::vector<std::pair<std::pair<int, int>, int>> Decay;
+  using Decay = std::vector<std::pair<std::pair<int, int>, int>>;
 
   DecayFinder();
 
   explicit DecayFinder(const std::string &name);
 
-  virtual ~DecayFinder() {}
+  ~DecayFinder() override = default;
 
-  int Init(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
 
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
-  int End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode) override;
 
   int parseDecayDescriptor();
 
@@ -42,17 +45,17 @@ class DecayFinder : public SubsysReco
 
   bool findParticle(const std::string &particle);
 
-  void searchHepMCRecord(HepMC::GenParticle* particle, std::vector<int> decayProducts, 
-                         bool &breakLoop, bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA, 
+  void searchHepMCRecord(HepMC::GenParticle *particle, std::vector<int> decayProducts,
+                         bool &breakLoop, bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA,
                          std::vector<int> &correctDecayProducts);
 
   void searchGeant4Record(int barcode, int pid, std::vector<int> decayProducts,
-          		 bool &breakLoop, bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA, 
-			 std::vector<int> &correctDecayProducts);
+                          bool &breakLoop, bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA,
+                          std::vector<int> &correctDecayProducts);
 
   bool checkIfCorrectHepMCParticle(HepMC::GenParticle *particle, bool &trackFailedPT, bool &trackFailedETA);
 
-  bool checkIfCorrectGeant4Particle(PHG4Particle *particle, bool& hasPhoton, bool& hasPi0, bool& trackFailedPT, bool& trackFailedETA);
+  bool checkIfCorrectGeant4Particle(PHG4Particle *particle, bool &hasPhoton, bool &hasPi0, bool &trackFailedPT, bool &trackFailedETA);
 
   bool compareDecays(std::vector<int> required, std::vector<int> actual);
 
@@ -68,39 +71,39 @@ class DecayFinder : public SubsysReco
 
   int createDecayNode(PHCompositeNode *topNode);
 
-  void fillDecayNode(PHCompositeNode* topNode, Decay &decay);
+  void fillDecayNode(PHCompositeNode *topNode, Decay &decay);
 
   void printInfo();
 
   void printNode(PHCompositeNode *topNode);
 
-  //User configuration
+  // User configuration
   /**
    * Use this function to define the decay you want to find in the HepMC record
    * @param[in] decayDescriptor the description of the decay chain, this is a string
    * You define the decay with these rules:
    * @brief You define a particle decaying with "->", the mother on the left, the decay products on the right
-   * @brief Set the charge of final state tracks with "^", the particle name on the left and the charge on the right. 
+   * @brief Set the charge of final state tracks with "^", the particle name on the left and the charge on the right.
    *        Accepted charges are +, - and 0
-   * @brief Use the same rules as above for any intermediatee decays but contain the entire decay within curled 
+   * @brief Use the same rules as above for any intermediatee decays but contain the entire decay within curled
    *        brackets, "{}"
-   * @brief If you also want to find the charge conjugate decay, contain the entire decay descriptor within "[]cc" for 
+   * @brief If you also want to find the charge conjugate decay, contain the entire decay descriptor within "[]cc" for
    *        charge-conjugate. The "cc" is NOT case sensitive
-   * @brief The particle names you use must be kept in the TDatabasePDG class from root 
-   *        (https://root.cern.ch/doc/master/classTDatabasePDG.html). Print this table to see available particles with 
+   * @brief The particle names you use must be kept in the TDatabasePDG class from root
+   *        (https://root.cern.ch/doc/master/classTDatabasePDG.html). Print this table to see available particles with
    *        TDatabasePDG::Instance()->Print()
    * @brief An example of a decay would be: "[B+ -> {D0_bar -> kaon^+ pion^-} pion^+]cc"
-   * @note There is an internal list of resonances which, if they appear in the record, will be further analysed. For 
-   *       example, the f0(980)->pipi decay is too quick to have a flight distance and so we would only see the pion 
-   *       pair in the detector. If you are looking for B_s0 -> J/psi pipi then the decay of the f0 will be studied 
-   *       for a pipi final state, basically inclusive decays are handled automatically. If you wish to study the f0 
+   * @note There is an internal list of resonances which, if they appear in the record, will be further analysed. For
+   *       example, the f0(980)->pipi decay is too quick to have a flight distance and so we would only see the pion
+   *       pair in the detector. If you are looking for B_s0 -> J/psi pipi then the decay of the f0 will be studied
+   *       for a pipi final state, basically inclusive decays are handled automatically. If you wish to study the f0
    *       decay, add it to your decay descriptor and it will automatically be removed from the "skip list"
    */
   void setDecayDescriptor(const std::string &decayDescriptor) { m_decayDescriptor = decayDescriptor; }
   /**
-   * @param[in] trigger Set to true to allow further processing of events in which your decay appears, if your decay 
-   *            does not appear, all further processing of this event is skipped. This defaults to false so every event 
-   *            is proccessed in F4A 
+   * @param[in] trigger Set to true to allow further processing of events in which your decay appears, if your decay
+   *            does not appear, all further processing of this event is skipped. This defaults to false so every event
+   *            is proccessed in F4A
    */
   void triggerOnDecay(bool trigger) { m_triggerOnDecay = trigger; }
   /**
@@ -117,7 +120,7 @@ class DecayFinder : public SubsysReco
    */
   void saveDST(bool save) { m_save_dst = save; }
   /**
-   * @param[in] name Change the default name of the DecayFinderContainer. 
+   * @param[in] name Change the default name of the DecayFinderContainer.
    * @note This name will still have "_DecayMap" added to the end, this cannot be changed
    */
   void setNodeName(const std::string &name) { m_container_name = name; }
@@ -127,7 +130,11 @@ class DecayFinder : public SubsysReco
    * @param[in] min The maximum eta threshold for track acceptance
    * @note Set a pseudorapidity threshold range for tracking
    */
-  void setEtaRange(float min, float max) { m_eta_low_req = min; m_eta_high_req = max; }
+  void setEtaRange(float min, float max)
+  {
+    m_eta_low_req = min;
+    m_eta_high_req = max;
+  }
 
   /**
    * @param[in] pt The minimum pT threshold for track acceptance
@@ -141,10 +148,9 @@ class DecayFinder : public SubsysReco
    *  or user specified range
    *  @param[in] True to recalculate the eta requirements per decay, false to use a fixed value (default = true)
    */
-   void useDecaySpecificEtaRange(bool use) { m_recalcualteEtaRange = use; }
+  void useDecaySpecificEtaRange(bool use) { m_recalcualteEtaRange = use; }
 
  private:
-
   PHHepMCGenEventMap *m_geneventmap = nullptr;
   PHHepMCGenEvent *m_genevt = nullptr;
   PHG4TruthInfoContainer *m_truthinfo = nullptr;
@@ -162,6 +168,7 @@ class DecayFinder : public SubsysReco
   double m_pt_req = 0.2;
 
   int m_counter = 0;
+  int m_intermediate_product_counter = 0;
   int m_nCandFail_pT = 0;
   int m_nCandFail_eta = 0;
   int m_nCandFail_pT_and_eta = 0;
@@ -194,4 +201,4 @@ class DecayFinder : public SubsysReco
   std::string m_container_name;
 };
 
-#endif  //DECAYFINDER_DECAYFINDER_H
+#endif  // DECAYFINDER_DECAYFINDER_H

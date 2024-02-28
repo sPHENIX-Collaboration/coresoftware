@@ -32,13 +32,15 @@ class CMFlashClusterv1 : public CMFlashCluster
   void Reset() override {}
   int isValid() const override;
   PHObject* CloneMe() const override { return new CMFlashClusterv1(*this); }
- 
-  //! copy content from base class
-  void CopyFrom( const CMFlashCluster& ) override;
 
   //! copy content from base class
-  void CopyFrom( CMFlashCluster* source ) override
-  { CopyFrom( *source ); }
+  void CopyFrom(const CMFlashCluster&) override;
+
+  //! copy content from base class
+  void CopyFrom(CMFlashCluster* source) override
+  {
+    CopyFrom(*source);
+  }
 
   //
   // cluster position
@@ -49,8 +51,8 @@ class CMFlashClusterv1 : public CMFlashCluster
   void setY(float y) override { m_pos[1] = y; }
   float getZ() const override { return m_pos[2]; }
   void setZ(float z) override { m_pos[2] = z; }
-  unsigned int getNclusters() const override {return m_nclusters;}
-  void setNclusters(unsigned int n) override { m_nclusters = n;}
+  unsigned int getNclusters() const override { return m_nclusters; }
+  void setNclusters(unsigned int n) override { m_nclusters = n; }
 
   //
   // cluster info
@@ -59,9 +61,8 @@ class CMFlashClusterv1 : public CMFlashCluster
   void setAdc(unsigned int adc) override { m_adc = adc; }
 
  protected:
-
   /// mean cluster position
-  float m_pos[3] = {NAN, NAN, NAN};          
+  float m_pos[3] = {NAN, NAN, NAN};
 
   /// cluster sum adc
   unsigned int m_adc = 0xFFFFFFFF;
@@ -72,4 +73,4 @@ class CMFlashClusterv1 : public CMFlashCluster
   ClassDefOverride(CMFlashClusterv1, 1)
 };
 
-#endif //TRACKBASE_CMFLASHCLUSTERV1_H
+#endif  // TRACKBASE_CMFLASHCLUSTERV1_H

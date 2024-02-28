@@ -203,9 +203,15 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
           }
           std::vector<float> waveform;
           waveform.reserve(m_nsamples);
-          for (int samp = 0; samp < m_nsamples; samp++)
-          {
-            waveform.push_back(packet->iValue(samp, channel));
+          if (packet->iValue(channel,"SUPPRESSED")){
+            waveform.push_back(packet->iValue(channel,"PRE"));
+            waveform.push_back(packet->iValue(channel,"POST"));
+          }
+          else {
+            for (int samp = 0; samp < m_nsamples; samp++)
+            {
+              waveform.push_back(packet->iValue(samp, channel));
+            }
           }
           waveforms.push_back(waveform);
           waveform.clear();

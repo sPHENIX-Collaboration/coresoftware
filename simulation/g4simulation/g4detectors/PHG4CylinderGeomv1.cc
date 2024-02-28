@@ -17,11 +17,26 @@ void PHG4CylinderGeomv1::ImportParameters(const PHParameters& param)
 {
   PHG4CylinderGeom::ImportParameters(param);
 
-  if (param.exist_int_param("layer")) layer = param.get_int_param("layer");
-  if (param.exist_double_param("radius")) radius = param.get_double_param("radius");
-  if (param.exist_double_param("zmin")) zmin = param.get_double_param("zmin");
-  if (param.exist_double_param("zmax")) zmax = param.get_double_param("zmax");
-  if (param.exist_double_param("thickness")) thickness = param.get_double_param("thickness");
+  if (param.exist_int_param("layer"))
+  {
+    layer = param.get_int_param("layer");
+  }
+  if (param.exist_double_param("radius"))
+  {
+    radius = param.get_double_param("radius");
+  }
+  if (param.exist_double_param("zmin"))
+  {
+    zmin = param.get_double_param("zmin");
+  }
+  if (param.exist_double_param("zmax"))
+  {
+    zmax = param.get_double_param("zmax");
+  }
+  if (param.exist_double_param("thickness"))
+  {
+    thickness = param.get_double_param("thickness");
+  }
 
   return;
 }

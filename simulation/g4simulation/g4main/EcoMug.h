@@ -39,8 +39,8 @@ class EMRandom
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<uint64_t> dis(0, std::numeric_limits<uint64_t>::max());
-    s[0] = 12345.;  //dis(gen);
-    s[1] = 12345;   //dis(gen);
+    s[0] = 12345.;  // dis(gen);
+    s[1] = 12345;   // dis(gen);
   };
 
   void SetSeed(uint64_t seed)
@@ -119,7 +119,7 @@ class EMMaximization
     , m_a2(0.)
     , mBestCost(-1.)
   {
-// cppcheck-suppress [useInitializationList]
+    // cppcheck-suppress [useInitializationList]
     mFunc = &DefaultJ;
   };
   ///////////////////////////////////////////////////////////////
@@ -377,9 +377,9 @@ class EcoMug
     ,
     /* mMaxFuncSkyCylinder(5.3176), */ mHSphereCenterPosition({{0., 0., 0.}})
   {
-// cppcheck-suppress [useInitializationList]
+    // cppcheck-suppress [useInitializationList]
     mMaxJ = {-1., -1., -1.};
-// cppcheck-suppress [useInitializationList]
+    // cppcheck-suppress [useInitializationList]
     mMaxCustomJ = {-1., -1., -1.};
   };
 
@@ -800,8 +800,10 @@ class EcoMug
     }
 
     // Generate the charge
-    if (mRandom.GenerateRandomDouble(-100,128)>=0) mCharge = 1;
-    else mCharge = -1;
+    if (mRandom.GenerateRandomDouble(-100, 128) >= 0)
+      mCharge = 1;
+    else
+      mCharge = -1;
   };
   ///////////////////////////////////////////////////////////////
 
@@ -892,8 +894,10 @@ class EcoMug
     }
 
     // Generate the charge
-    if (mRandom.GenerateRandomDouble(-100,128)>=0) mCharge = 1;
-    else mCharge = -1;
+    if (mRandom.GenerateRandomDouble(-100, 128) >= 0)
+      mCharge = 1;
+    else
+      mCharge = -1;
   };
   ///////////////////////////////////////////////////////////////
 };

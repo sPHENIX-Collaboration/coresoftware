@@ -31,7 +31,7 @@ MbdEvent::MbdEvent()
 
   int nsamples = 31;  /// NEED TO MAKE THIS FLEXIBLE
   recoConsts *rc = recoConsts::instance();
-  if ( rc->FlagExist("MBD_TEMPLATEFIT") )
+  if (rc->FlagExist("MBD_TEMPLATEFIT"))
   {
     do_templatefit = rc->get_IntFlag("MBD_TEMPLATEFIT");
   }
@@ -80,16 +80,16 @@ MbdEvent::MbdEvent()
   {
     // Online calibrations
     std::string gainfile = std::string(bbccaldir) + "/" + "bbc_mip.calib";
-    Read_Charge_Calib( gainfile );
+    Read_Charge_Calib(gainfile);
 
     std::string tq_t0_offsetfile = std::string(bbccaldir) + "/" + "bbc_tq_t0.calib";
-    Read_TQ_T0_Offsets( tq_t0_offsetfile );
+    Read_TQ_T0_Offsets(tq_t0_offsetfile);
 
     std::string tq_clk_offsetfile = std::string(bbccaldir) + "/" + "bbc_tq_clk.calib";
-    Read_TQ_CLK_Offsets( tq_clk_offsetfile );
+    Read_TQ_CLK_Offsets(tq_clk_offsetfile);
 
     std::string tt_clk_offsetfile = std::string(bbccaldir) + "/" + "bbc_tt_clk.calib";
-    Read_TT_CLK_Offsets( tt_clk_offsetfile );
+    Read_TT_CLK_Offsets(tt_clk_offsetfile);
 
     /*
     std::string mondata_fname = std::string(bbccaldir) + "/" + "BbcMonData.dat";
@@ -102,8 +102,11 @@ MbdEvent::MbdEvent()
   }
 
   // Debug stuff
-  //debugintt = 1;
-  if ( debugintt ) ReadSyncFile();
+  // debugintt = 1;
+  if (debugintt)
+  {
+    ReadSyncFile();
+  }
 
   Clear();
 }
@@ -152,19 +155,25 @@ int MbdEvent::InitRun()
   }
   _mbdcal = new MbdCalib();
   std::cout << "SIMFLAG IS " << _simflag << std::endl;
-  if ( !_simflag ) _mbdcal->Download_All();
+  if (!_simflag)
+  {
+    _mbdcal->Download_All();
+  }
 
   // Read in template if specified
-  if ( do_templatefit )
+  if (do_templatefit)
   {
     for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
     {
-      if ( _mbdgeom->get_type(ifeech) == 0 ) continue;
-      //std::cout << PHWHERE << "Reading template " << ifeech << std::endl;
-      //std::cout << "SIZES0 " << _mbdcal->get_shape(ifeech).size() << std::endl;
-      // Should set template size automatically here
-      _mbdsig[ifeech].SetTemplate( _mbdcal->get_shape(ifeech), _mbdcal->get_sherr(ifeech) );
-      _mbdsig[ifeech].SetMinMaxFitTime( _mbdcal->get_sampmax(ifeech)-2-3, _mbdcal->get_sampmax(ifeech)-2+3 );
+      if (_mbdgeom->get_type(ifeech) == 0)
+      {
+        continue;
+      }
+      // std::cout << PHWHERE << "Reading template " << ifeech << std::endl;
+      // std::cout << "SIZES0 " << _mbdcal->get_shape(ifeech).size() << std::endl;
+      //  Should set template size automatically here
+      _mbdsig[ifeech].SetTemplate(_mbdcal->get_shape(ifeech), _mbdcal->get_sherr(ifeech));
+      _mbdsig[ifeech].SetMinMaxFitTime(_mbdcal->get_sampmax(ifeech) - 2 - 3, _mbdcal->get_sampmax(ifeech) - 2 + 3);
       //_mbdsig[ifeech].SetMinMaxFitTime( 0, 31 );
     }
   }
@@ -189,7 +198,7 @@ void MbdEvent::Clear()
     m_bbcte[iarm] = -9999.;
     m_bbctl[iarm] = -9999.;
     hevt_bbct[iarm]->Reset();
-    hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-50,50);
+    hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-50, 50);
   }
 
   // Reset end product to prepare next event
@@ -303,19 +312,19 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
 
     if (type == 0)
     {
-      Double_t tdc = _mbdsig[ifeech].MBD( _mbdcal->get_sampmax(ifeech) );
+      Double_t tdc = _mbdsig[ifeech].MBD(_mbdcal->get_sampmax(ifeech));
 
-      if ( tdc<40 )
+      if (tdc < 40)
       {
         m_pmttt[pmtch] = NAN;  // no hit
       }
       else
       {
-        m_pmttt[pmtch] = 26.5 - tdc*0.00189;  // simple linear correction
+        m_pmttt[pmtch] = 26.5 - tdc * 0.00189;  // simple linear correction
       }
     }
 
-    if ( type==1 )
+    if (type == 1)
     {
       // Use dCFD method to get time for now in charge channels
       // std::cout << "getspline " << ifeech << std::endl;
@@ -323,15 +332,15 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
       Double_t threshold = 0.5;
       m_pmttq[pmtch] = _mbdsig[ifeech].dCFD(threshold);
       m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl();
-      if ( do_templatefit )
+      if (do_templatefit)
       {
         _mbdsig[ifeech].FitTemplate();
 
-        //m_pmttq[pmtch] = _mbdsig[ifeech].GetTime();
+        // m_pmttq[pmtch] = _mbdsig[ifeech].GetTime();
         m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl();
       }
 
-      if ( m_ampl[ifeech] < _mbdcal->get_qgain(pmtch)*0.25 )
+      if (m_ampl[ifeech] < _mbdcal->get_qgain(pmtch) * 0.25)
       {
         // m_t0[ifeech] = -9999.;
         m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
@@ -379,7 +388,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
 ///
 int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 {
-  if ( debugintt )
+  if (debugintt)
   {
     _verbose = 100;
   }
@@ -395,18 +404,19 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
   }
 
   // Debug stuff
-  if ( debugintt && (bbevt[_syncevt] != (m_evt-1)) )
+  if (debugintt && (bbevt[_syncevt] != (m_evt - 1)))
   {
     _verbose = 0;
     return 1;
   }
- 
+
   if (gausfit[0] == nullptr)
   {
     TString name;
-    for (int iarm=0; iarm<2; iarm++)
+    for (int iarm = 0; iarm < 2; iarm++)
     {
-      name = "gausfit"; name += iarm;
+      name = "gausfit";
+      name += iarm;
       gausfit[iarm] = new TF1(name, "gaus", 0, 20);
       gausfit[iarm]->FixParameter(2, _tres);  // set sigma to timing resolution
       gausfit[iarm]->SetLineColor(2);
@@ -421,10 +431,10 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     std::cout << "Hit PMT info " << std::endl;
   }
 
-  int epmt[2] {-1,-1};        // pmt of earliest time
-  //int lpmt[2] {-1,-1};        // pmt of latest time
-  double tepmt[2] {1e9,1e9};  // earliest time
-  double tlpmt[2] {-1e9,-1e9};  // latest time
+  int epmt[2]{-1, -1};  // pmt of earliest time
+  // int lpmt[2] {-1,-1};        // pmt of latest time
+  double tepmt[2]{1e9, 1e9};    // earliest time
+  double tlpmt[2]{-1e9, -1e9};  // latest time
 
   for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
   {
@@ -451,14 +461,14 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
       {
         std::cout << ipmt << "\t" << t_pmt << "\t" << q_pmt << std::endl;
 
-        if ( t_pmt < tepmt[arm] )
+        if (t_pmt < tepmt[arm])
         {
           epmt[arm] = ipmt;
           tepmt[arm] = t_pmt;
         }
-        if ( t_pmt > tlpmt[arm] )
+        if (t_pmt > tlpmt[arm])
         {
-          //lpmt[arm] = ipmt;
+          // lpmt[arm] = ipmt;
           tlpmt[arm] = t_pmt;
         }
       }
@@ -513,25 +523,25 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
     //_bbcout->set_arm(iarm, m_bbcn[iarm], m_bbcq[iarm], m_bbct[iarm]);
 
-    //if ( _verbose && mybbz[_syncevt]< -40. )
-    if ( _verbose )
+    // if ( _verbose && mybbz[_syncevt]< -40. )
+    if (_verbose)
     {
-      hevt_bbct[iarm]->GetXaxis()->SetRangeUser( tepmt[iarm]-3., tlpmt[iarm]+3. );
-      //hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-20,20);
+      hevt_bbct[iarm]->GetXaxis()->SetRangeUser(tepmt[iarm] - 3., tlpmt[iarm] + 3.);
+      // hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-20,20);
       hevt_bbct[iarm]->Draw();
       gausfit[iarm]->Draw("same");
       gPad->Modified();
       gPad->Update();
-      if ( iarm==1 )
+      if (iarm == 1)
       {
-        double zearly = (tepmt[0]-tepmt[1])*MbdDefs::C/2.0;
-        double znew = (m_bbct[0]-m_bbct[1])*MbdDefs::C/2.0;
+        double zearly = (tepmt[0] - tepmt[1]) * MbdDefs::C / 2.0;
+        double znew = (m_bbct[0] - m_bbct[1]) * MbdDefs::C / 2.0;
 
-        if ( debugintt )
+        if (debugintt)
         {
-          double intzdiff = intz[_syncevt]/10. - mybbz[_syncevt];
-          double intzediff = intz[_syncevt]/10. - zearly;
-          if ( fabs(znew-mybbz[_syncevt]) > 0.1 )
+          double intzdiff = intz[_syncevt] / 10. - mybbz[_syncevt];
+          double intzediff = intz[_syncevt] / 10. - zearly;
+          if (fabs(znew - mybbz[_syncevt]) > 0.1)
           {
             std::cout << "**ERR** " << znew << "\t" << mybbz[_syncevt] << std::endl;
           }
@@ -543,14 +553,13 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
           std::cout << m_evt << " rms " << hevt_bbct[0]->GetRMS() << "\t" << hevt_bbct[1]->GetRMS() << std::endl;
           std::cout << m_evt << " te ch " << epmt[0] << "\t" << epmt[1] << "\t" << tepmt[0] << "\t" << tepmt[1] << std::endl;
           std::cout << m_evt << " tetl " << m_bbcte[0] << "\t" << m_bbctl[0] << "\t" << m_bbcte[1] << "\t" << m_bbctl[1] << std::endl;
-          std::cout << m_evt << " bz intz " << mybbz[_syncevt] << "\t" << intz[_syncevt]/10. << "\t" << intzdiff << "\t" << intzdiff*2.0/MbdDefs::C << std::endl;
+          std::cout << m_evt << " bz intz " << mybbz[_syncevt] << "\t" << intz[_syncevt] / 10. << "\t" << intzdiff << "\t" << intzdiff * 2.0 / MbdDefs::C << std::endl;
           std::cout << m_evt << " bze " << zearly << "\t" << intzediff << std::endl;
           std::cout << "? ";
           std::cin >> junk;
         }
       }
     }
-
   }
 
   // Get Zvertex, T0
@@ -582,9 +591,9 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     m_bbct0 = (m_bbcte[0] + m_bbcte[1]) / 2.0;
     */
 
-    //if (_verbose > 10)
-    //if ( _verbose && mybbz[_syncevt]< -40. )
-    if ( _verbose )
+    // if (_verbose > 10)
+    // if ( _verbose && mybbz[_syncevt]< -40. )
+    if (_verbose)
     {
       std::cout << "bbcz " << m_bbcz << std::endl;
       std::string junk;
@@ -599,7 +608,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     for (int iarm = 0; iarm < 2; iarm++)
     {
       bbcout->set_arm(iarm, get_bbcn(iarm), get_bbcq(iarm), get_bbct(iarm));
-      // bbcout->set_clocks( m_evt, m_clk, m_femclk ); // only for V2
+      bbcout->set_clocks(m_evt, m_clk, m_femclk);  // only for V2
       if (_verbose > 10)
       {
         std::cout << get_bbcn(iarm) << "\t" << get_bbcq(iarm) << "\t" << get_bbct(iarm) << std::endl;
@@ -613,7 +622,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     }
   }
 
-  if ( debugintt )
+  if (debugintt)
   {
     _syncevt++;
     _verbose = 0;
@@ -749,18 +758,17 @@ int MbdEvent::Read_TT_CLK_Offsets(const std::string &t0cal_fname)
   return 1;
 }
 
-
 void MbdEvent::ReadSyncFile(const char *fname)
 {
-  Int_t    f_evt {0};
-  UShort_t f_femclk {0};          
-  Float_t  f_bz {0.};
-  Long64_t bco_full {0};
-  Double_t ES_zvtx {0.};
-  Double_t mbd_bz {0.};
+  Int_t f_evt{0};
+  UShort_t f_femclk{0};
+  Float_t f_bz{0.};
+  Long64_t bco_full{0};
+  Double_t ES_zvtx{0.};
+  Double_t mbd_bz{0.};
 
-  _synctfile = std::make_unique<TFile>(fname,"READ");
-  _syncttree = (TTree*)_synctfile->Get("t2");
+  _synctfile = std::make_unique<TFile>(fname, "READ");
+  _syncttree = (TTree *) _synctfile->Get("t2");
   _syncttree->SetBranchAddress("evt", &f_evt);
   _syncttree->SetBranchAddress("femclk", &f_femclk);
   _syncttree->SetBranchAddress("bz", &f_bz);
@@ -769,18 +777,17 @@ void MbdEvent::ReadSyncFile(const char *fname)
   _syncttree->SetBranchAddress("mbd_bz", &mbd_bz);
 
   Stat_t nentries = _syncttree->GetEntries();
-  for (int ientry=0; ientry<nentries; ientry++)
+  for (int ientry = 0; ientry < nentries; ientry++)
   {
-    _syncttree->GetEntry( ientry );
+    _syncttree->GetEntry(ientry);
 
-    bbevt.push_back( f_evt );
-    bbclk.push_back( f_femclk );
-    mybbz.push_back( f_bz );
-    bco.push_back( bco_full );
-    intz.push_back( ES_zvtx );
-    bbz.push_back( mbd_bz );
+    bbevt.push_back(f_evt);
+    bbclk.push_back(f_femclk);
+    mybbz.push_back(f_bz);
+    bco.push_back(bco_full);
+    intz.push_back(ES_zvtx);
+    bbz.push_back(mbd_bz);
   }
 
   std::cout << "Read in " << bbevt.size() << " INTT sync events" << std::endl;
-
 }

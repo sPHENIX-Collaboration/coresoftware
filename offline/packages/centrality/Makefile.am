@@ -29,21 +29,25 @@ libcentrality_la_LIBADD = \
 pkginclude_HEADERS = \
   CentralityInfo.h \
   CentralityInfov1.h \
+  CentralityInfov2.h \
   CentralityReco.h
 
 
 ROOTDICTS = \
   CentralityInfo_Dict.cc \
-  CentralityInfov1_Dict.cc
+  CentralityInfov1_Dict.cc \
+  CentralityInfov2_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CentralityInfo_Dict_rdict.pcm \
-  CentralityInfov1_Dict_rdict.pcm
+  CentralityInfov1_Dict_rdict.pcm \
+  CentralityInfov2_Dict_rdict.pcm
 
 libcentrality_io_la_SOURCES = \
   $(ROOTDICTS) \
-  CentralityInfov1.cc
+  CentralityInfov1.cc \
+  CentralityInfov2.cc
 
 libcentrality_la_SOURCES = \
   CentralityReco.cc

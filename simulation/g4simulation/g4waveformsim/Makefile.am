@@ -24,10 +24,8 @@ libCaloWaveformSim_la_LIBADD = \
   -lSubsysReco \
   -lcalo_io \
   -lfun4all \
-  -lg4detectors_io \
   -lg4detectors \
-  -lsph_onnx \
-  -lcalo_reco \
+  -lg4detectors_io \
   -lcalo_io \
   -lcdbobjects \
   -lphg4hit

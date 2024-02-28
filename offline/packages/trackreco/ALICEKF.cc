@@ -37,14 +37,15 @@ bool ALICEKF::checknan(double val, const std::string &name, int num) const
 {
   if(std::isnan(val))
   {
-    if(Verbosity()>0) std::cout << "WARNING: " << name << " is NaN for seed " << num << ". Aborting this seed.\n";
+    if(Verbosity()>0) { std::cout << "WARNING: " << name << " is NaN for seed " << num << ". Aborting this seed.\n"; }
   }
   return std::isnan(val);
 }
 
 double ALICEKF::get_Bz(double x, double y, double z) const
 {
-  if(_use_const_field) return _const_field;
+  //  if(_use_const_field) return _const_field;
+  if(_use_const_field || fabs(z)>105.5) { return _const_field; }
   double p[4] = {x*cm,y*cm,z*cm,0.*cm};
   double bfield[3];
   _B->GetFieldValue(p,bfield);
@@ -55,8 +56,8 @@ double ALICEKF::getClusterError(TrkrCluster* c, TrkrDefs::cluskey key, Acts::Vec
 {
   if(_use_fixed_clus_error) 
   {
-     if(i==j) return _fixed_clus_error.at(i)*_fixed_clus_error.at(i);
-     else return 0.;
+     if(i==j) { return _fixed_clus_error.at(i)*_fixed_clus_error.at(i); }
+     else { return 0.; }
   }
   else 
     {
@@ -103,13 +104,15 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
   std::vector<TrackSeed_v1> seeds_vector;
   std::vector<Eigen::Matrix<double,6,6>> alice_seeds_vector;
   int nseeds = 0;
- 
-  if(Verbosity()>0) std::cout << "min clusters per track: " << _min_clusters_per_track << "\n";
+  int ncandidates = -1;
+  if(Verbosity()>0) { std::cout << "min clusters per track: " << _min_clusters_per_track << "\n"; }
   for( auto trackKeyChain:trackSeedKeyLists )
   {
-    if(trackKeyChain.size()<2) continue;
-    if(use_nhits_limit && trackKeyChain.size() < _min_clusters_per_track) continue;
-    if(TrkrDefs::getLayer(trackKeyChain.front())<TrkrDefs::getLayer(trackKeyChain.back())) std::reverse(trackKeyChain.begin(),trackKeyChain.end());
+    ++ncandidates;
+
+    if(trackKeyChain.size()<2) { continue; }
+    if(use_nhits_limit && trackKeyChain.size() < _min_clusters_per_track) { continue; }
+    if(TrkrDefs::getLayer(trackKeyChain.front())<TrkrDefs::getLayer(trackKeyChain.back())) { std::reverse(trackKeyChain.begin(),trackKeyChain.end()); }
     // get starting cluster from key
     // Transform sPHENIX coordinates into ALICE-compatible coordinates
     const auto& globalpos = globalPositions.at(trackKeyChain.at(0));
@@ -164,24 +167,24 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     });
     
     const auto [R, x_center, y_center] = TrackFitUtils::circle_fit_by_taubin( pts );
-    if(Verbosity()>1) std::cout << "circle fit parameters: R=" << R << ", X0=" << x_center << ", Y0=" << y_center << std::endl;
+    if(Verbosity()>1) { std::cout << std::endl << "candidate " << ncandidates << " seed " <<  nseeds << " circle fit parameters: R=" << R << ", X0=" << x_center << ", Y0=" << y_center << std::endl; }
     
     // check circle fit success
     /* failed fit will result in infinite momentum for the track, which in turn will break the kalman filter */
-    if( std::isnan(R) ) continue;   
+    if( std::isnan(R) ) {continue;   }
     
     double init_QPt = 1./(0.3*R/100.*get_Bz(x0,y0,z0));
     // determine charge
     double phi_first = atan2(y0,x0);
-    if(Verbosity()>1) std::cout << "phi_first: " << phi_first << std::endl;
+    if(Verbosity()>1){ std::cout << "phi_first: " << phi_first << std::endl;}
     double phi_second = atan2(second_y,second_x);
-    if(Verbosity()>1) std::cout << "phi_second: " << phi_second << std::endl;
+    if(Verbosity()>1) {std::cout << "phi_second: " << phi_second << std::endl;}
     double dphi = phi_second - phi_first;
-    if(Verbosity()>1) std::cout << "dphi: " << dphi << std::endl;
-    if(dphi>M_PI) dphi = 2*M_PI - dphi;
-    if(dphi<-M_PI) dphi = 2*M_PI + dphi;
-    if(Verbosity()>1) std::cout << "corrected dphi: " << dphi << std::endl;
-    if(dphi<0) init_QPt = -1*init_QPt;
+    if(Verbosity()>1) {std::cout << "dphi: " << dphi << std::endl;}
+    if(dphi>M_PI) {dphi = 2*M_PI - dphi;}
+    if(dphi<-M_PI) {dphi = 2*M_PI + dphi;}
+    if(Verbosity()>1) {std::cout << "corrected dphi: " << dphi << std::endl;}
+    if(dphi<0) {init_QPt = -1*init_QPt;}
     LogDebug("initial QPt: " << init_QPt << std::endl);
     trackSeed.SetQPt(init_QPt);
 
@@ -212,7 +215,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     {
       if(std::isnan(trackSeed.GetX()) ||
          std::isnan(trackSeed.GetY()) ||
-         std::isnan(trackSeed.GetZ())) continue;
+         std::isnan(trackSeed.GetZ())) {continue;}
       LogDebug("-------------------------------------------------------------" << std::endl);
       LogDebug("cluster " << cluster_ctr << " -> " << cluster_ctr + 1 << std::endl);
       LogDebug("this cluster (x,y,z) = (" << x << "," << y << "," << z << ")" << std::endl);
@@ -349,7 +352,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
       }
     }
 
-    //if(Verbosity()>0) std::cout << "finished track\n";
+    if(Verbosity()>0) {std::cout << "finished track\n";}
 
     double track_phi = atan2(y,x);
 
@@ -363,7 +366,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     #endif
     double track_pterr = sqrt(trackSeed.GetErr2QPt())/(trackSeed.GetQPt()*trackSeed.GetQPt());
     // If Kalman filter doesn't do its job (happens often with short seeds), use the circle-fit estimate as the central value
-    if(trackKeyChain.size()<10) track_pt = fabs(1./init_QPt);
+    if(trackKeyChain.size()<10) {track_pt = fabs(1./init_QPt);}
     LogDebug("track pt = " << track_pt << " +- " << track_pterr << std::endl);
     LogDebug("track ALICE p = (" << track_pX << ", " << track_pY << ", " << track_pz << ")" << std::endl);
     LogDebug("track p = (" << track_px << ", " << track_py << ", " << track_pz << ")" << std::endl);

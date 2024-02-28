@@ -1,11 +1,11 @@
 
 #include "TrackResiduals.h"
 
-#include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHit.h>
@@ -15,10 +15,14 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <intt/CylinderGeomIntt.h>
+
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
+
 #include <mvtx/CylinderGeom_Mvtx.h>
+
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
@@ -27,6 +31,7 @@
 #include <trackbase_historic/TrackSeed.h>
 
 #include <ffarawobjects/Gl1RawHit.h>
+
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/SvtxVertex.h>
@@ -94,6 +99,8 @@ int TrackResiduals::InitRun(PHCompositeNode*)
 void TrackResiduals::clearClusterStateVectors()
 {
   m_cluskeys.clear();
+  m_clusphisize.clear();
+  m_cluszsize.clear();
   m_idealsurfcenterx.clear();
   m_idealsurfcentery.clear();
   m_idealsurfcenterz.clear();
@@ -269,6 +276,22 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
 
     if (!m_doAlignment)
     {
+      std::vector<TrkrDefs::cluskey> keys;
+      for (const auto& ckey : get_cluster_keys(track))
+      {
+        if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
+        {
+          keys.push_back(ckey);
+        }
+      }
+      if (m_zeroField)
+      {
+        lineFitClusters(keys, geometry, clustermap);
+      }
+      else
+      {
+        circleFitClusters(keys, geometry, clustermap);
+      }
       for (const auto& ckey : get_cluster_keys(track))
       {
         fillClusterBranches(ckey, track, topNode);
@@ -341,6 +364,67 @@ float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey c
   float z = zloc;  // in cm
 
   return z;
+}
+void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
+                                       ActsGeometry* geometry,
+                                       TrkrClusterContainer* clusters)
+{
+  std::vector<Acts::Vector3> clusPos, global_vec;
+  TrackFitUtils::getTrackletClusters(geometry, clusters,
+                                     clusPos, keys);
+
+  for (auto& pos : clusPos)
+  {
+    float clusr = r(pos.x(), pos.y());
+    if (pos.y() < 0) clusr *= -1;
+
+    // exclude silicon and tpot clusters for now
+    if (fabs(clusr) > 80 || fabs(clusr) < 30)
+    {
+      continue;
+    }
+    global_vec.push_back(pos);
+  }
+
+  auto fitpars = TrackFitUtils::fitClusters(global_vec, keys);
+
+  m_xyint = std::numeric_limits<float>::quiet_NaN();
+  m_xyslope = std::numeric_limits<float>::quiet_NaN();
+  m_R = fitpars[0];
+  m_X0 = fitpars[1];
+  m_Y0 = fitpars[2];
+  m_rzslope = fitpars[3];
+  m_rzint = fitpars[4];
+}
+
+void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
+                                     ActsGeometry* geometry,
+                                     TrkrClusterContainer* clusters)
+{
+  std::vector<Acts::Vector3> clusPos;
+  TrackFitUtils::getTrackletClusters(geometry, clusters,
+                                     clusPos, keys);
+  TrackFitUtils::position_vector_t xypoints, rzpoints;
+  for (auto& pos : clusPos)
+  {
+    float clusr = r(pos.x(), pos.y());
+    if (pos.y() < 0) clusr *= -1;
+
+    // exclude silicon and tpot clusters for now
+    if (fabs(clusr) > 80 || fabs(clusr) < 30)
+    {
+      continue;
+    }
+    rzpoints.push_back(std::make_pair(pos.z(), clusr));
+    xypoints.push_back(std::make_pair(pos.x(), pos.y()));
+  }
+
+  auto xyparams = TrackFitUtils::line_fit(xypoints);
+  auto rzparams = TrackFitUtils::line_fit(rzpoints);
+  m_xyint = std::get<1>(xyparams);
+  m_xyslope = std::get<0>(xyparams);
+  m_rzint = std::get<1>(rzparams);
+  m_rzslope = std::get<0>(rzparams);
 }
 
 void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
@@ -579,6 +663,8 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         m_strip = std::numeric_limits<int>::quiet_NaN();
         m_hitpad = std::numeric_limits<int>::quiet_NaN();
         m_hittbin = std::numeric_limits<int>::quiet_NaN();
+
+        m_zdriftlength = std::numeric_limits<float>::quiet_NaN();
         break;
       }
       case TrkrDefs::TrkrId::inttId:
@@ -601,6 +687,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         m_strip = std::numeric_limits<int>::quiet_NaN();
         m_hitpad = std::numeric_limits<int>::quiet_NaN();
         m_hittbin = std::numeric_limits<int>::quiet_NaN();
+        m_zdriftlength = std::numeric_limits<float>::quiet_NaN();
         break;
       }
       case TrkrDefs::TrkrId::tpcId:
@@ -617,11 +704,12 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         auto geoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
         auto phi = geoLayer->get_phicenter(m_hitpad);
         auto radius = geoLayer->get_radius();
-        float AdcClockPeriod = 53.0;  // ns (?)
-        double zdriftlength = m_hittbin * geometry->get_drift_velocity() * AdcClockPeriod;
-        unsigned short NTBins = (unsigned short) geoLayer->get_zbins();
-        double tdriftmax = AdcClockPeriod * NTBins / 2.0;
-        m_hitgz = (tdriftmax * geometry->get_drift_velocity()) - zdriftlength;
+
+        float AdcClockPeriod = geoLayer->get_zstep();
+        m_zdriftlength = m_hittbin * geometry->get_drift_velocity() * AdcClockPeriod;
+	double NZBinsSide = 249;  // physical z bins per TPC side
+	double tdriftmax = AdcClockPeriod * NZBinsSide;
+        m_hitgz = (tdriftmax * geometry->get_drift_velocity()) - m_zdriftlength;
         if (m_side == 0)
         {
           m_hitgz *= -1;
@@ -644,6 +732,8 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         m_tileid = std::numeric_limits<int>::quiet_NaN();
         m_hitpad = std::numeric_limits<int>::quiet_NaN();
         m_hittbin = std::numeric_limits<int>::quiet_NaN();
+
+        m_zdriftlength = std::numeric_limits<float>::quiet_NaN();
       }
       default:
         break;
@@ -705,7 +795,15 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
 
   if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
   {
-    clusz = convertTimeToZ(geometry, ckey, cluster);
+    float rawclusz = convertTimeToZ(geometry, ckey, cluster);
+    
+    int crossing = track->get_crossing();
+    unsigned int side = TpcDefs::getSide(ckey);
+    clusz = m_clusterCrossingCorrection.correctZ(rawclusz, side, crossing);
+    if(!m_ppmode)
+    {
+      clusz = rawclusz;
+    }
   }
 
   m_cluslz.push_back(clusz);
@@ -718,16 +816,27 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   m_clusgy.push_back(clusglob.y());
   m_clusgz.push_back(clusglob.z());
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
-  m_clussize.push_back(cluster->getPhiSize() + cluster->getZSize());
+  m_clusphisize.push_back(cluster->getPhiSize());
+  m_cluszsize.push_back(cluster->getZSize());
+  m_clussize.push_back(cluster->getPhiSize() * cluster->getZSize());
   m_clushitsetkey.push_back(TrkrDefs::getHitSetKeyFromClusKey(ckey));
 
   if (Verbosity() > 1)
   {
     std::cout << "Track state/clus in layer "
-              << TrkrDefs::getLayer(ckey) << std::endl;
+              << (unsigned int) TrkrDefs::getLayer(ckey) << " with pos "
+              << clusglob.transpose() << std::endl;
   }
   if (!state)
   {
+    if (m_zeroField)
+    {
+      fillStatesWithLineFit(ckey, cluster, geometry);
+    }
+    else
+    {
+      fillStatesWithCircleFit(ckey, cluster, clusglob, geometry);
+    }
     //! skip filling the state information if a state is not there
     //! or we just ran the seeding. Fill with Nans to maintain the
     //! 1-to-1 mapping between cluster/state vectors
@@ -752,13 +861,6 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     m_clusgxideal.push_back(NAN);
     m_clusgyideal.push_back(NAN);
     m_clusgzideal.push_back(NAN);
-    m_statelx.push_back(NAN);
-    m_statelz.push_back(NAN);
-    m_stateelx.push_back(NAN);
-    m_stateelz.push_back(NAN);
-    m_stategx.push_back(NAN);
-    m_stategy.push_back(NAN);
-    m_stategz.push_back(NAN);
     m_statepx.push_back(NAN);
     m_statepy.push_back(NAN);
     m_statepz.push_back(NAN);
@@ -857,9 +959,108 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   m_statepz.push_back(state->get_pz());
   m_statepl.push_back(state->get_pathlength());
 }
+void TrackResiduals::fillStatesWithCircleFit(const TrkrDefs::cluskey& key,
+                                             TrkrCluster* cluster, Acts::Vector3& glob, ActsGeometry* geometry)
+{
+  auto surf = geometry->maps().getSurface(key, cluster);
+  std::vector<float> fitpars;
+  fitpars.push_back(m_R);
+  fitpars.push_back(m_X0);
+  fitpars.push_back(m_Y0);
+  fitpars.push_back(m_rzslope);
+  fitpars.push_back(m_rzint);
+  auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, geometry);
+
+  m_stategx.push_back(intersection.x());
+  m_stategy.push_back(intersection.y());
+  m_stategz.push_back(intersection.z());
+
+  auto result = surf->globalToLocal(geometry->geometry().getGeoContext(), intersection, Acts::Vector3(1, 1, 1));
+  if (result.ok())
+  {
+    auto loc = result.value() / Acts::UnitConstants::cm;
+    m_statelx.push_back(loc.x());
+    m_statelz.push_back(loc.y());
+  }
+  else
+  {
+    auto local = (surf->transform(geometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
+    local /= Acts::UnitConstants::cm;
+    m_statelx.push_back(local.x());
+    m_statelz.push_back(local.y());
+  }
+}
+void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
+                                           TrkrCluster* cluster, ActsGeometry* geometry)
+{
+  auto surf = geometry->maps().getSurface(key, cluster);
+
+  //! The slope/intercept params for x-y and r-z are already filled. Take
+  //! two random x points and calculate y and z on the line to find 2
+  //! 3D points with which to calculate the 3D line
+  float x1 = -1;
+  float x2 = 5;
+  float y1 = m_xyslope * x1 + m_xyint;
+  float y2 = m_xyslope * x2 + m_xyint;
+
+  //! slope/int for r-z is calculated with z as "x" variable, r as "y" variable
+  //! so swap them around
+  float r1 = r(x1, y1);
+  float r2 = r(x2, y2);
+  if (y1 < 0) r1 *= -1;
+  if (y2 < 0) r2 *= -1;
+  float z1 = (r1 - m_rzint) / m_rzslope;
+  float z2 = (r2 - m_rzint) / m_rzslope;
+  Acts::Vector3 v1(x1, y1, z1), v2(x2, y2, z2);
+
+  Acts::Vector3 surfcenter = surf->center(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+  Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+
+  Acts::Vector3 u = v2 - v1;
+  float dot = surfnorm.dot(u);
+  if (abs(dot) > 1e-6)
+  {
+    Acts::Vector3 w = v1 - surfcenter;
+    float fac = -surfnorm.dot(w) / dot;
+    u *= fac;
+    Acts::Vector3 intersection = v1 + u;
+
+    auto locstateres = surf->globalToLocal(geometry->geometry().getGeoContext(),
+                                           intersection * Acts::UnitConstants::cm,
+                                           surfnorm);
+    if (locstateres.ok())
+    {
+      Acts::Vector2 loc = locstateres.value() / Acts::UnitConstants::cm;
+      m_statelx.push_back(loc(0));
+      m_statelz.push_back(loc(1));
+    }
+    else
+    {
+      Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * (intersection * Acts::UnitConstants::cm);
+      loct /= Acts::UnitConstants::cm;
+      m_statelx.push_back(loct(0));
+      m_statelz.push_back(loct(1));
+    }
+    m_stategx.push_back(intersection.x());
+    m_stategy.push_back(intersection.y());
+    m_stategz.push_back(intersection.z());
+  }
+  else
+  {
+    //! otherwise the line is parallel to the surface, should not happen if
+    //! we have a cluster on the surface but just fill the state vecs with nan
+    m_statelx.push_back(NAN);
+    m_statelz.push_back(NAN);
+    m_stategx.push_back(NAN);
+    m_stategy.push_back(NAN);
+    m_stategz.push_back(NAN);
+  }
+}
 void TrackResiduals::createBranches()
 {
   m_hittree = new TTree("hittree", "A tree with all hits");
+  m_hittree->Branch("run", &m_runnumber, "m_runnumber/I");
+  m_hittree->Branch("segment", &m_segment, "m_segment/I");
   m_hittree->Branch("event", &m_event, "m_event/I");
   m_hittree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_hittree->Branch("trbco", &m_bcotr, "m_bcotr/l");
@@ -884,8 +1085,11 @@ void TrackResiduals::createBranches()
   m_hittree->Branch("tile", &m_tileid, "m_tileid/I");
   m_hittree->Branch("strip", &m_strip, "m_strip/I");
   m_hittree->Branch("adc", &m_adc, "m_adc/F");
+  m_hittree->Branch("zdriftlength", &m_zdriftlength, "m_zdriftlength/F");
 
   m_clustree = new TTree("clustertree", "A tree with all clusters");
+  m_clustree->Branch("run", &m_runnumber, "m_runnumber/I");
+  m_clustree->Branch("segment", &m_segment, "m_segment/I");
   m_clustree->Branch("event", &m_event, "m_event/I");
   m_clustree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_clustree->Branch("trbco", &m_bcotr, "m_bcotr/l");
@@ -916,6 +1120,8 @@ void TrackResiduals::createBranches()
   m_clustree->Branch("tile", &m_tileid, "m_tileid/I");
 
   m_tree = new TTree("residualtree", "A tree with track, cluster, and state info");
+  m_tree->Branch("run", &m_runnumber, "m_runnumber/I");
+  m_tree->Branch("segment", &m_segment, "m_segment/I");
   m_tree->Branch("event", &m_event, "m_event/I");
   m_tree->Branch("trackid", &m_trackid, "m_trackid/I");
   m_tree->Branch("gl1bco", &m_bco, "m_bco/l");
@@ -943,6 +1149,13 @@ void TrackResiduals::createBranches()
   m_tree->Branch("pcax", &m_pcax, "m_pcax/F");
   m_tree->Branch("pcay", &m_pcay, "m_pcay/F");
   m_tree->Branch("pcaz", &m_pcaz, "m_pcaz/F");
+  m_tree->Branch("rzslope", &m_rzslope, "m_rzslope/F");
+  m_tree->Branch("xyslope", &m_xyslope, "m_xyslope/F");
+  m_tree->Branch("rzint", &m_rzint, "m_rzint/F");
+  m_tree->Branch("xyint", &m_xyint, "m_xyint/F");
+  m_tree->Branch("R", &m_R, "m_R/F");
+  m_tree->Branch("X0", &m_X0, "m_X0/F");
+  m_tree->Branch("Y0", &m_Y0, "m_Y0/F");
 
   m_tree->Branch("cluskeys", &m_cluskeys);
   m_tree->Branch("clusedge", &m_clusedge);
@@ -956,6 +1169,8 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgz", &m_clusgz);
   m_tree->Branch("cluslayer", &m_cluslayer);
   m_tree->Branch("clussize", &m_clussize);
+  m_tree->Branch("clusphisize",&m_clusphisize);
+  m_tree->Branch("cluszsize",&m_cluszsize);
   m_tree->Branch("clushitsetkey", &m_clushitsetkey);
   m_tree->Branch("idealsurfcenterx", &m_idealsurfcenterx);
   m_tree->Branch("idealsurfcentery", &m_idealsurfcentery);

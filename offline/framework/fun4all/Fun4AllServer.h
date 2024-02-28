@@ -33,7 +33,7 @@ class Fun4AllServer : public Fun4AllBase
   static Fun4AllServer *instance();
   ~Fun4AllServer() override;
 
-// cppcheck-suppress [virtualCallInConstructor]
+  // cppcheck-suppress [virtualCallInConstructor]
   virtual bool registerHisto(const std::string &hname, TNamed *h1d, const int replace = 0);
   virtual bool registerHisto(TNamed *h1d, const int replace = 0);
   template <typename T>
@@ -114,8 +114,8 @@ class Fun4AllServer : public Fun4AllBase
   void PrintMemoryTracker(const std::string &name = "") const;
   int RunNumber() const { return runnumber; }
   int EventCounter() const { return eventcounter; }
-  std::map<const std::string, PHTimer>::const_iterator timer_begin() {return timer_map.begin();}
-  std::map<const std::string, PHTimer>::const_iterator timer_end() {return timer_map.end();}
+  std::map<const std::string, PHTimer>::const_iterator timer_begin() { return timer_map.begin(); }
+  std::map<const std::string, PHTimer>::const_iterator timer_end() { return timer_map.end(); }
 
  protected:
   Fun4AllServer(const std::string &name = "Fun4AllServer");

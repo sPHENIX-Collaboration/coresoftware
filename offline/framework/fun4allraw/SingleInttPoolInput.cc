@@ -2,6 +2,7 @@
 #include "intt_pool.h"
 
 #include "Fun4AllStreamingInputManager.h"
+#include "InputManagerType.h"
 
 #include <ffarawobjects/InttRawHitContainerv1.h>
 #include <ffarawobjects/InttRawHitv1.h>
@@ -25,7 +26,7 @@
 SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
-  SubsystemEnum(Fun4AllStreamingInputManager::INTT);
+  SubsystemEnum(InputManagerType::INTT);
   plist = new Packet *[1];
 }
 
@@ -339,5 +340,15 @@ void SingleInttPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     intthitcont = new InttRawHitContainerv1();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
     detNode->addNode(newNode);
+  }
+}
+//_______________________________________________________
+
+void SingleInttPoolInput::ConfigureStreamingInputManager()
+{
+  if (StreamingInputManager())
+  {
+    StreamingInputManager()->SetInttBcoRange(m_BcoRange);
+    StreamingInputManager()->SetInttNegativeBco(m_NegativeBco);
   }
 }

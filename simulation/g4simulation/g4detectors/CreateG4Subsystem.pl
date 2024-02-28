@@ -280,7 +280,7 @@ sub CreateSteppingActionImplementation()
 
     print F "//____________________________________________________________________________..\n";
     print F "// This is the implementation of the G4 UserSteppingAction\n";
-    print F "bool $steppingclassname\:\:UserSteppingAction(const G4Step *aStep,bool was_used)\n";
+    print F "bool $steppingclassname\:\:UserSteppingAction(const G4Step *aStep,bool /*was_used*/)\n";
     print F "{\n";
     print F "  G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();\n";
     print F "  G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();\n";
@@ -368,6 +368,7 @@ sub CreateSteppingActionImplementation()
     print F "      std::cout << \" previous phys pre vol: \" << m_SaveVolPre->GetName()\n";
     print F "           << \" previous phys post vol: \" << m_SaveVolPost->GetName() << std::endl;\n";
     print F "    }\n";
+    print F "    [[fallthrough]];\n";
     print F "// These are the normal cases\n";
     print F "  case fGeomBoundary:\n";
     print F "  case fUndefined:\n";
@@ -609,9 +610,6 @@ sub CreateDetectorImplementation()
     print F "class PHCompositeNode;\n";
     print F "\n";
 
-    print F "using namespace std;\n";
-    print F "\n";
-
     print F "//____________________________________________________________________________..\n";
     print F "$detectorclassname\:\:$detectorclassname(PHG4Subsystem *subsys,\n";
     print F "                                         PHCompositeNode *Node,\n";
@@ -626,7 +624,7 @@ sub CreateDetectorImplementation()
     print F "//_______________________________________________________________\n";
     print F "int $detectorclassname\:\:IsInDetector(G4VPhysicalVolume *volume) const\n";
     print F "{\n";
-    print F "  set<G4VPhysicalVolume *>::const_iterator iter = m_PhysicalVolumesSet.find(volume);\n";
+    print F "  std::set<G4VPhysicalVolume *>::const_iterator iter = m_PhysicalVolumesSet.find(volume);\n";
     print F "  if (iter != m_PhysicalVolumesSet.end())\n";
     print F "  {\n";
     print F "    return 1;\n";
@@ -876,7 +874,6 @@ sub CreateSubsystemImplementation()
     print F "#include <phool/getClass.h>\n";
     print F "\n";
 
-    print F "using namespace std;\n";
     print F "\n";
 
     print F "//_______________________________________________________________________\n";
@@ -936,7 +933,7 @@ sub CreateSubsystemImplementation()
     print F "}\n";
 
     print F "//_______________________________________________________________________\n";
-    print F "void $subsysclassname\:\:Print(const string &what) const\n";
+    print F "void $subsysclassname\:\:Print(const std::string &what) const\n";
     print F "{\n";
     print F "  if (m_Detector)\n";
     print F "  {\n";
@@ -1025,11 +1022,13 @@ sub CreateMakefile()
     print F "AUTOMAKE_OPTIONS = foreign\n";
     print F "\n";
 
+    print F "AM_CXXFLAGS = `geant4-config --cflags`\n";
+    print F "\n";
+
     print F "AM_CPPFLAGS = \\\n";
     print F "  -I\$(includedir) \\\n";
     print F "  -I\$(OFFLINE_MAIN)/include \\\n";
-    print F "  -I\$(ROOTSYS)/include\\\n";
-    print F "  -I\$(G4_MAIN)/include \n";
+    print F "  -I\$(ROOTSYS)/include \n";
     print F "\n";
 
     print F "AM_LDFLAGS = \\\n";
@@ -1047,15 +1046,15 @@ sub CreateMakefile()
     print F "\n";
 
     print F "lib${detectorname}_la_SOURCES = \\\n";
-    print F "  $subsystem_implementfile\\\n";
-    print F "  $detector_implementfile\\\n";
+    print F "  $subsystem_implementfile \\\n";
+    print F "  $detector_implementfile \\\n";
     print F "  $steppingaction_implementfile\n";
     print F "\n";
 
     print F "lib${detectorname}_la_LIBADD = \\\n";
     print F "  -lphool \\\n";
-    print F "  -lSubsysReco\\\n";
-    print F "  -lg4detectors\\\n";
+    print F "  -lSubsysReco \\\n";
+    print F "  -lg4detectors \\\n";
     print F "  -lg4testbench \n";
     print F "\n";
 

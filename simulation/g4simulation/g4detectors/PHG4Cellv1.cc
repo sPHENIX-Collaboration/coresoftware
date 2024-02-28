@@ -4,10 +4,10 @@
 
 #include <phool/phool.h>
 
-#include <climits>  // for UINT_MAX, INT_MIN
 #include <cmath>    // for NAN
 #include <cstdlib>  // for exit
 #include <iostream>
+#include <limits>
 #include <string>  // for operator<<, string
 
 PHG4Cellv1::PHG4Cellv1(const PHG4CellDefs::keytype g4cellid)
@@ -64,7 +64,10 @@ float PHG4Cellv1::get_property_float(const PROPERTY prop_id) const
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
 
-  if (i != prop_map.end()) return u_property(i->second).fdata;
+  if (i != prop_map.end())
+  {
+    return u_property(i->second).fdata;
+  }
 
   return NAN;
 }
@@ -81,7 +84,10 @@ int PHG4Cellv1::get_property_int(const PROPERTY prop_id) const
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
 
-  if (i != prop_map.end()) return u_property(i->second).idata;
+  if (i != prop_map.end())
+  {
+    return u_property(i->second).idata;
+  }
 
   return INT_MIN;
 }
@@ -99,9 +105,12 @@ PHG4Cellv1::get_property_uint(const PROPERTY prop_id) const
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
 
-  if (i != prop_map.end()) return u_property(i->second).uidata;
+  if (i != prop_map.end())
+  {
+    return u_property(i->second).uidata;
+  }
 
-  return UINT_MAX;
+  return std::numeric_limits<unsigned int>::max();
 }
 
 void PHG4Cellv1::add_property(const PROPERTY prop_id, const float value)
@@ -205,7 +214,7 @@ PHG4Cellv1::get_property_nocheck(const PROPERTY prop_id) const
   {
     return iter->second;
   }
-  return UINT_MAX;
+  return std::numeric_limits<unsigned int>::max();
 }
 
 void PHG4Cellv1::print() const

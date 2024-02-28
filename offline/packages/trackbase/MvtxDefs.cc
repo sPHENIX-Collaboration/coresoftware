@@ -6,8 +6,8 @@ MvtxDefs::getStaveId(TrkrDefs::hitsetkey key)
   TrkrDefs::hitsetkey tmp = (key >> MvtxDefs::kBitShiftStaveIdOffset);
   // zero the bits not in the stave id field
   uint8_t tmp1 = tmp;
-  tmp1 = (tmp1 <<  (8 - MvtxDefs::kBitShiftStaveIdWidth));
-  tmp1 = (tmp1 >>  (8 - MvtxDefs::kBitShiftStaveIdWidth));
+  tmp1 = (tmp1 << (8 - MvtxDefs::kBitShiftStaveIdWidth));
+  tmp1 = (tmp1 >> (8 - MvtxDefs::kBitShiftStaveIdWidth));
   return tmp1;
 }
 
@@ -23,8 +23,8 @@ MvtxDefs::getChipId(TrkrDefs::hitsetkey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> MvtxDefs::kBitShiftChipIdOffset);
   uint8_t tmp1 = tmp;
-  tmp1 = (tmp1 <<  (8 - MvtxDefs::kBitShiftChipIdWidth));
-  tmp1 = (tmp1 >>  (8 - MvtxDefs::kBitShiftChipIdWidth));
+  tmp1 = (tmp1 << (8 - MvtxDefs::kBitShiftChipIdWidth));
+  tmp1 = (tmp1 >> (8 - MvtxDefs::kBitShiftChipIdWidth));
   return tmp1;
 }
 
@@ -35,21 +35,19 @@ MvtxDefs::getChipId(TrkrDefs::cluskey key)
   return getChipId(tmp);
 }
 
-int
-MvtxDefs::getStrobeId(TrkrDefs::hitsetkey key)
+int MvtxDefs::getStrobeId(TrkrDefs::hitsetkey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> MvtxDefs::kBitShiftStrobeIdOffset);
   uint8_t tmp1 = tmp;
-  tmp1 = (tmp1 <<  (8 - MvtxDefs::kBitShiftStrobeIdWidth));
-  tmp1 = (tmp1 >>  (8 - MvtxDefs::kBitShiftStrobeIdWidth));
+  tmp1 = (tmp1 << (8 - MvtxDefs::kBitShiftStrobeIdWidth));
+  tmp1 = (tmp1 >> (8 - MvtxDefs::kBitShiftStrobeIdWidth));
 
-  int tmp2 = (int) tmp1 - strobeOffset; // get back to the signed strobe
+  int tmp2 = (int) tmp1 - strobeOffset;  // get back to the signed strobe
 
   return tmp2;
 }
 
-int
-MvtxDefs::getStrobeId(TrkrDefs::cluskey key)
+int MvtxDefs::getStrobeId(TrkrDefs::cluskey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
   return getStrobeId(tmp);
@@ -83,10 +81,16 @@ MvtxDefs::genHitSetKey(const uint8_t lyr, const uint8_t stave, const uint8_t chi
 {
   TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::mvtxId, lyr);
 
- // offset strobe to make it positive, fit inside 5 bits
+  // offset strobe to make it positive, fit inside 5 bits
   int strobe = strobe_in + strobeOffset;
-  if(strobe < 0) strobe = 0;  
-  if(strobe > 31) strobe = 31;
+  if (strobe < 0)
+  {
+    strobe = 0;
+  }
+  if (strobe > 31)
+  {
+    strobe = 31;
+  }
   unsigned int ustrobe = (unsigned int) strobe;
 
   TrkrDefs::hitsetkey tmp = stave;
@@ -98,24 +102,24 @@ MvtxDefs::genHitSetKey(const uint8_t lyr, const uint8_t stave, const uint8_t chi
   return key;
 }
 
-TrkrDefs::cluskey 
+TrkrDefs::cluskey
 MvtxDefs::genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const int strobe, const uint32_t clusid)
 {
   TrkrDefs::hitsetkey key = genHitSetKey(lyr, stave, chip, strobe);
-  //return TrkrDefs::genClusKey( key, clusid );
-  return TrkrDefs::genClusKey(key,clusid);
+  // return TrkrDefs::genClusKey( key, clusid );
+  return TrkrDefs::genClusKey(key, clusid);
 }
 
 TrkrDefs::hitsetkey
 MvtxDefs::resetStrobeHitSetKey(const TrkrDefs::hitsetkey hitsetkey)
 {
   // Note: this method uses the fact that the crossing is in the first 5 bits
-   TrkrDefs::hitsetkey tmp = hitsetkey;
-   // zero the crossing bits by shifting them out of the word, then shift back
-   tmp = (tmp >>  MvtxDefs::kBitShiftStrobeIdWidth);
-   tmp = (tmp << MvtxDefs::kBitShiftStrobeIdWidth);
-   unsigned int zero_strobe = strobeOffset;
-   tmp |= (zero_strobe <<  MvtxDefs::kBitShiftStrobeIdOffset);
+  TrkrDefs::hitsetkey tmp = hitsetkey;
+  // zero the crossing bits by shifting them out of the word, then shift back
+  tmp = (tmp >> MvtxDefs::kBitShiftStrobeIdWidth);
+  tmp = (tmp << MvtxDefs::kBitShiftStrobeIdWidth);
+  unsigned int zero_strobe = strobeOffset;
+  tmp |= (zero_strobe << MvtxDefs::kBitShiftStrobeIdOffset);
 
   return tmp;
 }

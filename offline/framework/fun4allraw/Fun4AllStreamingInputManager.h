@@ -3,6 +3,8 @@
 #ifndef FUN4ALLRAW_FUN4ALLSTREAMINGINPUTMANAGER_H
 #define FUN4ALLRAW_FUN4ALLSTREAMINGINPUTMANAGER_H
 
+#include "InputManagerType.h"
+
 #include <fun4all/Fun4AllInputManager.h>
 
 #include <map>
@@ -23,7 +25,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
  public:
   Fun4AllStreamingInputManager(const std::string &name = "DUMMY", const std::string &dstnodename = "DST", const std::string &topnodename = "TOP");
   ~Fun4AllStreamingInputManager() override;
-
+/*
   enum enu_subsystem
   {
     MVTX = 1,
@@ -32,7 +34,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
     MICROMEGAS = 4,
     GL1 = 5
   };
-
+*/
   int fileopen(const std::string & /*filenam*/) override { return 0; }
   // cppcheck-suppress virtualCallInConstructor
   int fileclose() override;
@@ -45,7 +47,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   int SyncIt(const SyncObject *mastersync) override;
   int HasSyncObject() const override { return 1; }
   std::string GetString(const std::string &what) const override;
-  void registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem);
+  void registerStreamingInput(SingleStreamingInput *evtin, InputManagerType::enu_subsystem);
   int FillGl1();
   int FillIntt();
   int FillMicromegas();
@@ -58,6 +60,8 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void AddMvtxL1TrgBco(uint64_t bclk, uint64_t lv1Bco);
   void AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
+  void SetInttBcoRange(const unsigned int i);
+  void SetInttNegativeBco(const unsigned int value);
   void SetMicromegasBcoRange(const unsigned int i);
   void SetMicromegasNegativeBco(const unsigned int value);
   void SetMvtxBcoRange(const unsigned int i);
@@ -108,6 +112,8 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   bool m_micromegas_registered_flag{false};
   bool m_mvtx_registered_flag{false};
   bool m_tpc_registered_flag{false};
+  unsigned int m_intt_bco_range{0};
+  unsigned int m_intt_negative_bco{0};
   unsigned int m_micromegas_bco_range{0};
   unsigned int m_micromegas_negative_bco{0};
   unsigned int m_mvtx_bco_range{0};

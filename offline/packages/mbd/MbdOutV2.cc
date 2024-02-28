@@ -6,9 +6,7 @@
 #include <iostream>
 
 //______________________________________
-MbdOutV2::MbdOutV2()
-{
-}
+MbdOutV2::MbdOutV2() = default;
 
 //______________________________________
 void MbdOutV2::Reset()
@@ -25,18 +23,16 @@ void MbdOutV2::Reset()
   btn = std::numeric_limits<Float_t>::quiet_NaN();
   evt = -1;
   clk = 0;
-  femclk = 0; 
+  femclk = 0;
 }
 
 //______________________________________
-MbdOutV2::~MbdOutV2()
-{
-}
+MbdOutV2::~MbdOutV2() = default;
 
 //______________________________________
 int MbdOutV2::isValid() const
 {
-// compatible with old invalid setting of -9999.9
+  // compatible with old invalid setting of -9999.9
   return ((std::isfinite(bt0) && (bt0 > -9999.)) ? 1 : 0);
 }
 
@@ -79,13 +75,13 @@ void MbdOutV2::set_zvtxerr(const Float_t vtxerr)
 //______________________________________
 void MbdOutV2::set_arm(const int iarm, const Short_t npmt, const Float_t charge, const Float_t timing)
 {
-  if (iarm==0)
+  if (iarm == 0)
   {
     bns = npmt;
     bqs = charge;
     bts = timing;
   }
-  else if (iarm==1)
+  else if (iarm == 1)
   {
     bnn = npmt;
     bqn = charge;
@@ -108,18 +104,18 @@ void MbdOutV2::set_clocks(const Int_t ievt, const UShort_t iclk, const UShort_t 
 //______________________________________
 Short_t MbdOutV2::get_npmt(const int iarm) const
 {
-  return (iarm==0) ? bns : bnn;
+  return (iarm == 0) ? bns : bnn;
 }
 
 //______________________________________
 Float_t MbdOutV2::get_q(const int iarm) const
 {
-  return (iarm==0) ? bqs : bqn;
+  return (iarm == 0) ? bqs : bqn;
 }
 
 Float_t MbdOutV2::get_time(const int iarm) const
 {
-  return (iarm==0) ? bts : btn;
+  return (iarm == 0) ? bts : btn;
 }
 
 Int_t MbdOutV2::get_evt() const
@@ -136,4 +132,3 @@ UShort_t MbdOutV2::get_femclock() const
 {
   return femclk;
 }
-

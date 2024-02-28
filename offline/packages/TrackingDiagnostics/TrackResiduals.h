@@ -10,8 +10,11 @@
 #include <TTree.h>
 #include <string>
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
+
+#include <tpc/TpcClusterZCrossingCorrection.h>
 
 #include <cmath>
 #include <iostream>
@@ -42,8 +45,14 @@ class TrackResiduals : public SubsysReco
   void trackmapName(const std::string &name) { m_trackMapName = name; }
   void clusterTree() { m_doClusters = true; }
   void hitTree() { m_doHits = true; }
+  void ppmode() { m_ppmode = true;}
+  void zeroField() { m_zeroField = true; }
+  void runnumber(const int run) { m_runnumber = run; }
+  void segment(const int seg) { m_segment = seg; }
 
  private:
+  void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
+                             TrkrCluster *cluster, ActsGeometry *geometry);
   void clearClusterStateVectors();
   void createBranches();
   float convertTimeToZ(ActsGeometry *geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
@@ -53,6 +62,12 @@ class TrackResiduals : public SubsysReco
                    PHG4CylinderGeomContainer *inttGeom, PHG4CylinderGeomContainer *mmGeom);
   void fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack *track,
                            PHCompositeNode *topNode);
+  void lineFitClusters(std::vector<TrkrDefs::cluskey> &keys, ActsGeometry *geometry,
+                       TrkrClusterContainer *clusters);
+  void circleFitClusters(std::vector<TrkrDefs::cluskey> &keys, ActsGeometry *geometry,
+                         TrkrClusterContainer *clusters);
+  void fillStatesWithCircleFit(const TrkrDefs::cluskey &key, TrkrCluster *cluster,
+                               Acts::Vector3 &glob, ActsGeometry *geometry);
 
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
@@ -61,14 +76,20 @@ class TrackResiduals : public SubsysReco
   TTree *m_hittree = nullptr;
   bool m_doClusters = false;
   bool m_doHits = false;
+  bool m_zeroField = false;
+
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";
   std::string m_trackMapName = "SvtxTrackMap";
 
   bool m_doAlignment = false;
-
+  bool m_ppmode = false;
+  
   int m_event = 0;
+  int m_segment = std::numeric_limits<int>::quiet_NaN();
+  int m_runnumber = std::numeric_limits<int>::quiet_NaN();
   //! Track level quantities
   uint64_t m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
   uint64_t m_bcotr = std::numeric_limits<uint64_t>::quiet_NaN();
@@ -97,6 +118,13 @@ class TrackResiduals : public SubsysReco
   float m_pcax = std::numeric_limits<float>::quiet_NaN();
   float m_pcay = std::numeric_limits<float>::quiet_NaN();
   float m_pcaz = std::numeric_limits<float>::quiet_NaN();
+  float m_rzslope = std::numeric_limits<float>::quiet_NaN();
+  float m_rzint = std::numeric_limits<float>::quiet_NaN();
+  float m_xyslope = std::numeric_limits<float>::quiet_NaN();
+  float m_xyint = std::numeric_limits<float>::quiet_NaN();
+  float m_R = std::numeric_limits<float>::quiet_NaN();
+  float m_X0 = std::numeric_limits<float>::quiet_NaN();
+  float m_Y0 = std::numeric_limits<float>::quiet_NaN();
 
   //! hit tree info
   uint32_t m_hitsetkey = std::numeric_limits<uint32_t>::quiet_NaN();
@@ -110,6 +138,7 @@ class TrackResiduals : public SubsysReco
   int m_col = std::numeric_limits<int>::quiet_NaN();
   int m_row = std::numeric_limits<int>::quiet_NaN();
   int m_strip = std::numeric_limits<int>::quiet_NaN();
+  float m_zdriftlength = std::numeric_limits<float>::quiet_NaN();
 
   //! cluster tree info
   float m_sclusgr = std::numeric_limits<float>::quiet_NaN();
@@ -148,6 +177,8 @@ class TrackResiduals : public SubsysReco
   std::vector<float> m_clusgz;
   std::vector<int> m_cluslayer;
   std::vector<int> m_clussize;
+  std::vector<int> m_clusphisize;
+  std::vector<int> m_cluszsize;
   std::vector<int> m_clusedge;
   std::vector<int> m_clusoverlap;
   std::vector<uint32_t> m_clushitsetkey;

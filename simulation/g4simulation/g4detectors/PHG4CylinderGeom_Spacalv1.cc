@@ -14,13 +14,9 @@
 
 #include <Geant4/G4PhysicalConstants.hh>
 
-#include <CLHEP/Units/SystemOfUnits.h>  // for twopi
-
 #include <cmath>
 #include <sstream>
 #include <utility>  // for pair
-
-using namespace std;
 
 PHG4CylinderGeom_Spacalv1::PHG4CylinderGeom_Spacalv1()
 {
@@ -36,103 +32,103 @@ void PHG4CylinderGeom_Spacalv1::identify(std::ostream& os) const
      << ", zmax: " << zmax <<                          //
       ", num scint: " << nscint
 
-     << endl;
+     << std::endl;
   return;
 }
 
-void PHG4CylinderGeom_Spacalv1::Print(Option_t*) const
+void PHG4CylinderGeom_Spacalv1::Print(Option_t* /*option*/) const
 {
-  identify(cout);
+  identify(std::cout);
 
-  cout << "Configuration is #" << get_config() << ":" << endl;
+  std::cout << "Configuration is #" << get_config() << ":" << std::endl;
   switch (get_config())
   {
   case kNonProjective:
-    cout << "fiber always placed radially" << endl;
+    std::cout << "fiber always placed radially" << std::endl;
     break;
   case kFullProjective_2DTaper:
-    cout << "Fully projective spacal with 2D tapered modules" << endl;
+    std::cout << "Fully projective spacal with 2D tapered modules" << std::endl;
     break;
   case kFullProjective_2DTaper_SameLengthFiberPerTower:
-    cout
+    std::cout
         << "Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower"
-        << endl;
+        << std::endl;
     break;
   case kFullProjective_2DTaper_Tilted:
-    cout << "Fully projective spacal with 2D tapered modules and  allow azimuthal tilts" << endl;
+    std::cout << "Fully projective spacal with 2D tapered modules and  allow azimuthal tilts" << std::endl;
     break;
   case kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower:
-    cout
+    std::cout
         << "Fully projective spacal with 2D tapered modules and  allow azimuthal tilts. To speed up construction, same-length fiber is used cross one tower"
-        << endl;
+        << std::endl;
     break;
   default:
-    cout << "PHG4CylinderGeom_Spacalv1::Print - ERROR - unknown configuration #"
-         << get_config() << endl;
+    std::cout << "PHG4CylinderGeom_Spacalv1::Print - ERROR - unknown configuration #"
+              << get_config() << std::endl;
     break;
   }
 
-  cout << "\t"
-       << "get_max_radius() = " << get_max_radius() << endl;
-  cout << "\t"
-       << "get_half_radius() = " << get_half_radius() << endl;
-  cout << "\t"
-       << "get_length() = " << get_length() << endl;
-  cout << "\t"
-       << "get_*pos() = " << get_xpos() << ", " << get_ypos() << ", "
-       << get_zpos() << endl;
+  std::cout << "\t"
+            << "get_max_radius() = " << get_max_radius() << std::endl;
+  std::cout << "\t"
+            << "get_half_radius() = " << get_half_radius() << std::endl;
+  std::cout << "\t"
+            << "get_length() = " << get_length() << std::endl;
+  std::cout << "\t"
+            << "get_*pos() = " << get_xpos() << ", " << get_ypos() << ", "
+            << get_zpos() << std::endl;
 
-  cout << "\t"
-       << "get_azimuthal_n_sec() = " << get_azimuthal_n_sec() << ", "
-       << sector_map.size() << "/" << get_azimuthal_n_sec()
-       << " azimuthal sectors would be filled with SPACAL." << endl;
-  cout << "\t"
-       << "get_azimuthal_distance() = " << get_azimuthal_distance()
-       << endl;
-  cout << "\t"
-       << "get_z_distance() = " << get_z_distance() << endl;
-  cout << "\t"
-       << "get_fiber_outer_r() = " << get_fiber_outer_r() << endl;
-  cout << "\t"
-       << "get_fiber_clading_thickness() = "
-       << get_fiber_clading_thickness() << endl;
-  cout << "\t"
-       << "get_fiber_core_diameter() = " << get_fiber_core_diameter()
-       << endl;
-  cout << "\t"
-       << "get_fiber_distance() = " << get_fiber_distance() << endl;
+  std::cout << "\t"
+            << "get_azimuthal_n_sec() = " << get_azimuthal_n_sec() << ", "
+            << sector_map.size() << "/" << get_azimuthal_n_sec()
+            << " azimuthal sectors would be filled with SPACAL." << std::endl;
+  std::cout << "\t"
+            << "get_azimuthal_distance() = " << get_azimuthal_distance()
+            << std::endl;
+  std::cout << "\t"
+            << "get_z_distance() = " << get_z_distance() << std::endl;
+  std::cout << "\t"
+            << "get_fiber_outer_r() = " << get_fiber_outer_r() << std::endl;
+  std::cout << "\t"
+            << "get_fiber_clading_thickness() = "
+            << get_fiber_clading_thickness() << std::endl;
+  std::cout << "\t"
+            << "get_fiber_core_diameter() = " << get_fiber_core_diameter()
+            << std::endl;
+  std::cout << "\t"
+            << "get_fiber_distance() = " << get_fiber_distance() << std::endl;
 
-  cout << "\t"
-       << "get_absorber_mat() = " << get_absorber_mat() << endl;
-  cout << "\t"
-       << "get_fiber_clading_mat() = " << get_fiber_clading_mat()
-       << endl;
-  cout << "\t"
-       << "get_fiber_core_mat() = " << get_fiber_core_mat() << endl;
-  //  cout << "\t" << "get_calo_step_size() = " << get_calo_step_size() << endl;
-  //  cout << "\t" << "get_fiber_clading_step_size() = "
-  //      << get_fiber_clading_step_size() << endl;
-  cout << "\t"
-       << "get_fiber_core_step_size() = " << get_fiber_core_step_size()
-       << endl;
+  std::cout << "\t"
+            << "get_absorber_mat() = " << get_absorber_mat() << std::endl;
+  std::cout << "\t"
+            << "get_fiber_clading_mat() = " << get_fiber_clading_mat()
+            << std::endl;
+  std::cout << "\t"
+            << "get_fiber_core_mat() = " << get_fiber_core_mat() << std::endl;
+  //  std::cout << "\t" << "get_calo_step_size() = " << get_calo_step_size() << std::endl;
+  //  std::cout << "\t" << "get_fiber_clading_step_size() = "
+  //      << get_fiber_clading_step_size() << std::endl;
+  std::cout << "\t"
+            << "get_fiber_core_step_size() = " << get_fiber_core_step_size()
+            << std::endl;
 
-  cout << "\t"
-       << "is_virualize_fiber() = " << is_virualize_fiber() << endl;
-  cout << "\t"
-       << "get_construction_verbose() = " << get_construction_verbose()
-       << endl;
+  std::cout << "\t"
+            << "is_virualize_fiber() = " << is_virualize_fiber() << std::endl;
+  std::cout << "\t"
+            << "get_construction_verbose() = " << get_construction_verbose()
+            << std::endl;
 
   if (get_construction_verbose() >= 2)
   {
-    cout << "\t"
-         << "Containing " << sector_map.size()
-         << " sector with rotation specified:" << endl;
+    std::cout << "\t"
+              << "Containing " << sector_map.size()
+              << " sector with rotation specified:" << std::endl;
     for (auto it : sector_map)
     {
-      cout << "\t"
-           << "\t"
-           << "sector_map[" << it.first << "] = " << it.second
-           << endl;
+      std::cout << "\t"
+                << "\t"
+                << "sector_map[" << it.first << "] = " << it.second
+                << std::endl;
     }
   }
 }
@@ -171,31 +167,55 @@ void PHG4CylinderGeom_Spacalv1::ImportParameters(const PHParameters& param)
   PHG4CylinderGeomv2::ImportParameters(param);
 
   if (param.exist_string_param("absorber_mat"))
+  {
     absorber_mat = param.get_string_param("absorber_mat");
+  }
   if (param.exist_string_param("fiber_core_mat"))
+  {
     fiber_core_mat = param.get_string_param("fiber_core_mat");
+  }
   if (param.exist_string_param("fiber_clading_mat"))
+  {
     fiber_clading_mat = param.get_string_param("fiber_clading_mat");
+  }
   if (param.exist_double_param("xpos"))
+  {
     xpos = param.get_double_param("xpos");
+  }
   if (param.exist_double_param("ypos"))
+  {
     ypos = param.get_double_param("ypos");
+  }
   if (param.exist_double_param("zpos"))
+  {
     zpos = param.get_double_param("zpos");
+  }
   if (param.exist_double_param("fiber_core_diameter"))
+  {
     fiber_core_diameter = param.get_double_param("fiber_core_diameter");
+  }
   if (param.exist_double_param("fiber_clading_thickness"))
+  {
     fiber_clading_thickness = param.get_double_param("fiber_clading_thickness");
+  }
   if (param.exist_double_param("fiber_distance"))
+  {
     fiber_distance = param.get_double_param("fiber_distance");
+  }
   if (param.exist_int_param("config"))
+  {
     config = static_cast<config_t>(param.get_int_param("config"));
+  }
   if (param.exist_int_param("virualize_fiber"))
+  {
     virualize_fiber = static_cast<bool>(param.get_int_param("virualize_fiber"));
+  }
   if (param.exist_int_param("construction_verbose"))
+  {
     construction_verbose = param.get_int_param("construction_verbose");
+  }
 
-  //init_default_sector_map if instructed to do so
+  // init_default_sector_map if instructed to do so
   if (param.exist_int_param("init_default_sector_map"))
   {
     if (param.get_int_param("init_default_sector_map"))
@@ -213,7 +233,7 @@ void PHG4CylinderGeom_Spacalv1::ImportParameters(const PHParameters& param)
 
     for (int i = 0; i < n; i++)
     {
-      stringstream prefix;
+      std::stringstream prefix;
       prefix << "sector_map";
       prefix << "[" << i << "]"
              << ".";
@@ -232,13 +252,13 @@ void PHG4CylinderGeom_Spacalv1::ImportParameters(const PHParameters& param)
 int PHG4CylinderGeom_Spacalv1::get_azimuthal_n_sec() const
 {
   return std::floor(
-      get_half_radius() * twopi / (get_fiber_distance() * sqrt(3.)));
+      get_half_radius() * 2 * M_PI / (get_fiber_distance() * sqrt(3.)));
 }
 
 double
 PHG4CylinderGeom_Spacalv1::get_azimuthal_distance() const
 {
-  return get_half_radius() * twopi / (double) (get_azimuthal_n_sec());
+  return get_half_radius() * 2 * M_PI / (double) (get_azimuthal_n_sec());
 }
 
 double
@@ -254,7 +274,7 @@ void PHG4CylinderGeom_Spacalv1::init_default_sector_map()
 
   for (int sec = 0; sec < get_azimuthal_n_sec(); ++sec)
   {
-    const double rot = twopi / (double) (get_azimuthal_n_sec()) * ((double) (sec));
+    const double rot = 2 * M_PI / (double) (get_azimuthal_n_sec()) * ((double) (sec));
 
     sector_map[sec] = rot;
   }

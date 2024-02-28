@@ -14,22 +14,22 @@ class TTree;
 class KFParticle_nTuple : public KFParticle_truthAndDetTools
 {
  public:
-  ///Constructor
+  /// Constructor
   KFParticle_nTuple();
 
-  ///Destructor
-  virtual ~KFParticle_nTuple() {}
+  /// Destructor
+  ~KFParticle_nTuple() override = default;
 
-  ///Unused for now, variables are initialised in the header
+  /// Unused for now, variables are initialised in the header
   void initializeVariables();
 
-  ///Initialises required branches based off the user selection (number of tracks, PV constraints etc ) and sets branch names if specified
+  /// Initialises required branches based off the user selection (number of tracks, PV constraints etc ) and sets branch names if specified
   void initializeBranches();
 
-  ///Fills required information for your selection, also requests truth and detector information if needed
+  /// Fills required information for your selection, also requests truth and detector information if needed
   void fillBranch(PHCompositeNode *topNode,
                   KFParticle motherParticle,
-                  KFParticle vertex,
+                  const KFParticle &vertex,
                   std::vector<KFParticle> daughters,
                   std::vector<KFParticle> intermediates,
                   int nPVs, int multiplicity);
@@ -41,14 +41,14 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   bool m_extrapolateTracksToSV_nTuple;
   bool m_constrain_to_vertex_nTuple;
   bool m_get_all_PVs;
-  //int m_num_intermediate_states_nTuple;
-  //int m_num_tracks_from_intermediate_nTuple[99];
+  // int m_num_intermediate_states_nTuple;
+  // int m_num_tracks_from_intermediate_nTuple[99];
   std::vector<int> m_num_tracks_from_intermediate_nTuple;
   bool m_truth_matching;
   bool m_detector_info;
   bool m_calo_info;
   std::string m_mother_name;
-  //std::string m_vtx_map_node_name_nTuple;
+  // std::string m_vtx_map_node_name_nTuple;
   bool m_use_intermediate_name;
   bool m_get_charge_conjugate_nTuple;
   std::vector<std::string> m_intermediate_name_ntuple;
@@ -79,7 +79,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_mother_p_err = -1;
   float m_calculated_mother_pt = -1;
   float m_calculated_mother_pt_err = -1;
-  int m_calculated_mother_q = -1;
+  char m_calculated_mother_q = -1;
   float m_calculated_mother_eta = -1;
   float m_calculated_mother_rapidity = -1;
   float m_calculated_mother_theta = -1;
@@ -88,7 +88,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_mother_chi2 = -1;
   int m_calculated_mother_ndof = -1;
   int m_calculated_mother_pdgID = -1;
-  //float *m_calculated_mother_cov;
+  // float *m_calculated_mother_cov;
   float m_calculated_mother_cov[21] = {0};
 
   static const int max_intermediates = 8;
@@ -115,7 +115,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_intermediate_p_err[max_intermediates] = {0};
   float m_calculated_intermediate_pt[max_intermediates] = {0};
   float m_calculated_intermediate_pt_err[max_intermediates] = {0};
-  float m_calculated_intermediate_q[max_intermediates] = {0};
+  char m_calculated_intermediate_q[max_intermediates] = {0};
   float m_calculated_intermediate_eta[max_intermediates] = {0};
   float m_calculated_intermediate_rapidity[max_intermediates] = {0};
   float m_calculated_intermediate_theta[max_intermediates] = {0};
@@ -124,10 +124,10 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_intermediate_chi2[max_intermediates] = {0};
   float m_calculated_intermediate_ndof[max_intermediates] = {0};
   int m_calculated_intermediate_pdgID[max_intermediates] = {0};
-  //float *m_calculated_intermediate_cov[max_intermediates];
+  // float *m_calculated_intermediate_cov[max_intermediates];
   float m_calculated_intermediate_cov[max_intermediates][21] = {{0}, {0}};
 
-  //static const int max_tracks = 20;
+  // static const int max_tracks = 20;
   float m_calculated_daughter_mass[max_tracks] = {0};
   float m_calculated_daughter_ip[max_tracks] = {0};
   float m_calculated_daughter_ip_xy[max_tracks] = {0};
@@ -145,7 +145,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_daughter_pt[max_tracks] = {0};
   float m_calculated_daughter_pt_err[max_tracks] = {0};
   float m_calculated_daughter_jt[max_tracks] = {0};
-  int m_calculated_daughter_q[max_tracks] = {0};
+  char m_calculated_daughter_q[max_tracks] = {0};
   float m_calculated_daughter_eta[max_tracks] = {0};
   float m_calculated_daughter_rapidity[max_tracks] = {0};
   float m_calculated_daughter_theta[max_tracks] = {0};
@@ -154,7 +154,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   int m_calculated_daughter_ndof[max_tracks] = {0};
   int m_calculated_daughter_trid[max_tracks] = {0};
   int m_calculated_daughter_pdgID[max_tracks] = {0};
-  //float *m_calculated_daughter_cov[max_tracks];
+  // float *m_calculated_daughter_cov[max_tracks];
   float m_calculated_daughter_cov[max_tracks][21] = {{0}, {0}};
 
   float m_daughter_dca[99] = {0};
@@ -166,7 +166,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   int m_calculated_vertex_nTracks = -1;
   float m_calculated_vertex_chi2 = -1;
   float m_calculated_vertex_ndof = -1;
-  //float *m_calculated_vertex_cov;
+  // float *m_calculated_vertex_cov;
   float m_calculated_vertex_cov[6] = {0};
 
   float m_sv_mass = -1;

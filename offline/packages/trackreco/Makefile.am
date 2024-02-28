@@ -32,6 +32,7 @@ pkginclude_HEADERS = \
   GPUTPCTrackLinearisation.h \
   GPUTPCTrackParam.h \
   MakeActsGeometry.h \
+  MakeSourceLinks.h \
   nanoflann.hpp \
   PHActsGSF.h \
   PHActsKDTreeSeeding.h \
@@ -43,6 +44,7 @@ pkginclude_HEADERS = \
   PHCASeeding.h \
   PHCosmicsTrkFitter.h \
   PHCosmicSeeder.h \
+  PHCosmicTrackMerger.h \
   PHCosmicSeedCombiner.h \
   PHCosmicSiliconPropagator.h \
   PHGenFitTrackProjection.h \
@@ -71,6 +73,7 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
+  PrelimDistortionCorrection.h \
   SecondaryVertexFinder.h \
   SvtxTrackStateRemoval.h \
   TrackingIterationCounter.h
@@ -95,6 +98,7 @@ ACTS_SOURCES = \
   ActsEvaluator.cc \
   ActsPropagator.cc \
   MakeActsGeometry.cc \
+  MakeSourceLinks.cc \
   PHActsGSF.cc \
   PHActsKDTreeSeeding.cc \
   PHActsSiliconSeeding.cc \
@@ -125,6 +129,7 @@ libtrack_reco_la_SOURCES = \
   PHCASeeding.cc \
   PHCosmicSeedCombiner.cc \
   PHCosmicSeeder.cc \
+  PHCosmicTrackMerger.cc \
   PHCosmicSiliconPropagator.cc \
   PHGenFitTrackProjection.cc \
   PHGenFitTrkFitter.cc \
@@ -151,6 +156,7 @@ libtrack_reco_la_SOURCES = \
   PHTruthTrackSeeding.cc \
   PHTruthVertexing.cc \
   PHTruthSiliconAssociation.cc \
+  PrelimDistortionCorrection.cc \
   SecondaryVertexFinder.cc \
   SvtxTrackStateRemoval.cc \
   TrackingIterationCounter.cc

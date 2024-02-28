@@ -44,7 +44,7 @@ class KFParticle_Tools : protected KFParticle_MVA
  public:
   KFParticle_Tools();
 
-  virtual ~KFParticle_Tools() {}
+  ~KFParticle_Tools() override = default;
 
   KFParticle makeVertex(PHCompositeNode *topNode);
 
@@ -54,27 +54,27 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   std::vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
 
-  int getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex, const std::string &vertexMapName);
+  int getTracksFromVertex(PHCompositeNode *topNode, const KFParticle &vertex, const std::string &vertexMapName);
 
-  /*const*/ bool isGoodTrack(KFParticle particle, const std::vector<KFParticle> &primaryVertices);
+  /*const*/ bool isGoodTrack(const KFParticle &particle, const std::vector<KFParticle> &primaryVertices);
 
-  int calcMinIP(KFParticle track, std::vector<KFParticle> PVs, float &minimumIP, float &minimumIPchi2);
+  int calcMinIP(const KFParticle &track, const std::vector<KFParticle> &PVs, float &minimumIP, float &minimumIPchi2);
 
-  std::vector<int> findAllGoodTracks(std::vector<KFParticle> daughterParticles, std::vector<KFParticle> primaryVertices);
+  std::vector<int> findAllGoodTracks(std::vector<KFParticle> daughterParticles, const std::vector<KFParticle> &primaryVertices);
 
   std::vector<std::vector<int>> findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks);
 
   std::vector<std::vector<int>> findNProngs(std::vector<KFParticle> daughterParticles,
-                                            std::vector<int> goodTrackIndex,
+                                            const std::vector<int> &goodTrackIndex,
                                             std::vector<std::vector<int>> goodTracksThatMeet,
                                             int nRequiredTracks, unsigned int nProngs);
 
-  std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int num_remaining_tracks);
+  std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], std::vector<KFParticle> daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks);
 
-  ///Calculates the cosine of the angle betweent the flight direction and momentum
-  float eventDIRA(KFParticle particle, KFParticle vertex);
+  /// Calculates the cosine of the angle betweent the flight direction and momentum
+  float eventDIRA(const KFParticle &particle, const KFParticle &vertex);
 
-  float flightDistanceChi2(KFParticle particle, KFParticle vertex);
+  float flightDistanceChi2(const KFParticle &particle, const KFParticle &vertex);
 
   std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], std::string daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID);
 
@@ -87,9 +87,9 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   double calculateEllipsoidRadius(int posOrNeg, double sigma_ii, double sigma_jj, double sigma_ij);
 
-  float calculateEllipsoidVolume(KFParticle particle);
+  float calculateEllipsoidVolume(const KFParticle &particle);
 
-  float calculateJT(KFParticle mother, KFParticle daughter);
+  float calculateJT(const KFParticle &mother, const KFParticle &daughter);
 
   bool isInRange(float min, float value, float max);
 
@@ -100,7 +100,7 @@ class KFParticle_Tools : protected KFParticle_MVA
   float getParticleMass(const std::string &particle);
   float getParticleMass(const int PDGID);
 
-  void identify(KFParticle particle);
+  void identify(const KFParticle &particle);
 
  protected:
   std::string m_mother_name_Tools;
@@ -187,4 +187,4 @@ class KFParticle_Tools : protected KFParticle_MVA
   void removeDuplicates(std::vector<std::vector<std::string>> &v);
 };
 
-#endif  //KFPARTICLESPHENIX_KFPARTICLETOOLS_H
+#endif  // KFPARTICLESPHENIX_KFPARTICLETOOLS_H

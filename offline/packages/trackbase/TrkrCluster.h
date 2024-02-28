@@ -16,7 +16,6 @@
 #include <iostream>
 #include <memory>
 
-
 /**
  * @brief Base class for cluster object
  *
@@ -25,7 +24,6 @@
 class TrkrCluster : public PHObject
 {
  public:
-  
   //! dtor
   ~TrkrCluster() override = default;
 
@@ -37,17 +35,18 @@ class TrkrCluster : public PHObject
   void Reset() override {}
   int isValid() const override { return 0; }
 
-  
   //! import PHObject CopyFrom, in order to avoid clang warning
   using PHObject::CopyFrom;
-  
-  //! copy content from base class
-  virtual void CopyFrom( const TrkrCluster& ) 
-  {}
 
   //! copy content from base class
-  virtual void CopyFrom( TrkrCluster* ) 
-  {}
+  virtual void CopyFrom(const TrkrCluster&)
+  {
+  }
+
+  //! copy content from base class
+  virtual void CopyFrom(TrkrCluster*)
+  {
+  }
 
   //
   // cluster position
@@ -63,15 +62,14 @@ class TrkrCluster : public PHObject
   virtual void setAdc(unsigned int) {}
   virtual unsigned int getAdc() const { return UINT_MAX; }
   virtual void setMaxAdc(uint16_t) {}
-  virtual unsigned int getMaxAdc() const {return UINT_MAX; }
+  virtual unsigned int getMaxAdc() const { return UINT_MAX; }
   virtual char getOverlap() const { return std::numeric_limits<char>::max(); }
   virtual void setOverlap(char) {}
   virtual char getEdge() const { return std::numeric_limits<char>::max(); }
   virtual void setEdge(char) {}
   virtual void setTime(const float) {}
-  virtual float getTime() const { return NAN;}
-  virtual char getSize() const {return std::numeric_limits<char>::max(); }
-  
+  virtual float getTime() const { return NAN; }
+  virtual char getSize() const { return std::numeric_limits<char>::max(); }
 
   //
   // convenience interface
@@ -83,12 +81,12 @@ class TrkrCluster : public PHObject
   virtual float getZError() const { return NAN; }
 
   /// Acts functions, for Acts modules use only
-  virtual void setActsLocalError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/){}
+  virtual void setActsLocalError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
   virtual float getActsLocalError(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
   virtual TrkrDefs::subsurfkey getSubSurfKey() const { return TrkrDefs::SUBSURFKEYMAX; }
   virtual void setSubSurfKey(TrkrDefs::subsurfkey /*id*/) {}
 
-  // Global coordinate functions are deprecated, use local 
+  // Global coordinate functions are deprecated, use local
   // coordinate functions only
   virtual float getX() const { return NAN; }
   virtual void setX(float) {}
@@ -106,10 +104,9 @@ class TrkrCluster : public PHObject
   virtual float getSize(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
   virtual void setSize(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
 
-
  protected:
   TrkrCluster() = default;
   ClassDefOverride(TrkrCluster, 1)
 };
 
-#endif //TRACKBASE_TRKRCLUSTER_H
+#endif  // TRACKBASE_TRKRCLUSTER_H

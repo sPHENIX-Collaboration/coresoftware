@@ -12,14 +12,18 @@
 // fastjet includes
 #include <fastjet/AreaDefinition.hh>
 #include <fastjet/ClusterSequenceArea.hh>
+#include <fastjet/Selector.hh>
 #include <fastjet/tools/BackgroundEstimatorBase.hh>
 #include <fastjet/tools/JetMedianBackgroundEstimator.hh>
+#include <fastjet/tools/GridMedianBackgroundEstimator.hh>
 #include <fastjet/ClusterSequence.hh>
 #include <fastjet/FunctionOfPseudoJet.hh>  // for FunctionOfPse...
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
 #include <fastjet/contrib/RecursiveSymmetryCutBase.hh>  // for RecursiveSymm...
 #include <fastjet/contrib/SoftDrop.hh>
+#include <fastjet/contrib/ConstituentSubtractor.hh>
+
 
 // standard includes
 #include <cmath>  // for isfinite
@@ -206,6 +210,23 @@ void FastJetAlgo::first_call_init(JetContainer* jetcont) {
     m_area_index = jetcont->property_index(Jet::PROPERTY::prop_area);
   }
 
+  if (m_opt.cs_calc_constsub) {
+    cs_bge_rho =  new fastjet::GridMedianBackgroundEstimator(m_opt.cs_max_eta, 0.5);
+    cs_subtractor = new fastjet::contrib::ConstituentSubtractor();
+	  cs_subtractor->set_distance_type(fastjet::contrib::ConstituentSubtractor::deltaR); 
+	  cs_subtractor->set_max_distance(m_opt.cs_max_dist); // free parameter for the maximal allowed distance between particle i and ghost k
+	  cs_subtractor->set_alpha(m_opt.cs_alpha);  // free parameter for the distance measure (the exponent of particle pt). The larger the parameter alpha, the more are favoured the lower pt particles in the subtraction process
+	  cs_subtractor->set_ghost_area(m_opt.cs_ghost_area); // free parameter for the density of ghosts. 
+	  cs_subtractor->set_max_eta(m_opt.cs_max_eta); // parameter for the maximal eta cut
+	  cs_subtractor->set_background_estimator(cs_bge_rho); // specify the background estimator to estimate rho.
+    if (m_opt.cs_max_pt > 0) {
+      cs_sel_max_pt = new fastjet::Selector(fastjet::SelectorPtMax(m_opt.cs_max_pt));
+      cs_subtractor->set_particle_selector(cs_sel_max_pt);
+    }
+    cs_subtractor->initialize();
+    if (m_opt.verbosity > 1) std::cout << cs_subtractor->description() << std::endl;
+  }
+
   jetcont->set_algo(m_opt.algo);
   jetcont->set_jetpar_R(m_opt.jet_R);
 }
@@ -220,6 +241,40 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
 
   // translate input jets to input fastjets
   auto pseudojets = jets_to_pseudojets(particles);
+
+  // if using constituent subtraction, oberve maximum eta and subtract the constituents
+  if (m_opt.cs_calc_constsub) {
+    if (m_opt.verbosity > 100) {
+      std::cout << " Before Constituent Subtraction: " << std::endl;
+      int i = 0;
+      double sumpt = 0.;
+      for (auto c : pseudojets) {
+        sumpt += c.perp();
+        if (i<100) std::cout << Form(" jet[%2i] %8.4f  sum %8.4f", i, c.perp(), sumpt) << std::endl;
+        i++;
+      }
+      auto _c = pseudojets.back();
+      std::cout << Form(" jet[%2i] %8.4f  sum %8.4f", i++, _c.perp(), sumpt) << std::endl << std::endl;
+    }
+
+    pseudojets = fastjet::SelectorAbsEtaMax(m_opt.cs_max_eta)(pseudojets);
+    cs_bge_rho->set_particles(pseudojets);
+    auto subtracted_pseudojets = cs_subtractor->subtract_event(pseudojets);
+    pseudojets = std::move(subtracted_pseudojets);
+    
+    if (m_opt.verbosity > 100) {
+      std::cout << " After Constituent Subtraction: " << std::endl;
+      int i = 0;
+      double sumpt = 0.;
+      for (auto c : pseudojets) {
+        sumpt += c.perp();
+        if (i<100) std::cout << Form(" jet[%2i] %8.4f  sum %8.4f", i, c.perp(), sumpt) << std::endl;
+        i++;
+      }
+      auto _c = pseudojets.back();
+      std::cout << Form(" jet[%2i] %8.4f  sum %8.4f", i++, _c.perp(), sumpt) << std::endl << std::endl;
+    }
+  }
 
   if (m_opt.calc_jetmedbkgdens) jetcont->set_rho_median(calc_rhomeddens(pseudojets));
 
@@ -291,7 +346,6 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
       }
     }
     jet->set_comp_sort_flag(); // make surce comp knows it might not be sorted
-    jet->set_n_clustered(n_clustered);
   }
   if (m_opt.verbosity > 1) std::cout << "FastJetAlgo::process_event -- exited" << std::endl;
   delete (m_opt.calc_area ? m_cluseqarea : m_cluseq); //if (m_cluseq) delete m_cluseq;
@@ -362,7 +416,7 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
         }
       }
     }
-    jet->set_n_clustered(n_clustered);
+    /* jet->set_n_clustered(n_clustered); */
     jet->set_comp_sort_flag(); // make surce comp knows it might not be sorted
                                // can alternatively just remove the `true` parameter
                                // from the insert_comp function calls above

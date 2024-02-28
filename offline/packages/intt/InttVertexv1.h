@@ -33,8 +33,8 @@ class InttVertexv1 : public InttVertex
 
  private:
   unsigned int _id = std::numeric_limits<unsigned int>::max();  //< unique identifier within container
-  float _z = std::numeric_limits<float>::signaling_NaN();          //< collision position z
-  float _z_err = std::numeric_limits<float>::signaling_NaN();      //< collision position z uncertainty
+  float _z = std::numeric_limits<float>::signaling_NaN();       //< collision position z
+  float _z_err = std::numeric_limits<float>::signaling_NaN();   //< collision position z uncertainty
 
   ClassDefOverride(InttVertexv1, 1);
 };
