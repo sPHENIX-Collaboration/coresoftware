@@ -5,16 +5,17 @@
 #include "mvtx_decoder/GBTLink.h"
 
 #include <set>
-#include <stdint.h>
 #include <unordered_map>
 #include <vector>
+
+#include <cstdint>
 
 class Packet;
 
 class  mvtx_pool {
 
  public:
-  mvtx_pool();
+  mvtx_pool() = default;
   virtual ~mvtx_pool();
 
   virtual int addPacket(Packet *);

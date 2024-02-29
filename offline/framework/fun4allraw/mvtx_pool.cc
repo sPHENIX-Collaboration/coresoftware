@@ -1,21 +1,11 @@
 #include "mvtx_pool.h"
 
-#include <string.h>
-#include <stdint.h>
+#include <string>
+#include <cstdint>
 
 #include <Event/packet.h>
 
-
-#define coutfl cout << __FILE__<< "  " << __LINE__ << " "
-#define cerrfl cerr << __FILE__<< "  " << __LINE__ << " "
-
 using namespace std;
-
-//_________________________________________________
-mvtx_pool::mvtx_pool()
-{
-}
-
 
 //_________________________________________________
 mvtx_pool::~mvtx_pool()
@@ -107,12 +97,12 @@ void mvtx_pool::setupLinks()
         payload_position += mvtx_utils::FLXWordLength;
       }
     }
-    else if ( (dlength - payload_position) >= 2 * mvtx_utils::FLXWordLength ) // at least FLX header and RDH
+    else if ( (dlength - payload_position) >= static_cast<uint64_t>(2 * mvtx_utils::FLXWordLength) ) // at least FLX header and RDH
     {
       if ( *(reinterpret_cast<uint16_t*>(&payload[payload_position] + 30)) == 0xAB01 )
       {
         rdh.decode(&payload[payload_position]);
-        const size_t pageSizeInBytes = (rdh.pageSize + 1) * mvtx_utils::FLXWordLength;
+        const size_t pageSizeInBytes = static_cast<const size_t>((rdh.pageSize + 1) * mvtx_utils::FLXWordLength);
         if ( pageSizeInBytes > (dlength - payload_position) )
         {
           break; // skip incomplete felix packet
@@ -173,7 +163,7 @@ void mvtx_pool::setupLinks()
       {
         // skip raw data without a initial FLX header
         // (YCM)TODO: OK for OM but error otherwise
-        if ( 0 )
+        if (false)
         {
           std::cout << "Felix header: " << std::hex << "0x" << std::setfill('0') << std::setw(4);
           std::cout << *(reinterpret_cast<uint16_t*>(&payload[payload_position] + 30)) << std::dec <<std::endl;
