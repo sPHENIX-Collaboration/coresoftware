@@ -114,6 +114,5 @@ void Fun4AllRolloverFileOutStream::open_new_file()
   SetNEvents(0);
   close(OutFileDescriptor());
   OutFileDescriptor(-1);
-  MyManager()->SetClosingScriptArgs(MyManager()->OutFileName());
   MyManager()->RunAfterClosing();
 }
