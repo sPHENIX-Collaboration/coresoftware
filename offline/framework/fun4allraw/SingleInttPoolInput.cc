@@ -43,7 +43,7 @@ SingleInttPoolInput::~SingleInttPoolInput()
   }
 }
 
-void SingleInttPoolInput::FillPool(const unsigned int)
+void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
 {
   if (AllDone())  // no more files and all events read
   {

@@ -494,7 +494,7 @@ int Fun4AllStreamingInputManager::FillGl1()
     }
     m_RefBCO = gl1hititer->get_bco();
     gl1rawhit->set_bco(m_RefBCO);
-    m_RefBCO = m_RefBCO & 0xFFFFFFFFFF;  // 40 bits (need to handle rollovers)
+    m_RefBCO = m_RefBCO & 0xFFFFFFFFFFU;  // 40 bits (need to handle rollovers)
   }
   for (auto iter : m_Gl1InputVector)
   {
