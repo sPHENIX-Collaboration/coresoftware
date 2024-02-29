@@ -4,8 +4,8 @@
 
 #include <TSystem.h>
 
-#include <iostream>
 #include <filesystem>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -99,10 +99,10 @@ int Fun4AllOutputManager::RunAfterClosing()
       return -1;
     }
 
-  std::string fullcmd = m_RunAfterClosingScript + " " + m_OutFileName + " " + m_ClosingArgs;
-  if (Verbosity() > 1)
+    std::string fullcmd = m_RunAfterClosingScript + " " + m_OutFileName + " " + m_ClosingArgs;
+    if (Verbosity() > 1)
     {
-    std::cout << PHWHERE << " running " << fullcmd << std::endl;
+      std::cout << PHWHERE << " running " << fullcmd << std::endl;
     }
     iret = gSystem->Exec(fullcmd.c_str());
   }
