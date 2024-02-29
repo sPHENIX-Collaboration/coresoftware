@@ -46,6 +46,7 @@ libfun4allraw_la_SOURCES = \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
+	mvtx_pool.cc \
   intt_pool.cc \
   tpc_pool.cc \
   SingleGl1PoolInput.cc \
@@ -64,6 +65,7 @@ libfun4allraw_la_LIBADD = \
   -lffarawobjects \
   -lfun4all \
   -lEvent \
+	-lmvtx_decoder \
   -lphoolraw
 
 BUILT_SOURCES = testexternals.cc
