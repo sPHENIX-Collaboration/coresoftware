@@ -331,6 +331,8 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
     n = deleteElement(listOfResonantPIDs, n, i);
   }
 
+  n = deleteElement(listOfResonantPIDs, n, m_mother_ID);
+
   for (int m_motherDecayProduct : m_motherDecayProducts)
   {
     positive_motherDecayProducts.push_back(std::abs(m_motherDecayProduct));
