@@ -25,16 +25,16 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
  public:
   Fun4AllStreamingInputManager(const std::string &name = "DUMMY", const std::string &dstnodename = "DST", const std::string &topnodename = "TOP");
   ~Fun4AllStreamingInputManager() override;
-/*
-  enum enu_subsystem
-  {
-    MVTX = 1,
-    INTT = 2,
-    TPC = 3,
-    MICROMEGAS = 4,
-    GL1 = 5
-  };
-*/
+  /*
+    enum enu_subsystem
+    {
+      MVTX = 1,
+      INTT = 2,
+      TPC = 3,
+      MICROMEGAS = 4,
+      GL1 = 5
+    };
+  */
   int fileopen(const std::string & /*filenam*/) override { return 0; }
   // cppcheck-suppress virtualCallInConstructor
   int fileclose() override;

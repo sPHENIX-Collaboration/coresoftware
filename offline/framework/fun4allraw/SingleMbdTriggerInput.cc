@@ -30,7 +30,7 @@ SingleMbdTriggerInput::SingleMbdTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
   SubsystemEnum(InputManagerType::MBD);
-  plist = new Packet *[2]; // two packets for the mbd in each file
+  plist = new Packet *[2];  // two packets for the mbd in each file
 }
 
 SingleMbdTriggerInput::~SingleMbdTriggerInput()
@@ -85,7 +85,7 @@ void SingleMbdTriggerInput::FillPool(const unsigned int /*nbclks*/)
     if (npackets > 2)
     {
       std::cout << PHWHERE << " Number of packets in array (2) too small for "
-		<< npackets << std::endl;
+                << npackets << std::endl;
       exit(1);
     }
 
@@ -96,38 +96,38 @@ void SingleMbdTriggerInput::FillPool(const unsigned int /*nbclks*/)
         plist[i]->identify();
       }
 
-    // by default use previous bco clock for gtm bco
-    MbdPacket *newhit = new MbdPacketv1();
-    uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
-    newhit->setBCO(plist[i]->iValue(0, "CLOCK"));
-    newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
-    newhit->setIdentifier(plist[i]->getIdentifier());
-    newhit->setEvtSequence(EventSequence);
-    for (int ifem=0; ifem<2; ifem++)
-    {
-      newhit->setFemClock(ifem,plist[i]->iValue(ifem, "FEMCLOCK"));
-    }
-    for (int ipmt = 0; ipmt < 128; ipmt++)
-    {
-      for (int isamp = 0; isamp < 31; isamp++)
+      // by default use previous bco clock for gtm bco
+      MbdPacket *newhit = new MbdPacketv1();
+      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
+      newhit->setBCO(plist[i]->iValue(0, "CLOCK"));
+      newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
+      newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setEvtSequence(EventSequence);
+      for (int ifem = 0; ifem < 2; ifem++)
       {
-	newhit->setSample(ipmt,isamp,plist[i]->iValue(isamp, ipmt));
+        newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
       }
-    }
-    if (Verbosity() > 2)
-    {
-      std::cout << PHWHERE << "evtno: " << EventSequence
-                << ", bco: 0x" << std::hex << gtm_bco << std::dec
-                << std::endl;
-    }
-    if (TriggerInputManager())
-    {
-       TriggerInputManager()->AddMbdPacket(EventSequence, newhit);
-    }
-    m_MbdPacketMap[EventSequence].push_back(newhit);
-    m_EventStack.insert(EventSequence);
+      for (int ipmt = 0; ipmt < 128; ipmt++)
+      {
+        for (int isamp = 0; isamp < 31; isamp++)
+        {
+          newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
+        }
+      }
+      if (Verbosity() > 2)
+      {
+        std::cout << PHWHERE << "evtno: " << EventSequence
+                  << ", bco: 0x" << std::hex << gtm_bco << std::dec
+                  << std::endl;
+      }
+      if (TriggerInputManager())
+      {
+        TriggerInputManager()->AddMbdPacket(EventSequence, newhit);
+      }
+      m_MbdPacketMap[EventSequence].push_back(newhit);
+      m_EventStack.insert(EventSequence);
 
-    delete plist[i];
+      delete plist[i];
     }
   }
 }
@@ -175,7 +175,6 @@ void SingleMbdTriggerInput::CleanupUsedPackets(const int eventno)
     m_MbdPacketMap.erase(iter);
   }
 }
-
 
 void SingleMbdTriggerInput::ClearCurrentEvent()
 {

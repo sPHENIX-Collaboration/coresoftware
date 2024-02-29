@@ -98,17 +98,17 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
       std::cout << PHWHERE << " Packet: " << packet->getIdentifier()
                 << " evtno: " << EventSequence
                 << ", bco: 0x" << std::hex << gtm_bco << std::dec
-		<< ", bunch no: " << packet->lValue(0, "BunchNumber")
+                << ", bunch no: " << packet->lValue(0, "BunchNumber")
                 << std::endl;
       std::cout << PHWHERE << " RB Packet: " << newhit->getIdentifier()
-                << " evtno: " <<  newhit->getEvtSequence()
+                << " evtno: " << newhit->getEvtSequence()
                 << ", bco: 0x" << std::hex << newhit->getBCO() << std::dec
-		<< ", bunch no: " << +newhit->getBunchNumber()
+                << ", bunch no: " << +newhit->getBunchNumber()
                 << std::endl;
     }
     if (TriggerInputManager())
     {
-       TriggerInputManager()->AddGl1Packet(EventSequence, newhit);
+      TriggerInputManager()->AddGl1Packet(EventSequence, newhit);
     }
     m_Gl1PacketMap[EventSequence].push_back(newhit);
     m_EventStack.insert(EventSequence);
@@ -160,7 +160,6 @@ void SingleGl1TriggerInput::CleanupUsedPackets(const int eventno)
     m_Gl1PacketMap.erase(iter);
   }
 }
-
 
 void SingleGl1TriggerInput::ClearCurrentEvent()
 {

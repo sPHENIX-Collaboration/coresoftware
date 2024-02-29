@@ -87,12 +87,12 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   };
 
   bool m_StartUpFlag = true;
-  int m_RunNumber {0};
+  int m_RunNumber{0};
   bool m_gl1_registered_flag{false};
   bool m_mbd_registered_flag{false};
   unsigned int m_PoolDepth = 100;
   unsigned int m_InitialPoolDepth = 20;
-  int m_RefEventNo {0};
+  int m_RefEventNo{0};
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
   std::vector<SingleTriggerInput *> m_Gl1InputVector;

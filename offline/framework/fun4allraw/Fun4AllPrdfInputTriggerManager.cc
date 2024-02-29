@@ -7,7 +7,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 
-#include <ffaobjects/SyncObject.h>  // for SyncObject
+#include <ffaobjects/SyncObject.h>    // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>  // for SyncObject
 
 #include <ffarawobjects/OfflinePacket.h>
@@ -18,7 +18,7 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>           // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <Event/A_Event.h>
 #include <Event/Event.h>
@@ -83,7 +83,7 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   {
     iret += FillMbd();
   }
-return iret;
+  return iret;
   if (m_StartUpFlag)
   {
     for (auto iter : m_PrdfInputVector)
@@ -430,10 +430,10 @@ void Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *pr
   {
     std::cout << "registering " << prdfin->Name()
               << " number of registered inputs: "
-              << m_Gl1InputVector.size() +  m_MbdInputVector.size()
+              << m_Gl1InputVector.size() + m_MbdInputVector.size()
               << std::endl;
   }
-  
+
   return;
 }
 
