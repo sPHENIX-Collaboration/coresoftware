@@ -109,14 +109,14 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
         evtno += (rollover[i] << 16U);
         unsigned int bclk = plist[i]->iValue(0, "CLOCK");
 
-// NOLINTNEXTLINE(hicpp-signed-bitwise)
+        // NOLINTNEXTLINE(hicpp-signed-bitwise)
         bool useFEMInfo = ((plist[i]->getIdentifier() / 1000 == 12) && evtno != ((EventSequence - 2) & 0xffff));
 
         if (useFEMInfo == true)
         {
-// NOLINTNEXTLINE(hicpp-signed-bitwise)
+          // NOLINTNEXTLINE(hicpp-signed-bitwise)
           evtno = ((plist[i]->iValue(0, "FEMEVTNR") - 1) & 0xffff);  // hard coded since FEM event starts at 1 and packet event starts at 0
-// NOLINTNEXTLINE(hicpp-signed-bitwise)
+                                                                     // NOLINTNEXTLINE(hicpp-signed-bitwise)
           bclk = ((plist[i]->iValue(0, "FEMCLOCK") + 30) & 0xffff);  // hardcoded since level 1 delay for ZDC is 30 beam clocks.
         }
         if (Verbosity() > 1)

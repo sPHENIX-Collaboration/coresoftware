@@ -19,7 +19,7 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   ~Fun4AllPrdfInputManager() override;
   int fileopen(const std::string &filenam) override;
 
-// cppcheck-suppress virtualCallInConstructor
+  // cppcheck-suppress virtualCallInConstructor
   int fileclose() override;
   int run(const int nevents = 0) override;
 
