@@ -307,12 +307,18 @@ int MvtxClusterizer::process_event(PHCompositeNode *topNode)
 
 void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 0) cout << "Entering MvtxClusterizer::ClusterMvtx " << endl;
+  if (Verbosity() > 0)
+  {
+    cout << "Entering MvtxClusterizer::ClusterMvtx " << endl;
+  }
 
   PHG4CylinderGeomContainer *geom_container =
       findNode::getClass<PHG4CylinderGeomContainer>(topNode,
                                                     "CYLINDERGEOM_MVTX");
-  if (!geom_container) return;
+  if (!geom_container)
+  {
+    return;
+  }
 
   //-----------
   // Clustering
@@ -337,7 +343,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
            << " strobe " << strobe << endl;
     }
 
-    if (Verbosity() > 2) hitset->identify();
+    if (Verbosity() > 2)
+    {
+      hitset->identify();
+    }
 
     // fill a vector of hits to make things easier
     std::vector<std::pair<TrkrDefs::hitkey, TrkrHit *> > hitvec;
@@ -346,15 +355,18 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
          hitr != hitrangei.second; ++hitr)
     {
-      hitvec.push_back(make_pair(hitr->first, hitr->second));
+      hitvec.emplace_back(hitr->first, hitr->second);
     }
-    if (Verbosity() > 2) cout << "hitvec.size(): " << hitvec.size() << endl;
+    if (Verbosity() > 2)
+    {
+      cout << "hitvec.size(): " << hitvec.size() << endl;
+    }
 
     if (Verbosity() > 0)
     {
-      for (unsigned int i = 0; i < hitvec.size(); i++)
+      for (auto& hit : hitvec)
       {
-        auto hitkey = hitvec[i].first;
+        auto hitkey = hit.first;
         auto row = MvtxDefs::getRow(hitkey);
         auto col = MvtxDefs::getCol(hitkey);
         std::cout << "      hitkey " << hitkey << " row " << row << " col "
@@ -363,7 +375,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
     }
 
     // do the clustering
-    typedef adjacency_list<vecS, vecS, undirectedS> Graph;
+    using Graph =  adjacency_list<vecS, vecS, undirectedS>;
     Graph G;
 
     // loop over hits in this chip
@@ -371,7 +383,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
     {
       for (unsigned int j = 0; j < hitvec.size(); j++)
       {
-        if (are_adjacent(hitvec[i], hitvec[j])) add_edge(i, j, G);
+        if (are_adjacent(hitvec[i], hitvec[j]))
+        {
+          add_edge(i, j, G);
+        }
       }
     }
 
@@ -401,9 +416,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       auto clusrange = clusters.equal_range(clusid);
 
       if (Verbosity() > 2)
+      {
         cout << "Filling cluster id " << clusid << " of "
              << std::distance(cluster_ids.begin(), clusiter) << endl;
-
+      }
       ++total_clusters;
       auto ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 
@@ -426,7 +442,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       int layer = TrkrDefs::getLayer(ckey);
       auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(
           geom_container->GetLayerGeom(layer));
-      if (!layergeom) exit(1);
+      if (!layergeom)
+      {
+        exit(1);
+      }
 
       for (auto mapiter = clusrange.first; mapiter != clusrange.second;
            ++mapiter)
@@ -441,10 +460,16 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
         if (mClusHitsVerbose)
         {
           auto pnew = m_phi.try_emplace(row, energy);
-          if (!pnew.second) pnew.first->second += energy;
+          if (!pnew.second)
+          {
+            pnew.first->second += energy;
+          }
 
           pnew = m_z.try_emplace(col, energy);
-          if (!pnew.second) pnew.first->second += energy;
+          if (!pnew.second)
+          {
+            pnew.first->second += energy;
+          }
         }
 
         // get local coordinates, in stae reference frame, for hit
@@ -478,9 +503,13 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
           }
         }
         for (auto &hit : m_phi)
+        {
           mClusHitsVerbose->addPhiHit(hit.first, (float) hit.second);
+        }
         for (auto &hit : m_z)
+        {
           mClusHitsVerbose->addZHit(hit.first, (float) hit.second);
+        }
         mClusHitsVerbose->push_hits(ckey);
       }
 
@@ -509,20 +538,35 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
       static constexpr std::array<double, 7> scalefactors_phi = {
           {0.36, 0.6, 0.37, 0.49, 0.4, 0.37, 0.33}};
+
       if (phibins.size() == 1 && zbins.size() == 1)
+      {
         phierror *= scalefactors_phi[0];
+      }
       else if (phibins.size() == 2 && zbins.size() == 1)
+      {
         phierror *= scalefactors_phi[1];
+      }
       else if (phibins.size() == 1 && zbins.size() == 2)
+      {
         phierror *= scalefactors_phi[2];
+      }
       else if (phibins.size() == 2 && zbins.size() == 2)
+      {
         phierror *= scalefactors_phi[0];
+      }
       else if (phibins.size() == 2 && zbins.size() == 3)
+      {
         phierror *= scalefactors_phi[1];
+      }
       else if (phibins.size() == 3 && zbins.size() == 2)
+      {
         phierror *= scalefactors_phi[2];
+      }
       else if (phibins.size() == 3 && zbins.size() == 3)
+      {
         phierror *= scalefactors_phi[3];
+      }
 
       // scale factors (z direction)
       /*
@@ -535,21 +579,31 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
           {0.47, 0.48, 0.71, 0.55}};
       double zerror = length * invsqrt12;
       if (zbins.size() == 2 && phibins.size() == 2)
+      {
         zerror *= scalefactors_z[0];
+      }
       else if (zbins.size() == 2 && phibins.size() == 3)
+      {
         zerror *= scalefactors_z[1];
+      }
       else if (zbins.size() == 3 && phibins.size() == 2)
+      {
         zerror *= scalefactors_z[2];
+      }
       else if (zbins.size() == 3 && phibins.size() == 3)
+      {
         zerror *= scalefactors_z[3];
+      }
 
       if (Verbosity() > 0)
+      {
         cout << " MvtxClusterizer: cluskey " << ckey << " layer " << layer
              << " rad " << layergeom->get_radius() << " phibins "
              << phibins.size() << " pitch " << pitch << " phisize " << phisize
              << " zbins " << zbins.size() << " length " << length << " zsize "
              << zsize << " local x " << locclusx << " local y " << locclusz
              << endl;
+      }
 
       auto clus = std::make_unique<TrkrClusterv5>();
       clus->setAdc(nhits);
@@ -564,7 +618,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       // So set subsurface key to 0
       clus->setSubSurfKey(0);
 
-      if (Verbosity() > 2) clus->identify();
+      if (Verbosity() > 2)
+      {
+        clus->identify();
+      }
 
       m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
 
@@ -582,12 +639,18 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 0) cout << "Entering MvtxClusterizer::ClusterMvtx " << endl;
+  if (Verbosity() > 0)
+  {
+    cout << "Entering MvtxClusterizer::ClusterMvtx " << endl;
+  }
 
   PHG4CylinderGeomContainer *geom_container =
       findNode::getClass<PHG4CylinderGeomContainer>(topNode,
                                                     "CYLINDERGEOM_MVTX");
-  if (!geom_container) return;
+  if (!geom_container)
+  {
+    return;
+  }
 
   //-----------
   // Clustering
@@ -612,7 +675,10 @@ void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
            << " strobe " << strobe << endl;
     }
 
-    if (Verbosity() > 2) hitset->identify();
+    if (Verbosity() > 2)
+    {
+      hitset->identify();
+    }
 
     // fill a vector of hits to make things easier
     std::vector<RawHit *> hitvec;
@@ -623,10 +689,13 @@ void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
     {
       hitvec.push_back((*hitr));
     }
-    if (Verbosity() > 2) cout << "hitvec.size(): " << hitvec.size() << endl;
+    if (Verbosity() > 2)
+    {
+      cout << "hitvec.size(): " << hitvec.size() << endl;
+    }
 
     // do the clustering
-    typedef adjacency_list<vecS, vecS, undirectedS> Graph;
+    using Graph = adjacency_list<vecS, vecS, undirectedS>;
     Graph G;
 
     // loop over hits in this chip
@@ -634,7 +703,10 @@ void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
     {
       for (unsigned int j = 0; j < hitvec.size(); j++)
       {
-        if (are_adjacent(hitvec[i], hitvec[j])) add_edge(i, j, G);
+        if (are_adjacent(hitvec[i], hitvec[j]))
+        {
+          add_edge(i, j, G);
+        }
       }
     }
 
@@ -666,8 +738,10 @@ void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
       auto clusrange = clusters.equal_range(clusid);
 
       if (Verbosity() > 2)
+      {
         cout << "Filling cluster id " << clusid << " of "
              << std::distance(cluster_ids.begin(), clusiter) << endl;
+      }
 
       // make the cluster directly in the node tree
       auto ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
@@ -689,7 +763,10 @@ void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
       int layer = TrkrDefs::getLayer(ckey);
       auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(
           geom_container->GetLayerGeom(layer));
-      if (!layergeom) exit(1);
+      if (!layergeom)
+      {
+        exit(1);
+      }
 
       for (auto mapiter = clusrange.first; mapiter != clusrange.second;
            ++mapiter)
@@ -748,19 +825,33 @@ void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
       static constexpr std::array<double, 7> scalefactors_phi = {
           {0.36, 0.6, 0.37, 0.49, 0.4, 0.37, 0.33}};
       if (phibins.size() == 1 && zbins.size() == 1)
+      {
         phierror *= scalefactors_phi[0];
+      }
       else if (phibins.size() == 2 && zbins.size() == 1)
+      {
         phierror *= scalefactors_phi[1];
+      }
       else if (phibins.size() == 1 && zbins.size() == 2)
+      {
         phierror *= scalefactors_phi[2];
+      }
       else if (phibins.size() == 2 && zbins.size() == 2)
+      {
         phierror *= scalefactors_phi[0];
+      }
       else if (phibins.size() == 2 && zbins.size() == 3)
+      {
         phierror *= scalefactors_phi[1];
+      }
       else if (phibins.size() == 3 && zbins.size() == 2)
+      {
         phierror *= scalefactors_phi[2];
+      }
       else if (phibins.size() == 3 && zbins.size() == 3)
+      {
         phierror *= scalefactors_phi[3];
+      }
 
       // scale factors (z direction)
       /*
@@ -772,22 +863,33 @@ void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
       static constexpr std::array<double, 4> scalefactors_z = {
           {0.47, 0.48, 0.71, 0.55}};
       double zerror = length * invsqrt12;
+
       if (zbins.size() == 2 && phibins.size() == 2)
+      {
         zerror *= scalefactors_z[0];
+      }
       else if (zbins.size() == 2 && phibins.size() == 3)
+      {
         zerror *= scalefactors_z[1];
+      }
       else if (zbins.size() == 3 && phibins.size() == 2)
+      {
         zerror *= scalefactors_z[2];
+      }
       else if (zbins.size() == 3 && phibins.size() == 3)
+      {
         zerror *= scalefactors_z[3];
+      }
 
       if (Verbosity() > 0)
+      {
         cout << " MvtxClusterizer: cluskey " << ckey << " layer " << layer
              << " rad " << layergeom->get_radius() << " phibins "
              << phibins.size() << " pitch " << pitch << " phisize " << phisize
              << " zbins " << zbins.size() << " length " << length << " zsize "
              << zsize << " local x " << locclusx << " local y " << locclusz
              << endl;
+      }
 
       auto clus = std::make_unique<TrkrClusterv5>();
       clus->setAdc(nhits);
@@ -802,10 +904,12 @@ void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
       // So set subsurface key to 0
       clus->setSubSurfKey(0);
 
-      if (Verbosity() > 2) clus->identify();
+      if (Verbosity() > 2)
+      {
+        clus->identify();
+      }
 
       m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
-
     }  // clusitr loop
   }    // loop over hitsets
 
@@ -824,7 +928,10 @@ void MvtxClusterizer::PrintClusters(PHCompositeNode *topNode)
   {
     TrkrClusterContainer *clusterlist =
         findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-    if (!clusterlist) return;
+    if (!clusterlist)
+    {
+      return;
+    }
 
     cout << "================= After MvtxClusterizer::process_event() "
             "===================="
@@ -833,7 +940,10 @@ void MvtxClusterizer::PrintClusters(PHCompositeNode *topNode)
     cout << " There are " << clusterlist->size()
          << " clusters recorded: " << endl;
 
-    if (Verbosity() > 3) clusterlist->identify();
+    if (Verbosity() > 3)
+    {
+      clusterlist->identify();
+    }
 
     cout << "=================================================================="
             "========="

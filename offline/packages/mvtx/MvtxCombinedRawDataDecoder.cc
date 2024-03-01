@@ -137,7 +137,10 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 {
   mvtx_raw_event_header =
       findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
-  if (Verbosity() >= VERBOSITY_MORE) mvtx_raw_event_header->identify();
+  if (Verbosity() >= VERBOSITY_MORE)
+  {
+    mvtx_raw_event_header->identify();
+  }
 
   hit_set_container =
       findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -161,10 +164,13 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   uint64_t gl1rawhitbco = gl1->get_bco();
   // get the last 40 bits by bit shifting left then right to match
   // to the mvtx bco
-  auto lbshift = gl1rawhitbco << 24;
-  auto gl1bco = lbshift >> 24;
+  auto lbshift = gl1rawhitbco << 24U;
+  auto gl1bco = lbshift >> 24U;
 
-  if (Verbosity() >= VERBOSITY_MORE) mvtx_hit_container->identify();
+  if (Verbosity() >= VERBOSITY_MORE)
+  {
+    mvtx_hit_container->identify();
+  }
 
   uint64_t strobe = -1;  // Initialise to -1 for debugging
   uint8_t layer = 0;
@@ -204,11 +210,17 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     double timeElapsed = bcodiff * 0.106;  // 106 ns rhic clock
     int index = std::floor(timeElapsed / m_strobeWidth);
 
-    if (Verbosity() >= VERBOSITY_A_LOT) mvtx_hit->identify();
+    if (Verbosity() >= VERBOSITY_A_LOT)
+    {
+      mvtx_hit->identify();
+    }
 
     const TrkrDefs::hitsetkey hitsetkey =
         MvtxDefs::genHitSetKey(layer, stave, chip, index);
-    if (!hitsetkey) continue;
+    if (!hitsetkey)
+    {
+      continue;
+    }
 
     // get matching hitset
     const auto hitset_it = hit_set_container->findOrAddHitSet(hitsetkey);
@@ -242,12 +254,14 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   mvtx_event_header->set_strobe_BCO(strobe);
   if (m_writeMvtxEventHeader)
   {
-    std::set<uint64_t> l1BCOs = mvtx_raw_event_header->getMvtxLvL1BCO();
-    for (auto iter = l1BCOs.begin(); iter != l1BCOs.end(); iter++)
+    for (auto& iter : l1BCOs)
     {
-      mvtx_event_header->set_strobe_BCO_L1_BCO(strobe, *iter);
+      mvtx_event_header->set_strobe_BCO_L1_BCO(strobe, iter);
     }
-    if (Verbosity() >= VERBOSITY_EVEN_MORE) mvtx_event_header->identify();
+    if (Verbosity() >= VERBOSITY_EVEN_MORE)
+    {
+      mvtx_event_header->identify();
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

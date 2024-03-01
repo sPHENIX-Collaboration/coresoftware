@@ -118,22 +118,24 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
     bare_hitset_set.insert(bare_hitsetkey);
 
     if (Verbosity() > 0)
+    {
       cout << " found hitsetkey " << hitsetkey << " for bare_hitsetkey "
            << bare_hitsetkey << endl;
+    }
   }
 
   // Now consolidate all hits into the hitset with strobe 0, and delete the
   // other hitsets
   //==============================================================
-  for (auto bare_it = bare_hitset_set.begin(); bare_it != bare_hitset_set.end();
-       ++bare_it)
+  for (unsigned int bare_hitsetkey : bare_hitset_set)
   {
-    auto bare_hitsetkey = *bare_it;
     TrkrHitSet *bare_hitset = (m_hits->findOrAddHitSet(bare_hitsetkey))->second;
     if (Verbosity() > 0)
+    {
       std::cout << "         bare_hitset " << bare_hitsetkey
                 << " initially has " << bare_hitset->size() << " hits "
                 << std::endl;
+    }
 
     auto bare_hitsetrange = hitset_multimap.equal_range(bare_hitsetkey);
     for (auto it = bare_hitsetrange.first; it != bare_hitsetrange.second;
@@ -145,16 +147,20 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
       if (strobe != 0)
       {
         if (Verbosity() > 0)
+        {
           cout << "            process hitsetkey " << hitsetkey
                << " for bare_hitsetkey " << bare_hitsetkey << endl;
+        }
 
         // copy all hits to the hitset with strobe 0
         TrkrHitSet *hitset = m_hits->findHitSet(hitsetkey);
 
         if (Verbosity() > 0)
+        {
           std::cout << "                hitsetkey " << hitsetkey
                     << " has strobe " << strobe << " and has " << hitset->size()
                     << " hits,  so copy it" << std::endl;
+        }
 
         TrkrHitSet::ConstRange hitrangei = hitset->getHits();
         for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
@@ -162,23 +168,30 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
         {
           auto hitkey = hitr->first;
           if (Verbosity() > 0)
+          {
             std::cout << "                 found hitkey " << hitkey
                       << std::endl;
+          }
+
           // if it is already there, leave it alone, this is a duplicate hit
           auto tmp_hit = bare_hitset->getHit(hitkey);
           if (tmp_hit)
           {
             if (Verbosity() > 0)
+            {
               std::cout << "                          hitkey " << hitkey
                         << " is already in bare hitsest, do not copy"
                         << std::endl;
+            }
             continue;
           }
 
           // otherwise copy the hit over
           if (Verbosity() > 0)
+          {
             std::cout << "                          copying over hitkey "
                       << hitkey << std::endl;
+          }
           auto old_hit = hitr->second;
           TrkrHit *new_hit = new TrkrHitv2();
           new_hit->setAdc(old_hit->getAdc());
