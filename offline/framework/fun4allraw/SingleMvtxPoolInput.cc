@@ -146,9 +146,9 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
               m_MvtxRawHitMap[strb_bco].push_back(newhit);
             }
             if (StreamingInputManager())
-             {
-               StreamingInputManager()->AddMvtxFeeId(strb_bco, feeId);
-             }
+            {
+              StreamingInputManager()->AddMvtxFeeId(strb_bco, feeId);
+            }
             m_BeamClockFEE[strb_bco].insert(feeId);
             m_BclkStack.insert(strb_bco);
             m_FEEBclkMap[feeId] = strb_bco;
@@ -166,9 +166,9 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
       if (strb_it != m_BclkStack.cend())
       {
         if (StreamingInputManager())
-         {
-           StreamingInputManager()->AddMvtxL1TrgBco(*strb_it, lv1Bco);
-         }
+        {
+          StreamingInputManager()->AddMvtxL1TrgBco(*strb_it, lv1Bco);
+        }
       }
       else if (m_BclkStack.empty())
       {
@@ -361,11 +361,11 @@ void SingleMvtxPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
-  MvtxRawEvtHeader* mvtxEH = findNode::getClass<MvtxRawEvtHeaderv1>(detNode,"MVTXRAWEVTHEADER");
-  if (! mvtxEH)
+  MvtxRawEvtHeader *mvtxEH = findNode::getClass<MvtxRawEvtHeaderv1>(detNode, "MVTXRAWEVTHEADER");
+  if (!mvtxEH)
   {
     mvtxEH = new MvtxRawEvtHeaderv1();
-    PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(mvtxEH, "MVTXRAWEVTHEADER", "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(mvtxEH, "MVTXRAWEVTHEADER", "PHObject");
     detNode->addNode(newNode);
   }
 

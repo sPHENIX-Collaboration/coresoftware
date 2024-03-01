@@ -3,7 +3,7 @@
 
 #include <phool/PHObject.h>
 
-class OfflinePacket;
+class MbdPacket;
 
 class  MbdPacketContainer: public PHObject
 {
@@ -11,10 +11,10 @@ public:
   MbdPacketContainer() = default;
   virtual ~MbdPacketContainer() = default;
 
-  virtual OfflinePacket *AddHit() {return nullptr;}
-  virtual OfflinePacket *AddHit(OfflinePacket *) {return nullptr;}
+  virtual MbdPacket *AddPacket() {return nullptr;}
+  virtual MbdPacket *AddPacket(MbdPacket *) {return nullptr;}
   virtual unsigned int get_npackets() {return 0;}
-  virtual OfflinePacket *get_packet(unsigned int) {return nullptr;}
+  virtual MbdPacket *getPacket(unsigned int) {return nullptr;}
 
 private:
   ClassDefOverride(MbdPacketContainer,1)

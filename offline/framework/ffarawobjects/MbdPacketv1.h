@@ -11,9 +11,11 @@ class  MbdPacketv1: public MbdPacket
 
 public:
     MbdPacketv1() = default;
+    MbdPacketv1(MbdPacket *mbd);
     ~MbdPacketv1() override = default;
 
   void Reset() override;
+  void identify(std::ostream &os = std::cout) const override;
 
   void setFemClock(int i, uint32_t clk) override {femclock.at(i) = clk;}
   uint32_t getFemClock(int i) const override {return femclock.at(i);}

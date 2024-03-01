@@ -15,7 +15,7 @@ class Fun4AllOutputManager : public Fun4AllBase
 {
  public:
   //! destructor
-  ~Fun4AllOutputManager() override = default;
+  ~Fun4AllOutputManager() override;
 
   //! print method (dump event selector)
   void Print(const std::string &what = "ALL") const override;
@@ -104,7 +104,7 @@ class Fun4AllOutputManager : public Fun4AllBase
   int RunAfterClosing();
   void UseFileRule() { m_UseFileRuleFlag = true; }
   bool ApplyFileRule() const { return m_UseFileRuleFlag; }
-  void SetNEvents(const unsigned int nevt) { m_MaxEvents = nevt; }
+  void SetNEvents(const unsigned int nevt);
   unsigned int GetNEvents() const { return m_MaxEvents; }
 
  protected:
