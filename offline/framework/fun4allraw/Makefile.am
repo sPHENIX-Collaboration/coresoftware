@@ -33,8 +33,29 @@ pkginclude_HEADERS = \
   SingleTriggerInput.h \
   SingleZdcInput.h
 
+decoderincludedir = $(includedir)/mvtx_decoder
+decoderinclude_HEADERS = \
+  mvtx_decoder/DecodingStat.h \
+  mvtx_decoder/GBTLink.h \
+  mvtx_decoder/GBTWord.h \
+  mvtx_decoder/InteractionRecord.h \
+  mvtx_decoder/mvtx_utils.h \
+  mvtx_decoder/PayLoadCont.h \
+  mvtx_decoder/PayLoadSG.h \
+  mvtx_decoder/PixelData.h
+
 lib_LTLIBRARIES = \
+  libmvtx_decoder.la \
   libfun4allraw.la
+
+# source for mvtx decoder library
+libmvtx_decoder_la_SOURCES =\
+  mvtx_decoder/InteractionRecord.cc \
+  mvtx_decoder/PayLoadCont.cc \
+  mvtx_decoder/PixelData.cc \
+  mvtx_decoder/GBTWord.cc \
+  mvtx_decoder/DecodingStat.cc \
+  mvtx_decoder/GBTLink.cc
 
 libfun4allraw_la_SOURCES = \
   Fun4AllEventOutStream.cc \
@@ -46,6 +67,7 @@ libfun4allraw_la_SOURCES = \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
+	mvtx_pool.cc \
   intt_pool.cc \
   tpc_pool.cc \
   SingleGl1PoolInput.cc \
@@ -64,12 +86,17 @@ libfun4allraw_la_LIBADD = \
   -lffarawobjects \
   -lfun4all \
   -lEvent \
+	-lmvtx_decoder \
   -lphoolraw
 
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
+  testexternals_mvtx_decoder \
   testexternals
+
+testexternals_mvtx_decoder_SOURCES = testexternals.cc
+testexternals_mvtx_decoder_LDADD = libmvtx_decoder.la
 
 testexternals_SOURCES = testexternals.cc
 testexternals_LDADD   = libfun4allraw.la

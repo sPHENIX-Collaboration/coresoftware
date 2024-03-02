@@ -16,7 +16,7 @@ class MvtxClusterQA : public SubsysReco
  public:
   MvtxClusterQA(const std::string &name = "MvtxClusterQA");
 
-  ~MvtxClusterQA() override;
+  ~MvtxClusterQA() override = default;
 
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;

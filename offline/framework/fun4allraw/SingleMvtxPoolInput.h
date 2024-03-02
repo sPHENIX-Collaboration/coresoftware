@@ -9,6 +9,7 @@
 
 class MvtxRawHit;
 class Packet;
+class mvtx_pool;
 
 typedef struct linkId
 {
@@ -29,6 +30,7 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   bool GetSomeMoreEvents();
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
+
   void SetBcoRange(const unsigned int i) { m_BcoRange = i; }
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
@@ -57,6 +59,7 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   std::map<int, uint64_t> m_FeeStrobeMap;
   std::set<uint64_t> m_BclkStack;
   std::set<uint64_t> gtmL1BcoSet;  // GTM L1 BCO
+  std::map<int, mvtx_pool *> poolmap;
 };
 
 #endif
