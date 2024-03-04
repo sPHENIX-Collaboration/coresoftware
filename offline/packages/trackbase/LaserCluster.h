@@ -13,7 +13,7 @@
 #include <cmath>
 #include <iostream>
 #include <memory>
-
+#include <array>
 
 /**
  * @brief Base class for laser cluster object
@@ -53,6 +53,13 @@ class LaserCluster : public PHObject
   virtual float getZ() const { return NAN; }
   virtual void setZ(float) {}
 
+  virtual float getLayer() const { return NAN; }
+  virtual void setLayer(float) {}
+  virtual float getIPhi() const { return NAN; }
+  virtual void setIPhi(float) {}
+  virtual float getIT() const { return NAN; }
+  virtual void setIT(float) {}
+
   //
   // cluster info
   //
@@ -62,6 +69,21 @@ class LaserCluster : public PHObject
 
   virtual unsigned int getNhits() const {return UINT_MAX;}
   virtual void setNhits( unsigned int) {}
+
+  virtual void addHit() {}
+  virtual unsigned int getHitCount() const { return UINT_MAX; }
+
+  virtual void setHitLayer(int, float) {}
+  virtual float getHitLayer(int) const { return NAN; }
+
+  virtual void setHitIPhi(int, float) {}
+  virtual float getHitIPhi(int) const { return NAN; }
+
+  virtual void setHitIT(int, float) {}
+  virtual float getHitIT(int) const { return NAN; }
+
+  virtual void setHitAdc(int, float) {}
+  virtual float getHitAdc(int) const { return NAN; }
 
 
  protected:

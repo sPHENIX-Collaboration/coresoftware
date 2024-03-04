@@ -107,11 +107,22 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   }
   
 
+
   m_debugFile = new TFile(m_debugFileName.c_str(),"RECREATE");
+
+  m_itHist_0 = new TH1I("m_itHist_0","side 0;it",1001,-0.5,1000.5);
+  m_itHist_1 = new TH1I("m_itHist_1","side 1;it",1001,-0.5,1000.5);
+
   m_clusterTree = new TTree("clusterTree","clusterTree");
-  m_clusterTree->Branch("event",m_event);
+  m_clusterTree->Branch("event",&m_event);
   m_clusterTree->Branch("cluster",&m_currentCluster);
   
+  m_hitTree = new TTree("hitTree","hitTree");
+  m_hitTree->Branch("event",&m_event);
+  m_hitTree->Branch("hit",&m_currentHit);
+  m_hitTree->Branch("hitH",&m_currentHit_hardware);
+
+  m_tdriftmax = AdcClockPeriod * NZBinsSide;  
 
   return Fun4AllReturnCodes::EVENT_OK;
 
@@ -154,9 +165,10 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
-  PHG4TpcCylinderGeomContainer *geom_container =
+
+  m_geom_container =
     findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if (!geom_container)
+  if (!m_geom_container)
     {
       std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
@@ -185,11 +197,10 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     //num_hitsets = std::distance(rawhitsetrange.first,rawhitsetrange.second);
   }
 
-  m_tdriftmax = AdcClockPeriod * NZBinsSide;  
 
   bgi::rtree<pointKeyLaser, bgi::quadratic<16> > rtree;
   //std::multimap <unsigned int,std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> adcMap;
-  std::multimap <unsigned int,std::pair<std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>, std::array<float, 3>>> adcMap;
+  std::multimap <unsigned int,std::pair<std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>, std::array<int, 3>>> adcMap;
   
   //std::multimap <unsigned int, float *> adcCoords;
 
@@ -200,13 +211,39 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
       {
 	//	if(count>0)continue;
 	TrkrHitSet *hitset = hitsetitr->second;
+	int side = TpcDefs::getSide(hitsetitr->first);
+
+	TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+	
+	for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+	     hitr != hitrangei.second;
+	     ++hitr)
+	  {
+
+	    int it = TpcDefs::getTBin(hitr->first);
+
+	    if(side == 0) m_itHist_0->Fill(it);
+	    else m_itHist_1->Fill(it);
+
+	  }
+      }
+
+    double itMean_0 = m_itHist_0->GetMean();
+    double itMean_1 = m_itHist_1->GetMean();
+
+    for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
+	 hitsetitr != hitsetrange.second;
+	 ++hitsetitr)
+      {
+	//	if(count>0)continue;
+	TrkrHitSet *hitset = hitsetitr->second;
 	unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
 	int side = TpcDefs::getSide(hitsetitr->first);
 	unsigned int sector= TpcDefs::getSectorId(hitsetitr->first);
-	PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+	PHG4TpcCylinderGeom *layergeom = m_geom_container->GetLayerCellGeom(layer);
 	double r = layergeom->get_radius();
 
-	if(sector != 0 || side != 1) continue;
+	//if(sector != 5 || side != 1) continue;
 
 	//unsigned short phiOffset = (((unsigned short) layergeom->get_phibins())/12) * sector;
 	//unsigned short tOffset = 0;
@@ -230,25 +267,48 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 	    
 	    int iphi = TpcDefs::getPad(hitr->first);
 	    int it = TpcDefs::getTBin(hitr->first);
+
+	    if(side == 0 && fabs(it - itMean_0) > 15) continue;
+	    if(side == 1 && fabs(it - itMean_1) > 15) continue;
+
 	    double phi = layergeom->get_phi(iphi);
+	    //iphi -= phiOffset;
 	    double zdriftlength = layergeom->get_zcenter(it) * m_tGeometry->get_drift_velocity();
-	    
-	    double x = r * cos(phi);
-	    double y = r * sin(phi);
-	    double z = m_tdriftmax * m_tGeometry->get_drift_velocity() - zdriftlength;
-	    if (side == 0) z = -z;
-	    
 
-	    std::cout << "hit " << std::distance(hitrangei.first, hitr) << "   sector " << sector << "   side " << side << "   coords=(" << r << "," << phi << "," << z << ")" << std::endl;
+	    float x = r * cos(phi);
+	    float y = r * sin(phi);
+	    float z = m_tdriftmax * m_tGeometry->get_drift_velocity() - zdriftlength;
+	    if (side == 0){
+	      z = -z;
+	      it = -it;
+	    }
 
-	    std::array<float, 3> coords = {(float)x,(float)y,(float)z};
+
+	    m_currentHit.clear();
+	    m_currentHit.push_back(x);
+	    m_currentHit.push_back(y);
+	    m_currentHit.push_back(z);
+	    m_currentHit.push_back(1.0*adc);
+
+	    m_currentHit_hardware.clear();
+	    m_currentHit_hardware.push_back(layer);
+	    m_currentHit_hardware.push_back(iphi);
+	    m_currentHit_hardware.push_back(it);
+	    m_currentHit_hardware.push_back(1.0*adc);
+
+	    //std::cout << "hit " << std::distance(hitrangei.first, hitr) << "   sector " << sector << "   side " << side << "   coords=(" << layer << "," << iphi << "," << it << ")" << std::endl;
+	    
+	    std::array<int, 3> coords = {(int)layer,iphi,it};
 	    
 	    std::vector<pointKeyLaser> testduplicate;
-	    rtree.query(bgi::intersects(box(point(x-0.001,y-0.001,z-0.001),
-					    point(x+0.001,y+0.001,z+0.001))),std::back_inserter(testduplicate));
+	    rtree.query(bgi::intersects(box(point(layer-0.001,iphi-0.001,it-0.001),
+					    point(layer+0.001,iphi+0.001,it+0.001))),std::back_inserter(testduplicate));
 	    if (!testduplicate.empty()){
 	      continue;
 	    }
+
+	    //std::cout << "current hit (x,y,z)=(" << m_currentHit[0] << "," << m_currentHit[1] << "," << m_currentHit[2] << ")" << std::endl;
+	    m_hitTree->Fill();
 
 	    TrkrDefs::hitkey hitKey = TpcDefs::genHitKey(iphi, it);
 	    
@@ -257,15 +317,15 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 	    //adcMap.insert(std::make_pair(adc,spechitkey));
 	    adcMap.insert(std::make_pair(adc,keyCoords));
 	    //adcCoords.insert(std::make_pair(adc,coords));
-	    rtree.insert(std::make_pair(point(x,y,z), spechitkey));
+	    rtree.insert(std::make_pair(point(1.0*layer,1.0*iphi,1.0*it), spechitkey));
 	    
 	  }
       }
   }
 
-  std::cout << "finished looping over hits" << std::endl;
-  std::cout << "map size: "  << adcMap.size() << std::endl;
-  std::cout << "rtree size: " << rtree.size() << std::endl;
+  //std::cout << "finished looping over hits" << std::endl;
+  //std::cout << "map size: "  << adcMap.size() << std::endl;
+  //std::cout << "rtree size: " << rtree.size() << std::endl;
 
   //done filling rTree
   
@@ -275,88 +335,29 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
       break;
     }
     
-    //    auto iterC = adcCoords.rbegin();
-    //    if( iterC == adcCoords.rend()){
-    //      break;
-    //    }
-
-
-    //auto spechitkey = iterKey->second;
     auto coords = iterKey->second.second;
 
-    double r = sqrt(coords[0]*coords[0] + coords[1]*coords[1]);
-    double phi = atan2(coords[1],coords[0]);
-    double z = coords[2];
+    int layer = coords[0];
+    int iphi = coords[1];
+    int it = coords[2];
 
-    std::cout << "current number of clusters: " << m_clusterlist->size() << std::endl;
-    std::cout << "max adc=" << iterKey->first << "   coordinates (R,phi,z)=(" << r << "," << phi << "," << z << ")" << std::endl;
-    std::cout << "coordinates (X,Y,Z)=(" << coords[0] << "," << coords[1] << "," << coords[2] << ")" << std::endl;
+    int layerMax = layer+1;
+    if(layer == 22 || layer == 38 || layer == 54) layerMax = layer;
+    int layerMin = layer-1;
+    if(layer == 7 || layer == 23 || layer == 39) layerMin = layer;
 
-    double half_dr = 1.097047535;
-    double half_dphi = 0.015370975;
-    double half_dz = 1.0;
-    if (r<40.9){
-      half_dr = 0.56598627;
-      half_dphi = 0.029869262;
-    }
-    else if(r<58.0){
-      half_dr = 1.02069265;
-      half_dphi = 0.022094093;
-    }
+    //std::cout << "current number of clusters: " << m_clusterlist->size() << std::endl;
+    //std::cout << "max adc=" << iterKey->first << "   coordinates (layer,iphi,it)=(" << layer << "," << iphi << "," << it << ")" << std::endl;
 
-    double ppX = (r + half_dr) * cos(phi + half_dphi);
-    double pmX = (r + half_dr) * cos(phi - half_dphi);
-    double mmX = (r - half_dr) * cos(phi - half_dphi);
-    double mpX = (r - half_dr) * cos(phi + half_dphi);
-
-    double lowX = 1e5;
-    if(ppX < lowX) lowX = ppX;
-    if(pmX < lowX) lowX = pmX;
-    if(mmX < lowX) lowX = mmX;
-    if(mpX < lowX) lowX = mpX;
-
-    double highX = -1e5;
-    if(ppX > highX) highX = ppX;
-    if(pmX > highX) highX = pmX;
-    if(mmX > highX) highX = mmX;
-    if(mpX > highX) highX = mpX;
-
-    double ppY = (r + half_dr) * sin(phi + half_dphi);
-    double pmY = (r + half_dr) * sin(phi - half_dphi);
-    double mmY = (r - half_dr) * sin(phi - half_dphi);
-    double mpY = (r - half_dr) * sin(phi + half_dphi);
-
-    double lowY = 1e5;
-    if(ppY < lowY) lowY = ppY;
-    if(pmY < lowY) lowY = pmY;
-    if(mmY < lowY) lowY = mmY;
-    if(mpY < lowY) lowY = mpY;
-
-    double highY = -1e5;
-    if(ppY > highY) highY = ppY;
-    if(pmY > highY) highY = pmY;
-    if(mmY > highY) highY = mmY;
-    if(mpY > highY) highY = mpY;
-
-    double lowZ = z - half_dz;
-    double highZ = z + half_dz;
-
-    std::cout << "box low (" << lowX << "," << lowY << "," << lowZ << ")" << std::endl;
-    std::cout << "box high (" << highX << "," << highY << "," << highZ << ")" << std::endl;
-
-    bool good_bounds = false;
-    if(coords[0]>lowX && coords[0]<highX && coords[1]>lowY && coords[1]<highY && coords[2]>lowZ && coords[2]<highZ) good_bounds = true;
-
-    std::cout << "is max adc point within range? : " << good_bounds << std::endl;
 
     vector<pointKeyLaser> clusHits;
 
-    if(rtree.empty()) std::cout << "empty tree?" << std::endl;
+    //if(rtree.empty()) std::cout << "empty tree?" << std::endl;
 
-    rtree.query(bgi::intersects(box(point(lowX,lowY,lowZ),point(highX,highY,highZ))),std::back_inserter(clusHits));
+    rtree.query(bgi::intersects(box(point(layerMin,iphi-2,it-5),point(layerMax,iphi+2,it+5))),std::back_inserter(clusHits));
     //rtree.query(bgi::contains(box(point(lowX,lowY,lowZ),point(highX,highY,highZ))),std::back_inserter(clusHits));
 
-    std::cout << "number of clusters in box: " << clusHits.size() << std::endl;
+    //std::cout << "number of hits in box: " << clusHits.size() << std::endl;
 
     calc_cluster_parameter(clusHits, adcMap);
 
@@ -375,7 +376,10 @@ int LaserClusterizer::End(PHCompositeNode */*topNode*/)
 {
   
   m_debugFile->cd();
+  m_itHist_0->Write();
+  m_itHist_1->Write();
   m_clusterTree->Write();
+  //m_hitTree->Write();
 
   m_debugFile->Close();
 
@@ -384,38 +388,70 @@ int LaserClusterizer::End(PHCompositeNode */*topNode*/)
 
 
 //void LaserClusterizer::calc_cluster_parameter(vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap)
-void LaserClusterizer::calc_cluster_parameter(vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>, std::array<float, 3>>> &adcMap)
+void LaserClusterizer::calc_cluster_parameter(vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap)
 {
 
-  double xSum = 0.0;
-  double ySum = 0.0;
-  double zSum = 0.0;
+  double rSum = 0.0;
+  double phiSum = 0.0;
+  double tSum = 0.0;
+
+  double layerSum = 0.0;
+  double iphiSum = 0.0;
+  double itSum = 0.0;
   
   double adcSum = 0.0;
+
+  //int maxSide = 0;
 
   double maxAdc = 0.0;
   TrkrDefs::hitsetkey maxKey = 0;
 
   unsigned int nHits = clusHits.size();
 
+  auto *clus = new LaserClusterv1;
+
+
   for(auto iter = clusHits.begin(); iter != clusHits.end(); ++iter){
     float coords[3] = {iter->first.get<0>(), iter->first.get<1>(), iter->first.get<2>()};
     std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey> spechitkey = iter->second;
+
+    //int side = TpcDefs::getSide(spechitkey.second);
+    //unsigned int sector= TpcDefs::getSectorId(spechitkey.second);
+
+    PHG4TpcCylinderGeom *layergeom = m_geom_container->GetLayerCellGeom((int)coords[0]);
+
+    //unsigned short phiOffset = (((unsigned short) layergeom->get_phibins())/12) * sector;
+
+    double r = layergeom->get_radius();
+    double phi = layergeom->get_phi(coords[1]);
+    double t = layergeom->get_zcenter(fabs(coords[2]));
 
     for(auto iterKey = adcMap.begin(); iterKey != adcMap.end(); ++iterKey){
       if(iterKey->second.first == spechitkey){
 	
 	double adc = iterKey->first;
 
-	xSum += coords[0] * adc;
-	ySum += coords[1] * adc;
-	zSum += coords[2] * adc;
+	clus->addHit();
+	clus->setHitLayer(clus->getHitCount() - 1, coords[0]);
+	clus->setHitIPhi(clus->getHitCount() - 1, coords[1]);
+	clus->setHitIT(clus->getHitCount() - 1, coords[2]);
+	clus->setHitAdc(clus->getHitCount() - 1, (float)adc);
+
+
+	rSum += r * adc;
+	phiSum += phi * adc;
+	tSum += t * adc;
+
+	layerSum += coords[0] * adc;
+	iphiSum += coords[1] * adc;
+	itSum += coords[2] * adc;
 
 	adcSum += adc;
 
 	if(adc > maxAdc){
 	  maxAdc = adc;
 	  maxKey = spechitkey.second;
+	  //maxSide = side;
 	}
 	
 	break;
@@ -429,11 +465,23 @@ void LaserClusterizer::calc_cluster_parameter(vector<pointKeyLaser> &clusHits, s
   //std::cout << "making cluster " << m_clusterlist->size() << std::endl;
   //std::cout << "adc=" << adcSum << "   X=" << xSum/adcSum << "   Y=" << ySum/adcSum << "   Z=" << zSum/adcSum << "   nHits=" << nHits << std::endl;
 
-  auto *clus = new LaserClusterv1;
+  double clusR = rSum / adcSum;
+  double clusPhi = phiSum / adcSum;
+  double clusT = tSum / adcSum;
+  double zdriftlength = clusT * m_tGeometry->get_drift_velocity();
+  
+  double clusX = clusR * cos(clusPhi);
+  double clusY = clusR * sin(clusPhi);
+  double clusZ = m_tdriftmax * m_tGeometry->get_drift_velocity() - zdriftlength;
+  if(itSum<0) clusZ = -clusZ;
+
   clus->setAdc(adcSum);
-  clus->setX(xSum/adcSum);
-  clus->setY(ySum/adcSum);
-  clus->setZ(zSum/adcSum);
+  clus->setX(clusX);
+  clus->setY(clusY);
+  clus->setZ(clusZ);
+  clus->setLayer(layerSum/adcSum);
+  clus->setIPhi(iphiSum/adcSum);
+  clus->setIT(itSum/adcSum);
   clus->setNhits(nHits);
 
   //std::cout << "made cluster" << std::endl;
@@ -455,7 +503,7 @@ void LaserClusterizer::calc_cluster_parameter(vector<pointKeyLaser> &clusHits, s
 }
 
 //void LaserClusterizer::remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap, std::multimap <unsigned int, float*> &adcCoords)
-void LaserClusterizer::remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>, std::array<float, 3>>> &adcMap)
+void LaserClusterizer::remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap)
 {
 
   for(auto iter = clusHits.begin(); iter != clusHits.end(); ++iter){

@@ -35,6 +35,7 @@ lib_LTLIBRARIES = \
   libtpc.la
 
 pkginclude_HEADERS = \
+  LaserClusterizer.h \
   TrainingHitsContainer.h \
   TrainingHits.h \
   TpcRawDataTree.h \
@@ -67,6 +68,7 @@ dist_mydata_DATA = \
 
 # sources for tpc library
 libtpc_la_SOURCES = \
+  LaserClusterizer.cc \
   TpcRawDataTree.cc \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \

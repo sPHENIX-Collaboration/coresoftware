@@ -2,6 +2,7 @@
 #define TPC_LASERCLUSTERIZER_H
 
 #include <fun4all/SubsysReco.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/ActsGeometry.h>
 
@@ -17,6 +18,7 @@
 
 #include <TFile.h>
 #include <TTree.h>
+#include <TH1I.h>
 
 #include <map> 
 #include <vector>
@@ -51,9 +53,9 @@ class LaserClusterizer : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
   //void calc_cluster_parameter(vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap);
-  void calc_cluster_parameter(vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>, std::array<float, 3>>> &adcMap);
+  void calc_cluster_parameter(vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
   //void remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap, std::multimap <unsigned int, float*> &adcCoords);
-  void remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>, std::array<float, 3>>> &adcMap);
+  void remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
 
   void set_debug_name(string name){ m_debugFileName = name; }
 
@@ -68,6 +70,7 @@ class LaserClusterizer : public SubsysReco
   RawHitSetContainer *m_rawhits = nullptr;
   LaserClusterContainerv1 *m_clusterlist = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
+  PHG4TpcCylinderGeomContainer *m_geom_container = nullptr;
   double pedestal = 74.4;
   double min_clus_size = 1;
   double min_adc_sum = 10;
@@ -86,11 +89,13 @@ class LaserClusterizer : public SubsysReco
   string m_debugFileName = "LaserClusterizer_debug.root";
   TFile *m_debugFile = nullptr;
   TTree *m_clusterTree = nullptr;
+  TTree *m_hitTree = nullptr;
+  TH1I *m_itHist_0 = nullptr;
+  TH1I *m_itHist_1 = nullptr;
 
   LaserClusterv1 *m_currentCluster = nullptr;
-  //TTree *m_hitTree = nullptr;
-
-  
+  std::vector<float> m_currentHit;
+  std::vector<float> m_currentHit_hardware;
 
 };
 

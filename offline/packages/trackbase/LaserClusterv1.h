@@ -49,6 +49,14 @@ class LaserClusterv1 : public LaserCluster
   void setY(float y) override { m_pos[1] = y; }
   float getZ() const override { return m_pos[2]; }
   void setZ(float z) override { m_pos[2] = z; }
+
+  float getLayer() const override { return m_posHardware[0]; }
+  void setLayer(float layer) override { m_posHardware[0] = layer; }
+  float getIPhi() const override { return m_posHardware[1]; }
+  void setIPhi(float iphi) override { m_posHardware[1] = iphi; }
+  float getIT() const override { return m_posHardware[2]; }
+  void setIT(float it) override { m_posHardware[2] = it; }
+
   unsigned int getNhits() const override {return m_nhits;}
   void setNhits(unsigned int n) override { m_nhits = n;}
 
@@ -58,10 +66,29 @@ class LaserClusterv1 : public LaserCluster
   unsigned int getAdc() const override { return m_adc; }
   void setAdc(unsigned int adc) override { m_adc = adc; }
 
+  void addHit() override {m_hitVec.push_back({0.0,0.0,0.0,0.0}); }
+  unsigned int getHitCount() const override {return (unsigned int)m_hitVec.size(); }
+
+  void setHitLayer(int i, float layer) override {m_hitVec[i][0] = layer; }
+  float getHitLayer(int i) const override { return m_hitVec[i][0]; }
+
+  void setHitIPhi(int i, float iphi) override {m_hitVec[i][1] = iphi; }
+  float getHitIPhi(int i) const override { return m_hitVec[i][1]; }
+
+  void setHitIT(int i, float it) override {m_hitVec[i][2] = it; }
+  float getHitIT(int i) const override { return m_hitVec[i][2]; }
+
+  void setHitAdc(int i, float adc) override {m_hitVec[i][3] = adc; }
+  float getHitAdc(int i) const override { return m_hitVec[i][3]; }
+
+
  protected:
 
   /// mean cluster position
   float m_pos[3] = {NAN, NAN, NAN};          
+  float m_posHardware[3] = {NAN, NAN, NAN};
+
+  std::vector<std::vector<float>> m_hitVec;
 
   /// cluster sum adc
   unsigned int m_adc = 0xFFFFFFFF;
