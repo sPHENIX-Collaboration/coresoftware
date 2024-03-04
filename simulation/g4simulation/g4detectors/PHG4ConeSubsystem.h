@@ -51,10 +51,10 @@ class PHG4ConeSubsystem : public PHG4DetectorSubsystem
     m_ColorArray[3] = alpha;
   }
 
-  //!set inner and outter radius1
+  //! set inner and outter radius1
   void SetR1(const double min, const double max);
 
-  //!set inner and outter radius2
+  //! set inner and outter radius2
   void SetR2(const double min, const double max);
 
   //! set length in Z

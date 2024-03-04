@@ -18,6 +18,7 @@ class HepMCCompress : public SubsysReco
 
   int Init(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
+
  protected:
   short int FloatToInt(const float rval) const;
   std::set<int> exclude_pid;
@@ -25,4 +26,3 @@ class HepMCCompress : public SubsysReco
 };
 
 #endif
-

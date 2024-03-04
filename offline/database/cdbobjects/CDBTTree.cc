@@ -1,5 +1,7 @@
 #include "CDBTTree.h"
 
+#include <phool/phool.h>
+
 #include <TBranch.h>      // for TBranch
 #include <TCollection.h>  // for TIter
 #include <TDirectory.h>   // for TDirectoryAtomicAdapter, TDirectory, gDirec...
@@ -12,7 +14,7 @@
 
 #include <climits>
 #include <cmath>    // for NAN, isfinite
-#include <cstdint>  // for uint64_t, UINT64_MAX
+#include <cstdint>  // for uint64_t
 #include <iostream>
 #include <limits>   // for numeric_limits, numeric_limits<>::max_digits10
 #include <set>      // for set
@@ -110,13 +112,13 @@ void CDBTTree::WriteMultipleCDBTTree()
   std::map<std::string, double> doublemap;
   std::map<std::string, int> intmap;
   std::map<std::string, uint64_t> uint64map;
-  intmap.insert(std::make_pair("IID", INT_MIN));
+  intmap.insert(std::make_pair("IID", std::numeric_limits<int>::min()));
   for (auto &f_entry : m_FloatEntryMap)
   {
     id_set.insert(f_entry.first);
     for (auto &f_val : f_entry.second)
     {
-      floatmap.insert(std::make_pair(f_val.first, NAN));
+      floatmap.insert(std::make_pair(f_val.first, std::numeric_limits<float>::quiet_NaN()));
     }
   }
   for (auto &f_val : floatmap)
@@ -130,7 +132,7 @@ void CDBTTree::WriteMultipleCDBTTree()
     id_set.insert(f_entry.first);
     for (auto &f_val : f_entry.second)
     {
-      doublemap.insert(std::make_pair(f_val.first, NAN));
+      doublemap.insert(std::make_pair(f_val.first, std::numeric_limits<double>::quiet_NaN()));
     }
   }
   for (auto &f_val : doublemap)
@@ -144,7 +146,7 @@ void CDBTTree::WriteMultipleCDBTTree()
     id_set.insert(i_entry.first);
     for (auto &i_val : i_entry.second)
     {
-      intmap.insert(std::make_pair(i_val.first, INT_MIN));
+      intmap.insert(std::make_pair(i_val.first, std::numeric_limits<int>::min()));
     }
   }
   for (auto &i_val : intmap)
@@ -158,7 +160,7 @@ void CDBTTree::WriteMultipleCDBTTree()
     id_set.insert(i_entry.first);
     for (auto &i_val : i_entry.second)
     {
-      uint64map.insert(std::make_pair(i_val.first, UINT64_MAX));
+      uint64map.insert(std::make_pair(i_val.first, std::numeric_limits<uint64_t>::max()));
     }
   }
   for (auto &i_val : uint64map)
@@ -205,19 +207,19 @@ void CDBTTree::WriteMultipleCDBTTree()
     m_TTree[MultipleEntries]->Fill();
     for (auto &f_val : floatmap)
     {
-      f_val.second = NAN;
+      f_val.second = std::numeric_limits<float>::quiet_NaN();
     }
     for (auto &f_val : doublemap)
     {
-      f_val.second = NAN;
+      f_val.second = std::numeric_limits<double>::quiet_NaN();
     }
     for (auto &i_val : intmap)
     {
-      i_val.second = INT_MIN;
+      i_val.second = std::numeric_limits<int>::min();
     }
     for (auto &i_val : uint64map)
     {
-      i_val.second = UINT64_MAX;
+      i_val.second = std::numeric_limits<uint64_t>::max();
     }
   }
   return;
@@ -479,7 +481,19 @@ void CDBTTree::LoadCalibrations()
 {
   std::string currdir = gDirectory->GetPath();
 
+  if (m_Filename.empty())
+  {
+    std::cout << PHWHERE << "No filename given in ctor or via SetFilename()" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
   TFile *f = TFile::Open(m_Filename.c_str());
+  if (!f)
+  {
+    std::cout << PHWHERE << "TFile::Open(" << m_Filename << ") failed" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
   f->GetObject(m_TTreeName[SingleEntries].c_str(), m_TTree[SingleEntries]);
   f->GetObject(m_TTreeName[MultipleEntries].c_str(), m_TTree[MultipleEntries]);
   if (m_TTree[SingleEntries] != nullptr)
@@ -492,12 +506,12 @@ void CDBTTree::LoadCalibrations()
       std::string DataType = thisbranch->GetLeaf(thisbranch->GetName())->GetTypeName();
       if (DataType == "Float_t")
       {
-        auto itermap = m_SingleFloatEntryMap.insert(std::make_pair(thisbranch->GetName(), NAN));
+        auto itermap = m_SingleFloatEntryMap.insert(std::make_pair(thisbranch->GetName(), std::numeric_limits<float>::quiet_NaN()));
         m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
       else if (DataType == "Double_t")
       {
-        auto itermap = m_SingleDoubleEntryMap.insert(std::make_pair(thisbranch->GetName(), NAN));
+        auto itermap = m_SingleDoubleEntryMap.insert(std::make_pair(thisbranch->GetName(), std::numeric_limits<double>::quiet_NaN()));
         m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
       else if (DataType == "Int_t")
@@ -507,7 +521,7 @@ void CDBTTree::LoadCalibrations()
       }
       else if (DataType == "ULong_t")
       {
-        auto itermap = m_SingleUInt64EntryMap.insert(std::make_pair(thisbranch->GetName(), UINT64_MAX));
+        auto itermap = m_SingleUInt64EntryMap.insert(std::make_pair(thisbranch->GetName(), std::numeric_limits<uint64_t>::max()));
         m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
       else
@@ -535,22 +549,22 @@ void CDBTTree::LoadCalibrations()
       std::string DataType = thisbranch->GetLeaf(thisbranch->GetName())->GetTypeName();
       if (DataType == "Float_t")
       {
-        auto itermap = floatvalmap.insert(std::make_pair(thisbranch->GetName(), NAN));
+        auto itermap = floatvalmap.insert(std::make_pair(thisbranch->GetName(), std::numeric_limits<float>::quiet_NaN()));
         m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
       if (DataType == "Double_t")
       {
-        auto itermap = doublevalmap.insert(std::make_pair(thisbranch->GetName(), NAN));
+        auto itermap = doublevalmap.insert(std::make_pair(thisbranch->GetName(), std::numeric_limits<double>::quiet_NaN()));
         m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
       if (DataType == "Int_t")
       {
-        auto itermap = intvalmap.insert(std::make_pair(thisbranch->GetName(), INT_MIN));
+        auto itermap = intvalmap.insert(std::make_pair(thisbranch->GetName(), std::numeric_limits<int>::min()));
         m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
       if (DataType == "ULong_t")
       {
-        auto itermap = uint64valmap.insert(std::make_pair(thisbranch->GetName(), UINT64_MAX));
+        auto itermap = uint64valmap.insert(std::make_pair(thisbranch->GetName(), std::numeric_limits<uint64_t>::max()));
         m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
     }
@@ -558,19 +572,19 @@ void CDBTTree::LoadCalibrations()
     {
       for (auto &field : floatvalmap)
       {
-        field.second = NAN;
+        field.second = std::numeric_limits<float>::quiet_NaN();
       }
       for (auto &field : doublevalmap)
       {
-        field.second = NAN;
+        field.second = std::numeric_limits<double>::quiet_NaN();
       }
       for (auto &field : intvalmap)
       {
-        field.second = INT_MIN;
+        field.second = std::numeric_limits<int>::min();
       }
       for (auto &field : uint64valmap)
       {
-        field.second = UINT64_MAX;
+        field.second = std::numeric_limits<uint64_t>::max();
       }
       m_TTree[MultipleEntries]->GetEntry(entry);
       int ID = intvalmap.find("IID")->second;
@@ -603,7 +617,7 @@ void CDBTTree::LoadCalibrations()
       std::map<std::string, int> tmp_intvalmap;
       for (auto &field : intvalmap)
       {
-        if (field.second != INT_MIN && field.first != "IID")
+        if (field.second != std::numeric_limits<int>::min() && field.first != "IID")
         {
           tmp_intvalmap.insert(std::make_pair(field.first, field.second));
         }
@@ -616,7 +630,7 @@ void CDBTTree::LoadCalibrations()
       std::map<std::string, uint64_t> tmp_uint64valmap;
       for (auto &field : uint64valmap)
       {
-        if (field.second != UINT64_MAX)
+        if (field.second != std::numeric_limits<uint64_t>::max())
         {
           tmp_uint64valmap.insert(std::make_pair(field.first, field.second));
         }
@@ -658,7 +672,7 @@ float CDBTTree::GetSingleFloatValue(const std::string &name, int verbose)
                   << std::endl;
       }
     }
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
   return singleiter->second;
 }
@@ -674,9 +688,10 @@ float CDBTTree::GetFloatValue(int channel, const std::string &name, int verbose)
   {
     if (verbose > 0)
     {
-      std::cout << "Could not find channel " << channel << " in float calibrations" << std::endl;
+      std::cout << PHWHERE << " Could not find channel " << channel
+		<< " for " << name << " in float calibrations" << std::endl;
     }
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
   std::string fieldname = "F" + name;
   auto calibiter = channelmapiter->second.find(fieldname);
@@ -686,7 +701,7 @@ float CDBTTree::GetFloatValue(int channel, const std::string &name, int verbose)
     {
       std::cout << "Could not find " << name << " among float calibrations of channel " << channel << std::endl;
     }
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
   return calibiter->second;
 }
@@ -713,7 +728,7 @@ double CDBTTree::GetSingleDoubleValue(const std::string &name, int verbose)
                   << std::endl;
       }
     }
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   return singleiter->second;
 }
@@ -729,9 +744,10 @@ double CDBTTree::GetDoubleValue(int channel, const std::string &name, int verbos
   {
     if (verbose > 0)
     {
-      std::cout << "Could not find channel " << channel << " in double calibrations" << std::endl;
+      std::cout << PHWHERE << " Could not find channel " << channel
+		<< " for " << name << " in double calibrations" << std::endl;
     }
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   std::string fieldname = "D" + name;
   auto calibiter = channelmapiter->second.find(fieldname);
@@ -741,7 +757,7 @@ double CDBTTree::GetDoubleValue(int channel, const std::string &name, int verbos
     {
       std::cout << "Could not find " << name << " among double calibrations for channel " << channel << std::endl;
     }
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   return calibiter->second;
 }
@@ -768,7 +784,7 @@ int CDBTTree::GetSingleIntValue(const std::string &name, int verbose)
                   << std::endl;
       }
     }
-    return INT_MIN;
+    return std::numeric_limits<int>::min();
   }
   return singleiter->second;
 }
@@ -784,9 +800,10 @@ int CDBTTree::GetIntValue(int channel, const std::string &name, int verbose)
   {
     if (verbose > 0)
     {
-      std::cout << "Could not find channel " << channel << " in int calibrations" << std::endl;
+      std::cout << PHWHERE << " Could not find channel " << channel
+		<< " for " << name << " in int calibrations" << std::endl;
     }
-    return INT_MIN;
+    return std::numeric_limits<int>::min();
   }
   std::string fieldname = "I" + name;
   auto calibiter = channelmapiter->second.find(fieldname);
@@ -796,7 +813,7 @@ int CDBTTree::GetIntValue(int channel, const std::string &name, int verbose)
     {
       std::cout << "Could not find " << name << " among int calibrations for channel " << channel << std::endl;
     }
-    return INT_MIN;
+    return std::numeric_limits<int>::min();
   }
   return calibiter->second;
 }
@@ -823,7 +840,7 @@ uint64_t CDBTTree::GetSingleUInt64Value(const std::string &name, int verbose)
                   << std::endl;
       }
     }
-    return UINT64_MAX;
+    return std::numeric_limits<uint64_t>::max();
   }
   return singleiter->second;
 }
@@ -841,7 +858,7 @@ uint64_t CDBTTree::GetUInt64Value(int channel, const std::string &name, int verb
     {
       std::cout << "Could not find channel " << channel << " in unint64 calibrations" << std::endl;
     }
-    return UINT64_MAX;
+    return std::numeric_limits<uint64_t>::max();
   }
   std::string fieldname = "g" + name;
   auto calibiter = channelmapiter->second.find(fieldname);
@@ -849,9 +866,10 @@ uint64_t CDBTTree::GetUInt64Value(int channel, const std::string &name, int verb
   {
     if (verbose > 0)
     {
-      std::cout << "Could not find " << name << " among uint64 calibrations for channel " << channel << std::endl;
+      std::cout << PHWHERE << " Could not find channel " << channel
+		<< " for " << name << " in uint64_t calibrations" << std::endl;
     }
-    return UINT64_MAX;
+    return std::numeric_limits<uint64_t>::max();
   }
   return calibiter->second;
 }

@@ -76,7 +76,7 @@ int DeadHotMapLoader::InitRun(PHCompositeNode *topNode)
 
   // assert(m_deadmap);
 
-  std::string url = CDBInterface::instance()->getUrl(m_detector + "BadTowerMap");
+  std::string url = CDBInterface::instance()->getUrl(m_detector + "_BadTowerMap");
   if(url.empty())
   {
     std::cout << PHWHERE << " Could not get Dead Map for CDB. Detector: " << m_detector << std::endl;

@@ -217,7 +217,7 @@ Acts::Vector3 PHCASeeding::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster*
   auto globalpos = tGeometry->getGlobalPosition(key, cluster);
 
   // check if TPC distortion correction are in place and apply
-  if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
+  if( m_dcc && !(_pp_mode)) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
 
   return globalpos;
 }

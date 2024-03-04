@@ -12,20 +12,21 @@ TpcRawHitContainerv1::TpcRawHitContainerv1()
 
 TpcRawHitContainerv1::~TpcRawHitContainerv1()
 {
+  TpcRawHitsTCArray->Clear("C");
   delete TpcRawHitsTCArray;
 }
 
 
 void TpcRawHitContainerv1::Reset()
 {
- TpcRawHitsTCArray->Clear();
+ TpcRawHitsTCArray->Clear("C");
  TpcRawHitsTCArray->Expand(NTPCHITS);
 }
 
 void TpcRawHitContainerv1::identify(std::ostream &os) const
 {
   os << "TpcRawHitContainerv1" << std::endl;
-  os << "containing " << TpcRawHitsTCArray->GetEntries() << " Tpc hits" << std::endl;
+  os << "containing " << TpcRawHitsTCArray->GetEntriesFast() << " Tpc hits" << std::endl;
   TpcRawHit *tpchit = static_cast< TpcRawHit *> (TpcRawHitsTCArray->At(0));
   if (tpchit)
    {
@@ -40,7 +41,7 @@ int TpcRawHitContainerv1::isValid() const
 
 unsigned int TpcRawHitContainerv1::get_nhits()
 {
-  return TpcRawHitsTCArray->GetEntries();
+  return TpcRawHitsTCArray->GetEntriesFast();
 }
 
 TpcRawHit *TpcRawHitContainerv1::AddHit()

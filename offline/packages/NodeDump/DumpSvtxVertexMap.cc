@@ -2,8 +2,8 @@
 
 #include <phool/PHIODataNode.h>
 
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <map>
 #include <ostream>

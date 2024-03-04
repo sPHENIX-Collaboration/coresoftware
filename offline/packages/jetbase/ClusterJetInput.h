@@ -1,5 +1,5 @@
-#ifndef G4JET_CLUSTERJETINPUT_H
-#define G4JET_CLUSTERJETINPUT_H
+#ifndef JETBASE_CLUSTERJETINPUT_H
+#define JETBASE_CLUSTERJETINPUT_H
 
 // first my own include
 #include "JetInput.h"

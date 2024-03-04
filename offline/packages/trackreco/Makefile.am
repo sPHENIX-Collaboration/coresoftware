@@ -18,6 +18,7 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -L$(MYINSTALL)/lib64 \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
@@ -31,6 +32,7 @@ pkginclude_HEADERS = \
   GPUTPCTrackLinearisation.h \
   GPUTPCTrackParam.h \
   MakeActsGeometry.h \
+  MakeSourceLinks.h \
   nanoflann.hpp \
   PHActsGSF.h \
   PHActsKDTreeSeeding.h \
@@ -40,8 +42,12 @@ pkginclude_HEADERS = \
   PHActsTrackProjection.h \
   PHActsTrackPropagator.h \
   PHCASeeding.h \
+  PHCosmicsFilter.h \
   PHCosmicsTrkFitter.h \
+  PHCosmicSeeder.h \
+  PHCosmicTrackMerger.h \
   PHCosmicSeedCombiner.h \
+  PHCosmicSiliconPropagator.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHGhostRejection.h \
@@ -68,6 +74,7 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
+  PrelimDistortionCorrection.h \
   SecondaryVertexFinder.h \
   SvtxTrackStateRemoval.h \
   TrackingIterationCounter.h
@@ -92,6 +99,7 @@ ACTS_SOURCES = \
   ActsEvaluator.cc \
   ActsPropagator.cc \
   MakeActsGeometry.cc \
+  MakeSourceLinks.cc \
   PHActsGSF.cc \
   PHActsKDTreeSeeding.cc \
   PHActsSiliconSeeding.cc \
@@ -120,7 +128,11 @@ libtrack_reco_la_SOURCES = \
   ALICEKF.cc \
   PH3DVertexing.cc \
   PHCASeeding.cc \
+  PHCosmicsFilter.cc \
   PHCosmicSeedCombiner.cc \
+  PHCosmicSeeder.cc \
+  PHCosmicTrackMerger.cc \
+  PHCosmicSiliconPropagator.cc \
   PHGenFitTrackProjection.cc \
   PHGenFitTrkFitter.cc \
   PHGhostRejection.cc \
@@ -146,6 +158,7 @@ libtrack_reco_la_SOURCES = \
   PHTruthTrackSeeding.cc \
   PHTruthVertexing.cc \
   PHTruthSiliconAssociation.cc \
+  PrelimDistortionCorrection.cc \
   SecondaryVertexFinder.cc \
   SvtxTrackStateRemoval.cc \
   TrackingIterationCounter.cc
@@ -168,14 +181,14 @@ libtrack_reco_la_LIBADD = \
   -lg4tpc \
   -lg4intt \
   -lg4mvtx \
-  -lbbc_io \
   -lmicromegas_io \
   -lmvtx_io \
   -lintt_io \
   -ltrack_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter
+  -lphparameter \
+  -lglobalvertex_io
 
 
 # Rule for generating table CINT dictionaries.

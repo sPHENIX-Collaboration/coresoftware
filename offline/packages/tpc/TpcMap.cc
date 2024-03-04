@@ -55,7 +55,7 @@ int TpcMap::digest_map(const std::string &fileName, const unsigned int section_o
 
   if (!infile.is_open())
   {
-    std::cout << "Could not open file: "<< fileName << std::endl;
+    std::cout << "Could not open file: " << fileName << std::endl;
     _broken = 1;
     return -1;
   }

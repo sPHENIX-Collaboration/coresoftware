@@ -14,7 +14,7 @@
 #include <string>                // for string
 #include <utility>
 
-class ClusHitsVerbosev1;
+class ClusHitsVerbose;
 class PHCompositeNode;
 class TrkrHit;
 class TrkrHitSetContainer;
@@ -60,7 +60,7 @@ class MvtxClusterizer : public SubsysReco
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
   void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
   void set_ClusHitsVerbose(bool set=true) { record_ClusHitsVerbose = set; };
-  ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
+  ClusHitsVerbose* mClusHitsVerbose { nullptr };
 
  private:
   //bool are_adjacent(const pixel lhs, const pixel rhs);

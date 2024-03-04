@@ -60,8 +60,8 @@ class PHG4CEmcTestBeamDetector : public PHG4Detector
   int ConstructSandwichVolume(G4LogicalVolume *sandwich);
 
   std::vector<G4VPhysicalVolume *> sandwich_vol;
-  G4double w_dimension[3];
-  G4double sc_dimension[3];
+  G4double w_dimension[3]{};
+  G4double sc_dimension[3]{};
   G4double gap;
   G4double place_in_x;
   G4double place_in_y;

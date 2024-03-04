@@ -17,6 +17,7 @@ class SvtxTrackCaloClusterMap_v1 : public SvtxTrackCaloClusterMap
   ~SvtxTrackCaloClusterMap_v1() override;
 
   void identify(std::ostream& os = std::cout) const override;
+  // cppcheck-suppress virtualCallInConstructor
   void Reset() override;
   int isValid() const override { return 1; }
   PHObject* CloneMe() const override { return new SvtxTrackCaloClusterMap_v1(*this); }

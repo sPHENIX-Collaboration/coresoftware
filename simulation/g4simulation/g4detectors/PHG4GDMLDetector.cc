@@ -2,7 +2,7 @@
 
 /*!
  * \file PHG4GDMLDetector.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -158,8 +158,10 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
       lv->GetMaterial()->GetName());
 
   if (Verbosity() >= 5)
+  {
     std::cout << "SetDisplayProperty - LV " << lv->GetName() << " built with "
               << material_name << std::endl;
+  }
 
   G4VisAttributes* matVis = new G4VisAttributes();
   if (material_name.find("SI") != std::string::npos)
@@ -168,7 +170,9 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
     matVis->SetVisibility(true);
     matVis->SetForceSolid(true);
     if (Verbosity() >= 5)
+    {
       std::cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_Si" << std::endl;
+    }
   }
   else if (material_name.find("KAPTON") != std::string::npos)
   {
@@ -176,7 +180,9 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
     matVis->SetVisibility(true);
     matVis->SetForceSolid(true);
     if (Verbosity() >= 5)
+    {
       std::cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_KAPTON" << std::endl;
+    }
   }
   else if (material_name.find("ALUMINUM") != std::string::npos)
   {
@@ -184,7 +190,9 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
     matVis->SetVisibility(true);
     matVis->SetForceSolid(true);
     if (Verbosity() >= 5)
+    {
       std::cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_Al" << std::endl;
+    }
   }
   else if (material_name.find("Carbon") != std::string::npos)
   {
@@ -192,7 +200,9 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
     matVis->SetVisibility(true);
     matVis->SetForceSolid(true);
     if (Verbosity() >= 5)
+    {
       std::cout << "SetDisplayProperty - LV " << lv->GetName() << " display with Gray" << std::endl;
+    }
   }
   else if (material_name.find("M60J3K") != std::string::npos)
   {
@@ -200,7 +210,9 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
     matVis->SetVisibility(true);
     matVis->SetForceSolid(true);
     if (Verbosity() >= 5)
+    {
       std::cout << "SetDisplayProperty - LV " << lv->GetName() << " display with Gray" << std::endl;
+    }
   }
   else if (material_name.find("WATER") != std::string::npos)
   {
@@ -208,7 +220,9 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
     matVis->SetVisibility(true);
     matVis->SetForceSolid(true);
     if (Verbosity() >= 5)
+    {
       std::cout << "SetDisplayProperty - LV " << lv->GetName() << " display with WATER" << std::endl;
+    }
   }
   else
   {

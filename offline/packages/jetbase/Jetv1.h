@@ -73,10 +73,8 @@ class Jetv1 : public Jet
   //
   bool empty_comp() const override { return _comp_ids.empty(); }
   size_t size_comp() const override { return _comp_ids.size(); }
-  size_t count_comp(SRC source) const override { return _comp_ids.count(source); }
 
   void clear_comp() override { _comp_ids.clear(); }
-  void insert_comp(SRC source, unsigned int compid) override { _comp_ids.insert(std::make_pair(source, compid)); }
   size_t erase_comp(SRC source) override { return _comp_ids.erase(source); }
   void erase_comp(Iter iter) override
   {
@@ -117,6 +115,34 @@ class Jetv1 : public Jet
   typedef std::map<Jet::PROPERTY, float> typ_property_map;
   /// map that contains extra properties
   typ_property_map _property_map;
+
+  // Function in Jet.h header which are not implemented in Jet.h
+  // messages for function calls from Jet.h which are not implemented in Jetv1.h
+  void not_in_v1_msg(const std::string& method_name, std::ostream& os=std::cout) const;
+  size_t size_properties() const override { return _property_map.size(); };
+  virtual std::vector<float>& get_property_vec() override;
+
+
+  void insert_comp(SRC source, unsigned int compid) override 
+  { _comp_ids.insert(std::make_pair(source, compid)); }
+  void insert_comp(SRC source, unsigned int compid, bool) override; // v2 only
+  void insert_comp(TYPE_comp_vec&) override; //v2 only
+  void insert_comp(TYPE_comp_vec&, bool) override; //v2 only
+  void set_comp_sort_flag(bool) override; // let comp_vec know it isn't sorted
+                                        //
+  size_t num_comp(Jet::SRC /**/) override;
+  void print_comp(std::ostream& /**/, bool /**/) override;
+  std::vector<Jet::SRC> comp_src_vec() override;
+  std::map<Jet::SRC, size_t> comp_src_sizemap() override;
+  size_t count_comp(SRC source) const override { return _comp_ids.count(source); }
+
+  ITER_comp_vec comp_begin(Jet::SRC /**/) override;
+  ITER_comp_vec comp_end(Jet::SRC /**/) override;
+  ITER_comp_vec comp_begin() override;
+  ITER_comp_vec comp_end() override;
+  TYPE_comp_vec& get_comp_vec() override;
+
+  void resize_properties(size_t /**/) override;
 
   ClassDefOverride(Jetv1, 1);
 };

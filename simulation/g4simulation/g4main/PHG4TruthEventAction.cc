@@ -86,15 +86,12 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
   std::set<int> savelist;
   std::set<int> savevtxlist;
 
-  for (std::set<int>::const_iterator write_iter = m_WriteSet.begin();
-       write_iter != m_WriteSet.end();
-       ++write_iter)
+  for (int mytrkid : m_WriteSet)
   {
     std::vector<int> wrttracks;
     std::vector<int> wrtvtx;
 
     // usertrackid
-    int mytrkid = *write_iter;
     PHG4Particle* particle = m_TruthInfoContainer->GetParticle(mytrkid);
 
     // if track is already in save list, nothing needs to be done
@@ -227,7 +224,7 @@ void PHG4TruthEventAction::AddTrackidToWritelist(const int trackid)
 //___________________________________________________
 void PHG4TruthEventAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  //now look for the map and grab a pointer to it.
+  // now look for the map and grab a pointer to it.
   m_TruthInfoContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   // if we do not find the node we need to make it.
@@ -239,6 +236,7 @@ void PHG4TruthEventAction::SetInterfacePointers(PHCompositeNode* topNode)
   SearchNode(topNode);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void PHG4TruthEventAction::SearchNode(PHCompositeNode* top)
 {
   // fill a lookup map between the g4hit container ids and the containers themselves
@@ -272,7 +270,7 @@ void PHG4TruthEventAction::SearchNode(PHCompositeNode* top)
   }
 }
 
-int PHG4TruthEventAction::ResetEvent(PHCompositeNode*)
+int PHG4TruthEventAction::ResetEvent(PHCompositeNode* /*unused*/)
 {
   m_WriteSet.clear();
   return 0;
@@ -301,11 +299,9 @@ void PHG4TruthEventAction::PruneShowers()
       }
     }
 
-    for (std::set<int>::iterator jter = remove_ids.begin();
-         jter != remove_ids.end();
-         ++jter)
+    for (int remove_id : remove_ids)
     {
-      shower->remove_g4particle_id(*jter);
+      shower->remove_g4particle_id(remove_id);
     }
 
     std::set<int> remove_more_ids;
@@ -345,11 +341,9 @@ void PHG4TruthEventAction::PruneShowers()
       }
     }
 
-    for (std::set<int>::iterator jter = remove_more_ids.begin();
-         jter != remove_more_ids.end();
-         ++jter)
+    for (int remove_more_id : remove_more_ids)
     {
-      shower->remove_g4hit_volume(*jter);
+      shower->remove_g4hit_volume(remove_more_id);
     }
   }
 
@@ -408,12 +402,8 @@ void PHG4TruthEventAction::ProcessShowers()
       float edep_h = 0.0;
 
       // get the g4hits from this particle in this volume
-      for (std::set<PHG4HitDefs::keytype>::iterator kter = iter->second.begin();
-           kter != iter->second.end();
-           ++kter)
+      for (unsigned long long g4hit_id : iter->second)
       {
-        PHG4HitDefs::keytype g4hit_id = *kter;
-
         PHG4Hit* g4hit = hits->findHit(g4hit_id);
         if (!g4hit)
         {
@@ -487,18 +477,42 @@ void PHG4TruthEventAction::ProcessShowers()
         // summary info
 
         ++nhits;
-        if (!isnan(g4hit->get_edep())) edep += g4hit->get_edep();
-        if (!isnan(g4hit->get_eion())) eion += g4hit->get_eion();
-        if (!isnan(g4hit->get_light_yield())) light_yield += g4hit->get_light_yield();
+        if (!isnan(g4hit->get_edep()))
+        {
+          edep += g4hit->get_edep();
+        }
+        if (!isnan(g4hit->get_eion()))
+        {
+          eion += g4hit->get_eion();
+        }
+        if (!isnan(g4hit->get_light_yield()))
+        {
+          light_yield += g4hit->get_light_yield();
+        }
       }  // g4hit loop
 
       // summary info
 
-      if (nhits) shower->set_nhits(g4hitmap_id, nhits);
-      if (edep != 0.0) shower->set_edep(g4hitmap_id, edep);
-      if (eion != 0.0) shower->set_eion(g4hitmap_id, eion);
-      if (light_yield != 0.0) shower->set_light_yield(g4hitmap_id, light_yield);
-      if (edep_h != 0.0) shower->set_eh_ratio(g4hitmap_id, edep_e / edep_h);
+      if (nhits)
+      {
+        shower->set_nhits(g4hitmap_id, nhits);
+      }
+      if (edep != 0.0)
+      {
+        shower->set_edep(g4hitmap_id, edep);
+      }
+      if (eion != 0.0)
+      {
+        shower->set_eion(g4hitmap_id, eion);
+      }
+      if (light_yield != 0.0)
+      {
+        shower->set_light_yield(g4hitmap_id, light_yield);
+      }
+      if (edep_h != 0.0)
+      {
+        shower->set_eh_ratio(g4hitmap_id, edep_e / edep_h);
+      }
     }  // volume loop
 
     // fill Eigen matrices to compute wPCA
@@ -523,11 +537,14 @@ void PHG4TruthEventAction::ProcessShowers()
     // compute residual relative to the mean
     for (unsigned int i = 0; i < points.size(); ++i)
     {
-      for (unsigned int j = 0; j < 3; ++j) X(i, j) = points[i][j] - mean(0, j);
+      for (unsigned int j = 0; j < 3; ++j)
+      {
+        X(i, j) = points[i][j] - mean(0, j);
+      }
     }
 
     // weighted covariance matrix
-    prefactor = sumw / (sumw*sumw - sumw2);  // effectivelly 1/(N-1) when w_i = 1.0
+    prefactor = sumw / (sumw * sumw - sumw2);  // effectivelly 1/(N-1) when w_i = 1.0
     Eigen::Matrix<double, 3, 3> covar = prefactor * (X.transpose() * W.asDiagonal() * X);
 
     shower->set_x(mean(0, 0));

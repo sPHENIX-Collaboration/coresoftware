@@ -15,7 +15,7 @@ class PHObject;
 
 /**
  * @brief Version 3 of CMFlashCluster
- * 
+ *
  *Adding variable to keep track of clusters
  *put into metaclusters
  *
@@ -31,13 +31,15 @@ class CMFlashClusterv3 : public CMFlashCluster
   void Reset() override {}
   int isValid() const override;
   PHObject* CloneMe() const override { return new CMFlashClusterv3(*this); }
- 
-  //! copy content from base class
-  void CopyFrom( const CMFlashCluster& ) override;
 
   //! copy content from base class
-  void CopyFrom( CMFlashCluster* source ) override
-  { CopyFrom( *source ); }
+  void CopyFrom(const CMFlashCluster&) override;
+
+  //! copy content from base class
+  void CopyFrom(CMFlashCluster* source) override
+  {
+    CopyFrom(*source);
+  }
 
   //
   // cluster position
@@ -48,7 +50,6 @@ class CMFlashClusterv3 : public CMFlashCluster
   void setY(float y) override { m_pos[1] = y; }
   float getZ() const override { return m_pos[2]; }
   void setZ(float z) override { m_pos[2] = z; }
-
 
   float getX1() const override { return m_pos1[0]; }
   void setX1(float x) override { m_pos1[0] = x; }
@@ -64,18 +65,18 @@ class CMFlashClusterv3 : public CMFlashCluster
   float getZ2() const override { return m_pos2[2]; }
   void setZ2(float z) override { m_pos2[2] = z; }
 
-  unsigned int getLayer1() const override {return m_layer1;}
-  void setLayer1(unsigned int layer) override { m_layer1 = layer;}
-  unsigned int getLayer2() const override {return m_layer2;}
-  void setLayer2(unsigned int layer) override { m_layer2 = layer;}
+  unsigned int getLayer1() const override { return m_layer1; }
+  void setLayer1(unsigned int layer) override { m_layer1 = layer; }
+  unsigned int getLayer2() const override { return m_layer2; }
+  void setLayer2(unsigned int layer) override { m_layer2 = layer; }
 
-  unsigned int getNclusters() const override {return m_nclusters;}
-  void setNclusters(unsigned int n) override { m_nclusters = n;}
+  unsigned int getNclusters() const override { return m_nclusters; }
+  void setNclusters(unsigned int n) override { m_nclusters = n; }
   bool getIsRGap() const override { return m_isRGap; }
-  void setIsRGap(bool isRGap) override { m_isRGap = isRGap;}
+  void setIsRGap(bool isRGap) override { m_isRGap = isRGap; }
   bool getIsPhiGap() const override { return m_isPhiGap; }
-  void setIsPhiGap(bool isPhiGap) override { m_isPhiGap = isPhiGap;}
-  
+  void setIsPhiGap(bool isPhiGap) override { m_isPhiGap = isPhiGap; }
+
   //
   // cluster info
   //
@@ -89,9 +90,8 @@ class CMFlashClusterv3 : public CMFlashCluster
   void setAdc2(unsigned int adc) override { m_adc2 = adc; }
 
  protected:
-
   /// mean cluster position
-  float m_pos[3] = {NAN, NAN, NAN};          
+  float m_pos[3] = {NAN, NAN, NAN};
 
   float m_pos1[3] = {NAN, NAN, NAN};
   float m_pos2[3] = {NAN, NAN, NAN};
@@ -114,4 +114,4 @@ class CMFlashClusterv3 : public CMFlashCluster
   ClassDefOverride(CMFlashClusterv3, 1)
 };
 
-#endif //TRACKBASE_CMFLASHCLUSTERV3_H
+#endif  // TRACKBASE_CMFLASHCLUSTERV3_H

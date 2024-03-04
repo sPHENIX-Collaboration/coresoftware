@@ -25,12 +25,14 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   MicromegasCalibrationData.h \
   MicromegasDefs.h \
+  MicromegasHotChannelMapData.h \
   MicromegasMapping.h
 
 # sources for io library
 libmicromegas_io_la_SOURCES = \
   MicromegasCalibrationData.cc \
   MicromegasDefs.cc \
+  MicromegasHotChannelMapData.cc \
   MicromegasMapping.cc
 
 libmicromegas_io_la_LIBADD = \
@@ -66,9 +68,11 @@ pkginclude_HEADERS = \
   CylinderGeomMicromegas.h \
   MicromegasCalibrationData.h \
   MicromegasClusterizer.h \
+  MicromegasClusterQA.h \
   MicromegasCombinedDataDecoder.h \
   MicromegasCombinedDataEvaluation.h \
   MicromegasDefs.h \
+  MicromegasHotChannelMapData.h \
   MicromegasMapping.h \
   MicromegasRawDataCalibration.h \
   MicromegasRawDataDecoder.h \
@@ -91,6 +95,7 @@ libmicromegas_io_la_SOURCES = \
   CylinderGeomMicromegas.cc \
   MicromegasCalibrationData.cc \
   MicromegasDefs.cc \
+  MicromegasHotChannelMapData.cc \
   MicromegasMapping.cc
 
 libmicromegas_io_la_LIBADD = \
@@ -99,10 +104,12 @@ libmicromegas_io_la_LIBADD = \
   -lg4detectors_io \
   -lphool \
   -ltrack_io \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -lqautils
 
 libmicromegas_la_SOURCES = \
   MicromegasClusterizer.cc \
+  MicromegasClusterQA.cc \
   MicromegasCombinedDataDecoder.cc \
   MicromegasCombinedDataEvaluation.cc \
   MicromegasCombinedDataEvaluation_Dict.cc \

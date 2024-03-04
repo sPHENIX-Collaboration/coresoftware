@@ -13,14 +13,15 @@
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNode.h>          // for PHNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-
-#include <fun4all/Fun4AllReturnCodes.h>
+#include <phool/phool.h>
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
@@ -33,31 +34,29 @@
 #include <TFile.h>
 #include <TH2.h>
 
+#include <Geant4/G4NavigationHistory.hh>
 #include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
-#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fAtRest...
-#include <Geant4/G4String.hh>                  // for G4String
+#include <Geant4/G4StepPoint.hh>   // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fAtRest...
+#include <Geant4/G4String.hh>      // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
-#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
-#include <Geant4/G4Track.hh>                   // for G4Track
-#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
-#include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4Types.hh>                   // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
-#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
-#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
+#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4TrackStatus.hh>            // for fStopAndKill
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
-#include <cmath>                               // for isfinite
-#include <cstdlib>                             // for getenv
+#include <cmath>  // for isfinite
+#include <exception>
 #include <filesystem>
 #include <iostream>
-#include <string>   // for operator<<, operator+
-#include <utility>  // for pair
-
-class PHCompositeNode;
+#include <string>  // for operator<<, operator+
+#include <tuple>
 
 //____________________________________________________________________________..
 PHG4IHCalSteppingAction::PHG4IHCalSteppingAction(PHG4IHCalDetector* detector, const PHParameters* parameters)
@@ -127,7 +126,10 @@ int PHG4IHCalSteppingAction::InitWithNode(PHCompositeNode* topNode)
       std::cout << e.what() << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
-    if (Verbosity() > 1) topNode->print();
+    if (Verbosity() > 1)
+    {
+      topNode->print();
+    }
   }
 
   return 0;
@@ -171,15 +173,24 @@ bool PHG4IHCalSteppingAction::NoHitSteppingAction(const G4Step* aStep)
     return false;
   }
 
-  if (!m_IsActive) return false;
+  if (!m_IsActive)
+  {
+    return false;
+  }
 
   G4StepPoint* prePoint = aStep->GetPreStepPoint();
   G4StepPoint* postPoint = aStep->GetPostStepPoint();
   // time window cut
   double pretime = prePoint->GetGlobalTime() / nanosecond;
   double posttime = postPoint->GetGlobalTime() / nanosecond;
-  if (posttime < m_tmin || pretime > m_tmax) return false;
-  if ((posttime - pretime) > m_dt) return false;
+  if (posttime < m_tmin || pretime > m_tmax)
+  {
+    return false;
+  }
+  if ((posttime - pretime) > m_dt)
+  {
+    return false;
+  }
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
   const G4Track* aTrack = aStep->GetTrack();
   // we only need visible energy here
@@ -236,7 +247,7 @@ bool PHG4IHCalSteppingAction::NoHitSteppingAction(const G4Step* aStep)
   return true;
 }
 //____________________________________________________________________________..
-bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   if ((!m_doG4Hit) && (!m_IsBlackHole))
   {
@@ -370,7 +381,7 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_SaveTrackId = aTrack->GetTrackID();
       // set the initial energy deposit
       m_Hit->set_edep(0);
-      if (whichactive > 0)              // return of IsInIHCalDetector, > 0 hit in scintillator, < 0 hit in absorber
+      if (whichactive > 0)  // return of IsInIHCalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
         m_Hit->set_sector(sector_id);   // the slat id
         m_Hit->set_scint_id(tower_id);  // the slat id

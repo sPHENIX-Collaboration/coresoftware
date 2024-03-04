@@ -25,9 +25,11 @@ class PHCosmicSeedCombiner : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void dphiCut(float dphi) { m_dphiCut = dphi; }
+  void detaCut(float deta) { m_detaCut = deta; }
+
  private:
   int getNodes(PHCompositeNode *topNode);
-  int createNodes(PHCompositeNode *topNode);
   void addKeys(TrackSeed *seedToAddTo, TrackSeed *seedToAdd);
 
   ActsGeometry *m_tGeometry = nullptr;
@@ -35,7 +37,9 @@ class PHCosmicSeedCombiner : public SubsysReco
   TrackSeedContainer *m_seedMap = nullptr;
   TrackSeedContainer *m_tpcSeeds = nullptr;
   TrackSeedContainer *m_siliconSeeds = nullptr;
-  TrackSeedContainer *m_cosmicContainer = nullptr;
+
+  float m_dphiCut = 0.04;
+  float m_detaCut = 0.02;
 };
 
 #endif  // PHCOSMICSEEDCOMBINER_H

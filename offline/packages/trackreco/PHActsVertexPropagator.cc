@@ -14,8 +14,9 @@
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
+
+#include <globalvertex/SvtxVertexMap.h>
+#include <globalvertex/SvtxVertex.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
@@ -155,6 +156,10 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   track->set_y(position(1) / Acts::UnitConstants::cm);
   track->set_z(position(2) / Acts::UnitConstants::cm);
 
+  track->set_px(params.momentum().x());
+  track->set_py(params.momentum().y());
+  track->set_pz(params.momentum().z());
+
   ActsTransformations rotater;
   rotater.setVerbosity(Verbosity());
   if (params.covariance())
@@ -172,7 +177,7 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   }
 }
 
-ActsPropagator::BoundTrackParamResult
+ActsPropagator::BTPPairResult
 PHActsVertexPropagator::propagateTrack(
     const Acts::BoundTrackParameters& params,
     const unsigned int vtxid)
@@ -183,11 +188,12 @@ PHActsVertexPropagator::propagateTrack(
 
   ActsPropagator propagator(m_tGeometry);
   propagator.verbosity(Verbosity());
-  if(m_fieldMap.find(".root") == std::string::npos)
-    {
-      propagator.constField();
-      propagator.setConstFieldValue(std::stod(m_fieldMap));
-    }
+  propagator.setOverstepLimit(1 * Acts::UnitConstants::cm);
+  if (m_fieldMap.find(".root") == std::string::npos)
+  {
+    propagator.constField();
+    propagator.setConstFieldValue(std::stod(m_fieldMap));
+  }
 
   return propagator.propagateTrack(params, perigee);
 }

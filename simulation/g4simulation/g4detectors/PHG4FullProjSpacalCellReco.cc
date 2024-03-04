@@ -5,7 +5,7 @@
 #include "PHG4CylinderCellGeom.h"
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderCellGeom_Spacalv1.h"
-#include "PHG4CylinderGeom.h"           // for PHG4CylinderGeom
+#include "PHG4CylinderGeom.h"  // for PHG4CylinderGeom
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_Spacalv1.h"  // for PHG4CylinderGeom_Spaca...
 #include "PHG4CylinderGeom_Spacalv3.h"
@@ -26,11 +26,11 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>    // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>     // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 #include <phool/recoConsts.h>
 
 #include <ffamodules/CDBInterface.h>
@@ -361,9 +361,18 @@ int PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     // checking ADC timing integration window cut
-    if (hiter->second->get_t(0) > tmax) continue;
-    if (hiter->second->get_t(1) < tmin) continue;
-    if (hiter->second->get_t(1) - hiter->second->get_t(0) > m_DeltaT) continue;
+    if (hiter->second->get_t(0) > tmax)
+    {
+      continue;
+    }
+    if (hiter->second->get_t(1) < tmin)
+    {
+      continue;
+    }
+    if (hiter->second->get_t(1) - hiter->second->get_t(0) > m_DeltaT)
+    {
+      continue;
+    }
 
     sum_energy_g4hit += hiter->second->get_edep();
 
@@ -423,7 +432,7 @@ int PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
     double light_yield = hiter->second->get_light_yield();
 
     // light yield correction from fiber attenuation:
-    
+
     if (light_collection_model.use_fiber_model())
     {
       const double z = 0.5 * (hiter->second->get_local_z(0) + hiter->second->get_local_z(1));
@@ -431,7 +440,6 @@ int PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
 
       light_yield *= light_collection_model.get_fiber_transmission(z);
     }
-  
 
     // light yield correction from light guide collection efficiency:
     if (light_collection_model.use_fiber_model())

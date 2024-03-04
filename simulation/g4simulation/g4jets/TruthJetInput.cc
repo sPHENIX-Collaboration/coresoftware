@@ -5,7 +5,7 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <jetbase/Jet.h>
-#include <jetbase/Jetv1.h>
+#include <jetbase/Jetv2.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
@@ -81,7 +81,7 @@ std::vector<Jet *> TruthJetInput::get_input(PHCompositeNode *topNode)
     if (eta < m_EtaMin) continue;
     if (eta > m_EtaMax) continue;
 
-    Jet *jet = new Jetv1();
+    Jet *jet = new Jetv2();
     jet->set_px(part->get_px());
     jet->set_py(part->get_py());
     jet->set_pz(part->get_pz());

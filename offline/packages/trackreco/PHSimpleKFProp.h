@@ -59,6 +59,7 @@ class PHSimpleKFProp : public SubsysReco
   void use_truth_clusters(bool truth)
   { _use_truth_clusters = truth; }
   void SetIteration(int iter){_n_iteration = iter;}
+  void set_pp_mode(bool mode) {_pp_mode = mode;}
  
  private:
 
@@ -83,8 +84,7 @@ class PHSimpleKFProp : public SubsysReco
   size_t _min_clusters_per_track = 3;
   double _fieldDir = -1;
   double _max_sin_phi = 1.;
-  double _rz_outlier_threshold = .1;
-  double _xy_outlier_threshold = .1;
+  bool _pp_mode = false;
 
   TrkrClusterContainer *_cluster_map = nullptr;
 

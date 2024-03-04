@@ -535,6 +535,13 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       if (m_distortionMap)
       {
+      	//zhangcanyu
+      	const double reaches = m_distortionMap->get_reaches_readout(radstart, phistart, z_start);
+		  if (reaches < thresholdforreachesreadout)
+		  {
+		   continue;
+		  }
+		
         const double r_distortion = m_distortionMap->get_r_distortion(radstart, phistart, z_start);
         const double phi_distortion = m_distortionMap->get_rphi_distortion(radstart, phistart, z_start) / radstart;
         const double z_distortion = m_distortionMap->get_z_distortion(radstart, phistart, z_start);
@@ -549,6 +556,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
         x_final = rad_final * std::cos(phi_final);
         y_final = rad_final * std::sin(phi_final);
+
+	//	if(i < 1)
+	//{std::cout << " electron " << i << " r_distortion " << r_distortion << " phi_distortion " << phi_distortion << " rad_final " << rad_final << " phi_final " << phi_final << " r*dphi distortion " << rad_final * phi_distortion << " z_distortion " << z_distortion << std::endl;}
+
 
         if (do_ElectronDriftQAHistos)
         {
@@ -573,6 +584,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       { continue; }
 
       if (Verbosity() > 1000)
+      //      if(i < 1)
       {
         std::cout << "electron " << i << " g4hitid " << hiter->first << " f " << f << std::endl;
         std::cout << "radstart " << radstart << " x_start: " << x_start
