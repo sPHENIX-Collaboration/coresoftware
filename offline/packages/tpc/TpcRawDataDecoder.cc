@@ -131,6 +131,9 @@ int TpcRawDataDecoder::Init(PHCompositeNode * /*topNode*/)
     hm = new Fun4AllHistoManager("HITHIST");
 
     //_h_hit_XYT = new TH3F("_h_hit_XYT" ,"_h_hit_XYT;X, [mm];Y, [mm]; T [BCO]", 400, -800, 800, 400, -800, 800, 500, 128000000000,128050000000);
+    _h_hit_ADCChn = new TH2F("_h_hit_ADCChn" ,"_h_hit_ADCChn;Chn;ADC", 400, -0.5, 399.5, 1024, -0.5, 1023.5);
+    _h_hit_ADCChn_p = new TH2F("_h_hit_ADCChn_p" ,"_h_hit_ADCChn_p;Chn;ADC", 400, -0.5, 399.5, 1024, -0.5, 1023.5);
+    _h_hit_ADCChn_ADCcut = new TH2F("_h_hit_ADCChn_ADCcut" ,"_h_hit_ADCChn_ADCcut;Chn;ADC", 400, -0.5, 399.5, 1024, -0.5, 1023.5);
     _h_hit_XY = new TH2F("_h_hit_XY" ,"_h_hit_XY;X, [mm];Y, [mm]", 400, -800, 800, 400, -800, 800);
     _h_hit_XY_ADCcut = new TH2F("_h_hit_XY_ADCcut" ,"_h_hit_XY_ADCcut;X, [mm];Y, [mm]", 400, -800, 800, 400, -800, 800);
     //_h_hit_PT_ADCcut = new TH3F("_h_hit_PT_ADCcut" ,"_h_hit_PT_ADCcut;Pad number;time [50 ns];BCO;", 400, -0.5, 399.5, 400, -0.5, 399.5, 500, 128000000000,128050000000);
@@ -139,6 +142,9 @@ int TpcRawDataDecoder::Init(PHCompositeNode * /*topNode*/)
     //hm->registerHisto(_h_hit_PT_ADCcut);
     hm->registerHisto(_h_hit_XY );
     hm->registerHisto(_h_hit_XY_ADCcut);
+    hm->registerHisto(_h_hit_ADCChn);
+    hm->registerHisto(_h_hit_ADCChn_p);
+    hm->registerHisto(_h_hit_ADCChn_ADCcut);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -234,8 +240,8 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
     int side = 0;   
     if(sector>11) side=1;
     if(m_Debug==1){
-      char buff[100];
-      snprintf(buff, sizeof(buff), "./outputfile_%i.root",sector );
+      char buff[200];
+      snprintf(buff, sizeof(buff), "./outputfile_%i_%s.root",sector, _runNumber.c_str());
       if(p) _filename = buff;
     }
     if (p)
@@ -416,6 +422,9 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 	      int adc = p->iValue(wf,s);
 	      if(m_Debug==1){
 	        _h_hit_XY->Fill(R*cos(phi),R*sin(phi),float(adc)-pedestal);
+          _h_hit_ADCChn->Fill(s,adc);
+          _h_hit_ADCChn_p->Fill(s,float(adc)-pedestal);
+
 	      }
 	      //	    if(adc-pedestal<4) continue;
 	      // generate hit key
@@ -450,7 +459,8 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 	          if(adc - pedestal > 15){
               //std::cout << "pad = " << pad << "phibin = " << phibin << " phibin_mc = " << phibin_mc << " sector = " << sector << "mc_sectors = " << mc_sectors[sector - side*12] << "phibin/pads_per_sector = " << phibin/pads_per_sector[FEE_R[fee]-1] << " phi_center = " << phi_center << " phi = " << phi << std::endl;
 		          _h_hit_XY_ADCcut->Fill(R*cos(phi),R*sin(phi),float(adc)-pedestal);
-		          //_h_hit_XYT->Fill(R*cos(phi),R*sin(phi), triggerBCO,float(adc)-pedestal);
+              _h_hit_ADCChn_ADCcut->Fill(s,adc);		          
+              //_h_hit_XYT->Fill(R*cos(phi),R*sin(phi), triggerBCO,float(adc)-pedestal);
 
 	          }
 	        }
@@ -513,3 +523,7 @@ int TpcRawDataDecoder::End(PHCompositeNode * /*topNode*/)
 //  _filename = what;
 //  std::cout << "TpcRawDataDecoder::setHistoFileName(const std::string &what) Histogram File Name is " << what << std::endl;
 //}
+void TpcRawDataDecoder::setRunNumber(const std::string &runNumber){
+  _runNumber = runNumber;
+  std::cout << "TpcRawDataDecoder::setRunNumber RunNumber is " << _runNumber << std::endl;
+}

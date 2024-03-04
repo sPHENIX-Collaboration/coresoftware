@@ -59,10 +59,12 @@ class TpcRawDataDecoder : public SubsysReco
 
   //void Print(const std::string &what = "ALL") const override;
   //void setHistoFileName(const std::string &what = "./outputfile.root");
+  void setRunNumber(const std::string &runNumber);
 
  protected:
-   Fun4AllHistoManager *hm = nullptr;
-   std::string _filename;
+  Fun4AllHistoManager *hm = nullptr;
+  std::string _filename;
+  std::string _runNumber = "1";
 
   static const int layercount = 16;
   static const int layeroffset = 7 + 16;
@@ -95,11 +97,14 @@ class TpcRawDataDecoder : public SubsysReco
   int current_BCOBIN;
 
   private:
-    int m_Debug = 0;
+    int m_Debug = 1;//0;
     //TH3*   _h_hit_XYT = nullptr;
     //TH3*   _h_hit_PT_ADCcut = nullptr;
     TH2*   _h_hit_XY = nullptr;
     TH2*   _h_hit_XY_ADCcut = nullptr;
+    TH2*   _h_hit_ADCChn = nullptr;
+    TH2*   _h_hit_ADCChn_p = nullptr;
+    TH2*   _h_hit_ADCChn_ADCcut = nullptr;
 
 };
 
