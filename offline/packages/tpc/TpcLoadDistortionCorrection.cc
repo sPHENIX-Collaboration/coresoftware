@@ -51,6 +51,8 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   // look for distortion calibration object
   PHNodeIterator iter(topNode);
 
+  std::cout << "TpcLoadDistortionCorrection::InitRun - m_phi_hist_in_radians: " << m_phi_hist_in_radians << std::endl;
+
   /// Get the RUN node and check
   auto runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
