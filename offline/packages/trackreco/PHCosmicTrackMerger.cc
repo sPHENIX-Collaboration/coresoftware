@@ -291,8 +291,10 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
     float dcaz = pcaz - pos.z();
     float dcaxy = std::sqrt(square(dcax) + square(dcay));
     float dcarz = std::sqrt(square(dcar) + square(dcaz));
-
-    if (dcaxy > 1. || dcarz > 1.)
+  
+    //! exclude INTT from DCAz cut
+    if (dcaxy > m_dcacut || 
+    (dcarz > m_dcacut && (r(pos.x(), pos.y()) > 20 || r(pos.x(), pos.y()) < 6)))
     {
       seed->erase_cluster_key(glob.first[i]);
     }
