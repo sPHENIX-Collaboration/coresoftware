@@ -43,7 +43,7 @@ class TpcLoadDistortionCorrection : public SubsysReco
   }
 
   //! set the phi histogram to be interpreted as radians.
-  void read_phi_as_radians(bool flag = true)
+  void set_read_phi_as_radians(bool flag)
   {
     m_phi_hist_in_radians = flag;
   }

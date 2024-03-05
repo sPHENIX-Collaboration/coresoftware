@@ -45,7 +45,7 @@ class PHG4TpcDistortion
 
   //! z distortion for a given cylindrical truth location of the primary ionization
   double get_z_distortion(double r, double phi, double z) const;
-  
+
   //The ReachesReadout serves as a fourth axis in the distortion histogram
   double get_reaches_readout(double r, double phi, double z) const;
 
@@ -84,7 +84,7 @@ class PHG4TpcDistortion
     m_time_ordered_distortion_filename = value;
   }
 
-  void set_read_phi_as_radians(bool flag=true){
+  void set_read_phi_as_radians(bool flag){
     m_phi_hist_in_radians=flag;
   }
 
@@ -112,7 +112,7 @@ class PHG4TpcDistortion
   //! Flag controls whether to assume the phi hist units are radians or cm.
   bool m_phi_hist_in_radians=true;
 
-  
+
   //!@name static histograms
   //@{
   bool m_do_static_distortions = false;
