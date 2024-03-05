@@ -245,6 +245,32 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     ++it2;
   }
 
+  //Inner HCal support ring (only the part in Outer HCal volume)
+  m_DisplayAction->AddScintiVolume(reader->GetVolume("RingSupport_steel_1"));
+  m_SteelAbsorberLogVolSet.insert(reader->GetVolume("RingSupport_steel_1"));
+  hcalenvelope->AddDaughter(reader->GetWorldVolume("RingSupport_steel_1"));
+
+  m_DisplayAction->AddScintiVolume(reader->GetVolume("RingSupport_steel_2"));
+  m_SteelAbsorberLogVolSet.insert(reader->GetVolume("RingSupport_steel_2"));
+  hcalenvelope->AddDaughter(reader->GetWorldVolume("RingSupport_steel_2"));
+
+  m_DisplayAction->AddScintiVolume(reader->GetVolume("RingSupport_alum_1"));
+  m_SteelAbsorberLogVolSet.insert(reader->GetVolume("RingSupport_alum_1"));
+  hcalenvelope->AddDaughter(reader->GetWorldVolume("RingSupport_alum_1"));
+
+  m_DisplayAction->AddScintiVolume(reader->GetVolume("RingSupport_alum_2"));
+  m_SteelAbsorberLogVolSet.insert(reader->GetVolume("RingSupport_alum_2"));
+  hcalenvelope->AddDaughter(reader->GetWorldVolume("RingSupport_alum_2"));
+
+  m_DisplayAction->AddScintiVolume(reader->GetVolume("HCalRing_alum_1"));
+  m_SteelAbsorberLogVolSet.insert(reader->GetVolume("HCalRing_alum_1"));
+  hcalenvelope->AddDaughter(reader->GetWorldVolume("HCalRing_alum_1"));
+
+  m_DisplayAction->AddScintiVolume(reader->GetVolume("HCalRing_alum_2"));
+  m_SteelAbsorberLogVolSet.insert(reader->GetVolume("HCalRing_alum_2"));
+  hcalenvelope->AddDaughter(reader->GetWorldVolume("HCalRing_alum_2"));
+  //==========
+
   for (auto &logical_vol : m_SteelAbsorberLogVolSet)
   {
     if (m_FieldSetup)  // only if we have a field defined for the steel absorber
