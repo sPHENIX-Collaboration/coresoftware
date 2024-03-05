@@ -33,38 +33,41 @@ namespace
     const auto bin = axis->FindBin( value );
     return( bin >= 2 && bin < axis->GetNbins() );
   }
-  
+
   // check boundaries in histogram, before interpolation
   /* for the interpolation to work, the value must be within the range of the provided axis, and not into the first and last bin */
   inline bool check_boundaries( const TH3* h, double r, double phi, double z )
   {
-    return check_boundaries( h->GetXaxis(), r ) 
-      && check_boundaries( h->GetYaxis(), phi ) 
+    return check_boundaries( h->GetXaxis(), r )
+      && check_boundaries( h->GetYaxis(), phi )
       && check_boundaries( h->GetZaxis(), z );
   }
-  
+
   // print histogram
   [[maybe_unused]] void print_histogram( TH3* h )
   {
-    
+
     std::cout << "PHG4TpcDistortion::print_histogram - name: " << h->GetName() << std::endl;
     for( const auto& axis:{h->GetXaxis(), h->GetYaxis(), h->GetZaxis() } )
     {
-      std::cout 
-        << "  " << axis->GetName() 
-        << " bins: " << axis->GetNbins() 
-        << " min: " << axis->GetXmin() 
-        << " max: " << axis->GetXmax() 
+      std::cout
+        << "  " << axis->GetName()
+        << " bins: " << axis->GetNbins()
+        << " min: " << axis->GetXmin()
+        << " max: " << axis->GetXmax()
         << std::endl;
     }
     std::cout << std::endl;
   }
-  
+
 }  // namespace
 
 //__________________________________________________________________________________________________________
 void PHG4TpcDistortion::Init()
 {
+
+  std::cout << "PHG4TpcDistortion::Init - m_phi_hist_in_radians: " << m_phi_hist_in_radians << std::endl;
+
   if (m_do_static_distortions)
   {
     std::cout << "PHG4TpcDistortion::Init - m_static_distortion_filename: " << m_static_distortion_filename << std::endl;
@@ -102,7 +105,7 @@ void PHG4TpcDistortion::Init()
       std::cout << "PHG4TpcDistortion::Init - TimeOrdered distortion tree could not be found!" << std::endl;
       exit(1);
     }
-    
+
     // create histograms
     TimehDR[0] = new TH3F();
     TimehDR[1] = new TH3F();
@@ -230,7 +233,7 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
     exit(1);
   }
 
-  double _distortion = 0.;     
+  double _distortion = 0.;
 
   //select the appropriate histogram:
   if (m_do_static_distortions)
