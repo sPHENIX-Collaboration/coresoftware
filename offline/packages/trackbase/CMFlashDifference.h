@@ -2,7 +2,7 @@
  * @file trackbase/CMFlashDifference.h
  * @author Tony Frawley
  * @date January 2022
- * @brief Base class for central membrane flash cluster difference due to distortions 
+ * @brief Base class for central membrane flash cluster difference due to distortions
  */
 #ifndef TRACKBASE_CMFLASHDIFFERENCE_H
 #define TRACKBASE_CMFLASHDIFFERENCE_H
@@ -14,11 +14,10 @@
 #include <iostream>
 #include <memory>
 
-
 /**
  * @brief Base class for Central Membrane flassh combined difference object
  *
- * Virtual base class for TPC CM flash difference object 
+ * Virtual base class for TPC CM flash difference object
  */
 class CMFlashDifference : public PHObject
 {
@@ -33,21 +32,20 @@ class CMFlashDifference : public PHObject
   void Reset() override {}
   int isValid() const override { return 0; }
 
-  
   //! import PHObject CopyFrom, in order to avoid clang warning
   using PHObject::CopyFrom;
-  
-  //! copy content from base class
-  virtual void CopyFrom( const CMFlashDifference& )  {}
 
   //! copy content from base class
-  virtual void CopyFrom( CMFlashDifference* )  {}
- 
+  virtual void CopyFrom(const CMFlashDifference&) {}
+
+  //! copy content from base class
+  virtual void CopyFrom(CMFlashDifference*) {}
+
   //
   // difference position
   //
- virtual float getTruthPhi() const { return NAN; }
-  virtual  void setTruthPhi(float) {}
+  virtual float getTruthPhi() const { return NAN; }
+  virtual void setTruthPhi(float) {}
 
   virtual float getRecoPhi() const { return NAN; }
   virtual void setRecoPhi(float) {}
@@ -72,4 +70,4 @@ class CMFlashDifference : public PHObject
   ClassDefOverride(CMFlashDifference, 1)
 };
 
-#endif //TRACKBASE_CMFLASHDIFFERENCE_H
+#endif  // TRACKBASE_CMFLASHDIFFERENCE_H

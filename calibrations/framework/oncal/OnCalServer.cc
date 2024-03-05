@@ -9,7 +9,6 @@
 #include <fun4all/Fun4AllUtils.h>
 #include <phool/recoConsts.h>
 
-#include <Event/Event.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIterator.h>

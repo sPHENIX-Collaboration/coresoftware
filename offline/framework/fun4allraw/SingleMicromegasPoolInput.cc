@@ -1,6 +1,7 @@
 #include "SingleMicromegasPoolInput.h"
 
 #include "Fun4AllStreamingInputManager.h"
+#include "InputManagerType.h"
 
 #include <ffarawobjects/MicromegasRawHitContainerv1.h>
 #include <ffarawobjects/MicromegasRawHitv1.h>
@@ -57,7 +58,7 @@ namespace
 SingleMicromegasPoolInput::SingleMicromegasPoolInput(const std::string& name)
   : SingleStreamingInput(name)
 {
-  SubsystemEnum(Fun4AllStreamingInputManager::MICROMEGAS);
+  SubsystemEnum(InputManagerType::MICROMEGAS);
   plist = new Packet*[10];
 }
 

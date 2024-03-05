@@ -28,20 +28,22 @@ class TrkrClusterv1 : public TrkrCluster
   //! ctor
   TrkrClusterv1();
 
-  //!dtor
+  //! dtor
   ~TrkrClusterv1() override = default;
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override {}
   int isValid() const override;
   PHObject* CloneMe() const override { return new TrkrClusterv1(*this); }
- 
-  //! copy content from base class
-  void CopyFrom( const TrkrCluster& ) override;
 
   //! copy content from base class
-  void CopyFrom( TrkrCluster* source ) override
-  { CopyFrom( *source ); }
+  void CopyFrom(const TrkrCluster&) override;
+
+  //! copy content from base class
+  void CopyFrom(TrkrCluster* source) override
+  {
+    CopyFrom(*source);
+  }
 
   //
   // cluster position
@@ -79,15 +81,14 @@ class TrkrClusterv1 : public TrkrCluster
   float getZError() const override;
 
  protected:
-
   TrkrDefs::cluskey m_cluskey;  //< unique identifier within container
-  float m_pos[3];               //< mean position x,y,z
-  bool m_isGlobal;             //< flag for coord sys (true = global)
+  float m_pos[3]{};             //< mean position x,y,z
+  bool m_isGlobal;              //< flag for coord sys (true = global)
   unsigned int m_adc;           //< cluster sum adc (D. McGlinchey - Do we need this?)
-  float m_size[6]{};              //< size covariance matrix (packed storage) (+/- cm^2)
-  float m_err[6]{};               //< covariance matrix: rad, arc and z
+  float m_size[6]{};            //< size covariance matrix (packed storage) (+/- cm^2)
+  float m_err[6]{};             //< covariance matrix: rad, arc and z
 
   ClassDefOverride(TrkrClusterv1, 1)
 };
 
-#endif //TRACKBASE_TRKRCLUSTERV1_H
+#endif  // TRACKBASE_TRKRCLUSTERV1_H

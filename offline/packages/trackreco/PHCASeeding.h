@@ -93,6 +93,7 @@ class PHCASeeding : public PHTrackSeeding
   void constBField(float b){_const_field = b;}
   void useFixedClusterError(bool opt){_use_fixed_clus_err = opt;}
   void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
+  void set_pp_mode(bool mode) {_pp_mode = mode;}
 
  protected:
   int Setup(PHCompositeNode *topNode) override;
@@ -149,6 +150,7 @@ class PHCASeeding : public PHTrackSeeding
   bool _use_const_field = false;
   float _const_field = 1.4;
   bool _use_fixed_clus_err = false;
+  bool _pp_mode = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
 
   /// acts geometry

@@ -256,7 +256,7 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
 int Fun4AllDstOutputManager::outfile_open_first_write()
 {
   delete dstOut;
-  SetEventsWritten(0);
+  SetEventsWritten(1);  // this is the first event we write, need to set the number to 1
   std::filesystem::path p = OutFileName();
   if (m_FileNameStem.empty())
   {

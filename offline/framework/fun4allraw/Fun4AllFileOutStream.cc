@@ -43,6 +43,7 @@ int Fun4AllFileOutStream::WriteEventOut(Event *evt)
 
     char *outfilename = new char[filenamesize];
     m_iSeq = se->SegmentNumber();
+    // NOLINTNEXTLINE(hicpp-vararg)
     int snprintfbytes = snprintf(outfilename, filenamesize, m_FileRule.c_str(), irun, m_iSeq);
     if (static_cast<unsigned>(snprintfbytes) > filenamesize)
     {
@@ -52,6 +53,7 @@ int Fun4AllFileOutStream::WriteEventOut(Event *evt)
                 << " which uses other than %010d-%04d for runnumber/segment" << std::endl;
       exit(1);
     }
+    // NOLINTNEXTLINE(hicpp-vararg)
     m_OutFileDesc = open(outfilename, O_WRONLY | O_CREAT | O_TRUNC | O_LARGEFILE,
                          S_IRWXU | S_IROTH | S_IRGRP);
     if (m_OutFileDesc == -1)  // failure to open

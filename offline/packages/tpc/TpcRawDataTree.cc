@@ -14,9 +14,9 @@
 #include <Event/packet.h>
 
 #include <TFile.h>
-#include <TTree.h>
 #include <TH1F.h>
 #include <TH2F.h>
+#include <TTree.h>
 
 #include <cassert>
 #include <iostream>
@@ -33,19 +33,25 @@ TpcRawDataTree::TpcRawDataTree(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int TpcRawDataTree::InitRun(PHCompositeNode *)
+int TpcRawDataTree::InitRun(PHCompositeNode * /*unused*/)
 {
   sectorNum = m_fname;
   size_t pos = sectorNum.find("TPC_ebdc");
-  sectorNum.erase(sectorNum.begin(),sectorNum.begin()+pos+8);
-  sectorNum.erase(sectorNum.begin()+2,sectorNum.end());
-  if(sectorNum.at(0) == '0') sectorNum.erase(sectorNum.begin(),sectorNum.begin()+1);
-  if(stoi(sectorNum) > 11) side = 1;
+  sectorNum.erase(sectorNum.begin(), sectorNum.begin() + pos + 8);
+  sectorNum.erase(sectorNum.begin() + 2, sectorNum.end());
+  if (sectorNum.at(0) == '0')
+  {
+    sectorNum.erase(sectorNum.begin(), sectorNum.begin() + 1);
+  }
+  if (stoi(sectorNum) > 11)
+  {
+    side = 1;
+  }
 
   m_file = TFile::Open(m_fname.c_str(), "recreate");
   assert(m_file->IsOpen());
 
-    m_PacketTree = new TTree("PacketTree", "Each entry is one packet");
+  m_PacketTree = new TTree("PacketTree", "Each entry is one packet");
 
   m_PacketTree->Branch("packet", &m_packet, "packet/I");
   m_PacketTree->Branch("frame", &m_frame, "frame/I");
@@ -82,26 +88,26 @@ int TpcRawDataTree::InitRun(PHCompositeNode *)
   m_TaggerTree->Branch("last_bco", &m_last_bco, "last_bco/l");
   m_TaggerTree->Branch("modebits", &m_modebits, "modebits/b");
 
-  R1_hist = new TH1F("R1_hist","R1_hist",1024,-0.5,1023.5);
-  R2_hist = new TH1F("R2_hist","R2_hist",1024,-0.5,1023.5);
-  R3_hist = new TH1F("R3_hist","R3_hist",1024,-0.5,1023.5);
+  R1_hist = new TH1F("R1_hist", "R1_hist", 1024, -0.5, 1023.5);
+  R2_hist = new TH1F("R2_hist", "R2_hist", 1024, -0.5, 1023.5);
+  R3_hist = new TH1F("R3_hist", "R3_hist", 1024, -0.5, 1023.5);
 
-  R1_time = new TH2F("R1_time","R1_time",360,-0.5,359.5,1024,-0.5,1023.5);
-  R2_time = new TH2F("R2_time","R2_time",360,-0.5,359.5,1024,-0.5,1023.5);
-  R3_time = new TH2F("R3_time","R3_time",360,-0.5,359.5,1024,-0.5,1023.5);
+  R1_time = new TH2F("R1_time", "R1_time", 360, -0.5, 359.5, 1024, -0.5, 1023.5);
+  R2_time = new TH2F("R2_time", "R2_time", 360, -0.5, 359.5, 1024, -0.5, 1023.5);
+  R3_time = new TH2F("R3_time", "R3_time", 360, -0.5, 359.5, 1024, -0.5, 1023.5);
 
   TotalFEE = new TH1F("TotalFEE", "Total FEE", 26, -0.5, 25.5);
-  TotalFEEsampa = new TH1F("TotalFEEsampa", "Total FEE + sampa", 26*8, -0.5, 25*8-.5);
+  TotalFEEsampa = new TH1F("TotalFEEsampa", "Total FEE + sampa", 26 * 8, -0.5, 25 * 8 - .5);
   TotalFRAME = new TH1F("TotalFRAME", "Total FRAME", 21, -0.5, 20.5);
 
   checksumError_fee = new TH1F("FEEWithError", "FEE with Error", 26, -0.5, 25.5);
-  checksumError_feesampa = new TH1F("FEEsampaWithError", "FEE*8+sampa with Error", 26*8, -0.5, 25*8-.5);
+  checksumError_feesampa = new TH1F("FEEsampaWithError", "FEE*8+sampa with Error", 26 * 8, -0.5, 25 * 8 - .5);
   checksumError_frame = new TH1F("FRAMEWithError", "FRAME with Error", 21, -0.5, 20.5);
- 
+
   if (m_includeXYPos)
   {
-    m_SampleTree->Branch("xPos", &m_xPos, "xPos/d");  
-    m_SampleTree->Branch("yPos", &m_yPos, "yPos/d");  
+    m_SampleTree->Branch("xPos", &m_xPos, "xPos/d");
+    m_SampleTree->Branch("yPos", &m_yPos, "yPos/d");
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -176,54 +182,73 @@ int TpcRawDataTree::process_event(PHCompositeNode *topNode)
       TH1F *fillHist;
       TH2F *fillHist2D;
 
-      if(m_fee == 2 ||
-         m_fee == 4 ||
-         m_fee == 3 ||
-         m_fee == 13 ||
-         m_fee == 17 ||
-         m_fee == 16){ fillHist=R1_hist; fillHist2D=R1_time;}
-      else if(m_fee == 11 ||
-         m_fee == 12 ||
-         m_fee == 19 ||
-         m_fee == 18 ||
-         m_fee == 01 ||
-         m_fee == 00 ||
-         m_fee == 16 ||
-         m_fee == 15){ fillHist=R2_hist; fillHist2D=R2_time;}
-      else{ fillHist=R3_hist; fillHist2D=R3_time;}
-
+      if (m_fee == 2 ||
+          m_fee == 4 ||
+          m_fee == 3 ||
+          m_fee == 13 ||
+          m_fee == 17 ||
+          m_fee == 16)
+      {
+        fillHist = R1_hist;
+        fillHist2D = R1_time;
+      }
+      else if (m_fee == 11 ||
+               m_fee == 12 ||
+               m_fee == 19 ||
+               m_fee == 18 ||
+               m_fee == 01 ||
+               m_fee == 00 ||
+               m_fee == 16 ||
+               m_fee == 15)
+      {
+        fillHist = R2_hist;
+        fillHist2D = R2_time;
+      }
+      else
+      {
+        fillHist = R3_hist;
+        fillHist2D = R3_time;
+      }
 
       assert(m_nSamples < (int) m_adcSamples.size());  // no need for movements in memory allocation
       for (int s = 0; s < m_nSamples; s++)
       {
         m_adcSamples[s] = p->iValue(wf, s);
-        if(m_checksumError==0){
-           fillHist->Fill(m_adcSamples[s]);
-           fillHist2D->Fill(s,m_adcSamples[s]);
+        if (m_checksumError == 0)
+        {
+          fillHist->Fill(m_adcSamples[s]);
+          fillHist2D->Fill(s, m_adcSamples[s]);
         }
-        else {
+        else
+        {
           checksumError_fee->Fill(m_fee);
-          checksumError_feesampa->Fill((m_fee*8. + m_sampaAddress));
+          checksumError_feesampa->Fill((m_fee * 8. + m_sampaAddress));
           checksumError_frame->Fill(m_frame);
         }
         TotalFEE->Fill(m_fee);
-        TotalFEEsampa->Fill((m_fee*8. + m_sampaAddress));
+        TotalFEEsampa->Fill((m_fee * 8. + m_sampaAddress));
         TotalFRAME->Fill(m_frame);
       }
-      if(m_includeXYPos)
+      if (m_includeXYPos)
       {
         int feeM = FEE_map[m_fee];
-        if(FEE_R[m_fee]==2) feeM += 6;
-        if(FEE_R[m_fee]==3) feeM += 14;
+        if (FEE_R[m_fee] == 2)
+        {
+          feeM += 6;
+        }
+        if (FEE_R[m_fee] == 3)
+        {
+          feeM += 14;
+        }
         int layer = M.getLayer(feeM, m_Channel);
-        if(layer!=0)
+        if (layer != 0)
         {
           double R = M.getR(feeM, m_Channel);
-          double phi = M.getPhi(feeM, m_Channel) + (stod(sectorNum) - side*12. )* M_PI / 6. ;
-          R /= 10.; //convert mm to cm  
- 
-          m_xPos = R*cos(phi);
-          m_yPos = R*sin(phi);
+          double phi = M.getPhi(feeM, m_Channel) + (stod(sectorNum) - side * 12.) * M_PI / 6.;
+          R /= 10.;  // convert mm to cm
+
+          m_xPos = R * cos(phi);
+          m_yPos = R * sin(phi);
         }
         else
         {
@@ -246,10 +271,10 @@ int TpcRawDataTree::End(PHCompositeNode * /*topNode*/)
   checksumError_fee->Divide(TotalFEE);
   checksumError_feesampa->Divide(TotalFEEsampa);
   checksumError_frame->Divide(TotalFRAME);
-  
-  TotalFEE->SetDirectory(0);
-  TotalFEEsampa->SetDirectory(0);
-  TotalFRAME->SetDirectory(0);
+
+  TotalFEE->SetDirectory(nullptr);
+  TotalFEEsampa->SetDirectory(nullptr);
+  TotalFRAME->SetDirectory(nullptr);
 
   m_file->Write();
 

@@ -263,15 +263,51 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       }
       const float mip_e = _energy_scale[layer];
 
-      std::vector<double>& vadcrange = _max_fphx_adc[layer];
+//      std::vector<double>& vadcrange = _max_fphx_adc[layer];
+      //for(int i=0;i<8;i++) std::cout<<"Digitizer:: vadcrange= "<<vadcrange[i]<<std::endl;
+
 
       // c++ upper_bound finds the bin location above the test value (or vadcrange.end() if there isn't one)
-      auto irange = std::upper_bound(vadcrange.begin(), vadcrange.end(), 
-          hit->getEnergy() / TrkrDefs::InttEnergyScaleup * (double) mip_e);
-      int adc = (irange-vadcrange.begin())-1;
-      if (adc == -1) adc = 0;
+//      auto irange = std::upper_bound(vadcrange.begin(), vadcrange.end(), 
+//          hit->getEnergy() / (TrkrDefs::InttEnergyScaleup * (double) mip_e));
+//          hit->getEnergy() / 100.0);
+//      int adc = (irange-vadcrange.begin())-1;
+//      if (adc == -1) adc = 0;
 
-      hit->setAdc(adc);
+      double k=85.7/(TrkrDefs::InttEnergyScaleup * (double) mip_e);
+      double E=hit->getEnergy()*k;     //keV
+
+      double gain = 100.0;
+      double offset=280.0;
+      double para = 1.0;
+      double e_vol=(E*pow(10,3)*1.6*pow(10,-19)*pow(10,15)*gain/3.6)+offset;
+      double v_dac=para*(e_vol-210.0)/4.0;
+
+      if(v_dac<30) v_dac = 15;
+      else if(v_dac<60) v_dac=30;
+      else if(v_dac<90) v_dac=60;
+      else if(v_dac<120) v_dac=90;
+      else if(v_dac<150) v_dac=120;
+      else if(v_dac<180) v_dac=150;
+      else if(v_dac<210) v_dac=180;
+      else v_dac =210;
+
+      hit->setAdc(v_dac);
+/*
+      std::cout<<"Digitizer:: getEnergy = "<<hit->getEnergy()<<std::endl;
+      std::cout<<"Digitizer:: Energy = "<<E<<std::endl;
+      std::cout<<"Digitizer:: k = "<<k<<std::endl;
+      //std::cout<<"Digitizer:: capa = "<<capa<<std::endl;
+      std::cout<<"Digitizer:: E2V = "<<e_vol<<std::endl;
+      std::cout<<"Digitizer:: V2DAC = "<<v_dac<<std::endl;
+      //std::cout<<"Digitizer:: mip_e = "<<TrkrDefs::InttEnergyScaleup * (double) mip_e<<std::endl;
+      //std::cout<<"Digitizer:: getE/mip_e = "<<hit->getEnergy() /(TrkrDefs::InttEnergyScaleup * (double) mip_e)<<std::endl;
+      //std::cout<<"Digitizer:: InttEnergyScaleup = "<<TrkrDefs::InttEnergyScaleup<<std::endl;
+*/
+      //if(adc==0) adc=15;
+      //else adc=adc*30;
+      //hit->setAdc(adc);
+      //std::cout<<"Digitizer:: adc= "<<adc<<std::endl;
 
       if (Verbosity() > 2)
       {

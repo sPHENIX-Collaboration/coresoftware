@@ -3,11 +3,11 @@
 #ifndef MVTXEVENTINFO_H
 #define MVTXEVENTINFO_H
 
-     /********************************/
-    /* Subsystem event header class */
-   /*          Cameron Dean        */
-  /*      MIT (ctdean@mit.edu)    */
- /*             29/09/2023       */
+/********************************/
+/* Subsystem event header class */
+/*          Cameron Dean        */
+/*      MIT (ctdean@mit.edu)    */
+/*             29/09/2023       */
 /********************************/
 
 #include <phool/PHObject.h>
@@ -33,7 +33,7 @@ class MvtxEventInfo : public PHObject
   void Reset() override;
 
   /** identify Function from PHObject
-      @param os Output Stream 
+      @param os Output Stream
    */
   void identify(std::ostream &os = std::cout) const override;
 
@@ -58,12 +58,12 @@ class MvtxEventInfo : public PHObject
   void set_stringval(const std::string & /*name*/, const std::string & /*ival*/);
   std::string get_stringval(const std::string & /*name*/) const;
 
-  virtual void set_number_HB(const int /*ival*/) {};
+  virtual void set_number_HB(const int /*ival*/){};
   virtual int get_number_HB() const { return 0; };
 
-  virtual void set_strobe_BCO(const uint64_t /*strobe_BCO*/) {};
+  virtual void set_strobe_BCO(const uint64_t /*strobe_BCO*/){};
 
-  virtual void set_strobe_BCO_L1_BCO(const uint64_t /*strobe_BCO*/, const uint64_t /*L1_BCO*/) {};
+  virtual void set_strobe_BCO_L1_BCO(const uint64_t /*strobe_BCO*/, const uint64_t /*L1_BCO*/){};
 
   virtual unsigned int get_number_strobes() const { return 0; };
   virtual unsigned int get_number_L1s() const { return 0; };

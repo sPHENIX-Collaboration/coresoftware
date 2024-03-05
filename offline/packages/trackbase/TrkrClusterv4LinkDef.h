@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class TrkrClusterv4+;
+#pragma link C++ class TrkrClusterv4 + ;
 
 #endif

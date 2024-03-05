@@ -40,8 +40,9 @@ class PHG4OHCalSteppingAction : public PHG4SteppingAction
   void FieldChecker(const G4Step *);
   void EnableFieldChecker(const int i = 1) { m_EnableFieldCheckerFlag = i; }
   void CreateNodeTree(PHCompositeNode *topNode);
+
  private:
- bool NoHitSteppingAction(const G4Step *aStep);
+  bool NoHitSteppingAction(const G4Step *aStep);
   //! pointer to the detector
   PHG4OHCalDetector *m_Detector = nullptr;
 

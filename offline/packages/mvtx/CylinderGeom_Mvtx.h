@@ -49,14 +49,14 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   double get_pixel_thickness() const override { return pixel_thickness; }
 
 // our own - no override
-  TVector3 get_local_from_world_coords(Surface surface, ActsGeometry *tGeometry, TVector3 world);
-  TVector3 get_world_from_local_coords(Surface surface, ActsGeometry *tGeometry, TVector2 local);
-  TVector3 get_world_from_local_coords(Surface surface, ActsGeometry *tGeometry, TVector3 local);
+  TVector3 get_local_from_world_coords(const Surface& surface, ActsGeometry *tGeometry, TVector3 world);
+  TVector3 get_world_from_local_coords(const Surface& surface, ActsGeometry *tGeometry, const TVector2& local);
+  TVector3 get_world_from_local_coords(const Surface& surface, ActsGeometry *tGeometry, const TVector3& local);
 
   void get_sensor_indices_from_world_coords(std::vector<double> &world, unsigned int &stave, unsigned int &chip);
 
   bool get_pixel_from_local_coords(TVector3 sensor_local, int& iRow, int& iCol);
-  int get_pixel_from_local_coords(TVector3 sensor_local);
+  int get_pixel_from_local_coords(const TVector3& sensor_local);
 
   TVector3 get_local_coords_from_pixel(int NXZ);
   TVector3 get_local_coords_from_pixel(int iRow, int iCol);
@@ -73,7 +73,7 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   int get_ladder_phi_index(int stave, int /*half_stave*/, int /*chip*/) {return stave; }
   int get_ladder_z_index(int /*module*/, int chip) { return chip; }
 
-  void find_sensor_center(Surface surface, ActsGeometry* tGeometry, double location[]);
+  void find_sensor_center(const Surface& surface, ActsGeometry* tGeometry, double location[]);
 
   int get_N_staves() const { return N_staves; }
   int get_N_half_staves() const { return N_half_staves; }

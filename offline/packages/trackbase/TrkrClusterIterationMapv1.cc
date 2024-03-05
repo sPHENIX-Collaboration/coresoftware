@@ -1,4 +1,4 @@
-/**                                                                                                                                                                                                       
+/**
  * @file trackbase/TrkrClusterIterationMap.cc
  * @author D. McGlinchey
  * @date June 2018

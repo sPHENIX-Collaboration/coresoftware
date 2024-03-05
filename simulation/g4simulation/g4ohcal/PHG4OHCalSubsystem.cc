@@ -9,7 +9,7 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4DisplayAction.h>   // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
@@ -20,10 +20,11 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <cmath>     // for NAN
 #include <cstdlib>   // for getenv
 #include <iostream>  // for operator<<, basic_ostream
-#include <set>       // for set
+#include <limits>
+#include <set>  // for set
+
 class PHG4Detector;
 
 //_______________________________________________________________________
@@ -155,11 +156,11 @@ void PHG4OHCalSubsystem::SetLightCorrection(const double inner_radius, const dou
 void PHG4OHCalSubsystem::SetDefaultParameters()
 {
   set_default_double_param("inner_radius", 182.423 - 5);
-  set_default_double_param("light_balance_inner_corr", NAN);
-  set_default_double_param("light_balance_inner_radius", NAN);
-  set_default_double_param("light_balance_outer_corr", NAN);
-  set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param("phistart", NAN);
+  set_default_double_param("light_balance_inner_corr", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_inner_radius", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_outer_corr", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_outer_radius", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("phistart", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param("scinti_eta_coverage_neg", 1.1);
   set_default_double_param("scinti_eta_coverage_pos", 1.1);
   set_default_double_param("outer_radius", 269.317 + 5);
