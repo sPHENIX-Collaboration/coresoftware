@@ -34,18 +34,18 @@ class Fun4AllFileOutStream : public Fun4AllEventOutStream
   int OutFileDescriptor() const { return m_OutFileDesc; }
   void OutFileDescriptor(const int i) { m_OutFileDesc = i; }
   PHDWORD *xb() { return m_xb; }
-  void SetNEvents(unsigned int i) {m_nEvents = i;}
-  unsigned int GetNEvents() const {return m_nEvents;}
+  void SetNEvents(unsigned int i) { m_nEvents = i; }
+  unsigned int GetNEvents() const { return m_nEvents; }
 
  private:
   std::string m_FileRule;
-  oBuffer *m_ob {nullptr};
-  int m_iSeq {0};
+  oBuffer *m_ob{nullptr};
+  int m_iSeq{0};
   PHDWORD m_xb[LENGTH]{};
-  int m_OutFileDesc {-1};
-  unsigned int m_nEvents {0};
-  uint64_t m_BytesWritten {0};
-  uint64_t m_MaxSize {100000000000LL};  // 100GB
+  int m_OutFileDesc{-1};
+  unsigned int m_nEvents{0};
+  uint64_t m_BytesWritten{0};
+  uint64_t m_MaxSize{100000000000LL};  // 100GB
 };
 
 #endif

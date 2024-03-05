@@ -9,6 +9,7 @@
 
 class MvtxRawHit;
 class Packet;
+class mvtx_pool;
 
 typedef struct linkId
 {
@@ -29,9 +30,10 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   bool GetSomeMoreEvents();
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
+
   void SetBcoRange(const unsigned int i) { m_BcoRange = i; }
   void ConfigureStreamingInputManager() override;
-  void SetNegativeBco(const unsigned int value) {m_NegativeBco = value;}
+  void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
   std::set<int> &getFeeIdSet(const uint64_t &bco) { return m_BeamClockFEE[bco]; };
 
@@ -49,7 +51,7 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
-  unsigned int m_NegativeBco {0};
+  unsigned int m_NegativeBco{0};
 
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<uint64_t, std::vector<MvtxRawHit *>> m_MvtxRawHitMap;
@@ -57,6 +59,7 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   std::map<int, uint64_t> m_FeeStrobeMap;
   std::set<uint64_t> m_BclkStack;
   std::set<uint64_t> gtmL1BcoSet;  // GTM L1 BCO
+  std::map<int, mvtx_pool *> poolmap;
 };
 
 #endif

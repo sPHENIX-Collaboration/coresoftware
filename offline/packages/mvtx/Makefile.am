@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
   libmvtx_io.la \
-  libmvtx.la 
+  libmvtx.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -19,11 +19,11 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   MvtxClusterizer.h \
+  MvtxClusterQA.h \
   MvtxHitPruner.h \
   MvtxCombinedRawDataDecoder.h \
   CylinderGeom_Mvtx.h \
   SegmentationAlpide.h
-
 
 ROOTDICTS = \
   CylinderGeom_Mvtx_Dict.cc
@@ -35,8 +35,9 @@ nobase_dist_pcm_DATA = \
 # sources for mvtx library
 libmvtx_la_SOURCES = \
   MvtxClusterizer.cc \
+  MvtxClusterQA.cc \
   MvtxHitPruner.cc \
-  MvtxCombinedRawDataDecoder.cc 
+  MvtxCombinedRawDataDecoder.cc
 
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
@@ -44,7 +45,8 @@ libmvtx_la_LIBADD = \
   -lffarawobjects \
   -lphg4hit \
   -lSubsysReco \
-  -lcdbobjects 
+  -lqautils \
+  -lcdbobjects
 
 # sources for io library
 libmvtx_io_la_SOURCES = \
@@ -57,7 +59,7 @@ libmvtx_io_la_LIBADD = \
   -lg4detectors_io \
   -ltrack_io \
   -ltrackbase_historic_io \
-  -lcdbobjects 
+  -lcdbobjects
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

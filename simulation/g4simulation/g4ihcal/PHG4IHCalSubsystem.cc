@@ -20,9 +20,9 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-
-#include <cmath>     // for NAN
+#include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream
+#include <limits>
 #include <set>
 
 class PHG4Detector;
@@ -58,7 +58,7 @@ int PHG4IHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   {
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode *DetNode = dstNode;
-   
+
     if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
       PHNodeIterator iter_dst(dstNode);
@@ -148,11 +148,11 @@ PHG4Detector *PHG4IHCalSubsystem::GetDetector() const
 void PHG4IHCalSubsystem::SetDefaultParameters()
 {
   set_default_double_param(PHG4HcalDefs::innerrad, 115);
-  set_default_double_param("light_balance_inner_corr", NAN);
-  set_default_double_param("light_balance_inner_radius", NAN);
-  set_default_double_param("light_balance_outer_corr", NAN);
-  set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param("phistart", NAN);
+  set_default_double_param("light_balance_inner_corr", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_inner_radius", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_outer_corr", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_outer_radius", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("phistart", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param("scinti_eta_coverage_neg", 1.1);
   set_default_double_param("scinti_eta_coverage_pos", 1.1);
   set_default_double_param(PHG4HcalDefs::outerrad, 274.010 / 2 + 3);
@@ -162,12 +162,11 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 180.);
   set_default_double_param("rot_z", 0.);
-  set_default_double_param("size_z", 435.000 + 10 );
+  set_default_double_param("size_z", 435.000 + 10);
   set_default_double_param("Birk_const", 0.07943);
   set_default_double_param("tmin", -20.);
   set_default_double_param("tmax", 60.);
   set_default_double_param("dt", 100.);
-  
 
   set_default_int_param("light_scint_model", 1);
   set_default_int_param(PHG4HcalDefs::n_towers, 64);
@@ -175,10 +174,9 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
   set_default_int_param("etabins", 24);
   set_default_int_param("saveg4hit", 1);
-  
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
-  const char* Calibroot = getenv("CALIBRATIONROOT");
+  const char *Calibroot = getenv("CALIBRATIONROOT");
   std::string defaultmapfilename;
   if (Calibroot)
   {

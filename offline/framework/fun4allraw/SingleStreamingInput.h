@@ -40,9 +40,9 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual Fun4AllStreamingInputManager *StreamingInputManager() { return m_StreamingInputMgr; }
   virtual void StreamingInputManager(Fun4AllStreamingInputManager *in) { m_StreamingInputMgr = in; }
   virtual void CreateDSTNode(PHCompositeNode *) { return; }
-  virtual void ConfigureStreamingInputManager() {return;}
-  virtual void SubsystemEnum(const int id) {m_SubsystemEnum = id;}
-  virtual int SubsystemEnum() const {return m_SubsystemEnum;}
+  virtual void ConfigureStreamingInputManager() { return; }
+  virtual void SubsystemEnum(const int id) { m_SubsystemEnum = id; }
+  virtual int SubsystemEnum() const { return m_SubsystemEnum; }
 
  private:
   Eventiterator *m_EventIterator = nullptr;
@@ -52,7 +52,7 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   int m_RunNumber = 0;
   int m_EventsThisFile = 0;
   int m_AllDone = 0;
-  int m_SubsystemEnum {0};
+  int m_SubsystemEnum{0};
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;

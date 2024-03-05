@@ -200,20 +200,32 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     int fee = tpchit->get_fee();
     int channel = tpchit->get_channel();
     int feeM = FEE_map[fee];
-    if (FEE_R[fee] == 2) feeM += 6;
-    if (FEE_R[fee] == 3) feeM += 14;
+    if (FEE_R[fee] == 2)
+    {
+      feeM += 6;
+    }
+    if (FEE_R[fee] == 3)
+    {
+      feeM += 14;
+    }
 
     int side = 1;
     int32_t packet_id = tpchit->get_packetid();
     int ep = (packet_id - 4000) % 10;
     int sector = (packet_id - 4000 - ep) / 10;
-    if (sector > 11) side = 0;
+    if (sector > 11)
+    {
+      side = 0;
+    }
 
     unsigned int key = 256 * (feeM) + channel;
     std::string varname = "layer";
     int layer = m_cdbttree->GetIntValue(key, varname);
     // antenna pads will be in 0 layer
-    if (layer == 0) continue;
+    if (layer == 0)
+    {
+      continue;
+    }
 
     uint16_t sampadd = tpchit->get_sampaaddress();
     uint16_t sampch = tpchit->get_sampachannel();
@@ -320,7 +332,10 @@ int TpcCombinedRawDataUnpacker::End(PHCompositeNode* /*topNode*/)
     m_ntup->Write();
     m_file->Close();
   }
-  if (Verbosity()) std::cout << "TpcCombinedRawDataUnpacker::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+  if (Verbosity())
+  {
+    std::cout << "TpcCombinedRawDataUnpacker::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+  }
   // if(m_Debug==1) hm->dumpHistos(m_filename, "RECREATE");
 
   return Fun4AllReturnCodes::EVENT_OK;

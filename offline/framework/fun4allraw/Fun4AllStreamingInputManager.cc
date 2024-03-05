@@ -1,5 +1,6 @@
 #include "Fun4AllStreamingInputManager.h"
 
+#include "InputManagerType.h"
 #include "SingleStreamingInput.h"
 
 #include <ffarawobjects/Gl1RawHit.h>
@@ -352,30 +353,30 @@ std::string Fun4AllStreamingInputManager::GetString(const std::string &what) con
   return "";
 }
 
-void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *evtin, enu_subsystem system)
+void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *evtin, InputManagerType::enu_subsystem system)
 {
   evtin->StreamingInputManager(this);
   evtin->CreateDSTNode(m_topNode);
   evtin->ConfigureStreamingInputManager();
   switch (system)
   {
-  case Fun4AllStreamingInputManager::MVTX:
+  case InputManagerType::MVTX:
     m_mvtx_registered_flag = true;
     m_MvtxInputVector.push_back(evtin);
     break;
-  case Fun4AllStreamingInputManager::INTT:
+  case InputManagerType::INTT:
     m_intt_registered_flag = true;
     m_InttInputVector.push_back(evtin);
     break;
-  case Fun4AllStreamingInputManager::TPC:
+  case InputManagerType::TPC:
     m_tpc_registered_flag = true;
     m_TpcInputVector.push_back(evtin);
     break;
-  case Fun4AllStreamingInputManager::MICROMEGAS:
+  case InputManagerType::MICROMEGAS:
     m_micromegas_registered_flag = true;
     m_MicromegasInputVector.push_back(evtin);
     break;
-  case Fun4AllStreamingInputManager::GL1:
+  case InputManagerType::GL1:
     m_gl1_registered_flag = true;
     m_Gl1InputVector.push_back(evtin);
     break;
@@ -493,7 +494,7 @@ int Fun4AllStreamingInputManager::FillGl1()
     }
     m_RefBCO = gl1hititer->get_bco();
     gl1rawhit->set_bco(m_RefBCO);
-    m_RefBCO = m_RefBCO & 0xFFFFFFFFFF;  // 40 bits (need to handle rollovers)
+    m_RefBCO = m_RefBCO & 0xFFFFFFFFFFU;  // 40 bits (need to handle rollovers)
   }
   for (auto iter : m_Gl1InputVector)
   {
@@ -534,15 +535,15 @@ int Fun4AllStreamingInputManager::FillIntt()
     std::cout << "select INTT crossings"
               << " from 0x" << std::hex << m_RefBCO - m_intt_negative_bco
               << " to 0x" << select_crossings - m_intt_negative_bco
-	      << " for ref BCO " << m_RefBCO
+              << " for ref BCO " << m_RefBCO
               << std::dec << std::endl;
   }
-  while (m_InttRawHitMap.begin()->first  < m_RefBCO -m_intt_negative_bco)
+  while (m_InttRawHitMap.begin()->first < m_RefBCO - m_intt_negative_bco)
   {
     std::cout << "Intt BCO: 0x" << std::hex << m_InttRawHitMap.begin()->first
-	      << " corrected for negative offset: 0x" << m_InttRawHitMap.begin()->first + m_intt_negative_bco
+              << " corrected for negative offset: 0x" << m_InttRawHitMap.begin()->first + m_intt_negative_bco
               << " smaller than GL1 BCO: 0x" << m_RefBCO
-	      << " corrected for range: 0x" << select_crossings
+              << " corrected for range: 0x" << select_crossings
               << ", ditching this bco" << std::dec << std::endl;
     for (auto iter : m_InttInputVector)
     {
@@ -556,7 +557,7 @@ int Fun4AllStreamingInputManager::FillIntt()
       return iret;
     }
   }
-  while (m_InttRawHitMap.begin()->first <= select_crossings - m_intt_negative_bco )
+  while (m_InttRawHitMap.begin()->first <= select_crossings - m_intt_negative_bco)
   {
     for (auto intthititer : m_InttRawHitMap.begin()->second.InttRawHitVector)
     {
@@ -615,7 +616,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   if (Verbosity() > 2)
   {
     std::cout << "select MVTX crossings"
-              << " from 0x" << std::hex <<  m_RefBCO - m_mvtx_bco_range
+              << " from 0x" << std::hex << m_RefBCO - m_mvtx_bco_range
               << " to 0x" << select_crossings - m_mvtx_bco_range
               << std::dec << std::endl;
   }
@@ -704,13 +705,13 @@ int Fun4AllStreamingInputManager::FillMicromegas()
     std::cout << "select MicroMegas crossings"
               << " from 0x" << std::hex << m_RefBCO - m_micromegas_bco_range
               << " to 0x" << select_crossings - m_micromegas_bco_range
-	      << " for ref BCO " << m_RefBCO
+              << " for ref BCO " << m_RefBCO
               << std::dec << std::endl;
   }
 
   // m_MicromegasRawHitMap.empty() does not need to be checked here, FillMicromegasPool returns non zero
   // if this map is empty which is handled above
-  while (m_MicromegasRawHitMap.begin()->first  < m_RefBCO - m_micromegas_negative_bco)
+  while (m_MicromegasRawHitMap.begin()->first < m_RefBCO - m_micromegas_negative_bco)
   {
     std::cout << "Micromegas BCO: 0x" << std::hex << m_MicromegasRawHitMap.begin()->first
               << " smaller than GL1 BCO: 0x" << m_RefBCO
@@ -772,7 +773,7 @@ int Fun4AllStreamingInputManager::FillTpc()
   if (Verbosity() > 2)
   {
     std::cout << "select TPC crossings"
-              << " from 0x" << std::hex <<  m_RefBCO - m_tpc_negative_bco
+              << " from 0x" << std::hex << m_RefBCO - m_tpc_negative_bco
               << " to 0x" << select_crossings - m_tpc_negative_bco
               << std::dec << std::endl;
   }

@@ -7,36 +7,42 @@
 #include "TrkrClusterv2.h"
 
 #include <cmath>
-#include <utility>          // for swap
+#include <utility>  // for swap
 
 namespace
 {
 
   // square convenience function
-  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+  template <class T>
+  inline constexpr T square(const T& x)
+  {
+    return x * x;
+  }
 
   // get unique index in cov. matrix array from i and j
   inline unsigned int covarIndex(unsigned int i, unsigned int j)
   {
-    if (i > j) std::swap(i, j);
+    if (i > j)
+    {
+      std::swap(i, j);
+    }
     return i + 1 + (j + 1) * (j) / 2 - 1;
   }
 
- // rotate size or covariant matrix to polar coordinates and return the phi component
- template<float (TrkrClusterv2::*accessor)(unsigned int, unsigned int) const>
-    float rotate( const TrkrClusterv2* cluster )
+  // rotate size or covariant matrix to polar coordinates and return the phi component
+  template <float (TrkrClusterv2::*accessor)(unsigned int, unsigned int) const>
+  float rotate(const TrkrClusterv2* cluster)
   {
     const auto phi = -std::atan2(cluster->getY(), cluster->getX());
     const auto cosphi = std::cos(phi);
     const auto sinphi = std::sin(phi);
 
-    return
-      square(sinphi)*(cluster->*accessor)(0,0) +
-      square(cosphi)*(cluster->*accessor)(1,1) +
-      2.*cosphi*sinphi*(cluster->*accessor)(0,1);
+    return square(sinphi) * (cluster->*accessor)(0, 0) +
+           square(cosphi) * (cluster->*accessor)(1, 1) +
+           2. * cosphi * sinphi * (cluster->*accessor)(0, 1);
   }
 
-}
+}  // namespace
 
 TrkrClusterv2::TrkrClusterv2()
   : m_cluskey(TrkrDefs::CLUSKEYMAX)
@@ -44,7 +50,10 @@ TrkrClusterv2::TrkrClusterv2()
   , m_isGlobal(true)
   , m_adc(0xFFFFFFFF)
 {
-  for (int i = 0; i < 3; ++i) m_pos[i] = NAN;
+  for (float& m_po : m_pos)
+  {
+    m_po = NAN;
+  }
 
   for (int j = 0; j < 6; ++j)
   {
@@ -52,13 +61,13 @@ TrkrClusterv2::TrkrClusterv2()
     m_size[j] = NAN;
   }
   for (int i = 0; i < 2; i++)
+  {
+    m_local[i] = NAN;
+    for (int j = 0; j < 2; j++)
     {
-      m_local[i] = NAN;
-      for(int j = 0; j < 2; j ++)
-	{
-	  m_actsLocalErr[i][j] = NAN;
-	}
+      m_actsLocalErr[i][j] = NAN;
     }
+  }
 }
 
 void TrkrClusterv2::identify(std::ostream& os) const
@@ -69,9 +78,13 @@ void TrkrClusterv2::identify(std::ostream& os) const
   os << ", " << getPosition(1) << ", ";
   os << getPosition(2) << ") cm";
   if (m_isGlobal)
+  {
     os << " - global coordinates" << std::endl;
+  }
   else
+  {
     os << " - local coordinates" << std::endl;
+  }
 
   os << " adc = " << getAdc() << std::endl;
 
@@ -112,54 +125,78 @@ void TrkrClusterv2::identify(std::ostream& os) const
 
 int TrkrClusterv2::isValid() const
 {
-  if (m_cluskey == TrkrDefs::CLUSKEYMAX) return 0;
+  if (m_cluskey == TrkrDefs::CLUSKEYMAX)
+  {
+    return 0;
+  }
   for (int i = 0; i < 3; ++i)
   {
-    if (std::isnan(getPosition(i))) return 0;
+    if (std::isnan(getPosition(i)))
+    {
+      return 0;
+    }
   }
-  if (m_adc == 0xFFFFFFFF) return 0;
+  if (m_adc == 0xFFFFFFFF)
+  {
+    return 0;
+  }
   for (int j = 0; j < 3; ++j)
   {
     for (int i = j; i < 3; ++i)
     {
-      if (std::isnan(getSize(i, j))) return 0;
-      if (std::isnan(getError(i, j))) return 0;
+      if (std::isnan(getSize(i, j)))
+      {
+        return 0;
+      }
+      if (std::isnan(getError(i, j)))
+      {
+        return 0;
+      }
     }
   }
 
   return 1;
 }
 
-void TrkrClusterv2::CopyFrom( const TrkrCluster& source )
+void TrkrClusterv2::CopyFrom(const TrkrCluster& source)
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
- 
-  // parent class method
-  TrkrCluster::CopyFrom( source );
-
-  setX( source.getX() );
-  setY( source.getY() );
-  setZ( source.getZ() );
-  m_isGlobal = source.isGlobal();
-  setAdc( source.getAdc() );
-
-  for (int j = 0; j < 3; ++j)
-    for (int i = 0; i < 3; ++i)
+  if (this == &source)
   {
-    setSize(i, j, source.getSize(i, j));
-    setError(i, j, source.getError(i, j));
+    return;
   }
 
-  setSubSurfKey( source.getSubSurfKey() );
-  setLocalX( source.getLocalX() );
-  setLocalY( source.getLocalY() );
-  
+  // parent class method
+  TrkrCluster::CopyFrom(source);
+
+  setX(source.getX());
+  setY(source.getY());
+  setZ(source.getZ());
+  m_isGlobal = source.isGlobal();
+  setAdc(source.getAdc());
+
+  for (int j = 0; j < 3; ++j)
+  {
+    for (int i = 0; i < 3; ++i)
+    {
+      setSize(i, j, source.getSize(i, j));
+      setError(i, j, source.getError(i, j));
+    }
+  }
+
+  setSubSurfKey(source.getSubSurfKey());
+  setLocalX(source.getLocalX());
+  setLocalY(source.getLocalY());
+
   for (int j = 0; j < 2; ++j)
+  {
     for (int i = 0; i < 2; ++i)
-  { setActsLocalError(i, j, source.getActsLocalError(i, j)); }
+    {
+      setActsLocalError(i, j, source.getActsLocalError(i, j));
+    }
+  }
 }
-  
+
 void TrkrClusterv2::setSize(unsigned int i, unsigned int j, float value)
 {
   m_size[covarIndex(i, j)] = value;
@@ -167,7 +204,9 @@ void TrkrClusterv2::setSize(unsigned int i, unsigned int j, float value)
 }
 
 float TrkrClusterv2::getSize(unsigned int i, unsigned int j) const
-{ return m_size[covarIndex(i, j)]; }
+{
+  return m_size[covarIndex(i, j)];
+}
 
 void TrkrClusterv2::setError(unsigned int i, unsigned int j, float value)
 {
@@ -176,29 +215,42 @@ void TrkrClusterv2::setError(unsigned int i, unsigned int j, float value)
 }
 
 float TrkrClusterv2::getError(unsigned int i, unsigned int j) const
-{ return m_err[covarIndex(i, j)]; }
+{
+  return m_err[covarIndex(i, j)];
+}
 
 float TrkrClusterv2::getPhiSize() const
-{ return 2*std::sqrt(rotate<&TrkrClusterv2::getSize>(this)); }
+{
+  return 2 * std::sqrt(rotate<&TrkrClusterv2::getSize>(this));
+}
 
 float TrkrClusterv2::getZSize() const
-{ return 2.*sqrt(getSize(2, 2)); }
+{
+  return 2. * std::sqrt(getSize(2, 2));
+}
 
 float TrkrClusterv2::getPhiError() const
 {
-  const float rad = std::sqrt(square(m_pos[0])+square(m_pos[1]));
-  if (rad > 0) return getRPhiError() / rad;
+  const float rad = std::sqrt(square(m_pos[0]) + square(m_pos[1]));
+  if (rad > 0)
+  {
+    return getRPhiError() / rad;
+  }
   return 0;
 }
 
 float TrkrClusterv2::getRPhiError() const
-{ return std::sqrt(rotate<&TrkrClusterv2::getError>( this )); }
+{
+  return std::sqrt(rotate<&TrkrClusterv2::getError>(this));
+}
 
 float TrkrClusterv2::getZError() const
-{ return std::sqrt(getError(2, 2)); }
+{
+  return std::sqrt(getError(2, 2));
+}
 
 void TrkrClusterv2::setActsLocalError(unsigned int i, unsigned int j,
-				      float value)
+                                      float value)
 {
   m_actsLocalErr[i][j] = value;
 }

@@ -14,6 +14,8 @@
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <tpc/TpcClusterZCrossingCorrection.h>
+
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -43,6 +45,7 @@ class TrackResiduals : public SubsysReco
   void trackmapName(const std::string &name) { m_trackMapName = name; }
   void clusterTree() { m_doClusters = true; }
   void hitTree() { m_doHits = true; }
+  void ppmode() { m_ppmode = true;}
   void zeroField() { m_zeroField = true; }
   void runnumber(const int run) { m_runnumber = run; }
   void segment(const int seg) { m_segment = seg; }
@@ -75,12 +78,15 @@ class TrackResiduals : public SubsysReco
   bool m_doHits = false;
   bool m_zeroField = false;
 
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";
   std::string m_trackMapName = "SvtxTrackMap";
 
   bool m_doAlignment = false;
-
+  bool m_ppmode = false;
+  
   int m_event = 0;
   int m_segment = std::numeric_limits<int>::quiet_NaN();
   int m_runnumber = std::numeric_limits<int>::quiet_NaN();
@@ -171,6 +177,8 @@ class TrackResiduals : public SubsysReco
   std::vector<float> m_clusgz;
   std::vector<int> m_cluslayer;
   std::vector<int> m_clussize;
+  std::vector<int> m_clusphisize;
+  std::vector<int> m_cluszsize;
   std::vector<int> m_clusedge;
   std::vector<int> m_clusoverlap;
   std::vector<uint32_t> m_clushitsetkey;

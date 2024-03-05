@@ -1,10 +1,10 @@
 #include "MvtxEventInfo.h"
 
+#include <phool/phool.h>
 #include <cmath>    // for NAN
 #include <utility>  // for pair
-#include <phool/phool.h>
 
-PHObject* MvtxEventInfo::CloneMe() const
+PHObject *MvtxEventInfo::CloneMe() const
 {
   std::cout << PHWHERE << "::" << __func__ << " is not implemented in base class" << std::endl;
   return nullptr;
@@ -15,7 +15,6 @@ void MvtxEventInfo::Reset()
   std::cout << PHWHERE << "::" << __func__ << " is not implemented in base class" << std::endl;
   return;
 }
-
 
 void MvtxEventInfo::identify(std::ostream &out) const
 {

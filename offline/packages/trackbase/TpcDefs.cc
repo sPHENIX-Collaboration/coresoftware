@@ -74,5 +74,5 @@ TrkrDefs::cluskey
 TpcDefs::genClusKey(const uint8_t lyr, const uint8_t sector, const uint8_t side, const uint32_t clusid)
 {
   const auto key = genHitSetKey(lyr, sector, side);
-  return TrkrDefs::genClusKey( key, clusid );
+  return TrkrDefs::genClusKey(key, clusid);
 }

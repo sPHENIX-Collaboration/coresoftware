@@ -68,6 +68,7 @@ pkginclude_HEADERS = \
   CylinderGeomMicromegas.h \
   MicromegasCalibrationData.h \
   MicromegasClusterizer.h \
+  MicromegasClusterQA.h \
   MicromegasCombinedDataDecoder.h \
   MicromegasCombinedDataEvaluation.h \
   MicromegasDefs.h \
@@ -103,10 +104,12 @@ libmicromegas_io_la_LIBADD = \
   -lg4detectors_io \
   -lphool \
   -ltrack_io \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -lqautils
 
 libmicromegas_la_SOURCES = \
   MicromegasClusterizer.cc \
+  MicromegasClusterQA.cc \
   MicromegasCombinedDataDecoder.cc \
   MicromegasCombinedDataEvaluation.cc \
   MicromegasCombinedDataEvaluation_Dict.cc \
