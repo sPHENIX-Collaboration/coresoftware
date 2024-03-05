@@ -97,10 +97,13 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
     }
 
     // assign correction object dimension from histograms dimention, assuming all histograms have the same
-    distortion_correction_object->dimensions = distortion_correction_object->m_hDPint[0]->GetDimension();
+    distortion_correction_object->m_dimensions = distortion_correction_object->m_hDPint[0]->GetDimension();
 
     // only dimensions 2 or 3 are supported
-    assert(distortion_correction_object->dimensions == 2 || distortion_correction_object->dimensions == 3);
+    assert(distortion_correction_object->m_dimensions == 2 || distortion_correction_object->m_dimensions == 3);
+
+    // assign whether phi corrections (DP) should be read as radians or mm
+    distortion_correction_object->m_phi_hist_in_radians = m_phi_hist_in_radians;
 
     if (Verbosity())
     {
