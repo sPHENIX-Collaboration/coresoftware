@@ -2,7 +2,6 @@
 #define TRACKBASEHISTORIC_SVTXTRACKINFOV3_H
 
 #include "SvtxTrackInfo.h"
-#include "SvtxTrackInfo_v2.h"
 #include "TrackStateInfo_v1.h"
 
 class PHObject;
@@ -63,7 +62,8 @@ class SvtxTrackInfo_v3: public SvtxTrackInfo
   ~SvtxTrackInfo_v3() override {}
 
   // The "standard PHObject response" functions...
-  void identify(std::ostream& os = std::cout) const override {
+  void identify(std::ostream& os = std::cout) const override
+  {
     os << "SvtxTrackInfo_v3 class" << std::endl;
   }
   void Reset() override { *this = SvtxTrackInfo_v3(); }

@@ -125,7 +125,6 @@ class SvtxTrackInfo_v1 : public SvtxTrackInfo
  private:
   // track information
   unsigned int _track_id = std::numeric_limits<unsigned int>::quiet_NaN();
-  // unsigned int _vertex_id = UINT_MAX;
   float m_chisq = std::numeric_limits<float>::quiet_NaN();
   uint8_t m_ndf = std::numeric_limits<uint8_t>::quiet_NaN();
   uint64_t m_hitbitmap = std::numeric_limits<uint64_t>::quiet_NaN();

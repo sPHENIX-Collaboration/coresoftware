@@ -15,7 +15,8 @@ class SvtxTrackInfo_v2: public SvtxTrackInfo
   SvtxTrackInfo_v2( const SvtxTrackInfo& ) {}
 
   //* copy constructor
-  SvtxTrackInfo_v2(const SvtxTrackInfo_v2& source){
+  SvtxTrackInfo_v2(const SvtxTrackInfo_v2& source)
+  {
     m_track_id = source.get_track_id();
     m_outer_tpc_subsurfkey = source.get_subsurfkey();
     m_chisq = source.get_chisq();
@@ -37,9 +38,9 @@ class SvtxTrackInfo_v2: public SvtxTrackInfo
     set_theta_outer_tpc(source.get_theta_outer_tpc());
     set_qOp_outer_tpc(source.get_qOp_outer_tpc());
 
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 5; i++)
     {
-      for (int j = i; j < 6; j++)
+      for (int j = i; j < 5; j++)
       {
         set_covariance(i, j, source.get_covariance(i, j));
         set_covariance_outer_tpc(i, j, source.get_covariance_outer_tpc(i, j));
