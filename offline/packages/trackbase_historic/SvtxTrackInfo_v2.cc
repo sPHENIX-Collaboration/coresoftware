@@ -6,9 +6,9 @@
  * the outermost TPC surface to the calorimeters
 **/
 
-void SvtxTrackInfo_v2::CopyFrom(const SvtxTrackInfo_v2& source)
+void SvtxTrackInfo_v2::CopyFrom(const SvtxTrackInfo& source)
 {
-  set_id(source.get_id());
+  set_track_id(source.get_track_id());
   set_subsurfkey(source.get_subsurfkey());
 
   set_chisq(source.get_chisq());

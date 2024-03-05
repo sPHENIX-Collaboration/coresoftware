@@ -16,7 +16,7 @@ class SvtxTrackInfo_v2: public SvtxTrackInfo
 
   //* copy constructor
   SvtxTrackInfo_v2(const SvtxTrackInfo_v2& source){
-    m_track_id = source.get_id();
+    m_track_id = source.get_track_id();
     m_outer_tpc_subsurfkey = source.get_subsurfkey();
     m_chisq = source.get_chisq();
     m_ndf = source.get_ndf();
@@ -64,19 +64,21 @@ class SvtxTrackInfo_v2: public SvtxTrackInfo
   //! import PHObject CopyFrom, in order to avoid clang warning
   using PHObject::CopyFrom;
   // copy content
-  void CopyFrom( const SvtxTrackInfo_v2& );
-  void CopyFrom( SvtxTrackInfo_v2* source )
-  { CopyFrom( *source ); }
+  void CopyFrom( const SvtxTrackInfo& ) override;
+  void CopyFrom( SvtxTrackInfo* source ) override
+  {
+    CopyFrom( *source );
+  }
 
   //
   // basic track information ---------------------------------------------------
   //
 
-  unsigned int get_id() const { return m_track_id; }
-  void set_id(unsigned int id) { m_track_id = id; }
+  unsigned int get_track_id() const override { return m_track_id; }
+  void set_track_id(unsigned int id) override { m_track_id = id; }
 
-  uint16_t get_subsurfkey() const { return m_outer_tpc_subsurfkey; }
-  void set_subsurfkey(uint16_t key) { m_outer_tpc_subsurfkey = key; }
+  uint16_t get_subsurfkey() const override { return m_outer_tpc_subsurfkey; }
+  void set_subsurfkey(uint16_t key) override { m_outer_tpc_subsurfkey = key; }
 
   float get_chisq() const override { return m_chisq; }
   void set_chisq(float chisq) override { m_chisq = chisq; }
@@ -121,34 +123,34 @@ class SvtxTrackInfo_v2: public SvtxTrackInfo
   float get_covariance(int i, int j) const override { return m_state_vertex.get_covariance(i, j);}
   void set_covariance(int i, int j, float value) override {m_state_vertex.set_covariance(i, j, value);}
 
-  float get_x_outer_tpc() const { return m_state_outer_tpc.get_x(); }
-  void set_x_outer_tpc(float x) { m_state_outer_tpc.set_x(x); }
+  float get_x_outer_tpc() const override { return m_state_outer_tpc.get_x(); }
+  void set_x_outer_tpc(float x) override { m_state_outer_tpc.set_x(x); }
 
-  float get_y_outer_tpc() const { return m_state_outer_tpc.get_y(); }
-  void set_y_outer_tpc(float y) { m_state_outer_tpc.set_y(y); }
+  float get_y_outer_tpc() const override { return m_state_outer_tpc.get_y(); }
+  void set_y_outer_tpc(float y) override { m_state_outer_tpc.set_y(y); }
 
-  float get_z_outer_tpc() const { return m_state_outer_tpc.get_z(); }
-  void set_z_outer_tpc(float z) { m_state_outer_tpc.set_z(z); }
+  float get_z_outer_tpc() const override { return m_state_outer_tpc.get_z(); }
+  void set_z_outer_tpc(float z) override { m_state_outer_tpc.set_z(z); }
 
-  void set_phi_outer_tpc(const float phi) { m_state_outer_tpc.set_phi(phi); }
-  void set_theta_outer_tpc(const float theta) { m_state_outer_tpc.set_theta(theta); }
-  void set_qOp_outer_tpc(const float qop) { m_state_outer_tpc.set_qOp(qop); }
+  void set_phi_outer_tpc(const float phi) override { m_state_outer_tpc.set_phi(phi); }
+  void set_theta_outer_tpc(const float theta) override { m_state_outer_tpc.set_theta(theta); }
+  void set_qOp_outer_tpc(const float qop) override { m_state_outer_tpc.set_qOp(qop); }
 
-  float get_px_outer_tpc() const { return m_state_outer_tpc.get_px(); }
-  float get_py_outer_tpc() const { return m_state_outer_tpc.get_py(); }
-  float get_pz_outer_tpc() const { return m_state_outer_tpc.get_pz(); }
+  float get_px_outer_tpc() const override { return m_state_outer_tpc.get_px(); }
+  float get_py_outer_tpc() const override { return m_state_outer_tpc.get_py(); }
+  float get_pz_outer_tpc() const override { return m_state_outer_tpc.get_pz(); }
 
-  float get_mom_outer_tpc(unsigned int i) const { return m_state_outer_tpc.get_mom(i); }
+  float get_mom_outer_tpc(unsigned int i) const override { return m_state_outer_tpc.get_mom(i); }
 
-  float get_p_outer_tpc() const { return m_state_outer_tpc.get_p(); }
-  float get_pt_outer_tpc() const { return m_state_outer_tpc.get_pt(); }
-  float get_eta_outer_tpc() const { return m_state_outer_tpc.get_eta(); }
-  float get_phi_outer_tpc() const { return m_state_outer_tpc.get_phi(); }
-  float get_theta_outer_tpc() const { return m_state_outer_tpc.get_theta(); }
-  float get_qOp_outer_tpc() const { return m_state_outer_tpc.get_qOp(); }
+  float get_p_outer_tpc() const override { return m_state_outer_tpc.get_p(); }
+  float get_pt_outer_tpc() const override { return m_state_outer_tpc.get_pt(); }
+  float get_eta_outer_tpc() const override { return m_state_outer_tpc.get_eta(); }
+  float get_phi_outer_tpc() const override { return m_state_outer_tpc.get_phi(); }
+  float get_theta_outer_tpc() const override { return m_state_outer_tpc.get_theta(); }
+  float get_qOp_outer_tpc() const override { return m_state_outer_tpc.get_qOp(); }
 
-  float get_covariance_outer_tpc(int i, int j) const { return m_state_outer_tpc.get_covariance(i, j);}
-  void set_covariance_outer_tpc(int i, int j, float value) {m_state_outer_tpc.set_covariance(i, j, value);}
+  float get_covariance_outer_tpc(int i, int j) const override { return m_state_outer_tpc.get_covariance(i, j);}
+  void set_covariance_outer_tpc(int i, int j, float value) override {m_state_outer_tpc.set_covariance(i, j, value);}
 
  private:
 

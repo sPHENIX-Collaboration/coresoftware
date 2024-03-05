@@ -6,16 +6,23 @@
  * projection from the outermost TPC surface to the calorimeters
 **/
 
-void SvtxTrackInfo_v3::CopyFrom(const SvtxTrackInfo_v3& source)
+void SvtxTrackInfo_v3::CopyFrom(const SvtxTrackInfo& source)
 {
-  set_id(source.get_id());
+  set_track_id(source.get_track_id());
   set_subsurfkey(source.get_subsurfkey());
   set_chisq(source.get_chisq());
   set_ndf(source.get_ndf());
   set_hitbitmap(source.get_hitbitmap());
   set_crossing(source.get_crossing());
 
-  for(int istate = STATE::VERTEX; istate <= STATE::HCALOUT_BACKFACE; istate++)
+  set_x(STATE::VERTEX, source.get_x());
+  set_y(STATE::VERTEX, source.get_y());
+  set_z(STATE::VERTEX, source.get_z());
+  set_phi(STATE::VERTEX, source.get_phi());
+  set_theta(STATE::VERTEX, source.get_theta());
+  set_qOp(STATE::VERTEX, source.get_qOp());
+
+  for(int istate = STATE::OUTER_TPC; istate <= STATE::HCALOUT_BACKFACE; istate++)
   {
     set_x(istate, source.get_x(istate));
     set_y(istate, source.get_y(istate));
@@ -32,23 +39,11 @@ void SvtxTrackInfo_v3::CopyFrom(const SvtxTrackInfo_v3& source)
       }
     }
   }
-}
 
-void SvtxTrackInfo_v3::CopyFrom(const SvtxTrackInfo_v2& source)
-{
-  set_id(source.get_id());
-  set_subsurfkey(source.get_subsurfkey());
-  set_chisq(source.get_chisq());
-  set_ndf(source.get_ndf());
-  set_hitbitmap(source.get_hitbitmap());
-  set_crossing(source.get_crossing());
-
-  set_x(STATE::VERTEX, source.get_x());
-  set_y(STATE::VERTEX, source.get_y());
-  set_z(STATE::VERTEX, source.get_z());
-  set_phi(STATE::VERTEX, source.get_phi());
-  set_theta(STATE::VERTEX, source.get_theta());
-  set_qOp(STATE::VERTEX, source.get_qOp());
+  if(std::isnan(source.get_phi_outer_tpc()) || std::isnan(source.get_theta_outer_tpc()) || std::isnan(source.get_qOp_outer_tpc()))
+  {
+    return;
+  }
 
   set_x(STATE::OUTER_TPC, source.get_x_outer_tpc());
   set_y(STATE::OUTER_TPC, source.get_y_outer_tpc());
@@ -65,6 +60,7 @@ void SvtxTrackInfo_v3::CopyFrom(const SvtxTrackInfo_v2& source)
       set_covariance(STATE::OUTER_TPC, i, j, source.get_covariance_outer_tpc(i, j));
     }
   }
+
 }
 
 SvtxTrackInfo_v3& SvtxTrackInfo_v3::operator=(const SvtxTrackInfo_v3& source)

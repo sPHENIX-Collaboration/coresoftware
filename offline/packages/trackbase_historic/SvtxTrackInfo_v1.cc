@@ -1,4 +1,3 @@
-
 #include "SvtxTrackInfo_v1.h"
 #include "TrackStateInfo_v1.h"
 
@@ -12,6 +11,7 @@
 
 void SvtxTrackInfo_v1::CopyFrom(const SvtxTrackInfo& source)
 {
+  set_track_id(source.get_track_id());
   set_chisq(source.get_chisq());
   set_ndf(source.get_ndf());
   set_hitbitmap(source.get_hitbitmap());

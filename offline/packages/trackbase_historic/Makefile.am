@@ -148,8 +148,8 @@ nobase_dist_pcm_DATA = \
   SvtxTrackInfo_v3_Dict_rdict.pcm \
   TrackInfoContainer_Dict_rdict.pcm \
   TrackInfoContainer_v1_Dict_rdict.pcm \
-	TrackInfoContainer_v2_Dict_rdict.pcm \
-	TrackInfoContainer_v3_Dict_rdict.pcm \
+  TrackInfoContainer_v2_Dict_rdict.pcm \
+  TrackInfoContainer_v3_Dict_rdict.pcm \
   TrackStateInfo_Dict_rdict.pcm \
   TrackStateInfo_v1_Dict_rdict.pcm
 
