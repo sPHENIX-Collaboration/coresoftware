@@ -31,7 +31,7 @@ class TrackInfoContainer_v2 : public TrackInfoContainer
 
     }
 
-    void add_trackinfo(int pos, SvtxTrackInfo* trackinfo)
+    void add_trackinfo(int pos, SvtxTrackInfo* trackinfo) override
     {
       new((*_clones)[pos]) SvtxTrackInfo_v2;
       SvtxTrackInfo_v2 *info = (SvtxTrackInfo_v2 *)_clones->ConstructedAt(pos);
