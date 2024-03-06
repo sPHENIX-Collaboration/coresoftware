@@ -26,6 +26,7 @@ class SvtxTrackInfo_v1 : public SvtxTrackInfo
   //* copy constructor
   SvtxTrackInfo_v1(const SvtxTrackInfo_v1& source)
   {
+    _track_id = source.get_track_id();
     m_chisq = source.get_chisq();
     m_ndf = source.get_ndf();
     m_crossing = source.get_crossing();
@@ -38,9 +39,9 @@ class SvtxTrackInfo_v1 : public SvtxTrackInfo
     set_theta(source.get_theta());
     set_qOp(source.get_qOp());
 
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 5; i++)
     {
-      for (int j = i; j < 6; j++)
+      for (int j = i; j < 5; j++)
       {
         set_covariance(i, j, source.get_covariance(i, j));
       }
@@ -74,6 +75,9 @@ class SvtxTrackInfo_v1 : public SvtxTrackInfo
   //
   // basic track information ---------------------------------------------------
   //
+
+  unsigned int get_track_id() const override { return _track_id; }
+  void set_track_id(unsigned int id) override { _track_id = id; }
 
   float get_chisq() const override { return m_chisq; }
   void set_chisq(float chisq) override { m_chisq = chisq; }
@@ -121,7 +125,6 @@ class SvtxTrackInfo_v1 : public SvtxTrackInfo
  private:
   // track information
   unsigned int _track_id = std::numeric_limits<unsigned int>::quiet_NaN();
-  // unsigned int _vertex_id = UINT_MAX;
   float m_chisq = std::numeric_limits<float>::quiet_NaN();
   uint8_t m_ndf = std::numeric_limits<uint8_t>::quiet_NaN();
   uint64_t m_hitbitmap = std::numeric_limits<uint64_t>::quiet_NaN();
