@@ -23,7 +23,7 @@ CosmicTrackQA::CosmicTrackQA(const std::string& name)
 }
 
 //____________________________________________________________________________..
-int CosmicTrackQA::InitRun(PHCompositeNode*)
+int CosmicTrackQA::InitRun(PHCompositeNode* /*unused*/)
 {
   createHistos();
   return Fun4AllReturnCodes::EVENT_OK;
@@ -68,8 +68,8 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
     float py = track->get_py();
     float pz = track->get_pz();
     float pt = std::sqrt(QAG4Util::square(px) + QAG4Util::square(py));
-    float eta = atanh(pz / std::sqrt(QAG4Util::square(pt) + QAG4Util::square(pz)));
-    float phi = atan2(py, px);
+    float eta = std::atanh(pz / std::sqrt(QAG4Util::square(pt) + QAG4Util::square(pz)));
+    float phi = std::atan2(py, px);
     h_ntrack->Fill(phi, eta);
 
     auto ckeys = get_cluster_keys(track);
@@ -88,10 +88,10 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
       auto& glob = cluspos[i];
       i++;
       auto cluster = clustermap->findCluster(ckey);
-
-      auto intersection = TrackFitUtils::surface_3Dline_intersection(ckey, cluster, geometry,
-                                                                     std::get<0>(lineFitParams), std::get<1>(lineFitParams), std::get<2>(lineFitParams), std::get<3>(lineFitParams));
-
+// NOLINTBEGIN
+      auto intersection = TrackFitUtils::surface_3Dline_intersection(ckey, cluster, geometry, //NOLINT
+                                                                     std::get<0>(lineFitParams), std::get<1>(lineFitParams), std::get<2>(lineFitParams), std::get<3>(lineFitParams)); //NOLINT
+// NOLINTEND
       auto surf = geometry->maps().getSurface(ckey, cluster);
 
       Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext());
@@ -175,7 +175,7 @@ CosmicTrackQA::lineFitClusters(std::vector<Acts::Vector3>& positions) const
       clusr *= -1;
     }
     // exclude silicon and tpot clusters for now
-    if (fabs(clusr) > 80 || fabs(clusr) < 30)
+    if (std::fabs(clusr) > 80 || std::fabs(clusr) < 30)
     {
       continue;
     }
@@ -202,7 +202,7 @@ int CosmicTrackQA::EndRun(const int runnumber)
 }
 
 //____________________________________________________________________________..
-int CosmicTrackQA::End(PHCompositeNode*)
+int CosmicTrackQA::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
