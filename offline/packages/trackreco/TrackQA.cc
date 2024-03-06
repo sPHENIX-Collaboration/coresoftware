@@ -1,5 +1,5 @@
 
-#include "CosmicTrackQA.h"
+#include "TrackQA.h"
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -17,20 +17,20 @@
 #include <TH2.h>
 #include <trackbase/ActsGeometry.h>
 //____________________________________________________________________________..
-CosmicTrackQA::CosmicTrackQA(const std::string& name)
+TrackQA::TrackQA(const std::string& name)
   : SubsysReco(name)
 {
 }
 
 //____________________________________________________________________________..
-int CosmicTrackQA::InitRun(PHCompositeNode* /*unused*/)
+int TrackQA::InitRun(PHCompositeNode* /*unused*/)
 {
   createHistos();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int CosmicTrackQA::process_event(PHCompositeNode* topNode)
+int TrackQA::process_event(PHCompositeNode* topNode)
 {
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
@@ -150,7 +150,7 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
-std::vector<TrkrDefs::cluskey> CosmicTrackQA::get_cluster_keys(SvtxTrack* track)
+std::vector<TrkrDefs::cluskey> TrackQA::get_cluster_keys(SvtxTrack* track)
 {
   std::vector<TrkrDefs::cluskey> out;
   for (const auto& seed : {track->get_silicon_seed(), track->get_tpc_seed()})
@@ -164,7 +164,7 @@ std::vector<TrkrDefs::cluskey> CosmicTrackQA::get_cluster_keys(SvtxTrack* track)
 }
 
 std::tuple<float, float, float, float>
-CosmicTrackQA::lineFitClusters(std::vector<Acts::Vector3>& positions) const
+TrackQA::lineFitClusters(std::vector<Acts::Vector3>& positions) const
 {
   TrackFitUtils::position_vector_t xypoints, rzpoints;
   for (auto& pos : positions)
@@ -192,7 +192,7 @@ CosmicTrackQA::lineFitClusters(std::vector<Acts::Vector3>& positions) const
                          std::get<1>(rzparams));
 }
 //____________________________________________________________________________..
-int CosmicTrackQA::EndRun(const int runnumber)
+int TrackQA::EndRun(const int runnumber)
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -202,17 +202,17 @@ int CosmicTrackQA::EndRun(const int runnumber)
 }
 
 //____________________________________________________________________________..
-int CosmicTrackQA::End(PHCompositeNode* /*unused*/)
+int TrackQA::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-std::string CosmicTrackQA::getHistoPrefix() const
+std::string TrackQA::getHistoPrefix() const
 {
   return std::string("h_") + Name() + std::string("_");
 }
 
-void CosmicTrackQA::createHistos()
+void TrackQA::createHistos()
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);

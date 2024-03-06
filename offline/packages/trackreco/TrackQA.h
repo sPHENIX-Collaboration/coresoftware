@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef COSMICTRACKQA_H
-#define COSMICTRACKQA_H
+#ifndef TRACKQA_H
+#define TRACKQA_H
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/ActsGeometry.h>
@@ -13,12 +13,12 @@
 class SvtxTrack;
 class PHCompositeNode;
 
-class CosmicTrackQA : public SubsysReco
+class TrackQA : public SubsysReco
 {
  public:
-  CosmicTrackQA(const std::string &name = "CosmicTrackQA");
+  TrackQA(const std::string &name = "TrackQA");
 
-  ~CosmicTrackQA() override = default;
+  ~TrackQA() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -43,4 +43,4 @@ class CosmicTrackQA : public SubsysReco
   int m_runbins = m_endRun - m_beginRun;
 };
 
-#endif  // COSMICTRACKQA_H
+#endif  // TRACKQA_H
