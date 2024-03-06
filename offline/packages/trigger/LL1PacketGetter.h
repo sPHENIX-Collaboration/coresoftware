@@ -44,30 +44,30 @@ class LL1PacketGetter : public SubsysReco
   }
 
  private:
-  std::string m_trigger;
-  std::string m_ll1;
+  std::string m_trigger = "NONE";
+  std::string m_ll1 = "NONE";
 
-  LL1Outv2 *m_ll1out;
-  TriggerPrimitiveContainer *_trigger_primitives;
-  TriggerPrimitive *_trigger_primitive;
-  std::map<unsigned int, std::vector<unsigned int>> *_trigger_words;
+  LL1Outv2 *m_ll1out = nullptr;
+  TriggerPrimitiveContainer *_trigger_primitives = nullptr;
+  TriggerPrimitive *_trigger_primitive = nullptr;
+  std::map<unsigned int, std::vector<unsigned int>> *_trigger_words = nullptr;
 
   std::map<TriggerDefs::DetectorId, int> m_prim_map;
   TriggerDefs::TriggerId m_triggerid;
   TriggerDefs::DetectorId m_detectorid;
   TriggerDefs::PrimitiveId m_primitiveid;
-  std::vector<unsigned int> *_sum;
+  std::vector<unsigned int> *_sum = nullptr;
 
-  int m_packet_low;
-  int m_packet_high;
+  int m_packet_low{0};
+  int m_packet_high{0};
 
-  int m_nsamples;
-  int m_nchannels;
-  int m_nchannels_per_primitive;
-  int m_nprimitives;
-  int m_ntriggerwords;
-  int _verbose;
-  bool m_isdata;
+  int m_nsamples{16};
+  int m_nchannels{256};
+  int m_nchannels_per_primitive{0};
+  int m_nprimitives{0};
+  int m_ntriggerwords{0};
+  int _verbose{0};
+  bool m_isdata{0};
 };
 
 #endif  // LL1TOWERBUILDER_H

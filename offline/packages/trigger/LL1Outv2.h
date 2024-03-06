@@ -28,45 +28,45 @@ class LL1Outv2 : public LL1Outv1
 
   LL1Outv2(std::string triggertype, std::string ll1type);
   ///
-  virtual ~LL1Outv2() override;
+  ~LL1Outv2() override;
 
   /// Clear Event from memory
-  virtual void Reset() override;
+  void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream 
   */
-  virtual void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   /// isValid returns non zero if object contains vailid data
-  virtual int isValid() const override;
+  int isValid() const override;
 
   // Get Trigger Type
-  virtual std::string getLL1Type() const {return _ll1_type;}
+  std::string getLL1Type() const {return _ll1_type;}
 
   // Set Trigger Type  
-  virtual void setLL1Type(std::string &ll1type) { _ll1_type = ll1type;}
-  virtual void setTriggerType(std::string &triggertype) { _trigger_type = triggertype;}
+  void setLL1Type(std::string &ll1type) { _ll1_type = ll1type;}
+  void setTriggerType(std::string &triggertype) { _trigger_type = triggertype;}
 
-  virtual TriggerDefs::TriggerKey getTriggerKey() const {return _trigger_key;}
-  virtual void setTriggerKey(TriggerDefs::TriggerKey key) {_trigger_key = key;}
+  TriggerDefs::TriggerKey getTriggerKey() const {return _trigger_key;}
+  void setTriggerKey(TriggerDefs::TriggerKey key) {_trigger_key = key;}
 
-  virtual TriggerPrimitiveContainerv1* GetTriggerPrimitiveContainer() {return _trigger_primitives;}
-  virtual std::vector<unsigned int>* GetTriggerBits() {return _trigger_bits;}
+  TriggerPrimitiveContainerv1* GetTriggerPrimitiveContainer() {return _trigger_primitives;}
+  std::vector<unsigned int>* GetTriggerBits() {return _trigger_bits;}
 
-  virtual void add_word(int key, std::vector<unsigned int>* trigger_words) { _trigger_words[key] = trigger_words;}
+  void add_word(int key, std::vector<unsigned int>* trigger_words) { _trigger_words[key] = trigger_words;}
   
-  virtual void set_event_number(unsigned int evt){ _event_number = evt;}
-  virtual unsigned int get_event_number(){ return _event_number;}
-  virtual void set_clock_number(unsigned int clk){ _clock_number = clk;}
-  virtual unsigned int get_clock_number(){ return _clock_number;}
+  void set_event_number(unsigned int evt){ _event_number = evt;}
+  unsigned int get_event_number(){ return _event_number;}
+  void set_clock_number(unsigned int clk){ _clock_number = clk;}
+  unsigned int get_clock_number(){ return _clock_number;}
 
   ConstRange getTriggerWords() const;  
   Range getTriggerWords();
 
  protected:
 
-  virtual void Init() override;
+  void Init() override;
   
  private:
   

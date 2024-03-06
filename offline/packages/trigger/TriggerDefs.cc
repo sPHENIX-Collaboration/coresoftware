@@ -341,7 +341,7 @@ TriggerDefs::GetTowerInfoKey( const TriggerDefs::DetectorId detId, const uint16_
 
   return UINT16_MAX;
 }
-TriggerDefs::TriggerId TriggerDefs::GetTriggerId(std::string trigger)
+TriggerDefs::TriggerId TriggerDefs::GetTriggerId(const std::string trigger)
   {
 
     if (strcmp(trigger.c_str(), "NONE") == 0) return TriggerDefs::TriggerId::noneTId;
@@ -356,7 +356,7 @@ TriggerDefs::TriggerId TriggerDefs::GetTriggerId(std::string trigger)
     
   }
 
-TriggerDefs::DetectorId TriggerDefs::GetDetectorId(std::string detector)
+TriggerDefs::DetectorId TriggerDefs::GetDetectorId(const std::string detector)
   {
 
     if (strcmp(detector.c_str(), "NONE") == 0) return TriggerDefs::DetectorId::noneDId;
@@ -368,7 +368,7 @@ TriggerDefs::DetectorId TriggerDefs::GetDetectorId(std::string detector)
     return TriggerDefs::DetectorId::noneDId;
     
   }
-TriggerDefs::PrimitiveId TriggerDefs::GetPrimitiveId(std::string primitive)
+TriggerDefs::PrimitiveId TriggerDefs::GetPrimitiveId(const std::string primitive)
 {
 
     if (strcmp(primitive.c_str(), "NONE") == 0) return TriggerDefs::PrimitiveId::nonePId;

@@ -64,7 +64,6 @@ class CaloTriggerEmulator : public SubsysReco
 
   int process_trigger();
 
-
   int Download_Calibrations();
 
   //! Set TriggerType
@@ -85,51 +84,52 @@ class CaloTriggerEmulator : public SubsysReco
   std::string _ll1_nodename;
   std::string _waveform_nodename;
 
-  Fun4AllHistoManager *hm;
-  TFile *outfile;
+  Fun4AllHistoManager *hm = nullptr;
+  TFile *outfile = nullptr;
 
   //!Trigger Type
-  std::string _trigger;
+  std::string _trigger{"NONE"};
 
   TriggerDefs::TriggerId _triggerid = TriggerDefs::TriggerId::noneTId;
 
-  bool _do_hcalin;
-  bool _do_hcalout;
-  bool _do_emcal;
-  bool _do_mbd;
+  bool _do_hcalin{false};
+  bool _do_hcalout{false};
+  bool _do_emcal{false};
+  bool _do_mbd{false};
 
   //! Waveform conatiner
-  TowerInfoContainer *_waveforms_hcalin;
-  TowerInfoContainer *_waveforms_hcalout;
-  TowerInfoContainer *_waveforms_emcal;
-  TowerInfoContainer *_waveforms_mbd;
+  TowerInfoContainer *_waveforms_hcalin = nullptr;
+  TowerInfoContainer *_waveforms_hcalout = nullptr;
+  TowerInfoContainer *_waveforms_emcal = nullptr;
+  TowerInfoContainer *_waveforms_mbd = nullptr;
 
   //! LL1 Out
-  LL1Outv2 *_ll1out;
-  TriggerPrimitiveContainerv1 *_primitives;
+  LL1Outv2 *_ll1out = nullptr;
+  TriggerPrimitiveContainerv1 *_primitives = nullptr;
 
-  LL1Outv2 *_ll1out_hcalin;
-  TriggerPrimitiveContainerv1 *_primitives_hcalin;
+  LL1Outv2 *_ll1out_hcalin = nullptr;
+  TriggerPrimitiveContainerv1 *_primitives_hcalin = nullptr;
 
-  LL1Outv2 *_ll1out_hcalout;
-  TriggerPrimitiveContainerv1 *_primitives_hcalout;
+  LL1Outv2 *_ll1out_hcalout = nullptr;
+  TriggerPrimitiveContainerv1 *_primitives_hcalout = nullptr;
 
-  LL1Outv2 *_ll1out_emcal;
-  TriggerPrimitiveContainerv1 *_primitives_emcal;
+  LL1Outv2 *_ll1out_emcal = nullptr;
+  TriggerPrimitiveContainerv1 *_primitives_emcal = nullptr;
 
-  TriggerPrimitive *_primitive;
-  std::vector<unsigned int> *_sum;
-  std::vector<unsigned int> *_bits;
+  TriggerPrimitive *_primitive = nullptr;
 
-  TProfile *avg_primitive;
-  TH2D *peak_primitive;
-  TH2D *primitives;
-  TH2D *jet_trigger_fire_map;
-  TH2D *trigger_fire_map;
-  TH2D *h2_line_up;
-  TH1D *h_nhit;
-  TH1D *h_mbd_time;
-  TH1D *h_mbd_charge;
+  std::vector<unsigned int> *_sum  = nullptr;
+  std::vector<unsigned int> *_bits = nullptr;
+
+  TProfile *avg_primitive  = nullptr;
+  TH2D *peak_primitive = nullptr;
+  TH2D *primitives = nullptr;
+  TH2D *jet_trigger_fire_map = nullptr;
+  TH2D *trigger_fire_map = nullptr;
+  TH2D *h2_line_up = nullptr;
+  TH1D *h_nhit = nullptr;
+  TH1D *h_mbd_time = nullptr;
+  TH1D *h_mbd_charge = nullptr;
 
   std::vector<TProfile*> v_avg_primitive_photon;
   std::vector<TH2D*> v_peak_primitive_photon;

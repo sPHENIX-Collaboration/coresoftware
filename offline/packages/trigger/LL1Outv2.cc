@@ -14,8 +14,7 @@ LL1Outv2::LL1Outv2()
 {
   _ll1_type = "NONE";
   _trigger_type = "NONE";
-
-  setTriggerKey(TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(_trigger_type)));
+  _trigger_key = TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(_trigger_type));
 
   Init();
 }
@@ -23,12 +22,12 @@ LL1Outv2::LL1Outv2()
 
 LL1Outv2::LL1Outv2(std::string triggertype, std::string ll1type)
 {
+  _trigger_type = triggertype;
 
-  setTriggerType(triggertype);
-  setTriggerKey(TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(triggertype)));
+  _trigger_key = TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(triggertype));
 
-  setLL1Type(ll1type);
-
+  _ll1_type = ll1type;
+  
   Init();
 }
 

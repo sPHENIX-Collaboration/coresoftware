@@ -16,37 +16,37 @@ class LL1Outv1 : public LL1Out
   ///
   LL1Outv1();
   ///
-  virtual ~LL1Outv1() override;
+  ~LL1Outv1() override;
 
   /// Clear Event from memory
-  virtual void Reset() override;
+  void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream 
   */
-  virtual void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   /// isValid returns non zero if object contains vailid data
-  virtual int isValid() const override;
+  int isValid() const override;
 
   // Get Trigger Type
-  virtual std::string get_TriggerType() const {return _trigger_type;}
+  std::string get_TriggerType() const {return _trigger_type;}
 
   // Set Trigger Type  
-  virtual void set_TriggerType(std::string &triggertype) { _trigger_type = triggertype;}
+  void set_TriggerType(std::string &triggertype) { _trigger_type = triggertype;}
 
-  virtual void AddTriggerBits(unsigned int t_bits);
-  virtual unsigned int GetTriggerBits(unsigned int i_sample);
+  void AddTriggerBits(unsigned int t_bits);
+  unsigned int GetTriggerBits(unsigned int i_sample);
 
-  virtual void AddTriggerWords(vector<unsigned int> t_words);
-  virtual unsigned int GetTriggerWord(unsigned int i_word, unsigned int i_sample);
+  void AddTriggerWords(vector<unsigned int> t_words);
+  unsigned int GetTriggerWord(unsigned int i_word, unsigned int i_sample);
 
-  virtual void AddTriggerPrimitives(vector<unsigned int> t_prims);
-  virtual unsigned int GetTriggerPrimitive(unsigned int i_adc, unsigned int i_sample);
+  void AddTriggerPrimitives(vector<unsigned int> t_prims);
+  unsigned int GetTriggerPrimitive(unsigned int i_adc, unsigned int i_sample);
 
  protected:
   
-  virtual void Init() override;
+  void Init() override;
   
  private:
   
