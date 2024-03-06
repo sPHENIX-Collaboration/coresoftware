@@ -88,10 +88,10 @@ int TrackQA::process_event(PHCompositeNode* topNode)
       auto& glob = cluspos[i];
       i++;
       auto cluster = clustermap->findCluster(ckey);
-// NOLINTBEGIN
-      auto intersection = TrackFitUtils::surface_3Dline_intersection(ckey, cluster, geometry, //NOLINT
-                                                                     std::get<0>(lineFitParams), std::get<1>(lineFitParams), std::get<2>(lineFitParams), std::get<3>(lineFitParams)); //NOLINT
-// NOLINTEND
+
+      auto intersection = TrackFitUtils::surface_3Dline_intersection(ckey, cluster, geometry, 
+                                                                     std::get<0>(lineFitParams), std::get<1>(lineFitParams), std::get<2>(lineFitParams), std::get<3>(lineFitParams)); 
+
       auto surf = geometry->maps().getSurface(ckey, cluster);
 
       Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext());
