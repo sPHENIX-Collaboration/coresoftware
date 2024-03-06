@@ -49,7 +49,7 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
   auto h_nmaps = dynamic_cast<TH1*>(hm->getHisto(std::string(getHistoPrefix() + "nmaps").c_str()));
   auto h_nintt = dynamic_cast<TH1*>(hm->getHisto(std::string(getHistoPrefix() + "nintt").c_str()));
   auto h_ntpc = dynamic_cast<TH1*>(hm->getHisto(std::string(getHistoPrefix() + "ntpc").c_str()));
-  auto h_nmms = dynamic_cast<TH1*>(hm->getHisto(std::string(getHistoPrefix() + "nmms").c_str()));
+  auto h_nmms = dynamic_cast<TH1*>(hm->getHisto(std::string(getHistoPrefix() + "ntpot").c_str()));
   auto h_lxresid = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "lxlineresiduals").c_str()));
   auto h_lzresid = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "lzlineresiduals").c_str()));
   auto h_gzresid = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "gzlineresiduals").c_str()));
@@ -63,6 +63,7 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
     {
       continue;
     }
+
     float px = track->get_px();
     float py = track->get_py();
     float pz = track->get_pz();
@@ -70,6 +71,7 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
     float eta = atanh(pz / std::sqrt(QAG4Util::square(pt) + QAG4Util::square(pz)));
     float phi = atan2(py, px);
     h_ntrack->Fill(phi, eta);
+
     auto ckeys = get_cluster_keys(track);
     int nmaps = 0;
     int nintt = 0;
@@ -78,15 +80,20 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
 
     std::vector<Acts::Vector3> cluspos;
     TrackFitUtils::getTrackletClusters(geometry, clustermap, cluspos, ckeys);
+
     auto lineFitParams = lineFitClusters(cluspos);
-    for (int i = 0; i < ckeys.size(); i++)
+    int i = 0;
+    for (auto& ckey : ckeys)
     {
-      auto& ckey = ckeys[i];
       auto& glob = cluspos[i];
-      auto cluster = clustermap->findCluster(key);
+      i++;
+      auto cluster = clustermap->findCluster(ckey);
+
       auto intersection = TrackFitUtils::surface_3Dline_intersection(ckey, cluster, geometry,
                                                                      std::get<0>(lineFitParams), std::get<1>(lineFitParams), std::get<2>(lineFitParams), std::get<3>(lineFitParams));
+
       auto surf = geometry->maps().getSurface(ckey, cluster);
+
       Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext());
       float statelx = std::numeric_limits<float>::quiet_NaN();
       float statelz = std::numeric_limits<float>::quiet_NaN();
@@ -153,7 +160,6 @@ std::vector<TrkrDefs::cluskey> CosmicTrackQA::get_cluster_keys(SvtxTrack* track)
       std::copy(seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter(out));
     }
   }
-
   return out;
 }
 
@@ -218,19 +224,19 @@ void CosmicTrackQA::createHistos()
   }
   {
     auto h = new TH1F(std::string(getHistoPrefix() + "nmaps").c_str(),
-                      "MVTX clusters per track", 150, 0, 150);
+                      "MVTX clusters per track", 20, 0, 20);
     h->GetXaxis()->SetTitle("nMVTX");
     hm->registerHisto(h);
   }
   {
     auto h = new TH1F(std::string(getHistoPrefix() + "nintt").c_str(),
-                      "INTT clusters per track", 150, 0, 150);
+                      "INTT clusters per track", 20, 0, 20);
     h->GetXaxis()->SetTitle("nINTT");
     hm->registerHisto(h);
   }
   {
     auto h = new TH1F(std::string(getHistoPrefix() + "ntpot").c_str(),
-                      "TPOT clusters per track", 150, 0, 150);
+                      "TPOT clusters per track", 6, 0, 6);
     h->GetXaxis()->SetTitle("nTPOT");
     hm->registerHisto(h);
   }
@@ -279,7 +285,7 @@ void CosmicTrackQA::createHistos()
 
   {
     auto h = new TH2F(std::string(getHistoPrefix() + "ntracksperrun").c_str(),
-                      "Num reconstructed tracks per run", 100, 0, 10, m_runbins, m_beginRun, m_endRun);
+                      "Num reconstructed tracks per run", m_runbins, m_beginRun, m_endRun, 100, 0, 1);
     h->GetYaxis()->SetTitle("N_{tracks}/event");
     h->GetXaxis()->SetTitle("Run number");
     hm->registerHisto(h);

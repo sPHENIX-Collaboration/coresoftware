@@ -68,11 +68,11 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   return line;
 }
 Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey& key,
-TrkrCluster* cluster, ActsGeometry* geometry, float& xyslope, float& xyint, float& rzslope, float& rzint) 
+                                                         TrkrCluster* cluster, ActsGeometry* geometry, float& xyslope, float& xyint, float& rzslope, float& rzint)
 {
   Acts::Vector3 intersection(std::numeric_limits<float>::quiet_NaN(),
-  std::numeric_limits<float>::quiet_NaN(), 
-  std::numeric_limits<float>::quiet_NaN());
+                             std::numeric_limits<float>::quiet_NaN(),
+                             std::numeric_limits<float>::quiet_NaN());
 
   auto surf = geometry->maps().getSurface(key, cluster);
 
@@ -88,8 +88,14 @@ TrkrCluster* cluster, ActsGeometry* geometry, float& xyslope, float& xyint, floa
   //! so swap them around
   float r1 = r(x1, y1);
   float r2 = r(x2, y2);
-  if (y1 < 0) {r1 *= -1;}
-  if (y2 < 0) {r2 *= -1;}
+  if (y1 < 0)
+  {
+    r1 *= -1;
+  }
+  if (y2 < 0)
+  {
+    r2 *= -1;
+  }
   float z1 = (r1 - rzint) / rzslope;
   float z2 = (r2 - rzint) / rzslope;
   Acts::Vector3 v1(x1, y1, z1), v2(x2, y2, z2);
@@ -100,7 +106,7 @@ TrkrCluster* cluster, ActsGeometry* geometry, float& xyslope, float& xyint, floa
   Acts::Vector3 u = v2 - v1;
   float dot = surfnorm.dot(u);
 
-    //! If it does not satisfy this, line was parallel to the surface
+  //! If it does not satisfy this, line was parallel to the surface
   if (abs(dot) > 1e-6)
   {
     Acts::Vector3 w = v1 - surfcenter;
@@ -108,7 +114,7 @@ TrkrCluster* cluster, ActsGeometry* geometry, float& xyslope, float& xyint, floa
     u *= fac;
     intersection = v1 + u;
   }
- return intersection;
+  return intersection;
 }
 //_________________________________________________________________________________
 TrackFitUtils::circle_fit_output_t TrackFitUtils::circle_fit_by_taubin(const TrackFitUtils::position_vector_t& positions)
