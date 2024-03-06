@@ -992,39 +992,15 @@ void TrackResiduals::fillStatesWithCircleFit(const TrkrDefs::cluskey& key,
 }
 void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
                                            TrkrCluster* cluster, ActsGeometry* geometry)
-{
+{ 
+  auto intersection = TrackFitUtils::surface_3Dline_intersection(key, cluster, geometry, m_xyslope,
+  m_xyint, m_rzslope, m_rzint);
+  
   auto surf = geometry->maps().getSurface(key, cluster);
+  Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext());
 
-  //! The slope/intercept params for x-y and r-z are already filled. Take
-  //! two random x points and calculate y and z on the line to find 2
-  //! 3D points with which to calculate the 3D line
-  float x1 = -1;
-  float x2 = 5;
-  float y1 = m_xyslope * x1 + m_xyint;
-  float y2 = m_xyslope * x2 + m_xyint;
-
-  //! slope/int for r-z is calculated with z as "x" variable, r as "y" variable
-  //! so swap them around
-  float r1 = r(x1, y1);
-  float r2 = r(x2, y2);
-  if (y1 < 0) r1 *= -1;
-  if (y2 < 0) r2 *= -1;
-  float z1 = (r1 - m_rzint) / m_rzslope;
-  float z2 = (r2 - m_rzint) / m_rzslope;
-  Acts::Vector3 v1(x1, y1, z1), v2(x2, y2, z2);
-
-  Acts::Vector3 surfcenter = surf->center(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
-  Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
-
-  Acts::Vector3 u = v2 - v1;
-  float dot = surfnorm.dot(u);
-  if (abs(dot) > 1e-6)
+  if(!std::isnan(intersection.x()))
   {
-    Acts::Vector3 w = v1 - surfcenter;
-    float fac = -surfnorm.dot(w) / dot;
-    u *= fac;
-    Acts::Vector3 intersection = v1 + u;
-
     auto locstateres = surf->globalToLocal(geometry->geometry().getGeoContext(),
                                            intersection * Acts::UnitConstants::cm,
                                            surfnorm);
