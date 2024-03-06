@@ -54,6 +54,7 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
 
     char *outfilename = new char[filenamesize];
     iSeq(m_CurrentSequence);
+    // NOLINTNEXTLINE(hicpp-vararg)
     int snprintfbytes = snprintf(outfilename, filenamesize, FileRule().c_str(), irun, iSeq());
     if (static_cast<unsigned>(snprintfbytes) > filenamesize)
     {
@@ -64,6 +65,7 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
       exit(1);
     }
     m_CurrentSequence += m_Increment;
+    // NOLINTNEXTLINE(hicpp-vararg)
     OutFileDescriptor(open(outfilename, O_WRONLY | O_CREAT | O_TRUNC | O_LARGEFILE,
                            S_IRWXU | S_IROTH | S_IRGRP));
     if (OutFileDescriptor() == -1)  // failure to open
@@ -114,6 +116,5 @@ void Fun4AllRolloverFileOutStream::open_new_file()
   SetNEvents(0);
   close(OutFileDescriptor());
   OutFileDescriptor(-1);
-  MyManager()->SetClosingScriptArgs(MyManager()->OutFileName());
   MyManager()->RunAfterClosing();
 }

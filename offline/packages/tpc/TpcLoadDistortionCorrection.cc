@@ -90,11 +90,11 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
     const std::array<const std::string, 2> extension = {{"_negz", "_posz"}};
     for (int j = 0; j < 2; ++j)
     {
-      distortion_correction_object->m_hDPint[j] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionP%s", extension[j].c_str())));
+      distortion_correction_object->m_hDPint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionP")+extension[j]).c_str()));
       assert(distortion_correction_object->m_hDPint[j]);
-      distortion_correction_object->m_hDRint[j] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionR%s", extension[j].c_str())));
+      distortion_correction_object->m_hDRint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionR")+extension[j]).c_str()));
       assert(distortion_correction_object->m_hDRint[j]);
-      distortion_correction_object->m_hDZint[j] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionZ%s", extension[j].c_str())));
+      distortion_correction_object->m_hDZint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionZ")+extension[j]).c_str()));
       assert(distortion_correction_object->m_hDZint[j]);
     }
 

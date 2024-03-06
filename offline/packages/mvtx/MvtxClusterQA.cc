@@ -32,12 +32,7 @@ MvtxClusterQA::MvtxClusterQA(const std::string &name)
 }
 
 //____________________________________________________________________________..
-MvtxClusterQA::~MvtxClusterQA()
-{
-}
-
-//____________________________________________________________________________..
-int MvtxClusterQA::Init(PHCompositeNode *)
+int MvtxClusterQA::Init(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -139,7 +134,7 @@ int MvtxClusterQA::EndRun(const int runnumber)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //____________________________________________________________________________..
-int MvtxClusterQA::End(PHCompositeNode *)
+int MvtxClusterQA::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -709,6 +709,7 @@ int Fun4AllServer::process_event()
             PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
             MakeNodesTransient(runNode);  // make all nodes transient by default
             (*iterOutMan)->WriteNode(runNode);
+            (*iterOutMan)->RunAfterClosing();
           }
         }
         else
