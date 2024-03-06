@@ -8,22 +8,26 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64 \
-  -lcalo_io
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  caloTowerEmbed.h
+  caloTowerEmbed.h \
+  HepMCCollisionVertex.h
 
 lib_LTLIBRARIES = \
   libCaloEmbedding.la
 
 libCaloEmbedding_la_SOURCES = \
+  HepMCCollisionVertex.cc \
   caloTowerEmbed.cc
 
 libCaloEmbedding_la_LIBADD = \
   -lphool \
   -lSubsysReco \
-  -lfun4all 
+  -lfun4all \
+  -lcalo_io \
+  -lphhepmc_io \
+  -lglobalvertex_io
 
 BUILT_SOURCES = testexternals.cc
 
