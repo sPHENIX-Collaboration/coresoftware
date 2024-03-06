@@ -51,6 +51,8 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   // look for distortion calibration object
   PHNodeIterator iter(topNode);
 
+  std::cout << "TpcLoadDistortionCorrection::InitRun - m_phi_hist_in_radians: " << m_phi_hist_in_radians << std::endl;
+
   /// Get the RUN node and check
   auto runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
@@ -88,19 +90,22 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
     const std::array<const std::string, 2> extension = {{"_negz", "_posz"}};
     for (int j = 0; j < 2; ++j)
     {
-      distortion_correction_object->m_hDPint[j] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionP%s", extension[j].c_str())));
+      distortion_correction_object->m_hDPint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionP")+extension[j]).c_str()));
       assert(distortion_correction_object->m_hDPint[j]);
-      distortion_correction_object->m_hDRint[j] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionR%s", extension[j].c_str())));
+      distortion_correction_object->m_hDRint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionR")+extension[j]).c_str()));
       assert(distortion_correction_object->m_hDRint[j]);
-      distortion_correction_object->m_hDZint[j] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionZ%s", extension[j].c_str())));
+      distortion_correction_object->m_hDZint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionZ")+extension[j]).c_str()));
       assert(distortion_correction_object->m_hDZint[j]);
     }
 
     // assign correction object dimension from histograms dimention, assuming all histograms have the same
-    distortion_correction_object->dimensions = distortion_correction_object->m_hDPint[0]->GetDimension();
+    distortion_correction_object->m_dimensions = distortion_correction_object->m_hDPint[0]->GetDimension();
 
     // only dimensions 2 or 3 are supported
-    assert(distortion_correction_object->dimensions == 2 || distortion_correction_object->dimensions == 3);
+    assert(distortion_correction_object->m_dimensions == 2 || distortion_correction_object->m_dimensions == 3);
+
+    // assign whether phi corrections (DP) should be read as radians or mm
+    distortion_correction_object->m_phi_hist_in_radians = m_phi_hist_in_radians;
 
     if (Verbosity())
     {
