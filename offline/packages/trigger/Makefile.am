@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS = foreign
+sAUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -7,7 +7,10 @@ AM_CPPFLAGS = \
 
 lib_LTLIBRARIES = \
    libcalotrigger_io.la \
-   libcalotrigger.la
+   libcalotrigger.la \
+   libll1_io.la \
+   libll1.la \
+   libcalotriggeremulator.la
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -23,13 +26,41 @@ libcalotrigger_la_LIBADD = \
   -lglobalvertex \
   -lSubsysReco
 
+libll1_io_la_LIBADD = \
+  -lphool \
+  -lcalo_reco \
+  -lfun4all
+
+libcalotriggeremulator_la_LIBADD = \
+  -lphool \
+  -lfun4all \
+  libll1_io.la \
+  -lcalo_reco \
+  -lffamodules 
+
+libll1_la_LIBADD = \
+  -lphool \
+  -lfun4all \
+  libll1_io.la
+
 pkginclude_HEADERS = \
   MinimumBiasClassifier.h \
   MinimumBiasInfo.h \
   MinimumBiasInfov1.h \
   CaloTriggerSim.h \
   CaloTriggerInfo.h \
-  CaloTriggerInfov1.h
+  CaloTriggerInfov1.h \
+  LL1Defs.h \
+  LL1Out.h \
+  LL1Outv1.h \
+  LL1Outv2.h \
+  CaloTriggerEmulator.h \
+  LL1PacketGetter.h \
+  TriggerDefs.h \
+  TriggerPrimitive.h \
+  TriggerPrimitiveContainer.h \
+  TriggerPrimitiveContainerv1.h
+
 
 ROOTDICTS = \
   CaloTriggerInfo_Dict.cc \
@@ -42,7 +73,13 @@ nobase_dist_pcm_DATA = \
   CaloTriggerInfo_Dict_rdict.pcm \
   CaloTriggerInfov1_Dict_rdict.pcm \
   MinimumBiasInfo_Dict_rdict.pcm \
-  MinimumBiasInfov1_Dict_rdict.pcm
+  MinimumBiasInfov1_Dict_rdict.pcm \
+  LL1Out_Dict_rdict.pcm \
+  LL1Outv1_Dict_rdict.pcm \
+  LL1Outv2_Dict_rdict.pcm \
+  TriggerPrimitive_Dict_rdict.pcm \
+  TriggerPrimitiveContainer_Dict_rdict.pcm \
+  TriggerPrimitiveContainerv1_Dict_rdict.pcm
 
 libcalotrigger_io_la_SOURCES = \
   $(ROOTDICTS) \
@@ -53,6 +90,25 @@ libcalotrigger_la_SOURCES = \
   CaloTriggerSim.cc \
   MinimumBiasClassifier.cc
 
+libcalotriggeremulator_la_SOURCES = \
+  CaloTriggerEmulator.cc
+
+libll1_la_SOURCES = \
+  LL1PacketGetter.cc
+
+libll1_io_la_SOURCES = \
+  LL1Out_Dict.cc \
+  LL1Outv1_Dict.cc \
+  LL1Outv2_Dict.cc \
+  TriggerPrimitive_Dict.cc \
+  TriggerPrimitiveContainer_Dict.cc \
+  TriggerPrimitiveContainerv1_Dict.cc \
+  LL1Out.cc \
+  LL1Outv1.cc \
+  LL1Outv2.cc \
+  TriggerPrimitive.cc \
+  TriggerPrimitiveContainer.cc \
+  TriggerPrimitiveContainerv1.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -74,6 +130,15 @@ testexternals_calotrigger_io_LDADD = libcalotrigger_io.la
 
 testexternals_calotrigger_SOURCES = testexternals.cc
 testexternals_calotrigger_LDADD = libcalotrigger.la
+
+testexternals_ll1_SOURCES = testexternals.cc
+testexternals_ll1_LDADD = libll1.la
+
+testexternals_ll1_io_SOURCES = testexternals.cc
+testexternals_ll1_io_LDADD = libll1_io.la
+
+testexternals_calotriggeremulator_SOURCES = testexternals.cc
+testexternals_calotriggeremulator_LDADD = libcalotriggeremulator.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
