@@ -34,7 +34,7 @@ KFParticle_nTuple::KFParticle_nTuple()
   , m_detector_info(false)
   , m_calo_info(true)
   , m_use_intermediate_name(true)
-  , m_get_charge_conjugate_nTuple(true)
+  , m_get_charge_conjugate_nTuple(false)
   , m_tree(nullptr)
 {
 }  // Constructor

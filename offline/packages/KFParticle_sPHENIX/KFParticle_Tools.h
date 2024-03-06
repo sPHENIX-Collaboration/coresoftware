@@ -167,7 +167,7 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   float m_mva_cut_value = -1;
 
-  bool m_get_charge_conjugate = true;
+  bool m_get_charge_conjugate = false;
 
   bool m_extrapolateTracksToSV = true;
 
