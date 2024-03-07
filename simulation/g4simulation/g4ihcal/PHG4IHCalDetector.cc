@@ -2,8 +2,8 @@
 
 #include "PHG4IHCalDisplayAction.h"
 
-#include <g4detectors/PHG4HcalDefs.h>
 #include <g4detectors/PHG4DetectorSubsystem.h>
+#include <g4detectors/PHG4HcalDefs.h>
 
 #include <phparameter/PHParameters.h>
 
@@ -31,7 +31,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
-
 
 #include <TSystem.h>
 
@@ -82,12 +81,12 @@ PHG4IHCalDetector::PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
 {
   gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
   assert(gdml_config);
-// changes in the parameters have to be made here
-// otherwise they will not be propagated to the node tree
+  // changes in the parameters have to be made here
+  // otherwise they will not be propagated to the node tree
   if (std::filesystem::path(m_GDMPath).extension() != ".gdml")
   {
     m_GDMPath = CDBInterface::instance()->getUrl(m_GDMPath);
-    m_Params->set_string_param("GDMPath",m_GDMPath);
+    m_Params->set_string_param("GDMPath", m_GDMPath);
   }
 }
 
@@ -166,7 +165,7 @@ int PHG4IHCalDetector::ConstructIHCal(G4LogicalVolume *hcalenvelope)
   std::unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
   gdmlParser.SetOverlapCheck(OverlapCheck());
-  if (! std::filesystem::exists(m_GDMPath))
+  if (!std::filesystem::exists(m_GDMPath))
   {
     std::cout << PHWHERE << " Inner HCal gdml file " << m_GDMPath << " not found" << std::endl;
     gSystem->Exit(1);
