@@ -700,8 +700,8 @@ void PHG4OHCalSteppingAction::FieldChecker(const G4Step* aStep)
   globPosVec[2] = globPosition.z();
   globPosVec[3] = aStep->GetPreStepPoint()->GetGlobalTime();
 
-  const Int_t binx = h->GetXaxis()->FindBin(globPosVec[0] / cm);
-  const Int_t biny = h->GetYaxis()->FindBin(globPosVec[1] / cm);
+  const int binx = h->GetXaxis()->FindBin(globPosVec[0] / cm);
+  const int biny = h->GetYaxis()->FindBin(globPosVec[1] / cm);
 
   if (h->GetBinContent(binx, binx) == 0)
   {  // only fille unfilled bins
