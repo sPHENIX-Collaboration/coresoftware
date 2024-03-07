@@ -6,7 +6,7 @@
 
 class PHObject;
 
-class SvtxTrackInfo_v3 : public SvtxTrackInfo
+class SvtxTrackInfo_v3 final : public SvtxTrackInfo
 {
  public:
   enum STATE

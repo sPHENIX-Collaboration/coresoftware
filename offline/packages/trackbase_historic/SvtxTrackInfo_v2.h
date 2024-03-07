@@ -6,7 +6,7 @@
 
 class PHObject;
 
-class SvtxTrackInfo_v2 : public SvtxTrackInfo
+class SvtxTrackInfo_v2 final : public SvtxTrackInfo
 {
  public:
   SvtxTrackInfo_v2() {}

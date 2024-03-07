@@ -8,6 +8,7 @@ SvtxPHG4ParticleMap_v1::SvtxPHG4ParticleMap_v1()
 SvtxPHG4ParticleMap_v1::SvtxPHG4ParticleMap_v1(const SvtxPHG4ParticleMap_v1& map)
   : m_map()
 {
+  m_processed = map.processed();
   for (const auto& iter : map)
   {
     WeightedTruthTrackMap trackmap = iter.second;

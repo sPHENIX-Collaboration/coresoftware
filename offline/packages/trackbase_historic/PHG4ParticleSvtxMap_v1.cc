@@ -8,6 +8,7 @@ PHG4ParticleSvtxMap_v1::PHG4ParticleSvtxMap_v1()
 PHG4ParticleSvtxMap_v1::PHG4ParticleSvtxMap_v1(const PHG4ParticleSvtxMap_v1& map)
   : m_map()
 {
+  m_processed = map.processed();
   for (const auto& iter : map)
   {
     WeightedRecoTrackMap trackmap = iter.second;
