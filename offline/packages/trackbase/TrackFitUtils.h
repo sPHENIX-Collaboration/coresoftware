@@ -101,6 +101,8 @@ class TrackFitUtils
                                   TrkrClusterContainer* _cluster_map,
                                   std::vector<Acts::Vector3>& global_vec,
                                   std::vector<TrkrDefs::cluskey>& cluskey_vec);
+  static Acts::Vector3 surface_3Dline_intersection(const TrkrDefs::cluskey& key,
+                                                   TrkrCluster* cluster, ActsGeometry* geometry, float& xyslope, float& xyint, float& rzslope, float& rzint);
 
   static Acts::Vector3 getPCALinePoint(const Acts::Vector3& global, const Acts::Vector3& tangent, const Acts::Vector3& posref);
   static Acts::Vector3 get_helix_surface_intersection(const Surface& surf,
