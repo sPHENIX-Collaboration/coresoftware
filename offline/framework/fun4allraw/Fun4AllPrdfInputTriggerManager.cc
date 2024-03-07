@@ -10,7 +10,8 @@
 #include <ffaobjects/SyncObject.h>    // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>  // for SyncObject
 
-#include <ffarawobjects/OfflinePacket.h>
+//#include <ffarawobjects/OfflinePacket.h>
+#include <ffarawobjects/Gl1Packet.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -36,19 +37,9 @@
 Fun4AllPrdfInputTriggerManager::Fun4AllPrdfInputTriggerManager(const std::string &name, const std::string &prdfnodename, const std::string &topnodename)
   : Fun4AllInputManager(name, prdfnodename, topnodename)
   , m_SyncObject(new SyncObjectv1())
-  , m_PrdfNodeName(prdfnodename)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
   m_topNode = se->topNode(TopNodeName());
-  PHNodeIterator iter(m_topNode);
-  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
-  if (!PrdfNode)
-  {
-    PHDataNode<Event> *newNode = new PHDataNode<Event>(m_Event, m_PrdfNodeName, "Event");
-    m_topNode->addNode(newNode);
-  }
-  oph = new oEvent(workmem, 4 * 1024 * 1024, 1, 1, 1);
-  return;
 }
 
 Fun4AllPrdfInputTriggerManager::~Fun4AllPrdfInputTriggerManager()
@@ -69,7 +60,6 @@ Fun4AllPrdfInputTriggerManager::~Fun4AllPrdfInputTriggerManager()
       delete pktiter;
     }
   }
-  delete oph;
 }
 
 int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
@@ -189,12 +179,6 @@ void Fun4AllPrdfInputTriggerManager::Print(const std::string &what) const
 
 int Fun4AllPrdfInputTriggerManager::ResetEvent()
 {
-  PHNodeIterator iter(m_topNode);
-  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
-  PrdfNode->setData(nullptr);  // set pointer in Node to nullptr before deleting it
-  delete m_Event;
-  m_Event = nullptr;
-  //  m_SyncObject->Reset();
   return 0;
 }
 
@@ -297,10 +281,7 @@ int Fun4AllPrdfInputTriggerManager::SyncIt(const SyncObject *mastersync)
 
 std::string Fun4AllPrdfInputTriggerManager::GetString(const std::string &what) const
 {
-  if (what == "PRDFNODENAME")
-  {
-    return m_PrdfNodeName;
-  }
+  std::cout << PHWHERE << " called with " << what << " , returning empty string" << std::endl;
   return "";
 }
 
@@ -604,7 +585,7 @@ int Fun4AllPrdfInputTriggerManager::FillGl1()
     return -1;
   }
   //    std::cout << "stashed gl1 BCOs: " << m_Gl1PacketMap.size() << std::endl;
-  OfflinePacket *gl1rawhit = findNode::getClass<OfflinePacket>(m_topNode, "GL1Packet");
+  Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(m_topNode, "GL1Packet");
   //  std::cout << "before filling m_Gl1PacketMap size: " <<  m_Gl1PacketMap.size() << std::endl;
   for (auto gl1hititer : m_Gl1PacketMap.begin()->second.Gl1PacketVector)
   {
@@ -612,8 +593,9 @@ int Fun4AllPrdfInputTriggerManager::FillGl1()
     {
       gl1hititer->identify();
     }
-    m_RefEventNo = gl1hititer->getEvtSequence();
-    gl1rawhit->setEvtSequence(m_RefEventNo);
+    gl1packet->FillFrom(gl1hititer);
+    // m_RefEventNo = gl1hititer->getEvtSequence();
+    // gl1packet->setEvtSequence(m_RefEventNo);
   }
   for (auto iter : m_Gl1InputVector)
   {
@@ -626,7 +608,7 @@ int Fun4AllPrdfInputTriggerManager::FillGl1()
   return 0;
 }
 
-void Fun4AllPrdfInputTriggerManager::AddGl1Packet(int eventno, OfflinePacket *pkt)
+void Fun4AllPrdfInputTriggerManager::AddGl1Packet(int eventno, Gl1Packet *pkt)
 {
   if (Verbosity() > 1)
   {

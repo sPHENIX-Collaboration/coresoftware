@@ -17,6 +17,7 @@
 class Event;
 class SinglePrdfInput;
 class oEvent;
+class Gl1Packet;
 class Packet;
 class PHCompositeNode;
 class SingleTriggerInput;
@@ -55,7 +56,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void ClearAllEvents();
   void SetPoolDepth(unsigned int d) { m_PoolDepth = d; }
   int FillGl1();
-  void AddGl1Packet(int eventno, OfflinePacket *gl1pkt);
+  void AddGl1Packet(int eventno, Gl1Packet *gl1pkt);
   int FillMbd();
   void AddMbdPacket(int eventno, OfflinePacket *mbdpkt);
 
@@ -73,7 +74,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
 
   struct Gl1PacketInfo
   {
-    std::vector<OfflinePacket *> Gl1PacketVector;
+    std::vector<Gl1Packet *> Gl1PacketVector;
     unsigned int EventFoundCounter = 0;
   };
 
@@ -103,7 +104,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::map<int, PacketInfo> m_PacketMap;
   std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
   std::map<int, MbdPacketInfo> m_MbdPacketMap;
-  std::string m_PrdfNodeName;
   std::map<int, int> m_DroppedPacketMap;
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;
   std::map<int, int> m_RefClockCounters;
