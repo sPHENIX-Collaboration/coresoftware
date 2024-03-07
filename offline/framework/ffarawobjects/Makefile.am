@@ -16,6 +16,7 @@ libffarawobjects_la_LIBADD = \
   -lphool
 
 ROOTDICTS = \
+  Gl1Packet_Dict.cc \
   Gl1Packetv1_Dict.cc \
   Gl1RawHit_Dict.cc \
   Gl1RawHitv1_Dict.cc \
@@ -46,6 +47,7 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  Gl1Packet_Dict_rdict.pcm \
   Gl1Packetv1_Dict_rdict.pcm \
   Gl1RawHit_Dict_rdict.pcm \
   Gl1RawHitv1_Dict_rdict.pcm \
@@ -75,6 +77,7 @@ nobase_dist_pcm_DATA = \
   TpcRawHitv1_Dict_rdict.pcm
 
 pkginclude_HEADERS = \
+  Gl1Packet.h \
   Gl1Packetv1.h \
   Gl1RawHit.h \
   Gl1RawHitv1.h \
