@@ -84,87 +84,6 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
     iret += FillMbd();
   }
   return iret;
-  if (m_StartUpFlag)
-  {
-    for (auto iter : m_PrdfInputVector)
-    {
-      iter->FillPool(m_InitialPoolDepth);
-      m_RunNumber = iter->RunNumber();
-    }
-    CreateBclkOffsets();
-    m_StartUpFlag = false;
-  }
-  bool event_ok = false;
-  while (!event_ok)
-  {
-    event_ok = true;
-    if (m_PacketMap.size() < m_PoolDepth)
-    {
-      for (auto iter : m_PrdfInputVector)
-      {
-        iter->FillPool(m_PoolDepth);
-        m_RunNumber = iter->RunNumber();
-      }
-      SetRunNumber(m_RunNumber);
-    }
-
-    if (m_PacketMap.empty())
-    {
-      std::cout << "we are done" << std::endl;
-      return -1;
-    }
-    //  std::cout << "next event is " << m_PacketMap.begin()->first << std::endl;
-    auto pktinfoiter = m_PacketMap.begin();
-    int eventnumber = pktinfoiter->first;
-
-    // if we don't have this event in our reference input - ditch it (messes with the ref beam clock counter)
-    if (m_RefClockCounters.find(eventnumber) == m_RefClockCounters.end())
-    {
-      event_ok = false;
-      DitchEvent(eventnumber);
-    }
-    else
-    {
-      int refclock = m_RefClockCounters[eventnumber];
-      for (auto veciter : m_ClockCounters[eventnumber])
-      {
-        uint64_t diffclock = CalcDiffBclk(veciter.first, refclock);
-        if (diffclock != m_SinglePrdfInputInfo[veciter.second].bclkoffset)
-        {
-          std::cout << "Houston we have a problem with event " << eventnumber << std::endl;
-          std::cout << "name " << veciter.second->Name() << ", diffclk: 0x" << std::hex
-                    << diffclock << ", my bclk: 0x" << veciter.first
-                    << ", ref clk: 0x" << refclock << std::dec << std::endl;
-          Resynchronize();
-          event_ok = false;
-          break;
-        }
-      }
-    }
-  }
-  auto pktinfoiter = m_PacketMap.begin();
-  oph->prepare_next(pktinfoiter->first, m_RunNumber);
-
-  for (auto &pktiter : pktinfoiter->second.PacketVector)
-  {
-    oph->addPacket(pktiter);
-  }
-  m_Event = new A_Event(workmem);
-  if (Verbosity() > 1)
-  {
-    m_Event->identify();
-  }
-  PHNodeIterator iter(m_topNode);
-  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
-  PrdfNode->setData(m_Event);
-  for (auto &pktiter : pktinfoiter->second.PacketVector)
-  {
-    delete pktiter;
-  }
-  m_ClockCounters.erase(pktinfoiter->first);
-  m_RefClockCounters.erase(pktinfoiter->first);
-  m_PacketMap.erase(pktinfoiter);
-  return 0;
   // readagain:
   //   if (!IsOpen())
   //   {
@@ -385,27 +304,6 @@ std::string Fun4AllPrdfInputTriggerManager::GetString(const std::string &what) c
   return "";
 }
 
-SinglePrdfInput *Fun4AllPrdfInputTriggerManager::AddPrdfInputFile(const std::string &filenam)
-{
-  SinglePrdfInput *prdfin = new SinglePrdfInput("PRDFIN_" + std::to_string(m_PrdfInputVector.size()), this);
-  prdfin->AddFile(filenam);
-  m_PrdfInputVector.push_back(prdfin);
-  return m_PrdfInputVector.back();
-}
-
-SinglePrdfInput *Fun4AllPrdfInputTriggerManager::AddPrdfInputList(const std::string &filenam)
-{
-  SinglePrdfInput *prdfin = new SinglePrdfInput("PRDFIN_" + std::to_string(m_PrdfInputVector.size()), this);
-  prdfin->AddListFile(filenam);
-  m_PrdfInputVector.push_back(prdfin);
-  return m_PrdfInputVector.back();
-}
-
-SinglePrdfInput *Fun4AllPrdfInputTriggerManager::registerPrdfInput(SinglePrdfInput *prdfin)
-{
-  m_PrdfInputVector.push_back(prdfin);
-  return m_PrdfInputVector.back();
-}
 
 void Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *prdfin, InputManagerType::enu_subsystem system)
 {

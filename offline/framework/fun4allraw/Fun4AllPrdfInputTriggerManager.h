@@ -41,9 +41,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int SyncIt(const SyncObject *mastersync) override;
   int HasSyncObject() const override { return 1; }
   std::string GetString(const std::string &what) const override;
-  SinglePrdfInput *AddPrdfInputList(const std::string &listfile);
-  SinglePrdfInput *AddPrdfInputFile(const std::string &filename);
-  SinglePrdfInput *registerPrdfInput(SinglePrdfInput *prdfin);
   void registerTriggerInput(SingleTriggerInput *prdfin, InputManagerType::enu_subsystem system);
   void AddPacket(const int evtno, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
