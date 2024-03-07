@@ -85,18 +85,18 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
 {
   gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
   assert(gdml_config);
-// changes in the parameters have to be made here
-// otherwise they will not be propagated to the node tree
+  // changes in the parameters have to be made here
+  // otherwise they will not be propagated to the node tree
   if (std::filesystem::path(m_GDMPath).extension() != ".gdml")
   {
     m_GDMPath = CDBInterface::instance()->getUrl(m_GDMPath);
-    m_Params->set_string_param("GDMPath",m_GDMPath);
+    m_Params->set_string_param("GDMPath", m_GDMPath);
   }
   std::string ironfieldmap = m_Params->get_string_param("IronFieldMapPath");
   if (std::filesystem::path(ironfieldmap).extension() != ".root")
   {
     ironfieldmap = CDBInterface::instance()->getUrl(ironfieldmap);
-    m_Params->set_string_param("IronFieldMapPath",ironfieldmap);
+    m_Params->set_string_param("IronFieldMapPath", ironfieldmap);
   }
   PHFieldConfig *fieldconf = findNode::getClass<PHFieldConfig>(Node, PHFieldUtility::GetDSTConfigNodeName());
   if (fieldconf->get_field_config() != PHFieldConfig::kFieldUniform)
@@ -191,7 +191,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   std::unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
   gdmlParser.SetOverlapCheck(OverlapCheck());
-  if (! std::filesystem::exists(m_GDMPath))
+  if (!std::filesystem::exists(m_GDMPath))
   {
     std::cout << PHWHERE << " Outer HCal gdml file " << m_GDMPath << " not found" << std::endl;
     gSystem->Exit(1);

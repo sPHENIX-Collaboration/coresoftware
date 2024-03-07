@@ -184,9 +184,9 @@ void PHG4OHCalSubsystem::SetDefaultParameters()
   set_default_int_param("etabins", 24);
   set_default_int_param("saveg4hit", 1);
 
-  set_default_string_param("GDMPath", "HCALOUT_GDML"); // use CDB
-  set_default_string_param("MapFileName", "HCALOUT_MEPHI_MAP"); // use CDB
+  set_default_string_param("GDMPath", "HCALOUT_GDML");           // use CDB
+  set_default_string_param("MapFileName", "HCALOUT_MEPHI_MAP");  // use CDB
   set_default_string_param("MapHistoName", "ohcal_mephi_map_towerid_");
-  set_default_string_param("IronFieldMapPath", "HCALOUT_STEEL_MAP"); // use CDB
+  set_default_string_param("IronFieldMapPath", "HCALOUT_STEEL_MAP");  // use CDB
   set_default_double_param("IronFieldMapScale", 1.);
 }

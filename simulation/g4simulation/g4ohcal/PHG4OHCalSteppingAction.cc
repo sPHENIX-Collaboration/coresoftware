@@ -99,7 +99,7 @@ PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, PH
   if (std::filesystem::path(mapfile).extension() != ".root")
   {
     mapfile = CDBInterface::instance()->getUrl(mapfile);
-    m_Params->set_string_param("MapFileName",mapfile);
+    m_Params->set_string_param("MapFileName", mapfile);
   }
 }
 
