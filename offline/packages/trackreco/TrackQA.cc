@@ -64,6 +64,17 @@ int TrackQA::process_event(PHCompositeNode* topNode)
       continue;
     }
 
+    auto ckeys = get_cluster_keys(track);
+    std::vector<Acts::Vector3> cluspos;
+    TrackFitUtils::getTrackletClusters(geometry, clustermap, cluspos, ckeys);
+
+    auto lineFitParams = lineFitClusters(cluspos);
+
+    /// Only look at tracks that go through 20 cm of origin
+    if(std::fabs(std::get<1>(lineFitParams)) > 20)
+    {
+      continue;
+    }
     float px = track->get_px();
     float py = track->get_py();
     float pz = track->get_pz();
@@ -72,16 +83,12 @@ int TrackQA::process_event(PHCompositeNode* topNode)
     float phi = std::atan2(py, px);
     h_ntrack->Fill(phi, eta);
 
-    auto ckeys = get_cluster_keys(track);
     int nmaps = 0;
     int nintt = 0;
     int ntpc = 0;
     int nmms = 0;
 
-    std::vector<Acts::Vector3> cluspos;
-    TrackFitUtils::getTrackletClusters(geometry, clustermap, cluspos, ckeys);
 
-    auto lineFitParams = lineFitClusters(cluspos);
     int i = 0;
     for (auto& ckey : ckeys)
     {
