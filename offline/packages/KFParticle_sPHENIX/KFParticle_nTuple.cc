@@ -17,7 +17,6 @@
 #include <cmath>
 #include <cstdlib>  // for abs, size_t
 #include <map>      // for map, _Rb_tree_iterator, map<>:...
-#include <utility>  // for pair
 
 class PHCompositeNode;
 class PHNode;
