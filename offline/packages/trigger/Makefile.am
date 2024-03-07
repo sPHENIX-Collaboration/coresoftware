@@ -123,7 +123,10 @@ BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals_calotrigger_io \
-  testexternals_calotrigger
+  testexternals_calotrigger \
+  testexternals_ll1 \
+  testexternals_ll1_io \
+  testexternals_calotriggeremulator
 
 testexternals_calotrigger_io_SOURCES = testexternals.cc
 testexternals_calotrigger_io_LDADD = libcalotrigger_io.la
