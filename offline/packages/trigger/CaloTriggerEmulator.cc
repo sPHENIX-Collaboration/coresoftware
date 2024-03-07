@@ -35,16 +35,16 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string& name, const std::str
   , outfilename(filename)
   , hm(nullptr)
   , outfile(nullptr)
+  , _trigger("NONE")
 {
-
   // initialize all important parameters
-  _trigger = "NONE";
+ 
   _nevent = 0;
   _npassed = 0;
   m_emcal_GeV_per_lut = 0.1;
   m_emcal_lut_offset = 0.0;
   m_emcal_lut_floor = 0.0;
-
+  m_isdata = false;
   // default nsamples is 31;
   m_nsamples = 31;
 
@@ -70,6 +70,85 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string& name, const std::str
   for (unsigned int i = 0; i < 4096; i++)
     {
       m_l1_slewing_table[i] = (i) & 0x1ff;
+    }
+
+  // reset variables
+  for (int j = 0; j < 8; j++)
+    {
+      m_trig_charge[j] = 0;
+      for (int k = 0; k < 4; k++)
+	{
+	  m2_trig_charge[k][j] = 0;
+	}
+    }
+  m_trig_nhit = 0;
+  for (int k = 0; k < 4; k++)
+    {
+      m2_trig_nhit[k] = 0;
+    }
+  for (int j = 0; j < 4; j++)
+    {
+      m_trig_time[j] = 0;
+      for (int k = 0; k < 4; k++)
+	{
+	  m2_trig_time[j][k] = 0;
+	}
+    }
+  for (int i = 0; i < 2; i ++)
+    {
+      m_out_tsum[i] = 0;
+      m_out_nhit[i] = 0;
+      m_out_tavg[i] = 0;
+      m_out_trem[i] = 0;
+    }
+  m_out_vtx_sub = 0;
+  m_out_vtx_add = 0;
+
+  // Set HCAL LL1 lookup table for the cosmic coincidence trigger.
+  if (_triggerid == TriggerDefs::TriggerId::cosmic_coinTId)
+    {
+      unsigned int bits1, bits2, sumbits1, sumbits2;
+      for (int i = 0; i < 4096; i++)
+	{
+	  sumbits1 = 0;
+	  sumbits2 = 0;
+
+	  bits1 = (i & 0x3f);
+	  bits2 = ((i>>6) & 0x3f);
+	  for (int j = 0; j < 3; j++)
+	    {
+	      if (((bits1>>j)&0x1) && ((bits2>>j)&0x1)) sumbits1 ++; 
+              if (((bits1>>(j+3))&0x1) && ((bits2>>(j+3))&0x1)) sumbits2 ++;
+	    }
+
+	  m_l1_hcal_table[i] = 0;
+	  if (i == 0) continue;
+	  m_l1_hcal_table[i] |= (sumbits1 ? 0x1 : 0);
+	  m_l1_hcal_table[i] |= (sumbits2 ? 0x2 : 0);
+	}
+    }
+
+  else if (_triggerid == TriggerDefs::TriggerId::cosmicTId)
+    {
+      unsigned int bits1, bits2, sumbits1, sumbits2;
+      for (int i = 0; i < 4096; i++)
+	{
+	  sumbits1 = 0;
+	  sumbits2 = 0;
+
+	  bits1 = (i & 0x3f);
+	  bits2 = ((i>>6) & 0x3f);
+	  for (int j = 0; j < 6; j++)
+	    {
+	      sumbits1 += ((bits1>>j) & 0x1);
+	      sumbits2 += ((bits2>>j) & 0x1);
+	    }
+
+	  m_l1_hcal_table[i] = 0;
+	  if (i == 0) continue;
+	  m_l1_hcal_table[i] |= (sumbits1 ? 0x1 : 0);
+	  m_l1_hcal_table[i] |= (sumbits2 ? 0x2 : 0);
+	}
     }
 
 

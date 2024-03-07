@@ -12,7 +12,6 @@
 TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1()
 {
 
-  Reset();
 
 }
 

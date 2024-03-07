@@ -29,6 +29,9 @@ LL1PacketGetter::LL1PacketGetter(const std::string &name, const std::string &tri
   , m_nchannels(60)
   , m_isdata(true)
 {
+  m_triggerid = TriggerDefs::TriggerId::noneTId;
+  m_primitiveid = TriggerDefs::PrimitiveId::nonePId;
+  m_detectorid = TriggerDefs::DetectorId::noneDId;
 
   m_prim_map[TriggerDefs::DetectorId::noneDId] = 0;
   m_prim_map[TriggerDefs::DetectorId::emcalDId] = 384;

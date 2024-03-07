@@ -11,16 +11,16 @@
 ClassImp(LL1Outv2)
 
 LL1Outv2::LL1Outv2()
+: _ll1_type("NONE")
+  ,_trigger_type("NONE")
 {
-  _ll1_type = "NONE";
-  _trigger_type = "NONE";
   _trigger_key = TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(_trigger_type));
-
+  
   Init();
 }
 
 
-LL1Outv2::LL1Outv2(std::string triggertype, std::string ll1type)
+LL1Outv2::LL1Outv2(const std::string triggertype, const std::string ll1type)
 {
   _trigger_type = triggertype;
 

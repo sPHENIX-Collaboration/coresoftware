@@ -26,7 +26,7 @@ class LL1Outv2 : public LL1Outv1
   ///
   LL1Outv2();
 
-  LL1Outv2(std::string triggertype, std::string ll1type);
+  LL1Outv2(const std::string triggertype, const std::string ll1type);
   ///
   ~LL1Outv2() override;
 
