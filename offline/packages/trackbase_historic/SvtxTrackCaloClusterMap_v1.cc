@@ -19,7 +19,7 @@ SvtxTrackCaloClusterMap_v1::SvtxTrackCaloClusterMap_v1()
 SvtxTrackCaloClusterMap_v1::SvtxTrackCaloClusterMap_v1(const SvtxTrackCaloClusterMap_v1& map)
   : _map()
 {
-  for (const auto & iter : map)
+  for (const auto& iter : map)
   {
     std::vector<RawCluster*> clus = iter.second;
     _map.insert(make_pair(iter.first, clus));
@@ -29,7 +29,7 @@ SvtxTrackCaloClusterMap_v1::SvtxTrackCaloClusterMap_v1(const SvtxTrackCaloCluste
 SvtxTrackCaloClusterMap_v1& SvtxTrackCaloClusterMap_v1::operator=(const SvtxTrackCaloClusterMap_v1& map)
 {
   Reset();
-  for (const auto & iter : map)
+  for (const auto& iter : map)
   {
     std::vector<RawCluster*> clus = iter.second;
     _map.insert(make_pair(iter.first, clus));

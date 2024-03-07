@@ -18,7 +18,6 @@ TrackSeed::ConstClusterKeyIter TrackSeed::end_cluster_keys() const
   return dummyKeySet.end();
 }
 
-
 TrackSeed::ClusterKeyIter TrackSeed::begin_cluster_keys()
 {
   return dummyKeySet.end();
@@ -48,7 +47,6 @@ TrackSeed::HitIdConstIter TrackSeed::end_g4hit_id() const
 {
   return dummyHitIdMap.end();
 }
-
 
 TrackSeed::HitIdIter TrackSeed::begin_g4hit_id()
 {

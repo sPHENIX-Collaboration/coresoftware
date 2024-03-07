@@ -54,14 +54,16 @@ class SvtxTrack : public PHObject
 
   //! import PHObject CopyFrom, in order to avoid clang warning
   using PHObject::CopyFrom;
-  
-  //! copy content from base class
-  virtual void CopyFrom( const SvtxTrack& ) 
-  {}
 
   //! copy content from base class
-  virtual void CopyFrom( SvtxTrack* ) 
-  {}
+  virtual void CopyFrom(const SvtxTrack&)
+  {
+  }
+
+  //! copy content from base class
+  virtual void CopyFrom(SvtxTrack*)
+  {
+  }
 
   //
   // basic track information ---------------------------------------------------
@@ -72,7 +74,7 @@ class SvtxTrack : public PHObject
 
   virtual TrackSeed* get_tpc_seed() const { return nullptr; }
   virtual void set_tpc_seed(TrackSeed*) {}
-  
+
   virtual TrackSeed* get_silicon_seed() const { return nullptr; }
   virtual void set_silicon_seed(TrackSeed*) {}
 
@@ -140,16 +142,16 @@ class SvtxTrack : public PHObject
   virtual size_t erase_state(float /*pathlength*/) { return 0; }
 
   virtual ConstStateIter begin_states() const;
-  virtual ConstStateIter find_state(float pathlength)  const;
+  virtual ConstStateIter find_state(float pathlength) const;
   virtual ConstStateIter end_states() const;
 
   virtual StateIter begin_states();
   virtual StateIter find_state(float pathlength);
   virtual StateIter end_states();
-  
+
   //
   // The folllowing functions are deprecated as of SvtxTrack_v4
-  // This includes the cluster key getters/setters, 
+  // This includes the cluster key getters/setters,
   // any DCA getters/setters, and any calo projection getters/setters
   //
   virtual void clear_cluster_keys() {}
@@ -191,9 +193,9 @@ class SvtxTrack : public PHObject
   virtual float get_cal_cluster_e(CAL_LAYER /*layer*/) const { return 0.; }
   virtual void set_cal_cluster_e(CAL_LAYER /*layer*/, float /*e*/) {}
 
-  virtual float get_acts_covariance(unsigned int /*i*/, unsigned int /*j*/) const { return NAN;}
+  virtual float get_acts_covariance(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
   virtual void set_acts_covariance(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
- 
+
   virtual float get_dca() const { return NAN; }
   virtual void set_dca(float) {}
   virtual float get_dca_error() const { return NAN; }
@@ -211,18 +213,17 @@ class SvtxTrack : public PHObject
   virtual float get_dca3d_z_error() const { return NAN; }
   virtual void set_dca3d_z_error(float) {}
 
-
   //
   // truth track interface ---------------------------------------------------
   //
 
-  //SvtxTrack_FastSim
+  // SvtxTrack_FastSim
   virtual unsigned int get_truth_track_id() const { return UINT_MAX; }
   virtual void set_truth_track_id(unsigned int) {}
   virtual void set_num_measurements(int) {}
   virtual unsigned int get_num_measurements() const { return 0; }
 
-  //SvtxTrack_FastSim_v1
+  // SvtxTrack_FastSim_v1
   typedef std::map<int, std::set<PHG4HitDefs::keytype> > HitIdMap;
   typedef HitIdMap::iterator HitIdIter;
   typedef HitIdMap::const_iterator HitIdConstIter;

@@ -4,7 +4,7 @@
 /**
  * SvtxTrackInfo_v2 is a class developed to project the track information from
  * the outermost TPC surface to the calorimeters
-**/
+ **/
 
 void SvtxTrackInfo_v2::CopyFrom(const SvtxTrackInfo& source)
 {
@@ -42,7 +42,7 @@ void SvtxTrackInfo_v2::CopyFrom(const SvtxTrackInfo& source)
 
 SvtxTrackInfo_v2& SvtxTrackInfo_v2::operator=(const SvtxTrackInfo_v2& source)
 {
-  if(this != &source)
+  if (this != &source)
   {
     CopyFrom(source);
   }

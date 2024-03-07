@@ -8,7 +8,7 @@ PHG4ParticleSvtxMap_v1::PHG4ParticleSvtxMap_v1()
 PHG4ParticleSvtxMap_v1::PHG4ParticleSvtxMap_v1(const PHG4ParticleSvtxMap_v1& map)
   : m_map()
 {
-  for (const auto & iter : map)
+  for (const auto& iter : map)
   {
     WeightedRecoTrackMap trackmap = iter.second;
     m_map.insert(std::make_pair(iter.first, trackmap));
@@ -19,7 +19,7 @@ PHG4ParticleSvtxMap_v1& PHG4ParticleSvtxMap_v1::operator=(const PHG4ParticleSvtx
 {
   Reset();
 
-  for (const auto & iter : map)
+  for (const auto& iter : map)
   {
     m_map.insert(std::make_pair(iter.first, iter.second));
   }
@@ -56,7 +56,7 @@ PHG4ParticleSvtxMap::WeightedRecoTrackMap PHG4ParticleSvtxMap_v1::insert(const i
   return map;
 }
 
-const PHG4ParticleSvtxMap::WeightedRecoTrackMap & PHG4ParticleSvtxMap_v1::get(const int key) const
+const PHG4ParticleSvtxMap::WeightedRecoTrackMap& PHG4ParticleSvtxMap_v1::get(const int key) const
 {
   const auto iter = m_map.find(key);
   if (iter == m_map.end())

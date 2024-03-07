@@ -3,12 +3,12 @@
 SvtxPHG4ParticleMap::Map DummySvtxPHG4ParticleMap;
 SvtxPHG4ParticleMap::WeightedTruthTrackMap emptyTruthMap;
 
-const SvtxPHG4ParticleMap::WeightedTruthTrackMap & SvtxPHG4ParticleMap::get(const unsigned int /*unused*/) const
+const SvtxPHG4ParticleMap::WeightedTruthTrackMap& SvtxPHG4ParticleMap::get(const unsigned int /*unused*/) const
 {
   return emptyTruthMap;
 }
 
-SvtxPHG4ParticleMap::WeightedTruthTrackMap & SvtxPHG4ParticleMap::get(const unsigned int /*unused*/)
+SvtxPHG4ParticleMap::WeightedTruthTrackMap& SvtxPHG4ParticleMap::get(const unsigned int /*unused*/)
 {
   return emptyTruthMap;
 }

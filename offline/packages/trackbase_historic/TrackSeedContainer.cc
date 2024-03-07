@@ -17,7 +17,6 @@ TrackSeedContainer::ConstIter TrackSeedContainer::end() const
   return container.end();
 }
 
-
 TrackSeedContainer::Iter TrackSeedContainer::begin()
 {
   return container.end();
