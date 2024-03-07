@@ -14,6 +14,7 @@ public:
 
   virtual void setBunchNumber(const char bn) {return;}
   virtual char getBunchNumber() const {return std::numeric_limits<char>::min();}
+  virtual void FillFrom(const Gl1Packet *pkt) {return;}
 
 private:
   ClassDefOverride(Gl1Packet,1)
