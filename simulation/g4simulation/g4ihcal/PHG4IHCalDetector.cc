@@ -61,6 +61,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <cmath>
 #include <filesystem>
 #include <iostream>
 #include <memory>   // for unique_ptr
@@ -525,9 +526,9 @@ void PHG4IHCalDetector::AddGeometryNode()
     {
       const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::convert_name_to_caloid(m_SuperDetector), ieta, iphi);
 
-      const double x(geom_ref_radius * cos(m_RawTowerGeom->get_phicenter(iphi)));
-      const double y(geom_ref_radius * sin(m_RawTowerGeom->get_phicenter(iphi)));
-      const double z(geom_ref_radius / tan(PHG4Utils::get_theta(m_RawTowerGeom->get_etacenter(ieta))));
+      const double x(geom_ref_radius * std::cos(m_RawTowerGeom->get_phicenter(iphi)));
+      const double y(geom_ref_radius * std::sin(m_RawTowerGeom->get_phicenter(iphi)));
+      const double z(geom_ref_radius / std::tan(PHG4Utils::get_theta(m_RawTowerGeom->get_etacenter(ieta))));
 
       RawTowerGeom *tg = m_RawTowerGeom->get_tower_geometry(key);
       if (tg)
@@ -537,20 +538,20 @@ void PHG4IHCalDetector::AddGeometryNode()
           std::cout << "IHCalDetector::InitRun - Tower geometry " << key << " already exists" << std::endl;
         }
 
-        if (fabs(tg->get_center_x() - x) > 1e-4)
+        if (std::fabs(tg->get_center_x() - x) > 1e-4)
         {
           std::cout << "IHCalDetector::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
                     << std::endl;
 
           return;
         }
-        if (fabs(tg->get_center_y() - y) > 1e-4)
+        if (std::fabs(tg->get_center_y() - y) > 1e-4)
         {
           std::cout << "IHCalDetector::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
                     << std::endl;
           return;
         }
-        if (fabs(tg->get_center_z() - z) > 1e-4)
+        if (std::fabs(tg->get_center_z() - z) > 1e-4)
         {
           std::cout << "IHCalDetector::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
                     << std::endl;
