@@ -76,14 +76,14 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   float flightDistanceChi2(const KFParticle &particle, const KFParticle &vertex);
 
-  std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], std::string daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID);
+  std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], int daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID);
 
   void constrainToVertex(KFParticle &particle, bool &goodCandidate, KFParticle &vertex);
 
-  std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], std::string daughterOrder[], KFParticle vertex,
+  std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex,
                                               bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID);
 
-  std::vector<std::vector<std::string>> findUniqueDaughterCombinations(int start, int end);
+  std::vector<std::vector<int>> findUniqueDaughterCombinations(int start, int end);
 
   double calculateEllipsoidRadius(int posOrNeg, double sigma_ii, double sigma_jj, double sigma_ij);
 
