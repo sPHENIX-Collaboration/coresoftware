@@ -607,8 +607,6 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
       // and other neutral particle, like Lambda0/anti-Lambda0 ... who have an anti-particle with anti-PDGID
       // avoid charge*PDGID=0 case and getting wrong mass
       daughterMass = constrainMass ? getParticleMass(daughterOrder[i]) : vDaughters[i].GetMass();
-
-      std::cout<<"daughterMass = "<<daughterMass<<" , constrainMass = "<<constrainMass<<" , getParticleMass(daughterOrder[i]) = "<<getParticleMass(daughterOrder[i])<<" , vDaughters[i].GetMass() = "<<vDaughters[i].GetMass()<<std::endl;
     }
 
     if ((num_remaining_tracks > 0 && i >= m_num_intermediate_states) || isIntermediate)
