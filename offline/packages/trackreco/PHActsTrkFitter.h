@@ -223,7 +223,7 @@ class PHActsTrkFitter : public SubsysReco
   ClusterErrorPara _ClusErrPara;
 
   std::set<int> m_ignoreLayer;
-  bool m_use_clustermover = false;
+  bool m_use_clustermover = true;
 
   std::string m_fieldMap = "";
 
