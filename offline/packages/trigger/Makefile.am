@@ -108,7 +108,8 @@ libll1_io_la_SOURCES = \
   LL1Outv2.cc \
   TriggerPrimitive.cc \
   TriggerPrimitiveContainer.cc \
-  TriggerPrimitiveContainerv1.cc
+  TriggerPrimitiveContainerv1.cc \
+  TriggerDefs.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

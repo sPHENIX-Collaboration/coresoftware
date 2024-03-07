@@ -132,6 +132,8 @@ TriggerDefs::getPrimitivePhiId_from_TriggerPrimKey(const TriggerDefs::TriggerPri
 	  return tmp;
 	  break;
 	}
+      return UINT16_MAX;
+      break;
     default :
       return UINT16_MAX;
       break;
@@ -205,6 +207,8 @@ TriggerDefs::getPrimitiveEtaId_from_TriggerPrimKey(const TriggerDefs::TriggerPri
 	  return 0;
 	  break;
 	}
+      return UINT16_MAX;
+      break;
       
     default :
       return UINT16_MAX;
@@ -244,6 +248,9 @@ TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(const TriggerDefs::TriggerSumK
 	  return 0;
 	  break;
 	}
+      return UINT16_MAX;
+      break;
+
     default :
       return UINT16_MAX;
       break;
@@ -325,12 +332,6 @@ TriggerDefs::GetTowerInfoKey( const TriggerDefs::DetectorId detId, const uint16_
     case TriggerDefs::DetectorId::emcalDId:
       phibin = 8*(iprim/12) + 2*(isum/4) + (itower/2);
       etabin = 8*(iprim%12) + 2*(isum%4) + (itower%2);
-      if (phibin < 0 || phibin > 255 || etabin < 0 || etabin > 95) 
-	{
-	  std::cout << "PHIBIN eTABIN BADD: "<<phibin << " " <<etabin<<std::endl;
-	  return UINT16_MAX; 
-	  break;
-	}
       return TowerInfoDefs::encode_emcal(etabin, phibin);	  ;
       break;
 
