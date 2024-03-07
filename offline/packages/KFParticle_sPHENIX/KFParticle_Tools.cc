@@ -599,7 +599,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
       // different charged particle has different PDGID
       // just to protect if they have different mass for different charge
       // but in EvtGen, there is no C-violation...so this is just a protection
-      daughterMass = constrainMass ? getParticleMass(vDaughters[i].GetQ()*daughterOrder[i]) : vDaughters[i].GetMass();
+      daughterMass = constrainMass ? getParticleMass((Int_t) vDaughters[i].GetQ() * daughterOrder[i]) : vDaughters[i].GetMass();
     }
     else if ((Int_t) vDaughters[i].GetQ() == 0)
     {
@@ -615,7 +615,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     {
       if ((Int_t) vDaughters[i].GetQ() != 0)
       {
-        daughterMass = getParticleMass(vDaughters[i].GetQ()*daughterOrder[i]);
+        daughterMass = getParticleMass((Int_t) vDaughters[i].GetQ() * daughterOrder[i]);
       }
       else if ((Int_t) vDaughters[i].GetQ() == 0)
       {
@@ -628,7 +628,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
                           (Int_t) vDaughters[i].GetQ(),
                           daughterMass);
     mother.AddDaughter(inputTracks[i]);
-    unique_vertexID += vDaughters[i].GetQ() * getParticleMass(daughterOrder[i]);
+    unique_vertexID += (Int_t) vDaughters[i].GetQ() * getParticleMass(daughterOrder[i]);
   }
 
   if (isIntermediate)
