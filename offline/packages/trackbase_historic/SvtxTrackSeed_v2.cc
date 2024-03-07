@@ -1,23 +1,25 @@
 #include "SvtxTrackSeed_v2.h"
 
 SvtxTrackSeed_v2::SvtxTrackSeed_v2()
-{}
+= default;
 
 // have to suppress missingMemberCopy from cppcheck, it does not
 // go down to the CopyFrom method where things are done correctly
 // cppcheck-suppress missingMemberCopy
 SvtxTrackSeed_v2::SvtxTrackSeed_v2(const SvtxTrackSeed_v2& seed)
-{ SvtxTrackSeed_v2::CopyFrom( seed ); }
+ : TrackSeed(seed) { SvtxTrackSeed_v2::CopyFrom( seed ); }
 
 SvtxTrackSeed_v2& SvtxTrackSeed_v2::operator=(const SvtxTrackSeed_v2& seed)
-{ if( this != &seed ) CopyFrom( seed ); return *this; }
+{ if( this != &seed ) { CopyFrom( seed ); 
+}return *this; }
 
 SvtxTrackSeed_v2::~SvtxTrackSeed_v2()
-{}
+= default;
 
 void SvtxTrackSeed_v2::CopyFrom( const TrackSeed& seed )
 {
-  if( this == &seed ) return;
+  if( this == &seed ) { return;
+}
   TrackSeed::CopyFrom( seed );
 
   m_silicon_seed = seed.get_silicon_seed_index();

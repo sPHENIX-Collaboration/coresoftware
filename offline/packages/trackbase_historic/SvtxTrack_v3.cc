@@ -12,9 +12,10 @@
 
 SvtxTrack_v3::SvtxTrack_v3()
 {
-  for(int i = 0; i < 6; i++)
+  for(auto & i : _acts_trajectory_covariance) {
     for(int j = 0; j < 6; j++)
-  { _acts_trajectory_covariance[i][j] = NAN; }
+  { i[j] = NAN; }
+}
 
   // always include the pca point
   _states.insert( std::make_pair(0, new SvtxTrackState_v1(0)));
@@ -28,10 +29,11 @@ SvtxTrack_v3::SvtxTrack_v3(const SvtxTrack& source)
 // go down to the CopyFrom method where things are done correctly
 // cppcheck-suppress missingMemberCopy
 SvtxTrack_v3::SvtxTrack_v3(const SvtxTrack_v3& source)
-{ SvtxTrack_v3::CopyFrom( source ); }
+ : SvtxTrack(source) { SvtxTrack_v3::CopyFrom( source ); }
 
 SvtxTrack_v3& SvtxTrack_v3::operator=(const SvtxTrack_v3& source)
-{ if( this != &source ) CopyFrom( source ); return *this; }
+{ if( this != &source ) { CopyFrom( source ); 
+}return *this; }
 
 SvtxTrack_v3::~SvtxTrack_v3()
 { clear_states(); }
@@ -39,15 +41,17 @@ SvtxTrack_v3::~SvtxTrack_v3()
 void SvtxTrack_v3::CopyFrom( const SvtxTrack& source )
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
+  if( this == &source ) { return;
+}
   
   // parent class method
   SvtxTrack::CopyFrom( source );
   
   // copy acts covariance 
-  for( int i = 0; i<6; ++i )
+  for( int i = 0; i<6; ++i ) {
     for( int j = 0; j<6; ++j )
   { set_acts_covariance( i, j, source.get_acts_covariance( i, j ) ); }
+}
 
   _track_id = source.get_id();
   _vertex_id = source.get_vertex_id();
@@ -88,13 +92,20 @@ void SvtxTrack_v3::CopyFrom( const SvtxTrack& source )
 
   for( const auto& type: { SvtxTrack::PRES, SvtxTrack::CEMC, SvtxTrack::HCALIN, SvtxTrack::HCALOUT } )
   {
-    if(!std::isnan(source.get_cal_dphi(type))) set_cal_dphi(type, source.get_cal_dphi(type));
-    if(!std::isnan(source.get_cal_deta(type))) set_cal_deta(type, source.get_cal_deta(type));
-    if(!std::isnan(source.get_cal_energy_3x3(type))) set_cal_energy_3x3(type, source.get_cal_energy_3x3(type));
-    if(!std::isnan(source.get_cal_energy_5x5(type))) set_cal_energy_5x5(type, source.get_cal_energy_5x5(type));
-    if(source.get_cal_cluster_id(type) != UINT_MAX) set_cal_cluster_id(type, source.get_cal_cluster_id(type));
-    if(source.get_cal_cluster_key(type) != UINT_MAX) set_cal_cluster_key(type, source.get_cal_cluster_key(type));
-    if(!std::isnan(source.get_cal_cluster_e(type))) set_cal_cluster_e(type, source.get_cal_cluster_e(type));
+    if(!std::isnan(source.get_cal_dphi(type))) { set_cal_dphi(type, source.get_cal_dphi(type));
+}
+    if(!std::isnan(source.get_cal_deta(type))) { set_cal_deta(type, source.get_cal_deta(type));
+}
+    if(!std::isnan(source.get_cal_energy_3x3(type))) { set_cal_energy_3x3(type, source.get_cal_energy_3x3(type));
+}
+    if(!std::isnan(source.get_cal_energy_5x5(type))) { set_cal_energy_5x5(type, source.get_cal_energy_5x5(type));
+}
+    if(source.get_cal_cluster_id(type) != UINT_MAX) { set_cal_cluster_id(type, source.get_cal_cluster_id(type));
+}
+    if(source.get_cal_cluster_key(type) != UINT_MAX) { set_cal_cluster_key(type, source.get_cal_cluster_key(type));
+}
+    if(!std::isnan(source.get_cal_cluster_e(type))) { set_cal_cluster_e(type, source.get_cal_cluster_e(type));
+}
   }
 
 }
@@ -135,8 +146,9 @@ void SvtxTrack_v3::identify(std::ostream& os) const
       os << cluster_key << " ";
     }
   }
-  else
+  else {
     os << " track has no clusters " << std::endl;
+}
   
   os << std::endl;
 
@@ -187,7 +199,8 @@ SvtxTrackState* SvtxTrack_v3::insert_state(const SvtxTrackState* state)
 size_t SvtxTrack_v3::erase_state(float pathlength)
 {
   StateIter iter = _states.find(pathlength);
-  if (iter == _states.end()) return _states.size();
+  if (iter == _states.end()) { return _states.size();
+}
 
   delete iter->second;
   _states.erase(iter);
@@ -197,49 +210,56 @@ size_t SvtxTrack_v3::erase_state(float pathlength)
 float SvtxTrack_v3::get_cal_dphi(SvtxTrack::CAL_LAYER layer) const
 {
   std::map<SvtxTrack::CAL_LAYER, float>::const_iterator citer = _cal_dphi.find(layer);
-  if (citer == _cal_dphi.end()) return NAN;
+  if (citer == _cal_dphi.end()) { return NAN;
+}
   return citer->second;
 }
 
 float SvtxTrack_v3::get_cal_deta(SvtxTrack::CAL_LAYER layer) const
 {
   std::map<SvtxTrack::CAL_LAYER, float>::const_iterator citer = _cal_deta.find(layer);
-  if (citer == _cal_deta.end()) return NAN;
+  if (citer == _cal_deta.end()) { return NAN;
+}
   return citer->second;
 }
 
 float SvtxTrack_v3::get_cal_energy_3x3(SvtxTrack::CAL_LAYER layer) const
 {
   std::map<SvtxTrack::CAL_LAYER, float>::const_iterator citer = _cal_energy_3x3.find(layer);
-  if (citer == _cal_energy_3x3.end()) return NAN;
+  if (citer == _cal_energy_3x3.end()) { return NAN;
+}
   return citer->second;
 }
 
 float SvtxTrack_v3::get_cal_energy_5x5(SvtxTrack::CAL_LAYER layer) const
 {
   std::map<SvtxTrack::CAL_LAYER, float>::const_iterator citer = _cal_energy_5x5.find(layer);
-  if (citer == _cal_energy_5x5.end()) return NAN;
+  if (citer == _cal_energy_5x5.end()) { return NAN;
+}
   return citer->second;
 }
 
 unsigned int SvtxTrack_v3::get_cal_cluster_id(SvtxTrack::CAL_LAYER layer) const
 {
   std::map<SvtxTrack::CAL_LAYER, int>::const_iterator citer = _cal_cluster_id.find(layer);
-  if (citer == _cal_cluster_id.end()) return UINT_MAX;
+  if (citer == _cal_cluster_id.end()) { return UINT_MAX;
+}
   return citer->second;
 }
 
 TrkrDefs::cluskey SvtxTrack_v3::get_cal_cluster_key(SvtxTrack::CAL_LAYER layer) const
 {
   std::map<SvtxTrack::CAL_LAYER, TrkrDefs::cluskey>::const_iterator citer = _cal_cluster_key.find(layer);
-  if (citer == _cal_cluster_key.end()) return UINT_MAX;
+  if (citer == _cal_cluster_key.end()) { return UINT_MAX;
+}
   return citer->second;
 }
 
 float SvtxTrack_v3::get_cal_cluster_e(SvtxTrack::CAL_LAYER layer) const
 {
   std::map<SvtxTrack::CAL_LAYER, float>::const_iterator citer = _cal_cluster_e.find(layer);
-  if (citer == _cal_cluster_e.end()) return NAN;
+  if (citer == _cal_cluster_e.end()) { return NAN;
+}
   return citer->second;
 }
 

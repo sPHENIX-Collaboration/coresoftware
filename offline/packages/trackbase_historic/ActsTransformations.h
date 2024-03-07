@@ -58,8 +58,8 @@ class ActsTransformations
 
   /// Calculate the DCA for a given Acts fitted track parameters and 
   /// vertex
-  void calculateDCA(const ActsTrackFittingAlgorithm::TrackParameters param,
-		    Acts::Vector3 vertex,
+  void calculateDCA(const ActsTrackFittingAlgorithm::TrackParameters& param,
+		    const Acts::Vector3& vertex,
 		    Acts::BoundSquareMatrix cov,
 		    Acts::GeometryContext& geoCtxt,
 		    float &dca3Dxy,

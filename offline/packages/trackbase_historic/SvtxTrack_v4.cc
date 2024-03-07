@@ -24,7 +24,7 @@ SvtxTrack_v4::SvtxTrack_v4(const SvtxTrack& source)
 // go down to the CopyFrom method where things are done correctly
 // cppcheck-suppress missingMemberCopy
 SvtxTrack_v4::SvtxTrack_v4(const SvtxTrack_v4& source)
-{ SvtxTrack_v4::CopyFrom( source ); }
+ : SvtxTrack(source) { SvtxTrack_v4::CopyFrom( source ); }
 
 SvtxTrack_v4& SvtxTrack_v4::operator=(const SvtxTrack_v4& source)
 { CopyFrom( source ); return *this; }
@@ -35,7 +35,8 @@ SvtxTrack_v4::~SvtxTrack_v4()
 void SvtxTrack_v4::CopyFrom( const SvtxTrack& source )
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
+  if( this == &source ) { return;
+}
   
   // parent class method
   SvtxTrack::CopyFrom( source );
@@ -141,7 +142,8 @@ SvtxTrackState* SvtxTrack_v4::insert_state(const SvtxTrackState* state)
 size_t SvtxTrack_v4::erase_state(float pathlength)
 {
   StateIter iter = _states.find(pathlength);
-  if (iter == _states.end()) return _states.size();
+  if (iter == _states.end()) { return _states.size();
+}
 
   delete iter->second;
   _states.erase(iter);

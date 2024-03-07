@@ -15,7 +15,8 @@ namespace
   // get unique index in cov. matrix array from i and j
   inline unsigned int covar_index(unsigned int i, unsigned int j)
   {
-    if (i > j) std::swap(i, j);
+    if (i > j) { std::swap(i, j);
+}
     return i + 1 + (j + 1) * (j) / 2 - 1;
   }
 
@@ -24,8 +25,10 @@ namespace
 SvtxTrackState_v1::SvtxTrackState_v1(float pathlength)
   : _pathlength(pathlength)
 {
-  for (int i = 0; i < 3; ++i) _pos[i] = 0.0;
-  for (int i = 0; i < 3; ++i) _mom[i] = NAN;
+  for (float & _po : _pos) { _po = 0.0;
+}
+  for (float & i : _mom) { i = NAN;
+}
   for (int i = 0; i < 6; ++i)
   {
     for (int j = i; j < 6; ++j)
@@ -63,7 +66,8 @@ void SvtxTrackState_v1::set_error(unsigned int i, unsigned int j, float value)
 float SvtxTrackState_v1::get_phi_error() const
 {
   const float r = std::sqrt( square(_pos[0]) + square(_pos[1]));
-  if (r > 0) return get_rphi_error() / r;
+  if (r > 0) { return get_rphi_error() / r;
+}
   return 0;
 }
 

@@ -9,6 +9,7 @@
 #include <trackbase/ActsSourceLink.h>
 
 #include <Acts/EventData/ParticleHypothesis.hpp>
+#include <cmath>
 
 namespace
 {
@@ -51,12 +52,13 @@ Acts::BoundSquareMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 	{
 	  svtxCovariance(i,j) = state->get_error(i,j);
 	  /// Convert Svtx to mm and GeV units as Acts expects
-	  if(i < 3 && j < 3)
+	  if(i < 3 && j < 3) {
 	    svtxCovariance(i,j) *= Acts::UnitConstants::cm2;
-	  else if (i < 3)
+	  } else if (i < 3) {
 	    svtxCovariance(i,j) *= Acts::UnitConstants::cm;
-	  else if (j < 3)
+	  } else if (j < 3) {
 	    svtxCovariance(i,j) *= Acts::UnitConstants::cm;
+}
 	  
 	}
     }
@@ -190,12 +192,13 @@ Acts::BoundSquareMatrix ActsTransformations::rotateActsCovToSvtxTrack( const Act
     {
       for(int j = 0; j < 6; ++j)
 	{
-	  if(i < 3 && j < 3)
+	  if(i < 3 && j < 3) {
 	    globalCov(i,j) /= Acts::UnitConstants::cm2;
-	  else if (i < 3)
+	  } else if (i < 3) {
 	    globalCov(i,j) /= Acts::UnitConstants::cm;
-	  else if (j < 3)
+	  } else if (j < 3) {
 	    globalCov(i,j) /= Acts::UnitConstants::cm;
+}
 	  
 	}
     }
@@ -206,10 +209,11 @@ Acts::BoundSquareMatrix ActsTransformations::rotateActsCovToSvtxTrack( const Act
 }
 
 void ActsTransformations::printMatrix(const std::string &message, const Acts::BoundSquareMatrix& matrix) const
-{ if(m_verbosity > 10) print_matrix( message, matrix ); }
+{ if(m_verbosity > 10) { print_matrix( message, matrix ); 
+}}
 
-void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
-				       Acts::Vector3 vertex,
+void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters& param,
+				       const Acts::Vector3& vertex,
 				       Acts::BoundSquareMatrix cov,
 				       Acts::GeometryContext& geoCtxt,
 				       float &dca3Dxy,
@@ -237,11 +241,11 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 
   Acts::RotationMatrix3 rot;
   Acts::RotationMatrix3 rot_T;
-  rot(0,0) = cos(phi);
-  rot(0,1) = -sin(phi);
+  rot(0,0) = std::cos(phi);
+  rot(0,1) = -std::sin(phi);
   rot(0,2) = 0;
-  rot(1,0) = sin(phi);
-  rot(1,1) = cos(phi);
+  rot(1,0) = std::sin(phi);
+  rot(1,1) = std::cos(phi);
   rot(1,2) = 0;
   rot(2,0) = 0;
   rot(2,1) = 0;
@@ -274,7 +278,8 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::ConstVectorMultiTrajec
       { return true; }
       
       // only fill for state vectors with proper smoothed parameters
-      if( !state.hasSmoothed()) return true;
+      if( !state.hasSmoothed()) { return true;
+}
 
       // create svtx state vector with relevant pathlength
       const float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
@@ -303,9 +308,10 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::ConstVectorMultiTrajec
       
       /// covariance    
       const auto globalCov = rotateActsCovToSvtxTrack(params);
-      for (int i = 0; i < 6; ++i)
+      for (int i = 0; i < 6; ++i) {
         for (int j = 0; j < 6; ++j)
       { out.set_error(i, j, globalCov(i,j)); }
+}
 
       // print
       if(m_verbosity > 20)

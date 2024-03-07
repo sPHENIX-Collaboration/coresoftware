@@ -9,7 +9,8 @@ TrackSeed_FastSim_v1::TrackSeed_FastSim_v1(const TrackSeed& source)
 void TrackSeed_FastSim_v1::CopyFrom( const TrackSeed& source )
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
+  if( this == &source ) { return;
+}
  
   // parent class method
   TrackSeed_v1::CopyFrom( source );
@@ -38,8 +39,8 @@ void TrackSeed_FastSim_v1::identify(std::ostream& os) const
   }
   return;
 }
-float TrackSeed_FastSim_v1::get_phi(TrkrClusterContainer *clusters,
-				    ActsGeometry *tGeometry) const
+float TrackSeed_FastSim_v1::get_phi(TrkrClusterContainer * /*clusters*/,
+				    ActsGeometry * /*tGeometry*/) const
 {
   const auto [x,y] = findRoot();
   return std::atan2(-1* (TrackSeed_v1::get_X0()-x), (TrackSeed_v1::get_Y0()-y));

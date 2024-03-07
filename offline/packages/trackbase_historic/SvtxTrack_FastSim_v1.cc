@@ -19,7 +19,8 @@ SvtxTrack_FastSim_v1::SvtxTrack_FastSim_v1(const SvtxTrack& source)
 void SvtxTrack_FastSim_v1::CopyFrom( const SvtxTrack& source )
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
+  if( this == &source ) { return;
+}
  
   // parent class method
   SvtxTrack_FastSim::CopyFrom( source );

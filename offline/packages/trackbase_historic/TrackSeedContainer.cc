@@ -7,7 +7,7 @@ TrackSeedContainer::ConstIter TrackSeedContainer::begin() const
   return container.end();
 }
 
-TrackSeedContainer::ConstIter TrackSeedContainer::find(const std::size_t) const
+TrackSeedContainer::ConstIter TrackSeedContainer::find(const std::size_t /*unused*/) const
 {
   return container.end();
 }
@@ -23,7 +23,7 @@ TrackSeedContainer::Iter TrackSeedContainer::begin()
   return container.end();
 }
 
-TrackSeedContainer::Iter TrackSeedContainer::find(const std::size_t)
+TrackSeedContainer::Iter TrackSeedContainer::find(const std::size_t /*unused*/)
 {
   return container.end();
 }

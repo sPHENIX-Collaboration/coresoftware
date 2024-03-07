@@ -8,10 +8,10 @@ PHG4ParticleSvtxMap_v1::PHG4ParticleSvtxMap_v1()
 PHG4ParticleSvtxMap_v1::PHG4ParticleSvtxMap_v1(const PHG4ParticleSvtxMap_v1& map)
   : m_map()
 {
-  for (ConstIter iter = map.begin(); iter != map.end(); ++iter)
+  for (const auto & iter : map)
   {
-    WeightedRecoTrackMap trackmap = iter->second;
-    m_map.insert(std::make_pair(iter->first, trackmap));
+    WeightedRecoTrackMap trackmap = iter.second;
+    m_map.insert(std::make_pair(iter.first, trackmap));
   }
 }
 
@@ -19,9 +19,9 @@ PHG4ParticleSvtxMap_v1& PHG4ParticleSvtxMap_v1::operator=(const PHG4ParticleSvtx
 {
   Reset();
 
-  for (ConstIter iter = map.begin(); iter != map.end(); ++iter)
+  for (const auto & iter : map)
   {
-    m_map.insert(std::make_pair(iter->first, iter->second));
+    m_map.insert(std::make_pair(iter.first, iter.second));
   }
 
   return *this;
