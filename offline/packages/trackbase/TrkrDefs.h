@@ -9,6 +9,8 @@
 
 #include <cstdint>
 #include <iostream>
+#include <map>
+#include <string>
 
 /**
  * @brief Define a namespace for Trkr typedefs
@@ -56,6 +58,15 @@ namespace TrkrDefs
     ttl = 4,
   };
 
+  //! Standard names for trackers
+  static const std::map<TrkrId, std::string> TrkrNames =
+  {
+      {mvtxId, "MVTX"},
+      {inttId, "INTT"},
+      {tpcId, "TPC"},
+      {micromegasId, "MICROMEGAS"},
+      {ttl, "TTL"}
+  };
 
   /// Print the bits for each key type
   void printBits(const TrkrDefs::hitsetkey key, std::ostream& os = std::cout);
