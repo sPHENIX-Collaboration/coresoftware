@@ -33,8 +33,8 @@
 
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <jetbase/Jet.h>
-#include <jetbase/JetMap.h>
-#include <jetbase/JetMapv1.h>
+#include <jetbase/JetContainer.h>
+#include <jetbase/JetContainerv1.h>
 #include <g4main/PHG4Utils.h>
 
 #include <iostream>

@@ -94,6 +94,7 @@ hijfst_(int *n, int *N, int *K, float *P, float *V)
   for (int i = 0; i < *n; i++)
     {
       // We only want real, final state particles
+ // cppcheck-suppress uninitdata
       if (K1[i] == 1)
 	{
 	  particles.push_back(PseudoJet(px[i], py[i], pz[i], E[i]));

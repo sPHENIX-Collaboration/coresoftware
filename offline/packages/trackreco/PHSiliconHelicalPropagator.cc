@@ -17,7 +17,7 @@ namespace
   }
 }
 
-PHSiliconHelicalPropagator::PHSiliconHelicalPropagator(std::string name)
+PHSiliconHelicalPropagator::PHSiliconHelicalPropagator(const std::string &name)
   : SubsysReco(name)
 {
 }
@@ -75,7 +75,7 @@ int PHSiliconHelicalPropagator::InitRun(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHSiliconHelicalPropagator::createSeedContainer(TrackSeedContainer*& container, std::string container_name, PHCompositeNode* topNode)
+int PHSiliconHelicalPropagator::createSeedContainer(TrackSeedContainer*& container, const std::string &container_name, PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
 
@@ -131,7 +131,7 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
     std::vector<TrkrDefs::cluskey> si_clusterKeys;
     std::vector<Acts::Vector3> si_clusterPositions;
 
-    unsigned int nSiClusters = TrackFitUtils::addSiliconClusters(fitparams, 1000., _tgeometry, _cluster_map, si_clusterPositions, si_clusterKeys);
+    unsigned int nSiClusters = TrackFitUtils::addClusters(fitparams, 1000., _tgeometry, _cluster_map, si_clusterPositions, si_clusterKeys,0,6);
 
     if (nSiClusters > 0)
     {

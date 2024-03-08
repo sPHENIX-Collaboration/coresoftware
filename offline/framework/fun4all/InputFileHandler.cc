@@ -25,7 +25,7 @@ int InputFileHandler::AddListFile(const std::string &filename)
   {
     if (std::filesystem::is_regular_file(filename.c_str()))
     {
-//      uintmax_t fsize = std::filesystem::file_size(filename.c_str());
+      //      uintmax_t fsize = std::filesystem::file_size(filename.c_str());
     }
     else
     {
@@ -50,18 +50,18 @@ int InputFileHandler::AddListFile(const std::string &filename)
   getline(infile, FullLine);
   while (!infile.eof())
   {
-    if (! std::all_of(FullLine.begin(), FullLine.end(), ::isprint))
+    if (!std::all_of(FullLine.begin(), FullLine.end(), ::isprint))
     {
-      std::cout << PHWHERE << "file " << filename 
+      std::cout << PHWHERE << "file " << filename
                 << " contains non printable characters, it is likely a binary file" << std::endl;
       return -1;
     }
-    if (! FullLine.empty() && FullLine[0] != '#')  // remove comments
+    if (!FullLine.empty() && FullLine[0] != '#')  // remove comments
     {
       AddFile(FullLine);
       nfiles++;
     }
-    else if (! FullLine.empty())
+    else if (!FullLine.empty())
     {
       if (GetVerbosity() > 0)
       {
@@ -101,10 +101,10 @@ int InputFileHandler::OpenNextFile()
   return 0;
 }
 
-void InputFileHandler::Print(const std::string &/* what */) const
+void InputFileHandler::Print(const std::string & /* what */) const
 {
   std::cout << "file list: " << std::endl;
-  for (const auto& iter : m_FileList)
+  for (const auto &iter : m_FileList)
   {
     std::cout << iter << std::endl;
   }

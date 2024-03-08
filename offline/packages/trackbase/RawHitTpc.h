@@ -7,8 +7,8 @@
 #ifndef TRACKBASE_RAWHITTPC_H
 #define TRACKBASE_RAWHITTPC_H
 
-#include "TrkrDefs.h"
 #include "RawHit.h"
+#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
 
@@ -25,7 +25,7 @@ class RawHitTpc : public RawHit
 {
  public:
   //! ctor
-  RawHitTpc(); 
+  RawHitTpc();
 
   //! dtor
   ~RawHitTpc() override {}
@@ -39,20 +39,19 @@ class RawHitTpc : public RawHit
 
   // after digitization, these are the adc values
   void setAdc(const unsigned int adc) override;
-  unsigned int getAdc() override ;
+  unsigned int getAdc() override;
 
   void setPhiBin(const unsigned int phibin) override;
   unsigned int getPhiBin() override;
 
-  void setTBin(const unsigned int tbin ) override;
+  void setTBin(const unsigned int tbin) override;
   unsigned int getTBin() override;
 
   unsigned short m_adc = 0;
   unsigned short m_tbin = 0;
 
  protected:
-
   ClassDefOverride(RawHitTpc, 1);
 };
 
-#endif //TRACKBASE_RAWHITTPC_H
+#endif  // TRACKBASE_RAWHITTPC_H

@@ -40,13 +40,7 @@ int PHCosmicSeedCombiner::Init(PHCompositeNode*)
 //____________________________________________________________________________..
 int PHCosmicSeedCombiner::InitRun(PHCompositeNode* topNode)
 {
-  int ret = getNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK)
-  {
-    return ret;
-  }
-
-  return createNodes(topNode);
+  return getNodes(topNode);
 }
 
 //____________________________________________________________________________..
@@ -118,7 +112,7 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
         std::cout << "eta 1 and eta2 " << eta1 << " , " << eta2 << std::endl;
         std::cout << "dphi and deta " << dphi << " , " << deta << std::endl;
       }
-      if (fabs(dphi) < 0.02 && fabs(deta) < 0.01)
+      if (fabs(dphi) < m_dphiCut && fabs(deta) < m_detaCut)
       {
         //! add the clusters to the tpc seed and delete seed 2 since it is
         //! from the same track
@@ -166,37 +160,6 @@ void PHCosmicSeedCombiner::addKeys(TrackSeed* seedToAddTo, TrackSeed* seedToAdd)
 //____________________________________________________________________________..
 int PHCosmicSeedCombiner::End(PHCompositeNode*)
 {
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-int PHCosmicSeedCombiner::createNodes(PHCompositeNode* topNode)
-{
-  PHNodeIterator iter(topNode);
-
-  PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-
-  if (!dstNode)
-  {
-    std::cerr << "DST node is missing, quitting" << std::endl;
-    throw std::runtime_error("Failed to find DST node in PHSiliconHelicalPropagator::createNodes");
-  }
-
-  PHNodeIterator dstIter(dstNode);
-  PHCompositeNode* svtxNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode", "SVTX"));
-
-  if (!svtxNode)
-  {
-    svtxNode = new PHCompositeNode("SVTX");
-    dstNode->addNode(svtxNode);
-  }
-
-  m_cosmicContainer = findNode::getClass<TrackSeedContainer>(topNode, "CosmicTrackSeedContainer");
-  if (!m_cosmicContainer)
-  {
-    m_cosmicContainer = new TrackSeedContainer_v1;
-    PHIODataNode<PHObject>* trackNode = new PHIODataNode<PHObject>(m_cosmicContainer, "CosmicTrackSeedContainer", "PHObject");
-    svtxNode->addNode(trackNode);
-  }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHCosmicSeedCombiner::getNodes(PHCompositeNode* topNode)

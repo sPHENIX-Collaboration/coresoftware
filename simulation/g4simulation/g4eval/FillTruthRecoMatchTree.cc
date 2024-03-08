@@ -332,7 +332,6 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode* /*topNode*/)
     b_trkphi = svtrk->get_phi();
 
     cnt = m_cluscntr.svtx_cntclus();
-    /* cout << " FIXME 0000 matched Svtx: " << sv_trkid << " " << svtrk->get_pt()<<" " << svtrk->get_eta()<<" "<< svtrk->get_phi() << " " << cnt[4] <<  endl; */
     b_nclus = cnt[4];
     b_nclusmvtx = cnt[0];
     b_nclusintt = cnt[1];

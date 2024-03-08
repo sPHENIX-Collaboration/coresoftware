@@ -15,7 +15,7 @@ sub print_single_types;
 my $dbh = DBI->connect("dbi:ODBC:FileCatalog","argouser") || die $DBI::error;
 $dbh->{LongReadLen}=2000; # full file paths need to fit in here
 
-my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets where dsttype not like '%\_pi\_%' ESCAPE '\'");
+my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets where dsttype not like '%\_pi\_%' ESCAPE '\' and dsttype <> 'beam' and dsttype <> 'cosmic'");
 $getdsttypes->execute();
 
 my %dsttype = ();
@@ -56,13 +56,18 @@ my %proddesc = (
     "18" => "HF pythia8 D0 pi-k Jets ptmin = 12GeV",
     "19" => "JS pythia8 Jet ptmin = 40GeV",
     "20" => "hijing pAu (0-10fm) pileup 0-10fm",
-    "21" => "JS pythia8 Jet ptmin = 20GeV"
+    "21" => "JS pythia8 Jet ptmin = 20GeV",
+    "22" => "cosmic field on",
+    "23" => "cosmic field off",
+    "24" => "AMPT",
+    "25" => "EPOS"
     );
 
 my %pileupdesc = (
     "1" => "50kHz for Au+Au, 3MHz for p+p (default)",
     "2" => "25kHz for Au+Au",
-    "3" => "10kHz for Au+Au"
+    "3" => "10kHz for Au+Au",
+    "4" => "1MHz for pp 100us streaming"
     );
 
 my $nEvents;
@@ -146,6 +151,11 @@ elsif ($pileup == 3)
 {
     $AuAu_pileupstring = sprintf("10kHz");
 }
+elsif ($pileup == 4)
+{
+    $pp_pileupstring = sprintf("1MHz");
+}
+
 else
 {
     print "invalid pileup option $pileup\n";
@@ -519,6 +529,48 @@ if (defined $prodtype)
         $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
+    elsif ($prodtype == 22)
+    {
+	$filenamestring = "cosmic_magnet_on";
+        $filenamestring = sprintf("%s",$filenamestring);
+	$nopileup = 1; # it is no pileup only - no need to require it
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 23)
+    {
+	$filenamestring = "cosmic_magnet_off";
+        $filenamestring = sprintf("%s",$filenamestring);
+	$nopileup = 1; # it is no pileup only - no need to require it
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 24)
+    {
+	if (defined $nopileup)
+	{
+	    $filenamestring = sprintf("ampt_0_20fm");
+	}
+	else
+	{
+	    $filenamestring = sprintf("ampt_0_20fm_%s_bkg_0_20fm",$AuAu_pileupstring);
+	}
+        $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
+        $pileupstring = $AuAu_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 25)
+    {
+	if (defined $nopileup)
+	{
+	    $filenamestring = sprintf("epos_0_153fm");
+	}
+	else
+	{
+	    $filenamestring = sprintf("epos_0_153fm_%s_bkg_0_153fm",$AuAu_pileupstring);
+	}
+        $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
+        $pileupstring = $pAu_pileupstring;
+	&commonfiletypes();
+    }
     else
     {
 	print "no production type $prodtype\n";
@@ -716,7 +768,7 @@ foreach  my $tp (keys %req_types)
 	$getfiles{"G4HitsOld"} = $dbh->prepare($newgetfilesql);
 	if (defined $verbose)
 	{
-	    print "sql: $newgetfilesql\n";
+	    print "sql (newgetfilesql): $newgetfilesql\n";
 	}
     }
     else
@@ -724,7 +776,7 @@ foreach  my $tp (keys %req_types)
 	$getfiles{$tp} = $dbh->prepare($getfilesql);
 	if (defined $verbose)
 	{
-	    print "sql: $getfilesql\n";
+	    print "sql (getfilesql): $getfilesql\n";
 	}
     }
 }
@@ -851,12 +903,12 @@ sub commonfiletypes
     $filetypes{"G4Hits"} = "G4 Hits";
 #    $filetypes{"G4HitsOld"} = "Old G4 Hits";
 # pass2
-    $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD, EPD G4Hits";
+    $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC (now MBD), EPD G4Hits";
     $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
     $filetypes{"DST_TRKR_G4HIT"} = "Pileup Tracking Detector G4 Hits";
     $filetypes{"DST_TRUTH_G4HIT"} = "temporary Pileup Truth info, use DST_TRUTH";
-# pass3 bbcepd
-    $filetypes{"DST_BBC_EPD"} = "Reconstructed Bbc, Epd";
+# pass3 mbdepd
+    $filetypes{"DST_MBD_EPD"} = "Reconstructed Mbd, Epd";
 # pass3 calo
     $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
 #pass3 trk

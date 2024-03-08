@@ -7,8 +7,9 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
+
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <Acts/EventData/ParticleHypothesis.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
@@ -90,7 +91,8 @@ ActsPropagator::makeTrackParams(SvtxTrack* track,
                                                             actsFourPos, momentum,
                                                             track->get_charge() / track->get_p(),
                                                             cov,
-                                                            Acts::ParticleHypothesis::pion());
+                                                            Acts::ParticleHypothesis::pion(),
+							    1*Acts::UnitConstants::cm);
 }
 
 ActsPropagator::BTPPairResult

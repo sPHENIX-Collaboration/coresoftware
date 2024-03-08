@@ -16,13 +16,14 @@
 #include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
-#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
-#include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxAlignmentState_v1.h>
 #include <trackbase_historic/SvtxAlignmentStateMap_v1.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
+
+#include <globalvertex/SvtxVertex.h>     
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 
@@ -210,7 +211,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	{
 	  // this associates silicon clusters and adds them to the vectors
 	  ntpc = cluskey_vec.size();
-	  nsilicon = TrackFitUtils::addSiliconClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec);
+	  nsilicon = TrackFitUtils::addClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec,0,6);
 	  if(nsilicon < 3) continue;  // discard this TPC seed, did not get a good match to silicon
 	  auto trackseed = std::make_unique<TrackSeed_v1>();
 	  for(auto& ckey : cluskey_vec)
@@ -1221,7 +1222,7 @@ void HelicalFitter::get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vt
 unsigned int HelicalFitter::addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
 
-  return TrackFitUtils::addSiliconClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec);
+  return TrackFitUtils::addClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec,0,6);
 }
 
 bool HelicalFitter::is_intt_layer_fixed(unsigned int layer)

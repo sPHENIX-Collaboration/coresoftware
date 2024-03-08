@@ -10,7 +10,7 @@ SvtxAlignmentStateMap::ConstIter SvtxAlignmentStateMap::begin() const
   return map.end();
 }
 
-SvtxAlignmentStateMap::ConstIter SvtxAlignmentStateMap::find(unsigned int) const
+SvtxAlignmentStateMap::ConstIter SvtxAlignmentStateMap::find(unsigned int /*unused*/) const
 {
   return map.end();
 }
@@ -25,7 +25,7 @@ SvtxAlignmentStateMap::Iter SvtxAlignmentStateMap::begin()
   return map.end();
 }
 
-SvtxAlignmentStateMap::Iter SvtxAlignmentStateMap::find(unsigned int)
+SvtxAlignmentStateMap::Iter SvtxAlignmentStateMap::find(unsigned int /*unused*/)
 {
   return map.end();
 }

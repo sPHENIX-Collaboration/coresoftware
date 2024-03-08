@@ -527,11 +527,13 @@ void PHG4TpcDetector::add_geometry_node()
   const double tpc_adc_clock = m_Params->get_double_param("tpc_adc_clock");
   const double MaxZ = m_Params->get_double_param("maxdriftlength");
   const double TBinWidth = tpc_adc_clock;
-  const double MaxT = 2.0 * MaxZ / drift_velocity;  // allows for extended time readout
+  const double extended_readout_time = m_Params->get_double_param("extended_readout_time");
+  const double MaxT = extended_readout_time + 2.* MaxZ / drift_velocity;  // allows for extended time readout
   const double MinT = 0;
   const int NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
 
-  std::cout << PHWHERE << "MaxT " << MaxT << " NTBins = " << NTBins << " drift velocity " << drift_velocity << std::endl;
+  std::cout << PHWHERE << "MaxT " << MaxT << " TBinWidth " << TBinWidth << " extended readout time " 
+	    << extended_readout_time  << " NTBins = " << NTBins << " drift velocity " << drift_velocity << std::endl;
 
   const std::array<double, 3> SectorPhi =
   {{

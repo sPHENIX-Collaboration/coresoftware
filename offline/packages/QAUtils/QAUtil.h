@@ -8,7 +8,7 @@
  */
 
 #include <g4main/PHG4Hit.h>
-
+#include <set>
 #include <cmath>
 
 // utility functions

@@ -28,9 +28,16 @@ class SingleInttPoolInput : public SingleStreamingInput
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
+  void SetBcoRange(const unsigned int value) { m_BcoRange = value; }
+  void ConfigureStreamingInputManager() override;
+  void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
+
  private:
-  Packet **plist = nullptr;
-  unsigned int m_NumSpecialEvents = 0;
+  Packet **plist{nullptr};
+  unsigned int m_NumSpecialEvents{0};
+  unsigned int m_BcoRange{0};
+  unsigned int m_NegativeBco{0};
+
   std::array<uint64_t, 14> m_PreviousClock{};
   std::array<uint64_t, 14> m_Rollover{};
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;

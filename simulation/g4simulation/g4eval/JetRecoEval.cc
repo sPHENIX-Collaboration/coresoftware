@@ -13,7 +13,7 @@
 #include <calobase/RawTowerContainer.h>
 
 #include <jetbase/Jet.h>
-#include <jetbase/JetMap.h>
+#include <jetbase/JetContainer.h>
 
 #include <g4main/PHG4Particle.h>
 
@@ -102,13 +102,10 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
 
   // loop over all the jet constituents, backtrack each reco object to the
   // truth hits and combine with other consituents
-
-  for (Jet::ConstIter iter = recojet->begin_comp();
-       iter != recojet->end_comp();
-       ++iter)
+  for (auto jter : recojet->get_comp_vec())
   {
-    Jet::SRC source = iter->first;
-    unsigned int index = iter->second;
+      Jet::SRC source = jter.first;
+      unsigned int index = jter.second;
 
     std::set<PHG4Shower*> new_showers;
 
@@ -433,13 +430,10 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
 
   // loop over all the jet constituents, backtrack each reco object to the
   // truth hits and combine with other consituents
-
-  for (Jet::ConstIter iter = recojet->begin_comp();
-       iter != recojet->end_comp();
-       ++iter)
+  for (auto jter : recojet->get_comp_vec())
   {
-    Jet::SRC source = iter->first;
-    unsigned int index = iter->second;
+      Jet::SRC source = jter.first;
+      unsigned int index = jter.second;
 
     std::set<PHG4Particle*> new_particles;
 
@@ -880,9 +874,9 @@ std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet)
   std::set<Jet*> recojets;
 
   // loop over all reco jets
-  for (auto& _recojet : *_recojets)
+  for (auto recojet : *_recojets)
   {
-    Jet* recojet = _recojet.second;
+    /* Jet* recojet = _recojet.second; */
 
     // if this jet back tracks to the truth jet
     std::set<Jet*> truthcandidates = all_truth_jets(recojet);
@@ -915,6 +909,7 @@ std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet)
 
 Jet* JetRecoEval::best_jet_from(Jet* truthjet)
 {
+
   if (_strict)
   {
     assert(truthjet);
@@ -963,7 +958,6 @@ Jet* JetRecoEval::best_jet_from(Jet* truthjet)
   {
     _cache_best_jet_from.insert(std::make_pair(truthjet, bestrecojet));
   }
-
   return bestrecojet;
 }
 
@@ -1073,13 +1067,10 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet)
       continue;
     }
 
-    // loop over all recojet constituents
-    for (Jet::ConstIter jter = recojet->begin_comp();
-         jter != recojet->end_comp();
-         ++jter)
+    for (auto jter : recojet->get_comp_vec())
     {
-      Jet::SRC source = jter->first;
-      unsigned int index = jter->second;
+      Jet::SRC source = jter.first;
+      unsigned int index = jter.second;
 
       float energy = 0.0;
 
@@ -1336,12 +1327,12 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet::SRC src)
       return iter->second;
     }
   }
-
+  
   float energy = 0.0;
 
   // loop over all recojet constituents
-  for (Jet::ConstIter jter = recojet->lower_bound_comp(src);
-       jter != recojet->upper_bound_comp(src);
+  for (Jet::ITER_comp_vec jter = recojet->comp_begin(src);
+       jter != recojet->comp_end(src);
        ++jter)
   {
     Jet::SRC source = jter->first;
@@ -1583,12 +1574,10 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
   // loop over all the jet constituents, backtrack each reco object to the
   // truth hits and combine with other consituents
 
-  for (Jet::ConstIter iter = recojet->begin_comp();
-       iter != recojet->end_comp();
-       ++iter)
+  for (auto jter : recojet->get_comp_vec())
   {
-    Jet::SRC source = iter->first;
-    unsigned int index = iter->second;
+      Jet::SRC source = jter.first;
+      unsigned int index = jter.second;
 
     std::set<PHG4Hit*> new_hits;
 
@@ -1896,14 +1885,14 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
 void JetRecoEval::get_node_pointers(PHCompositeNode* topNode)
 {
   // need things off of the DST...
-  _recojets = findNode::getClass<JetMap>(topNode, _recojetname.c_str());
+  _recojets = findNode::getClass<JetContainer>(topNode, _recojetname.c_str());
   if (!_recojets)
   {
     std::cout << PHWHERE << " ERROR: Can't find " << _recojetname << std::endl;
     exit(-1);
   }
 
-  _truthjets = findNode::getClass<JetMap>(topNode, _truthjetname.c_str());
+  _truthjets = findNode::getClass<JetContainer>(topNode, _truthjetname.c_str());
   if (!_truthjets)
   {
     std::cout << PHWHERE << " ERROR: Can't find " << _truthjetname << std::endl;

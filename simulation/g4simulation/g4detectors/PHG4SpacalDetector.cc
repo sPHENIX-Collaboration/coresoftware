@@ -45,12 +45,12 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
-#include <Geant4/G4String.hh>       // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>  // for G4Transform3D, G4RotateZ3D
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4Types.hh>        // for G4double
+#include <Geant4/G4Types.hh>  // for G4double
 #include <Geant4/G4UserLimits.hh>
 
 #include <cassert>
@@ -729,7 +729,7 @@ void PHG4SpacalDetector::AddTowerGeometryNode()
   {
     m_RawTowerGeomContainer->identify();
   }
-  
+
   return;
 }
 
@@ -908,7 +908,7 @@ void PHG4SpacalDetector::AddCellGeometryNode()
   seggeo->AddLayerCellGeom(layerseggeo);
   // save this to the run wise tree to store on DST
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-  //PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
+  // PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
   PHNodeIterator runIter(runNode);
   PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));
   if (!RunDetNode)

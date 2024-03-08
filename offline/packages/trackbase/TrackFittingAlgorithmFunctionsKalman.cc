@@ -201,7 +201,7 @@ struct sPHENIXTrackFitterFunctionImpl : public TrackFitterFunctionImpl
 
 std::shared_ptr<ActsTrackFittingAlgorithm::TrackFitterFunction>
 ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
-    std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
+    const std::shared_ptr<const Acts::TrackingGeometry>& trackingGeometry,
     std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
     bool multipleScattering, bool energyLoss,
     double reverseFilteringMomThreshold,
@@ -235,7 +235,7 @@ ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
 std::shared_ptr<
     ActsTrackFittingAlgorithm::DirectedTrackFitterFunction>
 ActsTrackFittingAlgorithm::makeDirectedKalmanFitterFunction(
-    std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
+    const std::shared_ptr<const Acts::TrackingGeometry>& trackingGeometry,
     std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
     bool multipleScattering, bool energyLoss,
     double reverseFilteringMomThreshold,

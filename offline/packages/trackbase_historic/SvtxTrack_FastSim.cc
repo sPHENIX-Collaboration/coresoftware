@@ -10,27 +10,27 @@
 #include "SvtxTrack.h"  // for SvtxTrack::ConstClusterIter, SvtxTrack
 
 #include <climits>
-#include <map>          // for _Rb_tree_const_iterator
-#include <ostream>      // for operator<<, basic_ostream, basic_ostream<>::_...
+#include <map>      // for _Rb_tree_const_iterator
+#include <ostream>  // for operator<<, basic_ostream, basic_ostream<>::_...
 
 SvtxTrack_FastSim::SvtxTrack_FastSim(const SvtxTrack& source)
-{ SvtxTrack_FastSim::CopyFrom( source ); }
-
-void SvtxTrack_FastSim::CopyFrom( const SvtxTrack& source )
 {
-  
+  SvtxTrack_FastSim::CopyFrom(source);
+}
+
+void SvtxTrack_FastSim::CopyFrom(const SvtxTrack& source)
+{
   // parent class method
-  SvtxTrack_v1::CopyFrom( source );
-  
+  SvtxTrack_v1::CopyFrom(source);
+
   // additional members
   _truth_track_id = source.get_truth_track_id();
   _nmeas = source.get_num_measurements();
-
 }
 
 void SvtxTrack_FastSim::identify(std::ostream& os) const
 {
-  SvtxTrack_v1::identify( os );
+  SvtxTrack_v1::identify(os);
 
   os << "SvtxTrack_FastSim Object ";
   os << "truth_track_id:" << get_truth_track_id();

@@ -1,6 +1,6 @@
 #include "SvtxTrackMap.h"
 
-namespace 
+namespace
 {
   SvtxTrackMap::TrackMap DummyTrackMap;
 }
@@ -19,7 +19,6 @@ SvtxTrackMap::ConstIter SvtxTrackMap::end() const
 {
   return DummyTrackMap.end();
 }
-
 
 SvtxTrackMap::Iter SvtxTrackMap::begin()
 {

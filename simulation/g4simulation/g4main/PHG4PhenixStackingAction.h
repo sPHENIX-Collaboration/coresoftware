@@ -12,33 +12,29 @@ class PHG4StackingAction;
 
 class PHG4PhenixStackingAction : public G4UserStackingAction
 {
-
-  public:
-  PHG4PhenixStackingAction( void )
-  {}
+ public:
+  PHG4PhenixStackingAction(void)
+  {
+  }
 
   ~PHG4PhenixStackingAction() override;
-  
 
   //! register an action. This is called in PHG4Reco::Init based on which actions are found on the tree
-  void AddAction( PHG4StackingAction* action )
+  void AddAction(PHG4StackingAction* action)
   {
     if (action)
-      {
-	actions_.push_back( action );
-      }
+    {
+      actions_.push_back(action);
+    }
   }
 
   G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack) override;
   void PrepareNewEvent() override;
 
-  private:
-
+ private:
   //! list of subsystem specific stacking actions
   typedef std::list<PHG4StackingAction*> ActionList;
   ActionList actions_;
-
 };
-
 
 #endif

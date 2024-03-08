@@ -1,5 +1,53 @@
-#ifndef G4JET_JET_H
-#define G4JET_JET_H
+#ifndef JETBASE_JET_H
+#define JETBASE_JET_H
+
+// The constituents between Jetv1 and Jetv2 are updated from
+//    typedef multimap<Jet::SRC, unsigned int> typ_comp_ids;
+//  to
+//    typedef vector<pair<Jet::SRC, unsigned int>> TYPE_comp_vec;
+//
+//
+// Functions deprecated between v1 and above
+//   v1: 
+//  virtual bool   has_property(Jet::PROPERTY  /*prop_id*/) const
+//  virtual float  get_property(Jet::PROPERTY  /*prop_id*/) const
+//  virtual void   set_property(Jet::PROPERTY  /*prop_id*/, float   /*value*/)
+//  virtual void   print_property(std::ostream & /*os*/) const
+//  virtual bool   empty_comp() const
+//  virtual size_t size_comp()  const
+//  virtual size_t count_comp(Jet::SRC /*source*/) const
+//  virtual size_t erase_comp(Jet::SRC)
+//  virtual void   erase_comp(Iter /*iter*/)
+//  virtual void   erase_comp(Iter /*first*/, Iter /*last*/)
+//  virtual ConstIter begin_comp() const;
+//  virtual ConstIter lower_bound_comp(Jet::SRC source) const;
+//  virtual ConstIter upper_bound_comp(Jet::SRC source) const;
+//  virtual ConstIter find(Jet::SRC source) const;
+//  virtual ConstIter end_comp() const;
+//   virtual Iter begin_comp();
+//   virtual Iter lower_bound_comp(Jet::SRC source);
+//   virtual Iter upper_bound_comp(Jet::SRC source);
+//   virtual Iter find(Jet::SRC source);
+//   virtual Iter end_comp();
+//
+//
+//  v2:
+//  virtual size_t        size_properties()
+//  virtual inline float  get_prop_by_index(unsigned int /*index*/) const
+//  virtual inline void   set_prop_by_index(unsigned int /*index*/, float /*value*/)
+//  virtual size_t        num_comp(SRC = Jet::SRC::VOID /**/)
+//  virtual std::map<Jet::SRC, size_t> comp_src_sizemap()
+//
+//  typedef std::pair<Jet::SRC, unsigned int> TYPE_comp;
+//  typedef std::vector<TYPE_comp> TYPE_comp_vec;
+//  typedef TYPE_comp_vec::iterator ITER_comp_vec;
+//
+//  virtual ITER_comp_vec comp_begin();
+//  virtual ITER_comp_vec comp_begin(Jet::SRC);
+//  virtual ITER_comp_vec comp_end();
+//  virtual ITER_comp_vec comp_end(Jet::SRC);
+//
+//  virtual TYPE_comp_vec& get_comp_vec();
 
 #include <phool/PHObject.h>
 
@@ -7,6 +55,8 @@
 #include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
+
+class TClonesArray;
 
 class Jet : public PHObject
 {
@@ -55,19 +105,13 @@ class Jet : public PHObject
     CEMC_TOWERINFO_SUB1 = 29,
     HCALIN_TOWERINFO_SUB1 = 30,
     HCALOUT_TOWERINFO_SUB1 = 31, /* needed for HI jet reco */
-
-
-  };
-
-
-  enum SORT  // used as criteria for sorting output in JetMap
-  {
-    NO_SORT = 0, // a blank input to not sort input
-    PT   = 1, // PT descending order
-    E    = 2, // E  descending order
-    P    = 3, // P descending order
-    MASS = 4, // Mass descending order
-    AREA = 5, // AREA descending order --> maybe used in future, as jets don't have area for now...
+    CEMC_TOWERINFO_EMBED = 32, /* needed for embedding */
+    CEMC_TOWERINFO_SIM = 33,
+    HCALIN_TOWERINFO_EMBED = 34,
+    HCALIN_TOWERINFO_SIM = 35,
+    HCALOUT_TOWERINFO_EMBED = 36,
+    HCALOUT_TOWERINFO_SIM = 37,
+    JET_PROBE = 38,
   };
 
   enum PROPERTY
@@ -95,6 +139,10 @@ class Jet : public PHObject
     prop_gamma = 8,
     prop_JetHadronFlavor = 9,
     prop_JetHadronZT = 10,
+
+    //! jet area
+    prop_area = 11,
+    no_property = 12,
   };
 
   Jet() {}
@@ -129,46 +177,90 @@ class Jet : public PHObject
   virtual float get_mass() const { return NAN; }
   virtual float get_mass2() const { return NAN; }
 
-  // extended jet info ---------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Functions for jet properties (always float values)
+  // --------------------------------------------------------------------------
+  // In both Jetv1 and Jetv2
+  virtual float get_property(Jet::PROPERTY /*prop_id*/) const { return NAN; }; // in Jetv2 really uses the Jet::PROPERTY as an index for a vector
+  virtual void  set_property(Jet::PROPERTY /*prop_id*/, float /*value*/) {};   // in Jetv2 really uses the Jet::PROPERTY as an index for a vector
+  virtual size_t size_properties() const { return 0; };
 
-  virtual bool has_property(Jet::PROPERTY /*prop_id*/) const { return false; }
-  virtual float get_property(Jet::PROPERTY /*prop_id*/) const { return NAN; }
-  virtual void set_property(Jet::PROPERTY /*prop_id*/, float /*value*/) { return; }
-  virtual void print_property(std::ostream& /*os*/) const { return; }
+  //    new with Jetv2
+  virtual void resize_properties(size_t /**/) { };
+  virtual std::vector<float>& get_property_vec();
+  //virtual inline float get_prop_by_index(unsigned int /*index*/) const { return NAN; }
+  //virtual inline void set_prop_by_index(unsigned int /*index*/, float /*value*/) { return; }
+  
+  //   deprecated by Jetv2
+  virtual bool has_property(Jet::PROPERTY /*prop_id*/) const { return false; };
+  virtual void print_property(std::ostream& /*os*/) const {};
+  //----------------------------------------------------------------------------------
+  
+  // some types
+  typedef std::pair<Jet::SRC, unsigned int> TYPE_comp;
+  typedef std::vector<TYPE_comp> TYPE_comp_vec;
+  typedef TYPE_comp_vec::iterator ITER_comp_vec;
 
-  // component id storage ------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Functions for jet components
+  //    in all Jet versions 
+  virtual void clear_comp() {}
+  virtual void insert_comp(Jet::SRC, unsigned int) {}
+  virtual void insert_comp(Jet::SRC, unsigned int, bool) {} //v2 only
+  virtual void insert_comp(TYPE_comp_vec&/**/) {} //v2 only
+  virtual void insert_comp(TYPE_comp_vec&/**/, bool/**/) {} //v2 only
 
-  /*! \addtogroup clustered component
-   * clustered component methods (multimap interface based)
-   * source type id --> unique id within that storage
-   *  @{
-   */
-
+  virtual size_t size_comp() const { return 0; };
+  //    new with Jetv2
+  virtual size_t num_comp(SRC = Jet::SRC::VOID /**/) { return 0; };
+  virtual void print_comp(std::ostream& /**/, bool /**/) {};
+  virtual std::vector<Jet::SRC> comp_src_vec() { return {}; };
+  virtual std::map<Jet::SRC, size_t> comp_src_sizemap() { return {}; };
+  virtual void set_comp_sort_flag(bool=false) {};
+//
+//
+  virtual ITER_comp_vec comp_begin();
+  virtual ITER_comp_vec comp_begin(Jet::SRC);
+  virtual ITER_comp_vec comp_end();
+  virtual ITER_comp_vec comp_end(Jet::SRC);
+//
+  virtual TYPE_comp_vec& get_comp_vec();
+  //-- deprecated with Jetv2 ---------------------------------------------------------
+  virtual bool empty_comp() const { return true; }
+  virtual size_t count_comp(Jet::SRC /*source*/) const { return 0; };
+//
   typedef std::multimap<Jet::SRC, unsigned int> typ_comp_ids;
   typedef typ_comp_ids::const_iterator ConstIter;
   typedef typ_comp_ids::iterator Iter;
-
-  virtual bool empty_comp() const { return true; }
-  virtual size_t size_comp() const { return 0; }
-  virtual size_t count_comp(Jet::SRC /*source*/) const { return 0; }
-
-  virtual void clear_comp() { return; }
-  virtual void insert_comp(Jet::SRC /*source*/, unsigned int /*compid*/) { return; }
-  virtual size_t erase_comp(Jet::SRC /*source*/) { return 0; }
-  virtual void erase_comp(Iter /*iter*/) { return; }
-  virtual void erase_comp(Iter /*first*/, Iter /*last*/) { return; }
-
+//
   virtual ConstIter begin_comp() const;
   virtual ConstIter lower_bound_comp(Jet::SRC source) const;
   virtual ConstIter upper_bound_comp(Jet::SRC source) const;
   virtual ConstIter find(Jet::SRC source) const;
   virtual ConstIter end_comp() const;
-
+//
   virtual Iter begin_comp();
   virtual Iter lower_bound_comp(Jet::SRC source);
   virtual Iter upper_bound_comp(Jet::SRC source);
   virtual Iter find(Jet::SRC source);
   virtual Iter end_comp();
+
+  virtual size_t erase_comp(Jet::SRC) { return 0; } 
+  virtual void erase_comp(Iter /*iter*/) { return; }
+  virtual void erase_comp(Iter /*first*/, Iter /*last*/) { return; }
+  //----------------------------------------------------------------------------------
+  // structure to iterate over the jets in a TClonesArray in the JetContainer
+  struct IterJetTCA
+  {
+    TClonesArray* tca{nullptr};
+    int index{0};
+    int size;
+
+    IterJetTCA(TClonesArray* _tca);
+    void operator++() { ++index; };
+    Jet* operator*();
+    bool operator!=(const IterJetTCA& /*rhs*/) { return index != size; };
+  };
 
   ClassDefOverride(Jet, 1);
 };

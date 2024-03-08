@@ -58,10 +58,14 @@ PHG4EICMvtxDetector::PHG4EICMvtxDetector(PHG4Subsystem* subsys, PHCompositeNode*
   //  Verbosity(2);
 
   if (Verbosity() > 0)
+  {
     cout << "PHG4EICMvtxDetector constructor called" << endl;
+  }
 
   if (Verbosity() > 10)
+  {
     cout << " cm " << cm << " mm " << mm << endl;
+  }
   for (int ilayer = 0; ilayer < n_Layers; ++ilayer)
   {
     const PHParameters* params = m_ParamsContainer->GetParameters(ilayer);
@@ -225,7 +229,7 @@ int PHG4EICMvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITS
   int N_staves = m_N_staves[layer];
   G4double layer_nominal_radius = m_nominal_radius[layer];
   G4double phitilt = m_nominal_phitilt[layer];
-  G4double phi0 = m_nominal_phi0[layer];  //YCM: azimuthal offset for the first stave
+  G4double phi0 = m_nominal_phi0[layer];  // YCM: azimuthal offset for the first stave
 
   if (N_staves < 0)
   {
@@ -407,7 +411,7 @@ void PHG4EICMvtxDetector::AddGeometryNode()
     {
       geo->identify();
     }
-  }  //is active
+  }  // is active
 }  // AddGeometryNode
 
 void PHG4EICMvtxDetector::FillPVArray(G4AssemblyVolume* av)

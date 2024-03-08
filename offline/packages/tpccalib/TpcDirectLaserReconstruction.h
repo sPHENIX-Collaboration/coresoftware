@@ -168,6 +168,31 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   /// number of entries per cell
   TH3 *h_entries = nullptr;
   TNtuple *h_hits = nullptr;
+  TNtuple *h_hits_reco = nullptr;
+  // adc spectra of ALL lasers
+  TH1 *h_adc = nullptr;
+  TH1 *h_adc_reco = nullptr;
+
+  TH1 *h_adc_sum = nullptr;
+  TH1 *h_adc_sum_reco = nullptr;
+
+  TH1 *h_adc_sum_ratio_true = nullptr;
+  TH1 *h_adc_sum_ratio = nullptr;
+
+//_______________________________________
+
+  TH1 *h_num_sum = nullptr;
+  TH1 *h_num_sum_reco = nullptr;
+
+  TH1 *h_num_sum_ratio_true = nullptr;
+  TH1 *h_num_sum_ratio = nullptr;
+
+//_______________________________________
+
+  TH2 *h_adc_vs_DCA_true = nullptr;
+  TH2 *h_adc_sum_ratio_lasrangle = nullptr;
+  TH2 *h_num_sum_ratio_lasrangle = nullptr;
+   
   //TNtuple *h_origins = nullptr;
   //TNtuple *h_assoc_hits = nullptr;
   TNtuple *h_bright_hits_laser1 = nullptr;

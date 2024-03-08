@@ -1,8 +1,7 @@
 #include "RawClusterZVertexRecorrect.h"
 
-#include <mbd/MbdVertex.h>
-#include <mbd/MbdVertexMap.h>
-#include <mbd/MbdVertexMapv1.h>
+#include <globalvertex/MbdVertex.h>
+#include <globalvertex/MbdVertexMap.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
@@ -84,7 +83,7 @@ int RawClusterZVertexRecorrect::process_event(PHCompositeNode *topNode)
     }
   
   
-  MbdVertexMapv1 *mbdmap = findNode::getClass<MbdVertexMapv1>(topNode, "MbdVertexMap");
+  MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
  
   if (m_UseBbcZVtx && mbdmap && m_UseTowerInfo < 2)
     {

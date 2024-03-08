@@ -2,6 +2,7 @@
 #include "intt_pool.h"
 
 #include "Fun4AllStreamingInputManager.h"
+#include "InputManagerType.h"
 
 #include <ffarawobjects/InttRawHitContainerv1.h>
 #include <ffarawobjects/InttRawHitv1.h>
@@ -25,7 +26,7 @@
 SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
-  SubsystemEnum(Fun4AllStreamingInputManager::INTT);
+  SubsystemEnum(InputManagerType::INTT);
   plist = new Packet *[1];
 }
 
@@ -42,7 +43,7 @@ SingleInttPoolInput::~SingleInttPoolInput()
   }
 }
 
-void SingleInttPoolInput::FillPool(const unsigned int)
+void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -50,10 +51,14 @@ void SingleInttPoolInput::FillPool(const unsigned int)
   }
   while (GetEventiterator() == nullptr)  // at startup this is a null pointer
   {
-    OpenNextFile();
+    if (!OpenNextFile())
+    {
+      AllDone(1);
+      return;
+    }
   }
 
-  std::set<uint64_t> saved_beamclocks;
+  //  std::set<uint64_t> saved_beamclocks;
   while (GetSomeMoreEvents(0))
   {
     Event *evt = GetEventiterator()->getNextEvent();
@@ -335,5 +340,15 @@ void SingleInttPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     intthitcont = new InttRawHitContainerv1();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
     detNode->addNode(newNode);
+  }
+}
+//_______________________________________________________
+
+void SingleInttPoolInput::ConfigureStreamingInputManager()
+{
+  if (StreamingInputManager())
+  {
+    StreamingInputManager()->SetInttBcoRange(m_BcoRange);
+    StreamingInputManager()->SetInttNegativeBco(m_NegativeBco);
   }
 }

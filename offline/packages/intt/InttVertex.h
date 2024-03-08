@@ -22,13 +22,11 @@ class InttVertex : public PHObject
   virtual unsigned int get_id() const { return 0xFFFFFFFF; }
   virtual void set_id(unsigned int) {}
 
-
   virtual float get_z() const { return NAN; }
   virtual void set_z(float) {}
 
   virtual float get_z_err() const { return NAN; }
   virtual void set_z_err(float) {}
-
 
  protected:
   InttVertex() {}

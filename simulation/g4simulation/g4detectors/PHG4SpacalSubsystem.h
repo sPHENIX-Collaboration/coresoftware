@@ -35,8 +35,8 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
   //! init
   /*!
   called during InitRun (the original InitRun does common setup and calls this one)
-  creates the detector object 
-  ceates the stepping action 
+  creates the detector object
+  ceates the stepping action
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
    */
   int InitRunSubsystem(PHCompositeNode *) override;

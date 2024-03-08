@@ -28,6 +28,7 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager, public PHHepMCGenHe
   Fun4AllHepMCInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
   ~Fun4AllHepMCInputManager() override;
   int fileopen(const std::string &filenam) override;
+// cppcheck-suppress virtualCallInConstructor
   int fileclose() override;
   int run(const int nevents = 0) override;
   int ResetEvent() override;

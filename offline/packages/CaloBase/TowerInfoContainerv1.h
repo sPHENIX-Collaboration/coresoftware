@@ -15,11 +15,12 @@ class TowerInfoContainerv1 : public TowerInfoContainer
 
   // default constructor for ROOT IO
   TowerInfoContainerv1() {}
+  PHObject *CloneMe() const override { return new TowerInfoContainerv1(*this); }
+  TowerInfoContainerv1(const TowerInfoContainerv1 &);
 
   ~TowerInfoContainerv1() override;
 
-  PHObject* CloneMe() const override { return new TowerInfoContainerv1(*this); };
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   void Reset() override;
   TowerInfov1 *get_tower_at_channel(int pos) override;
@@ -29,6 +30,7 @@ class TowerInfoContainerv1 : public TowerInfoContainer
   unsigned int decode_key(unsigned int tower_key) override;
 
   size_t size() const override { return _clones->GetEntries(); }
+  DETECTOR get_detectorid() const override {return _detector;}
 
  protected:
   TClonesArray *_clones = nullptr;

@@ -1,8 +1,7 @@
-#ifndef G4JET_TRACKJETINPUT_H
-#define G4JET_TRACKJETINPUT_H
+#ifndef JETBASE_TRACKJETINPUT_H
+#define JETBASE_TRACKJETINPUT_H
 
 #include "JetInput.h"
-
 #include "Jet.h"
 
 #include <iostream>  // for cout, ostream

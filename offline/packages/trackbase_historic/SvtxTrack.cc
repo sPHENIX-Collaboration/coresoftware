@@ -20,7 +20,6 @@ SvtxTrack::HitIdConstIter SvtxTrack::end_g4hit_id() const
   return DummyHitIdMap.end();
 }
 
-
 SvtxTrack::HitIdIter SvtxTrack::begin_g4hit_id()
 {
   return DummyHitIdMap.end();
@@ -36,13 +35,12 @@ SvtxTrack::HitIdIter SvtxTrack::end_g4hit_id()
   return DummyHitIdMap.end();
 }
 
-
 SvtxTrack::ConstStateIter SvtxTrack::begin_states() const
 {
   return DummyStateMap.end();
 }
 
-SvtxTrack::ConstStateIter SvtxTrack::find_state(float /*pathlength*/)  const
+SvtxTrack::ConstStateIter SvtxTrack::find_state(float /*pathlength*/) const
 {
   return DummyStateMap.end();
 }
@@ -54,17 +52,17 @@ SvtxTrack::ConstStateIter SvtxTrack::end_states() const
 
 SvtxTrack::StateIter SvtxTrack::begin_states()
 {
-return DummyStateMap.end();
+  return DummyStateMap.end();
 }
 
 SvtxTrack::StateIter SvtxTrack::find_state(float /*pathlength*/)
 {
-return DummyStateMap.end();
+  return DummyStateMap.end();
 }
 
 SvtxTrack::StateIter SvtxTrack::end_states()
 {
-return DummyStateMap.end();
+  return DummyStateMap.end();
 }
 
 SvtxTrack::ConstClusterIter SvtxTrack::begin_clusters() const
@@ -111,7 +109,6 @@ SvtxTrack::ConstClusterKeyIter SvtxTrack::end_cluster_keys() const
 {
   return DummyClusterKeySet.end();
 }
-
 
 SvtxTrack::ClusterKeyIter SvtxTrack::begin_cluster_keys()
 {

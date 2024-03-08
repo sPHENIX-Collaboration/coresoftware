@@ -12,20 +12,20 @@
 /**
  * @brief DecayFinder container object
  *
- * Container for DecayFinder objects, based off KFParticle_Container 
+ * Container for DecayFinder objects, based off KFParticle_Container
  */
 
 class DecayFinderContainerBase : public PHObject
 {
  public:
-  //Each decay is stored as an initial pair of embedding ID and barcode.
-  //This pair matches with another int, the PDGID
-  typedef std::vector<std::pair<std::pair<int, int>, int>> Decay;
-  typedef std::map<unsigned int, Decay> Map;
-  typedef std::map<unsigned int, Decay>::const_iterator ConstIter;
-  typedef std::map<unsigned int, Decay>::iterator Iter;
+  // Each decay is stored as an initial pair of embedding ID and barcode.
+  // This pair matches with another int, the PDGID
+  using Decay = std::vector<std::pair<std::pair<int, int>, int>>;
+  using Map = std::map<unsigned int, Decay>;
+  using ConstIter = Map::const_iterator;
+  using Iter = Map::iterator;
 
-  ~DecayFinderContainerBase() override {}
+  ~DecayFinderContainerBase() override = default;
 
   void identify(std::ostream& os = std::cout) const override
   {
@@ -37,7 +37,7 @@ class DecayFinderContainerBase : public PHObject
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }
-  virtual size_t count(unsigned int) const { return 0; }
+  virtual size_t count(unsigned int /*unused*/) const { return 0; }
   virtual void clear();
 
   virtual const Decay get(unsigned int) const;
@@ -51,17 +51,17 @@ class DecayFinderContainerBase : public PHObject
   virtual Iter find(unsigned int);
   virtual Iter end();
 
-  virtual Decay insert(const Decay);
+  virtual Decay insert(const Decay&);
 
   virtual Map returnDecaysByPDGid(int);
 
   virtual size_t erase(unsigned int key);
 
  protected:
-  DecayFinderContainerBase() {}
+  DecayFinderContainerBase() = default;
 
  private:
   ClassDefOverride(DecayFinderContainerBase, 1);
 };
 
-#endif  //DECAYFINDER_DECAYFINDERCONTAINERBASE_H
+#endif  // DECAYFINDER_DECAYFINDERCONTAINERBASE_H

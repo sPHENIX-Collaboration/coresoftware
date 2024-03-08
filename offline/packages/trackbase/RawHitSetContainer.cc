@@ -11,7 +11,6 @@
 #include <cstdlib>
 #include <iostream>
 
-
 namespace
 {
   RawHitSetContainer::Map dummy_map;
@@ -25,24 +24,36 @@ void RawHitSetContainer::Reset()
 
 RawHitSetContainer::ConstIterator
 RawHitSetContainer::addHitSet(RawHitSet* /*newhit*/)
-{ return dummy_map.cbegin(); }
+{
+  return dummy_map.cbegin();
+}
 
 RawHitSetContainer::ConstIterator
 RawHitSetContainer::addHitSetSpecifyKey(const TrkrDefs::hitsetkey /*key*/, RawHitSet* /*newhit*/)
-{ return dummy_map.cbegin(); }
- 
+{
+  return dummy_map.cbegin();
+}
+
 RawHitSetContainer::Iterator
 RawHitSetContainer::findOrAddHitSet(TrkrDefs::hitsetkey /*key*/)
-{ return dummy_map.begin(); }
+{
+  return dummy_map.begin();
+}
 
 RawHitSetContainer::ConstRange
 RawHitSetContainer::getHitSets(const TrkrDefs::TrkrId /*trackerid*/) const
-{ return std::make_pair( dummy_map.cbegin(), dummy_map.cend() ); }
+{
+  return std::make_pair(dummy_map.cbegin(), dummy_map.cend());
+}
 
 RawHitSetContainer::ConstRange
-RawHitSetContainer::getHitSets(const TrkrDefs::TrkrId, const uint8_t) const
-{ return std::make_pair( dummy_map.cbegin(), dummy_map.cend() ); }
+RawHitSetContainer::getHitSets(const TrkrDefs::TrkrId /*unused*/, const uint8_t /*unused*/) const
+{
+  return std::make_pair(dummy_map.cbegin(), dummy_map.cend());
+}
 
 RawHitSetContainer::ConstRange
 RawHitSetContainer::getHitSets() const
-{ return std::make_pair( dummy_map.cbegin(), dummy_map.cend() ); }
+{
+  return std::make_pair(dummy_map.cbegin(), dummy_map.cend());
+}

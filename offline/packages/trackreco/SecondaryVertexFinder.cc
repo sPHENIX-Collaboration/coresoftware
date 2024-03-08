@@ -12,9 +12,8 @@
 
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap_v2.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
+#include <globalvertex/SvtxVertex_v1.h>
+#include <globalvertex/SvtxVertexMap_v1.h>
 #include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase_historic/ActsTransformations.h>
 

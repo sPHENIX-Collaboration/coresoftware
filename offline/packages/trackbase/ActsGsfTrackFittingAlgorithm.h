@@ -125,7 +125,7 @@ class ActsGsfTrackFittingAlgorithm
 
   std::shared_ptr<ActsTrackFittingAlgorithm::TrackFitterFunction>
   makeGsfFitterFunction(
-      std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
+      const std::shared_ptr<const Acts::TrackingGeometry>& trackingGeometry,
       std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
       BetheHeitlerApprox betheHeitlerApprox, std::size_t maxComponents,
       double weightCutoff,

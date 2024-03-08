@@ -41,7 +41,7 @@ class TPCPedestalCalibration : public SubsysReco
     m_sector = sectorNum;
   }
 
-  void InsertCDBTTree(std::string username) // username for CDB record of who uploaded the file
+  void InsertCDBTTree(const std::string &username) // username for CDB record of who uploaded the file
   {
     m_writeToCDB = true;
     m_username = username; 

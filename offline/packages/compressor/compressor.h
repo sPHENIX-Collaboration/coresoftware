@@ -112,6 +112,7 @@ Float_t approx(std::vector<UShort_t>* order, std::vector<Float_t>* dict, std::ve
   for (const auto &mmlm : min_max_loc_map) {
 	Double_t estimate = (Double_t) (mmlm.first + mmlm.second.first) / (Double_t) 2;
 	  
+    // cppcheck-suppress containerOutOfBounds
     for (const auto &index : loc_set_vec[mmlm.second.second]) {
       (*order)[index] = dict->size();
 	  
@@ -122,6 +123,7 @@ Float_t approx(std::vector<UShort_t>* order, std::vector<Float_t>* dict, std::ve
 	}
 
     dict->push_back(estimate);
+    // cppcheck-suppress containerOutOfBounds
     cnt->push_back(loc_set_vec[mmlm.second.second].size());
   }
   
