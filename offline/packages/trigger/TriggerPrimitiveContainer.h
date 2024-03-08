@@ -31,7 +31,7 @@ class TriggerPrimitiveContainer : public PHObject
 
   virtual TriggerPrimitive* get_primitive_at_key(TriggerDefs::TriggerPrimKey) { return nullptr; }
 
-  virtual void add_primitive(TriggerDefs::TriggerPrimKey , TriggerPrimitive* ) {}
+  void add_primitive(TriggerDefs::TriggerPrimKey , TriggerPrimitive* ) {}
 
   virtual size_t size() {return 0;}
 
