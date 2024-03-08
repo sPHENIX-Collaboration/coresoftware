@@ -18,6 +18,7 @@ class Event;
 class SinglePrdfInput;
 class oEvent;
 class Gl1Packet;
+class MbdPacket;
 class Packet;
 class PHCompositeNode;
 class SingleTriggerInput;
@@ -58,7 +59,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int FillGl1();
   void AddGl1Packet(int eventno, Gl1Packet *gl1pkt);
   int FillMbd();
-  void AddMbdPacket(int eventno, OfflinePacket *mbdpkt);
+  void AddMbdPacket(int eventno, MbdPacket *mbdpkt);
 
  private:
   struct PacketInfo
@@ -80,7 +81,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
 
   struct MbdPacketInfo
   {
-    std::vector<OfflinePacket *> MbdPacketVector;
+    std::vector<MbdPacket *> MbdPacketVector;
     unsigned int EventFoundCounter = 0;
   };
 

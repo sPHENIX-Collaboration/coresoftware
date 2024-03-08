@@ -10,8 +10,9 @@
 #include <ffaobjects/SyncObject.h>    // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>  // for SyncObject
 
-//#include <ffarawobjects/OfflinePacket.h>
 #include <ffarawobjects/Gl1Packet.h>
+#include <ffarawobjects/MbdPacket.h>
+#include <ffarawobjects/MbdPacketContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -638,7 +639,7 @@ int Fun4AllPrdfInputTriggerManager::FillMbd()
     return -1;
   }
   //    std::cout << "stashed mbd BCOs: " << m_MbdPacketMap.size() << std::endl;
-  OfflinePacket *mbdrawhit = findNode::getClass<OfflinePacket>(m_topNode, "MBDPacket");
+  MbdPacketContainer *mbd = findNode::getClass<MbdPacketContainer>(m_topNode, "MBDPackets");
   //  std::cout << "before filling m_MbdPacketMap size: " <<  m_MbdPacketMap.size() << std::endl;
   for (auto mbdhititer : m_MbdPacketMap.begin()->second.MbdPacketVector)
   {
@@ -646,8 +647,7 @@ int Fun4AllPrdfInputTriggerManager::FillMbd()
     {
       mbdhititer->identify();
     }
-    m_RefEventNo = mbdhititer->getEvtSequence();
-    mbdrawhit->setEvtSequence(m_RefEventNo);
+    mbd->AddPacket(mbdhititer);
   }
   for (auto iter : m_MbdInputVector)
   {
@@ -660,7 +660,7 @@ int Fun4AllPrdfInputTriggerManager::FillMbd()
   return 0;
 }
 
-void Fun4AllPrdfInputTriggerManager::AddMbdPacket(int eventno, OfflinePacket *pkt)
+void Fun4AllPrdfInputTriggerManager::AddMbdPacket(int eventno, MbdPacket *pkt)
 {
   if (Verbosity() > 1)
   {
