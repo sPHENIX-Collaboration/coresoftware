@@ -10,12 +10,11 @@
 
 #include "SvtxTrack_v1.h"
 
-#include <iostream>        // for cout, ostream
+#include <iostream>  // for cout, ostream
 
-class SvtxTrack_FastSim: public SvtxTrack_v1
+class SvtxTrack_FastSim : public SvtxTrack_v1
 {
  public:
-
   //* constructor
   SvtxTrack_FastSim() = default;
 
@@ -23,13 +22,15 @@ class SvtxTrack_FastSim: public SvtxTrack_v1
   ~SvtxTrack_FastSim() override = default;
 
   //* base class copy constructor
-  SvtxTrack_FastSim( const SvtxTrack& );
+  SvtxTrack_FastSim(const SvtxTrack&);
 
   // copy content from base class
-  using PHObject::CopyFrom; // avoid warning for not implemented CopyFrom methods
-  void CopyFrom( const SvtxTrack& ) override;
-  void CopyFrom( SvtxTrack* source ) override
-  { CopyFrom( *source ); }
+  using PHObject::CopyFrom;  // avoid warning for not implemented CopyFrom methods
+  void CopyFrom(const SvtxTrack&) override;
+  void CopyFrom(SvtxTrack* source) override
+  {
+    CopyFrom(*source);
+  }
 
   // The "standard PHObject response" functions...
   void identify(std::ostream& os = std::cout) const override;
@@ -41,10 +42,14 @@ class SvtxTrack_FastSim: public SvtxTrack_v1
   //@{
 
   unsigned int get_truth_track_id() const override
-  { return _truth_track_id; }
+  {
+    return _truth_track_id;
+  }
 
   unsigned int get_num_measurements() const override
-  { return _nmeas; }
+  {
+    return _nmeas;
+  }
 
   //@}
 
@@ -52,14 +57,18 @@ class SvtxTrack_FastSim: public SvtxTrack_v1
   //@{
 
   void set_truth_track_id(unsigned int truthTrackId) override
-  { _truth_track_id = truthTrackId; }
+  {
+    _truth_track_id = truthTrackId;
+  }
 
   void set_num_measurements(int nmeas) override
-  { _nmeas = nmeas; }
+  {
+    _nmeas = nmeas;
+  }
 
   //@}
 
-  private:
+ private:
   unsigned int _truth_track_id = UINT_MAX;
   unsigned int _nmeas = 0;
 

@@ -22,7 +22,7 @@ class PHG4ParticleSvtxMap : public PHObject
   {
     os << "PHG4ParticleSvtxMap base class " << std::endl;
   }
-  
+
   int isValid() const override { return 0; }
   PHObject* CloneMe() const override { return nullptr; }
   void Reset() override {}
@@ -35,8 +35,8 @@ class PHG4ParticleSvtxMap : public PHObject
   virtual bool processed() const { return false; }
   virtual void setProcessed(const bool) {}
 
-  virtual const WeightedRecoTrackMap & get(const int) const;
-  virtual WeightedRecoTrackMap & get(const int);
+  virtual const WeightedRecoTrackMap& get(const int) const;
+  virtual WeightedRecoTrackMap& get(const int);
   virtual WeightedRecoTrackMap insert(const int, const WeightedRecoTrackMap);
   virtual std::size_t erase(const int) { return 0; }
 
@@ -53,7 +53,6 @@ class PHG4ParticleSvtxMap : public PHObject
 
  private:
   ClassDefOverride(PHG4ParticleSvtxMap, 1);
-  
 };
 
 #endif

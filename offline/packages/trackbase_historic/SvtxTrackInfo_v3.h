@@ -6,7 +6,7 @@
 
 class PHObject;
 
-class SvtxTrackInfo_v3: public SvtxTrackInfo
+class SvtxTrackInfo_v3 final : public SvtxTrackInfo
 {
  public:
   enum STATE
@@ -21,13 +21,20 @@ class SvtxTrackInfo_v3: public SvtxTrackInfo
     HCALOUT_BACKFACE = 7
   };
 
-  SvtxTrackInfo_v3() : m_states(8, TrackStateInfo_v1()) {}
+  SvtxTrackInfo_v3()
+    : m_states(8, TrackStateInfo_v1())
+  {
+  }
 
   //* base class copy constructor
-  SvtxTrackInfo_v3( const SvtxTrackInfo& ) : m_states(8, TrackStateInfo_v1()) {}
+  SvtxTrackInfo_v3(const SvtxTrackInfo&)
+    : m_states(8, TrackStateInfo_v1())
+  {
+  }
 
   //* copy constructor
-  SvtxTrackInfo_v3(const SvtxTrackInfo_v3& source) : m_states(8, TrackStateInfo_v1())
+  SvtxTrackInfo_v3(const SvtxTrackInfo_v3& source)
+    : m_states(8, TrackStateInfo_v1())
   {
     m_track_id = source.get_track_id();
     m_outer_tpc_subsurfkey = source.get_subsurfkey();
@@ -36,7 +43,7 @@ class SvtxTrackInfo_v3: public SvtxTrackInfo
     m_crossing = source.get_crossing();
     m_hitbitmap = source.get_hitbitmap();
 
-    for(int istate = STATE::VERTEX; istate <= STATE::HCALOUT_BACKFACE; istate++)
+    for (int istate = STATE::VERTEX; istate <= STATE::HCALOUT_BACKFACE; istate++)
     {
       set_x(istate, source.get_x(istate));
       set_y(istate, source.get_y(istate));
@@ -73,10 +80,10 @@ class SvtxTrackInfo_v3: public SvtxTrackInfo
   //! import PHObject CopyFrom, in order to avoid clang warning
   using PHObject::CopyFrom;
   // copy content
-  void CopyFrom( const SvtxTrackInfo& ) override;
-  void CopyFrom( SvtxTrackInfo* source ) override
+  void CopyFrom(const SvtxTrackInfo&) override;
+  void CopyFrom(SvtxTrackInfo* source) override
   {
-    CopyFrom( *source );
+    CopyFrom(*source);
   }
 
   //
@@ -130,8 +137,8 @@ class SvtxTrackInfo_v3: public SvtxTrackInfo
   float get_qOp() const override { return m_states.at(STATE::VERTEX).get_qOp(); }
   int get_charge() const override { return m_states.at(STATE::VERTEX).get_charge(); }
 
-  float get_covariance(int i, int j) const override { return m_states.at(STATE::VERTEX).get_covariance(i, j);}
-  void set_covariance(int i, int j, float value) override {m_states.at(STATE::VERTEX).set_covariance(i, j, value);}
+  float get_covariance(int i, int j) const override { return m_states.at(STATE::VERTEX).get_covariance(i, j); }
+  void set_covariance(int i, int j, float value) override { m_states.at(STATE::VERTEX).set_covariance(i, j, value); }
 
   float get_x(int state) const override { return m_states.at(state).get_x(); }
   void set_x(int state, float x) override { m_states.at(state).set_x(x); }
@@ -161,14 +168,13 @@ class SvtxTrackInfo_v3: public SvtxTrackInfo
   float get_theta(int state) const override { return m_states.at(state).get_theta(); }
   float get_qOp(int state) const override { return m_states.at(state).get_qOp(); }
 
-  float get_projected_eta(int state) const override { return asinh(m_states.at(state).get_z()/sqrt(pow(m_states.at(state).get_x(), 2) + pow(m_states.at(state).get_y(), 2))); }
+  float get_projected_eta(int state) const override { return asinh(m_states.at(state).get_z() / sqrt(pow(m_states.at(state).get_x(), 2) + pow(m_states.at(state).get_y(), 2))); }
   float get_projected_phi(int state) const override { return atan2(m_states.at(state).get_y(), m_states.at(state).get_x()); }
 
-  float get_covariance(int state, int i, int j) const override { return m_states.at(state).get_covariance(i, j);}
-  void set_covariance(int state, int i, int j, float value) override {m_states.at(state).set_covariance(i, j, value);}
+  float get_covariance(int state, int i, int j) const override { return m_states.at(state).get_covariance(i, j); }
+  void set_covariance(int state, int i, int j, float value) override { m_states.at(state).set_covariance(i, j, value); }
 
  private:
-
   // track information
   unsigned int m_track_id = std::numeric_limits<unsigned int>::quiet_NaN();
   uint16_t m_outer_tpc_subsurfkey = std::numeric_limits<uint16_t>::quiet_NaN();

@@ -37,15 +37,6 @@ class TpcDistortionCorrection
   Acts::Vector3 get_corrected_position(const Acts::Vector3&, const TpcDistortionCorrectionContainer*,
                                        unsigned int mask = COORD_ALL) const;
 
-  //! set the phi histogram to be interpreted as radians.
-  void read_phi_as_radians(bool flag = true)
-  {
-    m_phi_hist_in_radians = flag;
-    return;
-  }
-
- private:
-  bool m_phi_hist_in_radians = true;
 };
 
 #endif

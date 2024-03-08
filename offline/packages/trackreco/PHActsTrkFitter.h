@@ -175,7 +175,7 @@ class PHActsTrkFitter : public SubsysReco
 
   /// TrackMap containing SvtxTracks
   alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
-  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;  
+  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;
   std::set< Acts::GeometryIdentifier> m_transient_id_set;
   Acts::GeometryContext m_transient_geocontext;
   SvtxTrackMap* m_trackMap = nullptr;
@@ -219,9 +219,6 @@ class PHActsTrkFitter : public SubsysReco
   TpcDistortionCorrectionContainer* _dcc_static{nullptr};
   TpcDistortionCorrectionContainer* _dcc_average{nullptr};
   TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
-
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection _distortionCorrection;
 
   ClusterErrorPara _ClusErrPara;
 
