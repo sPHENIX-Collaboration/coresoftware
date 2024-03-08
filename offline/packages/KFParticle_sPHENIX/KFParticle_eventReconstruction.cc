@@ -277,8 +277,8 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                   for (int k = 0; k < num_remaining_tracks; ++k)
                   {  // Need to deal with track mass and PID assignment for extra tracks
                     int trackArrayID = k + m_num_intermediate_states;
-                    double slowTrackMass;
-                    int slowTrackPDG;
+                    double slowTrackMass=-1;
+                    int slowTrackPDG=0;
                     if ((Int_t) motherDecayProducts[trackArrayID].GetQ() != 0)
                     {
                       slowTrackMass = kfp_Tools_evtReco.getParticleMass((Int_t) motherDecayProducts[trackArrayID].GetQ() * uniqueCombination[trackArrayID]);
@@ -402,8 +402,8 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
           for (int i = 0; i < nTracks; ++i)
           {
             KFParticle intParticle;
-            double intParticleMass;
-            int intParticlePDG;
+            double intParticleMass=-1;
+            int intParticlePDG=0;
             if ((Int_t) daughterTracks[i].GetQ() != 0)
             {
               intParticleMass = kfp_Tools_evtReco.getParticleMass((Int_t) daughterTracks[i].GetQ() * PDGIDofFirstParticleInCombination[i]);
