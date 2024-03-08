@@ -28,13 +28,13 @@ void TriggerPrimitiveContainer::add_primitive(TriggerDefs::TriggerKey /*key*/, T
 
 
 //______________________________________
-void TriggerPrimitiveContainer::identify(std::ostream& out)
+void TriggerPrimitiveContainer::identify(std::ostream& out) const
 {
   out << "identify yourself: I am a TriggerPrimitiveContainer object" << std::endl;
 
 }
 
-int TriggerPrimitiveContainer::isValid()
+int TriggerPrimitiveContainer::isValid() const
 {
-  return (!_primitives.empty());
+  return 1;
 }

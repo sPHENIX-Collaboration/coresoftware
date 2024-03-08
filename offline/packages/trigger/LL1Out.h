@@ -24,10 +24,10 @@ class LL1Out : public PHObject
   /** identify Function from PHObject
       @param os Output Stream 
   */
-  virtual void identify(std::ostream& os = std::cout);
+  void identify(std::ostream& os = std::cout) const override;
 
   /// isValid returns non zero if object contains vailid data
-  virtual int isValid();
+  int isValid() const override;
 
   // Get Trigger Type
   //  virtual std::string get_TriggerType() const {return _trigger_type;}

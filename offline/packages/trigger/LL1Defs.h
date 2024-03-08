@@ -1,5 +1,5 @@
-#ifndef _LL1DEFS_H_
-#define __LL1DEFS_H_
+#ifndef __LL1DEFS_H__
+#define __LL1DEFS_H__
 
 namespace LL1Defs{
 

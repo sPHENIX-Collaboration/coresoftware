@@ -2,7 +2,7 @@
 #include "LL1ReturnCodes.h"
 #include "LL1Outv2.h"
 #include "TriggerDefs.h"
-#include "TriggerPrimitive.h"
+#include "TriggerPrimitivev1.h"
 #include "TriggerPrimitiveContainerv1.h"
 
 #include <cmath>

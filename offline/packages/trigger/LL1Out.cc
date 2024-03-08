@@ -29,15 +29,15 @@ void LL1Out::Reset()
   Init();
 }
 
-//______________________________________
-void LL1Out::identify(std::ostream& out)
+void LL1Out::identify(std::ostream& os) const
 {
-  out << "identify yourself: I am a LL1Out object" << std::endl;
-  out << "triggertype: " << _trigger_type << std::endl;
+  os << "virtual LL1Out object" << std::endl;
 }
 
-int LL1Out::isValid()
+int LL1Out::isValid() const
 {
-
   return 1;
 }
+
+
+

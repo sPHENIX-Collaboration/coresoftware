@@ -2,7 +2,7 @@
 #define _CALOTRIGGEREMULATOR_H__
 
 
-#include "TriggerPrimitive.h"
+#include "TriggerPrimitivev1.h"
 #include "TriggerPrimitiveContainerv1.h"
 #include "TriggerDefs.h"
 #include <cstdint>
@@ -116,7 +116,7 @@ class CaloTriggerEmulator : public SubsysReco
   LL1Outv2 *_ll1out_emcal = nullptr;
   TriggerPrimitiveContainerv1 *_primitives_emcal = nullptr;
 
-  TriggerPrimitive *_primitive = nullptr;
+  TriggerPrimitivev1 *_primitive = nullptr;
 
   std::vector<unsigned int> *_sum  = nullptr;
   std::vector<unsigned int> *_bits = nullptr;

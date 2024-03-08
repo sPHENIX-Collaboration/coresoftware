@@ -5,7 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include "LL1Outv2.h"
-#include "TriggerPrimitive.h"
+#include "TriggerPrimitivev1.h"
 #include "TriggerPrimitiveContainerv1.h"
 #include "TriggerDefs.h"
 #include <climits>
@@ -49,7 +49,7 @@ class LL1PacketGetter : public SubsysReco
 
   LL1Outv2 *m_ll1out = nullptr;
   TriggerPrimitiveContainer *_trigger_primitives = nullptr;
-  TriggerPrimitive *_trigger_primitive = nullptr;
+  TriggerPrimitivev1 *_trigger_primitive = nullptr;
   std::map<unsigned int, std::vector<unsigned int>> *_trigger_words = nullptr;
 
   std::map<TriggerDefs::DetectorId, int> m_prim_map;

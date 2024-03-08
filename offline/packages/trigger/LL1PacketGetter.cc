@@ -173,7 +173,7 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
 		{
 		  primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), TriggerDefs::GetPrimitiveId(m_ll1), iprim);
 		}	
-	      _trigger_primitive = new TriggerPrimitive(primkey);
+	      _trigger_primitive = new TriggerPrimitivev1(primkey);
 	      for (int channel = 0; channel < m_nchannels_per_primitive; channel++)
 		    {
 		      sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), TriggerDefs::GetPrimitiveId(m_ll1), iprim, channel);

@@ -43,6 +43,7 @@ pkginclude_HEADERS = \
   LL1PacketGetter.h \
   TriggerDefs.h \
   TriggerPrimitive.h \
+  TriggerPrimitivev1.h \
   TriggerPrimitiveContainer.h \
   TriggerPrimitiveContainerv1.h
 
@@ -52,6 +53,7 @@ ROOTDICTS = \
   LL1Outv1_Dict.cc \
   LL1Outv2_Dict.cc \
   TriggerPrimitive_Dict.cc \
+  TriggerPrimitivev1_Dict.cc \
   TriggerPrimitiveContainer_Dict.cc \
   TriggerPrimitiveContainerv1_Dict.cc \
   CaloTriggerInfo_Dict.cc \
@@ -69,6 +71,7 @@ nobase_dist_pcm_DATA = \
   LL1Outv1_Dict_rdict.pcm \
   LL1Outv2_Dict_rdict.pcm \
   TriggerPrimitive_Dict_rdict.pcm \
+  TriggerPrimitivev1_Dict_rdict.pcm \
   TriggerPrimitiveContainer_Dict_rdict.pcm \
   TriggerPrimitiveContainerv1_Dict_rdict.pcm
 
@@ -78,6 +81,7 @@ libcalotrigger_io_la_SOURCES = \
   LL1Outv1.cc \
   LL1Outv2.cc \
   TriggerPrimitive.cc \
+  TriggerPrimitivev1.cc \
   TriggerPrimitiveContainer.cc \
   TriggerPrimitiveContainerv1.cc \
   TriggerDefs.cc \

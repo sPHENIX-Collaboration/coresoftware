@@ -24,45 +24,21 @@ TriggerPrimitive::~TriggerPrimitive()
 //______________________________________
 void TriggerPrimitive::Reset()
 {
-  _sums.clear();
+
 }
 
-void TriggerPrimitive::add_sum(TriggerDefs::TriggerSumKey key, std::vector<unsigned int> *sum)
+void TriggerPrimitive::add_sum(TriggerDefs::TriggerSumKey /*key*/, std::vector<unsigned int> */*sum*/)
 {
-  _sums[key] = sum;
-}
-std::vector<unsigned int>*  TriggerPrimitive::get_sum_at_key(TriggerDefs::TriggerSumKey key)
-{
-  if (!_sums[key]) return nullptr;
 
-  return _sums[key];
 }
-
-TriggerPrimitive::ConstRange TriggerPrimitive::getSums() const
-{
-  return make_pair(_sums.begin(), _sums.end());
-}
-
-TriggerPrimitive::Range TriggerPrimitive::getSums()
-{
-  return make_pair(_sums.begin(), _sums.end());
-}
-
 
 //______________________________________
-void TriggerPrimitive::identify(std::ostream& out)
+void TriggerPrimitive::identify(std::ostream& out) const
 {
-  out << __FILE__<<__FUNCTION__<<":: primitive key : "<< m_triggerprimkey << std::endl;
-  Range range = getSums();
-  for (auto iter = range.first; iter != range.second ; ++iter )
-    {
-      out << "Sumkey "<<(*iter).first <<" :";
-      for (auto i = (*iter).second->begin(); i != (*iter).second->end(); i++) out << (*i) << " "; 
-      out <<" "<<std::endl;
-    }
+  out << "identify yourself: I am a TriggerPrimitive object" << std::endl;
 }
 
-int TriggerPrimitive::isValid()
+int TriggerPrimitive::isValid() const
 {
   return (!_sums.empty());
 }

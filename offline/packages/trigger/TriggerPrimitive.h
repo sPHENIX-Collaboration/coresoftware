@@ -27,19 +27,14 @@ class TriggerPrimitive : public PHObject
   
   /// Clear Event from memory
   virtual void Reset() override;
-  virtual void identify(std::ostream& os = std::cout);
-  virtual int isValid();
+  void identify(std::ostream& os = std::cout) const override;
+  int isValid() const override;
 
-  virtual std::vector<unsigned int>* get_sum_at_key(TriggerDefs::TriggerSumKey );
+  virtual std::vector<unsigned int>* get_sum_at_key(TriggerDefs::TriggerSumKey ) {return nullptr; }
 
   virtual void add_sum(TriggerDefs::TriggerSumKey key, std::vector<unsigned int> *sum);
-
-  virtual TriggerDefs::TriggerPrimKey getTriggerPrimitiveKey() { return m_triggerprimkey;}
-
-  virtual ConstRange getSums() const;
-  virtual Range getSums();
   
-  virtual size_t size() {return _sums.size();}
+  virtual size_t size() {return 0;}
 
  private:
   

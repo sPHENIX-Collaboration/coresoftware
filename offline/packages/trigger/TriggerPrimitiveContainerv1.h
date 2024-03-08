@@ -7,6 +7,7 @@
 #include <iostream>
 #include <phool/PHObject.h>
 #include "TriggerPrimitiveContainer.h"
+#include "TriggerPrimitivev1.h"
 #include <map>
 #include <utility>
 
@@ -17,6 +18,12 @@
 class TriggerPrimitiveContainerv1 : public TriggerPrimitiveContainer
 {
  public:
+  typedef std::map<TriggerDefs::TriggerPrimKey, TriggerPrimitivev1*> Map;
+  typedef Map::const_iterator ConstIter;
+  typedef Map::iterator Iter;
+  typedef std::pair<Iter, Iter> Range;
+  typedef std::pair<ConstIter, ConstIter> ConstRange;
+
   ///
   TriggerPrimitiveContainerv1();
   ///
@@ -29,9 +36,9 @@ class TriggerPrimitiveContainerv1 : public TriggerPrimitiveContainer
 
   void setTriggerType(TriggerDefs::TriggerId triggerid) {m_triggerkey = TriggerDefs::getTriggerKey(triggerid);}
 
-  TriggerPrimitive* get_primitive_at_key(TriggerDefs::TriggerPrimKey /* index */ ) override;
+  TriggerPrimitivev1* get_primitive_at_key(TriggerDefs::TriggerPrimKey /* index */ ) override;
 
-  void add_primitive(TriggerDefs::TriggerPrimKey , TriggerPrimitive* ) override;
+  void add_primitive(TriggerDefs::TriggerPrimKey , TriggerPrimitivev1* );
 
   TriggerDefs::TriggerKey getTriggerKey() {return m_triggerkey;}
 

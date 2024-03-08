@@ -7,7 +7,7 @@
 #include "LL1Outv1.h"
 #include "LL1Out.h"
 #include "TriggerDefs.h"
-#include "TriggerPrimitive.h"
+#include "TriggerPrimitivev1.h"
 #include "TriggerPrimitiveContainerv1.h"
 #include <vector>
 

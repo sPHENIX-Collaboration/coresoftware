@@ -815,7 +815,7 @@ int CaloTriggerEmulator::process_primitives()
 	  TriggerDefs::TriggerPrimKey primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(_trigger), TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("EMCAL"), ip);
 
 	  // Make a new primitive, holds all 16 sums
-	  _primitive = new TriggerPrimitive(primkey);
+	  _primitive = new TriggerPrimitivev1(primkey);
 	 
 	  unsigned int sum;
 	  // check if masked Fiber;
@@ -896,7 +896,7 @@ int CaloTriggerEmulator::process_primitives()
 	{
 	  unsigned int tmp;  
 	  TriggerDefs::TriggerPrimKey primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(_trigger), TriggerDefs::GetDetectorId("HCALOUT"), TriggerDefs::GetPrimitiveId("HCALOUT"), ip);
-	  _primitive = new TriggerPrimitive(primkey);
+	  _primitive = new TriggerPrimitivev1(primkey);
 	  unsigned int sum;
 	  mask = CheckFiberMasks(primkey);
 	  for (int isum = 0; isum < _n_sums; isum++)
@@ -953,7 +953,7 @@ int CaloTriggerEmulator::process_primitives()
 	{
 	  unsigned int tmp;  
 	  TriggerDefs::TriggerPrimKey primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(_trigger), TriggerDefs::GetDetectorId("HCALIN"), TriggerDefs::GetPrimitiveId("HCALIN"), ip);
-	  _primitive = new TriggerPrimitive(primkey);
+	  _primitive = new TriggerPrimitivev1(primkey);
 	  unsigned int sum;
 	  mask = CheckFiberMasks(primkey);
 	  for (int isum = 0; isum < _n_sums; isum++)
@@ -1017,7 +1017,7 @@ int CaloTriggerEmulator::process_primitives()
 	  TriggerDefs::TriggerPrimKey primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(_trigger), TriggerDefs::GetDetectorId("MBD"), TriggerDefs::GetPrimitiveId("MBD"), _n_primitives - ip);
 
 	  // make primitive and check mask;
-	  _primitive = new TriggerPrimitive(primkey);
+	  _primitive = new TriggerPrimitivev1(primkey);
 	  mask = CheckFiberMasks(primkey);
 
 	  std::vector<unsigned int> *sum_mbd = nullptr;
@@ -1179,7 +1179,7 @@ int CaloTriggerEmulator::process_trigger()
       for (ip = 0; ip < 16; ip++ )
 	{
 	  TriggerDefs::TriggerPrimKey primkey = TriggerDefs::getTriggerPrimKey(_triggerid, TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("JET"), ip);
-	  TriggerPrimitive *primitive_jet = new TriggerPrimitive(primkey);
+	  TriggerPrimitivev1 *primitive_jet = new TriggerPrimitivev1(primkey);
 	  _primitives->add_primitive(primkey, primitive_jet);
 	}
 
@@ -1198,7 +1198,7 @@ int CaloTriggerEmulator::process_trigger()
 
 	  // get the primitive (16 2x2 sums)
 	  _primitive  = (*iter).second;
-	  TriggerPrimitive::Range sumrange = _primitive->getSums(); 
+	  TriggerPrimitivev1::Range sumrange = _primitive->getSums(); 
 	  if(Verbosity()>=2) std::cout << __FUNCTION__<<" "<<__LINE__<<" key: "<<key<<" size: "<<_primitive->size()<<std::endl; 
 
 	  // make sum and innitialize to 0.
@@ -1210,7 +1210,7 @@ int CaloTriggerEmulator::process_trigger()
 	    }
 
 	  // iterate through all 16 sums and add together
-	  for (TriggerPrimitive::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
+	  for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
 	    {
 	      TriggerDefs::TriggerSumKey sumkey = (*iter_sum).first;
 	      int i = 0;
@@ -1273,11 +1273,11 @@ int CaloTriggerEmulator::process_trigger()
 
 	      // get the primitive (16 2x2 sums)
 	      _primitive  = (*iter).second;
-	      TriggerPrimitive::Range sumrange = _primitive->getSums(); 
+	      TriggerPrimitivev1::Range sumrange = _primitive->getSums(); 
 	      std::cout << __FUNCTION__<<" "<<__LINE__<<" key: "<<key<<" size: "<<_primitive->size()<<std::endl; 
 
 	      // iterate through all 16 sums and add together
-	      for (TriggerPrimitive::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
+	      for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
 		{
 		  TriggerDefs::TriggerSumKey sumkey = (*iter_sum).first;
 		  if (CheckChannelMasks(sumkey)) continue;
@@ -1313,7 +1313,7 @@ int CaloTriggerEmulator::process_trigger()
 
       // Make the jet primitives
       TriggerPrimitiveContainerv1::Range range;      
-      TriggerPrimitive::Range sumrange;
+      TriggerPrimitivev1::Range sumrange;
       _primitives->setTriggerType(_triggerid);
 
       // iterate through emcal primitives and organize into the 16 jet primitives each with the 8x8 nonoverlapping sum
@@ -1338,7 +1338,7 @@ int CaloTriggerEmulator::process_trigger()
 	  TriggerDefs::TriggerPrimKey primkey = TriggerDefs::getTriggerPrimKey(_triggerid, TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("PHOTON"), primlocid);
 
 	  if(Verbosity()>=2) std::cout << __FUNCTION__<<" "<<__LINE__<<std::endl;
-	  TriggerPrimitive *primitive_photon = new TriggerPrimitive(primkey);
+	  TriggerPrimitivev1 *primitive_photon = new TriggerPrimitivev1(primkey);
 
 	  // get the primitive (16 2x2 sums)
 	  _primitive  = (*iter).second;
@@ -1469,9 +1469,9 @@ int CaloTriggerEmulator::process_trigger()
 	  }
 
 	  _primitive  = (*iter).second;
-	  TriggerPrimitive::Range sumrange = _primitive->getSums(); 
+	  TriggerPrimitivev1::Range sumrange = _primitive->getSums(); 
 	  if(Verbosity()>=2) std::cout << __FUNCTION__<<" "<<__LINE__<<" key: "<<key<<" size: "<<_primitive->size()<<std::endl; 
-	  for (TriggerPrimitive::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
+	  for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
 	    {
 	      TriggerDefs::TriggerSumKey sumkey = (*iter_sum).first;
 	      int i = 0;
@@ -1501,8 +1501,8 @@ int CaloTriggerEmulator::process_trigger()
 	  }
 	  _primitive = (*iter).second;
 	  if(Verbosity()>=2) std::cout << __FUNCTION__<<" "<<__LINE__<<" key: "<<key<<" size: "<<_primitive->size()<<std::endl; 
-	  TriggerPrimitive::Range sumrange = _primitive->getSums(); 
-	  for (TriggerPrimitive::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
+	  TriggerPrimitivev1::Range sumrange = _primitive->getSums(); 
+	  for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
 	    {
 	      TriggerDefs::TriggerSumKey sumkey = (*iter_sum).first;
 	      int i = 0;
@@ -1558,17 +1558,17 @@ int CaloTriggerEmulator::process_trigger()
       for (int isam = 0; isam < m_nsamples - _m_trig_sub_delay;isam++)
 	{
 
-	  // Set everything to 0 to get the sums.
-	  // for (int ii = 0; ii < 2; ii ++)
-	  //   {
-	  //     for (int iii = 0; iii < 12; iii++)
-	  // 	{
-	  // 	  for (int iv = 0; iv < 32; iv ++)
-	  // 	    {
-	  // 	      cosmic_organized_sums[ii][iii][iv] =0;
-	  // 	    }
-	  // 	}
-	  //   }
+	  //	  Set everything to 0 to get the sums.
+	  for (int ii = 0; ii < 2; ii ++)
+	    {
+	      for (int iii = 0; iii < 12; iii++)
+	  	{
+	  	  for (int iv = 0; iv < 32; iv ++)
+	  	    {
+	  	      cosmic_organized_sums[ii][iii][iv] =0;
+	  	    }
+	  	}
+	    }
 
 
 	  // get all primitives and iterate
@@ -1593,9 +1593,9 @@ int CaloTriggerEmulator::process_trigger()
 
 	      // get the card (either 0 or 1);
 	      icard = (primphi < 4 ? 0 : 1);
-	      TriggerPrimitive::Range sumrange = _primitive->getSums(); 
+	      TriggerPrimitivev1::Range sumrange = _primitive->getSums(); 
 	      //if(Verbosity()>=2) std::cout << __FUNCTION__<<" "<<__LINE__<<" key: "<<key<<" size: "<<_primitive->size()<<std::endl; 
-	      for (TriggerPrimitive::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
+	      for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
 		{
 
 		  // get sum key
@@ -1634,9 +1634,9 @@ int CaloTriggerEmulator::process_trigger()
 	      uint16_t primphi = TriggerDefs::getPrimitivePhiId_from_TriggerPrimKey(key);
 	      uint16_t primeta = TriggerDefs::getPrimitiveEtaId_from_TriggerPrimKey(key);
 	      icard = (primphi < 4 ? 0 : 1);
-	      TriggerPrimitive::Range sumrange = _primitive->getSums(); 
+	      TriggerPrimitivev1::Range sumrange = _primitive->getSums(); 
 	      //if(Verbosity()>=2) std::cout << __FUNCTION__<<" "<<__LINE__<<" key: "<<key<<" size: "<<_primitive->size()<<std::endl; 
-	      for (TriggerPrimitive::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
+	      for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
 		{
 		  TriggerDefs::TriggerSumKey sumkey = (*iter_sum).first;
 
@@ -1727,7 +1727,7 @@ int CaloTriggerEmulator::process_trigger()
 
 
       TriggerPrimitiveContainerv1::Range range;      
-      TriggerPrimitive::Range sumrange;
+      TriggerPrimitivev1::Range sumrange;
       int ip, isum;
 
       range = _primitives->getTriggerPrimitives();
@@ -1752,7 +1752,7 @@ int CaloTriggerEmulator::process_trigger()
 	      _primitive  = (*iter).second;
 	      sumrange = _primitive->getSums(); 
 	      isum = 0;
-	      for (TriggerPrimitive::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum, isum++)
+	      for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum, isum++)
 		{
 		  if (isum < 8)
 		    {

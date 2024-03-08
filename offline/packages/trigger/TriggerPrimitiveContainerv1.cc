@@ -49,14 +49,14 @@ int TriggerPrimitiveContainerv1::isValid() const
   return (!_primitives.empty());
 }
 
-TriggerPrimitive* TriggerPrimitiveContainerv1::get_primitive_at_key(TriggerDefs::TriggerPrimKey key)
+TriggerPrimitivev1* TriggerPrimitiveContainerv1::get_primitive_at_key(TriggerDefs::TriggerPrimKey key)
 {
   if (!_primitives[key]) return nullptr;
   
   return _primitives[key];
 }
 
-void TriggerPrimitiveContainerv1::add_primitive(TriggerDefs::TriggerPrimKey key, TriggerPrimitive* prim)
+void TriggerPrimitiveContainerv1::add_primitive(TriggerDefs::TriggerPrimKey key, TriggerPrimitivev1* prim)
 {
   _primitives[key] = prim;
 } 
