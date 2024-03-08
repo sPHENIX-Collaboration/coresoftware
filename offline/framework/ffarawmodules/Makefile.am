@@ -15,6 +15,7 @@ pkginclude_HEADERS = \
   EventNumberCheck.h \
   Gl1Check.h \
   InttCheck.h \
+  MbdCheck.h \
   StreamingCheck.h \
   TpcCheck.h
 
@@ -26,6 +27,7 @@ libffarawmodules_la_SOURCES = \
   EventNumberCheck.cc \
   Gl1Check.cc \
   InttCheck.cc \
+  MbdCheck.cc \
   StreamingCheck.cc \
   TpcCheck.cc
 
