@@ -16,11 +16,9 @@
 
 class Event;
 class SinglePrdfInput;
-class oEvent;
 class CaloPacket;
 class Gl1Packet;
 class MbdPacket;
-class Packet;
 class PHCompositeNode;
 class SingleTriggerInput;
 class SyncObject;
@@ -45,7 +43,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int HasSyncObject() const override { return 1; }
   std::string GetString(const std::string &what) const override;
   void registerTriggerInput(SingleTriggerInput *prdfin, InputManagerType::enu_subsystem system);
-  void AddPacket(const int evtno, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
   void UpdateDroppedPacket(const int packetid);
   void AddBeamClock(const int evtno, const int bclk, SinglePrdfInput *prdfin);
@@ -63,11 +60,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void AddMbdPacket(int eventno, MbdPacket *mbdpkt);
   void AddHcalPacket(int eventno, CaloPacket *pkt);
  private:
-  struct PacketInfo
-  {
-    std::vector<Packet *> PacketVector;
-    unsigned int EventFoundCounter = 0;
-  };
 
   struct SinglePrdfInputInfo
   {
@@ -109,9 +101,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   PHCompositeNode *m_topNode = nullptr;
   Event *m_Event = nullptr;
   PHDWORD workmem[4 * 1024 * 1024] = {};
-  oEvent *oph = nullptr;
   SinglePrdfInput *m_RefPrdfInput = nullptr;
-  std::map<int, PacketInfo> m_PacketMap;
   std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
   std::map<int, MbdPacketInfo> m_MbdPacketMap;
   std::map<int, HcalPacketInfo> m_HcalPacketMap;

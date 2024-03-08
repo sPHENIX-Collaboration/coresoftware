@@ -56,13 +56,15 @@ Fun4AllPrdfInputTriggerManager::~Fun4AllPrdfInputTriggerManager()
   {
     delete iter;
   }
-  for (const auto &pktinfoiter : m_PacketMap)
+  for (auto const &mapiter : m_Gl1PacketMap)
   {
-    for (auto const &pktiter : pktinfoiter.second.PacketVector)
+    for (auto gl1packet : mapiter.second.Gl1PacketVector)
     {
-      delete pktiter;
+      delete gl1packet;
     }
   }
+  m_Gl1PacketMap.clear();
+ 
 }
 
 int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
@@ -319,15 +321,6 @@ void Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *pr
   return;
 }
 
-void Fun4AllPrdfInputTriggerManager::AddPacket(const int evtno, Packet *p)
-{
-  if (Verbosity() > 1)
-  {
-    std::cout << "Adding packet " << p->getIdentifier() << " to event no " << evtno << std::endl;
-  }
-  m_PacketMap[evtno].PacketVector.push_back(p);
-}
-
 void Fun4AllPrdfInputTriggerManager::AddBeamClock(const int evtno, const int bclk, SinglePrdfInput *prdfin)
 {
   if (Verbosity() > 1)
@@ -340,7 +333,7 @@ void Fun4AllPrdfInputTriggerManager::AddBeamClock(const int evtno, const int bcl
 
 void Fun4AllPrdfInputTriggerManager::UpdateEventFoundCounter(const int evtno)
 {
-  m_PacketMap[evtno].EventFoundCounter++;
+//  m_PacketMap[evtno].EventFoundCounter++;
 }
 
 void Fun4AllPrdfInputTriggerManager::UpdateDroppedPacket(const int packetid)
@@ -424,6 +417,8 @@ void Fun4AllPrdfInputTriggerManager::DitchEvent(const int eventno)
   {
     std::cout << "Killing event " << eventno << std::endl;
   }
+  return;
+/*
   m_ClockCounters.erase(eventno);
   m_RefClockCounters.erase(eventno);
   auto pktinfoiter = m_PacketMap.find(eventno);
@@ -437,8 +432,8 @@ void Fun4AllPrdfInputTriggerManager::DitchEvent(const int eventno)
   }
   m_PacketMap.erase(pktinfoiter);
   return;
+*/
 }
-
 void Fun4AllPrdfInputTriggerManager::Resynchronize()
 {
   // just load events to give us a chance to find the match
@@ -557,16 +552,16 @@ void Fun4AllPrdfInputTriggerManager::Resynchronize()
 
 void Fun4AllPrdfInputTriggerManager::ClearAllEvents()
 {
-  for (const auto &pktinfoiter : m_PacketMap)
+  for (auto const &mapiter : m_Gl1PacketMap)
   {
-    for (auto const &pktiter : pktinfoiter.second.PacketVector)
+    for (auto gl1packet : mapiter.second.Gl1PacketVector)
     {
-      delete pktiter;
+      delete gl1packet;
     }
   }
+  m_Gl1PacketMap.clear();
   m_ClockCounters.clear();
   m_RefClockCounters.clear();
-  m_PacketMap.clear();
 }
 
 int Fun4AllPrdfInputTriggerManager::FillGl1()
