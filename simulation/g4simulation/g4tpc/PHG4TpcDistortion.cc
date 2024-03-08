@@ -33,28 +33,48 @@ namespace
     const auto bin = axis->FindBin( value );
     return( bin >= 2 && bin < axis->GetNbins() );
   }
-  
+
   // check boundaries in histogram, before interpolation
   /* for the interpolation to work, the value must be within the range of the provided axis, and not into the first and last bin */
   inline bool check_boundaries( const TH3* h, double r, double phi, double z )
   {
-    return check_boundaries( h->GetXaxis(), r ) 
-      && check_boundaries( h->GetYaxis(), phi ) 
+    return check_boundaries( h->GetXaxis(), r )
+      && check_boundaries( h->GetYaxis(), phi )
       && check_boundaries( h->GetZaxis(), z );
   }
-  
+
+  // print histogram
+  [[maybe_unused]] void print_histogram( TH3* h )
+  {
+
+    std::cout << "PHG4TpcDistortion::print_histogram - name: " << h->GetName() << std::endl;
+    for( const auto& axis:{h->GetXaxis(), h->GetYaxis(), h->GetZaxis() } )
+    {
+      std::cout
+        << "  " << axis->GetName()
+        << " bins: " << axis->GetNbins()
+        << " min: " << axis->GetXmin()
+        << " max: " << axis->GetXmax()
+        << std::endl;
+    }
+    std::cout << std::endl;
+  }
+
 }  // namespace
 
 //__________________________________________________________________________________________________________
 void PHG4TpcDistortion::Init()
 {
+
+  std::cout << "PHG4TpcDistortion::Init - m_phi_hist_in_radians: " << m_phi_hist_in_radians << std::endl;
+
   if (m_do_static_distortions)
   {
     std::cout << "PHG4TpcDistortion::Init - m_static_distortion_filename: " << m_static_distortion_filename << std::endl;
     m_static_tfile.reset(new TFile(m_static_distortion_filename.c_str()));
     if (!m_static_tfile->IsOpen())
     {
-      std::cout << "Static distortion file could not be opened!" << std::endl;
+      std::cout << "PHG4TpcDistortion::Init - Static distortion file could not be opened!" << std::endl;
       exit(1);
     }
 
@@ -75,7 +95,14 @@ void PHG4TpcDistortion::Init()
     m_time_ordered_tfile.reset(new TFile(m_time_ordered_distortion_filename.c_str()));
     if (!m_time_ordered_tfile->IsOpen())
     {
-      std::cout << "TimeOrdered distortion file could not be opened!" << std::endl;
+      std::cout << "PHG4TpcDistortion::Init - TimeOrdered distortion file could not be opened!" << std::endl;
+      exit(1);
+    }
+
+    TimeTree = static_cast<TTree*>(m_time_ordered_tfile->Get("TimeDists"));
+    if( !TimeTree )
+    {
+      std::cout << "PHG4TpcDistortion::Init - TimeOrdered distortion tree could not be found!" << std::endl;
       exit(1);
     }
 
@@ -89,7 +116,7 @@ void PHG4TpcDistortion::Init()
     TimehRR[0] = new TH3F();//RR stands for ReachesReadout
     TimehRR[1] = new TH3F();//RR stands for ReachesReadout
 
-    TimeTree = static_cast<TTree*>(m_time_ordered_tfile->Get("TimeDists"));
+    // assign to tree branches
     TimeTree->SetBranchAddress("hIntDistortionR_negz", &(TimehDR[0]));
     TimeTree->SetBranchAddress("hIntDistortionR_posz", &(TimehDR[1]));
     TimeTree->SetBranchAddress("hIntDistortionP_negz", &(TimehDP[0]));
@@ -206,7 +233,7 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
     exit(1);
   }
 
-  double _distortion = 0.;     
+  double _distortion = 0.;
 
   //select the appropriate histogram:
   if (m_do_static_distortions)

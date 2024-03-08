@@ -184,22 +184,9 @@ void PHG4OHCalSubsystem::SetDefaultParameters()
   set_default_int_param("etabins", 24);
   set_default_int_param("saveg4hit", 1);
 
-  set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
-  std::string defaultmapfilename;
-  const char *Calibroot = getenv("CALIBRATIONROOT");
-  if (Calibroot)
-  {
-    defaultmapfilename = Calibroot;
-    defaultmapfilename += "/HCALOUT/tilemap/ohcalgdmlmapfiles102022.root";
-  }
-  set_default_string_param("MapFileName", defaultmapfilename);
+  set_default_string_param("GDMPath", "HCALOUT_GDML");           // use CDB
+  set_default_string_param("MapFileName", "HCALOUT_MEPHI_MAP");  // use CDB
   set_default_string_param("MapHistoName", "ohcal_mephi_map_towerid_");
-
-  if (!Calibroot)
-  {
-    std::cout << __PRETTY_FUNCTION__ << ": no CALIBRATIONROOT environment variable" << std::endl;
-    exit(1);
-  }
-  set_default_string_param("IronFieldMapPath", std::string(Calibroot) + "/Field/Map/sphenix3dbigmapxyz_steel_rebuild.root");
+  set_default_string_param("IronFieldMapPath", "HCALOUT_STEEL_MAP");  // use CDB
   set_default_double_param("IronFieldMapScale", 1.);
 }

@@ -175,15 +175,8 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_int_param("etabins", 24);
   set_default_int_param("saveg4hit", 1);
 
-  set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
-  const char *Calibroot = getenv("CALIBRATIONROOT");
-  std::string defaultmapfilename;
-  if (Calibroot)
-  {
-    defaultmapfilename = Calibroot;
-    defaultmapfilename += "/HCALIN/tilemap/ihcalgdmlmap09212022.root";
-  }
-  set_default_string_param("MapFileName", defaultmapfilename);
+  set_default_string_param("GDMPath", "HCALIN_GDML");
+  set_default_string_param("MapFileName", "HCALIN_MEPHI_MAP");
   set_default_string_param("MapHistoName", "ihcalcombinedgdmlnormtbyt");
 }
 
