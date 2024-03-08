@@ -6,13 +6,13 @@
 
 class PHObject;
 
-class SvtxTrackInfo_v2: public SvtxTrackInfo
+class SvtxTrackInfo_v2 final : public SvtxTrackInfo
 {
  public:
   SvtxTrackInfo_v2() {}
 
   //* base class copy constructor
-  SvtxTrackInfo_v2( const SvtxTrackInfo& ) {}
+  SvtxTrackInfo_v2(const SvtxTrackInfo&) {}
 
   //* copy constructor
   SvtxTrackInfo_v2(const SvtxTrackInfo_v2& source)
@@ -55,7 +55,8 @@ class SvtxTrackInfo_v2: public SvtxTrackInfo
   ~SvtxTrackInfo_v2() override {}
 
   // The "standard PHObject response" functions...
-  void identify(std::ostream& os = std::cout) const override {
+  void identify(std::ostream& os = std::cout) const override
+  {
     os << "SvtxTrackInfo_v2 class" << std::endl;
   }
   void Reset() override { *this = SvtxTrackInfo_v2(); }
@@ -65,10 +66,10 @@ class SvtxTrackInfo_v2: public SvtxTrackInfo
   //! import PHObject CopyFrom, in order to avoid clang warning
   using PHObject::CopyFrom;
   // copy content
-  void CopyFrom( const SvtxTrackInfo& ) override;
-  void CopyFrom( SvtxTrackInfo* source ) override
+  void CopyFrom(const SvtxTrackInfo&) override;
+  void CopyFrom(SvtxTrackInfo* source) override
   {
-    CopyFrom( *source );
+    CopyFrom(*source);
   }
 
   //
@@ -121,8 +122,8 @@ class SvtxTrackInfo_v2: public SvtxTrackInfo
   float get_qOp() const override { return m_state_vertex.get_qOp(); }
   int get_charge() const override { return m_state_vertex.get_charge(); }
 
-  float get_covariance(int i, int j) const override { return m_state_vertex.get_covariance(i, j);}
-  void set_covariance(int i, int j, float value) override {m_state_vertex.set_covariance(i, j, value);}
+  float get_covariance(int i, int j) const override { return m_state_vertex.get_covariance(i, j); }
+  void set_covariance(int i, int j, float value) override { m_state_vertex.set_covariance(i, j, value); }
 
   float get_x_outer_tpc() const override { return m_state_outer_tpc.get_x(); }
   void set_x_outer_tpc(float x) override { m_state_outer_tpc.set_x(x); }
@@ -150,11 +151,10 @@ class SvtxTrackInfo_v2: public SvtxTrackInfo
   float get_theta_outer_tpc() const override { return m_state_outer_tpc.get_theta(); }
   float get_qOp_outer_tpc() const override { return m_state_outer_tpc.get_qOp(); }
 
-  float get_covariance_outer_tpc(int i, int j) const override { return m_state_outer_tpc.get_covariance(i, j);}
-  void set_covariance_outer_tpc(int i, int j, float value) override {m_state_outer_tpc.set_covariance(i, j, value);}
+  float get_covariance_outer_tpc(int i, int j) const override { return m_state_outer_tpc.get_covariance(i, j); }
+  void set_covariance_outer_tpc(int i, int j, float value) override { m_state_outer_tpc.set_covariance(i, j, value); }
 
  private:
-
   // track information
   unsigned int m_track_id = std::numeric_limits<unsigned int>::quiet_NaN();
   uint16_t m_outer_tpc_subsurfkey = std::numeric_limits<uint16_t>::quiet_NaN();

@@ -4,8 +4,8 @@
 #include "SvtxTrack.h"
 #include "SvtxTrackMap.h"
 
-#include <cstddef>        // for size_t
-#include <iostream>        // for cout, ostream
+#include <cstddef>   // for size_t
+#include <iostream>  // for cout, ostream
 
 class PHObject;
 
@@ -23,9 +23,9 @@ class SvtxTrackMap_v1 : public SvtxTrackMap
   int isValid() const override { return 1; }
   PHObject* CloneMe() const override { return new SvtxTrackMap_v1(*this); }
 
-  bool empty() const override{ return _map.empty(); }
+  bool empty() const override { return _map.empty(); }
   size_t size() const override { return _map.size(); }
-  size_t count(unsigned int idkey) const override{ return _map.count(idkey); }
+  size_t count(unsigned int idkey) const override { return _map.count(idkey); }
   void clear() override { Reset(); }
 
   const SvtxTrack* get(unsigned int idkey) const override;

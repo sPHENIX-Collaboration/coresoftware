@@ -14,22 +14,22 @@
 
 class PHObject;
 
-class SvtxTrack_v2: public SvtxTrack
+class SvtxTrack_v2 : public SvtxTrack
 {
  public:
   SvtxTrack_v2();
-  
+
   //* base class copy constructor
-  SvtxTrack_v2( const SvtxTrack& );
-  
+  SvtxTrack_v2(const SvtxTrack&);
+
   //* copy constructor
-  SvtxTrack_v2(const SvtxTrack_v2& );
-  
+  SvtxTrack_v2(const SvtxTrack_v2&);
+
   //* assignment operator
   SvtxTrack_v2& operator=(const SvtxTrack_v2& track);
 
   //* destructor
-  ~SvtxTrack_v2() override; 
+  ~SvtxTrack_v2() override;
 
   // The "standard PHObject response" functions...
   void identify(std::ostream& os = std::cout) const override;
@@ -40,9 +40,11 @@ class SvtxTrack_v2: public SvtxTrack
   //! import PHObject CopyFrom, in order to avoid clang warning
   using PHObject::CopyFrom;
   // copy content from base class
-  void CopyFrom( const SvtxTrack& ) override;
-  void CopyFrom( SvtxTrack* source ) override
-  { CopyFrom( *source ); }
+  void CopyFrom(const SvtxTrack&) override;
+  void CopyFrom(SvtxTrack* source) override
+  {
+    CopyFrom(*source);
+  }
 
   //
   // basic track information ---------------------------------------------------
@@ -201,11 +203,10 @@ class SvtxTrack_v2: public SvtxTrack
   void set_cal_cluster_e(CAL_LAYER layer, float e) override { _cal_cluster_e[layer] = e; }
 
   // ACTS track information for use by ACTS modules only
-  float get_acts_covariance(unsigned int i, unsigned int j) const override {return _acts_trajectory_covariance[i][j]; }
+  float get_acts_covariance(unsigned int i, unsigned int j) const override { return _acts_trajectory_covariance[i][j]; }
   void set_acts_covariance(unsigned int i, unsigned int j, float value) override { _acts_trajectory_covariance[i][j] = value; }
 
  private:
-
   //! acts covariance matrix
   float _acts_trajectory_covariance[6][6] = {};
 

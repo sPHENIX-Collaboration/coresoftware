@@ -11,39 +11,39 @@
 
 class TrackSeed_v1 : public TrackSeed
 {
- public: 
+ public:
   TrackSeed_v1();
-  
+
   /// Copy constructors
-  TrackSeed_v1( const TrackSeed& );
-  TrackSeed_v1( const TrackSeed_v1& );
+  TrackSeed_v1(const TrackSeed&);
+  TrackSeed_v1(const TrackSeed_v1&);
   TrackSeed_v1& operator=(const TrackSeed_v1& seed);
   ~TrackSeed_v1() override;
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override { *this = TrackSeed_v1(); }
   int isValid() const override { return 1; }
-  void CopyFrom( const TrackSeed&) override;
-  void CopyFrom( TrackSeed* seed) override { CopyFrom( *seed ); }
+  void CopyFrom(const TrackSeed&) override;
+  void CopyFrom(TrackSeed* seed) override { CopyFrom(*seed); }
   PHObject* CloneMe() const override { return new TrackSeed_v1(*this); }
 
   int get_charge() const override;
-  float get_px(TrkrClusterContainer *clusters,
-	       ActsGeometry *tGeometry) const override;
-  float get_py(TrkrClusterContainer *clusters,
-	       ActsGeometry *tGeometry) const override;
+  float get_px(TrkrClusterContainer* clusters,
+               ActsGeometry* tGeometry) const override;
+  float get_py(TrkrClusterContainer* clusters,
+               ActsGeometry* tGeometry) const override;
   float get_pz() const override;
   float get_x() const override;
   float get_y() const override;
   float get_z() const override;
-  float get_phi(TrkrClusterContainer *clusters,
-		ActsGeometry *tGeometry) const override;
+  float get_phi(TrkrClusterContainer* clusters,
+                ActsGeometry* tGeometry) const override;
   float get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;
   float get_eta() const override;
   float get_theta() const override;
   float get_pt() const override;
   float get_p() const override;
-  
+
   float get_qOverR() const override { return m_qOverR; }
   float get_X0() const override { return m_X0; }
   float get_Y0() const override { return m_Y0; }
@@ -72,33 +72,31 @@ class TrackSeed_v1 : public TrackSeed
   ClusterKeyIter end_cluster_keys() override { return m_cluster_keys.end(); }
 
   /// Updates R, X0, Y0
-  void circleFitByTaubin(TrkrClusterContainer *clusters,
-			 ActsGeometry *tGeometry,
-			 uint8_t startLayer = 0,
-			 uint8_t endLayer = 58) override;
+  void circleFitByTaubin(TrkrClusterContainer* clusters,
+                         ActsGeometry* tGeometry,
+                         uint8_t startLayer = 0,
+                         uint8_t endLayer = 58) override;
   /// Updates r-z slope and intercept B
-  void lineFit(TrkrClusterContainer *clusters,
-	       ActsGeometry *tGeometry,
-	       uint8_t startLayer = 0,
-	       uint8_t endLayer = 58) override;
-  
+  void lineFit(TrkrClusterContainer* clusters,
+               ActsGeometry* tGeometry,
+               uint8_t startLayer = 0,
+               uint8_t endLayer = 58) override;
+
   void circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
-			 uint8_t startLayer = 0,
-			 uint8_t endLayer = 58) override;
+                         uint8_t startLayer = 0,
+                         uint8_t endLayer = 58) override;
 
   void lineFit(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
-	       uint8_t startLayer = 0,
-	       uint8_t endLayer = 58) override;
+               uint8_t startLayer = 0,
+               uint8_t endLayer = 58) override;
 
  protected:
-
   /// Returns transverse PCA to (0,0)
-  std::pair<float,float> findRoot() const;
+  std::pair<float, float> findRoot() const;
 
  private:
-
   ClusterKeySet m_cluster_keys;
-  
+
   float m_qOverR = NAN;
   float m_X0 = NAN;
   float m_Y0 = NAN;
@@ -107,8 +105,7 @@ class TrackSeed_v1 : public TrackSeed
 
   short int m_crossing = std::numeric_limits<short int>::max();
 
-  ClassDefOverride(TrackSeed_v1,1);
-
+  ClassDefOverride(TrackSeed_v1, 1);
 };
 
 #endif
