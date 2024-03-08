@@ -7,22 +7,8 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4Detector.h>
-#include <g4main/PHG4DisplayAction.h>
-#include <g4main/PHG4Subsystem.h>
-#include <g4main/PHG4Utils.h>
-
 #include <phfield/PHFieldConfig.h>
 #include <phfield/PHFieldUtility.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>  // for PHNode
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>  // for PHObject
-#include <phool/getClass.h>
-#include <phool/phool.h>
-#include <phool/recoConsts.h>
 
 #include <g4gdml/PHG4GDMLConfig.hh>
 #include <g4gdml/PHG4GDMLUtility.hh>
@@ -32,6 +18,22 @@
 #include <calobase/RawTowerGeomContainer.h>  // for RawTowerGeomC...
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/RawTowerGeomv1.h>
+
+#include <g4main/PHG4Detector.h>
+#include <g4main/PHG4DisplayAction.h>
+#include <g4main/PHG4Subsystem.h>
+#include <g4main/PHG4Utils.h>
+
+#include <ffamodules/CDBInterface.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>  // for PHNode
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>  // for PHObject
+#include <phool/getClass.h>
+#include <phool/phool.h>
+#include <phool/recoConsts.h>
 
 #include <TSystem.h>
 
@@ -63,6 +65,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <memory>   // for unique_ptr
 #include <utility>  // for pair, make_pair
@@ -82,12 +85,25 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
 {
   gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
   assert(gdml_config);
+  // changes in the parameters have to be made here
+  // otherwise they will not be propagated to the node tree
+  if (std::filesystem::path(m_GDMPath).extension() != ".gdml")
+  {
+    m_GDMPath = CDBInterface::instance()->getUrl(m_GDMPath);
+    m_Params->set_string_param("GDMPath", m_GDMPath);
+  }
+  std::string ironfieldmap = m_Params->get_string_param("IronFieldMapPath");
+  if (std::filesystem::path(ironfieldmap).extension() != ".root")
+  {
+    ironfieldmap = CDBInterface::instance()->getUrl(ironfieldmap);
+    m_Params->set_string_param("IronFieldMapPath", ironfieldmap);
+  }
   PHFieldConfig *fieldconf = findNode::getClass<PHFieldConfig>(Node, PHFieldUtility::GetDSTConfigNodeName());
   if (fieldconf->get_field_config() != PHFieldConfig::kFieldUniform)
   {
     m_FieldSetup =
         new PHG4OHCalFieldSetup(
-            m_Params->get_string_param("IronFieldMapPath"), m_Params->get_double_param("IronFieldMapScale"),
+            ironfieldmap, m_Params->get_double_param("IronFieldMapScale"),
             m_InnerRadius - 10 * cm,  // subtract 10 cm to make sure fieldmap with 2x2 grid covers it
             m_OuterRadius + 10 * cm,  // add 10 cm to make sure fieldmap with 2x2 grid covers it
             m_SizeZ / 2. + 10 * cm    // div by 2 bc G4 convention
@@ -175,6 +191,12 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   std::unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
   gdmlParser.SetOverlapCheck(OverlapCheck());
+  if (!std::filesystem::exists(m_GDMPath))
+  {
+    std::cout << PHWHERE << " Outer HCal gdml file " << m_GDMPath << " not found" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
   gdmlParser.Read(m_GDMPath, false);
 
   G4AssemblyVolume *abs_asym = reader->GetAssembly("sector");         // absorber

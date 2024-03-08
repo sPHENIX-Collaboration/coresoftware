@@ -4,7 +4,7 @@
 /**
  * SvtxTrackInfo_v3 is a class developed to hold the information from the track
  * projection from the outermost TPC surface to the calorimeters
-**/
+ **/
 
 void SvtxTrackInfo_v3::CopyFrom(const SvtxTrackInfo& source)
 {
@@ -22,7 +22,7 @@ void SvtxTrackInfo_v3::CopyFrom(const SvtxTrackInfo& source)
   set_theta(STATE::VERTEX, source.get_theta());
   set_qOp(STATE::VERTEX, source.get_qOp());
 
-  for(int istate = STATE::OUTER_TPC; istate <= STATE::HCALOUT_BACKFACE; istate++)
+  for (int istate = STATE::OUTER_TPC; istate <= STATE::HCALOUT_BACKFACE; istate++)
   {
     set_x(istate, source.get_x(istate));
     set_y(istate, source.get_y(istate));
@@ -40,7 +40,7 @@ void SvtxTrackInfo_v3::CopyFrom(const SvtxTrackInfo& source)
     }
   }
 
-  if(std::isnan(source.get_phi_outer_tpc()) || std::isnan(source.get_theta_outer_tpc()) || std::isnan(source.get_qOp_outer_tpc()))
+  if (std::isnan(source.get_phi_outer_tpc()) || std::isnan(source.get_theta_outer_tpc()) || std::isnan(source.get_qOp_outer_tpc()))
   {
     return;
   }
@@ -60,12 +60,11 @@ void SvtxTrackInfo_v3::CopyFrom(const SvtxTrackInfo& source)
       set_covariance(STATE::OUTER_TPC, i, j, source.get_covariance_outer_tpc(i, j));
     }
   }
-
 }
 
 SvtxTrackInfo_v3& SvtxTrackInfo_v3::operator=(const SvtxTrackInfo_v3& source)
 {
-  if(this != &source)
+  if (this != &source)
   {
     CopyFrom(source);
   }
