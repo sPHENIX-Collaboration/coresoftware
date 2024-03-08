@@ -17,6 +17,7 @@
 class Event;
 class SinglePrdfInput;
 class oEvent;
+class CaloPacket;
 class Gl1Packet;
 class MbdPacket;
 class Packet;
@@ -60,7 +61,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void AddGl1Packet(int eventno, Gl1Packet *gl1pkt);
   int FillMbd();
   void AddMbdPacket(int eventno, MbdPacket *mbdpkt);
-
+  void AddHcalPacket(int eventno, CaloPacket *pkt);
  private:
   struct PacketInfo
   {
@@ -85,10 +86,17 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
     unsigned int EventFoundCounter = 0;
   };
 
+  struct HcalPacketInfo
+  {
+    std::vector<CaloPacket *> HcalPacketVector;
+    unsigned int EventFoundCounter = 0;
+  };
+
   bool m_StartUpFlag = true;
   int m_RunNumber{0};
   bool m_gl1_registered_flag{false};
   bool m_mbd_registered_flag{false};
+  bool m_hcal_registered_flag{false};
   unsigned int m_PoolDepth = 100;
   unsigned int m_InitialPoolDepth = 20;
   int m_RefEventNo{0};
@@ -96,6 +104,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
   std::vector<SingleTriggerInput *> m_Gl1InputVector;
   std::vector<SingleTriggerInput *> m_MbdInputVector;
+  std::vector<SingleTriggerInput *> m_HcalInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
   Event *m_Event = nullptr;
@@ -105,6 +114,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::map<int, PacketInfo> m_PacketMap;
   std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
   std::map<int, MbdPacketInfo> m_MbdPacketMap;
+  std::map<int, HcalPacketInfo> m_HcalPacketMap;
   std::map<int, int> m_DroppedPacketMap;
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;
   std::map<int, int> m_RefClockCounters;

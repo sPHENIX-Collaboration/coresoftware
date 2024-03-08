@@ -13,6 +13,8 @@
 #include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/MbdPacket.h>
 #include <ffarawobjects/MbdPacketContainer.h>
+#include <ffarawobjects/CaloPacket.h>
+#include <ffarawobjects/CaloPacketContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -668,5 +670,16 @@ void Fun4AllPrdfInputTriggerManager::AddMbdPacket(int eventno, MbdPacket *pkt)
               << eventno << std::endl;
   }
   m_MbdPacketMap[eventno].MbdPacketVector.push_back(pkt);
+  return;
+}
+
+void Fun4AllPrdfInputTriggerManager::AddHcalPacket(int eventno, CaloPacket *pkt)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "Adding hcal packet " << pkt->getEvtSequence() << " to eventno: "
+              << eventno << std::endl;
+  }
+  m_HcalPacketMap[eventno].HcalPacketVector.push_back(pkt);
   return;
 }
