@@ -65,9 +65,9 @@ class SvtxTrackState_v1 : public SvtxTrackState
 
  private:
   float _pathlength;
-  float _pos[3];
-  float _mom[3];
-  float _covar[21];  //  6x6 triangular packed storage
+  float _pos[3]{};
+  float _mom[3]{};
+  float _covar[21]{};  //  6x6 triangular packed storage
 
   std::string state_name;
 

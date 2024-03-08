@@ -18,16 +18,16 @@ class SvtxTrack_v1 : public SvtxTrack
 {
  public:
   SvtxTrack_v1();
-  
+
   //* base class copy constructor
-  SvtxTrack_v1( const SvtxTrack& );
-  
+  SvtxTrack_v1(const SvtxTrack&);
+
   //* copy constructor
   SvtxTrack_v1(const SvtxTrack_v1& track);
 
   //* assignment operator
   SvtxTrack_v1& operator=(const SvtxTrack_v1& track);
-  
+
   ~SvtxTrack_v1() override;
 
   // The "standard PHObject response" functions...
@@ -35,12 +35,14 @@ class SvtxTrack_v1 : public SvtxTrack
   void Reset() override { *this = SvtxTrack_v1(); }
   int isValid() const override;
   PHObject* CloneMe() const override { return new SvtxTrack_v1(*this); }
-  
+
   // copy content from base class
-  using PHObject::CopyFrom; // avoid warning for not implemented CopyFrom methods
-  void CopyFrom( const SvtxTrack& ) override;
-  void CopyFrom( SvtxTrack* source ) override
-  { CopyFrom( *source ); }
+  using PHObject::CopyFrom;  // avoid warning for not implemented CopyFrom methods
+  void CopyFrom(const SvtxTrack&) override;
+  void CopyFrom(SvtxTrack* source) override
+  {
+    CopyFrom(*source);
+  }
 
   //
   // basic track information ---------------------------------------------------

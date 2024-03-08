@@ -8,10 +8,11 @@ PHG4ParticleSvtxMap_v1::PHG4ParticleSvtxMap_v1()
 PHG4ParticleSvtxMap_v1::PHG4ParticleSvtxMap_v1(const PHG4ParticleSvtxMap_v1& map)
   : m_map()
 {
-  for (ConstIter iter = map.begin(); iter != map.end(); ++iter)
+  m_processed = map.processed();
+  for (const auto& iter : map)
   {
-    WeightedRecoTrackMap trackmap = iter->second;
-    m_map.insert(std::make_pair(iter->first, trackmap));
+    WeightedRecoTrackMap trackmap = iter.second;
+    m_map.insert(std::make_pair(iter.first, trackmap));
   }
 }
 
@@ -19,9 +20,9 @@ PHG4ParticleSvtxMap_v1& PHG4ParticleSvtxMap_v1::operator=(const PHG4ParticleSvtx
 {
   Reset();
 
-  for (ConstIter iter = map.begin(); iter != map.end(); ++iter)
+  for (const auto& iter : map)
   {
-    m_map.insert(std::make_pair(iter->first, iter->second));
+    m_map.insert(std::make_pair(iter.first, iter.second));
   }
 
   return *this;
@@ -56,7 +57,7 @@ PHG4ParticleSvtxMap::WeightedRecoTrackMap PHG4ParticleSvtxMap_v1::insert(const i
   return map;
 }
 
-const PHG4ParticleSvtxMap::WeightedRecoTrackMap & PHG4ParticleSvtxMap_v1::get(const int key) const
+const PHG4ParticleSvtxMap::WeightedRecoTrackMap& PHG4ParticleSvtxMap_v1::get(const int key) const
 {
   const auto iter = m_map.find(key);
   if (iter == m_map.end())
