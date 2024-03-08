@@ -20,6 +20,8 @@ public:
   virtual uint32_t getSample(int /*ipmt*/, int /*ichan*/) const {return std::numeric_limits<uint32_t>::max();} 
   virtual void setPacketEvtSequence(int /*i*/) {return;}
   virtual int getPacketEvtSequence() const {return std::numeric_limits<int>::max();}
+  virtual void setFemEvtSequence(int /*i*/,int /*i*/) {return;}
+  virtual int getFemEvtSequence(int /*i*/) const {return std::numeric_limits<int>::max();}
 
 private:
   ClassDefOverride(CaloPacket,1)

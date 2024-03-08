@@ -3,7 +3,12 @@
 void MbdPacketv1::Reset()
 {
   OfflinePacketv1::Reset();
+  PacketEvtSequence = 0;
   femclock.fill(std::numeric_limits<uint32_t>::max());
+  for (auto &row :  samples)
+  {
+    row.fill(std::numeric_limits<uint32_t>::max());
+  }  
   return;
 }
 
