@@ -19,6 +19,8 @@
 #include <Event/Eventiterator.h>
 #include <Event/packet.h>  // for Packet
 
+#include <TSystem.h>
+
 #include <cstdint>   // for uint64_t
 #include <iostream>  // for operator<<, basic_ostream<...
 #include <iterator>  // for reverse_iterator
@@ -99,16 +101,22 @@ void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
 
       // by default use previous bco clock for gtm bco
       CaloPacket *newhit = new CaloPacketv1();
+      int nr_modules = plist[i]->iValue(0,"NRMODULES");
+      if (nr_modules > 3)
+      {
+	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
+	gSystem->Exit(1);
+      }
       uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
       newhit->setBCO(plist[i]->iValue(0, "CLOCK"));
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
       newhit->setIdentifier(plist[i]->getIdentifier());
       newhit->setEvtSequence(EventSequence);
-      for (int ifem = 0; ifem < 2; ifem++)
+      for (int ifem = 0; ifem < nr_modules; ifem++)
       {
         newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
       }
-      for (int ipmt = 0; ipmt < 128; ipmt++)
+      for (int ipmt = 0; ipmt < 192; ipmt++)
       {
         for (int isamp = 0; isamp < 31; isamp++)
         {
