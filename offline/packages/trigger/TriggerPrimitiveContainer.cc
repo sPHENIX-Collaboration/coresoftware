@@ -20,12 +20,6 @@ void TriggerPrimitiveContainer::Reset()
 
 }
 
-void TriggerPrimitiveContainer::add_primitive(TriggerDefs::TriggerKey /*key*/, TriggerPrimitive* /*primitive*/)
-{
-
-}
-
-
 
 //______________________________________
 void TriggerPrimitiveContainer::identify(std::ostream& out) const

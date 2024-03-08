@@ -14,7 +14,7 @@
 
 class PHCompositeNode;
 class LL1Outv2;
-class TriggerPrimitive;
+class TriggerPrimitivev1;
 class TriggerPrimitiveContainerv1;
 
 class LL1PacketGetter : public SubsysReco
@@ -48,7 +48,7 @@ class LL1PacketGetter : public SubsysReco
   std::string m_ll1 = "NONE";
 
   LL1Outv2 *m_ll1out = nullptr;
-  TriggerPrimitiveContainer *_trigger_primitives = nullptr;
+  TriggerPrimitiveContainerv1 *_trigger_primitives = nullptr;
   TriggerPrimitivev1 *_trigger_primitive = nullptr;
   std::map<unsigned int, std::vector<unsigned int>> *_trigger_words = nullptr;
 

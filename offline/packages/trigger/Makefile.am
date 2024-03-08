@@ -14,11 +14,11 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libcalotrigger_io_la_LIBADD = \
+  -lcalo_io \
   -lphool
 
 libcalotrigger_la_LIBADD = \
   libcalotrigger_io.la \
-  -lcalo_io \
   -lmbd_io \
   -lglobalvertex \
   -lcalo_reco \
