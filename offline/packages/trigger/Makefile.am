@@ -14,7 +14,9 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libcalotrigger_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lcalo_io \
+  -lmbd_io
 
 libcalotrigger_la_LIBADD = \
   libcalotrigger_io.la \
