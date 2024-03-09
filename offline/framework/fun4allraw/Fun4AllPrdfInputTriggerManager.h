@@ -84,14 +84,11 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
     unsigned int EventFoundCounter = 0;
   };
 
-  bool m_StartUpFlag = true;
   int m_RunNumber{0};
   bool m_gl1_registered_flag{false};
   bool m_mbd_registered_flag{false};
   bool m_hcal_registered_flag{false};
   unsigned int m_PoolDepth = 100;
-  unsigned int m_InitialPoolDepth = 20;
-  int m_RefEventNo{0};
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
   std::vector<SingleTriggerInput *> m_Gl1InputVector;
@@ -99,8 +96,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::vector<SingleTriggerInput *> m_HcalInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
-  Event *m_Event = nullptr;
-  PHDWORD workmem[4 * 1024 * 1024] = {};
   SinglePrdfInput *m_RefPrdfInput = nullptr;
   std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
   std::map<int, MbdPacketInfo> m_MbdPacketMap;

@@ -78,6 +78,10 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   {
     iret += FillMbd();
   }
+  if (m_hcal_registered_flag)  // Mbd first to get the reference
+  {
+    iret += 1;
+  }
   return iret;
   // readagain:
   //   if (!IsOpen())
@@ -331,7 +335,7 @@ void Fun4AllPrdfInputTriggerManager::AddBeamClock(const int evtno, const int bcl
   m_ClockCounters[evtno].push_back(std::make_pair(bclk, prdfin));
 }
 
-void Fun4AllPrdfInputTriggerManager::UpdateEventFoundCounter(const int evtno)
+void Fun4AllPrdfInputTriggerManager::UpdateEventFoundCounter(const int /*evtno*/)
 {
 //  m_PacketMap[evtno].EventFoundCounter++;
 }
