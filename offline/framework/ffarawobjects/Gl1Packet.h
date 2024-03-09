@@ -12,8 +12,8 @@ public:
     Gl1Packet() = default;
     ~Gl1Packet() override = default;
 
-  virtual void setBunchNumber(const char bn) {return;}
-  virtual char getBunchNumber() const {return std::numeric_limits<char>::min();}
+    virtual void setBunchNumber(const char /*bn*/) {return;}
+    virtual char getBunchNumber() const {return std::numeric_limits<char>::min();}
 
 private:
   ClassDefOverride(Gl1Packet,1)
