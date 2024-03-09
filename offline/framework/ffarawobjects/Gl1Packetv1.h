@@ -14,7 +14,6 @@ public:
 
   void Reset() override;
   void identify(std::ostream &os = std::cout) const override;
-  void FillFrom(const Gl1Packet *pkt) override;
 
   void setBunchNumber(const char bn) override {bunchnumber = bn;}
   char getBunchNumber() const override {return bunchnumber;}
