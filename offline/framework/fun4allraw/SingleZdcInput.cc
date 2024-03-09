@@ -194,10 +194,6 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
           {
             InputMgr()->AddPacket(common_event_number, pktiter);
           }
-          else
-          {
-            TriggerInputMgr()->AddPacket(common_event_number, pktiter);
-          }
         }
       }
     }
@@ -253,10 +249,6 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
             if (InputMgr())
             {
               InputMgr()->AddPacket(common_event_number, pktiter);
-            }
-            else
-            {
-              TriggerInputMgr()->AddPacket(common_event_number, pktiter);
             }
           }
           else

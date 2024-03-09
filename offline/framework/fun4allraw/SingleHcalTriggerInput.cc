@@ -1,9 +1,10 @@
-#include "SingleGl1TriggerInput.h"
+#include "SingleHcalTriggerInput.h"
 
 #include "Fun4AllPrdfInputTriggerManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/Gl1Packetv1.h>
+#include <ffarawobjects/CaloPacketv1.h>
+#include <ffarawobjects/CaloPacketContainerv1.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -18,6 +19,8 @@
 #include <Event/Eventiterator.h>
 #include <Event/packet.h>  // for Packet
 
+#include <TSystem.h>
+
 #include <cstdint>   // for uint64_t
 #include <iostream>  // for operator<<, basic_ostream<...
 #include <iterator>  // for reverse_iterator
@@ -26,18 +29,20 @@
 #include <set>
 #include <utility>  // for pair
 
-SingleGl1TriggerInput::SingleGl1TriggerInput(const std::string &name)
+SingleHcalTriggerInput::SingleHcalTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
-  SubsystemEnum(InputManagerType::GL1);
+  SubsystemEnum(InputManagerType::HCAL);
+  plist = new Packet *[2];  // two packets for the hcal in each file
 }
 
-SingleGl1TriggerInput::~SingleGl1TriggerInput()
+SingleHcalTriggerInput::~SingleHcalTriggerInput()
 {
   CleanupUsedPackets(std::numeric_limits<int>::max());
+  delete[] plist;
 }
 
-void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
+void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -79,49 +84,68 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    Packet *packet = evt->getPacket(14001);
-
-    if (Verbosity() > 1)
+    int npackets = evt->getPacketList(plist, 2);
+    if (npackets > 2)
     {
-      packet->identify();
+      std::cout << PHWHERE << " Number of packets in array (2) too small for "
+                << npackets << std::endl;
+      exit(1);
     }
 
-    // by default use previous bco clock for gtm bco
-    Gl1Packet *newhit = new Gl1Packetv1();
-    uint64_t gtm_bco = packet->lValue(0, "BCO");
-    newhit->setBCO(packet->lValue(0, "BCO"));
-    newhit->setIdentifier(packet->getIdentifier());
-    newhit->setEvtSequence(EventSequence);
-    newhit->setBunchNumber(packet->lValue(0, "BunchNumber"));
-    if (Verbosity() > 2)
+    for (int i = 0; i < npackets; i++)
     {
-      std::cout << PHWHERE << " Packet: " << packet->getIdentifier()
-                << " evtno: " << EventSequence
-                << ", bco: 0x" << std::hex << gtm_bco << std::dec
-                << ", bunch no: " << packet->lValue(0, "BunchNumber")
-                << std::endl;
-      std::cout << PHWHERE << " RB Packet: " << newhit->getIdentifier()
-                << " evtno: " << newhit->getEvtSequence()
-                << ", bco: 0x" << std::hex << newhit->getBCO() << std::dec
-                << ", bunch no: " << +newhit->getBunchNumber()
-                << std::endl;
-    }
-    if (TriggerInputManager())
-    {
-      TriggerInputManager()->AddGl1Packet(EventSequence, newhit);
-    }
-    m_Gl1PacketMap[EventSequence].push_back(newhit);
-    m_EventStack.insert(EventSequence);
+      if (Verbosity() > 2)
+      {
+        plist[i]->identify();
+      }
 
-    delete packet;
+      // by default use previous bco clock for gtm bco
+      CaloPacket *newhit = new CaloPacketv1();
+      int nr_modules = plist[i]->iValue(0,"NRMODULES");
+      if (nr_modules > 3)
+      {
+	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
+	gSystem->Exit(1);
+      }
+      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
+      newhit->setBCO(plist[i]->iValue(0, "CLOCK"));
+      newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
+      newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setEvtSequence(EventSequence);
+      for (int ifem = 0; ifem < nr_modules; ifem++)
+      {
+        newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
+      }
+      for (int ipmt = 0; ipmt < 192; ipmt++)
+      {
+        for (int isamp = 0; isamp < 31; isamp++)
+        {
+          newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
+        }
+      }
+      if (Verbosity() > 2)
+      {
+        std::cout << PHWHERE << "evtno: " << EventSequence
+                  << ", bco: 0x" << std::hex << gtm_bco << std::dec
+                  << std::endl;
+      }
+      if (TriggerInputManager())
+      {
+        TriggerInputManager()->AddHcalPacket(EventSequence, newhit);
+      }
+      m_HcalPacketMap[EventSequence].push_back(newhit);
+      m_EventStack.insert(EventSequence);
+
+      delete plist[i];
+    }
   }
 }
 
-void SingleGl1TriggerInput::Print(const std::string &what) const
+void SingleHcalTriggerInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "STORAGE")
   {
-    for (const auto &bcliter : m_Gl1PacketMap)
+    for (const auto &bcliter : m_HcalPacketMap)
     {
       std::cout << PHWHERE << "Event: " << bcliter.first << std::endl;
     }
@@ -135,10 +159,10 @@ void SingleGl1TriggerInput::Print(const std::string &what) const
   }
 }
 
-void SingleGl1TriggerInput::CleanupUsedPackets(const int eventno)
+void SingleHcalTriggerInput::CleanupUsedPackets(const int eventno)
 {
   std::vector<int> toclearevents;
-  for (const auto &iter : m_Gl1PacketMap)
+  for (const auto &iter : m_HcalPacketMap)
   {
     if (iter.first <= eventno)
     {
@@ -157,11 +181,11 @@ void SingleGl1TriggerInput::CleanupUsedPackets(const int eventno)
   for (auto iter : toclearevents)
   {
     m_EventStack.erase(iter);
-    m_Gl1PacketMap.erase(iter);
+    m_HcalPacketMap.erase(iter);
   }
 }
 
-void SingleGl1TriggerInput::ClearCurrentEvent()
+void SingleHcalTriggerInput::ClearCurrentEvent()
 {
   // called interactively, to get rid of the current event
   int currentevent = *m_EventStack.begin();
@@ -170,19 +194,19 @@ void SingleGl1TriggerInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleGl1TriggerInput::GetSomeMoreEvents()
+bool SingleHcalTriggerInput::GetSomeMoreEvents()
 {
   if (AllDone())
   {
     return false;
   }
-  if (m_Gl1PacketMap.empty())
+  if (m_HcalPacketMap.empty())
   {
     return true;
   }
 
-  int first_event = m_Gl1PacketMap.begin()->first;
-  int last_event = m_Gl1PacketMap.rbegin()->first;
+  int first_event = m_HcalPacketMap.begin()->first;
+  int last_event = m_HcalPacketMap.rbegin()->first;
   if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "first event: " << first_event
@@ -196,7 +220,7 @@ bool SingleGl1TriggerInput::GetSomeMoreEvents()
   return false;
 }
 
-void SingleGl1TriggerInput::CreateDSTNode(PHCompositeNode *topNode)
+void SingleHcalTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -206,26 +230,17 @@ void SingleGl1TriggerInput::CreateDSTNode(PHCompositeNode *topNode)
     topNode->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
-  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "GL1"));
+  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "HCAL"));
   if (!detNode)
   {
-    detNode = new PHCompositeNode("GL1");
+    detNode = new PHCompositeNode("HCAL");
     dstNode->addNode(detNode);
   }
-  OfflinePacket *gl1hitcont = findNode::getClass<OfflinePacket>(detNode, "GL1Packet");
-  if (!gl1hitcont)
+  CaloPacketContainer *hcalpacketcont = findNode::getClass<CaloPacketContainer>(detNode, "HCALPackets");
+  if (!hcalpacketcont)
   {
-    gl1hitcont = new Gl1Packetv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(gl1hitcont, "GL1Packet", "PHObject");
+    hcalpacketcont = new CaloPacketContainerv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hcalpacketcont, "HCALPackets", "PHObject");
     detNode->addNode(newNode);
   }
 }
-
-// void SingleGl1TriggerInput::ConfigureStreamingInputManager()
-// {
-//   if (StreamingInputManager())
-//   {
-//     StreamingInputManager()->SetGl1BcoRange(m_BcoRange);
-//   }
-//   return;
-// }

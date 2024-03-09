@@ -187,10 +187,6 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
           {
             m_InputMgr->AddPacket(common_event_number, pktiter);
           }
-          else
-          {
-            m_TriggerInputMgr->AddPacket(common_event_number, pktiter);
-          }
         }
       }
     }
@@ -246,10 +242,6 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
             if (m_InputMgr)
             {
               m_InputMgr->AddPacket(common_event_number, pktiter);
-            }
-            else
-            {
-              m_TriggerInputMgr->AddPacket(common_event_number, pktiter);
             }
           }
           else
