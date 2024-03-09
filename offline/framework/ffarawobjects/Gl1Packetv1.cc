@@ -14,3 +14,9 @@ void Gl1Packetv1::identify(std::ostream &os) const
   os << "bunch number: " << bunchnumber*1 << std::endl;
   return;
 }
+
+void Gl1Packetv1::FillFrom(const Gl1Packet *pkt)
+{
+  setBunchNumber(pkt->getBunchNumber());
+  OfflinePacketv1::FillFrom(pkt);
+}

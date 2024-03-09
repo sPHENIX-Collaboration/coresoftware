@@ -14,6 +14,7 @@ public:
   ~OfflinePacketv1() override = default;
   void Reset() override;
   void identify(std::ostream &os = std::cout) const override;
+  void FillFrom(const OfflinePacket *pkt) override;
 
   int getIdentifier() const override {return packetid;}
   void setIdentifier(const int i) override {packetid = i;}

@@ -23,3 +23,10 @@ void OfflinePacketv1::identify(std::ostream &os) const
   os << "BCO: 0x" << std::hex << getBCO() << std::dec << std::endl;
   return;
 }
+
+void OfflinePacketv1::FillFrom(const OfflinePacket *pkt)
+{
+  setIdentifier(pkt->getIdentifier());
+  setEvtSequence(pkt->getEvtSequence());
+  setBCO(pkt->getBCO());
+}
