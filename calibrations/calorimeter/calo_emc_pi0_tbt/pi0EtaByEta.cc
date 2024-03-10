@@ -30,6 +30,7 @@
 #include <TLorentzVector.h>
 #include <TNtuple.h>
 #include <TTree.h>
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -42,7 +43,6 @@ pi0EtaByEta::pi0EtaByEta(const std::string& name, const std::string& filename)
 {
   h_mass_eta_lt.fill(nullptr);
   clusMix = new std::vector<std::vector<std::vector<CLHEP::Hep3Vector>>>();
-
 }
 
 pi0EtaByEta::~pi0EtaByEta()
@@ -64,7 +64,8 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
   // correlation plots
   for (int i = 0; i < 96; i++)
   {
-    h_mass_eta_lt[i] = new TH1F(Form("h_mass_eta_lt%d", i), "", 50, 0, 0.5);
+    std::string histoname = "h_mass_eta_lt" + std::to_string(i);
+    h_mass_eta_lt[i] = new TH1F(histoname.c_str(), "", 50, 0, 0.5);
   }
 
   h_cemc_etaphi = new TH2F("h_cemc_etaphi", "", 96, 0, 96, 256, 0, 256);
@@ -90,7 +91,8 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
 
   for (int ib = 0; ib < NBinsClus; ib++)
   {
-    h_InvMass_Nclus[ib] = new TH1F(Form("h_InvMass_Nclus%d", ib), "", 120, 0, 1.2);
+    std::string histoname = "h_InvMass_Nclus" + std::to_string(ib);
+    h_InvMass_Nclus[ib] = new TH1F(histoname.c_str(), "", 120, 0, 1.2);
   }
 
   h_event = new TH1F("h_event", "", 1, 0, 1);
@@ -100,9 +102,13 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
   std::vector<std::vector<CLHEP::Hep3Vector>> temp2 = std::vector<std::vector<CLHEP::Hep3Vector>>();
   std::vector<CLHEP::Hep3Vector> temp = std::vector<CLHEP::Hep3Vector>();
   for (int i = 0; i < NBinsVtx; i++)
+  {
     temp2.push_back(temp);
+  }
   for (int i = 0; i < NBinsClus; i++)
+  {
     clusMix->push_back(temp2);
+  }
 
   return 0;
 }
@@ -176,7 +182,10 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   }
 
   std::string cluster_node_name = "CLUSTERINFO_CEMC2";
-  if (use_pdc) cluster_node_name = "CLUSTERINFO_POS_COR_CEMC";
+  if (use_pdc)
+  {
+    cluster_node_name = "CLUSTERINFO_POS_COR_CEMC";
+  }
   RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, cluster_node_name);
   if (!clusterContainer)
   {
@@ -309,7 +318,10 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
     for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterEnd.second; clusterIter2++)
     {
-      if (clusterIter2 == clusterIter) continue;
+      if (clusterIter2 == clusterIter)
+      {
+        continue;
+      }
 
       RawCluster* recoCluster2 = clusterIter2->second;
 
@@ -353,7 +365,10 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       h_pt2->Fill(photon2.Pt());
 
       h_InvMass->Fill(pi0.M());
-      if (clus2_pt < pt1ClusCut) h_InvMass->Fill(pi0.M());
+      if (clus2_pt < pt1ClusCut)
+      {
+        h_InvMass->Fill(pi0.M());
+      }
       h_pipT_Nclus_mass->Fill(pi0.Pt(), nClusCount, pi0.M());
       if (lt_eta > 95)
       {
@@ -365,10 +380,8 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
     if (doMix)
     {
-      for (size_t iclus = 0; iclus < clusMix->at(nClusBin)[vtxBin].size(); iclus++)
+      for (const auto& E_vec_cluster2 : clusMix->at(nClusBin)[vtxBin])
       {
-        CLHEP::Hep3Vector E_vec_cluster2 = clusMix->at(nClusBin)[vtxBin][iclus];
-
         float clus2E = E_vec_cluster2.mag();
         float clus2_eta = E_vec_cluster2.pseudoRapidity();
         float clus2_phi = E_vec_cluster2.phi();
@@ -497,7 +510,8 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   TH1F* h_M_eta[96];
   for (int i = 0; i < 96; i++)
   {
-    h_M_eta[i] = (TH1F*) fin->Get(Form("h_mass_eta_lt%d", i));
+    std::string histoname = "h_mass_eta_lt" + std::to_string(i);
+    h_M_eta[i] = (TH1F*) fin->Get(histoname.c_str());
     h_M_eta[i]->Scale(1. / h_M_eta[i]->Integral(), "width");
   }
 
@@ -510,7 +524,8 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
     }
 
     fitFunOut[i] = fitHistogram(h_M_eta[i]);
-    fitFunOut[i]->SetName(Form("f_pi0_eta%d", i));
+    std::string funcname = "f_pi0_eta" + std::to_string(i);
+    fitFunOut[i]->SetName(funcname.c_str());
     float mass_val_out = fitFunOut[i]->GetParameter(1);
     float mass_err_out = fitFunOut[i]->GetParError(1);
     h_peak_eta->SetBinContent(i + 1, mass_val_out);
@@ -545,7 +560,10 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   {
     for (int j = 0; j < 256; j++)
     {
-      if (use_h_target_mass) final_mass_target = h_target_mass->GetBinContent(i + 1);
+      if (use_h_target_mass)
+      {
+        final_mass_target = h_target_mass->GetBinContent(i + 1);
+      }
       float correction = final_mass_target / h_peak_eta->GetBinContent(i + 1);
       unsigned int key = TowerInfoDefs::encode_emcal(i, j);
       float val1 = cdbttree1->GetFloatValue(key, m_fieldname);
