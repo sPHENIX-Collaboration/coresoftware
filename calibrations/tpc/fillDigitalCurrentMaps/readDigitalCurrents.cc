@@ -59,14 +59,18 @@ bool IsOverFrame(double r, double phi){
   //double tpc_sec0_phi=0.0;//get_double_param("tpc_sec0_phi");
 
   //if the coordinate is in the radial spaces of the frames, return true:
-  if (r<tpc_frame_r1_inner+tpc_margin)
+  if (r<tpc_frame_r1_inner+tpc_margin) {
     return true;
-  if (r>tpc_frame_r1_outer-tpc_margin  && r<tpc_frame_r2_inner+tpc_margin)
+}
+  if (r>tpc_frame_r1_outer-tpc_margin  && r<tpc_frame_r2_inner+tpc_margin) {
     return true;
-  if (r>tpc_frame_r2_outer-tpc_margin  && r<tpc_frame_r3_inner+tpc_margin)
+}
+  if (r>tpc_frame_r2_outer-tpc_margin  && r<tpc_frame_r3_inner+tpc_margin) {
     return true;
-  if (r>tpc_frame_r3_outer-tpc_margin)
+}
+  if (r>tpc_frame_r3_outer-tpc_margin) {
     return true;
+}
 
   //if the coordinate is within gap+width of a sector boundary, return true:
   //note that this is not a line of constant radius, but a linear distance from a radius.
@@ -79,10 +83,12 @@ bool IsOverFrame(double r, double phi){
   float reduced_phi=phi-nsec*sectorangle; //between zero and sixty degrees.
   float dist_to_previous=r*sin(reduced_phi);
   float dist_to_next=r*sin(sectorangle-reduced_phi);
-  if (dist_to_previous<tpc_frame_side_gap+tpc_frame_side_width+tpc_margin)
+  if (dist_to_previous<tpc_frame_side_gap+tpc_frame_side_width+tpc_margin) {
     return true;
-  if (dist_to_next<tpc_frame_side_gap+tpc_frame_side_width+tpc_margin)
+}
+  if (dist_to_next<tpc_frame_side_gap+tpc_frame_side_width+tpc_margin) {
     return true;
+}
   
   return false;
 }
@@ -108,7 +114,7 @@ readDigitalCurrents::~readDigitalCurrents()
 }
 
 //____________________________________________________________________________..
-int readDigitalCurrents::Init(PHCompositeNode *topNode)
+int readDigitalCurrents::Init(PHCompositeNode * /*topNode*/)
 {
   std::cout << "readDigitalCurrents::Init(PHCompositeNode *topNode) Initializing" << std::endl;
 
@@ -214,7 +220,7 @@ int readDigitalCurrents::Init(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int readDigitalCurrents::InitRun(PHCompositeNode *topNode)
+int readDigitalCurrents::InitRun(PHCompositeNode * /*topNode*/)
 {
   std::cout << "readDigitalCurrents::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
   std::string line;
@@ -251,12 +257,14 @@ int readDigitalCurrents::InitRun(PHCompositeNode *topNode)
     InputFile.close();
   }
 
-  else cout << "Unable to open file:"<<txt_file<<endl; 
+  else { cout << "Unable to open file:"<<txt_file<<endl; 
+}
 
   TFile *MapsFile; 
   //if(_fUseIBFMap){
     MapsFile = new TFile("/sphenix/user/shulga/Work/IBF/DistortionMap/IBF_Map.root","READ");
-    if ( MapsFile->IsOpen() ) printf("Gain/IBF Maps File opened successfully\n");
+    if ( MapsFile->IsOpen() ) { printf("Gain/IBF Maps File opened successfully\n");
+}
     //_h_modules_anode       = (TH2F*)MapsFile ->Get("h_modules_anode")      ->Clone("_h_modules_anode");
     _h_modules_measuredibf = (TH2F*)MapsFile ->Get("h_modules_measuredibf")->Clone("_h_modules_measuredibf");
   //}
@@ -273,11 +281,13 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
   //  z_bias_avg=1.05*(float) rand()/RAND_MAX;
   //}
   int bemxingsInFile = _keys.size();
-  if (_evtstart>= bemxingsInFile) _evtstart=_evtstart-bemxingsInFile;
+  if (_evtstart>= bemxingsInFile) { _evtstart=_evtstart-bemxingsInFile;
+}
   int key = _keys.at(_evtstart);
   _event_timestamp = (float)_timestamps[key]*ns;//units in seconds
   _event_bunchXing = key;
-  if(_evtstart%100==0) cout<<"_evtstart = "<<_evtstart<<endl;
+  if(_evtstart%100==0) { cout<<"_evtstart = "<<_evtstart<<endl;
+}
   _evtstart++;
 
   //std::cout << "readDigitalCurrents::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
@@ -364,10 +374,13 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
         }else{
           phi_center = layergeom_cgc->get_phicenter(phibin);
         }
-        if (phi_center<0) phi_center+=2*M_PI;
+        if (phi_center<0) { phi_center+=2*M_PI;
+}
         if(phi_center<M_PI/2+M_PI/12 && phi_center>M_PI/2-M_PI/12){
-          if(min_phiBin>phibin)min_phiBin=phibin;
-          if(max_phiBin<phibin)max_phiBin=phibin;
+          if(min_phiBin>phibin) {min_phiBin=phibin;
+}
+          if(max_phiBin<phibin) {max_phiBin=phibin;
+}
         }
         float x = radius*cos(phi_center);
         float y = radius*sin(phi_center);
@@ -428,13 +441,17 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
           
         }
           if(z>=0 && z<1.055*m){
-            if(adc>=0)n_hits++;
-            if(adc>=0)_h_DC_E->Fill(adc,E);
+            if(adc>=0) {n_hits++;
+}
+            if(adc>=0) {_h_DC_E->Fill(adc,E);
+}
 
           }
           if(z<0 && z>-1.055*m){
-            if(adc>=0)n_hits++;
-            if(adc>=0)_h_DC_E->Fill(adc,E);
+            if(adc>=0) {n_hits++;
+}
+            if(adc>=0) {_h_DC_E->Fill(adc,E);
+}
 
           }        
         
@@ -457,7 +474,8 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
           }
           for (int iz = 0; iz < nFrames; iz++)
           {
-            if (f_fill_ibf[iz] == 1)_h_SC_ibf[iz]  ->Fill(phi_center,radius,z_ibf[iz],w_adc);
+            if (f_fill_ibf[iz] == 1) {_h_SC_ibf[iz]  ->Fill(phi_center,radius,z_ibf[iz],w_adc);
+}
           }
         //}
         //if(n_hits%100==0) std::cout<<radius<<"|"<<phi_center<<"|"<<z<<std::endl;
@@ -473,7 +491,7 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int readDigitalCurrents::ResetEvent(PHCompositeNode *topNode)
+int readDigitalCurrents::ResetEvent(PHCompositeNode * /*topNode*/)
 {
   //std::cout << "readDigitalCurrents::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -487,7 +505,7 @@ int readDigitalCurrents::EndRun(const int runnumber)
 }
 
 //____________________________________________________________________________..
-int readDigitalCurrents::End(PHCompositeNode *topNode)
+int readDigitalCurrents::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "readDigitalCurrents::End(PHCompositeNode *topNode) This is the End..." << std::endl;
   _h_R     ->Sumw2( false );
@@ -496,17 +514,18 @@ int readDigitalCurrents::End(PHCompositeNode *topNode)
   _h_DC_SC    ->Sumw2( false );
   _h_hit_XY ->Sumw2( false );
   _h_DC_SC_XY ->Sumw2( false );
-  for (int iz = 0; iz < nFrames; iz++)
+  for (auto & iz : _h_SC_ibf)
   {
-    _h_SC_ibf[iz]->Sumw2(false);
+    iz->Sumw2(false);
   }
   hm->dumpHistos(_filename, "RECREATE");
-  if(_fillCSVFile)myCSVFile.close();
+  if(_fillCSVFile) {myCSVFile.close();
+}
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int readDigitalCurrents::Reset(PHCompositeNode *topNode)
+int readDigitalCurrents::Reset(PHCompositeNode * /*topNode*/)
 {
  std::cout << "readDigitalCurrents::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
