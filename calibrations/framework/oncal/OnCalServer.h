@@ -81,7 +81,7 @@ class OnCalServer : public Fun4AllServer
   int DisconnectDB();
   void TestMode(const int i = 1);
   // need to be able to call this from the outside
-  bool updateDBRunRange(const char *table, const char *column, const int value, const int firstrun, const int lastrun);
+  bool updateDBRunRange(const std::string &table, const std::string &column, const int value, const int firstrun, const int lastrun);
   void EventCheckFrequency(const unsigned int i) { eventcheckfrequency = i; }
 
  protected:
@@ -104,8 +104,8 @@ class OnCalServer : public Fun4AllServer
   // these functions update different columns in the success database tables.
   // Ony the row with the run number set by setRunNum() is updated.
 
-  bool updateDB(const char *table, const char *column, int value);
-  bool updateDB(const char *table, const char *column, bool value);
+  bool updateDB(const std::string &table, const std::string &column, int value);
+  bool updateDB(const std::string &table, const std::string &column, bool value);
   bool updateDB(const std::string &table, const std::string &column, const std::string &value,
                 const int runno, const bool append = false);
   int updateDB(const std::string &table, const std::string &column, const time_t ticks);
