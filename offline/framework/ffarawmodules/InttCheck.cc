@@ -28,7 +28,7 @@ InttCheck::InttCheck(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int InttCheck::Init(PHCompositeNode *topNode)
+int InttCheck::Init(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

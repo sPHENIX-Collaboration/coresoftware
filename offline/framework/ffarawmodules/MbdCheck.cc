@@ -26,7 +26,7 @@ MbdCheck::MbdCheck(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int MbdCheck::Init(PHCompositeNode *topNode)
+int MbdCheck::Init(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -27,7 +27,7 @@ Gl1Check::Gl1Check(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int Gl1Check::Init(PHCompositeNode *topNode)
+int Gl1Check::Init(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

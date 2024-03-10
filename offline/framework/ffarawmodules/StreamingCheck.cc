@@ -34,7 +34,7 @@ StreamingCheck::StreamingCheck(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int StreamingCheck::Init(PHCompositeNode *topNode)
+int StreamingCheck::Init(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -49,7 +49,7 @@ int StreamingCheck::process_event(PHCompositeNode *topNode)
     exit(1);
   }
   uint64_t refBCO = gl1rawhit->get_bco();
-  uint64_t refBCO_40Bits = refBCO & 0xFFFFFFFFFF;
+  uint64_t refBCO_40Bits = refBCO & 0xFFFFFFFFFFU;
   TpcRawHitContainer *tpccont = findNode::getClass<TpcRawHitContainer>(topNode,"TPCRAWHIT");
   if (tpccont)
   {

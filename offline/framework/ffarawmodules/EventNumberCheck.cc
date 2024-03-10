@@ -27,7 +27,7 @@ EventNumberCheck::EventNumberCheck(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int EventNumberCheck::Init(PHCompositeNode *topNode)
+int EventNumberCheck::Init(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

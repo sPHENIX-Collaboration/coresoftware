@@ -29,7 +29,7 @@ TpcCheck::TpcCheck(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int TpcCheck::Init(PHCompositeNode *topNode)
+int TpcCheck::Init(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
