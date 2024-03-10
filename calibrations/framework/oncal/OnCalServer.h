@@ -4,14 +4,14 @@
 #include <fun4all/Fun4AllServer.h>
 #include <phool/PHTimeStamp.h>
 
+#include <time.h>  // for time_t
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
 
-class Event;
 class OnCal;
-class PHCompositeNode;
+class SubsysReco;
 class TH1;
 
 namespace fetchrun

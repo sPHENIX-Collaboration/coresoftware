@@ -5,29 +5,29 @@
 
 #include <fun4all/Fun4AllInputManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>  // for Fun4AllServer, Fun4AllServe...
 #include <fun4all/Fun4AllSyncManager.h>
 #include <fun4all/Fun4AllUtils.h>
-#include <phool/recoConsts.h>
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIOManager.h>
-#include <phool/PHNodeIterator.h>
+#include <phool/PHTimeStamp.h>  // for PHTimeStamp, operator<<
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
 
 #include <pdbcalbase/PdbApplication.h>
 #include <pdbcalbase/PdbBankID.h>
-#include <pdbcalbase/PdbBankList.h>
-#include <pdbcalbase/PdbBankListIterator.h>
 #include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbCalBank.h>
-#include <pgcal/PgPostCalBank.h>
-
 #include <pdbcalbase/RunToTime.h>
 
+#include <RtypesCore.h>  // for Stat_t
+#include <TDirectory.h>  // for TDirectoryAtomicAdapter
 #include <TFile.h>
 #include <TH1.h>
+#include <TNamed.h>  // for TNamed
 #include <TROOT.h>
-#include <TSystem.h>
+#include <TString.h>  // for TString
 
 // odbc++ classes
 #pragma GCC diagnostic push
@@ -38,20 +38,23 @@
 #include <odbc++/preparedstatement.h>
 #include <odbc++/resultset.h>
 #include <odbc++/resultsetmetadata.h>
+#include <odbc++/statement.h>  // for Statement
+#include <odbc++/types.h>      // for SQLException, Timestamp
 #pragma GCC diagnostic pop
 
-#include <sys/utsname.h>
 #include <unistd.h>
 #include <algorithm>
+#include <cassert>  // for assert
+#include <cctype>   // for tolower
 #include <cstdlib>
+#include <cstring>  // for strcmp
 #include <fstream>
 #include <iostream>
+#include <iterator>  // for reverse_iterator
 #include <list>
 #include <map>
-#include <memory>
 #include <sstream>
-
-// using namespace odbc;
+#include <utility>  // for pair
 
 const static std::string cvstag = "OnCalv86";
 
