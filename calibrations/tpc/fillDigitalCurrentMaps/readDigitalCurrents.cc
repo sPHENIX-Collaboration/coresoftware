@@ -5,7 +5,6 @@
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
-//#include <trackbase/ActsGeometry.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
@@ -33,7 +32,7 @@
 #include <string>
 #include <utility>  // for pair
 
-using namespace std;
+//using namespace std;
 
 bool IsOverFrame(double r, double phi);
 
@@ -232,7 +231,7 @@ int readDigitalCurrents::InitRun(PHCompositeNode * /*topNode*/)
     // txt_file = "/sphenix/user/shulga/Work/IBF/DistortionMap/timestamps_50kHz.txt";
     start_line = 2;
   }
-  ifstream InputFile(txt_file);
+  std::ifstream InputFile(txt_file);
   if (InputFile.is_open())
   {
     int n_line = 0;
@@ -251,7 +250,7 @@ int readDigitalCurrents::InitRun(PHCompositeNode * /*topNode*/)
         _timestamps[n[0]] = n[1];
         if (n_line < 10)
         {
-          cout << n[1] << endl;
+          std::cout << n[1] << std::endl;
         }
         _keys.push_back(int(n[0]));
       }
@@ -261,7 +260,7 @@ int readDigitalCurrents::InitRun(PHCompositeNode * /*topNode*/)
 
   else
   {
-    cout << "Unable to open file:" << txt_file << endl;
+    std::cout << "Unable to open file:" << txt_file << std::endl;
   }
 
   TFile *MapsFile;
@@ -296,15 +295,14 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
   _event_bunchXing = key;
   if (_evtstart % 100 == 0)
   {
-    cout << "_evtstart = " << _evtstart << endl;
+    std::cout << "_evtstart = " << _evtstart << std::endl;
   }
   _evtstart++;
 
   // std::cout << "readDigitalCurrents::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
-  ostringstream nodename;
-  set<std::string>::const_iterator iter;
+  std::set<std::string>::const_iterator iter;
   // //nodename << "G4HIT_TPC";
-  nodename << "TRKR_HITSET";
+  std::string nodename = "TRKR_HITSET";
 
   // //  SvtxEvaluator
   // SvtxEvaluator *hits = findNode::getClass<SvtxEvaluator>(topNode, nodename.str().c_str());
@@ -314,20 +312,19 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
   // }
   //===================================
   // get node containing the digitized hits
-  TrkrHitSetContainer *_hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, nodename.str().c_str());
+  TrkrHitSetContainer *_hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, nodename);
   if (!_hitmap)
   {
     std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  ostringstream geo_nodename;
-  geo_nodename << "CYLINDERCELLGEOM_SVTX";
+  std::string geo_nodename = "CYLINDERCELLGEOM_SVTX";
 
   PHG4TpcCylinderGeomContainer *_geom_container_ccgc = nullptr;
   PHG4CylinderCellGeomContainer *_geom_container_cgc = nullptr;
   if (_f_ccgc == 1)
   {
-    _geom_container_ccgc = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, geo_nodename.str().c_str());
+    _geom_container_ccgc = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, geo_nodename);
     if (!_geom_container_ccgc)
     {
       std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
@@ -336,7 +333,7 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
   }
   else
   {
-    _geom_container_cgc = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, geo_nodename.str().c_str());
+    _geom_container_cgc = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, geo_nodename);
 
     if (!_geom_container_cgc)
     {
@@ -526,7 +523,7 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
         //}
         // if(n_hits%100==0) std::cout<<radius<<"|"<<phi_center<<"|"<<z<<std::endl;
       }
-      // cout<<" min_phiBin"<< min_phiBin <<" max_phiBin"<< max_phiBin<< endl;
+      // std::cout<<" min_phiBin"<< min_phiBin <<" max_phiBin"<< max_phiBin<< std::endl;
     }
   }
 
@@ -588,12 +585,12 @@ void readDigitalCurrents::Print(const std::string &what) const
 void readDigitalCurrents::SetEvtStart(int newEvtStart)
 {
   _evtstart = newEvtStart;
-  cout << "Start event is set to: " << newEvtStart << endl;
+  std::cout << "Start event is set to: " << newEvtStart << std::endl;
 }
 void readDigitalCurrents::FillCSV(int fillCSVFile)
 {
   _fillCSVFile = fillCSVFile;
-  cout << "Fill CSV file is set to: " << fillCSVFile << endl;
+  std::cout << "Fill CSV file is set to: " << fillCSVFile << std::endl;
 }
 
 void readDigitalCurrents::SetBeamXing(const std::vector<int> &beamXs)
@@ -605,17 +602,17 @@ void readDigitalCurrents::SetCollSyst(int coll_syst)
 {
   _collSyst = coll_syst;
   std::string s_syst[2] = {"AA", "pp"};
-  cout << "Collision system is set to: " << s_syst[_collSyst] << endl;
+  std::cout << "Collision system is set to: " << s_syst[_collSyst] << std::endl;
 }
 
 void readDigitalCurrents::SetIBF(double ampIBFfrac)
 {
   _ampIBFfrac = ampIBFfrac;
-  cout << "IBF is set to: " << _ampIBFfrac << endl;
+  std::cout << "IBF is set to: " << _ampIBFfrac << std::endl;
 }
 
 void readDigitalCurrents::SetCCGC(double f_ccgc)
 {
   _f_ccgc = f_ccgc;
-  cout << "IBF is set to: " << _f_ccgc << endl;
+  std::cout << "IBF is set to: " << _f_ccgc << std::endl;
 }
