@@ -335,7 +335,8 @@ int LiteCaloEval::process_event(PHCompositeNode *topNode)
       e = tower_info->get_energy();
       ieta = towerinfos->getTowerEtaBin(towerkey);
       iphi = towerinfos->getTowerPhiBin(towerkey);
-      if(!tower_info->get_isGood()) continue;
+      if(!tower_info->get_isGood()) { continue;
+}
     }
 
     else
@@ -829,25 +830,23 @@ void LiteCaloEval::Get_Histos(const char *infile, const char *outfile)
   /// start of eta loop
   for (int i = 0; i < max_ieta+1; i++)
   {
-    TString a;
-    a.Form("%d", i);
-    TString b = "eta_" + a;
+    std::string b = "eta_" + std::to_string(i);
 
     if (calotype == LiteCaloEval::HCALOUT)
     {
-      b = "hcalout_" + b;
+      b.insert(0,"hcalout_");
     }
     else if (calotype == LiteCaloEval::HCALIN)
     {
-      b = "hcalin_" + b;
+      b.insert(0,"hcalin_");
     }
 
     /// holds the eta slice of histos
-    TH1F *heta_temp = (TH1F *) f_temp->Get(b.Data());
+    TH1F *heta_temp = (TH1F *) f_temp->Get(b.c_str());
 
     if (!heta_temp && i == 0)
     {
-      std::cout << " warning hist " << b.Data() << " not found" << std::endl;
+      std::cout << " warning hist " << b << " not found" << std::endl;
     }
 
     /// assign the eta slice histo to an array (these arrays are private members in LCE.h)
@@ -862,8 +861,9 @@ void LiteCaloEval::Get_Histos(const char *infile, const char *outfile)
       hcalin_eta[i] = heta_temp;
     }
 
-    if (! (i < max_ieta) )
+    if (! (i < max_ieta) ) {
       continue;
+}
 
     /// start of phi loop
     for (int j = 0; j < max_iphi; j++)
@@ -1010,10 +1010,12 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   int minbin = 0;
   int maxbin = max_ieta;
 
-  if (m_myminbin > -1)
+  if (m_myminbin > -1) {
     minbin = m_myminbin;
-  if (m_mymaxbin > -1)
+}
+  if (m_mymaxbin > -1) {
     maxbin = m_mymaxbin;
+}
 
 
   /// assign hnewf the eta slice histos.
