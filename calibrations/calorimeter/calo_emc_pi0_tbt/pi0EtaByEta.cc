@@ -30,6 +30,7 @@
 #include <TLorentzVector.h>
 #include <TNtuple.h>
 #include <TTree.h>
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -64,7 +65,8 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
   // correlation plots
   for (int i = 0; i < 96; i++)
   {
-    h_mass_eta_lt[i] = new TH1F(Form("h_mass_eta_lt%d", i), "", 50, 0, 0.5);
+    std::string histoname = "h_mass_eta_lt" + std::to_string(i);
+    h_mass_eta_lt[i] = new TH1F(histoname.c_str(), "", 50, 0, 0.5);
   }
 
   h_cemc_etaphi = new TH2F("h_cemc_etaphi", "", 96, 0, 96, 256, 0, 256);
@@ -90,7 +92,8 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
 
   for (int ib = 0; ib < NBinsClus; ib++)
   {
-    h_InvMass_Nclus[ib] = new TH1F(Form("h_InvMass_Nclus%d", ib), "", 120, 0, 1.2);
+    std::string histoname = "h_InvMass_Nclus" + std::to_string(ib);
+    h_InvMass_Nclus[ib] = new TH1F(histoname.c_str(), "", 120, 0, 1.2);
   }
 
   h_event = new TH1F("h_event", "", 1, 0, 1);
@@ -497,7 +500,8 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   TH1F* h_M_eta[96];
   for (int i = 0; i < 96; i++)
   {
-    h_M_eta[i] = (TH1F*) fin->Get(Form("h_mass_eta_lt%d", i));
+    std::string histoname = "h_mass_eta_lt" + std::to_string(i);
+    h_M_eta[i] = (TH1F*) fin->Get(histoname.c_str());
     h_M_eta[i]->Scale(1. / h_M_eta[i]->Integral(), "width");
   }
 
@@ -510,7 +514,8 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
     }
 
     fitFunOut[i] = fitHistogram(h_M_eta[i]);
-    fitFunOut[i]->SetName(Form("f_pi0_eta%d", i));
+    std::string funcname = "f_pi0_eta" + std::to_string(i);
+    fitFunOut[i]->SetName(funcname.c_str());
     float mass_val_out = fitFunOut[i]->GetParameter(1);
     float mass_err_out = fitFunOut[i]->GetParError(1);
     h_peak_eta->SetBinContent(i + 1, mass_val_out);
