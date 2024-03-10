@@ -1,38 +1,37 @@
-
 #include "readDigitalCurrents.h"
-
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>  // for SubsysReco
-
-#include "trackbase/ActsGeometry.h"
-#include "trackbase/TpcDefs.h"
-
-#include <phool/PHCompositeNode.h>
-
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
+//#include <trackbase/ActsGeometry.h>
+#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>  // for SubsysReco
+
 #include <phool/getClass.h>
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
 #include <TH3.h>
 
+#include <algorithm>  // for max
+#include <cmath>      // for M_PI, sin, cos
 #include <fstream>
 #include <iostream>
 #include <set>
 #include <sstream>
 #include <string>
+#include <utility>  // for pair
 
 using namespace std;
 
@@ -183,13 +182,13 @@ int readDigitalCurrents::Init(PHCompositeNode * /*topNode*/)
   _h_DC_SC_XY = new TH2F("_h_DC_SC_XY", "_h_DC_SC_XY;X, [mm];Y, [mm];ADC;", 4 * nr, -1 * rmax, rmax, 4 * nr, -1 * rmax, rmax);
   _h_DC_E = new TH2F("_h_DC_E", "_h_DC_E;ADC;E", 200, -100, 2e3 - 100, 500, -100, 5e3 - 100);
 
-  char name[100];
-  char name_ax[100];
+  std::string name;
+  std::string name_ax;
   for (int iz = 0; iz < nFrames; iz++)
   {
-    sprintf(name, "_h_SC_ibf_%d", iz);
-    sprintf(name_ax, "_h_SC_ibf_%d;#phi, [rad];R, [mm];Z, [mm]", iz);
-    _h_SC_ibf[iz] = new TH3F(name, name_ax, nphi, phi_bins, r_bins_N, r_bins, 2 * nz, z_bins);
+    name = "_h_SC_ibf_" + std::to_string(iz);
+    name_ax = "_h_SC_ibf_" + std::to_string(iz) + ";#phi, [rad];R, [mm];Z, [mm]";
+    _h_SC_ibf[iz] = new TH3F(name.c_str(), name_ax.c_str(), nphi, phi_bins, r_bins_N, r_bins, 2 * nz, z_bins);
 
     hm->registerHisto(_h_SC_ibf[iz]);
   }
@@ -270,7 +269,7 @@ int readDigitalCurrents::InitRun(PHCompositeNode * /*topNode*/)
   MapsFile = new TFile("/sphenix/user/shulga/Work/IBF/DistortionMap/IBF_Map.root", "READ");
   if (MapsFile->IsOpen())
   {
-    printf("Gain/IBF Maps File opened successfully\n");
+    std::cout << "Gain/IBF Maps File opened successfully" << std::endl;
   }
   //_h_modules_anode       = (TH2F*)MapsFile ->Get("h_modules_anode")      ->Clone("_h_modules_anode");
   _h_modules_measuredibf = (TH2F *) MapsFile->Get("h_modules_measuredibf")->Clone("_h_modules_measuredibf");
@@ -609,13 +608,13 @@ void readDigitalCurrents::SetCollSyst(int coll_syst)
   cout << "Collision system is set to: " << s_syst[_collSyst] << endl;
 }
 
-void readDigitalCurrents::SetIBF(float ampIBFfrac)
+void readDigitalCurrents::SetIBF(double ampIBFfrac)
 {
   _ampIBFfrac = ampIBFfrac;
   cout << "IBF is set to: " << _ampIBFfrac << endl;
 }
 
-void readDigitalCurrents::SetCCGC(float f_ccgc)
+void readDigitalCurrents::SetCCGC(double f_ccgc)
 {
   _f_ccgc = f_ccgc;
   cout << "IBF is set to: " << _f_ccgc << endl;
