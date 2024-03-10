@@ -43,7 +43,6 @@ pi0EtaByEta::pi0EtaByEta(const std::string& name, const std::string& filename)
 {
   h_mass_eta_lt.fill(nullptr);
   clusMix = new std::vector<std::vector<std::vector<CLHEP::Hep3Vector>>>();
-
 }
 
 pi0EtaByEta::~pi0EtaByEta()
@@ -102,12 +101,14 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
 
   std::vector<std::vector<CLHEP::Hep3Vector>> temp2 = std::vector<std::vector<CLHEP::Hep3Vector>>();
   std::vector<CLHEP::Hep3Vector> temp = std::vector<CLHEP::Hep3Vector>();
-  for (int i = 0; i < NBinsVtx; i++) {
+  for (int i = 0; i < NBinsVtx; i++)
+  {
     temp2.push_back(temp);
-}
-  for (int i = 0; i < NBinsClus; i++) {
+  }
+  for (int i = 0; i < NBinsClus; i++)
+  {
     clusMix->push_back(temp2);
-}
+  }
 
   return 0;
 }
@@ -181,8 +182,10 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   }
 
   std::string cluster_node_name = "CLUSTERINFO_CEMC2";
-  if (use_pdc) { cluster_node_name = "CLUSTERINFO_POS_COR_CEMC";
-}
+  if (use_pdc)
+  {
+    cluster_node_name = "CLUSTERINFO_POS_COR_CEMC";
+  }
   RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, cluster_node_name);
   if (!clusterContainer)
   {
@@ -315,8 +318,10 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
     for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterEnd.second; clusterIter2++)
     {
-      if (clusterIter2 == clusterIter) { continue;
-}
+      if (clusterIter2 == clusterIter)
+      {
+        continue;
+      }
 
       RawCluster* recoCluster2 = clusterIter2->second;
 
@@ -360,8 +365,10 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       h_pt2->Fill(photon2.Pt());
 
       h_InvMass->Fill(pi0.M());
-      if (clus2_pt < pt1ClusCut) { h_InvMass->Fill(pi0.M());
-}
+      if (clus2_pt < pt1ClusCut)
+      {
+        h_InvMass->Fill(pi0.M());
+      }
       h_pipT_Nclus_mass->Fill(pi0.Pt(), nClusCount, pi0.M());
       if (lt_eta > 95)
       {
@@ -553,8 +560,10 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   {
     for (int j = 0; j < 256; j++)
     {
-      if (use_h_target_mass) { final_mass_target = h_target_mass->GetBinContent(i + 1);
-}
+      if (use_h_target_mass)
+      {
+        final_mass_target = h_target_mass->GetBinContent(i + 1);
+      }
       float correction = final_mass_target / h_peak_eta->GetBinContent(i + 1);
       unsigned int key = TowerInfoDefs::encode_emcal(i, j);
       float val1 = cdbttree1->GetFloatValue(key, m_fieldname);
