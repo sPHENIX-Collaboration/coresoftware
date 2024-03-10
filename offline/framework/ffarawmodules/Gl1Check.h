@@ -22,9 +22,9 @@ class Gl1Check : public SubsysReco
 
   int process_event(PHCompositeNode *topNode) override;
 
-//  int ResetEvent(PHCompositeNode *topNode) override;
+  //  int ResetEvent(PHCompositeNode *topNode) override;
 
-//  void MyEvtNode(const std::string &name) {m_EvtNodeName = name;}
+  //  void MyEvtNode(const std::string &name) {m_EvtNodeName = name;}
 
  private:
   /* std::string m_EvtNodeName = "GL1RAWHIT"; */
