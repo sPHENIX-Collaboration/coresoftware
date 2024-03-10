@@ -32,8 +32,6 @@
 #include <string>
 #include <utility>  // for pair
 
-//using namespace std;
-
 bool IsOverFrame(double r, double phi);
 
 bool IsOverFrame(double r, double phi)
