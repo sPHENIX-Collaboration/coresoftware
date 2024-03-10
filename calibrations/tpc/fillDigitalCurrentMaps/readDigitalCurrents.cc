@@ -433,6 +433,7 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
         int RBin = _h_R->GetXaxis()->FindBin(radius);
         if ((RBin > 33 && RBin < 50) && z > 0)
         {
+	  assert(layergeom_ccgc);
           int nRBins = layergeom_ccgc->get_phibins();
           if (phibin < nRBins / 12)
           {
