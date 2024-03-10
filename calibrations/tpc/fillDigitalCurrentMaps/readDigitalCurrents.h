@@ -109,13 +109,15 @@ class readDigitalCurrents : public SubsysReco
     //double pi = 2 * acos(0.0);
     double adc_pedestal=0.;//74.4;
     double cm=1e1,m=1e3, mm=1; //changed to make 'm' 1.0, for convenience.
-    float ns=1e-9,us=1e-6,ms=1e-3,s=1;
+//    float ns=1e-9,us=1e-6,ms=1e-3,s=1;
+    float ns=1e-9;
+    float s=1;
     float V=1;
     //float ionMobility=3.37*cm*cm/V/s;
     float ionMobility=1.65*cm*cm/V/s;
     float vIon=ionMobility*400*V/cm;
 
-    float f=0.5;//for now, just pick the middle of the hit.  Do better later.
+//    float f=0.5;//for now, just pick the middle of the hit.  Do better later.
 };
 
 #endif // READDIGITALCURRENTS_H

@@ -328,13 +328,13 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
   int n_hits = 0;
   //float _event_bunchXing = 1508071;
   TrkrHitSetContainer::ConstRange all_hitsets = _hitmap->getHitSets();
-  for (TrkrHitSetContainer::ConstIterator iter = all_hitsets.first;iter != all_hitsets.second; ++iter){    
+  for (TrkrHitSetContainer::ConstIterator iter_hitset = all_hitsets.first;iter_hitset != all_hitsets.second; ++iter_hitset){    
     //checking that the object is inside TPC
-    if(TrkrDefs::getTrkrId(iter->first) == TrkrDefs::tpcId){
-      TrkrDefs::hitsetkey hitsetkey = iter->first;
+    if(TrkrDefs::getTrkrId(iter_hitset->first) == TrkrDefs::tpcId){
+      TrkrDefs::hitsetkey hitsetkey = iter_hitset->first;
       const unsigned int  zside = TpcDefs::getSide(hitsetkey);
-      TrkrHitSet::ConstRange range = iter->second->getHits();
-      unsigned int layer = TrkrDefs::getLayer(iter->first);
+      TrkrHitSet::ConstRange range = iter_hitset->second->getHits();
+      unsigned int layer = TrkrDefs::getLayer(iter_hitset->first);
       //if(layer>6){  
       PHG4TpcCylinderGeom *layergeom_ccgc = nullptr;
       PHG4CylinderCellGeom *layergeom_cgc = nullptr;
