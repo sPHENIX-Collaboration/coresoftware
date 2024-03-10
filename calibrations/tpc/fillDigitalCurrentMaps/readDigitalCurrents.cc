@@ -421,7 +421,7 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
           z = layergeom_cgc->get_zcenter(zbin) * cm;
         }
         TrkrHit *hit = hit_iter->second;
-        unsigned short adc = hit->getAdc() - adc_pedestal;
+        int adc = hit->getAdc() - adc_pedestal;
         float E = hit->getEnergy();
         // double z = 0;
         // double z_prim = -1*1e10;
