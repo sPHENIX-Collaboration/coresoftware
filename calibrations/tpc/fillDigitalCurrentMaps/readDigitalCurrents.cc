@@ -77,12 +77,12 @@ bool IsOverFrame(double r, double phi)
 
   // find the two spokes we're between:
 
-  float sectorangle = (M_PI / 6);
-  float nsectors = phi / sectorangle;
-  int nsec = floor(nsectors);
-  float reduced_phi = phi - nsec * sectorangle;  // between zero and sixty degrees.
-  float dist_to_previous = r * sin(reduced_phi);
-  float dist_to_next = r * sin(sectorangle - reduced_phi);
+  double sectorangle = (M_PI / 6);
+  double nsectors = phi / sectorangle;
+  int nsec = std::floor(nsectors);
+  double reduced_phi = phi - nsec * sectorangle;  // between zero and sixty degrees.
+  double dist_to_previous = r * std::sin(reduced_phi);
+  double dist_to_next = r * std::sin(sectorangle - reduced_phi);
   if (dist_to_previous < tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
   {
     return true;
