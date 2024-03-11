@@ -112,7 +112,7 @@ class AnnularFieldSim
   TVector3 GetOuterEdge() { return TVector3(rmax, 0, zmax); };
 
   // file-writing functions for complex mapping questions:
-  void GenerateDistortionMaps(const char *filebase, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
+  void GenerateDistortionMaps(const std::string &filebase, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
 
   void GenerateSeparateDistortionMaps(const char *filebase, int nSteps = 500, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
 

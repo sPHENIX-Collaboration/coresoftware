@@ -3391,7 +3391,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
   return;
 }
 
-void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamples, int p_subsamples, int z_subsamples, int /*z_substeps*/, bool andCartesian)
+void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_subsamples, int p_subsamples, int z_subsamples, int /*z_substeps*/, bool andCartesian)
 {
   // generates the distortion map for the full detector instead of one map per side.
   // This produces wrong behavior when interpolating across the CM and should not be used
@@ -3439,19 +3439,16 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
   float zfh = upperEdge.Z() + 0.5 * step.Z() + steplocal.Z();                      // upper bound of roi, plus one
   float z_readout = upperEdge.Z() + 0.5 * step.Z();                                // readout plane.  Note we assume this is positive.
 
-  printf("generating distortion map...\n");
-  printf("file=%s\n", filebase);
-  printf("Phi:  %d steps from %f to %f (field has %d steps)\n", nph, pih, pfh, GetFieldStepsPhi());
-  printf("R:  %d steps from %f to %f (field has %d steps)\n", nrh, rih, rfh, GetFieldStepsR());
-  printf("Z:  %d steps from %f to %f (field has %d steps)\n", nzh, zih, zfh, GetFieldStepsZ());
-  TString distortionFilename;
-  distortionFilename.Form("%s.distortion_map.hist.root", filebase);
-  TString summaryFilename;
-  summaryFilename.Form("%s.distortion_summary.pdf", filebase);
-  TString diffSummaryFilename;
-  diffSummaryFilename.Form("%s.differential_summary.pdf", filebase);
+  std::cout << "generating distortion map..." << std::endl;
+  std::cout << "file=" << filebase << std::endl;
+  std::cout << boost::str(boost::format("Phi:  %d steps from %f to %f (field has %d steps)") %nph %pih %pfh %GetFieldStepsPhi()) << std::endl;
+  std::cout << boost::str(boost::format("R:  %d steps from %f to %f (field has %d steps)") %nrh %rih %rfh %GetFieldStepsR()) << std::endl;
+  std::cout << boost::str(boost::format("Z:  %d steps from %f to %f (field has %d steps)") %nzh %zih %zfh %GetFieldStepsZ()) << std::endl;
+  std::string distortionFilename = filebase + ".distortion_summary.pdf";
+  std::string summaryFilename = filebase + ".distortion_summary.pdf";
+  std::string diffSummaryFilename = filebase + ".differential_summary.pdf";
 
-  TFile *outf = TFile::Open(distortionFilename.Data(), "RECREATE");
+  TFile *outf = TFile::Open(distortionFilename.c_str(), "RECREATE");
   outf->cd();
 
   // actual output maps:
@@ -3799,7 +3796,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
   c->Draw();
   canvas->cd();
   textpad->Draw();
-  canvas->SaveAs(summaryFilename.Data());
+  canvas->SaveAs(summaryFilename.c_str());
 
   // canvas->cd();
   // already done TPad *c=new TPad("cplots","distortion differential plots",0,0.2,1,1);
@@ -3857,9 +3854,9 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
   c->Draw();
   canvas->cd();
   textpad->Draw();
-  canvas->SaveAs(diffSummaryFilename.Data());
+  canvas->SaveAs(diffSummaryFilename.c_str());
 
-  //  printf("map:%s.\n",distortionFilename.Data());
+  //  printf("map:%s.\n",distortionFilename.c_str());
 
   outf->cd();
 
@@ -3876,7 +3873,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
   }
   dTree->Write();
   outf->Close();
-  // printf("map:%s.closed\n",distortionFilename.Data());
+  // printf("map:%s.closed\n",distortionFilename.c_str());
 
   /*
   //all histograms associated with this file should be deleted when we closed the file.
@@ -3889,7 +3886,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
   m = (TH3F*)gROOT­>FindObject("hIntDistortionP");  if(m) m­>Delete();
   m = (TH3F*)gROOT­>FindObject("hIntDistortionZ");  if(m) m­>Delete();
 
-  printf("map:%s.deleted via convoluted call.  sigh.\n",distortionFilename.Data());
+  printf("map:%s.deleted via convoluted call.  sigh.\n",distortionFilename.c_str());
   for (int i=0;i<3;i++){
     //loop over which axis of the distortion to read
     for (int ax=0;ax<3;ax++){
@@ -3900,9 +3897,9 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
   }
   */
   std::cout << "wrote map and summary to " << filebase << std::endl;
-  std::cout << "map: " << distortionFilename.Data() << std::endl;
-std::cout << "summary: " << summaryFilename.Data() << std::endl;
-  // printf("wrote map and summary to %s and %s.\n",distortionFilename.Data(),summaryFilename.Data());
+  std::cout << "map: " << distortionFilename << std::endl;
+std::cout << "summary: " << summaryFilename << std::endl;
+  // printf("wrote map and summary to %s and %s.\n",distortionFilename.c_str(),summaryFilename.c_str());
   return;
 }
 
