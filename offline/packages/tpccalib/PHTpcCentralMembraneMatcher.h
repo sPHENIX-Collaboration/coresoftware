@@ -19,8 +19,9 @@
 #include <string>
 
 class PHCompositeNode;
-class CMFlashClusterContainer;
+//class CMFlashClusterContainer;
 class CMFlashDifferenceContainer;
+class LaserClusterContainer;
 
 class TF1;
 class TFile;
@@ -51,6 +52,9 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   void setOutputfile(const std::string &outputfile)
   {m_outputfile = outputfile;}
 
+  void setDebugOutputFile(const std::string &debugfile)
+  {m_debugfilename = debugfile;}
+
   void setNMatchIter( int val ){ m_nMatchIter = val; }
 
   void set_useOnly_nClus2( bool val ){ m_useOnly_nClus2 = val; }
@@ -73,7 +77,8 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
 
-  CMFlashClusterContainer *m_corrected_CMcluster_map{nullptr};
+  //CMFlashClusterContainer *m_corrected_CMcluster_map{nullptr};
+  LaserClusterContainer *m_corrected_CMcluster_map{nullptr};
   CMFlashDifferenceContainer *m_cm_flash_diffs{nullptr};
 
   /// static distortion container
@@ -118,8 +123,8 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   std::unique_ptr<TFile> fout;
 
 
-  std::unique_ptr<TFile> fout2;
-  std::string m_histogramfilename2 = "CMMatcher.root";
+  std::unique_ptr<TFile> m_debugfile;
+  std::string m_debugfilename = "CMMatcher.root";
 
   TH2F *hit_r_phi;
 

@@ -6,6 +6,8 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/ActsGeometry.h>
 
+#include <phool/PHTimer.h>
+
 #if !defined(__CINT__) || defined(__CLING__)
 //BOOST for combi seeding                                                                                                                                                                                                                                                      
 #include <boost/geometry.hpp>
@@ -96,6 +98,11 @@ class LaserClusterizer : public SubsysReco
   LaserClusterv1 *m_currentCluster = nullptr;
   std::vector<float> m_currentHit;
   std::vector<float> m_currentHit_hardware;
+
+  std::unique_ptr<PHTimer> t_all;
+  std::unique_ptr<PHTimer> t_search;
+  std::unique_ptr<PHTimer> t_clus;
+  std::unique_ptr<PHTimer> t_erase;
 
 };
 

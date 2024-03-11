@@ -11,8 +11,10 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <trackbase/CMFlashClusterv3.h>
-#include <trackbase/CMFlashClusterContainerv1.h>
+//#include <trackbase/CMFlashClusterv3.h>
+//#include <trackbase/CMFlashClusterContainerv1.h>
+#include <trackbase/LaserClusterv1.h>
+#include <trackbase/LaserClusterContainerv1.h>
 #include <trackbase/CMFlashDifferencev1.h>
 #include <trackbase/CMFlashDifferenceContainerv1.h>
 
@@ -195,20 +197,65 @@ std::vector<double> PHTpcCentralMembraneMatcher::getRPeaks(TH2F *r_phi){
   TH1D *proj = r_phi->ProjectionY("R_proj");
 
   std::vector<double> rPeaks;
+  std::vector<double> rHeights;
+  std::vector<double> finalRPeaks;
+  std::vector<std::vector<int>> groupR;
+  
 
   for(int i=2; i<proj->GetNbinsX(); i++){
     //peak is when content is higher than 0.15* maximum value and content is greater than or equal to both adjacent bins
-    if(proj->GetBinContent(i) > 0.15*proj->GetMaximum() && proj->GetBinContent(i) >= proj->GetBinContent(i-1) && proj->GetBinContent(i) >= proj->GetBinContent(i+1)) rPeaks.push_back(proj->GetBinCenter(i));
+    //if(proj->GetBinContent(i) > 0.15*proj->GetMaximum() && proj->GetBinContent(i) >= proj->GetBinContent(i-1) && proj->GetBinContent(i) >= proj->GetBinContent(i+1)){
+    if(proj->GetBinContent(i) > 0.15*proj->GetMaximum()){
+      rPeaks.push_back(proj->GetBinCenter(i));
+      rHeights.push_back(proj->GetBinContent(i));
+    }
   }
 
-  //if two peaks are within 0.75 cm of eachother, remove one with fewer counts
-  for(int i=0; i<(int)rPeaks.size()-1; i++){
-    if(rPeaks[i+1]-rPeaks[i] > 0.75) continue;
-    if(proj->GetBinContent(proj->FindBin(rPeaks[i])) > proj->GetBinContent(proj->FindBin(rPeaks[i+1]))) rPeaks.erase(rPeaks.begin()+i+1);
-    else rPeaks.erase(rPeaks.begin()+i);
-    i--;
+
+
+  double threshold = 0.75;
+
+  for(int i=0; i<(int)rPeaks.size(); i++){
+    std::vector<int> tmpR;
+    tmpR.push_back(i);
+
+    bool closePeak = false;
+    int currentPeak = -1;
+
+    if(rPeaks[i] > 41.0) threshold = 1.0;
+
+    for(int j=0; j<(int)finalRPeaks.size(); j++){
+      for(int k=0; k<(int)groupR[j].size(); k++){
+	if(fabs(rPeaks[i] - rPeaks[groupR[j][k]]) <= threshold || fabs(rPeaks[i] - finalRPeaks[j]) <= threshold){
+	  closePeak = true;
+	  currentPeak = j;
+	  break;
+	}
+      }
+      if(closePeak) break;
+    }
+
+    if(!closePeak){
+      finalRPeaks.push_back(rPeaks[i]);
+      groupR.push_back(tmpR);
+      tmpR.clear();
+      continue;
+    }
+  
+    groupR[currentPeak].push_back(i);
+    double num = 0.0;
+    double den = 0.0;
+    for(int j=0; j<(int)groupR[currentPeak].size(); j++){
+      double rHeight = proj->GetBinContent(proj->FindBin(rPeaks[groupR[currentPeak][j]]));
+      num += rPeaks[groupR[currentPeak][j]] * rHeight;
+      den += rHeight;
+    }
+    
+    finalRPeaks[currentPeak] = num/den;
+						       
   }
-  return rPeaks;
+
+  return finalRPeaks;
 }
 
 int PHTpcCentralMembraneMatcher::getClusterRMatch( std::vector<int> hitMatches, std::vector<double> clusterPeaks, double clusterR){
@@ -266,8 +313,8 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
     hdrphi = new TH1F("hdrphi","r * dphi", 200, -0.05, 0.05);
     hnclus = new TH1F("hnclus", " nclusters ", 3, 0., 3.);
 
-    fout2.reset ( new TFile(m_histogramfilename2.c_str(),"RECREATE") );
-    match_ntup = new TNtuple("match_ntup","Match NTuple","event:truthR:truthPhi:recoR:recoPhi:recoZ:nclus:r1:phi1:e1:layer1:r2:phi2:e2:layer2");
+    m_debugfile.reset ( new TFile(m_debugfilename.c_str(),"RECREATE") );
+    match_ntup = new TNtuple("match_ntup","Match NTuple","event:truthR:truthPhi:recoR:recoPhi:recoZ:nhits:r1:phi1:e1:layer1:r2:phi2:e2:layer2");
   }
 
   hit_r_phi = new TH2F("hit_r_phi","hit r vs #phi;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
@@ -373,7 +420,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   std::vector<TVector3> reco_pos;
   std::vector<TVector3> pos1;
   std::vector<TVector3> pos2;
-  std::vector<unsigned int> reco_nclusters;
+  std::vector<unsigned int> reco_nhits;
   std::vector<unsigned int> reco_adc;
   std::vector<unsigned int> adc1;
   std::vector<unsigned int> adc2;
@@ -401,51 +448,60 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
        ++cmitr)
     {
       const auto& [cmkey, cmclus_orig] = *cmitr;
-      CMFlashCluster *cmclus = cmclus_orig;
-      const unsigned int nclus = cmclus->getNclusters();
+      //CMFlashCluster *cmclus = cmclus_orig;
+      LaserCluster *cmclus = cmclus_orig;
+      const unsigned int nhits = cmclus->getNhits();
+      //const unsigned int nclus = cmclus->getNclusters();
       const unsigned int adc = cmclus->getAdc();
 
-      if(m_useOnly_nClus2 && nclus != 2) continue;
+      //if(m_useOnly_nClus2 && nclus != 2) continue;
 
-      const bool isRGap = cmclus->getIsRGap();
+      if(nhits <= 5) continue;
+
+      //const bool isRGap = cmclus->getIsRGap();
+            
 
       
        // Do the static + average distortion corrections if the container was found
       Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
-      Acts::Vector3 apos1(cmclus->getX1(), cmclus->getY1(), cmclus->getZ1());
-      Acts::Vector3 apos2(cmclus->getX2(), cmclus->getY2(), cmclus->getZ2());
+      //Acts::Vector3 apos1(cmclus->getX1(), cmclus->getY1(), cmclus->getZ1());
+      //Acts::Vector3 apos2(cmclus->getX2(), cmclus->getY2(), cmclus->getZ2());
       if( m_dcc_in_static){
 	pos = m_distortionCorrection.get_corrected_position( pos, m_dcc_in_static ); 
-	apos1 = m_distortionCorrection.get_corrected_position( apos1, m_dcc_in_static ); 
-	apos2 = m_distortionCorrection.get_corrected_position( apos2, m_dcc_in_static ); 
+	//apos1 = m_distortionCorrection.get_corrected_position( apos1, m_dcc_in_static ); 
+	//apos2 = m_distortionCorrection.get_corrected_position( apos2, m_dcc_in_static ); 
       }
       if( m_dcc_in_average){
 	pos = m_distortionCorrection.get_corrected_position( pos, m_dcc_in_average ); 
-	apos1 = m_distortionCorrection.get_corrected_position( apos1, m_dcc_in_average ); 
-	apos2 = m_distortionCorrection.get_corrected_position( apos2, m_dcc_in_average ); 
+	//apos1 = m_distortionCorrection.get_corrected_position( apos1, m_dcc_in_average ); 
+	//apos2 = m_distortionCorrection.get_corrected_position( apos2, m_dcc_in_average ); 
       }
       
       
 
       TVector3 tmp_pos(pos[0], pos[1], pos[2]);
-      TVector3 tmp_pos1(apos1[0], apos1[1], apos1[2]);
-      TVector3 tmp_pos2(apos2[0], apos2[1], apos2[2]);
+      TVector3 tmp_pos1(0.0,0.0,0.0);
+      TVector3 tmp_pos2(0.0,0.0,0.0);
 
 
-      if(nclus == 1 && isRGap) continue;
+      //if(nclus == 1 && isRGap) continue;
       
       reco_pos.push_back(tmp_pos);      
       pos1.push_back(tmp_pos1);      
       pos2.push_back(tmp_pos2);      
-      reco_nclusters.push_back(nclus);
+      reco_nhits.push_back(nhits);
       reco_adc.push_back(adc);
-      adc1.push_back(cmclus->getAdc1());
-      adc2.push_back(cmclus->getAdc2());
-      layer1.push_back(cmclus->getLayer1());
-      layer2.push_back(cmclus->getLayer2());
+      adc1.push_back(0);
+      adc2.push_back(0);
+      layer1.push_back(0);
+      layer2.push_back(0);
+      //adc1.push_back(cmclus->getAdc1());
+      //adc2.push_back(cmclus->getAdc2());
+      //layer1.push_back(cmclus->getLayer1());
+      //layer2.push_back(cmclus->getLayer2());
 
-      if(tmp_pos.Z() < 0) clust_r_phi_neg->Fill(tmp_pos.Phi(),tmp_pos.Perp());
-      else clust_r_phi_pos->Fill(tmp_pos.Phi(),tmp_pos.Perp());
+      if(tmp_pos.Z() < 0) clust_r_phi_neg->Fill(tmp_pos.Phi(),tmp_pos.Perp(),adc);
+      else clust_r_phi_pos->Fill(tmp_pos.Phi(),tmp_pos.Perp(),adc);
 
       
 
@@ -479,11 +535,63 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   std::vector<double> clust_RPeaks_pos = getRPeaks(clust_r_phi_pos);
   std::vector<double> clust_RPeaks_neg = getRPeaks(clust_r_phi_neg);
 
+  int R12Gap_pos = -1;
+  double R12Gap_pos_value = 0.0;
+  double prev_gap = 0.0;
+
+  for(int i=0; i<(int)clust_RPeaks_pos.size()/2; i++){
+    if(i>0) prev_gap = clust_RPeaks_pos[i] - clust_RPeaks_pos[i-1];
+    if(clust_RPeaks_pos[i+1] - clust_RPeaks_pos[i] > R12Gap_pos_value && fabs((clust_RPeaks_pos[i+1] - clust_RPeaks_pos[i]) - prev_gap) > 0.4){
+      R12Gap_pos = i;
+      R12Gap_pos_value = clust_RPeaks_pos[i+1] - clust_RPeaks_pos[i];
+    }
+  }
+
+  int R23Gap_pos = -1;
+  double R23Gap_pos_value = 0.0;
+  prev_gap = 0.0;
+
+  for(int i=(int)clust_RPeaks_pos.size()/2; i<(int)clust_RPeaks_pos.size()-1; i++){
+    if(i>(int)clust_RPeaks_pos.size()/2) prev_gap = clust_RPeaks_pos[i] - clust_RPeaks_pos[i-1];
+    if(clust_RPeaks_pos[i+1] - clust_RPeaks_pos[i] > R23Gap_pos_value && fabs((clust_RPeaks_pos[i+1] - clust_RPeaks_pos[i]) - prev_gap) > 0.4){
+      R23Gap_pos = i;
+      R23Gap_pos_value = clust_RPeaks_pos[i+1] - clust_RPeaks_pos[i];
+    }
+  }
+
+
+  int R12Gap_neg = -1;
+  double R12Gap_neg_value = 0.0;
+  prev_gap = 0.0;
+
+  for(int i=0; i<(int)clust_RPeaks_neg.size()/2; i++){
+    if(i>0) prev_gap = clust_RPeaks_neg[i] - clust_RPeaks_neg[i-1];
+    if(clust_RPeaks_neg[i+1] - clust_RPeaks_neg[i] > R12Gap_neg_value && fabs((clust_RPeaks_neg[i+1] - clust_RPeaks_neg[i]) - prev_gap) > 0.4){
+      R12Gap_neg = i;
+      R12Gap_neg_value = clust_RPeaks_neg[i+1] - clust_RPeaks_neg[i];
+    }
+  }
+
+  int R23Gap_neg = -1;
+  double R23Gap_neg_value = 0.0;
+  prev_gap = 0.0;
+
+  for(int i=(int)clust_RPeaks_neg.size()/2; i<(int)clust_RPeaks_neg.size()-1; i++){
+    if(i>(int)clust_RPeaks_neg.size()/2) prev_gap = clust_RPeaks_neg[i] - clust_RPeaks_neg[i-1];
+    if(clust_RPeaks_neg[i+1] - clust_RPeaks_neg[i] > R23Gap_neg_value && fabs((clust_RPeaks_neg[i+1] - clust_RPeaks_neg[i]) - prev_gap) > 0.4){
+      R23Gap_neg = i;
+      R23Gap_neg_value = clust_RPeaks_neg[i+1] - clust_RPeaks_neg[i];
+    }
+  }
+
+
+  
   //identify where gaps between module 1&2 and 2&3 are by finding largest distances between peaks
   std::vector<double> clust_RGaps_pos;
-  int R12Gap_pos = -1;
-  int R23Gap_pos = -1;
+  //int R12Gap_pos = -1;
+  //int R23Gap_pos = -1;
   for(int i=0; i<(int)clust_RPeaks_pos.size()-1; i++) clust_RGaps_pos.push_back(clust_RPeaks_pos[i+1] - clust_RPeaks_pos[i]);
+  /*
   int tmpGap_pos = std::distance(clust_RGaps_pos.begin(),std::max_element(clust_RGaps_pos.begin(),clust_RGaps_pos.end()));
   if(tmpGap_pos > (int)clust_RGaps_pos.size()/2){
     R23Gap_pos = tmpGap_pos;
@@ -492,11 +600,13 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     R12Gap_pos = tmpGap_pos;
     R23Gap_pos = std::distance(clust_RGaps_pos.begin(),std::max_element(clust_RGaps_pos.begin()+R12Gap_pos+1,clust_RGaps_pos.end()));
   }
+  */
 
   std::vector<double> clust_RGaps_neg;
-  int R12Gap_neg = -1;
-  int R23Gap_neg = -1;
+  //int R12Gap_neg = -1;
+  //int R23Gap_neg = -1;
   for(int i=0; i<(int)clust_RPeaks_neg.size()-1; i++) clust_RGaps_neg.push_back(clust_RPeaks_neg[i+1] - clust_RPeaks_neg[i]);
+  /*
   int tmpGap_neg = std::distance(clust_RGaps_neg.begin(),std::max_element(clust_RGaps_neg.begin(),clust_RGaps_neg.end()));
   if(tmpGap_neg > (int)clust_RGaps_neg.size()/2){
     R23Gap_neg = tmpGap_neg;
@@ -505,7 +615,10 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     R12Gap_neg = tmpGap_neg;
     R23Gap_neg = std::distance(clust_RGaps_neg.begin(),std::max_element(clust_RGaps_neg.begin()+R12Gap_neg+1,clust_RGaps_neg.end()));
   }
+  */
 
+  int min_match_pos = 100;
+  int min_match_neg = 100;
   std::vector<int> hitMatches_pos;
   //match cluster peaks to hit peaks using gap positions
   for(int i=0; i<(int)clust_RPeaks_pos.size(); i++){
@@ -518,6 +631,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       if(clust_RGaps_pos[R12Gap_pos] > 3.6) hitMatches_pos[i] -= 1;
       if(clust_RGaps_pos[R12Gap_pos] > 4.6) hitMatches_pos[i] -= 1;
       if(clust_RGaps_pos[R12Gap_pos] > 5.8) hitMatches_pos[i] -= 1;      
+      if(hitMatches_pos[i] < min_match_pos) min_match_pos = hitMatches_pos[i];
     }
     //module 1-2 gap is between 15 & 16
     else if(i < (R23Gap_pos+1) && i >= (R12Gap_pos+1)) hitMatches_pos.push_back(15+1 + i - (R12Gap_pos+1));
@@ -534,10 +648,32 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       if(clust_RGaps_neg[R12Gap_neg] > 3.6) hitMatches_neg[i] -= 1;
       if(clust_RGaps_neg[R12Gap_neg] > 4.6) hitMatches_neg[i] -= 1;
       if(clust_RGaps_neg[R12Gap_neg] > 5.8) hitMatches_neg[i] -= 1;
+      if(hitMatches_neg[i] < min_match_neg) min_match_neg = hitMatches_neg[i];
     }
     else if(i < (R23Gap_neg+1) && i >= (R12Gap_neg+1)) hitMatches_neg.push_back(15+1 + i - (R12Gap_neg+1));
     else if(i >= R23Gap_neg+1) hitMatches_neg.push_back(23+1 + i - (R23Gap_neg+1));
   }
+
+  if(Verbosity())
+    {
+      for(int i=0; i<(int)hit_RPeaks.size(); i++){
+	std::cout << "hit index " << i << "   R=" << hit_RPeaks[i] << std::endl;
+      }
+
+      std::cout << "PHTpcCentralMembraneMatcher::process_event - R12Gap_pos= " << R12Gap_pos << "   value=" << R12Gap_pos_value << std::endl;
+      std::cout << "PHTpcCentralMembraneMatcher::process_event - R23Gap_pos= " << R23Gap_pos << "   value=" << R23Gap_pos_value << std::endl;
+      for(int i=0; i<(int)hitMatches_pos.size(); i++){
+	std::cout << "positive cluster index " << i << "   hit match " << hitMatches_pos[i] << "   recoPeak=" << clust_RPeaks_pos[i] << "   truthPeak=" << hit_RPeaks[hitMatches_pos[i]] << "   residual=" << hit_RPeaks[hitMatches_pos[i]] - clust_RPeaks_pos[i] << std::endl;
+      }
+
+
+      std::cout << "PHTpcCentralMembraneMatcher::process_event - R12Gap_neg= " << R12Gap_neg << "   value=" << R12Gap_neg_value << std::endl;
+      std::cout << "PHTpcCentralMembraneMatcher::process_event - R23Gap_neg= " << R23Gap_neg << "   value=" << R23Gap_neg_value << std::endl;
+      for(int i=0; i<(int)hitMatches_neg.size(); i++){
+	std::cout << "negative cluster index " << i << "   hit match " << hitMatches_neg[i] << "   recoPeak=" << clust_RPeaks_neg[i] << "   truthPeak=" << hit_RPeaks[hitMatches_neg[i]] << "   residual=" << hit_RPeaks[hitMatches_neg[i]] - clust_RPeaks_neg[i] << std::endl;
+      }
+
+    }
 
   
   // Match reco and truth positions
@@ -630,12 +766,12 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       if(matchJ != -1){
 	clusts_matched[matchJ] = true;
 	matched_pair.emplace_back(i,matchJ);
-	matched_nclus.push_back(reco_nclusters[matchJ]);
+	matched_nclus.push_back(reco_nhits[matchJ]);
 	
 	if(m_savehistograms)
 	  {
 	    
-	    const auto& nclus = reco_nclusters[matchJ];
+	    const auto& nclus = reco_nhits[matchJ];
 	    const double rad2=get_r(reco_pos[matchJ].X(), reco_pos[matchJ].Y());
 	    const double phi2 = reco_pos[matchJ].Phi();
 	    
@@ -672,24 +808,38 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   if( Verbosity() )
   {
     const auto n_valid_truth = std::count_if( m_truth_pos.begin(), m_truth_pos.end(), []( const TVector3& pos ) { return get_r( pos.x(), pos.y() ) >  30; } );
-    const auto n_reco_size1 = std::count_if( reco_nclusters.begin(), reco_nclusters.end(), []( const unsigned int& value ) { return value==1; } );
-    const auto n_reco_size2 = std::count_if( reco_nclusters.begin(), reco_nclusters.end(), []( const unsigned int& value ) { return value==2; } );
+    //const auto n_reco_size1 = std::count_if( reco_nhits.begin(), reco_nclusters.end(), []( const unsigned int& value ) { return value==1; } );
+    //const auto n_reco_size2 = std::count_if( reco_nhits.begin(), reco_nclusters.end(), []( const unsigned int& value ) { return value==2; } );
     std::cout << "PHTpcCentralMembraneMatcher::process_event - m_truth_pos size: " << m_truth_pos.size() << std::endl;
     std::cout << "PHTpcCentralMembraneMatcher::process_event - m_truth_pos size, r>30cm: " << n_valid_truth << std::endl;
+    int pos_stripes_add = 0;
+    int neg_stripes_add = 0;
+    int nStr[8] = {3,4,4,4,4,5,4,5};
+    for(int str=min_match_pos; str <= 7; str++){
+      pos_stripes_add += nStr[str]*18;
+    } 
+    for(int str=min_match_neg; str <= 7; str++){
+      neg_stripes_add += nStr[str]*18;
+    } 
+    std::cout << "PHTpcCentralMembraneMatcher::process_event - m_truth_pos size, r>30cm + rows below with match: " << n_valid_truth + pos_stripes_add + neg_stripes_add<< std::endl;
     std::cout << "PHTpcCentralMembraneMatcher::process_event - reco_pos size: " << reco_pos.size() << std::endl;
-    std::cout << "PHTpcCentralMembraneMatcher::process_event - reco_pos size (nclus==1): " << n_reco_size1 << std::endl;
-    std::cout << "PHTpcCentralMembraneMatcher::process_event - reco_pos size (nclus==2): " << n_reco_size2 << std::endl;
+    //std::cout << "PHTpcCentralMembraneMatcher::process_event - reco_pos size (nclus==1): " << n_reco_size1 << std::endl;
+    //std::cout << "PHTpcCentralMembraneMatcher::process_event - reco_pos size (nclus==2): " << n_reco_size2 << std::endl;
     std::cout << "PHTpcCentralMembraneMatcher::process_event - matched_pair size: " << matched_pair.size() << std::endl;
   }
   
   for(unsigned int ip = 0; ip < matched_pair.size(); ++ip)
   {
+
+    std::cout << "working on matched pair " << ip << " [truth,reco]: [" << matched_pair[ip].first << "," << matched_pair[ip].second << "]" << std::endl;
+
     const std::pair<unsigned int, unsigned int>& p = matched_pair[ip];
     const unsigned int& nclus = matched_nclus[ip];
 
     // add to node tree
     unsigned int key = p.first;
     auto cmdiff = new CMFlashDifferencev1();
+    std::cout << "made cmdiff" << std::endl;
     cmdiff->setTruthPhi(m_truth_pos[p.first].Phi());
     cmdiff->setTruthR(m_truth_pos[p.first].Perp());
     cmdiff->setTruthZ(m_truth_pos[p.first].Z());
@@ -698,11 +848,18 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     cmdiff->setRecoR(reco_pos[p.second].Perp());
     cmdiff->setRecoZ(reco_pos[p.second].Z());
     
-    cmdiff->setNclusters(nclus);
+
+    cmdiff->setNclusters(reco_nhits[p.second]);
     
+    std::cout << "set cmdiff" << std::endl;
+
     m_cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
     
+    std::cout << "added cmdiff to container" << std::endl;
+
     if(m_savehistograms) match_ntup->Fill(m_event_index,m_truth_pos[p.first].Perp(),m_truth_pos[p.first].Phi(),reco_pos[p.second].Perp(),reco_pos[p.second].Phi(),reco_pos[p.second].Z(),nclus,pos1[p.second].Perp(),pos1[p.second].Phi(),adc1[p.second],layer1[p.second],pos2[p.second].Perp(),pos2[p.second].Phi(),adc2[p.second],layer2[p.second]);
+
+    std::cout << "saved histograms" << std::endl;
 
     // store cluster position
     const double clus_r = reco_pos[p.second].Perp();
@@ -717,6 +874,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     const double dphi = delta_phi( reco_pos[p.second].Phi() - m_truth_pos[p.first].Phi() );
     const double rdphi = reco_pos[p.second].Perp() * dphi;
     const double dz = reco_pos[p.second].z() - m_truth_pos[p.first].z();
+
+    std::cout << "calculated residuals" << std::endl;
 
     // fill distortion correction histograms
     /* 
@@ -746,7 +905,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   normalize_distortions( m_dcc_out );
   fill_guarding_bins( m_dcc_out );
     
-  if(Verbosity())
+  if(Verbosity() > 2)
     {	
       // read back differences from node tree as a check
       auto diffrange = m_cm_flash_diffs->getDifferences();
@@ -818,14 +977,16 @@ int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
     fout->Close();
   }
 
-  if(m_savehistograms && fout2)
+  if(m_savehistograms && m_debugfile)
   {
-    fout2->cd();
+    m_debugfile->cd();
 
     match_ntup->Write();
     hit_r_phi->Write();
     clust_r_phi_pos->Write();
     clust_r_phi_neg->Write();
+
+    m_debugfile->Close();
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -839,7 +1000,8 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
   // Get Objects off of the Node Tree
   //---------------------------------
 
-  m_corrected_CMcluster_map  = findNode::getClass<CMFlashClusterContainer>(topNode, "CORRECTED_CM_CLUSTER");
+  //m_corrected_CMcluster_map  = findNode::getClass<CMFlashClusterContainer>(topNode, "CORRECTED_CM_CLUSTER");
+  m_corrected_CMcluster_map  = findNode::getClass<LaserClusterContainer>(topNode, "LASER_CLUSTER");
   if(!m_corrected_CMcluster_map)
     {
       std::cout << PHWHERE << "CORRECTED_CM_CLUSTER Node missing, abort." << std::endl;
@@ -863,7 +1025,24 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
   // create node for results of matching
   std::cout << "Creating node CM_FLASH_DIFFERENCES" << std::endl;  
   PHNodeIterator iter(topNode);
+
   
+  // Looking for the RUN node
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  if (!runNode)
+    {
+      std::cout << PHWHERE << "RUN Node missing, doing nothing." << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }      
+  PHNodeIterator runiter(runNode);
+  m_cm_flash_diffs = new CMFlashDifferenceContainerv1;
+  PHIODataNode<PHObject> *CMFlashDifferenceNode =
+    new PHIODataNode<PHObject>(m_cm_flash_diffs, "CM_FLASH_DIFFERENCES", "PHObject");
+  runNode->addNode(CMFlashDifferenceNode);
+
+
+
+  /*
   // Looking for the DST node
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
@@ -884,7 +1063,7 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
   PHIODataNode<PHObject> *CMFlashDifferenceNode =
     new PHIODataNode<PHObject>(m_cm_flash_diffs, "CM_FLASH_DIFFERENCES", "PHObject");
   DetNode->addNode(CMFlashDifferenceNode);
-
+  */
     
   //// output tpc fluctuation distortion container
   //// this one is filled on the fly on a per-CM-event basis, and applied in the tracking chain
@@ -892,9 +1071,9 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
   m_dcc_out = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,dcc_out_node_name);
   if( !m_dcc_out )
   { 
-   
-     /// Get the RUN node and check
-     auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+    
+    /// Get the RUN node and check
+     //auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
      if (!runNode)
      {
        std::cout << "PHTpcCentralMembraneMatcher::InitRun - RUN Node missing, quitting" << std::endl;

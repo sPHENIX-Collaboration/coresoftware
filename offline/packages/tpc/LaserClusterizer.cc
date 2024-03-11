@@ -30,6 +30,7 @@
 #include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>                             // for PHObject
+#include <phool/PHTimer.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
@@ -123,6 +124,15 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   m_hitTree->Branch("hitH",&m_currentHit_hardware);
 
   m_tdriftmax = AdcClockPeriod * NZBinsSide;  
+
+  t_all = std::make_unique<PHTimer>("t_all");
+  t_all->stop();
+  t_search = std::make_unique<PHTimer>("t_search");
+  t_search->stop();
+  t_clus = std::make_unique<PHTimer>("t_clus");
+  t_clus->stop();
+  t_erase = std::make_unique<PHTimer>("t_erase");
+  t_erase->stop();
 
   return Fun4AllReturnCodes::EVENT_OK;
 
@@ -328,6 +338,8 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
   //std::cout << "rtree size: " << rtree.size() << std::endl;
 
   //done filling rTree
+
+  t_all->restart();
   
   while(adcMap.size() > 0){
     auto iterKey = adcMap.rbegin();
@@ -352,20 +364,35 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 
     vector<pointKeyLaser> clusHits;
 
-    //if(rtree.empty()) std::cout << "empty tree?" << std::endl;
 
+    //if(rtree.empty()) std::cout << "empty tree?" << std::endl;
+    t_search->restart();
     rtree.query(bgi::intersects(box(point(layerMin,iphi-2,it-5),point(layerMax,iphi+2,it+5))),std::back_inserter(clusHits));
+    t_search->stop();
     //rtree.query(bgi::contains(box(point(lowX,lowY,lowZ),point(highX,highY,highZ))),std::back_inserter(clusHits));
 
     //std::cout << "number of hits in box: " << clusHits.size() << std::endl;
 
+    t_clus->restart();
     calc_cluster_parameter(clusHits, adcMap);
+    t_clus->stop();
 
     //remove_hits(clusHits, rtree, adcMap, adcCoords);
+    t_erase->restart();
     remove_hits(clusHits, rtree, adcMap);
+    t_erase->stop();
+
+
     clusHits.clear();
 
   }
+
+  t_all->stop();
+
+  std::cout << "rtree search time: " << t_search->get_accumulated_time() / 1000. << " sec" << std::endl;
+  std::cout << "clustering time: " << t_clus->get_accumulated_time() / 1000. << " sec" << std::endl;
+  std::cout << "erasing time: " << t_erase->get_accumulated_time() / 1000. << " sec" << std::endl;
+  std::cout << "total time: " << t_all->get_accumulated_time() / 1000. << " sec" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 
