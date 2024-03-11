@@ -58,6 +58,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void AddGl1Packet(int eventno, Gl1Packet *gl1pkt);
   int FillMbd();
   void AddMbdPacket(int eventno, MbdPacket *mbdpkt);
+  int FillHcal();
   void AddHcalPacket(int eventno, CaloPacket *pkt);
  private:
 

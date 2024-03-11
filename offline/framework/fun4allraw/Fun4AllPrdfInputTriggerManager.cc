@@ -80,7 +80,7 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   }
   if (m_hcal_registered_flag)  // Mbd first to get the reference
   {
-    iret += 1;
+    iret += FillHcal();
   }
   return iret;
   // readagain:
@@ -308,6 +308,10 @@ void Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *pr
   case InputManagerType::MBD:
     m_mbd_registered_flag = true;
     m_MbdInputVector.push_back(prdfin);
+    break;
+  case InputManagerType::HCAL:
+    m_hcal_registered_flag = true;
+    m_HcalInputVector.push_back(prdfin);
     break;
   default:
     std::cout << "invalid subsystem flag " << system << std::endl;
@@ -670,6 +674,46 @@ void Fun4AllPrdfInputTriggerManager::AddMbdPacket(int eventno, MbdPacket *pkt)
   }
   m_MbdPacketMap[eventno].MbdPacketVector.push_back(pkt);
   return;
+}
+
+int Fun4AllPrdfInputTriggerManager::FillHcal()
+{
+  // unsigned int alldone = 0;
+  for (auto iter : m_HcalInputVector)
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "Fun4AllTriggerInputManager::FillHcal - fill pool for " << iter->Name() << std::endl;
+    }
+    iter->FillPool();
+    m_RunNumber = iter->RunNumber();
+    SetRunNumber(m_RunNumber);
+  }
+  if (m_HcalPacketMap.empty())
+  {
+    std::cout << "we are done" << std::endl;
+    return -1;
+  }
+  //    std::cout << "stashed hcal BCOs: " << m_HcalPacketMap.size() << std::endl;
+  CaloPacketContainer *hcal = findNode::getClass<CaloPacketContainer>(m_topNode, "HCALPackets");
+  //  std::cout << "before filling m_HcalPacketMap size: " <<  m_HcalPacketMap.size() << std::endl;
+  for (auto hcalhititer : m_HcalPacketMap.begin()->second.HcalPacketVector)
+  {
+    if (Verbosity() > 1)
+    {
+      hcalhititer->identify();
+    }
+    hcal->AddPacket(hcalhititer);
+  }
+  for (auto iter : m_HcalInputVector)
+  {
+    iter->CleanupUsedPackets(m_HcalPacketMap.begin()->first);
+  }
+  m_HcalPacketMap.begin()->second.HcalPacketVector.clear();
+  m_HcalPacketMap.erase(m_HcalPacketMap.begin());
+  // std::cout << "size  m_HcalPacketMap: " <<  m_HcalPacketMap.size()
+  // 	    << std::endl;
+  return 0;
 }
 
 void Fun4AllPrdfInputTriggerManager::AddHcalPacket(int eventno, CaloPacket *pkt)
