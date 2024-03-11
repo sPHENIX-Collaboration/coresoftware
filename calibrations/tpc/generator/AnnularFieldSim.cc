@@ -1789,7 +1789,7 @@ void AnnularFieldSim::populate_phislice_lookup()
   return;
 }
 
-void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
+void AnnularFieldSim::load_phislice_lookup(const std::string &sourcefile)
 {
   std::cout << boost::str(boost::format("loading phislice  lookup for (%dx%dx%d)x(%dx%dx%d) grid from %s") %nr_roi %1 %nz_roi %nr %nphi %nz %sourcefile) << std::endl;
   unsigned long long totalelements = nr;  // nr*nphi*nz*nr_roi*nz_roi
@@ -1800,7 +1800,7 @@ void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
   unsigned long long percent = totalelements / 100 * debug_npercent;
   std::cout << boost::str(boost::format("total elements = %llu") %totalelements) << std::endl;
 
-  TFile *input = TFile::Open(sourcefile, "READ");
+  TFile *input = TFile::Open(sourcefile.c_str(), "READ");
   TTree *tInfo;
   input->GetObject("info", tInfo);
   assert(tInfo);
@@ -1842,7 +1842,7 @@ void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
   {
     std::cout << "file parameters do not match fieldsim parameters:" << std::endl;;
 
-    assert(1 == 4);
+    exit(1);
   }
 
   TTree *tLookup;
@@ -1879,7 +1879,7 @@ void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
   return;
 }
 
-void AnnularFieldSim::save_phislice_lookup(const char *destfile)
+void AnnularFieldSim::save_phislice_lookup(const std::string &destfile)
 {
   std::cout << boost::str(boost::format("saving phislice  lookup for (%dx%dx%d)x(%dx%dx%d) grid to %s") %nr_roi %1 %nz_roi %nr %nphi %nz %destfile) << std::endl;
   unsigned long long totalelements = nr;  // nr*nphi*nz*nr_roi*nz_roi
@@ -1890,7 +1890,7 @@ void AnnularFieldSim::save_phislice_lookup(const char *destfile)
   unsigned long long percent = totalelements / 100 * debug_npercent;
   std::cout << boost::str(boost::format("total elements = %llu") %totalelements) << std::endl;
 
-  TFile *output = TFile::Open(destfile, "RECREATE");
+  TFile *output = TFile::Open(destfile.c_str(), "RECREATE");
   output->cd();
 
   TTree *tInfo = new TTree("info", "Information about Lookup Table");
@@ -2651,7 +2651,7 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, const TVector3 &start,
   return accumulated_distortion;
 }
 
-void AnnularFieldSim::PlotFieldSlices(const char *filebase, const TVector3 &pos, char which)
+void AnnularFieldSim::PlotFieldSlices(const std::string &filebase, const TVector3 &pos, char which)
 {
   bool mapEfield = true;
   if (which == 'B')
@@ -2672,7 +2672,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, const TVector3 &pos,
   std::cout << boost::str(boost::format("plotting field slices for %c field, slicing at (%1.2F,%1.2f,%1.2f)...") %which %pos.Perp() %FilterPhiPos(pos.Phi()) %pos.Z()) << std::endl;
   std::cout << "file=" << filebase << std::endl;
   ;
-  TString plotfilename = TString::Format("%s.%cfield_slices.pdf", filebase, which);
+  std::string plotfilename = filebase + "." + which + "field_slices.pdf";
   TVector3 inner = GetInnerEdge();
   TVector3 outer = GetOuterEdge();
   TVector3 steplocal = GetFieldStep();
@@ -2682,7 +2682,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, const TVector3 &pos,
   TH2F *hEfield[3][3];
   TH2F *hCharge[3];
   TH1F *hEfieldComp[3][3];
-  char axis[] = "rpzrpz";
+  std::string axis[] = {"r","p","z","r","p","z"};
   float axisval[] = {(float) pos.Perp(), (float) FilterPhiPos(pos.Phi()), (float) pos.Z(), (float) pos.Perp(), (float) FilterPhiPos(pos.Phi()), (float) pos.Z()};
   int axn[] = {nr_roi, nphi_roi, nz_roi, nr_roi, nphi_roi, nz_roi};
   float axtop[] = {(float) outer.Perp(), 2 * M_PI, (float) outer.Z(), (float) outer.Perp(), 2 * M_PI, (float) outer.Z()};
@@ -2707,22 +2707,22 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, const TVector3 &pos,
   for (int ax = 0; ax < 3; ax++)
   {
     // loop over which axis slice to take
-    hCharge[ax] = new TH2F(Form("hCharge%c", axis[ax]),
-                           Form("Spacecharge Distribution in the %c%c plane at %c=%2.3f (C/cm^3);%c;%c",
-                                axis[ax + 1], axis[ax + 2], axis[ax], axisval[ax], axis[ax + 1], axis[ax + 2]),
+    hCharge[ax] = new TH2F((std::string("hCharge") + axis[ax]).c_str(),
+                           boost::str(boost::format("Spacecharge Distribution in the %s%s plane at %s=%2.3f (C/cm^3);%s;%s")
+				      %axis[ax + 1] %axis[ax + 2] %axis[ax] %axisval[ax] %axis[ax + 1] %axis[ax + 2]).c_str(),
                            axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                            axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
     for (int i = 0; i < 3; i++)
     {
       // loop over which axis of the field to read
-      hEfield[ax][i] = new TH2F(Form("h%cfield%c_%c%c", which, axis[i], axis[ax + 1], axis[ax + 2]),
-                                Form("%c component of %c Field in the %c%c plane at %c=%2.3f (%s);%c;%c",
-                                     axis[i], which, axis[ax + 1], axis[ax + 2], axis[ax], axisval[ax], units.c_str(), axis[ax + 1], axis[ax + 2]),
+      hEfield[ax][i] = new TH2F(boost::str(boost::format("h%sfield%s_%s%s") %which %axis[i] %axis[ax + 1] %axis[ax + 2]).c_str(),
+                                boost::str(boost::format("%s component of %s Field in the %s%s plane at %s=%2.3f (%s);%s;%s")
+					   %axis[i] %which %axis[ax + 1] %axis[ax + 2] %axis[ax] %axisval[ax] %units.c_str() %axis[ax + 1] %axis[ax + 2]).c_str(),
                                 axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                                 axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
-      hEfieldComp[ax][i] = new TH1F(Form("h%cfieldComp%c_%c%c", which, axis[i], axis[ax + 1], axis[ax + 2]),
-                                    Form("Log Magnitude of %c component of %c Field in the %c%c plane at %c=%2.3f;log10(mag)",
-                                         axis[i], which, axis[ax + 1], axis[ax + 2], axis[ax], axisval[ax]),
+      hEfieldComp[ax][i] = new TH1F(boost::str(boost::format("h%sfieldComp%s_%s%s") %which %axis[i] %axis[ax + 1] %axis[ax + 2]).c_str(),
+                                    boost::str(boost::format("Log Magnitude of %s component of %s Field in the %s%s plane at %s=%2.3f;log10(mag)")
+							     %axis[i] %which %axis[ax + 1] %axis[ax + 2] %axis[ax] %axisval[ax]).c_str(),
                                     200, -5, 5);
     }
   }
@@ -2795,7 +2795,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, const TVector3 &pos,
       gPad->Modified();
     }
   }
-  c->SaveAs(plotfilename);
+  c->SaveAs(plotfilename.c_str());
   std::cout << "after plotting field slices..." << std::endl;
   std::cout << "file=" << filebase << std::endl;
 
@@ -2874,14 +2874,14 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
   TH3F *hSeparatedMapComponent[2][6];  // side, then xyzrp
   TH3F *hValidToStepComponent[2];
   TH3F *hReachesReadout[2];
-  TString side[2];
+  std::string side[2];
   side[0] = "soloz";
   if (hasTwin)
   {
     side[0] = "posz";
     side[1] = "negz";
   }
-  TString sepAxis[] = {"X", "Y", "Z", "R", "P", "RPhi"};
+  std::string sepAxis[] = {"X", "Y", "Z", "R", "P", "RPhi"};
   float zlower, zupper;
   for (int i = 0; i < nSides; i++)
   {
@@ -2897,15 +2897,15 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
     }
     for (int j = 0; j < nMapComponents; j++)
     {
-      hSeparatedMapComponent[i][j] = new TH3F(Form("hIntDistortion%s_%s", sepAxis[j].Data(), side[i].Data()),
-                                              Form("Integrated %s Deflection drifting from (phi,r,z) to z=endcap;phi;r;z (%s side)", sepAxis[j].Data(), side[i].Data()),
+      hSeparatedMapComponent[i][j] = new TH3F(std::string("hIntDistortion" +sepAxis[j] + "_" + side[i]).c_str(),
+                                              std::string("Integrated" + sepAxis[j] + " Deflection drifting from (phi,r,z) to z=endcap;phi;r;z (" + side[i] + " side)").c_str(),
                                               nph, pih, pfh, nrh, rih, rfh, nzh, zlower, zupper);
     }
-    hValidToStepComponent[i] = new TH3F(Form("hValidToStep_%s", side[i].Data()),
-                                        Form("Step before out of bounds drifting from (phi,r,z) to z=endcap;phi;r;z (%s side)", side[i].Data()),
+    hValidToStepComponent[i] = new TH3F(std::string("hValidToStep_" +  side[i]).c_str(),
+                                        std::string("Step before out of bounds drifting from (phi,r,z) to z=endcap;phi;r;z (" + side[i] + " side)").c_str(),
                                         nph, pih, pfh, nrh, rih, rfh, nzh, zlower, zupper);
-    hReachesReadout[i] = new TH3F(Form("hReachesReadout_%s", side[i].Data()),
-                                  Form("Bool value for checking if successfuly drifting from (phi,r,z) to z=endcap and reaches the readout;phi;r;z (%s side)", side[i].Data()),
+    hReachesReadout[i] = new TH3F(std::string("hReachesReadout_" +side[i]).c_str(),
+                                  std::string("Bool value for checking if successfuly drifting from (phi,r,z) to z=endcap and reaches the readout;phi;r;z (" + side[i] + " side)").c_str(),
                                   nph, pih, pfh, nrh, rih, rfh, nzh, zlower, zupper);
   }
   if (rdrswitch)

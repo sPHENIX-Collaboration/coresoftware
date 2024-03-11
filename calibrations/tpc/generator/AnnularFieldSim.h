@@ -116,7 +116,7 @@ class AnnularFieldSim
 
   void GenerateSeparateDistortionMaps(const std::string &filebase, int nSteps = 500, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
 
-  void PlotFieldSlices(const char *filebase, const TVector3 &pos, char which = 'E');
+  void PlotFieldSlices(const std::string &filebase, const TVector3 &pos, char which = 'E');
 
   void load_spacecharge(const std::string &filename, const std::string &histname, float zoffset = 0, float chargescale = 1, float cmscale = 1, bool isChargeDensity = true);
   void load_spacecharge(TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity, const std::string &inputchargestring = "");
@@ -195,8 +195,8 @@ class AnnularFieldSim
   void populate_lowres_lookup();
   void populate_phislice_lookup();
 
-  void load_phislice_lookup(const char *sourcefile);
-  void save_phislice_lookup(const char *destfile);
+  void load_phislice_lookup(const std::string &sourcefile);
+  void save_phislice_lookup(const std::string &destfile);
   
   Rossegger *green;   // stand-alone class to compute greens functions.
   float green_shift;  // how far to offset our position in z when querying our green's functions.
