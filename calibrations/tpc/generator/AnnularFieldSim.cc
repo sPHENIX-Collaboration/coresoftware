@@ -993,7 +993,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
 
   bool phiSymmetry = (phiptr == nullptr);  // if the phi pointer is zero, assume phi symmetry.
   int lowres_factor = 10;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
-  printf("loading field from %f<z<%f\n", zmin, zmax);
+  std::cout << boost::str(boost::format("loading field from %f<z<%f") %zmin %zmax) << std::endl;
   TH3F *htEntries = new TH3F("htentries", "num of entries in the field loading", nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
   TH3F *htSum[3];
   TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nphi / lowres_factor + 1, 0, M_PI * 2.0, nr / lowres_factor + 1, rmin, rmax, nz / lowres_factor + 1, zmin, zmax);
@@ -1064,7 +1064,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   }
   if (nemptybins > 0)
   {
-    printf("found %d empty bins when constructing %s.  Filling with lower resolution.\n", nemptybins, (*field == Bfield) ? "Bfield" : "Eexternal");
+    std::cout << boost::str(boost::format("found %d empty bins when constructing %s.  Filling with lower resolution.") %nemptybins %((*field == Bfield) ? "Bfield" : "Eexternal")) << std::endl;
     for (int i = 0; i < nphi; i++)
     {
       for (int j = 0; j < nr; j++)
@@ -1080,8 +1080,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
             fieldvec = fieldvec * (1.0 / htEntriesLow->GetBinContent(lowbin));
             if (htEntriesLow->GetBinContent(lowbin) < 0.99)
             {
-              printf("not enough entries in source to fill fieldmap.  None near r=%f, phi=%f, z=%f. Pick lower granularity!\n",
-                     cellcenter.Perp(), FilterPhiPos(cellcenter.Phi()), cellcenter.Z());
+              std::cout << boost::str(boost::format("not enough entries in source to fill fieldmap.  None near r=%f, phi=%f, z=%f. Pick lower granularity!") %cellcenter.Perp() %FilterPhiPos(cellcenter.Phi()) %cellcenter.Z()) << std::endl;
               exit(1);
             }
             // have to rotate this to the proper direction.
@@ -1142,9 +1141,9 @@ void AnnularFieldSim::load_and_resample_spacecharge(int new_nphi, int new_nr, in
   int hrn = hist->GetNbinsY();
   int hphin = hist->GetNbinsX();
   int hzn = hist->GetNbinsZ();
-  printf("From histogram, native r dimensions: %f<r<%f, hrn (Y axis)=%d\n", hrmin, hrmax, hrn);
-  printf("From histogram, native phi dimensions: %f<phi<%f, hrn (X axis)=%d\n", hphimin, hphimax, hphin);
-  printf("From histogram, native z dimensions: %f<z<%f, hrn (Z axis)=%d\n", hzmin, hzmax, hzn);
+  std::cout << boost::str(boost::format("From histogram, native r dimensions: %f<r<%f, hrn (Y axis)=%d") %hrmin %hrmax %hrn) << std::endl;
+  std::cout << boost::str(boost::format("From histogram, native phi dimensions: %f<phi<%f, hrn (X axis)=%d") %hphimin %hphimax %hphin) << std::endl;
+  std::cout << boost::str(boost::format("From histogram, native z dimensions: %f<z<%f, hrn (Z axis)=%d") %hzmin %hzmax %hzn) << std::endl;
 
   // do some computation of steps:
   float hrstep = (hrmax - hrmin) / hrn;
@@ -1220,7 +1219,7 @@ void AnnularFieldSim::load_spacecharge(TH3 *hist, float zoffset, float chargesca
   // new plan:  use ChargeMapReader:
   if (abs(zoffset) > 0.001)
   {
-    printf("nonzero zoffset given (%E) but new spacecharge loader can't deal with that.  Failing.\n", zoffset);
+    std::cout << boost::str(boost::format("nonzero zoffset given (%E) but new spacecharge loader can't deal with that.  Failing.") %zoffset) << std::endl;
     assert(false);
   }
   if (isChargeDensity)
@@ -1322,18 +1321,18 @@ void AnnularFieldSim::populate_fieldmap()
 {
   // sum the E field at every point in the region of interest
   //  remember that Efield uses relative indices
-  printf("in pop_fieldmap, n=(%d,%d,%d)\n", nr, nphi, nz);
+  std::cout << boost::str(boost::format("in pop_fieldmap, n=(%d,%d,%d)") %nr %nphi %nz) << std::endl;
 
-  printf("populating fieldmap for (%dx%dx%d) grid with (%dx%dx%d) source \n", nr_roi, nphi_roi, nz_roi, nr, nphi, nz);
+  std::cout << boost::str(boost::format("populating fieldmap for (%dx%dx%d) grid with (%dx%dx%d) source ") %nr_roi %nphi_roi %nz_roi %nr %nphi %nz) << std::endl;
   if (truncation_length > 0)
   {
-    printf(" ==> truncating anything more than %d cells away\n", truncation_length);
+    std::cout << boost::str(boost::format(" ==> truncating anything more than %d cells away") %truncation_length) << std::endl;
   }
   unsigned long long totalelements = nr_roi;
   totalelements *= nphi_roi;
   totalelements *= nz_roi;  // breaking up this multiplication prevents a 32bit math overflow
   unsigned long long percent = totalelements / 100 * debug_npercent;
-  printf("total elements = %llu\n", totalelements * nr * nphi * nz);
+  std::cout << boost::str(boost::format("total elements = %llu") %(totalelements * nr * nphi * nz)) << std::endl;
 
   int el = 0;
 
@@ -1347,9 +1346,9 @@ void AnnularFieldSim::populate_fieldmap()
         localF = sum_field_at(ir, iphi, iz);  // asks in global coordinates
         if (!(el % percent))
         {
-          printf("populate_fieldmap %d%%:  ", (int) (debug_npercent * el / percent));
-          printf("sum_field_at (ir=%d,iphi=%d,iz=%d) gives (%E,%E,%E)\n",
-                 ir, iphi, iz, localF.X(), localF.Y(), localF.Z());
+          std::cout << boost::str(boost::format("populate_fieldmap %d%%:  ") %((int) (debug_npercent * el / percent)));
+          std::cout << boost::str(boost::format("sum_field_at (ir=%d,iphi=%d,iz=%d) gives (%E,%E,%E)")
+                 %ir %iphi %iz %localF.X() %localF.Y() %localF.Z()) << std::endl;
         }
         el++;
 
@@ -1406,8 +1405,8 @@ void AnnularFieldSim::populate_full3d_lookup()
   // with 'f' being the position the field is being measured at, and 'o' being the position of the charge generating the field.
   // remember the 'f' part of Epartial uses relative indices.
   //   TVector3 (*f)[fx][fy][fz][ox][oy][oz]=field_;
-  printf("populating full lookup table for (%dx%dx%d)x(%dx%dx%d) grid\n",
-         (rmax_roi - rmin_roi), (phimax_roi - phimin_roi), (zmax_roi - zmin_roi), nr, nphi, nz);
+  std::cout << boost::str(boost::format("populating full lookup table for (%dx%dx%d)x(%dx%dx%d) grid")
+         %(rmax_roi - rmin_roi) %(phimax_roi - phimin_roi) %(zmax_roi - zmin_roi) %nr %nphi %nz) << std::endl;
   unsigned long long totalelements = (rmax_roi - rmin_roi);
   totalelements *= (phimax_roi - phimin_roi);
   totalelements *= (zmax_roi - zmin_roi);
@@ -1415,7 +1414,7 @@ void AnnularFieldSim::populate_full3d_lookup()
   totalelements *= nphi;
   totalelements *= nz;  // breaking up this multiplication prevents a 32bit math overflow
   unsigned long long percent = totalelements / 100 * debug_npercent;
-  printf("total elements = %llu\n", totalelements);
+  std::cout << boost::str(boost::format("total elements = %llu") %totalelements) << std::endl;
   TVector3 at(1, 0, 0);
   TVector3 from(1, 0, 0);
   TVector3 zero(0, 0, 0);
@@ -1437,7 +1436,7 @@ void AnnularFieldSim::populate_full3d_lookup()
               el++;
               if (!(el % percent))
               {
-                printf("populate_full3d_lookup %d%%\n", (int) (debug_npercent * el / percent));
+                std::cout << boost::str(boost::format("populate_full3d_lookup %d%%") %((int) (debug_npercent * el / percent))) << std::endl;
               }
               from = GetCellCenter(ior, iophi, ioz);
 
@@ -1610,7 +1609,7 @@ void AnnularFieldSim::populate_highres_lookup()
                 // but Epartial is in coordinates relative to the roi
                 if (iphi_rel < 0)
                 {
-                  printf("%d: Getting with phi=%d\n", __LINE__, iphi_rel);
+                  std::cout << boost::str(boost::format("%d: Getting with phi=%d") %__LINE__ %iphi_rel) << std::endl;
                 }
                 currentf = Epartial_highres->Get(ir_rel, iphi_rel, iz_rel, rbin, phibin, zbin);
                 // to keep this as the average, we multiply what's there back to its initial summed-but-not-divided value
@@ -1734,14 +1733,14 @@ void AnnularFieldSim::populate_phislice_lookup()
   // with 'f' being the position the field is being measured at, and 'o' being the position of the charge generating the field.
   // remember the 'f' part of Epartial uses relative indices.
   //   TVector3 (*f)[fx][fy][fz][ox][oy][oz]=field_;
-  printf("populating phislice  lookup for (%dx%dx%d)x(%dx%dx%d) grid\n", nr_roi, 1, nz_roi, nr, nphi, nz);
+  std::cout << boost::str(boost::format("populating phislice  lookup for (%dx%dx%d)x(%dx%dx%d) grid") %nr_roi %1 %nz_roi %nr %nphi %nz) << std::endl;
   unsigned long long totalelements = nr;  // nr*nphi*nz*nr_roi*nz_roi
   totalelements *= nphi;
   totalelements *= nz;
   totalelements *= nr_roi;
   totalelements *= nz_roi;  // breaking up this multiplication prevents a 32bit math overflow
   unsigned long long percent = totalelements / 100 * debug_npercent;
-  printf("total elements = %llu\n", totalelements);
+  std::cout << boost::str(boost::format("total elements = %llu") %totalelements) << std::endl;
   TVector3 at(1, 0, 0);
   TVector3 from(1, 0, 0);
   TVector3 zero(0, 0, 0);
@@ -1766,9 +1765,9 @@ void AnnularFieldSim::populate_phislice_lookup()
             {
               if (!(el % percent))
               {
-                printf("populate_phislice_lookup %d%%:  ", (int) (debug_npercent * el / percent));
-                printf("self-to-self is zero (ir=%d,iphi=%d,iz=%d) to (or=%d,ophi=0,oz=%d) gives (%E,%E,%E)\n",
-                       ior, iophi, ioz, ifr, ifz, zero.X(), zero.Y(), zero.Z());
+                std::cout << boost::str(boost::format("populate_phislice_lookup %d%%:  ") %((int) (debug_npercent * el / percent)));
+                std::cout << boost::str(boost::format("self-to-self is zero (ir=%d,iphi=%d,iz=%d) to (or=%d,ophi=0,oz=%d) gives (%E,%E,%E)")
+                       %ior %iophi %ioz %ifr %ifz %zero.X() %zero.Y() %zero.Z()) << std::endl;
               }
               Epartial_phislice->Set(ifr - rmin_roi, 0, ifz - zmin_roi, ior, iophi, ioz, zero);
             }
@@ -1779,9 +1778,9 @@ void AnnularFieldSim::populate_phislice_lookup()
               {
                 if (!(el % percent))
                 {
-                  printf("populate_phislice_lookup %d%%:  ", (int) (debug_npercent * el / percent));
-                  printf("calc_unit_field (ir=%d,iphi=%d,iz=%d) to (or=%d,ophi=0,oz=%d) gives (%E,%E,%E)\n",
-                         ior, iophi, ioz, ifr, ifz, unitf.X(), unitf.Y(), unitf.Z());
+                  std::cout << boost::str(boost::format("populate_phislice_lookup %d%%:  ") %((int) (debug_npercent * el / percent)));
+                  std::cout << boost::str(boost::format("calc_unit_field (ir=%d,iphi=%d,iz=%d) to (or=%d,ophi=0,oz=%d) gives (%E,%E,%E)")
+                         %ior %iophi %ioz %ifr %ifz %unitf.X() %unitf.Y() %unitf.Z()) << std::endl;
                 }
               }
 
@@ -1797,14 +1796,14 @@ void AnnularFieldSim::populate_phislice_lookup()
 
 void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
 {
-  printf("loading phislice  lookup for (%dx%dx%d)x(%dx%dx%d) grid from %s\n", nr_roi, 1, nz_roi, nr, nphi, nz, sourcefile);
+  std::cout << boost::str(boost::format("loading phislice  lookup for (%dx%dx%d)x(%dx%dx%d) grid from %s") %nr_roi %1 %nz_roi %nr %nphi %nz %sourcefile) << std::endl;
   unsigned long long totalelements = nr;  // nr*nphi*nz*nr_roi*nz_roi
   totalelements *= nphi;
   totalelements *= nz;
   totalelements *= nr_roi;
   totalelements *= nz_roi;  // breaking up this multiplication prevents a 32bit math overflow
   unsigned long long percent = totalelements / 100 * debug_npercent;
-  printf("total elements = %llu\n", totalelements);
+  std::cout << boost::str(boost::format("total elements = %llu") %totalelements) << std::endl;
 
   TFile *input = TFile::Open(sourcefile, "READ");
   TTree *tInfo;
@@ -1827,18 +1826,18 @@ void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
   tInfo->SetBranchAddress("nz", &file_nz);
   tInfo->GetEntry(0);
 
-  printf("param\tobj\tfile\n");
-  printf("nr\t%d\t%d\n", nr, file_nr);
-  printf("np\t%d\t%d\n", nphi, file_np);
-  printf("nz\t%d\t%d\n", nz, file_nz);
-  printf("rmin\t%2.2f\t%2.2f\n", rmin, file_rmin);
-  printf("rmax\t%2.2f\t%2.2f\n", rmax, file_rmax);
-  printf("zmin\t%2.2f\t%2.2f\n", zmin, file_zmin);
-  printf("zmax\t%2.2f\t%2.2f\n", zmax, file_zmax);
-  printf("rmin_roi\t%d\t%d\n", rmin_roi, file_rmin_roi);
-  printf("rmax_roi\t%d\t%d\n", rmax_roi, file_rmax_roi);
-  printf("zmin_roi\t%d\t%d\n", zmin_roi, file_zmin_roi);
-  printf("zmax_roi\t%d\t%d\n", zmax_roi, file_zmax_roi);
+  std::cout << "param\tobj\tfile" << std::endl;;
+  std::cout << boost::str(boost::format("nr\t%d\t%d") %nr %file_nr) << std::endl;
+  std::cout << boost::str(boost::format("np\t%d\t%d") %nphi %file_np) << std::endl;
+  std::cout << boost::str(boost::format("nz\t%d\t%d") %nz %file_nz) << std::endl;
+  std::cout << boost::str(boost::format("rmin\t%2.2f\t%2.2f") %rmin %file_rmin) << std::endl;
+  std::cout << boost::str(boost::format("rmax\t%2.2f\t%2.2f") %rmax %file_rmax) << std::endl;
+  std::cout << boost::str(boost::format("zmin\t%2.2f\t%2.2f") %zmin %file_zmin) << std::endl;
+  std::cout << boost::str(boost::format("zmax\t%2.2f\t%2.2f") %zmax %file_zmax) << std::endl;
+  std::cout << boost::str(boost::format("rmin_roi\t%d\t%d") %rmin_roi %file_rmin_roi) << std::endl;
+  std::cout << boost::str(boost::format("rmax_roi\t%d\t%d") %rmax_roi %file_rmax_roi) << std::endl;
+  std::cout << boost::str(boost::format("zmin_roi\t%d\t%d") %zmin_roi %file_zmin_roi) << std::endl;
+  std::cout << boost::str(boost::format("zmax_roi\t%d\t%d") %zmax_roi %file_zmax_roi) << std::endl;
 
   if (file_rmin != rmin || file_rmax != rmax ||
       file_zmin != zmin || file_zmax != zmax ||
@@ -1846,7 +1845,7 @@ void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
       file_zmin_roi != zmin_roi || file_zmax_roi != zmax_roi ||
       file_nr != nr || file_np != nphi || file_nz != nz)
   {
-    printf("file parameters do not match fieldsim parameters:\n");
+    std::cout << "file parameters do not match fieldsim parameters:" << std::endl;;
 
     assert(1 == 4);
   }
@@ -1912,7 +1911,7 @@ void AnnularFieldSim::save_phislice_lookup(const char *destfile)
   tInfo->Branch("nphi", &nphi);
   tInfo->Branch("nz", &nz);
   tInfo->Fill();
-  printf("info tree built.\n");
+  std::cout << "info tree built." << std::endl;;
 
   TTree *tLookup = new TTree("phislice", "Phislice Lookup Table");
   int ior, ifr, iophi, ioz, ifz;
@@ -1924,7 +1923,7 @@ void AnnularFieldSim::save_phislice_lookup(const char *destfile)
   tLookup->Branch("iz_source", &ioz);
   tLookup->Branch("iz_target", &ifz);
   tLookup->Branch("Evec", &unitf);
-  printf("lookup tree built.\n");
+  std::cout << "lookup tree built." << std::endl;;
 
   int el = 0;
   for (ifr = rmin_roi; ifr < rmax_roi; ifr++)
@@ -2497,7 +2496,7 @@ TVector3 AnnularFieldSim::swimToInAnalyticSteps(float zdest, TVector3 start, int
              rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin,
              phimin_roi * step.Phi(), phimax_roi * step.Phi(),
              zmin_roi * step.Z(), zmax_roi * step.Z());
-      printf("Returning last valid position.\n");
+      std::cout << "Returning last valid position." << std::endl;;
       if (!(goodToStep == nullptr))
       {
         *goodToStep = i - 1;
