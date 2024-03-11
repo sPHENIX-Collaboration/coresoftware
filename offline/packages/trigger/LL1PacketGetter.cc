@@ -2,7 +2,9 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
-
+#include "LL1Outv1.h"
+#include "TriggerPrimitivev1.h"
+#include "TriggerPrimitiveContainerv1.h"
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNode.h>          // for PHNode
@@ -102,23 +104,37 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
   case TriggerDefs::DetectorId::hcalDId :
     {
       
-      m_ll1out = findNode::getClass<LL1Outv2>(topNode, "LL1OUT_RAW_HCAL");
+      m_ll1out = findNode::getClass<LL1Out>(topNode, "LL1OUT_RAW_HCAL");
       if (!m_ll1out)
 	{
 	  std::cout << "HCAL LL1 data not found - Fatal Error" << std::endl;
 	  exit(1);
 	}
+      m_trigger_primitives  = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_RAW_HCAL");
+      if (!m_trigger_primitives)
+	{
+	  std::cout << "HCAL LL1 data not found - Fatal Error" << std::endl;
+	  exit(1);	  
+	}
+      
       break;
     }
   case TriggerDefs::DetectorId::mbdDId :
     {
       
-      m_ll1out = findNode::getClass<LL1Outv2>(topNode, "LL1OUT_RAW_MBD");
+      m_ll1out = findNode::getClass<LL1Out>(topNode, "LL1OUT_RAW_MBD");
       if (!m_ll1out)
 	{
 	  std::cout << "MBD LL1 data not found - Fatal Error" << std::endl;
 	  exit(1);
 	}
+      m_trigger_primitives  = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_RAW_MBD");
+      if (!m_trigger_primitives)
+	{
+	  std::cout << "MBD LL1 data not found - Fatal Error" << std::endl;
+	  exit(1);
+	}
+
       break;
     }
   default:
@@ -130,7 +146,6 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
   }
   TriggerDefs::TriggerSumKey sumkey = 0;
   TriggerDefs::TriggerPrimKey primkey;
-  _trigger_primitives = m_ll1out->GetTriggerPrimitiveContainer();
   if (m_isdata)
   {
     Event *_event = findNode::getClass<Event>(topNode, "PRDF");
@@ -186,7 +201,7 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
 
 		      _trigger_primitive->add_sum(sumkey, _sum);
 		    }
-	      _trigger_primitives->add_primitive(primkey, _trigger_primitive);
+	      m_trigger_primitives->add_primitive(primkey, _trigger_primitive);
 	    }
 	  for (int channel = 0; channel < m_ntriggerwords;channel++)
 	    {
@@ -235,6 +250,7 @@ int LL1PacketGetter::CreateNodeTree(PHCompositeNode *topNode)
   PHNodeIterator dstIter(dst_node);
 
   PHCompositeNode *ll1Node = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", "LL1"));
+
   if (!ll1Node)
     {
       ll1Node = new PHCompositeNode("LL1");
@@ -244,26 +260,42 @@ int LL1PacketGetter::CreateNodeTree(PHCompositeNode *topNode)
     {
     case TriggerDefs::DetectorId::mbdDId :
       {
-	LL1Outv2 *ll1out = findNode::getClass<LL1Outv2>(ll1Node, "LL1OUT_RAW_MBD");
+	LL1Out *ll1out = findNode::getClass<LL1Out>(ll1Node, "LL1OUT_RAW_MBD");
 	if (!ll1out)
 	  {
-	    ll1out = new LL1Outv2(m_trigger, m_ll1);
+	    ll1out = new LL1Outv1(m_trigger, m_ll1);
 	    PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out, "LL1OUT_RAW_MBD", "PHObject");
 	    ll1Node->addNode(LL1OutNode);
 	  }
+	TriggerPrimitiveContainer *primout = findNode::getClass<TriggerPrimitiveContainer>(ll1Node, "TRIGGERPRIMITIVES_RAW_MBD");
+	if (!primout)
+	  {
+	    primout = new TriggerPrimitiveContainerv1();
+	    PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(primout, "TRIGGERPRIMITIVES_RAW_MBD", "PHObject");
+	    ll1Node->addNode(LL1OutNode);
+	  }
+
 	break;
       }
     case TriggerDefs::DetectorId::hcalDId :
     case TriggerDefs::DetectorId::hcalinDId :
     case TriggerDefs::DetectorId::hcaloutDId :
       {
-	LL1Outv2 *ll1out = findNode::getClass<LL1Outv2>(ll1Node, "LL1OUT_RAW_HCAL");
+	LL1Out *ll1out = findNode::getClass<LL1Out>(ll1Node, "LL1OUT_RAW_HCAL");
 	if (!ll1out)
 	  {
-	    ll1out = new LL1Outv2(m_trigger, m_ll1);
+	    ll1out = new LL1Outv1(m_trigger, m_ll1);
 	    PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out, "LL1OUT_RAW_HCAL", "PHObject");
 	    ll1Node->addNode(LL1OutNode);
 	  }
+	TriggerPrimitiveContainer *primout = findNode::getClass<TriggerPrimitiveContainer>(ll1Node, "TRIGGERPRIMITIVES_RAW_HCAL");
+	if (!primout)
+	  {
+	    primout = new TriggerPrimitiveContainerv1();
+	    PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(primout, "TRIGGERPRIMITIVES_RAW_HCAL", "PHObject");
+	    ll1Node->addNode(LL1OutNode);
+	  }
+
 	break;
       }
     default:

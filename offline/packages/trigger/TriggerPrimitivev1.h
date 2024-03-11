@@ -30,8 +30,8 @@ class TriggerPrimitivev1 : public TriggerPrimitive
 
   void add_sum(TriggerDefs::TriggerSumKey key, std::vector<unsigned int> *sum) override;
 
-  ConstRange getSums() const;
-  Range getSums();
+  ConstRange getSums() const override;
+  Range getSums() override;
   
   size_t size() override{return _sums.size();}
 

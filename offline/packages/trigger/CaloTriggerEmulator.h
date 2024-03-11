@@ -12,10 +12,14 @@
 #include <TProfile.h>
 #include <TEfficiency.h>
 #include <TH2.h>
-#include "LL1Outv2.h"
+#include "LL1Outv1.h"
 
 // Forward declarations
 class CDBTTree;
+class TriggerPrimitive;
+class TriggerPrimitiveContainer;
+class LL1Out;
+
 class TowerInfoContainer;
 class Fun4AllHistoManager;
 class PHCompositeNode;
@@ -82,6 +86,7 @@ class CaloTriggerEmulator : public SubsysReco
  protected:
   std::string outfilename;
   std::string _ll1_nodename;
+  std::string _prim_nodename;
   std::string _waveform_nodename;
 
   Fun4AllHistoManager *hm = nullptr;
@@ -104,19 +109,16 @@ class CaloTriggerEmulator : public SubsysReco
   TowerInfoContainer *_waveforms_mbd = nullptr;
 
   //! LL1 Out
-  LL1Outv2 *_ll1out = nullptr;
-  TriggerPrimitiveContainerv1 *_primitives = nullptr;
+  LL1Out *_ll1out = nullptr;
+  TriggerPrimitiveContainer *_primitives = nullptr;
 
-  LL1Outv2 *_ll1out_hcalin = nullptr;
-  TriggerPrimitiveContainerv1 *_primitives_hcalin = nullptr;
+  TriggerPrimitiveContainer *_primitives_hcalin = nullptr;
 
-  LL1Outv2 *_ll1out_hcalout = nullptr;
-  TriggerPrimitiveContainerv1 *_primitives_hcalout = nullptr;
+  TriggerPrimitiveContainer *_primitives_hcalout = nullptr;
 
-  LL1Outv2 *_ll1out_emcal = nullptr;
-  TriggerPrimitiveContainerv1 *_primitives_emcal = nullptr;
+  TriggerPrimitiveContainer *_primitives_emcal = nullptr;
 
-  TriggerPrimitivev1 *_primitive = nullptr;
+  TriggerPrimitive *_primitive = nullptr;
 
   std::vector<unsigned int> *_sum  = nullptr;
   std::vector<unsigned int> *_bits = nullptr;

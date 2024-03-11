@@ -7,7 +7,7 @@
 #include <iostream>
 #include <phool/PHObject.h>
 #include "TriggerPrimitiveContainer.h"
-#include "TriggerPrimitivev1.h"
+#include "TriggerPrimitive.h"
 #include <map>
 #include <utility>
 
@@ -18,7 +18,7 @@
 class TriggerPrimitiveContainerv1 : public TriggerPrimitiveContainer
 {
  public:
-  typedef std::map<TriggerDefs::TriggerPrimKey, TriggerPrimitivev1*> Map;
+  typedef std::map<TriggerDefs::TriggerPrimKey, TriggerPrimitive* > Map;
   typedef Map::const_iterator ConstIter;
   typedef Map::iterator Iter;
   typedef std::pair<Iter, Iter> Range;
@@ -26,6 +26,8 @@ class TriggerPrimitiveContainerv1 : public TriggerPrimitiveContainer
 
   ///
   TriggerPrimitiveContainerv1();
+
+  TriggerPrimitiveContainerv1(const std::string &triggertype);
   ///
   ~TriggerPrimitiveContainerv1();
 
@@ -34,25 +36,24 @@ class TriggerPrimitiveContainerv1 : public TriggerPrimitiveContainer
   void identify(std::ostream& os = std::cout) const override;
   int isValid() const override;
 
-  void setTriggerType(TriggerDefs::TriggerId triggerid) {m_triggerkey = TriggerDefs::getTriggerKey(triggerid);}
+  void setTriggerType(TriggerDefs::TriggerId triggerid) override {m_triggerkey = TriggerDefs::getTriggerKey(triggerid);}
 
-  TriggerPrimitivev1* get_primitive_at_key(TriggerDefs::TriggerPrimKey /* index */ ) override;
+  TriggerPrimitive* get_primitive_at_key(TriggerDefs::TriggerPrimKey /* index */ ) override;
 
-  void add_primitive(TriggerDefs::TriggerPrimKey , TriggerPrimitivev1* );
+  void add_primitive(TriggerDefs::TriggerPrimKey , TriggerPrimitive* ) override;
 
   TriggerDefs::TriggerKey getTriggerKey() {return m_triggerkey;}
 
-  ConstRange getTriggerPrimitives() const;  
-  Range getTriggerPrimitives();
+  ConstRange getTriggerPrimitives() const override;  
+  Range getTriggerPrimitives() override;
 
   size_t size() override { return _primitives.size();}
 
- protected:
+ private: // so the ClassDef does not show up with doc++
 
   TriggerDefs::TriggerKey m_triggerkey = TriggerDefs::TRIGGERKEYMAX;
   Map _primitives;
 
- private: // so the ClassDef does not show up with doc++
   ClassDefOverride(TriggerPrimitiveContainerv1,1);
 };
 

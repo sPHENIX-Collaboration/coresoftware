@@ -28,17 +28,16 @@ class TriggerPrimitiveContainer : public PHObject
   virtual void Reset() override;
   void identify(std::ostream& os = std::cout) const override;
   int isValid() const override;
-
+  virtual   void setTriggerType(TriggerDefs::TriggerId /*triggerid*/) {}
   virtual TriggerPrimitive* get_primitive_at_key(TriggerDefs::TriggerPrimKey) { return nullptr; }
 
-  void add_primitive(TriggerDefs::TriggerPrimKey , TriggerPrimitive* ) {}
+  virtual void add_primitive(TriggerDefs::TriggerPrimKey , TriggerPrimitive* ) {}
 
   virtual size_t size() {return 0;}
 
- private:
-  
-  TriggerDefs::TriggerKey m_triggerkey = TriggerDefs::TRIGGERKEYMAX;
-  Map _primitives;
+  virtual ConstRange getTriggerPrimitives() const;  
+  virtual Range getTriggerPrimitives();
+
 
  private: // so the ClassDef does not show up with doc++
   ClassDefOverride(TriggerPrimitiveContainer,1);

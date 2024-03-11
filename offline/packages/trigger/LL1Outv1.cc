@@ -1,6 +1,9 @@
 
 #include "LL1ReturnCodes.h"
 #include "LL1Outv1.h"
+#include "TriggerDefs.h"
+#include "TriggerPrimitivev1.h"
+#include "TriggerPrimitiveContainerv1.h"
 
 #include <cmath>
 #include <iostream>
@@ -8,73 +11,76 @@
 ClassImp(LL1Outv1)
 
 LL1Outv1::LL1Outv1()
+: _ll1_type("NONE")
+  ,_trigger_type("NONE")
 {
-  Init();
+  _trigger_key = TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(_trigger_type));
+
+  _trigger_bits = new std::vector<unsigned int>();
+
+}
+
+
+LL1Outv1::LL1Outv1(const std::string triggertype, const std::string ll1type)
+{
+  _trigger_type = triggertype;
+
+  _trigger_key = TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(triggertype));
+
+  _ll1_type = ll1type;
+
+  _trigger_bits = new std::vector<unsigned int>();
 }
 
 LL1Outv1::~LL1Outv1()
 {
-
+  Reset();
 }
-
-//______________________________________
-void LL1Outv1::Init()
-{
-  _trigger_type = "NONE";
-
-}
-
 
 //______________________________________
 void LL1Outv1::Reset()
 {
-  Init();
+  _trigger_bits->clear();
+
+  while (_trigger_words.begin() != _trigger_words.end())
+    {
+      delete _trigger_words.begin()->second;
+      _trigger_words.erase(_trigger_words.begin());
+    } 
+  
+
+}
+
+LL1Outv1::ConstRange LL1Outv1::getTriggerWords() const
+{
+  return make_pair(_trigger_words.begin(), _trigger_words.end());
+}  
+
+LL1Outv1::Range LL1Outv1::getTriggerWords()
+{
+  return make_pair(_trigger_words.begin(), _trigger_words.end());
 }
 
 //______________________________________
 void LL1Outv1::identify(std::ostream& out) const
 {
-  out << "identify yourself: I am a LL1Out object" << std::endl;
-  out << "triggertype: " << _trigger_type << std::endl;
+  out << __FILE__ << __FUNCTION__ <<" LL1Out: Triggertype = " << _trigger_type << " LL1 type = " << _ll1_type << std::endl;
+  out << __FILE__ << __FUNCTION__ <<" Event number: "<< _event_number <<"    Clock: "<< _clock_number << std::endl;
+  out << __FILE__ << __FUNCTION__ <<" Trigger bits    "<<_trigger_bits->size()<<"         : ";
+  for (int i = 0; i < static_cast<int>(_trigger_bits->size()) ; i++) cout <<" "<< _trigger_bits->at(i);
+  out << " " <<std::endl;
+  out << __FILE__ << __FUNCTION__ <<" Trigger words    "<<std::endl;
+  
+  for (auto i = _trigger_words.begin(); i != _trigger_words.end() ; ++i) 
+    {
+      for (auto j = (*i).second->begin(); j != (*i).second->end(); ++j)cout <<" "<< (*j);
+      
+      out << " " <<std::endl;
+    }
 }
 
-int LL1Outv1::isValid() const 
+int LL1Outv1::isValid() const
 {
-
-  return 1;
+  return 0;
 }
 
-
-void LL1Outv1::AddTriggerBits(unsigned int t_bits)
-{
-  _trigger_bits.push_back(t_bits);
-}
-unsigned int LL1Outv1::GetTriggerBits(unsigned int i_sample)
-{
-  if (_trigger_bits.size() <= i_sample) return 0;
-  return _trigger_bits[i_sample];
-}
-
-void LL1Outv1::AddTriggerWords(vector<unsigned int> t_words)
-{
-  _trigger_words.push_back(t_words);
-}
-
-unsigned int LL1Outv1::GetTriggerWord(unsigned int i_word, unsigned int i_sample)
-{
-  if (_trigger_words.size() <= i_sample) return 0;
-  if (_trigger_words[i_sample].size() <= i_word) return 0;
-  return _trigger_words[i_sample][i_word];
-}
-
-void LL1Outv1::AddTriggerPrimitives(vector<unsigned int> t_prims)
-{
-  _trigger_prims.push_back(t_prims);
-}
-
-unsigned int LL1Outv1::GetTriggerPrimitive( unsigned int i_adc, unsigned int i_sample)
-{
-  if (_trigger_prims.size() <= i_adc) return 0;
-  if (_trigger_prims[i_sample].size() <= i_sample) return 0;
-  return _trigger_prims[i_sample][i_adc];
-}

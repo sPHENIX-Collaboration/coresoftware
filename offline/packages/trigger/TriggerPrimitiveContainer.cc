@@ -6,6 +6,11 @@
 
 ClassImp(TriggerPrimitiveContainer)
 
+namespace
+{
+  TriggerPrimitiveContainer::Map dummy_map;
+}
+
 TriggerPrimitiveContainer::TriggerPrimitiveContainer()
 {
 }
@@ -31,4 +36,15 @@ void TriggerPrimitiveContainer::identify(std::ostream& out) const
 int TriggerPrimitiveContainer::isValid() const
 {
   return 1;
+}
+  
+
+TriggerPrimitiveContainer::ConstRange TriggerPrimitiveContainer::getTriggerPrimitives() const
+{
+  return std::make_pair(dummy_map.begin(), dummy_map.end());
+}
+
+TriggerPrimitiveContainer::Range TriggerPrimitiveContainer::getTriggerPrimitives()
+{
+  return std::make_pair(dummy_map.begin(), dummy_map.end());
 }

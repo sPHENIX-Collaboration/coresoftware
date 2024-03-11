@@ -4,18 +4,18 @@
 #define LL1PACKETGETTER_H
 
 #include <fun4all/SubsysReco.h>
-#include "LL1Outv2.h"
-#include "TriggerPrimitivev1.h"
-#include "TriggerPrimitiveContainerv1.h"
+#include "LL1Out.h"
+#include "TriggerPrimitive.h"
+#include "TriggerPrimitiveContainer.h"
 #include "TriggerDefs.h"
 #include <climits>
 #include <string>
 
 
 class PHCompositeNode;
-class LL1Outv2;
-class TriggerPrimitivev1;
-class TriggerPrimitiveContainerv1;
+class LL1Out;
+class TriggerPrimitive;
+class TriggerPrimitiveContainer;
 
 class LL1PacketGetter : public SubsysReco
 {
@@ -47,9 +47,9 @@ class LL1PacketGetter : public SubsysReco
   std::string m_trigger = "NONE";
   std::string m_ll1 = "NONE";
 
-  LL1Outv2 *m_ll1out = nullptr;
-  TriggerPrimitiveContainerv1 *_trigger_primitives = nullptr;
-  TriggerPrimitivev1 *_trigger_primitive = nullptr;
+  LL1Out *m_ll1out = nullptr;
+  TriggerPrimitiveContainer *m_trigger_primitives = nullptr;
+  TriggerPrimitive *_trigger_primitive = nullptr;
   std::map<unsigned int, std::vector<unsigned int>> *_trigger_words = nullptr;
 
   std::map<TriggerDefs::DetectorId, int> m_prim_map;

@@ -6,6 +6,11 @@
 
 ClassImp(TriggerPrimitive)
 
+namespace
+{
+  TriggerPrimitive::Map dummy_map;
+}
+
 TriggerPrimitive::TriggerPrimitive()
 {
 
@@ -41,4 +46,14 @@ void TriggerPrimitive::identify(std::ostream& out) const
 int TriggerPrimitive::isValid() const
 {
   return (!_sums.empty());
+}
+
+//__________________________________________________________
+TriggerPrimitive::ConstRange TriggerPrimitive::getSums() const 
+{
+  return std::make_pair(dummy_map.begin(), dummy_map.end());
+}
+TriggerPrimitive::Range TriggerPrimitive::getSums()
+{
+  return std::make_pair(dummy_map.begin(), dummy_map.end());
 }

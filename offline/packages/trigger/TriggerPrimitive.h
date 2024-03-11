@@ -33,6 +33,9 @@ class TriggerPrimitive : public PHObject
   virtual std::vector<unsigned int>* get_sum_at_key(TriggerDefs::TriggerSumKey ) {return nullptr; }
 
   virtual void add_sum(TriggerDefs::TriggerSumKey key, std::vector<unsigned int> *sum);
+
+  virtual ConstRange getSums() const ;
+  virtual Range getSums();
   
   virtual size_t size() {return 0;}
 

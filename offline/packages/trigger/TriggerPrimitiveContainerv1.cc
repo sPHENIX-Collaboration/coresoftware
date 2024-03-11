@@ -14,6 +14,10 @@ TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1()
 
 
 }
+TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1(const std::string &triggertype)
+{ 
+  m_triggerkey = TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(triggertype));
+}
 
 TriggerPrimitiveContainerv1::~TriggerPrimitiveContainerv1()
 {
@@ -49,14 +53,14 @@ int TriggerPrimitiveContainerv1::isValid() const
   return (!_primitives.empty());
 }
 
-TriggerPrimitivev1* TriggerPrimitiveContainerv1::get_primitive_at_key(TriggerDefs::TriggerPrimKey key)
+TriggerPrimitive* TriggerPrimitiveContainerv1::get_primitive_at_key(TriggerDefs::TriggerPrimKey key)
 {
   if (!_primitives[key]) return nullptr;
   
   return _primitives[key];
 }
 
-void TriggerPrimitiveContainerv1::add_primitive(TriggerDefs::TriggerPrimKey key, TriggerPrimitivev1* prim)
+void TriggerPrimitiveContainerv1::add_primitive(TriggerDefs::TriggerPrimKey key, TriggerPrimitive* prim)
 {
   _primitives[key] = prim;
 } 

@@ -6,27 +6,25 @@
 #include <iostream>
 
 ClassImp(LL1Out)
+namespace
+{
+  LL1Out::Map dummy_map;
+}
 
 LL1Out::LL1Out()
 {
-  Init();
+
 }
+
 LL1Out::~LL1Out()
 {
 
 }
 
 //______________________________________
-void LL1Out::Init()
-{
-  _trigger_type = "NONE";
-}
-
-
-//______________________________________
 void LL1Out::Reset()
 {
-  Init();
+
 }
 
 void LL1Out::identify(std::ostream& os) const
@@ -37,6 +35,15 @@ void LL1Out::identify(std::ostream& os) const
 int LL1Out::isValid() const
 {
   return 1;
+}
+
+LL1Out::ConstRange LL1Out::getTriggerWords() const
+{
+  return std::make_pair(dummy_map.begin(), dummy_map.end());
+}
+LL1Out::Range LL1Out::getTriggerWords()
+{
+  return std::make_pair(dummy_map.begin(), dummy_map.end());
 }
 
 
