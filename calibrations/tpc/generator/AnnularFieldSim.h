@@ -114,7 +114,7 @@ class AnnularFieldSim
   // file-writing functions for complex mapping questions:
   void GenerateDistortionMaps(const std::string &filebase, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
 
-  void GenerateSeparateDistortionMaps(const char *filebase, int nSteps = 500, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
+  void GenerateSeparateDistortionMaps(const std::string &filebase, int nSteps = 500, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
 
   void PlotFieldSlices(const char *filebase, const TVector3 &pos, char which = 'E');
 
