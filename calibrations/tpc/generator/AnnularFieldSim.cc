@@ -1341,7 +1341,7 @@ void AnnularFieldSim::populate_fieldmap()
         localF = sum_field_at(ir, iphi, iz);  // asks in global coordinates
         if (!(el % percent))
         {
-          std::cout << boost::str(boost::format("populate_fieldmap %d%%:  ") %((int) (debug_npercent * el / percent)));
+          std::cout << boost::str(boost::format("populate_fieldmap %llu%%:  ") %((uint64_t) (debug_npercent) * el / percent));
           std::cout << boost::str(boost::format("sum_field_at (ir=%d,iphi=%d,iz=%d) gives (%E,%E,%E)")
                  %ir %iphi %iz %localF.X() %localF.Y() %localF.Z()) << std::endl;
         }
@@ -1431,7 +1431,7 @@ void AnnularFieldSim::populate_full3d_lookup()
               el++;
               if (!(el % percent))
               {
-                std::cout << boost::str(boost::format("populate_full3d_lookup %d%%") %((int) (debug_npercent * el / percent))) << std::endl;
+                std::cout << boost::str(boost::format("populate_full3d_lookup %d%%") %((uint64_t) (debug_npercent) * el / percent)) << std::endl;
               }
               from = GetCellCenter(ior, iophi, ioz);
 
@@ -1760,7 +1760,7 @@ void AnnularFieldSim::populate_phislice_lookup()
             {
               if (!(el % percent))
               {
-                std::cout << boost::str(boost::format("populate_phislice_lookup %d%%:  ") %((int) (debug_npercent * el / percent)));
+                std::cout << boost::str(boost::format("populate_phislice_lookup %llu%%:  ") %((uint64_t) (debug_npercent) * el / percent));
                 std::cout << boost::str(boost::format("self-to-self is zero (ir=%d,iphi=%d,iz=%d) to (or=%d,ophi=0,oz=%d) gives (%E,%E,%E)")
                        %ior %iophi %ioz %ifr %ifz %zero.X() %zero.Y() %zero.Z()) << std::endl;
               }
@@ -1773,7 +1773,7 @@ void AnnularFieldSim::populate_phislice_lookup()
               {
                 if (!(el % percent))
                 {
-                  std::cout << boost::str(boost::format("populate_phislice_lookup %d%%:  ") %((int) (debug_npercent * el / percent)));
+                  std::cout << boost::str(boost::format("populate_phislice_lookup %llu%%:  ") %((uint64_t) (debug_npercent) * el / percent));
                   std::cout << boost::str(boost::format("calc_unit_field (ir=%d,iphi=%d,iz=%d) to (or=%d,ophi=0,oz=%d) gives (%E,%E,%E)")
                          %ior %iophi %ioz %ifr %ifz %unitf.X() %unitf.Y() %unitf.Z()) << std::endl;
                 }
@@ -1869,7 +1869,7 @@ void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
     // note that we save the gradient terms, not the field, hence we need to multiply by (-1.0)
     if (!(el % percent))
     {
-      std::cout << boost::str(boost::format("load_phislice_lookup %d%%:  ") %((int) (debug_npercent * el / percent)));
+      std::cout << boost::str(boost::format("load_phislice_lookup %llu%%:  ") %((uint64_t) (debug_npercent) * el / percent));
       std::cout << boost::str(boost::format("field from (ir=%d,iphi=%d,iz=%d) to (or=%d,ophi=0,oz=%d) is (%E,%E,%E)")
              %ior %iophi %ioz %ifr %ifz %unitf->X() %unitf->Y() %unitf->Z()) << std::endl;
     }
@@ -1937,7 +1937,7 @@ void AnnularFieldSim::save_phislice_lookup(const char *destfile)
             {
               if (!(el % percent))
               {
-                std::cout << boost::str(boost::format("save_phislice_lookup %d%%:  ") %((int) (debug_npercent * el / percent)));
+                std::cout << boost::str(boost::format("save_phislice_lookup %llu%%:  ") %((uint64_t)(debug_npercent) * el / percent));
                 std::cout << boost::str(boost::format("field from (ir=%d,iphi=%d,iz=%d) to (or=%d,ophi=0,oz=%d) is (%E,%E,%E)")
                        %ior %iophi %ioz %ifr %ifz %unitf.X() %unitf.Y() %unitf.Z()) << std::endl;
               }
