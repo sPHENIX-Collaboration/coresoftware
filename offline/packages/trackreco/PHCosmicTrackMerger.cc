@@ -222,6 +222,10 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
     //! remove any obvious outlier clusters from the track that were mistakenly
     //! picked up by the seeder
     removeOutliers(tpcseed1);
+    if(silseed1)
+    {
+      removeOutliers(silseed1);
+    }
   }
   if (Verbosity() > 3)
   {
