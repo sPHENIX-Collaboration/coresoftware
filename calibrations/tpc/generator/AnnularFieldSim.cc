@@ -21,8 +21,6 @@
 
 #include <cassert>  // for assert
 #include <cmath>
-#include <cstdio>   // for printf, sprintf
-#include <cstdlib>  // for abs
 #include <iostream>
 
 #define ALMOST_ZERO 0.00001
@@ -924,7 +922,6 @@ void AnnularFieldSim::loadEfield(const std::string &filename, const std::string 
   TTree *fTree;
   fieldFile.GetObject(treename.c_str(), fTree);
   Efieldname = "E:" + filename + ":" + treename;
-  //  sprintf(Efieldname,"E:%s:%s",filename,treename);
   float r, z;          // coordinates
   float fr, fz, fphi;  // field components at that coordinate
   fTree->SetBranchAddress("r", &r);
@@ -973,7 +970,6 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
   TTree *fTree;
   fieldFile.GetObject(treename.c_str(), fTree);
   Bfieldname = "B(3D):" + filename + ":" + treename + " Scale =" + boost::str(boost::format("%2.2f") % scale);
-  //  sprintf(Bfieldname,"B(3D):%s:%s Scale=%2.2f",filename,treename,scale);
   float r, z, phi;     // coordinates
   float fr, fz, fphi;  // field components at that coordinate
   fTree->SetBranchAddress("rho", &r);
@@ -1966,11 +1962,8 @@ void AnnularFieldSim::setFlatFields(float B, float E)
   // these only cover the roi, but since we address them flat, we don't need to know that here.
   std::cout << boost::str(boost::format("AnnularFieldSim::setFlatFields(B=%f Tesla,E=%f V/cm)") %B %E) << std::endl;
   std::cout << boost::str(boost::format("lengths:  Eext=%d, Bfie=%d") %Eexternal->Length() %Bfield->Length()) << std::endl;
-  char fieldstr[100];
-  sprintf(fieldstr, "%f", E);
-  Efieldname = "E:Flat:" + std::string(fieldstr);
-  sprintf(fieldstr, "%f", B);
-  Bfieldname = "B:Flat:" + std::string(fieldstr);
+  Efieldname = "E:Flat:" + std::to_string(E);
+  Bfieldname = "B:Flat:" + std::to_string(B);
 
   Enominal = E * (V / cm);
   Bnominal = B * Tesla;
@@ -2666,14 +2659,14 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, const TVector3 &pos,
     mapEfield = false;
   }
   which = mapEfield ? 'E' : 'B';
-  char units[5];
+  std::string units;
   if (mapEfield)
   {
-    sprintf(units, "V/cm");
+    units = "V/cm";
   }
   else
   {
-    sprintf(units, "T");
+    units = "T";
   }
 
   std::cout << boost::str(boost::format("plotting field slices for %c field, slicing at (%1.2F,%1.2f,%1.2f)...") %which %pos.Perp() %FilterPhiPos(pos.Phi()) %pos.Z()) << std::endl;
@@ -2724,7 +2717,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, const TVector3 &pos,
       // loop over which axis of the field to read
       hEfield[ax][i] = new TH2F(Form("h%cfield%c_%c%c", which, axis[i], axis[ax + 1], axis[ax + 2]),
                                 Form("%c component of %c Field in the %c%c plane at %c=%2.3f (%s);%c;%c",
-                                     axis[i], which, axis[ax + 1], axis[ax + 2], axis[ax], axisval[ax], units, axis[ax + 1], axis[ax + 2]),
+                                     axis[i], which, axis[ax + 1], axis[ax + 2], axis[ax], axisval[ax], units.c_str(), axis[ax + 1], axis[ax + 2]),
                                 axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                                 axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
       hEfieldComp[ax][i] = new TH1F(Form("h%cfieldComp%c_%c%c", which, axis[i], axis[ax + 1], axis[ax + 2]),
@@ -2803,7 +2796,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, const TVector3 &pos,
     }
   }
   c->SaveAs(plotfilename);
-  printf("after plotting field slices...\n");
+  std::cout << "after plotting field slices..." << std::endl;
   std::cout << "file=" << filebase << std::endl;
 
   return;
@@ -3177,36 +3170,36 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
 
           if (!(el % waypoint))
           {
-            printf("generating distortions %d%%:  ", (int) (el / percent));
-            printf("distortion at (ir=%d,ip=%d,iz=%d) is (%E,%E,%E)\n",
-                   ir, ip, iz, distortR, distortP, distortZ);
+            std::cout << boost::str(boost::format("generating distortions %d%%:  ") %((int) (el / percent)));
+            std::cout << boost::str(boost::format("distortion at (ir=%d,ip=%d,iz=%d) is (%E,%E,%E)")
+				    %ir %ip %iz %distortR %distortP %distortZ) << std::endl;
           }
           el++;
         }
       }
     }
   }
-  printf("Completed distortion generation.  Saving outputs...\n");
+  std::cout << "Completed distortion generation.  Saving outputs..." << std::endl;
 
   TCanvas *canvas = new TCanvas("cdistort", "distortion integrals", 1200, 800);
   // take 10 of the bottom of this for data?
-  printf("was able to make a tcanvas\n");
+  std::cout << "was able to make a tcanvas" << std::endl;
   canvas->cd();
   TPad *c = new TPad("cplots", "distortion integral plots", 0, 0.2, 1, 1);
   canvas->cd();
   TPad *textpad = new TPad("ctext", "distortion integral plots", 0, 0.0, 1, 0.2);
-  printf("was able to make some tpads\n");
+  std::cout << "was able to make some tpads" << std::endl;
 
   c->Divide(4, 3);
   gStyle->SetOptStat();
-  printf("was able to interact with gStyle\n");
+  std::cout << "was able to interact with gStyle" << std::endl;
 
   for (int i = 0; i < 3; i++)
   {
     // component
     for (int ax = 0; ax < 3; ax++)
     {
-      printf("looping over components i=%d ax=%d\n", i, ax);
+      std::cout << boost::str(boost::format("looping over components i=%d ax=%d") %i %ax) << std::endl;
 
       // plane
       c->cd(i * 4 + ax + 1);
@@ -3215,7 +3208,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
       hIntDist[ax][i]->Draw("colz");
     }
 
-    printf("drawing R profile %d\n", i);
+    std::cout << "drawing R profile " << i << std::endl;
 
     c->cd(i * 4 + 4);
     hRDist[0][i]->SetStats(false);
@@ -3223,19 +3216,19 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
     hRDist[0][i]->Draw("hist");
     if (hasTwin)
     {
-      printf("drawing R profile twin %d\n", i);
+      std::cout << "drawing R profile twin " << i << std::endl;
       hRDist[1][i]->SetStats(false);
       hRDist[1][i]->SetLineColor(kBlue);
       hRDist[1][i]->Draw("hist,same");
     }
   }
-  printf("switching to textpad\n");
+  std::cout << "switching to textpad" << std::endl;
 
   textpad->cd();
   float texpos = 0.9;
   float texshift = 0.12;
   TLatex *tex = new TLatex(0.0, texpos, "Fill Me In");
-  printf("built TLatex\n");
+  std::cout << "built TLatex" << std::endl;
 
   tex->SetTextSize(texshift * 0.8);
   tex->DrawLatex(0.05, texpos, GetFieldString().c_str());
@@ -3255,16 +3248,16 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
     texpos -= texshift;
   }
   texpos = 0.9;
-  printf("cd'ing to canvas:\n");
+  std::cout << "cd'ing to canvas:" << std::endl;
 
   canvas->cd();
-  printf("draw1\n");
+  std::cout << "draw1" << std::endl;
 
   c->Draw();
   canvas->cd();
-  printf("draw2\n");
+  std::cout << "draw2" << std::endl;
   textpad->Draw();
-  printf("was able to complete drawing on both pads\n");
+  std::cout << "was able to complete drawing on both pads" << std::endl;
 
   canvas->SaveAs(summaryFilename.c_str());
 
@@ -3371,7 +3364,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
     hIntDistortionX->Write();
     hIntDistortionY->Write();
   }
-  printf("finished writing histograms\n");
+  std::cout << "finished writing histograms" << std::endl;
   // dTree->Write();
   //  print_need_cout("wrote dTree\n");
   outf->Close();
