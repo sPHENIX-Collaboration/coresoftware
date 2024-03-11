@@ -36,16 +36,16 @@ AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, flo
   // check well-ordering:
   if (roi_r0 >= r || roi_r1 > r || roi_r0 >= roi_r1)
   {
-    assert(1 == 2);
+    exit(1);
   }
   if (roi_phi0 >= phi || roi_phi1 > phi || roi_phi0 >= roi_phi1)
   {
     printf("phi roi is out of range or spans the wrap-around.  Please spare me that math.\n");
-    assert(1 == 2);
+    exit(1);
   }
   if (roi_z0 >= z || roi_z1 > z || roi_z0 >= roi_z1)
   {
-    assert(1 == 2);
+    exit(1);
   }
 
   hasTwin = false;  // we never have a twin to start with.
@@ -118,7 +118,7 @@ AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, flo
   //  q = new MultiArray<double>(nr, nphi, nz);
   // q->SetAll(0);
   q = new ChargeMapReader(nr, rmin, rmax, nphi, 0, phispan, nz, zmin, zmax);
-  sprintf(chargestring, "No spacecharge present.");
+  chargestring = "No spacecharge present.";
 
   // load parameters of our region of interest
   rmin_roi = roi_r0;
@@ -246,7 +246,7 @@ AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, flo
   else
   {
     printf("Ran into wrong lookupCase logic in constructor.\n");
-    assert(1 == 2);
+    exit(1);
   }
 
   return;
@@ -300,7 +300,7 @@ TVector3 AnnularFieldSim::calc_unit_field(TVector3 at, TVector3 from)
   if (GetRindexAndCheckBounds(at.Perp(), &r_position) != InBounds)
   {
     printf("something's asking for 'at' with r=%f, which is index=%d\n", at.Perp(), r_position);
-    assert(1 == 2);
+    exit(1);
   }
   // note this is the field due to a fixed point charge in free space.
   // if doing cylindrical calcs with different boundary conditions, this needs to change.
@@ -367,7 +367,7 @@ double AnnularFieldSim::FilterPhiPos(double phi)
   if (p >= 2 * M_PI || p < 0)
   {
     printf("AnnularFieldSim::FilterPhiPos asked to filter %f, which is more than range=%f out of bounds.  Check what called this.\n", phi, 2 * M_PI);
-    assert(1 == 2);
+    exit(1);
   }
   return p;
 }
@@ -391,7 +391,7 @@ int AnnularFieldSim::FilterPhiIndex(int phi, int range = -1)
   if (p >= range || p < 0)
   {
     printf("AnnularFieldSim::FilterPhiIndex asked to filter %d, which is more than range=%d out of bounds.  Check what called this.\n", phi, range);
-    assert(1 == 2);
+    exit(1);
   }
   return p;
 }
@@ -683,7 +683,7 @@ TVector3 AnnularFieldSim::GetGroupCellCenter(int r0, int r1, int phi0, int phi1,
   if (phi0 > phi1)
   {
     printf("phi1(%d)<=phi0(%d) even after boosting phi1.  check what called this!\n", phi1, phi0);
-    assert(1 == 2);
+    exit(1);
   }
   float phiavg = (r0 + r1) / 2.0 + 0.5;
   if (phiavg >= nphi)
@@ -1083,7 +1083,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
             {
               printf("not enough entries in source to fill fieldmap.  None near r=%f, phi=%f, z=%f. Pick lower granularity!\n",
                      cellcenter.Perp(), FilterPhiPos(cellcenter.Phi()), cellcenter.Z());
-              assert(1 == 2);
+              exit(1);
             }
             // have to rotate this to the proper direction.
             fieldvec.RotateZ(FilterPhiPos(cellcenter.Phi()));  // rcc caution.  Does this rotation shift the sense of 'up'?
@@ -1216,7 +1216,7 @@ void AnnularFieldSim::load_and_resample_spacecharge(int new_nphi, int new_nr, in
   load_spacecharge(resampled, zoffset, chargescale, cmscale, true);
 }
 
-void AnnularFieldSim::load_spacecharge(TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity, const char *inputchargestring)
+void AnnularFieldSim::load_spacecharge(TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity, const std::string &inputchargestring)
 {
   // new plan:  use ChargeMapReader:
   if (abs(zoffset) > 0.001)
@@ -1231,15 +1231,15 @@ void AnnularFieldSim::load_spacecharge(TH3 *hist, float zoffset, float chargesca
   }
   q->ReadSourceCharge(hist, cmscale, chargescale);
 
-  sprintf(chargestring, "SC loaded externally: %s.", inputchargestring);
+  chargestring = "SC loaded externally: " + inputchargestring + ".";
   return;
 }
 
-void AnnularFieldSim::load_digital_current(TH3 *hist, TH2 *gainHist, float chargescale, float cmscale, const char *inputchargestring)
+void AnnularFieldSim::load_digital_current(TH3 *hist, TH2 *gainHist, float chargescale, float cmscale, const std::string &inputchargestring)
 {
   q->ReadSourceAdc(hist, gainHist, cmscale, chargescale);
 
-  sprintf(chargestring, "SC loaded externally: %s.", inputchargestring);
+  chargestring = "SC loaded externally: " + inputchargestring + ".";
   return;
 }
 
@@ -1291,7 +1291,7 @@ void AnnularFieldSim::add_testcharge(float r, float phi, float z, float coulombs
   if (lookupCase == HybridRes)
   {
     printf("write the code you didn't write earlier about reloading the lowres map.\n");
-    assert(1 == 2);
+    exit(1);
   }
 
   return;
@@ -1397,7 +1397,7 @@ void AnnularFieldSim::populate_lookup()
   }
   else
   {
-    assert(1 == 2);
+    exit(1);
   }
   return;
 }
@@ -2397,7 +2397,7 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
             if (ri[(i / 4) % 2] + rmin_roi_low == ir && pi[(i / 2) % 2] + phimin_roi_low == iphi && zi[(i) % 2] + zmin_roi_low == iz)
             {
               printf("considering an l-bins effect on itself, r=%d,phi=%d,z=%d (matches i=%d, not skipped), means we're not interpolating fairly\n", ir, iphi, iz, i);
-              assert(1 == 2);
+              exit(1);
             }
             // the ri, pi, and zi elements are relative to the roi, as needed for Epartial.
             // the ir, iphi, and iz are all absolute, as needed for q_lowres
@@ -3245,16 +3245,16 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
   printf("built TLatex\n");
 
   tex->SetTextSize(texshift * 0.8);
-  tex->DrawLatex(0.05, texpos, GetFieldString());
+  tex->DrawLatex(0.05, texpos, GetFieldString().c_str());
   texpos -= texshift;
-  tex->DrawLatex(0.05, texpos, GetChargeString());
+  tex->DrawLatex(0.05, texpos, GetChargeString().c_str());
   texpos -= texshift;
   // tex->DrawLatex(0.05,texpos,Form("Drift Field = %2.2f V/cm",GetNominalE()));texpos-=texshift;
   tex->DrawLatex(0.05, texpos, Form("Drifting grid of (rp)=(%d x %d) electrons with %d steps", nrh, nph, nSteps));
   texpos -= texshift;
-  tex->DrawLatex(0.05, texpos, GetLookupString());
+  tex->DrawLatex(0.05, texpos, GetLookupString().c_str());
   texpos -= texshift;
-  tex->DrawLatex(0.05, texpos, GetGasString());
+  tex->DrawLatex(0.05, texpos, GetGasString().c_str());
   texpos -= texshift;
   if (debug_distortionScale.Mag() > 0)
   {
@@ -3307,16 +3307,16 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int n
   texpos = 0.9;
   texshift = 0.12;
   tex->SetTextSize(texshift * 0.8);
-  tex->DrawLatex(0.05, texpos, GetFieldString());
+  tex->DrawLatex(0.05, texpos, GetFieldString().c_str());
   texpos -= texshift;
-  tex->DrawLatex(0.05, texpos, GetChargeString());
+  tex->DrawLatex(0.05, texpos, GetChargeString().c_str());
   texpos -= texshift;
   // tex->DrawLatex(0.05,texpos,Form("Drift Field = %2.2f V/cm",GetNominalE()));texpos-=texshift;
   tex->DrawLatex(0.05, texpos, Form("Drifting grid of (rp)=(%d x %d) electrons with %d steps", nrh, nph, nSteps));
   texpos -= texshift;
-  tex->DrawLatex(0.05, texpos, GetLookupString());
+  tex->DrawLatex(0.05, texpos, GetLookupString().c_str());
   texpos -= texshift;
-  tex->DrawLatex(0.05, texpos, GetGasString());
+  tex->DrawLatex(0.05, texpos, GetGasString().c_str());
   texpos -= texshift;
   tex->DrawLatex(0.05, texpos, "Differential Plots");
   texpos -= texshift;
@@ -3777,16 +3777,16 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
   float texshift = 0.12;
   TLatex *tex = new TLatex(0.0, texpos, "Fill Me In");
   tex->SetTextSize(texshift * 0.8);
-  tex->DrawLatex(0.05, texpos, GetFieldString());
+  tex->DrawLatex(0.05, texpos, GetFieldString().c_str());
   texpos -= texshift;
-  tex->DrawLatex(0.05, texpos, GetChargeString());
+  tex->DrawLatex(0.05, texpos, GetChargeString().c_str());
   texpos -= texshift;
   // tex->DrawLatex(0.05,texpos,Form("Drift Field = %2.2f V/cm",GetNominalE()));texpos-=texshift;
   tex->DrawLatex(0.05, texpos, Form("Drifting grid of (rp)=(%d x %d) electrons with %d steps", nrh, nph, nSteps));
   texpos -= texshift;
-  tex->DrawLatex(0.05, texpos, GetLookupString());
+  tex->DrawLatex(0.05, texpos, GetLookupString().c_str());
   texpos -= texshift;
-  tex->DrawLatex(0.05, texpos, GetGasString());
+  tex->DrawLatex(0.05, texpos, GetGasString().c_str());
   texpos -= texshift;
   if (debug_distortionScale.Mag() > 0)
   {
@@ -3833,16 +3833,16 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
   texpos = 0.9;
   texshift = 0.12;
   tex->SetTextSize(texshift * 0.8);
-  tex->DrawLatex(0.05, texpos, GetFieldString());
+  tex->DrawLatex(0.05, texpos, GetFieldString().c_str());
   texpos -= texshift;
-  tex->DrawLatex(0.05, texpos, GetChargeString());
+  tex->DrawLatex(0.05, texpos, GetChargeString().c_str());
   texpos -= texshift;
   // tex->DrawLatex(0.05,texpos,Form("Drift Field = %2.2f V/cm",GetNominalE()));texpos-=texshift;
   tex->DrawLatex(0.05, texpos, Form("Drifting grid of (rp)=(%d x %d) electrons with %d steps", nrh, nph, nSteps));
   texpos -= texshift;
-  tex->DrawLatex(0.05, texpos, GetLookupString());
+  tex->DrawLatex(0.05, texpos, GetLookupString().c_str());
   texpos -= texshift;
-  tex->DrawLatex(0.05, texpos, GetGasString());
+  tex->DrawLatex(0.05, texpos, GetGasString().c_str());
   texpos -= texshift;
   tex->DrawLatex(0.05, texpos, "Differential Plots");
   texpos -= texshift;
@@ -3899,9 +3899,9 @@ void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamp
     hRDist[i]->Delete();
   }
   */
-  printf("wrote map and summary to %s.\n", filebase);
-  printf("map:%s.\n", distortionFilename.Data());
-  printf("summary:%s.\n", summaryFilename.Data());
+  std::cout << "wrote map and summary to " << filebase << std::endl;
+  std::cout << "map: " << distortionFilename.Data() << std::endl;
+std::cout << "summary: " << summaryFilename.Data() << std::endl;
   // printf("wrote map and summary to %s and %s.\n",distortionFilename.Data(),summaryFilename.Data());
   return;
 }
@@ -3941,7 +3941,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
 
   if (fabs(zdist) < ALMOST_ZERO * step.Z())
   {
-    //   printf("Asked  particle from (%f,%f,%f) to z=%f, which is a distance of %fcm.  Returning zero.\n", start.X(), start.Y(), start.Z(), zdest, zdist);
+    //   std::cout <<  boost::str(boost::format("Asked  particle from (%f,%f,%f) to z=%f, which is a distance of %fcm.  Returning zero.") %start.X() %start.Y() %start.Z() %zdest %zdist) << std::endl;
     return zero_vector;
   }
 
@@ -3967,10 +3967,10 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
 
   if (abs(fieldInt.Z() / zdist) < ALMOST_ZERO)
   {
-    printf("GetStepDistortion is attempting to swim with no drift field:\n");
-    printf("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f\n", start.X(), start.Y(), start.Z(), zdest);
-    printf("GetStepDistortion: fieldInt=(%E,%E,%E)\n", fieldInt.X(), fieldInt.Y(), fieldInt.Z());
-    assert(1 == 2);
+    std::cout << "GetStepDistortion is attempting to swim with no drift field:" << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f") %start.X() %start.Y() %start.Z() %zdest) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: fieldInt=(%E,%E,%E)") %fieldInt.X() %fieldInt.Y() %fieldInt.Z()) << std::endl;
+    exit(1);
   }
   // float fieldz=field_[in3(x,y,0,fx,fy,fz)].Z()+E.Z();// *field[x][y][zi].Z();
   double EfieldZ = fieldInt.Z() / zdist;  // average field over the path.
@@ -3982,7 +3982,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
   // double omegatau=-mu*Bnominal;//minus sign is for electron charge.
   double omegatau = omegatau_nominal;  // don't compute this every time!
   // or:  omegatau=-10*(10*B.Z()/Tesla)*(vdrift/(cm/us))/(fieldz/(V/cm)); //which is the same as my calculation up to a sign.
-  // printf("omegatau=%f\n",omegatau);
+  // std::cout << "omegatau=" << omegatau << std::endl;
 
   double T1om = langevin_T1 * omegatau;
   double T2om2 = langevin_T2 * omegatau * langevin_T2 * omegatau;
@@ -4010,53 +4010,53 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
 
   if (false)
   {
-    printf("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)\n", c0, c1, c2);
-    printf("GetStepDistortion:  EintOverEz==(%E,%E,%E)\n", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z());
-    printf("GetStepDistortion:  BintOverBz==(%E,%E,%E)\n", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z());
-    printf("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f\n", start.X(), start.Y(), start.Z(), zdest);
-    printf("GetStepDistortion: fieldInt=(%E,%E,%E)\n", fieldInt.X(), fieldInt.Y(), fieldInt.Z());
-    printf("GetStepDistortion: delta=(%E,%E,%E)\n", deltaX, deltaY, deltaZ);
+    std::cout <<  boost::str(boost::format("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)") %c0 %c1 %c2) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion:  EintOverEz==(%E,%E,%E)") %EintOverEz.X() %EintOverEz.Y() %EintOverEz.Z()) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion:  BintOverBz==(%E,%E,%E)") %BintOverBz.X() %BintOverBz.Y() %BintOverBz.Z()) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f") %start.X() %start.Y() %start.Z() %zdest) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: fieldInt=(%E,%E,%E)") %fieldInt.X() %fieldInt.Y() %fieldInt.Z()) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: delta=(%E,%E,%E)") %deltaX %deltaY %deltaZ) << std::endl;
   }
 
   // if (abs(deltaZ / zdist) > 0.25)
   if (false)
   {
-    printf("GetStepDistortion produced a very large zdistortion!\n");
-    printf("GetStepDistortion: zdist=%2.4f, deltaZ=%2.4f, Delta/z=%2.4f\n", zdist, deltaZ, deltaZ / zdist);
-    printf("GetStepDistortion: average field Z:  Ez=%2.4fV/cm, Bz=%2.4fT\n", EfieldZ / (V / cm), BfieldZ / Tesla);
-    printf("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)\n", c0, c1, c2);
-    printf("GetStepDistortion:  EintOverEz==(%E,%E,%E)\n", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z());
-    printf("GetStepDistortion:  BintOverBz==(%E,%E,%E)\n", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z());
-    printf("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f\n", start.X(), start.Y(), start.Z(), zdest);
-    printf("GetStepDistortion: EfieldInt=(%E,%E,%E)\n", fieldInt.X(), fieldInt.Y(), fieldInt.Z());
-    printf("GetStepDistortion: BfieldInt=(%E,%E,%E)\n", fieldIntB.X(), fieldIntB.Y(), fieldIntB.Z());
-    printf("GetStepDistortion: delta=(%E,%E,%E)\n", deltaX, deltaY, deltaZ);
+    std::cout << "GetStepDistortion produced a very large zdistortion!" << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: zdist=%2.4f, deltaZ=%2.4f, Delta/z=%2.4f") %zdist %deltaZ %(deltaZ / zdist)) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: average field Z:  Ez=%2.4fV/cm, Bz=%2.4fT") %(EfieldZ / (V / cm)) %(BfieldZ / Tesla)) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)") %c0 %c1 %c2) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion:  EintOverEz==(%E,%E,%E)") %EintOverEz.X() %EintOverEz.Y() %EintOverEz.Z()) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion:  BintOverBz==(%E,%E,%E)") %BintOverBz.X() %BintOverBz.Y() %BintOverBz.Z()) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f") %start.X() %start.Y() %start.Z() %zdest) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: EfieldInt=(%E,%E,%E)") %fieldInt.X() %fieldInt.Y() %fieldInt.Z()) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: BfieldInt=(%E,%E,%E)") %fieldIntB.X() %fieldIntB.Y() %fieldIntB.Z()) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: delta=(%E,%E,%E)") %deltaX %deltaY %deltaZ) << std::endl;
     // assert(false);
   }
 
   if (abs(deltaX) < 1E-20 && !(chargeCase == NoSpacecharge))
   {
-    printf("GetStepDistortion produced a very small deltaX: %E\n", deltaX);
-    printf("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)\n", c0, c1, c2);
-    printf("GetStepDistortion:  EintOverEz==(%E,%E,%E)\n", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z());
-    printf("GetStepDistortion:  BintOverBz==(%E,%E,%E)\n", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z());
-    printf("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f\n", start.X(), start.Y(), start.Z(), zdest);
-    printf("GetStepDistortion: fieldInt=(%E,%E,%E)\n", fieldInt.X(), fieldInt.Y(), fieldInt.Z());
-    printf("GetStepDistortion: delta=(%E,%E,%E)\n", deltaX, deltaY, deltaZ);
+    std::cout <<  boost::str(boost::format("GetStepDistortion produced a very small deltaX: %E") %deltaX) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)") %c0 %c1 %c2) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion:  EintOverEz==(%E,%E,%E)") %EintOverEz.X() %EintOverEz.Y() %EintOverEz.Z()) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion:  BintOverBz==(%E,%E,%E)") %BintOverBz.X() %BintOverBz.Y() %BintOverBz.Z()) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f") %start.X() %start.Y() %start.Z() %zdest) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: fieldInt=(%E,%E,%E)") %fieldInt.X() %fieldInt.Y() %fieldInt.Z()) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: delta=(%E,%E,%E)") %deltaX %deltaY %deltaZ) << std::endl;
     // assert(1==2);
   }
 
   // if (!(abs(deltaX) < 1E3))
   if (false)
   {
-    printf("GetStepDistortion produced a very large deltaX: %E\n", deltaX);
-    printf("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)\n", c0, c1, c2);
-    printf("GetStepDistortion:  EintOverEz==(%E,%E,%E)\n", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z());
-    printf("GetStepDistortion:  BintOverBz==(%E,%E,%E)\n", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z());
-    printf("GetStepDistortion: (%2.4f,%2.4f,%2.4f) (rp)=(%2.4f,%2.4f) to z=%2.4f\n", start.X(), start.Y(), start.Z(), start.Perp(), start.Phi(), zdest);
-    printf("GetStepDistortion: fieldInt=(%E,%E,%E)\n", fieldInt.X(), fieldInt.Y(), fieldInt.Z());
-    printf("GetStepDistortion: delta=(%E,%E,%E)\n", deltaX, deltaY, deltaZ);
-    assert(1 == 2);
+    std::cout <<  boost::str(boost::format("GetStepDistortion produced a very large deltaX: %E") %deltaX) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)") %c0 %c1 %c2) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion:  EintOverEz==(%E,%E,%E)") %EintOverEz.X() %EintOverEz.Y() %EintOverEz.Z()) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion:  BintOverBz==(%E,%E,%E)") %BintOverBz.X() %BintOverBz.Y() %BintOverBz.Z()) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: (%2.4f,%2.4f,%2.4f) (rp)=(%2.4f,%2.4f) to z=%2.4f") %start.X() %start.Y() %start.Z() %start.Perp() %start.Phi() %zdest) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: fieldInt=(%E,%E,%E)") %fieldInt.X() %fieldInt.Y() %fieldInt.Z()) << std::endl;
+    std::cout <<  boost::str(boost::format("GetStepDistortion: delta=(%E,%E,%E)") %deltaX %deltaY %deltaZ) << std::endl;
+    exit(1);
   }
 
   // deltaZ=0;//temporary removal.
@@ -4075,28 +4075,28 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
 }
 
 // putting all the getters here out of the way:
-const char *AnnularFieldSim::GetLookupString()
+const std::string AnnularFieldSim::GetLookupString()
 {
   if (lookupCase == LookupCase::Full3D)
   {
-    return Form("Full3D (%d x %d x %d) with (%d x %d x %d) roi", nr, nphi, nz, nr_roi, nphi_roi, nz_roi);
+    return boost::str(boost::format("Full3D (%d x %d x %d) with (%d x %d x %d) roi") %nr %nphi %nz %nr_roi %nphi_roi %nz_roi);
   }
 
   if (lookupCase == LookupCase::PhiSlice)
   {
-    return Form("PhiSlice (%d x %d x %d) with (%d x 1 x %d) roi", nr, nphi, nz, nr_roi, nz_roi);
+    return boost::str(boost::format("PhiSlice (%d x %d x %d) with (%d x 1 x %d) roi") %nr %nphi %nz %nr_roi %nz_roi);
   }
 
   return "broken";
 }
-const char *AnnularFieldSim::GetGasString()
+const std::string AnnularFieldSim::GetGasString()
 {
-  return Form("vdrift=%2.2fcm/us, Enom=%2.2fV/cm, Bnom=%2.2fT, omtau=%2.4E", vdrift / (cm / us), Enominal / (V / cm), Bnominal / Tesla, omegatau_nominal);
+  return boost::str(boost::format("vdrift=%2.2fcm/us, Enom=%2.2fV/cm, Bnom=%2.2fT, omtau=%2.4E") %(vdrift / (cm / us)) %(Enominal / (V / cm)) %(Bnominal / Tesla) %omegatau_nominal);
 }
 
-const char *AnnularFieldSim::GetFieldString()
+const std::string AnnularFieldSim::GetFieldString()
 {
-  return Form("%s, %s", Efieldname.c_str(), Bfieldname.c_str());
+  return boost::str(boost::format("%s, %s") %Efieldname %Bfieldname);
 }
 
 TVector3 AnnularFieldSim::GetFieldAt(const TVector3 &pos)
@@ -4159,7 +4159,7 @@ float AnnularFieldSim::GetChargeAt(const TVector3 &pos)
     {
       return twin->GetChargeAt(pos);
     }
-    printf("Caution:  tried to read charge at zbin=%d!  No twin available to handle this\n", z);
+    std::cout <<  boost::str(boost::format("Caution:  tried to read charge at zbin=%d!  No twin available to handle this") %z) << std::endl;
     return -999;
   }
 

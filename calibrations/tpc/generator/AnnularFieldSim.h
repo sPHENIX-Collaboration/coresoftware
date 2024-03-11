@@ -95,10 +95,10 @@ class AnnularFieldSim
   }
 
   // getters for internal states:
-  const char *GetLookupString();
-  const char *GetGasString();
-  const char *GetFieldString();
-  const char *GetChargeString() { return chargestring; };
+  const std::string GetLookupString();
+  const std::string GetGasString();
+  const std::string GetFieldString();
+  const std::string &GetChargeString() { return chargestring; };
   float GetNominalB() { return Bnominal; };
   float GetNominalE() { return Enominal; };
   float GetChargeAt(const TVector3 &pos);
@@ -119,9 +119,9 @@ class AnnularFieldSim
   void PlotFieldSlices(const char *filebase, const TVector3 &pos, char which = 'E');
 
   void load_spacecharge(const std::string &filename, const std::string &histname, float zoffset = 0, float chargescale = 1, float cmscale = 1, bool isChargeDensity = true);
-  void load_spacecharge(TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity, const char *inputchargestring = "");
+  void load_spacecharge(TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity, const std::string &inputchargestring = "");
 
-  void load_digital_current(TH3 *hist, TH2 *gainHist, float chargescale, float cmscale, const char *inputchargestring);
+  void load_digital_current(TH3 *hist, TH2 *gainHist, float chargescale, float cmscale, const std::string &inputchargestring);
 
   void load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz, const std::string &filename, const std::string &histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
 
@@ -281,7 +281,7 @@ class AnnularFieldSim
   std::string Efieldname;
   //  char fieldstring[300],Bfieldname[100],Efieldname[100];
   std::string chargesourcename;
-  char chargestring[300] = {0};  //, chargefilename[100];
+  std::string chargestring;
   float Enominal = NAN;          // magnitude of the nominal field on which drift speed is based, in V/cm.
   float Bnominal;                // magnitude of the nominal magnetic field on which drift speed is based, in Tesla.
 
