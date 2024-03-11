@@ -1,6 +1,6 @@
 /*!
  *  \file PrelimDistortionCorrection.cc
- *  \brief	Makes preliminary TPC distortion corrections in pp running
+ *  \brief	Makes preliminary TPC distortion corrections in pp running and replaces TPC seed parameters with new fits
  *  \author Tony Frawley
  */
 

@@ -4,6 +4,7 @@
 #include "InputManagerType.h"
 
 #include <ffarawobjects/MbdPacketv1.h>
+#include <ffarawobjects/MbdPacketContainerv1.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -227,11 +228,11 @@ void SingleMbdTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode = new PHCompositeNode("MBD");
     dstNode->addNode(detNode);
   }
-  OfflinePacket *mbdhitcont = findNode::getClass<OfflinePacket>(detNode, "MBDPacket");
-  if (!mbdhitcont)
+  MbdPacketContainer *mbdpacketcont = findNode::getClass<MbdPacketContainer>(detNode, "MBDPackets");
+  if (!mbdpacketcont)
   {
-    mbdhitcont = new MbdPacketv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(mbdhitcont, "MBDPacket", "PHObject");
+    mbdpacketcont = new MbdPacketContainerv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(mbdpacketcont, "MBDPackets", "PHObject");
     detNode->addNode(newNode);
   }
 }

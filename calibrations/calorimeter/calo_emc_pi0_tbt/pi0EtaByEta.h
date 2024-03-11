@@ -3,10 +3,9 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
+//#include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 #include <array>
-#include <string>   // for string
-#include <utility>  // for pair
+#include <string>  // for string
 #include <vector>
 
 // Forward declarations
@@ -20,6 +19,11 @@ class TH1;
 class TF1;
 class TProfile2D;
 class TH3;
+
+namespace CLHEP
+{
+  class Hep3Vector;
+}
 
 class pi0EtaByEta : public SubsysReco
 {

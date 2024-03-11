@@ -565,7 +565,10 @@ void PHG4TpcPadPlaneReadout::populate_tbins(const double t, const std::array<dou
   int tbin = LayerGeom->get_zbin(t);
   if (tbin < 0 || tbin > LayerGeom->get_zbins())
   {
-    std::cout << " t bin " << tbin << " is outside range of " << LayerGeom->get_zbins() << " so return" << std::endl;
+    if(Verbosity() > 0) 
+      {
+	std::cout << " t bin " << tbin << " for time " << t << " is outside range of " << LayerGeom->get_zbins() << " so return" << std::endl;
+      }
     return;
   }
 

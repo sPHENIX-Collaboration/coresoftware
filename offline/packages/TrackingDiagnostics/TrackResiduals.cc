@@ -586,7 +586,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
       m_ladderzid = InttDefs::getLadderZId(m_hitsetkey);
       m_ladderphiid = InttDefs::getLadderPhiId(m_hitsetkey);
       m_timebucket = InttDefs::getTimeBucketId(m_hitsetkey);
-
+      
       m_staveid = std::numeric_limits<int>::quiet_NaN();
       m_chipid = std::numeric_limits<int>::quiet_NaN();
       m_strobeid = std::numeric_limits<int>::quiet_NaN();
@@ -679,6 +679,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         local.SetX(local_hit_loc[1]);
         local.SetY(local_hit_loc[2]);
         auto glob = geom->get_world_from_local_coords(surf, geometry, local);
+
         m_hitgx = glob.X();
         m_hitgy = glob.Y();
         m_hitgz = glob.Z();
@@ -992,39 +993,15 @@ void TrackResiduals::fillStatesWithCircleFit(const TrkrDefs::cluskey& key,
 }
 void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
                                            TrkrCluster* cluster, ActsGeometry* geometry)
-{
+{ 
+  auto intersection = TrackFitUtils::surface_3Dline_intersection(key, cluster, geometry, m_xyslope,
+  m_xyint, m_rzslope, m_rzint);
+  
   auto surf = geometry->maps().getSurface(key, cluster);
+  Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext());
 
-  //! The slope/intercept params for x-y and r-z are already filled. Take
-  //! two random x points and calculate y and z on the line to find 2
-  //! 3D points with which to calculate the 3D line
-  float x1 = -1;
-  float x2 = 5;
-  float y1 = m_xyslope * x1 + m_xyint;
-  float y2 = m_xyslope * x2 + m_xyint;
-
-  //! slope/int for r-z is calculated with z as "x" variable, r as "y" variable
-  //! so swap them around
-  float r1 = r(x1, y1);
-  float r2 = r(x2, y2);
-  if (y1 < 0) r1 *= -1;
-  if (y2 < 0) r2 *= -1;
-  float z1 = (r1 - m_rzint) / m_rzslope;
-  float z2 = (r2 - m_rzint) / m_rzslope;
-  Acts::Vector3 v1(x1, y1, z1), v2(x2, y2, z2);
-
-  Acts::Vector3 surfcenter = surf->center(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
-  Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
-
-  Acts::Vector3 u = v2 - v1;
-  float dot = surfnorm.dot(u);
-  if (abs(dot) > 1e-6)
+  if(!std::isnan(intersection.x()))
   {
-    Acts::Vector3 w = v1 - surfcenter;
-    float fac = -surfnorm.dot(w) / dot;
-    u *= fac;
-    Acts::Vector3 intersection = v1 + u;
-
     auto locstateres = surf->globalToLocal(geometry->geometry().getGeoContext(),
                                            intersection * Acts::UnitConstants::cm,
                                            surfnorm);
@@ -1075,7 +1052,7 @@ void TrackResiduals::createBranches()
   m_hittree->Branch("chip", &m_chipid, "m_chipid/I");
   m_hittree->Branch("strobe", &m_strobeid, "m_strobeid/I");
   m_hittree->Branch("ladderz", &m_ladderzid, "m_ladderzid/I");
-  m_hittree->Branch("ladderphi", m_ladderphiid, "m_ladderphiid/I");
+  m_hittree->Branch("ladderphi", &m_ladderphiid, "m_ladderphiid/I");
   m_hittree->Branch("timebucket", &m_timebucket, "m_timebucket/I");
   m_hittree->Branch("pad", &m_hitpad, "m_hitpad/I");
   m_hittree->Branch("tbin", &m_hittbin, "m_hittbin/I");
@@ -1114,7 +1091,7 @@ void TrackResiduals::createBranches()
   m_clustree->Branch("chip", &m_chipid, "m_chipid/I");
   m_clustree->Branch("strobe", &m_strobeid, "m_strobeid/I");
   m_clustree->Branch("ladderz", &m_ladderzid, "m_ladderzid/I");
-  m_clustree->Branch("ladderphi", m_ladderphiid, "m_ladderphiid/I");
+  m_clustree->Branch("ladderphi", &m_ladderphiid, "m_ladderphiid/I");
   m_clustree->Branch("timebucket", &m_timebucket, "m_timebucket/I");
   m_clustree->Branch("segtype", &m_segtype, "m_segtype/I");
   m_clustree->Branch("tile", &m_tileid, "m_tileid/I");
