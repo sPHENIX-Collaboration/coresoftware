@@ -125,9 +125,8 @@ double Rossegger::FindNextZero(double xstart, double localepsilon, int order, do
     previous = value;
     x += localepsilon;
   }
-  std::cout << "logic break!\n";
-  assert(1 == 2);
-  return 0;
+  std::cout << "logic break!" << std::endl;
+  exit(1);
 }
 
 void Rossegger::FindBetamn(double localepsilon)
