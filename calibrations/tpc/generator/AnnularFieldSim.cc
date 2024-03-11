@@ -1102,7 +1102,6 @@ void AnnularFieldSim::load_spacecharge(const std::string &filename, const std::s
   std::cout << "Loading spacecharge from '" << filename
             << "'.  Seeking histname '" << histname << "'" << std::endl;
   chargesourcename = filename + ":" + histname;
-  //  sprintf(chargesourcename,"%s:%s",filename,histname);
   load_spacecharge(scmap, zoffset, chargescale, cmscale, isChargeDensity, chargesourcename.c_str());
   f->Close();
   return;
@@ -1864,7 +1863,7 @@ void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
   tLookup->SetBranchAddress("Evec", &unitf);  // assume field has units V/(C*cm)
 
   int el = 0;
-  printf("%s has %lld entries\n", sourcefile, tLookup->GetEntries());
+  std::cout << boost::str(boost::format("%s has %lld entries") %sourcefile %tLookup->GetEntries());
   for (int i = 0; i < (int) totalelements; i++)
   {
     el++;
@@ -1874,9 +1873,9 @@ void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
     // note that we save the gradient terms, not the field, hence we need to multiply by (-1.0)
     if (!(el % percent))
     {
-      printf("load_phislice_lookup %d%%:  ", (int) (debug_npercent * el / percent));
-      printf("field from (ir=%d,iphi=%d,iz=%d) to (or=%d,ophi=0,oz=%d) is (%E,%E,%E)\n",
-             ior, iophi, ioz, ifr, ifz, unitf->X(), unitf->Y(), unitf->Z());
+      std::cout << boost::str(boost::format("load_phislice_lookup %d%%:  ") %((int) (debug_npercent * el / percent)));
+      std::cout << boost::str(boost::format("field from (ir=%d,iphi=%d,iz=%d) to (or=%d,ophi=0,oz=%d) is (%E,%E,%E)")
+             %ior %iophi %ioz %ifr %ifz %unitf->X() %unitf->Y() %unitf->Z()) << std::endl;
     }
   }
 
@@ -1886,14 +1885,14 @@ void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
 
 void AnnularFieldSim::save_phislice_lookup(const char *destfile)
 {
-  printf("saving phislice  lookup for (%dx%dx%d)x(%dx%dx%d) grid to %s\n", nr_roi, 1, nz_roi, nr, nphi, nz, destfile);
+  std::cout << boost::str(boost::format("saving phislice  lookup for (%dx%dx%d)x(%dx%dx%d) grid to %s") %nr_roi %1 %nz_roi %nr %nphi %nz %destfile) << std::endl;
   unsigned long long totalelements = nr;  // nr*nphi*nz*nr_roi*nz_roi
   totalelements *= nphi;
   totalelements *= nz;
   totalelements *= nr_roi;
   totalelements *= nz_roi;  // breaking up this multiplication prevents a 32bit math overflow
   unsigned long long percent = totalelements / 100 * debug_npercent;
-  printf("total elements = %llu\n", totalelements);
+  std::cout << boost::str(boost::format("total elements = %llu") %totalelements) << std::endl;
 
   TFile *output = TFile::Open(destfile, "RECREATE");
   output->cd();
@@ -1942,9 +1941,9 @@ void AnnularFieldSim::save_phislice_lookup(const char *destfile)
             {
               if (!(el % percent))
               {
-                printf("save_phislice_lookup %d%%:  ", (int) (debug_npercent * el / percent));
-                printf("field from (ir=%d,iphi=%d,iz=%d) to (or=%d,ophi=0,oz=%d) is (%E,%E,%E)\n",
-                       ior, iophi, ioz, ifr, ifz, unitf.X(), unitf.Y(), unitf.Z());
+                std::cout << boost::str(boost::format("save_phislice_lookup %d%%:  ") %((int) (debug_npercent * el / percent)));
+                std::cout << boost::str(boost::format("field from (ir=%d,iphi=%d,iz=%d) to (or=%d,ophi=0,oz=%d) is (%E,%E,%E)")
+                       %ior %iophi %ioz %ifr %ifz %unitf.X() %unitf.Y() %unitf.Z()) << std::endl;
               }
             }
 
@@ -1965,8 +1964,8 @@ void AnnularFieldSim::save_phislice_lookup(const char *destfile)
 void AnnularFieldSim::setFlatFields(float B, float E)
 {
   // these only cover the roi, but since we address them flat, we don't need to know that here.
-  printf("AnnularFieldSim::setFlatFields(B=%f Tesla,E=%f V/cm)\n", B, E);
-  printf("lengths:  Eext=%d, Bfie=%d\n", Eexternal->Length(), Bfield->Length());
+  std::cout << boost::str(boost::format("AnnularFieldSim::setFlatFields(B=%f Tesla,E=%f V/cm)") %B %E) << std::endl;
+  std::cout << boost::str(boost::format("lengths:  Eext=%d, Bfie=%d") %Eexternal->Length() %Bfield->Length()) << std::endl;
   char fieldstr[100];
   sprintf(fieldstr, "%f", E);
   Efieldname = "E:Flat:" + std::string(fieldstr);
@@ -2026,7 +2025,7 @@ TVector3 AnnularFieldSim::sum_field_at(int r, int phi, int z)
   sum += Eexternal->Get(r - rmin_roi, phi - phimin_roi, z - zmin_roi);
   if (debugFlag())
   {
-    printf("summed field at (%d,%d,%d)=(%f,%f,%f)\n", r, phi, z, sum.X(), sum.Y(), sum.Z());
+    std::cout << boost::str(boost::format("summed field at (%d,%d,%d)=(%f,%f,%f)") %r %phi %z %sum.X() %sum.Y() %sum.Z()) << std::endl;
   }
 
   return sum;
@@ -2116,7 +2115,7 @@ TVector3 AnnularFieldSim::sum_local_field_at(int r, int phi, int z)
   int phi_parenthigh = floor((phi + phi_highres_dist) / (phi_spacing * 1.0)) + 1;  // note that this can be bigger than nphi!  We keep track of that.
   int z_parentlow = floor((z - z_highres_dist) / (z_spacing * 1.0));
   int z_parenthigh = floor((z + z_highres_dist) / (z_spacing * 1.0)) + 1;
-  printf("AnnularFieldSim::sum_local_field_at parents: rlow=%d,philow=%d,zlow=%d,rhigh=%d,phihigh=%d,zhigh=%d\n", r_parentlow, phi_parentlow, z_parentlow, r_parenthigh, phi_parenthigh, z_parenthigh);
+  std::cout << boost::str(boost::format("AnnularFieldSim::sum_local_field_at parents: rlow=%d,philow=%d,zlow=%d,rhigh=%d,phihigh=%d,zhigh=%d") %r_parentlow %phi_parentlow %z_parentlow %r_parenthigh %phi_parenthigh %z_parenthigh) << std::endl;
 
   // zero our current qlocal holder:
   for (int i = 0; i < q_local->Length(); i++)
@@ -2206,7 +2205,7 @@ TVector3 AnnularFieldSim::sum_local_field_at(int r, int phi, int z)
         // first three are relative to the roi, last three are relative to the point in the first three.  ooph.
         if (phi - phimin_roi < 0)
         {
-          printf("%d: Getting with phi=%d\n", __LINE__, phi - phimin_roi);
+          std::cout << boost::str(boost::format("%d: Getting with phi=%d") %__LINE__ %(phi - phimin_roi)) << std::endl;
         }
         sum += Epartial_highres->Get(r - rmin_roi, phi - phimin_roi, z - zmin_roi, ir, iphi, iz) * q_local->Get(ir, iphi, iz);
       }
@@ -2394,14 +2393,14 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
             }
             if (ri[(i / 4) % 2] + rmin_roi_low == ir && pi[(i / 2) % 2] + phimin_roi_low == iphi && zi[(i) % 2] + zmin_roi_low == iz)
             {
-              printf("considering an l-bins effect on itself, r=%d,phi=%d,z=%d (matches i=%d, not skipped), means we're not interpolating fairly\n", ir, iphi, iz, i);
+              std::cout << boost::str(boost::format("considering an l-bins effect on itself, r=%d,phi=%d,z=%d (matches i=%d, not skipped), means we're not interpolating fairly") %ir %iphi %iz %i) << std::endl;
               exit(1);
             }
             // the ri, pi, and zi elements are relative to the roi, as needed for Epartial.
             // the ir, iphi, and iz are all absolute, as needed for q_lowres
             if (pi[(i / 2) % 2] < 0)
             {
-              printf("%d: Getting with phi=%d\n", __LINE__, pi[(i / 2) % 2]);
+              std::cout << boost::str(boost::format("%d: Getting with phi=%d") %__LINE__ %(pi[(i / 2) % 2])) << std::endl;
             }
             sum += (Epartial_lowres->Get(ri[(i / 4) % 2], pi[(i / 2) % 2], zi[(i) % 2], ir, iphi, iz) * q_lowres->Get(ir, iphi, iz)) * zw[(i) % 2] * pw[(i / 2) % 2] * rw[(i / 4) % 2];
           }
@@ -2488,14 +2487,13 @@ TVector3 AnnularFieldSim::swimToInAnalyticSteps(float zdest, TVector3 start, int
     }
     if (GetRindexAndCheckBounds(ret.Perp(), &rt) != InBounds || GetPhiIndexAndCheckBounds(FilterPhiPos(ret.Phi()), &pt) != InBounds || (zBound == OutOfBounds))
     {
-      printf(
-          "AnnularFieldSim::swimToInAnalyticSteps at step %d,"
-          "asked to swim particle from (%f,%f,%f)(cm) (rphiz)=(%fcm,%frad,%fcm)which is outside the ROI.\n",
-          i, ret.X() / cm, ret.Y() / cm, ret.Z() / cm, ret.Perp() / cm, ret.Phi(), ret.Z() / cm);
-      printf(" -- %f <= r < %f \t%f <= phi < %f \t%f <= z < %f \n",
-             rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin,
-             phimin_roi * step.Phi(), phimax_roi * step.Phi(),
-             zmin_roi * step.Z(), zmax_roi * step.Z());
+      std::cout << boost::str(boost::format(
+				"AnnularFieldSim::swimToInAnalyticSteps at step %d asked to swim particle from (%f,%f,%f)(cm) (rphiz)=(%fcm,%frad,%fcm)which is outside the ROI.")
+			      %i %(ret.X() / cm) %(ret.Y() / cm) %(ret.Z() / cm) %(ret.Perp() / cm) %ret.Phi() %(ret.Z() / cm)) << std::endl;
+      std::cout << boost::str(boost::format(" -- %f <= r < %f \t%f <= phi < %f \t%f <= z < %f ")
+			      %(rmin_roi * step.Perp() + rmin) %(rmax_roi * step.Perp() + rmin)
+			      %(phimin_roi * step.Phi()) %(phimax_roi * step.Phi())
+			      %(zmin_roi * step.Z()) %(zmax_roi * step.Z())) << std::endl;
       std::cout << "Returning last valid position." << std::endl;;
       if (!(goodToStep == nullptr))
       {
@@ -2548,8 +2546,8 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, const TVector3 &start,
       }
     }
     // otherwise, we're not in the twin, and default to our usual gripe:
-    printf("AnnularFieldSim::GetTotalDistortion starting at (%f,%f,%f)=(r%f,p%f,z%f) asked to drift to z=%f, which is outside the ROI.  hasTwin= %d.  Returning zero_vector.\n", start.X(), start.Y(), start.Z(), start.Perp(), FilterPhiPos(start.Phi()), start.Z(), zdest, (int) hasTwin);
-    printf(" -- %f <= r < %f \t%f <= phi < %f \t%f <= z < %f \n", rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin, phimin_roi * step.Phi(), phimax_roi * step.Phi(), zmin_roi * step.Z(), zmax_roi * step.Z());
+    std::cout << boost::str(boost::format("AnnularFieldSim::GetTotalDistortion starting at (%f,%f,%f)=(r%f,p%f,z%f) asked to drift to z=%f, which is outside the ROI.  hasTwin= %d.  Returning zero_vector.") %start.X() %start.Y() %start.Z() %start.Perp() %FilterPhiPos(start.Phi()) %start.Z() %zdest %(int) hasTwin) << std::endl;
+    std::cout << boost::str(boost::format(" -- %f <= r < %f \t%f <= phi < %f \t%f <= z < %f ") %(rmin_roi * step.Perp() + rmin) %(rmax_roi * step.Perp() + rmin) %(phimin_roi * step.Phi()) %(phimax_roi * step.Phi()) %(zmin_roi * step.Z()) %(zmax_roi * step.Z())) << std::endl;
     *goodToStep = 0;
     *success = 0;
     return zero_vector;  // rcchere
@@ -2562,8 +2560,8 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, const TVector3 &start,
   zBound = GetZindexAndCheckBounds(start.Z(), &zt);
   if (zBound == OutOfBounds)
   {
-    printf("AnnularFieldSim::GetTotalDistortion starting at (%f,%f,%f)=(r%f,p%f,z%f) asked to drift from z=%f, which is outside the ROI.  Returning zero_vector.\n", start.X(), start.Y(), start.Z(), start.Perp(), FilterPhiPos(start.Phi()), start.Z(), start.Z());
-    printf(" -- %f <= r < %f \t%f <= phi < %f \t%f <= z < %f \n", rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin, phimin_roi * step.Phi(), phimax_roi * step.Phi(), zmin_roi * step.Z(), zmax_roi * step.Z());
+    std::cout << boost::str(boost::format("AnnularFieldSim::GetTotalDistortion starting at (%f,%f,%f)=(r%f,p%f,z%f) asked to drift from z=%f, which is outside the ROI.  Returning zero_vector.") %start.X() %start.Y() %start.Z() %start.Perp() %FilterPhiPos(start.Phi()) %start.Z() %start.Z()) << std::endl;
+    std::cout << boost::str(boost::format(" -- %f <= r < %f \t%f <= phi < %f \t%f <= z < %f ") %(rmin_roi * step.Perp() + rmin) %(rmax_roi * step.Perp() + rmin) %(phimin_roi * step.Phi()) %(phimax_roi * step.Phi()) %(zmin_roi * step.Z()) %(zmax_roi * step.Z())) << std::endl;
     *goodToStep = 0;
     *success = 0;
     return zero_vector;
@@ -2678,7 +2676,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, const TVector3 &pos,
     sprintf(units, "T");
   }
 
-  printf("plotting field slices for %c field, slicing at (%1.2F,%1.2f,%1.2f)...\n", which, pos.Perp(), FilterPhiPos(pos.Phi()), pos.Z());
+  std::cout << boost::str(boost::format("plotting field slices for %c field, slicing at (%1.2F,%1.2f,%1.2f)...") %which %pos.Perp() %FilterPhiPos(pos.Phi()) %pos.Z()) << std::endl;
   std::cout << "file=" << filebase << std::endl;
   ;
   TString plotfilename = TString::Format("%s.%cfield_slices.pdf", filebase, which);
@@ -2703,7 +2701,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, const TVector3 &pos,
     // axtop[2]=axtop[5]=(float)(twin->GetOuterEdge().Z());
     axbot[2] = axbot[5] = (float) (twin->GetInnerEdge().Z());
   }
-  printf("rpz bounds are %f<r%f\t %f<phi%f\t %f<z%f\n", axbot[0], axtop[0], axbot[1], axtop[1], axbot[2], axtop[2]);
+  std::cout << boost::str(boost::format("rpz bounds are %f<r%f\t %f<phi%f\t %f<z%f") %axbot[0] %axtop[0] %axbot[1] %axtop[1] %axbot[2] %axtop[2]) << std::endl;
   float axstep[6];
   for (int i = 0; i < 6; i++)
   {
@@ -2750,9 +2748,9 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, const TVector3 &pos,
         lpos.SetPhi(rpz_coord[1]);
         if (false && ax == 0)
         {
-          printf("sampling rpz=(%f,%f,%f)=(%f,%f,%f) after conversion to xyz=(%f,%f,%f)\n",
-                 rpz_coord[0], rpz_coord[1], rpz_coord[2],
-                 lpos.Perp(), FilterPhiPos(lpos.Phi()), lpos.Z(), lpos.X(), lpos.Y(), lpos.Z());
+          std::cout << boost::str(boost::format("sampling rpz=(%f,%f,%f)=(%f,%f,%f) after conversion to xyz=(%f,%f,%f)")
+                 %rpz_coord[0] %rpz_coord[1] %rpz_coord[2]
+				  %lpos.Perp() %(FilterPhiPos(lpos.Phi())) %lpos.Z() %lpos.X() %lpos.Y() %lpos.Z()) << std::endl;
         }
         if (mapEfield)
         {
