@@ -162,7 +162,9 @@ int TpcMap::digest_map(const std::string &fileName, const unsigned int section_o
 
     unsigned int key = 256 * (FEE) + FEE_Chan;
     tmap[key] = x;
-    //      cout << setw(5) << key << setw(5) << FEE << setw(5) << FEE_Chan << " " << PadR << "  " << PadPhi << endl;
+    //if(Radius<0){
+    //  std::cout << " " << key << " " << FEE << " " << FEE_Chan << " " << PadR << "  " << PadPhi << " " << Radius << std::endl;
+    //}
   }
   return 0;
 }

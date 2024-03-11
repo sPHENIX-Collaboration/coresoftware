@@ -140,9 +140,6 @@ int TpcRawDataDecoder::Init(PHCompositeNode * /*topNode*/)
     // hm->registerHisto(_h_hit_PT_ADCcut);
     hm->registerHisto(_h_hit_XY);
     hm->registerHisto(_h_hit_XY_ADCcut);
-    hm->registerHisto(_h_hit_ADCChn);
-    hm->registerHisto(_h_hit_ADCChn_p);
-    hm->registerHisto(_h_hit_ADCChn_ADCcut);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -543,7 +540,3 @@ int TpcRawDataDecoder::End(PHCompositeNode * /*topNode*/)
 //  _filename = what;
 //  std::cout << "TpcRawDataDecoder::setHistoFileName(const std::string &what) Histogram File Name is " << what << std::endl;
 //}
-void TpcRawDataDecoder::setRunNumber(const std::string &runNumber){
-  _runNumber = runNumber;
-  std::cout << "TpcRawDataDecoder::setRunNumber RunNumber is " << _runNumber << std::endl;
-}
