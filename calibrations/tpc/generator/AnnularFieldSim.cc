@@ -994,11 +994,11 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   TH3F *htSum[3];
   TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nphi / lowres_factor + 1, 0, M_PI * 2.0, nr / lowres_factor + 1, rmin, rmax, nz / lowres_factor + 1, zmin, zmax);
   TH3F *htSumLow[3];
-  char axis[] = "rpz";
+  std::string axis[]{"r","p","z"};
   for (int i = 0; i < 3; i++)
   {
-    htSum[i] = new TH3F(Form("htsum%d", i), Form("sum of %c-axis entries in the field loading", *(axis + i)), nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
-    htSumLow[i] = new TH3F(Form("htsumlow%d", i), Form("sum of low %c-axis entries in the field loading", *(axis + i)), nphi / lowres_factor + 1, 0, M_PI * 2.0, nr / lowres_factor + 1, rmin, rmax, nz / lowres_factor + 1, zmin, zmax);
+    htSum[i] = new TH3F(std::string("htsum" + std::to_string(i)).c_str(), std::string("sum of " + axis[i] + "-axis entries in the field loading").c_str(), nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
+    htSumLow[i] = new TH3F(std::string("htsumlow" + std::to_string(i)).c_str(), std::string("sum of low " + axis[i] + "-axis entries in the field loading").c_str(), nphi / lowres_factor + 1, 0, M_PI * 2.0, nr / lowres_factor + 1, rmin, rmax, nz / lowres_factor + 1, zmin, zmax);
   }
 
   int nEntries = source->GetEntries();
