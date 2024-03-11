@@ -37,8 +37,8 @@ public:
     return;
   }
 
-  /// get Number of Mbd Pmt's
-  Short_t get_npmt() const override { return npmt; }
+ /// get Number of Mbd Pmt's
+    Short_t get_npmt() const override { return MbdPmtHits->GetEntries(); }
 
   /** get MbdHitPmt of Pmt iPmt in TClonesArray
       @param iPmt no of Pmt in TClonesArray

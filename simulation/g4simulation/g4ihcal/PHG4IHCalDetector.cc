@@ -2,23 +2,10 @@
 
 #include "PHG4IHCalDisplayAction.h"
 
+#include <g4detectors/PHG4DetectorSubsystem.h>
 #include <g4detectors/PHG4HcalDefs.h>
 
 #include <phparameter/PHParameters.h>
-
-#include <g4main/PHG4Detector.h>
-#include <g4main/PHG4DisplayAction.h>
-#include <g4main/PHG4Subsystem.h>
-#include <g4main/PHG4Utils.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>  // for PHNode
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>  // for PHObject
-#include <phool/getClass.h>
-#include <phool/phool.h>
-#include <phool/recoConsts.h>
 
 #include <g4gdml/PHG4GDMLConfig.hh>
 #include <g4gdml/PHG4GDMLUtility.hh>
@@ -28,6 +15,22 @@
 #include <calobase/RawTowerGeomContainer.h>  // for RawTowerGeomC...
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/RawTowerGeomv1.h>
+
+#include <g4main/PHG4Detector.h>
+#include <g4main/PHG4DisplayAction.h>
+#include <g4main/PHG4Subsystem.h>
+#include <g4main/PHG4Utils.h>
+
+#include <ffamodules/CDBInterface.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>  // for PHNode
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>  // for PHObject
+#include <phool/getClass.h>
+#include <phool/phool.h>
+#include <phool/recoConsts.h>
 
 #include <TSystem.h>
 
@@ -58,6 +61,8 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <cmath>
+#include <filesystem>
 #include <iostream>
 #include <memory>   // for unique_ptr
 #include <utility>  // for pair, make_pair
@@ -77,6 +82,13 @@ PHG4IHCalDetector::PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
 {
   gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
   assert(gdml_config);
+  // changes in the parameters have to be made here
+  // otherwise they will not be propagated to the node tree
+  if (std::filesystem::path(m_GDMPath).extension() != ".gdml")
+  {
+    m_GDMPath = CDBInterface::instance()->getUrl(m_GDMPath);
+    m_Params->set_string_param("GDMPath", m_GDMPath);
+  }
 }
 
 PHG4IHCalDetector::~PHG4IHCalDetector()
@@ -154,6 +166,12 @@ int PHG4IHCalDetector::ConstructIHCal(G4LogicalVolume *hcalenvelope)
   std::unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
   gdmlParser.SetOverlapCheck(OverlapCheck());
+  if (!std::filesystem::exists(m_GDMPath))
+  {
+    std::cout << PHWHERE << " Inner HCal gdml file " << m_GDMPath << " not found" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
   gdmlParser.Read(m_GDMPath, false);
 
   G4AssemblyVolume *abs_asym = reader->GetAssembly("InnerSector");      // absorber
@@ -508,9 +526,9 @@ void PHG4IHCalDetector::AddGeometryNode()
     {
       const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::convert_name_to_caloid(m_SuperDetector), ieta, iphi);
 
-      const double x(geom_ref_radius * cos(m_RawTowerGeom->get_phicenter(iphi)));
-      const double y(geom_ref_radius * sin(m_RawTowerGeom->get_phicenter(iphi)));
-      const double z(geom_ref_radius / tan(PHG4Utils::get_theta(m_RawTowerGeom->get_etacenter(ieta))));
+      const double x(geom_ref_radius * std::cos(m_RawTowerGeom->get_phicenter(iphi)));
+      const double y(geom_ref_radius * std::sin(m_RawTowerGeom->get_phicenter(iphi)));
+      const double z(geom_ref_radius / std::tan(PHG4Utils::get_theta(m_RawTowerGeom->get_etacenter(ieta))));
 
       RawTowerGeom *tg = m_RawTowerGeom->get_tower_geometry(key);
       if (tg)
@@ -520,20 +538,20 @@ void PHG4IHCalDetector::AddGeometryNode()
           std::cout << "IHCalDetector::InitRun - Tower geometry " << key << " already exists" << std::endl;
         }
 
-        if (fabs(tg->get_center_x() - x) > 1e-4)
+        if (std::fabs(tg->get_center_x() - x) > 1e-4)
         {
           std::cout << "IHCalDetector::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
                     << std::endl;
 
           return;
         }
-        if (fabs(tg->get_center_y() - y) > 1e-4)
+        if (std::fabs(tg->get_center_y() - y) > 1e-4)
         {
           std::cout << "IHCalDetector::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
                     << std::endl;
           return;
         }
-        if (fabs(tg->get_center_z() - z) > 1e-4)
+        if (std::fabs(tg->get_center_z() - z) > 1e-4)
         {
           std::cout << "IHCalDetector::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
                     << std::endl;

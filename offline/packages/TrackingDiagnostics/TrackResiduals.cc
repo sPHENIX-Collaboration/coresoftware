@@ -586,7 +586,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
       m_ladderzid = InttDefs::getLadderZId(m_hitsetkey);
       m_ladderphiid = InttDefs::getLadderPhiId(m_hitsetkey);
       m_timebucket = InttDefs::getTimeBucketId(m_hitsetkey);
-
+      
       m_staveid = std::numeric_limits<int>::quiet_NaN();
       m_chipid = std::numeric_limits<int>::quiet_NaN();
       m_strobeid = std::numeric_limits<int>::quiet_NaN();
@@ -679,6 +679,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         local.SetX(local_hit_loc[1]);
         local.SetY(local_hit_loc[2]);
         auto glob = geom->get_world_from_local_coords(surf, geometry, local);
+
         m_hitgx = glob.X();
         m_hitgy = glob.Y();
         m_hitgz = glob.Z();
@@ -1051,7 +1052,7 @@ void TrackResiduals::createBranches()
   m_hittree->Branch("chip", &m_chipid, "m_chipid/I");
   m_hittree->Branch("strobe", &m_strobeid, "m_strobeid/I");
   m_hittree->Branch("ladderz", &m_ladderzid, "m_ladderzid/I");
-  m_hittree->Branch("ladderphi", m_ladderphiid, "m_ladderphiid/I");
+  m_hittree->Branch("ladderphi", &m_ladderphiid, "m_ladderphiid/I");
   m_hittree->Branch("timebucket", &m_timebucket, "m_timebucket/I");
   m_hittree->Branch("pad", &m_hitpad, "m_hitpad/I");
   m_hittree->Branch("tbin", &m_hittbin, "m_hittbin/I");
@@ -1090,7 +1091,7 @@ void TrackResiduals::createBranches()
   m_clustree->Branch("chip", &m_chipid, "m_chipid/I");
   m_clustree->Branch("strobe", &m_strobeid, "m_strobeid/I");
   m_clustree->Branch("ladderz", &m_ladderzid, "m_ladderzid/I");
-  m_clustree->Branch("ladderphi", m_ladderphiid, "m_ladderphiid/I");
+  m_clustree->Branch("ladderphi", &m_ladderphiid, "m_ladderphiid/I");
   m_clustree->Branch("timebucket", &m_timebucket, "m_timebucket/I");
   m_clustree->Branch("segtype", &m_segtype, "m_segtype/I");
   m_clustree->Branch("tile", &m_tileid, "m_tileid/I");

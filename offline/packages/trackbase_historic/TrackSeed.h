@@ -3,26 +3,26 @@
 
 #include <phool/PHObject.h>
 
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <g4main/PHG4HitDefs.h>
 
 #include <cmath>
 #include <iostream>
-#include <set>
 #include <iterator>
+#include <set>
 
 class TrackSeed : public PHObject
 {
- public: 
+ public:
   typedef std::set<TrkrDefs::cluskey> ClusterKeySet;
   typedef ClusterKeySet::const_iterator ConstClusterKeyIter;
   typedef ClusterKeySet::iterator ClusterKeyIter;
 
   ~TrackSeed() override = default;
-  
+
   void identify(std::ostream& os = std::cout) const override
   {
     os << "TrackSeed base class\n";
@@ -31,19 +31,19 @@ class TrackSeed : public PHObject
   int isValid() const override { return 0; }
   PHObject* CloneMe() const override { return nullptr; }
   using PHObject::CopyFrom;
-  
-  virtual void CopyFrom( const TrackSeed& ) {}
 
-  virtual void CopyFrom( TrackSeed* ) {}
+  virtual void CopyFrom(const TrackSeed&) {}
+
+  virtual void CopyFrom(TrackSeed*) {}
 
   virtual int get_charge() const { return std::numeric_limits<int>::max(); }
   /// We need access to the first two clusters to get the phi angle right
   virtual float get_px(TrkrClusterContainer*,
-		       ActsGeometry*) const { return NAN; }
+                       ActsGeometry*) const { return NAN; }
   virtual float get_py(TrkrClusterContainer*,
-		       ActsGeometry*) const { return NAN; }
+                       ActsGeometry*) const { return NAN; }
   virtual float get_phi(TrkrClusterContainer*,
-			ActsGeometry*) const { return NAN; }
+                        ActsGeometry*) const { return NAN; }
   virtual float get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>&) const { return NAN; }
   virtual float get_pz() const { return NAN; }
   virtual float get_x() const { return NAN; }
@@ -68,18 +68,18 @@ class TrackSeed : public PHObject
   virtual void set_Z0(const float) {}
 
   virtual void circleFitByTaubin(TrkrClusterContainer*,
-				 ActsGeometry*,
-				 uint8_t, uint8_t) {}
+                                 ActsGeometry*,
+                                 uint8_t, uint8_t) {}
   virtual void lineFit(TrkrClusterContainer*,
-		       ActsGeometry*,
-		       uint8_t, uint8_t) {}
-  
-  /// In case the global cluster positions have already been obtained, 
+                       ActsGeometry*,
+                       uint8_t, uint8_t) {}
+
+  /// In case the global cluster positions have already been obtained,
   /// these can be called to avoid performing transformations twice
-  virtual void circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>&, 
-				 uint8_t, uint8_t) {}
-  virtual void lineFit(std::map<TrkrDefs::cluskey, Acts::Vector3>&, 
-		       uint8_t, uint8_t) {}
+  virtual void circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>&,
+                                 uint8_t, uint8_t) {}
+  virtual void lineFit(std::map<TrkrDefs::cluskey, Acts::Vector3>&,
+                       uint8_t, uint8_t) {}
 
   virtual void clear_cluster_keys() {}
   virtual bool empty_cluster_keys() const { return false; }
@@ -98,7 +98,7 @@ class TrackSeed : public PHObject
   virtual unsigned int get_silicon_seed_index() const { return 0; }
   virtual unsigned int get_tpc_seed_index() const { return 0; }
 
-  virtual void set_crossing_estimate(const short int) { }
+  virtual void set_crossing_estimate(const short int) {}
   virtual short int get_crossing_estimate() const { return 0; }
 
   /* ---------------------------------------------------------
@@ -127,12 +127,10 @@ class TrackSeed : public PHObject
   virtual void clear_g4hit_id() {}
   virtual const HitIdMap& g4hit_ids() const;
 
-
  protected:
   TrackSeed() {}
 
   ClassDefOverride(TrackSeed, 1);
-
 };
 
-#endif 
+#endif

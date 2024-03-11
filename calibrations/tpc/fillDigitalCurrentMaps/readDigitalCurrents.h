@@ -5,28 +5,24 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <fstream>
 #include <map>
 #include <string>
 #include <vector>
-#include <fstream>
-
-#include <cmath>      // for sin, asin, cos, floor, M_PI
 
 class Fun4AllHistoManager;
 class PHCompositeNode;
 
-//class PHG4CylinderCellGeom;
+// class PHG4CylinderCellGeom;
 
-//class TFile;
+// class TFile;
 class TH1;
 class TH2;
 class TH3;
 
-
 class readDigitalCurrents : public SubsysReco
 {
  public:
-
   readDigitalCurrents(const std::string &name = "readDigitalCurrents", const std::string &filename = "DC_Hist_OnPlane_WIBF.root");
 
   virtual ~readDigitalCurrents();
@@ -67,55 +63,59 @@ class readDigitalCurrents : public SubsysReco
   void SetBeamXing(const std::vector<int> &beamXs);
   void SetEvtStart(int newEvtStart);
   void FillCSV(int fillCSVFile);
-  void SetCollSyst(int coll_syst=0);
-  void SetIBF(float ampIBFfrac=0.004);
-  void SetCCGC(float f_ccgc=0);
+  void SetCollSyst(int coll_syst = 0);
+  void SetIBF(double ampIBFfrac = 0.004);
+  void SetCCGC(double f_ccgc = 0);
 
-  //double pi = 3.14159265358979323846;//2 * acos(0.0);
+  // double pi = 3.14159265358979323846;//2 * acos(0.0);
 
  protected:
-   Fun4AllHistoManager *hm = nullptr;
-   std::string _filename;
-   //TFile *outfile = nullptr;
-   std::map<int,int> _timestamps;
-   std::vector<int> _keys;
-   float _ampIBFfrac = 0.02;
-   int _collSyst = 0;
-   std::ofstream myCSVFile;
+  Fun4AllHistoManager *hm{nullptr};
+  std::string _filename;
+  // TFile *outfile {nullptr};
+  std::map<int, int> _timestamps;
+  std::vector<int> _keys;
+  double _ampIBFfrac{0.02};
+  int _collSyst{0};
+  std::ofstream myCSVFile;
 
  private:
   std::vector<int> _beamxing;
-  int _evtstart = 0;
+  int _evtstart{0};
 
-  int _fillCSVFile = 0;
+  int _fillCSVFile{0};
 
-    int _f_ccgc = 0;
+  int _f_ccgc{0};
 
-    TH2*   _h_modules_measuredibf = nullptr;
+  TH2 *_h_modules_measuredibf{nullptr};
 
-    TH1*   _h_R = nullptr;
-    TH1*   _h_hits = nullptr;
-    TH3*   _h_DC_SC = nullptr;
-    TH2*   _h_DC_SC_XY = nullptr;
-    TH2*   _h_hit_XY = nullptr;
-    TH2*   _h_DC_E = nullptr;
-    //TH3*   _h_SC_ibf = nullptr;
-    static const int nFrames = 30;
-    TH3 *_h_SC_ibf[nFrames] = {nullptr};
+  TH1 *_h_R{nullptr};
+  TH1 *_h_hits{nullptr};
+  TH3 *_h_DC_SC{nullptr};
+  TH2 *_h_DC_SC_XY{nullptr};
+  TH2 *_h_hit_XY{nullptr};
+  TH2 *_h_DC_E{nullptr};
+  // TH3*   _h_SC_ibf {nullptr};
+  static const int nFrames{30};
+  TH3 *_h_SC_ibf[nFrames]{};
 
-    float _event_timestamp = 0;
-    float _event_bunchXing = 0;
+  float _event_timestamp{0};
+  float _event_bunchXing{0};
 
-    //double pi = 2 * acos(0.0);
-    double adc_pedestal=0.;//74.4;
-    double cm=1e1,m=1e3, mm=1; //changed to make 'm' 1.0, for convenience.
-    float ns=1e-9,us=1e-6,ms=1e-3,s=1;
-    float V=1;
-    //float ionMobility=3.37*cm*cm/V/s;
-    float ionMobility=1.65*cm*cm/V/s;
-    float vIon=ionMobility*400*V/cm;
+  // double pi = 2 * acos(0.0);
+  double adc_pedestal{0.};  // 74.4;
+  double cm{1e1};
+  double m{1e3};
+  double mm{1};  // changed to make 'm' 1.0, for convenience.
+  //    float ns=1e-9,us=1e-6,ms=1e-3,s=1;
+  double ns{1e-9};
+  double s{1};
+  double V{1};
+  // double ionMobility=3.37*cm*cm/V/s;
+  double ionMobility{1.65 * cm * cm / V / s};
+  double vIon{ionMobility * 400 * V / cm};
 
-    float f=0.5;//for now, just pick the middle of the hit.  Do better later.
+  //    float f=0.5;//for now, just pick the middle of the hit.  Do better later.
 };
 
-#endif // READDIGITALCURRENTS_H
+#endif  // READDIGITALCURRENTS_H

@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef CALOCALIBEMC_PI0_H
-#define CALOCALIBEMC_PI0_H
+#ifndef CALOEMCPI0TBT_CALOCALIBEMC_PI0_H
+#define CALOEMCPI0TBT_CALOCALIBEMC_PI0_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -13,12 +13,8 @@ class TFile;
 class TH1F;
 class TH2F;
 class TH3F;
-class TF1;
 class TH1;
-class TNtuple;
 class TTree;
-class TString;
-class TCanvas;
 
 class CaloCalibEmc_Pi0 : public SubsysReco
 {
@@ -42,8 +38,8 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
 
-  void Loop(int nevts, const std::string &filename, TTree *intree = 0, const std::string &ifileCorr = "");
-  void Loop_for_eta_slices(int nevts, const std::string &filename, TTree *intree = 0, const std::string &ifileCorr = "");
+  void Loop(int nevts, const std::string &filename, TTree *intree = nullptr, const std::string &ifileCorr = "");
+  void Loop_for_eta_slices(int nevts, const std::string &filename, TTree *intree = nullptr, const std::string &ifileCorr = "");
 
   void Fit_Histos_Etas96(const std::string &infilent);
   void Fit_Histos(const std::string &infilent);
@@ -132,4 +128,4 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   int m_UseTowerInfo{0};  // 0 only old tower, 1 only new (TowerInfo based),
 };
 
-#endif  //   CALOCALIBEMC_PI0_H
+#endif  //   CALOEMCPI0TBT_CALOCALIBEMC_PI0_H

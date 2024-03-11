@@ -11,7 +11,6 @@ class  MbdPacketv1: public MbdPacket
 
 public:
     MbdPacketv1() = default;
-    MbdPacketv1(MbdPacket *mbd);
     ~MbdPacketv1() override = default;
 
   void Reset() override;
@@ -23,8 +22,6 @@ public:
   uint32_t getSample(int ipmt, int isamp) const override {return samples.at(isamp).at(ipmt);}
   void setPacketEvtSequence(int i) override {PacketEvtSequence = i;}
   int getPacketEvtSequence() const override {return PacketEvtSequence;}
-
-
 
   protected:
   int PacketEvtSequence {0};
