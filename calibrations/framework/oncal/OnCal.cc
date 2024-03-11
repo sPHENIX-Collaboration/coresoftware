@@ -1,14 +1,12 @@
 #include "OnCal.h"
 
-#include <Event/Event.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
+#include <fun4all/SubsysReco.h>  // for SubsysReco
+
+#include <phool/phool.h>  // for PHWHERE
 
 #include <iostream>
 
-using namespace std;
-
-OnCal::OnCal(const string &Name)
+OnCal::OnCal(const std::string &Name)
   : SubsysReco(Name)
   , alldone(0)
 {
@@ -16,20 +14,20 @@ OnCal::OnCal(const string &Name)
 
 int OnCal::process_event(PHCompositeNode * /*topNode*/)
 {
-  cout << "process_event(PHCompositeNode *topNode) not implemented by daughter class: " << Name() << endl;
+  std::cout << "process_event(PHCompositeNode *topNode) not implemented by daughter class: " << Name() << std::endl;
   return -1;
 }
 
 int OnCal::End(PHCompositeNode * /*topNode*/)
 {
-  cout << "EndOfAnalysis not implemented by subsystem!" << endl;
-  cout << "Use this signal for computing your calibrations and commit." << endl;
-  cout << "Dont do these operations at EndOfRun since subsystems may be feeded events from different runs." << endl;
-  cout << "The number of events is the real parameter here, not the runnumber." << endl;
+  std::cout << "EndOfAnalysis not implemented by subsystem!" << std::endl;
+  std::cout << "Use this signal for computing your calibrations and commit." << std::endl;
+  std::cout << "Dont do these operations at EndOfRun since subsystems may be feeded events from different runs." << std::endl;
+  std::cout << "The number of events is the real parameter here, not the runnumber." << std::endl;
   return 0;
 }
 
-void OnCal::AddComment(const string &adcom)
+void OnCal::AddComment(const std::string &adcom)
 {
   if (m_Comment.size() == 0)
   {
@@ -45,7 +43,7 @@ void OnCal::AddComment(const string &adcom)
 
 int OnCal::CopyTables(const int /*FromRun*/, const int /*ToRun*/, const int /*commit*/) const
 {
-  cout << PHWHERE << " CopyTables not implemented" << endl
-       << "this calibrator cannot copy its own tables" << endl;
+  std::cout << PHWHERE << " CopyTables not implemented" << std::endl
+            << "this calibrator cannot copy its own tables" << std::endl;
   return -1;
 }

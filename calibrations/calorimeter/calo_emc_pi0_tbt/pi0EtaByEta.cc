@@ -31,8 +31,15 @@
 #include <TNtuple.h>
 #include <TTree.h>
 
+#include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
+
+#include <cmath>    // for fabs, isnan, M_PI
+#include <cstdlib>  // for exit
 #include <iostream>
+#include <map>     // for operator!=, _Rb_tree_con...
+#include <memory>  // for allocator_traits<>::valu...
 #include <sstream>
+#include <stdexcept>  // for runtime_error
 #include <string>
 #include <utility>
 

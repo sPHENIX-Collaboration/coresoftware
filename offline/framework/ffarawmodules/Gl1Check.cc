@@ -22,12 +22,12 @@
 
 //____________________________________________________________________________..
 Gl1Check::Gl1Check(const std::string &name)
-: SubsysReco(name)
+  : SubsysReco(name)
 {
 }
 
 //____________________________________________________________________________..
-int Gl1Check::Init(PHCompositeNode *topNode)
+int Gl1Check::Init(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -35,7 +35,7 @@ int Gl1Check::Init(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int Gl1Check::process_event(PHCompositeNode *topNode)
 {
-  Gl1Packet *gl1cont = findNode::getClass<Gl1Packet>(topNode,"GL1Packet");
+  Gl1Packet *gl1cont = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
   if (!gl1cont)
   {
     std::cout << "could not find Gl1Packet node" << std::endl;

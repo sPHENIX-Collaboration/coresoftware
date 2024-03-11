@@ -21,12 +21,12 @@
 
 //____________________________________________________________________________..
 MbdCheck::MbdCheck(const std::string &name)
-: SubsysReco(name)
+  : SubsysReco(name)
 {
 }
 
 //____________________________________________________________________________..
-int MbdCheck::Init(PHCompositeNode *topNode)
+int MbdCheck::Init(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -34,7 +34,7 @@ int MbdCheck::Init(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int MbdCheck::process_event(PHCompositeNode *topNode)
 {
-  MbdPacketContainer *mbdcont = findNode::getClass<MbdPacketContainer>(topNode,"MBDPackets");
+  MbdPacketContainer *mbdcont = findNode::getClass<MbdPacketContainer>(topNode, "MBDPackets");
   if (!mbdcont)
   {
     std::cout << "could not find MbdPacket node" << std::endl;
