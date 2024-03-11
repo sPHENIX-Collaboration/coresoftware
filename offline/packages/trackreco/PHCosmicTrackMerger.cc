@@ -221,10 +221,20 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
 
     //! remove any obvious outlier clusters from the track that were mistakenly
     //! picked up by the seeder
+    if(m_iter == 0){
     removeOutliers(tpcseed1);
     if(silseed1)
     {
-      removeOutliers(silseed1);
+    removeOutliers(silseed1);
+    }
+    }
+    else if (m_iter == 1)
+    {
+      getBestClustersPerLayer(tpcseed1);
+      if(silseed1)
+      {
+        getBestClustersPerLayer(silseed1);
+      }
     }
   }
   if (Verbosity() > 3)
@@ -255,6 +265,148 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHCosmicTrackMerger::getBestClustersPerLayer (TrackSeed* seed)
+{
+  TrackFitUtils::position_vector_t tr_rz_pts, tr_xy_pts;
+  std::cout << "analyzing track " << std::endl;
+  seed->identify();
+  std::cout << std::endl;
+
+  auto glob = getGlobalPositions(seed);
+
+  for (const auto &pos : glob.second)
+  {
+    float clusr = r(pos.x(), pos.y());
+    if (pos.y() < 0)
+    {
+      clusr *= -1;
+    }
+    // skip tpot clusters, as they are always bad in 1D due to 1D resolution
+    if (fabs(clusr) > 80.)
+    {
+      continue;
+    }
+    tr_rz_pts.push_back(std::make_pair(pos.z(), clusr));
+    tr_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
+  }
+
+  auto xyParams = TrackFitUtils::line_fit(tr_xy_pts);
+  auto rzParams = TrackFitUtils::line_fit(tr_rz_pts);
+  std::map<int, std::pair<float, float>> bestLayerDcasxy, bestLayerDcasrz;
+  std::map<int, std::pair<TrkrDefs::cluskey, TrkrDefs::cluskey>> bestLayerCluskeys;
+  for (int i = 0; i < 57; i++)
+  {
+    bestLayerDcasrz.insert(std::make_pair(i, std::make_pair(std::numeric_limits<float>::max(), std::numeric_limits<float>::max())));
+    bestLayerDcasxy.insert(std::make_pair(i, std::make_pair(std::numeric_limits<float>::max(), std::numeric_limits<float>::max())));
+    bestLayerCluskeys.insert(std::make_pair(i, std::make_pair(0, 0)));
+  }
+
+  for (int i = 0; i < glob.first.size(); i++)
+  {
+    auto &pos = glob.second[i];
+    float clusr = r(pos.x(), pos.y());
+    if (pos.y() < 0)
+    {
+      clusr *= -1;
+    }
+    // skip tpot clusters, as they are always bad in 1D due to 1D resolution
+    if (fabs(clusr) > 80.)
+    {
+      continue;
+    }
+    float perpxyslope = -1. / std::get<0>(xyParams);
+    float perpxyint = pos.y() - perpxyslope * pos.x();
+    float perprzslope = -1. / std::get<0>(rzParams);
+    float perprzint = clusr - perprzslope * pos.z();
+
+    float pcax = (perpxyint - std::get<1>(xyParams)) / (std::get<0>(xyParams) - perpxyslope);
+    float pcay = std::get<0>(xyParams) * pcax + std::get<1>(xyParams);
+
+    float pcaz = (perprzint - std::get<1>(rzParams)) / (std::get<0>(rzParams) - perprzslope);
+    float pcar = std::get<0>(rzParams) * pcaz + std::get<1>(rzParams);
+    float dcax = pcax - pos.x();
+    float dcay = pcay - pos.y();
+    float dcar = pcar - clusr;
+    float dcaz = pcaz - pos.z();
+    float dcaxy = std::sqrt(square(dcax) + square(dcay));
+    float dcarz = std::sqrt(square(dcar) + square(dcaz));
+    auto trkid = TrkrDefs::getTrkrId(glob.first[i]);
+    auto layer = TrkrDefs::getLayer(glob.first[i]);
+
+    auto bestdcasxy = bestLayerDcasxy.find(layer)->second;
+    auto bestdcasrz = bestLayerDcasrz.find(layer)->second;
+    float dcaxydiff1 = std::fabs(dcaxy - bestdcasxy.first);
+    float dcaxydiff2 = std::fabs(dcaxy - bestdcasxy.second);
+    if (trkid == TrkrDefs::TrkrId::mvtxId || trkid == TrkrDefs::TrkrId::tpcId)
+    {
+      if (layer == 47)
+        std::cout << "Removing tpc at layer " << (unsigned int) layer << " for " << dcaxy << ", " << dcarz << " where best dcas are "
+                  << bestdcasxy.first << " , " << bestdcasxy.second << ", " << bestdcasrz.first
+                  << " , " << bestdcasrz.second << std::endl;
+      if (dcaxydiff1 > dcaxydiff2)
+      {
+        if (dcaxy < bestdcasxy.first && dcarz < bestdcasrz.first)
+        {
+          bestdcasxy.first = dcaxy;
+          bestdcasrz.first = dcarz;
+          bestLayerCluskeys.find(layer)->second.first = glob.first[i];
+        }
+      }
+      else
+      {
+        if (dcaxy < bestdcasxy.second && dcarz < bestdcasrz.second)
+        {
+          bestdcasxy.second = dcaxy;
+          bestdcasrz.second = dcarz;
+          bestLayerCluskeys.find(layer)->second.second = glob.first[i];
+        }
+      }
+      if (layer == 47)
+        std::cout << "Now they are " << dcaxy << ", " << dcarz << " where best dcas are "
+                  << bestdcasxy.first << " , " << bestdcasxy.second << ", " << bestdcasrz.first
+                  << " , " << bestdcasrz.second << std::endl;
+    }
+    else if (trkid == TrkrDefs::TrkrId::inttId)
+    {
+      if (dcaxydiff1 > dcaxydiff2)
+      {
+        if (dcaxy < bestdcasxy.first)
+        {
+          bestdcasxy.first = dcaxy;
+          bestdcasrz.first = dcarz;
+          bestLayerCluskeys.find(layer)->second.first = glob.first[i];
+        }
+      }
+      else
+      {
+        if (dcaxy < bestdcasxy.second)
+        {
+          bestdcasxy.second = dcaxy;
+          bestdcasrz.second = dcarz;
+          bestLayerCluskeys.find(layer)->second.second = glob.first[i];
+        }
+      }
+    }
+  }
+  seed->identify();
+  // now erase all cluskeys and fill with the new set of cluskeys
+  seed->clear_cluster_keys();
+  for (auto &[layer, keypair] : bestLayerCluskeys)
+  {
+    if (keypair.first > 0)
+    {
+      std::cout << "inserting " << keypair.first << std::endl;
+      seed->insert_cluster_key(keypair.first);
+    }
+    if (keypair.second > 0)
+    {
+      std::cout << "inserting " << keypair.second << std::endl;
+      seed->insert_cluster_key(keypair.second);
+    }
+  }
+  seed->identify();
+  std::cout << "done " << std::endl;
+}
 void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
 {
   TrackFitUtils::position_vector_t tr_rz_pts, tr_xy_pts;
@@ -276,9 +428,9 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
   {
     auto &pos = glob.second[i];
     float clusr = r(pos.x(), pos.y());
-    if (pos.y() < 0) clusr *= -1;
+    if (pos.y() < 0) {clusr *= -1;}
     // skip tpot clusters, as they are always bad in 1D due to 1D resolution
-    if (fabs(clusr) > 80.) continue;
+    if (fabs(clusr) > 80.) {continue;}
     float perpxyslope = -1. / std::get<0>(xyParams);
     float perpxyint = pos.y() - perpxyslope * pos.x();
     float perprzslope = -1. / std::get<0>(rzParams);
