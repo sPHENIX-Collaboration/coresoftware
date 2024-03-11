@@ -20,6 +20,9 @@ public:
   virtual void setEvtSequence(const int)  {return;}
   virtual uint64_t getBCO ()  const  {return std::numeric_limits<uint64_t>::max();}
   virtual void setBCO (const uint64_t) {return;}
+  virtual int iValue(const int) const {return std::numeric_limits<int>::min();}
+  virtual int iValue(const int,const std::string &) const {return std::numeric_limits<int>::min();}
+  virtual int iValue(const int, const int) const {return std::numeric_limits<int>::min();}
 
 private:
   ClassDefOverride(OfflinePacket,1)

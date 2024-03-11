@@ -13,6 +13,25 @@ void CaloPacketv1::Reset()
   return;
 }
 
+int CaloPacketv1::iValue(const int i,const std::string &what) const
+{
+  if (i != 0)
+  {
+    std::cout << "bad value for channel" << std::endl;
+    return std::numeric_limits<int>::min();
+  }
+  if (what == "CHANNELS")
+  {
+    return samples[0].size();
+  }
+  else
+  {
+    std::cout << "invalid selection " << what << std::endl;
+  }
+    return std::numeric_limits<int>::min();
+}
+
+
 void CaloPacketv1::identify(std::ostream &os) const
 {
   os << "CaloPacketv1: " << std::endl;
