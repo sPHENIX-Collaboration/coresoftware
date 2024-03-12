@@ -1471,9 +1471,9 @@ void AnnularFieldSim::populate_highres_lookup()
   {
     for (auto & j : i)
     {
-      for (int k = 0; k < 3; k++)
+      for (int & k : j)
       {
-        j[k] = 0;  // we could count total volume, but without knowing the charge prior, it's not clear that'd be /better/
+        k = 0;  // we could count total volume, but without knowing the charge prior, it's not clear that'd be /better/
       }
     }
   }
