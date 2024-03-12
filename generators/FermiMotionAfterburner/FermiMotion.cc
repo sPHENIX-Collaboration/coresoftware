@@ -54,18 +54,19 @@ CLHEP::HepLorentzVector pwithpF(CLHEP::HepLorentzVector p, gsl_rng *RandomGenera
     return p;
   }
   //find pF max using Thomas-Fermi model, assume using Au.
-  float pFmax = 0.28315;
-  if (id == 2212) pFmax = 0.23276;
+  double pFmax = 0.28315;
+  if (id == 2212) { pFmax = 0.23276;
+}
   //now generate the random p assuming probability is propotional to p^2dp
   //CLHEP::RandGeneral seems to be a better way to do it
-  float pF = pFmax * pow(gsl_rng_uniform_pos(RandomGenerator), 1.0 / 3.0);
-  float cotheta = (gsl_rng_uniform_pos(RandomGenerator) - 0.5) * 2;
-  float phi = gsl_rng_uniform_pos(RandomGenerator) * 2 * M_PI;
-  float pFx = pF * sqrt(1 - cotheta * cotheta) * cos(phi);
-  float pFy = pF * sqrt(1 - cotheta * cotheta) * sin(phi);
-  float pFz = pF * cotheta;
-  float pSx = pTspec * cos(bphi);
-  float pSy = pTspec * sin(bphi);  
+  double pF = pFmax * pow(gsl_rng_uniform_pos(RandomGenerator), 1.0 / 3.0);
+  double cotheta = (gsl_rng_uniform_pos(RandomGenerator) - 0.5) * 2;
+  double phi = gsl_rng_uniform_pos(RandomGenerator) * 2 * M_PI;
+  double pFx = pF * sqrt(1 - cotheta * cotheta) * cos(phi);
+  double pFy = pF * sqrt(1 - cotheta * cotheta) * sin(phi);
+  double pFz = pF * cotheta;
+  double pSx = pTspec * cos(bphi);
+  double pSy = pTspec * sin(bphi);  
   
   if (p.pz() < 0) {
     pSx *= -1;
@@ -74,12 +75,12 @@ CLHEP::HepLorentzVector pwithpF(CLHEP::HepLorentzVector p, gsl_rng *RandomGenera
   }
 
   //now add the pF to p
-  float px = p.px() + pFx + pSx;
-  float py = p.py() + pFy + pSy;
-  float pz = p.pz() + pFz;
+  double px = p.px() + pFx + pSx;
+  double py = p.py() + pFy + pSy;
+  double pz = p.pz() + pFz;
   //calculate the total energy
-  float const nrm = 0.938;
-  float e = sqrt(px * px + py * py + pz * pz + nrm * nrm);
+  double const nrm = 0.938;
+  double e = sqrt(px * px + py * py + pz * pz + nrm * nrm);
 
   CLHEP::HepLorentzVector pwithpF(px, py, pz, e);
   return pwithpF;
@@ -103,16 +104,19 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator, double pTspec)
   for (HepMC::GenEvent::particle_const_iterator p = event->particles_begin(), prev = event->particles_end(); p != event->particles_end(); prev = p, ++p)
   {
     //if not final state continue
-    if ((*p)->status() != 1) continue;
+    if ((*p)->status() != 1) { continue;
+}
     int id = (*p)->pdg_id();
     //if not neutron, skip
-    if (!((id == 2112) || (id == 2212))) continue;
+    if (!((id == 2112) || (id == 2212))) { continue;
+}
 
     //spectator neutron should have px==0&&py==0
     HepMC::GenParticle *n = (*p);
-    float p_x = n->momentum().px();
-    float p_y = n->momentum().py();
-    if (!(p_x == 0 && p_y == 0)) continue;
+    double p_x = n->momentum().px();
+    double p_y = n->momentum().py();
+    if (!(p_x == 0 && p_y == 0)) { continue;
+}
 
     if (id == 2112)
     {
