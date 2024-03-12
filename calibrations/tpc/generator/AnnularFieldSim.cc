@@ -1469,11 +1469,11 @@ void AnnularFieldSim::populate_highres_lookup()
   static int nfbinsin[3][3][3];
   for (auto &i : nfbinsin)
   {
-    for (int j = 0; j < 3; j++)
+    for (auto & j : i)
     {
       for (int k = 0; k < 3; k++)
       {
-        i[j][k] = 0;  // we could count total volume, but without knowing the charge prior, it's not clear that'd be /better/
+        j[k] = 0;  // we could count total volume, but without knowing the charge prior, it's not clear that'd be /better/
       }
     }
   }
@@ -2515,6 +2515,7 @@ TVector3 AnnularFieldSim::swimToInSteps(float zdest, const TVector3 &start, int 
   return straightline + distortion;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, const TVector3 &start, int steps, bool interpolate, int *goodToStep, int *success)
 {
   // work in native units is automatic.
@@ -2707,7 +2708,7 @@ void AnnularFieldSim::PlotFieldSlices(const std::string &filebase, const TVector
   for (int ax = 0; ax < 3; ax++)
   {
     // loop over which axis slice to take
-    hCharge[ax] = new TH2F((std::string("hCharge") + axis[ax]).c_str(),
+    hCharge[ax] = new TH2F(std::string("hCharge" + axis[ax]).c_str(),
                            boost::str(boost::format("Spacecharge Distribution in the %s%s plane at %s=%2.3f (C/cm^3);%s;%s")
 				      %axis[ax + 1] %axis[ax + 2] %axis[ax] %axisval[ax] %axis[ax + 1] %axis[ax + 2]).c_str(),
                            axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
@@ -2932,7 +2933,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
     std::cout << boost::str(boost::format("rpz slice indices= (%d,%d,%d) twinz=%d") %xi[0] %xi[1] %xi[2] %twinz) << std::endl;
   }
 
-  const char axname[] = "rpzrpz";
+  const std::string axname[] = {"r","p","z","r","p","z"};
   int axn[] = {nrh, nph, nzh, nrh, nph, nzh};
   float axval[] = {(float) pos.Perp(), (float) pos.Phi(), (float) pos.Z(), (float) pos.Perp(), (float) pos.Phi(), (float) pos.Z()};
   float axbot[] = {rih, pih, zih, rih, pih, zih};
@@ -2947,32 +2948,32 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
     for (int ax = 0; ax < 3; ax++)
     {
       // loop over which plane to work in
-      hDiffDist[ax][i] = new TH2F(TString::Format("hDiffDist%c_%c%c", axname[i], axname[ax + 1], axname[ax + 2]),
-                                  TString::Format("%c component of diff. distortion in  %c%c plane at %c=%2.3f;%c;%c",
-                                                  axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2]),
+      hDiffDist[ax][i] = new TH2F(std::string("hDiffDist" + axname[i] + "_" +  axname[ax + 1] + axname[ax + 2]).c_str(),
+                                  boost::str(boost::format("%s component of diff. distortion in  %s%s plane at %s=%2.3f;%s;%s")
+					     %axname[i] %axname[ax + 1] %axname[ax + 2] %axname[ax] %axval[ax] %axname[ax + 1] %axname[ax + 2]).c_str(),
                                   axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                                   axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
-      hIntDist[ax][i] = new TH2F(TString::Format("hIntDist%c_%c%c", axname[i], axname[ax + 1], axname[ax + 2]),
-                                 TString::Format("%c component of int. distortion in  %c%c plane at %c=%2.3f;%c;%c",
-                                                 axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2]),
+      hIntDist[ax][i] = new TH2F(std::string("hIntDist" + axname[i] + "_" +  axname[ax + 1] + axname[ax + 2]).c_str(),
+                                 boost::str(boost::format("%s component of int. distortion in  %s%s plane at %s=%2.3f;%s;%s")
+							    %axname[i] %axname[ax + 1] %axname[ax + 2] %axname[ax] %axval[ax] %axname[ax + 1] %axname[ax + 2]).c_str(),
                                  axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                                  axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
     }
-    hRDist[0][i] = new TH1F(TString::Format("hRDist%c", axname[i]),
-                            TString::Format("%c component of int. distortion vs r with %c=%2.3f and %c=%2.3f;r(cm);#delta (cm)",
-                                            axname[i], axname[1], axval[1], axname[2], axval[2]),
+    hRDist[0][i] = new TH1F(std::string("hRDist" + axname[i]).c_str(),
+                            boost::str(boost::format("%s component of int. distortion vs r with %s=%2.3f and %s=%2.3f;r(cm);#delta (cm)")
+				       %axname[i] %axname[1] %axval[1] %axname[2] %axval[2]).c_str(),
                             axn[0], axbot[0], axtop[0]);
-    hRDist[1][i] = new TH1F(TString::Format("hRDist%cNeg", axname[i]),
-                            TString::Format("%c component of int. distortion vs r with %c=%2.3f and %c=-%2.3f;r(cm);#delta (cm)",
-                                            axname[i], axname[1], axval[1], axname[2], axval[2]),
+    hRDist[1][i] = new TH1F(std::string("hRDist" + axname[i] + "Neg").c_str(),
+                            boost::str(boost::format("%s component of int. distortion vs r with %s=%2.3f and %s=-%2.3f;r(cm);#delta (cm)")
+				       %axname[i] %axname[1] %axval[1] %axname[2] %axval[2]).c_str(),
                             axn[0], axbot[0], axtop[0]);
-    hRDiffDist[0][i] = new TH1F(TString::Format("hRDiffDist%c", axname[i]),
-                                TString::Format("%c component of diff. distortion vs r with %c=%2.3f and %c=%2.3f;r(cm);#delta (cm)",
-                                                axname[i], axname[1], axval[1], axname[2], axval[2]),
+    hRDiffDist[0][i] = new TH1F(std::string("hRDiffDist" + axname[i]).c_str(),
+                                boost::str(boost::format("%s component of diff. distortion vs r with %s=%2.3f and %s=%2.3f;r(cm);#delta (cm)")
+					   %axname[i] %axname[1] %axval[1] %axname[2] %axval[2]).c_str(),
                                 axn[0], axbot[0], axtop[0]);
-    hRDiffDist[1][i] = new TH1F(TString::Format("hRDiffDist%cNeg", axname[i]),
-                                TString::Format("%c component of diff. distortion vs r with %c=%2.3f and %c=-%2.3f;r(cm);#delta (cm)",
-                                                axname[i], axname[1], axval[1], axname[2], axval[2]),
+    hRDiffDist[1][i] = new TH1F(std::string("hRDiffDist" + axname[i] + "Neg").c_str(),
+                                boost::str(boost::format("%s component of diff. distortion vs r with %s=%2.3f and %s=-%2.3f;r(cm);#delta (cm)")
+					   %axname[i] %axname[1] %axval[1] %axname[2] %axval[2]).c_str(),
                                 axn[0], axbot[0], axtop[0]);
   }
 
@@ -3236,7 +3237,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
   tex->DrawLatex(0.05, texpos, GetChargeString().c_str());
   texpos -= texshift;
   // tex->DrawLatex(0.05,texpos,Form("Drift Field = %2.2f V/cm",GetNominalE()));texpos-=texshift;
-  tex->DrawLatex(0.05, texpos, Form("Drifting grid of (rp)=(%d x %d) electrons with %d steps", nrh, nph, nSteps));
+  tex->DrawLatex(0.05, texpos,  boost::str(boost::format("Drifting grid of (rp)=(%d x %d) electrons with %d steps") %nrh %nph %nSteps).c_str());
   texpos -= texshift;
   tex->DrawLatex(0.05, texpos, GetLookupString().c_str());
   texpos -= texshift;
@@ -3244,7 +3245,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
   texpos -= texshift;
   if (debug_distortionScale.Mag() > 0)
   {
-    tex->DrawLatex(0.05, texpos, Form("Distortion scaled by (r,p,z)=(%2.2f,%2.2f,%2.2f)", debug_distortionScale.X(), debug_distortionScale.Y(), debug_distortionScale.Z()));
+    tex->DrawLatex(0.05, texpos, boost::str(boost::format("Distortion scaled by (r,p,z)=(%2.2f,%2.2f,%2.2f)") %debug_distortionScale.X() %debug_distortionScale.Y() %debug_distortionScale.Z()).c_str());
     texpos -= texshift;
   }
   texpos = 0.9;
@@ -3298,7 +3299,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
   tex->DrawLatex(0.05, texpos, GetChargeString().c_str());
   texpos -= texshift;
   // tex->DrawLatex(0.05,texpos,Form("Drift Field = %2.2f V/cm",GetNominalE()));texpos-=texshift;
-  tex->DrawLatex(0.05, texpos, Form("Drifting grid of (rp)=(%d x %d) electrons with %d steps", nrh, nph, nSteps));
+  tex->DrawLatex(0.05, texpos, boost::str(boost::format("Drifting grid of (rp)=(%d x %d) electrons with %d steps") %nrh %nph %nSteps).c_str());
   texpos -= texshift;
   tex->DrawLatex(0.05, texpos, GetLookupString().c_str());
   texpos -= texshift;
@@ -3308,7 +3309,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
   texpos -= texshift;
   if (debug_distortionScale.Mag() > 0)
   {
-    tex->DrawLatex(0.05, texpos, Form("Distortion scaled by (r,p,z)=(%2.2f,%2.2f,%2.2f)", debug_distortionScale.X(), debug_distortionScale.Y(), debug_distortionScale.Z()));
+    tex->DrawLatex(0.05, texpos, boost::str(boost::format("Distortion scaled by (r,p,z)=(%2.2f,%2.2f,%2.2f)") %debug_distortionScale.X() %debug_distortionScale.Y() %debug_distortionScale.Z()).c_str());
     texpos -= texshift;
   }
   texpos = 0.9;
@@ -3478,7 +3479,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
     std::cout << boost::str(boost::format("rpz slice indices= (%d,%d,%d) twinz=%d") %xi[0] %xi[1] %xi[2] %twinz) << std::endl;
   }
 
-  const char axname[] = "rpzrpz";
+  const std::string axname[] = {"r","p","z","r","p","z"};
   int axn[] = {nrh, nph, nzh, nrh, nph, nzh};
   float axval[] = {(float) pos.Perp(), (float) pos.Phi(), (float) pos.Z(), (float) pos.Perp(), (float) pos.Phi(), (float) pos.Z()};
   float axbot[] = {rih, pih, zih, rih, pih, zih};
@@ -3493,32 +3494,32 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
     for (int ax = 0; ax < 3; ax++)
     {
       // loop over which plane to work in
-      hDiffDist[ax][i] = new TH2F(TString::Format("hDiffDist%c_%c%c", axname[i], axname[ax + 1], axname[ax + 2]),
-                                  TString::Format("%c component of diff. distortion in  %c%c plane at %c=%2.3f;%c;%c",
-                                                  axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2]),
+      hDiffDist[ax][i] = new TH2F(std::string("hDiffDist" + axname[i] + "_" + axname[ax + 1] + axname[ax + 2]).c_str(),
+                                  boost::str(boost::format("%s component of diff. distortion in  %s%s plane at %s=%2.3f;%s;%s")
+					     %axname[i] %axname[ax + 1] %axname[ax + 2] %axname[ax] %axval[ax] %axname[ax + 1] %axname[ax + 2]).c_str(),
                                   axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                                   axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
-      hIntDist[ax][i] = new TH2F(TString::Format("hIntDist%c_%c%c", axname[i], axname[ax + 1], axname[ax + 2]),
-                                 TString::Format("%c component of int. distortion in  %c%c plane at %c=%2.3f;%c;%c",
-                                                 axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2]),
+      hIntDist[ax][i] = new TH2F(std::string("hDIntDist" + axname[i] + "_" + axname[ax + 1] + axname[ax + 2]).c_str(),
+                                 boost::str(boost::format("%s component of int. distortion in  %s%s plane at %s=%2.3f;%s;%s")
+					    %axname[i] %axname[ax + 1] %axname[ax + 2] %axname[ax] %axval[ax] %axname[ax + 1] %axname[ax + 2]).c_str(),
                                  axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                                  axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
     }
-    hRDist[0][i] = new TH1F(TString::Format("hRDist%c", axname[i]),
-                            TString::Format("%c component of int. distortion vs r with %c=%2.3f and %c=%2.3f;r(cm);#delta (cm)",
-                                            axname[i], axname[1], axval[1], axname[2], axval[2]),
+    hRDist[0][i] = new TH1F(std::string("hRDist" + axname[i]).c_str(),
+			    boost::str(boost::format("%s component of int. distortion vs r with %s=%2.3f and %s=%2.3f;r(cm);#delta (cm)")
+				       %axname[i] %axname[1] %axval[1] %axname[2] %axval[2]).c_str(),
                             axn[0], axbot[0], axtop[0]);
-    hRDist[1][i] = new TH1F(TString::Format("hRDist%cNeg", axname[i]),
-                            TString::Format("%c component of int. distortion vs r with %c=%2.3f and %c=-%2.3f;r(cm);#delta (cm)",
-                                            axname[i], axname[1], axval[1], axname[2], axval[2]),
+    hRDist[1][i] = new TH1F(std::string("hRDist" + axname[i] + "Neg").c_str(),
+                            boost::str(boost::format("%s component of int. distortion vs r with %s=%2.3f and %s=-%2.3f;r(cm);#delta (cm)")
+				       %axname[i] %axname[1] %axval[1] %axname[2] %axval[2]).c_str(),
                             axn[0], axbot[0], axtop[0]);
-    hRDiffDist[0][i] = new TH1F(TString::Format("hRDist%c", axname[i]),
-                                TString::Format("%c component of diff. distortion vs r with %c=%2.3f and %c=%2.3f;r(cm);#delta (cm)",
-                                                axname[i], axname[1], axval[1], axname[2], axval[2]),
+    hRDiffDist[0][i] = new TH1F(std::string("hRDist" + axname[i]).c_str(),
+                                boost::str(boost::format("%s component of diff. distortion vs r with %s=%2.3f and %s=%2.3f;r(cm);#delta (cm)")
+					   %axname[i] %axname[1] %axval[1] %axname[2] %axval[2]).c_str(),
                                 axn[0], axbot[0], axtop[0]);
-    hRDiffDist[1][i] = new TH1F(TString::Format("hRDist%cNeg", axname[i]),
-                                TString::Format("%c component of diff. distortion vs r with %c=%2.3f and %c=-%2.3f;r(cm);#delta (cm)",
-                                                axname[i], axname[1], axval[1], axname[2], axval[2]),
+    hRDiffDist[1][i] = new TH1F(std::string("hRDist" + axname[i] + "Neg").c_str(),
+                                boost::str(boost::format("%s component of diff. distortion vs r with %s=%2.3f and %s=-%2.3f;r(cm);#delta (cm)")
+					   %axname[i] %axname[1] %axval[1] %axname[2] %axval[2]).c_str(),
                                 axn[0], axbot[0], axtop[0]);
   }
 
@@ -3764,7 +3765,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
   tex->DrawLatex(0.05, texpos, GetChargeString().c_str());
   texpos -= texshift;
   // tex->DrawLatex(0.05,texpos,Form("Drift Field = %2.2f V/cm",GetNominalE()));texpos-=texshift;
-  tex->DrawLatex(0.05, texpos, Form("Drifting grid of (rp)=(%d x %d) electrons with %d steps", nrh, nph, nSteps));
+  tex->DrawLatex(0.05, texpos, boost::str(boost::format("Drifting grid of (rp)=(%d x %d) electrons with %d steps") %nrh %nph %nSteps).c_str());
   texpos -= texshift;
   tex->DrawLatex(0.05, texpos, GetLookupString().c_str());
   texpos -= texshift;
@@ -3772,7 +3773,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
   texpos -= texshift;
   if (debug_distortionScale.Mag() > 0)
   {
-    tex->DrawLatex(0.05, texpos, Form("Distortion scaled by (r,p,z)=(%2.2f,%2.2f,%2.2f)", debug_distortionScale.X(), debug_distortionScale.Y(), debug_distortionScale.Z()));
+    tex->DrawLatex(0.05, texpos, boost::str(boost::format("Distortion scaled by (r,p,z)=(%2.2f,%2.2f,%2.2f)") %debug_distortionScale.X() %debug_distortionScale.Y() %debug_distortionScale.Z()).c_str());
     texpos -= texshift;
   }
   texpos = 0.9;
@@ -3820,7 +3821,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
   tex->DrawLatex(0.05, texpos, GetChargeString().c_str());
   texpos -= texshift;
   // tex->DrawLatex(0.05,texpos,Form("Drift Field = %2.2f V/cm",GetNominalE()));texpos-=texshift;
-  tex->DrawLatex(0.05, texpos, Form("Drifting grid of (rp)=(%d x %d) electrons with %d steps", nrh, nph, nSteps));
+  tex->DrawLatex(0.05, texpos,  boost::str(boost::format("Drifting grid of (rp)=(%d x %d) electrons with %d steps") %nrh %nph %nSteps).c_str());
   texpos -= texshift;
   tex->DrawLatex(0.05, texpos, GetLookupString().c_str());
   texpos -= texshift;
@@ -3830,7 +3831,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
   texpos -= texshift;
   if (debug_distortionScale.Mag() > 0)
   {
-    tex->DrawLatex(0.05, texpos, Form("Distortion scaled by (r,p,z)=(%2.2f,%2.2f,%2.2f)", debug_distortionScale.X(), debug_distortionScale.Y(), debug_distortionScale.Z()));
+    tex->DrawLatex(0.05, texpos, boost::str(boost::format("Distortion scaled by (r,p,z)=(%2.2f,%2.2f,%2.2f)") %debug_distortionScale.X() %debug_distortionScale.Y() %debug_distortionScale.Z()).c_str());
     texpos -= texshift;
   }
   texpos = 0.9;
@@ -4081,6 +4082,7 @@ const std::string AnnularFieldSim::GetFieldString()
   return boost::str(boost::format("%s, %s") %Efieldname %Bfieldname);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 TVector3 AnnularFieldSim::GetFieldAt(const TVector3 &pos)
 {
   // assume pos is in native units (see header)
@@ -4106,6 +4108,7 @@ TVector3 AnnularFieldSim::GetFieldAt(const TVector3 &pos)
   return Efield->Get(r, p, z);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 TVector3 AnnularFieldSim::GetBFieldAt(const TVector3 &pos)
 {
   // assume pos is in native units (see header)
@@ -4131,6 +4134,7 @@ TVector3 AnnularFieldSim::GetBFieldAt(const TVector3 &pos)
   return Bfield->Get(r, p, z);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 float AnnularFieldSim::GetChargeAt(const TVector3 &pos)
 {
   int z;
