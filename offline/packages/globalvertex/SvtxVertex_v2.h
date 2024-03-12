@@ -3,7 +3,7 @@
 
 #include "SvtxVertex.h"
 
-#include <cstddef>      // for size_t
+#include <cstddef>  // for size_t
 #include <iostream>
 #include <set>
 
@@ -68,7 +68,7 @@ class SvtxVertex_v2 : public SvtxVertex
   TrackIter begin_tracks() override { return _track_ids.begin(); }
   TrackIter find_track(unsigned int trackid) override { return _track_ids.find(trackid); }
   TrackIter end_tracks() override { return _track_ids.end(); }
-  
+
  private:
   unsigned int covar_index(unsigned int i, unsigned int j) const;
 

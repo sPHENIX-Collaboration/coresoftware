@@ -1483,15 +1483,10 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
 
   for (int i = 0; i < 96; i++)
   {
-    if (eta_hist.at(i) == nullptr)
+    if (eta_hist.at(i) == nullptr || eta_hist.at(i)->GetEntries() == 0)
     {
       continue;
     }
-    else if (eta_hist.at(i)->GetEntries() == 0)
-    {
-      continue;
-    }
-
     okHist[i] = 1;
 
     // find max bin around peak

@@ -400,7 +400,11 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
         float dcax = pcax - x;
         float dcay = pcay - y;
         float dca = std::sqrt(square(dcax) + square(dcay));
-
+        if(!isXY && TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::inttId)
+        {
+          //! Just ignore the z direction completely for the intt
+          dca = dcay;
+        }
         if (dca < dca_cut)
         {
           keys_to_add.insert(cluskey);

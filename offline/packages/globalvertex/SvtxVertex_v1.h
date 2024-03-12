@@ -3,7 +3,7 @@
 
 #include "SvtxVertex.h"
 
-#include <cstddef>      // for size_t
+#include <cstddef>  // for size_t
 #include <iostream>
 #include <set>
 
