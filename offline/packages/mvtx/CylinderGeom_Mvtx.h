@@ -93,12 +93,12 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   double stave_phi_0;
 
   // for all layers
-  double loc_sensor_in_chip[3];
+  double loc_sensor_in_chip[3]{};
 
   // inner barrel layers stave construction
-  double inner_loc_chip_in_module[9][3];
-  double inner_loc_module_in_halfstave[3];
-  double inner_loc_halfstave_in_stave[3];
+  double inner_loc_chip_in_module[9][3]{};
+  double inner_loc_module_in_halfstave[3]{};
+  double inner_loc_halfstave_in_stave[3]{};
 
   double pixel_x;
   double pixel_z;
