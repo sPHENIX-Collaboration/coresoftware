@@ -12,7 +12,6 @@
 #include <TH3.h>
 #include <TLatex.h>
 #include <TPad.h>
-#include <TString.h>
 #include <TStyle.h>
 #include <TTree.h>
 #include <TVector3.h>
@@ -21,6 +20,8 @@
 
 #include <cassert>  // for assert
 #include <cmath>
+#include <cstdint>
+#include <cstdlib>
 #include <iostream>
 
 #define ALMOST_ZERO 0.00001

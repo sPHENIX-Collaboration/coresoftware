@@ -7,6 +7,7 @@
 #include <boost/format.hpp>
 
 #include <iostream>
+#include <string>
 
 AnalyticFieldModel::AnalyticFieldModel(float _ifc_radius, float _ofc_radius, float _z_max, float scalefactor)
 {

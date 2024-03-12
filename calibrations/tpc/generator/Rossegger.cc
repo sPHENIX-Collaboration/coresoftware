@@ -12,7 +12,6 @@
 #include <boost/format.hpp>
 
 #include <algorithm>  // for max
-#include <cassert>    // for assert
 #include <cmath>
 #include <cstdlib>  // for exit, abs
 #include <fstream>

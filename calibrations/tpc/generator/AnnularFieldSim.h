@@ -1,6 +1,5 @@
 #include "Rossegger.h"
 
-#include <TH2.h>
 #include <TVector3.h>
 
 #include <cmath>   // for NAN, abs
@@ -8,6 +7,7 @@
 
 class AnalyticFieldModel;
 class ChargeMapReader;
+class TH2;
 class TH3;
 class TTree;
 
@@ -344,5 +344,5 @@ class AnnularFieldSim
                                  //  MultiArray<double> *q;                    //space charge in each f-bin in the whole volume
   MultiArray<double> *q_local;   // temporary holder of space charge in each f-bin and summed bin of the high-res region.
   MultiArray<double> *q_lowres;  // space charge in each l-bin. = sums over sets of f-bins.
-  TH2F *hRdeltaRComponent{nullptr};
+  TH2 *hRdeltaRComponent{nullptr};
 };
