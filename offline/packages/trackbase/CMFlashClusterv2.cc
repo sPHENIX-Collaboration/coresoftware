@@ -7,7 +7,7 @@
 #include "CMFlashClusterv2.h"
 
 #include <cmath>
-#include <utility>          // for swap
+#include <utility>  // for swap
 
 void CMFlashClusterv2::identify(std::ostream& os) const
 {
@@ -27,29 +27,42 @@ void CMFlashClusterv2::identify(std::ostream& os) const
 
 int CMFlashClusterv2::isValid() const
 {
-  if(std::isnan(getX())) return 0;
-  if(std::isnan(getY())) return 0;
-  if(std::isnan(getZ())) return 0;
+  if (std::isnan(getX()))
+  {
+    return 0;
+  }
+  if (std::isnan(getY()))
+  {
+    return 0;
+  }
+  if (std::isnan(getZ()))
+  {
+    return 0;
+  }
 
-  if (m_adc == 0xFFFFFFFF) return 0;
+  if (m_adc == 0xFFFFFFFF)
+  {
+    return 0;
+  }
 
   return 1;
 }
 
-void CMFlashClusterv2::CopyFrom( const CMFlashCluster& source )
+void CMFlashClusterv2::CopyFrom(const CMFlashCluster& source)
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
- 
+  if (this == &source)
+  {
+    return;
+  }
+
   // parent class method
-  CMFlashCluster::CopyFrom( source );
+  CMFlashCluster::CopyFrom(source);
 
-  setX( source.getX() );
-  setY( source.getY() );
-  setZ( source.getZ() );
-  setAdc( source.getAdc() );
-  setIsRGap( source.getIsRGap() );
-  setIsPhiGap( source.getIsPhiGap() );
-
+  setX(source.getX());
+  setY(source.getY());
+  setZ(source.getZ());
+  setAdc(source.getAdc());
+  setIsRGap(source.getIsRGap());
+  setIsPhiGap(source.getIsPhiGap());
 }
-

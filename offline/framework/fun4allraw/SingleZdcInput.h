@@ -12,12 +12,14 @@
 
 class Eventiterator;
 class Fun4AllPrdfInputPoolManager;
+class Fun4AllPrdfInputTriggerManager;
 class Packet;
 
 class SingleZdcInput : public SinglePrdfInput
 {
  public:
   explicit SingleZdcInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman);
+  explicit SingleZdcInput(const std::string &name, Fun4AllPrdfInputTriggerManager *inman);
   ~SingleZdcInput() override;
   void FillPool(const unsigned int nevents) override;
 
@@ -36,8 +38,8 @@ class SingleZdcInput : public SinglePrdfInput
   std::map<int, std::vector<Packet *>> m_PacketMap;
   std::set<int> m_EvtSet;
   std::vector<std::pair<int, int>> m_Event;
-  std::array<unsigned int,100> rollover;
-  std::array<int,100>  previous_eventnumber;
+  std::array<unsigned int, 100> rollover{};
+  std::array<int, 100> previous_eventnumber{};
 };
 
 #endif

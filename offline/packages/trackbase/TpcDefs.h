@@ -19,7 +19,6 @@
  */
 namespace TpcDefs
 {
-
   constexpr int NSides = 2;
   constexpr int NSectors = 12;
   constexpr int NRSectors = 3;

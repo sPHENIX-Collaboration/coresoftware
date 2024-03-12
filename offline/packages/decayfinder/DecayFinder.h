@@ -150,6 +150,8 @@ class DecayFinder : public SubsysReco
    */
   void useDecaySpecificEtaRange(bool use) { m_recalcualteEtaRange = use; }
 
+  std::string passOrFail(bool condition);
+
  private:
   PHHepMCGenEventMap *m_geneventmap = nullptr;
   PHHepMCGenEvent *m_genevt = nullptr;

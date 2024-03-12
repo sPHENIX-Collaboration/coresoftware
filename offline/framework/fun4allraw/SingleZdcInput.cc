@@ -1,6 +1,7 @@
 #include "SingleZdcInput.h"
 
 #include "Fun4AllPrdfInputPoolManager.h"
+#include "Fun4AllPrdfInputTriggerManager.h"
 
 #include <frog/FROG.h>
 
@@ -14,6 +15,14 @@
 #include <limits>
 
 SingleZdcInput::SingleZdcInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman)
+  : SinglePrdfInput(name, inman)
+{
+  plist = new Packet *[100];
+  m_PacketEventNumberOffset = new int[100]{};
+  rollover.fill(0);
+  previous_eventnumber.fill(std::numeric_limits<int>::min());
+}
+SingleZdcInput::SingleZdcInput(const std::string &name, Fun4AllPrdfInputTriggerManager *inman)
   : SinglePrdfInput(name, inman)
 {
   plist = new Packet *[100];
@@ -82,29 +91,32 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
     }
     for (int i = 0; i < npackets; i++)
     {
-      if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
+      if (plist[i]->iValue(0, "CHECKSUMOK") != 0)
       {
         int evtno = plist[i]->iValue(0, "EVTNR") + rollover[i];
-	if (evtno < previous_eventnumber[i])
-	{
-	  if (Verbosity() > 1)
-	  {
-	    std::cout << "rolling over, event " << std::hex << evtno
-		      << ", prev: " << previous_eventnumber[i]
-		      << ", rollover counter: " << (rollover[i] << 16)
-		      << std::dec << std::endl;
-	  }
-	  rollover[i] ++;
-	}
+        if (evtno < previous_eventnumber[i])
+        {
+          if (Verbosity() > 1)
+          {
+            std::cout << "rolling over, event " << std::hex << evtno
+                      << ", prev: " << previous_eventnumber[i]
+                      << ", rollover counter: " << (rollover[i] << 16U)
+                      << std::dec << std::endl;
+          }
+          rollover[i]++;
+        }
         previous_eventnumber[i] = evtno;
-	evtno += (rollover[i] << 16);
+        evtno += (rollover[i] << 16U);
         unsigned int bclk = plist[i]->iValue(0, "CLOCK");
 
+        // NOLINTNEXTLINE(hicpp-signed-bitwise)
         bool useFEMInfo = ((plist[i]->getIdentifier() / 1000 == 12) && evtno != ((EventSequence - 2) & 0xffff));
 
         if (useFEMInfo == true)
         {
+          // NOLINTNEXTLINE(hicpp-signed-bitwise)
           evtno = ((plist[i]->iValue(0, "FEMEVTNR") - 1) & 0xffff);  // hard coded since FEM event starts at 1 and packet event starts at 0
+                                                                     // NOLINTNEXTLINE(hicpp-signed-bitwise)
           bclk = ((plist[i]->iValue(0, "FEMCLOCK") + 30) & 0xffff);  // hardcoded since level 1 delay for ZDC is 30 beam clocks.
         }
         if (Verbosity() > 1)
@@ -178,7 +190,14 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
       {
         for (auto const &pktiter : iter.second)
         {
-          InputMgr()->AddPacket(common_event_number, pktiter);
+          if (InputMgr())
+          {
+            InputMgr()->AddPacket(common_event_number, pktiter);
+          }
+          else
+          {
+            TriggerInputMgr()->AddPacket(common_event_number, pktiter);
+          }
         }
       }
     }
@@ -231,7 +250,14 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
               std::cout << "adding packet " << pktiter->getIdentifier() << " beam clock "
                         << std::hex << pktiter->iValue(0, "CLOCK") << std::dec << std::endl;
             }
-            InputMgr()->AddPacket(common_event_number, pktiter);
+            if (InputMgr())
+            {
+              InputMgr()->AddPacket(common_event_number, pktiter);
+            }
+            else
+            {
+              TriggerInputMgr()->AddPacket(common_event_number, pktiter);
+            }
           }
           else
           {
@@ -241,16 +267,39 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
                         << std::hex << pktiter->iValue(0, "CLOCK") << " common bclk: "
                         << common_beam_clock << std::dec << std::endl;
             }
-            InputMgr()->UpdateDroppedPacket(pktiter->getIdentifier());
+            if (InputMgr())
+            {
+              InputMgr()->UpdateDroppedPacket(pktiter->getIdentifier());
+            }
+            else
+            {
+              TriggerInputMgr()->UpdateDroppedPacket(pktiter->getIdentifier());
+            }
+
             delete pktiter;
           }
         }
       }
     }
-    InputMgr()->AddBeamClock(common_event_number, common_beam_clock, this);
+    if (InputMgr())
+    {
+      InputMgr()->AddBeamClock(common_event_number, common_beam_clock, this);
+    }
+    else
+    {
+      TriggerInputMgr()->AddBeamClock(common_event_number, common_beam_clock, this);
+    }
+
     if (ReferenceFlag())
     {
-      InputMgr()->SetReferenceClock(common_event_number, common_beam_clock);
+      if (InputMgr())
+      {
+        InputMgr()->SetReferenceClock(common_event_number, common_beam_clock);
+      }
+      else
+      {
+        TriggerInputMgr()->SetReferenceClock(common_event_number, common_beam_clock);
+      }
     }
     m_PacketMap.clear();
     m_EvtSet.clear();

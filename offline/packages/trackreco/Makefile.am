@@ -42,6 +42,8 @@ pkginclude_HEADERS = \
   PHActsTrackProjection.h \
   PHActsTrackPropagator.h \
   PHCASeeding.h \
+  TrackQA.h \
+  PHCosmicsFilter.h \
   PHCosmicsTrkFitter.h \
   PHCosmicSeeder.h \
   PHCosmicTrackMerger.h \
@@ -73,6 +75,7 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
+  PrelimDistortionCorrection.h \
   SecondaryVertexFinder.h \
   SvtxTrackStateRemoval.h \
   TrackingIterationCounter.h
@@ -126,6 +129,8 @@ libtrack_reco_la_SOURCES = \
   ALICEKF.cc \
   PH3DVertexing.cc \
   PHCASeeding.cc \
+  TrackQA.cc \
+  PHCosmicsFilter.cc \
   PHCosmicSeedCombiner.cc \
   PHCosmicSeeder.cc \
   PHCosmicTrackMerger.cc \
@@ -155,6 +160,7 @@ libtrack_reco_la_SOURCES = \
   PHTruthTrackSeeding.cc \
   PHTruthVertexing.cc \
   PHTruthSiliconAssociation.cc \
+  PrelimDistortionCorrection.cc \
   SecondaryVertexFinder.cc \
   SvtxTrackStateRemoval.cc \
   TrackingIterationCounter.cc

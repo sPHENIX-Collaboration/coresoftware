@@ -18,6 +18,11 @@ namespace
   {
     return x * x;
   }
+  template <class T>
+  inline constexpr T r(const T& x, const T& y)
+  {
+    return std::sqrt(square(x) + square(y));
+  }
 }  // namespace
 
 std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global)
@@ -43,9 +48,9 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   float angle_pca = atan2(pca_circle(1) - y0, pca_circle(0) - x0);
   // calculate coords of a point at a slightly larger angle
   float d_angle = 0.005;
-  float newx = radius * cos(angle_pca + d_angle) + x0;
-  float newy = radius * sin(angle_pca + d_angle) + y0;
-  float newz = sqrt(newx * newx + newy * newy) * zslope + z0;
+  float newx = radius * std::cos(angle_pca + d_angle) + x0;
+  float newy = radius * std::sin(angle_pca + d_angle) + y0;
+  float newz = std::sqrt(newx * newx + newy * newy) * zslope + z0;
   Acts::Vector3 second_point_pca(newx, newy, newz);
 
   // pca and second_point_pca define a straight line approximation to the track
@@ -62,7 +67,55 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
 
   return line;
 }
+Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey& key,
+                                                         TrkrCluster* cluster, ActsGeometry* geometry, float& xyslope, float& xyint, float& rzslope, float& rzint)
+{
+  Acts::Vector3 intersection(std::numeric_limits<float>::quiet_NaN(),
+                             std::numeric_limits<float>::quiet_NaN(),
+                             std::numeric_limits<float>::quiet_NaN());
 
+  auto surf = geometry->maps().getSurface(key, cluster);
+
+  //! The slope/intercept params for x-y and r-z are already filled. Take
+  //! two random x points and calculate y and z on the line to find 2
+  //! 3D points with which to calculate the 3D line
+  float x1 = -1;
+  float x2 = 5;
+  float y1 = xyslope * x1 + xyint;
+  float y2 = xyslope * x2 + xyint;
+
+  //! slope/int for r-z is calculated with z as "x" variable, r as "y" variable
+  //! so swap them around
+  float r1 = r(x1, y1);
+  float r2 = r(x2, y2);
+  if (y1 < 0)
+  {
+    r1 *= -1;
+  }
+  if (y2 < 0)
+  {
+    r2 *= -1;
+  }
+  float z1 = (r1 - rzint) / rzslope;
+  float z2 = (r2 - rzint) / rzslope;
+  Acts::Vector3 v1(x1, y1, z1), v2(x2, y2, z2);
+
+  Acts::Vector3 surfcenter = surf->center(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+  Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+
+  Acts::Vector3 u = v2 - v1;
+  float dot = surfnorm.dot(u);
+
+  //! If it does not satisfy this, line was parallel to the surface
+  if (abs(dot) > 1e-6)
+  {
+    Acts::Vector3 w = v1 - surfcenter;
+    float fac = -surfnorm.dot(w) / dot;
+    u *= fac;
+    intersection = v1 + u;
+  }
+  return intersection;
+}
 //_________________________________________________________________________________
 TrackFitUtils::circle_fit_output_t TrackFitUtils::circle_fit_by_taubin(const TrackFitUtils::position_vector_t& positions)
 {
@@ -133,10 +186,16 @@ TrackFitUtils::circle_fit_output_t TrackFitUtils::circle_fit_by_taubin(const Tra
   {
     const double Dy = A1 + x * (A22 + A33 * x);
     const double xnew = x - y / Dy;
-    if ((xnew == x) || (!std::isfinite(xnew))) break;
+    if ((xnew == x) || (!std::isfinite(xnew)))
+    {
+      break;
+    }
 
     const double ynew = A0 + xnew * (A1 + xnew * (A2 + xnew * A3));
-    if (std::abs(ynew) >= std::abs(y)) break;
+    if (std::abs(ynew) >= std::abs(y))
+    {
+      break;
+    }
 
     x = xnew;
     y = ynew;
@@ -320,7 +379,10 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
           //! use r-z
           x = global.z();
           y = std::sqrt(square(global.x()) + square(global.y()));
-          if (global.y() < 0) y *= -1;
+          if (global.y() < 0)
+          {
+            y *= -1;
+          }
         }
 
         //! Need to find the point on the line closest to the cluster position
@@ -338,7 +400,11 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
         float dcax = pcax - x;
         float dcay = pcay - y;
         float dca = std::sqrt(square(dcax) + square(dcay));
-
+        if(!isXY && TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::inttId)
+        {
+          //! Just ignore the z direction completely for the intt
+          dca = dcay;
+        }
         if (dca < dca_cut)
         {
           keys_to_add.insert(cluskey);
@@ -375,10 +441,7 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
   unsigned int nclusters = 0;
 
   // We want the best match in each layer
-  std::vector<float> best_layer_dca;
-  best_layer_dca.assign(endLayer + 1, 999.0);
-  std::vector<TrkrDefs::cluskey> best_layer_cluskey;
-  best_layer_cluskey.assign(endLayer + 1, 0);
+  std::set<TrkrDefs::cluskey> keysToAdd;
   std::set<TrkrDefs::TrkrId> detectors = {TrkrDefs::TrkrId::mvtxId,
                                           TrkrDefs::TrkrId::inttId,
                                           TrkrDefs::TrkrId::tpcId,
@@ -423,7 +486,6 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
         TrkrDefs::cluskey cluskey = clusIter->first;
-        unsigned int layer = TrkrDefs::getLayer(cluskey);
 
         TrkrCluster* cluster = clusIter->second;
 
@@ -436,30 +498,21 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
         Acts::Vector2 pca_xy(pca(0), pca(1));
         Acts::Vector2 pca_xy_residual = pca_xy - global_xy;
         dca = pca_xy_residual.norm();
-
-        if (dca < best_layer_dca[layer])
+        if (dca < dca_cut)
         {
-          best_layer_dca[layer] = dca;
-          best_layer_cluskey[layer] = cluskey;
+          keysToAdd.insert(cluskey);
         }
       }  // end cluster iteration
     }    // end hitsetkey iteration
   }
-  for (unsigned int layer = startLayer; layer <= endLayer; ++layer)
+
+  for (auto& key : keysToAdd)
   {
-    //! no cluster was found in that layer
-    if (best_layer_cluskey[layer] == 0)
-    {
-      continue;
-    }
-    if (best_layer_dca[layer] < dca_cut)
-    {
-      cluskey_vec.push_back(best_layer_cluskey[layer]);
-      auto clus = _cluster_map->findCluster(best_layer_cluskey[layer]);
-      auto global = _tGeometry->getGlobalPosition(best_layer_cluskey[layer], clus);
-      global_vec.push_back(global);
-      nclusters++;
-    }
+    cluskey_vec.push_back(key);
+    auto clus = _cluster_map->findCluster(key);
+    auto global = _tGeometry->getGlobalPosition(key, clus);
+    global_vec.push_back(global);
+    nclusters++;
   }
 
   return nclusters;
@@ -467,7 +520,7 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
 
 //_________________________________________________________________________________
 Acts::Vector3 TrackFitUtils::get_helix_pca(std::vector<float>& fitpars,
-                                           Acts::Vector3 global)
+                                           const Acts::Vector3& global)
 {
   // no analytic solution for the coordinates of the closest approach of a helix to a point
   // Instead, we get the PCA in x and y to the circle, and the PCA in z to the z vs R line at the R of the PCA
@@ -563,9 +616,8 @@ void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
                                         std::vector<Acts::Vector3>& global_vec,
                                         std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
-  for (unsigned int iclus = 0; iclus < cluskey_vec.size(); ++iclus)
+  for (unsigned long key : cluskey_vec)
   {
-    auto key = cluskey_vec[iclus];
     auto cluster = _cluster_map->findCluster(key);
     if (!cluster)
     {
@@ -592,7 +644,7 @@ void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
 }
 
 //_________________________________________________________________________________
-Acts::Vector3 TrackFitUtils::getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref)
+Acts::Vector3 TrackFitUtils::getPCALinePoint(const Acts::Vector3& global, const Acts::Vector3& tangent, const Acts::Vector3& posref)
 {
   // Approximate track with a straight line consisting of the state position posref and the vector (px,py,pz)
 
@@ -611,6 +663,39 @@ Acts::Vector3 TrackFitUtils::getPCALinePoint(Acts::Vector3 global, Acts::Vector3
   return pca;
 }
 
+Acts::Vector3 TrackFitUtils::get_helix_surface_intersection(const Surface& surf,
+                                                            std::vector<float>& fitpars, Acts::Vector3& global, ActsGeometry* _tGeometry)
+{
+  // we want the point where the helix intersects the plane of the surface
+  // get the plane of the surface
+  Acts::Vector3 sensorCenter = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
+  Acts::Vector3 sensorNormal = -surf->normal(_tGeometry->geometry().getGeoContext());
+  sensorNormal /= sensorNormal.norm();
+
+  // there are analytic solutions for a line-plane intersection.
+  // to use this, need to get the vector tangent to the helix near the measurement and a point on it.
+  std::pair<Acts::Vector3, Acts::Vector3> line = get_helix_tangent(fitpars, global);
+  Acts::Vector3 pca = line.first;
+  Acts::Vector3 tangent = line.second;
+
+  Acts::Vector3 intersection = get_line_plane_intersection(pca, tangent, sensorCenter, sensorNormal);
+
+  return intersection;
+}
+Acts::Vector3 TrackFitUtils::get_line_plane_intersection(const Acts::Vector3& pca, const Acts::Vector3& tangent,
+                                                         const Acts::Vector3& sensorCenter, const Acts::Vector3& sensorNormal)
+{
+  // get the intersection of the line made by PCA and tangent with the plane of the sensor
+
+  // For a point on the line
+  // p = PCA + d * tangent;
+  // for a point on the plane
+  // (p - sensor_center).sensor_normal = 0
+
+  // The solution is:
+  float d = (sensorCenter - pca).dot(sensorNormal) / tangent.dot(sensorNormal);
+  return pca + d * tangent;
+}
 std::vector<double> TrackFitUtils::getLineClusterResiduals(TrackFitUtils::position_vector_t& rz_pts, float slope, float intercept)
 {
   std::vector<double> residuals;

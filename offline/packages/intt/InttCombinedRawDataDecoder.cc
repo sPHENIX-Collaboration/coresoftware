@@ -2,6 +2,7 @@
 #include "InttMapping.h"
 
 #include <trackbase/InttDefs.h>
+#include <trackbase/InttEventInfov1.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, hitsetkey
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
@@ -89,6 +90,25 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
     trkr_node->addNode(new_node);
   }
 
+  // Check if INTT event header already exists
+  if (m_writeInttEventHeader)
+  {
+    auto inttNode = dynamic_cast<PHCompositeNode *>(trkr_itr.findFirst("PHCompositeNode", "INTT"));
+    if (!inttNode)
+    {
+      inttNode = new PHCompositeNode("INTT");
+      dst_node->addNode(inttNode);
+    }
+
+    intt_event_header = findNode::getClass<InttEventInfo>(inttNode, "INTTEVENTHEADER");
+    if (!intt_event_header)
+    {
+      intt_event_header = new InttEventInfov1();
+      auto newHeader = new PHIODataNode<PHObject>(intt_event_header, "INTTEVENTHEADER", "PHObject");
+      inttNode->addNode(newHeader);
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -118,18 +138,29 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     gSystem->Exit(1);
     exit(1);
   }
-  auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
-  if (!gl1)
+  Gl1RawHit* gl1 = nullptr;
+  if (!m_runStandAlone)
   {
-    std::cout << PHWHERE << " no gl1 container, exiting" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+    if (!gl1)
+    {
+      std::cout << PHWHERE << " no gl1 container, exiting" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
-  uint64_t gl1rawhitbco = gl1->get_bco();
+  uint64_t gl1rawhitbco = m_runStandAlone ? 0 : gl1->get_bco();
   // get the last 40 bits by bit shifting left then right to match
   // to the mvtx bco
   auto lbshift = gl1rawhitbco << 24U; // clang-tidy: mark as unsigned
   auto gl1bco = lbshift >> 24U; // clang-tidy: mark as unsigned
+
+  if (m_writeInttEventHeader)
+  {
+    intt_event_header = findNode::getClass<InttEventInfo>(topNode, "INTTEVENTHEADER");
+    assert(intt_event_header);
+    intt_event_header->set_bco_full(inttcont->get_hit(0)->get_bco());
+  }
 
   TrkrDefs::hitsetkey hit_set_key = 0;
   TrkrDefs::hitkey hit_key = 0;
@@ -160,7 +191,8 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 
     ofl = InttNameSpace::ToOffline(raw);
     hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x);  // col, row <trackbase/InttDefs.h>
-    hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, intthit->get_bco() - gl1bco);
+    int time_bucket = m_runStandAlone ? 0 : intthit->get_bco() - gl1bco;
+    hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, time_bucket);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
     hit = hit_set_container_itr->second->getHit(hit_key);
 

@@ -935,8 +935,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
             double zdriftlength = fx_hit[n_hit::nhittbin] * m_tGeometry->get_drift_velocity() * AdcClockPeriod;
             // convert z drift length to z position in the TPC
             //		cout << " tbin: " << tbin << " vdrift " <<m_tGeometry->get_drift_velocity() << " l drift: " << zdriftlength  <<endl;
-            unsigned short NTBins = (unsigned short) GeoLayer_local->get_zbins();
-            double m_tdriftmax = AdcClockPeriod * NTBins / 2.0;
+	    double NZBinsSide = 249;  // physical z bins per TPC side
+	    double m_tdriftmax = AdcClockPeriod * NZBinsSide;
             double clusz = (m_tdriftmax * m_tGeometry->get_drift_velocity()) - zdriftlength;
             if (fx_hit[n_hit::nhitzelem] == 0)
             {

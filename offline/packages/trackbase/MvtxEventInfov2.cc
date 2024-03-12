@@ -22,26 +22,25 @@ void MvtxEventInfov2::Reset()
   return;
 }
 
-
-void MvtxEventInfov2::identify(std::ostream &out) const
+void MvtxEventInfov2::identify(std::ostream& out) const
 {
   out << "MvtxEventInfov2 information" << std::endl;
 
-  for (auto iters = m_StringEventProperties.begin(); iters != m_StringEventProperties.end(); ++iters)
+  for (const auto& m_StringEventPropertie : m_StringEventProperties)
   {
-    out << iters->first << ": " << iters->second << std::endl;
+    out << m_StringEventPropertie.first << ": " << m_StringEventPropertie.second << std::endl;
   }
-  
+
   out << "List of strobe BCOs:" << std::endl;
   std::set<uint64_t> strobeList = get_strobe_BCOs();
-  for (auto iter = strobeList.begin(); iter != strobeList.end(); ++iter)
+  for (unsigned long iter : strobeList)
   {
-    out << *iter << std::endl;
+    out << iter << std::endl;
   }
-  
+
   out << "Number of L1 triggers in this event" << std::endl;
   out << m_number_L1_name << ": " << get_number_L1s() << std::endl;
-    
+
   out << "Number of heart beats in this event" << std::endl;
   out << m_number_HB_name << ": " << get_number_HB() << std::endl;
 
@@ -49,41 +48,41 @@ void MvtxEventInfov2::identify(std::ostream &out) const
   {
     out << "List of strobe BCOs and L1 BCOs in this event" << std::endl;
 
-    for (auto iterStrobe = strobeList.begin(); iterStrobe != strobeList.end(); ++iterStrobe)
-    { 
-      std::set<uint64_t> l1List = get_L1_BCO_from_strobe_BCO(*iterStrobe);
-      out << "Strobe BCO: " << *iterStrobe << std::endl; 
-      for (auto iterL1 = l1List.begin(); iterL1 != l1List.end(); ++iterL1)
+    for (unsigned long iterStrobe : strobeList)
+    {
+      std::set<uint64_t> l1List = get_L1_BCO_from_strobe_BCO(iterStrobe);
+      out << "Strobe BCO: " << iterStrobe << std::endl;
+      for (unsigned long iterL1 : l1List)
       {
-        out << "L1 BCO: " << *iterL1 << std::endl; 
+        out << "L1 BCO: " << iterL1 << std::endl;
       }
       out << std::endl;
     }
   }
 
-  for (auto iteri = m_IntEventProperties.begin(); iteri != m_IntEventProperties.end(); ++iteri)
+  for (const auto& m_IntEventPropertie : m_IntEventProperties)
   {
-    out << iteri->first << ": " << iteri->second << std::endl;
+    out << m_IntEventPropertie.first << ": " << m_IntEventPropertie.second << std::endl;
   }
 
-  for (auto iteri64 = m_Int64EventProperties.begin(); iteri64 != m_Int64EventProperties.end(); ++iteri64)
+  for (const auto& m_Int64EventPropertie : m_Int64EventProperties)
   {
-    out << iteri64->first << ": " << iteri64->second << std::endl;
+    out << m_Int64EventPropertie.first << ": " << m_Int64EventPropertie.second << std::endl;
   }
 
-  for (auto iteru = m_UintEventProperties.begin(); iteru != m_UintEventProperties.end(); ++iteru)
+  for (const auto& m_UintEventPropertie : m_UintEventProperties)
   {
-    out << iteru->first << ": " << iteru->second << std::endl;
+    out << m_UintEventPropertie.first << ": " << m_UintEventPropertie.second << std::endl;
   }
 
-  for (auto iteru64 = m_Uint64EventProperties.begin(); iteru64 != m_Uint64EventProperties.end(); ++iteru64)
+  for (const auto& m_Uint64EventPropertie : m_Uint64EventProperties)
   {
-    out << iteru64->first << ": " << iteru64->second << std::endl;
+    out << m_Uint64EventPropertie.first << ": " << m_Uint64EventPropertie.second << std::endl;
   }
 
-  for (auto iterf = m_FloatEventProperties.begin(); iterf != m_FloatEventProperties.end(); ++iterf)
+  for (const auto& m_FloatEventPropertie : m_FloatEventProperties)
   {
-    out << iterf->first << ": " << iterf->second << std::endl;
+    out << m_FloatEventPropertie.first << ": " << m_FloatEventPropertie.second << std::endl;
   }
   return;
 }
@@ -103,7 +102,7 @@ int MvtxEventInfov2::get_number_HB() const
 {
   return m_number_HB;
 }
-  
+
 void MvtxEventInfov2::set_strobe_BCO(const uint64_t strobe_BCO)
 {
   m_strobe_BCOs.insert(strobe_BCO);
@@ -124,7 +123,7 @@ unsigned int MvtxEventInfov2::get_number_strobes() const
     strobe_L1_pair myPair = *iter;
     mySet.insert(myPair.first);
   }
-  
+
   return mySet.size();
 }
 
@@ -137,11 +136,11 @@ unsigned int MvtxEventInfov2::get_number_L1s() const
     strobe_L1_pair myPair = *iter;
     mySet.insert(myPair.second);
   }
-  
+
   return mySet.size();
 }
 
-std::set<uint64_t> MvtxEventInfov2::get_strobe_BCOs() const 
+std::set<uint64_t> MvtxEventInfov2::get_strobe_BCOs() const
 {
   std::set<uint64_t> mySet = m_strobe_BCOs;
   return mySet;
@@ -165,7 +164,7 @@ std::set<uint64_t> MvtxEventInfov2::get_strobe_BCO_from_L1_BCO(const uint64_t iv
   std::set<uint64_t> mySet;
   std::set<strobe_L1_pair>::const_iterator iter;
   for (iter = m_strobe_BCO_L1_BCO.begin(); iter != m_strobe_BCO_L1_BCO.end(); ++iter)
-  { 
+  {
     strobe_L1_pair myPair = *iter;
     if (ival == myPair.second)
     {

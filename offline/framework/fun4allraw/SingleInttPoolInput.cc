@@ -2,6 +2,7 @@
 #include "intt_pool.h"
 
 #include "Fun4AllStreamingInputManager.h"
+#include "InputManagerType.h"
 
 #include <ffarawobjects/InttRawHitContainerv1.h>
 #include <ffarawobjects/InttRawHitv1.h>
@@ -25,7 +26,7 @@
 SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
-  SubsystemEnum(Fun4AllStreamingInputManager::INTT);
+  SubsystemEnum(InputManagerType::INTT);
   plist = new Packet *[1];
 }
 
@@ -42,7 +43,7 @@ SingleInttPoolInput::~SingleInttPoolInput()
   }
 }
 
-void SingleInttPoolInput::FillPool(const unsigned int)
+void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -57,7 +58,7 @@ void SingleInttPoolInput::FillPool(const unsigned int)
     }
   }
 
-//  std::set<uint64_t> saved_beamclocks;
+  //  std::set<uint64_t> saved_beamclocks;
   while (GetSomeMoreEvents(0))
   {
     Event *evt = GetEventiterator()->getNextEvent();

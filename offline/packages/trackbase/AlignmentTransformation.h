@@ -1,8 +1,8 @@
-#ifndef TRACKBASE_ALIGNMENTTRANSFORMATION_H 
+#ifndef TRACKBASE_ALIGNMENTTRANSFORMATION_H
 #define TRACKBASE_ALIGNMENTTRANSFORMATION_H
 
-#include "alignmentTransformationContainer.h"
 #include "TrkrDefs.h"
+#include "alignmentTransformationContainer.h"
 
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
@@ -10,18 +10,16 @@
 #include <map>
 #include <random>
 
-
-
 class PHCompositeNode;
 
 class ActsGeometry;
 
-class AlignmentTransformation {
-
+class AlignmentTransformation
+{
  public:
   AlignmentTransformation() = default;
 
-  ~AlignmentTransformation(){} 
+  ~AlignmentTransformation() {}
 
   void createMap(PHCompositeNode* topNode);
   void createAlignmentTransformContainer(PHCompositeNode* topNode);
@@ -30,13 +28,13 @@ class AlignmentTransformation {
 
   bool perturbMVTX = false;
   bool perturbINTT = false;
-  bool perturbTPC  = false;
-  bool perturbMM   = false;
+  bool perturbTPC = false;
+  bool perturbMM = false;
 
-  Eigen::Vector3d perturbationAngles      = Eigen::Vector3d(0.0,0.0,0.0);
-  Eigen::Vector3d perturbationTranslation = Eigen::Vector3d(0.0,0.0,0.0);
+  Eigen::Vector3d perturbationAngles = Eigen::Vector3d(0.0, 0.0, 0.0);
+  Eigen::Vector3d perturbationTranslation = Eigen::Vector3d(0.0, 0.0, 0.0);
 
- void setMVTXParams(double mvtxDevs[6])
+  void setMVTXParams(double mvtxDevs[6])
   {
     mvtxAngleDev(0) = mvtxDevs[0];
     mvtxAngleDev(1) = mvtxDevs[1];
@@ -47,13 +45,13 @@ class AlignmentTransformation {
 
     perturbMVTX = true;
 
-    if(localVerbosity)
-      {
-	std::cout << "perturbMVTX: "<<perturbMVTX <<" MVTX Angle Std Dev: " << mvtxAngleDev <<"MVTX Trans Std Dev:"<< mvtxTransDev<< std::endl;
-      }
+    if (localVerbosity)
+    {
+      std::cout << "perturbMVTX: " << perturbMVTX << " MVTX Angle Std Dev: " << mvtxAngleDev << "MVTX Trans Std Dev:" << mvtxTransDev << std::endl;
+    }
   }
 
- void setINTTParams(double inttDevs[6])
+  void setINTTParams(double inttDevs[6])
   {
     inttAngleDev(0) = inttDevs[0];
     inttAngleDev(1) = inttDevs[1];
@@ -64,12 +62,12 @@ class AlignmentTransformation {
 
     perturbINTT = true;
 
-    if(localVerbosity)
-      {
-	std::cout << "perturbINTT: "<<perturbINTT <<" INTT Angle Std Dev: " << inttAngleDev <<"INTT Trans Std Dev:"<< inttTransDev<< std::endl;
-      }
-  } 
-void setTPCParams(double tpcDevs[6])
+    if (localVerbosity)
+    {
+      std::cout << "perturbINTT: " << perturbINTT << " INTT Angle Std Dev: " << inttAngleDev << "INTT Trans Std Dev:" << inttTransDev << std::endl;
+    }
+  }
+  void setTPCParams(double tpcDevs[6])
   {
     tpcAngleDev(0) = tpcDevs[0];
     tpcAngleDev(1) = tpcDevs[1];
@@ -80,12 +78,12 @@ void setTPCParams(double tpcDevs[6])
 
     perturbTPC = true;
 
-    if(localVerbosity)
-      {
-	std::cout << "perturbTPC: "<<perturbTPC <<" TPC Angle Std Dev: " << tpcAngleDev <<"TPC Trans Std Dev:"<< tpcTransDev<< std::endl;
-      }
+    if (localVerbosity)
+    {
+      std::cout << "perturbTPC: " << perturbTPC << " TPC Angle Std Dev: " << tpcAngleDev << "TPC Trans Std Dev:" << tpcTransDev << std::endl;
+    }
   }
- void setMMParams(double mmDevs[6])
+  void setMMParams(double mmDevs[6])
   {
     mmAngleDev(0) = mmDevs[0];
     mmAngleDev(1) = mmDevs[1];
@@ -96,24 +94,23 @@ void setTPCParams(double tpcDevs[6])
 
     perturbMM = true;
 
-    if(localVerbosity)
-      {
-	std::cout << "perturbMM: "<<perturbMM <<" MM Angle Std Dev: " << mmAngleDev <<"MM Trans Std Dev:"<< mmTransDev<< std::endl;
-      }
+    if (localVerbosity)
+    {
+      std::cout << "perturbMM: " << perturbMM << " MM Angle Std Dev: " << mmAngleDev << "MM Trans Std Dev:" << mmTransDev << std::endl;
+    }
   }
 
- void verbosity() { localVerbosity = 1;}
- void misalignmentFactor(uint8_t layer, const double factor);
- void useInttSurveyGeometry(bool sur) { use_intt_survey_geometry = sur;} 
+  void verbosity() { localVerbosity = 1; }
+  void misalignmentFactor(uint8_t layer, const double factor);
+  void useInttSurveyGeometry(bool sur) { use_intt_survey_geometry = sur; }
 
  private:
-
   Eigen::Vector3d mvtxAngleDev;
   Eigen::Vector3d mvtxTransDev;
   Eigen::Vector3d inttAngleDev;
-  Eigen::Vector3d inttTransDev;  
+  Eigen::Vector3d inttTransDev;
   Eigen::Vector3d tpcAngleDev;
-  Eigen::Vector3d tpcTransDev;  
+  Eigen::Vector3d tpcTransDev;
   Eigen::Vector3d mmAngleDev;
   Eigen::Vector3d mmTransDev;
 
@@ -126,14 +123,13 @@ void setTPCParams(double tpcDevs[6])
   bool use_global_millepede_translations = true;
   bool use_intt_survey_geometry = false;
 
-  Acts::Transform3 newMakeTransform(Surface surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, bool survey);
+  Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, bool survey);
 
   alignmentTransformationContainer* transformMap = NULL;
   alignmentTransformationContainer* transformMapTransient = NULL;
   ActsGeometry* m_tGeometry = NULL;
-  
-  int getNodes(PHCompositeNode* topNode);
 
+  int getNodes(PHCompositeNode* topNode);
 };
 
 #endif

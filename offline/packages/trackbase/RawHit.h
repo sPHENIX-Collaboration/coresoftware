@@ -25,7 +25,6 @@
 class RawHit : public PHObject
 {
  public:
-
   //! dtor
   ~RawHit() override {}
   // PHObject virtual overloads
@@ -38,13 +37,13 @@ class RawHit : public PHObject
 
   // after digitization, these are the adc values
   virtual void setAdc(const unsigned int) {}
-  virtual unsigned int getAdc() { return 0;}
+  virtual unsigned int getAdc() { return 0; }
 
   virtual void setPhiBin(const unsigned int) {}
-  virtual unsigned int getPhiBin() { return 0;}
+  virtual unsigned int getPhiBin() { return 0; }
 
   virtual void setTBin(const unsigned int) {}
-  virtual unsigned int getTBin() { return 0;}
+  virtual unsigned int getTBin() { return 0; }
 
   /*
   virtual void setCrossing(const short int) {}
@@ -52,8 +51,7 @@ class RawHit : public PHObject
   */
 
  protected:
-
   ClassDefOverride(RawHit, 1);
 };
 
-#endif //TRACKBASE_RAWHIT_H
+#endif  // TRACKBASE_RAWHIT_H

@@ -1,14 +1,12 @@
 #include "InttEventInfo.h"
 
-void
-InttEventInfo::identify(std::ostream& os) const
+void InttEventInfo::identify(std::ostream& os) const
 {
   os << "InttEventInfo::identify" << std::endl;
   os << "\tBase instance" << std::endl;
 }
 
-void
-InttEventInfo::Reset()
+void InttEventInfo::Reset()
 {
   std::cout << "InttEventInfo::Reset" << std::endl;
   std::cout << "\tUnimplemented (call to instance of base class)" << std::endl;
@@ -29,8 +27,7 @@ InttEventInfo::get_bco_full() const
   return 0;
 }
 
-void
-InttEventInfo::set_bco_full(uint64_t const&)
+void InttEventInfo::set_bco_full(uint64_t const& /*unused*/)
 {
   std::cout << "InttEventInfo::set_bco_full" << std::endl;
   std::cout << "\tUnimplemented (call to instance of base class)" << std::endl;

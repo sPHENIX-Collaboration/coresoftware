@@ -20,17 +20,17 @@ class Fun4AllRolloverFileOutStream : public Fun4AllFileOutStream
                                const int increment = 1,
                                const std::string &name = "Fun4AllRolloverFileOutStream");
 
-  virtual ~Fun4AllRolloverFileOutStream()=default;
+  virtual ~Fun4AllRolloverFileOutStream() = default;
   int WriteEventOut(Event *evt) override;
   void identify(std::ostream &os = std::cout) const;
 
  private:
   void open_new_file();
-  uint64_t m_MaxFileFize {0};
-  unsigned int m_MaxNEvents {0};
-  int m_CurrentSequence {0};
-  int m_Offset {0};
-  int m_Increment {1};
+  uint64_t m_MaxFileFize{0};
+  unsigned int m_MaxNEvents{0};
+  int m_CurrentSequence{0};
+  int m_Offset{0};
+  int m_Increment{1};
 };
 
 #endif /* FUN4ALLRAW_FUN4ALLROLLOVERFILEOUTSTREAM_H */

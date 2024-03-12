@@ -1,6 +1,7 @@
 #include "SingleTpcPoolInput.h"
 
 #include "Fun4AllStreamingInputManager.h"
+#include "InputManagerType.h"
 
 #include <ffarawobjects/TpcRawHitContainerv1.h>
 #include <ffarawobjects/TpcRawHitv1.h>
@@ -25,7 +26,7 @@ const int NPACKETS = 2;
 SingleTpcPoolInput::SingleTpcPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
-  SubsystemEnum(Fun4AllStreamingInputManager::TPC);
+  SubsystemEnum(InputManagerType::TPC);
   plist = new Packet *[NPACKETS];
 }
 
@@ -48,10 +49,10 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
       return;
     }
   }
-//  std::set<uint64_t> saved_beamclocks;
-   while (GetSomeMoreEvents())
+  //  std::set<uint64_t> saved_beamclocks;
+  while (GetSomeMoreEvents())
   {
-    std::unique_ptr<Event> evt( GetEventiterator()->getNextEvent() );
+    std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());
     while (!evt)
     {
       fileclose();
@@ -60,7 +61,7 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         AllDone(1);
         return;
       }
-      evt.reset( GetEventiterator()->getNextEvent() );
+      evt.reset(GetEventiterator()->getNextEvent());
     }
     if (Verbosity() > 2)
     {
@@ -85,9 +86,8 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
     }
     for (int i = 0; i < npackets; i++)
     {
-      
       // keep pointer to local packet
-      auto& packet = plist[i];
+      auto &packet = plist[i];
 
       // get packet id
       const auto packet_id = packet->getIdentifier();
@@ -98,76 +98,78 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
       }
 
       // by default use previous bco clock for gtm bco
-      auto& previous_bco = m_packet_bco[packet_id];
+      auto &previous_bco = m_packet_bco[packet_id];
       uint64_t gtm_bco = previous_bco;
-      
+
       uint64_t m_nTaggerInFrame = packet->lValue(0, "N_TAGGER");
       for (uint64_t t = 0; t < m_nTaggerInFrame; t++)
       {
         // only store gtm_bco for level1 type of taggers (not ENDDAT)
         const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
-        if( is_lvl1 )
+        if (is_lvl1)
         {
           gtm_bco = packet->lValue(t, "BCO");
-	  if (Verbosity() > 0)
-	  {
+          if (Verbosity() > 0)
+          {
             std::cout << "bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
-	  }
+          }
           // store
           previous_bco = gtm_bco;
         }
       }
-    
-    int m_nWaveormInFrame = packet->iValue(0, "NR_WF");
-    for (int wf = 0; wf < m_nWaveormInFrame; wf++)
-    {
-      TpcRawHit *newhit = new TpcRawHitv1();
-      int FEE = packet->iValue(wf, "FEE");
-      newhit->set_bco(packet->iValue(wf, "BCO"));
-      
-      // store gtm bco in hit
-      newhit->set_gtm_bco(gtm_bco);
 
-      newhit->set_packetid(packet->getIdentifier());
-      newhit->set_fee(FEE);
-      newhit->set_channel(packet->iValue(wf, "CHANNEL"));
-      newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
-      newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
-
-//         // checksum and checksum error
-//         newhit->set_checksum( packet->iValue(iwf, "CHECKSUM") );
-//         newhit->set_checksum_error( packet->iValue(iwf, "CHECKSUMERROR") );
-
-      // samples
-      const uint16_t samples = packet->iValue(wf, "SAMPLES");
-      newhit->set_samples( samples );
-
-      // adc values
-      for( uint16_t is =0; is < samples; ++is )
-      { newhit->set_adc( is, packet->iValue( wf, is ) ); }
-        
-      m_BeamClockFEE[gtm_bco].insert(FEE);
-      m_FEEBclkMap[FEE] = gtm_bco;
-      if (Verbosity() > 2)
+      int m_nWaveormInFrame = packet->iValue(0, "NR_WF");
+      for (int wf = 0; wf < m_nWaveormInFrame; wf++)
       {
-	std::cout << "evtno: " << EventSequence
-		  << ", hits: " << wf
-		  << ", num waveforms: " << m_nWaveormInFrame
-		  << ", bco: 0x" << std::hex << gtm_bco << std::dec
-		  << ", FEE: " << FEE << std::endl;
+        TpcRawHit *newhit = new TpcRawHitv1();
+        int FEE = packet->iValue(wf, "FEE");
+        newhit->set_bco(packet->iValue(wf, "BCO"));
+
+        // store gtm bco in hit
+        newhit->set_gtm_bco(gtm_bco);
+
+        newhit->set_packetid(packet->getIdentifier());
+        newhit->set_fee(FEE);
+        newhit->set_channel(packet->iValue(wf, "CHANNEL"));
+        newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
+        newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
+
+        //         // checksum and checksum error
+        //         newhit->set_checksum( packet->iValue(iwf, "CHECKSUM") );
+        //         newhit->set_checksum_error( packet->iValue(iwf, "CHECKSUMERROR") );
+
+        // samples
+        const uint16_t samples = packet->iValue(wf, "SAMPLES");
+        newhit->set_samples(samples);
+
+        // adc values
+        for (uint16_t is = 0; is < samples; ++is)
+        {
+          newhit->set_adc(is, packet->iValue(wf, is));
+        }
+
+        m_BeamClockFEE[gtm_bco].insert(FEE);
+        m_FEEBclkMap[FEE] = gtm_bco;
+        if (Verbosity() > 2)
+        {
+          std::cout << "evtno: " << EventSequence
+                    << ", hits: " << wf
+                    << ", num waveforms: " << m_nWaveormInFrame
+                    << ", bco: 0x" << std::hex << gtm_bco << std::dec
+                    << ", FEE: " << FEE << std::endl;
+        }
+        //          packet->convert();
+        if (StreamingInputManager())
+        {
+          StreamingInputManager()->AddTpcRawHit(gtm_bco, newhit);
+        }
+        m_TpcRawHitMap[gtm_bco].push_back(newhit);
+        m_BclkStack.insert(gtm_bco);
       }
-//          packet->convert();
-      if (StreamingInputManager())
-      {
-	StreamingInputManager()->AddTpcRawHit(gtm_bco, newhit);
-      }
-      m_TpcRawHitMap[gtm_bco].push_back(newhit);
-      m_BclkStack.insert(gtm_bco);
-    }
       delete packet;
     }
   }
-//  } while (m_TpcRawHitMap.size() < 10 || CheckPoolDepth(m_TpcRawHitMap.begin()->first));
+  //  } while (m_TpcRawHitMap.size() < 10 || CheckPoolDepth(m_TpcRawHitMap.begin()->first));
 }
 
 void SingleTpcPoolInput::Print(const std::string &what) const
@@ -237,8 +239,8 @@ void SingleTpcPoolInput::CleanupUsedPackets(const uint64_t bclk)
 
   for (auto iter : toclearbclk)
   {
-  m_BclkStack.erase(iter);
-  m_BeamClockFEE.erase(iter);
+    m_BclkStack.erase(iter);
+    m_BeamClockFEE.erase(iter);
     m_TpcRawHitMap.erase(iter);
   }
 }
@@ -274,7 +276,7 @@ void SingleTpcPoolInput::ClearCurrentEvent()
 {
   // called interactively, to get rid of the current event
   uint64_t currentbclk = *m_BclkStack.begin();
-//  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
+  //  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
   CleanupUsedPackets(currentbclk);
   // m_BclkStack.erase(currentbclk);
   // m_BeamClockFEE.erase(currentbclk);
@@ -319,19 +321,19 @@ void SingleTpcPoolInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  if (! dstNode)
+  if (!dstNode)
   {
     dstNode = new PHCompositeNode("DST");
     topNode->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
-PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "TPC"));
-if (!detNode)
-{
-  detNode = new PHCompositeNode("TPC");
-  dstNode->addNode(detNode);
-}
-  TpcRawHitContainer *tpchitcont = findNode::getClass<TpcRawHitContainer>(detNode,"TPCRAWHIT");
+  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "TPC"));
+  if (!detNode)
+  {
+    detNode = new PHCompositeNode("TPC");
+    dstNode->addNode(detNode);
+  }
+  TpcRawHitContainer *tpchitcont = findNode::getClass<TpcRawHitContainer>(detNode, "TPCRAWHIT");
   if (!tpchitcont)
   {
     tpchitcont = new TpcRawHitContainerv1();

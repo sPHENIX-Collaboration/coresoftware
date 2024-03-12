@@ -3,12 +3,12 @@
 
 #include "TrkrDefs.h"
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
 #include <iostream>
-#include <string>
 #include <map>
+#include <string>
 
 #include <phool/PHObject.h>
 
@@ -22,11 +22,10 @@ class InttEventInfo : public PHObject
   virtual void Reset() override;
 
   virtual uint64_t get_bco_full() const;
-  virtual void set_bco_full(uint64_t const&);
+  virtual void set_bco_full(uint64_t const &);
 
  protected:
-
   ClassDefOverride(InttEventInfo, 1);
 };
 
-#endif//INTT_EVENT_INFO_H
+#endif  // INTT_EVENT_INFO_H
