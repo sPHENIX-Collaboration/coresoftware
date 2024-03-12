@@ -11,8 +11,8 @@ AM_LDFLAGS = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include
+  -isystem$(ROOTSYS)/include \
+  -isystem$(OPT_SPHENIX)/include
 
 pkginclude_HEADERS = \
   CaloTemp.h
@@ -26,8 +26,7 @@ libcalotemp_la_LDFLAGS = \
   -L$(OPT_SPHENIX)/lib \
   -lcalo_io \
   -lodbc++ \
-  -lfun4all \
-  -lg4detectors_io
+  -lfun4all
 
 ################################################
 # linking tests
