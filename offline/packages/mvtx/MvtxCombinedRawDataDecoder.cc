@@ -254,7 +254,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   mvtx_event_header->set_strobe_BCO(strobe);
   if (m_writeMvtxEventHeader)
   {
-    for (auto& iter : l1BCOs)
+    for (auto &iter : l1BCOs)
     {
       mvtx_event_header->set_strobe_BCO_L1_BCO(strobe, iter);
     }
