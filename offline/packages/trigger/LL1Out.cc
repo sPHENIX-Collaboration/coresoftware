@@ -12,14 +12,10 @@ namespace
 }
 
 LL1Out::LL1Out()
-{
-
-}
+= default;
 
 LL1Out::~LL1Out()
-{
-
-}
+= default;
 
 //______________________________________
 void LL1Out::Reset()

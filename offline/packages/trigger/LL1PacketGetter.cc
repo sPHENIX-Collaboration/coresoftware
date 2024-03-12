@@ -46,9 +46,7 @@ LL1PacketGetter::LL1PacketGetter(const std::string &name, const std::string &tri
 
 //____________________________________________________________________________..
 LL1PacketGetter::~LL1PacketGetter()
-{
-
-}
+= default;
 
 
 //____________________________________________________________________________..
@@ -88,7 +86,8 @@ int LL1PacketGetter::InitRun(PHCompositeNode *topNode)
     }
   m_nchannels = m_nchannels_per_primitive*m_nprimitives + m_ntriggerwords;
   
-  if (CreateNodeTree(topNode)) return Fun4AllReturnCodes::ABORTRUN;
+  if (CreateNodeTree(topNode)) { return Fun4AllReturnCodes::ABORTRUN;
+}
 
   topNode->print();
   return Fun4AllReturnCodes::EVENT_OK;
@@ -229,7 +228,8 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  if (_verbose) m_ll1out->identify();
+  if (_verbose) { m_ll1out->identify();
+}
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

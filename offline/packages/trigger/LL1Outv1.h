@@ -23,7 +23,7 @@ class LL1Outv1 : public LL1Out
   ///
   LL1Outv1();
 
-  LL1Outv1(const std::string triggertype, const std::string ll1type);
+  LL1Outv1(const std::string& triggertype, const std::string& ll1type);
   ///
   ~LL1Outv1() override;
 
@@ -64,13 +64,13 @@ class LL1Outv1 : public LL1Out
 
   TriggerDefs::TriggerKey _trigger_key = TriggerDefs::TRIGGERKEYMAX;
 
-  int idx;
-  unsigned int _event_number;
-  unsigned int _clock_number;
+  int idx{};
+  unsigned int _event_number{};
+  unsigned int _clock_number{};
 
   vector<unsigned int> *_trigger_bits;
   Map _trigger_words;
-  unsigned int _thresholds[10];
+  unsigned int _thresholds[10]{};
 
  private: // so the ClassDef does not show up with doc++
   ClassDefOverride(LL1Outv1,1);

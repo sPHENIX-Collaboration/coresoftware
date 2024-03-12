@@ -10,10 +10,7 @@
 #include <cassert>
 
 TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1()
-{
-
-
-}
+= default;
 TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1(const std::string &triggertype)
 { 
   m_triggerkey = TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(triggertype));
@@ -55,7 +52,8 @@ int TriggerPrimitiveContainerv1::isValid() const
 
 TriggerPrimitive* TriggerPrimitiveContainerv1::get_primitive_at_key(TriggerDefs::TriggerPrimKey key)
 {
-  if (!_primitives[key]) return nullptr;
+  if (!_primitives[key]) { return nullptr;
+}
   
   return _primitives[key];
 }

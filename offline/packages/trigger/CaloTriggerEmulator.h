@@ -72,9 +72,14 @@ class CaloTriggerEmulator : public SubsysReco
 
   //! Set TriggerType
   void setTriggerType(const std::string &name);
+  void setTriggerType(TriggerDefs::TriggerId triggerid);
   void setEmcalScale(float calib){m_emcal_GeV_per_lut = calib;}
   void setEmcalOffset(float off){m_emcal_lut_offset = off;}
   void setEmcalFloor(float floor){m_emcal_lut_floor = floor;}
+
+  void useHCALIN(bool use);
+  void useHCALOUT(bool use);
+  void useEMCAL(bool use);
 
   void setNSamples(int nsamples) { m_nsamples = nsamples; }
   void setThreshold(int threshold) { _m_threshold = threshold; }
@@ -101,6 +106,11 @@ class CaloTriggerEmulator : public SubsysReco
   bool _do_hcalout{false};
   bool _do_emcal{false};
   bool _do_mbd{false};
+
+  bool _force_hcalin{false};
+  bool _force_hcalout{false};
+  bool _force_emcal{false};
+  bool _force_mbd{false};
 
   //! Waveform conatiner
   TowerInfoContainer *_waveforms_hcalin = nullptr;
@@ -164,10 +174,10 @@ class CaloTriggerEmulator : public SubsysReco
   std::map<std::string, TH1D*> v_mbd_time;
 
   //! Lookup tables
-  unsigned int m_l1_adc_table[1024];
-  unsigned int m_l1_adc_table_time[1024];
-  unsigned int m_l1_slewing_table[4096];
-  unsigned int m_l1_hcal_table[4096];
+  unsigned int m_l1_adc_table[1024]{};
+  unsigned int m_l1_adc_table_time[1024]{};
+  unsigned int m_l1_slewing_table[4096]{};
+  unsigned int m_l1_hcal_table[4096]{};
   CDBTTree *cdbttree_emcal = nullptr;
   CDBTTree *cdbttree_hcalin = nullptr;
   CDBTTree *cdbttree_hcalout = nullptr;
@@ -182,24 +192,24 @@ class CaloTriggerEmulator : public SubsysReco
   std::string m_calibName_hcalout;
 
   //! Trigger primitives
-  unsigned int m_trig_charge[8];
+  unsigned int m_trig_charge[8]{};
   unsigned int m_trig_nhit;
-  unsigned int m_trig_time[4];
+  unsigned int m_trig_time[4]{};
 
 
   //! Trigger primitives
-  unsigned int m2_trig_charge[4][8];
-  unsigned int m2_trig_nhit[4];
-  unsigned int m2_trig_time[4][4];
+  unsigned int m2_trig_charge[4][8]{};
+  unsigned int m2_trig_nhit[4]{};
+  unsigned int m2_trig_time[4][4]{};
 
   std::vector<std::vector<unsigned int>*> _sum_mbd;
 
   //! Trigger ouputs
   std::vector<std::vector<unsigned int>*> _word_mbd;
-  unsigned int m_out_tsum[2];
-  unsigned int m_out_tavg[2];
-  unsigned int m_out_trem[2];
-  unsigned int m_out_nhit[2];
+  unsigned int m_out_tsum[2]{};
+  unsigned int m_out_tavg[2]{};
+  unsigned int m_out_trem[2]{};
+  unsigned int m_out_nhit[2]{};
   unsigned int m_out_vtx_sub;
   unsigned int m_out_vtx_add;
 

@@ -21,7 +21,7 @@ LL1Outv1::LL1Outv1()
 }
 
 
-LL1Outv1::LL1Outv1(const std::string triggertype, const std::string ll1type)
+LL1Outv1::LL1Outv1(const std::string& triggertype, const std::string& ll1type)
 {
   _trigger_type = triggertype;
 
@@ -67,13 +67,15 @@ void LL1Outv1::identify(std::ostream& out) const
   out << __FILE__ << __FUNCTION__ <<" LL1Out: Triggertype = " << _trigger_type << " LL1 type = " << _ll1_type << std::endl;
   out << __FILE__ << __FUNCTION__ <<" Event number: "<< _event_number <<"    Clock: "<< _clock_number << std::endl;
   out << __FILE__ << __FUNCTION__ <<" Trigger bits    "<<_trigger_bits->size()<<"         : ";
-  for (int i = 0; i < static_cast<int>(_trigger_bits->size()) ; i++) cout <<" "<< _trigger_bits->at(i);
+  for (unsigned int _trigger_bit : *_trigger_bits) { cout <<" "<< _trigger_bit;
+}
   out << " " <<std::endl;
   out << __FILE__ << __FUNCTION__ <<" Trigger words    "<<std::endl;
   
-  for (auto i = _trigger_words.begin(); i != _trigger_words.end() ; ++i) 
+  for (auto _trigger_word : _trigger_words) 
     {
-      for (auto j = (*i).second->begin(); j != (*i).second->end(); ++j)cout <<" "<< (*j);
+      for (auto j = _trigger_word.second->begin(); j != _trigger_word.second->end(); ++j) {cout <<" "<< (*j);
+}
       
       out << " " <<std::endl;
     }

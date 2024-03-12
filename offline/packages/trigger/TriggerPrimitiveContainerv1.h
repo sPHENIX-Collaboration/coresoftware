@@ -8,6 +8,8 @@
 #include <phool/PHObject.h>
 #include "TriggerPrimitiveContainer.h"
 #include "TriggerPrimitive.h"
+#include "TriggerPrimitivev1.h"
+
 #include <map>
 #include <utility>
 

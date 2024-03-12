@@ -12,12 +12,9 @@ namespace
 }
 
 TriggerPrimitiveContainer::TriggerPrimitiveContainer()
-{
-}
+= default;
 TriggerPrimitiveContainer::~TriggerPrimitiveContainer()
-{
-
-}
+= default;
 
 //______________________________________
 void TriggerPrimitiveContainer::Reset()

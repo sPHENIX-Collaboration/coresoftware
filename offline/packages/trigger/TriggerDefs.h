@@ -49,9 +49,9 @@ namespace TriggerDefs
     photonPId = 4,
   };
 
-  TriggerId GetTriggerId(const std::string trigger);
-  DetectorId GetDetectorId(const std::string detector);
-  PrimitiveId GetPrimitiveId(const std::string primitive);
+  TriggerId GetTriggerId(const std::string& trigger);
+  DetectorId GetDetectorId(const std::string& detector);
+  PrimitiveId GetPrimitiveId(const std::string& primitive);
   
   static const unsigned int kBitShiftPrimitiveLocId __attribute__((unused)) = 5;
   static const unsigned int kBitShiftSumLocId __attribute__((unused)) = 0;

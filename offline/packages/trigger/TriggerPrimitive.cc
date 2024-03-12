@@ -12,9 +12,7 @@ namespace
 }
 
 TriggerPrimitive::TriggerPrimitive()
-{
-
-}
+= default;
 
 TriggerPrimitive::TriggerPrimitive(TriggerDefs::TriggerPrimKey key)
 {
@@ -22,9 +20,7 @@ TriggerPrimitive::TriggerPrimitive(TriggerDefs::TriggerPrimKey key)
 }
 
 TriggerPrimitive::~TriggerPrimitive()
-{
-
-}
+= default;
 
 //______________________________________
 void TriggerPrimitive::Reset()

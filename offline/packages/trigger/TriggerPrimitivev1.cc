@@ -7,9 +7,7 @@
 ClassImp(TriggerPrimitivev1)
 
 TriggerPrimitivev1::TriggerPrimitivev1()
-{
-
-}
+= default;
 
 TriggerPrimitivev1::TriggerPrimitivev1(TriggerDefs::TriggerPrimKey key)
 {
@@ -17,9 +15,7 @@ TriggerPrimitivev1::TriggerPrimitivev1(TriggerDefs::TriggerPrimKey key)
 }
 
 TriggerPrimitivev1::~TriggerPrimitivev1()
-{
-
-}
+= default;
 
 //______________________________________
 void TriggerPrimitivev1::Reset()
@@ -33,7 +29,8 @@ void TriggerPrimitivev1::add_sum(TriggerDefs::TriggerSumKey key, std::vector<uns
 }
 std::vector<unsigned int>*  TriggerPrimitivev1::get_sum_at_key(TriggerDefs::TriggerSumKey key)
 {
-  if (!_sums[key]) return nullptr;
+  if (!_sums[key]) { return nullptr;
+}
 
   return _sums[key];
 }
@@ -57,7 +54,8 @@ void TriggerPrimitivev1::identify(std::ostream& out) const
   for (auto iter = range.first; iter != range.second ; ++iter )
     {
       out << "Sumkey "<<(*iter).first <<" :";
-      for (auto i = (*iter).second->begin(); i != (*iter).second->end(); i++) out << (*i) << " "; 
+      for (unsigned int & i : *(*iter).second) { out << i << " "; 
+}
       out <<" "<<std::endl;
     }
 }
