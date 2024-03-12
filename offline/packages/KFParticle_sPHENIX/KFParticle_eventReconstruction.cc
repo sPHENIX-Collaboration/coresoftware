@@ -210,7 +210,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
             required_unique_vertexID += m_intermediate_charge[n] * kfp_Tools_evtReco.getParticleMass(m_intermediate_name[n].c_str());
           }
 
-          std::vector<std::vector<std::string>> uniqueCombinations;
+          std::vector<std::vector<int>> uniqueCombinations;
           std::vector<std::vector<int>> listOfTracksToAppend;
 
           if (num_remaining_tracks != 0)
@@ -226,12 +226,21 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 
             for (auto& uniqueCombination : uniqueCombinations)
             {
-              uniqueCombination.insert(begin(uniqueCombination), begin(m_intermediate_name), end(m_intermediate_name));
+              for (auto element_of_intermediate : m_intermediate_name)
+              {
+                uniqueCombination.insert(begin(uniqueCombination), kfp_Tools_evtReco.getParticleID(element_of_intermediate));
+              }
             }
           }
           else
           {
-            uniqueCombinations.push_back(m_intermediate_name);
+            std::vector<int> m_intermediate_id;
+            m_intermediate_id.clear();
+            for (auto element_of_intermediate : m_intermediate_name)
+            {
+              m_intermediate_id.push_back(kfp_Tools_evtReco.getParticleID(element_of_intermediate));
+            }
+            uniqueCombinations.push_back(m_intermediate_id);
             listOfTracksToAppend.push_back({0});
           }
 
@@ -268,15 +277,27 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                   for (int k = 0; k < num_remaining_tracks; ++k)
                   {  // Need to deal with track mass and PID assignment for extra tracks
                     int trackArrayID = k + m_num_intermediate_states;
+                    double slowTrackMass=-1;
+                    int slowTrackPDG=0;
+                    if ((Int_t) motherDecayProducts[trackArrayID].GetQ() != 0)
+                    {
+                      slowTrackMass = kfp_Tools_evtReco.getParticleMass((Int_t) motherDecayProducts[trackArrayID].GetQ() * uniqueCombination[trackArrayID]);
+                      slowTrackPDG = (Int_t) motherDecayProducts[trackArrayID].GetQ() * uniqueCombination[trackArrayID];
+                    }
+                    else if ((Int_t) motherDecayProducts[trackArrayID].GetQ() == 0)
+                    {
+                      slowTrackMass = kfp_Tools_evtReco.getParticleMass(uniqueCombination[trackArrayID]);
+                      slowTrackPDG = uniqueCombination[trackArrayID];
+                    }
                     KFParticle slowTrack;
                     slowTrack.Create(motherDecayProducts[trackArrayID].Parameters(),
                                      motherDecayProducts[trackArrayID].CovarianceMatrix(),
                                      (Int_t) motherDecayProducts[trackArrayID].GetQ(),
-                                     kfp_Tools_evtReco.getParticleMass(uniqueCombination[trackArrayID].c_str()));
+                                     slowTrackMass);
                     slowTrack.NDF() = motherDecayProducts[trackArrayID].GetNDF();
                     slowTrack.Chi2() = motherDecayProducts[trackArrayID].GetChi2();
                     slowTrack.SetId(motherDecayProducts[trackArrayID].Id());
-                    slowTrack.SetPDG(motherDecayProducts[trackArrayID].GetQ() * kfp_Tools_evtReco.getParticleID(uniqueCombination[trackArrayID].c_str()));
+                    slowTrack.SetPDG(slowTrackPDG);
                     goodDaughters[k + num_tracks_used_by_intermediates].push_back(slowTrack);
                   }
                 }
@@ -334,7 +355,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
                                                        bool isIntermediate, int intermediateNumber, bool constrainMass)
 {
   int nTracks = n_track_stop - n_track_start;
-  std::vector<std::vector<std::string>> uniqueCombinations = findUniqueDaughterCombinations(n_track_start, n_track_stop);
+  std::vector<std::vector<int>> uniqueCombinations = findUniqueDaughterCombinations(n_track_start, n_track_stop);
   std::vector<KFParticle> goodCandidates, goodVertex, goodDaughters[nTracks];
   KFParticle candidate;
   bool isGood;
@@ -359,8 +380,8 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
     {
       for (unsigned int i_pv = 0; i_pv < primaryVerticesCand.size(); ++i_pv)  // Loop over all PVs in the event
       {
-        std::string* names = &uniqueCombination[0];
-        std::tie(candidate, isGood) = getCombination(daughterTracks, names, primaryVerticesCand[i_pv], m_constrain_to_vertex,
+        int* PDGIDofFirstParticleInCombination = &uniqueCombination[0];
+        std::tie(candidate, isGood) = getCombination(daughterTracks, PDGIDofFirstParticleInCombination, primaryVerticesCand[i_pv], m_constrain_to_vertex,
                                                      isIntermediate, intermediateNumber, nTracks, constrainMass, required_unique_vertexID);
 
         if (isIntermediate && isGood)
@@ -381,14 +402,26 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
           for (int i = 0; i < nTracks; ++i)
           {
             KFParticle intParticle;
+            double intParticleMass=-1;
+            int intParticlePDG=0;
+            if ((Int_t) daughterTracks[i].GetQ() != 0)
+            {
+              intParticleMass = kfp_Tools_evtReco.getParticleMass((Int_t) daughterTracks[i].GetQ() * PDGIDofFirstParticleInCombination[i]);
+              intParticlePDG = (Int_t) daughterTracks[i].GetQ() * PDGIDofFirstParticleInCombination[i];
+            }
+            else if ((Int_t) daughterTracks[i].GetQ() == 0)
+            {
+              intParticleMass = kfp_Tools_evtReco.getParticleMass(PDGIDofFirstParticleInCombination[i]);
+              intParticlePDG = PDGIDofFirstParticleInCombination[i];
+            }
             intParticle.Create(daughterTracks[i].Parameters(),
                                daughterTracks[i].CovarianceMatrix(),
                                (Int_t) daughterTracks[i].GetQ(),
-                               kfp_Tools_evtReco.getParticleMass(names[i]));
+                               intParticleMass);
             intParticle.NDF() = daughterTracks[i].GetNDF();
             intParticle.Chi2() = daughterTracks[i].GetChi2();
             intParticle.SetId(daughterTracks[i].Id());
-            intParticle.SetPDG(daughterTracks[i].GetQ() * kfp_Tools_evtReco.getParticleID(names[i]));
+            intParticle.SetPDG(intParticlePDG);
             goodDaughters[i].push_back(intParticle);
           }
         }

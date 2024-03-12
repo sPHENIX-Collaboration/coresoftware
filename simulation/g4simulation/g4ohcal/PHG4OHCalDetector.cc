@@ -40,6 +40,7 @@
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4IonisParamMat.hh>
 #include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4LogicalVolumeStore.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4MaterialTable.hh>
 #include <Geant4/G4PVPlacement.hh>
@@ -67,6 +68,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <list>
 #include <memory>   // for unique_ptr
 #include <utility>  // for pair, make_pair
 #include <vector>   // for vector, vector<>::iter...
@@ -266,7 +268,20 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     }
     ++it2;
   }
-
+  //Inner HCal support ring (only the part in Outer HCal volume)
+  // it only exists in the new gdml file, this check keeps the old file
+// without the inner hcal support readable
+  std::list<std::string> volumelist = {"RingSupport_steel_1", "RingSupport_steel_2","RingSupport_alum_1","RingSupport_alum_2","HCalRing_alum_1","HCalRing_alum_2"};
+  for (auto const &volumename: volumelist)
+  {
+    G4LogicalVolume *logvolptr = G4LogicalVolumeStore::GetInstance()->GetVolume(volumename,false);
+    if (logvolptr)
+    {
+      m_DisplayAction->AddSupportRingVolume(logvolptr);
+      m_SteelAbsorberLogVolSet.insert(logvolptr);
+      hcalenvelope->AddDaughter(reader->GetWorldVolume(volumename));
+    }
+  }
   for (auto &logical_vol : m_SteelAbsorberLogVolSet)
   {
     if (m_FieldSetup)  // only if we have a field defined for the steel absorber

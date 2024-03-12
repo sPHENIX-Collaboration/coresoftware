@@ -565,7 +565,10 @@ void PHG4TpcPadPlaneReadout::populate_tbins(const double t, const std::array<dou
   int tbin = LayerGeom->get_zbin(t);
   if (tbin < 0 || tbin > LayerGeom->get_zbins())
   {
-    std::cout << " t bin " << tbin << " is outside range of " << LayerGeom->get_zbins() << " so return" << std::endl;
+    if(Verbosity() > 0) 
+      {
+	std::cout << " t bin " << tbin << " for time " << t << " is outside range of " << LayerGeom->get_zbins() << " so return" << std::endl;
+      }
     return;
   }
 
@@ -720,9 +723,9 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("tpc_sector_phi_mid",   0.5087);//2 * M_PI / 12 );//sector size in phi for R2 sector
   set_default_double_param("tpc_sector_phi_outer", 0.5097);//2 * M_PI / 12 );//sector size in phi for R3 sector
 
-  set_default_int_param("ntpc_phibins_inner", 1152);
-  set_default_int_param("ntpc_phibins_mid", 1536);
-  set_default_int_param("ntpc_phibins_outer", 2304);
+  set_default_int_param("ntpc_phibins_inner", 1128); //94 * 12
+  set_default_int_param("ntpc_phibins_mid", 1536);   //128 * 12
+  set_default_int_param("ntpc_phibins_outer", 2304); //192 * 12
 
   // GEM Gain
   /*

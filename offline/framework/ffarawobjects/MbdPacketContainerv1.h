@@ -24,7 +24,7 @@ public:
   int isValid() const override;
 
   MbdPacket *AddPacket() override;
-  MbdPacket *AddPacket(MbdPacket *mbdhit) override;
+  MbdPacket *AddPacket(MbdPacket *mbdpacket) override;
   unsigned int get_npackets() override;
   MbdPacket *getPacket(unsigned int index) override;
 

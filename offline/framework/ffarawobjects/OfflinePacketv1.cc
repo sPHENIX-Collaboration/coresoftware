@@ -15,3 +15,18 @@ void OfflinePacketv1::Reset()
   packetid = std::numeric_limits<int>::min();
   bco = std::numeric_limits<uint64_t>::max();
 }
+
+void OfflinePacketv1::identify(std::ostream &os) const
+{
+  os << "Id: " << getIdentifier() << std::endl;
+  os << "EvtSeq: " << getEvtSequence() << std::endl;
+  os << "BCO: 0x" << std::hex << getBCO() << std::dec << std::endl;
+  return;
+}
+
+void OfflinePacketv1::FillFrom(const OfflinePacket *pkt)
+{
+  setIdentifier(pkt->getIdentifier());
+  setEvtSequence(pkt->getEvtSequence());
+  setBCO(pkt->getBCO());
+}
