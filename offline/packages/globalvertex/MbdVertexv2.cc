@@ -55,8 +55,9 @@ int MbdVertexv2::isValid() const
 
 float MbdVertexv2::get_position(unsigned int coor) const 
 {
-  if(coor == 0) return get_x();
-  else if(coor == 1) return get_y();
-  else if(coor == 2) return get_z();
-  else return NAN;
+  if(coor == 0) { return get_x();
+  } else if(coor == 1) { return get_y();
+  } else if(coor == 2) { return get_z();
+  } else { return NAN;
+}
 }
