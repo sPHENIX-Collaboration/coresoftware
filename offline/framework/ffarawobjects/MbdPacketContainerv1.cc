@@ -3,11 +3,11 @@
 
 #include <TClonesArray.h>
 
-static const int NMBDHITS = 100;
+static const int NMBDPACKETS = 2;
 
 MbdPacketContainerv1::MbdPacketContainerv1()
 {
-  MbdPacketsTCArray = new TClonesArray("MbdPacketv1",NMBDHITS);
+  MbdPacketsTCArray = new TClonesArray("MbdPacketv1",NMBDPACKETS);
 }
 
 MbdPacketContainerv1::~MbdPacketContainerv1()
@@ -19,7 +19,7 @@ MbdPacketContainerv1::~MbdPacketContainerv1()
 void MbdPacketContainerv1::Reset()
 {
  MbdPacketsTCArray->Clear();
- MbdPacketsTCArray->Expand(NMBDHITS);
+ MbdPacketsTCArray->Expand(NMBDPACKETS);
 }
 
 void MbdPacketContainerv1::identify(std::ostream &os) const
@@ -51,7 +51,9 @@ unsigned int MbdPacketContainerv1::get_npackets()
 
 MbdPacket *MbdPacketContainerv1::AddPacket(MbdPacket *mbdhit)
  {
-   MbdPacket *newhit = new ((*MbdPacketsTCArray)[MbdPacketsTCArray->GetLast()+1]) MbdPacketv1(mbdhit);
+// need a dynamic cast here to use the default copy ctor for MbdPacketv1
+// which copies the std::arrays
+   MbdPacket *newhit = new ((*MbdPacketsTCArray)[MbdPacketsTCArray->GetLast()+1]) MbdPacketv1(*(dynamic_cast<MbdPacketv1 *> (mbdhit)));
    return newhit;
  }
 

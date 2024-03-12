@@ -12,6 +12,7 @@ class  OfflinePacket: public PHObject
 public:
     OfflinePacket() = default;
   virtual ~OfflinePacket() = default;
+  virtual void FillFrom(const OfflinePacket */*pkt*/) {return;}
 
   virtual int getIdentifier() const {return std::numeric_limits<int>::min();}
   virtual void setIdentifier(const int) {return;}

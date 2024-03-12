@@ -364,7 +364,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
     if (Verbosity() > 0)
     {
-      for (auto& hit : hitvec)
+      for (auto &hit : hitvec)
       {
         auto hitkey = hit.first;
         auto row = MvtxDefs::getRow(hitkey);
@@ -375,7 +375,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
     }
 
     // do the clustering
-    using Graph =  adjacency_list<vecS, vecS, undirectedS>;
+    using Graph = adjacency_list<vecS, vecS, undirectedS>;
     Graph G;
 
     // loop over hits in this chip

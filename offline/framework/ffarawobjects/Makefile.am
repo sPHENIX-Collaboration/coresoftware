@@ -16,6 +16,11 @@ libffarawobjects_la_LIBADD = \
   -lphool
 
 ROOTDICTS = \
+  CaloPacket_Dict.cc \
+  CaloPacketv1_Dict.cc \
+  CaloPacketContainer_Dict.cc \
+  CaloPacketContainerv1_Dict.cc \
+  Gl1Packet_Dict.cc \
   Gl1Packetv1_Dict.cc \
   Gl1RawHit_Dict.cc \
   Gl1RawHitv1_Dict.cc \
@@ -46,6 +51,11 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  CaloPacket_Dict_rdict.pcm \
+  CaloPacketv1_Dict_rdict.pcm \
+  CaloPacketContainer_Dict_rdict.pcm \
+  CaloPacketContainerv1_Dict_rdict.pcm \
+  Gl1Packet_Dict_rdict.pcm \
   Gl1Packetv1_Dict_rdict.pcm \
   Gl1RawHit_Dict_rdict.pcm \
   Gl1RawHitv1_Dict_rdict.pcm \
@@ -75,6 +85,11 @@ nobase_dist_pcm_DATA = \
   TpcRawHitv1_Dict_rdict.pcm
 
 pkginclude_HEADERS = \
+  CaloPacket.h \
+  CaloPacketv1.h \
+  CaloPacketContainer.h \
+  CaloPacketContainerv1.h \
+  Gl1Packet.h \
   Gl1Packetv1.h \
   Gl1RawHit.h \
   Gl1RawHitv1.h \
@@ -105,6 +120,8 @@ pkginclude_HEADERS = \
 
 libffarawobjects_la_SOURCES = \
   $(ROOTDICTS) \
+  CaloPacketv1.cc \
+  CaloPacketContainerv1.cc \
   Gl1Packetv1.cc \
   Gl1RawHitv1.cc \
   InttRawHitContainerv1.cc \

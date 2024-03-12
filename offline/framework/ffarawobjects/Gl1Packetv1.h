@@ -1,11 +1,11 @@
 #ifndef FUN4ALLRAW_GL1PACKETV1_H
 #define FUN4ALLRAW_GL1PACKETV1_H
 
-#include "OfflinePacketv1.h"
+#include "Gl1Packet.h"
 
 #include <limits>
 
-class  Gl1Packetv1: public OfflinePacketv1
+class  Gl1Packetv1: public Gl1Packet
   {
 
 public:
@@ -13,9 +13,11 @@ public:
     ~Gl1Packetv1() override = default;
 
   void Reset() override;
+  void identify(std::ostream &os = std::cout) const override;
+  void FillFrom(const Gl1Packet *pkt) override;
 
-  virtual void setBunchNumber(const char bn) {bunchnumber = bn;}
-  virtual char getBunchNumber() const {return bunchnumber;}
+  void setBunchNumber(const char bn) override {bunchnumber = bn;}
+  char getBunchNumber() const override {return bunchnumber;}
 
   protected:
   char bunchnumber {std::numeric_limits<char>::min()};

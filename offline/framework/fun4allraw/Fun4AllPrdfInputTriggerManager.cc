@@ -10,7 +10,11 @@
 #include <ffaobjects/SyncObject.h>    // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>  // for SyncObject
 
-#include <ffarawobjects/OfflinePacket.h>
+#include <ffarawobjects/Gl1Packet.h>
+#include <ffarawobjects/MbdPacket.h>
+#include <ffarawobjects/MbdPacketContainer.h>
+#include <ffarawobjects/CaloPacket.h>
+#include <ffarawobjects/CaloPacketContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -36,19 +40,9 @@
 Fun4AllPrdfInputTriggerManager::Fun4AllPrdfInputTriggerManager(const std::string &name, const std::string &prdfnodename, const std::string &topnodename)
   : Fun4AllInputManager(name, prdfnodename, topnodename)
   , m_SyncObject(new SyncObjectv1())
-  , m_PrdfNodeName(prdfnodename)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
   m_topNode = se->topNode(TopNodeName());
-  PHNodeIterator iter(m_topNode);
-  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
-  if (!PrdfNode)
-  {
-    PHDataNode<Event> *newNode = new PHDataNode<Event>(m_Event, m_PrdfNodeName, "Event");
-    m_topNode->addNode(newNode);
-  }
-  oph = new oEvent(workmem, 4 * 1024 * 1024, 1, 1, 1);
-  return;
 }
 
 Fun4AllPrdfInputTriggerManager::~Fun4AllPrdfInputTriggerManager()
@@ -62,14 +56,15 @@ Fun4AllPrdfInputTriggerManager::~Fun4AllPrdfInputTriggerManager()
   {
     delete iter;
   }
-  for (const auto &pktinfoiter : m_PacketMap)
+  for (auto const &mapiter : m_Gl1PacketMap)
   {
-    for (auto const &pktiter : pktinfoiter.second.PacketVector)
+    for (auto gl1packet : mapiter.second.Gl1PacketVector)
     {
-      delete pktiter;
+      delete gl1packet;
     }
   }
-  delete oph;
+  m_Gl1PacketMap.clear();
+ 
 }
 
 int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
@@ -83,88 +78,11 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   {
     iret += FillMbd();
   }
+  if (m_hcal_registered_flag)  // Mbd first to get the reference
+  {
+    iret += 1;
+  }
   return iret;
-  if (m_StartUpFlag)
-  {
-    for (auto iter : m_PrdfInputVector)
-    {
-      iter->FillPool(m_InitialPoolDepth);
-      m_RunNumber = iter->RunNumber();
-    }
-    CreateBclkOffsets();
-    m_StartUpFlag = false;
-  }
-  bool event_ok = false;
-  while (!event_ok)
-  {
-    event_ok = true;
-    if (m_PacketMap.size() < m_PoolDepth)
-    {
-      for (auto iter : m_PrdfInputVector)
-      {
-        iter->FillPool(m_PoolDepth);
-        m_RunNumber = iter->RunNumber();
-      }
-      SetRunNumber(m_RunNumber);
-    }
-
-    if (m_PacketMap.empty())
-    {
-      std::cout << "we are done" << std::endl;
-      return -1;
-    }
-    //  std::cout << "next event is " << m_PacketMap.begin()->first << std::endl;
-    auto pktinfoiter = m_PacketMap.begin();
-    int eventnumber = pktinfoiter->first;
-
-    // if we don't have this event in our reference input - ditch it (messes with the ref beam clock counter)
-    if (m_RefClockCounters.find(eventnumber) == m_RefClockCounters.end())
-    {
-      event_ok = false;
-      DitchEvent(eventnumber);
-    }
-    else
-    {
-      int refclock = m_RefClockCounters[eventnumber];
-      for (auto veciter : m_ClockCounters[eventnumber])
-      {
-        uint64_t diffclock = CalcDiffBclk(veciter.first, refclock);
-        if (diffclock != m_SinglePrdfInputInfo[veciter.second].bclkoffset)
-        {
-          std::cout << "Houston we have a problem with event " << eventnumber << std::endl;
-          std::cout << "name " << veciter.second->Name() << ", diffclk: 0x" << std::hex
-                    << diffclock << ", my bclk: 0x" << veciter.first
-                    << ", ref clk: 0x" << refclock << std::dec << std::endl;
-          Resynchronize();
-          event_ok = false;
-          break;
-        }
-      }
-    }
-  }
-  auto pktinfoiter = m_PacketMap.begin();
-  oph->prepare_next(pktinfoiter->first, m_RunNumber);
-
-  for (auto &pktiter : pktinfoiter->second.PacketVector)
-  {
-    oph->addPacket(pktiter);
-  }
-  m_Event = new A_Event(workmem);
-  if (Verbosity() > 1)
-  {
-    m_Event->identify();
-  }
-  PHNodeIterator iter(m_topNode);
-  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
-  PrdfNode->setData(m_Event);
-  for (auto &pktiter : pktinfoiter->second.PacketVector)
-  {
-    delete pktiter;
-  }
-  m_ClockCounters.erase(pktinfoiter->first);
-  m_RefClockCounters.erase(pktinfoiter->first);
-  m_PacketMap.erase(pktinfoiter);
-  return 0;
   // readagain:
   //   if (!IsOpen())
   //   {
@@ -270,12 +188,6 @@ void Fun4AllPrdfInputTriggerManager::Print(const std::string &what) const
 
 int Fun4AllPrdfInputTriggerManager::ResetEvent()
 {
-  PHNodeIterator iter(m_topNode);
-  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
-  PrdfNode->setData(nullptr);  // set pointer in Node to nullptr before deleting it
-  delete m_Event;
-  m_Event = nullptr;
-  //  m_SyncObject->Reset();
   return 0;
 }
 
@@ -378,34 +290,10 @@ int Fun4AllPrdfInputTriggerManager::SyncIt(const SyncObject *mastersync)
 
 std::string Fun4AllPrdfInputTriggerManager::GetString(const std::string &what) const
 {
-  if (what == "PRDFNODENAME")
-  {
-    return m_PrdfNodeName;
-  }
+  std::cout << PHWHERE << " called with " << what << " , returning empty string" << std::endl;
   return "";
 }
 
-SinglePrdfInput *Fun4AllPrdfInputTriggerManager::AddPrdfInputFile(const std::string &filenam)
-{
-  SinglePrdfInput *prdfin = new SinglePrdfInput("PRDFIN_" + std::to_string(m_PrdfInputVector.size()), this);
-  prdfin->AddFile(filenam);
-  m_PrdfInputVector.push_back(prdfin);
-  return m_PrdfInputVector.back();
-}
-
-SinglePrdfInput *Fun4AllPrdfInputTriggerManager::AddPrdfInputList(const std::string &filenam)
-{
-  SinglePrdfInput *prdfin = new SinglePrdfInput("PRDFIN_" + std::to_string(m_PrdfInputVector.size()), this);
-  prdfin->AddListFile(filenam);
-  m_PrdfInputVector.push_back(prdfin);
-  return m_PrdfInputVector.back();
-}
-
-SinglePrdfInput *Fun4AllPrdfInputTriggerManager::registerPrdfInput(SinglePrdfInput *prdfin)
-{
-  m_PrdfInputVector.push_back(prdfin);
-  return m_PrdfInputVector.back();
-}
 
 void Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *prdfin, InputManagerType::enu_subsystem system)
 {
@@ -437,15 +325,6 @@ void Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *pr
   return;
 }
 
-void Fun4AllPrdfInputTriggerManager::AddPacket(const int evtno, Packet *p)
-{
-  if (Verbosity() > 1)
-  {
-    std::cout << "Adding packet " << p->getIdentifier() << " to event no " << evtno << std::endl;
-  }
-  m_PacketMap[evtno].PacketVector.push_back(p);
-}
-
 void Fun4AllPrdfInputTriggerManager::AddBeamClock(const int evtno, const int bclk, SinglePrdfInput *prdfin)
 {
   if (Verbosity() > 1)
@@ -456,9 +335,9 @@ void Fun4AllPrdfInputTriggerManager::AddBeamClock(const int evtno, const int bcl
   m_ClockCounters[evtno].push_back(std::make_pair(bclk, prdfin));
 }
 
-void Fun4AllPrdfInputTriggerManager::UpdateEventFoundCounter(const int evtno)
+void Fun4AllPrdfInputTriggerManager::UpdateEventFoundCounter(const int /*evtno*/)
 {
-  m_PacketMap[evtno].EventFoundCounter++;
+//  m_PacketMap[evtno].EventFoundCounter++;
 }
 
 void Fun4AllPrdfInputTriggerManager::UpdateDroppedPacket(const int packetid)
@@ -542,6 +421,8 @@ void Fun4AllPrdfInputTriggerManager::DitchEvent(const int eventno)
   {
     std::cout << "Killing event " << eventno << std::endl;
   }
+  return;
+/*
   m_ClockCounters.erase(eventno);
   m_RefClockCounters.erase(eventno);
   auto pktinfoiter = m_PacketMap.find(eventno);
@@ -555,8 +436,8 @@ void Fun4AllPrdfInputTriggerManager::DitchEvent(const int eventno)
   }
   m_PacketMap.erase(pktinfoiter);
   return;
+*/
 }
-
 void Fun4AllPrdfInputTriggerManager::Resynchronize()
 {
   // just load events to give us a chance to find the match
@@ -675,16 +556,16 @@ void Fun4AllPrdfInputTriggerManager::Resynchronize()
 
 void Fun4AllPrdfInputTriggerManager::ClearAllEvents()
 {
-  for (const auto &pktinfoiter : m_PacketMap)
+  for (auto const &mapiter : m_Gl1PacketMap)
   {
-    for (auto const &pktiter : pktinfoiter.second.PacketVector)
+    for (auto gl1packet : mapiter.second.Gl1PacketVector)
     {
-      delete pktiter;
+      delete gl1packet;
     }
   }
+  m_Gl1PacketMap.clear();
   m_ClockCounters.clear();
   m_RefClockCounters.clear();
-  m_PacketMap.clear();
 }
 
 int Fun4AllPrdfInputTriggerManager::FillGl1()
@@ -706,7 +587,7 @@ int Fun4AllPrdfInputTriggerManager::FillGl1()
     return -1;
   }
   //    std::cout << "stashed gl1 BCOs: " << m_Gl1PacketMap.size() << std::endl;
-  OfflinePacket *gl1rawhit = findNode::getClass<OfflinePacket>(m_topNode, "GL1Packet");
+  Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(m_topNode, "GL1Packet");
   //  std::cout << "before filling m_Gl1PacketMap size: " <<  m_Gl1PacketMap.size() << std::endl;
   for (auto gl1hititer : m_Gl1PacketMap.begin()->second.Gl1PacketVector)
   {
@@ -714,8 +595,9 @@ int Fun4AllPrdfInputTriggerManager::FillGl1()
     {
       gl1hititer->identify();
     }
-    m_RefEventNo = gl1hititer->getEvtSequence();
-    gl1rawhit->setEvtSequence(m_RefEventNo);
+    gl1packet->FillFrom(gl1hititer);
+    // m_RefEventNo = gl1hititer->getEvtSequence();
+    // gl1packet->setEvtSequence(m_RefEventNo);
   }
   for (auto iter : m_Gl1InputVector)
   {
@@ -728,7 +610,7 @@ int Fun4AllPrdfInputTriggerManager::FillGl1()
   return 0;
 }
 
-void Fun4AllPrdfInputTriggerManager::AddGl1Packet(int eventno, OfflinePacket *pkt)
+void Fun4AllPrdfInputTriggerManager::AddGl1Packet(int eventno, Gl1Packet *pkt)
 {
   if (Verbosity() > 1)
   {
@@ -758,7 +640,7 @@ int Fun4AllPrdfInputTriggerManager::FillMbd()
     return -1;
   }
   //    std::cout << "stashed mbd BCOs: " << m_MbdPacketMap.size() << std::endl;
-  OfflinePacket *mbdrawhit = findNode::getClass<OfflinePacket>(m_topNode, "MBDPacket");
+  MbdPacketContainer *mbd = findNode::getClass<MbdPacketContainer>(m_topNode, "MBDPackets");
   //  std::cout << "before filling m_MbdPacketMap size: " <<  m_MbdPacketMap.size() << std::endl;
   for (auto mbdhititer : m_MbdPacketMap.begin()->second.MbdPacketVector)
   {
@@ -766,8 +648,7 @@ int Fun4AllPrdfInputTriggerManager::FillMbd()
     {
       mbdhititer->identify();
     }
-    m_RefEventNo = mbdhititer->getEvtSequence();
-    mbdrawhit->setEvtSequence(m_RefEventNo);
+    mbd->AddPacket(mbdhititer);
   }
   for (auto iter : m_MbdInputVector)
   {
@@ -780,7 +661,7 @@ int Fun4AllPrdfInputTriggerManager::FillMbd()
   return 0;
 }
 
-void Fun4AllPrdfInputTriggerManager::AddMbdPacket(int eventno, OfflinePacket *pkt)
+void Fun4AllPrdfInputTriggerManager::AddMbdPacket(int eventno, MbdPacket *pkt)
 {
   if (Verbosity() > 1)
   {
@@ -788,5 +669,16 @@ void Fun4AllPrdfInputTriggerManager::AddMbdPacket(int eventno, OfflinePacket *pk
               << eventno << std::endl;
   }
   m_MbdPacketMap[eventno].MbdPacketVector.push_back(pkt);
+  return;
+}
+
+void Fun4AllPrdfInputTriggerManager::AddHcalPacket(int eventno, CaloPacket *pkt)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "Adding hcal packet " << pkt->getEvtSequence() << " to eventno: "
+              << eventno << std::endl;
+  }
+  m_HcalPacketMap[eventno].HcalPacketVector.push_back(pkt);
   return;
 }

@@ -1,6 +1,5 @@
 #include "Rossegger.h"
 
-#include <TH2.h>
 #include <TVector3.h>
 
 #include <cmath>   // for NAN, abs
@@ -8,6 +7,7 @@
 
 class AnalyticFieldModel;
 class ChargeMapReader;
+class TH2;
 class TH3;
 class TTree;
 
@@ -95,10 +95,10 @@ class AnnularFieldSim
   }
 
   // getters for internal states:
-  const char *GetLookupString();
-  const char *GetGasString();
-  const char *GetFieldString();
-  const char *GetChargeString() { return chargestring; };
+  const std::string GetLookupString();
+  const std::string GetGasString();
+  const std::string GetFieldString();
+  const std::string &GetChargeString() { return chargestring; };
   float GetNominalB() { return Bnominal; };
   float GetNominalE() { return Enominal; };
   float GetChargeAt(const TVector3 &pos);
@@ -112,16 +112,16 @@ class AnnularFieldSim
   TVector3 GetOuterEdge() { return TVector3(rmax, 0, zmax); };
 
   // file-writing functions for complex mapping questions:
-  void GenerateDistortionMaps(const char *filebase, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
+  void GenerateDistortionMaps(const std::string &filebase, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
 
-  void GenerateSeparateDistortionMaps(const char *filebase, int nSteps = 500, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
+  void GenerateSeparateDistortionMaps(const std::string &filebase, int nSteps = 500, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
 
-  void PlotFieldSlices(const char *filebase, const TVector3 &pos, char which = 'E');
+  void PlotFieldSlices(const std::string &filebase, const TVector3 &pos, char which = 'E');
 
   void load_spacecharge(const std::string &filename, const std::string &histname, float zoffset = 0, float chargescale = 1, float cmscale = 1, bool isChargeDensity = true);
-  void load_spacecharge(TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity, const char *inputchargestring = "");
+  void load_spacecharge(TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity, const std::string &inputchargestring = "");
 
-  void load_digital_current(TH3 *hist, TH2 *gainHist, float chargescale, float cmscale, const char *inputchargestring);
+  void load_digital_current(TH3 *hist, TH2 *gainHist, float chargescale, float cmscale, const std::string &inputchargestring);
 
   void load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz, const std::string &filename, const std::string &histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
 
@@ -195,9 +195,9 @@ class AnnularFieldSim
   void populate_lowres_lookup();
   void populate_phislice_lookup();
 
-  void load_phislice_lookup(const char *sourcefile);
-  void save_phislice_lookup(const char *destfile);
-  
+  void load_phislice_lookup(const std::string &sourcefile);
+  void save_phislice_lookup(const std::string &destfile);
+
   Rossegger *green;   // stand-alone class to compute greens functions.
   float green_shift;  // how far to offset our position in z when querying our green's functions.
   AnnularFieldSim *twin = nullptr;
@@ -281,16 +281,16 @@ class AnnularFieldSim
   std::string Efieldname;
   //  char fieldstring[300],Bfieldname[100],Efieldname[100];
   std::string chargesourcename;
-  char chargestring[300] = {0};  //, chargefilename[100];
-  float Enominal = NAN;          // magnitude of the nominal field on which drift speed is based, in V/cm.
-  float Bnominal;                // magnitude of the nominal magnetic field on which drift speed is based, in Tesla.
+  std::string chargestring;
+  float Enominal = NAN;  // magnitude of the nominal field on which drift speed is based, in V/cm.
+  float Bnominal;        // magnitude of the nominal magnetic field on which drift speed is based, in Tesla.
 
   // physical dimensions
   float phispan;     // angular span of the area in the phi direction, since TVector3 is too smart.
   float rmin, rmax;  // inner and outer radii of the annulus
   float zmin, zmax;  // lower and upper edges of the coordinate system in z (not fully implemented yet)
   // float phimin, phimax;//not implemented at all yet.
-  TVector3 dim;       // dimensions of simulated region, in cm
+  TVector3 dim;  // dimensions of simulated region, in cm
 
   // variables related to the whole-volume tiling:
   //
@@ -344,5 +344,5 @@ class AnnularFieldSim
                                  //  MultiArray<double> *q;                    //space charge in each f-bin in the whole volume
   MultiArray<double> *q_local;   // temporary holder of space charge in each f-bin and summed bin of the high-res region.
   MultiArray<double> *q_lowres;  // space charge in each l-bin. = sums over sets of f-bins.
-  TH2F *hRdeltaRComponent{nullptr};
+  TH2 *hRdeltaRComponent{nullptr};
 };
