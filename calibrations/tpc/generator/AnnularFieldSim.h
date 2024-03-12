@@ -197,7 +197,7 @@ class AnnularFieldSim
 
   void load_phislice_lookup(const std::string &sourcefile);
   void save_phislice_lookup(const std::string &destfile);
-  
+
   Rossegger *green;   // stand-alone class to compute greens functions.
   float green_shift;  // how far to offset our position in z when querying our green's functions.
   AnnularFieldSim *twin = nullptr;
@@ -282,15 +282,15 @@ class AnnularFieldSim
   //  char fieldstring[300],Bfieldname[100],Efieldname[100];
   std::string chargesourcename;
   std::string chargestring;
-  float Enominal = NAN;          // magnitude of the nominal field on which drift speed is based, in V/cm.
-  float Bnominal;                // magnitude of the nominal magnetic field on which drift speed is based, in Tesla.
+  float Enominal = NAN;  // magnitude of the nominal field on which drift speed is based, in V/cm.
+  float Bnominal;        // magnitude of the nominal magnetic field on which drift speed is based, in Tesla.
 
   // physical dimensions
   float phispan;     // angular span of the area in the phi direction, since TVector3 is too smart.
   float rmin, rmax;  // inner and outer radii of the annulus
   float zmin, zmax;  // lower and upper edges of the coordinate system in z (not fully implemented yet)
   // float phimin, phimax;//not implemented at all yet.
-  TVector3 dim;       // dimensions of simulated region, in cm
+  TVector3 dim;  // dimensions of simulated region, in cm
 
   // variables related to the whole-volume tiling:
   //

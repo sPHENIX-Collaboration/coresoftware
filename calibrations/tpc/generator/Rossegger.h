@@ -115,8 +115,8 @@ class Rossegger
   double sinh_Betamn_L[NumberOfOrders][NumberOfOrders]{};   // sinh(Betamn[m][n]*L)  as in Rossegger 5.64
   double sinh_pi_Munk[NumberOfOrders][NumberOfOrders]{};    // sinh(pi*Munk[n][k]) as in Rossegger 5.66
 
-  TH2* Tags = nullptr;
-  std::map<std::string, TH3*> Grid;
+  TH2 *Tags = nullptr;
+  std::map<std::string, TH3 *> Grid;
 };
 
 #endif /* __SPACECHARGE_H__ */

@@ -41,10 +41,10 @@ class ChargeMapReader
   float GetChargeAtPosition(float r, float phi, float z);
   TH3* GetDensityHistogram() { return hChargeDensity; }  // returns the charge density hist if we still have it.
 
-  bool ReadSourceCharge(const std::string &filename, const std::string &histname, float axisScale = 1., float contentScale = 1.);
+  bool ReadSourceCharge(const std::string& filename, const std::string& histname, float axisScale = 1., float contentScale = 1.);
   bool ReadSourceCharge(TH3* sourceHist, float axisScale = 1., float contentScale = 1.);
 
-  bool ReadSourceAdc(const std::string &adcfilename, const std::string &adchistname, const std::string &ibfgainfilename, const std::string &ibfgainhistname, float axisScale = 1., float contentScale = 1.);
+  bool ReadSourceAdc(const std::string& adcfilename, const std::string& adchistname, const std::string& ibfgainfilename, const std::string& ibfgainhistname, float axisScale = 1., float contentScale = 1.);
   bool ReadSourceAdc(TH3* adcHist, TH2* gainHist, float axisScale = 1., float contentScale = 1.);
 
   void SetChargeInBin(int r, int phi, int z, float q);

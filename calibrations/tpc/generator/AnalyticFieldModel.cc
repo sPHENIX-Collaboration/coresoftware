@@ -47,8 +47,8 @@ AnalyticFieldModel::AnalyticFieldModel(float _ifc_radius, float _ofc_radius, flo
                                       "[0]* (x^4 - [3] *x^3 + [4] * x^2)*cos([1]* y)^2*exp(-1* [2] * z^2)");
 
   std::cout << "Setting Analytic Formula, variables:" << std::endl;
-  std::cout <<  boost::str(boost::format("ifc=%f\tofc=%f\tdelz=%f\ndiff=%f\tscale=%f") %ifc_radius %ofc_radius %tpc_halfz %diff %scalefactor) << std::endl;
-  std::cout <<  boost::str(boost::format("a=%E\nb=%E\nc=%E\nd=%f\ne=%f") %a %b %c %d %e) << std::endl;
+  std::cout << boost::str(boost::format("ifc=%f\tofc=%f\tdelz=%f\ndiff=%f\tscale=%f") % ifc_radius % ofc_radius % tpc_halfz % diff % scalefactor) << std::endl;
+  std::cout << boost::str(boost::format("a=%E\nb=%E\nc=%E\nd=%f\ne=%f") % a % b % c % d % e) << std::endl;
 
   vTestFunction1->SetParameters(a, b, c, d, e);
   rhoTestFunction1->SetParameters(a, b, c, d, e);
