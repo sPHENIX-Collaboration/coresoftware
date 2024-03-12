@@ -1,5 +1,5 @@
-#ifndef __ROSSEGGER_H__
-#define __ROSSEGGER_H__
+#ifndef TPCGENERATOR_ROSSEGGER_H
+#define TPCGENERATOR_ROSSEGGER_H
 
 //
 //  Hello Space Charge Fans:  (although you should hate space charge)
@@ -30,7 +30,7 @@ class TH3;
 class Rossegger
 {
  public:
-  explicit Rossegger(std::string filename);
+  explicit Rossegger(const std::string &filename);
   Rossegger(double a = 30, double b = 80, double L = 80, double epsilon = 1E-4);
   virtual ~Rossegger() {}
 
@@ -88,8 +88,8 @@ class Rossegger
   void FindMunk(double epsilon);                                                                          // Routine used to fill the Munk array with resolution epsilon...
   bool CheckZeroes(double epsilon);                                                                       // confirm that the zeroes match to the desired precision.
 
-  void LoadZeroes(const char* destfile);
-  void SaveZeroes(const char* destfile);
+  void LoadZeroes(const std::string &destfile);
+  void SaveZeroes(const std::string &destfile);
 
   double Betamn[NumberOfOrders][NumberOfOrders]{};  //  Betamn array from Rossegger
   double N2mn[NumberOfOrders][NumberOfOrders]{};    //  N2mn array from Rossegger
@@ -115,8 +115,8 @@ class Rossegger
   double sinh_Betamn_L[NumberOfOrders][NumberOfOrders]{};   // sinh(Betamn[m][n]*L)  as in Rossegger 5.64
   double sinh_pi_Munk[NumberOfOrders][NumberOfOrders]{};    // sinh(pi*Munk[n][k]) as in Rossegger 5.66
 
-  TH2* Tags = nullptr;
-  std::map<std::string, TH3*> Grid;
+  TH2 *Tags = nullptr;
+  std::map<std::string, TH3 *> Grid;
 };
 
 #endif /* __SPACECHARGE_H__ */
