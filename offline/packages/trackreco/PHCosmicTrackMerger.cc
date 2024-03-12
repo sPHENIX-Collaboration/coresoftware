@@ -221,7 +221,19 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
 
     //! remove any obvious outlier clusters from the track that were mistakenly
     //! picked up by the seeder
+    if (m_iter == 1)
+    {
+      getBestClustersPerLayer(tpcseed1);
+      if (silseed1)
+      {
+        getBestClustersPerLayer(silseed1);
+      }
+    }
     removeOutliers(tpcseed1);
+    if (silseed1)
+    {
+      removeOutliers(silseed1);
+    }
   }
   if (Verbosity() > 3)
   {
@@ -251,6 +263,144 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHCosmicTrackMerger::getBestClustersPerLayer(TrackSeed *seed)
+{
+  TrackFitUtils::position_vector_t tr_rz_pts, tr_xy_pts;
+
+  auto glob = getGlobalPositions(seed);
+
+  for (const auto &pos : glob.second)
+  {
+    float clusr = r(pos.x(), pos.y());
+    if (pos.y() < 0)
+    {
+      clusr *= -1;
+    }
+    // skip tpot clusters, as they are always bad in 1D due to 1D resolution
+    if (fabs(clusr) > 80.)
+    {
+      continue;
+    }
+    tr_rz_pts.push_back(std::make_pair(pos.z(), clusr));
+    tr_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
+  }
+
+  auto xyParams = TrackFitUtils::line_fit(tr_xy_pts);
+  auto rzParams = TrackFitUtils::line_fit(tr_rz_pts);
+  std::map<int, std::pair<float, float>> bestLayerDcasxy, bestLayerDcasrz;
+  std::map<int, std::pair<TrkrDefs::cluskey, TrkrDefs::cluskey>> bestLayerCluskeys;
+  for (int i = 0; i < 57; i++)
+  {
+    bestLayerDcasrz.insert(std::make_pair(i, std::make_pair(std::numeric_limits<float>::max(), std::numeric_limits<float>::max())));
+    bestLayerDcasxy.insert(std::make_pair(i, std::make_pair(std::numeric_limits<float>::max(), std::numeric_limits<float>::max())));
+    bestLayerCluskeys.insert(std::make_pair(i, std::make_pair(0, 0)));
+  }
+
+  std::vector<TrkrDefs::cluskey> tpotClus;
+  for (int i = 0; i < glob.first.size(); i++)
+  {
+    auto &pos = glob.second[i];
+    float clusr = r(pos.x(), pos.y());
+    if (pos.y() < 0)
+    {
+      clusr *= -1;
+    }
+
+    float perpxyslope = -1. / std::get<0>(xyParams);
+    float perpxyint = pos.y() - perpxyslope * pos.x();
+    float perprzslope = -1. / std::get<0>(rzParams);
+    float perprzint = clusr - perprzslope * pos.z();
+
+    float pcax = (perpxyint - std::get<1>(xyParams)) / (std::get<0>(xyParams) - perpxyslope);
+    float pcay = std::get<0>(xyParams) * pcax + std::get<1>(xyParams);
+
+    float pcaz = (perprzint - std::get<1>(rzParams)) / (std::get<0>(rzParams) - perprzslope);
+    float pcar = std::get<0>(rzParams) * pcaz + std::get<1>(rzParams);
+    float dcax = pcax - pos.x();
+    float dcay = pcay - pos.y();
+    float dcar = pcar - clusr;
+    float dcaz = pcaz - pos.z();
+    float dcaxy = std::sqrt(square(dcax) + square(dcay));
+    float dcarz = std::sqrt(square(dcar) + square(dcaz));
+    auto trkid = TrkrDefs::getTrkrId(glob.first[i]);
+    auto layer = TrkrDefs::getLayer(glob.first[i]);
+    //! combine layers 3/4 and 5/6 since they are half layers
+    if (layer == 4)
+    {
+      layer = 3;
+    }
+    if (layer == 6)
+    {
+      layer = 5;
+    }
+    float dcaxydiff1 = std::fabs(dcaxy - bestLayerDcasxy.find(layer)->second.first);
+    float dcaxydiff2 = std::fabs(dcaxy - bestLayerDcasxy.find(layer)->second.second);
+    if (trkid == TrkrDefs::TrkrId::mvtxId || trkid == TrkrDefs::TrkrId::tpcId)
+    {
+      if (dcaxydiff1 > dcaxydiff2)
+      {
+        if (dcaxy < bestLayerDcasxy.find(layer)->second.first &&
+            dcarz < bestLayerDcasrz.find(layer)->second.first)
+        {
+          bestLayerDcasxy.find(layer)->second.first = dcaxy;
+          bestLayerDcasrz.find(layer)->second.first = dcarz;
+          bestLayerCluskeys.find(layer)->second.first = glob.first[i];
+        }
+      }
+      else
+      {
+        if (dcaxy < bestLayerDcasxy.find(layer)->second.second &&
+            dcarz < bestLayerDcasrz.find(layer)->second.second)
+        {
+          bestLayerDcasxy.find(layer)->second.second = dcaxy;
+          bestLayerDcasrz.find(layer)->second.second = dcarz;
+          bestLayerCluskeys.find(layer)->second.second = glob.first[i];
+        }
+      }
+    }
+    else if (trkid == TrkrDefs::TrkrId::inttId)
+    {
+      if (dcaxydiff1 > dcaxydiff2)
+      {
+        if (dcaxy < bestLayerDcasxy.find(layer)->second.first)
+        {
+          bestLayerDcasxy.find(layer)->second.first = dcaxy;
+          bestLayerDcasrz.find(layer)->second.first = dcarz;
+          bestLayerCluskeys.find(layer)->second.first = glob.first[i];
+        }
+      }
+      else
+      {
+        if (dcaxy < bestLayerDcasxy.find(layer)->second.second)
+        {
+          bestLayerDcasxy.find(layer)->second.second = dcaxy;
+          bestLayerDcasrz.find(layer)->second.second = dcarz;
+          bestLayerCluskeys.find(layer)->second.second = glob.first[i];
+        }
+      }
+    }
+    else if (trkid == TrkrDefs::TrkrId::micromegasId)
+    {
+      //! add all tpot clusters, since they are 1d
+      tpotClus.emplace_back(glob.first[i]);
+    }
+  }
+  seed->identify();
+  // now erase all cluskeys and fill with the new set of cluskeys
+  seed->clear_cluster_keys();
+  for (auto &[layer, keypair] : bestLayerCluskeys)
+  {
+    for (auto &key : {keypair.first, keypair.second})
+      if (key > 0)
+      {
+        seed->insert_cluster_key(key);
+      }
+  }
+  for (auto &key : tpotClus)
+  {
+    seed->insert_cluster_key(key);
+  }
+}
 void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
 {
   TrackFitUtils::position_vector_t tr_rz_pts, tr_xy_pts;
@@ -272,9 +422,15 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
   {
     auto &pos = glob.second[i];
     float clusr = r(pos.x(), pos.y());
-    if (pos.y() < 0) clusr *= -1;
+    if (pos.y() < 0)
+    {
+      clusr *= -1;
+    }
     // skip tpot clusters, as they are always bad in 1D due to 1D resolution
-    if (fabs(clusr) > 80.) continue;
+    if (fabs(clusr) > 80.)
+    {
+      continue;
+    }
     float perpxyslope = -1. / std::get<0>(xyParams);
     float perpxyint = pos.y() - perpxyslope * pos.x();
     float perprzslope = -1. / std::get<0>(rzParams);
@@ -291,12 +447,12 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
     float dcaz = pcaz - pos.z();
     float dcaxy = std::sqrt(square(dcax) + square(dcay));
     float dcarz = std::sqrt(square(dcar) + square(dcaz));
-  
+
     //! exclude silicon from DCAz cut
-    if (dcaxy > m_dcaxycut || 
-    (dcarz > m_dcarzcut && (r(pos.x(), pos.y()) > 20)))
+    if (dcaxy > m_dcaxycut ||
+        (dcarz > m_dcarzcut && (r(pos.x(), pos.y()) > 20)))
     {
-      if(Verbosity() > 2)
+      if (Verbosity() > 2)
       {
         std::cout << "Erasing ckey " << glob.first[i] << " with position " << pos.transpose() << std::endl;
       }
