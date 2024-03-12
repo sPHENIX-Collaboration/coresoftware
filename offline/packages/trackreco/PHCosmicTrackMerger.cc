@@ -301,6 +301,7 @@ void PHCosmicTrackMerger::getBestClustersPerLayer (TrackSeed* seed)
     bestLayerCluskeys.insert(std::make_pair(i, std::make_pair(0, 0)));
   }
 
+  std::vector<TrkrDefs::cluskey> tpotClus;
   for (int i = 0; i < glob.first.size(); i++)
   {
     auto &pos = glob.second[i];
@@ -387,6 +388,11 @@ void PHCosmicTrackMerger::getBestClustersPerLayer (TrackSeed* seed)
         }
       }
     }
+    else if(trkid == TrkrDefs::TrkrId::micromegasId)
+    {
+      //! add all tpot clusters, since they are 1d
+      tpotClus.emplace_back(glob.first[i]);
+    }
   }
   seed->identify();
   // now erase all cluskeys and fill with the new set of cluskeys
@@ -403,6 +409,10 @@ void PHCosmicTrackMerger::getBestClustersPerLayer (TrackSeed* seed)
       std::cout << "inserting " << keypair.second << std::endl;
       seed->insert_cluster_key(keypair.second);
     }
+  }
+  for(auto& key : tpotClus)
+  {
+    seed->insert_cluster_key(key);
   }
   seed->identify();
   std::cout << "done " << std::endl;
