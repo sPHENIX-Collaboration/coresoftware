@@ -220,21 +220,20 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
     }
 
     //! remove any obvious outlier clusters from the track that were mistakenly
-    //! picked up by the seeder 
+    //! picked up by the seeder
     if (m_iter == 1)
     {
       getBestClustersPerLayer(tpcseed1);
-      if(silseed1)
+      if (silseed1)
       {
         getBestClustersPerLayer(silseed1);
       }
     }
-      removeOutliers(tpcseed1);
-      if (silseed1)
-      {
-        removeOutliers(silseed1);
-      }
-    
+    removeOutliers(tpcseed1);
+    if (silseed1)
+    {
+      removeOutliers(silseed1);
+    }
   }
   if (Verbosity() > 3)
   {
@@ -264,7 +263,7 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHCosmicTrackMerger::getBestClustersPerLayer (TrackSeed* seed)
+void PHCosmicTrackMerger::getBestClustersPerLayer(TrackSeed *seed)
 {
   TrackFitUtils::position_vector_t tr_rz_pts, tr_xy_pts;
 
@@ -306,7 +305,7 @@ void PHCosmicTrackMerger::getBestClustersPerLayer (TrackSeed* seed)
     {
       clusr *= -1;
     }
- 
+
     float perpxyslope = -1. / std::get<0>(xyParams);
     float perpxyint = pos.y() - perpxyslope * pos.x();
     float perprzslope = -1. / std::get<0>(rzParams);
@@ -340,7 +339,6 @@ void PHCosmicTrackMerger::getBestClustersPerLayer (TrackSeed* seed)
     {
       if (dcaxydiff1 > dcaxydiff2)
       {
-     
         if (dcaxy < bestLayerDcasxy.find(layer)->second.first &&
             dcarz < bestLayerDcasrz.find(layer)->second.first)
         {
@@ -381,7 +379,7 @@ void PHCosmicTrackMerger::getBestClustersPerLayer (TrackSeed* seed)
         }
       }
     }
-    else if(trkid == TrkrDefs::TrkrId::micromegasId)
+    else if (trkid == TrkrDefs::TrkrId::micromegasId)
     {
       //! add all tpot clusters, since they are 1d
       tpotClus.emplace_back(glob.first[i]);
@@ -392,13 +390,13 @@ void PHCosmicTrackMerger::getBestClustersPerLayer (TrackSeed* seed)
   seed->clear_cluster_keys();
   for (auto &[layer, keypair] : bestLayerCluskeys)
   {
-    for(auto& key : {keypair.first, keypair.second})
-    if (key > 0)
-    {
-      seed->insert_cluster_key(key);
-    }
+    for (auto &key : {keypair.first, keypair.second})
+      if (key > 0)
+      {
+        seed->insert_cluster_key(key);
+      }
   }
-  for(auto& key : tpotClus)
+  for (auto &key : tpotClus)
   {
     seed->insert_cluster_key(key);
   }
@@ -424,9 +422,15 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
   {
     auto &pos = glob.second[i];
     float clusr = r(pos.x(), pos.y());
-    if (pos.y() < 0) {clusr *= -1;}
+    if (pos.y() < 0)
+    {
+      clusr *= -1;
+    }
     // skip tpot clusters, as they are always bad in 1D due to 1D resolution
-    if (fabs(clusr) > 80.) {continue;}
+    if (fabs(clusr) > 80.)
+    {
+      continue;
+    }
     float perpxyslope = -1. / std::get<0>(xyParams);
     float perpxyint = pos.y() - perpxyslope * pos.x();
     float perprzslope = -1. / std::get<0>(rzParams);
@@ -443,12 +447,12 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
     float dcaz = pcaz - pos.z();
     float dcaxy = std::sqrt(square(dcax) + square(dcay));
     float dcarz = std::sqrt(square(dcar) + square(dcaz));
-  
+
     //! exclude silicon from DCAz cut
-    if (dcaxy > m_dcaxycut || 
-    (dcarz > m_dcarzcut && (r(pos.x(), pos.y()) > 20)))
+    if (dcaxy > m_dcaxycut ||
+        (dcarz > m_dcarzcut && (r(pos.x(), pos.y()) > 20)))
     {
-      if(Verbosity() > 2)
+      if (Verbosity() > 2)
       {
         std::cout << "Erasing ckey " << glob.first[i] << " with position " << pos.transpose() << std::endl;
       }
