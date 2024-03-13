@@ -34,11 +34,9 @@
 #include <algorithm>
 #include <cassert>
 #include <iterator>  // for begin, distance, end
-#include <map>
 #include <memory>   // for allocator_traits<>::value_type
 #include <string>   // for string
 #include <tuple>    // for tie, tuple
-#include <utility>  // for pair
 
 /// Create necessary objects
 KFParticle_Tools kfp_Tools_evtReco;
