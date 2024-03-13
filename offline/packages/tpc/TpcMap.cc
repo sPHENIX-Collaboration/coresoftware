@@ -155,6 +155,9 @@ int TpcMap::digest_map(const std::string &fileName, const unsigned int section_o
     };
     x.padnr = abs_pad;
     x.layer = Radius + section_offset * 16 + 7;
+    if(Radius<0){
+      x.layer = Radius;
+    }
     x.FEE = FEE;
     x.FEEChannel = FEE_Chan;
     x.PadR = PadR;
@@ -162,9 +165,7 @@ int TpcMap::digest_map(const std::string &fileName, const unsigned int section_o
 
     unsigned int key = 256 * (FEE) + FEE_Chan;
     tmap[key] = x;
-    //if(Radius<0){
-    //  std::cout << " " << key << " " << FEE << " " << FEE_Chan << " " << PadR << "  " << PadPhi << " " << Radius << std::endl;
-    //}
+
   }
   return 0;
 }

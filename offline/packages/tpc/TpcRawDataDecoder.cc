@@ -382,7 +382,6 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
 
         varname = "phi";  // + std::to_string(key);
         double phi = pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector - side * 12) * M_PI / 6;
-        ;
 
         // varname = "padN" + std::to_string(key);
         // int padn_cdbt = m_cdbttree->GetIntValue(key,varname);
