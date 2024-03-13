@@ -3,6 +3,7 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>
 #include <limits>
 
 class  OfflinePacket: public PHObject
@@ -23,6 +24,7 @@ public:
   virtual int iValue(const int) const {return std::numeric_limits<int>::min();}
   virtual int iValue(const int,const std::string &) const {return std::numeric_limits<int>::min();}
   virtual int iValue(const int, const int) const {return std::numeric_limits<int>::min();}
+  virtual void dump(std::ostream &os = std::cout);
 
 private:
   ClassDefOverride(OfflinePacket,1)
