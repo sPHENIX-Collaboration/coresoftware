@@ -6,7 +6,6 @@
 #include "KFParticle_MVA.h"
 #include "KFParticle_Tools.h"
 
-#include <KFPVertex.h>
 #include <KFParticle.h>
 
 #include <TMVA/Reader.h>  // for Reader
