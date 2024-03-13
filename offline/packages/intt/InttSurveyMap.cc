@@ -7,21 +7,6 @@
 #include <filesystem>  // for exists
 #include <utility>     // for pair
 
-void InttSurveyMap::identify(
-    std::ostream& out) const
-{
-  out << "InttSurveyMap"
-      << "\n"
-      << "\tBase Version"
-      << "\n"
-      << "\tUnimplemented" << std::endl;
-}
-
-std::size_t InttSurveyMap::size() const
-{
-  return 0;
-}
-
 int InttSurveyMap::LoadFromFile(
     std::string const& filename)
 {
@@ -62,109 +47,66 @@ int InttSurveyMap::LoadFromCDB(
   return v_LoadFromCDBTTree(cdbttree);
 }
 
-int InttSurveyMap::v_LoadFromCDBTTree(
-    CDBTTree&
-    /*unused*/)
+int InttSurveyMap::GetStripTransform(
+    key_t const& k,
+	val_t& v) const
+{
+  if(!GetAbsoluteTransform(k))
+  {
+    return 1;
+  }
+
+  for(int i = 0; i < 16; ++i)
+  {
+    v.matrix()(i / 4, i % 4) = i / 4 == i % 4;
+  }
+
+  // strip_z determines local z
+  //  10, 16 are double the max range strip_z takes for the sensor type (ladder_z % 2)
+  //  100, 128 are the lengths of the sensor type (ladder_z % 2) in mm
+  v.matrix()(2, 3) = (2.0 * k.strip_z + 1.0) / ((k.ladder_z % 2) ? 10.0 : 16.0) - 0.5;
+  v.matrix()(2, 3) *= (k.ladder_z % 2) ? 100.0 : 128.0;
+
+  // strip_phi determines the local x
+  // 512 is double the max range strip_phi takes
+  // 19.968 is the sensor width in mm
+  v.matrix()(0, 3) = (2.0 * k.strip_phi + 1.0) / 512.0 - 0.5;
+  v.matrix()(0, 3) *= 19.968;
+
+  v = *GetAbsoluteTransform(k) * v;
+
+  return 0;
+}
+
+void InttSurveyMap::identify(
+    std::ostream& out) const
+{
+  out << "InttSurveyMap"
+      << "\n"
+      << "\tBase Version"
+      << "\n"
+      << "\tUnimplemented" << std::endl;
+}
+
+std::size_t InttSurveyMap::size() const
 {
   return 0;
 }
 
 InttSurveyMap::val_t const* InttSurveyMap::GetAbsoluteTransform(
-    key_t k) const
+    key_t const& /*unused*/) const
 {
-  map_t::const_iterator itr;
-
-  if (v_LookupAbsoluteTransform(k, itr))
-  {
-    return &(itr->second);
-  }
-
-  k.strip_z = InttMap::Wildcard;
-  if (v_LookupAbsoluteTransform(k, itr))
-  {
-    return &(itr->second);
-  }
-
-  k.strip_phi = InttMap::Wildcard;
-  if (v_LookupAbsoluteTransform(k, itr))
-  {
-    return &(itr->second);
-  }
-
-  k.ladder_z = InttMap::Wildcard;
-  if (v_LookupAbsoluteTransform(k, itr))
-  {
-    return &(itr->second);
-  }
-
-  k.ladder_phi = InttMap::Wildcard;
-  if (v_LookupAbsoluteTransform(k, itr))
-  {
-    return &(itr->second);
-  }
-
-  k.layer = InttMap::Wildcard;
-  if (v_LookupAbsoluteTransform(k, itr))
-  {
-    return &(itr->second);
-  }
-
-  return (val_t const*) nullptr;
+	return nullptr;
 }
 
 InttSurveyMap::val_t const* InttSurveyMap::GetRelativeTransform(
-    key_t k) const
+    key_t const& /*unused*/) const
 {
-  map_t::const_iterator itr;
-
-  if (v_LookupRelativeTransform(k, itr))
-  {
-    return &(itr->second);
-  }
-
-  k.strip_z = InttMap::Wildcard;
-  if (v_LookupRelativeTransform(k, itr))
-  {
-    return &(itr->second);
-  }
-
-  k.strip_phi = InttMap::Wildcard;
-  if (v_LookupRelativeTransform(k, itr))
-  {
-    return &(itr->second);
-  }
-
-  k.ladder_z = InttMap::Wildcard;
-  if (v_LookupRelativeTransform(k, itr))
-  {
-    return &(itr->second);
-  }
-
-  k.ladder_phi = InttMap::Wildcard;
-  if (v_LookupRelativeTransform(k, itr))
-  {
-    return &(itr->second);
-  }
-
-  k.layer = InttMap::Wildcard;
-  if (v_LookupRelativeTransform(k, itr))
-  {
-    return &(itr->second);
-  }
-
-  return (val_t const*) nullptr;
+	return nullptr;
 }
 
-int InttSurveyMap::v_LookupAbsoluteTransform(
-    key_t const& /*unused*/, map_t::const_iterator&
-    /*unused*/) const
-{
-  return 0;
-}
-
-int InttSurveyMap::v_LookupRelativeTransform(
-    key_t const& /*unused*/, map_t::const_iterator&
-    /*unused*/) const
+int InttSurveyMap::v_LoadFromCDBTTree(
+    CDBTTree& /*unused*/)
 {
   return 0;
 }
