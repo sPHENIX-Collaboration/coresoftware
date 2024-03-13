@@ -9,12 +9,19 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfoDefs.h>
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
+
+#include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -26,11 +33,6 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>
-
-#include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfoDefs.h>
 
 // Root headers
 #include <TAxis.h>  // for TAxis
@@ -74,7 +76,7 @@
 #include <tuple>   // for get, tuple
 
 //____________________________________________________________________________..
-PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, const PHParameters* parameters)
+PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_Params(parameters)
@@ -92,6 +94,13 @@ PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, co
                      m_Params->get_double_param("light_balance_inner_corr"),
                      m_Params->get_double_param("light_balance_outer_radius") * cm,
                      m_Params->get_double_param("light_balance_outer_corr"));
+
+  std::string mapfile = m_Params->get_string_param("MapFileName");
+  if (std::filesystem::path(mapfile).extension() != ".root")
+  {
+    mapfile = CDBInterface::instance()->getUrl(mapfile);
+    m_Params->set_string_param("MapFileName", mapfile);
+  }
 }
 
 PHG4OHCalSteppingAction::~PHG4OHCalSteppingAction()
@@ -691,8 +700,8 @@ void PHG4OHCalSteppingAction::FieldChecker(const G4Step* aStep)
   globPosVec[2] = globPosition.z();
   globPosVec[3] = aStep->GetPreStepPoint()->GetGlobalTime();
 
-  const Int_t binx = h->GetXaxis()->FindBin(globPosVec[0] / cm);
-  const Int_t biny = h->GetYaxis()->FindBin(globPosVec[1] / cm);
+  const int binx = h->GetXaxis()->FindBin(globPosVec[0] / cm);
+  const int biny = h->GetYaxis()->FindBin(globPosVec[1] / cm);
 
   if (h->GetBinContent(binx, binx) == 0)
   {  // only fille unfilled bins

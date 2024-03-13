@@ -42,6 +42,12 @@ class TpcLoadDistortionCorrection : public SubsysReco
     m_correction_in_use[i] = true;
   }
 
+  //! set the phi histogram to be interpreted as radians.
+  void set_read_phi_as_radians(bool flag)
+  {
+    m_phi_hist_in_radians = flag;
+  }
+
   //! node name
   void set_node_name(const std::string& value)
   {
@@ -58,6 +64,9 @@ class TpcLoadDistortionCorrection : public SubsysReco
 
   //! flag to indicate correction in use
   bool m_correction_in_use[3] = {false, false, false};
+
+  //! set the phi histogram to be interpreted as radians rather than mm
+  bool m_phi_hist_in_radians = true;
 
   //! distortion object node name
   std::string m_node_name[3] = {"TpcDistortionCorrectionContainerStatic", "TpcDistortionCorrectionContainerAverage", "TpcDistortionCorrectionContainerFluctuation"};

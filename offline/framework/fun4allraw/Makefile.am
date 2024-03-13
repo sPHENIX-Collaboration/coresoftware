@@ -23,6 +23,7 @@ pkginclude_HEADERS = \
   InputManagerType.h \
   SingleGl1PoolInput.h \
   SingleGl1TriggerInput.h \
+  SingleHcalTriggerInput.h \
   SingleMbdTriggerInput.h \
   SingleInttPoolInput.h \
   SingleMicromegasPoolInput.h \
@@ -67,11 +68,12 @@ libfun4allraw_la_SOURCES = \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
-	mvtx_pool.cc \
   intt_pool.cc \
+  mvtx_pool.cc \
   tpc_pool.cc \
   SingleGl1PoolInput.cc \
   SingleGl1TriggerInput.cc \
+  SingleHcalTriggerInput.cc \
   SingleInttPoolInput.cc \
   SingleMbdTriggerInput.cc \
   SingleMicromegasPoolInput.cc \
@@ -83,10 +85,10 @@ libfun4allraw_la_SOURCES = \
   SingleZdcInput.cc
 
 libfun4allraw_la_LIBADD = \
+  libmvtx_decoder.la \
   -lffarawobjects \
   -lfun4all \
   -lEvent \
-	-lmvtx_decoder \
   -lphoolraw
 
 BUILT_SOURCES = testexternals.cc

@@ -87,7 +87,7 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     }
 
     // by default use previous bco clock for gtm bco
-    Gl1Packetv1 *newhit = new Gl1Packetv1();
+    Gl1Packet *newhit = new Gl1Packetv1();
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     newhit->setBCO(packet->lValue(0, "BCO"));
     newhit->setIdentifier(packet->getIdentifier());
