@@ -3,8 +3,6 @@
 
 #include <TVector3.h>
 
-#include <cmath>
-
 class TFormula;
 
 class AnalyticFieldModel

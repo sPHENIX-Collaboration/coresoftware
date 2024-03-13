@@ -8,10 +8,10 @@
 #define MVTX_MVTXCLUSTERIZER_H
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrDefs.h>
 
-#include <string>                // for string
+#include <string>  // for string
 #include <utility>
 
 class ClusHitsVerbose;
@@ -36,7 +36,7 @@ class MvtxClusterizer : public SubsysReco
   ~MvtxClusterizer() override {}
 
   //! module initialization
-  int Init(PHCompositeNode */*topNode*/) override { return 0; }
+  int Init(PHCompositeNode * /*topNode*/) override { return 0; }
 
   //! run initialization
   int InitRun(PHCompositeNode *topNode) override;
@@ -45,7 +45,7 @@ class MvtxClusterizer : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
 
   //! end of process
-  int End(PHCompositeNode */*topNode*/) override { return 0; }
+  int End(PHCompositeNode * /*topNode*/) override { return 0; }
 
   //! option to turn off z-dimension clustering
   void SetZClustering(const bool make_z_clustering)
@@ -57,16 +57,16 @@ class MvtxClusterizer : public SubsysReco
     return m_makeZClustering;
   }
 
-  void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
-  void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
-  void set_ClusHitsVerbose(bool set=true) { record_ClusHitsVerbose = set; };
-  ClusHitsVerbose* mClusHitsVerbose { nullptr };
+  void set_do_hit_association(bool do_assoc) { do_hit_assoc = do_assoc; }
+  void set_read_raw(bool read_raw) { do_read_raw = read_raw; }
+  void set_ClusHitsVerbose(bool set = true) { record_ClusHitsVerbose = set; };
+  ClusHitsVerbose *mClusHitsVerbose{nullptr};
 
  private:
-  //bool are_adjacent(const pixel lhs, const pixel rhs);
-  bool  record_ClusHitsVerbose { false };
-  bool are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs);
-  bool are_adjacent(RawHit* lhs,  RawHit* rhs);
+  // bool are_adjacent(const pixel lhs, const pixel rhs);
+  bool record_ClusHitsVerbose{false};
+  bool are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit *> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit *> &rhs);
+  bool are_adjacent(RawHit *lhs, RawHit *rhs);
 
   void ClusterMvtx(PHCompositeNode *topNode);
   void ClusterMvtxRaw(PHCompositeNode *topNode);
@@ -75,7 +75,7 @@ class MvtxClusterizer : public SubsysReco
   // node tree storage pointers
   TrkrHitSetContainer *m_hits;
   RawHitSetContainer *m_rawhits;
-  TrkrClusterContainer *m_clusterlist; 
+  TrkrClusterContainer *m_clusterlist;
 
   TrkrClusterHitAssoc *m_clusterhitassoc;
 
