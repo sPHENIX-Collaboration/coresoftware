@@ -1,7 +1,7 @@
 #include "MbdDigitization.h"
 
 #include <mbd/MbdDefs.h>
-#include <mbd/MbdPmtContainerV1.h>
+#include <mbd/MbdPmtSimContainerV1.h>
 #include <mbd/MbdPmtHit.h>
 
 #include <g4main/PHG4Hit.h>
@@ -44,6 +44,7 @@ MbdDigitization::MbdDigitization(const std::string &name)
   , _tres(0.05)
 {
   std::fill(std::begin(f_pmtq), std::end(f_pmtq), 0.);
+  std::fill(std::begin(f_pmtnpe), std::end(f_pmtnpe), 0.);
   std::fill(std::begin(f_pmtt0), std::end(f_pmtt0), std::numeric_limits<float>::quiet_NaN());
   std::fill(std::begin(f_pmtt1), std::end(f_pmtt1), std::numeric_limits<float>::quiet_NaN());
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -60,7 +61,10 @@ MbdDigitization::~MbdDigitization()
 //___________________________________
 int MbdDigitization::Init(PHCompositeNode *topNode)
 {
-  if ( Verbosity() ) std::cout << PHWHERE << std::endl;
+  if ( Verbosity() )
+  {
+    std::cout << PHWHERE << std::endl;
+  }
   CreateNodes(topNode);
 
   _pdg = new TDatabasePDG();  // database of PDG info on particles
@@ -76,6 +80,21 @@ int MbdDigitization::InitRun(PHCompositeNode *topNode)
 {
   GetNodes(topNode);
 
+  _gains = { 135.137, 135.035, 134.861, 134.543, 135.761, 134.942, 134.053, 134.398,
+    135.568, 134.874, 134.677, 135.614, 135.366, 134.564, 135.143, 135.412, 135.308,
+    135.752, 134.392, 135.372, 135.025, 135.247, 135.337, 135.396, 133.553, 134.93,
+    135.917, 135.209, 135.886, 134.914, 134.766, 135.734, 135.343, 134.815, 134.68,
+    135.214, 135.251, 134.617, 135.182, 134.659, 135.119, 135.022, 134.648, 134.814,
+    135.1, 134.99, 134.82, 134.844, 135.817, 135.788, 135.469, 135.178, 135.17, 134.938,
+    135.544, 135.445, 134.872, 134.4, 134.875, 134.852, 134.23, 133.922, 135.46, 134.44,
+    135.475, 135.716, 135.084, 136.074, 136.198, 136.226, 136.214, 136.1, 136.727,
+    135.422, 136.258, 136.394, 135.754, 136.072, 136.897, 135.775, 135.902, 135.959,
+    136.306, 135.846, 135.986, 135.487, 136.404, 134.988, 135.858, 136.511, 136.128,
+    135.535, 135.984, 136.162, 135.496, 135.104, 135.762, 135.653, 135.379, 135.868,
+    136.747, 135.606, 136.074, 135.833, 136.382, 135.796, 135.364, 135.985, 135.46,
+    135.869, 136.068, 135.876, 136.339, 135.48, 136.435, 135.997, 136.01, 136.675,
+    136.105, 136.423, 135.739, 136.112, 136.523, 135.883, 136.972, 136.741, 135.419, 135.407 };
+
   return 0;
 }
 
@@ -83,7 +102,10 @@ int MbdDigitization::InitRun(PHCompositeNode *topNode)
 // Call user instructions for every event
 int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
 {
-  if ( Verbosity() ) std::cout << PHWHERE << std::endl;
+  if ( Verbosity() )
+  {
+    std::cout << PHWHERE << std::endl;
+  }
   //**** Initialize Variables
 
   // PMT data
@@ -94,6 +116,7 @@ int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
   std::fill_n(f_pmtt0, MbdDefs::MBD_N_PMT, 1e12);
   std::fill_n(f_pmtt1, MbdDefs::MBD_N_PMT, 1e12);
   std::fill_n(f_pmtq, MbdDefs::MBD_N_PMT, 0.);
+  std::fill_n(f_pmtnpe, MbdDefs::MBD_N_PMT, 0.);
 
   // Get True Vertex
   // NB: Currently PrimaryVertexIndex is always 1, need to figure out how to handle collision pile-up
@@ -113,7 +136,10 @@ int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
   }
 
   // Go through BBC G4 hits
-  if ( Verbosity()>10 ) std::cout << "Processing BBC G4 Hits" << std::endl;
+  if ( Verbosity()>10 )
+  {
+    std::cout << "Processing BBC G4 Hits" << std::endl;
+  }
 
   TLorentzVector v4;
   unsigned int nhits = 0;
@@ -194,11 +220,13 @@ int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
       }
 
       // Get charge in BBC tube
-      float npe = len[ipmt] * (120 / 3.0);                                // we get 120 p.e. per 3 cm
-      float dnpe = gsl_ran_gaussian(m_RandomGenerator, std::sqrt(npe));  // get fluctuation in npe
+      f_pmtnpe[ipmt] = len[ipmt] * (120 / 3.0);                          // MBD/BBC gets 120 p.e. per 3 cm
+      float dnpe = gsl_ran_gaussian(m_RandomGenerator, std::sqrt(f_pmtnpe[ipmt]));  // get fluctuation in npe
+      // add detector resolution
+      float dres = gsl_ran_gaussian(m_RandomGenerator, f_pmtnpe[ipmt]*0.127);       // to match real data
 
-      npe += dnpe;  // apply the fluctuations in npe
-      f_pmtq[ipmt] = npe;
+      f_pmtnpe[ipmt] += (dnpe+dres);  // apply the fluctuations
+      f_pmtq[ipmt] = f_pmtnpe[ipmt]/_gains[ipmt];
 
       // Now time
       if (first_time[ipmt] < 9999.)
@@ -215,6 +243,7 @@ int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
       }
 
       _bbcpmts->get_pmt(ipmt)->set_pmt(ipmt, f_pmtq[ipmt], f_pmtt0[ipmt], f_pmtt1[ipmt]);
+      _bbcpmts->get_pmt(ipmt)->set_simpmt(f_pmtnpe[ipmt]);
 
       if (Verbosity() > 0)
       {
@@ -225,6 +254,7 @@ int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
     {
       // empty channel
       _bbcpmts->get_pmt(ipmt)->set_pmt(ipmt, f_pmtq[ipmt], f_pmtt0[ipmt], f_pmtt1[ipmt]);
+      _bbcpmts->get_pmt(ipmt)->set_simpmt(f_pmtnpe[ipmt]);
     }
   }
 
@@ -253,7 +283,7 @@ void MbdDigitization::CreateNodes(PHCompositeNode *topNode)
   _bbcpmts = findNode::getClass<MbdPmtContainer>(bbcNode, "MbdPmtContainer");
   if (!_bbcpmts)
   {
-    _bbcpmts = new MbdPmtContainerV1();
+    _bbcpmts = new MbdPmtSimContainerV1();
     PHIODataNode<PHObject> *BbcPmtNode = new PHIODataNode<PHObject>(_bbcpmts, "MbdPmtContainer", "PHObject");
     bbcNode->addNode(BbcPmtNode);
   }
@@ -283,7 +313,7 @@ void MbdDigitization::GetNodes(PHCompositeNode *topNode)
   /** DST Objects **/
 
   // MbdPmtContainer
-  _bbcpmts = findNode::getClass<MbdPmtContainerV1>(topNode, "MbdPmtContainer");
+  _bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
   if (!_bbcpmts)
   {
     std::cout << PHWHERE << " MbdPmtContainer node not found on node tree" << std::endl;
