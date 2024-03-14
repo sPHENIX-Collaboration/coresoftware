@@ -7,6 +7,8 @@
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
 
+#include <ffaobjects/RunHeader.h>
+
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -18,17 +20,6 @@
 #include <TTree.h>
 #include <TProfile2D.h>
 
-#include <Event/Event.h>
-#include <Event/packet.h>
-#include <cassert>
-#include <sstream>
-#include <string>
-#include <chrono>
-#include <iostream>
-#include <thread>
-
-#include <ffaobjects/RunHeader.h>
-
 #include <odbc++/connection.h>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -37,6 +28,13 @@
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>  // for Statement
 #include <odbc++/types.h>
+
+#include <cassert>
+#include <sstream>
+#include <string>
+#include <chrono>
+#include <iostream>
+#include <thread>
 
 using namespace std;
 

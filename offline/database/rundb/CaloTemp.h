@@ -43,7 +43,7 @@ class CaloTemp : public SubsysReco
   TProfile2D* h_calo_temp = nullptr;
   TProfile2D* h_calo_temp2 = nullptr;
   RunHeader* runheader = nullptr;
-  int runnumber;
+  int runnumber {0};
   std::string runtime;
 
 };
