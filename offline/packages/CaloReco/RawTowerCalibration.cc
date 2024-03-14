@@ -9,7 +9,9 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfoContainerv2.h>
 #include <calobase/TowerInfov1.h>
+#include <calobase/TowerInfov2.h>
 
 #include <phparameter/PHParameters.h>
 
@@ -435,9 +437,10 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
     }
   }
   if (m_UseTowerInfo > 0)
-  {
-    RawTowerInfoNodeName = "TOWERINFO_" + _raw_tower_node_prefix + "_" + m_Detector;
-    _raw_towerinfos = findNode::getClass<TowerInfoContainerv1>(dstNode, RawTowerInfoNodeName);
+    {
+      RawTowerInfoNodeName = "TOWERINFO_" + _raw_tower_node_prefix + "_" + m_Detector;
+      _raw_towerinfos = findNode::getClass<TowerInfoContainerv1>(dstNode, RawTowerInfoNodeName);
+ 
     if (!_raw_towerinfos)
     {
       std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
@@ -474,7 +477,8 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
   if (m_UseTowerInfo > 0)
   {
     CaliTowerInfoNodeName = "TOWERINFO_" + _calib_tower_node_prefix + "_" + m_Detector;
-    _calib_towerinfos = findNode::getClass<TowerInfoContainerv1>(DetNode, CaliTowerInfoNodeName);
+    if(!m_UseTowerInfoV2)_calib_towerinfos = findNode::getClass<TowerInfoContainerv1>(DetNode, CaliTowerInfoNodeName);
+    else _calib_towerinfos = findNode::getClass<TowerInfoContainerv2>(DetNode, CaliTowerInfoNodeName);
     if (!_calib_towerinfos)
     {
       TowerInfoContainerv1::DETECTOR detec;
@@ -491,7 +495,9 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
         std::cout << PHWHERE << "Detector not implemented into the TowerInfoContainer object, defaulting to HCal implementation." << std::endl;
         detec = TowerInfoContainer::DETECTOR::HCAL;
       }
-      _calib_towerinfos = new TowerInfoContainerv1(detec);
+      if(!m_UseTowerInfoV2)_calib_towerinfos = new TowerInfoContainerv1(detec);
+      else _calib_towerinfos = new TowerInfoContainerv2(detec);
+
       PHIODataNode<PHObject> *towerinfoNode = new PHIODataNode<PHObject>(_calib_towerinfos, CaliTowerInfoNodeName, "PHObject");
       DetNode->addNode(towerinfoNode);
     }
