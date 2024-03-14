@@ -49,17 +49,6 @@
 #include <iostream>                            // for operator<<, basic_ostream
 #include <vector>
 
-//#define _DEBUG_
-
-#if defined(_DEBUG_)
-#define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
-#else
-#define LogDebug(exp) (void)0
-#endif
-
-#define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
-#define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
-
 // anonymous namespace for local functions
 namespace
 {
@@ -141,7 +130,6 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  // tpc distortion correction
   // tpc distortion corrections
   m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
   if (m_dcc_static)

@@ -63,8 +63,6 @@ class PHSimpleKFProp : public SubsysReco
 
  private:
 
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection m_distortionCorrection;
 
   bool _use_truth_clusters = false;
 
@@ -96,6 +94,7 @@ class PHSimpleKFProp : public SubsysReco
   ActsGeometry *_tgeometry = nullptr;
 
   /// distortion correction container
+  TpcDistortionCorrection m_distortionCorrection;
   TpcDistortionCorrectionContainer* m_dcc_static{nullptr};
   TpcDistortionCorrectionContainer* m_dcc_average{nullptr};
   TpcDistortionCorrectionContainer* m_dcc_fluctuation{nullptr};
