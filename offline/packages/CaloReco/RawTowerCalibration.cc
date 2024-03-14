@@ -437,11 +437,10 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
     }
   }
   if (m_UseTowerInfo > 0)
-  {
-    RawTowerInfoNodeName = "TOWERINFO_" + _raw_tower_node_prefix + "_" + m_Detector;
-    //if(!m_UseTowerInfoV2)
-    _raw_towerinfos = findNode::getClass<TowerInfoContainerv1>(dstNode, RawTowerInfoNodeName);
-    //  else  _raw_towerinfos = findNode::getClass<TowerInfoContainerv2>(dstNode, RawTowerInfoNodeName);
+    {
+      RawTowerInfoNodeName = "TOWERINFO_" + _raw_tower_node_prefix + "_" + m_Detector;
+      _raw_towerinfos = findNode::getClass<TowerInfoContainerv1>(dstNode, RawTowerInfoNodeName);
+ 
     if (!_raw_towerinfos)
     {
       std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
