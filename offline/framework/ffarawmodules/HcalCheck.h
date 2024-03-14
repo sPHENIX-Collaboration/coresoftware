@@ -3,6 +3,8 @@
 #ifndef FFARAWMODULES_HCALCHECK_H
 #define FFARAWMODULES_HCALCHECK_H
 
+#include "DumpPacket.h"
+
 #include <fun4all/SubsysReco.h>
 
 #include <set>
@@ -11,7 +13,7 @@
 class Fun4AllInputManager;
 class PHCompositeNode;
 
-class HcalCheck : public SubsysReco
+class HcalCheck : public SubsysReco, public DumpPacket
 {
  public:
   HcalCheck(const std::string &name = "HcalCheck");

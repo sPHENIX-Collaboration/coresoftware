@@ -43,7 +43,10 @@ int HcalCheck::process_event(PHCompositeNode *topNode)
   {
     for (unsigned int i = 0; i < hcalcont->get_npackets(); i++)
     {
-      hcalcont->getPacket(i)->dump();
+      if (ddump_enabled())
+      {
+	ddumppacket(hcalcont->getPacket(i));
+      }
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
