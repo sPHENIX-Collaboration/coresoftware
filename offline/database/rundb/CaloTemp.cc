@@ -1,5 +1,7 @@
 #include "CaloTemp.h"
 
+#include <boost/format.hpp>
+
 // Tower includes
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
@@ -223,10 +225,13 @@ int CaloTemp::getTempHist() {
   }
 
   odbc::ResultSet* tempResultSet = tempStmt->executeQuery(sql);
-  h_calo_temp->SetTitle(Form("%s Temperature RunNumber %d RunTime %s DBTime %s", detector.c_str(), runnumber, runtime.c_str(), closest_time.c_str()));
+  string calo_title = boost::str(boost::format("%s Temperature RunNumber %d RunTime %s DBTime %s") %detector %runnumber %runtime %closest_time);
+  h_calo_temp->SetTitle(calo_title.c_str());
   if (detector == "CEMC") { 
-    h_calo_temp->SetTitle(Form("%s SIPM Temperature RunNumber %d RunTime %s DBTime %s", detector.c_str(), runnumber, runtime.c_str(), closest_time.c_str()));
-    h_calo_temp2->SetTitle(Form("%s PreAmp Temperature RunNumber %d RunTime %s DBTime %s", detector.c_str(), runnumber, runtime.c_str(), closest_time.c_str())); 
+    calo_title = boost::str(boost::format("%s SIPM Temperature RunNumber %d RunTime %s DBTime %s") %detector %runnumber %runtime %closest_time);
+    string calo_title2 = calo_title = boost::str(boost::format("%s PreAmp Temperature RunNumber %d RunTime %s DBTime %s") %detector %runnumber %runtime %closest_time);
+    h_calo_temp->SetTitle(calo_title.c_str());
+    h_calo_temp2->SetTitle(calo_title2.c_str()); 
   }
   if (tempResultSet) {
     while (tempResultSet->next()) {
