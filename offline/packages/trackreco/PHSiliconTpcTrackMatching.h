@@ -74,6 +74,11 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
    */
   Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
 
+
+  // calculate phi for a given tracklet, properly accounting for distortions
+  double getPhi( TrackSeed* ) const;
+
+
    //   void checkCrossingMatches( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,  std::map<unsigned int, short int> &tpc_crossing_map );
   //double getMedian(std::vector<double> &v);
   //void addSiliconClusters( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches);
@@ -118,8 +123,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   TrackSeedContainer *_svtx_seed_map{nullptr};
   TrackSeedContainer *_track_map{nullptr};
   TrackSeedContainer *_track_map_silicon{nullptr};
-  TrackSeed *_tracklet_tpc{nullptr};
-  TrackSeed *_tracklet_si{nullptr};
+
   TrkrClusterContainer *_cluster_map{nullptr};
   ActsGeometry *_tGeometry{nullptr};
 
