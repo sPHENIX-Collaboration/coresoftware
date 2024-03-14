@@ -348,9 +348,8 @@ Acts::Vector3 PHSimpleKFProp::getGlobalPosition( TrkrDefs::cluskey key, TrkrClus
 {
   // get global position from Acts transform
   auto globalpos = _tgeometry->getGlobalPosition(key, cluster);
-
-  // check if TPC distortion correction are in place and apply if this is a triggered event (ie. crossing is known)
-  if( !(_pp_mode) )
+  const auto trkrid = TrkrDefs::getTrkrId(key);
+  if(trkrid == TrkrDefs::tpcId && !_pp_mode)
   {
     if( m_dcc_static ) globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc_static );
     if( m_dcc_average ) globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc_average );
