@@ -127,7 +127,10 @@ void SingleMbdTriggerInput::FillPool(const unsigned int /*nbclks*/)
       }
       m_MbdPacketMap[EventSequence].push_back(newhit);
       m_EventStack.insert(EventSequence);
-
+      if (ddump_enabled())
+      {
+	ddumppacket(plist[i]);
+      }
       delete plist[i];
     }
   }
