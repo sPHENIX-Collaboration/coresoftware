@@ -43,6 +43,10 @@ int MbdCheck::process_event(PHCompositeNode *topNode)
   {
     for (unsigned int i = 0; i < mbdcont->get_npackets(); i++)
     {
+      if (ddump_enabled())
+      {
+	ddumppacket(mbdcont->getPacket(i));
+      }
       mbdcont->getPacket(i)->identify();
     }
   }

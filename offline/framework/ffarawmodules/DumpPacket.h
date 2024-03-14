@@ -3,6 +3,9 @@
 
 class OfflinePacket;
 
+#ifndef FFARAWMODULES_DUMPPACKET_H
+#define FFARAWMODULES_DUMPPACKET_H
+
 class DumpPacket
 {
 public:
@@ -17,3 +20,5 @@ private:
   std::map<int, std::ofstream *> m_PacketDumpFile;
   std::map<int, int> m_PacketDumpCounter;
 };
+
+#endif

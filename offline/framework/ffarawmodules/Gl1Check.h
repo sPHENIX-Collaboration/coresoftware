@@ -3,6 +3,8 @@
 #ifndef FFARAWMODULES_GL1CHECK_H
 #define FFARAWMODULES_GL1CHECK_H
 
+#include "DumpPacket.h"
+
 #include <fun4all/SubsysReco.h>
 
 #include <set>
@@ -11,7 +13,7 @@
 class Fun4AllInputManager;
 class PHCompositeNode;
 
-class Gl1Check : public SubsysReco
+class Gl1Check : public SubsysReco, public DumpPacket
 {
  public:
   Gl1Check(const std::string &name = "Gl1Check");
