@@ -149,7 +149,7 @@ void TrackSeed_v1::lineFit(TrkrClusterContainer* clusters,
   lineFit(positions, startLayer, endLayer);
 }
 
-void TrackSeed_v1::circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
+void TrackSeed_v1::circleFitByTaubin(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
                                      uint8_t startLayer,
                                      uint8_t endLayer)
 {
@@ -204,7 +204,7 @@ void TrackSeed_v1::circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>&
   }
 }
 
-void TrackSeed_v1::lineFit(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
+void TrackSeed_v1::lineFit(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
                            uint8_t startLayer,
                            uint8_t endLayer)
 {
