@@ -57,7 +57,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int FillGl1();
   void AddGl1Packet(int eventno, Gl1Packet *gl1pkt);
   int FillMbd();
-  void AddMbdPacket(int eventno, MbdPacket *mbdpkt);
+  void AddMbdPacket(int eventno, CaloPacket *mbdpkt);
   int FillHcal();
   void AddHcalPacket(int eventno, CaloPacket *pkt);
  private:
@@ -75,7 +75,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
 
   struct MbdPacketInfo
   {
-    std::vector<MbdPacket *> MbdPacketVector;
+    std::vector<CaloPacket *> MbdPacketVector;
     unsigned int EventFoundCounter = 0;
   };
 

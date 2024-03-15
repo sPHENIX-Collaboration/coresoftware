@@ -644,7 +644,7 @@ int Fun4AllPrdfInputTriggerManager::FillMbd()
     return -1;
   }
   //    std::cout << "stashed mbd BCOs: " << m_MbdPacketMap.size() << std::endl;
-  MbdPacketContainer *mbd = findNode::getClass<MbdPacketContainer>(m_topNode, "MBDPackets");
+  CaloPacketContainer *mbd = findNode::getClass<CaloPacketContainer>(m_topNode, "MBDPackets");
   //  std::cout << "before filling m_MbdPacketMap size: " <<  m_MbdPacketMap.size() << std::endl;
   for (auto mbdhititer : m_MbdPacketMap.begin()->second.MbdPacketVector)
   {
@@ -665,7 +665,7 @@ int Fun4AllPrdfInputTriggerManager::FillMbd()
   return 0;
 }
 
-void Fun4AllPrdfInputTriggerManager::AddMbdPacket(int eventno, MbdPacket *pkt)
+void Fun4AllPrdfInputTriggerManager::AddMbdPacket(int eventno, CaloPacket *pkt)
 {
   if (Verbosity() > 1)
   {
