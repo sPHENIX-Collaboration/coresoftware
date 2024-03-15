@@ -6,6 +6,10 @@
 #include <array>
 #include <limits>
 
+static const int MAX_NUM_CHANNELS = 256;
+static const int MAX_NUM_MODULES = 4;
+static const int MAX_NUM_SAMPLES = 31;
+
 class CaloPacketv1 : public CaloPacket
 {
  public:
@@ -14,6 +18,10 @@ class CaloPacketv1 : public CaloPacket
 
   void Reset() override;
   void identify(std::ostream &os = std::cout) const override;
+
+  int getMaxNumChannels() const override {return MAX_NUM_CHANNELS;}
+  int getMaxNumSamples() const override {return MAX_NUM_SAMPLES;}
+  int getMaxNumModules() const override {return MAX_NUM_MODULES;}
 
   void setFemClock(int i, uint32_t clk) override { femclock.at(i) = clk; }
   uint32_t getFemClock(int i) const override { return femclock.at(i); }
@@ -61,11 +69,11 @@ class CaloPacketv1 : public CaloPacket
   int module_address{0};
   int detid{0};
 
-  std::array<uint32_t, 3> femclock{std::numeric_limits<uint32_t>::max()};
-  std::array<uint32_t, 3> femevt{std::numeric_limits<uint32_t>::max()};
-  std::array<uint32_t, 3> femslot{std::numeric_limits<uint32_t>::max()};
+  std::array<uint32_t, MAX_NUM_MODULES> femclock{std::numeric_limits<uint32_t>::max()};
+  std::array<uint32_t, MAX_NUM_MODULES> femevt{std::numeric_limits<uint32_t>::max()};
+  std::array<uint32_t, MAX_NUM_MODULES> femslot{std::numeric_limits<uint32_t>::max()};
 
-  std::array<std::array<uint32_t, 192>, 31> samples{{{std::numeric_limits<uint32_t>::max()}}};
+  std::array<std::array<uint32_t, MAX_NUM_CHANNELS>, MAX_NUM_SAMPLES> samples{{{std::numeric_limits<uint32_t>::max()}}};
 
  private:
   ClassDefOverride(CaloPacketv1, 1)

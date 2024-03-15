@@ -16,6 +16,10 @@ class CaloPacket : public OfflinePacketv1
   }
   ~CaloPacket() override = default;
 
+  virtual int getMaxNumChannels() const {return 0;}
+virtual int getMaxNumSamples() const {return 0;}
+virtual int getMaxNumModules() const {return 0;}
+
   virtual void setFemClock(int /*i*/, uint32_t /*clk*/) { return; }
   virtual uint32_t getFemClock(int /*i*/) const { return std::numeric_limits<uint32_t>::max(); }
   virtual void setFemEvtSequence(int /*i*/, int /*j*/) { return; }
