@@ -84,6 +84,12 @@ class PHG4TpcDistortion
     m_time_ordered_distortion_filename = value;
   }
 
+  //! enable reaches readout
+  void set_do_ReachesReadout(bool value)
+  {
+    m_do_ReachesReadout = value;
+  }
+
   void set_read_phi_as_radians(bool flag){
     m_phi_hist_in_radians=flag;
   }
@@ -112,6 +118,7 @@ class PHG4TpcDistortion
   //! Flag controls whether to assume the phi hist units are radians or cm.
   bool m_phi_hist_in_radians=true;
 
+  bool m_do_ReachesReadout = false;
 
   //!@name static histograms
   //@{

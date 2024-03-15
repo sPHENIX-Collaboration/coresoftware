@@ -19,6 +19,17 @@
  */
 namespace TpcDefs
 {
+  constexpr int NSides = 2;
+  constexpr int NSectors = 12;
+  constexpr int NRSectors = 3;
+
+  //! in memory representation of TPC ADC data: 10bit ADC value as 16bit signed integer.
+  // This is signed to allow pedestal subtraction when needed
+  typedef int16_t ADCDataType;
+
+  //! in memory representation of BCO clock using standard 64bit sPHENIX time stamp precision
+  typedef uint64_t BCODataType;
+
   // hitsetkey layout:
   //  Tpc specific lower 16 bits
   //   24 - 32  tracker id
