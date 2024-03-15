@@ -11,6 +11,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  CemcCheck.h \
   DumpPacket.h \
   EventCombiner.h \
   EventNumberCheck.h \
@@ -25,6 +26,7 @@ lib_LTLIBRARIES = \
   libffarawmodules.la
 
 libffarawmodules_la_SOURCES = \
+  CemcCheck.cc \
   DumpPacket.cc \
   EventCombiner.cc \
   EventNumberCheck.cc \
