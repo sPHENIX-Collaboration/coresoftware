@@ -58,7 +58,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
   Event *evt = findNode::getClass<Event>(topNode,"PRDF");
   
   if (evt->getEvtType() == BEGRUNEVENT){
-    p = evt->getPacket(packet_BEGINRUN);
+    p = evt->getPacket(packet_BEGRUN);
     //get_cdev_info(p);
   } else if (evt->getEvtType() == DATAEVENT){
     p = evt->getPacket(packet_GL1);
