@@ -1,4 +1,5 @@
 #include "InttMap.h"
+
 #include <boost/format.hpp>
 
 InttMap::Online_s& InttMap::Online_s::operator++()
