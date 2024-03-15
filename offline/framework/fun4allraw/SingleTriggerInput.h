@@ -22,7 +22,6 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   explicit SingleTriggerInput(const std::string &name);
   ~SingleTriggerInput() override;
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
-  virtual void FillPool(const uint64_t) { return; }
   virtual void FillPool(const unsigned int = 1) { return; }
   virtual void RunNumber(const int runno) { m_RunNumber = runno; }
   virtual int RunNumber() const { return m_RunNumber; }
@@ -49,8 +48,8 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   virtual bool ddump_enabled() const {return m_ddump_flag;}
 
  private:
-  Eventiterator *m_EventIterator = nullptr;
-  Fun4AllStreamingInputManager *m_StreamingInputMgr = nullptr;
+  Eventiterator *m_EventIterator {nullptr};
+  Fun4AllStreamingInputManager *m_StreamingInputMgr {nullptr};
   Fun4AllPrdfInputTriggerManager *m_TriggerInputMgr{nullptr};
   int m_ddump_flag {0};
   unsigned int m_EventNumberOffset = 1;  // packet event counters start at 0 but we start with event number 1

@@ -1,4 +1,4 @@
-#include "SingleMbdTriggerInput.h"
+#include "SingleCemcTriggerInput.h"
 
 #include "Fun4AllPrdfInputTriggerManager.h"
 #include "InputManagerType.h"
@@ -29,20 +29,22 @@
 #include <set>
 #include <utility>  // for pair
 
-SingleMbdTriggerInput::SingleMbdTriggerInput(const std::string &name)
+static const int NPackets = 16;
+
+SingleCemcTriggerInput::SingleCemcTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
-  SubsystemEnum(InputManagerType::MBD);
-  plist = new Packet *[2];  // two packets for the mbd in each file
+  SubsystemEnum(InputManagerType::CEMC);
+  plist = new Packet *[NPackets];  // 16 packets for the cemc in each file
 }
 
-SingleMbdTriggerInput::~SingleMbdTriggerInput()
+SingleCemcTriggerInput::~SingleCemcTriggerInput()
 {
   CleanupUsedPackets(std::numeric_limits<int>::max());
   delete[] plist;
 }
 
-void SingleMbdTriggerInput::FillPool(const unsigned int keep)
+void SingleCemcTriggerInput::FillPool(const unsigned int /*nbclks*/)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -56,7 +58,7 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
       return;
     }
   }
-  while (GetSomeMoreEvents(keep))
+  while (GetSomeMoreEvents())
   {
     std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());
     while (!evt)
@@ -84,10 +86,10 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, 2);
-    if (npackets > 2)
+    int npackets = evt->getPacketList(plist, (NPackets+1)); // just in case we have more packets, they will not vanish silently
+    if (npackets > NPackets)
     {
-      std::cout << PHWHERE << " Number of packets in array (2) too small for "
+      std::cout << PHWHERE << " Number of packets in array (" << NPackets << ") too small for "
                 << npackets << std::endl;
       exit(1);
     }
@@ -101,15 +103,29 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
 
       // by default use previous bco clock for gtm bco
       CaloPacket *newhit = new CaloPacketv1();
-      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
       int nr_modules = plist[i]->iValue(0,"NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
-      if (nr_modules > 3)
+      if (nr_modules > newhit->getMaxNumModules() )
       {
-	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
+	std::cout << PHWHERE << " too many modules " <<  nr_modules << ", max is " 
+                  <<  newhit->getMaxNumModules() << ", need to adjust arrays" << std::endl;
 	gSystem->Exit(1);
       }
+      if (nr_channels > newhit->getMaxNumChannels())
+      {
+	std::cout << PHWHERE << " too many channels " <<  nr_channels << ", max is " 
+                  <<  newhit->getMaxNumChannels() << ", need to adjust arrays" << std::endl;
+	gSystem->Exit(1);
+      }
+      if (nr_samples > newhit->getMaxNumSamples())
+      {
+	std::cout << PHWHERE << " too many samples " <<  nr_samples << ", max is " 
+                  <<  newhit->getMaxNumSamples() << ", need to adjust arrays" << std::endl;
+	gSystem->Exit(1);
+      }
+
+      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
       newhit->setNrModules(nr_modules);
       newhit->setNrSamples(nr_samples);
       newhit->setNrChannels(nr_channels);
@@ -136,24 +152,6 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
           newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
         }
       }
- /*
-      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
-      newhit->setBCO(plist[i]->iValue(0, "CLOCK"));
-      newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
-      newhit->setIdentifier(plist[i]->getIdentifier());
-      newhit->setEvtSequence(EventSequence);
-      for (int ifem = 0; ifem < 2; ifem++)
-      {
-        newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
-      }
-      for (int ipmt = 0; ipmt < 128; ipmt++)
-      {
-        for (int isamp = 0; isamp < 31; isamp++)
-        {
-          newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
-        }
-      }
-*/
       if (Verbosity() > 2)
       {
         std::cout << PHWHERE << "evtno: " << EventSequence
@@ -162,9 +160,9 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
       }
       if (TriggerInputManager())
       {
-        TriggerInputManager()->AddMbdPacket(EventSequence, newhit);
+        TriggerInputManager()->AddCemcPacket(EventSequence, newhit);
       }
-      m_MbdPacketMap[EventSequence].push_back(newhit);
+      m_CemcPacketMap[EventSequence].push_back(newhit);
       m_EventStack.insert(EventSequence);
       if (ddump_enabled())
       {
@@ -175,11 +173,11 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
   }
 }
 
-void SingleMbdTriggerInput::Print(const std::string &what) const
+void SingleCemcTriggerInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "STORAGE")
   {
-    for (const auto &bcliter : m_MbdPacketMap)
+    for (const auto &bcliter : m_CemcPacketMap)
     {
       std::cout << PHWHERE << "Event: " << bcliter.first << std::endl;
     }
@@ -193,10 +191,10 @@ void SingleMbdTriggerInput::Print(const std::string &what) const
   }
 }
 
-void SingleMbdTriggerInput::CleanupUsedPackets(const int eventno)
+void SingleCemcTriggerInput::CleanupUsedPackets(const int eventno)
 {
   std::vector<int> toclearevents;
-  for (const auto &iter : m_MbdPacketMap)
+  for (const auto &iter : m_CemcPacketMap)
   {
     if (iter.first <= eventno)
     {
@@ -215,11 +213,11 @@ void SingleMbdTriggerInput::CleanupUsedPackets(const int eventno)
   for (auto iter : toclearevents)
   {
     m_EventStack.erase(iter);
-    m_MbdPacketMap.erase(iter);
+    m_CemcPacketMap.erase(iter);
   }
 }
 
-void SingleMbdTriggerInput::ClearCurrentEvent()
+void SingleCemcTriggerInput::ClearCurrentEvent()
 {
   // called interactively, to get rid of the current event
   int currentevent = *m_EventStack.begin();
@@ -228,29 +226,24 @@ void SingleMbdTriggerInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleMbdTriggerInput::GetSomeMoreEvents(const unsigned int keep)
+bool SingleCemcTriggerInput::GetSomeMoreEvents()
 {
   if (AllDone())
   {
     return false;
   }
-  if (m_MbdPacketMap.empty())
+  if (m_CemcPacketMap.empty())
   {
     return true;
   }
 
-  int first_event = m_MbdPacketMap.begin()->first;
-  int last_event = m_MbdPacketMap.rbegin()->first;
-  std::cout << "number of mbd events: " << m_MbdPacketMap.size() << std::endl;
+  int first_event = m_CemcPacketMap.begin()->first;
+  int last_event = m_CemcPacketMap.rbegin()->first;
   if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
-  }
-  if (keep > 2 && m_MbdPacketMap.size() < keep)
-  {
-    return true;
   }
   if (first_event >= last_event)
   {
@@ -259,7 +252,7 @@ bool SingleMbdTriggerInput::GetSomeMoreEvents(const unsigned int keep)
   return false;
 }
 
-void SingleMbdTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
+void SingleCemcTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -269,26 +262,17 @@ void SingleMbdTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
     topNode->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
-  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "MBD"));
+  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "CEMC"));
   if (!detNode)
   {
-    detNode = new PHCompositeNode("MBD");
+    detNode = new PHCompositeNode("CEMC");
     dstNode->addNode(detNode);
   }
-  CaloPacketContainer *mbdpacketcont = findNode::getClass<CaloPacketContainer>(detNode, "MBDPackets");
-  if (!mbdpacketcont)
+  CaloPacketContainer *cemcpacketcont = findNode::getClass<CaloPacketContainer>(detNode, "CEMCPackets");
+  if (!cemcpacketcont)
   {
-    mbdpacketcont = new CaloPacketContainerv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(mbdpacketcont, "MBDPackets", "PHObject");
+    cemcpacketcont = new CaloPacketContainerv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cemcpacketcont, "CEMCPackets", "PHObject");
     detNode->addNode(newNode);
   }
 }
-
-// void SingleMbdTriggerInput::ConfigureStreamingInputManager()
-// {
-//   if (StreamingInputManager())
-//   {
-//     StreamingInputManager()->SetMbdBcoRange(m_BcoRange);
-//   }
-//   return;
-// }
