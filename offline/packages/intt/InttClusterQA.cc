@@ -33,17 +33,16 @@ InttClusterQA::InttClusterQA(const std::string &name)
 
 //____________________________________________________________________________..
 InttClusterQA::~InttClusterQA()
-{
-}
+= default;
 
 //____________________________________________________________________________..
-int InttClusterQA::Init(PHCompositeNode *)
+int InttClusterQA::Init(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int InttClusterQA::InitRun(PHCompositeNode *)
+int InttClusterQA::InitRun(PHCompositeNode * /*unused*/)
 {
   for (auto &layer : {0, 1, 2, 3})
   {
@@ -131,7 +130,7 @@ int InttClusterQA::EndRun(const int runnumber)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //____________________________________________________________________________..
-int InttClusterQA::End(PHCompositeNode *)
+int InttClusterQA::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -71,7 +71,7 @@ InttSurveyMap::val_t const* InttSurveyMapv1::GetAbsoluteTransform(
 {
   if (!m_absolute_transforms)
   {
-    return 0;
+    return nullptr;
   }
   map_t::const_iterator itr = m_absolute_transforms->find(k);
   return itr != m_absolute_transforms->end() ? &itr->second : nullptr;
@@ -82,7 +82,7 @@ InttSurveyMap::val_t const* InttSurveyMapv1::GetRelativeTransform(
 {
   if (!m_relative_transforms)
   {
-    return 0;
+    return nullptr;
   }
   map_t::const_iterator itr = m_relative_transforms->find(k);
   return itr != m_relative_transforms->end() ? &itr->second : nullptr;
