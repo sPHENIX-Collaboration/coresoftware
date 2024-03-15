@@ -2,9 +2,9 @@
 #define VERTEX_H
 
 #include <phool/PHObject.h>
+#include <climits>
 #include <cmath>
 #include <iostream>
-#include <climits>
 #include <set>
 #include <vector>
 
@@ -14,16 +14,16 @@ class Vertex : public PHObject
   typedef std::set<unsigned int> TrackSet;
   typedef std::set<unsigned int>::const_iterator ConstTrackIter;
   typedef std::set<unsigned int>::iterator TrackIter;
-  
+
   ~Vertex() override {}
 
-  //PHObject virtual overloads
+  // PHObject virtual overloads
 
   void identify(std::ostream& os = std::cout) const override { os << "Vertex base class" << std::endl; }
   PHObject* CloneMe() const override { return nullptr; }
   int isValid() const override { return 0; }
 
-  //vertex info
+  // vertex info
 
   virtual unsigned int get_id() const { return 0xFFFFFFFF; }
   virtual void set_id(unsigned int) {}
@@ -59,11 +59,11 @@ class Vertex : public PHObject
   virtual float get_error(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
   virtual void set_error(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
 
-  //beam crossing methods
+  // beam crossing methods
   virtual unsigned int get_beam_crossing() const { return UINT_MAX; }
   virtual void set_beam_crossing(unsigned int) {}
 
-  //bbcvertex methods
+  // bbcvertex methods
   virtual void set_bbc_ns(int, int, float, float) {}
   virtual int get_bbc_npmt(int) const { return std::numeric_limits<int>::max(); }
   virtual float get_z_err() const { return NAN; }
@@ -71,8 +71,8 @@ class Vertex : public PHObject
 
   virtual float get_bbc_q(int) const { return NAN; }
   virtual float get_bbc_t(int) const { return NAN; }
-  
-  //svtxvertex methods
+
+  // svtxvertex methods
   virtual void clear_tracks() {}
   virtual bool empty_tracks() { return true; }
   virtual size_t size_tracks() const { return 0; }
@@ -87,7 +87,6 @@ class Vertex : public PHObject
 
  private:
   ClassDefOverride(Vertex, 1);
-
 };
 
 #endif

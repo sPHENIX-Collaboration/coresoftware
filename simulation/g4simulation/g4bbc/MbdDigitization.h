@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <map>
+#include <array>
 #include <string>
 
 // Forward declarations
@@ -57,9 +58,13 @@ class MbdDigitization : public SubsysReco
   Float_t f_vy = NAN;
   Float_t f_vz = NAN;
   Float_t f_vt = NAN;
-  Float_t f_pmtq[128]{};   // npe in each arm
-  Float_t f_pmtt0[128]{};  // time in each arm
-  Float_t f_pmtt1[128]{};  // time in each arm
+  Float_t f_pmtq[128]{};   // equiv. nch in each pmt
+  Float_t f_pmtt0[128]{};  // time in each pmt
+  Float_t f_pmtt1[128]{};  // time in each pmt
+  Float_t f_pmtnpe[128]{}; // npe in each pmt
+
+  // gains
+  std::array<Float_t,128> _gains;
 
   TF1 *gaussian = nullptr;
 
