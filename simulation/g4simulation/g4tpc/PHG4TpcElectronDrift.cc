@@ -272,6 +272,8 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   {
     hitmapstart = new TH2F("hitmapstart", "g4hit starting X-Y locations", 1560, -78, 78, 1560, -78, 78);
     hitmapend = new TH2F("hitmapend", "g4hit final X-Y locations", 1560, -78, 78, 1560, -78, 78);
+    hitmapstart_z = new TH2F("hitmapstart_z", "g4hit starting Z-R locations", 2000, -100, 100, 780, 0, 78);
+    hitmapend_z = new TH2F("hitmapend_z", "g4hit final Z-R locations", 2000, -100, 100, 780, 0, 78);
     z_startmap = new TH2F("z_startmap", "g4hit starting Z vs. R locations", 2000, -100, 100, 780, 0, 78);
     deltaphi = new TH2F("deltaphi", "Total delta phi; phi (rad);#Delta phi (rad)", 600, -M_PI, M_PI, 1000, -.2, .2);
     deltaRphinodiff = new TH2F("deltaRphinodiff", "Total delta R*phi, no diffusion; r (cm);#Delta R*phi (cm)", 600, 20, 80, 1000, -3, 5);
@@ -282,6 +284,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     deltar = new TH2F("deltar", "Total Delta r; r (cm);#Delta r (cm)", 580, 20, 78, 1000, -3, 5);
     deltarnodiff = new TH2F("deltarnodiff", "Delta r (no diffusion, only SC distortion); r (cm);#Delta r (cm)", 580, 20, 78, 1000, -2, 5);
     deltarnodist = new TH2F("deltarnodist", "Delta r (no SC distortion, only diffusion); r (cm);#Delta r (cm)", 580, 20, 78, 1000, -2, 5);
+    ratioElectronsRR = new TH1F("ratioElectronsRR", "Ratio of electrons reach readout vs all in acceptance", 1561, -0.0325, 1.0465);
   }
 
   if (Verbosity())
@@ -479,7 +482,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
                 << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + 
                     pow(hiter->second->get_y(1), 2)) << std::endl;
     }
-
+    
+    int notReachingReadout = 0;
+    int notInAcceptance =0;
     for (unsigned int i = 0; i < n_electrons; i++)
     {
       // We choose the electron starting position at random from a flat
@@ -539,6 +544,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       	const double reaches = m_distortionMap->get_reaches_readout(radstart, phistart, z_start);
 		  if (reaches < thresholdforreachesreadout)
 		  {
+                   notReachingReadout++;
 		   continue;
 		  }
 		
@@ -573,6 +579,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           // Fill Diagnostic plots, written into ElectronDriftQA.root
           hitmapstart->Fill(x_start, y_start);             // G4Hit starting positions
           hitmapend->Fill(x_final, y_final);               //INcludes diffusion and distortion
+          hitmapstart_z->Fill(z_start, radstart);
+          hitmapend_z->Fill(z_final, rad_final);
           deltar->Fill(radstart, rad_final - radstart);    //total delta r
           deltaphi->Fill(phistart, phi_final - phistart);  // total delta phi
           deltaz->Fill(z_start, z_distortion);             // map of distortion in Z (time)
@@ -581,7 +589,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
       if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
-      { continue; }
+      { notInAcceptance++;
+        continue; }
 
       if (Verbosity() > 1000)
       //      if(i < 1)
@@ -611,6 +620,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           temp_hitsetcontainer.get(), hittruthassoc, x_final, y_final, t_final,
           side, hiter, ntpad, nthit);
     }  // end loop over electrons for this g4hit
+
+    if (do_ElectronDriftQAHistos)
+    {
+	ratioElectronsRR->Fill((double)(n_electrons-notReachingReadout)/n_electrons);
+    }
 
     TrkrHitSetContainer::ConstRange single_hitset_range = single_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
     for (TrkrHitSetContainer::ConstIterator single_hitset_iter = single_hitset_range.first;
@@ -809,7 +823,10 @@ int PHG4TpcElectronDrift::End(PHCompositeNode * /*topNode*/)
     deltaphivsRnodiff->Write();
     hitmapstart->Write();
     hitmapend->Write();
+    hitmapstart_z->Write();
+    hitmapend_z->Write();
     z_startmap->Write();
+    ratioElectronsRR->Write();
     EDrift_outf->Close();
   }
   return Fun4AllReturnCodes::EVENT_OK;
