@@ -57,8 +57,7 @@ class LaserClusterv1 : public LaserCluster
   float getIT() const override { return m_posHardware[2]; }
   void setIT(float it) override { m_posHardware[2] = it; }
 
-  unsigned int getNhits() const override {return m_nhits;}
-  void setNhits(unsigned int n) override { m_nhits = n;}
+  unsigned int getNhits() const override {return m_hitVec.size();}
 
   //
   // cluster info
@@ -67,7 +66,6 @@ class LaserClusterv1 : public LaserCluster
   void setAdc(unsigned int adc) override { m_adc = adc; }
 
   void addHit() override {m_hitVec.push_back({0.0,0.0,0.0,0.0}); }
-  unsigned int getHitCount() const override {return (unsigned int)m_hitVec.size(); }
 
   void setHitLayer(int i, float layer) override {m_hitVec[i][0] = layer; }
   float getHitLayer(int i) const override { return m_hitVec[i][0]; }

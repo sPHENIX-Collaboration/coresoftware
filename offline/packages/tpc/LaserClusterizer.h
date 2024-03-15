@@ -52,6 +52,7 @@ class LaserClusterizer : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
+  int ResetEvent(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
   //void calc_cluster_parameter(vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap);
@@ -91,11 +92,12 @@ class LaserClusterizer : public SubsysReco
   string m_debugFileName = "LaserClusterizer_debug.root";
   TFile *m_debugFile = nullptr;
   TTree *m_clusterTree = nullptr;
-  TTree *m_hitTree = nullptr;
+  //TTree *m_hitTree = nullptr;
   TH1I *m_itHist_0 = nullptr;
   TH1I *m_itHist_1 = nullptr;
 
   LaserClusterv1 *m_currentCluster = nullptr;
+  std::vector<LaserClusterv1 *> m_eventClusters;
   std::vector<float> m_currentHit;
   std::vector<float> m_currentHit_hardware;
 
