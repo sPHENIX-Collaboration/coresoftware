@@ -6,9 +6,9 @@
 class MbdPacket;
 class TClonesArray;
 
-class  MbdPacketContainerv1: public MbdPacketContainer
+class MbdPacketContainerv1 : public MbdPacketContainer
 {
-public:
+ public:
   MbdPacketContainerv1();
   ~MbdPacketContainerv1() override;
 
@@ -28,10 +28,10 @@ public:
   unsigned int get_npackets() override;
   MbdPacket *getPacket(unsigned int index) override;
 
-private:
-   TClonesArray *MbdPacketsTCArray {nullptr};
+ private:
+  TClonesArray *MbdPacketsTCArray{nullptr};
 
-  ClassDefOverride(MbdPacketContainerv1,1)
+  ClassDefOverride(MbdPacketContainerv1, 1)
 };
 
 #endif

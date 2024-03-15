@@ -11,7 +11,7 @@ void Gl1Packetv1::Reset()
   BunchNumber = std::numeric_limits<uint64_t>::max();
   TriggerInput = 0;
   TriggerVector = 0;
-  for (auto &row :  scaler)
+  for (auto &row : scaler)
   {
     row.fill(0);
   }
@@ -32,11 +32,11 @@ void Gl1Packetv1::FillFrom(const Gl1Packet *pkt)
   setPacketNumber(pkt->getPacketNumber());
   setTriggerInput(pkt->getTriggerInput());
   setTriggerVector(pkt->getTriggerVector());
-  for (int i=0; i< 64; i++)
+  for (int i = 0; i < 64; i++)
   {
     for (int j = 0; j < 3; j++)
     {
-      setScaler(i,j,pkt->lValue(i,j));
+      setScaler(i, j, pkt->lValue(i, j));
     }
   }
   OfflinePacketv1::FillFrom(pkt);
@@ -82,26 +82,29 @@ long long Gl1Packetv1::lValue(const int /*i*/, const std::string &what) const
 void Gl1Packetv1::dump(std::ostream &os) const
 {
   os << "packet nr:       " << iValue(0) << std::endl;
-  os << "Beam Clock:      " << "0x" << std::hex << lValue(0, "BCO") << std::dec  << "   "  << lValue(0, "BCO") << std::endl;
-  os << "Trigger Input:   " << "0x" << std::hex <<  lValue(0, "TriggerInput")  << std::dec << "   " << lValue(0, "TriggerInput") << std::endl;
-  os << "Trigger Vector:  " << "0x" << std::hex <<  lValue(0, "TriggerVector") << std::dec << "   " << lValue(0, "TriggerVector") << std::endl;
-  os << "Bunch Number:    " << lValue(0, "BunchNumber") << std::endl << std::endl;
+  os << "Beam Clock:      "
+     << "0x" << std::hex << lValue(0, "BCO") << std::dec << "   " << lValue(0, "BCO") << std::endl;
+  os << "Trigger Input:   "
+     << "0x" << std::hex << lValue(0, "TriggerInput") << std::dec << "   " << lValue(0, "TriggerInput") << std::endl;
+  os << "Trigger Vector:  "
+     << "0x" << std::hex << lValue(0, "TriggerVector") << std::dec << "   " << lValue(0, "TriggerVector") << std::endl;
+  os << "Bunch Number:    " << lValue(0, "BunchNumber") << std::endl
+     << std::endl;
   os << "Trg #                  raw              live              scaled" << std::endl;
   os << "----------------------------------------------------------------" << std::endl;
 
   int i;
-  
-  for (i = 0; i< 64; i++)
+
+  for (i = 0; i < 64; i++)
+  {
+    if (lValue(i, 0) || lValue(i, 1) || lValue(i, 2))
     {
-      if ( lValue(i, 0) ||  lValue(i, 1) ||  lValue(i, 2) )
-	{
-	  os << std::setw(3) << i << "    ";
-	  os << " " << std::setw(18) << lValue(i,0)
-	     << " " << std::setw(18) << lValue(i,1)
-	     << " " << std::setw(18) << lValue(i,2)
-	     << std::endl;
-	}
+      os << std::setw(3) << i << "    ";
+      os << " " << std::setw(18) << lValue(i, 0)
+         << " " << std::setw(18) << lValue(i, 1)
+         << " " << std::setw(18) << lValue(i, 2)
+         << std::endl;
     }
+  }
   os << std::endl;
 }
-

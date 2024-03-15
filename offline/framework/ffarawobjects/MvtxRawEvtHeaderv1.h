@@ -8,20 +8,19 @@
 #include <cstdint>
 #include <set>
 
-class  MvtxRawEvtHeaderv1: public MvtxRawEvtHeader
+class MvtxRawEvtHeaderv1 : public MvtxRawEvtHeader
 {
-
-public:
+ public:
   MvtxRawEvtHeaderv1() = default;
   ~MvtxRawEvtHeaderv1() = default;
 
-  ///Clear Event
+  /// Clear Event
   void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream
    */
-  void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;
@@ -35,7 +34,7 @@ public:
   std::set<uint16_t>& getMvtxFeeIdSet() override { return m_MvtxFeeIdSet; };
   std::set<uint64_t>& getMvtxLvL1BCO() override { return m_MvtxL1TrgSet; };
 
-private:
+ private:
   std::set<uint16_t> m_MvtxFeeIdSet;
   std::set<uint64_t> m_MvtxL1TrgSet;
 
