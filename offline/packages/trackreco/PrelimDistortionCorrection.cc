@@ -37,7 +37,7 @@
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/TrackSeedContainer.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
@@ -398,7 +398,7 @@ PositionMap PrelimDistortionCorrection::PrepareKDTrees()
 }
 
 
-void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap& positions)
+void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap& positions)
 {
   int seed_index = 0;
   for(auto& seed: seeds )
@@ -409,6 +409,8 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, 
     seed.lineFit(positions, 7, 55);
     
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
+    float phi = seed.get_phi(positions);
+    seed.set_phi(phi);
     _track_map->insert(&seed); 
 
     if(Verbosity() > 0)
@@ -420,6 +422,7 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, 
 		  << " Y0 " << seed.get_y()
 		  << " Z0 " << seed.get_z()
 		  << " eta " << seed.get_eta()
+		  << " phi " << seed.get_eta()
 		  << std::endl;
       }
 
@@ -427,7 +430,7 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, 
   }
 }
 
-void PrelimDistortionCorrection::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
+void PrelimDistortionCorrection::publishSeeds(const std::vector<TrackSeed_v2>& seeds)
 {
   for( const auto& seed:seeds )
   { _track_map->insert(&seed); }

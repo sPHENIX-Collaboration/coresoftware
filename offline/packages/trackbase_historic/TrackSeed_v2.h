@@ -1,5 +1,5 @@
-#ifndef TRACKBASEHISTORIC_TRACKSEED_V1_H
-#define TRACKBASEHISTORIC_TRACKSEED_V1_H
+#ifndef TRACKBASEHISTORIC_TRACKSEED_V2_H
+#define TRACKBASEHISTORIC_TRACKSEED_V2_H
 
 #include "TrackSeed.h"
 
@@ -9,23 +9,23 @@
 #include <cmath>
 #include <iostream>
 
-class TrackSeed_v1 : public TrackSeed
+class TrackSeed_v2 : public TrackSeed
 {
  public:
-  TrackSeed_v1();
+  TrackSeed_v2();
 
   /// Copy constructors
-  TrackSeed_v1(const TrackSeed&);
-  TrackSeed_v1(const TrackSeed_v1&);
-  TrackSeed_v1& operator=(const TrackSeed_v1& seed);
-  ~TrackSeed_v1() override;
+  TrackSeed_v2(const TrackSeed&);
+  TrackSeed_v2(const TrackSeed_v2&);
+  TrackSeed_v2& operator=(const TrackSeed_v2& seed);
+  ~TrackSeed_v2() override;
 
   void identify(std::ostream& os = std::cout) const override;
-  void Reset() override { *this = TrackSeed_v1(); }
+  void Reset() override { *this = TrackSeed_v2(); }
   int isValid() const override { return 1; }
   void CopyFrom(const TrackSeed&) override;
   void CopyFrom(TrackSeed* seed) override { CopyFrom(*seed); }
-  PHObject* CloneMe() const override { return new TrackSeed_v1(*this); }
+  PHObject* CloneMe() const override { return new TrackSeed_v2(*this); }
 
   int get_charge() const override;
   float get_px(TrkrClusterContainer* clusters,
@@ -36,6 +36,7 @@ class TrackSeed_v1 : public TrackSeed
   float get_x() const override;
   float get_y() const override;
   float get_z() const override;
+  float get_phi() const override { return m_phi; };
   float get_phi(TrkrClusterContainer* clusters,
                 ActsGeometry* tGeometry) const override;
   float get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;
@@ -57,6 +58,7 @@ class TrackSeed_v1 : public TrackSeed
   void set_Y0(const float Y0) override { m_Y0 = Y0; }
   void set_slope(const float slope) override { m_slope = slope; }
   void set_Z0(const float Z0) override { m_Z0 = Z0; }
+  void set_phi(const float phi) override { m_phi = phi; }
 
   void clear_cluster_keys() override { m_cluster_keys.clear(); }
   bool empty_cluster_keys() const override { return m_cluster_keys.empty(); }
@@ -106,7 +108,7 @@ class TrackSeed_v1 : public TrackSeed
 
   short int m_crossing = std::numeric_limits<short int>::max();
 
-  ClassDefOverride(TrackSeed_v1, 1);
+  ClassDefOverride(TrackSeed_v2, 1);
 };
 
 #endif

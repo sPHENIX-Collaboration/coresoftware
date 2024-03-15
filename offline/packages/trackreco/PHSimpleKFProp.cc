@@ -37,7 +37,7 @@
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/TrackSeedContainer.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
@@ -200,7 +200,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   if(Verbosity()>0) std::cout << "prepared KD trees" << std::endl;
 
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
-  std::vector<TrackSeed_v1> unused_tracks;
+  std::vector<TrackSeed_v2> unused_tracks;
   for(int track_it = 0; track_it != _track_map->size(); ++track_it )
   {
     if(Verbosity()>0) std::cout << "TPC seed " << track_it << std::endl;
@@ -1189,7 +1189,7 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
 
 
 
-void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap& /*positions*/)
+void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap& /*positions*/)
 {
   for(auto& seed: seeds )
   { 
@@ -1203,7 +1203,7 @@ void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap&
   }
 }
 
-void PHSimpleKFProp::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
+void PHSimpleKFProp::publishSeeds(const std::vector<TrackSeed_v2>& seeds)
 {
   for( const auto& seed:seeds )
   { _track_map->insert(&seed); }
