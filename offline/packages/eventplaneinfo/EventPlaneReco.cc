@@ -9,6 +9,9 @@
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
 
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
+
 #include <epd/EpdGeom.h>
 
 #include <mbd/MbdGeom.h>
@@ -38,7 +41,7 @@
 #include <utility>  // for pair
 #include <vector>   // for vector
 #include <TProfile.h>
-
+#include <TH1D.h>
 
 EventPlaneReco::EventPlaneReco(const std::string &name)
   : SubsysReco(name)
@@ -139,10 +142,11 @@ int EventPlaneReco::Init(PHCompositeNode *topNode)
     // Create and register recentering histograms
     for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
     {
-        tprof_mean_cos_south_mbd[order - 1] =  new TProfile(Form("tprof_mean_cos_south_mbd_order_%d", order), "", 125*4, 0, 2500, -1e10, 1e10);
-        tprof_mean_sin_south_mbd[order - 1] =  new TProfile(Form("tprof_mean_sin_south_mbd_order_%d", order), "", 125*4, 0, 2500, -1e10, 1e10);
-        tprof_mean_cos_north_mbd[order - 1] =  new TProfile(Form("tprof_mean_cos_north_mbd_order_%d", order), "", 125*4, 0, 2500, -1e10, 1e10);
-        tprof_mean_sin_north_mbd[order - 1] =  new TProfile(Form("tprof_mean_sin_north_mbd_order_%d", order), "", 125*4, 0, 2500, -1e10, 1e10);
+        //total charge in MBD in data max out ~2500, sim ~ factor 100
+        tprof_mean_cos_south_mbd[order - 1] =  new TProfile(Form("tprof_mean_cos_south_mbd_order_%d", order), "", 125*400, 0, 250000, -1e10, 1e10);
+        tprof_mean_sin_south_mbd[order - 1] =  new TProfile(Form("tprof_mean_sin_south_mbd_order_%d", order), "", 125*400, 0, 250000, -1e10, 1e10);
+        tprof_mean_cos_north_mbd[order - 1] =  new TProfile(Form("tprof_mean_cos_north_mbd_order_%d", order), "", 125*400, 0, 250000, -1e10, 1e10);
+        tprof_mean_sin_north_mbd[order - 1] =  new TProfile(Form("tprof_mean_sin_north_mbd_order_%d", order), "", 125*400, 0, 250000, -1e10, 1e10);
        
         cdbhistosOut->registerHisto(tprof_mean_cos_south_mbd[order - 1]);
         cdbhistosOut->registerHisto(tprof_mean_sin_south_mbd[order - 1]);
@@ -160,10 +164,10 @@ int EventPlaneReco::Init(PHCompositeNode *topNode)
             
             for ( int p = 0; p < _imax; p++ )
             {
-                tprof_cos_north_mbd_shift[order - 1][p] =  new TProfile(Form("tprof_cos_north_mbd_shift_order_%d_%d",order,p), "", 125*4, 0, 2500, -1e10, 1e10);
-                tprof_sin_north_mbd_shift[order - 1][p] =  new TProfile(Form("tprof_sin_north_mbd_shift_order_%d_%d",order,p), "", 125*4, 0, 2500, -1e10, 1e10);
-                tprof_cos_south_mbd_shift[order - 1][p] =  new TProfile(Form("tprof_cos_south_mbd_shift_order_%d_%d",order,p), "", 125*4, 0, 2500, -1e10, 1e10);
-                tprof_sin_south_mbd_shift[order - 1][p] =  new TProfile(Form("tprof_sin_south_mbd_shift_order_%d_%d",order,p), "", 125*4, 0, 2500, -1e10, 1e10);
+                tprof_cos_north_mbd_shift[order - 1][p] =  new TProfile(Form("tprof_cos_north_mbd_shift_order_%d_%d",order,p), "", 125*400, 0, 250000, -1e10, 1e10);
+                tprof_sin_north_mbd_shift[order - 1][p] =  new TProfile(Form("tprof_sin_north_mbd_shift_order_%d_%d",order,p), "", 125*400, 0, 250000, -1e10, 1e10);
+                tprof_cos_south_mbd_shift[order - 1][p] =  new TProfile(Form("tprof_cos_south_mbd_shift_order_%d_%d",order,p), "", 125*400, 0, 250000, -1e10, 1e10);
+                tprof_sin_south_mbd_shift[order - 1][p] =  new TProfile(Form("tprof_sin_south_mbd_shift_order_%d_%d",order,p), "", 125*400, 0, 250000, -1e10, 1e10);
                 
                 cdbhistosOut->registerHisto(tprof_cos_north_mbd_shift[order - 1][p]);
                 cdbhistosOut->registerHisto(tprof_sin_north_mbd_shift[order - 1][p]);
@@ -173,9 +177,11 @@ int EventPlaneReco::Init(PHCompositeNode *topNode)
         }
         
     }
-        
-    
-   return CreateNodes(topNode);
+ 
+    hvertex = new TH1D("hvertex","z-vertex [cm]",2100,-1050,1050);
+    cdbhistosOut->registerHisto(hvertex);
+ 
+    return CreateNodes(topNode);
     
 }
 
@@ -201,6 +207,29 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
   //---------------------------------
   // Get Objects off of the Node Tree
   //---------------------------------
+    
+  GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  if (!vertexmap)
+  {
+    std::cout << PHWHERE << " Fatal Error - GlobalVertexMap node is missing" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+    
+  if(vertexmap->empty())
+  {
+    _mbd_vertex = 999.0; //track events with empty vertices
+  }
+  else
+  {
+    GlobalVertex *vtx = vertexmap->begin()->second;
+    if(vtx)
+    {   
+      _mbd_vertex = vtx->get_z();
+    }
+  }
+
+  hvertex->Fill(_mbd_vertex);
+    
   EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
   if (!epmap)
   {
@@ -292,7 +321,10 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
     ResetMe();
   }
 
-  if (_mbdEpReco)
+    //with requiring that the map only store ep info for events that meets this z-vertex cut
+    //there will be events with no stored ep info, user will need to call empty() map function
+    //in their analysis code
+  if (_mbdEpReco && (abs(_mbd_vertex) < _vertex_cut))
   {
       ResetMe();
       MbdPmtContainer *mbdpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
@@ -457,7 +489,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
  
                 // Equation (6) of arxiv:nucl-ex/9805001
                 // i = terms; n = order; i*n = tmp
-                // (2 * i ) * <cos(i*n*psi_n)> * sin(i*n*psi_n) - <sin(i*n*psi_n)> * cos(i*n*psi_n)
+                // (2 / i ) * <cos(i*n*psi_n)> * sin(i*n*psi_n) - <sin(i*n*psi_n)> * cos(i*n*psi_n)
                 
                 // north
                 shift_north[order - 1] += prefactor*(tprof_cos_north_mbd_shift_input[order - 1][p]->GetBinContent(bin_north) * sin(tmp*tmp_north_psi[order-1]) - tprof_sin_north_mbd_shift_input[order - 1][p]->GetBinContent(bin_north) * cos(tmp*tmp_north_psi[order-1]));
@@ -469,7 +501,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
         }
       }
       
-      // n * deltapsi_n = (2 * i ) * <cos(i*n*psi_n)> * sin(i*n*psi_n) - <sin(i*n*psi_n)> * cos(i*n*psi_n)
+      // n * deltapsi_n = (2 / i ) * <cos(i*n*psi_n)> * sin(i*n*psi_n) - <sin(i*n*psi_n)> * cos(i*n*psi_n)
       // Divide out n
       for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
       {
@@ -489,7 +521,18 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
           }
       }
       
-
+      // Now enforce the range
+      for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
+      {
+          if(tprof_cos_north_mbd_shift_input[0][0])
+          {
+            double range = M_PI/(double)order;
+            if(tmp_south_psi[order - 1] < -1.0*range) tmp_south_psi[order - 1] += 2.0*range;
+            if(tmp_south_psi[order - 1] > range) tmp_south_psi[order - 1] -= 2.0*range;
+            if(tmp_north_psi[order - 1] < -1.0*range) tmp_north_psi[order - 1] += 2.0*range;
+            if(tmp_north_psi[order - 1] > range) tmp_north_psi[order - 1] -= 2.0*range;
+          }
+      }
 
     //-------------------------------- store all MBD eventplane information ---------------------------------//
     for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
