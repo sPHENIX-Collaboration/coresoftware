@@ -686,7 +686,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 //      kftrack.CalculateFitParameters(fp);
       if(Verbosity()>0) std::cout << "track position: (" << tx << ", " << ty << ", " << tz << ")" << std::endl;
       kftrack.Rotate(alpha/2.,kfline,10.);
-      double newX = cx*cos(cphi)+cy*sin(cphi);
+      const double newX = cx*cos(cphi)+cy*sin(cphi);
       kftrack.TransportToXWithMaterial((tX+newX)/2.,kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
       kftrack.Rotate(alpha/2.,kfline,10.);
       kftrack.TransportToXWithMaterial(cx*cos(cphi)+cy*sin(cphi),kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
@@ -729,11 +729,12 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
         kftrack.SetNDF(kftrack.GetNDF()-2);
         //ckeys.erase(std::remove(ckeys.begin(),ckeys.end(),next_ckey),ckeys.end());
       }
+
       old_phi = cphi;
-    }
-    // if layer is not occupied, search for the nearest available cluster to projected track position
-    else
-    {
+
+    } else {
+
+      // if layer is not occupied, search for the nearest available cluster to projected track position
       if(Verbosity()>0) std::cout << "layer not filled" << std::endl;
       // get current track coordinates to extract B field from map
       double tX = kftrack.GetX();
@@ -741,22 +742,26 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
       double tx = tX*cos(old_phi)-tY*sin(old_phi);
       double ty = tX*sin(old_phi)+tY*cos(old_phi);
       double tz = kftrack.GetZ();
-//      GPUTPCTrackParam::GPUTPCTrackFitParam fp;
-//      kftrack.CalculateFitParameters(fp);
-      double newX = radii[l-7];
-      double alpha = atan2(ty,tx)-old_phi;
-      kftrack.Rotate(alpha/2.,kfline,10.);
-      kftrack.TransportToXWithMaterial((tX+newX)/2.,kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
-      kftrack.Rotate(alpha/2.,kfline,10.);
-      kftrack.TransportToXWithMaterial(radii[l-7],kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
+
+      {
+        const double alpha = atan2(ty,tx)-old_phi;
+        const double newX = radii[l-7];
+        kftrack.Rotate(alpha/2.,kfline,10.);
+        kftrack.TransportToXWithMaterial((tX+newX)/2.,kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
+        kftrack.Rotate(alpha/2.,kfline,10.);
+        kftrack.TransportToXWithMaterial(radii[l-7],kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
+      }
+
       if(std::isnan(kftrack.GetX()) ||
        std::isnan(kftrack.GetY()) ||
        std::isnan(kftrack.GetZ())) continue;
       // update track coordinates after transport
       tX = kftrack.GetX();
       tY = kftrack.GetY();
+
       double tYerr = sqrt(kftrack.GetCov(0));
       double tzerr = sqrt(kftrack.GetCov(5));
+
       tx = tX*cos(old_phi)-tY*sin(old_phi);
       ty = tX*sin(old_phi)+tY*cos(old_phi);
       tz = kftrack.GetZ();
@@ -793,12 +798,16 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
             << " call transport again for layer " << l  << " x " << proj_pt[0] << " y " << proj_pt[1] << " z " << proj_pt[2]
             << " radius " << radius << std::endl;
         }
-        const double newX = radius;
-        const double alpha = atan2(ty,tx)-old_phi;
-        kftrack.Rotate(alpha/2.,kfline,10.);
-        kftrack.TransportToXWithMaterial((tX+newX)/2.,kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
-        kftrack.Rotate(alpha/2.,kfline,10.);
-        kftrack.TransportToXWithMaterial(radius,kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
+
+        {
+          const double newX = radius;
+          const double alpha = atan2(ty,tx)-old_phi;
+          kftrack.Rotate(alpha/2.,kfline,10.);
+          kftrack.TransportToXWithMaterial((tX+newX)/2.,kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
+          kftrack.Rotate(alpha/2.,kfline,10.);
+          kftrack.TransportToXWithMaterial(radius,kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
+        }
+
         if(std::isnan(kftrack.GetX()) ||
           std::isnan(kftrack.GetY()) ||
           std::isnan(kftrack.GetZ()))
@@ -905,8 +914,10 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
         propagated_track.push_back(closest_ckey);
         layers.push_back(TrkrDefs::getLayer(closest_ckey));
 
-        const double alpha = ccphi-old_phi;
-        kftrack.Rotate(alpha,kfline,10.);
+        {
+          const double alpha = ccphi-old_phi;
+          kftrack.Rotate(alpha,kfline,10.);
+        }
         const double ccaY = -ccX*sin(ccphi)+ccY*cos(ccphi);
         const double ccerrY = fitter->getClusterError(cc,closest_ckey,ccglob,0,0)*sin(ccphi)*sin(ccphi)+fitter->getClusterError(cc,closest_ckey,ccglob,0,1)*sin(ccphi)*cos(ccphi)+fitter->getClusterError(cc,closest_ckey,ccglob,1,1)*cos(ccphi)*cos(ccphi);
         const double ccerrZ = fitter->getClusterError(cc,closest_ckey,ccglob,2,2);
@@ -995,13 +1006,16 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
       double ty = tX*sin(old_phi)+tY*cos(old_phi);
       double tz = kftrack.GetZ();
 
-      // TODO: fix hard coded "7" corresponding to first TPC layer
-      double newX = radii[l-7];
-      double alpha = atan2(ty,tx)-old_phi;
-      kftrack.Rotate(alpha/2.,kfline,10.);
-      kftrack.TransportToXWithMaterial((tX+newX)/2.,kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
-      kftrack.Rotate(alpha/2.,kfline,10.);
-      kftrack.TransportToXWithMaterial(radii[l-7],kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
+      {
+        // TODO: fix hard coded "7" corresponding to first TPC layer
+        const double newX = radii[l-7];
+        const double alpha = atan2(ty,tx)-old_phi;
+        kftrack.Rotate(alpha/2.,kfline,10.);
+        kftrack.TransportToXWithMaterial((tX+newX)/2.,kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
+        kftrack.Rotate(alpha/2.,kfline,10.);
+        kftrack.TransportToXWithMaterial(radii[l-7],kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
+      }
+
       if(std::isnan(kftrack.GetX()) ||
        std::isnan(kftrack.GetY()) ||
        std::isnan(kftrack.GetZ())) continue;
@@ -1045,12 +1059,15 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
             << " radius " << radius << std::endl;
         }
 
-        const double newX = radius;
-        const double alpha = atan2(ty,tx)-old_phi;
-        kftrack.Rotate(alpha/2.,kfline,10.);
-        kftrack.TransportToXWithMaterial((tX+newX)/2.,kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
-        kftrack.Rotate(alpha/2.,kfline,10.);
-        kftrack.TransportToXWithMaterial(radius,kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
+        {
+          const double newX = radius;
+          const double alpha = atan2(ty,tx)-old_phi;
+          kftrack.Rotate(alpha/2.,kfline,10.);
+          kftrack.TransportToXWithMaterial((tX+newX)/2.,kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
+          kftrack.Rotate(alpha/2.,kfline,10.);
+          kftrack.TransportToXWithMaterial(radius,kfline,fp,_Bzconst*get_Bz(tx,ty,tz),10.);
+        }
+
         if(std::isnan(kftrack.GetX()) ||
           std::isnan(kftrack.GetY()) ||
           std::isnan(kftrack.GetZ()))
