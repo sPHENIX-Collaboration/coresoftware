@@ -299,15 +299,17 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       new_chains.push_back(PropagateTrack(&pretrack, prepair.second.at(0),
 					  globalPositions));
       timer.stop();
-      auto propagatetime = timer.elapsed();
+
       if(Verbosity() > 3)
-	{ std::cout << "propagate track time " << propagatetime << std::endl; }
-    }
-    else
-    {
-      // this is bad: it copies the track to its base class, which is essentially nothing
+      {
+        const auto propagatetime = timer.elapsed();
+        std::cout << "propagate track time " << propagatetime << std::endl;
+      }
+
+    } else {
+      // this is bad: it copies the track to its base class, which is essentially empty
       if(Verbosity()>0) std::cout << "is NOT tpc track" << std::endl;
-      unused_tracks.push_back(*track);
+      unused_tracks.emplace_back(*track);
     }
   }
 
@@ -386,15 +388,10 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
       TrkrDefs::cluskey cluskey = it->first;
       TrkrCluster* cluster = it->second;
       if(!cluster) continue;
-      if(_n_iteration!=0){
-        if(_iteration_map != NULL ){
-          //	  std::cout << "map exists entries: " << _iteration_map->size() << std::endl;
-          if(_iteration_map->getIteration(cluskey)>0){
-            //std::cout << "hit used, continue" << std::endl;
-            continue; // skip hits used in a previous iteration
-          }
-        }
-      }
+
+      // skip hits used in a previous iteration
+      if(_n_iteration && _iteration_map && _iteration_map->getIteration(cluskey)>0)
+      { continue;  }
 
       const Acts::Vector3 globalpos_d = getGlobalPosition( cluskey, cluster);
       const Acts::Vector3 globalpos = { (float) globalpos_d.x(), (float) globalpos_d.y(), (float) globalpos_d.z()};
@@ -956,7 +953,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     if(layer_filled)
     {
       if(Verbosity()>0) std::cout << "layer is filled" << std::endl;
-      const auto ncglob = globalPositions.at(next_ckey);
+      const auto& ncglob = globalPositions.at(next_ckey);
       const double cx = ncglob(0);
       const double cy = ncglob(1);
       const double cz = ncglob(2);
@@ -1084,10 +1081,12 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
       if(Verbosity()>0) { std::cout << "squared_distance_out: " << distance_out[0] << std::endl; }
       if(Verbosity()>0) { std::cout << "solid_angle_dist: " << atan2(sqrt(distance_out[0]),radii[l-7]) << std::endl; }
       if(n_results==0) { continue; }
-      const std::vector<double>& point = _ptclouds[l]->pts[index_out[0]];
+
+      const auto& point = _ptclouds[l]->pts[index_out[0]];
       TrkrDefs::cluskey closest_ckey = (*((int64_t*)&point[3]));
       TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
-      const auto ccglob2 = globalPositions.at(closest_ckey);
+
+      const auto& ccglob2 = globalPositions.at(closest_ckey);
       const double ccX = ccglob2(0);
       const double ccY = ccglob2(1);
       const double ccZ = ccglob2(2);
@@ -1184,42 +1183,55 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   return propagated_track;
 }
 
-std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
+std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& /* globalPositions */) const
 {
   if(Verbosity()>0) std::cout << "removing bad clusters" << std::endl;
   std::vector<keylist> clean_chains;
-  for(const keylist& chain : chains)
-  {
-    if(chain.size()<3) continue;
-    keylist clean_chain;
+/*
+  Hugo: this whole code just copy chains of size >= 3 to the output,
+  because of the cut on outliers being commented out.
+  Replaced with a simpler version
+*/
+//   for(const keylist& chain : chains)
+//   {
+//     if(chain.size()<3) continue;
+//
+//     keylist clean_chain;
+//
+//
+//     std::vector<std::pair<double,double>> xy_pts;
+//     std::vector<std::pair<double,double>> rz_pts;
+//     for(const TrkrDefs::cluskey& ckey : chain)
+//     {
+//       auto global = globalPositions.at(ckey);
+//       xy_pts.push_back(std::make_pair(global(0),global(1)));
+//       float r = sqrt(square( global(0) ) + square( global(1) ));
+//       rz_pts.emplace_back( r,global(2) );
+//     }
+//     if(Verbosity()>0) std::cout << "chain size: " << chain.size() << std::endl;
+//
+//     //fit a circle through x,y coordinates and calculate residuals
+//     const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin( xy_pts );
+//     const std::vector<double> xy_resid = TrackFitUtils::getCircleClusterResiduals(xy_pts,R,X0,Y0);
+//
+//     // fit a line through r,z coordinates and calculate residuals
+//     const auto [A, B] = TrackFitUtils::line_fit( rz_pts );
+//     const std::vector<double> rz_resid = TrackFitUtils::getLineClusterResiduals(rz_pts,A,B);
+//
+//     for(size_t i=0;i<chain.size();i++)
+//     {
+//       //if(xy_resid[i]>_xy_outlier_threshold) continue;
+//       clean_chain.push_back(chain[i]);
+//     }
+//
+//     clean_chains.push_back(clean_chain);
+//     if(Verbosity()>0) std::cout << "pushed clean chain with " << clean_chain.size() << " clusters" << std::endl;
+//   }
 
-    std::vector<std::pair<double,double>> xy_pts;
-    std::vector<std::pair<double,double>> rz_pts;
-    for(const TrkrDefs::cluskey& ckey : chain)
-    {
-      auto global = globalPositions.at(ckey);
-      xy_pts.push_back(std::make_pair(global(0),global(1)));
-      float r = sqrt(global(0)*global(0) + global(1)*global(1));
-      rz_pts.push_back(std::make_pair(r,global(2)));
-    }
-    if(Verbosity()>0) std::cout << "chain size: " << chain.size() << std::endl;
+  // simpler version
+  std::copy_if( chains.begin(), chains.end(), std::back_inserter( clean_chains ),
+    []( const keylist& chain ) { return chain.size()>= 3; } );
 
-    //fit a circle through x,y coordinates and calculate residuals
-    const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin( xy_pts );
-    const std::vector<double> xy_resid = TrackFitUtils::getCircleClusterResiduals(xy_pts,R,X0,Y0);
-
-    // fit a line through r,z coordinates and calculate residuals
-    const auto [A, B] = TrackFitUtils::line_fit( rz_pts );
-    const std::vector<double> rz_resid = TrackFitUtils::getLineClusterResiduals(rz_pts,A,B);
-
-    for(size_t i=0;i<chain.size();i++)
-    {
-      //if(xy_resid[i]>_xy_outlier_threshold) continue;
-      clean_chain.push_back(chain[i]);
-    }
-    clean_chains.push_back(clean_chain);
-    if(Verbosity()>0) std::cout << "pushed clean chain with " << clean_chain.size() << " clusters" << std::endl;
-  }
   return clean_chains;
 }
 
