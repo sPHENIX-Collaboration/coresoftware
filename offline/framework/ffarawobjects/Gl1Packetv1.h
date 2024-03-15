@@ -29,7 +29,7 @@ public:
   void setScaler(int iscal, int index, uint64_t lval) override {scaler.at(iscal).at(index) = lval;}
 
   int iValue(const int i) const override;
-  long long lValue(const int i, const std::string &what) const override;
+  long long lValue(const int /*i*/, const std::string &what) const override;
   long long lValue(const int i, const int j) const override;
 
   void dump(std::ostream &os = std::cout) const override;

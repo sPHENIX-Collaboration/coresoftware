@@ -57,7 +57,7 @@ long long Gl1Packetv1::lValue(const int i, const int j) const
   return scaler.at(i).at(j);
 }
 
-long long Gl1Packetv1::lValue(const int i, const std::string &what) const
+long long Gl1Packetv1::lValue(const int /*i*/, const std::string &what) const
 {
   if (what == "BCO")
   {
@@ -75,6 +75,7 @@ long long Gl1Packetv1::lValue(const int i, const std::string &what) const
   {
     return getBunchNumber();
   }
+  std::cout << "option " << what << " not implemented" << std::endl;
   return std::numeric_limits<uint64_t>::max();
 }
 
