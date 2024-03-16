@@ -324,7 +324,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
     //with requiring that the map only store ep info for events that meets this z-vertex cut
     //there will be events with no stored ep info, user will need to call empty() map function
     //in their analysis code
-  if (_mbdEpReco && (abs(_mbd_vertex) < _vertex_cut))
+  if (_mbdEpReco && (std::fabs(_mbd_vertex) < _vertex_cut))
   {
       ResetMe();
       MbdPmtContainer *mbdpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
