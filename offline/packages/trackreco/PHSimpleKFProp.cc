@@ -1191,8 +1191,10 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
 
 void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap& /*positions*/)
 {
+  int seed_index = 0;
+
   for(auto& seed: seeds )
-  { 
+  {     
     /// The ALICEKF gives a better charge determination at high pT
     int q = seed.get_charge();
     seed.circleFitByTaubin(_cluster_map, _tgeometry, 7, 55);
@@ -1202,6 +1204,21 @@ void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap&
     float phi = seed.get_phi(_cluster_map,_tgeometry);
     seed.set_phi(phi);
     _track_map->insert(&seed); 
+
+    if(Verbosity() > 0)
+      {     
+	std::cout << "Publishing seed " << seed_index
+		  << " q " << q
+		  << " qOverR " << fabs(seed.get_qOverR()) * q 
+		  << " x " << seed.get_x()
+		  << " y " << seed.get_y()
+		  << " z " << seed.get_z()
+		  << " pT " << seed.get_pt()
+		  << " eta " << seed.get_eta()
+		  << " phi " << seed.get_phi()
+		  << std::endl;
+      }
+    seed_index++;
   }
 }
 

@@ -188,7 +188,7 @@ int TrackSeed_v2::get_charge() const
 // These are used to fit distortion corrected cluster positions
 //============================================
 
-float TrackSeed_v2::get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const
+float TrackSeed_v2::get_phi(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const
 {
   const auto [x, y] = findRoot();
   float phi = std::atan2(-1 * (m_X0 - x), (m_Y0 - y));
@@ -228,7 +228,7 @@ float TrackSeed_v2::get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& position
   return phi;
 }
 
-void TrackSeed_v2::circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
+void TrackSeed_v2::circleFitByTaubin(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
                                      uint8_t startLayer,
                                      uint8_t endLayer)
 {
@@ -283,7 +283,7 @@ void TrackSeed_v2::circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>&
   }
 }
 
-void TrackSeed_v2::lineFit(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
+void TrackSeed_v2::lineFit(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
                            uint8_t startLayer,
                            uint8_t endLayer)
 {

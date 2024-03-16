@@ -36,7 +36,7 @@ class TrackSeed_v2 : public TrackSeed
                 ActsGeometry* tGeometry) const override;    // returns phi calculated from cluster nominal positions
 
   // method to return phi from a given set of global positions
-  float get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;   // returns phi calculated from supplied cluster positions
+  float get_phi(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;   // returns phi calculated from supplied cluster positions
 
   // methods that return values based on track fit parameters
   float get_pz() const override;
@@ -92,11 +92,11 @@ class TrackSeed_v2 : public TrackSeed
                uint8_t startLayer = 0,
                uint8_t endLayer = 58) override;
 
-  void circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
+  void circleFitByTaubin(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
                          uint8_t startLayer = 0,
                          uint8_t endLayer = 58) override;
 
-  void lineFit(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
+  void lineFit(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
                uint8_t startLayer = 0,
                uint8_t endLayer = 58) override;
 
