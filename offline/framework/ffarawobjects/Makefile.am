@@ -133,6 +133,7 @@ libffarawobjects_la_SOURCES = \
   MvtxRawHitContainerv1.cc \
   MvtxRawHitv1.cc \
   MvtxRawEvtHeaderv1.cc \
+  OfflinePacket.cc \
   OfflinePacketv1.cc \
   TpcRawHitContainerv1.cc \
   TpcRawHitv1.cc

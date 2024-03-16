@@ -1,4 +1,4 @@
-#include "SingleHcalTriggerInput.h"
+#include "SingleCemcTriggerInput.h"
 
 #include "Fun4AllPrdfInputTriggerManager.h"
 #include "InputManagerType.h"
@@ -29,20 +29,22 @@
 #include <set>
 #include <utility>  // for pair
 
-SingleHcalTriggerInput::SingleHcalTriggerInput(const std::string &name)
+static const int NPackets = 16;
+
+SingleCemcTriggerInput::SingleCemcTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
-  SubsystemEnum(InputManagerType::HCAL);
-  plist = new Packet *[2];  // two packets for the hcal in each file
+  SubsystemEnum(InputManagerType::CEMC);
+  plist = new Packet *[NPackets];  // 16 packets for the cemc in each file
 }
 
-SingleHcalTriggerInput::~SingleHcalTriggerInput()
+SingleCemcTriggerInput::~SingleCemcTriggerInput()
 {
   CleanupUsedPackets(std::numeric_limits<int>::max());
   delete[] plist;
 }
 
-void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
+void SingleCemcTriggerInput::FillPool(const unsigned int /*nbclks*/)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -84,10 +86,10 @@ void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, 2);
-    if (npackets > 2)
+    int npackets = evt->getPacketList(plist, (NPackets+1)); // just in case we have more packets, they will not vanish silently
+    if (npackets > NPackets)
     {
-      std::cout << PHWHERE << " Number of packets in array (2) too small for "
+      std::cout << PHWHERE << " Number of packets in array (" << NPackets << ") too small for "
                 << npackets << std::endl;
       exit(1);
     }
@@ -104,11 +106,25 @@ void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
       int nr_modules = plist[i]->iValue(0,"NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
-      if (nr_modules > 3)
+      if (nr_modules > newhit->getMaxNumModules() )
       {
-	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
+	std::cout << PHWHERE << " too many modules " <<  nr_modules << ", max is " 
+                  <<  newhit->getMaxNumModules() << ", need to adjust arrays" << std::endl;
 	gSystem->Exit(1);
       }
+      if (nr_channels > newhit->getMaxNumChannels())
+      {
+	std::cout << PHWHERE << " too many channels " <<  nr_channels << ", max is " 
+                  <<  newhit->getMaxNumChannels() << ", need to adjust arrays" << std::endl;
+	gSystem->Exit(1);
+      }
+      if (nr_samples > newhit->getMaxNumSamples())
+      {
+	std::cout << PHWHERE << " too many samples " <<  nr_samples << ", max is " 
+                  <<  newhit->getMaxNumSamples() << ", need to adjust arrays" << std::endl;
+	gSystem->Exit(1);
+      }
+
       uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
       newhit->setNrModules(nr_modules);
       newhit->setNrSamples(nr_samples);
@@ -144,9 +160,9 @@ void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
       }
       if (TriggerInputManager())
       {
-        TriggerInputManager()->AddHcalPacket(EventSequence, newhit);
+        TriggerInputManager()->AddCemcPacket(EventSequence, newhit);
       }
-      m_HcalPacketMap[EventSequence].push_back(newhit);
+      m_CemcPacketMap[EventSequence].push_back(newhit);
       m_EventStack.insert(EventSequence);
       if (ddump_enabled())
       {
@@ -157,11 +173,11 @@ void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
   }
 }
 
-void SingleHcalTriggerInput::Print(const std::string &what) const
+void SingleCemcTriggerInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "STORAGE")
   {
-    for (const auto &bcliter : m_HcalPacketMap)
+    for (const auto &bcliter : m_CemcPacketMap)
     {
       std::cout << PHWHERE << "Event: " << bcliter.first << std::endl;
     }
@@ -175,10 +191,10 @@ void SingleHcalTriggerInput::Print(const std::string &what) const
   }
 }
 
-void SingleHcalTriggerInput::CleanupUsedPackets(const int eventno)
+void SingleCemcTriggerInput::CleanupUsedPackets(const int eventno)
 {
   std::vector<int> toclearevents;
-  for (const auto &iter : m_HcalPacketMap)
+  for (const auto &iter : m_CemcPacketMap)
   {
     if (iter.first <= eventno)
     {
@@ -197,11 +213,11 @@ void SingleHcalTriggerInput::CleanupUsedPackets(const int eventno)
   for (auto iter : toclearevents)
   {
     m_EventStack.erase(iter);
-    m_HcalPacketMap.erase(iter);
+    m_CemcPacketMap.erase(iter);
   }
 }
 
-void SingleHcalTriggerInput::ClearCurrentEvent()
+void SingleCemcTriggerInput::ClearCurrentEvent()
 {
   // called interactively, to get rid of the current event
   int currentevent = *m_EventStack.begin();
@@ -210,19 +226,19 @@ void SingleHcalTriggerInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleHcalTriggerInput::GetSomeMoreEvents()
+bool SingleCemcTriggerInput::GetSomeMoreEvents()
 {
   if (AllDone())
   {
     return false;
   }
-  if (m_HcalPacketMap.empty())
+  if (m_CemcPacketMap.empty())
   {
     return true;
   }
 
-  int first_event = m_HcalPacketMap.begin()->first;
-  int last_event = m_HcalPacketMap.rbegin()->first;
+  int first_event = m_CemcPacketMap.begin()->first;
+  int last_event = m_CemcPacketMap.rbegin()->first;
   if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "first event: " << first_event
@@ -236,7 +252,7 @@ bool SingleHcalTriggerInput::GetSomeMoreEvents()
   return false;
 }
 
-void SingleHcalTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
+void SingleCemcTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -246,17 +262,17 @@ void SingleHcalTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
     topNode->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
-  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "HCAL"));
+  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "CEMC"));
   if (!detNode)
   {
-    detNode = new PHCompositeNode("HCAL");
+    detNode = new PHCompositeNode("CEMC");
     dstNode->addNode(detNode);
   }
-  CaloPacketContainer *hcalpacketcont = findNode::getClass<CaloPacketContainer>(detNode, "HCALPackets");
-  if (!hcalpacketcont)
+  CaloPacketContainer *cemcpacketcont = findNode::getClass<CaloPacketContainer>(detNode, "CEMCPackets");
+  if (!cemcpacketcont)
   {
-    hcalpacketcont = new CaloPacketContainerv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hcalpacketcont, "HCALPackets", "PHObject");
+    cemcpacketcont = new CaloPacketContainerv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cemcpacketcont, "CEMCPackets", "PHObject");
     detNode->addNode(newNode);
   }
 }

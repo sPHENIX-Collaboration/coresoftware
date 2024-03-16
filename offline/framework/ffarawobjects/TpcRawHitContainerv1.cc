@@ -7,7 +7,7 @@ static const int NTPCHITS = 100;
 
 TpcRawHitContainerv1::TpcRawHitContainerv1()
 {
-  TpcRawHitsTCArray = new TClonesArray("TpcRawHitv1",NTPCHITS);
+  TpcRawHitsTCArray = new TClonesArray("TpcRawHitv1", NTPCHITS);
 }
 
 TpcRawHitContainerv1::~TpcRawHitContainerv1()
@@ -16,22 +16,21 @@ TpcRawHitContainerv1::~TpcRawHitContainerv1()
   delete TpcRawHitsTCArray;
 }
 
-
 void TpcRawHitContainerv1::Reset()
 {
- TpcRawHitsTCArray->Clear("C");
- TpcRawHitsTCArray->Expand(NTPCHITS);
+  TpcRawHitsTCArray->Clear("C");
+  TpcRawHitsTCArray->Expand(NTPCHITS);
 }
 
 void TpcRawHitContainerv1::identify(std::ostream &os) const
 {
   os << "TpcRawHitContainerv1" << std::endl;
   os << "containing " << TpcRawHitsTCArray->GetEntriesFast() << " Tpc hits" << std::endl;
-  TpcRawHit *tpchit = static_cast< TpcRawHit *> (TpcRawHitsTCArray->At(0));
+  TpcRawHit *tpchit = static_cast<TpcRawHit *>(TpcRawHitsTCArray->At(0));
   if (tpchit)
-   {
-     os << "for beam clock: " << std::hex << tpchit->get_bco() << std::dec << std::endl;
-   }
+  {
+    os << "for beam clock: " << std::hex << tpchit->get_bco() << std::dec << std::endl;
+  }
 }
 
 int TpcRawHitContainerv1::isValid() const
@@ -46,13 +45,13 @@ unsigned int TpcRawHitContainerv1::get_nhits()
 
 TpcRawHit *TpcRawHitContainerv1::AddHit()
 {
-  TpcRawHit *newhit = new ((*TpcRawHitsTCArray)[TpcRawHitsTCArray->GetLast()+1]) TpcRawHitv1();
+  TpcRawHit *newhit = new ((*TpcRawHitsTCArray)[TpcRawHitsTCArray->GetLast() + 1]) TpcRawHitv1();
   return newhit;
 }
 
 TpcRawHit *TpcRawHitContainerv1::AddHit(TpcRawHit *tpchit)
 {
-  TpcRawHit *newhit = new ((*TpcRawHitsTCArray)[TpcRawHitsTCArray->GetLast()+1]) TpcRawHitv1(tpchit);
+  TpcRawHit *newhit = new ((*TpcRawHitsTCArray)[TpcRawHitsTCArray->GetLast() + 1]) TpcRawHitv1(tpchit);
   return newhit;
 }
 
