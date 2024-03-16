@@ -815,8 +815,17 @@ int Fun4AllStreamingInputManager::FillTpc()
       break;
     }
   }
-  // std::cout << "size  m_TpcRawHitMap: " <<  m_TpcRawHitMap.size()
-  // 	    << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "tpc container size: " << tpccont->get_nhits();
+    std::cout << ", size  m_TpcRawHitMap: " <<  m_TpcRawHitMap.size()
+	      << std::endl;
+  }
+  if (tpccont->get_nhits() > 500000)
+  {
+    std::cout << "Resetting TPC Container with number of entries " << tpccont->get_nhits() << std::endl;
+    tpccont->Reset();
+  }
   return 0;
 }
 
