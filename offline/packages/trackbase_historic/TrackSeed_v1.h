@@ -38,7 +38,7 @@ class TrackSeed_v1 : public TrackSeed
   float get_z() const override;
   float get_phi(TrkrClusterContainer* clusters,
                 ActsGeometry* tGeometry) const override;
-  float get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;
+  float get_phi(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;
   float get_eta() const override;
   float get_theta() const override;
   float get_pt() const override;
@@ -82,11 +82,11 @@ class TrackSeed_v1 : public TrackSeed
                uint8_t startLayer = 0,
                uint8_t endLayer = 58) override;
 
-  void circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
+  void circleFitByTaubin(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
                          uint8_t startLayer = 0,
                          uint8_t endLayer = 58) override;
 
-  void lineFit(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
+  void lineFit(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
                uint8_t startLayer = 0,
                uint8_t endLayer = 58) override;
 
