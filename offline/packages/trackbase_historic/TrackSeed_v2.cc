@@ -57,6 +57,7 @@ void TrackSeed_v2::CopyFrom(const TrackSeed& seed)
   m_slope = seed.get_slope();
   m_Z0 = seed.get_Z0();
   m_crossing = seed.get_crossing();
+  m_phi = seed.get_phi();
 
   m_cluster_keys.clear();
   std::copy(seed.begin_cluster_keys(), seed.end_cluster_keys(),
@@ -69,6 +70,7 @@ void TrackSeed_v2::identify(std::ostream& os) const
   os << "charge " << get_charge() << std::endl;
   os << "(pt,pz) = (" << get_pt()
      << ", " << get_pz() << ")" << std::endl;
+  os << " phi " << m_phi << " eta " << get_eta() << std::endl;
   os << "(x,y,z) = (" << get_x() << ", " << get_y() << ", " << get_z()
      << ")" << std::endl;
   os << "(X0,Y0,Z0) = (" << m_X0 << ", " << m_Y0 << ", " << m_Z0
@@ -91,62 +93,139 @@ void TrackSeed_v2::identify(std::ostream& os) const
   return;
 }
 
-void TrackSeed_v2::circleFitByTaubin(TrkrClusterContainer* clusters,
-                                     ActsGeometry* tGeometry,
-                                     uint8_t startLayer,
-                                     uint8_t endLayer)
+std::pair<float, float> TrackSeed_v2::findRoot() const
 {
-  std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
+  /**
+   * We need to determine the closest point on the circle to the origin
+   * since we can't assume that the track originates from the origin
+   * The eqn for the circle is (x-X0)^2+(y-Y0)^2=R^2 and we want to
+   * minimize d = sqrt((0-x)^2+(0-y)^2), the distance between the
+   * origin and some (currently, unknown) point on the circle x,y.
+   *
+   * Solving the circle eqn for x and substituting into d gives an eqn for
+   * y. Taking the derivative and setting equal to 0 gives the following
+   * two solutions. We take the smaller solution as the correct one, as
+   * usually one solution is wildly incorrect (e.g. 1000 cm)
+   */
+  const float R = std::abs(1. / m_qOverR);
+  const double miny = (std::sqrt(square(m_X0) * square(R) * square(m_Y0) + square(R) * pow(m_Y0, 4)) + square(m_X0) * m_Y0 + pow(m_Y0, 3)) / (square(m_X0) + square(m_Y0));
 
-  for (const auto& key : m_cluster_keys)
-  {
-    auto layer = TrkrDefs::getLayer(key);
-    if (layer < startLayer or layer > endLayer)
-    {
-      continue;
-    }
+  const double miny2 = (-std::sqrt(square(m_X0) * square(R) * square(m_Y0) + square(R) * pow(m_Y0, 4)) + square(m_X0) * m_Y0 + pow(m_Y0, 3)) / (square(m_X0) + square(m_Y0));
 
-    auto clus = clusters->findCluster(key);
+  const double minx = std::sqrt(square(R) - square(miny - m_Y0)) + m_X0;
+  const double minx2 = -std::sqrt(square(R) - square(miny2 - m_Y0)) + m_X0;
 
-    if (clus->getEdge() > 0)
-    {
-      continue;
-    }
-    Acts::Vector3 pos = tGeometry->getGlobalPosition(
-        key, clus);
-
-    positions.insert(std::make_pair(key, pos));
-  }
-  if (positions.size() < 3)
-  {
-    return;
-  }
-
-  circleFitByTaubin(positions, startLayer, endLayer);
+  /// Figure out which of the two roots is actually closer to the origin
+  const float x = (std::abs(minx) < std::abs(minx2)) ? minx : minx2;
+  const float y = (std::abs(miny) < std::abs(miny2)) ? miny : miny2;
+  return std::make_pair(x, y);
 }
 
-void TrackSeed_v2::lineFit(TrkrClusterContainer* clusters,
-                           ActsGeometry* tGeometry,
-                           uint8_t startLayer,
-                           uint8_t endLayer)
+float TrackSeed_v2::get_x() const
 {
-  std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
+  return findRoot().first;
+}
 
-  for (const auto& key : m_cluster_keys)
+float TrackSeed_v2::get_y() const
+{
+  return findRoot().second;
+}
+
+float TrackSeed_v2::get_z() const
+{
+  return get_Z0();
+}
+
+float TrackSeed_v2::get_pt() const
+{
+  /// Scaling factor for radius in 1.4T field
+  return 0.3 * 1.4 / 100. * fabs(1. / m_qOverR);
+}
+
+float TrackSeed_v2::get_theta() const
+{
+  float theta = atan(1. / m_slope);
+  /// Normalize to 0<theta<pi
+  if (theta < 0)
   {
-    auto layer = TrkrDefs::getLayer(key);
-    if (layer < startLayer or layer > endLayer)
-    {
-      continue;
-    }
+    theta += M_PI;
+  }
+  return theta;
+}
 
-    Acts::Vector3 pos = tGeometry->getGlobalPosition(
-        key, clusters->findCluster(key));
+float TrackSeed_v2::get_eta() const
+{
+  return -log(tan(get_theta() / 2.));
+}
 
-    positions.insert(std::make_pair(key, pos));
+float TrackSeed_v2::get_p() const
+{
+  return get_pt() * std::cosh(get_eta());
+}
+
+float TrackSeed_v2::get_px() const
+{
+  return get_pt() * std::cos(m_phi);
+}
+
+float TrackSeed_v2::get_py() const
+{
+  return get_pt() * std::sin(m_phi);
+}
+
+float TrackSeed_v2::get_pz() const
+{
+  return get_p() * std::cos(get_theta());
+}
+
+int TrackSeed_v2::get_charge() const
+{
+  return (m_qOverR < 0) ? -1 : 1;
+}
+
+//============================================
+// methods using fits to cluster actual global positions
+// These are used to fit distortion corrected cluster positions
+//============================================
+
+float TrackSeed_v2::get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const
+{
+  const auto [x, y] = findRoot();
+  float phi = std::atan2(-1 * (m_X0 - x), (m_Y0 - y));
+  Acts::Vector3 pos0 = positions.find(*(m_cluster_keys.begin()))->second;
+  Acts::Vector3 pos1 = positions.find(*(std::next(m_cluster_keys.begin(), 1)))->second;
+  /// convert to the angle of the tangent to the circle
+  // we need to know if the track proceeds clockwise or CCW around the circle
+  double dx0 = pos0(0) - m_X0;
+  double dy0 = pos0(1) - m_Y0;
+  double phi0 = atan2(dy0, dx0);
+  double dx1 = pos1(0) - m_X0;
+  double dy1 = pos1(1) - m_Y0;
+  double phi1 = atan2(dy1, dx1);
+  double dphi = phi1 - phi0;
+
+  // need to deal with the switch from -pi to +pi at phi = 180 degrees
+  // final phi - initial phi must be < 180 degrees for it to be a valid track
+  if (dphi > M_PI)
+  {
+    dphi -= 2.0 * M_PI;
+  }
+  if (dphi < -M_PI)
+  {
+    dphi += M_PI;
   }
 
-  lineFit(positions, startLayer, endLayer);
+  // whether we add 180 degrees depends on the angle of the bend
+  if (dphi < 0)
+  {
+    phi += M_PI;
+    if (phi > M_PI)
+    {
+      phi -= 2. * M_PI;
+    }
+  }
+
+  return phi;
 }
 
 void TrackSeed_v2::circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
@@ -238,93 +317,25 @@ void TrackSeed_v2::lineFit(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions
   m_Z0 = intercept;
 }
 
-std::pair<float, float> TrackSeed_v2::findRoot() const
+//=====================================
+// methods using fits to cluster nominal positions
+// No distortion corrections are applied
+// alternative methods are suggested - see above
+//=====================================
+
+float TrackSeed_v2::get_px(TrkrClusterContainer* clusters,
+                           ActsGeometry* tGeometry) const
 {
-  /**
-   * We need to determine the closest point on the circle to the origin
-   * since we can't assume that the track originates from the origin
-   * The eqn for the circle is (x-X0)^2+(y-Y0)^2=R^2 and we want to
-   * minimize d = sqrt((0-x)^2+(0-y)^2), the distance between the
-   * origin and some (currently, unknown) point on the circle x,y.
-   *
-   * Solving the circle eqn for x and substituting into d gives an eqn for
-   * y. Taking the derivative and setting equal to 0 gives the following
-   * two solutions. We take the smaller solution as the correct one, as
-   * usually one solution is wildly incorrect (e.g. 1000 cm)
-   */
-  const float R = std::abs(1. / m_qOverR);
-  const double miny = (std::sqrt(square(m_X0) * square(R) * square(m_Y0) + square(R) * pow(m_Y0, 4)) + square(m_X0) * m_Y0 + pow(m_Y0, 3)) / (square(m_X0) + square(m_Y0));
-
-  const double miny2 = (-std::sqrt(square(m_X0) * square(R) * square(m_Y0) + square(R) * pow(m_Y0, 4)) + square(m_X0) * m_Y0 + pow(m_Y0, 3)) / (square(m_X0) + square(m_Y0));
-
-  const double minx = std::sqrt(square(R) - square(miny - m_Y0)) + m_X0;
-  const double minx2 = -std::sqrt(square(R) - square(miny2 - m_Y0)) + m_X0;
-
-  /// Figure out which of the two roots is actually closer to the origin
-  const float x = (std::abs(minx) < std::abs(minx2)) ? minx : minx2;
-  const float y = (std::abs(miny) < std::abs(miny2)) ? miny : miny2;
-  return std::make_pair(x, y);
+  return get_pt() * std::cos(get_phi(clusters, tGeometry));
 }
 
-float TrackSeed_v2::get_x() const
+float TrackSeed_v2::get_py(TrkrClusterContainer* clusters,
+                           ActsGeometry* tGeometry) const
 {
-  return findRoot().first;
+  return get_pt() * std::sin(get_phi(clusters, tGeometry));
+
 }
 
-float TrackSeed_v2::get_y() const
-{
-  return findRoot().second;
-}
-
-float TrackSeed_v2::get_z() const
-{
-  return get_Z0();
-}
-
-float TrackSeed_v2::get_pt() const
-{
-  /// Scaling factor for radius in 1.4T field
-  return 0.3 * 1.4 / 100. * fabs(1. / m_qOverR);
-}
-float TrackSeed_v2::get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const
-{
-  const auto [x, y] = findRoot();
-  float phi = std::atan2(-1 * (m_X0 - x), (m_Y0 - y));
-  Acts::Vector3 pos0 = positions.find(*(m_cluster_keys.begin()))->second;
-  Acts::Vector3 pos1 = positions.find(*(std::next(m_cluster_keys.begin(), 1)))->second;
-  /// convert to the angle of the tangent to the circle
-  // we need to know if the track proceeds clockwise or CCW around the circle
-  double dx0 = pos0(0) - m_X0;
-  double dy0 = pos0(1) - m_Y0;
-  double phi0 = atan2(dy0, dx0);
-  double dx1 = pos1(0) - m_X0;
-  double dy1 = pos1(1) - m_Y0;
-  double phi1 = atan2(dy1, dx1);
-  double dphi = phi1 - phi0;
-
-  // need to deal with the switch from -pi to +pi at phi = 180 degrees
-  // final phi - initial phi must be < 180 degrees for it to be a valid track
-  if (dphi > M_PI)
-  {
-    dphi -= 2.0 * M_PI;
-  }
-  if (dphi < -M_PI)
-  {
-    dphi += M_PI;
-  }
-
-  // whether we add 180 degrees depends on the angle of the bend
-  if (dphi < 0)
-  {
-    phi += M_PI;
-    if (phi > M_PI)
-    {
-      phi -= 2. * M_PI;
-    }
-  }
-
-  return phi;
-}
 float TrackSeed_v2::get_phi(TrkrClusterContainer* clusters,
                             ActsGeometry* tGeometry) const
 {
@@ -347,45 +358,62 @@ float TrackSeed_v2::get_phi(TrkrClusterContainer* clusters,
   return get_phi(positions);
 }
 
-float TrackSeed_v2::get_theta() const
+void TrackSeed_v2::circleFitByTaubin(TrkrClusterContainer* clusters,
+                                     ActsGeometry* tGeometry,
+                                     uint8_t startLayer,
+                                     uint8_t endLayer)
 {
-  float theta = atan(1. / m_slope);
-  /// Normalize to 0<theta<pi
-  if (theta < 0)
+  std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
+
+  for (const auto& key : m_cluster_keys)
   {
-    theta += M_PI;
+    auto layer = TrkrDefs::getLayer(key);
+    if (layer < startLayer or layer > endLayer)
+    {
+      continue;
+    }
+
+    auto clus = clusters->findCluster(key);
+
+    if (clus->getEdge() > 0)
+    {
+      continue;
+    }
+    Acts::Vector3 pos = tGeometry->getGlobalPosition(
+        key, clus);
+
+    positions.insert(std::make_pair(key, pos));
   }
-  return theta;
+  if (positions.size() < 3)
+  {
+    return;
+  }
+
+  circleFitByTaubin(positions, startLayer, endLayer);
 }
 
-float TrackSeed_v2::get_eta() const
+void TrackSeed_v2::lineFit(TrkrClusterContainer* clusters,
+                           ActsGeometry* tGeometry,
+                           uint8_t startLayer,
+                           uint8_t endLayer)
 {
-  return -log(tan(get_theta() / 2.));
+  std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
+
+  for (const auto& key : m_cluster_keys)
+  {
+    auto layer = TrkrDefs::getLayer(key);
+    if (layer < startLayer or layer > endLayer)
+    {
+      continue;
+    }
+
+    Acts::Vector3 pos = tGeometry->getGlobalPosition(
+        key, clusters->findCluster(key));
+
+    positions.insert(std::make_pair(key, pos));
+  }
+
+  lineFit(positions, startLayer, endLayer);
 }
 
-float TrackSeed_v2::get_p() const
-{
-  return get_pt() * std::cosh(get_eta());
-}
 
-float TrackSeed_v2::get_px(TrkrClusterContainer* clusters,
-                           ActsGeometry* tGeometry) const
-{
-  return get_pt() * std::cos(get_phi(clusters, tGeometry));
-}
-
-float TrackSeed_v2::get_py(TrkrClusterContainer* clusters,
-                           ActsGeometry* tGeometry) const
-{
-  return get_pt() * std::sin(get_phi(clusters, tGeometry));
-}
-
-float TrackSeed_v2::get_pz() const
-{
-  return get_p() * std::cos(get_theta());
-}
-
-int TrackSeed_v2::get_charge() const
-{
-  return (m_qOverR < 0) ? -1 : 1;
-}

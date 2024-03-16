@@ -27,29 +27,37 @@ class TrackSeed_v2 : public TrackSeed
   void CopyFrom(TrackSeed* seed) override { CopyFrom(*seed); }
   PHObject* CloneMe() const override { return new TrackSeed_v2(*this); }
 
-  int get_charge() const override;
+  // methods that return values from fits to the nominal cluster positions
   float get_px(TrkrClusterContainer* clusters,
                ActsGeometry* tGeometry) const override;
   float get_py(TrkrClusterContainer* clusters,
                ActsGeometry* tGeometry) const override;
+  float get_phi(TrkrClusterContainer* clusters,      
+                ActsGeometry* tGeometry) const override;    // returns phi calculated from cluster nominal positions
+
+  // method to return phi from a given set of global positions
+  float get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;   // returns phi calculated from supplied cluster positions
+
+  // methods that return values based on track fit parameters
   float get_pz() const override;
   float get_x() const override;
   float get_y() const override;
   float get_z() const override;
-  float get_phi() const override { return m_phi; };
-  float get_phi(TrkrClusterContainer* clusters,
-                ActsGeometry* tGeometry) const override;
-  float get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;
   float get_eta() const override;
   float get_theta() const override;
   float get_pt() const override;
   float get_p() const override;
+  float get_px() const override;
+  float get_py() const override;
 
+  //methods that return member variables
+  int get_charge() const override;
   float get_qOverR() const override { return m_qOverR; }
   float get_X0() const override { return m_X0; }
   float get_Y0() const override { return m_Y0; }
   float get_slope() const override { return m_slope; }
   float get_Z0() const override { return m_Z0; }
+  float get_phi() const override { return m_phi; };  // returns the stored phi
   short int get_crossing() const override { return m_crossing; }
 
   void set_crossing(const short int crossing) override { m_crossing = crossing; }

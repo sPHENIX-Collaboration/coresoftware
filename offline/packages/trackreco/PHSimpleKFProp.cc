@@ -1199,6 +1199,8 @@ void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap&
     seed.lineFit(_cluster_map,_tgeometry, 7, 55);
     
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
+    float phi = seed.get_phi(_cluster_map,_tgeometry);
+    seed.set_phi(phi);
     _track_map->insert(&seed); 
   }
 }

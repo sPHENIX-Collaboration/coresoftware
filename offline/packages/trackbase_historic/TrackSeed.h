@@ -59,6 +59,8 @@ class TrackSeed : public PHObject
   virtual float get_theta() const { return NAN; }
   virtual float get_pt() const { return NAN; }
   virtual float get_p() const { return NAN; }
+  virtual float get_px() const { return NAN; }
+  virtual float get_py() const { return NAN; }
   virtual short int get_crossing() const { return 0; }
 
   virtual void set_crossing(const short int) {}
