@@ -42,12 +42,12 @@
 #include <vector>   // for vector
 #include <TProfile.h>
 #include <TH1D.h>
+#include <boost/format.hpp>
 
 EventPlaneReco::EventPlaneReco(const std::string &name)
   : SubsysReco(name)
   , OutFileName("eventplane_correction_histograms")
 {
- 
   mbd_e_south = 0.;
   mbd_e_north = 0.;
   mbdQ = 0.;
@@ -84,18 +84,17 @@ EventPlaneReco::EventPlaneReco(const std::string &name)
 
 int EventPlaneReco::Init(PHCompositeNode *topNode)
 {
- 
-    OutFileName = Form("eventplane_correction_histograms_run_%d.root", m_runNo);
+
+    OutFileName =  boost::str(boost::format("eventplane_correction_histograms_run_%d.root") %m_runNo).c_str();
 
     //-----------------------------------load calibration histograms-----------------------------------------//
     CDBHistos *cdbhistosIn = new CDBHistos(OutFileName);
     cdbhistosIn->LoadCalibrations();
-
     
     // Get recentering histograms
     for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
     {
-        if(!(cdbhistosIn->getHisto(Form("tprof_mean_cos_south_mbd_order_%d",order))))
+        if(!(cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_cos_south_mbd_order_%d") %order).c_str())))
         {
             tprof_mean_cos_south_mbd_input[order - 1] = NULL;
             tprof_mean_sin_south_mbd_input[order - 1] =  NULL;
@@ -104,19 +103,19 @@ int EventPlaneReco::Init(PHCompositeNode *topNode)
         }
         else
         {
-            tprof_mean_cos_south_mbd_input[order - 1] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(Form("tprof_mean_cos_south_mbd_order_%d",order)));
-            tprof_mean_sin_south_mbd_input[order - 1] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(Form("tprof_mean_sin_south_mbd_order_%d",order)));
-            tprof_mean_cos_north_mbd_input[order - 1] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(Form("tprof_mean_cos_north_mbd_order_%d",order)));
-            tprof_mean_sin_north_mbd_input[order - 1] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(Form("tprof_mean_sin_north_mbd_order_%d",order)));
+            tprof_mean_cos_south_mbd_input[order - 1] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_cos_south_mbd_order_%d") %order).c_str()));
+            tprof_mean_sin_south_mbd_input[order - 1] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_sin_south_mbd_order_%d") %order).c_str()));
+            tprof_mean_cos_north_mbd_input[order - 1] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_cos_north_mbd_order_%d") %order).c_str()));
+            tprof_mean_sin_north_mbd_input[order - 1] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_sin_north_mbd_order_%d") %order).c_str()));
         }
     }
-  
+
     // Get shifting histograms
     for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
     {
         for ( int p = 0; p < _imax; p++ )
         {
-            if(!(cdbhistosIn->getHisto(Form("tprof_cos_north_mbd_shift_order_%d_%d",order,p))))
+            if(!(cdbhistosIn->getHisto(boost::str(boost::format("tprof_cos_north_mbd_shift_order_%d_%d") %order %p).c_str())))
             {
                 tprof_cos_north_mbd_shift_input[order - 1][p] = NULL;
                 tprof_sin_north_mbd_shift_input[order - 1][p] =  NULL;
@@ -125,16 +124,15 @@ int EventPlaneReco::Init(PHCompositeNode *topNode)
             }
             else
             {
-                tprof_cos_north_mbd_shift_input[order - 1][p] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(Form("tprof_cos_north_mbd_shift_order_%d_%d",order,p)));
-                tprof_sin_north_mbd_shift_input[order - 1][p] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(Form("tprof_sin_north_mbd_shift_order_%d_%d",order,p)));
-                tprof_cos_south_mbd_shift_input[order - 1][p] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(Form("tprof_cos_south_mbd_shift_order_%d_%d",order,p)));
-                tprof_sin_south_mbd_shift_input[order - 1][p] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(Form("tprof_sin_south_mbd_shift_order_%d_%d",order,p)));
+                tprof_cos_north_mbd_shift_input[order - 1][p] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(boost::str(boost::format("tprof_cos_north_mbd_shift_order_%d_%d") %order %p).c_str()));
+                tprof_sin_north_mbd_shift_input[order - 1][p] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(boost::str(boost::format("tprof_sin_north_mbd_shift_order_%d_%d") %order %p).c_str()));
+                tprof_cos_south_mbd_shift_input[order - 1][p] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(boost::str(boost::format("tprof_cos_south_mbd_shift_order_%d_%d") %order %p).c_str()));
+                tprof_sin_south_mbd_shift_input[order - 1][p] = dynamic_cast<TProfile *> (cdbhistosIn->getHisto(boost::str(boost::format("tprof_sin_south_mbd_shift_order_%d_%d") %order %p).c_str()));
             }
         }
       }
     
     cdbhistosIn->Print();
-    
     //-----------------------------------create correction histograms-----------------------------------------//
 
     cdbhistosOut = new CDBHistos(OutFileName);
@@ -143,10 +141,10 @@ int EventPlaneReco::Init(PHCompositeNode *topNode)
     for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
     {
         //total charge in MBD in data max out ~2500, sim ~ factor 100
-        tprof_mean_cos_south_mbd[order - 1] =  new TProfile(Form("tprof_mean_cos_south_mbd_order_%d", order), "", 125*400, 0, 250000, -1e10, 1e10);
-        tprof_mean_sin_south_mbd[order - 1] =  new TProfile(Form("tprof_mean_sin_south_mbd_order_%d", order), "", 125*400, 0, 250000, -1e10, 1e10);
-        tprof_mean_cos_north_mbd[order - 1] =  new TProfile(Form("tprof_mean_cos_north_mbd_order_%d", order), "", 125*400, 0, 250000, -1e10, 1e10);
-        tprof_mean_sin_north_mbd[order - 1] =  new TProfile(Form("tprof_mean_sin_north_mbd_order_%d", order), "", 125*400, 0, 250000, -1e10, 1e10);
+        tprof_mean_cos_south_mbd[order - 1] =  new TProfile(boost::str(boost::format("tprof_mean_cos_south_mbd_order_%d") %order).c_str(), "", 125*400, 0, 250000, -1e10, 1e10);
+        tprof_mean_sin_south_mbd[order - 1] =  new TProfile(boost::str(boost::format("tprof_mean_sin_south_mbd_order_%d") %order).c_str(), "", 125*400, 0, 250000, -1e10, 1e10);
+        tprof_mean_cos_north_mbd[order - 1] =  new TProfile(boost::str(boost::format("tprof_mean_cos_north_mbd_order_%d") %order).c_str(), "", 125*400, 0, 250000, -1e10, 1e10);
+        tprof_mean_sin_north_mbd[order - 1] =  new TProfile(boost::str(boost::format("tprof_mean_sin_north_mbd_order_%d") %order).c_str(), "", 125*400, 0, 250000, -1e10, 1e10);
        
         cdbhistosOut->registerHisto(tprof_mean_cos_south_mbd[order - 1]);
         cdbhistosOut->registerHisto(tprof_mean_sin_south_mbd[order - 1]);
@@ -159,15 +157,14 @@ int EventPlaneReco::Init(PHCompositeNode *topNode)
     for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
     {
         // Request that recentering histograms already exists before creating
-        if(cdbhistosIn->getHisto(Form("tprof_mean_cos_south_mbd_order_%d",order)))
+        if(cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_cos_south_mbd_order_%d") %order).c_str()))
         {
-            
             for ( int p = 0; p < _imax; p++ )
             {
-                tprof_cos_north_mbd_shift[order - 1][p] =  new TProfile(Form("tprof_cos_north_mbd_shift_order_%d_%d",order,p), "", 125*400, 0, 250000, -1e10, 1e10);
-                tprof_sin_north_mbd_shift[order - 1][p] =  new TProfile(Form("tprof_sin_north_mbd_shift_order_%d_%d",order,p), "", 125*400, 0, 250000, -1e10, 1e10);
-                tprof_cos_south_mbd_shift[order - 1][p] =  new TProfile(Form("tprof_cos_south_mbd_shift_order_%d_%d",order,p), "", 125*400, 0, 250000, -1e10, 1e10);
-                tprof_sin_south_mbd_shift[order - 1][p] =  new TProfile(Form("tprof_sin_south_mbd_shift_order_%d_%d",order,p), "", 125*400, 0, 250000, -1e10, 1e10);
+                tprof_cos_north_mbd_shift[order - 1][p] =  new TProfile(boost::str(boost::format("tprof_cos_north_mbd_shift_order_%d_%d") %order %p).c_str(), "", 125*400, 0, 250000, -1e10, 1e10);
+                tprof_sin_north_mbd_shift[order - 1][p] =  new TProfile(boost::str(boost::format("tprof_sin_north_mbd_shift_order_%d_%d") %order %p).c_str(), "", 125*400, 0, 250000, -1e10, 1e10);
+                tprof_cos_south_mbd_shift[order - 1][p] =  new TProfile(boost::str(boost::format("tprof_cos_south_mbd_shift_order_%d_%d") %order %p).c_str(), "", 125*400, 0, 250000, -1e10, 1e10);
+                tprof_sin_south_mbd_shift[order - 1][p] =  new TProfile(boost::str(boost::format("tprof_sin_south_mbd_shift_order_%d_%d") %order %p).c_str(), "", 125*400, 0, 250000, -1e10, 1e10);
                 
                 cdbhistosOut->registerHisto(tprof_cos_north_mbd_shift[order - 1][p]);
                 cdbhistosOut->registerHisto(tprof_sin_north_mbd_shift[order - 1][p]);
@@ -229,7 +226,6 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
   }
 
   hvertex->Fill(_mbd_vertex);
-    
   EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
   if (!epmap)
   {
@@ -322,8 +318,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
   }
 
     //with requiring that the map only store ep info for events that meets this z-vertex cut
-    //there will be events with no stored ep info, user will need to call empty() map function
-    //in their analysis code
+    //there will be events with no stored ep info
   if (_mbdEpReco && (std::fabs(_mbd_vertex) < _vertex_cut))
   {
       ResetMe();
@@ -462,10 +457,10 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
                 double terms = p+1.0;
                 double tmp = (double)(order*terms);
                 
-                tprof_cos_south_mbd_shift[order - 1][p]->Fill(mbd_e_south, cos(tmp*tmp_south_psi[order - 1])); // <cos(i*n*psi_n)>
-                tprof_sin_south_mbd_shift[order - 1][p]->Fill(mbd_e_south, sin(tmp*tmp_south_psi[order - 1])); // <sin(i*n*psi_n)>
-                tprof_cos_north_mbd_shift[order - 1][p]->Fill(mbd_e_north, cos(tmp*tmp_north_psi[order - 1])); // <cos(i*n*psi_n)>
-                tprof_sin_north_mbd_shift[order - 1][p]->Fill(mbd_e_north, sin(tmp*tmp_north_psi[order - 1])); // <sin(i*n*psi_n)>
+                tprof_cos_south_mbd_shift[order - 1][p]->Fill(mbd_e_south, cos(tmp*tmp_south_psi[order - 1])); // south <cos(i*n*psi_n)>
+                tprof_sin_south_mbd_shift[order - 1][p]->Fill(mbd_e_south, sin(tmp*tmp_south_psi[order - 1])); // south <sin(i*n*psi_n)>
+                tprof_cos_north_mbd_shift[order - 1][p]->Fill(mbd_e_north, cos(tmp*tmp_north_psi[order - 1])); // north <cos(i*n*psi_n)>
+                tprof_sin_north_mbd_shift[order - 1][p]->Fill(mbd_e_north, sin(tmp*tmp_north_psi[order - 1])); // north <sin(i*n*psi_n)>
                    
             }
         }
