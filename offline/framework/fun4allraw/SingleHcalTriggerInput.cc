@@ -102,23 +102,36 @@ void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
       // by default use previous bco clock for gtm bco
       CaloPacket *newhit = new CaloPacketv1();
       int nr_modules = plist[i]->iValue(0,"NRMODULES");
+      int nr_channels = plist[i]->iValue(0, "CHANNELS");
+      int nr_samples = plist[i]->iValue(0, "SAMPLES");
       if (nr_modules > 3)
       {
 	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
 	gSystem->Exit(1);
       }
       uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
-      newhit->setBCO(plist[i]->iValue(0, "CLOCK"));
+      newhit->setNrModules(nr_modules);
+      newhit->setNrSamples(nr_samples);
+      newhit->setNrChannels(nr_channels);
+      newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
       newhit->setIdentifier(plist[i]->getIdentifier());
       newhit->setEvtSequence(EventSequence);
+      newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
+      newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));
+      newhit->setOddChecksum(plist[i]->iValue(0, "ODDCHECKSUM"));
+      newhit->setCalcOddChecksum(plist[i]->iValue(0, "CALCODDCHECKSUM"));
+      newhit->setModuleAddress(plist[i]->iValue(0,"MODULEADDRESS"));
+      newhit->setDetId(plist[i]->iValue(0,"DETID"));
       for (int ifem = 0; ifem < nr_modules; ifem++)
       {
         newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
+        newhit->setFemEvtSequence(ifem, plist[i]->iValue(ifem, "FEMEVTNR"));
+        newhit->setFemSlot(ifem, plist[i]->iValue(ifem, "FEMSLOT"));
       }
-      for (int ipmt = 0; ipmt < 192; ipmt++)
+      for (int ipmt = 0; ipmt < nr_channels; ipmt++)
       {
-        for (int isamp = 0; isamp < 31; isamp++)
+        for (int isamp = 0; isamp < nr_samples; isamp++)
         {
           newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
         }
@@ -135,7 +148,10 @@ void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
       }
       m_HcalPacketMap[EventSequence].push_back(newhit);
       m_EventStack.insert(EventSequence);
-
+      if (ddump_enabled())
+      {
+	ddumppacket(plist[i]);
+      }
       delete plist[i];
     }
   }
