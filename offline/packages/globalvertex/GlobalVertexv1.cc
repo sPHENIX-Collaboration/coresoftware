@@ -13,7 +13,7 @@ void GlobalVertexv1::identify(std::ostream& os) const
 {
   os << "---GlobalVertexv1-----------------------" << std::endl;
   os << "vertexid: " << get_id();
- 
+
   os << " t = " << get_t() << std::endl;
 
   os << " (x,y,z) =  (" << get_position(0);

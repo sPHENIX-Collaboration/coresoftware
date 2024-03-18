@@ -40,7 +40,7 @@ FermimotionAfterburner::~FermimotionAfterburner()
 }
 
 //____________________________________________________________________________..
-int FermimotionAfterburner::Init(PHCompositeNode */*topNode*/)
+int FermimotionAfterburner::Init(PHCompositeNode * /*topNode*/)
 {
   unsigned int seed = PHRandomSeed();
   gsl_rng_set(RandomGenerator, seed);
@@ -61,9 +61,9 @@ int FermimotionAfterburner::process_event(PHCompositeNode *topNode)
 void FermimotionAfterburner::AddpF(PHCompositeNode *topNode)
 {
   PHHepMCGenEventMap *genevtmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
-  for (PHHepMCGenEventMap::Iter iter = genevtmap->begin(); iter != genevtmap->end(); ++iter)
+  for (auto &iter : *genevtmap)
   {
-    PHHepMCGenEvent *genevt = iter->second;
+    PHHepMCGenEvent *genevt = iter.second;
     HepMC::GenEvent *evt = genevt->getEvent();
     if (!evt)
     {

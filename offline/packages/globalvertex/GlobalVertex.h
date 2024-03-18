@@ -4,10 +4,10 @@
 #define G4VERTEX_GLOBALVERTEX_H
 
 #include <phool/PHObject.h>
-#include "Vertex.h"
 #include <cmath>
 #include <iostream>
 #include <map>
+#include "Vertex.h"
 
 class GlobalVertex : public PHObject
 {
@@ -22,7 +22,7 @@ class GlobalVertex : public PHObject
     SVTX = 400,
     SVTX_MBD = 500
   };
-  
+
   typedef std::vector<const Vertex*> VertexVector;
   typedef std::map<GlobalVertex::VTXTYPE, VertexVector>::const_iterator ConstVertexIter;
   typedef std::map<GlobalVertex::VTXTYPE, VertexVector>::iterator VertexIter;
@@ -30,8 +30,6 @@ class GlobalVertex : public PHObject
   // Deprecated as of GlobalVertexv2
   typedef std::map<GlobalVertex::VTXTYPE, unsigned int>::const_iterator ConstVtxIter;
   typedef std::map<GlobalVertex::VTXTYPE, unsigned int>::iterator VtxIter;
-
-
 
   ~GlobalVertex() override {}
 
@@ -97,7 +95,7 @@ class GlobalVertex : public PHObject
 
   //
   // associated vertex ids methods
-  // vtx id container accessors are deprecated. 
+  // vtx id container accessors are deprecated.
   // Use actual vertex container accessors instead
   //
   virtual bool empty_vtxids() const { return true; }

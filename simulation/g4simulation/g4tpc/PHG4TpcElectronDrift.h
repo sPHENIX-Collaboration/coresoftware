@@ -116,8 +116,11 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   //@{
   TH1 *dlong = nullptr;
   TH1 *dtrans = nullptr;
+  TH1 *ratioElectronsRR = nullptr;
   TH2 *hitmapstart = nullptr;
   TH2 *hitmapend = nullptr;
+  TH2 *hitmapstart_z = nullptr;
+  TH2 *hitmapend_z = nullptr;
   TH2 *z_startmap = nullptr;
   TH2 *deltaphi = nullptr;
   TH2 *deltar = nullptr;

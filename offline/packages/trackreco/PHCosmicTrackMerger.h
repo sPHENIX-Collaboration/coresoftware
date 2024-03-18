@@ -37,9 +37,12 @@ class PHCosmicTrackMerger : public SubsysReco
   void zero_field() { m_zeroField = true; }
   void dca_xycut(const float cut) { m_dcaxycut = cut; }
   void dca_rzcut(const float cut) { m_dcarzcut = cut; }
+  void iter(const int it) { m_iter = it; }
+
  private:
   void addKeys(TrackSeed *toAddTo, TrackSeed *toAdd);
   void removeOutliers(TrackSeed *seed);
+  void getBestClustersPerLayer(TrackSeed *seed);
 
   ActsGeometry *m_geometry = nullptr;
   KeyPosMap getGlobalPositions(TrackSeed *seed);
@@ -48,9 +51,10 @@ class PHCosmicTrackMerger : public SubsysReco
   TrackSeedContainer *m_tpcSeeds = nullptr;
   TrackSeedContainer *m_siliconSeeds = nullptr;
 
-  float m_dcaxycut = 0.5; // cm
-  float m_dcarzcut = 2.; // cm
+  float m_dcaxycut = 0.5;  // cm
+  float m_dcarzcut = 2.;   // cm
   bool m_zeroField = false;
+  int m_iter = 0;
 };
 
 #endif  // PHCOSMICTRACKMERGER_H

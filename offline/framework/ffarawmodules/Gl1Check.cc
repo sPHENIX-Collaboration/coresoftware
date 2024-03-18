@@ -42,6 +42,10 @@ int Gl1Check::process_event(PHCompositeNode *topNode)
   }
   else
   {
+      if (ddump_enabled())
+      {
+	ddumppacket(gl1cont);
+      }
     gl1cont->identify();
   }
   return Fun4AllReturnCodes::EVENT_OK;

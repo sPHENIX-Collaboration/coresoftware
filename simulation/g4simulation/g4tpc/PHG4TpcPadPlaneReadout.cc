@@ -723,9 +723,9 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("tpc_sector_phi_mid",   0.5087);//2 * M_PI / 12 );//sector size in phi for R2 sector
   set_default_double_param("tpc_sector_phi_outer", 0.5097);//2 * M_PI / 12 );//sector size in phi for R3 sector
 
-  set_default_int_param("ntpc_phibins_inner", 1152);
-  set_default_int_param("ntpc_phibins_mid", 1536);
-  set_default_int_param("ntpc_phibins_outer", 2304);
+  set_default_int_param("ntpc_phibins_inner", 1128); //94 * 12
+  set_default_int_param("ntpc_phibins_mid", 1536);   //128 * 12
+  set_default_int_param("ntpc_phibins_outer", 2304); //192 * 12
 
   // GEM Gain
   /*

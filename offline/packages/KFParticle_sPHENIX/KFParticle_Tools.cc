@@ -80,7 +80,7 @@ KFParticle_Tools::KFParticle_Tools()
   , m_dira_max(1.01)
   , m_mother_pt(0.)
   , m_mother_ipchi2(FLT_MAX)
-  , m_get_charge_conjugate(true)
+  , m_get_charge_conjugate(false)
   , m_extrapolateTracksToSV(true)
   , m_vtx_map_node_name("SvtxVertexMap")
   , m_trk_map_node_name("SvtxTrackMap")
@@ -292,15 +292,6 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
   {
     goodTrack = true;
   }
-  /*
-  std::cout << "Track pT = " << pt << ", min. track pT = " << m_track_pt << std::endl;
-  std::cout << "Track pTchi2 = " << ptchi2 << ", min. track pTchi2 = " << m_track_ptchi2 << std::endl;
-  std::cout << "Track IP = " << min_ip << ", min. track IP = " << m_track_ip << std::endl;
-  std::cout << "Track IPchi2 = " << min_ipchi2 << ", min. track IPchi2 = " << m_track_ipchi2 << std::endl;
-  std::cout << "Track chi2/nDoF = " << trackchi2ndof << ", max. track chi2/nDoF = " << m_track_chi2ndof << std::endl;
-  std::string track_designation = goodTrack ? "good" : "bad";
-  std::cout << "Track designated as " << track_designation << std::endl;
-  */
   return goodTrack;
 }
 

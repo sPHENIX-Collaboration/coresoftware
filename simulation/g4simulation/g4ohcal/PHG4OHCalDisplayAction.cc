@@ -47,7 +47,7 @@ void PHG4OHCalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     G4VisAttributes *m_VisAtt = new G4VisAttributes();
     m_VisAtt->SetVisibility(true);
     m_VisAtt->SetForceSolid(true);
-    m_VisAtt->SetColor(G4Colour::Red());
+    m_VisAtt->SetColor(G4Colour::Grey());
     it->SetVisAttributes(m_VisAtt);
     m_VisAttVec.push_back(m_VisAtt);
   }

@@ -44,7 +44,7 @@ class TrackSeed : public PHObject
                        ActsGeometry*) const { return NAN; }
   virtual float get_phi(TrkrClusterContainer*,
                         ActsGeometry*) const { return NAN; }
-  virtual float get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>&) const { return NAN; }
+  virtual float get_phi(const std::map<TrkrDefs::cluskey, Acts::Vector3>&) const { return NAN; }
   virtual float get_pz() const { return NAN; }
   virtual float get_x() const { return NAN; }
   virtual float get_y() const { return NAN; }
@@ -76,9 +76,9 @@ class TrackSeed : public PHObject
 
   /// In case the global cluster positions have already been obtained,
   /// these can be called to avoid performing transformations twice
-  virtual void circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>&,
+  virtual void circleFitByTaubin(const std::map<TrkrDefs::cluskey, Acts::Vector3>&,
                                  uint8_t, uint8_t) {}
-  virtual void lineFit(std::map<TrkrDefs::cluskey, Acts::Vector3>&,
+  virtual void lineFit(const std::map<TrkrDefs::cluskey, Acts::Vector3>&,
                        uint8_t, uint8_t) {}
 
   virtual void clear_cluster_keys() {}
