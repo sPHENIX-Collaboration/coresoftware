@@ -1,25 +1,8 @@
 #include "InttMaskedChannelSet.h"
 
 #include <cdbobjects/CDBTTree.h>
-
 #include <ffamodules/CDBInterface.h>
-
 #include <filesystem>  // for exists
-
-void InttMaskedChannelSet::identify(
-    std::ostream& out) const
-{
-  out << "InttMaskedChannelSet"
-      << "\n"
-      << "\tBase Version"
-      << "\n"
-      << "\tUnimplemented" << std::endl;
-}
-
-std::size_t InttMaskedChannelSet::size() const
-{
-  return 0;
-}
 
 int InttMaskedChannelSet::LoadFromFile(
     std::string const& filename)
@@ -61,6 +44,21 @@ int InttMaskedChannelSet::LoadFromCDB(
   return v_LoadFromCDBTTree(cdbttree);
 }
 
+void InttMaskedChannelSet::identify(
+    std::ostream& out) const
+{
+  out << "InttMaskedChannelSet"
+      << "\n"
+      << "\tBase Version"
+      << "\n"
+      << "\tUnimplemented" << std::endl;
+}
+
+std::size_t InttMaskedChannelSet::size() const
+{
+  return 0;
+}
+
 bool InttMaskedChannelSet::IsDeadChannel(
     int const& layer,
     int const& ladder_phi,
@@ -72,8 +70,8 @@ bool InttMaskedChannelSet::IsDeadChannel(
       .layer = layer,
       .ladder_phi = ladder_phi,
       .ladder_z = ladder_z,
-      .strip_phi = strip_phi,
       .strip_z = strip_z,
+      .strip_phi = strip_phi,
   });
 }
 

@@ -3,6 +3,8 @@
 #ifndef FFARAWMODULES_MBDCHECK_H
 #define FFARAWMODULES_MBDCHECK_H
 
+#include "DumpPacket.h"
+
 #include <fun4all/SubsysReco.h>
 
 #include <set>
@@ -11,7 +13,7 @@
 class Fun4AllInputManager;
 class PHCompositeNode;
 
-class MbdCheck : public SubsysReco
+class MbdCheck : public SubsysReco, public DumpPacket
 {
  public:
   MbdCheck(const std::string &name = "MbdCheck");

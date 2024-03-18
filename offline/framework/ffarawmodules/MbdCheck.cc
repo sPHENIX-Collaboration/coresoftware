@@ -4,8 +4,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <ffarawobjects/MbdPacket.h>
-#include <ffarawobjects/MbdPacketContainer.h>
+#include <ffarawobjects/CaloPacket.h>
+#include <ffarawobjects/CaloPacketContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -34,7 +34,7 @@ int MbdCheck::Init(PHCompositeNode * /*topNode*/)
 //____________________________________________________________________________..
 int MbdCheck::process_event(PHCompositeNode *topNode)
 {
-  MbdPacketContainer *mbdcont = findNode::getClass<MbdPacketContainer>(topNode, "MBDPackets");
+  CaloPacketContainer *mbdcont = findNode::getClass<CaloPacketContainer>(topNode, "MBDPackets");
   if (!mbdcont)
   {
     std::cout << "could not find MbdPacket node" << std::endl;
@@ -43,6 +43,10 @@ int MbdCheck::process_event(PHCompositeNode *topNode)
   {
     for (unsigned int i = 0; i < mbdcont->get_npackets(); i++)
     {
+      if (ddump_enabled())
+      {
+	ddumppacket(mbdcont->getPacket(i));
+      }
       mbdcont->getPacket(i)->identify();
     }
   }
