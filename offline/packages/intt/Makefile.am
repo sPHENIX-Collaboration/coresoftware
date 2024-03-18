@@ -39,6 +39,8 @@ pkginclude_HEADERS = \
   InttCombinedRawDataDecoder.h \
   InttMaskedChannelSet.h \
   InttMaskedChannelSetv1.h \
+  InttFeeMap.h \
+  InttFeeMapv1.h \
   InttFelixMap.h \
   InttMap.h \
   InttMapping.h \
@@ -57,6 +59,8 @@ ROOTDICTS = \
   CylinderGeomIntt_Dict.cc \
   InttMaskedChannelSet_Dict.cc \
   InttMaskedChannelSetv1_Dict.cc \
+  InttFeeMap_Dict.cc \
+  InttFeeMapv1_Dict.cc \
   InttMap_Dict.cc \
   InttSurveyMap_Dict.cc \
   InttSurveyMapv1_Dict.cc \
@@ -70,6 +74,8 @@ nobase_dist_pcm_DATA = \
   CylinderGeomIntt_Dict_rdict.pcm \
   InttMaskedChannelSet_Dict_rdict.pcm \
   InttMaskedChannelSetv1_Dict_rdict.pcm \
+  InttFeeMap_Dict_rdict.pcm \
+  InttFeeMapv1_Dict_rdict.pcm \
   InttMap_Dict_rdict.pcm \
   InttSurveyMap_Dict_rdict.pcm \
   InttSurveyMapv1_Dict_rdict.pcm \
@@ -86,6 +92,8 @@ libintt_la_SOURCES = \
   InttCombinedRawDataDecoder.cc \
   InttMaskedChannelSet.cc \
   InttMaskedChannelSetv1.cc \
+  InttFeeMap.cc \
+  InttFeeMapv1.cc \
   InttFelixMap.cc \
   InttMapping.cc \
   InttMap.cc \
@@ -109,6 +117,8 @@ libintt_io_la_SOURCES = \
   CylinderGeomIntt.cc \
   InttMaskedChannelSet.cc \
   InttMaskedChannelSetv1.cc \
+  InttFeeMap.cc \
+  InttFeeMapv1.cc \
   InttMap.cc \
   InttSurveyMap.cc \
   InttSurveyMapv1.cc \

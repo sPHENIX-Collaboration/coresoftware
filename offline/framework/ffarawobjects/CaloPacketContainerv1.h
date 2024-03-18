@@ -6,9 +6,9 @@
 class CaloPacket;
 class TClonesArray;
 
-class  CaloPacketContainerv1: public CaloPacketContainer
+class CaloPacketContainerv1 : public CaloPacketContainer
 {
-public:
+ public:
   CaloPacketContainerv1();
   ~CaloPacketContainerv1() override;
 
@@ -28,10 +28,10 @@ public:
   unsigned int get_npackets() override;
   CaloPacket *getPacket(unsigned int index) override;
 
-private:
-   TClonesArray *CaloPacketsTCArray {nullptr};
+ private:
+  TClonesArray *CaloPacketsTCArray{nullptr};
 
-  ClassDefOverride(CaloPacketContainerv1,1)
+  ClassDefOverride(CaloPacketContainerv1, 1)
 };
 
 #endif

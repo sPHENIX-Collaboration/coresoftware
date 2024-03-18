@@ -60,14 +60,12 @@ class PHSimpleKFProp : public SubsysReco
   { _use_truth_clusters = truth; }
   void SetIteration(int iter){_n_iteration = iter;}
   void set_pp_mode(bool mode) {_pp_mode = mode;}
- 
+
  private:
 
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection m_distortionCorrection;
 
   bool _use_truth_clusters = false;
-  
+
   /// fetch node pointers
   int get_nodes(PHCompositeNode *topNode);
   std::vector<double> radii;
@@ -91,12 +89,15 @@ class PHSimpleKFProp : public SubsysReco
   TrackSeedContainer *_track_map = nullptr;
 
   std::unique_ptr<PHField> _field_map = nullptr;
-  
+
   /// acts geometry
   ActsGeometry *_tgeometry = nullptr;
 
   /// distortion correction container
-  TpcDistortionCorrectionContainer* m_dcc = nullptr;
+  TpcDistortionCorrection m_distortionCorrection;
+  TpcDistortionCorrectionContainer* m_dcc_static{nullptr};
+  TpcDistortionCorrectionContainer* m_dcc_average{nullptr};
+  TpcDistortionCorrectionContainer* m_dcc_fluctuation{nullptr};
 
   /// get global position for a given cluster
   /**

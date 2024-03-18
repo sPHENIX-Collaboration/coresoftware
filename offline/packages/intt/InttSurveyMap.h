@@ -24,20 +24,19 @@ class InttSurveyMap : public PHObject
   InttSurveyMap() = default;
   ~InttSurveyMap() override = default;
 
-  virtual void identify(std::ostream& = std::cout) const override;
-  virtual std::size_t size() const;
-
   int LoadFromFile(std::string const& = "InttSurveyMap.root");
   int LoadFromCDB(std::string const& = "InttSurveyMap");
 
-  virtual val_t const* GetAbsoluteTransform(key_t) const;
-  virtual val_t const* GetRelativeTransform(key_t) const;
+  int GetStripTransform(key_t const&, val_t&) const;
+
+  virtual void identify(std::ostream& = std::cout) const override;
+  virtual std::size_t size() const;
+
+  virtual val_t const* GetAbsoluteTransform(key_t const&) const;
+  virtual val_t const* GetRelativeTransform(key_t const&) const;
 
  protected:
   virtual int v_LoadFromCDBTTree(CDBTTree&);
-
-  virtual int v_LookupAbsoluteTransform(key_t const&, map_t::const_iterator&) const;
-  virtual int v_LookupRelativeTransform(key_t const&, map_t::const_iterator&) const;
 
  private:
   ClassDefOverride(InttSurveyMap, 1)
