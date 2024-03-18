@@ -74,7 +74,6 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
     }
     delete pBlueSpin;
     delete pYellSpin;
-    //get_cdev_info(p);
     
   } else if 
   */
