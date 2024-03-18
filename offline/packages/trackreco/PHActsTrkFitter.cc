@@ -489,7 +489,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	else
 	  {
 	    float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
-	    float phi = tpcseed->get_phi(m_clusterContainer, m_tGeometry);
+	    //	    float phi = tpcseed->get_phi(m_clusterContainer, m_tGeometry);
+	    float phi = tpcseed->get_phi();
 	    px = pt * std::cos(phi);
 	    py = pt * std::sin(phi);
 	    pz = pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta());
