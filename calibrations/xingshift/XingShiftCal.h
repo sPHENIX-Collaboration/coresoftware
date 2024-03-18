@@ -32,21 +32,32 @@ class XingShiftCal : public SubsysReco
 
  private:
   Packet *p;
+  Packet *pBlueSpin;
+  Packet *pYellSpin;
   int nevt = 0;
-  int threshold = 5000;
+  //int threshold = 5000;
+  int threshold = 1000;
   int evtcap = 50000;
   int done = 0;
+
+
+  
 
   static const int NTRIG = 16;
   static const int NBUNCHES = 120;
 
-  const int packet_BEGRUN = 900;
+  const int packet_BLUESPIN = 14902;
+  const int packet_YELLSPIN = 14903;
   const int packet_GL1 = 14001;
 
   bool success = 0;
 
   //default xingshift
   int xingshift = 5;
+
+
+  int blueSpinPattern[NBUNCHES] = {0};
+  int yellSpinPattern[NBUNCHES] = {0};
 
   long long scalercounts[NTRIG][NBUNCHES];
 
