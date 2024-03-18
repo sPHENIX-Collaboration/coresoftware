@@ -19,13 +19,13 @@ class InttDacMap {
 
 
     // Access by OnlineChannel
-    virtual int GetDAC(const uint& felix_server, 
-                       const uint& felix_channel,
-                       const uint& chip,  
-                       const uint& channel, 
-                       const uint& adc);
-    virtual int GetDAC(InttNameSpace::RawData_s const& rawdata, const uint& adc); 
-    virtual int GetDAC(InttNameSpace::Offline_s const& offline, const uint& adc); 
+    virtual unsigned short GetDAC(const uint& felix_server, 
+                                  const uint& felix_channel,
+                                  const uint& chip,  
+                                  const uint& channel, 
+                                  const uint& adc);
+    virtual unsigned short GetDAC(InttNameSpace::RawData_s const& rawdata, const uint& adc); 
+    virtual unsigned short GetDAC(InttNameSpace::Offline_s const& offline, const uint& adc); 
 
 
     virtual void SetDefault(const uint& Adc0= 15, 

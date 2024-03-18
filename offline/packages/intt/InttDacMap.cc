@@ -95,11 +95,11 @@ int InttDacMap::LoadFromCDBTTree(CDBTTree& cdbttree)
 }
 
 
-int InttDacMap::GetDAC(const uint& felix_server, 
-                       const uint& felix_channel,
-                       const uint& chip,  
-                       const uint& /*channel*/, 
-                       const uint& adc)
+unsigned short InttDacMap::GetDAC(const uint& felix_server, 
+                                  const uint& felix_channel,
+                                  const uint& chip,  
+                                  const uint& /*channel*/, 
+                                  const uint& adc)
 {
   if(felix_server <m_dac.size() &&
      felix_channel<m_dac[felix_server].size() &&
@@ -120,7 +120,7 @@ int InttDacMap::GetDAC(const uint& felix_server,
   }
 }
 
-int InttDacMap::GetDAC(InttNameSpace::RawData_s const& rawdata, const uint& adc) 
+unsigned short InttDacMap::GetDAC(InttNameSpace::RawData_s const& rawdata, const uint& adc) 
 {
   return GetDAC(rawdata.felix_server, 
                 rawdata.felix_channel, 
@@ -129,7 +129,7 @@ int InttDacMap::GetDAC(InttNameSpace::RawData_s const& rawdata, const uint& adc)
                 adc); 
 }
 
-int InttDacMap::GetDAC(InttNameSpace::Offline_s const& offline, const uint& adc) 
+unsigned short InttDacMap::GetDAC(InttNameSpace::Offline_s const& offline, const uint& adc) 
 {
   return GetDAC(InttNameSpace::ToRawData(offline), adc); 
 }
