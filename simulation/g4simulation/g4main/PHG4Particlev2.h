@@ -37,8 +37,8 @@ class PHG4Particlev2 : public PHG4Particlev1
   int trkid{0};
   int vtxid{0};
   int parentid{0};
-  int primaryid {std::numeric_limits<int>::min()};
-  double fe {0};
+  int primaryid{std::numeric_limits<int>::min()};
+  double fe{0};
 
   ClassDefOverride(PHG4Particlev2, 2)
 };

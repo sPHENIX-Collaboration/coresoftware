@@ -209,7 +209,6 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 
     genevt->is_simulated(true);
 
-
     double xshift = vertex_pos_x + genevt->get_collision_vertex().x();
     double yshift = vertex_pos_y + genevt->get_collision_vertex().y();
     double zshift = vertex_pos_z + genevt->get_collision_vertex().z();
@@ -340,10 +339,10 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
               fabs(zpos) > worldsizez / 2)
           {
             std::cout << "vertex x/y/z " << xpos << "/" << ypos << "/" << zpos
-                 << " id: " << (*v)->barcode()
-                 << " outside world volume radius/z (+-) " << worldsizex / 2
-                 << "/" << worldsizez / 2 << ", dropping it and its particles"
-                 << std::endl;
+                      << " id: " << (*v)->barcode()
+                      << " outside world volume radius/z (+-) " << worldsizex / 2
+                      << "/" << worldsizez / 2 << ", dropping it and its particles"
+                      << std::endl;
             continue;
           }
         }
@@ -353,16 +352,16 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
               fabs(zpos) > worldsizez / 2)
           {
             std::cout << "Vertex x/y/z " << xpos << "/" << ypos << "/" << zpos
-                 << " outside world volume x/y/z (+-) " << worldsizex / 2 << "/"
-                 << worldsizey / 2 << "/" << worldsizez / 2
-                 << ", dropping it and its particles" << std::endl;
+                      << " outside world volume x/y/z (+-) " << worldsizex / 2 << "/"
+                      << worldsizey / 2 << "/" << worldsizez / 2
+                      << ", dropping it and its particles" << std::endl;
             continue;
           }
         }
         else
         {
           std::cout << PHWHERE << " shape " << ishape << " not implemented. exiting"
-               << std::endl;
+                    << std::endl;
           exit(1);
         }
 
@@ -436,10 +435,10 @@ void HepMCNodeReader::VertexPosition(const double v_x, const double v_y,
                                      const double v_z)
 {
   std::cout << "HepMCNodeReader::VertexPosition - WARNING - this function is depreciated. "
-       << "HepMCNodeReader::VertexPosition() move all HEPMC subevents to a new vertex location. "
-       << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
-       << "Recommendation: the vertex shifts are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
-       << std::endl;
+            << "HepMCNodeReader::VertexPosition() move all HEPMC subevents to a new vertex location. "
+            << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
+            << "Recommendation: the vertex shifts are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
+            << std::endl;
 
   vertex_pos_x = v_x;
   vertex_pos_y = v_y;
@@ -451,10 +450,10 @@ void HepMCNodeReader::SmearVertex(const double s_x, const double s_y,
                                   const double s_z)
 {
   std::cout << "HepMCNodeReader::SmearVertex - WARNING - this function is depreciated. "
-       << "HepMCNodeReader::SmearVertex() smear each HEPMC subevents to a new vertex location. "
-       << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
-       << "Recommendation: the vertex smears are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
-       << std::endl;
+            << "HepMCNodeReader::SmearVertex() smear each HEPMC subevents to a new vertex location. "
+            << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
+            << "Recommendation: the vertex smears are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
+            << std::endl;
 
   width_vx = s_x;
   width_vy = s_y;
@@ -465,8 +464,8 @@ void HepMCNodeReader::SmearVertex(const double s_x, const double s_y,
 void HepMCNodeReader::Embed(const int /*unused*/)
 {
   std::cout << "HepMCNodeReader::Embed - WARNING - this function is depreciated. "
-       << "Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
-       << std::endl;
+            << "Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
+            << std::endl;
 
   return;
 }

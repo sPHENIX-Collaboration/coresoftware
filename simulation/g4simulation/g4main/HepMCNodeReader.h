@@ -58,10 +58,10 @@ class HepMCNodeReader : public SubsysReco
   double smeargauss(const double width);
   double smearflat(const double width);
 
-  gsl_rng *RandomGenerator {nullptr};
-  bool is_pythia {false};
-  int use_seed {0};
-  unsigned int seed {0};
+  gsl_rng *RandomGenerator{nullptr};
+  bool is_pythia{false};
+  int use_seed{0};
+  unsigned int seed{0};
   double vertex_pos_x{0.0};
   double vertex_pos_y{0.0};
   double vertex_pos_z{0.0};
