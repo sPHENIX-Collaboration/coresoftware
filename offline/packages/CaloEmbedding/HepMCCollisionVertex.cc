@@ -1,5 +1,6 @@
 #include "HepMCCollisionVertex.h"
 
+#include <phhepmc/PHHepMCDefs.h>
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
@@ -41,7 +42,7 @@ int HepMCCollisionVertex::process_event(PHCompositeNode *topNode)
   PHHepMCGenEventMap *genevtmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
   if (!genevtmap)
   {
-    std::cout << "no PHHepMCGenEventMap node" << std::endl;
+    std::cout << PHWHERE << "no PHHepMCGenEventMap node" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
@@ -52,24 +53,31 @@ int HepMCCollisionVertex::process_event(PHCompositeNode *topNode)
   }
   if (vertexmap->empty())
   {
-    std::cout << "no vertex" << std::endl;
+    if (Verbosity() > 1)
+    {
+      std::cout << PHWHERE << "no event vertex, aborting event" << std::endl;
+    }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  double thisvertex = -9999.;
   GlobalVertex *vtx = vertexmap->begin()->second;
   if (vtx)
   {
-    thisvertex = vtx->get_z();
+    PHHepMCGenEvent *genevt = new PHHepMCGenEvent();
+    HepMC::FourVector collvtx(vtx->get_x(), vtx->get_y(), vtx->get_z(), 0);
+    genevt->set_collision_vertex(collvtx);
+    if (Verbosity() > 1)
+    {
+      std::cout << PHWHERE << "collisionvertex: x: " << collvtx.x()
+                << ", y: " << collvtx.y()
+                << ", z: " << collvtx.z()
+                << std::endl;
+    }
+    genevtmap->insert_event(PHHepMCDefs::DataVertexIndex, genevt);
   }
   else
   {
-    std::cout << "no vertex in map" << std::endl;
+    std::cout << PHWHERE << "no vertex in map" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
-  PHHepMCGenEvent *genevt = new PHHepMCGenEvent();
-  HepMC::FourVector collvtx(0, 0, thisvertex, 0);
-  genevt->set_collision_vertex(collvtx);
-  genevtmap->insert(genevt);
   return Fun4AllReturnCodes::EVENT_OK;
 }
