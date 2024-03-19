@@ -71,7 +71,7 @@ int TrackQA::process_event(PHCompositeNode* topNode)
     auto lineFitParams = lineFitClusters(cluspos);
 
     /// Only look at tracks that go through 20 cm of origin
-    if(std::fabs(std::get<1>(lineFitParams)) > 20)
+    if (std::fabs(std::get<1>(lineFitParams)) > 20)
     {
       continue;
     }
@@ -88,7 +88,28 @@ int TrackQA::process_event(PHCompositeNode* topNode)
     int ntpc = 0;
     int nmms = 0;
 
-
+    for (auto& ckey : ckeys)
+    {
+      switch (TrkrDefs::getTrkrId(ckey))
+      {
+      case TrkrDefs::mvtxId:
+        nmaps++;
+        break;
+      case TrkrDefs::inttId:
+        nintt++;
+        break;
+      case TrkrDefs::tpcId:
+        ntpc++;
+        break;
+      case TrkrDefs::micromegasId:
+        nmms++;
+        break;
+      }
+    }
+    if (nmaps == 0)
+    {
+      continue;
+    }
     int i = 0;
     for (auto& ckey : ckeys)
     {
@@ -96,8 +117,8 @@ int TrackQA::process_event(PHCompositeNode* topNode)
       i++;
       auto cluster = clustermap->findCluster(ckey);
 
-      auto intersection = TrackFitUtils::surface_3Dline_intersection(ckey, cluster, geometry, 
-                                                                     std::get<0>(lineFitParams), std::get<1>(lineFitParams), std::get<2>(lineFitParams), std::get<3>(lineFitParams)); 
+      auto intersection = TrackFitUtils::surface_3Dline_intersection(ckey, cluster, geometry,
+                                                                     std::get<0>(lineFitParams), std::get<1>(lineFitParams), std::get<2>(lineFitParams), std::get<3>(lineFitParams));
 
       auto surf = geometry->maps().getSurface(ckey, cluster);
 
@@ -131,22 +152,6 @@ int TrackQA::process_event(PHCompositeNode* topNode)
       h_gxresid->Fill(layer, glob.x() - intersection.x());
       h_gyresid->Fill(layer, glob.y() - intersection.y());
       h_gzresid->Fill(layer, glob.z() - intersection.z());
-
-      switch (TrkrDefs::getTrkrId(ckey))
-      {
-      case TrkrDefs::mvtxId:
-        nmaps++;
-        break;
-      case TrkrDefs::inttId:
-        nintt++;
-        break;
-      case TrkrDefs::tpcId:
-        ntpc++;
-        break;
-      case TrkrDefs::micromegasId:
-        nmms++;
-        break;
-      }
     }
     h_nmaps->Fill(nmaps);
     h_nintt->Fill(nintt);

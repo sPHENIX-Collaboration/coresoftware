@@ -46,8 +46,10 @@ pkginclude_HEADERS = \
   BbcPmtHitV1.h \
   MbdPmtContainer.h \
   MbdPmtContainerV1.h \
+  MbdPmtSimContainerV1.h \
   MbdPmtHit.h \
   MbdPmtHitV1.h \
+  MbdPmtSimHitV1.h \
   BbcPmtInfoContainerV1.h \
   BbcPmtInfoV1.h \
   MbdSig.h \
@@ -98,8 +100,10 @@ ROOTDICTS = \
   MbdGeomV1_Dict.cc \
   MbdPmtHit_Dict.cc \
   MbdPmtHitV1_Dict.cc \
+  MbdPmtSimHitV1_Dict.cc \
   MbdPmtContainer_Dict.cc \
-  MbdPmtContainerV1_Dict.cc
+  MbdPmtContainerV1_Dict.cc \
+  MbdPmtSimContainerV1_Dict.cc
 endif
 
 pcmdir = $(libdir)
@@ -135,8 +139,10 @@ nobase_dist_pcm_DATA = \
   MbdGeomV1_Dict_rdict.pcm \
   MbdPmtHit_Dict_rdict.pcm \
   MbdPmtHitV1_Dict_rdict.pcm \
+  MbdPmtSimHitV1_Dict_rdict.pcm \
   MbdPmtContainer_Dict_rdict.pcm \
-  MbdPmtContainerV1_Dict_rdict.pcm
+  MbdPmtContainerV1_Dict_rdict.pcm \
+  MbdPmtSimContainerV1_Dict_rdict.pcm
 endif
 
 if USE_ONLINE
@@ -162,8 +168,10 @@ libmbd_io_la_SOURCES = \
   MbdOutV2.cc \
   MbdPmtHit.cc \
   MbdPmtHitV1.cc \
+  MbdPmtSimHitV1.cc \
   MbdPmtContainer.cc \
   MbdPmtContainerV1.cc \
+  MbdPmtSimContainerV1.cc \
   MbdGeomV1.cc \
   BbcVertexv1.cc \
   BbcVertexv2.cc \

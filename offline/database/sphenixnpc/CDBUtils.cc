@@ -5,7 +5,10 @@
 #include <nlohmann/json.hpp>
 
 #include <iostream>
+#include <map>
+#include <set>
 #include <stdexcept>  // for out_of_range
+#include <tuple>
 
 CDBUtils::CDBUtils()
   : cdbclient(new SphenixClient())
@@ -80,11 +83,19 @@ void CDBUtils::listPayloadIOVs(uint64_t iov)
     return;
   }
   nlohmann::json payload_iovs = resp["msg"];
+  std::map<std::string, std::tuple<std::string, uint64_t, uint64_t>> iovs;
   for (auto &[pt, val] : payload_iovs.items())
   {
-    std::cout << pt << ": " << val["payload_url"]
-              << ", begin ts: " << val["minor_iov_start"]
-              << ", end ts: " << val["minor_iov_end"]
+    std::string url = val["payload_url"];
+    uint64_t bts = val["minor_iov_start"];
+    uint64_t ets = val["minor_iov_end"];
+    iovs.insert(std::make_pair(pt, std::make_tuple(url, bts, ets)));
+  }
+  for (const auto &it : iovs)
+  {
+    std::cout << it.first << ": " << std::get<0>(it.second)
+              << ", begin ts: " << std::get<1>(it.second)
+              << ", end ts: " << std::get<2>(it.second)
               << std::endl;
   }
   return;
@@ -120,10 +131,15 @@ void CDBUtils::listGlobalTags()
 {
   nlohmann::json resp = cdbclient->getGlobalTags();
   nlohmann::json msgcont = resp["msg"];
+  std::set<std::string> globaltags;
   for (auto &it : msgcont.items())
   {
     std::string exist_gt = it.value().at("name");
-    std::cout << "global tag: " << exist_gt << std::endl;
+    globaltags.insert(exist_gt);
+  }
+  for (const auto &it : globaltags)
+  {
+    std::cout << "global tag: " << it << std::endl;
   }
   return;
 }
@@ -132,10 +148,15 @@ void CDBUtils::listPayloadTypes()
 {
   nlohmann::json resp = cdbclient->getPayloadTypes();
   nlohmann::json msgcont = resp["msg"];
+  std::set<std::string> payloadtypes;
   for (auto &it : msgcont.items())
   {
     std::string exist_pl = it.value().at("name");
-    std::cout << "payload type: " << exist_pl << std::endl;
+    payloadtypes.insert(exist_pl);
+  }
+  for (const auto &it : payloadtypes)
+  {
+    std::cout << "payload type: " << it << std::endl;
   }
   return;
 }

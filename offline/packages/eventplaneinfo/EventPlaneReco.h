@@ -15,6 +15,7 @@
 class PHCompositeNode;
 class CDBHistos;
 class TProfile;
+class TH1D;
 
 class EventPlaneReco : public SubsysReco
 {
@@ -43,6 +44,10 @@ class EventPlaneReco : public SubsysReco
   {
     _mbd_e = f;
   }
+  void set_z_vertex_cut(const float &v)
+  {
+    _vertex_cut = v;
+  }
   void set_Ep_orders(const unsigned int &n)
   {
     m_MaxOrder = n;
@@ -60,7 +65,7 @@ class EventPlaneReco : public SubsysReco
 
   unsigned  int m_runNo = 21813;
  
-  const char *OutFileName;
+  std::string OutFileName;
   
   CDBHistos *cdbhistosOut = nullptr;
 
@@ -85,10 +90,14 @@ class EventPlaneReco : public SubsysReco
     
   float _epd_e  = 6.0;
   float _mbd_e = 10.0;
-    
+  float _mbd_vertex = 999.0;
+  float _vertex_cut = 100.0;
+
   float mbd_e_south;
   float mbd_e_north;
   float mbdQ;
+ 
+  TH1D * hvertex = {};
 
   //recentering histograms
   TProfile * tprof_mean_cos_north_mbd[6] = {};
@@ -112,7 +121,6 @@ class EventPlaneReco : public SubsysReco
   TProfile * tprof_sin_north_mbd_shift_input[6][6] = {};
   TProfile * tprof_cos_south_mbd_shift_input[6][6] = {};
   TProfile * tprof_sin_south_mbd_shift_input[6][6] = {};
-
     
 };
 
