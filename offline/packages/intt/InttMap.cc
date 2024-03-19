@@ -211,6 +211,7 @@ InttMap::RawData_s& InttMap::RawData_s::operator++()
 		chn = 0;
 	}
 	if(chp != InttMap::Wildcard)
+	{
 		if(++chp < 26)
 		{
 			return *this;
