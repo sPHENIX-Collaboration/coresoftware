@@ -5,6 +5,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <phhepmc/PHHepMCDefs.h>
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
@@ -162,6 +163,15 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
   // For pile-up simulation: loop over PHHepMC event map
   // insert highest embedding ID event first, whose vertex maybe resued in  PHG4ParticleGeneratorBase::ReuseExistingVertex()
   int vtxindex = -1;
+  bool use_embedding_vertex = false;
+  HepMC::FourVector collisionVertex;
+  PHHepMCGenEvent *evtvertex = genevtmap->get(PHHepMCDefs::DataVertexIndex);
+  if (evtvertex)
+  {
+    collisionVertex = evtvertex->get_collision_vertex();
+    genevtmap->erase(PHHepMCDefs::DataVertexIndex);
+    use_embedding_vertex = true;
+  }
   for (PHHepMCGenEventMap::ReverseIter iter = genevtmap->rbegin(); iter != genevtmap->rend(); ++iter)
   {
     PHHepMCGenEvent *genevt = iter->second;
@@ -184,19 +194,21 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
       genevt->identify();
     }
 
-    const auto collisionVertex = genevt->get_collision_vertex();
+    if (! use_embedding_vertex)
+    {
+      collisionVertex = genevt->get_collision_vertex();
+    }
+    else
+    {
+      genevt->set_collision_vertex(collisionVertex); // save used vertex in HepMC
+    }
     const int embed_flag = genevt->get_embedding_id();
-
     HepMC::GenEvent *evt = genevt->getEvent();
     if (!evt)
     {
-      if (Verbosity() > 1)
-      {
-        std::cout << PHWHERE << " no evt pointer under HEPMC Node found, this is normal for embedding";
+        std::cout << PHWHERE << " no evt pointer under HEPMC Node found";
         genevt->identify();
-      }
-      genevtmap->erase(iter->first);
-      continue;
+	return Fun4AllReturnCodes::ABORTEVENT;
     }
 
     if (Verbosity())
@@ -206,12 +218,10 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     }
 
     genevt->is_simulated(true);
-
     double xshift = vertex_pos_x + genevt->get_collision_vertex().x();
     double yshift = vertex_pos_y + genevt->get_collision_vertex().y();
     double zshift = vertex_pos_z + genevt->get_collision_vertex().z();
     double tshift = vertex_t0 + genevt->get_collision_vertex().t();
-
     const CLHEP::HepLorentzRotation lortentz_rotation(genevt->get_LorentzRotation_EvtGen2Lab());
 
     if (width_vx > 0.0)
@@ -402,7 +412,6 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     }  //    for (HepMC::GenEvent::vertex_iterator v = evt->vertices_begin();
 
   }  // For pile-up simulation: loop end for PHHepMC event map
-
   if (Verbosity() > 0)
   {
     ineve->identify();
