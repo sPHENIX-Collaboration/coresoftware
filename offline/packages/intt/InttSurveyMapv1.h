@@ -21,11 +21,11 @@ class InttSurveyMapv1 : public InttSurveyMap
   void identify(std::ostream& = std::cout) const override;
   std::size_t size() const override;
 
+  val_t const* GetAbsoluteTransform(key_t const&) const override;
+  val_t const* GetRelativeTransform(key_t const&) const override;
+
  protected:
   int v_LoadFromCDBTTree(CDBTTree&) override;
-
-  int v_LookupAbsoluteTransform(key_t const&, map_t::const_iterator&) const override;
-  int v_LookupRelativeTransform(key_t const&, map_t::const_iterator&) const override;
 
  private:
   map_t* m_absolute_transforms = nullptr;

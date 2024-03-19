@@ -7,8 +7,6 @@ OfflinePacketv1::OfflinePacketv1(OfflinePacket *pkt)
   setBCO(pkt->getBCO());
 }
 
-
-
 void OfflinePacketv1::Reset()
 {
   evtseq = std::numeric_limits<int>::min();
