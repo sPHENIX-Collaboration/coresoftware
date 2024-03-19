@@ -805,10 +805,8 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
     position(2) = tpcseed->get_z() * Acts::UnitConstants::cm;
   }
 
-  Acts::Vector3 momentum(tpcseed->get_px(m_clusterContainer,
-                                         m_tGeometry),
-                         tpcseed->get_py(m_clusterContainer,
-                                         m_tGeometry),
+  Acts::Vector3 momentum(tpcseed->get_px(),
+                         tpcseed->get_py(),
                          tpcseed->get_pz());
 
   m_protoTrackPx = momentum(0);

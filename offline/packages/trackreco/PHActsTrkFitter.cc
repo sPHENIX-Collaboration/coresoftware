@@ -482,14 +482,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	float pz = NAN;
 	if (m_fieldMap.find(".root") != std::string::npos)
 	  {
-	    px = tpcseed->get_px(m_clusterContainer, m_tGeometry);
-	    py = tpcseed->get_py(m_clusterContainer, m_tGeometry);
+	    px = tpcseed->get_px();
+	    py = tpcseed->get_py();
 	    pz = tpcseed->get_pz();
 	  }
 	else
 	  {
 	    float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
-	    //	    float phi = tpcseed->get_phi(m_clusterContainer, m_tGeometry);
 	    float phi = tpcseed->get_phi();
 	    px = pt * std::cos(phi);
 	    py = pt * std::sin(phi);

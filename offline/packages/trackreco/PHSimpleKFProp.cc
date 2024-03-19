@@ -281,6 +281,8 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       /// circle fit back to update track parameters
       track->circleFitByTaubin(trackClusPositions, 7, 55);
       track->lineFit(trackClusPositions, 7, 55);
+      float trackphi = track->get_phi(trackClusPositions);
+      track->set_phi(trackphi);    // make phi persistent
       timer.stop();
       if (Verbosity() > 3)
       {
@@ -341,6 +343,8 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
       pretrack.circleFitByTaubin(pretrackClusPositions, 7, 55);
       pretrack.lineFit(pretrackClusPositions, 7, 55);
+      float pretrackphi = pretrack.get_phi(pretrackClusPositions);
+      pretrack.set_phi(pretrackphi);    // make phi persistent
 
       new_chains.push_back(PropagateTrack(&pretrack, prepair.second.at(0),
                                           globalPositions));
@@ -526,15 +530,15 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   if (_use_const_field)
   {
     float pt = fabs(1. / track->get_qOverR()) * (0.3 / 100) * _const_field;
-    float phi = track->get_phi(_cluster_map, _tgeometry);
+    float phi = track->get_phi();
     track_px = pt * std::cos(phi);
     track_py = pt * std::sin(phi);
     track_pz = pt * std::cosh(track->get_eta()) * std::cos(track->get_theta());
   }
   else
   {
-    track_px = track->get_px(_cluster_map, _tgeometry);
-    track_py = track->get_py(_cluster_map, _tgeometry);
+    track_px = track->get_px();
+    track_py = track->get_py();
     track_pz = track->get_pz();
   }
 
@@ -1469,7 +1473,7 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
   return clean_chains;
 }
 
-void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap& /*positions*/)
+void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions)
 {
   int seed_index = 0;
 
@@ -1477,12 +1481,17 @@ void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap&
   {     
     /// The ALICEKF gives a better charge determination at high pT
     int q = seed.get_charge();
-    seed.circleFitByTaubin(_cluster_map, _tgeometry, 7, 55);
-    seed.lineFit(_cluster_map, _tgeometry, 7, 55);
 
+    PositionMap local;
+    std::transform( seed.begin_cluster_keys(), seed.end_cluster_keys(), std::inserter( local, local.end() ),
+      [positions](const auto& key){ return std::make_pair( key, positions.at(key) ); } );
+
+    seed.circleFitByTaubin(local, 7, 55);
+    seed.lineFit(local, 7, 55);
+    float phi = seed.get_phi(local);
+    seed.set_phi(phi);    // make phi persistent
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
-    float phi = seed.get_phi(_cluster_map,_tgeometry);
-    seed.set_phi(phi);
+
     _track_map->insert(&seed); 
 
     if(Verbosity() > 0)

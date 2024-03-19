@@ -266,8 +266,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
       newTrack.set_x(someseed.get_x());
       newTrack.set_y(someseed.get_y());
       newTrack.set_z(someseed.get_z());
-      newTrack.set_px(someseed.get_px(_cluster_map,_tGeometry));
-      newTrack.set_py(someseed.get_py(_cluster_map,_tGeometry));
+      newTrack.set_px(someseed.get_px();
+      newTrack.set_py(someseed.get_py();
       newTrack.set_pz(someseed.get_pz());  
       newTrack.set_charge(tracklet->get_charge());
 
