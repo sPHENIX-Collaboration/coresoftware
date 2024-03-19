@@ -194,21 +194,21 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
       genevt->identify();
     }
 
-    if (! use_embedding_vertex)
+    if (!use_embedding_vertex)
     {
       collisionVertex = genevt->get_collision_vertex();
     }
     else
     {
-      genevt->set_collision_vertex(collisionVertex); // save used vertex in HepMC
+      genevt->set_collision_vertex(collisionVertex);  // save used vertex in HepMC
     }
     const int embed_flag = genevt->get_embedding_id();
     HepMC::GenEvent *evt = genevt->getEvent();
     if (!evt)
     {
-        std::cout << PHWHERE << " no evt pointer under HEPMC Node found";
-        genevt->identify();
-	return Fun4AllReturnCodes::ABORTEVENT;
+      std::cout << PHWHERE << " no evt pointer under HEPMC Node found";
+      genevt->identify();
+      return Fun4AllReturnCodes::ABORTEVENT;
     }
 
     if (Verbosity())
