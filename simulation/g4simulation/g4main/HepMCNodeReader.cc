@@ -190,14 +190,12 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     HepMC::GenEvent *evt = genevt->getEvent();
     if (!evt)
     {
-      std::cout << "embed id: " << genevt->get_embedding_id() << std::endl;
       if (Verbosity() > 1)
       {
         std::cout << PHWHERE << " no evt pointer under HEPMC Node found, this is normal for embedding";
         genevt->identify();
       }
-      // int idkey = iter->first;
-      // genevtmap->erase(idkey);
+      genevtmap->erase(iter->first);
       continue;
     }
 
