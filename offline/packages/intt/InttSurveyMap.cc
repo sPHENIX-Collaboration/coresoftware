@@ -51,7 +51,17 @@ int InttSurveyMap::GetStripTransform(
     key_t const& k,
 	val_t& v) const
 {
-  if(!GetAbsoluteTransform(k))
+  val_t const* transform_ptr = nullptr;
+  key_t ofl{
+    k.layer,
+    k.ladder_phi,
+    k.ladder_z,
+	InttMap::Wildcard,
+	InttMap::Wildcard
+  };
+
+  transform_ptr = GetAbsoluteTransform(ofl);
+  if(!transform_ptr)
   {
     return 1;
   }
@@ -73,7 +83,7 @@ int InttSurveyMap::GetStripTransform(
   v.matrix()(0, 3) = (2.0 * k.strip_phi + 1.0) / 512.0 - 0.5;
   v.matrix()(0, 3) *= 19.968;
 
-  v = *GetAbsoluteTransform(k) * v;
+  v = *transform_ptr * v;
 
   return 0;
 }
