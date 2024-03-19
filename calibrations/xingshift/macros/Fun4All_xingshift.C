@@ -15,7 +15,7 @@
 
 #include <phool/recoConsts.h>
 
-
+// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libfun4allraw.so)
 R__LOAD_LIBRARY(libXingShiftCal.so)
