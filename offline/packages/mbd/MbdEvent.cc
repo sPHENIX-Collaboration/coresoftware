@@ -10,8 +10,6 @@
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
-#include <sphenixnpc/CDBUtils.h>
-
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 
