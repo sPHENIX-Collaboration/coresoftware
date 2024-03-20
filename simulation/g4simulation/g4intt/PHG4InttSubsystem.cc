@@ -68,6 +68,7 @@ int PHG4InttSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->Detector(m_DetectorType);
   m_Detector->OverlapCheck(CheckOverlap());
+  m_Detector->useSurveyGeometry(true);
 
   int active = 0;
   // initialize with support active flag (if support is active we need the absorber hit node)
@@ -232,7 +233,7 @@ void PHG4InttSubsystem::SetDefaultParameters()
   set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "fphx_offset_z", 0.005);
   set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "gap_sensor_fphx", 0.1);
   set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "halfladder_z", 40.00);
-  set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "halfladder_inside_z", 23.9622);
+  set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "halfladder_inside_z", 23.28); // previous 23.9622
   set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "hdi_copper_x", 0.0052);
   set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "hdi_edge_z", 0.);
   set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "hdi_kapton_x", 0.038);
@@ -269,7 +270,7 @@ void PHG4InttSubsystem::SetDefaultParameters()
   set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "fphx_glue_x", 0.005);  // 50 um
 
   set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "halfladder_z", 40.00);
-  set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "halfladder_inside_z", 23.9622);
+  set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "halfladder_inside_z", 23.28); // previous 23.9622
 
   set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "hdi_copper_x", 0.00376);
   set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "hdi_edge_z", 0.);
@@ -291,6 +292,9 @@ void PHG4InttSubsystem::SetDefaultParameters()
 
   set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "stave_straight_outer_y", 0.33227);
   set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "stave_straight_rohacell_y", 0.58842);
+
+  // Average shift of the whole INTT barrel in the z direction 
+  set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "ladder_center_avgshift_z", -4.724503928571429 / 10.); // unit: cm
 
   // SUPPORTPARAMS //////////////////////////////////////
   // int param
@@ -325,6 +329,8 @@ void PHG4InttSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_ring_type", 2);  // 0: Al+SS+WG, 1 : CarbonPEEK, 2(default) : new  model Jan/2021
 
   // Aluminum endcap ring position
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_ring_x", 0.4026857142857132 / 10.); // unit: mm, the center positions of the metal and CF rings in XY plane, calculated from the survey data
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_ring_y", -2.886627321428573 / 10.); // unit: mm, the center positions of the metal and CF rings in XY plane, calculated from the survey data
   set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_ring_z", 24.35);
 
   // Aluminum endcap ring
@@ -353,15 +359,20 @@ void PHG4InttSubsystem::SetDefaultParameters()
   ////////////////////////////////////////////////////////////////////////////////////////
   // the new endcap model
   set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_z", 24.4185);
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_1_outer_radius", 11.7475);  // outer radius of the outermost part
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_1_outer_radius", 11.2020);   // outer radius of the 2nd outermost part
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_2_outer_radius", 9.65);     // outer radius of the 3rd outermost part, slightly shrinked from the reeeal drawing of 9.6971 cm to avoid overwlapping
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_2_outer_radius", 8.7095);    // outer radius of the 4th outermost part
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_3_outer_radius", 7.15);     // outer radius of the 5th outermost part, slightly shrinked from the real drawing of 7.2045 cm to avoid overlapping
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_3_inner_radius", 6.5088);   // inner radius of the 5th outermost (=the outer most) part
 
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_length", 0.75);
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_length", 0.5);
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_1_outer_radius", 11.7375);  // outer radius of the outermost part
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_1_inner_radius", 11.0683);  // inner radius of the outermost part
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_1_outer_radius", 10.6826);   // outer radius of the 2nd outermost part
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_1_inner_radius", 10.0984);   // inner radius of the 2nd outermost part
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_2_outer_radius", 9.7227);     // outer radius of the 3rd outermost part, slightly shrinked from the reeeal drawing of 9.6971 cm to avoid overwlapping
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_2_inner_radius", 8.5485);     // inner radius of the 3rd outermost part, slightly shrinked from the reeeal drawing of 9.6971 cm to avoid overwlapping
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_2_outer_radius", 8.1852);    // outer radius of the 4th outermost part
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_2_inner_radius", 7.6518);    // inner radius of the 4th outermost part
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_3_outer_radius", 7.2886);     // outer radius of the 5th outermost part, slightly shrinked from the real drawing of 7.2045 cm to avoid overlapping
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_3_inner_radius", 6.5188);   // inner radius of the 5th outermost (=the outer most) part
+
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_length", 0.625 / 2.); // unit: cm, previously 0.75
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_length", 0.75); // unit: cm, previous 0.5
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // Survice barrel, outer

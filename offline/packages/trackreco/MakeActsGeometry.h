@@ -210,6 +210,8 @@ class MakeActsGeometry : public SubsysReco
   TGeoManager* m_geoManager = nullptr;
 
   bool m_inttSurvey = false;
+  const float m_inttbarrelcenter_survey_x = 0.4026857142857132 / 10.;
+  const float m_inttbarrelcenter_survey_y = -2.886627321428573 / 10.;
 
   bool m_useField = true;
   std::map<uint8_t, double> m_misalignmentFactor;
@@ -264,7 +266,7 @@ class MakeActsGeometry : public SubsysReco
   ActsGeometry *m_actsGeometry = nullptr;
 
   /// Verbosity value handed from PHActsSourceLinks
-  int m_verbosity = 0;
+  int m_verbosity = 11;
 
   double m_drift_velocity = 8.0e-03;  // cm/ns, override from macro
 

@@ -51,6 +51,11 @@ class PHG4InttDetector : public PHG4Detector
   {
     return m_DetectorType;
   }
+  void useSurveyGeometry(bool b)
+  {
+    useSurvey = b;
+  }
+
 
   std::map<G4VPhysicalVolume *, std::tuple<int, int, int, int>>::const_iterator get_ActiveVolumeTuple(G4VPhysicalVolume *physvol) const;
   std::map<G4LogicalVolume *, std::tuple<int, int>>::const_iterator get_PassiveVolumeTuple(G4LogicalVolume *logvol) const;
@@ -78,6 +83,8 @@ class PHG4InttDetector : public PHG4Detector
   std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> m_LayerBeginEndIteratorPair;
   std::map<G4VPhysicalVolume *, std::tuple<int, int, int, int>> m_ActiveVolumeTuple;
   std::map<G4LogicalVolume *, std::tuple<int, int>> m_PassiveVolumeTuple;
+
+  bool useSurvey;
 };
 
 #endif

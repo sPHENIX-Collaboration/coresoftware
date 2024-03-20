@@ -882,23 +882,29 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       auto surf = surfaceVector.at(j)->getSharedPtr();
       auto vec3d = surf->center(m_geoCtxt);
 
-      double ref_rad[4] = {7.188, 7.732, 9.680, 10.262};
+      // double ref_rad[4] = {7.188, 7.732, 9.680, 10.262};
+      double ref_rad[4] = {7.453, 8.046, 9.934, 10.569}; // for survey geometry
+      const double tolerance = 0.15; // previous value = 0.1 
 
       std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       
       /// The Acts geometry builder combines layers 4 and 5 together, 
       /// and layers 6 and 7 together. We need to use the radius to figure
       /// out which layer to use to get the layergeom
-      double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
+      double layer_rad = sqrt(pow(world_center[0]-m_inttbarrelcenter_survey_x, 2) + pow(world_center[1]-m_inttbarrelcenter_survey_y, 2));
 
       unsigned int layer = 0;
       for (unsigned int i = 0; i < 4; ++i)
       {
-        if (fabs(layer_rad - ref_rad[i]) < 0.1)
+        std::cout << layer_rad << " " << ref_rad[i] << std::endl;
+        if (fabs(layer_rad - ref_rad[i]) < tolerance)
           layer = i + 3;
       }
 
+      std::cout << layer << std::endl;
+
       TrkrDefs::hitsetkey hitsetkey = getInttHitSetKeyFromCoords(layer, world_center);
+      std::cout << "hitsetkey=" << hitsetkey << " InttDefs::getLadderPhiId(hitsetkey)=" << unsigned(InttDefs::getLadderPhiId(hitsetkey)) << " InttDefs::getLadderZId(hitsetkey)=" << unsigned(InttDefs::getLadderZId(hitsetkey)) << std::endl;
 
       // Add this surface to the map
       std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
@@ -932,6 +938,8 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       }
     }
   }
+
+  std::cout << __LINE__ << std::endl;
 
 }
 

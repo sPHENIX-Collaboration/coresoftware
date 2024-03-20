@@ -74,6 +74,8 @@ Surface ActsSurfaceMaps::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
   unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey);
   TrkrDefs::hitsetkey tmpkey = hitsetkey;
 
+  std::cout << "trkrid = " << trkrid << ", TrkrDefs::inttId = " << TrkrDefs::inttId << ", TrkrDefs::mvtxId = " << TrkrDefs::mvtxId << std::endl;
+
   if (trkrid == TrkrDefs::inttId)
   {
     // Set the hitsetkey crossing to zero
@@ -86,9 +88,12 @@ Surface ActsSurfaceMaps::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
     tmpkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);
   }
 
+  std::cout << "tmpkey = " << tmpkey << std::endl;
+
   auto iter = m_siliconSurfaceMap.find(tmpkey);
   if (iter != m_siliconSurfaceMap.end())
   {
+    std::cout << "Found silicon surface for hitsetkey " << hitsetkey << " tmpkey " << tmpkey << std::endl;
     return iter->second;
   }
 
