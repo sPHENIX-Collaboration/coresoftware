@@ -5,19 +5,19 @@
 
 class TpcRawHit;
 
-class  TpcRawHitContainer: public PHObject
+class TpcRawHitContainer : public PHObject
 {
-public:
+ public:
   TpcRawHitContainer() = default;
   virtual ~TpcRawHitContainer() = default;
 
-  virtual TpcRawHit *AddHit() {return nullptr;}
-  virtual TpcRawHit *AddHit(TpcRawHit *) {return nullptr;}
-  virtual unsigned int get_nhits() {return 0;}
-  virtual TpcRawHit *get_hit(unsigned int) {return nullptr;}
+  virtual TpcRawHit *AddHit() { return nullptr; }
+  virtual TpcRawHit *AddHit(TpcRawHit *) { return nullptr; }
+  virtual unsigned int get_nhits() { return 0; }
+  virtual TpcRawHit *get_hit(unsigned int) { return nullptr; }
 
-private:
-  ClassDefOverride(TpcRawHitContainer,1)
+ private:
+  ClassDefOverride(TpcRawHitContainer, 1)
 };
 
 #endif
