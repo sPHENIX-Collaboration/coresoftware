@@ -24,7 +24,7 @@ class PHG4MagneticField : public G4MagneticField
 {
  public:
   PHG4MagneticField(const PHField* field);
-  ~PHG4MagneticField() override;
+  ~PHG4MagneticField() override = default;
 
   const PHField* get_field() const
   {
