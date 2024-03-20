@@ -10,6 +10,7 @@
 #include <set>
 #include <string>
 
+class CaloPacketContainer;
 class Fun4AllInputManager;
 class PHCompositeNode;
 class TH1;
@@ -25,9 +26,11 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
 
   int process_event(PHCompositeNode *topNode) override;
 
+  void FillCaloClockDiff(CaloPacketContainer *pktcont);
+  void FillPacketDiff(OfflinePacket *pkt);
 
  private:
-  std::map<unsigned int, std::tuple<unsigned int, TH1 *>> m_PacketStuffMap;
+  std::map<unsigned int, std::tuple<uint64_t, uint64_t, uint64_t, TH1 *, bool>> m_PacketStuffMap;
   /* std::string m_EvtNodeName = "CLOCKDIFFRAWHIT"; */
   /* std::set<uint64_t> bclk_seen; */
 };
