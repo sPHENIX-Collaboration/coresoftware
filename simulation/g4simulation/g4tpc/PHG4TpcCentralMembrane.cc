@@ -402,11 +402,7 @@ int PHG4TpcCentralMembrane::SearchModule(int /*nStripes*/,
       // check inside arcs
       if (c == 0)
       {
-        if (((x - x3a[i][j]) * (x - x3a[i][j]) + (y - y3a[i][j]) * (y - y3a[i][j])) <= arc_r * arc_r)
-        {
-          c = !c;
-        }
-        else if (((x - x3b[i][j]) * (x - x3b[i][j]) + (y - y3b[i][j]) * (y - y3b[i][j])) <= arc_r * arc_r)
+        if (((x - x3a[i][j]) * (x - x3a[i][j]) + (y - y3a[i][j]) * (y - y3a[i][j])) <= arc_r * arc_r || ((x - x3b[i][j]) * (x - x3b[i][j]) + (y - y3b[i][j]) * (y - y3b[i][j])) <= arc_r * arc_r)
         {
           c = !c;
         }

@@ -1,11 +1,13 @@
 #ifndef PHG4TPCCENTRALMEMBRANE_H
 #define PHG4TPCCENTRALMEMBRANE_H
 
-#include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
+
+#include <fun4all/SubsysReco.h>
 
 #include <array>
 #include <cmath>
+#include <limits>
 #include <string>  // for string
 #include <vector>
 
@@ -207,7 +209,7 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
    * as expected by G4Hit. The energy is then converted back to a number of electrons
    * inside PHG4TpcElectronDrift
    */
-  double electrons_per_gev = NAN;
+  double electrons_per_gev = std::numeric_limits<double>::signaling_NaN();
 
   /// delay between central membrane hits and trigger time (ns)
   int m_centralMembraneDelay = 0;
