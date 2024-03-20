@@ -28,9 +28,10 @@
 #include <cdbobjects/CDBTTree.h>
 
 //________________________________
-emcNoisyTowerFinder::emcNoisyTowerFinder(const std::string name, const std::string &outputName, const std::string &cdbtreename, float adccut_sg, float adccut_k, float sigmas_lo, float sigmas_hi, float SG_f, float Kur_f, float region_f): 
+emcNoisyTowerFinder::emcNoisyTowerFinder(const std::string &name, const std::string &outputName, const std::string &cdbtreename, float adccut_sg, float adccut_k, float sigmas_lo, float sigmas_hi, float SG_f, float Kur_f, float region_f): 
 SubsysReco(name)
 ,T(nullptr)
+  ,out(nullptr)
   ,Outfile(outputName) 	
   ,cdbtreename(cdbtreename)
 ,adccut_sg(adccut_sg)		// The minimum ADC required for a tower with Saint Gobain fibers to register a hit
@@ -39,8 +40,16 @@ SubsysReco(name)
   ,sigmas_hi(sigmas_hi)		// # of standard deviations from the mode for a hot tower
 ,SG_f(SG_f)			// Fiducial cut (artificial maximum) for Saint Gobain towers
   ,Kur_f(Kur_f)			// Fiducial cut for Kurary
-  ,region_f(region_f)		// Fiducial cut for Sectors and IBs 
+,region_f(region_f)		// Fiducial cut for Sectors and IBs 
 {
+  //initialize tree with SG vs Kurary fiber information
+  fchannels = TFile::Open("channels.root","read");
+  
+  channels = (TTree*)fchannels->Get("myTree");
+  channels->SetBranchAddress("fiber_type",&fiber_type);
+
+  
+
   std::cout << "emcNoisyTowerFinder::emcNoisyTowerFinder Calling ctor" << std::endl;
 }
 //__________________________________
@@ -51,15 +60,7 @@ emcNoisyTowerFinder::~emcNoisyTowerFinder()
 //_____________________________
 int emcNoisyTowerFinder::Init(PHCompositeNode *topNode)
 {
-  //initialize output file with hot channels
-  
-  //initialize tree with SG vs Kurary fiber information
-  fchannels = new TFile("channels.root");
-  
-  channels = (TTree*)fchannels->Get("myTree");
-  
-  channels->SetBranchAddress("fiber_type",&fiber_type);
-  
+ 
   std::cout << "emcNoisyTowerFinder::Init(PHCompositeNode *topNode) Initializing" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 
@@ -387,7 +388,7 @@ void emcNoisyTowerFinder::CalculateCutOffs(const int runnumber)
     TH1F *fSpecIBProj = (TH1F*)Fspeci_IB->ProjectionY("dummyIB",j+1,j+1);
 
     if(fSpecIBProj->GetBinCenter(fSpecIBProj->GetMaximumBin())<cutoffFreq_IB_lo){
-      hot_regions = 1;
+      cold_regions = 1;
       std::cout << "IB " << j << " is cold with ADC rate" << fSpecIBProj->GetBinCenter(fSpecIBProj->GetMaximumBin()) << " < " << cutoffFreq_IB_lo << std::endl;
       hotIB[j]++;
       
@@ -689,11 +690,14 @@ void emcNoisyTowerFinder::WriteCDBTree(const int runnumber)
     }
   }
 
-  fchannels->Close();
-  delete fchannels;
+  // fchannels->Close();
+  // delete fchannels;
+  // fchannels=NULL;
+    
   
   cdbOut->cd();
   T -> Write();
+  delete T;
   cdbttree->Commit();
   //cdbttree->Print();
   cdbttree->WriteCDBTTree();
@@ -716,8 +720,12 @@ void emcNoisyTowerFinder::Print(const std::string &what) const
 //____________________________________________________
 int emcNoisyTowerFinder::End(PHCompositeNode *topNode)
 {
-  fchannels -> Close();
-  delete fchannels;
+  
+  //fchannels -> cd();
+  //fchannels->Close();
+  //delete fchannels;
+  //fchannels=NULL;
+
   std::cout << "emcNoisyTowerFinder::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
