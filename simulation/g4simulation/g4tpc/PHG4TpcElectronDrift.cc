@@ -353,7 +353,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if (truth_clusterer.needs_input_nodes) {
+  if (truth_clusterer.needs_input_nodes()) {
     truth_clusterer.set_input_nodes( truthclustercontainer, m_tGeometry,
         seggeo, mClusHitsVerbose);
   }

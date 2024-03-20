@@ -15,7 +15,7 @@
 
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
-#include <TString.h>
+#include <boost/format.hpp>
 
 #include <algorithm>
 #include <cmath>  // for sqrt, cos, sin
@@ -24,12 +24,11 @@
 #include <map>  // for _Rb_tree_cons...
 #include <set>
 
-/* class TpcClusterBuilder; */
-
-double TpcClusterBuilder::square(double v) { return v * v; }
-double TpcClusterBuilder::square(float v) { return v * v; }
-
-void TpcClusterBuilder::set_verbosity(int verbosity_level) { verbosity = verbosity_level; }
+template <typename T>
+T square(T x)
+{
+  return x * x;
+}
 
 void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
 {
@@ -261,7 +260,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
         int _nbins_z = v_it.size();
         int _delta_z = abs(_size_z - _nbins_z);
 
-        TString fmt;
+        //        TString fmt;
         std::cout << " x|" << _delta_phi << "|" << _delta_z
                   << "| new node FIXME A1  layer(" << layer
                   << ") (nset:size) phi("
@@ -290,8 +289,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
             }
             /* std::cout << std::setprecision(2) << std::fixed; */
             double _rat = (float) m_iphi[_] / (float) adc_sum;
-            fmt.Form("%.2f", _rat);
-            std::cout << fmt << " ";
+            std::cout << boost::str(boost::format("%.2f") % _rat) << " ";
             tempsum += _rat;
             _prev = _;
           }
@@ -322,8 +320,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
             }
             /* std::cout << std::setprecision(2) << std::fixed; */
             double _rat = (float) m_it[_] / (float) adc_sum;
-            fmt.Form("%.2f", _rat);
-            std::cout << fmt << " ";
+            std::cout << boost::str(boost::format("%.2f") % _rat) << " ";
             tempsum += _rat;
             _prev = _;
           }
@@ -437,13 +434,9 @@ void TpcClusterBuilder::print(
   for (auto& _pair : tmap)
   {
     auto& track = _pair.second;
-
-    printf("id(%2i) phi:eta:pt(", (int) track->getTrackid());
-    std::cout << "phi:eta:pt(";
-    printf("%5.2f:%5.2f:%5.2f", track->getPhi(), track->getPseudoRapidity(), track->getPt());
-    /* Form("%5.2:%5.2:%5.2", track->getPhi(), track->getPseudoRapidity(), track->getPt()) */
-    //<<track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt()
-    std::cout << ") nclusters(" << track->getClusters().size() << ") ";
+    std::cout << boost::str(boost::format("id(%2i) phi:eta:pt(") % ((int) track->getTrackid()))
+              << boost::str(boost::format("%5.2f:%5.2f:%5.2f") % track->getPhi() % track->getPseudoRapidity() % track->getPt())
+              << ") nclusters(" << track->getClusters().size() << ") ";
     if (verbosity <= 10)
     {
       std::cout << std::endl;
@@ -506,5 +499,5 @@ void TpcClusterBuilder::set_input_nodes(
   m_tGeometry = ActsGeometry;
   geom_container = _geom_container;
   mClusHitsVerbose = _clushitsverbose;
-  needs_input_nodes = false;
+  m_needs_input_nodes = false;
 };
