@@ -20,11 +20,6 @@ PHG4MagneticField::PHG4MagneticField(const PHField* field)
   assert(field_);
 }
 
-PHG4MagneticField::~PHG4MagneticField()
-{
-  //  delete field_; // this cleans the hcal fieldmap but crashes the regular map
-}
-
 void PHG4MagneticField::GetFieldValue(const double Point[4], double* Bfield) const
 {
   assert(field_);

@@ -5,6 +5,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <phhepmc/PHHepMCDefs.h>
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
@@ -29,6 +30,7 @@
 #include <HepMC/Units.h>
 
 #include <CLHEP/Vector/LorentzRotation.h>
+#include <CLHEP/Vector/LorentzVector.h>
 
 #include <gsl/gsl_const.h>
 #include <gsl/gsl_randist.h>
@@ -41,8 +43,6 @@
 #include <iterator>
 #include <list>
 #include <utility>
-
-using namespace std;
 
 //// All length Units are in cm, no conversion to G4 internal units since
 //// this is filled into our objects (PHG4VtxPoint and PHG4Particle)
@@ -72,16 +72,6 @@ static IsStateFinal isfinal;
 
 HepMCNodeReader::HepMCNodeReader(const std::string &name)
   : SubsysReco(name)
-  , is_pythia(false)
-  , use_seed(0)
-  , seed(0)
-  , vertex_pos_x(0.0)
-  , vertex_pos_y(0.0)
-  , vertex_pos_z(0.0)
-  , vertex_t0(0.0)
-  , width_vx(0.0)
-  , width_vy(0.0)
-  , width_vz(0.0)
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   return;
@@ -110,7 +100,7 @@ int HepMCNodeReader::Init(PHCompositeNode *topNode)
   if (use_seed)
   {
     phseed = seed;
-    cout << Name() << " override random seed: " << phseed << endl;
+    std::cout << Name() << " override random seed: " << phseed << std::endl;
   }
   gsl_rng_set(RandomGenerator, phseed);
   return 0;
@@ -129,7 +119,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     {
       once = false;
 
-      cout << "HepMCNodeReader::process_event - No PHHepMCGenEventMap node. Do not perform HepMC->Geant4 input" << endl;
+      std::cout << "HepMCNodeReader::process_event - No PHHepMCGenEventMap node. Do not perform HepMC->Geant4 input" << std::endl;
     }
 
     return Fun4AllReturnCodes::DISCARDEVENT;
@@ -138,7 +128,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   if (!ineve)
   {
-    cout << PHWHERE << "no PHG4INEVENT node" << endl;
+    std::cout << PHWHERE << "no PHG4INEVENT node" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -147,7 +137,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
   float worldsizex = rc->get_FloatFlag("WorldSizex");
   float worldsizey = rc->get_FloatFlag("WorldSizey");
   float worldsizez = rc->get_FloatFlag("WorldSizez");
-  string worldshape = rc->get_StringFlag("WorldShape");
+  std::string worldshape = rc->get_StringFlag("WorldShape");
 
   enum
   {
@@ -166,13 +156,22 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
   }
   else
   {
-    cout << PHWHERE << " unknown world shape " << worldshape << endl;
+    std::cout << PHWHERE << " unknown world shape " << worldshape << std::endl;
     exit(1);
   }
 
   // For pile-up simulation: loop over PHHepMC event map
   // insert highest embedding ID event first, whose vertex maybe resued in  PHG4ParticleGeneratorBase::ReuseExistingVertex()
   int vtxindex = -1;
+  bool use_embedding_vertex = false;
+  HepMC::FourVector collisionVertex;
+  PHHepMCGenEvent *evtvertex = genevtmap->get(PHHepMCDefs::DataVertexIndex);
+  if (evtvertex)
+  {
+    collisionVertex = evtvertex->get_collision_vertex();
+    genevtmap->erase(PHHepMCDefs::DataVertexIndex);
+    use_embedding_vertex = true;
+  }
   for (PHHepMCGenEventMap::ReverseIter iter = genevtmap->rbegin(); iter != genevtmap->rend(); ++iter)
   {
     PHHepMCGenEvent *genevt = iter->second;
@@ -182,7 +181,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     {
       if (Verbosity())
       {
-        cout << "HepMCNodeReader::process_event - this event is already simulated. Move on: ";
+        std::cout << "HepMCNodeReader::process_event - this event is already simulated. Move on: ";
         genevt->identify();
       }
 
@@ -191,35 +190,38 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 
     if (Verbosity())
     {
-      cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found PHHepMCGenEvent:" << endl;
+      std::cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found PHHepMCGenEvent:" << std::endl;
       genevt->identify();
     }
 
-    const auto collisionVertex = genevt->get_collision_vertex();
-
+    if (!use_embedding_vertex)
+    {
+      collisionVertex = genevt->get_collision_vertex();
+    }
+    else
+    {
+      genevt->set_collision_vertex(collisionVertex);  // save used vertex in HepMC
+    }
+    const int embed_flag = genevt->get_embedding_id();
     HepMC::GenEvent *evt = genevt->getEvent();
     if (!evt)
     {
-      cout << PHWHERE << " no evt pointer under HEPMC Node found:";
+      std::cout << PHWHERE << " no evt pointer under HEPMC Node found";
       genevt->identify();
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
     if (Verbosity())
     {
-      cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found HepMC::GenEvent:" << endl;
+      std::cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found HepMC::GenEvent:" << std::endl;
       evt->print();
     }
 
     genevt->is_simulated(true);
-
-    const int embed_flag = genevt->get_embedding_id();
-
     double xshift = vertex_pos_x + genevt->get_collision_vertex().x();
     double yshift = vertex_pos_y + genevt->get_collision_vertex().y();
     double zshift = vertex_pos_z + genevt->get_collision_vertex().z();
     double tshift = vertex_t0 + genevt->get_collision_vertex().t();
-
     const CLHEP::HepLorentzRotation lortentz_rotation(genevt->get_LorentzRotation_EvtGen2Lab());
 
     if (width_vx > 0.0)
@@ -263,7 +265,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     {
       if (Verbosity() > 1)
       {
-        cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found vertex:" << endl;
+        std::cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found vertex:" << std::endl;
         (*v)->print();
       }
 
@@ -274,16 +276,16 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
       {
         if (Verbosity() > 1)
         {
-          cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found particle:" << endl;
+          std::cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found particle:" << std::endl;
           (*p)->print();
-          cout << "end vertex " << (*p)->end_vertex() << endl;
+          std::cout << "end vertex " << (*p)->end_vertex() << std::endl;
         }
         if (isfinal(*p))
         {
           if (Verbosity() > 1)
           {
-            cout << __PRETTY_FUNCTION__ << " " << __LINE__ << endl;
-            cout << "\tparticle passed " << endl;
+            std::cout << __PRETTY_FUNCTION__ << " " << __LINE__ << std::endl;
+            std::cout << "\tparticle passed " << std::endl;
           }
           finalstateparticles.push_back(*p);
         }
@@ -291,8 +293,8 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
         {
           if (Verbosity() > 1)
           {
-            cout << __PRETTY_FUNCTION__ << " " << __LINE__ << endl;
-            cout << "\tparticle failed " << endl;
+            std::cout << __PRETTY_FUNCTION__ << " " << __LINE__ << std::endl;
+            std::cout << "\tparticle failed " << std::endl;
           }
         }
       }
@@ -328,15 +330,15 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 
         if (Verbosity() > 1)
         {
-          cout << __PRETTY_FUNCTION__ << " " << __LINE__ << endl;
-          cout << "Vertex : " << endl;
+          std::cout << __PRETTY_FUNCTION__ << " " << __LINE__ << std::endl;
+          std::cout << "Vertex : " << std::endl;
           (*v)->print();
-          cout << "id: " << (*v)->barcode() << endl;
-          cout << "x: " << xpos << endl;
-          cout << "y: " << ypos << endl;
-          cout << "z: " << zpos << endl;
-          cout << "t: " << time << endl;
-          cout << "Particles" << endl;
+          std::cout << "id: " << (*v)->barcode() << std::endl;
+          std::cout << "x: " << xpos << std::endl;
+          std::cout << "y: " << ypos << std::endl;
+          std::cout << "z: " << zpos << std::endl;
+          std::cout << "t: " << time << std::endl;
+          std::cout << "Particles" << std::endl;
         }
 
         if (ishape == ShapeG4Tubs)
@@ -344,11 +346,11 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
           if (sqrt(xpos * xpos + ypos * ypos) > worldsizey / 2 ||
               fabs(zpos) > worldsizez / 2)
           {
-            cout << "vertex x/y/z " << xpos << "/" << ypos << "/" << zpos
-                 << " id: " << (*v)->barcode()
-                 << " outside world volume radius/z (+-) " << worldsizex / 2
-                 << "/" << worldsizez / 2 << ", dropping it and its particles"
-                 << endl;
+            std::cout << "vertex x/y/z " << xpos << "/" << ypos << "/" << zpos
+                      << " id: " << (*v)->barcode()
+                      << " outside world volume radius/z (+-) " << worldsizex / 2
+                      << "/" << worldsizez / 2 << ", dropping it and its particles"
+                      << std::endl;
             continue;
           }
         }
@@ -357,17 +359,17 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
           if (fabs(xpos) > worldsizex / 2 || fabs(ypos) > worldsizey / 2 ||
               fabs(zpos) > worldsizez / 2)
           {
-            cout << "Vertex x/y/z " << xpos << "/" << ypos << "/" << zpos
-                 << " outside world volume x/y/z (+-) " << worldsizex / 2 << "/"
-                 << worldsizey / 2 << "/" << worldsizez / 2
-                 << ", dropping it and its particles" << endl;
+            std::cout << "Vertex x/y/z " << xpos << "/" << ypos << "/" << zpos
+                      << " outside world volume x/y/z (+-) " << worldsizex / 2 << "/"
+                      << worldsizey / 2 << "/" << worldsizez / 2
+                      << ", dropping it and its particles" << std::endl;
             continue;
           }
         }
         else
         {
-          cout << PHWHERE << " shape " << ishape << " not implemented. exiting"
-               << endl;
+          std::cout << PHWHERE << " shape " << ishape << " not implemented. exiting"
+                    << std::endl;
           exit(1);
         }
 
@@ -379,7 +381,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
         {
           if (Verbosity() > 1)
           {
-            cout << __PRETTY_FUNCTION__ << " " << __LINE__ << endl;
+            std::cout << __PRETTY_FUNCTION__ << " " << __LINE__ << std::endl;
             (*fiter)->print();
           }
 
@@ -410,7 +412,6 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     }  //    for (HepMC::GenEvent::vertex_iterator v = evt->vertices_begin();
 
   }  // For pile-up simulation: loop end for PHHepMC event map
-
   if (Verbosity() > 0)
   {
     ineve->identify();
@@ -440,11 +441,11 @@ double HepMCNodeReader::smearflat(const double width)
 void HepMCNodeReader::VertexPosition(const double v_x, const double v_y,
                                      const double v_z)
 {
-  cout << "HepMCNodeReader::VertexPosition - WARNING - this function is depreciated. "
-       << "HepMCNodeReader::VertexPosition() move all HEPMC subevents to a new vertex location. "
-       << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
-       << "Recommendation: the vertex shifts are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
-       << endl;
+  std::cout << "HepMCNodeReader::VertexPosition - WARNING - this function is depreciated. "
+            << "HepMCNodeReader::VertexPosition() move all HEPMC subevents to a new vertex location. "
+            << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
+            << "Recommendation: the vertex shifts are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
+            << std::endl;
 
   vertex_pos_x = v_x;
   vertex_pos_y = v_y;
@@ -455,11 +456,11 @@ void HepMCNodeReader::VertexPosition(const double v_x, const double v_y,
 void HepMCNodeReader::SmearVertex(const double s_x, const double s_y,
                                   const double s_z)
 {
-  cout << "HepMCNodeReader::SmearVertex - WARNING - this function is depreciated. "
-       << "HepMCNodeReader::SmearVertex() smear each HEPMC subevents to a new vertex location. "
-       << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
-       << "Recommendation: the vertex smears are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
-       << endl;
+  std::cout << "HepMCNodeReader::SmearVertex - WARNING - this function is depreciated. "
+            << "HepMCNodeReader::SmearVertex() smear each HEPMC subevents to a new vertex location. "
+            << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
+            << "Recommendation: the vertex smears are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
+            << std::endl;
 
   width_vx = s_x;
   width_vy = s_y;
@@ -469,9 +470,9 @@ void HepMCNodeReader::SmearVertex(const double s_x, const double s_y,
 
 void HepMCNodeReader::Embed(const int /*unused*/)
 {
-  cout << "HepMCNodeReader::Embed - WARNING - this function is depreciated. "
-       << "Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
-       << endl;
+  std::cout << "HepMCNodeReader::Embed - WARNING - this function is depreciated. "
+            << "Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
+            << std::endl;
 
   return;
 }
