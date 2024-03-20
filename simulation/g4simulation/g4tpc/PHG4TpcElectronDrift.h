@@ -104,8 +104,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::unique_ptr<PHG4TpcPadPlane> padplane;
 
   std::unique_ptr<PHG4TpcDistortion> m_distortionMap;
-  ActsGeometry* m_tGeometry;
-  PHG4TpcCylinderGeomContainer *seggeo;
+  ActsGeometry* m_tGeometry{};
+  PHG4TpcCylinderGeomContainer *seggeo{};
 
   int event_num = 0;
   float thresholdforreachesreadout = 0.5;

@@ -24,11 +24,14 @@
 #include <map>  // for _Rb_tree_cons...
 #include <set>
 
-template <typename T>
-T square(T x)
+namespace
 {
-  return x * x;
-}
+  template <class T>
+  inline constexpr T square(const T &x)
+  {
+    return x * x;
+  }
+}  // namespace
 
 void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
 {
