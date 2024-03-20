@@ -1,31 +1,30 @@
 #include "TpcClusterBuilder.h"
-/* #include <trackbase/TrkrClusterv3.h> */
+
 #include <trackbase/ClusHitsVerbosev1.h>
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TpcDefs.h>
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4tracking/TrkrTruthTrack.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
-#include <algorithm>
-
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
-#include <cmath>  // for sqrt, cos, sin
-#include <map>  // for _Rb_tree_cons...
-#include <TString.h>
-
 #include <trackbase/TrkrClusterContainer.h>
+
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+
+#include <g4tracking/TrkrTruthTrack.h>
 #include <g4tracking/TrkrTruthTrackContainer.h>
 
-#include <set>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
+#include <TString.h>
+
+#include <algorithm>
+#include <cmath>  // for sqrt, cos, sin
+#include <map>  // for _Rb_tree_cons...
+#include <set>
 #include <iostream>
 #include <ios>
 
 /* class TpcClusterBuilder; */
-
-using std::cout, std::endl, std::string, std::ofstream, std::ostream;
 
 double TpcClusterBuilder::square(double v) { return v*v; }
 double TpcClusterBuilder::square(float  v) { return v*v; }
@@ -156,15 +155,15 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
     if (mClusHitsVerbose) {
       if (verbosity>10) {
         for (auto& hit : m_iphi) {
-          cout << " m_phi(" << hit.first <<" : " << hit.second<<") ";
+          std::cout << " m_phi(" << hit.first <<" : " << hit.second<<") ";
         }
       }
-      /* cout << " MELON 0 m_iphi "; */
-      /* for (auto& hit : m_iphi)   cout  << hit.first << "|" << hit.second << " "; */
-      /* cout << endl; */
-      /* cout << " MELON 1 m_it   "; */
-      /* for (auto& hit : m_it) cout    << hit.first << "|" << hit.second << " "; */
-      /* cout << endl; */
+      /* std::cout << " MELON 0 m_iphi "; */
+      /* for (auto& hit : m_iphi)   std::cout  << hit.first << "|" << hit.second << " "; */
+      /* std::cout << std::endl; */
+      /* std::cout << " MELON 1 m_it   "; */
+      /* for (auto& hit : m_it) std::cout    << hit.first << "|" << hit.second << " "; */
+      /* std::cout << std::endl; */
       for (auto& hit : m_iphi)    mClusHitsVerbose->addPhiHit    (hit.first, hit.second);
       for (auto& hit : m_it)      mClusHitsVerbose->addZHit      (hit.first, hit.second);
       for (auto& hit : m_iphiCut) mClusHitsVerbose->addPhiCutHit (hit.first, hit.second);
@@ -192,7 +191,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
     // -------------------------------------------------
     // debug here: FIXME
     //
-    /* cout << " FIXME phisize " << ((int) phisize) << endl; */
+    /* std::cout << " FIXME phisize " << ((int) phisize) << std::endl; */
     //FIXME
     if (false) { // Printing for debugging
       if ((int)phisize > 10 || (int)tsize > 8) {
@@ -204,55 +203,55 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
         int _delta_z = abs(_size_z - _nbins_z);
 
         TString fmt;
-        cout << " x|"<<_delta_phi<<"|"<<_delta_z
+        std::cout << " x|"<<_delta_phi<<"|"<<_delta_z
           <<"| new node FIXME A1  layer("<< layer 
           <<") (nset:size) phi("
           << _nbins_phi<<":"<<_size_phi << ") z("
           <<_nbins_z<<":"<<_size_z<<") " 
           <<"trkId("<<track->getTrackid()<<") trkpT("<<track->getPt()<<")"
-          << endl;
+          << std::endl;
         if (phisize>10) {
-          cout << "  iphi-from-(";
+          std::cout << "  iphi-from-(";
           int _prev = -1;
           double tempsum = 0.;
           for (auto _ : v_iphi) {
             if (_prev == -1) {
-              cout << _<<"): ";
+              std::cout << _<<"): ";
             } else {
               int _diff = ((int)_-_prev-1);
-              if (_diff != 0) cout<<">"<<_diff<<">";
+              if (_diff != 0) std::cout<<">"<<_diff<<">";
             }
-            /* cout << std::setprecision(2) << std::fixed; */
+            /* std::cout << std::setprecision(2) << std::fixed; */
             double _rat = (float)m_iphi[_] / (float)adc_sum;
             fmt.Form("%.2f",_rat);
-            cout << fmt <<" ";
+            std::cout << fmt <<" ";
             tempsum += _rat;
             _prev = _;
           }
-          if (tempsum < 0.999) cout << " Z3 sumphirat: " << tempsum;
-          cout << endl;
+          if (tempsum < 0.999) std::cout << " Z3 sumphirat: " << tempsum;
+          std::cout << std::endl;
         }
         if (tsize>8) {
           int _prev = -1;
           double tempsum = 0.;
-          cout << "  iz-from-(";
+          std::cout << "  iz-from-(";
           for (auto _ : v_it) {
             if (_prev == -1) {
-              cout << _<<"): ";
+              std::cout << _<<"): ";
             } else {
               int _diff = ((int)_-_prev-1);
-              if (_diff != 0) cout<<">"<<_diff<<">";
+              if (_diff != 0) std::cout<<">"<<_diff<<">";
             }
-            /* cout << std::setprecision(2) << std::fixed; */
+            /* std::cout << std::setprecision(2) << std::fixed; */
             double _rat = (float)m_it[_] / (float)adc_sum;
             fmt.Form("%.2f",_rat);
-            cout << fmt <<" ";
+            std::cout << fmt <<" ";
             tempsum += _rat;
             _prev = _;
           }
-          if (tempsum < 0.999) cout << " Z3 sumzrat: " << tempsum;
+          if (tempsum < 0.999) std::cout << " Z3 sumzrat: " << tempsum;
         }
-        cout << endl;
+        std::cout << std::endl;
       }
     } // end debug printing
 
@@ -296,7 +295,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track) {
     track->addCluster(cluskey);
     if (mClusHitsVerbose) {
       mClusHitsVerbose->push_hits(cluskey);
-      /* cout << " FIXME z1 ClusHitsVerbose.size: " << mClusHitsVerbose->getMap().size() << endl; */
+      /* std::cout << " FIXME z1 ClusHitsVerbose.size: " << mClusHitsVerbose->getMap().size() << std::endl; */
     }
   }
   m_hits->Reset();
@@ -338,44 +337,44 @@ void TpcClusterBuilder::clear_hitsetkey_cnt() {
 
 void TpcClusterBuilder::print(
     TrkrTruthTrackContainer* truth_tracks, int nclusprint) {
-  cout << " ------------- content of TrkrTruthTrackContainer ---------- " << endl;
+  std::cout << " ------------- content of TrkrTruthTrackContainer ---------- " << std::endl;
   auto& tmap = truth_tracks->getMap();
-  cout << " Number of tracks:  xyz db : " << tmap.size() << endl;
+  std::cout << " Number of tracks:  xyz db : " << tmap.size() << std::endl;
   for (auto& _pair : tmap) {
     auto& track = _pair.second;
 
     printf("id(%2i) phi:eta:pt(", (int)track->getTrackid());
-    cout << "phi:eta:pt(";
+    std::cout << "phi:eta:pt(";
     printf("%5.2f:%5.2f:%5.2f", track->getPhi(), track->getPseudoRapidity(), track->getPt());
       /* Form("%5.2:%5.2:%5.2", track->getPhi(), track->getPseudoRapidity(), track->getPt()) */
       //<<track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt() 
-      cout << ") nclusters(" << track->getClusters().size() <<") ";
-    if (verbosity <= 10) { cout << endl; }
+      std::cout << ") nclusters(" << track->getClusters().size() <<") ";
+    if (verbosity <= 10) { std::cout << std::endl; }
     else {
       int nclus = 0;
       for (auto cluskey : track->getClusters()) {
-        cout << " " 
+        std::cout << " " 
           << ((int) TrkrDefs::getHitSetKeyFromClusKey(cluskey)) <<":index(" <<
           ((int)  TrkrDefs::getClusIndex(cluskey)) << ")";
         ++nclus;
         if (nclusprint > 0 && nclus >= nclusprint) {
-          cout << " ... "; 
+          std::cout << " ... "; 
           break;
         }
       }
     }
   }
-  cout << " ----- end of tracks in TrkrrTruthTrackContainer ------ " << endl;
+  std::cout << " ----- end of tracks in TrkrrTruthTrackContainer ------ " << std::endl;
 }
 
 void TpcClusterBuilder::print_file(
-    TrkrTruthTrackContainer* truth_tracks, string ofile_name)
+  TrkrTruthTrackContainer* truth_tracks, const std::string &ofile_name)
 {
-  ofstream fout;
+  std::ofstream fout;
   fout.open(ofile_name.c_str());
-  fout << " ------------- content of TrkrTruthTrackContainer ---------- " << endl;
+  fout << " ------------- content of TrkrTruthTrackContainer ---------- " << std::endl;
   auto& tmap = truth_tracks->getMap();
-  fout << " Number of tracks: " << tmap.size() << endl;
+  fout << " Number of tracks: " << tmap.size() << std::endl;
   for (auto& _pair : tmap) {
     auto &track = _pair.second;
     fout << " id( " << track->getTrackid() << ")  phi:eta:pt("<<
@@ -394,9 +393,9 @@ void TpcClusterBuilder::print_file(
         << C->getZSize()  <<") ";
       ++nclus;
     }
-    fout << endl;
+    fout << std::endl;
   }
-  fout << " ----- end of tracks in TrkrrTruthTrackContainer ------ " << endl;
+  fout << " ----- end of tracks in TrkrrTruthTrackContainer ------ " << std::endl;
   fout.close();
 }
 
