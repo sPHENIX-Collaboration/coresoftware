@@ -3044,7 +3044,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             if (tpcseed)
             {
 	      tpqr = tpcseed->get_qOverR();
-	      tpphi = tpcseed->get_phi(clustermap,tgeometry);
+	      tpphi = tpcseed->get_phi();
 	      tpthe = tpcseed->get_theta();
 	      tpx0 = tpcseed->get_X0();
 	      tpy0 = tpcseed->get_Y0();
@@ -3583,7 +3583,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         if (tpcseed)
         {
 	  tpqr = tpcseed->get_qOverR();
-	  tpphi = tpcseed->get_phi(clustermap,tgeometry);
+	  tpphi = tpcseed->get_phi();
 	  tpthe = tpcseed->get_theta();
 	  tpx0 = tpcseed->get_X0();
 	  tpy0 = tpcseed->get_Y0();
