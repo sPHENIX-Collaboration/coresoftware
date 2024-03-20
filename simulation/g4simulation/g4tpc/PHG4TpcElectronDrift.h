@@ -5,16 +5,16 @@
 
 #include "TpcClusterBuilder.h"
 
-#include <array>
-#include <cmath>
-#include <fstream>
 #include <fun4all/SubsysReco.h>
 #include <g4main/PHG4HitContainer.h>
 #include <gsl/gsl_rng.h>
-#include <memory>
 #include <phparameter/PHParameterInterface.h>
-#include <string>
 #include <trackbase/ActsGeometry.h>
+#include <array>
+#include <cmath>
+#include <fstream>
+#include <memory>
+#include <string>
 
 class PHG4TpcPadPlane;
 class PHG4TpcDistortion;
@@ -37,7 +37,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
-  ~PHG4TpcElectronDrift() override { };
+  ~PHG4TpcElectronDrift() override{};
   int Init(PHCompositeNode *) override;
   int InitRun(PHCompositeNode *) override;
   int process_event(PHCompositeNode *) override;
@@ -62,31 +62,30 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
   //! setup TPC distortion
   void setTpcDistortion(PHG4TpcDistortion *);
-  
+
   //
   void set_flag_threshold_distortion(bool setflag, float setthreshold)
   {
-  	printf("The logical status of threshold is now %d! and the value is set to %f\n\n\n", setflag, setthreshold);
-  	do_getReachReadout = setflag;
-  	thresholdforreachesreadout = setthreshold;
+    printf("The logical status of threshold is now %d! and the value is set to %f\n\n\n", setflag, setthreshold);
+    do_getReachReadout = setflag;
+    thresholdforreachesreadout = setthreshold;
   }
-
 
   //! setup readout plane
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
   // cluster the PHG4Tracks individually
-  TpcClusterBuilder truth_clusterer {};
-  void set_pixel_thresholdrat (double val) { truth_clusterer.set_pixel_thresholdrat(val); };
-  void set_max_g4hitstep (float _) { max_g4hitstep =_; };
-  void set_ClusHitsVerbose(bool set=true) { record_ClusHitsVerbose = set; };
+  TpcClusterBuilder truth_clusterer{};
+  void set_pixel_thresholdrat(double val) { truth_clusterer.set_pixel_thresholdrat(val); };
+  void set_max_g4hitstep(float _) { max_g4hitstep = _; };
+  void set_ClusHitsVerbose(bool set = true) { record_ClusHitsVerbose = set; };
   void set_zero_bfield_flag(bool flag) { zero_bfield = flag; };
-  void set_zero_bfield_diffusion_factor(double f) {zero_bfield_diffusion_factor = f ; };
-  ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
+  void set_zero_bfield_diffusion_factor(double f) { zero_bfield_diffusion_factor = f; };
+  ClusHitsVerbosev1 *mClusHitsVerbose{nullptr};
 
  private:
-  float max_g4hitstep { 7. };
-  bool  record_ClusHitsVerbose { false };
+  float max_g4hitstep{7.};
+  bool record_ClusHitsVerbose{false};
   //! map a given x,y,z coordinates to plane hits
   /* TpcClusterBuilder MapToPadPlane(const double x, const double y, const */
   /*     double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, */
@@ -98,13 +97,13 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TrkrHitTruthAssoc *hittruthassoc = nullptr;
   TrkrTruthTrackContainer *truthtracks = nullptr;
   TrkrTruthTrack *truth_track = nullptr;
-  TrkrClusterContainer *truthclustercontainer = nullptr; // the TrkrClusterContainer for truth clusters
+  TrkrClusterContainer *truthclustercontainer = nullptr;  // the TrkrClusterContainer for truth clusters
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<TrkrHitSetContainer> single_hitsetcontainer;
   std::unique_ptr<PHG4TpcPadPlane> padplane;
 
   std::unique_ptr<PHG4TpcDistortion> m_distortionMap;
-  ActsGeometry* m_tGeometry{};
+  ActsGeometry *m_tGeometry{};
   PHG4TpcCylinderGeomContainer *seggeo{};
 
   int event_num = 0;
