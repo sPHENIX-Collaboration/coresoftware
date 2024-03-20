@@ -49,13 +49,13 @@ PHG4TpcCentralMembrane::PHG4TpcCentralMembrane(const std::string& name)
       str_width_R1_e[i][j] = 1.0 * mm;
       str_width_R1[i][j] = 1.0 * mm;
     }
-    for (int i = 0; i < nStripes_R2; i++)
+    for (auto & i : str_width_R2)
     {
-      str_width_R2[i][j] = 1.0 * mm;
+      i[j] = 1.0 * mm;
     }
-    for (int i = 0; i < nStripes_R3; i++)
+    for (auto & i : str_width_R3)
     {
-      str_width_R3[i][j] = 1.0 * mm;
+      i[j] = 1.0 * mm;
     }
   }
 
@@ -160,7 +160,8 @@ int PHG4TpcCentralMembrane::process_event(PHCompositeNode* topNode)
   
   if(m_eventNum % m_eventModulo != 0)
   {
-    if(Verbosity()) std::cout << "Event " << m_eventNum << " will not generate CM hits" << std::endl;
+    if(Verbosity()) { std::cout << "Event " << m_eventNum << " will not generate CM hits" << std::endl;
+}
     m_eventNum++;
     return Fun4AllReturnCodes::EVENT_OK;
   }
@@ -371,14 +372,18 @@ int PHG4TpcCentralMembrane::SearchModule(int /*nStripes*/,
   {
     for (int i = 0; i < nGoodStripes[j]; i++)
     {
-      if (((y1a[i][j] > y) != (y2a[i][j] > y) && (x < (x2a[i][j] - x1a[i][j]) * (y - y1a[i][j]) / (y2a[i][j] - y1a[i][j]) + x1a[i][j])))
+      if (((y1a[i][j] > y) != (y2a[i][j] > y) && (x < (x2a[i][j] - x1a[i][j]) * (y - y1a[i][j]) / (y2a[i][j] - y1a[i][j]) + x1a[i][j]))) {
         c = !c;
-      if (((y1b[i][j] > y) != (y1a[i][j] > y) && (x < (x1a[i][j] - x1b[i][j]) * (y - y1b[i][j]) / (y1a[i][j] - y1b[i][j]) + x1b[i][j])))
+}
+      if (((y1b[i][j] > y) != (y1a[i][j] > y) && (x < (x1a[i][j] - x1b[i][j]) * (y - y1b[i][j]) / (y1a[i][j] - y1b[i][j]) + x1b[i][j]))) {
         c = !c;
-      if (((y2b[i][j] > y) != (y1b[i][j] > y) && (x < (x1b[i][j] - x2b[i][j]) * (y - y2b[i][j]) / (y1b[i][j] - y2b[i][j]) + x2b[i][j])))
+}
+      if (((y2b[i][j] > y) != (y1b[i][j] > y) && (x < (x1b[i][j] - x2b[i][j]) * (y - y2b[i][j]) / (y1b[i][j] - y2b[i][j]) + x2b[i][j]))) {
         c = !c;
-      if (((y2a[i][j] > y) != (y2b[i][j] > y) && (x < (x2b[i][j] - x2a[i][j]) * (y - y2a[i][j]) / (y2b[i][j] - y2a[i][j]) + x2a[i][j])))
+}
+      if (((y2a[i][j] > y) != (y2b[i][j] > y) && (x < (x2b[i][j] - x2a[i][j]) * (y - y2a[i][j]) / (y2b[i][j] - y2a[i][j]) + x2a[i][j]))) {
         c = !c;
+}
 
       //check inside arcs
       if (c == 0)
