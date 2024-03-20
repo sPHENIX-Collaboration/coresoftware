@@ -21,6 +21,7 @@
 #include <cmath>  // for sqrt, cos, sin
 #include <ios>
 #include <iostream>
+#include <limits>
 #include <map>  // for _Rb_tree_cons...
 #include <set>
 
@@ -83,9 +84,9 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
     double radius = layergeom->get_radius();  // returns center of layer
 
     int phibinhi = -1;
-    int phibinlo = INT_MAX;
+    int phibinlo = std::numeric_limits<int>::max();
     int tbinhi = -1;
-    int tbinlo = INT_MAX;
+    int tbinlo = std::numeric_limits<int>::max();
 
     auto ihit_list = hitset->getHits();
 
