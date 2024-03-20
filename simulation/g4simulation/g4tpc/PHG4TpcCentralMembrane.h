@@ -105,81 +105,81 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
   static constexpr std::array<double, nRadii> widthmod_R2 = {{1.015, 1.007, 1.002, 1.000, 1.001, 1.006, 1.013, 1.023}};
   static constexpr std::array<double, nRadii> widthmod_R3 = {{1.044, 1.064, 1.087, 1.115, 1.147, 1.186, 1.232, 1.288}};
 
-  std::array<double, nRadii> spacing_R1_e {};
-  std::array<double, nRadii> spacing_R1 {};
-  std::array<double, nRadii> spacing_R2 {};
-  std::array<double, nRadii> spacing_R3 {};
+  std::array<double, nRadii> spacing_R1_e{};
+  std::array<double, nRadii> spacing_R1{};
+  std::array<double, nRadii> spacing_R2{};
+  std::array<double, nRadii> spacing_R3{};
 
-  //bottom left - 1a
-  double x1a_R1_e[nStripes_R1][nRadii] {};
-  double y1a_R1_e[nStripes_R1][nRadii] {};
-  double x1a_R1[nStripes_R1][nRadii] {};
-  double y1a_R1[nStripes_R1][nRadii] {};
-  double x1a_R2[nStripes_R2][nRadii] {};
-  double y1a_R2[nStripes_R2][nRadii] {};
-  double x1a_R3[nStripes_R3][nRadii] {};
-  double y1a_R3[nStripes_R3][nRadii] {};
+  // bottom left - 1a
+  double x1a_R1_e[nStripes_R1][nRadii]{};
+  double y1a_R1_e[nStripes_R1][nRadii]{};
+  double x1a_R1[nStripes_R1][nRadii]{};
+  double y1a_R1[nStripes_R1][nRadii]{};
+  double x1a_R2[nStripes_R2][nRadii]{};
+  double y1a_R2[nStripes_R2][nRadii]{};
+  double x1a_R3[nStripes_R3][nRadii]{};
+  double y1a_R3[nStripes_R3][nRadii]{};
 
-  //bottom right - 1b
+  // bottom right - 1b
   double x1b_R1_e[nStripes_R1][nRadii]{};
   double y1b_R1_e[nStripes_R1][nRadii]{};
   double x1b_R1[nStripes_R1][nRadii]{};
-double y1b_R1[nStripes_R1][nRadii]{};
-double x1b_R2[nStripes_R2][nRadii]{};
-double y1b_R2[nStripes_R2][nRadii]{};
-double x1b_R3[nStripes_R3][nRadii]{};
-double y1b_R3[nStripes_R3][nRadii]{};
+  double y1b_R1[nStripes_R1][nRadii]{};
+  double x1b_R2[nStripes_R2][nRadii]{};
+  double y1b_R2[nStripes_R2][nRadii]{};
+  double x1b_R3[nStripes_R3][nRadii]{};
+  double y1b_R3[nStripes_R3][nRadii]{};
 
-  //top left - 2a
+  // top left - 2a
   double x2a_R1_e[nStripes_R1][nRadii]{};
-double y2a_R1_e[nStripes_R1][nRadii]{};
+  double y2a_R1_e[nStripes_R1][nRadii]{};
   double x2a_R1[nStripes_R1][nRadii]{};
-double y2a_R1[nStripes_R1][nRadii]{};
+  double y2a_R1[nStripes_R1][nRadii]{};
   double x2a_R2[nStripes_R2][nRadii]{};
-double y2a_R2[nStripes_R2][nRadii]{};
+  double y2a_R2[nStripes_R2][nRadii]{};
   double x2a_R3[nStripes_R3][nRadii]{};
-double y2a_R3[nStripes_R3][nRadii]{};
+  double y2a_R3[nStripes_R3][nRadii]{};
 
-  //top right - 2b
+  // top right - 2b
   double x2b_R1_e[nStripes_R1][nRadii]{};
- double y2b_R1_e[nStripes_R1][nRadii]{};
+  double y2b_R1_e[nStripes_R1][nRadii]{};
   double x2b_R1[nStripes_R1][nRadii]{};
- double y2b_R1[nStripes_R1][nRadii]{};
+  double y2b_R1[nStripes_R1][nRadii]{};
   double x2b_R2[nStripes_R2][nRadii]{};
- double y2b_R2[nStripes_R2][nRadii]{};
+  double y2b_R2[nStripes_R2][nRadii]{};
   double x2b_R3[nStripes_R3][nRadii]{};
- double y2b_R3[nStripes_R3][nRadii]{};
+  double y2b_R3[nStripes_R3][nRadii]{};
 
-  //left midpoint - 3a
+  // left midpoint - 3a
   double x3a_R1_e[nStripes_R1][nRadii]{};
- double y3a_R1_e[nStripes_R1][nRadii]{};
+  double y3a_R1_e[nStripes_R1][nRadii]{};
   double x3a_R1[nStripes_R1][nRadii]{};
- double y3a_R1[nStripes_R1][nRadii]{};
+  double y3a_R1[nStripes_R1][nRadii]{};
   double x3a_R2[nStripes_R2][nRadii]{};
- double y3a_R2[nStripes_R2][nRadii]{};
+  double y3a_R2[nStripes_R2][nRadii]{};
   double x3a_R3[nStripes_R3][nRadii]{};
- double y3a_R3[nStripes_R3][nRadii]{};
+  double y3a_R3[nStripes_R3][nRadii]{};
 
-  //right midpoint - 3b
+  // right midpoint - 3b
   double x3b_R1_e[nStripes_R1][nRadii]{};
- double y3b_R1_e[nStripes_R1][nRadii]{};
+  double y3b_R1_e[nStripes_R1][nRadii]{};
   double x3b_R1[nStripes_R1][nRadii]{};
- double y3b_R1[nStripes_R1][nRadii]{};
+  double y3b_R1[nStripes_R1][nRadii]{};
   double x3b_R2[nStripes_R2][nRadii]{};
- double y3b_R2[nStripes_R2][nRadii]{};
+  double y3b_R2[nStripes_R2][nRadii]{};
   double x3b_R3[nStripes_R3][nRadii]{};
- double y3b_R3[nStripes_R3][nRadii]{};
+  double y3b_R3[nStripes_R3][nRadii]{};
 
-  //Check which stripes get removed
+  // Check which stripes get removed
   std::array<int, nRadii> nGoodStripes_R1_e = {};
   std::array<int, nRadii> nGoodStripes_R1 = {};
   std::array<int, nRadii> nGoodStripes_R2 = {};
   std::array<int, nRadii> nGoodStripes_R3 = {};
 
-  ///min stripe index
+  /// min stripe index
   static constexpr std::array<int, nRadii> keepThisAndAfter = {{1, 0, 1, 0, 1, 0, 1, 0}};
 
-  ///max stripe index
+  /// max stripe index
   static constexpr std::array<int, nRadii> keepUntil_R1_e = {{4, 4, 5, 4, 5, 5, 5, 5}};
   static constexpr std::array<int, nRadii> keepUntil_R1 = {{5, 5, 6, 5, 6, 5, 6, 5}};
   static constexpr std::array<int, nRadii> keepUntil_R2 = {{7, 7, 8, 7, 8, 8, 8, 8}};
@@ -202,8 +202,8 @@ double y2a_R3[nStripes_R3][nRadii]{};
   int electrons_per_stripe = 300;
 
   // number of electrons per deposited GeV in TPC gas
-  /** 
-   * it is used to convert a given number of electrons into an energy 
+  /**
+   * it is used to convert a given number of electrons into an energy
    * as expected by G4Hit. The energy is then converted back to a number of electrons
    * inside PHG4TpcElectronDrift
    */
