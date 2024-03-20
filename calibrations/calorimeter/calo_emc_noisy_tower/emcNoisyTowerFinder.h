@@ -29,7 +29,7 @@ class emcNoisyTowerFinder : public SubsysReco
 {
  public:
 
-  emcNoisyTowerFinder(const std::string name, const std::string &outputName = "emcNoisyTowerFinder.root", const std::string &cdbtreename = "test.root", float adccut_sg = 250,float adccut_k = 500, float sigmas_lo = 1, float sigmas_hi = 4.5, float SG_f = 0.55, float Kur_f = 0.55, float region_f = 0.55);
+  explicit emcNoisyTowerFinder(const std::string &name = "emcNoisyTowerFinder", const std::string &outputName = "emcNoisyTowerFinder.root", const std::string &cdbtreename = "test.root", float adccut_sg = 250,float adccut_k = 500, float sigmas_lo = 1, float sigmas_hi = 4.5, float SG_f = 0.55, float Kur_f = 0.55, float region_f = 0.55);
 
   ~emcNoisyTowerFinder() override;
 
@@ -75,12 +75,12 @@ class emcNoisyTowerFinder : public SubsysReco
   
  private:
 
-  TTree *T;
-  TFile *out;
+  TTree *T = NULL;
+  TFile *out = NULL;
 
 //  CDBTTree *cdbttree;
  
-  TFile*fchannels;
+  TFile *fchannels;
   TTree *channels;
 
   int fiber_type = 0;
@@ -118,7 +118,7 @@ class emcNoisyTowerFinder : public SubsysReco
   float Kur_f;
   float region_f;
 	
-  int m_hot_channels;
+  int m_hot_channels = 0;
   float towerF[nTowers] = {0};
   float sectorF[nSectors] = {0};
   float ibF[nIB] = {0};
