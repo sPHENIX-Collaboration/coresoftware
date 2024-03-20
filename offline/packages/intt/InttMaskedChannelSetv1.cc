@@ -29,10 +29,8 @@ std::size_t InttMaskedChannelSetv1::size() const
 int InttMaskedChannelSetv1::v_LoadFromCDBTTree(
     CDBTTree& cdbttree)
 {
-  if (!m_HotChannelSet)
-  {
-    m_HotChannelSet = new Set_t;
-  }
+  delete m_HotChannelSet;
+  m_HotChannelSet = new Set_t;
 
   m_HotChannelSet->clear();
   Long64_t N = cdbttree.GetSingleIntValue("size");
@@ -42,8 +40,8 @@ int InttMaskedChannelSetv1::v_LoadFromCDBTTree(
         .layer = cdbttree.GetIntValue(n, "layer"),
         .ladder_phi = cdbttree.GetIntValue(n, "ladder_phi"),
         .ladder_z = cdbttree.GetIntValue(n, "ladder_z"),
-        .strip_phi = cdbttree.GetIntValue(n, "strip_phi"),
         .strip_z = cdbttree.GetIntValue(n, "strip_z"),
+        .strip_phi = cdbttree.GetIntValue(n, "strip_phi"),
     });
   }
 
